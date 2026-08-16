@@ -58,6 +58,31 @@
 
   caso('registro con país inventado', function(){ regOk(); val('rg-pais','Talia'); }, 'formReg','msgReg','Elige un país de la lista.');
 
+  /* ---------- NOMBRE EN MAYÚSCULAS ---------- */
+  (function(){
+    var n = document.getElementById('rg-nombre');
+    function teclea(v){ n.value=v; n.dispatchEvent(new Event('input',{bubbles:true})); return n.value; }
+    function sale(v){ n.value=v; n.dispatchEvent(new Event('blur',{bubbles:true})); return n.value; }
+
+    R.push({n:'al escribir sube las iniciales', ok:(teclea('marco bianchi')==='Marco Bianchi'),
+            got:teclea('marco bianchi'), exp:'Marco Bianchi'});
+    R.push({n:'no estropea lo ya escrito en mayúscula', ok:(teclea('McDonald Llosa')==='McDonald Llosa'),
+            got:teclea('McDonald Llosa'), exp:'McDonald Llosa'});
+    R.push({n:'nombres compuestos con guion', ok:(teclea('jean-pierre du pont')==='Jean-Pierre Du Pont'),
+            got:teclea('jean-pierre du pont'), exp:'Jean-Pierre Du Pont'});
+    R.push({n:'respeta las tildes', ok:(teclea('ángel íñigo')==='Ángel Íñigo'),
+            got:teclea('ángel íñigo'), exp:'Ángel Íñigo'});
+    R.push({n:'al salir arregla TODO EN MAYÚSCULAS', ok:(sale('PEDRO PEREZ RONDON')==='Pedro Perez Rondon'),
+            got:sale('PEDRO PEREZ RONDON'), exp:'Pedro Perez Rondon'});
+    R.push({n:'al salir deja en minúscula las partículas', ok:(sale('juan DE LA cruz')==='Juan de la Cruz'),
+            got:sale('juan DE LA cruz'), exp:'Juan de la Cruz'});
+    R.push({n:'una partícula al principio sí va en mayúscula', ok:(sale('de la torre ana')==='De la Torre Ana'),
+            got:sale('de la torre ana'), exp:'De la Torre Ana'});
+    R.push({n:'al salir quita espacios de sobra', ok:(sale('  ana   maria  ')==='Ana Maria'),
+            got:'"'+sale('  ana   maria  ')+'"', exp:'Ana Maria'});
+    n.value='';
+  })();
+
   /* ---------- BUSCADOR DE PAÍSES ---------- */
   R.push({n:'la lista de países se construyó', ok:(PAISES.length>180), got:PAISES.length+' países', exp:'más de 180'});
 

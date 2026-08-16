@@ -813,6 +813,65 @@ function construirPaises(idioma){
   };
 })();
 
+/* ══════════════════════════════════════════════════════════════════════
+   NOMBRE CON INICIALES EN MAYÚSCULA
+   ══════════════════════════════════════════════════════════════════════
+   Trabaja en dos tiempos, a propósito:
+
+   · MIENTRAS SE ESCRIBE solo sube la primera letra de cada palabra y no
+     toca nada más. Como no cambia la longitud del texto, el cursor no se
+     mueve, y no se pelea con quien quiera escribir "McDonald" o "LLosa".
+
+   · AL SALIR DEL CAMPO ya normaliza entero: "PEDRO PEREZ" pasa a "Pedro
+     Pérez"... bueno, a "Pedro Perez" — las tildes no se inventan.
+     Ese es el momento seguro para reformatear, porque nadie está tecleando.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Partículas que dentro de un nombre van en minúscula: "Juan de la Cruz",
+   "Ana dos Santos", "Ludwig van Beethoven". Nunca si abren el nombre. */
+var PARTICULAS = ['de','del','la','las','los','y','e','da','das','do','dos',
+                  'van','von','di','du','della','degli','dei','al','bin','ibn'];
+
+var SEPARA = [' ', '-', "'", '’'];
+
+/* sube la inicial de cada palabra, sin tocar el resto */
+function mayusIniciales(s){
+  var out = '', subir = true;
+  for (var i = 0; i < s.length; i++){
+    var c = s.charAt(i);
+    if (SEPARA.indexOf(c) >= 0){ out += c; subir = true; }
+    else if (subir){ out += c.toUpperCase(); subir = false; }
+    else { out += c; }
+  }
+  return out;
+}
+
+/* normalización completa, para cuando el campo pierde el foco */
+function normalizarNombre(s){
+  s = String(s || '').replace(/\s+/g, ' ').trim();
+  if (!s) return '';
+  return s.toLowerCase().split(' ').map(function(p, i){
+    return (i > 0 && PARTICULAS.indexOf(p) >= 0) ? p : mayusIniciales(p);
+  }).join(' ');
+}
+
+(function(){
+  var campo = document.getElementById('rg-nombre');
+  if (!campo) return;
+  campo.addEventListener('input', function(){
+    var pos = campo.selectionStart;
+    var nuevo = mayusIniciales(campo.value);
+    if (nuevo !== campo.value){
+      campo.value = nuevo;
+      /* mismo largo, así que se devuelve el cursor donde estaba */
+      try{ campo.setSelectionRange(pos, pos); }catch(e){}
+    }
+  });
+  campo.addEventListener('blur', function(){
+    campo.value = normalizarNombre(campo.value);
+  });
+})();
+
 /* ---------- utilidades de formulario ---------- */
 var ICO_ERR = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5M12 16h.01"/></svg>';
 var ICO_OK  = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.3l2.4 2.4 4.6-4.9"/></svg>';
