@@ -18,9 +18,7 @@
   function malos(){ return Array.prototype.slice.call(document.querySelectorAll('.field.bad')).map(function(f){return f.id;}).sort().join(','); }
   function val(id,v){ var e=document.getElementById(id); if(e.type==='checkbox'){e.checked=v;} else {e.value=v;} }
   function limpiaTodo(){
-    ['li-email','li-pass','rg-nombre','rg-pais','rg-email','rg-pass','rg-pass2','rc-email','nv-pass','nv-pass2']
-      .forEach(function(i){ val(i,''); });
-    val('rg-terms',false);
+    ['li-email','li-pass','rc-email','nv-pass','nv-pass2'].forEach(function(i){ val(i,''); });
     document.querySelectorAll('.msg').forEach(function(m){m.classList.remove('show','err','ok');});
     document.querySelectorAll('.field').forEach(function(f){f.classList.remove('bad');});
   }
@@ -46,83 +44,6 @@
   caso('login correo inválido', function(){ val('li-email','hola'); val('li-pass','12345678'); }, 'formLogin','msgLogin',CORREO);
   caso('login datos correctos (sin Supabase)', function(){ val('li-email','a@b.com'); val('li-pass','12345678'); }, 'formLogin','msgLogin',SIN_BD);
 
-  /* ---------- CREAR CUENTA ---------- */
-  /* el país ya no es texto libre: hay que elegir uno real */
-  function regOk(){ val('rg-nombre','X'); val('rg-pais','Italia'); val('rg-email','a@b.com'); val('rg-pass','12345678'); val('rg-pass2','12345678'); val('rg-terms',true); }
-  caso('registro vacío', function(){}, 'formReg','msgReg',VACIO);
-  caso('registro correo inválido', function(){ regOk(); val('rg-email','nope'); }, 'formReg','msgReg',CORREO);
-  caso('registro clave corta', function(){ regOk(); val('rg-pass','1234'); val('rg-pass2','1234'); }, 'formReg','msgReg',CORTA);
-  caso('registro claves distintas', function(){ regOk(); val('rg-pass2','87654321'); }, 'formReg','msgReg',DISTIN);
-  caso('registro sin aceptar términos', function(){ regOk(); val('rg-terms',false); }, 'formReg','msgReg','Debes aceptar el tratamiento de datos para continuar.');
-  caso('registro correcto (sin Supabase)', regOk, 'formReg','msgReg',SIN_BD);
-
-  caso('registro con país inventado', function(){ regOk(); val('rg-pais','Talia'); }, 'formReg','msgReg','Elige un país de la lista.');
-
-  /* ---------- NOMBRE EN MAYÚSCULAS ---------- */
-  (function(){
-    var n = document.getElementById('rg-nombre');
-    function teclea(v){ n.value=v; n.dispatchEvent(new Event('input',{bubbles:true})); return n.value; }
-    function sale(v){ n.value=v; n.dispatchEvent(new Event('blur',{bubbles:true})); return n.value; }
-
-    R.push({n:'al escribir sube las iniciales', ok:(teclea('marco bianchi')==='Marco Bianchi'),
-            got:teclea('marco bianchi'), exp:'Marco Bianchi'});
-    R.push({n:'no estropea lo ya escrito en mayúscula', ok:(teclea('McDonald Llosa')==='McDonald Llosa'),
-            got:teclea('McDonald Llosa'), exp:'McDonald Llosa'});
-    R.push({n:'nombres compuestos con guion', ok:(teclea('jean-pierre du pont')==='Jean-Pierre Du Pont'),
-            got:teclea('jean-pierre du pont'), exp:'Jean-Pierre Du Pont'});
-    R.push({n:'respeta las tildes', ok:(teclea('ángel íñigo')==='Ángel Íñigo'),
-            got:teclea('ángel íñigo'), exp:'Ángel Íñigo'});
-    R.push({n:'al salir arregla TODO EN MAYÚSCULAS', ok:(sale('PEDRO PEREZ RONDON')==='Pedro Perez Rondon'),
-            got:sale('PEDRO PEREZ RONDON'), exp:'Pedro Perez Rondon'});
-    R.push({n:'al salir deja en minúscula las partículas', ok:(sale('juan DE LA cruz')==='Juan de la Cruz'),
-            got:sale('juan DE LA cruz'), exp:'Juan de la Cruz'});
-    R.push({n:'una partícula al principio sí va en mayúscula', ok:(sale('de la torre ana')==='De la Torre Ana'),
-            got:sale('de la torre ana'), exp:'De la Torre Ana'});
-    R.push({n:'al salir quita espacios de sobra', ok:(sale('  ana   maria  ')==='Ana Maria'),
-            got:'"'+sale('  ana   maria  ')+'"', exp:'Ana Maria'});
-    n.value='';
-  })();
-
-  /* ---------- BUSCADOR DE PAÍSES ---------- */
-  R.push({n:'la lista de países se construyó', ok:(PAISES.length>180), got:PAISES.length+' países', exp:'más de 180'});
-
-  var campo=document.getElementById('rg-pais'), lista=document.getElementById('listaPais');
-  limpiaTodo();
-  campo.value='ital'; campo.dispatchEvent(new Event('input',{bubbles:true}));
-  var op=lista.querySelectorAll('li[role="option"]');
-  R.push({n:'escribir "ital" filtra', ok:(op.length>0 && op.length<12 && /Italia/.test(lista.textContent)), got:op.length+' resultados: '+lista.textContent.replace(/\s+/g,' ').slice(0,60), exp:'pocos, con Italia'});
-
-  campo.value='peru'; campo.dispatchEvent(new Event('input',{bubbles:true}));
-  R.push({n:'busca sin tildes ("peru" halla "Perú")', ok:/Per/.test(lista.textContent), got:lista.textContent.replace(/\s+/g,' ').slice(0,40), exp:'aparece Perú'});
-
-  campo.value='venez'; campo.dispatchEvent(new Event('input',{bubbles:true}));
-  var pri=lista.querySelector('li[role="option"]');
-  if(pri) pri.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true}));
-  R.push({n:'elegir con el ratón rellena el campo', ok:(campo.value.indexOf('Venezuela')>=0 && document.getElementById('rg-pais-cod').value==='VE'),
-          got:'campo="'+campo.value+'" codigo="'+document.getElementById('rg-pais-cod').value+'"', exp:'Venezuela / VE'});
-
-  campo.value='esp'; campo.dispatchEvent(new Event('input',{bubbles:true}));
-  campo.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));
-  var sel=lista.querySelector('li.sel');
-  R.push({n:'la flecha abajo marca un resultado', ok:!!sel, got:(sel?sel.textContent.trim():'ninguno'), exp:'uno marcado'});
-
-  /* el país elegido se retraduce al cambiar de idioma, sin perder el código */
-  campo.value='venez'; campo.dispatchEvent(new Event('input',{bubbles:true}));
-  var p0=lista.querySelector('li[role="option"]'); if(p0) p0.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true}));
-  var antes=campo.value;
-  applyLang('zh');
-  var despues=campo.value, codIgual=(document.getElementById('rg-pais-cod').value==='VE');
-  applyLang('es');
-  R.push({n:'el país se retraduce al cambiar de idioma', ok:(antes!==despues && codIgual && campo.value===antes),
-          got:'es="'+antes+'" zh="'+despues+'" vuelve="'+campo.value+'"', exp:'cambia y vuelve, código intacto'});
-
-  R.push({n:'lo que se guarda va siempre en español', ok:(function(){
-            campo.value='venez'; campo.dispatchEvent(new Event('input',{bubbles:true}));
-            var x=lista.querySelector('li[role="option"]'); if(x) x.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true}));
-            applyLang('en'); var g=window.paisParaGuardar(); applyLang('es');
-            return g==='Venezuela';
-          })(), got:'—', exp:'Venezuela'});
-
   /* ---------- RECUPERAR ---------- */
   caso('recuperar vacío', function(){}, 'formRec','msgRec',VACIO);
   caso('recuperar correo inválido', function(){ val('rc-email','xx'); }, 'formRec','msgRec',CORREO);
@@ -135,7 +56,7 @@
 
   /* ---------- NAVEGACIÓN ---------- */
   limpiaTodo();
-  ['registro','recuperar','nueva','login'].forEach(function(v){
+  ['recuperar','nueva','login'].forEach(function(v){
     irA(v);
     var on = document.querySelector('.view.on');
     R.push({n:'navegar a '+v, ok:(on && on.id==='v-'+v), got:(on?on.id:'ninguna'), exp:'v-'+v});
@@ -143,7 +64,7 @@
 
   limpiaTodo(); enviar('formLogin');
   var habia = texto('msgLogin') !== '';
-  irA('registro'); irA('login');
+  irA('recuperar'); irA('login');
   R.push({n:'cambiar de vista limpia el mensaje', ok:(habia && texto('msgLogin')===''), got:'antes='+habia+' despues="'+texto('msgLogin')+'"', exp:'vacío'});
 
   /* ---------- TRADUCCIÓN EN CALIENTE ---------- */
@@ -197,11 +118,38 @@
           got:SUPABASE_URL, exp:'el valor de config.js'});
   R.push({n:'RUTA_PANEL sale de config.js', ok:(RUTA_PANEL===window.CIIP_CONFIG.RUTA_PANEL), got:RUTA_PANEL, exp:window.CIIP_CONFIG.RUTA_PANEL});
 
-  /* ---------- MARCA ---------- */
-  R.push({n:'el logo carga', ok:(function(){ var i=document.querySelector('.brand-mark'); return !!i && i.complete && i.naturalWidth>0; })(),
-          got:(function(){ var i=document.querySelector('.brand-mark'); return i? i.naturalWidth+'x'+i.naturalHeight : 'no existe'; })(), exp:'199x72'});
-  R.push({n:'el nombre está al lado, como texto', ok:!!document.querySelector('.brand-lockup .brand-name'),
-          got:(document.querySelector('.brand-name')||{textContent:'no existe'}).textContent.replace(/\s+/g,' ').trim(), exp:'texto real'});
+  /* ---------- SIN CREAR CUENTA ----------
+     Las cuentas las abre el CIIP: aquí no se puede crear ninguna. Estas tres
+     lo comprueban por los tres caminos por los que alguien podría llegar. */
+  R.push({n:'la vista de registro ya no existe', ok:!document.getElementById('v-registro'),
+          got:(document.getElementById('v-registro')?'sigue ahí':'no existe'), exp:'no existe'});
+  R.push({n:'no hay enlace para crear cuenta', ok:!document.querySelector('[data-go="registro"]'),
+          got:(document.querySelector('[data-go="registro"]')?'hay uno':'ninguno'), exp:'ninguno'});
+  R.push({n:'escribir #registro no abre nada', ok:(function(){
+            irA('login'); irA('registro');
+            var on=document.querySelector('.view.on');
+            return !!on && on.id==='v-login';
+          })(), got:(document.querySelector('.view.on')||{id:'ninguna'}).id, exp:'v-login'});
+  R.push({n:'no quedan campos del registro', ok:(function(){
+            return !document.getElementById('rg-nombre') && !document.getElementById('rg-pais') &&
+                   !document.getElementById('rg-email') && !document.getElementById('formReg');
+          })(), got:'ninguno', exp:'ninguno'});
+
+  /* ---------- DISPOSICIÓN DE TARJETA ---------- */
+  R.push({n:'la tarjeta existe', ok:!!document.querySelector('.marco .tarjeta'),
+          got:(document.querySelector('.tarjeta')?'si':'no'), exp:'si'});
+  R.push({n:'la tarjeta tiene sus dos lados', ok:!!(document.querySelector('.tarjeta .lado-form') && document.querySelector('.tarjeta .lado-arte')),
+          got:'form='+!!document.querySelector('.lado-form')+' arte='+!!document.querySelector('.lado-arte'), exp:'los dos'});
+  R.push({n:'el rótulo se traduce', ok:(function(){
+            applyLang('es'); var a=document.querySelector('.marca').textContent;
+            applyLang('ru'); var b=document.querySelector('.marca').textContent;
+            applyLang('es'); return a==='Ventanilla Única' && b!==a;
+          })(), got:document.querySelector('.marca').textContent, exp:'Ventanilla Única / cambia'});
+  R.push({n:'la ilustración no la lee el lector de pantalla', ok:(document.querySelector('.lado-arte').getAttribute('aria-hidden')==='true'),
+          got:document.querySelector('.lado-arte').getAttribute('aria-hidden'), exp:'true'});
+  R.push({n:'el pie está fuera de la tarjeta', ok:(function(){
+            var p=document.querySelector('.pie'); return !!p && !p.closest('.tarjeta');
+          })(), got:(document.querySelector('.pie')?'existe':'no existe'), exp:'fuera'});
 
   /* ---------- volcado ---------- */
   var pre=document.createElement('pre'); pre.id='RESULTADOS';

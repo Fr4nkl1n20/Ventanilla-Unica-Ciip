@@ -27,7 +27,7 @@ $ErrorActionPreference = 'Stop'
 $MIME = @{
   '.html'='text/html; charset=utf-8'; '.htm'='text/html; charset=utf-8'
   '.js'='text/javascript; charset=utf-8'; '.css'='text/css; charset=utf-8'
-  '.png'='image/png'; '.jpg'='image/jpeg'; '.jpeg'='image/jpeg'
+  '.png'='image/png'; '.jpg'='image/jpeg'; '.jpeg'='image/jpeg'; '.webp'='image/webp'
   '.svg'='image/svg+xml'; '.gif'='image/gif'; '.ico'='image/x-icon'
   '.json'='application/json; charset=utf-8'; '.md'='text/plain; charset=utf-8'
   '.sql'='text/plain; charset=utf-8'; '.txt'='text/plain; charset=utf-8'
