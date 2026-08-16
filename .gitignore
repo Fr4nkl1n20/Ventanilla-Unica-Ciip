@@ -1,0 +1,28 @@
+# ── Basura de Windows y editores ──────────────────────────────────────
+Thumbs.db
+desktop.ini
+.DS_Store
+*.tmp
+*.bak
+*~
+
+# ── Carpetas de trabajo del navegador sin ventana ─────────────────────
+perfil/
+.vercel/
+
+# ── NOTA SOBRE config.js ──────────────────────────────────────────────
+# config.js NO está ignorado, y es a propósito: el sitio es estático y sin
+# él las páginas no saben conectar con Supabase. Si lo ignoraras, lo que
+# despliegues en Vercel no funcionaría.
+#
+# Se puede subir porque la clave "anon" es PÚBLICA por diseño: viaja al
+# navegador de todos modos. Lo que protege los datos son las políticas RLS
+# de supabase-setup.sql, no el secreto de esa clave.
+#
+# DOS CONDICIONES para que eso siga siendo cierto:
+#   1. Que ahí NUNCA acabe la clave "service_role". Esa sí abre la base de
+#      datos entera saltándose el RLS.
+#   2. Que el RLS esté realmente activo. Compruébalo con:
+#        select relname, relrowsecurity from pg_class where relname='perfiles';
+#
+# Si prefieres no publicar ni la clave anon, haz el repositorio privado.

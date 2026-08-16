@@ -1,0 +1,21 @@
+# Finales de línea estables, para que Git no marque como "modificado" un
+# archivo en el que solo ha cambiado LF por CRLF.
+#
+# En el repositorio todo se guarda con LF. En el disco:
+#   · los .bat se sacan con CRLF, que es lo que espera el interprete de
+#     comandos de Windows (con LF puede fallar en etiquetas y goto)
+#   · el resto se queda con LF, que es como lo escribimos
+
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binarios: que Git no los toque
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary

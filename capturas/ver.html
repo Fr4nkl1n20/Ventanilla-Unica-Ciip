@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CIIP · Cómo se ve</title>
+<style>
+:root{
+  --ink:#0E1424; --gray:#5B6478; --soft:#8A93A6; --line:#E4E7EE;
+  --bg:#FFFFFF; --block:#F4F7FB; --navy:#004090; --navy2:#0060B0;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --ink:#EAEEF6; --gray:#9AA6BC; --soft:#6E7B93; --line:#1E2A44;
+         --bg:#0F1A2E; --block:#0A1120; --navy2:#4C97E8; }
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:'Helvetica Neue',Arial,sans-serif; background:var(--block); color:var(--ink);
+  font-size:14px; line-height:1.5; padding:40px 28px 70px;}
+.wrap{max-width:1180px; margin:0 auto;}
+h1{font-size:26px; font-weight:700; letter-spacing:-.01em;}
+.sub{color:var(--gray); margin-top:8px; font-size:13.5px; max-width:70ch;}
+h2{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.11em;
+  color:var(--soft); margin:44px 0 16px; padding-bottom:9px; border-bottom:1px solid var(--line);}
+figure{background:var(--bg); border:1px solid var(--line); border-radius:12px; overflow:hidden;
+  box-shadow:0 1px 2px rgba(14,20,36,.04), 0 8px 24px rgba(14,20,36,.06);}
+figure img{display:block; width:100%; height:auto;}
+figcaption{padding:12px 15px; border-top:1px solid var(--line); font-size:12.5px;}
+figcaption b{display:block; font-weight:700;}
+figcaption span{color:var(--gray); font-size:11.5px;}
+.grid{display:grid; gap:22px; grid-template-columns:repeat(auto-fit,minmax(430px,1fr));}
+.grid.movil{grid-template-columns:repeat(auto-fit,minmax(250px,290px));}
+.nota{margin-top:44px; padding:15px 17px; border-left:3px solid var(--navy2);
+  background:var(--bg); border-radius:0 9px 9px 0; font-size:13px; color:var(--gray);}
+.nota b{color:var(--ink);}
+a{color:var(--navy2);}
+@media (max-width:700px){ .grid{grid-template-columns:1fr;} body{padding:24px 16px 50px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Cómo se ve ahora mismo</h1>
+  <p class="sub">Capturas reales tomadas del navegador ejecutando los archivos del proyecto,
+     no maquetas. El aviso ámbar de “falta conectar la base de datos” es lo esperado
+     mientras Supabase no esté configurado.</p>
+
+  <h2>El acceso · escritorio</h2>
+  <div class="grid">
+    <figure>
+      <img src="01-login-claro.png" alt="Login en tema claro">
+      <figcaption><b>Iniciar sesión · tema claro</b><span>1440 × 900</span></figcaption>
+    </figure>
+    <figure>
+      <img src="02-login-oscuro.png" alt="Login en tema oscuro">
+      <figcaption><b>Iniciar sesión · tema oscuro</b><span>1440 × 900 · el panel de marca se mantiene azul a propósito</span></figcaption>
+    </figure>
+    <figure>
+      <img src="03-crear-cuenta.png" alt="Formulario de crear cuenta">
+      <figcaption><b>Crear cuenta</b><span>La vista más alta: cinco campos. Es la que puede necesitar desplazamiento en pantallas bajas</span></figcaption>
+    </figure>
+    <figure>
+      <img src="10-buscador-paises.png" alt="Buscador de países desplegado">
+      <figcaption><b>Buscador de países</b><span>Escribiendo “ita”. Bandera, coincidencia resaltada, y los nombres en el idioma activo</span></figcaption>
+    </figure>
+    <figure>
+      <img src="04-recuperar-clave.png" alt="Formulario de recuperar clave">
+      <figcaption><b>Recuperar clave</b><span>Un solo campo</span></figcaption>
+    </figure>
+    <figure>
+      <img src="05-clave-nueva.png" alt="Formulario de clave nueva">
+      <figcaption><b>Clave nueva</b><span>A esta vista se llega desde el enlace del correo</span></figcaption>
+    </figure>
+  </div>
+
+  <h2>El acceso · móvil</h2>
+  <div class="grid movil">
+    <figure>
+      <img src="06-login-movil.png" alt="Login en móvil">
+      <figcaption><b>Iniciar sesión</b><span>390 × 844 · los paneles se apilan</span></figcaption>
+    </figure>
+    <figure>
+      <img src="07-crear-cuenta-movil.png" alt="Crear cuenta en móvil">
+      <figcaption><b>Crear cuenta</b><span>390 × 844</span></figcaption>
+    </figure>
+  </div>
+
+  <h2>El panel, una vez dentro</h2>
+  <div class="grid">
+    <figure>
+      <img src="08-panel-claro.png" alt="Panel en tema claro">
+      <figcaption><b>Panel · tema claro</b><span>Abajo del todo aparece la franja ámbar: sin Supabase, el panel no está protegido</span></figcaption>
+    </figure>
+    <figure>
+      <img src="09-panel-oscuro.png" alt="Panel en tema oscuro">
+      <figcaption><b>Panel · tema oscuro</b><span>Aquí se comprueba el arreglo del logo del pie, que antes era invisible</span></figcaption>
+    </figure>
+    <figure>
+      <img src="11-panel-cerrar-sesion.png" alt="Barra superior con el botón de cerrar sesión">
+      <figcaption><b>Cerrar sesión · tema claro</b><span>Último botón de la barra, tras el chip del usuario</span></figcaption>
+    </figure>
+    <figure>
+      <img src="12-panel-cerrar-sesion-oscuro.png" alt="Barra superior en oscuro con el botón de cerrar sesión">
+      <figcaption><b>Cerrar sesión · tema oscuro</b><span>Mismo botón de 34 px que el de tema; al pasar por encima tira a rojizo</span></figcaption>
+    </figure>
+    <figure>
+      <img src="13-panel-personalizado.png" alt="Panel con los datos de un usuario real">
+      <figcaption><b>Panel con sesión real</b><span>Nombre, iniciales, rol y país salen de <code>public.perfiles</code>. Arriba, el aviso de que los trámites siguen siendo de ejemplo</span></figcaption>
+    </figure>
+  </div>
+
+  <div class="nota">
+    <b>Para regenerarlas</b> después de cualquier cambio, vuelve a pedírmelo o lanza
+    <code>PROBAR.bat</code> para las pruebas funcionales. Los datos del panel
+    (“Marco”, “Bianchi Agroindustrias”) siguen siendo de demostración: el guardián
+    ya comprueba quién entra, pero el contenido todavía no cambia según el usuario.
+  </div>
+
+</div>
+</body>
+</html>
