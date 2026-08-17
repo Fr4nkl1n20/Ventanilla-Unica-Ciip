@@ -63,6 +63,16 @@ window.CIIP_CONFIG = {
 "@
 [IO.File]::WriteAllText((Join-Path $trabajo 'config.js'), $configPrueba, $utf8)
 
+# El logo y el fondo dejaron de ir incrustados en base64 y ahora son archivos
+# de assets/. Sin copiarlos, la prueba "el logo carga" falla por no encontrarlo,
+# que es un falso negativo: en la carpeta de verdad esta ahi.
+$assets = Join-Path $raiz 'assets'
+if (Test-Path $assets) {
+  $destino = Join-Path $trabajo 'assets'
+  if (-not (Test-Path $destino)) { New-Item -ItemType Directory -Path $destino -Force | Out-Null }
+  Copy-Item (Join-Path $assets '*') $destino -Force
+}
+
 # ---- 3. ejecutar sin ventana ----
 $salida = Join-Path $trabajo 'dom.html'
 $errores = Join-Path $trabajo 'consola.txt'

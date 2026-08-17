@@ -197,11 +197,15 @@
           got:SUPABASE_URL, exp:'el valor de config.js'});
   R.push({n:'RUTA_PANEL sale de config.js', ok:(RUTA_PANEL===window.CIIP_CONFIG.RUTA_PANEL), got:RUTA_PANEL, exp:window.CIIP_CONFIG.RUTA_PANEL});
 
-  /* ---------- MARCA ---------- */
-  R.push({n:'el logo carga', ok:(function(){ var i=document.querySelector('.brand-mark'); return !!i && i.complete && i.naturalWidth>0; })(),
-          got:(function(){ var i=document.querySelector('.brand-mark'); return i? i.naturalWidth+'x'+i.naturalHeight : 'no existe'; })(), exp:'199x72'});
-  R.push({n:'el nombre está al lado, como texto', ok:!!document.querySelector('.brand-lockup .brand-name'),
-          got:(document.querySelector('.brand-name')||{textContent:'no existe'}).textContent.replace(/\s+/g,' ').trim(), exp:'texto real'});
+  /* ---------- MARCA ----------
+     El diseño de tarjeta no lleva logo: la marca es el rótulo serif y la
+     ilustración del Ávila. Antes aquí se comprobaba el PNG del monograma. */
+  R.push({n:'la ilustración carga', ok:(function(){ var i=document.querySelector('.lado-arte img'); return !!i && i.complete && i.naturalWidth>0; })(),
+          got:(function(){ var i=document.querySelector('.lado-arte img'); return i? i.naturalWidth+'x'+i.naturalHeight : 'no existe'; })(), exp:'1232x928'});
+  R.push({n:'la marca es texto real, no una imagen', ok:(function(){ var m=document.querySelector('.marca'); return !!m && m.textContent.trim().length>0; })(),
+          got:(document.querySelector('.marca')||{textContent:'no existe'}).textContent.replace(/\s+/g,' ').trim(), exp:'texto real'});
+  R.push({n:'la marca se traduce', ok:(function(){ var m=document.querySelector('.marca'); return !!m && m.getAttribute('data-i18n')==='marca'; })(),
+          got:(document.querySelector('.marca')||{}).getAttribute? (document.querySelector('.marca').getAttribute('data-i18n')||'sin data-i18n') : 'no existe', exp:'marca'});
 
   /* ---------- volcado ---------- */
   var pre=document.createElement('pre'); pre.id='RESULTADOS';

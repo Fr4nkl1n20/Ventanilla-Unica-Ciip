@@ -19,7 +19,12 @@
 #  funciona sin pedir nada.
 # ══════════════════════════════════════════════════════════════════════
 
-param([int]$Puerto = 8080)
+#  Por defecto solo escucha en localhost: nadie mas en la red puede entrar.
+#  Con -Red escucha en TODAS las interfaces, para que un companero de la
+#  oficina abra el proyecto desde su PC con la IP de esta maquina.
+#  Uso: powershell -File servidor.ps1 -Red
+
+param([int]$Puerto = 8080, [switch]$Red)
 
 $raiz = $PSScriptRoot
 $ErrorActionPreference = 'Stop'
@@ -38,9 +43,11 @@ $MIME = @{
 # El motivo mas comun de que falle es que el servidor YA este abierto en
 # otra ventana. En ese caso no es un error: basta con abrir el navegador.
 # Si el puerto lo ocupa otra cosa, se prueban los diez siguientes.
+$escucha = if ($Red) { [Net.IPAddress]::Any } else { [Net.IPAddress]::Loopback }
+
 function Abrir($p) {
   try {
-    $l = New-Object Net.Sockets.TcpListener([Net.IPAddress]::Loopback, $p)
+    $l = New-Object Net.Sockets.TcpListener($escucha, $p)
     $l.Start()
     return $l
   } catch { return $null }
@@ -53,7 +60,9 @@ if (-not $oyente) {
   $yaEsta = $false
   try {
     $r = Invoke-WebRequest "http://localhost:$Puerto/acceso.html" -UseBasicParsing -TimeoutSec 3
-    if ($r.StatusCode -eq 200 -and $r.Content -match 'brand-lockup') { $yaEsta = $true }
+    # 'lado-arte' es el bloque de la ilustracion del acceso. Antes se buscaba
+    # 'brand-lockup', que desaparecio al pasar acceso.html al diseno de tarjeta.
+    if ($r.StatusCode -eq 200 -and $r.Content -match 'lado-arte') { $yaEsta = $true }
   } catch { }
 
   if ($yaEsta) {
@@ -98,6 +107,24 @@ Write-Host "  Acceso  : " -NoNewline; Write-Host "http://localhost:$Puerto/acces
 Write-Host "  Panel   : " -NoNewline; Write-Host "http://localhost:$Puerto/ciip-ventanilla-unica-local.html" -ForegroundColor Green
 Write-Host "  Vistas  : " -NoNewline; Write-Host "http://localhost:$Puerto/capturas/ver.html" -ForegroundColor Green
 Write-Host ''
+
+# --- direccion para el resto de la oficina ------------------------------
+# Solo con -Red. Se listan todas las IPv4 reales de la maquina: la buena
+# suele ser la de la tarjeta "Ethernet" o "Wi-Fi". Si hay una VPN activa,
+# aparece tambien la suya; esa no sirve para el companero de al lado.
+if ($Red) {
+  $ips = Get-NetIPAddress -AddressFamily IPv4 |
+         Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' }
+  Write-Host '  DESDE OTRO PC DE LA OFICINA' -ForegroundColor Cyan
+  foreach ($ip in $ips) {
+    Write-Host ("    {0,-16} " -f $ip.InterfaceAlias) -NoNewline -ForegroundColor DarkGray
+    Write-Host ("http://{0}:{1}/acceso.html" -f $ip.IPAddress, $Puerto) -ForegroundColor Green
+  }
+  Write-Host ''
+  Write-Host '  Si no abre, lo mas probable es el cortafuegos de Windows.' -ForegroundColor DarkGray
+  Write-Host ''
+}
+
 Write-Host '  Para parar: cierra esta ventana o pulsa Ctrl+C.' -ForegroundColor DarkGray
 Write-Host ''
 
