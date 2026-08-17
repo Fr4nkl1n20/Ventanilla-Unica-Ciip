@@ -16,9 +16,16 @@
   var R = [];
   function texto(id){ var m=document.getElementById(id); return m && m.classList.contains('show') ? m.textContent.trim() : ''; }
   function malos(){ return Array.prototype.slice.call(document.querySelectorAll('.field.bad')).map(function(f){return f.id;}).sort().join(','); }
-  function val(id,v){ var e=document.getElementById(id); if(e.type==='checkbox'){e.checked=v;} else {e.value=v;} }
+  /* Tolerante con los campos que ya no existen: al ir retirando vistas del
+     acceso, un id desaparecido tumbaba el arnés entero y no se ejecutaba
+     ninguna prueba. Mejor que la que sobra se salte a que caigan todas. */
+  function val(id,v){
+    var e=document.getElementById(id);
+    if(!e) return;
+    if(e.type==='checkbox'){e.checked=v;} else {e.value=v;}
+  }
   function limpiaTodo(){
-    ['li-email','li-pass','rc-email','nv-pass','nv-pass2'].forEach(function(i){ val(i,''); });
+    ['li-email','li-pass','nv-pass','nv-pass2'].forEach(function(i){ val(i,''); });
     document.querySelectorAll('.msg').forEach(function(m){m.classList.remove('show','err','ok');});
     document.querySelectorAll('.field').forEach(function(f){f.classList.remove('bad');});
   }
@@ -44,11 +51,6 @@
   caso('login correo inválido', function(){ val('li-email','hola'); val('li-pass','12345678'); }, 'formLogin','msgLogin',CORREO);
   caso('login datos correctos (sin Supabase)', function(){ val('li-email','a@b.com'); val('li-pass','12345678'); }, 'formLogin','msgLogin',SIN_BD);
 
-  /* ---------- RECUPERAR ---------- */
-  caso('recuperar vacío', function(){}, 'formRec','msgRec',VACIO);
-  caso('recuperar correo inválido', function(){ val('rc-email','xx'); }, 'formRec','msgRec',CORREO);
-  caso('recuperar correcto (sin Supabase)', function(){ val('rc-email','a@b.com'); }, 'formRec','msgRec',SIN_BD);
-
   /* ---------- CLAVE NUEVA ---------- */
   caso('clave nueva vacía', function(){}, 'formNueva','msgNueva',VACIO);
   caso('clave nueva corta', function(){ val('nv-pass','123'); val('nv-pass2','123'); }, 'formNueva','msgNueva',CORTA);
@@ -56,7 +58,7 @@
 
   /* ---------- NAVEGACIÓN ---------- */
   limpiaTodo();
-  ['recuperar','nueva','login'].forEach(function(v){
+  ['nueva','login'].forEach(function(v){
     irA(v);
     var on = document.querySelector('.view.on');
     R.push({n:'navegar a '+v, ok:(on && on.id==='v-'+v), got:(on?on.id:'ninguna'), exp:'v-'+v});
@@ -64,7 +66,7 @@
 
   limpiaTodo(); enviar('formLogin');
   var habia = texto('msgLogin') !== '';
-  irA('recuperar'); irA('login');
+  irA('nueva'); irA('login');
   R.push({n:'cambiar de vista limpia el mensaje', ok:(habia && texto('msgLogin')===''), got:'antes='+habia+' despues="'+texto('msgLogin')+'"', exp:'vacío'});
 
   /* ---------- TRADUCCIÓN EN CALIENTE ---------- */
@@ -117,6 +119,22 @@
   R.push({n:'las claves salen de config.js', ok:(SUPABASE_URL===window.CIIP_CONFIG.SUPABASE_URL && SUPABASE_ANON_KEY===window.CIIP_CONFIG.SUPABASE_ANON_KEY),
           got:SUPABASE_URL, exp:'el valor de config.js'});
   R.push({n:'RUTA_PANEL sale de config.js', ok:(RUTA_PANEL===window.CIIP_CONFIG.RUTA_PANEL), got:RUTA_PANEL, exp:window.CIIP_CONFIG.RUTA_PANEL});
+
+  /* ---------- SIN RECUPERAR CLAVE ----------
+     Se retiró el "¿Olvidaste tu clave?". La vista de clave nueva SÍ se
+     conserva a propósito: es la que atiende el enlace del correo de
+     recuperación cuando lo envía un administrador desde Supabase. */
+  R.push({n:'no hay enlace de clave olvidada', ok:!document.querySelector('[data-go="recuperar"]'),
+          got:(document.querySelector('[data-go="recuperar"]')?'hay uno':'ninguno'), exp:'ninguno'});
+  R.push({n:'la vista de recuperar ya no existe', ok:!document.getElementById('v-recuperar'),
+          got:(document.getElementById('v-recuperar')?'sigue ahí':'no existe'), exp:'no existe'});
+  R.push({n:'pero clave nueva sí sigue', ok:!!document.getElementById('v-nueva'),
+          got:(document.getElementById('v-nueva')?'existe':'falta'), exp:'existe'});
+  R.push({n:'#recuperar cae al login', ok:(function(){
+            irA('login'); irA('recuperar');
+            var on=document.querySelector('.view.on');
+            return !!on && on.id==='v-login';
+          })(), got:(document.querySelector('.view.on')||{id:'ninguna'}).id, exp:'v-login'});
 
   /* ---------- SIN CREAR CUENTA ----------
      Las cuentas las abre el CIIP: aquí no se puede crear ninguna. Estas tres

@@ -116,9 +116,6 @@ svg{display:block;}
    Es donde lo pone Atlas, y ahorra una linea entera bajo el campo. */
 .field label{display:flex; align-items:center; font-size:11px; font-weight:700;
   letter-spacing:.02em; color:var(--ink); margin-bottom:6px;}
-.lbl-link{margin-left:auto; font-size:10.5px; font-weight:600; color:var(--navy2);
-  background:none; border:0; padding:0; cursor:pointer; font-family:inherit;}
-.lbl-link:hover{text-decoration:underline;}
 .field input{width:100%; font:inherit; font-size:13px; color:var(--ink); background:var(--card);
   border:1px solid var(--line); border-radius:8px; padding:10px 12px; min-height:40px;
   outline:none; transition:border-color .12s, box-shadow .12s;}
@@ -237,7 +234,7 @@ svg{display:block;}
             <input id="li-email" type="email" autocomplete="email" required data-i18n-ph="ph.email" placeholder="tu@correo.com">
           </div>
           <div class="field" id="fl-pass">
-            <label for="li-pass"><span data-i18n="f.pass">Clave</span><button type="button" class="lbl-link" data-go="recuperar" data-i18n="login.forgot">&#191;Olvidaste tu clave?</button></label>
+            <label for="li-pass" data-i18n="f.pass">Clave</label>
             <div class="pass-wrap">
               <input id="li-pass" type="password" autocomplete="current-password" required data-i18n-ph="ph.pass" placeholder="Tu clave">
               <button class="pass-eye" type="button" data-eye="li-pass" aria-label="Ver clave">
@@ -255,25 +252,6 @@ svg{display:block;}
 
         <div class="msg" id="msgLogin"></div>
         
-      </section>
-
-      <!-- ---------- VISTA: RECUPERAR CLAVE ---------- -->
-      <section class="view" id="v-recuperar">
-        <h1 class="f-title" data-i18n="rec.t">Recupera tu clave</h1>
-        <p class="f-sub" data-i18n="rec.s">Escribe tu correo y te enviamos un enlace para crear una clave nueva.</p>
-
-        <form id="formRec" novalidate>
-          <div class="field" id="fc-email">
-            <label for="rc-email" data-i18n="f.email">Correo electrónico</label>
-            <input id="rc-email" type="email" autocomplete="email" required data-i18n-ph="ph.email" placeholder="tu@correo.com">
-          </div>
-          <div class="btn-wrap">
-            <button class="btn navy" type="submit" id="btnRec"><span class="spin"></span><span data-i18n="rec.btn">Enviar enlace</span></button>
-          </div>
-        </form>
-
-        <div class="msg" id="msgRec"></div>
-        <div class="alt"><button class="linkish" data-go="login" data-i18n="rec.back">← Volver a iniciar sesión</button></div>
       </section>
 
       <!-- ---------- VISTA: NUEVA CLAVE (llega desde el correo) ---------- -->
@@ -746,35 +724,6 @@ document.getElementById('formLogin').addEventListener('submit', async function(e
   }
 });
 
-/* ---------- RECUPERAR CLAVE ---------- */
-document.getElementById('formRec').addEventListener('submit', async function(e){
-  e.preventDefault();
-  limpiar(['fc-email']);
-  var email = document.getElementById('rc-email').value.trim();
-  if (!email){ marcar(['fc-email']); return aviso('msgRec','e.empty'); }
-  if (!emailOk(email)){ marcar(['fc-email']); return aviso('msgRec','e.email'); }
-  if (!sb) return aviso('msgRec','e.cfg');
-
-  cargando('btnRec', true);
-  try{
-    /* el enlace del correo devuelve al usuario a esta misma página, en #nueva */
-    var r = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: urlRetorno('#nueva')
-    });
-    cargando('btnRec', false);
-    /* Supabase ya no revela si el correo existe: para uno inexistente responde
-       sin error. Así que r.error solo trae fallos operativos reales (límite de
-       peticiones, SMTP caído, URL de redirección no autorizada) y hay que
-       mostrarlos; darlos por buenos dejaba al usuario esperando un correo que
-       nunca iba a llegar. */
-    if (r.error) return aviso('msgRec', claveDeError(r.error));
-    aviso('msgRec','o.rec','ok');
-    document.getElementById('formRec').reset();
-  }catch(err){
-    cargando('btnRec', false); aviso('msgRec','e.net');
-  }
-});
-
 /* ---------- GUARDAR CLAVE NUEVA ---------- */
 document.getElementById('formNueva').addEventListener('submit', async function(e){
   e.preventDefault();
@@ -831,7 +780,7 @@ function mostrarDentro(usuario){
 
   /* vista inicial según el hash (#registro, #recuperar, #nueva) */
   var h = location.hash.slice(1).split('&')[0];
-  if (['login','recuperar','nueva'].indexOf(h) > -1) irA(h);
+  if (['login','nueva'].indexOf(h) > -1) irA(h);
 
   /* si Supabase devuelve un enlace de recuperación, abre la vista de clave nueva */
   if (sb){
