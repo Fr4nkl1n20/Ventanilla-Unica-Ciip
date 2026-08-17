@@ -128,7 +128,15 @@ try {
       # quitar la parte de consulta y el ancla, y descodificar %20 y demas
       $ruta = ($ruta -split '[?#]')[0]
       $ruta = [Uri]::UnescapeDataString($ruta)
-      if ($ruta -eq '/' ) { $ruta = '/acceso.html' }
+      # Una carpeta se sirve con su index.html, como haria Vercel: sin esto,
+      # /login/ daba 404 aqui pero funcionaria una vez desplegado.
+      if ($ruta -eq '/') {
+        $ruta = '/acceso.html'
+      } elseif ($ruta.EndsWith('/')) {
+        $ruta = $ruta + 'index.html'
+      } elseif (Test-Path (Join-Path $raiz $ruta.TrimStart('/').Replace('/', [IO.Path]::DirectorySeparatorChar)) -PathType Container) {
+        $ruta = $ruta + '/index.html'
+      }
 
       # --- resolver el archivo, sin salir de la carpeta ---
       $rel = $ruta.TrimStart('/').Replace('/', [IO.Path]::DirectorySeparatorChar)
