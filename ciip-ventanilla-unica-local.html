@@ -1681,6 +1681,15 @@ applyLang('en');
      un dato del expediente. Cuando haya más de dos o tres trámites vivos,
      su sitio será una tabla. */
   var RECAUDOS = {
+    /* La visa se pide desde fuera del país, así que el recaudo de identidad
+       es el PASAPORTE y no la cédula: quien la solicita todavía no la tiene.
+       La foto y los antecedentes salen de la bóveda igual que los demás. */
+    visa_inversionista: [
+      {tipo:'pasaporte',     clave:'d_pasaporte'},
+      {tipo:'foto',          clave:'d_foto'},
+      {tipo:'antecedentes',  clave:'d_antecedentes'},
+      {tipo:'inversion',     clave:'d_inversion'}
+    ],
     rif_personal: [
       {tipo:'cedula',    clave:'d_identidad'},
       {tipo:'domicilio', clave:'d_domicilio'}
@@ -1695,6 +1704,14 @@ applyLang('en');
   };
 
   var CAMPOS = {
+    visa_inversionista: [
+      {n:'numero_pasaporte',  clave:'f_pasaporte'},
+      {n:'pais_emisor',       clave:'f_paisemisor'},
+      {n:'vence_pasaporte',   clave:'f_vencepas',  tipo:'date'},
+      {n:'consulado',         clave:'f_consulado'},
+      {n:'monto_inversion',   clave:'f_montoinv'},
+      {n:'motivo_inversion',  clave:'f_motivo',    ancho:true}
+    ],
     rif_personal: [
       {n:'tipo_documento',   clave:'f_tipodoc',    opciones:['Cédula','Pasaporte']},
       {n:'numero_documento', clave:'f_numero'},

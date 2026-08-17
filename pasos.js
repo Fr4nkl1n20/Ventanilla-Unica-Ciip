@@ -102,7 +102,18 @@ window.CIIP_PASOS = {
       f_capital:     "Capital social",
       d_acta:        "Acta constitutiva",
       d_rifpersonal: "Tu RIF personal",
-      d_domemp:      "Domicilio fiscal de la empresa"
+      d_domemp:      "Domicilio fiscal de la empresa",
+      /* --- Visa de inversionista (SAIME) --- */
+      f_pasaporte:   "N.º de pasaporte",
+      f_paisemisor:  "País emisor del pasaporte",
+      f_vencepas:    "Vencimiento del pasaporte",
+      f_consulado:   "Consulado donde tramitas",
+      f_montoinv:    "Monto estimado de la inversión",
+      f_motivo:      "En qué vas a invertir",
+      d_pasaporte:   "Pasaporte vigente",
+      d_foto:        "Fotografía tipo carnet",
+      d_antecedentes:"Antecedentes penales apostillados",
+      d_inversion:   "Constancia de la inversión"
     },
     en: {
       iniciar:      "Start this request",
@@ -135,7 +146,18 @@ window.CIIP_PASOS = {
       f_capital:     "Share capital",
       d_acta:        "Articles of incorporation",
       d_rifpersonal: "Your personal RIF",
-      d_domemp:      "Company tax address proof"
+      d_domemp:      "Company tax address proof",
+      /* --- Investor visa (SAIME) --- */
+      f_pasaporte:   "Passport number",
+      f_paisemisor:  "Passport issuing country",
+      f_vencepas:    "Passport expiry date",
+      f_consulado:   "Consulate handling your application",
+      f_montoinv:    "Estimated investment amount",
+      f_motivo:      "What you will invest in",
+      d_pasaporte:   "Valid passport",
+      d_foto:        "Passport-size photograph",
+      d_antecedentes:"Apostilled criminal record certificate",
+      d_inversion:   "Proof of investment"
     },
     pt: {
       iniciar:      "Iniciar este pedido",
@@ -168,7 +190,18 @@ window.CIIP_PASOS = {
       f_capital:     "Capital social",
       d_acta:        "Pacto social",
       d_rifpersonal: "O seu RIF pessoal",
-      d_domemp:      "Comprovativo de morada fiscal da empresa"
+      d_domemp:      "Comprovativo de morada fiscal da empresa",
+      /* --- Visto de investidor (SAIME) --- */
+      f_pasaporte:   "N.º do passaporte",
+      f_paisemisor:  "País emissor do passaporte",
+      f_vencepas:    "Validade do passaporte",
+      f_consulado:   "Consulado onde tramita",
+      f_montoinv:    "Valor estimado do investimento",
+      f_motivo:      "Em que vai investir",
+      d_pasaporte:   "Passaporte válido",
+      d_foto:        "Fotografia tipo passe",
+      d_antecedentes:"Registo criminal apostilado",
+      d_inversion:   "Comprovativo do investimento"
     },
     it: {
       iniciar:      "Avvia questa richiesta",
@@ -201,7 +234,18 @@ window.CIIP_PASOS = {
       f_capital:     "Capitale sociale",
       d_acta:        "Atto costitutivo",
       d_rifpersonal: "Il tuo RIF personale",
-      d_domemp:      "Prova della sede fiscale"
+      d_domemp:      "Prova della sede fiscale",
+      /* --- Visto per investitori (SAIME) --- */
+      f_pasaporte:   "N. di passaporto",
+      f_paisemisor:  "Paese di rilascio del passaporto",
+      f_vencepas:    "Scadenza del passaporto",
+      f_consulado:   "Consolato presso cui presenti la domanda",
+      f_montoinv:    "Importo stimato dell'investimento",
+      f_motivo:      "In cosa investirai",
+      d_pasaporte:   "Passaporto valido",
+      d_foto:        "Fototessera",
+      d_antecedentes:"Certificato penale con apostille",
+      d_inversion:   "Prova dell'investimento"
     },
     zh: {
       iniciar:      "开始办理",
@@ -234,7 +278,18 @@ window.CIIP_PASOS = {
       f_capital:     "注册资本",
       d_acta:        "公司章程",
       d_rifpersonal: "您的个人 RIF",
-      d_domemp:      "公司税务地址证明"
+      d_domemp:      "公司税务地址证明",
+      /* --- 投资者签证（SAIME） --- */
+      f_pasaporte:   "护照号码",
+      f_paisemisor:  "护照签发国",
+      f_vencepas:    "护照有效期至",
+      f_consulado:   "办理签证的领事馆",
+      f_montoinv:    "预计投资金额",
+      f_motivo:      "投资方向",
+      d_pasaporte:   "有效护照",
+      d_foto:        "证件照",
+      d_antecedentes:"经认证的无犯罪记录证明",
+      d_inversion:   "投资证明"
     },
     ru: {
       iniciar:      "Начать заявку",
@@ -267,7 +322,18 @@ window.CIIP_PASOS = {
       f_capital:     "Уставный капитал",
       d_acta:        "Учредительные документы",
       d_rifpersonal: "Ваш личный RIF",
-      d_domemp:      "Подтверждение налогового адреса компании"
+      d_domemp:      "Подтверждение налогового адреса компании",
+      /* --- Инвесторская виза (SAIME) --- */
+      f_pasaporte:   "Номер паспорта",
+      f_paisemisor:  "Страна выдачи паспорта",
+      f_vencepas:    "Срок действия паспорта",
+      f_consulado:   "Консульство, где оформляете",
+      f_montoinv:    "Предполагаемая сумма инвестиций",
+      f_motivo:      "Во что будете инвестировать",
+      d_pasaporte:   "Действующий паспорт",
+      d_foto:        "Фото на документы",
+      d_antecedentes:"Справка о несудимости с апостилем",
+      d_inversion:   "Подтверждение инвестиции"
     }
   },
 

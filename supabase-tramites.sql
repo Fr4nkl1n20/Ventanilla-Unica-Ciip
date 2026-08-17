@@ -102,6 +102,10 @@ insert into public.tipos_documento (codigo, nombre, vence) values
   ('poder',             'Poder / carta de representación',        true),
   ('traduccion',        'Traducción certificada',                 false),
   ('domicilio_empresa', 'Domicilio fiscal de la empresa',         false),
+  -- Recaudos de la visa de inversionista. Los antecedentes penales caducan
+  -- (los consulados suelen pedirlos recientes), la constancia de inversión no.
+  ('antecedentes',      'Antecedentes penales apostillados',      true),
+  ('inversion',         'Constancia de la inversión',             false),
   ('otro',              'Otro documento',                         false)
 on conflict (codigo) do nothing;
 
@@ -155,9 +159,9 @@ on conflict (codigo) do nothing;
 -- Aquí se dice en positivo y en negativo, para que la lista de activos sea
 -- exactamente esta y no se quede uno encendido de una prueba anterior.
 update public.tipos_tramite set activo = true
-  where codigo in ('rif_personal', 'rif_empresa');
+  where codigo in ('rif_personal', 'rif_empresa', 'visa_inversionista');
 update public.tipos_tramite set activo = false
-  where codigo not in ('rif_personal', 'rif_empresa');
+  where codigo not in ('rif_personal', 'rif_empresa', 'visa_inversionista');
 
 
 -- ───────────────────────────────────────────────────────────────────────
@@ -230,7 +234,7 @@ create table if not exists public.tramites (
 );
 
 comment on table  public.tramites        is 'Una solicitud concreta de un inversionista';
-comment on column public.tramites.datos  is 'Campos del formulario, distintos por tipo. Para rif_personal: numero_documento, tipo_documento, fecha_nacimiento, direccion_fiscal, telefono, profesion';
+comment on column public.tramites.datos  is 'Campos del formulario, distintos por tipo. rif_personal: numero_documento, tipo_documento, fecha_nacimiento, direccion_fiscal, telefono, profesion. visa_inversionista: numero_pasaporte, pais_emisor, vence_pasaporte, consulado, monto_inversion, motivo_inversion';
 comment on column public.tramites.gestor is 'Quién del CIIP lo lleva. Null = sin asignar, que es justo lo que la cola debe mostrar primero';
 
 create index if not exists tramites_por_inversionista on public.tramites (inversionista, estado);
@@ -489,7 +493,8 @@ create policy "recaudos: borrar de su carpeta" on storage.objects
 --   where relname in ('documentos','tramites','tramite_documentos',
 --                     'tramite_eventos','tipos_documento','tipos_tramite');
 --
--- 2) Solo rif_personal debe poder recibir solicitudes por ahora:
+-- 2) Estos deben salir con activo = true, y solo estos:
+--    rif_personal, rif_empresa, visa_inversionista
 --
 --   select codigo, activo from public.tipos_tramite order by ref_panel;
 --
