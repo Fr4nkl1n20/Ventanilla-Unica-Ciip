@@ -15,7 +15,10 @@ autenticación y los datos los pone Supabase.
 | `acceso.html` | Iniciar sesión, crear cuenta, recuperar clave, clave nueva |
 | `ciip-ventanilla-unica-local.html` | El panel, una vez dentro |
 | `config.js` | **Lo único que hay que rellenar**: las claves de Supabase |
-| `supabase-setup.sql` | Esquema y políticas RLS. Se ejecuta una vez |
+| `pasos.js` | Los cuatro pasos de cada trámite, en los seis idiomas |
+| `supabase-setup.sql` | Esquema del acceso y políticas RLS. Se ejecuta una vez |
+| `supabase-tramites.sql` | Esquema de trámites y bóveda de documentos. **Sin aplicar todavía** |
+| `logos/` | Logos de los organismos, con su procedencia en [FUENTES.md](logos/FUENTES.md) |
 | `original/` | La demostración de partida, intacta, como referencia |
 
 ## Atajos
@@ -23,7 +26,8 @@ autenticación y los datos los pone Supabase.
 | Doble clic en | Para |
 |---|---|
 | `CONFIGURAR.bat` | Pegar las claves de Supabase sin editar archivos |
-| `ABRIR-LOCAL.bat` | Levantar el proyecto en `http://localhost:8080` |
+| `ABRIR-LOCAL.bat` | Levantar el proyecto en `http://localhost:8080`, solo para ti |
+| `ABRIR-EN-RED.bat` | Igual, pero abierto a la red: otros PC de la oficina pueden entrar |
 | `PROBAR.bat` | Lanzar las 42 pruebas automáticas |
 
 ## Puesta en marcha
@@ -36,6 +40,21 @@ autenticación y los datos los pone Supabase.
 5. `ABRIR-LOCAL.bat`
 
 El recorrido completo de verificación está en [PRUEBAS.md](PRUEBAS.md).
+
+## Cómo se navega el panel
+
+Tres niveles, todos dentro del mismo archivo. La dirección cambia, así que la
+flecha *atrás* del navegador funciona y cualquier pantalla se comparte por
+enlace:
+
+| Nivel | Dirección | Qué se ve |
+|---|---|---|
+| Portada | *(sin nada)* | Las cuatro etapas y los quince trámites |
+| Fase | `#fase-2` | Solo los trámites de esa etapa |
+| Trámite | `#tramite-c5` | El detalle y sus cuatro pasos |
+
+Una dirección que no exista (`#fase-9`, `#tramite-c99`) devuelve a la portada
+en vez de dejar la pantalla en blanco.
 
 ## Qué está probado y qué no
 

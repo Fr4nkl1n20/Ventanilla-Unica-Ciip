@@ -11,7 +11,26 @@
    en silencio. Ahora solo existen aquí.
 
    ─────────────────────────────────────────────────────────────────────
-   DE DÓNDE SALEN LOS DOS VALORES
+   HAY DOS BASES DE DATOS
+   ─────────────────────────────────────────────────────────────────────
+   Una real, con las cuentas de verdad, y una de pruebas donde se montan
+   las cosas nuevas antes de tocar la real.
+
+   Cuál se usa NO se decide con un interruptor que haya que acordarse de
+   mover: se decide por dónde se abre la página.
+
+       localhost o file://  →  pruebas
+       cualquier otro sitio →  real
+
+   Así no se sube a producción una configuración de pruebas por olvido,
+   ni se trabaja en local contra la base real por descuido. Los dos
+   errores son fáciles de cometer y caros de descubrir.
+
+   Para saber contra cuál estás, abre la consola del navegador: la página
+   lo dice al cargar.
+
+   ─────────────────────────────────────────────────────────────────────
+   DE DÓNDE SALEN LOS DOS VALORES DE CADA PROYECTO
    ─────────────────────────────────────────────────────────────────────
    Panel de Supabase → Project Settings → API
        · Project URL        →  SUPABASE_URL
@@ -19,19 +38,52 @@
 
    La clave "anon" es PÚBLICA y puede ir en el navegador: por sí sola no
    da acceso a los datos. Lo que de verdad protege son las políticas RLS
-   que crea supabase-setup.sql.
+   que crean supabase-setup.sql y supabase-tramites.sql.
 
    NUNCA pongas aquí la clave "service_role": esa sí lo abre todo.
    ══════════════════════════════════════════════════════════════════════ */
 
-window.CIIP_CONFIG = {
+(function () {
 
-  /* ---- rellena estos dos ---- */
-  SUPABASE_URL:      'https://ugmpeldbasujuchdmzsc.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnbXBlbGRiYXN1anVjaGRtenNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTk3MjAsImV4cCI6MjEwMjQ3NTcyMH0.mzsSXWanfZ6AP1Ze-4Z8bL9yjlDsKrhj9K-0KOcGxEY',
+  var PROYECTOS = {
 
-  /* ---- rutas entre páginas: solo si renombras los archivos ---- */
-  RUTA_PANEL:  './ciip-ventanilla-unica-local.html',
-  RUTA_ACCESO: './acceso.html'
+    /* ---- el de verdad: cuentas reales, no es sitio para experimentos ---- */
+    real: {
+      SUPABASE_URL:      'https://ugmpeldbasujuchdmzsc.supabase.co',
+      SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnbXBlbGRiYXN1anVjaGRtenNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTk3MjAsImV4cCI6MjEwMjQ3NTcyMH0.mzsSXWanfZ6AP1Ze-4Z8bL9yjlDsKrhj9K-0KOcGxEY'
+    },
 
-};
+    /* ---- el de pruebas: aquí se monta lo nuevo y se puede romper ---- */
+    pruebas: {
+      SUPABASE_URL:      'https://ifhdzxetixhrzqixcfbe.supabase.co',
+      SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlmaGR6eGV0aXhocnpxaXhjZmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTI3OTUsImV4cCI6MjEwMjU2ODc5NX0.7e3QDtDKAYGYgIF-ZfMZJk9OXEYEo0_hpgR1BG_iT4Y'
+    }
+
+  };
+
+  var enLocal = location.protocol === 'file:' ||
+                ['localhost', '127.0.0.1', '::1', ''].indexOf(location.hostname) >= 0;
+
+  var entorno = enLocal ? 'pruebas' : 'real';
+  var elegido = PROYECTOS[entorno];
+
+  window.CIIP_CONFIG = {
+
+    SUPABASE_URL:      elegido.SUPABASE_URL,
+    SUPABASE_ANON_KEY: elegido.SUPABASE_ANON_KEY,
+
+    /* ---- rutas entre páginas: solo si renombras los archivos ---- */
+    RUTA_PANEL:  './ciip-ventanilla-unica-local.html',
+    RUTA_ACCESO: './acceso.html',
+
+    /* por si alguna pantalla quiere avisar de que no es la base real */
+    ENTORNO: entorno
+  };
+
+  /* Saber contra qué base estás es la diferencia entre "esto no funciona"
+     y "estoy mirando la base equivocada". */
+  if (window.console && console.info) {
+    console.info('CIIP · base de datos: ' + entorno + ' → ' + elegido.SUPABASE_URL);
+  }
+
+})();
