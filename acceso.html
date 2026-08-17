@@ -131,7 +131,7 @@ svg{display:block;}
   display:flex; align-items:center; justify-content:center;}
 .pass-eye:hover{color:var(--navy2); background:var(--block);}
 .pass-eye svg{width:17px; height:17px; stroke:currentColor; stroke-width:1.9; fill:none;}
-.row-between{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:11px;}
+
 .linkish{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2); background:none; border:0;
   cursor:pointer; padding:0; text-align:left;}
 .linkish:hover{text-decoration:underline;}
@@ -242,9 +242,7 @@ svg{display:block;}
               </button>
             </div>
           </div>
-          <div class="row-between">
-            <label class="check"><input type="checkbox" id="li-remember" checked><span data-i18n="login.remember">Mantener la sesión abierta</span></label>
-          </div>
+
           <div class="btn-wrap">
             <button class="btn navy" type="submit" id="btnLogin"><span class="spin"></span><span data-i18n="login.btn">Entrar</span></button>
           </div>
@@ -643,27 +641,15 @@ applyLang = function(l){
 var sb = null;
 var CONFIGURADO = SUPABASE_URL.indexOf('TU-PROYECTO') === -1 && SUPABASE_ANON_KEY.indexOf('TU_CLAVE') === -1;
 
-/* Almacén de sesión que hace real la casilla "mantener la sesión abierta":
-   marcada  → localStorage   (la sesión sobrevive al cerrar el navegador)
-   sin marcar → sessionStorage (la sesión muere al cerrar la pestaña)
-   Al leer buscamos en los dos, para encontrar la sesión esté donde esté. */
-var CLAVE_RECORDAR = 'ciip_recordar';
-var almacenSesion = {
-  /* La preferencia se guarda aparte de la sesión y sobrevive a las recargas.
-     Antes era una propiedad suelta que volvía a "true" en cada carga: el primer
-     refresco automático del token reescribía en localStorage una sesión que el
-     usuario había pedido temporal, anulando la casilla. */
-  get recordar(){ try{ return window.localStorage.getItem(CLAVE_RECORDAR) !== '0'; }catch(e){ return true; } },
-  set recordar(v){ try{ window.localStorage.setItem(CLAVE_RECORDAR, v ? '1' : '0'); }catch(e){} },
-  destino: function(){ return this.recordar ? window.localStorage : window.sessionStorage; },
-  getItem:    function(k){ try{ return window.localStorage.getItem(k) || window.sessionStorage.getItem(k); }catch(e){ return null; } },
-  setItem:    function(k, v){ try{ this.destino().setItem(k, v); }catch(e){} },
-  removeItem: function(k){ try{ window.localStorage.removeItem(k); window.sessionStorage.removeItem(k); }catch(e){} }
-};
+
 
 if (CONFIGURADO && window.supabase){
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true, storage: almacenSesion }
+    /* Sin casilla de "mantener la sesion" no hay nada que elegir: se usa el
+       almacenamiento por defecto de Supabase (localStorage), que conserva la
+       sesion hasta cerrarla. Antes habia un almacen a medida que decidia entre
+       localStorage y sessionStorage segun esa casilla. */
+    auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true }
   });
 } else {
   document.getElementById('cfgWarn').classList.add('show');
@@ -709,8 +695,6 @@ document.getElementById('formLogin').addEventListener('submit', async function(e
 
   cargando('btnLogin', true);
   try{
-    /* decide dónde se guardará la sesión ANTES de crearla */
-    almacenSesion.recordar = document.getElementById('li-remember').checked;
     var r = await sb.auth.signInWithPassword({ email: email, password: pass });
     if (r.error){ cargando('btnLogin', false); marcar(['fl-email','fl-pass']); return aviso('msgLogin', claveDeError(r.error)); }
     /* Sin panel configurado (RUTA_PANEL vacio en config.js) el acceso se
@@ -775,10 +759,12 @@ function mostrarDentro(usuario){
   }
   applyLang(I18N[g] ? g : 'es');
 
-  /* la casilla arranca reflejando la preferencia real, no siempre marcada */
-  document.getElementById('li-remember').checked = almacenSesion.recordar;
+  /* Resto de cuando existía la casilla "mantener la sesión abierta": quien
+     entró antes tiene esta clave guardada y ya no la lee nadie. Se retira
+     para no dejar basura en el navegador de los usuarios. */
+  try{ window.localStorage.removeItem('ciip_recordar'); }catch(e){}
 
-  /* vista inicial según el hash (#registro, #recuperar, #nueva) */
+  /* vista inicial según el hash (#nueva llega desde el correo) */
   var h = location.hash.slice(1).split('&')[0];
   if (['login','nueva'].indexOf(h) > -1) irA(h);
 

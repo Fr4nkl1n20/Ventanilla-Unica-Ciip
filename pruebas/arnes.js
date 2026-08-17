@@ -101,17 +101,16 @@
   });
   R.push({n:'todo data-i18n tiene su clave', ok:(sinClave.length===0), got:(sinClave.join(' ')||'ninguno'), exp:'ninguno'});
 
-  /* ---------- ADAPTADOR DE SESIÓN ---------- */
-  almacenSesion.recordar = false;
-  var r1 = almacenSesion.recordar;
-  almacenSesion.setItem('prueba-x','1');
-  var enSession = (window.sessionStorage.getItem('prueba-x')==='1');
-  var enLocal   = (window.localStorage.getItem('prueba-x')==='1');
-  almacenSesion.recordar = true;
-  var r2 = almacenSesion.recordar;
-  almacenSesion.removeItem('prueba-x');
-  R.push({n:'recordar=false guarda en sessionStorage', ok:(r1===false && enSession && !enLocal), got:'recordar='+r1+' session='+enSession+' local='+enLocal, exp:'session sí, local no'});
-  R.push({n:'la preferencia persiste', ok:(r2===true && window.localStorage.getItem('ciip_recordar')==='1'), got:'recordar='+r2+' guardado='+window.localStorage.getItem('ciip_recordar'), exp:'true / "1"'});
+  /* ---------- SIN "MANTENER LA SESIÓN" ----------
+     Se retiró la casilla. La sesión la guarda Supabase con su almacenamiento
+     por defecto, y ya no existe el adaptador que elegía entre localStorage y
+     sessionStorage. */
+  R.push({n:'no hay casilla de mantener sesión', ok:!document.getElementById('li-remember'),
+          got:(document.getElementById('li-remember')?'sigue ahí':'ninguna'), exp:'ninguna'});
+  R.push({n:'no queda el adaptador a medida', ok:(typeof almacenSesion === 'undefined'),
+          got:(typeof almacenSesion), exp:'undefined'});
+  R.push({n:'ni su preferencia guardada', ok:(window.localStorage.getItem('ciip_recordar')===null),
+          got:String(window.localStorage.getItem('ciip_recordar')), exp:'null'});
 
   /* ---------- CONFIGURACIÓN CENTRALIZADA ---------- */
   R.push({n:'config.js se carga', ok:(typeof window.CIIP_CONFIG==='object' && !!window.CIIP_CONFIG),
