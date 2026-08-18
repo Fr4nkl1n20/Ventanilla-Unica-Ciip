@@ -61,8 +61,21 @@
 
   };
 
+  /* Las direcciones de la oficina (10.x, 172.16-31.x, 192.168.x) y los nombres
+     de maquina sin punto cuentan tambien como local: cuando un companero abre
+     http://172.21.20.49:8080 esta mirando el servidor de pruebas del PC de al
+     lado, no un sitio publicado.
+
+     Sin esto pasaba algo que costo un rato entender: el que servia la pagina
+     trabajaba contra 'pruebas' —entra por localhost— y el que la miraba desde
+     otro PC caia en 'real'. Misma pantalla, bases distintas, y ninguno de los
+     dos veia lo que veia el otro. */
+  var RED_PRIVADA = /^(10\.|127\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/;
+
   var enLocal = location.protocol === 'file:' ||
-                ['localhost', '127.0.0.1', '::1', ''].indexOf(location.hostname) >= 0;
+                ['localhost', '127.0.0.1', '::1', ''].indexOf(location.hostname) >= 0 ||
+                RED_PRIVADA.test(location.hostname) ||
+                location.hostname.indexOf('.') === -1;
 
   var entorno = enLocal ? 'pruebas' : 'real';
   var elegido = PROYECTOS[entorno];

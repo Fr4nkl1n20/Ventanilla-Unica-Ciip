@@ -1,4 +1,4 @@
-# ══════════════════════════════════════════════════════════════════════
+﻿# ══════════════════════════════════════════════════════════════════════
 #  Servidor local del proyecto CIIP
 #  Lánzalo con ABRIR-LOCAL.bat (doble clic). Para pararlo: cierra la
 #  ventana negra, o pulsa Ctrl+C dentro de ella.
@@ -138,6 +138,11 @@ try {
       $flujo = $cliente.GetStream()
       $flujo.ReadTimeout = 5000
 
+      # De quien es la visita. Sirve para saber si el companero de la
+      # oficina esta entrando de verdad o si todo lo que se ve es tuyo.
+      $quien = '?'
+      try { $quien = $cliente.Client.RemoteEndPoint.Address.ToString() } catch { }
+
       # --- leer la peticion hasta la linea en blanco ---
       $buf = New-Object byte[] 8192
       $txt = ''
@@ -148,6 +153,19 @@ try {
       } while ($flujo.DataAvailable -and $txt -notmatch "`r`n`r`n")
 
       if ($txt -notmatch '^(GET|HEAD)\s+(\S+)') {
+        # Una conexion que se cierra en silencio deja al de enfrente con la
+        # pantalla en blanco y a nosotros sin ninguna pista de por que. Lo mas
+        # comun es que el navegador haya intentado entrar por https://, que
+        # aqui no existe: el saludo TLS empieza por el byte 0x16, no por GET.
+        if ($txt.Length -gt 0 -and [int]$txt[0] -eq 0x16) {
+          Write-Host ("  ---  {0} intento entrar por HTTPS. Tiene que escribir http://" -f $quien) -ForegroundColor Yellow
+        } elseif ($txt.Length -eq 0) {
+          Write-Host ("  ---  {0} abrio la conexion y no pidio nada" -f $quien) -ForegroundColor DarkGray
+        } else {
+          $prim = ($txt -split "`r?`n")[0]
+          if ($prim.Length -gt 60) { $prim = $prim.Substring(0, 60) + '...' }
+          Write-Host ("  ---  {0} envio algo que no es GET: {1}" -f $quien, $prim) -ForegroundColor Yellow
+        }
         $cliente.Close(); continue
       }
       $ruta = $Matches[2]
@@ -169,12 +187,12 @@ try {
         $ext = [IO.Path]::GetExtension($completa).ToLower()
         if ($MIME.ContainsKey($ext)) { $tipo = $MIME[$ext] } else { $tipo = 'application/octet-stream' }
         $cuerpo = [IO.File]::ReadAllBytes($completa)
-        Write-Host ("  200  {0}" -f $ruta) -ForegroundColor DarkGray
+        Write-Host ("  200  {0,-15} {1}" -f $quien, $ruta) -ForegroundColor DarkGray
       } else {
         $estado = '404 Not Found'
         $tipo = 'text/html; charset=utf-8'
         $cuerpo = [Text.Encoding]::UTF8.GetBytes("<meta charset='utf-8'><h1>404</h1><p>No existe <code>$ruta</code> en la carpeta del proyecto.</p>")
-        Write-Host ("  404  {0}" -f $ruta) -ForegroundColor Yellow
+        Write-Host ("  404  {0,-15} {1}" -f $quien, $ruta) -ForegroundColor Yellow
       }
 
       $cab = "HTTP/1.1 $estado`r`n" +
