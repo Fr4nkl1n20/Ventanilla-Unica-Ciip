@@ -166,6 +166,8 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
   --shadow:0 1px 2px rgba(14,20,36,.04), 0 6px 18px rgba(14,20,36,.06);
   --shadow-lg:0 2px 6px rgba(14,20,36,.06), 0 18px 44px rgba(14,20,36,.10);
   --sb:256px; --tb:58px;
+  /* fondo de la fase en curso del recorrido */
+  --fase-activa:rgba(0,64,144,.045);
 }
 @media (prefers-color-scheme:dark){
   :root{
@@ -175,6 +177,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
     --amber:#DBA94C; --amber-bg:#33280F; --rust:#E28A67; --rust-bg:#33201A; --good:#43B48C; --good-bg:#11291F;
     --shadow:0 1px 2px rgba(0,0,0,.30), 0 8px 22px rgba(0,0,0,.40);
     --shadow-lg:0 2px 6px rgba(0,0,0,.35), 0 20px 48px rgba(0,0,0,.55);
+    --fase-activa:rgba(76,151,232,.10);
   }
 }
 :root[data-theme="light"]{
@@ -184,6 +187,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
   --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9; --good:#1E7F5C; --good-bg:#E7F4EE;
   --shadow:0 1px 2px rgba(14,20,36,.04), 0 6px 18px rgba(14,20,36,.06);
   --shadow-lg:0 2px 6px rgba(14,20,36,.06), 0 18px 44px rgba(14,20,36,.10);
+  --fase-activa:rgba(0,64,144,.045);
 }
 :root[data-theme="dark"]{
   --ink:#EAEEF6; --gray:#9AA6BC; --gray-soft:#6E7B93; --line:#1E2A44; --line-soft:#172239;
@@ -192,6 +196,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
   --amber:#DBA94C; --amber-bg:#33280F; --rust:#E28A67; --rust-bg:#33201A; --good:#43B48C; --good-bg:#11291F;
   --shadow:0 1px 2px rgba(0,0,0,.30), 0 8px 22px rgba(0,0,0,.40);
   --shadow-lg:0 2px 6px rgba(0,0,0,.35), 0 20px 48px rgba(0,0,0,.55);
+  --fase-activa:rgba(76,151,232,.10);
 }
 
 *{box-sizing:border-box; margin:0; padding:0;}
@@ -309,21 +314,54 @@ svg{display:block;}
 .sec-h .sub{font-size:12px; color:var(--gray); font-weight:500;}
 .sec-h .spacer{flex:1 1 auto;}
 
+/* Se llama "Tu camino" pero eran cuatro tarjetas sueltas separadas por rayas:
+   nada unía los pasos ni decía en cuál estás. Ahora una línea recorre los
+   círculos de lado a lado —verde en lo andado, gris en lo que falta— y la fase
+   actual se distingue por fondo, no solo por un filo de 3 px. */
 .journey{display:grid; grid-template-columns:repeat(4,1fr); gap:0; background:var(--bg);
   border:1px solid var(--line); border-radius:var(--r); overflow:hidden; box-shadow:var(--shadow);}
-.jp{padding:16px 16px 15px; position:relative; border-right:1px solid var(--line-soft);}
-.jp:last-child{border-right:0;}
-.jp .num{width:26px; height:26px; border-radius:50%; background:var(--block); color:var(--gray-soft);
-  border:1.5px solid var(--line); font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center;}
-.jp.done .num{background:var(--good-bg); color:var(--good); border-color:transparent;}
-.jp.active .num{background:var(--navy); color:#fff; border-color:transparent; box-shadow:0 0 0 4px rgba(0,64,144,.12);}
-.jp .jname{font-size:12.5px; font-weight:700; margin-top:11px;}
-.jp .jsub{font-size:10.5px; color:var(--gray); margin-top:2px; min-height:26px;}
-.jbar{height:5px; border-radius:20px; background:var(--line-soft); margin-top:11px; overflow:hidden;}
-.jbar>span{display:block; height:100%; border-radius:20px; background:linear-gradient(90deg,var(--cyan-deep),var(--cyan));}
+
+.jp{padding:18px 16px 16px; position:relative;}
+
+/* El hilo del recorrido. Pasa POR DETRÁS de los círculos, que lo tapan con su
+   propio fondo: por eso el borde del círculo es del color de la tarjeta. */
+.jp::after{content:""; position:absolute; top:31px; left:0; right:0; height:2px;
+  background:var(--line); z-index:0;}
+.jp:first-child::after{left:30px;}
+.jp:last-child::after{right:calc(100% - 30px);}
+.jp.done::after{background:var(--good);}
+/* En la fase actual el hilo llega verde hasta el círculo y sigue gris: el corte
+   marca exactamente hasta dónde se ha avanzado. */
+.jp.active::after{background:linear-gradient(to right, var(--good) 30px, var(--line) 30px);}
+
+/* El círculo tapa el hilo con su propio relleno; no lleva borde del color de
+   la tarjeta. Se probó y en modo oscuro ese borde quedaba más oscuro que el
+   fondo teñido de la fase activa, dejando un anillo que desentonaba. */
+.jp .num{position:relative; z-index:1;
+  width:28px; height:28px; border-radius:50%; background:var(--block); color:var(--gray-soft);
+  border:1.5px solid var(--line);
+  font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center;}
+.jp.done .num{background:var(--good); color:#fff; border-color:var(--good);}
+.jp.active .num{background:var(--navy); color:#fff; border-color:var(--navy);
+  box-shadow:0 0 0 4px rgba(0,64,144,.13);}
+
+.jp .jname{font-size:12.5px; font-weight:700; margin-top:12px;}
+.jp .jsub{font-size:10.5px; color:var(--gray); margin-top:3px; min-height:26px; line-height:1.4;}
+
+.jbar{height:5px; border-radius:20px; background:var(--line-soft); margin-top:12px; overflow:hidden;}
+.jbar>span{display:block; height:100%; border-radius:20px;
+  background:linear-gradient(90deg,var(--cyan-deep),var(--cyan));}
 .jp.done .jbar>span{background:var(--good);}
-.jcount{font-size:10px; font-weight:700; color:var(--gray); margin-top:7px; letter-spacing:.02em;}
-.jp.active::before{content:""; position:absolute; left:0; right:0; top:0; height:3px; background:var(--navy);}
+
+.jcount{font-size:10px; font-weight:700; color:var(--gray-soft); margin-top:8px; letter-spacing:.02em;}
+.jp.done .jcount{color:var(--good);}
+.jp.active .jcount{color:var(--navy2);}
+
+/* La fase actual: fondo propio y filo superior. Antes solo tenía el filo, y a
+   simple vista las cuatro pesaban lo mismo. */
+.jp.active{background:var(--fase-activa);}
+.jp.active::before{content:""; position:absolute; left:0; right:0; top:0; height:3px;
+  background:var(--navy); z-index:2;}
 
 /* ===================== FILTER TABS ===================== */
 .filters{display:flex; gap:7px; flex-wrap:wrap;}
