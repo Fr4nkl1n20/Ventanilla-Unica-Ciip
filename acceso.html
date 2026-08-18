@@ -136,6 +136,24 @@ svg{display:block;}
   display:flex; align-items:center; justify-content:center;}
 .pass-eye:hover{color:var(--navy2); background:var(--block);}
 .pass-eye svg{width:17px; height:17px; stroke:currentColor; stroke-width:1.9; fill:none;}
+/* Medidor de fuerza de la clave. Nace oculto y solo aparece cuando hay algo
+   escrito: una barra vacía bajo un campo en blanco parece un error. */
+.pass-fuerza{display:none; margin-top:7px;}
+.pass-fuerza.on{display:block;}
+.pf-barra{height:4px; border-radius:3px; background:var(--line-soft); overflow:hidden;}
+.pf-relleno{height:100%; width:0; border-radius:3px; transition:width .18s ease, background-color .18s ease;}
+.pf-txt{margin-top:5px; font-size:11px; line-height:1.45; color:var(--gray);}
+.pf-txt b{font-weight:700;}
+/* Los cuatro niveles. El color va con el texto para que quien no distinga
+   rojo de verde lo lea igual: el color nunca es el único indicio. */
+.pass-fuerza[data-n="0"] .pf-relleno{width:25%;  background:var(--rust);}
+.pass-fuerza[data-n="1"] .pf-relleno{width:50%;  background:var(--amber);}
+.pass-fuerza[data-n="2"] .pf-relleno{width:75%;  background:var(--cyan-deep);}
+.pass-fuerza[data-n="3"] .pf-relleno{width:100%; background:var(--good);}
+.pass-fuerza[data-n="0"] .pf-txt b{color:var(--rust);}
+.pass-fuerza[data-n="1"] .pf-txt b{color:var(--amber);}
+.pass-fuerza[data-n="2"] .pf-txt b{color:var(--navy2);}
+.pass-fuerza[data-n="3"] .pf-txt b{color:var(--good);}
 .row-between{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:11px;}
 .linkish{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2); background:none; border:0;
   cursor:pointer; padding:0; text-align:left;}
@@ -289,6 +307,10 @@ svg{display:block;}
                 <svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
             </div>
+            <div class="pass-fuerza" data-para="rg-pass" aria-live="polite">
+              <div class="pf-barra"><div class="pf-relleno"></div></div>
+              <div class="pf-txt"></div>
+            </div>
           </div>
           <div class="field" id="fr-pass2">
             <label for="rg-pass2" data-i18n="f.pass2">Repite la clave</label>
@@ -343,6 +365,10 @@ svg{display:block;}
               <button class="pass-eye" type="button" data-eye="nv-pass" aria-label="Ver clave">
                 <svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
+            </div>
+            <div class="pass-fuerza" data-para="nv-pass" aria-live="polite">
+              <div class="pf-barra"><div class="pf-relleno"></div></div>
+              <div class="pf-txt"></div>
             </div>
           </div>
           <div class="field" id="fn-pass2">
@@ -415,6 +441,16 @@ const I18N = {
   'reg.terms':'Acepto el tratamiento de mis datos para la gestión de trámites.','reg.btn':'Crear cuenta','reg.have':'¿Ya tienes cuenta?','reg.login':'Iniciar sesión',
   'rec.t':'Recupera tu clave','rec.s':'Escribe tu correo y te enviamos un enlace para crear una clave nueva.','rec.btn':'Enviar enlace','rec.back':'← Volver a iniciar sesión',
   'new.t':'Crea una clave nueva','new.s':'Elige una clave nueva para tu cuenta. Debe tener al menos 8 caracteres.','new.btn':'Guardar clave',
+  /* --- medidor de fuerza de la clave --- */
+  'pf.n0':'Muy débil','pf.n1':'Aceptable','pf.n2':'Buena','pf.n3':'Fuerte',
+  'pf.corta':'todavía le faltan caracteres.',
+  'pf.comun':'es una de las primeras que se prueban. Elige otra.',
+  'pf.secuencia':'son teclas seguidas del teclado. Elige otra.',
+  'pf.repetida':'repite siempre lo mismo. Elige otra.',
+  'pf.personal':'contiene tu nombre o tu correo. Elige otra.',
+  'pf.mejora':'gana mucho si la haces más larga o mezclas mayúsculas, números y símbolos.',
+  'pf.ok':'buena elección.',
+  'e.debil':'Esa clave se adivina en segundos. Elige otra.',
   'e.empty':'Completa todos los campos.','e.email':'Introduce un correo válido.','e.short':'La clave debe tener al menos 8 caracteres.',
   'e.match':'Las claves no coinciden.','e.terms':'Debes aceptar el tratamiento de datos para continuar.',
   'e.creds':'Correo o clave incorrectos.','e.unconfirmed':'Tu correo aún no está confirmado. Revisa tu bandeja de entrada.',
@@ -440,6 +476,16 @@ const I18N = {
   'reg.terms':'I agree to my data being processed to handle my procedures.','reg.btn':'Create account','reg.have':'Already have an account?','reg.login':'Sign in',
   'rec.t':'Recover your password','rec.s':"Enter your email and we'll send you a link to set a new password.",'rec.btn':'Send link','rec.back':'← Back to sign in',
   'new.t':'Set a new password','new.s':'Choose a new password for your account. It must be at least 8 characters.','new.btn':'Save password',
+  /* --- password strength meter --- */
+  'pf.n0':'Very weak','pf.n1':'Acceptable','pf.n2':'Good','pf.n3':'Strong',
+  'pf.corta':'it still needs more characters.',
+  'pf.comun':'it is one of the first ones attackers try. Pick another.',
+  'pf.secuencia':'those are keys in a row on the keyboard. Pick another.',
+  'pf.repetida':'it just repeats the same thing. Pick another.',
+  'pf.personal':'it contains your name or your email. Pick another.',
+  'pf.mejora':'it gains a lot if you make it longer or mix upper case, numbers and symbols.',
+  'pf.ok':'good choice.',
+  'e.debil':'That password can be guessed in seconds. Pick another.',
   'e.empty':'Please fill in every field.','e.email':'Enter a valid email address.','e.short':'The password must be at least 8 characters.',
   'e.match':'The passwords do not match.','e.terms':'You must accept the data processing terms to continue.',
   'e.creds':'Wrong email or password.','e.unconfirmed':'Your email is not confirmed yet. Check your inbox.',
@@ -465,6 +511,16 @@ const I18N = {
   'reg.terms':'Concordo com o tratamento dos meus dados para a gestão dos trâmites.','reg.btn':'Criar conta','reg.have':'Já tem uma conta?','reg.login':'Entrar',
   'rec.t':'Recupere sua senha','rec.s':'Digite seu e-mail e enviaremos um link para criar uma nova senha.','rec.btn':'Enviar link','rec.back':'← Voltar para entrar',
   'new.t':'Crie uma nova senha','new.s':'Escolha uma nova senha para sua conta. Deve ter ao menos 8 caracteres.','new.btn':'Salvar senha',
+  /* --- medidor de força da senha --- */
+  'pf.n0':'Muito fraca','pf.n1':'Aceitável','pf.n2':'Boa','pf.n3':'Forte',
+  'pf.corta':'ainda lhe faltam caracteres.',
+  'pf.comun':'é uma das primeiras que se experimentam. Escolha outra.',
+  'pf.secuencia':'são teclas seguidas do teclado. Escolha outra.',
+  'pf.repetida':'repete sempre o mesmo. Escolha outra.',
+  'pf.personal':'contém o seu nome ou o seu e-mail. Escolha outra.',
+  'pf.mejora':'ganha muito se a tornar mais longa ou misturar maiúsculas, números e símbolos.',
+  'pf.ok':'boa escolha.',
+  'e.debil':'Essa senha adivinha-se em segundos. Escolha outra.',
   'e.empty':'Preencha todos os campos.','e.email':'Informe um e-mail válido.','e.short':'A senha deve ter ao menos 8 caracteres.',
   'e.match':'As senhas não coincidem.','e.terms':'Você precisa aceitar o tratamento de dados para continuar.',
   'e.creds':'E-mail ou senha incorretos.','e.unconfirmed':'Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.',
@@ -490,6 +546,16 @@ const I18N = {
   'reg.terms':'Acconsento al trattamento dei miei dati per la gestione delle pratiche.','reg.btn':'Crea account','reg.have':'Hai già un account?','reg.login':'Accedi',
   'rec.t':'Recupera la password','rec.s':'Inserisci la tua email e ti invieremo un link per creare una nuova password.','rec.btn':'Invia link','rec.back':'← Torna ad accedere',
   'new.t':'Crea una nuova password','new.s':'Scegli una nuova password per il tuo account. Deve avere almeno 8 caratteri.','new.btn':'Salva password',
+  /* --- misuratore di robustezza della password --- */
+  'pf.n0':'Molto debole','pf.n1':'Accettabile','pf.n2':'Buona','pf.n3':'Forte',
+  'pf.corta':'le mancano ancora dei caratteri.',
+  'pf.comun':'è una delle prime che si provano. Scegline un’altra.',
+  'pf.secuencia':'sono tasti in fila sulla tastiera. Scegline un’altra.',
+  'pf.repetida':'ripete sempre la stessa cosa. Scegline un’altra.',
+  'pf.personal':'contiene il tuo nome o la tua email. Scegline un’altra.',
+  'pf.mejora':'migliora molto se la allunghi o mescoli maiuscole, numeri e simboli.',
+  'pf.ok':'ottima scelta.',
+  'e.debil':'Quella password si indovina in pochi secondi. Scegline un’altra.',
   'e.empty':'Compila tutti i campi.','e.email':"Inserisci un'email valida.",'e.short':'La password deve avere almeno 8 caratteri.',
   'e.match':'Le password non coincidono.','e.terms':'Devi accettare il trattamento dei dati per continuare.',
   'e.creds':'Email o password errati.','e.unconfirmed':'La tua email non è ancora confermata. Controlla la posta in arrivo.',
@@ -515,6 +581,16 @@ const I18N = {
   'reg.terms':'我同意为办理手续处理我的个人资料。','reg.btn':'创建账号','reg.have':'已有账号？','reg.login':'登录',
   'rec.t':'找回密码','rec.s':'输入邮箱，我们会发送一个链接供你设置新密码。','rec.btn':'发送链接','rec.back':'← 返回登录',
   'new.t':'设置新密码','new.s':'为你的账号设置新密码，至少 8 个字符。','new.btn':'保存密码',
+  /* --- 密码强度指示 --- */
+  'pf.n0':'很弱','pf.n1':'尚可','pf.n2':'良好','pf.n3':'强',
+  'pf.corta':'字符数还不够。',
+  'pf.comun':'这是最先被尝试的密码之一。请另选一个。',
+  'pf.secuencia':'这是键盘上连续的按键。请另选一个。',
+  'pf.repetida':'只是重复同样的内容。请另选一个。',
+  'pf.personal':'包含你的姓名或邮箱。请另选一个。',
+  'pf.mejora':'再长一些，或混合大写字母、数字和符号，会安全很多。',
+  'pf.ok':'不错的选择。',
+  'e.debil':'这个密码几秒内就会被猜中。请另选一个。',
   'e.empty':'请填写所有字段。','e.email':'请输入有效的邮箱地址。','e.short':'密码至少需要 8 个字符。',
   'e.match':'两次输入的密码不一致。','e.terms':'需要同意资料处理条款才能继续。',
   'e.creds':'邮箱或密码错误。','e.unconfirmed':'你的邮箱尚未确认，请查收邮件。',
@@ -540,6 +616,16 @@ const I18N = {
   'reg.terms':'Я согласен на обработку моих данных для ведения процедур.','reg.btn':'Создать аккаунт','reg.have':'Уже есть аккаунт?','reg.login':'Войти',
   'rec.t':'Восстановление пароля','rec.s':'Введите почту — мы пришлём ссылку для создания нового пароля.','rec.btn':'Отправить ссылку','rec.back':'← Вернуться ко входу',
   'new.t':'Новый пароль','new.s':'Придумайте новый пароль для аккаунта. Не менее 8 символов.','new.btn':'Сохранить пароль',
+  /* --- индикатор надёжности пароля --- */
+  'pf.n0':'Очень слабый','pf.n1':'Допустимый','pf.n2':'Хороший','pf.n3':'Надёжный',
+  'pf.corta':'символов всё ещё мало.',
+  'pf.comun':'это один из первых паролей, которые перебирают. Выберите другой.',
+  'pf.secuencia':'это клавиши подряд. Выберите другой.',
+  'pf.repetida':'одно и то же повторяется. Выберите другой.',
+  'pf.personal':'в нём есть ваше имя или почта. Выберите другой.',
+  'pf.mejora':'станет гораздо лучше, если сделать его длиннее или добавить заглавные, цифры и символы.',
+  'pf.ok':'хороший выбор.',
+  'e.debil':'Такой пароль подбирается за секунды. Выберите другой.',
   'e.empty':'Заполните все поля.','e.email':'Введите корректный адрес почты.','e.short':'Пароль должен содержать не менее 8 символов.',
   'e.match':'Пароли не совпадают.','e.terms':'Чтобы продолжить, примите условия обработки данных.',
   'e.creds':'Неверная почта или пароль.','e.unconfirmed':'Ваша почта ещё не подтверждена. Проверьте входящие.',
@@ -641,6 +727,146 @@ document.querySelectorAll('.pass-eye').forEach(function(b){
     b.style.color = (inp.type === 'text') ? 'var(--navy2)' : '';
   });
 });
+
+/* ══════════════════════════════════════════════════════════════════════
+   FUERZA DE LA CLAVE
+   ══════════════════════════════════════════════════════════════════════
+   Ocho caracteres no dicen nada: "12345678" los tiene. Lo que de verdad
+   deja una cuenta abierta no son las claves cortas, son las ADIVINABLES,
+   y esas se detectan mirando qué es la clave, no cuánto mide.
+
+   Por eso hay dos cosas distintas aquí, y conviene no confundirlas:
+
+     · el NIVEL (0…3) es un consejo. Se enseña, no se impone: rechazar
+       todo lo que no sea "Fuerte" empuja a la gente a apuntarla en un
+       papel, que es peor que una clave mediana recordada.
+
+     · el nivel 0 SÍ bloquea el envío. Ahí no hay consejo que dar: una
+       clave del diccionario de los atacantes se prueba en segundos, y
+       dejarla pasar sería fingir que la cuenta está protegida.
+
+   No se usa una librería (zxcvbn pesa ~400 KB): el proyecto son archivos
+   sueltos que se abren con doble clic, sin compilar ni empaquetar nada.
+   ────────────────────────────────────────────────────────────────────── */
+
+/* Las claves que un atacante prueba primero. La lista es corta a
+   propósito: no pretende ser exhaustiva —para eso hace falta un
+   diccionario de millones— sino cortar lo que aquí se ve de verdad.
+   Van sin tildes porque abajo se comparan sin ellas. */
+var CLAVES_OBVIAS = [
+  'password','passwd','contrasena','clave','claveclave','secreto',
+  '12345678','123456789','1234567890','87654321','11111111','00000000',
+  'qwerty','qwertyui','qwertyuiop','asdfghjk','asdfghjkl','zxcvbnm',
+  'iloveyou','welcome','abc12345','admin','administrador','usuario',
+  'venezuela','caracas','maracaibo','valencia','bolivar','simonbolivar',
+  'ciip','ventanilla','inversionista','empresa','negocio'
+];
+
+/* Teclados y alfabetos. Si la clave entera cabe dentro de uno de estos
+   —o de su reverso— es una tirada de dedos, no una clave. */
+var SECUENCIAS = [
+  'abcdefghijklmnopqrstuvwxyz', '0123456789',
+  'qwertyuiop', 'asdfghjkl', 'zxcvbnm'
+];
+
+function _sinAcentos(s){
+  try { return s.normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+  catch(e){ return s; }
+}
+
+/* Devuelve {n: 0..3, consejo: 'clave del diccionario'}.
+   `pistas` son textos del propio usuario —su correo, su nombre— porque una
+   clave que contiene el nombre de quien la usa es lo primero que se prueba
+   cuando el ataque va dirigido a una persona concreta y no a un montón. */
+function fuerzaClave(v, pistas){
+  v = v || '';
+  if (!v) return null;                       /* sin nada escrito, sin medidor */
+
+  var plano = _sinAcentos(v.toLowerCase());
+
+  if (v.length < 8) return { n:0, consejo:'pf.corta' };
+
+  /* un solo carácter repetido, o un trocito repetido: "abcabcabc" */
+  if (/^(.{1,4})\1+$/.test(plano)) return { n:0, consejo:'pf.repetida' };
+
+  /* la clave entera dentro de una fila del teclado o del abecedario */
+  for (var s = 0; s < SECUENCIAS.length; s++){
+    var seq = SECUENCIAS[s], rev = seq.split('').reverse().join('');
+    if (seq.indexOf(plano) > -1 || rev.indexOf(plano) > -1) return { n:0, consejo:'pf.secuencia' };
+  }
+
+  /* del diccionario. Se compara también quitando los dígitos y símbolos
+     del final, que es como la gente "refuerza" una clave obvia:
+     venezuela2024, password! y qwerty123 son la misma clave de siempre. */
+  var raiz = plano.replace(/[^a-z]+$/, '');
+  for (var i = 0; i < CLAVES_OBVIAS.length; i++){
+    if (plano === CLAVES_OBVIAS[i] || raiz === CLAVES_OBVIAS[i]) return { n:0, consejo:'pf.comun' };
+  }
+
+  /* datos suyos dentro de la clave */
+  var trozos = [];
+  (pistas || []).forEach(function(p){
+    p = _sinAcentos(String(p || '').toLowerCase());
+    /* del correo interesa lo de antes de la arroba, y del nombre cada
+       palabra por separado: "Franklin Reyes" da "franklin" y "reyes" */
+    p.split('@')[0].split(/[^a-z0-9]+/).forEach(function(x){
+      if (x.length >= 4) trozos.push(x);
+    });
+  });
+  for (var j = 0; j < trozos.length; j++){
+    if (plano.indexOf(trozos[j]) > -1) return { n:0, consejo:'pf.personal' };
+  }
+
+  /* Ya no es adivinable de un vistazo. A partir de aquí solo se aconseja.
+     Cuenta la variedad de familias de caracteres y la longitud, que son
+     las dos cosas que multiplican lo que un atacante tiene que probar. */
+  var variedad = 0;
+  if (/[a-z]/.test(v))            variedad++;
+  if (/[A-Z]/.test(v))            variedad++;
+  if (/[0-9]/.test(v))            variedad++;
+  if (/[^A-Za-z0-9]/.test(v))     variedad++;
+
+  if (v.length >= 16 || (v.length >= 12 && variedad >= 3)) return { n:3, consejo:'pf.ok' };
+  if (v.length >= 10 && variedad >= 3)                     return { n:2, consejo:'pf.mejora' };
+  return { n:1, consejo:'pf.mejora' };
+}
+
+/* Pinta el medidor de un campo. Se llama al escribir y al cambiar de
+   idioma, así que tiene que poder repintarse con lo que ya hay escrito. */
+function pintaFuerza(caja){
+  var inp = document.getElementById(caja.getAttribute('data-para'));
+  if (!inp) return;
+
+  /* Las pistas se leen en el momento y no al arrancar: en el registro, el
+     correo y el nombre se escriben ANTES que la clave. */
+  var pistas = [];
+  ['rg-email','rg-nombre'].forEach(function(id){
+    var e = document.getElementById(id);
+    if (e && e.value) pistas.push(e.value);
+  });
+
+  var f = fuerzaClave(inp.value, pistas);
+  if (!f){ caja.classList.remove('on'); caja.removeAttribute('data-n'); return; }
+
+  caja.classList.add('on');
+  caja.setAttribute('data-n', String(f.n));
+  caja.querySelector('.pf-txt').innerHTML =
+    '<b>' + t('pf.n' + f.n) + '</b> · ' + t(f.consejo);
+}
+
+document.querySelectorAll('.pass-fuerza').forEach(function(caja){
+  var inp = document.getElementById(caja.getAttribute('data-para'));
+  if (!inp) return;
+  inp.addEventListener('input', function(){ pintaFuerza(caja); });
+});
+
+/* Repintar los medidores visibles al cambiar de idioma: si no, el nivel se
+   queda escrito en el idioma anterior mientras el resto ya cambió. */
+var _applyFuerza = applyLang;
+applyLang = function(l){
+  _applyFuerza(l);
+  document.querySelectorAll('.pass-fuerza.on').forEach(pintaFuerza);
+};
 
 /* ══════════════════════════════════════════════════════════════════════
    BUSCADOR DE PAÍSES
@@ -1006,6 +1232,12 @@ document.getElementById('formReg').addEventListener('submit', async function(e){
   }
   if (!emailOk(email)){ marcar(['fr-email']); return aviso('msgReg','e.email'); }
   if (p1.length < 8)  { marcar(['fr-pass']);  return aviso('msgReg','e.short'); }
+  /* Solo se rechaza el nivel 0 —las del diccionario, las secuencias de
+     teclado y las que llevan dentro su nombre o su correo—. Los niveles 1 y
+     2 se aconsejan pero pasan: exigir "Fuerte" acaba con la clave apuntada
+     en un papel al lado del monitor, que protege menos. */
+  var _fr = fuerzaClave(p1, [email, nombre]);
+  if (_fr && _fr.n === 0){ marcar(['fr-pass']); return aviso('msgReg', _fr.consejo === 'pf.corta' ? 'e.short' : 'e.debil'); }
   if (p1 !== p2)      { marcar(['fr-pass','fr-pass2']); return aviso('msgReg','e.match'); }
   if (!document.getElementById('rg-terms').checked) return aviso('msgReg','e.terms');
   if (!sb) return aviso('msgReg','e.cfg');
@@ -1069,6 +1301,10 @@ document.getElementById('formNueva').addEventListener('submit', async function(e
 
   if (!p1 || !p2){ marcar([!p1?'fn-pass':'fn-pass2']); return aviso('msgNueva','e.empty'); }
   if (p1.length < 8){ marcar(['fn-pass']); return aviso('msgNueva','e.short'); }
+  /* Aquí no hay nombre ni correo a mano —se llega desde el enlace del
+     correo, sin formulario detrás—, así que se comprueba sin pistas. */
+  var _fn = fuerzaClave(p1, []);
+  if (_fn && _fn.n === 0){ marcar(['fn-pass']); return aviso('msgNueva', _fn.consejo === 'pf.corta' ? 'e.short' : 'e.debil'); }
   if (p1 !== p2){ marcar(['fn-pass','fn-pass2']); return aviso('msgNueva','e.match'); }
   if (!sb) return aviso('msgNueva','e.cfg');
 
