@@ -110,6 +110,71 @@ insert into public.tipos_documento (codigo, nombre, vence) values
   -- certificado médico caducan; la traducción acompaña al documento.
   ('licencia_extranjera','Licencia de conducir extranjera',       true),
   ('certificado_medico','Certificado médico',                     true),
+  -- Recaudo de la constitución. Es UNO solo y no dos porque la compañía se
+  -- puede constituir aportando dinero (depósito en cuenta) o bienes
+  -- (inventario certificado por un contador): son alternativas, y el
+  -- formulario exige todos los recaudos que enumera. No caduca: acredita
+  -- un hecho de una fecha concreta, no una situación vigente.
+  ('comprobante_capital','Comprobante del capital (depósito o inventario)', false),
+  -- Recaudo del registro de marca. Se pide siempre, también cuando el
+  -- signo es denominativo: el SAPI publica una representación de la marca
+  -- en el Boletín de la Propiedad Industrial en todos los casos, así que
+  -- una imagen con la palabra escrita también sirve. No caduca.
+  ('logo_marca',        'Logotipo o diseño de la marca',          false),
+  -- Recaudo de los registros laborales. Es el único de todo el catálogo
+  -- que el panel marca como OPCIONAL: una empresa recién constituida se
+  -- inscribe en el IVSS, el INCES y el FAOV antes de contratar a nadie,
+  -- y todavía no tiene nómina que entregar.
+  --
+  -- vence = false aunque la nómina cambie cada mes: 'vence' sirve para
+  -- documentos con fecha de caducidad impresa, no para los que envejecen.
+  -- Que la nómina esté al día es cosa del gestor, no de una fecha.
+  ('nomina',            'Nómina de trabajadores',                 false),
+  -- Recaudos de la licencia municipal. El del inmueble es UNO solo
+  -- aunque el título de propiedad y el contrato de arrendamiento sean
+  -- papeles distintos: son alternativas, y cuál de las dos es lo dice el
+  -- campo `tenencia` del formulario. Caduca porque un arrendamiento
+  -- vence, y una licencia apoyada en un contrato muerto no se renueva.
+  --
+  -- La conformidad de bomberos va OPCIONAL en el panel: casi todas las
+  -- alcaldías la exigen, pero quien acaba de alquilar todavía no ha
+  -- pasado la inspección y no podría ni enviar la solicitud.
+  --
+  -- La conformidad de USO no está en esta lista a propósito: es el primer
+  -- paso del c10, no un requisito para empezarlo.
+  ('titulo_inmueble',   'Título de propiedad o contrato de arrendamiento', true),
+  ('bomberos',          'Conformidad de bomberos',                true),
+  -- Recaudos de los seis trámites que faltaban de la Fase 01.
+  --
+  -- El certificado en bruto que emite el país de origen NO es el mismo
+  -- documento que 'antecedentes': aquel es el papel tal como sale de la
+  -- policía de allá, y este el mismo ya apostillado y traducido. Uno
+  -- ENTRA al trámite y el otro SALE, así que son dos tipos y no uno.
+  -- Caduca porque los consulados los piden recientes.
+  ('antecedentes_origen','Antecedentes penales del país de origen', true),
+  -- Lo mismo con la apostilla: entra el original y sale traducido.
+  -- No caduca: una partida de nacimiento acredita un hecho, no una
+  -- situación vigente.
+  ('documento_original', 'Documento personal original',            false),
+  -- Recaudos de la constancia de domicilio. Van los dos: el contrato
+  -- dice qué casa es y el recibo dice que alguien vive en ella. El
+  -- arrendamiento caduca —un contrato vencido no prueba dónde vives—;
+  -- el recibo no lleva fecha de caducidad impresa, así que no.
+  ('arrendamiento',     'Contrato de arrendamiento o carta de residencia', true),
+  ('recibo_servicio',   'Recibo de un servicio público',          false),
+  -- Recaudos de la visa de dependientes. La foto es la DEL FAMILIAR:
+  -- reutilizar la del inversionista, que ya está en la bóveda, mandaría
+  -- la cara equivocada al consulado.
+  ('pasaporte_dependiente','Pasaporte del familiar',              true),
+  ('vinculo_familiar',  'Acta que acredita el vínculo familiar',  false),
+  ('foto_dependiente',  'Fotografía tipo carnet del familiar',    false),
+  -- Recaudos de la Fase 02. El acta protocolizada NO es 'acta_constitutiva':
+  -- aquella es el documento que redacta el abogado y esta el mismo ya
+  -- inscrito y con nota del registrador. El c22 recibe la primera y
+  -- devuelve la segunda, y de ahí la toman el c23 y el c24.
+  -- No caduca: acredita un acto de una fecha concreta.
+  ('acta_protocolizada','Acta constitutiva protocolizada',        false),
+  ('pago_aranceles',    'Comprobante del pago de aranceles',      false),
   ('otro',              'Otro documento',                         false)
 on conflict (codigo) do nothing;
 
@@ -117,7 +182,7 @@ on conflict (codigo) do nothing;
 -- ───────────────────────────────────────────────────────────────────────
 -- 2. CATÁLOGO DE TIPOS DE TRÁMITE
 -- ───────────────────────────────────────────────────────────────────────
--- ref_panel enlaza con los identificadores que ya usa el panel (c1…c15) y
+-- ref_panel enlaza con los identificadores que ya usa el panel (c1…c21) y
 -- con las listas de pasos de pasos.js. Sin esa columna habría que
 -- mantener dos numeraciones en paralelo, que es como se desincronizan.
 
@@ -134,7 +199,7 @@ create table if not exists public.tipos_tramite (
 );
 
 comment on table  public.tipos_tramite        is 'Los quince trámites de la ventanilla';
-comment on column public.tipos_tramite.ref_panel is 'Identificador que usa el panel y pasos.js (c1…c15)';
+comment on column public.tipos_tramite.ref_panel is 'Identificador que usa el panel y pasos.js (c1…c21)';
 comment on column public.tipos_tramite.activo is 'false = solo se muestra; todavía no se puede solicitar de verdad';
 
 insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values
@@ -152,7 +217,26 @@ insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo)
   ('registro_sanitario',  'c12', 'Registro sanitario',               'SENCAMER · INSAI',    3, false),
   ('rnc',                 'c13', 'Registro Nacional de Contratistas','RNC',                 4, false),
   ('solvencias',          'c14', 'Solvencias laborales y municipales','Entes varios',       4, false),
-  ('banco_activos',       'c15', 'Banco de activos y oportunidades', 'CIIP',                4, false)
+  ('banco_activos',       'c15', 'Banco de activos y oportunidades', 'CIIP',                4, false),
+  -- Fase 01, los seis que faltaban frente a la hoja de trámites por fase.
+  -- Siguen la numeración por donde iba (c16…c21) en vez de renumerar del
+  -- c5 en adelante: ref_panel es la llave que une esta tabla con las
+  -- tarjetas y con pasos.js, y correrla dejaría los tres desalineados.
+  -- El orden en pantalla lo da el panel, no este número.
+  ('antecedentes_penales','c16', 'Antecedentes penales apostillados','MPPRIJP',            1, false),
+  ('apostilla_documentos','c17', 'Apostilla y traducción de documentos','MPPRE',           1, false),
+  ('constancia_domicilio','c18', 'Constancia de domicilio',          'Registro Civil',     1, false),
+  ('firma_electronica',   'c19', 'Firma electrónica',                'SUSCERTE',           1, false),
+  ('visa_dependientes',   'c20', 'Visa y cédula de dependientes',    'SAIME',              1, false),
+  ('cert_medico',         'c21', 'Certificado médico',               'Centro de salud',    1, false),
+  -- Fase 02. Protocolizar y publicar eran hasta ahora dos PASOS del c5;
+  -- la hoja de trámites por fase los cuenta como trámites propios, y de
+  -- hecho lo son: cada uno tiene sus recaudos y su plazo. Al separarlos,
+  -- los pasos del c5 se recortaron para que no reclamen un trabajo que
+  -- ya no hace: dos tarjetas no pueden decir que hacen lo mismo.
+  ('protocolizacion_acta','c22', 'Protocolización del acta',         'SAREN',              2, false),
+  ('publicacion_acta',    'c23', 'Publicación del acta',             'Prensa mercantil',   2, false),
+  ('libros_contables',    'c24', 'Libros contables y facturación',   'SENIAT',             2, false)
 on conflict (codigo) do nothing;
 
 -- Cuáles se pueden solicitar de verdad HOY.
@@ -163,9 +247,45 @@ on conflict (codigo) do nothing;
 -- Aquí se dice en positivo y en negativo, para que la lista de activos sea
 -- exactamente esta y no se quede uno encendido de una prueba anterior.
 update public.tipos_tramite set activo = true
-  where codigo in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir');
+  where codigo in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'registros_laborales', 'licencia_municipal', 'antecedentes_penales', 'apostilla_documentos', 'constancia_domicilio', 'firma_electronica', 'visa_dependientes', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables');
 update public.tipos_tramite set activo = false
-  where codigo not in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir');
+  where codigo not in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'registros_laborales', 'licencia_municipal', 'antecedentes_penales', 'apostilla_documentos', 'constancia_domicilio', 'firma_electronica', 'visa_dependientes', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables');
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 2.1 LOS BANCOS ALIADOS
+-- ───────────────────────────────────────────────────────────────────────
+-- La red de bancos con los que el CIIP abre cuentas. Es una tabla y no una
+-- lista en el código por la misma razón que tipos_documento: la red cambia
+-- —entra un banco, sale otro— y eso no debería obligar a tocar el panel ni
+-- a volver a publicarlo.
+--
+-- NACE VACÍA A PROPÓSITO. Aquí no se inventan nombres: los pone el CIIP
+-- cuando los acuerdos estén firmados. Mientras esté vacía, el trámite c7
+-- funciona igual; simplemente dice que el banco está por asignar.
+--
+-- Para añadir uno:
+--
+--   insert into public.bancos_aliados (codigo, nombre, orden) values
+--     ('banesco', 'Banesco', 10)
+--   on conflict (codigo) do nothing;
+--
+-- Para retirar uno sin perder el historial de quién abrió cuenta allí,
+-- NO lo borres: apágalo. Las cuentas ya abiertas siguen apuntando a él.
+--
+--   update public.bancos_aliados set activo = false where codigo = 'banesco';
+
+create table if not exists public.bancos_aliados (
+  codigo    text primary key,
+  nombre    text    not null,
+  activo    boolean not null default true,
+  orden     smallint not null default 100,
+  creado_en timestamptz not null default now()
+);
+
+comment on table  public.bancos_aliados        is 'Red de bancos con los que el CIIP abre cuentas corporativas';
+comment on column public.bancos_aliados.activo is 'false = ya no se asignan cuentas nuevas, pero las abiertas lo conservan';
+comment on column public.bancos_aliados.orden  is 'Para mandar en cómo se listan sin depender del alfabeto';
 
 
 -- ───────────────────────────────────────────────────────────────────────
@@ -237,8 +357,21 @@ create table if not exists public.tramites (
     check (jsonb_typeof(datos) = 'object')
 );
 
+-- El banco NO se pregunta en el formulario: la tarjeta del c7 promete que
+-- la cita la coordina el CIIP. Se apunta aquí cuando se sabe, que casi
+-- nunca es el día en que se envía la solicitud. Por eso admite null: null
+-- significa "todavía sin asignar", y es lo que el panel le dice al
+-- inversionista mientras tanto.
+--
+-- Va como columna y no dentro de datos porque apunta a un catálogo: así la
+-- base impide asignar un banco que no está en la red, y se puede preguntar
+-- "cuántas cuentas hemos abierto en cada banco" sin escarbar en un jsonb.
+alter table public.tramites
+  add column if not exists banco text references public.bancos_aliados(codigo);
+
 comment on table  public.tramites        is 'Una solicitud concreta de un inversionista';
-comment on column public.tramites.datos  is 'Campos del formulario, distintos por tipo. rif_personal: numero_documento, tipo_documento, fecha_nacimiento, direccion_fiscal, telefono, profesion. visa_inversionista: numero_pasaporte, pais_emisor, vence_pasaporte, consulado, monto_inversion, motivo_inversion. cedula_residencia: numero_visa, fecha_ingreso, estado_civil, ocupacion, telefono_local, direccion_vzla. licencia_conducir: numero_licencia, pais_licencia, categoria, fecha_emision, vence_licencia, direccion_vzla';
+comment on column public.tramites.banco  is 'Banco aliado asignado (solo cuenta_bancaria). Null = todavía sin asignar';
+comment on column public.tramites.datos  is 'Campos del formulario, distintos por tipo. rif_personal: numero_documento, tipo_documento, fecha_nacimiento, direccion_fiscal, telefono, profesion. visa_inversionista: numero_pasaporte, pais_emisor, vence_pasaporte, consulado, monto_inversion, motivo_inversion. cedula_residencia: numero_visa, fecha_ingreso, estado_civil, ocupacion, telefono_local, direccion_vzla. licencia_conducir: numero_licencia, pais_licencia, categoria, fecha_emision, vence_licencia, direccion_vzla. rif_empresa: razon_social, numero_registro, fecha_constitucion, capital_social, actividad_economica, direccion_fiscal. constitucion: denominacion, denominacion_alt, tipo_sociedad, capital_social, objeto_social, domicilio_social, socios. cuenta_bancaria: razon_social, rif_empresa, tipo_cuenta, moneda, ciudad_agencia, movimiento_estimado, firmantes, origen_fondos. marca: signo, tipo_signo, titular, en_uso, productos. registros_laborales: razon_social, rif_empresa, representante, actividad_economica, inicio_actividades, num_trabajadores, telefono, direccion_fiscal. licencia_municipal: razon_social, rif_empresa, municipio, tenencia, actividad_economica, metros, inicio_actividades, direccion_local';
 comment on column public.tramites.gestor is 'Quién del CIIP lo lleva. Null = sin asignar, que es justo lo que la cola debe mostrar primero';
 
 create index if not exists tramites_por_inversionista on public.tramites (inversionista, estado);
@@ -350,6 +483,7 @@ alter table public.tramite_documentos enable row level security;
 alter table public.tramite_eventos    enable row level security;
 alter table public.tipos_documento    enable row level security;
 alter table public.tipos_tramite      enable row level security;
+alter table public.bancos_aliados     enable row level security;
 
 -- --- catálogos: los lee cualquiera que haya entrado, nadie los escribe ---
 drop policy if exists "tipos_documento: leer" on public.tipos_documento;
@@ -358,6 +492,13 @@ create policy "tipos_documento: leer" on public.tipos_documento
 
 drop policy if exists "tipos_tramite: leer" on public.tipos_tramite;
 create policy "tipos_tramite: leer" on public.tipos_tramite
+  for select to authenticated using (true);
+
+-- La red de bancos se lee entera, apagados incluidos: un inversionista con
+-- una cuenta en un banco que ya salió de la red tiene que seguir viendo su
+-- nombre en el expediente. Filtrar por activo es cosa de quien la muestre.
+drop policy if exists "bancos_aliados: leer" on public.bancos_aliados;
+create policy "bancos_aliados: leer" on public.bancos_aliados
   for select to authenticated using (true);
 
 -- --- bóveda ---
@@ -490,20 +631,31 @@ create policy "recaudos: borrar de su carpeta" on storage.objects
 -- ───────────────────────────────────────────────────────────────────────
 -- COMPROBACIONES
 -- ───────────────────────────────────────────────────────────────────────
--- 1) RLS activo en las seis tablas. Las seis deben salir con true:
+-- 1) RLS activo en las siete tablas. Las siete deben salir con true:
 --
 --   select relname, relrowsecurity
 --   from pg_class
 --   where relname in ('documentos','tramites','tramite_documentos',
---                     'tramite_eventos','tipos_documento','tipos_tramite');
+--                     'tramite_eventos','tipos_documento','tipos_tramite',
+--                     'bancos_aliados');
 --
 -- 2) Estos deben salir con activo = true, y solo estos:
---    rif_personal, rif_empresa, visa_inversionista, cedula_residencia,
---    licencia_conducir
+--    visa_inversionista, cedula_residencia, rif_personal, licencia_conducir,
+--    constitucion, rif_empresa, cuenta_bancaria, marca, registros_laborales,
+--    licencia_municipal
+--
+--    Si activas uno más, esta lista y los dos UPDATE de la sección 2 se
+--    corrigen a la vez: la de aquí es la que dice qué esperabas ver.
 --
 --   select codigo, activo from public.tipos_tramite order by ref_panel;
 --
--- 3) Prueba del aislamiento, que es lo único que de verdad importa.
+-- 3) La red de bancos empieza VACÍA, y sale vacía de esta consulta hasta
+--    que el CIIP la llene. No es un fallo: el c7 funciona igual y le dice
+--    al inversionista que el banco está por asignar.
+--
+--   select codigo, nombre, activo from public.bancos_aliados order by orden;
+--
+-- 4) Prueba del aislamiento, que es lo único que de verdad importa.
 --    Entra en la aplicación con DOS cuentas distintas y comprueba que la
 --    segunda no ve ni un documento ni un trámite de la primera. Hacerlo
 --    desde el SQL Editor no vale: ahí auth.uid() es null y RLS no aplica.
