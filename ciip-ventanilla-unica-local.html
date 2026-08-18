@@ -1690,6 +1690,26 @@ applyLang('en');
       {tipo:'antecedentes',  clave:'d_antecedentes'},
       {tipo:'inversion',     clave:'d_inversion'}
     ],
+    /* La cédula va DESPUÉS de la visa, y aquí es donde la bóveda se paga
+       sola: pasaporte y foto ya se subieron para la visa, así que salen
+       marcados como reutilizados y no hay que volver a adjuntarlos. Lo
+       único nuevo es la visa estampada y el domicilio en Venezuela. */
+    cedula_residencia: [
+      {tipo:'pasaporte',  clave:'d_pasaporte'},
+      {tipo:'visa',       clave:'d_visa'},
+      {tipo:'foto',       clave:'d_foto'},
+      {tipo:'domicilio',  clave:'d_domicilio'}
+    ],
+    /* La homologación va después de la cédula: para entonces el
+       inversionista ya la tiene, así que su identidad sale de la bóveda.
+       Lo propio de este trámite son la licencia extranjera, su traducción
+       y el certificado médico. */
+    licencia_conducir: [
+      {tipo:'licencia_extranjera', clave:'d_licencia'},
+      {tipo:'traduccion',          clave:'d_traduccion'},
+      {tipo:'cedula',              clave:'d_identidad'},
+      {tipo:'certificado_medico',  clave:'d_medico'}
+    ],
     rif_personal: [
       {tipo:'cedula',    clave:'d_identidad'},
       {tipo:'domicilio', clave:'d_domicilio'}
@@ -1711,6 +1731,22 @@ applyLang('en');
       {n:'consulado',         clave:'f_consulado'},
       {n:'monto_inversion',   clave:'f_montoinv'},
       {n:'motivo_inversion',  clave:'f_motivo',    ancho:true}
+    ],
+    licencia_conducir: [
+      {n:'numero_licencia',  clave:'f_numlic'},
+      {n:'pais_licencia',    clave:'f_paislic'},
+      {n:'categoria',        clave:'f_catlic'},
+      {n:'fecha_emision',    clave:'f_emisionlic', tipo:'date'},
+      {n:'vence_licencia',   clave:'f_vencelic',   tipo:'date'},
+      {n:'direccion_vzla',   clave:'f_dirvzla',    ancho:true}
+    ],
+    cedula_residencia: [
+      {n:'numero_visa',      clave:'f_numvisa'},
+      {n:'fecha_ingreso',    clave:'f_ingreso',   tipo:'date'},
+      {n:'estado_civil',     clave:'f_civil',     opcionesClave:'o_civil'},
+      {n:'ocupacion',        clave:'f_ocupacion'},
+      {n:'telefono_local',   clave:'f_telvzla',   tipo:'tel'},
+      {n:'direccion_vzla',   clave:'f_dirvzla',   ancho:true}
     ],
     rif_personal: [
       {n:'tipo_documento',   clave:'f_tipodoc',    opciones:['Cédula','Pasaporte']},
@@ -1813,11 +1849,22 @@ applyLang('en');
       campo.appendChild(el('label', null, u[c.clave] || c.n));
 
       var entrada;
-      if (c.opciones){
+      /* opciones: lista literal, se ve igual en todos los idiomas.
+         opcionesClave: la lista sale de pasos.js y sí se traduce. El valor
+         que se guarda es el del PRIMER idioma (español), para que cambiar
+         de idioma no cambie el dato ya escrito en la base. */
+      var lista = c.opciones;
+      var valores = c.opciones;
+      if (c.opcionesClave){
+        valores = (window.CIIP_PASOS.ui.es[c.opcionesClave]) || [];
+        lista   = (u[c.opcionesClave]) || valores;
+      }
+      if (lista){
         entrada = document.createElement('select');
-        c.opciones.forEach(function(o){
+        lista.forEach(function(o, i){
           var op = document.createElement('option');
-          op.value = o; op.textContent = o;
+          op.value = (valores[i] !== undefined ? valores[i] : o);
+          op.textContent = o;
           entrada.appendChild(op);
         });
       } else {

@@ -113,7 +113,25 @@ window.CIIP_PASOS = {
       d_pasaporte:   "Pasaporte vigente",
       d_foto:        "Fotografía tipo carnet",
       d_antecedentes:"Antecedentes penales apostillados",
-      d_inversion:   "Constancia de la inversión"
+      d_inversion:   "Constancia de la inversión",
+      /* --- Cédula de residencia (SAIME) --- */
+      f_numvisa:     "N.º de visa",
+      f_ingreso:     "Fecha de entrada al país",
+      f_dirvzla:     "Dirección en Venezuela",
+      f_telvzla:     "Teléfono en Venezuela",
+      f_civil:       "Estado civil",
+      f_ocupacion:   "Ocupación",
+      o_civil:       ["Soltero/a", "Casado/a", "Divorciado/a", "Viudo/a"],
+      d_visa:        "Visa vigente",
+      /* --- Homologación de licencia de conducir (INTT) --- */
+      f_numlic:      "N.º de la licencia",
+      f_paislic:     "País que la emitió",
+      f_catlic:      "Categoría",
+      f_emisionlic:  "Fecha de emisión",
+      f_vencelic:    "Vencimiento de la licencia",
+      d_licencia:    "Licencia de conducir extranjera",
+      d_traduccion:  "Traducción certificada de la licencia",
+      d_medico:      "Certificado médico"
     },
     en: {
       iniciar:      "Start this request",
@@ -157,7 +175,25 @@ window.CIIP_PASOS = {
       d_pasaporte:   "Valid passport",
       d_foto:        "Passport-size photograph",
       d_antecedentes:"Apostilled criminal record certificate",
-      d_inversion:   "Proof of investment"
+      d_inversion:   "Proof of investment",
+      /* --- Residence card (SAIME) --- */
+      f_numvisa:     "Visa number",
+      f_ingreso:     "Date of entry into the country",
+      f_dirvzla:     "Address in Venezuela",
+      f_telvzla:     "Phone number in Venezuela",
+      f_civil:       "Marital status",
+      f_ocupacion:   "Occupation",
+      o_civil:       ["Single", "Married", "Divorced", "Widowed"],
+      d_visa:        "Valid visa",
+      /* --- Driving licence conversion (INTT) --- */
+      f_numlic:      "Licence number",
+      f_paislic:     "Issuing country",
+      f_catlic:      "Category",
+      f_emisionlic:  "Date of issue",
+      f_vencelic:    "Licence expiry date",
+      d_licencia:    "Foreign driving licence",
+      d_traduccion:  "Certified translation of the licence",
+      d_medico:      "Medical certificate"
     },
     pt: {
       iniciar:      "Iniciar este pedido",
@@ -201,7 +237,25 @@ window.CIIP_PASOS = {
       d_pasaporte:   "Passaporte válido",
       d_foto:        "Fotografia tipo passe",
       d_antecedentes:"Registo criminal apostilado",
-      d_inversion:   "Comprovativo do investimento"
+      d_inversion:   "Comprovativo do investimento",
+      /* --- Cartão de residência (SAIME) --- */
+      f_numvisa:     "N.º do visto",
+      f_ingreso:     "Data de entrada no país",
+      f_dirvzla:     "Morada na Venezuela",
+      f_telvzla:     "Telefone na Venezuela",
+      f_civil:       "Estado civil",
+      f_ocupacion:   "Ocupação",
+      o_civil:       ["Solteiro/a", "Casado/a", "Divorciado/a", "Viúvo/a"],
+      d_visa:        "Visto válido",
+      /* --- Homologação da carta de condução (INTT) --- */
+      f_numlic:      "N.º da carta",
+      f_paislic:     "País emissor",
+      f_catlic:      "Categoria",
+      f_emisionlic:  "Data de emissão",
+      f_vencelic:    "Validade da carta",
+      d_licencia:    "Carta de condução estrangeira",
+      d_traduccion:  "Tradução certificada da carta",
+      d_medico:      "Atestado médico"
     },
     it: {
       iniciar:      "Avvia questa richiesta",
@@ -245,7 +299,25 @@ window.CIIP_PASOS = {
       d_pasaporte:   "Passaporto valido",
       d_foto:        "Fototessera",
       d_antecedentes:"Certificato penale con apostille",
-      d_inversion:   "Prova dell'investimento"
+      d_inversion:   "Prova dell'investimento",
+      /* --- Permesso di soggiorno (SAIME) --- */
+      f_numvisa:     "N. del visto",
+      f_ingreso:     "Data di ingresso nel Paese",
+      f_dirvzla:     "Indirizzo in Venezuela",
+      f_telvzla:     "Telefono in Venezuela",
+      f_civil:       "Stato civile",
+      f_ocupacion:   "Occupazione",
+      o_civil:       ["Celibe/Nubile", "Coniugato/a", "Divorziato/a", "Vedovo/a"],
+      d_visa:        "Visto valido",
+      /* --- Conversione della patente (INTT) --- */
+      f_numlic:      "N. della patente",
+      f_paislic:     "Paese di rilascio",
+      f_catlic:      "Categoria",
+      f_emisionlic:  "Data di rilascio",
+      f_vencelic:    "Scadenza della patente",
+      d_licencia:    "Patente estera",
+      d_traduccion:  "Traduzione giurata della patente",
+      d_medico:      "Certificato medico"
     },
     zh: {
       iniciar:      "开始办理",
@@ -289,7 +361,25 @@ window.CIIP_PASOS = {
       d_pasaporte:   "有效护照",
       d_foto:        "证件照",
       d_antecedentes:"经认证的无犯罪记录证明",
-      d_inversion:   "投资证明"
+      d_inversion:   "投资证明",
+      /* --- 居留证（SAIME） --- */
+      f_numvisa:     "签证号码",
+      f_ingreso:     "入境日期",
+      f_dirvzla:     "在委内瑞拉的住址",
+      f_telvzla:     "在委内瑞拉的电话",
+      f_civil:       "婚姻状况",
+      f_ocupacion:   "职业",
+      o_civil:       ["未婚", "已婚", "离异", "丧偶"],
+      d_visa:        "有效签证",
+      /* --- 驾照换领（INTT） --- */
+      f_numlic:      "驾照号码",
+      f_paislic:     "签发国家",
+      f_catlic:      "准驾类别",
+      f_emisionlic:  "签发日期",
+      f_vencelic:    "驾照有效期至",
+      d_licencia:    "外国驾照",
+      d_traduccion:  "驾照的认证翻译件",
+      d_medico:      "健康证明"
     },
     ru: {
       iniciar:      "Начать заявку",
@@ -333,7 +423,25 @@ window.CIIP_PASOS = {
       d_pasaporte:   "Действующий паспорт",
       d_foto:        "Фото на документы",
       d_antecedentes:"Справка о несудимости с апостилем",
-      d_inversion:   "Подтверждение инвестиции"
+      d_inversion:   "Подтверждение инвестиции",
+      /* --- Вид на жительство (SAIME) --- */
+      f_numvisa:     "Номер визы",
+      f_ingreso:     "Дата въезда в страну",
+      f_dirvzla:     "Адрес в Венесуэле",
+      f_telvzla:     "Телефон в Венесуэле",
+      f_civil:       "Семейное положение",
+      f_ocupacion:   "Род занятий",
+      o_civil:       ["Холост/не замужем", "В браке", "В разводе", "Вдовец/вдова"],
+      d_visa:        "Действующая виза",
+      /* --- Обмен водительских прав (INTT) --- */
+      f_numlic:      "Номер прав",
+      f_paislic:     "Страна выдачи",
+      f_catlic:      "Категория",
+      f_emisionlic:  "Дата выдачи",
+      f_vencelic:    "Срок действия прав",
+      d_licencia:    "Иностранные водительские права",
+      d_traduccion:  "Заверенный перевод прав",
+      d_medico:      "Медицинская справка"
     }
   },
 

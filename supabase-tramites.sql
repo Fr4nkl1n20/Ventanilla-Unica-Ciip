@@ -106,6 +106,10 @@ insert into public.tipos_documento (codigo, nombre, vence) values
   -- (los consulados suelen pedirlos recientes), la constancia de inversión no.
   ('antecedentes',      'Antecedentes penales apostillados',      true),
   ('inversion',         'Constancia de la inversión',             false),
+  -- Recaudos de la homologación de licencia. La licencia extranjera y el
+  -- certificado médico caducan; la traducción acompaña al documento.
+  ('licencia_extranjera','Licencia de conducir extranjera',       true),
+  ('certificado_medico','Certificado médico',                     true),
   ('otro',              'Otro documento',                         false)
 on conflict (codigo) do nothing;
 
@@ -159,9 +163,9 @@ on conflict (codigo) do nothing;
 -- Aquí se dice en positivo y en negativo, para que la lista de activos sea
 -- exactamente esta y no se quede uno encendido de una prueba anterior.
 update public.tipos_tramite set activo = true
-  where codigo in ('rif_personal', 'rif_empresa', 'visa_inversionista');
+  where codigo in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir');
 update public.tipos_tramite set activo = false
-  where codigo not in ('rif_personal', 'rif_empresa', 'visa_inversionista');
+  where codigo not in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir');
 
 
 -- ───────────────────────────────────────────────────────────────────────
@@ -234,7 +238,7 @@ create table if not exists public.tramites (
 );
 
 comment on table  public.tramites        is 'Una solicitud concreta de un inversionista';
-comment on column public.tramites.datos  is 'Campos del formulario, distintos por tipo. rif_personal: numero_documento, tipo_documento, fecha_nacimiento, direccion_fiscal, telefono, profesion. visa_inversionista: numero_pasaporte, pais_emisor, vence_pasaporte, consulado, monto_inversion, motivo_inversion';
+comment on column public.tramites.datos  is 'Campos del formulario, distintos por tipo. rif_personal: numero_documento, tipo_documento, fecha_nacimiento, direccion_fiscal, telefono, profesion. visa_inversionista: numero_pasaporte, pais_emisor, vence_pasaporte, consulado, monto_inversion, motivo_inversion. cedula_residencia: numero_visa, fecha_ingreso, estado_civil, ocupacion, telefono_local, direccion_vzla. licencia_conducir: numero_licencia, pais_licencia, categoria, fecha_emision, vence_licencia, direccion_vzla';
 comment on column public.tramites.gestor is 'Quién del CIIP lo lleva. Null = sin asignar, que es justo lo que la cola debe mostrar primero';
 
 create index if not exists tramites_por_inversionista on public.tramites (inversionista, estado);
@@ -494,7 +498,8 @@ create policy "recaudos: borrar de su carpeta" on storage.objects
 --                     'tramite_eventos','tipos_documento','tipos_tramite');
 --
 -- 2) Estos deben salir con activo = true, y solo estos:
---    rif_personal, rif_empresa, visa_inversionista
+--    rif_personal, rif_empresa, visa_inversionista, cedula_residencia,
+--    licencia_conducir
 --
 --   select codigo, activo from public.tipos_tramite order by ref_panel;
 --
