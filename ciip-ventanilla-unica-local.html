@@ -322,6 +322,35 @@ svg{display:block;}
   padding:10px 12px; outline:none; width:100%;}
 .pf-campo input:focus, .pf-campo select:focus{border-color:var(--navy2);}
 .pf-campo.mal input, .pf-campo.mal select{border-color:var(--rust);}
+/* --- citas y agenda: una vista propia --- */
+.citas-vista{display:none;}
+body[data-vista="citas"] .citas-vista{display:block;}
+/* Fuera todo lo que pertenece a la portada, igual que en las otras vistas. */
+body[data-vista="citas"] .solo-inicio,
+body[data-vista="citas"] #avisoDemo.show,
+body[data-vista="citas"] #secTramites,
+body[data-vista="citas"] .faq-sec{display:none;}
+body[data-vista="citas"] .fase-bar{display:flex;}
+body[data-vista="citas"] #faseVolver,
+body[data-vista="citas"] #trVolver{display:none;}
+body[data-vista="citas"] #ciVolver{display:inline-flex;}
+#ciVolver{display:none;}
+
+.ci-lista{display:flex; flex-direction:column; gap:10px;}
+.ci-ficha{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
+  box-shadow:var(--shadow); padding:15px 17px;}
+/* La que está en marcha se distingue del historial: es la única sobre la que
+   se puede hacer algo. */
+.ci-ficha.viva{border-color:var(--navy);}
+.ci-cab{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.ci-linea{font-size:14px; font-weight:700; margin-top:9px;}
+.ci-que{font-size:12px; color:var(--gray); margin-top:3px;}
+.ci-nota{font-size:12px; color:var(--ink); margin-top:6px;}
+/* El historial se lee, no se toca: en gris y sin borde azul. */
+.ci-ficha.pasada .ci-linea{color:var(--gray); font-weight:600;}
+.ci-vacia{background:var(--bg); border:1px dashed var(--line); border-radius:var(--r);
+  padding:26px 18px; text-align:center; font-size:13px; color:var(--gray);}
+
 /* --- la cola del equipo del CIIP --- */
 .cola-sel{flex:none;}
 .cola-sel[hidden]{display:none;}
@@ -1075,7 +1104,9 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
     </div>
     <div class="sb-group">
       <div class="sb-gl" data-i18n="nav.g.support">Support</div>
-      <div class="sb-item"><span class="dot"></span><span data-i18n="nav.appointments">Appointments</span><span class="cnt">2</span></div>
+      <!-- Este renglon SI lleva a alguna parte. El numero sale de tus citas
+           vivas, no de un ejemplo: si no hay ninguna, no se enseña. -->
+      <button class="sb-item" id="navCitas" type="button"><span class="dot"></span><span data-i18n="nav.appointments">Appointments</span><span class="cnt" id="navCitasN" hidden></span></button>
       <div class="sb-item"><span class="dot"></span><span data-i18n="nav.help">Help & guide</span></div>
     </div>
     <div class="sb-group">
@@ -1157,6 +1188,10 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <!-- Desde el detalle de un tramite se vuelve a SU fase. El data-i18n de
            dentro se cambia por JS (p1.name, p2.name...) para que el nombre de
            la fase siga traduciendose solo al cambiar de idioma. -->
+      <button class="volver" id="ciVolver" type="button">
+        <span class="v-ico" aria-hidden="true">‹</span>
+        <span data-i18n="nav.panel">Dashboard</span>
+      </button>
       <button class="volver" id="trVolver" type="button">
         <span class="v-ico" aria-hidden="true">‹</span>
         <span id="trVolverTxt" data-i18n="p1.name">Arrive</span>
@@ -1557,6 +1592,18 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 
     <!-- Las preguntas se pliegan bajo su cabecera, igual que los trámites de
          cada fase. Arranca plegada: la portada es el índice. -->
+    <!-- Citas y agenda. Es una vista propia, con su direccion: se llega
+         desde la barra lateral y la flecha "atras" del navegador funciona. -->
+    <div class="citas-vista">
+      <div class="sec-h">
+        <div class="t" data-i18n="nav.appointments">Appointments</div>
+        <div class="sub" id="ciSub"></div>
+        <div class="spacer"></div>
+        <button class="btn navy" id="ciPedir" type="button"></button>
+      </div>
+      <div class="ci-lista" id="ciLista"></div>
+    </div>
+
     <div class="section-gap solo-inicio faq-sec plegada">
       <button class="sec-h faq-h" type="button" aria-expanded="false" aria-controls="faqLista">
         <span class="t" id="faqTitulo" data-i18n="faq.title">Frequently asked questions</span>
@@ -1872,6 +1919,7 @@ function applyLang(lang){
   /* La cola también: sus textos, y de paso si el botón debe verse, porque el
      perfil —y con él el rol— llega después de que la página se dibuje. */
   if (window.CIIP_REPINTA_COLA)   window.CIIP_REPINTA_COLA();
+  if (window.CIIP_REPINTA_AGENDA) window.CIIP_REPINTA_AGENDA();
 }
 (function(){
   var btn=document.getElementById('langBtn'), menu=document.getElementById('langMenu');
@@ -2104,6 +2152,9 @@ function applyLang(lang){
     /* Un #tramite-c99 escrito a mano cae a la portada, no a una pantalla
        en blanco. Lo mismo con #fase-9. */
     if (tipo === 'tramite' && !pintaTramite(destino.id)) tipo = null;
+    /* La agenda se rellena al entrar, no al cargar la página: la mayoría de
+       las visitas no pasan por ella y no hay que gastarles una consulta. */
+    if (tipo === 'citas' && window.CIIP_PINTA_AGENDA) window.CIIP_PINTA_AGENDA();
 
     var fase = null;
     if (tipo === 'fase') {
@@ -2142,6 +2193,7 @@ function applyLang(lang){
     if (f) return {tipo:'fase', n:f[1]};
     var t = /^#tramite-(c\d+)$/.exec(h);
     if (t) return {tipo:'tramite', id:t[1]};
+    if (h === '#citas') return {tipo:'citas'};
     return null;
   }
 
@@ -4042,6 +4094,9 @@ applyLang('en');
       /* El buzon se vuelve a leer: una cita recien pedida todavia no sale
          en el, pero la que se confirme si, y asi no hace falta recargar. */
       cargaAvisos();
+      /* Y la agenda, que lleva el contador del renglon de la barra lateral:
+         sin esto seguiria marcando lo de antes hasta recargar la pagina. */
+      if (window.CIIP_PINTA_AGENDA) window.CIIP_PINTA_AGENDA();
       return cargaCita().then(pintaCita);
     }).catch(function(e){
       console.warn('[CIIP] pedir cita:', e && (e.message || e));
@@ -4070,6 +4125,7 @@ applyLang('en');
         citaEnMarcha = null;
         pintaCita();
         cargaAvisos();
+        if (window.CIIP_PINTA_AGENDA) window.CIIP_PINTA_AGENDA();
       }).catch(function(e){
         console.warn('[CIIP] cancelar cita:', e && (e.message || e));
         bt.disabled = false;
@@ -4305,6 +4361,118 @@ applyLang('en');
       if (typeof PERFIL !== 'undefined' && PERFIL.real) return;
       if (intentos++ < 40) setTimeout(esperaAlPerfil, 100);
     })();
+  }
+
+
+  /* ──────────────────────────────────────────────────────────────
+     CITAS Y AGENDA
+     ──────────────────────────────────────────────────────────────
+     El renglón de la barra lateral se ilumina al pulsarlo y no llevaba a
+     ninguna parte, con un "2" de ejemplo al lado. Era el sitio donde
+     cualquiera busca sus citas, y estaba vacío: las citas vivían escondidas
+     en la burbuja de abajo a la derecha, que hay que saberse.
+
+     Aquí están las tuyas, la viva y las pasadas. El número del renglón sale
+     de las vivas —pedidas o confirmadas—, y si no hay ninguna no se enseña:
+     un contador que siempre marca algo deja de leerse.
+     ──────────────────────────────────────────────────────────── */
+  var ciLista = document.getElementById('ciLista');
+  var ciNav   = document.getElementById('navCitas');
+  var ciNavN  = document.getElementById('navCitasN');
+  var agenda  = [];
+
+  var CI_VIVAS = ['solicitada', 'confirmada'];
+
+  function chipDeCita(estado){
+    var u = T();
+    if (estado === 'confirmada') return {txt:u.ct_chip_conf || '', clase:'listo'};
+    if (estado === 'hecha')      return {txt:u.ci_hecha || '',     clase:''};
+    if (estado === 'cancelada')  return {txt:u.ci_cancelada || '', clase:''};
+    return {txt:u.ct_chip_ped || '', clase:''};
+  }
+
+  function pintaAgenda(){
+    if (!ciLista) return;
+    var u = T();
+    var sub = document.getElementById('ciSub');
+    if (sub) sub.textContent = u.ci_sub || '';
+
+    /* El botón de pedir solo cuando no hay ninguna viva: con una en marcha,
+       la ventana no dejaría pedir otra, y ofrecerlo sería mentir. */
+    var vivas = agenda.filter(function(c){ return CI_VIVAS.indexOf(c.estado) >= 0; });
+    var pedir = document.getElementById('ciPedir');
+    if (pedir){
+      pedir.textContent = u.ct_titulo || '';
+      pedir.style.display = vivas.length ? 'none' : '';
+    }
+    if (ciNavN){
+      ciNavN.textContent = String(vivas.length);
+      ciNavN.hidden = (vivas.length === 0);
+    }
+
+    ciLista.textContent = '';
+    if (!agenda.length){
+      ciLista.appendChild(el('div', 'ci-vacia', u.ci_vacia || ''));
+      return;
+    }
+
+    agenda.forEach(function(c){
+      var viva = (CI_VIVAS.indexOf(c.estado) >= 0);
+      var f = el('div', 'ci-ficha' + (viva ? ' viva' : ' pasada'));
+
+      var cab = el('div', 'ci-cab');
+      var chip = chipDeCita(c.estado);
+      var e = el('span', 'ct-chip' + (chip.clase ? ' ' + chip.clase : ''), chip.txt);
+      cab.appendChild(e);
+      f.appendChild(cab);
+
+      /* Confirmada dice cuándo es; sin confirmar, qué días pedías. Poner "—"
+         donde va la fecha sería dejar la ficha diciendo nada. */
+      f.appendChild(el('div', 'ci-linea', c.cuando
+        ? String(u.ct_confirmada || '').replace('{fecha}', fechaHora(c.cuando))
+        : String(u.ci_ventana || '').replace('{desde}', fecha(c.desde)).replace('{hasta}', fecha(c.hasta))));
+
+      var partes = [nombreDeTipo(c.tipo_tramite), (u['ct_' + c.modo] || c.modo)];
+      if (c.lugar) partes.push(c.lugar);
+      f.appendChild(el('div', 'ci-que', partes.join(' · ')));
+      if (c.nota) f.appendChild(el('div', 'ci-nota', c.nota));
+
+      ciLista.appendChild(f);
+    });
+  }
+
+  function cargaAgenda(){
+    return sb.from('citas')
+      .select('id, tipo_tramite, modo, desde, hasta, nota, estado, cuando, lugar, creado_en')
+      .order('creado_en', {ascending:false})
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        agenda = r.data || [];
+        pintaAgenda();
+      })
+      .catch(function(e){
+        console.warn('[CIIP] agenda:', e && e.message);
+        agenda = [];
+        pintaAgenda();
+      });
+  }
+
+  if (ciLista){
+    /* El renglón de la barra lateral navega por el hash, como todo lo demás:
+       así la flecha "atrás" del navegador sabe volver de aquí. */
+    if (ciNav) ciNav.addEventListener('click', function(){ location.hash = 'citas'; });
+    var ciVolver = document.getElementById('ciVolver');
+    if (ciVolver) ciVolver.addEventListener('click', function(){
+      if (location.hash) location.hash = '';
+    });
+    var ciPedir = document.getElementById('ciPedir');
+    if (ciPedir) ciPedir.addEventListener('click', abreCita);
+
+    window.CIIP_PINTA_AGENDA = cargaAgenda;
+    window.CIIP_REPINTA_AGENDA = pintaAgenda;
+    /* El contador del renglón sí se pide al cargar: es lo único que le dice
+       al usuario que ahí dentro hay algo suyo esperando. */
+    cargaAgenda();
   }
 
 })();

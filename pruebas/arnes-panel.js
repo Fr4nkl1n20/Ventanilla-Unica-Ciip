@@ -92,7 +92,8 @@
 
   cuandoConteste(function(){
     enCadena([pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir, citasAnula, citasTrasAnular,
-              colaAbre, colaConfirma, colaTrasConfirmar], volcar);
+              colaAbre, colaConfirma, colaTrasConfirmar,
+              agendaMira, agendaTrasEntrar], volcar);
   });
 
   function pruebas(){
@@ -763,6 +764,56 @@
   function citasAnula(){
     if (CASO === 'gestor') return;
     document.getElementById('ctCancelar').click();
+  }
+
+  /* ═══════════ CITAS Y AGENDA ═══════════
+     El renglón de la barra lateral se iluminó durante meses sin llevar a
+     ninguna parte, con un "2" de ejemplo al lado. */
+  function agendaMira(){
+    var nav = document.getElementById('navCitas');
+    var num = document.getElementById('navCitasN');
+
+    /* El contador sale de las citas VIVAS, no de un ejemplo. En 'lleno' hay
+       una confirmada; en los demás expedientes, ninguna. */
+    var vivas = (CASO === 'lleno') ? '1' : '';
+    if (vivas){
+      igual('agenda: el renglón cuenta tus citas vivas', num.textContent, vivas);
+      ok('agenda: y el contador se ve', !num.hidden, 'oculto=' + num.hidden, 'oculto=false');
+    } else {
+      ok('agenda: sin citas vivas, el renglón no lleva número', num.hidden,
+         'oculto=' + num.hidden + ' texto="' + num.textContent + '"', 'oculto=true');
+    }
+
+    /* Y lleva a alguna parte, con su propia dirección. */
+    nav.click();
+    igual('agenda: el renglón lleva a su vista', location.hash, '#citas');
+  }
+
+  function agendaTrasEntrar(){
+    igual('agenda: y la vista se abre', document.body.getAttribute('data-vista'), 'citas');
+    var fichas = document.querySelectorAll('#ciLista .ci-ficha');
+
+    if (CASO === 'lleno'){
+      igual('agenda: enseña la cita que tienes', fichas.length, 1);
+      ok('agenda: con su fecha puesta, no un hueco',
+         /Confirmada para el/.test(fichas[0].querySelector('.ci-linea').textContent) &&
+         fichas[0].querySelector('.ci-linea').textContent.indexOf('{') < 0,
+         fichas[0].querySelector('.ci-linea').textContent, 'la fecha, sin llaves');
+      ok('agenda: la viva se distingue del historial',
+         fichas[0].classList.contains('viva'), fichas[0].className, 'con la clase viva');
+      /* Con una cita viva no se ofrece pedir otra: la ventana no dejaría. */
+      igual('agenda: y no ofrece pedir otra',
+            document.getElementById('ciPedir').style.display, 'none');
+    } else {
+      igual('agenda: sin ninguna, lo dice en vez de dejarlo en blanco',
+            (document.querySelector('#ciLista .ci-vacia') || {}).textContent,
+            'Todavía no has pedido ninguna cita.');
+      ok('agenda: y ofrece pedir una', document.getElementById('ciPedir').style.display !== 'none',
+         'display=' + document.getElementById('ciPedir').style.display, 'visible');
+    }
+
+    /* Se vuelve a la portada, que es donde miran las demás pruebas. */
+    document.getElementById('ciVolver').click();
   }
 
   /* ═══════════ LA COLA DEL EQUIPO ═══════════

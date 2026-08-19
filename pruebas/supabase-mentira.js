@@ -87,8 +87,10 @@
      eventos de tramites a proposito: asi se comprueba que el buzon la mete
      en su sitio por fecha y no simplemente al final o al principio. */
   var CONFIRMADAS = {
-    lleno: [{id:'k1', tipo_tramite:'constitucion',
+    lleno: [{id:'k1', tipo_tramite:'constitucion', modo:'presencial',
+             estado:'confirmada', desde:'2026-08-24', hasta:'2026-08-28', nota:'',
              cuando:'2026-08-26T14:00:00Z', lugar:'Torre CIIP, piso 4',
+             creado_en:'2026-06-30T09:00:00Z',
              actualizado_en:'2026-07-01T09:00:00Z'}],
     vacio: [], sinnombre: [], gestor: []
   };
@@ -189,7 +191,10 @@
         if (op.update.estado === 'cancelada') citasVivas = [];
         return {data:{}, error:null};
       }
-      return {data:citasVivas, error:null};
+      /* La agenda pide TODAS: ni .eq ni .in. El dialogo del inversionista
+         pide solo las vivas con .in, y son dos listas distintas. */
+      if (op && op.in) return {data:citasVivas, error:null};
+      return {data:citasVivas.concat(CONFIRMADAS[caso] || []), error:null};
     }
     if (tabla === 'tipos_tramite')    return {data:TIPOS, error:null};
     if (tabla === 'tipos_documento')  return {data:[], error:null};

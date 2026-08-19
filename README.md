@@ -32,7 +32,7 @@ autenticación y los datos los pone Supabase.
 | `ABRIR-LOCAL.bat` | Levantar el proyecto en `http://localhost:8080`, solo para ti |
 | `ABRIR-EN-RED.bat` | Igual, pero abierto a la red: otros PC de la oficina pueden entrar |
 | `PROBAR.bat` | Lanzar las 57 pruebas del acceso |
-| `PROBAR-PANEL.bat` | Lanzar las 302 pruebas del panel |
+| `PROBAR-PANEL.bat` | Lanzar las 326 pruebas del panel |
 
 ## Puesta en marcha
 
@@ -58,6 +58,7 @@ enlace:
 | Portada | *(sin nada)* | Las cuatro etapas y los quince trámites |
 | Fase | `#fase-2` | Solo los trámites de esa etapa |
 | Trámite | `#tramite-c5` | El detalle y sus cuatro pasos |
+| Citas | `#citas` | Tus citas con el CIIP, la viva y las pasadas |
 
 Una dirección que no exista (`#fase-9`, `#tramite-c99`) devuelve a la portada
 en vez de dejar la pantalla en blanco.
@@ -72,7 +73,7 @@ el medidor de fuerza de la clave, navegación entre vistas, los seis idiomas, el
 buscador de países, el almacenamiento de sesión, el logo y la carga de
 `config.js`.
 
-**El panel** (302 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
+**El panel** (326 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
 los filtros, que las cuatro etapas son cuatro cajas parejas, la franja de "te
 toca a ti", el buzón de avisos, la ventana de tu perfil, las citas y que el
 panel te llama por TU nombre. Todo eso
