@@ -1102,7 +1102,10 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
   <nav class="sb-nav">
     <div class="sb-group">
       <div class="sb-gl" data-i18n="nav.g.file">My file</div>
-      <div class="sb-item active"><span class="dot"></span><span data-i18n="nav.panel">Dashboard</span></div>
+      <!-- Lleva a la portada. Era un <div> que solo se iluminaba: desde que
+           "Citas y agenda" abre una vista propia, este es la única salida
+           natural y tenía que dejar de ser decorado. -->
+      <button class="sb-item active" id="navPanel" type="button"><span class="dot"></span><span data-i18n="nav.panel">Dashboard</span></button>
       <div class="sb-item"><span class="dot"></span><span data-i18n="nav.procedures">My procedures</span><span class="cnt">15</span></div>
       <div class="sb-item"><span class="dot"></span><span data-i18n="nav.company">My company</span></div>
       <div class="sb-item"><span class="dot"></span><span data-i18n="nav.documents">Documents</span><span class="cnt">9</span></div>
@@ -2186,6 +2189,10 @@ function applyLang(lang){
       cuerpo.setAttribute('data-vista', 'inicio');
     }
     if (tipo !== 'tramite') trAbierto = null;
+    /* La barra lateral se entera del cambio de vista por aquí, y no en el
+       clic: así también acierta cuando se llega con la flecha "atrás" o
+       pegando una dirección. */
+    if (window.CIIP_BARRA) window.CIIP_BARRA(tipo || 'inicio');
 
     /* El filtro de estado pertenece a la portada. Al cambiar de vista se
        vuelve a "todos": si no, se entraría en una fase que el filtro deja
@@ -2285,9 +2292,28 @@ function applyLang(lang){
   });
 })();
 
-document.querySelectorAll('.sb-item:not(.soon)').forEach(function(i){
-  i.addEventListener('click',function(){ document.querySelectorAll('.sb-item').forEach(function(x){x.classList.remove('active');}); i.classList.add('active'); });
-});
+/* ---------- la barra lateral dice dónde estás ----------
+   Antes, pulsar cualquier renglón lo iluminaba, fuera o no a alguna parte.
+   Con dos vistas de verdad eso miente el resto del tiempo: te quedabas con
+   "Mis trámites" encendido mientras mirabas la portada.
+
+   Ahora el resaltado lo pone la VISTA. Los renglónes que todavía no llevan a
+   ninguna parte ya no se lo quedan: un "estás aquí" que apunta a un sitio
+   donde no estás es peor que ninguno. */
+(function(){
+  var panel = document.getElementById('navPanel');
+  var citas = document.getElementById('navCitas');
+  if (panel) panel.addEventListener('click', function(){
+    if (location.hash) location.hash = '';
+  });
+
+  window.CIIP_BARRA = function(vista){
+    document.querySelectorAll('.sb-item').forEach(function(x){ x.classList.remove('active'); });
+    var aqui = (vista === 'citas') ? citas : panel;
+    if (aqui) aqui.classList.add('active');
+  };
+  window.CIIP_BARRA(document.body.getAttribute('data-vista') || 'inicio');
+})();
 
 /* ---------- investor assistant (demo) ---------- */
 var KB=[

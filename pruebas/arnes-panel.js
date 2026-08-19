@@ -93,7 +93,7 @@
   cuandoConteste(function(){
     enCadena([pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir, citasAnula, citasTrasAnular,
               colaAbre, colaConfirma, colaTrasConfirmar,
-              agendaMira, agendaTrasEntrar], volcar);
+              agendaMira, agendaTrasEntrar, agendaTrasSalir], volcar);
   });
 
   function pruebas(){
@@ -830,8 +830,40 @@
          'display=' + document.getElementById('ciPedir').style.display, 'visible');
     }
 
-    /* Se vuelve a la portada, que es donde miran las demás pruebas. */
-    document.getElementById('ciVolver').click();
+    /* El resaltado lo pone la VISTA, no el último clic: si no, te quedabas
+       con un renglón encendido apuntando a un sitio donde no estás. */
+    ok('barra: estando en las citas, el renglón encendido es el suyo',
+       document.getElementById('navCitas').classList.contains('active') &&
+       !document.getElementById('navPanel').classList.contains('active'),
+       'citas=' + document.getElementById('navCitas').classList.contains('active') +
+       ' panel=' + document.getElementById('navPanel').classList.contains('active'),
+       'citas encendido, panel apagado');
+
+    /* Y "Mi panel" saca de aquí. Era un <div> que solo se iluminaba, así que
+       desde la vista de citas no había salida por la barra. */
+    document.getElementById('navPanel').click();
+  }
+
+  function agendaTrasSalir(){
+    if (false) return;
+    igual('barra: "Mi panel" devuelve a la portada',
+          document.body.getAttribute('data-vista'), 'inicio');
+    ok('barra: y el resaltado vuelve con él',
+       document.getElementById('navPanel').classList.contains('active') &&
+       !document.getElementById('navCitas').classList.contains('active'),
+       'panel=' + document.getElementById('navPanel').classList.contains('active') +
+       ' citas=' + document.getElementById('navCitas').classList.contains('active'),
+       'panel encendido, citas apagado');
+
+    /* Los renglónes que no llevan a ninguna parte ya no se quedan el
+       resaltado: un "estás aquí" falso es peor que ninguno. */
+    var inerte = document.querySelectorAll('.sb-item')[1];
+    inerte.click();
+    ok('barra: un renglón que no lleva a nada no se queda el resaltado',
+       !inerte.classList.contains('active') &&
+       document.getElementById('navPanel').classList.contains('active'),
+       'inerte=' + inerte.classList.contains('active'),
+       'sigue encendido el de la portada');
   }
 
   /* ═══════════ LA COLA DEL EQUIPO ═══════════
