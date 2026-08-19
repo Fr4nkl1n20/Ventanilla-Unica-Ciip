@@ -784,6 +784,24 @@
          'oculto=' + num.hidden + ' texto="' + num.textContent + '"', 'oculto=true');
     }
 
+    /* Es un <button> entre <div>: sin devolverle el aspecto salía con letra
+       del sistema y texto oscuro sobre la barra azul, y cantaba al lado de
+       sus vecinos. Se compara contra uno de ellos. */
+    (function(){
+      /* Un vecino CUALQUIERA no vale: el primero es "Mi panel", que está
+         activo y por eso va en blanco puro. Se compara con uno en reposo. */
+      var vecino = document.querySelector('.sb-item:not(.active):not(.soon)');
+      var a = window.getComputedStyle(nav), b = window.getComputedStyle(vecino);
+      ok('agenda: el renglón se ve igual que sus vecinos',
+         a.fontFamily === b.fontFamily && a.fontSize === b.fontSize && a.color === b.color,
+         'letra ' + a.fontSize + ' ' + a.color + ' vs ' + b.fontSize + ' ' + b.color,
+         'la misma letra y el mismo color');
+      ok('agenda: y ocupa el mismo ancho',
+         Math.abs(nav.getBoundingClientRect().width - vecino.getBoundingClientRect().width) < 1,
+         Math.round(nav.getBoundingClientRect().width) + 'px vs ' + Math.round(vecino.getBoundingClientRect().width) + 'px',
+         'el mismo ancho');
+    })();
+
     /* Y lleva a alguna parte, con su propia dirección. */
     nav.click();
     igual('agenda: el renglón lleva a su vista', location.hash, '#citas');

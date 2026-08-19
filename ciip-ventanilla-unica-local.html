@@ -253,9 +253,18 @@ svg{display:block;}
 .sb-group{margin-top:15px;} .sb-group:first-child{margin-top:2px;}
 .sb-gl{font-size:8.5px; font-weight:700; letter-spacing:.11em; text-transform:uppercase;
   color:rgba(255,255,255,.42); padding:0 10px 6px;}
+/* Uno de estos renglones es un <button> de verdad —el de las citas— y los
+   demas siguen siendo <div>. Un boton no hereda la fuente ni el color del
+   padre y trae fondo, borde y relleno propios, asi que sin esto salia con
+   letra del sistema, texto oscuro sobre la barra azul y su propio recuadro:
+   parecia roto justo al lado de sus vecinos. Se le devuelve el aspecto que
+   ya tenian los demas, y el ancho completo para que la franja de pulsado
+   llegue de lado a lado como en ellos. */
 .sb-item{display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px;
   color:rgba(255,255,255,.82); font-size:12.5px; font-weight:500; cursor:pointer;
-  transition:background .13s, color .13s; position:relative;}
+  transition:background .13s, color .13s; position:relative;
+  width:100%; font-family:inherit; text-align:left; background:transparent; border:0;}
+.sb-item:focus-visible{outline:2px solid var(--cyan); outline-offset:-2px;}
 .sb-item .dot{width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.30); flex:none;}
 .sb-item:hover{background:rgba(255,255,255,.07); color:#fff;}
 .sb-item.active{background:rgba(255,255,255,.12); color:#fff; font-weight:700;}
