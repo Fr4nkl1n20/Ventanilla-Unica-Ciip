@@ -39,6 +39,18 @@
   var CORREO = 'Introduce un correo válido.';
   var CORTA  = 'La clave debe tener al menos 8 caracteres.';
   var DISTIN = 'Las claves no coinciden.';
+  var DEBIL  = 'Esa clave se adivina en segundos. Elige otra.';
+
+  /* Las pruebas usaban '12345678' para todo. Cuando llegó el medidor de
+     fuerza dejó de pasar —es una fila del teclado— y su aviso tapaba a los
+     tres de después: las claves no coinciden, faltan los términos y no hay
+     base de datos. Cuatro pruebas en rojo sin que el código tuviera nada
+     malo: el medidor hacía su trabajo y las pruebas se habían quedado atrás.
+
+     FUERTE es una clave que el medidor da por buena, para que cada prueba
+     llegue a comprobar lo suyo. Que el medidor rechace las malas se prueba
+     aparte, más abajo, que es como debía haber estado desde el principio. */
+  var FUERTE = 'Guacamaya-Tepuy-41';
 
   /* ---------- INICIAR SESIÓN ---------- */
   caso('login vacío', function(){}, 'formLogin','msgLogin',VACIO);
@@ -48,7 +60,7 @@
 
   /* ---------- CREAR CUENTA ---------- */
   /* el país ya no es texto libre: hay que elegir uno real */
-  function regOk(){ val('rg-nombre','X'); val('rg-pais','Italia'); val('rg-email','a@b.com'); val('rg-pass','12345678'); val('rg-pass2','12345678'); val('rg-terms',true); }
+  function regOk(){ val('rg-nombre','X'); val('rg-pais','Italia'); val('rg-email','a@b.com'); val('rg-pass',FUERTE); val('rg-pass2',FUERTE); val('rg-terms',true); }
   caso('registro vacío', function(){}, 'formReg','msgReg',VACIO);
   caso('registro correo inválido', function(){ regOk(); val('rg-email','nope'); }, 'formReg','msgReg',CORREO);
   caso('registro clave corta', function(){ regOk(); val('rg-pass','1234'); val('rg-pass2','1234'); }, 'formReg','msgReg',CORTA);
@@ -57,6 +69,23 @@
   caso('registro correcto (sin Supabase)', regOk, 'formReg','msgReg',SIN_BD);
 
   caso('registro con país inventado', function(){ regOk(); val('rg-pais','Talia'); }, 'formReg','msgReg','Elige un país de la lista.');
+
+  /* ---------- EL MEDIDOR DE FUERZA ----------
+     Cuatro maneras distintas de que una clave sea adivinable, una por cada
+     rama que tiene fuerzaClave(). Solo se rechaza el nivel 0: los niveles 1
+     y 2 se aconsejan pero pasan, y de eso da fe 'registro correcto', que
+     usa una clave normal y llega hasta el final. */
+  function conClave(p){ return function(){ regOk(); val('rg-pass',p); val('rg-pass2',p); }; }
+  caso('clave del diccionario, aunque lleve año detrás', conClave('venezuela2024'), 'formReg','msgReg',DEBIL);
+  caso('una fila del teclado',                              conClave('qwertyui'),      'formReg','msgReg',DEBIL);
+  caso('un trocito repetido',                               conClave('abcabcabc'),     'formReg','msgReg',DEBIL);
+  caso('tu propio nombre dentro de la clave', function(){
+    regOk(); val('rg-nombre','Franklin Reyes'); val('rg-pass','franklin-2026'); val('rg-pass2','franklin-2026');
+  }, 'formReg','msgReg',DEBIL);
+
+  /* La longitud manda sobre la fuerza: a una clave de tres letras hay que
+     decirle que es corta, no que es adivinable. */
+  caso('corta antes que débil', conClave('abc'), 'formReg','msgReg',CORTA);
 
   /* ---------- NOMBRE EN MAYÚSCULAS ---------- */
   (function(){
@@ -131,7 +160,10 @@
   /* ---------- CLAVE NUEVA ---------- */
   caso('clave nueva vacía', function(){}, 'formNueva','msgNueva',VACIO);
   caso('clave nueva corta', function(){ val('nv-pass','123'); val('nv-pass2','123'); }, 'formNueva','msgNueva',CORTA);
-  caso('clave nueva no coincide', function(){ val('nv-pass','12345678'); val('nv-pass2','87654321'); }, 'formNueva','msgNueva',DISTIN);
+  caso('clave nueva no coincide', function(){ val('nv-pass',FUERTE); val('nv-pass2','87654321'); }, 'formNueva','msgNueva',DISTIN);
+  /* Aquí el medidor va sin pistas: a la clave nueva se llega desde el enlace
+     del correo, sin nombre ni correo delante. */
+  caso('clave nueva débil', function(){ val('nv-pass','password1'); val('nv-pass2','password1'); }, 'formNueva','msgNueva',DEBIL);
 
   /* ---------- NAVEGACIÓN ---------- */
   limpiaTodo();

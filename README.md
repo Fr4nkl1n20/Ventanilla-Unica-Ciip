@@ -17,8 +17,11 @@ autenticación y los datos los pone Supabase.
 | `config.js` | **Lo único que hay que rellenar**: las claves de Supabase |
 | `pasos.js` | Los cuatro pasos de cada trámite, en los seis idiomas |
 | `supabase-setup.sql` | Esquema del acceso y políticas RLS. Se ejecuta una vez |
-| `supabase-tramites.sql` | Esquema de trámites y bóveda de documentos. **Sin aplicar todavía** |
+| `supabase-tramites.sql` | Esquema de trámites y bóveda de documentos. Se ejecuta una vez |
+| `supabase-citas.sql` | Esquema de las citas. Va **después** de los dos anteriores |
+| `supabase-gestor.sql` | Permite al equipo del CIIP leer los perfiles, y explica cómo nombrar un gestor. Va el último |
 | `logos/` | Logos de los organismos, con su procedencia en [FUENTES.md](logos/FUENTES.md) |
+| `banderas/` | 197 banderas SVG para el buscador de países, con su procedencia en [FUENTES.md](banderas/FUENTES.md) |
 | `original/` | La demostración de partida, intacta, como referencia |
 
 ## Atajos
@@ -28,12 +31,15 @@ autenticación y los datos los pone Supabase.
 | `CONFIGURAR.bat` | Pegar las claves de Supabase sin editar archivos |
 | `ABRIR-LOCAL.bat` | Levantar el proyecto en `http://localhost:8080`, solo para ti |
 | `ABRIR-EN-RED.bat` | Igual, pero abierto a la red: otros PC de la oficina pueden entrar |
-| `PROBAR.bat` | Lanzar las 42 pruebas automáticas |
+| `PROBAR.bat` | Lanzar las 57 pruebas del acceso |
+| `PROBAR-PANEL.bat` | Lanzar las 302 pruebas del panel |
 
 ## Puesta en marcha
 
 1. Crear un proyecto en [supabase.com](https://supabase.com)
-2. *SQL Editor* → pegar `supabase-setup.sql` → **Run**
+2. *SQL Editor* → pegar `supabase-setup.sql` → **Run**. Luego
+   `supabase-tramites.sql`, `supabase-citas.sql` y `supabase-gestor.sql`, en
+   ese orden: el segundo define `es_gestor()`, que los dos últimos usan
 3. `CONFIGURAR.bat` con la *Project URL* y la *anon key*
 4. En Supabase, *Authentication → URL Configuration*, autorizar la dirección
    desde la que se abra el proyecto
@@ -58,14 +64,30 @@ en vez de dejar la pantalla en blanco.
 
 ## Qué está probado y qué no
 
-**Probado** (42 pruebas automáticas, `PROBAR.bat`): validación de los cuatro
-formularios, navegación entre vistas, los seis idiomas, el buscador de países,
-el almacenamiento de sesión, el logo y la carga de `config.js`. Las pruebas
-ejecutan la página de verdad en un navegador sin ventana, no leen el código.
+Las dos tandas ejecutan la página de verdad en un navegador sin ventana; no
+leen el código, lo corren.
 
-**Sin probar**: todo lo que habla con Supabase — crear una cuenta real,
-iniciar sesión, los correos de confirmación y recuperación, el trigger que
-crea el perfil. Requiere un proyecto de Supabase y se hace a mano.
+**El acceso** (57 pruebas, `PROBAR.bat`): validación de los cuatro formularios,
+el medidor de fuerza de la clave, navegación entre vistas, los seis idiomas, el
+buscador de países, el almacenamiento de sesión, el logo y la carga de
+`config.js`.
+
+**El panel** (302 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
+los filtros, que las cuatro etapas son cuatro cajas parejas, la franja de "te
+toca a ti", el buzón de avisos, la ventana de tu perfil, las citas y que el
+panel te llama por TU nombre. Todo eso
+necesita datos para decir algo, así que se corre con un Supabase de mentira
+([pruebas/supabase-mentira.js](pruebas/supabase-mentira.js)) y con TRES
+expedientes: uno con una solicitud devuelta y otra en borrador, otro vacío,
+otro de una cuenta cuyo perfil no trae nombre, y otro del equipo del CIIP con
+dos citas ajenas esperando en la cola. Buena parte de lo que hay que
+comprobar es que el panel se calla cuando no hay nada que decir, y eso no se ve
+en la misma pasada que comprueba que habla.
+
+**Sin probar**: todo lo que habla con el Supabase de verdad — crear una cuenta,
+iniciar sesión, los correos de confirmación y recuperación, el trigger que crea
+el perfil, enviar una solicitud y subir recaudos. Requiere un proyecto de
+Supabase y se hace a mano.
 
 ## Límites conocidos
 
