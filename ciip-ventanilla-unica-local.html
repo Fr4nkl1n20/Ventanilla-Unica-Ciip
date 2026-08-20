@@ -2724,6 +2724,35 @@ applyLang('en');
     /* El RNET no pide nada que no pidan los otros tres. Va aparte porque
        lo que SALE es distinto: sin él la empresa no existe como patrono
        para el Ministerio del Trabajo, y las solvencias del c14 lo piden. */
+    /* El RNC, para PERSONA JURÍDICA. La hoja de trámites por fase trae esa
+       fila en blanco; la lista sale de los requisitos publicados del
+       Servicio Nacional de Contrataciones, y va en los tres bloques en que
+       los publica el organismo: legales, financieros y técnicos.
+
+       Es el trámite con más recaudos del catálogo, y no hay forma honesta de
+       acortarlo: un registro de contratistas mide precisamente capacidad
+       legal, financiera y técnica, y cada bloque acredita una de las tres.
+
+       DOS van opcionales, por motivos distintos y los dos del propio
+       organismo:
+       · el poder, que solo hace falta si quien firma NO es el
+         representante designado en los estatutos;
+       · la relación de equipos, porque quien se inscribe para bienes o
+         servicios no tiene obra que equipar, y exigirla lo dejaría fuera. */
+    rnc: [
+      {tipo:'acta_constitutiva',    clave:'d_acta'},
+      {tipo:'acta_asamblea',        clave:'d_asamblea'},
+      {tipo:'rif_empresa',          clave:'d_rifempresa'},
+      {tipo:'cedula',               clave:'d_identidad'},
+      {tipo:'poder',                clave:'d_poder',       opcional:true},
+      {tipo:'estados_financieros',  clave:'d_estadosfin'},
+      {tipo:'declaracion_islr',     clave:'d_islr'},
+      {tipo:'solvencia_seniat',     clave:'d_solvseniat'},
+      {tipo:'solvencia_ivss',       clave:'d_solvivss'},
+      {tipo:'relacion_experiencia', clave:'d_experiencia'},
+      {tipo:'nomina',               clave:'d_nomina'},
+      {tipo:'relacion_equipos',     clave:'d_equipos',     opcional:true}
+    ],
     rnet: [
       {tipo:'acta_constitutiva', clave:'d_acta'},
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
@@ -3027,6 +3056,19 @@ applyLang('en');
       {n:'num_trabajadores',    clave:'f_numtrab',     tipo:'number'},
       {n:'telefono',            clave:'f_telefono',    tipo:'tel'},
       {n:'direccion_fiscal',    clave:'f_direccion',   ancho:true}
+    ],
+    /* La clasificación —bienes, servicios u obras— no es un adorno: decide
+       en qué procesos puede participar después, y de ella depende que la
+       relación de equipos haga falta o no. */
+    rnc: [
+      {n:'razon_social',        clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',         clave:'f_rifempresa'},
+      {n:'numero_registro',     clave:'f_registro'},
+      {n:'representante',       clave:'f_representante'},
+      {n:'actividad_economica', clave:'f_actividad'},
+      {n:'clasificacion',       clave:'f_clasificacion', opcionesClave:'o_clasificacion'},
+      {n:'capital_social',      clave:'f_capital'},
+      {n:'fecha_constitucion',  clave:'f_constitucion',  tipo:'date'}
     ],
     rnet: [
       {n:'razon_social',        clave:'f_razon',       ancho:true},

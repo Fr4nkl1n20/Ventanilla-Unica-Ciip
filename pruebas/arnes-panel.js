@@ -93,7 +93,8 @@
   cuandoConteste(function(){
     enCadena([pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir, citasAnula, citasTrasAnular,
               colaAbre, colaTramites, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
-              agendaMira, agendaTrasEntrar, agendaTrasSalir], volcar);
+              agendaMira, agendaTrasEntrar, agendaTrasSalir,
+              rncAbre, rncTrasAbrir], volcar);
   });
 
   function pruebas(){
@@ -714,10 +715,12 @@
     /* El asunto sale del catálogo: no se puede pedir cita sobre un trámite
        que la base no conoce, porque tipo_tramite apunta a tipos_tramite. */
     var sel = document.getElementById('ctAsunto');
+    /* Una opción por cada tipo del catálogo que tenga tarjeta, más la
+       consulta general. El catálogo de prueba declara cuatro. */
     ok('citas: el asunto ofrece la consulta general y los trámites',
-       sel.options.length === 4 && sel.options[0].value === '',
+       sel.options.length === 5 && sel.options[0].value === '',
        sel.options.length + ' opciones, la primera "' + sel.options[0].textContent + '"',
-       '4 opciones (general + 3 del catálogo)');
+       '5 opciones (general + 4 del catálogo)');
 
     /* La regla que viste los <input> de la ventana los ponía de lado a lado,
        y a un radio eso lo convertiía en una barra que empujaba su etiqueta
@@ -782,6 +785,44 @@
   function citasAnula(){
     if (CASO === 'gestor') return;
     document.getElementById('ctCancelar').click();
+  }
+
+  /* ═══════════ EL RNC, RECIEN ACTIVADO ═══════════
+     Era una ficha de solo lectura: decía "Ver detalle" y no se podía
+     solicitar. Sus recaudos son PROVISIONALES —la hoja los trae en blanco—
+     pero el circuito tiene que funcionar igual. */
+  function rncAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c13';
+  }
+
+  function rncTrasAbrir(){
+    if (CASO !== 'vacio') return;
+    igual('rnc: se abre su detalle', document.body.getAttribute('data-vista'), 'tramite');
+
+    var caja = document.getElementById('trReal');
+    var campos = caja.querySelectorAll('.sol-campo');
+    var docs   = caja.querySelectorAll('.sol-doc');
+
+    /* Lo que separa un trámite vivo de una ficha de lectura: que salga el
+       formulario, no solo la escalera de pasos. */
+    ok('rnc: ya se puede solicitar, no solo leer',
+       campos.length > 0 && docs.length > 0,
+       campos.length + ' campos y ' + docs.length + ' recaudos', 'formulario con campos y recaudos');
+    igual('rnc: pide los ocho datos de la empresa', campos.length, 8);
+    igual('rnc: y sus doce recaudos', docs.length, 12);
+    /* Dos son condicionales para el propio organismo: el poder solo si
+       quien firma no es el representante de los estatutos, y los equipos
+       solo si te inscribes para obras. Exigirlos dejaria fuera a quien no
+       los tiene. */
+    igual('rnc: dos de los doce son opcionales, y con motivo',
+          caja.querySelectorAll('.sol-doc[data-opcional]').length, 2);
+
+    ok('rnc: los recaudos salen con su nombre, no con su código',
+       /Estados financieros auditados/.test(caja.textContent),
+       'busca "Estados financieros auditados"', 'aparece');
+
+    location.hash = '';
   }
 
   /* ═══════════ CITAS Y AGENDA ═══════════

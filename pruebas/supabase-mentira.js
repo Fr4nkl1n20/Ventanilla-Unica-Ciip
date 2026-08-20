@@ -49,7 +49,8 @@
   var TIPOS = [
     {codigo:'rif_personal', ref_panel:'c3', ente:'SENIAT', activo:true},
     {codigo:'constitucion', ref_panel:'c5', ente:'SAREN',  activo:true},
-    {codigo:'rif_empresa',  ref_panel:'c6', ente:'SENIAT', activo:true}
+    {codigo:'rif_empresa',  ref_panel:'c6', ente:'SENIAT', activo:true},
+    {codigo:'rnc',          ref_panel:'c13', ente:'RNC',   activo:true}
   ];
 
   /* El borrador se toca DESPUÉS que el devuelto a propósito: así se
@@ -239,7 +240,14 @@
         colaTram = colaTram.filter(function(t){ return t.id !== op.eq.id; });
         return {data:{}, error:null};
       }
-      return {data:(TRAMITES[caso] || []), error:null};
+      /* El detalle de un tramite pregunta por SU tipo. Sin filtrar aqui, el
+         panel creeria que ya tienes una solicitud de cualquier tramite que
+         abras, y enseñaria su estado en vez del formulario. */
+      var mios = TRAMITES[caso] || [];
+      if (op && op.eq && op.eq.tipo){
+        mios = mios.filter(function(t){ return t.tipo === op.eq.tipo; });
+      }
+      return {data:mios, error:null};
     }
     if (tabla === 'tramite_eventos'){
       if (op && op.update){
