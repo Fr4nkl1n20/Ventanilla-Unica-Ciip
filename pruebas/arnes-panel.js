@@ -98,6 +98,7 @@
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
               devueltoAbre, devueltoMira, escaleraAbre, escaleraMira,
+              ayudaAbre, ayudaMira, ayudaFaq,
               logosMiran], volcar);
   });
 
@@ -1361,6 +1362,72 @@
           document.getElementById('afBorrar').textContent, 'Borrar');
     document.getElementById('afCerrar').click();
     document.getElementById('acVolver').click();
+  }
+
+  /* ═══════════ AYUDA Y GUÍA ═══════════
+     El renglón se iluminaba y no llevaba a ninguna parte. Lo que faltaba no
+     eran más preguntas sobre invertir en Venezuela —esas ya están en la
+     portada— sino quién explica cómo funciona el panel. */
+  function ayudaAbre(){
+    document.getElementById('navAyuda').click();
+  }
+
+  function ayudaMira(){
+    igual('ayuda: el renglón abre su vista', document.body.getAttribute('data-vista'), 'ayuda');
+    var bloques = document.querySelectorAll('#ayLista .ay-bloque');
+    igual('ayuda: con sus cinco apartados', bloques.length, 5);
+
+    /* Los cuatro pasos NO se escriben en la ayuda: salen de donde ya
+       estaban, para que no puedan contradecir a la pantalla que describen. */
+    var pasos = document.querySelectorAll('#ayLista .ay-paso');
+    igual('ayuda: los cuatro pasos de una solicitud', pasos.length, 4);
+    igual('ayuda: y son los mismos que enseña el trámite',
+          pasos[0].textContent.replace(/^1/, '').trim(), 'Solicitud recibida por el CIIP');
+    ok('ayuda: sin huecos del marcado a la vista',
+       document.getElementById('ayLista').textContent.indexOf('{') < 0,
+       'busca "{"', 'ninguna llave suelta');
+
+    /* Los cuatro distintivos, con el distintivo de verdad al lado: si
+       cambia el de la tarjeta, cambia el de la ayuda. */
+    var chips = document.querySelectorAll('#ayLista .ay-chip .chip');
+    igual('ayuda: los cuatro distintivos, con su color', chips.length, 4);
+    igual('ayuda: el de por iniciar', chips[0].textContent.trim(), 'Por iniciar');
+    ok('ayuda: y el de completado va en verde',
+       chips[3].classList.contains('good'), chips[3].className, 'con la clase good');
+    /* Los cuatro con su color, y los cuatro distintos: si salieran todos
+       del mismo, el color no diría nada y sobraría. */
+    var colores = {};
+    [].forEach.call(chips, function(c){
+      colores[window.getComputedStyle(c).backgroundColor] = 1;
+    });
+    igual('ayuda: y cada uno de su color', Object.keys(colores).length, 4);
+
+    /* Pedir una cita desde aquí abre la MISMA ventana: no hay una segunda
+       forma de pedirla. */
+    document.querySelector('#ayLista .btn.navy').click();
+    ok('ayuda: pedir cita abre la ventana de siempre',
+       document.getElementById('citaBack').classList.contains('open'),
+       document.getElementById('citaBack').className, 'con la clase open');
+    document.getElementById('ctCerrar').click();
+
+    /* Las ocho claves que se escribieron para esta pantalla y no usó
+       ninguna. Repetían dos preguntas de la portada con respuestas más
+       cortas, así que se fueron en vez de resucitarlas. */
+    ok('ayuda: las claves muertas de help.* ya no están',
+       !I18N.es['help.title'] && !I18N.en['help.q1.t'],
+       I18N.es['help.title'] || 'ninguna', 'ninguna');
+
+    document.querySelector('#ayLista .btn.ghost').click();
+  }
+
+  function ayudaFaq(){
+    /* Las preguntas de la portada no se copian aquí: se lleva hasta ellas
+       y se despliegan. Copiarlas dejaría dos sitios que mantener. */
+    igual('ayuda: "ver las preguntas" vuelve a la portada',
+          document.body.getAttribute('data-vista'), 'inicio');
+    var sec = document.querySelector('.faq-sec');
+    ok('ayuda: y las deja desplegadas', !sec.classList.contains('plegada'),
+       sec.className, 'sin la clase plegada');
   }
 
   /* ═══════════ LOS LOGOS DE LOS ORGANISMOS ═══════════
