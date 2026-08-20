@@ -19,7 +19,7 @@ autenticación y los datos los pone Supabase.
 | `supabase-setup.sql` | Esquema del acceso y políticas RLS. Se ejecuta una vez |
 | `supabase-tramites.sql` | Esquema de trámites y bóveda de documentos. Se ejecuta una vez |
 | `supabase-citas.sql` | Esquema de las citas. Va **después** de los dos anteriores |
-| `supabase-gestor.sql` | Permite al equipo del CIIP leer los perfiles, y explica cómo nombrar un gestor. Va el último |
+| `supabase-gestor.sql` | Lo que necesita el equipo del CIIP: leer los perfiles, anotar una devolución, y cómo nombrar un gestor. Va el último |
 | `logos/` | Logos de los organismos, con su procedencia en [FUENTES.md](logos/FUENTES.md) |
 | `banderas/` | 197 banderas SVG para el buscador de países, con su procedencia en [FUENTES.md](banderas/FUENTES.md) |
 | `original/` | La demostración de partida, intacta, como referencia |
@@ -32,7 +32,7 @@ autenticación y los datos los pone Supabase.
 | `ABRIR-LOCAL.bat` | Levantar el proyecto en `http://localhost:8080`, solo para ti |
 | `ABRIR-EN-RED.bat` | Igual, pero abierto a la red: otros PC de la oficina pueden entrar |
 | `PROBAR.bat` | Lanzar las 57 pruebas del acceso |
-| `PROBAR-PANEL.bat` | Lanzar las 350 pruebas del panel |
+| `PROBAR-PANEL.bat` | Lanzar las 371 pruebas del panel |
 
 ## Puesta en marcha
 
@@ -73,7 +73,7 @@ el medidor de fuerza de la clave, navegación entre vistas, los seis idiomas, el
 buscador de países, el almacenamiento de sesión, el logo y la carga de
 `config.js`.
 
-**El panel** (350 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
+**El panel** (371 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
 los filtros, que las cuatro etapas son cuatro cajas parejas, la franja de "te
 toca a ti", el buzón de avisos, la ventana de tu perfil, las citas y que el
 panel te llama por TU nombre. Todo eso

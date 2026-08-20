@@ -92,7 +92,7 @@
 
   cuandoConteste(function(){
     enCadena([pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir, citasAnula, citasTrasAnular,
-              colaAbre, colaConfirma, colaTrasConfirmar,
+              colaAbre, colaTramites, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
               agendaMira, agendaTrasEntrar, agendaTrasSalir], volcar);
   });
 
@@ -902,8 +902,9 @@
     /* "Cola" era ambiguo: en español es tanto fila como pegamento. */
     igual('cola: el botón dice para qué sirve',
           (document.getElementById('colaTxt') || {}).textContent, 'Por atender');
+    /* Dos citas y dos trámites: el contador es "cuánto tienes encima". */
     igual('cola: el botón lleva cuántas esperan',
-          (document.getElementById('colaN') || {}).textContent, '2');
+          (document.getElementById('colaN') || {}).textContent, '4');
 
     document.getElementById('colaBtn').click();
     var caja = document.getElementById('colaBack');
@@ -946,10 +947,59 @@
     fichas[0].querySelectorAll('.btn')[1].click();
   }
 
+  function colaTramites(){
+    if (CASO !== 'gestor') return;
+    var fichas = document.querySelectorAll('#colaTram .co-ficha');
+    igual('cola: enseña los trámites que esperan por el CIIP', fichas.length, 2);
+
+    /* El contador es "cuánto tienes encima", no "cuántas citas": dos citas
+       y dos trámites. */
+    igual('cola: y el contador suma las dos colas',
+          (document.getElementById('colaN') || {}).textContent, '4');
+
+    /* Los pasos que se ofrecen salen del estado. Enseñarlos todos siempre
+       invitaría a presentar ante el ente algo que nadie ha revisado. */
+    function botones(f){
+      var t = []; f.querySelectorAll('.co-botones .btn').forEach(function(b){ t.push(b.textContent.trim()); });
+      return t.join(' | ');
+    }
+    igual('cola: un trámite recién enviado se devuelve o se empieza a revisar',
+          botones(fichas[0]), 'Devolver | Empezar la revisión');
+    igual('cola: y uno en revisión se devuelve o se presenta ante el ente',
+          botones(fichas[1]), 'Devolver | Presentada ante el ente');
+
+    /* Devolver sin decir por qué deja al inversionista con un aviso que no
+       explica nada. Es el único paso que exige la nota. */
+    fichas[0].querySelectorAll('.co-botones .btn')[0].click();
+    igual('cola: devolver sin explicar no pasa, y lo dice',
+          fichas[0].querySelector('.co-aviso').textContent, 'Escribe por qué la devuelves.');
+    ok('cola: y el trámite sigue en la cola',
+       document.querySelectorAll('#colaTram .co-ficha').length === 2,
+       document.querySelectorAll('#colaTram .co-ficha').length + ' fichas', '2');
+
+    /* Y ahora con la nota. */
+    fichas[0].querySelector('textarea').value = 'Falta el comprobante del capital.';
+    fichas[0].querySelectorAll('.co-botones .btn')[0].click();
+  }
+
+  function colaTrasDevolver(){
+    if (CASO !== 'gestor') return;
+    igual('cola: devuelto, sale de la cola',
+          document.querySelectorAll('#colaTram .co-ficha').length, 1);
+    /* Lo que importa de verdad: que la nota LLEGÓ. El estado por si solo
+       dejaría al inversionista con un aviso mudo. */
+    igual('cola: y la nota viaja con la devolución',
+          (window.PRUEBA_NOTA && window.PRUEBA_NOTA()) || '(ninguna)',
+          'Falta el comprobante del capital.');
+    igual('cola: el contador baja', (document.getElementById('colaN') || {}).textContent, '3');
+  }
+
   function colaTrasConfirmar(){
     if (CASO !== 'gestor') return;
     igual('cola: confirmada, sale de la cola', document.querySelectorAll('#colaLista .co-ficha').length, 1);
-    igual('cola: y el contador baja', (document.getElementById('colaN') || {}).textContent, '1');
+    /* Quedan una cita y un trámite: se devolvió uno antes y ahora se
+       confirmó una. El contador cuenta las dos colas juntas. */
+    igual('cola: y el contador baja', (document.getElementById('colaN') || {}).textContent, '2');
   }
 
   function citasTrasAnular(){

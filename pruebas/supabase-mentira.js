@@ -93,6 +93,25 @@
   };
   var colaViva = (COLA[caso] || []).slice();
 
+  /* Los tramites que esperan por el CIIP. Uno recien enviado y otro que ya
+     alguien empezo a mirar: los pasos que se ofrecen no son los mismos. */
+  var COLA_TRAM = {
+    gestor: [
+      {id:'x1', inversionista:'u2', tipo:'rif_empresa', estado:'enviado',
+       creado_en:'2026-08-05T09:00:00Z', enviado_en:'2026-08-05T09:00:00Z'},
+      {id:'x2', inversionista:'u3', tipo:'constitucion', estado:'en_revision',
+       creado_en:'2026-08-07T09:00:00Z', enviado_en:'2026-08-07T09:00:00Z'}
+    ],
+    lleno: [], vacio: [], sinnombre: []
+  };
+  var colaTram = (COLA_TRAM[caso] || []).slice();
+
+  /* La nota de una devolucion viaja en un UPDATE aparte, sobre el evento que
+     escribe el trigger. Se guarda para que la prueba compruebe que llego:
+     sin esto solo se sabria que el tramite cambio de estado. */
+  var notaPuesta = null;
+  window.PRUEBA_NOTA = function(){ return notaPuesta; };
+
   /* Una cita YA CONFIRMADA, para el buzon de avisos. Se fecha ANTES que los
      eventos de tramites a proposito: asi se comprueba que el buzon la mete
      en su sitio por fecha y no simplemente al final o al principio. */
@@ -209,8 +228,36 @@
     if (tabla === 'tipos_tramite')    return {data:TIPOS, error:null};
     if (tabla === 'tipos_documento')  return {data:[], error:null};
     if (tabla === 'bancos_aliados')   return {data:[], error:null};
-    if (tabla === 'tramites')         return {data:(TRAMITES[caso] || []), error:null};
-    if (tabla === 'tramite_eventos')  return {data:(EVENTOS[caso]  || []), error:null};
+    if (tabla === 'tramites'){
+      /* Dos colas distintas sobre la misma tabla: la del equipo pide lo que
+         espera por el CIIP, y la franja del inversionista lo que espera por
+         el. Confundirlas seria enseñarle a cada uno lo del otro. */
+      if (op && op.in && op.in.estado && op.in.estado.indexOf('enviado') >= 0){
+        return {data:colaTram, error:null};
+      }
+      if (op && op.update && op.eq && op.eq.id){
+        colaTram = colaTram.filter(function(t){ return t.id !== op.eq.id; });
+        return {data:{}, error:null};
+      }
+      return {data:(TRAMITES[caso] || []), error:null};
+    }
+    if (tabla === 'tramite_eventos'){
+      if (op && op.update){
+        if (op.update.nota) notaPuesta = op.update.nota;
+        return {data:{}, error:null};
+      }
+      /* Al devolver, el panel busca el evento que el trigger acaba de
+         escribir para ponerle la nota encima. Si el expediente ya tiene
+         eventos de ese estado se devuelven ESOS -la franja del inversionista
+         lee de ahi la nota del gestor-, y solo si no hay ninguno se inventa
+         uno, que es el caso del expediente del equipo. */
+      if (op && op.eq && op.eq.a_estado){
+        var suyos = (EVENTOS[caso] || []).filter(function(e){ return e.a_estado === op.eq.a_estado; });
+        if (suyos.length) return {data:suyos, error:null};
+        return {data:[{id:'ev9', creado_en:'2026-08-20T10:00:00Z'}], error:null};
+      }
+      return {data:(EVENTOS[caso]  || []), error:null};
+    }
     return {data:[], error:null};
   }
 

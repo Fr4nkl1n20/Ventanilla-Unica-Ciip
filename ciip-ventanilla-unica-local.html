@@ -382,6 +382,20 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .co-botones .btn{font-size:12px; padding:8px 13px;}
 .co-aviso{font-size:11.5px; color:var(--rust); margin-top:7px; min-height:14px;}
 .co-vacia{font-size:12.5px; color:var(--gray); padding:16px 12px 20px; text-align:center;}
+/* Dos colas en la misma ventana —trámites y citas— necesitan decir cuál es
+   cuál: sin cabecera, una ficha de cada tipo seguida parece la misma cosa. */
+.co-seccion{font-size:9.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--gray-soft); padding:12px 10px 6px;}
+.co-seccion:empty{display:none;}
+.co-estado{font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  padding:4px 8px; border-radius:20px; background:var(--block); color:var(--gray);
+  display:inline-block; margin-bottom:7px;}
+.co-estado.mirando{background:var(--amber-bg); color:var(--amber);}
+.co-ficha textarea{font:inherit; font-size:12.5px; color:var(--ink); background:var(--bg);
+  border:1px solid var(--line); border-radius:8px; padding:8px 10px; outline:none;
+  width:100%; resize:vertical; min-height:38px; margin-top:11px;}
+.co-ficha textarea:focus{border-color:var(--navy2);}
+.co-ficha.mal textarea{border-color:var(--rust);}
 
 /* --- la ventana de citas --- */
 .pf-campo textarea{font:inherit; font-size:13px; color:var(--ink); background:var(--bg);
@@ -1788,7 +1802,12 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       </div>
       <button class="ax" id="colaCerrar" type="button" aria-label="×">×</button>
     </div>
-    <div class="cola-lista" id="colaLista"></div>
+    <div class="cola-lista">
+      <div class="co-seccion" id="colaHtram"></div>
+      <div id="colaTram"></div>
+      <div class="co-seccion" id="colaHcitas"></div>
+      <div id="colaLista"></div>
+    </div>
   </div>
 </div>
 
@@ -4589,13 +4608,21 @@ applyLang('en');
     var u = T();
     var pon = function(id, txt){ var e = document.getElementById(id); if (e) e.textContent = txt || ''; };
     pon('colaTxt',    u.co_boton);
-    pon('colaTitulo', u.co_titulo);
+    /* La ventana ya no es solo de citas: el titulo pasa a ser el del boton,
+       y "Citas por confirmar" baja a ser la cabecera de su seccion. */
+    pon('colaTitulo', u.co_boton);
     pon('colaSub',    u.co_sub);
+    pon('colaHcitas', enCola.length ? (u.co_titulo || '') : '');
+    pon('colaHtram',  u.co_tram || '');
 
     coLista.textContent = '';
+    pintaTramites();
     if (coN){
-      coN.textContent = String(enCola.length);
-      coN.hidden = (enCola.length === 0);
+      /* El contador suma las dos colas: es "cuánto tienes encima", no
+         "cuántas citas". */
+      var total = enCola.length + enRevision.length;
+      coN.textContent = String(total);
+      coN.hidden = (total === 0);
     }
     if (!enCola.length){
       coLista.appendChild(el('div', 'co-vacia', u.co_vacia || ''));
@@ -4670,6 +4697,112 @@ applyLang('en');
       });
   }
 
+
+  /* ── los trámites que esperan por el CIIP ──
+     Una solicitud enviada se quedaba en la base sin que nadie pudiera
+     moverla: la franja de "te toca a ti" del inversionista depende del
+     estado 'devuelto', y ese estado solo se podía poner a mano por SQL.
+
+     Se listan los tres estados en los que la pelota la tiene el CIIP.
+     'devuelto' no entra —ahí espera el inversionista— y 'borrador' tampoco,
+     que ni siquiera se ha enviado. */
+  var CO_MIOS = ['enviado', 'en_revision', 'ante_el_ente'];
+  var enRevision = [];
+
+  /* Qué se puede hacer desde cada estado. Enseñar los cuatro botones
+     siempre invitaría a saltarse pasos: no se presenta ante el ente algo
+     que nadie ha revisado. */
+  var CO_PASOS = {
+    enviado:      [{a:'devuelto', k:'co_devolver', nota:true}, {a:'en_revision', k:'co_revisar'}],
+    en_revision:  [{a:'devuelto', k:'co_devolver', nota:true}, {a:'ante_el_ente', k:'co_presentar'}],
+    ante_el_ente: [{a:'resuelto', k:'co_resuelta'}]
+  };
+
+  function pintaTramites(){
+    var caja = document.getElementById('colaTram');
+    if (!caja) return;
+    var u = T();
+    caja.textContent = '';
+
+    if (!enRevision.length){
+      caja.appendChild(el('div', 'co-vacia', u.co_tram_vacio || ''));
+      return;
+    }
+
+    enRevision.forEach(function(t){
+      var f = el('div', 'co-ficha');
+      var ref = tipoRefDe(t.tipo);
+
+      var est = el('span', 'co-estado' + (t.estado === 'en_revision' ? ' mirando' : ''),
+                   textoDeEvento(t.estado, (TIPOS[ref] || {}).ente || ''));
+      f.appendChild(est);
+
+      f.appendChild(el('div', 'co-quien', t.nombre || u.co_sinnombre || ''));
+      f.appendChild(el('div', 'co-que', ref ? nombreDeTarjeta(ref) : t.tipo));
+      f.appendChild(el('div', 'co-cuando',
+        (u.co_envio || '').replace('{fecha}', fecha(t.enviado_en || t.creado_en))));
+
+      var nota = document.createElement('textarea');
+      nota.rows = 2;
+      nota.placeholder = u.co_nota || '';
+      nota.setAttribute('aria-label', u.co_nota || '');
+      f.appendChild(nota);
+
+      var aviso = el('div', 'co-aviso');
+      f.appendChild(aviso);
+
+      var botones = el('div', 'co-botones');
+      (CO_PASOS[t.estado] || []).forEach(function(p, i){
+        var b = el('button', 'btn ' + (i === 0 && p.nota ? 'ghost' : 'navy'), u[p.k] || '');
+        b.type = 'button';
+        b.addEventListener('click', function(){
+          /* Devolver SIN decir por qué deja al inversionista con un aviso que
+             no explica nada: es el único paso que exige la nota. */
+          if (p.nota && !(nota.value || '').trim()){
+            f.classList.add('mal');
+            aviso.textContent = u.co_nota_falta || '';
+            nota.focus();
+            return;
+          }
+          f.classList.remove('mal');
+          aviso.textContent = '';
+          b.disabled = true;
+          mueveTramite(t, p.a, (nota.value || '').trim(), b, aviso, u[p.k]);
+        });
+        botones.appendChild(b);
+      });
+      f.appendChild(botones);
+
+      caja.appendChild(f);
+    });
+  }
+
+  function mueveTramite(tr, aEstado, nota, boton, aviso, textoBoton){
+    sb.from('tramites').update({estado: aEstado}).eq('id', tr.id).select().single()
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        if (!nota) return null;
+        /* El evento lo escribe un trigger de la base, siempre con la nota
+           vacía. Se busca el que acaba de nacer y se le pone encima: por eso
+           hace falta la política "eventos: el equipo anota". */
+        return sb.from('tramite_eventos').select('id, creado_en')
+          .eq('tramite', tr.id).eq('a_estado', aEstado)
+          .order('creado_en', {ascending:false}).limit(1)
+          .then(function(re){
+            var ev = (re.data || [])[0];
+            if (!ev) return null;
+            return sb.from('tramite_eventos').update({nota: nota}).eq('id', ev.id);
+          });
+      })
+      .then(function(){ return cargaCola().then(pintaCola); })
+      .catch(function(e){
+        console.warn('[CIIP] mover trámite:', e && (e.message || e));
+        boton.disabled = false;
+        boton.textContent = textoBoton || '';
+        aviso.textContent = T().co_error || '';
+      });
+  }
+
   function cargaCola(){
     /* Dos consultas y no un embebido: si la política de perfiles no está
        puesta, la segunda vuelve vacía y la cola sigue saliendo sin nombres,
@@ -4681,14 +4814,27 @@ applyLang('en');
       .then(function(r){
         if (r && r.error) throw r.error;
         enCola = (r.data || []).map(function(c){ c.nombre = ''; return c; });
-        if (!enCola.length) return;
-        return sb.from('perfiles').select('id, nombre_completo')
-          .then(function(rp){
-            var de = {};
-            (rp.data || []).forEach(function(p){ de[p.id] = p.nombre_completo; });
-            enCola.forEach(function(c){ c.nombre = de[c.inversionista] || ''; });
+        return sb.from('tramites')
+          .select('id, inversionista, tipo, estado, creado_en, enviado_en')
+          .in('estado', CO_MIOS)
+          .order('creado_en', {ascending:true})
+          .then(function(rt){
+            if (rt && rt.error) throw rt.error;
+            enRevision = (rt.data || []).map(function(t){ t.nombre = ''; return t; });
           })
-          .catch(function(){ /* sin nombres, pero con cola */ });
+          .catch(function(e){ console.warn('[CIIP] cola de trámites:', e && e.message); enRevision = []; })
+          .then(function(){
+            if (!enCola.length && !enRevision.length) return;
+            /* Un solo viaje para los nombres de las dos colas. */
+            return sb.from('perfiles').select('id, nombre_completo')
+              .then(function(rp){
+                var de = {};
+                (rp.data || []).forEach(function(p){ de[p.id] = p.nombre_completo; });
+                enCola.forEach(function(c){ c.nombre = de[c.inversionista] || ''; });
+                enRevision.forEach(function(t){ t.nombre = de[t.inversionista] || ''; });
+              })
+              .catch(function(){ /* sin nombres, pero con cola */ });
+          });
       });
   }
 

@@ -58,3 +58,49 @@ create policy "perfiles: el equipo los lee todos"
 --     from public.perfiles p
 --     join auth.users u on u.id = p.id
 --    where p.rol in ('gestor','admin');
+
+
+-- ───────────────────────────────────────────────────────────────────────
+--  LA NOTA DE UNA DEVOLUCIÓN
+-- ───────────────────────────────────────────────────────────────────────
+-- Cuando un gestor devuelve un trámite, el trigger de supabase-tramites.sql
+-- escribe el evento solo, pero con la nota VACÍA. La nota es justo lo que
+-- el inversionista necesita leer para corregir, y sin esta política no hay
+-- forma de ponerla desde el panel: sobre tramite_eventos solo existe la de
+-- lectura, así que un UPDATE desde el navegador no afecta a ninguna fila.
+--
+-- Solo el equipo, y solo la nota: lo segundo no lo puede decir una política
+-- —RLS trabaja por filas, no por columnas— así que lo corta un trigger.
+drop policy if exists "eventos: el equipo anota" on public.tramite_eventos;
+create policy "eventos: el equipo anota" on public.tramite_eventos
+  for update
+  using      (public.es_gestor())
+  with check (public.es_gestor());
+
+create or replace function public.eventos_solo_la_nota()
+returns trigger
+language plpgsql
+as $$
+begin
+  -- Desde el SQL Editor auth.uid() es null y se deja pasar todo: es la
+  -- puerta de servicio del equipo, igual que en las demás tablas.
+  if auth.uid() is null then
+    return new;
+  end if;
+
+  if new.tramite   is distinct from old.tramite
+  or new.de_estado is distinct from old.de_estado
+  or new.a_estado  is distinct from old.a_estado
+  or new.autor     is distinct from old.autor
+  or new.creado_en is distinct from old.creado_en then
+    raise exception 'De un evento solo se puede cambiar la nota';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists eventos_proteger on public.tramite_eventos;
+create trigger eventos_proteger
+  before update on public.tramite_eventos
+  for each row execute function public.eventos_solo_la_nota();
