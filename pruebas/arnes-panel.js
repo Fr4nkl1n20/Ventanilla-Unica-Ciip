@@ -1421,6 +1421,32 @@
        document.getElementById('empresaBack').className, 'con la clase open');
     igual('empresa: con los doce campos',
           document.querySelectorAll('#emCampos .pf-campo').length, 12);
+
+    /* Los dos botones del pie, CON SU TEXTO. Salieron vacíos: las claves
+       de los botones son pf_* y yo usé f_*, que son las de los campos. Dos
+       pastillas de color y ninguna palabra dentro. */
+    igual('empresa: el botón de guardar dice qué hace',
+          document.getElementById('emGuardar').textContent.trim(), 'Guardar');
+    igual('empresa: y el de cancelar también',
+          document.getElementById('emCancelar').textContent.trim(), 'Cancelar');
+
+    /* Y CON EL PIE A LA VISTA. Doce campos no caben en el 82% de la
+       pantalla: sin que el cuerpo ruede por dentro, "Guardar" se sale por
+       abajo y el formulario no se puede enviar. No es un detalle de
+       aspecto, es la ventana entera inservible. */
+    (function(){
+      var g = document.getElementById('emGuardar');
+      var r = g.getBoundingClientRect();
+      ok('empresa: y el botón de guardar dentro de la pantalla',
+         r.bottom > 0 && r.bottom <= window.innerHeight + 1,
+         'guardar acaba en ' + Math.round(r.bottom) + ' y la ventana mide ' + window.innerHeight,
+         'dentro');
+      var cuerpo = document.getElementById('emCampos');
+      ok('empresa: lo que no cabe rueda por dentro, no empuja el pie',
+         cuerpo.scrollHeight > cuerpo.clientHeight,
+         'contenido ' + cuerpo.scrollHeight + ' en caja ' + cuerpo.clientHeight,
+         'contenido mayor que la caja');
+    })();
     /* Las etiquetas son las MISMAS que usan los formularios de los
        trámites: si divergieran, el mismo dato tendría dos nombres. */
     igual('empresa: y con las etiquetas de los formularios',

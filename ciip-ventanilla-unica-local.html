@@ -504,9 +504,17 @@ body[data-vista="activos"] #acVolver{display:inline-flex;}
 .af-check > label{display:flex; align-items:center; gap:8px; cursor:pointer;
   font-size:12.5px; font-weight:600; color:var(--ink); padding:10px 0;}
 .af-check input{width:auto; accent-color:var(--navy2);}
-/* El cuerpo rueda solo: la ventana no crece más allá del 82% de la
-   pantalla y sin esto el pie se sale por abajo. */
-#activoBack .pf-cuerpo{flex:1 1 auto; min-height:0; overflow-y:auto; padding-bottom:14px;}
+/* El cuerpo de CUALQUIER ventana rueda solo. La ventana no crece más allá
+   del 82% de la pantalla, así que sin esto el pie —donde están cancelar y
+   guardar— se sale por abajo y el formulario no se puede enviar.
+
+   Iba solo en la ficha de activos, que fue la primera larga. La de la
+   empresa tiene doce campos y volvió a pasar. Va aquí para que no vuelva a
+   pasar con la siguiente.
+
+   min-height:0 no sobra: sin él, un hijo flexible no baja de su contenido
+   y overflow-y no llega a tener nada que hacer. */
+.asst .pf-cuerpo{flex:1 1 auto; min-height:0; overflow-y:auto; padding-bottom:14px;}
 /* El hueco empuja guardar y cancelar a la derecha y deja borrar solo. */
 .pf-hueco{flex:1 1 auto;}
 /* Del color de lo que no se puede deshacer, el mismo del boton de salir.
@@ -6905,10 +6913,13 @@ applyLang(idiomaParaMi());
     if (tit) tit.textContent = EMPRESA ? (u.em_ficha_e || '') : (u.em_ficha_n || '');
     var fs = document.getElementById('emFsub');
     if (fs) fs.textContent = u.em_fsub || '';
+    /* pf_*, no f_*: las f_* son las etiquetas de los CAMPOS y estas son
+       las de los botones. Con las otras, el pie salía con dos pastillas de
+       color y sin una palabra dentro. */
     var can = document.getElementById('emCancelar');
-    if (can) can.textContent = u.f_cancelar || '';
+    if (can) can.textContent = u.pf_cancelar || '';
     var gua = document.getElementById('emGuardar');
-    if (gua) gua.textContent = emYendo ? (u.f_guardando || '') : (u.f_guardar || '');
+    if (gua) gua.textContent = emYendo ? (u.pf_guardando || '') : (u.pf_guardar || '');
     /* Las etiquetas de dentro, que se traducen con el resto. */
     EM_CAMPOS.forEach(function(c){
       var lb = emBack.querySelector('label[for="em_' + c.n + '"]');
