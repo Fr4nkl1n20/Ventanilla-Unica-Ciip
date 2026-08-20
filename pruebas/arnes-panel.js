@@ -102,6 +102,17 @@
 
   function pruebas(){
 
+    /* Antes de tocar nada: el panel tenía que haberse abierto SOLO en el
+       idioma del expediente. Estas cuentas dicen Italia, y hasta ahora el
+       panel abría siempre en inglés por mucho que dijera el perfil —y por
+       mucho que hubieras entrado en español por la pantalla de acceso—. */
+    if (CASO !== 'sinnombre'){
+      igual('idioma: el panel abre en el idioma de tu país', curLang, 'it');
+    }
+    /* Y se limpia lo que una pasada anterior pudiera haber dejado escrito:
+       si no, la de arriba dependeria de cómo terminó la de ayer. */
+    try { window.localStorage.removeItem('ciip_lang'); } catch(e){}
+
     applyLang('es');
 
     /* ═══════════ EL CAMINO: LOS CONTADORES SALEN DE LAS TARJETAS ═══════════
@@ -286,6 +297,44 @@
       ok('idioma: y cambia al cambiar de idioma',
          /banderas\/ru\.svg$/.test(b.getAttribute('src') || ''),
          b.getAttribute('src'), 'banderas/ru.svg');
+      applyLang('es');
+    })();
+
+    /* La bandera acompaña al IDIOMA, salvo que sea la tuya: a un venezolano
+       leyendo en español, la de España le dice de dónde creemos que es. */
+    (function(){
+      var b = document.getElementById('langFlag');
+      var antes = PERFIL.pais;
+
+      PERFIL.pais = 'Venezuela';
+      applyLang('es');
+      ok('idioma: si en tu país se habla lo que lees, la bandera es la tuya',
+         /banderas\/ve\.svg$/.test(b.getAttribute('src') || ''),
+         b.getAttribute('src'), 'banderas/ve.svg');
+
+      /* Pero solo entonces: un venezolano leyendo en ruso no lleva su
+         bandera al lado de "RU". */
+      applyLang('ru');
+      ok('idioma: y si no, la del idioma',
+         /banderas\/ru\.svg$/.test(b.getAttribute('src') || ''),
+         b.getAttribute('src'), 'banderas/ru.svg');
+
+      /* De dónde sale el idioma, por orden. */
+      try { window.localStorage.removeItem('ciip_lang'); } catch(e){}
+      igual('idioma: tu país lo elige mientras no elijas tú', idiomaParaMi(), 'es');
+      PERFIL.pais = 'Brasil';
+      igual('idioma: y cambia si cambia tu país', idiomaParaMi(), 'pt');
+      /* Un país que no habla ninguno de los seis no fuerza nada. */
+      PERFIL.pais = 'Japón';
+      ok('idioma: un país fuera de los seis no elige por ti',
+         !!I18N[idiomaParaMi()], idiomaParaMi(), 'uno de los seis');
+
+      try { window.localStorage.setItem('ciip_lang', 'ru'); } catch(e){}
+      PERFIL.pais = 'Venezuela';
+      igual('idioma: lo que elegiste a mano manda sobre tu país', idiomaParaMi(), 'ru');
+      try { window.localStorage.removeItem('ciip_lang'); } catch(e){}
+
+      PERFIL.pais = antes;
       applyLang('es');
     })();
 

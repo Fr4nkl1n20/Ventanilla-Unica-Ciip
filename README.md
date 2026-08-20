@@ -33,7 +33,7 @@ autenticación y los datos los pone Supabase.
 | `ABRIR-LOCAL.bat` | Levantar el proyecto en `http://localhost:8080`, solo para ti |
 | `ABRIR-EN-RED.bat` | Igual, pero abierto a la red: otros PC de la oficina pueden entrar |
 | `PROBAR.bat` | Lanzar las 57 pruebas del acceso |
-| `PROBAR-PANEL.bat` | Lanzar las 441 pruebas del panel |
+| `PROBAR-PANEL.bat` | Lanzar las 468 pruebas del panel |
 
 ## Puesta en marcha
 
@@ -76,11 +76,12 @@ el medidor de fuerza de la clave, navegación entre vistas, los seis idiomas, el
 buscador de países, el almacenamiento de sesión, el logo y la carga de
 `config.js`.
 
-**El panel** (441 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
+**El panel** (468 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
 los filtros, que las cuatro etapas son cuatro cajas parejas, la franja de "te
 toca a ti", el buzón de avisos, la ventana de tu perfil, las citas, el banco de
-activos —mirarlo, y publicarlo y corregirlo si eres del equipo— y que el
-panel te llama por TU nombre. Todo eso
+activos —mirarlo, y publicarlo y corregirlo si eres del equipo—, que el panel
+abre en el idioma de tu país y que la bandera del selector es la tuya cuando
+allí se habla lo que estás leyendo, y que el panel te llama por TU nombre. Todo eso
 necesita datos para decir algo, así que se corre con un Supabase de mentira
 ([pruebas/supabase-mentira.js](pruebas/supabase-mentira.js)) y con TRES
 expedientes: uno con una solicitud devuelta y otra en borrador, otro vacío,

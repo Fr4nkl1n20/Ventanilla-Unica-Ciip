@@ -660,6 +660,14 @@ function applyLang(lang){
     document.getElementById('langCur').textContent = lang.toUpperCase();
     document.getElementById('langFlag').textContent = cur.getAttribute('data-flag');
   }
+}
+
+/* Se guarda al ELEGIRLO, no cada vez que se pinta. Antes applyLang lo
+   escribia tambien en el arranque, asi que el idioma que el navegador trajo
+   por su cuenta quedaba grabado como si lo hubieras pedido tu: el panel lo
+   lee para saber si elegiste algo a mano, y le habria hecho caso por encima
+   de tu propio pais. */
+function recuerdaIdioma(lang){
   try{ localStorage.setItem('ciip_lang', lang); }catch(e){}
 }
 
@@ -673,7 +681,7 @@ function applyLang(lang){
   });
   menu.addEventListener('click', function(e){
     var b = e.target.closest('button');
-    if (b){ applyLang(b.dataset.lang); menu.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
+    if (b){ recuerdaIdioma(b.dataset.lang); applyLang(b.dataset.lang); menu.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
   });
   document.addEventListener('click', function(e){
     if (!menu.contains(e.target) && !btn.contains(e.target)) menu.classList.remove('open');

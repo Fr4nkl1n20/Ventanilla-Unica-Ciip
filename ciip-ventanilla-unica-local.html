@@ -159,8 +159,12 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
     var a = document.querySelector('.avatar');   if (a) a.textContent = iniciales(PERFIL.nombre);
     var d = document.getElementById('avisoDemo');if (d) d.classList.add('show');
 
-    /* repinta los textos que llevan {nombre}, {rol} o {pais} */
-    if (typeof applyLang === 'function' && typeof curLang !== 'undefined') applyLang(curLang);
+    /* Repinta los textos que llevan {nombre}, {rol} o {pais}. Y de paso el
+       idioma: es AHORA cuando se sabe de dónde eres, y hasta este momento el
+       panel estaba en el del navegador. */
+    if (typeof applyLang === 'function' && typeof curLang !== 'undefined'){
+      applyLang(typeof idiomaParaMi === 'function' ? idiomaParaMi() : curLang);
+    }
 
     /* El punto sobre el avatar mientras el expediente esté a medias. */
     var u = document.querySelector('.user');
@@ -2216,6 +2220,94 @@ function conDatos(txt, dict){
     .replace(/\{pais\}/g,   pais);
 }
 
+
+/* ──────────────────────────────────────────────────────────────────────
+   EL PAÍS DEL EXPEDIENTE ELIGE EL IDIOMA, Y LA BANDERA
+   ──────────────────────────────────────────────────────────────────────
+   El panel abría SIEMPRE en inglés, aunque hubieras entrado en español por
+   la pantalla de acceso y aunque tu expediente dijera que eres de Venezuela.
+   Cada vez que abrías la página había que volver a cambiarlo.
+
+   Y la bandera del botón era la de España para todo el que leyera en
+   español. A un venezolano eso le dice de dónde creemos que es. Ahora se
+   enseña la SUYA —pero solo cuando en su país se habla lo que está
+   leyendo—: a un italiano leyendo en español se le sigue enseñando la de
+   España, porque la bandera acompaña al idioma y no al pasaporte.
+   ───────────────────────────────────────────────────────────────── */
+var IDIOMA_PAIS = {
+  es:'AR BO CL CO CR CU DO EC ES GQ GT HN MX NI PA PE PR PY SV UY VE'.split(' '),
+  pt:'AO BR CV GW MZ PT ST TL'.split(' '),
+  it:'IT SM VA'.split(' '),
+  ru:'BY KG KZ RU'.split(' '),
+  zh:'CN HK MO TW'.split(' '),
+  /* Solo donde el inglés es oficial o de uso corriente. Sin esta lista, un
+     japonés leyendo en inglés vería su bandera al lado de "EN". */
+  en:('AG AU BB BS BW BZ CA FJ GB GH GY IE IN JM KE LR MT MW NA NG NZ PG PH ' +
+      'SG SL SZ TT TZ UG US ZA ZM ZW').split(' ')
+};
+
+/* minúsculas y sin tildes: "España" y "espana" son el mismo país */
+function llano(x){
+  x = String(x || '');
+  if (!x.normalize) return x.toLowerCase();
+  return x.normalize('NFD')
+          .replace(new RegExp('[' + String.fromCharCode(0x300) + '-' + String.fromCharCode(0x36f) + ']', 'g'), '')
+          .toLowerCase();
+}
+
+function idiomaDePais(cod){
+  if (!cod) return '';
+  cod = String(cod).toUpperCase();
+  for (var l in IDIOMA_PAIS){
+    if (IDIOMA_PAIS[l].indexOf(cod) >= 0) return l;
+  }
+  return '';   /* tu país no habla ninguno de los seis */
+}
+
+/* El expediente guarda el país en español —"Venezuela"— y no su código. Se
+   busca solo entre los ochenta que nos importan, y una sola vez. */
+var _codDePais = null;
+function codigoDePais(nombreEs){
+  if (!nombreEs) return '';
+  if (!_codDePais){
+    var dn = null;
+    try { dn = new Intl.DisplayNames(['es'], {type:'region'}); } catch(e){ return ''; }
+    _codDePais = {};
+    for (var l in IDIOMA_PAIS){
+      IDIOMA_PAIS[l].forEach(function(c){
+        var n = null;
+        try { n = dn.of(c); } catch(e){}
+        if (n && n !== c) _codDePais[llano(n)] = c;
+      });
+    }
+  }
+  return _codDePais[llano(nombreEs)] || '';
+}
+
+/* Lo que elegiste a mano vale en las dos pantallas: la de acceso escribe la
+   misma llave. */
+function idiomaElegido(){
+  try { return window.localStorage.getItem('ciip_lang') || ''; } catch(e){ return ''; }
+}
+function recuerdaIdioma(l){
+  try { window.localStorage.setItem('ciip_lang', l); } catch(e){}
+}
+
+/* Por orden: lo que elegiste, lo que dice tu expediente, lo que trae el
+   navegador, inglés. Tu país va por delante del navegador a propósito: el
+   navegador suele traer el idioma del sistema, y el país lo escribiste tú
+   sobre ti. */
+function idiomaParaMi(){
+  var aMano = idiomaElegido();
+  if (aMano && I18N[aMano]) return aMano;
+
+  var mio = idiomaDePais(codigoDePais(typeof PERFIL !== 'undefined' ? PERFIL.pais : ''));
+  if (mio && I18N[mio]) return mio;
+
+  var nav = String(navigator.language || '').slice(0, 2).toLowerCase();
+  return I18N[nav] ? nav : 'en';
+}
+
 function applyLang(lang){
   curLang=lang;
   document.documentElement.setAttribute('lang', lang);
@@ -2242,7 +2334,12 @@ function applyLang(lang){
     document.getElementById('langCur').textContent = lang.toUpperCase();
     var bandera = document.getElementById('langFlag');
     if (bandera){
-      bandera.src = 'banderas/' + cur.getAttribute('data-flag') + '.svg';
+      /* La tuya si en tu país se habla lo que estás leyendo; si no, la del
+         idioma, que es de quién es la bandera cuando no es tuya. */
+      var mio = codigoDePais(typeof PERFIL !== 'undefined' ? PERFIL.pais : '');
+      var cual = (mio && idiomaDePais(mio) === lang) ? mio.toLowerCase()
+                                                     : cur.getAttribute('data-flag');
+      bandera.src = 'banderas/' + cual + '.svg';
       bandera.style.display = '';
     }
   }
@@ -2271,7 +2368,9 @@ function applyLang(lang){
 (function(){
   var btn=document.getElementById('langBtn'), menu=document.getElementById('langMenu');
   btn.addEventListener('click',function(e){ e.stopPropagation(); var open=menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open?'true':'false'); });
-  menu.addEventListener('click',function(e){ var b=e.target.closest('button'); if(b){ applyLang(b.dataset.lang); menu.classList.remove('open'); btn.setAttribute('aria-expanded','false'); } });
+  /* Elegirlo aquí es elegirlo a mano, y eso manda sobre el país y sobre el
+     navegador la próxima vez que abras. */
+  menu.addEventListener('click',function(e){ var b=e.target.closest('button'); if(b){ recuerdaIdioma(b.dataset.lang); applyLang(b.dataset.lang); menu.classList.remove('open'); btn.setAttribute('aria-expanded','false'); } });
   document.addEventListener('click',function(e){ if(!menu.contains(e.target) && !btn.contains(e.target)) menu.classList.remove('open'); });
   document.addEventListener('keydown',function(e){ if(e.key==='Escape') menu.classList.remove('open'); });
 })();
@@ -2713,7 +2812,10 @@ var IDX={employees:1,present:2,realestate:3,profits:4,capital:5,time:6,taxes:7};
   });
 })();
 
-applyLang('en');
+/* Al cargar todavía no ha llegado el perfil, así que aquí manda lo que
+   elegiste o el navegador. Cuando el país llegue, unos milisegundos
+   después, aplicarPerfil vuelve a preguntar. */
+applyLang(idiomaParaMi());
 
 /* ---------- cerrar sesión ---------- */
 (function(){
