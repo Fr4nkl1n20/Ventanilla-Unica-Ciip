@@ -106,8 +106,9 @@
        vuelvan a quedarse atrás cuando el catálogo crezca. */
     igual('camino: la fase 01 cuenta sus 10 trámites', deEtapa(0, '.jcount'), '3 de 10 listos');
     igual('camino: la fase 02 cuenta sus 7',           deEtapa(1, '.jcount'), '0 de 7 listos');
-    igual('camino: la fase 03 cuenta sus 4',           deEtapa(2, '.jcount'), '0 de 4 listos');
+    igual('camino: la fase 03 cuenta sus 10',          deEtapa(2, '.jcount'), '0 de 10 listos');
     igual('camino: la fase 04 cuenta sus 3',           deEtapa(3, '.jcount'), '0 de 3 listos');
+    igual('camino: la fase 05 cuenta su único trámite', deEtapa(4, '.jcount'), '0 de 1 listos');
 
     (function(){
       var barra = etapas()[0].querySelector('.jbar > span');
@@ -124,8 +125,14 @@
          'done=' + e.classList.contains('done') + ' num=' + num, 'done=false num=1');
     })();
 
-    igual('camino: los filtros cuentan las 24 tarjetas',
-          (document.querySelector('.ftab[data-f="todos"] .n') || {}).textContent, '24');
+    igual('camino: los filtros cuentan las 31 tarjetas',
+          (document.querySelector('.ftab[data-f="todos"] .n') || {}).textContent, '31');
+
+    /* El renglón de la barra decía 15 cuando ya había 24 tarjetas: estaba
+       escrito a mano. Ahora se cuenta, y esta prueba es lo que impide que
+       vuelva a quedarse atrás la próxima vez que crezca el catálogo. */
+    igual('barra: "Mis trámites" cuenta las tarjetas que hay',
+          (document.getElementById('navTramitesN') || {}).textContent, '31');
 
     /* El renglón ya no lleva data-i18n: lo compone el mismo bloque que lo
        cuenta, así que el cambio de idioma tiene que alcanzarlo aparte. */
@@ -149,13 +156,12 @@
       /* Pero el orden no puede perderse: lo llevan los puntos. */
       var puntos = [];
       etapas().forEach(function(e){ puntos.push(e.querySelector('.num').textContent.trim()); });
-      igual('camino: y el punto sigue numándolas', puntos.join(''), '1234');
+      igual('camino: y el punto sigue numándolas', puntos.join(''), '12345');
 
       var nombres = [];
       etapas().forEach(function(e){ nombres.push(e.querySelector('.jname').textContent.trim()); });
-      igual('camino: los cuatro nombres son verbos del mismo tipo',
-            nombres.join(' → '), 'Llegar → Constituir → Operar → Crecer');
-
+      igual('camino: los cinco nombres son verbos del mismo tipo',
+            nombres.join(' → '), 'Llegar → Constituir → Operar → Crecer → Invertir');
       /* En el ÍNDICE de abajo hace falta algo que ponga las cuatro en orden,
          pero no la palabra: el mismo punto numerado que usa el camino. */
       /* Los números, centrados de verdad dentro de su punto. Centrar la caja
@@ -199,7 +205,7 @@
 
       var pns = [];
       document.querySelectorAll('.phase-h .pn').forEach(function(p){ pns.push(p.textContent.trim()); });
-      igual('fases: el índice numera con puntos, no con la palabra', pns.join(''), '1234');
+      igual('fases: el índice numera con puntos, no con la palabra', pns.join(''), '12345');
 
       /* Y en ningún sitio de la portada vuelve a aparecer "Fase". */
       var conFase = [];
@@ -379,7 +385,11 @@
     }
 
     if (CASO === 'vacio'){
-      ok('franja: sin nada pendiente, no se enseña',
+      /* El caso trae un borrador de RIF personal Y su envío posterior. Lo
+         único pendiente, por tanto, no lo está: la franja debe callar.
+         Antes anunciaba "no la has enviado" mientras el detalle del mismo
+         trámite decía "Enviada", y las dos pantallas se contradecían. */
+      ok('franja: un borrador ya superado por el envío no se anuncia',
          !franja().classList.contains('puesta'), franja().className, 'sin la clase puesta');
       igual('franja: y no deja textos sueltos del marcado', enFranja('.ns-t'), '');
     }

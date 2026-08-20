@@ -62,7 +62,17 @@
       {id:'t2', tipo:'constitucion', estado:'borrador',
        creado_en:'2026-08-01T10:00:00Z', actualizado_en:'2026-08-18T10:00:00Z'}
     ],
-    vacio: [],
+    /* "Vacío" no es "sin filas": es SIN NADA QUE ANUNCIAR. Aquí hay un
+       borrador que se quedó atrás porque el reintento del envío sí entró.
+       La franja no debe anunciarlo —el detalle enseña la enviada—, y sin
+       esa comprobación las dos pantallas decían cosas distintas del mismo
+       trámite: "no la has enviado" en la portada y "Enviada" dentro. */
+    vacio: [
+      {id:'t3', tipo:'rif_personal', estado:'borrador',
+       creado_en:'2026-08-17T09:00:00Z', actualizado_en:'2026-08-17T09:00:00Z'},
+      {id:'t4', tipo:'rif_personal', estado:'en_revision',
+       creado_en:'2026-08-17T11:00:00Z', actualizado_en:'2026-08-18T08:00:00Z'}
+    ],
     sinnombre: [],
     gestor: []
   };

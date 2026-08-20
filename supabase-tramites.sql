@@ -144,6 +144,36 @@ insert into public.tipos_documento (codigo, nombre, vence) values
   -- paso del c10, no un requisito para empezarlo.
   ('titulo_inmueble',   'Título de propiedad o contrato de arrendamiento', true),
   ('bomberos',          'Conformidad de bomberos',                true),
+  -- Recaudos de los seis trámites de la Fase 03 que faltaban frente a la
+  -- hoja. La conformidad de uso pasa a ser también un tipo de DOCUMENTO,
+  -- no solo un trámite: la produce el c28 y la piden el c10 y el c29.
+  -- Caduca porque va atada a un inmueble y a una actividad declarados;
+  -- mudarse o cambiar de giro la deja sin valor.
+  ('conformidad_uso',   'Conformidad de uso del inmueble',        true),
+  -- El plano no caduca: describe el local tal como está construido. Si se
+  -- reforma hace falta un plano nuevo, que no es lo mismo que renovarlo.
+  ('plano_local',       'Plano o croquis del local',              false),
+  -- El contrato de mantenimiento sí caduca, y esa es justo su razón de
+  -- ser: bomberos lo pide para saber que los extintores siguen cargados.
+  ('mantenimiento_extintores', 'Contrato de mantenimiento de extintores', true),
+  -- El estudio de impacto no caduca por fecha sino cuando cambia el
+  -- proceso, y eso lo sabe el gestor, no una columna.
+  ('impacto_ambiental', 'Estudio de impacto ambiental',           false),
+  -- Recaudos del registro de la inversion extranjera (Fase 05).
+  --
+  -- El comprobante del aporte y el soporte de su origen son DOS tipos y
+  -- no uno: el primero acredita que el dinero entro y el segundo de
+  -- donde venia. Esa distincion es de lo que vive el tramite, porque de
+  -- ella depende poder repatriar despues las utilidades y el capital.
+  -- Ninguno de los dos caduca: acreditan un hecho con fecha, no una
+  -- situacion vigente.
+  ('comprobante_aporte', 'Comprobante del aporte de la inversión',  false),
+  ('soporte_fondos',     'Soporte del origen de los fondos',        false),
+  -- El proyecto va aparte del acta porque la hoja admite presentarlo EN
+  -- LUGAR del documento constitutivo, para quien registra la inversion
+  -- antes de constituir. En el panel el acta ya existe cuando se llega a
+  -- esta fase, asi que aqui el proyecto entra como recaudo opcional.
+  ('proyecto_inversion', 'Proyecto de inversión',                   false),
   -- Recaudos de los seis trámites que faltaban de la Fase 01.
   --
   -- El certificado en bruto que emite el país de origen NO es el mismo
@@ -175,6 +205,13 @@ insert into public.tipos_documento (codigo, nombre, vence) values
   -- No caduca: acredita un acto de una fecha concreta.
   ('acta_protocolizada','Acta constitutiva protocolizada',        false),
   ('pago_aranceles',    'Comprobante del pago de aranceles',      false),
+  -- Recaudos de comercio exterior, según la hoja CIIP_Tramites_por_Fase.
+  -- Caducan todos: la inscripción aduanera se renueva, y los certificados de
+  -- origen y sanitarios se emiten por embarque o por campaña.
+  ('inscripcion_aduanera','Inscripción en el registro aduanero',   true),
+  ('cert_origen',        'Certificado de origen',                  true),
+  ('cert_sanitario',     'Certificado sanitario o fitosanitario',  true),
+  ('permiso_rubro',      'Permiso específico del rubro',           true),
   ('otro',              'Otro documento',                         false)
 on conflict (codigo) do nothing;
 
@@ -182,7 +219,7 @@ on conflict (codigo) do nothing;
 -- ───────────────────────────────────────────────────────────────────────
 -- 2. CATÁLOGO DE TIPOS DE TRÁMITE
 -- ───────────────────────────────────────────────────────────────────────
--- ref_panel enlaza con los identificadores que ya usa el panel (c1…c21) y
+-- ref_panel enlaza con los identificadores que ya usa el panel (c1…c31) y
 -- con las listas de pasos de pasos.js. Sin esa columna habría que
 -- mantener dos numeraciones en paralelo, que es como se desincronizan.
 
@@ -195,12 +232,43 @@ create table if not exists public.tipos_tramite (
   activo    boolean not null default false,
   creado_en timestamptz not null default now(),
 
-  constraint tipos_tramite_fase_valida check (fase between 1 and 4)
+  constraint tipos_tramite_fase_valida check (fase between 1 and 5)
 );
 
-comment on table  public.tipos_tramite        is 'Los quince trámites de la ventanilla';
-comment on column public.tipos_tramite.ref_panel is 'Identificador que usa el panel y pasos.js (c1…c21)';
+-- El CREATE de arriba lleva IF NOT EXISTS, asi que en una base donde la
+-- tabla ya existe no toca nada y la restriccion se quedaria en 1..4: el
+-- registro de la inversion extranjera, que es fase 5, no entraria y el
+-- INSERT de mas abajo fallaria entero. Por eso se rehace aparte.
+alter table public.tipos_tramite
+  drop constraint if exists tipos_tramite_fase_valida;
+alter table public.tipos_tramite
+  add  constraint tipos_tramite_fase_valida check (fase between 1 and 5);
+
+comment on table  public.tipos_tramite        is 'El catálogo de trámites de la ventanilla, uno por fila';
+comment on column public.tipos_tramite.ref_panel is 'Identificador que usa el panel y pasos.js (c1…c31)';
 comment on column public.tipos_tramite.activo is 'false = solo se muestra; todavía no se puede solicitar de verdad';
+
+-- El c12 cambia de codigo: de 'registro_sanitario' a 'permiso_sanitario'.
+--
+-- Esto tiene que correr ANTES del INSERT de abajo y no despues. Aquel
+-- lleva ON CONFLICT (codigo) DO NOTHING, que solo cubre choques de
+-- codigo; pero ref_panel tambien es UNIQUE y 'c12' seguiria ocupado por
+-- la fila vieja, asi que en una base que ya existe el INSERT entero
+-- reventaria con una violacion de unicidad en ref_panel.
+--
+-- El orden de dentro tambien importa: primero se mudan los tramites que
+-- hubiera —la clave foranea de tramites.tipo lo exige— y solo despues se
+-- borra el tipo viejo. La guarda de to_regclass es para que esto corra
+-- igual en una base recien creada, donde public.tramites aun no existe.
+do $$
+begin
+  if to_regclass('public.tramites') is not null then
+    update public.tramites
+       set tipo = 'permiso_sanitario'
+     where tipo = 'registro_sanitario';
+  end if;
+  delete from public.tipos_tramite where codigo = 'registro_sanitario';
+end $$;
 
 insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values
   ('visa_inversionista',  'c1',  'Visa de inversionista',            'SAIME',               1, false),
@@ -211,10 +279,25 @@ insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo)
   ('rif_empresa',         'c6',  'RIF de la empresa',                'SENIAT',              2, false),
   ('cuenta_bancaria',     'c7',  'Cuenta bancaria corporativa',      'Banca aliada',        2, false),
   ('marca',               'c8',  'Registro de marca',                'SAPI',                2, false),
-  ('registros_laborales', 'c9',  'Registros laborales',              'IVSS · INCES · FAOV', 3, false),
+  -- El c9 se queda SOLO con el IVSS: ver la nota de la Fase 03, abajo.
+  -- El codigo no se renombra a proposito. Es la llave con la que estan
+  -- guardados los tramites que ya existan en la base, y cambiarlo los
+  -- dejaria huerfanos; ref_panel y nombre si dicen ya lo que es.
+  ('registros_laborales', 'c9',  'Inscripción en el IVSS',           'IVSS',                3, false),
   ('licencia_municipal',  'c10', 'Licencia de funcionamiento',       'Alcaldía',            3, false),
   ('comercio_exterior',   'c11', 'Permisos de importación',          'VUCE',                3, false),
-  ('registro_sanitario',  'c12', 'Registro sanitario',               'SENCAMER · INSAI',    3, false),
+  -- El c12 estaba mal atribuido. La hoja, en la Fase 03, pide el PERMISO
+  -- SANITARIO DEL ESTABLECIMIENTO, que lo da la contraloria sanitaria
+  -- (SACS) y mira el LOCAL. Aqui decia "Registro sanitario" con SENCAMER
+  -- e INSAI, que son otra cosa: SENCAMER normaliza y mide, e INSAI ve
+  -- sanidad agricola y guias de movilizacion. Ninguno de los dos otorga
+  -- este permiso.
+  --
+  -- El registro sanitario DEL PRODUCTO existe y tambien lo da el SACS,
+  -- pero es un tramite distinto y la hoja solo lo cuenta en la pestaña de
+  -- permisos sectoriales. No esta en el panel todavia; cuando entre, el
+  -- codigo 'registro_sanitario' queda libre para el, que es su nombre.
+  ('permiso_sanitario',   'c12', 'Permiso sanitario del establecimiento','SACS',              3, false),
   ('rnc',                 'c13', 'Registro Nacional de Contratistas','RNC',                 4, false),
   ('solvencias',          'c14', 'Solvencias laborales y municipales','Entes varios',       4, false),
   ('banco_activos',       'c15', 'Banco de activos y oportunidades', 'CIIP',                4, false),
@@ -236,7 +319,36 @@ insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo)
   -- ya no hace: dos tarjetas no pueden decir que hacen lo mismo.
   ('protocolizacion_acta','c22', 'Protocolización del acta',         'SAREN',              2, false),
   ('publicacion_acta',    'c23', 'Publicación del acta',             'Prensa mercantil',   2, false),
-  ('libros_contables',    'c24', 'Libros contables y facturación',   'SENIAT',             2, false)
+  ('libros_contables',    'c24', 'Libros contables y facturación',   'SENIAT',             2, false),
+  -- Fase 03. La hoja cuenta diez trámites en esta fase y el panel tenía
+  -- cuatro. El c9 hacía de una vez el IVSS, el INCES y el FAOV: se quedó
+  -- con el IVSS —que es el que abre el número patronal del que cuelgan
+  -- los otros dos— y el FAOV y el INCES salieron a trámites propios,
+  -- igual que la protocolización salió del c5.
+  --
+  -- La conformidad de uso y la de bomberos eran, respectivamente, el
+  -- paso 1 y un recaudo opcional del c10. La hoja las cuenta aparte y de
+  -- hecho lo son: cada una tiene su ente, sus recaudos y su plazo. Ahora
+  -- son el c28 y el c29, y el c10 pide la conformidad de uso como
+  -- recaudo en vez de fingir que la tramita él.
+  ('faov_banavih',        'c25', 'Inscripción en el FAOV',           'BANAVIH',             3, false),
+  ('inces',               'c26', 'Inscripción en el INCES',          'INCES',               3, false),
+  ('rnet',                'c27', 'Registro Nacional de Entidades de Trabajo', 'MPPPST',     3, false),
+  ('conformidad_uso',     'c28', 'Conformidad de uso del inmueble',  'Alcaldía',            3, false),
+  ('permiso_bomberos',    'c29', 'Permiso de bomberos',              'Cuerpo de Bomberos',  3, false),
+  ('permiso_ambiental',   'c30', 'Permiso ambiental',                'MINEC',               3, false),
+  -- Fase 05. Es el unico de esta fase y va aparte de "Crecer" a
+  -- proposito: no es un paso mas del negocio sino lo que separa a un
+  -- inversionista extranjero de cualquier comerciante local. Sin este
+  -- registro se puede recorrer las cuatro fases anteriores enteras,
+  -- montar la empresa y descubrir al final que no hay por donde sacar
+  -- ni las utilidades ni el capital.
+  --
+  -- El ente va sin siglas a proposito: la hoja de tramites por fase dice
+  -- "Organo rector de inversiones extranjeras" y no lo nombra, porque la
+  -- competencia ha cambiado de manos mas de una vez. Poner aqui un
+  -- acronimo que envejezca seria peor que no ponerlo.
+  ('registro_inversion',  'c31', 'Registro de inversión extranjera',  'Órgano rector de inversiones extranjeras', 5, false)
 on conflict (codigo) do nothing;
 
 -- Cuáles se pueden solicitar de verdad HOY.
@@ -247,10 +359,12 @@ on conflict (codigo) do nothing;
 -- Aquí se dice en positivo y en negativo, para que la lista de activos sea
 -- exactamente esta y no se quede uno encendido de una prueba anterior.
 update public.tipos_tramite set activo = true
-  where codigo in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'registros_laborales', 'licencia_municipal', 'antecedentes_penales', 'apostilla_documentos', 'constancia_domicilio', 'firma_electronica', 'visa_dependientes', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables');
+  where codigo in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'registros_laborales', 'licencia_municipal', 'antecedentes_penales', 'apostilla_documentos', 'constancia_domicilio', 'firma_electronica', 'visa_dependientes', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario');
 update public.tipos_tramite set activo = false
-  where codigo not in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'registros_laborales', 'licencia_municipal', 'antecedentes_penales', 'apostilla_documentos', 'constancia_domicilio', 'firma_electronica', 'visa_dependientes', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables');
+  where codigo not in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'registros_laborales', 'licencia_municipal', 'antecedentes_penales', 'apostilla_documentos', 'constancia_domicilio', 'firma_electronica', 'visa_dependientes', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario');
 
+
+-- (La mudanza del c12 va ANTES del INSERT del catalogo, mas arriba.)
 
 -- ───────────────────────────────────────────────────────────────────────
 -- 2.1 LOS BANCOS ALIADOS
@@ -371,7 +485,7 @@ alter table public.tramites
 
 comment on table  public.tramites        is 'Una solicitud concreta de un inversionista';
 comment on column public.tramites.banco  is 'Banco aliado asignado (solo cuenta_bancaria). Null = todavía sin asignar';
-comment on column public.tramites.datos  is 'Campos del formulario, distintos por tipo. rif_personal: numero_documento, tipo_documento, fecha_nacimiento, direccion_fiscal, telefono, profesion. visa_inversionista: numero_pasaporte, pais_emisor, vence_pasaporte, consulado, monto_inversion, motivo_inversion. cedula_residencia: numero_visa, fecha_ingreso, estado_civil, ocupacion, telefono_local, direccion_vzla. licencia_conducir: numero_licencia, pais_licencia, categoria, fecha_emision, vence_licencia, direccion_vzla. rif_empresa: razon_social, numero_registro, fecha_constitucion, capital_social, actividad_economica, direccion_fiscal. constitucion: denominacion, denominacion_alt, tipo_sociedad, capital_social, objeto_social, domicilio_social, socios. cuenta_bancaria: razon_social, rif_empresa, tipo_cuenta, moneda, ciudad_agencia, movimiento_estimado, firmantes, origen_fondos. marca: signo, tipo_signo, titular, en_uso, productos. registros_laborales: razon_social, rif_empresa, representante, actividad_economica, inicio_actividades, num_trabajadores, telefono, direccion_fiscal. licencia_municipal: razon_social, rif_empresa, municipio, tenencia, actividad_economica, metros, inicio_actividades, direccion_local';
+comment on column public.tramites.datos  is 'Campos del formulario, distintos por tipo. rif_personal: numero_documento, tipo_documento, fecha_nacimiento, direccion_fiscal, telefono, profesion. visa_inversionista: numero_pasaporte, pais_emisor, vence_pasaporte, consulado, monto_inversion, motivo_inversion. cedula_residencia: numero_visa, fecha_ingreso, estado_civil, ocupacion, telefono_local, direccion_vzla. licencia_conducir: numero_licencia, pais_licencia, categoria, fecha_emision, vence_licencia, direccion_vzla. rif_empresa: razon_social, numero_registro, fecha_constitucion, capital_social, actividad_economica, direccion_fiscal. constitucion: denominacion, denominacion_alt, tipo_sociedad, capital_social, objeto_social, domicilio_social, socios. cuenta_bancaria: razon_social, rif_empresa, tipo_cuenta, moneda, ciudad_agencia, movimiento_estimado, firmantes, origen_fondos. marca: signo, tipo_signo, titular, en_uso, productos. registros_laborales: razon_social, rif_empresa, representante, actividad_economica, inicio_actividades, num_trabajadores, telefono, direccion_fiscal. licencia_municipal: razon_social, rif_empresa, municipio, tenencia, actividad_economica, metros, inicio_actividades, direccion_local. comercio_exterior: razon_social, rif_empresa, operacion, rubro, arancel, paises, aduana, mercancia. faov_banavih: razon_social, rif_empresa, representante, num_trabajadores, inicio_actividades, telefono, direccion_fiscal. inces: razon_social, rif_empresa, representante, actividad_economica, num_trabajadores, telefono, direccion_fiscal. rnet: razon_social, rif_empresa, representante, actividad_economica, num_trabajadores, inicio_actividades, direccion_fiscal. conformidad_uso: razon_social, rif_empresa, municipio, tenencia, actividad_economica, metros, direccion_local. permiso_bomberos: razon_social, rif_empresa, municipio, actividad_economica, metros, aforo, direccion_local. permiso_ambiental: razon_social, rif_empresa, impacto, municipio, actividad_economica, direccion_local, proceso. registro_inversion: razon_social, rif_empresa, modalidad, monto_inversion, moneda, pais_origen_fondos, fecha_aporte, financiamiento_interno, actividad_economica, destino_inversion. permiso_sanitario: razon_social, rif_empresa, tipo_establecimiento, rubro_sanitario, municipio, metros, num_trabajadores, direccion_local';
 comment on column public.tramites.gestor is 'Quién del CIIP lo lleva. Null = sin asignar, que es justo lo que la cola debe mostrar primero';
 
 create index if not exists tramites_por_inversionista on public.tramites (inversionista, estado);
@@ -639,13 +753,16 @@ create policy "recaudos: borrar de su carpeta" on storage.objects
 --                     'tramite_eventos','tipos_documento','tipos_tramite',
 --                     'bancos_aliados');
 --
--- 2) Estos deben salir con activo = true, y solo estos:
---    visa_inversionista, cedula_residencia, rif_personal, licencia_conducir,
---    constitucion, rif_empresa, cuenta_bancaria, marca, registros_laborales,
---    licencia_municipal
+-- 2) Los activos deben ser exactamente los que nombran los dos UPDATE de
+--    la sección 2 de este fichero, y ninguno más. Se comprueba contando,
+--    no repitiendo aquí la lista: una lista copiada envejece en cuanto se
+--    activa un trámite y acaba contradiciendo al UPDATE que sí manda.
 --
---    Si activas uno más, esta lista y los dos UPDATE de la sección 2 se
---    corrigen a la vez: la de aquí es la que dice qué esperabas ver.
+--   select count(*) filter (where activo) as activos,
+--          count(*)                       as total
+--   from public.tipos_tramite;
+--
+--    Y para verlos uno a uno, en el orden en que salen en el panel:
 --
 --   select codigo, activo from public.tipos_tramite order by ref_panel;
 --
