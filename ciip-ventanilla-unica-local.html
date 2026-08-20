@@ -413,6 +413,24 @@ body[data-vista="usuarios"] #usVolver{display:inline-flex;}
 .us-sec{font-size:10.5px; font-weight:800; letter-spacing:.09em;
   text-transform:uppercase; color:var(--gray-soft); margin:20px 0 9px;}
 .us-sec:first-child{margin-top:0;}
+
+/* Las cuentas van en rejilla y no en columna: una ficha de usuario ocupa
+   cuatro renglones cortos y a lo ancho sobraba media pantalla, con lo que
+   una oficina de quince personas se recorría con la rueda del ratón. Es la
+   única lista del panel donde las fichas no cuentan una historia larga.
+
+   auto-fill con un mínimo de 280px: la propia rejilla decide cuántas caben
+   —dos, tres o una en el móvil— sin que haya que escribir un solo salto
+   de tamaño. */
+#usLista{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+  gap:12px;}
+/* Los rótulos de sección cruzan entera: son el techo de lo que viene
+   debajo, no una ficha más de la fila. */
+#usLista .us-sec{grid-column:1 / -1;}
+/* Y el desplegable del rol se pega abajo, para que en fichas de distinto
+   alto los de una misma fila queden alineados en vez de a media altura. */
+#usLista .ci-ficha{display:flex; flex-direction:column;}
+#usLista .us-pie{margin-top:auto; padding-top:11px;}
 .us-pie{display:flex; gap:10px; align-items:center; margin-top:11px; flex-wrap:wrap;}
 .us-pie select{font:inherit; font-size:12.5px; color:var(--ink); background:var(--bg);
   border:1px solid var(--line); border-radius:8px; padding:7px 10px; margin-left:auto;}
@@ -7432,14 +7450,30 @@ applyLang(idiomaParaMi());
   var latido = null;
   function empiezaLatido(){
     if (latido) return;
+
+    function apaga(porque){
+      /* Sin supabase-presencia.sql corrido la función no existe. No es
+         motivo para dejar de usar el panel: se apaga el latído. */
+      console.warn('[CIIP] presencia:', porque);
+      if (latido){ clearInterval(latido); latido = null; }
+    }
+
     function toca(){
       if (document.hidden) return;
-      sb.rpc('tocar_visto').catch(function(e){
-        /* Sin supabase-presencia.sql corrido la función no existe. No es
-           motivo para dejar de usar el panel: se apaga el latído. */
-        console.warn('[CIIP] presencia:', e && e.message);
-        if (latido){ clearInterval(latido); latido = null; }
-      });
+      /* sb.rpc() NO devuelve una promesa: devuelve el constructor de
+         consultas de Supabase, que tiene .then pero no .catch. Llamar a
+         .catch reventaba aquí mismo, y como esto corre antes que el resto
+         del bloque, se llevaba por delante el renglón del administrador.
+         Un latído es lo menos importante de esta vista y apagó lo demás.
+
+         Y el error tampoco llega por rechazo: Postgrest lo devuelve DENTRO
+         de la respuesta. Hay que mirar r.error, no esperar a que falle. */
+      var q;
+      try { q = sb.rpc('tocar_visto'); }
+      catch(e){ return apaga(e && e.message); }
+      Promise.resolve(q).then(function(r){
+        if (r && r.error) apaga(r.error.message);
+      }, function(e){ apaga(e && e.message); });
     }
     toca();
     latido = setInterval(toca, 2 * 60 * 1000);
@@ -7644,7 +7678,9 @@ applyLang(idiomaParaMi());
     /* El latído lo da CUALQUIERA que entre, no solo quien abra esta vista:
        si solo latiera aquí, el único que aparecería en línea sería el admin
        mirándose a sí mismo. */
-    empiezaLatido();
+    /* Entre paréntesis porque ya pasó: lo que se rompa aquí no puede
+       llevarse el renglón de la barra ni el reloj que espera al rol. */
+    try { empiezaLatido(); } catch(e){ console.warn('[CIIP] presencia:', e && e.message); }
 
     window.CIIP_PINTA_USUARIOS   = cargaUsuarios;
     window.CIIP_REPINTA_USUARIOS = pintaUsuarios;

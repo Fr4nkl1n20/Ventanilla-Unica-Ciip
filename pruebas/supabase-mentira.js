@@ -530,8 +530,13 @@
        haberla- y devolver el array habria dejado EMPRESA con una lista
        dentro, que es verdadera y rellenaria los formularios con basura. */
     api.maybeSingle = function(){ op.uno = true; return api; };
+    /* SOLO .then, y a proposito. El constructor de consultas de Supabase no
+       es una promesa: es "esperable" -tiene then- pero NO tiene catch. El
+       falso si lo tenia, y esa mentira dejo pasar a produccion un
+       sb.rpc(...).catch(...) que reventaba nada mas cargar la pagina.
+
+       Un doble tambien tiene que parecerse en lo que NO sabe hacer. */
     api.then  = function(bien, mal){ return Promise.resolve(respuesta(tabla, op)).then(bien, mal); };
-    api.catch = function(mal){ return Promise.resolve(respuesta(tabla, op)).catch(mal); };
     return api;
   }
 
@@ -550,7 +555,15 @@
            fallara, el panel apagaria el latido y la prueba no veria nada. */
         rpc: function(nombre, args){
           window.CIIP_RPC = (window.CIIP_RPC || []).concat([nombre]);
-          return Promise.resolve({data:null, error:null});
+          /* Sin supabase-presencia.sql la funcion no existe, y Postgrest NO
+             rechaza: contesta con el error DENTRO de la respuesta. Un panel
+             que espere un fallo de promesa no se entera de nada. */
+          var r = sinSql
+            ? {data:null, error:{message:'function public.tocar_visto() does not exist',
+                                 code:'42883'}}
+            : {data:null, error:null};
+          /* Sin catch, igual que el de verdad. */
+          return {then:function(bien, mal){ return Promise.resolve(r).then(bien, mal); }};
         },
         storage: {
           from: function(){

@@ -1658,8 +1658,35 @@
     if (!ES_ADMIN) return;
     igual('admin: el renglón abre la vista',
           document.body.getAttribute('data-vista'), 'usuarios');
-    igual('admin: con las cuentas dentro',
-          document.querySelectorAll('#usLista .ci-ficha').length, 4);
+    var f = document.querySelectorAll('#usLista .ci-ficha');
+    igual('admin: con las cuentas dentro', f.length, 4);
+
+    /* ── EN REJILLA ── Una ficha de usuario son cuatro renglones cortos, y
+       en columna sobraba media pantalla a lo ancho: una oficina de quince
+       personas se recorría con la rueda del ratón. */
+    var arriba = {};
+    [].forEach.call(f, function(x){
+      var y = Math.round(x.getBoundingClientRect().top);
+      arriba[y] = (arriba[y] || 0) + 1;
+    });
+    var masEnUnaFila = Math.max.apply(null, Object.keys(arriba).map(function(k){ return arriba[k]; }));
+    ok('rejilla: en pantalla ancha las cuentas van una al lado de otra',
+       masEnUnaFila >= 2, 'lo más que comparten fila: ' + masEnUnaFila, '2 o más');
+    /* El rótulo de sección cruza entero: es el techo de lo que viene
+       debajo, no una ficha más metida en la fila. */
+    var sec = document.querySelector('#usLista .us-sec');
+    ok('rejilla: y el rótulo de sección cruza de lado a lado',
+       Math.round(sec.getBoundingClientRect().width) >
+       Math.round(f[0].getBoundingClientRect().width) + 20,
+       'rótulo ' + Math.round(sec.getBoundingClientRect().width) +
+       ' vs ficha ' + Math.round(f[0].getBoundingClientRect().width), 'el rótulo, más ancho');
+    /* Y ninguna se sale por la derecha: 280px de mínimo con la barra
+       lateral puesta es justo donde esto se rompería. */
+    var caja = document.getElementById('usLista').getBoundingClientRect();
+    var desborda = [].filter.call(f, function(x){
+      return x.getBoundingClientRect().right > caja.right + 1; });
+    igual('rejilla: y ninguna se sale por la derecha', desborda.length, 0);
+
     location.hash = '';
   }
 
