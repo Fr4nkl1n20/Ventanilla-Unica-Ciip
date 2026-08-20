@@ -103,6 +103,22 @@
      escribir a mano un numero que cambia cada vez que se activa un tramite. */
   window.PRUEBA_TIPOS = TIPOS.length;
 
+  var ACTIVOS = {
+    lleno: [
+      {id:'a1', titulo:'Planta procesadora de cacao', sector:'Agroindustria',
+       ubicacion:'Miranda', monto_desde:250000, monto_hasta:400000, moneda:'USD',
+       resumen:'Instalada y con permisos al dia; busca socio para ampliar capacidad.',
+       detalle:'Capacidad actual de 12 t/mes con posibilidad de llegar a 30.',
+       estado:'disponible', destacado:true, creado_en:'2026-08-01T09:00:00Z'},
+      /* Sin techo: casi ninguna oportunidad se publica con precio cerrado. */
+      {id:'a2', titulo:'Desarrollo turistico costero', sector:'Turismo',
+       ubicacion:'Nueva Esparta', monto_desde:800000, monto_hasta:null, moneda:'USD',
+       resumen:'Terreno de 4 ha con vialidad y servicios.', detalle:'',
+       estado:'reservado', destacado:false, creado_en:'2026-07-20T09:00:00Z'}
+    ],
+    vacio: [], sinnombre: [], gestor: []
+  };
+
   var colaViva = (COLA[caso] || []).slice();
 
   /* Los tramites que esperan por el CIIP. Uno recien enviado y otro que ya
@@ -240,6 +256,12 @@
       return {data:citasVivas.concat(CONFIRMADAS[caso] || []), error:null};
     }
     if (tabla === 'tipos_tramite')    return {data:TIPOS, error:null};
+    if (tabla === 'activos'){
+      /* El banco de activos. En 'lleno' hay dos publicados -uno reservado-;
+         en los demas la tabla esta vacia, que es como nace: la llena el
+         equipo del CIIP a mano. */
+      return {data:(ACTIVOS[caso] || []), error:null};
+    }
     if (tabla === 'documentos'){
       /* Lo que ya esta en la boveda. El formulario lo reutiliza y ofrece
          mirarlo antes de enviar. */

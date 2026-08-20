@@ -95,7 +95,7 @@
               colaAbre, colaTramites, colaExpediente, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
               agendaMira, agendaTrasEntrar, agendaTrasSalir,
               rncAbre, rncTrasAbrir, solvenciasAbre, solvenciasTrasAbrir,
-              devueltoAbre, devueltoMira, escaleraAbre, escaleraMira], volcar);
+              activosAbre, activosMira, devueltoAbre, devueltoMira, escaleraAbre, escaleraMira], volcar);
   });
 
   function pruebas(){
@@ -991,6 +991,55 @@
        /FAOV/.test(caja.textContent), 'busca "FAOV"', 'aparece');
 
     location.hash = '';
+  }
+
+  /* ═══════════ EL BANCO DE ACTIVOS ═══════════
+     La única de las 31 tarjetas que no es un trámite: es el catálogo del
+     CIIP y lo que se hace con él es mirarlo. La tabla nace vacía. */
+  function activosAbre(){
+    document.getElementById('navActivos').click();
+  }
+
+  function activosMira(){
+    igual('activos: se abre su vista', document.body.getAttribute('data-vista'), 'activos');
+    var fichas = document.querySelectorAll('#acLista .ci-ficha');
+    var num = document.getElementById('navActivosN');
+
+    if (CASO === 'lleno'){
+      igual('activos: enseña los publicados', fichas.length, 2);
+      /* El contador cuenta lo que se puede TOMAR: el reservado ya tiene a
+         alguien delante. */
+      igual('activos: y el renglón cuenta solo los disponibles', num.textContent, '1');
+      ok('activos: el destacado va primero',
+         /cacao/i.test(fichas[0].textContent), fichas[0].querySelector('.ci-linea').textContent,
+         'la planta de cacao');
+      /* Sin techo se dice "desde", no una cifra cerrada que no existe. */
+      ok('activos: un monto sin techo se anuncia como "desde"',
+         /^Desde /.test(fichas[1].querySelector('.ac-monto').textContent),
+         fichas[1].querySelector('.ac-monto').textContent, 'empieza por "Desde"');
+      ok('activos: y el rango, con sus dos extremos',
+         /^Entre /.test(fichas[0].querySelector('.ac-monto').textContent),
+         fichas[0].querySelector('.ac-monto').textContent, 'empieza por "Entre"');
+      /* Sobre un reservado no se pregunta: ya hay alguien en conversaciones. */
+      ok('activos: el reservado no ofrece preguntar',
+         !fichas[1].querySelector('.btn'),
+         fichas[1].querySelector('.btn') ? 'lo ofrece' : 'no lo ofrece', 'sin botón');
+      /* Preguntar por uno es pedir una cita: no hay circuito nuevo. */
+      fichas[0].querySelector('.btn').click();
+      ok('activos: preguntar por uno abre la ventana de citas',
+         document.getElementById('citaBack').classList.contains('open'),
+         document.getElementById('citaBack').className, 'con la clase open');
+      document.getElementById('ctCerrar').click();
+    } else {
+      /* La tabla nace vacía y lo dice. Prometer 42 oportunidades que no
+         existen es peor que decir que aún no hay ninguna. */
+      igual('activos: sin nada publicado, lo dice',
+            (document.querySelector('#acLista .ci-vacia') || {}).textContent,
+            'Todavía no hay activos publicados. El equipo del CIIP los va cargando.');
+      ok('activos: y el renglón no lleva número', num.hidden,
+         'oculto=' + num.hidden, 'oculto=true');
+    }
+    document.getElementById('acVolver').click();
   }
 
   /* ═══════════ CITAS Y AGENDA ═══════════

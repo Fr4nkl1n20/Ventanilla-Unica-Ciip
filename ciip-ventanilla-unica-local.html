@@ -331,6 +331,35 @@ svg{display:block;}
   padding:10px 12px; outline:none; width:100%;}
 .pf-campo input:focus, .pf-campo select:focus{border-color:var(--navy2);}
 .pf-campo.mal input, .pf-campo.mal select{border-color:var(--rust);}
+/* --- el banco de activos --- */
+.activos-vista{display:none;}
+body[data-vista="activos"] .activos-vista{display:block;}
+body[data-vista="activos"] .solo-inicio,
+body[data-vista="activos"] #avisoDemo.show,
+body[data-vista="activos"] #secTramites,
+body[data-vista="activos"] .faq-sec{display:none;}
+body[data-vista="activos"] .fase-bar{display:flex;}
+body[data-vista="activos"] #faseVolver,
+body[data-vista="activos"] #trVolver,
+body[data-vista="activos"] #ciVolver,
+body[data-vista="activos"] #mtVolver{display:none;}
+body[data-vista="activos"] #acVolver{display:inline-flex;}
+#acVolver{display:none;}
+
+/* El monto en grande: es lo primero que mira quien viene a invertir. */
+.ac-monto{font-size:15px; font-weight:800; color:var(--navy2); margin-top:8px;}
+.ac-detalle{display:none; font-size:12.5px; color:var(--gray); line-height:1.55;
+  margin-top:9px; border-top:1px solid var(--line-soft); padding-top:9px;}
+.ac-detalle.abierto{display:block;}
+.ac-pie{display:flex; gap:9px; align-items:center; margin-top:11px; flex-wrap:wrap;}
+.ac-mas{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
+  background:transparent; border:0; padding:0; cursor:pointer;}
+.ac-mas:hover{text-decoration:underline;}
+.ac-pie .btn{margin-left:auto; font-size:12px; padding:8px 13px;}
+/* Un activo reservado se ve, pero apagado: sigue en el catálogo y ya tiene
+   a alguien en conversaciones. */
+.ci-ficha.reservado{opacity:.72;}
+
 /* --- mis tramites: la misma vista que la agenda, con otra lista --- */
 .mistram-vista{display:none;}
 body[data-vista="mistramites"] .mistram-vista{display:block;}
@@ -1184,7 +1213,9 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
     </div>
     <div class="sb-group">
       <div class="sb-gl" data-i18n="nav.g.opps">Opportunities</div>
-      <div class="sb-item"><span class="dot"></span><span data-i18n="nav.assets">Assets & projects</span><span class="cnt">42</span></div>
+      <!-- El 42 era de ejemplo. Ahora cuenta los activos publicados de
+           verdad, y si no hay ninguno no se enseña. -->
+      <button class="sb-item" id="navActivos" type="button"><span class="dot"></span><span data-i18n="nav.assets">Assets & projects</span><span class="cnt" id="navActivosN" hidden></span></button>
     </div>
     <div class="sb-group">
       <div class="sb-gl" data-i18n="nav.g.support">Support</div>
@@ -1272,6 +1303,10 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <!-- Desde el detalle de un tramite se vuelve a SU fase. El data-i18n de
            dentro se cambia por JS (p1.name, p2.name...) para que el nombre de
            la fase siga traduciendose solo al cambiar de idioma. -->
+      <button class="volver" id="acVolver" type="button">
+        <span class="v-ico" aria-hidden="true">‹</span>
+        <span data-i18n="nav.panel">Dashboard</span>
+      </button>
       <button class="volver" id="mtVolver" type="button">
         <span class="v-ico" aria-hidden="true">‹</span>
         <span data-i18n="nav.panel">Dashboard</span>
@@ -1767,6 +1802,17 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 
     <!-- Las preguntas se pliegan bajo su cabecera, igual que los trámites de
          cada fase. Arranca plegada: la portada es el índice. -->
+    <!-- El banco de activos. NO es un tramite: no se solicita ante ningun
+         organismo, es el catalogo del propio CIIP y lo que se hace con el es
+         mirarlo. Por eso es un listado y no un formulario. -->
+    <div class="activos-vista">
+      <div class="sec-h">
+        <div class="t" data-i18n="nav.assets">Assets & projects</div>
+        <div class="sub" id="acSub"></div>
+      </div>
+      <div class="ci-lista" id="acLista"></div>
+    </div>
+
     <!-- Mis tramites: lo que TU has pedido, con el estado que dice la base.
          La portada de al lado enseña el catalogo entero; esto es tu parte. -->
     <div class="mistram-vista">
@@ -2111,6 +2157,7 @@ function applyLang(lang){
   if (window.CIIP_REPINTA_COLA)   window.CIIP_REPINTA_COLA();
   if (window.CIIP_REPINTA_AGENDA) window.CIIP_REPINTA_AGENDA();
   if (window.CIIP_REPINTA_MISTRAM) window.CIIP_REPINTA_MISTRAM();
+  if (window.CIIP_REPINTA_ACTIVOS) window.CIIP_REPINTA_ACTIVOS();
 }
 (function(){
   var btn=document.getElementById('langBtn'), menu=document.getElementById('langMenu');
@@ -2352,6 +2399,7 @@ function applyLang(lang){
        las visitas no pasan por ella y no hay que gastarles una consulta. */
     if (tipo === 'citas' && window.CIIP_PINTA_AGENDA) window.CIIP_PINTA_AGENDA();
     if (tipo === 'mistramites' && window.CIIP_PINTA_MISTRAM) window.CIIP_PINTA_MISTRAM();
+    if (tipo === 'activos' && window.CIIP_PINTA_ACTIVOS) window.CIIP_PINTA_ACTIVOS();
 
     var fase = null;
     if (tipo === 'fase') {
@@ -2396,6 +2444,7 @@ function applyLang(lang){
     if (t) return {tipo:'tramite', id:t[1]};
     if (h === '#citas') return {tipo:'citas'};
     if (h === '#tramites') return {tipo:'mistramites'};
+    if (h === '#activos') return {tipo:'activos'};
     return null;
   }
 
@@ -2497,6 +2546,7 @@ function applyLang(lang){
     document.querySelectorAll('.sb-item').forEach(function(x){ x.classList.remove('active'); });
     var aqui = (vista === 'citas') ? citas
              : (vista === 'mistramites') ? document.getElementById('navTramites')
+             : (vista === 'activos') ? document.getElementById('navActivos')
              : panel;
     if (aqui) aqui.classList.add('active');
   };
@@ -5451,6 +5501,154 @@ applyLang('en');
     /* El contador sí se pide al cargar: es lo único que avisa de que ahí
        dentro hay algo tuyo esperando. */
     cargaMisTramites();
+  }
+
+
+  /* ──────────────────────────────────────────────────────────────
+     EL BANCO DE ACTIVOS Y OPORTUNIDADES
+     ──────────────────────────────────────────────────────────────
+     La única de las 31 tarjetas que NO es un trámite: no se solicita ante
+     ningún organismo. Es el catálogo del propio CIIP, y lo que el
+     inversionista hace con él es mirarlo. Meterlo en el circuito de
+     solicitudes le habría puesto estados que no significan nada —"enviado",
+     "ante el ente"—, así que es un listado y no un formulario.
+
+     Lo que SÍ es una solicitud es el interés en uno concreto, y eso ya
+     existe: se pide una cita. Por eso cada ficha lleva ese botón y no uno
+     nuevo.
+
+     La tabla nace VACÍA a propósito: la llena el equipo. El "42" de antes
+     era de la maqueta, y prometer cuarenta y dos oportunidades que no
+     existen es peor que decir que aún no hay ninguna.
+     ──────────────────────────────────────────────────────────── */
+  var acLista = document.getElementById('acLista');
+  var acNav   = document.getElementById('navActivos');
+  var acNavN  = document.getElementById('navActivosN');
+  var activos = [];
+
+  /* El monto con separadores y su moneda. Sin formatear, "250000" se lee
+     mal justo donde más importa que se lea bien. */
+  function dinero(v, moneda){
+    if (v === null || v === undefined || v === '') return '';
+    try {
+      return new Intl.NumberFormat(curLang === 'zh' ? 'zh-CN' : curLang,
+        {style:'currency', currency: moneda || 'USD', maximumFractionDigits:0}).format(Number(v));
+    } catch(e){ return (moneda || '') + ' ' + v; }
+  }
+
+  function pintaActivos(){
+    if (!acLista) return;
+    var u = T();
+    var sub = document.getElementById('acSub');
+    if (sub) sub.textContent = u.ac_sub || '';
+
+    /* El contador cuenta lo que se puede tomar, no lo que hay listado: un
+       activo reservado ya tiene a alguien delante. */
+    var libres = activos.filter(function(a){ return a.estado === 'disponible'; });
+    if (acNavN){
+      acNavN.textContent = String(libres.length);
+      acNavN.hidden = (libres.length === 0);
+    }
+
+    acLista.textContent = '';
+    if (!activos.length){
+      acLista.appendChild(el('div', 'ci-vacia', u.ac_vacia || ''));
+      return;
+    }
+
+    activos.forEach(function(a){
+      var reservado = (a.estado === 'reservado');
+      var f = el('div', 'ci-ficha' + (reservado ? ' reservado' : ''));
+
+      var cab = el('div', 'ci-cab');
+      cab.appendChild(el('span', 'ct-chip' + (reservado ? '' : ' listo'),
+                         reservado ? (u.ac_reservado || '') : (u.ac_disponible || '')));
+      f.appendChild(cab);
+
+      f.appendChild(el('div', 'ci-linea', a.titulo || ''));
+      f.appendChild(el('div', 'ci-que', [a.sector, a.ubicacion].filter(Boolean).join(' \u00b7 ')));
+
+      var desde = dinero(a.monto_desde, a.moneda);
+      var hasta = dinero(a.monto_hasta, a.moneda);
+      if (desde || hasta){
+        /* Casi ninguna oportunidad se publica con precio cerrado: si solo
+           hay suelo, se dice "desde" en vez de fingir una cifra exacta. */
+        var txt = (desde && hasta)
+          ? String(u.ac_entre || '').replace('{desde}', desde).replace('{hasta}', hasta)
+          : String(u.ac_desde || '').replace('{desde}', desde || hasta);
+        f.appendChild(el('div', 'ac-monto', txt));
+      }
+
+      if (a.resumen) f.appendChild(el('div', 'ci-nota', a.resumen));
+
+      var pie = el('div', 'ac-pie');
+      if (a.detalle){
+        var det = el('div', 'ac-detalle', a.detalle);
+        var mas = el('button', 'ac-mas', u.ac_mas || '');
+        mas.type = 'button';
+        mas.setAttribute('aria-expanded', 'false');
+        mas.addEventListener('click', function(){
+          var abierto = det.classList.toggle('abierto');
+          mas.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+          mas.textContent = abierto ? (u.ac_menos || '') : (u.ac_mas || '');
+        });
+        pie.appendChild(mas);
+        f.appendChild(det);
+      }
+
+      /* Preguntar por uno concreto es pedir una cita: no hace falta un
+         circuito nuevo para eso. */
+      if (!reservado){
+        var pedir = el('button', 'btn navy', u.ac_cita || '');
+        pedir.type = 'button';
+        pedir.addEventListener('click', function(){ abreCita(); });
+        pie.appendChild(pedir);
+      }
+      f.appendChild(pie);
+
+      acLista.appendChild(f);
+    });
+  }
+
+  function cargaActivos(){
+    /* Los cerrados no vienen: la política de la base ya los deja fuera para
+       quien no es del equipo, y aquí no hay que volver a filtrarlos. */
+    return sb.from('activos')
+      .select('id, titulo, sector, ubicacion, monto_desde, monto_hasta, moneda, resumen, detalle, estado, destacado, creado_en')
+      .order('destacado', {ascending:false}).order('creado_en', {ascending:false})
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        activos = r.data || [];
+        pintaActivos();
+      })
+      .catch(function(e){
+        /* Sin supabase-activos.sql corrido, la tabla no existe y esto falla.
+           Se enseña la lista vacía, que es la verdad: no hay activos que
+           enseñar. */
+        console.warn('[CIIP] activos:', e && e.message);
+        activos = [];
+        pintaActivos();
+      });
+  }
+
+  if (acLista){
+    if (acNav) acNav.addEventListener('click', function(){ location.hash = 'activos'; });
+    var acVolver = document.getElementById('acVolver');
+    if (acVolver) acVolver.addEventListener('click', function(){
+      if (location.hash) location.hash = '';
+    });
+
+    /* La tarjeta del catálogo también lleva aquí: su "Explorar activos" era
+       el único de las 31 que no prometía un formulario, y no llevaba a nada. */
+    var tarjeta = document.querySelector('.tcard[data-tr="c15"]');
+    if (tarjeta) tarjeta.addEventListener('click', function(e){
+      e.stopPropagation();
+      location.hash = 'activos';
+    }, true);
+
+    window.CIIP_PINTA_ACTIVOS   = cargaActivos;
+    window.CIIP_REPINTA_ACTIVOS = pintaActivos;
+    cargaActivos();
   }
 
 })();
