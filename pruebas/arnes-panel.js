@@ -94,7 +94,7 @@
     enCadena([pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir, citasAnula, citasTrasAnular,
               colaAbre, colaTramites, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
               agendaMira, agendaTrasEntrar, agendaTrasSalir,
-              rncAbre, rncTrasAbrir], volcar);
+              rncAbre, rncTrasAbrir, solvenciasTrasAbrir], volcar);
   });
 
   function pruebas(){
@@ -716,11 +716,16 @@
        que la base no conoce, porque tipo_tramite apunta a tipos_tramite. */
     var sel = document.getElementById('ctAsunto');
     /* Una opción por cada tipo del catálogo que tenga tarjeta, más la
-       consulta general. El catálogo de prueba declara cuatro. */
-    ok('citas: el asunto ofrece la consulta general y los trámites',
-       sel.options.length === 5 && sel.options[0].value === '',
-       sel.options.length + ' opciones, la primera "' + sel.options[0].textContent + '"',
-       '5 opciones (general + 4 del catálogo)');
+       consulta general. Se cuenta el catálogo en vez de escribir el número:
+       cada trámite que se activa lo cambiaba, y la prueba rompía sin que
+       nadie hubiera tocado las citas. */
+    (function(){
+      var deberian = (window.PRUEBA_TIPOS || 0) + 1;
+      ok('citas: el asunto ofrece la consulta general y los trámites',
+         sel.options.length === deberian && sel.options[0].value === '',
+         sel.options.length + ' opciones, la primera "' + sel.options[0].textContent + '"',
+         deberian + ' (general + ' + (deberian - 1) + ' del catálogo)');
+    })();
 
     /* La regla que viste los <input> de la ventana los ponía de lado a lado,
        y a un radio eso lo convertiía en una barra que empujaba su etiqueta
@@ -821,6 +826,38 @@
     ok('rnc: los recaudos salen con su nombre, no con su código',
        /Estados financieros auditados/.test(caja.textContent),
        'busca "Estados financieros auditados"', 'aparece');
+
+    location.hash = 'tramite-c14';
+  }
+
+  function solvenciasTrasAbrir(){
+    if (CASO !== 'vacio') return;
+    var caja = document.getElementById('trReal');
+    var campos = caja.querySelectorAll('.sol-campo');
+    var docs   = caja.querySelectorAll('.sol-doc');
+
+    /* UNA solicitud y no cuatro: son cuatro certificados —laboral, IVSS,
+       INCES y municipal— pero se piden con el mismo expediente. */
+    ok('solvencias: ya se pueden solicitar', campos.length > 0 && docs.length > 0,
+       campos.length + ' campos y ' + docs.length + ' recaudos', 'formulario con los dos');
+    igual('solvencias: seis datos', campos.length, 6);
+    igual('solvencias: cinco recaudos', docs.length, 5);
+
+    /* La autorización solo la pide el INCES cuando el trámite lo lleva
+       alguien que no es el representante legal. */
+    igual('solvencias: solo la autorización es opcional',
+          caja.querySelectorAll('.sol-doc[data-opcional]').length, 1);
+
+    /* La llave de cada solvencia: sin el número patronal y el NIL no hay
+       nada que consultar en el sistema del IVSS ni en el del INCES. */
+    ok('solvencias: pide el número patronal y el NIL',
+       /patronal del IVSS/.test(caja.textContent) && /NIL/.test(caja.textContent),
+       'busca "patronal del IVSS" y "NIL"', 'aparecen los dos');
+
+    /* La licencia municipal la emite el c10 y se consume aquí. */
+    ok('solvencias: y la licencia que emite el trámite anterior',
+       /Licencia de actividades económicas/.test(caja.textContent),
+       'busca "Licencia de actividades económicas"', 'aparece');
 
     location.hash = '';
   }

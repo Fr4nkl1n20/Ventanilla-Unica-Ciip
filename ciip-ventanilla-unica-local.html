@@ -2739,6 +2739,24 @@ applyLang('en');
          representante designado en los estatutos;
        · la relación de equipos, porque quien se inscribe para bienes o
          servicios no tiene obra que equipar, y exigirla lo dejaría fuera. */
+    /* Las solvencias, UNA solicitud y no cuatro. Son cuatro certificados
+       —laboral, IVSS, INCES y municipal— pero se piden con los mismos datos
+       y el mismo expediente, y la tarjeta ya los trata como un conjunto:
+       "certifican que estás al día". Partirlo en cuatro obligaría a subir
+       cuatro veces el mismo RIF y la misma acta.
+
+       La autorización va opcional porque el INCES solo la pide cuando el
+       trámite lo lleva alguien que NO es el representante legal.
+
+       La licencia municipal la emite el c10 y se consume aquí: sin ella no
+       hay solvencia de la alcaldía. Es la misma cadena del c5 al c22. */
+    solvencias: [
+      {tipo:'rif_empresa',          clave:'d_rifempresa'},
+      {tipo:'acta_constitutiva',    clave:'d_acta'},
+      {tipo:'cedula',               clave:'d_identidad'},
+      {tipo:'licencia_actividades', clave:'d_licenciamun'},
+      {tipo:'poder',                clave:'d_poder',      opcional:true}
+    ],
     rnc: [
       {tipo:'acta_constitutiva',    clave:'d_acta'},
       {tipo:'acta_asamblea',        clave:'d_asamblea'},
@@ -3060,6 +3078,16 @@ applyLang('en');
     /* La clasificación —bienes, servicios u obras— no es un adorno: decide
        en qué procesos puede participar después, y de ella depende que la
        relación de equipos haga falta o no. */
+    /* El número patronal y el NIL son la llave de cada solvencia: sin ellos
+       no hay nada que consultar en el sistema del IVSS ni en el del INCES. */
+    solvencias: [
+      {n:'razon_social',        clave:'f_razon',        ancho:true},
+      {n:'rif_empresa',         clave:'f_rifempresa'},
+      {n:'numero_patronal',     clave:'f_patronal'},
+      {n:'nil_inces',           clave:'f_nil'},
+      {n:'municipio',           clave:'f_municipio'},
+      {n:'representante',       clave:'f_representante'}
+    ],
     rnc: [
       {n:'razon_social',        clave:'f_razon',         ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},

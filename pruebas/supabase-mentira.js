@@ -50,7 +50,8 @@
     {codigo:'rif_personal', ref_panel:'c3', ente:'SENIAT', activo:true},
     {codigo:'constitucion', ref_panel:'c5', ente:'SAREN',  activo:true},
     {codigo:'rif_empresa',  ref_panel:'c6', ente:'SENIAT', activo:true},
-    {codigo:'rnc',          ref_panel:'c13', ente:'RNC',   activo:true}
+    {codigo:'rnc',          ref_panel:'c13', ente:'RNC',   activo:true},
+    {codigo:'solvencias',   ref_panel:'c14', ente:'Entes varios', activo:true}
   ];
 
   /* El borrador se toca DESPUÉS que el devuelto a propósito: así se
@@ -92,6 +93,10 @@
     ],
     lleno: [], vacio: [], sinnombre: []
   };
+  /* Cuantos tipos declara este catalogo. Lo usa el arnes para no tener que
+     escribir a mano un numero que cambia cada vez que se activa un tramite. */
+  window.PRUEBA_TIPOS = TIPOS.length;
+
   var colaViva = (COLA[caso] || []).slice();
 
   /* Los tramites que esperan por el CIIP. Uno recien enviado y otro que ya
