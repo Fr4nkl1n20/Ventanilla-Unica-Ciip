@@ -62,7 +62,12 @@
       {id:'t1', tipo:'rif_empresa',  estado:'devuelto',
        creado_en:'2026-07-02T10:00:00Z', actualizado_en:'2026-08-14T10:00:00Z'},
       {id:'t2', tipo:'constitucion', estado:'borrador',
-       creado_en:'2026-08-01T10:00:00Z', actualizado_en:'2026-08-18T10:00:00Z'}
+       creado_en:'2026-08-01T10:00:00Z', actualizado_en:'2026-08-18T10:00:00Z'},
+      /* Recien enviado y sin historial propio: su escalera no tiene fechas
+         que enseñar, asi que el paso en curso ha de marcarse con palabras. */
+      {id:'t3', tipo:'rif_personal', estado:'enviado',
+       creado_en:'2026-08-17T10:00:00Z', enviado_en:'2026-08-17T10:00:00Z',
+       actualizado_en:'2026-08-17T10:00:00Z'}
     ],
     /* "Vacío" no es "sin filas": es SIN NADA QUE ANUNCIAR. Aquí hay un
        borrador que se quedó atrás porque el reintento del envío sí entró.
@@ -254,6 +259,11 @@
       if (op && op.eq && op.eq.tipo){
         mios = mios.filter(function(t){ return t.tipo === op.eq.tipo; });
       }
+      /* La franja pide solo devueltos y borradores. Sin filtrar, se le
+         colaria un enviado y lo anunciaria como si te tocara a ti. */
+      if (op && op.in && op.in.estado){
+        mios = mios.filter(function(t){ return op.in.estado.indexOf(t.estado) >= 0; });
+      }
       return {data:mios, error:null};
     }
     if (tabla === 'tramite_documentos'){
@@ -278,7 +288,14 @@
         if (suyos.length) return {data:suyos, error:null};
         return {data:[{id:'ev9', creado_en:'2026-08-20T10:00:00Z'}], error:null};
       }
-      return {data:(EVENTOS[caso]  || []), error:null};
+      /* El historial se pide por tramite. Sin filtrar, un tramite recien
+         enviado heredaria los eventos de otro y su escalera saldria con
+         fechas que no son suyas. */
+      var evs = EVENTOS[caso] || [];
+      if (op && op.eq && op.eq.tramite){
+        evs = evs.filter(function(e){ return e.tramite === op.eq.tramite; });
+      }
+      return {data:evs, error:null};
     }
     return {data:[], error:null};
   }

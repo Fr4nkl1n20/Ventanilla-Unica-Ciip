@@ -2558,6 +2558,17 @@ applyLang('en');
     var u = (D.ui && (D.ui[curLang] || D.ui.en)) || {};
     return u;
   }
+  /* "Vas por aquí" vive en CIIP_PASOS.aqui, al lado de los pasos, y NO en
+     CIIP_PASOS.ui. La escalera de la maqueta lo lee bien; la de verdad lo
+     buscaba dentro de ui, donde nunca estuvo, así que pintaba una etiqueta
+     vacía: un rectángulo de dos píxeles debajo del paso en curso.
+
+     Se pone aquí una sola vez para que las dos lo lean del mismo sitio. */
+  function textoAqui(){
+    var D = window.CIIP_PASOS || {};
+    return (D.aqui && (D.aqui[curLang] || D.aqui.en)) || '';
+  }
+
   function estadoTexto(i, ente){
     var D = window.CIIP_PASOS || {};
     var l = (D.estados && (D.estados[curLang] || D.estados.en)) || [];
@@ -3625,7 +3636,7 @@ applyLang('en');
           var txt = el('div', 'tr-txt');
           txt.appendChild(el('div', 'tr-paso-n', estadoTexto(i, tipo.ente)));
           if (cuando[est]) txt.appendChild(el('div', 'sd-e', fecha(cuando[est])));
-          else if (ahora) txt.appendChild(el('span', 'tr-aqui', u.aqui || ''));
+          else if (ahora) txt.appendChild(el('span', 'tr-aqui', textoAqui()));
           li.appendChild(punto); li.appendChild(txt);
           lista.appendChild(li);
         });

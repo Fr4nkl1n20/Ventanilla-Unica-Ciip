@@ -94,7 +94,8 @@
     enCadena([pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir, citasAnula, citasTrasAnular,
               colaAbre, colaTramites, colaExpediente, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
               agendaMira, agendaTrasEntrar, agendaTrasSalir,
-              rncAbre, rncTrasAbrir, solvenciasTrasAbrir], volcar);
+              rncAbre, rncTrasAbrir, solvenciasAbre, solvenciasTrasAbrir,
+              escaleraAbre, escaleraMira], volcar);
   });
 
   function pruebas(){
@@ -830,6 +831,32 @@
        /Estados financieros auditados/.test(caja.textContent),
        'busca "Estados financieros auditados"', 'aparece');
 
+    /* La escalera del trámite en curso marca dónde vas. El texto vive en
+       CIIP_PASOS.aqui, no dentro de ui: buscarlo en el sitio equivocado
+       pintaba una etiqueta VACÍA, que en pantalla es un rectángulo de dos
+       píxeles y no se lee como un fallo. */
+    location.hash = '';
+  }
+
+  /* Se mira en el expediente 'lleno', que es el único con una solicitud ya
+     enviada: sin solicitud no hay escalera que marcar. */
+  function escaleraAbre(){
+    if (CASO !== 'lleno') return;
+    location.hash = 'tramite-c3';
+  }
+
+  function escaleraMira(){
+    if (CASO !== 'lleno') return;
+    var aqui = document.querySelector('#trReal .tr-aqui');
+    ok('escalera: el paso en curso dice "vas por aquí", y no en blanco',
+       !!aqui && aqui.textContent.trim().length > 0,
+       aqui ? ('"' + aqui.textContent.trim() + '"') : 'no hay etiqueta',
+       'con texto dentro');
+    location.hash = '';
+  }
+
+  function solvenciasAbre(){
+    if (CASO !== 'vacio') return;
     location.hash = 'tramite-c14';
   }
 
