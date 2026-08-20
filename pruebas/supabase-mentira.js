@@ -60,6 +60,7 @@
   var TRAMITES = {
     lleno: [
       {id:'t1', tipo:'rif_empresa',  estado:'devuelto',
+       datos:{razon_social:'Bianchi Agroindustrias, C.A.'},
        creado_en:'2026-07-02T10:00:00Z', actualizado_en:'2026-08-14T10:00:00Z'},
       {id:'t2', tipo:'constitucion', estado:'borrador',
        creado_en:'2026-08-01T10:00:00Z', actualizado_en:'2026-08-18T10:00:00Z'},

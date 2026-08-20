@@ -95,7 +95,7 @@
               colaAbre, colaTramites, colaExpediente, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
               agendaMira, agendaTrasEntrar, agendaTrasSalir,
               rncAbre, rncTrasAbrir, solvenciasAbre, solvenciasTrasAbrir,
-              escaleraAbre, escaleraMira], volcar);
+              devueltoAbre, devueltoMira, escaleraAbre, escaleraMira], volcar);
   });
 
   function pruebas(){
@@ -594,9 +594,11 @@
          img && /banderas\/ve\.svg$/.test(marca.getAttribute('src') || ''),
          img ? marca.getAttribute('src') : ('etiqueta ' + (marca && marca.tagName) + ' = ' + (marca && marca.textContent)),
          'un <img> a banderas/ve.svg');
-      ok('paises: y la bandera carga de verdad',
-         img && marca.complete && marca.naturalWidth > 0,
-         img ? (marca.naturalWidth + 'x' + marca.naturalHeight) : 'no es imagen', 'con tamaño');
+      /* Que HAYA cargado no se puede mirar aquí: el navegador acaba de
+         crear la imagen y aún no ha ido a por el archivo. Se guarda y se
+         comprueba en el paso siguiente, medio segundo después. Mirarlo en
+         el acto daba verde o rojo según lo cargada que fuera la máquina. */
+      banderaEnPrueba = img ? marca : null;
     })();
     elige(opciones()[0]);
     ok('países: elegir rellena el campo y guarda el código',
@@ -638,7 +640,15 @@
   }
 
   /* Lo que hay que comprobar DESPUÉS de que la base conteste al guardado. */
+  var banderaEnPrueba = null;
+
   function trasGuardar(){
+    if (banderaEnPrueba){
+      ok('paises: y la bandera carga de verdad',
+         banderaEnPrueba.complete && banderaEnPrueba.naturalWidth > 0,
+         banderaEnPrueba.naturalWidth + 'x' + banderaEnPrueba.naturalHeight, 'con tamaño');
+      banderaEnPrueba = null;
+    }
     var caja = document.getElementById('perfilBack');
     var chip = document.querySelector('.user');
     applyLang('es');
@@ -840,6 +850,46 @@
 
   /* Se mira en el expediente 'lleno', que es el único con una solicitud ya
      enviada: sin solicitud no hay escalera que marcar. */
+  /* ═══════════ UN TRÁMITE DEVUELTO SE PUEDE ARREGLAR ═══════════
+     La base dejaba corregir un devuelto —su política lo permite— pero la
+     pantalla lo enseñaba en solo lectura, y el circuito se cortaba justo
+     donde el inversionista tiene que actuar. */
+  function devueltoAbre(){
+    if (CASO !== 'lleno') return;
+    location.hash = 'tramite-c6';
+  }
+
+  function devueltoMira(){
+    if (CASO !== 'lleno') return;
+    var caja = document.getElementById('trReal');
+
+    /* Lo primero, la nota: quien abre el trámite para arreglarlo tiene que
+       leer qué falta sin volver atrás a buscarlo en la portada. */
+    ok('devuelto: la nota del gestor se lee en el propio trámite',
+       /ilegible/.test(caja.textContent),
+       'busca la nota dentro del trámite', 'aparece');
+
+    var arreglar = null;
+    caja.querySelectorAll('button').forEach(function(b){
+      if (b.textContent.trim() === 'Corregir y reenviar') arreglar = b;
+    });
+    ok('devuelto: y ofrece arreglarlo', !!arreglar,
+       arreglar ? 'lo ofrece' : 'no hay botón', 'un botón para corregir');
+
+    if (arreglar){
+      arreglar.click();
+      var campos = caja.querySelectorAll('.sol-campo');
+      ok('devuelto: al pulsarlo vuelve el formulario', campos.length > 0,
+         campos.length + ' campos', 'con campos');
+      /* Y con lo que ya había escrito: obligarle a teclearlo otra vez sería
+         castigarle por un recaudo borroso. */
+      var razon = caja.querySelector('.sol-campo[data-campo="razon_social"] input');
+      igual('devuelto: y con lo que ya había rellenado',
+            razon ? razon.value : '(no está)', 'Bianchi Agroindustrias, C.A.');
+    }
+    location.hash = '';
+  }
+
   function escaleraAbre(){
     if (CASO !== 'lleno') return;
     location.hash = 'tramite-c3';

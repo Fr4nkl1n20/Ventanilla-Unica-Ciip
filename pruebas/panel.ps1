@@ -108,7 +108,10 @@ foreach ($caso in @('lleno','vacio','sinnombre','gestor')) {
   # una portada que casi nadie ve. 1400 es una pantalla de escritorio normal,
   # que es donde las cuatro etapas van en fila.
   $args = @('--headless=new','--disable-gpu','--no-sandbox','--dump-dom',
-            '--enable-logging=stderr','--virtual-time-budget=12000',
+            # El presupuesto de tiempo crece con la cadena de pasos del arnes: cada uno
+  # espera medio segundo a que la base conteste. Si se queda corto, el arnes
+  # no llega a volcar y el fallo parece un error de JavaScript que no existe.
+  '--enable-logging=stderr','--virtual-time-budget=25000',
             '--window-size=1400,1000',
             "--user-data-dir=$trabajo\perfil-$caso", $url)
   $p = Start-Process $navegador -ArgumentList $args -RedirectStandardOutput $salida `

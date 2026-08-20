@@ -3618,7 +3618,29 @@ applyLang('en');
     if (tr.estado === 'devuelto'){
       var av = el('div', 'sol-devuelta');
       av.appendChild(el('div', 'sv-t', u.devuelta));
+      /* La nota del gestor va AQUÍ, no solo en la franja de la portada:
+         quien abre el trámite para arreglarlo tiene que leer qué falta sin
+         volver atrás a buscarlo. La rellena la consulta del historial. */
+      var laNota = el('div', 'sv-d');
+      av.appendChild(laNota);
       caja.appendChild(av);
+
+      /* Y el camino de vuelta. Sin esto el trámite se quedaba en un aviso de
+         solo lectura: la base dejaba corregir un devuelto —su política lo
+         permite— pero la pantalla no lo ofrecía, y el circuito se cortaba
+         justo donde el inversionista tiene que actuar. */
+      var arreglar = el('button', 'btn navy', u.corregir || '');
+      arreglar.type = 'button';
+      arreglar.addEventListener('click', function(){
+        caja.textContent = '';
+        caja.classList.add('puesto');
+        chipReal('sin_iniciar');
+        /* Se le pasa la fila que ya existe: el envío la reutiliza y la pasa
+           a 'enviado' en vez de crear una segunda solicitud del mismo
+           trámite. */
+        pintaFormulario(tipo, tr);
+      });
+      caja.appendChild(arreglar);
     }
 
     var lista = el('ol', 'tr-pasos');
@@ -3630,6 +3652,15 @@ applyLang('en');
       .then(function(r){
         var cuando = {};
         (r.data || []).forEach(function(ev){ if (!cuando[ev.a_estado]) cuando[ev.a_estado] = ev.creado_en; });
+
+        /* La nota de la ÚLTIMA devolución. Si fue y volvió dos veces, la
+           vieja ya no es la que hay que corregir. */
+        if (tr.estado === 'devuelto'){
+          var notas = (r.data || []).filter(function(ev){ return ev.a_estado === 'devuelto' && ev.nota; });
+          var ultima = notas.length ? notas[notas.length - 1].nota : '';
+          var hueco = caja.querySelector('.sv-d');
+          if (hueco) hueco.textContent = ultima;
+        }
         var alcanzado = ORDEN.indexOf(tr.estado);
         if (tr.estado === 'devuelto') alcanzado = 0;    /* volvió al principio */
 
