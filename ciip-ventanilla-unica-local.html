@@ -3048,6 +3048,27 @@ function applyLang(lang){
      llevan data-i18n. Este gancho los vuelve a dibujar. */
   window.CIIP_REPINTA_PASOS = function(){ if (trAbierto) pintaTramite(trAbierto); };
 
+  /* Las vistas que piden datos al entrar no pueden pedirlos ANTES de que la
+     sesión esté puesta. Pulsando el renglón no se nota —para entonces hace
+     rato que se restauró—, pero con F5 sobre #usuarios el router corre
+     durante la carga, la consulta sale sin sesión y las políticas contestan
+     con cero filas. No es un error: es una lista vacía, indistinguible de
+     "aquí no hay nadie". La vista decía que no había ninguna cuenta y era
+     mentira.
+
+     PERFIL.rolReal es la señal buena: solo se pone cuando una consulta CON
+     sesión ya contestó. Y si en cuatro segundos no llega, se pide igual: más
+     vale una lista vacía que una vista que no carga nunca. */
+  function traeAlEntrar(fn){
+    if (typeof fn !== 'function') return;
+    var n = 0;
+    (function espera(){
+      if (typeof PERFIL !== 'undefined' && PERFIL.rolReal) return fn();
+      if (n++ < 40) return setTimeout(espera, 100);
+      fn();
+    })();
+  }
+
   /* --- el router --------------------------------------------------------- */
   function pinta(destino){
     var tipo = destino ? destino.tipo : null;
@@ -3058,13 +3079,13 @@ function applyLang(lang){
     if (tipo === 'tramite' && !pintaTramite(destino.id)) tipo = null;
     /* La agenda se rellena al entrar, no al cargar la página: la mayoría de
        las visitas no pasan por ella y no hay que gastarles una consulta. */
-    if (tipo === 'citas' && window.CIIP_PINTA_AGENDA) window.CIIP_PINTA_AGENDA();
-    if (tipo === 'mistramites' && window.CIIP_PINTA_MISTRAM) window.CIIP_PINTA_MISTRAM();
-    if (tipo === 'activos' && window.CIIP_PINTA_ACTIVOS) window.CIIP_PINTA_ACTIVOS();
+    if (tipo === 'citas') traeAlEntrar(window.CIIP_PINTA_AGENDA);
+    if (tipo === 'mistramites') traeAlEntrar(window.CIIP_PINTA_MISTRAM);
+    if (tipo === 'activos') traeAlEntrar(window.CIIP_PINTA_ACTIVOS);
     if (tipo === 'ayuda' && window.CIIP_REPINTA_AYUDA) window.CIIP_REPINTA_AYUDA();
-    if (tipo === 'documentos' && window.CIIP_PINTA_DOCS) window.CIIP_PINTA_DOCS();
-    if (tipo === 'empresa' && window.CIIP_PINTA_EMPRESA) window.CIIP_PINTA_EMPRESA();
-    if (tipo === 'usuarios' && window.CIIP_PINTA_USUARIOS) window.CIIP_PINTA_USUARIOS();
+    if (tipo === 'documentos') traeAlEntrar(window.CIIP_PINTA_DOCS);
+    if (tipo === 'empresa') traeAlEntrar(window.CIIP_PINTA_EMPRESA);
+    if (tipo === 'usuarios') traeAlEntrar(window.CIIP_PINTA_USUARIOS);
 
     var fase = null;
     if (tipo === 'fase') {

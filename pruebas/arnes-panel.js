@@ -112,6 +112,7 @@
               usuariosMira, usuariosCambia, usuariosTrasCambiar,
               sinSqlAbre, sinSqlMira,
               adminMira, adminAbre, adminDentro,
+              f5Entra, f5Espera, f5Llega,
               empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
               entregaAbre, entregaMira,
               docsAbre, docsMira,
@@ -1687,6 +1688,40 @@
       return x.getBoundingClientRect().right > caja.right + 1; });
     igual('rejilla: y ninguna se sale por la derecha', desborda.length, 0);
 
+    location.hash = '';
+  }
+
+  /* ═══════════ F5 SOBRE UNA VISTA QUE PIDE DATOS ═══════════
+     Pulsando el renglón no se notaba: para entonces hacía rato que la
+     sesión estaba puesta. Pero con F5 sobre #usuarios el router corre
+     durante la carga, la consulta sale SIN sesión y las políticas
+     contestan con cero filas —sin error—. La vista decía "no hay ninguna
+     cuenta que enseñar" y era mentira: había cuatro.
+
+     Aquí se recrea ese momento apagando la señal de "el rol ya llegó". */
+  var f5Antes = null;
+  function f5Entra(){
+    if (!ES_ADMIN) return;
+    f5Antes = PERFIL.rolReal;
+    PERFIL.rolReal = false;
+    document.getElementById('usLista').textContent = '';
+    location.hash = 'usuarios';
+  }
+
+  function f5Espera(){
+    if (!ES_ADMIN) return;
+    /* Lo que NO tiene que pasar: dar por vacía una lista que aún no se ha
+       podido pedir. Callarse es la respuesta correcta mientras tanto. */
+    var t = document.getElementById('usLista').textContent;
+    ok('F5: sin sesión todavía, no declara que no hay nadie',
+       t.indexOf('No hay ninguna cuenta') < 0, t.slice(0, 60) || '(vacía)', 'sin ese mensaje');
+    PERFIL.rolReal = f5Antes;
+  }
+
+  function f5Llega(){
+    if (!ES_ADMIN) return;
+    igual('F5: y en cuanto la sesión está, salen las cuentas',
+          document.querySelectorAll('#usLista .ci-ficha').length, 4);
     location.hash = '';
   }
 
