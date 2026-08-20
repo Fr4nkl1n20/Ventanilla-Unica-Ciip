@@ -289,23 +289,10 @@ svg{display:block;}
 .main{margin-left:var(--sb); min-height:100vh; display:flex; flex-direction:column;}
 .topbar{position:sticky; top:0; z-index:20; height:var(--tb); background:var(--bg);
   border-bottom:1px solid var(--line); display:flex; align-items:center; gap:14px; padding:0 26px;}
-/* ── LA CABECERA ES UNA SOLA LÍNEA ────────────────────────────────
-   Nada de aquí partía en dos renglones a propósito, pero todo podía: la
-   miga de pan, el nombre, el rol con su país. Y como la barra tiene alto
-   fijo (--tb), lo que sobraba se salía por arriba —"Franklin Reyes"
-   apareció cortado por la mitad— y empujaba el botón de salir fuera del
-   borde derecho.
-
-   Se arregla diciendo dos cosas: que nada se parte, y que lo único que
-   cede cuando falta sitio es el buscador. Los botones no encogen: uno
-   estrujado hasta la mitad de su texto no es más útil que uno escondido.
-   ─────────────────────────────────────────────────────────── */
-.tb-crumb{font-size:12px; color:var(--gray); font-weight:600;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:0 1 auto; min-width:0;}
+.tb-crumb{font-size:12px; color:var(--gray); font-weight:600;}
 .tb-crumb b{color:var(--ink);}
 .tb-spacer{flex:1 1 auto;}
-.tb-btn{display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 12px; border-radius:8px; flex:none;
-  white-space:nowrap;
+.tb-btn{display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 12px; border-radius:8px;
   border:1px solid var(--line); background:var(--bg); color:var(--ink); font:inherit; font-size:11.5px;
   font-weight:600; cursor:pointer;} .tb-btn:hover{border-color:var(--cyan-deep); color:var(--navy2);}
 .tb-btn svg{width:15px; height:15px; stroke:currentColor; stroke-width:2; fill:none;}
@@ -326,11 +313,8 @@ svg{display:block;}
 #avisoDemo svg{width:16px; height:16px; stroke:currentColor; stroke-width:2; fill:none; flex:none; margin-top:1px;}
 /* Es un <button>, así que hay que devolverle el aspecto que tenía de <div>:
    sin fondo, sin borde y con el texto alineado a la izquierda. */
-.user{display:flex; align-items:center; gap:9px; cursor:pointer; flex:none; max-width:210px;
+.user{display:flex; align-items:center; gap:9px; cursor:pointer;
   background:transparent; border:0; padding:0; font:inherit; color:inherit; text-align:left;}
-/* Un nombre largo se corta con puntos suspensivos en vez de partirse: la
-   ventana del perfil lo enseña entero, y ahí es donde se lee. */
-.u-meta-txt{min-width:0; overflow:hidden;}
 .user:focus-visible{outline:2px solid var(--navy); outline-offset:3px; border-radius:8px;}
 
 /* El punto ámbar sobre el avatar mientras falte el nombre o el país. Sin
@@ -584,7 +568,6 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .avatar{width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--navy2),var(--cyan-deep));
   color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex:none;}
 .u-name{font-size:12.5px; font-weight:700;} .u-sub{font-size:10.5px; color:var(--gray);}
-.u-name, .u-sub{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 
 .content{flex:1 1 auto; padding:26px 26px 60px; max-width:1180px; width:100%; margin:0 auto;}
 
@@ -1070,7 +1053,7 @@ body[data-vista="fase"] .phase-h .chev{display:none;}
 .sb-head img{height:38px; width:auto;}
 
 /* ---------- header ask bar ---------- */
-.ask{flex:1 1 200px; min-width:0; max-width:540px; margin:0 4px; display:flex; align-items:center; gap:9px; height:38px; padding:0 13px; border:1px solid var(--line); border-radius:10px; background:var(--block); cursor:text; transition:border-color .12s, box-shadow .12s;}
+.ask{flex:1 1 auto; max-width:540px; margin:0 4px; display:flex; align-items:center; gap:9px; height:38px; padding:0 13px; border:1px solid var(--line); border-radius:10px; background:var(--block); cursor:text; transition:border-color .12s, box-shadow .12s;}
 .ask:hover{border-color:var(--cyan-deep); box-shadow:0 0 0 3px rgba(32,176,240,.10);}
 .ask svg{width:16px; height:16px; flex:none;}
 .ask>svg:first-of-type{stroke:var(--navy2); stroke-width:2; fill:none;}
@@ -1186,12 +1169,7 @@ body[data-vista="fase"] .phase-h .chev{display:none;}
 body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 @media(max-width:560px){ .sup-fab{right:14px; bottom:14px;} }
 @media (prefers-reduced-motion:reduce){ .sup-panel{transition:none;} }
-/* Cuando ya no caben, sobra primero la miga de pan —la barra lateral dice
-   lo mismo— y después el nombre al lado del avatar, que las iniciales ya
-   dicen de quién es la cuenta. */
-@media(max-width:1180px){ .tb-crumb{display:none;} }
-@media(max-width:1000px){ .u-meta-txt{display:none;} }
-@media(max-width:840px){ .ask{max-width:none;} }
+@media(max-width:840px){ .tb-crumb{display:none;} .ask{max-width:none;} }
 
 /* ---------- header language dropdown ---------- */
 .lang-sel{position:relative; flex:none;}

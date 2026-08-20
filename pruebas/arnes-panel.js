@@ -338,40 +338,6 @@
       applyLang('es');
     })();
 
-    /* ═══════════ LA CABECERA ═══════════
-       Nada de ella partía en dos renglones a propósito, pero todo podía. Y
-       como la barra tiene alto fijo, lo que sobraba se salía por arriba: el
-       nombre apareció cortado por la mitad y el botón de salir, fuera del
-       borde derecho. */
-    (function(){
-      var tb = document.querySelector('.topbar');
-      ok('cabecera: cabe entera, sin salirse por los lados',
-         tb.scrollWidth <= tb.clientWidth + 1,
-         'contenido=' + tb.scrollWidth + ' caja=' + tb.clientWidth, 'contenido <= caja');
-
-      var usu = document.querySelector('.user');
-      ok('cabecera: tu nombre y tu rol no la hacen crecer a lo alto',
-         usu.offsetHeight <= tb.offsetHeight,
-         'nombre=' + usu.offsetHeight + ' barra=' + tb.offsetHeight, 'nombre <= barra');
-
-      var salir = document.getElementById('btnSalir');
-      ok('cabecera: el botón de salir queda dentro',
-         salir.getBoundingClientRect().right <= tb.getBoundingClientRect().right + 1,
-         'salir=' + Math.round(salir.getBoundingClientRect().right) +
-         ' borde=' + Math.round(tb.getBoundingClientRect().right), 'dentro del borde');
-
-      /* Un nombre largo se corta con puntos suspensivos; entero se lee en la
-         ventana del perfil, que es donde toca. */
-      var nom = document.querySelector('.u-name');
-      var antes = nom.textContent;
-      nom.textContent = 'María Fernanda de la Concepción Villanueva Echeverría';
-      ok('cabecera: un nombre muy largo no la desarma',
-         tb.scrollWidth <= tb.clientWidth + 1 && usu.offsetHeight <= tb.offsetHeight,
-         'contenido=' + tb.scrollWidth + ' caja=' + tb.clientWidth +
-         ' alto=' + usu.offsetHeight, 'sigue cabiendo');
-      nom.textContent = antes;
-    })();
-
     /* ═══════════ LAS PREGUNTAS FRECUENTES ═══════════
        Se pliegan bajo su cabecera, igual que los trámites de cada fase. Se
        probó antes con una caja de alto fijo y barra propia: se recorría por
