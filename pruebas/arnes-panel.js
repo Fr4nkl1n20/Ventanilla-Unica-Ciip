@@ -852,6 +852,20 @@
        !!aqui && aqui.textContent.trim().length > 0,
        aqui ? ('"' + aqui.textContent.trim() + '"') : 'no hay etiqueta',
        'con texto dentro');
+
+    /* Y respira como los demás distintivos del panel. Con 1px de relleno
+       salía apretado y parecía un botón a medio hacer. */
+    if (aqui){
+      var ea = window.getComputedStyle(aqui);
+      ok('escalera: y la etiqueta respira, como los demás distintivos',
+         parseFloat(ea.paddingTop) >= 3 && aqui.getBoundingClientRect().height >= 16,
+         'relleno ' + ea.paddingTop + ', alto ' + aqui.getBoundingClientRect().height.toFixed(1) + 'px',
+         'al menos 3px de relleno y 16px de alto');
+      /* Y no se sale de su caja. */
+      ok('escalera: y su texto cabe dentro',
+         aqui.scrollWidth <= aqui.clientWidth + 1,
+         aqui.scrollWidth + ' vs ' + aqui.clientWidth, 'sin desbordar');
+    }
     location.hash = '';
   }
 

@@ -703,9 +703,15 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-txt{padding-top:3px;}
 .tr-paso-n{font-size:12.5px; font-weight:600; line-height:1.35;}
 .tr-paso.porhacer .tr-paso-n{color:var(--gray);}
-.tr-aqui{display:inline-block; margin-top:5px; font-size:9px; font-weight:800; letter-spacing:.04em;
+/* Es un distintivo, y el panel ya tiene una familia de distintivos: .chip,
+   .ct-chip y .co-estado, todos en versalitas, esquina redonda y 4-5px de
+   relleno. Este iba con 1px y esquina cuadrada, asi que salia apretado y
+   parecia otra cosa —un boton a medio hacer— en vez de la marca de "estas
+   aqui" que es. Se alinea con sus hermanos. */
+.tr-aqui{display:inline-block; margin-top:6px; font-size:10px; font-weight:800;
+  letter-spacing:.07em; text-transform:uppercase; line-height:1;
   color:var(--navy2); background:var(--block); border:1px solid var(--line);
-  border-radius:5px; padding:1px 6px;}
+  border-radius:20px; padding:5px 9px;}
 
 /* ============ EL TRAMITE DE VERDAD ============
    Formulario y estado real, contra la base de datos. Convive con la
