@@ -96,7 +96,7 @@
               agendaMira, agendaTrasEntrar, agendaTrasSalir,
               rncAbre, rncTrasAbrir, solvenciasAbre, solvenciasTrasAbrir,
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
-              activosEdita, activosTrasEditar,
+              activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
               devueltoAbre, devueltoMira, escaleraAbre, escaleraMira], volcar);
   });
 
@@ -1157,6 +1157,9 @@
     ok('publicar: se abre la ficha', back.classList.contains('open'),
        back.className, 'con la clase open');
     igual('publicar: y viene en blanco', document.getElementById('afTit').value, '');
+    ok('publicar: uno nuevo no ofrece borrarse',
+       document.getElementById('afBorrar').hidden,
+       'oculto=' + document.getElementById('afBorrar').hidden, 'oculto=true');
 
     /* Sin título la ficha no dice nada, y la base lo rechazaría igual: se
        dice con palabras en vez de con un error de SQL. */
@@ -1225,6 +1228,55 @@
        /Hotel de playa/.test(textos), 'el hotel ya no está cerrado', 'reabierto');
     igual('editar: y el renglón vuelve a contar',
           document.getElementById('navActivosN').textContent, '3');
+    document.getElementById('acVolver').click();
+  }
+
+  /* Borrar es lo único de esta ventana que no se puede deshacer, así que
+     pide dos toques. Y no una ventana del navegador: esas salen fuera de la
+     página, se leen a medias y se cierran por costumbre. */
+  function activosBorra(){
+    if (CASO !== 'gestor') return;
+    document.getElementById('navActivos').click();
+
+    var fichas = [].slice.call(document.querySelectorAll('#acLista .ci-ficha'));
+    var finca = fichas.filter(function(f){ return /Finca cafetalera/.test(f.textContent); })[0];
+    finca.querySelector('.ac-editar').click();
+
+    var bo = document.getElementById('afBorrar');
+    ok('borrar: uno que ya existe sí se puede borrar', !bo.hidden,
+       'oculto=' + bo.hidden, 'a la vista');
+
+    /* Primer toque: avisa y NO borra. */
+    bo.click();
+    igual('borrar: el primer toque solo avisa',
+          document.getElementById('afAviso').textContent,
+          'Se borra de verdad y no se puede deshacer. Si solo quieres retirarlo, ponlo en Cerrado.');
+    igual('borrar: y cambia lo que dice el botón', bo.textContent, 'Pulsa otra vez para borrarlo');
+    igual('borrar: el activo sigue ahí',
+          document.querySelectorAll('#acLista .ci-ficha').length, 3);
+
+    bo.click();   /* el segundo toque sí */
+  }
+
+  function activosTrasBorrar(){
+    if (CASO !== 'gestor') return;
+    ok('borrar: la ficha se cierra sola',
+       !document.getElementById('activoBack').classList.contains('open'),
+       document.getElementById('activoBack').className, 'sin la clase open');
+    igual('borrar: y sale de la lista',
+          document.querySelectorAll('#acLista .ci-ficha').length, 2);
+    ok('borrar: con su título',
+       !/Finca cafetalera/.test(document.getElementById('acLista').textContent),
+       'busca "Finca cafetalera"', 'ya no aparece');
+    igual('borrar: y el renglón baja',
+          document.getElementById('navActivosN').textContent, '2');
+
+    /* Cerrarla desarma: nadie vuelve a encontrarse un botón cargado. */
+    var fichas = document.querySelectorAll('#acLista .ci-ficha');
+    fichas[0].querySelector('.ac-editar').click();
+    igual('borrar: al reabrir, el botón vuelve a estar en reposo',
+          document.getElementById('afBorrar').textContent, 'Borrar');
+    document.getElementById('afCerrar').click();
     document.getElementById('acVolver').click();
   }
 

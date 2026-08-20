@@ -291,6 +291,10 @@
         });
         return {data:{}, error:null};
       }
+      if (op && op.borra && op.eq && op.eq.id){
+        activosVivos = activosVivos.filter(function(a){ return a.id !== op.eq.id; });
+        return {data:{}, error:null};
+      }
       /* Los cerrados no le llegan a quien no es del equipo: la politica de
          la base los deja fuera, y una prueba que los enseñara a todos daria
          verde sobre una pantalla que en vivo se ve distinta. */
@@ -377,7 +381,7 @@
      await o en una cadena de promesas. */
   function consulta(tabla){
     var api = {}, op = {};
-    ['select','neq','is','order','limit','range','upsert','delete','maybeSingle']
+    ['select','neq','is','order','limit','range','upsert','maybeSingle']
       .forEach(function(m){ api[m] = function(){ return api; }; });
     /* Estos S\u00cd se miran: distinguen a qui\u00e9n va dirigida la consulta. */
     api.eq = function(k, v){ (op.eq = op.eq || {})[k] = v; return api; };
@@ -386,6 +390,9 @@
     /* Estos dos SÍ se miran: son los que cambian algo. */
     api.insert = function(fila){ op.insert = fila; return api; };
     api.update = function(campos){ op.update = campos; return api; };
+    /* Borrar era un no-op de los de arriba: la prueba habria dado verde sin
+       que la fila saliera de ninguna lista. */
+    api.delete = function(){ op.borra = true; return api; };
     api.then  = function(bien, mal){ return Promise.resolve(respuesta(tabla, op)).then(bien, mal); };
     api.catch = function(mal){ return Promise.resolve(respuesta(tabla, op)).catch(mal); };
     return api;

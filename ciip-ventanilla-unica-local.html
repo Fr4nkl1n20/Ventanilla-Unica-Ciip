@@ -405,6 +405,14 @@ body[data-vista="activos"] #acVolver{display:inline-flex;}
 /* El cuerpo rueda solo: la ventana no crece más allá del 82% de la
    pantalla y sin esto el pie se sale por abajo. */
 #activoBack .pf-cuerpo{flex:1 1 auto; min-height:0; overflow-y:auto; padding-bottom:14px;}
+/* El hueco empuja guardar y cancelar a la derecha y deja borrar solo. */
+.pf-hueco{flex:1 1 auto;}
+/* Del color de lo que no se puede deshacer, el mismo del boton de salir.
+   Apagado hasta que se pulsa: no compite con el de guardar. */
+.btn.peligro{background:transparent; color:var(--gray); border:1px solid var(--line);}
+.btn.peligro:hover{border-color:var(--rust); color:var(--rust); background:var(--rust-bg);}
+/* Armado: ya se pulso una vez y el siguiente toque borra de verdad. */
+.btn.peligro.armado{border-color:var(--rust); color:var(--rust); background:var(--rust-bg);}
 
 /* --- mis tramites: la misma vista que la agenda, con otra lista --- */
 .mistram-vista{display:none;}
@@ -2105,6 +2113,12 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
     </div>
 
     <div class="pf-pie">
+      <!-- Borrar va a la IZQUIERDA y separado de los otros dos: es lo unico
+           de esta ventana que no se puede deshacer, y no debe quedar al lado
+           del boton que se pulsa siempre. Solo sale al editar uno que ya
+           existe; al publicar no hay nada que borrar. -->
+      <button class="btn peligro" id="afBorrar" type="button" hidden></button>
+      <div class="pf-hueco"></div>
       <button class="btn ghost" id="afCancelar" type="button"></button>
       <button class="btn navy"  id="afGuardar"  type="button"></button>
     </div>
@@ -5915,6 +5929,10 @@ applyLang(idiomaParaMi());
   var afBack  = document.getElementById('activoBack');
   var afEdita = null;      /* el activo abierto; null si es uno nuevo */
   var afYendo = false;
+  /* Borrar pide dos toques. No es una ventana del navegador a propósito: esas
+     salen fuera de la página, se leen a medias y se cierran por costumbre. El
+     aviso se lee donde está el botón, y el segundo toque es la confirmación. */
+  var afArmado = false;
 
   var AC_ESTADOS = ['disponible', 'reservado', 'cerrado'];
 
@@ -5945,6 +5963,14 @@ applyLang(idiomaParaMi());
     afPon('afLdest',    u.ac_ldest);
     afPon('afCancelar', u.ac_cancelar);
     afPon('afGuardar',  afYendo ? u.ac_yendo : (afEdita ? u.ac_guardar_e : u.ac_guardar));
+
+    var bo = afQ('afBorrar');
+    if (bo){
+      /* Al publicar uno nuevo no hay nada que borrar. */
+      bo.hidden = !afEdita;
+      bo.textContent = afArmado ? (u.ac_borrar_ok || '') : (u.ac_borrar || '');
+      bo.classList.toggle('armado', afArmado);
+    }
 
     var r = afQ('afResumen'), d = afQ('afDetalle');
     if (r) r.placeholder = u.ac_presumen || '';
@@ -5980,11 +6006,50 @@ applyLang(idiomaParaMi());
     afQ('afAviso').textContent = '';
     afBack.querySelectorAll('.pf-campo').forEach(function(c){ c.classList.remove('mal'); });
     afYendo = false;
+    afArmado = false;   /* cada vez que se abre, desarmado */
     pintaFicha();
     afBack.classList.add('open');
     setTimeout(function(){ var t = afQ('afTit'); if (t) t.focus(); }, 40);
   }
-  function cierraFicha(){ if (afBack) afBack.classList.remove('open'); }
+  function cierraFicha(){
+    if (!afBack) return;
+    afBack.classList.remove('open');
+    afArmado = false;   /* cerrarla desarma: nadie vuelve a un botón cargado */
+  }
+
+  function borraFicha(){
+    if (!afEdita) return;
+    var u  = T();
+    var av = afQ('afAviso');
+    var bo = afQ('afBorrar');
+
+    /* Primer toque: solo avisa. */
+    if (!afArmado){
+      afArmado = true;
+      av.textContent = u.ac_borrar_no || '';
+      pintaFicha();
+      return;
+    }
+
+    afArmado = false;
+    bo.disabled = true;
+    bo.textContent = u.ac_borrando || '';
+    av.textContent = '';
+
+    sb.from('activos').delete().eq('id', afEdita.id)
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        bo.disabled = false;
+        cierraFicha();
+        return cargaActivos();
+      })
+      .catch(function(e){
+        console.warn('[CIIP] borrar activo:', e && (e.message || e));
+        bo.disabled = false;
+        pintaFicha();
+        av.textContent = String(u.ac_borrar_mal || '').replace('{e}', (e && e.message) || '');
+      });
+  }
 
   function guardaFicha(){
     var u  = T();
@@ -5992,6 +6057,7 @@ applyLang(idiomaParaMi());
     var bt = afQ('afGuardar');
     afBack.querySelectorAll('.pf-campo').forEach(function(c){ c.classList.remove('mal'); });
 
+    afArmado = false;
     var titulo = afVal('afTit');
     if (!titulo){
       afQ('afTit').closest('.pf-campo').classList.add('mal');
@@ -6053,6 +6119,7 @@ applyLang(idiomaParaMi());
     afQ('afCerrar').addEventListener('click', cierraFicha);
     afQ('afCancelar').addEventListener('click', cierraFicha);
     afQ('afGuardar').addEventListener('click', guardaFicha);
+    afQ('afBorrar').addEventListener('click', borraFicha);
     afBack.addEventListener('click', function(e){ if (e.target === afBack) cierraFicha(); });
     document.addEventListener('keydown', function(e){
       if (e.key === 'Escape' && afBack.classList.contains('open')) cierraFicha();
