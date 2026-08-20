@@ -386,7 +386,7 @@ body[data-vista="usuarios"] #dcVolver,
 body[data-vista="usuarios"] #emVolver{display:none;}
 body[data-vista="usuarios"] #usVolver{display:inline-flex;}
 #usVolver{display:none;}
-.sb-grupo[hidden]{display:none;}
+.sb-group[hidden]{display:none;}
 
 /* Los numeros de arriba. Cuatro, y ninguno decorativo: los cuatro dicen
    cuanto trabajo hay encima de la mesa. */
@@ -1493,14 +1493,17 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
            verdad, y si no hay ninguno no se enseña. -->
       <button class="sb-item" id="navActivos" type="button"><span class="dot"></span><span data-i18n="nav.assets">Assets & projects</span><span class="cnt" id="navActivosN" hidden></span></button>
     </div>
-    <div class="sb-group">
-      <!-- Solo lo ve un admin. Que no se vea es cortesia: la cerradura es
-           la base, que vuelve a comprobar quien pide el cambio. -->
-      <div class="sb-grupo" id="grupoAdmin" hidden>
-        <div class="sb-gl">ADMIN</div>
-        <button class="sb-item" id="navUsuarios" type="button"><span class="dot"></span><span data-i18n="nav.users">Users &amp; team</span></button>
-      </div>
+    <!-- Grupo PROPIO, no metido dentro del de al lado: el aire entre
+         grupos lo pone este contenedor, y colgandolo del vecino
+         "ACOMPAÑAMIENTO" quedaba pegado al renglon de arriba.
 
+         Solo lo ve un admin, y eso es cortesia: la cerradura es la base,
+         que vuelve a comprobar quien pide el cambio. -->
+    <div class="sb-group" id="grupoAdmin" hidden>
+      <div class="sb-gl">ADMIN</div>
+      <button class="sb-item" id="navUsuarios" type="button"><span class="dot"></span><span data-i18n="nav.users">Users &amp; team</span></button>
+    </div>
+    <div class="sb-group">
       <div class="sb-gl" data-i18n="nav.g.support">Support</div>
       <!-- Este renglon SI lleva a alguna parte. El numero sale de tus citas
            vivas, no de un ejemplo: si no hay ninguna, no se enseña. -->

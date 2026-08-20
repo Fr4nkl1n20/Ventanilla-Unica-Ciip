@@ -1507,6 +1507,12 @@
      base de datos. */
   function usuariosMira(){
     var grupo = document.getElementById('grupoAdmin');
+    /* Grupo propio, no colgado del de al lado: el aire entre grupos lo pone
+       ese contenedor, y metido dentro del vecino dejaba "ACOMPAÑAMIENTO"
+       pegado al renglón de arriba. */
+    ok('usuarios: el grupo es hermano de los demás, no hijo de uno',
+       grupo.classList.contains('sb-group') && grupo.parentNode.classList.contains('sb-nav'),
+       grupo.className + ' dentro de ' + grupo.parentNode.className, 'sb-group dentro de sb-nav');
     /* El renglón solo se le ofrece a un admin. Es cortesía, no la
        cerradura: la base vuelve a comprobar quién pide el cambio. */
     if (CASO !== 'gestor'){
