@@ -118,7 +118,8 @@ $casos = @(
   @{ caso='vacio';     ancho='1400,1000' },
   @{ caso='sinnombre'; ancho='1400,1000' },
   @{ caso='gestor';    ancho='1400,1000' },
-  @{ caso='estrecho';  ancho='760,900'   }
+  @{ caso='estrecho';  ancho='760,900'   },
+  @{ caso='sinsql';    ancho='1400,1000' }
 )
 foreach ($c in $casos) {
   $caso  = $c.caso

@@ -271,6 +271,8 @@ window.CIIP_PASOS = {
       us_m_cuentas:"Cuentas",
       /* Presencia. No es una conexion: es cuando estuvo abierto el panel. */
       us_online:   "En línea",
+      us_nadie:    "No hay ninguna cuenta que enseñar",
+      us_nadie_p:  "O todavía no se ha registrado nadie, o la consulta no llegó. Mira la consola del navegador.",
       us_visto:    "Visto {cuando}",
       us_nunca:    "No ha entrado todavía",
       us_m_online: "En línea ahora",
@@ -678,6 +680,8 @@ window.CIIP_PASOS = {
       us_m_cuentas:"Accounts",
       /* Presence. Not a connection: when the panel was last open. */
       us_online:   "Online",
+      us_nadie:    "There are no accounts to show",
+      us_nadie_p:  "Either nobody has registered yet, or the query didn't come through. Check the browser console.",
       us_visto:    "Seen {cuando}",
       us_nunca:    "Hasn't come in yet",
       us_m_online: "Online now",
@@ -1077,6 +1081,8 @@ window.CIIP_PASOS = {
       us_m_cuentas:"Contas",
       /* Presenca. */
       us_online:   "Em linha",
+      us_nadie:    "Não há nenhuma conta para mostrar",
+      us_nadie_p:  "Ou ainda ninguém se registou, ou a consulta não chegou. Veja a consola do navegador.",
       us_visto:    "Visto {cuando}",
       us_nunca:    "Ainda não entrou",
       us_m_online: "Em linha agora",
@@ -1475,6 +1481,8 @@ window.CIIP_PASOS = {
       us_m_cuentas:"Account",
       /* Presenza. */
       us_online:   "In linea",
+      us_nadie:    "Non c'è nessun account da mostrare",
+      us_nadie_p:  "O non si è ancora registrato nessuno, o la richiesta non è arrivata. Guarda la console del browser.",
       us_visto:    "Visto {cuando}",
       us_nunca:    "Non è ancora entrato",
       us_m_online: "In linea ora",
@@ -1873,6 +1881,8 @@ window.CIIP_PASOS = {
       us_m_cuentas:"账号",
       /* 在线状态。 */
       us_online:   "在线",
+      us_nadie:    "没有可显示的账号",
+      us_nadie_p:  "要么还没有人注册，要么查询没有返回。请查看浏览器控制台。",
       us_visto:    "{cuando}看到",
       us_nunca:    "还没登录过",
       us_m_online: "当前在线",
@@ -2271,6 +2281,8 @@ window.CIIP_PASOS = {
       us_m_cuentas:"Учётные записи",
       /* Присутствие. */
       us_online:   "На связи",
+      us_nadie:    "Нет учётных записей для показа",
+      us_nadie_p:  "Либо ещё никто не зарегистрировался, либо запрос не дошёл. Посмотрите консоль браузера.",
       us_visto:    "Был {cuando}",
       us_nunca:    "Ещё не заходил",
       us_m_online: "Сейчас на связи",

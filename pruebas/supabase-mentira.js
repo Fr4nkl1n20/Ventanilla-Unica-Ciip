@@ -44,6 +44,14 @@
 
   var caso = (location.search.match(/caso=(\w+)/) || [])[1] || 'lleno';
 
+  /* 'sinsql' es un gestor cuya base todavia NO tiene corridos
+     supabase-admin.sql ni supabase-presencia.sql. Es el estado real de
+     cualquiera que se baje el panel hoy: el codigo va por delante de la
+     base. Postgres no devuelve las columnas que si conoce y las demas
+     vacias -rechaza la consulta entera-, asi que aqui se rechaza igual. */
+  var sinSql = (caso === 'sinsql');
+  if (sinSql) caso = 'gestor';
+
   /* El catálogo, con los tres tipos que usan las pruebas. ref_panel es lo
      que ata cada tipo a su tarjeta del panel (data-tr). */
   var TIPOS = [
@@ -265,6 +273,10 @@
 
   function respuesta(tabla, op){
     if (tabla === 'perfiles'){
+      if (sinSql && op && /visto_en|rol_cambiado_en/.test(op.cols || '')){
+        return {data:null, error:{
+          message:'column perfiles.visto_en does not exist', code:'42703'}};
+      }
       /* Guardar el perfil propio -nombre y pais- y repartir roles son dos
          updates sobre la misma tabla. Se distinguen por lo que traen. */
       if (op && op.update && 'rol' in op.update){
@@ -485,8 +497,12 @@
      await o en una cadena de promesas. */
   function consulta(tabla){
     var api = {}, op = {};
-    ['select','neq','is','order','limit','range']
+    ['neq','is','order','limit','range']
       .forEach(function(m){ api[m] = function(){ return api; }; });
+    /* select era de los que no se miraban. Ahora si: hay consultas que
+       piden columnas que la base puede no tener todavia, y la unica forma
+       de probar que el panel aguanta eso es saber que pidio. */
+    api.select = function(cols){ op.cols = cols || ''; return api; };
     /* Estos S\u00cd se miran: distinguen a qui\u00e9n va dirigida la consulta. */
     api.eq = function(k, v){ (op.eq = op.eq || {})[k] = v; return api; };
     api.in = function(k, v){ (op.in = op.in || {})[k] = v; return api; };

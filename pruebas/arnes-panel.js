@@ -28,7 +28,13 @@
 (function(){
 
   var R = [];
-  var CASO = (location.search.match(/caso=(\w+)/) || [])[1] || 'lleno';
+  var PASE = (location.search.match(/caso=(\w+)/) || [])[1] || 'lleno';
+  /* 'sinsql' trae LOS MISMOS DATOS que 'gestor': lo unico que cambia es que
+     la base no tiene corridas dos columnas. Si CASO valiera 'sinsql', cada
+     prueba que mira "eres del equipo?" se creeria que eres inversionista y
+     saldria roja por el nombre del pase, no por lo que mide. */
+  var SIN_SQL = (PASE === 'sinsql');
+  var CASO = SIN_SQL ? 'gestor' : PASE;
 
   function ok(nombre, bien, got, exp){
     R.push({n:nombre, ok:!!bien, got:String(got), exp:String(exp)});
@@ -99,6 +105,7 @@
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
               devueltoAbre, devueltoMira, escaleraAbre, escaleraMira,
               usuariosMira, usuariosCambia, usuariosTrasCambiar,
+              sinSqlAbre, sinSqlMira,
               empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
               entregaAbre, entregaMira,
               docsAbre, docsMira,
@@ -1506,6 +1513,7 @@
      escribir un update: el CIIP dependía de una persona con la llave de la
      base de datos. */
   function usuariosMira(){
+    if (SIN_SQL) return;
     var grupo = document.getElementById('grupoAdmin');
     /* Grupo propio, no colgado del de al lado: el aire entre grupos lo pone
        ese contenedor, y metido dentro del vecino dejaba "ACOMPAÑAMIENTO"
@@ -1530,7 +1538,7 @@
   }
 
   function usuariosCambia(){
-    if (CASO !== 'gestor') return;
+    if (CASO !== 'gestor' || SIN_SQL) return;
     igual('usuarios: la vista se abre por su dirección',
           document.body.getAttribute('data-vista'), 'usuarios');
 
@@ -1608,10 +1616,43 @@
   }
 
   function usuariosTrasCambiar(){
-    if (CASO !== 'gestor') return;
+    if (CASO !== 'gestor' || SIN_SQL) return;
     var t = document.getElementById('usLista').textContent;
     ok('usuarios: el cambio se guarda y se dice', /Rol cambiado|Rol puesto/.test(t),
        'busca "Rol cambiado"', 'lo dice');
+    location.hash = '';
+  }
+
+  /* ═══════════ EL CÓDIGO POR DELANTE DE LA BASE ═══════════
+     Pasó de verdad: el panel empezó a pedir visto_en y rol_cambiado_en, y
+     en una base sin esos dos archivos corridos Postgres rechazó la
+     consulta ENTERA. La vista se quedó en blanco —ni equipo, ni
+     inversionistas, ni un aviso— y pareció que el panel se había roto.
+
+     Una función nueva no puede apagar lo que ya servía. */
+  function sinSqlAbre(){
+    if (!SIN_SQL) return;
+    location.hash = 'usuarios';
+  }
+
+  function sinSqlMira(){
+    if (!SIN_SQL) return;
+    var fichas = document.querySelectorAll('#usLista .ci-ficha');
+    igual('sin sql: las cuentas salen igual, sin las columnas nuevas', fichas.length, 4);
+    ok('sin sql: y con sus nombres',
+       /Marta Bianchi/.test(document.getElementById('usLista').textContent),
+       'busca a Marta', 'está');
+    /* Y no se inventa presencia: sin la columna, decir "no ha entrado
+       todavía" de los cuatro sería mentira, no un hueco. */
+    igual('sin sql: y sin inventarse quién estuvo en línea',
+          document.querySelectorAll('#usLista .us-presencia').length, 0);
+    var m = document.querySelectorAll('#usMetricas .us-m');
+    igual('sin sql: el número de en línea se queda en raya',
+          m[1].querySelector('.n').textContent, '—');
+    /* Y el desplegable de roles sigue ahí: cambiar un rol no dependía de
+       ninguna de las dos columnas. */
+    ok('sin sql: y los roles se siguen pudiendo cambiar',
+       !!fichas[0].querySelector('select'), 'hay desplegable', 'lo hay');
     location.hash = '';
   }
 

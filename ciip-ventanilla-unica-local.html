@@ -414,6 +414,9 @@ body[data-vista="usuarios"] #usVolver{display:inline-flex;}
   flex:none;}
 .us-presencia.aqui{color:var(--good); font-weight:700;}
 .us-presencia.aqui .p{background:var(--good);}
+.us-vacio{border:1px dashed var(--line); border-radius:var(--r); padding:22px 18px;
+  text-align:center;}
+.us-vacio-t{font-weight:700; margin-bottom:4px;}
 .us-nota.hecho{color:var(--good);}
 .us-nota.mal{color:var(--rust);}
 
@@ -7399,6 +7402,9 @@ applyLang(idiomaParaMi());
 
   function pintaPresencia(p){
     var u = T();
+    /* Sin la columna no hay nada que decir, y decir "no ha entrado
+       todavía" de todo el mundo sería mentira. */
+    if (faltaSql) return document.createTextNode('');
     var aqui = estaEnLinea(p.visto_en);
     var c = el('span', 'us-presencia' + (aqui ? ' aqui' : ''));
     c.appendChild(el('span', 'p'));
@@ -7446,7 +7452,7 @@ applyLang(idiomaParaMi());
     if (!conteos) return;
     var m = el('div', 'us-metricas');
     [[conteos.cuentas, u.us_m_cuentas],
-     [conteos.enLinea, u.us_m_online],
+     [faltaSql ? '—' : conteos.enLinea, u.us_m_online],
      [conteos.enMarcha, u.us_m_tram],
      [conteos.esperando, u.us_m_espera, true],
      [conteos.citas, u.us_m_citas, true]].forEach(function(x){
@@ -7473,6 +7479,17 @@ applyLang(idiomaParaMi());
        uno por uno. */
     var equipo = gente.filter(function(p){ return p.rol !== 'inversionista'; });
     var resto  = gente.filter(function(p){ return p.rol === 'inversionista'; });
+
+    /* Una página en blanco es el peor de los mensajes posibles: no dice si
+       no hay nadie, ni si la consulta se cayó, ni qué hacer. Parece que el
+       panel se rompió. */
+    if (!gente.length){
+      var vacio = el('div', 'us-vacio');
+      vacio.appendChild(el('div', 'us-vacio-t', u.us_nadie || ''));
+      vacio.appendChild(el('div', 'us-nota', u.us_nadie_p || ''));
+      usLista.appendChild(vacio);
+      return;
+    }
 
     if (equipo.length){
       usLista.appendChild(el('div', 'us-sec', u.us_equipo || ''));
@@ -7545,6 +7562,28 @@ applyLang(idiomaParaMi());
     return f;
   }
 
+  /* rol_cambiado_en y visto_en son columnas de supabase-admin.sql y de
+     supabase-presencia.sql. Mientras esos dos archivos no estén corridos,
+     Postgres rechaza LA CONSULTA ENTERA por una columna que no conoce, y la
+     vista se quedaba en blanco: ni el equipo, ni los inversionistas, ni el
+     renglón en la barra. Una función nueva no puede apagar lo que ya
+     servía, así que si sobran columnas se vuelve a preguntar por las de
+     siempre y lo nuevo se calla en vez de inventarse. */
+  var COLS = 'id, nombre_completo, pais, rol, rol_cambiado_en, visto_en';
+  var COLS_VIEJAS = 'id, nombre_completo, pais, rol';
+  var faltaSql = false;
+
+  function pideLosPerfiles(){
+    return sb.from('perfiles').select(COLS).then(function(r){
+      var m = (r && r.error && r.error.message) || '';
+      if (!/column|columna/i.test(m)) return r;
+      console.warn('[CIIP] usuarios: falta correr supabase-admin.sql o ' +
+                   'supabase-presencia.sql; sigo sin esas columnas');
+      faltaSql = true;
+      return sb.from('perfiles').select(COLS_VIEJAS);
+    });
+  }
+
   function cargaUsuarios(){
     /* Tres consultas cortas y no una vista: cada una la puede hacer ya un
        gestor con las políticas que hay, y así esto no necesita SQL nuevo
@@ -7552,7 +7591,7 @@ applyLang(idiomaParaMi());
     return sb.auth.getUser()
       .then(function(r){
         yoSoy = (r && r.data && r.data.user && r.data.user.id) || null;
-        return sb.from('perfiles').select('id, nombre_completo, pais, rol, rol_cambiado_en, visto_en');
+        return pideLosPerfiles();
       })
       .then(function(r){
         if (r && r.error) throw r.error;
