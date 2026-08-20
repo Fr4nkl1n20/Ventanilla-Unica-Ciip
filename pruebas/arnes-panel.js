@@ -1439,10 +1439,22 @@
     igual('cola: y cuando no hay nombre, lo dice',
           fichas[1].querySelector('.co-quien').textContent.trim(), '(sin nombre en su expediente)');
 
-    ok('cola: y sobre qué, cómo y qué días le vienen bien',
-       /RIF de la empresa/.test(fichas[0].querySelector('.co-que').textContent) &&
-       /Presencial/.test(fichas[0].querySelector('.co-que').textContent),
-       fichas[0].querySelector('.co-que').textContent, 'el trámite y el modo');
+    ok('cola: y sobre qué y qué días le vienen bien',
+       /RIF de la empresa/.test(fichas[0].querySelector('.co-que').textContent),
+       fichas[0].querySelector('.co-que').textContent, 'el trámite y las fechas');
+
+    /* Cómo quiere verse decide cómo se reparte la mañana: vídeo, teléfono o
+       una sala no cuestan lo mismo. Va con el nombre, no en el renglón gris,
+       y es el MISMO distintivo que el inversionista ve en su agenda. */
+    var moc = fichas[0].querySelector('.co-cab .ct-chip.modo');
+    ok('cola: y cómo quiere verse, con su distintivo', !!moc,
+       moc ? moc.textContent : 'no existe', 'un distintivo aparte');
+    igual('cola: cuál de los tres es', moc.textContent, 'Presencial');
+    ok('cola: con su dibujo, como en la agenda', !!moc.querySelector('svg'),
+       moc.querySelector('svg') ? 'lo lleva' : 'sin dibujo', 'con dibujo');
+    ok('cola: y no se repite en el renglón gris',
+       !/Presencial/.test(fichas[0].querySelector('.co-que').textContent),
+       fichas[0].querySelector('.co-que').textContent, 'sin el modo');
     igual('cola: una cita sin trámite es una consulta general',
           fichas[1].querySelector('.co-que').textContent.split(' · ')[0], 'Consulta general');
 

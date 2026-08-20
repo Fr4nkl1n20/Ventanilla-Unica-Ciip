@@ -466,6 +466,12 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
    permite que la lista se desborde dentro en vez de estirar la ventana. */
 .cola-lista{padding:6px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;}
 .co-ficha{border:1px solid var(--line); border-radius:var(--r); padding:13px 14px; background:var(--bg);}
+/* Quién pide, y a la derecha cómo quiere verse. El equipo mira esta cola
+   para repartir la mañana: verse por vídeo, atender un teléfono o reservar
+   una sala no cuestan lo mismo, y hasta ahora eso iba en el mismo renglón
+   gris que todo lo demás. */
+.co-cab{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.co-cab .ct-chip.modo{margin-left:auto;}
 .co-quien{font-size:13.5px; font-weight:700;}
 .co-que{font-size:12px; color:var(--gray); margin-top:2px;}
 .co-nota{font-size:12px; color:var(--ink); margin-top:6px;}
@@ -5149,9 +5155,17 @@ applyLang(idiomaParaMi());
 
     enCola.forEach(function(c){
       var f = el('div', 'co-ficha');
-      f.appendChild(el('div', 'co-quien', c.nombre || u.co_sinnombre || ''));
+
+      var cab = el('div', 'co-cab');
+      cab.appendChild(el('div', 'co-quien', c.nombre || u.co_sinnombre || ''));
+      /* El mismo distintivo que ve el inversionista en su agenda: si los dos
+         lados llaman a lo mismo de la misma forma, no hay nada que traducir
+         al hablar por teléfono. */
+      if (c.modo) cab.appendChild(chipDeModo(c.modo));
+      f.appendChild(cab);
+
       f.appendChild(el('div', 'co-que',
-        nombreDeTipo(c.tipo_tramite) + ' · ' + (u['ct_' + c.modo] || c.modo) +
+        nombreDeTipo(c.tipo_tramite) +
         ' · ' + fecha(c.desde) + ' – ' + fecha(c.hasta)));
       if (c.nota) f.appendChild(el('div', 'co-nota', c.nota));
       f.appendChild(el('div', 'co-cuando', (u.co_pidio || '').replace('{fecha}', fecha(c.creado_en))));
