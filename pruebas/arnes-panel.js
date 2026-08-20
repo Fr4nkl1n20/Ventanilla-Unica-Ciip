@@ -1535,9 +1535,13 @@
           document.body.getAttribute('data-vista'), 'usuarios');
 
     var m = document.querySelectorAll('#usMetricas .us-m');
-    igual('usuarios: con los cuatro números de arriba', m.length, 4);
+    igual('usuarios: con los cinco números de arriba', m.length, 5);
     igual('usuarios: y cuentan las cuentas de verdad',
           m[0].querySelector('.n').textContent, '4');
+    /* De los cuatro expedientes solo uno tiene el panel abierto ahora:
+       los otros son de hace veinte minutos, de hace tres días y de nunca. */
+    igual('usuarios: y cuántos tienen el panel abierto ahora',
+          m[1].querySelector('.n').textContent, '1');
 
     var fichas = document.querySelectorAll('#usLista .ci-ficha');
     igual('usuarios: están las cuatro cuentas', fichas.length, 4);
@@ -1548,6 +1552,44 @@
     ok('usuarios: y una cuenta sin nombre lo dice',
        /\(sin nombre en su expediente\)/.test(document.getElementById('usLista').textContent),
        'busca "(sin nombre en su expediente)"', 'aparece');
+
+    /* ── EN LÍNEA ── Que no es una conexión: es cuándo estuvo abierto el
+       panel. Las tres formas de decirlo tienen que salir las tres, porque
+       las tres pasan de verdad. */
+    var pres = document.querySelectorAll('#usLista .us-presencia');
+    igual('presencia: cada cuenta dice cuándo se la vio', pres.length, 4);
+
+    function presDe(nombre){
+      var f = [].slice.call(fichas).filter(function(x){
+        return new RegExp(nombre).test(x.textContent); })[0];
+      return f && f.querySelector('.us-presencia');
+    }
+    var pFr = presDe('Franklin Reyes');
+    ok('presencia: quien tiene el panel abierto sale en verde',
+       pFr && pFr.classList.contains('aqui') && /En línea/.test(pFr.textContent),
+       pFr ? pFr.textContent : 'no la encuentro', 'En línea');
+
+    var pMa = presDe('Marta Bianchi');
+    ok('presencia: quien no, dice desde cuándo',
+       pMa && !pMa.classList.contains('aqui') && /hace 3 días|anteayer/.test(pMa.textContent),
+       pMa ? pMa.textContent : 'no la encuentro', 'Visto hace 3 días');
+    /* Veinte minutos son más de tres: NO está en línea. Sin esta
+       comprobación, un umbral mal puesto dejaría a todo el mundo dentro. */
+    var pSa = presDe('Saskia Calderon');
+    ok('presencia: veinte minutos ya no es "ahora"',
+       pSa && !pSa.classList.contains('aqui') && /hace 20 min/.test(pSa.textContent),
+       pSa ? pSa.textContent : 'no la encuentro', 'Visto hace 20 minutos');
+
+    var pNu = presDe('sin nombre en su expediente');
+    ok('presencia: y quien nunca entró, lo dice sin inventar fecha',
+       pNu && /No ha entrado todavía/.test(pNu.textContent),
+       pNu ? pNu.textContent : 'no la encuentro', 'No ha entrado todavía');
+
+    /* Y el latído: si el panel no lo apunta, la columna entera se queda
+       en "no ha entrado todavía" para todos, para siempre. */
+    ok('presencia: el panel apunta que sigue abierto',
+       (window.CIIP_RPC || []).indexOf('tocar_visto') >= 0,
+       'rpc pedidos: ' + JSON.stringify(window.CIIP_RPC || []), 'tocar_visto');
 
     /* La tuya no se toca: el desplegable llega apagado y lo dice. */
     var mia = [].slice.call(fichas).filter(function(f){ return /Tu cuenta/.test(f.textContent); })[0];

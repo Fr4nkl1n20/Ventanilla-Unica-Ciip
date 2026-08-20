@@ -183,14 +183,22 @@
 
   /* Los perfiles de los demas. Solo los lee un gestor, y solo si esta puesta
      la politica de supabase-gestor.sql. */
+  /* visto_en va CONTADO DESDE AHORA y no en fechas fijas: "en linea" es
+     "hace menos de tres minutos", y una fecha escrita a mano envejeceria
+     sola —la prueba pasaria hoy y saldria roja manana sin que nadie tocara
+     el panel—. */
+  function haceMin(m){ return new Date(Date.now() - m * 60000).toISOString(); }
+
   var OTROS_PERFILES = [
-    {id:'u1', nombre_completo:'Franklin Reyes',  pais:'Italia',    rol:'gestor'},
-    {id:'u2', nombre_completo:'Marta Bianchi',   pais:'Italia',    rol:'inversionista'},
+    {id:'u1', nombre_completo:'Franklin Reyes',  pais:'Italia',    rol:'gestor',
+     visto_en: haceMin(0.5)},          /* con el panel abierto ahora mismo */
+    {id:'u2', nombre_completo:'Marta Bianchi',   pais:'Italia',    rol:'inversionista',
+     visto_en: haceMin(60 * 24 * 3)},  /* hace tres dias */
     /* Sin nombre a proposito: la lista tiene que decirlo en vez de dejar
-       el hueco, igual que la cola. */
+       el hueco, igual que la cola. Y sin visto_en: nunca ha entrado. */
     {id:'u3', nombre_completo:'',                pais:'',          rol:'inversionista'},
     {id:'u4', nombre_completo:'Saskia Calderon', pais:'Venezuela', rol:'gestor',
-     rol_cambiado_en:'2026-08-11T10:00:00Z'}
+     rol_cambiado_en:'2026-08-11T10:00:00Z', visto_en: haceMin(20)}
   ];
 
   /* El expediente personal. En 'sinnombre' viene con la cadena vacía, que es
@@ -509,6 +517,13 @@
           onAuthStateChange: function(){ return {data:{subscription:{unsubscribe:function(){}}}}; }
         },
         from: consulta,
+        /* El latido de presencia. Se apunta lo que pide para poder
+           comprobar que el panel lo llama, y se responde sin error: si
+           fallara, el panel apagaria el latido y la prueba no veria nada. */
+        rpc: function(nombre, args){
+          window.CIIP_RPC = (window.CIIP_RPC || []).concat([nombre]);
+          return Promise.resolve({data:null, error:null});
+        },
         storage: {
           from: function(){
             return {

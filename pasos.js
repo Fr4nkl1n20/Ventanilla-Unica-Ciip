@@ -269,6 +269,11 @@ window.CIIP_PASOS = {
       us_m_espera: "Esperando por el CIIP",
       us_m_citas:  "Citas por confirmar",
       us_m_cuentas:"Cuentas",
+      /* Presencia. No es una conexion: es cuando estuvo abierto el panel. */
+      us_online:   "En línea",
+      us_visto:    "Visto {cuando}",
+      us_nunca:    "No ha entrado todavía",
+      us_m_online: "En línea ahora",
       /* Borrar de verdad. Va en dos toques y no con una ventana del
          navegador: el aviso se lee donde está el botón. */
       ac_borrar:    "Borrar",
@@ -671,6 +676,11 @@ window.CIIP_PASOS = {
       us_m_espera: "Waiting on CIIP",
       us_m_citas:  "Appointments to confirm",
       us_m_cuentas:"Accounts",
+      /* Presence. Not a connection: when the panel was last open. */
+      us_online:   "Online",
+      us_visto:    "Seen {cuando}",
+      us_nunca:    "Hasn't come in yet",
+      us_m_online: "Online now",
       /* A real delete. Two taps, not a browser dialog: the warning reads
          where the button is. */
       ac_borrar:    "Delete",
@@ -1065,6 +1075,11 @@ window.CIIP_PASOS = {
       us_m_espera: "À espera do CIIP",
       us_m_citas:  "Marcações por confirmar",
       us_m_cuentas:"Contas",
+      /* Presenca. */
+      us_online:   "Em linha",
+      us_visto:    "Visto {cuando}",
+      us_nunca:    "Ainda não entrou",
+      us_m_online: "Em linha agora",
       /* Apagar a sério. Em dois toques, não numa janela do navegador. */
       ac_borrar:    "Apagar",
       ac_borrar_ok: "Carregue outra vez para apagar",
@@ -1458,6 +1473,11 @@ window.CIIP_PASOS = {
       us_m_espera: "In attesa del CIIP",
       us_m_citas:  "Appuntamenti da confermare",
       us_m_cuentas:"Account",
+      /* Presenza. */
+      us_online:   "In linea",
+      us_visto:    "Visto {cuando}",
+      us_nunca:    "Non è ancora entrato",
+      us_m_online: "In linea ora",
       /* Cancellare davvero. In due tocchi, non con una finestra del browser. */
       ac_borrar:    "Elimina",
       ac_borrar_ok: "Premi di nuovo per eliminarlo",
@@ -1851,6 +1871,11 @@ window.CIIP_PASOS = {
       us_m_espera: "等待 CIIP 处理",
       us_m_citas:  "待确认的预约",
       us_m_cuentas:"账号",
+      /* 在线状态。 */
+      us_online:   "在线",
+      us_visto:    "{cuando}看到",
+      us_nunca:    "还没登录过",
+      us_m_online: "当前在线",
       /* 真正删除。需要点两次，不用浏览器弹窗。 */
       ac_borrar:    "删除",
       ac_borrar_ok: "再点一次就删除",
@@ -2244,6 +2269,11 @@ window.CIIP_PASOS = {
       us_m_espera: "Ждут CIIP",
       us_m_citas:  "Встреч к подтверждению",
       us_m_cuentas:"Учётные записи",
+      /* Присутствие. */
+      us_online:   "На связи",
+      us_visto:    "Был {cuando}",
+      us_nunca:    "Ещё не заходил",
+      us_m_online: "Сейчас на связи",
       /* Настоящее удаление. В два нажатия, без окна браузера. */
       ac_borrar:    "Удалить",
       ac_borrar_ok: "Нажмите ещё раз, чтобы удалить",
