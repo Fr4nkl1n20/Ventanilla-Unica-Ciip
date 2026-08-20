@@ -32,7 +32,7 @@ autenticación y los datos los pone Supabase.
 | `ABRIR-LOCAL.bat` | Levantar el proyecto en `http://localhost:8080`, solo para ti |
 | `ABRIR-EN-RED.bat` | Igual, pero abierto a la red: otros PC de la oficina pueden entrar |
 | `PROBAR.bat` | Lanzar las 57 pruebas del acceso |
-| `PROBAR-PANEL.bat` | Lanzar las 383 pruebas del panel |
+| `PROBAR-PANEL.bat` | Lanzar las 385 pruebas del panel |
 
 ## Puesta en marcha
 
@@ -73,7 +73,7 @@ el medidor de fuerza de la clave, navegación entre vistas, los seis idiomas, el
 buscador de países, el almacenamiento de sesión, el logo y la carga de
 `config.js`.
 
-**El panel** (383 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
+**El panel** (385 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
 los filtros, que las cuatro etapas son cuatro cajas parejas, la franja de "te
 toca a ti", el buzón de avisos, la ventana de tu perfil, las citas y que el
 panel te llama por TU nombre. Todo eso

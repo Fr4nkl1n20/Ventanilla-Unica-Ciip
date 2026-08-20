@@ -2733,12 +2733,18 @@ applyLang('en');
        acortarlo: un registro de contratistas mide precisamente capacidad
        legal, financiera y técnica, y cada bloque acredita una de las tres.
 
-       DOS van opcionales, por motivos distintos y los dos del propio
-       organismo:
-       · el poder, que solo hace falta si quien firma NO es el
-         representante designado en los estatutos;
-       · la relación de equipos, porque quien se inscribe para bienes o
-         servicios no tiene obra que equipar, y exigirla lo dejaría fuera. */
+       UNO va opcional, y es el único que el organismo marca como
+       condicional: el poder, que solo hace falta si quien firma NO es el
+       representante designado en los estatutos.
+
+       La relación de equipos estuvo un rato como opcional, razonando que
+       quien se inscribe para bienes o servicios no tiene obra que equipar.
+       La guía del SNC la lista como requisito estándar, sin condición, así
+       que se corrigió: aquí manda la fuente, no lo que parezca razonable.
+
+       Y la nómina no es la de trabajadores del RNET, sino la de personal
+       TÉCNICO con sus títulos: lo que el registro mide es capacidad
+       técnica, no tamaño de plantilla. */
     /* Las solvencias, UNA solicitud y no cuatro. Son cuatro certificados
        —laboral, IVSS, INCES y municipal— pero se piden con los mismos datos
        y el mismo expediente, y la tarjeta ya los trata como un conjunto:
@@ -2748,12 +2754,18 @@ applyLang('en');
        La autorización va opcional porque el INCES solo la pide cuando el
        trámite lo lleva alguien que NO es el representante legal.
 
-       La licencia municipal la emite el c10 y se consume aquí: sin ella no
-       hay solvencia de la alcaldía. Es la misma cadena del c5 al c22. */
+       Dos recaudos son cosecha de otros trámites del propio panel: la
+       licencia municipal la emite el c10 y sin ella no hay solvencia de la
+       alcaldía; la constancia del RNET la emite el c27, y el Ministerio del
+       Trabajo la exige antes que nada. Es la misma cadena del c5 al c22.
+
+       El FAOV entra porque la solvencia laboral también exige estar al día
+       con BANAVIH, no solo con el IVSS y el INCES. */
     solvencias: [
       {tipo:'rif_empresa',          clave:'d_rifempresa'},
       {tipo:'acta_constitutiva',    clave:'d_acta'},
       {tipo:'cedula',               clave:'d_identidad'},
+      {tipo:'registro_rnet',        clave:'d_rnet'},
       {tipo:'licencia_actividades', clave:'d_licenciamun'},
       {tipo:'poder',                clave:'d_poder',      opcional:true}
     ],
@@ -2768,8 +2780,8 @@ applyLang('en');
       {tipo:'solvencia_seniat',     clave:'d_solvseniat'},
       {tipo:'solvencia_ivss',       clave:'d_solvivss'},
       {tipo:'relacion_experiencia', clave:'d_experiencia'},
-      {tipo:'nomina',               clave:'d_nomina'},
-      {tipo:'relacion_equipos',     clave:'d_equipos',     opcional:true}
+      {tipo:'nomina_tecnica',       clave:'d_nomtecnica'},
+      {tipo:'relacion_equipos',     clave:'d_equipos'}
     ],
     rnet: [
       {tipo:'acta_constitutiva', clave:'d_acta'},
@@ -3085,6 +3097,7 @@ applyLang('en');
       {n:'rif_empresa',         clave:'f_rifempresa'},
       {n:'numero_patronal',     clave:'f_patronal'},
       {n:'nil_inces',           clave:'f_nil'},
+      {n:'nrc_faov',            clave:'f_faov'},
       {n:'municipio',           clave:'f_municipio'},
       {n:'representante',       clave:'f_representante'}
     ],

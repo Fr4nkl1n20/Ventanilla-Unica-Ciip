@@ -816,12 +816,15 @@
        campos.length + ' campos y ' + docs.length + ' recaudos', 'formulario con campos y recaudos');
     igual('rnc: pide los ocho datos de la empresa', campos.length, 8);
     igual('rnc: y sus doce recaudos', docs.length, 12);
-    /* Dos son condicionales para el propio organismo: el poder solo si
-       quien firma no es el representante de los estatutos, y los equipos
-       solo si te inscribes para obras. Exigirlos dejaria fuera a quien no
-       los tiene. */
-    igual('rnc: dos de los doce son opcionales, y con motivo',
-          caja.querySelectorAll('.sol-doc[data-opcional]').length, 2);
+    /* Solo uno, y es el único que el SNC marca como condicional: el poder,
+       cuando quien firma no es el representante de los estatutos. */
+    igual('rnc: solo el poder es opcional',
+          caja.querySelectorAll('.sol-doc[data-opcional]').length, 1);
+    /* La nómina del RNC no es la del RNET: aquí va la de personal TÉCNICO
+       con sus títulos, porque lo que se mide es capacidad técnica. */
+    ok('rnc: la nómina es la técnica, no la de trabajadores',
+       /personal técnico/i.test(caja.textContent) && !/Nómina de trabajadores/.test(caja.textContent),
+       'busca "personal técnico"', 'la técnica y no la otra');
 
     ok('rnc: los recaudos salen con su nombre, no con su código',
        /Estados financieros auditados/.test(caja.textContent),
@@ -840,8 +843,8 @@
        INCES y municipal— pero se piden con el mismo expediente. */
     ok('solvencias: ya se pueden solicitar', campos.length > 0 && docs.length > 0,
        campos.length + ' campos y ' + docs.length + ' recaudos', 'formulario con los dos');
-    igual('solvencias: seis datos', campos.length, 6);
-    igual('solvencias: cinco recaudos', docs.length, 5);
+    igual('solvencias: siete datos', campos.length, 7);
+    igual('solvencias: seis recaudos', docs.length, 6);
 
     /* La autorización solo la pide el INCES cuando el trámite lo lleva
        alguien que no es el representante legal. */
@@ -855,9 +858,15 @@
        'busca "patronal del IVSS" y "NIL"', 'aparecen los dos');
 
     /* La licencia municipal la emite el c10 y se consume aquí. */
-    ok('solvencias: y la licencia que emite el trámite anterior',
-       /Licencia de actividades económicas/.test(caja.textContent),
-       'busca "Licencia de actividades económicas"', 'aparece');
+    /* Dos recaudos son cosecha de otros trámites del panel: la licencia la
+       emite el c10 y la constancia del RNET el c27. */
+    ok('solvencias: y lo que emiten los trámites anteriores',
+       /Licencia de actividades económicas/.test(caja.textContent) &&
+       /RNET/.test(caja.textContent),
+       'busca la licencia y el RNET', 'aparecen los dos');
+    /* La solvencia laboral exige estar al día también con BANAVIH. */
+    ok('solvencias: pide también el número del FAOV',
+       /FAOV/.test(caja.textContent), 'busca "FAOV"', 'aparece');
 
     location.hash = '';
   }
