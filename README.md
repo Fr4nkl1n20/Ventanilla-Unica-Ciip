@@ -19,6 +19,7 @@ autenticación y los datos los pone Supabase.
 | `supabase-setup.sql` | Esquema del acceso y políticas RLS. Se ejecuta una vez |
 | `supabase-tramites.sql` | Esquema de trámites y bóveda de documentos. Se ejecuta una vez |
 | `supabase-citas.sql` | Esquema de las citas. Va **después** de los dos anteriores |
+| `supabase-empresa.sql` | Los datos de la compañía del inversionista, para no reescribirlos en cada formulario |
 | `supabase-activos.sql` | Esquema del banco de activos. La tabla nace vacía: la llena el equipo desde el propio panel |
 | `supabase-gestor.sql` | Lo que necesita el equipo del CIIP: leer los perfiles, anotar una devolución, y cómo nombrar un gestor. Va el último |
 | `logos/` | Logos de los organismos, con su procedencia en [FUENTES.md](logos/FUENTES.md) |
@@ -33,7 +34,7 @@ autenticación y los datos los pone Supabase.
 | `ABRIR-LOCAL.bat` | Levantar el proyecto en `http://localhost:8080`, solo para ti |
 | `ABRIR-EN-RED.bat` | Igual, pero abierto a la red: otros PC de la oficina pueden entrar |
 | `PROBAR.bat` | Lanzar las 57 pruebas del acceso |
-| `PROBAR-PANEL.bat` | Lanzar las 654 pruebas del panel |
+| `PROBAR-PANEL.bat` | Lanzar las 681 pruebas del panel |
 | `PROBAR-CONECTOR.bat` | Lanzar las 28 pruebas del conector del RIF |
 
 ## Puesta en marcha
@@ -62,6 +63,7 @@ enlace:
 | Trámite | `#tramite-c5` | El detalle y sus cuatro pasos |
 | Citas | `#citas` | Tus citas con el CIIP, la viva y las pasadas |
 | Mis trámites | `#tramites` | Las solicitudes que has hecho, con su estado |
+| Mi empresa | `#empresa` | Los datos de la compañía, escritos una vez, que rellenan los formularios |
 | Documentos | `#documentos` | La bóveda: todo lo que has subido, con lo vencido primero |
 | Ayuda | `#ayuda` | Cómo funciona el panel: los pasos, los distintivos y cómo hablar con el equipo |
 | Activos | `#activos` | El banco de oportunidades del CIIP. El equipo publica y corrige desde aquí |
@@ -79,7 +81,7 @@ el medidor de fuerza de la clave, navegación entre vistas, los seis idiomas, el
 buscador de países, el almacenamiento de sesión, el logo y la carga de
 `config.js`.
 
-**El panel** (654 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
+**El panel** (681 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
 los filtros, que las cuatro etapas son cuatro cajas parejas, la franja de "te
 toca a ti", el buzón de avisos, la ventana de tu perfil, las citas, el banco de
 activos —mirarlo, y publicarlo, corregirlo y borrarlo si eres del equipo—, que el panel

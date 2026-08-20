@@ -98,6 +98,7 @@
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
               devueltoAbre, devueltoMira, escaleraAbre, escaleraMira,
+              empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
               docsAbre, docsMira,
               ayudaAbre, ayudaMira, ayudaFaq,
               logosMiran], volcar);
@@ -1023,6 +1024,20 @@
        /personal técnico/i.test(caja.textContent) && !/Nómina de trabajadores/.test(caja.textContent),
        'busca "personal técnico"', 'la técnica y no la otra');
 
+    /* El relleno: la razón social ya viene escrita desde Mi empresa, y el
+       campo dice de dónde salió. Sin decirlo, parecería que el panel se
+       inventó el dato. */
+    (function(){
+      var c = document.querySelector('.sol-campo[data-campo="razon_social"]');
+      igual('empresa: el formulario llega con la razón social puesta',
+            c.querySelector('input').value, 'Bianchi Agroindustrias, C.A.');
+      ok('empresa: y dice que salió de tu empresa',
+         !!c.querySelector('.de-empresa'),
+         c.querySelector('label').textContent, 'con el sello "De tu empresa"');
+      var rif = document.querySelector('.sol-campo[data-campo="rif_empresa"] input');
+      igual('empresa: y el RIF también', rif ? rif.value : '(no hay campo)', 'J-40123456-7');
+    })();
+
     ok('rnc: los recaudos salen con su nombre, no con su código',
        /Estados financieros auditados/.test(caja.textContent),
        'busca "Estados financieros auditados"', 'aparece');
@@ -1363,6 +1378,73 @@
           document.getElementById('afBorrar').textContent, 'Borrar');
     document.getElementById('afCerrar').click();
     document.getElementById('acVolver').click();
+  }
+
+  /* ═══════════ MI EMPRESA ═══════════
+     La razón social se escribía a mano en ocho formularios, el RIF en seis,
+     la dirección fiscal en cinco. Y escribir ocho veces el mismo nombre es
+     escribirlo ocho veces distintas. */
+  function empresaAbre(){
+    document.getElementById('navEmpresa').click();
+  }
+
+  function empresaMira(){
+    igual('empresa: el renglón abre su vista', document.body.getAttribute('data-vista'), 'empresa');
+
+    if (CASO === 'lleno' || CASO === 'vacio'){
+      var t = document.querySelector('#emCuerpo .em-tarjeta');
+      ok('empresa: enseña la que tienes registrada', !!t,
+         t ? 'la enseña' : 'no hay tarjeta', 'una tarjeta');
+      igual('empresa: con su razón social',
+            t.querySelector('.em-nombre').textContent.trim(), 'Bianchi Agroindustrias, C.A.');
+      igual('empresa: y su RIF', t.querySelector('.em-rif').textContent.trim(), 'J-40123456-7');
+      /* Solo lo escrito: dos de los doce campos vienen vacíos y no pintan
+         un renglón con una raya, que escondería lo que sí hay. */
+      igual('empresa: y solo los datos que tiene escritos',
+            t.querySelectorAll('.em-dato').length, 8);
+      ok('empresa: el botón ofrece editarla',
+         document.getElementById('emBoton').textContent.trim() === 'Editar',
+         document.getElementById('emBoton').textContent, 'Editar');
+    } else {
+      igual('empresa: sin registrar, lo dice',
+            (document.querySelector('#emCuerpo .ci-vacia') || {}).textContent,
+            'Todavía no has registrado tu empresa. Cuando lo hagas, los formularios que pidan estos datos te los ofrecerán ya escritos.');
+      igual('empresa: y ofrece registrarla',
+            document.getElementById('emBoton').textContent.trim(), 'Registrar mi empresa');
+    }
+  }
+
+  function empresaGuarda(){
+    if (CASO !== 'gestor') return;
+    document.getElementById('emBoton').click();
+    ok('empresa: la ficha se abre', document.getElementById('empresaBack').classList.contains('open'),
+       document.getElementById('empresaBack').className, 'con la clase open');
+    igual('empresa: con los doce campos',
+          document.querySelectorAll('#emCampos .pf-campo').length, 12);
+    /* Las etiquetas son las MISMAS que usan los formularios de los
+       trámites: si divergieran, el mismo dato tendría dos nombres. */
+    igual('empresa: y con las etiquetas de los formularios',
+          document.querySelector('label[for="em_razon_social"]').textContent.trim(), 'Razón social');
+
+    /* Sin razón social no hay nada que copiar en ningún formulario. */
+    document.getElementById('emGuardar').click();
+    igual('empresa: sin razón social no se guarda',
+          document.getElementById('emAviso').textContent,
+          'Ponle al menos la razón social: es lo que se copia en los formularios.');
+
+    document.getElementById('em_razon_social').value = 'Cacao del Tuy, C.A.';
+    document.getElementById('em_rif_empresa').value  = 'J-40987654-3';
+    document.getElementById('emGuardar').click();
+  }
+
+  function empresaTrasGuardar(){
+    if (CASO !== 'gestor') return;
+    ok('empresa: al guardar se cierra la ficha',
+       !document.getElementById('empresaBack').classList.contains('open'),
+       document.getElementById('empresaBack').className, 'sin la clase open');
+    igual('empresa: y la tarjeta ya la enseña',
+          document.querySelector('#emCuerpo .em-nombre').textContent.trim(), 'Cacao del Tuy, C.A.');
+    document.getElementById('emVolver').click();
   }
 
   /* ═══════════ LA BÓVEDA ═══════════

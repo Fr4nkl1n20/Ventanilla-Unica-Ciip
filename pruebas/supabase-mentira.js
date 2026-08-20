@@ -218,6 +218,24 @@
   };
   var citasVivas = (CITAS[caso] || []).slice();
 
+  var EMPRESAS = {
+    lleno: {razon_social:'Bianchi Agroindustrias, C.A.', rif_empresa:'J-40123456-7',
+            numero_registro:'12, Tomo 45-A', fecha_constitucion:'2026-07-14',
+            capital_social:'150000.00', actividad_economica:'Procesamiento de cacao',
+            direccion_fiscal:'Av. Principal, Galpon 4, Charallave', municipio:'Cristobal Rojas',
+            telefono:'+58 212 555 0134', representante:'Franklin Reyes',
+            inicio_actividades:'', num_trabajadores:''},
+    vacio: {razon_social:'Bianchi Agroindustrias, C.A.', rif_empresa:'J-40123456-7',
+            numero_registro:'12, Tomo 45-A', fecha_constitucion:'2026-07-14',
+            capital_social:'150000.00', actividad_economica:'Procesamiento de cacao',
+            direccion_fiscal:'Av. Principal, Galpon 4, Charallave', municipio:'Cristobal Rojas',
+            telefono:'+58 212 555 0134', representante:'Franklin Reyes',
+            inicio_actividades:'', num_trabajadores:''},
+    sinnombre: null,
+    gestor: null
+  };
+  var empresaMia = EMPRESAS[caso] || null;
+
   var USUARIO = {id:'u1', email:'f.reyes@ciip.com.ve',
                  user_metadata: (caso === 'sinnombre' ? {} : {nombre_completo:'Franklin Reyes', pais:'Italia'})};
 
@@ -270,6 +288,17 @@
          pide solo las vivas con .in, y son dos listas distintas. */
       if (op && op.in) return {data:citasVivas, error:null};
       return {data:citasVivas.concat(CONFIRMADAS[caso] || []), error:null};
+    }
+    if (tabla === 'empresas'){
+      /* La empresa del inversionista. En 'lleno' y 'vacio' esta registrada
+         -de ahi sale el relleno de los formularios-; en los otros dos no,
+         para ver el estado vacio y el boton de registrarla. */
+      if (op && op.upsert){
+        empresaMia = {};
+        Object.keys(op.upsert).forEach(function(k){ empresaMia[k] = op.upsert[k]; });
+        return {data:empresaMia, error:null};
+      }
+      return {data:empresaMia, error:null};
     }
     if (tabla === 'tipos_tramite')    return {data:TIPOS, error:null};
     if (tabla === 'activos'){
@@ -410,7 +439,7 @@
      await o en una cadena de promesas. */
   function consulta(tabla){
     var api = {}, op = {};
-    ['select','neq','is','order','limit','range','upsert','maybeSingle']
+    ['select','neq','is','order','limit','range']
       .forEach(function(m){ api[m] = function(){ return api; }; });
     /* Estos S\u00cd se miran: distinguen a qui\u00e9n va dirigida la consulta. */
     api.eq = function(k, v){ (op.eq = op.eq || {})[k] = v; return api; };
@@ -422,6 +451,11 @@
     /* Borrar era un no-op de los de arriba: la prueba habria dado verde sin
        que la fila saliera de ninguna lista. */
     api.delete = function(){ op.borra = true; return api; };
+    api.upsert = function(fila){ op.upsert = fila; return api; };
+    /* maybeSingle era otro no-op: la empresa se pide asi -puede no
+       haberla- y devolver el array habria dejado EMPRESA con una lista
+       dentro, que es verdadera y rellenaria los formularios con basura. */
+    api.maybeSingle = function(){ op.uno = true; return api; };
     api.then  = function(bien, mal){ return Promise.resolve(respuesta(tabla, op)).then(bien, mal); };
     api.catch = function(mal){ return Promise.resolve(respuesta(tabla, op)).catch(mal); };
     return api;

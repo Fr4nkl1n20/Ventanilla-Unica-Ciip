@@ -351,6 +351,43 @@ svg{display:block;}
   padding:10px 12px; outline:none; width:100%;}
 .pf-campo input:focus, .pf-campo select:focus{border-color:var(--navy2);}
 .pf-campo.mal input, .pf-campo.mal select{border-color:var(--rust);}
+/* --- mi empresa --- */
+.empresa-vista{display:none;}
+body[data-vista="empresa"] .empresa-vista{display:block;}
+body[data-vista="empresa"] .solo-inicio,
+body[data-vista="empresa"] #avisoDemo.show,
+body[data-vista="empresa"] #secTramites,
+body[data-vista="empresa"] .faq-sec{display:none;}
+body[data-vista="empresa"] .fase-bar{display:flex;}
+body[data-vista="empresa"] #faseVolver,
+body[data-vista="empresa"] #trVolver,
+body[data-vista="empresa"] #ciVolver,
+body[data-vista="empresa"] #mtVolver,
+body[data-vista="empresa"] #acVolver,
+body[data-vista="empresa"] #ayVolver,
+body[data-vista="empresa"] #dcVolver{display:none;}
+body[data-vista="empresa"] #emVolver{display:inline-flex;}
+#emVolver{display:none;}
+
+.em-tarjeta{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
+  padding:19px 21px; box-shadow:var(--shadow); max-width:760px;}
+.em-nombre{font-size:17px; font-weight:800; letter-spacing:-.01em;}
+.em-rif{font-size:12.5px; color:var(--navy2); font-weight:700; margin-top:3px;}
+/* Dos columnas de dato: etiqueta arriba en gris, valor debajo. Los que
+   estan vacios no se enseñan: un panel lleno de rayas no informa. */
+.em-datos{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:14px 26px; margin-top:17px; padding-top:16px; border-top:1px solid var(--line-soft);}
+.em-dato .k{font-size:10.5px; font-weight:700; color:var(--gray-soft);
+  letter-spacing:.02em; text-transform:uppercase;}
+.em-dato .v{font-size:13px; margin-top:3px; word-break:break-word;}
+.em-nota{font-size:11.5px; color:var(--gray); margin-top:17px; padding-top:14px;
+  border-top:1px solid var(--line-soft); line-height:1.55; max-width:60ch;}
+/* En el formulario de un tramite, el campo que vino de la empresa lo dice:
+   si no, parece que el panel se invento el dato. */
+.sol-campo .de-empresa{font-size:9.5px; font-weight:700; letter-spacing:.03em;
+  text-transform:uppercase; color:var(--navy2); background:var(--block);
+  border-radius:4px; padding:1px 5px; margin-left:7px;}
+
 /* --- la boveda de documentos --- */
 .docs-vista{display:none;}
 body[data-vista="documentos"] .docs-vista{display:block;}
@@ -1361,7 +1398,9 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <!-- El numero contaba las 31 tarjetas del catalogo, no las tuyas: decia
            cuantos tramites EXISTEN, que es justo lo que "Mis" no significa. -->
       <button class="sb-item" id="navTramites" type="button"><span class="dot"></span><span data-i18n="nav.procedures">My procedures</span><span class="cnt" id="navTramitesN" hidden></span></button>
-      <div class="sb-item"><span class="dot"></span><span data-i18n="nav.company">My company</span></div>
+      <!-- Se iluminaba y no llevaba a nada. La razon social se escribia a
+           mano en ocho formularios. -->
+      <button class="sb-item" id="navEmpresa" type="button"><span class="dot"></span><span data-i18n="nav.company">My company</span></button>
       <!-- El 9 era de ejemplo. Ahora cuenta los que de verdad has subido, y
            si no has subido ninguno no se enseña. -->
       <button class="sb-item" id="navDocs" type="button"><span class="dot"></span><span data-i18n="nav.documents">Documents</span><span class="cnt" id="navDocsN" hidden></span></button>
@@ -1460,6 +1499,10 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <!-- Desde el detalle de un tramite se vuelve a SU fase. El data-i18n de
            dentro se cambia por JS (p1.name, p2.name...) para que el nombre de
            la fase siga traduciendose solo al cambiar de idioma. -->
+      <button class="volver" id="emVolver" type="button">
+        <span class="v-ico" aria-hidden="true">‹</span>
+        <span data-i18n="nav.panel">Dashboard</span>
+      </button>
       <button class="volver" id="dcVolver" type="button">
         <span class="v-ico" aria-hidden="true">‹</span>
         <span data-i18n="nav.panel">Dashboard</span>
@@ -1988,6 +2031,19 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 
     <!-- Las preguntas se pliegan bajo su cabecera, igual que los trámites de
          cada fase. Arranca plegada: la portada es el índice. -->
+    <!-- Mi empresa. Es la boveda un piso mas arriba: con los DATOS en vez
+         de con los archivos. La razon social se escribia a mano en ocho
+         formularios, el RIF en seis, la direccion fiscal en cinco. -->
+    <div class="empresa-vista">
+      <div class="sec-h">
+        <div class="t" data-i18n="nav.company">My company</div>
+        <div class="sub" id="emSub"></div>
+        <div class="spacer"></div>
+        <button class="btn navy" id="emBoton" type="button" hidden></button>
+      </div>
+      <div id="emCuerpo"></div>
+    </div>
+
     <!-- La boveda. Los recaudos ya se guardaban y se reutilizaban entre
          tramites; lo que faltaba era poder verlos todos juntos, y saber si
          alguno esta vencido antes de que un ente te lo diga. -->
@@ -2187,6 +2243,27 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
     <div class="pf-pie">
       <button class="btn ghost" id="ctCancelar" type="button"></button>
       <button class="btn navy"  id="ctEnviar"   type="button"></button>
+    </div>
+  </div>
+</div>
+
+<!-- La ficha de la empresa. Los campos y sus etiquetas son los MISMOS que
+     usan los formularios de los tramites: asi lo que se escribe aqui encaja
+     alli por coincidencia de nombre, sin una tabla de equivalencias. -->
+<div class="asst-back" id="empresaBack">
+  <div class="asst perfil">
+    <div class="asst-h">
+      <div class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M3 21h18M5 21V6l7-3 7 3v15M9 10h2M13 10h2M9 14h2M13 14h2M9 18h6"/></svg></div>
+      <div>
+        <div class="at" id="emTitulo"></div>
+        <div class="as" id="emFsub"></div>
+      </div>
+      <button class="ax" id="emCerrar" type="button" aria-label="×">×</button>
+    </div>
+    <div class="pf-cuerpo" id="emCampos"></div>
+    <div class="pf-pie">
+      <button class="btn ghost" id="emCancelar" type="button"></button>
+      <button class="btn navy"  id="emGuardar"  type="button"></button>
     </div>
   </div>
 </div>
@@ -2543,6 +2620,7 @@ function applyLang(lang){
   if (window.CIIP_REPINTA_ESTADOS) window.CIIP_REPINTA_ESTADOS();
   if (window.CIIP_REPINTA_AYUDA)   window.CIIP_REPINTA_AYUDA();
   if (window.CIIP_REPINTA_DOCS)    window.CIIP_REPINTA_DOCS();
+  if (window.CIIP_REPINTA_EMPRESA) window.CIIP_REPINTA_EMPRESA();
   if (window.CIIP_REPINTA_ACTIVOS) window.CIIP_REPINTA_ACTIVOS();
   if (window.CIIP_REPINTA_FICHA)   window.CIIP_REPINTA_FICHA();
 }
@@ -2795,6 +2873,7 @@ function applyLang(lang){
     if (tipo === 'activos' && window.CIIP_PINTA_ACTIVOS) window.CIIP_PINTA_ACTIVOS();
     if (tipo === 'ayuda' && window.CIIP_REPINTA_AYUDA) window.CIIP_REPINTA_AYUDA();
     if (tipo === 'documentos' && window.CIIP_PINTA_DOCS) window.CIIP_PINTA_DOCS();
+    if (tipo === 'empresa' && window.CIIP_PINTA_EMPRESA) window.CIIP_PINTA_EMPRESA();
 
     var fase = null;
     if (tipo === 'fase') {
@@ -2842,6 +2921,7 @@ function applyLang(lang){
     if (h === '#activos') return {tipo:'activos'};
     if (h === '#ayuda') return {tipo:'ayuda'};
     if (h === '#documentos') return {tipo:'documentos'};
+    if (h === '#empresa') return {tipo:'empresa'};
     return null;
   }
 
@@ -2946,6 +3026,7 @@ function applyLang(lang){
              : (vista === 'activos') ? document.getElementById('navActivos')
              : (vista === 'ayuda') ? document.getElementById('navAyuda')
              : (vista === 'documentos') ? document.getElementById('navDocs')
+             : (vista === 'empresa') ? document.getElementById('navEmpresa')
              : panel;
     if (aqui) aqui.classList.add('active');
   };
@@ -3050,6 +3131,10 @@ applyLang(idiomaParaMi());
   var TIPOS = null;      /* ref_panel -> {codigo, ente, activo} */
   var usuario = null;
   var enteActual = '';   /* el organismo del trámite abierto, para los textos */
+  /* Los datos de la compañía. Se piden al cargar porque de aquí sale el
+     relleno de los formularios, y un formulario se abre sin pasar por la
+     vista de Mi empresa. */
+  var EMPRESA = null;
 
   function T(){                        /* textos, en el idioma de turno */
     var D = window.CIIP_PASOS || {};
@@ -3921,7 +4006,16 @@ applyLang(idiomaParaMi());
         entrada.type = c.tipo || 'text';
       }
       entrada.name = c.n;
-      if (datos[c.n]) entrada.value = datos[c.n];
+      /* Lo que ya escribiste en ESTE trámite manda siempre. Si el campo
+         viene vacío y tu empresa lo sabe, se rellena y se dice de dónde
+         salió: sin decirlo, parecería que el panel se lo inventó. */
+      if (datos[c.n]){
+        entrada.value = datos[c.n];
+      } else if (EMPRESA && EMPRESA[c.n]){
+        entrada.value = EMPRESA[c.n];
+        var sello = el('span', 'de-empresa', u.em_deempresa || '');
+        campo.querySelector('label').appendChild(sello);
+      }
       campo.appendChild(entrada);
       rejilla.appendChild(campo);
     });
@@ -6725,6 +6819,220 @@ applyLang(idiomaParaMi());
     /* Se pide al cargar por el contador del renglón: un documento vencido
        ahí dentro es de las pocas cosas que conviene ver sin buscarlas. */
     cargaDocs();
+  }
+
+
+  /* ── MI EMPRESA ────────────────────────────────────────────
+     Es la bóveda un piso más arriba: con los DATOS en vez de con los
+     archivos. La razón social se escribía a mano en ocho formularios, el
+     RIF de la empresa en seis, la dirección fiscal en cinco.
+
+     Y no era solo tiempo: escribir ocho veces el mismo nombre es
+     escribirlo ocho veces distintas —una con punto, otra sin la coma—, y
+     el ente devuelve el trámite por eso.
+
+     Los campos y sus etiquetas son los MISMOS que usan los formularios
+     -las claves f_*-, así que lo que se escribe aquí encaja allí por
+     coincidencia de nombre. Sin tabla de equivalencias que mantener.
+     ────────────────────────────────────────────────────── */
+  var emCuerpo = document.getElementById('emCuerpo');
+  var emBack   = document.getElementById('empresaBack');
+  var emNav    = document.getElementById('navEmpresa');
+  var emBoton  = document.getElementById('emBoton');
+  var emYendo  = false;
+
+  /* Los doce, con la clave de su etiqueta. El orden es el de la ficha. */
+  var EM_CAMPOS = [
+    {n:'razon_social',        clave:'f_razon',        ancho:true},
+    {n:'rif_empresa',         clave:'f_rifempresa'},
+    {n:'numero_registro',     clave:'f_registro'},
+    {n:'fecha_constitucion',  clave:'f_constitucion', tipo:'date'},
+    {n:'capital_social',      clave:'f_capital'},
+    {n:'actividad_economica', clave:'f_actividad'},
+    {n:'direccion_fiscal',    clave:'f_direccion',    ancho:true},
+    {n:'municipio',           clave:'f_municipio'},
+    {n:'telefono',            clave:'f_telefono',     tipo:'tel'},
+    {n:'representante',       clave:'f_representante'},
+    {n:'inicio_actividades',  clave:'f_iniciolab',    tipo:'date'},
+    {n:'num_trabajadores',    clave:'f_numtrab'}
+  ];
+
+  function pintaEmpresa(){
+    if (!emCuerpo) return;
+    var u = T();
+    var sub = document.getElementById('emSub');
+    if (sub) sub.textContent = u.em_sub || '';
+
+    if (emBoton){
+      emBoton.textContent = EMPRESA ? (u.ac_editar || '') : (u.em_registrar || '');
+      emBoton.hidden = false;
+      emBoton.className = 'btn ' + (EMPRESA ? 'ghost' : 'navy');
+    }
+
+    emCuerpo.textContent = '';
+    if (!EMPRESA){
+      emCuerpo.appendChild(el('div', 'ci-vacia', u.em_vacia || ''));
+      return;
+    }
+
+    var t = el('div', 'em-tarjeta');
+    t.appendChild(el('div', 'em-nombre', EMPRESA.razon_social || ''));
+    if (EMPRESA.rif_empresa) t.appendChild(el('div', 'em-rif', EMPRESA.rif_empresa));
+
+    /* Solo lo que está escrito. Un panel lleno de rayas no informa de
+       nada, y además esconde lo que sí hay. */
+    var datos = el('div', 'em-datos');
+    EM_CAMPOS.forEach(function(c){
+      if (c.n === 'razon_social' || c.n === 'rif_empresa') return;
+      var v = EMPRESA[c.n];
+      if (!v) return;
+      var d = el('div', 'em-dato');
+      d.appendChild(el('div', 'k', u[c.clave] || c.n));
+      d.appendChild(el('div', 'v', c.tipo === 'date' ? fecha(v) : v));
+      datos.appendChild(d);
+    });
+    if (datos.children.length) t.appendChild(datos);
+
+    t.appendChild(el('div', 'em-nota', u.em_rellena || ''));
+    emCuerpo.appendChild(t);
+  }
+
+  /* ── la ficha ── */
+  function pintaFichaEmpresa(){
+    if (!emBack) return;
+    var u = T();
+    var tit = document.getElementById('emTitulo');
+    if (tit) tit.textContent = EMPRESA ? (u.em_ficha_e || '') : (u.em_ficha_n || '');
+    var fs = document.getElementById('emFsub');
+    if (fs) fs.textContent = u.em_fsub || '';
+    var can = document.getElementById('emCancelar');
+    if (can) can.textContent = u.f_cancelar || '';
+    var gua = document.getElementById('emGuardar');
+    if (gua) gua.textContent = emYendo ? (u.f_guardando || '') : (u.f_guardar || '');
+    /* Las etiquetas de dentro, que se traducen con el resto. */
+    EM_CAMPOS.forEach(function(c){
+      var lb = emBack.querySelector('label[for="em_' + c.n + '"]');
+      if (lb) lb.textContent = u[c.clave] || c.n;
+    });
+  }
+
+  function abreFichaEmpresa(){
+    if (!emBack) return;
+    var u = T();
+    var caja = document.getElementById('emCampos');
+    caja.textContent = '';
+    EM_CAMPOS.forEach(function(c){
+      var campo = el('div', 'pf-campo');
+      var lb = el('label', null, u[c.clave] || c.n);
+      lb.setAttribute('for', 'em_' + c.n);
+      campo.appendChild(lb);
+      var i = document.createElement('input');
+      i.type = c.tipo || 'text';
+      i.id = 'em_' + c.n;
+      i.value = (EMPRESA && EMPRESA[c.n]) || '';
+      campo.appendChild(i);
+      caja.appendChild(campo);
+    });
+    var av = el('div', 'pf-aviso');
+    av.id = 'emAviso';
+    caja.appendChild(av);
+
+    emYendo = false;
+    pintaFichaEmpresa();
+    emBack.classList.add('open');
+    setTimeout(function(){
+      var p = document.getElementById('em_razon_social');
+      if (p) p.focus();
+    }, 40);
+  }
+  function cierraFichaEmpresa(){ if (emBack) emBack.classList.remove('open'); }
+
+  function guardaEmpresa(){
+    var u  = T();
+    var av = document.getElementById('emAviso');
+    var bt = document.getElementById('emGuardar');
+    emBack.querySelectorAll('.pf-campo').forEach(function(c){ c.classList.remove('mal'); });
+
+    var fila = {};
+    EM_CAMPOS.forEach(function(c){
+      var i = document.getElementById('em_' + c.n);
+      var v = i ? String(i.value || '').trim() : '';
+      /* Las fechas vacías van como null: una cadena vacía en una columna
+         date es un error de Postgres, no un dato en blanco. */
+      fila[c.n] = (c.tipo === 'date') ? (v || null) : v;
+    });
+
+    if (!fila.razon_social){
+      document.getElementById('em_razon_social').closest('.pf-campo').classList.add('mal');
+      av.textContent = u.em_falta || '';
+      return;
+    }
+
+    emYendo = true;
+    bt.disabled = true;
+    pintaFichaEmpresa();
+    av.textContent = '';
+
+    sb.auth.getUser().then(function(r){
+      var usu = r && r.data && r.data.user;
+      if (!usu) throw new Error('sin sesión');
+      fila.inversionista = usu.id;
+      /* upsert y no insert: la llave primaria es el inversionista, así que
+         registrar y editar son la misma operación. */
+      return sb.from('empresas').upsert(fila).select().single();
+    }).then(function(r){
+      if (r && r.error) throw r.error;
+      EMPRESA = (r && r.data) || fila;
+      emYendo = false;
+      bt.disabled = false;
+      cierraFichaEmpresa();
+      pintaEmpresa();
+    }).catch(function(e){
+      console.warn('[CIIP] guardar empresa:', e && (e.message || e));
+      emYendo = false;
+      bt.disabled = false;
+      pintaFichaEmpresa();
+      av.textContent = String(u.ac_error || '').replace('{e}', (e && e.message) || '');
+    });
+  }
+
+  function cargaEmpresa(){
+    return sb.from('empresas')
+      .select('razon_social, rif_empresa, numero_registro, fecha_constitucion, capital_social, actividad_economica, direccion_fiscal, municipio, telefono, representante, inicio_actividades, num_trabajadores')
+      .maybeSingle()
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        EMPRESA = (r && r.data) || null;
+        pintaEmpresa();
+      })
+      .catch(function(e){
+        /* Sin supabase-empresa.sql corrido, la tabla no existe. Se enseña
+           el estado vacío, que es la verdad: no hay empresa registrada. */
+        console.warn('[CIIP] empresa:', e && e.message);
+        EMPRESA = null;
+        pintaEmpresa();
+      });
+  }
+
+  if (emCuerpo){
+    if (emNav) emNav.addEventListener('click', function(){ location.hash = 'empresa'; });
+    var emVolver = document.getElementById('emVolver');
+    if (emVolver) emVolver.addEventListener('click', function(){
+      if (location.hash) location.hash = '';
+    });
+    if (emBoton) emBoton.addEventListener('click', abreFichaEmpresa);
+    document.getElementById('emCerrar').addEventListener('click', cierraFichaEmpresa);
+    document.getElementById('emCancelar').addEventListener('click', cierraFichaEmpresa);
+    document.getElementById('emGuardar').addEventListener('click', guardaEmpresa);
+    emBack.addEventListener('click', function(e){ if (e.target === emBack) cierraFichaEmpresa(); });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && emBack.classList.contains('open')) cierraFichaEmpresa();
+    });
+    window.CIIP_PINTA_EMPRESA   = cargaEmpresa;
+    window.CIIP_REPINTA_EMPRESA = function(){ pintaEmpresa(); pintaFichaEmpresa(); };
+    /* Se pide al cargar y no al abrir la vista: de aquí sale el relleno de
+       los formularios, y esos se abren sin pasar por Mi empresa. */
+    cargaEmpresa();
   }
 
 })();

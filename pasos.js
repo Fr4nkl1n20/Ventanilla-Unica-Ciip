@@ -234,6 +234,18 @@ window.CIIP_PASOS = {
       dc_usado1:   "Se usa en un trámite",
       dc_sinusar:  "Todavía no se ha usado en ningún trámite",
       dc_revisa:   "Vuelve a subirlo: el que está aquí ya no sirve.",
+      /* Mi empresa. Las etiquetas de los campos NO se escriben aquí: son
+         las mismas f_* que usan los formularios, para que la empresa y el
+         trámite llamen igual a lo mismo. */
+      em_sub:       "Los datos de tu compañía, escritos una sola vez",
+      em_vacia:     "Todavía no has registrado tu empresa. Cuando lo hagas, los formularios que pidan estos datos te los ofrecerán ya escritos.",
+      em_registrar: "Registrar mi empresa",
+      em_ficha_n:   "Registrar tu empresa",
+      em_ficha_e:   "Editar tu empresa",
+      em_fsub:      "Se escribe una vez y la usan ocho formularios",
+      em_falta:     "Ponle al menos la razón social: es lo que se copia en los formularios.",
+      em_rellena:   "Estos datos rellenan solos los formularios que los piden. Siempre puedes cambiarlos dentro de un trámite.",
+      em_deempresa: "De tu empresa",
       /* Borrar de verdad. Va en dos toques y no con una ventana del
          navegador: el aviso se lee donde está el botón. */
       ac_borrar:    "Borrar",
@@ -600,6 +612,18 @@ window.CIIP_PASOS = {
       dc_usado1:   "Used in one procedure",
       dc_sinusar:  "Not used in any procedure yet",
       dc_revisa:   "Upload it again: the one here is no longer good.",
+      /* My company. Field labels are NOT written here: they are the same
+         f_* the forms use, so company and procedure call the same thing by
+         the same name. */
+      em_sub:       "Your company's details, written once",
+      em_vacia:     "You haven't registered your company yet. Once you do, the forms that ask for these details will offer them already filled in.",
+      em_registrar: "Register my company",
+      em_ficha_n:   "Register your company",
+      em_ficha_e:   "Edit your company",
+      em_fsub:      "Written once, used by eight forms",
+      em_falta:     "Give it at least a company name: that is what gets copied into the forms.",
+      em_rellena:   "These details fill the forms that ask for them. You can always change them inside a procedure.",
+      em_deempresa: "From your company",
       /* A real delete. Two taps, not a browser dialog: the warning reads
          where the button is. */
       ac_borrar:    "Delete",
@@ -963,6 +987,16 @@ window.CIIP_PASOS = {
       dc_usado1:   "Usado num trâmite",
       dc_sinusar:  "Ainda não foi usado em nenhum trâmite",
       dc_revisa:   "Carregue-o de novo: o que está aqui já não serve.",
+      /* A minha empresa. */
+      em_sub:       "Os dados da sua empresa, escritos uma só vez",
+      em_vacia:     "Ainda não registou a sua empresa. Quando o fizer, os formulários que peçam estes dados oferecê-los-ão já escritos.",
+      em_registrar: "Registar a minha empresa",
+      em_ficha_n:   "Registar a sua empresa",
+      em_ficha_e:   "Editar a sua empresa",
+      em_fsub:      "Escreve-se uma vez e usam-na oito formulários",
+      em_falta:     "Dê-lhe pelo menos a razão social: é o que se copia nos formulários.",
+      em_rellena:   "Estes dados preenchem sozinhos os formulários que os pedem. Pode sempre alterá-los dentro de um trâmite.",
+      em_deempresa: "Da sua empresa",
       /* Apagar a sério. Em dois toques, não numa janela do navegador. */
       ac_borrar:    "Apagar",
       ac_borrar_ok: "Carregue outra vez para apagar",
@@ -1325,6 +1359,16 @@ window.CIIP_PASOS = {
       dc_usado1:   "Usato in una pratica",
       dc_sinusar:  "Non ancora usato in nessuna pratica",
       dc_revisa:   "Ricaricalo: quello che c'è qui non va più bene.",
+      /* La mia azienda. */
+      em_sub:       "I dati della tua azienda, scritti una volta sola",
+      em_vacia:     "Non hai ancora registrato la tua azienda. Quando lo farai, i moduli che chiedono questi dati te li proporranno già scritti.",
+      em_registrar: "Registra la mia azienda",
+      em_ficha_n:   "Registra la tua azienda",
+      em_ficha_e:   "Modifica la tua azienda",
+      em_fsub:      "Si scrive una volta e la usano otto moduli",
+      em_falta:     "Dagli almeno la ragione sociale: è quello che si copia nei moduli.",
+      em_rellena:   "Questi dati riempiono da soli i moduli che li chiedono. Puoi sempre cambiarli dentro una pratica.",
+      em_deempresa: "Dalla tua azienda",
       /* Cancellare davvero. In due tocchi, non con una finestra del browser. */
       ac_borrar:    "Elimina",
       ac_borrar_ok: "Premi di nuovo per eliminarlo",
@@ -1687,6 +1731,16 @@ window.CIIP_PASOS = {
       dc_usado1:   "用于一项业务",
       dc_sinusar:  "尚未用于任何业务",
       dc_revisa:   "请重新上传：现有的已不可用。",
+      /* 我的公司。 */
+      em_sub:       "公司资料，只填一次",
+      em_vacia:     "您还没有登记公司。登记后，需要这些资料的表单会直接帮您填好。",
+      em_registrar: "登记我的公司",
+      em_ficha_n:   "登记您的公司",
+      em_ficha_e:   "编辑公司资料",
+      em_fsub:      "填一次，八个表单共用",
+      em_falta:     "至少填上公司名称：表单里复制的就是它。",
+      em_rellena:   "这些资料会自动填入需要它们的表单。在具体业务里随时可以修改。",
+      em_deempresa: "来自公司资料",
       /* 真正删除。需要点两次，不用浏览器弹窗。 */
       ac_borrar:    "删除",
       ac_borrar_ok: "再点一次就删除",
@@ -2049,6 +2103,16 @@ window.CIIP_PASOS = {
       dc_usado1:   "Используется в одной заявке",
       dc_sinusar:  "Пока не используется ни в одной заявке",
       dc_revisa:   "Загрузите заново: этот больше не годится.",
+      /* Моя компания. */
+      em_sub:       "Данные вашей компании — один раз",
+      em_vacia:     "Вы ещё не зарегистрировали компанию. Когда сделаете это, формы будут предлагать эти данные уже заполненными.",
+      em_registrar: "Зарегистрировать компанию",
+      em_ficha_n:   "Регистрация компании",
+      em_ficha_e:   "Изменить данные компании",
+      em_fsub:      "Пишется один раз, используется в восьми формах",
+      em_falta:     "Укажите хотя бы название: именно оно подставляется в формы.",
+      em_rellena:   "Эти данные сами заполняют формы, которые их спрашивают. Внутри заявки их всегда можно поменять.",
+      em_deempresa: "Из данных компании",
       /* Настоящее удаление. В два нажатия, без окна браузера. */
       ac_borrar:    "Удалить",
       ac_borrar_ok: "Нажмите ещё раз, чтобы удалить",
