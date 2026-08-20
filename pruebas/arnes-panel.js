@@ -92,7 +92,7 @@
 
   cuandoConteste(function(){
     enCadena([pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir, citasAnula, citasTrasAnular,
-              colaAbre, colaTramites, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
+              colaAbre, colaTramites, colaExpediente, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
               agendaMira, agendaTrasEntrar, agendaTrasSalir,
               rncAbre, rncTrasAbrir, solvenciasTrasAbrir], volcar);
   });
@@ -1054,6 +1054,44 @@
           botones(fichas[0]), 'Devolver | Empezar la revisión');
     igual('cola: y uno en revisión se devuelve o se presenta ante el ente',
           botones(fichas[1]), 'Devolver | Presentada ante el ente');
+
+    /* ── el expediente ──
+       La cola decía quién, qué y cuándo, pero no qué había dentro: se movían
+       estados a ciegas. */
+    ok('cola: el expediente nace plegado',
+       fichas[0].querySelector('.co-exp') && !fichas[0].querySelector('.co-exp').classList.contains('abierto'),
+       'abierto=' + (fichas[0].querySelector('.co-exp') || {className:'(no existe)'}).className,
+       'plegado');
+    fichas[0].querySelector('.co-ver').click();
+    ok('cola: se despliega al pulsar',
+       fichas[0].querySelector('.co-exp').classList.contains('abierto'),
+       fichas[0].querySelector('.co-exp').className, 'con la clase abierto');
+
+    /* Lo que rellenó, con las etiquetas del formulario y no los nombres
+       internos de las columnas. */
+    var exp = fichas[0].querySelector('.co-exp');
+    ok('cola: enseña lo que rellenó, con sus etiquetas',
+       /Razón social/.test(exp.textContent) && /Bianchi Agroindustrias/.test(exp.textContent) &&
+       !/razon_social/.test(exp.textContent),
+       'busca "Razón social" y su valor, y que NO salga razon_social',
+       'la etiqueta y el valor');
+
+  }
+
+  function colaExpediente(){
+    if (CASO !== 'gestor') return;
+    var exp = document.querySelectorAll('#colaTram .co-ficha')[0].querySelector('.co-exp');
+    var archivos = exp.querySelectorAll('.co-arch');
+    igual('cola: y lista los archivos que subió', archivos.length, 2);
+    ok('cola: cada uno con su nombre de verdad',
+       /acta-bianchi\.pdf/.test(exp.textContent),
+       'busca "acta-bianchi.pdf"', 'aparece');
+    /* El cubo es privado: no hay URL fija, se pide una firmada al abrir. */
+    ok('cola: y con un botón para abrirlo',
+       archivos[0].querySelector('button') !== null,
+       archivos[0].querySelector('button') ? 'lo tiene' : 'sin botón', 'un botón por archivo');
+  
+    var fichas = document.querySelectorAll('#colaTram .co-ficha');
 
     /* Devolver sin decir por qué deja al inversionista con un aviso que no
        explica nada. Es el único paso que exige la nota. */

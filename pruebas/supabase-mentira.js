@@ -104,6 +104,8 @@
   var COLA_TRAM = {
     gestor: [
       {id:'x1', inversionista:'u2', tipo:'rif_empresa', estado:'enviado',
+       datos:{razon_social:'Bianchi Agroindustrias, C.A.', rif_empresa:'J-40123456-7',
+              actividad_economica:'Procesamiento de cacao'},
        creado_en:'2026-08-05T09:00:00Z', enviado_en:'2026-08-05T09:00:00Z'},
       {id:'x2', inversionista:'u3', tipo:'constitucion', estado:'en_revision',
        creado_en:'2026-08-07T09:00:00Z', enviado_en:'2026-08-07T09:00:00Z'}
@@ -253,6 +255,13 @@
         mios = mios.filter(function(t){ return t.tipo === op.eq.tipo; });
       }
       return {data:mios, error:null};
+    }
+    if (tabla === 'tramite_documentos'){
+      /* Lo que subio el inversionista, para que el gestor lo revise. */
+      return {data:[
+        {documento:'d1', documentos:{tipo:'acta_constitutiva', nombre_original:'acta-bianchi.pdf', archivo:'u2/acta-bianchi.pdf'}},
+        {documento:'d2', documentos:{tipo:'rif_empresa',       nombre_original:'rif-j40123456.pdf', archivo:'u2/rif.pdf'}}
+      ], error:null};
     }
     if (tabla === 'tramite_eventos'){
       if (op && op.update){

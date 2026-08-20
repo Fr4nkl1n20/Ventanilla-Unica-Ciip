@@ -380,6 +380,30 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .co-ficha.mal .co-fijar input[type="datetime-local"]{border-color:var(--rust);}
 .co-botones{display:flex; gap:8px; justify-content:flex-end; margin-top:10px;}
 .co-botones .btn{font-size:12px; padding:8px 13px;}
+/* El expediente. Nace plegado: la cola es para ver QUÉ hay que atender, y
+   doce recaudos abiertos por ficha la volverían ilegible. */
+.co-exp{display:none; margin-top:11px; border-top:1px solid var(--line-soft); padding-top:11px;}
+.co-exp.abierto{display:block;}
+.co-ver{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
+  background:transparent; border:0; padding:0; margin-top:9px; cursor:pointer;}
+.co-ver:hover{text-decoration:underline;}
+.co-exp-t{font-size:9.5px; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--gray-soft); margin:9px 0 5px;}
+/* Etiqueta y valor en dos columnas: en una sola, con doce campos, no se
+   distingue lo que preguntó el formulario de lo que contestó el usuario. */
+.co-dato{display:flex; gap:8px; font-size:12px; padding:3px 0; align-items:baseline;}
+.co-dato .k{color:var(--gray); flex:0 0 42%; min-width:0;}
+.co-dato .v{color:var(--ink); font-weight:600; flex:1 1 auto; min-width:0; word-break:break-word;}
+.co-arch{display:flex; align-items:center; gap:9px; font-size:12px; padding:6px 0;
+  border-bottom:1px solid var(--line-soft);}
+.co-arch:last-child{border-bottom:0;}
+.co-arch .n{flex:1 1 auto; min-width:0; color:var(--ink); word-break:break-word;}
+.co-arch .t{color:var(--gray-soft); font-size:11px; flex:none;}
+.co-arch button{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
+  background:transparent; border:1px solid var(--line); border-radius:7px;
+  padding:5px 10px; cursor:pointer; flex:none;}
+.co-arch button:hover{border-color:var(--navy2);}
+
 .co-aviso{font-size:11.5px; color:var(--rust); margin-top:7px; min-height:14px;}
 .co-vacia{font-size:12.5px; color:var(--gray); padding:16px 12px 20px; text-align:center;}
 /* Dos colas en la misma ventana —trámites y citas— necesitan decir cuál es
@@ -4825,6 +4849,24 @@ applyLang('en');
       f.appendChild(el('div', 'co-cuando',
         (u.co_envio || '').replace('{fecha}', fecha(t.enviado_en || t.creado_en))));
 
+      /* Ver el expediente antes de decidir. Va antes de la nota a
+         propósito: primero se mira, luego se opina. */
+      var exp = el('div', 'co-exp');
+      var ver = el('button', 'co-ver', u.co_ver || '');
+      ver.type = 'button';
+      ver.setAttribute('aria-expanded', 'false');
+      ver.addEventListener('click', function(){
+        var abierto = exp.classList.toggle('abierto');
+        ver.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+        ver.textContent = abierto ? (u.co_ocultar || '') : (u.co_ver || '');
+        if (abierto && !exp.dataset.puesto){
+          exp.dataset.puesto = '1';
+          pintaExpediente(t, exp);
+        }
+      });
+      f.appendChild(ver);
+      f.appendChild(exp);
+
       var nota = document.createElement('textarea');
       nota.rows = 2;
       nota.placeholder = u.co_nota || '';
@@ -4858,6 +4900,89 @@ applyLang('en');
 
       caja.appendChild(f);
     });
+  }
+
+  /* ── el expediente de una solicitud ──
+     La cola decía quién, qué y cuándo, pero no qué había dentro: un gestor
+     no podía revisar nada, solo mover estados a ciegas. Aquí está lo que
+     rellenó y lo que subió.
+
+     Los permisos ya existían —"documentos: leer los propios" y "recaudos:
+     leer su carpeta" incluyen es_gestor()—, así que esto no necesitó SQL
+     nuevo: faltaba la pantalla, no el derecho.
+
+     Se carga al DESPLEGAR y no con la cola: son dos consultas y una firma
+     por archivo, y la mayoría de las fichas no se abren. */
+  function pintaExpediente(tr, caja){
+    var u = T();
+    caja.textContent = '';
+
+    /* 1. lo que rellenó. Las etiquetas salen de CAMPOS, que es lo que le
+       preguntó el formulario: así el gestor lee lo mismo que leyó él, y no
+       los nombres internos de las columnas. */
+    var datos = tr.datos || {};
+    var campos = (CAMPOS[tr.tipo] || []);
+    if (campos.length){
+      caja.appendChild(el('div', 'co-exp-t', u.co_datos || ''));
+      campos.forEach(function(c){
+        var v = datos[c.n];
+        if (v === undefined || v === null || v === '') return;
+        var fila = el('div', 'co-dato');
+        fila.appendChild(el('span', 'k', (u[c.clave] || c.n) + ':'));
+        fila.appendChild(el('span', 'v', String(v)));
+        caja.appendChild(fila);
+      });
+    }
+
+    /* 2. lo que subió */
+    var lista = el('div');
+    caja.appendChild(el('div', 'co-exp-t', u.co_archivos || ''));
+    caja.appendChild(lista);
+
+    sb.from('tramite_documentos')
+      .select('documento, documentos(tipo, nombre_original, archivo)')
+      .eq('tramite', tr.id)
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        var filas = r.data || [];
+        if (!filas.length){
+          lista.appendChild(el('div', 'co-vacia', u.co_sinarch || ''));
+          return;
+        }
+        filas.forEach(function(f){
+          var d = f.documentos || {};
+          var fila = el('div', 'co-arch');
+          fila.appendChild(el('span', 'n', d.nombre_original || d.tipo || '—'));
+          fila.appendChild(el('span', 't', d.tipo || ''));
+
+          var b = el('button', null, u.co_abrir || '');
+          b.type = 'button';
+          b.addEventListener('click', function(){
+            /* El cubo es privado: no hay URL fija que enseñar. Se pide una
+               firmada y caduca en dos minutos, que es lo que tarda en
+               mirarse un documento. */
+            b.disabled = true;
+            sb.storage.from('recaudos').createSignedUrl(d.archivo, 120)
+              .then(function(rs){
+                b.disabled = false;
+                var url = rs && rs.data && rs.data.signedUrl;
+                if (!url) throw new Error('sin url');
+                window.open(url, '_blank', 'noopener');
+              })
+              .catch(function(e){
+                console.warn('[CIIP] abrir recaudo:', e && (e.message || e));
+                b.disabled = false;
+                b.textContent = u.co_noabre || '';
+              });
+          });
+          fila.appendChild(b);
+          lista.appendChild(fila);
+        });
+      })
+      .catch(function(e){
+        console.warn('[CIIP] expediente:', e && e.message);
+        lista.appendChild(el('div', 'co-vacia', u.co_error || ''));
+      });
   }
 
   function mueveTramite(tr, aEstado, nota, boton, aviso, textoBoton){
@@ -4898,7 +5023,7 @@ applyLang('en');
         if (r && r.error) throw r.error;
         enCola = (r.data || []).map(function(c){ c.nombre = ''; return c; });
         return sb.from('tramites')
-          .select('id, inversionista, tipo, estado, creado_en, enviado_en')
+          .select('id, inversionista, tipo, estado, datos, creado_en, enviado_en')
           .in('estado', CO_MIOS)
           .order('creado_en', {ascending:true})
           .then(function(rt){
