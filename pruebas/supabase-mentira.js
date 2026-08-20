@@ -311,9 +311,38 @@
       return {data:visibles, error:null};
     }
     if (tabla === 'documentos'){
-      /* Lo que ya esta en la boveda. El formulario lo reutiliza y ofrece
-         mirarlo antes de enviar. */
-      return {data:[{id:'doc1', nombre_original:'pasaporte.pdf', archivo:'u1/pasaporte.pdf'}], error:null};
+      /* La boveda. El formulario los reutiliza y ofrece mirarlos antes de
+         enviar; la vista de Documentos los enseña todos.
+
+         Uno VENCIDO y uno por vencer a proposito: es lo unico de esa lista
+         sobre lo que hay algo que hacer, y sin ellos la prueba de que se
+         avisa a tiempo no comprobaria nada. Las fechas se calculan desde
+         hoy, que si no el 'vencido' dejaria de estarlo con el tiempo. */
+      var dia = 86400000, hoy = Date.now();
+      function fechaEn(d){ return new Date(hoy + d * dia).toISOString().slice(0, 10); }
+      return {data:[
+        {id:'doc1', tipo:'cedula', archivo:'u1/pasaporte.pdf',
+         nombre_original:'pasaporte.pdf', vence_el:null, estado:'cargado',
+         nota_revision:'', creado_en:'2026-07-02T10:00:00Z'},
+        {id:'doc2', tipo:'antecedentes', archivo:'u1/antecedentes.pdf',
+         nombre_original:'antecedentes-apostillados.pdf', vence_el:fechaEn(-9),
+         estado:'cargado', nota_revision:'', creado_en:'2026-05-20T10:00:00Z'},
+        {id:'doc3', tipo:'acta_constitutiva', archivo:'u1/acta.pdf',
+         nombre_original:'acta-constitutiva.pdf', vence_el:fechaEn(12),
+         estado:'cargado', nota_revision:'', creado_en:'2026-08-01T10:00:00Z'}
+      ], error:null};
+    }
+    if (tabla === 'tramite_documentos' && !(op && op.eq)){
+      /* SIN .eq: la boveda pregunta por TODOS para contar en cuantos
+         tramites se usa cada documento. La otra consulta de esta misma
+         tabla -la del expediente que abre el gestor- si lleva
+         .eq('tramite'), y esta de aqui no puede quedarsela: le enseñaria
+         al gestor los papeles de otro. */
+      return {data:[
+        {documento:'doc1', tramite:'t1'},
+        {documento:'doc1', tramite:'t3'},
+        {documento:'doc3', tramite:'t1'}
+      ], error:null};
     }
     if (tabla === 'tipos_documento')  return {data:[], error:null};
     if (tabla === 'bancos_aliados')   return {data:[], error:null};

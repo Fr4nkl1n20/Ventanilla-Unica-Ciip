@@ -351,6 +351,34 @@ svg{display:block;}
   padding:10px 12px; outline:none; width:100%;}
 .pf-campo input:focus, .pf-campo select:focus{border-color:var(--navy2);}
 .pf-campo.mal input, .pf-campo.mal select{border-color:var(--rust);}
+/* --- la boveda de documentos --- */
+.docs-vista{display:none;}
+body[data-vista="documentos"] .docs-vista{display:block;}
+body[data-vista="documentos"] .solo-inicio,
+body[data-vista="documentos"] #avisoDemo.show,
+body[data-vista="documentos"] #secTramites,
+body[data-vista="documentos"] .faq-sec{display:none;}
+body[data-vista="documentos"] .fase-bar{display:flex;}
+body[data-vista="documentos"] #faseVolver,
+body[data-vista="documentos"] #trVolver,
+body[data-vista="documentos"] #ciVolver,
+body[data-vista="documentos"] #mtVolver,
+body[data-vista="documentos"] #acVolver,
+body[data-vista="documentos"] #ayVolver{display:none;}
+body[data-vista="documentos"] #dcVolver{display:inline-flex;}
+#dcVolver{display:none;}
+
+/* El nombre del archivo va en monoespaciada: es un nombre de fichero, y
+   distinguir un 1 de una l importa cuando hay tres parecidos. */
+.dc-arch{font-family:ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size:11.5px; color:var(--gray); margin-top:3px; word-break:break-all;}
+.dc-pie{display:flex; gap:9px; align-items:center; margin-top:11px; flex-wrap:wrap;}
+.dc-pie .btn{margin-left:auto; font-size:12px; padding:8px 13px;}
+.dc-usos{font-size:11.5px; color:var(--gray-soft);}
+/* Un documento vencido no es un aviso mas: es el que va a devolverte el
+   tramite. Se marca como se marca una devolucion. */
+.ci-ficha.vencido{border-color:var(--rust);}
+
 /* --- ayuda y guia --- */
 .ayuda-vista{display:none;}
 body[data-vista="ayuda"] .ayuda-vista{display:block;}
@@ -1334,7 +1362,9 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
            cuantos tramites EXISTEN, que es justo lo que "Mis" no significa. -->
       <button class="sb-item" id="navTramites" type="button"><span class="dot"></span><span data-i18n="nav.procedures">My procedures</span><span class="cnt" id="navTramitesN" hidden></span></button>
       <div class="sb-item"><span class="dot"></span><span data-i18n="nav.company">My company</span></div>
-      <div class="sb-item"><span class="dot"></span><span data-i18n="nav.documents">Documents</span><span class="cnt">9</span></div>
+      <!-- El 9 era de ejemplo. Ahora cuenta los que de verdad has subido, y
+           si no has subido ninguno no se enseña. -->
+      <button class="sb-item" id="navDocs" type="button"><span class="dot"></span><span data-i18n="nav.documents">Documents</span><span class="cnt" id="navDocsN" hidden></span></button>
     </div>
     <div class="sb-group">
       <div class="sb-gl" data-i18n="nav.g.opps">Opportunities</div>
@@ -1430,6 +1460,10 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <!-- Desde el detalle de un tramite se vuelve a SU fase. El data-i18n de
            dentro se cambia por JS (p1.name, p2.name...) para que el nombre de
            la fase siga traduciendose solo al cambiar de idioma. -->
+      <button class="volver" id="dcVolver" type="button">
+        <span class="v-ico" aria-hidden="true">‹</span>
+        <span data-i18n="nav.panel">Dashboard</span>
+      </button>
       <button class="volver" id="ayVolver" type="button">
         <span class="v-ico" aria-hidden="true">‹</span>
         <span data-i18n="nav.panel">Dashboard</span>
@@ -1954,6 +1988,17 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 
     <!-- Las preguntas se pliegan bajo su cabecera, igual que los trámites de
          cada fase. Arranca plegada: la portada es el índice. -->
+    <!-- La boveda. Los recaudos ya se guardaban y se reutilizaban entre
+         tramites; lo que faltaba era poder verlos todos juntos, y saber si
+         alguno esta vencido antes de que un ente te lo diga. -->
+    <div class="docs-vista">
+      <div class="sec-h">
+        <div class="t" data-i18n="nav.documents">Documents</div>
+        <div class="sub" id="dcSub"></div>
+      </div>
+      <div class="ci-lista" id="dcLista"></div>
+    </div>
+
     <!-- Ayuda y guia. NO repite las preguntas de la portada -esas van de
          invertir en Venezuela-: esto cuenta como funciona el panel, que es
          lo que no explicaba nadie. -->
@@ -2497,6 +2542,7 @@ function applyLang(lang){
   if (window.CIIP_REPINTA_MISTRAM) window.CIIP_REPINTA_MISTRAM();
   if (window.CIIP_REPINTA_ESTADOS) window.CIIP_REPINTA_ESTADOS();
   if (window.CIIP_REPINTA_AYUDA)   window.CIIP_REPINTA_AYUDA();
+  if (window.CIIP_REPINTA_DOCS)    window.CIIP_REPINTA_DOCS();
   if (window.CIIP_REPINTA_ACTIVOS) window.CIIP_REPINTA_ACTIVOS();
   if (window.CIIP_REPINTA_FICHA)   window.CIIP_REPINTA_FICHA();
 }
@@ -2748,6 +2794,7 @@ function applyLang(lang){
     if (tipo === 'mistramites' && window.CIIP_PINTA_MISTRAM) window.CIIP_PINTA_MISTRAM();
     if (tipo === 'activos' && window.CIIP_PINTA_ACTIVOS) window.CIIP_PINTA_ACTIVOS();
     if (tipo === 'ayuda' && window.CIIP_REPINTA_AYUDA) window.CIIP_REPINTA_AYUDA();
+    if (tipo === 'documentos' && window.CIIP_PINTA_DOCS) window.CIIP_PINTA_DOCS();
 
     var fase = null;
     if (tipo === 'fase') {
@@ -2794,6 +2841,7 @@ function applyLang(lang){
     if (h === '#tramites') return {tipo:'mistramites'};
     if (h === '#activos') return {tipo:'activos'};
     if (h === '#ayuda') return {tipo:'ayuda'};
+    if (h === '#documentos') return {tipo:'documentos'};
     return null;
   }
 
@@ -2897,6 +2945,7 @@ function applyLang(lang){
              : (vista === 'mistramites') ? document.getElementById('navTramites')
              : (vista === 'activos') ? document.getElementById('navActivos')
              : (vista === 'ayuda') ? document.getElementById('navAyuda')
+             : (vista === 'documentos') ? document.getElementById('navDocs')
              : panel;
     if (aqui) aqui.classList.add('active');
   };
@@ -6512,6 +6561,170 @@ applyLang(idiomaParaMi());
     });
     window.CIIP_REPINTA_AYUDA = pintaAyuda;
     pintaAyuda();
+  }
+
+
+  /* ── LA BÓVEDA ────────────────────────────────────────────
+     Los recaudos ya se guardaban y ya se reutilizaban: subes el acta en la
+     constitución y el RIF de la empresa te la ofrece cargada. Lo que
+     faltaba era poder verlos TODOS, y sobre todo saber cuál está vencido
+     antes de que te lo diga un ente devolviéndote el trámite.
+
+     El renglón de la barra decía 9, escrito a mano.
+     ────────────────────────────────────────────────────── */
+  var dcLista = document.getElementById('dcLista');
+  var dcNav   = document.getElementById('navDocs');
+  var dcNavN  = document.getElementById('navDocsN');
+  var papeles = [];
+  var usosPorDoc = {};
+
+  /* El nombre legible de cada tipo de recaudo ya está escrito, repartido
+     por los trámites que lo piden. Se junta una vez en vez de escribir una
+     segunda lista que se quedaría atrás. */
+  var CLAVE_DE_TIPO = null;
+  function nombreDeTipo_doc(tipo){
+    if (!CLAVE_DE_TIPO){
+      CLAVE_DE_TIPO = {};
+      Object.keys(RECAUDOS).forEach(function(t){
+        (RECAUDOS[t] || []).forEach(function(r){
+          if (r.tipo && r.clave && !CLAVE_DE_TIPO[r.tipo]) CLAVE_DE_TIPO[r.tipo] = r.clave;
+        });
+      });
+    }
+    var u = T();
+    var clave = CLAVE_DE_TIPO[tipo];
+    return (clave && u[clave]) || tipo || '';
+  }
+
+  /* Vigente, por vencer o vencido. Treinta días de aviso: es lo que tarda
+     en pedirse de nuevo casi cualquiera de estos papeles. */
+  function comoEsta(d){
+    var u = T();
+    if (d.estado === 'rechazado') return {clase:'', chip:u.dc_rechazado, mal:true};
+    if (!d.vence_el) return null;
+    var falta = Math.floor((Date.parse(d.vence_el + 'T23:59:59Z') - Date.now()) / 86400000);
+    if (isNaN(falta)) return null;
+    if (falta < 0)  return {clase:'', chip:u.dc_vencido, mal:true};
+    if (falta <= 30) return {clase:'', chip:u.dc_pronto, aviso:true};
+    return {clase:'listo', chip:u.dc_vigente};
+  }
+
+  function pintaDocs(){
+    if (!dcLista) return;
+    var u = T();
+    var sub = document.getElementById('dcSub');
+    if (sub) sub.textContent = u.dc_sub || '';
+
+    if (dcNavN){
+      dcNavN.textContent = String(papeles.length);
+      dcNavN.hidden = (papeles.length === 0);
+    }
+
+    dcLista.textContent = '';
+    if (!papeles.length){
+      dcLista.appendChild(el('div', 'ci-vacia', u.dc_vacia || ''));
+      return;
+    }
+
+    papeles.forEach(function(d){
+      var est = comoEsta(d);
+      var f = el('div', 'ci-ficha' + (est && est.mal ? ' vencido' : ''));
+
+      var cab = el('div', 'ci-cab');
+      if (est) cab.appendChild(el('span', 'ct-chip' + (est.clase ? ' ' + est.clase : ''), est.chip || ''));
+      f.appendChild(cab);
+
+      f.appendChild(el('div', 'ci-linea', nombreDeTipo_doc(d.tipo)));
+      if (d.nombre_original) f.appendChild(el('div', 'dc-arch', d.nombre_original));
+
+      var cuando = [];
+      if (d.creado_en) cuando.push(String(u.dc_subido || '').replace('{fecha}', fecha(d.creado_en)));
+      if (d.vence_el)  cuando.push(String(u.dc_vence || '').replace('{fecha}', fecha(d.vence_el)));
+      if (cuando.length) f.appendChild(el('div', 'ci-que', cuando.join(' \u00b7 ')));
+
+      /* Un rechazado trae el motivo del gestor: sin él, "vuelve a subirlo"
+         no dice qué estaba mal. */
+      if (d.estado === 'rechazado'){
+        if (d.nota_revision) f.appendChild(el('div', 'ci-nota', d.nota_revision));
+        f.appendChild(el('div', 'ci-nota', u.dc_revisa || ''));
+      }
+
+      var pie = el('div', 'dc-pie');
+      var n = usosPorDoc[d.id] || 0;
+      pie.appendChild(el('span', 'dc-usos',
+        n === 0 ? (u.dc_sinusar || '')
+        : n === 1 ? (u.dc_usado1 || '')
+        : String(u.dc_usado || '').replace('{n}', n)));
+
+      /* El cubo es privado: no hay dirección fija. Se pide una firmada, que
+         caduca en dos minutos, igual que en el formulario y en la cola. */
+      var abrir = el('button', 'btn navy', u.co_abrir || '');
+      abrir.type = 'button';
+      abrir.addEventListener('click', function(){
+        abrir.disabled = true;
+        sb.storage.from('recaudos').createSignedUrl(d.archivo, 120)
+          .then(function(rs){
+            abrir.disabled = false;
+            var url = rs && rs.data && rs.data.signedUrl;
+            if (!url) throw new Error('sin url');
+            window.open(url, '_blank', 'noopener');
+          })
+          .catch(function(e){
+            console.warn('[CIIP] ver documento:', e && (e.message || e));
+            abrir.disabled = false;
+            abrir.textContent = u.co_noabre || '';
+          });
+      });
+      pie.appendChild(abrir);
+      f.appendChild(pie);
+
+      dcLista.appendChild(f);
+    });
+  }
+
+  function cargaDocs(){
+    return sb.from('documentos')
+      .select('id, tipo, archivo, nombre_original, vence_el, estado, nota_revision, creado_en')
+      .order('creado_en', {ascending:false})
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        papeles = r.data || [];
+        /* Lo caducado primero: es lo único de esta lista sobre lo que hay
+           algo que hacer, y el resto solo está guardado. */
+        papeles.sort(function(a, b){
+          var ma = (comoEsta(a) || {}).mal ? 0 : 1;
+          var mb = (comoEsta(b) || {}).mal ? 0 : 1;
+          return (ma - mb) || (Date.parse(b.creado_en) - Date.parse(a.creado_en));
+        });
+        /* En cuántos trámites se está usando cada uno. Es lo que convierte
+           la lista en una bóveda y no en una carpeta de descargas. */
+        return sb.from('tramite_documentos').select('documento, tramite');
+      })
+      .then(function(r){
+        usosPorDoc = {};
+        ((r && r.data) || []).forEach(function(x){
+          usosPorDoc[x.documento] = (usosPorDoc[x.documento] || 0) + 1;
+        });
+        pintaDocs();
+      })
+      .catch(function(e){
+        console.warn('[CIIP] documentos:', e && e.message);
+        papeles = []; usosPorDoc = {};
+        pintaDocs();
+      });
+  }
+
+  if (dcLista){
+    if (dcNav) dcNav.addEventListener('click', function(){ location.hash = 'documentos'; });
+    var dcVolver = document.getElementById('dcVolver');
+    if (dcVolver) dcVolver.addEventListener('click', function(){
+      if (location.hash) location.hash = '';
+    });
+    window.CIIP_PINTA_DOCS   = cargaDocs;
+    window.CIIP_REPINTA_DOCS = pintaDocs;
+    /* Se pide al cargar por el contador del renglón: un documento vencido
+       ahí dentro es de las pocas cosas que conviene ver sin buscarlas. */
+    cargaDocs();
   }
 
 })();

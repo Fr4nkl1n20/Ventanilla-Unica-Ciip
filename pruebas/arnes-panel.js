@@ -98,6 +98,7 @@
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
               devueltoAbre, devueltoMira, escaleraAbre, escaleraMira,
+              docsAbre, docsMira,
               ayudaAbre, ayudaMira, ayudaFaq,
               logosMiran], volcar);
   });
@@ -1362,6 +1363,55 @@
           document.getElementById('afBorrar').textContent, 'Borrar');
     document.getElementById('afCerrar').click();
     document.getElementById('acVolver').click();
+  }
+
+  /* ═══════════ LA BÓVEDA ═══════════
+     Los recaudos ya se guardaban y se reutilizaban entre trámites. Lo que
+     faltaba era verlos todos, y saber cuál está vencido antes de que te lo
+     diga un ente devolviéndote la solicitud. */
+  function docsAbre(){
+    document.getElementById('navDocs').click();
+  }
+
+  function docsMira(){
+    igual('bóveda: el renglón abre su vista', document.body.getAttribute('data-vista'), 'documentos');
+
+    var fichas = document.querySelectorAll('#dcLista .ci-ficha');
+    igual('bóveda: están los tres documentos', fichas.length, 3);
+    igual('bóveda: y el renglón los cuenta',
+          document.getElementById('navDocsN').textContent, '3');
+
+    /* Lo caducado primero: es lo único de esta lista sobre lo que hay algo
+       que hacer. */
+    igual('bóveda: el vencido va el primero',
+          fichas[0].querySelector('.ct-chip').textContent.trim(), 'Vencido');
+    ok('bóveda: y se enmarca como una devolución',
+       fichas[0].classList.contains('vencido'), fichas[0].className, 'con la clase vencido');
+
+    /* Treinta días de aviso: el que vence dentro de doce ya lo dice. */
+    var textos = [].map.call(fichas, function(f){ return f.textContent; }).join(' | ');
+    ok('bóveda: avisa del que está por vencer antes de que venza',
+       /Vence pronto/.test(textos), 'busca "Vence pronto"', 'aparece');
+
+    /* El tipo se enseña con su nombre, no con el código interno. Ese
+       nombre ya estaba escrito, repartido por los trámites que lo piden. */
+    ok('bóveda: cada uno con su nombre, no con su código',
+       /Acta constitutiva/i.test(textos) && !/acta_constitutiva/.test(textos),
+       'busca "Acta constitutiva" y no "acta_constitutiva"', 'el nombre');
+    ok('bóveda: y con el nombre del archivo que subiste',
+       /acta-constitutiva\.pdf/.test(textos), 'busca "acta-constitutiva.pdf"', 'aparece');
+
+    /* En cuántos trámites se usa: es lo que la convierte en bóveda y no en
+       una carpeta de descargas. */
+    ok('bóveda: dice en cuántos trámites se usa cada uno',
+       /Se usa en 2 trámites/.test(textos), 'busca "Se usa en 2 trámites"', 'aparece');
+    ok('bóveda: y cuando no se usa en ninguno, lo dice',
+       /Todavía no se ha usado/.test(textos), 'busca "Todavía no se ha usado"', 'aparece');
+
+    ok('bóveda: cada uno se puede abrir', fichas.length === document.querySelectorAll('#dcLista .btn').length,
+       document.querySelectorAll('#dcLista .btn').length + ' botones', '3 botones');
+
+    document.getElementById('dcVolver').click();
   }
 
   /* ═══════════ AYUDA Y GUÍA ═══════════
