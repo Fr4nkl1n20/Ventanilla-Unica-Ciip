@@ -746,6 +746,11 @@ body[data-vista="tramite"] #secTramites{display:none;}
   background:var(--block); color:var(--navy2); border:1px solid var(--line);
   border-radius:7px; padding:7px 12px;}
 .sol-doc .sd-btn:hover{border-color:var(--cyan-deep);}
+.sd-ver{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
+  background:transparent; border:1px solid var(--line); border-radius:8px;
+  padding:6px 11px; cursor:pointer; flex:none; margin-right:8px;}
+.sd-ver:hover{border-color:var(--navy2);}
+.sd-ver:disabled{opacity:.5; cursor:default;}
 .sol-doc .sd-ya{font-size:10px; font-weight:800; letter-spacing:.03em; color:var(--good);
   background:var(--good-bg); border-radius:5px; padding:2px 7px; flex:none;}
 
@@ -3469,7 +3474,7 @@ applyLang('en');
 
       /* Si ya hay un documento de ese tipo en la bóveda, se reutiliza: no
          se le vuelve a pedir. Ese es el punto de todo el diseño. */
-      sb.from('documentos').select('id, nombre_original')
+      sb.from('documentos').select('id, nombre_original, archivo')
         .eq('tipo', r.tipo).order('creado_en', {ascending:false}).limit(1)
         .then(function(d){
           var ya = (d.data || [])[0];
@@ -3478,6 +3483,31 @@ applyLang('en');
           est.textContent = ya.nombre_original + ' · ' + (u.reutilizado || '');
           var sello = el('span', 'sd-ya', '✓');
           fila.insertBefore(sello, btn);
+
+          /* Poder MIRARLO antes de enviar. El nombre del archivo no basta
+             para saber si es el bueno: "pasaporte.pdf" puede ser el vencido,
+             o el del año pasado. Y esto se reutiliza entre trámites, así que
+             el fallo viajaría de uno a otro sin que nadie lo mire.
+
+             El cubo es privado: se pide una URL firmada, que caduca. */
+          var mirar = el('button', 'sd-ver', u.co_abrir || '');
+          mirar.type = 'button';
+          mirar.addEventListener('click', function(){
+            mirar.disabled = true;
+            sb.storage.from('recaudos').createSignedUrl(ya.archivo, 120)
+              .then(function(rs){
+                mirar.disabled = false;
+                var url = rs && rs.data && rs.data.signedUrl;
+                if (!url) throw new Error('sin url');
+                window.open(url, '_blank', 'noopener');
+              })
+              .catch(function(e){
+                console.warn('[CIIP] ver recaudo:', e && (e.message || e));
+                mirar.disabled = false;
+                mirar.textContent = u.co_noabre || '';
+              });
+          });
+          fila.insertBefore(mirar, btn);
         }).catch(function(){});
     });
     caja.appendChild(lista);

@@ -240,6 +240,11 @@
       return {data:citasVivas.concat(CONFIRMADAS[caso] || []), error:null};
     }
     if (tabla === 'tipos_tramite')    return {data:TIPOS, error:null};
+    if (tabla === 'documentos'){
+      /* Lo que ya esta en la boveda. El formulario lo reutiliza y ofrece
+         mirarlo antes de enviar. */
+      return {data:[{id:'doc1', nombre_original:'pasaporte.pdf', archivo:'u1/pasaporte.pdf'}], error:null};
+    }
     if (tabla === 'tipos_documento')  return {data:[], error:null};
     if (tabla === 'bancos_aliados')   return {data:[], error:null};
     if (tabla === 'tramites'){

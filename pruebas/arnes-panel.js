@@ -827,6 +827,18 @@
        campos.length + ' campos y ' + docs.length + ' recaudos', 'formulario con campos y recaudos');
     igual('rnc: pide los ocho datos de la empresa', campos.length, 8);
     igual('rnc: y sus doce recaudos', docs.length, 12);
+
+    /* Un recaudo que ya estaba en la bóveda se reutiliza, pero hay que poder
+       MIRARLO antes de enviar: "pasaporte.pdf" puede ser el vencido, y como
+       se reutiliza entre trámites el fallo viajaría de uno a otro. */
+    (function(){
+      var conArchivo = caja.querySelector('.sol-doc[data-ya]');
+      ok('recaudos: el que ya estaba en la bóveda se puede mirar',
+         !!conArchivo && !!conArchivo.querySelector('.sd-ver'),
+         conArchivo ? (conArchivo.querySelector('.sd-ver') ? 'con botón' : 'sin botón')
+                    : 'ninguno reutilizado',
+         'un botón para verlo');
+    })();
     /* Solo uno, y es el único que el SNC marca como condicional: el poder,
        cuando quien firma no es el representante de los estatutos. */
     igual('rnc: solo el poder es opcional',
