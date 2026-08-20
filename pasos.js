@@ -246,6 +246,13 @@ window.CIIP_PASOS = {
       em_falta:     "Ponle al menos la razón social: es lo que se copia en los formularios.",
       em_rellena:   "Estos datos rellenan solos los formularios que los piden. Siempre puedes cambiarlos dentro de un trámite.",
       em_deempresa: "De tu empresa",
+      /* Entregar lo emitido. El circuito acababa en el aire: el estado
+         cambiaba a "Resuelta" y el documento se mandaba por fuera. */
+      co_emitido:   "Documento emitido por el organismo",
+      co_faltadoc:  "Adjunta el documento que emitió el organismo: es lo que el inversionista vino a buscar.",
+      co_subiendo:  "Entregando…",
+      tr_entregado: "Tu documento",
+      tr_entrega_p: "Lo emitió el organismo y el CIIP lo dejó en tu expediente.",
       /* Borrar de verdad. Va en dos toques y no con una ventana del
          navegador: el aviso se lee donde está el botón. */
       ac_borrar:    "Borrar",
@@ -624,6 +631,14 @@ window.CIIP_PASOS = {
       em_falta:     "Give it at least a company name: that is what gets copied into the forms.",
       em_rellena:   "These details fill the forms that ask for them. You can always change them inside a procedure.",
       em_deempresa: "From your company",
+      /* Delivering what was issued. The circuit ended in mid-air: the
+         status changed to "Completed" and the document went out by other
+         means. */
+      co_emitido:   "Document issued by the agency",
+      co_faltadoc:  "Attach the document the agency issued: it is what the investor came for.",
+      co_subiendo:  "Delivering…",
+      tr_entregado: "Your document",
+      tr_entrega_p: "The agency issued it and CIIP left it in your file.",
       /* A real delete. Two taps, not a browser dialog: the warning reads
          where the button is. */
       ac_borrar:    "Delete",
@@ -997,6 +1012,12 @@ window.CIIP_PASOS = {
       em_falta:     "Dê-lhe pelo menos a razão social: é o que se copia nos formulários.",
       em_rellena:   "Estes dados preenchem sozinhos os formulários que os pedem. Pode sempre alterá-los dentro de um trâmite.",
       em_deempresa: "Da sua empresa",
+      /* Entregar o que foi emitido. */
+      co_emitido:   "Documento emitido pelo organismo",
+      co_faltadoc:  "Anexe o documento que o organismo emitiu: é o que o investidor veio buscar.",
+      co_subiendo:  "A entregar…",
+      tr_entregado: "O seu documento",
+      tr_entrega_p: "Foi o organismo que o emitiu e o CIIP deixou-o no seu processo.",
       /* Apagar a sério. Em dois toques, não numa janela do navegador. */
       ac_borrar:    "Apagar",
       ac_borrar_ok: "Carregue outra vez para apagar",
@@ -1369,6 +1390,12 @@ window.CIIP_PASOS = {
       em_falta:     "Dagli almeno la ragione sociale: è quello che si copia nei moduli.",
       em_rellena:   "Questi dati riempiono da soli i moduli che li chiedono. Puoi sempre cambiarli dentro una pratica.",
       em_deempresa: "Dalla tua azienda",
+      /* Consegnare quello che è stato rilasciato. */
+      co_emitido:   "Documento rilasciato dall'ente",
+      co_faltadoc:  "Allega il documento che ha rilasciato l'ente: è quello per cui l'investitore è venuto.",
+      co_subiendo:  "Consegna in corso…",
+      tr_entregado: "Il tuo documento",
+      tr_entrega_p: "L'ha rilasciato l'ente e il CIIP l'ha messo nel tuo fascicolo.",
       /* Cancellare davvero. In due tocchi, non con una finestra del browser. */
       ac_borrar:    "Elimina",
       ac_borrar_ok: "Premi di nuovo per eliminarlo",
@@ -1741,6 +1768,12 @@ window.CIIP_PASOS = {
       em_falta:     "至少填上公司名称：表单里复制的就是它。",
       em_rellena:   "这些资料会自动填入需要它们的表单。在具体业务里随时可以修改。",
       em_deempresa: "来自公司资料",
+      /* 交付已签发的文件。 */
+      co_emitido:   "主管机关签发的文件",
+      co_faltadoc:  "请附上主管机关签发的文件：那才是投资人要的东西。",
+      co_subiendo:  "交付中…",
+      tr_entregado: "您的文件",
+      tr_entrega_p: "由主管机关签发，CIIP 已放入您的档案。",
       /* 真正删除。需要点两次，不用浏览器弹窗。 */
       ac_borrar:    "删除",
       ac_borrar_ok: "再点一次就删除",
@@ -2113,6 +2146,12 @@ window.CIIP_PASOS = {
       em_falta:     "Укажите хотя бы название: именно оно подставляется в формы.",
       em_rellena:   "Эти данные сами заполняют формы, которые их спрашивают. Внутри заявки их всегда можно поменять.",
       em_deempresa: "Из данных компании",
+      /* Выдача выпущенного документа. */
+      co_emitido:   "Документ, выданный ведомством",
+      co_faltadoc:  "Приложите документ, выданный ведомством: именно за ним пришёл инвестор.",
+      co_subiendo:  "Передаём…",
+      tr_entregado: "Ваш документ",
+      tr_entrega_p: "Его выдало ведомство, а CIIP положил его в ваше дело.",
       /* Настоящее удаление. В два нажатия, без окна браузера. */
       ac_borrar:    "Удалить",
       ac_borrar_ok: "Нажмите ещё раз, чтобы удалить",

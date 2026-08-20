@@ -99,6 +99,7 @@
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
               devueltoAbre, devueltoMira, escaleraAbre, escaleraMira,
               empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
+              entregaAbre, entregaMira,
               docsAbre, docsMira,
               ayudaAbre, ayudaMira, ayudaFaq,
               logosMiran], volcar);
@@ -126,7 +127,11 @@
     /* Antes decia "3 de 10": tres tarjetas de la fase 01 llevaban
        "Completado" escrito a mano. Ninguna cuenta era de nadie. Ahora sale
        de tus tramites, y en ningun expediente de prueba hay uno resuelto. */
-    igual('camino: la fase 01 cuenta sus 10 trámites', deEtapa(0, '.jcount'), '0 de 10 listos');
+    /* En 'lleno' hay una visa resuelta y en los demás expedientes no: el
+       mismo catálogo de diez trámites cuenta distinto según quién mira, que
+       es justo lo que un marcador escrito a mano no podía hacer. */
+    igual('camino: la fase 01 cuenta lo que tú llevas hecho', deEtapa(0, '.jcount'),
+          (CASO === 'lleno') ? '1 de 10 listos' : '0 de 10 listos');
     igual('camino: la fase 02 cuenta sus 7',           deEtapa(1, '.jcount'), '0 de 7 listos');
     igual('camino: la fase 03 cuenta sus 10',          deEtapa(2, '.jcount'), '0 de 10 listos');
     igual('camino: la fase 04 cuenta sus 3',           deEtapa(3, '.jcount'), '0 de 3 listos');
@@ -134,7 +139,8 @@
 
     (function(){
       var barra = etapas()[0].querySelector('.jbar > span');
-      igual('camino: la barra de la fase 01 mide lo hecho', barra.style.width, '0%');
+      igual('camino: la barra de la fase 01 mide lo hecho', barra.style.width,
+            (CASO === 'lleno') ? '10%' : '0%');
     })();
 
     /* La palomita estaba escrita en el marcado y se quedaba en verde con
@@ -167,20 +173,25 @@
       function chip(ref){ var c = document.querySelector('.tcard[data-tr="' + ref + '"] .t-top .chip'); return c ? c.textContent.trim() : ''; }
       function reloj(ref){ var t = document.querySelector('.tcard[data-tr="' + ref + '"] .t-time'); return t ? t.textContent.trim() : ''; }
 
+      /* Tantas tarjetas en verde como trámites resueltos tengas: ni una
+         más. En 'lleno' hay uno —la visa— y en los demás ninguno. */
       var listas = document.querySelectorAll('.tcard[data-st="listo"]').length;
-      ok('estados: ninguna dice "Completado" sin un trámite resuelto', listas === 0,
-         listas + ' tarjetas en verde', 'ninguna');
+      var esperadas = (CASO === 'lleno') ? 1 : 0;
+      ok('estados: tantas en verde como trámites resueltos', listas === esperadas,
+         listas + ' tarjetas en verde', esperadas + '');
 
       /* Una que nadie ha pedido: por iniciar, y con su estimado intacto.
          El estimado no es un estado, es cuánto tarda: sigue siendo cierto. */
-      igual('estados: sin solicitud, la tarjeta está por iniciar', st('c1'), 'pendiente');
-      igual('estados: y su distintivo lo dice', chip('c1'), 'Por iniciar');
+      /* La c1 es la visa, y en 'lleno' está resuelta: la que no ha pedido
+         nadie en ningún expediente es la c16. */
+      igual('estados: sin solicitud, la tarjeta está por iniciar', st('c16'), 'pendiente');
+      igual('estados: y su distintivo lo dice', chip('c16'), 'Por iniciar');
       /* El renglón del reloj de la visa decía "Emitida el 18 jun" —una
          fecha de emisión de un trámite que nadie había pedido—. Ahora dice
          cuándo se puede pedir, que es lo que el panel sabe sin expediente. */
       ok('estados: y el reloj dice cuándo se pide, no cuándo se emitió',
-         !/(Emitid|Rilasciat|Issued|签发|Выдан)/i.test(reloj('c1')),
-         reloj('c1'), 'sin fecha de emisión');
+         !/(Emitid|Rilasciat|Issued|签发|Выдан)/i.test(reloj('c16')),
+         reloj('c16'), 'sin fecha de emisión');
       /* Y tampoco lo cuenta la descripción: seis estaban escritas como si
          el trámite ya estuviera hecho —"tu cédula ya está lista"— o con la
          persona de la demostración dentro —"tu licencia italiana"—. Una
@@ -211,9 +222,11 @@
               document.querySelector('.ftab[data-f="accion"] .n').textContent, '2');
         igual('estados: y el de en proceso, el uno',
               document.querySelector('.ftab[data-f="proceso"] .n').textContent, '1');
-        ok('estados: el filtro de completados se apaga si no hay ninguno',
-           document.querySelector('.ftab[data-f="listo"]').disabled,
-           'apagado=' + document.querySelector('.ftab[data-f="listo"]').disabled, 'apagado=true');
+        igual('estados: y el de completados, el resuelto',
+              document.querySelector('.ftab[data-f="listo"] .n').textContent, '1');
+        ok('estados: un trámite resuelto pone su tarjeta en verde',
+           st('c1') === 'listo' && chip('c1') === 'Completado',
+           st('c1') + ' / ' + chip('c1'), 'listo / Completado');
       }
 
       if (CASO === 'vacio'){
@@ -269,8 +282,11 @@
       var en = deEtapa(0, '.jcount');
       applyLang('es');
       var es = deEtapa(0, '.jcount');
-      ok('camino: el renglón se traduce', en === '0 of 10 done' && es === '0 de 10 listos',
-         'en="' + en + '" es="' + es + '"', 'en="0 of 10 done" es="0 de 10 listos"');
+      var n = (CASO === 'lleno') ? '1' : '0';
+      ok('camino: el renglón se traduce',
+         en === n + ' of 10 done' && es === n + ' de 10 listos',
+         'en="' + en + '" es="' + es + '"',
+         'en="' + n + ' of 10 done" es="' + n + ' de 10 listos"');
     })();
 
     /* ═══════════ EL CAMINO: CÓMO SE LLAMAN LAS ETAPAS ═══════════
@@ -1380,6 +1396,35 @@
     document.getElementById('acVolver').click();
   }
 
+  /* ═══════════ LO QUE SE ENTREGA AL FINAL ═══════════
+     El circuito acababa en el aire: el gestor pulsaba "Resuelta", el estado
+     cambiaba, y el documento —lo único que la persona vino a buscar— se
+     mandaba por fuera. Ningún expediente de prueba tenía un trámite
+     resuelto, y por eso no lo notó nadie. */
+  function entregaAbre(){
+    if (CASO !== 'lleno') return;
+    location.hash = 'tramite-c1';
+  }
+
+  function entregaMira(){
+    if (CASO !== 'lleno') return;
+    var b = document.querySelector('#trReal .tr-entrega');
+    ok('entrega: el trámite resuelto enseña lo que se emitió', !!b,
+       b ? 'la enseña' : 'no hay caja', 'una caja con el documento');
+    igual('entrega: con su título', b.querySelector('.te-t').textContent.trim(), 'Tu documento');
+    igual('entrega: y el archivo que dejó el equipo',
+          b.querySelector('.te-n').textContent.trim(), 'visa-tr1-estampada.pdf');
+    ok('entrega: con un botón para abrirlo', !!b.querySelector('.btn'),
+       b.querySelector('.btn') ? 'lo tiene' : 'sin botón', 'con botón');
+    /* Encima de la escalera: quien abre un trámite terminado viene a por el
+       papel, no a repasar por dónde pasó. */
+    var pasos = document.querySelector('#trReal .tr-pasos');
+    ok('entrega: y va encima de la escalera',
+       !!pasos && (b.compareDocumentPosition(pasos) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
+       'la caja va antes', 'antes de los pasos');
+    location.hash = '';
+  }
+
   /* ═══════════ MI EMPRESA ═══════════
      La razón social se escribía a mano en ocho formularios, el RIF en seis,
      la dirección fiscal en cinco. Y escribir ocho veces el mismo nombre es
@@ -1834,6 +1879,18 @@
     /* Confirmar sin fecha no puede pasar: la base rechaza una cita
        confirmada sin ella, y aquí se dice con palabras. */
     fichas[0].querySelectorAll('.btn')[1].click();
+    /* Resolver sin adjuntar nada dejaba al inversionista con un aviso de
+       que ya está y sin nada en la mano. */
+    (function(){
+      var f = [].slice.call(document.querySelectorAll('#colaTram .co-ficha'))
+        .filter(function(x){ return /Presentada ante|revisión/i.test(x.textContent); })[0];
+      if (!f) return;
+      var sube = f.querySelector('.co-emitir');
+      if (!sube) return;
+      igual('cola: al presentar ante el ente se pide el documento emitido',
+            sube.querySelector('label').textContent.trim(), 'Documento emitido por el organismo');
+    })();
+
     igual('cola: sin fecha no confirma, y lo dice',
           fichas[0].querySelector('.co-aviso').textContent, 'Pon la fecha y la hora.');
 

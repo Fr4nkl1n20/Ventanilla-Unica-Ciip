@@ -51,7 +51,11 @@
     {codigo:'constitucion', ref_panel:'c5', ente:'SAREN',  activo:true},
     {codigo:'rif_empresa',  ref_panel:'c6', ente:'SENIAT', activo:true},
     {codigo:'rnc',          ref_panel:'c13', ente:'RNC',   activo:true},
-    {codigo:'solvencias',   ref_panel:'c14', ente:'Entes varios', activo:true}
+    {codigo:'solvencias',   ref_panel:'c14', ente:'Entes varios', activo:true},
+    /* La visa, que es la del tramite ya resuelto. Sin su tipo aqui, el
+       panel no sabe a que tarjeta pertenece y la deja en "por iniciar"
+       aunque el tramite este resuelto. */
+    {codigo:'visa_inversionista', ref_panel:'c1', ente:'SAIME', activo:true}
   ];
 
   /* El borrador se toca DESPUÉS que el devuelto a propósito: así se
@@ -68,7 +72,14 @@
          que enseñar, asi que el paso en curso ha de marcarse con palabras. */
       {id:'t3', tipo:'rif_personal', estado:'enviado',
        creado_en:'2026-08-17T10:00:00Z', enviado_en:'2026-08-17T10:00:00Z',
-       actualizado_en:'2026-08-17T10:00:00Z'}
+       actualizado_en:'2026-08-17T10:00:00Z'},
+      /* Uno RESUELTO, con su documento entregado. Hasta ahora ningun
+         expediente de prueba tenia uno, y por eso nadie noto que el
+         circuito acababa en el aire: el estado cambiaba y el inversionista
+         no recibia nada. */
+      {id:'t4', tipo:'visa_inversionista', estado:'resuelto',
+       creado_en:'2026-06-01T10:00:00Z', enviado_en:'2026-06-02T10:00:00Z',
+       resuelto_en:'2026-06-18T10:00:00Z', actualizado_en:'2026-06-18T10:00:00Z'}
     ],
     /* "Vacío" no es "sin filas": es SIN NADA QUE ANUNCIAR. Aquí hay un
        borrador que se quedó atrás porque el reintento del envío sí entró.
@@ -401,6 +412,15 @@
       return {data:mios, error:null};
     }
     if (tabla === 'tramite_documentos'){
+      /* El detalle de un tramite resuelto pregunta por lo ENTREGADO. Es la
+         misma consulta -con .eq('tramite')- pero de otro expediente, asi
+         que se distingue por el id: devolver los recaudos del gestor aqui
+         enseñaria "Tu documento" con el acta de otra persona dentro. */
+      if (op && op.eq && op.eq.tramite === 't4'){
+        return {data:[{documento:'dr1', documentos:{tipo:'resolucion',
+          nombre_original:'visa-tr1-estampada.pdf',
+          archivo:'u1/emitidos/visa-tr1-estampada.pdf'}}], error:null};
+      }
       /* Lo que subio el inversionista, para que el gestor lo revise. */
       return {data:[
         {documento:'d1', documentos:{tipo:'acta_constitutiva', nombre_original:'acta-bianchi.pdf', archivo:'u2/acta-bianchi.pdf'}},

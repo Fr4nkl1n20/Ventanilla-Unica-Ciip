@@ -351,6 +351,23 @@ svg{display:block;}
   padding:10px 12px; outline:none; width:100%;}
 .pf-campo input:focus, .pf-campo select:focus{border-color:var(--navy2);}
 .pf-campo.mal input, .pf-campo.mal select{border-color:var(--rust);}
+/* --- entregar lo emitido, en la cola --- */
+.co-emitir{display:flex; flex-direction:column; gap:5px; margin-top:11px;}
+.co-emitir label{font-size:11.5px; font-weight:700; color:var(--gray);}
+.co-emitir input[type="file"]{font:inherit; font-size:12px; color:var(--ink);}
+.co-ficha.mal .co-emitir label{color:var(--rust);}
+/* Lo entregado, en el detalle del trámite del inversionista. */
+.tr-entrega{background:var(--good-bg); border:1px solid var(--good);
+  border-radius:var(--r); padding:15px 17px; margin-bottom:16px;}
+.tr-entrega .te-t{font-size:13px; font-weight:800; color:var(--good);
+  letter-spacing:.01em;}
+.tr-entrega .te-p{font-size:12px; color:var(--gray); margin-top:4px;}
+.tr-entrega .te-pie{display:flex; align-items:center; gap:10px; margin-top:12px;
+  flex-wrap:wrap;}
+.tr-entrega .te-n{font-family:ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size:11.5px; color:var(--gray); word-break:break-all;}
+.tr-entrega .btn{margin-left:auto;}
+
 /* --- mi empresa --- */
 .empresa-vista{display:none;}
 body[data-vista="empresa"] .empresa-vista{display:block;}
@@ -3976,6 +3993,58 @@ applyLang(idiomaParaMi());
   /* ─────────────────────────────────────────────────────────────────
      EL FORMULARIO
      ───────────────────────────────────────────────────────────────── */
+  /* Lo que el organismo emitió, en el detalle del trámite del
+     inversionista. Es lo único que vino a buscar: va encima de la escalera
+     y no debajo, que para cuando algo está resuelto la escalera ya no
+     cuenta nada que no se sepa.
+
+     La caja aparece SOLO si hay documento. Un "Tu documento" vacío sobre
+     un trámite resuelto sería peor que no ponerlo: diría que existe algo
+     que no se puede abrir. */
+  function pintaEntregado(tr, caja){
+    var u = T();
+    sb.from('tramite_documentos').select('documento, documentos(tipo, nombre_original, archivo)')
+      .eq('tramite', tr.id)
+      .then(function(r){
+        var fila = ((r && r.data) || []).filter(function(x){
+          return x.documentos && x.documentos.tipo === 'resolucion';
+        })[0];
+        if (!fila) return;
+        var d = fila.documentos;
+
+        var b = el('div', 'tr-entrega');
+        b.appendChild(el('div', 'te-t', u.tr_entregado || ''));
+        b.appendChild(el('div', 'te-p', u.tr_entrega_p || ''));
+
+        var pie = el('div', 'te-pie');
+        pie.appendChild(el('span', 'te-n', d.nombre_original || ''));
+        var abrir = el('button', 'btn navy', u.co_abrir || '');
+        abrir.type = 'button';
+        abrir.addEventListener('click', function(){
+          abrir.disabled = true;
+          sb.storage.from('recaudos').createSignedUrl(d.archivo, 120)
+            .then(function(rs){
+              abrir.disabled = false;
+              var url = rs && rs.data && rs.data.signedUrl;
+              if (!url) throw new Error('sin url');
+              window.open(url, '_blank', 'noopener');
+            })
+            .catch(function(e){
+              console.warn('[CIIP] abrir lo emitido:', e && (e.message || e));
+              abrir.disabled = false;
+              abrir.textContent = u.co_noabre || '';
+            });
+        });
+        pie.appendChild(abrir);
+        b.appendChild(pie);
+
+        /* Al principio de la caja: la consulta tarda, y para cuando
+           contesta la escalera ya está puesta. */
+        caja.insertBefore(b, caja.firstChild);
+      })
+      .catch(function(e){ console.warn('[CIIP] entregado:', e && e.message); });
+  }
+
   function pintaFormulario(tipo, borrador){
     var u = T();
     var datos = (borrador && borrador.datos) || {};
@@ -4261,6 +4330,11 @@ applyLang(idiomaParaMi());
       });
       caja.appendChild(arreglar);
     }
+
+    /* Resuelto y con algo que entregar. Iba a ser lo primero que mira
+       quien abre un trámite terminado —vino a por el papel, no a por la
+       escalera—, así que va encima de todo. */
+    if (tr.estado === 'resuelto') pintaEntregado(tr, caja);
 
     var lista = el('ol', 'tr-pasos');
     caja.appendChild(lista);
@@ -5551,6 +5625,28 @@ applyLang(idiomaParaMi());
       var aviso = el('div', 'co-aviso');
       f.appendChild(aviso);
 
+      /* Resolver un trámite sin entregar nada dejaba el circuito en el
+         aire: el estado cambiaba y el documento se mandaba por fuera, por
+         correo o por WhatsApp. Aquí se adjunta lo que emitió el organismo,
+         y va a parar a la bóveda del inversionista colgado de su solicitud.
+
+         Este hueco es el mismo que llenará el conector cuando el ente
+         conteste: la respuesta "aprobado" trae el documento y se deja
+         exactamente aquí. Hoy lo trae una persona. */
+      var archivo = null;
+      if (t.estado === 'ante_el_ente'){
+        var sube = el('div', 'co-emitir');
+        var etiq = el('label', null, u.co_emitido || '');
+        etiq.setAttribute('for', 'co-doc-' + t.id);
+        sube.appendChild(etiq);
+        archivo = document.createElement('input');
+        archivo.type = 'file';
+        archivo.id = 'co-doc-' + t.id;
+        archivo.accept = '.pdf,.jpg,.jpeg,.png';
+        sube.appendChild(archivo);
+        f.appendChild(sube);
+      }
+
       var botones = el('div', 'co-botones');
       (CO_PASOS[t.estado] || []).forEach(function(p, i){
         var b = el('button', 'btn ' + (i === 0 && p.nota ? 'ghost' : 'navy'), u[p.k] || '');
@@ -5564,9 +5660,30 @@ applyLang(idiomaParaMi());
             nota.focus();
             return;
           }
+          /* Y resolver SIN el documento deja al inversionista con un
+             aviso de que ya está y sin nada en la mano. */
+          if (p.a === 'resuelto' && !(archivo && archivo.files && archivo.files[0])){
+            f.classList.add('mal');
+            aviso.textContent = u.co_faltadoc || '';
+            if (archivo) archivo.focus();
+            return;
+          }
           f.classList.remove('mal');
           aviso.textContent = '';
           b.disabled = true;
+          var elArchivo = (archivo && archivo.files && archivo.files[0]) || null;
+          if (elArchivo){
+            b.textContent = u.co_subiendo || '';
+            entrega(t, elArchivo)
+              .then(function(){ mueveTramite(t, p.a, (nota.value || '').trim(), b, aviso, u[p.k]); })
+              .catch(function(e){
+                console.warn('[CIIP] entregar:', e && (e.message || e));
+                b.disabled = false;
+                b.textContent = u[p.k] || '';
+                aviso.textContent = u.co_error || '';
+              });
+            return;
+          }
           mueveTramite(t, p.a, (nota.value || '').trim(), b, aviso, u[p.k]);
         });
         botones.appendChild(b);
@@ -5657,6 +5774,43 @@ applyLang(idiomaParaMi());
       .catch(function(e){
         console.warn('[CIIP] expediente:', e && e.message);
         lista.appendChild(el('div', 'co-vacia', u.co_error || ''));
+      });
+  }
+
+  /* Deja el documento emitido en la bóveda del inversionista y lo cuelga
+     de su trámite. Tres pasos, en este orden: el archivo, su ficha y el
+     vínculo. Si falla el primero no se crea la ficha, y si falla la ficha
+     no se cuelga nada: así no queda un vínculo apuntando al vacío.
+
+     La carpeta 'emitidos' separa lo que deja el equipo de lo que subió la
+     persona, y es lo que mira la política del cubo para dejarlo entrar. */
+  function entrega(tr, archivo){
+    var limpio = archivo.name.replace(/[^\w.\-]+/g, '_').slice(-60);
+    var ruta = tr.inversionista + '/emitidos/' +
+               Math.random().toString(36).slice(2, 10) + '-' + limpio;
+
+    return sb.storage.from('recaudos').upload(ruta, archivo, {upsert:false})
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        /* 'validado' porque lo emitió el ente: no hay nada que revisar, y
+           de paso el inversionista no puede borrarlo sin querer. */
+        return sb.from('documentos').insert({
+          inversionista: tr.inversionista,
+          tipo: 'resolucion',
+          archivo: ruta,
+          nombre_original: archivo.name,
+          estado: 'validado'
+        }).select().single();
+      })
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        return sb.from('tramite_documentos').insert({
+          tramite: tr.id, documento: r.data.id
+        });
+      })
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        return true;
       });
   }
 
