@@ -52,6 +52,13 @@
   var sinSql = (caso === 'sinsql');
   if (sinSql) caso = 'gestor';
 
+  /* 'admin' son los mismos datos del gestor con el rol de administrador.
+     Hasta ahora NINGUN pase entraba con ese rol: por eso nadie noto que el
+     renglon de la barra no aparecia nunca. Un permiso que solo se prueba
+     por su ausencia no esta probado. */
+  var esAdmin = (caso === 'admin');
+  if (esAdmin) caso = 'gestor';
+
   /* El catálogo, con los tres tipos que usan las pruebas. ref_panel es lo
      que ata cada tipo a su tarjeta del panel (data-tr). */
   var TIPOS = [
@@ -292,8 +299,13 @@
       }
       /* El guardian pide el propio con .single(); la cola pide la lista de
          todos. Devolver lo mismo a los dos romperia uno de los dos. */
+      /* El rol propio llega SOLO por aqui, y a proposito: la sesion no lo
+         trae. Ese desfase entre "la sesion contesto" y "el rol llego" es
+         justo lo que dejaba el renglon de administrador escondido. */
+      var mio = PERFILES[caso] || PERFILES.lleno;
+      if (esAdmin) mio = {nombre_completo:mio.nombre_completo, pais:mio.pais, rol:'admin'};
       return op && op.single
-        ? {data:(PERFILES[caso] || PERFILES.lleno), error:null}
+        ? {data:mio, error:null}
         : {data:OTROS_PERFILES, error:null};
     }
     if (tabla === 'citas'){

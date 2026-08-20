@@ -119,7 +119,8 @@ $casos = @(
   @{ caso='sinnombre'; ancho='1400,1000' },
   @{ caso='gestor';    ancho='1400,1000' },
   @{ caso='estrecho';  ancho='760,900'   },
-  @{ caso='sinsql';    ancho='1400,1000' }
+  @{ caso='sinsql';    ancho='1400,1000' },
+  @{ caso='admin';     ancho='1400,1000' }
 )
 foreach ($c in $casos) {
   $caso  = $c.caso
@@ -135,7 +136,7 @@ foreach ($c in $casos) {
             # El presupuesto de tiempo crece con la cadena de pasos del arnes: cada uno
   # espera medio segundo a que la base conteste. Si se queda corto, el arnes
   # no llega a volcar y el fallo parece un error de JavaScript que no existe.
-  '--enable-logging=stderr','--virtual-time-budget=25000',
+  '--enable-logging=stderr','--virtual-time-budget=40000',
             "--window-size=$ancho",
             "--user-data-dir=$trabajo\perfil-$caso", $url)
   $p = Start-Process $navegador -ArgumentList $args -RedirectStandardOutput $salida `

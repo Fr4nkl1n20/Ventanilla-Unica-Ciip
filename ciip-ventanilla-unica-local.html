@@ -124,7 +124,12 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
     sb.from('perfiles').select('nombre_completo, pais, rol').eq('id', usuario.id).single()
       .then(function(r){
         if (r && r.data) aplicarPerfil(r.data.nombre_completo, r.data.pais, r.data.rol);
-        else if (r && r.error) console.warn('[CIIP] No se pudo leer el perfil:', r.error.message);
+        else if (r && r.error){
+          console.warn('[CIIP] No se pudo leer el perfil:', r.error.message);
+          /* Sin fila no hay rol que esperar. Sin esto, los tres relojes se
+             pasan cuatro segundos preguntando por algo que no va a venir. */
+          if (typeof PERFIL !== 'undefined') PERFIL.rolReal = true;
+        }
       })
       .catch(function(e){ console.warn('[CIIP] No se pudo leer el perfil:', e && e.message); });
   }
@@ -152,7 +157,14 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
       if (delCorreo) PERFIL.nombre = delCorreo;
     }
     if (pais)   PERFIL.pais   = pais;
-    if (rol)    PERFIL.rol    = rol;
+    /* PERFIL.real quiere decir "la sesión contestó", y eso pasa DOS veces:
+       primero con lo que trae la sesión misma —nombre y país, sin rol— y
+       después con la fila de perfiles, que es la única que sabe el rol.
+       Tres relojes de abajo esperaban a PERFIL.real para encender lo que
+       depende del rol, y se rendían en la primera: el renglón de
+       administrador no salía nunca por mucho que la base dijera admin.
+       Por eso hay una segunda marca: esta sí dice que el rol llegó. */
+    if (rol){ PERFIL.rol = rol; PERFIL.rolReal = true; }
     PERFIL.real = true;
 
     var n = document.querySelector('.u-name');   if (n) n.textContent = PERFIL.nombre;
@@ -6062,7 +6074,7 @@ applyLang(idiomaParaMi());
     (function esperaAlPerfil(){
       var rol = (typeof PERFIL !== 'undefined' && PERFIL.rol) || '';
       if (rol !== rolVisto){ rolVisto = rol; revisaCola(); }
-      if (typeof PERFIL !== 'undefined' && PERFIL.real) return;
+      if (typeof PERFIL !== 'undefined' && PERFIL.rolReal) return;
       if (intentos++ < 40) setTimeout(esperaAlPerfil, 100);
     })();
   }
@@ -6729,7 +6741,7 @@ applyLang(idiomaParaMi());
     (function esperaAlRol(){
       var rol = (typeof PERFIL !== 'undefined' && PERFIL.rol) || '';
       if (rol !== rolAc){ rolAc = rol; pintaActivos(); }
-      if (typeof PERFIL !== 'undefined' && PERFIL.real) return;
+      if (typeof PERFIL !== 'undefined' && PERFIL.rolReal) return;
       if (vecesAc++ < 40) setTimeout(esperaAlRol, 100);
     })();
   }
@@ -7643,7 +7655,7 @@ applyLang(idiomaParaMi());
     (function esperaAlRol(){
       var rol = (typeof PERFIL !== 'undefined' && PERFIL.rol) || '';
       if (rol !== rolUs){ rolUs = rol; if (usGrupo) usGrupo.hidden = !esAdmin(); }
-      if (typeof PERFIL !== 'undefined' && PERFIL.real) return;
+      if (typeof PERFIL !== 'undefined' && PERFIL.rolReal) return;
       if (vecesUs++ < 40) setTimeout(esperaAlRol, 100);
     })();
   }

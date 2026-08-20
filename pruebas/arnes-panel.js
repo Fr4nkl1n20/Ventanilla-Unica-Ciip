@@ -34,7 +34,12 @@
      prueba que mira "eres del equipo?" se creeria que eres inversionista y
      saldria roja por el nombre del pase, no por lo que mide. */
   var SIN_SQL = (PASE === 'sinsql');
-  var CASO = SIN_SQL ? 'gestor' : PASE;
+  var ES_ADMIN = (PASE === 'admin');
+  var CASO = (SIN_SQL || ES_ADMIN) ? 'gestor' : PASE;
+  /* El rol de la cabecera sale del PASE, no de los datos: 'admin' trae
+     los mismos tramites que un gestor, pero no el mismo rotulo. */
+  var ROL_ESPERADO = ES_ADMIN ? 'Administrador'
+                   : CASO === 'gestor' ? 'Equipo CIIP' : 'Inversionista';
 
   function ok(nombre, bien, got, exp){
     R.push({n:nombre, ok:!!bien, got:String(got), exp:String(exp)});
@@ -106,6 +111,7 @@
               devueltoAbre, devueltoMira, escaleraAbre, escaleraMira,
               usuariosMira, usuariosCambia, usuariosTrasCambiar,
               sinSqlAbre, sinSqlMira,
+              adminMira, adminAbre, adminDentro,
               empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
               entregaAbre, entregaMira,
               docsAbre, docsMira,
@@ -625,7 +631,7 @@
           /* En el expediente del equipo el rol no es el mismo, y la prueba no
              puede darlo por hecho: diría que hay un fallo donde hay un gestor. */
           igual('sesión: el rol y el país de tu expediente', sub,
-                (CASO === 'gestor' ? 'Equipo CIIP' : 'Inversionista') + ' · Italia');
+                ROL_ESPERADO + ' · Italia');
         }
       })();
 
@@ -937,7 +943,7 @@
     /* Se eligió "Italy" con la interfaz en inglés; lo guardado es "Italia". */
     igual('perfil: el país se guarda en español aunque se eligiera en inglés',
           (document.querySelector('.u-sub') || {}).textContent.trim(),
-          (CASO === 'gestor' ? 'Equipo CIIP' : 'Inversionista') + ' · Italia');
+          ROL_ESPERADO + ' · Italia');
     igual('perfil: las iniciales se rehacen',
           (document.querySelector('.avatar') || {}).textContent.trim(), 'AR');
     ok('perfil: y el aviso del avatar se apaga', !chip.classList.contains('incompleto'),
@@ -1513,7 +1519,7 @@
      escribir un update: el CIIP dependía de una persona con la llave de la
      base de datos. */
   function usuariosMira(){
-    if (SIN_SQL) return;
+    if (SIN_SQL || ES_ADMIN) return;
     var grupo = document.getElementById('grupoAdmin');
     /* Grupo propio, no colgado del de al lado: el aire entre grupos lo pone
        ese contenedor, y metido dentro del vecino dejaba "ACOMPAÑAMIENTO"
@@ -1538,7 +1544,7 @@
   }
 
   function usuariosCambia(){
-    if (CASO !== 'gestor' || SIN_SQL) return;
+    if (CASO !== 'gestor' || SIN_SQL || ES_ADMIN) return;
     igual('usuarios: la vista se abre por su dirección',
           document.body.getAttribute('data-vista'), 'usuarios');
 
@@ -1616,10 +1622,44 @@
   }
 
   function usuariosTrasCambiar(){
-    if (CASO !== 'gestor' || SIN_SQL) return;
+    if (CASO !== 'gestor' || SIN_SQL || ES_ADMIN) return;
     var t = document.getElementById('usLista').textContent;
     ok('usuarios: el cambio se guarda y se dice', /Rol cambiado|Rol puesto/.test(t),
        'busca "Rol cambiado"', 'lo dice');
+    location.hash = '';
+  }
+
+  /* ═══════════ EL RENGLÓN DEL ADMINISTRADOR ═══════════
+     Este pase faltaba, y su falta costó caro: ningún expediente entraba
+     con rol admin, así que el renglón solo se probaba por su AUSENCIA. Un
+     permiso que solo se comprueba cuando no toca no está comprobado.
+
+     Lo que escondía: el panel apunta el perfil dos veces —primero lo que
+     trae la sesión, sin rol, y después la fila de perfiles, que es la
+     única que lo sabe— y el reloj que espera al rol se rendía en la
+     primera. El renglón no salía nunca por mucho que la base dijera
+     admin. */
+  function adminMira(){
+    if (!ES_ADMIN) return;
+    var grupo = document.getElementById('grupoAdmin');
+    ok('admin: a un administrador SÍ se le ofrece el renglón',
+       !grupo.hidden, 'oculto=' + grupo.hidden, 'oculto=false');
+    /* Y con el rol puesto, no con el de la sesión vacía. */
+    igual('admin: la cabecera lo dice también',
+          document.querySelector('.u-sub').textContent.indexOf('Administrador') >= 0, true);
+  }
+
+  function adminAbre(){
+    if (!ES_ADMIN) return;
+    document.getElementById('navUsuarios').click();
+  }
+
+  function adminDentro(){
+    if (!ES_ADMIN) return;
+    igual('admin: el renglón abre la vista',
+          document.body.getAttribute('data-vista'), 'usuarios');
+    igual('admin: con las cuentas dentro',
+          document.querySelectorAll('#usLista .ci-ficha').length, 4);
     location.hash = '';
   }
 
