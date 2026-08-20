@@ -184,8 +184,13 @@
   /* Los perfiles de los demas. Solo los lee un gestor, y solo si esta puesta
      la politica de supabase-gestor.sql. */
   var OTROS_PERFILES = [
-    {id:'u2', nombre_completo:'Marta Bianchi'},
-    {id:'u3', nombre_completo:''}
+    {id:'u1', nombre_completo:'Franklin Reyes',  pais:'Italia',    rol:'gestor'},
+    {id:'u2', nombre_completo:'Marta Bianchi',   pais:'Italia',    rol:'inversionista'},
+    /* Sin nombre a proposito: la lista tiene que decirlo en vez de dejar
+       el hueco, igual que la cola. */
+    {id:'u3', nombre_completo:'',                pais:'',          rol:'inversionista'},
+    {id:'u4', nombre_completo:'Saskia Calderon', pais:'Venezuela', rol:'gestor',
+     rol_cambiado_en:'2026-08-11T10:00:00Z'}
   ];
 
   /* El expediente personal. En 'sinnombre' viene con la cadena vacía, que es
@@ -252,6 +257,19 @@
 
   function respuesta(tabla, op){
     if (tabla === 'perfiles'){
+      /* Guardar el perfil propio -nombre y pais- y repartir roles son dos
+         updates sobre la misma tabla. Se distinguen por lo que traen. */
+      if (op && op.update && 'rol' in op.update){
+        /* Nadie cambia su propio rol: lo rechaza el disparador de la base,
+           y el falso tiene que rechazarlo tambien o la prueba de que el
+           panel lo impide daria verde sin comprobar nada. */
+        if (op.eq && op.eq.id === USUARIO.id){
+          return {data:null, error:{message:'Nadie puede cambiar su propio rol'}};
+        }
+        var quien = OTROS_PERFILES.filter(function(p){ return p.id === (op.eq || {}).id; })[0];
+        if (quien){ quien.rol = op.update.rol; quien.rol_cambiado_en = '2026-08-20T12:00:00Z'; }
+        return {data:(quien || {}), error:null};
+      }
       /* El guardian pide el propio con .single(); la cola pide la lista de
          todos. Devolver lo mismo a los dos romperia uno de los dos. */
       return op && op.single

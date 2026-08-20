@@ -98,6 +98,7 @@
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
               devueltoAbre, devueltoMira, escaleraAbre, escaleraMira,
+              usuariosMira, usuariosCambia, usuariosTrasCambiar,
               empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
               entregaAbre, entregaMira,
               docsAbre, docsMira,
@@ -1422,6 +1423,72 @@
     ok('entrega: y va encima de la escalera',
        !!pasos && (b.compareDocumentPosition(pasos) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
        'la caja va antes', 'antes de los pasos');
+    location.hash = '';
+  }
+
+  /* ═══════════ USUARIOS Y EQUIPO ═══════════
+     Hasta ahora, para hacer gestor a alguien había que entrar a Supabase y
+     escribir un update: el CIIP dependía de una persona con la llave de la
+     base de datos. */
+  function usuariosMira(){
+    var grupo = document.getElementById('grupoAdmin');
+    /* El renglón solo se le ofrece a un admin. Es cortesía, no la
+       cerradura: la base vuelve a comprobar quién pide el cambio. */
+    if (CASO !== 'gestor'){
+      ok('usuarios: a quien no es admin no se le ofrece',
+         grupo.hidden, 'oculto=' + grupo.hidden, 'oculto=true');
+      return;
+    }
+    /* El expediente 'gestor' tiene rol gestor, no admin: tampoco lo ve. */
+    ok('usuarios: ni siquiera a un gestor',
+       grupo.hidden, 'oculto=' + grupo.hidden, 'oculto=true');
+
+    /* Se entra igual por la dirección, y la vista se pinta: lo que impide
+       el cambio es la base, no que el renglón no esté. */
+    location.hash = 'usuarios';
+  }
+
+  function usuariosCambia(){
+    if (CASO !== 'gestor') return;
+    igual('usuarios: la vista se abre por su dirección',
+          document.body.getAttribute('data-vista'), 'usuarios');
+
+    var m = document.querySelectorAll('#usMetricas .us-m');
+    igual('usuarios: con los cuatro números de arriba', m.length, 4);
+    igual('usuarios: y cuentan las cuentas de verdad',
+          m[0].querySelector('.n').textContent, '4');
+
+    var fichas = document.querySelectorAll('#usLista .ci-ficha');
+    igual('usuarios: están las cuatro cuentas', fichas.length, 4);
+    /* El equipo primero: quien abre esto viene a mirar quién tiene
+       permisos, no a repasar inversionistas. */
+    igual('usuarios: el equipo va primero',
+          document.querySelector('#usLista .us-sec').textContent.trim(), 'El equipo');
+    ok('usuarios: y una cuenta sin nombre lo dice',
+       /\(sin nombre en su expediente\)/.test(document.getElementById('usLista').textContent),
+       'busca "(sin nombre en su expediente)"', 'aparece');
+
+    /* La tuya no se toca: el desplegable llega apagado y lo dice. */
+    var mia = [].slice.call(fichas).filter(function(f){ return /Tu cuenta/.test(f.textContent); })[0];
+    ok('usuarios: tu propia cuenta no ofrece cambiarse', !!mia && mia.querySelector('select').disabled,
+       mia ? ('apagado=' + mia.querySelector('select').disabled) : 'no la encuentro', 'apagado=true');
+    ok('usuarios: y explica por qué',
+       /Nadie cambia su propio rol/.test(mia.textContent),
+       'busca el motivo', 'lo dice');
+
+    /* Y ahora sí: subir a alguien. */
+    var otra = [].slice.call(fichas).filter(function(f){ return /Marta Bianchi/.test(f.textContent); })[0];
+    var sel = otra.querySelector('select');
+    igual('usuarios: llega con el rol que tiene', sel.value, 'inversionista');
+    sel.value = 'gestor';
+    sel.dispatchEvent(new Event('change'));
+  }
+
+  function usuariosTrasCambiar(){
+    if (CASO !== 'gestor') return;
+    var t = document.getElementById('usLista').textContent;
+    ok('usuarios: el cambio se guarda y se dice', /Rol cambiado|Rol puesto/.test(t),
+       'busca "Rol cambiado"', 'lo dice');
     location.hash = '';
   }
 
