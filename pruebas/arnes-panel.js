@@ -369,11 +369,26 @@
          'borde=' + s.borderTopWidth, '1px');
     })();
 
+    /* Parejas LAS DE CADA FILA, no las cinco. En pantalla ancha van en una
+       sola y la comprobación es la de siempre; en una estrecha el camino se
+       reparte en varias, y exigir que la de arriba mida lo mismo que la de
+       abajo era pedirle a la rejilla algo que no significa nada.
+
+       Lo encontró la pasada estrecha el día que se añadió: 165/165/122/122/122,
+       que es exactamente lo correcto. */
     (function(){
-      var altos = [];
-      etapas().forEach(function(e){ altos.push(e.offsetHeight); });
-      var parejas = altos.every(function(a){ return a === altos[0]; });
-      ok('cajas: las cuatro miden lo mismo de alto', parejas, altos.join(' / '), 'todas iguales');
+      var porFila = {};
+      etapas().forEach(function(e){
+        var y = Math.round(e.getBoundingClientRect().top);
+        (porFila[y] = porFila[y] || []).push(e.offsetHeight);
+      });
+      var filas = Object.keys(porFila);
+      var parejas = filas.every(function(y){
+        return porFila[y].every(function(a){ return a === porFila[y][0]; });
+      });
+      ok('cajas: las de cada fila miden lo mismo de alto', parejas,
+         filas.map(function(y){ return porFila[y].join('/'); }).join('  —  '),
+         'iguales dentro de su fila');
     })();
 
     /* Separadas las cuatro, el punto azul solo no bastaba para encontrar la
@@ -424,6 +439,66 @@
 
       PERFIL.pais = antes;
       applyLang('es');
+    })();
+
+    /* ═══════════ LA BARRA EN PANTALLA ESTRECHA ═══════════
+       Por debajo de 840 px la barra se aparta —y hasta ahora nada la traía
+       de vuelta—. Mis trámites, Documentos, Mi empresa, Activos, Citas,
+       Ayuda y Usuarios desaparecían sin forma de llegar a ellos. No es que
+       el menú quedara feo: quedaba inservible. */
+    (function(){
+      var btn = document.getElementById('menuBtn');
+      var barra = document.getElementById('barraLateral');
+      ok('menú: hay un botón para traer la barra de vuelta', !!btn,
+         btn ? 'existe' : 'no existe', 'existe');
+
+      var estrecha = window.innerWidth <= 840;
+      if (!estrecha){
+        /* En pantalla ancha la barra está siempre puesta, así que el botón
+           sería un control que no hace nada. */
+        igual('menú: y en pantalla ancha no se ofrece',
+              window.getComputedStyle(btn).display, 'none');
+        ok('menú: porque la barra ya está a la vista',
+           barra.getBoundingClientRect().right > 0,
+           'acaba en ' + Math.round(barra.getBoundingClientRect().right), 'a la vista');
+        return;
+      }
+
+      /* De aquí abajo, solo la pasada estrecha. */
+      ok('menú: en pantalla estrecha sí se ofrece',
+         window.getComputedStyle(btn).display !== 'none',
+         window.getComputedStyle(btn).display, 'visible');
+      ok('menú: y la barra empieza fuera de la pantalla',
+         barra.getBoundingClientRect().right <= 1,
+         'acaba en ' + Math.round(barra.getBoundingClientRect().right), 'fuera');
+
+      /* Abrir y cerrar, que es lo único que tiene que hacer. */
+      btn.click();
+      ok('menú: al pulsarlo, la barra entra',
+         document.body.classList.contains('menu-abierto'),
+         document.body.className, 'con la clase menu-abierto');
+      /* Y ENTRA CON ANCHO. La primera versión deslizaba una barra de cero
+         píxeles: la clase se ponía, la cortina bajaba y no se veía nada,
+         porque en ese ancho --sb vale 0 y la barra usaba esa variable para
+         su propio ancho. Medir la clase no habría encontrado el fallo. */
+      ok('menú: y la barra ocupa un ancho de verdad',
+         barra.getBoundingClientRect().width > 100,
+         Math.round(barra.getBoundingClientRect().width) + ' px', 'más de 100 px');
+      igual('menú: y lo dice para quien no la ve', btn.getAttribute('aria-expanded'), 'true');
+
+      /* Elegir un renglón lo cierra: nadie quiere el menú encima de la
+         pantalla que acaba de pedir. */
+      document.getElementById('navDocs').click();
+      ok('menú: elegir un renglón lo cierra',
+         !document.body.classList.contains('menu-abierto'),
+         document.body.className, 'sin la clase');
+      location.hash = '';
+
+      btn.click();
+      document.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape'}));
+      ok('menú: y Escape también',
+         !document.body.classList.contains('menu-abierto'),
+         document.body.className, 'sin la clase');
     })();
 
     /* ═══════════ LA CABECERA ═══════════

@@ -109,7 +109,20 @@ $todos   = @()
 $fallos  = 0
 $graves  = @()
 
-foreach ($caso in @('lleno','vacio','sinnombre','gestor')) {
+# Cuatro expedientes en pantalla ancha, y uno mas ESTRECHO. Sin esa quinta
+# pasada, todo lo que ocurre por debajo de 840px -donde la barra lateral se
+# aparta- no lo miraba nadie: el boton del menu deslizaba una barra de cero
+# pixeles y las pruebas daban verde, porque a 1400 el fallo no existe.
+$casos = @(
+  @{ caso='lleno';     ancho='1400,1000' },
+  @{ caso='vacio';     ancho='1400,1000' },
+  @{ caso='sinnombre'; ancho='1400,1000' },
+  @{ caso='gestor';    ancho='1400,1000' },
+  @{ caso='estrecho';  ancho='760,900'   }
+)
+foreach ($c in $casos) {
+  $caso  = $c.caso
+  $ancho = $c.ancho
   $salida  = Join-Path $trabajo "dom-$caso.html"
   $errores = Join-Path $trabajo "consola-$caso.txt"
   $url     = 'file:///' + ($copia.Replace([char]92, '/')) + "?caso=$caso"
@@ -122,7 +135,7 @@ foreach ($caso in @('lleno','vacio','sinnombre','gestor')) {
   # espera medio segundo a que la base conteste. Si se queda corto, el arnes
   # no llega a volcar y el fallo parece un error de JavaScript que no existe.
   '--enable-logging=stderr','--virtual-time-budget=25000',
-            '--window-size=1400,1000',
+            "--window-size=$ancho",
             "--user-data-dir=$trabajo\perfil-$caso", $url)
   $p = Start-Process $navegador -ArgumentList $args -RedirectStandardOutput $salida `
                      -RedirectStandardError $errores -NoNewWindow -Wait -PassThru
