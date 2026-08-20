@@ -66,6 +66,16 @@ if (Test-Path $banderas) {
   if (-not (Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force | Out-Null }
   Copy-Item (Join-Path $banderas '*.svg') $dest -Force
 }
+# Y los logos de los organismos, por lo mismo: sin la carpeta, el onerror
+# de cada <img> retira su placa y la prueba de que cargan daria rojo sin que
+# hubiera nada roto.
+$logos = Join-Path $raiz 'logos'
+if (Test-Path $logos) {
+  $destl = Join-Path $trabajo 'logos'
+  if (-not (Test-Path $destl)) { New-Item -ItemType Directory -Path $destl -Force | Out-Null }
+  Copy-Item (Join-Path $logos '*.png') $destl -Force
+  Copy-Item (Join-Path $logos '*.svg') $destl -Force
+}
 Copy-Item $arnes   $trabajo -Force
 Copy-Item $mentira $trabajo -Force
 

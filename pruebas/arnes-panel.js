@@ -97,7 +97,8 @@
               rncAbre, rncTrasAbrir, solvenciasAbre, solvenciasTrasAbrir,
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
-              devueltoAbre, devueltoMira, escaleraAbre, escaleraMira], volcar);
+              devueltoAbre, devueltoMira, escaleraAbre, escaleraMira,
+              logosMiran], volcar);
   });
 
   function pruebas(){
@@ -1278,6 +1279,48 @@
           document.getElementById('afBorrar').textContent, 'Borrar');
     document.getElementById('afCerrar').click();
     document.getElementById('acVolver').click();
+  }
+
+  /* ═══════════ LOS LOGOS DE LOS ORGANISMOS ═══════════
+     Va al FINAL de la cadena a propósito: una imagen tarda en cargar, y
+     preguntarle nada más pintar la página daría rojo por lo que aún no ha
+     llegado. Para cuando llega aquí han pasado veinte pasos.
+
+     Cada <img> lleva un onerror que retira su placa entera, así que un
+     archivo que falte NO deja un icono roto: deja la tarjeta sin logo y
+     nadie se entera. Esta prueba es lo único que lo notaría. */
+  function logosMiran(){
+    var placas = document.querySelectorAll('.t-marca img.ilogo');
+    ok('logos: las tarjetas con organismo llevan el suyo', placas.length >= 15,
+       placas.length + ' placas', 'quince o más');
+
+    var rotos = [];
+    [].forEach.call(placas, function(im){
+      if (!im.complete || !im.naturalWidth) rotos.push(im.getAttribute('src'));
+    });
+    ok('logos: todos cargan de verdad', rotos.length === 0,
+       rotos.length ? rotos.join(', ') : 'ninguno roto', 'ninguno roto');
+
+    /* Debajo de cada logo va la sigla del organismo. Sin ella, un logo que
+       no se reconoce no dice de quién es. */
+    var sinSigla = [];
+    [].forEach.call(document.querySelectorAll('.t-marca'), function(m){
+      var s = m.querySelector('.t-sigla');
+      if (!s || !s.textContent.trim()) sinSigla.push(m.parentNode.getAttribute('data-tr'));
+    });
+    ok('logos: y cada uno dice de quién es', sinSigla.length === 0,
+       sinSigla.length ? sinSigla.join(', ') : 'ninguna sin sigla', 'ninguna sin sigla');
+
+    /* Y donde la sigla ya lo dice, el distintivo de al lado no lo repite.
+       Antes de esto, "SUSCERTE" salía dos veces en la misma tarjeta. */
+    var repes = [];
+    [].forEach.call(document.querySelectorAll('.tcard'), function(c){
+      var s = c.querySelector('.t-sigla'), b = c.querySelector('.ebadge');
+      if (s && b && s.textContent.trim() === b.textContent.trim())
+        repes.push(c.getAttribute('data-tr'));
+    });
+    ok('logos: y no repite la sigla al lado del nombre', repes.length === 0,
+       repes.length ? repes.join(', ') : 'ninguna repetida', 'ninguna repetida');
   }
 
   /* ═══════════ CITAS Y AGENDA ═══════════

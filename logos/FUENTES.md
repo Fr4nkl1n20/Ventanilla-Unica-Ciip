@@ -13,14 +13,40 @@ muestran (13 px), para que se vean nítidos en pantallas densas sin pesar.
 | `ivss.svg` | IVSS | Wikimedia Commons, `File:IVSS (azul).svg` |
 | `sapi.png` | SAPI | Sitio oficial, `sapi.gob.ve` |
 | `sencamer.png` | SENCAMER | Sitio oficial, `sencamer.gob.ve` |
+| `snc.png` | Servicio Nacional de Contrataciones | Wikimedia Commons, `File:Logo Servicio Nacional de Contrataciones.png` |
+| `sacs.png` | SACS (Contraloría Sanitaria) | Sitio oficial, `sacs.gob.ve` |
+| `suscerte.png` | SUSCERTE | Sitio oficial, `suscerte.gob.ve` |
+| `inces.png` | INCES | Sitio oficial, `inces.gob.ve` |
+| `mppre.png` | MPPRE (Relaciones Exteriores) | Sitio oficial, `mppre.gob.ve` (`img/logo_mppre_redes.png`) |
+| `mpprijp.png` | MPPRIJP (Interiores, Justicia y Paz) | Sitio oficial, `mpprijp.gob.ve` (recortado del cintillo de cabecera) |
+| `mpppst.png` | MPPPST (Ministerio del Trabajo) | Cintillo oficial publicado en `inces.gob.ve`, recortado |
 | `ciip.png` | CIIP | Extraído del propio panel, donde ya iba incrustado en base64 |
 
-## Lo que falta
+## Cómo se prepararon
 
-No se encontró logo utilizable para **INCES**, **FAOV**, **INSAI**, **VUCE**
-ni **RNC**. Sus tarjetas siguen mostrando solo las siglas, que es exactamente
-como estaba todo antes de este cambio: si no hay archivo, el `onerror` de la
-etiqueta `<img>` la retira y no queda ningún hueco ni icono roto.
+Los que venían como **cintillo** —bandera + nombre del ministerio + a veces
+otro logo al lado— se recortaron al primer bloque de tinta y luego a su caja,
+antes de bajarlos a 48 px. Es lo que hace que `mpppst.png` diga "TRABAJO" y no
+arrastre el logo del INCES que iba pegado a su derecha.
+
+## Lo que sigue faltando
+
+No se encontró logo utilizable para:
+
+| Organismo | Por qué |
+|---|---|
+| **MINEC** (permiso ambiental) | Su logo lleva el texto en gris clarísimo; a 13 px queda una mancha ilegible. El icono del sitio es solo la bandera, que no dice MINEC |
+| **BANAVIH** (FAOV) | Solo publica la versión en blanco, invisible sobre la placa. Su icono es un arco azul sin nombre |
+| **VUCE** (importación y exportación) | El sitio no respondió |
+| **INSAI**, **FAOV**, **RNET como tal** | Sin sitio propio con logo |
+
+Y hay tarjetas que **no tienen un organismo único**, así que no les toca logo:
+el Registro Civil o consejo comunal, el periódico mercantil, la banca aliada,
+la alcaldía —depende del municipio—, los bomberos y la de "entes varios".
+
+Sus tarjetas siguen mostrando solo las siglas, que es como estaba todo antes:
+si no hay archivo, el `onerror` de la etiqueta `<img>` retira la placa entera
+y no queda ningún hueco ni icono roto.
 
 Para añadir uno que falte, deja el archivo aquí y cambia el `<div class="t-ico">`
 de esa tarjeta por la casilla del organismo:
@@ -33,9 +59,20 @@ de esa tarjeta por la casilla del organismo:
 ```
 
 Y quita de esa tarjeta el `<span class="ebadge">VUCE</span>`, que ya estaría
-repitiendo las siglas.
+repitiendo las siglas. Hay una prueba que lo comprueba
+(`logos: y no repite la sigla al lado del nombre`).
 
-## Dos avisos
+## Tres avisos
+
+**El de MPPRE es el escudo nacional.** Es el archivo que la propia Cancillería
+usa como su logo, pero no es una marca propia: si otro ministerio entra
+después, los dos enseñarían lo mismo.
+
+**Dos tarjetas llevan el logo del organismo que hace el trámite, no el del
+trámite.** En "Registro Nacional de Contratistas" el logo es del SNC, y en
+"Registro Nacional de Entidades de Trabajo" es del Ministerio del Trabajo. Por
+eso esas dos conservan su distintivo —RNC, RNET— al lado del nombre: la sigla
+de abajo dice quién lo lleva y el distintivo dice qué es.
 
 **Hay dos tarjetas que nombran varios organismos** — `IVSS · INCES · FAOV` y
 `SENCAMER · INSAI` — y solo llevan el logo del primero. Se ve un logo donde el
