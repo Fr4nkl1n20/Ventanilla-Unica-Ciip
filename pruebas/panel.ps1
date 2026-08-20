@@ -175,10 +175,18 @@ if ($pasan -eq $total -and $graves.Count -eq 0) {
 } else {
   Write-Host "  $pasan de $total pruebas superadas" -ForegroundColor Red
 }
+# Las claves de traduccion. No corre en el navegador -lee los archivos-:
+# una clave que se pide desde el codigo no se ve en el DOM.
 Write-Host ''
+Write-Host '  LAS CLAVES DE TRADUCCION' -ForegroundColor DarkCyan
+# Se pasa por Write-Host: node escribe directo a la salida y sin esto sus
+# lineas salen desordenadas entre las de arriba.
+& node (Join-Path $PSScriptRoot 'claves.js') 2>&1 | ForEach-Object { Write-Host $_ }
+$clavesMal = ($LASTEXITCODE -ne 0)
+
 Write-Host '  Esto prueba que hace el panel con lo que la base le conteste.'
 Write-Host '  Hablar con el Supabase de verdad -entrar, crear una solicitud,'
 Write-Host '  subir recaudos- sigue siendo a mano: ver PRUEBAS.md.'
 Write-Host ''
 
-if ($pasan -ne $total -or $graves.Count -gt 0) { exit 1 }
+if ($pasan -ne $total -or $graves.Count -gt 0 -or $clavesMal) { exit 1 }

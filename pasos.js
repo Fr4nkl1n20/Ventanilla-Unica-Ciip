@@ -207,6 +207,7 @@ window.CIIP_PASOS = {
          no lo contaba nadie. */
       ay_sub:     "Cómo funciona tu panel",
       ay_h1:      "Cómo va una solicitud",
+      ay_ente:    "el organismo",
       ay_devuelta:"Si falta algo te la devolvemos con una nota, y la corriges sobre la misma solicitud: no se abre una segunda.",
       ay_h2:      "Qué dice cada distintivo",
       ay_d1:      "Nadie ha pedido este trámite todavía.",
@@ -592,6 +593,7 @@ window.CIIP_PASOS = {
          panel works, which nothing did. */
       ay_sub:     "How your panel works",
       ay_h1:      "How a request moves",
+      ay_ente:    "the agency",
       ay_devuelta:"If something is missing we send it back with a note, and you fix it on the same request: no second one is opened.",
       ay_h2:      "What each label means",
       ay_d1:      "Nobody has requested this procedure yet.",
@@ -976,6 +978,7 @@ window.CIIP_PASOS = {
       /* Ajuda e guia. Não repete as perguntas da página inicial. */
       ay_sub:     "Como funciona o seu painel",
       ay_h1:      "Como anda um pedido",
+      ay_ente:    "o organismo",
       ay_devuelta:"Se faltar algo devolvemo-lo com uma nota, e corrige-o no mesmo pedido: não se abre um segundo.",
       ay_h2:      "O que diz cada distintivo",
       ay_d1:      "Ainda ninguém pediu este trâmite.",
@@ -1354,6 +1357,7 @@ window.CIIP_PASOS = {
       /* Aiuto e guida. Non ripete le domande della pagina iniziale. */
       ay_sub:     "Come funziona il tuo pannello",
       ay_h1:      "Come procede una richiesta",
+      ay_ente:    "l'ente",
       ay_devuelta:"Se manca qualcosa te la rimandiamo con una nota, e la correggi sulla stessa richiesta: non se ne apre una seconda.",
       ay_h2:      "Che cosa dice ogni etichetta",
       ay_d1:      "Nessuno ha ancora richiesto questa pratica.",
@@ -1732,6 +1736,7 @@ window.CIIP_PASOS = {
       /* 帮助与指南。不重复首页的问答。 */
       ay_sub:     "面板怎么用",
       ay_h1:      "一份申请如何推进",
+      ay_ente:    "主管机关",
       ay_devuelta:"若有缺漏，我们会附上说明退回，您在同一份申请上修改，不会另开一份。",
       ay_h2:      "每个标识的含义",
       ay_d1:      "还没有人申请这项业务。",
@@ -2110,6 +2115,7 @@ window.CIIP_PASOS = {
       /* Помощь и руководство. Не повторяет вопросы с главной. */
       ay_sub:     "Как устроен ваш панель",
       ay_h1:      "Как движется заявка",
+      ay_ente:    "ведомство",
       ay_devuelta:"Если чего-то не хватает, мы вернём её с пояснением, и вы правите ту же заявку: вторая не заводится.",
       ay_h2:      "Что значит каждая метка",
       ay_d1:      "Эту процедуру ещё никто не запрашивал.",
