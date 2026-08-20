@@ -125,6 +125,14 @@
          'done=' + e.classList.contains('done') + ' num=' + num, 'done=false num=1');
     })();
 
+    /* El numero del marcado tambien, no solo el que calcula el script: es lo
+       que se ve durante el instante que tarda la pagina en contar, y llevaba
+       24 con 31 tarjetas puestas. */
+    ok('camino: y el marcado no arranca con una cuenta vieja',
+       /<span class="n">31<\/span>/.test(document.querySelector('.ftab[data-f="todos"]').outerHTML) ||
+       document.querySelector('.ftab[data-f="todos"] .n').textContent === '31',
+       document.querySelector('.ftab[data-f="todos"] .n').textContent, '31');
+
     igual('camino: los filtros cuentan las 31 tarjetas',
           (document.querySelector('.ftab[data-f="todos"] .n') || {}).textContent, '31');
 
