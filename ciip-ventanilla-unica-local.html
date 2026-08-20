@@ -2244,17 +2244,16 @@ function conDatos(txt, dict){
 
 
 /* ──────────────────────────────────────────────────────────────────────
-   EL PAÍS DEL EXPEDIENTE ELIGE EL IDIOMA, Y LA BANDERA
+   EL PAÍS DEL EXPEDIENTE ELIGE EL IDIOMA
    ──────────────────────────────────────────────────────────────────────
    El panel abría SIEMPRE en inglés, aunque hubieras entrado en español por
    la pantalla de acceso y aunque tu expediente dijera que eres de Venezuela.
    Cada vez que abrías la página había que volver a cambiarlo.
 
-   Y la bandera del botón era la de España para todo el que leyera en
-   español. A un venezolano eso le dice de dónde creemos que es. Ahora se
-   enseña la SUYA —pero solo cuando en su país se habla lo que está
-   leyendo—: a un italiano leyendo en español se le sigue enseñando la de
-   España, porque la bandera acompaña al idioma y no al pasaporte.
+   La bandera del botón NO se toca: es la del idioma y no la de tu país. Se
+   probó al revés —la tuya cuando en tu país se habla lo que lees— y se
+   quitó: en un selector de idiomas, cada bandera identifica al idioma, y una
+   que cambia según quién mira deja de ser una etiqueta.
    ───────────────────────────────────────────────────────────────── */
 var IDIOMA_PAIS = {
   es:'AR BO CL CO CR CU DO EC ES GQ GT HN MX NI PA PE PR PY SV UY VE'.split(' '),
@@ -2356,12 +2355,7 @@ function applyLang(lang){
     document.getElementById('langCur').textContent = lang.toUpperCase();
     var bandera = document.getElementById('langFlag');
     if (bandera){
-      /* La tuya si en tu país se habla lo que estás leyendo; si no, la del
-         idioma, que es de quién es la bandera cuando no es tuya. */
-      var mio = codigoDePais(typeof PERFIL !== 'undefined' ? PERFIL.pais : '');
-      var cual = (mio && idiomaDePais(mio) === lang) ? mio.toLowerCase()
-                                                     : cur.getAttribute('data-flag');
-      bandera.src = 'banderas/' + cual + '.svg';
+      bandera.src = 'banderas/' + cur.getAttribute('data-flag') + '.svg';
       bandera.style.display = '';
     }
   }

@@ -300,27 +300,12 @@
       applyLang('es');
     })();
 
-    /* La bandera acompaña al IDIOMA, salvo que sea la tuya: a un venezolano
-       leyendo en español, la de España le dice de dónde creemos que es. */
+    /* De dónde sale el idioma, por orden. La bandera no entra aquí: es la
+       del idioma y no la de tu país, y así se queda. */
     (function(){
-      var b = document.getElementById('langFlag');
       var antes = PERFIL.pais;
-
-      PERFIL.pais = 'Venezuela';
-      applyLang('es');
-      ok('idioma: si en tu país se habla lo que lees, la bandera es la tuya',
-         /banderas\/ve\.svg$/.test(b.getAttribute('src') || ''),
-         b.getAttribute('src'), 'banderas/ve.svg');
-
-      /* Pero solo entonces: un venezolano leyendo en ruso no lleva su
-         bandera al lado de "RU". */
-      applyLang('ru');
-      ok('idioma: y si no, la del idioma',
-         /banderas\/ru\.svg$/.test(b.getAttribute('src') || ''),
-         b.getAttribute('src'), 'banderas/ru.svg');
-
-      /* De dónde sale el idioma, por orden. */
       try { window.localStorage.removeItem('ciip_lang'); } catch(e){}
+      PERFIL.pais = 'Venezuela';
       igual('idioma: tu país lo elige mientras no elijas tú', idiomaParaMi(), 'es');
       PERFIL.pais = 'Brasil';
       igual('idioma: y cambia si cambia tu país', idiomaParaMi(), 'pt');
