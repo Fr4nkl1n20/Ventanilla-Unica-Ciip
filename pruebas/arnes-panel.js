@@ -138,11 +138,30 @@
     igual('camino: los filtros cuentan las 31 tarjetas',
           (document.querySelector('.ftab[data-f="todos"] .n') || {}).textContent, '31');
 
-    /* El renglón de la barra decía 15 cuando ya había 24 tarjetas: estaba
-       escrito a mano. Ahora se cuenta, y esta prueba es lo que impide que
-       vuelva a quedarse atrás la próxima vez que crezca el catálogo. */
-    igual('barra: "Mis trámites" cuenta las tarjetas que hay',
-          (document.getElementById('navTramitesN') || {}).textContent, '31');
+    /* El renglón contaba las tarjetas del catálogo —decía cuántos trámites
+       EXISTEN, que es justo lo que "Mis" no significa—. Ahora cuenta los
+       TUYOS en marcha, como hace el renglón de las citas: así los dos
+       números de la barra significan lo mismo.
+
+       En el expediente 'lleno' hay tres: uno devuelto, un borrador y uno
+       recién enviado. Ninguno resuelto, así que los tres están en marcha. */
+    (function(){
+      var n = document.getElementById('navTramitesN');
+      /* Se cuenta contra lo que la propia lista dibuja, no contra un número
+         escrito: cada expediente de prueba trae los suyos, y el expediente
+         "vacío" no es "sin filas" sino "sin nada que anunciar". Una cifra a
+         mano aquí rompería cada vez que alguien toque un fixture. */
+      var vivos = 0;
+      document.querySelectorAll('#mtLista .ci-ficha').forEach(function(f){
+        if (!f.classList.contains('pasada')) vivos++;
+      });
+      igual('barra: "Mis trámites" cuenta los tuyos en marcha, no el catálogo',
+            n.hidden ? '0' : n.textContent, String(vivos));
+      ok('barra: y solo se ve si hay alguno',
+         n.hidden === (vivos === 0),
+         'oculto=' + n.hidden + ' con ' + vivos + ' en marcha',
+         vivos ? 'oculto=false' : 'oculto=true');
+    })();
 
     /* El renglón ya no lleva data-i18n: lo compone el mismo bloque que lo
        cuenta, así que el cambio de idioma tiene que alcanzarlo aparte. */

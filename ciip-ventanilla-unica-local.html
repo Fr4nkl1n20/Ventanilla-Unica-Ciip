@@ -331,6 +331,22 @@ svg{display:block;}
   padding:10px 12px; outline:none; width:100%;}
 .pf-campo input:focus, .pf-campo select:focus{border-color:var(--navy2);}
 .pf-campo.mal input, .pf-campo.mal select{border-color:var(--rust);}
+/* --- mis tramites: la misma vista que la agenda, con otra lista --- */
+.mistram-vista{display:none;}
+body[data-vista="mistramites"] .mistram-vista{display:block;}
+body[data-vista="mistramites"] .solo-inicio,
+body[data-vista="mistramites"] #avisoDemo.show,
+body[data-vista="mistramites"] #secTramites,
+body[data-vista="mistramites"] .faq-sec{display:none;}
+body[data-vista="mistramites"] .fase-bar{display:flex;}
+body[data-vista="mistramites"] #faseVolver,
+body[data-vista="mistramites"] #trVolver,
+body[data-vista="mistramites"] #ciVolver{display:none;}
+body[data-vista="mistramites"] #mtVolver{display:inline-flex;}
+#mtVolver{display:none;}
+/* La devuelta es la unica sobre la que hay algo que hacer. */
+.ci-ficha.reclama{border-color:var(--amber);}
+
 /* --- citas y agenda: una vista propia --- */
 .citas-vista{display:none;}
 body[data-vista="citas"] .citas-vista{display:block;}
@@ -1160,7 +1176,9 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
            "Citas y agenda" abre una vista propia, este es la única salida
            natural y tenía que dejar de ser decorado. -->
       <button class="sb-item active" id="navPanel" type="button"><span class="dot"></span><span data-i18n="nav.panel">Dashboard</span></button>
-      <div class="sb-item"><span class="dot"></span><span data-i18n="nav.procedures">My procedures</span><span class="cnt" id="navTramitesN">15</span></div>
+      <!-- El numero contaba las 31 tarjetas del catalogo, no las tuyas: decia
+           cuantos tramites EXISTEN, que es justo lo que "Mis" no significa. -->
+      <button class="sb-item" id="navTramites" type="button"><span class="dot"></span><span data-i18n="nav.procedures">My procedures</span><span class="cnt" id="navTramitesN" hidden></span></button>
       <div class="sb-item"><span class="dot"></span><span data-i18n="nav.company">My company</span></div>
       <div class="sb-item"><span class="dot"></span><span data-i18n="nav.documents">Documents</span><span class="cnt">9</span></div>
     </div>
@@ -1254,6 +1272,10 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <!-- Desde el detalle de un tramite se vuelve a SU fase. El data-i18n de
            dentro se cambia por JS (p1.name, p2.name...) para que el nombre de
            la fase siga traduciendose solo al cambiar de idioma. -->
+      <button class="volver" id="mtVolver" type="button">
+        <span class="v-ico" aria-hidden="true">‹</span>
+        <span data-i18n="nav.panel">Dashboard</span>
+      </button>
       <button class="volver" id="ciVolver" type="button">
         <span class="v-ico" aria-hidden="true">‹</span>
         <span data-i18n="nav.panel">Dashboard</span>
@@ -1745,6 +1767,16 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 
     <!-- Las preguntas se pliegan bajo su cabecera, igual que los trámites de
          cada fase. Arranca plegada: la portada es el índice. -->
+    <!-- Mis tramites: lo que TU has pedido, con el estado que dice la base.
+         La portada de al lado enseña el catalogo entero; esto es tu parte. -->
+    <div class="mistram-vista">
+      <div class="sec-h">
+        <div class="t" data-i18n="nav.procedures">My procedures</div>
+        <div class="sub" id="mtSub"></div>
+      </div>
+      <div class="ci-lista" id="mtLista"></div>
+    </div>
+
     <!-- Citas y agenda. Es una vista propia, con su direccion: se llega
          desde la barra lateral y la flecha "atras" del navegador funciona. -->
     <div class="citas-vista">
@@ -2078,6 +2110,7 @@ function applyLang(lang){
      perfil —y con él el rol— llega después de que la página se dibuje. */
   if (window.CIIP_REPINTA_COLA)   window.CIIP_REPINTA_COLA();
   if (window.CIIP_REPINTA_AGENDA) window.CIIP_REPINTA_AGENDA();
+  if (window.CIIP_REPINTA_MISTRAM) window.CIIP_REPINTA_MISTRAM();
 }
 (function(){
   var btn=document.getElementById('langBtn'), menu=document.getElementById('langMenu');
@@ -2204,8 +2237,6 @@ function applyLang(lang){
        y el índice de la izquierda no puede decir que hay cuatro trámites.
        Estaba escrito a mano —decía 15 cuando ya eran 24— así que ahora
        sale de contarlas: el catálogo crece y el número va detrás solo. */
-    var reng = document.getElementById('navTramitesN');
-    if (reng) reng.textContent = document.querySelectorAll('.tcard').length;
     var n = {todos:tarjetas.length, accion:0, proceso:0, listo:0};
     tarjetas.forEach(function(c){
       var s = c.getAttribute('data-st');
@@ -2320,6 +2351,7 @@ function applyLang(lang){
     /* La agenda se rellena al entrar, no al cargar la página: la mayoría de
        las visitas no pasan por ella y no hay que gastarles una consulta. */
     if (tipo === 'citas' && window.CIIP_PINTA_AGENDA) window.CIIP_PINTA_AGENDA();
+    if (tipo === 'mistramites' && window.CIIP_PINTA_MISTRAM) window.CIIP_PINTA_MISTRAM();
 
     var fase = null;
     if (tipo === 'fase') {
@@ -2363,6 +2395,7 @@ function applyLang(lang){
     var t = /^#tramite-(c\d+)$/.exec(h);
     if (t) return {tipo:'tramite', id:t[1]};
     if (h === '#citas') return {tipo:'citas'};
+    if (h === '#tramites') return {tipo:'mistramites'};
     return null;
   }
 
@@ -2462,7 +2495,9 @@ function applyLang(lang){
 
   window.CIIP_BARRA = function(vista){
     document.querySelectorAll('.sb-item').forEach(function(x){ x.classList.remove('active'); });
-    var aqui = (vista === 'citas') ? citas : panel;
+    var aqui = (vista === 'citas') ? citas
+             : (vista === 'mistramites') ? document.getElementById('navTramites')
+             : panel;
     if (aqui) aqui.classList.add('active');
   };
   window.CIIP_BARRA(document.body.getAttribute('data-vista') || 'inicio');
@@ -5288,6 +5323,134 @@ applyLang('en');
     /* El contador del renglón sí se pide al cargar: es lo único que le dice
        al usuario que ahí dentro hay algo suyo esperando. */
     cargaAgenda();
+  }
+
+
+  /* ──────────────────────────────────────────────────────────────
+     MIS TRÁMITES
+     ──────────────────────────────────────────────────────────────
+     El renglón de la barra contaba las 31 tarjetas de la portada: decía
+     cuántos trámites EXISTEN, que es justo lo que "Mis" no significa. Aquí
+     están los tuyos, con el estado que dice la base.
+
+     La portada de al lado sigue enseñando el catálogo entero —lo que se
+     puede pedir— y esto es la otra mitad: lo que pediste.
+     ──────────────────────────────────────────────────────────── */
+  var mtLista = document.getElementById('mtLista');
+  var mtNav   = document.getElementById('navTramites');
+  var mtNavN  = document.getElementById('navTramitesN');
+  var mios    = [];
+
+  /* Todo menos lo resuelto. Es "cuánto tienes abierto", igual que el
+     contador de las citas: así los dos renglónes de la barra significan lo
+     mismo y no hay que aprenderse dos reglas. */
+  var MT_VIVOS = ['borrador', 'enviado', 'en_revision', 'devuelto', 'ante_el_ente'];
+
+  function chipDeTramite(estado, ente){
+    var u = T();
+    if (estado === 'devuelto')  return {txt:u.devuelta || '',  clase:'reclama'};
+    if (estado === 'borrador')  return {txt:u.iniciar || '',   clase:'reclama'};
+    if (estado === 'resuelto')  return {txt:estadoTexto(3, ente), clase:'listo'};
+    var i = AV_ORDEN.indexOf(estado);
+    return {txt: i >= 0 ? estadoTexto(i, ente) : estado, clase:''};
+  }
+
+  function pintaMisTramites(){
+    if (!mtLista) return;
+    var u = T();
+    var sub = document.getElementById('mtSub');
+    if (sub) sub.textContent = u.mt_sub || '';
+
+    var vivos = mios.filter(function(t){ return MT_VIVOS.indexOf(t.estado) >= 0; });
+    if (mtNavN){
+      mtNavN.textContent = String(vivos.length);
+      mtNavN.hidden = (vivos.length === 0);
+    }
+
+    mtLista.textContent = '';
+    if (!mios.length){
+      mtLista.appendChild(el('div', 'ci-vacia', u.mt_vacia || ''));
+      return;
+    }
+
+    mios.forEach(function(t){
+      var ref  = tipoRefDe(t.tipo);
+      /* TIPOS puede seguir siendo null si el catálogo aún no ha llegado.
+         Sin este paréntesis, TIPOS[null] revienta y la lista se queda vacía
+         para toda la sesión. */
+      var ente = ((TIPOS || {})[ref] || {}).ente || '';
+      var chip = chipDeTramite(t.estado, ente);
+      var reclama = (t.estado === 'devuelto' || t.estado === 'borrador');
+
+      var f = el('div', 'ci-ficha' + (reclama ? ' reclama' : '') +
+                        (t.estado === 'resuelto' ? ' pasada' : ''));
+
+      var cab = el('div', 'ci-cab');
+      cab.appendChild(el('span', 'ct-chip' + (chip.clase === 'listo' ? ' listo' : ''), chip.txt));
+      f.appendChild(cab);
+
+      f.appendChild(el('div', 'ci-linea', ref ? nombreDeTarjeta(ref) : t.tipo));
+
+      var cuando = [];
+      if (t.enviado_en) cuando.push(String(u.mt_enviada || '').replace('{fecha}', fecha(t.enviado_en)));
+      if (t.resuelto_en) cuando.push(String(u.mt_resuelta || '').replace('{fecha}', fecha(t.resuelto_en)));
+      f.appendChild(el('div', 'ci-que', [ente].concat(cuando).filter(Boolean).join(' · ')));
+
+      /* Se pulsa para ir a su detalle, que es donde están la escalera y el
+         botón de corregir. */
+      f.setAttribute('role', 'button');
+      f.setAttribute('tabindex', '0');
+      f.style.cursor = 'pointer';
+      function ir(){ if (ref) location.hash = 'tramite-' + ref; }
+      f.addEventListener('click', ir);
+      f.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); ir(); }
+      });
+
+      mtLista.appendChild(f);
+    });
+  }
+
+  function cargaMisTramites(){
+    /* El catálogo primero: de él salen el nombre y el organismo de cada
+       trámite. Pedir las solicitudes antes deja una lista con los códigos
+       internos a la vista, o sin nada. */
+    return cargaCatalogo().then(function(){
+      return sb.from('tramites')
+      .select('id, tipo, estado, creado_en, enviado_en, resuelto_en')
+      .order('creado_en', {ascending:false})
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        mios = r.data || [];
+        /* Las devueltas y los borradores arriba, aunque no sean lo más
+           reciente: son las únicas donde la pelota la tienes tú. Es el mismo
+           criterio de la franja y de la cola del equipo. */
+        mios.sort(function(a, b){
+          var ra = (a.estado === 'devuelto' || a.estado === 'borrador') ? 0 : 1;
+          var rb = (b.estado === 'devuelto' || b.estado === 'borrador') ? 0 : 1;
+          return (ra - rb) || (Date.parse(b.creado_en) - Date.parse(a.creado_en));
+        });
+        pintaMisTramites();
+      });
+    })
+      .catch(function(e){
+        console.warn('[CIIP] mis trámites:', e && e.message);
+        mios = [];
+        pintaMisTramites();
+      });
+  }
+
+  if (mtLista){
+    if (mtNav) mtNav.addEventListener('click', function(){ location.hash = 'tramites'; });
+    var mtVolver = document.getElementById('mtVolver');
+    if (mtVolver) mtVolver.addEventListener('click', function(){
+      if (location.hash) location.hash = '';
+    });
+    window.CIIP_PINTA_MISTRAM   = cargaMisTramites;
+    window.CIIP_REPINTA_MISTRAM = pintaMisTramites;
+    /* El contador sí se pide al cargar: es lo único que avisa de que ahí
+       dentro hay algo tuyo esperando. */
+    cargaMisTramites();
   }
 
 })();
