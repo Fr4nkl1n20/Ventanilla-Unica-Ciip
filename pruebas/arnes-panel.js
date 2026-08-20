@@ -120,7 +120,10 @@
        Los cuatro renglones estaban escritos a mano para las 15 tarjetas de
        antes. Ahora se cuentan, y estas cuatro pruebas son lo que impide que
        vuelvan a quedarse atrás cuando el catálogo crezca. */
-    igual('camino: la fase 01 cuenta sus 10 trámites', deEtapa(0, '.jcount'), '3 de 10 listos');
+    /* Antes decia "3 de 10": tres tarjetas de la fase 01 llevaban
+       "Completado" escrito a mano. Ninguna cuenta era de nadie. Ahora sale
+       de tus tramites, y en ningun expediente de prueba hay uno resuelto. */
+    igual('camino: la fase 01 cuenta sus 10 trámites', deEtapa(0, '.jcount'), '0 de 10 listos');
     igual('camino: la fase 02 cuenta sus 7',           deEtapa(1, '.jcount'), '0 de 7 listos');
     igual('camino: la fase 03 cuenta sus 10',          deEtapa(2, '.jcount'), '0 de 10 listos');
     igual('camino: la fase 04 cuenta sus 3',           deEtapa(3, '.jcount'), '0 de 3 listos');
@@ -128,7 +131,7 @@
 
     (function(){
       var barra = etapas()[0].querySelector('.jbar > span');
-      igual('camino: la barra de la fase 01 mide lo hecho', barra.style.width, '30%');
+      igual('camino: la barra de la fase 01 mide lo hecho', barra.style.width, '0%');
     })();
 
     /* La palomita estaba escrita en el marcado y se quedaba en verde con
@@ -151,6 +154,85 @@
 
     igual('camino: los filtros cuentan las 31 tarjetas',
           (document.querySelector('.ftab[data-f="todos"] .n') || {}).textContent, '31');
+
+    /* ═══════════ EL ESTADO DE CADA TARJETA ═══════════
+       Iba escrito a mano en las 31: tres decían "Completado" y una fecha de
+       emisión de un trámite que nadie había pedido. Los cuatro filtros de
+       arriba contaban esos ejemplos. */
+    (function(){
+      function st(ref){ return (document.querySelector('.tcard[data-tr="' + ref + '"]') || {getAttribute:function(){return null;}}).getAttribute('data-st'); }
+      function chip(ref){ var c = document.querySelector('.tcard[data-tr="' + ref + '"] .t-top .chip'); return c ? c.textContent.trim() : ''; }
+      function reloj(ref){ var t = document.querySelector('.tcard[data-tr="' + ref + '"] .t-time'); return t ? t.textContent.trim() : ''; }
+
+      var listas = document.querySelectorAll('.tcard[data-st="listo"]').length;
+      ok('estados: ninguna dice "Completado" sin un trámite resuelto', listas === 0,
+         listas + ' tarjetas en verde', 'ninguna');
+
+      /* Una que nadie ha pedido: por iniciar, y con su estimado intacto.
+         El estimado no es un estado, es cuánto tarda: sigue siendo cierto. */
+      igual('estados: sin solicitud, la tarjeta está por iniciar', st('c1'), 'pendiente');
+      igual('estados: y su distintivo lo dice', chip('c1'), 'Por iniciar');
+      /* El renglón del reloj de la visa decía "Emitida el 18 jun" —una
+         fecha de emisión de un trámite que nadie había pedido—. Ahora dice
+         cuándo se puede pedir, que es lo que el panel sabe sin expediente. */
+      ok('estados: y el reloj dice cuándo se pide, no cuándo se emitió',
+         !/(Emitid|Rilasciat|Issued|签发|Выдан)/i.test(reloj('c1')),
+         reloj('c1'), 'sin fecha de emisión');
+      /* Y tampoco lo cuenta la descripción: seis estaban escritas como si
+         el trámite ya estuviera hecho —"tu cédula ya está lista"— o con la
+         persona de la demostración dentro —"tu licencia italiana"—. Una
+         tarjeta que dice "Por iniciar" no puede decir eso debajo. */
+      ok('estados: ni la descripción da por hecho el trámite',
+         !/(ya está lista|quedó estampada|licencia italiana|Bianchi)/i.test(document.getElementById('secTramites').textContent),
+         'busca "ya está lista", "italiana", "Bianchi"', 'ninguna');
+      ok('estados: y ninguna de las 31 inventa una fecha de emisión',
+         !/(Emitid|Rilasciat|Issued|签发|Выдан)/i.test(document.getElementById('secTramites').textContent),
+         'busca "Emitida" en las tarjetas', 'ninguna');
+
+      if (CASO === 'lleno'){
+        /* t1 es un RIF de empresa devuelto y t2 una constitución en
+           borrador: en las dos la pelota la tienes tú. */
+        igual('estados: un trámite devuelto pide tu acción', st('c6'), 'accion');
+        igual('estados: y lo dice el distintivo', chip('c6'), 'Requiere acción');
+        ok('estados: la tarjeta se enmarca en ámbar',
+           document.querySelector('.tcard[data-tr="c6"]').classList.contains('action'),
+           document.querySelector('.tcard[data-tr="c6"]').className, 'con la clase action');
+        igual('estados: un borrador también', st('c5'), 'accion');
+
+        /* t3 es un RIF personal recién enviado. */
+        igual('estados: uno enviado va en proceso', st('c3'), 'proceso');
+        ok('estados: y el reloj dice cuándo lo enviaste',
+           /Enviada el/.test(reloj('c3')), reloj('c3'), 'Enviada el ...');
+
+        igual('estados: el filtro de acción cuenta los dos',
+              document.querySelector('.ftab[data-f="accion"] .n').textContent, '2');
+        igual('estados: y el de en proceso, el uno',
+              document.querySelector('.ftab[data-f="proceso"] .n').textContent, '1');
+        ok('estados: el filtro de completados se apaga si no hay ninguno',
+           document.querySelector('.ftab[data-f="listo"]').disabled,
+           'apagado=' + document.querySelector('.ftab[data-f="listo"]').disabled, 'apagado=true');
+      }
+
+      if (CASO === 'vacio'){
+        /* Dos del mismo trámite: un borrador viejo y una revisión en
+           marcha. La tarjeta enseña la de ahora, no la que se quedó atrás
+           —que es lo mismo que ya hace la franja de arriba—. */
+        igual('estados: entre dos del mismo trámite manda la más reciente', st('c3'), 'proceso');
+      }
+
+      if (CASO === 'sinnombre' || CASO === 'gestor'){
+        /* Las 31: las 30 solicitables más la del banco de activos, que ya
+           nacía 'pendiente' en el marcado -lo suyo es el distintivo, que
+           sigue diciendo Disponible-. */
+        var pend = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
+        ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 31,
+           pend + ' por iniciar de 31', '31');
+      }
+
+      /* El banco de activos no es una solicitud —por eso tiene vista
+         propia— y su distintivo no puede pasar a "por iniciar". */
+      igual('estados: el banco de activos sigue diciendo Disponible', chip('c15'), 'Disponible');
+    })();
 
     /* El renglón contaba las tarjetas del catálogo —decía cuántos trámites
        EXISTEN, que es justo lo que "Mis" no significa—. Ahora cuenta los
@@ -184,8 +266,8 @@
       var en = deEtapa(0, '.jcount');
       applyLang('es');
       var es = deEtapa(0, '.jcount');
-      ok('camino: el renglón se traduce', en === '3 of 10 done' && es === '3 de 10 listos',
-         'en="' + en + '" es="' + es + '"', 'en="3 of 10 done" es="3 de 10 listos"');
+      ok('camino: el renglón se traduce', en === '0 of 10 done' && es === '0 de 10 listos',
+         'en="' + en + '" es="' + es + '"', 'en="0 of 10 done" es="0 de 10 listos"');
     })();
 
     /* ═══════════ EL CAMINO: CÓMO SE LLAMAN LAS ETAPAS ═══════════
