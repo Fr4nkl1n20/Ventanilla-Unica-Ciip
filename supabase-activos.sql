@@ -121,3 +121,9 @@ create trigger activos_marca_tiempo
 
 -- Para retirar uno sin borrarlo -y sin perder de vista que existió-:
 --   update public.activos set estado = 'cerrado' where id = '...';
+-- Es lo que conviene casi siempre.
+--
+-- Borrarlo de verdad tambien se puede, y desde la propia ficha del panel:
+-- editar el activo y pulsar Borrar dos veces. Entonces no queda rastro. La
+-- politica de arriba -for all- ya deja el delete al equipo y a nadie mas,
+-- asi que no hay nada que añadir aqui.
