@@ -1321,6 +1321,29 @@
     });
     ok('logos: y no repite la sigla al lado del nombre', repes.length === 0,
        repes.length ? repes.join(', ') : 'ninguna repetida', 'ninguna repetida');
+
+    /* La marca de agua del fondo. Iba solo en la primera tarjeta: las otras
+       dieciséis tenían el logo arriba y el fondo vacío. data-marca sin su
+       regla de CSS no pinta nada —el pseudo-elemento existe y se queda sin
+       imagen—, así que no basta con mirar el atributo: hay que preguntarle al
+       navegador qué fondo le salió. */
+    var sinFondo = [], desparejas = [];
+    [].forEach.call(document.querySelectorAll('.tcard'), function(c){
+      var im = c.querySelector('.t-marca img.ilogo');
+      var marca = c.getAttribute('data-marca');
+      if (!im && !marca) return;                 /* sin organismo: ni logo ni fondo */
+      if (!im || !marca){ desparejas.push(c.getAttribute('data-tr')); return; }
+      /* el mismo archivo arriba y al fondo */
+      if (im.getAttribute('src').indexOf('logos/' + marca + '.') !== 0)
+        desparejas.push(c.getAttribute('data-tr'));
+      var fondo = window.getComputedStyle(c, '::before').backgroundImage || '';
+      if (fondo.indexOf('logos/' + marca + '.') < 0) sinFondo.push(c.getAttribute('data-tr'));
+    });
+    ok('marca: cada tarjeta con logo lo lleva también al fondo',
+       sinFondo.length === 0,
+       sinFondo.length ? sinFondo.join(', ') : 'ninguna sin fondo', 'ninguna sin fondo');
+    ok('marca: y es el mismo logo arriba y detrás', desparejas.length === 0,
+       desparejas.length ? desparejas.join(', ') : 'ninguna despareja', 'ninguna despareja');
   }
 
   /* ═══════════ CITAS Y AGENDA ═══════════

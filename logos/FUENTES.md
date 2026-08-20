@@ -62,6 +62,21 @@ Y quita de esa tarjeta el `<span class="ebadge">VUCE</span>`, que ya estaría
 repitiendo las siglas. Hay una prueba que lo comprueba
 (`logos: y no repite la sigla al lado del nombre`).
 
+## La marca de agua del fondo
+
+Cada tarjeta con logo lo lleva **dos veces**: en la placa de arriba y, muy
+apagado, al fondo a la derecha. Eso son dos cosas separadas y hay que poner
+las dos:
+
+1. el atributo `data-marca="vuce"` en el `<div class="tcard" …>`;
+2. su regla de CSS, al lado de las demás:
+   `.tcard[data-marca="vuce"]::before{background-image:url('logos/vuce.png');}`
+
+Sin la regla, `data-marca` no pinta nada: el pseudo-elemento existe y se queda
+sin imagen, y la tarjeta se ve igual que si no lo hubieras puesto. Por eso la
+prueba `marca: cada tarjeta con logo lo lleva también al fondo` no mira el
+atributo, sino lo que el navegador acabó pintando.
+
 ## Tres avisos
 
 **El de MPPRE es el escudo nacional.** Es el archivo que la propia Cancillería

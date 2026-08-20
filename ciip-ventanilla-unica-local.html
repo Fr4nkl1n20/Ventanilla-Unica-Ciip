@@ -990,7 +990,22 @@ body[data-vista="fase"] .phase-h .chev{display:none;}
   top:10px; bottom:10px; right:16px; width:96px;
   background-repeat:no-repeat; background-position:center right;
   background-size:contain; opacity:.07;}
+/* Una por organismo. Sin su regla, data-marca no pinta nada: el
+   pseudo-elemento existe pero se queda sin imagen. */
+.tcard[data-marca="ciip"]::before{background-image:url('logos/ciip.png');}
+.tcard[data-marca="inces"]::before{background-image:url('logos/inces.png');}
+.tcard[data-marca="intt"]::before{background-image:url('logos/intt.png');}
+.tcard[data-marca="ivss"]::before{background-image:url('logos/ivss.svg');}
+.tcard[data-marca="mpppst"]::before{background-image:url('logos/mpppst.png');}
+.tcard[data-marca="mppre"]::before{background-image:url('logos/mppre.png');}
+.tcard[data-marca="mpprijp"]::before{background-image:url('logos/mpprijp.png');}
+.tcard[data-marca="sacs"]::before{background-image:url('logos/sacs.png');}
 .tcard[data-marca="saime"]::before{background-image:url('logos/saime.png');}
+.tcard[data-marca="sapi"]::before{background-image:url('logos/sapi.png');}
+.tcard[data-marca="saren"]::before{background-image:url('logos/saren.png');}
+.tcard[data-marca="seniat"]::before{background-image:url('logos/seniat.png');}
+.tcard[data-marca="snc"]::before{background-image:url('logos/snc.png');}
+.tcard[data-marca="suscerte"]::before{background-image:url('logos/suscerte.png');}
 /* Sobre el fondo oscuro ese 7% se pierde. Mismo patron de tres estados que
    el logo del pie: media query + anulacion explicita por data-theme. */
 @media (prefers-color-scheme:dark){ .tcard[data-marca]::before{opacity:.14;} }
@@ -1505,7 +1520,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c1.time">Issued Jun 18</span></span><span class="go"><span data-i18n="c1.cta">View visa</span> ›</span></div>
             </div>
           </div>
-          <div class="tcard" data-st="listo" data-tr="c2">
+          <div class="tcard" data-st="listo" data-marca="saime" data-tr="c2">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/saime.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">SAIME</div>
@@ -1517,7 +1532,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c2.time">Issued · expires in 12 d</span></span><span class="go"><span data-i18n="c2.cta">View detail</span> ›</span></div>
             </div>
           </div>
-          <div class="tcard" data-st="listo" data-tr="c3">
+          <div class="tcard" data-st="listo" data-marca="seniat" data-tr="c3">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/seniat.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">SENIAT</div>
@@ -1529,7 +1544,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c3.time">Issued Jun 21</span></span><span class="go"><span data-i18n="c3.cta">View RIF</span> ›</span></div>
             </div>
           </div>
-          <div class="tcard action" data-st="accion" data-tr="c4">
+          <div class="tcard action" data-st="accion" data-marca="intt" data-tr="c4">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/intt.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">INTT</div>
@@ -1541,7 +1556,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c4.time">Est.: 3–4 weeks</span></span><span class="go"><span data-i18n="c4.cta">Upload documents</span> ›</span></div>
             </div>
           </div>
-          <div class="tcard" data-st="pendiente" data-tr="c16">
+          <div class="tcard" data-st="pendiente" data-marca="mpprijp" data-tr="c16">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/mpprijp.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">MPPRIJP</div>
@@ -1553,7 +1568,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c16.time">Est.: 3–6 weeks</span></span><span class="go"><span data-i18n="c16.cta">View detail</span> ›</span></div>
             </div>
           </div>
-          <div class="tcard" data-st="pendiente" data-tr="c17">
+          <div class="tcard" data-st="pendiente" data-marca="mppre" data-tr="c17">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/mppre.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">MPPRE</div>
@@ -1574,7 +1589,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c18.time">Est.: 1–2 weeks</span></span><span class="go"><span data-i18n="c18.cta">View detail</span> ›</span></div>
             </div>
           </div>
-          <div class="tcard" data-st="pendiente" data-tr="c19">
+          <div class="tcard" data-st="pendiente" data-marca="suscerte" data-tr="c19">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/suscerte.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">SUSCERTE</div>
@@ -1586,7 +1601,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c19.time">Est.: 2–3 weeks</span></span><span class="go"><span data-i18n="c19.cta">View detail</span> ›</span></div>
             </div>
           </div>
-          <div class="tcard" data-st="pendiente" data-tr="c20">
+          <div class="tcard" data-st="pendiente" data-marca="saime" data-tr="c20">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/saime.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">SAIME</div>
@@ -1612,7 +1627,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <div class="phase" data-phase data-fase="2">
         <button class="phase-h" type="button" aria-expanded="true" aria-controls="trs-2"><span class="pn" aria-hidden="true">2</span><span class="pt" data-i18n="p2.name">Incorporate</span><span class="pd" data-i18n="p2.sub">Incorporation, tax ID and banking</span><span class="chev">›</span></button>
         <div class="grid-tr" id="trs-2">
-          <div class="tcard action" data-st="accion" data-tr="c5">
+          <div class="tcard action" data-st="accion" data-marca="saren" data-tr="c5">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/saren.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">SAREN</div>
@@ -1624,7 +1639,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c5.time">Est.: 2–3 weeks</span></span><span class="go"><span data-i18n="c5.cta">Review & sign</span> ›</span></div>
             </div>
           </div>
-          <div class="tcard" data-st="pendiente" data-tr="c22">
+          <div class="tcard" data-st="pendiente" data-marca="saren" data-tr="c22">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/saren.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">SAREN</div>
@@ -1645,7 +1660,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c23.time">Est.: 1–2 weeks</span></span><span class="go"><span data-i18n="c23.cta">View detail</span> ›</span></div>
             </div>
           </div>
-          <div class="tcard" data-st="pendiente" data-tr="c6">
+          <div class="tcard" data-st="pendiente" data-marca="seniat" data-tr="c6">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/seniat.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">SENIAT</div>
@@ -1666,7 +1681,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c7.time">Est.: 1–2 weeks</span></span><span class="go"><span data-i18n="c7.cta">View detail</span> ›</span></div>
             </div>
           </div>
-          <div class="tcard" data-st="pendiente" data-tr="c24">
+          <div class="tcard" data-st="pendiente" data-marca="seniat" data-tr="c24">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/seniat.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">SENIAT</div>
@@ -1678,7 +1693,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c24.time">Est.: 2–4 weeks</span></span><span class="go"><span data-i18n="c24.cta">View detail</span> ›</span></div>
             </div>
           </div>
-          <div class="tcard" data-st="pendiente" data-tr="c8">
+          <div class="tcard" data-st="pendiente" data-marca="sapi" data-tr="c8">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/sapi.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">SAPI</div>
@@ -1695,7 +1710,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <div class="phase" data-phase data-fase="3">
         <button class="phase-h" type="button" aria-expanded="true" aria-controls="trs-3"><span class="pn" aria-hidden="true">3</span><span class="pt" data-i18n="p3.name">Operate</span><span class="pd" data-i18n="p3.sub">Payroll, permits and foreign trade</span><span class="chev">›</span></button>
         <div class="grid-tr" id="trs-3">
-          <div class="tcard" data-st="pendiente" data-tr="c9">
+          <div class="tcard" data-st="pendiente" data-marca="ivss" data-tr="c9">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/ivss.svg" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <!-- El &nbsp; pega el punto a la sigla anterior y el <wbr> deja partir
@@ -1732,7 +1747,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
           <!-- El SACS no tiene logo en la carpeta, asi que esta va con
                sigla y sin imagen, como la del VUCE. Antes llevaba el de
                SENCAMER, que ni siquiera es el ente de este permiso. -->
-          <div class="tcard" data-st="pendiente" data-tr="c12">
+          <div class="tcard" data-st="pendiente" data-marca="sacs" data-tr="c12">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/sacs.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">SACS</div>
@@ -1753,7 +1768,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c25.time">Est.: 2–3 weeks</span></span><span class="go"><span data-i18n="c25.cta">View detail</span> ›</span></div>
             </div>
           </div>
-          <div class="tcard" data-st="pendiente" data-tr="c26">
+          <div class="tcard" data-st="pendiente" data-marca="inces" data-tr="c26">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/inces.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">INCES</div>
@@ -1765,7 +1780,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c26.time">Est.: 2–3 weeks</span></span><span class="go"><span data-i18n="c26.cta">View detail</span> ›</span></div>
             </div>
           </div>
-          <div class="tcard" data-st="pendiente" data-tr="c27">
+          <div class="tcard" data-st="pendiente" data-marca="mpppst" data-tr="c27">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/mpppst.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">MPPPST</div>
@@ -1809,7 +1824,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <div class="phase" data-phase data-fase="4">
         <button class="phase-h" type="button" aria-expanded="true" aria-controls="trs-4"><span class="pn" aria-hidden="true">4</span><span class="pt" data-i18n="p4.name">Grow</span><span class="pd" data-i18n="p4.sub">Contracts and opportunities</span><span class="chev">›</span></button>
         <div class="grid-tr" id="trs-4">
-          <div class="tcard" data-st="pendiente" data-tr="c13">
+          <div class="tcard" data-st="pendiente" data-marca="snc" data-tr="c13">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/snc.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">SNC</div>
@@ -1830,7 +1845,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c14.time">Activated once you operate</span></span><span class="go"><span data-i18n="c14.cta">View detail</span> ›</span></div>
             </div>
           </div>
-          <div class="tcard" data-st="pendiente" data-tr="c15">
+          <div class="tcard" data-st="pendiente" data-marca="ciip" data-tr="c15">
             <div class="t-marca">
               <div class="t-ico"><img class="ilogo" src="logos/ciip.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
               <div class="t-sigla">CIIP</div>
