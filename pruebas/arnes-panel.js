@@ -1333,6 +1333,20 @@
          fichas[0].querySelector('.ci-linea').textContent, 'la fecha, sin llaves');
       ok('agenda: la viva se distingue del historial',
          fichas[0].classList.contains('viva'), fichas[0].className, 'con la clase viva');
+
+      /* Cómo es la cita —verse, llamarse o ir— decide si tienes que salir de
+         casa, así que va con el estado y no perdido en el renglón gris. */
+      var mo = fichas[0].querySelector('.ci-cab .ct-chip.modo');
+      ok('agenda: el modo lleva su propio distintivo', !!mo,
+         mo ? mo.textContent : 'no existe', 'un distintivo aparte');
+      igual('agenda: y dice cuál de los tres es', mo.textContent, 'Presencial');
+      ok('agenda: con su dibujo, no solo la palabra', !!mo.querySelector('svg'),
+         mo.querySelector('svg') ? 'lo lleva' : 'sin dibujo', 'con dibujo');
+      /* Y sale del renglón gris: decirlo dos veces en la misma ficha es
+         gastar la línea que lleva el trámite y el sitio. */
+      ok('agenda: y no se repite abajo',
+         !/Presencial/.test(fichas[0].querySelector('.ci-que').textContent),
+         fichas[0].querySelector('.ci-que').textContent, 'sin el modo');
       /* Con una cita viva no se ofrece pedir otra: la ventana no dejaría. */
       igual('agenda: y no ofrece pedir otra',
             document.getElementById('ciPedir').style.display, 'none');

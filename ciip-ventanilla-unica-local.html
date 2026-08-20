@@ -561,6 +561,13 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
   letter-spacing:.08em; text-transform:uppercase; padding:5px 9px; border-radius:20px;
   background:var(--amber-bg); color:var(--amber);}
 .ct-chip.listo{background:var(--good-bg); color:var(--good);}
+/* Cómo es la cita —verse, llamarse o ir—. Va al lado del estado y no
+   dentro del renglón gris con el trámite: son dos cosas distintas y una de
+   ellas decide si tienes que salir de casa. En gris, que la que manda es la
+   del estado. */
+.ct-chip.modo{background:var(--block); color:var(--gray);}
+.ct-chip.modo svg{width:12px; height:12px; stroke:currentColor; stroke-width:2;
+  fill:none; flex:none;}
 .ct-linea{font-size:13.5px; font-weight:700; margin-top:9px;}
 .ct-detalle{font-size:12px; color:var(--gray); margin-top:4px;}
 
@@ -5524,6 +5531,31 @@ applyLang(idiomaParaMi());
 
   var CI_VIVAS = ['solicitada', 'confirmada'];
 
+  /* Un dibujo por modo. Tres palabras cortas en gris se confunden entre
+     sí de un vistazo; tres siluetas distintas, no. */
+  var CI_ICONO = {
+    video:      'M23 7l-7 5 7 5V7zM1 5.5h14a1 1 0 011 1v11a1 1 0 01-1 1H1a1 1 0 01-1-1v-11a1 1 0 011-1z',
+    presencial: 'M12 21s7-5.7 7-11a7 7 0 10-14 0c0 5.3 7 11 7 11zM12 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z',
+    telefono:   'M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.2a2 2 0 012.1-.5c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z'
+  };
+
+  function chipDeModo(modo){
+    var u = T();
+    var c = el('span', 'ct-chip modo');
+    var d = CI_ICONO[modo];
+    if (d){
+      var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('aria-hidden', 'true');
+      var p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      p.setAttribute('d', d);
+      svg.appendChild(p);
+      c.appendChild(svg);
+    }
+    c.appendChild(el('span', null, u['ct_' + modo] || modo));
+    return c;
+  }
+
   function chipDeCita(estado){
     var u = T();
     if (estado === 'confirmada') return {txt:u.ct_chip_conf || '', clase:'listo'};
@@ -5565,6 +5597,7 @@ applyLang(idiomaParaMi());
       var chip = chipDeCita(c.estado);
       var e = el('span', 'ct-chip' + (chip.clase ? ' ' + chip.clase : ''), chip.txt);
       cab.appendChild(e);
+      if (c.modo) cab.appendChild(chipDeModo(c.modo));
       f.appendChild(cab);
 
       /* Confirmada dice cuándo es; sin confirmar, qué días pedías. Poner "—"
@@ -5573,7 +5606,9 @@ applyLang(idiomaParaMi());
         ? String(u.ct_confirmada || '').replace('{fecha}', fechaHora(c.cuando))
         : String(u.ci_ventana || '').replace('{desde}', fecha(c.desde)).replace('{hasta}', fecha(c.hasta))));
 
-      var partes = [nombreDeTipo(c.tipo_tramite), (u['ct_' + c.modo] || c.modo)];
+      /* El modo ya va arriba con su dibujo: repetirlo aquí sería decir dos
+         veces lo mismo en la misma ficha. */
+      var partes = [nombreDeTipo(c.tipo_tramite)];
       if (c.lugar) partes.push(c.lugar);
       f.appendChild(el('div', 'ci-que', partes.join(' · ')));
       if (c.nota) f.appendChild(el('div', 'ci-nota', c.nota));
