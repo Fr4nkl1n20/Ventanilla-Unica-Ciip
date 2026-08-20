@@ -116,8 +116,24 @@
        resumen:'Terreno de 4 ha con vialidad y servicios.', detalle:'',
        estado:'reservado', destacado:false, creado_en:'2026-07-20T09:00:00Z'}
     ],
-    vacio: [], sinnombre: [], gestor: []
+    /* El equipo ve uno mas: un CERRADO, que la politica de la base no le
+       manda a nadie mas. Y los ve con boton de editar, que es lo que hace
+       que la tabla se pueda llenar sin entrar a Supabase. */
+    gestor: [
+      {id:'g1', titulo:'Bloque de galpones industriales', sector:'Manufactura',
+       ubicacion:'Carabobo', monto_desde:1200000, monto_hasta:null, moneda:'USD',
+       resumen:'Tres galpones con servicios y acceso a la troncal.', detalle:'',
+       estado:'disponible', destacado:true, creado_en:'2026-08-02T09:00:00Z'},
+      {id:'g2', titulo:'Hotel de playa en remodelacion', sector:'Turismo',
+       ubicacion:'Falcon', monto_desde:600000, monto_hasta:900000, moneda:'USD',
+       resumen:'Ya no se ofrece: quedo cerrado en julio.', detalle:'',
+       estado:'cerrado', destacado:false, creado_en:'2026-07-01T09:00:00Z'}
+    ],
+    vacio: [], sinnombre: []
   };
+  var activosVivos = (ACTIVOS[caso] || []).slice().map(function(a){
+    var c = {}; Object.keys(a).forEach(function(k){ c[k] = a[k]; }); return c;
+  });
 
   var colaViva = (COLA[caso] || []).slice();
 
@@ -258,9 +274,37 @@
     if (tabla === 'tipos_tramite')    return {data:TIPOS, error:null};
     if (tabla === 'activos'){
       /* El banco de activos. En 'lleno' hay dos publicados -uno reservado-;
-         en los demas la tabla esta vacia, que es como nace: la llena el
-         equipo del CIIP a mano. */
-      return {data:(ACTIVOS[caso] || []), error:null};
+         en 'gestor' hay uno cerrado, que solo el equipo ve; en los demas la
+         tabla esta vacia, que es como nace. */
+      if (op && op.insert){
+        var nuevo = {};
+        Object.keys(op.insert).forEach(function(k){ nuevo[k] = op.insert[k]; });
+        nuevo.id = 'an' + (activosVivos.length + 1);
+        nuevo.creado_en = '2026-08-20T12:00:00Z';
+        activosVivos.push(nuevo);
+        return {data:nuevo, error:null};
+      }
+      if (op && op.update && op.eq && op.eq.id){
+        activosVivos.forEach(function(a){
+          if (a.id !== op.eq.id) return;
+          Object.keys(op.update).forEach(function(k){ a[k] = op.update[k]; });
+        });
+        return {data:{}, error:null};
+      }
+      /* Los cerrados no le llegan a quien no es del equipo: la politica de
+         la base los deja fuera, y una prueba que los enseñara a todos daria
+         verde sobre una pantalla que en vivo se ve distinta. */
+      var visibles = activosVivos.filter(function(a){
+        return a.estado !== 'cerrado' || caso === 'gestor';
+      });
+      /* Y en el orden que pide la consulta: destacado primero, y dentro de
+         eso lo mas reciente. Sin ordenar aqui, la prueba de "el destacado va
+         primero" solo comprobaria como escribi el fixture. */
+      visibles.sort(function(a, b){
+        return ((b.destacado ? 1 : 0) - (a.destacado ? 1 : 0)) ||
+               (a.creado_en < b.creado_en ? 1 : a.creado_en > b.creado_en ? -1 : 0);
+      });
+      return {data:visibles, error:null};
     }
     if (tabla === 'documentos'){
       /* Lo que ya esta en la boveda. El formulario lo reutiliza y ofrece

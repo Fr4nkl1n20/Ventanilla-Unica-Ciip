@@ -325,7 +325,7 @@ svg{display:block;}
 .perfil{max-width:440px;}
 .pf-cuerpo{padding:16px 18px 4px; display:flex; flex-direction:column; gap:13px;}
 .pf-campo{display:flex; flex-direction:column; gap:6px;}
-.pf-campo > span{font-size:11.5px; font-weight:700; color:var(--gray);}
+.pf-campo > span, .pf-campo > label{font-size:11.5px; font-weight:700; color:var(--gray);}
 .pf-campo input, .pf-campo select{font:inherit; font-size:13px; color:var(--ink);
   background:var(--bg); border:1px solid var(--line); border-radius:9px;
   padding:10px 12px; outline:none; width:100%;}
@@ -357,8 +357,34 @@ body[data-vista="activos"] #acVolver{display:inline-flex;}
 .ac-mas:hover{text-decoration:underline;}
 .ac-pie .btn{margin-left:auto; font-size:12px; padding:8px 13px;}
 /* Un activo reservado se ve, pero apagado: sigue en el catálogo y ya tiene
-   a alguien en conversaciones. */
+   a alguien en conversaciones. Un cerrado ya no se ofrece y solo lo ve el
+   equipo, así que se apaga más. */
 .ci-ficha.reservado{opacity:.72;}
+.ci-ficha.cerrado{opacity:.55;}
+
+/* El botón de publicar solo sale si eres del equipo. */
+.btn[hidden]{display:none;}
+/* Editar va a la izquierda, discreto: la ficha se lee para invertir, no
+   para administrarla. */
+.ac-editar{font:inherit; font-size:11.5px; font-weight:700; color:var(--gray);
+  background:transparent; border:1px solid var(--line); border-radius:8px;
+  padding:6px 11px; cursor:pointer;}
+.ac-editar:hover{border-color:var(--navy2); color:var(--navy2);}
+.ac-solo{font-size:11.5px; color:var(--gray);}
+
+/* La ficha del equipo. En dos y tres columnas: de una sola, son catorce
+   renglónes y hay que rodar para ver el botón de guardar. */
+.af-dos, .af-tres{display:grid; gap:13px;}
+.af-dos{grid-template-columns:1fr 1fr;}
+.af-tres{grid-template-columns:.75fr 1fr 1fr;}
+@media (max-width:620px){ .af-dos, .af-tres{grid-template-columns:1fr;} }
+.af-check{justify-content:flex-end;}
+.af-check > label{display:flex; align-items:center; gap:8px; cursor:pointer;
+  font-size:12.5px; font-weight:600; color:var(--ink); padding:10px 0;}
+.af-check input{width:auto; accent-color:var(--navy2);}
+/* El cuerpo rueda solo: la ventana no crece más allá del 82% de la
+   pantalla y sin esto el pie se sale por abajo. */
+#activoBack .pf-cuerpo{flex:1 1 auto; min-height:0; overflow-y:auto; padding-bottom:14px;}
 
 /* --- mis tramites: la misma vista que la agenda, con otra lista --- */
 .mistram-vista{display:none;}
@@ -1809,6 +1835,12 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <div class="sec-h">
         <div class="t" data-i18n="nav.assets">Assets & projects</div>
         <div class="sub" id="acSub"></div>
+        <div class="spacer"></div>
+        <!-- La tabla se llena A MANO, y se llena desde aqui. Mandar al
+             equipo al editor de tablas de Supabase para publicar una
+             oportunidad es pedirles que entren a la base de datos cada vez:
+             tarde o temprano alguien toca la columna que no era. -->
+        <button class="btn navy" id="acNuevo" type="button" hidden></button>
       </div>
       <div class="ci-lista" id="acLista"></div>
     </div>
@@ -1973,6 +2005,82 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
     <div class="pf-pie">
       <button class="btn ghost" id="ctCancelar" type="button"></button>
       <button class="btn navy"  id="ctEnviar"   type="button"></button>
+    </div>
+  </div>
+</div>
+
+<!-- La ficha de un activo, para el equipo. Son pocos, muy distintos entre
+     si y no hay de donde importarlos: se escriben a mano. Por eso es un
+     formulario y no una carga de archivo. -->
+<div class="asst-back" id="activoBack">
+  <div class="asst perfil">
+    <div class="asst-h">
+      <div class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-5h6v5"/></svg></div>
+      <div>
+        <div class="at" id="afTitulo"></div>
+        <div class="as" id="afSub"></div>
+      </div>
+      <button class="ax" id="afCerrar" type="button" aria-label="×">×</button>
+    </div>
+
+    <div class="pf-cuerpo">
+      <div class="pf-campo">
+        <label for="afTit" id="afLtit"></label>
+        <input type="text" id="afTit" maxlength="140">
+      </div>
+      <div class="af-dos">
+        <div class="pf-campo">
+          <label for="afSector" id="afLsector"></label>
+          <input type="text" id="afSector" maxlength="80">
+        </div>
+        <div class="pf-campo">
+          <label for="afUbic" id="afLubic"></label>
+          <input type="text" id="afUbic" maxlength="120">
+        </div>
+      </div>
+      <!-- El monto es un RANGO: el techo puede quedar vacio y entonces la
+           ficha dira "Desde X" en vez de fingir una cifra cerrada. -->
+      <div class="af-tres">
+        <div class="pf-campo">
+          <label for="afMoneda" id="afLmoneda"></label>
+          <select id="afMoneda">
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+            <option value="VES">VES</option>
+          </select>
+        </div>
+        <div class="pf-campo">
+          <label for="afDesde" id="afLdesde"></label>
+          <input type="number" id="afDesde" min="0" step="1000" inputmode="numeric">
+        </div>
+        <div class="pf-campo">
+          <label for="afHasta" id="afLhasta"></label>
+          <input type="number" id="afHasta" min="0" step="1000" inputmode="numeric">
+        </div>
+      </div>
+      <div class="pf-campo">
+        <label for="afResumen" id="afLresumen"></label>
+        <textarea id="afResumen" rows="2" maxlength="300"></textarea>
+      </div>
+      <div class="pf-campo">
+        <label for="afDetalle" id="afLdetalle"></label>
+        <textarea id="afDetalle" rows="4" maxlength="2000"></textarea>
+      </div>
+      <div class="af-dos">
+        <div class="pf-campo">
+          <label for="afEstado" id="afLestado"></label>
+          <select id="afEstado"></select>
+        </div>
+        <div class="pf-campo af-check">
+          <label for="afDest"><input type="checkbox" id="afDest"><span id="afLdest"></span></label>
+        </div>
+      </div>
+      <div class="pf-aviso" id="afAviso"></div>
+    </div>
+
+    <div class="pf-pie">
+      <button class="btn ghost" id="afCancelar" type="button"></button>
+      <button class="btn navy"  id="afGuardar"  type="button"></button>
     </div>
   </div>
 </div>
@@ -2158,6 +2266,7 @@ function applyLang(lang){
   if (window.CIIP_REPINTA_AGENDA) window.CIIP_REPINTA_AGENDA();
   if (window.CIIP_REPINTA_MISTRAM) window.CIIP_REPINTA_MISTRAM();
   if (window.CIIP_REPINTA_ACTIVOS) window.CIIP_REPINTA_ACTIVOS();
+  if (window.CIIP_REPINTA_FICHA)   window.CIIP_REPINTA_FICHA();
 }
 (function(){
   var btn=document.getElementById('langBtn'), menu=document.getElementById('langMenu');
@@ -5522,6 +5631,7 @@ applyLang('en');
      existen es peor que decir que aún no hay ninguna.
      ──────────────────────────────────────────────────────────── */
   var acLista = document.getElementById('acLista');
+  var acNuevo = document.getElementById('acNuevo');
   var acNav   = document.getElementById('navActivos');
   var acNavN  = document.getElementById('navActivosN');
   var activos = [];
@@ -5539,6 +5649,11 @@ applyLang('en');
   function pintaActivos(){
     if (!acLista) return;
     var u = T();
+    var equipo = esDelEquipo();
+    if (acNuevo){
+      acNuevo.textContent = u.ac_nuevo || '';
+      acNuevo.hidden = !equipo;
+    }
     var sub = document.getElementById('acSub');
     if (sub) sub.textContent = u.ac_sub || '';
 
@@ -5552,17 +5667,23 @@ applyLang('en');
 
     acLista.textContent = '';
     if (!activos.length){
-      acLista.appendChild(el('div', 'ci-vacia', u.ac_vacia || ''));
+      /* Al inversionista se le dice que el equipo los va cargando; al equipo,
+         que los cargue. Es la misma lista vacía y son dos cosas distintas. */
+      acLista.appendChild(el('div', 'ci-vacia',
+        (equipo ? (u.ac_vacia_e || u.ac_vacia) : u.ac_vacia) || ''));
       return;
     }
 
     activos.forEach(function(a){
-      var reservado = (a.estado === 'reservado');
-      var f = el('div', 'ci-ficha' + (reservado ? ' reservado' : ''));
+      var libre   = (a.estado === 'disponible');
+      /* Un cerrado solo llega hasta aquí si eres del equipo: la política de
+         la base no se los manda a nadie más. */
+      var cerrado = (a.estado === 'cerrado');
+      var f = el('div', 'ci-ficha' + (cerrado ? ' cerrado' : (libre ? '' : ' reservado')));
 
       var cab = el('div', 'ci-cab');
-      cab.appendChild(el('span', 'ct-chip' + (reservado ? '' : ' listo'),
-                         reservado ? (u.ac_reservado || '') : (u.ac_disponible || '')));
+      cab.appendChild(el('span', 'ct-chip' + (libre ? ' listo' : ''),
+        (cerrado ? u.ac_cerrado : libre ? u.ac_disponible : u.ac_reservado) || ''));
       f.appendChild(cab);
 
       f.appendChild(el('div', 'ci-linea', a.titulo || ''));
@@ -5596,9 +5717,20 @@ applyLang('en');
         f.appendChild(det);
       }
 
+      /* Editar va discreto y a la izquierda: la ficha se lee para invertir,
+         no para administrarla. */
+      if (equipo){
+        var arreglar = el('button', 'ac-editar', u.ac_editar || '');
+        arreglar.type = 'button';
+        arreglar.addEventListener('click', function(){ abreFicha(a); });
+        pie.appendChild(arreglar);
+        if (cerrado) pie.appendChild(el('span', 'ac-solo', u.ac_solocerrado || ''));
+      }
+
       /* Preguntar por uno concreto es pedir una cita: no hace falta un
-         circuito nuevo para eso. */
-      if (!reservado){
+         circuito nuevo para eso. Un reservado ya tiene a alguien delante y
+         un cerrado no se ofrece, así que ninguno de los dos lo lleva. */
+      if (libre){
         var pedir = el('button', 'btn navy', u.ac_cita || '');
         pedir.type = 'button';
         pedir.addEventListener('click', function(){ abreCita(); });
@@ -5649,6 +5781,177 @@ applyLang('en');
     window.CIIP_PINTA_ACTIVOS   = cargaActivos;
     window.CIIP_REPINTA_ACTIVOS = pintaActivos;
     cargaActivos();
+  }
+
+
+  /* ── LA FICHA QUE LLENA EL EQUIPO ─────────────────────────────
+     Los activos no se importan de ningún lado: son pocos, muy distintos
+     entre sí y los escribe una persona. Mandar a esa persona al editor de
+     tablas de Supabase cada vez que hay algo que publicar es pedirle que
+     entre a la base de datos, y tarde o temprano toca la columna que no era.
+
+     El botón solo existe para gestor o admin. Y no es solo que no se vea: la
+     política de la tabla rechaza el insert de cualquier otro, así que
+     esconderlo es cortesía, no la cerradura.
+     ─────────────────────────────────────────────────── */
+  var afBack  = document.getElementById('activoBack');
+  var afEdita = null;      /* el activo abierto; null si es uno nuevo */
+  var afYendo = false;
+
+  var AC_ESTADOS = ['disponible', 'reservado', 'cerrado'];
+
+  function afQ(id){ return document.getElementById(id); }
+  function afVal(id){ var e = afQ(id); return e ? String(e.value || '').trim() : ''; }
+  function afNum(id){
+    var v = afVal(id);
+    if (v === '') return null;          /* vacío NO es cero: es "no hay techo" */
+    var n = Number(v);
+    return isFinite(n) ? n : null;
+  }
+  function afPon(id, txt){ var e = afQ(id); if (e) e.textContent = txt || ''; }
+
+  function pintaFicha(){
+    if (!afBack) return;
+    var u = T();
+    afPon('afTitulo',   afEdita ? u.ac_ficha_e : u.ac_ficha_n);
+    afPon('afSub',      u.ac_fsub);
+    afPon('afLtit',     u.ac_ltitulo);
+    afPon('afLsector',  u.ac_lsector);
+    afPon('afLubic',    u.ac_lubic);
+    afPon('afLmoneda',  u.ac_lmoneda);
+    afPon('afLdesde',   u.ac_ldesde);
+    afPon('afLhasta',   u.ac_lhasta);
+    afPon('afLresumen', u.ac_lresumen);
+    afPon('afLdetalle', u.ac_ldetalle);
+    afPon('afLestado',  u.ac_lestado);
+    afPon('afLdest',    u.ac_ldest);
+    afPon('afCancelar', u.ac_cancelar);
+    afPon('afGuardar',  afYendo ? u.ac_yendo : (afEdita ? u.ac_guardar_e : u.ac_guardar));
+
+    var r = afQ('afResumen'), d = afQ('afDetalle');
+    if (r) r.placeholder = u.ac_presumen || '';
+    if (d) d.placeholder = u.ac_pdetalle || '';
+
+    var est = afQ('afEstado');
+    if (est){
+      var antes = est.value || 'disponible';
+      est.textContent = '';
+      AC_ESTADOS.forEach(function(e){
+        var o = el('option', null,
+          (e === 'cerrado' ? u.ac_cerrado : e === 'reservado' ? u.ac_reservado : u.ac_disponible) || e);
+        o.value = e;
+        est.appendChild(o);
+      });
+      est.value = antes;
+    }
+  }
+
+  function abreFicha(a){
+    if (!afBack) return;
+    afEdita = a || null;
+    afQ('afTit').value     = a ? (a.titulo || '')     : '';
+    afQ('afSector').value  = a ? (a.sector || '')     : '';
+    afQ('afUbic').value    = a ? (a.ubicacion || '')  : '';
+    afQ('afMoneda').value  = (a && a.moneda) || 'USD';
+    afQ('afDesde').value   = (a && a.monto_desde != null) ? a.monto_desde : '';
+    afQ('afHasta').value   = (a && a.monto_hasta != null) ? a.monto_hasta : '';
+    afQ('afResumen').value = a ? (a.resumen || '')    : '';
+    afQ('afDetalle').value = a ? (a.detalle || '')    : '';
+    afQ('afEstado').value  = (a && a.estado) || 'disponible';
+    afQ('afDest').checked  = !!(a && a.destacado);
+    afQ('afAviso').textContent = '';
+    afBack.querySelectorAll('.pf-campo').forEach(function(c){ c.classList.remove('mal'); });
+    afYendo = false;
+    pintaFicha();
+    afBack.classList.add('open');
+    setTimeout(function(){ var t = afQ('afTit'); if (t) t.focus(); }, 40);
+  }
+  function cierraFicha(){ if (afBack) afBack.classList.remove('open'); }
+
+  function guardaFicha(){
+    var u  = T();
+    var av = afQ('afAviso');
+    var bt = afQ('afGuardar');
+    afBack.querySelectorAll('.pf-campo').forEach(function(c){ c.classList.remove('mal'); });
+
+    var titulo = afVal('afTit');
+    if (!titulo){
+      afQ('afTit').closest('.pf-campo').classList.add('mal');
+      av.textContent = u.ac_falta || '';
+      return;
+    }
+
+    var desde = afNum('afDesde'), hasta = afNum('afHasta');
+    /* La base tiene el mismo límite -activos_rango_valido-. Aquí se comprueba
+       para decirlo con palabras en vez de con un error de SQL. */
+    if (desde != null && hasta != null && hasta < desde){
+      afQ('afHasta').closest('.pf-campo').classList.add('mal');
+      av.textContent = u.ac_rango || '';
+      return;
+    }
+
+    var ficha = {
+      titulo:      titulo,
+      sector:      afVal('afSector'),
+      ubicacion:   afVal('afUbic'),
+      moneda:      afVal('afMoneda') || 'USD',
+      monto_desde: desde,
+      monto_hasta: hasta,
+      resumen:     afVal('afResumen'),
+      detalle:     afVal('afDetalle'),
+      estado:      afVal('afEstado') || 'disponible',
+      destacado:   !!afQ('afDest').checked
+    };
+
+    afYendo = true;
+    bt.disabled = true;
+    bt.textContent = u.ac_yendo || '';
+    av.textContent = '';
+
+    var envio = afEdita
+      ? sb.from('activos').update(ficha).eq('id', afEdita.id)
+      : sb.from('activos').insert(ficha);
+
+    envio.then(function(r){
+      if (r && r.error) throw r.error;
+      afYendo = false;
+      bt.disabled = false;
+      cierraFicha();
+      return cargaActivos();
+    }).catch(function(e){
+      /* Aquí cae también el que no es del equipo: la política de la tabla
+         rechaza la fila y llega como error. Se dice lo que dijo la base y no
+         un "algo salió mal", que no ayuda a nadie a arreglarlo. */
+      console.warn('[CIIP] guardar activo:', e && (e.message || e));
+      afYendo = false;
+      bt.disabled = false;
+      pintaFicha();
+      av.textContent = String(u.ac_error || '').replace('{e}', (e && e.message) || '');
+    });
+  }
+
+  if (afBack){
+    if (acNuevo) acNuevo.addEventListener('click', function(){ abreFicha(null); });
+    afQ('afCerrar').addEventListener('click', cierraFicha);
+    afQ('afCancelar').addEventListener('click', cierraFicha);
+    afQ('afGuardar').addEventListener('click', guardaFicha);
+    afBack.addEventListener('click', function(e){ if (e.target === afBack) cierraFicha(); });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && afBack.classList.contains('open')) cierraFicha();
+    });
+    window.CIIP_REPINTA_FICHA = pintaFicha;
+    pintaFicha();
+
+    /* El rol llega después de que la página se dibuje, y con él el botón de
+       publicar. Es el mismo compás que la cola del equipo: se vuelve a
+       mirar hasta que el perfil esté puesto, sin volver a consultar nada. */
+    var vecesAc = 0, rolAc = null;
+    (function esperaAlRol(){
+      var rol = (typeof PERFIL !== 'undefined' && PERFIL.rol) || '';
+      if (rol !== rolAc){ rolAc = rol; pintaActivos(); }
+      if (typeof PERFIL !== 'undefined' && PERFIL.real) return;
+      if (vecesAc++ < 40) setTimeout(esperaAlRol, 100);
+    })();
   }
 
 })();

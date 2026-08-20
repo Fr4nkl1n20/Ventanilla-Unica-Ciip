@@ -98,8 +98,13 @@ create trigger activos_marca_tiempo
 -- ───────────────────────────────────────────────────────────────────────
 --  CÓMO SE PUBLICA UNO
 -- ───────────────────────────────────────────────────────────────────────
--- Desde aquí, o desde el editor de tablas de Supabase. Quita el comentario
--- y cambia lo que haga falta:
+-- Desde el PANEL: quien tenga rol de gestor o admin ve un boton "Publicar un
+-- activo" en la vista de Activos y proyectos, y otro de "Editar" en cada ficha.
+-- Es la via normal, y evita que haya que entrar a la base de datos cada vez
+-- que hay algo que ofrecer.
+--
+-- O desde aqui, si se van a cargar varios de golpe. Quita el comentario y
+-- cambia lo que haga falta:
 
 -- insert into public.activos (titulo, sector, ubicacion, monto_desde, monto_hasta, resumen, detalle, destacado)
 -- values

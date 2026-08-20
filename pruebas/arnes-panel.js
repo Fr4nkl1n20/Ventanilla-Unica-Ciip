@@ -95,7 +95,9 @@
               colaAbre, colaTramites, colaExpediente, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
               agendaMira, agendaTrasEntrar, agendaTrasSalir,
               rncAbre, rncTrasAbrir, solvenciasAbre, solvenciasTrasAbrir,
-              activosAbre, activosMira, devueltoAbre, devueltoMira, escaleraAbre, escaleraMira], volcar);
+              activosAbre, activosMira, activosPublica, activosTrasPublicar,
+              activosEdita, activosTrasEditar,
+              devueltoAbre, devueltoMira, escaleraAbre, escaleraMira], volcar);
   });
 
   function pruebas(){
@@ -1005,8 +1007,41 @@
     var fichas = document.querySelectorAll('#acLista .ci-ficha');
     var num = document.getElementById('navActivosN');
 
+    if (CASO === 'gestor'){
+      /* El equipo publica desde aquí. Mandarlo al editor de tablas de
+         Supabase cada vez es pedirle que entre a la base de datos. */
+      ok('activos: el equipo tiene con qué publicar',
+         !document.getElementById('acNuevo').hidden, 'oculto=' +
+         document.getElementById('acNuevo').hidden, 'el botón a la vista');
+      igual('activos: y ve también el cerrado', fichas.length, 2);
+      /* Un cerrado ya no se ofrece: la política de la base no se lo manda a
+         nadie más, y aquí se ve apagado y sin botón de preguntar. */
+      var cerr = fichas[1];
+      ok('activos: el cerrado se ve como tal',
+         cerr.classList.contains('cerrado'), cerr.className, 'con la clase cerrado');
+      igual('activos: y lo dice su etiqueta',
+            cerr.querySelector('.ct-chip').textContent, 'Cerrado');
+      ok('activos: sobre un cerrado no se pregunta',
+         !cerr.querySelector('.btn'),
+         cerr.querySelector('.btn') ? 'lo ofrece' : 'no lo ofrece', 'sin botón');
+      ok('activos: cada ficha se puede editar',
+         document.querySelectorAll('#acLista .ac-editar').length === 2,
+         document.querySelectorAll('#acLista .ac-editar').length + ' botones', '2 botones');
+      /* El contador sigue contando lo que se puede TOMAR. */
+      igual('activos: el cerrado no cuenta en el renglón', num.textContent, '1');
+      document.getElementById('acVolver').click();
+      return;
+    }
+
     if (CASO === 'lleno'){
       igual('activos: enseña los publicados', fichas.length, 2);
+      /* Al inversionista no se le enseña por dónde se administra esto. */
+      ok('activos: al inversionista no se le ofrece publicar',
+         document.getElementById('acNuevo').hidden, 'oculto=' +
+         document.getElementById('acNuevo').hidden, 'oculto=true');
+      ok('activos: ni editar',
+         !document.querySelector('#acLista .ac-editar'),
+         document.querySelectorAll('#acLista .ac-editar').length + ' botones', 'ninguno');
       /* El contador cuenta lo que se puede TOMAR: el reservado ya tiene a
          alguien delante. */
       igual('activos: y el renglón cuenta solo los disponibles', num.textContent, '1');
@@ -1039,6 +1074,89 @@
       ok('activos: y el renglón no lleva número', num.hidden,
          'oculto=' + num.hidden, 'oculto=true');
     }
+    document.getElementById('acVolver').click();
+  }
+
+  /* La tabla se llena A MANO, y se llena desde el panel. Estas cuatro
+     pruebas son el circuito entero: publicar uno, verlo aparecer, abrirlo
+     para corregirlo y ver el cambio en la lista. */
+  function activosPublica(){
+    if (CASO !== 'gestor') return;
+    document.getElementById('navActivos').click();
+    document.getElementById('acNuevo').click();
+
+    var back = document.getElementById('activoBack');
+    ok('publicar: se abre la ficha', back.classList.contains('open'),
+       back.className, 'con la clase open');
+    igual('publicar: y viene en blanco', document.getElementById('afTit').value, '');
+
+    /* Sin título la ficha no dice nada, y la base lo rechazaría igual: se
+       dice con palabras en vez de con un error de SQL. */
+    document.getElementById('afGuardar').click();
+    igual('publicar: sin título no se guarda',
+          document.getElementById('afAviso').textContent,
+          'Ponle un título: sin él la ficha no dice nada.');
+    ok('publicar: y se señala el campo',
+       document.getElementById('afTit').closest('.pf-campo').classList.contains('mal'),
+       document.getElementById('afTit').closest('.pf-campo').className, 'marcado');
+
+    /* Un rango al revés tampoco: es una ficha que nadie podría leer, y la
+       base tiene el mismo límite (activos_rango_valido). */
+    document.getElementById('afTit').value   = 'Finca cafetalera en produccion';
+    document.getElementById('afDesde').value = '900000';
+    document.getElementById('afHasta').value = '100000';
+    document.getElementById('afGuardar').click();
+    igual('publicar: un rango al revés no pasa',
+          document.getElementById('afAviso').textContent,
+          'El monto de hasta no puede ser menor que el de desde.');
+
+    document.getElementById('afHasta').value   = '1500000';
+    document.getElementById('afSector').value  = 'Agroindustria';
+    document.getElementById('afUbic').value    = 'Tachira';
+    document.getElementById('afResumen').value = 'En produccion, con marca propia.';
+    document.getElementById('afGuardar').click();
+  }
+
+  function activosTrasPublicar(){
+    if (CASO !== 'gestor') return;
+    ok('publicar: la ficha se cierra sola',
+       !document.getElementById('activoBack').classList.contains('open'),
+       document.getElementById('activoBack').className, 'sin la clase open');
+    var fichas = document.querySelectorAll('#acLista .ci-ficha');
+    igual('publicar: y el nuevo entra en la lista', fichas.length, 3);
+    ok('publicar: con su título',
+       /Finca cafetalera/.test(document.getElementById('acLista').textContent),
+       'busca "Finca cafetalera"', 'aparece');
+    /* Recién publicado y disponible: el renglón de la barra lo cuenta. */
+    igual('publicar: y el renglón lo cuenta',
+          document.getElementById('navActivosN').textContent, '2');
+  }
+
+  function activosEdita(){
+    if (CASO !== 'gestor') return;
+    var fichas = document.querySelectorAll('#acLista .ci-ficha');
+    /* El cerrado es el último: no está destacado y es el más viejo. */
+    fichas[2].querySelector('.ac-editar').click();
+    igual('editar: la ficha se abre con otro título',
+          document.getElementById('afTitulo').textContent, 'Editar el activo');
+    igual('editar: y con lo que ya había dentro',
+          document.getElementById('afTit').value, 'Hotel de playa en remodelacion');
+    igual('editar: incluido su estado',
+          document.getElementById('afEstado').value, 'cerrado');
+    /* Se vuelve a abrir: un cerrado no es una fila muerta. */
+    document.getElementById('afEstado').value = 'disponible';
+    document.getElementById('afGuardar').click();
+  }
+
+  function activosTrasEditar(){
+    if (CASO !== 'gestor') return;
+    var textos = [].map.call(document.querySelectorAll('#acLista .ci-ficha'),
+                             function(f){ return f.textContent; }).join(' | ');
+    ok('editar: el cambio se ve en la lista',
+       !/Hotel de playa en remodelacion[^|]*Cerrado/.test(textos) &&
+       /Hotel de playa/.test(textos), 'el hotel ya no está cerrado', 'reabierto');
+    igual('editar: y el renglón vuelve a contar',
+          document.getElementById('navActivosN').textContent, '3');
     document.getElementById('acVolver').click();
   }
 
