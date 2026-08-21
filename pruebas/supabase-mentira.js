@@ -257,6 +257,30 @@
   };
   var citasVivas = (CITAS[caso] || []).slice();
 
+  /* Canceladas y hechas. Hacian falta: una cita no se borra -solo se
+     cancela, para que quede constancia de que se pidio-, asi que la
+     lista de una cuenta usada de verdad se llena de ellas. Tres
+     identicas a proposito: se distinguen SOLO por cuando se pidieron,
+     que es lo que hace falta enseñar para que no sean tres renglones
+     iguales. */
+  var MUERTAS = {
+    lleno: [
+      {id:'x1', tipo_tramite:'rif_empresa', modo:'video', desde:'2026-08-23',
+       hasta:'2026-08-28', nota:'', estado:'cancelada', cuando:null, lugar:'',
+       creado_en:'2026-08-10T09:00:00Z'},
+      {id:'x2', tipo_tramite:'rif_empresa', modo:'video', desde:'2026-08-23',
+       hasta:'2026-08-28', nota:'', estado:'cancelada', cuando:null, lugar:'',
+       creado_en:'2026-08-11T09:00:00Z'},
+      {id:'x3', tipo_tramite:'rif_empresa', modo:'video', desde:'2026-08-23',
+       hasta:'2026-08-28', nota:'', estado:'cancelada', cuando:null, lugar:'',
+       creado_en:'2026-08-12T09:00:00Z'},
+      {id:'x4', tipo_tramite:'constitucion', modo:'telefono', desde:'2026-07-01',
+       hasta:'2026-07-05', nota:'', estado:'hecha',
+       cuando:'2026-07-03T10:00:00Z', lugar:'', creado_en:'2026-06-20T09:00:00Z'}
+    ],
+    vacio: [], sinnombre: [], gestor: []
+  };
+
   var EMPRESAS = {
     lleno: {razon_social:'Bianchi Agroindustrias, C.A.', rif_empresa:'J-40123456-7',
             numero_registro:'12, Tomo 45-A', fecha_constitucion:'2026-07-14',
@@ -351,7 +375,8 @@
       /* La agenda pide TODAS: ni .eq ni .in. El dialogo del inversionista
          pide solo las vivas con .in, y son dos listas distintas. */
       if (op && op.in) return {data:citasVivas, error:null};
-      return {data:citasVivas.concat(CONFIRMADAS[caso] || []), error:null};
+      return {data:citasVivas.concat(CONFIRMADAS[caso] || [], MUERTAS[caso] || []),
+              error:null};
     }
     if (tabla === 'empresas'){
       /* La empresa del inversionista. En 'lleno' y 'vacio' esta registrada

@@ -665,6 +665,27 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .ci-nota{font-size:12px; color:var(--ink); margin-top:6px;}
 /* El historial se lee, no se toca: en gris y sin borde azul. */
 .ci-ficha.pasada .ci-linea{color:var(--gray); font-weight:600;}
+/* La agenda repartida en tres. Antes era una sola pila ordenada por
+   fecha de peticion, y como una cita no se puede borrar -solo cancelar,
+   y a proposito- una cuenta con unas cuantas pruebas encima enterraba la
+   cita de verdad debajo de diez fichas identicas que ya no importan. */
+.ag-sec{display:flex; align-items:baseline; gap:9px; margin:20px 0 9px;}
+.ag-sec:first-child{margin-top:0;}
+.ag-sec .t{font-size:10.5px; font-weight:800; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--gray-soft);}
+.ag-sec .n{font-size:10.5px; font-weight:700; color:var(--gray-soft);
+  font-variant-numeric:tabular-nums;}
+/* Lo cancelado no gasta una ficha entera: gasta un renglon. */
+.ag-fila{display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  padding:9px 12px; border:1px solid var(--line-soft); border-radius:var(--r-sm);
+  background:var(--block); margin-bottom:6px; font-size:12.5px; color:var(--gray);}
+.ag-fila .cu{font-weight:600; color:var(--ink);}
+.ag-fila .pe{margin-left:auto; font-size:11px; color:var(--gray-soft);}
+.ag-mas{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy);
+  background:none; border:0; padding:6px 0; cursor:pointer; text-align:left;}
+.ag-mas:hover{text-decoration:underline;}
+@media(max-width:560px){ .ag-fila .pe{margin-left:0; width:100%;} }
+
 .ci-vacia{background:var(--bg); border:1px dashed var(--line); border-radius:var(--r);
   padding:26px 18px; text-align:center; font-size:13px; color:var(--gray);}
 
@@ -6453,32 +6474,102 @@ applyLang(idiomaParaMi());
       return;
     }
 
-    agenda.forEach(function(c){
-      var viva = (CI_VIVAS.indexOf(c.estado) >= 0);
-      var f = el('div', 'ci-ficha' + (viva ? ' viva' : ' pasada'));
+    /* Tres montones, y en este orden: lo que está en marcha primero,
+       porque es lo único sobre lo que se puede hacer algo.
 
-      var cab = el('div', 'ci-cab');
-      var chip = chipDeCita(c.estado);
-      var e = el('span', 'ct-chip' + (chip.clase ? ' ' + chip.clase : ''), chip.txt);
-      cab.appendChild(e);
-      if (c.modo) cab.appendChild(chipDeModo(c.modo));
-      f.appendChild(cab);
+       Una cita 'solicitada' cuya ventana ya pasó SIGUE en marcha: el CIIP
+       no ha contestado, y bajarla a "ya pasaron" escondería justo eso. */
+    var enMarcha = agenda.filter(function(c){ return CI_VIVAS.indexOf(c.estado) >= 0; });
+    var pasadas  = agenda.filter(function(c){ return c.estado === 'hecha'; });
+    var muertas  = agenda.filter(function(c){ return c.estado === 'cancelada'; });
 
-      /* Confirmada dice cuándo es; sin confirmar, qué días pedías. Poner "—"
-         donde va la fecha sería dejar la ficha diciendo nada. */
-      f.appendChild(el('div', 'ci-linea', c.cuando
-        ? String(u.ct_confirmada || '').replace('{fecha}', fechaHora(c.cuando))
-        : String(u.ci_ventana || '').replace('{desde}', fecha(c.desde)).replace('{hasta}', fecha(c.hasta))));
+    function seccion(titulo, n){
+      var h = el('div', 'ag-sec');
+      h.appendChild(el('span', 't', titulo || ''));
+      h.appendChild(el('span', 'n', String(n)));
+      ciLista.appendChild(h);
+    }
 
-      /* El modo ya va arriba con su dibujo: repetirlo aquí sería decir dos
-         veces lo mismo en la misma ficha. */
-      var partes = [nombreDeTipo(c.tipo_tramite)];
-      if (c.lugar) partes.push(c.lugar);
-      f.appendChild(el('div', 'ci-que', partes.join(' · ')));
-      if (c.nota) f.appendChild(el('div', 'ci-nota', c.nota));
+    seccion(u.ag_activas, enMarcha.length);
+    if (enMarcha.length) enMarcha.forEach(pintaFichaCita);
+    /* Que no haya ninguna viva se dice, aunque debajo haya veinte
+       canceladas. Una pantalla llena de fichas que no sirven para nada
+       parece, de lejos, una pantalla llena de citas. */
+    else ciLista.appendChild(el('div', 'ci-vacia', u.ag_sin_activas || ''));
 
-      ciLista.appendChild(f);
-    });
+    if (pasadas.length){
+      seccion(u.ag_pasadas, pasadas.length);
+      pasadas.forEach(pintaFichaCita);
+    }
+
+    /* Lo cancelado, plegado. Una cita no se borra —solo se cancela, para
+       que quede constancia de que se pidió—, así que esta lista solo
+       crece. Que crezca por debajo y no por encima. */
+    if (muertas.length){
+      seccion(u.ag_canceladas, muertas.length);
+      var pleg = el('button', 'ag-mas');
+      pleg.type = 'button';
+      var caja = el('div');
+      caja.hidden = true;
+      var rotula = function(){
+        pleg.textContent = caja.hidden
+          ? String(u.ag_ver || '').replace('{n}', muertas.length)
+          : (u.ag_ocultar || '');
+        pleg.setAttribute('aria-expanded', caja.hidden ? 'false' : 'true');
+      };
+      pleg.addEventListener('click', function(){ caja.hidden = !caja.hidden; rotula(); });
+      rotula();
+      ciLista.appendChild(pleg);
+      ciLista.appendChild(caja);
+      muertas.forEach(function(c){ caja.appendChild(filaCancelada(c)); });
+    }
+  }
+
+  /* Una cancelada en un renglón: su modo, para cuándo la querías y
+     cuándo la pediste. Lo justo para reconocerla, que es todo lo que se
+     hace con una cita cancelada. */
+  function filaCancelada(c){
+    var u = T();
+    var f = el('div', 'ag-fila');
+    if (c.modo) f.appendChild(chipDeModo(c.modo));
+    f.appendChild(el('span', 'cu', c.cuando ? fechaHora(c.cuando)
+      : String(u.ci_ventana || '').replace('{desde}', fecha(c.desde))
+                                  .replace('{hasta}', fecha(c.hasta))));
+    /* La fecha de petición es lo único que distingue dos canceladas que
+       pedían los mismos días. Sin ella son veinte renglones idénticos. */
+    if (c.creado_en){
+      f.appendChild(el('span', 'pe',
+        String(u.ag_pedida || '').replace('{fecha}', fecha(c.creado_en))));
+    }
+    return f;
+  }
+
+  function pintaFichaCita(c){
+    var u = T();
+    var viva = (CI_VIVAS.indexOf(c.estado) >= 0);
+    var f = el('div', 'ci-ficha' + (viva ? ' viva' : ' pasada'));
+
+    var cab = el('div', 'ci-cab');
+    var chip = chipDeCita(c.estado);
+    var e = el('span', 'ct-chip' + (chip.clase ? ' ' + chip.clase : ''), chip.txt);
+    cab.appendChild(e);
+    if (c.modo) cab.appendChild(chipDeModo(c.modo));
+    f.appendChild(cab);
+
+    /* Confirmada dice cuándo es; sin confirmar, qué días pedías. Poner "—"
+       donde va la fecha sería dejar la ficha diciendo nada. */
+    f.appendChild(el('div', 'ci-linea', c.cuando
+      ? String(u.ct_confirmada || '').replace('{fecha}', fechaHora(c.cuando))
+      : String(u.ci_ventana || '').replace('{desde}', fecha(c.desde)).replace('{hasta}', fecha(c.hasta))));
+
+    /* El modo ya va arriba con su dibujo: repetirlo aquí sería decir dos
+       veces lo mismo en la misma ficha. */
+    var partes = [nombreDeTipo(c.tipo_tramite)];
+    if (c.lugar) partes.push(c.lugar);
+    f.appendChild(el('div', 'ci-que', partes.join(' · ')));
+    if (c.nota) f.appendChild(el('div', 'ci-nota', c.nota));
+
+    ciLista.appendChild(f);
   }
 
   function cargaAgenda(){

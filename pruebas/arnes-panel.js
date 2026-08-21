@@ -2164,7 +2164,45 @@
     var fichas = document.querySelectorAll('#ciLista .ci-ficha');
 
     if (CASO === 'lleno'){
-      igual('agenda: enseña la cita que tienes', fichas.length, 1);
+      /* ── REPARTIDA EN TRES ── Una cita no se borra: solo se cancela, para
+         que quede constancia de que se pidió. Así que la lista de una
+         cuenta usada de verdad se llena de canceladas, y en una sola pila
+         ordenada por fecha de petición enterraban a la que sí importa. */
+      var secs = [].map.call(document.querySelectorAll('#ciLista .ag-sec .t'),
+                             function(x){ return x.textContent.trim(); });
+      igual('agenda: se reparte en marcha, pasadas y canceladas',
+            secs.join(' | '), 'En marcha | Ya pasaron | Canceladas');
+      /* Lo que está en marcha va PRIMERO: es lo único sobre lo que se
+         puede hacer algo. */
+      igual('agenda: y lo que está en marcha va primero', secs[0], 'En marcha');
+
+      igual('agenda: enseña la cita viva y la que ya pasó', fichas.length, 2);
+
+      /* Las canceladas no gastan una ficha entera, y llegan plegadas: son
+         tres y solo estorban. */
+      igual('agenda: las canceladas no ocupan una ficha cada una',
+            document.querySelectorAll('#ciLista .ag-fila').length, 3);
+      var pleg = document.querySelector('#ciLista .ag-mas');
+      ok('agenda: llegan plegadas, y el botón dice cuántas son',
+         pleg && /Ver las 3 canceladas/.test(pleg.textContent),
+         pleg ? pleg.textContent : 'no hay botón', 'Ver las 3 canceladas');
+      ok('agenda: y de verdad no se ven',
+         document.querySelector('#ciLista .ag-fila').offsetHeight === 0,
+         'alto ' + document.querySelector('#ciLista .ag-fila').offsetHeight, '0');
+      pleg.click();
+      ok('agenda: al pulsar se despliegan',
+         document.querySelector('#ciLista .ag-fila').offsetHeight > 0,
+         'alto ' + document.querySelector('#ciLista .ag-fila').offsetHeight, 'mayor que 0');
+      ok('agenda: y lo dice para quien no lo ve',
+         pleg.getAttribute('aria-expanded') === 'true',
+         'aria-expanded=' + pleg.getAttribute('aria-expanded'), 'true');
+      /* Tres canceladas que pedían LOS MISMOS días. Sin la fecha de
+         petición son tres renglones idénticos y no se sabe cuál es cuál. */
+      var pedidas = [].map.call(document.querySelectorAll('#ciLista .ag-fila .pe'),
+                                function(x){ return x.textContent.trim(); });
+      igual('agenda: cada cancelada dice cuándo se pidió', pedidas.length, 3);
+      igual('agenda: y las tres se distinguen entre sí', new Set(pedidas).size, 3);
+      pleg.click();
       ok('agenda: con su fecha puesta, no un hueco',
          /Confirmada para el/.test(fichas[0].querySelector('.ci-linea').textContent) &&
          fichas[0].querySelector('.ci-linea').textContent.indexOf('{') < 0,
