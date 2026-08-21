@@ -171,8 +171,12 @@
        datos:{razon_social:'Bianchi Agroindustrias, C.A.', rif_empresa:'J-40123456-7',
               actividad_economica:'Procesamiento de cacao'},
        creado_en:'2026-08-05T09:00:00Z', enviado_en:'2026-08-05T09:00:00Z'},
+      /* Uno sin asignar y otro de OTRO gestor: con los dos iguales, los
+         tres montones dirian lo mismo y probar que reparten no probaria
+         nada. */
       {id:'x2', inversionista:'u3', tipo:'constitucion', estado:'en_revision',
-       creado_en:'2026-08-07T09:00:00Z', enviado_en:'2026-08-07T09:00:00Z'}
+       creado_en:'2026-08-07T09:00:00Z', enviado_en:'2026-08-07T09:00:00Z',
+       gestor:'u4'}
     ],
     lleno: [], vacio: [], sinnombre: []
   };
@@ -490,6 +494,16 @@
          el. Confundirlas seria enseñarle a cada uno lo del otro. */
       if (op && op.in && op.in.estado && op.in.estado.indexOf('enviado') >= 0){
         return {data:colaTram, error:null};
+      }
+      /* Tomar o soltar NO saca el tramite de la cola: solo cambia de
+         nombre. Con la regla de abajo -que si lo saca- tomar uno lo
+         habria hecho desaparecer, que es lo contrario de lo que hace.
+         Los dos son un update sobre la misma tabla, y como en perfiles se
+         distinguen por lo que traen. */
+      if (op && op.update && 'gestor' in op.update && op.eq && op.eq.id){
+        var suyo = colaTram.filter(function(t){ return t.id === op.eq.id; })[0];
+        if (suyo) suyo.gestor = op.update.gestor;
+        return {data:(suyo || {}), error:null};
       }
       if (op && op.update && op.eq && op.eq.id){
         colaTram = colaTram.filter(function(t){ return t.id !== op.eq.id; });

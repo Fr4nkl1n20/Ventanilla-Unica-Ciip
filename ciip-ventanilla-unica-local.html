@@ -728,6 +728,28 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
    un HECHO -"esperando desde hace 12 dias"- y no un plazo. El CIIP no ha
    dicho todavia cuanto deberia tardar cada tramite, y pintar de rojo a
    los ocho dias seria inventarse una promesa que nadie hizo. */
+/* Los tres montones de la cola. Mismos distintivos que los filtros de
+   la portada: quien ya sabe filtrar tramites no tiene que aprender otra
+   cosa aqui. */
+.co-filtros{display:flex; gap:7px; flex-wrap:wrap; margin:0 0 11px;}
+.co-filtros button{font:inherit; font-size:11.5px; font-weight:700;
+  color:var(--gray); background:var(--bg); border:1px solid var(--line);
+  border-radius:20px; padding:6px 12px; cursor:pointer;
+  display:inline-flex; align-items:center; gap:6px;}
+.co-filtros button:hover{border-color:var(--navy2);}
+.co-filtros button.aqui{background:var(--navy); border-color:var(--navy); color:#fff;}
+.co-filtros button .n{font-variant-numeric:tabular-nums; opacity:.75;}
+/* Quien lo lleva. En su propio renglon y no pegado al nombre del
+   inversionista: son dos personas distintas y confundirlas en una cola
+   de trabajo es el peor sitio para hacerlo. */
+.co-duenio{font-size:11.5px; color:var(--gray); display:flex;
+  align-items:center; gap:8px; flex-wrap:wrap; margin-top:7px;}
+.co-duenio.mio{color:var(--navy2); font-weight:700;}
+.co-duenio button{font:inherit; font-size:11px; font-weight:700;
+  color:var(--navy); background:none; border:0; padding:2px 0; cursor:pointer;}
+.co-duenio button:hover{text-decoration:underline;}
+.co-duenio button[disabled]{color:var(--gray-soft); cursor:default; text-decoration:none;}
+
 .lleva{font-size:11px; color:var(--gray-soft); display:inline-flex;
   align-items:center; gap:5px; white-space:nowrap;}
 .lleva svg{width:11px; height:11px; stroke:currentColor; stroke-width:2;
@@ -2496,6 +2518,9 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
     </div>
     <div class="cola-lista">
       <div class="co-seccion" id="colaHtram"></div>
+      <!-- La cola era un monton comun: todos veian todo y nadie era
+           responsable de nada en concreto. -->
+      <div class="co-filtros" id="colaFiltros"></div>
       <div id="colaTram"></div>
       <div class="co-seccion" id="colaHcitas"></div>
       <div id="colaLista"></div>
@@ -6000,6 +6025,12 @@ applyLang(idiomaParaMi());
   /* id -> nombre de cualquiera, del equipo o no. Lo rellena la carga de
      la cola, que ya pide la tabla entera. */
   var NOMBRES = {};
+  /* Quien soy, para saber cuales son "mios". Se pregunta al cargar la
+     cola y no al pulsar: hace falta para PINTAR, no solo para escribir. */
+  var YO = null;
+  /* 'todos' | 'sin' | 'mios'. Vive fuera de pintaCola para que repintar
+     -tras tomar uno, tras devolver otro- no devuelva al monton comun. */
+  var coFiltro = 'todos';
 
   function pintaCola(){
     if (!coLista) return;
@@ -6124,18 +6155,100 @@ applyLang(idiomaParaMi());
     ante_el_ente: [{a:'resuelto', k:'co_resuelta'}]
   };
 
+  /* Los tres montones. 'sin' y 'mios' son los que hacen falta de verdad
+     para trabajar; 'todos' esta para no esconder nada. */
+  function coCuadra(t){
+    if (coFiltro === 'sin')  return !t.gestor;
+    if (coFiltro === 'mios') return !!YO && t.gestor === YO;
+    return true;
+  }
+
+  function pintaFiltrosCola(){
+    var caja = document.getElementById('colaFiltros');
+    if (!caja) return;
+    var u = T();
+    caja.textContent = '';
+    /* Sin ninguno asignado los tres montones dicen lo mismo, y tres
+       botones que no reparten nada solo estorban. */
+    var hayAlguno = enRevision.some(function(t){ return !!t.gestor; });
+    caja.hidden = (enRevision.length < 2 && !hayAlguno);
+    if (caja.hidden) return;
+
+    [['todos', u.co_f_todos], ['sin', u.co_f_sin], ['mios', u.co_f_mios]]
+      .forEach(function(x){
+        var antes = coFiltro;
+        coFiltro = x[0];
+        var n = enRevision.filter(coCuadra).length;
+        coFiltro = antes;
+
+        var b = el('button', coFiltro === x[0] ? 'aqui' : null);
+        b.type = 'button';
+        b.appendChild(document.createTextNode(x[1] || ''));
+        b.appendChild(el('span', 'n', String(n)));
+        b.addEventListener('click', function(){ coFiltro = x[0]; pintaTramites(); });
+        caja.appendChild(b);
+      });
+  }
+
+  /* Tomar y soltar. NO es un cerrojo: quien quiera puede tomar uno que
+     lleva otro, y lo unico que pasa es que el nombre cambia. Un cerrojo
+     de verdad en una oficina de tres personas da mas problemas de los que
+     evita -el que se va de vacaciones deja media cola bloqueada- y para
+     coordinarse basta con ver quien lo tiene. */
+  function ponDuenio(t, quien, boton){
+    var u = T();
+    boton.disabled = true;
+    sb.from('tramites').update({gestor: quien}).eq('id', t.id).select().single()
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        t.gestor = quien;
+        pintaTramites();
+      })
+      .catch(function(e){
+        console.warn('[CIIP] asignar tramite:', e && e.message);
+        boton.disabled = false;
+        boton.textContent = u.co_error || '';
+      });
+  }
+
+  function duenioDe(t){
+    var u = T();
+    var mio = !!YO && t.gestor === YO;
+    var d = el('div', 'co-duenio' + (mio ? ' mio' : ''));
+    d.appendChild(document.createTextNode(
+      mio ? (u.co_lollevas || '')
+      : t.gestor ? String(u.co_lolleva || '').replace('{quien}', nombreDeGestor(t.gestor))
+      : (u.co_sinasig || '')));
+    var b = el('button', null, mio ? (u.co_soltar || '') : (u.co_tomar || ''));
+    b.type = 'button';
+    b.addEventListener('click', function(){ ponDuenio(t, mio ? null : YO, b); });
+    if (!YO) b.disabled = true;
+    d.appendChild(b);
+    return d;
+  }
+
   function pintaTramites(){
     var caja = document.getElementById('colaTram');
     if (!caja) return;
     var u = T();
     caja.textContent = '';
+    pintaFiltrosCola();
 
     if (!enRevision.length){
       caja.appendChild(el('div', 'co-vacia', u.co_tram_vacio || ''));
       return;
     }
 
-    enRevision.forEach(function(t){
+    var vistos = enRevision.filter(coCuadra);
+    /* Un filtro que deja la lista vacia tiene que decirlo. Si no, "Mios"
+       sin ninguno tuyo se lee como "la cola esta vacia" y alguien se va a
+       casa pensando que no hay nada que hacer. */
+    if (!vistos.length){
+      caja.appendChild(el('div', 'co-vacia', u.co_tram_vacio || ''));
+      return;
+    }
+
+    vistos.forEach(function(t){
       var f = el('div', 'co-ficha');
       var ref = tipoRefDe(t.tipo);
 
@@ -6155,6 +6268,7 @@ applyLang(idiomaParaMi());
       var r = relojDe(t.desde_en || t.enviado_en || t.creado_en, u.co_espera);
       if (r){ cuando.appendChild(document.createTextNode('  ')); cuando.appendChild(r); }
       f.appendChild(cuando);
+      f.appendChild(duenioDe(t));
 
       /* Ver el expediente antes de decidir. Va antes de la nota a
          propósito: primero se mira, luego se opina. */
@@ -6637,6 +6751,18 @@ applyLang(idiomaParaMi());
   }
 
   function cargaCola(){
+    /* Antes de nada, quien pregunta. Sin esto la cola no sabe cuales son
+       tuyos y el filtro "Mios" saldria siempre vacio. */
+    if (!YO){
+      return sb.auth.getUser().then(function(r){
+        YO = (r && r.data && r.data.user && r.data.user.id) || null;
+        return cargaColaDeVerdad();
+      }).catch(function(){ return cargaColaDeVerdad(); });
+    }
+    return cargaColaDeVerdad();
+  }
+
+  function cargaColaDeVerdad(){
     /* Dos consultas y no un embebido: si la política de perfiles no está
        puesta, la segunda vuelve vacía y la cola sigue saliendo sin nombres,
        en vez de caerse entera por el nombre que falta. */
@@ -6648,7 +6774,7 @@ applyLang(idiomaParaMi());
         if (r && r.error) throw r.error;
         enCola = (r.data || []).map(function(c){ c.nombre = ''; return c; });
         return sb.from('tramites')
-          .select('id, inversionista, tipo, estado, datos, creado_en, enviado_en')
+          .select('id, inversionista, tipo, estado, datos, creado_en, enviado_en, gestor')
           .in('estado', CO_MIOS)
           .order('creado_en', {ascending:true})
           .then(function(rt){

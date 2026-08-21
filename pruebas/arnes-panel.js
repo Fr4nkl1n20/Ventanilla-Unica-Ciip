@@ -103,7 +103,12 @@
 
   cuandoConteste(function(){
     enCadena([pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir, citasAnula, citasTrasAnular,
-              colaAbre, colaTramites, colaLleva,
+              colaAbre,
+              /* El reparto ANTES de desplegar nada: tomar un tramite
+                 repinta la cola entera, y eso pliega el expediente que
+                 los pasos de abajo necesitan abierto. */
+              colaReparto, colaTrasTomar,
+              colaTramites, colaLleva,
               /* La identidad se mira con el expediente ya desplegado y
                  ANTES de colaExpediente, que termina devolviendo el
                  tramite: al devolverlo sale de la cola y se lleva por
@@ -2898,6 +2903,73 @@
        y pasa a ser un juicio, y ese juicio no lo hemos pedido a nadie. */
     ok('cola: y sin color de alarma, que sería una promesa',
        !/warn|mal|rust|alarma/.test(r.className), r.className, 'solo "lleva"');
+  }
+
+  /* ═══════════ QUIÉN LLEVA CADA TRÁMITE ═══════════
+     La cola era un montón común: todos veían todo y nadie era responsable
+     de nada en concreto. La columna estaba en la base desde el principio
+     y no la usaba nadie. */
+  function colaReparto(){
+    if (CASO !== 'gestor') return;
+    var fichas = document.querySelectorAll('#colaTram .co-ficha');
+    igual('reparto: cada trámite dice quién lo lleva',
+          [].filter.call(fichas, function(f){ return f.querySelector('.co-duenio'); }).length, 2);
+    ok('reparto: el que no lleva nadie lo dice',
+       /Sin asignar/.test(fichas[0].textContent),
+       fichas[0].querySelector('.co-duenio').textContent.trim(), 'Sin asignar');
+    /* Y el de otro dice SU NOMBRE, no un identificador. Una cola de
+       trabajo con códigos dentro no la lee nadie. */
+    ok('reparto: y el de otro dice su nombre',
+       /Saskia Calderon/.test(fichas[1].textContent),
+       fichas[1].querySelector('.co-duenio').textContent.trim(), 'Lo lleva Saskia Calderon');
+
+    /* Los tres montones, con su cuenta. */
+    var fil = document.querySelectorAll('#colaFiltros button');
+    igual('reparto: hay tres montones', fil.length, 3);
+    igual('reparto: y cada uno dice cuántos tiene',
+          [].map.call(fil, function(b){ return b.textContent.trim(); }).join(' | '),
+          'Todos2 | Sin asignar1 | Míos0');
+
+    /* Tomar uno. NO es un cerrojo: lo único que cambia es el nombre. */
+    fichas[0].querySelector('.co-duenio button').click();
+  }
+
+  function colaTrasTomar(){
+    if (CASO !== 'gestor') return;
+    var fichas = document.querySelectorAll('#colaTram .co-ficha');
+    ok('reparto: al tomarlo pasa a ser tuyo',
+       /Lo llevas tú/.test(fichas[0].textContent),
+       fichas[0].querySelector('.co-duenio').textContent.trim(), 'Lo llevas tú');
+    ok('reparto: y el botón pasa a ofrecer soltarlo',
+       /Soltarlo/.test(fichas[0].querySelector('.co-duenio button').textContent),
+       fichas[0].querySelector('.co-duenio button').textContent, 'Soltarlo');
+    /* Y sigue en la cola: tomar no es resolver. Con la regla vieja del
+       falso -que saca el tramite al actualizarlo- habria desaparecido. */
+    igual('reparto: y sigue en la cola, que tomar no es resolver', fichas.length, 2);
+    /* La cuenta de los montones se mueve con él. */
+    var fil = document.querySelectorAll('#colaFiltros button');
+    igual('reparto: y las cuentas se mueven con él',
+          [].map.call(fil, function(b){ return b.textContent.trim(); }).join(' | '),
+          'Todos2 | Sin asignar0 | Míos1');
+
+    /* Filtrar por "Míos" deja solo el tuyo. */
+    fil[2].click();
+    igual('reparto: "Míos" enseña solo el tuyo',
+          document.querySelectorAll('#colaTram .co-ficha').length, 1);
+    /* Un filtro que deja la lista vacía tiene que decirlo: si no, "Sin
+       asignar" sin ninguno se lee como "la cola está vacía" y alguien se
+       va a casa creyendo que no hay nada que hacer. */
+    fil[1].click();
+    ok('reparto: y un montón vacío lo dice, no finge una cola vacía',
+       document.querySelectorAll('#colaTram .co-vacia').length === 1,
+       document.querySelectorAll('#colaTram .co-ficha').length + ' fichas', 'el aviso');
+    fil[0].click();
+    igual('reparto: y "Todos" los devuelve',
+          document.querySelectorAll('#colaTram .co-ficha').length, 2);
+    /* Se suelta para dejarlo como estaba: los pasos que vienen después
+       devuelven y confirman, y una cola filtrada los descolocaría. */
+    document.querySelectorAll('#colaTram .co-ficha')[0]
+      .querySelector('.co-duenio button').click();
   }
 
   function colaExpediente(){
