@@ -81,7 +81,17 @@ function laDePruebas(){
   return { url, anon, ref };
 }
 
-function fin(msg){ console.error('\n  ' + msg + '\n'); process.exit(2); }
+/* process.exit() a secas revienta en Windows con "Assertion failed:
+   !(handle->flags & UV_HANDLE_CLOSING)": corta el proceso mientras fetch
+   todavia tiene conexiones abiertas. El susto es peor que el fallo, y
+   encima aparece debajo del mensaje que si importa, con lo que parece
+   que lo roto es el arnes y no la clave. Asi que esto ya no mata el
+   proceso: lanza, y arriba se recoge. */
+function fin(msg){
+  const e = new Error(msg);
+  e.esperado = true;
+  throw e;
+}
 
 /* ── el marcador ───────────────────────────────────────────────────── */
 const R = [];
@@ -166,6 +176,24 @@ async function principal(){
   }
   const cuentas = JSON.parse(fs.readFileSync(fichero, 'utf8'));
   if (!cuentas.a || !cuentas.b) fin('cuentas.local.json necesita "a" y "b"');
+
+  /* Supabase contesta "Invalid login credentials" igual a una clave mala
+     que a una vacia, y con ese mensaje uno se va a buscar el problema a
+     la base cuando esta en el archivo. Mas vale decirlo aqui. */
+  for (const k of ['a', 'b']){
+    const c = String((cuentas[k] || {}).clave || '');
+    if (!c.trim()){
+      fin('La clave de "' + k + '" (' + cuentas[k].correo + ') esta vacia en\n' +
+          '  pruebas/cuentas.local.json.\n\n' +
+          '  El arnes la lee de ESE archivo, no de Supabase: ponerla en el panel\n' +
+          '  de Supabase no la pone aqui. Escribela entre las comillas de "clave".');
+    }
+    if (c !== c.trim()){
+      fin('La clave de "' + k + '" lleva espacios al principio o al final en\n' +
+          '  pruebas/cuentas.local.json. Supabase no los quita, y el error que\n' +
+          '  devuelve es el mismo que el de una clave equivocada.');
+    }
+  }
 
   const A = await entra(cuentas.a.correo, cuentas.a.clave);
   const B = await entra(cuentas.b.correo, cuentas.b.clave);
@@ -484,10 +512,13 @@ async function principal(){
     console.log('  Esto prueba las politicas, no el panel. Que la base no deje');
     console.log('  hacer algo no quiere decir que el panel lo pida bien.\n');
   }
-  process.exit(mal ? 1 : 0);
+  process.exitCode = mal ? 1 : 0;
 }
 
 principal().catch(function(e){
-  console.error('\n  Se rompio el arnes: ' + (e && e.message) + '\n');
-  process.exit(2);
+  /* Lo esperado se cuenta en una linea; lo inesperado, con su pila, que
+     para eso es inesperado. */
+  if (e && e.esperado) console.error('\n  ' + e.message + '\n');
+  else console.error('\n  Se rompio el arnes:\n' + ((e && e.stack) || e) + '\n');
+  process.exitCode = 2;
 });
