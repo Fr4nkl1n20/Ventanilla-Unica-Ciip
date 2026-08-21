@@ -1391,6 +1391,34 @@
          parseFloat(ea.paddingTop) >= 3 && aqui.getBoundingClientRect().height >= 16,
          'relleno ' + ea.paddingTop + ', alto ' + aqui.getBoundingClientRect().height.toFixed(1) + 'px',
          'al menos 3px de relleno y 16px de alto');
+  /* "Vas por aquí" tenía forma de píldora —borde, fondo, esquinas
+     redondas—, la misma que los filtros de la portada, que esos sí se
+     pulsan. Es un RÓTULO: la forma prometía un clic que no existe. */
+      /* DENTRO de #trReal: hay otro .tr-aqui en la escalera de maqueta -la
+       de un tramite que nadie ha empezado- y es el primero del documento.
+       Mirar ese era medir una etiqueta escondida, sin tiempo y sin alto. */
+    var eti = document.querySelector('#trReal .tr-aqui');
+    if (!eti) return;
+    var css = getComputedStyle(eti);
+    ok('escalera: "vas por aquí" no finge ser un botón',
+       css.borderTopWidth === '0px' &&
+       parseFloat(css.borderTopLeftRadius) < 10,
+       'borde ' + css.borderTopWidth + ', radio ' + css.borderTopLeftRadius,
+       'sin borde y sin forma de píldora');
+    /* Y sigue viéndose: quitarle el marco no puede volverlo invisible. */
+    ok('escalera: pero se sigue viendo', eti.offsetHeight > 0 && css.color !== css.backgroundColor,
+       'alto ' + eti.offsetHeight + ', color ' + css.color, 'visible');
+
+    /* Lo que pedía el CIIP: que diga cuánto llevas parado ahí. Es un
+       HECHO y no un plazo; cuánto DEBERÍA tardar no lo ha dicho nadie. */
+    var desde = eti.querySelector('.tr-desde');
+    ok('escalera: y dice desde cuándo llevas en ese paso',
+       desde && /hace|día|mes|semana/.test(desde.textContent),
+       desde ? desde.textContent.trim() : 'no lo dice', 'algo como "desde hace 6 días"');
+    ok('escalera: sin inventarse un plazo',
+       !/deber|plazo|tarda/i.test(eti.textContent), eti.textContent.trim(),
+       'ninguna promesa');
+
       /* Y no se sale de su caja. */
       ok('escalera: y su texto cabe dentro',
          aqui.scrollWidth <= aqui.clientWidth + 1,

@@ -110,6 +110,9 @@ window.CIIP_PASOS = {
       ns_descartar_ok:"Pulsa otra vez: no se recupera",
       ns_descartando: "Descartando…",
       ns_descartada:  "Los recaudos que ya subiste siguen en tus documentos.",
+      /* Cuanto llevas en este paso de la escalera. Un HECHO, no un
+         plazo: cuanto DEBERIA tardar no lo ha dicho nadie todavia. */
+      ns_desde_paso: "· desde {cuando}",
       /* --- El buzón de avisos, en la barra de arriba --- */
       av_titulo:    "Tus avisos",
       av_vacio:     "Todavía no hay nada que contarte.",
@@ -605,6 +608,7 @@ window.CIIP_PASOS = {
       ns_descartar_ok:"Press again: there is no undo",
       ns_descartando: "Discarding…",
       ns_descartada:  "The documents you already uploaded stay in your vault.",
+      ns_desde_paso: "· since {cuando}",
       /* --- The alerts tray, in the top bar --- */
       av_titulo:    "Your alerts",
       av_vacio:     "Nothing to tell you yet.",
@@ -1081,6 +1085,7 @@ window.CIIP_PASOS = {
       ns_descartar_ok:"Carregue outra vez: não se recupera",
       ns_descartando: "A descartar…",
       ns_descartada:  "Os documentos que já carregou ficam nos seus documentos.",
+      ns_desde_paso: "· desde {cuando}",
       /* --- A caixa de avisos, na barra de cima --- */
       av_titulo:    "Os seus avisos",
       av_vacio:     "Ainda não há nada para lhe contar.",
@@ -1548,6 +1553,7 @@ window.CIIP_PASOS = {
       ns_descartar_ok:"Premi ancora: non si recupera",
       ns_descartando: "Eliminazione…",
       ns_descartada:  "I documenti già caricati restano tra i tuoi.",
+      ns_desde_paso: "· da {cuando}",
       /* --- La casella degli avvisi, nella barra in alto --- */
       av_titulo:    "I tuoi avvisi",
       av_vacio:     "Non c'è ancora nulla da dirti.",
@@ -2015,6 +2021,7 @@ window.CIIP_PASOS = {
       ns_descartar_ok:"再按一次：无法恢复",
       ns_descartando: "正在放弃…",
       ns_descartada:  "您已上传的材料仍在文件夹中。",
+      ns_desde_paso: "· {cuando}起",
       /* --- 顶部导航栏的提醒栏 --- */
       av_titulo:    "您的提醒",
       av_vacio:     "暂时没有新消息。",
@@ -2482,6 +2489,7 @@ window.CIIP_PASOS = {
       ns_descartar_ok:"Нажмите ещё раз: отменить нельзя",
       ns_descartando: "Удаляем…",
       ns_descartada:  "Загруженные документы остаются у вас.",
+      ns_desde_paso: "· с {cuando}",
       /* --- Лента уведомлений в верхней панели --- */
       av_titulo:    "Ваши уведомления",
       av_vacio:     "Пока нечего сообщить.",

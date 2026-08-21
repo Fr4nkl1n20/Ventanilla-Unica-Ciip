@@ -1190,10 +1190,27 @@ body[data-vista="tramite"] #secTramites{display:none;}
    relleno. Este iba con 1px y esquina cuadrada, asi que salia apretado y
    parecia otra cosa —un boton a medio hacer— en vez de la marca de "estas
    aqui" que es. Se alinea con sus hermanos. */
-.tr-aqui{display:inline-block; margin-top:6px; font-size:10px; font-weight:800;
-  letter-spacing:.07em; text-transform:uppercase; line-height:1;
-  color:var(--navy2); background:var(--block); border:1px solid var(--line);
-  border-radius:20px; padding:5px 9px;}
+/* Es un ROTULO, no un control. Tenia borde, fondo y forma de pildora:
+   exactamente la de los filtros de la portada, que esos si se pulsan. La
+   forma prometia un clic que no existe, y quien lo pulsaba se quedaba
+   esperando a que pasara algo.
+
+   Ahora es texto con una barrita delante: se sigue viendo -es el unico
+   azul de la escalera- pero ya no invita a pulsarlo. */
+.tr-aqui{display:inline-flex; align-items:center; gap:6px; margin-top:6px;
+  font-size:10px; font-weight:800; letter-spacing:.07em; text-transform:uppercase;
+  line-height:1; color:var(--navy2);
+  /* Respira -y una prueba lo exige, porque apretado parecia un boton a
+     medio hacer- pero solo por arriba y por abajo: el relleno lateral es
+     lo que dibujaba la pildora. */
+  padding:5px 0;}
+.tr-aqui::before{content:""; width:9px; height:2px; border-radius:2px;
+  background:var(--navy2); flex:none;}
+/* Cuanto lleva en este paso. En gris y sin mayusculas: es el dato, no el
+   rotulo. Y es un HECHO -"desde hace 6 dias"- y no un plazo: cuanto
+   DEBERIA tardar no lo ha dicho nadie todavia. */
+.tr-desde{font-size:10.5px; font-weight:400; letter-spacing:0; text-transform:none;
+  color:var(--gray-soft);}
 
 /* ============ EL TRAMITE DE VERDAD ============
    Formulario y estado real, contra la base de datos. Convive con la
@@ -4909,7 +4926,27 @@ applyLang(idiomaParaMi());
           var txt = el('div', 'tr-txt');
           txt.appendChild(el('div', 'tr-paso-n', estadoTexto(i, tipo.ente)));
           if (cuando[est]) txt.appendChild(el('div', 'sd-e', fecha(cuando[est])));
-          else if (ahora) txt.appendChild(el('span', 'tr-aqui', textoAqui()));
+          else if (ahora){
+            var eti = el('span', 'tr-aqui', textoAqui());
+            /* Desde cuando estas parado en este punto. Para un devuelto es
+               la fecha de la DEVOLUCION y no la del envio: el envio fue
+               antes de la vuelta, y decir "esperando desde hace tres
+               semanas" cuando te la devolvieron ayer seria mentir sobre
+               quien tiene la pelota. */
+            var desde = (tr.estado === 'devuelto')
+              ? (cuando['devuelto'] || tr.actualizado_en)
+              /* Si el historial no trae el evento de ese estado -politica
+                 sin poner, tabla a medio migrar- se cae a la fecha de
+                 envio. Peor dato, pero dato: sin esto la etiqueta se
+                 quedaba muda justo donde hacia falta. */
+              : ((alcanzado >= 0 && cuando[ORDEN[alcanzado]]) ||
+                 tr.enviado_en || tr.creado_en);
+            if (desde){
+              eti.appendChild(el('span', 'tr-desde',
+                String(u.ns_desde_paso || '').replace('{cuando}', haceCuanto(desde))));
+            }
+            txt.appendChild(eti);
+          }
           li.appendChild(punto); li.appendChild(txt);
           lista.appendChild(li);
         });
