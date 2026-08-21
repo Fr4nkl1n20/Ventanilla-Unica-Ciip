@@ -119,6 +119,12 @@ window.CIIP_PASOS = {
       nv_hay:     "Hay una versión nueva del panel",
       nv_recarga: "Recargar",
       nv_luego:   "Ahora no",
+      /* Ya hay una en marcha de este mismo tramite. La lista de la
+         tarjeta ya lo evitaba -si la mas reciente no es borrador, ensena
+         el estado y no el formulario- pero eso es una LECTURA, y entre
+         leer y escribir cabe otra pestana, una recarga o un doble clic.
+         La comprobacion de verdad va justo antes de escribir. */
+      sol_ya: "Ya tienes una solicitud de este trámite en marcha desde el {fecha}. No hace falta pedirla otra vez.",
       /* --- El buzón de avisos, en la barra de arriba --- */
       av_titulo:    "Tus avisos",
       av_vacio:     "Todavía no hay nada que contarte.",
@@ -618,6 +624,7 @@ window.CIIP_PASOS = {
       nv_hay:     "There is a newer version of the panel",
       nv_recarga: "Reload",
       nv_luego:   "Not now",
+      sol_ya: "You already have a request for this procedure under way since {fecha}. There is no need to ask again.",
       /* --- The alerts tray, in the top bar --- */
       av_titulo:    "Your alerts",
       av_vacio:     "Nothing to tell you yet.",
@@ -1098,6 +1105,7 @@ window.CIIP_PASOS = {
       nv_hay:     "Há uma versão nova do painel",
       nv_recarga: "Recarregar",
       nv_luego:   "Agora não",
+      sol_ya: "Já tem um pedido deste trâmite em curso desde {fecha}. Não é preciso pedi-lo outra vez.",
       /* --- A caixa de avisos, na barra de cima --- */
       av_titulo:    "Os seus avisos",
       av_vacio:     "Ainda não há nada para lhe contar.",
@@ -1569,6 +1577,7 @@ window.CIIP_PASOS = {
       nv_hay:     "C'è una versione nuova del pannello",
       nv_recarga: "Ricarica",
       nv_luego:   "Non ora",
+      sol_ya: "Hai già una richiesta di questa pratica in corso dal {fecha}. Non serve richiederla.",
       /* --- La casella degli avvisi, nella barra in alto --- */
       av_titulo:    "I tuoi avvisi",
       av_vacio:     "Non c'è ancora nulla da dirti.",
@@ -2040,6 +2049,7 @@ window.CIIP_PASOS = {
       nv_hay:     "面板有新版本",
       nv_recarga: "重新载入",
       nv_luego:   "暂不",
+      sol_ya: "自 {fecha} 起，您已有一份该业务的申请在办理中，无需重复提交。",
       /* --- 顶部导航栏的提醒栏 --- */
       av_titulo:    "您的提醒",
       av_vacio:     "暂时没有新消息。",
@@ -2511,6 +2521,7 @@ window.CIIP_PASOS = {
       nv_hay:     "Есть новая версия панели",
       nv_recarga: "Обновить",
       nv_luego:   "Не сейчас",
+      sol_ya: "У вас уже есть заявка по этой процедуре с {fecha}. Подавать её снова не нужно.",
       /* --- Лента уведомлений в верхней панели --- */
       av_titulo:    "Ваши уведомления",
       av_vacio:     "Пока нечего сообщить.",

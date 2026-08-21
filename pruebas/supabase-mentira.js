@@ -507,6 +507,20 @@
     }
     if (tabla === 'bancos_aliados')   return {data:[], error:null};
     if (tabla === 'tramites'){
+      /* Antes de crear una solicitud, el panel pregunta si YA hay una en
+         marcha de ESE MISMO TRAMITE: los tres estados vivos Y un .eq del
+         tipo. Va la PRIMERA porque la de abajo -la cola del equipo- se
+         queda con cualquier consulta que lleve 'enviado' dentro, y se
+         tragaba esta: la guarda contra duplicados preguntaba y siempre le
+         contestaban que no habia ninguna. La cola del equipo nunca filtra
+         por tipo, asi que el .eq las distingue. */
+      if (op && op.in && op.in.estado && op.eq && op.eq.tipo &&
+          op.in.estado.indexOf('ante_el_ente') >= 0){
+        return {data: (TRAMITES[caso] || []).filter(function(t){
+          return t.tipo === op.eq.tipo && op.in.estado.indexOf(t.estado) >= 0;
+        }), error:null};
+      }
+
       /* Dos colas distintas sobre la misma tabla: la del equipo pide lo que
          espera por el CIIP, y la franja del inversionista lo que espera por
          el. Confundirlas seria enseñarle a cada uno lo del otro. */

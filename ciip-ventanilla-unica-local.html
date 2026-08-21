@@ -4877,7 +4877,59 @@ applyLang(idiomaParaMi());
     var u = T();
     aviso.textContent = ''; aviso.className = 'sol-aviso';
 
-    /* 1. validar
+    /* 1. ¿ya hay una en marcha de este mismo trámite?
+
+       ANTES de validar los campos, y a propósito: no tiene sentido
+       hacerle arreglar ocho casillas a quien no necesita mandar nada. Y
+       de paso hace comprobable la guarda, que detrás de la validación
+       solo se alcanzaba con el formulario entero relleno.
+
+       La tarjeta ya lo evitaba —pide la más reciente y, si no es
+       borrador, enseña el estado en vez del formulario— pero eso es una
+       LECTURA, y entre leer y escribir cabe otra pestaña abierta, una
+       recarga a destiempo o un doble clic en Enviar. Así aparecieron
+       cuatro solicitudes de la misma visa, y esas cuatro las recibe el
+       CIIP y alguien tiene que revisarlas una por una.
+
+       'devuelto' NO cuenta: una devuelta hay que volver a mandarla, que
+       es justo lo que se le pide al inversionista.
+
+       Es una comprobación del panel, no una cerradura. La de verdad
+       sería un índice único en la base, y esa es otra decisión —hay
+       trámites que SÍ se piden dos veces, como una solvencia al año
+       siguiente—. Lo que esto quita es el duplicado por accidente. */
+    var VIVOS_YA = ['enviado', 'en_revision', 'ante_el_ente'];
+
+    boton.disabled = true;
+    sb.from('tramites').select('id, estado, enviado_en, creado_en')
+      .eq('tipo', tipo.codigo).in('estado', VIVOS_YA)
+      .order('creado_en', {ascending: false}).limit(1)
+      .then(function(rv){ return ((rv && rv.data) || [])[0] || null; })
+      .catch(function(e){
+        /* Si la comprobación no contesta se sigue: mejor un duplicado
+           posible que no dejar enviar por una consulta que falló. */
+        console.warn('[CIIP] ya hay una en marcha:', e && e.message);
+        return null;
+      })
+      .then(function(yaHay){
+        boton.disabled = false;
+        if (!yaHay) return validaYEnvia();
+        aviso.className = 'sol-aviso err';
+        aviso.textContent = String(u.sol_ya || '')
+          .replace('{fecha}', fecha(yaHay.enviado_en || yaHay.creado_en));
+        /* Y NO se repinta la tarjeta. Repintar enseña el estado de la que
+           ya hay -que suena razonable- pero destruye el formulario, y con
+           el este mismo aviso: el usuario pulsaba Enviar, la pantalla
+           cambiaba sola y nadie le decia por que. Cambiar la pantalla sin
+           explicar es peor que no cambiarla.
+
+           El aviso se queda, y en el se lee la fecha de la que ya esta en
+           marcha. La tarjeta ensenara ese estado sola la proxima vez que
+           se abra. */
+      });
+
+    function validaYEnvia(){
+    /* 2. validar
        Lo que lleva data-opcional no cuenta para "falta algo". Hizo falta en
        cuanto un trámite pidió un recaudo que no todo el mundo tiene: la
        nómina del c9 no existe si la empresa aún no ha contratado a nadie, y
@@ -4907,7 +4959,8 @@ applyLang(idiomaParaMi());
     boton.disabled = true;
     boton.textContent = u.enviando;
 
-    /* 2. asegurar el borrador */
+    function sigueEnviando(){
+    /* 3. asegurar el borrador */
     var conBorrador = borrador
       ? Promise.resolve(borrador)
       : sb.from('tramites').insert({inversionista: usuario.id, tipo: tipo.codigo, datos: datos})
@@ -4947,6 +5000,8 @@ applyLang(idiomaParaMi());
       aviso.textContent = (e && e.message) ? (u.error + ' (' + e.message + ')') : u.error;
       aviso.className = 'sol-aviso err';
     });
+    }
+    }
   }
 
   function tipoRefDe(codigo){

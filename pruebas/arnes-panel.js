@@ -117,6 +117,7 @@
               colaExpediente, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
               agendaMira, agendaTrasEntrar, agendaTrasSalir,
               paisesMira, paisesTrasAbrir,
+              dupeAbre, dupeMira, dupeTrasEnviar,
               rncAbre, rncTrasAbrir, solvenciasAbre, solvenciasTrasAbrir,
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
@@ -1258,6 +1259,40 @@
 
     ent.value = '';
     ent.dispatchEvent(new Event('input'));
+    location.hash = '';
+  }
+
+  /* ═══════════ NI UNA SOLICITUD DE MAS ═══════════
+     Pasaron cuatro de la misma visa. La tarjeta ya lo evitaba —pide la
+     más reciente y, si no es borrador, enseña el estado y no el
+     formulario— pero eso es una LECTURA, y entre leer y escribir cabe
+     otra pestaña, una recarga o un doble clic en Enviar. Y esas cuatro
+     las recibe el CIIP y alguien las revisa una por una. */
+  function dupeAbre(){
+    /* 'vacio' trae un borrador de RIF personal Y su envio posterior: el
+       tramite tiene una EN MARCHA. Es el expediente donde este caso
+       existe de verdad. */
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c3';
+  }
+
+  function dupeMira(){
+    if (CASO !== 'vacio') return;
+    var enviar = document.getElementById('solEnviar') ||
+                 document.querySelector('.sol-enviar');
+    if (!enviar) return;   /* si ya ensena el estado, no hay que probar nada */
+    enviar.click();
+  }
+
+  function dupeTrasEnviar(){
+    if (CASO !== 'vacio') return;
+    var av = document.querySelector('.sol-aviso');
+    if (!av) return;
+    ok('duplicados: no se manda otra si ya hay una en marcha',
+       /Ya tienes una solicitud de este trámite en marcha/.test(av.textContent),
+       av.textContent.trim().slice(0, 60), 'lo dice y no la crea');
+    ok('duplicados: y lo dice como un error, no como un aviso suelto',
+       /err/.test(av.className), av.className, 'sol-aviso err');
     location.hash = '';
   }
 
