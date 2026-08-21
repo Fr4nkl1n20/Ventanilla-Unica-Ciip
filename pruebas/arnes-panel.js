@@ -1113,30 +1113,58 @@
 
   function paisesTrasAbrir(){
     if (CASO !== 'vacio') return;
-    var dl = document.getElementById('listaPaises');
-    ok('países: hay una sola lista compartida, no una por campo', !!dl,
-       dl ? 'existe' : 'no existe', 'existe');
-    ok('países: y trae los doscientos y pico',
-       dl.options.length > 190,
-       dl.options.length + ' opciones', 'más de 190');
-    ok('países: con su nombre en el idioma de turno',
-       [].some.call(dl.options, function(o){ return o.value === 'Venezuela'; }) &&
-       [].some.call(dl.options, function(o){ return o.value === 'Alemania'; }),
-       'busca Venezuela y Alemania', 'las dos');
 
-    var campo = document.querySelector('#solCuerpo [name="pais_emisor"]') ||
-                document.querySelector('[name="pais_emisor"]');
-    ok('países: el campo del pasaporte las sugiere', !!campo &&
-       campo.getAttribute('list') === 'listaPaises',
-       campo ? ('list=' + campo.getAttribute('list')) : 'no encuentro el campo',
-       'list=listaPaises');
-    /* Sigue siendo un campo de texto: lo que no esté en la lista se
-       escribe igual. */
-    igual('países: y sigue admitiendo lo que se teclee',
-          campo.tagName.toLowerCase(), 'input');
+    var campo = document.querySelector('.sol-campo[data-campo="pais_emisor"]');
+    ok('países: el campo del pasaporte trae el buscador', !!campo &&
+       !!campo.querySelector('.combo .combo-list'),
+       campo ? (campo.querySelector('.combo') ? 'con combo' : 'sin combo') : 'no está',
+       'el mismo del perfil');
+    var ent = campo.querySelector('input[type="text"]');
+    var ocu = campo.querySelector('input[type="hidden"]');
+    var lis = campo.querySelector('.combo-list');
+    ok('países: y sigue siendo un campo de texto',
+       !!ent, ent ? 'input de texto' : 'no lo es', 'texto');
 
-    /* El plural NO la lleva: ahí se escriben varios separados por comas
-       y una sugerencia que mira la casilla entera no acierta ni una. */
+    /* Escribir tres letras y que salga: es todo lo que se le pide. */
+    ent.focus();
+    ent.value = 'ven';
+    ent.dispatchEvent(new Event('input'));
+    ok('países: al escribir se despliega la lista',
+       lis.classList.contains('open'), lis.className, 'con la clase open');
+    igual('países: y el primero es el que empieza por ahí',
+          lis.querySelector('li[role="option"] span:last-child').textContent, 'Venezuela');
+
+    /* Sin tildes, que es lo que uno teclea de verdad. */
+    ent.value = 'peru';
+    ent.dispatchEvent(new Event('input'));
+    igual('países: y busca sin tildes',
+          lis.querySelector('li[role="option"] span:last-child').textContent, 'Perú');
+
+    /* Elegir guarda el CÓDIGO, que es lo que un ente va a querer el día
+       que pregunte, y el nombre en ESPAÑOL aparte: lo que se ve en
+       pantalla está en el idioma de turno, y guardar eso metera el mismo
+       país en la base de seis maneras distintas. */
+    lis.querySelector('li[role="option"]').dispatchEvent(new MouseEvent('mousedown', {bubbles:true}));
+    igual('países: elegir rellena el campo', ent.value, 'Perú');
+    igual('países: y guarda el código ISO', ocu.value, 'PE');
+    igual('países: y el nombre en español, que es lo que va a la base',
+          campo.getAttribute('data-es'), 'Perú');
+    ok('países: y la lista se cierra',
+       !lis.classList.contains('open'), lis.className, 'sin open');
+
+    /* Escribir encima descarta el código viejo: si no, uno de una
+       elección anterior daría por bueno lo que sea que se teclee. */
+    ent.value = 'País que no existe';
+    ent.dispatchEvent(new Event('input'));
+    igual('países: escribir encima suelta el código anterior', ocu.value, '');
+    igual('países: y el nombre en español con él',
+          campo.getAttribute('data-es'), null);
+    /* Pero se admite igual: una lista cerrada deja fuera a quien escriba
+       "Reino Unido" donde nosotros pusimos otra cosa. */
+    igual('países: pero lo escrito a mano no se borra', ent.value, 'País que no existe');
+
+    ent.value = '';
+    ent.dispatchEvent(new Event('input'));
     location.hash = '';
   }
 

@@ -2551,13 +2551,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 <!-- La ficha de la empresa. Los campos y sus etiquetas son los MISMOS que
      usan los formularios de los tramites: asi lo que se escribe aqui encaja
      alli por coincidencia de nombre, sin una tabla de equivalencias. -->
-<!-- Los nombres de los doscientos y pico paises, para los campos de los
-     tramites que piden uno. Es UNA sola lista compartida: doscientas
-     opciones repetidas en cada campo de cada formulario pesarian por
-     nada. La rellena construyePaises con los nombres del idioma en
-     curso. -->
-<datalist id="listaPaises"></datalist>
-
 <div class="asst-back" id="empresaBack">
   <div class="asst perfil">
     <div class="asst-h">
@@ -4547,19 +4540,8 @@ applyLang(idiomaParaMi());
       } else {
         entrada = document.createElement('input');
         entrada.type = c.tipo || 'text';
-        /* Los nombres de pais se sugieren al escribir. Con <datalist> y
-           no con un desplegable a proposito: sigue admitiendo lo que se
-           teclee. Una lista cerrada de paises deja fuera al que escriba
-           "Reino Unido" donde nosotros pusimos "Reino Unido de Gran
-           Bretana", y ese trata con un formulario, no con nosotros.
-
-           No lo lleva el campo plural "Paises de origen o destino": ahi
-           se escriben varios separados por comas, y una sugerencia que
-           mira la casilla entera no acierta ni una. */
-        if (c.paises){
-          entrada.setAttribute('list', 'listaPaises');
-          entrada.setAttribute('autocomplete', 'off');
-        }
+        /* Nada aqui: los de pais se montan mas abajo, que necesitan
+           envoltura propia. */
       }
       entrada.name = c.n;
       /* Lo que ya escribiste en ESTE trámite manda siempre. Si el campo
@@ -4572,7 +4554,21 @@ applyLang(idiomaParaMi());
         var sello = el('span', 'de-empresa', u.em_deempresa || '');
         campo.querySelector('label').appendChild(sello);
       }
-      campo.appendChild(entrada);
+      /* El buscador de paises: el MISMO del perfil, no una copia. Sigue
+         admitiendo lo que se teclee -una lista cerrada deja fuera a quien
+         escriba "Reino Unido" donde nosotros pusimos otra cosa- pero
+         cuando se elige de la lista guarda tambien el codigo ISO, que es
+         lo que un ente va a querer el dia que pregunte.
+
+         No lo lleva el campo plural "Paises de origen o destino": ahi se
+         escriben varios separados por comas y un buscador de uno solo
+         estorbaria mas de lo que ayuda. */
+      if (c.paises && entrada.tagName === 'INPUT'){
+        var b = montaBuscadorPais(campo, entrada);
+        if (entrada.value) b.pon(entrada.value);
+      } else {
+        campo.appendChild(entrada);
+      }
       rejilla.appendChild(campo);
     });
     caja.appendChild(rejilla);
@@ -4681,7 +4677,11 @@ applyLang(idiomaParaMi());
     var datos = {}, falta = false;
     caja.querySelectorAll('.sol-campo').forEach(function(c){
       var e = c.querySelector('input, select');
-      var v = (e.value || '').trim();
+      /* data-es lo pone el buscador de paises cuando se elige uno de la
+         lista: es el nombre en ESPANOL. Lo que se ve en pantalla esta en
+         el idioma de turno, y guardar eso haria que el mismo pais entrara
+         en la base de seis maneras distintas. */
+      var v = (c.getAttribute('data-es') || e.value || '').trim();
       var suelto = c.getAttribute('data-opcional');
       c.classList.toggle('mal', !v && !suelto);
       if (v) datos[c.getAttribute('data-campo')] = v;
@@ -5323,168 +5323,212 @@ applyLang(idiomaParaMi());
       PAISES.push({cod:c, nombre:n, es:(nombrePais(c, 'es') || n), busca:sinTildes(n)});
     });
     PAISES.sort(function(a, b){ return a.nombre.localeCompare(b.nombre, idioma); });
-    pintaListaPaises();
   }
 
-  /* La lista compartida que usan los campos de pais de los tramites. Se
-     rehace con el idioma: si no, alguien que cambia a portugues seguiria
-     viendo "Alemania" en las sugerencias y "Alemanha" en su perfil. */
-  function pintaListaPaises(){
-    var dl = document.getElementById('listaPaises');
-    if (!dl) return;
-    dl.textContent = '';
-    PAISES.forEach(function(p){
-      var o = document.createElement('option');
-      o.value = p.nombre;
-      dl.appendChild(o);
+  /* ── EL BUSCADOR DE PAÍSES, UNO POR CAMPO ──────────────────────
+     Un <select> con doscientos y pico países obliga a rodar hasta el
+     tuyo; escribiendo tres letras se llega antes, y sin tildes: "peru"
+     encuentra "Perú".
+
+     Era una sola copia atada a los tres identificadores del perfil. Ahora
+     es una fábrica, porque los campos de país de los trámites piden lo
+     mismo y una segunda copia habría envejecido por su cuenta: el día que
+     se arregle algo aquí, se arregla en los cinco sitios.
+
+     Lo que guarda: el código ISO en el campo escondido y el nombre EN
+     ESPAÑOL en data-es. Así cambiar de idioma no cambia el dato que ya
+     está en la base, y el día que un ente pregunte por la nacionalidad
+     hay un código que darle en vez de un nombre escrito a mano. ────── */
+  function nuevoBuscadorPais(caja, entrada, oculto, lista){
+    var marcado = -1, visibles = [];
+
+    function cierra(){
+      lista.classList.remove('open');
+      entrada.setAttribute('aria-expanded', 'false');
+      marcado = -1;
+    }
+    function resaltar(texto, q){
+      if (!q) return texto;
+      var i = sinTildes(texto).indexOf(q);
+      if (i < 0) return texto;
+      return texto.slice(0, i) + '<mark>' + texto.slice(i, i + q.length) + '</mark>' +
+             texto.slice(i + q.length);
+    }
+    function marcaPais(cod){
+      if (HAY_BANDERAS){
+        var img = document.createElement('img');
+        img.className = 'bandera';
+        img.src = 'banderas/' + cod.toLowerCase() + '.svg';
+        img.alt = '';
+        /* Si falta justo esa, cae al código en vez de dejar el hueco roto. */
+        img.onerror = function(){
+          var c = el('span', 'bandera-cod', cod);
+          if (img.parentNode) img.parentNode.replaceChild(c, img);
+        };
+        return img;
+      }
+      return el('span', 'bandera-cod', cod);
+    }
+    function pinta(q){
+      var qn = sinTildes(q);
+      visibles = qn ? PAISES.filter(function(p){ return p.busca.indexOf(qn) >= 0; })
+                    : PAISES.slice();
+      /* Los que EMPIEZAN por lo escrito, primero: quien teclea "ven" busca
+         Venezuela, no Eslovenia. */
+      if (qn) visibles.sort(function(a, b){
+        return (a.busca.indexOf(qn) === 0 ? 0 : 1) - (b.busca.indexOf(qn) === 0 ? 0 : 1);
+      });
+
+      lista.textContent = '';
+      if (!visibles.length){
+        var v = el('li', 'combo-vacio', '\u2014');
+        v.setAttribute('role', 'presentation');
+        lista.appendChild(v);
+      }
+      visibles.slice(0, 80).forEach(function(p, idx){
+        var li = el('li');
+        li.setAttribute('role', 'option');
+        li.dataset.i = idx;
+        li.appendChild(marcaPais(p.cod));
+        var t = el('span');
+        t.innerHTML = resaltar(p.nombre, qn);
+        li.appendChild(t);
+        /* mousedown y no click: el blur del campo cierra la lista antes de
+           que llegue el click, y la elección se perdería. */
+        li.addEventListener('mousedown', function(e){ e.preventDefault(); elige(p); });
+        lista.appendChild(li);
+      });
+      marcado = -1;
+      lista.classList.add('open');
+      entrada.setAttribute('aria-expanded', 'true');
+    }
+    function marcaFila(n){
+      var filas = lista.querySelectorAll('li[role="option"]');
+      if (!filas.length) return;
+      if (marcado >= 0 && filas[marcado]) filas[marcado].classList.remove('sel');
+      marcado = (n + filas.length) % filas.length;
+      filas[marcado].classList.add('sel');
+      filas[marcado].scrollIntoView({block:'nearest'});
+    }
+    function elige(p){
+      entrada.value = p.nombre;
+      oculto.value = p.cod;
+      if (caja) caja.setAttribute('data-es', p.es);
+      cierra();
+      if (caja) caja.classList.remove('mal');
+    }
+
+    /* Da por bueno lo escrito si coincide EXACTO con un país, aunque no se
+       eligiera de la lista: pegar el nombre o el autorrelleno del
+       navegador. */
+    function fija(){
+      var q = sinTildes((entrada.value || '').trim());
+      if (!q){ oculto.value = ''; if (caja) caja.removeAttribute('data-es'); return false; }
+      /* El código guardado solo vale si SIGUE correspondiendo al texto a la
+         vista: si no, uno de una elección anterior daría por bueno lo que
+         sea que se escriba encima. */
+      if (oculto.value){
+        var actual = PAISES.filter(function(x){ return x.cod === oculto.value; })[0];
+        if (actual && actual.busca === q) return true;
+        oculto.value = '';
+        if (caja) caja.removeAttribute('data-es');
+      }
+      var p = PAISES.filter(function(x){ return x.busca === q; })[0];
+      if (p){ elige(p); return true; }
+      return false;
+    }
+
+    /* Lo que viaja a la base: SIEMPRE el nombre en español. */
+    function paraGuardar(){
+      if (oculto.value){
+        var p = PAISES.filter(function(x){ return x.cod === oculto.value; })[0];
+        if (p) return p.es;
+      }
+      return (entrada.value || '').trim();
+    }
+
+    /* Al abrir con un país ya guardado —que en la base está en español—
+       hay que encontrarlo para poder enseñarlo en el idioma de turno. */
+    function pon(esp){
+      if (!esp){
+        entrada.value = ''; oculto.value = '';
+        if (caja) caja.removeAttribute('data-es');
+        return;
+      }
+      var p = PAISES.filter(function(x){ return sinTildes(x.es) === sinTildes(esp); })[0];
+      if (p){ elige(p); cierra(); }
+      /* Un país escrito a mano en la base que no esté en la lista se
+         enseña tal cual en vez de borrarlo por las bravas. */
+      else {
+        entrada.value = esp; oculto.value = '';
+        if (caja) caja.setAttribute('data-es', esp);
+      }
+    }
+
+    entrada.addEventListener('focus', function(){ pinta(entrada.value); });
+    entrada.addEventListener('input', function(){
+      oculto.value = '';
+      if (caja) caja.removeAttribute('data-es');
+      pinta(entrada.value);
     });
+    entrada.addEventListener('blur',  function(){ setTimeout(function(){ fija(); cierra(); }, 120); });
+    entrada.addEventListener('keydown', function(e){
+      if (e.key === 'ArrowDown'){
+        e.preventDefault();
+        if (!lista.classList.contains('open')) pinta(entrada.value);
+        marcaFila(marcado + 1);
+      } else if (e.key === 'ArrowUp'){
+        e.preventDefault(); marcaFila(marcado - 1);
+      } else if (e.key === 'Enter'){
+        if (lista.classList.contains('open') && marcado >= 0){
+          e.preventDefault(); elige(visibles[marcado]);
+        }
+      } else if (e.key === 'Escape'){
+        /* Escape cierra la lista, no la ventana: quien está buscando un
+           país no quiere perder también el nombre que ya escribió. */
+        if (lista.classList.contains('open')){ e.stopPropagation(); cierra(); }
+      }
+    });
+
+    return {pon: pon, paraGuardar: paraGuardar, fija: fija, elige: elige,
+            pinta: pinta, cierra: cierra};
   }
 
-  /* ── el buscador de países ──
-     Portado del registro, donde ya funcionaba. Un <select> con doscientos y
-     pico países obliga a rodar hasta el tuyo; escribiendo tres letras se
-     llega antes, y sin tildes: "peru" encuentra "Perú". */
+  /* Monta uno nuevo dentro de un campo: crea la caja, el escondido y la
+     lista. Lo usan los campos de país de los trámites, que no existen en
+     el marcado —se pintan según el formulario—. */
+  var nBuscador = 0;
+  function montaBuscadorPais(campo, entrada){
+    var combo = el('div', 'combo');
+    var oculto = document.createElement('input');
+    oculto.type = 'hidden';
+    var lista = el('ul', 'combo-list');
+    lista.setAttribute('role', 'listbox');
+    lista.id = 'combo-paises-' + (++nBuscador);
+
+    entrada.setAttribute('autocomplete', 'off');
+    entrada.setAttribute('role', 'combobox');
+    entrada.setAttribute('aria-autocomplete', 'list');
+    entrada.setAttribute('aria-expanded', 'false');
+    entrada.setAttribute('aria-controls', lista.id);
+
+    combo.appendChild(entrada);
+    combo.appendChild(oculto);
+    combo.appendChild(lista);
+    campo.appendChild(combo);
+    return nuevoBuscadorPais(campo, entrada, oculto, lista);
+  }
+
+  /* El del perfil, que es el único que ya viene en el marcado. */
   var pfCampo = document.getElementById('pfPais');
   var pfCod   = document.getElementById('pfPaisCod');
   var pfLista = document.getElementById('pfLista');
-  var pfMarcado = -1, pfVisibles = [];
-
-  function cierraLista(){
-    if (!pfLista) return;
-    pfLista.classList.remove('open');
-    pfCampo.setAttribute('aria-expanded', 'false');
-    pfMarcado = -1;
-  }
-  function resaltar(texto, q){
-    if (!q) return texto;
-    var i = sinTildes(texto).indexOf(q);
-    if (i < 0) return texto;
-    return texto.slice(0, i) + '<mark>' + texto.slice(i, i + q.length) + '</mark>' + texto.slice(i + q.length);
-  }
-  function marcaPais(cod){
-    if (HAY_BANDERAS){
-      var img = document.createElement('img');
-      img.className = 'bandera';
-      img.src = 'banderas/' + cod.toLowerCase() + '.svg';
-      img.alt = '';
-      /* Si falta justo esa, cae al código en vez de dejar el hueco roto. */
-      img.onerror = function(){
-        var c = el('span', 'bandera-cod', cod);
-        if (img.parentNode) img.parentNode.replaceChild(c, img);
-      };
-      return img;
-    }
-    return el('span', 'bandera-cod', cod);
-  }
-  function pintaLista(q){
-    if (!pfLista) return;
-    var qn = sinTildes(q);
-    pfVisibles = qn ? PAISES.filter(function(p){ return p.busca.indexOf(qn) >= 0; }) : PAISES.slice();
-    /* los que EMPIEZAN por lo escrito, primero: quien teclea "ven" busca
-       Venezuela, no Eslovenia */
-    if (qn) pfVisibles.sort(function(a, b){
-      return (a.busca.indexOf(qn) === 0 ? 0 : 1) - (b.busca.indexOf(qn) === 0 ? 0 : 1);
-    });
-
-    pfLista.textContent = '';
-    if (!pfVisibles.length){
-      var v = el('li', 'combo-vacio', '—');
-      v.setAttribute('role', 'presentation');
-      pfLista.appendChild(v);
-    }
-    pfVisibles.slice(0, 80).forEach(function(p, idx){
-      var li = el('li');
-      li.setAttribute('role', 'option');
-      li.dataset.i = idx;
-      li.appendChild(marcaPais(p.cod));
-      var t = el('span');
-      t.innerHTML = resaltar(p.nombre, qn);
-      li.appendChild(t);
-      /* mousedown y no click: el blur del campo cierra la lista antes de que
-         llegue el click, y la elección se perdería. */
-      li.addEventListener('mousedown', function(e){ e.preventDefault(); eligePais(p); });
-      pfLista.appendChild(li);
-    });
-    pfMarcado = -1;
-    pfLista.classList.add('open');
-    pfCampo.setAttribute('aria-expanded', 'true');
-  }
-  function marcaFila(n){
-    var filas = pfLista.querySelectorAll('li[role="option"]');
-    if (!filas.length) return;
-    if (pfMarcado >= 0 && filas[pfMarcado]) filas[pfMarcado].classList.remove('sel');
-    pfMarcado = (n + filas.length) % filas.length;
-    filas[pfMarcado].classList.add('sel');
-    filas[pfMarcado].scrollIntoView({block:'nearest'});
-  }
-  function eligePais(p){
-    pfCampo.value = p.nombre;
-    pfCod.value = p.cod;
-    cierraLista();
-    pfCampo.closest('.pf-campo').classList.remove('mal');
-  }
-
-  /* Da por bueno lo escrito si coincide EXACTO con un país, aunque no se
-     eligiera de la lista: pegar el nombre o el autorrelleno del navegador. */
-  function fijaPaisSiCoincide(){
-    var q = sinTildes((pfCampo.value || '').trim());
-    if (!q){ pfCod.value = ''; return false; }
-    /* El código guardado solo vale si SIGUE correspondiendo al texto a la
-       vista: si no, uno de una elección anterior daría por bueno lo que sea
-       que se escriba encima. */
-    if (pfCod.value){
-      var actual = PAISES.filter(function(x){ return x.cod === pfCod.value; })[0];
-      if (actual && actual.busca === q) return true;
-      pfCod.value = '';
-    }
-    var p = PAISES.filter(function(x){ return x.busca === q; })[0];
-    if (p){ pfCampo.value = p.nombre; pfCod.value = p.cod; return true; }
-    return false;
-  }
-
-  /* Lo que viaja a la base: SIEMPRE el nombre en español. */
-  function paisParaGuardar(){
-    if (pfCod.value){
-      var p = PAISES.filter(function(x){ return x.cod === pfCod.value; })[0];
-      if (p) return p.es;
-    }
-    return (pfCampo.value || '').trim();
-  }
-
-  /* Al abrir con un país ya guardado —que en la base está en español— hay
-     que encontrarlo para poder enseñarlo en el idioma de turno. */
-  function ponPaisGuardado(esp){
-    if (!pfCampo) return;
-    if (!esp){ pfCampo.value = ''; pfCod.value = ''; return; }
-    var p = PAISES.filter(function(x){ return sinTildes(x.es) === sinTildes(esp); })[0];
-    if (p){ pfCampo.value = p.nombre; pfCod.value = p.cod; }
-    /* Un país escrito a mano en la base que no esté en la lista se enseña
-       tal cual en vez de borrarlo por las bravas. */
-    else { pfCampo.value = esp; pfCod.value = ''; }
-  }
-
-  if (pfCampo){
-    pfCampo.addEventListener('focus', function(){ pintaLista(pfCampo.value); });
-    pfCampo.addEventListener('input', function(){ pfCod.value = ''; pintaLista(pfCampo.value); });
-    pfCampo.addEventListener('blur',  function(){ setTimeout(cierraLista, 120); });
-    pfCampo.addEventListener('keydown', function(e){
-      if (e.key === 'ArrowDown'){
-        e.preventDefault();
-        if (!pfLista.classList.contains('open')) pintaLista(pfCampo.value);
-        marcaFila(pfMarcado + 1);
-      } else if (e.key === 'ArrowUp'){
-        e.preventDefault(); marcaFila(pfMarcado - 1);
-      } else if (e.key === 'Enter'){
-        if (pfLista.classList.contains('open') && pfMarcado >= 0){
-          e.preventDefault(); eligePais(pfVisibles[pfMarcado]);
-        }
-      } else if (e.key === 'Escape'){
-        /* Escape cierra la lista, no la ventana: quien está buscando un país
-           no quiere perder también el nombre que ya escribió. */
-        if (pfLista.classList.contains('open')){ e.stopPropagation(); cierraLista(); }
-      }
-    });
-  }
+  var BUSCA_PF = pfCampo ? nuevoBuscadorPais(pfCampo.closest('.pf-campo'),
+                                             pfCampo, pfCod, pfLista) : null;
+  function fijaPaisSiCoincide(){ return BUSCA_PF ? BUSCA_PF.fija() : false; }
+  function paisParaGuardar(){ return BUSCA_PF ? BUSCA_PF.paraGuardar() : ''; }
+  function ponPaisGuardado(esp){ if (BUSCA_PF) BUSCA_PF.pon(esp); }
+  function cierraLista(){ if (BUSCA_PF) BUSCA_PF.cierra(); }
 
   function pintaPerfil(){
     if (!pfBack) return;
