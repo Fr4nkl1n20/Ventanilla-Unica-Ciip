@@ -7669,6 +7669,10 @@ applyLang(idiomaParaMi());
 
   var ROLES = ['inversionista', 'gestor', 'admin'];
 
+  /* id -> "rol cambiado". Vive fuera de las tarjetas para que repintar no
+     se lo lleve por delante. */
+  var AVISOS_ROL = {};
+
   /* ── QUIÉN ESTÁ Y QUIÉN NO ─────────────────────────────────
      No es una conexión: eso no se puede saber. Un navegador no avisa cuando
      se cierra, ni cuando se va la luz. Lo que se apunta es la ÚLTIMA VEZ
@@ -7844,7 +7848,15 @@ applyLang(idiomaParaMi());
     var nota = el('span', 'us-nota');
     /* Nadie cambia su propio rol, y aquí se dice en vez de dejar un
        desplegable que rebota con un error de la base. */
-    if (yo) nota.textContent = u.us_nopropio || '';
+    /* Lo que acabas de cambiar te lo dice la propia tarjeta, y sobrevive
+       al repintado. Antes el aviso vivia en el nodo viejo: repintar lo
+       borraba, asi que habia que esperar 900 ms con el aviso puesto y el
+       distintivo diciendo todavia lo contrario. */
+    if (AVISOS_ROL[p.id]){
+      nota.className = 'us-nota hecho';
+      nota.textContent = AVISOS_ROL[p.id];
+    }
+    else if (yo) nota.textContent = u.us_nopropio || '';
     else if (p.rol_cambiado_en)
       nota.textContent = String(u.us_cambiado || '').replace('{fecha}', fecha(p.rol_cambiado_en));
     pie.appendChild(nota);
@@ -7868,10 +7880,13 @@ applyLang(idiomaParaMi());
           if (r && r.error) throw r.error;
           p.rol = nuevo;
           p.rol_cambiado_en = new Date().toISOString();
-          nota.className = 'us-nota hecho';
-          nota.textContent = u.us_hecho || '';
-          /* Se repinta entera: el que sube a gestor cambia de sección. */
-          setTimeout(pintaUsuarios, 900);
+          AVISOS_ROL[p.id] = u.us_hecho || '';
+          /* Se repinta YA, no dentro de novecientos milisegundos. Durante
+             esa espera la pantalla se contradecia a si misma: el aviso
+             decia "rol cambiado" y el distintivo de la misma tarjeta
+             seguia diciendo INVERSIONISTA. Quien lo hacia acababa
+             recargando a ver si esta vez si. */
+          pintaUsuarios();
         })
         .catch(function(e){
           console.warn('[CIIP] cambiar rol:', e && (e.message || e));

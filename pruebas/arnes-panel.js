@@ -115,7 +115,7 @@
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
               devueltoAbre, devueltoMira, escaleraAbre, escaleraMira,
-              usuariosMira, usuariosCambia, usuariosTrasCambiar,
+              usuariosMira, usuariosCambia, usuariosTrasCambiar, usuariosSeMueve,
               sinSqlAbre, sinSqlMira,
               adminMira, adminAbre, adminDentro,
               f5Entra, f5Espera, f5Llega,
@@ -1634,7 +1634,23 @@
     var t = document.getElementById('usLista').textContent;
     ok('usuarios: el cambio se guarda y se dice', /Rol cambiado|Rol puesto/.test(t),
        'busca "Rol cambiado"', 'lo dice');
-    location.hash = '';
+
+    /* Y la tarjeta YA lo dice, en el mismo momento. Mientras esto no
+       cuadraba, la pantalla se contradecia sola: el aviso daba el cambio
+       por hecho y el distintivo de al lado seguía diciendo el rol
+       viejo. Nadie confia en una pantalla que se lleva la contraria. */
+    var m0 = [].slice.call(document.querySelectorAll('#usLista .ci-ficha')).filter(function(f){
+      return /Marta Bianchi/.test(f.textContent); })[0];
+    /* El distintivo, no el texto entero: el desplegable lleva los tres
+       roles escritos como opciones, y buscar "Inversionista" en toda la
+       tarjeta lo encuentra siempre. */
+    var chip0 = m0 && m0.querySelector('.ct-chip');
+    var sel0  = m0 && m0.querySelector('select');
+    ok('usuarios: y la tarjeta no se contradice mientras tanto',
+       chip0 && chip0.textContent.trim() === 'Equipo CIIP' && sel0.value === 'gestor',
+       chip0 ? ('distintivo=' + chip0.textContent.trim() + ' desplegable=' + sel0.value)
+             : 'no la encuentro',
+       'distintivo=Equipo CIIP desplegable=gestor');
   }
 
   /* ═══════════ EL RENGLÓN DEL ADMINISTRADOR ═══════════
@@ -1795,6 +1811,37 @@
        ninguna de las dos columnas. */
     ok('sin sql: y los roles se siguen pudiendo cambiar',
        !!fichas[0].querySelector('select'), 'hay desplegable', 'lo hay');
+    location.hash = '';
+  }
+
+  /* Guardar no es enseñar. El aviso de "rol cambiado" salía enseguida,
+     pero la tarjeta se quedaba con su distintivo viejo y en su sección
+     vieja hasta que la lista se repintaba —y nadie comprobaba que se
+     repintase—. Quien lo hacía veía "hecho" y una pantalla que decía lo
+     contrario, y acababa recargando a ver si esta vez sí. */
+  function usuariosSeMueve(){
+    if (CASO !== 'gestor' || SIN_SQL || ES_ADMIN) return;
+    var lista = document.getElementById('usLista');
+    var marta = [].slice.call(lista.querySelectorAll('.ci-ficha')).filter(function(f){
+      return /Marta Bianchi/.test(f.textContent); })[0];
+    ok('usuarios: y la tarjeta pasa a decir el rol nuevo',
+       marta && /Equipo CIIP/.test(marta.textContent),
+       marta ? marta.textContent.slice(0, 40) : 'no la encuentro', 'Equipo CIIP');
+    /* Y cambia de sección: quien sube a gestor deja de estar entre los
+       inversionistas. Si no, la lista se contradice a sí misma. */
+    var secciones = [].slice.call(lista.children);
+    var iEquipo = secciones.findIndex(function(x){ return /El equipo/.test(x.textContent) && x.classList.contains('us-sec'); });
+    var iTodos  = secciones.findIndex(function(x){ return /Todas las cuentas/.test(x.textContent) && x.classList.contains('us-sec'); });
+    var iMarta  = secciones.indexOf(marta);
+    ok('usuarios: y sube a la sección del equipo',
+       iMarta > iEquipo && (iTodos < 0 || iMarta < iTodos),
+       'equipo=' + iEquipo + ' marta=' + iMarta + ' todos=' + iTodos,
+       'entre El equipo y Todas las cuentas');
+    /* Y el número de arriba, que contaba tres del equipo y ahora son
+       cuatro... o lo que toque. Lo que no puede es quedarse como estaba. */
+    var m = document.querySelectorAll('#usMetricas .us-m');
+    igual('usuarios: las cuentas siguen siendo las mismas cuatro',
+          m[0].querySelector('.n').textContent, '4');
     location.hash = '';
   }
 
