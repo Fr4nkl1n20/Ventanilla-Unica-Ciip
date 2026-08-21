@@ -1759,6 +1759,26 @@
     igual('usuarios: y cuántos tienen el panel abierto ahora',
           m[1].querySelector('.n').textContent, '1');
 
+    /* Los cinco EN UNA FILA. El quinto se caía solo abajo y leído así
+       parecía de otra cosa, no el quinto de la misma serie. */
+    (function(){
+      var filas = {};
+      [].forEach.call(m, function(x){
+        var y = Math.round(x.getBoundingClientRect().top);
+        filas[y] = (filas[y] || 0) + 1;
+      });
+      var cuantas = Object.keys(filas).length;
+      igual('usuarios: los cinco números van en una sola fila', cuantas, 1);
+      /* Y "Citas por confirmar" pegado a "Esperando por el CIIP", que es
+         lo que se pidió: mismo alto y el siguiente por la izquierda. */
+      var esp = m[3].getBoundingClientRect();
+      var cit = m[4].getBoundingClientRect();
+      ok('usuarios: y las citas quedan al lado de lo que espera el CIIP',
+         Math.abs(esp.top - cit.top) < 2 && cit.left > esp.left,
+         'esperando en ' + Math.round(esp.left) + ', citas en ' + Math.round(cit.left),
+         'a la derecha y a la misma altura');
+    })();
+
     var fichas = document.querySelectorAll('#usLista .ci-ficha');
     igual('usuarios: están las cuatro cuentas', fichas.length, 4);
     /* El equipo primero: quien abre esto viene a mirar quién tiene

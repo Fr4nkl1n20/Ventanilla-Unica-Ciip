@@ -415,8 +415,18 @@ body[data-vista="usuarios"] #usVolver{display:inline-flex;}
 
 /* Los numeros de arriba. Cuatro, y ninguno decorativo: los cuatro dicen
    cuanto trabajo hay encima de la mesa. */
-.us-metricas{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-  gap:12px; margin-bottom:18px; max-width:760px;}
+/* Cinco numeros en una fila. Con auto-fit y 760px de ancho no cabian
+   -cinco de 150 mas cuatro huecos son 798- y el ultimo, "Citas por
+   confirmar", se caia solo a la fila de abajo: leido asi parecia de otra
+   cosa y no el quinto de la misma serie.
+
+   Y con numero fijo de columnas en vez de auto-fit porque el reparto
+   tiene que ser PREDECIBLE: auto-fit dejaba 4 y 1, que es el peor de los
+   repartos posibles. Cinco, o tres, o dos. */
+.us-metricas{display:grid; grid-template-columns:repeat(5, minmax(0, 1fr));
+  gap:12px; margin-bottom:18px; max-width:980px;}
+@media(max-width:1180px){ .us-metricas{grid-template-columns:repeat(3, minmax(0, 1fr));} }
+@media(max-width:700px){  .us-metricas{grid-template-columns:repeat(2, minmax(0, 1fr));} }
 .us-m{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
   padding:14px 16px; box-shadow:var(--shadow);}
 .us-m .n{font-size:24px; font-weight:800; line-height:1; font-variant-numeric:tabular-nums;}
