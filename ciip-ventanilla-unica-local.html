@@ -474,6 +474,12 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
 .em-rif{font-size:12.5px; color:var(--navy2); font-weight:700; margin-top:3px;}
 /* Dos columnas de dato: etiqueta arriba en gris, valor debajo. Los que
    estan vacios no se enseñan: un panel lleno de rayas no informa. */
+/* El rotulo de cada apartado en la ficha. Los mismos tres nombres que
+   los pasos del formulario: dos vocabularios para lo mismo obligan a
+   traducir mentalmente entre una pantalla y la otra. */
+.em-sec{font-size:9.5px; font-weight:800; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--gray-soft); margin:16px 0 8px;}
+.em-sec:first-of-type{margin-top:14px;}
 .em-datos{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
   gap:14px 26px; margin-top:17px; padding-top:16px; border-top:1px solid var(--line-soft);}
 .em-dato .k{font-size:10.5px; font-weight:700; color:var(--gray-soft);
@@ -807,7 +813,19 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .em-raya{flex:1 1 auto; height:2px; border-radius:2px; background:var(--line-soft);
   min-width:10px;}
 .em-raya.hecha{background:var(--navy);}
-.em-cuenta{font-size:11px; color:var(--gray-soft); margin-right:auto;}
+.em-cuenta{font-size:11px; color:var(--gray-soft); margin-right:auto;
+  line-height:1.4;}
+.em-cuenta b{display:block; color:var(--gray); font-weight:600;}
+/* Un enlace, no un boton de color: guardar a medias es un atajo, no lo
+   que se espera que hagas. Con el mismo peso que "Guardar" competirian. */
+.em-ya{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy);
+  background:none; border:0; padding:6px 2px; cursor:pointer; white-space:nowrap;}
+.em-ya:hover{text-decoration:underline;}
+/* Lo que se puede dejar para luego, dicho antes de empezar y no al
+   final: al final ya te lo has escrito todo. */
+.em-minimo{font-size:11.5px; color:var(--gray); line-height:1.55;
+  background:var(--block); border-radius:9px; padding:10px 12px;}
+@media(max-width:560px){ .em-ya{white-space:normal; text-align:left;} }
 @media(max-width:560px){
   /* En estrecho no caben los tres nombres: se queda el del paso en curso,
      que es el unico que hace falta leer. */
@@ -2536,6 +2554,9 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
     <div class="pf-cuerpo" id="emCampos"></div>
     <div class="pf-pie">
       <span class="em-cuenta" id="emCuenta"></span>
+      <!-- La salida temprana. Es un enlace y no un boton de color a
+           proposito: es un atajo, no lo que se espera que hagas. -->
+      <button class="em-ya" id="emGuardarYa" type="button" hidden></button>
       <button class="btn ghost" id="emCancelar" type="button"></button>
       <button class="btn ghost" id="emAtras"    type="button" hidden></button>
       <button class="btn navy"  id="emGuardar"  type="button"></button>
@@ -7739,6 +7760,9 @@ applyLang(idiomaParaMi());
     {n:3, clave:'em_p3'}
   ];
   var emPaso = 1;
+  /* Lo pone "Guardar y seguir despues" para que guardaEmpresa sepa que
+     no tiene que adelantar. Se apaga en cuanto se usa. */
+  var emAtajo = false;
 
   function pintaEmpresa(){
     if (!emCuerpo) return;
@@ -7764,17 +7788,34 @@ applyLang(idiomaParaMi());
 
     /* Solo lo que está escrito. Un panel lleno de rayas no informa de
        nada, y además esconde lo que sí hay. */
-    var datos = el('div', 'em-datos');
-    EM_CAMPOS.forEach(function(c){
-      if (c.n === 'razon_social' || c.n === 'rif_empresa') return;
-      var v = EMPRESA[c.n];
-      if (!v) return;
-      var d = el('div', 'em-dato');
-      d.appendChild(el('div', 'k', u[c.clave] || c.n));
-      d.appendChild(el('div', 'v', c.tipo === 'date' ? fecha(v) : v));
-      datos.appendChild(d);
+    /* Por los mismos tres apartados que el formulario. En una sola tira
+       los doce datos seguian de corrido y habia que leerlos todos para
+       encontrar uno: el telefono aparecia entre la fecha de constitucion
+       y el numero de trabajadores. Si el formulario los agrupa y la
+       ficha no, el mismo dato vive en dos ordenes distintos.
+
+       Y el apartado que este entero vacio no se pinta: un rotulo con
+       nada debajo dice menos que no estar. */
+    var algo = false;
+    EM_PASOS.forEach(function(p){
+      var mios = EM_CAMPOS.filter(function(c){
+        return (c.paso || 1) === p.n &&
+               c.n !== 'razon_social' && c.n !== 'rif_empresa' &&
+               EMPRESA[c.n];
+      });
+      if (!mios.length) return;
+      algo = true;
+      t.appendChild(el('div', 'em-sec', u[p.clave] || ''));
+      var datos = el('div', 'em-datos');
+      mios.forEach(function(c){
+        var v = EMPRESA[c.n];
+        var d = el('div', 'em-dato');
+        d.appendChild(el('div', 'k', u[c.clave] || c.n));
+        d.appendChild(el('div', 'v', c.tipo === 'date' ? fecha(v) : v));
+        datos.appendChild(d);
+      });
+      t.appendChild(datos);
     });
-    if (datos.children.length) t.appendChild(datos);
 
     t.appendChild(el('div', 'em-nota', u.em_rellena || ''));
     emCuerpo.appendChild(t);
@@ -7809,6 +7850,12 @@ applyLang(idiomaParaMi());
     var u = T();
     var caja = document.getElementById('emCampos');
     caja.textContent = '';
+
+    /* Lo que se puede dejar para luego, dicho ANTES de empezar. Al final
+       ya te lo has escrito todo y enterarte entonces no sirve de nada. */
+    var minimo = el('div', 'em-minimo', T().em_minimo || '');
+    minimo.id = 'emMinimo';
+    caja.appendChild(minimo);
 
     /* Los doce se crean TODOS de una vez y solo se esconden los que no
        tocan. Crearlos por pasos habria borrado lo escrito al ir y volver,
@@ -7880,9 +7927,10 @@ applyLang(idiomaParaMi());
       });
     }
 
-    var cuenta = document.getElementById('emCuenta');
-    if (cuenta) cuenta.textContent = String(u.em_pasoN || '')
-      .replace('{n}', emPaso).replace('{t}', EM_PASOS.length);
+    var mn = document.getElementById('emMinimo');
+    if (mn) mn.hidden = (emPaso !== 1);
+    refrescaPieEmpresa();
+
 
     var atras = document.getElementById('emAtras');
     if (atras){
@@ -7899,6 +7947,39 @@ applyLang(idiomaParaMi());
     if (primero) setTimeout(function(){ primero.focus(); }, 20);
   }
   function cierraFichaEmpresa(){ if (emBack) emBack.classList.remove('open'); }
+
+  /* El pie: cuantos de los doce llevas y si se puede salir ya. Aparte de
+     ponPasoEmpresa porque esto se recalcula EN CADA TECLA, y aquella
+     mueve el foco al primer campo del paso: llamarla al teclear te
+     devolveria al principio a cada letra. */
+  function refrescaPieEmpresa(){
+    var u = T();
+    var escritos = 0;
+    EM_CAMPOS.forEach(function(c){
+      var i = document.getElementById('em_' + c.n);
+      if (i && String(i.value || '').trim()) escritos++;
+    });
+    var cuenta = document.getElementById('emCuenta');
+    if (cuenta){
+      cuenta.textContent = '';
+      /* "Paso 2 de 3" no distingue entre haber escrito uno y haberlos
+         escrito todos. El de abajo si dice cuanto falta de verdad. */
+      cuenta.appendChild(el('b', null, String(u.em_pasoN || '')
+        .replace('{n}', emPaso).replace('{t}', EM_PASOS.length)));
+      cuenta.appendChild(document.createTextNode(String(u.em_escritos || '')
+        .replace('{n}', escritos).replace('{t}', EM_CAMPOS.length)));
+    }
+    /* El atajo aparece en cuanto hay lo minimo, y NO en el ultimo paso:
+       alli "Guardar" ya es exactamente eso, y dos botones que hacen lo
+       mismo con nombres distintos confunden. */
+    var ya = document.getElementById('emGuardarYa');
+    if (ya){
+      var rz = document.getElementById('em_razon_social');
+      var hay = !!(rz && String(rz.value || '').trim());
+      ya.hidden = !(hay && emPaso < EM_PASOS.length);
+      ya.textContent = u.em_guardar_ya || '';
+    }
+  }
 
   function guardaEmpresa(){
     var u  = T();
@@ -7926,8 +8007,10 @@ applyLang(idiomaParaMi());
       return;
     }
 
-    /* En los dos primeros el boton no guarda: adelanta. */
-    if (emPaso < EM_PASOS.length){ ponPasoEmpresa(emPaso + 1); return; }
+    /* En los dos primeros el boton no guarda: adelanta. Salvo que
+       venga del atajo, que guarda desde donde estes. */
+    if (emPaso < EM_PASOS.length && !emAtajo){ ponPasoEmpresa(emPaso + 1); return; }
+    emAtajo = false;
 
     emYendo = true;
     bt.disabled = true;
@@ -7987,6 +8070,13 @@ applyLang(idiomaParaMi());
     document.getElementById('emAtras').addEventListener('click', function(){
       ponPasoEmpresa(emPaso - 1);
     });
+    document.getElementById('emGuardarYa').addEventListener('click', function(){
+      emAtajo = true;
+      guardaEmpresa();
+    });
+    /* La cuenta y el atajo se recalculan segun escribes: un contador que
+       solo se mueve al cambiar de paso no cuenta nada. */
+    document.getElementById('emCampos').addEventListener('input', refrescaPieEmpresa);
     document.getElementById('emGuardar').addEventListener('click', guardaEmpresa);
     emBack.addEventListener('click', function(e){ if (e.target === emBack) cierraFichaEmpresa(); });
     document.addEventListener('keydown', function(e){

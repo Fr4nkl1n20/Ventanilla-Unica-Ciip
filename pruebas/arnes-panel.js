@@ -1868,6 +1868,29 @@
          un renglón con una raya, que escondería lo que sí hay. */
       igual('empresa: y solo los datos que tiene escritos',
             t.querySelectorAll('.em-dato').length, 8);
+
+      /* Y repartidos por los MISMOS tres apartados que el formulario. En
+         una sola tira había que leer los doce para encontrar uno: el
+         teléfono aparecía entre la fecha de constitución y el número de
+         trabajadores. Y si el formulario los agrupa y la ficha no, el
+         mismo dato vive en dos órdenes distintos. */
+      var secs = [].map.call(t.querySelectorAll('.em-sec'),
+                             function(x){ return x.textContent.trim(); });
+      igual('empresa: la ficha usa los mismos apartados que el formulario',
+            secs.join(' | '), 'La empresa | Actividad | Dónde y quién');
+
+      /* Cada dato bajo el suyo, no bajo el que le toque por orden. */
+      var bajoQue = function(clave){
+        var d = [].filter.call(t.querySelectorAll('.em-dato'), function(x){
+          return x.querySelector('.k').textContent.trim() === clave; })[0];
+        if (!d) return '(no está)';
+        var p = d.parentNode.previousElementSibling;
+        return p ? p.textContent.trim() : '(sin apartado)';
+      };
+      igual('empresa: y el teléfono cae en su apartado',
+            bajoQue('Teléfono'), 'Dónde y quién');
+      igual('empresa: y la fecha de constitución en el suyo',
+            bajoQue('Fecha de constitución'), 'La empresa');
       ok('empresa: el botón ofrece editarla',
          document.getElementById('emBoton').textContent.trim() === 'Editar',
          document.getElementById('emBoton').textContent, 'Editar');
@@ -1910,7 +1933,7 @@
        pasos[0].classList.contains('aqui') && !pasos[1].classList.contains('aqui'),
        pasos[0].className + ' / ' + pasos[1].className, 'solo el primero con "aqui"');
     igual('empresa: y el pie dice por dónde vas',
-          document.getElementById('emCuenta').textContent.trim(), 'Paso 1 de 3');
+          document.getElementById('emCuenta').querySelector('b').textContent.trim(), 'Paso 1 de 3');
 
     /* En los dos primeros el botón adelanta, no guarda. Decir "Guardar"
        en el paso 1 y no guardar es mentirle a quien lo pulsa. */
@@ -1947,14 +1970,14 @@
           document.getElementById('emAviso').textContent,
           'Ponle al menos la razón social: es lo que se copia en los formularios.');
     igual('empresa: y sigue en el primero',
-          document.getElementById('emCuenta').textContent.trim(), 'Paso 1 de 3');
+          document.getElementById('emCuenta').querySelector('b').textContent.trim(), 'Paso 1 de 3');
 
     document.getElementById('em_razon_social').value = 'Cacao del Tuy, C.A.';
     document.getElementById('em_rif_empresa').value  = 'J-40987654-3';
     document.getElementById('emGuardar').click();
 
     igual('empresa: con ella puesta, adelanta',
-          document.getElementById('emCuenta').textContent.trim(), 'Paso 2 de 3');
+          document.getElementById('emCuenta').querySelector('b').textContent.trim(), 'Paso 2 de 3');
     igual('empresa: y enseña los del segundo', visibles().length, 3);
     ok('empresa: ahora sí hay "Atrás"',
        !document.getElementById('emAtras').hidden, 'a la vista', 'a la vista');
@@ -1962,7 +1985,7 @@
     /* Ir y volver NO puede borrar lo escrito. */
     document.getElementById('emAtras').click();
     igual('empresa: "Atrás" vuelve al primero',
-          document.getElementById('emCuenta').textContent.trim(), 'Paso 1 de 3');
+          document.getElementById('emCuenta').querySelector('b').textContent.trim(), 'Paso 1 de 3');
     igual('empresa: y lo escrito sigue ahí',
           document.getElementById('em_razon_social').value, 'Cacao del Tuy, C.A.');
 
@@ -1979,12 +2002,39 @@
        p1.className, 'hecho y pulsable');
     p1.click();
     igual('empresa: pulsarlo vuelve al primero',
-          document.getElementById('emCuenta').textContent.trim(), 'Paso 1 de 3');
+          document.getElementById('emCuenta').querySelector('b').textContent.trim(), 'Paso 1 de 3');
 
-    /* Y desde el primero, hasta el final y guardar. */
+    /* ── SALIR ANTES ── Lo unico obligatorio es la razon social, asi
+       que obligar a recorrer doce campos para registrar una empresa era
+       pedir un rato que casi nadie tiene en ese momento. */
+    var ya = document.getElementById('emGuardarYa');
+    ok('empresa: con lo minimo puesto, ofrece guardar ya',
+       !ya.hidden && /Guardar y seguir después/.test(ya.textContent),
+       ya.hidden ? '(oculto)' : ya.textContent, 'Guardar y seguir después');
+
+    /* Y lo dice ANTES de empezar, no al final: al final ya te lo has
+       escrito todo y enterarte entonces no sirve de nada. */
+    var mn = document.getElementById('emMinimo');
+    ok('empresa: y lo avisa desde el primer paso',
+       mn && !mn.hidden && /basta para guardar/.test(mn.textContent),
+       mn ? mn.textContent.slice(0, 45) : 'no existe', 'lo avisa');
+
+    /* El contador de los doce, que es el unico que dice cuanto falta de
+       verdad: "paso 1 de 3" no distingue entre uno escrito y doce. */
+    ok('empresa: y cuenta cuantos de los doce llevas',
+       /2 de 12 escritos/.test(document.getElementById('emCuenta').textContent),
+       document.getElementById('emCuenta').querySelector('b').textContent.trim(), '2 de 12 escritos');
+
+    /* En el ultimo paso el atajo NO sale: alli "Guardar" ya es
+       exactamente eso, y dos botones que hacen lo mismo confunden. */
     document.getElementById('emGuardar').click();
     document.getElementById('emGuardar').click();
-    document.getElementById('emGuardar').click();
+    ok('empresa: en el ultimo paso el atajo sobra y no sale',
+       document.getElementById('emGuardarYa').hidden, 'oculto', 'oculto');
+    document.querySelectorAll('#emTira .em-paso')[0].click();
+
+    /* Y guarda desde el paso 1, sin pasar por los otros dos. */
+    document.getElementById('emGuardarYa').click();
   }
 
   function empresaTrasGuardar(){
