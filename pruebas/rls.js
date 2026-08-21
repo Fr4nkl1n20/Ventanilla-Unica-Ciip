@@ -582,6 +582,42 @@ async function principal(){
                  q.resultado === 'comprobada' && q.numero === 'V-11111111',
                  JSON.stringify(q), 'comprobada / V-11111111');
 
+      /* ── Y AHORA POR EL LADO DEL INVERSIONISTA ────────────────────
+         Existe una constancia SOBRE EL. Que no pueda tocarla es lo que
+         hace que sirva: una comprobacion de identidad que puede editar
+         la persona comprobada no vale nada.
+
+         Se prueba ahora y no antes porque hasta este momento no habia
+         ninguna que tocar, y probar que no se puede reescribir lo que no
+         existe es no probar nada. */
+      const suya = await pide('/rest/v1/identidad_comprobaciones?select=resultado,numero&id=eq.' + ID,
+                              { token: A.token });
+      debeFallar('identidad: el inversionista SI ve la suya (esto TIENE que salir)',
+                 suya.ok && Array.isArray(suya.cuerpo) && suya.cuerpo.length === 1,
+                 suya.ok ? (suya.cuerpo || []).length + ' fila(s)' : 'no pudo (' + suya.estado + ')');
+
+      const retoca = await pide('/rest/v1/identidad_comprobaciones?id=eq.' + ID, {
+        method: 'PATCH', token: A.token, headers: json(),
+        body: JSON.stringify({ numero: 'V-99999999', resultado: 'comprobada' })
+      });
+      v = noEscribe(retoca);
+      debeFallar('identidad: pero no la reescribe', v.bien, v.d);
+
+      const tira = await pide('/rest/v1/identidad_comprobaciones?id=eq.' + ID, {
+        method: 'DELETE', token: A.token, headers: json()
+      });
+      v = noEscribe(tira);
+      debeFallar('identidad: ni la borra', v.bien, v.d);
+
+      /* Leyendola con la cuenta del gestor, que es la unica forma de
+         saber si cambio: "no devolvio nada" no es "no cambio nada". */
+      const intacta = await pide('/rest/v1/identidad_comprobaciones?select=resultado,numero,gestor&id=eq.' + ID,
+                                 { token: G.token });
+      const w = Array.isArray(intacta.cuerpo) && intacta.cuerpo[0] ? intacta.cuerpo[0] : {};
+      debeFallar('identidad: y sigue intacta despues de los dos intentos',
+                 w.numero === 'V-11111111' && w.resultado === 'comprobada' && w.gestor === G.id,
+                 JSON.stringify(w), 'V-11111111 / comprobada / firmada por el gestor');
+
       /* Rechazar sin motivo deja al inversionista sin saber que arreglar.
          Lo impide la base, no solo el formulario. */
       const mudo = await pide('/rest/v1/identidad_comprobaciones', {
@@ -625,6 +661,17 @@ async function principal(){
     if (!x.ok){ mal++; console.log('          ' + x.d); }
   }
   console.log('\n  ' + (R.length - mal) + ' de ' + R.length + ' cerraduras aguantan\n');
+
+  /* Las constancias de identidad NO se recogen, y no es un descuido: no
+     hay forma de borrarlas, que es justo lo que se acaba de comprobar.
+     Un arnes que pudiera limpiar lo que escribio aqui estaria probando
+     que la cerradura no cierra. Se dice para que nadie las vea en la
+     base y crea que quedaron por error. */
+  if (cuentas.g && String(cuentas.g.clave || '').trim()){
+    console.log('  Quedan en la base las constancias de identidad que firmo esta');
+    console.log('  prueba. No se pueden borrar, y que no se puedan es la cerradura');
+    console.log('  funcionando. Se quitan desde el SQL Editor si estorban.\n');
+  }
 
   if (sinRecoger.length){
     console.log('  Quedaron sin borrar (la politica no deja, y esta bien que');
