@@ -103,6 +103,13 @@ window.CIIP_PASOS = {
       ns_desde:    "La empezaste {cuando}",
       ns_mas:      "Y hay {n} más esperando por ti",
       ns_seguir:   "Seguir donde lo dejaste",
+      /* Descartar el borrador. Solo el borrador: una devuelta es una
+         solicitud viva con trabajo del CIIP dentro, y borrarla se llevaria
+         tambien la nota que dice que hay que corregir. */
+      ns_descartar:   "Descartarla",
+      ns_descartar_ok:"Pulsa otra vez: no se recupera",
+      ns_descartando: "Descartando…",
+      ns_descartada:  "Los recaudos que ya subiste siguen en tus documentos.",
       /* --- El buzón de avisos, en la barra de arriba --- */
       av_titulo:    "Tus avisos",
       av_vacio:     "Todavía no hay nada que contarte.",
@@ -594,6 +601,10 @@ window.CIIP_PASOS = {
       ns_desde:    "You started it {cuando}",
       ns_mas:      "And {n} more are waiting for you",
       ns_seguir:   "Pick up where you left off",
+      ns_descartar:   "Discard it",
+      ns_descartar_ok:"Press again: there is no undo",
+      ns_descartando: "Discarding…",
+      ns_descartada:  "The documents you already uploaded stay in your vault.",
       /* --- The alerts tray, in the top bar --- */
       av_titulo:    "Your alerts",
       av_vacio:     "Nothing to tell you yet.",
@@ -1066,6 +1077,10 @@ window.CIIP_PASOS = {
       ns_desde:    "Começou-a {cuando}",
       ns_mas:      "E há mais {n} à sua espera",
       ns_seguir:   "Continuar onde parou",
+      ns_descartar:   "Descartar",
+      ns_descartar_ok:"Carregue outra vez: não se recupera",
+      ns_descartando: "A descartar…",
+      ns_descartada:  "Os documentos que já carregou ficam nos seus documentos.",
       /* --- A caixa de avisos, na barra de cima --- */
       av_titulo:    "Os seus avisos",
       av_vacio:     "Ainda não há nada para lhe contar.",
@@ -1529,6 +1544,10 @@ window.CIIP_PASOS = {
       ns_desde:    "L'hai iniziata {cuando}",
       ns_mas:      "E ce ne sono altre {n} che ti aspettano",
       ns_seguir:   "Riprendi da dove eri",
+      ns_descartar:   "Scartarla",
+      ns_descartar_ok:"Premi ancora: non si recupera",
+      ns_descartando: "Eliminazione…",
+      ns_descartada:  "I documenti già caricati restano tra i tuoi.",
       /* --- La casella degli avvisi, nella barra in alto --- */
       av_titulo:    "I tuoi avvisi",
       av_vacio:     "Non c'è ancora nulla da dirti.",
@@ -1992,6 +2011,10 @@ window.CIIP_PASOS = {
       ns_desde:    "您于{cuando}开始",
       ns_mas:      "另有 {n} 件在等您",
       ns_seguir:   "接着上次继续",
+      ns_descartar:   "放弃",
+      ns_descartar_ok:"再按一次：无法恢复",
+      ns_descartando: "正在放弃…",
+      ns_descartada:  "您已上传的材料仍在文件夹中。",
       /* --- 顶部导航栏的提醒栏 --- */
       av_titulo:    "您的提醒",
       av_vacio:     "暂时没有新消息。",
@@ -2455,6 +2478,10 @@ window.CIIP_PASOS = {
       ns_desde:    "Вы начали её {cuando}",
       ns_mas:      "И ещё {n} ждут вас",
       ns_seguir:   "Продолжить с того же места",
+      ns_descartar:   "Отказаться",
+      ns_descartar_ok:"Нажмите ещё раз: отменить нельзя",
+      ns_descartando: "Удаляем…",
+      ns_descartada:  "Загруженные документы остаются у вас.",
       /* --- Лента уведомлений в верхней панели --- */
       av_titulo:    "Ваши уведомления",
       av_vacio:     "Пока нечего сообщить.",

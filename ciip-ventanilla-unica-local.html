@@ -1008,6 +1008,15 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .ns-mas{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy);
   background:none; border:0; padding:5px 0 0; cursor:pointer; text-align:left;}
 .ns-mas:hover{text-decoration:underline;}
+.ns-lado{display:flex; flex-direction:column; align-items:stretch; gap:6px; flex:none;}
+/* Gris y pequeno: descartar no es lo que se espera que hagas. En rojo
+   desde el primer momento seria un boton que da miedo pulsar sin querer,
+   y en azul competiria con "Seguir". */
+.ns-desc{font:inherit; font-size:11px; font-weight:700; color:var(--gray-soft);
+  background:none; border:0; padding:3px 0; cursor:pointer;}
+.ns-desc:hover{color:var(--rust);}
+/* Armado: la segunda pulsacion si borra, y entonces si se pone en rojo. */
+.ns-desc.armado{color:var(--rust);}
 
 /* ===================== JOURNEY STEPPER ===================== */
 .sec-h{display:flex; align-items:center; gap:10px; margin-bottom:13px; flex-wrap:wrap;}
@@ -1868,7 +1877,13 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
              pendientes ve una y las otras dos no existen. -->
         <button class="ns-mas" id="nsMas" type="button" hidden></button>
       </div>
-      <button class="btn navy" type="button"></button>
+      <div class="ns-lado">
+        <button class="btn navy" type="button"></button>
+        <!-- Solo para borradores. Una devuelta es una solicitud viva con
+             trabajo del CIIP dentro, y borrarla se llevaria por delante la
+             nota que dice que hay que corregir. -->
+        <button class="ns-desc" id="nsDescartar" type="button" hidden></button>
+      </div>
     </div>
 
     <div class="section-gap solo-inicio">
@@ -5020,11 +5035,57 @@ applyLang(idiomaParaMi());
     return {pide: pide.length, puestos: puestos, faltan: pide.length - puestos};
   }
 
-  /* El enlace a las demas. Se engancha una vez, no en cada repintado:
-     un boton que acumula manejadores acaba navegando tres veces. */
+  /* El enlace a las demas y el de descartar. Se enganchan una vez, no en
+     cada repintado: un boton que acumula manejadores acaba navegando tres
+     veces, y el de borrar acaba borrando tres cosas. */
+  var nsArmado = false;
+
   (function(){
     var mas = document.getElementById('nsMas');
     if (mas) mas.addEventListener('click', function(){ location.hash = 'mistramites'; });
+
+    var desc = document.getElementById('nsDescartar');
+    if (!desc) return;
+    desc.addEventListener('click', function(){
+      var u = T();
+      if (!loQueToca || loQueToca.estado !== 'borrador') return;
+      /* Dos pulsaciones, como en el banco de activos. Una confirmacion
+         con ventana para descartar algo que no se ha enviado es mas
+         ceremonia de la que merece; una sola pulsacion, demasiado poca. */
+      if (!nsArmado){
+        nsArmado = true;
+        desc.textContent = u.ns_descartar_ok || '';
+        desc.classList.add('armado');
+        return;
+      }
+      desc.disabled = true;
+      desc.textContent = u.ns_descartando || '';
+      /* Se va el tramite y con el sus eventos y sus vinculos, por
+         cascada. Los documentos NO: el recaudo que subiste sigue siendo
+         tuyo y sirve para el proximo tramite, que es justo para lo que
+         existe la boveda. Se dice, porque nadie tiene por que suponerlo. */
+      sb.from('tramites').delete().eq('id', loQueToca.id)
+        .then(function(r){
+          if (r && r.error) throw r.error;
+          nsArmado = false;
+          desc.disabled = false;
+          desc.classList.remove('armado');
+          /* Se vuelve a mirar que queda pendiente: puede haber otra
+             detras, o ninguna y entonces la franja se calla sola. */
+          /* revisaFranja es la que vuelve a preguntar que queda
+             pendiente: puede haber otra detras, o ninguna y entonces la
+             franja se calla sola. */
+          revisaFranja();
+          if (window.CIIP_PINTA_MISTRAM) window.CIIP_PINTA_MISTRAM();
+        })
+        .catch(function(e){
+          console.warn('[CIIP] descartar borrador:', e && e.message);
+          nsArmado = false;
+          desc.disabled = false;
+          desc.classList.remove('armado');
+          desc.textContent = u.ns_descartar || '';
+        });
+    });
   })();
 
   function pintaFranja(){
@@ -5067,6 +5128,17 @@ applyLang(idiomaParaMi());
         (linea.textContent ? ' \u00b7 ' : '') +
         String(u.ns_desde || '').replace('{cuando}', haceCuanto(q.creado_en))));
       franja.querySelector('.btn').textContent = u.ns_seguir || u.ns_ir || '';
+    }
+
+    /* Descartar, solo si es un borrador. Y desarmado cada vez que se
+       repinta: un boton que se queda armado de la vez anterior borra al
+       primer clic de la siguiente. */
+    var desc = document.getElementById('nsDescartar');
+    if (desc){
+      desc.hidden = devuelto;
+      nsArmado = false;
+      desc.classList.remove('armado');
+      desc.textContent = u.ns_descartar || '';
     }
 
     /* Y las demas, que hasta ahora no existian para quien mirase esto. */

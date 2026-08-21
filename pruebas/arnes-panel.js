@@ -132,6 +132,7 @@
               docsAbre, docsMira,
               ayudaAbre, ayudaMira, ayudaFaq,
               supAbre, supMira, supTemas, supVuelve,
+              franjaDescarta, franjaTrasDescartar,
               logosMiran], volcar);
   });
 
@@ -700,6 +701,13 @@
            'la nota intacta y el titular en ruso');
       })();
 
+      /* Una devuelta es una solicitud VIVA con trabajo del CIIP dentro:
+         borrarla se llevaria por delante la nota que dice que hay que
+         corregir. Aqui no se ofrece descartar, y eso es la mitad del
+         valor de la funcion. */
+      ok('franja: en una devuelta no se ofrece descartar',
+         document.getElementById('nsDescartar').hidden, 'oculto', 'oculto');
+
       /* Hay DOS pendientes -la devuelta y un borrador- y el aviso ensena
          una. Sin este renglón, la otra no existe para quien mire la
          portada. */
@@ -750,6 +758,23 @@
       /* Y con una sola pendiente, el enlace a las demás no sale. */
       ok('franja: con una sola, no ofrece "y hay más"',
          document.getElementById('nsMas').hidden, 'oculto', 'oculto');
+
+      /* ── DESCARTAR ── Lo que ya no vas a terminar tiene que poder irse.
+         A dos toques, como el banco de activos: una ventana de
+         confirmación para algo que no se ha enviado es más ceremonia de
+         la que merece, y un solo toque es demasiado poco. */
+      (function(){
+        var d = document.getElementById('nsDescartar');
+        ok('franja: y en un borrador sí se ofrece descartar',
+           d && !d.hidden && /Descartarla/.test(d.textContent),
+           d ? (d.hidden ? '(oculto)' : d.textContent.trim()) : 'no existe', 'Descartarla');
+        d.click();
+        ok('franja: el primer toque avisa, no borra',
+           /no se recupera/.test(d.textContent) && d.classList.contains('armado'),
+           d.textContent.trim(), 'Pulsa otra vez: no se recupera');
+        ok('franja: y el borrador sigue ahí',
+           franja().classList.contains('puesta'), franja().className, 'con la clase puesta');
+      })();
     }
 
     if (CASO === 'vacio'){
@@ -2517,6 +2542,33 @@
                                function(b){ return !b.hidden; });
     igual('burbuja: y "preguntar al asistente" las devuelve todas', todos.length, 7);
     document.getElementById('asstClose').click();
+  }
+
+  /* El segundo toque, que borra de verdad. Va en su propio paso porque la
+     respuesta de la base llega después, y comprobarla en el mismo paso
+     sería comprobar lo de antes. */
+  function franjaDescarta(){
+    if (CASO !== 'sinnombre') return;
+    var d = document.getElementById('nsDescartar');
+    /* Se arma otra vez: cualquier repintado por el medio lo desarma, y eso
+       es a propósito —un botón que se queda armado de la vez anterior borra
+       al primer clic de la siguiente—. */
+    if (!d.classList.contains('armado')) d.click();
+    d.click();
+  }
+
+  function franjaTrasDescartar(){
+    if (CASO !== 'sinnombre') return;
+    ok('franja: el segundo toque lo descarta y la franja se calla',
+       !franja().classList.contains('puesta'),
+       franja().className, 'sin la clase puesta');
+    /* Y su tarjeta vuelve a estar libre: si la portada siguiera diciendo
+       "sin terminar" de algo que ya no existe, las dos pantallas se
+       contradirían —el mismo fallo que ya se arregló una vez con el
+       borrador superado por el envío—. */
+    igual('franja: y su tarjeta vuelve a estar por iniciar',
+          document.querySelector('.tcard[data-tr="c1"]').getAttribute('data-st'),
+          'pendiente');
   }
 
   function logosMiran(){

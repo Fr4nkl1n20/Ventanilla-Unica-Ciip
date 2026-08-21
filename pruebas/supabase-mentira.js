@@ -515,6 +515,19 @@
         colaTram = colaTram.filter(function(t){ return t.id !== op.eq.id; });
         return {data:{}, error:null};
       }
+      /* Descartar un borrador. Se quita de VERDAD de la lista: si el
+         falso dijera "hecho" sin quitarlo, la prueba de que la franja se
+         calla despues daria verde con el borrador todavia ahi. */
+      if (op && op.borra && op.eq && op.eq.id){
+        var antes = (TRAMITES[caso] || []).length;
+        TRAMITES[caso] = (TRAMITES[caso] || []).filter(function(t){
+          /* La politica solo deja borrar el borrador propio: un falso mas
+             permisivo que la base deja pasar codigo que la base rechaza. */
+          return !(t.id === op.eq.id && t.estado === 'borrador');
+        });
+        return {data:null, error:(TRAMITES[caso].length === antes
+          ? {message:'no se puede borrar una solicitud enviada'} : null)};
+      }
       /* El detalle de un tramite pregunta por SU tipo. Sin filtrar aqui, el
          panel creeria que ya tienes una solicitud de cualquier tramite que
          abras, y enseñaria su estado en vez del formulario. */
