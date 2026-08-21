@@ -1,5 +1,15 @@
 {
-  "_": "Copia este archivo como cuentas.local.json y pon las claves de verdad. Ese sí lo ignora git; éste no lleva nada secreto.",
-  "a": { "correo": "prueba.a@ejemplo.com", "12345678": "la-clave-de-a" },
-  "b": { "correo": "prueba.b@ejemplo.com", "12345678": "la-clave-de-b" }
+  "_": "Copia este archivo como cuentas.local.json y pon las claves de verdad. Ese si lo ignora git; este no lleva nada secreto.",
+  "a": {
+    "correo": "rls-a@ciip-pruebas.com",
+    "clave": "la-clave-de-a"
+  },
+  "b": {
+    "correo": "rls-b@ciip-pruebas.com",
+    "clave": "la-clave-de-b"
+  },
+  "g": {
+    "correo": "rls-g@ciip-pruebas.com",
+    "clave": "la-clave-del-gestor (opcional, pero sin ella no se prueba el append-only de la identidad)"
+  }
 }

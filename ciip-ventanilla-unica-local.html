@@ -698,6 +698,34 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
    doce recaudos abiertos por ficha la volverían ilegible. */
 .co-exp{display:none; margin-top:11px; border-top:1px solid var(--line-soft); padding-top:11px;}
 .co-exp.abierto{display:block;}
+
+/* La identidad va ARRIBA del expediente, antes de los datos y de los
+   archivos. Es lo primero que hay que resolver de una persona, y ponerlo
+   al final habria hecho que se firmara sin mirar, con el raton ya en el
+   boton de aprobar. */
+.id-caja{border:1px solid var(--line-soft); border-radius:var(--r-sm);
+  padding:11px 12px; margin-bottom:12px; background:var(--block);}
+.id-est{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.id-quien{font-size:11.5px; color:var(--gray); width:100%;}
+/* El aviso de que esto NO consulta al SAIME no es letra pequena
+   escondida: si el gestor cree que el sistema comprobo algo, firmara una
+   constancia falsa creyendo que la respalda una maquina. */
+.id-ojo{font-size:11px; color:var(--gray-soft); line-height:1.5; margin-top:8px;
+  border-left:2px solid var(--line); padding-left:9px;}
+.id-form{margin-top:11px; display:grid; gap:9px;}
+.id-form label{display:block; font-size:11px; font-weight:700; color:var(--gray);
+  margin-bottom:3px;}
+.id-form select, .id-form input, .id-form textarea{width:100%; font:inherit;
+  font-size:13px; color:var(--ink); background:var(--bg);
+  border:1px solid var(--line); border-radius:8px; padding:8px 10px;}
+.id-form textarea{min-height:56px; resize:vertical;}
+.id-fila{display:flex; gap:9px; flex-wrap:wrap; align-items:center;}
+.id-fila > div{flex:1 1 150px; min-width:0;}
+.id-av{font-size:11.5px; min-height:1em;}
+.id-av.mal{color:var(--amber);}
+.id-av.bien{color:var(--good);}
+.id-hist{margin-top:9px; font-size:11px; color:var(--gray-soft); line-height:1.6;}
+.id-hist b{color:var(--gray); font-weight:600;}
 .co-ver{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
   background:transparent; border:0; padding:0; margin-top:9px; cursor:pointer;}
 .co-ver:hover{text-decoration:underline;}
@@ -5640,6 +5668,10 @@ applyLang(idiomaParaMi());
     return codigo;
   }
 
+  /* id -> nombre de cualquiera, del equipo o no. Lo rellena la carga de
+     la cola, que ya pide la tabla entera. */
+  var NOMBRES = {};
+
   function pintaCola(){
     if (!coLista) return;
     var u = T();
@@ -5806,6 +5838,11 @@ applyLang(idiomaParaMi());
       f.appendChild(exp);
 
       var nota = document.createElement('textarea');
+      /* Con nombre propio desde que el expediente tiene su propia
+         textarea -la nota de la comprobacion de identidad-: "la textarea
+         de la ficha" dejo de ser una sola, y quien la buscara asi cogia
+         la primera del arbol, que ya no es esta. */
+      nota.className = 'co-nota-in';
       nota.rows = 2;
       nota.placeholder = u.co_nota || '';
       nota.setAttribute('aria-label', u.co_nota || '');
@@ -5894,9 +5931,211 @@ applyLang(idiomaParaMi());
 
      Se carga al DESPLEGAR y no con la cola: son dos consultas y una firma
      por archivo, y la mayoría de las fichas no se abren. */
+  /* ── LA IDENTIDAD ────────────────────────────────────
+     Esto NO valida contra nadie. No le pregunta al SAIME si la cédula
+     existe: eso es la capa de interoperabilidad y necesita que un
+     organismo conteste.
+
+     Lo que hace es dejar constancia de algo que YA OCURRE y que no se
+     escribe en ninguna parte: el gestor abre el expediente, mira la
+     cédula escaneada y decide que está bien. De eso no quedaba rastro,
+     y mañana nadie podía responder quién lo comprobó ni cuándo.
+
+     El aviso de que esto no consulta a nadie va A LA VISTA y no en letra
+     pequeña: un gestor que crea que el sistema comprobó algo firmará
+     una constancia falsa pensando que la respalda una máquina. ──── */
+  var DOCS_IDENTIDAD = ['cedula', 'pasaporte', 'rif_personal'];
+
+  function pintaIdentidad(tr, caja){
+    var u = T();
+    var c = el('div', 'id-caja');
+    /* SIEMPRE la primera, no la ultima. Al firmar se repinta, y con un
+       appendChild la caja se iba al fondo del expediente: quien firmara
+       una segunda constancia habria tenido que buscarla debajo de los
+       archivos. La posicion es parte de lo que dice: esto se mira
+       primero. */
+    caja.insertBefore(c, caja.firstChild);
+    c.appendChild(el('div', 'co-exp-t', u.id_t || ''));
+    var est = el('div', 'id-est');
+    c.appendChild(est);
+    est.appendChild(el('span', 'co-vacia', '…'));
+
+    sb.from('identidad_comprobaciones')
+      .select('resultado, tipo_documento, numero, nota, creado_en, gestor')
+      .eq('inversionista', tr.inversionista)
+      .order('creado_en', { ascending: false })
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        var todas = r.data || [];
+        est.textContent = '';
+
+        if (!todas.length){
+          est.appendChild(el('span', 'chip mute', u.id_sin || ''));
+          est.appendChild(el('span', 'id-quien', u.id_sin_p || ''));
+        } else {
+          /* La última manda, pero las anteriores NO desaparecen: que se
+             vea que hubo una rectificación es parte de lo que se audita. */
+          var ult = todas[0];
+          var ok = ult.resultado === 'comprobada';
+          est.appendChild(el('span', 'chip ' + (ok ? 'good' : 'warn'),
+                             ok ? (u.id_ok || '') : (u.id_no || '')));
+          if (ult.numero){
+            est.appendChild(el('span', 'dc-usos',
+              String(u.id_contra || '')
+                .replace('{documento}', nombreDeTipo_doc(ult.tipo_documento))
+                .replace('{numero}', ult.numero)));
+          }
+          est.appendChild(el('span', 'id-quien',
+            String(u.id_quien || '')
+              .replace('{quien}', nombreDeGestor(ult.gestor))
+              .replace('{cuando}', fechaHora(ult.creado_en)) +
+            (ult.nota ? ' — ' + ult.nota : '')));
+
+          if (todas.length > 1){
+            var h = el('div', 'id-hist');
+            h.appendChild(el('b', null, (u.id_antes || '') + ': '));
+            todas.slice(1).forEach(function(v, i){
+              h.appendChild(document.createTextNode(
+                (i ? ' · ' : '') +
+                (v.resultado === 'comprobada' ? (u.id_ok || '') : (u.id_no || '')) +
+                ' ' + fecha(v.creado_en)));
+            });
+            c.appendChild(h);
+          }
+        }
+
+        c.appendChild(el('div', 'id-ojo', u.id_ojo || ''));
+        c.appendChild(formularioIdentidad(tr, c));
+      })
+      .catch(function(e){
+        /* Sin supabase-identidad.sql corrido la tabla no existe. El resto
+           del expediente sigue sirviendo: no se apaga por esto. */
+        console.warn('[CIIP] identidad:', e && e.message);
+        c.remove();
+      });
+  }
+
+  /* El nombre de quien firmó, si la lista de perfiles ya está cargada.
+     Si no, el identificador: peor de leer, pero nunca en blanco. Una
+     constancia sin autor visible no es una constancia. */
+  function nombreDeGestor(id){
+    return (NOMBRES && NOMBRES[id]) || String(id || '').slice(0, 8);
+  }
+
+  function formularioIdentidad(tr, caja){
+    var u = T();
+    var f = el('div', 'id-form');
+
+    var fila = el('div', 'id-fila');
+    var cDoc = el('div');
+    cDoc.appendChild(el('label', null, u.id_doc || ''));
+    var selDoc = el('select');
+    DOCS_IDENTIDAD.forEach(function(cod){
+      var o = el('option', null, nombreDeTipo_doc(cod));
+      o.value = cod;
+      selDoc.appendChild(o);
+    });
+    cDoc.appendChild(selDoc);
+    fila.appendChild(cDoc);
+
+    var cNum = el('div');
+    cNum.appendChild(el('label', null, u.id_num || ''));
+    var inNum = el('input');
+    inNum.type = 'text';
+    inNum.placeholder = u.id_num_p || '';
+    cNum.appendChild(inNum);
+    fila.appendChild(cNum);
+    f.appendChild(fila);
+
+    var cRes = el('div');
+    cRes.appendChild(el('label', null, u.id_res || ''));
+    var selRes = el('select');
+    [['comprobada', u.id_res_ok], ['rechazada', u.id_res_no]].forEach(function(x){
+      var o = el('option', null, x[1] || '');
+      o.value = x[0];
+      selRes.appendChild(o);
+    });
+    cRes.appendChild(selRes);
+    f.appendChild(cRes);
+
+    var cNota = el('div');
+    cNota.appendChild(el('label', null, u.id_nota || ''));
+    var taNota = el('textarea');
+    taNota.placeholder = u.id_nota_p || '';
+    cNota.appendChild(taNota);
+    f.appendChild(cNota);
+
+    var av = el('div', 'id-av');
+    var b = el('button', 'btn primary', u.id_guardar || '');
+    b.type = 'button';
+    f.appendChild(b);
+    f.appendChild(av);
+
+    b.addEventListener('click', function(){
+      var numero = inNum.value.trim();
+      var nota = taNota.value.trim();
+      av.className = 'id-av mal';
+      if (!numero){ av.textContent = u.id_faltan || ''; return; }
+      /* Rechazar sin decir por qué deja al inversionista sin saber qué
+         arreglar. Lo rechaza también la base; aquí se dice antes para no
+         gastarle el viaje. */
+      if (selRes.value === 'rechazada' && !nota){
+        av.textContent = u.id_faltanota || ''; return;
+      }
+      b.disabled = true;
+      av.className = 'id-av';
+      av.textContent = u.id_guardando || '';
+      /* Se pregunta por la sesion AQUI y no se supone: 'usuario' solo se
+         rellena al abrir un tramite del catalogo, y desde la cola llegaba
+         vacio. Es el mismo tropiezo que dejo el desplegable de roles
+         ofreciendo cambiar tu propia cuenta. */
+      sb.auth.getUser().then(function(ru){
+        var yo = ru && ru.data && ru.data.user && ru.data.user.id;
+        if (!yo) throw new Error('sin sesion');
+        return sb.from('identidad_comprobaciones')
+        .insert({
+          inversionista: tr.inversionista,
+          tipo_documento: selDoc.value,
+          numero: numero,
+          resultado: selRes.value,
+          nota: nota,
+          /* Va, pero la base lo pisa con auth.uid(): el autor no se
+             acepta de quien escribe. Se manda para que la politica de
+             insert -que exige gestor = auth.uid()- cuadre. */
+          gestor: yo
+        });
+      })
+        .then(function(r){
+          if (r && r.error) throw r.error;
+          av.className = 'id-av bien';
+          av.textContent = (u.id_hecho || '') + ' · ' + (u.id_nocorrige || '');
+          /* Se repinta entero: la constancia nueva pasa a ser la que
+             manda y la anterior baja al historial. Primero se quita la
+             vieja y luego se pinta, que es lo que la deja otra vez
+             arriba. */
+          var cont = caja.parentNode;
+          caja.remove();
+          if (cont) pintaIdentidad(tr, cont);
+        })
+        .catch(function(e){
+          console.warn('[CIIP] firmar identidad:', e && e.message);
+          b.disabled = false;
+          av.className = 'id-av mal';
+          av.textContent = (u.id_falla || '') + ': ' + (e && e.message || '');
+        });
+    });
+
+    return f;
+  }
+
   function pintaExpediente(tr, caja){
     var u = T();
     caja.textContent = '';
+
+    /* 0. quién dice ser, y si alguien lo miró. Va antes que los datos y
+       que los archivos a propósito: al final se habría firmado sin mirar,
+       con el ratón ya en el botón de aprobar. */
+    pintaIdentidad(tr, caja);
 
     /* 1. lo que rellenó. Las etiquetas salen de CAMPOS, que es lo que le
        preguntó el formulario: así el gestor lee lo mismo que leyó él, y no
@@ -6058,6 +6297,11 @@ applyLang(idiomaParaMi());
                 (rp.data || []).forEach(function(p){ de[p.id] = p.nombre_completo; });
                 enCola.forEach(function(c){ c.nombre = de[c.inversionista] || ''; });
                 enRevision.forEach(function(t){ t.nombre = de[t.inversionista] || ''; });
+                /* Se guarda en vez de tirarlo: la constancia de identidad
+                   necesita el nombre de QUIEN LA FIRMO, y ese tambien esta
+                   en esta misma respuesta. Pedirla otra vez seria un viaje
+                   de mas para datos que ya estan aqui. */
+                NOMBRES = de;
               })
               .catch(function(){ /* sin nombres, pero con cola */ });
           });

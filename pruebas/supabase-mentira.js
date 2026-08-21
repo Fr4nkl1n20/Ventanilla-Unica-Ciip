@@ -275,6 +275,9 @@
   };
   var empresaMia = EMPRESAS[caso] || null;
 
+  /* Nadie ha mirado el documento de nadie todavia. */
+  var IDENTIDAD = [];
+
   var USUARIO = {id:'u1', email:'f.reyes@ciip.com.ve',
                  user_metadata: (caso === 'sinnombre' ? {} : {nombre_completo:'Franklin Reyes', pais:'Italia'})};
 
@@ -435,6 +438,26 @@
       ], error:null};
     }
     if (tabla === 'tipos_documento')  return {data:[], error:null};
+
+    /* La constancia de identidad. Empieza VACIA a proposito: el estado
+       normal de una persona recien llegada es que nadie haya mirado su
+       documento, y es el estado que mas facil resulta pintar mal. */
+    if (tabla === 'identidad_comprobaciones'){
+      if (op && op.insert){
+        var f = op.insert;
+        /* La base pisa el autor con auth.uid() y pone su hora. Aqui se
+           hace igual: si el falso dejara pasar el gestor que le manden,
+           la prueba de que el autor no se acepta de fuera no probaria
+           nada. */
+        IDENTIDAD.unshift({
+          resultado: f.resultado, tipo_documento: f.tipo_documento,
+          numero: f.numero, nota: f.nota || '',
+          creado_en: '2026-08-21T12:00:00Z', gestor: USUARIO.id
+        });
+        return {data:[IDENTIDAD[0]], error:null};
+      }
+      return {data:IDENTIDAD.slice(), error:null};
+    }
     if (tabla === 'bancos_aliados')   return {data:[], error:null};
     if (tabla === 'tramites'){
       /* Dos colas distintas sobre la misma tabla: la del equipo pide lo que

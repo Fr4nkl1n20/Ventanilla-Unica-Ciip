@@ -41,6 +41,15 @@
      }
 
    Las dos tienen que tener el correo confirmado y rol inversionista.
+
+   Y una TERCERA, opcional, con rol gestor:
+
+     "g": { "correo": "rls-g@ciip-pruebas.com", "clave": "..." }
+
+   Sin ella no se puede probar lo que mas importa de la constancia de
+   identidad -que nadie la reescriba, ni quien la firmo-, porque solo un
+   gestor puede crear una. Si falta, el arnes lo dice en voz alta en vez
+   de dar por bueno lo que no comprobo.
    ══════════════════════════════════════════════════════════════════════ */
 
 'use strict';
@@ -471,6 +480,124 @@ async function principal(){
   });
   v = noEscribe(cuelga);
   debeFallar('A no le cuelga un documento a B', v.bien, v.d);
+
+  /* ═══ 11 · LA CONSTANCIA DE IDENTIDAD ═══════════════════════════
+     Aquí todo el valor está en que NO se pueda reescribir. Una
+     comprobación de identidad que su propio autor puede cambiar después
+     no prueba nada: la firmaría hoy y la corregiría el día que le
+     conviniera, y la traza no valdría ni el disco que ocupa. */
+  const firmaA = await pide('/rest/v1/identidad_comprobaciones', {
+    method: 'POST', token: A.token, headers: json(),
+    body: JSON.stringify({ inversionista: A.id, tipo_documento: TIPO_DOC,
+                           numero: 'V-00000000', resultado: 'comprobada', gestor: A.id })
+  });
+  v = noEscribe(firmaA);
+  debeFallar('identidad: un inversionista no se comprueba a si mismo', v.bien, v.d);
+
+  const firmaB = await pide('/rest/v1/identidad_comprobaciones', {
+    method: 'POST', token: A.token, headers: json(),
+    body: JSON.stringify({ inversionista: B.id, tipo_documento: TIPO_DOC,
+                           numero: 'V-00000000', resultado: 'comprobada', gestor: A.id })
+  });
+  v = noEscribe(firmaB);
+  debeFallar('identidad: ni comprueba a nadie mas', v.bien, v.d);
+
+  r = await pide('/rest/v1/identidad_comprobaciones?select=*&inversionista=eq.' + B.id,
+                 { token: A.token });
+  v = noTraeNada(r);
+  debeFallar('identidad: A no ve las comprobaciones de B', v.bien, v.d);
+
+  /* Sin sesion no se lee: dice el numero del documento de identidad de
+     una persona, que es de lo mas privado que hay en esta base. */
+  r = await pide('/rest/v1/identidad_comprobaciones?select=*&limit=5', {});
+  v = noTraeNada(r);
+  debeFallar('identidad: sin entrar no se lee ninguna', v.bien, v.d);
+
+  /* Y el append-only, que es lo que hace que esto sirva de algo. Se
+     comprueba con una cuenta de GESTOR, que es la unica que puede haber
+     escrito una: sin ella no se puede probar lo que mas importa, asi que
+     se dice en voz alta en vez de dar el verde por supuesto. */
+  if (cuentas.g && String(cuentas.g.clave || '').trim()){
+    const G = await entra(cuentas.g.correo, cuentas.g.clave);
+    const pg = await pide('/rest/v1/perfiles?select=rol&id=eq.' + G.id, { token: G.token });
+    const rolG = Array.isArray(pg.cuerpo) && pg.cuerpo[0] ? pg.cuerpo[0].rol : null;
+    if (rolG !== 'gestor' && rolG !== 'admin'){
+      fin('La cuenta "g" (' + G.correo + ') tiene rol "' + rolG + '" y hace falta\n' +
+          '  que sea gestor para probar la constancia de identidad.');
+    }
+
+    const puesta = await pide('/rest/v1/identidad_comprobaciones', {
+      method: 'POST', token: G.token, headers: json(),
+      body: JSON.stringify({ inversionista: A.id, tipo_documento: TIPO_DOC,
+                             numero: 'V-11111111', resultado: 'comprobada',
+                             nota: 'prueba de cerraduras', gestor: G.id })
+    });
+    debeFallar('identidad: un gestor SI la firma (esto TIENE que salir)',
+               puesta.ok && Array.isArray(puesta.cuerpo) && puesta.cuerpo.length === 1,
+               puesta.ok ? 'la firmo' : 'no pudo (' + puesta.estado + ')');
+
+    if (puesta.ok && puesta.cuerpo[0]){
+      const ID = puesta.cuerpo[0].id;
+      /* El autor lo pone la base, no quien escribe: si se pudiera
+         atribuir a otro, la constancia seria peor que no tenerla porque
+         parece fiable. */
+      debeFallar('identidad: y la firma con SU nombre, no con el que le manden',
+                 puesta.cuerpo[0].gestor === G.id,
+                 'dice ' + String(puesta.cuerpo[0].gestor).slice(0, 8), G.id.slice(0, 8));
+
+      const ajena = await pide('/rest/v1/identidad_comprobaciones', {
+        method: 'POST', token: G.token, headers: json(),
+        body: JSON.stringify({ inversionista: B.id, tipo_documento: TIPO_DOC,
+                               numero: 'V-22222222', resultado: 'comprobada', gestor: A.id })
+      });
+      if (ajena.ok && ajena.cuerpo[0]){
+        debeFallar('identidad: no puede firmarla en nombre de otro',
+                   ajena.cuerpo[0].gestor === G.id,
+                   'quedo a nombre de ' + String(ajena.cuerpo[0].gestor).slice(0, 8),
+                   'del que la escribio');
+      } else {
+        debeFallar('identidad: no puede firmarla en nombre de otro', true,
+                   'rechazada (' + ajena.estado + ')');
+      }
+
+      const reescribe = await pide('/rest/v1/identidad_comprobaciones?id=eq.' + ID, {
+        method: 'PATCH', token: G.token, headers: json(),
+        body: JSON.stringify({ resultado: 'rechazada', numero: 'otra cosa' })
+      });
+      v = noEscribe(reescribe);
+      debeFallar('identidad: NADIE la reescribe, ni quien la firmo', v.bien, v.d);
+
+      const arranca = await pide('/rest/v1/identidad_comprobaciones?id=eq.' + ID, {
+        method: 'DELETE', token: G.token, headers: json()
+      });
+      v = noEscribe(arranca);
+      debeFallar('identidad: ni la borra', v.bien, v.d);
+
+      /* Y se comprueba leyendola, que "no devolvio nada" no es "no
+         cambio nada". */
+      const sigue = await pide('/rest/v1/identidad_comprobaciones?select=resultado,numero&id=eq.' + ID,
+                               { token: G.token });
+      const q = Array.isArray(sigue.cuerpo) && sigue.cuerpo[0] ? sigue.cuerpo[0] : {};
+      debeFallar('identidad: y sigue diciendo lo que decia',
+                 q.resultado === 'comprobada' && q.numero === 'V-11111111',
+                 JSON.stringify(q), 'comprobada / V-11111111');
+
+      /* Rechazar sin motivo deja al inversionista sin saber que arreglar.
+         Lo impide la base, no solo el formulario. */
+      const mudo = await pide('/rest/v1/identidad_comprobaciones', {
+        method: 'POST', token: G.token, headers: json(),
+        body: JSON.stringify({ inversionista: A.id, tipo_documento: TIPO_DOC,
+                               numero: 'V-33333333', resultado: 'rechazada', gestor: G.id })
+      });
+      v = noEscribe(mudo);
+      debeFallar('identidad: no se rechaza sin decir por que', v.bien, v.d);
+    }
+  } else {
+    /* Un hueco anunciado, no un verde regalado. */
+    console.log('  SIN PROBAR: el append-only de la constancia de identidad.');
+    console.log('  Hace falta una tercera cuenta con rol gestor en');
+    console.log('  cuentas.local.json, bajo la clave "g".\n');
+  }
 
   /* ── recoger ────────────────────────────────────────────────────── */
   console.log('  Recogiendo el cebo...\n');

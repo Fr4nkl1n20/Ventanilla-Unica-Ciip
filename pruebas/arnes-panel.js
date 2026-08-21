@@ -103,7 +103,13 @@
 
   cuandoConteste(function(){
     enCadena([pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir, citasAnula, citasTrasAnular,
-              colaAbre, colaTramites, colaExpediente, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
+              colaAbre, colaTramites,
+              /* La identidad se mira con el expediente ya desplegado y
+                 ANTES de colaExpediente, que termina devolviendo el
+                 tramite: al devolverlo sale de la cola y se lleva por
+                 delante la ficha entera. */
+              idMira, idRechazaSinNota, idFirma, idTrasFirmar,
+              colaExpediente, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
               agendaMira, agendaTrasEntrar, agendaTrasSalir,
               rncAbre, rncTrasAbrir, solvenciasAbre, solvenciasTrasAbrir,
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
@@ -2276,6 +2282,92 @@
 
   }
 
+  /* ═══════════ LA CONSTANCIA DE IDENTIDAD ═══════════
+     No valida contra nadie: deja constancia de que una persona del CIIP
+     miró el documento, quién fue y cuándo. Lo que estas pruebas vigilan
+     de verdad es que el panel NO diga más de lo que hizo. */
+  function idCaja(){
+    var f = document.querySelectorAll('#colaTram .co-ficha')[0];
+    return f && f.querySelector('.id-caja');
+  }
+
+  function idMira(){
+    if (CASO !== 'gestor') return;
+    var c = idCaja();
+    ok('identidad: el expediente empieza por quién dice ser', !!c,
+       c ? 'la caja está' : 'no hay caja', 'una caja de identidad');
+    /* Y ARRIBA: al final se firmaría sin mirar, con el ratón ya en el
+       botón de aprobar. */
+    var exp = document.querySelectorAll('#colaTram .co-ficha')[0].querySelector('.co-exp');
+    igual('identidad: y va antes que los datos y los archivos',
+          exp.firstElementChild === c, true);
+
+    ok('identidad: sin comprobar, lo dice',
+       /Sin comprobar/.test(c.textContent), c.textContent.slice(0, 40), 'Sin comprobar');
+    /* Lo más importante de toda la pantalla: que el gestor no crea que
+       una máquina comprobó algo. Si esto se cae, firmará constancias
+       creyendo que las respalda el SAIME. */
+    ok('identidad: y avisa de que no consulta al SAIME',
+       /no consulta al SAIME/.test(c.textContent), 'busca el aviso', 'a la vista');
+    ok('identidad: el aviso no es letra escondida',
+       c.querySelector('.id-ojo') && c.querySelector('.id-ojo').offsetHeight > 0,
+       'alto ' + (c.querySelector('.id-ojo') || {}).offsetHeight, 'se ve');
+
+    /* Los tres documentos con los que se identifica a alguien, con su
+       nombre legible y no con su código. */
+    var opciones = c.querySelectorAll('.id-fila select option');
+    igual('identidad: ofrece cédula, pasaporte y RIF', opciones.length, 3);
+    ok('identidad: por su nombre, no por su código',
+       !/rif_personal/.test(c.textContent), 'busca "rif_personal"', 'no aparece');
+  }
+
+  function idRechazaSinNota(){
+    if (CASO !== 'gestor') return;
+    var c = idCaja();
+    var sel = c.querySelectorAll('select');
+    var num = c.querySelector('input');
+    num.value = 'V-12345678';
+    sel[1].value = 'rechazada';
+    c.querySelector('.id-form button').click();
+    /* Rechazar sin decir por qué deja al inversionista sin saber qué
+       arreglar. Es la misma regla que la devolución de un trámite. */
+    ok('identidad: rechazar sin decir por qué no pasa',
+       /hace falta decir por qu/.test(c.querySelector('.id-av').textContent),
+       c.querySelector('.id-av').textContent, 'lo dice');
+    ok('identidad: y no se guardó nada',
+       /Sin comprobar/.test(c.textContent), 'sigue sin comprobar', 'sin comprobar');
+  }
+
+  function idFirma(){
+    if (CASO !== 'gestor') return;
+    var c = idCaja();
+    c.querySelectorAll('select')[1].value = 'comprobada';
+    c.querySelector('input').value = 'V-12345678';
+    c.querySelector('.id-form button').click();
+  }
+
+  function idTrasFirmar(){
+    if (CASO !== 'gestor') return;
+    var c = idCaja();
+    ok('identidad: firmada, la constancia queda', /Comprobada/.test(c.textContent),
+       c.textContent.slice(0, 50), 'Comprobada');
+    /* Una constancia sin autor ni fecha no es una constancia: es una
+       casilla marcada. */
+    ok('identidad: con el nombre de quien la firmó',
+       /Franklin Reyes/.test(c.textContent), 'busca el nombre', 'aparece');
+    ok('identidad: y contra qué documento, con su número',
+       /V-12345678/.test(c.textContent), 'busca el número', 'aparece');
+    /* Y el aviso NO desaparece al firmar. Es cuando más falta hace: la
+       pantalla ya dice "Comprobada" en verde. */
+    ok('identidad: y el aviso sigue puesto con la casilla en verde',
+       /no consulta al SAIME/.test(c.textContent), 'busca el aviso', 'sigue');
+    /* Y no se ha ido al fondo: al repintar se colocaba detras de los
+       archivos, y la segunda constancia habria que buscarla. */
+    var exp = document.querySelectorAll('#colaTram .co-ficha')[0].querySelector('.co-exp');
+    igual('identidad: y sigue siendo lo primero del expediente',
+          exp.firstElementChild === c, true);
+  }
+
   function colaExpediente(){
     if (CASO !== 'gestor') return;
     var exp = document.querySelectorAll('#colaTram .co-ficha')[0].querySelector('.co-exp');
@@ -2301,7 +2393,9 @@
        document.querySelectorAll('#colaTram .co-ficha').length + ' fichas', '2');
 
     /* Y ahora con la nota. */
-    fichas[0].querySelector('textarea').value = 'Falta el comprobante del capital.';
+    /* Por su clase y no por su etiqueta: el expediente tiene ahora su
+       propia textarea -la nota de identidad- y va antes en el arbol. */
+    fichas[0].querySelector('.co-nota-in').value = 'Falta el comprobante del capital.';
     fichas[0].querySelectorAll('.co-botones .btn')[0].click();
   }
 
