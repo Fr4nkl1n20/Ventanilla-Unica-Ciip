@@ -742,14 +742,17 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 /* Los tres montones de la cola. Mismos distintivos que los filtros de
    la portada: quien ya sabe filtrar tramites no tiene que aprender otra
    cosa aqui. */
-.co-filtros{display:flex; gap:7px; flex-wrap:wrap; margin:0 0 11px;}
-.co-filtros button{font:inherit; font-size:11.5px; font-weight:700;
+/* Los de la cola del equipo y los de Mis tramites: mismos botones,
+   mismas palabras que la portada. */
+.co-filtros, #mtFiltros{display:flex; gap:7px; flex-wrap:wrap; margin:0 0 11px;}
+#mtFiltros[hidden]{display:none;}
+.co-filtros button, #mtFiltros button{font:inherit; font-size:11.5px; font-weight:700;
   color:var(--gray); background:var(--bg); border:1px solid var(--line);
   border-radius:20px; padding:6px 12px; cursor:pointer;
   display:inline-flex; align-items:center; gap:6px;}
-.co-filtros button:hover{border-color:var(--navy2);}
-.co-filtros button.aqui{background:var(--navy); border-color:var(--navy); color:#fff;}
-.co-filtros button .n{font-variant-numeric:tabular-nums; opacity:.75;}
+.co-filtros button:hover, #mtFiltros button:hover{border-color:var(--navy2);}
+.co-filtros button.aqui, #mtFiltros button.aqui{background:var(--navy); border-color:var(--navy); color:#fff;}
+.co-filtros button .n, #mtFiltros button .n{font-variant-numeric:tabular-nums; opacity:.75;}
 /* Quien lo lleva. En su propio renglon y no pegado al nombre del
    inversionista: son dos personas distintas y confundirlas en una cola
    de trabajo es el peor sitio para hacerlo. */
@@ -2480,6 +2483,10 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
         <div class="t" data-i18n="nav.procedures">My procedures</div>
         <div class="sub" id="mtSub"></div>
       </div>
+      <!-- Los mismos cuatro montones que la portada y con las mismas
+           palabras: quien ya sabe filtrar alli no tiene que aprender otra
+           cosa aqui. -->
+      <div class="co-filtros" id="mtFiltros"></div>
       <div class="ci-lista" id="mtLista"></div>
     </div>
 
@@ -7413,6 +7420,45 @@ applyLang(idiomaParaMi());
     return {txt: i >= 0 ? estadoTexto(i, ente) : estado, clase:''};
   }
 
+  /* 'todas' | 'accion' | 'proceso' | 'listo'. Vive fuera de la funcion
+     que pinta para que repintar -al cambiar de idioma, al descartar un
+     borrador- no devuelva al monton comun. */
+  var mtFiltro = 'todas';
+
+  function mtCuadra(t){
+    if (mtFiltro === 'todas') return true;
+    return A_TARJETA[t.estado] === mtFiltro;
+  }
+
+  function pintaFiltrosMt(){
+    var caja = document.getElementById('mtFiltros');
+    if (!caja) return;
+    var dic = I18N[curLang] || I18N.en;
+    caja.textContent = '';
+    /* Con una sola solicitud los cuatro montones dicen lo mismo, y cuatro
+       botones que no reparten nada solo estorban. */
+    caja.hidden = (mios.length < 2);
+    if (caja.hidden) return;
+
+    [['todas', 'f.all'], ['accion', 'f.action'],
+     ['proceso', 'f.progress'], ['listo', 'f.done']].forEach(function(x){
+      var antes = mtFiltro;
+      mtFiltro = x[0];
+      var n = mios.filter(mtCuadra).length;
+      mtFiltro = antes;
+      /* El monton vacio no se ofrece: un boton que lleva a una lista en
+         blanco es una promesa que no se cumple. 'Todas' siempre esta. */
+      if (!n && x[0] !== 'todas') return;
+
+      var b = el('button', mtFiltro === x[0] ? 'aqui' : null);
+      b.type = 'button';
+      b.appendChild(document.createTextNode(dic[x[1]] || ''));
+      b.appendChild(el('span', 'n', String(n)));
+      b.addEventListener('click', function(){ mtFiltro = x[0]; pintaMisTramites(); });
+      caja.appendChild(b);
+    });
+  }
+
   function pintaMisTramites(){
     if (!mtLista) return;
     var u = T();
@@ -7425,13 +7471,23 @@ applyLang(idiomaParaMi());
       mtNavN.hidden = (vivos.length === 0);
     }
 
+    pintaFiltrosMt();
+
     mtLista.textContent = '';
     if (!mios.length){
       mtLista.appendChild(el('div', 'ci-vacia', u.mt_vacia || ''));
       return;
     }
 
-    mios.forEach(function(t){
+    /* Si el filtro de turno se queda sin nada -porque se descarto el
+       ultimo borrador, por ejemplo- se vuelve a todas en vez de dejar la
+       vista en blanco sin explicar por que. */
+    if (!mios.filter(mtCuadra).length){
+      mtFiltro = 'todas';
+      pintaFiltrosMt();
+    }
+
+    mios.filter(mtCuadra).forEach(function(t){
       var ref  = tipoRefDe(t.tipo);
       /* TIPOS puede seguir siendo null si el catálogo aún no ha llegado.
          Sin este paréntesis, TIPOS[null] revienta y la lista se queda vacía

@@ -2064,6 +2064,41 @@
        hecho && !hecho.querySelector('.lleva'),
        hecho ? (hecho.querySelector('.lleva') ? 'lo lleva' : 'sin reloj') : 'no hay resuelto',
        'sin reloj');
+    /* ── LOS CUATRO MONTONES ── Con seis solicitudes del mismo trámite
+       la lista no dice nada; separadas por estado, sí. Y con las MISMAS
+       palabras que la portada: quien ya sabe filtrar allí no tiene que
+       aprender otra cosa aquí. */
+    (function(){
+      var fil = document.querySelectorAll('#mtFiltros button');
+      ok('mis trámites: hay filtros por estado', fil.length >= 2,
+         fil.length + ' botones', '2 o más');
+      igual('mis trámites: con las palabras de la portada',
+            fil[0].textContent.replace(/[0-9]/g, '').trim(), 'Todos');
+
+      /* El montón vacío no se ofrece: un botón que lleva a una lista en
+         blanco es una promesa que no se cumple. */
+      var vacios = [].filter.call(fil, function(b){
+        return b.querySelector('.n').textContent === '0'; });
+      igual('mis trámites: y ninguno lleva a una lista vacía', vacios.length, 0);
+
+      /* Filtrar de verdad enseña menos de las que hay. */
+      var todas = document.querySelectorAll('#mtLista .ci-ficha').length;
+      var otro = [].filter.call(fil, function(b){ return !b.classList.contains('aqui'); })[0];
+      if (otro){
+        var cuantas = parseInt(otro.querySelector('.n').textContent, 10);
+        otro.click();
+        igual('mis trámites: y filtrar enseña solo las de ese montón',
+              document.querySelectorAll('#mtLista .ci-ficha').length, cuantas);
+        ok('mis trámites: que son menos que todas', cuantas < todas,
+           cuantas + ' de ' + todas, 'menos');
+        /* Y volver las devuelve: un filtro que no se limpia deja la vista
+           coja para el resto de la sesión. */
+        document.querySelectorAll('#mtFiltros button')[0].click();
+        igual('mis trámites: y "Todos" las devuelve',
+              document.querySelectorAll('#mtLista .ci-ficha').length, todas);
+      }
+    })();
+
     /* ── EN REJILLA ── Una ficha de trámite son tres renglones cortos y
        a lo ancho sobraba media pantalla: ver seis solicitudes obligaba a
        rodar. Es el mismo cambio que se hizo en las cuentas. */
