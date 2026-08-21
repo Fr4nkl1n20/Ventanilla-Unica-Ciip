@@ -10,6 +10,6 @@
   },
   "g": {
     "correo": "rls-g@ciip-pruebas.com",
-    "clave": "la-clave-del-gestor (opcional, pero sin ella no se prueba el append-only de la identidad)"
-  }
+    "clave": "12345678 (opcional, pero sin ella no se prueba el append-only de la identidad)"
+  },
 }

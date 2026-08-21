@@ -119,6 +119,7 @@
               sinSqlAbre, sinSqlMira,
               adminMira, adminAbre, adminDentro,
               f5Entra, f5Espera, f5Llega,
+              f5TardeEntra, f5TardeEspera, f5TardeLlega,
               empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
               entregaAbre, entregaMira,
               docsAbre, docsMira,
@@ -1727,6 +1728,39 @@
   function f5Llega(){
     if (!ES_ADMIN) return;
     igual('F5: y en cuanto la sesión está, salen las cuentas',
+          document.querySelectorAll('#usLista .ci-ficha').length, 4);
+    location.hash = '';
+  }
+
+  /* ═══════════ F5 CUANDO EL MÓDULO AÚN NO SE HA PRESENTADO ═══════════
+     El punto ciego de la prueba de arriba, y por eso el fallo siguió vivo
+     después de darlo por arreglado: aquella apagaba la señal de la sesión
+     con el módulo YA registrado, que no es lo que pasa al recargar.
+
+     Al recargar sobre #usuarios el router corre durante la carga, y estos
+     módulos se registran más abajo en el mismo guión: window.CIIP_PINTA_
+     USUARIOS todavía no existía. La llamada se saltaba en silencio y la
+     vista se quedaba diciendo que no había ninguna cuenta. Había cuatro. */
+  var f5Fn = null;
+  function f5TardeEntra(){
+    if (!ES_ADMIN) return;
+    f5Fn = window.CIIP_PINTA_USUARIOS;
+    delete window.CIIP_PINTA_USUARIOS;      /* como durante la carga */
+    document.getElementById('usLista').textContent = '';
+    location.hash = 'usuarios';
+  }
+
+  function f5TardeEspera(){
+    if (!ES_ADMIN) return;
+    var t = document.getElementById('usLista').textContent;
+    ok('F5 tardío: sin el módulo puesto, no declara que no hay nadie',
+       t.indexOf('No hay ninguna cuenta') < 0, t.slice(0, 60) || '(vacía)', 'sin ese mensaje');
+    window.CIIP_PINTA_USUARIOS = f5Fn;      /* el módulo se presenta */
+  }
+
+  function f5TardeLlega(){
+    if (!ES_ADMIN) return;
+    igual('F5 tardío: y en cuanto se presenta, carga sin que nadie lo pida',
           document.querySelectorAll('#usLista .ci-ficha').length, 4);
     location.hash = '';
   }

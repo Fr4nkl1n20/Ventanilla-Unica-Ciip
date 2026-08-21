@@ -3087,13 +3087,26 @@ function applyLang(lang){
      PERFIL.rolReal es la señal buena: solo se pone cuando una consulta CON
      sesión ya contestó. Y si en cuatro segundos no llega, se pide igual: más
      vale una lista vacía que una vista que no carga nunca. */
-  function traeAlEntrar(fn){
-    if (typeof fn !== 'function') return;
+  function traeAlEntrar(clave){
     var n = 0;
     (function espera(){
-      if (typeof PERFIL !== 'undefined' && PERFIL.rolReal) return fn();
+      /* Se busca la funcion CADA VEZ, no una sola al entrar. El router
+         corre durante la carga de la pagina y estos modulos se registran
+         mas abajo, en el mismo guion: al recargar sobre #usuarios,
+         window.CIIP_PINTA_USUARIOS todavia no existia, la llamada se
+         saltaba en silencio y la vista se quedaba diciendo que no hay
+         ninguna cuenta. Habia cuatro.
+
+         Es el mismo error de antes con otra cara: aquello esperaba a la
+         sesion y esto esperaba a un modulo que aun no se habia
+         presentado. */
+      var fn = window[clave];
+      var listo = typeof PERFIL !== 'undefined' && PERFIL.rolReal;
+      if (typeof fn === 'function' && listo) return fn();
       if (n++ < 40) return setTimeout(espera, 100);
-      fn();
+      /* Se acabo la espera: si al menos hay funcion, se pide igual. Mas
+         vale una lista vacia que una vista que no carga nunca. */
+      if (typeof fn === 'function') fn();
     })();
   }
 
@@ -3107,13 +3120,13 @@ function applyLang(lang){
     if (tipo === 'tramite' && !pintaTramite(destino.id)) tipo = null;
     /* La agenda se rellena al entrar, no al cargar la página: la mayoría de
        las visitas no pasan por ella y no hay que gastarles una consulta. */
-    if (tipo === 'citas') traeAlEntrar(window.CIIP_PINTA_AGENDA);
-    if (tipo === 'mistramites') traeAlEntrar(window.CIIP_PINTA_MISTRAM);
-    if (tipo === 'activos') traeAlEntrar(window.CIIP_PINTA_ACTIVOS);
+    if (tipo === 'citas') traeAlEntrar('CIIP_PINTA_AGENDA');
+    if (tipo === 'mistramites') traeAlEntrar('CIIP_PINTA_MISTRAM');
+    if (tipo === 'activos') traeAlEntrar('CIIP_PINTA_ACTIVOS');
     if (tipo === 'ayuda' && window.CIIP_REPINTA_AYUDA) window.CIIP_REPINTA_AYUDA();
-    if (tipo === 'documentos') traeAlEntrar(window.CIIP_PINTA_DOCS);
-    if (tipo === 'empresa') traeAlEntrar(window.CIIP_PINTA_EMPRESA);
-    if (tipo === 'usuarios') traeAlEntrar(window.CIIP_PINTA_USUARIOS);
+    if (tipo === 'documentos') traeAlEntrar('CIIP_PINTA_DOCS');
+    if (tipo === 'empresa') traeAlEntrar('CIIP_PINTA_EMPRESA');
+    if (tipo === 'usuarios') traeAlEntrar('CIIP_PINTA_USUARIOS');
 
     var fase = null;
     if (tipo === 'fase') {
