@@ -111,6 +111,7 @@
               idMira, idRechazaSinNota, idFirma, idTrasFirmar,
               colaExpediente, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
               agendaMira, agendaTrasEntrar, agendaTrasSalir,
+              paisesMira, paisesTrasAbrir,
               rncAbre, rncTrasAbrir, solvenciasAbre, solvenciasTrasAbrir,
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
@@ -1096,6 +1097,49 @@
      Era una ficha de solo lectura: decía "Ver detalle" y no se podía
      solicitar. Sus recaudos son PROVISIONALES —la hoja los trae en blanco—
      pero el circuito tiene que funcionar igual. */
+  /* ═══════════ LOS NOMBRES DE PAÍS, AL ESCRIBIR ═══════════
+     Escribir "País emisor del pasaporte" a mano son doscientas maneras de
+     escribir lo mismo. Con <datalist> se sugieren, y a propósito no con
+     un desplegable: una lista cerrada deja fuera a quien escriba "Reino
+     Unido" donde nosotros pusimos otra cosa, y ese trata con un
+     formulario, no con nosotros. */
+  function paisesMira(){
+    /* En 'lleno' el c1 esta RESUELTO y ensena el expediente, no el
+       formulario: el campo no existe alli. En 'vacio' no hay tramites y
+       la tarjeta abre la solicitud en blanco, que es donde vive. */
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c1';
+  }
+
+  function paisesTrasAbrir(){
+    if (CASO !== 'vacio') return;
+    var dl = document.getElementById('listaPaises');
+    ok('países: hay una sola lista compartida, no una por campo', !!dl,
+       dl ? 'existe' : 'no existe', 'existe');
+    ok('países: y trae los doscientos y pico',
+       dl.options.length > 190,
+       dl.options.length + ' opciones', 'más de 190');
+    ok('países: con su nombre en el idioma de turno',
+       [].some.call(dl.options, function(o){ return o.value === 'Venezuela'; }) &&
+       [].some.call(dl.options, function(o){ return o.value === 'Alemania'; }),
+       'busca Venezuela y Alemania', 'las dos');
+
+    var campo = document.querySelector('#solCuerpo [name="pais_emisor"]') ||
+                document.querySelector('[name="pais_emisor"]');
+    ok('países: el campo del pasaporte las sugiere', !!campo &&
+       campo.getAttribute('list') === 'listaPaises',
+       campo ? ('list=' + campo.getAttribute('list')) : 'no encuentro el campo',
+       'list=listaPaises');
+    /* Sigue siendo un campo de texto: lo que no esté en la lista se
+       escribe igual. */
+    igual('países: y sigue admitiendo lo que se teclee',
+          campo.tagName.toLowerCase(), 'input');
+
+    /* El plural NO la lleva: ahí se escriben varios separados por comas
+       y una sugerencia que mira la casilla entera no acierta ni una. */
+    location.hash = '';
+  }
+
   function rncAbre(){
     if (CASO !== 'vacio') return;
     location.hash = 'tramite-c13';

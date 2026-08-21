@@ -2551,6 +2551,13 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 <!-- La ficha de la empresa. Los campos y sus etiquetas son los MISMOS que
      usan los formularios de los tramites: asi lo que se escribe aqui encaja
      alli por coincidencia de nombre, sin una tabla de equivalencias. -->
+<!-- Los nombres de los doscientos y pico paises, para los campos de los
+     tramites que piden uno. Es UNA sola lista compartida: doscientas
+     opciones repetidas en cada campo de cada formulario pesarian por
+     nada. La rellena construyePaises con los nombres del idioma en
+     curso. -->
+<datalist id="listaPaises"></datalist>
+
 <div class="asst-back" id="empresaBack">
   <div class="asst perfil">
     <div class="asst-h">
@@ -4046,7 +4053,7 @@ applyLang(idiomaParaMi());
   var CAMPOS = {
     visa_inversionista: [
       {n:'numero_pasaporte',  clave:'f_pasaporte'},
-      {n:'pais_emisor',       clave:'f_paisemisor'},
+      {n:'pais_emisor',       clave:'f_paisemisor', paises:true},
       {n:'vence_pasaporte',   clave:'f_vencepas',  tipo:'date'},
       {n:'consulado',         clave:'f_consulado'},
       {n:'monto_inversion',   clave:'f_montoinv'},
@@ -4054,7 +4061,7 @@ applyLang(idiomaParaMi());
     ],
     licencia_conducir: [
       {n:'numero_licencia',  clave:'f_numlic'},
-      {n:'pais_licencia',    clave:'f_paislic'},
+      {n:'pais_licencia',    clave:'f_paislic', paises:true},
       {n:'categoria',        clave:'f_catlic'},
       {n:'fecha_emision',    clave:'f_emisionlic', tipo:'date'},
       {n:'vence_licencia',   clave:'f_vencelic',   tipo:'date'},
@@ -4269,7 +4276,7 @@ applyLang(idiomaParaMi());
       {n:'modalidad',              clave:'f_modalidad',      opcionesClave:'o_modalidad'},
       {n:'monto_inversion',        clave:'f_montoinv'},
       {n:'moneda',                 clave:'f_moneda',         opcionesClave:'o_moneda'},
-      {n:'pais_origen_fondos',     clave:'f_paisinversor'},
+      {n:'pais_origen_fondos',     clave:'f_paisinversor', paises:true},
       {n:'fecha_aporte',           clave:'f_fechaaporte',    tipo:'date'},
       {n:'financiamiento_interno', clave:'f_financiamiento', tipo:'number', opcional:true},
       {n:'actividad_economica',    clave:'f_actividad'},
@@ -4308,7 +4315,7 @@ applyLang(idiomaParaMi());
        según quién firmó el certificado, y con ese dato el CIIP sabe
        de antemano si hace falta una legalización previa. */
     antecedentes_penales: [
-      {n:'pais_origen',      clave:'f_paisorigen'},
+      {n:'pais_origen',      clave:'f_paisorigen', paises:true},
       {n:'autoridad',        clave:'f_autoridad'},
       {n:'fecha_certificado',clave:'f_fechacert',  tipo:'date'},
       {n:'idioma',           clave:'f_idioma'},
@@ -4316,7 +4323,7 @@ applyLang(idiomaParaMi());
     ],
     apostilla_documentos: [
       {n:'documento',        clave:'f_docapost',   opcionesClave:'o_docapost'},
-      {n:'pais_origen',      clave:'f_paisorigen'},
+      {n:'pais_origen',      clave:'f_paisorigen', paises:true},
       {n:'idioma',           clave:'f_idioma'},
       {n:'fecha_documento',  clave:'f_fechadoc',   tipo:'date'},
       {n:'uso_previsto',     clave:'f_uso',        ancho:true}
@@ -4345,7 +4352,7 @@ applyLang(idiomaParaMi());
       {n:'parentesco',       clave:'f_parentesco', opcionesClave:'o_parentesco'},
       {n:'fecha_nacimiento', clave:'f_nacimiento', tipo:'date'},
       {n:'numero_pasaporte', clave:'f_pasaporte'},
-      {n:'pais_emisor',      clave:'f_paisemisor'},
+      {n:'pais_emisor',      clave:'f_paisemisor', paises:true},
       {n:'consulado',        clave:'f_consulado'}
     ],
     cert_medico: [
@@ -4540,6 +4547,19 @@ applyLang(idiomaParaMi());
       } else {
         entrada = document.createElement('input');
         entrada.type = c.tipo || 'text';
+        /* Los nombres de pais se sugieren al escribir. Con <datalist> y
+           no con un desplegable a proposito: sigue admitiendo lo que se
+           teclee. Una lista cerrada de paises deja fuera al que escriba
+           "Reino Unido" donde nosotros pusimos "Reino Unido de Gran
+           Bretana", y ese trata con un formulario, no con nosotros.
+
+           No lo lleva el campo plural "Paises de origen o destino": ahi
+           se escriben varios separados por comas, y una sugerencia que
+           mira la casilla entera no acierta ni una. */
+        if (c.paises){
+          entrada.setAttribute('list', 'listaPaises');
+          entrada.setAttribute('autocomplete', 'off');
+        }
       }
       entrada.name = c.n;
       /* Lo que ya escribiste en ESTE trámite manda siempre. Si el campo
@@ -5303,6 +5323,21 @@ applyLang(idiomaParaMi());
       PAISES.push({cod:c, nombre:n, es:(nombrePais(c, 'es') || n), busca:sinTildes(n)});
     });
     PAISES.sort(function(a, b){ return a.nombre.localeCompare(b.nombre, idioma); });
+    pintaListaPaises();
+  }
+
+  /* La lista compartida que usan los campos de pais de los tramites. Se
+     rehace con el idioma: si no, alguien que cambia a portugues seguiria
+     viendo "Alemania" en las sugerencias y "Alemanha" en su perfil. */
+  function pintaListaPaises(){
+    var dl = document.getElementById('listaPaises');
+    if (!dl) return;
+    dl.textContent = '';
+    PAISES.forEach(function(p){
+      var o = document.createElement('option');
+      o.value = p.nombre;
+      dl.appendChild(o);
+    });
   }
 
   /* ── el buscador de países ──
