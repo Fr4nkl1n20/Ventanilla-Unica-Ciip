@@ -1988,29 +1988,65 @@
     igual('empresa: el RIF enseña su forma',
           document.getElementById('em_rif_empresa').placeholder, 'J-00000000-0');
 
-    /* ── FECHAS ── El calendario del navegador no se puede maquillar,
-       pero sí acotar: sin límite abría la lista de años en 2019 y dejaba
-       escribir 2087. */
+    /* ── LA FECHA, EN TRES LISTAS ── Un calendario sirve para fechas
+       cercanas. Nadie elige mayo de 2020 pulsando sesenta veces la flecha
+       del mes, y el del navegador ademas se salía del diálogo. */
     (function(){
-      var fc = document.getElementById('em_fecha_constitucion');
-      var d  = new Date();
-      var hoy = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') +
-                '-' + String(d.getDate()).padStart(2,'0');
-      igual('empresa: la constitución no puede ser de mañana', fc.max, hoy);
-      igual('empresa: ni de antes de que hubiera registros', fc.min, '1900-01-01');
-      /* Y la hora LOCAL, no la UTC: toISOString() convierte antes, y en
-         Venezuela eso adelanta el día entero desde las ocho de la noche. */
-      ok('empresa: y el tope es el día de aquí, no el de Londres',
-         fc.max === hoy, fc.max + ' vs ' + hoy, hoy);
+      var f3 = document.querySelectorAll('#em_fecha_constitucion_a, #em_fecha_constitucion_m, #em_fecha_constitucion_d');
+      igual('fecha: la constitución se elige en tres listas', f3.length, 3);
+      ok('fecha: y ya no hay calendario del navegador',
+         document.getElementById('em_fecha_constitucion').type === 'hidden',
+         document.getElementById('em_fecha_constitucion').type, 'hidden');
 
-      /* Empezar a operar antes de existir no es raro: es imposible. El
-         mínimo del segundo paso sigue a la fecha del primero. */
-      fc.value = '2020-05-10';
-      fc.dispatchEvent(new Event('input', {bubbles:true}));
-      igual('empresa: y las actividades no empiezan antes de existir',
-            document.getElementById('em_inicio_actividades').min, '2020-05-10');
-      fc.value = '';
-      fc.dispatchEvent(new Event('input', {bubbles:true}));
+      var selA = document.getElementById('em_fecha_constitucion_a');
+      var selM = document.getElementById('em_fecha_constitucion_m');
+      var selD = document.getElementById('em_fecha_constitucion_d');
+      var hoy = new Date();
+
+      /* Del más reciente al más viejo: una empresa de hace dos años no
+         debería recorrer un siglo para encontrarse. */
+      igual('fecha: los años empiezan por el de este año',
+            selA.options[1].value, String(hoy.getFullYear()));
+      igual('fecha: y llegan hasta 1900',
+            selA.options[selA.options.length - 1].value, '1900');
+      ok('fecha: y ninguno es del futuro',
+         [].every.call(selA.options, function(o){
+           return !o.value || parseInt(o.value, 10) <= hoy.getFullYear(); }),
+         'el mayor es ' + selA.options[1].value, 'como mucho ' + hoy.getFullYear());
+
+      /* Los meses con su nombre: "03" obliga a contar con los dedos. */
+      igual('fecha: los meses van con su nombre', selM.options[1].textContent, 'enero');
+
+      /* Febrero tiene 28 o 29 según el año: una lista fija de 31 deja
+         elegir el 31 de febrero. */
+      selA.value = '2021'; selA.dispatchEvent(new Event('change'));
+      selM.value = '02';   selM.dispatchEvent(new Event('change'));
+      igual('fecha: febrero de 2021 tiene 28 días', selD.options.length - 1, 28);
+      selA.value = '2020'; selA.dispatchEvent(new Event('change'));
+      selM.value = '02';   selM.dispatchEvent(new Event('change'));
+      igual('fecha: y el de 2020, que fue bisiesto, 29', selD.options.length - 1, 29);
+
+      /* Y del mes en curso no se ofrecen días que no han llegado. */
+      selA.value = String(hoy.getFullYear()); selA.dispatchEvent(new Event('change'));
+      selM.value = String(hoy.getMonth() + 1).padStart(2, '0');
+      selM.dispatchEvent(new Event('change'));
+      igual('fecha: de este mes solo se ofrecen los días ya vividos',
+            selD.options.length - 1, hoy.getDate());
+      var mesesVivos = [].filter.call(selM.options, function(o){ return o.value && !o.hidden; });
+      igual('fecha: y de este año, solo los meses ya pasados',
+            mesesVivos.length, hoy.getMonth() + 1);
+
+      /* Las tres juntas escriben la fecha; con una suelta no hay fecha. */
+      selD.value = '01'; selD.dispatchEvent(new Event('change'));
+      igual('fecha: las tres juntas componen el dato',
+            document.getElementById('em_fecha_constitucion').value,
+            String(hoy.getFullYear()) + '-' +
+            String(hoy.getMonth() + 1).padStart(2, '0') + '-01');
+      selM.value = ''; selM.dispatchEvent(new Event('change'));
+      igual('fecha: y a medias no compone nada',
+            document.getElementById('em_fecha_constitucion').value, '');
+      selA.value = ''; selA.dispatchEvent(new Event('change'));
+      selD.value = ''; selD.dispatchEvent(new Event('change'));
     })();
 
     /* Lo único obligatorio es la razón social, y no se puede pasar de
@@ -2055,14 +2091,14 @@
     igual('empresa: pulsarlo vuelve al primero',
           document.getElementById('emCuenta').querySelector('b').textContent.trim(), 'Paso 1 de 3');
 
-    /* min y max acotan el calendario, pero un valor TECLEADO se los
-       salta: el navegador marca el campo y ya, y aquí no hay <form> que
-       lo pare. Se vuelve a mirar antes de guardar. */
+    /* Las listas no ofrecen una fecha imposible, pero la comprobación al
+       guardar se queda: es la que protege de un dato que entre por otro
+       lado —una fila vieja, una carga a mano— y la que dice POR QUÉ. */
     (function(){
       var fc = document.getElementById('em_fecha_constitucion');
       fc.value = '2087-01-01';
       document.getElementById('emGuardar').click();
-      igual('empresa: una fecha tecleada del futuro no pasa',
+      igual('empresa: una fecha del futuro no pasa, venga de donde venga',
             document.getElementById('emAviso').textContent,
             'Una empresa no se constituye en el futuro. Revisa la fecha.');
       ok('empresa: y el campo se marca',

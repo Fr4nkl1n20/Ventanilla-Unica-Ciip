@@ -363,6 +363,13 @@ svg{display:block;}
    escondia nada: los doce seguian pintados y el paso 1 llegaba hasta
    "Actividad economica". */
 .pf-campo[hidden]{display:none;}
+/* Dia, mes y ano en tres listas. No flotan, asi que no se salen del
+   dialogo: era el problema del calendario del navegador. El ano lleva
+   mas sitio porque es el que se elige primero y el que mas se busca. */
+.em-fecha3{display:flex; gap:7px;}
+.em-fecha3 select{flex:1 1 0; min-width:0;}
+.em-fecha3 select.a{flex:1.25 1 0;}
+@media(max-width:420px){ .em-fecha3{flex-wrap:wrap;} .em-fecha3 select{flex:1 1 90px;} }
 .pf-campo > span, .pf-campo > label{font-size:11.5px; font-weight:700; color:var(--gray);}
 .pf-campo input, .pf-campo select{font:inherit; font-size:13px; color:var(--ink);
   background:var(--bg); border:1px solid var(--line); border-radius:9px;
@@ -7752,7 +7759,7 @@ applyLang(idiomaParaMi());
     /* 'hasta:hoy' acota el calendario del navegador, que no se puede
        maquillar pero si limitar: sin limite abria la lista de anos en
        2019 y dejaba escribir 2087. */
-    {n:'fecha_constitucion',  clave:'f_constitucion', tipo:'date', paso:1,
+    {n:'fecha_constitucion',  clave:'f_constitucion', tipo:'fecha3', paso:1,
      desde:'1900-01-01', hasta:'hoy'},
     {n:'capital_social',      clave:'f_capital',      paso:1},
     {n:'actividad_economica', clave:'f_actividad',    paso:2},
@@ -7760,8 +7767,11 @@ applyLang(idiomaParaMi());
     /* Puede ser futura -una empresa constituida que aun no abre- pero
        nunca anterior a la constitucion: ese minimo se pone solo, con lo
        que haya escrito en la fecha de arriba. */
-    {n:'inicio_actividades',  clave:'f_iniciolab',    tipo:'date', paso:2,
-     desde:'1900-01-01'},
+    /* Sin tope: una empresa constituida puede tener fecha de apertura
+       por delante. Lo que no puede es abrir antes de existir, y eso se
+       comprueba al guardar. */
+    {n:'inicio_actividades',  clave:'f_iniciolab',    tipo:'fecha3', paso:2,
+     desde:'1900-01-01', hasta:'+10'},
     {n:'direccion_fiscal',    clave:'f_direccion',    ancho:true, paso:3},
     {n:'municipio',           clave:'f_municipio',    paso:3},
     {n:'telefono',            clave:'f_telefono',     tipo:'tel', paso:3},
@@ -7864,9 +7874,147 @@ applyLang(idiomaParaMi());
     if (emBack.classList.contains('open')) ponPasoEmpresa(emPaso);
     /* Las etiquetas de dentro, que se traducen con el resto. */
     EM_CAMPOS.forEach(function(c){
-      var lb = emBack.querySelector('label[for="em_' + c.n + '"]');
+      var lb = emBack.querySelector('label[data-campo="' + c.n + '"]');
       if (lb) lb.textContent = u[c.clave] || c.n;
     });
+  }
+
+  /* \u2500\u2500 UNA FECHA EN TRES LISTAS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+     Un calendario sirve para fechas cercanas: "el jueves", "el 26".
+     Nadie elige mayo de 2020 pulsando sesenta veces la flecha del mes, y
+     por eso el propio navegador abria una lista de anos. Para una fecha
+     de constitucion, tres listas son un toque menos, no uno mas.
+
+     Ademas no flotan, que era el otro problema: el calendario del
+     navegador se salia del dialogo y no hay forma de moverlo.
+
+     El valor sigue viviendo en un input escondido con el MISMO id de
+     siempre, asi que guardar, comprobar y traducir no se enteran. \u2500\u2500\u2500 */
+  function montaFecha3(campo, lb, c, valor){
+    var u = T();
+    var caja = el('div', 'em-fecha3');
+
+    var oculto = document.createElement('input');
+    oculto.type = 'hidden';
+    oculto.id = 'em_' + c.n;
+    oculto.value = valor || '';
+
+    function lista(clase, etiqueta, id){
+      var sel = document.createElement('select');
+      sel.className = clase;
+      sel.id = id;
+      sel.setAttribute('aria-label', (u[c.clave] || c.n) + ' \u2014 ' + etiqueta);
+      var vacia = document.createElement('option');
+      vacia.value = '';
+      vacia.textContent = etiqueta;
+      sel.appendChild(vacia);
+      return sel;
+    }
+    var selD = lista('d', u.f_dia || '', 'em_' + c.n + '_d');
+    var selM = lista('m', u.f_mes || '', 'em_' + c.n + '_m');
+    var selA = lista('a', u.f_anio || '', 'em_' + c.n + '_a');
+
+    /* El orden lo dice el idioma, no una costumbre: en chino la fecha es
+       ano-mes-dia y ponerla al reves seria escribirla mal. Lo sabe el
+       navegador; no hace falta una tabla nuestra. */
+    var orden = ['day', 'month', 'year'];
+    try {
+      orden = new Intl.DateTimeFormat(curLang === 'zh' ? 'zh-CN' : curLang)
+        .formatToParts(new Date(2026, 4, 15))
+        .filter(function(p){ return p.type === 'day' || p.type === 'month' || p.type === 'year'; })
+        .map(function(p){ return p.type; });
+    } catch(e){}
+    var porTipo = {day: selD, month: selM, year: selA};
+    orden.forEach(function(t){ if (porTipo[t]) caja.appendChild(porTipo[t]); });
+
+    /* Los anos, del tope de abajo al de arriba y del mas reciente al mas
+       viejo: una empresa que se constituyo hace dos anos no deberia
+       recorrer un siglo para encontrarse. */
+    var hoy = new Date();
+    var aMin = parseInt(String(c.desde || '1900-01-01').slice(0, 4), 10);
+    var aMax = (c.hasta === 'hoy') ? hoy.getFullYear()
+             : (String(c.hasta || '').charAt(0) === '+')
+               ? hoy.getFullYear() + parseInt(String(c.hasta).slice(1), 10)
+               : (c.hasta ? parseInt(String(c.hasta).slice(0, 4), 10) : hoy.getFullYear());
+    for (var a = aMax; a >= aMin; a--){
+      var oa = document.createElement('option');
+      oa.value = String(a);
+      oa.textContent = String(a);
+      selA.appendChild(oa);
+    }
+
+    /* Los meses con su nombre y en el idioma de turno: "03" obliga a
+       contar con los dedos. */
+    var nombreMes = null;
+    try { nombreMes = new Intl.DateTimeFormat(curLang === 'zh' ? 'zh-CN' : curLang,
+                                              {month: 'long'}); } catch(e){}
+    for (var m = 1; m <= 12; m++){
+      var om = document.createElement('option');
+      om.value = String(m).padStart(2, '0');
+      om.textContent = nombreMes ? nombreMes.format(new Date(2026, m - 1, 1)) : String(m);
+      selM.appendChild(om);
+    }
+
+    /* Los dias se rehacen cada vez: febrero tiene 28 o 29 segun el ano,
+       y una lista fija de 31 deja elegir el 31 de febrero. */
+    function pintaDias(){
+      var anio = parseInt(selA.value, 10);
+      var mes  = parseInt(selM.value, 10);
+      var cuantos = (anio && mes) ? new Date(anio, mes, 0).getDate() : 31;
+      /* Y si la fecha maxima cae dentro de este mismo mes, no se ofrece
+         mas alla: prevenir es mejor que renir despues. */
+      if (c.hasta === 'hoy' && anio === hoy.getFullYear() && mes === hoy.getMonth() + 1){
+        cuantos = Math.min(cuantos, hoy.getDate());
+      }
+      var antes = selD.value;
+      while (selD.options.length > 1) selD.remove(1);
+      for (var d = 1; d <= cuantos; d++){
+        var od = document.createElement('option');
+        od.value = String(d).padStart(2, '0');
+        od.textContent = String(d);
+        selD.appendChild(od);
+      }
+      selD.value = (antes && parseInt(antes, 10) <= cuantos) ? antes : '';
+    }
+
+    /* Lo mismo con los meses cuando el ano es el de ahora. */
+    function pintaMeses(){
+      if (c.hasta !== 'hoy') return;
+      var anio = parseInt(selA.value, 10);
+      var tope = (anio === hoy.getFullYear()) ? hoy.getMonth() + 1 : 12;
+      [].forEach.call(selM.options, function(o){
+        if (!o.value) return;
+        o.hidden = (parseInt(o.value, 10) > tope);
+      });
+      if (selM.value && parseInt(selM.value, 10) > tope) selM.value = '';
+    }
+
+    function recoge(){
+      oculto.value = (selA.value && selM.value && selD.value)
+        ? (selA.value + '-' + selM.value + '-' + selD.value) : '';
+      /* El input escondido no dispara 'input' solo: se lanza a mano para
+         que el contador del pie y el minimo de la otra fecha se enteren. */
+      oculto.dispatchEvent(new Event('input', {bubbles: true}));
+    }
+
+    selA.addEventListener('change', function(){ pintaMeses(); pintaDias(); recoge(); });
+    selM.addEventListener('change', function(){ pintaDias(); recoge(); });
+    selD.addEventListener('change', recoge);
+
+    if (valor && /^\d{4}-\d{2}-\d{2}$/.test(valor)){
+      selA.value = valor.slice(0, 4);
+      pintaMeses();
+      selM.value = valor.slice(5, 7);
+      pintaDias();
+      selD.value = valor.slice(8, 10);
+    } else {
+      pintaMeses();
+      pintaDias();
+    }
+
+    lb.setAttribute('for', selA.id);
+    campo.appendChild(caja);
+    campo.appendChild(oculto);
   }
 
   function abreFichaEmpresa(){
@@ -7888,16 +8036,23 @@ applyLang(idiomaParaMi());
       var campo = el('div', 'pf-campo');
       campo.setAttribute('data-paso', String(c.paso || 1));
       var lb = el('label', null, u[c.clave] || c.n);
+      /* El "for" apunta a un sitio distinto segun el tipo de campo -en
+         una fecha, a la primera de las tres listas-, asi que la etiqueta
+         se identifica por data-campo y no por a quien senala. */
+      lb.setAttribute('data-campo', c.n);
       lb.setAttribute('for', 'em_' + c.n);
       campo.appendChild(lb);
+      if (c.tipo === 'fecha3'){
+        montaFecha3(campo, lb, c, (EMPRESA && EMPRESA[c.n]) || '');
+        caja.appendChild(campo);
+        return;
+      }
       var i = document.createElement('input');
       i.type = c.tipo || 'text';
       i.id = 'em_' + c.n;
       i.value = (EMPRESA && EMPRESA[c.n]) || '';
       /* La forma del RIF a la vista ahorra una devolucion por un digito. */
       if (c.pista) i.placeholder = c.pista;
-      if (c.desde) i.min = c.desde;
-      if (c.hasta) i.max = (c.hasta === 'hoy' ? hoyISO() : c.hasta);
       campo.appendChild(i);
       caja.appendChild(campo);
     });
@@ -8133,12 +8288,9 @@ applyLang(idiomaParaMi());
     document.getElementById('emCampos').addEventListener('input', function(e){
       refrescaPieEmpresa();
       /* Empezar a operar antes de existir no es un dato raro: es un dato
-         imposible. El calendario del segundo paso lo impide en cuanto se
-         sabe la fecha del primero. */
-      if (e.target && e.target.id === 'em_fecha_constitucion'){
-        var ini = document.getElementById('em_inicio_actividades');
-        if (ini) ini.min = e.target.value || '1900-01-01';
-      }
+         imposible, y se comprueba al guardar. Con tres listas no hay un
+         .min que poner: apagar meses y dias sueltos segun la otra fecha
+         seria una reja que confunde mas de lo que evita. */
     });
     document.getElementById('emGuardar').addEventListener('click', guardaEmpresa);
     emBack.addEventListener('click', function(e){ if (e.target === emBack) cierraFichaEmpresa(); });
