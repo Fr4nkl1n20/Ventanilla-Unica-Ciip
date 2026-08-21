@@ -9000,6 +9000,15 @@ applyLang(idiomaParaMi());
     var t = Date.parse(iso);
     if (isNaN(t)) return '';
     var seg = Math.round((t - Date.now()) / 1000);
+    /* Nunca hacia el futuro. La hora la pone el SERVIDOR -y eso esta
+       bien, es lo que impide que un reloj mal puesto mienta- pero el
+       navegador puede ir unos segundos por detras, y entonces algo que
+       acaba de pasar sale como "dentro de 37 segundos". Un tramite que
+       lleva esperando desde dentro de medio minuto no existe.
+
+       Se recorta a cero, que Intl traduce por "ahora" en los seis
+       idiomas sin que haya que escribirlo. */
+    if (seg > 0) seg = 0;
     var tramos = [['second', 60], ['minute', 60], ['hour', 24], ['day', 30],
                   ['month', 12], ['year', Infinity]];
     var v = seg;

@@ -3122,6 +3122,15 @@
        y pasa a ser un juicio, y ese juicio no lo hemos pedido a nadie. */
     ok('cola: y sin color de alarma, que sería una promesa',
        !/warn|mal|rust|alarma/.test(r.className), r.className, 'solo "lleva"');
+
+    /* NUNCA hacia el futuro. La hora la pone el servidor y el navegador
+       puede ir unos segundos por detras: este trámite trae la suya 37
+       segundos adelantada, y salía como "esperando desde dentro de 37
+       segundos". Un trámite que lleva esperando desde dentro de medio
+       minuto no existe. */
+    ok('cola: y nunca dice que lleva esperando desde el futuro',
+       !/dentro de|in \d/.test(r.textContent), r.textContent.trim(),
+       'algo en pasado, o "ahora"');
   }
 
   /* ═══════════ QUIÉN LLEVA CADA TRÁMITE ═══════════

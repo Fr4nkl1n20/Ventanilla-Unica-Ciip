@@ -214,6 +214,13 @@
      el panel—. */
   function haceMin(m){ return new Date(Date.now() - m * 60000).toISOString(); }
 
+  /* Unos segundos POR DELANTE del reloj del navegador. Pasa de verdad: la
+     hora la pone el servidor -y eso esta bien, es lo que impide que un
+     reloj mal puesto mienta- pero el navegador puede ir por detras, y
+     entonces algo que acaba de pasar salia como "esperando desde dentro
+     de 37 segundos". */
+  function dentroDe(seg){ return new Date(Date.now() + seg * 1000).toISOString(); }
+
   var OTROS_PERFILES = [
     {id:'u1', nombre_completo:'Franklin Reyes',  pais:'Italia',    rol:'gestor',
      visto_en: haceMin(0.5)},          /* con el panel abierto ahora mismo */
@@ -239,7 +246,12 @@
      'borrador' están para comprobar que el buzón NO los anuncia: la
      solicitud se crea y se envía en el mismo gesto. */
   var EVENTOS = {
-    gestor: [],
+    /* El evento de x1 llega con la hora unos segundos ADELANTADA: es lo
+       que le pasa al primero de la cola nada mas enviarlo. */
+    gestor: [
+      {id:90, tramite:'x1', de_estado:'borrador', a_estado:'enviado', nota:'',
+       creado_en: dentroDe(37)}
+    ],
     lleno: [
       {id:5, tramite:'t1', de_estado:'en_revision', a_estado:'devuelto',
        nota:'El comprobante del capital esta ilegible: vuelve a subirlo escaneado.',
