@@ -481,7 +481,78 @@ async function principal(){
   v = noEscribe(cuelga);
   debeFallar('A no le cuelga un documento a B', v.bien, v.d);
 
-  /* ═══ 11 · LA CONSTANCIA DE IDENTIDAD ═══════════════════════════
+  /* ═══ 11 · DESCARTAR UN BORRADOR ═════════════════════════
+     El panel ofrece descartar SOLO los borradores, y el doble de las
+     pruebas hace lo mismo. Pero eso salio de LEER la politica, no de
+     ejecutarla: si la base fuera mas permisiva, el panel estaria
+     escondiendo un boton que la base si dejaria pulsar por otra via.
+
+     Y al reves importa mas: un DELETE que no borra nada devuelve 204 -o
+     sea "hecho"- sin tocar una fila. Un permiso que falta se nota; uno
+     que falla en silencio, no. */
+  const suyoB = await pide('/rest/v1/tramites', {
+    method: 'POST', token: A.token, headers: json(),
+    body: JSON.stringify({ inversionista: A.id, tipo: CODIGO, estado: 'borrador' })
+  });
+  if (suyoB.ok && suyoB.cuerpo[0]){
+    const BORR = suyoB.cuerpo[0].id;
+
+    /* El de OTRO no se toca, aunque sea un borrador. */
+    const ajeno = await pide('/rest/v1/tramites?id=eq.' + TR_B, {
+      method: 'DELETE', token: A.token, headers: json({}, {Prefer: 'return=representation'})
+    });
+    v = noEscribe(ajeno);
+    debeFallar('borrador: A no descarta el de B', v.bien, v.d);
+
+    /* Enviado ya no se descarta: a partir de ahi el tramite es historia.
+       Se manda de verdad -la politica de update deja al inversionista
+       pasar de borrador a enviado- para probar el caso que importa. */
+    const manda = await pide('/rest/v1/tramites?id=eq.' + BORR, {
+      method: 'PATCH', token: A.token, headers: json(),
+      body: JSON.stringify({ estado: 'enviado' })
+    });
+    if (manda.ok && Array.isArray(manda.cuerpo) && manda.cuerpo.length){
+      const yaNo = await pide('/rest/v1/tramites?id=eq.' + BORR, {
+        method: 'DELETE', token: A.token, headers: json({}, {Prefer: 'return=representation'})
+      });
+      v = noEscribe(yaNo);
+      debeFallar('borrador: enviado ya no se descarta', v.bien, v.d);
+      /* Y se comprueba leyendolo: "no devolvio nada" no es "sigue ahi". */
+      const vive = await pide('/rest/v1/tramites?select=id,estado&id=eq.' + BORR,
+                              { token: A.token });
+      debeFallar('borrador: y sigue en su expediente',
+                 Array.isArray(vive.cuerpo) && vive.cuerpo.length === 1,
+                 (vive.cuerpo || []).length + ' fila(s)', '1');
+      basura.tramites.push({ id: BORR, token: A.token });
+    } else {
+      /* Si no se pudo enviar, se descarta tal cual para no dejar rastro. */
+      await pide('/rest/v1/tramites?id=eq.' + BORR, { method: 'DELETE', token: A.token });
+      debeFallar('borrador: enviado ya no se descarta', false,
+                 'no pude enviarlo para probarlo: ' + JSON.stringify(manda.cuerpo).slice(0, 80));
+    }
+  } else {
+    debeFallar('borrador: A no descarta el de B', false,
+               'no pude crear el borrador: ' + JSON.stringify(suyoB.cuerpo).slice(0, 80));
+  }
+
+  /* Y el control, que sin el lo de arriba no prueba nada: un borrador
+     propio SI se descarta. Si esto fallara, las dos negativas de arriba
+     saldrian verdes porque no se puede borrar NADA. */
+  const paraTirar = await pide('/rest/v1/tramites', {
+    method: 'POST', token: A.token, headers: json(),
+    body: JSON.stringify({ inversionista: A.id, tipo: CODIGO, estado: 'borrador' })
+  });
+  if (paraTirar.ok && paraTirar.cuerpo[0]){
+    const T2 = paraTirar.cuerpo[0].id;
+    const fuera = await pide('/rest/v1/tramites?id=eq.' + T2, {
+      method: 'DELETE', token: A.token, headers: json({}, {Prefer: 'return=representation'})
+    });
+    const n = Array.isArray(fuera.cuerpo) ? fuera.cuerpo.length : 0;
+    debeFallar('borrador: el propio SI se descarta (esto TIENE que salir)',
+               fuera.ok && n === 1, fuera.ok ? (n + ' fila(s)') : 'rechazada (' + fuera.estado + ')');
+  }
+
+  /* ═══ 12 · LA CONSTANCIA DE IDENTIDAD ═══════════════════════════
      Aquí todo el valor está en que NO se pueda reescribir. Una
      comprobación de identidad que su propio autor puede cambiar después
      no prueba nada: la firmaría hoy y la corregiría el día que le
@@ -517,14 +588,25 @@ async function principal(){
      comprueba con una cuenta de GESTOR, que es la unica que puede haber
      escrito una: sin ella no se puede probar lo que mas importa, asi que
      se dice en voz alta en vez de dar el verde por supuesto. */
+  let conGestor = null;
   if (cuentas.g && String(cuentas.g.clave || '').trim()){
     const G = await entra(cuentas.g.correo, cuentas.g.clave);
     const pg = await pide('/rest/v1/perfiles?select=rol&id=eq.' + G.id, { token: G.token });
     const rolG = Array.isArray(pg.cuerpo) && pg.cuerpo[0] ? pg.cuerpo[0].rol : null;
+    /* Se AVISA y se sigue; no se aborta. Una cuenta opcional con el rol
+       equivocado no puede llevarse por delante el informe de las otras
+       cuarenta cerraduras: quien lo corra se queda sin saber nada de nada
+       por culpa de un extra que no habia preparado. */
     if (rolG !== 'gestor' && rolG !== 'admin'){
-      fin('La cuenta "g" (' + G.correo + ') tiene rol "' + rolG + '" y hace falta\n' +
-          '  que sea gestor para probar la constancia de identidad.');
+      console.log('  SIN PROBAR: la cuenta "g" (' + G.correo + ') tiene rol "' + rolG + '".');
+      console.log('  Para el append-only de la constancia hace falta que sea gestor.\n');
+    } else {
+      conGestor = G;
     }
+  }
+
+  if (conGestor){
+    const G = conGestor;
 
     const puesta = await pide('/rest/v1/identidad_comprobaciones', {
       method: 'POST', token: G.token, headers: json(),
