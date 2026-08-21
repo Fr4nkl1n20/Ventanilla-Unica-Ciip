@@ -724,6 +724,14 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .co-quien{font-size:13.5px; font-weight:700;}
 .co-que{font-size:12px; color:var(--gray); margin-top:2px;}
 .co-nota{font-size:12px; color:var(--ink); margin-top:6px;}
+/* Cuanto lleva parado. Va en gris y sin color de alarma A PROPOSITO: es
+   un HECHO -"esperando desde hace 12 dias"- y no un plazo. El CIIP no ha
+   dicho todavia cuanto deberia tardar cada tramite, y pintar de rojo a
+   los ocho dias seria inventarse una promesa que nadie hizo. */
+.lleva{font-size:11px; color:var(--gray-soft); display:inline-flex;
+  align-items:center; gap:5px; white-space:nowrap;}
+.lleva svg{width:11px; height:11px; stroke:currentColor; stroke-width:2;
+  fill:none; flex:none;}
 .co-cuando{font-size:11px; color:var(--gray-soft); margin-top:6px;}
 /* Los dos campos que rellena el gestor, y sus botones */
 .co-fijar{display:flex; gap:8px; flex-wrap:wrap; margin-top:11px;}
@@ -6137,8 +6145,16 @@ applyLang(idiomaParaMi());
 
       f.appendChild(el('div', 'co-quien', t.nombre || u.co_sinnombre || ''));
       f.appendChild(el('div', 'co-que', ref ? nombreDeTarjeta(ref) : t.tipo));
-      f.appendChild(el('div', 'co-cuando',
+      var cuando = el('div', 'co-cuando');
+      cuando.appendChild(document.createTextNode(
         (u.co_envio || '').replace('{fecha}', fecha(t.enviado_en || t.creado_en))));
+      /* La fecha de envio dice CUANDO entro; esto dice cuanto lleva
+         parado, que es lo que decide a quien se atiende primero. La cola
+         ya viene del mas viejo al mas nuevo, pero un numero al lado
+         convierte ese orden en una razon. */
+      var r = relojDe(t.desde_en || t.enviado_en || t.creado_en, u.co_espera);
+      if (r){ cuando.appendChild(document.createTextNode('  ')); cuando.appendChild(r); }
+      f.appendChild(cuando);
 
       /* Ver el expediente antes de decidir. Va antes de la nota a
          propósito: primero se mira, luego se opina. */
@@ -6589,6 +6605,37 @@ applyLang(idiomaParaMi());
       });
   }
 
+  /* Cuando entro cada tramite en el estado en el que esta. No vale
+     actualizado_en: ese se mueve tambien cuando el inversionista corrige
+     un dato, y entonces un tramite devuelto hace tres semanas diria que
+     lleva dos horas. La respuesta esta en el historial, que guarda cada
+     cambio con su fecha: el evento mas reciente de cada tramite.
+
+     Si el historial no contesta -politica sin poner, tabla vacia- se cae
+     a la fecha de envio. Peor dato, pero dato: mejor eso que una cola sin
+     ningun reloj. */
+  function ponDesdeCuando(lista){
+    var ids = lista.map(function(t){ return t.id; });
+    if (!ids.length) return Promise.resolve();
+    return sb.from('tramite_eventos')
+      .select('tramite, creado_en')
+      .in('tramite', ids)
+      .order('creado_en', {ascending:false})
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        var ultimo = {};
+        (r.data || []).forEach(function(e){
+          /* Vienen del mas nuevo al mas viejo: el primero de cada tramite
+             es el que manda, y los demas se ignoran. */
+          if (!ultimo[e.tramite]) ultimo[e.tramite] = e.creado_en;
+        });
+        lista.forEach(function(t){ t.desde_en = ultimo[t.id] || null; });
+      })
+      .catch(function(e){
+        console.warn('[CIIP] desde cuando:', e && e.message);
+      });
+  }
+
   function cargaCola(){
     /* Dos consultas y no un embebido: si la política de perfiles no está
        puesta, la segunda vuelve vacía y la cola sigue saliendo sin nombres,
@@ -6607,6 +6654,7 @@ applyLang(idiomaParaMi());
           .then(function(rt){
             if (rt && rt.error) throw rt.error;
             enRevision = (rt.data || []).map(function(t){ t.nombre = ''; return t; });
+            return ponDesdeCuando(enRevision);
           })
           .catch(function(e){ console.warn('[CIIP] cola de trámites:', e && e.message); enRevision = []; })
           .then(function(){
@@ -6952,9 +7000,14 @@ applyLang(idiomaParaMi());
 
       var f = el('div', 'ci-ficha' + (reclama ? ' reclama' : '') +
                         (t.estado === 'resuelto' ? ' pasada' : ''));
+      /* Lo mismo del lado del inversionista, salvo en los resueltos: ahi
+         "lleva veinte dias" no dice nada, ya termino. */
+      var relojMt = (t.estado === 'resuelto') ? null
+        : relojDe(t.desde_en || t.enviado_en || t.creado_en, u.mt_desde);
 
       var cab = el('div', 'ci-cab');
       cab.appendChild(el('span', 'ct-chip' + (chip.clase === 'listo' ? ' listo' : ''), chip.txt));
+      if (relojMt) cab.appendChild(relojMt);
       f.appendChild(cab);
 
       f.appendChild(el('div', 'ci-linea', ref ? nombreDeTarjeta(ref) : t.tipo));
@@ -6998,9 +7051,14 @@ applyLang(idiomaParaMi());
           var rb = (b.estado === 'devuelto' || b.estado === 'borrador') ? 0 : 1;
           return (ra - rb) || (Date.parse(b.creado_en) - Date.parse(a.creado_en));
         });
+        /* Se pinta ANTES de saber cuanto lleva cada uno y otra vez
+           despues: la lista sale enseguida y el reloj aparece un instante
+           mas tarde. Esperar al historial para ensenar los tramites seria
+           dejar la vista en blanco por un dato de adorno. */
         pintaMisTramites();
         /* Y con ellos, el estado de las 31 tarjetas de la portada. */
         pintaEstadoTarjetas();
+        return ponDesdeCuando(mios).then(pintaMisTramites);
       });
     })
       .catch(function(e){
@@ -8447,6 +8505,26 @@ applyLang(idiomaParaMi());
       v = v / tramos[i][1];
     }
     return fecha(iso);
+  }
+
+  /* El renglon de "cuanto lleva". Un icono de reloj y una frase; ningun
+     color. Cuando el CIIP diga cuanto deberia tardar cada tramite, ESTE
+     es el sitio donde se pinta el retraso, y no hara falta tocar nada
+     mas: la cuenta ya esta hecha. */
+  function relojDe(iso, plantilla){
+    if (!iso) return null;
+    var d = el('span', 'lleva');
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    var c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', '12'); c.setAttribute('cy', '12'); c.setAttribute('r', '9');
+    var p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', 'M12 7v5l3 2');
+    svg.appendChild(c); svg.appendChild(p);
+    d.appendChild(svg);
+    d.appendChild(document.createTextNode(
+      String(plantilla || '').replace('{cuando}', haceCuanto(iso))));
+    return d;
   }
 
   function pintaPresencia(p){

@@ -161,6 +161,11 @@ window.CIIP_PASOS = {
       co_ocultar:   "Ocultar el expediente",
       co_datos:     "Lo que rellenó",
       co_archivos:  "Lo que subió",
+      /* Cuanto lleva parado. Es un HECHO, no un plazo: el CIIP no ha
+         dicho todavia cuanto deberia tardar cada tramite, y pintar de
+         rojo a los ocho dias seria inventarse una promesa que nadie hizo. */
+      co_espera:  "Esperando desde {cuando}",
+      mt_desde:   "En este estado desde {cuando}",
       /* Identidad. NO se valida contra ningun organismo: se deja
          constancia de que alguien del CIIP miro el documento. Los textos
          tienen que decir eso y no mas, o el gestor confiara en una
@@ -631,6 +636,8 @@ window.CIIP_PASOS = {
       co_ocultar:   "Hide the file",
       co_datos:     "What they filled in",
       co_archivos:  "What they uploaded",
+      co_espera:  "Waiting since {cuando}",
+      mt_desde:   "In this state since {cuando}",
       /* Identity. NOT validated against any authority. */
       id_t:        "Identity",
       id_sin:      "Not checked",
@@ -1087,6 +1094,8 @@ window.CIIP_PASOS = {
       co_ocultar:   "Ocultar o processo",
       co_datos:     "O que preencheu",
       co_archivos:  "O que carregou",
+      co_espera:  "À espera desde {cuando}",
+      mt_desde:   "Neste estado desde {cuando}",
       /* Identidade. NAO se valida contra nenhum organismo. */
       id_t:        "Identidade",
       id_sin:      "Por verificar",
@@ -1534,6 +1543,8 @@ window.CIIP_PASOS = {
       co_ocultar:   "Nascondi la pratica",
       co_datos:     "Cosa ha compilato",
       co_archivos:  "Cosa ha caricato",
+      co_espera:  "In attesa da {cuando}",
+      mt_desde:   "In questo stato da {cuando}",
       /* Identita. NON si convalida presso nessun ente. */
       id_t:        "Identità",
       id_sin:      "Da verificare",
@@ -1981,6 +1992,8 @@ window.CIIP_PASOS = {
       co_ocultar:   "隐藏档案",
       co_datos:     "填写的内容",
       co_archivos:  "上传的文件",
+      co_espera:  "已等待：{cuando}",
+      mt_desde:   "处于此状态：{cuando}",
       /* 身份。未向任何机构核验。 */
       id_t:        "身份",
       id_sin:      "尚未查验",
@@ -2428,6 +2441,8 @@ window.CIIP_PASOS = {
       co_ocultar:   "Скрыть дело",
       co_datos:     "Что заполнил",
       co_archivos:  "Что загрузил",
+      co_espera:  "Ждёт с {cuando}",
+      mt_desde:   "В этом состоянии с {cuando}",
       /* Личность. НЕ проверяется ни в каком ведомстве. */
       id_t:        "Личность",
       id_sin:      "Не проверена",

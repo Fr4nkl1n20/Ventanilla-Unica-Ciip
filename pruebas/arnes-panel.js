@@ -103,7 +103,7 @@
 
   cuandoConteste(function(){
     enCadena([pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir, citasAnula, citasTrasAnular,
-              colaAbre, colaTramites,
+              colaAbre, colaTramites, colaLleva,
               /* La identidad se mira con el expediente ya desplegado y
                  ANTES de colaExpediente, que termina devolviendo el
                  tramite: al devolverlo sale de la cola y se lleva por
@@ -121,6 +121,7 @@
               adminMira, adminAbre, adminDentro,
               f5Entra, f5Espera, f5Llega,
               f5TardeEntra, f5TardeEspera, f5TardeLlega,
+              mtLleva, mtLlevaMira,
               empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
               entregaAbre, entregaMira,
               docsAbre, docsMira,
@@ -1922,6 +1923,30 @@
      La razón social se escribía a mano en ocho formularios, el RIF en seis,
      la dirección fiscal en cinco. Y escribir ocho veces el mismo nombre es
      escribirlo ocho veces distintas. */
+  /* Lo mismo del lado del inversionista, salvo en los resueltos: ahí
+     "lleva veinte días" no dice nada, ya terminó. */
+  function mtLleva(){
+    if (CASO !== 'lleno') return;
+    location.hash = 'mistramites';
+  }
+
+  function mtLlevaMira(){
+    if (CASO !== 'lleno') return;
+    var fichas = document.querySelectorAll('#mtLista .ci-ficha');
+    ok('mis trámites: los vivos dicen desde cuándo están así',
+       [].filter.call(fichas, function(f){ return f.querySelector('.lleva'); }).length >= 3,
+       [].filter.call(fichas, function(f){ return f.querySelector('.lleva'); }).length +
+       ' de ' + fichas.length + ' con reloj', '3 o más');
+    /* El resuelto no: ya terminó, y "lleva veinte días" ahí sobra. */
+    var hecho = [].filter.call(fichas, function(f){
+      return f.classList.contains('pasada'); })[0];
+    ok('mis trámites: y el resuelto no, que ya terminó',
+       hecho && !hecho.querySelector('.lleva'),
+       hecho ? (hecho.querySelector('.lleva') ? 'lo lleva' : 'sin reloj') : 'no hay resuelto',
+       'sin reloj');
+    location.hash = '';
+  }
+
   function empresaAbre(){
     document.getElementById('navEmpresa').click();
   }
@@ -2851,6 +2876,28 @@
     var exp = document.querySelectorAll('#colaTram .co-ficha')[0].querySelector('.co-exp');
     igual('identidad: y sigue siendo lo primero del expediente',
           exp.firstElementChild === c, true);
+  }
+
+  /* ═══════════ CUÁNTO LLEVA PARADO ═══════════
+     La cola ya venía del más viejo al más nuevo, pero ese orden no decía
+     por qué. Un número al lado lo convierte en una razón.
+
+     Es un HECHO y no un plazo: el CIIP no ha dicho todavía cuánto debería
+     tardar cada trámite, y pintar de rojo a los ocho días sería inventar
+     una promesa que nadie hizo. Por eso va en gris. */
+  function colaLleva(){
+    if (CASO !== 'gestor') return;
+    var f = document.querySelectorAll('#colaTram .co-ficha')[0];
+    var r = f.querySelector('.lleva');
+    ok('cola: cada trámite dice cuánto lleva parado', !!r,
+       r ? r.textContent.trim() : 'no hay reloj', 'un reloj');
+    ok('cola: y lo dice en días, no en una fecha que hay que restar',
+       /días|día|mes|hora/.test(r.textContent),
+       r.textContent.trim(), 'algo como "hace 12 días"');
+    /* Sin color de alarma: en cuanto se pinte de rojo deja de ser un dato
+       y pasa a ser un juicio, y ese juicio no lo hemos pedido a nadie. */
+    ok('cola: y sin color de alarma, que sería una promesa',
+       !/warn|mal|rust|alarma/.test(r.className), r.className, 'solo "lleva"');
   }
 
   function colaExpediente(){

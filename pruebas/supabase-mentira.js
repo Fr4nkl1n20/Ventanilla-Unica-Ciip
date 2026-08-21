@@ -547,6 +547,20 @@
       if (op && op.eq && op.eq.tramite){
         evs = evs.filter(function(e){ return e.tramite === op.eq.tramite; });
       }
+      /* Y por VARIOS a la vez: "cuanto lleva parado cada uno" pide el
+         historial de toda la cola en un viaje en vez de uno por ficha. */
+      if (op && op.in && op.in.tramite){
+        evs = evs.filter(function(e){ return op.in.tramite.indexOf(e.tramite) >= 0; });
+      }
+      /* Del mas nuevo al mas viejo si lo piden asi: quien busca el ultimo
+         evento de cada tramite se queda con el primero que le llega, y con
+         el orden al reves se quedaria con el mas antiguo. */
+      if (op && op.orden && op.orden.campo === 'creado_en'){
+        evs = evs.slice().sort(function(a, b){
+          var d = Date.parse(a.creado_en) - Date.parse(b.creado_en);
+          return op.orden.asc ? d : -d;
+        });
+      }
       return {data:evs, error:null};
     }
     return {data:[], error:null};
@@ -557,8 +571,16 @@
      await o en una cadena de promesas. */
   function consulta(tabla){
     var api = {}, op = {};
-    ['neq','is','order','limit','range']
+    ['neq','is','limit','range']
       .forEach(function(m){ api[m] = function(){ return api; }; });
+    /* order era de los que no se miraban. Ahora si: hay consultas que
+       dependen del orden para quedarse con la primera fila, y un falso
+       que devuelve siempre el mismo orden daria verde a un panel que se
+       queda con la fila equivocada. */
+    api.order = function(campo, o){
+      op.orden = {campo: campo, asc: !(o && o.ascending === false)};
+      return api;
+    };
     /* select era de los que no se miraban. Ahora si: hay consultas que
        piden columnas que la base puede no tener todavia, y la unica forma
        de probar que el panel aguanta eso es saber que pidio. */
