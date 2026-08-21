@@ -2599,7 +2599,32 @@
     var pasos = document.querySelectorAll('#ayLista .ay-paso');
     igual('ayuda: los cuatro pasos de una solicitud', pasos.length, 4);
     igual('ayuda: y son los mismos que enseña el trámite',
-          pasos[0].textContent.replace(/^1/, '').trim(), 'Solicitud recibida por el CIIP');
+          pasos[0].querySelector('.ay-paso-q').textContent.trim(),
+          'Solicitud recibida por el CIIP');
+
+    /* Y cada uno dice QUE PASA en el. Enumerarlos sin explicarlos dejaba
+       sin contestar la unica pregunta que se viene a hacer aqui: quien
+       tiene ahora la pelota. */
+    var expl = document.querySelectorAll('#ayLista .ay-paso-e');
+    igual('ayuda: los cuatro con su explicaci\u00f3n', expl.length, 4);
+    var vacias = [].filter.call(expl, function(e){
+      return e.textContent.trim().length < 40;
+    });
+    igual('ayuda: y ninguna se queda en una frase suelta', vacias.length, 0);
+    /* Cuatro distintas: si dos dijeran lo mismo, una de las dos sobra. */
+    var distintas = {};
+    [].forEach.call(expl, function(e){ distintas[e.textContent.trim()] = 1; });
+    igual('ayuda: y las cuatro dicen cosas distintas',
+          Object.keys(distintas).length, 4);
+    /* Las dos que hay que decir con cuidado: entregar no es decidir, y
+       resuelta no es aprobada. Si alguien las suaviza, esto se entera. */
+    ok('ayuda: el paso 3 dice que el CIIP no decide',
+       /no decide/i.test(expl[2].textContent),
+       expl[2].textContent.trim().slice(0, 60), 'lo dice');
+    ok('ayuda: y el 4 que resuelta no es aprobada',
+       /no quiere decir aprobada/i.test(expl[3].textContent),
+       expl[3].textContent.trim().slice(0, 60), 'lo dice');
+
     ok('ayuda: sin huecos del marcado a la vista',
        document.getElementById('ayLista').textContent.indexOf('{') < 0,
        'busca "{"', 'ninguna llave suelta');

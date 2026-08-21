@@ -578,12 +578,17 @@ body[data-vista="ayuda"] #ayVolver{display:inline-flex;}
 .ay-p{font-size:12.5px; color:var(--gray); line-height:1.6;}
 .ay-p + .ay-p{margin-top:9px;}
 /* Los cuatro pasos, numerados: el orden es la informacion. */
-.ay-paso{display:flex; align-items:baseline; gap:11px; padding:7px 0;
+.ay-paso{display:flex; align-items:baseline; gap:11px; padding:11px 0;
   border-top:1px solid var(--line-soft);}
 .ay-paso:first-of-type{border-top:0; padding-top:0;}
 .ay-n{font-size:10.5px; font-weight:800; color:var(--navy2); flex:none;
   width:18px; font-variant-numeric:tabular-nums;}
-.ay-paso span:last-child{font-size:12.5px; color:var(--ink);}
+.ay-paso-txt{min-width:0;}
+.ay-paso-q{font-size:12.5px; color:var(--ink); font-weight:600;}
+/* La explicacion, en gris y debajo: se lee el nombre del paso primero, y
+   el detalle solo si hace falta. Al mismo tamano competirian. */
+.ay-paso-e{font-size:11.5px; color:var(--gray); line-height:1.55;
+  margin-top:4px; max-width:64ch;}
 /* Cada distintivo con el suyo al lado, para reconocerlo de un vistazo. */
 .ay-chip{display:flex; align-items:flex-start; gap:11px; padding:8px 0;
   border-top:1px solid var(--line-soft);}
@@ -8267,10 +8272,19 @@ applyLang(idiomaParaMi());
     var D = window.CIIP_PASOS || {};
     var pasos = (D.estados && (D.estados[curLang] || D.estados.en)) || [];
     var b1 = ayBloque(u.ay_h1);
+    var ente = u.ay_ente || 'el organismo';
     pasos.forEach(function(p, i){
       var f = el('div', 'ay-paso');
       f.appendChild(el('span', 'ay-n', String(i + 1)));
-      f.appendChild(el('span', null, String(p).replace('{ente}', u.ay_ente || 'el organismo')));
+      var txt = el('div', 'ay-paso-txt');
+      txt.appendChild(el('div', 'ay-paso-q', String(p).replace('{ente}', ente)));
+      /* Y que pasa en ese paso. Enumerarlos sin explicarlos deja sin
+         contestar la unica pregunta que se viene a hacer aqui: quien
+         tiene ahora la pelota, y que se espera de mi. */
+      var expl = u['ay_e' + (i + 1)];
+      if (expl) txt.appendChild(el('div', 'ay-paso-e',
+                                   String(expl).replace('{ente}', ente)));
+      f.appendChild(txt);
       b1.appendChild(f);
     });
     if (u.ay_devuelta) b1.appendChild(el('div', 'ay-p', u.ay_devuelta));
