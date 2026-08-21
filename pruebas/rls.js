@@ -173,6 +173,27 @@ async function principal(){
   console.log('  Cuenta A: ' + A.correo + '  ' + A.id);
   console.log('  Cuenta B: ' + B.correo + '  ' + B.id + '\n');
 
+  /* ── las dos tienen que ser inversionistas ────────────────────────
+     El que intenta colarse tiene que ser el usuario con MENOS permisos
+     que hay. Si A fuera gestor, media docena de estos intentos saldrian
+     bien -un gestor si ve la cola, si abre expedientes ajenos- y el
+     arnes cantaria agujeros donde solo hay un permiso legitimo. Peor
+     todavia: quien lea el resultado creeria que la base esta rota.
+
+     Asi que se comprueba antes de tocar nada, y si no cuadra no se
+     empieza. Un arnes que mide lo que no queria medir es peor que no
+     tener arnes. */
+  for (const q of [A, B]){
+    const p = await pide('/rest/v1/perfiles?select=rol&id=eq.' + q.id, { token: q.token });
+    const rol = Array.isArray(p.cuerpo) && p.cuerpo[0] ? p.cuerpo[0].rol : null;
+    if (rol !== 'inversionista'){
+      fin('La cuenta ' + q.correo + ' tiene rol "' + rol + '", y hacen falta dos\n' +
+          '  inversionistas. En el SQL Editor:\n\n' +
+          "    update public.perfiles set rol = 'inversionista'\n" +
+          "    where id = '" + q.id + "';\n");
+    }
+  }
+
   const basura = { tramites: [], citas: [], documentos: [], archivos: [] };
 
   /* ── B pone el cebo ─────────────────────────────────────────────── */
