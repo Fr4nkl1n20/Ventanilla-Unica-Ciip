@@ -1988,6 +1988,31 @@
     igual('empresa: el RIF enseña su forma',
           document.getElementById('em_rif_empresa').placeholder, 'J-00000000-0');
 
+    /* ── FECHAS ── El calendario del navegador no se puede maquillar,
+       pero sí acotar: sin límite abría la lista de años en 2019 y dejaba
+       escribir 2087. */
+    (function(){
+      var fc = document.getElementById('em_fecha_constitucion');
+      var d  = new Date();
+      var hoy = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') +
+                '-' + String(d.getDate()).padStart(2,'0');
+      igual('empresa: la constitución no puede ser de mañana', fc.max, hoy);
+      igual('empresa: ni de antes de que hubiera registros', fc.min, '1900-01-01');
+      /* Y la hora LOCAL, no la UTC: toISOString() convierte antes, y en
+         Venezuela eso adelanta el día entero desde las ocho de la noche. */
+      ok('empresa: y el tope es el día de aquí, no el de Londres',
+         fc.max === hoy, fc.max + ' vs ' + hoy, hoy);
+
+      /* Empezar a operar antes de existir no es raro: es imposible. El
+         mínimo del segundo paso sigue a la fecha del primero. */
+      fc.value = '2020-05-10';
+      fc.dispatchEvent(new Event('input', {bubbles:true}));
+      igual('empresa: y las actividades no empiezan antes de existir',
+            document.getElementById('em_inicio_actividades').min, '2020-05-10');
+      fc.value = '';
+      fc.dispatchEvent(new Event('input', {bubbles:true}));
+    })();
+
     /* Lo único obligatorio es la razón social, y no se puede pasar de
        paso sin ella: descubrir en el tercero que falta algo del primero es
        lo que hace que la gente abandone. */
@@ -2029,6 +2054,23 @@
     p1.click();
     igual('empresa: pulsarlo vuelve al primero',
           document.getElementById('emCuenta').querySelector('b').textContent.trim(), 'Paso 1 de 3');
+
+    /* min y max acotan el calendario, pero un valor TECLEADO se los
+       salta: el navegador marca el campo y ya, y aquí no hay <form> que
+       lo pare. Se vuelve a mirar antes de guardar. */
+    (function(){
+      var fc = document.getElementById('em_fecha_constitucion');
+      fc.value = '2087-01-01';
+      document.getElementById('emGuardar').click();
+      igual('empresa: una fecha tecleada del futuro no pasa',
+            document.getElementById('emAviso').textContent,
+            'Una empresa no se constituye en el futuro. Revisa la fecha.');
+      ok('empresa: y el campo se marca',
+         fc.closest('.pf-campo').classList.contains('mal'),
+         fc.closest('.pf-campo').className, 'con la clase mal');
+      fc.value = '';
+      fc.dispatchEvent(new Event('input', {bubbles:true}));
+    })();
 
     /* ── SALIR ANTES ── Lo unico obligatorio es la razon social, asi
        que obligar a recorrer doce campos para registrar una empresa era

@@ -7749,11 +7749,19 @@ applyLang(idiomaParaMi());
     {n:'razon_social',        clave:'f_razon',        ancho:true, paso:1},
     {n:'rif_empresa',         clave:'f_rifempresa',   paso:1, pista:'J-00000000-0'},
     {n:'numero_registro',     clave:'f_registro',     paso:1},
-    {n:'fecha_constitucion',  clave:'f_constitucion', tipo:'date', paso:1},
+    /* 'hasta:hoy' acota el calendario del navegador, que no se puede
+       maquillar pero si limitar: sin limite abria la lista de anos en
+       2019 y dejaba escribir 2087. */
+    {n:'fecha_constitucion',  clave:'f_constitucion', tipo:'date', paso:1,
+     desde:'1900-01-01', hasta:'hoy'},
     {n:'capital_social',      clave:'f_capital',      paso:1},
     {n:'actividad_economica', clave:'f_actividad',    paso:2},
     {n:'num_trabajadores',    clave:'f_numtrab',      paso:2},
-    {n:'inicio_actividades',  clave:'f_iniciolab',    tipo:'date', paso:2},
+    /* Puede ser futura -una empresa constituida que aun no abre- pero
+       nunca anterior a la constitucion: ese minimo se pone solo, con lo
+       que haya escrito en la fecha de arriba. */
+    {n:'inicio_actividades',  clave:'f_iniciolab',    tipo:'date', paso:2,
+     desde:'1900-01-01'},
     {n:'direccion_fiscal',    clave:'f_direccion',    ancho:true, paso:3},
     {n:'municipio',           clave:'f_municipio',    paso:3},
     {n:'telefono',            clave:'f_telefono',     tipo:'tel', paso:3},
@@ -7769,6 +7777,16 @@ applyLang(idiomaParaMi());
   /* Lo pone "Guardar y seguir despues" para que guardaEmpresa sepa que
      no tiene que adelantar. Se apaga en cuanto se usa. */
   var emAtajo = false;
+
+  /* La fecha de hoy en el formato que entiende <input type="date">, con
+     la hora LOCAL y no la UTC: toISOString() convierte antes, y en
+     Venezuela eso adelanta el dia entero desde las ocho de la noche. */
+  function hoyISO(){
+    var d = new Date();
+    return d.getFullYear() + '-' +
+           String(d.getMonth() + 1).padStart(2, '0') + '-' +
+           String(d.getDate()).padStart(2, '0');
+  }
 
   function pintaEmpresa(){
     if (!emCuerpo) return;
@@ -7878,6 +7896,8 @@ applyLang(idiomaParaMi());
       i.value = (EMPRESA && EMPRESA[c.n]) || '';
       /* La forma del RIF a la vista ahorra una devolucion por un digito. */
       if (c.pista) i.placeholder = c.pista;
+      if (c.desde) i.min = c.desde;
+      if (c.hasta) i.max = (c.hasta === 'hoy' ? hoyISO() : c.hasta);
       campo.appendChild(i);
       caja.appendChild(campo);
     });
@@ -8021,6 +8041,26 @@ applyLang(idiomaParaMi());
       return;
     }
 
+    /* min y max acotan el calendario, pero un valor TECLEADO se los
+       salta: el navegador marca el campo y ya, y aqui no hay <form> que
+       lo pare. Asi que se vuelve a mirar antes de guardar. */
+    var malaFecha = null;
+    if (fila.fecha_constitucion && fila.fecha_constitucion > hoyISO()){
+      malaFecha = {n:'fecha_constitucion', paso:1, txt:u.em_futuro};
+    } else if (fila.inicio_actividades && fila.fecha_constitucion &&
+               fila.inicio_actividades < fila.fecha_constitucion){
+      malaFecha = {n:'inicio_actividades', paso:2, txt:u.em_antes};
+    }
+    if (malaFecha){
+      emAtajo = false;
+      ponPasoEmpresa(malaFecha.paso);
+      var mc = document.getElementById('em_' + malaFecha.n);
+      mc.closest('.pf-campo').classList.add('mal');
+      document.getElementById('emAviso').textContent = malaFecha.txt || '';
+      mc.focus();
+      return;
+    }
+
     /* En los dos primeros el boton no guarda: adelanta. Salvo que
        venga del atajo, que guarda desde donde estes. */
     if (emPaso < EM_PASOS.length && !emAtajo){ ponPasoEmpresa(emPaso + 1); return; }
@@ -8090,7 +8130,16 @@ applyLang(idiomaParaMi());
     });
     /* La cuenta y el atajo se recalculan segun escribes: un contador que
        solo se mueve al cambiar de paso no cuenta nada. */
-    document.getElementById('emCampos').addEventListener('input', refrescaPieEmpresa);
+    document.getElementById('emCampos').addEventListener('input', function(e){
+      refrescaPieEmpresa();
+      /* Empezar a operar antes de existir no es un dato raro: es un dato
+         imposible. El calendario del segundo paso lo impide en cuanto se
+         sabe la fecha del primero. */
+      if (e.target && e.target.id === 'em_fecha_constitucion'){
+        var ini = document.getElementById('em_inicio_actividades');
+        if (ini) ini.min = e.target.value || '1900-01-01';
+      }
+    });
     document.getElementById('emGuardar').addEventListener('click', guardaEmpresa);
     emBack.addEventListener('click', function(e){ if (e.target === emBack) cierraFichaEmpresa(); });
     document.addEventListener('keydown', function(e){
