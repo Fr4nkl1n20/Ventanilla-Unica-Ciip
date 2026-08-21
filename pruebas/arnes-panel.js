@@ -2088,7 +2088,7 @@
     ok('burbuja: y apartar una cita',
        !!document.getElementById('citaBtn'),
        'existe el botón de cita', 'existe');
-    /* La nube no se queda encima del panel abierto: ya estas dentro. */
+    /* La nube no se queda encima del panel abierto: ya estás dentro. */
     var nube = document.getElementById('supNube');
     ok('burbuja: con el panel abierto la nube no estorba',
        !nube || nube.offsetHeight === 0,
@@ -2096,33 +2096,51 @@
   }
 
   function supTemas(){
+    /* Las dos puertas llevan al MISMO sitio que "Preguntar al
+       asistente": la conversación. Tener dos maneras distintas de
+       contestar lo mismo —una lista en el panel y un chat detrás— era
+       pedir que se contradijeran. */
     document.getElementById('supInv').click();
-    var t = document.getElementById('supTemas');
-    ok('burbuja: invertir abre su propia pantalla', !t.hidden,
-       'oculto=' + t.hidden, 'oculto=false');
-    ok('burbuja: y el menú se aparta',
-       document.getElementById('supMenu').hidden, 'oculto', 'oculto');
-    /* LO IMPORTANTE: sin temas cargados, lo dice. No finge una lista
-       vacía ni una respuesta que nadie ha escrito. */
-    ok('burbuja: sin temas cargados, lo dice en vez de fingir',
-       /Todavía no hay temas cargados/.test(t.textContent),
-       t.textContent.slice(0, 70), 'lo dice');
-    /* Y no deja al inversionista sin salida: ofrece la cita, que es la
-       via que si existe hoy. */
-    ok('burbuja: y ofrece la cita, que sí existe',
-       /Agendar una cita/.test(t.textContent), 'busca la cita', 'la ofrece');
-    igual('burbuja: y no inventa ningún tema',
-          t.querySelectorAll('.sb-tema').length, 0);
+    ok('burbuja: invertir abre el asistente',
+       document.getElementById('asstBack').classList.contains('open'),
+       document.getElementById('asstBack').className, 'con la clase open');
+    ok('burbuja: y la burbuja se aparta',
+       !document.querySelector('.sup-fab').classList.contains('abierto'),
+       'cerrada', 'cerrada');
+
+    /* Las siete que ya tenía el asistente son TODAS de inversión, así
+       que este botón sirve desde hoy. */
+    var vivos = [].filter.call(document.querySelectorAll('#asstSug .sug-chips button'),
+                               function(b){ return !b.hidden; });
+    igual('burbuja: con las siete preguntas de inversión', vivos.length, 7);
+    ok('burbuja: y no dice que falte nada, porque no falta',
+       document.getElementById('asstNada').hidden, 'oculto', 'oculto');
   }
 
   function supVuelve(){
-    document.getElementById('supVolver').click();
-    ok('burbuja: se vuelve al menú', !document.getElementById('supMenu').hidden,
-       'menú a la vista', 'a la vista');
-    ok('burbuja: y el título vuelve a ser el de siempre',
-       /En qué podemos ayudarte/.test(document.getElementById('supQ').textContent),
-       document.getElementById('supQ').textContent, '¿En qué podemos ayudarte?');
-    document.getElementById('supCerrar').click();
+    /* Y ahora la que SÍ está vacía. Lo que se vigila es que lo diga en
+       el sitio donde ibas a buscar las preguntas, no que se quede una
+       fila de chips en blanco. */
+    document.getElementById('asstClose').click();
+    document.getElementById('supFab').click();
+    document.getElementById('supCiip').click();
+    var vivos = [].filter.call(document.querySelectorAll('#asstSug .sug-chips button'),
+                               function(b){ return !b.hidden; });
+    igual('burbuja: del CIIP no hay ninguna cargada todavía', vivos.length, 0);
+    var nada = document.getElementById('asstNada');
+    ok('burbuja: y lo dice, en vez de dejar el hueco',
+       !nada.hidden && /Todavía no hay temas cargados/.test(nada.textContent),
+       nada.hidden ? '(oculto)' : nada.textContent.slice(0, 60), 'lo dice');
+
+    /* Y el botón de siempre las devuelve todas: filtrar por un tema no
+       puede dejar el asistente mutilado para el resto de la sesión. */
+    document.getElementById('asstClose').click();
+    document.getElementById('supFab').click();
+    document.getElementById('supAsk').click();
+    var todos = [].filter.call(document.querySelectorAll('#asstSug .sug-chips button'),
+                               function(b){ return !b.hidden; });
+    igual('burbuja: y "preguntar al asistente" las devuelve todas', todos.length, 7);
+    document.getElementById('asstClose').click();
   }
 
   function logosMiran(){
