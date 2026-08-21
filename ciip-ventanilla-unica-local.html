@@ -1221,6 +1221,17 @@ body[data-vista="tramite"] #secTramites{display:none;}
 
    Ahora es texto con una barrita delante: se sigue viendo -es el unico
    azul de la escalera- pero ya no invita a pulsarlo. */
+/* Cuando hay varias del mismo tramite. Va arriba del todo y en ambar:
+   no es un error -pedir dos veces algo puede ser legitimo- pero si es
+   algo que hay que saber antes de leer lo de abajo. */
+.tr-varias[hidden]{display:none;}
+.tr-varias{display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  background:var(--amber-bg); color:var(--amber); border-radius:var(--r-sm);
+  padding:9px 12px; font-size:11.5px; font-weight:600; margin-bottom:13px;}
+.tr-varias button{font:inherit; font-size:11.5px; font-weight:700;
+  color:var(--amber); background:none; border:0; padding:0; cursor:pointer;
+  text-decoration:underline;}
+
 .tr-aqui{display:inline-flex; align-items:center; gap:6px; margin-top:6px;
   font-size:10px; font-weight:800; letter-spacing:.07em; text-transform:uppercase;
   line-height:1; color:var(--navy2);
@@ -2418,6 +2429,11 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
            iniciado, o su estado real si ya se envió. Solo aparece en los
            tipos marcados como activos en el catálogo de la base; en los
            demás se sigue viendo la escalera decorativa de arriba. -->
+      <!-- Su propio hueco, FUERA de #trReal: lo que pinta la tarjeta se
+           rehace entero y de forma asincrona -primero el estado, luego el
+           historial-, y un aviso metido ahi dentro lo barria el segundo
+           repintado sin que se viera nunca. -->
+      <div class="tr-varias" id="trVarias" hidden></div>
       <div class="tr-real" id="trReal"></div>
     </section>
 
@@ -4601,12 +4617,33 @@ applyLang(idiomaParaMi());
      coge un turno y, al volver de la red, se retira si ya no es la última. */
   var turno = 0;
 
+  /* Cuál de dos solicitudes del mismo trámite manda. Una sola regla para
+     la portada y para el detalle: si eligieran distinto dirían cosas
+     distintas del mismo trámite, y una de las dos mentiría.
+
+     Manda la que va más adelante y sigue viva. El borrador va el último
+     —para eso existía el "más reciente", para que un borrador viejo no
+     tapara el envío— y esto lo sigue cumpliendo sin depender de fechas. */
+  var RANGO_TRAMITE = {devuelto:0, ante_el_ente:1, en_revision:2,
+                       enviado:3, resuelto:4, borrador:5};
+
+  function mandaSobre(a, b){
+    var ra = RANGO_TRAMITE[a.estado] === undefined ? 9 : RANGO_TRAMITE[a.estado];
+    var rb = RANGO_TRAMITE[b.estado] === undefined ? 9 : RANGO_TRAMITE[b.estado];
+    if (ra !== rb) return ra < rb;
+    /* A igual estado, la más reciente. */
+    return String(a.creado_en) > String(b.creado_en);
+  }
+
   window.CIIP_TRAMITE_REAL = function(refPanel){
     var miTurno = ++turno;
     caja.textContent = '';
     caja.classList.remove('puesto');
     escalera.classList.remove('oculto');
     chipReal(null);
+    /* Y el aviso de la tarjeta ANTERIOR se va: si no, se queda diciendo
+       "tienes 2 solicitudes" sobre un tramite que no tiene ninguna. */
+    pintaVarias(0);
 
     cargaCatalogo().then(function(tipos){
       if (miTurno !== turno) return;
@@ -4620,15 +4657,33 @@ applyLang(idiomaParaMi());
         if (!usuario) return;
         return sb.from('tramites')
           .select('id, estado, datos, creado_en, enviado_en')
-          .eq('tipo', t.codigo).order('creado_en', {ascending:false}).limit(1)
+          .eq('tipo', t.codigo).order('creado_en', {ascending:false})
           .then(function(r2){
             if (miTurno !== turno) return;
-            var mio = (r2.data || [])[0] || null;
+            /* TODAS, y se elige. Antes se pedia limit(1) por fecha, o sea
+               "la ultima creada". Con varias solicitudes del mismo
+               tramite eso no es la que importa: quien avanzaba una en la
+               cola del equipo volvia aqui y segui­a viendo otra, y parecia
+               que el panel no se habia actualizado.
+
+               Manda la MAS AVANZADA de las que siguen vivas: es la que se
+               acaba de mover y la que se vino a mirar. El borrador va el
+               ultimo -por eso existia el limit(1), para que un borrador
+               viejo no tapara el envio- y esto lo sigue cumpliendo sin
+               depender de las fechas. */
+            var todas = (r2.data || []).slice();
+            todas.sort(function(a, b){ return mandaSobre(a, b) ? -1 : (mandaSobre(b, a) ? 1 : 0); });
+            var mio = todas[0] || null;
             escalera.classList.add('oculto');
             caja.classList.add('puesto');
             caja.textContent = '';
             if (mio && mio.estado !== 'borrador'){ chipReal(mio.estado); pintaEstado(t, mio); }
             else { chipReal('sin_iniciar'); pintaFormulario(t, mio); }
+
+            /* Y si hay varias, se dice. Ensenar una sin avisar de que hay
+               mas es lo que hace pensar que la pantalla no se actualiza:
+               moviste otra y esta sigue como estaba, con razon. */
+            pintaVarias(todas.length);
           });
       });
     }).catch(function(e){ console.warn('[CIIP] trámite real:', e && e.message); });
@@ -4637,6 +4692,23 @@ applyLang(idiomaParaMi());
   /* El distintivo de la cabecera se clona de la tarjeta, y esa tarjeta lleva
      su estado escrito a mano: decía "Completado" sin existir la solicitud.
      En un trámite de verdad manda la base, así que se reescribe. */
+  /* El aviso de "hay varias". En su propio hueco y no dentro de la
+     tarjeta: lo de la tarjeta se rehace entero, y en dos tiempos. */
+  function pintaVarias(cuantas){
+    var hueco = document.getElementById('trVarias');
+    if (!hueco) return;
+    hueco.textContent = '';
+    hueco.hidden = (cuantas < 2);
+    if (hueco.hidden) return;
+    var u = T();
+    hueco.appendChild(document.createTextNode(
+      String(u.tr_varias || '').replace('{n}', cuantas) + ' '));
+    var ver = el('button', null, u.tr_verlas || '');
+    ver.type = 'button';
+    ver.addEventListener('click', function(){ location.hash = 'mistramites'; });
+    hueco.appendChild(ver);
+  }
+
   function chipReal(estado){
     var hueco = document.getElementById('trChip');
     if (!hueco) return;
@@ -8126,15 +8198,20 @@ applyLang(idiomaParaMi());
   function pintaEstadoTarjetas(){
     if (!TIPOS) return;
 
-    /* Uno por tipo: el más reciente. Si hay un borrador viejo y una
-       solicitud enviada del mismo trámite, manda la de ahora —que es lo
-       mismo que hace la franja de arriba y lo mismo que dice el detalle—. */
+    /* Uno por tipo: LA QUE VA MÁS ADELANTE, no la más reciente.
+
+       Con "la más reciente", un borrador nuevo del mismo trámite tapaba
+       una solicitud resuelta y la tarjeta volvía a decir "por iniciar"
+       sobre algo ya terminado. Es exactamente el mismo criterio que usa
+       el detalle del trámite, y tiene que serlo: si la portada y el
+       detalle eligen distinto, dicen cosas distintas del mismo trámite y
+       una de las dos miente. */
     var porRef = {};
     (mios || []).forEach(function(t){
       var ref = tipoRefDe(t.tipo);
       if (!ref) return;
       var ya = porRef[ref];
-      if (!ya || Date.parse(t.creado_en) > Date.parse(ya.creado_en)) porRef[ref] = t;
+      if (!ya || mandaSobre(t, ya)) porRef[ref] = t;
     });
 
     document.querySelectorAll('.tcard[data-tr]').forEach(function(c){

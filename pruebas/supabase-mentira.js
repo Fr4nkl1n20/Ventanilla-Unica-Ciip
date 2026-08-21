@@ -94,7 +94,14 @@
          no recibia nada. */
       {id:'t4', tipo:'visa_inversionista', estado:'resuelto',
        creado_en:'2026-06-01T10:00:00Z', enviado_en:'2026-06-02T10:00:00Z',
-       resuelto_en:'2026-06-18T10:00:00Z', actualizado_en:'2026-06-18T10:00:00Z'}
+       resuelto_en:'2026-06-18T10:00:00Z', actualizado_en:'2026-06-18T10:00:00Z'},
+      /* Una SEGUNDA visa, mas NUEVA y en borrador. Con "la ultima creada"
+         la tarjeta ensenaba el formulario en blanco sobre un tramite que
+         YA ESTA RESUELTO: las dos pantallas del mismo tramite decian
+         cosas distintas. */
+      {id:'t5', tipo:'visa_inversionista', estado:'borrador', datos:{},
+       creado_en:'2026-08-20T10:00:00Z',
+       actualizado_en:'2026-08-20T10:00:00Z'}
     ],
     /* "Vacío" no es "sin filas": es SIN NADA QUE ANUNCIAR. Aquí hay un
        borrador que se quedó atrás porque el reintento del envío sí entró.

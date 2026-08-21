@@ -136,7 +136,7 @@ foreach ($c in $casos) {
             # El presupuesto de tiempo crece con la cadena de pasos del arnes: cada uno
   # espera medio segundo a que la base conteste. Si se queda corto, el arnes
   # no llega a volcar y el fallo parece un error de JavaScript que no existe.
-  '--enable-logging=stderr','--virtual-time-budget=40000',
+  '--enable-logging=stderr','--virtual-time-budget=70000',
             "--window-size=$ancho",
             "--user-data-dir=$trabajo\perfil-$caso", $url)
   $p = Start-Process $navegador -ArgumentList $args -RedirectStandardOutput $salida `

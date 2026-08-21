@@ -121,7 +121,7 @@
               rncAbre, rncTrasAbrir, solvenciasAbre, solvenciasTrasAbrir,
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
-              devueltoAbre, devueltoMira, escaleraAbre, escaleraMira,
+              devueltoAbre, devueltoMira, escaleraAbre, escaleraMira, variasAbre, variasMira,
               usuariosMira, usuariosCambia, usuariosTrasCambiar, usuariosSeMueve,
               sinSqlAbre, sinSqlMira,
               adminMira, adminAbre, adminDentro,
@@ -1408,6 +1408,58 @@
   function escaleraAbre(){
     if (CASO !== 'lleno') return;
     location.hash = 'tramite-c3';
+  }
+
+  /* ═══════════ CUÁL DE LAS VARIAS ═══════════
+     La tarjeta pedía "la última creada". Con varias solicitudes del
+     mismo trámite eso no es la que importa: quien avanzaba una en la cola
+     del equipo volvía aquí y seguía viendo otra, y pensaba que el panel
+     no se había actualizado. */
+  function variasAbre(){
+    if (CASO !== 'lleno') return;
+    /* La c1 -la visa- es la que tiene DOS solicitudes. escaleraAbre abre
+       la c3, que solo tiene una: mirar alli era medir un caso que no
+       existe, y la prueba pasaba por casualidad. */
+    location.hash = 'tramite-c1';
+  }
+
+  function variasMira(){
+    if (CASO !== 'lleno') return;
+    var caja = document.getElementById('trReal');
+    if (!caja) return;
+
+    /* Hay dos visas: una RESUELTA de julio y un BORRADOR de agosto. Con
+       "la última creada" la tarjeta enseñaba el formulario en blanco
+       sobre un trámite que ya está resuelto: las dos pantallas del mismo
+       trámite decían cosas distintas. */
+    var chip = document.querySelector('#trChip .chip');
+    ok('varias: manda la que va más adelante, no la más reciente',
+       chip && !/Iniciar|Guardad/i.test(chip.textContent),
+       chip ? chip.textContent.trim() : 'sin distintivo',
+       'el estado de la resuelta, no el formulario');
+    ok('varias: y no enseña un formulario en blanco sobre algo resuelto',
+       !document.querySelector('#trReal .sol-campos'),
+       document.querySelector('#trReal .sol-campos') ? 'hay formulario' : 'sin formulario',
+       'sin formulario');
+
+    /* Y se dice que hay más de una: enseñar una sin avisar es justo lo
+       que hace pensar que la pantalla no se actualiza. */
+    var av = document.getElementById('trVarias');
+    if (av && av.hidden) av = null;
+    ok('varias: y avisa de que hay más de una',
+       av && /2 solicitudes de este trámite/.test(av.textContent),
+       av ? av.textContent.trim().slice(0, 52) : 'no lo dice', 'lo dice');
+    ok('varias: y ofrece verlas todas',
+       av && !!av.querySelector('button'),
+       (av && av.querySelector('button')) ? 'con botón' : 'sin botón', 'con botón');
+    /* Arriba del todo: es lo que hay que saber ANTES de leer la escalera
+       de abajo, no después. */
+    /* Arriba de la tarjeta y FUERA de ella: lo de dentro se rehace en
+       dos tiempos -primero el estado, luego el historial- y un aviso
+       metido ahi lo barria el segundo repintado. */
+    ok('varias: y el aviso va encima de la tarjeta',
+       av && av.compareDocumentPosition(caja) & Node.DOCUMENT_POSITION_FOLLOWING,
+       av ? 'encima' : 'no hay aviso', 'encima');
   }
 
   function escaleraMira(){
