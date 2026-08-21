@@ -1885,47 +1885,105 @@
     document.getElementById('emBoton').click();
     ok('empresa: la ficha se abre', document.getElementById('empresaBack').classList.contains('open'),
        document.getElementById('empresaBack').className, 'con la clase open');
-    igual('empresa: con los doce campos',
-          document.querySelectorAll('#emCampos .pf-campo').length, 12);
 
-    /* Los dos botones del pie, CON SU TEXTO. Salieron vacíos: las claves
-       de los botones son pf_* y yo usé f_*, que son las de los campos. Dos
-       pastillas de color y ninguna palabra dentro. */
-    igual('empresa: el botón de guardar dice qué hace',
-          document.getElementById('emGuardar').textContent.trim(), 'Guardar');
-    igual('empresa: y el de cancelar también',
+    /* ── DE CINCO EN CINCO ── Los doce campos EXISTEN todos desde el
+       principio; lo que cambia es cual se enseña. Crearlos por pasos
+       habría borrado lo escrito al ir y volver, que es justo lo que hace
+       odioso un formulario por pasos. */
+    igual('empresa: los doce campos siguen ahí',
+          document.querySelectorAll('#emCampos .pf-campo').length, 12);
+    var visibles = function(){
+      return [].filter.call(document.querySelectorAll('#emCampos .pf-campo'),
+                            function(c){ return !c.hidden; });
+    };
+    igual('empresa: pero solo se ven los cinco del primer paso', visibles().length, 5);
+
+    /* La tira de arriba: sin ella, partir el formulario solo escondería
+       campos. Lo que convierte "menos campos" en "vas por aquí" es ver los
+       tres de un vistazo y cuál es el tuyo. */
+    var pasos = document.querySelectorAll('#emTira .em-paso');
+    igual('empresa: con los tres pasos a la vista', pasos.length, 3);
+    igual('empresa: y con sus nombres, no solo números',
+          [].map.call(pasos, function(p){ return p.querySelector('.t').textContent.trim(); }).join(' | '),
+          'La empresa | Actividad | Dónde y quién');
+    ok('empresa: el primero es el que está marcado',
+       pasos[0].classList.contains('aqui') && !pasos[1].classList.contains('aqui'),
+       pasos[0].className + ' / ' + pasos[1].className, 'solo el primero con "aqui"');
+    igual('empresa: y el pie dice por dónde vas',
+          document.getElementById('emCuenta').textContent.trim(), 'Paso 1 de 3');
+
+    /* En los dos primeros el botón adelanta, no guarda. Decir "Guardar"
+       en el paso 1 y no guardar es mentirle a quien lo pulsa. */
+    igual('empresa: y el botón dice que adelanta, no que guarda',
+          document.getElementById('emGuardar').textContent.trim(), 'Siguiente');
+    ok('empresa: y no hay "Atrás" desde el primero',
+       document.getElementById('emAtras').hidden, 'oculto', 'oculto');
+    igual('empresa: el de cancelar sigue diciendo lo suyo',
           document.getElementById('emCancelar').textContent.trim(), 'Cancelar');
 
-    /* Y CON EL PIE A LA VISTA. Doce campos no caben en el 82% de la
-       pantalla: sin que el cuerpo ruede por dentro, "Guardar" se sale por
-       abajo y el formulario no se puede enviar. No es un detalle de
-       aspecto, es la ventana entera inservible. */
+    /* El pie a la vista: con cinco campos ya no hace falta que el cuerpo
+       ruede, pero el botón tiene que seguir dentro de la pantalla. */
     (function(){
-      var g = document.getElementById('emGuardar');
-      var r = g.getBoundingClientRect();
-      ok('empresa: y el botón de guardar dentro de la pantalla',
+      var r = document.getElementById('emGuardar').getBoundingClientRect();
+      ok('empresa: y el botón dentro de la pantalla',
          r.bottom > 0 && r.bottom <= window.innerHeight + 1,
-         'guardar acaba en ' + Math.round(r.bottom) + ' y la ventana mide ' + window.innerHeight,
+         'acaba en ' + Math.round(r.bottom) + ' y la ventana mide ' + window.innerHeight,
          'dentro');
-      var cuerpo = document.getElementById('emCampos');
-      ok('empresa: lo que no cabe rueda por dentro, no empuja el pie',
-         cuerpo.scrollHeight > cuerpo.clientHeight,
-         'contenido ' + cuerpo.scrollHeight + ' en caja ' + cuerpo.clientHeight,
-         'contenido mayor que la caja');
     })();
+
     /* Las etiquetas son las MISMAS que usan los formularios de los
        trámites: si divergieran, el mismo dato tendría dos nombres. */
     igual('empresa: y con las etiquetas de los formularios',
           document.querySelector('label[for="em_razon_social"]').textContent.trim(), 'Razón social');
+    /* La forma del RIF a la vista ahorra una devolución por un dígito. */
+    igual('empresa: el RIF enseña su forma',
+          document.getElementById('em_rif_empresa').placeholder, 'J-00000000-0');
 
-    /* Sin razón social no hay nada que copiar en ningún formulario. */
+    /* Lo único obligatorio es la razón social, y no se puede pasar de
+       paso sin ella: descubrir en el tercero que falta algo del primero es
+       lo que hace que la gente abandone. */
     document.getElementById('emGuardar').click();
-    igual('empresa: sin razón social no se guarda',
+    igual('empresa: sin razón social no se pasa de paso',
           document.getElementById('emAviso').textContent,
           'Ponle al menos la razón social: es lo que se copia en los formularios.');
+    igual('empresa: y sigue en el primero',
+          document.getElementById('emCuenta').textContent.trim(), 'Paso 1 de 3');
 
     document.getElementById('em_razon_social').value = 'Cacao del Tuy, C.A.';
     document.getElementById('em_rif_empresa').value  = 'J-40987654-3';
+    document.getElementById('emGuardar').click();
+
+    igual('empresa: con ella puesta, adelanta',
+          document.getElementById('emCuenta').textContent.trim(), 'Paso 2 de 3');
+    igual('empresa: y enseña los del segundo', visibles().length, 3);
+    ok('empresa: ahora sí hay "Atrás"',
+       !document.getElementById('emAtras').hidden, 'a la vista', 'a la vista');
+
+    /* Ir y volver NO puede borrar lo escrito. */
+    document.getElementById('emAtras').click();
+    igual('empresa: "Atrás" vuelve al primero',
+          document.getElementById('emCuenta').textContent.trim(), 'Paso 1 de 3');
+    igual('empresa: y lo escrito sigue ahí',
+          document.getElementById('em_razon_social').value, 'Cacao del Tuy, C.A.');
+
+    /* Un paso ya andado se pulsa y se vuelve a él: corregir un dato de
+       dos pasos atrás no puede costar dos "Atrás". */
+    document.getElementById('emGuardar').click();
+    document.getElementById('emGuardar').click();
+    igual('empresa: y en el tercero el botón ya guarda',
+          document.getElementById('emGuardar').textContent.trim(), 'Guardar');
+    igual('empresa: con los cuatro del último paso', visibles().length, 4);
+    var p1 = document.querySelectorAll('#emTira .em-paso')[0];
+    ok('empresa: y el primero se puede pulsar para volver',
+       p1.classList.contains('hecho') && p1.classList.contains('pulsable'),
+       p1.className, 'hecho y pulsable');
+    p1.click();
+    igual('empresa: pulsarlo vuelve al primero',
+          document.getElementById('emCuenta').textContent.trim(), 'Paso 1 de 3');
+
+    /* Y desde el primero, hasta el final y guardar. */
+    document.getElementById('emGuardar').click();
+    document.getElementById('emGuardar').click();
     document.getElementById('emGuardar').click();
   }
 

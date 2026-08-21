@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin:0; font-family:'Helvetica Neue',Arial,sans-serif; color:#0E1424;
+           background:#F4F7FB; -webkit-font-smoothing:antialiased; }
+    a { color:#004090; } a:hover { color:#00336d; }
+    .et { font-size:11.5px; font-weight:700; color:#5B6478; }
+    .in { height:38px; border:1px solid #E4E7EE; border-radius:9px; background:#fff;
+          display:flex; align-items:center; padding:0 12px; font-size:13px; color:#8A93A6; }
+    .gr { font-size:9.5px; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+          color:#8A93A6; }
+    .campo { display:flex; flex-direction:column; gap:6px; }
+  </style>
+</helmet>
+<div style="width:660px; height:565px; box-sizing:border-box; padding:18px; display:flex; align-items:center; justify-content:center;">
+  <div style="width:624px; height:529px; background:#FFFFFF; border-radius:10px; box-shadow:0 2px 6px rgba(14,20,36,.06), 0 18px 44px rgba(14,20,36,.10); display:flex; flex-direction:column; overflow:hidden;">
+
+    <div style="display:flex; align-items:flex-start; gap:12px; padding:16px 18px 14px; border-bottom:1px solid #EEF1F6;">
+      <div style="width:32px; height:32px; border-radius:8px; background:#004090; display:flex; align-items:center; justify-content:center; flex:none;">
+        <svg viewBox="0 0 24 24" style="width:17px; height:17px; stroke:#fff; stroke-width:1.8; fill:none;"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 9h2M13 9h2M9 13h2M13 13h2M10 20v-3h4v3"/></svg>
+      </div>
+      <div style="flex:1 1 auto; min-width:0;">
+        <div style="font-size:14.5px; font-weight:700; line-height:1.25;">Registrar tu empresa</div>
+        <div style="font-size:11.5px; color:#5B6478; margin-top:2px;">Se escribe una vez y la usan ocho formularios</div>
+      </div>
+      <div style="width:26px; height:26px; border-radius:50%; border:1px solid #E4E7EE; display:flex; align-items:center; justify-content:center; flex:none;">
+        <svg viewBox="0 0 24 24" style="width:12px; height:12px; stroke:#5B6478; stroke-width:2.2; fill:none;"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </div>
+    </div>
+
+    <div style="flex:1 1 auto; min-height:0; overflow:hidden; padding:15px 18px 4px; display:flex; flex-direction:column; gap:15px; position:relative;">
+
+      <div style="display:flex; flex-direction:column; gap:9px;">
+        <div class="gr">La empresa</div>
+        <div class="campo">
+          <span class="et">Razón social</span>
+          <div class="in" style="border:1.5px solid #0060B0;"><div style="width:1px; height:15px; background:#0E1424;"></div></div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px;">
+          <div class="campo">
+            <span class="et">N.º de RIF de la empresa</span>
+            <div class="in">J-00000000-0</div>
+          </div>
+          <div class="campo">
+            <span class="et">N.º de Registro Mercantil</span>
+            <div class="in"></div>
+          </div>
+          <div class="campo">
+            <span class="et">Fecha de constitución</span>
+            <div class="in" style="justify-content:space-between;">dd/mm/aaaa
+              <svg viewBox="0 0 24 24" style="width:13px; height:13px; stroke:#8A93A6; stroke-width:1.8; fill:none;"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
+            </div>
+          </div>
+          <div class="campo">
+            <span class="et">Capital social</span>
+            <div style="display:flex; gap:7px;">
+              <div class="in" style="flex:1 1 auto;"></div>
+              <div class="in" style="flex:none; width:74px; justify-content:space-between; color:#0E1424; background:#F4F7FB;">Bs
+                <svg viewBox="0 0 24 24" style="width:11px; height:11px; stroke:#5B6478; stroke-width:2.2; fill:none;"><path d="M6 9l6 6 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:9px;">
+        <div class="gr">Actividad</div>
+        <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px;">
+          <div class="campo">
+            <span class="et">Actividad económica</span>
+            <div class="in" style="justify-content:space-between; background:#F4F7FB;">Elige el sector
+              <svg viewBox="0 0 24 24" style="width:11px; height:11px; stroke:#5B6478; stroke-width:2.2; fill:none;"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="campo">
+            <span class="et">N.º de trabajadores a inscribir</span>
+            <div class="in"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:9px; opacity:.5;">
+        <div class="gr">Dónde y quién</div>
+        <div class="campo">
+          <span class="et">Dirección fiscal en Venezuela</span>
+        </div>
+      </div>
+
+      <div style="position:absolute; right:5px; top:14px; bottom:8px; width:5px; border-radius:3px; background:#EEF1F6;">
+        <div style="width:5px; height:74%; border-radius:3px; background:#C9D0DC;"></div>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:9px; padding:12px 18px 14px; border-top:1px solid #EEF1F6;">
+      <div style="font-size:11px; color:#8A93A6; flex:1 1 auto;">3 de 12 escritos</div>
+      <div style="font-size:12px; font-weight:700; color:#0E1424; border:1px solid #E4E7EE; border-radius:8px; padding:9px 16px;">Cancelar</div>
+      <div style="font-size:12px; font-weight:700; color:#fff; background:#004090; border-radius:8px; padding:9px 18px;">Guardar</div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

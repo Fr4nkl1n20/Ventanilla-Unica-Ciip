@@ -1,0 +1,21 @@
+{
+  "artboards": [
+    { "file": "Hoy.dc.html",      "x": 0,    "y": 0,   "w": 660, "h": 565, "title": "Hoy" },
+    { "file": "Main.dc.html",     "x": 780,  "y": 0,   "w": 660, "h": 565, "title": "A · Agrupado" },
+    { "file": "OpcionB.dc.html",  "x": 0,    "y": 700, "w": 660, "h": 565, "title": "B · Por pasos" },
+    { "file": "OpcionC.dc.html",  "x": 780,  "y": 700, "w": 660, "h": 565, "title": "C · Lo esencial primero" }
+  ],
+  "annotations": [
+    { "id": "nota-hoy", "x": 0, "y": -150, "w": 660,
+      "text": "COMO ESTA HOY\nDoce campos en una sola tira. No se ve cuanto falta, no hay respiro entre bloques, y a partir del quinto hay que rodar. Capital social no dice en que moneda y Actividad economica es texto libre: dos personas escriben lo mismo de dos maneras." },
+    { "id": "nota-a", "x": 780, "y": -150, "w": 660,
+      "text": "A · AGRUPADO\nLos mismos doce, en tres bloques y a dos columnas donde el campo es corto. Cabe casi todo sin rodar y se ve la forma del formulario de un vistazo.\n\nA favor: el cambio mas pequeño de los tres, no toca las reglas de negocio.\nEn contra: sigue siendo un muro de doce campos; solo esta mejor ordenado." },
+    { "id": "nota-b", "x": 0, "y": 1310, "w": 660,
+      "text": "B · POR PASOS\nLos mismos tres bloques, de uno en uno, con \"Paso 1 de 3\".\n\nA favor: nunca ves mas de cinco campos; el final se ve venir.\nEn contra: tres clics mas y no puedes repasarlo todo junto antes de guardar. Si alguien vuelve a editar un dato suelto, tiene que navegar hasta el." },
+    { "id": "nota-c", "x": 780, "y": 1310, "w": 660,
+      "text": "C · LO ESENCIAL PRIMERO\nCuatro campos a la vista y los otros ocho plegados. Se guarda con lo minimo.\n\nA favor: se registra la empresa en veinte segundos, y ese es el dato que ahorra ocho formularios.\nEn contra: EXIGE UNA DECISION DEL CIIP que hoy no esta tomada: cuales de los doce son de verdad obligatorios. Hoy el formulario los pide todos. Sin esa decision, esta opcion no se puede construir." },
+    { "id": "nota-comun", "x": 1560, "y": 0, "w": 300,
+      "text": "EN LAS TRES, LO MISMO\n\n· Capital social con su moneda al lado (Bs / USD). Hoy un numero suelto no dice nada.\n\n· Actividad economica como lista y no texto libre: si cada quien la escribe a su manera, no se puede agrupar ni filtrar despues.\n\n· El RIF con su forma a la vista (J-00000000-0), que ahorra una devolucion por un digito.\n\n· Un contador abajo: \"3 de 12 escritos\"." }
+  ],
+  "launch": { "view": "canvas" }
+}
