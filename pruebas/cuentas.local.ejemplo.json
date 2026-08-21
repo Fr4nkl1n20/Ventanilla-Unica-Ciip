@@ -1,0 +1,5 @@
+{
+  "_": "Copia este archivo como cuentas.local.json y pon las claves de verdad. Ese sí lo ignora git; éste no lleva nada secreto.",
+  "a": { "correo": "prueba.a@ejemplo.com", "clave": "la-clave-de-a" },
+  "b": { "correo": "prueba.b@ejemplo.com", "clave": "la-clave-de-b" }
+}

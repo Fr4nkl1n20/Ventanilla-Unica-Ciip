@@ -26,3 +26,9 @@ perfil/
 #        select relname, relrowsecurity from pg_class where relname='perfiles';
 #
 # Si prefieres no publicar ni la clave anon, haz el repositorio privado.
+
+# ── Las claves de las cuentas de prueba ───────────────────────────────
+# pruebas/rls.js entra de VERDAD en Supabase con dos cuentas para
+# comprobar que las politicas RLS aguantan. Esas claves son claves: no
+# suben al repositorio ni aunque el repositorio sea privado.
+pruebas/cuentas.local.json
