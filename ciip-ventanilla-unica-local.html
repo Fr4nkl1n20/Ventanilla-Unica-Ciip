@@ -437,6 +437,17 @@ body[data-vista="usuarios"] #usVolver{display:inline-flex;}
    de tamaño. */
 #usLista{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
   gap:12px;}
+/* Mis tramites, en rejilla por el mismo motivo que las cuentas: una
+   ficha son tres renglones cortos y a lo ancho sobraba media pantalla,
+   con lo que ver seis solicitudes obligaba a rodar. El minimo es mayor
+   que el de las cuentas -300 y no 280- porque aqui el nombre del tramite
+   es largo: "Registro de la inversion extranjera directa" no cabe en
+   280 sin partirse en tres lineas. */
+#mtLista{display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+  gap:12px; align-items:start;}
+/* El aviso de "no tienes ninguna" cruza entero: es el techo de la vista,
+   no una ficha mas metida en la fila. */
+#mtLista > .ci-vacia{grid-column:1 / -1;}
 /* Los rótulos de sección cruzan entera: son el techo de lo que viene
    debajo, no una ficha más de la fila. */
 #usLista .us-sec{grid-column:1 / -1;}

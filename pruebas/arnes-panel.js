@@ -2064,6 +2064,28 @@
        hecho && !hecho.querySelector('.lleva'),
        hecho ? (hecho.querySelector('.lleva') ? 'lo lleva' : 'sin reloj') : 'no hay resuelto',
        'sin reloj');
+    /* ── EN REJILLA ── Una ficha de trámite son tres renglones cortos y
+       a lo ancho sobraba media pantalla: ver seis solicitudes obligaba a
+       rodar. Es el mismo cambio que se hizo en las cuentas. */
+    (function(){
+      var f = document.querySelectorAll('#mtLista .ci-ficha');
+      if (f.length < 2) return;
+      var arriba = {};
+      [].forEach.call(f, function(x){
+        var y = Math.round(x.getBoundingClientRect().top);
+        arriba[y] = (arriba[y] || 0) + 1;
+      });
+      var enFila = Math.max.apply(null, Object.keys(arriba).map(function(k){ return arriba[k]; }));
+      ok('mis trámites: en pantalla ancha van una al lado de otra',
+         enFila >= 2, 'lo más que comparten fila: ' + enFila, '2 o más');
+      /* Y ninguna se sale por la derecha: 300px de mínimo con la barra
+         lateral puesta es justo donde esto se rompería. */
+      var caja = document.getElementById('mtLista').getBoundingClientRect();
+      var fuera = [].filter.call(f, function(x){
+        return x.getBoundingClientRect().right > caja.right + 1; });
+      igual('mis trámites: y ninguna se sale por la derecha', fuera.length, 0);
+    })();
+
     location.hash = '';
   }
 
