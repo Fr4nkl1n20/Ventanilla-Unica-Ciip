@@ -124,6 +124,7 @@
               entregaAbre, entregaMira,
               docsAbre, docsMira,
               ayudaAbre, ayudaMira, ayudaFaq,
+              supAbre, supMira, supTemas, supVuelve,
               logosMiran], volcar);
   });
 
@@ -2061,6 +2062,69 @@
      Cada <img> lleva un onerror que retira su placa entera, así que un
      archivo que falte NO deja un icono roto: deja la tarjeta sin logo y
      nadie se entera. Esta prueba es lo único que lo notaría. */
+  /* ═══════════ LA BURBUJA DE ACOMPAÑAMIENTO ═══════════
+     Dos puertas nuevas: lo que es el CIIP y en qué se puede invertir. La
+     segunda todavía no tiene contenido, y lo que se vigila aquí es que
+     lo DIGA. Un menú que promete respuestas y contesta humo es peor que
+     no ofrecerlo: quien entra se va creyendo que el CIIP no sabe. */
+  function supAbre(){
+    location.hash = '';
+    document.getElementById('supFab').click();
+  }
+
+  function supMira(){
+    var caja = document.querySelector('.sup-fab');
+    ok('burbuja: se abre al pulsar el botón', caja.classList.contains('abierto'),
+       caja.className, 'con la clase abierto');
+    var menu = document.getElementById('supMenu');
+    var botones = [].map.call(menu.querySelectorAll('.btn span, .btn'), function(b){
+      return b.textContent.trim(); }).filter(Boolean);
+    ok('burbuja: ofrece preguntar por el CIIP',
+       /Preguntas sobre el CIIP/.test(menu.textContent),
+       menu.textContent.slice(0, 80), 'Preguntas sobre el CIIP');
+    ok('burbuja: y por dónde invertir',
+       /Sobre invertir en Venezuela/.test(menu.textContent),
+       'busca el renglón', 'aparece');
+    ok('burbuja: y apartar una cita',
+       !!document.getElementById('citaBtn'),
+       'existe el botón de cita', 'existe');
+    /* La nube no se queda encima del panel abierto: ya estas dentro. */
+    var nube = document.getElementById('supNube');
+    ok('burbuja: con el panel abierto la nube no estorba',
+       !nube || nube.offsetHeight === 0,
+       nube ? ('alto ' + nube.offsetHeight) : 'no hay nube', '0');
+  }
+
+  function supTemas(){
+    document.getElementById('supInv').click();
+    var t = document.getElementById('supTemas');
+    ok('burbuja: invertir abre su propia pantalla', !t.hidden,
+       'oculto=' + t.hidden, 'oculto=false');
+    ok('burbuja: y el menú se aparta',
+       document.getElementById('supMenu').hidden, 'oculto', 'oculto');
+    /* LO IMPORTANTE: sin temas cargados, lo dice. No finge una lista
+       vacía ni una respuesta que nadie ha escrito. */
+    ok('burbuja: sin temas cargados, lo dice en vez de fingir',
+       /Todavía no hay temas cargados/.test(t.textContent),
+       t.textContent.slice(0, 70), 'lo dice');
+    /* Y no deja al inversionista sin salida: ofrece la cita, que es la
+       via que si existe hoy. */
+    ok('burbuja: y ofrece la cita, que sí existe',
+       /Agendar una cita/.test(t.textContent), 'busca la cita', 'la ofrece');
+    igual('burbuja: y no inventa ningún tema',
+          t.querySelectorAll('.sb-tema').length, 0);
+  }
+
+  function supVuelve(){
+    document.getElementById('supVolver').click();
+    ok('burbuja: se vuelve al menú', !document.getElementById('supMenu').hidden,
+       'menú a la vista', 'a la vista');
+    ok('burbuja: y el título vuelve a ser el de siempre',
+       /En qué podemos ayudarte/.test(document.getElementById('supQ').textContent),
+       document.getElementById('supQ').textContent, '¿En qué podemos ayudarte?');
+    document.getElementById('supCerrar').click();
+  }
+
   function logosMiran(){
     var placas = document.querySelectorAll('.t-marca img.ilogo');
     ok('logos: las tarjetas con organismo llevan el suyo', placas.length >= 15,
