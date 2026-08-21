@@ -1,0 +1,21 @@
+{
+  "artboards": [
+    { "file": "Hoy.dc.html",     "x": 0, "y": 0,    "w": 1040, "h": 150, "title": "Hoy" },
+    { "file": "Main.dc.html",    "x": 0, "y": 420,  "w": 1040, "h": 150, "title": "A · Cuánto lleva y cuántas hay" },
+    { "file": "OpcionB.dc.html", "x": 0, "y": 840,  "w": 1040, "h": 150, "title": "B · Cuánto falta" },
+    { "file": "OpcionC.dc.html", "x": 0, "y": 1260, "w": 1040, "h": 290, "title": "C · Todas, no solo una" }
+  ],
+  "annotations": [
+    { "id": "n-hoy", "x": 1120, "y": 0, "w": 300,
+      "text": "COMO ESTA HOY\n\nEnsena UNA sola: primero las devueltas, luego los borradores, y de esas la que se toco mas tarde.\n\nTres cosas que calla:\n\n· Cuantas mas hay esperando. Si tienes tres borradores, ves uno y los otros dos no existen.\n\n· Cuanto lleva. \"El 21 ago 2026\" obliga a restar; \"hace 3 dias\" se lee de un vistazo.\n\n· Cuanto falta. Un borrador al 90% y uno recien empezado se ven exactamente igual.\n\nY solo ofrece una salida: ir. No se puede descartar lo que ya no vas a terminar, aunque la base si lo permita." },
+    { "id": "n-a", "x": 1120, "y": 420, "w": 300,
+      "text": "A · CUANTO LLEVA Y CUANTAS HAY\n\nMisma forma, tres anadidos: el tiempo en vez de la fecha, un enlace a las otras dos, y \"Descartarla\" como accion secundaria.\n\nA favor: el cambio mas pequeno. Todo el dato ya esta cargado; no hay una sola consulta nueva.\n\nEn contra: sigue sin decir cuanto falta, que es lo unico que de verdad mueve a alguien a terminar un formulario abandonado." },
+    { "id": "n-b", "x": 1120, "y": 840, "w": 300,
+      "text": "B · CUANTO FALTA\n\n\"Te faltan 2 datos y 1 recaudo\", con su barra. El panel ya sabe que campos pide cada tramite y cuales estan escritos: la cuenta se hace con lo que hay.\n\nA favor: es lo mas motivador que se le puede decir a alguien que dejo algo a medias. \"Te faltan dos\" se termina; \"sin terminar\" se pospone.\n\nEn contra: hay que contar bien. Un contador que diga \"te faltan 2\" y al entrar sean 5 es peor que no contar, asi que los campos opcionales no pueden colarse en la cuenta.\n\nY sigue ensenando una sola." },
+    { "id": "n-c", "x": 1120, "y": 1260, "w": 300,
+      "text": "C · TODAS, NO SOLO UNA\n\nDeja de ser una franja y pasa a ser una lista corta: lo devuelto arriba en rojo, los borradores debajo en ambar.\n\nA favor: es lo unico honesto cuando hay mas de una. Hoy la franja decide por ti cual es la importante, y no siempre acierta.\n\nEn contra: gasta el triple de alto en la portada, justo encima del camino de cinco fases. Y con UNA sola pendiente -el caso mas comun- es una caja con cabecera para un solo renglon: mas marco que contenido." },
+    { "id": "n-mezcla", "x": 1120, "y": 1660, "w": 300,
+      "text": "NO SON EXCLUYENTES\n\nLa B es contenido y la C es forma: se pueden juntar. Y la A cabe dentro de cualquiera de las dos.\n\nSi me dejas elegir: B sobre la forma de hoy, con el enlace de la A a las demas. La C solo si de verdad hay gente con tres cosas pendientes a la vez, y eso hoy no lo sabemos porque nadie ha usado el panel todavia." }
+  ],
+  "launch": { "view": "canvas" }
+}

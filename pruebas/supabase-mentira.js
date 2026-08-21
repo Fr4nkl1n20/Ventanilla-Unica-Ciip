@@ -107,8 +107,14 @@
       {id:'t4', tipo:'rif_personal', estado:'en_revision',
        creado_en:'2026-08-17T11:00:00Z', actualizado_en:'2026-08-18T08:00:00Z'}
     ],
-    sinnombre: [],
-    gestor: []
+    sinnombre: [
+      /* Un borrador SOLO, y a medio subir: es el unico expediente donde
+         el aviso ensena el caso del borrador. En 'lleno' gana siempre el
+         devuelto, y sin esto la barra de "2 de 4 recaudos" no la mira
+         nadie. La visa pide cuatro obligatorios. */
+      {id:'s1', tipo:'visa_inversionista', estado:'borrador',
+       creado_en:'2026-08-18T10:00:00Z', actualizado_en:'2026-08-18T10:00:00Z'}
+    ]
   };
 
   /* Lo que espera por el CIIP. Solo lo ve quien tiene rol de gestor, y una
@@ -528,6 +534,12 @@
          misma consulta -con .eq('tramite')- pero de otro expediente, asi
          que se distingue por el id: devolver los recaudos del gestor aqui
          enseñaria "Tu documento" con el acta de otra persona dentro. */
+      /* Los dos recaudos que el borrador de 'sinnombre' ya subio. Sin
+         esto la barra dice 0 de 4 y no se prueba que cuente lo que hay. */
+      if (op && op.eq && op.eq.tramite === 's1'){
+        return {data:[{documento:'ds1', documentos:{tipo:'pasaporte'}},
+                      {documento:'ds2', documentos:{tipo:'foto'}}], error:null};
+      }
       if (op && op.eq && op.eq.tramite === 't4'){
         return {data:[{documento:'dr1', documentos:{tipo:'resolucion',
           nombre_original:'visa-tr1-estampada.pdf',

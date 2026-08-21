@@ -996,6 +996,18 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .ns-k{font-size:9.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--amber);}
 .ns-t{font-size:14.5px; font-weight:700; margin-top:2px;}
 .ns-d{font-size:12px; color:var(--gray); margin-top:3px;}
+.ns-d b{color:var(--ink); font-weight:600;}
+/* Cuanto lleva subido. Un borrador aqui no es un formulario a medias -el
+   tramite se crea al enviar, con los datos ya validados-: se queda en
+   borrador cuando falla la subida de un recaudo. Asi que la barra mide
+   RECAUDOS, y por eso el texto dice "recaudos" y no "datos": un contador
+   que promete una cosa y al entrar hay otra es peor que no contar. */
+.ns-barra{height:5px; border-radius:3px; background:var(--line-soft);
+  margin-top:8px; max-width:320px; overflow:hidden;}
+.ns-barra i{display:block; height:5px; border-radius:3px; background:var(--amber);}
+.ns-mas{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy);
+  background:none; border:0; padding:5px 0 0; cursor:pointer; text-align:left;}
+.ns-mas:hover{text-decoration:underline;}
 
 /* ===================== JOURNEY STEPPER ===================== */
 .sec-h{display:flex; align-items:center; gap:10px; margin-bottom:13px; flex-wrap:wrap;}
@@ -1850,7 +1862,11 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <div class="ns-body">
         <div class="ns-k"></div>
         <div class="ns-t"></div>
+        <div class="ns-barra" hidden><i></i></div>
         <div class="ns-d"></div>
+        <!-- El aviso ensena UNA sola. Sin este renglon, quien tiene tres
+             pendientes ve una y las otras dos no existen. -->
+        <button class="ns-mas" id="nsMas" type="button" hidden></button>
       </div>
       <button class="btn navy" type="button"></button>
     </div>
@@ -4970,6 +4986,9 @@ applyLang(idiomaParaMi());
   var PRIORIDAD = {devuelto:0, borrador:1};
 
   var loQueToca = null;   /* lo elegido, para repintarlo al cambiar de idioma */
+  /* Todas las pendientes, no solo la elegida: el aviso ensena una, pero
+     tiene que poder decir cuantas mas hay detras. */
+  var pendientesTodas = [];
 
   /* El nombre sale de la tarjeta del trámite, que ya lo lleva traducido en
      los seis idiomas. Guardar aquí una segunda copia sería mantener el
@@ -4990,6 +5009,24 @@ applyLang(idiomaParaMi());
       .catch(function(){ return ''; });
   }
 
+  /* Cuantos recaudos OBLIGATORIOS le faltan a un borrador. Los opcionales
+     no cuentan: exigirlos aqui haria que un tramite listo para enviar
+     dijera que le falta algo que nadie le va a pedir. */
+  function faltanDe(q){
+    var pide = (RECAUDOS[q.tipo] || []).filter(function(r){ return !r.opcional; });
+    if (!pide.length) return null;
+    var tiene = q.subidos || [];
+    var puestos = pide.filter(function(r){ return tiene.indexOf(r.tipo) >= 0; }).length;
+    return {pide: pide.length, puestos: puestos, faltan: pide.length - puestos};
+  }
+
+  /* El enlace a las demas. Se engancha una vez, no en cada repintado:
+     un boton que acumula manejadores acaba navegando tres veces. */
+  (function(){
+    var mas = document.getElementById('nsMas');
+    if (mas) mas.addEventListener('click', function(){ location.hash = 'mistramites'; });
+  })();
+
   function pintaFranja(){
     if (!franja) return;
     if (!loQueToca){ franja.classList.remove('puesta'); return; }
@@ -5000,10 +5037,45 @@ applyLang(idiomaParaMi());
 
     franja.querySelector('.ns-k').textContent = (devuelto ? u.ns_accion : u.ns_borrador) || '';
     franja.querySelector('.ns-t').textContent = nombreDeTarjeta(q.ref);
-    franja.querySelector('.ns-d').textContent = devuelto
-      ? (q.nota || u.ns_devuelta || '')
-      : String(u.ns_sin_enviar || '').replace('{fecha}', fecha(q.creado_en));
-    franja.querySelector('.btn').textContent = u.ns_ir || '';
+    var linea = franja.querySelector('.ns-d');
+    var barra = franja.querySelector('.ns-barra');
+    linea.textContent = '';
+    barra.hidden = true;
+
+    if (devuelto){
+      linea.textContent = q.nota || u.ns_devuelta || '';
+      franja.querySelector('.btn').textContent = u.ns_ir || '';
+    } else {
+      /* Lo que falta primero y en negro; cuanto lleva despues y en gris.
+         Al reves, lo que mueve a terminar algo queda de segundo. */
+      var c = faltanDe(q);
+      if (c && c.faltan > 0){
+        franja.querySelector('.ns-k').textContent =
+          (u.ns_borrador || '') + ' \u00b7 ' + c.puestos + '/' + c.pide;
+        barra.hidden = false;
+        barra.querySelector('i').style.width =
+          Math.round(100 * c.puestos / c.pide) + '%';
+        var fuerte = el('b', null, String(c.faltan === 1 ? u.ns_faltan : u.ns_faltanN)
+          .replace('{n}', c.faltan));
+        linea.appendChild(fuerte);
+      } else if (c){
+        linea.appendChild(el('b', null, u.ns_completo || ''));
+      }
+      /* "hace 3 dias" y no una fecha: restar mentalmente cuesta, y el
+         numero de dias es justo lo que dice si urge. */
+      linea.appendChild(document.createTextNode(
+        (linea.textContent ? ' \u00b7 ' : '') +
+        String(u.ns_desde || '').replace('{cuando}', haceCuanto(q.creado_en))));
+      franja.querySelector('.btn').textContent = u.ns_seguir || u.ns_ir || '';
+    }
+
+    /* Y las demas, que hasta ahora no existian para quien mirase esto. */
+    var mas = document.getElementById('nsMas');
+    if (mas){
+      var otras = (pendientesTodas.length - 1);
+      mas.hidden = (otras < 1);
+      mas.textContent = String(u.ns_mas || '').replace('{n}', otras);
+    }
 
     var trazo = franja.querySelector('.ns-ico path');
     if (trazo) trazo.setAttribute('d', ICONO[q.estado] || ICONO.borrador);
@@ -5046,8 +5118,9 @@ applyLang(idiomaParaMi());
               var ref = tipoRefDe(t.tipo);
               /* Sin tarjeta en el panel no hay adónde llevar al usuario. */
               if (ref) pendientes.push({
-                id: t.id, ref: ref, estado: t.estado,
-                creado_en: t.creado_en, actualizado_en: t.actualizado_en, nota: ''
+                id: t.id, ref: ref, estado: t.estado, tipo: t.tipo,
+                creado_en: t.creado_en, actualizado_en: t.actualizado_en,
+                nota: '', subidos: []
               });
             });
             pendientes.sort(function(a, b){
@@ -5055,11 +5128,34 @@ applyLang(idiomaParaMi());
               return d || String(b.actualizado_en).localeCompare(String(a.actualizado_en));
             });
 
+            pendientesTodas = pendientes;
             loQueToca = pendientes[0] || null;
-            if (!loQueToca || loQueToca.estado !== 'devuelto'){ pintaFranja(); return; }
-            return notaDeDevolucion(loQueToca.id).then(function(nota){
-              loQueToca.nota = nota;
-              pintaFranja();
+            if (!loQueToca){ pintaFranja(); return; }
+            /* Que recaudos lleva ya subidos el borrador. Un viaje mas, y
+               solo cuando hay algo pendiente: sin esto la barra no puede
+               decir 3 de 4 y solo quedaria repetir "sin terminar". */
+            var pedir = (loQueToca.estado === 'borrador')
+              ? sb.from('tramite_documentos')
+                  .select('documento, documentos(tipo)')
+                  .eq('tramite', loQueToca.id)
+                  .then(function(rd){
+                    loQueToca.subidos = ((rd && rd.data) || []).map(function(x){
+                      return (x.documentos || {}).tipo;
+                    }).filter(Boolean);
+                  })
+                  .catch(function(e){
+                    /* Sin la lista, la barra no sale y el aviso dice lo de
+                       siempre. Peor, pero no roto. */
+                    console.warn('[CIIP] recaudos del borrador:', e && e.message);
+                  })
+              : Promise.resolve();
+
+            return pedir.then(function(){
+              if (loQueToca.estado !== 'devuelto'){ pintaFranja(); return; }
+              return notaDeDevolucion(loQueToca.id).then(function(nota){
+                loQueToca.nota = nota;
+                pintaFranja();
+              });
             });
           });
       });

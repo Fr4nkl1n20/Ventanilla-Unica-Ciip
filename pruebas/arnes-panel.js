@@ -266,7 +266,18 @@
         igual('estados: entre dos del mismo trámite manda la más reciente', st('c3'), 'proceso');
       }
 
-      if (CASO === 'sinnombre' || CASO === 'gestor'){
+      if (CASO === 'sinnombre'){
+        /* Este expediente tiene UN borrador -el que hace salir el aviso de
+           "sin terminar"-, asi que su tarjeta no puede decir "por
+           iniciar": 30 y no 31. Y de paso se comprueba lo que ninguna
+           prueba miraba, que el borrador se vea tambien en su tarjeta. */
+        var pendS = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
+        ok('estados: con un borrador, treinta por iniciar y no treinta y una',
+           pendS === 30, pendS + ' por iniciar de 31', '30');
+        igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
+      }
+
+      if (CASO === 'gestor'){
         /* Las 31: las 30 solicitables más la del banco de activos, que ya
            nacía 'pendiente' en el marcado -lo suyo es el distintivo, que
            sigue diciendo Disponible-. */
@@ -688,6 +699,57 @@
            'nota="' + nota + '" titular ru="' + titular + '"',
            'la nota intacta y el titular en ruso');
       })();
+
+      /* Hay DOS pendientes -la devuelta y un borrador- y el aviso ensena
+         una. Sin este renglón, la otra no existe para quien mire la
+         portada. */
+      (function(){
+        var mas = document.getElementById('nsMas');
+        ok('franja: dice cuántas más hay esperando',
+           mas && !mas.hidden && /1 más/.test(mas.textContent),
+           mas ? (mas.hidden ? '(oculto)' : mas.textContent.trim()) : 'no existe',
+           'Y hay 1 más esperando por ti');
+        mas.click();
+        igual('franja: y lleva a la lista de todas', location.hash, '#mistramites');
+        location.hash = '';
+      })();
+    }
+
+    if (CASO === 'sinnombre'){
+      /* ── EL BORRADOR ── En 'lleno' gana siempre el devuelto, así que
+         este es el único expediente donde se ve el otro caso.
+
+         Un borrador aquí NO es un formulario a medias: el trámite se crea
+         al enviar, con los datos ya validados, y se queda en borrador
+         cuando falla la subida de un recaudo. Por eso la cuenta es de
+         RECAUDOS y el texto dice "recaudos": un contador que promete una
+         cosa y al entrar hay otra es peor que no contar. */
+      ok('franja: el borrador también sale', franja().classList.contains('puesta'),
+         franja().className, 'con la clase puesta');
+      igual('franja: y dice cuántos recaudos lleva',
+            enFranja('.ns-k'), 'Sin terminar \u00b7 2/4');
+      ok('franja: y cuántos le faltan, en cristiano',
+         /Te faltan 2 recaudos por subir/.test(enFranja('.ns-d')),
+         enFranja('.ns-d'), 'Te faltan 2 recaudos por subir');
+      /* "hace N días" y no una fecha: restar mentalmente cuesta. */
+      ok('franja: y cuánto lleva, sin hacer restas',
+         /hace/.test(enFranja('.ns-d')) && !/2026/.test(enFranja('.ns-d')),
+         enFranja('.ns-d'), 'algo como "hace 3 días", sin la fecha');
+      /* La barra: media, no llena ni vacía. */
+      (function(){
+        var b = franja().querySelector('.ns-barra');
+        ok('franja: con su barra a la mitad',
+           b && !b.hidden && b.querySelector('i').style.width === '50%',
+           b ? (b.hidden ? '(oculta)' : b.querySelector('i').style.width) : 'no existe',
+           '50%');
+      })();
+      /* "Seguir donde lo dejaste" y no "Ir al trámite": lo primero dice
+         que hay algo empezado, lo segundo no dice nada. */
+      igual('franja: y el botón dice que se retoma, no que se va',
+            franja().querySelector('.btn').textContent.trim(), 'Seguir donde lo dejaste');
+      /* Y con una sola pendiente, el enlace a las demás no sale. */
+      ok('franja: con una sola, no ofrece "y hay más"',
+         document.getElementById('nsMas').hidden, 'oculto', 'oculto');
     }
 
     if (CASO === 'vacio'){

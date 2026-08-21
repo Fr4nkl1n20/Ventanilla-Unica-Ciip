@@ -93,6 +93,16 @@ window.CIIP_PASOS = {
       ns_devuelta:  "El CIIP te devolvió la solicitud: hay algo que corregir.",
       ns_sin_enviar:"La empezaste el {fecha} y todavía no la has enviado.",
       ns_ir:        "Ir al trámite",
+      /* Cuanto falta y cuantas mas hay. Un borrador aqui no es un
+         formulario a medias -el tramite se crea al enviar, con los datos
+         ya validados-: se queda en borrador cuando falla la subida de un
+         recaudo. Asi que lo que falta son RECAUDOS, no datos. */
+      ns_faltan:   "Te falta {n} recaudo por subir",
+      ns_faltanN:  "Te faltan {n} recaudos por subir",
+      ns_completo: "Estan todos los recaudos: solo queda enviarla.",
+      ns_desde:    "La empezaste {cuando}",
+      ns_mas:      "Y hay {n} más esperando por ti",
+      ns_seguir:   "Seguir donde lo dejaste",
       /* --- El buzón de avisos, en la barra de arriba --- */
       av_titulo:    "Tus avisos",
       av_vacio:     "Todavía no hay nada que contarte.",
@@ -578,6 +588,12 @@ window.CIIP_PASOS = {
       ns_devuelta:  "CIIP sent your application back: something needs fixing.",
       ns_sin_enviar:"You started it on {fecha} and haven't submitted it yet.",
       ns_ir:        "Go to the procedure",
+      ns_faltan:   "{n} document still to upload",
+      ns_faltanN:  "{n} documents still to upload",
+      ns_completo: "Every document is in: it only needs sending.",
+      ns_desde:    "You started it {cuando}",
+      ns_mas:      "And {n} more are waiting for you",
+      ns_seguir:   "Pick up where you left off",
       /* --- The alerts tray, in the top bar --- */
       av_titulo:    "Your alerts",
       av_vacio:     "Nothing to tell you yet.",
@@ -1044,6 +1060,12 @@ window.CIIP_PASOS = {
       ns_devuelta:  "O CIIP devolveu o seu pedido: há algo a corrigir.",
       ns_sin_enviar:"Começou-o em {fecha} e ainda não o enviou.",
       ns_ir:        "Ir para o trâmite",
+      ns_faltan:   "Falta {n} documento por carregar",
+      ns_faltanN:  "Faltam {n} documentos por carregar",
+      ns_completo: "Estão todos os documentos: só falta enviar.",
+      ns_desde:    "Começou-a {cuando}",
+      ns_mas:      "E há mais {n} à sua espera",
+      ns_seguir:   "Continuar onde parou",
       /* --- A caixa de avisos, na barra de cima --- */
       av_titulo:    "Os seus avisos",
       av_vacio:     "Ainda não há nada para lhe contar.",
@@ -1501,6 +1523,12 @@ window.CIIP_PASOS = {
       ns_devuelta:  "Il CIIP ti ha restituito la richiesta: c'è qualcosa da correggere.",
       ns_sin_enviar:"L'hai iniziata il {fecha} e non l'hai ancora inviata.",
       ns_ir:        "Vai alla pratica",
+      ns_faltan:   "Manca {n} documento da caricare",
+      ns_faltanN:  "Mancano {n} documenti da caricare",
+      ns_completo: "Ci sono tutti i documenti: resta solo inviarla.",
+      ns_desde:    "L'hai iniziata {cuando}",
+      ns_mas:      "E ce ne sono altre {n} che ti aspettano",
+      ns_seguir:   "Riprendi da dove eri",
       /* --- La casella degli avvisi, nella barra in alto --- */
       av_titulo:    "I tuoi avvisi",
       av_vacio:     "Non c'è ancora nulla da dirti.",
@@ -1958,6 +1986,12 @@ window.CIIP_PASOS = {
       ns_devuelta:  "CIIP 已退回您的申请：有内容需要修改。",
       ns_sin_enviar:"您于 {fecha} 开始填写，尚未提交。",
       ns_ir:        "前往办理",
+      ns_faltan:   "还差 {n} 份材料未上传",
+      ns_faltanN:  "还差 {n} 份材料未上传",
+      ns_completo: "材料已齐，只差提交。",
+      ns_desde:    "您于{cuando}开始",
+      ns_mas:      "另有 {n} 件在等您",
+      ns_seguir:   "接着上次继续",
       /* --- 顶部导航栏的提醒栏 --- */
       av_titulo:    "您的提醒",
       av_vacio:     "暂时没有新消息。",
@@ -2415,6 +2449,12 @@ window.CIIP_PASOS = {
       ns_devuelta:  "CIIP вернул вашу заявку: нужно кое-что исправить.",
       ns_sin_enviar:"Вы начали её {fecha} и ещё не отправили.",
       ns_ir:        "Перейти к процедуре",
+      ns_faltan:   "Осталось загрузить {n} документ",
+      ns_faltanN:  "Осталось загрузить документов: {n}",
+      ns_completo: "Все документы на месте — осталось отправить.",
+      ns_desde:    "Вы начали её {cuando}",
+      ns_mas:      "И ещё {n} ждут вас",
+      ns_seguir:   "Продолжить с того же места",
       /* --- Лента уведомлений в верхней панели --- */
       av_titulo:    "Ваши уведомления",
       av_vacio:     "Пока нечего сообщить.",
