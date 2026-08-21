@@ -1915,11 +1915,37 @@
        odioso un formulario por pasos. */
     igual('empresa: los doce campos siguen ahí',
           document.querySelectorAll('#emCampos .pf-campo').length, 12);
+    /* offsetHeight y no .hidden: [hidden] del navegador es display:none,
+       pero cualquier display de la hoja de estilos le gana, y .pf-campo
+       trae display:flex. Con .hidden esta prueba daba verde mientras los
+       doce campos seguian pintados en pantalla. Preguntarle al DOM por
+       la propiedad es preguntarle por lo que uno le dijo; preguntarle por
+       el alto es preguntarle por lo que hizo. */
     var visibles = function(){
       return [].filter.call(document.querySelectorAll('#emCampos .pf-campo'),
-                            function(c){ return !c.hidden; });
+                            function(c){ return c.offsetHeight > 0; });
     };
     igual('empresa: pero solo se ven los cinco del primer paso', visibles().length, 5);
+    /* Por su nombre, que es como se nota: "Actividad economica" es del
+       paso 2 y asomaba al final del 1. */
+    ok('empresa: y ningun campo del paso 2 asoma en el 1',
+       visibles().every(function(c){
+         return !/Actividad económica/.test(c.textContent); }),
+       visibles().map(function(c){ return c.querySelector('label').textContent; }).join(' / '),
+       'sin Actividad económica');
+    /* Y el aviso de que basta con la razon social se ve DE VERDAD: si el
+       cuerpo llega rodado, lo primero que hay que leer queda arriba y
+       fuera. */
+    (function(){
+      var mn = document.getElementById('emMinimo');
+      var caja = document.getElementById('emCampos');
+      ok('empresa: y el aviso de arriba se ve, no llega rodado',
+         mn.getBoundingClientRect().top >= caja.getBoundingClientRect().top - 1,
+         'aviso en ' + Math.round(mn.getBoundingClientRect().top) +
+         ', caja en ' + Math.round(caja.getBoundingClientRect().top), 'dentro');
+      igual('empresa: y la etiqueta del primer campo también',
+            caja.scrollTop, 0);
+    })();
 
     /* La tira de arriba: sin ella, partir el formulario solo escondería
        campos. Lo que convierte "menos campos" en "vas por aquí" es ver los

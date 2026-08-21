@@ -357,6 +357,12 @@ svg{display:block;}
 .perfil{max-width:440px;}
 .pf-cuerpo{padding:16px 18px 4px; display:flex; flex-direction:column; gap:13px;}
 .pf-campo{display:flex; flex-direction:column; gap:6px;}
+/* Y esta linea, que no es de adorno: [hidden] del navegador es
+   display:none, pero CUALQUIER display de la hoja de estilos le gana.
+   Con solo la de arriba, esconder un campo con .hidden = true no
+   escondia nada: los doce seguian pintados y el paso 1 llegaba hasta
+   "Actividad economica". */
+.pf-campo[hidden]{display:none;}
 .pf-campo > span, .pf-campo > label{font-size:11.5px; font-weight:700; color:var(--gray);}
 .pf-campo input, .pf-campo select{font:inherit; font-size:13px; color:var(--ink);
   background:var(--bg); border:1px solid var(--line); border-radius:9px;
@@ -7943,8 +7949,16 @@ applyLang(idiomaParaMi());
 
     var av = document.getElementById('emAviso');
     if (av) av.textContent = '';
+    /* Arriba del todo y sin arrastrar la vista: enfocar sin mas rueda el
+       cuerpo hasta el campo y se lleva por delante el aviso y la etiqueta
+       de encima, que es lo primero que hay que leer. */
+    var caja2 = document.getElementById('emCampos');
+    if (caja2) caja2.scrollTop = 0;
     var primero = emBack.querySelector('#emCampos .pf-campo:not([hidden]) input');
-    if (primero) setTimeout(function(){ primero.focus(); }, 20);
+    if (primero) setTimeout(function(){
+      try { primero.focus({preventScroll:true}); } catch(e){ primero.focus(); }
+      if (caja2) caja2.scrollTop = 0;
+    }, 20);
   }
   function cierraFichaEmpresa(){ if (emBack) emBack.classList.remove('open'); }
 
