@@ -113,6 +113,12 @@ window.CIIP_PASOS = {
       /* Cuanto llevas en este paso de la escalera. Un HECHO, no un
          plazo: cuanto DEBERIA tardar no lo ha dicho nadie todavia. */
       ns_desde_paso: "· desde {cuando}",
+      /* Cuando el panel cambia mientras alguien lo tiene abierto. No se
+         recarga solo: quien este a medio rellenar un formulario perderia
+         lo escrito, y eso es peor que ir una version por detras. */
+      nv_hay:     "Hay una versión nueva del panel",
+      nv_recarga: "Recargar",
+      nv_luego:   "Ahora no",
       /* --- El buzón de avisos, en la barra de arriba --- */
       av_titulo:    "Tus avisos",
       av_vacio:     "Todavía no hay nada que contarte.",
@@ -609,6 +615,9 @@ window.CIIP_PASOS = {
       ns_descartando: "Discarding…",
       ns_descartada:  "The documents you already uploaded stay in your vault.",
       ns_desde_paso: "· since {cuando}",
+      nv_hay:     "There is a newer version of the panel",
+      nv_recarga: "Reload",
+      nv_luego:   "Not now",
       /* --- The alerts tray, in the top bar --- */
       av_titulo:    "Your alerts",
       av_vacio:     "Nothing to tell you yet.",
@@ -1086,6 +1095,9 @@ window.CIIP_PASOS = {
       ns_descartando: "A descartar…",
       ns_descartada:  "Os documentos que já carregou ficam nos seus documentos.",
       ns_desde_paso: "· desde {cuando}",
+      nv_hay:     "Há uma versão nova do painel",
+      nv_recarga: "Recarregar",
+      nv_luego:   "Agora não",
       /* --- A caixa de avisos, na barra de cima --- */
       av_titulo:    "Os seus avisos",
       av_vacio:     "Ainda não há nada para lhe contar.",
@@ -1554,6 +1566,9 @@ window.CIIP_PASOS = {
       ns_descartando: "Eliminazione…",
       ns_descartada:  "I documenti già caricati restano tra i tuoi.",
       ns_desde_paso: "· da {cuando}",
+      nv_hay:     "C'è una versione nuova del pannello",
+      nv_recarga: "Ricarica",
+      nv_luego:   "Non ora",
       /* --- La casella degli avvisi, nella barra in alto --- */
       av_titulo:    "I tuoi avvisi",
       av_vacio:     "Non c'è ancora nulla da dirti.",
@@ -2022,6 +2037,9 @@ window.CIIP_PASOS = {
       ns_descartando: "正在放弃…",
       ns_descartada:  "您已上传的材料仍在文件夹中。",
       ns_desde_paso: "· {cuando}起",
+      nv_hay:     "面板有新版本",
+      nv_recarga: "重新载入",
+      nv_luego:   "暂不",
       /* --- 顶部导航栏的提醒栏 --- */
       av_titulo:    "您的提醒",
       av_vacio:     "暂时没有新消息。",
@@ -2490,6 +2508,9 @@ window.CIIP_PASOS = {
       ns_descartando: "Удаляем…",
       ns_descartada:  "Загруженные документы остаются у вас.",
       ns_desde_paso: "· с {cuando}",
+      nv_hay:     "Есть новая версия панели",
+      nv_recarga: "Обновить",
+      nv_luego:   "Не сейчас",
       /* --- Лента уведомлений в верхней панели --- */
       av_titulo:    "Ваши уведомления",
       av_vacio:     "Пока нечего сообщить.",

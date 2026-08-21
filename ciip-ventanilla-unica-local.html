@@ -1653,6 +1653,21 @@ body.menu-abierto .menu-fondo{display:block;}
 @media(max-width:560px){ .sup-nube{right:56px; max-width:calc(100vw - 88px);} }
 @media (prefers-reduced-motion:reduce){ .sup-nube{transition:none;} }
 
+/* La franja de "hay version nueva". Abajo y estrecha: avisa sin tapar
+   nada, y quien este a medio rellenar algo puede seguir. */
+.nueva-v{position:fixed; left:50%; transform:translateX(-50%); bottom:16px;
+  z-index:99997; display:none; align-items:center; gap:12px;
+  background:var(--navy); color:#fff; border-radius:12px;
+  padding:10px 12px 10px 16px; box-shadow:var(--shadow-lg);
+  font-size:12px; font-weight:600; max-width:calc(100vw - 24px);}
+.nueva-v.se-ve{display:flex;}
+.nueva-v button{font:inherit; font-size:11.5px; font-weight:700; cursor:pointer;
+  border-radius:8px; padding:7px 12px; border:0; white-space:nowrap;}
+.nueva-v .si{background:#fff; color:var(--navy);}
+.nueva-v .no{background:transparent; color:#fff; opacity:.7;}
+.nueva-v .no:hover{opacity:1;}
+@media(max-width:560px){ .nueva-v{left:12px; right:12px; transform:none; max-width:none;} }
+
 body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 @media(max-width:560px){ .sup-fab{right:14px; bottom:14px;} }
 @media (prefers-reduced-motion:reduce){ .sup-panel{transition:none;} .sidebar{transition:none;} }
@@ -2553,6 +2568,15 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       </button>
     </div>
 
+    <!-- Cuando el panel cambia mientras alguien lo tiene abierto. Sale
+         solo cuando se sirve por HTTP: abierto con doble clic no hay
+         servidor a quien preguntarle. -->
+    <div class="nueva-v" id="nuevaV" role="status">
+      <span id="nuevaVtxt"></span>
+      <button class="si" id="nuevaVsi" type="button"></button>
+      <button class="no" id="nuevaVno" type="button"></button>
+    </div>
+
     <div class="foot-note">
       <img src="data:image/png;base64,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" alt="CIIP">
       <span class="sep"></span>
@@ -3012,6 +3036,7 @@ function applyLang(lang){
      con lo que diga la base. Lo mismo el buzón de avisos. */
   if (window.CIIP_REPINTA_FRANJA) window.CIIP_REPINTA_FRANJA();
   if (window.CIIP_REPINTA_AVISOS) window.CIIP_REPINTA_AVISOS();
+  if (window.CIIP_REPINTA_NUEVAV) window.CIIP_REPINTA_NUEVAV();
   /* Y la ventana del perfil, con su lista de países: los nombres se ven en
      el idioma de turno aunque lo que se guarde sea siempre el español. */
   if (window.CIIP_REPINTA_PERFIL) window.CIIP_REPINTA_PERFIL();
@@ -3329,6 +3354,81 @@ function applyLang(lang){
       if (typeof fn === 'function') fn();
     })();
   }
+
+  /* \u2500\u2500 \u00bfSIGO MIRANDO LO \u00daLTIMO? \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+     El servidor de la oficina lee del disco en cada peticion, asi que
+     siempre sirve lo ultimo. Lo que no se entera es la PESTANA YA
+     ABIERTA: el JavaScript viejo sigue en memoria por mucho que el
+     archivo haya cambiado. Con una persona era una molestia; con tres
+     conectadas a la vez, cada una mira una version distinta y las
+     diferencias se achacan al panel.
+
+     Asi que el panel se pregunta a si mismo, de vez en cuando, si el
+     archivo del que salio sigue siendo el mismo. Un HEAD y una fecha.
+
+     NO se recarga solo, y es deliberado: quien este a medio rellenar un
+     formulario perderia lo escrito, y eso es peor que ir una version por
+     detras. Se avisa y decide quien esta delante. \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
+  (function(){
+    /* Sin servidor no hay a quien preguntar: abierto con doble clic, el
+       protocolo es file: y un HEAD no significa nada. */
+    if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
+
+    var caja = document.getElementById('nuevaV');
+    if (!caja) return;
+    var mia = null, avisado = false, reloj = null;
+
+    function sello(){
+      /* cache:'no-store' ademas del encabezado del servidor: un
+         intermediario que guarde la respuesta convertiria esto en un
+         reloj parado que jura que todo esta al dia. */
+      return fetch(location.pathname, {method: 'HEAD', cache: 'no-store'})
+        .then(function(r){
+          return r.headers.get('Last-Modified') || r.headers.get('ETag') || null;
+        })
+        .catch(function(){ return null; });
+    }
+
+    function avisa(){
+      var u = T();
+      document.getElementById('nuevaVtxt').textContent = u.nv_hay || '';
+      document.getElementById('nuevaVsi').textContent = u.nv_recarga || '';
+      document.getElementById('nuevaVno').textContent = u.nv_luego || '';
+      caja.classList.add('se-ve');
+    }
+
+    document.getElementById('nuevaVsi').addEventListener('click', function(){
+      location.reload();
+    });
+    document.getElementById('nuevaVno').addEventListener('click', function(){
+      /* Se calla para siempre en esta pestana. Volver a asomar cada
+         minuto a quien ya dijo que no es acoso, no un aviso. */
+      caja.classList.remove('se-ve');
+      if (reloj){ clearInterval(reloj); reloj = null; }
+    });
+
+    function mira(){
+      if (avisado || document.hidden) return;
+      sello().then(function(ahora){
+        if (!ahora || !mia) return;
+        if (ahora !== mia){ avisado = true; avisa(); }
+      });
+    }
+
+    sello().then(function(v){
+      /* Sin fecha del servidor no se puede comparar nada: se calla en vez
+         de avisar de cambios que no sabe si existen. */
+      if (!v) return;
+      mia = v;
+      reloj = setInterval(mira, 90000);
+      document.addEventListener('visibilitychange', function(){
+        if (!document.hidden) mira();
+      });
+    });
+
+    /* Para que applyLang lo redibuje si ya estaba puesto. */
+    window.CIIP_REPINTA_NUEVAV = function(){ if (caja.classList.contains('se-ve')) avisa(); };
+  })();
 
   /* --- el router --------------------------------------------------------- */
   function pinta(destino){

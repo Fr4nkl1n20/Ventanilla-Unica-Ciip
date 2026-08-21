@@ -183,10 +183,16 @@ try {
 
       $cuerpo = $null; $estado = '200 OK'; $tipo = 'text/plain; charset=utf-8'
 
+      $modificado = $null
       if ($completa -and $completa.StartsWith([IO.Path]::GetFullPath($raiz)) -and (Test-Path $completa -PathType Leaf)) {
         $ext = [IO.Path]::GetExtension($completa).ToLower()
         if ($MIME.ContainsKey($ext)) { $tipo = $MIME[$ext] } else { $tipo = 'application/octet-stream' }
         $cuerpo = [IO.File]::ReadAllBytes($completa)
+        # La fecha del archivo. El panel la pregunta cada tanto con un HEAD
+        # para saber si lo que tiene en pantalla ya esta viejo: quien deja
+        # la pestana abierta no se entera de nada aunque el servidor sirva
+        # lo ultimo, porque el JavaScript viejo sigue en memoria.
+        $modificado = (Get-Item $completa).LastWriteTimeUtc.ToString('R')
         Write-Host ("  200  {0,-15} {1}" -f $quien, $ruta) -ForegroundColor DarkGray
       } else {
         $estado = '404 Not Found'
@@ -199,6 +205,8 @@ try {
              "Content-Type: $tipo`r`n" +
              "Content-Length: $($cuerpo.Length)`r`n" +
              "Cache-Control: no-store`r`n" +
+             $(if ($modificado) { "Last-Modified: $modificado`r`n" } else { '' }) +
+             "Access-Control-Allow-Origin: *`r`n" +
              "Connection: close`r`n`r`n"
       $bcab = [Text.Encoding]::ASCII.GetBytes($cab)
       $flujo.Write($bcab, 0, $bcab.Length)
