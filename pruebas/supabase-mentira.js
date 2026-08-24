@@ -66,6 +66,21 @@
   var esAdmin = (caso === 'admin');
   if (esAdmin) caso = 'gestor';
 
+  /* ── UN PASE SOLO PARA MIRAR ──
+     El mismo gestor de siempre, pero con la cola llena: doce solicitudes
+     de siete inversionistas, con los tres estados, esperas de dos horas a
+     mes y medio y el reparto repartido de verdad. Sirve para VER como
+     queda la pantalla con trabajo encima, que con dos fichas no se ve.
+
+     NO entra en las pruebas, y es a proposito. El arnes mide sobre
+     'gestor' -que tomar no saca de la cola, que "Mios" filtra, que el
+     contador baja al devolver- y todo eso se mide mejor con dos que con
+     doce: una cola larga no prueba nada que no pruebe una corta, y en
+     cambio obliga a escribir doce numeros en las pruebas que se rompen
+     cada vez que se toca el ejemplo. */
+  var demoCola = (caso === 'cola');
+  if (demoCola) caso = 'gestor';
+
   /* El catálogo, con los tres tipos que usan las pruebas. ref_panel es lo
      que ata cada tipo a su tarjeta del panel (data-tr). */
   var TIPOS = [
@@ -213,7 +228,63 @@
     ],
     lleno: [], vacio: [], sinnombre: []
   };
-  var colaTram = (COLA_TRAM[caso] || []).slice();
+  /* Doce solicitudes para el pase de mirar. Las fechas son RELATIVAS a hoy
+     y no fijas: escritas a mano, «lleva esperando 17 días» se convierte en
+     «lleva 200» con el tiempo y la pantalla acaba mintiendo sola. */
+  function haceDias(n){ return new Date(Date.now() - n * 86400000).toISOString(); }
+  function haceHoras(n){ return new Date(Date.now() - n * 3600000).toISOString(); }
+  var COLA_DEMO = [
+    /* Recién llegada y sin tocar: «sin asignar» no es un error, es un
+       estado, y tiene que verse como tal. */
+    {id:'d1', inversionista:'u7', tipo:'rif_personal', estado:'enviado',
+     datos:{numero_documento:'X-1284455', telefono:'+351 912 004 118'},
+     creado_en: haceHoras(2), enviado_en: haceHoras(2)},
+    {id:'d2', inversionista:'u5', tipo:'solvencias', estado:'enviado',
+     datos:{razon_social:'Tanaka Hidro, C.A.'},
+     creado_en: haceHoras(20), enviado_en: haceHoras(20)},
+    {id:'d3', inversionista:'u10', tipo:'constitucion', estado:'enviado',
+     datos:{razon_social:'Méndez Logística Caribe, C.A.', capital_social:'220.000'},
+     creado_en: haceDias(3), enviado_en: haceDias(3)},
+    /* Mías, para que el montón «Míos» no salga en cero. */
+    {id:'d4', inversionista:'u5', tipo:'visa_inversionista', estado:'en_revision',
+     datos:{numero_pasaporte:'TR8842019', pais_emisor:'Japón',
+            consulado:'Consulado de Venezuela en Tokio'},
+     creado_en: haceDias(4), enviado_en: haceDias(4), gestor:'u1'},
+    {id:'d5', inversionista:'u9', tipo:'visa_dependientes', estado:'enviado',
+     datos:{nombre_familiar:'Chen Li', parentesco:'Hijo/a', numero_pasaporte:'EA9920114'},
+     creado_en: haceDias(6), enviado_en: haceDias(6)},
+    /* El mismo inversionista con dos cosas a la vez: pasa, y la cola no
+       puede juntarlas ni esconder una. */
+    {id:'d6', inversionista:'u7', tipo:'constitucion', estado:'en_revision',
+     datos:{razon_social:'Ferreira Turismo Costa, C.A.', capital_social:'80.000'},
+     creado_en: haceDias(9), enviado_en: haceDias(9), gestor:'u4'},
+    {id:'d7', inversionista:'u10', tipo:'rnc', estado:'en_revision',
+     datos:{razon_social:'Méndez Logística Caribe, C.A.',
+            actividad_economica:'Transporte y almacenamiento'},
+     creado_en: haceDias(12), enviado_en: haceDias(12), gestor:'u1'},
+    /* Sin nombre en el perfil: la cola tiene que decirlo en vez de dejar
+       el hueco. */
+    {id:'d8', inversionista:'u3', tipo:'constitucion', estado:'en_revision',
+     datos:{razon_social:'(sin razón social)', capital_social:'150.000'},
+     creado_en: haceDias(17), enviado_en: haceDias(17), gestor:'u4'},
+    {id:'d9', inversionista:'u9', tipo:'rif_empresa', estado:'ante_el_ente',
+     datos:{razon_social:'Wei Manufacturas Andinas, C.A.', rif_empresa:'J-41998877-0'},
+     creado_en: haceDias(23), enviado_en: haceDias(23), gestor:'u4'},
+    {id:'d10', inversionista:'u2', tipo:'rif_empresa', estado:'ante_el_ente',
+     datos:{razon_social:'Bianchi Agroindustrias, C.A.', rif_empresa:'J-40123456-7',
+            actividad_economica:'Procesamiento de cacao'},
+     creado_en: haceDias(28), enviado_en: haceDias(28), gestor:'u1'},
+    {id:'d11', inversionista:'u6', tipo:'rnc', estado:'ante_el_ente',
+     datos:{razon_social:'Okonkwo Energy Services, C.A.',
+            actividad_economica:'Servicios a la industria petrolera'},
+     creado_en: haceDias(31), enviado_en: haceDias(31), gestor:'u1'},
+    /* La más vieja de todas, y SIN asignar: es el caso que esta pantalla
+       existe para que no vuelva a pasar. */
+    {id:'d12', inversionista:'u8', tipo:'solvencias', estado:'enviado',
+     datos:{razon_social:'Kovalenko Import Export, C.A.'},
+     creado_en: haceDias(46), enviado_en: haceDias(46)}
+  ];
+  var colaTram = (demoCola ? COLA_DEMO : (COLA_TRAM[caso] || [])).slice();
 
   /* La nota de una devolucion viaja en un UPDATE aparte, sobre el evento que
      escribe el trigger. Se guarda para que la prueba compruebe que llego:
@@ -259,6 +330,18 @@
     {id:'u4', nombre_completo:'Saskia Calderon', pais:'Venezuela', rol:'gestor',
      rol_cambiado_en:'2026-08-11T10:00:00Z', visto_en: haceMin(20)}
   ];
+
+  /* Los del pase de mirar. Van aparte y se enganchan abajo: metidos en la
+     lista de arriba, "estan las cuatro cuentas" pasaria a ser diez y las
+     pruebas de usuarios medirian el ejemplo en vez de lo suyo. */
+  if (demoCola) OTROS_PERFILES = OTROS_PERFILES.concat([
+    {id:'u5',  nombre_completo:'Hiroshi Tanaka',   pais:'Japón',    rol:'inversionista', visto_en: haceMin(90)},
+    {id:'u6',  nombre_completo:'Amina Okonkwo',    pais:'Nigeria',  rol:'inversionista', visto_en: haceMin(60 * 30)},
+    {id:'u7',  nombre_completo:'Lucía Ferreira',   pais:'Portugal', rol:'inversionista', visto_en: haceMin(15)},
+    {id:'u8',  nombre_completo:'Dmitri Kovalenko', pais:'Rusia',    rol:'inversionista'},
+    {id:'u9',  nombre_completo:'Chen Wei',         pais:'China',    rol:'inversionista', visto_en: haceMin(60 * 5)},
+    {id:'u10', nombre_completo:'Carlos Méndez',    pais:'Colombia', rol:'inversionista', visto_en: haceMin(60 * 72)}
+  ]);
 
   /* El expediente personal. En 'sinnombre' viene con la cadena vacía, que es
      como llega de verdad una cuenta creada a mano en Supabase. */

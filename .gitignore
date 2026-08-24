@@ -32,3 +32,10 @@ perfil/
 # comprobar que las politicas RLS aguantan. Esas claves son claves: no
 # suben al repositorio ni aunque el repositorio sea privado.
 pruebas/cuentas.local.json
+
+# ── La copia para mirar ───────────────────────────────────────────────
+# pruebasista.ps1 deja aqui una copia del panel con el Supabase de
+# mentira, para ver como queda una pantalla con trabajo encima. Se genera
+# cuando hace falta y no tiene por que viajar: es el panel de al lado con
+# una linea cambiada.
+vista-cola.html
