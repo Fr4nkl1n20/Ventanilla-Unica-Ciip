@@ -309,6 +309,14 @@ svg{display:block;}
   color:rgba(255,255,255,.82); font-size:12.5px; font-weight:500; cursor:pointer;
   transition:background .13s, color .13s; position:relative;
   width:100%; font-family:inherit; text-align:left; background:transparent; border:0;}
+/* Y esta linea, que no es de adorno: [hidden] del navegador es
+   display:none, pero CUALQUIER display de la hoja de estilos le gana. Con
+   solo el display:flex de arriba, esconder un renglon con .hidden = true
+   no escondia nada, y el renglon de Documentos le seguia saliendo al
+   equipo del CIIP. Es la MISMA trampa que ya estaba anotada en
+   .pf-campo[hidden]; el grupo del administrador se libraba de casualidad,
+   porque .sb-group no lleva display. */
+.sb-item[hidden]{display:none;}
 .sb-item:focus-visible{outline:2px solid var(--cyan); outline-offset:-2px;}
 .sb-item .dot{width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.30); flex:none;}
 .sb-item:hover{background:rgba(255,255,255,.07); color:#fff;}
@@ -3730,6 +3738,10 @@ function applyLang(lang){
     /* Un #tramite-c99 escrito a mano cae a la portada, no a una pantalla
        en blanco. Lo mismo con #fase-9. */
     if (tipo === 'tramite' && !pintaTramite(destino.id)) tipo = null;
+    /* Y la bóveda, si no es la tuya. Al equipo del CIIP no se le ofrece el
+       renglón, y esta es la otra puerta: el hash escrito a mano. Cae a la
+       portada, como el #tramite-c99, y no a una pantalla en blanco. */
+    if (tipo === 'documentos' && window.CIIP_BOVEDA_MIA && !window.CIIP_BOVEDA_MIA()) tipo = null;
     /* La agenda se rellena al entrar, no al cargar la página: la mayoría de
        las visitas no pasan por ella y no hay que gastarles una consulta. */
     if (tipo === 'citas') traeAlEntrar('CIIP_PINTA_AGENDA');
@@ -9538,6 +9550,9 @@ applyLang(idiomaParaMi());
   function pintaDocs(){
     if (!dcLista) return;
     var u = T();
+    /* El renglón se va del menú entero, no se queda en gris: un sitio al
+       que no vas a entrar no tiene por qué ocuparte una línea. */
+    if (dcNav) dcNav.hidden = !laBovedaEsMia();
     var sub = document.getElementById('dcSub');
     if (sub) sub.textContent = u.dc_sub || '';
 
@@ -9684,7 +9699,31 @@ applyLang(idiomaParaMi());
     });
   }
 
+  /* Quién es el dueño de esta bóveda. Se mira 'rolReal' y no 'rol' a
+     secas: PERFIL nace diciendo 'inversionista' y hasta que contesta la
+     consulta de perfiles eso es una suposición, no un dato. */
+  function laBovedaEsMia(){
+    if (typeof PERFIL === 'undefined') return true;
+    if (!PERFIL.rolReal) return true;         /* todavía no se sabe */
+    return PERFIL.rol === 'inversionista';
+  }
+  /* Y el router pregunta: quitarle el renglón del menú cierra una puerta,
+     no la casa. #documentos escrito a mano, o guardado en un marcador de
+     cuando sí le salía, es la otra. */
+  window.CIIP_BOVEDA_MIA = laBovedaEsMia;
+
   function cargaDocs(){
+    /* Al equipo del CIIP no se le pide: la política de la base le deja
+       leer los documentos de TODOS, así que esta consulta le traería la
+       bóveda de la oficina entera bajo un título que dice «todo lo que HAS
+       subido» y sin decir de quién es cada papel. Los recaudos ya los ve
+       donde le sirven —dentro del expediente que está revisando, en la
+       cola—, con su trámite alrededor y su inversionista con nombre. */
+    if (!laBovedaEsMia()){
+      papeles = []; usosPorDoc = {};
+      pintaDocs();
+      return Promise.resolve();
+    }
     return sb.from('documentos')
       .select('id, tipo, archivo, nombre_original, vence_el, estado, nota_revision, creado_en')
       .order('creado_en', {ascending:false})
@@ -9727,14 +9766,26 @@ applyLang(idiomaParaMi());
     /* Se pide al cargar por el contador del renglón: un documento vencido
        ahí dentro es de las pocas cosas que conviene ver sin buscarlas. */
     cargaDocs();
-    /* Y se vuelve a pintar cuando se sabe el rol. La lista se dibuja antes
-       de que llegue —son dos consultas— y el botón de cambiar depende de
-       él: sin esto se pintaba con el rol en blanco y ya no se corregía. Es
-       el mismo compás que usan los activos y la cola. */
+    /* Y se vuelve a mirar cuando llega el rol. La lista se dibuja antes de
+       que se sepa —son dos consultas— y de él dependen el renglón del
+       menú y el botón de cambiar. Es el mismo compás que usan los activos
+       y la cola. */
     var vecesDc = 0, rolDc = null;
     (function esperaAlRolDocs(){
-      var rol = (typeof PERFIL !== 'undefined' && PERFIL.rol) || '';
-      if (rol !== rolDc){ rolDc = rol; pintaDocs(); }
+      var rol = (typeof PERFIL !== 'undefined' && PERFIL.rolReal && PERFIL.rol) || '';
+      if (rol !== rolDc){
+        rolDc = rol;
+        if (rol && rol !== 'inversionista'){
+          /* Lo que ya se hubiera traído, fuera. Y si estaba MIRANDO la
+             vista —por el hash escrito a mano, o por un enlace de cuando
+             sí le salía— se le devuelve a la portada: una pantalla vacía
+             sin decir por qué es peor que no tenerla. */
+          papeles = []; usosPorDoc = {};
+          if (document.body.getAttribute('data-vista') === 'documentos' &&
+              location.hash) location.hash = '';
+        }
+        pintaDocs();
+      }
       if (typeof PERFIL !== 'undefined' && PERFIL.rolReal) return;
       if (vecesDc++ < 40) setTimeout(esperaAlRolDocs, 100);
     })();

@@ -2968,10 +2968,34 @@
      faltaba era verlos todos, y saber cuál está vencido antes de que te lo
      diga un ente devolviéndote la solicitud. */
   function docsAbre(){
-    document.getElementById('navDocs').click();
+    var n = document.getElementById('navDocs');
+    if (n && !n.hidden) n.click();
   }
 
   function docsMira(){
+    /* Al equipo del CIIP no le sale. La politica de la base le deja leer
+       los documentos de TODOS, asi que esta lista, vista por un gestor,
+       era la de la oficina entera bajo un titulo que dice "todo lo que HAS
+       subido" y sin decir de quien es cada papel. Los recaudos los ve
+       donde le sirven: dentro del expediente que esta revisando. */
+    if (CASO === 'gestor'){
+      var n = document.getElementById('navDocs');
+      /* Se mide que NO SE VE, no que lleve el atributo. Con solo mirar
+         'hidden' esto pasaba en verde mientras el renglon seguia a la
+         vista: .sb-item lleva display:flex, y cualquier display de la
+         hoja de estilos le gana a [hidden]. */
+      ok('bóveda: al equipo del CIIP no se le ofrece',
+         !!n && n.hidden && n.offsetParent === null,
+         n ? ('hidden=' + n.hidden + ' visible=' + (n.offsetParent !== null)) : 'no hay renglón',
+         'escondido y sin pintar');
+      ok('bóveda: y no se le traen los papeles de nadie',
+         document.querySelectorAll('#dcLista .ci-ficha').length === 0,
+         document.querySelectorAll('#dcLista .ci-ficha').length + ' fichas', 'ninguna');
+      /* Y si llega por el hash escrito a mano, se le devuelve a la
+         portada en vez de dejarle una pantalla en blanco. */
+      location.hash = 'documentos';
+      return;
+    }
     igual('bóveda: el renglón abre su vista', document.body.getAttribute('data-vista'), 'documentos');
 
     var fichas = document.querySelectorAll('#dcLista .ci-ficha');
@@ -3029,20 +3053,13 @@
      veias que estaba mal y no habia nada que hacer sin entrar en un
      tramite que a lo mejor no ibas a enviar. */
   function docsCambia(){
-    var f = document.querySelector('#dcLista .ci-ficha');
-    /* Al equipo del CIIP, NO. La politica de la base le deja leer los
-       documentos de todos, asi que esta lista vista por un gestor es la de
-       todo el mundo, y el boton ahi no cambiaba nada: sube() firma lo que
-       sube con quien esta dentro, o sea que el gestor se habria creado un
-       documento suyo -huerfano, en la boveda de nadie- mientras el del
-       inversionista seguia igual. */
     if (CASO === 'gestor'){
-      ok('docs: al equipo del CIIP no se le ofrece cambiar lo de otro',
-         !!f && !f.querySelector('.dc-pie .btn.ghost'),
-         f ? (f.querySelector('.dc-pie .btn.ghost') ? 'le sale el boton' : 'sin boton')
-           : 'no hay ficha', 'sin boton');
+      ok('bóveda: y el hash a mano le devuelve a la portada',
+         document.body.getAttribute('data-vista') !== 'documentos',
+         document.body.getAttribute('data-vista') || 'inicio', 'no es documentos');
       return;
     }
+    var f = document.querySelector('#dcLista .ci-ficha');
     ok('docs: la ficha ofrece cambiar el papel', !!(f && f.querySelector('.dc-pie .btn.ghost')),
        f ? (f.querySelector('.dc-pie .btn.ghost') ? 'con boton' : 'solo abrir') : 'no hay ficha',
        'con boton de cambiar');
