@@ -129,7 +129,7 @@
               adminMira, adminAbre, adminDentro,
               f5Entra, f5Espera, f5Llega,
               f5TardeEntra, f5TardeEspera, f5TardeLlega,
-              mtLleva, mtLlevaMira,
+              mtLleva, mtLlevaMira, colaRenglon, colaRenglonAbre,
               empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
               entregaAbre, entregaMira,
               docsAbre, docsMira, docsCambia, docsTrasCambiar,
@@ -2660,6 +2660,55 @@
     })();
 
     location.hash = '';
+  }
+
+  /* ═════ EL RENGLON DE "MIS TRAMITES", PARA EL EQUIPO ═════
+     La politica de la base deja al equipo del CIIP leer los tramites de
+     TODOS, y la consulta de "Mis tramites" no filtra por dueno porque no
+     le hace falta. Asi que ese renglon le traia la oficina entera bajo un
+     rotulo que dice "mis". Ahora se llama como el boton de arriba y abre
+     lo mismo: un solo sitio donde llegan las solicitudes, con dos
+     puertas. */
+  function colaRenglon(){
+    var fila = document.getElementById('navTramites');
+    if (!fila) return;
+    var et = fila.querySelector('[data-i18n]');
+    if (CASO !== 'gestor'){
+      igual('barra: al inversionista le sigue diciendo Mis tramites',
+            et ? et.getAttribute('data-i18n') : 'sin etiqueta', 'nav.procedures');
+      fila.click();
+      return;
+    }
+    igual('barra: al equipo del CIIP el renglon pasa a ser la cola',
+          et ? et.getAttribute('data-i18n') : 'sin etiqueta', 'nav.queue');
+    igual('barra: y lo dice con todas las letras',
+          et ? et.textContent.trim() : '', 'Trámites por atender');
+    /* Y el numero es el MISMO de la cola: dos numeros distintos para una
+       sola cosa es lo que hace dudar de los dos. */
+    igual('barra: y el numero es el de la cola',
+          (document.getElementById('navTramitesN') || {}).textContent,
+          (document.getElementById('colaN') || {}).textContent);
+    /* Su panel no cuenta lo de los demas: de esa misma consulta salen los
+       estados de las 31 tarjetas y las cuentas de las cinco fases. */
+    igual('barra: y su panel no cuenta los tramites de otros',
+          deEtapa(0, '.jcount'), '0 de 10 listos');
+    fila.click();
+  }
+
+  function colaRenglonAbre(){
+    if (CASO !== 'gestor'){
+      /* Al inversionista el renglon le lleva a su lista de siempre. */
+      igual('barra: y al inversionista le abre su lista',
+            document.body.getAttribute('data-vista'), 'mistramites');
+      if (document.getElementById('mtVolver')) document.getElementById('mtVolver').click();
+      return;
+    }
+    var back = document.getElementById('colaBack');
+    ok('barra: y al equipo le abre la cola', !!back && back.classList.contains('open'),
+       back ? back.className : 'no hay cola', 'abierta');
+    if (document.getElementById('colaCerrar')) document.getElementById('colaCerrar').click();
+    /* Y el hash escrito a mano no le mete en la lista de otros. */
+    location.hash = 'tramites';
   }
 
   function empresaAbre(){
