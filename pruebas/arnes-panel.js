@@ -1348,7 +1348,54 @@
     ok('citas: las fechas vienen puestas, no en blanco',
        !!d.value && !!h.value && h.value > d.value,
        d.value + ' → ' + h.value, 'de mañana a dentro de una semana');
-    ok('citas: y no dejan elegir un día pasado', !!d.min, 'min=' + d.min, 'con mínimo');
+
+    /* ── el calendario del navegador, tambien fuera de aqui ──
+       Se fue de la ficha de empresa y de los formularios de tramite y
+       aqui se habia quedado: las mismas tres listas, para no tener dos
+       maneras de escribir una fecha en la misma pantalla. */
+    igual('citas: ya no hay calendario del navegador',
+          document.querySelectorAll('#ctForm input[type="date"]').length, 0);
+    var listas = document.querySelectorAll('#ctForm .ct-fechas select');
+    igual('citas: sino tres listas por cada extremo del rango', listas.length, 6);
+    ok('citas: y el valor sigue en un campo escondido con su id',
+       d.type === 'hidden' && h.type === 'hidden',
+       d.type + '/' + h.type, 'hidden/hidden');
+
+    /* Lo puesto se ve en las listas. Un campo que guarda una fecha y
+       ensena las listas en blanco es peor que no rellenarlo. */
+    var pri = document.querySelector('#ctCajaDesde .fecha3 select.a');
+    igual('citas: y lo puesto se ve en las listas',
+          pri ? pri.value : 'sin lista', d.value.slice(0, 4));
+
+    /* Y no se ofrece ayer. Antes lo evitaba un min= que el navegador
+       enseñaba en gris; ahora esos dias no estan en la lista. */
+    var hoyISO = (function(){
+      var x = new Date();
+      return x.getFullYear() + '-' + String(x.getMonth()+1).padStart(2,'0') +
+             '-' + String(x.getDate()).padStart(2,'0');
+    })();
+    var anioD = document.querySelector('#ctCajaDesde .fecha3 select.a');
+    var pasado = false;
+    [].forEach.call(anioD ? anioD.options : [], function(o){
+      if (o.value && parseInt(o.value, 10) < parseInt(hoyISO.slice(0,4), 10)) pasado = true;
+    });
+    ok('citas: y no deja elegir un ano pasado', !pasado,
+       pasado ? 'ofrece anos viejos' : 'desde ' + hoyISO.slice(0,4), 'desde este ano');
+
+    /* Del mes en curso, ni los dias que ya pasaron. Esto es lo que el
+       min= hacia y una lista de 1 a 31 se llevaria por delante. */
+    var mesD = document.querySelector('#ctCajaDesde .fecha3 select.m');
+    var diaD = document.querySelector('#ctCajaDesde .fecha3 select.d');
+    if (anioD && mesD && diaD){
+      anioD.value = hoyISO.slice(0,4); anioD.dispatchEvent(new Event('change'));
+      mesD.value  = hoyISO.slice(5,7); mesD.dispatchEvent(new Event('change'));
+      igual('citas: ni un dia de este mes que ya paso',
+            diaD.options[1] ? diaD.options[1].value : 'sin dias', hoyISO.slice(8,10));
+      /* Y elegir por las listas mueve el campo escondido, que es lo unico
+         que se envia. */
+      diaD.value = hoyISO.slice(8,10); diaD.dispatchEvent(new Event('change'));
+      igual('citas: y elegir por las listas mueve lo que se envia', d.value, hoyISO);
+    }
 
     /* Una ventana al revés la rechaza también la base; aquí se dice con
        palabras en vez de con un error de SQL. */

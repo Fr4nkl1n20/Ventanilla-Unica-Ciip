@@ -960,11 +960,28 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
   width:auto; min-width:0; padding:0; border:0; background:none; border-radius:0;}
 
 .ct-fechas{display:flex; align-items:center; gap:9px;}
-.ct-fechas input{font:inherit; font-size:13px; color:var(--ink); background:var(--bg);
-  border:1px solid var(--line); border-radius:9px; padding:9px 11px; outline:none;
-  flex:1 1 0; min-width:0;}
-.ct-fechas input:focus{border-color:var(--navy2);}
-.pf-campo.mal .ct-fechas input{border-color:var(--rust);}
+/* Cada extremo del rango es una fecha entera -tres listas-, asi que ocupa
+   la mitad y se reparte por dentro. Por debajo de 560 las seis listas no
+   caben en una fila: el rango se parte en dos renglones y la raya se
+   queda en medio, que es donde dice lo que separa. */
+.ct-fecha{flex:1 1 0; min-width:0;}
+.ct-fechas select{font:inherit; font-size:13px; color:var(--ink); background:var(--bg);
+  border:1px solid var(--line); border-radius:9px; padding:9px 7px; min-width:0;}
+.ct-fechas select:focus{border-color:var(--navy2);}
+.pf-campo.mal .ct-fechas select{border-color:var(--rust);}
+/* Seis listas en una fila, y el mes lleva la palabra larga: "settembre",
+   "Сентябрь". A partes iguales se cortaba por la mitad, asi que el mes se
+   lleva el doble que el dia. En un formulario de tramite la fecha va sola
+   en su casilla y no hace falta. */
+.ct-fechas .fecha3{gap:5px;}
+.ct-fechas .fecha3 select.d{flex:.8 1 0;}
+.ct-fechas .fecha3 select.m{flex:2 1 0;}
+.ct-fechas .fecha3 select.a{flex:1.05 1 0;}
+@media(max-width:560px){
+  .ct-fechas{flex-wrap:wrap;}
+  .ct-fecha{flex:1 1 100%;}
+  .ct-raya{width:100%; text-align:center;}
+}
 .ct-raya{color:var(--gray-soft); flex:none;}
 
 /* El estado de la cita que ya hay. Nace oculto: el CSS no sabe todavía si
@@ -2771,10 +2788,14 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       </div>
       <div class="pf-campo">
         <span id="ctLcuando"></span>
+        <!-- Dia, mes y ano en tres listas, como en el resto del panel. El
+             valor sigue viviendo en un campo escondido con el MISMO id, asi
+             que enviar y comprobar no se enteran. Las listas las cuelga
+             pintaCita de estas dos cajas. -->
         <div class="ct-fechas">
-          <input type="date" id="ctDesde" aria-labelledby="ctLcuando">
+          <div class="ct-fecha" id="ctCajaDesde"><input type="hidden" id="ctDesde"></div>
           <span class="ct-raya">–</span>
-          <input type="date" id="ctHasta" aria-labelledby="ctLcuando">
+          <div class="ct-fecha" id="ctCajaHasta"><input type="hidden" id="ctHasta"></div>
         </div>
       </div>
       <div class="pf-campo">
@@ -6781,6 +6802,30 @@ applyLang(idiomaParaMi());
     });
   }
 
+  /* ── Las dos fechas de la cita, en tres listas cada una ──
+     El calendario del navegador se fue del resto del panel y aquí se había
+     quedado. El valor sigue viviendo en un campo escondido con el MISMO
+     id, así que enviar y comprobar leen lo de siempre.
+
+     'hoy' de tope por abajo: los días que te vienen bien no pueden ser los
+     de la semana pasada. Y dos años por arriba, que más allá de eso no es
+     una preferencia, es un error de tecleo. */
+  var ctFechasLang = null;
+  function montaFechasCita(){
+    [['ctCajaDesde', 'ctDesde', 'ct_desde'],
+     ['ctCajaHasta', 'ctHasta', 'ct_hasta']].forEach(function(par){
+      var caja   = document.getElementById(par[0]);
+      var oculto = document.getElementById(par[1]);
+      if (!caja || !oculto) return;
+      var vieja = caja.querySelector('.fecha3');
+      if (vieja) vieja.remove();
+      montaFecha3(caja, null,
+                  {n:par[1], clave:par[2], desde:'hoy', hasta:'+2'},
+                  oculto.value, oculto);
+    });
+    ctFechasLang = curLang;
+  }
+
   function pintaCita(){
     if (!ctBack) return;
     var u = T();
@@ -6799,6 +6844,11 @@ applyLang(idiomaParaMi());
 
     llenaAsuntos();
     llenaModos();
+    /* Las listas de las fechas solo se rehacen cuando cambia el idioma
+       —los meses van con su nombre—. Rehacerlas en cada repintado
+       borraría lo que acabas de elegir: pintaCita se vuelve a llamar en
+       cuanto contesta la base. */
+    if (ctFechasLang !== curLang) montaFechasCita();
 
     var form   = document.getElementById('ctForm');
     var estado = document.getElementById('ctEnMarcha');
@@ -6866,8 +6916,17 @@ applyLang(idiomaParaMi());
     var h = document.getElementById('ctHasta');
     if (d && !d.value) d.value = dentroDe(1);
     if (h && !h.value) h.value = dentroDe(8);
-    if (d) d.min = dentroDe(0);
-    if (h) h.min = dentroDe(0);
+    /* Antes iba aquí un min= para que el calendario no ofreciera ayer. Lo
+       hacen ahora las listas, que no ofrecen los días pasados en vez de
+       enseñarlos en gris.
+
+       Y las listas se rehacen AQUI, sin mirar el idioma: acaban de
+       ponerse las fechas de por defecto y hay que enseñarlas. Dejarlo
+       solo en pintaCita las dejaba en blanco con la fecha dentro —el
+       repintado del idioma ya las había montado vacías antes de abrir la
+       ventana—, que es justo lo que no puede pasar: lo que se envía
+       sería una fecha que nadie ha visto. */
+    montaFechasCita();
 
     ctBack.classList.add('open');
     citaEnMarcha = null;
@@ -9304,15 +9363,23 @@ applyLang(idiomaParaMi());
        forma de saber que hay algo que se va a enviar. Se ensancha el
        rango hasta donde haga falta, incluido el tope de "hoy". */
     var yaHay = (valor && /^\d{4}-\d{2}-\d{2}$/.test(valor)) ? valor : '';
-    var tope = hoy;
+    /* 'hoy' vale de tope por arriba y por abajo. Por abajo hizo falta al
+       traer esto a la ventana de la cita: los días que te vienen bien no
+       pueden ser los de la semana pasada, y una lista que los ofrece
+       está invitando a un error que luego rechaza la base. */
+    var tope  = hoy;
+    var suelo = (c.desde === 'hoy') ? hoy : null;
+    function comoFecha(iso){
+      return new Date(parseInt(iso.slice(0, 4), 10),
+                      parseInt(iso.slice(5, 7), 10) - 1,
+                      parseInt(iso.slice(8, 10), 10));
+    }
     if (yaHay){
       var aYa = parseInt(yaHay.slice(0, 4), 10);
       if (aYa < aMin) aMin = aYa;
       if (aYa > aMax) aMax = aYa;
-      if (yaHay > hoyISO()){
-        tope = new Date(aYa, parseInt(yaHay.slice(5, 7), 10) - 1,
-                        parseInt(yaHay.slice(8, 10), 10));
-      }
+      if (yaHay > hoyISO()) tope  = comoFecha(yaHay);
+      if (suelo && yaHay < hoyISO()) suelo = comoFecha(yaHay);
     }
     for (var a = aMax; a >= aMin; a--){
       var oa = document.createElement('option');
@@ -9344,27 +9411,36 @@ applyLang(idiomaParaMi());
       if (c.hasta === 'hoy' && anio === tope.getFullYear() && mes === tope.getMonth() + 1){
         cuantos = Math.min(cuantos, tope.getDate());
       }
+      var primero = 1;
+      if (suelo && anio === suelo.getFullYear() && mes === suelo.getMonth() + 1){
+        primero = suelo.getDate();
+      }
       var antes = selD.value;
       while (selD.options.length > 1) selD.remove(1);
-      for (var d = 1; d <= cuantos; d++){
+      for (var d = primero; d <= cuantos; d++){
         var od = document.createElement('option');
         od.value = String(d).padStart(2, '0');
         od.textContent = String(d);
         selD.appendChild(od);
       }
-      selD.value = (antes && parseInt(antes, 10) <= cuantos) ? antes : '';
+      var nAntes = parseInt(antes, 10);
+      selD.value = (antes && nAntes <= cuantos && nAntes >= primero) ? antes : '';
     }
 
     /* Lo mismo con los meses cuando el ano es el de ahora. */
     function pintaMeses(){
-      if (c.hasta !== 'hoy') return;
+      if (c.hasta !== 'hoy' && !suelo) return;
       var anio = parseInt(selA.value, 10);
-      var hasta = (anio === tope.getFullYear()) ? tope.getMonth() + 1 : 12;
+      var hasta = (c.hasta === 'hoy' && anio === tope.getFullYear())
+                    ? tope.getMonth() + 1 : 12;
+      var desde = (suelo && anio === suelo.getFullYear()) ? suelo.getMonth() + 1 : 1;
       [].forEach.call(selM.options, function(o){
         if (!o.value) return;
-        o.hidden = (parseInt(o.value, 10) > hasta);
+        var m = parseInt(o.value, 10);
+        o.hidden = (m > hasta || m < desde);
       });
-      if (selM.value && parseInt(selM.value, 10) > hasta) selM.value = '';
+      var nM = parseInt(selM.value, 10);
+      if (selM.value && (nM > hasta || nM < desde)) selM.value = '';
     }
 
     function recoge(){
@@ -9393,7 +9469,9 @@ applyLang(idiomaParaMi());
     /* A la primera de las tres en pantalla, que no siempre es la misma:
        el orden lo pone el idioma. Senalar al ano dejaba el foco en la
        ultima al pulsar la etiqueta en espanol. */
-    lb.setAttribute('for', (caja.firstChild && caja.firstChild.id) || selA.id);
+    /* Puede no haberla: en la ventana de la cita un solo rotulo cubre las
+       dos fechas, y ahi cada lista se nombra sola con su aria-label. */
+    if (lb) lb.setAttribute('for', (caja.firstChild && caja.firstChild.id) || selA.id);
     campo.appendChild(caja);
     /* En un tramite el escondido ya esta puesto -y ANTES que las listas,
        que es como lo encuentra el que valida-. */
