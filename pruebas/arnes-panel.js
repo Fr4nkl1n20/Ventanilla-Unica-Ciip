@@ -130,6 +130,7 @@
               f5Entra, f5Espera, f5Llega,
               f5TardeEntra, f5TardeEspera, f5TardeLlega,
               mtLleva, mtLlevaMira, colaRenglon, colaRenglonAbre,
+              tablaMira, tablaAbre, tablaTrasAbrir,
               empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
               entregaAbre, entregaMira,
               docsAbre, docsMira, docsCambia, docsTrasCambiar,
@@ -2701,14 +2702,85 @@
       igual('barra: y al inversionista le abre su lista',
             document.body.getAttribute('data-vista'), 'mistramites');
       if (document.getElementById('mtVolver')) document.getElementById('mtVolver').click();
+      /* Y la tabla del equipo no es suya: el hash a mano no le entra. */
+      location.hash = 'poratender';
       return;
     }
+    igual('barra: y al equipo le abre la cola en tabla',
+          document.body.getAttribute('data-vista'), 'poratender');
+  }
+
+  /* ═════ LA COLA EN TABLA ═════
+     La ventana es para ACTUAR sobre un tramite. Esto es para ver la cola
+     entera de un vistazo -quien espera, desde cuando y quien la lleva- en
+     columnas que se comparan; una pila de fichas se lee una por una. */
+  function tablaMira(){
+    if (CASO !== 'gestor'){
+      igual('tabla: al inversionista la cola del equipo no le entra',
+            document.body.getAttribute('data-vista') === 'poratender', false);
+      if (location.hash) location.hash = '';
+      return;
+    }
+    var filas = document.querySelectorAll('#paCuerpo tr');
+    /* Cuantos hay depende de lo que hayan hecho los pasos de arriba -uno
+       se devolvio y otro se presento-, asi que el numero exacto no se
+       escribe: lo que se mide es que haya cola y que sea la MISMA que la
+       de la ventana. Si tuviera su propia consulta, los dos numeros
+       dejarian de cuadrar el dia que una se quedara vieja. */
+    ok('tabla: hay un renglon por cada tramite que espera', filas.length > 0,
+       filas.length + ' renglones', 'al menos uno');
+    igual('tabla: y son los mismos que ensena la ventana',
+          filas.length, document.querySelectorAll('#colaTram .co-ficha').length);
+    igual('tabla: con sus siete columnas',
+          document.querySelectorAll('#paCab th').length, 7);
+    if (!filas.length) return;
+
+    var celdas = filas[0].querySelectorAll('td');
+    ok('tabla: el renglon dice de quien es', celdas[0].textContent.trim().length > 0,
+       '"' + celdas[0].textContent.trim() + '"', 'un nombre');
+    ok('tabla: y que tramite es', celdas[1].textContent.trim().length > 0,
+       '"' + celdas[1].textContent.trim() + '"', 'un tramite');
+    /* Quien lo lleva es la columna que convierte la lista en reparto. */
+    ok('tabla: y quien lo lleva', celdas[5].textContent.trim().length > 0,
+       '"' + celdas[5].textContent.trim() + '"', 'alguien o "sin asignar"');
+    /* El reloj: es lo que decide a quien se atiende primero. */
+    ok('tabla: y cuanto lleva esperando',
+       /día|hora|semana|minuto|giorn|ora|settiman/i.test(celdas[4].textContent),
+       '"' + celdas[4].textContent.trim() + '"', 'un tiempo');
+  }
+
+  /* Y no duplica ni una accion: el renglon abre la ventana por SU tramite.
+     Dos sitios donde tomar la misma solicitud se desincronizan el primer
+     dia. */
+  function tablaAbre(){
+    if (CASO !== 'gestor') return;
     var back = document.getElementById('colaBack');
-    ok('barra: y al equipo le abre la cola', !!back && back.classList.contains('open'),
-       back ? back.className : 'no hay cola', 'abierta');
+    if (back) back.classList.remove('open');   /* que la medida sea de esto */
+    var filas = document.querySelectorAll('#paCuerpo tr');
+    if (!filas.length){ window.PRUEBA_TR = null; return; }
+    /* El ultimo, que es el que menos posibilidades tiene de ser tambien
+       el primero de la ventana: asi "se abrio por el que pulsaste" mide
+       algo y no coincide por casualidad. */
+    var cual = filas[filas.length - 1];
+    window.PRUEBA_TR = cual.getAttribute('data-tr');
+    cual.click();
+  }
+
+  function tablaTrasAbrir(){
+    if (CASO !== 'gestor' || !window.PRUEBA_TR) return;
+    var back = document.getElementById('colaBack');
+    ok('tabla: al pulsar un renglon se abre la ventana',
+       !!back && back.classList.contains('open'),
+       back ? back.className : 'no hay ventana', 'abierta');
+    /* Y por el que pulsaste. Abrirla por arriba obliga a buscar otra vez
+       el que acabas de senalar, y con quince en la cola eso es volver a
+       empezar. */
+    var suya = document.querySelector('#colaTram [data-tr="' + window.PRUEBA_TR + '"]');
+    ok('tabla: y senalando el que pulsaste',
+       !!suya && suya.classList.contains('recien'),
+       suya ? suya.className : 'no esta esa ficha', 'marcada');
     if (document.getElementById('colaCerrar')) document.getElementById('colaCerrar').click();
-    /* Y el hash escrito a mano no le mete en la lista de otros. */
-    location.hash = 'tramites';
+    if (location.hash) location.hash = '';
   }
 
   function empresaAbre(){

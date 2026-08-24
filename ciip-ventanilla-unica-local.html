@@ -572,6 +572,68 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
 .sol-campo .de-antes{color:var(--gray); cursor:help;}
 
 /* --- la boveda de documentos --- */
+/* ── La cola en tabla ──
+   El ancho lo manda la columna del trámite, que es la que lleva el nombre
+   largo. Y la caja se desplaza sola: una tabla de siete columnas en un
+   móvil no cabe, y lo que NO puede pasar es que empuje la página entera
+   de lado. */
+.pa-vista{display:none;}
+body[data-vista="poratender"] .pa-vista{display:block;}
+body[data-vista="poratender"] .solo-inicio,
+body[data-vista="poratender"] #avisoDemo.show,
+body[data-vista="poratender"] #secTramites,
+body[data-vista="poratender"] .faq-sec{display:none;}
+body[data-vista="poratender"] .fase-bar{display:flex;}
+/* Los demas botones de volver, fuera. Solo los que nacen con display:none
+   se apartan solos; .volver es inline-flex por defecto, asi que sin esta
+   lista salian dos: el de esta vista y el de la portada. */
+body[data-vista="poratender"] #faseVolver,
+body[data-vista="poratender"] #trVolver,
+body[data-vista="poratender"] #ciVolver,
+body[data-vista="poratender"] #mtVolver,
+body[data-vista="poratender"] #acVolver,
+body[data-vista="poratender"] #ayVolver{display:none;}
+body[data-vista="poratender"] #paVolver{display:inline-flex;}
+#paVolver{display:none;}
+
+.pa-caja{overflow-x:auto; border:1px solid var(--line); border-radius:12px;
+  background:var(--bg);}
+.pa-tabla{width:100%; border-collapse:collapse; font-size:12.5px; min-width:720px;}
+.pa-tabla th{text-align:left; font-size:10px; font-weight:700; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--gray-soft); padding:10px 12px;
+  border-bottom:1px solid var(--line); white-space:nowrap; background:var(--block);}
+.pa-tabla td{padding:11px 12px; border-bottom:1px solid var(--line-soft);
+  vertical-align:middle; color:var(--ink);}
+.pa-tabla tr:last-child td{border-bottom:0;}
+.pa-tabla tbody tr:hover{background:var(--block);}
+/* La fila entera se pulsa. El botón de la última columna se queda igual:
+   es el que ve quien va con el teclado, y el que dice que esto lleva a
+   alguna parte. */
+.pa-tabla tbody tr{cursor:pointer;}
+.pa-quien{font-weight:700;}
+.pa-ente{font-size:11px; color:var(--gray); margin-top:2px;}
+.pa-fecha{color:var(--gray); white-space:nowrap;}
+/* Lo que lleva esperando, que es lo que decide a quién se atiende
+   primero. En ámbar cuando pasa de una semana: un número suelto no dice
+   si está bien o mal. */
+.pa-espera{white-space:nowrap;}
+.pa-espera.tarde{color:var(--amber); font-weight:700;}
+.pa-sinasig{color:var(--gray-soft);}
+.pa-mio{color:var(--navy2); font-weight:700;}
+.pa-abrir{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
+  background:transparent; border:1px solid var(--line); border-radius:7px;
+  padding:6px 11px; cursor:pointer; white-space:nowrap;}
+.pa-abrir:hover{border-color:var(--cyan-deep); background:var(--block);}
+/* El rotulo de la ultima columna existe pero no se ve: quince botones que
+   dicen "Abrir" bajo un titulo que dice "Abrir" es ruido a la vista, y
+   quitarlo del todo deja la columna sin nombre para quien la oye. */
+.visualmente-oculto{position:absolute; width:1px; height:1px; padding:0;
+  margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;}
+/* La que se venia a buscar desde la tabla, marcada un momento: sin esto
+   la ventana se abre por el sitio correcto y aun asi hay que adivinar
+   cual de las tres fichas a la vista era la tuya. */
+.co-ficha.recien{box-shadow:0 0 0 2px var(--cyan-deep);}
+
 .docs-vista{display:none;}
 body[data-vista="documentos"] .docs-vista{display:block;}
 body[data-vista="documentos"] .solo-inicio,
@@ -2095,6 +2157,10 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
         <span class="v-ico" aria-hidden="true">‹</span>
         <span data-i18n="nav.panel">Dashboard</span>
       </button>
+      <button class="volver" id="paVolver" type="button">
+        <span class="v-ico" aria-hidden="true">‹</span>
+        <span data-i18n="nav.panel">Dashboard</span>
+      </button>
       <button class="volver" id="dcVolver" type="button">
         <span class="v-ico" aria-hidden="true">‹</span>
         <span data-i18n="nav.panel">Dashboard</span>
@@ -2671,6 +2737,31 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
         <div class="sub" id="dcSub"></div>
       </div>
       <div class="ci-lista" id="dcLista"></div>
+    </div>
+
+    <!-- Los trámites por atender, en tabla. La ventana de arriba sigue
+         siendo la buena para ACTUAR sobre uno -tomarlo, revisarlo,
+         devolverlo, mirar el expediente- y esta es para VER LA COLA
+         ENTERA: quién espera, desde cuándo y quién la lleva, en columnas
+         que se comparan de un vistazo. Una pila de fichas no se compara;
+         se lee una por una.
+
+         Y no duplica ni una acción: cada renglón abre la ventana por su
+         trámite. Dos sitios donde tomar una solicitud se desincronizan el
+         primer día. -->
+    <div class="pa-vista">
+      <div class="sec-h">
+        <div class="t" data-i18n="nav.queue">Procedures to handle</div>
+        <div class="sub" id="paSub"></div>
+      </div>
+      <div class="co-filtros" id="paFiltros"></div>
+      <div class="pa-caja">
+        <table class="pa-tabla" id="paTabla">
+          <thead><tr id="paCab"></tr></thead>
+          <tbody id="paCuerpo"></tbody>
+        </table>
+      </div>
+      <div class="co-vacia" id="paVacia" hidden></div>
     </div>
 
     <!-- Ayuda y guia. NO repite las preguntas de la portada -esas van de
@@ -3746,6 +3837,11 @@ function applyLang(lang){
        CIIP ese renglón abre la cola, y esta vista no tiene nada que
        enseñarle salvo los trámites de otros. */
     if (tipo === 'mistramites' && window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) tipo = null;
+    /* Y al revés: la cola es del equipo. Un inversionista con el hash
+       escrito a mano vería una tabla vacía —la política de la base no le
+       deja leer lo de nadie— y una pantalla en blanco sin decir por qué es
+       peor que no tenerla. */
+    if (tipo === 'poratender' && !(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO())) tipo = null;
     /* La agenda se rellena al entrar, no al cargar la página: la mayoría de
        las visitas no pasan por ella y no hay que gastarles una consulta. */
     if (tipo === 'citas') traeAlEntrar('CIIP_PINTA_AGENDA');
@@ -3753,6 +3849,7 @@ function applyLang(lang){
     if (tipo === 'activos') traeAlEntrar('CIIP_PINTA_ACTIVOS');
     if (tipo === 'ayuda' && window.CIIP_REPINTA_AYUDA) window.CIIP_REPINTA_AYUDA();
     if (tipo === 'documentos') traeAlEntrar('CIIP_PINTA_DOCS');
+    if (tipo === 'poratender') traeAlEntrar('CIIP_PINTA_PORATENDER');
     if (tipo === 'empresa') traeAlEntrar('CIIP_PINTA_EMPRESA');
     if (tipo === 'usuarios') traeAlEntrar('CIIP_PINTA_USUARIOS');
 
@@ -3802,6 +3899,7 @@ function applyLang(lang){
     if (h === '#activos') return {tipo:'activos'};
     if (h === '#ayuda') return {tipo:'ayuda'};
     if (h === '#documentos') return {tipo:'documentos'};
+    if (h === '#poratender') return {tipo:'poratender'};
     if (h === '#empresa') return {tipo:'empresa'};
     if (h === '#usuarios') return {tipo:'usuarios'};
     return null;
@@ -3908,6 +4006,7 @@ function applyLang(lang){
              : (vista === 'activos') ? document.getElementById('navActivos')
              : (vista === 'ayuda') ? document.getElementById('navAyuda')
              : (vista === 'documentos') ? document.getElementById('navDocs')
+             : (vista === 'poratender') ? document.getElementById('navTramites')
              : (vista === 'empresa') ? document.getElementById('navEmpresa')
              : (vista === 'usuarios') ? document.getElementById('navUsuarios')
              : panel;
@@ -7831,8 +7930,11 @@ applyLang(idiomaParaMi());
     return true;
   }
 
-  function pintaFiltrosCola(){
-    var caja = document.getElementById('colaFiltros');
+  /* Los pintan las dos: la ventana y la tabla. Comparten el montón
+     (coFiltro), así que filtrar en una deja la otra ya filtrada. */
+  function pintaFiltrosCola(caja, repinta){
+    caja = caja || document.getElementById('colaFiltros');
+    repinta = repinta || pintaTramites;
     if (!caja) return;
     var u = T();
     caja.textContent = '';
@@ -7853,7 +7955,7 @@ applyLang(idiomaParaMi());
         b.type = 'button';
         b.appendChild(document.createTextNode(x[1] || ''));
         b.appendChild(el('span', 'n', String(n)));
-        b.addEventListener('click', function(){ coFiltro = x[0]; pintaTramites(); });
+        b.addEventListener('click', function(){ coFiltro = x[0]; repinta(); });
         caja.appendChild(b);
       });
   }
@@ -7918,6 +8020,8 @@ applyLang(idiomaParaMi());
 
     vistos.forEach(function(t){
       var f = el('div', 'co-ficha');
+      /* Para que la tabla pueda traer a alguien hasta AQUÍ. */
+      f.setAttribute('data-tr', t.id);
       var ref = tipoRefDe(t.tipo);
 
       var est = el('span', 'co-estado' + (t.estado === 'en_revision' ? ' mirando' : ''),
@@ -8471,11 +8575,136 @@ applyLang(idiomaParaMi());
       });
   }
 
-  function abreCola(){
+  /* ── LA COLA EN TABLA ──────────────────────────────────────────
+     La ventana de arriba es para ACTUAR sobre un trámite: tomarlo,
+     revisarlo, devolverlo, abrir su expediente. Esto es para ver la cola
+     ENTERA de un vistazo —quién espera, desde cuándo y quién la lleva— en
+     columnas que se comparan. Una pila de fichas no se compara: se lee una
+     por una, y con quince encima no hay forma de decir cuál va primero.
+
+     No duplica ni una acción. Cada renglón abre la ventana por SU trámite,
+     porque dos sitios donde tomar la misma solicitud se desincronizan el
+     primer día. Y bebe de la misma consulta: si tuviera la suya, los dos
+     números de arriba dejarían de cuadrar. ─────────────────────────── */
+  var COLUMNAS = ['co_c_quien', 'co_c_tramite', 'co_c_estado', 'co_c_enviada',
+                  'co_c_espera', 'co_c_lleva', 'co_c_abrir'];
+
+  function pintaTabla(){
+    var cuerpo = document.getElementById('paCuerpo');
+    if (!cuerpo) return;
+    var u = T();
+    var sub = document.getElementById('paSub');
+    if (sub) sub.textContent = u.co_sub || '';
+
+    var cab = document.getElementById('paCab');
+    if (cab){
+      cab.textContent = '';
+      COLUMNAS.forEach(function(k){
+        var th = document.createElement('th');
+        th.scope = 'col';
+        /* La última no lleva rótulo: son botones, y "Abrir" repetido
+           quince veces encima de quince botones que dicen Abrir es ruido.
+           Se queda para el lector de pantalla. */
+        if (k === 'co_c_abrir'){
+          var oculto = el('span', 'visualmente-oculto', u[k] || '');
+          th.appendChild(oculto);
+        } else {
+          th.textContent = u[k] || '';
+        }
+        cab.appendChild(th);
+      });
+    }
+
+    /* Los mismos filtros y el MISMO montón: coFiltro lo comparten la
+       ventana y la tabla, así que filtrar en una deja la otra igual. */
+    pintaFiltrosCola(document.getElementById('paFiltros'), pintaTabla);
+
+    cuerpo.textContent = '';
+    var vacia = document.getElementById('paVacia');
+    var vistos = enRevision.filter(coCuadra);
+    if (vacia){
+      vacia.hidden = !!vistos.length;
+      vacia.textContent = vistos.length ? '' : (u.co_tram_vacio || '');
+    }
+    var caja = document.querySelector('.pa-caja');
+    if (caja) caja.hidden = !vistos.length;
+    if (!vistos.length) return;
+
+    vistos.forEach(function(t){
+      var ref = tipoRefDe(t.tipo);
+      var fila = document.createElement('tr');
+      fila.setAttribute('data-tr', t.id);
+
+      function celda(hijo, clase){
+        var td = document.createElement('td');
+        if (clase) td.className = clase;
+        if (typeof hijo === 'string') td.textContent = hijo;
+        else if (hijo) td.appendChild(hijo);
+        fila.appendChild(td);
+        return td;
+      }
+
+      celda(t.nombre || u.co_sinnombre || '', 'pa-quien');
+
+      var qué = el('div');
+      qué.appendChild(el('div', null, ref ? nombreDeTarjeta(ref) : t.tipo));
+      var ente = (TIPOS[ref] || {}).ente || '';
+      if (ente) qué.appendChild(el('div', 'pa-ente', ente));
+      celda(qué);
+
+      celda(el('span', 'co-estado' + (t.estado === 'en_revision' ? ' mirando' : ''),
+               textoDeEvento(t.estado, ente)));
+
+      celda(fecha(t.enviado_en || t.creado_en), 'pa-fecha');
+
+      /* Lo que lleva parado, que es lo que decide a quién se atiende
+         primero. El MISMO reloj de la ventana —repetir la cuenta aquí
+         serían dos números esperando a separarse— pero sin su frase: allí
+         va suelto y tiene que decir de qué habla, y aquí lo dice la
+         cabecera de la columna. «En espera: esperando desde hace 17 días»
+         es decirlo dos veces. */
+      var r = relojDe(t.desde_en || t.enviado_en || t.creado_en, '{cuando}');
+      celda(r || document.createTextNode('—'), 'pa-espera');
+
+      var mio = !!YO && t.gestor === YO;
+      celda(mio ? (u.co_lollevas || '')
+            : t.gestor ? nombreDeGestor(t.gestor)
+            : (u.co_sinasig || ''),
+            mio ? 'pa-mio' : (t.gestor ? null : 'pa-sinasig'));
+
+      var b = el('button', 'pa-abrir', u.co_c_abrir || '');
+      b.type = 'button';
+      celda(b);
+
+      function vamos(){ abreCola(t.id); }
+      b.addEventListener('click', function(e){ e.stopPropagation(); vamos(); });
+      fila.addEventListener('click', vamos);
+      cuerpo.appendChild(fila);
+    });
+  }
+  window.CIIP_PINTA_PORATENDER = function(){
+    return cargaCola().then(pintaTabla).catch(function(e){
+      console.warn('[CIIP] cola en tabla:', e && e.message);
+      pintaTabla();
+    });
+  };
+  window.CIIP_REPINTA_PORATENDER = pintaTabla;
+
+  function abreCola(irA){
     if (!coBack) return;
     coBack.classList.add('open');
     coBtn.setAttribute('aria-expanded', 'true');
-    cargaCola().then(pintaCola).catch(function(e){
+    cargaCola().then(function(){
+      pintaCola();
+      /* Y si se viene de un renglón de la tabla, a ESE. Abrir la ventana
+         por arriba obliga a buscar otra vez el que acabas de pulsar, y con
+         quince en la cola eso es volver a empezar. */
+      if (!irA) return;
+      var suya = coLista && coLista.ownerDocument
+        .querySelector('#colaTram [data-tr="' + irA + '"]');
+      if (suya && suya.scrollIntoView) suya.scrollIntoView({block:'nearest'});
+      if (suya) suya.classList.add('recien');
+    }).catch(function(e){
       console.warn('[CIIP] cola:', e && e.message);
       coLista.textContent = '';
       coLista.appendChild(el('div', 'co-vacia', T().co_error || ''));
@@ -8930,10 +9159,11 @@ applyLang(idiomaParaMi());
 
   if (mtLista){
     if (mtNav) mtNav.addEventListener('click', function(){
-      /* Para el equipo del CIIP este renglón es la cola, no una lista
-         personal: mismo sitio que el botón de arriba. */
+      /* Para el equipo del CIIP este renglón lleva a la cola en TABLA, no
+         a la ventana. La ventana sigue colgando del botón de arriba, que
+         es para asomarse; esto es para sentarse a trabajar. */
       if (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()){
-        if (window.CIIP_ABRE_COLA) window.CIIP_ABRE_COLA();
+        location.hash = 'poratender';
         return;
       }
       location.hash = 'tramites';
@@ -9837,6 +10067,10 @@ applyLang(idiomaParaMi());
 
   if (dcLista){
     if (dcNav) dcNav.addEventListener('click', function(){ location.hash = 'documentos'; });
+    var paVolver = document.getElementById('paVolver');
+    if (paVolver) paVolver.addEventListener('click', function(){
+      if (location.hash) location.hash = '';
+    });
     var dcVolver = document.getElementById('dcVolver');
     if (dcVolver) dcVolver.addEventListener('click', function(){
       if (location.hash) location.hash = '';
