@@ -3029,8 +3029,20 @@
      veias que estaba mal y no habia nada que hacer sin entrar en un
      tramite que a lo mejor no ibas a enviar. */
   function docsCambia(){
-    if (CASO === 'gestor') return;
     var f = document.querySelector('#dcLista .ci-ficha');
+    /* Al equipo del CIIP, NO. La politica de la base le deja leer los
+       documentos de todos, asi que esta lista vista por un gestor es la de
+       todo el mundo, y el boton ahi no cambiaba nada: sube() firma lo que
+       sube con quien esta dentro, o sea que el gestor se habria creado un
+       documento suyo -huerfano, en la boveda de nadie- mientras el del
+       inversionista seguia igual. */
+    if (CASO === 'gestor'){
+      ok('docs: al equipo del CIIP no se le ofrece cambiar lo de otro',
+         !!f && !f.querySelector('.dc-pie .btn.ghost'),
+         f ? (f.querySelector('.dc-pie .btn.ghost') ? 'le sale el boton' : 'sin boton')
+           : 'no hay ficha', 'sin boton');
+      return;
+    }
     ok('docs: la ficha ofrece cambiar el papel', !!(f && f.querySelector('.dc-pie .btn.ghost')),
        f ? (f.querySelector('.dc-pie .btn.ghost') ? 'con boton' : 'solo abrir') : 'no hay ficha',
        'con boton de cambiar');

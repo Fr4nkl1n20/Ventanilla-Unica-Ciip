@@ -9634,8 +9634,16 @@ applyLang(idiomaParaMi());
          ser el que ofrecen los formularios por ser el último.
 
          Solo sobre el que vale: cambiar uno ya reemplazado es subir un
-         tercero para dejarlo igual. */
-      if (elBueno){
+         tercero para dejarlo igual.
+
+         Y solo al INVERSIONISTA. La política de la base deja al equipo del
+         CIIP leer los documentos de todos, así que esta lista, vista por un
+         gestor, es la de todo el mundo. Ahí el botón no cambiaba nada:
+         sube() firma lo que sube con quien está dentro, así que el gestor
+         se habría creado un documento suyo —huérfano, en la bóveda de
+         nadie— mientras el del inversionista seguía igual. */
+      var mio = (typeof PERFIL !== 'undefined') && PERFIL.rol === 'inversionista';
+      if (elBueno && mio){
         var arch = document.createElement('input');
         arch.type = 'file';
         arch.accept = 'image/*,application/pdf';
@@ -9719,6 +9727,17 @@ applyLang(idiomaParaMi());
     /* Se pide al cargar por el contador del renglón: un documento vencido
        ahí dentro es de las pocas cosas que conviene ver sin buscarlas. */
     cargaDocs();
+    /* Y se vuelve a pintar cuando se sabe el rol. La lista se dibuja antes
+       de que llegue —son dos consultas— y el botón de cambiar depende de
+       él: sin esto se pintaba con el rol en blanco y ya no se corregía. Es
+       el mismo compás que usan los activos y la cola. */
+    var vecesDc = 0, rolDc = null;
+    (function esperaAlRolDocs(){
+      var rol = (typeof PERFIL !== 'undefined' && PERFIL.rol) || '';
+      if (rol !== rolDc){ rolDc = rol; pintaDocs(); }
+      if (typeof PERFIL !== 'undefined' && PERFIL.rolReal) return;
+      if (vecesDc++ < 40) setTimeout(esperaAlRolDocs, 100);
+    })();
   }
 
 
