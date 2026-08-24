@@ -136,6 +136,7 @@
               ayudaAbre, ayudaMira, ayudaFaq,
               supAbre, supMira, supTemas, supVuelve,
               franjaDescarta, franjaTrasDescartar,
+              fotoAbre, fotoMira, fotoMala, fotoSube, fotoTrasSubir, fotoCierra,
               logosMiran], volcar);
   });
 
@@ -3192,6 +3193,92 @@
     igual('franja: y su tarjeta vuelve a estar por iniciar',
           document.querySelector('.tcard[data-tr="c1"]').getAttribute('data-st'),
           'pendiente');
+  }
+
+  /* ═══════════ LA FOTO TIPO CARNET ═══════════
+     La piden tres tramites y hasta ahora solo se podia subir DENTRO de
+     uno: para tener la foto guardada habia que empezar una solicitud que
+     a lo mejor no ibas a mandar. Ahora se sube desde la ficha y cae en la
+     misma boveda con el mismo tipo, asi que los formularios que la piden
+     la encuentran ya cargada. */
+  function fotoAbre(){
+    var chip = document.querySelector('.user');
+    if (chip) chip.click();
+  }
+
+  function fotoMira(){
+    var campo = document.getElementById('pfCampoFoto');
+    /* El equipo del CIIP no tiene recaudos que subir: pedirle una foto de
+       carnet es pedirle algo que no le toca. */
+    if (CASO === 'gestor'){
+      ok('foto: al equipo del CIIP no se le pide', !!campo && campo.hidden,
+         campo ? ('hidden=' + campo.hidden) : 'no hay campo', 'escondido');
+      return;
+    }
+    ok('foto: la ficha ofrece subirla', !!campo && !campo.hidden,
+       campo ? ('hidden=' + campo.hidden) : 'no hay campo', 'a la vista');
+    if (!campo || campo.hidden) return;
+
+    igual('foto: y el boton invita a subir la primera',
+          (document.getElementById('pfFotoBtn') || {}).textContent, 'Subir una foto');
+    igual('foto: y dice para que sirve',
+          (document.getElementById('pfFotoPista') || {}).textContent,
+          'La piden varios tr\u00e1mites. S\u00fabela una vez y sale ya cargada en todos.');
+
+    /* Mientras no hay ninguna, las iniciales. Un hueco vacio no dice si
+       falta la foto o si es la pantalla la que no la trae. */
+    var vista = document.getElementById('pfFotoVista');
+    ok('foto: y mientras no hay ninguna salen tus iniciales',
+       !!vista && !vista.querySelector('img') && vista.textContent.trim().length > 0,
+       vista ? ('"' + vista.textContent.trim() + '"') : 'no hay hueco', 'las iniciales');
+  }
+
+  /* Se comprueba ANTES de subir: hacer esperar por un error que se sabia
+     desde el principio es el peor sitio donde decirlo. */
+  function fotoMala(){
+    if (CASO === 'gestor') return;
+    var inp = document.getElementById('pfFotoArchivo');
+    if (!inp) return;
+    var dt = new DataTransfer();
+    dt.items.add(new File(['%PDF-1.4'], 'contrato.pdf', {type:'application/pdf'}));
+    inp.files = dt.files;
+    inp.dispatchEvent(new Event('change'));
+    var pista = document.getElementById('pfFotoPista');
+    igual('foto: un archivo que no es imagen no se sube, y lo dice',
+          pista.textContent, 'Tiene que ser una imagen de menos de 5 MB.');
+    ok('foto: y el aviso sale en rojo', /mal/.test(pista.className),
+       pista.className, 'con la marca de error');
+  }
+
+  function fotoSube(){
+    if (CASO === 'gestor') return;
+    var inp = document.getElementById('pfFotoArchivo');
+    if (!inp) return;
+    var dt = new DataTransfer();
+    dt.items.add(new File([new Uint8Array(64)], 'yo.png', {type:'image/png'}));
+    inp.files = dt.files;
+    inp.dispatchEvent(new Event('change'));
+    /* Y el campo se vacia solo: sin eso, elegir DOS VECES el mismo archivo
+       no lanza 'change' la segunda y el boton parece muerto. */
+    igual('foto: y el campo se vacia para poder repetir el mismo archivo',
+          inp.value, '');
+  }
+
+  function fotoTrasSubir(){
+    if (CASO === 'gestor') return;
+    var pista = document.getElementById('pfFotoPista');
+    if (!pista) return;
+    igual('foto: al subirla se guarda, y dice que ya la tienen los tramites',
+          pista.textContent, 'Guardada. Ya la tienen los tr\u00e1mites que la piden.');
+    ok('foto: y el aviso sale en verde', /ok/.test(pista.className),
+       pista.className, 'con la marca de hecho');
+    ok('foto: y el boton vuelve a estar vivo',
+       !document.getElementById('pfFotoBtn').disabled, 'vivo', 'vivo');
+  }
+
+  function fotoCierra(){
+    var x = document.getElementById('pfCerrar');
+    if (x) x.click();
   }
 
   function logosMiran(){

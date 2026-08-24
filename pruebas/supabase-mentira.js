@@ -533,7 +533,7 @@
          hoy, que si no el 'vencido' dejaria de estarlo con el tiempo. */
       var dia = 86400000, hoy = Date.now();
       function fechaEn(d){ return new Date(hoy + d * dia).toISOString().slice(0, 10); }
-      return {data:[
+      var boveda = [
         {id:'doc1', tipo:'cedula', archivo:'u1/pasaporte.pdf',
          nombre_original:'pasaporte.pdf', vence_el:null, estado:'cargado',
          nota_revision:'', creado_en:'2026-07-02T10:00:00Z'},
@@ -543,7 +543,16 @@
         {id:'doc3', tipo:'acta_constitutiva', archivo:'u1/acta.pdf',
          nombre_original:'acta-constitutiva.pdf', vence_el:fechaEn(12),
          estado:'cargado', nota_revision:'', creado_en:'2026-08-01T10:00:00Z'}
-      ], error:null};
+      ];
+      /* Y por TIPO cuando lo piden, que es como lo pregunta el formulario
+         de un tramite -¿tengo ya este recaudo?- y la foto de la ficha.
+         Devolver los tres para cualquier tipo hacia que TODO recaudo
+         saliera reutilizado: la prueba de \"todavia no hay foto\" no podia
+         distinguirse de la de \"ya la hay\". */
+      if (op && op.eq && op.eq.tipo){
+        boveda = boveda.filter(function(d){ return d.tipo === op.eq.tipo; });
+      }
+      return {data:boveda, error:null};
     }
     if (tabla === 'tramite_documentos' && !(op && op.eq)){
       /* SIN .eq: la boveda pregunta por TODOS para contar en cuantos
