@@ -132,7 +132,7 @@
               mtLleva, mtLlevaMira,
               empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
               entregaAbre, entregaMira,
-              docsAbre, docsMira,
+              docsAbre, docsMira, docsCambia, docsTrasCambiar,
               ayudaAbre, ayudaMira, ayudaFaq,
               supAbre, supMira, supTemas, supVuelve,
               franjaDescarta, franjaTrasDescartar,
@@ -3006,8 +3006,15 @@
     ok('bóveda: y cuando no se usa en ninguno, lo dice',
        /Todavía no se ha usado/.test(textos), 'busca "Todavía no se ha usado"', 'aparece');
 
-    ok('bóveda: cada uno se puede abrir', fichas.length === document.querySelectorAll('#dcLista .btn').length,
-       document.querySelectorAll('#dcLista .btn').length + ' botones', '3 botones');
+    /* El de ABRIR, que ahora hay dos por ficha: desde que se puede cambiar
+       un papel, contar '.btn' a secas contaba los dos y esto media otra
+       cosa. */
+    (function(){
+      var abren = document.querySelectorAll('#dcLista .btn.navy').length;
+      ok('bóveda: cada uno se puede abrir', fichas.length === abren,
+         abren + ' botones de abrir para ' + fichas.length + ' fichas',
+         fichas.length + ' botones');
+    })();
 
     document.getElementById('dcVolver').click();
   }
@@ -3016,6 +3023,52 @@
      El renglón se iluminaba y no llevaba a ninguna parte. Lo que faltaba no
      eran más preguntas sobre invertir en Venezuela —esas ya están en la
      portada— sino quién explica cómo funciona el panel. */
+  /* ═══════ CAMBIAR UN PAPEL DE LA BOVEDA ═══════
+     Abrirlo servia para comprobar que el que hay no es el que vale
+     -"pasaporte.pdf" puede ser el vencido- y hasta ahi llegaba: mirabas,
+     veias que estaba mal y no habia nada que hacer sin entrar en un
+     tramite que a lo mejor no ibas a enviar. */
+  function docsCambia(){
+    if (CASO === 'gestor') return;
+    var f = document.querySelector('#dcLista .ci-ficha');
+    ok('docs: la ficha ofrece cambiar el papel', !!(f && f.querySelector('.dc-pie .btn.ghost')),
+       f ? (f.querySelector('.dc-pie .btn.ghost') ? 'con boton' : 'solo abrir') : 'no hay ficha',
+       'con boton de cambiar');
+    if (!f) return;
+    var arch = f.querySelector('input[type=file]');
+    if (!arch) return;
+    /* Cuantos hay ANTES, para medir que el nuevo se suma y el viejo no se
+       borra: va adjunto a solicitudes ya enviadas. */
+    window.PRUEBA_DOCS_ANTES = document.querySelectorAll('#dcLista .ci-ficha').length;
+    var dt = new DataTransfer();
+    dt.items.add(new File([new Uint8Array(8)], 'el-bueno.pdf', {type:'application/pdf'}));
+    arch.files = dt.files;
+    arch.dispatchEvent(new Event('change'));
+  }
+
+  function docsTrasCambiar(){
+    if (CASO === 'gestor') return;
+    var fichas = document.querySelectorAll('#dcLista .ci-ficha');
+    igual('docs: al cambiarlo, el nuevo se suma y el viejo se queda',
+          fichas.length, (window.PRUEBA_DOCS_ANTES || 0) + 1);
+    ok('docs: y el nuevo lleva su nombre',
+       /el-bueno\.pdf/.test(document.getElementById('dcLista').textContent),
+       'busca el-bueno.pdf', 'esta en la lista');
+    /* Y se dice cual ya no vale: dos pasaportes sin decir cual se usa es
+       peor que uno solo equivocado. */
+    var marcas = document.querySelectorAll('#dcLista .dc-viejo');
+    ok('docs: y el de antes queda marcado como reemplazado', marcas.length >= 1,
+       marcas.length + ' marcados', 'al menos uno');
+    /* Al reemplazado no se le ofrece cambiarlo: seria subir un tercero
+       para dejarlo igual. */
+    var vieja = marcas[0] ? marcas[0].closest('.ci-ficha') : null;
+    ok('docs: y al reemplazado ya no se le ofrece cambiar',
+       !!vieja && !vieja.querySelector('.dc-pie .btn.ghost'),
+       vieja ? (vieja.querySelector('.dc-pie .btn.ghost') ? 'sigue el boton' : 'sin boton')
+             : 'no hay ficha vieja',
+       'sin boton');
+  }
+
   function ayudaAbre(){
     document.getElementById('navAyuda').click();
   }

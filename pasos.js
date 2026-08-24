@@ -369,6 +369,8 @@ window.CIIP_PASOS = {
       dc_usado1:   "Se usa en un trámite",
       dc_sinusar:  "Todavía no se ha usado en ningún trámite",
       dc_revisa:   "Vuelve a subirlo: el que está aquí ya no sirve.",
+      dc_cambiar:   "Cambiar",
+      dc_viejo:     "Reemplazado",
       /* Mi empresa. Las etiquetas de los campos NO se escriben aquí: son
          las mismas f_* que usan los formularios, para que la empresa y el
          trámite llamen igual a lo mismo. */
@@ -890,6 +892,8 @@ window.CIIP_PASOS = {
       dc_usado1:   "Used in one procedure",
       dc_sinusar:  "Not used in any procedure yet",
       dc_revisa:   "Upload it again: the one here is no longer good.",
+      dc_cambiar:   "Replace",
+      dc_viejo:     "Replaced",
       /* My company. Field labels are NOT written here: they are the same
          f_* the forms use, so company and procedure call the same thing by
          the same name. */
@@ -1397,6 +1401,8 @@ window.CIIP_PASOS = {
       dc_usado1:   "Usado num trâmite",
       dc_sinusar:  "Ainda não foi usado em nenhum trâmite",
       dc_revisa:   "Carregue-o de novo: o que está aqui já não serve.",
+      dc_cambiar:   "Mudar",
+      dc_viejo:     "Substituído",
       /* A minha empresa. */
       em_sub:       "Os dados da sua empresa, escritos uma só vez",
       em_vacia:     "Ainda não registou a sua empresa. Quando o fizer, os formulários que peçam estes dados oferecê-los-ão já escritos.",
@@ -1898,6 +1904,8 @@ window.CIIP_PASOS = {
       dc_usado1:   "Usato in una pratica",
       dc_sinusar:  "Non ancora usato in nessuna pratica",
       dc_revisa:   "Ricaricalo: quello che c'è qui non va più bene.",
+      dc_cambiar:   "Sostituisci",
+      dc_viejo:     "Sostituito",
       /* La mia azienda. */
       em_sub:       "I dati della tua azienda, scritti una volta sola",
       em_vacia:     "Non hai ancora registrato la tua azienda. Quando lo farai, i moduli che chiedono questi dati te li proporranno già scritti.",
@@ -2399,6 +2407,8 @@ window.CIIP_PASOS = {
       dc_usado1:   "用于一项业务",
       dc_sinusar:  "尚未用于任何业务",
       dc_revisa:   "请重新上传：现有的已不可用。",
+      dc_cambiar:   "更换",
+      dc_viejo:     "已被替换",
       /* 我的公司。 */
       em_sub:       "公司资料，只填一次",
       em_vacia:     "您还没有登记公司。登记后，需要这些资料的表单会直接帮您填好。",
@@ -2900,6 +2910,8 @@ window.CIIP_PASOS = {
       dc_usado1:   "Используется в одной заявке",
       dc_sinusar:  "Пока не используется ни в одной заявке",
       dc_revisa:   "Загрузите заново: этот больше не годится.",
+      dc_cambiar:   "Заменить",
+      dc_viejo:     "Заменён",
       /* Моя компания. */
       em_sub:       "Данные вашей компании — один раз",
       em_vacia:     "Вы ещё не зарегистрировали компанию. Когда сделаете это, формы будут предлагать эти данные уже заполненными.",

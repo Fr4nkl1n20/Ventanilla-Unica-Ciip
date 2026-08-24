@@ -585,7 +585,11 @@ body[data-vista="documentos"] #dcVolver{display:inline-flex;}
 .dc-arch{font-family:ui-monospace, "Cascadia Mono", Consolas, monospace;
   font-size:11.5px; color:var(--gray); margin-top:3px; word-break:break-all;}
 .dc-pie{display:flex; gap:9px; align-items:center; margin-top:11px; flex-wrap:wrap;}
-.dc-pie .btn{margin-left:auto; font-size:12px; padding:8px 13px;}
+/* Los botones juntos a la derecha. El margin-left:auto estaba en .btn, y
+   con dos botones se lo llevaban los dos: el primero empujaba hasta el
+   medio y se quedaba ahi colgado. Ahora empuja lo de la izquierda. */
+.dc-pie .dc-usos{margin-right:auto;}
+.dc-pie .btn{font-size:12px; padding:8px 13px;}
 .dc-usos{font-size:11.5px; color:var(--gray-soft);}
 /* Un documento vencido no es un aviso mas: es el que va a devolverte el
    tramite. Se marca como se marca una devolucion. */
@@ -1079,6 +1083,11 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .pf-foto-pista{font-size:11px; color:var(--gray); line-height:1.45;}
 .pf-foto-pista.mal{color:var(--rust);}
 .pf-foto-pista.ok{color:var(--good);}
+
+/* El que ya no es el bueno. En gris y sin caja: no es un error ni un
+   aviso, es un dato —sigue ahí porque va adjunto a lo que ya se envió—. */
+.dc-viejo{font-size:10px; font-weight:700; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--gray-soft);}
 
 .pf-aviso{font-size:12px; color:var(--rust); min-height:16px;}
 .pf-aviso.ok{color:var(--good);}
@@ -9543,6 +9552,18 @@ applyLang(idiomaParaMi());
       return;
     }
 
+    /* El último subido de cada tipo. `papeles` puede venir ordenado con lo
+       caducado delante, así que no vale con quedarse el primero de la
+       lista: se mira la fecha. */
+    var vigenteDeTipo = {}, fechaDeTipo = {};
+    papeles.forEach(function(d){
+      var t = Date.parse(d.creado_en) || 0;
+      if (fechaDeTipo[d.tipo] === undefined || t > fechaDeTipo[d.tipo]){
+        fechaDeTipo[d.tipo] = t;
+        vigenteDeTipo[d.tipo] = d.id;
+      }
+    });
+
     papeles.forEach(function(d){
       var est = comoEsta(d);
       var f = el('div', 'ci-ficha' + (est && est.mal ? ' vencido' : ''));
@@ -9573,6 +9594,14 @@ applyLang(idiomaParaMi());
         : n === 1 ? (u.dc_usado1 || '')
         : String(u.dc_usado || '').replace('{n}', n)));
 
+      /* De cada tipo hay UNO que cuenta: el último subido, que es el que
+         los formularios ofrecen ya cargado. Los de antes se quedan —van
+         adjuntos a trámites que ya se enviaron, y borrarlos reescribiría
+         lo que el CIIP recibió— pero se marcan, que si no la bóveda
+         enseña dos pasaportes y ninguno dice cuál vale. */
+      var elBueno = (vigenteDeTipo[d.tipo] === d.id);
+      if (!elBueno) pie.appendChild(el('span', 'dc-viejo', u.dc_viejo || ''));
+
       /* El cubo es privado: no hay dirección fija. Se pide una firmada, que
          caduca en dos minutos, igual que en el formulario y en la cola. */
       var abrir = el('button', 'btn navy', u.co_abrir || '');
@@ -9592,6 +9621,54 @@ applyLang(idiomaParaMi());
             abrir.textContent = u.co_noabre || '';
           });
       });
+
+      /* Y poder CAMBIARLO. Abrirlo servía para comprobar que el que hay no
+         es el que vale —"pasaporte.pdf" puede ser el vencido— y hasta aquí
+         llegaba: mirabas, veías que estaba mal y no había nada que hacer.
+         Para cambiarlo había que entrar en un trámite que a lo mejor no
+         ibas a enviar.
+
+         Sube uno NUEVO del mismo tipo en vez de pisar el de antes: el
+         viejo va adjunto a solicitudes ya enviadas, y cambiarle el archivo
+         por debajo reescribiría lo que el CIIP recibió. El nuevo pasa a
+         ser el que ofrecen los formularios por ser el último.
+
+         Solo sobre el que vale: cambiar uno ya reemplazado es subir un
+         tercero para dejarlo igual. */
+      if (elBueno){
+        var arch = document.createElement('input');
+        arch.type = 'file';
+        arch.accept = 'image/*,application/pdf';
+        arch.hidden = true;
+        var cambiar = el('button', 'btn ghost', u.dc_cambiar || '');
+        cambiar.type = 'button';
+        cambiar.addEventListener('click', function(){ arch.click(); });
+        arch.addEventListener('change', function(){
+          var nuevo = arch.files[0];
+          /* Y se vacía: sin esto, elegir DOS VECES el mismo archivo no
+             lanza 'change' la segunda vez. */
+          arch.value = '';
+          if (!nuevo) return;
+          cambiar.disabled = true;
+          abrir.disabled = true;
+          cambiar.textContent = u.pf_fotoyendo || '';
+          sube(d.tipo, nuevo).then(function(){
+            /* La lista entera, que cambia quién es el bueno y las cuentas
+               de uso siguen siendo las de antes. */
+            return cargaDocs();
+          }).catch(function(e){
+            console.warn('[CIIP] cambiar documento:', e && (e.message || e));
+            cambiar.disabled = false;
+            abrir.disabled = false;
+            cambiar.textContent = u.pf_fotoerror || '';
+          });
+        });
+        pie.appendChild(cambiar);
+        pie.appendChild(arch);
+      }
+      /* Y el azul al final: es el que mas se pulsa y el que ya estaba
+         ahi, y mover un boton de sitio es cambiarle el gesto a quien ya
+         se lo sabe. */
       pie.appendChild(abrir);
       f.appendChild(pie);
 
