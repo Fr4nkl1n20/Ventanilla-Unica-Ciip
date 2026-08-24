@@ -120,7 +120,10 @@ $casos = @(
   @{ caso='gestor';    ancho='1400,1000' },
   @{ caso='estrecho';  ancho='760,900'   },
   @{ caso='sinsql';    ancho='1400,1000' },
-  @{ caso='admin';     ancho='1400,1000' }
+  @{ caso='admin';     ancho='1400,1000' },
+  @{ caso='sinsector';   ancho='1400,1000' },
+  @{ caso='sincatalogo'; ancho='1400,1000' },
+  @{ caso='sinsectorsql'; ancho='1400,1000' }
 )
 foreach ($c in $casos) {
   $caso  = $c.caso

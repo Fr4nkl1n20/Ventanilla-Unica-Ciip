@@ -95,7 +95,7 @@ for (const m of PANEL.matchAll(/\bu\.([a-z][a-z0-9_]{2,})\b/g)) pedidasUI.add(m[
 /* Solo se juzgan las que parecen de este diccionario: las demás son
    variables sueltas que se llaman igual. */
 const prefijosUI = ['ac_', 'av_', 'ay_', 'ci_', 'co_', 'ct_', 'd_', 'dc_', 'em_',
-                    'f_', 'mt_', 'ns_', 'pf_', 'tr_'];
+                    'f_', 'mt_', 'ns_', 'pf_', 'se_', 'tr_'];
 const fantasmas = [...pedidasUI].filter(k =>
   prefijosUI.some(p => k.startsWith(p)) && !(k in UI.es));
 ok('pasos: ningún texto pedido se queda sin definir',

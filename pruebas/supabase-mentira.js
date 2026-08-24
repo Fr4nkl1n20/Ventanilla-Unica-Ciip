@@ -49,8 +49,15 @@
      cualquiera que se baje el panel hoy: el codigo va por delante de la
      base. Postgres no devuelve las columnas que si conoce y las demas
      vacias -rechaza la consulta entera-, asi que aqui se rechaza igual. */
-  var sinSql = (caso === 'sinsql');
-  if (sinSql) caso = 'gestor';
+  /* 'sinsectorsql' es un INVERSIONISTA que no ha contestado el sector y
+     cuya base tampoco tiene la columna. Necesita pase propio: en 'sinsql'
+     el usuario es un GESTOR, y a un gestor no se le pregunta el sector
+     nunca, asi que alli la prueba de "no bloquea" pasaria sola sin llegar
+     a medir nada. Es el mismo punto ciego del F5, otra vez. */
+  var sinSectorSql = (caso === 'sinsectorsql');
+  var sinSql = (caso === 'sinsql') || sinSectorSql;
+  if (caso === 'sinsql') caso = 'gestor';
+  if (sinSectorSql) caso = 'sinsector';
 
   /* 'admin' son los mismos datos del gestor con el rol de administrador.
      Hasta ahora NINGUN pase entraba con ese rol: por eso nadie noto que el
@@ -244,10 +251,29 @@
      como llega de verdad una cuenta creada a mano en Supabase. */
   var PERFILES = {
     gestor:    {nombre_completo:'Franklin Reyes', pais:'Italia', rol:'gestor'},
-    lleno:     {nombre_completo:'Franklin Reyes', pais:'Italia', rol:'inversionista'},
-    vacio:     {nombre_completo:'Franklin Reyes', pais:'Italia', rol:'inversionista'},
-    sinnombre: {nombre_completo:'',               pais:'',       rol:'inversionista'}
+    lleno:     {nombre_completo:'Franklin Reyes', pais:'Italia', rol:'inversionista', sector:'turismo'},
+    vacio:     {nombre_completo:'Franklin Reyes', pais:'Italia', rol:'inversionista', sector:'turismo'},
+    sinnombre: {nombre_completo:'',               pais:'',       rol:'inversionista', sector:'turismo'},
+    /* Los tres que NO han contestado, cada uno para medir una cosa:
+       · sinsector    la puerta se abre y hay que contestarla;
+       · sincatalogo  no hay sectores que ofrecer, y NO debe bloquear;
+       · sinsql       la columna no existe, y tampoco debe bloquear.
+       Los dos ultimos vienen sin sector A PROPOSITO. Con sector, las dos
+       pruebas pasarian solas sin llegar a comprobar nada: es el punto
+       ciego que ya me colo una vez con el F5. */
+    sinsector:   {nombre_completo:'Franklin Reyes', pais:'Italia', rol:'inversionista', sector:null},
+    sincatalogo: {nombre_completo:'Franklin Reyes', pais:'Italia', rol:'inversionista', sector:null},
+    sinsql:      {nombre_completo:'Franklin Reyes', pais:'Italia', rol:'inversionista', sector:null}
   };
+
+  /* El catalogo de sectores. Aqui hay tres; el de verdad lo escribe el
+     CIIP en supabase-sectores.sql y este falso no lo sabe ni tiene que
+     saberlo. */
+  var SECTORES_BASE = [
+    {codigo:'agroindustria', ref_panel:'s1', nombre:'Agroindustria',           orden:10},
+    {codigo:'turismo',       ref_panel:'s2', nombre:'Turismo y hoteleria',     orden:20},
+    {codigo:'hidrocarburos', ref_panel:'s3', nombre:'Hidrocarburos y energia', orden:30}
+  ];
 
   /* De más nuevo a más viejo, que es como los pide el panel. Los dos
      'borrador' están para comprobar que el buzón NO los anuncia: la
@@ -336,9 +362,23 @@
 
   function respuesta(tabla, op){
     if (tabla === 'perfiles'){
-      if (sinSql && op && /visto_en|rol_cambiado_en/.test(op.cols || '')){
+      if (sinSql && op && /visto_en|rol_cambiado_en|sector/.test(op.cols || '')){
+        /* Con el nombre de la que falta de verdad: un falso que siempre
+           dice 'visto_en' ensena a leer un mensaje que no es el que da
+           Postgres. */
+        var falta = /sector/.test(op.cols || '') ? 'sector' : 'visto_en';
         return {data:null, error:{
-          message:'column perfiles.visto_en does not exist', code:'42703'}};
+          message:'column perfiles.' + falta + ' does not exist', code:'42703'}};
+      }
+      /* Contestar el sector es OTRO update sobre la misma tabla. Sin esta
+         rama caeria en la lectura de mas abajo, devolveria el perfil como
+         si nada y la puerta se cerraria sin haber guardado nada. */
+      if (op && op.update && 'sector' in op.update){
+        if (sinSql) return {data:null, error:{
+          message:'column perfiles.sector does not exist', code:'42703'}};
+        var yo = PERFILES[caso] || PERFILES.lleno;
+        yo.sector = op.update.sector;
+        return {data:yo, error:null};
       }
       /* Guardar el perfil propio -nombre y pais- y repartir roles son dos
          updates sobre la misma tabla. Se distinguen por lo que traen. */
@@ -363,6 +403,12 @@
       return op && op.single
         ? {data:mio, error:null}
         : {data:OTROS_PERFILES, error:null};
+    }
+    if (tabla === 'sectores'){
+      /* Vacio a proposito en un pase. Una puerta cerrada con una lista
+         vacia detras es una puerta sin llave, y eso hay que medirlo, no
+         suponerlo. */
+      return {data:(caso === 'sincatalogo' ? [] : SECTORES_BASE), error:null};
     }
     if (tabla === 'citas'){
       /* La cola pregunta por .eq('estado','solicitada'); el inversionista por

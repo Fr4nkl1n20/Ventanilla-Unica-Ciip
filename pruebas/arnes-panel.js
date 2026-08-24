@@ -102,7 +102,8 @@
   }
 
   cuandoConteste(function(){
-    enCadena([pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir, citasAnula, citasTrasAnular,
+    enCadena([puertaEspera, puertaMira, puertaTrasResponder,
+              pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir, citasAnula, citasTrasAnular,
               colaAbre,
               /* El reparto ANTES de desplegar nada: tomar un tramite
                  repinta la cola entera, y eso pliega el expediente que
@@ -136,6 +137,102 @@
               franjaDescarta, franjaTrasDescartar,
               logosMiran], volcar);
   });
+
+  /* ═══════════════ LA PUERTA DEL SECTOR ═══════════════
+     Se pregunta una vez, antes de dejar entrar. Lo que hay que medir no
+     es solo que se abra: es que NO se abra en los tres casos en que
+     abrirla dejaria a alguien fuera para siempre. */
+  function puertaEspera(){
+    /* Un paso vacio. La puerta se abre despues de que conteste el perfil
+       Y de que conteste el catalogo, o sea dos idas y venidas; este medio
+       segundo es para no medirla antes de que exista. */
+  }
+
+  function puertaMira(){
+    var back = document.getElementById('sectorBack');
+    var abierta = !!(back && back.classList.contains('open'));
+
+    /* Aqui se mira el PASE y no el CASO. CASO junta a proposito varios
+       pases bajo 'gestor' -sinsql es uno-, y con el la prueba del que no
+       puede guardar la respuesta caia en la rama del equipo del CIIP y
+       pasaba sin comprobar nada. */
+    if (PASE === 'gestor' || PASE === 'admin' || PASE === 'sinsql'){
+      ok('sector: al equipo del CIIP no se le pregunta', !abierta,
+         abierta ? 'le sale la puerta' : 'no le sale', 'no le sale');
+      return;
+    }
+    /* La columna no existe: la respuesta no se podria guardar, asi que
+       preguntarla seria plantarle delante una puerta que no abre. Este es
+       el pase con un INVERSIONISTA de verdad detras. */
+    if (PASE === 'sinsectorsql'){
+      ok('sector: si la base no sabe guardarlo, no se pregunta', !abierta,
+         abierta ? 'bloquea igual' : 'no bloquea', 'no bloquea');
+      return;
+    }
+    /* Y sin nada que elegir, tampoco. */
+    if (PASE === 'sincatalogo'){
+      ok('sector: con el catalogo vacio no bloquea a nadie', !abierta,
+         abierta ? 'bloquea sin lista' : 'no bloquea', 'no bloquea');
+      return;
+    }
+    if (PASE !== 'sinsector'){
+      ok('sector: al que ya contesto no se le vuelve a preguntar', !abierta,
+         abierta ? 'se lo repregunta' : 'no se lo repregunta', 'no se lo repregunta');
+      return;
+    }
+
+    /* ── y aqui, el unico que no ha contestado ── */
+    ok('sector: al que no ha contestado se le pregunta', abierta,
+       abierta ? 'le sale la puerta' : 'no le sale', 'le sale');
+    if (!abierta) return;
+
+    var ops = document.querySelectorAll('#seLista .se-op');
+    igual('sector: con los que da la base', ops.length, 3);
+    igual('sector: y por el orden que ella dice',
+          ops[0].textContent.trim(), 'Agroindustria');
+
+    /* No se cierra sola. Si se cerrara pulsando fuera o con Escape, el
+       bloqueo seria un adorno. */
+    back.click();
+    ok('sector: no se cierra al pulsar fuera', back.classList.contains('open'),
+       back.className, 'sigue abierta');
+    document.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape'}));
+    ok('sector: ni con Escape', back.classList.contains('open'),
+       back.className, 'sigue abierta');
+
+    /* Sin elegir no deja pasar, pero DICE por que: una puerta que no se
+       abre y no explica nada es una pantalla rota. */
+    document.getElementById('seGuardar').click();
+    ok('sector: sin elegir no deja pasar', back.classList.contains('open'),
+       back.className, 'sigue abierta');
+    var esperado = ((window.CIIP_PASOS.ui[curLang] || {}).se_falta || '');
+    igual('sector: y dice por que no',
+          document.getElementById('seAviso').textContent.trim(), esperado);
+
+    /* Y siempre hay por donde salir: bloquear sin salida es encerrar. */
+    ok('sector: y se puede salir de la cuenta',
+       !!document.getElementById('seSalir'), 'hay boton', 'hay boton');
+
+    /* Se elige el segundo -turismo- y se contesta. */
+    ops[1].click();
+    var puestos = document.querySelectorAll('#seLista .se-op.puesto');
+    igual('sector: al elegir se marca uno, y solo uno', puestos.length, 1);
+    document.getElementById('seGuardar').click();
+  }
+
+  function puertaTrasResponder(){
+    if (PASE !== 'sinsector') return;
+    var back = document.getElementById('sectorBack');
+    ok('sector: al contestar, se entra', !back.classList.contains('open'),
+       back.className, 'cerrada');
+    ok('sector: y el panel deja de estar bloqueado',
+       !document.body.classList.contains('con-puerta'),
+       document.body.className || 'sin clase', 'sin con-puerta');
+    ok('sector: y queda guardado en el perfil',
+       (typeof PERFIL !== 'undefined' && PERFIL.sector === 'turismo'),
+       (typeof PERFIL !== 'undefined' ? (PERFIL.sector || 'ninguno') : 'sin PERFIL'),
+       'turismo');
+  }
 
   function pruebas(){
 

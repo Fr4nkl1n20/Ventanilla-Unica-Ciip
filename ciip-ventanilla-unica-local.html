@@ -121,9 +121,26 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
     correoDeLaSesion = (usuario && usuario.email) || '';
     aplicarPerfil(meta.nombre_completo, meta.pais, null);   /* lo inmediato */
 
-    sb.from('perfiles').select('nombre_completo, pais, rol').eq('id', usuario.id).single()
+    /* Con 'sector', y sin el si la columna todavia no existe. Postgres
+       rechaza la consulta ENTERA por una columna que falta, asi que sin
+       este apano quien no haya corrido supabase-sectores.sql se quedaria
+       sin perfil: sin nombre, sin pais y sin rol. Ya paso una vez con
+       visto_en y dejo la pantalla de usuarios en blanco. */
+    function pideMiPerfil(){
+      return sb.from('perfiles')
+        .select('nombre_completo, pais, rol, sector').eq('id', usuario.id).single()
+        .then(function(r){
+          var m = (r && r.error && r.error.message) || '';
+          if (!/column|columna/i.test(m)) return r;
+          return sb.from('perfiles')
+            .select('nombre_completo, pais, rol').eq('id', usuario.id).single()
+            .then(function(r0){ if (r0) r0.sinColumnaSector = true; return r0; });
+        });
+    }
+    pideMiPerfil()
       .then(function(r){
-        if (r && r.data) aplicarPerfil(r.data.nombre_completo, r.data.pais, r.data.rol);
+        if (r && r.data) aplicarPerfil(r.data.nombre_completo, r.data.pais, r.data.rol,
+                                       r.data.sector, !r.sinColumnaSector);
         else if (r && r.error){
           console.warn('[CIIP] No se pudo leer el perfil:', r.error.message);
           /* Sin fila no hay rol que esperar. Sin esto, los tres relojes se
@@ -135,12 +152,13 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
   }
 
   var reintentos = 0;
-  function aplicarPerfil(nombre, pais, rol){
+  function aplicarPerfil(nombre, pais, rol, sector, sectorReal){
     /* Este bloque va en el <head>, pero PERFIL y applyLang se definen en el
        script del final del <body>. Si la sesión se resuelve antes de que el
        navegador llegue allí, se espera en vez de reventar. */
     if (typeof PERFIL === 'undefined' || typeof applyLang !== 'function'){
-      if (reintentos++ < 100){ setTimeout(function(){ aplicarPerfil(nombre, pais, rol); }, 40); }
+      if (reintentos++ < 100){ setTimeout(function(){
+        aplicarPerfil(nombre, pais, rol, sector, sectorReal); }, 40); }
       return;
     }
     /* nombre_completo es 'not null default \'\'' en la base, así que una
@@ -165,6 +183,13 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
        administrador no salía nunca por mucho que la base dijera admin.
        Por eso hay una segunda marca: esta sí dice que el rol llegó. */
     if (rol){ PERFIL.rol = rol; PERFIL.rolReal = true; }
+    /* 'sectorReal' quiere decir que la COLUMNA existe, que no es lo mismo
+       que tener sector. Sin esa distincion no hay forma de saber si "sin
+       sector" significa "no ha contestado" o "la base no sabe guardarlo",
+       y son dos cosas muy distintas: la primera se pregunta, la segunda
+       se calla. Preguntar lo que no se puede guardar deja al usuario
+       delante de una puerta que no abre. */
+    if (sectorReal){ PERFIL.sector = sector || ''; PERFIL.sectorReal = true; }
     PERFIL.real = true;
 
     var n = document.querySelector('.u-name');   if (n) n.textContent = PERFIL.nombre;
@@ -1556,6 +1581,25 @@ body.menu-abierto .menu-fondo{display:block;}
 .ask .ask-ai{fill:var(--cyan-deep); stroke:none;}
 
 /* ---------- assistant modal ---------- */
+/* La puerta del sector, por encima de todo lo demas: si otra ventana
+   quedara delante, el bloqueo tendria un agujero. */
+.sector-back{z-index:80;}
+body.con-puerta{overflow:hidden;}
+.se-cuerpo{padding:16px 18px; overflow:auto;}
+.se-ayuda{font-size:12px; color:var(--gray); line-height:1.55; margin-bottom:13px;}
+.se-buscar{width:100%; font:inherit; font-size:13px; padding:9px 11px; margin-bottom:11px;
+  border:1px solid var(--line); border-radius:var(--r-sm); background:var(--bg); color:var(--ink);}
+.se-buscar[hidden]{display:none;}
+.se-lista{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:8px;}
+.se-op{font:inherit; font-size:12.5px; font-weight:600; text-align:left; cursor:pointer;
+  padding:11px 13px; border:1px solid var(--line); border-radius:var(--r-sm);
+  background:var(--bg); color:var(--ink);}
+.se-op:hover{border-color:var(--navy2);}
+.se-op.puesto{border-color:var(--navy2); background:var(--block); color:var(--navy2);
+  box-shadow:inset 0 0 0 1px var(--navy2);}
+.se-nada{font-size:12px; color:var(--gray); padding:8px 0;}
+.se-nada[hidden]{display:none;}
+
 .asst-back{position:fixed; inset:0; z-index:60; background:rgba(6,16,32,.55); display:none; align-items:flex-start; justify-content:center; padding:64px 16px 16px;}
 .asst-back.open{display:flex;}
 .asst{width:100%; max-width:640px; max-height:82vh; background:var(--bg); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow-lg); display:flex; flex-direction:column; overflow:hidden;}
@@ -2842,6 +2886,14 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
             <ul class="combo-list" id="pfLista" role="listbox"></ul>
           </div>
         </div>
+        <!-- El sector se puede cambiar. Preguntarlo una vez y dejarlo
+             clavado para siempre convierte un error de un clic en algo
+             que solo arregla el CIIP. Se esconde si el usuario no es
+             inversionista, o si la base todavia no sabe guardarlo. -->
+        <div class="pf-campo" id="pfCampoSector" hidden>
+          <label for="pfSector" id="pfLsector"></label>
+          <select id="pfSector"></select>
+        </div>
         <div class="pf-aviso" id="pfAviso"></div>
       </div>
       <div class="pf-pie">
@@ -2850,6 +2902,33 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       </div>
     </div>
   </div>
+
+<!-- LA PUERTA DEL SECTOR. Cubre el panel entero y NO se cierra: no lleva
+     aspa, no se cierra al pulsar fuera y Escape no la toca. Lo unico que
+     ofrece aparte de contestar es salir de la cuenta, porque bloquear sin
+     salida no es bloquear, es encerrar. -->
+<div class="asst-back sector-back" id="sectorBack">
+  <div class="asst sector" role="dialog" aria-modal="true">
+    <div class="asst-h">
+      <div class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M3 20h18M6 20V9l6-4 6 4v11M10 20v-5h4v5"/></svg></div>
+      <div>
+        <div class="at" id="seTitulo"></div>
+        <div class="as" id="seSub"></div>
+      </div>
+    </div>
+    <div class="se-cuerpo">
+      <div class="se-ayuda" id="seAyuda"></div>
+      <input type="search" class="se-buscar" id="seBuscar" autocomplete="off" hidden>
+      <div class="se-lista" id="seLista" role="radiogroup"></div>
+      <div class="se-nada" id="seNada" hidden></div>
+      <div class="pf-aviso" id="seAviso"></div>
+    </div>
+    <div class="pf-pie">
+      <button class="btn ghost" id="seSalir"   type="button"></button>
+      <button class="btn navy"  id="seGuardar" type="button"></button>
+    </div>
+  </div>
+</div>
 
 <div class="asst-back" id="asstBack">
   <div class="asst" role="dialog" aria-modal="true" aria-label="Investor assistant">
@@ -2913,7 +2992,8 @@ var curLang='en';
 /* nombreReal distingue "este nombre lo trajo tu expediente" de "este es el
    de la demostración, o uno sacado de tu correo". Sin esa marca, la segunda
    consulta del perfil no sabría si puede pisar lo que puso la primera. */
-var PERFIL = { nombre:'Marco Bianchi', pais:null, rol:'inversionista', real:false, nombreReal:false };
+var PERFIL = { nombre:'Marco Bianchi', pais:null, rol:'inversionista', real:false, nombreReal:false,
+               sector:'', sectorReal:false };
 
 function primerNombre(n){ return String(n||'').trim().split(/\s+/)[0] || ''; }
 
@@ -6036,6 +6116,7 @@ applyLang(idiomaParaMi());
     pon('pfSub',      u.pf_sub);
     pon('pfLnombre',  u.pf_nombre);
     pon('pfLpais',    u.pf_pais);
+    pon('pfLsector',  u.pf_lsector);
     pon('pfGuardar',  u.pf_guardar);
     pon('pfCancelar', u.pf_cancelar);
     if (pfBtn) pfBtn.setAttribute('title',
@@ -6065,6 +6146,7 @@ applyLang(idiomaParaMi());
     cierraLista();
     construyePaises(curLang);
     ponPaisGuardado((typeof PERFIL !== 'undefined' && PERFIL.pais) ? PERFIL.pais : '');
+    if (window.CIIP_SECTOR_EN_PERFIL) window.CIIP_SECTOR_EN_PERFIL();
     pintaPerfil();
     pfBack.classList.add('open');
     setTimeout(function(){ if (nom) nom.focus(); }, 60);
@@ -6073,6 +6155,9 @@ applyLang(idiomaParaMi());
 
   function guardaPerfil(){
     var u = T();
+    /* Se declara aquí y no dentro del then: lo escribe una promesa y lo
+       lee la siguiente, y ahí dentro se quedaría encerrado en su función. */
+    var cambios = null;
     var nom = document.getElementById('pfNombre');
     var av  = document.getElementById('pfAviso');
     var bt  = document.getElementById('pfGuardar');
@@ -6109,8 +6194,17 @@ applyLang(idiomaParaMi());
       if (!usu) throw new Error('sin sesión');
       /* El rol NO va en el update: la política lo permitiría y el trigger lo
          cortaría con un error, pero mandarlo ya sería pedir un ascenso. */
+      cambios = {nombre_completo: nombre, pais: pais};
+      /* Y el sector SOLO si el campo está a la vista. Si la columna no
+         existe todavía, mandarla revienta el guardado entero y el perfil
+         deja de poder editarse por una cosa que no se estaba tocando. */
+      var selSec   = document.getElementById('pfSector');
+      var campoSec = document.getElementById('pfCampoSector');
+      if (selSec && campoSec && !campoSec.hidden){
+        cambios.sector = selSec.value || null;
+      }
       return sb.from('perfiles')
-        .update({nombre_completo: nombre, pais: pais})
+        .update(cambios)
         .eq('id', usu.id).select().single();
     }).then(function(r){
       if (r && r.error) throw r.error;
@@ -6118,6 +6212,9 @@ applyLang(idiomaParaMi());
       bt.textContent = u.pf_guardar || '';
       /* La cabecera se vuelve a pintar con lo guardado, sin recargar. */
       if (window.CIIP_APLICA_PERFIL) window.CIIP_APLICA_PERFIL(nombre, pais, null);
+      if (typeof PERFIL !== 'undefined' && 'sector' in cambios){
+        PERFIL.sector = cambios.sector || '';
+      }
       cierraPerfil();
     }).catch(function(e){
       console.warn('[CIIP] guardar perfil:', e && (e.message || e));
@@ -6142,6 +6239,202 @@ applyLang(idiomaParaMi());
     });
     window.CIIP_REPINTA_PERFIL = pintaPerfil;
     pintaPerfil();
+  }
+
+
+  /* ──────────────────────────────────────────────────────────────
+     LA PUERTA DEL SECTOR
+     ──────────────────────────────────────────────────────────────
+     Se pregunta UNA vez, antes de dejar entrar, y la respuesta vive en
+     el perfil. Tres cosas que NO hace, y las tres a proposito:
+
+     · No filtra los treinta y un tramites. Que permiso exige cada
+       sector lo dice la normativa, y esa matriz todavia no esta. Un
+       filtro inventado que esconda un tramite que si hacia falta es
+       peor que no filtrar nada: el inversionista no se entera de que
+       le falta algo hasta que se lo dice el organismo.
+     · No bloquea si el catalogo esta vacio. Una puerta cerrada con
+       una lista vacia detras es una puerta sin llave, y dejaria fuera
+       a todo el mundo hasta que alguien corriera el SQL.
+     · No bloquea si la columna no existe. Sin ella la respuesta no se
+       puede guardar, asi que preguntarla seria dejar al usuario
+       delante de una puerta que no abre.
+     ────────────────────────────────────────────────────────────── */
+  var seBack   = document.getElementById('sectorBack');
+  var SECTORES = [];
+  var seElegido = '';
+
+  function nombreDeSector(sec){
+    /* El nombre traducido si lo hay; si no, el que tenga la base. Un
+       sector recien anadido por el CIIP se ve en espanol antes que no
+       verse: el hueco vacio seria peor que el idioma equivocado. */
+    var D = window.CIIP_PASOS || {};
+    var tab = (D.sectores && (D.sectores[curLang] || D.sectores.es)) || {};
+    return (sec && (tab[sec.ref_panel] || sec.nombre)) || '';
+  }
+
+  function pideSectores(){
+    var q;
+    try {
+      q = sb.from('sectores').select('codigo, ref_panel, nombre, orden')
+            .eq('activo', true).order('orden');
+    } catch(e){ return Promise.resolve([]); }
+    return Promise.resolve(q).then(function(r){
+      if (!r || r.error) return [];
+      var l = (r.data || []).slice();
+      /* A igual orden, alfabetico. Sin esto el orden lo decide la base y
+         cambia de un dia para otro sin que nadie lo haya tocado. */
+      l.sort(function(a, b){
+        return (a.orden - b.orden) ||
+               nombreDeSector(a).localeCompare(nombreDeSector(b));
+      });
+      return l;
+    }, function(){ return []; });
+  }
+
+  function pintaListaSectores(){
+    var lista = document.getElementById('seLista');
+    var busca = document.getElementById('seBuscar');
+    var nada  = document.getElementById('seNada');
+    if (!lista) return;
+    var filtro = (busca && !busca.hidden ? busca.value : '').trim().toLowerCase();
+    lista.textContent = '';
+    var vistos = SECTORES.filter(function(sec){
+      return !filtro || nombreDeSector(sec).toLowerCase().indexOf(filtro) >= 0;
+    });
+    vistos.forEach(function(sec){
+      var b = el('button', 'se-op' + (sec.codigo === seElegido ? ' puesto' : ''),
+                 nombreDeSector(sec));
+      b.type = 'button';
+      b.setAttribute('role', 'radio');
+      b.setAttribute('data-cod', sec.codigo);
+      b.setAttribute('aria-checked', sec.codigo === seElegido ? 'true' : 'false');
+      b.addEventListener('click', function(){
+        seElegido = sec.codigo;
+        pintaListaSectores();
+      });
+      lista.appendChild(b);
+    });
+    if (nada) nada.hidden = vistos.length > 0;
+  }
+
+  function abreSector(){
+    if (!seBack) return;
+    var u = T();
+    function pon(id, txt){ var e = document.getElementById(id); if (e) e.textContent = txt || ''; }
+    pon('seTitulo',  u.se_titulo);
+    pon('seSub',     u.se_sub);
+    pon('seAyuda',   u.se_ayuda);
+    pon('seGuardar', u.se_guardar);
+    pon('seSalir',   u.se_salir);
+    pon('seNada',    u.se_falta);
+    var busca = document.getElementById('seBuscar');
+    if (busca){
+      /* El buscador solo cuando hay bastantes. Con seis sectores delante
+         una caja de buscar es un estorbo y un paso de mas. */
+      busca.hidden = SECTORES.length < 10;
+      busca.value  = '';
+      busca.setAttribute('placeholder', u.se_buscar || '');
+    }
+    seElegido = '';
+    pintaListaSectores();
+    var av = document.getElementById('seAviso'); if (av) av.textContent = '';
+    seBack.classList.add('open');
+    document.body.classList.add('con-puerta');
+  }
+
+  function guardaSector(){
+    var u  = T();
+    var av = document.getElementById('seAviso');
+    var bt = document.getElementById('seGuardar');
+    if (!seElegido){ if (av) av.textContent = u.se_falta || ''; return; }
+    bt.disabled = true;
+    bt.textContent = u.se_yendo || '';
+    if (av) av.textContent = '';
+
+    sb.auth.getUser().then(function(r){
+      var usu = r && r.data && r.data.user;
+      if (!usu) throw new Error('sin sesión');
+      return sb.from('perfiles').update({sector: seElegido})
+               .eq('id', usu.id).select().single();
+    }).then(function(r){
+      if (r && r.error) throw r.error;
+      bt.disabled = false;
+      bt.textContent = u.se_guardar || '';
+      if (typeof PERFIL !== 'undefined') PERFIL.sector = seElegido;
+      seBack.classList.remove('open');
+      document.body.classList.remove('con-puerta');
+    }).catch(function(e){
+      console.warn('[CIIP] guardar sector:', e && (e.message || e));
+      /* La puerta NO se abre si no se guardo. Cerrarla igualmente seria
+         darle por contestada una pregunta que la base no llego a oir, y
+         al recargar volveria a salir sin que nadie entienda por que. */
+      bt.disabled = false;
+      bt.textContent = u.se_guardar || '';
+      if (av) av.textContent = u.se_error || '';
+    });
+  }
+
+  /* El campo del perfil, para poder cambiarlo despues. Preguntarlo una
+     vez y dejarlo clavado convierte un error de un clic en algo que solo
+     arregla el CIIP. */
+  function ponSectorEnPerfil(){
+    var campo = document.getElementById('pfCampoSector');
+    var sel   = document.getElementById('pfSector');
+    if (!campo || !sel) return;
+    var puede = (typeof PERFIL !== 'undefined') &&
+                PERFIL.rol === 'inversionista' && PERFIL.sectorReal;
+    if (!puede){ campo.hidden = true; return; }
+    function pinta(){
+      var u = T();
+      sel.textContent = '';
+      var vacia = el('option', null, u.pf_sector0 || '');
+      vacia.value = '';
+      sel.appendChild(vacia);
+      SECTORES.forEach(function(sec){
+        var o = el('option', null, nombreDeSector(sec));
+        o.value = sec.codigo;
+        sel.appendChild(o);
+      });
+      sel.value = PERFIL.sector || '';
+      campo.hidden = !SECTORES.length;
+    }
+    if (SECTORES.length){ pinta(); return; }
+    campo.hidden = true;
+    pideSectores().then(function(l){ SECTORES = l; pinta(); });
+  }
+  window.CIIP_SECTOR_EN_PERFIL = ponSectorEnPerfil;
+
+  if (seBack){
+    document.getElementById('seGuardar').addEventListener('click', guardaSector);
+    document.getElementById('seSalir').addEventListener('click', function(){
+      /* Bloquear sin salida es encerrar. Contestar o irse; irse tiene que
+         poder, aunque sea saliendo de la cuenta. */
+      try { sb.auth.signOut(); } catch(e){}
+      location.href = 'acceso.html';
+    });
+    var seBusca = document.getElementById('seBuscar');
+    if (seBusca) seBusca.addEventListener('input', pintaListaSectores);
+
+    /* Se espera al rol de verdad, no a que "la sesion contesto": la
+       sesion no trae el rol, y sin el se preguntaria el sector tambien a
+       los gestores. Es el mismo desfase que dejaba escondido el renglon
+       de administrador. */
+    var seIntentos = 0;
+    (function esperaAlSector(){
+      if (typeof PERFIL === 'undefined' || !PERFIL.rolReal){
+        if (seIntentos++ < 40) setTimeout(esperaAlSector, 100);
+        return;
+      }
+      if (PERFIL.rol !== 'inversionista') return;   /* el CIIP no invierte */
+      if (!PERFIL.sectorReal) return;               /* la base no lo guarda */
+      if (PERFIL.sector) return;                    /* ya contesto */
+      pideSectores().then(function(l){
+        if (!l.length) return;                      /* puerta sin llave */
+        SECTORES = l;
+        abreSector();
+      });
+    })();
   }
 
   /* ──────────────────────────────────────────────────────────────
