@@ -187,7 +187,25 @@
     if (!abierta) return;
 
     var ops = document.querySelectorAll('#seLista .se-op');
-    igual('sector: los ocho motores productivos', ops.length, 8);
+    /* Ocho motores mas uno inventado, para medir que un sector que el CIIP
+       añada por SQL sale igual aunque el panel no tenga su icono. */
+    igual('sector: los que da la base, sin recortar', ops.length, 9);
+    /* Cada uno con su icono. Sin esto, un dibujo que se dejara de pintar
+       daria un cuadro vacio y las pruebas seguirian en verde. */
+    var conIcono = [].filter.call(ops, function(o){
+      return !!o.querySelector('.se-ico svg path, .se-ico svg rect');
+    });
+    igual('sector: y cada uno con su icono', conIcono.length, 9);
+    /* Los ocho conocidos llevan color propio; el noveno, ninguno, y cae al
+       azul del panel. */
+    var conColor = [].filter.call(ops, function(o){
+      return !!o.style.getPropertyValue('--sc');
+    });
+    igual('sector: los ocho conocidos, con su color', conColor.length, 8);
+    ok('sector: y el que el panel no conoce sale igual',
+       ops[8] && !ops[8].style.getPropertyValue('--sc') &&
+       !!ops[8].querySelector('.se-ico svg'),
+       ops[8] ? 'sale con el generico' : 'no sale', 'sale con el generico');
     /* Sin escribir el nombre a mano: en este pase el panel esta en
        italiano, asi que comparar con "Hidrocarburos" fallaria por el
        idioma y no por el orden. Se compara con lo que dice pasos.js para
@@ -197,7 +215,7 @@
           ops[0].textContent.trim(), s1);
     /* Con ocho, la caja de filtrar estorba y no sale. Sale a partir de
        diez. Si el CIIP amplia la lista, esto se entera. */
-    ok('sector: con ocho no saca caja de filtrar',
+    ok('sector: con menos de diez no saca caja de filtrar',
        document.getElementById('seBuscar').hidden,
        document.getElementById('seBuscar').hidden ? 'escondida' : 'a la vista',
        'escondida');

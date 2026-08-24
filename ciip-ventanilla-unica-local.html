@@ -1599,13 +1599,30 @@ body.con-puerta{overflow:hidden;}
 .se-buscar{width:100%; font:inherit; font-size:13px; padding:9px 11px; margin-bottom:11px;
   border:1px solid var(--line); border-radius:var(--r-sm); background:var(--bg); color:var(--ink);}
 .se-buscar[hidden]{display:none;}
-.se-lista{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:8px;}
-.se-op{font:inherit; font-size:12.5px; font-weight:600; text-align:left; cursor:pointer;
+.se-lista{display:grid; grid-template-columns:repeat(2,1fr); gap:8px;}
+/* Con ocho sectores, DOS columnas dan cuatro filas enteras. Con tres, la
+   ultima quedaba coja. */
+@media (max-width:520px){ .se-lista{grid-template-columns:1fr;} }
+.se-op{display:flex; align-items:center; gap:11px;
+  font:inherit; font-size:12.5px; font-weight:600; text-align:left; cursor:pointer;
   padding:11px 13px; border:1px solid var(--line); border-radius:var(--r-sm);
   background:var(--bg); color:var(--ink);}
 .se-op:hover{border-color:var(--navy2);}
-.se-op.puesto{border-color:var(--navy2); background:var(--block); color:var(--navy2);
+.se-op.puesto{border-color:var(--navy2); background:var(--block);
   box-shadow:inset 0 0 0 1px var(--navy2);}
+/* El icono, en su cuadro y del color del sector. El color va como variable
+   en el propio boton: asi el tema oscuro puede pedir otro sin que el codigo
+   tenga que saber en que tema esta. */
+.se-ico{width:30px; height:30px; border-radius:8px; flex:none;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--sc-bg, var(--block)); color:var(--sc, var(--navy2));}
+.se-ico svg{width:16px; height:16px; fill:none; stroke:currentColor;
+  stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+@media (prefers-color-scheme:dark){
+  .se-ico{background:var(--sc-bg-osc, var(--block)); color:var(--sc-osc, var(--navy2));}
+}
+:root[data-theme="light"] .se-ico{background:var(--sc-bg, var(--block)); color:var(--sc, var(--navy2));}
+:root[data-theme="dark"]  .se-ico{background:var(--sc-bg-osc, var(--block)); color:var(--sc-osc, var(--navy2));}
 .se-nada{font-size:12px; color:var(--gray); padding:8px 0;}
 .se-nada[hidden]{display:none;}
 
@@ -6286,6 +6303,36 @@ applyLang(idiomaParaMi());
   var SECTORES = [];
   var seElegido = '';
 
+  /* ── El icono y el color de cada sector ──
+     Van AQUI y no en la base porque son presentacion, igual que los logos
+     de los organismos. Se buscan por ref_panel, que es la llave que da el
+     catalogo; un sector que llegue sin los suyos se dibuja con el generico
+     y el azul del panel: sale feo, pero sale.
+
+     LOS COLORES ESTAN SACADOS A OJO del cartel de los motores productivos
+     y NO son los de la marca. Cuando lleguen los buenos, se cambian aqui y
+     en ningun otro sitio. 'osc' es la version para el tema oscuro: el
+     granate y el azul marino sobre fondo negro no se ven. */
+  var PINTA_SECTOR = {
+    s1: {col:'#7B1E3C', osc:'#D4718F',
+         d:'<path d="M12 3s6 6.6 6 10a6 6 0 1 1-12 0c0-3.4 6-10 6-10z"/>'},
+    s2: {col:'#E0891F', osc:'#F0A94E',
+         d:'<path d="M3 20l7-9 3.5 4.4L17 11l4 9z"/><path d="M14 4l6 4"/>'},
+    s3: {col:'#1B2A6B', osc:'#7C90D8',
+         d:'<path d="M3 20V10l5 3.2V10l5 3.2V10l5 3.2V20z"/><path d="M7 20v-3M12 20v-3M17 20v-3"/>'},
+    s4: {col:'#F05A22', osc:'#FF8A5C',
+         d:'<path d="M4 9h16v11H4z"/><path d="M9 9V6h6v3"/><path d="M4 14h16"/>'},
+    s5: {col:'#57A544', osc:'#86C877',
+         d:'<path d="M12 21V9"/><path d="M12 13c-2.4 0-4-1.6-4-4 2.4 0 4 1.6 4 4z"/><path d="M12 13c2.4 0 4-1.6 4-4-2.4 0-4 1.6-4 4z"/><path d="M12 8c-2 0-3.2-1.3-3.2-3.2C10.8 4.8 12 6 12 8z"/><path d="M12 8c2 0 3.2-1.3 3.2-3.2C13.2 4.8 12 6 12 8z"/>'},
+    s6: {col:'#DE2A24', osc:'#F0736D',
+         d:'<path d="M12 20s-7.2-4.6-7.2-9.2A4 4 0 0 1 12 8.4a4 4 0 0 1 7.2 2.4C19.2 15.4 12 20 12 20z"/>'},
+    s7: {col:'#2C8FD1', osc:'#6BB8ED',
+         d:'<path d="M3 12c4.4-5.2 10.6-5.2 15 0-4.4 5.2-10.6 5.2-15 0z"/><path d="M18 12l3-3.2v6.4z"/>'},
+    s8: {col:'#00874A', osc:'#4FBE87',
+         d:'<path d="M12 21v-4"/><path d="M12 3L6.5 11h3L5 17h14l-4.5-6h3z"/>'}
+  };
+  var SECTOR_SIN_ICONO = '<rect x="4.5" y="4.5" width="15" height="15" rx="3.5"/>';
+
   function nombreDeSector(sec){
     /* El nombre traducido si lo hay; si no, el que tenga la base. Un
        sector recien anadido por el CIIP se ve en espanol antes que no
@@ -6325,9 +6372,21 @@ applyLang(idiomaParaMi());
       return !filtro || nombreDeSector(sec).toLowerCase().indexOf(filtro) >= 0;
     });
     vistos.forEach(function(sec){
-      var b = el('button', 'se-op' + (sec.codigo === seElegido ? ' puesto' : ''),
-                 nombreDeSector(sec));
+      var b = el('button', 'se-op' + (sec.codigo === seElegido ? ' puesto' : ''));
       b.type = 'button';
+      var p = PINTA_SECTOR[sec.ref_panel];
+      var ico = el('span', 'se-ico');
+      /* Cadena fija de este archivo, no viene de la base: aqui innerHTML no
+         puede traer nada de fuera. */
+      ico.innerHTML = '<svg viewBox="0 0 24 24">' + ((p && p.d) || SECTOR_SIN_ICONO) + '</svg>';
+      if (p){
+        b.style.setProperty('--sc', p.col);
+        b.style.setProperty('--sc-bg', p.col + '1F');
+        b.style.setProperty('--sc-osc', p.osc);
+        b.style.setProperty('--sc-bg-osc', p.osc + '24');
+      }
+      b.appendChild(ico);
+      b.appendChild(el('span', null, nombreDeSector(sec)));
       b.setAttribute('role', 'radio');
       b.setAttribute('data-cod', sec.codigo);
       b.setAttribute('aria-checked', sec.codigo === seElegido ? 'true' : 'false');

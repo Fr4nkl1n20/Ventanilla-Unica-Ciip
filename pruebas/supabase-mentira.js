@@ -278,7 +278,12 @@
     {codigo:'agroindustrial',    ref_panel:'s5', nombre:'Agroindustrial',      orden:50},
     {codigo:'salud',             ref_panel:'s6', nombre:'Salud',               orden:60},
     {codigo:'pesca_acuicultura', ref_panel:'s7', nombre:'Pesca y acuicultura', orden:70},
-    {codigo:'forestal',          ref_panel:'s8', nombre:'Forestal',            orden:80}
+    {codigo:'forestal',          ref_panel:'s8', nombre:'Forestal',            orden:80},
+    /* Un noveno, como si el CIIP lo acabara de añadir por SQL. El panel no
+       tiene icono ni color para el: tiene que salir igual, con el generico.
+       Si algun dia se rompe eso, el sector nuevo apareceria con un hueco y
+       nadie sabria por que. */
+    {codigo:'sector_nuevo',      ref_panel:'s9', nombre:'Sector nuevo',        orden:90}
   ];
 
   /* De más nuevo a más viejo, que es como los pide el panel. Los dos
