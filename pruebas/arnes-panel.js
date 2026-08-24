@@ -1735,6 +1735,30 @@
                     : 'ninguno reutilizado',
          'un botón para verlo');
     })();
+    /* Y se puede CAMBIAR. Al elegir otro archivo, el de la boveda deja de
+       contar: sin esto la fila ensenaba el nombre nuevo con el visto bueno
+       del viejo al lado y el boton de abrir apuntando al viejo, y no habia
+       forma de saber cual de los dos se iba a enviar. */
+    (function(){
+      var fila = caja.querySelector('.sol-doc[data-ya]');
+      if (!fila){ ok('recaudos: hay uno reutilizado que cambiar', false, 'ninguno', 'uno'); return; }
+      var inp = fila.querySelector('input[type=file]');
+      var dt = new DataTransfer();
+      dt.items.add(new File([new Uint8Array(8)], 'el-nuevo.png', {type:'image/png'}));
+      inp.files = dt.files;
+      inp.dispatchEvent(new Event('change'));
+      igual('recaudos: al elegir otro archivo, la fila dice el nuevo',
+            (fila.querySelector('.sd-e') || {}).textContent, 'el-nuevo.png');
+      ok('recaudos: y deja de decir que ya estaba en tu expediente',
+         !fila.hasAttribute('data-ya') && !fila.querySelector('.sd-ya'),
+         (fila.hasAttribute('data-ya') ? 'sigue con data-ya ' : '') +
+         (fila.querySelector('.sd-ya') ? 'y con el visto' : 'sin marca'),
+         'sin marca de reutilizado');
+      ok('recaudos: y se va el boton que abria el viejo',
+         !fila.querySelector('.sd-ver'),
+         fila.querySelector('.sd-ver') ? 'sigue el boton' : 'se fue', 'se fue');
+    })();
+
     /* Solo uno, y es el único que el SNC marca como condicional: el poder,
        cuando quien firma no es el representante de los estatutos. */
     igual('rnc: solo el poder es opcional',

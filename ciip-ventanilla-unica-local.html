@@ -5226,6 +5226,16 @@ applyLang(idiomaParaMi());
       inp.addEventListener('change', function(){
         est.textContent = inp.files[0] ? inp.files[0].name : '';
         fila.classList.remove('mal');
+        if (!inp.files[0]) return;
+        /* Al elegir otro archivo, el de la bóveda deja de contar: se le
+           quita la marca de «ya estaba en tu expediente» y el botón de
+           abrirlo, que abría el VIEJO. Sin esto la fila enseñaba el
+           nombre nuevo con el visto bueno del anterior al lado, y no
+           había forma de saber cuál de los dos se iba a enviar —se
+           enviaba el nuevo, pero la fila decía lo contrario—. */
+        fila.removeAttribute('data-ya');
+        var selloYa = fila.querySelector('.sd-ya'); if (selloYa) selloYa.remove();
+        var verYa   = fila.querySelector('.sd-ver'); if (verYa) verYa.remove();
       });
       fila.appendChild(btn);
       lista.appendChild(fila);
@@ -5237,6 +5247,10 @@ applyLang(idiomaParaMi());
         .then(function(d){
           var ya = (d.data || [])[0];
           if (!ya) return;
+          /* Y no si ya has elegido uno mientras la consulta iba de camino:
+             llegaría después y le pondría encima la marca del viejo a un
+             archivo que acabas de escoger. */
+          if (inp.files[0]) return;
           fila.setAttribute('data-ya', ya.id);
           est.textContent = ya.nombre_original + ' · ' + (u.reutilizado || '');
           var sello = el('span', 'sd-ya', '✓');
