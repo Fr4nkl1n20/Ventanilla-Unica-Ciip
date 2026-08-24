@@ -187,9 +187,20 @@
     if (!abierta) return;
 
     var ops = document.querySelectorAll('#seLista .se-op');
-    igual('sector: con los que da la base', ops.length, 3);
-    igual('sector: y por el orden que ella dice',
-          ops[0].textContent.trim(), 'Agroindustria');
+    igual('sector: los ocho motores productivos', ops.length, 8);
+    /* Sin escribir el nombre a mano: en este pase el panel esta en
+       italiano, asi que comparar con "Hidrocarburos" fallaria por el
+       idioma y no por el orden. Se compara con lo que dice pasos.js para
+       s1, que de paso comprueba que la traduccion se esta usando. */
+    var s1 = ((window.CIIP_PASOS.sectores || {})[curLang] || {}).s1 || '';
+    igual('sector: y por el orden que dice la base',
+          ops[0].textContent.trim(), s1);
+    /* Con ocho, la caja de filtrar estorba y no sale. Sale a partir de
+       diez. Si el CIIP amplia la lista, esto se entera. */
+    ok('sector: con ocho no saca caja de filtrar',
+       document.getElementById('seBuscar').hidden,
+       document.getElementById('seBuscar').hidden ? 'escondida' : 'a la vista',
+       'escondida');
 
     /* No se cierra sola. Si se cerrara pulsando fuera o con Escape, el
        bloqueo seria un adorno. */
@@ -213,7 +224,7 @@
     ok('sector: y se puede salir de la cuenta',
        !!document.getElementById('seSalir'), 'hay boton', 'hay boton');
 
-    /* Se elige el segundo -turismo- y se contesta. */
+    /* Se elige el segundo -mineria- y se contesta. */
     ops[1].click();
     var puestos = document.querySelectorAll('#seLista .se-op.puesto');
     igual('sector: al elegir se marca uno, y solo uno', puestos.length, 1);
@@ -229,9 +240,9 @@
        !document.body.classList.contains('con-puerta'),
        document.body.className || 'sin clase', 'sin con-puerta');
     ok('sector: y queda guardado en el perfil',
-       (typeof PERFIL !== 'undefined' && PERFIL.sector === 'turismo'),
+       (typeof PERFIL !== 'undefined' && PERFIL.sector === 'mineria'),
        (typeof PERFIL !== 'undefined' ? (PERFIL.sector || 'ninguno') : 'sin PERFIL'),
-       'turismo');
+       'mineria');
   }
 
   function pruebas(){

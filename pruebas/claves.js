@@ -87,6 +87,22 @@ ok('pasos: los seis idiomas tienen las mismas claves',
    desigualesUI.length === 0,
    desigualesUI.slice(0, 8).join(', '));
 
+/* Los sectores viven fuera de 'ui' -son un catalogo, no textos de
+   pantalla- asi que las comprobaciones de arriba no los alcanzan. Si a un
+   idioma le falta uno, ese sector se enseña en español en medio de una
+   pantalla en ruso y nadie se entera. */
+const SEC = ctx.window.CIIP_PASOS.sectores || {};
+const refsSec = Object.keys(SEC.es || {});
+const secMal = [];
+for (const l of Object.keys(SEC)) {
+  for (const k of refsSec) if (!(k in SEC[l])) secMal.push(l + ' → ' + k);
+  for (const k of Object.keys(SEC[l])) if (!refsSec.includes(k)) secMal.push(l + ' ← ' + k);
+}
+ok('sectores: los seis idiomas tienen los mismos',
+   refsSec.length > 0 && Object.keys(SEC).length === idiomas.length && secMal.length === 0,
+   secMal.length ? secMal.slice(0, 6).join(', ')
+                 : (refsSec.length + ' sectores en ' + Object.keys(SEC).length + ' idiomas'));
+
 /* u.algo pedido en el panel y que no existe en pasos.js. Es el fallo que
    dejó los dos botones de Mi empresa sin una palabra dentro: se pidió
    u.f_guardar y la clave se llama pf_guardar. */

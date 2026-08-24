@@ -266,13 +266,19 @@
     sinsql:      {nombre_completo:'Franklin Reyes', pais:'Italia', rol:'inversionista', sector:null}
   };
 
-  /* El catalogo de sectores. Aqui hay tres; el de verdad lo escribe el
-     CIIP en supabase-sectores.sql y este falso no lo sabe ni tiene que
-     saberlo. */
+  /* El catalogo de sectores: los ocho motores productivos, los mismos que
+     escribe supabase-sectores.sql. Son ocho a proposito y no tres: con
+     menos de diez la puerta NO saca la caja de filtrar, y esa es una
+     decision que hay que medir con el numero de verdad. */
   var SECTORES_BASE = [
-    {codigo:'agroindustria', ref_panel:'s1', nombre:'Agroindustria',           orden:10},
-    {codigo:'turismo',       ref_panel:'s2', nombre:'Turismo y hoteleria',     orden:20},
-    {codigo:'hidrocarburos', ref_panel:'s3', nombre:'Hidrocarburos y energia', orden:30}
+    {codigo:'hidrocarburos',     ref_panel:'s1', nombre:'Hidrocarburos',       orden:10},
+    {codigo:'mineria',           ref_panel:'s2', nombre:'Mineria',             orden:20},
+    {codigo:'industrial',        ref_panel:'s3', nombre:'Industrial',          orden:30},
+    {codigo:'turismo',           ref_panel:'s4', nombre:'Turismo',             orden:40},
+    {codigo:'agroindustrial',    ref_panel:'s5', nombre:'Agroindustrial',      orden:50},
+    {codigo:'salud',             ref_panel:'s6', nombre:'Salud',               orden:60},
+    {codigo:'pesca_acuicultura', ref_panel:'s7', nombre:'Pesca y acuicultura', orden:70},
+    {codigo:'forestal',          ref_panel:'s8', nombre:'Forestal',            orden:80}
   ];
 
   /* De más nuevo a más viejo, que es como los pide el panel. Los dos

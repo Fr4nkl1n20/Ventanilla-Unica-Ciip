@@ -69,6 +69,26 @@ window.CIIP_PASOS = {
     ru: ["Заявка получена CIIP", "Проверка ваших документов", "Подано в {ente}", "Завершено"]
   },
 
+
+  /* Los nombres de los sectores, colgados del ref_panel que les da la
+     base. El catálogo vive en supabase-sectores.sql y aquí SOLO están las
+     traducciones: si el CIIP añade uno y no se traduce, el panel enseña el
+     nombre en español que traiga la base. Se ve raro, pero se ve. */
+  sectores: {
+    es: {s1:"Hidrocarburos", s2:"Minería", s3:"Industrial", s4:"Turismo",
+         s5:"Agroindustrial", s6:"Salud", s7:"Pesca y acuicultura", s8:"Forestal"},
+    en: {s1:"Hydrocarbons", s2:"Mining", s3:"Industry", s4:"Tourism",
+         s5:"Agribusiness", s6:"Health", s7:"Fishing and aquaculture", s8:"Forestry"},
+    pt: {s1:"Hidrocarbonetos", s2:"Mineração", s3:"Indústria", s4:"Turismo",
+         s5:"Agroindústria", s6:"Saúde", s7:"Pesca e aquicultura", s8:"Florestal"},
+    it: {s1:"Idrocarburi", s2:"Attività mineraria", s3:"Industria", s4:"Turismo",
+         s5:"Agroindustria", s6:"Sanità", s7:"Pesca e acquacoltura", s8:"Forestale"},
+    zh: {s1:"油气", s2:"矿业", s3:"工业", s4:"旅游",
+         s5:"农业加工", s6:"卫生健康", s7:"渔业与水产养殖", s8:"林业"},
+    ru: {s1:"Углеводороды", s2:"Горнодобывающая отрасль", s3:"Промышленность", s4:"Туризм",
+         s5:"Агропромышленность", s6:"Здравоохранение", s7:"Рыболовство и аквакультура", s8:"Лесное хозяйство"}
+  },
+
   /* Textos del formulario y de los avisos */
   ui: {
     es: {

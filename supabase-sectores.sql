@@ -120,23 +120,32 @@ create trigger sellar_sector
 --  puerta cerrada con una lista vacía detrás es una puerta sin llave, y
 --  dejaría fuera a todo el mundo hasta que alguien corriera este archivo.
 --
---  Para añadirlos, descomenta y escribe uno por renglón:
+--  Los ocho motores productivos, en el orden en que los presenta el CIIP.
+--  El on conflict ACTUALIZA en vez de fallar, así que corregir un nombre
+--  es cambiarlo aquí y volver a correr el archivo entero.
+insert into public.sectores (codigo, ref_panel, nombre, orden) values
+  ('hidrocarburos',      's1', 'Hidrocarburos',        10),
+  ('mineria',            's2', 'Minería',              20),
+  ('industrial',         's3', 'Industrial',           30),
+  ('turismo',            's4', 'Turismo',              40),
+  ('agroindustrial',     's5', 'Agroindustrial',       50),
+  ('salud',              's6', 'Salud',                60),
+  ('pesca_acuicultura',  's7', 'Pesca y acuicultura',  70),
+  ('forestal',           's8', 'Forestal',             80)
+on conflict (codigo) do update
+  set ref_panel = excluded.ref_panel,
+      nombre    = excluded.nombre,
+      orden     = excluded.orden,
+      activo    = true;
+
+-- Para retirar uno NO lo borres: quien ya lo eligió perdería su respuesta,
+-- y el panel se lo volvería a preguntar al entrar.
 --
---    insert into public.sectores (codigo, ref_panel, nombre, orden) values
---      ('agroindustria',  's1', 'Agroindustria',            10),
---      ('turismo',        's2', 'Turismo y hotelería',      20),
---      ('hidrocarburos',  's3', 'Hidrocarburos y energía',  30)
---    on conflict (codigo) do update
---      set ref_panel = excluded.ref_panel,
---          nombre    = excluded.nombre,
---          orden     = excluded.orden,
---          activo    = true;
+--   update public.sectores set activo = false where codigo = 'forestal';
 --
---  El on conflict de arriba hace que volver a correr el archivo con la
---  lista corregida ACTUALICE los nombres en vez de fallar. Para retirar
---  un sector no lo borres —quien ya lo eligió perdería su respuesta—:
---
---    update public.sectores set activo = false where codigo = 'turismo';
+-- Los nombres en los otros cinco idiomas están en pasos.js, colgados de
+-- ref_panel. Si añades un sector nuevo aquí y no allí, se enseña este
+-- nombre en español: se ve raro, pero se ve, que es mejor que un hueco.
 
 
 -- ───────────────────────────────────────────────────────────────────────
