@@ -1349,53 +1349,103 @@
        !!d.value && !!h.value && h.value > d.value,
        d.value + ' → ' + h.value, 'de mañana a dentro de una semana');
 
-    /* ── el calendario del navegador, tambien fuera de aqui ──
-       Se fue de la ficha de empresa y de los formularios de tramite y
-       aqui se habia quedado: las mismas tres listas, para no tener dos
-       maneras de escribir una fecha en la misma pantalla. */
+    /* ── EL CALENDARIO, EL NUESTRO ──
+       El del navegador no se puede maquillar y se salia del dialogo. Este
+       vive dentro y empuja lo de abajo, asi que no hay nada que recortar.
+       Aqui SI va un calendario y no las tres listas de los tramites: "que
+       dias te vienen bien" es "el jueves" o "el 26". */
     igual('citas: ya no hay calendario del navegador',
           document.querySelectorAll('#ctForm input[type="date"]').length, 0);
-    var listas = document.querySelectorAll('#ctForm .ct-fechas select');
-    igual('citas: sino tres listas por cada extremo del rango', listas.length, 6);
     ok('citas: y el valor sigue en un campo escondido con su id',
        d.type === 'hidden' && h.type === 'hidden',
        d.type + '/' + h.type, 'hidden/hidden');
 
-    /* Lo puesto se ve en las listas. Un campo que guarda una fecha y
-       ensena las listas en blanco es peor que no rellenarlo. */
-    var pri = document.querySelector('#ctCajaDesde .fecha3 select.a');
-    igual('citas: y lo puesto se ve en las listas',
-          pri ? pri.value : 'sin lista', d.value.slice(0, 4));
+    var btD = document.getElementById('ctDesdeBtn');
+    var btH = document.getElementById('ctHastaBtn');
+    ok('citas: cada punta del rango tiene su boton', !!btD && !!btH,
+       (btD ? 'desde ' : 'sin desde ') + (btH ? 'y hasta' : 'y sin hasta'), 'los dos');
+    if (!btD || !btH) return;
 
-    /* Y no se ofrece ayer. Antes lo evitaba un min= que el navegador
-       enseñaba en gris; ahora esos dias no estan en la lista. */
+    /* El boton dice la fecha que lleva, no "elegir fecha". Un boton que no
+       ensena lo que guarda obliga a abrirlo para saber que hay dentro. */
+    ok('citas: y el boton ensena la fecha que lleva',
+       btD.textContent.trim().length > 3 &&
+       btD.textContent.indexOf(d.value.slice(8, 10).replace(/^0/, '')) >= 0,
+       '"' + btD.textContent.trim() + '" para ' + d.value, 'la fecha puesta');
+
+    /* Cerrado hasta que lo abres: si naciera abierto, la ventana saldria
+       con un mes entero encima de la nota. */
+    var panel = document.querySelector('#ctForm .cal');
+    ok('citas: el calendario nace cerrado',
+       !!panel && !panel.classList.contains('open'),
+       panel ? panel.className : 'no hay panel', 'cerrado');
+
+    btD.click();
+    ok('citas: y se abre al pulsar el boton', panel.classList.contains('open'),
+       panel.className, 'abierto');
+    igual('citas: y el boton lo dice', btD.getAttribute('aria-expanded'), 'true');
+
+    /* Un mes de verdad: siete rotulos de dia y los dias del mes que toca.
+       Se cuenta el mes de la fecha puesta, no uno cualquiera. */
+    igual('citas: con los siete dias de la semana',
+          panel.querySelectorAll('.cal-sem span').length, 7);
+    var mesPuesto = new Date(parseInt(d.value.slice(0, 4), 10),
+                             parseInt(d.value.slice(5, 7), 10), 0).getDate();
+    igual('citas: y los dias que tiene ese mes',
+          panel.querySelectorAll('.cal-dias button[data-iso]').length, mesPuesto);
+    ok('citas: y se abre por el mes de la fecha que lleva',
+       !!panel.querySelector('.cal-dias button[data-iso^="' + d.value.slice(0, 7) + '"]'),
+       (panel.querySelector('.cal-dias button[data-iso]') || {}).getAttribute
+         ? panel.querySelector('.cal-dias button[data-iso]').getAttribute('data-iso')
+         : 'sin dias',
+       'el de ' + d.value.slice(0, 7));
+
+    /* El que lleva puesto sale marcado: sin eso hay que leerse el boton de
+       arriba para saber cual de los treinta es el tuyo. */
+    var elegido = panel.querySelector('.cal-dias button.puesto');
+    igual('citas: y el dia elegido sale marcado',
+          elegido ? elegido.getAttribute('data-iso') : 'ninguno', d.value);
+
+    /* Lo que ya paso no se puede elegir: sale apagado, no desaparece. Una
+       rejilla con huecos deja de parecer un mes. */
     var hoyISO = (function(){
       var x = new Date();
-      return x.getFullYear() + '-' + String(x.getMonth()+1).padStart(2,'0') +
-             '-' + String(x.getDate()).padStart(2,'0');
+      return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') +
+             '-' + String(x.getDate()).padStart(2, '0');
     })();
-    var anioD = document.querySelector('#ctCajaDesde .fecha3 select.a');
-    var pasado = false;
-    [].forEach.call(anioD ? anioD.options : [], function(o){
-      if (o.value && parseInt(o.value, 10) < parseInt(hoyISO.slice(0,4), 10)) pasado = true;
-    });
-    ok('citas: y no deja elegir un ano pasado', !pasado,
-       pasado ? 'ofrece anos viejos' : 'desde ' + hoyISO.slice(0,4), 'desde este ano');
+    var viejos = [].filter.call(panel.querySelectorAll('.cal-dias button[data-iso]'),
+      function(b){ return b.getAttribute('data-iso') < hoyISO; });
+    ok('citas: los dias que ya pasaron salen apagados',
+       viejos.every(function(b){ return b.disabled; }),
+       viejos.length + ' anteriores a hoy, ' +
+       viejos.filter(function(b){ return b.disabled; }).length + ' apagados',
+       'todos apagados');
 
-    /* Del mes en curso, ni los dias que ya pasaron. Esto es lo que el
-       min= hacia y una lista de 1 a 31 se llevaria por delante. */
-    var mesD = document.querySelector('#ctCajaDesde .fecha3 select.m');
-    var diaD = document.querySelector('#ctCajaDesde .fecha3 select.d');
-    if (anioD && mesD && diaD){
-      anioD.value = hoyISO.slice(0,4); anioD.dispatchEvent(new Event('change'));
-      mesD.value  = hoyISO.slice(5,7); mesD.dispatchEvent(new Event('change'));
-      igual('citas: ni un dia de este mes que ya paso',
-            diaD.options[1] ? diaD.options[1].value : 'sin dias', hoyISO.slice(8,10));
-      /* Y elegir por las listas mueve el campo escondido, que es lo unico
-         que se envia. */
-      diaD.value = hoyISO.slice(8,10); diaD.dispatchEvent(new Event('change'));
-      igual('citas: y elegir por las listas mueve lo que se envia', d.value, hoyISO);
-    }
+    /* Y elegir mueve el campo escondido, que es lo unico que se envia. */
+    var libre = [].filter.call(panel.querySelectorAll('.cal-dias button[data-iso]'),
+      function(b){ return !b.disabled; })[0];
+    var queDia = libre.getAttribute('data-iso');
+    libre.click();
+    igual('citas: al elegir un dia se guarda', d.value, queDia);
+    ok('citas: y el calendario se cierra solo', !panel.classList.contains('open'),
+       panel.className, 'cerrado');
+    ok('citas: y el boton se entera', btD.textContent.indexOf(
+         String(parseInt(queDia.slice(8, 10), 10))) >= 0,
+       '"' + btD.textContent.trim() + '"', 'con el dia elegido');
+
+    /* La otra punta acota a esta: el ultimo dia no puede ser anterior al
+       primero, y en vez de dejarlo elegir y renir despues, sale apagado. */
+    btH.click();
+    var antesDelPrimero = [].filter.call(panel.querySelectorAll('.cal-dias button[data-iso]'),
+      function(b){ return b.getAttribute('data-iso') < d.value; });
+    ok('citas: y el ultimo dia no ofrece nada anterior al primero',
+       antesDelPrimero.every(function(b){ return b.disabled; }),
+       antesDelPrimero.length + ' antes del ' + d.value + ', ' +
+       antesDelPrimero.filter(function(b){ return b.disabled; }).length + ' apagados',
+       'todos apagados');
+    igual('citas: y el panel dice cual de las dos esta poniendo',
+          (panel.querySelector('.cal-h .cual') || {}).textContent, 'Último día');
+    btH.click();   /* se cierra, que lo de abajo mide el formulario entero */
 
     /* Una ventana al revés la rechaza también la base; aquí se dice con
        palabras en vez de con un error de SQL. */

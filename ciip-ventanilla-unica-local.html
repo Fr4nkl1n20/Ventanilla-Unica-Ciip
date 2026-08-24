@@ -959,30 +959,68 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .ct-modos input{accent-color:var(--navy); flex:none;
   width:auto; min-width:0; padding:0; border:0; background:none; border-radius:0;}
 
-.ct-fechas{display:flex; align-items:center; gap:9px;}
-/* Cada extremo del rango es una fecha entera -tres listas-, asi que ocupa
-   la mitad y se reparte por dentro. Por debajo de 560 las seis listas no
-   caben en una fila: el rango se parte en dos renglones y la raya se
-   queda en medio, que es donde dice lo que separa. */
-.ct-fecha{flex:1 1 0; min-width:0;}
-.ct-fechas select{font:inherit; font-size:13px; color:var(--ink); background:var(--bg);
-  border:1px solid var(--line); border-radius:9px; padding:9px 7px; min-width:0;}
-.ct-fechas select:focus{border-color:var(--navy2);}
-.pf-campo.mal .ct-fechas select{border-color:var(--rust);}
-/* Seis listas en una fila, y el mes lleva la palabra larga: "settembre",
-   "Сентябрь". A partes iguales se cortaba por la mitad, asi que el mes se
-   lleva el doble que el dia. En un formulario de tramite la fecha va sola
-   en su casilla y no hace falta. */
-.ct-fechas .fecha3{gap:5px;}
-.ct-fechas .fecha3 select.d{flex:.8 1 0;}
-.ct-fechas .fecha3 select.m{flex:2 1 0;}
-.ct-fechas .fecha3 select.a{flex:1.05 1 0;}
-@media(max-width:560px){
-  .ct-fechas{flex-wrap:wrap;}
-  .ct-fecha{flex:1 1 100%;}
+.ct-fechas{display:flex; align-items:center; gap:9px; flex-wrap:wrap;}
+
+/* ── EL CALENDARIO DEL PANEL ──
+   El del navegador no admite estilos —no hay forma de darle los colores
+   de la casa— y además se salía del diálogo, que es peor: una ventana
+   flotante que no se puede mover porque no es nuestra.
+
+   Este vive DENTRO y EMPUJA lo de abajo en vez de flotar sobre ello. Con
+   eso no hay nada que recortar, nada de lo que salirse y nada que
+   colocar a mano: el diálogo crece y ya está. */
+.cal-campo{flex:1 1 0; min-width:0;}
+.cal-btn{width:100%; display:flex; align-items:center; gap:8px; font:inherit; font-size:13px;
+  color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:9px;
+  padding:9px 11px; cursor:pointer; text-align:left;}
+.cal-btn:hover{border-color:var(--cyan-deep);}
+.cal-btn.vacio{color:var(--gray-soft);}
+.cal-btn[aria-expanded="true"]{border-color:var(--navy2); background:var(--block);}
+.cal-btn svg{width:15px; height:15px; flex:none; margin-left:auto;
+  stroke:var(--gray-soft); fill:none; stroke-width:1.8;}
+.pf-campo.mal .cal-btn{border-color:var(--rust);}
+
+/* El panel ocupa el ancho ENTERO de la fila, no el del campo que lo
+   abrió: siete columnas en media fila salen del tamaño de una uña. Por
+   eso dice arriba a la derecha cuál de las dos fechas está poniendo. */
+/* Cuelga del campo entero y NO de la fila de los dos botones: dentro de
+   la fila, con un ancho de calendario y no de formulario, el reparto lo
+   sentaba al lado y estrujaba los botones contra el margen. Y con el
+   ancho de la fila -580- cada casilla se va a los 80px y siete numeros
+   sueltos dejan de parecer un mes. */
+.cal{display:none; align-self:flex-start; max-width:376px; width:100%;
+  border:1px solid var(--line); border-radius:12px; background:var(--bg);
+  box-shadow:var(--shadow-lg); padding:10px;}
+.cal.open{display:block;}
+.cal-h{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+.cal-h .mes{font-size:12.5px; font-weight:700; color:var(--ink); text-transform:capitalize;}
+.cal-h .cual{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--gray-soft);}
+.cal-h button{width:28px; height:28px; flex:none; border:1px solid var(--line); border-radius:8px;
+  background:var(--bg); color:var(--gray); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;}
+.cal-h button:hover:not(:disabled){border-color:var(--cyan-deep); color:var(--navy2);}
+.cal-h button:disabled{opacity:.3; cursor:default;}
+.cal-h button svg{width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2.2;}
+.cal-sem, .cal-dias{display:grid; grid-template-columns:repeat(7,1fr); gap:2px;}
+.cal-sem span{text-align:center; font-size:9.5px; font-weight:700; letter-spacing:.03em;
+  text-transform:uppercase; color:var(--gray-soft); padding:4px 0;}
+.cal-dias button{font:inherit; font-size:12.5px; color:var(--ink); background:transparent;
+  border:1px solid transparent; border-radius:8px; padding:6px 0; cursor:pointer;}
+.cal-dias button:hover:not(:disabled){background:var(--block); border-color:var(--line);}
+/* Un dia fuera de plazo se enseña apagado y no se quita: una rejilla con
+   huecos deja de parecer un mes. */
+.cal-dias button:disabled{color:var(--line); cursor:default;}
+.cal-dias button.hoy{border-color:var(--line); font-weight:700;}
+.cal-dias button.puesto{background:var(--navy); border-color:var(--navy); color:#fff; font-weight:700;}
+.cal-dias .hueco{padding:6px 0;}
+.ct-raya{color:var(--gray-soft); flex:none;}
+/* Por debajo de 420 los dos botones no caben en una fila y el rango se
+   parte en dos renglones, con la raya en medio diciendo lo que separa. */
+@media(max-width:420px){
+  .cal-campo{flex:1 1 100%;}
   .ct-raya{width:100%; text-align:center;}
 }
-.ct-raya{color:var(--gray-soft); flex:none;}
 
 /* El estado de la cita que ya hay. Nace oculto: el CSS no sabe todavía si
    hay una, y enseñar los dos bloques a la vez sería contradecirse. */
@@ -2793,9 +2831,9 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
              que enviar y comprobar no se enteran. Las listas las cuelga
              pintaCita de estas dos cajas. -->
         <div class="ct-fechas">
-          <div class="ct-fecha" id="ctCajaDesde"><input type="hidden" id="ctDesde"></div>
+          <div class="cal-campo" id="ctCajaDesde"><input type="hidden" id="ctDesde"></div>
           <span class="ct-raya">–</span>
-          <div class="ct-fecha" id="ctCajaHasta"><input type="hidden" id="ctHasta"></div>
+          <div class="cal-campo" id="ctCajaHasta"><input type="hidden" id="ctHasta"></div>
         </div>
       </div>
       <div class="pf-campo">
@@ -6810,19 +6848,258 @@ applyLang(idiomaParaMi());
      'hoy' de tope por abajo: los días que te vienen bien no pueden ser los
      de la semana pasada. Y dos años por arriba, que más allá de eso no es
      una preferencia, es un error de tecleo. */
-  var ctFechasLang = null;
-  function montaFechasCita(){
-    [['ctCajaDesde', 'ctDesde', 'ct_desde'],
-     ['ctCajaHasta', 'ctHasta', 'ct_hasta']].forEach(function(par){
-      var caja   = document.getElementById(par[0]);
-      var oculto = document.getElementById(par[1]);
-      if (!caja || !oculto) return;
-      var vieja = caja.querySelector('.fecha3');
-      if (vieja) vieja.remove();
-      montaFecha3(caja, null,
-                  {n:par[1], clave:par[2], desde:'hoy', hasta:'+2'},
-                  oculto.value, oculto);
+  /* ─────────────── UN CALENDARIO NUESTRO ──────────────────────
+     El del navegador no admite estilos —no hay forma de darle los colores
+     de la casa— y se salía del diálogo, que es peor: una ventana flotante
+     que no podemos mover porque no es nuestra.
+
+     Este vive DENTRO del formulario y EMPUJA lo de abajo en vez de flotar
+     sobre ello. Con eso no hay nada que recortar, nada de lo que salirse
+     y nada que colocar a mano.
+
+     Aquí sí va un calendario y no las tres listas: «qué días te vienen
+     bien» es «el jueves» o «el 26», y para eso ver el mes entero vale más
+     que tres desplegables. Las fechas de lejos —la de nacimiento, un
+     vencimiento— se quedan en tres listas: ahí un calendario son sesenta
+     clics.
+
+     Los nombres de los meses y de los días, y por qué día empieza la
+     semana, los sabe el navegador: en español empieza en lunes y en
+     inglés en domingo, y eso no es una preferencia nuestra, es cómo se lee
+     un calendario en cada sitio.
+
+     El valor sigue en un campo escondido, el de siempre. Quien guarda y
+     quien comprueba no se enteran de que esto existe. ───────────── */
+  function isoDe(f){
+    return f.getFullYear() + '-' + String(f.getMonth() + 1).padStart(2, '0') +
+           '-' + String(f.getDate()).padStart(2, '0');
+  }
+  function deIso(t){
+    return new Date(parseInt(t.slice(0, 4), 10), parseInt(t.slice(5, 7), 10) - 1,
+                    parseInt(t.slice(8, 10), 10));
+  }
+  function localeDeAhora(){ return curLang === 'zh' ? 'zh-CN' : curLang; }
+
+  /* Por qué día empieza la semana. Lo dice el navegador con weekInfo, que
+     no está en todos: si falta, lunes, salvo en inglés. Un calendario que
+     empieza el día equivocado se lee mal sin que se note por qué. */
+  function primerDiaSemana(){
+    try {
+      var w = new Intl.Locale(localeDeAhora()).weekInfo;
+      if (w && w.firstDay) return w.firstDay % 7;      /* 7 = domingo -> 0 */
+    } catch(e){}
+    return (curLang === 'en') ? 0 : 1;
+  }
+
+  var FLECHA_IZQ = '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>';
+  var FLECHA_DER = '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>';
+  var ICONO_CAL  = '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2"/>' +
+                   '<path d="M16 3v4M8 3v4M3.5 10h17"/></svg>';
+
+  function nuevoCalendario(){
+    var caja = el('div', 'cal');
+    var cab  = el('div', 'cal-h');
+    var bAnt = document.createElement('button');
+    var bSig = document.createElement('button');
+    var lMes = el('div', 'mes');
+    var cual = el('div', 'cual');
+    bAnt.type = 'button'; bSig.type = 'button';
+    /* Cadenas fijas de este archivo: aquí innerHTML no trae nada de fuera. */
+    bAnt.innerHTML = FLECHA_IZQ;
+    bSig.innerHTML = FLECHA_DER;
+    cab.appendChild(bAnt); cab.appendChild(lMes);
+    cab.appendChild(bSig); cab.appendChild(cual);
+    var sem  = el('div', 'cal-sem');
+    var dias = el('div', 'cal-dias');
+    caja.appendChild(cab); caja.appendChild(sem); caja.appendChild(dias);
+    caja.setAttribute('role', 'dialog');
+
+    var campo = null;     /* la fecha que se está poniendo ahora */
+    var mes   = null;     /* el mes a la vista, día 1 */
+
+    function limite(cual2){
+      var v = campo && campo[cual2];
+      return (typeof v === 'function') ? v() : (v || '');
+    }
+
+    function pinta(){
+      if (!campo) return;
+      var loc = localeDeAhora();
+      var deMes = new Intl.DateTimeFormat(loc, {month:'long', year:'numeric'});
+      lMes.textContent = deMes.format(mes);
+      cual.textContent = campo.titulo || '';
+
+      /* Los días de la semana, en su idioma y empezando por donde toca.
+         El 1 de febrero de 2026 fue domingo: sirve de origen. */
+      var p0 = primerDiaSemana();
+      var corto = new Intl.DateTimeFormat(loc, {weekday:'short'});
+      sem.textContent = '';
+      for (var i = 0; i < 7; i++){
+        sem.appendChild(el('span', null, corto.format(new Date(2026, 1, 1 + ((p0 + i) % 7)))));
+      }
+
+      var min = limite('min'), max = limite('max');
+      var hoy = isoDe(new Date());
+      var puesto = campo.oculto.value || '';
+
+      /* Las flechas se apagan cuando no queda nada al otro lado: una que
+         se pulsa y no hace nada es peor que una apagada. */
+      var finAnterior = isoDe(new Date(mes.getFullYear(), mes.getMonth(), 0));
+      var iniSiguiente = isoDe(new Date(mes.getFullYear(), mes.getMonth() + 1, 1));
+      bAnt.disabled = !!(min && finAnterior < min);
+      bSig.disabled = !!(max && iniSiguiente > max);
+      bAnt.setAttribute('aria-label', deMes.format(new Date(mes.getFullYear(), mes.getMonth() - 1, 1)));
+      bSig.setAttribute('aria-label', deMes.format(new Date(mes.getFullYear(), mes.getMonth() + 1, 1)));
+
+      dias.textContent = '';
+      var hueco = (new Date(mes.getFullYear(), mes.getMonth(), 1).getDay() - p0 + 7) % 7;
+      for (var h = 0; h < hueco; h++) dias.appendChild(el('div', 'hueco'));
+      var cuantos = new Date(mes.getFullYear(), mes.getMonth() + 1, 0).getDate();
+      var largo = new Intl.DateTimeFormat(loc, {day:'numeric', month:'long', year:'numeric'});
+      for (var d = 1; d <= cuantos; d++){
+        var t = isoDe(new Date(mes.getFullYear(), mes.getMonth(), d));
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = String(d);
+        b.setAttribute('data-iso', t);
+        b.setAttribute('aria-label', largo.format(deIso(t)));
+        if ((min && t < min) || (max && t > max)) b.disabled = true;
+        if (t === hoy) b.classList.add('hoy');
+        if (t === puesto){ b.classList.add('puesto'); b.setAttribute('aria-current', 'date'); }
+        dias.appendChild(b);
+      }
+    }
+
+    dias.addEventListener('click', function(e){
+      var b = e.target.closest('button[data-iso]');
+      if (!b || b.disabled || !campo) return;
+      campo.oculto.value = b.getAttribute('data-iso');
+      /* A mano: un campo escondido no lanza 'input' solo, y de eso viven
+         el rótulo del botón y el límite de la otra punta del rango. */
+      campo.oculto.dispatchEvent(new Event('input', {bubbles:true}));
+      cierra(true);
     });
+    bAnt.addEventListener('click', function(){
+      mes = new Date(mes.getFullYear(), mes.getMonth() - 1, 1); pinta();
+    });
+    bSig.addEventListener('click', function(){
+      mes = new Date(mes.getFullYear(), mes.getMonth() + 1, 1); pinta();
+    });
+    caja.addEventListener('keydown', function(e){
+      if (e.key === 'Escape'){ e.stopPropagation(); cierra(true); }
+    });
+
+    function abre(c){
+      campo = c;
+      /* Se abre por el mes de lo ya elegido; si no hay nada, por el del
+         límite de abajo o el de hoy. Nunca por un mes en el que no se
+         pueda elegir nada. */
+      var arranque = campo.oculto.value || limite('min') || isoDe(new Date());
+      mes = deIso(arranque); mes.setDate(1);
+      pinta();
+      caja.classList.add('open');
+      if (campo.boton) campo.boton.setAttribute('aria-expanded', 'true');
+      var foco = caja.querySelector('.cal-dias button.puesto') ||
+                 caja.querySelector('.cal-dias button:not(:disabled)');
+      if (foco) foco.focus();
+    }
+    function cierra(devuelveFoco){
+      var eraDe = campo;
+      caja.classList.remove('open');
+      campo = null;
+      if (eraDe && eraDe.boton){
+        eraDe.boton.setAttribute('aria-expanded', 'false');
+        if (devuelveFoco) eraDe.boton.focus();
+      }
+    }
+    function abierto(){ return caja.classList.contains('open'); }
+    function puestoEn(){ return campo; }
+
+    return {caja:caja, abre:abre, cierra:cierra, abierto:abierto, campo:puestoEn};
+  }
+
+  /* ── Las dos fechas de la cita ──
+     Un solo calendario para las dos puntas del rango: siete columnas en
+     media fila salen del tamaño de una uña, así que el panel ocupa la
+     fila entera y dice arriba cuál de las dos está poniendo.
+
+     Y cada punta acota a la otra: el último día no puede ser anterior al
+     primero, y en vez de dejar elegirlo y reñir después, esos días salen
+     apagados. La comprobación al enviar se queda: protege de lo que entre
+     por otro lado y es la que dice POR QUÉ. */
+  var ctFechasLang = null, ctCal = null;
+  function montaFechasCita(){
+    var u = T();
+    var fila = document.querySelector('#ctForm .ct-fechas');
+    if (!fila) return;
+    if (ctCal) ctCal.cierra();
+
+    function dentroDeDosAnios(){ return (new Date().getFullYear() + 2) + '-12-31'; }
+    var puntas = [
+      {cja:'ctCajaDesde', id:'ctDesde', clave:'ct_desde',
+       min: function(){ return isoDe(new Date()); },
+       max: function(){
+         return document.getElementById('ctHasta').value || dentroDeDosAnios();
+       }},
+      {cja:'ctCajaHasta', id:'ctHasta', clave:'ct_hasta',
+       min: function(){
+         var d = document.getElementById('ctDesde').value, h = isoDe(new Date());
+         return (d && d > h) ? d : h;
+       },
+       max: dentroDeDosAnios}
+    ];
+
+    puntas.forEach(function(par){
+      var caja   = document.getElementById(par.cja);
+      var oculto = document.getElementById(par.id);
+      if (!caja || !oculto) return;
+      var viejo = caja.querySelector('.cal-btn');
+      if (viejo) viejo.remove();
+
+      var bt = document.createElement('button');
+      bt.type = 'button';
+      bt.className = 'cal-btn';
+      bt.id = par.id + 'Btn';
+      bt.setAttribute('aria-haspopup', 'dialog');
+      bt.setAttribute('aria-expanded', 'false');
+      var texto = el('span');
+      bt.appendChild(texto);
+      var envuelto = el('span');
+      envuelto.innerHTML = ICONO_CAL;            /* cadena de este archivo */
+      bt.appendChild(envuelto.firstChild);
+
+      var titulo = u[par.clave] || par.id;
+      function rotula(){
+        var v = oculto.value;
+        bt.classList.toggle('vacio', !v);
+        texto.textContent = v
+          ? new Intl.DateTimeFormat(localeDeAhora(),
+              {day:'numeric', month:'short', year:'numeric'}).format(deIso(v))
+          : titulo;
+        /* El botón dice las dos cosas: cuál de las dos fechas es y lo que
+           lleva puesto. Sin lo primero, un lector de pantalla oye dos
+           botones con una fecha cada uno y ninguna forma de saber cuál es
+           el principio. */
+        bt.setAttribute('aria-label', titulo + (v ? ': ' + texto.textContent : ''));
+      }
+      rotula();
+      oculto.addEventListener('input', rotula);
+
+      var suyo = {oculto:oculto, boton:bt, titulo:titulo, min:par.min, max:par.max};
+      bt.addEventListener('click', function(){
+        var yaEsteMismo = ctCal.abierto() && ctCal.campo() &&
+                          ctCal.campo().oculto === oculto;
+        ctCal.cierra();
+        if (!yaEsteMismo) ctCal.abre(suyo);
+      });
+      caja.insertBefore(bt, caja.firstChild);
+    });
+
+    /* Debajo de la fila y fuera de ella: es del campo, no de una de las
+       dos puntas. */
+    var campoEntero = fila.parentNode;
+    if (!ctCal) ctCal = nuevoCalendario();
+    if (ctCal.caja.parentNode !== campoEntero) campoEntero.appendChild(ctCal.caja);
     ctFechasLang = curLang;
   }
 
