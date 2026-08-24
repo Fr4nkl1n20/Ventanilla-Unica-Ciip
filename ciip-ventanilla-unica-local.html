@@ -390,11 +390,13 @@ svg{display:block;}
 .pf-campo[hidden]{display:none;}
 /* Dia, mes y ano en tres listas. No flotan, asi que no se salen del
    dialogo: era el problema del calendario del navegador. El ano lleva
-   mas sitio porque es el que se elige primero y el que mas se busca. */
-.em-fecha3{display:flex; gap:7px;}
-.em-fecha3 select{flex:1 1 0; min-width:0;}
-.em-fecha3 select.a{flex:1.25 1 0;}
-@media(max-width:420px){ .em-fecha3{flex-wrap:wrap;} .em-fecha3 select{flex:1 1 90px;} }
+   mas sitio porque es el que se elige primero y el que mas se busca.
+   Sin prefijo "em-": ya no es solo de la ficha de empresa, tambien las
+   lleva cada fecha de los formularios de tramite. */
+.fecha3{display:flex; gap:7px;}
+.fecha3 select{flex:1 1 0; min-width:0;}
+.fecha3 select.a{flex:1.25 1 0;}
+@media(max-width:420px){ .fecha3{flex-wrap:wrap;} .fecha3 select{flex:1 1 90px;} }
 .pf-campo > span, .pf-campo > label{font-size:11.5px; font-weight:700; color:var(--gray);}
 .pf-campo input, .pf-campo select{font:inherit; font-size:13px; color:var(--ink);
   background:var(--bg); border:1px solid var(--line); border-radius:9px;
@@ -4453,6 +4455,27 @@ applyLang(idiomaParaMi());
      necesitando lo mismo, y así se añade en un sitio. */
   var CON_BANCO = { cuenta_bancaria: true };
 
+  /* Hasta dónde llega cada fecha. Va aquí y no pegado a cada campo
+     porque el mismo campo sale en varios trámites —inicio_actividades
+     está en cinco— y repetir el tope sería cinco sitios donde
+     equivocarse.
+
+     Lo que no esté en la tabla se ofrece de 1900 a hoy: casi todas las
+     fechas de un formulario son de algo que ya pasó, y ofrecer el año
+     que viene para una fecha de emisión solo sirve para elegirlo mal.
+     Las excepciones son las tres de abajo. */
+  var FECHA_TOPES = {
+    /* Los vencimientos miran hacia delante. Se dejan diez años atrás a
+       propósito: hay quien llega con el pasaporte recién vencido y viene
+       justo a eso, y no poder ni escribirlo lo deja fuera sin decirle
+       por qué. */
+    vence_pasaporte:    {desde:'-10', hasta:'+15'},
+    vence_licencia:     {desde:'-10', hasta:'+15'},
+    /* El mismo tope que en la ficha de empresa, y por el mismo motivo:
+       una empresa ya constituida puede tener la apertura por delante. */
+    inicio_actividades: {desde:'1900-01-01', hasta:'+10'}
+  };
+
   var CAMPOS = {
     visa_inversionista: [
       {n:'numero_pasaporte',  clave:'f_pasaporte'},
@@ -5015,8 +5038,14 @@ applyLang(idiomaParaMi());
         });
       } else {
         entrada = document.createElement('input');
-        entrada.type = c.tipo || 'text';
-        /* Nada aqui: los de pais se montan mas abajo, que necesitan
+        /* Una fecha no la pone el calendario del navegador sino tres
+           listas, igual que en la ficha de empresa: un calendario sirve
+           para "el jueves", no para el año en que naciste. El campo
+           sigue existiendo —escondido, con su name y su valor— así que
+           validar, guardar y rellenar no se enteran de nada.
+           Se monta mas abajo, cuando el valor ya esta puesto. */
+        entrada.type = (c.tipo === 'date') ? 'hidden' : (c.tipo || 'text');
+        /* Nada mas aqui: los de pais se montan mas abajo, que necesitan
            envoltura propia. */
       }
       entrada.name = c.n;
@@ -5054,6 +5083,15 @@ applyLang(idiomaParaMi());
       if (c.paises && entrada.tagName === 'INPUT'){
         var b = montaBuscadorPais(campo, entrada);
         if (entrada.value) b.pon(entrada.value);
+      } else if (c.tipo === 'date'){
+        /* El escondido, PRIMERO: el que valida coge el primer input o
+           select de la casilla, y si entran antes las listas se lleva el
+           dia suelto en vez de la fecha. */
+        campo.appendChild(entrada);
+        var topes = FECHA_TOPES[c.n] || {desde:'1900-01-01', hasta:'hoy'};
+        montaFecha3(campo, campo.querySelector('label'),
+                    {n:c.n, clave:c.clave, desde:topes.desde, hasta:topes.hasta},
+                    entrada.value, entrada);
       } else {
         campo.appendChild(entrada);
       }
@@ -9177,14 +9215,26 @@ applyLang(idiomaParaMi());
 
      El valor sigue viviendo en un input escondido con el MISMO id de
      siempre, asi que guardar, comprobar y traducir no se enteran. \u2500\u2500\u2500 */
-  function montaFecha3(campo, lb, c, valor){
+  var nFecha3 = 0;
+  function montaFecha3(campo, lb, c, valor, oculto){
     var u = T();
-    var caja = el('div', 'em-fecha3');
+    var caja = el('div', 'fecha3');
 
-    var oculto = document.createElement('input');
-    oculto.type = 'hidden';
-    oculto.id = 'em_' + c.n;
-    oculto.value = valor || '';
+    /* La ficha de empresa tiene UN campo de cada cosa y lo busca por un
+       id fijo. Un formulario de tramite no: el mismo panel puede tener
+       dos fechas del mismo nombre en pantalla -la tarjeta abierta y la
+       ficha detras-, asi que ahi los id se numeran y el dato se lee por
+       el "name", que es lo que mira el envio. */
+    var raiz;
+    if (oculto){
+      raiz = 'f3' + (++nFecha3) + '_' + c.n;
+    } else {
+      raiz = 'em_' + c.n;
+      oculto = document.createElement('input');
+      oculto.type = 'hidden';
+      oculto.id = raiz;
+      oculto.value = valor || '';
+    }
 
     function lista(clase, etiqueta, id){
       var sel = document.createElement('select');
@@ -9197,9 +9247,9 @@ applyLang(idiomaParaMi());
       sel.appendChild(vacia);
       return sel;
     }
-    var selD = lista('d', u.f_dia || '', 'em_' + c.n + '_d');
-    var selM = lista('m', u.f_mes || '', 'em_' + c.n + '_m');
-    var selA = lista('a', u.f_anio || '', 'em_' + c.n + '_a');
+    var selD = lista('d', u.f_dia || '', raiz + '_d');
+    var selM = lista('m', u.f_mes || '', raiz + '_m');
+    var selA = lista('a', u.f_anio || '', raiz + '_a');
 
     /* El orden lo dice el idioma, no una costumbre: en chino la fecha es
        ano-mes-dia y ponerla al reves seria escribirla mal. Lo sabe el
@@ -9218,11 +9268,38 @@ applyLang(idiomaParaMi());
        viejo: una empresa que se constituyo hace dos anos no deberia
        recorrer un siglo para encontrarse. */
     var hoy = new Date();
-    var aMin = parseInt(String(c.desde || '1900-01-01').slice(0, 4), 10);
-    var aMax = (c.hasta === 'hoy') ? hoy.getFullYear()
-             : (String(c.hasta || '').charAt(0) === '+')
-               ? hoy.getFullYear() + parseInt(String(c.hasta).slice(1), 10)
-               : (c.hasta ? parseInt(String(c.hasta).slice(0, 4), 10) : hoy.getFullYear());
+    /* Un tope puede venir de tres maneras: una fecha entera, 'hoy', o
+       tantos anos por delante ('+15') o por detras ('-10') de hoy. El
+       '-' hizo falta al traer esto a los tramites: un pasaporte no se
+       busca desde 1900, se busca alrededor de ahora. */
+    function anioTope(v, siNada){
+      var t = String(v == null ? '' : v);
+      if (t === 'hoy') return hoy.getFullYear();
+      if (t.charAt(0) === '+') return hoy.getFullYear() + parseInt(t.slice(1), 10);
+      if (t.charAt(0) === '-') return hoy.getFullYear() - parseInt(t.slice(1), 10);
+      if (/^\d{4}/.test(t)) return parseInt(t.slice(0, 4), 10);
+      return siNada;
+    }
+    var aMin = anioTope(c.desde, 1900);
+    var aMax = anioTope(c.hasta, hoy.getFullYear());
+
+    /* Y lo que ya estaba escrito manda sobre cualquier tope. Un dato
+       guardado antes —por otro trámite, o por el calendario de cuando no
+       había topes— puede caer fuera; si las listas no lo ofrecen, el
+       campo se ve VACÍO con la fecha dentro, y quien lo mira no tiene
+       forma de saber que hay algo que se va a enviar. Se ensancha el
+       rango hasta donde haga falta, incluido el tope de "hoy". */
+    var yaHay = (valor && /^\d{4}-\d{2}-\d{2}$/.test(valor)) ? valor : '';
+    var tope = hoy;
+    if (yaHay){
+      var aYa = parseInt(yaHay.slice(0, 4), 10);
+      if (aYa < aMin) aMin = aYa;
+      if (aYa > aMax) aMax = aYa;
+      if (yaHay > hoyISO()){
+        tope = new Date(aYa, parseInt(yaHay.slice(5, 7), 10) - 1,
+                        parseInt(yaHay.slice(8, 10), 10));
+      }
+    }
     for (var a = aMax; a >= aMin; a--){
       var oa = document.createElement('option');
       oa.value = String(a);
@@ -9250,8 +9327,8 @@ applyLang(idiomaParaMi());
       var cuantos = (anio && mes) ? new Date(anio, mes, 0).getDate() : 31;
       /* Y si la fecha maxima cae dentro de este mismo mes, no se ofrece
          mas alla: prevenir es mejor que renir despues. */
-      if (c.hasta === 'hoy' && anio === hoy.getFullYear() && mes === hoy.getMonth() + 1){
-        cuantos = Math.min(cuantos, hoy.getDate());
+      if (c.hasta === 'hoy' && anio === tope.getFullYear() && mes === tope.getMonth() + 1){
+        cuantos = Math.min(cuantos, tope.getDate());
       }
       var antes = selD.value;
       while (selD.options.length > 1) selD.remove(1);
@@ -9268,12 +9345,12 @@ applyLang(idiomaParaMi());
     function pintaMeses(){
       if (c.hasta !== 'hoy') return;
       var anio = parseInt(selA.value, 10);
-      var tope = (anio === hoy.getFullYear()) ? hoy.getMonth() + 1 : 12;
+      var hasta = (anio === tope.getFullYear()) ? tope.getMonth() + 1 : 12;
       [].forEach.call(selM.options, function(o){
         if (!o.value) return;
-        o.hidden = (parseInt(o.value, 10) > tope);
+        o.hidden = (parseInt(o.value, 10) > hasta);
       });
-      if (selM.value && parseInt(selM.value, 10) > tope) selM.value = '';
+      if (selM.value && parseInt(selM.value, 10) > hasta) selM.value = '';
     }
 
     function recoge(){
@@ -9299,9 +9376,14 @@ applyLang(idiomaParaMi());
       pintaDias();
     }
 
-    lb.setAttribute('for', selA.id);
+    /* A la primera de las tres en pantalla, que no siempre es la misma:
+       el orden lo pone el idioma. Senalar al ano dejaba el foco en la
+       ultima al pulsar la etiqueta en espanol. */
+    lb.setAttribute('for', (caja.firstChild && caja.firstChild.id) || selA.id);
     campo.appendChild(caja);
-    campo.appendChild(oculto);
+    /* En un tramite el escondido ya esta puesto -y ANTES que las listas,
+       que es como lo encuentra el que valida-. */
+    if (!oculto.parentNode) campo.appendChild(oculto);
   }
 
   function abreFichaEmpresa(){

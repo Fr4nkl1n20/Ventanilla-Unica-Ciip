@@ -119,7 +119,7 @@
               agendaMira, agendaTrasEntrar, agendaTrasSalir,
               paisesMira, paisesTrasAbrir,
               dupeAbre, dupeMira, dupeTrasEnviar,
-              antesAbre, antesMira,
+              antesAbre, antesMira, fecha3Mira, fecha3Cambia,
               rncAbre, rncTrasAbrir, solvenciasAbre, solvenciasTrasAbrir,
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
@@ -1516,6 +1516,73 @@
     var con = document.querySelector('#trReal [name="nombre_familiar"]');
     ok('antes: y lo que nunca escribiste sigue vacio',
        !!con && con.value === '', con ? ('"' + con.value + '"') : 'no hay campo', 'vacio');
+  }
+
+  /* ═══════════ LA FECHA, EN TRES LISTAS ═══════════
+     El calendario del navegador se fue de la ficha de empresa hace tres
+     semanas y se quedó en los formularios de trámite, que son 21 fechas.
+     Se mide sobre el c20, que sigue abierto del paso de antes y trae la
+     fecha de nacimiento ya rellena: así se comprueba de paso que un dato
+     que viene de otro sitio LLEGA a las tres listas y no solo al campo
+     escondido. */
+  function fecha3Mira(){
+    if (CASO !== 'lleno') return;
+    var nac = document.querySelector('#trReal [name="fecha_nacimiento"]');
+    ok('fecha3: el formulario sigue abierto', !!nac,
+       nac ? 'con la fecha' : 'sin campo de fecha', 'con la fecha');
+    if (!nac) return;
+
+    /* Ni uno. Este es el fallo que se venía a arreglar. */
+    var nativos = document.querySelectorAll('#trReal input[type="date"]').length;
+    igual('fecha3: no queda ningun calendario del navegador', nativos, 0);
+
+    var casilla = nac.closest('.sol-campo');
+    var listas  = casilla.querySelectorAll('.fecha3 select');
+    igual('fecha3: hay tres listas', listas.length, 3);
+
+    /* Lo que lee el que valida es el PRIMER input o select de la casilla.
+       Si las listas se colaran delante, cogeria el dia suelto -"11"- y lo
+       enviaria como si fuera la fecha entera. */
+    var primero = casilla.querySelector('input, select');
+    ok('fecha3: y lo primero de la casilla es el campo escondido',
+       primero === nac, primero ? (primero.tagName + ' ' + (primero.type || '')) : 'nada',
+       'INPUT hidden');
+
+    igual('fecha3: el escondido conserva la fecha', nac.value, '1979-04-11');
+    var d = casilla.querySelector('.fecha3 select.d');
+    var m = casilla.querySelector('.fecha3 select.m');
+    var a = casilla.querySelector('.fecha3 select.a');
+    igual('fecha3: y el ano se ve en su lista',  a ? a.value : 'sin lista', '1979');
+    igual('fecha3: y el mes tambien',            m ? m.value : 'sin lista', '04');
+    igual('fecha3: y el dia tambien',            d ? d.value : 'sin lista', '11');
+
+    /* Una fecha de nacimiento no tiene años por delante: el tope de quien
+       no está en la tabla es "hoy". */
+    var futuro = false, ahora = new Date().getFullYear();
+    [].forEach.call(a ? a.options : [], function(o){
+      if (o.value && parseInt(o.value, 10) > ahora) futuro = true;
+    });
+    ok('fecha3: y no ofrece anos que no han llegado', !futuro,
+       futuro ? 'ofrece futuro' : 'hasta ' + ahora, 'hasta ' + ahora);
+
+    /* Y febrero no tiene 31. La lista de dias se rehace con el mes. */
+    if (m && d){
+      m.value = '02'; m.dispatchEvent(new Event('change'));
+      igual('fecha3: febrero de 1979 tiene 28 dias', d.options.length - 1, 28);
+    }
+  }
+
+  /* Cambiar una lista tiene que mover el campo escondido: es lo unico que
+     se guarda. Sin esto las tres listas serian un adorno. */
+  function fecha3Cambia(){
+    if (CASO !== 'lleno') return;
+    var nac = document.querySelector('#trReal [name="fecha_nacimiento"]');
+    if (!nac) return;
+    var casilla = nac.closest('.sol-campo');
+    var d = casilla.querySelector('.fecha3 select.d');
+    if (!d) return;
+    d.value = '07'; d.dispatchEvent(new Event('change'));
+    igual('fecha3: al elegir, el campo escondido se entera', nac.value, '1979-02-07');
   }
 
   function rncAbre(){
