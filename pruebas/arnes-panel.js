@@ -268,8 +268,28 @@
           document.getElementById('seAviso').textContent.trim(), esperado);
 
     /* Y siempre hay por donde salir: bloquear sin salida es encerrar. */
-    ok('sector: y se puede salir de la cuenta',
-       !!document.getElementById('seSalir'), 'hay boton', 'hay boton');
+    var btSalir = document.getElementById('seSalir');
+    ok('sector: y se puede salir de la cuenta', !!btSalir, 'hay boton', 'hay boton');
+
+    /* Que el boton ESTÉ no es que funcione, y esta prueba se quedó ahí.
+       Llamaba a signOut() sin esperarlo y se iba en la misma línea: la
+       petición quedaba a medias, la sesión seguía en el navegador y el
+       acceso —que mira si hay sesión y devuelve al panel— metía otra vez
+       dentro. Darle a "salir" te dejaba donde estabas.
+
+       Se mide que sale por ciipSalir(), que es el único camino que espera
+       a que la sesión se cierre de verdad antes de irse. Se sustituye por
+       uno de mentira: el de verdad navega, y ahí se acabaría el arnés. */
+    ok('sector: y el panel sabe cerrar la sesion',
+       typeof window.ciipSalir === 'function',
+       typeof window.ciipSalir, 'function');
+    var salioPor = 'nada';
+    var salirDeVerdad = window.ciipSalir;
+    window.ciipSalir = function(){ salioPor = 'ciipSalir'; return Promise.resolve(); };
+    if (btSalir) btSalir.click();
+    window.ciipSalir = salirDeVerdad;
+    if (btSalir) btSalir.disabled = false;
+    igual('sector: y salir cierra la sesion antes de irse', salioPor, 'ciipSalir');
 
     /* ── El idioma, sin salir ──
        La puerta tapa la barra de arriba. Quien abriera el panel en un

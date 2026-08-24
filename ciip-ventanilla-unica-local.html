@@ -6645,9 +6645,23 @@ applyLang(idiomaParaMi());
     document.getElementById('seGuardar').addEventListener('click', guardaSector);
     document.getElementById('seSalir').addEventListener('click', function(){
       /* Bloquear sin salida es encerrar. Contestar o irse; irse tiene que
-         poder, aunque sea saliendo de la cuenta. */
-      try { sb.auth.signOut(); } catch(e){}
-      location.href = 'acceso.html';
+         poder, aunque sea saliendo de la cuenta.
+
+         Y se sale por el MISMO sitio que el botón de la cabecera, que es
+         ciipSalir(). Esto de aquí llamaba a signOut() sin esperarlo y se
+         iba en la misma línea: la petición se quedaba a medias, la
+         sesión seguía en el navegador, y el acceso —que mira si hay
+         sesión y devuelve al panel— te metía otra vez dentro. Darle a
+         "salir" te dejaba donde estabas.
+
+         Ahí se colaban otras dos: la ruta a mano en vez de la de la
+         configuración —que en red no es './acceso.html'— y un href en
+         vez de un replace, que deja la puerta en el historial para que
+         la flecha de atrás vuelva a ella. */
+      this.disabled = true;
+      if (window.ciipSalir) return window.ciipSalir();
+      var cfg = window.CIIP_CONFIG || {};
+      location.replace(cfg.RUTA_ACCESO || './acceso.html');
     });
     var seBusca = document.getElementById('seBuscar');
     if (seBusca) seBusca.addEventListener('input', pintaListaSectores);
