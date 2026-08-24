@@ -224,7 +224,34 @@
     ok('sector: y se puede salir de la cuenta',
        !!document.getElementById('seSalir'), 'hay boton', 'hay boton');
 
-    /* Se elige el segundo -mineria- y se contesta. */
+    /* ── El idioma, sin salir ──
+       La puerta tapa la barra de arriba. Quien abriera el panel en un
+       idioma que no entiende se quedaba delante de una pregunta que no
+       deja pasar, con cerrar sesion como unica salida. */
+    var banderas = document.querySelectorAll('#seLang button');
+    igual('sector: se puede cambiar de idioma sin salir', banderas.length, 6);
+    var eraTitulo = document.getElementById('seTitulo').textContent.trim();
+    var eraLang = curLang;
+    document.querySelector('#seLang button[data-lang="es"]').click();
+    igual('sector: y la pregunta se repinta en el nuevo',
+          document.getElementById('seTitulo').textContent.trim(),
+          window.CIIP_PASOS.ui.es.se_titulo);
+    ok('sector: y no se queda con el texto de antes',
+       document.getElementById('seTitulo').textContent.trim() !== eraTitulo,
+       eraTitulo.slice(0, 30), 'otro distinto');
+    /* Los sectores tambien se retraducen: son el contenido, no el marco. */
+    igual('sector: y los sectores tambien se traducen',
+          document.querySelectorAll('#seLista .se-op')[0].textContent.trim(),
+          window.CIIP_PASOS.sectores.es.s1);
+    /* Y se vuelve al de este pase: si no, todo lo que corre despues
+       mediria una pantalla en un idioma que nadie eligio. */
+    document.querySelector('#seLang button[data-lang="' + eraLang + '"]').click();
+    igual('sector: y se puede volver al de antes', curLang, eraLang);
+
+    /* Se elige el segundo -mineria- y se contesta. La lista se rehizo al
+       cambiar de idioma, asi que se vuelve a pedir: la de antes son nodos
+       que ya no estan en la pagina. */
+    ops = document.querySelectorAll('#seLista .se-op');
     ops[1].click();
     var puestos = document.querySelectorAll('#seLista .se-op.puesto');
     igual('sector: al elegir se marca uno, y solo uno', puestos.length, 1);

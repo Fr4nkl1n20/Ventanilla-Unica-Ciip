@@ -1586,6 +1586,15 @@ body.menu-abierto .menu-fondo{display:block;}
 .sector-back{z-index:80;}
 body.con-puerta{overflow:hidden;}
 .se-cuerpo{padding:16px 18px; overflow:auto;}
+/* Las banderas van arriba y pequenas: son una salida, no una decision.
+   Quien entiende la pregunta ni las mira. */
+.se-lang{display:flex; gap:5px; flex-wrap:wrap; margin-bottom:13px;}
+.se-lang button{font:inherit; font-size:10px; font-weight:700; line-height:1;
+  padding:4px; border:1px solid var(--line); border-radius:5px;
+  background:var(--bg); color:var(--gray); cursor:pointer; opacity:.5;}
+.se-lang button:hover{opacity:1; border-color:var(--navy2);}
+.se-lang button.on{opacity:1; border-color:var(--navy2);}
+.se-lang img{display:block; width:20px; height:14px; object-fit:cover; border-radius:2px;}
 .se-ayuda{font-size:12px; color:var(--gray); line-height:1.55; margin-bottom:13px;}
 .se-buscar{width:100%; font:inherit; font-size:13px; padding:9px 11px; margin-bottom:11px;
   border:1px solid var(--line); border-radius:var(--r-sm); background:var(--bg); color:var(--ink);}
@@ -2917,6 +2926,18 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       </div>
     </div>
     <div class="se-cuerpo">
+      <!-- El idioma, AQUI DENTRO. La puerta tapa la barra de arriba, asi
+           que quien abriera el panel en el idioma equivocado se quedaba
+           sin poder cambiarlo: una pregunta que no entiendes, que no deja
+           pasar, y con cerrar sesion como unica salida. -->
+      <div class="se-lang" id="seLang" role="group">
+        <button type="button" data-lang="en" title="English"><img src="banderas/gb.svg" alt="English" onerror="this.replaceWith(document.createTextNode('EN'))"></button>
+        <button type="button" data-lang="es" title="Español"><img src="banderas/es.svg" alt="Español" onerror="this.replaceWith(document.createTextNode('ES'))"></button>
+        <button type="button" data-lang="pt" title="Português"><img src="banderas/br.svg" alt="Português" onerror="this.replaceWith(document.createTextNode('PT'))"></button>
+        <button type="button" data-lang="it" title="Italiano"><img src="banderas/it.svg" alt="Italiano" onerror="this.replaceWith(document.createTextNode('IT'))"></button>
+        <button type="button" data-lang="zh" title="中文"><img src="banderas/cn.svg" alt="中文" onerror="this.replaceWith(document.createTextNode('ZH'))"></button>
+        <button type="button" data-lang="ru" title="Русский"><img src="banderas/ru.svg" alt="Русский" onerror="this.replaceWith(document.createTextNode('RU'))"></button>
+      </div>
       <div class="se-ayuda" id="seAyuda"></div>
       <input type="search" class="se-buscar" id="seBuscar" autocomplete="off" hidden>
       <div class="se-lista" id="seLista" role="radiogroup"></div>
@@ -3158,6 +3179,7 @@ function applyLang(lang){
   /* Y la ventana del perfil, con su lista de países: los nombres se ven en
      el idioma de turno aunque lo que se guarde sea siempre el español. */
   if (window.CIIP_REPINTA_PERFIL) window.CIIP_REPINTA_PERFIL();
+  if (window.CIIP_REPINTA_SECTOR) window.CIIP_REPINTA_SECTOR();
   if (window.CIIP_REPINTA_CITA)   window.CIIP_REPINTA_CITA();
   /* La cola también: sus textos, y de paso si el botón debe verse, porque el
      perfil —y con él el rol— llega después de que la página se dibuje. */
@@ -6340,6 +6362,7 @@ applyLang(idiomaParaMi());
     pintaListaSectores();
     var av = document.getElementById('seAviso'); if (av) av.textContent = '';
     seBack.classList.add('open');
+    marcaIdiomaSector();
     document.body.classList.add('con-puerta');
   }
 
@@ -6374,6 +6397,39 @@ applyLang(idiomaParaMi());
       if (av) av.textContent = u.se_error || '';
     });
   }
+
+  function marcaIdiomaSector(){
+    var caja = document.getElementById('seLang');
+    if (!caja) return;
+    [].forEach.call(caja.querySelectorAll('button'), function(b){
+      b.classList.toggle('on', b.getAttribute('data-lang') === curLang);
+    });
+  }
+
+  /* Repinta la puerta al cambiar de idioma. Sin esto las banderas
+     cambiarian el panel de detras -que no se ve- y dejarian la pregunta
+     escrita en el idioma de antes. */
+  function repintaSector(){
+    if (!seBack || !seBack.classList.contains('open')) return;
+    var u = T();
+    function pon(id, txt){ var e = document.getElementById(id); if (e) e.textContent = txt || ''; }
+    pon('seTitulo',  u.se_titulo);
+    pon('seSub',     u.se_sub);
+    pon('seAyuda',   u.se_ayuda);
+    pon('seGuardar', u.se_guardar);
+    pon('seSalir',   u.se_salir);
+    pon('seNada',    u.se_falta);
+    var busca = document.getElementById('seBuscar');
+    if (busca) busca.setAttribute('placeholder', u.se_buscar || '');
+    var av = document.getElementById('seAviso');
+    /* Si habia un reproche puesto, se vuelve a decir en el idioma nuevo. */
+    if (av && av.textContent) av.textContent = u.se_falta || '';
+    /* Y los sectores se retraducen sin perder lo elegido: lo que se guarda
+       es el codigo, no el nombre. */
+    pintaListaSectores();
+    marcaIdiomaSector();
+  }
+  window.CIIP_REPINTA_SECTOR = repintaSector;
 
   /* El campo del perfil, para poder cambiarlo despues. Preguntarlo una
      vez y dejarlo clavado convierte un error de un clic en algo que solo
@@ -6415,6 +6471,11 @@ applyLang(idiomaParaMi());
     });
     var seBusca = document.getElementById('seBuscar');
     if (seBusca) seBusca.addEventListener('input', pintaListaSectores);
+    var seLang = document.getElementById('seLang');
+    if (seLang) seLang.addEventListener('click', function(e){
+      var b = e.target.closest('button[data-lang]');
+      if (b) applyLang(b.getAttribute('data-lang'));
+    });
 
     /* Se espera al rol de verdad, no a que "la sesion contesto": la
        sesion no trae el rol, y sin el se preguntaria el sector tambien a
