@@ -77,7 +77,11 @@
     /* La visa, que es la del tramite ya resuelto. Sin su tipo aqui, el
        panel no sabe a que tarjeta pertenece y la deja en "por iniciar"
        aunque el tramite este resuelto. */
-    {codigo:'visa_inversionista', ref_panel:'c1', ente:'SAIME', activo:true}
+    {codigo:'visa_inversionista', ref_panel:'c1', ente:'SAIME', activo:true},
+    /* La visa de dependientes pregunta pasaporte, pais emisor y fecha de
+       nacimiento: las tres que la de inversionista ya contesto. Es donde se
+       mide que no se pide dos veces lo mismo. */
+    {codigo:'visa_dependientes', ref_panel:'c20', ente:'SAIME', activo:true}
   ];
 
   /* El borrador se toca DESPUÉS que el devuelto a propósito: así se
@@ -99,7 +103,12 @@
          expediente de prueba tenia uno, y por eso nadie noto que el
          circuito acababa en el aire: el estado cambiaba y el inversionista
          no recibia nada. */
+      /* Con sus datos dentro: son los que el panel tiene que ofrecer
+         cuando otro formulario pregunte lo mismo. Sin ellos, la prueba de
+         que no se pide dos veces el pasaporte no mide nada. */
       {id:'t4', tipo:'visa_inversionista', estado:'resuelto',
+       datos:{numero_pasaporte:'YB1234567', pais_emisor:'Italia',
+              fecha_nacimiento:'1979-04-11'},
        creado_en:'2026-06-01T10:00:00Z', enviado_en:'2026-06-02T10:00:00Z',
        resuelto_en:'2026-06-18T10:00:00Z', actualizado_en:'2026-06-18T10:00:00Z'},
       /* Una SEGUNDA visa, mas NUEVA y en borrador. Con "la ultima creada"

@@ -395,6 +395,8 @@ window.CIIP_PASOS = {
       em_falta:     "Ponle al menos la razón social: es lo que se copia en los formularios.",
       em_rellena:   "Estos datos rellenan solos los formularios que los piden. Siempre puedes cambiarlos dentro de un trámite.",
       em_deempresa: "De tu empresa",
+      em_deantes:   "Ya lo escribiste",
+      em_deantes_t: "Lo pusiste en {tramite}",
       /* Entregar lo emitido. El circuito acababa en el aire: el estado
          cambiaba a "Resuelta" y el documento se mandaba por fuera. */
       co_emitido:   "Documento emitido por el organismo",
@@ -894,6 +896,8 @@ window.CIIP_PASOS = {
       em_falta:     "Give it at least a company name: that is what gets copied into the forms.",
       em_rellena:   "These details fill the forms that ask for them. You can always change them inside a procedure.",
       em_deempresa: "From your company",
+      em_deantes:   "You already typed this",
+      em_deantes_t: "You entered it in {tramite}",
       /* Delivering what was issued. The circuit ended in mid-air: the
          status changed to "Completed" and the document went out by other
          means. */
@@ -1387,6 +1391,8 @@ window.CIIP_PASOS = {
       em_falta:     "Dê-lhe pelo menos a razão social: é o que se copia nos formulários.",
       em_rellena:   "Estes dados preenchem sozinhos os formulários que os pedem. Pode sempre alterá-los dentro de um trâmite.",
       em_deempresa: "Da sua empresa",
+      em_deantes:   "Já o escreveu",
+      em_deantes_t: "Escreveu-o em {tramite}",
       /* Entregar o que foi emitido. */
       co_emitido:   "Documento emitido pelo organismo",
       co_faltadoc:  "Anexe o documento que o organismo emitiu: é o que o investidor veio buscar.",
@@ -1876,6 +1882,8 @@ window.CIIP_PASOS = {
       em_falta:     "Dagli almeno la ragione sociale: è quello che si copia nei moduli.",
       em_rellena:   "Questi dati riempiono da soli i moduli che li chiedono. Puoi sempre cambiarli dentro una pratica.",
       em_deempresa: "Dalla tua azienda",
+      em_deantes:   "L'hai già scritto",
+      em_deantes_t: "L'hai inserito in {tramite}",
       /* Consegnare quello che è stato rilasciato. */
       co_emitido:   "Documento rilasciato dall'ente",
       co_faltadoc:  "Allega il documento che ha rilasciato l'ente: è quello per cui l'investitore è venuto.",
@@ -2365,6 +2373,8 @@ window.CIIP_PASOS = {
       em_falta:     "至少填上公司名称：表单里复制的就是它。",
       em_rellena:   "这些资料会自动填入需要它们的表单。在具体业务里随时可以修改。",
       em_deempresa: "来自公司资料",
+      em_deantes:   "您已填写过",
+      em_deantes_t: "您在{tramite}中填写过",
       /* 交付已签发的文件。 */
       co_emitido:   "主管机关签发的文件",
       co_faltadoc:  "请附上主管机关签发的文件：那才是投资人要的东西。",
@@ -2854,6 +2864,8 @@ window.CIIP_PASOS = {
       em_falta:     "Укажите хотя бы название: именно оно подставляется в формы.",
       em_rellena:   "Эти данные сами заполняют формы, которые их спрашивают. Внутри заявки их всегда можно поменять.",
       em_deempresa: "Из данных компании",
+      em_deantes:   "Вы это уже вводили",
+      em_deantes_t: "Вы ввели это в: {tramite}",
       /* Выдача выпущенного документа. */
       co_emitido:   "Документ, выданный ведомством",
       co_faltadoc:  "Приложите документ, выданный ведомством: именно за ним пришёл инвестор.",

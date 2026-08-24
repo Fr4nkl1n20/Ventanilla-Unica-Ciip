@@ -548,9 +548,14 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
   border-top:1px solid var(--line-soft); line-height:1.55; max-width:60ch;}
 /* En el formulario de un tramite, el campo que vino de la empresa lo dice:
    si no, parece que el panel se invento el dato. */
-.sol-campo .de-empresa{font-size:9.5px; font-weight:700; letter-spacing:.03em;
+.sol-campo .de-empresa,
+.sol-campo .de-antes{font-size:9.5px; font-weight:700; letter-spacing:.03em;
   text-transform:uppercase; color:var(--navy2); background:var(--block);
   border-radius:4px; padding:1px 5px; margin-left:7px;}
+/* El de "ya lo escribiste" va en gris y no en azul: es mas debil que el de
+   la empresa -aquello es la ficha oficial, esto una copia de otro
+   formulario- y conviene que se note cual es cual. */
+.sol-campo .de-antes{color:var(--gray); cursor:help;}
 
 /* --- la boveda de documentos --- */
 .docs-vista{display:none;}
@@ -3989,6 +3994,42 @@ applyLang(idiomaParaMi());
      vista de Mi empresa. */
   var EMPRESA = null;
 
+  /* ── Lo que ya escribiste en OTROS tramites ──
+     El pasaporte se pide en tres formularios distintos y la fecha de
+     nacimiento en otros tres. Hoy se escriben tres veces cada uno, y el
+     dato esta guardado desde la primera: lo unico que faltaba era ir a
+     buscarlo. Se pide UNA vez y se recuerda; si la consulta falla, los
+     campos salen vacios y no pasa nada mas. */
+  var ANTES = null, antesPide = null;
+  function anteriores(){
+    if (antesPide) return antesPide;
+    var q;
+    try {
+      q = sb.from('tramites').select('tipo, datos, creado_en')
+            .order('creado_en', {ascending:false});
+    } catch(e){ ANTES = {}; return (antesPide = Promise.resolve()); }
+    antesPide = Promise.resolve(q).then(function(r){
+      var visto = {};
+      ((r && r.data) || []).forEach(function(x){
+        var d = x.datos || {};
+        for (var k in d){
+          if (!Object.prototype.hasOwnProperty.call(d, k)) continue;
+          /* Gana el PRIMERO que aparece: la consulta viene de mas nuevo a
+             mas viejo, asi que se ofrece lo ultimo que escribiste y no lo
+             que pusiste hace un año. */
+          if (visto[k] === undefined && d[k] !== '' && d[k] != null){
+            visto[k] = {valor: d[k], tipo: x.tipo};
+          }
+        }
+      });
+      ANTES = visto;
+    }, function(e){
+      console.warn('[CIIP] lo de antes:', e && e.message);
+      ANTES = {};
+    });
+    return antesPide;
+  }
+
   function T(){                        /* textos, en el idioma de turno */
     var D = window.CIIP_PASOS || {};
     var u = (D.ui && (D.ui[curLang] || D.ui.en)) || {};
@@ -4822,7 +4863,17 @@ applyLang(idiomaParaMi());
             caja.classList.add('puesto');
             caja.textContent = '';
             if (mio && mio.estado !== 'borrador'){ chipReal(mio.estado); pintaEstado(t, mio); }
-            else { chipReal('sin_iniciar'); pintaFormulario(t, mio); }
+            else {
+              chipReal('sin_iniciar');
+              /* Antes de dibujar el formulario se mira lo que ya escribiste
+                 en otros tramites. Va aqui y no dentro: pintar primero y
+                 rellenar despues moveria campos bajo el cursor de quien ya
+                 empezo a teclear. */
+              anteriores().then(function(){
+                if (miTurno !== turno) return;
+                pintaFormulario(t, mio);
+              });
+            }
 
             /* Y si hay varias, se dice. Ensenar una sin avisar de que hay
                mas es lo que hace pensar que la pantalla no se actualiza:
@@ -4978,6 +5029,18 @@ applyLang(idiomaParaMi());
         entrada.value = EMPRESA[c.n];
         var sello = el('span', 'de-empresa', u.em_deempresa || '');
         campo.querySelector('label').appendChild(sello);
+      } else if (ANTES && ANTES[c.n]){
+        /* Y si no, lo que pusiste en otro tramite. El sello es corto -en
+           una etiqueta no cabe una frase- y el nombre del tramite va en el
+           titulo: quien se pregunte de donde salio, lo tiene al pasar por
+           encima. */
+        entrada.value = ANTES[c.n].valor;
+        var sa = el('span', 'de-antes', u.em_deantes || '');
+        var refa = tipoRefDe(ANTES[c.n].tipo);
+        var dica = I18N[curLang] || I18N.en;
+        var noma = refa && (dica[refa + '.name'] || I18N.en[refa + '.name']);
+        if (noma) sa.title = String(u.em_deantes_t || '').replace('{tramite}', noma);
+        campo.querySelector('label').appendChild(sa);
       }
       /* El buscador de paises: el MISMO del perfil, no una copia. Sigue
          admitiendo lo que se teclee -una lista cerrada deja fuera a quien

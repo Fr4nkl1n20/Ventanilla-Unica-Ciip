@@ -119,6 +119,7 @@
               agendaMira, agendaTrasEntrar, agendaTrasSalir,
               paisesMira, paisesTrasAbrir,
               dupeAbre, dupeMira, dupeTrasEnviar,
+              antesAbre, antesMira,
               rncAbre, rncTrasAbrir, solvenciasAbre, solvenciasTrasAbrir,
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
@@ -1475,6 +1476,46 @@
     ok('duplicados: y lo dice como un error, no como un aviso suelto',
        /err/.test(av.className), av.className, 'sol-aviso err');
     location.hash = '';
+  }
+
+  /* ═══════════ NO PEDIR DOS VECES LO MISMO ═══════════
+     El pasaporte se pide en tres formularios y la fecha de nacimiento en
+     otros tres. El dato esta guardado desde la primera vez; hasta ahora
+     nadie iba a buscarlo. La visa de dependientes pregunta las tres cosas
+     que la visa de inversionista ya contesto. */
+  function antesAbre(){
+    if (CASO !== 'lleno') return;
+    location.hash = 'tramite-c20';
+  }
+
+  function antesMira(){
+    if (CASO !== 'lleno') return;
+    var pas = document.querySelector('#trReal [name="numero_pasaporte"]');
+    ok('antes: el formulario sale', !!pas,
+       pas ? 'con su campo' : 'sin campo de pasaporte', 'con su campo');
+    if (!pas) return;
+
+    igual('antes: el pasaporte viene de la visa', pas.value, 'YB1234567');
+    var nac = document.querySelector('#trReal [name="fecha_nacimiento"]');
+    igual('antes: y la fecha de nacimiento tambien',
+          nac ? nac.value : 'sin campo', '1979-04-11');
+
+    /* Y se DICE de donde salio. Un campo que aparece relleno sin explicar
+       por que parece que el panel se invento el dato. */
+    var sello = pas.closest('.sol-campo').querySelector('.de-antes');
+    ok('antes: y el campo dice que ya lo escribiste', !!sello,
+       sello ? sello.textContent.trim() : 'sin sello', 'con sello');
+    ok('antes: y al pasar por encima dice donde',
+       !!(sello && /visa/i.test(sello.title || '')),
+       (sello && sello.title) || 'sin titulo', 'nombra el tramite');
+
+    /* Lo que NO se ha escrito nunca sigue vacio: si saliera con algo, el
+       panel estaria inventando. Se mira 'nombre_familiar', que es una caja
+       de texto: un desplegable nunca vale cadena vacia -vale su primera
+       opcion- y la prueba daria roja sin que hubiera nada mal. */
+    var con = document.querySelector('#trReal [name="nombre_familiar"]');
+    ok('antes: y lo que nunca escribiste sigue vacio',
+       !!con && con.value === '', con ? ('"' + con.value + '"') : 'no hay campo', 'vacio');
   }
 
   function rncAbre(){
