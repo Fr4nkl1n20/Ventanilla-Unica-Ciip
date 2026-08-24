@@ -189,6 +189,10 @@
   var activosVivos = (ACTIVOS[caso] || []).slice().map(function(a){
     var c = {}; Object.keys(a).forEach(function(k){ c[k] = a[k]; }); return c;
   });
+  /* Lo que se sube a la boveda durante la pasada. Empieza vacia: el
+     expediente de partida es el de siempre, y lo que aparezca aqui lo ha
+     subido la propia prueba. */
+  var subidos = [];
 
   var colaViva = (COLA[caso] || []).slice();
 
@@ -533,7 +537,19 @@
          hoy, que si no el 'vencido' dejaria de estarlo con el tiempo. */
       var dia = 86400000, hoy = Date.now();
       function fechaEn(d){ return new Date(hoy + d * dia).toISOString().slice(0, 10); }
-      var boveda = [
+      /* Lo que se sube en esta pasada se QUEDA. Sin esto, subir la foto de
+         carnet y volver a preguntar por ella devolvia lo mismo de antes, y
+         no habia forma de medir que la foto recien subida sale en la ficha
+         y en el circulo de la cabecera. */
+      if (op && op.insert){
+        var subido = {id:'dsub' + (subidos.length + 1), estado:'cargado',
+                      vence_el:null, nota_revision:'',
+                      creado_en:new Date(hoy).toISOString()};
+        Object.keys(op.insert).forEach(function(k){ subido[k] = op.insert[k]; });
+        subidos.push(subido);
+        return {data:subido, error:null};
+      }
+      var boveda = subidos.concat([
         {id:'doc1', tipo:'cedula', archivo:'u1/pasaporte.pdf',
          nombre_original:'pasaporte.pdf', vence_el:null, estado:'cargado',
          nota_revision:'', creado_en:'2026-07-02T10:00:00Z'},
@@ -543,7 +559,7 @@
         {id:'doc3', tipo:'acta_constitutiva', archivo:'u1/acta.pdf',
          nombre_original:'acta-constitutiva.pdf', vence_el:fechaEn(12),
          estado:'cargado', nota_revision:'', creado_en:'2026-08-01T10:00:00Z'}
-      ];
+      ]);
       /* Y por TIPO cuando lo piden, que es como lo pregunta el formulario
          de un tramite -¿tengo ya este recaudo?- y la foto de la ficha.
          Devolver los tres para cualquier tipo hacia que TODO recaudo
@@ -786,7 +802,15 @@
           from: function(){
             return {
               upload:        function(){ return Promise.resolve({data:{path:'x'}, error:null}); },
-              createSignedUrl: function(){ return Promise.resolve({data:{signedUrl:'#'}, error:null}); }
+              /* Una imagen de verdad, de un pixel. Con '#' el <img> de la
+                 foto de carnet fallaba al cargar y el panel se caia a las
+                 iniciales -que es lo correcto-, asi que la prueba de que
+                 la foto se ve no podia pasar nunca. */
+              createSignedUrl: function(){
+                return Promise.resolve({data:{signedUrl:
+                  'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
+                }, error:null});
+              }
             };
           }
         }

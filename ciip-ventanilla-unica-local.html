@@ -193,7 +193,11 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
     PERFIL.real = true;
 
     var n = document.querySelector('.u-name');   if (n) n.textContent = PERFIL.nombre;
-    var a = document.querySelector('.avatar');   if (a) a.textContent = iniciales(PERFIL.nombre);
+    /* Las iniciales SOLO si no hay foto dentro. Esto se vuelve a llamar
+       cada vez que se guarda la ficha, y escribir texto en el círculo se
+       llevaba por delante la foto que acababa de ponerse ahí. */
+    var a = document.querySelector('.avatar');
+    if (a && !a.querySelector('img')) a.textContent = iniciales(PERFIL.nombre);
     var d = document.getElementById('avisoDemo');if (d) d.classList.add('show');
 
     /* Repinta los textos que llevan {nombre}, {rol} o {pais}. Y de paso el
@@ -1083,6 +1087,12 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .btn.ghost:hover{border-color:var(--gray-soft); color:var(--ink);}
 .avatar{width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--navy2),var(--cyan-deep));
   color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex:none;}
+/* Y con la foto de carnet dentro, si la hay. Es la MISMA de la bóveda, no
+   una segunda que haya que subir aparte. Recorta —object-fit:cover— porque
+   una foto de carnet es más alta que ancha y meterla entera en un círculo
+   la dejaría con dos bandas de fondo a los lados. */
+.avatar.con-foto{background:var(--block); overflow:hidden;}
+.avatar img{width:100%; height:100%; object-fit:cover; display:block;}
 .u-name{font-size:12.5px; font-weight:700;} .u-sub{font-size:10.5px; color:var(--gray);}
 .u-name, .u-sub{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 
@@ -6439,6 +6449,56 @@ applyLang(idiomaParaMi());
     bt.textContent = (pfFotoDoc ? u.pf_fotocambia : u.pf_fotosube) || '';
   }
 
+  /* La busca en la bóveda y devuelve con qué verla. El cubo es privado:
+     hace falta una URL firmada, que caduca. Una hora, que es lo que dura
+     una visita larga; cuando caduque, el <img> falla y se cae a las
+     iniciales en vez de dejar un hueco roto. */
+  function buscaFotoCarnet(){
+    var q;
+    try {
+      q = sb.from('documentos').select('id, archivo, nombre_original, creado_en')
+            .eq('tipo', 'foto').order('creado_en', {ascending:false}).limit(1);
+    } catch(e){ return Promise.resolve(null); }
+    return Promise.resolve(q).then(function(r){
+      if (r && r.error) throw r.error;
+      var doc = ((r && r.data) || [])[0] || null;
+      if (!doc) return null;
+      return Promise.resolve(
+        sb.storage.from('recaudos').createSignedUrl(doc.archivo, 3600)
+      ).then(function(rs){
+        var url = rs && rs.data && rs.data.signedUrl;
+        return url ? {doc:doc, url:url} : null;
+      });
+    }).catch(function(e){
+      /* Que no se pueda ver la que hay no impide subir otra: se sigue con
+         el hueco de las iniciales y el botón vivo. */
+      console.warn('[CIIP] foto de carnet:', e && (e.message || e));
+      return null;
+    });
+  }
+
+  /* La misma foto en el círculo de la cabecera. Que exista en la bóveda y
+     no salga por ninguna parte hasta que abres la ficha es tenerla
+     guardada en un cajón. */
+  function ponFotoEnAvatar(url){
+    var av = document.querySelector('.avatar');
+    if (!av) return;
+    if (!url){
+      av.classList.remove('con-foto');
+      av.textContent = iniciales((typeof PERFIL !== 'undefined' && PERFIL.nombre) || '');
+      return;
+    }
+    av.textContent = '';
+    av.classList.add('con-foto');
+    var img = document.createElement('img');
+    img.src = url;
+    /* Vacío a propósito: al lado va el nombre escrito. Repetirlo aquí hace
+       que un lector de pantalla lo diga dos veces seguidas. */
+    img.alt = '';
+    img.addEventListener('error', function(){ ponFotoEnAvatar(null); });
+    av.appendChild(img);
+  }
+
   function miraFotoCarnet(){
     var campo = document.getElementById('pfCampoFoto');
     if (!campo) return Promise.resolve();
@@ -6447,30 +6507,26 @@ applyLang(idiomaParaMi());
     campo.hidden = !suya;
     if (!suya) return Promise.resolve();
 
-    var q;
-    try {
-      q = sb.from('documentos').select('id, archivo, nombre_original, creado_en')
-            .eq('tipo', 'foto').order('creado_en', {ascending:false}).limit(1);
-    } catch(e){ pfFotoDoc = null; pintaFotoCarnet(null); return Promise.resolve(); }
-
-    return Promise.resolve(q).then(function(r){
-      if (r && r.error) throw r.error;
-      pfFotoDoc = ((r && r.data) || [])[0] || null;
-      if (!pfFotoDoc){ pintaFotoCarnet(null); return; }
-      /* El cubo es privado: se pide una URL firmada, que caduca. */
-      return Promise.resolve(
-        sb.storage.from('recaudos').createSignedUrl(pfFotoDoc.archivo, 300)
-      ).then(function(rs){
-        pintaFotoCarnet(rs && rs.data && rs.data.signedUrl);
-      });
-    }).catch(function(e){
-      /* Que no se vea la que hay no impide subir otra: se sigue con el
-         hueco de las iniciales y el botón vivo. */
-      console.warn('[CIIP] foto de carnet:', e && (e.message || e));
-      pfFotoDoc = null;
-      pintaFotoCarnet(null);
+    return buscaFotoCarnet().then(function(f){
+      pfFotoDoc = f ? f.doc : null;
+      pintaFotoCarnet(f ? f.url : null);
+      /* Y la cabecera de paso: al subir una foto nueva, el círculo tiene
+         que enterarse sin recargar la página. */
+      ponFotoEnAvatar(f ? f.url : null);
     });
   }
+
+  /* Se pide UNA vez al cargar, y solo si eres inversionista: el equipo del
+     CIIP no tiene foto de carnet, y preguntarla sería una consulta y una
+     firma por cada pantalla que abren para nada. */
+  (function esperaALaFoto(intentos){
+    if (typeof PERFIL === 'undefined' || !PERFIL.rolReal){
+      if (intentos < 40) setTimeout(function(){ esperaALaFoto(intentos + 1); }, 100);
+      return;
+    }
+    if (PERFIL.rol !== 'inversionista') return;
+    buscaFotoCarnet().then(function(f){ if (f) ponFotoEnAvatar(f.url); });
+  })(0);
 
   function subeFotoCarnet(archivo){
     var u = T();

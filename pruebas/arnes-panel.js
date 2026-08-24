@@ -3208,13 +3208,21 @@
 
   function fotoMira(){
     var campo = document.getElementById('pfCampoFoto');
+    var av = document.querySelector('.avatar');
     /* El equipo del CIIP no tiene recaudos que subir: pedirle una foto de
        carnet es pedirle algo que no le toca. */
     if (CASO === 'gestor'){
       ok('foto: al equipo del CIIP no se le pide', !!campo && campo.hidden,
          campo ? ('hidden=' + campo.hidden) : 'no hay campo', 'escondido');
+      ok('foto: y su circulo sigue con las iniciales',
+         !!av && !av.querySelector('img'),
+         av ? ('"' + av.textContent.trim() + '"') : 'no hay circulo', 'las iniciales');
       return;
     }
+    /* Y mientras no hay foto, el circulo tampoco se la inventa. */
+    ok('foto: sin foto, el circulo lleva las iniciales',
+       !!av && !av.querySelector('img') && av.textContent.trim().length > 0,
+       av ? ('"' + av.textContent.trim() + '"') : 'no hay circulo', 'las iniciales');
     ok('foto: la ficha ofrece subirla', !!campo && !campo.hidden,
        campo ? ('hidden=' + campo.hidden) : 'no hay campo', 'a la vista');
     if (!campo || campo.hidden) return;
@@ -3274,6 +3282,24 @@
        pista.className, 'con la marca de hecho');
     ok('foto: y el boton vuelve a estar vivo',
        !document.getElementById('pfFotoBtn').disabled, 'vivo', 'vivo');
+
+    /* Y sale en los DOS sitios. Una foto que solo se ve abriendo la ficha
+       esta guardada en un cajon. */
+    var vista = document.getElementById('pfFotoVista');
+    ok('foto: y ya se ve en la ficha', !!vista && !!vista.querySelector('img'),
+       vista && vista.querySelector('img') ? 'con foto' : 'sin foto', 'con foto');
+    var av = document.querySelector('.avatar');
+    ok('foto: y tambien en el circulo de la cabecera',
+       !!av && !!av.querySelector('img'),
+       av && av.querySelector('img') ? 'con foto' : ('"' + (av ? av.textContent.trim() : '') + '"'),
+       'con foto');
+    ok('foto: y el circulo la recorta en vez de deformarla',
+       !!av && av.classList.contains('con-foto'),
+       av ? av.className : 'no hay circulo', 'con-foto');
+
+    /* El boton ya no invita a subir la primera: ahora se cambia. */
+    igual('foto: y el boton pasa a ofrecer cambiarla',
+          document.getElementById('pfFotoBtn').textContent, 'Cambiar la foto');
   }
 
   function fotoCierra(){
