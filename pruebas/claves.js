@@ -118,6 +118,133 @@ ok('pasos: ningún texto pedido se queda sin definir',
    fantasmas.length === 0,
    fantasmas.length ? fantasmas.join(', ') : '');
 
+/* ── 3 · CÓMO SE ESCRIBE ──────────────────────────────────────────────
+   Ni el navegador ni las pruebas del panel miran esto: un rótulo con una
+   mayúscula de más se ve igual de bien y nadie lo nota hasta que hay
+   veinte y la pantalla parece de tres manos distintas.
+
+   Se mira SOLO lo corto —rótulos, botones, chips—. En una frase larga,
+   dos palabras con inicial mayúscula casi siempre son un nombre propio
+   («Ministerio del Trabajo») y marcarlas daba treinta avisos sin uno solo
+   de verdad. */
+const LATINAS = ['es', 'en', 'pt', 'it'];
+
+/* Lo que SÍ va con mayúscula en mitad de un rótulo: siglas, entes,
+   países y los nombres propios de los registros. Un registro se llama
+   como se llama; «Registro Nacional de Contratistas» no es Title Case
+   mal puesto, es su nombre. */
+const PROPIOS = new Set((
+  'CIIP SENIAT SAREN SAIME RNC RNET SNC IVSS INCES SUNAGRO BCV FAOV RIF ' +
+  'IGTF ISLR IVA SQL Venezuela Caracas Italia Portugal China Rusia Nigeria ' +
+  'Colombia Estado Registro Registo Nacional Nazionale National Mercantil ' +
+  'Entidades Entità Entities Trabajo Trabalho Lavoro Work Contratistas ' +
+  'Contratados Contractors Appaltatori Registry Register Único Única Unico ' +
+  'Productiva Internacional Inversión Centro Ventanilla Inversionista ' +
+  'Investitore Sportello Investor One Stop Window Concept Demo Ministerio ' +
+  /* Y las formas societarias: «Compañía Anónima», «Sociedad de
+     Responsabilidad Limitada» son figuras jurídicas con nombre propio, no
+     un rótulo escrito con mayúsculas de adorno. */
+  'Anónima Anonima Responsabilidad Limitada Ltda Company Limited ' +
+  /* Y los registros de cada país, que también se llaman como se llaman:
+     el Registo Comercial portugués, el Registro delle Imprese italiano.
+     «Paese» va con mayúscula en italiano cuando quiere decir el país
+     como nación, que es lo que dice ahí. */
+  'Comercial Imprese Quotas Paese'
+).split(' '));
+
+/* Dos que se salen de la regla a propósito, y por qué:
+     tag.soon   se pinta con text-transform:uppercase. En minúscula en el
+                diccionario es lo correcto: la presentación la decide el
+                CSS, no el texto.
+     asst.greet lleva dos espacios detrás del emoji, y la burbuja usa
+                white-space:pre-wrap, así que ese aire se ve. Está igual
+                en los seis idiomas: es una decisión, no un descuido. */
+const SALTOS = new Set([
+  'tag.soon', 'asst.greet',
+  /* Y estos tres no son rótulos: son TROZOS que se pegan detrás de otra
+     cosa —«pasaporte.pdf · ya estaba en tu expediente», «resuelta el 4 de
+     agosto»—. Empezar en minúscula ahí no es un descuido, es lo correcto:
+     van en mitad de una frase. */
+  'reutilizado', 'mt_resuelta', 'ay_ente'
+]);
+
+const EMOJI = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\s*/gu;
+
+function comoSeEscribe(donde, dic) {
+  const malos = [];
+  for (const lang of Object.keys(dic)) {
+    for (const [k, valor] of Object.entries(dic[lang])) {
+      if (SALTOS.has(k)) continue;
+      /* Hay claves que son LISTAS —las opciones de un desplegable—. Cada
+         opción es un rótulo por su cuenta y se mira igual; juntarlas en
+         una cadena convertía «Corriente» y «Ahorro» en un solo rótulo con
+         una mayúscula en medio que no existe. */
+      for (const trozo of (Array.isArray(valor) ? valor : [valor])) {
+      const v = String(trozo == null ? '' : trozo).trim();
+      if (!v) continue;
+      const palabras = v.split(/\s+/);
+      const corto = palabras.length <= 5;
+      const di = (q) => malos.push(`${donde} ${lang} ${k}: ${q} — "${v.slice(0, 46)}"`);
+
+      if ((LATINAS.includes(lang) || lang === 'ru') &&
+          /^\p{Ll}/u.test(v)) di('empieza en minúscula');
+
+      if (LATINAS.includes(lang) && corto && !v.endsWith('.')) {
+        /* La barra separa DOS rótulos —«Celibe/Nubile», «Soltero/a»—,
+           así que lo de después empieza otra vez y puede ir en mayúscula. */
+        const sueltas = v.split('/').flatMap(trozo =>
+            (trozo.match(/[A-Za-z\u00C0-\u024F]+/g) || []).slice(1))
+          .filter(w => /^\p{Lu}/u.test(w) && w !== w.toUpperCase() && !PROPIOS.has(w));
+        if (sueltas.length) di('mayúscula en mitad del rótulo: ' + sueltas.join(' '));
+      }
+
+      /* Los puntos suspensivos son UN carácter, «…», y así están las 69
+         veces que salen en el archivo. Escribirlos con tres puntos se ve
+         casi igual, ocupa más y no parte de línea igual; y donde de
+         verdad se nota es al lado de otro que sí es «…». Aquí lo que se
+         mide es que no haya dos maneras de escribir lo mismo. */
+      if (/\.\.\.$/.test(v)) di('tres puntos en vez de «…»');
+
+      if (lang === 'es' && v.includes('?') && !v.includes('¿')) di('? sin abrir');
+      if (lang === 'es' && v.includes('!') && !v.includes('¡')) di('! sin abrir');
+
+      if (LATINAS.includes(lang) && /\s[,.;:!?]/.test(v)) di('espacio antes del signo');
+      if (v.replace(EMOJI, '').includes('  ')) di('espacio doble');
+      }
+    }
+  }
+  return malos;
+}
+
+const escritura = comoSeEscribe('i18n', I18N).concat(comoSeEscribe('pasos', UI));
+ok('escritura: los rótulos siguen la misma norma en los seis idiomas',
+   escritura.length === 0,
+   escritura.slice(0, 10).join('\n          '));
+
+/* Y el punto final, o en todos o en ninguno. Media frase con punto y la
+   misma sin él, según el idioma, es lo que hace que una pantalla parezca
+   traducida por turnos. */
+function puntoDesigual(donde, dic) {
+  const idiomas = Object.keys(dic);
+  const claves = new Set();
+  for (const l of idiomas) for (const k of Object.keys(dic[l])) claves.add(k);
+  const malos = [];
+  for (const k of claves) {
+    const vals = idiomas
+      .filter(l => typeof dic[l][k] === 'string' && dic[l][k].trim())
+      .map(l => [l, dic[l][k].trim()]);
+    if (vals.length < 2) continue;
+    const con = vals.filter(([, v]) => /[.。]$/.test(v)).map(([l]) => l);
+    const sin = vals.filter(([, v]) => !/[.。]$/.test(v)).map(([l]) => l);
+    if (con.length && sin.length) malos.push(`${donde} ${k}: con punto ${con} y sin punto ${sin}`);
+  }
+  return malos;
+}
+const puntos = puntoDesigual('i18n', I18N).concat(puntoDesigual('pasos', UI));
+ok('escritura: el punto final, o en todos los idiomas o en ninguno',
+   puntos.length === 0,
+   puntos.slice(0, 8).join('\n          '));
+
 console.log('\n  ' + pasan + ' de ' + (pasan + fallan) + ' comprobaciones superadas');
 console.log('  ' + claves.length + ' claves de interfaz y ' + clavesUI.length +
             ' de trámites, en ' + idiomas.length + ' idiomas.\n');
