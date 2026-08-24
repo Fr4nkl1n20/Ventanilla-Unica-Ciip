@@ -220,6 +220,34 @@
        document.getElementById('seBuscar').hidden ? 'escondida' : 'a la vista',
        'escondida');
 
+    /* El fondo tapa del todo. Un velo translucido deja ver datos de
+       ejemplo detras de la unica pregunta que hay que contestar, y da a
+       entender que hay algo ahi a lo que se puede volver. */
+    var fondo = window.getComputedStyle(back).backgroundColor;
+    ok('sector: el fondo tapa lo de detras', /^rgb\(/.test(fondo),
+       fondo, 'opaco, sin transparencia');
+
+    /* El panel se sigue viendo -la barra lateral y la de arriba- y lo que
+       queda en blanco es la zona de las fases. Si la puerta volviera a
+       taparlo todo, se perderia el sitio donde estas. */
+    var caja = back.getBoundingClientRect();
+    var lat  = document.querySelector('.sidebar').getBoundingClientRect();
+    ok('sector: la barra lateral se sigue viendo',
+       caja.left >= lat.right - 1,
+       Math.round(caja.left) + ' contra ' + Math.round(lat.right),
+       'la puerta empieza donde acaba la barra');
+    ok('sector: y la cabecera tambien', caja.top > 40,
+       Math.round(caja.top), 'por debajo de la cabecera');
+
+    /* Se ve, pero no se toca: si el menu siguiera vivo se podria navegar
+       por detras de una pantalla que existe para no dejar pasar. */
+    igual('sector: pero el menu no se puede usar',
+          window.getComputedStyle(document.querySelector('.sidebar')).pointerEvents,
+          'none');
+    igual('sector: ni la cabecera',
+          window.getComputedStyle(document.querySelector('.topbar')).pointerEvents,
+          'none');
+
     /* No se cierra sola. Si se cerrara pulsando fuera o con Escape, el
        bloqueo seria un adorno. */
     back.click();

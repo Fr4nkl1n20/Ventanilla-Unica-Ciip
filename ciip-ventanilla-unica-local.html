@@ -1582,8 +1582,28 @@ body.menu-abierto .menu-fondo{display:block;}
 
 /* ---------- assistant modal ---------- */
 /* La puerta del sector, por encima de todo lo demas: si otra ventana
-   quedara delante, el bloqueo tendria un agujero. */
-.sector-back{z-index:80;}
+   quedara delante, el bloqueo tendria un agujero.
+
+   Y opaca, no un velo. Lo que hay detras no es informacion todavia -son
+   datos de ejemplo hasta que se conteste- y verlo a medias solo compite
+   con lo unico que hay que hacer. Ademas asi no parece una ventana que se
+   pueda cerrar para volver a lo de atras, que es justo lo que NO se puede.
+   Va con --block y no con blanco puro: el dialogo ya es blanco, y sobre
+   blanco se perderia. */
+/* .asst-back.sector-back y no .sector-back a secas: la regla general vive
+   MAS ABAJO en esta hoja y, con la misma especificidad, gana la ultima. El
+   velo volvia sin que se notara. */
+.asst-back.sector-back{z-index:80; background:var(--block);
+  /* Solo la zona de contenido: la barra lateral y la de arriba se siguen
+     viendo, para saber donde estas, y lo de las fases queda en blanco. Las
+     medidas salen de las mismas variables que arman el panel, asi que en
+     pantalla estrecha -donde --sb vale 0- se ajusta sola. */
+  top:var(--tb); left:var(--sb); right:0; bottom:0;
+  align-items:center; padding:24px 16px;}
+/* Se ve, pero no se toca. Si el menu siguiera vivo se podria navegar por
+   detras de una pantalla que existe para no dejar pasar. Lo que hace falta
+   de esa barra -el idioma y salir- esta dentro de la puerta. */
+body.con-puerta .sidebar, body.con-puerta .topbar{pointer-events:none;}
 body.con-puerta{overflow:hidden;}
 .se-cuerpo{padding:16px 18px; overflow:auto;}
 /* Las banderas van arriba y pequenas: son una salida, no una decision.
