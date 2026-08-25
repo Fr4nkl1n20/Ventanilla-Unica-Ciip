@@ -208,6 +208,18 @@
      expediente de partida es el de siempre, y lo que aparezca aqui lo ha
      subido la propia prueba. */
   var subidos = [];
+  /* Y las rutas que han pasado por Storage, para poder decir que NO existe
+     lo que nadie ha subido. */
+  var subidas = {};
+  function enLaBoveda(ruta){
+    /* Las del expediente de partida existen desde antes de la pasada, y se
+       reconocen por tener EXTENSION: 'u1/acta.pdf'. La foto del perfil vive
+       en '{uid}/perfil/foto', sin extension y con nombre fijo, asi que
+       mientras nadie la sube no existe -que es lo que hay que poder decir-.
+       Con un "empieza por el uid" a secas se daba por buena tambien esa, y
+       el panel se creia que siempre habias puesto foto. */
+    return /\.[a-z0-9]{2,5}$/i.test(String(ruta || ''));
+  }
 
   var colaViva = (COLA[caso] || []).slice();
 
@@ -884,12 +896,23 @@
         storage: {
           from: function(){
             return {
-              upload:        function(){ return Promise.resolve({data:{path:'x'}, error:null}); },
-              /* Una imagen de verdad, de un pixel. Con '#' el <img> de la
-                 foto de carnet fallaba al cargar y el panel se caia a las
-                 iniciales -que es lo correcto-, asi que la prueba de que
-                 la foto se ve no podia pasar nunca. */
-              createSignedUrl: function(){
+              upload: function(ruta){
+                /* Se APUNTA lo que se sube. Antes cualquier ruta devolvia
+                   una URL firmada, tambien las que no existen, y con eso
+                   no habia forma de medir "todavia no hay foto": el panel
+                   se creia que siempre habia una. */
+                subidas[ruta] = true;
+                return Promise.resolve({data:{path:ruta}, error:null});
+              },
+              /* Una imagen de verdad, de un pixel: con '#' el <img> falla
+                 al cargar y el panel se cae a las iniciales -que es lo
+                 correcto-, asi que la prueba de que la foto se ve no podia
+                 pasar nunca. Y para lo que no existe, el mismo error que
+                 da Storage. */
+              createSignedUrl: function(ruta){
+                if (!subidas[ruta] && !enLaBoveda(ruta)){
+                  return Promise.resolve({data:null, error:{message:'Object not found'}});
+                }
                 return Promise.resolve({data:{signedUrl:
                   'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
                 }, error:null});

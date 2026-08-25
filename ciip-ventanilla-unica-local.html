@@ -1198,15 +1198,17 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .combo-vacio{padding:11px 10px; font-size:12px; color:var(--gray-soft); cursor:default;}
 .combo-vacio:hover{background:transparent;}
 
-/* La foto de carnet. El hueco es 4:5 -el de una foto de carnet- y no un
-   círculo: un círculo dice "avatar" y esto no lo es; es un recaudo, el
-   mismo que piden tres trámites, y encuadrarlo redondo haría subir fotos
-   que luego no valen. Mientras no hay ninguna, las iniciales. */
+/* Tu foto. AHORA sí es un círculo, y eso dice de qué va: es la que sale
+   en el panel para reconocerte, no un recaudo. Antes este hueco era 4:5
+   porque el campo subía la foto tipo carnet de los trámites; separadas las
+   dos, el círculo es lo correcto —y de paso avisa de que aquí no hace
+   falta fondo blanco ni la cara de frente—. Mientras no hay ninguna, las
+   iniciales. */
 .pf-foto{display:flex; align-items:center; gap:13px;}
-.pf-foto-vista{width:64px; height:80px; flex:none; border-radius:8px; overflow:hidden;
+.pf-foto-vista{width:72px; height:72px; flex:none; border-radius:50%; overflow:hidden;
   background:var(--block); border:1px solid var(--line); display:flex;
   align-items:center; justify-content:center;
-  font-size:19px; font-weight:800; color:var(--gray-soft);}
+  font-size:21px; font-weight:800; color:var(--gray-soft);}
 .pf-foto-vista img{width:100%; height:100%; object-fit:cover; display:block;}
 .pf-foto-lado{display:flex; flex-direction:column; align-items:flex-start; gap:7px; min-width:0;}
 .pf-foto-pista{font-size:11px; color:var(--gray); line-height:1.45;}
@@ -3249,10 +3251,17 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
         <button class="ax" id="pfCerrar" type="button" aria-label="×">×</button>
       </div>
       <div class="pf-cuerpo">
-        <!-- La foto, arriba del todo y no al final: es lo primero que se
-             ve de una ficha y lo único que se sube sin escribir nada. Se
-             esconde si quien mira no es inversionista: el equipo del CIIP
-             no tiene recaudos que subir. -->
+        <!-- Tu foto, arriba del todo: es lo primero que se ve de una ficha
+             y lo único que se sube sin escribir nada.
+
+             NO es la foto tipo carnet de los trámites. Lo fue -este campo
+             subía el recaudo 'foto' a la bóveda- y era un enredo: quien
+             pone aquí una foto de red social se la encontraba enviada al
+             SAIME, y quien ponía la de carnet acababa con la cara de
+             pasaporte en el panel. Ahora son dos cosas: esta vive suelta
+             en Storage y no entra en la bóveda ni la ofrece ningún
+             formulario; la de carnet se sube en Documentos como cualquier
+             otro papel. -->
         <div class="pf-campo" id="pfCampoFoto" hidden>
           <span id="pfLfoto"></span>
           <div class="pf-foto">
@@ -6671,7 +6680,7 @@ applyLang(idiomaParaMi());
         ? (u.pf_editar || '') : (u.pf_incompleto || u.pf_editar || ''));
     if (pfCampo) pfCampo.setAttribute('placeholder', u.pf_elige || '');
     var btF = document.getElementById('pfFotoBtn');
-    if (btF) btF.textContent = (pfFotoDoc ? u.pf_fotocambia : u.pf_fotosube) || '';
+    if (btF) btF.textContent = (tengoFoto ? u.pf_fotocambia : u.pf_fotosube) || '';
     var piF = document.getElementById('pfFotoPista');
     /* Solo la pista de siempre: un "guardada" o un "no se pudo" se dijeron
        de una cosa que ya pasó, y repetirlos en otro idioma los revive. */
@@ -6687,21 +6696,49 @@ applyLang(idiomaParaMi());
     }
   }
 
-  /* ── LA FOTO TIPO CARNET ──────────────────────────────────────────
-     La piden tres trámites y hasta ahora solo se podía subir DENTRO de
-     uno: para tenerla guardada había que empezar una solicitud. Ahora se
-     sube desde la ficha y cae en la misma bóveda con el mismo tipo, así
-     que los formularios que la piden la encuentran ya cargada sin que
-     esto tenga que saber nada de ellos.
+  /* ── TU FOTO ───────────────────────────────────────────────────────
+     La que sale en el panel para reconocerte. NO es la foto tipo carnet de
+     los trámites, y eso es lo que se venía a arreglar: este campo subía el
+     recaudo 'foto' a la bóveda, así que quien ponía aquí una foto de red
+     social se la encontraba enviada al SAIME, y quien ponía la de carnet
+     acababa con la cara de pasaporte en su panel. Una foto para dos cosas
+     que no se parecen.
 
-     No es un avatar. No sustituye a las iniciales de la cabecera: es un
-     recaudo, y confundirlos llevaría a que alguien suba una foto de
-     perfil de las de red social donde el SAIME espera una de carnet. Por
-     eso el hueco es 4:5 y no un círculo. ──────────────────────────── */
+     Ahora vive SUELTA en Storage, en {uid}/perfil/foto, y no tiene ficha
+     en 'documentos': no entra en la bóveda, no la ofrece ningún formulario
+     y no la cuenta el renglón de Documentos. La de carnet se sube en
+     Documentos como cualquier otro papel, que para eso está.
+
+     Sin ficha en la base tampoco hace falta SQL: la ruta es fija y se
+     pregunta por ella. Un nombre fijo y upsert, así que cambiarla
+     sustituye la anterior en vez de dejar diez. ─────────────────── */
   var MAX_FOTO = 5 * 1024 * 1024;
-  var pfFotoDoc = null;
+  var RUTA_FOTO = 'perfil/foto';
+  var tengoFoto = false;
 
-  function pintaFotoCarnet(url){
+  function rutaDeMiFoto(){
+    return quienSoy().then(function(yo){ return yo.id + '/' + RUTA_FOTO; });
+  }
+
+  /* Devuelve con qué verla, o null si no hay ninguna. El cubo es privado:
+     hace falta una URL firmada, que caduca. Una hora, que es lo que dura
+     una visita larga; cuando caduque, el <img> falla y se cae a las
+     iniciales en vez de dejar un hueco roto. */
+  function buscaMiFoto(){
+    return rutaDeMiFoto().then(function(ruta){
+      return Promise.resolve(sb.storage.from('recaudos').createSignedUrl(ruta, 3600));
+    }).then(function(rs){
+      /* Que no exista NO es un error: es que todavía no has puesto foto.
+         Storage contesta con 'Object not found' y eso es una respuesta. */
+      if (rs && rs.error) return null;
+      return (rs && rs.data && rs.data.signedUrl) || null;
+    }).catch(function(e){
+      console.warn('[CIIP] tu foto:', e && (e.message || e));
+      return null;
+    });
+  }
+
+  function pintaMiFoto(url){
     var vista = document.getElementById('pfFotoVista');
     var bt    = document.getElementById('pfFotoBtn');
     if (!vista || !bt) return;
@@ -6713,45 +6750,16 @@ applyLang(idiomaParaMi());
       img.alt = u.pf_lfoto || '';
       /* Si la imagen no carga -una URL firmada caduca- se cae a las
          iniciales en vez de dejar un hueco roto. */
-      img.addEventListener('error', function(){ pintaFotoCarnet(null); });
+      img.addEventListener('error', function(){ tengoFoto = false; pintaMiFoto(null); });
       vista.appendChild(img);
     } else {
       vista.textContent = iniciales((typeof PERFIL !== 'undefined' && PERFIL.nombre) || '');
     }
-    bt.textContent = (pfFotoDoc ? u.pf_fotocambia : u.pf_fotosube) || '';
+    bt.textContent = (tengoFoto ? u.pf_fotocambia : u.pf_fotosube) || '';
   }
 
-  /* La busca en la bóveda y devuelve con qué verla. El cubo es privado:
-     hace falta una URL firmada, que caduca. Una hora, que es lo que dura
-     una visita larga; cuando caduque, el <img> falla y se cae a las
-     iniciales en vez de dejar un hueco roto. */
-  function buscaFotoCarnet(){
-    var q;
-    try {
-      q = sb.from('documentos').select('id, archivo, nombre_original, creado_en')
-            .eq('tipo', 'foto').order('creado_en', {ascending:false}).limit(1);
-    } catch(e){ return Promise.resolve(null); }
-    return Promise.resolve(q).then(function(r){
-      if (r && r.error) throw r.error;
-      var doc = ((r && r.data) || [])[0] || null;
-      if (!doc) return null;
-      return Promise.resolve(
-        sb.storage.from('recaudos').createSignedUrl(doc.archivo, 3600)
-      ).then(function(rs){
-        var url = rs && rs.data && rs.data.signedUrl;
-        return url ? {doc:doc, url:url} : null;
-      });
-    }).catch(function(e){
-      /* Que no se pueda ver la que hay no impide subir otra: se sigue con
-         el hueco de las iniciales y el botón vivo. */
-      console.warn('[CIIP] foto de carnet:', e && (e.message || e));
-      return null;
-    });
-  }
-
-  /* La misma foto en el círculo de la cabecera. Que exista en la bóveda y
-     no salga por ninguna parte hasta que abres la ficha es tenerla
-     guardada en un cajón. */
+  /* La misma foto en el círculo de la cabecera. Que exista y no salga por
+     ninguna parte hasta que abres la ficha es tenerla en un cajón. */
   function ponFotoEnAvatar(url){
     var av = document.querySelector('.avatar');
     if (!av) return;
@@ -6771,36 +6779,37 @@ applyLang(idiomaParaMi());
     av.appendChild(img);
   }
 
-  function miraFotoCarnet(){
+  function miraMiFoto(){
     var campo = document.getElementById('pfCampoFoto');
     if (!campo) return Promise.resolve();
-    /* El equipo del CIIP no tiene recaudos que subir. */
+    /* Al equipo del CIIP tampoco se le pide: su ficha no la mira ningún
+       inversionista, y era la unica razon para tener foto aqui. */
     var suya = (typeof PERFIL !== 'undefined') && PERFIL.rol === 'inversionista';
     campo.hidden = !suya;
     if (!suya) return Promise.resolve();
 
-    return buscaFotoCarnet().then(function(f){
-      pfFotoDoc = f ? f.doc : null;
-      pintaFotoCarnet(f ? f.url : null);
-      /* Y la cabecera de paso: al subir una foto nueva, el círculo tiene
-         que enterarse sin recargar la página. */
-      ponFotoEnAvatar(f ? f.url : null);
+    return buscaMiFoto().then(function(url){
+      tengoFoto = !!url;
+      pintaMiFoto(url);
+      /* Y la cabecera de paso: al poner una nueva, el círculo tiene que
+         enterarse sin recargar la página. */
+      ponFotoEnAvatar(url);
     });
   }
 
   /* Se pide UNA vez al cargar, y solo si eres inversionista: el equipo del
-     CIIP no tiene foto de carnet, y preguntarla sería una consulta y una
-     firma por cada pantalla que abren para nada. */
+     CIIP no tiene foto aquí, y preguntarla sería una firma por cada
+     pantalla que abren para nada. */
   (function esperaALaFoto(intentos){
     if (typeof PERFIL === 'undefined' || !PERFIL.rolReal){
       if (intentos < 40) setTimeout(function(){ esperaALaFoto(intentos + 1); }, 100);
       return;
     }
     if (PERFIL.rol !== 'inversionista') return;
-    buscaFotoCarnet().then(function(f){ if (f) ponFotoEnAvatar(f.url); });
+    buscaMiFoto().then(function(url){ if (url) ponFotoEnAvatar(url); });
   })(0);
 
-  function subeFotoCarnet(archivo){
+  function subeMiFoto(archivo){
     var u = T();
     var pista = document.getElementById('pfFotoPista');
     var bt    = document.getElementById('pfFotoBtn');
@@ -6817,14 +6826,21 @@ applyLang(idiomaParaMi());
     pista.textContent = u.pf_fotoyendo || '';
     pista.className = 'pf-foto-pista';
 
-    sube('foto', archivo).then(function(){
+    rutaDeMiFoto().then(function(ruta){
+      /* upsert: un nombre fijo y por encima del anterior. Sin él, cambiar
+         la foto dejaría una ruta nueva cada vez y la vieja ahí para
+         siempre, ocupando sitio y sin que nadie la mire. */
+      return Promise.resolve(sb.storage.from('recaudos')
+        .upload(ruta, archivo, {upsert:true, contentType:archivo.type}));
+    }).then(function(r){
+      if (r && r.error) throw r.error;
       bt.disabled = false;
-      return miraFotoCarnet();
+      return miraMiFoto();
     }).then(function(){
       pista.textContent = u.pf_fotolista || '';
       pista.className = 'pf-foto-pista ok';
     }).catch(function(e){
-      console.warn('[CIIP] subir foto de carnet:', e && (e.message || e));
+      console.warn('[CIIP] subir tu foto:', e && (e.message || e));
       bt.disabled = false;
       pista.textContent = u.pf_fotoerror || '';
       pista.className = 'pf-foto-pista mal';
@@ -6837,7 +6853,7 @@ applyLang(idiomaParaMi());
     if (pfFotoBtn && pfFotoArc){
       pfFotoBtn.addEventListener('click', function(){ pfFotoArc.click(); });
       pfFotoArc.addEventListener('change', function(){
-        subeFotoCarnet(pfFotoArc.files[0]);
+        subeMiFoto(pfFotoArc.files[0]);
         /* Se vacía: sin esto, elegir DOS VECES el mismo archivo no lanza
            'change' la segunda, y quien vuelva a intentarlo tras un fallo
            se queda mirando un botón que no hace nada. */
@@ -6864,7 +6880,7 @@ applyLang(idiomaParaMi());
        que no hacían falta. */
     var pistaF = document.getElementById('pfFotoPista');
     if (pistaF){ pistaF.textContent = T().pf_fotopista || ''; pistaF.className = 'pf-foto-pista'; }
-    miraFotoCarnet();
+    miraMiFoto();
     pintaPerfil();
     pfBack.classList.add('open');
     setTimeout(function(){ if (nom) nom.focus(); }, 60);

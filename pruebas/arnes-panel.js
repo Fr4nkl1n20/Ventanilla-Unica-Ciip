@@ -3626,9 +3626,9 @@
 
     igual('foto: y el boton invita a subir la primera',
           (document.getElementById('pfFotoBtn') || {}).textContent, 'Subir una foto');
-    igual('foto: y dice para que sirve',
+    igual('foto: y dice que no es la de los tramites',
           (document.getElementById('pfFotoPista') || {}).textContent,
-          'La piden varios tr\u00e1mites. S\u00fabela una vez y sale ya cargada en todos.');
+          'Solo para reconocerte en el panel. No es la foto tipo carnet de los trámites: esa va en Documentos.');
 
     /* Mientras no hay ninguna, las iniciales. Un hueco vacio no dice si
        falta la foto o si es la pantalla la que no la trae. */
@@ -3657,6 +3657,8 @@
 
   function fotoSube(){
     if (CASO === 'gestor') return;
+    /* Cuantos papeles hay ANTES: la foto del perfil no puede sumar uno. */
+    window.PRUEBA_DOCS_N = (document.getElementById('navDocsN') || {}).textContent;
     var inp = document.getElementById('pfFotoArchivo');
     if (!inp) return;
     var dt = new DataTransfer();
@@ -3673,8 +3675,8 @@
     if (CASO === 'gestor') return;
     var pista = document.getElementById('pfFotoPista');
     if (!pista) return;
-    igual('foto: al subirla se guarda, y dice que ya la tienen los tramites',
-          pista.textContent, 'Guardada. Ya la tienen los tr\u00e1mites que la piden.');
+    igual('foto: al subirla se guarda, y lo dice',
+          pista.textContent, 'Guardada.');
     ok('foto: y el aviso sale en verde', /ok/.test(pista.className),
        pista.className, 'con la marca de hecho');
     ok('foto: y el boton vuelve a estar vivo',
@@ -3690,6 +3692,14 @@
        !!av && !!av.querySelector('img'),
        av && av.querySelector('img') ? 'con foto' : ('"' + (av ? av.textContent.trim() : '') + '"'),
        'con foto');
+    /* Y NO entra en la boveda. Es lo que se venia a separar: antes este
+       campo subia el recaudo 'foto', asi que la foto del panel acababa
+       enviada al SAIME. Ahora vive suelta en Storage, sin ficha en
+       'documentos', y el renglon de Documentos no la cuenta. */
+    igual('foto: y no se cuela en la boveda como un recaudo',
+          (document.getElementById('navDocsN') || {}).textContent,
+          window.PRUEBA_DOCS_N);
+
     ok('foto: y el circulo la recorta en vez de deformarla',
        !!av && av.classList.contains('con-foto'),
        av ? av.className : 'no hay circulo', 'con-foto');
