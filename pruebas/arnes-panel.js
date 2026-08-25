@@ -137,6 +137,10 @@
               entregaAbre, entregaMira,
               docsAbre, docsMira, docsCambia, docsTrasCambiar,
               docsNuevoMira, docsNuevoFalta, docsNuevoSube, docsTrasSubir,
+              /* DESPUES de todo lo de la boveda: estos pasos suben un papel,
+                 y puestos antes le cambiaban la cuenta a las pruebas que
+                 esperan los tres del expediente de partida. */
+              cacheAbre, cacheMira, cacheSube, cacheSube2, cacheVuelve, cacheTrasVolver,
               ayudaAbre, ayudaMira, ayudaFaq,
               supAbre, supMira, supTemas, supVuelve,
               franjaDescarta, franjaTrasDescartar,
@@ -3484,6 +3488,70 @@
        caja.querySelectorAll('.sol-campo').length + ' casillas', 'con casillas');
     igual('ficha: y la ficha deja el sitio',
           caja.querySelectorAll('.ft-cuerpo').length, 0);
+  }
+
+  /* ═════ SUBIR UN PAPEL Y QUE LA FICHA SE ENTERE ═════
+     La ficha guarda los tipos que ya tienes -una consulta por sesion, que
+     son treinta y una tarjetas-. Sin borrar esa memoria al subir, el papel
+     que acabas de guardar seguia saliendo como que te falta hasta que
+     recargabas la pagina: subias la solvencia del IVSS y el tramite que la
+     pide seguia diciendo que no la tenias. */
+  function cacheAbre(){
+    if (CASO !== 'vacio') return;
+    /* El c13 -RNC- es el unico que pide la solvencia del IVSS. */
+    location.hash = 'tramite-c13';
+  }
+
+  function cacheMira(){
+    if (CASO !== 'vacio') return;
+    var caja = document.getElementById('trReal');
+    var fila = [].filter.call(caja.querySelectorAll('.ft-rec li'), function(li){
+      return /Solvencia del IVSS/.test(li.textContent);
+    })[0];
+    ok('cache: el tramite pide la solvencia del IVSS', !!fila,
+       fila ? 'la pide' : 'no la pide', 'la pide');
+    if (!fila) return;
+    ok('cache: y de momento dice que no la tienes',
+       fila.classList.contains('no'), fila.className, 'sin visto');
+    window.PRUEBA_CACHE = true;
+  }
+
+  /* Se sube desde la boveda, que es el camino nuevo. */
+  function cacheSube(){
+    if (CASO !== 'vacio' || !window.PRUEBA_CACHE) return;
+    location.hash = 'documentos';
+  }
+
+  function cacheSube2(){
+    if (CASO !== 'vacio' || !window.PRUEBA_CACHE) return;
+    var bt = document.getElementById('dcSubir');
+    if (bt) bt.click();
+    var sel = document.getElementById('dcTipo');
+    var arc = document.getElementById('dcArchivo');
+    if (!sel || !arc) return;
+    sel.value = 'solvencia_ivss';
+    var dt = new DataTransfer();
+    dt.items.add(new File([new Uint8Array(8)], 'solvencia-ivss.pdf', {type:'application/pdf'}));
+    arc.files = dt.files;
+    arc.dispatchEvent(new Event('change'));
+    document.getElementById('dcGuarda').click();
+  }
+
+  function cacheVuelve(){
+    if (CASO !== 'vacio' || !window.PRUEBA_CACHE) return;
+    location.hash = 'tramite-c13';
+  }
+
+  function cacheTrasVolver(){
+    if (CASO !== 'vacio' || !window.PRUEBA_CACHE) return;
+    var caja = document.getElementById('trReal');
+    var fila = [].filter.call(caja.querySelectorAll('.ft-rec li'), function(li){
+      return /Solvencia del IVSS/.test(li.textContent);
+    })[0];
+    /* SIN recargar la pagina. Es lo unico que se mide aqui. */
+    ok('cache: al subirla, el tramite se entera sin recargar',
+       !!fila && fila.classList.contains('ya'),
+       fila ? fila.className : 'no esta la fila', 'con visto');
   }
 
   function ayudaAbre(){

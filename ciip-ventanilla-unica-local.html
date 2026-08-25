@@ -6039,7 +6039,18 @@ applyLang(idiomaParaMi());
             inversionista: yo.id, tipo: tipoDoc, archivo: ruta, nombre_original: archivo.name
           }).select().single();
         })
-        .then(function(r){ if (r.error) throw r.error; return r.data.id; });
+        .then(function(r){
+          if (r.error) throw r.error;
+          /* Y se olvida lo que se sabia de tu boveda. La ficha del tramite
+             guarda los tipos que ya tienes -una consulta por sesion, que
+             son treinta y una tarjetas- y sin borrarla al subir, el papel
+             que acabas de guardar seguia saliendo como que te falta hasta
+             que recargabas la pagina. Se hace AQUI, que es por donde pasa
+             todo lo que entra en la boveda: desde el formulario de un
+             tramite, desde el boton de subir y desde el de cambiar. */
+          MIOS = null; miosPide = null;
+          return r.data.id;
+        });
     });
   }
 
