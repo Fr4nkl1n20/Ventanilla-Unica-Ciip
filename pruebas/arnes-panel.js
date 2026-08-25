@@ -3111,8 +3111,8 @@
          n ? ('hidden=' + n.hidden + ' visible=' + (n.offsetParent !== null)) : 'no hay renglón',
          'escondido y sin pintar');
       ok('bóveda: y no se le traen los papeles de nadie',
-         document.querySelectorAll('#dcLista .ci-ficha').length === 0,
-         document.querySelectorAll('#dcLista .ci-ficha').length + ' fichas', 'ninguna');
+         document.querySelectorAll('#dcLista tr[data-doc]').length === 0,
+         document.querySelectorAll('#dcLista tr[data-doc]').length + ' renglones', 'ninguno');
       /* Y si llega por el hash escrito a mano, se le devuelve a la
          portada en vez de dejarle una pantalla en blanco. */
       location.hash = 'documentos';
@@ -3120,20 +3120,42 @@
     }
     igual('bóveda: el renglón abre su vista', document.body.getAttribute('data-vista'), 'documentos');
 
-    var fichas = document.querySelectorAll('#dcLista .ci-ficha');
-    igual('bóveda: están los tres documentos', fichas.length, 3);
+    /* Renglones, no fichas: una pila de fichas no se compara, y para
+       saber cual vence antes habia que leerlas una a una. */
+    var filas = document.querySelectorAll('#dcLista tr[data-doc]');
+    igual('bóveda: están los tres documentos', filas.length, 3);
+    igual('bóveda: con sus siete columnas',
+          document.querySelectorAll('#dcCab th').length, 7);
     igual('bóveda: y el renglón los cuenta',
           document.getElementById('navDocsN').textContent, '3');
 
     /* Lo caducado primero: es lo único de esta lista sobre lo que hay algo
        que hacer. */
     igual('bóveda: el vencido va el primero',
-          fichas[0].querySelector('.ct-chip').textContent.trim(), 'Vencido');
-    ok('bóveda: y se enmarca como una devolución',
-       fichas[0].classList.contains('vencido'), fichas[0].className, 'con la clase vencido');
+          filas[0].querySelector('.ct-chip').textContent.trim(), 'Vencido');
+    /* La franja va a la izquierda del renglon y no de fondo: un renglon
+       entero en color se lee como un error de la pantalla y no como un
+       aviso sobre el papel. */
+    ok('bóveda: y el renglon lo avisa',
+       filas[0].classList.contains('mal'), filas[0].className, 'con la marca');
+    /* Y su distintivo NO puede salir en verde. comoEsta() devuelve clase
+       VACIA para el vencido -su color lo pone .ct-chip a secas- y un
+       "|| 'listo'" al pintarlo le ponia el verde de vigente: decia
+       "Vencido" en el color de "todo en orden". */
+    ok('bóveda: y su distintivo no sale en verde',
+       !filas[0].querySelector('.ct-chip').classList.contains('listo'),
+       filas[0].querySelector('.ct-chip').className, 'sin la clase listo');
+    /* El que no caduca SI va en verde: no tener vencimiento es un estado,
+       no un hueco, y en una columna donde dos llevan distintivo el tercero
+       en texto pelado parece que le falta el dato. */
+    var ultimo = filas[filas.length - 1].querySelector('.ct-chip');
+    ok('bóveda: y el que no caduca lo dice, en verde',
+       !!ultimo && ultimo.classList.contains('listo'),
+       ultimo ? ultimo.className + ' "' + ultimo.textContent.trim() + '"' : 'sin distintivo',
+       'con la clase listo');
 
     /* Treinta días de aviso: el que vence dentro de doce ya lo dice. */
-    var textos = [].map.call(fichas, function(f){ return f.textContent; }).join(' | ');
+    var textos = document.getElementById('dcLista').textContent;
     ok('bóveda: avisa del que está por vencer antes de que venza',
        /Vence pronto/.test(textos), 'busca "Vence pronto"', 'aparece');
 
@@ -3156,10 +3178,13 @@
        un papel, contar '.btn' a secas contaba los dos y esto media otra
        cosa. */
     (function(){
-      var abren = document.querySelectorAll('#dcLista .btn.navy').length;
-      ok('bóveda: cada uno se puede abrir', fichas.length === abren,
-         abren + ' botones de abrir para ' + fichas.length + ' fichas',
-         fichas.length + ' botones');
+      /* Uno por renglon. Se cuentan los de ABRIR y no '.t-btn' a secas,
+         que desde que se puede cambiar hay dos por renglon. */
+      var abren = [].filter.call(document.querySelectorAll('#dcLista .t-btn'),
+        function(b){ return b.textContent.trim() === 'Abrir'; }).length;
+      ok('bóveda: cada uno se puede abrir', filas.length === abren,
+         abren + ' botones de abrir para ' + filas.length + ' renglones',
+         filas.length + ' botones');
     })();
 
     document.getElementById('dcVolver').click();
@@ -3181,16 +3206,21 @@
          document.body.getAttribute('data-vista') || 'inicio', 'no es documentos');
       return;
     }
-    var f = document.querySelector('#dcLista .ci-ficha');
-    ok('docs: la ficha ofrece cambiar el papel', !!(f && f.querySelector('.dc-pie .btn.ghost')),
-       f ? (f.querySelector('.dc-pie .btn.ghost') ? 'con boton' : 'solo abrir') : 'no hay ficha',
+    var f = document.querySelector('#dcLista tr[data-doc]');
+    function elCambiar(fila){
+      return [].filter.call(fila.querySelectorAll('.t-btn'), function(b){
+        return b.textContent.trim() === 'Cambiar';
+      })[0];
+    }
+    ok('docs: el renglon ofrece cambiar el papel', !!(f && elCambiar(f)),
+       f ? (elCambiar(f) ? 'con boton' : 'solo abrir') : 'no hay renglon',
        'con boton de cambiar');
     if (!f) return;
     var arch = f.querySelector('input[type=file]');
     if (!arch) return;
     /* Cuantos hay ANTES, para medir que el nuevo se suma y el viejo no se
        borra: va adjunto a solicitudes ya enviadas. */
-    window.PRUEBA_DOCS_ANTES = document.querySelectorAll('#dcLista .ci-ficha').length;
+    window.PRUEBA_DOCS_ANTES = document.querySelectorAll('#dcLista tr[data-doc]').length;
     var dt = new DataTransfer();
     dt.items.add(new File([new Uint8Array(8)], 'el-bueno.pdf', {type:'application/pdf'}));
     arch.files = dt.files;
@@ -3199,7 +3229,7 @@
 
   function docsTrasCambiar(){
     if (CASO === 'gestor') return;
-    var fichas = document.querySelectorAll('#dcLista .ci-ficha');
+    var fichas = document.querySelectorAll('#dcLista tr[data-doc]');
     igual('docs: al cambiarlo, el nuevo se suma y el viejo se queda',
           fichas.length, (window.PRUEBA_DOCS_ANTES || 0) + 1);
     ok('docs: y el nuevo lleva su nombre',
@@ -3212,11 +3242,13 @@
        marcas.length + ' marcados', 'al menos uno');
     /* Al reemplazado no se le ofrece cambiarlo: seria subir un tercero
        para dejarlo igual. */
-    var vieja = marcas[0] ? marcas[0].closest('.ci-ficha') : null;
+    var vieja = marcas[0] ? marcas[0].closest('tr') : null;
+    var sigue = vieja && [].filter.call(vieja.querySelectorAll('.t-btn'), function(b){
+      return b.textContent.trim() === 'Cambiar';
+    })[0];
     ok('docs: y al reemplazado ya no se le ofrece cambiar',
-       !!vieja && !vieja.querySelector('.dc-pie .btn.ghost'),
-       vieja ? (vieja.querySelector('.dc-pie .btn.ghost') ? 'sigue el boton' : 'sin boton')
-             : 'no hay ficha vieja',
+       !!vieja && !sigue,
+       vieja ? (sigue ? 'sigue el boton' : 'sin boton') : 'no hay renglon viejo',
        'sin boton');
   }
 
@@ -3308,14 +3340,14 @@
     arc.dispatchEvent(new Event('change'));
     igual('subir: el nombre del archivo se ve antes de mandarlo',
           (document.getElementById('dcNombre') || {}).textContent, 'lo-que-ya-tenia.pdf');
-    window.PRUEBA_DOCS_ANTES2 = document.querySelectorAll('#dcLista .ci-ficha').length;
+    window.PRUEBA_DOCS_ANTES2 = document.querySelectorAll('#dcLista tr[data-doc]').length;
     document.getElementById('dcGuarda').click();
   }
 
   function docsTrasSubir(){
     if (CASO === 'gestor') return;
     igual('subir: al guardarlo, la boveda tiene uno mas',
-          document.querySelectorAll('#dcLista .ci-ficha').length,
+          document.querySelectorAll('#dcLista tr[data-doc]').length,
           (window.PRUEBA_DOCS_ANTES2 || 0) + 1);
     ok('subir: y con su nombre de archivo',
        /lo-que-ya-tenia\.pdf/.test(document.getElementById('dcLista').textContent),

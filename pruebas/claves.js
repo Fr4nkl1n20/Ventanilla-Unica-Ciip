@@ -118,6 +118,39 @@ ok('pasos: ningún texto pedido se queda sin definir',
    fantasmas.length === 0,
    fantasmas.length ? fantasmas.join(', ') : '');
 
+/* ── 2b · NINGUNA CLAVE ESCRITA DOS VECES ───────────────────────
+   Esto no lo ve ninguna de las de arriba, y por eso hay que mirarlo
+   aparte: en un objeto de JavaScript, dos claves con el mismo nombre no
+   son un error —gana la ÚLTIMA—, así que al parsearlo la duplicada
+   desaparece sin dejar rastro y todo cuadra.
+
+   Paso de verdad: al añadir el aviso de «guardado» lo llamé dc_subido,
+   que ya existía con «Subido el {fecha}». La fecha de subida de cada
+   documento se quedó diciendo «guardado», las 2594 pruebas siguieron en
+   verde y no se veía hasta abrir la bóveda a mirar. Se lee el ARCHIVO, no
+   el objeto. */
+function repetidas(texto, donde) {
+  const malas = [];
+  /* Cada bloque de idioma por su cuenta: la misma clave en es y en en no
+     es una repetición, es lo normal. Se parte por los cierres de bloque
+     de idioma, que van a dos niveles de sangrado. */
+  /* Sin barras invertidas en la expresion: este archivo se genera
+     desde otro sitio y una barra de menos convierte la regla en un
+     error de sintaxis que tumba el comprobador entero. */
+  const CIERRE = String.fromCharCode(10) + '    }';
+  for (const bloque of texto.split(CIERRE)) {
+    const vistas = new Map();
+    for (const m of bloque.matchAll(/^ {6}([a-z][a-z0-9_.]*): /gm)) {
+      vistas.set(m[1], (vistas.get(m[1]) || 0) + 1);
+    }
+    for (const [k, n] of vistas) if (n > 1) malas.push(`${donde} ${k} ×${n}`);
+  }
+  return [...new Set(malas)];
+}
+const dobles = repetidas(PASOS, 'pasos');
+ok('claves: ninguna escrita dos veces en el mismo idioma',
+   dobles.length === 0, dobles.slice(0, 10).join(', '));
+
 /* ── 3 · CÓMO SE ESCRIBE ──────────────────────────────────────────────
    Ni el navegador ni las pruebas del panel miran esto: un rótulo con una
    mayúscula de más se ve igual de bien y nadie lo nota hasta que hay

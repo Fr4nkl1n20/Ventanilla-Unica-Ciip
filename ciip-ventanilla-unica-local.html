@@ -577,6 +577,54 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
    largo. Y la caja se desplaza sola: una tabla de siete columnas en un
    móvil no cabe, y lo que NO puede pasar es que empuje la página entera
    de lado. */
+/* ── LAS TABLAS DEL PANEL ──
+   Dos vistas las usan: la cola del equipo y el registro de archivos de la
+   bóveda. Los nombres son neutros —.tabla, .t-*— y no .pa-* como cuando
+   solo existía una: dos juegos de estilos para dos tablas que se ven igual
+   se separan solos, y basta con que alguien retoque una para que dejen de
+   parecer la misma pantalla.
+
+   La caja se desplaza sola: siete columnas en un móvil no caben, y lo que
+   NO puede pasar es que empujen la página entera de lado. */
+.tabla-caja{overflow-x:auto; border:1px solid var(--line); border-radius:12px;
+  background:var(--bg);}
+.tabla{width:100%; border-collapse:collapse; font-size:12.5px; min-width:720px;}
+.tabla th{text-align:left; font-size:10px; font-weight:700; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--gray-soft); padding:10px 12px;
+  border-bottom:1px solid var(--line); white-space:nowrap; background:var(--block);}
+.tabla td{padding:11px 12px; border-bottom:1px solid var(--line-soft);
+  vertical-align:middle; color:var(--ink);}
+.tabla tr:last-child td{border-bottom:0;}
+.tabla tbody tr:hover{background:var(--block);}
+/* La fila entera se pulsa. El boton de la ultima columna se queda igual:
+   es el que ve quien va con el teclado, y el que dice que esto lleva a
+   alguna parte. */
+.tabla tbody tr{cursor:pointer;}
+.t-fuerte{font-weight:700;}
+.t-sub{font-size:11px; color:var(--gray); margin-top:2px;}
+.t-fecha{color:var(--gray); white-space:nowrap;}
+.t-suave{color:var(--gray-soft);}
+.t-btn{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
+  background:transparent; border:1px solid var(--line); border-radius:7px;
+  padding:6px 11px; cursor:pointer; white-space:nowrap;}
+.t-btn:hover{border-color:var(--cyan-deep); background:var(--block);}
+.t-botones{display:flex; gap:7px; justify-content:flex-end;}
+/* Un archivo caducado o rechazado se ve desde el otro lado de la mesa: es
+   lo unico de esta lista sobre lo que hay algo que hacer. La franja va a
+   la izquierda y no de fondo, que un renglon entero en color se lee como
+   un error de la pantalla y no como un aviso sobre el papel. */
+.tabla tr.mal td:first-child{box-shadow:inset 3px 0 0 var(--rust);}
+.tabla tr.avisa td:first-child{box-shadow:inset 3px 0 0 var(--amber);}
+/* El nombre del archivo, en monoespaciada: distinguir un 1 de una l
+   importa cuando hay tres parecidos.
+
+   Y recortado con puntos, no partido por la mitad: "antecedentes-apost /
+   illados.pdf" en dos lineas cuesta mas de leer que "antecedentes-apo…",
+   y el nombre entero se queda en el title para quien lo necesite. */
+.t-arch{display:block; max-width:190px; font-size:11.5px; color:var(--gray);
+  font-family:ui-monospace, "Cascadia Mono", Consolas, monospace;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
 .pa-vista{display:none;}
 body[data-vista="poratender"] .pa-vista{display:block;}
 body[data-vista="poratender"] .solo-inicio,
@@ -596,34 +644,15 @@ body[data-vista="poratender"] #ayVolver{display:none;}
 body[data-vista="poratender"] #paVolver{display:inline-flex;}
 #paVolver{display:none;}
 
-.pa-caja{overflow-x:auto; border:1px solid var(--line); border-radius:12px;
-  background:var(--bg);}
-.pa-tabla{width:100%; border-collapse:collapse; font-size:12.5px; min-width:720px;}
-.pa-tabla th{text-align:left; font-size:10px; font-weight:700; letter-spacing:.05em;
-  text-transform:uppercase; color:var(--gray-soft); padding:10px 12px;
-  border-bottom:1px solid var(--line); white-space:nowrap; background:var(--block);}
-.pa-tabla td{padding:11px 12px; border-bottom:1px solid var(--line-soft);
-  vertical-align:middle; color:var(--ink);}
-.pa-tabla tr:last-child td{border-bottom:0;}
-.pa-tabla tbody tr:hover{background:var(--block);}
 /* La fila entera se pulsa. El botón de la última columna se queda igual:
    es el que ve quien va con el teclado, y el que dice que esto lleva a
    alguna parte. */
-.pa-tabla tbody tr{cursor:pointer;}
-.pa-quien{font-weight:700;}
-.pa-ente{font-size:11px; color:var(--gray); margin-top:2px;}
-.pa-fecha{color:var(--gray); white-space:nowrap;}
 /* Lo que lleva esperando, que es lo que decide a quién se atiende
    primero. En ámbar cuando pasa de una semana: un número suelto no dice
    si está bien o mal. */
 .pa-espera{white-space:nowrap;}
 .pa-espera.tarde{color:var(--amber); font-weight:700;}
-.pa-sinasig{color:var(--gray-soft);}
 .pa-mio{color:var(--navy2); font-weight:700;}
-.pa-abrir{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
-  background:transparent; border:1px solid var(--line); border-radius:7px;
-  padding:6px 11px; cursor:pointer; white-space:nowrap;}
-.pa-abrir:hover{border-color:var(--cyan-deep); background:var(--block);}
 /* El rotulo de la ultima columna existe pero no se ve: quince botones que
    dicen "Abrir" bajo un titulo que dice "Abrir" es ruido a la vista, y
    quitarlo del todo deja la columna sin nombre para quien la oye. */
@@ -2792,7 +2821,16 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
            habria ido con el al cerrarse. -->
       <div class="pf-aviso" id="dcAvisoFuera"></div>
 
-      <div class="ci-lista" id="dcLista"></div>
+      <!-- El registro de archivos. Era una pila de fichas, y una pila no
+           se compara: para saber cual vence antes habia que leerlas una a
+           una. En columnas se lee de arriba abajo. -->
+      <div class="tabla-caja" id="dcCaja">
+        <table class="tabla" id="dcTabla">
+          <thead><tr id="dcCab"></tr></thead>
+          <tbody id="dcLista"></tbody>
+        </table>
+      </div>
+      <div class="ci-vacia" id="dcVacia" hidden></div>
     </div>
 
     <!-- Los trámites por atender, en tabla. La ventana de arriba sigue
@@ -2811,8 +2849,8 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
         <div class="sub" id="paSub"></div>
       </div>
       <div class="co-filtros" id="paFiltros"></div>
-      <div class="pa-caja">
-        <table class="pa-tabla" id="paTabla">
+      <div class="tabla-caja">
+        <table class="tabla" id="paTabla">
           <thead><tr id="paCab"></tr></thead>
           <tbody id="paCuerpo"></tbody>
         </table>
@@ -8682,7 +8720,7 @@ applyLang(idiomaParaMi());
       vacia.hidden = !!vistos.length;
       vacia.textContent = vistos.length ? '' : (u.co_tram_vacio || '');
     }
-    var caja = document.querySelector('.pa-caja');
+    var caja = document.querySelector('.tabla-caja');
     if (caja) caja.hidden = !vistos.length;
     if (!vistos.length) return;
 
@@ -8700,18 +8738,18 @@ applyLang(idiomaParaMi());
         return td;
       }
 
-      celda(t.nombre || u.co_sinnombre || '', 'pa-quien');
+      celda(t.nombre || u.co_sinnombre || '', 't-fuerte');
 
       var qué = el('div');
       qué.appendChild(el('div', null, ref ? nombreDeTarjeta(ref) : t.tipo));
       var ente = (TIPOS[ref] || {}).ente || '';
-      if (ente) qué.appendChild(el('div', 'pa-ente', ente));
+      if (ente) qué.appendChild(el('div', 't-sub', ente));
       celda(qué);
 
       celda(el('span', 'co-estado' + (t.estado === 'en_revision' ? ' mirando' : ''),
                textoDeEvento(t.estado, ente)));
 
-      celda(fecha(t.enviado_en || t.creado_en), 'pa-fecha');
+      celda(fecha(t.enviado_en || t.creado_en), 't-fecha');
 
       /* Lo que lleva parado, que es lo que decide a quién se atiende
          primero. El MISMO reloj de la ventana —repetir la cuenta aquí
@@ -8726,9 +8764,9 @@ applyLang(idiomaParaMi());
       celda(mio ? (u.co_lollevas || '')
             : t.gestor ? nombreDeGestor(t.gestor)
             : (u.co_sinasig || ''),
-            mio ? 'pa-mio' : (t.gestor ? null : 'pa-sinasig'));
+            mio ? 'pa-mio' : (t.gestor ? null : 't-suave'));
 
-      var b = el('button', 'pa-abrir', u.co_c_abrir || '');
+      var b = el('button', 't-btn', u.co_c_abrir || '');
       b.type = 'button';
       celda(b);
 
@@ -9916,9 +9954,22 @@ applyLang(idiomaParaMi());
     return {clase:'listo', chip:u.dc_vigente};
   }
 
+  /* ── EL REGISTRO DE ARCHIVOS ───────────────────────────
+     Era una pila de fichas y ahora son renglones, por lo mismo que la cola
+     del equipo: una pila no se compara. Para saber cual vence antes habia
+     que leerlas una por una, y con quince encima nadie lo hace.
+
+     Siete columnas: que documento es, como se llama el archivo, si sigue
+     valiendo, cuando se subio, cuando vence, en cuantos tramites se usa y
+     que se puede hacer con el. ───────────────────────────── */
+  var DC_COLUMNAS = ['dc_c_doc', 'dc_c_arch', 'dc_c_estado', 'dc_c_subido',
+                     'dc_c_vence', 'dc_c_usos', 'co_c_abrir'];
+
   function pintaDocs(){
     if (!dcLista) return;
     var u = T();
+    var sub = document.getElementById('dcSub');
+    if (sub) sub.textContent = u.dc_sub || '';
     /* El renglón se va del menú entero, no se queda en gris: un sitio al
        que no vas a entrar no tiene por qué ocuparte una línea. */
     if (dcNav) dcNav.hidden = !laBovedaEsMia();
@@ -9927,23 +9978,49 @@ applyLang(idiomaParaMi());
     var btSubir = document.getElementById('dcSubir');
     if (btSubir) btSubir.hidden = !laBovedaEsMia();
     pintaFormNuevo();
-    var sub = document.getElementById('dcSub');
-    if (sub) sub.textContent = u.dc_sub || '';
 
     if (dcNavN){
       dcNavN.textContent = String(papeles.length);
       dcNavN.hidden = (papeles.length === 0);
     }
 
+    var caja  = document.getElementById('dcCaja');
+    var vacia = document.getElementById('dcVacia');
     dcLista.textContent = '';
     if (!papeles.length){
-      dcLista.appendChild(el('div', 'ci-vacia', u.dc_vacia || ''));
+      if (caja) caja.hidden = true;
+      if (vacia){ vacia.hidden = false; vacia.textContent = u.dc_vacia || ''; }
+      var cab0 = document.getElementById('dcCab');
+      if (cab0) cab0.textContent = '';
       return;
     }
+    if (caja) caja.hidden = false;
+    if (vacia){ vacia.hidden = true; vacia.textContent = ''; }
 
-    /* El último subido de cada tipo. `papeles` puede venir ordenado con lo
-       caducado delante, así que no vale con quedarse el primero de la
-       lista: se mira la fecha. */
+    var cab = document.getElementById('dcCab');
+    if (cab){
+      cab.textContent = '';
+      DC_COLUMNAS.forEach(function(k){
+        var th = document.createElement('th');
+        th.scope = 'col';
+        /* La última no lleva rótulo a la vista: quince botones que dicen
+           «Abrir» bajo un título que dice «Abrir» es ruido. Se queda para
+           quien lo oye. */
+        if (k === 'co_c_abrir') th.appendChild(el('span', 'visualmente-oculto', u[k] || ''));
+        else th.textContent = u[k] || '';
+        cab.appendChild(th);
+      });
+    }
+
+    /* De cada tipo hay UNO que cuenta: el último subido, que es el que los
+       formularios ofrecen ya cargado. Los de antes se quedan —van adjuntos
+       a trámites ya enviados, y borrarlos reescribiría lo que el CIIP
+       recibió— pero se marcan, que si no el registro enseña dos pasaportes
+       y ninguno dice cuál vale.
+
+       Se saca por FECHA y no por el orden de la lista: esa viene con lo
+       caducado delante, y quedarse el primero daría por bueno justo el que
+       hay que cambiar. */
     var vigenteDeTipo = {}, fechaDeTipo = {};
     papeles.forEach(function(d){
       var t = Date.parse(d.creado_en) || 0;
@@ -9955,49 +10032,66 @@ applyLang(idiomaParaMi());
 
     papeles.forEach(function(d){
       var est = comoEsta(d);
-      var f = el('div', 'ci-ficha' + (est && est.mal ? ' vencido' : ''));
+      var elBueno = (vigenteDeTipo[d.tipo] === d.id);
+      var fila = document.createElement('tr');
+      fila.setAttribute('data-doc', d.id);
+      if (est && est.mal) fila.classList.add('mal');
+      else if (est && est.aviso) fila.classList.add('avisa');
 
-      var cab = el('div', 'ci-cab');
-      if (est) cab.appendChild(el('span', 'ct-chip' + (est.clase ? ' ' + est.clase : ''), est.chip || ''));
-      f.appendChild(cab);
-
-      f.appendChild(el('div', 'ci-linea', nombreDeTipo_doc(d.tipo)));
-      if (d.nombre_original) f.appendChild(el('div', 'dc-arch', d.nombre_original));
-
-      var cuando = [];
-      if (d.creado_en) cuando.push(String(u.dc_subido || '').replace('{fecha}', fecha(d.creado_en)));
-      if (d.vence_el)  cuando.push(String(u.dc_vence || '').replace('{fecha}', fecha(d.vence_el)));
-      if (cuando.length) f.appendChild(el('div', 'ci-que', cuando.join(' \u00b7 ')));
-
-      /* Un rechazado trae el motivo del gestor: sin él, "vuelve a subirlo"
-         no dice qué estaba mal. */
-      if (d.estado === 'rechazado'){
-        if (d.nota_revision) f.appendChild(el('div', 'ci-nota', d.nota_revision));
-        f.appendChild(el('div', 'ci-nota', u.dc_revisa || ''));
+      function celda(hijo, clase){
+        var td = document.createElement('td');
+        if (clase) td.className = clase;
+        if (typeof hijo === 'string') td.textContent = hijo;
+        else if (hijo) td.appendChild(hijo);
+        fila.appendChild(td);
+        return td;
       }
 
-      var pie = el('div', 'dc-pie');
+      /* Qué documento es, y si ya no es el que vale. */
+      var qué = el('div');
+      qué.appendChild(el('div', 't-fuerte', nombreDeTipo_doc(d.tipo)));
+      if (!elBueno) qué.appendChild(el('div', 'dc-viejo', u.dc_viejo || ''));
+      celda(qué);
+
+      var arch = el('span', 't-arch', d.nombre_original || '');
+      if (d.nombre_original) arch.title = d.nombre_original;
+      celda(arch, null);
+
+      /* Siempre con distintivo, tambien el que no caduca: en una columna
+         donde dos renglones llevan chip y el tercero texto pelado, el
+         tercero parece que le falta el dato. Un acta constitutiva no
+         vence, y eso es un estado y no un hueco. */
+      /* Ojo con el '||': comoEsta() devuelve clase VACIA para el vencido y
+         para el rechazado -su color lo pone .ct-chip a secas-, asi que un
+         "|| 'listo'" les ponia el verde de vigente. El verde es solo para
+         el que no caduca, o sea cuando no hay estado que contar. */
+      celda(el('span', 'ct-chip' + (est ? (est.clase ? ' ' + est.clase : '') : ' listo'),
+               (est && est.chip) || u.dc_vigente || ''));
+
+      celda(d.creado_en ? fecha(d.creado_en) : '\u2014', 't-fecha');
+      /* Sin vencimiento no se escribe «nunca»: la raya dice lo mismo y no
+         promete nada. Un acta constitutiva no caduca. */
+      celda(d.vence_el ? fecha(d.vence_el) : '\u2014', 't-fecha');
+
       var n = usosPorDoc[d.id] || 0;
-      pie.appendChild(el('span', 'dc-usos',
-        n === 0 ? (u.dc_sinusar || '')
-        : n === 1 ? (u.dc_usado1 || '')
-        : String(u.dc_usado || '').replace('{n}', n)));
+      celda(n === 0 ? (u.dc_sinusar || '')
+            : n === 1 ? (u.dc_usado1 || '')
+            : String(u.dc_usado || '').replace('{n}', n),
+            n === 0 ? 't-suave' : null);
 
-      /* De cada tipo hay UNO que cuenta: el último subido, que es el que
-         los formularios ofrecen ya cargado. Los de antes se quedan —van
-         adjuntos a trámites que ya se enviaron, y borrarlos reescribiría
-         lo que el CIIP recibió— pero se marcan, que si no la bóveda
-         enseña dos pasaportes y ninguno dice cuál vale. */
-      var elBueno = (vigenteDeTipo[d.tipo] === d.id);
-      if (!elBueno) pie.appendChild(el('span', 'dc-viejo', u.dc_viejo || ''));
+      /* Un rechazado trae el motivo del gestor. Va en la fila de al lado y
+         a todo lo ancho: dentro de una celda de siete, una frase se lee en
+         columna de dos palabras. */
+      var botones = el('div', 't-botones');
 
-      /* El cubo es privado: no hay dirección fija. Se pide una firmada, que
-         caduca en dos minutos, igual que en el formulario y en la cola. */
-      var abrir = el('button', 'btn navy', u.co_abrir || '');
+      /* Poder MIRARLO: «pasaporte.pdf» puede ser el vencido, y como se
+         reutiliza entre trámites el fallo viajaría de uno a otro. El cubo
+         es privado, así que se pide una URL firmada, que caduca. */
+      var abrir = el('button', 't-btn', u.co_abrir || '');
       abrir.type = 'button';
-      abrir.addEventListener('click', function(){
+      function verlo(){
         abrir.disabled = true;
-        sb.storage.from('recaudos').createSignedUrl(d.archivo, 120)
+        Promise.resolve(sb.storage.from('recaudos').createSignedUrl(d.archivo, 120))
           .then(function(rs){
             abrir.disabled = false;
             var url = rs && rs.data && rs.data.signedUrl;
@@ -10009,67 +10103,55 @@ applyLang(idiomaParaMi());
             abrir.disabled = false;
             abrir.textContent = u.co_noabre || '';
           });
-      });
+      }
+      abrir.addEventListener('click', function(e){ e.stopPropagation(); verlo(); });
+      fila.addEventListener('click', verlo);
 
-      /* Y poder CAMBIARLO. Abrirlo servía para comprobar que el que hay no
-         es el que vale —"pasaporte.pdf" puede ser el vencido— y hasta aquí
-         llegaba: mirabas, veías que estaba mal y no había nada que hacer.
-         Para cambiarlo había que entrar en un trámite que a lo mejor no
-         ibas a enviar.
-
-         Sube uno NUEVO del mismo tipo en vez de pisar el de antes: el
-         viejo va adjunto a solicitudes ya enviadas, y cambiarle el archivo
-         por debajo reescribiría lo que el CIIP recibió. El nuevo pasa a
-         ser el que ofrecen los formularios por ser el último.
-
-         Solo sobre el que vale: cambiar uno ya reemplazado es subir un
-         tercero para dejarlo igual.
-
-         Y solo al INVERSIONISTA. La política de la base deja al equipo del
-         CIIP leer los documentos de todos, así que esta lista, vista por un
-         gestor, es la de todo el mundo. Ahí el botón no cambiaba nada:
-         sube() firma lo que sube con quien está dentro, así que el gestor
-         se habría creado un documento suyo —huérfano, en la bóveda de
-         nadie— mientras el del inversionista seguía igual. */
-      var mio = (typeof PERFIL !== 'undefined') && PERFIL.rol === 'inversionista';
-      if (elBueno && mio){
+      /* Y poder CAMBIARLO, solo sobre el que vale y solo si la bóveda es
+         tuya. Sube uno NUEVO del mismo tipo en vez de pisar el de antes:
+         el viejo va adjunto a solicitudes ya enviadas. */
+      if (elBueno && laBovedaEsMia()){
         var arch = document.createElement('input');
         arch.type = 'file';
         arch.accept = 'image/*,application/pdf';
         arch.hidden = true;
-        var cambiar = el('button', 'btn ghost', u.dc_cambiar || '');
+        var cambiar = el('button', 't-btn', u.dc_cambiar || '');
         cambiar.type = 'button';
-        cambiar.addEventListener('click', function(){ arch.click(); });
+        cambiar.addEventListener('click', function(e){ e.stopPropagation(); arch.click(); });
         arch.addEventListener('change', function(){
           var nuevo = arch.files[0];
-          /* Y se vacía: sin esto, elegir DOS VECES el mismo archivo no
-             lanza 'change' la segunda vez. */
+          /* Se vacía: sin esto, elegir DOS VECES el mismo archivo no lanza
+             'change' la segunda vez. */
           arch.value = '';
           if (!nuevo) return;
-          cambiar.disabled = true;
-          abrir.disabled = true;
+          cambiar.disabled = true; abrir.disabled = true;
           cambiar.textContent = u.pf_fotoyendo || '';
-          sube(d.tipo, nuevo).then(function(){
-            /* La lista entera, que cambia quién es el bueno y las cuentas
-               de uso siguen siendo las de antes. */
-            return cargaDocs();
-          }).catch(function(e){
-            console.warn('[CIIP] cambiar documento:', e && (e.message || e));
-            cambiar.disabled = false;
-            abrir.disabled = false;
-            cambiar.textContent = u.pf_fotoerror || '';
-          });
+          sube(d.tipo, nuevo).then(function(){ return cargaDocs(); })
+            .catch(function(e){
+              console.warn('[CIIP] cambiar documento:', e && (e.message || e));
+              cambiar.disabled = false; abrir.disabled = false;
+              cambiar.textContent = u.pf_fotoerror || '';
+            });
         });
-        pie.appendChild(cambiar);
-        pie.appendChild(arch);
+        botones.appendChild(cambiar);
+        botones.appendChild(arch);
       }
-      /* Y el azul al final: es el que mas se pulsa y el que ya estaba
-         ahi, y mover un boton de sitio es cambiarle el gesto a quien ya
-         se lo sabe. */
-      pie.appendChild(abrir);
-      f.appendChild(pie);
+      botones.appendChild(abrir);
+      celda(botones);
 
-      dcLista.appendChild(f);
+      dcLista.appendChild(fila);
+
+      /* El motivo del rechazo, en su propia fila y a todo lo ancho. */
+      if (d.estado === 'rechazado'){
+        var extra = document.createElement('tr');
+        extra.className = 'mal';
+        var td = document.createElement('td');
+        td.colSpan = DC_COLUMNAS.length;
+        if (d.nombre_original && d.nota_revision) td.appendChild(el('div', 'ci-nota', d.nota_revision));
+        td.appendChild(el('div', 'ci-nota', u.dc_revisa || ''));
+        extra.appendChild(td);
+        dcLista.appendChild(extra);
+      }
     });
   }
 
@@ -10201,7 +10283,7 @@ applyLang(idiomaParaMi());
          nada los relacione. Puesto al final, se lee «guardado» con la
          ficha ya delante. */
       var a2 = document.getElementById('dcAvisoFuera');
-      if (a2){ a2.textContent = u.dc_subido || ''; a2.className = 'pf-aviso ok'; }
+      if (a2){ a2.textContent = u.dc_guardado || ''; a2.className = 'pf-aviso ok'; }
     }).catch(function(e){
       console.warn('[CIIP] subir documento:', e && (e.message || e));
       bt.disabled = false;
