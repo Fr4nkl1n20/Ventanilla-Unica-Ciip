@@ -591,8 +591,19 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
    tarjeta con los tiempos y el botón. En una sola columna todo bajaba
    pegado al borde izquierdo con medio ancho vacío al lado, y el botón
    quedaba al fondo, después de doce recaudos. */
+/* La HOJA. La ficha se dibujaba directamente sobre el fondo de la pagina
+   -que es --block, gris claro- y encima la tarjeta de la derecha usaba
+   ESE MISMO color: un borde fino separando dos grises iguales. De ahi que
+   se viera plana y que no se leyera como una ficha, sino como texto
+   suelto en la pagina.
+
+   Ahora es una hoja blanca sobre el gris, con su sombra: se lee como un
+   documento puesto encima de la mesa. Y funciona en los dos temas, porque
+   --bg siempre es mas claro que --block. */
+.ft-hoja{background:var(--bg); border:1px solid var(--line); border-radius:14px;
+  padding:20px 22px; box-shadow:var(--shadow); margin-top:16px;}
 .ft-cuerpo{display:grid; grid-template-columns:minmax(0,1fr) 296px; gap:28px;
-  align-items:start; margin-top:16px;}
+  align-items:start;}
 @media (max-width:860px){
   /* La tarjeta ARRIBA cuando se apila: los tiempos y el botón son lo
      primero que se busca, y debajo de la lista de recaudos habría que
@@ -601,8 +612,9 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
   .ft-lado{order:-1;}
 }
 
-/* La tarjeta de la derecha. */
-.ft-lado{background:var(--block); border:1px solid var(--line-soft);
+/* La tarjeta de la derecha, ya sobre blanco: el gris de --block por fin
+   contrasta con algo. */
+.ft-lado{background:var(--block); border:1px solid var(--line);
   border-radius:12px; padding:16px;}
 .ft-t{margin-bottom:13px;}
 .ft-t .n{font-size:22px; font-weight:800; letter-spacing:-.02em; line-height:1.1;
@@ -5561,6 +5573,7 @@ applyLang(idiomaParaMi());
     var plazoViejo = document.getElementById('trPlazo');
     if (plazoViejo) plazoViejo.hidden = !!f;
 
+    var hoja = el('div', 'ft-hoja');
     var cuerpo = el('div', 'ft-cuerpo');
     var izq = el('div', 'ft-izq');
     var der = el('div', 'ft-lado');
@@ -5658,7 +5671,8 @@ applyLang(idiomaParaMi());
 
     cuerpo.appendChild(izq);
     cuerpo.appendChild(der);
-    caja.appendChild(cuerpo);
+    hoja.appendChild(cuerpo);
+    caja.appendChild(hoja);
   }
 
   function pintaFormulario(tipo, borrador){
