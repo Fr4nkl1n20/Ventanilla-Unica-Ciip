@@ -365,7 +365,7 @@ window.CIIP_PASOS = {
       /* La bóveda. Los recaudos ya se guardaban y se reutilizaban; lo que
          faltaba era poder verlos todos juntos. */
       dc_sub:      "Todo lo que has subido, en un solo sitio",
-      dc_vacia:    "Todavía no has subido ningún documento. Los recaudos que subas en un trámite se guardan aquí y el siguiente formulario te los ofrece ya cargados.",
+      dc_vacia:    "Todavía no has subido ningún documento. Sube aquí los que ya tengas: cada formulario que los pida te los ofrecerá ya cargados.",
       dc_subido:   "Subido el {fecha}",
       dc_c_doc:     "Documento",
       dc_c_arch:    "Archivo",
@@ -907,7 +907,7 @@ window.CIIP_PASOS = {
       /* The vault. Documents were already stored and reused; what was
          missing was seeing them all in one place. */
       dc_sub:      "Everything you've uploaded, in one place",
-      dc_vacia:    "You haven't uploaded any documents yet. What you upload in a procedure is kept here, and the next form offers it already loaded.",
+      dc_vacia:    "You haven't uploaded any documents yet. Upload the ones you already have: every form that asks for them will offer them already loaded.",
       dc_subido:   "Uploaded {fecha}",
       dc_c_doc:     "Document",
       dc_c_arch:    "File",
@@ -1435,7 +1435,7 @@ window.CIIP_PASOS = {
       pf_sector0: "Por escolher",
       /* O cofre dos documentos. */
       dc_sub:      "Tudo o que carregou, num só sítio",
-      dc_vacia:    "Ainda não carregou nenhum documento. O que carregar num trâmite fica aqui, e o formulário seguinte oferece-lho já carregado.",
+      dc_vacia:    "Ainda não carregou nenhum documento. Carregue aqui os que já tem: cada formulário que os pedir vai oferecê-los já carregados.",
       dc_subido:   "Carregado a {fecha}",
       dc_c_doc:     "Documento",
       dc_c_arch:    "Ficheiro",
@@ -1957,7 +1957,7 @@ window.CIIP_PASOS = {
       pf_sector0: "Non scelto",
       /* L'archivio dei documenti. */
       dc_sub:      "Tutto quello che hai caricato, in un solo posto",
-      dc_vacia:    "Non hai ancora caricato nessun documento. Quello che carichi in una pratica resta qui, e il modulo successivo te lo propone già caricato.",
+      dc_vacia:    "Non hai ancora caricato nessun documento. Carica qui quelli che hai già: ogni modulo che li chiede te li propone già caricati.",
       dc_subido:   "Caricato il {fecha}",
       dc_c_doc:     "Documento",
       dc_c_arch:    "File",
@@ -2479,7 +2479,7 @@ window.CIIP_PASOS = {
       pf_sector0: "尚未选择",
       /* 材料库。 */
       dc_sub:      "您上传的全部材料，都在这里",
-      dc_vacia:    "您还没有上传任何材料。在办理业务时上传的文件会保存在这里，下一个表单会直接带出来。",
+      dc_vacia:    "您还没有上传任何文件。把已有的传到这里：以后需要它们的表单会自动带上。",
       dc_subido:   "{fecha} 上传",
       dc_c_doc:     "文件",
       dc_c_arch:    "档案",
@@ -3001,7 +3001,7 @@ window.CIIP_PASOS = {
       pf_sector0: "Не выбрана",
       /* Хранилище документов. */
       dc_sub:      "Всё загруженное — в одном месте",
-      dc_vacia:    "Вы ещё не загружали документы. То, что вы загружаете в заявке, остаётся здесь, и следующая форма предложит его готовым.",
+      dc_vacia:    "Вы ещё не загружали документы. Загрузите те, что у вас уже есть: любая форма, которая их запросит, подставит их сама.",
       dc_subido:   "Загружено {fecha}",
       dc_c_doc:     "Документ",
       dc_c_arch:    "Файл",

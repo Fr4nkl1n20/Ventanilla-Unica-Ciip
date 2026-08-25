@@ -609,6 +609,21 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
   padding:6px 11px; cursor:pointer; white-space:nowrap;}
 .t-btn:hover{border-color:var(--cyan-deep); background:var(--block);}
 .t-botones{display:flex; gap:7px; justify-content:flex-end;}
+/* El pie de la tabla. No se pulsa entero ni se ilumina al pasar: no es un
+   renglon del registro, es donde se anade uno. */
+.tabla tfoot td{border-top:1px solid var(--line); background:var(--card-2);
+  padding:9px 12px;}
+.tabla tfoot tr{cursor:default;}
+.tabla tfoot tr:hover{background:transparent;}
+/* El boton de anadir, con la pinta de "una linea mas" y no de accion
+   principal: el azul de la cabecera competia con el titulo de la pantalla
+   y quedaba lejos de la lista a la que se anade. */
+.t-mas{font:inherit; font-size:12px; font-weight:700; color:var(--navy2);
+  background:transparent; border:1px dashed var(--line); border-radius:8px;
+  padding:8px 13px; cursor:pointer;}
+.t-mas:hover{border-color:var(--cyan-deep); background:var(--bg);}
+.t-mas[aria-expanded="true"]{border-style:solid; border-color:var(--navy2);
+  background:var(--bg);}
 /* Un archivo caducado o rechazado se ve desde el otro lado de la mesa: es
    lo unico de esta lista sobre lo que hay algo que hacer. La franja va a
    la izquierda y no de fondo, que un renglon entero en color se lee como
@@ -682,9 +697,10 @@ body[data-vista="documentos"] #dcVolver{display:inline-flex;}
 /* El formulario de subir uno nuevo. Empuja la lista en vez de flotar
    sobre ella: mientras eliges el tipo conviene seguir viendo lo que ya
    tienes, que es lo que evita subir dos veces el mismo papel. */
-.dc-nuevo{display:none; border:1px solid var(--line); border-radius:12px;
-  background:var(--bg); padding:14px 16px; margin-bottom:16px;
-  display:none; flex-direction:column; gap:11px; max-width:520px;}
+/* Ya vive dentro del pie de la tabla, asi que no lleva caja propia: dos
+   marcos, uno dentro del otro, con el mismo borde y el mismo redondeo. */
+.dc-nuevo{display:none; flex-direction:column; gap:11px; max-width:520px;
+  margin-top:11px;}
 .dc-nuevo.open{display:flex;}
 .dc-nuevo select{width:100%; font:inherit; font-size:12.5px; color:var(--ink);
   background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:9px 10px;}
@@ -2788,49 +2804,57 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <div class="sec-h">
         <div class="t" data-i18n="nav.documents">Documents</div>
         <div class="sub" id="dcSub"></div>
-        <div class="spacer"></div>
-        <!-- Hasta ahora un documento solo entraba DENTRO de un trámite: si
-             ya tenías el pasaporte apostillado, para guardarlo había que
-             empezar una solicitud que a lo mejor no ibas a mandar. -->
-        <button class="btn navy" id="dcSubir" type="button" hidden></button>
       </div>
 
-      <!-- El formulario de subir. Nace cerrado y empuja la lista hacia
-           abajo en vez de flotar sobre ella: así no tapa lo que ya tienes
-           mientras eliges, que es justo lo que hay que mirar para no
-           subir dos veces el mismo. -->
-      <div class="dc-nuevo" id="dcNuevo" hidden>
-        <div class="pf-campo">
-          <label for="dcTipo" id="dcLtipo"></label>
-          <select id="dcTipo"></select>
-        </div>
-        <div class="dc-fila">
-          <input type="file" id="dcArchivo" accept="image/*,application/pdf" hidden>
-          <button class="btn ghost" id="dcElige" type="button"></button>
-          <span class="dc-arch" id="dcNombre"></span>
-        </div>
-        <div class="pf-aviso" id="dcAviso"></div>
-        <div class="dc-fila dc-pie2">
-          <button class="btn ghost" id="dcCancela" type="button"></button>
-          <button class="btn navy"  id="dcGuarda"  type="button"></button>
-        </div>
-      </div>
-
-      <!-- El "guardado" vive FUERA del formulario: se dice cuando el
-           formulario ya se cerro y la ficha nueva esta delante. Dentro se
-           habria ido con el al cerrarse. -->
+      <!-- El "guardado" va antes de la tabla, no dentro: el formulario que
+           lo provoca se cierra al terminar, y un aviso dentro de la tabla
+           se iria con la fila que lo llevaba. -->
       <div class="pf-aviso" id="dcAvisoFuera"></div>
 
       <!-- El registro de archivos. Era una pila de fichas, y una pila no
            se compara: para saber cual vence antes habia que leerlas una a
-           una. En columnas se lee de arriba abajo. -->
+           una. En columnas se lee de arriba abajo.
+
+           Y el boton de subir va DENTRO, en el pie de la tabla: es una
+           linea mas del registro, no una accion de la pantalla. Fuera, en
+           la cabecera, competia con el titulo y quedaba lejos de la lista
+           a la que se anade. -->
       <div class="tabla-caja" id="dcCaja">
         <table class="tabla" id="dcTabla">
           <thead><tr id="dcCab"></tr></thead>
           <tbody id="dcLista"></tbody>
+          <tfoot>
+            <tr class="t-pie">
+              <td id="dcPie">
+                <!-- Hasta ahora un documento solo entraba DENTRO de un
+                     tramite: si ya tenias el pasaporte apostillado, para
+                     guardarlo habia que empezar una solicitud que a lo
+                     mejor no ibas a mandar. -->
+                <button class="t-mas" id="dcSubir" type="button" hidden></button>
+
+                <!-- El formulario, aqui mismo y no arriba: se abre donde
+                     esta el boton que lo abre. Nace cerrado. -->
+                <div class="dc-nuevo" id="dcNuevo" hidden>
+                  <div class="pf-campo">
+                    <label for="dcTipo" id="dcLtipo"></label>
+                    <select id="dcTipo"></select>
+                  </div>
+                  <div class="dc-fila">
+                    <input type="file" id="dcArchivo" accept="image/*,application/pdf" hidden>
+                    <button class="btn ghost" id="dcElige" type="button"></button>
+                    <span class="dc-arch" id="dcNombre"></span>
+                  </div>
+                  <div class="pf-aviso" id="dcAviso"></div>
+                  <div class="dc-fila dc-pie2">
+                    <button class="btn ghost" id="dcCancela" type="button"></button>
+                    <button class="btn navy"  id="dcGuarda"  type="button"></button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tfoot>
         </table>
       </div>
-      <div class="ci-vacia" id="dcVacia" hidden></div>
     </div>
 
     <!-- Los trámites por atender, en tabla. La ventana de arriba sigue
@@ -9984,18 +10008,27 @@ applyLang(idiomaParaMi());
       dcNavN.hidden = (papeles.length === 0);
     }
 
-    var caja  = document.getElementById('dcCaja');
-    var vacia = document.getElementById('dcVacia');
+    /* La tabla se queda SIEMPRE, tambien vacia, porque el boton de subir
+       vive en su pie: esconderla se llevaba por delante la unica manera de
+       poner el primero. El "todavia no has subido nada" pasa a ser una
+       fila a todo lo ancho. */
+    var caja = document.getElementById('dcCaja');
+    if (caja) caja.hidden = !laBovedaEsMia();
+    var pie = document.getElementById('dcPie');
+    if (pie) pie.colSpan = DC_COLUMNAS.length;
     dcLista.textContent = '';
     if (!papeles.length){
-      if (caja) caja.hidden = true;
-      if (vacia){ vacia.hidden = false; vacia.textContent = u.dc_vacia || ''; }
       var cab0 = document.getElementById('dcCab');
       if (cab0) cab0.textContent = '';
+      var fv = document.createElement('tr');
+      var tdv = document.createElement('td');
+      tdv.colSpan = DC_COLUMNAS.length;
+      tdv.appendChild(el('div', 'ci-vacia', u.dc_vacia || ''));
+      fv.appendChild(tdv);
+      fv.style.cursor = 'default';
+      dcLista.appendChild(fv);
       return;
     }
-    if (caja) caja.hidden = false;
-    if (vacia){ vacia.hidden = true; vacia.textContent = ''; }
 
     var cab = document.getElementById('dcCab');
     if (cab){
