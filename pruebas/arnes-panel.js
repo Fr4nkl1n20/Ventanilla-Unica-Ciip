@@ -3420,13 +3420,19 @@
   function fichaMira(){
     if (CASO !== 'vacio') return;
     var caja = document.getElementById('trReal');
-    var datos = caja.querySelectorAll('.ft-dato');
+    /* Dos bloques con trabajos distintos: los dos TIEMPOS juntos y
+       grandes -su gracia es leerlos uno al lado del otro- y lo demas en
+       renglones de rotulo y valor, que es la forma de una frase. Cinco
+       cuadros iguales para dos numeros y tres frases se veia mal. */
+    var tiempos = caja.querySelectorAll('.ft-tiempo .ft-t');
     ok('ficha: al abrir un tramite se cuenta antes de pedir nada',
-       datos.length > 0, datos.length + ' cuadros', 'con cuadros de datos');
-    if (!datos.length) return;
+       tiempos.length > 0, tiempos.length + ' tiempos', 'con los tiempos');
+    if (!tiempos.length) return;
     var texto = caja.textContent;
 
-    igual('ficha: los cinco datos que se saben', datos.length, 5);
+    igual('ficha: los dos tiempos, juntos', tiempos.length, 2);
+    igual('ficha: y los otros tres datos en renglones',
+          caja.querySelectorAll('.ft-filas dt').length, 3);
     ok('ficha: dice el plazo legal', /Plazo legal/.test(texto) && /10 días/.test(texto),
        'busca "Plazo legal" y "10 dias"', 'aparecen');
     /* Y lo que tarda DE VERDAD, que es el numero que importa. */
@@ -3462,7 +3468,7 @@
        caja.querySelectorAll('.sol-campo').length > 0,
        caja.querySelectorAll('.sol-campo').length + ' casillas', 'con casillas');
     igual('ficha: y la ficha deja el sitio',
-          caja.querySelectorAll('.ft-dato').length, 0);
+          caja.querySelectorAll('.ft-tiempo').length, 0);
   }
 
   function ayudaAbre(){

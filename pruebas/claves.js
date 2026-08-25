@@ -235,6 +235,10 @@ const SALTOS = new Set([
   /* Y estos dos, que se pegan detras del nombre de un recaudo: «Pasaporte
      · lo emite el consulado · ya esta en tu boveda». */
   'ft_tuyo', 'ft_emite',
+  /* Y la coletilla que va debajo del numero en ambar: «95 dias / en la
+     practica / por encima del plazo legal». Es el final de esa frase, no un
+     rotulo suyo. */
+  'ft_tarde',
   /* Y este, que se pega detras del nombre del tipo en el desplegable de
      subir: «Pasaporte · ya lo tienes». */
   'dc_yatienes'

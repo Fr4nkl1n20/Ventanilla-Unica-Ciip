@@ -578,34 +578,67 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
    móvil no cabe, y lo que NO puede pasar es que empuje la página entera
    de lado. */
 /* ── LA FICHA DEL TRÁMITE ──
-   Lo que hay que saber ANTES de rellenar nada. Los datos van en cuadros y
-   no en un párrafo: "plazo legal 15 días, en la práctica 40" se compara de
-   un vistazo y en prosa hay que leerlo dos veces.
+   Cinco cuadros iguales en fila es lo que había, y se veía mal: un cuadro
+   sirve para un número corto, y de los cinco datos tres son frases. Salían
+   cinco cajas de anchos distintos con el texto partido a mitad de palabra,
+   y los dos números —lo único que se compara de un vistazo— perdidos entre
+   ellas.
 
-   Y el que más importa —lo que tarda de verdad— va en ámbar cuando pasa
-   del doble del plazo legal. Un número al lado de otro no dice si está
-   bien o mal; el color sí. */
-.ft-datos{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
-  gap:11px; margin:14px 0 4px;}
-.ft-dato{background:var(--block); border:1px solid var(--line-soft);
-  border-radius:10px; padding:10px 12px;}
-.ft-dato .k{font-size:9.5px; font-weight:700; letter-spacing:.05em;
-  text-transform:uppercase; color:var(--gray-soft);}
-.ft-dato .v{font-size:13.5px; font-weight:700; color:var(--ink); margin-top:3px;
-  line-height:1.35;}
-.ft-dato.tarde .v{color:var(--amber);}
-.ft-dato .n{font-size:11px; font-weight:600; color:var(--gray); margin-top:2px;}
-/* La lista de recaudos de la ficha: para LEERLA, no para subir nada. Los
-   archivos se suben en el formulario, que es el paso siguiente. */
-.ft-rec{margin:6px 0 0; padding:0; list-style:none;}
-.ft-rec li{padding:9px 0; border-bottom:1px solid var(--line-soft);}
-.ft-rec li:last-child{border-bottom:0;}
-.ft-rec .n{font-size:12.5px; color:var(--ink);}
-.ft-rec .d{font-size:11px; color:var(--gray); margin-top:2px;}
-.ft-rec .m{font-size:11.5px; color:var(--gray); margin-top:5px; padding-left:9px;
-  border-left:2px solid var(--line); line-height:1.5;}
-.ft-rec .ya{color:var(--good); font-weight:700;}
-.ft-pie{margin-top:16px;}
+   Ahora dos bloques con trabajos distintos: los DOS TIEMPOS grandes y
+   juntos, porque su gracia es leerlos uno al lado del otro; y lo demás en
+   renglones de rótulo y valor, que es la forma de una frase.
+
+   Lo que tarda de verdad va en ámbar cuando pasa del doble de lo legal, y
+   DICE por qué: un número en color sin explicación se lee como un error de
+   la pantalla. */
+/* Alineados por ARRIBA y no por abajo: la coletilla del ambar le anade una
+   linea a uno de los dos, y alineando abajo los dos numeros quedaban a
+   alturas distintas -que es justo lo que impide compararlos-. */
+.ft-tiempo{display:flex; align-items:flex-start; gap:30px; flex-wrap:wrap;
+  background:var(--block); border:1px solid var(--line-soft); border-radius:12px;
+  padding:14px 18px; margin:15px 0 4px;}
+.ft-t{min-width:96px;}
+.ft-t .n{font-size:23px; font-weight:800; letter-spacing:-.02em; line-height:1.1;
+  color:var(--ink);}
+.ft-t .k{font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--gray-soft); margin-top:4px;}
+.ft-t.tarde .n{color:var(--amber);}
+.ft-t.tarde .k{color:var(--amber);}
+/* La coletilla del ambar, pegada al numero que explica y no al final del
+   bloque, que ahi nadie la relaciona. */
+.ft-aviso{font-size:11.5px; font-weight:600; color:var(--amber); margin-top:3px;}
+
+/* Rotulo a la izquierda y valor a la derecha: una frase se lee entera, no
+   partida en una columna de dos palabras. */
+.ft-filas{display:grid; grid-template-columns:max-content 1fr; gap:9px 18px;
+  margin:16px 0 4px; align-items:baseline;}
+.ft-filas dt{font-size:10px; font-weight:700; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--gray-soft); white-space:nowrap;
+  padding-top:2px;}
+.ft-filas dd{margin:0; font-size:13px; color:var(--ink); line-height:1.45;}
+.ft-filas dd .c{display:block; font-size:12px; color:var(--gray); margin-top:1px;}
+/* Aire antes del titulo de los recaudos: pegado al ultimo renglon parecia
+   otro valor mas de la lista de arriba. */
+.ft-filas + .sol-h{margin-top:20px;}
+@media (max-width:520px){
+  .ft-filas{grid-template-columns:1fr; gap:2px 0;}
+  .ft-filas dd{margin-bottom:9px;}
+}
+
+/* Los recaudos, para LEERLOS: subirlos es el paso siguiente. En dos
+   columnas cuando caben —una lista de doce en una sola columna obliga a
+   rodar la pantalla para saber si son muchos— y con punto delante, que sin
+   nada a la izquierda no se ve dónde acaba uno y empieza otro. */
+.ft-rec{margin:8px 0 0; padding:0; list-style:none;
+  columns:2; column-gap:26px;}
+.ft-rec li{break-inside:avoid; padding:5px 0 5px 14px; position:relative;
+  font-size:12.5px; color:var(--ink); line-height:1.45;}
+.ft-rec li:before{content:''; position:absolute; left:2px; top:11px;
+  width:4px; height:4px; border-radius:50%; background:var(--gray-soft);}
+.ft-rec .o{color:var(--gray-soft);}
+@media (max-width:640px){ .ft-rec{columns:1;} }
+.ft-nota{font-size:11.5px; color:var(--gray); margin-top:10px;}
+.ft-pie{margin-top:18px;}
 
 /* ── LAS TABLAS DEL PANEL ──
    Dos vistas las usan: la cola del equipo y el registro de archivos de la
@@ -5475,35 +5508,58 @@ applyLang(idiomaParaMi());
        llegara sin esa columna. */
     var ref = tipo.ref_panel || tipoRefDe(tipo.codigo);
     var f = FICHA[ref] || null;
+    var dic = I18N[curLang] || I18N.en;
 
     if (f){
-      var caj = el('div', 'ft-datos');
-      function dato(clave, valor, nota, tarde){
-        var d = el('div', 'ft-dato' + (tarde ? ' tarde' : ''));
-        d.appendChild(el('div', 'k', u[clave] || ''));
-        d.appendChild(el('div', 'v', valor));
-        if (nota) d.appendChild(el('div', 'n', nota));
-        caj.appendChild(d);
-      }
       function dias(n){ return String(u.ft_dias || '{n}').replace('{n}', n); }
 
-      dato('ft_plazo', dias(f.plazo));
-      /* En ámbar cuando lo real pasa del doble de lo legal. Un número al
-         lado de otro no dice si está bien o mal. */
-      dato('ft_real', dias(f.real), null, f.real > f.plazo * 2);
-      dato('ft_aplica', u[FT_APLICA[f.aplica]] || '',
-           f.cond ? (u[f.cond] || '') : null);
-      dato('ft_modo', u[FT_MODO[f.modo]] || '');
-      /* De qué depende, con el NOMBRE del trámite y no su código: "c6" no
-         le dice nada a nadie. */
-      var dic = I18N[curLang] || I18N.en;
-      dato('ft_depende',
+      /* ── los dos tiempos, juntos y grandes ──
+         Su gracia es leerlos uno al lado del otro: "la ley dice 30 y en la
+         practica son 95" es la frase entera, y en dos cuadros separados
+         del resto no se lee como una frase. */
+      var tarde = f.real > f.plazo * 2;
+      var caj = el('div', 'ft-tiempo');
+      function tiempo(n, clave, esTarde){
+        var d = el('div', 'ft-t' + (esTarde ? ' tarde' : ''));
+        d.appendChild(el('div', 'n', dias(n)));
+        d.appendChild(el('div', 'k', u[clave] || ''));
+        /* La coletilla del ambar va pegada al numero que explica: al final
+           del bloque nadie la relaciona con nada. */
+        if (esTarde) d.appendChild(el('div', 'ft-aviso', u.ft_tarde || ''));
+        caj.appendChild(d);
+      }
+      tiempo(f.plazo, 'ft_plazo', false);
+      tiempo(f.real,  'ft_real',  tarde);
+      caja.appendChild(caj);
+
+      /* ── y lo demas en renglones: son frases, no numeros ── */
+      var filas = document.createElement('dl');
+      filas.className = 'ft-filas';
+      function fila(clave, valor, extra){
+        if (!valor) return;
+        var dt = document.createElement('dt');
+        dt.textContent = u[clave] || '';
+        var dd = document.createElement('dd');
+        dd.appendChild(document.createTextNode(valor));
+        /* La condicion, debajo y en gris: "Solo en un caso" sin decir cual
+           no informa de nada, y en la misma linea se lee como una sola
+           frase que no lo es. */
+        if (extra) dd.appendChild(el('span', 'c', extra));
+        filas.appendChild(dt); filas.appendChild(dd);
+      }
+      fila('ft_aplica', u[FT_APLICA[f.aplica]] || '', f.cond ? (u[f.cond] || '') : null);
+      fila('ft_modo',   u[FT_MODO[f.modo]] || '');
+      /* De que depende, con el NOMBRE del otro tramite y no su codigo: "c6"
+         no le dice nada a nadie. */
+      fila('ft_depende',
            f.depende ? (dic[f.depende + '.name'] || I18N.en[f.depende + '.name'] || f.depende)
                      : (u.ft_nada || ''));
-      caja.appendChild(caj);
+      caja.appendChild(filas);
     }
 
-    /* Los recaudos, para LEERLOS. Subirlos es el paso siguiente. */
+    /* Los recaudos, para LEERLOS. Subirlos es el paso siguiente, y se dice:
+       una lista de doce papeles sin avisar de que no hay que traerlos ahora
+       manda a cualquiera a buscarlos antes de tiempo. */
     var recs = RECAUDOS[tipo.codigo] || [];
     if (recs.length){
       caja.appendChild(el('div', 'sol-h', (u.ft_recaudos || '') + ' (' + recs.length + ')'));
@@ -5511,8 +5567,8 @@ applyLang(idiomaParaMi());
       lista.className = 'ft-rec';
       recs.forEach(function(r){
         var li = document.createElement('li');
-        li.appendChild(el('div', 'n',
-          (u[r.clave] || r.tipo) + (r.opcional ? ' ' + (u.opcional || '') : '')));
+        li.appendChild(document.createTextNode(u[r.clave] || r.tipo));
+        if (r.opcional) li.appendChild(el('span', 'o', ' ' + (u.opcional || '')));
         lista.appendChild(li);
       });
       caja.appendChild(lista);
