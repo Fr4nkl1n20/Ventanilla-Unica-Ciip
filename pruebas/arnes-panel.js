@@ -3269,6 +3269,27 @@
     if (!bt) return;
     igual('subir: y lo dice con todas las letras', bt.textContent.trim(), 'Subir un documento');
 
+    /* Vive en la ULTIMA celda de la cabecera, que es la de las acciones:
+       en linea con el "Cambiar" y el "Abrir" de cada renglon, que es lo
+       mismo que hace. */
+    ok('subir: y va en la celda de las acciones de la cabecera',
+       !!document.querySelector('#dcCab th:last-child #dcSubir'),
+       document.querySelector('#dcCab th:last-child #dcSubir') ? 'ahi esta' : 'no esta ahi',
+       'en la ultima celda');
+
+    /* Y sigue ahi despues de repintar. pintaDocs vacia la cabecera en cada
+       repintado, asi que el boton se queda FUERA del documento entre uno y
+       otro: hay que mover el mismo nodo de vuelta, no buscarlo por id ni
+       crear otro. Cuando la boveda se quedaba vacia se limpiaba la
+       cabecera y no se volvia a construir: el boton desaparecia del todo,
+       justo cuando mas falta hace -no tienes ninguno-. */
+    if (window.CIIP_REPINTA_DOCS) window.CIIP_REPINTA_DOCS();
+    var trasPintar = document.querySelector('#dcCab #dcSubir');
+    ok('subir: y sigue ahi tras repintar la tabla', !!trasPintar,
+       trasPintar ? 'sigue' : 'se quedo fuera del documento', 'sigue');
+    ok('subir: con su escuchador intacto, que es el mismo nodo',
+       trasPintar === bt, trasPintar === bt ? 'el mismo' : 'otro nodo', 'el mismo');
+
     /* Nace cerrado: si naciera abierto taparia la lista de lo que ya
        tienes, que es lo que hay que mirar para no subir dos veces. */
     var caja = document.getElementById('dcNuevo');

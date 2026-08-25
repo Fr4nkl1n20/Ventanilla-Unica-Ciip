@@ -609,13 +609,14 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
   padding:6px 11px; cursor:pointer; white-space:nowrap;}
 .t-btn:hover{border-color:var(--cyan-deep); background:var(--block);}
 .t-botones{display:flex; gap:7px; justify-content:flex-end;}
-/* La primera fila de la tabla, la de anadir. No se pulsa entera ni se
-   ilumina al pasar: no es un renglon del registro, es donde se anade uno.
-   Y va en la cabecera para que no se desplace con el cuerpo. */
-.tabla tr.t-tope td{border-bottom:1px solid var(--line); background:var(--card-2);
-  padding:9px 12px; text-align:left;}
-.tabla tr.t-tope{cursor:default;}
-.tabla tr.t-tope:hover{background:transparent;}
+/* La ultima celda de la cabecera es la de las acciones: el boton de subir
+   va ahi, a la derecha, en linea con el "Cambiar" y el "Abrir" de cada
+   renglon. La cabecera no se pulsa ni se ilumina. */
+.tabla thead th:last-child{text-align:right; padding-top:7px; padding-bottom:7px;}
+.tabla tr.t-form td{border-bottom:1px solid var(--line); background:var(--card-2);
+  padding:0 12px 12px;}
+.tabla tr.t-form{cursor:default;}
+.tabla tr.t-form:hover{background:transparent;}
 /* El boton de anadir, con la pinta de "una linea mas" y no de accion
    principal: el azul de la cabecera competia con el titulo de la pantalla
    y quedaba lejos de la lista a la que se anade. */
@@ -701,7 +702,7 @@ body[data-vista="documentos"] #dcVolver{display:inline-flex;}
 /* Ya vive dentro del pie de la tabla, asi que no lleva caja propia: dos
    marcos, uno dentro del otro, con el mismo borde y el mismo redondeo. */
 .dc-nuevo{display:none; flex-direction:column; gap:11px; max-width:520px;
-  margin-top:11px;}
+  padding-top:12px;}
 .dc-nuevo.open{display:flex;}
 .dc-nuevo select{width:100%; font:inherit; font-size:12.5px; color:var(--ink);
   background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:9px 10px;}
@@ -2820,23 +2821,29 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
            linea mas del registro, no una accion de la pantalla. Fuera, en
            la cabecera, competia con el titulo y quedaba lejos de la lista
            a la que se anade. -->
+      <!-- El boton nace aqui, fuera de la tabla, y pintaDocs lo MUEVE a la
+           ultima celda de la cabecera. Se mueve el nodo y no se crea uno
+           nuevo en cada repintado: asi conserva su unico escuchador y no
+           hay que volver a engancharlo. -->
+      <button class="t-mas" id="dcSubir" type="button" hidden></button>
+
       <div class="tabla-caja" id="dcCaja">
         <table class="tabla" id="dcTabla">
           <thead>
-            <!-- Arriba, antes de los nombres de las columnas: lo primero
-                 que se busca al entrar aqui con un papel en la mano es
-                 donde ponerlo. Al pie quedaba al final de una lista que
-                 puede tener quince renglones. -->
-            <tr class="t-tope">
+            <!-- La cabecera de las columnas. El boton de subir se mete por
+                 JS en la ULTIMA celda, que es la de las acciones y estaba
+                 vacia: asi queda en linea con el "Cambiar" y el "Abrir" de
+                 cada renglon, que es lo mismo que hace. -->
+            <tr id="dcCab"></tr>
+            <!-- Y el formulario, en su propia fila justo debajo. Va en el
+                 <thead> y no en el cuerpo porque pintaDocs vacia el cuerpo
+                 en cada repintado y se lo llevaria por delante. -->
+            <tr class="t-form" id="dcFormFila" hidden>
               <td id="dcPie">
                 <!-- Hasta ahora un documento solo entraba DENTRO de un
                      tramite: si ya tenias el pasaporte apostillado, para
                      guardarlo habia que empezar una solicitud que a lo
                      mejor no ibas a mandar. -->
-                <button class="t-mas" id="dcSubir" type="button" hidden></button>
-
-                <!-- El formulario, aqui mismo y no en otro sitio: se abre
-                     donde esta el boton que lo abre. Nace cerrado. -->
                 <div class="dc-nuevo" id="dcNuevo" hidden>
                   <div class="pf-campo">
                     <label for="dcTipo" id="dcLtipo"></label>
@@ -2855,7 +2862,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
                 </div>
               </td>
             </tr>
-            <tr id="dcCab"></tr>
           </thead>
           <tbody id="dcLista"></tbody>
         </table>
@@ -10004,8 +10010,7 @@ applyLang(idiomaParaMi());
     if (dcNav) dcNav.hidden = !laBovedaEsMia();
     /* Y el botón de subir tampoco: al equipo del CIIP esta bóveda no es
        suya, y sube() firma lo que sube con quien está dentro. */
-    var btSubir = document.getElementById('dcSubir');
-    if (btSubir) btSubir.hidden = !laBovedaEsMia();
+    if (dcBtSubir) dcBtSubir.hidden = !laBovedaEsMia();
     pintaFormNuevo();
 
     if (dcNavN){
@@ -10021,20 +10026,10 @@ applyLang(idiomaParaMi());
     if (caja) caja.hidden = !laBovedaEsMia();
     var pie = document.getElementById('dcPie');
     if (pie) pie.colSpan = DC_COLUMNAS.length;
-    dcLista.textContent = '';
-    if (!papeles.length){
-      var cab0 = document.getElementById('dcCab');
-      if (cab0) cab0.textContent = '';
-      var fv = document.createElement('tr');
-      var tdv = document.createElement('td');
-      tdv.colSpan = DC_COLUMNAS.length;
-      tdv.appendChild(el('div', 'ci-vacia', u.dc_vacia || ''));
-      fv.appendChild(tdv);
-      fv.style.cursor = 'default';
-      dcLista.appendChild(fv);
-      return;
-    }
-
+    /* La fila del formulario solo ocupa sitio cuando esta abierto: una fila
+       vacia entre la cabecera y el primer renglon se lee como un hueco. */
+    var filaForm = document.getElementById('dcFormFila');
+    if (filaForm) filaForm.hidden = !dcAbierto;
     var cab = document.getElementById('dcCab');
     if (cab){
       cab.textContent = '';
@@ -10044,10 +10039,32 @@ applyLang(idiomaParaMi());
         /* La última no lleva rótulo a la vista: quince botones que dicen
            «Abrir» bajo un título que dice «Abrir» es ruido. Se queda para
            quien lo oye. */
-        if (k === 'co_c_abrir') th.appendChild(el('span', 'visualmente-oculto', u[k] || ''));
+        if (k === 'co_c_abrir'){
+          /* Sin rotulo a la vista: tres botones que dicen "Abrir" bajo un
+             titulo que dice "Abrir" es ruido. Se queda para quien lo oye,
+             y debajo entra el boton de subir. */
+          th.appendChild(el('span', 'visualmente-oculto', u[k] || ''));
+          if (dcBtSubir) th.appendChild(dcBtSubir);
+        }
         else th.textContent = u[k] || '';
         cab.appendChild(th);
       });
+    }
+
+    /* Y AHORA se mira si hay papeles. La cabecera se construye siempre,
+       antes: al vaciarla se iba con ella el boton de subir -que vive en su
+       ultima celda- y quedaba fuera del documento, sin manera de volver.
+       Justo en el caso en que mas falta hace: cuando no tienes ninguno. */
+    dcLista.textContent = '';
+    if (!papeles.length){
+      var fv = document.createElement('tr');
+      var tdv = document.createElement('td');
+      tdv.colSpan = DC_COLUMNAS.length;
+      tdv.appendChild(el('div', 'ci-vacia', u.dc_vacia || ''));
+      fv.appendChild(tdv);
+      fv.style.cursor = 'default';
+      dcLista.appendChild(fv);
+      return;
     }
 
     /* De cada tipo hay UNO que cuenta: el último subido, que es el que los
@@ -10222,6 +10239,11 @@ applyLang(idiomaParaMi());
      Y dice cuáles ya tienes. Sin eso, la lista de cincuenta invita a
      subir por segunda vez el que está tres centímetros más abajo. ─── */
   var dcAbierto = false;
+  /* Se guarda el NODO, no se busca por id cada vez. pintaDocs vacia la
+     cabecera en cada repintado, asi que entre uno y otro el boton esta
+     fuera del documento y getElementById no lo encuentra. Moviendo el
+     mismo nodo se conserva su unico escuchador. */
+  var dcBtSubir = document.getElementById('dcSubir');
 
   function llenaTiposDoc(){
     var sel = document.getElementById('dcTipo');
@@ -10254,7 +10276,7 @@ applyLang(idiomaParaMi());
   function pintaFormNuevo(){
     var u = T();
     function pon(id, txt){ var e = document.getElementById(id); if (e) e.textContent = txt || ''; }
-    pon('dcSubir',   u.dc_subir);
+    if (dcBtSubir) dcBtSubir.textContent = u.dc_subir || '';
     pon('dcLtipo',   u.dc_quetipo);
     pon('dcElige',   u.sin_archivo);
     pon('dcCancela', u.pf_cancelar);
@@ -10269,6 +10291,8 @@ applyLang(idiomaParaMi());
        tramite, y volver a usar el nombre invita a repetir el error. */
     var cajaNuevo = document.getElementById('dcNuevo');
     if (cajaNuevo){ cajaNuevo.classList.remove('open'); cajaNuevo.hidden = true; }
+    var filaForm = document.getElementById('dcFormFila');
+    if (filaForm) filaForm.hidden = true;
     var arch = document.getElementById('dcArchivo');
     if (arch) arch.value = '';
     var nom = document.getElementById('dcNombre');
@@ -10280,8 +10304,7 @@ applyLang(idiomaParaMi());
     document.querySelectorAll('#dcNuevo .pf-campo').forEach(function(c){
       c.classList.remove('mal');
     });
-    var bt = document.getElementById('dcSubir');
-    if (bt) bt.setAttribute('aria-expanded', 'false');
+    if (dcBtSubir) dcBtSubir.setAttribute('aria-expanded', 'false');
   }
 
   function guardaDocNuevo(){
@@ -10394,6 +10417,10 @@ applyLang(idiomaParaMi());
            que no ha empezado. */
         var af = document.getElementById('dcAvisoFuera');
         if (af){ af.textContent = ''; af.className = 'pf-aviso'; }
+        /* La fila que lo contiene tambien: una <tr hidden> no ensena lo
+           que lleva dentro por muy visible que sea el div. */
+        var ff = document.getElementById('dcFormFila');
+        if (ff) ff.hidden = false;
         cajaNuevo.hidden = false;
         cajaNuevo.classList.add('open');
         btS.setAttribute('aria-expanded', 'true');
