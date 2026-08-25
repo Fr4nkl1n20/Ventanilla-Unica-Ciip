@@ -3399,9 +3399,11 @@
   function empiezaSolicitud(){
     var caja = document.getElementById('trReal');
     if (!caja) return;
-    var bt = [].filter.call(caja.querySelectorAll('.ft-pie .btn'), function(b){
-      return b.textContent.trim() === 'Empezar la solicitud';
-    })[0];
+    /* Por su enganche y no por el texto ni por la caja que lo envuelve:
+       al pasar la ficha de una columna a dos, buscarlo por '.ft-pie' dejo
+       de encontrarlo y treinta pruebas de formularios se cayeron sin que
+       hubiera nada roto. */
+    var bt = caja.querySelector('.ft-ir');
     if (bt) bt.click();
   }
 
@@ -3424,7 +3426,7 @@
        grandes -su gracia es leerlos uno al lado del otro- y lo demas en
        renglones de rotulo y valor, que es la forma de una frase. Cinco
        cuadros iguales para dos numeros y tres frases se veia mal. */
-    var tiempos = caja.querySelectorAll('.ft-tiempo .ft-t');
+    var tiempos = caja.querySelectorAll('.ft-lado .ft-t');
     ok('ficha: al abrir un tramite se cuenta antes de pedir nada',
        tiempos.length > 0, tiempos.length + ' tiempos', 'con los tiempos');
     if (!tiempos.length) return;
@@ -3450,6 +3452,19 @@
     ok('ficha: y como se presenta',
        /ventanilla, sin salir/.test(texto), 'busca como se presenta', 'aparece');
 
+    /* La CUENTA de los que ya tienes: es lo que decide si puedes empezar
+       hoy o te toca ir a buscar un papel, y ya lo sabemos -esta en tu
+       boveda-. Una lista plana de nombres obliga a recordarlo a ti. */
+    ok('ficha: dice cuantos recaudos ya tienes',
+       /Ya tienes \d+ de \d+/.test(caja.textContent),
+       (caja.querySelector('.ft-rh .c') || {}).textContent || 'no lo dice',
+       'la cuenta');
+    var marcados = caja.querySelectorAll('.ft-rec li.ya').length;
+    var faltan   = caja.querySelectorAll('.ft-rec li.no').length;
+    ok('ficha: y marca uno por uno cual tienes y cual no',
+       marcados + faltan === caja.querySelectorAll('.ft-rec li').length && faltan > 0,
+       marcados + ' con visto y ' + faltan + ' sin el', 'todos marcados');
+
     /* Los recaudos se LEEN aqui; subirlos es el paso siguiente. Y no hay
        ni un campo de archivo todavia. */
     var recs = caja.querySelectorAll('.ft-rec li');
@@ -3468,7 +3483,7 @@
        caja.querySelectorAll('.sol-campo').length > 0,
        caja.querySelectorAll('.sol-campo').length + ' casillas', 'con casillas');
     igual('ficha: y la ficha deja el sitio',
-          caja.querySelectorAll('.ft-tiempo').length, 0);
+          caja.querySelectorAll('.ft-cuerpo').length, 0);
   }
 
   function ayudaAbre(){

@@ -239,6 +239,10 @@ const SALTOS = new Set([
      practica / por encima del plazo legal». Es el final de esa frase, no un
      rotulo suyo. */
   'ft_tarde',
+  /* Y la pareja del visto: van en el 'title' del signo de cada recaudo
+     —«ya esta en tu boveda» / «todavia no lo tienes»—, que es una frase
+     dicha del papel, no el rotulo de una columna. */
+  'ft_falta',
   /* Y este, que se pega detras del nombre del tipo en el desplegable de
      subir: «Pasaporte · ya lo tienes». */
   'dc_yatienes'

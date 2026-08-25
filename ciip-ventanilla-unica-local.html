@@ -277,6 +277,14 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
 }
 
 *{box-sizing:border-box; margin:0; padding:0;}
+/* [hidden] gana SIEMPRE. Es la tercera vez hoy que esto muerde: el
+   atributo del navegador es display:none, pero cualquier display de la
+   hoja de estilos le gana, asi que esconder algo con .hidden = true no
+   escondia nada en cuanto el elemento tenia su propio display. Paso con
+   .pf-campo, con .sb-item -el renglon de Documentos le seguia saliendo al
+   equipo del CIIP- y con .tr-plazo. En vez de una regla por clase cada vez
+   que aparece, una para todas. */
+[hidden]{display:none !important;}
 html{scroll-behavior:smooth;}
 body{font-family:'Helvetica Neue',Arial,sans-serif; color:var(--ink); background:var(--block);
   font-size:13px; line-height:1.45; -webkit-font-smoothing:antialiased;}
@@ -578,67 +586,72 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
    móvil no cabe, y lo que NO puede pasar es que empuje la página entera
    de lado. */
 /* ── LA FICHA DEL TRÁMITE ──
-   Cinco cuadros iguales en fila es lo que había, y se veía mal: un cuadro
-   sirve para un número corto, y de los cinco datos tres son frases. Salían
-   cinco cajas de anchos distintos con el texto partido a mitad de palabra,
-   y los dos números —lo único que se compara de un vistazo— perdidos entre
-   ellas.
+   Dos columnas: a la izquierda lo que se LEE —qué es, cuándo aplica, cómo
+   se presenta, de qué depende, qué papeles pide— y a la derecha una
+   tarjeta con los tiempos y el botón. En una sola columna todo bajaba
+   pegado al borde izquierdo con medio ancho vacío al lado, y el botón
+   quedaba al fondo, después de doce recaudos. */
+.ft-cuerpo{display:grid; grid-template-columns:minmax(0,1fr) 296px; gap:28px;
+  align-items:start; margin-top:16px;}
+@media (max-width:860px){
+  /* La tarjeta ARRIBA cuando se apila: los tiempos y el botón son lo
+     primero que se busca, y debajo de la lista de recaudos habría que
+     rodar la pantalla para encontrarlos. */
+  .ft-cuerpo{grid-template-columns:1fr;}
+  .ft-lado{order:-1;}
+}
 
-   Ahora dos bloques con trabajos distintos: los DOS TIEMPOS grandes y
-   juntos, porque su gracia es leerlos uno al lado del otro; y lo demás en
-   renglones de rótulo y valor, que es la forma de una frase.
-
-   Lo que tarda de verdad va en ámbar cuando pasa del doble de lo legal, y
-   DICE por qué: un número en color sin explicación se lee como un error de
-   la pantalla. */
-/* Alineados por ARRIBA y no por abajo: la coletilla del ambar le anade una
-   linea a uno de los dos, y alineando abajo los dos numeros quedaban a
-   alturas distintas -que es justo lo que impide compararlos-. */
-.ft-tiempo{display:flex; align-items:flex-start; gap:30px; flex-wrap:wrap;
-  background:var(--block); border:1px solid var(--line-soft); border-radius:12px;
-  padding:14px 18px; margin:15px 0 4px;}
-.ft-t{min-width:96px;}
-.ft-t .n{font-size:23px; font-weight:800; letter-spacing:-.02em; line-height:1.1;
+/* La tarjeta de la derecha. */
+.ft-lado{background:var(--block); border:1px solid var(--line-soft);
+  border-radius:12px; padding:16px;}
+.ft-t{margin-bottom:13px;}
+.ft-t .n{font-size:22px; font-weight:800; letter-spacing:-.02em; line-height:1.1;
   color:var(--ink);}
 .ft-t .k{font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
-  color:var(--gray-soft); margin-top:4px;}
-.ft-t.tarde .n{color:var(--amber);}
-.ft-t.tarde .k{color:var(--amber);}
-/* La coletilla del ambar, pegada al numero que explica y no al final del
-   bloque, que ahi nadie la relaciona. */
-.ft-aviso{font-size:11.5px; font-weight:600; color:var(--amber); margin-top:3px;}
+  color:var(--gray-soft); margin-top:3px;}
+.ft-t.tarde .n, .ft-t.tarde .k{color:var(--amber);}
+/* La barra: "30 y 95" obliga a hacer la cuenta, y la cuenta es el dato.
+   Dibujadas a la misma escala, el hueco se ve sin leer los números. */
+.ft-barra{height:6px; border-radius:3px; background:var(--line); overflow:hidden;
+  margin-top:6px;}
+.ft-barra i{display:block; height:100%; border-radius:3px; background:var(--navy2);}
+.ft-t.tarde .ft-barra i{background:var(--amber);}
+.ft-aviso{font-size:11.5px; font-weight:600; color:var(--amber); margin-top:5px;}
+.ft-lado .btn{width:100%; margin-top:4px;}
 
-/* Rotulo a la izquierda y valor a la derecha: una frase se lee entera, no
+/* Rótulo a la izquierda y valor a la derecha: una frase se lee entera, no
    partida en una columna de dos palabras. */
-.ft-filas{display:grid; grid-template-columns:max-content 1fr; gap:9px 18px;
-  margin:16px 0 4px; align-items:baseline;}
+.ft-filas{display:grid; grid-template-columns:max-content 1fr; gap:10px 18px;
+  margin:0 0 4px; align-items:baseline;}
 .ft-filas dt{font-size:10px; font-weight:700; letter-spacing:.05em;
   text-transform:uppercase; color:var(--gray-soft); white-space:nowrap;
   padding-top:2px;}
 .ft-filas dd{margin:0; font-size:13px; color:var(--ink); line-height:1.45;}
 .ft-filas dd .c{display:block; font-size:12px; color:var(--gray); margin-top:1px;}
-/* Aire antes del titulo de los recaudos: pegado al ultimo renglon parecia
-   otro valor mas de la lista de arriba. */
-.ft-filas + .sol-h{margin-top:20px;}
 @media (max-width:520px){
   .ft-filas{grid-template-columns:1fr; gap:2px 0;}
   .ft-filas dd{margin-bottom:9px;}
 }
 
-/* Los recaudos, para LEERLOS: subirlos es el paso siguiente. En dos
-   columnas cuando caben —una lista de doce en una sola columna obliga a
-   rodar la pantalla para saber si son muchos— y con punto delante, que sin
-   nada a la izquierda no se ve dónde acaba uno y empieza otro. */
-.ft-rec{margin:8px 0 0; padding:0; list-style:none;
-  columns:2; column-gap:26px;}
-.ft-rec li{break-inside:avoid; padding:5px 0 5px 14px; position:relative;
-  font-size:12.5px; color:var(--ink); line-height:1.45;}
-.ft-rec li:before{content:''; position:absolute; left:2px; top:11px;
-  width:4px; height:4px; border-radius:50%; background:var(--gray-soft);}
+/* Los recaudos, como una CUENTA y no como una lista: lo que decide si
+   puedes empezar hoy o te toca ir a buscar un papel es cuántos te faltan,
+   y eso ya lo sabemos —está en tu bóveda—. Una lista plana de nombres te
+   obliga a recordarlo tú. */
+.ft-rh{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap;
+  margin:22px 0 2px;}
+.ft-rh .t{font-size:13px; font-weight:700; color:var(--ink);}
+.ft-rh .c{font-size:11.5px; font-weight:700; color:var(--good);}
+.ft-rh .c.ninguno{color:var(--gray-soft);}
+.ft-rec{margin:6px 0 0; padding:0; list-style:none; columns:2; column-gap:26px;}
+.ft-rec li{break-inside:avoid; display:flex; gap:8px; align-items:flex-start;
+  padding:5px 0; font-size:12.5px; line-height:1.45; color:var(--ink);}
+.ft-rec .s{flex:none; width:15px; text-align:center; font-weight:800;
+  font-size:12px; line-height:1.5;}
+.ft-rec li.ya .s{color:var(--good);}
+.ft-rec li.no .s{color:var(--line);}
+.ft-rec li.no{color:var(--gray);}
 .ft-rec .o{color:var(--gray-soft);}
 @media (max-width:640px){ .ft-rec{columns:1;} }
-.ft-nota{font-size:11.5px; color:var(--gray); margin-top:10px;}
-.ft-pie{margin-top:18px;}
 
 /* ── LAS TABLAS DEL PANEL ──
    Dos vistas las usan: la cola del equipo y el registro de archivos de la
@@ -5424,7 +5437,12 @@ applyLang(idiomaParaMi());
 
     var u = T();
     var mapa = {
-      sin_iniciar:  {clase:'mute', txt:u.iniciar},
+      /* Un ESTADO y no una orden. Decia "Iniciar esta solicitud" -el
+         nombre de un boton- puesto donde va el estado, y con la ficha
+         delante quedaban dos botones para lo mismo, uno de ellos gris y
+         sin poder pulsarse. Se usa 'st.pending' del otro diccionario, que
+         ya dice "Por iniciar" en los seis idiomas. */
+      sin_iniciar:  {clase:'mute', txt:(I18N[curLang] || I18N.en)['st.pending']},
       enviado:      {clase:'info', txt:u.guardado},
       en_revision:  {clase:'info', txt:estadoTexto(1, enteActual)},
       devuelto:     {clase:'warn', txt:u.devuelta},
@@ -5501,7 +5519,33 @@ applyLang(idiomaParaMi());
      SEGUNDA declaracion se queda con el nombre. Mi llamada iba a la otra
      funcion, que no toma argumentos: no fallaba nada, simplemente no se
      dibujaba la ficha y no habia ni un error en la consola. */
+  /* Los tipos de papel que YA tienes. Una sola consulta y se recuerda: la
+     ficha la pregunta cada vez que abres un trámite, y son treinta y una
+     tarjetas. Si falla, la ficha sale sin las marcas y no pasa nada más. */
+  var MIOS = null, miosPide = null;
+  function misPapeles(){
+    if (miosPide) return miosPide;
+    var q;
+    try { q = sb.from('documentos').select('tipo'); }
+    catch(e){ MIOS = {}; return (miosPide = Promise.resolve()); }
+    miosPide = Promise.resolve(q).then(function(r){
+      var v = {};
+      (((r && r.data) || [])).forEach(function(d){ v[d.tipo] = true; });
+      MIOS = v;
+    }, function(e){
+      console.warn('[CIIP] lo que ya tienes:', e && e.message);
+      MIOS = {};
+    });
+    return miosPide;
+  }
+
   function pintaFichaTramite(tipo, borrador, alEmpezar){
+    /* Se pregunta ANTES de pintar. Pintar la lista y añadir los vistos
+       después haría aparecer marcas encima de lo que ya estabas leyendo. */
+    misPapeles().then(function(){ ficha(tipo, borrador, alEmpezar); });
+  }
+
+  function ficha(tipo, borrador, alEmpezar){
     var u = T();
     /* La llave es ref_panel -'c5'-, que es como esta indexada la ficha y
        el catalogo. tipoRefDe queda de reserva por si la fila del catalogo
@@ -5510,29 +5554,39 @@ applyLang(idiomaParaMi());
     var f = FICHA[ref] || null;
     var dic = I18N[curLang] || I18N.en;
 
+    /* El renglón del plazo que trae la tarjeta -"Se pide en el consulado"-
+       dice lo mismo que "Cómo se presenta", y peor: en una línea suelta con
+       un reloj al lado que parece un plazo y no lo es. Se aparta mientras
+       la ficha tenga sus propios datos. */
+    var plazoViejo = document.getElementById('trPlazo');
+    if (plazoViejo) plazoViejo.hidden = !!f;
+
+    var cuerpo = el('div', 'ft-cuerpo');
+    var izq = el('div', 'ft-izq');
+    var der = el('div', 'ft-lado');
+
     if (f){
       function dias(n){ return String(u.ft_dias || '{n}').replace('{n}', n); }
-
-      /* ── los dos tiempos, juntos y grandes ──
-         Su gracia es leerlos uno al lado del otro: "la ley dice 30 y en la
-         practica son 95" es la frase entera, y en dos cuadros separados
-         del resto no se lee como una frase. */
-      var tarde = f.real > f.plazo * 2;
-      var caj = el('div', 'ft-tiempo');
+      var tope = Math.max(f.plazo, f.real) || 1;
       function tiempo(n, clave, esTarde){
         var d = el('div', 'ft-t' + (esTarde ? ' tarde' : ''));
         d.appendChild(el('div', 'n', dias(n)));
         d.appendChild(el('div', 'k', u[clave] || ''));
-        /* La coletilla del ambar va pegada al numero que explica: al final
+        /* A la MISMA escala los dos, que es lo que hace que la barra
+           signifique algo: la más corta se ve corta al lado de la otra. */
+        var barra = el('div', 'ft-barra');
+        var relleno = document.createElement('i');
+        relleno.style.width = Math.round(n / tope * 100) + '%';
+        barra.appendChild(relleno);
+        d.appendChild(barra);
+        /* La coletilla del ámbar va pegada al número que explica: al final
            del bloque nadie la relaciona con nada. */
         if (esTarde) d.appendChild(el('div', 'ft-aviso', u.ft_tarde || ''));
-        caj.appendChild(d);
+        der.appendChild(d);
       }
       tiempo(f.plazo, 'ft_plazo', false);
-      tiempo(f.real,  'ft_real',  tarde);
-      caja.appendChild(caj);
+      tiempo(f.real,  'ft_real',  f.real > f.plazo * 2);
 
-      /* ── y lo demas en renglones: son frases, no numeros ── */
       var filas = document.createElement('dl');
       filas.className = 'ft-filas';
       function fila(clave, valor, extra){
@@ -5541,45 +5595,70 @@ applyLang(idiomaParaMi());
         dt.textContent = u[clave] || '';
         var dd = document.createElement('dd');
         dd.appendChild(document.createTextNode(valor));
-        /* La condicion, debajo y en gris: "Solo en un caso" sin decir cual
-           no informa de nada, y en la misma linea se lee como una sola
+        /* La condición, debajo y en gris: "Solo en un caso" sin decir cuál
+           no informa de nada, y en la misma línea se lee como una sola
            frase que no lo es. */
         if (extra) dd.appendChild(el('span', 'c', extra));
         filas.appendChild(dt); filas.appendChild(dd);
       }
       fila('ft_aplica', u[FT_APLICA[f.aplica]] || '', f.cond ? (u[f.cond] || '') : null);
       fila('ft_modo',   u[FT_MODO[f.modo]] || '');
-      /* De que depende, con el NOMBRE del otro tramite y no su codigo: "c6"
+      /* De qué depende, con el NOMBRE del otro trámite y no su código: "c6"
          no le dice nada a nadie. */
       fila('ft_depende',
            f.depende ? (dic[f.depende + '.name'] || I18N.en[f.depende + '.name'] || f.depende)
                      : (u.ft_nada || ''));
-      caja.appendChild(filas);
+      izq.appendChild(filas);
     }
 
-    /* Los recaudos, para LEERLOS. Subirlos es el paso siguiente, y se dice:
-       una lista de doce papeles sin avisar de que no hay que traerlos ahora
-       manda a cualquiera a buscarlos antes de tiempo. */
+    /* Los recaudos, con la cuenta de los que ya tienes: es lo que decide
+       si puedes empezar hoy o te toca ir a buscar un papel. Los opcionales
+       no entran en la cuenta -no faltan si no los tienes-. */
     var recs = RECAUDOS[tipo.codigo] || [];
     if (recs.length){
-      caja.appendChild(el('div', 'sol-h', (u.ft_recaudos || '') + ' (' + recs.length + ')'));
+      var pedidos = recs.filter(function(r){ return !r.opcional; });
+      var tengo = pedidos.filter(function(r){ return MIOS && MIOS[r.tipo]; }).length;
+
+      var cab = el('div', 'ft-rh');
+      cab.appendChild(el('div', 't', (u.ft_recaudos || '') + ' (' + recs.length + ')'));
+      cab.appendChild(el('div', 'c' + (tengo ? '' : ' ninguno'),
+        String(u.ft_cuenta || '').replace('{n}', tengo).replace('{t}', pedidos.length)));
+      izq.appendChild(cab);
+
       var lista = document.createElement('ul');
       lista.className = 'ft-rec';
       recs.forEach(function(r){
+        var ya = !!(MIOS && MIOS[r.tipo]);
         var li = document.createElement('li');
-        li.appendChild(document.createTextNode(u[r.clave] || r.tipo));
-        if (r.opcional) li.appendChild(el('span', 'o', ' ' + (u.opcional || '')));
+        li.className = ya ? 'ya' : 'no';
+        /* El signo lleva su texto escondido: un palote verde no se oye. */
+        var sg = el('span', 's', ya ? '\u2713' : '\u25cb');
+        sg.setAttribute('title', (ya ? u.ft_tuyo : u.ft_falta) || '');
+        li.appendChild(sg);
+        var txt = el('span');
+        txt.appendChild(document.createTextNode(u[r.clave] || r.tipo));
+        if (r.opcional) txt.appendChild(el('span', 'o', ' ' + (u.opcional || '')));
+        li.appendChild(txt);
         lista.appendChild(li);
       });
-      caja.appendChild(lista);
+      izq.appendChild(lista);
     }
 
-    var pie = el('div', 'ft-pie');
-    var bt = el('button', 'btn navy', u.ft_empezar || '');
+    /* 'ft-ir' es el enganche del arnes. Va aparte de las clases de estilo
+       a proposito: la prueba buscaba el boton por el texto y por la caja
+       que lo envolvia, y al mover la ficha de una columna a dos se quedo
+       sin encontrarlo. Una prueba no puede depender de la maquetacion. */
+    var bt = el('button', 'btn navy ft-ir', u.ft_empezar || '');
     bt.type = 'button';
-    bt.addEventListener('click', function(){ alEmpezar(); });
-    pie.appendChild(bt);
-    caja.appendChild(pie);
+    bt.addEventListener('click', function(){
+      if (plazoViejo) plazoViejo.hidden = false;
+      alEmpezar();
+    });
+    der.appendChild(bt);
+
+    cuerpo.appendChild(izq);
+    cuerpo.appendChild(der);
+    caja.appendChild(cuerpo);
   }
 
   function pintaFormulario(tipo, borrador){
