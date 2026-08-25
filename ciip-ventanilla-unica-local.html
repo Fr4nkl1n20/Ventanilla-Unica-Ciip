@@ -609,12 +609,13 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
   padding:6px 11px; cursor:pointer; white-space:nowrap;}
 .t-btn:hover{border-color:var(--cyan-deep); background:var(--block);}
 .t-botones{display:flex; gap:7px; justify-content:flex-end;}
-/* El pie de la tabla. No se pulsa entero ni se ilumina al pasar: no es un
-   renglon del registro, es donde se anade uno. */
-.tabla tfoot td{border-top:1px solid var(--line); background:var(--card-2);
-  padding:9px 12px;}
-.tabla tfoot tr{cursor:default;}
-.tabla tfoot tr:hover{background:transparent;}
+/* La primera fila de la tabla, la de anadir. No se pulsa entera ni se
+   ilumina al pasar: no es un renglon del registro, es donde se anade uno.
+   Y va en la cabecera para que no se desplace con el cuerpo. */
+.tabla tr.t-tope td{border-bottom:1px solid var(--line); background:var(--card-2);
+  padding:9px 12px; text-align:left;}
+.tabla tr.t-tope{cursor:default;}
+.tabla tr.t-tope:hover{background:transparent;}
 /* El boton de anadir, con la pinta de "una linea mas" y no de accion
    principal: el azul de la cabecera competia con el titulo de la pantalla
    y quedaba lejos de la lista a la que se anade. */
@@ -2821,10 +2822,12 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
            a la que se anade. -->
       <div class="tabla-caja" id="dcCaja">
         <table class="tabla" id="dcTabla">
-          <thead><tr id="dcCab"></tr></thead>
-          <tbody id="dcLista"></tbody>
-          <tfoot>
-            <tr class="t-pie">
+          <thead>
+            <!-- Arriba, antes de los nombres de las columnas: lo primero
+                 que se busca al entrar aqui con un papel en la mano es
+                 donde ponerlo. Al pie quedaba al final de una lista que
+                 puede tener quince renglones. -->
+            <tr class="t-tope">
               <td id="dcPie">
                 <!-- Hasta ahora un documento solo entraba DENTRO de un
                      tramite: si ya tenias el pasaporte apostillado, para
@@ -2832,8 +2835,8 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
                      mejor no ibas a mandar. -->
                 <button class="t-mas" id="dcSubir" type="button" hidden></button>
 
-                <!-- El formulario, aqui mismo y no arriba: se abre donde
-                     esta el boton que lo abre. Nace cerrado. -->
+                <!-- El formulario, aqui mismo y no en otro sitio: se abre
+                     donde esta el boton que lo abre. Nace cerrado. -->
                 <div class="dc-nuevo" id="dcNuevo" hidden>
                   <div class="pf-campo">
                     <label for="dcTipo" id="dcLtipo"></label>
@@ -2852,7 +2855,9 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
                 </div>
               </td>
             </tr>
-          </tfoot>
+            <tr id="dcCab"></tr>
+          </thead>
+          <tbody id="dcLista"></tbody>
         </table>
       </div>
     </div>
