@@ -650,6 +650,24 @@ body[data-vista="documentos"] #ayVolver{display:none;}
 body[data-vista="documentos"] #dcVolver{display:inline-flex;}
 #dcVolver{display:none;}
 
+/* El formulario de subir uno nuevo. Empuja la lista en vez de flotar
+   sobre ella: mientras eliges el tipo conviene seguir viendo lo que ya
+   tienes, que es lo que evita subir dos veces el mismo papel. */
+.dc-nuevo{display:none; border:1px solid var(--line); border-radius:12px;
+  background:var(--bg); padding:14px 16px; margin-bottom:16px;
+  display:none; flex-direction:column; gap:11px; max-width:520px;}
+.dc-nuevo.open{display:flex;}
+.dc-nuevo select{width:100%; font:inherit; font-size:12.5px; color:var(--ink);
+  background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:9px 10px;}
+.dc-nuevo select:focus{border-color:var(--cyan-deep);}
+.dc-nuevo .pf-campo.mal select{border-color:var(--rust);}
+.dc-fila{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.dc-fila .btn{font-size:12px; padding:8px 13px;}
+.dc-pie2{justify-content:flex-end;}
+/* Sin archivo elegido no hay nada que decir, y un hueco vacío con su
+   sitio reservado se lee como que falta algo que cargar. */
+.dc-nuevo .dc-arch{margin:0; flex:1 1 auto; min-width:0;}
+
 /* El nombre del archivo va en monoespaciada: es un nombre de fichero, y
    distinguir un 1 de una l importa cuando hay tres parecidos. */
 .dc-arch{font-family:ui-monospace, "Cascadia Mono", Consolas, monospace;
@@ -2741,7 +2759,39 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <div class="sec-h">
         <div class="t" data-i18n="nav.documents">Documents</div>
         <div class="sub" id="dcSub"></div>
+        <div class="spacer"></div>
+        <!-- Hasta ahora un documento solo entraba DENTRO de un trámite: si
+             ya tenías el pasaporte apostillado, para guardarlo había que
+             empezar una solicitud que a lo mejor no ibas a mandar. -->
+        <button class="btn navy" id="dcSubir" type="button" hidden></button>
       </div>
+
+      <!-- El formulario de subir. Nace cerrado y empuja la lista hacia
+           abajo en vez de flotar sobre ella: así no tapa lo que ya tienes
+           mientras eliges, que es justo lo que hay que mirar para no
+           subir dos veces el mismo. -->
+      <div class="dc-nuevo" id="dcNuevo" hidden>
+        <div class="pf-campo">
+          <label for="dcTipo" id="dcLtipo"></label>
+          <select id="dcTipo"></select>
+        </div>
+        <div class="dc-fila">
+          <input type="file" id="dcArchivo" accept="image/*,application/pdf" hidden>
+          <button class="btn ghost" id="dcElige" type="button"></button>
+          <span class="dc-arch" id="dcNombre"></span>
+        </div>
+        <div class="pf-aviso" id="dcAviso"></div>
+        <div class="dc-fila dc-pie2">
+          <button class="btn ghost" id="dcCancela" type="button"></button>
+          <button class="btn navy"  id="dcGuarda"  type="button"></button>
+        </div>
+      </div>
+
+      <!-- El "guardado" vive FUERA del formulario: se dice cuando el
+           formulario ya se cerro y la ficha nueva esta delante. Dentro se
+           habria ido con el al cerrarse. -->
+      <div class="pf-aviso" id="dcAvisoFuera"></div>
+
       <div class="ci-lista" id="dcLista"></div>
     </div>
 
@@ -9836,7 +9886,7 @@ applyLang(idiomaParaMi());
      por los trámites que lo piden. Se junta una vez en vez de escribir una
      segunda lista que se quedaría atrás. */
   var CLAVE_DE_TIPO = null;
-  function nombreDeTipo_doc(tipo){
+  function clavesDeTipo(){
     if (!CLAVE_DE_TIPO){
       CLAVE_DE_TIPO = {};
       Object.keys(RECAUDOS).forEach(function(t){
@@ -9845,8 +9895,11 @@ applyLang(idiomaParaMi());
         });
       });
     }
+    return CLAVE_DE_TIPO;
+  }
+  function nombreDeTipo_doc(tipo){
     var u = T();
-    var clave = CLAVE_DE_TIPO[tipo];
+    var clave = clavesDeTipo()[tipo];
     return (clave && u[clave]) || tipo || '';
   }
 
@@ -9869,6 +9922,11 @@ applyLang(idiomaParaMi());
     /* El renglón se va del menú entero, no se queda en gris: un sitio al
        que no vas a entrar no tiene por qué ocuparte una línea. */
     if (dcNav) dcNav.hidden = !laBovedaEsMia();
+    /* Y el botón de subir tampoco: al equipo del CIIP esta bóveda no es
+       suya, y sube() firma lo que sube con quien está dentro. */
+    var btSubir = document.getElementById('dcSubir');
+    if (btSubir) btSubir.hidden = !laBovedaEsMia();
+    pintaFormNuevo();
     var sub = document.getElementById('dcSub');
     if (sub) sub.textContent = u.dc_sub || '';
 
@@ -10028,6 +10086,131 @@ applyLang(idiomaParaMi());
      cuando sí le salía, es la otra. */
   window.CIIP_BOVEDA_MIA = laBovedaEsMia;
 
+  /* ── SUBIR UN DOCUMENTO QUE YA TIENES ─────────────────────────────
+     Hasta ahora un papel solo entraba DENTRO de un trámite: si ya tenías
+     el pasaporte apostillado, para guardarlo había que empezar una
+     solicitud que a lo mejor no ibas a mandar. Y la propia pantalla lo
+     decía sin querer —«los recaudos que subas en un trámite se guardan
+     aquí»—, como si esto fuese un escaparate y no una bóveda.
+
+     Los tipos que se ofrecen son los que PIDE algún trámite, no los que
+     existen en la base. Dos razones: los nombres traducidos ya están
+     escritos ahí, y ofrecer un tipo que nadie pide sería guardar un papel
+     que ningún formulario va a ir a buscar. Se mantiene solo: activa un
+     trámite y sus recaudos aparecen en la lista.
+
+     Y dice cuáles ya tienes. Sin eso, la lista de cincuenta invita a
+     subir por segunda vez el que está tres centímetros más abajo. ─── */
+  var dcAbierto = false;
+
+  function llenaTiposDoc(){
+    var sel = document.getElementById('dcTipo');
+    if (!sel) return;
+    var u = T();
+    var antes = sel.value;
+    sel.textContent = '';
+    var vacia = el('option', null, u.dc_elige || '');
+    vacia.value = '';
+    sel.appendChild(vacia);
+
+    var yaTengo = {};
+    papeles.forEach(function(d){ yaTengo[d.tipo] = true; });
+
+    Object.keys(clavesDeTipo())
+      .map(function(t){ return {tipo:t, nombre:nombreDeTipo_doc(t)}; })
+      /* Por nombre y en el idioma de turno, no por el código interno: en
+         una lista de cincuenta, buscar «Pasaporte» donde el orden lo pone
+         'pasaporte_vigente' es buscar a ciegas. */
+      .sort(function(a, b){ return a.nombre.localeCompare(b.nombre); })
+      .forEach(function(x){
+        var o = el('option', null, x.nombre +
+          (yaTengo[x.tipo] ? '  \u00b7 ' + (u.dc_yatienes || '') : ''));
+        o.value = x.tipo;
+        sel.appendChild(o);
+      });
+    if (antes) sel.value = antes;
+  }
+
+  function pintaFormNuevo(){
+    var u = T();
+    function pon(id, txt){ var e = document.getElementById(id); if (e) e.textContent = txt || ''; }
+    pon('dcSubir',   u.dc_subir);
+    pon('dcLtipo',   u.dc_quetipo);
+    pon('dcElige',   u.sin_archivo);
+    pon('dcCancela', u.pf_cancelar);
+    pon('dcGuarda',  u.dc_subir);
+    llenaTiposDoc();
+  }
+
+  function cierraFormNuevo(){
+    dcAbierto = false;
+    /* Aqui 'caja' seria local a esta funcion y no pasaria nada, pero se
+       llama distinto igual: en este archivo 'caja' es el detalle de un
+       tramite, y volver a usar el nombre invita a repetir el error. */
+    var cajaNuevo = document.getElementById('dcNuevo');
+    if (cajaNuevo){ cajaNuevo.classList.remove('open'); cajaNuevo.hidden = true; }
+    var arch = document.getElementById('dcArchivo');
+    if (arch) arch.value = '';
+    var nom = document.getElementById('dcNombre');
+    if (nom) nom.textContent = '';
+    var sel = document.getElementById('dcTipo');
+    if (sel) sel.value = '';
+    var av = document.getElementById('dcAviso');
+    if (av){ av.textContent = ''; av.className = 'pf-aviso'; }
+    document.querySelectorAll('#dcNuevo .pf-campo').forEach(function(c){
+      c.classList.remove('mal');
+    });
+    var bt = document.getElementById('dcSubir');
+    if (bt) bt.setAttribute('aria-expanded', 'false');
+  }
+
+  function guardaDocNuevo(){
+    var u    = T();
+    var sel  = document.getElementById('dcTipo');
+    var arch = document.getElementById('dcArchivo');
+    var av   = document.getElementById('dcAviso');
+    var bt   = document.getElementById('dcGuarda');
+    if (!sel || !arch || !av || !bt) return;
+
+    document.querySelectorAll('#dcNuevo .pf-campo').forEach(function(c){
+      c.classList.remove('mal');
+    });
+    /* Las dos cosas a la vez, y se dicen en el mismo aviso: enseñar «falta
+       el tipo», arreglarlo y que entonces salga «falta el archivo» es
+       hacer dos viajes por un formulario de dos campos. */
+    var falta = !sel.value || !arch.files[0];
+    if (falta){
+      if (!sel.value) sel.closest('.pf-campo').classList.add('mal');
+      av.textContent = u.dc_falta || '';
+      av.className = 'pf-aviso';
+      return;
+    }
+
+    bt.disabled = true;
+    bt.textContent = u.pf_fotoyendo || '';
+    av.textContent = '';
+
+    sube(sel.value, arch.files[0]).then(function(){
+      bt.disabled = false;
+      bt.textContent = u.dc_subir || '';
+      cierraFormNuevo();
+      return cargaDocs();
+    }).then(function(){
+      /* El aviso va DESPUÉS de repintar la lista: si se pone antes, el
+         repintado no lo borra pero el papel nuevo aparece debajo sin que
+         nada los relacione. Puesto al final, se lee «guardado» con la
+         ficha ya delante. */
+      var a2 = document.getElementById('dcAvisoFuera');
+      if (a2){ a2.textContent = u.dc_subido || ''; a2.className = 'pf-aviso ok'; }
+    }).catch(function(e){
+      console.warn('[CIIP] subir documento:', e && (e.message || e));
+      bt.disabled = false;
+      bt.textContent = u.dc_subir || '';
+      av.textContent = u.pf_fotoerror || '';
+      av.className = 'pf-aviso';
+    });
+  }
+
   function cargaDocs(){
     /* Al equipo del CIIP no se le pide: la política de la base le deja
        leer los documentos de TODOS, así que esta consulta le traería la
@@ -10073,6 +10256,46 @@ applyLang(idiomaParaMi());
 
   if (dcLista){
     if (dcNav) dcNav.addEventListener('click', function(){ location.hash = 'documentos'; });
+    var btS = document.getElementById('dcSubir');
+    /* 'cajaNuevo' y no 'caja': 'caja' es la variable del IIFE donde se
+       dibuja el detalle de un tramite -el #trReal-, y 'var' es de ambito
+       de FUNCION, no de bloque. Llamandola 'caja' aqui dentro se pisaba al
+       cargar la pagina, y TODOS los formularios de tramite se dibujaban
+       dentro de este panel, que esta oculto. Treinta pruebas en rojo y
+       ninguna hablando de la boveda. */
+    var cajaNuevo = document.getElementById('dcNuevo');
+    if (btS && cajaNuevo){
+      btS.setAttribute('aria-expanded', 'false');
+      btS.addEventListener('click', function(){
+        if (dcAbierto){ cierraFormNuevo(); return; }
+        dcAbierto = true;
+        /* Y se borra el "guardado" del anterior: dejarlo puesto mientras se
+           sube el siguiente es un cartel diciendo que ya esta hecho algo
+           que no ha empezado. */
+        var af = document.getElementById('dcAvisoFuera');
+        if (af){ af.textContent = ''; af.className = 'pf-aviso'; }
+        cajaNuevo.hidden = false;
+        cajaNuevo.classList.add('open');
+        btS.setAttribute('aria-expanded', 'true');
+        pintaFormNuevo();
+        var sel = document.getElementById('dcTipo');
+        if (sel) sel.focus();
+      });
+    }
+    var dcEl = document.getElementById('dcElige');
+    var dcAr = document.getElementById('dcArchivo');
+    if (dcEl && dcAr){
+      dcEl.addEventListener('click', function(){ dcAr.click(); });
+      dcAr.addEventListener('change', function(){
+        var n = document.getElementById('dcNombre');
+        if (n) n.textContent = dcAr.files[0] ? dcAr.files[0].name : '';
+      });
+    }
+    var dcCa = document.getElementById('dcCancela');
+    if (dcCa) dcCa.addEventListener('click', cierraFormNuevo);
+    var dcGu = document.getElementById('dcGuarda');
+    if (dcGu) dcGu.addEventListener('click', guardaDocNuevo);
+
     var paVolver = document.getElementById('paVolver');
     if (paVolver) paVolver.addEventListener('click', function(){
       if (location.hash) location.hash = '';

@@ -134,6 +134,7 @@
               empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
               entregaAbre, entregaMira,
               docsAbre, docsMira, docsCambia, docsTrasCambiar,
+              docsNuevoMira, docsNuevoFalta, docsNuevoSube, docsTrasSubir,
               ayudaAbre, ayudaMira, ayudaFaq,
               supAbre, supMira, supTemas, supVuelve,
               franjaDescarta, franjaTrasDescartar,
@@ -3217,6 +3218,117 @@
        vieja ? (vieja.querySelector('.dc-pie .btn.ghost') ? 'sigue el boton' : 'sin boton')
              : 'no hay ficha vieja',
        'sin boton');
+  }
+
+  /* ═════ SUBIR UN DOCUMENTO QUE YA TIENES ═════
+     Un papel solo entraba DENTRO de un tramite: si ya tenias el pasaporte
+     apostillado, para guardarlo habia que empezar una solicitud que a lo
+     mejor no ibas a mandar. */
+  function docsNuevoMira(){
+    var bt = document.getElementById('dcSubir');
+    if (CASO === 'gestor'){
+      /* Esta boveda no es suya, y sube() firma con quien esta dentro. */
+      ok('subir: al equipo del CIIP no se le ofrece',
+         !!bt && bt.hidden, bt ? ('hidden=' + bt.hidden) : 'no hay boton', 'escondido');
+      return;
+    }
+    ok('subir: la boveda ofrece subir uno nuevo', !!bt && !bt.hidden,
+       bt ? ('hidden=' + bt.hidden) : 'no hay boton', 'a la vista');
+    if (!bt) return;
+    igual('subir: y lo dice con todas las letras', bt.textContent.trim(), 'Subir un documento');
+
+    /* Nace cerrado: si naciera abierto taparia la lista de lo que ya
+       tienes, que es lo que hay que mirar para no subir dos veces. */
+    var caja = document.getElementById('dcNuevo');
+    ok('subir: el formulario nace cerrado',
+       !!caja && !caja.classList.contains('open'),
+       caja ? caja.className : 'no hay caja', 'cerrado');
+
+    bt.click();
+    ok('subir: y se abre al pulsar', caja.classList.contains('open'),
+       caja.className, 'abierto');
+
+    /* Los tipos que se ofrecen son los que PIDE algun tramite: los
+       nombres traducidos ya estan escritos ahi, y un tipo que nadie pide
+       seria guardar un papel que ningun formulario va a buscar. */
+    var sel = document.getElementById('dcTipo');
+    ok('subir: con los tipos que piden los tramites',
+       !!sel && sel.options.length > 40,
+       sel ? (sel.options.length + ' opciones') : 'no hay lista', 'mas de 40');
+    igual('subir: la primera invita a elegir', sel.options[0].textContent.trim(),
+          'Elígelo de la lista');
+    /* Y dice cuales ya tienes: en una lista de cincuenta, sin eso se sube
+       por segunda vez el que esta tres centimetros mas abajo. */
+    var yaEsta = [].filter.call(sel.options, function(o){
+      return /ya lo tienes/.test(o.textContent);
+    });
+    ok('subir: y marca los que ya tienes', yaEsta.length >= 1,
+       yaEsta.length + ' marcados', 'al menos uno');
+    /* Por nombre y en el idioma de turno, no por el codigo interno. */
+    var nombres = [].slice.call(sel.options, 1).map(function(o){
+      return o.textContent.split(' · ')[0];
+    });
+    var ordenados = nombres.slice().sort(function(a, b){ return a.localeCompare(b); });
+    ok('subir: y en orden alfabetico por su nombre',
+       nombres.join('|') === ordenados.join('|'),
+       nombres.slice(0, 3).join(', '), 'ordenados');
+  }
+
+  /* Los dos campos se piden a la vez: decir "falta el tipo", arreglarlo y
+     que entonces salga "falta el archivo" son dos viajes por un
+     formulario de dos campos. */
+  function docsNuevoFalta(){
+    if (CASO === 'gestor') return;
+    var g = document.getElementById('dcGuarda');
+    if (!g) return;
+    g.click();
+    igual('subir: sin decir que es y sin archivo, no se sube',
+          (document.getElementById('dcAviso') || {}).textContent,
+          'Dinos qué documento es y elige el archivo.');
+    ok('subir: y el desplegable se marca',
+       !!document.querySelector('#dcNuevo .pf-campo.mal'),
+       document.querySelector('#dcNuevo .pf-campo.mal') ? 'marcado' : 'sin marcar',
+       'marcado');
+  }
+
+  function docsNuevoSube(){
+    if (CASO === 'gestor') return;
+    var sel = document.getElementById('dcTipo');
+    var arc = document.getElementById('dcArchivo');
+    if (!sel || !arc) return;
+    /* Uno que NO se tenga: asi se mide que se suma, y no que se reemplaza. */
+    var libre = [].filter.call(sel.options, function(o){
+      return o.value && !/ya lo tienes/.test(o.textContent);
+    })[0];
+    if (!libre) return;
+    sel.value = libre.value;
+    var dt = new DataTransfer();
+    dt.items.add(new File([new Uint8Array(16)], 'lo-que-ya-tenia.pdf', {type:'application/pdf'}));
+    arc.files = dt.files;
+    arc.dispatchEvent(new Event('change'));
+    igual('subir: el nombre del archivo se ve antes de mandarlo',
+          (document.getElementById('dcNombre') || {}).textContent, 'lo-que-ya-tenia.pdf');
+    window.PRUEBA_DOCS_ANTES2 = document.querySelectorAll('#dcLista .ci-ficha').length;
+    document.getElementById('dcGuarda').click();
+  }
+
+  function docsTrasSubir(){
+    if (CASO === 'gestor') return;
+    igual('subir: al guardarlo, la boveda tiene uno mas',
+          document.querySelectorAll('#dcLista .ci-ficha').length,
+          (window.PRUEBA_DOCS_ANTES2 || 0) + 1);
+    ok('subir: y con su nombre de archivo',
+       /lo-que-ya-tenia\.pdf/.test(document.getElementById('dcLista').textContent),
+       'busca lo-que-ya-tenia.pdf', 'esta en la lista');
+    /* El formulario se cierra solo: dejarlo abierto con lo de antes dentro
+       invita a mandarlo dos veces. */
+    var caja = document.getElementById('dcNuevo');
+    ok('subir: y el formulario se cierra solo',
+       !!caja && !caja.classList.contains('open'), caja.className, 'cerrado');
+    /* Y el "guardado" se dice FUERA, con la ficha nueva ya delante. */
+    igual('subir: y lo dice con la ficha ya puesta',
+          (document.getElementById('dcAvisoFuera') || {}).textContent,
+          'Guardado. Ya lo tienen los trámites que lo piden.');
   }
 
   function ayudaAbre(){

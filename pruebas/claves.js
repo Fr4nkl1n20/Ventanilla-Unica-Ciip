@@ -165,7 +165,10 @@ const SALTOS = new Set([
      cosa —«pasaporte.pdf · ya estaba en tu expediente», «resuelta el 4 de
      agosto»—. Empezar en minúscula ahí no es un descuido, es lo correcto:
      van en mitad de una frase. */
-  'reutilizado', 'mt_resuelta', 'ay_ente'
+  'reutilizado', 'mt_resuelta', 'ay_ente',
+  /* Y este, que se pega detras del nombre del tipo en el desplegable de
+     subir: «Pasaporte · ya lo tienes». */
+  'dc_yatienes'
 ]);
 
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\s*/gu;
