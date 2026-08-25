@@ -117,10 +117,12 @@
               idMira, idRechazaSinNota, idFirma, idTrasFirmar,
               colaExpediente, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
               agendaMira, agendaTrasEntrar, agendaTrasSalir,
-              paisesMira, paisesTrasAbrir,
-              dupeAbre, dupeMira, dupeTrasEnviar,
-              antesAbre, antesMira, fecha3Mira, fecha3Cambia,
-              rncAbre, rncTrasAbrir, solvenciasAbre, solvenciasTrasAbrir,
+              paisesMira, empiezaSolicitud, paisesTrasAbrir,
+              dupeAbre, empiezaSolicitud, dupeMira, dupeTrasEnviar,
+              antesAbre, empiezaSolicitud, antesMira, fecha3Mira, fecha3Cambia,
+              fichaAbre, fichaMira, empiezaSolicitud, fichaTrasEmpezar,
+              rncAbre, empiezaSolicitud, rncTrasAbrir,
+              solvenciasAbre, empiezaSolicitud, solvenciasTrasAbrir,
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
               devueltoAbre, devueltoMira, escaleraAbre, escaleraMira, variasAbre, variasMira,
@@ -3387,6 +3389,80 @@
     igual('subir: y lo dice con la ficha ya puesta',
           (document.getElementById('dcAvisoFuera') || {}).textContent,
           'Guardado. Ya lo tienen los trámites que lo piden.');
+  }
+
+  /* ═════ LA FICHA, ANTES DEL FORMULARIO ═════
+     Al pulsar una tarjeta ya no salen doce casillas de golpe: primero la
+     ficha -cuanto tarda, de que depende, si te toca y que recaudos pide- y
+     el formulario cuando lo pidas. Asi que todo lo que mide un formulario
+     tiene que pasar antes por aqui. */
+  function empiezaSolicitud(){
+    var caja = document.getElementById('trReal');
+    if (!caja) return;
+    var bt = [].filter.call(caja.querySelectorAll('.ft-pie .btn'), function(b){
+      return b.textContent.trim() === 'Empezar la solicitud';
+    })[0];
+    if (bt) bt.click();
+  }
+
+  /* ═════ LO QUE CUENTA LA FICHA ═════
+     El c14 -solvencias- es de los dieciseis que tienen datos en el
+     catalogo del CIIP: diez dias de plazo legal, diecisiete reales, se
+     repite, y depende del IVSS. Se mide sobre ese porque trae las cinco
+     filas; en los quince que no tienen pareja la ficha sale sin el cuadro
+     y con los recaudos, que es lo correcto: lo que no se sabe no se
+     rellena con humo. */
+  function fichaAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c14';
+  }
+
+  function fichaMira(){
+    if (CASO !== 'vacio') return;
+    var caja = document.getElementById('trReal');
+    var datos = caja.querySelectorAll('.ft-dato');
+    ok('ficha: al abrir un tramite se cuenta antes de pedir nada',
+       datos.length > 0, datos.length + ' cuadros', 'con cuadros de datos');
+    if (!datos.length) return;
+    var texto = caja.textContent;
+
+    igual('ficha: los cinco datos que se saben', datos.length, 5);
+    ok('ficha: dice el plazo legal', /Plazo legal/.test(texto) && /10 días/.test(texto),
+       'busca "Plazo legal" y "10 dias"', 'aparecen');
+    /* Y lo que tarda DE VERDAD, que es el numero que importa. */
+    ok('ficha: y lo que tarda en la practica',
+       /En la práctica/.test(texto) && /17 días/.test(texto),
+       'busca "En la practica" y "17 dias"', 'aparecen');
+    /* De que depende, con el NOMBRE del otro tramite y no su codigo: "c9"
+       no le dice nada a nadie. */
+    ok('ficha: de que depende, por su nombre y no por su codigo',
+       /Inscripción en el IVSS/.test(texto) && !/c9/.test(texto),
+       'busca "Inscripcion en el IVSS" y no "c9"', 'el nombre');
+    ok('ficha: cuando aplica, y en que caso',
+       /Se repite/.test(texto) && /contratar con el Estado/.test(texto),
+       'busca "Se repite" y su condicion', 'aparecen');
+    ok('ficha: y como se presenta',
+       /ventanilla, sin salir/.test(texto), 'busca como se presenta', 'aparece');
+
+    /* Los recaudos se LEEN aqui; subirlos es el paso siguiente. Y no hay
+       ni un campo de archivo todavia. */
+    var recs = caja.querySelectorAll('.ft-rec li');
+    igual('ficha: y los recaudos que pide, para leerlos', recs.length, 6);
+    igual('ficha: sin pedir todavia ni un archivo',
+          caja.querySelectorAll('input[type=file]').length, 0);
+    igual('ficha: ni una casilla del formulario',
+          caja.querySelectorAll('.sol-campo').length, 0);
+  }
+
+  /* Y el formulario cuando lo pidas, no antes. */
+  function fichaTrasEmpezar(){
+    if (CASO !== 'vacio') return;
+    var caja = document.getElementById('trReal');
+    ok('ficha: al pulsar Empezar sale el formulario',
+       caja.querySelectorAll('.sol-campo').length > 0,
+       caja.querySelectorAll('.sol-campo').length + ' casillas', 'con casillas');
+    igual('ficha: y la ficha deja el sitio',
+          caja.querySelectorAll('.ft-dato').length, 0);
   }
 
   function ayudaAbre(){

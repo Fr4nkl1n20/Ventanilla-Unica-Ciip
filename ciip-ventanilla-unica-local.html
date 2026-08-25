@@ -577,6 +577,36 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
    largo. Y la caja se desplaza sola: una tabla de siete columnas en un
    móvil no cabe, y lo que NO puede pasar es que empuje la página entera
    de lado. */
+/* ── LA FICHA DEL TRÁMITE ──
+   Lo que hay que saber ANTES de rellenar nada. Los datos van en cuadros y
+   no en un párrafo: "plazo legal 15 días, en la práctica 40" se compara de
+   un vistazo y en prosa hay que leerlo dos veces.
+
+   Y el que más importa —lo que tarda de verdad— va en ámbar cuando pasa
+   del doble del plazo legal. Un número al lado de otro no dice si está
+   bien o mal; el color sí. */
+.ft-datos{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:11px; margin:14px 0 4px;}
+.ft-dato{background:var(--block); border:1px solid var(--line-soft);
+  border-radius:10px; padding:10px 12px;}
+.ft-dato .k{font-size:9.5px; font-weight:700; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--gray-soft);}
+.ft-dato .v{font-size:13.5px; font-weight:700; color:var(--ink); margin-top:3px;
+  line-height:1.35;}
+.ft-dato.tarde .v{color:var(--amber);}
+.ft-dato .n{font-size:11px; font-weight:600; color:var(--gray); margin-top:2px;}
+/* La lista de recaudos de la ficha: para LEERLA, no para subir nada. Los
+   archivos se suben en el formulario, que es el paso siguiente. */
+.ft-rec{margin:6px 0 0; padding:0; list-style:none;}
+.ft-rec li{padding:9px 0; border-bottom:1px solid var(--line-soft);}
+.ft-rec li:last-child{border-bottom:0;}
+.ft-rec .n{font-size:12.5px; color:var(--ink);}
+.ft-rec .d{font-size:11px; color:var(--gray); margin-top:2px;}
+.ft-rec .m{font-size:11.5px; color:var(--gray); margin-top:5px; padding-left:9px;
+  border-left:2px solid var(--line); line-height:1.5;}
+.ft-rec .ya{color:var(--good); font-weight:700;}
+.ft-pie{margin-top:16px;}
+
 /* ── LAS TABLAS DEL PANEL ──
    Dos vistas las usan: la cola del equipo y el registro de archivos de la
    bóveda. Los nombres son neutros —.tabla, .t-*— y no .pa-* como cuando
@@ -4821,6 +4851,58 @@ applyLang(idiomaParaMi());
      necesitando lo mismo, y así se añade en un sitio. */
   var CON_BANCO = { cuenta_bancaria: true };
 
+  /* ── LA FICHA DE CADA TRÁMITE ──────────────────────────────────────
+     Lo que hay que saber ANTES de empezar a rellenar: cuánto dice la ley
+     que tarda, cuánto tarda de verdad, de qué depende, cuándo aplica y
+     cómo se presenta. Antes se pulsaba una tarjeta y salía un formulario
+     de doce casillas sin decir nada de eso; el que no sabía si le tocaba
+     el trámite lo descubría rellenándolo.
+
+     Los datos vienen del catálogo del CIIP —el panel de 34 trámites por
+     etapas— y están COPIADOS, no calculados. Solo los dieciséis que son el
+     mismo trámite que uno de los nuestros; el emparejamiento se hizo a
+     mano, uno por uno, porque por parecido de nombre salía que el RIF era
+     la inscripción del IVSS y que el certificado de bomberos era el
+     médico.
+
+     Lo que no está aquí no se inventa: la ficha enseña las filas que tiene
+     y calla las demás. Quince de nuestros treinta y un trámites no tienen
+     pareja en ese catálogo, y para esos la ficha sale con los recaudos y
+     nada más.
+
+     'depende' apunta a NUESTRAS referencias, no a las suyas: su T-11
+     -reserva de denominación- no existe aquí, así que los que dependían de
+     ella se quedan sin esa fila en vez de apuntar al vacío.
+
+     El COSTE de su catálogo no se trae: los números están ahí -430, 180,
+     260- pero sin unidad, y una cifra sin moneda en una pantalla que mira
+     un inversionista es peor que ninguna cifra. Cuando digan en qué está
+     medido, se añade una fila más. ──────────────────────────────────── */
+  var FICHA = {
+    /* Fase 01 */
+    c1:  {plazo:30, real:95, aplica:'cond', cond:'ft_c_extmat', modo:'pres',  depende:'c31'},
+    c2:  {plazo:30, real:70, aplica:'recur', cond:'ft_c_tri3',  modo:'pres',  depende:'c1'},
+    c20: {plazo:30, real:85, aplica:'cond', cond:'ft_c_familia', modo:'pres', depende:'c1'},
+    /* Fase 02 */
+    c5:  {plazo:10, real:26, aplica:'siempre', modo:'api'},
+    c6:  {plazo:3,  real:7,  aplica:'siempre', modo:'api',    depende:'c5'},
+    c7:  {plazo:10, real:25, aplica:'siempre', modo:'manual', depende:'c6'},
+    c31: {plazo:15, real:34, aplica:'cond', cond:'ft_c_capext', modo:'portal', depende:'c5'},
+    /* Fase 03 */
+    c9:  {plazo:8,  real:18, aplica:'siempre', modo:'portal', depende:'c27'},
+    c10: {plazo:15, real:40, aplica:'siempre', modo:'portal', depende:'c6'},
+    c11: {plazo:20, real:42, aplica:'cond', cond:'ft_c_maq',  modo:'portal', depende:'c31'},
+    c26: {plazo:8,  real:16, aplica:'cond', cond:'ft_c_cinco', modo:'portal', depende:'c27'},
+    c27: {plazo:10, real:21, aplica:'siempre', modo:'portal', depende:'c6'},
+    c28: {plazo:20, real:45, aplica:'cond', cond:'ft_c_sede', modo:'pres',   depende:'c6'},
+    c29: {plazo:15, real:32, aplica:'cond', cond:'ft_c_sede', modo:'pres',   depende:'c28'},
+    c30: {plazo:30, real:65, aplica:'cond', cond:'ft_c_obra', modo:'pres',   depende:'c28'},
+    /* Fase 04 */
+    c14: {plazo:10, real:17, aplica:'recur', cond:'ft_c_estado', modo:'api', depende:'c9'}
+  };
+  var FT_APLICA = {siempre:'ft_a_siempre', cond:'ft_a_cond', recur:'ft_a_recur'};
+  var FT_MODO   = {api:'ft_m_api', portal:'ft_m_portal', pres:'ft_m_pres', manual:'ft_m_manual'};
+
   /* Hasta dónde llega cada fecha. Va aquí y no pegado a cada campo
      porque el mismo campo sale en varios trámites —inicio_actividades
      está en cinco— y repetir el tope sería cinco sitios donde
@@ -5254,13 +5336,20 @@ applyLang(idiomaParaMi());
             if (mio && mio.estado !== 'borrador'){ chipReal(mio.estado); pintaEstado(t, mio); }
             else {
               chipReal('sin_iniciar');
-              /* Antes de dibujar el formulario se mira lo que ya escribiste
-                 en otros tramites. Va aqui y no dentro: pintar primero y
-                 rellenar despues moveria campos bajo el cursor de quien ya
-                 empezo a teclear. */
-              anteriores().then(function(){
-                if (miTurno !== turno) return;
-                pintaFormulario(t, mio);
+              /* La FICHA primero, y el formulario cuando lo pidas. Antes se
+                 pulsaba la tarjeta y salían doce casillas sin decir cuánto
+                 tarda el trámite, de qué depende ni si te toca: el que no
+                 sabía si le aplicaba lo averiguaba rellenándolo. */
+              pintaFichaTramite(t, mio, function(){
+                /* Antes de dibujar el formulario se mira lo que ya
+                   escribiste en otros tramites. Va aqui y no dentro:
+                   pintar primero y rellenar despues moveria campos bajo el
+                   cursor de quien ya empezo a teclear. */
+                anteriores().then(function(){
+                  if (miTurno !== turno) return;
+                  caja.textContent = '';
+                  pintaFormulario(t, mio);
+                });
               });
             }
 
@@ -5367,6 +5456,74 @@ applyLang(idiomaParaMi());
         caja.insertBefore(b, caja.firstChild);
       })
       .catch(function(e){ console.warn('[CIIP] entregado:', e && e.message); });
+  }
+
+  /* ── LA FICHA, ANTES DEL FORMULARIO ───────────────────────────────
+     Cuenta el trámite y luego te deja empezarlo. Lo que se sabe se enseña;
+     lo que no, no se rellena con humo: quince de los treinta y un trámites
+     no tienen datos en el catálogo del CIIP, y para esos la ficha sale con
+     los recaudos y el botón, que ya es más de lo que había. ────────── */
+  /* 'pintaFichaTramite' y no 'pintaFicha': ya habia una pintaFicha en
+     este mismo IIFE -la de la boveda, mas abajo- y en JavaScript la
+     SEGUNDA declaracion se queda con el nombre. Mi llamada iba a la otra
+     funcion, que no toma argumentos: no fallaba nada, simplemente no se
+     dibujaba la ficha y no habia ni un error en la consola. */
+  function pintaFichaTramite(tipo, borrador, alEmpezar){
+    var u = T();
+    /* La llave es ref_panel -'c5'-, que es como esta indexada la ficha y
+       el catalogo. tipoRefDe queda de reserva por si la fila del catalogo
+       llegara sin esa columna. */
+    var ref = tipo.ref_panel || tipoRefDe(tipo.codigo);
+    var f = FICHA[ref] || null;
+
+    if (f){
+      var caj = el('div', 'ft-datos');
+      function dato(clave, valor, nota, tarde){
+        var d = el('div', 'ft-dato' + (tarde ? ' tarde' : ''));
+        d.appendChild(el('div', 'k', u[clave] || ''));
+        d.appendChild(el('div', 'v', valor));
+        if (nota) d.appendChild(el('div', 'n', nota));
+        caj.appendChild(d);
+      }
+      function dias(n){ return String(u.ft_dias || '{n}').replace('{n}', n); }
+
+      dato('ft_plazo', dias(f.plazo));
+      /* En ámbar cuando lo real pasa del doble de lo legal. Un número al
+         lado de otro no dice si está bien o mal. */
+      dato('ft_real', dias(f.real), null, f.real > f.plazo * 2);
+      dato('ft_aplica', u[FT_APLICA[f.aplica]] || '',
+           f.cond ? (u[f.cond] || '') : null);
+      dato('ft_modo', u[FT_MODO[f.modo]] || '');
+      /* De qué depende, con el NOMBRE del trámite y no su código: "c6" no
+         le dice nada a nadie. */
+      var dic = I18N[curLang] || I18N.en;
+      dato('ft_depende',
+           f.depende ? (dic[f.depende + '.name'] || I18N.en[f.depende + '.name'] || f.depende)
+                     : (u.ft_nada || ''));
+      caja.appendChild(caj);
+    }
+
+    /* Los recaudos, para LEERLOS. Subirlos es el paso siguiente. */
+    var recs = RECAUDOS[tipo.codigo] || [];
+    if (recs.length){
+      caja.appendChild(el('div', 'sol-h', (u.ft_recaudos || '') + ' (' + recs.length + ')'));
+      var lista = document.createElement('ul');
+      lista.className = 'ft-rec';
+      recs.forEach(function(r){
+        var li = document.createElement('li');
+        li.appendChild(el('div', 'n',
+          (u[r.clave] || r.tipo) + (r.opcional ? ' ' + (u.opcional || '') : '')));
+        lista.appendChild(li);
+      });
+      caja.appendChild(lista);
+    }
+
+    var pie = el('div', 'ft-pie');
+    var bt = el('button', 'btn navy', u.ft_empezar || '');
+    bt.type = 'button';
+    bt.addEventListener('click', function(){ alEmpezar(); });
+    pie.appendChild(bt);
+    caja.appendChild(pie);
   }
 
   function pintaFormulario(tipo, borrador){

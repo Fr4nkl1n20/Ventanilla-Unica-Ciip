@@ -331,28 +331,41 @@
      de 37 segundos". */
   function dentroDe(seg){ return new Date(Date.now() + seg * 1000).toISOString(); }
 
+  /* 'visto_hace' son MINUTOS, y el 'visto_en' se calcula al contestar y no
+     al cargar la pagina. Se calculaba al cargar, y la vista de usuarios se
+     abre casi un minuto despues: "visto hace 20 minutos" pasaba a 21 en
+     cuanto la cadena de pasos crecia un poco, y la prueba se caia por el
+     reloj y no por un fallo. */
+  function conVisto(filas){
+    return filas.map(function(f){
+      var c = {}; Object.keys(f).forEach(function(k){ c[k] = f[k]; });
+      if (c.visto_hace !== undefined){ c.visto_en = haceMin(c.visto_hace); delete c.visto_hace; }
+      return c;
+    });
+  }
+
   var OTROS_PERFILES = [
     {id:'u1', nombre_completo:'Franklin Reyes',  pais:'Italia',    rol:'gestor',
-     visto_en: haceMin(0.5)},          /* con el panel abierto ahora mismo */
+     visto_hace: (0.5)},          /* con el panel abierto ahora mismo */
     {id:'u2', nombre_completo:'Marta Bianchi',   pais:'Italia',    rol:'inversionista',
-     visto_en: haceMin(60 * 24 * 3)},  /* hace tres dias */
+     visto_hace: (60 * 24 * 3)},  /* hace tres dias */
     /* Sin nombre a proposito: la lista tiene que decirlo en vez de dejar
        el hueco, igual que la cola. Y sin visto_en: nunca ha entrado. */
     {id:'u3', nombre_completo:'',                pais:'',          rol:'inversionista'},
     {id:'u4', nombre_completo:'Saskia Calderon', pais:'Venezuela', rol:'gestor',
-     rol_cambiado_en:'2026-08-11T10:00:00Z', visto_en: haceMin(20)}
+     rol_cambiado_en:'2026-08-11T10:00:00Z', visto_hace: (20)}
   ];
 
   /* Los del pase de mirar. Van aparte y se enganchan abajo: metidos en la
      lista de arriba, "estan las cuatro cuentas" pasaria a ser diez y las
      pruebas de usuarios medirian el ejemplo en vez de lo suyo. */
   if (demoCola) OTROS_PERFILES = OTROS_PERFILES.concat([
-    {id:'u5',  nombre_completo:'Hiroshi Tanaka',   pais:'Japón',    rol:'inversionista', visto_en: haceMin(90)},
-    {id:'u6',  nombre_completo:'Amina Okonkwo',    pais:'Nigeria',  rol:'inversionista', visto_en: haceMin(60 * 30)},
-    {id:'u7',  nombre_completo:'Lucía Ferreira',   pais:'Portugal', rol:'inversionista', visto_en: haceMin(15)},
+    {id:'u5',  nombre_completo:'Hiroshi Tanaka',   pais:'Japón',    rol:'inversionista', visto_hace: (90)},
+    {id:'u6',  nombre_completo:'Amina Okonkwo',    pais:'Nigeria',  rol:'inversionista', visto_hace: (60 * 30)},
+    {id:'u7',  nombre_completo:'Lucía Ferreira',   pais:'Portugal', rol:'inversionista', visto_hace: (15)},
     {id:'u8',  nombre_completo:'Dmitri Kovalenko', pais:'Rusia',    rol:'inversionista'},
-    {id:'u9',  nombre_completo:'Chen Wei',         pais:'China',    rol:'inversionista', visto_en: haceMin(60 * 5)},
-    {id:'u10', nombre_completo:'Carlos Méndez',    pais:'Colombia', rol:'inversionista', visto_en: haceMin(60 * 72)}
+    {id:'u9',  nombre_completo:'Chen Wei',         pais:'China',    rol:'inversionista', visto_hace: (60 * 5)},
+    {id:'u10', nombre_completo:'Carlos Méndez',    pais:'Colombia', rol:'inversionista', visto_hace: (60 * 72)}
   ]);
 
   /* El expediente personal. En 'sinnombre' viene con la cadena vacía, que es
@@ -521,7 +534,7 @@
       if (esAdmin) mio = {nombre_completo:mio.nombre_completo, pais:mio.pais, rol:'admin'};
       return op && op.single
         ? {data:mio, error:null}
-        : {data:OTROS_PERFILES, error:null};
+        : {data:conVisto(OTROS_PERFILES), error:null};
     }
     if (tabla === 'sectores'){
       /* Vacio a proposito en un pase. Una puerta cerrada con una lista

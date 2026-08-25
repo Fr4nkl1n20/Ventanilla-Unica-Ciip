@@ -111,7 +111,7 @@ for (const m of PANEL.matchAll(/\bu\.([a-z][a-z0-9_]{2,})\b/g)) pedidasUI.add(m[
 /* Solo se juzgan las que parecen de este diccionario: las demás son
    variables sueltas que se llaman igual. */
 const prefijosUI = ['ac_', 'av_', 'ay_', 'ci_', 'co_', 'ct_', 'd_', 'dc_', 'em_',
-                    'f_', 'mt_', 'ns_', 'pf_', 'se_', 'tr_'];
+                    'f_', 'ft_', 'mt_', 'ns_', 'pf_', 'se_', 'tr_'];
 const fantasmas = [...pedidasUI].filter(k =>
   prefijosUI.some(p => k.startsWith(p)) && !(k in UI.es));
 ok('pasos: ningún texto pedido se queda sin definir',
@@ -150,6 +150,39 @@ function repetidas(texto, donde) {
 const dobles = repetidas(PASOS, 'pasos');
 ok('claves: ninguna escrita dos veces en el mismo idioma',
    dobles.length === 0, dobles.slice(0, 10).join(', '));
+
+/* ── 2c · NINGUNA FUNCION DECLARADA DOS VECES ──────────────────
+   Lo mismo que las claves repetidas, y por el mismo motivo: en JavaScript
+   dos "function X" en el mismo ambito no son un error, gana la SEGUNDA. La
+   primera desaparece sin dejar rastro y las llamadas que iban a ella van a
+   la otra.
+
+   Paso de verdad: la ficha del tramite se llamo pintaFicha, y ya habia una
+   pintaFicha -la de la boveda- doscientas lineas mas abajo. La ficha no se
+   dibujaba, la consola no decia nada y las pruebas hablaban de campos que
+   faltaban en un formulario. Una hora.
+
+   Se mira por IIFE: el archivo tiene trece bloques de primer nivel y el
+   mismo nombre en dos bloques distintos es correcto -hay dos 'pinta', una
+   del router y otra de las etapas-. */
+function funcionesRepetidas(texto) {
+  const malas = [];
+  /* Los bloques de primer nivel empiezan por '(function(){' pegado al
+     margen. Partir por ahi no es un parser, pero distingue lo que hay que
+     distinguir: dos ambitos distintos de dos declaraciones en el mismo. */
+  const bloques = texto.split(String.fromCharCode(10) + '(function(){');
+  for (const bloque of bloques) {
+    const vistas = new Map();
+    for (const m of bloque.matchAll(/^  function ([A-Za-z_$][\w$]*)\s*\(/gm)) {
+      vistas.set(m[1], (vistas.get(m[1]) || 0) + 1);
+    }
+    for (const [k, n] of vistas) if (n > 1) malas.push(`${k} ×${n}`);
+  }
+  return [...new Set(malas)];
+}
+const dosVeces = funcionesRepetidas(PANEL);
+ok('panel: ninguna funcion declarada dos veces en el mismo bloque',
+   dosVeces.length === 0, dosVeces.join(', '));
 
 /* ── 3 · CÓMO SE ESCRIBE ──────────────────────────────────────────────
    Ni el navegador ni las pruebas del panel miran esto: un rótulo con una
@@ -199,6 +232,9 @@ const SALTOS = new Set([
      agosto»—. Empezar en minúscula ahí no es un descuido, es lo correcto:
      van en mitad de una frase. */
   'reutilizado', 'mt_resuelta', 'ay_ente',
+  /* Y estos dos, que se pegan detras del nombre de un recaudo: «Pasaporte
+     · lo emite el consulado · ya esta en tu boveda». */
+  'ft_tuyo', 'ft_emite',
   /* Y este, que se pega detras del nombre del tipo en el desplegable de
      subir: «Pasaporte · ya lo tienes». */
   'dc_yatienes'
@@ -260,12 +296,19 @@ ok('escritura: los rótulos siguen la misma norma en los seis idiomas',
 /* Y el punto final, o en todos o en ninguno. Media frase con punto y la
    misma sin él, según el idioma, es lo que hace que una pantalla parezca
    traducida por turnos. */
+/* Una abreviatura lleva punto y eso no es el punto de una frase: «{n}
+   дн.» en ruso es lo correcto, y «дн» sin punto estaria mal escrito. Es la
+   unica de todo el archivo, asi que se nombra en vez de inventar una regla
+   que adivine abreviaturas. */
+const PUNTO_OK = new Set(['ft_dias']);
+
 function puntoDesigual(donde, dic) {
   const idiomas = Object.keys(dic);
   const claves = new Set();
   for (const l of idiomas) for (const k of Object.keys(dic[l])) claves.add(k);
   const malos = [];
   for (const k of claves) {
+    if (PUNTO_OK.has(k)) continue;
     const vals = idiomas
       .filter(l => typeof dic[l][k] === 'string' && dic[l][k].trim())
       .map(l => [l, dic[l][k].trim()]);
