@@ -611,12 +611,8 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
 .t-botones{display:flex; gap:7px; justify-content:flex-end;}
 /* La ultima celda de la cabecera es la de las acciones: el boton de subir
    va ahi, a la derecha, en linea con el "Cambiar" y el "Abrir" de cada
-   renglon. La cabecera no se pulsa ni se ilumina. */
+   renglon. */
 .tabla thead th:last-child{text-align:right; padding-top:7px; padding-bottom:7px;}
-.tabla tr.t-form td{border-bottom:1px solid var(--line); background:var(--card-2);
-  padding:0 12px 12px;}
-.tabla tr.t-form{cursor:default;}
-.tabla tr.t-form:hover{background:transparent;}
 /* El boton de anadir, con la pinta de "una linea mas" y no de accion
    principal: el azul de la cabecera competia con el titulo de la pantalla
    y quedaba lejos de la lista a la que se anade. */
@@ -699,15 +695,13 @@ body[data-vista="documentos"] #dcVolver{display:inline-flex;}
 /* El formulario de subir uno nuevo. Empuja la lista en vez de flotar
    sobre ella: mientras eliges el tipo conviene seguir viendo lo que ya
    tienes, que es lo que evita subir dos veces el mismo papel. */
-/* Ya vive dentro del pie de la tabla, asi que no lleva caja propia: dos
-   marcos, uno dentro del otro, con el mismo borde y el mismo redondeo. */
-.dc-nuevo{display:none; flex-direction:column; gap:11px; max-width:520px;
-  padding-top:12px;}
-.dc-nuevo.open{display:flex;}
-.dc-nuevo select{width:100%; font:inherit; font-size:12.5px; color:var(--ink);
+/* Ya vive en su ventana, con el cuerpo y el pie que traen las demas. Lo
+   unico suyo es el desplegable de los cincuenta tipos y la fila del
+   archivo. */
+#docBack select{width:100%; font:inherit; font-size:12.5px; color:var(--ink);
   background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:9px 10px;}
-.dc-nuevo select:focus{border-color:var(--cyan-deep);}
-.dc-nuevo .pf-campo.mal select{border-color:var(--rust);}
+#docBack select:focus{border-color:var(--cyan-deep);}
+#docBack .pf-campo.mal select{border-color:var(--rust);}
 .dc-fila{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
 .dc-fila .btn{font-size:12px; padding:8px 13px;}
 .dc-pie2{justify-content:flex-end;}
@@ -2835,33 +2829,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
                  vacia: asi queda en linea con el "Cambiar" y el "Abrir" de
                  cada renglon, que es lo mismo que hace. -->
             <tr id="dcCab"></tr>
-            <!-- Y el formulario, en su propia fila justo debajo. Va en el
-                 <thead> y no en el cuerpo porque pintaDocs vacia el cuerpo
-                 en cada repintado y se lo llevaria por delante. -->
-            <tr class="t-form" id="dcFormFila" hidden>
-              <td id="dcPie">
-                <!-- Hasta ahora un documento solo entraba DENTRO de un
-                     tramite: si ya tenias el pasaporte apostillado, para
-                     guardarlo habia que empezar una solicitud que a lo
-                     mejor no ibas a mandar. -->
-                <div class="dc-nuevo" id="dcNuevo" hidden>
-                  <div class="pf-campo">
-                    <label for="dcTipo" id="dcLtipo"></label>
-                    <select id="dcTipo"></select>
-                  </div>
-                  <div class="dc-fila">
-                    <input type="file" id="dcArchivo" accept="image/*,application/pdf" hidden>
-                    <button class="btn ghost" id="dcElige" type="button"></button>
-                    <span class="dc-arch" id="dcNombre"></span>
-                  </div>
-                  <div class="pf-aviso" id="dcAviso"></div>
-                  <div class="dc-fila dc-pie2">
-                    <button class="btn ghost" id="dcCancela" type="button"></button>
-                    <button class="btn navy"  id="dcGuarda"  type="button"></button>
-                  </div>
-                </div>
-              </td>
-            </tr>
           </thead>
           <tbody id="dcLista"></tbody>
         </table>
@@ -3233,6 +3200,44 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 
   <!-- Tu perfil. Se llena y se mueve desde el bloque de trámites, que es
        quien tiene la conexión con la base. -->
+  <!-- Subir un documento que ya tienes. Es una VENTANA y no un panel que
+       se despliega dentro de la tabla: desplegandose empujaba la lista
+       hacia abajo, y lo que estabas mirando -para no subir dos veces el
+       mismo papel- se movia de sitio justo al ir a subirlo.
+
+       La misma ventana que el perfil y la cita: se cierra con el aspa, con
+       Cancelar, pulsando la cortina y con Escape. -->
+  <div class="asst-back" id="docBack">
+    <div class="asst perfil">
+      <div class="asst-h">
+        <div class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M13 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V9z"/><path d="M13 3v6h6"/></svg></div>
+        <!-- Sin subtitulo: el que le puse repetia la etiqueta del campo que
+             va tres centimetros mas abajo, y decir dos veces "que documento
+             es" no ayuda a contestarlo. -->
+        <div><div class="at" id="dcTitulo"></div></div>
+        <button class="ax" id="dcCerrar" type="button" aria-label="&#215;">&#215;</button>
+      </div>
+      <div class="pf-cuerpo">
+        <div class="pf-campo">
+          <label for="dcTipo" id="dcLtipo"></label>
+          <select id="dcTipo"></select>
+        </div>
+        <div class="pf-campo">
+          <div class="dc-fila">
+            <input type="file" id="dcArchivo" accept="image/*,application/pdf" hidden>
+            <button class="btn ghost" id="dcElige" type="button"></button>
+            <span class="dc-arch" id="dcNombre"></span>
+          </div>
+        </div>
+        <div class="pf-aviso" id="dcAviso"></div>
+      </div>
+      <div class="pf-pie">
+        <button class="btn ghost" id="dcCancela" type="button"></button>
+        <button class="btn navy"  id="dcGuarda"  type="button"></button>
+      </div>
+    </div>
+  </div>
+
   <div class="asst-back" id="perfilBack">
     <div class="asst perfil">
       <div class="asst-h">
@@ -10024,12 +10029,6 @@ applyLang(idiomaParaMi());
        fila a todo lo ancho. */
     var caja = document.getElementById('dcCaja');
     if (caja) caja.hidden = !laBovedaEsMia();
-    var pie = document.getElementById('dcPie');
-    if (pie) pie.colSpan = DC_COLUMNAS.length;
-    /* La fila del formulario solo ocupa sitio cuando esta abierto: una fila
-       vacia entre la cabecera y el primer renglon se lee como un hueco. */
-    var filaForm = document.getElementById('dcFormFila');
-    if (filaForm) filaForm.hidden = !dcAbierto;
     var cab = document.getElementById('dcCab');
     if (cab){
       cab.textContent = '';
@@ -10277,6 +10276,7 @@ applyLang(idiomaParaMi());
     var u = T();
     function pon(id, txt){ var e = document.getElementById(id); if (e) e.textContent = txt || ''; }
     if (dcBtSubir) dcBtSubir.textContent = u.dc_subir || '';
+    pon('dcTitulo',  u.dc_subir);
     pon('dcLtipo',   u.dc_quetipo);
     pon('dcElige',   u.sin_archivo);
     pon('dcCancela', u.pf_cancelar);
@@ -10286,13 +10286,8 @@ applyLang(idiomaParaMi());
 
   function cierraFormNuevo(){
     dcAbierto = false;
-    /* Aqui 'caja' seria local a esta funcion y no pasaria nada, pero se
-       llama distinto igual: en este archivo 'caja' es el detalle de un
-       tramite, y volver a usar el nombre invita a repetir el error. */
-    var cajaNuevo = document.getElementById('dcNuevo');
-    if (cajaNuevo){ cajaNuevo.classList.remove('open'); cajaNuevo.hidden = true; }
-    var filaForm = document.getElementById('dcFormFila');
-    if (filaForm) filaForm.hidden = true;
+    var back = document.getElementById('docBack');
+    if (back) back.classList.remove('open');
     var arch = document.getElementById('dcArchivo');
     if (arch) arch.value = '';
     var nom = document.getElementById('dcNombre');
@@ -10301,10 +10296,11 @@ applyLang(idiomaParaMi());
     if (sel) sel.value = '';
     var av = document.getElementById('dcAviso');
     if (av){ av.textContent = ''; av.className = 'pf-aviso'; }
-    document.querySelectorAll('#dcNuevo .pf-campo').forEach(function(c){
+    document.querySelectorAll('#docBack .pf-campo').forEach(function(c){
       c.classList.remove('mal');
     });
     if (dcBtSubir) dcBtSubir.setAttribute('aria-expanded', 'false');
+    if (dcBtSubir && dcBtSubir.isConnected) dcBtSubir.focus();
   }
 
   function guardaDocNuevo(){
@@ -10315,7 +10311,7 @@ applyLang(idiomaParaMi());
     var bt   = document.getElementById('dcGuarda');
     if (!sel || !arch || !av || !bt) return;
 
-    document.querySelectorAll('#dcNuevo .pf-campo').forEach(function(c){
+    document.querySelectorAll('#docBack .pf-campo').forEach(function(c){
       c.classList.remove('mal');
     });
     /* Las dos cosas a la vez, y se dicen en el mismo aviso: enseñar «falta
@@ -10400,34 +10396,33 @@ applyLang(idiomaParaMi());
   if (dcLista){
     if (dcNav) dcNav.addEventListener('click', function(){ location.hash = 'documentos'; });
     var btS = document.getElementById('dcSubir');
-    /* 'cajaNuevo' y no 'caja': 'caja' es la variable del IIFE donde se
-       dibuja el detalle de un tramite -el #trReal-, y 'var' es de ambito
-       de FUNCION, no de bloque. Llamandola 'caja' aqui dentro se pisaba al
-       cargar la pagina, y TODOS los formularios de tramite se dibujaban
-       dentro de este panel, que esta oculto. Treinta pruebas en rojo y
-       ninguna hablando de la boveda. */
-    var cajaNuevo = document.getElementById('dcNuevo');
-    if (btS && cajaNuevo){
+    var docBack = document.getElementById('docBack');
+    if (btS && docBack){
       btS.setAttribute('aria-expanded', 'false');
+      btS.setAttribute('aria-haspopup', 'dialog');
       btS.addEventListener('click', function(){
         if (dcAbierto){ cierraFormNuevo(); return; }
         dcAbierto = true;
-        /* Y se borra el "guardado" del anterior: dejarlo puesto mientras se
+        /* Se borra el "guardado" del anterior: dejarlo puesto mientras se
            sube el siguiente es un cartel diciendo que ya esta hecho algo
            que no ha empezado. */
         var af = document.getElementById('dcAvisoFuera');
         if (af){ af.textContent = ''; af.className = 'pf-aviso'; }
-        /* La fila que lo contiene tambien: una <tr hidden> no ensena lo
-           que lleva dentro por muy visible que sea el div. */
-        var ff = document.getElementById('dcFormFila');
-        if (ff) ff.hidden = false;
-        cajaNuevo.hidden = false;
-        cajaNuevo.classList.add('open');
+        docBack.classList.add('open');
         btS.setAttribute('aria-expanded', 'true');
         pintaFormNuevo();
         var sel = document.getElementById('dcTipo');
         if (sel) sel.focus();
       });
+      /* Como el perfil y la cita: la cortina y Escape tambien cierran. */
+      docBack.addEventListener('click', function(e){
+        if (e.target === docBack) cierraFormNuevo();
+      });
+      document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape' && dcAbierto) cierraFormNuevo();
+      });
+      var dcCe = document.getElementById('dcCerrar');
+      if (dcCe) dcCe.addEventListener('click', cierraFormNuevo);
     }
     var dcEl = document.getElementById('dcElige');
     var dcAr = document.getElementById('dcArchivo');

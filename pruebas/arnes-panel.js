@@ -3290,16 +3290,21 @@
     ok('subir: con su escuchador intacto, que es el mismo nodo',
        trasPintar === bt, trasPintar === bt ? 'el mismo' : 'otro nodo', 'el mismo');
 
-    /* Nace cerrado: si naciera abierto taparia la lista de lo que ya
-       tienes, que es lo que hay que mirar para no subir dos veces. */
-    var caja = document.getElementById('dcNuevo');
-    ok('subir: el formulario nace cerrado',
+    /* En una VENTANA y no desplegandose dentro de la tabla: desplegado
+       empujaba la lista hacia abajo, y lo que estabas mirando -para no
+       subir dos veces el mismo papel- se movia justo al ir a subirlo. */
+    var caja = document.getElementById('docBack');
+    ok('subir: la ventana nace cerrada',
        !!caja && !caja.classList.contains('open'),
-       caja ? caja.className : 'no hay caja', 'cerrado');
+       caja ? caja.className : 'no hay ventana', 'cerrada');
 
+    /* Y la tabla no se mueve al abrirla: es lo que se venia a arreglar. */
+    var antesY = document.querySelector('#dcLista tr').getBoundingClientRect().top;
     bt.click();
     ok('subir: y se abre al pulsar', caja.classList.contains('open'),
-       caja.className, 'abierto');
+       caja.className, 'abierta');
+    var despuesY = document.querySelector('#dcLista tr').getBoundingClientRect().top;
+    igual('subir: y la lista no se mueve de sitio', Math.round(despuesY), Math.round(antesY));
 
     /* Los tipos que se ofrecen son los que PIDE algun tramite: los
        nombres traducidos ya estan escritos ahi, y un tipo que nadie pide
@@ -3339,8 +3344,8 @@
           (document.getElementById('dcAviso') || {}).textContent,
           'Dinos qué documento es y elige el archivo.');
     ok('subir: y el desplegable se marca',
-       !!document.querySelector('#dcNuevo .pf-campo.mal'),
-       document.querySelector('#dcNuevo .pf-campo.mal') ? 'marcado' : 'sin marcar',
+       !!document.querySelector('#docBack .pf-campo.mal'),
+       document.querySelector('#docBack .pf-campo.mal') ? 'marcado' : 'sin marcar',
        'marcado');
   }
 
@@ -3373,11 +3378,11 @@
     ok('subir: y con su nombre de archivo',
        /lo-que-ya-tenia\.pdf/.test(document.getElementById('dcLista').textContent),
        'busca lo-que-ya-tenia.pdf', 'esta en la lista');
-    /* El formulario se cierra solo: dejarlo abierto con lo de antes dentro
+    /* La ventana se cierra sola: dejarla abierta con lo de antes dentro
        invita a mandarlo dos veces. */
-    var caja = document.getElementById('dcNuevo');
-    ok('subir: y el formulario se cierra solo',
-       !!caja && !caja.classList.contains('open'), caja.className, 'cerrado');
+    var caja = document.getElementById('docBack');
+    ok('subir: y la ventana se cierra sola',
+       !!caja && !caja.classList.contains('open'), caja.className, 'cerrada');
     /* Y el "guardado" se dice FUERA, con la ficha nueva ya delante. */
     igual('subir: y lo dice con la ficha ya puesta',
           (document.getElementById('dcAvisoFuera') || {}).textContent,
