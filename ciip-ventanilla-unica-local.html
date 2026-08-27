@@ -478,6 +478,7 @@ body[data-vista="rastro"] #raVolver{display:inline-flex;}
   width:7px; height:7px; border-radius:50%; background:var(--line);
   box-shadow:0 0 0 3px var(--bg);}
 .ra-fila.rol::before{background:var(--navy2);}
+.ra-fila.cat::before{background:var(--cyan-deep);}
 .ra-que{flex:1; min-width:240px; font-size:13px; color:var(--ink);}
 .ra-que b{font-weight:700;}
 .ra-cuando{font-size:11.5px; color:var(--gray-soft); white-space:nowrap;}
@@ -12661,6 +12662,16 @@ applyLang(idiomaParaMi());
     return '';
   }
 
+  /* Sin autor y sin nombre no son lo mismo, y decirles «Alguien» a los dos
+     era esconder el dato mas util de esta pantalla: sin autor significa
+     que NO se hizo desde el panel -en el editor de Supabase no hay sesion
+     que apuntar-, y sin nombre significa que la persona esta ahi y no se
+     ha puesto uno. */
+  function quienEs(id, u){
+    if (!id) return u.ra_base || '';
+    return nombreDe(id) || u.ra_sinnombre || '';
+  }
+
   function cargaRastro(){
     /* Los perfiles primero: sin ellos el rastro sale lleno de uuids, que
        es peor que no tenerlo. Se reusan si la otra pantalla ya los trajo. */
@@ -12690,6 +12701,32 @@ applyLang(idiomaParaMi());
           ev.push({que:'rol', quien:pf.rol_cambiado_por, aquien:pf.id,
                    rol:pf.rol, cuando:pf.rol_cambiado_en});
         });
+        /* Y el interruptor del catalogo, que es la tercera fuente. Se pide
+           aparte y no se deja caer la pantalla si falla: las columnas las
+           trae supabase-catalogos.sql, y hasta que no se pase, Postgres
+           rechaza LA CONSULTA ENTERA por una columna que no conoce. El
+           rastro se queda sin esa fuente y sigue enseñando las otras dos,
+           que es mejor que una pantalla en blanco. */
+        return sb.from('tipos_tramite')
+          .select('codigo, nombre, activo, activo_por, activo_en')
+          .then(function(r2){
+            var m = (r2 && r2.error && r2.error.message) || '';
+            if (m){
+              if (/column|columna/i.test(m)){
+                console.warn('[CIIP] rastro: falta correr supabase-catalogos.sql; ' +
+                             'sigo sin el rastro del catalogo');
+              }
+              return ev;
+            }
+            (r2.data || []).forEach(function(x){
+              if (!x.activo_en) return;
+              ev.push({que: x.activo ? 'on' : 'off', quien:x.activo_por,
+                       tramite: x.nombre || x.codigo, cuando:x.activo_en});
+            });
+            return ev;
+          });
+      })
+      .then(function(ev){
         ev.sort(function(a, b){ return Date.parse(b.cuando) - Date.parse(a.cuando); });
         rastro = ev;
         pintaRastro();
@@ -12733,14 +12770,20 @@ applyLang(idiomaParaMi());
     }
 
     rastro.forEach(function(x){
-      var f = el('div', 'ra-fila' + (x.que === 'rol' ? ' rol' : ''));
+      var f = el('div', 'ra-fila' + (x.que === 'rol' ? ' rol'
+                        : (x.que === 'on' || x.que === 'off') ? ' cat' : ''));
       var q = el('div', 'ra-que');
-      var quien = nombreDe(x.quien) || (u.ra_alguien || '');
+      var quien = quienEs(x.quien, u);
       if (x.que === 'rol'){
         frasePartida(q, u.ra_rol, {
           quien: quien,
-          aquien: nombreDe(x.aquien) || (u.ra_alguien || ''),
+          aquien: quienEs(x.aquien, u),
           rol: d['rol.' + x.rol] || x.rol || ''
+        });
+      } else if (x.que === 'on' || x.que === 'off'){
+        frasePartida(q, (x.que === 'on' ? u.ra_on : u.ra_off), {
+          quien: quien,
+          tramite: x.tramite || ''
         });
       } else {
         frasePartida(q, u.ra_tramite, {

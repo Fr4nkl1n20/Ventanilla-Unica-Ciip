@@ -160,3 +160,62 @@ order  by p.rol, u.email;
 -- todo bien puesto, y una comprobación que solo sabe decir que no es peor
 -- que ninguna. Donde sí vale es en el navegador, y ahí la hace la propia
 -- política cada vez que el panel escribe.
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 4. Y QUE EL INTERRUPTOR DEJE RASTRO
+-- ───────────────────────────────────────────────────────────────────────
+-- Encender o apagar un trámite es de las cosas más consecuentes que puede
+-- hacer un admin —cambia lo que la ventanilla ofrece a todo el mundo— y
+-- hasta ahora no quedaba constancia de quién lo hizo. La pantalla de
+-- Rastro lo decía en voz alta, que es mejor que callarlo, pero decirlo no
+-- es arreglarlo.
+--
+-- Se copia lo que ya hace supabase-admin.sql con los roles: lo escribe un
+-- DISPARADOR y no el navegador. Un campo que rellena quien escribe es un
+-- campo que quien escribe puede mentir.
+alter table public.tipos_tramite
+  add column if not exists activo_por uuid references auth.users(id) on delete set null,
+  add column if not exists activo_en  timestamptz;
+
+comment on column public.tipos_tramite.activo_por is
+  'Quién encendió o apagó este trámite. Lo pone el disparador, no el cliente';
+comment on column public.tipos_tramite.activo_en is
+  'Cuándo se movió el interruptor por última vez';
+
+-- Solo cuando CAMBIA 'activo'. Sin esta guarda, cualquier update sobre la
+-- fila —renombrar el trámite, corregir el ente— reescribiría la fecha y el
+-- rastro diría que alguien lo encendió cuando solo le arreglaron una tilde.
+create or replace function public.marca_quien_movio_el_interruptor()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.activo is distinct from old.activo then
+    new.activo_por := auth.uid();
+    new.activo_en  := now();
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists tipos_tramite_rastro on public.tipos_tramite;
+create trigger tipos_tramite_rastro
+  before update on public.tipos_tramite
+  for each row execute function public.marca_quien_movio_el_interruptor();
+
+-- Lo que ESTO no resuelve, dicho para que no se dé por resuelto: se guarda
+-- el ÚLTIMO movimiento de cada trámite, no su historial. Igual que los
+-- roles. Si algún día hace falta saber que se encendió y se apagó tres
+-- veces en una semana, eso pide una tabla de bitácora, no una columna.
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- COMPROBACIÓN DEL RASTRO
+-- ───────────────────────────────────────────────────────────────────────
+-- Tiene que salir el disparador. Si no está, el panel seguirá enseñando
+-- los trámites sin autor y nadie sabrá por qué.
+select tgname as disparador, tgrelid::regclass as tabla
+from   pg_trigger
+where  not tgisinternal and tgrelid = 'public.tipos_tramite'::regclass;

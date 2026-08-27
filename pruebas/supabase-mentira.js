@@ -85,7 +85,8 @@
      que ata cada tipo a su tarjeta del panel (data-tr). */
   var TIPOS = [
     {codigo:'rif_personal', ref_panel:'c3', ente:'SENIAT', activo:true,
-     nombre:'RIF personal', fase:1},
+     nombre:'RIF personal', fase:1,
+     activo_por:null, activo_en: haceHoras(30)},
     {codigo:'constitucion', ref_panel:'c5', ente:'SAREN',  activo:true,
      nombre:'Constitución de empresa', fase:2},
     {codigo:'rif_empresa',  ref_panel:'c6', ente:'SENIAT', activo:true,
@@ -98,7 +99,12 @@
        interruptor enciende no se puede distinguir de la de que no hace
        nada: los dos casos dejan la lista igual. */
     {codigo:'marca',        ref_panel:'c8', ente:'SAPI',   activo:false,
-     nombre:'Registro de marca', fase:2},
+     nombre:'Registro de marca', fase:2,
+     /* Con autor y fecha: es lo que lee el rastro. Uno apagado por
+        alguien del equipo y otro encendido sin autor -hecho desde el
+        editor de Supabase-, que son los dos casos que la pantalla tiene
+        que saber contar distinto. */
+     activo_por:'u4', activo_en: haceHoras(5)},
     /* La visa, que es la del tramite ya resuelto. Sin su tipo aqui, el
        panel no sabe a que tarjeta pertenece y la deja en "por iniciar"
        aunque el tramite este resuelto. */
