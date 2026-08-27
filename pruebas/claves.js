@@ -206,6 +206,12 @@ const PROPIOS = new Set((
   'Entidades Entità Entities Trabajo Trabalho Lavoro Work Contratistas ' +
   'Contratados Contractors Appaltatori Registry Register Único Única Unico ' +
   'Productiva Internacional Inversión Centro Ventanilla Inversionista ' +
+  /* El nombre de la casa en los cuatro idiomas latinos. «Balcão Único do
+     Investidor» se llama así igual que «Ventanilla Única del
+     Inversionista»: faltaba solo el portugués, y no se notó mientras el
+     rótulo llevaba detrás «· Demonstração de conceito», porque con eso
+     pasaba de cinco palabras y la regla ni lo miraba. */
+  'Balcão Investidor ' +
   'Investitore Sportello Investor One Stop Window Concept Demo Ministerio ' +
   /* Y las formas societarias: «Compañía Anónima», «Sociedad de
      Responsabilidad Limitada» son figuras jurídicas con nombre propio, no

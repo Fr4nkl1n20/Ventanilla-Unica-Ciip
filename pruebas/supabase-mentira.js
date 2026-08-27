@@ -84,19 +84,31 @@
   /* El catálogo, con los tres tipos que usan las pruebas. ref_panel es lo
      que ata cada tipo a su tarjeta del panel (data-tr). */
   var TIPOS = [
-    {codigo:'rif_personal', ref_panel:'c3', ente:'SENIAT', activo:true},
-    {codigo:'constitucion', ref_panel:'c5', ente:'SAREN',  activo:true},
-    {codigo:'rif_empresa',  ref_panel:'c6', ente:'SENIAT', activo:true},
-    {codigo:'rnc',          ref_panel:'c13', ente:'RNC',   activo:true},
-    {codigo:'solvencias',   ref_panel:'c14', ente:'Entes varios', activo:true},
+    {codigo:'rif_personal', ref_panel:'c3', ente:'SENIAT', activo:true,
+     nombre:'RIF personal', fase:1},
+    {codigo:'constitucion', ref_panel:'c5', ente:'SAREN',  activo:true,
+     nombre:'Constitución de empresa', fase:2},
+    {codigo:'rif_empresa',  ref_panel:'c6', ente:'SENIAT', activo:true,
+     nombre:'RIF de la empresa', fase:2},
+    {codigo:'rnc',          ref_panel:'c13', ente:'RNC',   activo:true,
+     nombre:'Registro Nacional de Contratistas', fase:3},
+    {codigo:'solvencias',   ref_panel:'c14', ente:'Entes varios', activo:true,
+     nombre:'Solvencias laborales', fase:3},
+    /* Uno APAGADO a proposito. Con todos encendidos, la prueba de que el
+       interruptor enciende no se puede distinguir de la de que no hace
+       nada: los dos casos dejan la lista igual. */
+    {codigo:'marca',        ref_panel:'c8', ente:'SAPI',   activo:false,
+     nombre:'Registro de marca', fase:2},
     /* La visa, que es la del tramite ya resuelto. Sin su tipo aqui, el
        panel no sabe a que tarjeta pertenece y la deja en "por iniciar"
        aunque el tramite este resuelto. */
-    {codigo:'visa_inversionista', ref_panel:'c1', ente:'SAIME', activo:true},
+    {codigo:'visa_inversionista', ref_panel:'c1', ente:'SAIME', activo:true,
+     nombre:'Visa de inversionista', fase:1},
     /* La visa de dependientes pregunta pasaporte, pais emisor y fecha de
        nacimiento: las tres que la de inversionista ya contesto. Es donde se
        mide que no se pide dos veces lo mismo. */
-    {codigo:'visa_dependientes', ref_panel:'c20', ente:'SAIME', activo:true}
+    {codigo:'visa_dependientes', ref_panel:'c20', ente:'SAIME', activo:true,
+     nombre:'Visa de dependientes', fase:1}
   ];
 
   /* El borrador se toca DESPUÉS que el devuelto a propósito: así se
@@ -208,6 +220,8 @@
      expediente de partida es el de siempre, y lo que aparezca aqui lo ha
      subido la propia prueba. */
   var subidos = [];
+  /* Lo que se borro en esta pasada, para que la lista lo respete. */
+  var borrados = {};
   /* Y las rutas que han pasado por Storage, para poder decir que NO existe
      lo que nadie ha subido. */
   var subidas = {};
@@ -596,7 +610,22 @@
       }
       return {data:empresaMia, error:null};
     }
-    if (tabla === 'tipos_tramite')    return {data:TIPOS, error:null};
+    if (tabla === 'tipos_tramite'){
+      /* Encender o apagar uno. Devuelve la fila, que es justo lo que mira
+         el panel para saber si la base le dejo: sin filas de vuelta, la
+         pantalla entiende que RLS lo bloqueo y lo dice. */
+      if (op && op.update && op.eq && op.eq.codigo){
+        var tocado = null;
+        TIPOS.forEach(function(x){
+          if (x.codigo === op.eq.codigo){
+            Object.keys(op.update).forEach(function(k){ x[k] = op.update[k]; });
+            tocado = x;
+          }
+        });
+        return {data: tocado ? [tocado] : [], error:null};
+      }
+      return {data:TIPOS, error:null};
+    }
     if (tabla === 'activos'){
       /* El banco de activos. En 'lleno' hay dos publicados -uno reservado-;
          en 'gestor' hay uno cerrado, que solo el equipo ve; en los demas la
@@ -676,6 +705,26 @@
       if (op && op.eq && op.eq.tipo){
         boveda = boveda.filter(function(d){ return d.tipo === op.eq.tipo; });
       }
+      /* Borrar uno. Solo se pueden ir los de esta pasada -los tres de
+         plantilla vuelven en cada carga, que para eso son plantilla-,
+         pero se APUNTA cual se fue para que la lista lo respete: sin
+         esto, borrar contestaba que si y el papel seguia en pantalla,
+         y la prueba de que desaparece no podia distinguirse de la de
+         que no. */
+      if (op && op.borra && op.eq && op.eq.id){
+        borrados[op.eq.id] = true;
+        subidos = subidos.filter(function(d){ return d.id !== op.eq.id; });
+        return {data:null, error:null};
+      }
+      boveda = boveda.filter(function(d){ return !borrados[d.id]; });
+      /* Los vencidos, que es como los cuenta el pulso. Sin esto devolvia
+         la boveda entera y el numero de caducados salia igual al total:
+         un contador que siempre acierta por casualidad no prueba nada. */
+      if (op && op.lt && op.lt.vence_el){
+        boveda = boveda.filter(function(d){
+          return d.vence_el && d.vence_el < op.lt.vence_el;
+        });
+      }
       return {data:boveda, error:null};
     }
     if (tabla === 'tramite_documentos' && !(op && op.eq)){
@@ -690,7 +739,22 @@
         {documento:'doc3', tramite:'t1'}
       ], error:null};
     }
-    if (tabla === 'tipos_documento')  return {data:[], error:null};
+    /* Que recaudos caducan. Devolvia lista vacia, y con ella el formulario
+       de subir no pediria fecha de vencimiento NUNCA: la prueba de que la
+       pide no podria distinguirse de la de que no. */
+    if (tabla === 'tipos_documento'){
+      return {data:[
+        {codigo:'cedula', vence:true},         {codigo:'pasaporte', vence:true},
+        {codigo:'visa', vence:true},           {codigo:'rif_personal', vence:true},
+        {codigo:'rif_empresa', vence:true},    {codigo:'poder', vence:true},
+        {codigo:'antecedentes', vence:true},   {codigo:'licencia_extranjera', vence:true},
+        {codigo:'certificado_medico', vence:true},
+        {codigo:'domicilio', vence:false},     {codigo:'foto', vence:false},
+        {codigo:'acta_constitutiva', vence:false}, {codigo:'traduccion', vence:false},
+        {codigo:'domicilio_empresa', vence:false}, {codigo:'inversion', vence:false},
+        {codigo:'comprobante_capital', vence:false}
+      ], error:null};
+    }
 
     /* La constancia de identidad. Empieza VACIA a proposito: el estado
        normal de una persona recien llegada es que nadie haya mirado su
@@ -763,6 +827,19 @@
       /* El detalle de un tramite pregunta por SU tipo. Sin filtrar aqui, el
          panel creeria que ya tienes una solicitud de cualquier tramite que
          abras, y enseñaria su estado en vez del formulario. */
+      /* Una consulta SIN filtro ninguno la hace quien puede leerlo todo:
+         el equipo, para contar. La politica de la base se lo permite, asi
+         que el falso tiene que contestar lo mismo -la cola mas lo propio-
+         o el pulso saldria siempre a cero y no habria forma de saber si
+         es que la oficina esta parada o que el panel no pregunta bien. */
+      if (op && !op.eq && !op.in && !op.update && !op.insert && !op.borra && !op.upsert){
+        var todo = colaTram.slice();
+        (TRAMITES[caso] || []).forEach(function(x){
+          var esta = todo.some(function(y){ return y.id === x.id; });
+          if (!esta) todo.push(x);
+        });
+        return {data: todo, error:null};
+      }
       var mios = TRAMITES[caso] || [];
       if (op && op.eq && op.eq.tipo){
         mios = mios.filter(function(t){ return t.tipo === op.eq.tipo; });
@@ -857,7 +934,14 @@
        de probar que el panel aguanta eso es saber que pidio. */
     api.select = function(cols){ op.cols = cols || ''; return api; };
     /* Estos S\u00cd se miran: distinguen a qui\u00e9n va dirigida la consulta. */
+    /* lt y gt: el pulso pide los documentos vencidos con .lt(vence_el,
+       hoy). Sin ellos el falso reventaba con "api.lt is not a function",
+       que es un fallo del arnes disfrazado de fallo del panel. */
     api.eq = function(k, v){ (op.eq = op.eq || {})[k] = v; return api; };
+    api.lt = function(k, v){ (op.lt = op.lt || {})[k] = v; return api; };
+    api.gt = function(k, v){ (op.gt = op.gt || {})[k] = v; return api; };
+    api.lte = function(){ return api; };
+    api.gte = function(){ return api; };
     api.in = function(k, v){ (op.in = op.in || {})[k] = v; return api; };
     api.single = function(){ op.single = true; return api; };
     /* Estos dos SÍ se miran: son los que cambian algo. */
@@ -909,6 +993,13 @@
         storage: {
           from: function(){
             return {
+              /* Quitar un archivo. Devuelve bien tambien si no estaba:
+                 es lo que hace Storage, y el panel se apoya en ello para
+                 poder reintentar un borrado que se quedo a medias. */
+              remove: function(rutas){
+                (rutas || []).forEach(function(r){ delete subidas[r]; });
+                return Promise.resolve({data:[], error:null});
+              },
               upload: function(ruta){
                 /* Se APUNTA lo que se sube. Antes cualquier ruta devolvia
                    una URL firmada, tambien las que no existen, y con eso
