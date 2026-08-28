@@ -238,6 +238,10 @@ const SALTOS = new Set([
      agosto»—. Empezar en minúscula ahí no es un descuido, es lo correcto:
      van en mitad de una frase. */
   'reutilizado', 'mt_resuelta', 'ay_ente',
+  /* Y los cuatro estados de una cita, que se meten DENTRO de otra frase:
+     la bitacora escribe «Cita confirmada», no «confirmada» a secas. En
+     mayuscula quedaria «Cita Confirmada», que es peor que el aviso. */
+  'ra_e_solicitada', 'ra_e_confirmada', 'ra_e_hecha', 'ra_e_cancelada',
   /* Y estos dos, que se pegan detras del nombre de un recaudo: «Pasaporte
      · lo emite el consulado · ya esta en tu boveda». */
   'ft_tuyo', 'ft_emite',

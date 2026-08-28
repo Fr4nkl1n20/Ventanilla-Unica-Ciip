@@ -748,6 +748,29 @@
     /* Que recaudos caducan. Devolvia lista vacia, y con ella el formulario
        de subir no pediria fecha de vencimiento NUNCA: la prueba de que la
        pide no podria distinguirse de la de que no. */
+    /* La bitacora. Lleva el MISMO tramite apagado y encendido, que es lo
+       que una tabla de historial hace y dos columnas no: con columnas el
+       segundo movimiento pisaba al primero y salia un apunte en vez de
+       dos. Sin este par, la prueba de que ya no se pisan no comprueba
+       nada. */
+    if (tabla === 'bitacora'){
+      return {data:[
+        {id:6, cuando:haceHoras(0.2), quien:'u4', fuente:'catalogo',
+         accion:'encendio', sobre:'Registro de marca', detalle:''},
+        {id:5, cuando:haceHoras(1),   quien:'u4', fuente:'catalogo',
+         accion:'apago',    sobre:'Registro de marca', detalle:''},
+        {id:4, cuando:haceHoras(3),   quien:'u2', fuente:'papeles',
+         accion:'subio',    sobre:'acta-constitutiva.pdf', detalle:'acta_constitutiva'},
+        {id:3, cuando:haceHoras(9),   quien:'u2', fuente:'papeles',
+         accion:'borro',    sobre:'pasaporte-viejo.pdf', detalle:'pasaporte'},
+        {id:2, cuando:haceHoras(26),  quien:null,  fuente:'citas',
+         accion:'movio',    sobre:'rif_empresa', detalle:'confirmada'},
+        {id:1, cuando:haceHoras(30),  quien:'u5', fuente:'citas',
+         accion:'pidio',    sobre:'', detalle:'solicitada'},
+        {id:0, cuando:haceHoras(50),  quien:'u4', fuente:'roles',
+         accion:'rol',      sobre:'Saskia Calderon', detalle:'gestor'}
+      ], error:null};
+    }
     if (tabla === 'tipos_documento'){
       return {data:[
         {codigo:'cedula', vence:true},         {codigo:'pasaporte', vence:true},

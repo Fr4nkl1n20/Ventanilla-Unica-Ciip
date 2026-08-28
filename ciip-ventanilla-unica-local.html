@@ -464,28 +464,48 @@ body[data-vista="rastro"] #emVolver{display:none;}
 body[data-vista="rastro"] #raVolver{display:inline-flex;}
 #raVolver{display:none;}
 
-/* Un renglon por apunte. La linea de tiempo va por la izquierda: es una
-   sola columna en orden, y el punto dice donde cae cada cosa. */
-.ra-lista{max-width:1000px; border-left:1px solid var(--line);
-  margin-left:5px; padding-left:0;}
-.ra-dia{font-size:10px; font-weight:700; letter-spacing:.11em;
-  text-transform:uppercase; color:var(--gray-soft);
-  margin:20px 0 8px; padding-left:22px;}
-.ra-dia:first-child{margin-top:0;}
-.ra-fila{position:relative; padding:9px 0 9px 22px;
-  display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;}
-.ra-fila::before{content:""; position:absolute; left:-4px; top:15px;
-  width:7px; height:7px; border-radius:50%; background:var(--line);
-  box-shadow:0 0 0 3px var(--bg);}
-.ra-fila.rol::before{background:var(--navy2);}
-.ra-fila.cat::before{background:var(--cyan-deep);}
-.ra-que{flex:1; min-width:240px; font-size:13px; color:var(--ink);}
-.ra-que b{font-weight:700;}
-.ra-cuando{font-size:11.5px; color:var(--gray-soft); white-space:nowrap;}
+/* El rastro va en columnas: aqui no se actua sobre ningun renglon -solo se
+   lee y se busca-, que es justo para lo que sirve una tabla. Usa .tabla y
+   ordenDeTabla, los mismos de la boveda y la cola: tres tablas que se
+   ordenan igual son una sola cosa aprendida una vez.
+
+   Lo que se pierde al partir la frase en celdas se compensa con el punto
+   de color en la columna 'Que': dice de que fuente viene cada apunte sin
+   leerlo, y lleva su rotulo al lado porque el color solo no basta. */
 .ra-nota{background:var(--block); border:1px solid var(--line);
-  border-radius:var(--r); padding:11px 14px; margin-bottom:18px;
+  border-radius:var(--r); padding:11px 14px; margin-bottom:14px;
   font-size:12.5px; color:var(--gray); max-width:1000px;}
-.ra-vacio{font-size:12.5px; color:var(--gray-soft); padding-left:22px;}
+.ra-mandos{display:flex; align-items:center; gap:9px; flex-wrap:wrap;
+  margin:0 0 11px; max-width:1000px;}
+.ra-mandos .co-filtros{margin:0;}
+.ra-busca{position:relative; flex:1; min-width:170px; max-width:250px;}
+.ra-busca input{width:100%; font:inherit; font-size:12.5px; color:var(--ink);
+  background:var(--block); border:1px solid var(--line); border-radius:8px;
+  padding:8px 11px 8px 30px;}
+.ra-busca input:focus{border-color:var(--navy2); outline:none;}
+.ra-busca input::placeholder{color:var(--gray-soft);}
+.ra-busca svg{position:absolute; left:10px; top:50%; transform:translateY(-50%);
+  width:13px; height:13px; stroke:var(--gray-soft); stroke-width:2; fill:none;
+  pointer-events:none;}
+.ra-caja{max-width:1000px;}
+/* La fila no lleva a ninguna parte: un apunte no se abre. */
+.ra-caja .tabla tbody tr{cursor:default;}
+/* Y la ultima columna vuelve a la izquierda. .tabla la alinea a la derecha
+   porque en la boveda y en la cola ahi van los botones; aqui es texto, y
+   el rotulo se iba al borde mientras sus celdas se quedaban a la
+   izquierda, cada uno mirando a un lado. */
+.ra-caja .tabla thead th:last-child{text-align:left;}
+/* Y vuelve a verse. La regla de arriba esconde el boton de ordenar de la
+   ultima cabecera porque en las otras dos tablas esa columna son botones
+   y su rotulo sobra. Aqui la ultima columna es texto, asi que aquella
+   regla no le quitaba un adorno: le borraba el nombre. */
+.ra-caja .tabla thead th:last-child .th-orden{display:inline-flex;}
+.ra-tipo{display:inline-flex; align-items:center; gap:7px; white-space:nowrap;}
+.ra-punto{width:7px; height:7px; border-radius:50%; flex:none;
+  background:var(--gray-soft);}
+.ra-punto.rol{background:var(--navy2);}
+.ra-punto.cat{background:var(--cyan-deep);}
+.ra-vacio{font-size:12.5px; color:var(--gray-soft); padding:18px 12px;}
 
 /* El pulso. Misma mecanica que las otras dos vistas de administracion. */
 .pulso-vista{display:none;}
@@ -3133,7 +3153,21 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
         <div class="sub" id="raSub"></div>
       </div>
       <div class="ra-nota" id="raNota"></div>
-      <div class="ra-lista" id="raLista"></div>
+      <div class="ra-mandos" id="raMandos" hidden>
+        <div class="co-filtros" id="raFiltros"></div>
+        <label class="ra-busca">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="raBusca">
+        </label>
+      </div>
+      <div class="ra-caja">
+        <div class="tabla-caja">
+          <table class="tabla" id="raTabla">
+            <thead><tr id="raCab"></tr></thead>
+            <tbody id="raLista"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- El pulso de la oficina. Los numeros que no hablan de personas se
@@ -12653,6 +12687,8 @@ applyLang(idiomaParaMi());
   var raLista = document.getElementById('raLista');
   var raNav   = document.getElementById('navRastro');
   var rastro  = null;
+  /* Null mientras no se sepa; una lista en cuanto la tabla conteste. */
+  var bitacora = null;
 
   function nombreDe(id){
     if (!id) return '';
@@ -12681,8 +12717,23 @@ applyLang(idiomaParaMi());
       .then(function(r){
         if (r && r.error) throw r.error;
         if (!gente.length) gente = (r && r.data) || [];
-        /* Los ultimos cincuenta. Un registro sin tope crece hasta que la
-           pantalla tarda, y nadie baja hasta el evento numero trescientos. */
+
+        /* El catalogo, para poder escribir «RIF de la empresa» donde la
+           bitacora guarda 'rif_empresa'. Guarda el codigo a proposito:
+           traducirlo al escribir dejaria el registro en un idioma para
+           siempre. Si ya lo trajo la otra pantalla no se vuelve a pedir. */
+        if (cgTipos.length) return null;
+        return sb.from('tipos_tramite').select('codigo, nombre')
+          .then(function(rc){
+            if (rc && !rc.error) cgTipos = rc.data || [];
+            return null;
+          });
+      })
+      .then(function(){
+        /* Los cambios de estado de un tramite NO estan en la bitacora:
+           tramite_eventos ya era un historial de verdad, y duplicarlo
+           serian dos registros de lo mismo esperando a no coincidir. Se
+           piden siempre y se mezclan con lo que haya. */
         return sb.from('tramite_eventos')
           .select('id, tramite, a_estado, autor, creado_en')
           .order('creado_en', {ascending: false})
@@ -12692,21 +12743,40 @@ applyLang(idiomaParaMi());
         var ev = ((r && r.data) || []).map(function(x){
           return {que:'tramite', quien:x.autor, estado:x.a_estado, cuando:x.creado_en};
         });
-        /* Y los cambios de rol, que viven en el propio perfil de quien lo
-           recibio: no hay tabla de historial, asi que solo se sabe el
-           ULTIMO de cada persona. Se dice asi y no se finge una lista
-           completa. */
+        /* Y ahora la bitacora. Si contesta, manda ella para todo lo demas:
+           las dos columnas viejas -rol_cambiado_* y activo_*- cuentan lo
+           mismo peor, guardando solo el ultimo movimiento, y mezclarlas
+           duplicaria cada apunte reciente. */
+        return sb.from('bitacora')
+          .select('id, cuando, quien, fuente, accion, sobre, detalle')
+          .order('cuando', {ascending: false})
+          .limit(100)
+          .then(function(rb){
+            if (rb && rb.error){
+              console.warn('[CIIP] rastro: sin bitacora (' +
+                (rb.error.message || '') + '); sigo con las fuentes viejas');
+              return {ev: ev, bit: null};
+            }
+            return {ev: ev, bit: (rb && rb.data) || []};
+          });
+      })
+      .then(function(x){
+        var ev = x.ev;
+        if (x.bit){
+          bitacora = x.bit;
+          rastro = ev;
+          pintaRastro();
+          return;
+        }
+        /* Sin bitacora, las dos columnas de siempre. Los cambios de rol
+           viven en el propio perfil de quien lo recibio: no hay historial,
+           asi que solo se sabe el ULTIMO de cada persona. */
+        bitacora = null;
         gente.forEach(function(pf){
           if (!pf.rol_cambiado_en) return;
           ev.push({que:'rol', quien:pf.rol_cambiado_por, aquien:pf.id,
                    rol:pf.rol, cuando:pf.rol_cambiado_en});
         });
-        /* Y el interruptor del catalogo, que es la tercera fuente. Se pide
-           aparte y no se deja caer la pantalla si falla: las columnas las
-           trae supabase-catalogos.sql, y hasta que no se pase, Postgres
-           rechaza LA CONSULTA ENTERA por una columna que no conoce. El
-           rastro se queda sin esa fuente y sigue enseñando las otras dos,
-           que es mejor que una pantalla en blanco. */
         return sb.from('tipos_tramite')
           .select('codigo, nombre, activo, activo_por, activo_en')
           .then(function(r2){
@@ -12716,20 +12786,17 @@ applyLang(idiomaParaMi());
                 console.warn('[CIIP] rastro: falta correr supabase-catalogos.sql; ' +
                              'sigo sin el rastro del catalogo');
               }
-              return ev;
+            } else {
+              (r2.data || []).forEach(function(y){
+                if (!y.activo_en) return;
+                ev.push({que: y.activo ? 'on' : 'off', quien:y.activo_por,
+                         tramite: y.nombre || y.codigo, cuando:y.activo_en});
+              });
             }
-            (r2.data || []).forEach(function(x){
-              if (!x.activo_en) return;
-              ev.push({que: x.activo ? 'on' : 'off', quien:x.activo_por,
-                       tramite: x.nombre || x.codigo, cuando:x.activo_en});
-            });
-            return ev;
+            ev.sort(function(a, b){ return Date.parse(b.cuando) - Date.parse(a.cuando); });
+            rastro = ev;
+            pintaRastro();
           });
-      })
-      .then(function(ev){
-        ev.sort(function(a, b){ return Date.parse(b.cuando) - Date.parse(a.cuando); });
-        rastro = ev;
-        pintaRastro();
       })
       .catch(function(e){
         console.warn('[CIIP] rastro:', e && (e.message || e));
@@ -12738,21 +12805,92 @@ applyLang(idiomaParaMi());
       });
   }
 
-  /* Una frase con trozos en negrita, sin innerHTML: los nombres los
-     escriben personas y una comilla angulosa de mas no puede convertirse
-     en marcado. */
-  function frasePartida(caja, plantilla, trozos){
-    var resto = String(plantilla || '');
-    Object.keys(trozos).forEach(function(k){
-      var marca = '{' + k + '}';
-      var i = resto.indexOf(marca);
-      if (i < 0) return;
-      caja.appendChild(document.createTextNode(resto.slice(0, i)));
-      caja.appendChild(el('b', null, trozos[k]));
-      resto = resto.slice(i + marca.length);
-    });
-    caja.appendChild(document.createTextNode(resto));
+  /* Las tres fuentes, y el rotulo de cada una. El orden es el del menu de
+     fichas: primero todo, luego lo mas mirado. */
+  var RA_MONTONES = ['todos', 'rol', 'cat', 'tra', 'pap', 'cit'];
+  var RA_ROTULO = {todos:'ra_f_todos', rol:'ra_f_roles', cat:'ra_f_cat',
+                   tra:'ra_f_tram', pap:'ra_f_pap', cit:'ra_f_citas'};
+  /* Lo que dice la bitacora en 'fuente' y como se llama aqui dentro. */
+  var RA_FUENTE = {catalogo:'cat', roles:'rol', papeles:'pap', citas:'cit'};
+  var RA_ESTADO_CITA = {solicitada:'ra_e_solicitada', confirmada:'ra_e_confirmada',
+                        hecha:'ra_e_hecha', cancelada:'ra_e_cancelada'};
+  var raFiltro = 'todos', raBusca = '', raEnganchado = false;
+
+  /* De que monton es un apunte. 'on' y 'off' son los dos lados del mismo
+     interruptor, asi que cuentan como uno. */
+  function raMonton(x){
+    if (x.que === 'rol') return 'rol';
+    if (x.que === 'on' || x.que === 'off') return 'cat';
+    return 'tra';
   }
+
+  /* Un apunte, ya partido en celdas. Se calcula UNA vez y lo usan la
+     busqueda, el orden y el pintado: si cada uno se lo montara por su
+     cuenta, buscar 'encendio' encontraria filas que no dicen eso. */
+  function raEnCeldas(x, u, d){
+    var quien = quienEs(x.quien, u);
+    var accion = '', sobre = '';
+    if (x.que === 'rol'){
+      accion = String(u.ra_v_rol || '').replace('{rol}', d['rol.' + x.rol] || x.rol || '');
+      sobre  = quienEs(x.aquien, u);
+    } else if (x.que === 'on' || x.que === 'off'){
+      accion = (x.que === 'on' ? u.ra_v_on : u.ra_v_off) || '';
+      sobre  = x.tramite || '';
+    } else {
+      accion = String(u.ra_v_movio || '')
+        .replace('{estado}', u[PU_ROTULO[x.estado]] || x.estado || '');
+      sobre  = u.ra_solicitud || '';
+    }
+    return {cuando:x.cuando, quien:quien, monton:raMonton(x),
+            que:u[RA_ROTULO[raMonton(x)]] || '', accion:accion, sobre:sobre};
+  }
+
+  /* Un apunte de la bitacora. Viene ya con el nombre de la cosa dentro
+     -congelado al escribirlo-, asi que aqui solo se traduce el verbo. */
+  function raDeBitacora(b, u, d){
+    var monton = RA_FUENTE[b.fuente] || 'tra';
+    var accion = '', sobre = b.sobre || '';
+    if (b.fuente === 'catalogo'){
+      accion = (b.accion === 'encendio' ? u.ra_v_on : u.ra_v_off) || '';
+    } else if (b.fuente === 'roles'){
+      accion = String(u.ra_v_rol || '').replace('{rol}', d['rol.' + b.detalle] || b.detalle || '');
+      if (!sobre) sobre = u.ra_sinnombre || '';
+    } else if (b.fuente === 'papeles'){
+      accion = (b.accion === 'subio' ? u.ra_v_subio : u.ra_v_borro) || '';
+    } else {
+      accion = (b.accion === 'pidio') ? (u.ra_v_pidio || '')
+             : String(u.ra_v_cita || '').replace('{estado}',
+                 u[RA_ESTADO_CITA[b.detalle]] || b.detalle || '');
+      /* Una cita sin tramite es una consulta general, y eso es un caso
+         legitimo y no un hueco: se dice, en vez de dejar la celda muda. */
+      if (!sobre) sobre = u.ra_cita_gral || '';
+      else sobre = nombreDeTipoTramite(sobre) || sobre;
+    }
+    return {cuando:b.cuando, quien:quienEs(b.quien, u), monton:monton,
+            que:u[RA_ROTULO[monton]] || '', accion:accion, sobre:sobre};
+  }
+
+  /* El nombre legible de un tramite, si el catalogo ya se cargo. La
+     bitacora guarda el codigo de la cita -'rif_empresa'- porque traducirlo
+     al escribir dejaria el registro en un idioma para siempre. */
+  function nombreDeTipoTramite(codigo){
+    for (var i = 0; i < cgTipos.length; i++){
+      if (cgTipos[i].codigo === codigo) return cgTipos[i].nombre || '';
+    }
+    return '';
+  }
+
+  /* Por que valor ordena cada columna. 'Cuando' se compara en numero: en
+     letra, «hace 3 h» iria antes que «hace 2 dias». */
+  var RA_ORDENA = {
+    ra_c_cuando: function(c){ return Date.parse(c.cuando) || 0; },
+    ra_c_quien:  function(c){ return c.quien; },
+    ra_c_que:    function(c){ return c.que; },
+    ra_c_accion: function(c){ return c.accion; },
+    ra_c_sobre:  function(c){ return c.sobre; }
+  };
+  var RA_COLUMNAS = ['ra_c_cuando', 'ra_c_quien', 'ra_c_que', 'ra_c_accion', 'ra_c_sobre'];
+  var raOrden = ordenDeTabla(function(){ pintaRastro(); });
 
   function pintaRastro(){
     if (!raLista) return;
@@ -12760,42 +12898,123 @@ applyLang(idiomaParaMi());
     var d = I18N[curLang] || I18N.en;
     var sub = document.getElementById('raSub');
     if (sub) sub.textContent = u.ra_sub || '';
+    /* Y la nota dice lo que falta HOY, que no es lo mismo con bitacora
+       que sin ella. Una nota fija acaba avisando de un agujero que ya se
+       tapo, y eso es tan falso como callar el que sigue abierto. */
     var nota = document.getElementById('raNota');
-    if (nota) nota.textContent = u.ra_nota || '';
+    if (nota) nota.textContent = (bitacora ? u.ra_nota2 : u.ra_nota) || '';
+
+    /* Los cambios de estado de un tramite van SIEMPRE por su lado -viven
+       en tramite_eventos, que ya era un historial-, y lo demas sale de la
+       bitacora si la hay o de las columnas viejas si no. Las dos mitades
+       se juntan y se ordenan por fecha: son un solo registro contado
+       desde dos sitios, no dos listas. */
+    var celdas = (rastro || []).map(function(x){ return raEnCeldas(x, u, d); });
+    if (bitacora){
+      celdas = celdas.concat(bitacora.map(function(b){ return raDeBitacora(b, u, d); }));
+    }
+    celdas.sort(function(a, b){ return Date.parse(b.cuando) - Date.parse(a.cuando); });
+    pintaMandosRastro(celdas);
+
+    /* La cabecera se monta SIEMPRE, tambien sin apuntes: vaciarla dejaria
+       una tabla sin titulos, que parece rota y no vacia. */
+    var cab = document.getElementById('raCab');
+    if (cab){
+      cab.textContent = '';
+      RA_COLUMNAS.forEach(function(k){
+        var th = document.createElement('th');
+        th.scope = 'col';
+        raOrden.rotula(th, k, u[k] || '', RA_ORDENA[k]);
+        cab.appendChild(th);
+      });
+    }
 
     raLista.textContent = '';
-    if (!rastro || !rastro.length){
-      raLista.appendChild(el('div', 'ra-vacio', u.ra_vacio || ''));
+    if (!celdas.length){
+      raLista.appendChild(filaSuelta(u.ra_vacio || ''));
       return;
     }
 
-    rastro.forEach(function(x){
-      var f = el('div', 'ra-fila' + (x.que === 'rol' ? ' rol'
-                        : (x.que === 'on' || x.que === 'off') ? ' cat' : ''));
-      var q = el('div', 'ra-que');
-      var quien = quienEs(x.quien, u);
-      if (x.que === 'rol'){
-        frasePartida(q, u.ra_rol, {
-          quien: quien,
-          aquien: quienEs(x.aquien, u),
-          rol: d['rol.' + x.rol] || x.rol || ''
-        });
-      } else if (x.que === 'on' || x.que === 'off'){
-        frasePartida(q, (x.que === 'on' ? u.ra_on : u.ra_off), {
-          quien: quien,
-          tramite: x.tramite || ''
-        });
-      } else {
-        frasePartida(q, u.ra_tramite, {
-          quien: quien,
-          estado: u[PU_ROTULO[x.estado]] || x.estado || ''
-        });
-      }
-      f.appendChild(q);
-      f.appendChild(el('div', 'ra-cuando',
-        (typeof haceCuanto === 'function' ? haceCuanto(x.cuando) : '') || ''));
+    var vistas = celdas.filter(raCuadra);
+    if (!vistas.length){
+      raLista.appendChild(filaSuelta(u.ra_nada || ''));
+      return;
+    }
+
+    /* Sin cabecera pulsada manda lo mas reciente, que es como llega. */
+    raOrden.ordena(vistas, RA_ORDENA).forEach(function(c){
+      var f = document.createElement('tr');
+      f.appendChild(el('td', 't-fecha',
+        (typeof haceCuanto === 'function' ? haceCuanto(c.cuando) : '') || ''));
+      f.appendChild(el('td', 't-fuerte', c.quien));
+      var tdQ = document.createElement('td');
+      var sp = el('span', 'ra-tipo');
+      sp.appendChild(el('span', 'ra-punto ' + c.monton));
+      sp.appendChild(document.createTextNode(c.que));
+      tdQ.appendChild(sp);
+      f.appendChild(tdQ);
+      f.appendChild(el('td', null, c.accion));
+      f.appendChild(el('td', null, c.sobre));
       raLista.appendChild(f);
     });
+  }
+
+  /* Un aviso a todo lo ancho, dentro de la tabla: fuera de ella se
+     quedaria descolgado bajo una cabecera con columnas. */
+  function filaSuelta(texto){
+    var f = document.createElement('tr');
+    var td = document.createElement('td');
+    td.colSpan = RA_COLUMNAS.length;
+    td.appendChild(el('div', 'ra-vacio', texto));
+    f.appendChild(td);
+    return f;
+  }
+
+  function raCuadra(c){
+    if (raFiltro !== 'todos' && c.monton !== raFiltro) return false;
+    if (!raBusca) return true;
+    /* Se busca sobre las celdas ya montadas y no sobre el apunte crudo:
+       asi lo que encuentras es lo que lees. */
+    var donde = (c.quien + ' ' + c.que + ' ' + c.accion + ' ' + c.sobre).toLowerCase();
+    return donde.indexOf(raBusca.toLowerCase()) >= 0;
+  }
+
+  function pintaMandosRastro(celdas){
+    var caja = document.getElementById('raMandos');
+    var fils = document.getElementById('raFiltros');
+    var q = document.getElementById('raBusca');
+    if (!caja || !fils || !q) return;
+    var u = T();
+    /* Con menos de dos apuntes no hay nada que repartir. */
+    caja.hidden = (celdas.length < 2);
+    if (caja.hidden){ raFiltro = 'todos'; raBusca = ''; q.value = ''; return; }
+
+    fils.textContent = '';
+    RA_MONTONES.forEach(function(m){
+      /* La cuenta es de TODO el rastro, no de lo que dejan ver los mandos:
+         es un censo, y dice cuanto hay de cada fuente sin filtrar. */
+      var n = (m === 'todos') ? celdas.length
+            : celdas.filter(function(c){ return c.monton === m; }).length;
+      var b = el('button', raFiltro === m ? 'aqui' : null);
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(raFiltro === m));
+      b.appendChild(document.createTextNode(u[RA_ROTULO[m]] || ''));
+      b.appendChild(el('span', 'n', String(n)));
+      b.addEventListener('click', function(){ raFiltro = m; pintaRastro(); });
+      fils.appendChild(b);
+    });
+
+    q.placeholder = u.ra_busca || '';
+    q.setAttribute('aria-label', u.ra_busca || '');
+    if (!raEnganchado){
+      raEnganchado = true;
+      q.addEventListener('input', function(){
+        raBusca = q.value.trim();
+        pintaRastro();
+        var otra = document.getElementById('raBusca');
+        if (otra && otra !== document.activeElement) otra.focus();
+      });
+    }
   }
 
   if (raLista){
