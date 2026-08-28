@@ -228,6 +228,9 @@
   var subidos = [];
   /* Lo que se borro en esta pasada, para que la lista lo respete. */
   var borrados = {};
+  /* La configuracion del acompañamiento, con sus valores de fabrica. */
+  var ACOMP = {id:true, burbuja:true, nube:true, b_ciip:true, b_invertir:true,
+    b_cita:true, nube_espera:3200, nube_dura:8400, nube_vuelve:180000, textos:{}};
   /* Y las rutas que han pasado por Storage, para poder decir que NO existe
      lo que nadie ha subido. */
   var subidas = {};
@@ -514,6 +517,14 @@
 
   function respuesta(tabla, op){
     if (tabla === 'perfiles'){
+      /* Bloquear. Se apunta de verdad para que la ficha cambie: un falso
+         que dice "hecho" sin cambiar nada da verde a una prueba que no
+         comprueba nada. */
+      if (op && op.update && 'bloqueado' in op.update && op.eq && op.eq.id){
+        var quien = OTROS_PERFILES.filter(function(g){ return g.id === op.eq.id; })[0];
+        if (quien) quien.bloqueado = !!op.update.bloqueado;
+        return {data: quien || {}, error:null};
+      }
       if (sinSql && op && /visto_en|rol_cambiado_en|sector/.test(op.cols || '')){
         /* Con el nombre de la que falta de verdad: un falso que siempre
            dice 'visto_en' ensena a leer un mensaje que no es el que da
@@ -753,6 +764,16 @@
        segundo movimiento pisaba al primero y salia un apunte en vez de
        dos. Sin este par, la prueba de que ya no se pisan no comprueba
        nada. */
+    /* La configuracion del acompañamiento. Con la nube apagada y un
+       retoque de texto, que son los dos casos que la pantalla tiene que
+       saber pintar y la burbuja obedecer. */
+    if (tabla === 'acompanamiento'){
+      if (op && op.update){
+        Object.keys(op.update).forEach(function(k){ ACOMP[k] = op.update[k]; });
+        return {data:[ACOMP], error:null};
+      }
+      return {data:[ACOMP], error:null};
+    }
     if (tabla === 'bitacora'){
       return {data:[
         {id:6, cuando:haceHoras(0.2), quien:'u4', fuente:'catalogo',

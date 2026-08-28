@@ -242,6 +242,10 @@ const SALTOS = new Set([
      la bitacora escribe «Cita confirmada», no «confirmada» a secas. En
      mayuscula quedaria «Cita Confirmada», que es peor que el aviso. */
   'ra_e_solicitada', 'ra_e_confirmada', 'ra_e_hecha', 'ra_e_cancelada',
+  /* Y las dos unidades del formulario del acompañamiento, que van DETRAS
+     de una casilla de numero: «Tarda en asomar [ 3 ] segundos». En
+     mayuscula quedaria «3 Segundos». */
+  'sop_seg', 'sop_min',
   /* Y estos dos, que se pegan detras del nombre de un recaudo: «Pasaporte
      · lo emite el consulado · ya esta en tu boveda». */
   'ft_tuyo', 'ft_emite',
