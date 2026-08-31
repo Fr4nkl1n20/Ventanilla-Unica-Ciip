@@ -36,13 +36,16 @@
    ═══════════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const conectorRif = require('./conector-rif');
+const conectorRif   = require('./conector-rif');
+const conectorSaren = require('./conector-saren');
 
 /* Los conectores que hay, por el nombre que lleva tipos_tramite.conector.
    Anadir uno es anadir una linea aqui y un UPDATE en el catalogo; el
-   trabajador no se entera de nada mas. */
+   trabajador no se entera de nada mas, y lo de arriba se comprobo al
+   anadir el segundo: no hubo que tocar ni una linea de aqui abajo. */
 const CONECTORES = {
-  rif_empresa: conectorRif
+  rif_empresa:  conectorRif,
+  constitucion: conectorSaren
 };
 
 /* Un trabajo no se reintenta para siempre. Doce intentos con la espera

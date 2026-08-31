@@ -42,7 +42,7 @@
 -- conector nuevo es un UPDATE, y un trámite sin conector sigue yendo a
 -- mano sin que nada se rompa ni haya que acordarse de excluirlo.
 --
--- null = no hay conector todavía. Son 30 de 31 hoy, y está bien que lo
+-- null = no hay conector todavía. Son 29 de 31 hoy, y está bien que lo
 -- sean: escribir el conector de un ente es lo caro, y hasta que exista
 -- el trámite se atiende como se ha atendido siempre.
 
@@ -52,11 +52,19 @@ alter table public.tipos_tramite
 comment on column public.tipos_tramite.conector is
   'Qué conector lo presenta. null = a mano, como hasta ahora';
 
--- El del RIF de empresa es el único escrito. Lo activa este UPDATE y no
--- el INSERT del catálogo, que lleva ON CONFLICT DO NOTHING y en una base
--- que ya existe no tocaría nada.
+-- Los escritos hasta ahora. Se activan con UPDATE y no en el INSERT del
+-- catálogo, que lleva ON CONFLICT DO NOTHING y en una base que ya existe
+-- no tocaría nada.
+--
+-- El de constitución va con el del RIF y no después: es el trámite del
+-- que cuelgan casi todos los demás —sin acta registrada no hay compañía,
+-- sin compañía no hay RIF de empresa, sin RIF no hay cuenta bancaria—,
+-- así que automatizar el RIF y dejar la constitución a mano sería poner
+-- el motor detrás del atasco.
 update public.tipos_tramite set conector = 'rif_empresa'
  where codigo = 'rif_empresa';
+update public.tipos_tramite set conector = 'constitucion'
+ where codigo = 'constitucion';
 
 
 -- ───────────────────────────────────────────────────────────────────────

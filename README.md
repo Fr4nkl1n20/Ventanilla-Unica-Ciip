@@ -45,6 +45,7 @@ autenticación y los datos los pone Supabase.
 | `PROBAR.bat` | Lanzar las 57 pruebas del acceso |
 | `PROBAR-PANEL.bat` | Lanzar las 2668 pruebas del panel y las 10 comprobaciones de las claves de traducción |
 | `PROBAR-CONECTOR.bat` | Lanzar las 28 pruebas del conector del RIF |
+| `PROBAR-SAREN.bat` | Lanzar las 42 pruebas del conector de la constitución de compañía |
 | `PROBAR-TRABAJADOR.bat` | Lanzar las 44 pruebas del trabajador, que es quien ejecuta lo que el conector decide |
 | `PROBAR-AVISOS.bat` | Lanzar las 38 pruebas de los avisos: que cada quien los reciba en su idioma y que ninguno se pierda |
 | `PROBAR-PAGOS.bat` | Lanzar las 32 pruebas del cobrador, sobre todo las de no cobrar dos veces |

@@ -42,9 +42,11 @@ forzar cada fallo.
 | Archivo | Qué es |
 |---|---|
 | `contrato-rif-empresa.md` | **Lo importante.** Qué se manda, qué vuelve y qué significa cada respuesta. Es lo que se lleva a la reunión con el SENIAT |
-| `simulador.js` | Un SENIAT de mentira que cumple ese contrato, incluidos sus fallos |
-| `conector-rif.js` | El conector. Traduce un trámite de la VUI a expediente, y la respuesta a un estado del panel |
-| `prueba.js` | Comprueba que cada respuesta lleva al estado que debe |
+| `contrato-constitucion.md` | Lo mismo para el SAREN: constituir la compañía. El segundo |
+| `comun.js` | Lo que resultó ser genérico al escribir el segundo: pedir por HTTP, la espera creciente, y los códigos que significan lo mismo venga el organismo que venga |
+| `simulador.js` · `simulador-saren.js` | Los dos organismos de mentira, con sus fallos |
+| `conector-rif.js` · `conector-saren.js` | Los dos conectores |
+| `prueba.js` · `prueba-saren.js` | 28 y 42 pruebas de que cada respuesta lleva al estado que debe |
 | `trabajador.js` | **Quien vacía la cola.** Coge la acción que devuelve el conector y la ejecuta: mueve el trámite, guarda el número del ente, reprograma o alerta |
 | `prueba-trabajador.js` | 44 pruebas de eso, con un depósito de mentira que apunta todo lo que se le pide |
 
@@ -106,6 +108,26 @@ de red deja un trámite atascado a mano.
 
 - **Sigue sin hablar con nadie.** El trabajador presenta contra el simulador,
   no contra el SENIAT. Lo de abajo no ha cambiado.
+
+## Por qué el segundo conector se escribió antes de tener el primer convenio
+
+Con uno solo no había forma de saber qué parte era del SENIAT y cuál era de
+«hablar con un organismo». Sacar una abstracción a partir de un solo caso deja
+una abstracción a medida de ese caso, que es peor que la copia.
+
+Con dos ya se ve. Lo genérico resultó ser tres cosas —pedir por HTTP sabiendo
+distinguir «contestó que no» de «no contestó», cuánto esperar antes de
+reintentar, y los códigos que significan lo mismo venga de donde venga— y está
+en `comun.js`. Lo que **no** se pudo compartir es justo lo caro de acordar: qué
+campos lleva el expediente, qué significa cada 422, y en qué estados cae cada
+respuesta.
+
+Y el segundo trajo una decisión que el primero no tenía: **la denominación
+puede estar ocupada**. El panel ya pedía una alternativa —en el mismo
+formulario, desde antes de que existiera el contrato—, así que si la primera
+está tomada y la segunda no, el registro reserva la segunda y el trámite sigue,
+en vez de volver al inversionista para que escriba otro nombre y empiece de
+nuevo. Eso es un viaje entero ahorrado, y no se habría visto sin escribirlo.
 
 ## Las tres piezas, y por qué son tres
 

@@ -14,16 +14,13 @@
    ═══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-/* Las cinco cosas que pueden pasar. Son las de la tabla del contrato, y
-   no hay una sexta a proposito: cada respuesta del ente cae en una. */
-const ACCIONES = {
-  PRESENTADO: 'presentado',   /* -> el tramite pasa a 'ante_el_ente'   */
-  DEVOLVER:   'devolver',     /* -> pasa a 'devuelto', con su nota     */
-  RESUELTO:   'resuelto',     /* -> pasa a 'resuelto'                  */
-  ESPERAR:    'esperar',      /* -> no se toca; se vuelve a preguntar  */
-  REINTENTAR: 'reintentar',   /* -> no se toca; se manda otra vez      */
-  ALERTAR:    'alertar'       /* -> no se toca; es problema NUESTRO    */
-};
+/* Lo generico -pedir por HTTP, la espera creciente, y los codigos que
+   significan lo mismo venga el organismo que venga- vive en comun.js.
+   Se saco al escribir el segundo conector, no antes: con uno solo no
+   habia forma de saber que parte era del SENIAT y cual era de "hablar
+   con un organismo". Aqui se queda lo que solo vale para este tramite,
+   que es lo caro de acordar. */
+const { ACCIONES, pide, esperaSiguiente, fallo, fueraDelContrato } = require('./comun');
 
 /* ── de tramite de la VUI a expediente del ente ──────────────────── */
 function armaExpediente(tramite, recaudos, solicitante) {
@@ -56,20 +53,6 @@ function armaExpediente(tramite, recaudos, solicitante) {
       url: r.url_firmada
     }))
   };
-}
-
-async function pide(url, opciones, msLimite) {
-  const corta = AbortSignal.timeout(msLimite || 20000);
-  try {
-    const r = await fetch(url, Object.assign({ signal: corta }, opciones));
-    let cuerpo = null;
-    try { cuerpo = await r.json(); } catch (e) { cuerpo = null; }
-    return { codigo: r.status, cuerpo: cuerpo };
-  } catch (e) {
-    /* Se agoto el plazo, o la red no llego. NO se sabe si el expediente
-       entro: es exactamente el caso que salva la Idempotency-Key. */
-    return { codigo: 0, cuerpo: null, fallo: (e && e.message) || String(e) };
-  }
 }
 
 /* ── 1 · presentar ───────────────────────────────────────────────── */
@@ -114,31 +97,12 @@ async function presenta(tramite, recaudos, solicitante, cfg) {
     };
   }
 
-  /* Nuestras credenciales. El tramite del inversionista no tiene la
-     culpa y no se toca: esto lo arregla el CIIP. */
-  if (r.codigo === 401 || r.codigo === 403) {
-    return { accion: ACCIONES.ALERTAR, motivo: 'Credenciales rechazadas por el organismo (' + r.codigo + ').' };
-  }
+  /* Credenciales, saturacion, caida: significan lo mismo venga el
+     organismo que venga, asi que lo dice comun.js. */
+  const generico = fallo(r, cfg);
+  if (generico) return generico;
 
-  /* Saturado, caido o mudo: no se sabe si llego. Se vuelve a intentar
-     con la misma llave, esperando cada vez un poco mas. */
-  if (r.codigo === 0 || r.codigo === 429 || r.codigo >= 500) {
-    return {
-      accion: ACCIONES.REINTENTAR,
-      motivo: r.codigo === 0 ? ('Sin respuesta: ' + r.fallo) : ('El organismo contesto ' + r.codigo + '.'),
-      esperaS: esperaSiguiente(cfg.intento || 1)
-    };
-  }
-
-  /* Cualquier otra cosa es que el contrato no se cumple. Alertar, y que
-     lo mire una persona: adivinar aqui es como se corrompen los datos. */
-  return { accion: ACCIONES.ALERTAR, motivo: 'Respuesta fuera del contrato: ' + r.codigo + '.' };
-}
-
-/* Espera creciente, y con un techo: sin techo, tras un fin de semana
-   caido el primer reintento seria dentro de tres dias. */
-function esperaSiguiente(intento) {
-  return Math.min(300, Math.pow(2, Math.max(1, intento)) * 15);
+  return fueraDelContrato(r, 'presentar');
 }
 
 /* ── 2 · preguntar en que quedo ──────────────────────────────────── */
