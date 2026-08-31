@@ -370,6 +370,136 @@ reset role;
 
 
 -- ── el resultado ──────────────────────────────────────────────────────
+
+-- ══ 5 · LA COLA SE LLENA SOLA ════════════════════════════════════════
+-- El trabajo lo pone un trigger cuando el estado cambia, no la
+-- aplicacion. Si dependiera de que alguien se acuerde de encolar, algun
+-- dia se olvidaria y un tramite se quedaria parado sin que nadie supiera
+-- por que -que es exactamente lo que ya se decidio para el historial-.
+--
+-- Y entra en 'en_revision', no en 'enviado': la escalera de estados solo
+-- deja pasar a 'ante_el_ente' desde ahi. O sea que lo que se manda a un
+-- organismo lo ha visto antes una persona.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+do $p$
+declare
+  conConector text;
+  nuevo uuid;
+begin
+  select codigo into conConector
+    from public.tipos_tramite where conector is not null and activo limit 1;
+  if conConector is null then
+    perform arnes.comprueba('cola: hay al menos un tramite con conector', false,
+                            'ninguno lo tiene');
+    return;
+  end if;
+  perform arnes.comprueba('cola: hay al menos un tramite con conector', true, conConector);
+
+  insert into public.tramites (inversionista, tipo, estado)
+  values (auth.uid(), conConector, 'borrador') returning id into nuevo;
+  insert into arnes.escenario values ('con_conector', nuevo);
+
+  update public.tramites set estado = 'enviado' where id = nuevo;
+end
+$p$;
+
+-- Enviado todavia no encola: falta que una persona lo revise.
+select arnes.comprueba(
+  'cola: en "enviado" todavia no hay nada que hacer',
+  (select count(*) = 0 from public.trabajos
+    where tramite = (select id from arnes.escenario where clave = 'con_conector')),
+  'sigue vacia');
+
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+
+do $p$
+begin
+  update public.tramites set estado = 'en_revision'
+   where id = (select id from arnes.escenario where clave = 'con_conector');
+end
+$p$;
+
+select arnes.comprueba(
+  'cola: al revisarlo aparece el "presentar", sin que nadie lo escriba',
+  (select count(*) = 1 from public.trabajos
+    where tramite = (select id from arnes.escenario where clave = 'con_conector')
+      and tarea = 'presentar' and estado = 'pendiente'));
+
+-- Y no dos veces. Sin el indice parcial, dos triggers seguidos -o dos
+-- trabajadores- dejaban el mismo tramite dos veces en la cola, y eso es
+-- un expediente presentado dos veces ante un organismo.
+do $p$
+begin
+  insert into public.trabajos (tramite, tarea, llave)
+  values ((select id from arnes.escenario where clave = 'con_conector'),
+          'presentar', 'a mano');
+  perform arnes.comprueba('cola: el mismo trabajo no se encola dos veces',
+                          false, 'ENTRO LA SEGUNDA');
+exception when others then
+  perform arnes.comprueba('cola: el mismo trabajo no se encola dos veces', true, sqlerrm);
+end
+$p$;
+
+-- Un tramite SIN conector no encola nada: se atiende a mano como
+-- siempre, sin que haya que acordarse de excluirlo en ningun sitio.
+reset role;
+do $p$
+declare
+  sinConector text;
+  otro uuid;
+  quien uuid;
+begin
+  select codigo into sinConector
+    from public.tipos_tramite where conector is null and activo limit 1;
+  select id into quien from arnes.gente where papel = 'A';
+
+  insert into public.tramites (inversionista, tipo, estado)
+  values (quien, sinConector, 'borrador') returning id into otro;
+  update public.tramites set estado = 'enviado'     where id = otro;
+  update public.tramites set estado = 'en_revision' where id = otro;
+
+  perform arnes.comprueba('cola: un tramite sin conector no encola nada',
+    not exists (select 1 from public.trabajos where tramite = otro),
+    'sigue yendo a mano');
+end
+$p$;
+
+-- Al pasar a 'ante_el_ente' -lo hara el trabajador- se encola la
+-- consulta, tambien sola. Asi el trabajador no tiene que acordarse de
+-- programar el seguimiento: es un sitio menos donde olvidarse.
+do $p$
+declare
+  cual uuid;
+begin
+  select id into cual from arnes.escenario where clave = 'con_conector';
+  update public.trabajos set estado = 'hecho' where tramite = cual;
+  update public.tramites  set estado = 'ante_el_ente' where id = cual;
+
+  perform arnes.comprueba(
+    'cola: al quedar ante el ente se encola la consulta, sola',
+    exists (select 1 from public.trabajos
+             where tramite = cual and tarea = 'consultar' and estado = 'pendiente'));
+end
+$p$;
+
+-- Y el inversionista no la ve. No le dice nada que no le diga su
+-- historial, y en cambio le ensenaria los reintentos y los errores de un
+-- organismo, que es ruido nuestro y parece un problema suyo.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+select arnes.comprueba(
+  'cola: el inversionista no ve la cola de envios',
+  (select count(*) = 0 from public.trabajos));
+
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+select arnes.comprueba(
+  'cola: pero el equipo si (esto TIENE que salir)',
+  (select count(*) > 0 from public.trabajos));
+
+reset role;
+
 \o
 \pset tuples_only on
 \pset format unaligned

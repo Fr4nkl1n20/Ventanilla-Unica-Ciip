@@ -100,7 +100,7 @@ try {
   $once = @('supabase-setup.sql', 'supabase-tramites.sql', 'supabase-admin.sql',
             'supabase-citas.sql', 'supabase-empresa.sql', 'supabase-activos.sql',
             'supabase-identidad.sql', 'supabase-emision.sql', 'supabase-presencia.sql',
-            'supabase-sectores.sql', 'supabase-gestor.sql')
+            'supabase-sectores.sql', 'supabase-gestor.sql', 'supabase-cola.sql')
   $n = 0
   foreach ($f in $once) {
     $n++
@@ -111,7 +111,7 @@ try {
     Write-Output ('  ' + $n.ToString().PadLeft(2) + ' - ' + $f)
   }
   Write-Output ''
-  Write-Output '  Los once entraron, en el orden del README.'
+  Write-Output '  Los doce entraron, en el orden del README.'
   Write-Output ''
 
   Correr (Join-Path $PSScriptRoot 'postgres-pruebas.sql')

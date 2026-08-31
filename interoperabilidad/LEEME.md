@@ -45,6 +45,8 @@ forzar cada fallo.
 | `simulador.js` | Un SENIAT de mentira que cumple ese contrato, incluidos sus fallos |
 | `conector-rif.js` | El conector. Traduce un trámite de la VUI a expediente, y la respuesta a un estado del panel |
 | `prueba.js` | Comprueba que cada respuesta lleva al estado que debe |
+| `trabajador.js` | **Quien vacía la cola.** Coge la acción que devuelve el conector y la ejecuta: mueve el trámite, guarda el número del ente, reprograma o alerta |
+| `prueba-trabajador.js` | 44 pruebas de eso, con un depósito de mentira que apunta todo lo que se le pide |
 
 ---
 
@@ -92,8 +94,30 @@ de red deja un trámite atascado a mano.
   exponen algo. El contrato es lo que necesitamos, escrito para preguntárselo.
 - **No conecta con nada.** No hay backend, no hay servidor con IP fija, no hay
   credenciales. Nada de esto sale de tu máquina.
-- **No está enchufado al panel.** El panel sigue moviendo el estado
-  `ante_el_ente` a mano desde la cola del gestor, como hasta ahora.
+- **Ya no espera a que alguien lo llame.** `trabajador.js` ejecuta la acción, y
+  `supabase-cola.sql` guarda qué hay que hacer y cuándo. La cola la llena un
+  trigger, no la aplicación: un trámite que llega a `en_revision` deja ahí su
+  `presentar` sin que nadie se acuerde de encolarlo.
+
+  Entra en `en_revision` y no en `enviado` porque lo manda la escalera de
+  estados, que sólo deja pasar a `ante_el_ente` desde ahí. O sea: **lo que se
+  manda a un organismo lo ha visto antes una persona.** No es una limitación
+  que haya que rodear, es la política correcta escrita en un sitio.
+
+- **Sigue sin hablar con nadie.** El trabajador presenta contra el simulador,
+  no contra el SENIAT. Lo de abajo no ha cambiado.
+
+## Las tres piezas, y por qué son tres
+
+| | Sabe |
+|---|---|
+| `supabase-cola.sql` | **qué** hay que hacer y **cuándo** se puede volver a intentar |
+| `conector-rif.js` | **qué significa** lo que contestó el organismo |
+| `trabajador.js` | **qué hacer** con esa decisión |
+
+Cada una se prueba sola y ninguna sabe cómo funcionan las otras dos. El
+conector se prueba sin base de datos; el trabajador, sin base de datos y sin
+red de verdad; la cola, en un Postgres de usar y tirar con `PROBAR-SQL.bat`.
 
 ## Lo que falta para que sea real
 
