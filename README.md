@@ -23,6 +23,9 @@ autenticación y los datos los pone Supabase.
 | `supabase-emision.sql` | Permisos para que el equipo entregue por el panel el documento que emitió el ente |
 | `supabase-empresa.sql` | Los datos de la compañía del inversionista, para no reescribirlos en cada formulario |
 | `supabase-activos.sql` | Esquema del banco de activos. La tabla nace vacía: la llena el equipo desde el propio panel |
+| `supabase-identidad.sql` | El registro de las comprobaciones de identidad que hace el equipo |
+| `supabase-presencia.sql` | `tocar_visto()`: apunta con la hora del servidor cuándo estuviste por última vez |
+| `supabase-sectores.sql` | El catálogo de sectores y el que eliges tú. Usa `es_admin()`, así que va **después** de `supabase-admin.sql` |
 | `supabase-gestor.sql` | Lo que necesita el equipo del CIIP: leer los perfiles, anotar una devolución, y cómo nombrar un gestor. Va el último |
 | `logos/` | Logos de los organismos, con su procedencia en [FUENTES.md](logos/FUENTES.md) |
 | `banderas/` | 197 banderas SVG para el buscador de países, con su procedencia en [FUENTES.md](banderas/FUENTES.md) |
@@ -36,15 +39,40 @@ autenticación y los datos los pone Supabase.
 | `ABRIR-LOCAL.bat` | Levantar el proyecto en `http://localhost:8080`, solo para ti |
 | `ABRIR-EN-RED.bat` | Igual, pero abierto a la red: otros PC de la oficina pueden entrar |
 | `PROBAR.bat` | Lanzar las 57 pruebas del acceso |
-| `PROBAR-PANEL.bat` | Lanzar las 868 pruebas del panel y las 5 comprobaciones de las claves de traducción |
+| `PROBAR-PANEL.bat` | Lanzar las 2668 pruebas del panel y las 10 comprobaciones de las claves de traducción |
 | `PROBAR-CONECTOR.bat` | Lanzar las 28 pruebas del conector del RIF |
+| `PROBAR-CERRADURAS.bat` | Comprobar las políticas RLS **entrando de verdad** en el Supabase de pruebas. Se niega a correr contra el real |
 
 ## Puesta en marcha
 
 1. Crear un proyecto en [supabase.com](https://supabase.com)
-2. *SQL Editor* → pegar `supabase-setup.sql` → **Run**. Luego
-   `supabase-tramites.sql`, `supabase-citas.sql` y `supabase-gestor.sql`, en
-   ese orden: el segundo define `es_gestor()`, que los dos últimos usan
+2. *SQL Editor* → pegar cada archivo SQL y pulsar **Run**, **en este orden**.
+   Son once, no cuatro: cada uno que falte apaga su pantalla del panel
+
+   | # | Archivo | Por qué va ahí |
+   |---|---|---|
+   | 1 | `supabase-setup.sql` | Define `tocar_actualizado_en()`, que usan casi todos |
+   | 2 | `supabase-tramites.sql` | Define `es_gestor()` |
+   | 3 | `supabase-admin.sql` | Define `es_admin()` |
+   | 4 | `supabase-citas.sql` | Usa `es_gestor()` |
+   | 5 | `supabase-empresa.sql` | Usa `es_gestor()` |
+   | 6 | `supabase-activos.sql` | Usa `es_gestor()` |
+   | 7 | `supabase-identidad.sql` | Usa `es_gestor()` |
+   | 8 | `supabase-emision.sql` | Usa `es_gestor()` |
+   | 9 | `supabase-presencia.sql` | No depende de nadie |
+   | 10 | `supabase-sectores.sql` | Usa `es_admin()`, del 3 |
+   | 11 | `supabase-gestor.sql` | El último |
+
+   Del 4 al 9 el orden entre ellos da igual: solo piden que el 2 esté hecho.
+
+   **Cuidado con volver a ejecutar `supabase-setup.sql`.** El 3 redefine
+   `bloquear_cambio_de_rol()`, que nace en el 1. Correr el 1 otra vez la deja
+   como estaba y el admin se queda sin repartir roles, sin decir nada. Si lo
+   haces, corre el 3 detrás.
+
+   Saltarse alguno del 4 al 10 no rompe el panel —abre igual, y así lo prueban
+   los expedientes `sinsql`, `sinsector`, `sinsectorsql` y `sincatalogo`—,
+   pero la pantalla que dependa de él se queda muda
 3. `CONFIGURAR.bat` con la *Project URL* y la *anon key*
 4. En Supabase, *Authentication → URL Configuration*, autorizar la dirección
    desde la que se abra el proyecto
@@ -84,7 +112,7 @@ el medidor de fuerza de la clave, navegación entre vistas, los seis idiomas, el
 buscador de países, el almacenamiento de sesión, el logo y la carga de
 `config.js`.
 
-**El panel** (868 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
+**El panel** (2668 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
 los filtros, que las cuatro etapas son cuatro cajas parejas, la franja de "te
 toca a ti", el buzón de avisos, la ventana de tu perfil, las citas, el banco de
 activos —mirarlo, y publicarlo, corregirlo y borrarlo si eres del equipo—, que el panel
@@ -97,10 +125,22 @@ dos citas ajenas esperando en la cola. Buena parte de lo que hay que
 comprobar es que el panel se calla cuando no hay nada que decir, y eso no se ve
 en la misma pasada que comprueba que habla.
 
-**Sin probar**: todo lo que habla con el Supabase de verdad — crear una cuenta,
-iniciar sesión, los correos de confirmación y recuperación, el trigger que crea
-el perfil, enviar una solicitud y subir recaudos. Requiere un proyecto de
-Supabase y se hace a mano.
+**Las cerraduras** (`PROBAR-CERRADURAS.bat`, [pruebas/rls.js](pruebas/rls.js)):
+la única tanda que habla con Postgres. Las otras tres corren contra
+[pruebas/supabase-mentira.js](pruebas/supabase-mentira.js), un doble que concede
+o niega según lo que se escribió que debería pasar, no según lo que la base
+hace; que estén en verde no dice nada sobre si un inversionista puede leer el
+expediente de otro. Esta entra con dos cuentas y trata de hacer lo que no debe:
+leer lo ajeno, escribir en la carpeta de otro, ascenderse de rol, saltarse la
+escalera de estados, colar un archivo que el cubo no admite. Cada intento tiene
+que fallar. Necesita `pruebas/cuentas.local.json` —que `.gitignore` no deja
+subir— y una tercera cuenta con rol gestor para la parte que un inversionista no
+puede ni intentar.
+
+**Sin probar**: crear una cuenta, iniciar sesión, los correos de confirmación y
+recuperación, el trigger que crea el perfil, y el recorrido completo de enviar
+una solicitud con sus recaudos desde el panel. Requiere un proyecto de Supabase
+y se hace a mano.
 
 ## Límites conocidos
 

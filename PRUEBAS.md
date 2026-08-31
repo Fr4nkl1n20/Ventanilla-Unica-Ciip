@@ -7,7 +7,7 @@ funcionan de verdad.
 
 ## Parte 0 · La forma rápida: doble clic en `PROBAR.bat`
 
-Hay 31 pruebas automáticas. **Haz doble clic en `PROBAR.bat`** y en unos
+Hay 57 pruebas automáticas. **Haz doble clic en `PROBAR.bat`** y en unos
 segundos sale la lista con `PASA` o `FALLA` en cada línea.
 
 Cubren lo mismo que la parte 1 de esta guía, más comprobaciones que a mano son
@@ -71,7 +71,10 @@ antes de tiempo.
 ### 2.2 Crear las tablas
 
 **SQL Editor → New query**, pega el contenido íntegro de `supabase-setup.sql`
-y pulsa **Run**. Se puede ejecutar varias veces sin romper nada.
+y pulsa **Run**. Se puede ejecutar varias veces sin romper nada, con una
+salvedad: si ya corriste `supabase-admin.sql`, vuelve a correrlo detrás. El
+de admin redefine `bloquear_cambio_de_rol()`, que nace aquí, y este archivo
+la devuelve a la versión que no deja repartir roles.
 
 Comprueba que el RLS quedó activo:
 
@@ -140,7 +143,8 @@ devuelve un error de redirección no autorizada.
    `Waiting for verification`.
 4. **Comprueba la tabla** → *Table Editor → perfiles*: debe existir una fila con
    tu `nombre_completo` y tu `pais`. Si la fila **no** está, el trigger
-   `al_crear_usuario` falló — vuelve a ejecutar `supabase-setup.sql`.
+   `al_crear_usuario` falló — vuelve a ejecutar `supabase-setup.sql`, y
+   `supabase-admin.sql` detrás si ya lo habías corrido (ver 2.2).
 5. Abre el correo y pulsa el enlace de confirmación.
 
 > **Registrar dos veces el mismo correo no da error a propósito.** Supabase
@@ -198,7 +202,7 @@ mensaje conocido se imprimen ahí con el prefijo `[CIIP] Error de Supabase:`.
 
 | Mensaje en consola | Causa habitual |
 |---|---|
-| `Database error saving new user` | El trigger `al_crear_usuario` falla. Reejecuta `supabase-setup.sql` |
+| `Database error saving new user` | El trigger `al_crear_usuario` falla. Reejecuta `supabase-setup.sql`, y `supabase-admin.sql` detrás (ver 2.2) |
 | `redirect_to is not allowed` | Falta la URL en *Redirect URLs* (paso 3.1) |
 | `Email rate limit exceeded` | El SMTP de prueba de Supabase permite pocos correos por hora. Configura un SMTP propio |
 | `Failed to fetch` | URL de Supabase mal escrita, o sin conexión |

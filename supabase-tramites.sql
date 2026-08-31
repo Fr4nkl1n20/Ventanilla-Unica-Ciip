@@ -462,6 +462,14 @@ comment on column public.documentos.nota_revision is 'Por qué se rechazó. Es l
 
 create index if not exists documentos_por_inversionista on public.documentos (inversionista, tipo);
 
+-- La bóveda se abre siempre con lo vencido primero, y ese orden no lo
+-- servía ningún índice: el de arriba ordena por tipo. Parcial porque un
+-- documento que no caduca -un título, un acta- deja vence_el en null y no
+-- pinta nada en esa pantalla; así el índice ocupa lo que ocupan los que sí.
+create index if not exists documentos_por_vencer
+  on public.documentos (inversionista, vence_el)
+  where vence_el is not null;
+
 
 -- ───────────────────────────────────────────────────────────────────────
 -- 4. LOS TRÁMITES
@@ -533,6 +541,13 @@ create table if not exists public.tramite_documentos (
   primary key (tramite, documento)
 );
 
+-- La clave primaria ya sirve para "qué papeles lleva este trámite", que es
+-- por donde se lee. Falta el otro sentido: Postgres NO indexa solo la
+-- columna de una clave foránea, así que borrar un documento recorría la
+-- tabla entera para comprobar que no cuelga de ningún trámite.
+create index if not exists adjuntos_por_documento
+  on public.tramite_documentos (documento);
+
 comment on table public.tramite_documentos is 'Qué recaudos de la bóveda se adjuntaron a qué solicitud';
 
 
@@ -602,10 +617,95 @@ create trigger tramite_historial_update
   before update on public.tramites
   for each row execute function public.registrar_evento_tramite();
 
+-- ── el estado sube por la escalera, no salta ──
+-- El check de la tabla dice qué estados EXISTEN; no dice en qué orden se
+-- pasa de uno a otro. Con las políticas de arriba, un gestor podía llevar
+-- un trámite de 'borrador' a 'resuelto' de un tirón: el historial lo
+-- anotaba fielmente, pero anotar no es impedir, y lo que quedaba era un
+-- expediente resuelto que nadie revisó ni presentó ante nadie.
+--
+-- Los pasos son los que el panel ofrece de verdad -su tabla está en la
+-- pantalla de la cola- más los dos del inversionista: enviar un borrador y
+-- reenviar lo que le devolvieron. Si mañana el panel ofrece uno nuevo, se
+-- añade aquí; que salga un error es mejor que un salto silencioso.
+--
+-- 'resuelto' no aparece a la izquierda a propósito: de ahí no se vuelve.
+create or replace function public.tramites_solo_la_escalera()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.estado is not distinct from old.estado then
+    return new;
+  end if;
+
+  -- Desde el SQL Editor y desde una clave de servidor auth.uid() es null.
+  -- Ahí no se estorba: quien entra por esa puerta ya se salta el RLS
+  -- entero, y hace falta poder enderezar a mano un expediente atascado sin
+  -- quitar el trigger y tener que acordarse de volver a ponerlo.
+  if auth.uid() is null then
+    return new;
+  end if;
+
+  if not (
+       (old.estado = 'borrador'     and new.estado = 'enviado')
+    or (old.estado = 'devuelto'     and new.estado = 'enviado')
+    or (old.estado = 'enviado'      and new.estado in ('en_revision','devuelto'))
+    or (old.estado = 'en_revision'  and new.estado in ('ante_el_ente','devuelto'))
+    or (old.estado = 'ante_el_ente' and new.estado in ('resuelto','devuelto'))
+  ) then
+    raise exception 'Un trámite no pasa de "%" a "%"', old.estado, new.estado
+      using errcode = 'check_violation';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists tramites_proteger on public.tramites;
+create trigger tramites_proteger
+  before update on public.tramites
+  for each row execute function public.tramites_solo_la_escalera();
+
 drop trigger if exists tramites_marca_tiempo on public.tramites;
 create trigger tramites_marca_tiempo
   before update on public.tramites
   for each row execute function public.tocar_actualizado_en();
+
+-- ── el archivo se va con su ficha ──
+-- documentos guarda la RUTA; el archivo vive en el cubo. Al borrar la
+-- cuenta, el cascade desde auth.users se llevaba la fila y dejaba el
+-- archivo en el cubo para siempre, sin nada que dijera de quién fue.
+--
+-- Va en la base y no en el panel porque el panel no borra documentos
+-- -«cambiar» guarda el viejo como historial- y porque el cascade de una
+-- cuenta borrada ocurre aquí, donde no corre código de cliente.
+--
+-- ALCANCE: esto quita la fila de storage.objects, y con ella el listado,
+-- el recuento y toda forma de pedir el archivo. El binario en el almacén
+-- de detrás no lo borra ningún SQL: eso solo lo hace la API de Storage.
+-- O sea, deja de haber huérfanos accesibles, no deja de haber bytes.
+--
+-- security definer para saltarse el RLS de storage.objects: la política
+-- de borrado mira auth.uid(), y en un cascade de cuenta borrada eso no
+-- vale para nada.
+create or replace function public.borrar_el_archivo()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  delete from storage.objects
+   where bucket_id = 'recaudos' and name = old.archivo;
+  return old;
+end;
+$$;
+
+drop trigger if exists documentos_borra_el_archivo on public.documentos;
+create trigger documentos_borra_el_archivo
+  after delete on public.documentos
+  for each row execute function public.borrar_el_archivo();
 
 drop trigger if exists documentos_marca_tiempo on public.documentos;
 create trigger documentos_marca_tiempo
@@ -744,10 +844,40 @@ create policy "eventos: leer los propios" on public.tramite_eventos
 -- La convención de rutas es {uid}/{lo-que-sea} y las políticas se apoyan
 -- en ella: la primera carpeta ES el dueño. Si se cambia la convención,
 -- hay que cambiar estas cuatro políticas.
+--
+-- EL TOPE Y LOS TIPOS LOS PONE EL CUBO, NO EL NAVEGADOR
+-- ─────────────────────────────────────────────────────
+-- Las cuatro políticas de abajo deciden DÓNDE escribe cada quien. No dicen
+-- nada de QUÉ ni de CUÁNTO, y sin eso cualquier autenticado podía dejar 50
+-- GB o un .exe en su propia carpeta y estar en su derecho. El panel ya mira
+-- el tamaño antes de subir, pero eso es cortesía para no hacer esperar por
+-- un error que se sabía desde el principio: quien llame a la API de frente
+-- se la salta entera.
+--
+-- Los 10 MB son el doble de lo que el panel deja pasar para la foto de
+-- perfil, que es el archivo grande del sitio. La lista de tipos es la del
+-- accept del formulario de subir un recaudo -imágenes y PDF- escrita uno a
+-- uno en vez de con el comodín 'image/*', por dos razones: el comodín
+-- depende de una versión de storage-api que no se puede dar por supuesta, y
+-- escribirlos permite dejar fuera image/svg+xml, que es un documento con
+-- guion dentro y nadie escanea un papel a SVG. Van heic y heif porque un
+-- iPhone fotografía en eso y rechazarlo sería rechazar media sala de espera.
+--
+-- do update y no do nothing: en un proyecto que ya existía el cubo estaba
+-- creado, y con do nothing este archivo se ejecutaba entero sin llegar a
+-- ponerle el tope nunca.
 
-insert into storage.buckets (id, name, public)
-values ('recaudos', 'recaudos', false)
-on conflict (id) do nothing;
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'recaudos', 'recaudos', false,
+  10485760,
+  array['image/jpeg','image/png','image/webp','image/heic','image/heif',
+        'image/tiff','image/bmp','application/pdf']
+)
+on conflict (id) do update
+  set public             = excluded.public,
+      file_size_limit    = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
 
 drop policy if exists "recaudos: subir a su carpeta" on storage.objects;
 create policy "recaudos: subir a su carpeta" on storage.objects
@@ -800,7 +930,24 @@ create policy "recaudos: borrar de su carpeta" on storage.objects
 --
 --   select codigo, nombre, activo from public.bancos_aliados order by orden;
 --
--- 4) Prueba del aislamiento, que es lo único que de verdad importa.
+-- 4) El cubo tiene que salir privado, con su tope y su lista de tipos. Si
+--    file_size_limit sale en null, este archivo se ejecutó cuando el cubo
+--    ya existía y con la versión vieja, la del `do nothing`: vuelve a
+--    correrlo entero.
+--
+--   select id, public, file_size_limit, allowed_mime_types
+--   from storage.buckets where id = 'recaudos';
+--
+-- 5) La escalera de estados. Este salto tiene que fallar, entrando con
+--    una cuenta del equipo desde la aplicación (desde el SQL Editor no
+--    prueba nada: allí auth.uid() es null y el trigger se aparta a
+--    propósito). Coge un trámite en 'enviado' y trata de resolverlo:
+--
+--   update public.tramites set estado = 'resuelto' where id = '…';
+--
+--    Debe responder: Un trámite no pasa de "enviado" a "resuelto".
+--
+-- 6) Prueba del aislamiento, que es lo único que de verdad importa.
 --    Entra en la aplicación con DOS cuentas distintas y comprueba que la
 --    segunda no ve ni un documento ni un trámite de la primera. Hacerlo
 --    desde el SQL Editor no vale: ahí auth.uid() es null y RLS no aplica.

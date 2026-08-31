@@ -421,6 +421,8 @@ window.CIIP_PASOS = {
       dc_falta:     "Dinos qué documento es y elige el archivo.",
       dc_yatienes:  "ya lo tienes",
       dc_guardado:   "Guardado. Ya lo tienen los trámites que lo piden.",
+      dc_pesa:      "El archivo pesa más de 10 MB. Súbelo más ligero.",
+      dc_tipo:      "Tiene que ser una imagen o un PDF.",
       /* Mi empresa. Las etiquetas de los campos NO se escriben aquí: son
          las mismas f_* que usan los formularios, para que la empresa y el
          trámite llamen igual a lo mismo. */
@@ -994,6 +996,8 @@ window.CIIP_PASOS = {
       dc_falta:     "Tell us which document it is and choose the file.",
       dc_yatienes:  "already have it",
       dc_guardado:   "Saved. The procedures that ask for it already have it.",
+      dc_pesa:      "The file is over 10 MB. Upload a lighter one.",
+      dc_tipo:      "It has to be an image or a PDF.",
       /* My company. Field labels are NOT written here: they are the same
          f_* the forms use, so company and procedure call the same thing by
          the same name. */
@@ -1553,6 +1557,8 @@ window.CIIP_PASOS = {
       dc_falta:     "Diga-nos que documento é e escolha o ficheiro.",
       dc_yatienes:  "já o tem",
       dc_guardado:   "Guardado. Já o têm os trâmites que o pedem.",
+      dc_pesa:      "O ficheiro tem mais de 10 MB. Carregue um mais leve.",
+      dc_tipo:      "Tem de ser uma imagem ou um PDF.",
       /* A minha empresa. */
       em_sub:       "Os dados da sua empresa, escritos uma só vez",
       em_vacia:     "Ainda não registou a sua empresa. Quando o fizer, os formulários que peçam estes dados oferecê-los-ão já escritos.",
@@ -2106,6 +2112,8 @@ window.CIIP_PASOS = {
       dc_falta:     "Dicci quale documento è e scegli il file.",
       dc_yatienes:  "ce l’hai già",
       dc_guardado:   "Salvato. Ce l’hanno già le pratiche che lo chiedono.",
+      dc_pesa:      "Il file supera i 10 MB. Caricane uno più leggero.",
+      dc_tipo:      "Deve essere un’immagine o un PDF.",
       /* La mia azienda. */
       em_sub:       "I dati della tua azienda, scritti una volta sola",
       em_vacia:     "Non hai ancora registrato la tua azienda. Quando lo farai, i moduli che chiedono questi dati te li proporranno già scritti.",
@@ -2659,6 +2667,8 @@ window.CIIP_PASOS = {
       dc_falta:     "请告诉我们这是哪份文件，并选择文件。",
       dc_yatienes:  "已有",
       dc_guardado:   "已保存。需要它的业务已经拿到了。",
+      dc_pesa:      "文件超过 10 MB，请上传更小的文件。",
+      dc_tipo:      "必须是图片或 PDF 文件。",
       /* 我的公司。 */
       em_sub:       "公司资料，只填一次",
       em_vacia:     "您还没有登记公司。登记后，需要这些资料的表单会直接帮您填好。",
@@ -3212,6 +3222,8 @@ window.CIIP_PASOS = {
       dc_falta:     "Укажите, какой это документ, и выберите файл.",
       dc_yatienes:  "уже есть",
       dc_guardado:   "Сохранено. У услуг, которые его просят, он уже есть.",
+      dc_pesa:      "Файл больше 10 МБ. Загрузите файл поменьше.",
+      dc_tipo:      "Нужно изображение или PDF.",
       /* Моя компания. */
       em_sub:       "Данные вашей компании — один раз",
       em_vacia:     "Вы ещё не зарегистрировали компанию. Когда сделаете это, формы будут предлагать эти данные уже заполненными.",
