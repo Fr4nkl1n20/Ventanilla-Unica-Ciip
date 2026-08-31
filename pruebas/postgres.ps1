@@ -97,11 +97,30 @@ try {
 
   # El orden es EL DEL README, y que corran en el es la primera prueba: si
   # uno usa algo que otro define despues, aqui se cae y se ve cual.
-  $once = @('supabase-setup.sql', 'supabase-tramites.sql', 'supabase-admin.sql',
-            'supabase-citas.sql', 'supabase-empresa.sql', 'supabase-activos.sql',
-            'supabase-identidad.sql', 'supabase-emision.sql', 'supabase-presencia.sql',
-            'supabase-sectores.sql', 'supabase-gestor.sql', 'supabase-cola.sql', 'supabase-avisos.sql',
-            'supabase-aranceles.sql', 'supabase-huellas.sql')
+  # El orden sale de las dependencias, no de la fecha: cada archivo lo
+  # declara en su cabecera y aqui se comprueba EJECUTANDOLO. Si uno usa
+  # algo que otro define despues, esta tanda se cae y dice cual.
+  $once = @(
+    'supabase-setup.sql',            #  1  define tocar_actualizado_en()
+    'supabase-tramites.sql',         #  2  define es_gestor()
+    'supabase-admin.sql',            #  3  define es_admin()
+    'supabase-citas.sql',            #  4  del 4 al 8, usan es_gestor()
+    'supabase-empresa.sql',          #  5  y entre ellos el orden da igual
+    'supabase-activos.sql',          #  6
+    'supabase-identidad.sql',        #  7
+    'supabase-emision.sql',          #  8
+    'supabase-presencia.sql',        #  9  no depende de nadie
+    'supabase-sectores.sql',         # 10  usa es_admin(), del 3
+    'supabase-catalogos.sql',        # 11  despues del 2, del 3 y del 10
+    'supabase-bitacora.sql',         # 12  despues del 11; se engancha a citas
+    'supabase-bloqueo.sql',          # 13  se engancha a tramites, documentos y citas
+    'supabase-acompanamiento.sql',   # 14  usa es_admin()
+    'supabase-gestor.sql',           # 15  las politicas del equipo
+    'supabase-cola.sql',             # 16  necesita tramites y es_gestor()
+    'supabase-avisos.sql',           # 17  cuelga del historial de tramites
+    'supabase-aranceles.sql',        # 18  envuelve el encolado del 16
+    'supabase-huellas.sql'           # 19  solo necesita documentos
+  )
   $n = 0
   foreach ($f in $once) {
     $n++
@@ -112,7 +131,7 @@ try {
     Write-Output ('  ' + $n.ToString().PadLeft(2) + ' - ' + $f)
   }
   Write-Output ''
-  Write-Output '  Los quince entraron, en el orden del README.'
+  Write-Output '  Los diecinueve entraron, en el orden del README.'
   Write-Output ''
 
   Correr (Join-Path $PSScriptRoot 'postgres-pruebas.sql')

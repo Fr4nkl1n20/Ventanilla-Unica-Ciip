@@ -27,6 +27,10 @@ autenticación y los datos los pone Supabase.
 | `supabase-presencia.sql` | `tocar_visto()`: apunta con la hora del servidor cuándo estuviste por última vez |
 | `supabase-sectores.sql` | El catálogo de sectores y el que eliges tú. Usa `es_admin()`, así que va **después** de `supabase-admin.sql` |
 | `supabase-gestor.sql` | Lo que necesita el equipo del CIIP: leer los perfiles, anotar una devolución, y cómo nombrar un gestor |
+| `supabase-catalogos.sql` | Encender y apagar un trámite del catálogo desde el panel, dejando rastro de quién lo movió |
+| `supabase-bitacora.sql` | El registro de lo que hace el equipo: quién tocó el catálogo, los roles, los papeles y las citas |
+| `supabase-bloqueo.sql` | Bloquear una cuenta: deja de poder escribir en trámites, documentos y citas |
+| `supabase-acompanamiento.sql` | Los ajustes de la burbuja y la nube de soporte, para que los mande el admin y no el código |
 | `supabase-cola.sql` | La lista de lo que hay que hacer con los organismos **cuando nadie mira**. La llena un trigger y la vacía el trabajador |
 | `supabase-avisos.sql` | El buzón de salida: qué hay que decirle a quién. Se escribe solo al cambiar un estado, y lo vacía el mensajero |
 | `supabase-aranceles.sql` | Las tasas y lo que se debe por cada trámite. La tabla nace vacía: aquí no se inventan cifras oficiales |
@@ -56,7 +60,10 @@ autenticación y los datos los pone Supabase.
 
 1. Crear un proyecto en [supabase.com](https://supabase.com)
 2. *SQL Editor* → pegar cada archivo SQL y pulsar **Run**, **en este orden**.
-   Son quince, no cuatro: cada uno que falte apaga su pantalla del panel
+   Son diecinueve, no cuatro: cada uno que falte apaga su pantalla del panel.
+   Este orden no está deducido de las cabeceras: lo ejecuta `PROBAR-SQL.bat`
+   en un PostgreSQL de usar y tirar, y si uno usara algo que otro define
+   después, esa tanda se caería diciendo cuál
 
    | # | Archivo | Por qué va ahí |
    |---|---|---|
@@ -70,11 +77,15 @@ autenticación y los datos los pone Supabase.
    | 8 | `supabase-emision.sql` | Usa `es_gestor()` |
    | 9 | `supabase-presencia.sql` | No depende de nadie |
    | 10 | `supabase-sectores.sql` | Usa `es_admin()`, del 3 |
-   | 11 | `supabase-gestor.sql` | Las políticas del equipo |
-   | 12 | `supabase-cola.sql` | Necesita los trámites y `es_gestor()` |
-   | 13 | `supabase-avisos.sql` | Cuelga del historial de trámites |
-   | 14 | `supabase-aranceles.sql` | Envuelve el encolado de la cola |
-   | 15 | `supabase-huellas.sql` | El último. Sólo necesita `documentos` |
+   | 11 | `supabase-catalogos.sql` | Después del 2, del 3 y del 10 |
+   | 12 | `supabase-bitacora.sql` | Después del 11, y se engancha a `citas` |
+   | 13 | `supabase-bloqueo.sql` | Se engancha a `tramites`, `documentos` y `citas` |
+   | 14 | `supabase-acompanamiento.sql` | Usa `es_admin()` |
+   | 15 | `supabase-gestor.sql` | Las políticas del equipo |
+   | 16 | `supabase-cola.sql` | Necesita los trámites y `es_gestor()` |
+   | 17 | `supabase-avisos.sql` | Cuelga del historial de trámites |
+   | 18 | `supabase-aranceles.sql` | Envuelve el encolado del 16 |
+   | 19 | `supabase-huellas.sql` | El último. Sólo necesita `documentos` |
 
    Del 4 al 9 el orden entre ellos da igual: solo piden que el 2 esté hecho.
 
@@ -83,7 +94,7 @@ autenticación y los datos los pone Supabase.
    como estaba y el admin se queda sin repartir roles, sin decir nada. Si lo
    haces, corre el 3 detrás.
 
-   Saltarse alguno del 4 al 10 no rompe el panel —abre igual, y así lo prueban
+   Saltarse alguno del 4 al 14 no rompe el panel —abre igual, y así lo prueban
    los expedientes `sinsql`, `sinsector`, `sinsectorsql` y `sincatalogo`—,
    pero la pantalla que dependa de él se queda muda
 3. `CONFIGURAR.bat` con la *Project URL* y la *anon key*
@@ -140,7 +151,7 @@ en la misma pasada que comprueba que habla.
 
 **El SQL** (21 comprobaciones, `PROBAR-SQL.bat`): levanta un PostgreSQL vacío
 en una carpeta temporal —sin claves, sin tocar ningún servidor de la máquina—,
-ejecuta los quince archivos **en el orden de más arriba**, que ya es la primera
+ejecuta los diecinueve archivos **en el orden de más arriba**, que ya es la primera
 prueba, y luego intenta lo que no se debe: saltarse la escalera de estados,
 ascender a otro a admin, escribir en un catálogo. Se entra como entra Supabase,
 con `set role authenticated` y el `sub` en `request.jwt.claims`, porque
