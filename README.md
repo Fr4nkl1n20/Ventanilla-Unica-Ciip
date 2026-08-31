@@ -28,6 +28,7 @@ autenticación y los datos los pone Supabase.
 | `supabase-sectores.sql` | El catálogo de sectores y el que eliges tú. Usa `es_admin()`, así que va **después** de `supabase-admin.sql` |
 | `supabase-gestor.sql` | Lo que necesita el equipo del CIIP: leer los perfiles, anotar una devolución, y cómo nombrar un gestor |
 | `supabase-cola.sql` | La lista de lo que hay que hacer con los organismos **cuando nadie mira**. La llena un trigger y la vacía el trabajador |
+| `supabase-avisos.sql` | El buzón de salida: qué hay que decirle a quién. Se escribe solo al cambiar un estado, y lo vacía el mensajero |
 | `logos/` | Logos de los organismos, con su procedencia en [FUENTES.md](logos/FUENTES.md) |
 | `banderas/` | 197 banderas SVG para el buscador de países, con su procedencia en [FUENTES.md](banderas/FUENTES.md) |
 | `original/` | La demostración de partida, intacta, como referencia |
@@ -43,6 +44,7 @@ autenticación y los datos los pone Supabase.
 | `PROBAR-PANEL.bat` | Lanzar las 2668 pruebas del panel y las 10 comprobaciones de las claves de traducción |
 | `PROBAR-CONECTOR.bat` | Lanzar las 28 pruebas del conector del RIF |
 | `PROBAR-TRABAJADOR.bat` | Lanzar las 44 pruebas del trabajador, que es quien ejecuta lo que el conector decide |
+| `PROBAR-AVISOS.bat` | Lanzar las 38 pruebas de los avisos: que cada quien los reciba en su idioma y que ninguno se pierda |
 | `PROBAR-SQL.bat` | Ejecutar los once archivos SQL en un Postgres de esta máquina y comprobar que los triggers saltan. No pide claves ni toca ningún servidor tuyo |
 | `PROBAR-CERRADURAS.bat` | Comprobar las políticas RLS **entrando de verdad** en el Supabase de pruebas. Se niega a correr contra el real |
 
@@ -50,7 +52,7 @@ autenticación y los datos los pone Supabase.
 
 1. Crear un proyecto en [supabase.com](https://supabase.com)
 2. *SQL Editor* → pegar cada archivo SQL y pulsar **Run**, **en este orden**.
-   Son doce, no cuatro: cada uno que falte apaga su pantalla del panel
+   Son trece, no cuatro: cada uno que falte apaga su pantalla del panel
 
    | # | Archivo | Por qué va ahí |
    |---|---|---|
@@ -65,7 +67,8 @@ autenticación y los datos los pone Supabase.
    | 9 | `supabase-presencia.sql` | No depende de nadie |
    | 10 | `supabase-sectores.sql` | Usa `es_admin()`, del 3 |
    | 11 | `supabase-gestor.sql` | Las políticas del equipo |
-   | 12 | `supabase-cola.sql` | El último: necesita los trámites y `es_gestor()` |
+   | 12 | `supabase-cola.sql` | Necesita los trámites y `es_gestor()` |
+   | 13 | `supabase-avisos.sql` | El último: cuelga del historial de trámites |
 
    Del 4 al 9 el orden entre ellos da igual: solo piden que el 2 esté hecho.
 
@@ -131,7 +134,7 @@ en la misma pasada que comprueba que habla.
 
 **El SQL** (21 comprobaciones, `PROBAR-SQL.bat`): levanta un PostgreSQL vacío
 en una carpeta temporal —sin claves, sin tocar ningún servidor de la máquina—,
-ejecuta los doce archivos **en el orden de más arriba**, que ya es la primera
+ejecuta los trece archivos **en el orden de más arriba**, que ya es la primera
 prueba, y luego intenta lo que no se debe: saltarse la escalera de estados,
 ascender a otro a admin, escribir en un catálogo. Se entra como entra Supabase,
 con `set role authenticated` y el `sub` en `request.jwt.claims`, porque

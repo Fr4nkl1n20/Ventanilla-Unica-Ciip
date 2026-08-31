@@ -500,6 +500,169 @@ select arnes.comprueba(
 
 reset role;
 
+
+-- ══ 6 · EL AVISO SE ESCRIBE SOLO ═════════════════════════════════════
+-- Cuelga de tramite_eventos y no de tramites, y no es un detalle: el
+-- historial ya se escribe desde un trigger y es la unica fila que existe
+-- siempre que ha pasado algo digno de contarse. Colgar de ahi significa
+-- que ningun cambio de estado puede escaparse.
+reset role;
+
+-- Un correo en auth.users, que es de donde lo saca el trigger. Sin esto
+-- el aviso no se escribe -y no escribirlo es lo correcto: no se puede
+-- avisar a quien no tiene direccion-.
+update auth.users set email = 'ana@prueba.local'
+ where id = (select id from arnes.gente where papel = 'A');
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+
+do $p$
+declare
+  cual uuid;
+begin
+  select id into cual from arnes.escenario where clave = 'con_conector';
+  -- Esta en 'ante_el_ente' desde la seccion 5. Se devuelve, que es el
+  -- unico aviso que pide una accion de la persona.
+  --
+  -- Y se hace COMO LO HACE EL PANEL, en dos pasos: primero el estado -que
+  -- es lo que dispara el historial y con el el aviso-, y despues la nota,
+  -- con un update sobre el evento ya creado. Insertar el evento a mano no
+  -- vale: la politica no deja, y ademas se saltaria justo el orden que
+  -- aqui hay que comprobar.
+  update public.tramites set estado = 'devuelto' where id = cual;
+
+  update public.tramite_eventos set nota = 'Falta el acta constitutiva.'
+   where tramite = cual and a_estado = 'devuelto';
+end
+$p$;
+
+reset role;
+
+select arnes.comprueba(
+  'avisos: devolver un tramite escribe su aviso, sin que nadie lo pida',
+  (select count(*) > 0 from public.avisos
+    where motivo = 'cambio_estado' and a_estado = 'devuelto'
+      and destinatario = 'ana@prueba.local'));
+
+-- La nota se escribe DESPUES del evento, asi que el aviso nace vacio y
+-- hay que copiarsela cuando llega. Sin eso, el correo de una devolucion
+-- dice "hay algo que corregir" y no dice que, que es peor que no
+-- mandarlo. Este es el fallo que encontro esta tanda al ejecutarse.
+select arnes.comprueba(
+  'avisos: y lleva dentro el motivo, aunque se escriba despues del evento',
+  (select count(*) > 0 from public.avisos
+    where a_estado = 'devuelto' and nota like '%acta constitutiva%'),
+  (select coalesce(string_agg(quote_literal(nota), ' '), 'ninguno')
+     from public.avisos where a_estado = 'devuelto'));
+
+-- 'enviado' y 'en_revision' NO se avisan. El primero lo acaba de hacer
+-- el, y avisarle de su propio clic es como se consigue que mande el
+-- remitente a la basura; el segundo es trabajo interno nuestro.
+select arnes.comprueba(
+  'avisos: de "enviado" y "en_revision" no se avisa a nadie',
+  (select count(*) = 0 from public.avisos
+    where a_estado in ('enviado', 'en_revision', 'borrador')),
+  (select coalesce(string_agg(distinct a_estado, ', '), 'ninguno') from public.avisos));
+
+-- Sin correo no hay aviso, y tampoco hay error: reventar aqui haria
+-- fallar el cambio de estado -que es lo importante- por no poder hacer
+-- lo accesorio.
+do $p$
+declare
+  quien uuid;
+  otro  uuid;
+  antes int;
+begin
+  select count(*) into antes from public.avisos;
+  select id into quien from arnes.gente where papel = 'G';
+  update auth.users set email = null where id = quien;
+
+  insert into public.tramites (inversionista, tipo, estado)
+  values (quien, (select codigo from public.tipos_tramite where activo limit 1), 'borrador')
+  returning id into otro;
+  insert into public.tramite_eventos (tramite, a_estado, nota)
+  values (otro, 'resuelto', 'x');
+
+  perform arnes.comprueba(
+    'avisos: sin correo no se avisa, y el cambio de estado no falla',
+    (select count(*) from public.avisos) = antes,
+    'no se escribio ninguno');
+exception when others then
+  perform arnes.comprueba(
+    'avisos: sin correo no se avisa, y el cambio de estado no falla',
+    false, 'REVENTO: ' || sqlerrm);
+end
+$p$;
+
+-- ── lo que vence ──
+-- Esto no lo dispara ningun trigger: no pasa porque alguien haga algo,
+-- pasa porque pasa el tiempo. Es el ejemplo mas claro de por que hacia
+-- falta algo que corra sin que nadie mire.
+do $p$
+declare
+  quien uuid;
+  tipoDoc text;
+  puso int;
+  otraVez int;
+begin
+  select id into quien from arnes.gente where papel = 'A';
+  select codigo into tipoDoc from public.tipos_documento limit 1;
+
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original,
+                                 vence_el, estado)
+  values (quien, tipoDoc, quien || '/vence.pdf', 'vence.pdf',
+          current_date + 10, 'cargado');
+
+  select public.avisar_de_lo_que_vence(30) into puso;
+  perform arnes.comprueba('avisos: lo que vence en diez dias se avisa', puso = 1,
+                          puso || ' avisos');
+
+  -- Dos veces seguidas tiene que dar cero. Sin esa guarda, un documento
+  -- que vence en tres semanas manda veintiun correos iguales y la
+  -- persona deja de leerlos, incluido el que si importaba.
+  select public.avisar_de_lo_que_vence(30) into otraVez;
+  perform arnes.comprueba('avisos: y no se avisa dos veces del mismo vencimiento',
+                          otraVez = 0, otraVez || ' la segunda vez');
+end
+$p$;
+
+-- Un documento que caduca dentro de un ano no molesta hoy: avisar tan
+-- pronto es avisar cuando aun no se puede hacer nada, y se olvida.
+do $p$
+declare
+  quien uuid;
+  tipoDoc text;
+  puso int;
+begin
+  select id into quien from arnes.gente where papel = 'A';
+  select codigo into tipoDoc from public.tipos_documento limit 1;
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original,
+                                 vence_el, estado)
+  values (quien, tipoDoc, quien || '/lejos.pdf', 'lejos.pdf',
+          current_date + 300, 'cargado');
+  select public.avisar_de_lo_que_vence(30) into puso;
+  perform arnes.comprueba('avisos: lo que vence dentro de un ano todavia no',
+                          puso = 0, puso || ' avisos');
+end
+$p$;
+
+-- Y el inversionista no ve su propio buzon de salida: ahi estan los
+-- intentos fallidos y los errores del SMTP, que no significan nada para
+-- el y parecen un problema suyo.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+select arnes.comprueba(
+  'avisos: el inversionista no ve el buzon de salida',
+  (select count(*) = 0 from public.avisos));
+
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+select arnes.comprueba(
+  'avisos: pero el equipo si (esto TIENE que salir)',
+  (select count(*) > 0 from public.avisos));
+
+reset role;
+
 \o
 \pset tuples_only on
 \pset format unaligned
