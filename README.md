@@ -41,6 +41,7 @@ autenticación y los datos los pone Supabase.
 | `PROBAR.bat` | Lanzar las 57 pruebas del acceso |
 | `PROBAR-PANEL.bat` | Lanzar las 2668 pruebas del panel y las 10 comprobaciones de las claves de traducción |
 | `PROBAR-CONECTOR.bat` | Lanzar las 28 pruebas del conector del RIF |
+| `PROBAR-SQL.bat` | Ejecutar los once archivos SQL en un Postgres de esta máquina y comprobar que los triggers saltan. No pide claves ni toca ningún servidor tuyo |
 | `PROBAR-CERRADURAS.bat` | Comprobar las políticas RLS **entrando de verdad** en el Supabase de pruebas. Se niega a correr contra el real |
 
 ## Puesta en marcha
@@ -125,8 +126,19 @@ dos citas ajenas esperando en la cola. Buena parte de lo que hay que
 comprobar es que el panel se calla cuando no hay nada que decir, y eso no se ve
 en la misma pasada que comprueba que habla.
 
+**El SQL** (21 comprobaciones, `PROBAR-SQL.bat`): levanta un PostgreSQL vacío
+en una carpeta temporal —sin claves, sin tocar ningún servidor de la máquina—,
+ejecuta los once archivos **en el orden de más arriba**, que ya es la primera
+prueba, y luego intenta lo que no se debe: saltarse la escalera de estados,
+ascender a otro a admin, escribir en un catálogo. Se entra como entra Supabase,
+con `set role authenticated` y el `sub` en `request.jwt.claims`, porque
+dejando el rol de dueño el RLS no se aplica —un dueño se salta sus propias
+políticas— y saldría todo en verde sin haber comprobado ni una cerradura. Lo que
+Postgres no puede decir queda fuera: el tope del cubo lo aplica storage-api, que
+es otro servicio.
+
 **Las cerraduras** (`PROBAR-CERRADURAS.bat`, [pruebas/rls.js](pruebas/rls.js)):
-la única tanda que habla con Postgres. Las otras tres corren contra
+la única tanda que habla con un Supabase de verdad. Las otras tres corren contra
 [pruebas/supabase-mentira.js](pruebas/supabase-mentira.js), un doble que concede
 o niega según lo que se escribió que debería pasar, no según lo que la base
 hace; que estén en verde no dice nada sobre si un inversionista puede leer el
