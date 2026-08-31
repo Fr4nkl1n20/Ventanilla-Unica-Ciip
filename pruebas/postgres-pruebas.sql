@@ -663,6 +663,185 @@ select arnes.comprueba(
 
 reset role;
 
+
+-- ══ 7 · LOS ARANCELES ════════════════════════════════════════════════
+-- El catalogo nace VACIO a proposito -aqui no se inventan cifras
+-- oficiales-, y mientras lo este todo funciona como antes. Se le pone uno
+-- para poder comprobar lo que pasa cuando lo haya.
+reset role;
+
+select arnes.comprueba(
+  'aranceles: el catalogo nace vacio, y no es un fallo',
+  (select count(*) = 0 from public.aranceles),
+  (select count(*)::text || ' filas' from public.aranceles));
+
+-- Sin arancel no se emite orden: es el caso de los treinta y uno hoy.
+do $p$
+declare
+  quien uuid; cual uuid; sinTasa text;
+begin
+  select id into quien from arnes.gente where papel = 'A';
+  select codigo into sinTasa from public.tipos_tramite where activo limit 1;
+  insert into public.tramites (inversionista, tipo, estado)
+  values (quien, sinTasa, 'borrador') returning id into cual;
+  update public.tramites set estado = 'enviado' where id = cual;
+
+  perform arnes.comprueba('aranceles: sin tasa no se emite ninguna orden',
+    not exists (select 1 from public.ordenes_pago where tramite = cual),
+    'ninguna');
+end
+$p$;
+
+-- Ahora con tasa, y sobre el tramite que TIENE conector: asi se puede ver
+-- lo unico que de verdad hace util esto, que es que no se presente lo que
+-- no esta pagado.
+do $p$
+declare
+  conConector text;
+begin
+  select codigo into conConector
+    from public.tipos_tramite where conector is not null and activo limit 1;
+  insert into public.aranceles (tramite, concepto, monto, moneda)
+  values (conConector, 'Tasa de prueba', 120.00, 'USD');
+end
+$p$;
+
+-- Un solo arancel vigente por tramite. Dos filas abiertas harian que la
+-- orden dependiera de cual leyera primero la consulta, y eso es un cobro
+-- distinto segun el dia.
+do $p$
+declare conConector text;
+begin
+  select codigo into conConector
+    from public.tipos_tramite where conector is not null and activo limit 1;
+  insert into public.aranceles (tramite, concepto, monto)
+  values (conConector, 'Otra vigente a la vez', 999.00);
+  perform arnes.comprueba('aranceles: no puede haber dos vigentes del mismo tramite',
+                          false, 'ENTRO LA SEGUNDA');
+exception when others then
+  perform arnes.comprueba('aranceles: no puede haber dos vigentes del mismo tramite',
+                          true, sqlerrm);
+end
+$p$;
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+do $p$
+declare
+  cual uuid; conConector text;
+begin
+  select codigo into conConector
+    from public.tipos_tramite where conector is not null and activo limit 1;
+  insert into public.tramites (inversionista, tipo, estado)
+  values (auth.uid(), conConector, 'borrador') returning id into cual;
+  insert into arnes.escenario values ('con_tasa', cual);
+  update public.tramites set estado = 'enviado' where id = cual;
+end
+$p$;
+
+select arnes.comprueba(
+  'aranceles: al enviar la solicitud se emite la orden, sola',
+  (select count(*) = 1 from public.ordenes_pago
+    where tramite = (select id from arnes.escenario where clave = 'con_tasa')
+      and estado = 'pendiente' and monto = 120.00));
+
+-- El monto se COPIA. Si se leyera del catalogo, subir un arancel
+-- cambiaria retroactivamente lo que debe alguien que solicito hace un mes.
+reset role;
+do $p$
+declare conConector text;
+begin
+  select codigo into conConector
+    from public.tipos_tramite where conector is not null and activo limit 1;
+  update public.aranceles set hasta = current_date
+   where tramite = conConector and hasta is null;
+  insert into public.aranceles (tramite, concepto, monto)
+  values (conConector, 'Tasa nueva, mas cara', 500.00);
+end
+$p$;
+
+select arnes.comprueba(
+  'aranceles: subir la tasa NO cambia lo que ya se debia',
+  (select monto = 120.00 from public.ordenes_pago
+    where tramite = (select id from arnes.escenario where clave = 'con_tasa')),
+  (select monto::text from public.ordenes_pago
+    where tramite = (select id from arnes.escenario where clave = 'con_tasa')));
+
+-- ── y aqui lo que importa ──
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $p$
+begin
+  update public.tramites set estado = 'en_revision'
+   where id = (select id from arnes.escenario where clave = 'con_tasa');
+end
+$p$;
+
+select arnes.comprueba(
+  'aranceles: con la orden sin pagar, NO se encola la presentacion',
+  (select count(*) = 0 from public.trabajos
+    where tramite = (select id from arnes.escenario where clave = 'con_tasa')),
+  (select coalesce(string_agg(tarea, ', '), 'ninguno') from public.trabajos
+    where tramite = (select id from arnes.escenario where clave = 'con_tasa')));
+
+-- Al pagar se suelta. Sin esto, un tramite pagado despues de la revision
+-- se quedaria esperando para siempre: el momento de encolar ya paso y
+-- nadie volveria a mirarlo.
+reset role;
+update public.ordenes_pago
+   set estado = 'pagada', pagado_en = now(), referencia = 'BCO-2026-000001'
+ where tramite = (select id from arnes.escenario where clave = 'con_tasa');
+
+select arnes.comprueba(
+  'aranceles: y al pagarla aparece el "presentar" (esto TIENE que salir)',
+  (select count(*) = 1 from public.trabajos
+    where tramite = (select id from arnes.escenario where clave = 'con_tasa')
+      and tarea = 'presentar'));
+
+-- Una orden pagada sin fecha de pago no se puede conciliar con el banco.
+do $p$
+begin
+  update public.ordenes_pago set pagado_en = null
+   where tramite = (select id from arnes.escenario where clave = 'con_tasa');
+  perform arnes.comprueba('aranceles: una orden pagada sin fecha no se admite',
+                          false, 'LA ADMITIO');
+exception when others then
+  perform arnes.comprueba('aranceles: una orden pagada sin fecha no se admite',
+                          true, sqlerrm);
+end
+$p$;
+
+-- Y nadie la marca pagada desde el navegador, ni el equipo: eso lo
+-- escribe el cobrador con la clave de servidor, despues de que la
+-- pasarela lo confirme. Una orden que se pueda dar por pagada desde el
+-- cliente no es una orden de pago.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $p$
+declare fila int;
+begin
+  update public.ordenes_pago set estado = 'anulada'
+   where inversionista = auth.uid();
+  get diagnostics fila = row_count;
+  perform arnes.comprueba('aranceles: nadie toca su propia orden desde el panel',
+                          fila = 0, 'ESCRIBIO ' || fila || ' fila(s)');
+exception when others then
+  perform arnes.comprueba('aranceles: nadie toca su propia orden desde el panel',
+                          true, sqlerrm);
+end
+$p$;
+
+select arnes.comprueba(
+  'aranceles: pero SI ve lo que debe (esto TIENE que salir)',
+  (select count(*) > 0 from public.ordenes_pago where inversionista = auth.uid()));
+
+select arnes.comprueba(
+  'aranceles: y cuanto cuesta cada tramite antes de empezarlo',
+  (select count(*) > 0 from public.aranceles));
+
+reset role;
+
 \o
 \pset tuples_only on
 \pset format unaligned
