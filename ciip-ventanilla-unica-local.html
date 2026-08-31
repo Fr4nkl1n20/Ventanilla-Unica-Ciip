@@ -6132,17 +6132,50 @@ applyLang(idiomaParaMi());
      Se mira el papel ANTES de pedir nada: las cuatro pantallas que suben
      pasan por aquí, así que comprobarlo en esta puerta las cubre las
      cuatro y no hay que acordarse en cada formulario nuevo. */
+  /* ── la huella del archivo ──
+     El SHA-256 de lo que se sube. Sirve para dos cosas: el conector se lo
+     manda al organismo -ya lo tenia escrito en el contrato, y hasta ahora
+     iba vacio porque nadie lo calculaba- y deja que un tercero verifique
+     despues un documento emitido sin tener que preguntarnos de quien es.
+
+     Devuelve null en vez de fallar cuando no se puede. crypto.subtle solo
+     existe en contexto seguro: con ABRIR-LOCAL.bat lo hay -localhost
+     cuenta-, pero con ABRIR-EN-RED.bat, que sirve por IP y sin https, NO.
+     Reventar ahi dejaria al panel sin poder subir nada desde la red de la
+     oficina, y un documento sin huella sigue sirviendo para todo menos
+     para verificarse. */
+  function huellaDe(archivo){
+    try {
+      if (!window.crypto || !window.crypto.subtle || !archivo.arrayBuffer){
+        return Promise.resolve(null);
+      }
+      return archivo.arrayBuffer()
+        .then(function(bytes){ return window.crypto.subtle.digest('SHA-256', bytes); })
+        .then(function(resumen){
+          var b = Array.prototype.slice.call(new Uint8Array(resumen));
+          return b.map(function(x){ return ('0' + x.toString(16)).slice(-2); }).join('');
+        })
+        .catch(function(){ return null; });
+    } catch (e) { return Promise.resolve(null); }
+  }
+
   function sube(tipoDoc, archivo){
     var mal = papelMal(archivo);
     if (mal) return Promise.reject(papelNo(mal));
     return quienSoy().then(function(yo){
       var limpio = archivo.name.replace(/[^\w.\-]+/g, '_').slice(-60);
       var ruta = yo.id + '/' + tipoDoc + '-' + Math.random().toString(36).slice(2, 10) + '-' + limpio;
+      /* Se calcula ANTES de subir, sobre el archivo que hay en la mano.
+         Calcularla despues obligaria a bajarlo otra vez para leerlo, y
+         entonces la huella diria que el archivo del cubo es igual al del
+         cubo, que no prueba nada. */
+      return huellaDe(archivo).then(function(huella){
       return sb.storage.from('recaudos').upload(ruta, archivo, {upsert:false})
         .then(function(r){
           if (r.error) throw r.error;
           return sb.from('documentos').insert({
-            inversionista: yo.id, tipo: tipoDoc, archivo: ruta, nombre_original: archivo.name
+            inversionista: yo.id, tipo: tipoDoc, archivo: ruta,
+            nombre_original: archivo.name, huella: huella
           }).select().single();
         })
         .then(function(r){
@@ -6157,6 +6190,7 @@ applyLang(idiomaParaMi());
           MIOS = null; miosPide = null;
           return r.data.id;
         });
+      });
     });
   }
 
@@ -9015,6 +9049,12 @@ applyLang(idiomaParaMi());
     var ruta = tr.inversionista + '/emitidos/' +
                Math.random().toString(36).slice(2, 10) + '-' + limpio;
 
+    /* Aqui la huella importa MAS que al subir un recaudo. Este es el
+       papel que emitio el ente y que el inversionista va a enseñar en un
+       banco o en un registro: es el unico que un tercero va a querer
+       verificar, y entra como 'validado', que es lo unico que
+       verificar_documento() reconoce. */
+    return huellaDe(archivo).then(function(huella){
     return sb.storage.from('recaudos').upload(ruta, archivo, {upsert:false})
       .then(function(r){
         if (r && r.error) throw r.error;
@@ -9025,7 +9065,8 @@ applyLang(idiomaParaMi());
           tipo: 'resolucion',
           archivo: ruta,
           nombre_original: archivo.name,
-          estado: 'validado'
+          estado: 'validado',
+          huella: huella
         }).select().single();
       })
       .then(function(r){
@@ -9038,6 +9079,7 @@ applyLang(idiomaParaMi());
         if (r && r.error) throw r.error;
         return true;
       });
+    });
   }
 
   function mueveTramite(tr, aEstado, nota, boton, aviso, textoBoton){

@@ -36,7 +36,22 @@ create schema arnes;
 create table arnes.resultado (
   orden serial, nombre text, ok boolean, detalle text
 );
+create or replace function arnes.nadie()
+returns void language plpgsql as $c$
+begin
+  -- Un objeto vacio, no una cadena vacia: auth.uid() hace un cast a json
+  -- y '' no es json valido, asi que vaciarlo del todo reventaba antes de
+  -- llegar a devolver null.
+  perform set_config('request.jwt.claims', '{}', false);
+end
+$c$;
+
 create table arnes.gente     (papel text primary key, id uuid);
+
+/* Dejar de ser nadie. No basta con cambiar de rol: request.jwt.claims
+   sigue puesto de la vez anterior, y auth.uid() lo lee de ahi. Sin esto,
+   una prueba de "sin entrar" se hace con la sesion del ultimo que
+   entro, y sale en verde sin haber comprobado nada. */
 create table arnes.escenario (clave text primary key, id uuid);
 
 grant usage on schema arnes to anon, authenticated;
@@ -839,6 +854,160 @@ select arnes.comprueba(
 select arnes.comprueba(
   'aranceles: y cuanto cuesta cada tramite antes de empezarlo',
   (select count(*) > 0 from public.aranceles));
+
+reset role;
+
+
+-- ══ 8 · LA HUELLA DE CADA DOCUMENTO ══════════════════════════════════
+-- Dos cosas con la misma columna: que el conector pueda mandar al
+-- organismo el sha256 que ya tenia escrito en su contrato -y que hasta
+-- ahora iba vacio porque nadie lo calculaba-, y que un tercero pueda
+-- verificar un documento emitido sin que le digamos de quien es.
+reset role;
+
+do $p$
+declare
+  quien uuid; tipoDoc text; hex text;
+begin
+  select id into quien from arnes.gente where papel = 'A';
+  select codigo into tipoDoc from public.tipos_documento limit 1;
+  hex := repeat('ab', 32);   -- 64 hexadecimales
+
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original,
+                                 estado, huella)
+  values (quien, tipoDoc, quien || '/con-huella.pdf', 'con-huella.pdf',
+          'validado', hex);
+  insert into arnes.escenario values ('huella', null);
+end
+$p$;
+
+-- Una huella que no es una huella no entra. Sin esto, cualquier cadena
+-- vale y la verificacion empieza a contestar a preguntas que no son
+-- huellas.
+do $p$
+declare quien uuid; tipoDoc text;
+begin
+  select id into quien from arnes.gente where papel = 'A';
+  select codigo into tipoDoc from public.tipos_documento limit 1;
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original, huella)
+  values (quien, tipoDoc, quien || '/mala.pdf', 'mala.pdf', 'no soy una huella');
+  perform arnes.comprueba('huellas: una cadena que no es un sha256 no entra',
+                          false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('huellas: una cadena que no es un sha256 no entra',
+                          true, sqlerrm);
+end
+$p$;
+
+-- Mayusculas tampoco: si entraran, el mismo archivo tendria dos huellas
+-- distintas segun quien lo subiera y la verificacion fallaria la mitad de
+-- las veces.
+do $p$
+declare quien uuid; tipoDoc text;
+begin
+  select id into quien from arnes.gente where papel = 'A';
+  select codigo into tipoDoc from public.tipos_documento limit 1;
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original, huella)
+  values (quien, tipoDoc, quien || '/mayus.pdf', 'mayus.pdf', repeat('AB', 32));
+  perform arnes.comprueba('huellas: ni en mayusculas', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('huellas: ni en mayusculas', true, sqlerrm);
+end
+$p$;
+
+-- Y null si vale: son los documentos que ya estaban subidos, y los que
+-- suba alguien desde la red de la oficina, donde crypto.subtle no existe
+-- porque no hay https. null quiere decir "no se pudo calcular", no "no
+-- vale".
+do $p$
+declare quien uuid; tipoDoc text;
+begin
+  select id into quien from arnes.gente where papel = 'A';
+  select codigo into tipoDoc from public.tipos_documento limit 1;
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original)
+  values (quien, tipoDoc, quien || '/sin-huella.pdf', 'sin-huella.pdf');
+  perform arnes.comprueba('huellas: un documento sin huella sigue entrando', true, 'null');
+exception when others then
+  perform arnes.comprueba('huellas: un documento sin huella sigue entrando',
+                          false, sqlerrm);
+end
+$p$;
+
+-- ── verificar ──
+select arnes.comprueba(
+  'huellas: un documento validado consta al verificarlo',
+  (select count(*) = 1 from public.verificar_documento(repeat('ab', 32))));
+
+select arnes.comprueba(
+  'huellas: y dice si sigue vigente, sin decir de quien es',
+  (select vigente from public.verificar_documento(repeat('ab', 32))));
+
+-- Lo que NO puede devolver. Si trajera al dueno, esto seria un buscador
+-- de personas por documento: quien verifica tiene el papel delante y ya
+-- sabe de quien es, pero no puede poder preguntar por una huella
+-- cualquiera y averiguarlo.
+select arnes.comprueba(
+  'huellas: la verificacion no devuelve ninguna columna que identifique',
+  (select count(*) = 0 from information_schema.columns
+    where table_name = 'verificar_documento'
+      and column_name in ('inversionista', 'destinatario', 'correo', 'nombre_completo')),
+  'ninguna');
+
+select arnes.comprueba(
+  'huellas: una huella inventada no consta',
+  (select count(*) = 0 from public.verificar_documento(repeat('cd', 32))));
+
+-- Un documento SIN validar no es verificable: decir que si lo es seria
+-- avalar un papel que aqui no ha mirado nadie.
+do $p$
+declare quien uuid; tipoDoc text;
+begin
+  select id into quien from arnes.gente where papel = 'A';
+  select codigo into tipoDoc from public.tipos_documento limit 1;
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original,
+                                 estado, huella)
+  values (quien, tipoDoc, quien || '/sin-validar.pdf', 'sin-validar.pdf',
+          'cargado', repeat('ef', 32));
+  perform arnes.comprueba('huellas: uno sin validar NO se verifica',
+    (select count(*) = 0 from public.verificar_documento(repeat('ef', 32))),
+    'no consta');
+end
+$p$;
+
+-- Y se puede preguntar SIN haber entrado. Quien verifica no es usuario de
+-- la ventanilla: es un banco con un papel en la mano. Una verificacion
+-- que exija cuenta no la usa nadie.
+set role anon;
+select arnes.nadie();
+select arnes.comprueba(
+  'huellas: se verifica sin entrar (esto TIENE que salir)',
+  (select count(*) = 1 from public.verificar_documento(repeat('ab', 32))));
+
+-- Pero sin poder mirar la tabla, que es lo que separa "verificar" de
+-- "husmear".
+select arnes.comprueba(
+  'huellas: pero sin entrar no se lee la tabla de documentos',
+  (select count(*) = 0 from public.documentos));
+
+reset role;
+
+-- ── la huella no se reescribe ──
+-- Es lo unico que hace que sirva de algo. Si el dueno pudiera cambiarla,
+-- subiria un archivo, esperaria a que se lo validaran, y luego le pondria
+-- la huella de otro distinto.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $p$
+begin
+  update public.documentos set huella = repeat('99', 32)
+   where huella = repeat('ef', 32);
+  perform arnes.comprueba('huellas: el dueno no puede cambiar la huella',
+    (select count(*) = 0 from public.documentos where huella = repeat('99', 32)),
+    'no toco ninguna fila');
+exception when others then
+  perform arnes.comprueba('huellas: el dueno no puede cambiar la huella', true, sqlerrm);
+end
+$p$;
 
 reset role;
 

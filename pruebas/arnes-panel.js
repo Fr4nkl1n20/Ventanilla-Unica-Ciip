@@ -89,15 +89,40 @@
      paso corre, se le deja medio segundo para que conteste, y sigue el
      siguiente. Es lo mismo que hacía el par pruebas()/trasGuardar(), pero
      sin que cada trato nuevo con la base añada otro setTimeout anidado. */
+  /* Y algunos pasos no caben en medio segundo por mucho que se les dé.
+     Subir un papel calcula ahora su SHA-256, y eso ocurre fuera del hilo
+     principal: con --virtual-time-budget el reloj del navegador corre
+     solo, así que los 500 ms "pasan" antes de que el resumen esté hecho.
+     No es lento —son ocho milisegundos de verdad—, es que ese reloj no
+     espera a nadie.
+
+     Un paso que declara UN argumento recibe el "sigue" y dice él cuándo
+     ha terminado. Es el mismo criterio de cuandoConteste, que ya está
+     unas líneas más arriba: esperar a que algo ocurra, no a que pase un
+     rato. */
   function enCadena(pasos, alFinal){
     var i = 0;
     (function siguiente(){
       if (i >= pasos.length) return alFinal();
       var paso = pasos[i++];
-      try { paso(); } catch(e){
+      try {
+        if (paso.length === 1){ paso(function(){ setTimeout(siguiente, 60); }); return; }
+        paso();
+      } catch(e){
         ok('el arnés llegó al final', false, 'EXCEPCION en el paso ' + i + ': ' + e.message, 'sin excepciones');
       }
       setTimeout(siguiente, 500);
+    })();
+  }
+
+  /* Espera a que una lista crezca, o se rinde. Rendirse y seguir es lo
+     correcto: así la prueba de después falla diciendo QUÉ no apareció, en
+     vez de quedarse el arnés colgado sin decir nada. */
+  function esperaFilas(selector, cuantas, sigue){
+    var n = 0;
+    (function mira(){
+      if (document.querySelectorAll(selector).length >= cuantas || ++n > 80) return sigue();
+      setTimeout(mira, 40);
     })();
   }
 
@@ -135,8 +160,8 @@
               tablaMira, tablaAbre, tablaTrasAbrir,
               empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
               entregaAbre, entregaMira,
-              docsAbre, docsMira, docsCambia, docsTrasCambiar,
-              docsNuevoMira, docsNuevoFalta, docsNuevoSube, docsTrasSubir,
+              docsAbre, docsMira, docsCambia, docsEsperaCambio, docsTrasCambiar,
+              docsNuevoMira, docsNuevoFalta, docsNuevoSube, docsEsperaSubida, docsTrasSubir,
               /* DESPUES de todo lo de la boveda: estos pasos suben un papel,
                  y puestos antes le cambiaban la cuenta a las pruebas que
                  esperan los tres del expediente de partida. */
@@ -3233,6 +3258,11 @@
     arch.dispatchEvent(new Event('change'));
   }
 
+  function docsEsperaCambio(sigue){
+    if (CASO === 'gestor') return sigue();
+    esperaFilas('#dcLista tr[data-doc]', (window.PRUEBA_DOCS_ANTES || 0) + 1, sigue);
+  }
+
   function docsTrasCambiar(){
     if (CASO === 'gestor') return;
     var fichas = document.querySelectorAll('#dcLista tr[data-doc]');
@@ -3374,6 +3404,15 @@
           (document.getElementById('dcNombre') || {}).textContent, 'lo-que-ya-tenia.pdf');
     window.PRUEBA_DOCS_ANTES2 = document.querySelectorAll('#dcLista tr[data-doc]').length;
     document.getElementById('dcGuarda').click();
+  }
+
+  /* Con la misma guarda que el paso al que acompaña: al equipo del CIIP
+     no se le pinta la bóveda, así que aquí no va a aparecer nunca una
+     fila y esperarla es gastar el presupuesto de tiempo del navegador en
+     algo que no puede ocurrir. */
+  function docsEsperaSubida(sigue){
+    if (CASO === 'gestor') return sigue();
+    esperaFilas('#dcLista tr[data-doc]', (window.PRUEBA_DOCS_ANTES2 || 0) + 1, sigue);
   }
 
   function docsTrasSubir(){
