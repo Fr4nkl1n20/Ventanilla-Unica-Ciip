@@ -3758,14 +3758,19 @@
        !nada.hidden && /Todavía no hay temas cargados/.test(nada.textContent),
        nada.hidden ? '(oculto)' : nada.textContent.slice(0, 60), 'lo dice');
 
-    /* Y el botón de siempre las devuelve todas: filtrar por un tema no
-       puede dejar el asistente mutilado para el resto de la sesión. */
+    /* Y volver por la otra puerta las devuelve todas: filtrar por un tema
+       no puede dejar el asistente mutilado para el resto de la sesión.
+
+       Antes esto lo comprobaba 'supAsk', el botón genérico de preguntar al
+       asistente. Ya no existe: las dos puertas -CIIP e invertir- llevan al
+       mismo sitio, así que un tercer botón para lo mismo sobraba. Lo que se
+       vigila no ha cambiado, solo por dónde se vuelve. */
     document.getElementById('asstClose').click();
     document.getElementById('supFab').click();
-    document.getElementById('supAsk').click();
+    document.getElementById('supInv').click();
     var todos = [].filter.call(document.querySelectorAll('#asstSug .sug-chips button'),
                                function(b){ return !b.hidden; });
-    igual('burbuja: y "preguntar al asistente" las devuelve todas', todos.length, 7);
+    igual('burbuja: y volver por invertir las devuelve todas', todos.length, 7);
     document.getElementById('asstClose').click();
   }
 

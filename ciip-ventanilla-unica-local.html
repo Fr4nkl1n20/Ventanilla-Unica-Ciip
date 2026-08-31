@@ -10441,9 +10441,25 @@ applyLang(idiomaParaMi());
     /* El catálogo primero: de él salen el nombre y el organismo de cada
        trámite. Pedir las solicitudes antes deja una lista con los códigos
        internos a la vista, o sin nada. */
-    return cargaCatalogo().then(function(){
+    /* Y ademas se filtra por dueno, que es cinturon y tirantes.
+       La guarda de arriba mira el rol, y el rol llega TARDE: PERFIL nace
+       con 'inversionista' puesto y solo se corrige cuando contesta la
+       consulta del perfil. Esta funcion corre antes de eso, asi que a un
+       gestor la guarda no le salta en la primera pasada y la consulta se
+       fia del RLS -que a el se lo deja leer TODO-. Resultado: sus 31
+       tarjetas se pintaban con solicitudes de otras personas.
+
+       No se veia mientras el Supabase de mentira contestaba solo lo
+       propio. Se vio en cuanto se le hizo fiel a la politica de verdad,
+       que es lo que hay que agradecerle a ese cambio.
+
+       Filtrando aqui deja de importar cuando se sepa el rol: "mis
+       tramites" quiere decir mios, y eso se puede decir sin saber quien
+       soy en la oficina. */
+    return cargaCatalogo().then(quienSoy).then(function(yo){
       return sb.from('tramites')
       .select('id, tipo, estado, creado_en, enviado_en, resuelto_en')
+      .eq('inversionista', yo.id)
       .order('creado_en', {ascending:false})
       .then(function(r){
         if (r && r.error) throw r.error;
