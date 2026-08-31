@@ -5,7 +5,7 @@
 
    POR QUE ESTO EXISTE
    ─────────────────────────────────────────────────────────────────────
-   Las 1.281 pruebas del panel corren contra pruebas/supabase-mentira.js,
+   Las 2.668 pruebas del panel corren contra pruebas/supabase-mentira.js,
    un doble que escribi yo. Ese doble concede o niega el acceso segun lo
    que YO escribi que deberia pasar, no segun lo que Postgres hace. Que
    esten todas en verde no dice absolutamente nada sobre si un
@@ -46,10 +46,17 @@
 
      "g": { "correo": "rls-g@ciip-pruebas.com", "clave": "..." }
 
-   Sin ella no se puede probar lo que mas importa de la constancia de
-   identidad -que nadie la reescriba, ni quien la firmo-, porque solo un
-   gestor puede crear una. Si falta, el arnes lo dice en voz alta en vez
-   de dar por bueno lo que no comprobo.
+   Sin ella se quedan sin probar dos cosas, y las dos porque hace falta
+   alguien con mano libre para intentarlas:
+
+     - El append-only de la constancia de identidad. Solo un gestor puede
+       crear una, asi que sin gestor no hay nada que intentar reescribir.
+     - Los saltos de estado de un tramite. A un inversionista ya se los
+       tapa la politica, o sea que el trigger de la escalera no llegaria
+       ni a opinar y el verde no diria nada de el.
+
+   Si falta, el arnes lo dice en voz alta en vez de dar por bueno lo que
+   no comprobo.
    ══════════════════════════════════════════════════════════════════════ */
 
 'use strict';
@@ -253,11 +260,16 @@ async function principal(){
   const TR_B = trB.cuerpo[0].id;
   basura.tramites.push({ id: TR_B, token: B.token });
 
-  const RUTA_B = B.id + '/rls-' + Date.now() + '.txt';
+  /* PDF y no texto. El cubo lleva lista de tipos permitidos, y text/plain
+     no esta en ella: el cebo dejaba de subirse y las secciones 3 y 10 se
+     quedaban sin nada que mirar. Lo que se prueba aqui son las politicas,
+     asi que todo lo que se sube tiene que entrar por tipo para que lo
+     unico que decida sea la cerradura. */
+  const RUTA_B = B.id + '/rls-' + Date.now() + '.pdf';
   const subeB = await fetch(BASE + '/storage/v1/object/recaudos/' + RUTA_B, {
     method: 'POST',
-    headers: { apikey: ANON, Authorization: 'Bearer ' + B.token, 'Content-Type': 'text/plain' },
-    body: 'documento privado de B'
+    headers: { apikey: ANON, Authorization: 'Bearer ' + B.token, 'Content-Type': 'application/pdf' },
+    body: '%PDF-1.4 documento privado de B'
   });
   if (subeB.ok) basura.archivos.push({ ruta: RUTA_B, token: B.token });
 
@@ -330,11 +342,16 @@ async function principal(){
              !firma.ok, firma.ok ? 'LA FIRMO (200)' : 'rechazada (' + firma.status + ')');
 
   /* ═══ 4 · A ESCRIBE EN LA CARPETA DE B ══════════════════════════ */
-  for (const destino of [B.id + '/colado.txt', B.id + '/emitidos/falsa-resolucion.txt']){
+  /* Tambien en PDF, y por una razon mas fina que la de arriba: con
+     text/plain esto seguiria saliendo en verde, pero PORQUE EL TIPO NO
+     ESTA PERMITIDO, no porque la politica tape la carpeta de B. Un
+     aprobado por el motivo equivocado es peor que un fallo: tapa el
+     agujero que venia a buscar. */
+  for (const destino of [B.id + '/colado.pdf', B.id + '/emitidos/falsa-resolucion.pdf']){
     const sube = await fetch(BASE + '/storage/v1/object/recaudos/' + destino, {
       method: 'POST',
-      headers: { apikey: ANON, Authorization: 'Bearer ' + A.token, 'Content-Type': 'text/plain' },
-      body: 'esto no deberia estar aqui'
+      headers: { apikey: ANON, Authorization: 'Bearer ' + A.token, 'Content-Type': 'application/pdf' },
+      body: '%PDF-1.4 esto no deberia estar aqui'
     });
     if (sube.ok) basura.archivos.push({ ruta: destino, token: A.token });
     debeFallar('A no cuelga nada en ' + (destino.indexOf('emitidos') > 0 ? 'la carpeta emitidos de B' : 'la carpeta de B'),
@@ -715,6 +732,211 @@ async function principal(){
     console.log('  SIN PROBAR: el append-only de la constancia de identidad.');
     console.log('  Hace falta una tercera cuenta con rol gestor en');
     console.log('  cuentas.local.json, bajo la clave "g".\n');
+  }
+
+  /* ═══ 13 · EL TOPE Y LOS TIPOS DEL CUBO ═════════════════════════
+     Las cuatro politicas de storage dicen DONDE escribe cada quien. El
+     tope y la lista de tipos los lleva el propio cubo, y son la unica
+     defensa: el panel mira el tamano antes de subir, pero eso es cortesia
+     para dar un aviso legible. Un cliente hostil -este arnes, sin ir mas
+     lejos- no pasa por el panel.
+
+     Todo esto va a la carpeta de A, que es SUYA: si fallara por la
+     politica de carpeta no probaria nada del tope. */
+  const miCarpeta = A.id + '/rls-tope-' + Date.now();
+
+  const chico = await fetch(BASE + '/storage/v1/object/recaudos/' + miCarpeta + '-ok.pdf', {
+    method: 'POST',
+    headers: { apikey: ANON, Authorization: 'Bearer ' + A.token, 'Content-Type': 'application/pdf' },
+    body: '%PDF-1.4 uno pequeno y del tipo correcto'
+  });
+  if (chico.ok) basura.archivos.push({ ruta: miCarpeta + '-ok.pdf', token: A.token });
+  /* El control positivo. Sin el, los dos rechazos de abajo podrian estar
+     saliendo por cualquier otra causa -la carpeta, la sesion, el cubo mal
+     creado- y nadie se enteraria. */
+  debeFallar('cubo: un PDF pequeno en la carpeta propia SI entra (esto TIENE que salir)',
+             chico.ok, chico.ok ? 'entro' : 'RECHAZADO (' + chico.status + ')');
+
+  const gordo = await fetch(BASE + '/storage/v1/object/recaudos/' + miCarpeta + '-gordo.pdf', {
+    method: 'POST',
+    headers: { apikey: ANON, Authorization: 'Bearer ' + A.token, 'Content-Type': 'application/pdf' },
+    body: Buffer.alloc(11 * 1024 * 1024, 0x20)
+  });
+  if (gordo.ok) basura.archivos.push({ ruta: miCarpeta + '-gordo.pdf', token: A.token });
+  debeFallar('cubo: 11 MB no entran, ni en la carpeta propia',
+             !gordo.ok, gordo.ok ? 'LO ADMITIO (' + gordo.status + ')' : 'rechazada (' + gordo.status + ')');
+
+  for (const malo of [['text/plain', 'txt'], ['application/x-msdownload', 'exe'],
+                      ['image/svg+xml', 'svg']]){
+    const ruta = miCarpeta + '-malo.' + malo[1];
+    const r2 = await fetch(BASE + '/storage/v1/object/recaudos/' + ruta, {
+      method: 'POST',
+      headers: { apikey: ANON, Authorization: 'Bearer ' + A.token, 'Content-Type': malo[0] },
+      body: 'no es ni una imagen ni un PDF'
+    });
+    if (r2.ok) basura.archivos.push({ ruta: ruta, token: A.token });
+    debeFallar('cubo: no admite ' + malo[0],
+               !r2.ok, r2.ok ? 'LO ADMITIO (' + r2.status + ')' : 'rechazada (' + r2.status + ')');
+  }
+
+  /* ═══ 14 · EL ARCHIVO SE VA CON SU FICHA ════════════════════════
+     documentos guarda la RUTA; el archivo vive en el cubo. Al borrar la
+     ficha, un trigger se lleva el archivo. Si no lo hiciera, borrar una
+     cuenta dejaria sus recaudos en el cubo para siempre y sin nada que
+     dijera de quien fueron.
+
+     Esto no es una cerradura: es lo contrario, algo que TIENE que pasar.
+     Se prueba aqui porque es el unico arnes que habla con Postgres. */
+  const RUTA_HUERFANO = A.id + '/rls-huerfano-' + Date.now() + '.pdf';
+  const subeH = await fetch(BASE + '/storage/v1/object/recaudos/' + RUTA_HUERFANO, {
+    method: 'POST',
+    headers: { apikey: ANON, Authorization: 'Bearer ' + A.token, 'Content-Type': 'application/pdf' },
+    body: '%PDF-1.4 este tiene que irse solo'
+  });
+  if (subeH.ok){
+    const docH = await pide('/rest/v1/documentos', {
+      method: 'POST', token: A.token, headers: json(),
+      body: JSON.stringify({ inversionista: A.id, tipo: TIPO_DOC, archivo: RUTA_HUERFANO,
+                             nombre_original: 'huerfano.pdf', estado: 'cargado' })
+    });
+    if (docH.ok && docH.cuerpo && docH.cuerpo[0]){
+      await pide('/rest/v1/documentos?id=eq.' + docH.cuerpo[0].id,
+                 { method: 'DELETE', token: A.token });
+      const queda = await fetch(BASE + '/storage/v1/object/recaudos/' + RUTA_HUERFANO, {
+        headers: { apikey: ANON, Authorization: 'Bearer ' + A.token }
+      });
+      /* Si el trigger no se llevo el archivo, queda uno suelto: que lo
+         recoja la limpieza en vez de dejarlo ahi de recuerdo. */
+      if (queda.ok) basura.archivos.push({ ruta: RUTA_HUERFANO, token: A.token });
+      debeFallar('el archivo se va con su ficha (esto TIENE que salir)',
+                 !queda.ok, queda.ok ? 'SIGUE AHI (200)' : 'ya no esta (' + queda.status + ')');
+    } else {
+      basura.archivos.push({ ruta: RUTA_HUERFANO, token: A.token });
+      console.log('  SIN PROBAR: el borrado del archivo. A no pudo crear la ficha.');
+      console.log('');
+    }
+  } else {
+    console.log('  SIN PROBAR: el borrado del archivo. A no pudo subirlo (' + subeH.status + ').');
+    console.log('');
+  }
+
+  /* ═══ 15 · LOS CATALOGOS Y LA PRESENCIA ═════════════════════════
+     Tres tablas que solo se leen, y una columna que solo escribe una
+     funcion. Ninguna las tocaba este arnes. */
+  const catalogos = [
+    ['sectores',       { codigo: 'rls-falso', ref_panel: 'x', nombre: 'Colado', orden: 1 }],
+    /* Las tres filas son VALIDAS a proposito -estado 'disponible' existe,
+       nombre no vacio, codigo libre-. Si llevaran un dato malo las tumbaria
+       el CHECK de la tabla y el verde no diria nada de la politica, que es
+       lo que se viene a probar. */
+    ['activos',        { titulo: 'Oportunidad falsa', sector: 'rls', estado: 'disponible' }],
+    ['bancos_aliados', { codigo: 'rls-falso', nombre: 'Banco Colado' }]
+  ];
+  for (const [tabla, fila] of catalogos){
+    const r3 = await pide('/rest/v1/' + tabla, {
+      method: 'POST', token: A.token, headers: json(), body: JSON.stringify(fila)
+    });
+    v = noEscribe(r3);
+    debeFallar('un inversionista no escribe en ' + tabla, v.bien, v.d);
+  }
+
+  /* visto_en dice cuando estuviste. La escribe tocar_visto() con la hora
+     del SERVIDOR y solo en tu propia fila; a mano no se toca, ni la tuya
+     -un reloj mal puesto te dejaria "en linea" desde manana- ni la ajena. */
+  const vistoAjeno = await pide('/rest/v1/perfiles?id=eq.' + B.id, {
+    method: 'PATCH', token: A.token, headers: json(),
+    body: JSON.stringify({ visto_en: new Date().toISOString() })
+  });
+  v = noEscribe(vistoAjeno);
+  debeFallar('A no escribe el visto_en de B', v.bien, v.d);
+
+  const tocar = await pide('/rest/v1/rpc/tocar_visto', {
+    method: 'POST', token: A.token, headers: json(), body: '{}'
+  });
+  debeFallar('tocar_visto() SI apunta la hora de quien llama (esto TIENE que salir)',
+             tocar.ok, tocar.ok ? 'apuntada' : 'no pudo (' + tocar.estado + ')');
+
+  /* Y sin sesion no hace nada: si la aceptara con la clave anon, la
+     columna diria que hay alguien dentro cuando no hay nadie. */
+  const tocarAnon = await pide('/rest/v1/rpc/tocar_visto', {
+    method: 'POST', headers: json(), body: '{}'
+  });
+  debeFallar('sin entrar, tocar_visto() no apunta a nadie',
+             !tocarAnon.ok, tocarAnon.ok ? 'LA ACEPTO (200)' : 'rechazada (' + tocarAnon.estado + ')');
+
+  /* ═══ 16 · LA ESCALERA DE ESTADOS ═══════════════════════════════
+     El check de la tabla dice que estados EXISTEN. No dice en que orden
+     se pasa de uno a otro, y las politicas le dan al gestor mano libre
+     sobre el estado: podia llevar un tramite de 'borrador' a 'resuelto'
+     de un tiron. El historial lo anotaba, pero anotar no es impedir, y lo
+     que quedaba era un expediente resuelto que nadie reviso ni presento.
+     Eso lo tapa un trigger, y solo se puede comprobar aqui.
+
+     Tramite aparte, no el cebo: este acaba fuera de 'borrador' y la
+     politica de borrado -con razon- ya no deja quitarlo. */
+  const trEsc = await pide('/rest/v1/tramites', {
+    method: 'POST', token: A.token, headers: json(),
+    body: JSON.stringify({ inversionista: A.id, tipo: CODIGO, estado: 'borrador' })
+  });
+  const TR_ESC = trEsc.ok && trEsc.cuerpo && trEsc.cuerpo[0] ? trEsc.cuerpo[0].id : null;
+  if (TR_ESC) basura.tramites.push({ id: TR_ESC, token: A.token });
+
+  if (!TR_ESC){
+    console.log('  SIN PROBAR: la escalera de estados. A no pudo crear el tramite.');
+    console.log('');
+  } else {
+    /* El paso legitimo del inversionista, primero. Un trigger que lo
+       impidiera todo aprobaria cada intento de abajo sin proteger nada,
+       y ademas dejaria el panel sin poder enviar una solicitud. */
+    const envia = await pide('/rest/v1/tramites?id=eq.' + TR_ESC, {
+      method: 'PATCH', token: A.token, headers: json(),
+      body: JSON.stringify({ estado: 'enviado' })
+    });
+    debeFallar('escalera: de borrador a enviado SI se pasa (esto TIENE que salir)',
+               envia.ok && Array.isArray(envia.cuerpo) && envia.cuerpo.length === 1,
+               envia.ok ? 'enviado' : 'no pudo (' + envia.estado + ')');
+
+    if (conGestor){
+      const G = conGestor;
+
+      /* Los tres saltos. Las politicas los dejan pasar -es_gestor() da
+         mano libre sobre el estado-, asi que lo unico que puede pararlos
+         es el trigger. Si alguno sale, el agujero es de verdad. */
+      const saltos = [
+        ['enviado',     'resuelto',     'no salta de enviado a resuelto'],
+        ['enviado',     'ante_el_ente', 'no salta de enviado a ante_el_ente'],
+        ['enviado',     'borrador',     'no vuelve de enviado a borrador']
+      ];
+      /* Cada intento se filtra por el estado del que sale. Si el primero
+         colara -o sea, si no hubiera trigger-, los otros dos no
+         encontrarian fila y saldrian en verde sin haber probado nada. No
+         importa: el primero ya habria salido en rojo, y ahi esta el
+         agujero. El filtro solo evita que un fallo se cuente tres veces. */
+      for (const [de, a, nombre] of saltos){
+        const salto = await pide('/rest/v1/tramites?id=eq.' + TR_ESC + '&estado=eq.' + de, {
+          method: 'PATCH', token: G.token, headers: json(),
+          body: JSON.stringify({ estado: a })
+        });
+        v = noEscribe(salto);
+        debeFallar('escalera: ' + nombre, v.bien, v.d);
+      }
+
+      /* Y el paso que si toca, para saber que lo de arriba se cayo por
+         donde tenia que caerse y no porque el gestor no pueda escribir. */
+      const revisa = await pide('/rest/v1/tramites?id=eq.' + TR_ESC, {
+        method: 'PATCH', token: G.token, headers: json(),
+        body: JSON.stringify({ estado: 'en_revision' })
+      });
+      debeFallar('escalera: de enviado a en_revision SI se pasa (esto TIENE que salir)',
+                 revisa.ok && Array.isArray(revisa.cuerpo) && revisa.cuerpo.length === 1,
+                 revisa.ok ? 'en revision' : 'no pudo (' + revisa.estado + ')');
+    } else {
+      console.log('  SIN PROBAR: los saltos de estado. Los tres los tiene que');
+      console.log('  intentar un gestor, porque a un inversionista ya se los tapa');
+      console.log('  la politica y el trigger no llegaria a opinar. Hace falta la');
+      console.log('  cuenta "g" en cuentas.local.json.');
+      console.log('');
+    }
   }
 
   /* ── recoger ────────────────────────────────────────────────────── */

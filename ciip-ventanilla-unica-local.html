@@ -2433,6 +2433,14 @@ body.con-puerta{overflow:hidden;}
      absoluta, el ancho preferido se lo calcula sobre la palabra mas larga. */
   width:max-content; max-width:min(258px, calc(100vw - 96px));
   opacity:0; transform:translateX(6px); transition:opacity .25s, transform .25s;}
+/* La cola. Antes el sitio de donde salia la nube lo decia la esquina de
+   4px, que es poco: apuntaba al boton solo si ya sabias que lo hacia.
+   Un triangulo recortado sale mas barato que un SVG y se pinta del mismo
+   color de fondo, asi que no hay costura donde se solapan. Los 6px que
+   asoma son justo el hueco que .sup-nube deja hasta la burbuja. */
+.sup-nube::after{content:""; position:absolute; right:-6px; bottom:11px;
+  width:13px; height:13px; background:var(--bg);
+  clip-path:polygon(0 0, 0 100%, 100% 55%);}
 .sup-nube.se-ve{opacity:1; transform:none;}
 /* La firma: el punto cian con la inicial. */
 .sup-nube-marca{width:22px; height:22px; border-radius:50%; flex:none;
@@ -6708,7 +6716,8 @@ applyLang(idiomaParaMi());
       console.warn('[CIIP] enviar:', e && (e.message || e));
       boton.disabled = false;
       boton.textContent = u.enviar;
-      aviso.textContent = (e && e.message) ? (u.error + ' (' + e.message + ')') : u.error;
+      aviso.textContent = (e && e.ciip && u[e.ciip]) ? u[e.ciip]
+                        : (e && e.message) ? (u.error + ' (' + e.message + ')') : u.error;
       aviso.className = 'sol-aviso err';
     });
     }
@@ -6731,6 +6740,36 @@ applyLang(idiomaParaMi());
       if (!usuario) throw new Error('sin sesión');
       return usuario;
     });
+  }
+
+  /* ── lo que el cubo deja pasar ──
+     Copia de lo que 'recaudos' lleva puesto en supabase-tramites.sql, y la
+     cerradura de verdad está ALLÍ: la base rechaza el archivo aunque el
+     navegador diga que sí, porque quien llame a la API de frente se salta
+     todo esto. Aquí solo sirve para que la persona lea «pesa demasiado» en
+     su idioma en vez del error crudo de Storage, que está en inglés y
+     habla de cubos. Si allí cambian el tope o los tipos, cambian aquí. */
+  var MAX_PAPEL = 10 * 1024 * 1024;
+  var TIPOS_PAPEL = ['image/jpeg','image/png','image/webp','image/heic',
+                     'image/heif','image/tiff','image/bmp','application/pdf'];
+
+  /* La clave del aviso que toca, o null si el papel entra. Un archivo sin
+     tipo -los deja algún escáner viejo- no se rechaza aquí: que decida el
+     cubo, que es quien manda, en vez de negarlo por una duda nuestra. */
+  function papelMal(archivo){
+    if (!archivo) return null;
+    if (archivo.size > MAX_PAPEL) return 'dc_pesa';
+    var t = String(archivo.type || '');
+    if (t && TIPOS_PAPEL.indexOf(t) < 0) return 'dc_tipo';
+    return null;
+  }
+
+  /* El error lleva la clave puesta para que cada .catch elija el texto sin
+     tener que leer el mensaje y adivinar. */
+  function papelNo(clave){
+    var e = new Error(clave);
+    e.ciip = clave;
+    return e;
   }
 
   /* Sube el archivo a Storage y crea su ficha en la bóveda.
@@ -6766,10 +6805,42 @@ applyLang(idiomaParaMi());
   }
   function caduca(tipo){ return !!(VENCEN && VENCEN[tipo]); }
 
+  /* ── la huella del archivo ──
+     El SHA-256 de lo que se sube. Sirve para dos cosas: el conector se lo
+     manda al organismo -ya lo tenia escrito en el contrato, y hasta ahora
+     iba vacio porque nadie lo calculaba- y deja que un tercero verifique
+     despues un documento emitido sin tener que preguntarnos de quien es.
+
+     Devuelve null en vez de fallar cuando no se puede. crypto.subtle solo
+     existe en contexto seguro: con ABRIR-LOCAL.bat lo hay -localhost
+     cuenta-, pero con ABRIR-EN-RED.bat, que sirve por IP y sin https, NO.
+     Reventar ahi dejaria al panel sin poder subir nada desde la red de la
+     oficina, y un documento sin huella sigue sirviendo para todo menos
+     para verificarse. */
+  function huellaDe(archivo){
+    try {
+      if (!window.crypto || !window.crypto.subtle || !archivo.arrayBuffer){
+        return Promise.resolve(null);
+      }
+      return archivo.arrayBuffer()
+        .then(function(bytes){ return window.crypto.subtle.digest('SHA-256', bytes); })
+        .then(function(resumen){
+          var b = Array.prototype.slice.call(new Uint8Array(resumen));
+          return b.map(function(x){ return ('0' + x.toString(16)).slice(-2); }).join('');
+        })
+        .catch(function(){ return null; });
+    } catch (e) { return Promise.resolve(null); }
+  }
+
   function sube(tipoDoc, archivo, venceEl){
     return quienSoy().then(function(yo){
       var limpio = archivo.name.replace(/[^\w.\-]+/g, '_').slice(-60);
       var ruta = yo.id + '/' + tipoDoc + '-' + Math.random().toString(36).slice(2, 10) + '-' + limpio;
+      /* Se calcula ANTES de subir, sobre el archivo que hay en la mano.
+         Calcularla despues obligaria a bajarlo otra vez para leerlo, y
+         entonces la huella diria que el archivo del cubo es igual al del
+         cubo, que no prueba nada. */
+      return huellaDe(archivo).then(function(huella){
       return sb.storage.from('recaudos').upload(ruta, archivo, {upsert:false})
         .then(function(r){
           if (r.error) throw r.error;
@@ -6793,6 +6864,7 @@ applyLang(idiomaParaMi());
           MIOS = null; miosPide = null;
           return r.data.id;
         });
+      });
     });
   }
 
@@ -9338,7 +9410,7 @@ applyLang(idiomaParaMi());
                 console.warn('[CIIP] entregar:', e && (e.message || e));
                 b.disabled = false;
                 b.textContent = u[p.k] || '';
-                aviso.textContent = u.co_error || '';
+                aviso.textContent = (e && e.ciip && u[e.ciip]) || u.co_error || '';
               });
             return;
           }
@@ -9645,10 +9717,18 @@ applyLang(idiomaParaMi());
      La carpeta 'emitidos' separa lo que deja el equipo de lo que subió la
      persona, y es lo que mira la política del cubo para dejarlo entrar. */
   function entrega(tr, archivo){
+    var mal = papelMal(archivo);
+    if (mal) return Promise.reject(papelNo(mal));
     var limpio = archivo.name.replace(/[^\w.\-]+/g, '_').slice(-60);
     var ruta = tr.inversionista + '/emitidos/' +
                Math.random().toString(36).slice(2, 10) + '-' + limpio;
 
+    /* Aqui la huella importa MAS que al subir un recaudo. Este es el
+       papel que emitio el ente y que el inversionista va a enseñar en un
+       banco o en un registro: es el unico que un tercero va a querer
+       verificar, y entra como 'validado', que es lo unico que
+       verificar_documento() reconoce. */
+    return huellaDe(archivo).then(function(huella){
     return sb.storage.from('recaudos').upload(ruta, archivo, {upsert:false})
       .then(function(r){
         if (r && r.error) throw r.error;
@@ -9659,7 +9739,8 @@ applyLang(idiomaParaMi());
           tipo: 'resolucion',
           archivo: ruta,
           nombre_original: archivo.name,
-          estado: 'validado'
+          estado: 'validado',
+          huella: huella
         }).select().single();
       })
       .then(function(r){
@@ -9672,6 +9753,7 @@ applyLang(idiomaParaMi());
         if (r && r.error) throw r.error;
         return true;
       });
+    });
   }
 
   function mueveTramite(tr, aEstado, nota, boton, aviso, textoBoton){
@@ -11424,7 +11506,16 @@ applyLang(idiomaParaMi());
             .catch(function(e){
               console.warn('[CIIP] cambiar documento:', e && (e.message || e));
               cambiar.disabled = false; abrir.disabled = false;
-              cambiar.textContent = u.pf_fotoerror || '';
+              cambiar.textContent = u.dc_cambiar || '';
+              /* El motivo va al aviso de la pantalla, no al botón: una
+                 frase entera dentro de «Cambiar» lo deforma y encima se
+                 pierde en cuanto se repinta la lista. El botón vuelve a
+                 llamarse como se llamaba. */
+              var afc = document.getElementById('dcAvisoFuera');
+              if (afc){
+                afc.textContent = (e && e.ciip && u[e.ciip]) || u.pf_fotoerror || '';
+                afc.className = 'pf-aviso';
+              }
             });
         });
         botones.appendChild(cambiar);
@@ -11746,7 +11837,7 @@ applyLang(idiomaParaMi());
       console.warn('[CIIP] subir documento:', e && (e.message || e));
       bt.disabled = false;
       bt.textContent = u.dc_subir || '';
-      av.textContent = u.pf_fotoerror || '';
+      av.textContent = (e && e.ciip && u[e.ciip]) || u.pf_fotoerror || '';
       av.className = 'pf-aviso';
     });
   }

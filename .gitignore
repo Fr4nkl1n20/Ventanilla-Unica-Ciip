@@ -6,6 +6,19 @@ desktop.ini
 *.bak
 *~
 
+# Un .patch guardado a mano mientras se trabaja. Es un respaldo de algo
+# que acaba en un commit, y el commit es mejor respaldo: tiene fecha,
+# mensaje y no se pisa. Si alguna vez hace falta subir uno a propósito,
+# "git add -f" lo mete igual.
+*.patch
+
+# El archivo de espacio de trabajo de VS Code. El que hay dice solo
+# {"folders":[{"path":"."}]}, que es exactamente lo que hace abrir la
+# carpeta: no le da nada a quien clone. Si algún día lleva algo dentro
+# -extensiones recomendadas, el Live Server en el 8080 como ABRIR-LOCAL.bat-
+# entonces sí valdrá la pena subirlo, y será otro archivo distinto de este.
+*.code-workspace
+
 # ── Carpetas de trabajo del navegador sin ventana ─────────────────────
 perfil/
 .vercel/
