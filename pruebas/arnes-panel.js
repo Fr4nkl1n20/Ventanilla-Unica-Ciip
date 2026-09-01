@@ -556,6 +556,28 @@
            reloj('c6'), 'espera al RIF personal, no a la constitución');
       }
 
+      /* ── el plazo, comparado ──
+         El panel ya enseñaba «Estimado: 2–3 semanas» y «lleva 40 días» en
+         la misma tarjeta, sin juntarlos nunca. Aquí se comprueba que ya
+         hace la resta. */
+      if (CASO === 'lleno'){
+        /* t3 es un RIF personal enviado hace más días que su plazo. */
+        ok('plazo: si tarda más de lo prometido, la tarjeta lo dice',
+           /lento|Slower|lentamente|previsto|预期|медленнее/i.test(reloj('c3')),
+           reloj('c3'), 'que va más lento de lo previsto');
+
+        /* Y ésta es la que importa: t4 es la visa, que tardó MUCHO más que
+           su plazo... pero ya está resuelta. No se puede llegar tarde a
+           algo que ya llegó, y decirlo sería convertir el aviso en ruido
+           sobre expedientes cerrados.
+
+           Si el aviso se calculara sólo con la resta de fechas, sin mirar
+           el estado, esta prueba se pondría roja. */
+        ok('plazo: uno ya resuelto no se marca, aunque tardara de más',
+           !/lento|Slower|lentamente|previsto|预期|медленнее/i.test(reloj('c1')),
+           reloj('c1'), 'sin marcar, porque ya terminó');
+      }
+
       /* El banco de activos no es una solicitud —por eso tiene vista
          propia— y su distintivo no puede pasar a "por iniciar". */
       igual('estados: el banco de activos sigue diciendo Disponible', chip('c15'), 'Disponible');
