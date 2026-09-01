@@ -21,9 +21,11 @@
 
 window.CIIP_CONFIG = {
 
-  /* ---- rellena estos dos ---- */
-  SUPABASE_URL:      'https://ifhdzxetixhrzqixcfbe.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlmaGR6eGV0aXhocnpxaXhjZmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTI3OTUsImV4cCI6MjEwMjU2ODc5NX0.7e3QDtDKAYGYgIF-ZfMZJk9OXEYEo0_hpgR1BG_iT4Y',
+  /* ---- rellena estos dos ----
+     Proyecto "Ventanilla Unica - Produccion" (fbxdwryppfctuwlnjjqr),
+     creado el 1 de septiembre de 2026, con las 21 tablas ya puestas. */
+  SUPABASE_URL:      'https://fbxdwryppfctuwlnjjqr.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZieGR3cnlwcGZjdHV3bG5qanFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyODY0MzcsImV4cCI6MjEwMzg2MjQzN30.3pu7IrjE5Lgu3J9csZUHyE_kY1DA-czgb5Z8G3_kfyw',
 
   /* ---- a dónde ir después de entrar ----
      VACÍO a propósito: sin panel al que saltar, el acceso se queda en su

@@ -47,23 +47,14 @@
 
   var PROYECTOS = {
 
-    /* ---- el de "produccion", y hoy es el mismo que el de pruebas ----
-       El proyecto que habia aqui, ugmpeldbasujuchdmzsc, YA NO EXISTE: su
-       dominio no resuelve. Se comprobo el 1 de septiembre de 2026 con el
-       DNS publico, no leyendo un panel.
-
-       Mientras estuvo escrito aqui, cualquier copia servida desde una
-       direccion de internet -la de Vercel, sin ir mas lejos- hablaba con
-       una base borrada: el login aceptaba la contraseña y luego no habia
-       nadie al otro lado. Un interruptor que elige entre dos sitios y uno
-       de los dos no existe es peor que no tener interruptor.
-
-       Asi que apunta a la unica base viva. Cuando exista la de produccion
-       de verdad: se crea el proyecto, se le pega TODO-EN-ORDEN.sql, y se
-       cambian estas dos lineas. Nada mas. */
+    /* ---- el de verdad: cuentas reales, no es sitio para experimentos ----
+       Proyecto "Ventanilla Unica - Produccion" (fbxdwryppfctuwlnjjqr),
+       creado el 1 de septiembre de 2026 en el organization CIIP de
+       Supabase, con las 21 tablas de TODO-EN-ORDEN.sql ya puestas.
+       Reemplaza al ugmpeldbasujuchdmzsc que dejo de existir. */
     real: {
-      SUPABASE_URL:      'https://ifhdzxetixhrzqixcfbe.supabase.co',
-      SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlmaGR6eGV0aXhocnpxaXhjZmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTI3OTUsImV4cCI6MjEwMjU2ODc5NX0.7e3QDtDKAYGYgIF-ZfMZJk9OXEYEo0_hpgR1BG_iT4Y'
+      SUPABASE_URL:      'https://fbxdwryppfctuwlnjjqr.supabase.co',
+      SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZieGR3cnlwcGZjdHV3bG5qanFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyODY0MzcsImV4cCI6MjEwMzg2MjQzN30.3pu7IrjE5Lgu3J9csZUHyE_kY1DA-czgb5Z8G3_kfyw'
     },
 
     /* ---- el de pruebas: aquí se monta lo nuevo y se puede romper ---- */
