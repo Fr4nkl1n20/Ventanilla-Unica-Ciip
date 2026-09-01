@@ -790,19 +790,34 @@ async function principal(){
                !r2.ok, r2.ok ? 'LO ADMITIO (' + r2.status + ')' : 'rechazada (' + r2.status + ')');
   }
 
-  /* ═══ 14 · EL ARCHIVO SE VA CON SU FICHA ════════════════════════
+  /* ═══ 14 · EL ARCHIVO QUE SE QUEDA SIN FICHA ════════════════════
      documentos guarda la RUTA; el archivo vive en el cubo. Al borrar la
-     ficha, un trigger se lleva el archivo. Si no lo hiciera, borrar una
-     cuenta dejaria sus recaudos en el cubo para siempre y sin nada que
-     dijera de quien fueron.
+     ficha, un trigger APUNTA el archivo en archivos_huerfanos y sale;
+     quien se lo lleva de verdad es el barrendero, con la clave de
+     servidor y la API de Storage.
 
-     Esto no es una cerradura: es lo contrario, algo que TIENE que pasar.
-     Se prueba aqui porque es el unico arnes que habla con Postgres. */
+     ESTA PRUEBA ESTUVO EN ROJO, Y TENIA RAZON. Antes el trigger hacia
+     `delete from storage.objects` y aqui se comprobaba que el archivo ya
+     no se pudiera pedir. En el arnes local salia verde -alli esa tabla es
+     nuestra- y contra un Supabase de verdad salio rojo: el archivo seguia
+     ahi. La tabla es de otro esquema y de otro dueño, y el trigger se iba
+     en silencio sin borrar nada.
+
+     Al mirarlo de cerca resulto que, aunque le hubieran dejado, tampoco
+     servia: storage.objects es el indice del cubo, y los bytes viven
+     detras. Borrar la fila habria dejado el archivo ocupando sitio sin
+     que quedara ni el nombre para ir a buscarlo.
+
+     Asi que lo que se comprueba ahora es lo contrario de lo de antes: que
+     el archivo SIGA estando, porque es por su nombre por donde la API va
+     a ir a buscarlo. Que el apunte se escriba no se puede ver desde aqui
+     -esa lista no la lee nadie que entre por la clave publica, y eso se
+     comprueba justo debajo-: lo prueba PROBAR-SQL.bat. */
   const RUTA_HUERFANO = A.id + '/rls-huerfano-' + Date.now() + '.pdf';
   const subeH = await fetch(BASE + '/storage/v1/object/recaudos/' + RUTA_HUERFANO, {
     method: 'POST',
     headers: { apikey: ANON, Authorization: 'Bearer ' + A.token, 'Content-Type': 'application/pdf' },
-    body: '%PDF-1.4 este tiene que irse solo'
+    body: '%PDF-1.4 este se queda esperando al barrendero'
   });
   if (subeH.ok){
     const docH = await pide('/rest/v1/documentos', {
@@ -816,20 +831,51 @@ async function principal(){
       const queda = await fetch(BASE + '/storage/v1/object/recaudos/' + RUTA_HUERFANO, {
         headers: { apikey: ANON, Authorization: 'Bearer ' + A.token }
       });
-      /* Si el trigger no se llevo el archivo, queda uno suelto: que lo
-         recoja la limpieza en vez de dejarlo ahi de recuerdo. */
+      /* Aqui no corre el barrendero, asi que se lo lleva la limpieza de
+         esta prueba: si no, cada vuelta dejaria uno. */
       if (queda.ok) basura.archivos.push({ ruta: RUTA_HUERFANO, token: A.token });
-      debeFallar('el archivo se va con su ficha (esto TIENE que salir)',
-                 !queda.ok, queda.ok ? 'SIGUE AHI (200)' : 'ya no esta (' + queda.status + ')');
+      debeFallar('borrar la ficha NO se lleva el archivo del cubo (esto TIENE que salir)',
+                 queda.ok, queda.ok ? 'sigue ahi, esperando al barrendero'
+                                    : 'SE LO LLEVO (' + queda.status + ')');
     } else {
       basura.archivos.push({ ruta: RUTA_HUERFANO, token: A.token });
-      console.log('  SIN PROBAR: el borrado del archivo. A no pudo crear la ficha.');
+      console.log('  SIN PROBAR: el huerfano. A no pudo crear la ficha.');
       console.log('');
     }
   } else {
-    console.log('  SIN PROBAR: el borrado del archivo. A no pudo subirlo (' + subeH.status + ').');
+    console.log('  SIN PROBAR: el huerfano. A no pudo subirlo (' + subeH.status + ').');
     console.log('');
   }
+
+  /* Y la cerradura de la lista. Cada fila es la ruta de un archivo del
+     cubo, y las rutas empiezan por el uuid de su dueño: poder leerlas
+     seria poder nombrar recaudos ajenos, incluidos los de cuentas ya
+     borradas, que es justo lo que se venia a limpiar. */
+  const huerfA = await pide('/rest/v1/archivos_huerfanos?select=ruta', { token: A.token });
+  debeFallar('la lista de huerfanos no la lee ni quien la lleno',
+             !huerfA.ok || !(huerfA.cuerpo || []).length,
+             (huerfA.ok && (huerfA.cuerpo || []).length)
+               ? 'LEYO ' + huerfA.cuerpo.length + ' rutas'
+               : 'vacia (' + huerfA.estado + ')');
+
+  const huerfAnon = await pide('/rest/v1/archivos_huerfanos?select=ruta', {});
+  debeFallar('ni se lee sin entrar',
+             !huerfAnon.ok || !(huerfAnon.cuerpo || []).length,
+             (huerfAnon.ok && (huerfAnon.cuerpo || []).length)
+               ? 'LEYO ' + huerfAnon.cuerpo.length + ' rutas'
+               : 'vacia (' + huerfAnon.estado + ')');
+
+  /* Y no se escribe. Si se pudiera, cualquiera apuntaria el recaudo de
+     otro y el barrendero se lo borraria esta noche, con la clave de
+     servidor y sin preguntar. Es la unica forma de borrar un archivo
+     ajeno que quedaria en todo el sistema. */
+  const huerfPone = await pide('/rest/v1/archivos_huerfanos', {
+    method: 'POST', token: A.token, headers: json(),
+    body: JSON.stringify({ cubo: 'recaudos', ruta: 'de-otro/cedula.pdf' })
+  });
+  debeFallar('ni se le encarga al barrendero un archivo ajeno',
+             !huerfPone.ok, huerfPone.ok ? 'LO APUNTO (' + huerfPone.estado + ')'
+                                         : 'rechazada (' + huerfPone.estado + ')');
 
   /* ═══ 15 · LOS CATALOGOS Y LA PRESENCIA ═════════════════════════
      Tres tablas que solo se leen, y una columna que solo escribe una

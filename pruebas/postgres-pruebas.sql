@@ -4,7 +4,7 @@
 --  Las otras tandas no tocan Postgres. supabase-mentira.js concede o
 --  niega segun lo que se escribio que deberia pasar; que el panel salga
 --  en verde no dice nada de si un trigger existe o de si una politica
---  cierra. Esto ejecuta los once archivos en un Postgres de verdad y
+--  cierra. Esto ejecuta los veintitres archivos en un Postgres de verdad y
 --  luego intenta hacer lo que no se debe.
 --
 --  Se entra como entra Supabase: "set role authenticated" y el sub del
@@ -264,65 +264,131 @@ select arnes.comprueba(
 
 -- ══ 3 · EL ARCHIVO SE VA CON SU FICHA ════════════════════════════════
 -- documentos guarda la RUTA; el archivo vive en el cubo. Al borrar la
--- ficha, un trigger se lleva el archivo: sin el, borrar una cuenta dejaba
--- sus recaudos alli para siempre y sin nada que dijera de quien fueron.
+-- ficha, un trigger APUNTA el archivo en archivos_huerfanos, y de ahi lo
+-- recoge el barrendero llamando a la API de Storage.
+--
+-- No se borra aqui a proposito, por dos razones que estan explicadas
+-- largo en supabase-tramites.sql: un `delete from storage.objects` quita
+-- el indice y deja los bytes, y encima en un Supabase de verdad no le
+-- dejan tocar esa tabla y se va en silencio.
+--
+-- Por eso estas comprobaciones miran la lista y NO miran storage.objects.
+-- La fila del indice tiene que SEGUIR ahi: es por su nombre por donde la
+-- API de Storage va a buscar el archivo cuando le toque.
+--
+-- Ojo con el nombre de la variable: la columna tambien se llama 'ruta', y
+-- en plpgsql `where ruta = ruta` se compara consigo misma y sale que si
+-- siempre. De ahi 'laRuta'.
 select arnes.soy((select id from arnes.gente where papel = 'A'));
 
 do $p$
 declare
   tipoDoc text;
-  ruta    text;
+  laRuta  text;
   ficha   uuid;
 begin
   select codigo into tipoDoc from public.tipos_documento limit 1;
-  ruta := auth.uid() || '/rls-huerfano.pdf';
+  laRuta := auth.uid() || '/rls-huerfano.pdf';
 
   insert into storage.objects (bucket_id, name, owner)
-  values ('recaudos', ruta, auth.uid());
+  values ('recaudos', laRuta, auth.uid());
 
   insert into public.documentos (inversionista, tipo, archivo, nombre_original, estado)
-  values (auth.uid(), tipoDoc, ruta, 'huerfano.pdf', 'cargado')
+  values (auth.uid(), tipoDoc, laRuta, 'huerfano.pdf', 'cargado')
   returning id into ficha;
 
   delete from public.documentos where id = ficha;
-
-  perform arnes.comprueba(
-    'el archivo se va con su ficha',
-    not exists (select 1 from storage.objects where name = ruta),
-    case when exists (select 1 from storage.objects where name = ruta)
-         then 'SIGUE AHI' else 'ya no esta' end);
 end
 $p$;
 
-/* Y el caso que motivo el trigger: al borrar la CUENTA, el cascade se
-   lleva la ficha, y con ella tiene que irse el archivo. Aqui no hay
-   codigo de cliente que pueda encargarse; o lo hace la base o no lo hace
-   nadie. Se borra el usuario B, que no se usa para nada mas. */
+/* El apunte se COMPRUEBA con el rol quitado, y no es un atajo: la lista
+   no la puede leer nadie que entre por la clave publica -eso se prueba
+   dos parrafos mas abajo-, asi que mirandola como 'authenticated' esto
+   saldria rojo aunque el trigger funcionara de maravilla. Lo que se esta
+   probando aqui es que el trigger escribe, no quien puede leer. */
+reset role;
+
+do $p$
+declare
+  laRuta text;
+  duenio uuid;
+begin
+  select id into duenio from arnes.gente where papel = 'A';
+  laRuta := duenio || '/rls-huerfano.pdf';
+
+  perform arnes.comprueba(
+    'al borrar la ficha, el archivo queda apuntado para barrer',
+    exists (select 1 from public.archivos_huerfanos h
+             where h.ruta = laRuta and h.estado = 'pendiente'),
+    'no lo apunto');
+
+  -- Y con el nombre de quien fue, que es lo que no habia forma de saber
+  -- cuando el archivo se quedaba suelto en el cubo.
+  perform arnes.comprueba(
+    'y queda dicho de quien era',
+    (select h.de_quien from public.archivos_huerfanos h where h.ruta = laRuta) = duenio,
+    'sin dueño');
+
+  -- Lo que NO tiene que pasar: que se lleve por delante el indice. Si
+  -- desapareciera de storage.objects, el barrendero se quedaria con una
+  -- ruta que ya no apunta a nada y los bytes ahi para siempre.
+  perform arnes.comprueba(
+    'el indice del cubo sigue puesto, que es por donde se va a buscar',
+    exists (select 1 from storage.objects where name = laRuta),
+    'SE LO LLEVO');
+end
+$p$;
+
+/* Y el caso que motivo todo esto: al borrar la CUENTA, el cascade se
+   lleva la ficha, y con ella tiene que quedar apuntado el archivo. Aqui
+   no hay codigo de cliente que pueda encargarse; o lo apunta la base o no
+   lo apunta nadie. Se borra el usuario B, que no se usa para nada mas. */
 reset role;
 
 do $p$
 declare
   tipoDoc text;
-  ruta    text;
+  laRuta  text;
   quien   uuid;
 begin
   select id into quien from arnes.gente where papel = 'B';
   select codigo into tipoDoc from public.tipos_documento limit 1;
-  ruta := quien || '/de-una-cuenta-borrada.pdf';
+  laRuta := quien || '/de-una-cuenta-borrada.pdf';
 
-  insert into storage.objects (bucket_id, name, owner) values ('recaudos', ruta, quien);
+  insert into storage.objects (bucket_id, name, owner) values ('recaudos', laRuta, quien);
   insert into public.documentos (inversionista, tipo, archivo, nombre_original, estado)
-  values (quien, tipoDoc, ruta, 'de-una-cuenta-borrada.pdf', 'cargado');
+  values (quien, tipoDoc, laRuta, 'de-una-cuenta-borrada.pdf', 'cargado');
 
   delete from auth.users where id = quien;
 
   perform arnes.comprueba(
     'y tambien cuando lo que se borra es la cuenta entera',
-    not exists (select 1 from storage.objects where name = ruta),
-    case when exists (select 1 from storage.objects where name = ruta)
-         then 'SIGUE AHI' else 'ya no esta' end);
+    exists (select 1 from public.archivos_huerfanos h
+             where h.ruta = laRuta and h.estado = 'pendiente'),
+    'no lo apunto');
+
+  -- La razon de que de_quien no tenga llave foranea. Con un cascade, esta
+  -- fila se habria borrado en el mismo momento en que empezaba a hacer
+  -- falta, y el archivo se habria quedado en el cubo sin que nada lo
+  -- nombrara: exactamente el agujero que se venia a tapar.
+  perform arnes.comprueba(
+    'el apunte sobrevive a la cuenta que lo dejo',
+    (select h.de_quien from public.archivos_huerfanos h where h.ruta = laRuta) = quien,
+    'se fue con la cuenta');
 end
 $p$;
+
+-- Nadie que entre por la clave publica ve esa lista. Cada fila es la ruta
+-- de un archivo del cubo, y las rutas empiezan por el uuid del dueño:
+-- poder leerlas seria poder nombrar recaudos ajenos, incluidos los de
+-- cuentas ya borradas.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+select arnes.comprueba(
+  'la lista de huerfanos no la lee ni el que la lleno',
+  (select count(*) = 0 from public.archivos_huerfanos),
+  'la esta leyendo');
+reset role;
 
 
 -- ══ 4 · LAS CERRADURAS ═══════════════════════════════════════════════

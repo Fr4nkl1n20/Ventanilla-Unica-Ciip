@@ -7,7 +7,7 @@
 #  Las otras tres tandas no tocan Postgres. El panel corre contra
 #  supabase-mentira.js, que concede o niega segun lo que se escribio que
 #  deberia pasar; que salga en verde no dice si un trigger existe o si una
-#  politica cierra. Esto ejecuta los once archivos y luego intenta hacer
+#  politica cierra. Esto ejecuta los veintitres archivos y luego intenta hacer
 #  lo que no se debe.
 #
 #  NO HACE FALTA NINGUNA CLAVE, Y NO SE TOCA NINGUN SERVIDOR
@@ -170,7 +170,7 @@ finally {
 
 Write-Output ''
 if ($salida -eq 0) {
-  Write-Output '  Esto prueba lo que hay DENTRO de la base: que los once entran en'
+  Write-Output '  Esto prueba lo que hay DENTRO de la base: que los veintitres entran en'
   Write-Output '  ese orden, que los triggers saltan y que las politicas cierran.'
   Write-Output '  El tope del cubo lo aplica storage-api, que es otro servicio: eso'
   Write-Output '  solo lo dice PROBAR-CERRADURAS.bat contra un Supabase de verdad.'

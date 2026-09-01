@@ -674,38 +674,113 @@ create trigger tramites_marca_tiempo
 
 -- ── el archivo se va con su ficha ──
 -- documentos guarda la RUTA; el archivo vive en el cubo. Al borrar la
--- cuenta, el cascade desde auth.users se llevaba la fila y dejaba el
+-- cuenta, el cascade desde auth.users se lleva la fila y dejaría el
 -- archivo en el cubo para siempre, sin nada que dijera de quién fue.
 --
 -- Va en la base y no en el panel porque el panel no borra documentos
 -- -«cambiar» guarda el viejo como historial- y porque el cascade de una
 -- cuenta borrada ocurre aquí, donde no corre código de cliente.
 --
--- ALCANCE: esto quita la fila de storage.objects, y con ella el listado,
--- el recuento y toda forma de pedir el archivo. El binario en el almacén
--- de detrás no lo borra ningún SQL: eso solo lo hace la API de Storage.
--- O sea, deja de haber huérfanos accesibles, no deja de haber bytes.
+-- POR QUÉ NO SE BORRA AQUÍ MISMO
+-- ─────────────────────────────────────────────────────────────────────
+-- Esto empezó siendo un `delete from storage.objects`. Parecía suficiente
+-- y no lo era, por dos razones que sólo se ven de dos maneras distintas:
 --
--- security definer para saltarse el RLS de storage.objects: la política
--- de borrado mira auth.uid(), y en un cascade de cuenta borrada eso no
--- vale para nada.
-create or replace function public.borrar_el_archivo()
+--  1. No borra el archivo. storage.objects es el ÍNDICE del cubo; los
+--     bytes viven en el almacén de detrás y de allí sólo los saca la API
+--     de Storage. Borrando la fila el archivo deja de poder pedirse pero
+--     sigue ocupando -y costando-, y ya no queda ni el nombre para ir a
+--     buscarlo. Un huérfano invisible es peor que uno visible.
+--     Esto se sabía leyendo la documentación.
+--
+--  2. Ni siquiera borraba la fila. En un Supabase de verdad el trigger se
+--     va en silencio sin tocar nada: storage.objects es de otro esquema y
+--     de otro dueño, y `security definer` corre como el dueño de la
+--     función -postgres-, que ahí tampoco manda. Cero filas, ningún
+--     error, y la prueba local en verde porque en el doble esa tabla es
+--     nuestra. Esto NO se sabía: lo dijo PROBAR-CERRADURAS.bat la primera
+--     vez que se corrió contra un proyecto de verdad.
+--
+-- ASÍ QUE SE APUNTA Y LO RECOGE QUIEN PUEDE
+-- ─────────────────────────────────────────────────────────────────────
+-- El trigger escribe la ruta en una lista y sale. El barrendero
+-- -avisos/barrendero.js, con la clave de servidor- la lee y llama a la
+-- API de Storage, que es la única que se lleva las dos cosas: el índice y
+-- los bytes.
+--
+-- Es el mismo trato que con los avisos: la base APUNTA lo que hay que
+-- hacer fuera, y lo de fuera no puede hacer fallar el borrado. Si el
+-- barrendero no corre esta noche, el archivo sigue apuntado y se va
+-- mañana; si reventara dentro de la transacción, borrar una cuenta
+-- fallaría por no poder limpiar el cubo, que es exactamente al revés de
+-- lo que interesa.
+--
+-- Y a diferencia del delete, esto deja rastro: la lista dice qué quedó
+-- sin recoger y desde cuándo.
+
+create table if not exists public.archivos_huerfanos (
+  id   uuid primary key default gen_random_uuid(),
+  cubo text not null default 'recaudos',
+  ruta text not null,
+
+  -- De quién FUE. Sin llave foránea a propósito: el caso que más importa
+  -- es justamente el de la cuenta que ya no existe, y una foránea con
+  -- cascade borraría la fila que hace falta para limpiar.
+  de_quien uuid,
+
+  estado   text not null default 'pendiente',
+  intentos smallint not null default 0,
+  ultimo_error text,
+
+  creado_en timestamptz not null default now(),
+  barrido_en timestamptz,
+
+  constraint archivos_huerfanos_estado_valido
+    check (estado in ('pendiente', 'barrido', 'fallido')),
+  -- Un archivo se apunta una vez. Sin esto, borrar la ficha y después la
+  -- cuenta lo apuntaría dos veces y el barrendero pediría a la API que
+  -- borrase algo que ya no está, que contesta error y parecería un fallo.
+  constraint archivos_huerfanos_una_vez unique (cubo, ruta)
+);
+
+comment on table  public.archivos_huerfanos        is 'Archivos que se quedaron sin ficha. Los recoge el barrendero con la API de Storage';
+comment on column public.archivos_huerfanos.de_quien is 'De quien fue, aunque su cuenta ya no exista. Sin foranea: si la hubiera, el cascade borraria justo esto';
+
+create index if not exists archivos_huerfanos_por_barrer
+  on public.archivos_huerfanos (creado_en)
+  where estado = 'pendiente';
+
+-- security definer porque el borrado que más importa -el cascade de una
+-- cuenta- ocurre sin que haya nadie conectado a quien pedirle permiso.
+create or replace function public.apuntar_el_huerfano()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
 as $$
 begin
-  delete from storage.objects
-   where bucket_id = 'recaudos' and name = old.archivo;
+  if old.archivo is null or old.archivo = '' then
+    return old;
+  end if;
+
+  insert into public.archivos_huerfanos (cubo, ruta, de_quien)
+  values ('recaudos', old.archivo, old.inversionista)
+  on conflict (cubo, ruta) do nothing;
+
   return old;
 end;
 $$;
 
+-- El trigger viejo se llamaba distinto y hacía otra cosa. Se quita por su
+-- nombre para que este archivo, al correrlo encima de una base que ya lo
+-- tenía, no deje los dos puestos.
 drop trigger if exists documentos_borra_el_archivo on public.documentos;
-create trigger documentos_borra_el_archivo
+drop function if exists public.borrar_el_archivo();
+
+drop trigger if exists documentos_apunta_el_huerfano on public.documentos;
+create trigger documentos_apunta_el_huerfano
   after delete on public.documentos
-  for each row execute function public.borrar_el_archivo();
+  for each row execute function public.apuntar_el_huerfano();
 
 drop trigger if exists documentos_marca_tiempo on public.documentos;
 create trigger documentos_marca_tiempo
@@ -726,6 +801,18 @@ alter table public.tramite_eventos    enable row level security;
 alter table public.tipos_documento    enable row level security;
 alter table public.tipos_tramite      enable row level security;
 alter table public.bancos_aliados     enable row level security;
+alter table public.archivos_huerfanos enable row level security;
+
+-- --- la lista de huerfanos: de nadie ---
+-- RLS encendido y ni una politica. Con eso, para cualquiera que entre
+-- por la clave publica -haya iniciado sesion o no- la tabla contesta
+-- vacia y no acepta nada. El unico que la ve es el barrendero, que va
+-- con la clave de servidor y no pasa por aqui.
+--
+-- No es paranoia: cada fila es la ruta de un archivo dentro del cubo,
+-- y las rutas empiezan por el uuid de su dueño. Poder leerlas seria
+-- poder listar recaudos ajenos por nombre, incluidos los de cuentas ya
+-- borradas, que es justo lo que se venia a limpiar.
 
 -- --- catálogos: los lee cualquiera que haya entrado, nadie los escribe ---
 drop policy if exists "tipos_documento: leer" on public.tipos_documento;

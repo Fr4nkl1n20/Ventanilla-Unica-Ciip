@@ -56,8 +56,9 @@ autenticación y los datos los pone Supabase.
 | `PROBAR-SAREN.bat` | Lanzar las 42 pruebas del conector de la constitución de compañía |
 | `PROBAR-TRABAJADOR.bat` | Lanzar las 44 pruebas del trabajador, que es quien ejecuta lo que el conector decide |
 | `PROBAR-AVISOS.bat` | Lanzar las 38 pruebas de los avisos: que cada quien los reciba en su idioma y que ninguno se pierda |
+| `PROBAR-BARRENDERO.bat` | Lanzar las 20 pruebas del barrendero, que se lleva del cubo los archivos que se quedaron sin ficha. Sobre todo la de no dar por borrado lo que el cubo no acepto |
 | `PROBAR-PAGOS.bat` | Lanzar las 32 pruebas del cobrador, sobre todo las de no cobrar dos veces |
-| `PROBAR-SQL.bat` | Ejecutar los once archivos SQL en un Postgres de esta máquina y comprobar que los triggers saltan. No pide claves ni toca ningún servidor tuyo |
+| `PROBAR-SQL.bat` | Ejecutar los veintitrés archivos SQL en un Postgres de esta máquina y comprobar que los triggers saltan. No pide claves ni toca ningún servidor tuyo |
 | `PROBAR-CERRADURAS.bat` | Comprobar las políticas RLS **entrando de verdad** en el Supabase de pruebas. Se niega a correr contra el real |
 
 ## Puesta en marcha
