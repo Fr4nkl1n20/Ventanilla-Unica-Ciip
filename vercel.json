@@ -1,0 +1,42 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+
+  "//": [
+    "ESTE ARCHIVO SOLO SIRVE SI EL Root Directory DEL PROYECTO ES LA RAIZ.",
+    "Mientras sea 'login', Vercel ni lo ve: alli manda login/vercel.json.",
+    "Por eso esto vive en una rama aparte y no en main.",
+    "",
+    "Es una REDIRECCION y no un rewrite, y la diferencia importa. Con un",
+    "rewrite la barra del navegador se queda en '/', y entonces el",
+    "<script src=\"config.js\"> del login busca /config.js -el del panel- en",
+    "vez de /login/config.js. Redirigiendo, la direccion pasa a ser /login/",
+    "y cada pagina carga la configuracion que tiene al lado."
+  ],
+
+  "redirects": [
+    { "source": "/", "destination": "/login/", "permanent": false }
+  ],
+
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    },
+    {
+      "source": "/(.*)config.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/(banderas|logos|assets)/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=604800" }
+      ]
+    }
+  ]
+}

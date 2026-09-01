@@ -1,0 +1,48 @@
+# Lo que NO sube a internet.
+#
+# Sirve para lo mismo que el Root Directory 'login' servia antes: que
+# publicar el sitio no publique de paso el esquema de la base y los
+# arneses. La diferencia es que aqui se ve escrito cual es la lista, en
+# vez de depender de un ajuste del panel de Vercel que no esta en ningun
+# archivo y que nadie recuerda haber puesto.
+#
+# Regla para decidir: si el navegador no lo pide, no sube.
+
+# El esquema entero de la base. Cada politica RLS, cada trigger y cada
+# nombre de tabla. No abre nada por si solo -lo que protege son las
+# politicas, que siguen puestas- pero es el mapa, y el mapa no se regala.
+supabase-*.sql
+supabase/
+TODO-EN-ORDEN.sql
+comprobar-tramites.sql
+
+# Los arneses. Dicen que se prueba y, sobre todo, que NO se prueba.
+pruebas/
+
+# Lo que corre fuera del navegador, con la clave de servidor.
+avisos/
+interoperabilidad/
+pagos/
+
+# Cuadernos, capturas y la maqueta vieja.
+*.md
+*.bat
+*.ps1
+capturas/
+original/
+
+# La revision de las cerraduras. Es para quien la reciba, no para quien
+# pase por la direccion: cuenta que se encontro abierto y desde cuando.
+# Se manda como archivo, que para eso se abre con doble clic.
+revision-cerraduras.html
+
+# Cosas de git y del editor.
+.gitattributes
+.gitignore
+.vercelignore
+
+# Los bocetos. Pantallas a medio decidir, opciones descartadas y notas de
+# lo que se penso hacer. Publicarlas seria enseñar el cuaderno junto con
+# el trabajo terminado, y ademas confunde: hay tres versiones de la misma
+# pantalla y solo una es la que vale.
+.diseno/

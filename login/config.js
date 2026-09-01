@@ -22,8 +22,8 @@
 window.CIIP_CONFIG = {
 
   /* ---- rellena estos dos ---- */
-  SUPABASE_URL:      'https://ugmpeldbasujuchdmzsc.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnbXBlbGRiYXN1anVjaGRtenNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTk3MjAsImV4cCI6MjEwMjQ3NTcyMH0.mzsSXWanfZ6AP1Ze-4Z8bL9yjlDsKrhj9K-0KOcGxEY',
+  SUPABASE_URL:      'https://ifhdzxetixhrzqixcfbe.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlmaGR6eGV0aXhocnpxaXhjZmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTI3OTUsImV4cCI6MjEwMjU2ODc5NX0.7e3QDtDKAYGYgIF-ZfMZJk9OXEYEo0_hpgR1BG_iT4Y',
 
   /* ---- a dónde ir después de entrar ----
      VACÍO a propósito: sin panel al que saltar, el acceso se queda en su
@@ -33,7 +33,7 @@ window.CIIP_CONFIG = {
      Si algún día la conectas con un panel, pon aquí su ruta:
          RUTA_PANEL: './panel.html'
      y el acceso volverá a redirigir al entrar. */
-  RUTA_PANEL:  '',
+  RUTA_PANEL:  '../ciip-ventanilla-unica-local.html',
   RUTA_ACCESO: './acceso.html'
 
 };

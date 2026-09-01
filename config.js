@@ -47,10 +47,23 @@
 
   var PROYECTOS = {
 
-    /* ---- el de verdad: cuentas reales, no es sitio para experimentos ---- */
+    /* ---- el de "produccion", y hoy es el mismo que el de pruebas ----
+       El proyecto que habia aqui, ugmpeldbasujuchdmzsc, YA NO EXISTE: su
+       dominio no resuelve. Se comprobo el 1 de septiembre de 2026 con el
+       DNS publico, no leyendo un panel.
+
+       Mientras estuvo escrito aqui, cualquier copia servida desde una
+       direccion de internet -la de Vercel, sin ir mas lejos- hablaba con
+       una base borrada: el login aceptaba la contraseña y luego no habia
+       nadie al otro lado. Un interruptor que elige entre dos sitios y uno
+       de los dos no existe es peor que no tener interruptor.
+
+       Asi que apunta a la unica base viva. Cuando exista la de produccion
+       de verdad: se crea el proyecto, se le pega TODO-EN-ORDEN.sql, y se
+       cambian estas dos lineas. Nada mas. */
     real: {
-      SUPABASE_URL:      'https://ugmpeldbasujuchdmzsc.supabase.co',
-      SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnbXBlbGRiYXN1anVjaGRtenNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4OTk3MjAsImV4cCI6MjEwMjQ3NTcyMH0.mzsSXWanfZ6AP1Ze-4Z8bL9yjlDsKrhj9K-0KOcGxEY'
+      SUPABASE_URL:      'https://ifhdzxetixhrzqixcfbe.supabase.co',
+      SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlmaGR6eGV0aXhocnpxaXhjZmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTI3OTUsImV4cCI6MjEwMjU2ODc5NX0.7e3QDtDKAYGYgIF-ZfMZJk9OXEYEo0_hpgR1BG_iT4Y'
     },
 
     /* ---- el de pruebas: aquí se monta lo nuevo y se puede romper ---- */
