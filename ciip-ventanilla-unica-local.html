@@ -5270,7 +5270,30 @@ applyLang(idiomaParaMi());
   var catalogo = null;
   function cargaCatalogo(){
     if (catalogo) return catalogo;
-    catalogo = sb.from('tipos_tramite').select('codigo, ref_panel, ente, activo, emite, plazo_dias')
+    /* Se espera a la SESIÓN antes de preguntar, y no es precaución de más.
+       El cliente de Supabase lee la sesión del almacén de forma asíncrona;
+       una consulta lanzada en el mismo tick sale SIN la cabecera de
+       autorización, y como la política solo enseña el catálogo a quien ha
+       entrado, vuelve vacía y sin error.
+
+       Esperar aquí lo arregla para todos los que llaman, en vez de que cada
+       uno tenga que acordarse. La franja ya lo hacía por su cuenta; el
+       detalle de un trámite no, porque al pulsar una tarjeta la sesión ya
+       estaba puesta y no podía fallar.
+
+       Podía, entrando por la dirección directa —…#tramite-c1—, que abre el
+       detalle AL CARGAR. Entonces el catálogo volvía vacío, el trámite no
+       encontraba su ficha y el panel enseñaba la escalera decorativa como
+       si el trámite estuviera apagado. Con el formulario detrás, la base
+       bien y el trámite activo. Se vio en el despliegue de Vercel, que es
+       donde se llega por enlace y no pulsando. */
+    catalogo = sb.auth.getSession().then(function(r0){
+      if (!(r0 && r0.data && r0.data.session)){
+        /* Sin sesión no se cachea nada: quien vuelva a preguntar con la
+           sesión puesta tiene que encontrar el catálogo de verdad. */
+        catalogo = null; TIPOS = {}; return TIPOS;
+      }
+      return sb.from('tipos_tramite').select('codigo, ref_panel, ente, activo, emite, plazo_dias')
       .then(function(r){
         var t = {};
         (r.data || []).forEach(function(x){ t[x.ref_panel] = x; });
@@ -5287,7 +5310,8 @@ applyLang(idiomaParaMi());
           console.warn('[CIIP] el catálogo de trámites vino vacío: ¿sesión sin poner, o falta correr supabase-tramites.sql?');
         }
         return TIPOS;
-      })
+      });
+    })
       .catch(function(e){
         console.warn('[CIIP] catálogo de trámites:', e && e.message);
         catalogo = null; TIPOS = {}; return TIPOS;
