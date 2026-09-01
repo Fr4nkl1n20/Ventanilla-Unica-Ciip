@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     DOS CERRADURAS ABIERTAS · revisión para leer fuera de este equipo
+     ═══════════════════════════════════════════════════════════════════
+     Se abre con doble clic. No hace falta servidor, ni Node, ni
+     conexión: todo -texto, colores, tipografía de repuesto- va dentro
+     de este archivo.
+
+     Lo único que sale a la red son las tipografías de Google. Si el PC
+     de quien lo lea no tiene internet, no pasa nada: cae en Georgia y
+     en la de sistema, que estan puestas a proposito detrás de cada
+     una. Se ve algo distinto y se lee igual.
+
+     Sigue el tema del sistema: en un equipo en modo oscuro se ve
+     oscuro, sin tocar nada.
+     ═══════════════════════════════════════════════════════════════ -->
+
+<title>Dos cerraduras abiertas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<style>
+  :root {
+    --papel:    #EEF1F3;
+    --hoja:     #FFFFFF;
+    --hoja-alt: #F6F8F9;
+    --tinta:    #131E27;
+    --apagado:  #5C6E7B;
+    --raya:     #D2DAE0;
+    --raya-sut: #E3E9ED;
+    --indigo:   #2B4A78;
+    --indigo-sut: #EAEFF6;
+    --alarma:   #9E2A38;
+    --alarma-sut: #F7E9EA;
+    --bien:     #2C6A51;
+    --bien-sut: #E6F0EB;
+    --sombra:   0 1px 2px rgba(19, 30, 39, .05);
+
+    --paso: clamp(1.1rem, 2.4vw, 1.9rem);
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --papel:    #0D141A;
+      --hoja:     #141D25;
+      --hoja-alt: #18232C;
+      --tinta:    #DFE7EC;
+      --apagado:  #8FA0AC;
+      --raya:     #243139;
+      --raya-sut: #1D2831;
+      --indigo:   #8AAAD9;
+      --indigo-sut: #16232F;
+      --alarma:   #DE8290;
+      --alarma-sut: #2A1A1E;
+      --bien:     #68BE99;
+      --bien-sut: #14241D;
+      --sombra:   0 1px 2px rgba(0, 0, 0, .3);
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --papel:    #0D141A;
+    --hoja:     #141D25;
+    --hoja-alt: #18232C;
+    --tinta:    #DFE7EC;
+    --apagado:  #8FA0AC;
+    --raya:     #243139;
+    --raya-sut: #1D2831;
+    --indigo:   #8AAAD9;
+    --indigo-sut: #16232F;
+    --alarma:   #DE8290;
+    --alarma-sut: #2A1A1E;
+    --bien:     #68BE99;
+    --bien-sut: #14241D;
+    --sombra:   0 1px 2px rgba(0, 0, 0, .3);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html { margin: 0; }
+  img { max-width: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--papel);
+    color: var(--tinta);
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .lamina {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 var(--paso) 6rem;
+  }
+
+  /* --- cabecera --- */
+  header.acta {
+    padding: clamp(3rem, 7vw, 5.5rem) 0 clamp(2rem, 4vw, 3rem);
+    border-bottom: 1px solid var(--raya);
+  }
+  .sello {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .72rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--indigo);
+    margin: 0 0 1.4rem;
+  }
+  h1 {
+    font-family: Newsreader, Georgia, "Times New Roman", serif;
+    font-weight: 500;
+    font-size: clamp(2.7rem, 7vw, 4.6rem);
+    line-height: 1.02;
+    letter-spacing: -.018em;
+    text-wrap: balance;
+    margin: 0 0 1.5rem;
+    max-width: 16ch;
+  }
+  .entradilla {
+    font-family: Newsreader, Georgia, serif;
+    font-size: clamp(1.15rem, 2.3vw, 1.42rem);
+    line-height: 1.5;
+    color: var(--apagado);
+    max-width: 46ch;
+    margin: 0 0 2.6rem;
+  }
+  .entradilla strong { color: var(--tinta); font-weight: 500; }
+
+  .fichas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 2.6rem;
+    border-top: 1px solid var(--raya-sut);
+    padding-top: 1.3rem;
+    margin: 0;
+  }
+  .ficha { padding: .35rem 0; }
+  .ficha dt {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .68rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--apagado);
+    margin-bottom: .15rem;
+  }
+  .ficha dd {
+    margin: 0;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .88rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* --- armazon --- */
+  .cuerpo {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding-top: 3rem;
+  }
+  @media (min-width: 1020px) {
+    .cuerpo {
+      grid-template-columns: 190px minmax(0, 1fr);
+      gap: 0 4.5rem;
+      align-items: start;
+    }
+  }
+
+  nav.indice { display: none; }
+  @media (min-width: 1020px) {
+    nav.indice {
+      display: block;
+      position: sticky;
+      top: 2.2rem;
+      padding-top: .4rem;
+    }
+    nav.indice p {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: .66rem;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      color: var(--apagado);
+      margin: 0 0 .9rem;
+    }
+    nav.indice ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .55rem; }
+    nav.indice a {
+      color: var(--apagado);
+      text-decoration: none;
+      font-size: .875rem;
+      line-height: 1.35;
+      display: block;
+      border-left: 2px solid var(--raya);
+      padding-left: .8rem;
+    }
+    nav.indice a:hover, nav.indice a:focus-visible {
+      color: var(--indigo);
+      border-left-color: var(--indigo);
+    }
+  }
+
+  main { min-width: 0; display: flex; flex-direction: column; gap: 3.4rem; }
+
+  section { scroll-margin-top: 1.6rem; }
+
+  h2 {
+    font-family: Newsreader, Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(1.72rem, 3.4vw, 2.25rem);
+    line-height: 1.14;
+    letter-spacing: -.012em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  h3 {
+    font-size: .97rem;
+    font-weight: 600;
+    margin: 0 0 .45rem;
+  }
+  p { margin: 0 0 1rem; max-width: 66ch; }
+  p:last-child { margin-bottom: 0; }
+  a { color: var(--indigo); }
+
+  .rotulo {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .67rem;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--apagado);
+    margin: 0 0 .55rem;
+  }
+
+  code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .86em;
+    background: var(--hoja-alt);
+    border: 1px solid var(--raya-sut);
+    border-radius: 3px;
+    padding: .06em .32em;
+    word-break: break-word;
+  }
+
+  pre {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .8rem;
+    line-height: 1.7;
+    background: var(--hoja);
+    border: 1px solid var(--raya);
+    border-left: 3px solid var(--indigo);
+    border-radius: 0 4px 4px 0;
+    padding: .95rem 1.1rem;
+    margin: 0 0 1rem;
+    overflow-x: auto;
+  }
+  pre code { background: none; border: 0; padding: 0; font-size: 1em; }
+  pre.quitado { border-left-color: var(--alarma); }
+  pre.puesto  { border-left-color: var(--bien); }
+
+  /* --- de un vistazo --- */
+  .vistazo { display: flex; flex-direction: column; gap: .9rem; margin-top: .4rem; }
+  .linea-vistazo {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: .1rem .95rem;
+    background: var(--hoja);
+    border: 1px solid var(--raya);
+    border-radius: 4px;
+    padding: 1rem 1.15rem;
+    box-shadow: var(--sombra);
+  }
+  .linea-vistazo .chapa { grid-row: span 2; align-self: start; margin-top: .12rem; }
+  .linea-vistazo b { font-weight: 600; }
+  .linea-vistazo span.dice { color: var(--apagado); font-size: .93rem; }
+
+  .chapa {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .64rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: .22em .62em;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .chapa.alta    { background: var(--alarma-sut); color: var(--alarma); border: 1px solid var(--alarma); }
+  .chapa.media   { background: var(--indigo-sut); color: var(--indigo); border: 1px solid var(--indigo); }
+  .chapa.cerrada { background: var(--bien-sut);   color: var(--bien);   border: 1px solid var(--bien); }
+  .chapa.pend    { background: var(--hoja-alt);   color: var(--apagado); border: 1px solid var(--raya); }
+
+  /* --- actas de hallazgo --- */
+  .hallazgo {
+    background: var(--hoja);
+    border: 1px solid var(--raya);
+    border-radius: 4px;
+    box-shadow: var(--sombra);
+    overflow: hidden;
+  }
+  .banda {
+    border-left: 3px solid var(--alarma);
+    background: var(--hoja-alt);
+    padding: 1.1rem 1.3rem;
+    border-bottom: 1px solid var(--raya);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: .5rem .9rem;
+  }
+  .hallazgo.menor .banda { border-left-color: var(--indigo); }
+  .banda h2 { margin: 0; font-size: clamp(1.35rem, 2.6vw, 1.7rem); flex: 1 1 16ch; }
+  .banda .objeto {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .78rem;
+    color: var(--apagado);
+    width: 100%;
+  }
+  .tramos { padding: 1.4rem 1.3rem 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+  .tramo { border-top: 1px solid var(--raya-sut); padding-top: 1.15rem; }
+  .tramo:first-child { border-top: 0; padding-top: 0; }
+
+  ul.suelta { margin: 0; padding-left: 1.15rem; max-width: 66ch; }
+  ul.suelta li { margin-bottom: .5rem; }
+  ul.suelta li:last-child { margin-bottom: 0; }
+  ul.suelta li::marker { color: var(--apagado); }
+
+  .aparte {
+    border-left: 2px solid var(--raya);
+    padding-left: 1.05rem;
+    font-family: Newsreader, Georgia, serif;
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--apagado);
+    max-width: 56ch;
+  }
+
+  /* --- tablas --- */
+  .marco-tabla { overflow-x: auto; border: 1px solid var(--raya); border-radius: 4px; background: var(--hoja); box-shadow: var(--sombra); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; }
+  caption { text-align: left; caption-side: bottom; padding: .8rem 1.1rem; color: var(--apagado); font-size: .84rem; border-top: 1px solid var(--raya-sut); }
+  th, td { text-align: left; padding: .68rem 1.1rem; border-bottom: 1px solid var(--raya-sut); vertical-align: top; }
+  thead th {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .66rem;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--apagado);
+    font-weight: 400;
+    background: var(--hoja-alt);
+    border-bottom: 1px solid var(--raya);
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td.archivo { font-family: "IBM Plex Mono", monospace; font-size: .82rem; }
+
+  /* --- pasos --- */
+  ol.pasos { list-style: none; counter-reset: p; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .75rem; }
+  ol.pasos li {
+    counter-increment: p;
+    display: grid;
+    grid-template-columns: 1.75rem minmax(0, 1fr);
+    gap: .1rem .9rem;
+    background: var(--hoja);
+    border: 1px solid var(--raya);
+    border-radius: 4px;
+    padding: .9rem 1.1rem;
+  }
+  ol.pasos li::before {
+    content: counter(p);
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: .82rem;
+    color: var(--indigo);
+    border: 1px solid var(--raya);
+    border-radius: 3px;
+    width: 1.75rem;
+    height: 1.75rem;
+    display: grid;
+    place-items: center;
+    grid-row: span 2;
+    align-self: start;
+  }
+  ol.pasos b { font-family: "IBM Plex Mono", monospace; font-size: .87rem; font-weight: 500; }
+  ol.pasos span.dice { color: var(--apagado); font-size: .93rem; }
+
+  footer {
+    margin-top: 4rem;
+    padding-top: 1.6rem;
+    border-top: 1px solid var(--raya);
+    color: var(--apagado);
+    font-size: .87rem;
+  }
+  footer p { max-width: 60ch; }
+
+  :focus-visible { outline: 2px solid var(--indigo); outline-offset: 2px; border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="lamina">
+
+  <header class="acta">
+    <p class="sello">CIIP &middot; Ventanilla &Uacute;nica del Inversionista</p>
+    <h1>Dos cerraduras abiertas</h1>
+    <p class="entradilla">
+      La primera vez que las pol&iacute;ticas se probaron contra un Supabase de verdad,
+      dos comprobaciones se pusieron en rojo. Las dos llevaban tiempo en verde en el
+      arn&eacute;s local. <strong>Y las dos por el mismo motivo: el arn&eacute;s
+      met&iacute;a la mano.</strong>
+    </p>
+    <dl class="fichas">
+      <div class="ficha"><dt>Rama</dt><dd>tramites-y-boveda</dd></div>
+      <div class="ficha"><dt>Commits</dt><dd>776c68b &middot; 59c5623</dd></div>
+      <div class="ficha"><dt>Fecha</dt><dd>1 sep 2026</dd></div>
+      <div class="ficha"><dt>Archivos tocados</dt><dd>11</dd></div>
+    </dl>
+  </header>
+
+  <div class="cuerpo">
+
+    <nav class="indice" aria-label="&Iacute;ndice del documento">
+      <p>&Iacute;ndice</p>
+      <ol>
+        <li><a href="#vistazo">De un vistazo</a></li>
+        <li><a href="#funciones">Las funciones abiertas</a></li>
+        <li><a href="#huerfano">El archivo que no se iba</a></li>
+        <li><a href="#arnes">Por qu&eacute; no se vio antes</a></li>
+        <li><a href="#evidencia">Evidencia</a></li>
+        <li><a href="#revisar">C&oacute;mo revisarlo</a></li>
+        <li><a href="#abierto">Qu&eacute; queda abierto</a></li>
+      </ol>
+    </nav>
+
+    <main>
+
+      <section id="vistazo">
+        <p class="rotulo">De un vistazo</p>
+        <h2>Qu&eacute; se encontr&oacute; y en qu&eacute; qued&oacute;</h2>
+        <div class="vistazo">
+          <div class="linea-vistazo">
+            <span class="chapa alta">Alta</span>
+            <b>Cualquiera con la clave p&uacute;blica pod&iacute;a disparar el barrido de avisos del CIIP</b>
+            <span class="dice"><code>avisar_de_lo_que_vence()</code> es <code>security definer</code>, recorre la b&oacute;veda entera y escribe en el buz&oacute;n de salida. Estaba abierta a <code>anon</code>. Cerrada.</span>
+          </div>
+          <div class="linea-vistazo">
+            <span class="chapa media">Media</span>
+            <b>Los recaudos de una cuenta borrada se quedaban en el cubo para siempre</b>
+            <span class="dice">El trigger que deb&iacute;a llev&aacute;rselos no pod&iacute;a, y aunque hubiera podido tampoco serv&iacute;a. Sustituido por un apunte y un proceso que s&iacute; puede borrarlos.</span>
+          </div>
+          <div class="linea-vistazo">
+            <span class="chapa cerrada">Causa com&uacute;n</span>
+            <b>El arn&eacute;s local repart&iacute;a permisos justo antes de probar</b>
+            <span class="dice">Una l&iacute;nea de <code>pruebas/postgres-pruebas.sql</code> conced&iacute;a a <code>anon</code> justo aquello que las pruebas ven&iacute;an a comprobar que no ten&iacute;a. Es lo que m&aacute;s conviene revisar de todo esto.</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="funciones" class="hallazgo">
+        <div class="banda">
+          <h2>Las funciones abiertas</h2>
+          <span class="chapa alta">Alta</span>
+          <span class="objeto">supabase-avisos.sql &middot; supabase-presencia.sql</span>
+        </div>
+        <div class="tramos">
+
+          <div class="tramo">
+            <h3>Qu&eacute; se vio</h3>
+            <p>
+              <code>PROBAR-CERRADURAS.bat</code> dej&oacute; en rojo una comprobaci&oacute;n
+              menor: <em>&laquo;sin entrar, tocar_visto() no apunta a nadie&raquo;</em>. El
+              archivo dec&iacute;a <code>revoke ... from public</code> y <code>grant</code>
+              s&oacute;lo a <code>authenticated</code>, as&iacute; que no cuadraba. El
+              <code>proacl</code> del proyecto lo explic&oacute;:
+            </p>
+            <pre><code>proacl = {postgres=X/postgres,
+          anon=X/postgres,
+          authenticated=X/postgres,
+          service_role=X/postgres}</code></pre>
+          </div>
+
+          <div class="tramo">
+            <h3>Por qu&eacute; pasaba</h3>
+            <p>
+              Supabase deja puesto un <code>alter default privileges</code> que concede
+              EXECUTE sobre toda funci&oacute;n nueva de <code>public</code> a
+              <code>anon</code>, <code>authenticated</code> y <code>service_role</code>. Ese
+              permiso no viene de PUBLIC: viene de cada rol por su nombre. Quit&aacute;rselo a
+              PUBLIC no le quita nada a nadie.
+            </p>
+            <p class="aparte">
+              O sea que todas las funciones del proyecto estaban abiertas a la clave
+              an&oacute;nima &mdash;que es p&uacute;blica por dise&ntilde;o&mdash; aunque el
+              archivo dijera lo contrario.
+            </p>
+          </div>
+
+          <div class="tramo">
+            <h3>Lo que de verdad importaba</h3>
+            <p>
+              No era <code>tocar_visto()</code>: marcar &laquo;te vi&raquo; no le sirve de
+              nada a un desconocido. Era la que apareci&oacute; al enumerar las dem&aacute;s.
+              <code>avisar_de_lo_que_vence()</code> es <code>security definer</code>, recorre
+              la b&oacute;veda entera y deja filas en el buz&oacute;n de salida. La llama el
+              mensajero una vez al d&iacute;a con la clave de servidor; cualquiera con la
+              clave p&uacute;blica pod&iacute;a llamarla tambi&eacute;n. No se lleva
+              ning&uacute;n dato &mdash;devuelve un n&uacute;mero&mdash; pero escribe.
+            </p>
+          </div>
+
+          <div class="tramo">
+            <h3>Qu&eacute; se cambi&oacute;</h3>
+            <p>Revocarles EXECUTE por su nombre, en los dos archivos:</p>
+            <pre class="puesto"><code>revoke all on function public.avisar_de_lo_que_vence(int) from anon;
+revoke all on function public.avisar_de_lo_que_vence(int) from authenticated;
+revoke all on function public.tocar_visto() from anon;</code></pre>
+            <h3>Y lo que NO se cerr&oacute;, a prop&oacute;sito</h3>
+            <ul class="suelta">
+              <li><code>verificar_documento(text)</code> sigue abierta sin entrar. Quien
+                verifica un documento es un tercero con el papel en la mano: no tiene cuenta
+                en la ventanilla ni tiene por qu&eacute; tenerla. No devuelve ninguna columna
+                que identifique al due&ntilde;o.</li>
+              <li><code>es_gestor()</code> y <code>es_admin()</code> las llaman las propias
+                pol&iacute;ticas de RLS. Cerr&aacute;rselas a <code>anon</code> har&iacute;a
+                que una consulta an&oacute;nima reventara con un error de permisos en vez de
+                contestar vac&iacute;o, y un error dice m&aacute;s que el silencio.</li>
+            </ul>
+            <p>
+              Las dos tienen ahora su propia comprobaci&oacute;n, para que cerrar de
+              m&aacute;s tambi&eacute;n salga en rojo.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      <section id="huerfano" class="hallazgo menor">
+        <div class="banda">
+          <h2>El archivo que no se iba</h2>
+          <span class="chapa media">Media</span>
+          <span class="objeto">supabase-tramites.sql &middot; avisos/barrendero.js</span>
+        </div>
+        <div class="tramos">
+
+          <div class="tramo">
+            <h3>Qu&eacute; se vio</h3>
+            <p>
+              La comprobaci&oacute;n <em>&laquo;el archivo se va con su ficha&raquo;</em>
+              sali&oacute; en rojo contra Supabase y llevaba tiempo en verde en local. Al
+              borrar la ficha de un documento, el archivo segu&iacute;a en el cubo.
+            </p>
+          </div>
+
+          <div class="tramo">
+            <h3>Por qu&eacute; pasaba, y son dos motivos</h3>
+            <ul class="suelta">
+              <li><b>No le dejaban.</b> El trigger hac&iacute;a
+                <code>delete from storage.objects</code>. Esa tabla es de otro esquema y de
+                otro due&ntilde;o, y <code>security definer</code> corre como el due&ntilde;o
+                de la funci&oacute;n, que ah&iacute; tampoco manda. Cero filas y ning&uacute;n
+                error. En el arn&eacute;s local sal&iacute;a verde porque en el doble esa
+                tabla es nuestra.</li>
+              <li><b>Y aunque le dejaran, tampoco serv&iacute;a.</b>
+                <code>storage.objects</code> es el <em>&iacute;ndice</em> del cubo; los bytes
+                viven detr&aacute;s y de ah&iacute; s&oacute;lo los saca la API de Storage.
+                Borrar la fila habr&iacute;a dejado el archivo ocupando sitio &mdash;y
+                costando&mdash; sin que quedara ni el nombre para ir a buscarlo.</li>
+            </ul>
+            <p class="aparte">Un hu&eacute;rfano invisible es peor que uno visible.</p>
+          </div>
+
+          <div class="tramo">
+            <h3>Qu&eacute; se cambi&oacute;</h3>
+            <p>
+              El mismo trato que con los avisos: la base <em>apunta</em> lo que hay que hacer
+              fuera, y lo de fuera no puede hacer fallar el borrado.
+            </p>
+            <ul class="suelta">
+              <li><code>archivos_huerfanos</code> &mdash; la ruta, de qui&eacute;n fue y en
+                qu&eacute; qued&oacute;.</li>
+              <li><code>apuntar_el_huerfano()</code> sustituye a
+                <code>borrar_el_archivo()</code>, que se elimina por su nombre para que correr
+                el archivo encima de una base vieja no deje los dos triggers puestos.</li>
+              <li><code>avisos/barrendero.js</code> &mdash; con la forma del mensajero,
+                dep&oacute;sito y cubo inyectados. Llama a la API de Storage con la clave de
+                servidor, que es la &uacute;nica que se lleva las dos cosas: el &iacute;ndice
+                y los bytes.</li>
+            </ul>
+          </div>
+
+          <div class="tramo">
+            <h3>Decisiones que conviene mirar con lupa</h3>
+            <ul class="suelta">
+              <li><b><code>de_quien</code> no tiene llave for&aacute;nea a
+                <code>auth.users</code>.</b> A prop&oacute;sito: el caso que m&aacute;s importa
+                es el de la cuenta borrada, y un cascade se llevar&iacute;a justo la fila que
+                hace falta para limpiar. Hay una prueba que lo fija.</li>
+              <li><b>La tabla tiene RLS encendido y ni una pol&iacute;tica.</b> Cada fila
+                nombra un recaudo ajeno &mdash;las rutas empiezan por el uuid de su
+                due&ntilde;o&mdash;, as&iacute; que s&oacute;lo la ve el barrendero, que va con
+                la clave de servidor y no pasa por ah&iacute;.</li>
+              <li><b>Nadie puede escribir en ella.</b> Es la comprobaci&oacute;n que m&aacute;s
+                importa: si se pudiera apuntar el recaudo de otro, el barrendero se lo
+                borrar&iacute;a esta noche con la clave de servidor y sin preguntar.
+                Ser&iacute;a la &uacute;nica forma de borrar un archivo ajeno que
+                quedar&iacute;a en todo el sistema.</li>
+              <li><b>Un 404 del cubo se cuenta como final feliz, no como fallo.</b> Pasa cuando
+                una vuelta anterior borr&oacute; y no lleg&oacute; a marcar. Tratarlo como
+                error llenar&iacute;a la lista de rojos que no significan nada, y con ellos
+                tapados los que s&iacute;.</li>
+              <li><b>Una ruta vac&iacute;a no se manda a borrar nunca.</b> Seg&uacute;n
+                c&oacute;mo est&eacute; montado el cubo, un borrado sin nombre puede entenderse
+                como la carpeta entera.</li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+      <section id="arnes">
+        <p class="rotulo">La causa de fondo</p>
+        <h2>Por qu&eacute; el arn&eacute;s no lo vio</h2>
+        <p>
+          Las dos cosas llevaban tiempo en verde en local. Esta es la parte que m&aacute;s
+          conviene revisar, porque no es un fallo del c&oacute;digo sino de lo que lo vigila.
+        </p>
+
+        <h3>La l&iacute;nea que lo tapaba</h3>
+        <p>
+          <code>pruebas/postgres-pruebas.sql</code> repart&iacute;a permisos justo antes de
+          probar. Se puso para que un fallo de tabla no se confundiera con un fallo de
+          pol&iacute;tica &mdash;razonable para las tablas&mdash; pero de paso hac&iacute;a
+          imposible probar los permisos de las funciones: daba igual lo que dijeran los
+          <code>revoke</code>.
+        </p>
+        <pre class="quitado"><code>grant execute on all functions in schema public to anon, authenticated;</code></pre>
+
+        <h3>Lo que la sustituye</h3>
+        <p>
+          Ahora reparte el doble, imitando la costumbre de Supabase, y los archivos del
+          proyecto quitan y ponen encima de eso. Que es lo que pasa de verdad.
+        </p>
+        <pre class="puesto"><code>alter default privileges in schema public
+  grant execute on functions to anon, authenticated;</code></pre>
+        <p>
+          Con el doble equivoc&aacute;ndose igual que el original, las comprobaciones de
+          permisos empezaron a fallar de inmediato, que es lo que ten&iacute;an que haber
+          hecho desde el principio.
+        </p>
+        <p class="aparte">
+          El mismo patr&oacute;n explica el otro hallazgo: en el doble,
+          <code>storage.objects</code> es nuestra, as&iacute; que el borrado funcionaba. Un
+          doble demasiado permisivo no prueba nada; s&oacute;lo tranquiliza.
+        </p>
+      </section>
+
+      <section id="evidencia">
+        <p class="rotulo">Evidencia</p>
+        <h2>Qu&eacute; est&aacute; comprobado y c&oacute;mo</h2>
+        <p>
+          Cada arreglo se comprob&oacute; tambi&eacute;n al rev&eacute;s: quit&aacute;ndolo y
+          confirmando que la prueba se pone roja. Una prueba que no se ha visto fallar no
+          prueba nada.
+        </p>
+        <div class="marco-tabla">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Tanda</th>
+                <th scope="col">Antes</th>
+                <th scope="col">Ahora</th>
+                <th scope="col">Comprobado al rev&eacute;s</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="archivo">PROBAR-SQL.bat</td>
+                <td class="num">81 / 81</td>
+                <td class="num">91 / 91</td>
+                <td>Quitando el <code>revoke</code>, cae 1. Quitando el trigger, caen 4.</td>
+              </tr>
+              <tr>
+                <td class="archivo">PROBAR-BARRENDERO.bat</td>
+                <td class="num">&mdash;</td>
+                <td class="num">20 / 20</td>
+                <td>Marcando como borrado lo que el cubo rechaz&oacute;, caen 2.</td>
+              </tr>
+              <tr>
+                <td class="archivo">PROBAR-AVISOS.bat</td>
+                <td class="num">38 / 38</td>
+                <td class="num">38 / 38</td>
+                <td>Sin tocar.</td>
+              </tr>
+              <tr>
+                <td class="archivo">PROBAR-CERRADURAS.bat</td>
+                <td class="num">51 / 53</td>
+                <td><span class="chapa pend">Sin correr</span></td>
+                <td>Necesita que los tres SQL est&eacute;n pegados en el proyecto de pruebas.</td>
+              </tr>
+            </tbody>
+          </table>
+          <caption>
+            Las tres primeras corren en esta m&aacute;quina y est&aacute;n verdes ahora mismo.
+            La cuarta entra por HTTP contra un Supabase de pruebas y todav&iacute;a no se ha
+            vuelto a correr: hasta que no se haga, lo de arriba son cambios comprobados en
+            local, no en el servidor.
+          </caption>
+        </div>
+        <p style="margin-top:1.2rem">
+          En <code>pruebas/rls.js</code> hay seis comprobaciones nuevas: tres de permisos de
+          funci&oacute;n &mdash;dos que tienen que estar cerradas y una que tiene que seguir
+          abierta&mdash; y tres de la lista de hu&eacute;rfanos &mdash;no se lee entrando, no
+          se lee sin entrar, y no se escribe&mdash;.
+        </p>
+      </section>
+
+      <section id="revisar">
+        <p class="rotulo">Para quien revisa</p>
+        <h2>C&oacute;mo comprobarlo por su cuenta</h2>
+        <p>
+          El orden importa: <code>supabase-tramites.sql</code> trae la tabla nueva, y los otros
+          dos s&oacute;lo revocan permisos sobre funciones que ya existen.
+        </p>
+        <ol class="pasos">
+          <li>
+            <b>supabase-tramites.sql</b>
+            <span class="dice">SQL Editor del proyecto de pruebas. Trae <code>archivos_huerfanos</code> y cambia el trigger.</span>
+          </li>
+          <li>
+            <b>supabase-presencia.sql</b>
+            <span class="dice">Revoca <code>tocar_visto()</code> a la clave an&oacute;nima.</span>
+          </li>
+          <li>
+            <b>supabase-avisos.sql</b>
+            <span class="dice">Revoca <code>avisar_de_lo_que_vence()</code> a las dos claves de persona.</span>
+          </li>
+          <li>
+            <b>PROBAR-CERRADURAS.bat</b>
+            <span class="dice">Entra de verdad por HTTP. Se niega a correr contra el proyecto real. Deber&iacute;an quedar en verde las dos que fallaban m&aacute;s las seis nuevas.</span>
+          </li>
+          <li>
+            <b>PROBAR-SQL.bat y PROBAR-BARRENDERO.bat</b>
+            <span class="dice">No piden claves ni tocan ning&uacute;n servidor: levantan un Postgres de usar y tirar y un cubo de mentira.</span>
+          </li>
+        </ol>
+      </section>
+
+      <section id="abierto">
+        <p class="rotulo">Lo que falta</p>
+        <h2>Qu&eacute; queda abierto</h2>
+        <p>
+          Nada de esto est&aacute; hecho, y conviene que se sepa antes de dar el repaso por
+          bueno.
+        </p>
+        <ul class="suelta">
+          <li>El barrendero est&aacute; probado con un cubo de mentira. Que la API de Storage
+            se lleve de verdad los bytes no lo prueba ning&uacute;n arn&eacute;s: eso necesita
+            un cubo de verdad, y es justo el tipo de suposici&oacute;n que ya fall&oacute; una
+            vez aqu&iacute;.</li>
+          <li>Nadie ejecuta el barrendero todav&iacute;a de forma peri&oacute;dica. Los apuntes
+            se escriben, pero hasta que alguien lo corra, se acumulan.</li>
+          <li>La cola del CIIP no se ordena por retraso: un tr&aacute;mite que lleva veinte
+            d&iacute;as sale igual que uno de ayer.</li>
+          <li>En &laquo;Mis tr&aacute;mites&raquo; no se ve el motivo de una devoluci&oacute;n
+            sin abrir el expediente.</li>
+          <li>Tres pruebas del panel &mdash;banderas y logos&mdash; van y vienen sin motivo
+            claro.</li>
+        </ul>
+      </section>
+
+      <footer>
+        <p>
+          Documento de revisi&oacute;n interna. Todo lo que dice est&aacute; en la rama
+          <code>tramites-y-boveda</code>, commits <code>776c68b</code> y
+          <code>59c5623</code>; los mensajes de esos dos commits cuentan lo mismo con
+          m&aacute;s detalle.
+        </p>
+      </footer>
+
+    </main>
+  </div>
+</div>
+
+</body>
+</html>
