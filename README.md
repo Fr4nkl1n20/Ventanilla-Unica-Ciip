@@ -8,11 +8,27 @@ autenticación y los datos los pone Supabase.
 
 ---
 
+## Estado actual
+
+En producción, en **https://ventanilla-unica-2.vercel.app** (proyecto de
+Vercel `ventanilla-unica-2`, Root Directory en la raíz del repositorio).
+`vercel.json` redirige `/` a `/login/`, que es la puerta de entrada.
+
+La base de datos real es un proyecto de Supabase aparte del de pruebas
+(`fbxdwryppfctuwlnjjqr`, organización CIIP), creado el 1 de septiembre de
+2026 con `TODO-EN-ORDEN.sql` ya aplicado (las 21 tablas). El registro de
+cuentas nuevas está cerrado ahí (*Allow new users to sign up* apagado):
+las cuentas las crea el equipo del CIIP desde Supabase, no hay
+autorregistro. `config.js` decide solo, por dónde se abre la página, si
+usar esa base o la de pruebas — ver el bloque de comentarios ahí mismo.
+
+---
+
 ## Archivos
 
 | Archivo | Qué es |
 |---|---|
-| `acceso.html` | Iniciar sesión, crear cuenta, recuperar clave, clave nueva |
+| `acceso.html` | Iniciar sesión, y clave nueva (por el enlace del correo de recuperación) |
 | `ciip-ventanilla-unica-local.html` | El panel, una vez dentro |
 | `config.js` | **Lo único que hay que rellenar**: las claves de Supabase |
 | `pasos.js` | Los cuatro pasos de cada trámite, en los seis idiomas |
@@ -50,7 +66,7 @@ autenticación y los datos los pone Supabase.
 | `CONFIGURAR.bat` | Pegar las claves de Supabase sin editar archivos |
 | `ABRIR-LOCAL.bat` | Levantar el proyecto en `http://localhost:8080`, solo para ti |
 | `ABRIR-EN-RED.bat` | Igual, pero abierto a la red: otros PC de la oficina pueden entrar |
-| `PROBAR.bat` | Lanzar las 57 pruebas del acceso |
+| `PROBAR.bat` | Lanzar las 57 pruebas del acceso — desactualizadas, ver [Qué está probado](#qué-está-probado-y-qué-no) |
 | `PROBAR-PANEL.bat` | Lanzar las 2668 pruebas del panel y las 10 comprobaciones de las claves de traducción |
 | `PROBAR-CONECTOR.bat` | Lanzar las 28 pruebas del conector del RIF |
 | `PROBAR-SAREN.bat` | Lanzar las 42 pruebas del conector de la constitución de compañía |
@@ -140,10 +156,15 @@ en vez de dejar la pantalla en blanco.
 Las dos tandas ejecutan la página de verdad en un navegador sin ventana; no
 leen el código, lo corren.
 
-**El acceso** (57 pruebas, `PROBAR.bat`): validación de los cuatro formularios,
-el medidor de fuerza de la clave, navegación entre vistas, los seis idiomas, el
-buscador de países, el almacenamiento de sesión, el logo y la carga de
-`config.js`.
+**El acceso** (57 pruebas, `PROBAR.bat`) — **desactualizadas**: se
+escribieron para cuatro formularios (iniciar sesión, crear cuenta,
+recuperar clave, clave nueva); `acceso.html` hoy solo tiene dos —iniciar
+sesión y clave nueva—, porque las cuentas las crea el equipo del CIIP
+desde Supabase, sin autorregistro. El arnés (`pruebas/arnes.js`) todavía
+busca los campos de los formularios que ya no están y se corta antes de
+correr ni una prueba. Falta o achicar el arnés a los dos formularios
+reales, o decidir que el registro y la recuperación por formulario
+propio vuelven — no es una decisión de este archivo.
 
 **El panel** (2668 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
 los filtros, que las cuatro etapas son cuatro cajas parejas, la franja de "te
@@ -181,10 +202,10 @@ que fallar. Necesita `pruebas/cuentas.local.json` —que `.gitignore` no deja
 subir— y una tercera cuenta con rol gestor para la parte que un inversionista no
 puede ni intentar.
 
-**Sin probar**: crear una cuenta, iniciar sesión, los correos de confirmación y
-recuperación, el trigger que crea el perfil, y el recorrido completo de enviar
-una solicitud con sus recaudos desde el panel. Requiere un proyecto de Supabase
-y se hace a mano.
+**Sin probar**: iniciar sesión de verdad, los correos de recuperación, el
+trigger que crea el perfil, y el recorrido completo de enviar una
+solicitud con sus recaudos desde el panel. Requiere un proyecto de
+Supabase y se hace a mano.
 
 ## Límites conocidos
 
