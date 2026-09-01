@@ -241,10 +241,21 @@ async function principal(){
   const basura = { tramites: [], citas: [], documentos: [], archivos: [] };
 
   /* ── B pone el cebo ─────────────────────────────────────────────── */
-  const tipo = await pide('/rest/v1/tipos_tramite?select=codigo&activo=eq.true&limit=1',
+  /* DOS tipos, no uno. El indice tramites_una_viva impide que una misma
+     persona tenga dos solicitudes VIVAS del mismo tramite, y con razon.
+     Este arnes iba cogiendo siempre el primer activo, asi que la prueba
+     de la escalera -que mueve el suyo a 'enviado'- chocaba con lo que
+     habia creado una seccion anterior y salia en rojo con la cerradura
+     funcionando perfectamente. Cada prueba que llegue a 'enviado' necesita
+     el suyo. */
+  const tipo = await pide('/rest/v1/tipos_tramite?select=codigo&activo=eq.true&order=codigo&limit=2',
                           { token: B.token });
-  const CODIGO = (Array.isArray(tipo.cuerpo) && tipo.cuerpo[0] && tipo.cuerpo[0].codigo) || null;
+  const TIPOS_ACT = (Array.isArray(tipo.cuerpo) ? tipo.cuerpo : []).map(function(t){ return t.codigo; });
+  const CODIGO = TIPOS_ACT[0] || null;
   if (!CODIGO) fin('No hay tipos de tramite activos en la base de pruebas.');
+  /* Si solo hay uno activo, la escalera se prueba con el mismo y puede
+     chocar. Se dice en voz alta en vez de dar un rojo que no lo es. */
+  const CODIGO_2 = TIPOS_ACT[1] || null;
 
   /* documentos.tipo apunta a tipos_documento, no a tipos_tramite: son dos
      catalogos distintos y confundirlos deja el cebo sin poner. */
@@ -876,7 +887,7 @@ async function principal(){
      politica de borrado -con razon- ya no deja quitarlo. */
   const trEsc = await pide('/rest/v1/tramites', {
     method: 'POST', token: A.token, headers: json(),
-    body: JSON.stringify({ inversionista: A.id, tipo: CODIGO, estado: 'borrador' })
+    body: JSON.stringify({ inversionista: A.id, tipo: (CODIGO_2 || CODIGO), estado: 'borrador' })
   });
   const TR_ESC = trEsc.ok && trEsc.cuerpo && trEsc.cuerpo[0] ? trEsc.cuerpo[0].id : null;
   if (TR_ESC) basura.tramites.push({ id: TR_ESC, token: A.token });
