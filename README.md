@@ -37,6 +37,7 @@ autenticación y los datos los pone Supabase.
 | `supabase-huellas.sql` | La huella SHA-256 de cada documento, y cómo un tercero verifica uno emitido sin saber de quién es |
 | `supabase-encadenado.sql` | Qué papel emite cada trámite. Con eso el panel deduce solo qué trámite espera a cuál |
 | `supabase-plazos.sql` | Cuánto debería tardar cada trámite, para poder decir cuándo va más lento de lo prometido |
+| `supabase-una-viva.sql` | Una sola solicitud viva por persona y trámite. Las resueltas y las devueltas no cuentan |
 | `logos/` | Logos de los organismos, con su procedencia en [FUENTES.md](logos/FUENTES.md) |
 | `banderas/` | 197 banderas SVG para el buscador de países, con su procedencia en [FUENTES.md](banderas/FUENTES.md) |
 | `original/` | La demostración de partida, intacta, como referencia |
@@ -62,7 +63,7 @@ autenticación y los datos los pone Supabase.
 
 1. Crear un proyecto en [supabase.com](https://supabase.com)
 2. *SQL Editor* → pegar cada archivo SQL y pulsar **Run**, **en este orden**.
-   Son veintiuno, no cuatro: cada uno que falte apaga su pantalla del panel.
+   Son veintidós, no cuatro: cada uno que falte apaga su pantalla del panel.
    Este orden no está deducido de las cabeceras: lo ejecuta `PROBAR-SQL.bat`
    en un PostgreSQL de usar y tirar, y si uno usara algo que otro define
    después, esa tanda se caería diciendo cuál
@@ -89,7 +90,8 @@ autenticación y los datos los pone Supabase.
    | 18 | `supabase-aranceles.sql` | Envuelve el encolado del 16 |
    | 19 | `supabase-huellas.sql` | Sólo necesita `documentos` |
    | 20 | `supabase-encadenado.sql` | Sólo necesita el catálogo |
-   | 21 | `supabase-plazos.sql` | El último. Sólo necesita el catálogo |
+   | 21 | `supabase-plazos.sql` | Sólo necesita el catálogo |
+   | 22 | `supabase-una-viva.sql` | El último. Sólo necesita `tramites` |
 
    Del 4 al 9 el orden entre ellos da igual: solo piden que el 2 esté hecho.
 
@@ -155,7 +157,7 @@ en la misma pasada que comprueba que habla.
 
 **El SQL** (21 comprobaciones, `PROBAR-SQL.bat`): levanta un PostgreSQL vacío
 en una carpeta temporal —sin claves, sin tocar ningún servidor de la máquina—,
-ejecuta los veintiún archivos **en el orden de más arriba**, que ya es la primera
+ejecuta los veintidós archivos **en el orden de más arriba**, que ya es la primera
 prueba, y luego intenta lo que no se debe: saltarse la escalera de estados,
 ascender a otro a admin, escribir en un catálogo. Se entra como entra Supabase,
 con `set role authenticated` y el `sub` en `request.jwt.claims`, porque

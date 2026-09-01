@@ -329,7 +329,7 @@ declare
 begin
   -- A crea uno nuevo y suyo, para tener algo que otro intente mirar.
   insert into public.tramites (inversionista, tipo, estado)
-  values (auth.uid(), (select codigo from public.tipos_tramite where activo limit 1), 'borrador')
+  values (auth.uid(), (select codigo from public.tipos_tramite where activo limit 1 offset 1), 'borrador')
   returning id into ajeno;
   insert into arnes.escenario values ('de_A', ajeno);
 end
@@ -594,7 +594,7 @@ begin
   update auth.users set email = null where id = quien;
 
   insert into public.tramites (inversionista, tipo, estado)
-  values (quien, (select codigo from public.tipos_tramite where activo limit 1), 'borrador')
+  values (quien, (select codigo from public.tipos_tramite where activo limit 1 offset 2), 'borrador')
   returning id into otro;
   insert into public.tramite_eventos (tramite, a_estado, nota)
   values (otro, 'resuelto', 'x');
@@ -696,7 +696,7 @@ declare
   quien uuid; cual uuid; sinTasa text;
 begin
   select id into quien from arnes.gente where papel = 'A';
-  select codigo into sinTasa from public.tipos_tramite where activo limit 1;
+  select codigo into sinTasa from public.tipos_tramite where activo limit 1 offset 3;
   insert into public.tramites (inversionista, tipo, estado)
   values (quien, sinTasa, 'borrador') returning id into cual;
   update public.tramites set estado = 'enviado' where id = cual;
@@ -1010,6 +1010,113 @@ end
 $p$;
 
 reset role;
+
+
+-- ══ 9 · UNA SOLA SOLICITUD VIVA POR TRAMITE ══════════════════════════
+-- El panel ya lo comprobaba antes de enviar, pero su propio comentario
+-- decia que era "una comprobacion del panel, no una cerradura". Esta es
+-- la cerradura. Lo que importa de estas cinco es que las dos ultimas
+-- pasen: un indice sin el WHERE tambien impediria los duplicados, y de
+-- paso impediria pedir la solvencia del ano siguiente.
+reset role;
+
+select arnes.comprueba(
+  'una viva: el indice esta puesto',
+  (select count(*) = 1 from pg_indexes
+    where tablename = 'tramites' and indexname = 'tramites_una_viva'));
+
+do $p$
+declare
+  quien uuid; tipoAct text; primero uuid;
+begin
+  select id into quien from arnes.gente where papel = 'A';
+  select codigo into tipoAct from public.tipos_tramite where activo limit 1 offset 4;
+
+  insert into public.tramites (inversionista, tipo, estado)
+  values (quien, tipoAct, 'borrador') returning id into primero;
+  update public.tramites set estado = 'enviado' where id = primero;
+  insert into arnes.escenario values ('viva', primero);
+
+  -- 1 · otra viva del mismo tramite y la misma persona: NO
+  begin
+    insert into public.tramites (inversionista, tipo, estado)
+    values (quien, tipoAct, 'borrador');
+    update public.tramites set estado = 'enviado'
+     where inversionista = quien and tipo = tipoAct and estado = 'borrador';
+    perform arnes.comprueba('una viva: dos a la vez del mismo tramite, NO',
+                            false, 'ENTRO LA SEGUNDA');
+  exception when others then
+    perform arnes.comprueba('una viva: dos a la vez del mismo tramite, NO', true, sqlerrm);
+  end;
+end
+$p$;
+
+-- 2 · otra PERSONA pidiendo lo mismo a la vez: SI. Dos inversionistas
+--     con la misma visa en marcha es lo normal, no un duplicado.
+do $p$
+declare
+  otro uuid; tipoAct text; nuevo uuid;
+begin
+  select id into otro from arnes.gente where papel = 'G';
+  select codigo into tipoAct from public.tipos_tramite where activo limit 1 offset 5;
+  insert into public.tramites (inversionista, tipo, estado)
+  values (otro, tipoAct, 'borrador') returning id into nuevo;
+  update public.tramites set estado = 'enviado' where id = nuevo;
+  perform arnes.comprueba('una viva: pero OTRA persona si puede, a la vez', true, 'entro');
+exception when others then
+  perform arnes.comprueba('una viva: pero OTRA persona si puede, a la vez', false, sqlerrm);
+end
+$p$;
+
+-- 3 · y con la primera RESUELTA, pedirla otra vez: SI.
+--     Es la solvencia del ano que viene. Si esto fallara, el indice se
+--     habria puesto sin el WHERE y estaria impidiendo el tramite normal
+--     en vez del duplicado.
+do $p$
+declare
+  quien uuid; tipoAct text; cual uuid; otra uuid;
+begin
+  select id into quien from arnes.gente where papel = 'A';
+  select codigo into tipoAct from public.tipos_tramite where activo limit 1 offset 6;
+  select id into cual from arnes.escenario where clave = 'viva';
+
+  update public.tramites set estado = 'en_revision'  where id = cual;
+  update public.tramites set estado = 'ante_el_ente' where id = cual;
+  update public.tramites set estado = 'resuelto'     where id = cual;
+
+  insert into public.tramites (inversionista, tipo, estado)
+  values (quien, tipoAct, 'borrador') returning id into otra;
+  update public.tramites set estado = 'enviado' where id = otra;
+
+  perform arnes.comprueba('una viva: con la anterior RESUELTA si se puede otra',
+                          true, 'entro la del ano siguiente');
+exception when others then
+  perform arnes.comprueba('una viva: con la anterior RESUELTA si se puede otra',
+                          false, sqlerrm);
+end
+$p$;
+
+-- 4 · y una DEVUELTA tampoco estorba: volver a mandarla es justo lo que
+--     se le esta pidiendo al inversionista.
+do $p$
+declare
+  quien uuid; tipoAct text; cual uuid;
+begin
+  select id into quien from arnes.gente where papel = 'A';
+  select codigo into tipoAct from public.tipos_tramite where activo limit 1 offset 7;
+  select id into cual from public.tramites
+   where inversionista = quien and tipo = tipoAct and estado = 'enviado' limit 1;
+
+  update public.tramites set estado = 'devuelto' where id = cual;
+  update public.tramites set estado = 'enviado'  where id = cual;
+
+  perform arnes.comprueba('una viva: una devuelta se puede volver a mandar',
+                          true, 'entro');
+exception when others then
+  perform arnes.comprueba('una viva: una devuelta se puede volver a mandar',
+                          false, sqlerrm);
+end
+$p$;
 
 \o
 \pset tuples_only on
