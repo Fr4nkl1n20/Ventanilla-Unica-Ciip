@@ -160,6 +160,7 @@
               tablaMira, tablaAbre, tablaTrasAbrir,
               empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
               entregaAbre, entregaMira,
+              hiloAbre, hiloMira, hiloEscribe, hiloEsperaEnvio, hiloTrasEscribir,
               docsAbre, docsMira, docsCambia, docsEsperaCambio, docsTrasCambiar,
               docsNuevoMira, docsNuevoFalta, docsNuevoSube, docsEsperaSubida, docsTrasSubir,
               /* DESPUES de todo lo de la boveda: estos pasos suben un papel,
@@ -1655,6 +1656,72 @@
      formulario— pero eso es una LECTURA, y entre leer y escribir cabe
      otra pestaña, una recarga o un doble clic en Enviar. Y esas cuatro
      las recibe el CIIP y alguien las revisa una por una. */
+  /* ── LA CONVERSACIÓN DEL EXPEDIENTE ──
+     Se abre el c6 de 'lleno', que es el trámite DEVUELTO: es donde la
+     conversación tiene sentido, porque el CIIP dijo que falta algo y el
+     inversionista necesita preguntar qué exactamente. */
+  function hiloAbre(){
+    if (CASO !== 'lleno') return;
+    location.hash = 'tramite-c6';
+  }
+
+  function hiloMira(){
+    if (CASO !== 'lleno') return;
+    var lista = document.querySelector('.hilo-lista');
+    ok('hilo: la conversación se pinta en el trámite',
+       !!lista, lista ? 'está' : 'no hay .hilo-lista', 'está');
+    if (!lista) return;
+
+    var lineas = lista.querySelectorAll('.hilo-m');
+    igual('hilo: con las dos líneas que ya había', lineas.length, 2);
+
+    /* Quién habla se ve por la FORMA, no sólo por el rótulo: en un hilo
+       largo, leer «Tú / CIIP» en cada línea para saberlo es trabajo que
+       puede hacer el sitio donde se pega el globo. */
+    ok('hilo: se distingue lo del CIIP de lo tuyo',
+       lista.querySelectorAll('.hilo-m.suyo').length === 1 &&
+       lista.querySelectorAll('.hilo-m.mio').length === 1,
+       lista.querySelectorAll('.hilo-m.suyo').length + ' del CIIP, ' +
+       lista.querySelectorAll('.hilo-m.mio').length + ' tuyas', '1 y 1');
+
+    /* Y el adjunto sale por su NOMBRE, no como «documento adjunto»: lo
+       que se busca en un hilo es «dónde mandé el comprobante». */
+    ok('hilo: el adjunto se ve por su nombre de archivo',
+       /comprobante-banco\.pdf/.test(lista.textContent),
+       'busca comprobante-banco.pdf', 'está en el hilo');
+  }
+
+  function hiloEscribe(){
+    if (CASO !== 'lleno') return;
+    var txt = document.querySelector('.hilo-txt');
+    var env = document.querySelector('.hilo .btn.navy');
+    if (!txt || !env) return;
+    window.PRUEBA_HILO_ANTES = document.querySelectorAll('.hilo-m').length;
+    txt.value = 'El del banco lleva sello, ¿sirve?';
+    env.click();
+  }
+
+  function hiloEsperaEnvio(sigue){
+    if (CASO !== 'lleno') return sigue();
+    esperaFilas('.hilo-m', (window.PRUEBA_HILO_ANTES || 0) + 1, sigue);
+  }
+
+  function hiloTrasEscribir(){
+    if (CASO !== 'lleno') return;
+    var lineas = document.querySelectorAll('.hilo-m');
+    igual('hilo: al enviar, la conversación tiene una línea más',
+          lineas.length, (window.PRUEBA_HILO_ANTES || 0) + 1);
+    ok('hilo: y se lee lo que acabas de escribir',
+       /lleva sello/.test(document.querySelector('.hilo-lista').textContent),
+       'busca "lleva sello"', 'está');
+    /* La caja se vacía: dejarla con lo de antes dentro invita a mandarlo
+       dos veces, que es el mismo error que ya se corrigió al subir un
+       documento. */
+    var txt = document.querySelector('.hilo-txt');
+    ok('hilo: y la caja se vacía sola',
+       txt && txt.value === '', txt ? '"' + txt.value + '"' : 'no hay caja', 'vacía');
+  }
+
   function dupeAbre(){
     /* 'vacio' trae un borrador de RIF personal Y su envio posterior: el
        tramite tiene una EN MARCHA. Es el expediente donde este caso

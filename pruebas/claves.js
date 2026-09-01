@@ -43,7 +43,12 @@ const claves = Object.keys(I18N.es);
    enteras que se piden en tiempo de ejecución. */
 const usadas = new Set();
 for (const m of PANEL.matchAll(/data-i18n(?:-ph|-title)?="([^"]+)"/g)) usadas.add(m[1]);
-for (const m of PANEL.matchAll(/(?:dic|d|D)\[['"]([^'"]+)['"]\]/g)) usadas.add(m[1]);
+/* 'u' es el accesor de siempre —var u = T()— y faltaba en esta lista. Una
+   clave leída como u['algo.con.punto'] no la veía nadie y salía como
+   «definida y sin usar». No se había notado porque las pocas que se leen
+   así llevaban detrás un dic['...'] de reserva, que sí se detecta; al
+   añadir ocho de golpe sin esa reserva, saltaron las ocho. */
+for (const m of PANEL.matchAll(/(?:dic|d|D|u)\[['"]([^'"]+)['"]\]/g)) usadas.add(m[1]);
 for (const m of PANEL.matchAll(/I18N(?:\.[a-z]{2}|\[[^\]]+\])\[['"]([^'"]+)['"]\]/g)) usadas.add(m[1]);
 const familias = ['rol.', 'faq.q', 'st.'];
 

@@ -226,6 +226,10 @@
      expediente de partida es el de siempre, y lo que aparezca aqui lo ha
      subido la propia prueba. */
   var subidos = [];
+  /* Lo que se escribe en el hilo durante la pasada. Sin esto, mandar un
+     mensaje y volver a leer devolvia lo mismo de antes y no habia forma
+     de medir que aparece. */
+  var dichos = [];
   /* Lo que se borro en esta pasada, para que la lista lo respete. */
   var borrados = {};
   /* La configuracion del acompañamiento, con sus valores de fabrica. */
@@ -900,6 +904,42 @@
         mios = mios.filter(function(t){ return op.in.estado.indexOf(t.estado) >= 0; });
       }
       return {data:mios, error:null};
+    }
+    if (tabla === 'tramite_mensajes'){
+      /* La conversacion de un expediente. Empieza con DOS lineas y no
+         vacia: un hilo vacio y uno que no carga se ven igual en pantalla,
+         y con el vacio no habria forma de probar que se pinta quien habla
+         ni que el adjunto sale por su nombre.
+
+         Las dos son del tramite devuelto -el t1-, que es donde la
+         conversacion tiene sentido: el CIIP dice que falta algo y el
+         inversionista pregunta que exactamente. */
+      if (op && op.insert){
+        var msj = {
+          id: 'msj' + (dichos.length + 1),
+          tramite: op.insert.tramite,
+          texto: op.insert.texto || '',
+          documento: op.insert.documento || null,
+          /* Lo pone la BASE, no quien escribe: el falso tiene que hacer lo
+             mismo o la prueba de "nadie firma por otro" mediria al reves. */
+          del_equipo: false,
+          creado_en: new Date().toISOString()
+        };
+        dichos.push(msj);
+        return {data:[msj], error:null};
+      }
+      var hilo = [
+        {id:'msj-a', tramite:'t1', texto:'El comprobante del capital esta ilegible: vuelve a subirlo escaneado.',
+         del_equipo:true, documento:null, creado_en:'2026-08-14T10:05:00Z'},
+        {id:'msj-b', tramite:'t1', texto:'Lo tengo escaneado del banco. Sirve asi?',
+         del_equipo:false, documento:'d1',
+         documentos:{nombre_original:'comprobante-banco.pdf', tipo:'otro', archivo:'u1/comprobante.pdf'},
+         creado_en:'2026-08-15T09:00:00Z'}
+      ].concat(dichos);
+      if (op && op.eq && op.eq.tramite){
+        hilo = hilo.filter(function(m){ return m.tramite === op.eq.tramite; });
+      }
+      return {data:hilo, error:null};
     }
     if (tabla === 'tramite_documentos'){
       /* El detalle de un tramite resuelto pregunta por lo ENTREGADO. Es la
