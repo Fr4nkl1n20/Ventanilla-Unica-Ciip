@@ -206,6 +206,38 @@ create policy "mensajes: escribir en mi expediente" on public.tramite_mensajes
 
 
 -- ───────────────────────────────────────────────────────────────────────
+-- 5. Y EL EQUIPO TAMBIÉN PUEDE ADJUNTAR
+-- ───────────────────────────────────────────────────────────────────────
+-- Un hilo donde sólo una parte puede mandar una foto no es una
+-- conversación. Y el adjunto tiene que ser del DUEÑO del expediente —lo
+-- exige el trigger de arriba, y con razón—, así que el equipo necesita
+-- poder dejar un documento en la bóveda de otro.
+--
+-- Ya podía, pero sólo uno: `supabase-emision.sql` le deja meter el
+-- documento que emitió el ente, con tipo 'resolucion' y estado
+-- 'validado'. Una foto aclaratoria no es ninguna de las dos cosas.
+--
+-- Esta política añade el otro caso, y es deliberadamente estrecha:
+--
+--   · sólo tipo 'otro'. No puede dejar un pasaporte ni un RIF: si un
+--     recaudo con nombre propio apareciera en tu bóveda sin haberlo
+--     subido tú, el trámite que lo pide lo daría por presentado.
+--   · sólo 'cargado', nunca 'validado'. Lo que manda el CIIP en una
+--     conversación es una aclaración, no un papel dado por bueno.
+--   · y en la subcarpeta 'emitidos', que es donde el cubo ya le deja
+--     escribir dentro de la carpeta de otro.
+
+drop policy if exists "documentos: el equipo adjunta en un hilo" on public.documentos;
+create policy "documentos: el equipo adjunta en un hilo" on public.documentos
+  for insert
+  with check (
+    public.es_gestor()
+    and tipo = 'otro'
+    and estado = 'cargado'
+  );
+
+
+-- ───────────────────────────────────────────────────────────────────────
 -- COMPROBACIONES
 -- ───────────────────────────────────────────────────────────────────────
 -- 1) El hilo de una solicitud, en orden y diciendo quién habla:

@@ -6869,10 +6869,22 @@ applyLang(idiomaParaMi());
     } catch (e) { return Promise.resolve(null); }
   }
 
-  function sube(tipoDoc, archivo, venceEl){
+  /* `duenio` sólo lo usa el equipo del CIIP al adjuntar algo en el hilo de
+     un expediente ajeno. Sin él, el archivo caía en la bóveda del GESTOR,
+     y entonces el trigger del hilo lo rechazaba con razón: un adjunto
+     tiene que ser del dueño del expediente.
+
+     La ruta lleva 'emitidos' porque es la única subcarpeta donde las
+     políticas del cubo dejan escribir al equipo dentro de la carpeta de
+     otro, y porque separa lo que dejó el CIIP de lo que subió la persona
+     sin tener que consultar nada. */
+  function sube(tipoDoc, archivo, venceEl, duenio){
     return quienSoy().then(function(yo){
+      var deQuien = duenio || yo.id;
       var limpio = archivo.name.replace(/[^\w.\-]+/g, '_').slice(-60);
-      var ruta = yo.id + '/' + tipoDoc + '-' + Math.random().toString(36).slice(2, 10) + '-' + limpio;
+      var ruta = duenio
+        ? (deQuien + '/emitidos/' + Math.random().toString(36).slice(2, 10) + '-' + limpio)
+        : (deQuien + '/' + tipoDoc + '-' + Math.random().toString(36).slice(2, 10) + '-' + limpio);
       /* Se calcula ANTES de subir, sobre el archivo que hay en la mano.
          Calcularla despues obligaria a bajarlo otra vez para leerlo, y
          entonces la huella diria que el archivo del cubo es igual al del
@@ -6881,7 +6893,7 @@ applyLang(idiomaParaMi());
       return sb.storage.from('recaudos').upload(ruta, archivo, {upsert:false})
         .then(function(r){
           if (r.error) throw r.error;
-          var fila = {inversionista: yo.id, tipo: tipoDoc, archivo: ruta,
+          var fila = {inversionista: deQuien, tipo: tipoDoc, archivo: ruta,
                       nombre_original: archivo.name};
           /* Solo si viene. Una cadena vacia en una columna date la rechaza
              Postgres, y un null es exactamente lo que significa: este
@@ -7182,7 +7194,13 @@ applyLang(idiomaParaMi());
 
       /* El papel primero: si falla, no se manda un mensaje que dice
          «aquí va la foto» sin foto. */
-      var conPapel = papel ? sube('otro', papel) : Promise.resolve(null);
+      /* Si lo sube el equipo, el papel va a la boveda del INVERSIONISTA,
+         que es de quien tiene que ser el adjunto. Si lo sube el, a la
+         suya. La misma caja, dos destinos, y ninguno de los dos tiene que
+         saberlo. */
+      var deQuien = (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO())
+        ? tr.inversionista : null;
+      var conPapel = papel ? sube('otro', papel, null, deQuien) : Promise.resolve(null);
 
       conPapel.then(function(docId){
         return Promise.resolve(sb.from('tramite_mensajes')
@@ -9890,6 +9908,17 @@ applyLang(idiomaParaMi());
         console.warn('[CIIP] expediente:', e && e.message);
         lista.appendChild(el('div', 'co-vacia', u.co_error || ''));
       });
+
+    /* Y la conversación, la misma que ve el inversionista. Es LITERALMENTE
+       la misma función: si el equipo tuviera su propia pantalla del hilo,
+       tarde o temprano una enseñaría algo que la otra no, y en una
+       conversación eso significa que uno de los dos cree haber dicho algo
+       que el otro no leyó.
+
+       Al final del expediente por lo mismo que en el detalle: se lee
+       después de mirar los datos y los recaudos, que es lo que el gestor
+       vino a revisar. */
+    pintaHilo(tr, caja);
   }
 
   /* Deja el documento emitido en la bóveda del inversionista y lo cuelga

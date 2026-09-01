@@ -1312,6 +1312,83 @@ $p$;
 
 reset role;
 
+
+-- ══ 11 · EL EQUIPO TAMBIEN ADJUNTA ═══════════════════════════════════
+-- Un hilo donde solo una parte puede mandar una foto no es una
+-- conversacion. Pero el permiso tiene que ser estrecho: lo que importa de
+-- estas cuatro son las dos ultimas.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+
+do $p$
+declare
+  duenio uuid; doc uuid;
+begin
+  select inversionista into duenio from public.tramites
+   where id = (select id from arnes.escenario where clave = 'hilo');
+
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original, estado)
+  values (duenio, 'otro', duenio || '/emitidos/aclaracion.pdf', 'aclaracion.pdf', 'cargado')
+  returning id into doc;
+
+  insert into public.tramite_mensajes (tramite, texto, documento)
+  values ((select id from arnes.escenario where clave = 'hilo'),
+          'Te dejo un ejemplo de como tiene que verse el sello.', doc);
+
+  perform arnes.comprueba('hilo: el equipo adjunta un papel en la boveda del inversionista',
+    (select count(*) = 1 from public.tramite_mensajes
+      where documento = doc and del_equipo = true), 'adjuntado');
+exception when others then
+  perform arnes.comprueba('hilo: el equipo adjunta un papel en la boveda del inversionista',
+                          false, sqlerrm);
+end
+$p$;
+
+-- Y NO puede colar un recaudo con nombre propio. Si apareciera en tu
+-- boveda un 'rif_personal' que no subiste tu, el tramite que lo pide lo
+-- daria por presentado.
+do $p$
+declare duenio uuid;
+begin
+  select inversionista into duenio from public.tramites
+   where id = (select id from arnes.escenario where clave = 'hilo');
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original, estado)
+  values (duenio, 'rif_personal', duenio || '/emitidos/colado.pdf', 'colado.pdf', 'cargado');
+  perform arnes.comprueba('hilo: pero NO puede colar un recaudo con nombre propio',
+                          false, 'LO METIO');
+exception when others then
+  perform arnes.comprueba('hilo: pero NO puede colar un recaudo con nombre propio',
+                          true, sqlerrm);
+end
+$p$;
+
+-- Ni darlo por validado. Lo que manda el CIIP en una conversacion es una
+-- aclaracion, no un papel dado por bueno; y de paso, un 'validado' el
+-- inversionista ya no lo puede borrar.
+do $p$
+declare duenio uuid;
+begin
+  select inversionista into duenio from public.tramites
+   where id = (select id from arnes.escenario where clave = 'hilo');
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original, estado)
+  values (duenio, 'otro', duenio || '/emitidos/dado-por-bueno.pdf', 'x.pdf', 'validado');
+  perform arnes.comprueba('hilo: ni darlo por validado', false, 'LO VALIDO');
+exception when others then
+  perform arnes.comprueba('hilo: ni darlo por validado', true, sqlerrm);
+end
+$p$;
+
+-- Y el inversionista LO VE: un adjunto que el equipo manda y el otro no
+-- puede abrir es un adjunto que no sirve.
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+select arnes.comprueba(
+  'hilo: y el inversionista ve lo que le adjunto el equipo (esto TIENE que salir)',
+  (select count(*) > 0 from public.tramite_mensajes m
+    join public.documentos d on d.id = m.documento
+   where m.del_equipo = true and d.nombre_original = 'aclaracion.pdf'));
+
+reset role;
+
 \o
 \pset tuples_only on
 \pset format unaligned

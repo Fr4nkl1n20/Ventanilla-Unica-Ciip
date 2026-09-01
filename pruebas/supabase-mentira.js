@@ -934,7 +934,14 @@
         {id:'msj-b', tramite:'t1', texto:'Lo tengo escaneado del banco. Sirve asi?',
          del_equipo:false, documento:'d1',
          documentos:{nombre_original:'comprobante-banco.pdf', tipo:'otro', archivo:'u1/comprobante.pdf'},
-         creado_en:'2026-08-15T09:00:00Z'}
+         creado_en:'2026-08-15T09:00:00Z'},
+        /* Y una del expediente que ve el EQUIPO en su cola -el x1-. Sin
+           esto el hilo del gestor salia vacio, que es peor que no salir:
+           pareceria que el inversionista no ha preguntado nada. */
+        {id:'msj-c', tramite:'x1', texto:'Buenos dias, adjunto el acta que me pidieron.',
+         del_equipo:false, documento:null, creado_en:'2026-08-06T08:30:00Z'},
+        {id:'msj-d', tramite:'x1', texto:'Recibido. Lo revisamos hoy mismo.',
+         del_equipo:true, documento:null, creado_en:'2026-08-06T11:00:00Z'}
       ].concat(dichos);
       if (op && op.eq && op.eq.tramite){
         hilo = hilo.filter(function(m){ return m.tramite === op.eq.tramite; });

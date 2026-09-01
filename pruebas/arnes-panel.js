@@ -135,6 +135,7 @@
                  los pasos de abajo necesitan abierto. */
               colaReparto, colaTrasTomar,
               colaTramites, colaLleva,
+              colaHiloEspera, colaHiloMira,
               /* La identidad se mira con el expediente ya desplegado y
                  ANTES de colaExpediente, que termina devolviendo el
                  tramite: al devolverlo sale de la cola y se lleva por
@@ -4338,6 +4339,40 @@
     fichas[0].querySelector('input[type="datetime-local"]').value = '2026-08-26T10:00';
     fichas[0].querySelector('input[type="text"]').value = 'Torre CIIP, piso 4';
     fichas[0].querySelectorAll('.btn')[1].click();
+  }
+
+  /* ── la conversación, del lado del equipo ──
+     En su propio paso porque el hilo se carga DESPUÉS de desplegar el
+     expediente, y colaTramites despliega y comprueba en el mismo. Los
+     datos se pintan a la vez; la conversación llega de la base. */
+  function colaHiloEspera(sigue){
+    if (CASO !== 'gestor') return sigue();
+    esperaFilas('#colaTram .co-ficha .co-exp .hilo-m', 2, sigue);
+  }
+
+  function colaHiloMira(){
+    if (CASO !== 'gestor') return;
+    var exp = document.querySelectorAll('#colaTram .co-ficha')[0].querySelector('.co-exp');
+    if (!exp) return;
+
+    /* El equipo podía escribir desde el primer día —la política se lo
+       permitía y hay prueba de ello en Postgres— pero no tenía dónde: la
+       cola enseñaba el expediente sin el hilo, así que la mitad de la
+       conversación era una función sin pantalla. */
+    ok('cola: el expediente termina con la conversación',
+       !!exp.querySelector('.hilo-lista'),
+       exp.querySelector('.hilo-lista') ? 'está' : 'no hay hilo', 'está');
+
+    /* Y CON lo que ya se había dicho. Un hilo vacío del lado del gestor
+       sería peor que ninguno: parecería que el inversionista no ha
+       preguntado nada. */
+    ok('cola: y con lo que ya se había dicho, no en blanco',
+       exp.querySelectorAll('.hilo-m').length >= 2,
+       exp.querySelectorAll('.hilo-m').length + ' líneas', 'al menos 2');
+
+    ok('cola: con la caja para contestar',
+       !!exp.querySelector('.hilo-txt'),
+       exp.querySelector('.hilo-txt') ? 'está' : 'no hay caja', 'está');
   }
 
   function colaTramites(){
