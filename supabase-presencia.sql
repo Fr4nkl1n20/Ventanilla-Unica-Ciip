@@ -51,7 +51,20 @@ as $$
   update public.perfiles set visto_en = now() where id = auth.uid();
 $$;
 
+-- OJO CON EL 'revoke ... from public': EN SUPABASE NO BASTA.
+--
+-- Supabase tiene puesto un 'alter default privileges' que concede EXECUTE
+-- sobre toda funcion nueva del esquema public a anon, authenticated y
+-- service_role. Eso es un grant NOMINAL a cada rol, no el de PUBLIC, asi
+-- que revocarle a PUBLIC no lo quita: anon se queda con el suyo.
+--
+-- Se vio corriendo PROBAR-CERRADURAS.bat contra un Supabase de verdad: la
+-- clave anonima llamaba a esta funcion y le contestaban 200. No hacia
+-- daño -con auth.uid() nulo no toca ninguna fila- pero una puerta que
+-- acepta a quien no deberia es una puerta abierta. En un Postgres normal
+-- esto no pasa, asi que ningun arnes local podia verlo.
 revoke all on function public.tocar_visto() from public;
+revoke all on function public.tocar_visto() from anon;
 grant execute on function public.tocar_visto() to authenticated;
 
 

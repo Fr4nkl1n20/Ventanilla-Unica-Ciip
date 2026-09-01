@@ -875,6 +875,47 @@ async function principal(){
   debeFallar('sin entrar, tocar_visto() no apunta a nadie',
              !tocarAnon.ok, tocarAnon.ok ? 'LA ACEPTO (200)' : 'rechazada (' + tocarAnon.estado + ')');
 
+  /* ── y la que de verdad importa de las funciones ──
+     avisar_de_lo_que_vence() es security definer y ESCRIBE: recorre la
+     boveda entera y deja filas en el buzon de salida. La llama el
+     mensajero con la clave de servidor, una vez al dia, y nadie mas tiene
+     por que poder llamarla.
+
+     Esto empezo como una sospecha al ver que tocar_visto() aceptaba a la
+     clave anonima. La causa resulto ser que Supabase concede EXECUTE
+     sobre toda funcion nueva de public a anon, authenticated y
+     service_role, y ese grant es NOMINAL: el "revoke ... from public" que
+     llevaban los dos archivos no se lo quitaba. Habia que revocarselo a
+     cada rol por su nombre.
+
+     No se lleva ningun dato -devuelve un numero- pero un desconocido con
+     la clave publica no puede disparar el barrido de avisos del CIIP.
+
+     Se prueba con dias=0 para que, si la cerradura NO estuviera puesta,
+     esta misma prueba escriba lo menos posible en la base. */
+  const barreAnon = await pide('/rest/v1/rpc/avisar_de_lo_que_vence', {
+    method: 'POST', headers: json(), body: '{"dias":0}'
+  });
+  debeFallar('sin entrar, no se dispara el barrido de avisos',
+             !barreAnon.ok, barreAnon.ok ? 'LA ACEPTO (200)' : 'rechazada (' + barreAnon.estado + ')');
+
+  /* Ni habiendo entrado: esto no es de los inversionistas ni del equipo,
+     es del proceso que corre de noche. */
+  const barreA = await pide('/rest/v1/rpc/avisar_de_lo_que_vence', {
+    method: 'POST', token: A.token, headers: json(), body: '{"dias":0}'
+  });
+  debeFallar('ni entrando: el barrido es del servidor, no de las personas',
+             !barreA.ok, barreA.ok ? 'LA ACEPTO (200)' : 'rechazada (' + barreA.estado + ')');
+
+  /* Y la que SI tiene que estar abierta, para que no se cierre de mas al
+     cerrar las otras: quien verifica un documento es un tercero con un
+     papel en la mano, no un usuario de la ventanilla. */
+  const verifAnon = await pide('/rest/v1/rpc/verificar_documento', {
+    method: 'POST', headers: json(), body: '{"huella_hex":"' + 'a'.repeat(64) + '"}'
+  });
+  debeFallar('verificar un documento SI se puede sin entrar (esto TIENE que salir)',
+             verifAnon.ok, verifAnon.ok ? 'abierta' : 'RECHAZADA (' + verifAnon.estado + ')');
+
   /* ═══ 16 · LA ESCALERA DE ESTADOS ═══════════════════════════════
      El check de la tabla dice que estados EXISTEN. No dice en que orden
      se pasa de uno a otro, y las politicas le dan al gestor mano libre

@@ -104,3 +104,19 @@ $doble$;
 
 grant usage on schema auth, storage, public to anon, authenticated;
 grant select on auth.users to authenticated;
+
+-- ── y la costumbre de Supabase que casi se nos escapa ──
+-- Supabase deja puesto un `alter default privileges` que concede EXECUTE
+-- sobre TODA funcion nueva de public a anon, authenticated y service_role.
+-- Postgres a secas no hace eso.
+--
+-- Sin esta linea, este arnes daba verde a funciones que en el Supabase de
+-- verdad estaban abiertas de par en par: aqui `revoke ... from public`
+-- bastaba, y alli no quitaba nada porque el permiso no venia de PUBLIC
+-- sino de cada rol por su nombre. Se descubrio corriendo las cerraduras
+-- contra un proyecto real, no aqui.
+--
+-- Poniendolo, el doble se equivoca igual que el original, que es lo unico
+-- que le pedimos a un doble.
+alter default privileges in schema public
+  grant execute on functions to anon, authenticated;

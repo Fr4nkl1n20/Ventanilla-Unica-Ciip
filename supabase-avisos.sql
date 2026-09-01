@@ -241,7 +241,20 @@ begin
 end
 $avisos$;
 
+-- Esta la llama el mensajero con la clave de servidor, una vez al dia.
+-- Nadie mas tiene por que poder llamarla: es security definer y ESCRIBE.
+--
+-- Y hay que revocarsela a anon y a authenticated POR SU NOMBRE. Supabase
+-- concede EXECUTE a los tres roles sobre toda funcion nueva de public, y
+-- ese grant es nominal: quitarselo a PUBLIC no se lo quita a ellos. Se vio
+-- con tocar_visto() al correr las cerraduras contra un Supabase de verdad.
+--
+-- Sin esto, un desconocido con la clave anonima -que es publica por
+-- diseño- puede disparar el barrido de avisos del CIIP. No se lleva
+-- ningun dato -devuelve un numero- pero escribe.
 revoke all on function public.avisar_de_lo_que_vence(int) from public;
+revoke all on function public.avisar_de_lo_que_vence(int) from anon;
+revoke all on function public.avisar_de_lo_que_vence(int) from authenticated;
 
 
 -- ───────────────────────────────────────────────────────────────────────

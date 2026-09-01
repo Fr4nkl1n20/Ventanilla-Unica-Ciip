@@ -22,7 +22,17 @@
 -- equivocado tapa el agujero que se buscaba.
 grant select, insert, update, delete on all tables in schema public to anon, authenticated;
 grant usage, select on all sequences in schema public to anon, authenticated;
-grant execute on all functions in schema public to anon, authenticated;
+-- Las FUNCIONES no se reparten aqui, y esta es la linea que mas cara ha
+-- salido de este archivo: repartia EXECUTE sobre todas a anon y a
+-- authenticated justo antes de probar, con lo cual daba igual lo que
+-- dijeran los revoke de los archivos. Cualquier funcion abierta de par en
+-- par salia verde aqui. Se vio corriendo las cerraduras contra un Supabase
+-- de verdad, no aqui.
+--
+-- Ahora quien reparte es el doble, imitando el `alter default privileges`
+-- que Supabase deja puesto (ver el final de postgres-doble.sql), y los
+-- archivos quitan y ponen encima de eso. Que es lo que pasa en el proyecto
+-- de verdad.
 grant select, insert, update, delete on storage.objects, storage.buckets to anon, authenticated;
 
 -- A partir de aqui no se enseña nada hasta el informe: cada llamada a
@@ -1386,6 +1396,65 @@ select arnes.comprueba(
   (select count(*) > 0 from public.tramite_mensajes m
     join public.documentos d on d.id = m.documento
    where m.del_equipo = true and d.nombre_original = 'aclaracion.pdf'));
+
+
+-- ══ 12 · QUIEN PUEDE LLAMAR A LAS FUNCIONES ══════════════════════════
+-- La ultima seccion, y la que este arnes no supo ver a tiempo.
+--
+-- Las politicas de RLS tapan las TABLAS. Una funcion `security definer`
+-- no es una tabla: corre con los permisos de quien la escribio y se salta
+-- el RLS por definicion. Lo unico que la protege es quien tiene EXECUTE.
+--
+-- Y ahi estaba el agujero. Supabase deja puesto un `alter default
+-- privileges` que concede EXECUTE sobre toda funcion nueva de public a
+-- anon, authenticated y service_role. Los archivos escribian
+-- `revoke ... from public`, que parece lo correcto y no quita nada: el
+-- permiso no venia de PUBLIC, venia de cada rol por su nombre. Hasta
+-- correr las cerraduras contra un Supabase de verdad, esto estaba verde
+-- aqui y abierto alli.
+--
+-- El doble ya imita esa costumbre (ver el final de postgres-doble.sql),
+-- asi que estas comprobaciones fallan si se quitan los revoke.
+
+-- La grave: recorre la boveda entera y ESCRIBE en el buzon de salida.
+-- La llama el mensajero con la clave de servidor. Nadie mas.
+select arnes.comprueba(
+  'funciones: el barrido de avisos no lo dispara la clave anonima',
+  not has_function_privilege('anon', 'public.avisar_de_lo_que_vence(int)', 'execute'),
+  'anon SI puede llamarla');
+
+select arnes.comprueba(
+  'funciones: ni lo dispara quien haya entrado',
+  not has_function_privilege('authenticated', 'public.avisar_de_lo_que_vence(int)', 'execute'),
+  'authenticated SI puede llamarla');
+
+-- Marcar «te vi» es de quien ha entrado; sin cuenta no apunta a nadie.
+select arnes.comprueba(
+  'funciones: tocar_visto() no la llama un desconocido',
+  not has_function_privilege('anon', 'public.tocar_visto()', 'execute'),
+  'anon SI puede llamarla');
+
+select arnes.comprueba(
+  'funciones: pero quien entra si marca su visto (esto TIENE que salir)',
+  has_function_privilege('authenticated', 'public.tocar_visto()', 'execute'),
+  'authenticated NO puede');
+
+-- Y las que tienen que quedar abiertas, para que cerrar no se pase de
+-- largo. Quien verifica un documento es un tercero con el papel en la
+-- mano: no tiene cuenta en la ventanilla ni tiene por que tenerla.
+select arnes.comprueba(
+  'funciones: verificar un documento sigue abierto sin entrar (esto TIENE que salir)',
+  has_function_privilege('anon', 'public.verificar_documento(text)', 'execute'),
+  'anon NO puede: se cerro de mas');
+
+-- es_gestor() y es_admin() las llaman las propias politicas de RLS. Si se
+-- le quita EXECUTE a anon, una consulta anonima a cualquier tabla con esas
+-- politicas revienta con un error de permisos en vez de contestar vacio;
+-- y un error dice mas de lo que dice el silencio.
+select arnes.comprueba(
+  'funciones: es_gestor() la puede llamar cualquiera (esto TIENE que salir)',
+  has_function_privilege('anon', 'public.es_gestor()', 'execute'),
+  'anon NO puede: las politicas van a reventar en vez de contestar vacio');
 
 reset role;
 
