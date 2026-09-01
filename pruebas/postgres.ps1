@@ -122,7 +122,8 @@ try {
     'supabase-huellas.sql',          # 19  solo necesita documentos
     'supabase-encadenado.sql',       # 20  solo necesita el catalogo
     'supabase-plazos.sql',           # 21  idem
-    'supabase-una-viva.sql'          # 22  solo necesita tramites
+    'supabase-una-viva.sql',         # 22  solo necesita tramites
+    'supabase-hilo.sql'              # 23  necesita tramites y documentos
   )
   $n = 0
   foreach ($f in $once) {
@@ -134,7 +135,7 @@ try {
     Write-Output ('  ' + $n.ToString().PadLeft(2) + ' - ' + $f)
   }
   Write-Output ''
-  Write-Output '  Los veintidos entraron, en el orden del README.'
+  Write-Output '  Los veintitres entraron, en el orden del README.'
   Write-Output ''
 
   Correr (Join-Path $PSScriptRoot 'postgres-pruebas.sql')

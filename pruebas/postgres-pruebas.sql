@@ -1118,6 +1118,200 @@ exception when others then
 end
 $p$;
 
+
+-- ══ 10 · EL HILO DEL EXPEDIENTE ══════════════════════════════════════
+-- Lo que hay que comprobar no es que se pueda escribir -eso es facil-,
+-- sino las cuatro reglas que hacen que un hilo sirva de algo: que hable
+-- en los dos sentidos, que nadie firme por otro, que nadie lea el de
+-- otro, y que lo dicho no se reescriba.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+do $p$
+declare
+  cual uuid; tipoAct text;
+begin
+  select codigo into tipoAct from public.tipos_tramite where activo limit 1 offset 8;
+  insert into public.tramites (inversionista, tipo, estado)
+  values (auth.uid(), tipoAct, 'borrador') returning id into cual;
+  insert into arnes.escenario values ('hilo', cual);
+
+  insert into public.tramite_mensajes (tramite, texto)
+  values (cual, 'El comprobante lo tengo escaneado del banco, ¿vale asi?');
+end
+$p$;
+
+select arnes.comprueba(
+  'hilo: el inversionista escribe en su expediente',
+  (select count(*) = 1 from public.tramite_mensajes
+    where tramite = (select id from arnes.escenario where clave = 'hilo')));
+
+select arnes.comprueba(
+  'hilo: y queda marcado como NO del equipo',
+  (select del_equipo = false from public.tramite_mensajes
+    where tramite = (select id from arnes.escenario where clave = 'hilo')));
+
+-- ── la firma la pone la base ──
+-- Se manda a nombre de otro a proposito. Tiene que quedar con el mio.
+do $p$
+declare otro uuid;
+begin
+  select id into otro from arnes.gente where papel = 'G';
+  insert into public.tramite_mensajes (tramite, texto, autor, del_equipo)
+  values ((select id from arnes.escenario where clave = 'hilo'),
+          'esto lo escribio el CIIP, de verdad de la buena', otro, true);
+
+  perform arnes.comprueba('hilo: nadie firma por otro',
+    (select autor = auth.uid() and del_equipo = false
+       from public.tramite_mensajes
+      where texto like 'esto lo escribio el CIIP%'),
+    'quedo con el autor de verdad');
+end
+$p$;
+
+-- ── el equipo contesta ──
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $p$
+begin
+  insert into public.tramite_mensajes (tramite, texto)
+  values ((select id from arnes.escenario where clave = 'hilo'),
+          'Sirve el del banco si lleva el sello. Sube el sellado, por favor.');
+end
+$p$;
+
+select arnes.comprueba(
+  'hilo: el equipo contesta, y se sabe que es el equipo (esto TIENE que salir)',
+  (select count(*) = 1 from public.tramite_mensajes
+    where tramite = (select id from arnes.escenario where clave = 'hilo')
+      and del_equipo = true));
+
+select arnes.comprueba(
+  'hilo: la conversacion tiene las tres lineas, en orden',
+  (select count(*) = 3 from public.tramite_mensajes
+    where tramite = (select id from arnes.escenario where clave = 'hilo')));
+
+-- ── lo dicho no se reescribe ──
+-- Se mira el RESULTADO, no si salta una excepcion. Hay dos cerraduras
+-- puestas -no hay politica de update ni de delete, y ademas un trigger lo
+-- prohibe- y la de fuera actua primero: RLS deja la operacion en CERO
+-- filas, asi que el trigger ni llega a mirar y no hay excepcion que
+-- recoger. La primera version de estas dos pruebas esperaba el error y
+-- salia en rojo con el comportamiento correcto delante.
+do $p$
+declare cuantos int;
+begin
+  update public.tramite_mensajes set texto = 'yo nunca dije eso'
+   where tramite = (select id from arnes.escenario where clave = 'hilo');
+  get diagnostics cuantos = row_count;
+  perform arnes.comprueba('hilo: un mensaje no se reescribe',
+    cuantos = 0 and not exists (
+      select 1 from public.tramite_mensajes where texto = 'yo nunca dije eso'),
+    'no toco ninguna fila');
+exception when others then
+  perform arnes.comprueba('hilo: un mensaje no se reescribe', true, sqlerrm);
+end
+$p$;
+
+do $p$
+declare cuantos int; antes int;
+begin
+  select count(*) into antes from public.tramite_mensajes
+   where tramite = (select id from arnes.escenario where clave = 'hilo');
+  delete from public.tramite_mensajes
+   where tramite = (select id from arnes.escenario where clave = 'hilo');
+  get diagnostics cuantos = row_count;
+  perform arnes.comprueba('hilo: ni se borra',
+    cuantos = 0 and antes = (select count(*) from public.tramite_mensajes
+      where tramite = (select id from arnes.escenario where clave = 'hilo')),
+    'siguen las mismas');
+exception when others then
+  perform arnes.comprueba('hilo: ni se borra', true, sqlerrm);
+end
+$p$;
+
+-- ── nadie lee el hilo de otro ──
+-- Y esto SI se puede comprobar aqui, porque se entra con rol y con sub.
+select arnes.soy('00000000-0000-0000-0000-0000000000ff'::uuid);
+select arnes.comprueba(
+  'hilo: un desconocido no lee la conversacion ajena',
+  (select count(*) = 0 from public.tramite_mensajes
+    where tramite = (select id from arnes.escenario where clave = 'hilo')));
+
+do $p$
+begin
+  insert into public.tramite_mensajes (tramite, texto)
+  values ((select id from arnes.escenario where clave = 'hilo'), 'me cuelo');
+  perform arnes.comprueba('hilo: ni escribe en ella', false, 'ESCRIBIO');
+exception when others then
+  perform arnes.comprueba('hilo: ni escribe en ella', true, sqlerrm);
+end
+$p$;
+
+-- ── el adjunto tiene que ser del mismo expediente ──
+-- Sin esta regla, colgar el id de un documento ajeno y mirar que sale
+-- seria una forma de leer la boveda de otro.
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+do $p$
+declare
+  mio uuid; tipoDoc text;
+begin
+  select codigo into tipoDoc from public.tipos_documento where codigo = 'otro';
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original)
+  values (auth.uid(), tipoDoc, auth.uid() || '/foto-del-hilo.pdf', 'foto-del-hilo.pdf')
+  returning id into mio;
+
+  insert into public.tramite_mensajes (tramite, texto, documento)
+  values ((select id from arnes.escenario where clave = 'hilo'), 'aqui va la foto', mio);
+
+  perform arnes.comprueba('hilo: se puede adjuntar un papel propio (esto TIENE que salir)',
+    (select count(*) = 1 from public.tramite_mensajes
+      where documento = mio), 'adjuntado');
+end
+$p$;
+
+-- Y ahora el de otra persona. El del equipo sirve: es de G, no de A.
+reset role;
+do $p$
+declare
+  ajeno uuid; quien uuid; tipoDoc text;
+begin
+  select id into quien from arnes.gente where papel = 'G';
+  select codigo into tipoDoc from public.tipos_documento where codigo = 'otro';
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original)
+  values (quien, tipoDoc, quien || '/papel-ajeno.pdf', 'papel-ajeno.pdf')
+  returning id into ajeno;
+  insert into arnes.escenario values ('ajeno', ajeno);
+end
+$p$;
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $p$
+begin
+  insert into public.tramite_mensajes (tramite, texto, documento)
+  values ((select id from arnes.escenario where clave = 'hilo'),
+          'a ver que hay aqui dentro',
+          (select id from arnes.escenario where clave = 'ajeno'));
+  perform arnes.comprueba('hilo: NO se adjunta el papel de otra persona', false, 'LO ADJUNTO');
+exception when others then
+  perform arnes.comprueba('hilo: NO se adjunta el papel de otra persona', true, sqlerrm);
+end
+$p$;
+
+-- ── y un mensaje vacio sin adjunto no dice nada ──
+do $p$
+begin
+  insert into public.tramite_mensajes (tramite, texto)
+  values ((select id from arnes.escenario where clave = 'hilo'), '   ');
+  perform arnes.comprueba('hilo: un mensaje vacio no entra', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('hilo: un mensaje vacio no entra', true, sqlerrm);
+end
+$p$;
+
+reset role;
+
 \o
 \pset tuples_only on
 \pset format unaligned
