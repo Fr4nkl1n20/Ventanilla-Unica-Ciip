@@ -84,12 +84,12 @@
   /* El catálogo, con los tres tipos que usan las pruebas. ref_panel es lo
      que ata cada tipo a su tarjeta del panel (data-tr). */
   var TIPOS = [
-    {codigo:'rif_personal', ref_panel:'c3', ente:'SENIAT', activo:true,
+    {codigo:'rif_personal', ref_panel:'c3', ente:'SENIAT', activo:true, emite:'rif_personal',
      nombre:'RIF personal', fase:1,
      activo_por:null, activo_en: haceHoras(30)},
-    {codigo:'constitucion', ref_panel:'c5', ente:'SAREN',  activo:true,
+    {codigo:'constitucion', ref_panel:'c5', ente:'SAREN',  activo:true, emite:'acta_constitutiva',
      nombre:'Constitución de empresa', fase:2},
-    {codigo:'rif_empresa',  ref_panel:'c6', ente:'SENIAT', activo:true,
+    {codigo:'rif_empresa',  ref_panel:'c6', ente:'SENIAT', activo:true, emite:'rif_empresa',
      nombre:'RIF de la empresa', fase:2},
     {codigo:'rnc',          ref_panel:'c13', ente:'RNC',   activo:true,
      nombre:'Registro Nacional de Contratistas', fase:3},
@@ -108,7 +108,7 @@
     /* La visa, que es la del tramite ya resuelto. Sin su tipo aqui, el
        panel no sabe a que tarjeta pertenece y la deja en "por iniciar"
        aunque el tramite este resuelto. */
-    {codigo:'visa_inversionista', ref_panel:'c1', ente:'SAIME', activo:true,
+    {codigo:'visa_inversionista', ref_panel:'c1', ente:'SAIME', activo:true, emite:'visa',
      nombre:'Visa de inversionista', fase:1},
     /* La visa de dependientes pregunta pasaporte, pais emisor y fecha de
        nacimiento: las tres que la de inversionista ya contesto. Es donde se

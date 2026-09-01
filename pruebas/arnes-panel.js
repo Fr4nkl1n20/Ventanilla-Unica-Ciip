@@ -524,6 +524,38 @@
            pend + ' por iniciar de 31', '31');
       }
 
+      /* ── la cadena entre trámites ──
+         No está escrita en ninguna lista: se deduce cruzando los recaudos
+         que pide cada trámite con el papel que emite cada otro. Si mañana
+         se le quita un recaudo al c5, la cadena se recoloca sola y estas
+         dos pruebas lo dirán.
+
+         Las dos van en 'vacio' porque es el único expediente cuya bóveda
+         no trae el RIF personal, y sin esa falta no hay nada que esperar. */
+      if (CASO === 'vacio'){
+        /* El c5 pide el RIF personal, ese papel no está aquí, y lo emite
+           el c3. La tarjeta lo dice con su nombre, en vez del «Estimado:
+           2–3 semanas» que llevaba escrito a mano. */
+        ok('cadena: sin el papel, la tarjeta dice a quién espera',
+           /RIF personal|RIF personale|RIF pessoal|个人|Личный/.test(reloj('c5')),
+           reloj('c5'), 'que espera al RIF personal');
+
+        /* Y ésta es la que separa "encadenar por el PAPEL" de "encadenar
+           por el TRÁMITE".
+
+           El c6 pide dos papeles que alguien emite: el acta —del c5— y el
+           RIF personal —del c3—. El acta YA está en esta bóveda; el RIF
+           personal no. Así que tiene que esperar al c3 y NO al c5, aunque
+           el acta aparezca antes en su lista de recaudos.
+
+           Si se encadenara por el trámite anterior, o si se olvidara mirar
+           lo que ya tienes, diría «Constitución» y esto se pondría rojo. */
+        ok('cadena: espera al papel que falta, no al primero de la lista',
+           /RIF personal|RIF personale|RIF pessoal|个人|Личный/.test(reloj('c6')) &&
+           !/Constituc|Costituz|Constitui|公司注册|Учрежд/.test(reloj('c6')),
+           reloj('c6'), 'espera al RIF personal, no a la constitución');
+      }
+
       /* El banco de activos no es una solicitud —por eso tiene vista
          propia— y su distintivo no puede pasar a "por iniciar". */
       igual('estados: el banco de activos sigue diciendo Disponible', chip('c15'), 'Disponible');

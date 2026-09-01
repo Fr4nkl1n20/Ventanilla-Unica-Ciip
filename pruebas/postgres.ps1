@@ -119,7 +119,8 @@ try {
     'supabase-cola.sql',             # 16  necesita tramites y es_gestor()
     'supabase-avisos.sql',           # 17  cuelga del historial de tramites
     'supabase-aranceles.sql',        # 18  envuelve el encolado del 16
-    'supabase-huellas.sql'           # 19  solo necesita documentos
+    'supabase-huellas.sql',          # 19  solo necesita documentos
+    'supabase-encadenado.sql'        # 20  solo necesita el catalogo
   )
   $n = 0
   foreach ($f in $once) {
@@ -131,7 +132,7 @@ try {
     Write-Output ('  ' + $n.ToString().PadLeft(2) + ' - ' + $f)
   }
   Write-Output ''
-  Write-Output '  Los diecinueve entraron, en el orden del README.'
+  Write-Output '  Los veinte entraron, en el orden del README.'
   Write-Output ''
 
   Correr (Join-Path $PSScriptRoot 'postgres-pruebas.sql')
