@@ -58,14 +58,14 @@ autenticación y los datos los pone Supabase.
 | `PROBAR-AVISOS.bat` | Lanzar las 38 pruebas de los avisos: que cada quien los reciba en su idioma y que ninguno se pierda |
 | `PROBAR-BARRENDERO.bat` | Lanzar las 20 pruebas del barrendero, que se lleva del cubo los archivos que se quedaron sin ficha. Sobre todo la de no dar por borrado lo que el cubo no acepto |
 | `PROBAR-PAGOS.bat` | Lanzar las 32 pruebas del cobrador, sobre todo las de no cobrar dos veces |
-| `PROBAR-SQL.bat` | Ejecutar los veintitrés archivos SQL en un Postgres de esta máquina y comprobar que los triggers saltan. No pide claves ni toca ningún servidor tuyo |
+| `PROBAR-SQL.bat` | Ejecutar los veinticuatro archivos SQL en un Postgres de esta máquina y comprobar que los triggers saltan. No pide claves ni toca ningún servidor tuyo |
 | `PROBAR-CERRADURAS.bat` | Comprobar las políticas RLS **entrando de verdad** en el Supabase de pruebas. Se niega a correr contra el real |
 
 ## Puesta en marcha
 
 1. Crear un proyecto en [supabase.com](https://supabase.com)
 2. *SQL Editor* → pegar cada archivo SQL y pulsar **Run**, **en este orden**.
-   Son veintitrés, no cuatro: cada uno que falte apaga su pantalla del panel.
+   Son veinticuatro, no cuatro: cada uno que falte apaga su pantalla del panel.
    Este orden no está deducido de las cabeceras: lo ejecuta `PROBAR-SQL.bat`
    en un PostgreSQL de usar y tirar, y si uno usara algo que otro define
    después, esa tanda se caería diciendo cuál

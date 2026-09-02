@@ -1,7 +1,7 @@
 -- ====================================================================
---  LOS 23 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat
+--  LOS 24 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat
 -- ====================================================================
---  Esto es la union literal de los 23 supabase-*.sql, sin cambiar una
+--  Esto es la union literal de los 24 supabase-*.sql, sin cambiar una
 --  coma, pegados en el orden que ejecuta el arnes contra un Postgres de
 --  usar y tirar. Ese orden no esta deducido leyendo cabeceras: si uno
 --  usara algo que otro define despues, la tanda se caeria diciendo cual.
@@ -11,13 +11,13 @@
 --  policy if exists-, asi que volver a correrlo no rompe nada y es la
 --  forma de poner al dia un proyecto que ya tenia la mitad.
 --
---  Generado el 2026-09-01. Si cambia un archivo, se vuelve a generar:
+--  Generado el 2026-09-02. Si cambia un archivo, se vuelve a generar:
 --  no se edita a mano, que entonces son 24 sitios donde mirar.
 -- ====================================================================
 
 
 -- ====================================================================
---  01 / 23   supabase-setup.sql
+--  01 / 24   supabase-setup.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -192,7 +192,7 @@ where p.id is null;
 --   from pg_class where relname = 'perfiles';
 
 -- ====================================================================
---  02 / 23   supabase-tramites.sql
+--  02 / 24   supabase-tramites.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1237,7 +1237,7 @@ create policy "recaudos: borrar de su carpeta" on storage.objects
 --    desde el SQL Editor no vale: ahí auth.uid() es null y RLS no aplica.
 
 -- ====================================================================
---  03 / 23   supabase-admin.sql
+--  03 / 24   supabase-admin.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1387,7 +1387,7 @@ create policy "perfiles: el admin reparte roles" on public.perfiles
 --   select relrowsecurity from pg_class where relname = 'perfiles';
 
 -- ====================================================================
---  04 / 23   supabase-citas.sql
+--  04 / 24   supabase-citas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1552,7 +1552,7 @@ create trigger citas_marca_tiempo
 -- (No se crea ninguna política de DELETE, así que RLS lo impide.)
 
 -- ====================================================================
---  05 / 23   supabase-empresa.sql
+--  05 / 24   supabase-empresa.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1653,7 +1653,7 @@ create trigger empresas_marca_tiempo
 --   select relname, relrowsecurity from pg_class where relname = 'empresas';
 
 -- ====================================================================
---  06 / 23   supabase-activos.sql
+--  06 / 24   supabase-activos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1787,7 +1787,7 @@ create trigger activos_marca_tiempo
 -- asi que no hay nada que añadir aqui.
 
 -- ====================================================================
---  07 / 23   supabase-identidad.sql
+--  07 / 24   supabase-identidad.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1946,7 +1946,7 @@ create policy "identidad: solo el equipo la firma"
 --  intenta con una sesión de gestor, que es como llegaría de fuera.
 
 -- ====================================================================
---  08 / 23   supabase-emision.sql
+--  08 / 24   supabase-emision.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2047,7 +2047,7 @@ create policy "recaudos: el equipo deja lo emitido" on storage.objects
 --   select * from public.tipos_documento where codigo = 'resolucion';
 
 -- ====================================================================
---  09 / 23   supabase-presencia.sql
+--  09 / 24   supabase-presencia.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2127,7 +2127,7 @@ grant execute on function public.tocar_visto() to authenticated;
 --   select nombre_completo, visto_en from public.perfiles order by visto_en desc nulls last;
 
 -- ====================================================================
---  10 / 23   supabase-sectores.sql
+--  10 / 24   supabase-sectores.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2295,7 +2295,7 @@ begin
 end $$;
 
 -- ====================================================================
---  11 / 23   supabase-catalogos.sql
+--  11 / 24   supabase-catalogos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2521,7 +2521,7 @@ from   pg_trigger
 where  not tgisinternal and tgrelid = 'public.tipos_tramite'::regclass;
 
 -- ====================================================================
---  12 / 23   supabase-bitacora.sql
+--  12 / 24   supabase-bitacora.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2777,7 +2777,7 @@ order  by cuando desc
 limit  20;
 
 -- ====================================================================
---  13 / 23   supabase-bloqueo.sql
+--  13 / 24   supabase-bloqueo.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2952,7 +2952,7 @@ where  p.bloqueado
 order  by p.bloqueado_en desc;
 
 -- ====================================================================
---  14 / 23   supabase-acompanamiento.sql
+--  14 / 24   supabase-acompanamiento.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3130,7 +3130,7 @@ where  schemaname = 'public' and tablename = 'acompanamiento';
 -- insert into public.acompanamiento (id) values (true);
 
 -- ====================================================================
---  15 / 23   supabase-gestor.sql
+--  15 / 24   supabase-gestor.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3241,7 +3241,7 @@ create trigger eventos_proteger
   for each row execute function public.eventos_solo_la_nota();
 
 -- ====================================================================
---  16 / 23   supabase-cola.sql
+--  16 / 24   supabase-cola.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3476,7 +3476,7 @@ create policy "trabajos: el equipo los ve" on public.trabajos
 --    no tenía conector o el trigger no está.
 
 -- ====================================================================
---  17 / 23   supabase-avisos.sql
+--  17 / 24   supabase-avisos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3778,7 +3778,7 @@ create policy "avisos: el equipo los ve" on public.avisos
 --    devolver 0 la segunda: no se avisa dos veces del mismo vencimiento.
 
 -- ====================================================================
---  18 / 23   supabase-aranceles.sql
+--  18 / 24   supabase-aranceles.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4106,7 +4106,7 @@ create policy "ordenes: la mia" on public.ordenes_pago
 --    en public.trabajos hasta que la orden quede 'pagada'.
 
 -- ====================================================================
---  19 / 23   supabase-huellas.sql
+--  19 / 24   supabase-huellas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4293,7 +4293,7 @@ create trigger documentos_huella_fija
 --   select count(*) from public.verificar_documento(repeat('a', 64));
 
 -- ====================================================================
---  20 / 23   supabase-encadenado.sql
+--  20 / 24   supabase-encadenado.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4411,7 +4411,7 @@ update public.tipos_tramite set emite = 'conformidad_uso'    where codigo = 'con
 --    en la tarjeta que diga «esperando a».
 
 -- ====================================================================
---  21 / 23   supabase-plazos.sql
+--  21 / 24   supabase-plazos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4534,7 +4534,7 @@ update public.tipos_tramite set plazo_dias = 120 where codigo = 'registro_invers
 --    enfrente de lo que uno no ha hecho.
 
 -- ====================================================================
---  22 / 23   supabase-una-viva.sql
+--  22 / 24   supabase-una-viva.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4641,7 +4641,7 @@ comment on index public.tramites_una_viva is
 --    where tipo = 'solvencias' group by estado;
 
 -- ====================================================================
---  23 / 23   supabase-hilo.sql
+--  23 / 24   supabase-hilo.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4900,4 +4900,250 @@ create policy "documentos: el equipo adjunta en un hilo" on public.documentos
 --
 -- 4) Y que nadie ve el hilo de otro. Eso no se comprueba desde el SQL
 --    Editor —ahí auth.uid() es null y RLS no aplica—: hay que entrar con
+--    dos cuentas, y es lo que hace PROBAR-CERRADURAS.bat.
+
+-- ====================================================================
+--  24 / 24   supabase-hilo-citas.sql
+-- ====================================================================
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  EL HILO DE UNA CITA
+--  Va DESPUÉS de supabase-citas.sql y de supabase-hilo.sql.
+-- ═══════════════════════════════════════════════════════════════════════
+--  POR QUÉ EXISTE
+--  ─────────────────────────────────────────────────────────────────────
+--  Quien acaba de entrar y no ha empezado ningún trámite no tiene dónde
+--  preguntar. El hilo del expediente cuelga de una solicitud, y él no
+--  tiene ninguna. Así que sus primeras preguntas —«¿por dónde empiezo?»,
+--  «¿mi caso califica?»— salen por correo o por teléfono, y lo que se
+--  responda ahí no queda en ninguna parte.
+--
+--  Es justo el momento en que una ventanilla única se gana o se pierde.
+--
+--  POR QUÉ AQUÍ Y NO EN UN CHAT SUELTO
+--  ─────────────────────────────────────────────────────────────────────
+--  Se pensó en un canal general, sin colgar de nada, y es peor por tres
+--  razones:
+--
+--   1. En cuanto hay dos sitios donde escribir, la gente escribe en el que
+--      tiene delante. Las preguntas de un trámite acabarían en el general
+--      y el hilo del expediente perdería lo único que lo hace valioso: que
+--      cada línea sabe de qué solicitud habla.
+--   2. Una bandeja sin fondo no tiene cola, ni dueño, ni forma de saber
+--      qué está sin contestar. El hilo del expediente funciona porque
+--      cuelga de trabajo en marcha que alguien ya tiene abierto.
+--   3. Con adjuntos, lo primero que llega en un primer contacto son
+--      pasaportes. Sin nada detrás que los sostenga, son papeles sueltos.
+--
+--  Y no hacía falta inventar nada, porque el sitio ya estaba previsto.
+--  supabase-citas.sql lo dice de su propia columna:
+--
+--    «tipo_tramite — Null = una consulta general, que es un caso legítimo
+--     y no un dato que falte: no toda cita es de un trámite.»
+--
+--  O sea: una cita general YA ES la conversación general. Lo que le
+--  faltaba era la vuelta. La cita tiene una nota de ida y ninguna de
+--  regreso, así que la conversación se moría ahí y seguía por fuera.
+--
+--  Esto es esa vuelta. Y cada mensaje sigue colgando de algo que tiene
+--  ESTADO y DUEÑO —solicitada, confirmada, hecha, cancelada—, que es lo
+--  que convierte «un mensaje» en «algo que alguien tiene que atender».
+--
+--  LO QUE SE REPITE DE supabase-hilo.sql, Y POR QUÉ SE REPITE
+--  ─────────────────────────────────────────────────────────────────────
+--  La forma es la misma: la firma la pone la base, el adjunto tiene que
+--  ser del dueño, y lo dicho no se reescribe. Son dos tablas y no una
+--  porque las llaves foráneas apuntan a sitios distintos —una a tramites
+--  y otra a citas— y meterlas juntas obligaría a una columna nula en cada
+--  fila y a un check que vigile que exactamente una de las dos está
+--  puesta. Más código para ahorrar una tabla.
+--
+--  Lo que NO se repite es la política que deja al equipo dejar un
+--  documento en la bóveda de otro: la de supabase-hilo.sql no menciona
+--  trámites, así que vale igual aquí.
+-- ═══════════════════════════════════════════════════════════════════════
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 0. QUE ESTÉ LO QUE HACE FALTA
+-- ───────────────────────────────────────────────────────────────────────
+do $$
+begin
+  if to_regclass('public.citas') is null then
+    raise exception using
+      message = 'Falta la tabla public.citas',
+      hint    = 'Ejecuta antes supabase-citas.sql en este mismo proyecto.';
+  end if;
+end $$;
+
+
+create table if not exists public.cita_mensajes (
+  id   uuid primary key default gen_random_uuid(),
+  cita uuid not null references public.citas(id) on delete cascade,
+
+  -- Lo pone el trigger con auth.uid(). Sobrevive a la cuenta borrada
+  -- -on delete set null- porque un hilo con un hueco donde había una
+  -- frase se lee peor que uno con una frase sin nombre.
+  autor uuid references auth.users(id) on delete set null,
+
+  -- Copiado al escribir, no releído del perfil. Quien escribió era del
+  -- equipo ESE día; que mañana deje de serlo no cambia lo que dijo.
+  del_equipo boolean not null default false,
+
+  texto     text not null default '',
+  documento uuid references public.documentos(id) on delete set null,
+
+  creado_en timestamptz not null default now(),
+
+  constraint cita_mensaje_dice_algo
+    check (length(trim(texto)) > 0 or documento is not null),
+  constraint cita_mensaje_cabe check (length(texto) <= 4000)
+);
+
+comment on table  public.cita_mensajes            is 'La conversación sobre una cita. Con tipo_tramite null, es la consulta general de quien aún no ha empezado nada';
+comment on column public.cita_mensajes.del_equipo is 'Si lo escribió el CIIP. Copiado al escribir: el rol de mañana no cambia lo de ayer';
+
+create index if not exists cita_mensajes_por_cita
+  on public.cita_mensajes (cita, creado_en);
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 1. LA FIRMA LA PONE LA BASE
+-- ───────────────────────────────────────────────────────────────────────
+-- Igual que en el hilo del expediente y por lo mismo: un mensaje que se
+-- puede atribuir a otro es peor que no tener mensajes, porque parece
+-- fiable. Se ignora lo que venga y se pone lo que es.
+create or replace function public.cita_mensaje_lo_firma_la_base()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $hilo$
+begin
+  new.autor      := auth.uid();
+  new.del_equipo := public.es_gestor();
+  new.creado_en  := now();
+  return new;
+end
+$hilo$;
+
+drop trigger if exists cita_mensajes_firma on public.cita_mensajes;
+create trigger cita_mensajes_firma
+  before insert on public.cita_mensajes
+  for each row execute function public.cita_mensaje_lo_firma_la_base();
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 2. NI EL ADJUNTO SE PUEDE FALSEAR
+-- ───────────────────────────────────────────────────────────────────────
+-- Sin esto se podría colgar de un mensaje el documento de OTRA persona, y
+-- como el hilo enseña sus adjuntos, eso sería una forma de leer la bóveda
+-- ajena: adjunta un id cualquiera y mira qué sale.
+create or replace function public.adjunto_de_la_misma_cita()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $hilo$
+declare
+  duenio  uuid;
+  deQuien uuid;
+begin
+  if new.documento is null then
+    return new;
+  end if;
+
+  select inversionista into duenio  from public.citas      where id = new.cita;
+  select inversionista into deQuien from public.documentos where id = new.documento;
+
+  if deQuien is null or duenio is null or deQuien <> duenio then
+    raise exception 'Ese documento no es de esta cita.'
+      using errcode = 'check_violation';
+  end if;
+
+  return new;
+end
+$hilo$;
+
+drop trigger if exists cita_mensajes_adjunto on public.cita_mensajes;
+create trigger cita_mensajes_adjunto
+  before insert on public.cita_mensajes
+  for each row execute function public.adjunto_de_la_misma_cita();
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 3. LO DICHO NO SE REESCRIBE
+-- ───────────────────────────────────────────────────────────────────────
+-- No hay política de UPDATE ni de DELETE, y esto lo cierra además por si
+-- mañana alguien añade una. Con la puerta de servicio abierta -auth.uid()
+-- nulo- para poder quitar a mano algo que no debería estar ahí.
+create or replace function public.cita_mensaje_no_se_toca()
+returns trigger
+language plpgsql
+as $hilo$
+begin
+  if auth.uid() is null then
+    return coalesce(new, old);
+  end if;
+  raise exception 'Un mensaje no se cambia ni se borra. Escribe otro.'
+    using errcode = 'check_violation';
+end
+$hilo$;
+
+drop trigger if exists cita_mensajes_inmutable on public.cita_mensajes;
+create trigger cita_mensajes_inmutable
+  before update or delete on public.cita_mensajes
+  for each row execute function public.cita_mensaje_no_se_toca();
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 4. QUIÉN LEE Y QUIÉN ESCRIBE
+-- ───────────────────────────────────────────────────────────────────────
+alter table public.cita_mensajes enable row level security;
+
+drop policy if exists "cita_mensajes: los de mi cita" on public.cita_mensajes;
+create policy "cita_mensajes: los de mi cita" on public.cita_mensajes
+  for select using (
+    public.es_gestor() or exists (
+      select 1 from public.citas c
+      where c.id = cita and c.inversionista = auth.uid()
+    )
+  );
+
+-- Escribir: los dos, en los dos sentidos. Eso es todo el punto.
+--
+-- Y en CUALQUIER estado, cancelada incluida. Se pensó en cerrarlo al
+-- cancelar y es peor: «¿por qué se canceló?» y «¿la pedimos para otro
+-- día?» son exactamente las dos preguntas que llegan justo después, y
+-- mandarlas por otro canal es lo que esto viene a quitar. Lo que ata el
+-- hilo no es el estado, es la cita.
+drop policy if exists "cita_mensajes: escribir en mi cita" on public.cita_mensajes;
+create policy "cita_mensajes: escribir en mi cita" on public.cita_mensajes
+  for insert with check (
+    public.es_gestor() or exists (
+      select 1 from public.citas c
+      where c.id = cita and c.inversionista = auth.uid()
+    )
+  );
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- COMPROBACIONES
+-- ───────────────────────────────────────────────────────────────────────
+-- 1) El hilo de una cita, en orden y diciendo quién habla:
+--
+--   select creado_en, del_equipo, texto, documento
+--   from public.cita_mensajes where cita = '…' order by creado_en;
+--
+-- 2) Las consultas GENERALES, que son la razón de este archivo: citas sin
+--    trámite detrás, con cuántas veces se ha hablado en cada una.
+--
+--   select c.id, c.estado, c.creado_en,
+--          (select count(*) from public.cita_mensajes m where m.cita = c.id) as mensajes
+--   from public.citas c
+--   where c.tipo_tramite is null
+--   order by c.creado_en desc;
+--
+-- 3) Y que nadie ve el hilo de otro. Eso no se comprueba desde el SQL
+--    Editor -ahí auth.uid() es null y RLS no aplica-: hay que entrar con
 --    dos cuentas, y es lo que hace PROBAR-CERRADURAS.bat.

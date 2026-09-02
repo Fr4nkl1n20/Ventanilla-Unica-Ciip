@@ -1522,6 +1522,195 @@ select arnes.comprueba(
   has_function_privilege('anon', 'public.es_gestor()', 'execute'),
   'anon NO puede: las politicas van a reventar en vez de contestar vacio');
 
+
+-- ══ 13 · EL HILO DE UNA CITA ═════════════════════════════════════════
+-- La conversacion de quien todavia no ha empezado ningun tramite. Cuelga
+-- de una cita, y una cita con tipo_tramite null es -segun el propio
+-- supabase-citas.sql- "una consulta general".
+--
+-- Se prueba lo mismo que en el hilo del expediente, porque los agujeros
+-- son los mismos: que nadie firme por otro, que no se cuele el papel de
+-- un tercero, que lo dicho no se reescriba y que no se lea lo ajeno.
+
+do $p$
+declare
+  quienA uuid;
+  laCita uuid;
+begin
+  select id into quienA from arnes.gente where papel = 'A';
+  insert into public.citas (inversionista, tipo_tramite, modo, desde, hasta, nota)
+  values (quienA, null, 'video', current_date, current_date + 7,
+          'Todavia no se por donde empezar')
+  returning id into laCita;
+  insert into arnes.escenario values ('cita_general', laCita);
+end
+$p$;
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+do $p$
+declare laCita uuid;
+begin
+  select id into laCita from arnes.escenario where clave = 'cita_general';
+  insert into public.cita_mensajes (cita, texto)
+  values (laCita, 'Hola, quiero invertir en agroindustria. Por donde empiezo?');
+  perform arnes.comprueba('hilo cita: se escribe en la propia cita', true, '');
+exception when others then
+  perform arnes.comprueba('hilo cita: se escribe en la propia cita', false, sqlerrm);
+end
+$p$;
+
+select arnes.comprueba(
+  'hilo cita: y queda marcado como NO del equipo',
+  (select not del_equipo from public.cita_mensajes
+    where cita = (select id from arnes.escenario where clave = 'cita_general')
+    order by creado_en limit 1));
+
+-- Nadie firma por otro: se manda con el autor de B y tiene que quedar el
+-- de A, que es quien escribe.
+do $p$
+declare laCita uuid; otro uuid;
+begin
+  select id into laCita from arnes.escenario where clave = 'cita_general';
+  select id into otro from arnes.gente where papel = 'B';
+  insert into public.cita_mensajes (cita, texto, autor, del_equipo)
+  values (laCita, 'firmado por otro', otro, true);
+  perform arnes.comprueba(
+    'hilo cita: nadie firma por otro',
+    (select autor = auth.uid() and not del_equipo from public.cita_mensajes
+      where cita = laCita and texto = 'firmado por otro'),
+    'se guardo con el autor ajeno');
+exception when others then
+  perform arnes.comprueba('hilo cita: nadie firma por otro', false, sqlerrm);
+end
+$p$;
+
+-- El papel de OTRA persona no se adjunta. Sin esto, el hilo seria una
+-- forma de leer la boveda ajena: adjunta un id cualquiera y mira que sale.
+--
+-- El papel ajeno se crea AQUI, y no se busca uno que hubiera. Se buscaba
+-- entre los de B, y B se borra en la seccion 3: no tenia ninguno, la
+-- prueba se iba por el atajo del 'no habia ninguno' y salia verde. Se vio
+-- quitando la comprobacion del trigger a proposito y comprobando que la
+-- tanda NO se ponia roja, que es lo unico que distingue una prueba de un
+-- adorno. Se usa la cuenta del equipo, que sigue viva hasta el final.
+reset role;
+do $p$
+declare deG uuid; tipoDoc text; laCita uuid;
+begin
+  select id into deG from arnes.gente where papel = 'G';
+  select codigo into tipoDoc from public.tipos_documento limit 1;
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original, estado)
+  values (deG, tipoDoc, deG || '/papel-del-equipo.pdf', 'papel-del-equipo.pdf', 'cargado')
+  returning id into laCita;
+  insert into arnes.escenario values ('papel_ajeno', laCita);
+end
+$p$;
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+do $p$
+declare laCita uuid; ajeno uuid;
+begin
+  select id into laCita from arnes.escenario where clave = 'cita_general';
+  select id into ajeno  from arnes.escenario where clave = 'papel_ajeno';
+  insert into public.cita_mensajes (cita, texto, documento)
+  values (laCita, 'mira este', ajeno);
+  perform arnes.comprueba('hilo cita: NO se adjunta el papel de otra persona', false, 'LO ADJUNTO');
+exception when others then
+  perform arnes.comprueba('hilo cita: NO se adjunta el papel de otra persona', true, sqlerrm);
+end
+$p$;
+
+-- Un mensaje vacio y sin adjunto no dice nada y ensucia el hilo.
+do $p$
+declare laCita uuid;
+begin
+  select id into laCita from arnes.escenario where clave = 'cita_general';
+  insert into public.cita_mensajes (cita, texto) values (laCita, '   ');
+  perform arnes.comprueba('hilo cita: un mensaje vacio no entra', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('hilo cita: un mensaje vacio no entra', true, sqlerrm);
+end
+$p$;
+
+-- Lo dicho no se reescribe ni se borra. Y esto NO se comprueba esperando
+-- una excepcion, aunque el trigger la lance: sobre cita_mensajes no hay
+-- politica de update ni de delete, asi que el RLS descarta las filas
+-- ANTES de que el trigger llegue a verlas. Postgres no da error -no ha
+-- pasado nada malo, simplemente no habia nada que tocar- y una prueba que
+-- esperase el error saldria roja con las dos cerraduras funcionando.
+-- Se mira el resultado: que siga diciendo lo que decia, y que siga estando.
+do $p$
+declare laCita uuid; cuantos int;
+begin
+  select id into laCita from arnes.escenario where clave = 'cita_general';
+  select count(*) into cuantos from public.cita_mensajes where cita = laCita;
+
+  begin
+    update public.cita_mensajes set texto = 'otra cosa' where cita = laCita;
+  exception when others then null;
+  end;
+  perform arnes.comprueba(
+    'hilo cita: un mensaje no se reescribe',
+    not exists (select 1 from public.cita_mensajes
+                 where cita = laCita and texto = 'otra cosa'),
+    'lo reescribio');
+
+  begin
+    delete from public.cita_mensajes where cita = laCita;
+  exception when others then null;
+  end;
+  perform arnes.comprueba(
+    'hilo cita: ni se borra',
+    (select count(*) from public.cita_mensajes where cita = laCita) = cuantos,
+    'se llevo ' || (cuantos - (select count(*) from public.cita_mensajes where cita = laCita))::text);
+end
+$p$;
+
+-- Y un desconocido no lee ni escribe en la cita de otro.
+select arnes.soy((select id from arnes.gente where papel = 'B'));
+
+select arnes.comprueba(
+  'hilo cita: un desconocido no lee la conversacion ajena',
+  (select count(*) = 0 from public.cita_mensajes
+    where cita = (select id from arnes.escenario where clave = 'cita_general')));
+
+do $p$
+declare laCita uuid;
+begin
+  select id into laCita from arnes.escenario where clave = 'cita_general';
+  insert into public.cita_mensajes (cita, texto) values (laCita, 'me cuelo');
+  perform arnes.comprueba('hilo cita: ni escribe en ella', false, 'ESCRIBIO');
+exception when others then
+  perform arnes.comprueba('hilo cita: ni escribe en ella', true, sqlerrm);
+end
+$p$;
+
+-- El equipo contesta, y se sabe que es el equipo. Es la vuelta que le
+-- faltaba a la cita: hasta ahora tenia una nota de ida y ninguna de
+-- regreso, asi que la conversacion seguia por fuera.
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+
+do $p$
+declare laCita uuid;
+begin
+  select id into laCita from arnes.escenario where clave = 'cita_general';
+  insert into public.cita_mensajes (cita, texto)
+  values (laCita, 'Bienvenido. Empieza por la visa de inversionista.');
+  perform arnes.comprueba(
+    'hilo cita: el equipo contesta, y consta que es el equipo (esto TIENE que salir)',
+    (select del_equipo from public.cita_mensajes
+      where cita = laCita and texto like 'Bienvenido%'),
+    'no quedo marcado como del equipo');
+exception when others then
+  perform arnes.comprueba('hilo cita: el equipo contesta, y consta que es el equipo (esto TIENE que salir)', false, sqlerrm);
+end
+$p$;
+
+reset role;
+
 reset role;
 
 \o
