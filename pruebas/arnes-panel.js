@@ -148,6 +148,7 @@
               antesAbre, empiezaSolicitud, antesMira, fecha3Mira, fecha3Cambia,
               fichaAbre, fichaMira, empiezaSolicitud, fichaTrasEmpezar,
               rncAbre, empiezaSolicitud, rncTrasAbrir,
+              sisrefAbre, empiezaSolicitud, sisrefTrasAbrir,
               solvenciasAbre, empiezaSolicitud, solvenciasTrasAbrir,
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
@@ -584,6 +585,251 @@
       /* El banco de activos no es una solicitud —por eso tiene vista
          propia— y su distintivo no puede pasar a "por iniciar". */
       igual('estados: el banco de activos sigue diciendo Disponible', chip('c15'), 'Disponible');
+
+      /* ── el nivel de cada tramite ──
+         Del informe del 2 de septiembre: «que a la vista el inversionista
+         no sienta que debe concretar todos los tramites». Treinta y tres
+         tarjetas iguales son un muro.
+
+         Esto faltaba: se hizo el distintivo y no se comprobo que llegara a
+         pintarse. El nivel sale del catalogo, asi que entre la columna de
+         la base y el marcado hay tres sitios donde puede perderse -el
+         select, el reparto de claves y el diccionario- y ninguno avisa.
+
+         Se miran los tres casos, y el tercero es el que importa tanto como
+         los otros dos: 'esencial' es el caso normal y NO lleva nada. Un
+         distintivo en todas las tarjetas no distingue nada. */
+      (function(){
+        function niv(ref){
+          var c = document.querySelector('.tcard[data-tr="' + ref + '"] .chip.niv');
+          return c ? c.textContent.trim() : '';
+        }
+        igual('nivel: el obligatorio lo dice',        niv('c3'),  'Obligatorio');
+        igual('nivel: el que depende del ramo tambien', niv('c13'), 'Según tu actividad');
+        igual('nivel: y el corriente no lleva nada',  niv('c6'),  '');
+
+        /* Y el obligatorio va con su color; el otro, no. Sin esto los tres
+           se verian igual y volveriamos al muro con mas letra. */
+        var oblig = document.querySelector('.tcard[data-tr="c3"] .chip.niv');
+        ok('nivel: el obligatorio se distingue del resto',
+           !!oblig && oblig.classList.contains('obliga'),
+           oblig ? oblig.className : 'no hay distintivo', 'chip niv obliga');
+      })();
+
+      /* ── cuántos obligatorios faltan ──
+         «Como saber cuales son los requisitos obligatorios?» (CIIP).
+
+         La cuenta de arriba —«3 de 11 listos»— mide la etapa entera, y en
+         la etapa entera hay opcionales y trámites que dependen del ramo.
+         No contesta lo único que hace falta saber para seguir. Este
+         renglón sí, y por eso tiene que decir dos números distintos de
+         los de arriba: si dijera los mismos, sobraría.
+
+         El nivel viene del catálogo, así que entre la columna de la base y
+         este texto hay tres sitios donde perderse. Se mira el TEXTO, no la
+         clase: el distintivo de al lado estuvo un rato saliendo vacío y
+         con su clase puesta, y en verde. */
+      (function(){
+        /* deEtapa y etapas() ya existen arriba: el renglon se lee con el
+           mismo ayudante que la cuenta de la etapa, para que los dos miren
+           por fuerza la misma etapa. */
+        function verde(i){
+          var e = etapas()[i];
+          var r = e && e.querySelector('.joblig');
+          return !!r && r.classList.contains('ok');
+        }
+
+        /* Los estados se ponen A MANO aqui, no se toman del expediente.
+           Escritos a ojo -"te faltan 1 de 3"- la misma prueba pedia 1, 2 o 3
+           segun por que expediente fuera la tanda, porque cada uno trae la
+           visa y el RIF en un punto distinto. Poniendolos aqui, los tres
+           casos se miden igual en todos. */
+        var obl = ['c1', 'c3', 'c17'].map(function(r){
+          var c = document.querySelector('.tcard[data-tr="' + r + '"]');
+          return {c: c, era: c && c.getAttribute('data-st')};
+        });
+        function pon(i, st){ obl[i].c.setAttribute('data-st', st); }
+
+        /* Los tres hechos: el renglon lo dice y se pone verde. Quitarlo al
+           terminar dejaria sin distinguir "no faltan" de "no hay", que en la
+           fase 04 son cosas distintas. */
+        pon(0, 'listo'); pon(1, 'listo'); pon(2, 'listo');
+        window.CIIP_REPINTA_ETAPAS();
+        igual('obligatorios: con los tres hechos lo dice', deEtapa(0, '.joblig'), 'Los 3 obligatorios, listos');
+        igual('obligatorios: y entonces va en verde', verde(0), true);
+
+        /* Uno sin hacer: cambia la cuenta y sale del verde. */
+        pon(2, 'pendiente');
+        window.CIIP_REPINTA_ETAPAS();
+        igual('obligatorios: con uno sin hacer, resta', deEtapa(0, '.joblig'), 'Te faltan 1 de 3 obligatorios');
+        igual('obligatorios: y mientras falten, no va en verde', verde(0), false);
+
+        /* Y no es la cuenta de la etapa con otras palabras: arriba dicen
+           once, aqui tres. Si coincidieran, este renglon no estaria mirando
+           el nivel sino repitiendo lo de arriba. */
+        ok('obligatorios: no es la misma cuenta de la etapa',
+           deEtapa(0, '.joblig').indexOf('11') === -1, deEtapa(0, '.joblig'), 'sin el 11 de la etapa');
+
+        /* Dos sin hacer, para que la resta se vea moverse: con un solo caso
+           un renglon que dijera siempre "1" pasaria igual. */
+        pon(1, 'pendiente');
+        window.CIIP_REPINTA_ETAPAS();
+        igual('obligatorios: y la resta se mueve', deEtapa(0, '.joblig'), 'Te faltan 2 de 3 obligatorios');
+
+        obl.forEach(function(o){ o.c.setAttribute('data-st', o.era); });
+        window.CIIP_REPINTA_ETAPAS();
+
+        /* Una etapa sin obligatorios no estrena un "te faltan 0 de 0": eso es
+           ruido con cara de aviso. deEtapa avisa con su propio texto cuando
+           el renglon no esta, que es justo lo que aqui se espera ver. */
+        igual('obligatorios: la fase sin ninguno no lleva renglón',
+          deEtapa(3, '.joblig'), '(no hay .joblig)');
+      })();
+
+      /* ── los opcionales, apartados ──
+         «Los que son opcionales quiero que los coloques en una lista aparte,
+         que cuando se dé clic salga la información pero que no estén siempre
+         a la vista.» (CIIP, 2 de septiembre de 2026)
+
+         Lo que hay que comprobar no es que se oculten -eso lo hace una
+         linea de CSS- sino que sigan estando: apartar y esconder se ven
+         igual en la primera pantalla y sólo se distinguen al buscarlos.
+         Por eso van las cuatro: que la caja empiece cerrada, que el rótulo
+         diga cuántos hay, que el clic los saque, y que la cuenta de la
+         etapa siga siendo la misma que antes de apartarlos. */
+      (function(){
+        var f1 = document.querySelector('[data-fase="1"]');
+        var caja = f1 && f1.querySelector('.opc-caja');
+        var btn  = caja && caja.querySelector('.opc-btn');
+        var rej  = caja && caja.querySelector('.opc-rejilla');
+        ok('opcionales: la fase 01 tiene su lista aparte', !!(caja && btn && rej),
+           caja ? 'caja incompleta' : 'no hay caja', 'caja, botón y rejilla');
+        if (!(caja && btn && rej)) return;
+
+        /* Cerrada al entrar, que es todo el encargo. */
+        igual('opcionales: empieza cerrada',        rej.hidden, true);
+        igual('opcionales: y el botón lo declara',  btn.getAttribute('aria-expanded'), 'false');
+        igual('opcionales: el rótulo dice cuántos', btn.textContent.trim(), 'Ver los 2 opcionales');
+
+        /* Dentro de la caja, y fuera de la rejilla principal: si sólo se
+           ocultaran con CSS seguirían colgando de #trs-1 y esta prueba
+           pasaría igual estando el encargo sin hacer. */
+        igual('opcionales: los dos están dentro de la caja',
+          rej.querySelectorAll('.tcard[data-tr]').length, 2);
+        igual('opcionales: y ya no cuelgan de la rejilla de la fase',
+          document.querySelectorAll('#trs-1 > .tcard[data-tr="c19"], #trs-1 > .tcard[data-tr="c20"]').length, 0);
+
+        /* Apartar NO es quitar. La etapa sigue diciendo once, no nueve:
+           el inversionista tiene once trámites en la fase 01, estén donde
+           estén en la pantalla. */
+        /* Sólo el total: cuántos lleva hechos cambia según por dónde vaya
+           la tanda, y ese no es el punto. El punto es el once. */
+        igual('opcionales: la etapa los sigue contando',
+          (deEtapa(0, '.jcount') || '').split(' de ')[1], '11 listos');
+
+        /* El clic, que es la otra mitad de «que cuando se dé clic salga la
+           información». */
+        btn.click();
+        igual('opcionales: el clic los saca',            rej.hidden, false);
+        igual('opcionales: y el botón cambia de rótulo', btn.textContent.trim(), 'Ocultar los opcionales');
+        btn.click();
+        igual('opcionales: el segundo clic los recoge',  rej.hidden, true);
+
+        /* Y si uno de los apartados pide acción, la caja se abre sola.
+           Un trámite devuelto detrás de un botón cerrado es peor que no
+           haberlo apartado: el aviso está, pero no se ve. */
+        var c19 = document.querySelector('.tcard[data-tr="c19"]');
+        var era = c19.getAttribute('data-st');
+        c19.setAttribute('data-st', 'accion');
+        window.CIIP_APARTA_OPCIONALES();
+        igual('opcionales: uno devuelto abre la caja solo', rej.hidden, false);
+        c19.setAttribute('data-st', era);
+
+        /* Llamarla dos veces no puede duplicar nada: la rejilla de dentro
+           lleva también class grid-tr, y el recorrido llegó a encontrarse a
+           sí mismo y a meter una caja dentro de la caja. */
+        window.CIIP_APARTA_OPCIONALES();
+        igual('opcionales: repintar no duplica la caja',
+          f1.querySelectorAll('.opc-caja').length, 1);
+
+        /* Una fase sin nada que apartar no estrena un botón vacío. */
+        var f4 = document.querySelector('[data-fase="4"]');
+        igual('opcionales: la fase sin opcionales no lleva caja',
+          f4 ? f4.querySelectorAll('.opc-caja').length : -1, 0);
+      })();
+
+      /* ── y la misma regla en las demás fases ──
+         «¿Podemos trabajar las otras fases de la misma manera?» (CIIP).
+
+         La regla no es «lo opcional» sino «lo que no bloquea al CIIP», y
+         sólo donde haya algo que sí bloquee. Las tres cosas que se miran
+         aquí son las tres que distinguen esa regla de la ingenua, y las
+         tres se ven igual en la primera pantalla si se hace mal. */
+      (function(){
+        var cat = window.CIIP_TIPOS_POR_REF || {};
+
+        /* 1. La fase 02 enseña sus OCHO y no aparta nada.
+
+              «Dicha etapa es la más importante en el panel [...] quiero
+              que tenga estas 8 opciones.» (CIIP, 2 de septiembre de 2026)
+
+              Aquí llegó a apartar tres —la marca, la cuenta bancaria y los
+              libros, que en la base son 'esencial'— y la fase se quedó
+              enseñando cinco. Esta prueba es lo que impide que vuelva a
+              pasar sin que nadie lo note: apartar de más se ve igual de
+              bien en pantalla que apartar lo justo.
+
+              Se cuentan las ocho DENTRO de su rejilla, no en el documento
+              entero: una tarjeta movida a la caja seguiría estando en el
+              documento y el recuento no se enteraría. */
+        var f2 = document.querySelector('[data-fase="2"]');
+        igual('fases: la 02 no aparta nada',
+          f2 ? f2.querySelectorAll('.opc-caja').length : -1, 0);
+        igual('fases: y enseña sus ocho, con el SISREF',
+          document.querySelectorAll('#trs-2 > .tcard[data-tr]').length, 8);
+
+        /* Y el SISREF es una de las ocho: es el que pedía el informe y el
+           que no estaba. Que salga el número bien sin que él esté sería
+           haber cambiado una tarjeta por otra. */
+        ok('fases: el SISREF está en la fase 02',
+           !!document.querySelector('#trs-2 > .tcard[data-tr="c32"]'),
+           'no está', 'la tarjeta c32');
+
+        /* Lo 'esencial' se queda a la vista, que es la regla nueva escrita
+           al revés: si algún día se volviera a apartar, esto lo dice. */
+        var esenciales = [];
+        document.querySelectorAll('.opc-rejilla .tcard[data-tr]').forEach(function(c){
+          var t = cat[c.getAttribute('data-tr')];
+          if (t && t.nivel === 'esencial') esenciales.push(c.getAttribute('data-tr'));
+        });
+        igual('fases: lo esencial no se aparta', esenciales.join(' '), '');
+
+        /* Una fase SIN ningún obligatorio se queda entera a la vista, aunque
+           lo que tenga sea opcional. Sin nada que bloquee no hay de qué
+           distinguir lo demás, y la fase acabaría vacía detrás de un botón:
+           eso ya no es apartar. La 05 tiene UNA tarjeta, así que ahí se ve
+           más claro que en ninguna.
+
+           Esta comprobación se perdió al reescribir el bloque de la fase 02
+           -el corte se llevó lo que había en medio- y el sabotaje que quita
+           la guarda salió VERDE dos veces seguidas. Vuelve, y por eso la
+           tanda hay que correrla entera después de mover pruebas de sitio,
+           no sólo mirar que el número final suba. */
+        var f5 = document.querySelector('[data-fase="5"]');
+        igual('fases: la que no tiene obligatorios se queda entera',
+          f5 ? f5.querySelectorAll('.opc-caja').length : -1, 0);
+
+        var f3 = document.querySelector('[data-fase="3"]');
+        igual('fases: la 03 aparta, pero no lo que depende del ramo',
+          f3 ? f3.querySelectorAll('.opc-caja').length : -1, 0);
+        var colados = [];
+        document.querySelectorAll('.opc-rejilla .tcard[data-tr]').forEach(function(c){
+          var ref = c.getAttribute('data-tr');
+          var t = cat[ref];
+          if (t && t.nivel === 'actividad') colados.push(ref);
+        });
+        igual('fases: lo que depende del ramo nunca se aparta', colados.join(' '), '');
+      })();
     })();
 
     /* El renglón contaba las tarjetas del catálogo —decía cuántos trámites
@@ -1857,6 +2103,78 @@
     if (!d) return;
     d.value = '07'; d.dispatchEvent(new Event('change'));
     igual('fecha3: al elegir, el campo escondido se entera', nac.value, '1979-02-07');
+  }
+
+  /* ═══════════ LA FIRMA EN EL REGISTRO DE EXTRANJEROS ═══════════
+     El c32 se añadió con sus recaudos y SIN formulario: la tarjeta se
+     abría, decía «Tus datos» y debajo no había nada. Se vio abriéndola en
+     pantalla, no aquí, porque aquí no había nada que lo mirara.
+
+     Y los recaudos que tenía estaban copiados de otra tarjeta: pedían una
+     «Traducción certificada de la licencia» en un trámite del SAREN que no
+     tiene que ver con conducir. Reusar una clave de rótulo sin mirar qué
+     dice no rompe nada y no sale en ninguna cuenta; sólo se ve leyendo la
+     pantalla. Por eso aquí se mira el TEXTO y no sólo el número.
+
+     Los nueve campos salen del portal, https://sisref.saren.gob.ve/. */
+  function sisrefAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c32';
+  }
+
+  function sisrefTrasAbrir(){
+    if (CASO !== 'vacio') return;
+    igual('sisref: se abre su detalle', document.body.getAttribute('data-vista'), 'tramite');
+
+    var caja   = document.getElementById('trReal');
+    var campos = caja.querySelectorAll('.sol-campo');
+    var docs   = caja.querySelectorAll('.sol-doc');
+
+    /* Esto es lo que estaba mal y no lo veía nadie: cero campos. */
+    ok('sisref: «Tus datos» no está vacío', campos.length > 0,
+       campos.length + ' campos', 'los nueve del portal');
+    igual('sisref: pide los nueve datos', campos.length, 9);
+    igual('sisref: y sus tres recaudos', docs.length, 3);
+
+    /* Los tres que pide el portal, por su tipo de la bóveda. */
+    var tipos = [];
+    docs.forEach(function(d){ tipos.push(d.getAttribute('data-doc')); });
+    igual('sisref: identidad, documento del trámite y poder',
+      tipos.join(' '), 'pasaporte otro poder');
+
+    /* Ni una palabra de la licencia de conducir. Es la comprobación que
+       habría cazado el rótulo copiado, y la única que lo habría hecho. */
+    var letra = caja.textContent.toLowerCase();
+    ok('sisref: no habla de la licencia de conducir',
+       letra.indexOf('licencia') === -1,
+       letra.indexOf('licencia') === -1 ? 'limpio' : 'dice «licencia»',
+       'sin rótulos de otra tarjeta');
+
+    /* El del trámite es el que de verdad faltaba, y va OBLIGATORIO: sin él
+       la solicitud no dice qué se va a otorgar, que es lo que el SAREN
+       mira. El poder va opcional, que sólo le hace falta al apoderado. */
+    var doc = caja.querySelector('.sol-doc[data-doc="otro"]');
+    ok('sisref: el documento del trámite es obligatorio',
+       !!doc && !doc.hasAttribute('data-opcional'),
+       doc ? (doc.hasAttribute('data-opcional') ? 'opcional' : 'obligatorio') : 'no está',
+       'obligatorio');
+    var pod = caja.querySelector('.sol-doc[data-doc="poder"]');
+    ok('sisref: y el poder, opcional',
+       !!pod && pod.hasAttribute('data-opcional'),
+       pod ? (pod.hasAttribute('data-opcional') ? 'opcional' : 'obligatorio') : 'no está',
+       'opcional');
+
+    /* Y que las opciones son las del portal, no unas parecidas. Se mira la
+       de «cómo actúas», que es la lista corta y literal: si alguien la
+       traduce, el gestor tiene que deshacer la traducción para
+       transcribirla al SAREN. */
+    var acc = caja.querySelector('.sol-campo[data-campo="accion_tramite"] select');
+    var ops = [];
+    if (acc) acc.querySelectorAll('option').forEach(function(o){
+      if (o.value) ops.push(o.value);
+    });
+    igual('sisref: las opciones son las del portal, sin traducir',
+      ops.join(' '), 'Solicitante Otorgante Accionista Director Comprador Vendedor');
   }
 
   function rncAbre(){

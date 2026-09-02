@@ -5169,6 +5169,81 @@ create policy "cita_mensajes: escribir en mi cita" on public.cita_mensajes
 -- ═══════════════════════════════════════════════════════════════════════
 
 
+-- ═══════════════════════════════════════════════════════════════════════
+--  CUÁLES SON LOS OBLIGATORIOS
+-- ═══════════════════════════════════════════════════════════════════════
+--  Los UPDATE de más abajo van repartidos, cada uno pegado a la frase del
+--  informe que lo justifica, que es como tiene que estar. Pero entonces
+--  para contestar «cuáles son los obligatorios» hay que leerse el archivo
+--  entero y sumar de cabeza. Aquí están juntos.
+--
+--  Esta lista NO ejecuta nada: es el resumen de lo que hacen los UPDATE.
+--  Si alguna vez no cuadran, mandan los UPDATE y esta lista está vieja;
+--  la comprobación 1 del final los cuenta contra la base.
+--
+--  OBLIGATORIO quiere decir una cosa concreta y sólo una: **sin esto el
+--  CIIP no puede seguir contigo**. No quiere decir que sea importante, ni
+--  que lo exija la ley. El registro de marca lo exige la ley y no es
+--  obligatorio aquí, porque el CIIP puede reconocer a la empresa sin él.
+--
+--
+--  FASE 1 · TÚ  ──  cinco, y son los cinco que pide el informe
+--  ─────────────────────────────────────────────────────────────────────
+--    c1   visa_inversionista      Visa de inversionista (TR-I)   punto 1
+--    c2   cedula_residencia       Cédula de extranjería          punto 4
+--    c3   rif_personal            RIF personal                   punto 4
+--    c17  apostilla_documentos    Documentación apostillada      punto 3
+--    c33  poder_representacion    Acreditación del apoderado     puntos 2 y 5
+--
+--  El punto 3 del informe —«Partidas, antecedentes y credenciales
+--  básicas»— cae sobre DOS tarjetas nuestras, y el CIIP escogió la
+--  apostilla: es el servicio que deja cualquier papel personal en regla.
+--  Los antecedentes penales (c16) se quedan opcionales porque no todos
+--  los consulados los exigen igual. Está contado abajo, en su UPDATE.
+--
+--  Y el c33 no existía: sale del punto 4 de este archivo, el módulo de
+--  apoderados. Es obligatorio porque, según el propio informe, el panel
+--  «será utilizado por sus asistentes, administradores, abogados en la
+--  mayoría de los casos» —y sin poder acreditado el CIIP no sabe con
+--  quién está hablando.
+--
+--
+--  FASE 2 · TU EMPRESA  ──  cinco
+--  ─────────────────────────────────────────────────────────────────────
+--    c32  registro_extranjeros    Firma en Registro de Extranjeros (SISREF)
+--    c5   constitucion            Constitución de la empresa
+--    c22  protocolizacion_acta    Protocolización del documento
+--    c23  publicacion_acta        Publicación en prensa
+--    c6   rif_empresa             RIF jurídico
+--
+--  El informe lo resume en una frase: «Al tener el documento otorgado en
+--  Registro Mercantil y tramitar el RIF, lo demás no es obligatorio para
+--  seguir los procesos con el CIIP». Los otros tres —c22, c23 y c32— no
+--  son trámites aparte de ése: son las tres condiciones sin las cuales
+--  ese documento no queda otorgado. El c32 va primero de todos porque es
+--  «condición previa de estricto cumplimiento» para que un extranjero
+--  pueda siquiera comparecer a firmar.
+--
+--
+--  FASES 3, 4 y 5  ──  NINGUNO, y es a propósito
+--  ─────────────────────────────────────────────────────────────────────
+--  Ni un solo obligatorio, y no es un olvido. Los once de la fase 3 son
+--  todos 'actividad': dependen del ramo, y el informe avisa de que
+--  «cargar de oficio permisos ambientales o sanitarios a inversiones del
+--  sector tecnológico crea confusión innecesaria». Marcar uno como
+--  obligatorio sería decirle a una empresa de software que necesita
+--  permiso sanitario.
+--
+--  El día que exista la matriz de sector a permisos —punto 2 de lo que
+--  falta, al final de este archivo— serán obligatorios para unos sectores
+--  y no para otros. Hasta entonces, ninguno lo es para todos.
+--
+--  Consecuencia visible: en esas tres fases el panel no pinta el renglón
+--  de «te faltan N obligatorios». No es que falte código; es que no hay
+--  nada que contar, y un «te faltan 0 de 0» sería ruido con cara de aviso.
+-- ═══════════════════════════════════════════════════════════════════════
+
+
 -- ───────────────────────────────────────────────────────────────────────
 -- 1. EL RNC PASA DE «CRECER» A «OPERAR»
 -- ───────────────────────────────────────────────────────────────────────
@@ -5218,6 +5293,46 @@ update public.tipos_tramite set fase = 3 where codigo = 'rnc';
 --  no trae familia sería mandarle a averiguar algo que no depende de su
 --  sector, y quedarse mirando la tarjeta.
 
+--  QUÉ HACE EL PANEL CON CADA NIVEL
+--  ─────────────────────────────────────────────────────────────────────
+--  Una columna que nadie mira no arregla ninguna pantalla. Esto es lo que
+--  el panel hace con ella, decidido por el CIIP el 2 de septiembre:
+--
+--    obligatorio   se ve siempre, con su galón, y se cuenta en el renglón
+--                  «te faltan N de T obligatorios» de la cabecera de la fase
+--    esencial      no lleva galón, y se queda A LA VISTA
+--    opcional      galón suave; se va detrás de «Ver los N opcionales»
+--    actividad     galón «según tu actividad», y NO se aparta nunca
+--
+--  Lo 'esencial' llegó a apartarse, apoyándose en la frase del informe
+--  sobre la marca, la cuenta bancaria y los libros —«no representan
+--  trabas bloqueantes»—, y la fase 2 se quedó enseñando cinco de ocho.
+--  El CIIP lo deshizo el mismo día: «dicha etapa es la más importante en
+--  el panel [...] quiero que tenga estas 8 opciones». Constituir la
+--  empresa es lo que la ventanilla viene a hacer, y ahí un trámite detrás
+--  de un botón es un trámite que no se ve.
+--
+--  O sea que hoy el botón sale en la fase 1 y sólo en ella, que es donde
+--  hay opcionales de verdad.
+--
+--  Las dos reglas que no son obvias, y las dos son por lo mismo:
+--
+--  1. Una fase sin ningún obligatorio no aparta NADA. Las once tarjetas de
+--     la fase 3 dependen del ramo; con la regla ingenua se irían las once
+--     detrás de un botón y la fase quedaría vacía. Eso no es apartar, es
+--     esconder once permisos.
+--
+--  2. Lo de 'actividad' no se aparta ni cuando la fase sí aparta. «Según tu
+--     actividad» avisa de que puede que a ti no te toque; esconderle el
+--     permiso sanitario a quien sí lo necesita es peor que enseñárselo de
+--     más. Con el catálogo de hoy esa regla no llega a usarse —las doce de
+--     'actividad' están en fases sin obligatorios—, pero el día que exista
+--     la matriz de sector a permisos sí, y entonces es la que importa.
+--
+--  Nada de esto filtra ni impide solicitar: lo que se puede solicitar lo
+--  sigue diciendo la columna `activo`, y todo trámite apartado sigue
+--  estando a un clic.
+--
 alter table public.tipos_tramite
   add column if not exists nivel text not null default 'esencial';
 
@@ -5306,7 +5421,7 @@ update public.tipos_tramite set nivel = 'actividad'
 --  cuando se los pida el tramite que los use.
 --
 --  Es lo que arregla la primera pantalla: de once tarjetas iguales pasa a
---  seis que hacen falta y cinco que dicen «solo si te toca». Que era
+--  CINCO que hacen falta y SEIS que dicen «solo si te toca». Que era
 --  exactamente lo que pedia el informe -«que a la vista el inversionista
 --  no sienta que debe concretar todos los tramites»- y que marcarlas como
 --  «segun tu actividad» no conseguia: eso manda a averiguar algo que no
@@ -5440,6 +5555,12 @@ update public.tipos_tramite
 --   select ref_panel, codigo, nombre, ente, fase, nivel, emite, plazo_dias, activo
 --   from public.tipos_tramite where ref_panel in ('c32','c33');
 --
--- 3) Y el RNC, que tiene que salir en la fase 3:
+-- 3) Los obligatorios, contra la lista de arriba. Tienen que salir DIEZ:
+--    cinco en la fase 1 y cinco en la fase 2, y ninguno en las demás.
+--
+--   select fase, count(*), string_agg(ref_panel, ' ' order by ref_panel)
+--   from public.tipos_tramite where nivel = 'obligatorio' group by fase;
+--
+-- 4) Y el RNC, que tiene que salir en la fase 3:
 --
 --   select ref_panel, nombre, fase, nivel from public.tipos_tramite where codigo = 'rnc';

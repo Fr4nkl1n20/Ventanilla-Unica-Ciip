@@ -85,21 +85,97 @@
      que ata cada tipo a su tarjeta del panel (data-tr). */
   var TIPOS = [
     {codigo:'rif_personal', ref_panel:'c3', ente:'SENIAT', activo:true, emite:'rif_personal', plazo_dias:14,
-     nombre:'RIF personal', fase:1,
+     nombre:'RIF personal', fase:1, nivel:'obligatorio',
      activo_por:null, activo_en: haceHoras(30)},
     {codigo:'constitucion', ref_panel:'c5', ente:'SAREN',  activo:true, emite:'acta_constitutiva', plazo_dias:21,
-     nombre:'Constitución de empresa', fase:2},
+     nombre:'Constitución de empresa', fase:2, nivel:'obligatorio'},
+    /* Sin nivel a proposito no: con 'esencial', que es el caso normal y
+       el unico de los cuatro que NO lleva distintivo. Asi una prueba puede
+       comprobar que ese no lo lleva, que es la mitad de la regla. */
     {codigo:'rif_empresa',  ref_panel:'c6', ente:'SENIAT', activo:true, emite:'rif_empresa', plazo_dias:14,
-     nombre:'RIF de la empresa', fase:2},
+     nombre:'RIF de la empresa', fase:2, nivel:'esencial'},
     {codigo:'rnc',          ref_panel:'c13', ente:'RNC',   activo:true,
-     nombre:'Registro Nacional de Contratistas', fase:3},
+     nombre:'Registro Nacional de Contratistas', fase:3, nivel:'actividad'},
+
+    /* ── dos filas que el catálogo de verdad NO tiene todavía ──
+       Y se dice, porque un doble que se aleja de Supabase sin avisar es
+       de donde salen los verdes falsos.
+
+       LA PRIMERA: un obligatorio en la fase 3. Hoy no hay ninguno —los
+       once dependen del ramo— y por eso la regla de «no apartar lo de
+       'actividad'» no se alcanza NUNCA con los datos de hoy: sin
+       obligatorio, la fase no aparta nada de todas formas. Un sabotaje
+       que apartara lo de 'actividad' salía verde, y salió.
+
+       No es una fila inventada porque sí: es la fase 3 el día que exista
+       la matriz de sector a permisos —punto 2 de lo que falta en
+       supabase-informe-victor.sql—, cuando algunos de esos permisos sean
+       obligatorios para un sector. Ese día el permiso sanitario NO puede
+       irse detrás de un botón, y esto es lo que lo sujeta.
+
+       LA SEGUNDA: un trámite en la fase 5, para poder comprobar aparte
+       que una fase sin obligatorios se queda entera. Antes eso se miraba
+       en la fase 3, que ahora ya tiene uno. */
+    /* La firma en el Registro de Extranjeros. Sin ella aqui, el panel no
+       sabe que el c32 es un tramite vivo y pinta una ficha de LECTURA: sin
+       formulario y sin recaudos. Las pruebas del formulario contaban cero
+       campos y parecia que el fallo seguia sin arreglar.
+
+       Esta si es como en la base de verdad: fase 2, obligatoria y encendida. */
+    {codigo:'registro_extranjeros_saren', ref_panel:'c32', ente:'SAREN · SISREF',
+     activo:true, emite:'constancia_sisref', plazo_dias:14,
+     nombre:'Solicitud de firma en el Registro de Extranjeros', fase:2, nivel:'obligatorio'},
+
+    {codigo:'registros_laborales', ref_panel:'c9', ente:'IVSS', activo:true,
+     nombre:'Registros laborales', fase:3, nivel:'obligatorio'},
+    /* Y va en 'opcional', que TAMPOCO es lo que dice el catálogo de verdad
+       -allí se queda con el 'esencial' por defecto-. Es la segunda fila que
+       se aparta de Supabase a propósito, y por la misma razón que la de
+       arriba: sin ella la regla de «una fase sin obligatorios no aparta
+       nada» no se alcanza NUNCA, porque los seis opcionales del catálogo
+       viven todos en la fase 1, que sí tiene obligatorios. Un sabotaje que
+       quitara esa guarda salía verde, y salió.
+
+       Y la guarda importa justo aquí: la fase 5 tiene UNA tarjeta. Sin
+       ella, esa fase se quedaría vacía con un botón que dice «ver 1». */
+    {codigo:'registro_inversion', ref_panel:'c31', ente:'CIIP', activo:true,
+     nombre:'Registro de inversión extranjera', fase:5, nivel:'opcional'},
+    /* Con nivel explicito, como en la base: la columna es NOT NULL con
+       DEFAULT 'esencial', asi que alli NINGUNA fila llega sin nivel. Una
+       fila sin el no se aparta y una con 'esencial' si, o sea que el
+       doble sin esto era mas permisivo que Supabase justo aqui.
+
+       Lleva 'actividad' y no el default porque es lo que dice el informe:
+       las solvencias estan en su lista de los que dependen del ramo. */
     {codigo:'solvencias',   ref_panel:'c14', ente:'Entes varios', activo:true,
-     nombre:'Solvencias laborales', fase:3},
+     nombre:'Solvencias laborales', fase:3, nivel:'actividad'},
+
+    /* DOS opcionales, y los dos en la misma fase: es lo que hace falta para
+       ver la lista apartada. Con uno solo el rotulo diria "Ver los 1
+       opcionales" y ninguna prueba distinguiria apartar de esconder.
+
+       Van los dos en "pendiente" a proposito, que es el caso corriente: la
+       caja tiene que empezar CERRADA. Que se abra sola cuando uno pide
+       accion se comprueba moviendole el estado a mano, no trayendolo ya
+       movido de aqui.
+
+       El segundo NO se escribe aqui: la visa de dependientes ya estaba mas
+       abajo y volver a declararla dejaba el catalogo con dos filas para la
+       misma tarjeta -y la lista de asuntos de las citas, que va por
+       ref_panel, se quedo con una opcion menos-. Se le puso el nivel alli,
+       en la fila que ya existia. */
+    {codigo:'firma_electronica', ref_panel:'c19', ente:'SUSCERTE', activo:true,
+     nombre:'Firma electrónica', fase:1, nivel:'opcional'},
+    /* La apostilla, obligatoria y PENDIENTE. Es la que hace que la fase 01
+       tenga algo que faltar: sin ella los tres obligatorios estarían
+       hechos y el rótulo en ámbar no se pintaría nunca. */
+    {codigo:'apostilla_documentos', ref_panel:'c17', ente:'MPPRE', activo:true,
+     nombre:'Apostilla de documentos', fase:1, nivel:'obligatorio'},
     /* Uno APAGADO a proposito. Con todos encendidos, la prueba de que el
        interruptor enciende no se puede distinguir de la de que no hace
        nada: los dos casos dejan la lista igual. */
     {codigo:'marca',        ref_panel:'c8', ente:'SAPI',   activo:false,
-     nombre:'Registro de marca', fase:2,
+     nombre:'Registro de marca', fase:2, nivel:'esencial',
      /* Con autor y fecha: es lo que lee el rastro. Uno apagado por
         alguien del equipo y otro encendido sin autor -hecho desde el
         editor de Supabase-, que son los dos casos que la pantalla tiene
@@ -109,12 +185,12 @@
        panel no sabe a que tarjeta pertenece y la deja en "por iniciar"
        aunque el tramite este resuelto. */
     {codigo:'visa_inversionista', ref_panel:'c1', ente:'SAIME', activo:true, emite:'visa', plazo_dias:30,
-     nombre:'Visa de inversionista', fase:1},
+     nombre:'Visa de inversionista', fase:1, nivel:'obligatorio'},
     /* La visa de dependientes pregunta pasaporte, pais emisor y fecha de
        nacimiento: las tres que la de inversionista ya contesto. Es donde se
        mide que no se pide dos veces lo mismo. */
     {codigo:'visa_dependientes', ref_panel:'c20', ente:'SAIME', activo:true,
-     nombre:'Visa de dependientes', fase:1}
+     nombre:'Visa de dependientes', fase:1, nivel:'opcional'}
   ];
 
   /* El borrador se toca DESPUÉS que el devuelto a propósito: así se
