@@ -398,19 +398,20 @@
        "Completado" escrito a mano. Ninguna cuenta era de nadie. Ahora sale
        de tus tramites, y en ningun expediente de prueba hay uno resuelto. */
     /* En 'lleno' hay una visa resuelta y en los demás expedientes no: el
-       mismo catálogo de diez trámites cuenta distinto según quién mira, que
+       mismo catálogo de once trámites cuenta distinto según quién mira, que
        es justo lo que un marcador escrito a mano no podía hacer. */
     igual('camino: la fase 01 cuenta lo que tú llevas hecho', deEtapa(0, '.jcount'),
-          (CASO === 'lleno') ? '1 de 10 listos' : '0 de 10 listos');
-    igual('camino: la fase 02 cuenta sus 7',           deEtapa(1, '.jcount'), '0 de 7 listos');
-    igual('camino: la fase 03 cuenta sus 10',          deEtapa(2, '.jcount'), '0 de 10 listos');
-    igual('camino: la fase 04 cuenta sus 3',           deEtapa(3, '.jcount'), '0 de 3 listos');
+          (CASO === 'lleno') ? '1 de 11 listos' : '0 de 11 listos');
+    igual('camino: la fase 02 cuenta sus 8',           deEtapa(1, '.jcount'), '0 de 8 listos');
+    igual('camino: la fase 03 cuenta sus 11',          deEtapa(2, '.jcount'), '0 de 11 listos');
+    igual('camino: la fase 04 cuenta sus 2',           deEtapa(3, '.jcount'), '0 de 2 listos');
     igual('camino: la fase 05 cuenta su único trámite', deEtapa(4, '.jcount'), '0 de 1 listos');
 
     (function(){
       var barra = etapas()[0].querySelector('.jbar > span');
       igual('camino: la barra de la fase 01 mide lo hecho', barra.style.width,
-            (CASO === 'lleno') ? '10%' : '0%');
+            /* 1 de 11, no 1 de 10: la fase 1 gano el c33. */
+            (CASO === 'lleno') ? '9%' : '0%');
     })();
 
     /* La palomita estaba escrita en el marcado y se quedaba en verde con
@@ -425,17 +426,17 @@
 
     /* El numero del marcado tambien, no solo el que calcula el script: es lo
        que se ve durante el instante que tarda la pagina en contar, y llevaba
-       24 con 31 tarjetas puestas. */
+       24 con 33 tarjetas puestas. */
     ok('camino: y el marcado no arranca con una cuenta vieja',
-       /<span class="n">31<\/span>/.test(document.querySelector('.ftab[data-f="todos"]').outerHTML) ||
-       document.querySelector('.ftab[data-f="todos"] .n').textContent === '31',
-       document.querySelector('.ftab[data-f="todos"] .n').textContent, '31');
+       /<span class="n">33<\/span>/.test(document.querySelector('.ftab[data-f="todos"]').outerHTML) ||
+       document.querySelector('.ftab[data-f="todos"] .n').textContent === '33',
+       document.querySelector('.ftab[data-f="todos"] .n').textContent, '33');
 
-    igual('camino: los filtros cuentan las 31 tarjetas',
-          (document.querySelector('.ftab[data-f="todos"] .n') || {}).textContent, '31');
+    igual('camino: los filtros cuentan las 33 tarjetas',
+          (document.querySelector('.ftab[data-f="todos"] .n') || {}).textContent, '33');
 
     /* ═══════════ EL ESTADO DE CADA TARJETA ═══════════
-       Iba escrito a mano en las 31: tres decían "Completado" y una fecha de
+       Iba escrito a mano en las 33: tres decían "Completado" y una fecha de
        emisión de un trámite que nadie había pedido. Los cuatro filtros de
        arriba contaban esos ejemplos. */
     (function(){
@@ -469,7 +470,7 @@
       ok('estados: ni la descripción da por hecho el trámite',
          !/(ya está lista|quedó estampada|licencia italiana|Bianchi)/i.test(document.getElementById('secTramites').textContent),
          'busca "ya está lista", "italiana", "Bianchi"', 'ninguna');
-      ok('estados: y ninguna de las 31 inventa una fecha de emisión',
+      ok('estados: y ninguna de las 33 inventa una fecha de emisión',
          !/(Emitid|Rilasciat|Issued|签发|Выдан)/i.test(document.getElementById('secTramites').textContent),
          'busca "Emitida" en las tarjetas', 'ninguna');
 
@@ -509,21 +510,21 @@
       if (CASO === 'sinnombre'){
         /* Este expediente tiene UN borrador -el que hace salir el aviso de
            "sin terminar"-, asi que su tarjeta no puede decir "por
-           iniciar": 30 y no 31. Y de paso se comprueba lo que ninguna
+           iniciar": 32 y no 33. Y de paso se comprueba lo que ninguna
            prueba miraba, que el borrador se vea tambien en su tarjeta. */
         var pendS = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
-        ok('estados: con un borrador, treinta por iniciar y no treinta y una',
-           pendS === 30, pendS + ' por iniciar de 31', '30');
+        ok('estados: con un borrador, treinta y dos por iniciar y no treinta y tres',
+           pendS === 32, pendS + ' por iniciar de 33', '32');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
       if (CASO === 'gestor'){
-        /* Las 31: las 30 solicitables más la del banco de activos, que ya
+        /* Las 33: las 32 solicitables más la del banco de activos, que ya
            nacía 'pendiente' en el marcado -lo suyo es el distintivo, que
            sigue diciendo Disponible-. */
         var pend = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
-        ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 31,
-           pend + ' por iniciar de 31', '31');
+        ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 33,
+           pend + ' por iniciar de 33', '33');
       }
 
       /* ── la cadena entre trámites ──
@@ -619,9 +620,9 @@
       var es = deEtapa(0, '.jcount');
       var n = (CASO === 'lleno') ? '1' : '0';
       ok('camino: el renglón se traduce',
-         en === n + ' of 10 done' && es === n + ' de 10 listos',
+         en === n + ' of 11 done' && es === n + ' de 11 listos',
          'en="' + en + '" es="' + es + '"',
-         'en="' + n + ' of 10 done" es="' + n + ' de 10 listos"');
+         'en="' + n + ' of 11 done" es="' + n + ' de 11 listos"');
     })();
 
     /* ═══════════ EL CAMINO: CÓMO SE LLAMAN LAS ETAPAS ═══════════
@@ -2846,7 +2847,7 @@
     /* Su panel no cuenta lo de los demas: de esa misma consulta salen los
        estados de las 31 tarjetas y las cuentas de las cinco fases. */
     igual('barra: y su panel no cuenta los tramites de otros',
-          deEtapa(0, '.jcount'), '0 de 10 listos');
+          deEtapa(0, '.jcount'), '0 de 11 listos');
     fila.click();
   }
 
@@ -3587,25 +3588,35 @@
   function fichaMira(){
     if (CASO !== 'vacio') return;
     var caja = document.getElementById('trReal');
-    /* Dos bloques con trabajos distintos: los dos TIEMPOS juntos y
-       grandes -su gracia es leerlos uno al lado del otro- y lo demas en
-       renglones de rotulo y valor, que es la forma de una frase. Cinco
-       cuadros iguales para dos numeros y tres frases se veia mal. */
+    /* Dos bloques con trabajos distintos: el TIEMPO grande y aparte -es
+       lo primero que se busca- y lo demas en renglones de rotulo y
+       valor, que es la forma de una frase. */
     var tiempos = caja.querySelectorAll('.ft-lado .ft-t');
     ok('ficha: al abrir un tramite se cuenta antes de pedir nada',
        tiempos.length > 0, tiempos.length + ' tiempos', 'con los tiempos');
     if (!tiempos.length) return;
     var texto = caja.textContent;
 
-    igual('ficha: los dos tiempos, juntos', tiempos.length, 2);
+    /* UNO, no dos. Antes se enseñaban el plazo legal y el de la practica
+       uno al lado del otro; lo quito la revision del 2 de septiembre de
+       2026 y esta prueba pasa a vigilar lo contrario de lo que vigilaba,
+       que es lo que impide que vuelva sin querer. */
+    igual('ficha: solo el plazo legal, y solo uno', tiempos.length, 1);
     igual('ficha: y los otros tres datos en renglones',
           caja.querySelectorAll('.ft-filas dt').length, 3);
     ok('ficha: dice el plazo legal', /Plazo legal/.test(texto) && /10 días/.test(texto),
        'busca "Plazo legal" y "10 dias"', 'aparecen');
-    /* Y lo que tarda DE VERDAD, que es el numero que importa. */
-    ok('ficha: y lo que tarda en la practica',
-       /En la práctica/.test(texto) && /17 días/.test(texto),
-       'busca "En la practica" y "17 dias"', 'aparecen');
+    /* Y el de la practica NO se enseña. El motivo no es de pantalla:
+       «mantener el señalamiento del plazo factico admite retardo
+       institucional y distorsiona la seguridad juridica». Enseñar que la
+       ley dice diez y la practica diecisiete es el CIIP dando por bueno,
+       por escrito y a un extranjero, el retraso del organismo.
+
+       El dato sigue en la ficha para uso del CIIP; lo que se comprueba
+       aqui es que no llega a la pantalla. */
+    ok('ficha: y el plazo de la practica ya NO se enseña',
+       !/En la práctica/.test(texto) && !/17 días/.test(texto),
+       'no debe salir "En la practica" ni "17 dias"', 'no salen');
     /* De que depende, con el NOMBRE del otro tramite y no su codigo: "c9"
        no le dice nada a nadie. */
     ok('ficha: de que depende, por su nombre y no por su codigo',

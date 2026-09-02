@@ -217,6 +217,12 @@ const PROPIOS = new Set((
      rótulo llevaba detrás «· Demonstração de conceito», porque con eso
      pasaba de cinco palabras y la regla ni lo miraba. */
   'Balcão Investidor ' +
+  /* El Registro de Extranjeros del SAREN, por su nombre, en los cuatro
+     idiomas latinos. Es el mismo caso que «Registro Mercantil»: se llama
+     asi, no es una palabra suelta en mayuscula por descuido. El español
+     se libraba de la regla por tener seis palabras y no cinco, lo cual
+     era suerte y no criterio. */
+  'Extranjeros Estrangeiros Stranieri Foreigners ' +
   'Investitore Sportello Investor One Stop Window Concept Demo Ministerio ' +
   /* Y las formas societarias: «Compañía Anónima», «Sociedad de
      Responsabilidad Limitada» son figuras jurídicas con nombre propio, no
