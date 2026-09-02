@@ -1711,6 +1711,88 @@ $p$;
 
 reset role;
 
+
+-- ══ 14 · LO QUE PIDIO LA REVISION DEL 2 DE SEPTIEMBRE ════════════════
+-- Cada comprobacion es una frase del informe convertida en algo que
+-- Postgres puede decir que si o que no. Sin esto, "hecho" seria una
+-- opinion.
+
+select arnes.comprueba(
+  'informe: el RNC pasa a la fase 3, Operar',
+  (select fase = 3 from public.tipos_tramite where codigo = 'rnc'),
+  (select 'esta en la fase ' || fase::text from public.tipos_tramite where codigo = 'rnc'));
+
+-- El trámite que faltaba. Se comprobo que NO estaba antes de escribirlo:
+-- ni en tipos_tramite ni en pasos.js.
+select arnes.comprueba(
+  'informe: existe la firma en el Registro de Extranjeros (SISREF)',
+  (select count(*) = 1 from public.tipos_tramite
+    where codigo = 'registro_extranjeros_saren' and ref_panel = 'c32' and fase = 2 and activo));
+
+-- Y entra ENCADENADO, que es lo que lo hace util: sin esto seria una
+-- tarjeta mas en una lista de treinta y tres.
+select arnes.comprueba(
+  'informe: y emite la constancia que pide la constitucion',
+  (select emite = 'constancia_sisref' from public.tipos_tramite
+    where codigo = 'registro_extranjeros_saren'));
+
+select arnes.comprueba(
+  'informe: la constancia del SISREF esta en el catalogo de recaudos',
+  (select count(*) = 1 from public.tipos_documento where codigo = 'constancia_sisref'));
+
+-- El modulo para los apoderados. El tipo de documento 'poder' existia
+-- desde el primer dia; lo que no existia era el sitio donde el CIIP lo
+-- mire y lo de por bueno.
+select arnes.comprueba(
+  'informe: existe la acreditacion de representacion legal',
+  (select count(*) = 1 from public.tipos_tramite
+    where codigo = 'poder_representacion' and ref_panel = 'c33' and fase = 1 and activo));
+
+select arnes.comprueba(
+  'informe: y emite el poder, que ya estaba en la boveda',
+  (select emite = 'poder' from public.tipos_tramite where codigo = 'poder_representacion'));
+
+-- Los tres niveles.
+select arnes.comprueba(
+  'informe: los seis obligatorios de la fase 1 estan marcados',
+  (select count(*) = 6 from public.tipos_tramite
+    where nivel = 'obligatorio' and fase = 1),
+  (select coalesce(string_agg(ref_panel, ' ' order by ref_panel), 'ninguno')
+     from public.tipos_tramite where nivel = 'obligatorio' and fase = 1));
+
+select arnes.comprueba(
+  'informe: y los cinco de la fase 2',
+  (select count(*) = 5 from public.tipos_tramite
+    where nivel = 'obligatorio' and fase = 2),
+  (select coalesce(string_agg(ref_panel, ' ' order by ref_panel), 'ninguno')
+     from public.tipos_tramite where nivel = 'obligatorio' and fase = 2));
+
+-- Los tres que el informe nombra uno a uno como "indispensables para el
+-- comercio, mas no trabas bloqueantes".
+select arnes.comprueba(
+  'informe: marca, cuenta bancaria y libros son esenciales, no bloqueantes',
+  (select count(*) = 3 from public.tipos_tramite
+    where nivel = 'esencial'
+      and codigo in ('marca', 'cuenta_bancaria', 'libros_contables')));
+
+-- Y que no quede ninguno sin clasificar: un trámite sin nivel volveria a
+-- verse igual que los demas, que es el problema que se venia a arreglar.
+select arnes.comprueba(
+  'informe: ningun tramite se queda sin nivel',
+  (select count(*) = 0 from public.tipos_tramite
+    where nivel is null or nivel not in ('obligatorio','esencial','actividad')));
+
+-- La restriccion muerde: un nivel inventado no entra. Sin esto, un error
+-- de escritura dejaria un tramite invisible para las tres vistas.
+do $p$
+begin
+  update public.tipos_tramite set nivel = 'importantisimo' where codigo = 'rnc';
+  perform arnes.comprueba('informe: un nivel inventado no entra', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('informe: un nivel inventado no entra', true, sqlerrm);
+end
+$p$;
+
 reset role;
 
 \o
