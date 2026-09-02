@@ -21,7 +21,7 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-presencia','supabase-sectores','supabase-catalogos','supabase-bitacora',
 'supabase-bloqueo','supabase-acompanamiento','supabase-gestor','supabase-cola',
 'supabase-avisos','supabase-aranceles','supabase-huellas','supabase-encadenado',
-'supabase-plazos','supabase-una-viva','supabase-hilo'];
+'supabase-plazos','supabase-una-viva','supabase-hilo','supabase-hilo-citas','supabase-informe-victor'];
 
 let mal = 0;
 for (const n of orden) {
@@ -34,9 +34,9 @@ if (!mal) console.log('  ninguno lleva ordenes de psql: es SQL puro, vale tal cu
 const raya = '-- ' + '='.repeat(68);
 const trozos = [
   raya,
-  '--  LOS 23 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat',
+  '--  LOS 25 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat',
   raya,
-  '--  Esto es la union literal de los 23 supabase-*.sql, sin cambiar una',
+  '--  Esto es la union literal de los 25 supabase-*.sql, sin cambiar una',
   '--  coma, pegados en el orden que ejecuta el arnes contra un Postgres de',
   '--  usar y tirar. Ese orden no esta deducido leyendo cabeceras: si uno',
   '--  usara algo que otro define despues, la tanda se caeria diciendo cual.',
@@ -56,7 +56,7 @@ orden.forEach(function (n, i) {
   const num = String(i + 1).padStart(2, '0');
   trozos.push('');
   trozos.push(raya);
-  trozos.push('--  ' + num + ' / 23   ' + n + '.sql');
+  trozos.push('--  ' + num + ' / 25   ' + n + '.sql');
   trozos.push(raya);
   trozos.push('');
   trozos.push(fs.readFileSync(n + '.sql', 'utf8').replace(/\r\n/g, '\n').replace(/\s*$/, ''));

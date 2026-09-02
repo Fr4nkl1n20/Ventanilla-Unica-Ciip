@@ -7,7 +7,7 @@
 #  Las otras tres tandas no tocan Postgres. El panel corre contra
 #  supabase-mentira.js, que concede o niega segun lo que se escribio que
 #  deberia pasar; que salga en verde no dice si un trigger existe o si una
-#  politica cierra. Esto ejecuta los veintitres archivos y luego intenta hacer
+#  politica cierra. Esto ejecuta los veinticinco archivos y luego intenta hacer
 #  lo que no se debe.
 #
 #  NO HACE FALTA NINGUNA CLAVE, Y NO SE TOCA NINGUN SERVIDOR
@@ -123,7 +123,9 @@ try {
     'supabase-encadenado.sql',       # 20  solo necesita el catalogo
     'supabase-plazos.sql',           # 21  idem
     'supabase-una-viva.sql',         # 22  solo necesita tramites
-    'supabase-hilo.sql'              # 23  necesita tramites y documentos
+    'supabase-hilo.sql',             # 23  necesita tramites y documentos
+    'supabase-hilo-citas.sql',       # 24  necesita citas y documentos
+    'supabase-informe-victor.sql'    # 25  el catalogo, tras encadenado y plazos
   )
   $n = 0
   foreach ($f in $once) {
@@ -135,7 +137,7 @@ try {
     Write-Output ('  ' + $n.ToString().PadLeft(2) + ' - ' + $f)
   }
   Write-Output ''
-  Write-Output '  Los veintitres entraron, en el orden del README.'
+  Write-Output '  Los veinticinco entraron, en el orden del README.'
   Write-Output ''
 
   Correr (Join-Path $PSScriptRoot 'postgres-pruebas.sql')
@@ -170,7 +172,7 @@ finally {
 
 Write-Output ''
 if ($salida -eq 0) {
-  Write-Output '  Esto prueba lo que hay DENTRO de la base: que los veintitres entran en'
+  Write-Output '  Esto prueba lo que hay DENTRO de la base: que los veinticinco entran en'
   Write-Output '  ese orden, que los triggers saltan y que las politicas cierran.'
   Write-Output '  El tope del cubo lo aplica storage-api, que es otro servicio: eso'
   Write-Output '  solo lo dice PROBAR-CERRADURAS.bat contra un Supabase de verdad.'
