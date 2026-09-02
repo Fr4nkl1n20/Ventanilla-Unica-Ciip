@@ -125,7 +125,8 @@ try {
     'supabase-una-viva.sql',         # 22  solo necesita tramites
     'supabase-hilo.sql',             # 23  necesita tramites y documentos
     'supabase-hilo-citas.sql',       # 24  necesita citas y documentos
-    'supabase-informe-victor.sql'    # 25  el catalogo, tras encadenado y plazos
+    'supabase-informe-victor.sql',   # 25  el catalogo, tras encadenado y plazos
+    'supabase-pliego.sql'            # 26  solo necesita es_admin y es_gestor
   )
   $n = 0
   foreach ($f in $once) {

@@ -1813,6 +1813,315 @@ exception when others then
 end
 $p$;
 
+
+-- ══ 15 · EL PLIEGO DE DATOS ══════════════════════════════════════════
+-- Una cuenta propia, y hay que decir por que: la B esta BORRADA desde la
+-- seccion 3. Con su id, la clave foranea de persona rechazaba cualquier
+-- insercion ANTES de que RLS llegara a opinar, asi que dos comprobaciones
+-- de aqui salian verdes porque esa persona no existe y no porque las
+-- cerraduras funcionaran. Lo dijo el sabotaje: romperlas no las ponia en
+-- rojo. Es la segunda vez que pasa lo mismo en este arnes.
+insert into auth.users (email, raw_user_meta_data) values
+  ('d@prueba.local', '{"nombre_completo":"Delia Inversionista","pais":"Peru"}');
+insert into arnes.gente (papel, id)
+select 'D', id from auth.users where email = 'd@prueba.local';
+-- Del punto 3 del informe del 2 de septiembre. Lo que se mide aqui no es
+-- que el pliego exista -no existe todavia, y es a proposito- sino que la
+-- maquinaria se comporte igual con la tabla vacia que llena.
+
+-- Con la tabla VACIA no se le pide nada a nadie. Es lo primero porque es
+-- lo que se rompe primero: una puerta cerrada con nada detras deja fuera
+-- a todo el mundo, y eso pasaria el dia que esto se despliegue sin que
+-- el abogado haya aprobado el texto -o sea, el dia de manana-.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+select arnes.comprueba(
+  'pliego: sin pliego publicado no se le pide nada a nadie',
+  public.pliego_pendiente() is null,
+  coalesce(public.pliego_pendiente()::text, 'null'));
+reset role;
+
+-- Ahora se publica uno. Desde aqui, sin sesion, que es la puerta de
+-- servicio: en Supabase lo hara un admin desde el panel.
+insert into public.pliegos (version, titulo, texto, vigente, publicado_en)
+values (1, 'Pliego de prueba',
+        jsonb_build_object('es', 'Texto de prueba del pliego.'), true, now());
+
+-- Y ahora si le falta. Este es el cambio que hace util toda la tabla: la
+-- misma persona, la misma consulta, y la respuesta cambia porque hay algo
+-- que aceptar.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+select arnes.comprueba(
+  'pliego: con uno vigente, a quien no lo acepto le falta',
+  public.pliego_pendiente() = 1,
+  coalesce(public.pliego_pendiente()::text, 'null'));
+
+insert into public.pliego_aceptaciones (persona, version)
+values ((select id from arnes.gente where papel = 'A'), 1);
+
+select arnes.comprueba(
+  'pliego: tras aceptarlo, ya no le falta',
+  public.pliego_pendiente() is null,
+  coalesce(public.pliego_pendiente()::text, 'null'));
+
+-- La firma la pone la BASE. Se manda con el id de otro a proposito: si
+-- se pudiera aceptar en nombre de un tercero, la constancia no probaria
+-- nada y ademas pareceria fiable, que es peor.
+-- Da igual como termine el intento -aqui choca con la clave unica,
+-- porque el disparador le pone SU id y esa fila ya existe-. Lo que se
+-- comprueba es el resultado: que no haya quedado nada a nombre de B.
+do $d$
+begin
+  insert into public.pliego_aceptaciones (persona, version)
+  values ((select id from arnes.gente where papel = 'D'), 1);
+exception when others then
+  null;
+end
+$d$;
+
+-- Y AHORA el disparador, aparte. Lo de arriba lo para RLS -with check
+-- (persona = auth.uid())-, asi que con el disparador roto sigue sin pasar
+-- nada: la comprobacion salia verde con la firma desmontada. Era un
+-- adorno, y lo dijo el sabotaje.
+--
+-- Se afloja RLS a proposito para medir el respaldo, igual que con la
+-- inmutabilidad. Si el disparador hace su trabajo, la fila queda a nombre
+-- de A aunque se pida a nombre de B.
+reset role;
+create policy "pliego: PRUEBA insert" on public.pliego_aceptaciones
+  for insert with check (true);
+insert into public.pliegos (version, titulo, texto, vigente, publicado_en)
+values (50, 'Para medir la firma', jsonb_build_object('es', 'x'), false, now());
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $d$
+begin
+  insert into public.pliego_aceptaciones (persona, version)
+  values ((select id from arnes.gente where papel = 'D'), 50);
+exception when others then
+  null;
+end
+$d$;
+select arnes.comprueba(
+  'pliego: la firma la pone la base, no quien escribe',
+  /* coalesce, y no es adorno: sin fila la subconsulta devuelve NULL, y en
+     este arnes un NULL no cuenta ni como verde ni como rojo -el informe
+     hace count(*) filter (where ok) y el corte final where not ok, y NULL
+     no entra en ninguno-. O sea que desaparecia de las dos cuentas y el
+     sabotaje de la firma salia en verde. Sin fila = mal. */
+  coalesce((select persona = (select id from arnes.gente where papel = 'A')
+             from public.pliego_aceptaciones where version = 50), false),
+  (select coalesce(persona::text, 'no hay fila')
+     from public.pliego_aceptaciones where version = 50));
+reset role;
+-- arnes.nadie() y no solo reset role: el rol cambia pero la SESION sigue
+-- puesta -request.jwt.claims lo guarda la conexion-, asi que auth.uid()
+-- seguia siendo A y el disparador de inmutabilidad cortaba esta misma
+-- limpieza. La puerta de servicio se abre estando de verdad sin sesion.
+select arnes.nadie();
+drop policy "pliego: PRUEBA insert" on public.pliego_aceptaciones;
+delete from public.pliego_aceptaciones where version = 50;
+delete from public.pliegos where version = 50;
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+select arnes.comprueba(
+  'pliego: no se puede aceptar en nombre de otro',
+  (select count(*) = 0 from public.pliego_aceptaciones
+    where persona = (select id from arnes.gente where papel = 'D')),
+  (select count(*)::text from public.pliego_aceptaciones
+    where persona = (select id from arnes.gente where papel = 'D')));
+
+-- Y a B, que no ha aceptado nada, le sigue faltando. Sin esto lo de
+-- arriba podria pasar contando filas de otra manera.
+select arnes.soy((select id from arnes.gente where papel = 'D'));
+select arnes.comprueba(
+  'pliego: y a quien no acepto le sigue faltando',
+  public.pliego_pendiente() = 1,
+  coalesce(public.pliego_pendiente()::text, 'null'));
+
+-- ── lo dicho no se reescribe, y hay DOS cerraduras ──
+-- Esto se escribio primero esperando un ERROR, y salio en rojo. Con
+-- razon, y es la leccion que este proyecto lleva escrita desde el
+-- principio y aqui se me olvido: RLS no da error cuando bloquea, DEVUELVE
+-- CERO FILAS. El update se ejecuta, no toca nada, y todo el mundo tan
+-- contento. Asi que se mira el RESULTADO, que es lo unico que vale.
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+update public.pliego_aceptaciones set cuando = now() - interval '1 year'
+ where persona = (select id from arnes.gente where papel = 'A');
+delete from public.pliego_aceptaciones
+ where persona = (select id from arnes.gente where papel = 'A');
+
+select arnes.comprueba(
+  'pliego: el consentimiento sigue ahi y con su fecha',
+  (select count(*) = 1 from public.pliego_aceptaciones
+    where persona = (select id from arnes.gente where papel = 'A')
+      and version = 1
+      and cuando > now() - interval '1 hour'),
+  (select coalesce(count(*)::text, '0') from public.pliego_aceptaciones
+    where persona = (select id from arnes.gente where papel = 'A')));
+
+-- LA SEGUNDA CERRADURA. La de arriba es RLS: no hay politica de update ni
+-- de delete, y por eso no toca nada. El disparador es el respaldo, «por si
+-- mañana alguien añade una politica», y mientras no la haya NO SE PUEDE
+-- ALCANZAR: RLS corta antes. O sea que estaba sin probar y parecia
+-- probado, que es como se acumulan los adornos.
+--
+-- Se le pone la politica que falta, se comprueba que el disparador muerde
+-- igual, y se quita. Es la unica forma de medir el respaldo sin quitar lo
+-- que respalda.
+reset role;
+create policy "pliego: PRUEBA update" on public.pliego_aceptaciones
+  for update using (true) with check (true);
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $p$
+begin
+  update public.pliego_aceptaciones set cuando = now() - interval '1 year'
+   where persona = (select id from arnes.gente where papel = 'A');
+  perform arnes.comprueba('pliego: y el disparador lo corta aunque haya politica', false, 'SE PUDO');
+exception when others then
+  perform arnes.comprueba('pliego: y el disparador lo corta aunque haya politica', true, sqlerrm);
+end
+$p$;
+reset role;
+drop policy "pliego: PRUEBA update" on public.pliego_aceptaciones;
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+-- Ni el inversionista publica pliegos. Cambiar el vigente es cambiar a
+-- que esta consintiendo todo el mundo.
+do $d$
+begin
+  insert into public.pliegos (version, titulo, texto, vigente, publicado_en)
+  values (98, 'Mio', jsonb_build_object('es', 'Cedo todo.'), false, now());
+exception when others then
+  null;   /* que no entre es lo que se comprueba abajo */
+end
+$d$;
+select arnes.comprueba(
+  'pliego: un inversionista no publica pliegos',
+  (select count(*) = 0 from public.pliegos where version = 98));
+reset role;
+
+-- Sin castellano no hay pliego: el instrumento que obliga es el
+-- venezolano, y uno que solo existiera traducido dejaria sin saber cual
+-- de las seis versiones es la que vale.
+do $p$
+begin
+  insert into public.pliegos (version, titulo, texto, vigente)
+  values (97, 'Solo ingles', jsonb_build_object('en', 'Only English.'), false);
+  perform arnes.comprueba('pliego: sin castellano no entra', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('pliego: sin castellano no entra', true, sqlerrm);
+end
+$p$;
+
+-- Dos vigentes a la vez seria gente aceptando pliegos distintos el mismo
+-- dia, y pliego_pendiente() devolviendo uno u otro segun le diera.
+do $p$
+begin
+  insert into public.pliegos (version, titulo, texto, vigente, publicado_en)
+  values (96, 'El segundo', jsonb_build_object('es', 'Otro.'), true, now());
+  perform arnes.comprueba('pliego: no caben dos vigentes', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('pliego: no caben dos vigentes', true, sqlerrm);
+end
+$p$;
+
+-- Y uno vigente sin fecha de publicacion es un pliego que nadie sabe
+-- desde cuando obliga.
+--
+-- Se apaga antes el que hay. Con el puesto, esta insercion la rechazaba
+-- el indice de «uno solo vigente» ANTES de mirar la fecha, asi que la
+-- comprobacion salia verde con la restriccion de la fecha desmontada:
+-- estaba midiendo la cerradura de al lado.
+update public.pliegos set vigente = false where vigente;
+do $p$
+begin
+  insert into public.pliegos (version, titulo, texto, vigente)
+  values (95, 'Sin fecha', jsonb_build_object('es', 'Otro.'), true);
+  perform arnes.comprueba('pliego: uno vigente lleva fecha', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('pliego: uno vigente lleva fecha', true, sqlerrm);
+end
+$p$;
+update public.pliegos set vigente = true where version = 1;
+
+-- Solo se acepta lo VIGENTE. Una version vieja que siguiera en la tabla
+-- -y siguen, que para eso se guardan- podria ser mas floja que la de hoy.
+update public.pliegos set vigente = false where version = 1;
+insert into public.pliegos (version, titulo, texto, vigente, publicado_en)
+values (2, 'La segunda', jsonb_build_object('es', 'Texto nuevo.'), true, now());
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'D'));
+do $d$
+begin
+  insert into public.pliego_aceptaciones (persona, version)
+  values ((select id from arnes.gente where papel = 'D'), 1);
+exception when others then
+  null;   /* que la rechace es lo que se comprueba abajo */
+end
+$d$;
+select arnes.comprueba(
+  'pliego: no se puede aceptar una version que ya no rige',
+  (select count(*) = 0 from public.pliego_aceptaciones where version = 1
+     and persona = (select id from arnes.gente where papel = 'D')));
+
+-- Y a quien acepto la 1, la 2 le vuelve a faltar. Es lo que hace que
+-- versionar sirva de algo: si al cambiar el pliego nadie tuviera que
+-- volver a aceptar, la version nueva no la habria consentido nadie.
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+select arnes.comprueba(
+  'pliego: al publicar una version nueva, hay que volver a aceptarla',
+  public.pliego_pendiente() = 2,
+  coalesce(public.pliego_pendiente()::text, 'null'));
+
+-- Y a B, que no ha aceptado NINGUNA, le toca la 2 y no la 1. Parece la
+-- misma comprobacion que la de arriba y no lo es: A tiene la 1 aceptada,
+-- asi que una funcion que ignorara «vigente» le devolveria la 2 igual y
+-- pasaria. B no tiene ninguna, y ahi si se distingue mirar el vigente de
+-- devolver la primera que encuentre. Salia verde con «vigente» quitado.
+select arnes.soy((select id from arnes.gente where papel = 'D'));
+select arnes.comprueba(
+  'pliego: y a quien no acepto ninguna le toca la vigente, no la vieja',
+  public.pliego_pendiente() = 2,
+  coalesce(public.pliego_pendiente()::text, 'null'));
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+-- Y la vieja se puede releer: quien acepto la 1 tiene derecho a ver que
+-- fue lo que acepto, aunque hoy rija la 2. Eso es medio habeas data.
+select arnes.comprueba(
+  'pliego: la version vieja se sigue pudiendo leer',
+  (select count(*) = 1 from public.pliegos where version = 1),
+  (select count(*)::text from public.pliegos where version = 1));
+reset role;
+
+-- Y anon no llama a la funcion. En Supabase el 'alter default
+-- privileges' se la concede POR SU NOMBRE a los tres roles, asi que
+-- revocarsela a PUBLIC no se la quita. Se comprueba como las demas.
+set role anon;
+select arnes.nadie();
+do $p$
+begin
+  perform public.pliego_pendiente();
+  perform arnes.comprueba('pliego: anon no puede llamar a pliego_pendiente', false, 'PUDO');
+exception when insufficient_privilege then
+  perform arnes.comprueba('pliego: anon no puede llamar a pliego_pendiente', true, sqlerrm);
+end
+$p$;
+reset role;
+
+-- Se deja la tabla como estaba: vacia. Las de mas arriba comprueban que
+-- con la tabla vacia no se bloquea a nadie, y dejar un pliego publicado
+-- aqui haria que esa comprobacion dependiera del orden.
+select arnes.nadie();   /* por lo mismo de arriba */
+delete from public.pliego_aceptaciones;
+delete from public.pliegos;
+
 reset role;
 
 \o

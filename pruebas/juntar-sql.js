@@ -21,7 +21,7 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-presencia','supabase-sectores','supabase-catalogos','supabase-bitacora',
 'supabase-bloqueo','supabase-acompanamiento','supabase-gestor','supabase-cola',
 'supabase-avisos','supabase-aranceles','supabase-huellas','supabase-encadenado',
-'supabase-plazos','supabase-una-viva','supabase-hilo','supabase-hilo-citas','supabase-informe-victor'];
+'supabase-plazos','supabase-una-viva','supabase-hilo','supabase-hilo-citas','supabase-informe-victor','supabase-pliego'];
 
 let mal = 0;
 for (const n of orden) {
@@ -34,9 +34,9 @@ if (!mal) console.log('  ninguno lleva ordenes de psql: es SQL puro, vale tal cu
 const raya = '-- ' + '='.repeat(68);
 const trozos = [
   raya,
-  '--  LOS 25 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat',
+  '--  LOS 26 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat',
   raya,
-  '--  Esto es la union literal de los 25 supabase-*.sql, sin cambiar una',
+  '--  Esto es la union literal de los 26 supabase-*.sql, sin cambiar una',
   '--  coma, pegados en el orden que ejecuta el arnes contra un Postgres de',
   '--  usar y tirar. Ese orden no esta deducido leyendo cabeceras: si uno',
   '--  usara algo que otro define despues, la tanda se caeria diciendo cual.',
@@ -47,7 +47,7 @@ const trozos = [
   '--  forma de poner al dia un proyecto que ya tenia la mitad.',
   '--',
   '--  Generado el ' + new Date().toISOString().slice(0, 10) + '. Si cambia un archivo, se vuelve a generar:',
-  '--  no se edita a mano, que entonces son 24 sitios donde mirar.',
+  '--  no se edita a mano, que entonces son 25 sitios donde mirar.',
   raya,
   ''
 ];
