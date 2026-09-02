@@ -1056,6 +1056,38 @@ async function principal(){
     if (!q.ok) sinRecoger.push(t.id);
   }
 
+  /* ── y lo que no se pudo borrar, se aparta ──
+     Esta tanda ENVIA solicitudes a proposito: sin eso no se puede probar
+     que una enviada ya no se descarta, ni que la escalera deja pasar de
+     borrador a enviado. Y una enviada no la borra su dueño -esa es
+     justamente la cerradura que se acaba de comprobar-, asi que se
+     quedaban ahi.
+
+     Vivas. Y desde que existe el indice tramites_una_viva, una viva
+     impide crear otra del mismo tipo: la vuelta siguiente chocaba con
+     un 23505 y dos cerraduras salian en rojo sin que hubiera ningun
+     agujero. La tanda se rompia a si misma, una vuelta mas tarde.
+
+     Se arregla moviendolas a 'devuelto' con la cuenta del equipo, que
+     es un paso legitimo de la escalera desde los tres estados vivos. Un
+     tramite devuelto no ocupa el sitio -el indice solo cuenta enviado,
+     en_revision y ante_el_ente- asi que la vuelta siguiente entra
+     limpia. No se borran: no se puede, y que no se pueda es lo que se
+     estaba probando. */
+  const apartados = [];
+  if (conGestor && sinRecoger.length){
+    for (const id of sinRecoger.slice()){
+      const q = await pide('/rest/v1/tramites?id=eq.' + id, {
+        method: 'PATCH', token: conGestor.token, headers: json(),
+        body: JSON.stringify({ estado: 'devuelto' })
+      });
+      if (q.ok && Array.isArray(q.cuerpo) && q.cuerpo.length){
+        apartados.push(id);
+        sinRecoger.splice(sinRecoger.indexOf(id), 1);
+      }
+    }
+  }
+
   /* ── el resultado ───────────────────────────────────────────────── */
   let mal = 0;
   for (const x of R){
@@ -1073,6 +1105,12 @@ async function principal(){
     console.log('  Quedan en la base las constancias de identidad que firmo esta');
     console.log('  prueba. No se pueden borrar, y que no se puedan es la cerradura');
     console.log('  funcionando. Se quitan desde el SQL Editor si estorban.\n');
+  }
+
+  if (apartados.length){
+    console.log('  Se apartaron a "devuelto" ' + apartados.length + ' solicitud(es) que esta');
+    console.log('  tanda envio y no puede borrar: una enviada no la borra su dueño.');
+    console.log('  Asi no ocupan sitio y la vuelta siguiente entra limpia.' + String.fromCharCode(10));
   }
 
   if (sinRecoger.length){
