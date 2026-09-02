@@ -1754,11 +1754,31 @@ select arnes.comprueba(
 
 -- Los tres niveles.
 select arnes.comprueba(
-  'informe: los seis obligatorios de la fase 1 estan marcados',
-  (select count(*) = 6 from public.tipos_tramite
+  'informe: los cinco obligatorios de la fase 1 estan marcados',
+  (select count(*) = 5 from public.tipos_tramite
     where nivel = 'obligatorio' and fase = 1),
   (select coalesce(string_agg(ref_panel, ' ' order by ref_panel), 'ninguno')
      from public.tipos_tramite where nivel = 'obligatorio' and fase = 1));
+
+-- Los otros seis de la fase 1. La suma tiene que dar once: si un tramite
+-- de esa fase se quedara sin marcar, volveria a verse igual que los
+-- obligatorios y la primera pantalla seguiria pareciendo un muro, que es
+-- justo lo que se venia a arreglar.
+select arnes.comprueba(
+  'informe: y los otros seis de la fase 1 son opcionales',
+  (select count(*) = 6 from public.tipos_tramite
+    where nivel = 'opcional' and fase = 1),
+  (select coalesce(string_agg(ref_panel, ' ' order by ref_panel), 'ninguno')
+     from public.tipos_tramite where nivel = 'opcional' and fase = 1));
+
+-- Y que no quede ninguno de la fase 1 en otro nivel: cinco mas seis, once.
+select arnes.comprueba(
+  'informe: la fase 1 son once, y todos marcados',
+  (select count(*) = 11 from public.tipos_tramite
+    where fase = 1 and nivel in ('obligatorio','opcional')),
+  (select coalesce(string_agg(ref_panel || '=' || nivel, ' ' order by ref_panel), '-')
+     from public.tipos_tramite
+    where fase = 1 and nivel not in ('obligatorio','opcional')));
 
 select arnes.comprueba(
   'informe: y los cinco de la fase 2',
@@ -1780,7 +1800,7 @@ select arnes.comprueba(
 select arnes.comprueba(
   'informe: ningun tramite se queda sin nivel',
   (select count(*) = 0 from public.tipos_tramite
-    where nivel is null or nivel not in ('obligatorio','esencial','actividad')));
+    where nivel is null or nivel not in ('obligatorio','esencial','actividad','opcional')));
 
 -- La restriccion muerde: un nivel inventado no entra. Sin esto, un error
 -- de escritura dejaria un tramite invisible para las tres vistas.

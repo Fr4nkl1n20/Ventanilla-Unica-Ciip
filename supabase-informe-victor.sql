@@ -51,9 +51,18 @@ update public.tipos_tramite set fase = 3 where codigo = 'rnc';
 --    obligatorio   sin esto el CIIP no puede seguir contigo
 --    esencial      indispensable para comerciar, pero NO bloquea al CIIP
 --    actividad     depende del ramo; puede que a ti no te toque
+--    opcional      solo si te hace falta a ti
 --
 --  El tercero sale de: «las empresas dependen del rubro al que pertenezcan
 --  y su modelo comercial requerirán más o menos permisos».
+--
+--  El cuarto es distinto del tercero y por eso no se juntan. «Según tu
+--  actividad» habla del RAMO —una empresa de software no necesita permiso
+--  sanitario— y «opcional» habla de TI: la homologación de la licencia de
+--  conducir sólo le hace falta a quien va a conducir, y la visa de
+--  dependientes a quien trae familia. Decirle «según tu actividad» a quien
+--  no trae familia sería mandarle a averiguar algo que no depende de su
+--  sector, y quedarse mirando la tarjeta.
 
 alter table public.tipos_tramite
   add column if not exists nivel text not null default 'esencial';
@@ -62,10 +71,10 @@ alter table public.tipos_tramite
   drop constraint if exists tipos_tramite_nivel_valido;
 alter table public.tipos_tramite
   add  constraint tipos_tramite_nivel_valido
-  check (nivel in ('obligatorio', 'esencial', 'actividad'));
+  check (nivel in ('obligatorio', 'esencial', 'actividad', 'opcional'));
 
 comment on column public.tipos_tramite.nivel is
-  'obligatorio = el CIIP no sigue sin el; esencial = hace falta para comerciar pero no bloquea; actividad = segun el ramo. Del informe del 2 de septiembre de 2026';
+  'obligatorio = el CIIP no sigue sin el; esencial = hace falta para comerciar pero no bloquea; actividad = segun el ramo; opcional = solo si te hace falta a ti. Del informe del 2 de septiembre de 2026';
 
 
 -- ── los obligatorios de la fase 1 ──
@@ -75,11 +84,17 @@ comment on column public.tipos_tramite.nivel is
 --   Personal Apostillada / Legalizada: Partidas, antecedentes y
 --   credenciales básicas [...] 4. Cédula de Extranjería / Transeúnte y
 --   RIF Personal [...] 5. Poder de Representación Legal.»
+--  Son CINCO y no seis, y la diferencia la decidio el CIIP el 2 de
+--  septiembre: el punto 3 del informe -«Partidas, antecedentes y
+--  credenciales basicas»- cae sobre DOS tarjetas nuestras, la de
+--  antecedentes penales y la de apostilla. Se queda obligatoria la de
+--  APOSTILLA, que es el servicio que deja cualquier papel personal en
+--  regla; los antecedentes pasan a opcional porque no todos los
+--  consulados los exigen igual.
 update public.tipos_tramite set nivel = 'obligatorio'
  where codigo in ('visa_inversionista',      -- 1
                   'cedula_residencia',       -- 4, "cedula de extranjeria / transeunte"
                   'rif_personal',            -- 4
-                  'antecedentes_penales',    -- 3, "antecedentes"
                   'apostilla_documentos',    -- 3, "documentacion personal apostillada"
                   'poder_representacion');   -- 2 y 5, el modulo nuevo de mas abajo
 
@@ -124,8 +139,31 @@ update public.tipos_tramite set nivel = 'actividad'
  where codigo in ('permiso_sanitario', 'permiso_ambiental', 'permiso_bomberos',
                   'conformidad_uso', 'licencia_municipal', 'comercio_exterior',
                   'registros_laborales', 'faov_banavih', 'inces', 'rnet',
-                  'rnc', 'solvencias', 'licencia_conducir', 'visa_dependientes',
-                  'cert_medico', 'constancia_domicilio', 'firma_electronica');
+                  'rnc', 'solvencias');
+
+-- ── y los cinco de la fase 1 que no son obligatorios ──
+--  «Estos trámites quiero ponerlos como obligatorios en la fase uno y los
+--   demás como opcionales.»  (CIIP, 2 de septiembre de 2026)
+--
+--  Van a 'opcional' y no a 'actividad' a proposito. Los cinco dependen de
+--  la persona y no del ramo: la homologacion de la licencia solo le hace
+--  falta a quien va a conducir, la visa de dependientes a quien trae
+--  familia, y el certificado medico y la constancia de domicilio solo
+--  cuando se los pida el tramite que los use.
+--
+--  Es lo que arregla la primera pantalla: de once tarjetas iguales pasa a
+--  seis que hacen falta y cinco que dicen «solo si te toca». Que era
+--  exactamente lo que pedia el informe -«que a la vista el inversionista
+--  no sienta que debe concretar todos los tramites»- y que marcarlas como
+--  «segun tu actividad» no conseguia: eso manda a averiguar algo que no
+--  depende del sector.
+update public.tipos_tramite set nivel = 'opcional'
+ where codigo in ('licencia_conducir',      -- c4   solo si vas a conducir
+                  'antecedentes_penales',   -- c16  ver la nota de los obligatorios
+                  'constancia_domicilio',   -- c18
+                  'firma_electronica',      -- c19
+                  'visa_dependientes',      -- c20  solo si traes familia
+                  'cert_medico');           -- c21
 
 
 -- ───────────────────────────────────────────────────────────────────────
