@@ -1814,6 +1814,23 @@ end
 $p$;
 
 
+-- El registro de la inversion extranjera, en la fase 4. Tenia una etapa
+-- para el solo y desde el 3 de septiembre comparte la 4. Si el catalogo
+-- dijera 5 y la pantalla ensenara cuatro etapas, la tarjeta seguiria
+-- saliendo -el marcado manda- pero cualquier consulta por fase mentiria.
+select arnes.comprueba(
+  'informe: el registro de inversion esta en la fase 4',
+  (select fase = 4 from public.tipos_tramite where codigo = 'registro_inversion'),
+  (select fase::text from public.tipos_tramite where codigo = 'registro_inversion'));
+
+-- Y que no quede NINGUNO en una quinta fase que ya no existe en pantalla.
+select arnes.comprueba(
+  'informe: ya no hay tramites en una fase 5',
+  (select count(*) = 0 from public.tipos_tramite where fase = 5),
+  (select coalesce(string_agg(ref_panel, ' '), 'ninguno')
+     from public.tipos_tramite where fase = 5));
+
+
 -- ══ 15 · EL PLIEGO DE DATOS ══════════════════════════════════════════
 -- Una cuenta propia, y hay que decir por que: la B esta BORRADA desde la
 -- seccion 3. Con su id, la clave foranea de persona rechazaba cualquier

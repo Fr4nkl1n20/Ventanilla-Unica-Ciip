@@ -567,8 +567,11 @@
           (CASO === 'lleno') ? '1 de 11 listos' : '0 de 11 listos');
     igual('camino: la fase 02 cuenta sus 8',           deEtapa(1, '.jcount'), '0 de 8 listos');
     igual('camino: la fase 03 cuenta sus 11',          deEtapa(2, '.jcount'), '0 de 11 listos');
-    igual('camino: la fase 04 cuenta sus 2',           deEtapa(3, '.jcount'), '0 de 2 listos');
-    igual('camino: la fase 05 cuenta su único trámite', deEtapa(4, '.jcount'), '0 de 1 listos');
+    /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
+       inversión extranjera tenía una etapa para él solo —y una etapa con una
+       sola tarjeta dentro— y ahora comparte la 4 con el banco de activos y
+       las solvencias. Ya no hay quinta. */
+    igual('camino: la fase 04 cuenta sus 3',           deEtapa(3, '.jcount'), '0 de 3 listos');
 
     (function(){
       var barra = etapas()[0].querySelector('.jbar > span');
@@ -914,10 +917,61 @@
         igual('opcionales: repintar no duplica la caja',
           f1.querySelectorAll('.opc-caja').length, 1);
 
-        /* Una fase sin nada que apartar no estrena un botón vacío. */
-        var f4 = document.querySelector('[data-fase="4"]');
-        igual('opcionales: la fase sin opcionales no lleva caja',
-          f4 ? f4.querySelectorAll('.opc-caja').length : -1, 0);
+        /* Aquí había otra que miraba la fase 4 para decir que una fase sin
+           nada que apartar no estrena botón. Al fundirse la 4 con la 5, esa
+           fase pasó a tener un opcional, y la comprobación de más abajo
+           -«la que no tiene obligatorios se queda entera»- mide lo mismo
+           sobre la misma fase y además con un caso más difícil. Se quita
+           en vez de dejar dos nombres distintos para una sola cosa. */
+      })();
+
+      /* ── el nombre no repite lo que ya dice el ente ──
+         Al renombrar las tarjetas de la fase 3 con los nombres del informe,
+         varias venian con el organismo entre parentesis: «Habilitacion
+         Aduanera y Comercio Exterior (VUCE)», «Calificacion para
+         Contratacion Publica (RNC)». Y el galon del ente sale justo debajo,
+         en el mismo golpe de vista, diciendo VUCE y RNC.
+
+         Se quitaron esos, y NO los que anaden algo: «(licencia municipal)»
+         se queda, porque el ente de esa tarjeta dice «Alcaldia» y la gente
+         la conoce por el otro nombre.
+
+         Esto no fija los NOMBRES -son contenido, los decide el CIIP y
+         cambian- sino la regla. Un nombre que repite su propio ente entra
+         solo, sin que nadie lo note, y son treinta y tres tarjetas. */
+      (function(){
+        /* Sobre el DICCIONARIO y no sobre lo pintado, y es la diferencia
+           entre medir y no medir: la tarjeta enseña un solo idioma a la vez,
+           así que mirando el DOM se comprueba uno de seis. Se saboteó el
+           nombre en castellano y la prueba salió verde porque la pantalla
+           iba en inglés.
+
+           El ente es el mismo en los seis -es una sigla, no se traduce-, así
+           que se lee del marcado una vez y se cruza con las seis. */
+        var entes = {};
+        document.querySelectorAll('.tcard[data-tr]').forEach(function(c){
+          var eb = (c.querySelector('.t-ente .ebadge') || {}).textContent || '';
+          if (eb.trim()) entes[c.getAttribute('data-tr')] = eb.trim().toLowerCase();
+        });
+
+        var repes = [];
+        Object.keys(I18N).forEach(function(lang){
+          Object.keys(I18N[lang]).forEach(function(clave){
+            var m = clave.match(/^(c[0-9]+)\.name$/);
+            if (!m || !entes[m[1]]) return;
+            /* El paréntesis del final, ENTERO. Aquí estuvo escrito
+               /(([^)]+))s*$/ —sin las barras invertidas, que se perdieron al
+               escribir el fichero— y esa expresión no puede coincidir NUNCA:
+               la cadena acaba en «)» y ni [^)] ni s* lo aceptan. La prueba
+               existía, corría, y no medía nada. Salió sólo al romper el
+               código a propósito y ver que seguía verde. */
+            var par = String(I18N[lang][clave]).match(/\(([^)]+)\)\s*$/);
+            if (par && par[1].trim().toLowerCase() === entes[m[1]])
+              repes.push(lang + ' ' + m[1] + ' «' + I18N[lang][clave] + '»');
+          });
+        });
+        igual('tarjetas: ningún nombre repite entre paréntesis su propio ente',
+              repes.join(' · '), '');
       })();
 
       /* ── los que van juntos ──
@@ -959,6 +1013,23 @@
         igual('grupo: y se traduce como cualquier otro rótulo',
               t.getAttribute('data-i18n'), 'g.parafiscal');
 
+        /* Y el SEGUNDO grupo: las licencias sectoriales, que son dos y de
+           dos organismos distintos. Se mira aparte porque con uno solo la
+           función podría estar escrita para un caso y no para una lista, y
+           eso no se ve hasta que llega el segundo. */
+        var t2 = rej.querySelector('.grupo-t[data-grupo="g.sectorial"]');
+        ok('grupo: y el de las licencias sectoriales también', !!t2,
+           t2 ? t2.textContent.trim() : 'no está', 'Licencias sectoriales');
+        if (t2){
+          var h2 = [].slice.call(rej.children);
+          var j  = h2.indexOf(t2);
+          igual('grupo: con sus dos detrás',
+                h2.slice(j+1, j+3).map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
+                'c12 c30');
+        }
+        igual('grupo: y son dos títulos, no uno repetido',
+              rej.querySelectorAll('.grupo-t').length, 2);
+
         /* Las cuatro, JUNTAS y detrás del título. Se lee la rejilla tal
            como quedó, en orden, y se comprueba que los cuatro que siguen
            al título son exactamente esos: si una se quedara donde estaba,
@@ -991,8 +1062,12 @@
         /* Repintar no duplica el título. Es el mismo fallo que tuvo la
            caja de opcionales al encontrarse a sí misma. */
         if (window.CIIP_JUNTA_GRUPOS) window.CIIP_JUNTA_GRUPOS();
+        /* Por GRUPO y no en total: contar todos los títulos hacía que
+           añadir el segundo -las licencias sectoriales- pusiera esto en
+           rojo sin que nada estuviera mal. Lo que no puede pasar es que un
+           grupo salga dos veces, no que haya dos grupos. */
         igual('grupo: repintar no lo duplica',
-              rej.querySelectorAll('.grupo-t').length, 1);
+              rej.querySelectorAll('.grupo-t[data-grupo="g.parafiscal"]').length, 1);
         igual('grupo: y las cuatro siguen donde estaban',
               [].slice.call(rej.children)
                 .slice([].slice.call(rej.children).indexOf(t) + 1, 
@@ -1068,7 +1143,11 @@
            la guarda salió VERDE dos veces seguidas. Vuelve, y por eso la
            tanda hay que correrla entera después de mover pruebas de sitio,
            no sólo mirar que el número final suba. */
-        var f5 = document.querySelector('[data-fase="5"]');
+        /* La 4 desde que se fundió con la 5. Y sigue siendo el caso que
+           hace falta: en el doble tiene un OPCIONAL -el registro de la
+           inversión- y ningún obligatorio, así que si la guarda no
+           estuviera, sus tres tarjetas se irían detrás de un botón. */
+        var f5 = document.querySelector('[data-fase="4"]');
         igual('fases: la que no tiene obligatorios se queda entera',
           f5 ? f5.querySelectorAll('.opc-caja').length : -1, 0);
 
@@ -1135,7 +1214,7 @@
       /* Pero el orden no puede perderse: lo llevan los puntos. */
       var puntos = [];
       etapas().forEach(function(e){ puntos.push(e.querySelector('.num').textContent.trim()); });
-      igual('camino: y el punto sigue numándolas', puntos.join(''), '12345');
+      igual('camino: y el punto sigue numándolas', puntos.join(''), '1234');
 
       var nombres = [];
       etapas().forEach(function(e){ nombres.push(e.querySelector('.jname').textContent.trim()); });
@@ -1149,9 +1228,66 @@
          rimen, sino que sean EXACTAMENTE estos cinco: cambiar el nombre de
          una fase es cambiar como se llama el producto por dentro, y no
          puede pasar sin que nadie se entere. */
-      igual('camino: las cinco etapas se llaman como deben',
+      /* ── y las cuatro cajas, cuadradas ──
+         Lo que se mide es que las cuatro BARRAS esten a la misma altura, no
+         que el nombre ocupe tres renglones. El alto del nombre es como se
+         consigue hoy -un numero fijo en el CSS- y es fragil: el dia que un
+         nombre envuelva a cuatro renglones, su barra cae y esto se pone
+         rojo, que es exactamente lo que se quiere. Ya paso dos veces: con
+         la fase 01 al dejar de llamarse «Llegar» y con la 04 al fundirse
+         con la 05. */
+      (function(){
+        /* La distancia DENTRO de su caja, no la altura en la pantalla: en
+           los pases estrechos el carril se parte en dos filas y comparar la
+           Y absoluta daba 232 px de diferencia con todo bien puesto. Lo que
+           tiene que ser igual es cuanto baja la barra desde el borde de su
+           propia caja. */
+        var yy = [];
+        etapas().forEach(function(e){
+          var b = e.querySelector('.jbar');
+          if (b) yy.push(Math.round(b.getBoundingClientRect().top -
+                                   e.getBoundingClientRect().top));
+        });
+        function desnivel(){
+          var v = [];
+          etapas().forEach(function(e){
+            var b = e.querySelector('.jbar');
+            if (b) v.push(Math.round(b.getBoundingClientRect().top -
+                                     e.getBoundingClientRect().top));
+          });
+          return {lista:v, dif: v.length ? Math.max.apply(null,v) - Math.min.apply(null,v) : -1};
+        }
+        var d = desnivel();
+        ok('camino: las cuatro barras quedan a la misma altura',
+           d.lista.length >= 4 && d.dif <= 1,
+           d.lista.join(' / ') + '  (' + d.dif + ' px de diferencia)',
+           'todas iguales');
+
+        /* Y APRETANDO el carril, que es donde de verdad se rompe.
+
+           A la anchura de la tanda -1400- no envuelve nada y esta prueba
+           pasaba con el hueco del nombre puesto a dos renglones, o sea sin
+           medir nada: el descuadre lo vio el CIIP en su pantalla, no aqui.
+           Se estrecha el carril hasta donde el nombre mas largo envuelve a
+           tres y se vuelve a medir. */
+        (function(){
+          var carril = document.querySelector('.journey');
+          if (!carril) return;
+          var era = carril.style.width;
+          carril.style.width = '830px';
+          void carril.offsetWidth;
+          var e = desnivel();
+          ok('camino: y también cuando el carril se estrecha',
+             e.lista.length >= 4 && e.dif <= 1,
+             e.lista.join(' / ') + '  (' + e.dif + ' px de diferencia)',
+             'todas iguales');
+          carril.style.width = era;
+        })();
+      })();
+
+      igual('camino: las cuatro etapas se llaman como deben',
             nombres.join(' → '),
-            'Acreditación de identidad y legitimación → Estructuración corporativa → Habilitación operativa y cumplimiento → Crecer → Invertir');
+            'Acreditación de identidad y legitimación → Estructuración corporativa → Habilitación operativa y cumplimiento → Expansión y consolidación de inversión');
       /* En el ÍNDICE de abajo hace falta algo que ponga las cuatro en orden,
          pero no la palabra: el mismo punto numerado que usa el camino. */
       /* Los números, centrados de verdad dentro de su punto. Centrar la caja
@@ -1195,7 +1331,7 @@
 
       var pns = [];
       document.querySelectorAll('.phase-h .pn').forEach(function(p){ pns.push(p.textContent.trim()); });
-      igual('fases: el índice numera con puntos, no con la palabra', pns.join(''), '12345');
+      igual('fases: el índice numera con puntos, no con la palabra', pns.join(''), '1234');
 
       /* Y en ningún sitio de la portada vuelve a aparecer "Fase". */
       var conFase = [];

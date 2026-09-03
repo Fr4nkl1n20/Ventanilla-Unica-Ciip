@@ -107,6 +107,24 @@ update public.tipos_tramite set fase = 3 where codigo = 'rnc';
 
 
 -- ───────────────────────────────────────────────────────────────────────
+-- 1.1 Y LAS FASES 4 Y 5 SE FUNDEN EN UNA
+-- ───────────────────────────────────────────────────────────────────────
+--  «4.4. Fases 4 y 5: Crecer e Invertir -> Expansión y Consolidación de
+--   Inversión.»
+--
+--  El registro de la inversión extranjera tenía una etapa para él solo, con
+--  una sola tarjeta dentro. Sigue siendo lo que separa a un inversionista
+--  extranjero de cualquier comerciante local -sin él no hay por dónde sacar
+--  ni las utilidades ni el capital- pero eso no pedía una fase entera.
+--
+--  El panel pasa de cinco etapas a cuatro, y esta línea es para que el
+--  catálogo diga lo mismo que la pantalla. La restricción de la tabla sigue
+--  admitiendo hasta 5 y se deja así: apretarla a 4 no gana nada y haría
+--  fallar el archivo en cualquier base donde quede una fila con 5.
+update public.tipos_tramite set fase = 4 where codigo = 'registro_inversion';
+
+
+-- ───────────────────────────────────────────────────────────────────────
 -- 2. TRES NIVELES DONDE HABÍA UNO
 -- ───────────────────────────────────────────────────────────────────────
 --  «La idea es que a la vista el inversionista no sienta que debe

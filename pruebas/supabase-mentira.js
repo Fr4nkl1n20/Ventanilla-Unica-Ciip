@@ -176,8 +176,10 @@
        viven todos en la fase 1, que sí tiene obligatorios. Un sabotaje que
        quitara esa guarda salía verde, y salió.
 
-       Y la guarda importa justo aquí: la fase 5 tiene UNA tarjeta. Sin
-       ella, esa fase se quedaría vacía con un botón que dice «ver 1». */
+       Y la guarda importa: desde que las fases 4 y 5 se fundieron, esta
+       tarjeta vive en la 4, que no tiene ningún obligatorio. Sin la guarda,
+       sus tres tarjetas se irían detrás de un botón y la etapa quedaría
+       vacía. */
     {codigo:'registro_inversion', ref_panel:'c31', ente:'CIIP', activo:true,
      nombre:'Registro de inversión extranjera', fase:5, nivel:'opcional'},
     /* Con nivel explicito, como en la base: la columna es NOT NULL con
