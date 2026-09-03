@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════════════
---  PARA LA BASE REAL · lo que le falta a fecha de 2026-09-02
+--  PARA LA BASE REAL · lo que le falta a fecha de 2026-09-03
 -- ═══════════════════════════════════════════════════════════════════════
 --  QUE HAY QUE HACER
 --  ─────────────────────────────────────────────────────────────────────
@@ -9,115 +9,122 @@
 --  EN QUE PROYECTO
 --  ─────────────────────────────────────────────────────────────────────
 --  En el REAL, el que sirve la pagina publicada. NO en el de pruebas: ese
---  ya los tiene desde el 2026-09-02.
+--  ya lo tiene.
 --
 --  Si no estas seguro de cual es, abre la pagina publicada, pulsa F12 y
 --  mira la consola: el panel escribe al arrancar una linea que dice
 --  «CIIP · base de datos: real → https://XXXX.supabase.co». Esa es.
 --
---  POR QUE SOLO DOS ARCHIVOS Y NO LOS VEINTICINCO
+--  QUE LE FALTA HOY, Y QUE NO
 --  ─────────────────────────────────────────────────────────────────────
---  Porque los otros veintitres ya estan puestos. Se comprobo contra la
---  base misma el 2026-09-02, sin iniciar sesion y sin leer ni una fila:
---  PostgREST contesta distinto a una columna que existe pero esta tapada
---  por RLS -200 con lista vacia- que a una que no existe -400 con 42703-.
---  Por ahi se ve el esquema sin ver los datos.
+--  Se comprobo contra la base misma el 2026-09-03, sin iniciar sesion y
+--  sin leer ni una fila: PostgREST contesta distinto a una columna que
+--  existe pero esta tapada por RLS -200 con lista vacia- que a una que no
+--  existe -400 con 42703-. Por ahi se ve el esquema sin ver los datos.
 --
---  Faltaban exactamente estas dos cosas:
+--    tipos_tramite.nivel        YA ESTA   (se corrio el 2 de septiembre)
+--    tabla cita_mensajes        YA ESTA   (idem)
+--    tabla pliegos              falta     ← esto
+--    tabla pliego_aceptaciones  falta     ← esto
 --
---    tipos_tramite.nivel        NO estaba   (archivo 25)
---    tabla cita_mensajes        NO estaba   (archivo 24)
---
---  Y estaban ya emite, plazo_dias, tramite_mensajes y archivos_huerfanos.
+--  O sea que de la tanda anterior no queda nada pendiente. Este archivo
+--  trae SOLO el 26.
 --
 --  SI TIENES CUALQUIER DUDA, PEGA TODO-EN-ORDEN.sql EN VEZ DE ESTE
 --  ─────────────────────────────────────────────────────────────────────
---  Aquel trae los veinticinco y siempre es correcto, aunque este archivo
---  se haya quedado viejo. Los veinticinco son idempotentes -create if not
---  exists, create or replace, drop policy if exists-, asi que volver a
---  pasar lo que ya estaba no rompe nada. Este archivo solo existe para no
---  hacerte pegar 254 KB en el editor.
+--  Aquel trae los veintiseis y siempre es correcto, aunque este archivo se
+--  haya quedado viejo. Todos son idempotentes -create if not exists,
+--  create or replace, drop policy if exists-, asi que volver a pasar lo que
+--  ya estaba no rompe nada. Este archivo solo existe para no hacerte pegar
+--  270 KB en el editor.
 --
 --  QUE VA A CAMBIAR EN LA PANTALLA
 --  ─────────────────────────────────────────────────────────────────────
---  Hoy el panel real enseña las treinta y tres tarjetas iguales. Despues
---  de esto, cada una dira si es obligatoria o no, la fase 1 apartara sus
---  seis opcionales detras de un boton, y la cabecera de cada etapa dira
---  cuantos obligatorios faltan. Sin la columna `nivel` el panel se queda
---  como esta, a proposito: no inventa niveles que la base no le da.
+--  NADA, y es a proposito.
 --
---  NO BORRA NI APAGA NADA. Añade una columna, dos tramites y una tabla.
---  Ningun expediente en marcha se toca.
+--  Esto crea la maquinaria del pliego de datos: las versiones, la
+--  constancia de quien acepto cual y cuando, y la funcion que dice si a
+--  alguien le falta. Pero la tabla NACE VACIA, y con ella vacia el panel
+--  no le pide nada a nadie: pliego_pendiente() devuelve null y todo sigue
+--  igual que hoy.
 --
---  Las comprobaciones van al final de cada archivo, comentadas. La que
---  contesta «salio bien» de un vistazo es esta, y tiene que devolver
---  cinco en la fase 1 y cinco en la fase 2:
+--  La puerta se enciende sola el dia que se publique una version, y eso no
+--  pasa hasta que el abogado del CIIP apruebe el texto. Esta explicado en
+--  PLIEGO-BORRADOR.md y la plantilla para publicarlo esta en la seccion 5
+--  de este mismo archivo.
 --
---    select fase, count(*), string_agg(ref_panel, ' ' order by ref_panel)
---    from public.tipos_tramite where nivel = 'obligatorio' group by fase;
+--  NO BORRA NI APAGA NADA. Añade dos tablas y dos funciones. Ningun
+--  expediente en marcha se toca, y ninguna cuenta queda bloqueada.
+--
+--  COMO SABER QUE SALIO BIEN
+--  ─────────────────────────────────────────────────────────────────────
+--  Esta consulta tiene que devolver CERO FILAS y no dar error. Cero filas
+--  es lo correcto: la tabla existe y esta vacia, que es como debe quedar.
+--
+--    select version, titulo, vigente, publicado_en from public.pliegos;
 -- ═══════════════════════════════════════════════════════════════════════
 
 
 -- ====================================================================
---  24 / 25   supabase-hilo-citas.sql
---  el hilo de una cita
+--  26 / 26   supabase-pliego.sql
+--  el pliego de datos y quien lo acepto
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
---  EL HILO DE UNA CITA
---  Va DESPUÉS de supabase-citas.sql y de supabase-hilo.sql.
+--  EL PLIEGO DE DATOS, Y QUIÉN LO ACEPTÓ
+--  Va DESPUÉS de supabase-admin.sql y de supabase-gestor.sql.
 -- ═══════════════════════════════════════════════════════════════════════
---  POR QUÉ EXISTE
+--  DE DÓNDE SALE
 --  ─────────────────────────────────────────────────────────────────────
---  Quien acaba de entrar y no ha empezado ningún trámite no tiene dónde
---  preguntar. El hilo del expediente cuelga de una solicitud, y él no
---  tiene ninguna. Así que sus primeras preguntas —«¿por dónde empiezo?»,
---  «¿mi caso califica?»— salen por correo o por teléfono, y lo que se
---  responda ahí no queda en ninguna parte.
+--  Del punto 3 del informe del 2 de septiembre de 2026:
 --
---  Es justo el momento en que una ventanilla única se gana o se pierde.
+--    «Protocolo de Protección y Reserva de Datos (Habeas Data): siendo el
+--     CIIP depositario de balances contables, composiciones accionarias y
+--     transferencias de activos internacionales protegidos bajo el régimen
+--     especial de la Ley Constitucional Antibloqueo, resulta mandatorio
+--     redactar y vincular formalmente en la plataforma un pliego de
+--     Términos, Condiciones y Políticas de Tratamiento de Datos Personales
+--     y Confidenciales.»
 --
---  POR QUÉ AQUÍ Y NO EN UN CHAT SUELTO
+--  LO QUE HABÍA, Y POR QUÉ NO BASTABA
 --  ─────────────────────────────────────────────────────────────────────
---  Se pensó en un canal general, sin colgar de nada, y es peor por tres
---  razones:
+--  La casilla existía desde el primer día, en acceso.html y en el login:
 --
---   1. En cuanto hay dos sitios donde escribir, la gente escribe en el que
---      tiene delante. Las preguntas de un trámite acabarían en el general
---      y el hilo del expediente perdería lo único que lo hace valioso: que
---      cada línea sabe de qué solicitud habla.
---   2. Una bandeja sin fondo no tiene cola, ni dueño, ni forma de saber
---      qué está sin contestar. El hilo del expediente funciona porque
---      cuelga de trabajo en marcha que alguien ya tiene abierto.
---   3. Con adjuntos, lo primero que llega en un primer contacto son
---      pasaportes. Sin nada detrás que los sostenga, son papeles sueltos.
+--    «Acepto el tratamiento de mis datos para la gestión de trámites.»
 --
---  Y no hacía falta inventar nada, porque el sitio ya estaba previsto.
---  supabase-citas.sql lo dice de su propia columna:
+--  Y era una casilla, no un consentimiento. Tres agujeros, y ninguno se ve
+--  mirando la pantalla:
 --
---    «tipo_tramite — Null = una consulta general, que es un caso legítimo
---     y no un dato que falte: no toda cita es de un trámite.»
+--   1. NO ENLAZABA A NADA. Se aceptaba una frase de doce palabras; no había
+--      documento que leer. Consentir requiere saber a qué.
 --
---  O sea: una cita general YA ES la conversación general. Lo que le
---  faltaba era la vuelta. La cita tiene una nota de ida y ninguna de
---  regreso, así que la conversación se moría ahí y seguía por fuera.
+--   2. NO QUEDABA REGISTRADO. Ni qué se aceptó, ni cuándo. A la pregunta
+--      «¿este inversionista consintió el tratamiento de sus balances?» la
+--      respuesta era «no se sabe», que es la peor de las tres posibles.
 --
---  Esto es esa vuelta. Y cada mensaje sigue colgando de algo que tiene
---  ESTADO y DUEÑO —solicitada, confirmada, hecha, cancelada—, que es lo
---  que convierte «un mensaje» en «algo que alguien tiene que atender».
+--   3. Y CASI NADIE LA VEÍA. El acceso del CIIP dejó de tener registro
+--      propio: las cuentas las crea el equipo. Quien entra por ahí nunca
+--      llegaba a marcar nada.
 --
---  LO QUE SE REPITE DE supabase-hilo.sql, Y POR QUÉ SE REPITE
+--  QUÉ HACE ESTE ARCHIVO, Y QUÉ NO
 --  ─────────────────────────────────────────────────────────────────────
---  La forma es la misma: la firma la pone la base, el adjunto tiene que
---  ser del dueño, y lo dicho no se reescribe. Son dos tablas y no una
---  porque las llaves foráneas apuntan a sitios distintos —una a tramites
---  y otra a citas— y meterlas juntas obligaría a una columna nula en cada
---  fila y a un check que vigile que exactamente una de las dos está
---  puesta. Más código para ahorrar una tabla.
+--  Hace la MAQUINARIA: versiones del pliego, constancia de quién aceptó
+--  cuál y cuándo, y una función que dice si a alguien le falta aceptar.
 --
---  Lo que NO se repite es la política que deja al equipo dejar un
---  documento en la bóveda de otro: la de supabase-hilo.sql no menciona
---  trámites, así que vale igual aquí.
+--  NO trae el texto. La tabla nace VACÍA, igual que bancos_aliados y que
+--  sectores, y por la misma razón llevada un paso más lejos: un pliego que
+--  regula datos protegidos por la Ley Antibloqueo es un instrumento
+--  jurídico, y uno redactado sin abogado que llegara a producción dejaría
+--  al CIIP respaldado por un texto que no ha firmado nadie.
+--
+--  Hay un borrador en PLIEGO-BORRADOR.md para que el abogado del CIIP
+--  corrija en vez de empezar en blanco. No es el pliego: es la materia
+--  prima. Al final de este archivo está el INSERT para publicarlo cuando
+--  esté aprobado.
+--
+--  Mientras la tabla esté vacía NO SE BLOQUEA A NADIE. Una puerta cerrada
+--  con nada detrás deja fuera a todo el mundo, y eso ya estaba dicho en
+--  supabase-sectores.sql antes de este informe.
 -- ═══════════════════════════════════════════════════════════════════════
 
 
@@ -126,601 +133,329 @@
 -- ───────────────────────────────────────────────────────────────────────
 do $$
 begin
-  if to_regclass('public.citas') is null then
-    raise exception using
-      message = 'Falta la tabla public.citas',
-      hint    = 'Ejecuta antes supabase-citas.sql en este mismo proyecto.';
+  if not exists (
+    select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proname = 'es_admin'
+  ) then
+    raise exception 'Falta public.es_admin(). Pasa antes supabase-admin.sql.';
   end if;
 end $$;
 
 
-create table if not exists public.cita_mensajes (
-  id   uuid primary key default gen_random_uuid(),
-  cita uuid not null references public.citas(id) on delete cascade,
+-- ───────────────────────────────────────────────────────────────────────
+-- 1. LAS VERSIONES DEL PLIEGO
+-- ───────────────────────────────────────────────────────────────────────
+-- Versiones y no un texto suelto, y esa es toda la decisión de diseño.
+--
+-- El pliego va a cambiar: cambia la ley, cambia lo que la ventanilla
+-- recoge, entra un organismo nuevo. Si hubiera un solo texto que se
+-- reescribe, una aceptación de marzo pasaría a decir que se aceptó lo que
+-- el pliego dice HOY, que es exactamente lo que un consentimiento no puede
+-- hacer. Es el mismo criterio de ordenes_pago con el monto y de avisos con
+-- el destinatario: se guarda lo que valía ENTONCES.
 
-  -- Lo pone el trigger con auth.uid(). Sobrevive a la cuenta borrada
-  -- -on delete set null- porque un hilo con un hueco donde había una
-  -- frase se lee peor que uno con una frase sin nombre.
-  autor uuid references auth.users(id) on delete set null,
+create table if not exists public.pliegos (
+  version  integer primary key,
+  titulo   text not null,
 
-  -- Copiado al escribir, no releído del perfil. Quien escribió era del
-  -- equipo ESE día; que mañana deje de serlo no cambia lo que dijo.
-  del_equipo boolean not null default false,
+  -- El texto por idioma: {"es": "...", "en": "..."}.
+  --
+  -- El castellano es OBLIGATORIO y los demás no, y no es comodidad: el
+  -- instrumento que obliga es el venezolano. Los otros idiomas son
+  -- cortesía para que el inversionista entienda lo que firma, y la
+  -- pantalla lo dice al pie. Un pliego que sólo existiera traducido
+  -- dejaría sin saber cuál de las seis versiones es la que vale.
+  texto    jsonb not null default '{}'::jsonb,
 
-  texto     text not null default '',
-  documento uuid references public.documentos(id) on delete set null,
+  vigente  boolean not null default false,
 
-  creado_en timestamptz not null default now(),
+  publicado_en  timestamptz,
+  publicado_por uuid references auth.users(id) on delete set null,
+  creado_en     timestamptz not null default now(),
 
-  constraint cita_mensaje_dice_algo
-    check (length(trim(texto)) > 0 or documento is not null),
-  constraint cita_mensaje_cabe check (length(texto) <= 4000)
+  constraint pliegos_texto_es_objeto check (jsonb_typeof(texto) = 'object'),
+  -- Sin castellano no hay pliego. Ver arriba.
+  constraint pliegos_con_castellano  check (texto ? 'es'),
+  constraint pliegos_castellano_no_vacio
+    check (length(trim(texto ->> 'es')) > 0),
+  -- Uno vigente sin fecha de publicación es un pliego que nadie sabe desde
+  -- cuándo obliga.
+  constraint pliegos_vigente_con_fecha
+    check (not vigente or publicado_en is not null)
 );
 
-comment on table  public.cita_mensajes            is 'La conversación sobre una cita. Con tipo_tramite null, es la consulta general de quien aún no ha empezado nada';
-comment on column public.cita_mensajes.del_equipo is 'Si lo escribió el CIIP. Copiado al escribir: el rol de mañana no cambia lo de ayer';
+comment on table  public.pliegos         is 'Las versiones del pliego de tratamiento de datos. Se añaden; no se reescriben';
+comment on column public.pliegos.texto   is 'Por idioma. El castellano es el que obliga; los demás son cortesía';
+comment on column public.pliegos.vigente is 'La que hay que aceptar hoy. Solo puede haber una';
 
-create index if not exists cita_mensajes_por_cita
-  on public.cita_mensajes (cita, creado_en);
+-- UNA sola vigente. Con dos, la función de abajo devolvería una u otra
+-- según le diera, y habría gente aceptando pliegos distintos el mismo día.
+create unique index if not exists pliegos_uno_vigente
+  on public.pliegos ((true)) where vigente;
 
 
 -- ───────────────────────────────────────────────────────────────────────
--- 1. LA FIRMA LA PONE LA BASE
+-- 2. QUIÉN ACEPTÓ QUÉ, Y CUÁNDO
 -- ───────────────────────────────────────────────────────────────────────
--- Igual que en el hilo del expediente y por lo mismo: un mensaje que se
--- puede atribuir a otro es peor que no tener mensajes, porque parece
--- fiable. Se ignora lo que venga y se pone lo que es.
-create or replace function public.cita_mensaje_lo_firma_la_base()
+-- Append-only, como la constancia de identidad y por lo mismo: un
+-- consentimiento que quien lo pide puede reescribir después no prueba
+-- nada. No hay política de update ni de delete, y además lo corta un
+-- disparador por si mañana alguien añade una.
+
+create table if not exists public.pliego_aceptaciones (
+  id      bigint generated always as identity primary key,
+  persona uuid    not null references auth.users(id) on delete cascade,
+  version integer not null references public.pliegos(version),
+  cuando  timestamptz not null default now(),
+
+  -- Una vez por persona y versión. Volver a pulsar no escribe otra fila:
+  -- la fecha que importa es la PRIMERA vez que se aceptó.
+  constraint pliego_aceptaciones_una_vez unique (persona, version)
+);
+
+comment on table public.pliego_aceptaciones is
+  'Constancia de que alguien aceptó una version concreta del pliego. Solo se inserta';
+
+create index if not exists pliego_aceptaciones_por_persona
+  on public.pliego_aceptaciones (persona, version);
+
+-- La firma la pone la base, igual que en identidad_comprobaciones y en los
+-- dos hilos: se ignora lo que venga y se escribe lo que es. Un
+-- consentimiento que se puede atribuir a otro es peor que no tenerlo,
+-- porque parece fiable.
+create or replace function public.pliego_lo_firma_la_base()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $hilo$
+as $pliego$
 begin
-  new.autor      := auth.uid();
-  new.del_equipo := public.es_gestor();
-  new.creado_en  := now();
+  if auth.uid() is not null then
+    new.persona := auth.uid();
+    new.cuando  := now();
+  end if;
   return new;
 end
-$hilo$;
+$pliego$;
 
-drop trigger if exists cita_mensajes_firma on public.cita_mensajes;
-create trigger cita_mensajes_firma
-  before insert on public.cita_mensajes
-  for each row execute function public.cita_mensaje_lo_firma_la_base();
+drop trigger if exists pliego_aceptacion_firma on public.pliego_aceptaciones;
+create trigger pliego_aceptacion_firma
+  before insert on public.pliego_aceptaciones
+  for each row execute function public.pliego_lo_firma_la_base();
 
-
--- ───────────────────────────────────────────────────────────────────────
--- 2. NI EL ADJUNTO SE PUEDE FALSEAR
--- ───────────────────────────────────────────────────────────────────────
--- Sin esto se podría colgar de un mensaje el documento de OTRA persona, y
--- como el hilo enseña sus adjuntos, eso sería una forma de leer la bóveda
--- ajena: adjunta un id cualquiera y mira qué sale.
-create or replace function public.adjunto_de_la_misma_cita()
+create or replace function public.pliego_aceptacion_no_se_toca()
 returns trigger
 language plpgsql
-security definer
-set search_path = public
-as $hilo$
-declare
-  duenio  uuid;
-  deQuien uuid;
+as $pliego$
 begin
-  if new.documento is null then
-    return new;
-  end if;
-
-  select inversionista into duenio  from public.citas      where id = new.cita;
-  select inversionista into deQuien from public.documentos where id = new.documento;
-
-  if deQuien is null or duenio is null or deQuien <> duenio then
-    raise exception 'Ese documento no es de esta cita.'
-      using errcode = 'check_violation';
-  end if;
-
-  return new;
-end
-$hilo$;
-
-drop trigger if exists cita_mensajes_adjunto on public.cita_mensajes;
-create trigger cita_mensajes_adjunto
-  before insert on public.cita_mensajes
-  for each row execute function public.adjunto_de_la_misma_cita();
-
-
--- ───────────────────────────────────────────────────────────────────────
--- 3. LO DICHO NO SE REESCRIBE
--- ───────────────────────────────────────────────────────────────────────
--- No hay política de UPDATE ni de DELETE, y esto lo cierra además por si
--- mañana alguien añade una. Con la puerta de servicio abierta -auth.uid()
--- nulo- para poder quitar a mano algo que no debería estar ahí.
-create or replace function public.cita_mensaje_no_se_toca()
-returns trigger
-language plpgsql
-as $hilo$
-begin
+  -- La puerta de servicio, como en las demás tablas: desde el SQL Editor
+  -- se puede enderezar a mano lo que haga falta.
   if auth.uid() is null then
     return coalesce(new, old);
   end if;
-  raise exception 'Un mensaje no se cambia ni se borra. Escribe otro.'
+  raise exception 'Un consentimiento no se cambia ni se borra.'
     using errcode = 'check_violation';
 end
-$hilo$;
+$pliego$;
 
-drop trigger if exists cita_mensajes_inmutable on public.cita_mensajes;
-create trigger cita_mensajes_inmutable
-  before update or delete on public.cita_mensajes
-  for each row execute function public.cita_mensaje_no_se_toca();
+drop trigger if exists pliego_aceptacion_inmutable on public.pliego_aceptaciones;
+create trigger pliego_aceptacion_inmutable
+  before update or delete on public.pliego_aceptaciones
+  for each row execute function public.pliego_aceptacion_no_se_toca();
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 3. ¿LE FALTA A ALGUIEN ACEPTAR?
+-- ───────────────────────────────────────────────────────────────────────
+-- Devuelve la versión vigente si quien pregunta no la ha aceptado, y null
+-- si no hay nada que aceptar. Null significa las dos cosas —«ya aceptaste»
+-- y «todavía no hay pliego»— y está bien que signifique las dos: en los
+-- dos casos la respuesta del panel es la misma, dejar pasar.
+--
+-- Es la pieza que hace que la tabla vacía no bloquee a nadie.
+
+create or replace function public.pliego_pendiente()
+returns integer
+language sql
+stable
+security definer
+set search_path = public
+as $pliego$
+  select p.version
+    from public.pliegos p
+   where p.vigente
+     and auth.uid() is not null
+     and not exists (
+       select 1 from public.pliego_aceptaciones a
+        where a.persona = auth.uid() and a.version = p.version
+     )
+   limit 1;
+$pliego$;
+
+-- Y se le quita a anon POR SU NOMBRE.
+--
+-- Supabase tiene puesto un 'alter default privileges' que concede EXECUTE
+-- sobre toda función nueva del esquema public a anon, authenticated y
+-- service_role. Ese grant es NOMINAL a cada rol, así que revocárselo a
+-- PUBLIC no se lo quita: anon se queda con el suyo. Se vio con
+-- tocar_visto() al correr PROBAR-CERRADURAS.bat contra un Supabase de
+-- verdad, y en un Postgres normal no pasa, así que ningún arnés local lo
+-- veía.
+--
+-- Aquí anon no se llevaría gran cosa —con auth.uid() nulo devuelve null—
+-- pero una puerta que acepta a quien no debería es una puerta abierta.
+revoke all on function public.pliego_pendiente() from public;
+revoke all on function public.pliego_pendiente() from anon;
+grant execute on function public.pliego_pendiente() to authenticated;
 
 
 -- ───────────────────────────────────────────────────────────────────────
 -- 4. QUIÉN LEE Y QUIÉN ESCRIBE
 -- ───────────────────────────────────────────────────────────────────────
-alter table public.cita_mensajes enable row level security;
+alter table public.pliegos             enable row level security;
+alter table public.pliego_aceptaciones enable row level security;
 
-drop policy if exists "cita_mensajes: los de mi cita" on public.cita_mensajes;
-create policy "cita_mensajes: los de mi cita" on public.cita_mensajes
-  for select using (
-    public.es_gestor() or exists (
-      select 1 from public.citas c
-      where c.id = cita and c.inversionista = auth.uid()
-    )
-  );
+-- El pliego lo lee cualquiera que haya entrado, incluidas las versiones
+-- viejas: quien aceptó la 1 tiene derecho a releer lo que aceptó, aunque
+-- hoy rija la 3. Ese es medio habeas data.
+drop policy if exists "pliegos: leerlos" on public.pliegos;
+create policy "pliegos: leerlos" on public.pliegos
+  for select to authenticated using (true);
 
--- Escribir: los dos, en los dos sentidos. Eso es todo el punto.
---
--- Y en CUALQUIER estado, cancelada incluida. Se pensó en cerrarlo al
--- cancelar y es peor: «¿por qué se canceló?» y «¿la pedimos para otro
--- día?» son exactamente las dos preguntas que llegan justo después, y
--- mandarlas por otro canal es lo que esto viene a quitar. Lo que ata el
--- hilo no es el estado, es la cita.
-drop policy if exists "cita_mensajes: escribir en mi cita" on public.cita_mensajes;
-create policy "cita_mensajes: escribir en mi cita" on public.cita_mensajes
+-- Y solo el admin los publica. Ni el gestor: cambiar el pliego vigente es
+-- cambiar a qué está consintiendo todo el mundo.
+drop policy if exists "pliegos: solo el admin los publica" on public.pliegos;
+create policy "pliegos: solo el admin los publica" on public.pliegos
+  for all to authenticated
+  using      (public.es_admin())
+  with check (public.es_admin());
+
+-- Cada quien ve lo que aceptó. El equipo también: atender un expediente
+-- sin poder comprobar si esa persona consintió es atender a ciegas.
+drop policy if exists "pliego: cada quien ve lo suyo" on public.pliego_aceptaciones;
+create policy "pliego: cada quien ve lo suyo" on public.pliego_aceptaciones
+  for select using (persona = auth.uid() or public.es_gestor());
+
+-- Y solo se acepta lo VIGENTE, y solo por uno mismo. Sin lo primero se
+-- podría aceptar una versión vieja y más floja que siguiera en la tabla;
+-- sin lo segundo, aceptar en nombre de otro.
+drop policy if exists "pliego: aceptar el propio" on public.pliego_aceptaciones;
+create policy "pliego: aceptar el propio" on public.pliego_aceptaciones
   for insert with check (
-    public.es_gestor() or exists (
-      select 1 from public.citas c
-      where c.id = cita and c.inversionista = auth.uid()
-    )
+    persona = auth.uid()
+    -- pliego_aceptaciones.version, ENTERO y no «version» a secas.
+    --
+    -- Sin cualificar, dentro de la subconsulta «version» se resuelve a la
+    -- columna de pliegos -que tambien se llama asi- y la condicion queda
+    -- en p.version = p.version: cierta siempre. O sea que la politica
+    -- decia comprobar que ESA version fuera la vigente y solo comprobaba
+    -- que hubiera alguna vigente, que no es lo mismo.
+    --
+    -- Lo encontro el sabotaje: quitar esta linea entera no ponia ninguna
+    -- prueba en rojo, porque no hacia nada.
+    and exists (select 1 from public.pliegos p
+                 where p.version = pliego_aceptaciones.version and p.vigente)
   );
 
-
--- ───────────────────────────────────────────────────────────────────────
--- COMPROBACIONES
--- ───────────────────────────────────────────────────────────────────────
--- 1) El hilo de una cita, en orden y diciendo quién habla:
---
---   select creado_en, del_equipo, texto, documento
---   from public.cita_mensajes where cita = '…' order by creado_en;
---
--- 2) Las consultas GENERALES, que son la razón de este archivo: citas sin
---    trámite detrás, con cuántas veces se ha hablado en cada una.
---
---   select c.id, c.estado, c.creado_en,
---          (select count(*) from public.cita_mensajes m where m.cita = c.id) as mensajes
---   from public.citas c
---   where c.tipo_tramite is null
---   order by c.creado_en desc;
---
--- 3) Y que nadie ve el hilo de otro. Eso no se comprueba desde el SQL
---    Editor -ahí auth.uid() es null y RLS no aplica-: hay que entrar con
---    dos cuentas, y es lo que hace PROBAR-CERRADURAS.bat.
-
-
--- ====================================================================
---  25 / 25   supabase-informe-victor.sql
---  la revision del 2 de septiembre
--- ====================================================================
-
--- ═══════════════════════════════════════════════════════════════════════
---  LO QUE PIDIÓ LA REVISIÓN DEL 2 DE SEPTIEMBRE DE 2026
---  Va DESPUÉS de supabase-tramites.sql y de supabase-encadenado.sql.
--- ═══════════════════════════════════════════════════════════════════════
---  DE DÓNDE SALE ESTE ARCHIVO
---  ─────────────────────────────────────────────────────────────────────
---  Del informe «Portal CIIP · Primer avance» de Víctor A. J. Corredor
---  Suárez, del 2 de septiembre de 2026. Se recoge aquí lo que se puede
---  ejecutar; lo que necesita una decisión del CIIP —los plazos legales de
---  Gaceta, la matriz de sector a permisos, el pliego de datos— no está y
---  está dicho al final, para que no parezca hecho.
---
---  Cada cambio lleva la frase del informe que lo pide. Sin eso, dentro de
---  seis meses nadie sabrá por qué el RNC cambió de fase.
--- ═══════════════════════════════════════════════════════════════════════
-
-
--- ═══════════════════════════════════════════════════════════════════════
---  CUÁLES SON LOS OBLIGATORIOS
--- ═══════════════════════════════════════════════════════════════════════
---  Los UPDATE de más abajo van repartidos, cada uno pegado a la frase del
---  informe que lo justifica, que es como tiene que estar. Pero entonces
---  para contestar «cuáles son los obligatorios» hay que leerse el archivo
---  entero y sumar de cabeza. Aquí están juntos.
---
---  Esta lista NO ejecuta nada: es el resumen de lo que hacen los UPDATE.
---  Si alguna vez no cuadran, mandan los UPDATE y esta lista está vieja;
---  la comprobación 1 del final los cuenta contra la base.
---
---  OBLIGATORIO quiere decir una cosa concreta y sólo una: **sin esto el
---  CIIP no puede seguir contigo**. No quiere decir que sea importante, ni
---  que lo exija la ley. El registro de marca lo exige la ley y no es
---  obligatorio aquí, porque el CIIP puede reconocer a la empresa sin él.
---
---
---  FASE 1 · TÚ  ──  cinco, y son los cinco que pide el informe
---  ─────────────────────────────────────────────────────────────────────
---    c1   visa_inversionista      Visa de inversionista (TR-I)   punto 1
---    c2   cedula_residencia       Cédula de extranjería          punto 4
---    c3   rif_personal            RIF personal                   punto 4
---    c17  apostilla_documentos    Documentación apostillada      punto 3
---    c33  poder_representacion    Acreditación del apoderado     puntos 2 y 5
---
---  El punto 3 del informe —«Partidas, antecedentes y credenciales
---  básicas»— cae sobre DOS tarjetas nuestras, y el CIIP escogió la
---  apostilla: es el servicio que deja cualquier papel personal en regla.
---  Los antecedentes penales (c16) se quedan opcionales porque no todos
---  los consulados los exigen igual. Está contado abajo, en su UPDATE.
---
---  Y el c33 no existía: sale del punto 4 de este archivo, el módulo de
---  apoderados. Es obligatorio porque, según el propio informe, el panel
---  «será utilizado por sus asistentes, administradores, abogados en la
---  mayoría de los casos» —y sin poder acreditado el CIIP no sabe con
---  quién está hablando.
---
---
---  FASE 2 · TU EMPRESA  ──  cinco
---  ─────────────────────────────────────────────────────────────────────
---    c32  registro_extranjeros    Firma en Registro de Extranjeros (SISREF)
---    c5   constitucion            Constitución de la empresa
---    c22  protocolizacion_acta    Protocolización del documento
---    c23  publicacion_acta        Publicación en prensa
---    c6   rif_empresa             RIF jurídico
---
---  El informe lo resume en una frase: «Al tener el documento otorgado en
---  Registro Mercantil y tramitar el RIF, lo demás no es obligatorio para
---  seguir los procesos con el CIIP». Los otros tres —c22, c23 y c32— no
---  son trámites aparte de ése: son las tres condiciones sin las cuales
---  ese documento no queda otorgado. El c32 va primero de todos porque es
---  «condición previa de estricto cumplimiento» para que un extranjero
---  pueda siquiera comparecer a firmar.
---
---
---  FASES 3, 4 y 5  ──  NINGUNO, y es a propósito
---  ─────────────────────────────────────────────────────────────────────
---  Ni un solo obligatorio, y no es un olvido. Los once de la fase 3 son
---  todos 'actividad': dependen del ramo, y el informe avisa de que
---  «cargar de oficio permisos ambientales o sanitarios a inversiones del
---  sector tecnológico crea confusión innecesaria». Marcar uno como
---  obligatorio sería decirle a una empresa de software que necesita
---  permiso sanitario.
---
---  El día que exista la matriz de sector a permisos —punto 2 de lo que
---  falta, al final de este archivo— serán obligatorios para unos sectores
---  y no para otros. Hasta entonces, ninguno lo es para todos.
---
---  Consecuencia visible: en esas tres fases el panel no pinta el renglón
---  de «te faltan N obligatorios». No es que falte código; es que no hay
---  nada que contar, y un «te faltan 0 de 0» sería ruido con cara de aviso.
--- ═══════════════════════════════════════════════════════════════════════
+-- No hay política de update ni de delete, a propósito. Ver el apartado 2.
 
 
 -- ───────────────────────────────────────────────────────────────────────
--- 1. EL RNC PASA DE «CRECER» A «OPERAR»
+-- 5. CÓMO SE PUBLICA EL PLIEGO CUANDO EL ABOGADO LO APRUEBE
 -- ───────────────────────────────────────────────────────────────────────
---  «Actualmente visible en la Fase 4 ("Crecer"), el RNC (Servicio Nacional
---   de Contrataciones) debe figurar en esta Fase 3 ("Operar"). Gran parte
---   de las inversiones canalizadas por el CIIP conllevan contratos marco
---   de producción compartida, alianzas estratégicas o contratación de
---   bienes y servicios con entidades estatales, siendo la calificación en
---   el RNC un requerimiento operativo habilitante desde el primer momento
---   contractual.»
+--  ESTO NO SE EJECUTA SOLO. Está comentado a propósito: mientras nadie lo
+--  descomente, la tabla sigue vacía y el panel no le pide nada a nadie.
 --
---  Va aparte del INSERT del catálogo y no dentro: aquel lleva ON CONFLICT
---  DO NOTHING y en una base que ya existe no tocaría nada.
-update public.tipos_tramite set fase = 3 where codigo = 'rnc';
-
-
--- ───────────────────────────────────────────────────────────────────────
--- 2. TRES NIVELES DONDE HABÍA UNO
--- ───────────────────────────────────────────────────────────────────────
---  «La idea es que a la vista el inversionista no sienta que debe
---   concretar todos los trámites para poder iniciar un proceso de
---   negociación ante el CIIP.»
+--  El texto sale de PLIEGO-BORRADOR.md, con las correcciones del abogado.
+--  Se pega tal cual entre las comillas dobles del jsonb, escapando sólo
+--  las comillas dobles que lleve dentro.
 --
---  «Algunos ítems deberán ser plasmados como obligatorios y otros como
---   requisitos indispensables o esenciales.»
+--    insert into public.pliegos (version, titulo, texto, vigente, publicado_en)
+--    values (
+--      1,
+--      'Términos, Condiciones y Políticas de Tratamiento de Datos',
+--      jsonb_build_object('es', $texto$
+--    ... aquí el pliego entero, tal como lo aprobó el abogado ...
+--    $texto$),
+--      true,
+--      now()
+--    );
 --
---  Hoy las treinta y una tarjetas se ven iguales, y eso es lo que hace
---  que la primera pantalla parezca un muro. La columna no cambia lo que
---  se puede solicitar —eso lo sigue diciendo `activo`— sino lo que se
---  ANUNCIA de cada trámite.
+--  El $texto$ ... $texto$ evita tener que escapar nada: se pega el
+--  documento con sus comillas, sus tildes y sus saltos de línea.
 --
---  Los tres niveles son los tres que nombra el informe:
+--  PARA PUBLICAR UNA VERSIÓN NUEVA, más adelante: se apaga la vieja y se
+--  inserta la nueva EN LA MISMA transacción, o el índice de arriba rechaza
+--  la segunda por haber dos vigentes a la vez.
 --
---    obligatorio   sin esto el CIIP no puede seguir contigo
---    esencial      indispensable para comerciar, pero NO bloquea al CIIP
---    actividad     depende del ramo; puede que a ti no te toque
---    opcional      solo si te hace falta a ti
+--    begin;
+--      update public.pliegos set vigente = false where vigente;
+--      insert into public.pliegos (version, titulo, texto, vigente, publicado_en)
+--      values (2, '...', jsonb_build_object('es', $texto$...$texto$), true, now());
+--    commit;
 --
---  El tercero sale de: «las empresas dependen del rubro al que pertenezcan
---  y su modelo comercial requerirán más o menos permisos».
+--  La versión vieja NO se borra: quien la aceptó tiene derecho a releerla,
+--  y su constancia apunta a ella.
 --
---  El cuarto es distinto del tercero y por eso no se juntan. «Según tu
---  actividad» habla del RAMO —una empresa de software no necesita permiso
---  sanitario— y «opcional» habla de TI: la homologación de la licencia de
---  conducir sólo le hace falta a quien va a conducir, y la visa de
---  dependientes a quien trae familia. Decirle «según tu actividad» a quien
---  no trae familia sería mandarle a averiguar algo que no depende de su
---  sector, y quedarse mirando la tarjeta.
-
---  QUÉ HACE EL PANEL CON CADA NIVEL
---  ─────────────────────────────────────────────────────────────────────
---  Una columna que nadie mira no arregla ninguna pantalla. Esto es lo que
---  el panel hace con ella, decidido por el CIIP el 2 de septiembre:
+--  PARA AÑADIR UNA TRADUCCIÓN a una versión ya publicada —eso sí se puede,
+--  porque no cambia lo que obliga—:
 --
---    obligatorio   se ve siempre, con su galón, y se cuenta en el renglón
---                  «te faltan N de T obligatorios» de la cabecera de la fase
---    esencial      no lleva galón, y se queda A LA VISTA
---    opcional      galón suave; se va detrás de «Ver los N opcionales»
---    actividad     galón «según tu actividad», y NO se aparta nunca
---
---  Lo 'esencial' llegó a apartarse, apoyándose en la frase del informe
---  sobre la marca, la cuenta bancaria y los libros —«no representan
---  trabas bloqueantes»—, y la fase 2 se quedó enseñando cinco de ocho.
---  El CIIP lo deshizo el mismo día: «dicha etapa es la más importante en
---  el panel [...] quiero que tenga estas 8 opciones». Constituir la
---  empresa es lo que la ventanilla viene a hacer, y ahí un trámite detrás
---  de un botón es un trámite que no se ve.
---
---  O sea que hoy el botón sale en la fase 1 y sólo en ella, que es donde
---  hay opcionales de verdad.
---
---  Las dos reglas que no son obvias, y las dos son por lo mismo:
---
---  1. Una fase sin ningún obligatorio no aparta NADA. Las once tarjetas de
---     la fase 3 dependen del ramo; con la regla ingenua se irían las once
---     detrás de un botón y la fase quedaría vacía. Eso no es apartar, es
---     esconder once permisos.
---
---  2. Lo de 'actividad' no se aparta ni cuando la fase sí aparta. «Según tu
---     actividad» avisa de que puede que a ti no te toque; esconderle el
---     permiso sanitario a quien sí lo necesita es peor que enseñárselo de
---     más. Con el catálogo de hoy esa regla no llega a usarse —las doce de
---     'actividad' están en fases sin obligatorios—, pero el día que exista
---     la matriz de sector a permisos sí, y entonces es la que importa.
---
---  Nada de esto filtra ni impide solicitar: lo que se puede solicitar lo
---  sigue diciendo la columna `activo`, y todo trámite apartado sigue
---  estando a un clic.
---
-alter table public.tipos_tramite
-  add column if not exists nivel text not null default 'esencial';
-
-alter table public.tipos_tramite
-  drop constraint if exists tipos_tramite_nivel_valido;
-alter table public.tipos_tramite
-  add  constraint tipos_tramite_nivel_valido
-  check (nivel in ('obligatorio', 'esencial', 'actividad', 'opcional'));
-
-comment on column public.tipos_tramite.nivel is
-  'obligatorio = el CIIP no sigue sin el; esencial = hace falta para comerciar pero no bloquea; actividad = segun el ramo; opcional = solo si te hace falta a ti. Del informe del 2 de septiembre de 2026';
-
-
--- ── los obligatorios de la fase 1 ──
---  «Recomiendo colocar trámites obligatorios para este proceso como lo
---   pueden ser: 1. Visa de Inversionista (TR-I) [...] 2. Documento de
---   Identidad y Poder de Representación Legal [...] 3. Documentación
---   Personal Apostillada / Legalizada: Partidas, antecedentes y
---   credenciales básicas [...] 4. Cédula de Extranjería / Transeúnte y
---   RIF Personal [...] 5. Poder de Representación Legal.»
---  Son CINCO y no seis, y la diferencia la decidio el CIIP el 2 de
---  septiembre: el punto 3 del informe -«Partidas, antecedentes y
---  credenciales basicas»- cae sobre DOS tarjetas nuestras, la de
---  antecedentes penales y la de apostilla. Se queda obligatoria la de
---  APOSTILLA, que es el servicio que deja cualquier papel personal en
---  regla; los antecedentes pasan a opcional porque no todos los
---  consulados los exigen igual.
-update public.tipos_tramite set nivel = 'obligatorio'
- where codigo in ('visa_inversionista',      -- 1
-                  'cedula_residencia',       -- 4, "cedula de extranjeria / transeunte"
-                  'rif_personal',            -- 4
-                  'apostilla_documentos',    -- 3, "documentacion personal apostillada"
-                  'poder_representacion');   -- 2 y 5, el modulo nuevo de mas abajo
-
--- ── y los obligatorios de la fase 2 ──
---  «Al tener el documento otorgado en Registro Mercantil y tramitar el
---   RIF, lo demás no es obligatorio para seguir los procesos con el CIIP
---   para concretar la inversión.»
---
---  O sea: lo que el CIIP necesita para reconocer a la empresa es el
---  documento constitutivo protocolizado y el RIF jurídico. La publicación
---  en prensa entra porque sin ella la protocolización no está completa.
-update public.tipos_tramite set nivel = 'obligatorio'
- where codigo in ('registro_extranjeros_saren',  -- condicion previa, ver abajo
-                  'constitucion',
-                  'protocolizacion_acta',
-                  'publicacion_acta',
-                  'rif_empresa');
-
--- ── los que son esenciales pero NO bloquean ──
---  «Se debe delimitar claramente que el Registro de Marca, la apertura de
---   la Cuenta Bancaria Empresarial y el sellado de Libros Contables /
---   Facturación corresponden a condiciones indispensables para el
---   comercio, más no representan trabas bloqueantes para que el CIIP
---   reconozca la personalidad jurídica de la empresa una vez
---   protocolizado el documento e inscrito el RIF Jurídico.»
-update public.tipos_tramite set nivel = 'esencial'
- where codigo in ('marca', 'cuenta_bancaria', 'libros_contables');
-
--- ── y los que dependen del ramo ──
---  «Todos esos requisitos son esenciales para algunos procesos sin embargo
---   acá no están todos los que se requieren según ciertas actividades de
---   comercio.»
---
---  «Cargar de oficio permisos ambientales o sanitarios a inversiones del
---   sector tecnológico o servicios financieros crea confusión
---   innecesaria.»
---
---  Marcarlos NO es filtrarlos: se siguen viendo todos. Lo único que
---  cambia es que la tarjeta avisa de que puede que a ti no te toque, que
---  es lo contrario de esconder un trámite que sí hacía falta.
-update public.tipos_tramite set nivel = 'actividad'
- where codigo in ('permiso_sanitario', 'permiso_ambiental', 'permiso_bomberos',
-                  'conformidad_uso', 'licencia_municipal', 'comercio_exterior',
-                  'registros_laborales', 'faov_banavih', 'inces', 'rnet',
-                  'rnc', 'solvencias');
-
--- ── y los cinco de la fase 1 que no son obligatorios ──
---  «Estos trámites quiero ponerlos como obligatorios en la fase uno y los
---   demás como opcionales.»  (CIIP, 2 de septiembre de 2026)
---
---  Van a 'opcional' y no a 'actividad' a proposito. Los cinco dependen de
---  la persona y no del ramo: la homologacion de la licencia solo le hace
---  falta a quien va a conducir, la visa de dependientes a quien trae
---  familia, y el certificado medico y la constancia de domicilio solo
---  cuando se los pida el tramite que los use.
---
---  Es lo que arregla la primera pantalla: de once tarjetas iguales pasa a
---  CINCO que hacen falta y SEIS que dicen «solo si te toca». Que era
---  exactamente lo que pedia el informe -«que a la vista el inversionista
---  no sienta que debe concretar todos los tramites»- y que marcarlas como
---  «segun tu actividad» no conseguia: eso manda a averiguar algo que no
---  depende del sector.
-update public.tipos_tramite set nivel = 'opcional'
- where codigo in ('licencia_conducir',      -- c4   solo si vas a conducir
-                  'antecedentes_penales',   -- c16  ver la nota de los obligatorios
-                  'constancia_domicilio',   -- c18
-                  'firma_electronica',      -- c19
-                  'visa_dependientes',      -- c20  solo si traes familia
-                  'cert_medico');           -- c21
+--    update public.pliegos
+--       set texto = texto || jsonb_build_object('en', $texto$...$texto$)
+--     where version = 1;
 
 
 -- ───────────────────────────────────────────────────────────────────────
--- 3. EL TRÁMITE QUE FALTABA: LA FIRMA EN EL REGISTRO DE EXTRANJEROS
+-- LO QUE ESTO NO HACE, DICHO PARA QUE NO SE DÉ POR HECHO
 -- ───────────────────────────────────────────────────────────────────────
---  «Se evidencia la ausencia crítica de la "Solicitud de Firma en Registro
---   de Extranjeros" a través del sistema SISREF del SAREN. Este paso
---   constituye una condición previa de estricto cumplimiento para que
---   personas naturales extranjeras puedan comparecer al otorgamiento del
---   documento constitutivo ante el Registro Mercantil.»
---
---  Se comprobó antes de escribir esto: no estaba, ni en tipos_tramite ni
---  en pasos.js. Y no es un trámite más de la lista. Sin él, el panel deja
---  empezar la constitución y el Registro Mercantil no deja firmar,
---  después de haber pagado el abogado y redactado el documento.
---
---  Por eso entra encadenado: EMITE la constancia de firma, y la
---  constitución la PIDE. Así la tarjeta del c5 dirá «esperando a» en vez
---  de dejar entrar a ciegas. Ver supabase-encadenado.sql.
-insert into public.tipos_documento (codigo, nombre, vence) values
-  ('constancia_sisref', 'Constancia de firma en el Registro de Extranjeros (SISREF)', false)
-on conflict (codigo) do update set nombre = excluded.nombre;
-
-insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values
-  ('registro_extranjeros_saren', 'c32',
-   'Solicitud de firma en el Registro de Extranjeros',
-   'SAREN · SISREF', 2, true)
-on conflict (codigo) do nothing;
-
-update public.tipos_tramite
-   set emite      = 'constancia_sisref',
-       -- Es una solicitud en linea con cita; el plazo sale del mismo sitio
-       -- que los otros veintitres: de lo que promete la tarjeta.
-       plazo_dias = 14,
-       nivel      = 'obligatorio',
-       activo     = true
- where codigo = 'registro_extranjeros_saren';
-
-
--- ───────────────────────────────────────────────────────────────────────
--- 4. EL MÓDULO QUE PIDE PARA LOS APODERADOS
--- ───────────────────────────────────────────────────────────────────────
---  «Siendo que la plataforma será operada mayormente por intermediarios
---   legales, es imperativo habilitar de entrada un módulo para la carga
---   del Poder (General o Especial) debidamente notariado y apostillado, a
---   fin de legitimar la actuación del gestor frente al CIIP.»
---
---  Y antes lo dice más claro todavía, y es la observación de fondo del
---  informe entero: «este panel no será utilizado por los inversionistas,
---  accionistas, comerciantes; será utilizado por sus asistentes,
---  administradores, abogados en la mayoría de los casos».
---
---  El tipo de documento 'poder' ya existía en la bóveda desde el primer
---  día. Lo que no existía era el trámite: un sitio donde el CIIP MIRE ese
---  poder y lo dé por bueno. Subir un papel no es acreditar a nadie.
-insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values
-  ('poder_representacion', 'c33',
-   'Acreditación de representación legal',
-   'CIIP', 1, true)
-on conflict (codigo) do nothing;
-
-update public.tipos_tramite
-   set emite      = 'poder',
-       plazo_dias = 7,
-       nivel      = 'obligatorio',
-       activo     = true
- where codigo = 'poder_representacion';
-
-
--- ───────────────────────────────────────────────────────────────────────
--- LO QUE EL INFORME PIDE Y AQUÍ **NO** ESTÁ
--- ───────────────────────────────────────────────────────────────────────
---  Se deja escrito para que no se dé por hecho. Ninguna de las cuatro es
---  código: las cuatro necesitan que el CIIP decida algo.
---
---  1. LOS PLAZOS LEGALES.
---     «Se recomienda suprimir de la vista del usuario el plazo en la
---      práctica y conservar de manera exclusiva el plazo legal
---      regulatorio.»
---     El panel NO enseña dos plazos: se comprobó buscándolo. Enseña UN
---     estimado por trámite, y esos números salen del texto de cada
---     tarjeta, no de Gaceta. Para hacer lo que pide hay que sustituir los
---     veinticinco números de supabase-plazos.sql por los legales. Los
---     tiene el CIIP; aquí inventarlos sería peor que no tenerlos.
---
---  2. LA MATRIZ DE SECTOR A PERMISOS.
---     «La plataforma debe condicionar dinámicamente los recaudos según el
---      ramo de actividad.»
---     La columna `perfiles.sector` está puesta y los ocho sectores
---     cargados desde supabase-sectores.sql, que ya avisaba de que no
---     decide qué trámites tocan porque «eso lo dice la normativa, y la
---     normativa la tiene el CIIP». Falta esa matriz. El `nivel =
---     'actividad'` de arriba es lo más honesto que se puede hacer sin
---     ella: avisar de que depende, sin esconder nada.
---
---  3. EL PLIEGO DE DATOS (HABEAS DATA).
---     «Resulta mandatorio redactar y vincular formalmente en la plataforma
---      un pliego de Términos, Condiciones y Políticas de Tratamiento de
---      Datos Personales y Confidenciales.»
---     Es un texto legal. Se puede enlazar y exigir su aceptación en
---     cuanto exista; redactarlo no es cosa de este archivo.
---
---  4. LOS PERMISOS QUE FALTAN EN LA FASE 3.
---     «Acá no están todos los que se requieren según ciertas actividades
---      de comercio.»
---     No dice cuáles. Hasta saberlo no se puede añadir ninguno sin
---     inventarlo.
+-- · No redacta el pliego. Ver la cabecera.
+-- · No guarda la IP ni el navegador desde donde se aceptó. Se pensó y se
+--   dejó fuera: es un dato personal más que habría que justificar en el
+--   propio pliego, y para acreditar el consentimiento bastan quién, qué
+--   versión y cuándo. Si el abogado lo pide, se añade.
+-- · No borra los datos de nadie. El derecho de supresión que el pliego
+--   reconozca se ejerce borrando la cuenta, que ya arrastra en cascada el
+--   expediente entero y apunta sus archivos para el barrendero. Que eso
+--   funcione ya está probado; que el pliego lo prometa es cosa del texto.
+-- · Y la aceptación se va con la cuenta -on delete cascade-, como la
+--   constancia de identidad. Es coherente con borrar de verdad cuando a
+--   alguien se le borra: guardar la prueba de un consentimiento de quien
+--   ya no está sería guardar justo lo que se dijo que se borraba.
 
 
 -- ───────────────────────────────────────────────────────────────────────
 -- COMPROBACIONES
 -- ───────────────────────────────────────────────────────────────────────
--- 1) El catálogo con su nivel, por fase:
+-- 1) Recién puesto esto, la tabla sale VACÍA y no es un fallo: el panel no
+--    le pide nada a nadie hasta que haya un pliego aprobado.
 --
---   select fase, nivel, count(*), string_agg(ref_panel, ' ' order by ref_panel)
---   from public.tipos_tramite group by fase, nivel order by fase, nivel;
+--   select version, titulo, vigente, publicado_en from public.pliegos;
 --
--- 2) Los dos nuevos, con lo que emiten:
+-- 2) Que no quepan dos vigentes. Con uno ya publicado, esto TIENE que
+--    fallar; si te deja, el índice no está puesto:
 --
---   select ref_panel, codigo, nombre, ente, fase, nivel, emite, plazo_dias, activo
---   from public.tipos_tramite where ref_panel in ('c32','c33');
+--   insert into public.pliegos (version, titulo, texto, vigente, publicado_en)
+--   values (99, 'prueba', '{"es":"x"}'::jsonb, true, now());
 --
--- 3) Los obligatorios, contra la lista de arriba. Tienen que salir DIEZ:
---    cinco en la fase 1 y cinco en la fase 2, y ninguno en las demás.
+-- 3) Quién ha aceptado y qué versión:
 --
---   select fase, count(*), string_agg(ref_panel, ' ' order by ref_panel)
---   from public.tipos_tramite where nivel = 'obligatorio' group by fase;
+--   select u.email, a.version, a.cuando
+--   from public.pliego_aceptaciones a join auth.users u on u.id = a.persona
+--   order by a.cuando desc;
 --
--- 4) Y el RNC, que tiene que salir en la fase 3:
+-- 4) Y a quién le falta. Ojo: esta consulta es del EQUIPO y mira a todos;
+--    la función pliego_pendiente() mira solo a quien pregunta.
 --
---   select ref_panel, nombre, fase, nivel from public.tipos_tramite where codigo = 'rnc';
+--   select u.email
+--   from auth.users u
+--   where exists (select 1 from public.pliegos p where p.vigente)
+--     and not exists (
+--       select 1 from public.pliego_aceptaciones a
+--        join public.pliegos p on p.version = a.version and p.vigente
+--       where a.persona = u.id);
+--
+-- 5) Que no se pueda reescribir un consentimiento. Desde el SQL Editor SÍ
+--    pasa —ahí auth.uid() es null y la puerta de servicio está abierta a
+--    propósito—, así que esto se prueba con sesión, y es lo que hace
+--    PROBAR-CERRADURAS.bat.
 
