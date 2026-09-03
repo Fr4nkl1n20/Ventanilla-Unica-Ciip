@@ -920,6 +920,97 @@
           f4 ? f4.querySelectorAll('.opc-caja').length : -1, 0);
       })();
 
+      /* ── los que van juntos ──
+         «Inscripción IVSS/INCES/FAOV/RNET: Cumplimiento de Obligaciones
+         Parafiscales y Laborales.» (informe del 2 de septiembre de 2026)
+
+         Cuatro trámites ante cuatro organismos que el inversionista hace
+         de una vez, y que estaban desperdigados entre los once de la fase
+         con permisos ambientales de por medio. */
+      (function(){
+        var rej = document.getElementById('trs-3');
+        var t   = rej && rej.querySelector('.grupo-t');
+
+        ok('grupo: la fase 03 lleva su título de grupo', !!t,
+           t ? t.textContent : 'no hay título', 'un título');
+        if (!t) return;
+
+        igual('grupo: y dice de qué son', t.textContent.trim(),
+              'Obligaciones parafiscales y laborales');
+
+        /* Y lo escribe QUIEN LO CREA, sin depender de que pase applyLang
+           después. Se comprueba quitando el título y volviéndolo a pedir,
+           porque si no las dos cosas se tapan: el rótulo lo pinta también
+           el data-i18n, así que romper una de las dos no se notaba y el
+           sabotaje salía verde. Sin esto habría un parpadeo en blanco
+           entre que se crea y se traduce. */
+        t.parentNode.removeChild(t);
+        if (window.CIIP_JUNTA_GRUPOS) window.CIIP_JUNTA_GRUPOS();
+        t = rej.querySelector('.grupo-t');
+        ok('grupo: nace ya con su texto, sin esperar a applyLang',
+           !!t && t.textContent.trim() === 'Obligaciones parafiscales y laborales',
+           t ? (t.textContent.trim() || '(vacío)') : 'no volvió a salir',
+           'Obligaciones parafiscales y laborales');
+        if (!t) return;
+
+        /* Y lleva data-i18n, que es como se traduce todo lo demás del
+           panel: applyLang lo repinta al cambiar de idioma sin que haya
+           que volver a montar las tarjetas. */
+        igual('grupo: y se traduce como cualquier otro rótulo',
+              t.getAttribute('data-i18n'), 'g.parafiscal');
+
+        /* Las cuatro, JUNTAS y detrás del título. Se lee la rejilla tal
+           como quedó, en orden, y se comprueba que los cuatro que siguen
+           al título son exactamente esos: si una se quedara donde estaba,
+           el título estaría encabezando a otra cosa. */
+        var hijos = [].slice.call(rej.children);
+        var i = hijos.indexOf(t);
+        var siguen = hijos.slice(i + 1, i + 5)
+          .map(function(e){ return e.getAttribute('data-tr'); });
+        igual('grupo: las cuatro van detrás y en orden',
+              siguen.join(' '), 'c9 c25 c26 c27');
+
+        /* Y el título es UN HIJO MÁS de la rejilla, no una caja con las
+           tarjetas dentro. Es lo que hace que nada de lo que las cuenta
+           se entere: acaba de pasar con los recaudos, donde meter una
+           lista dentro de cada renglón hizo que seis contaran 52. */
+        igual('grupo: la fase 03 sigue teniendo sus once tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 11);
+        ok('grupo: y el título no es una tarjeta',
+           !t.classList.contains('tcard') && !t.hasAttribute('data-tr'),
+           t.className, 'sin ser tarjeta');
+
+        /* Ocupa la fila entera. Sin esto cae en una de las dos columnas y
+           deja media fila vacía a su lado, que se ve como un hueco y no
+           como un encabezado. */
+        ok('grupo: el título ocupa la fila entera',
+           /1\s*\/\s*(-1|end)/.test(window.getComputedStyle(t).gridColumn) ||
+             window.getComputedStyle(t).gridColumnStart === '1',
+           window.getComputedStyle(t).gridColumn, '1 / -1');
+
+        /* Repintar no duplica el título. Es el mismo fallo que tuvo la
+           caja de opcionales al encontrarse a sí misma. */
+        if (window.CIIP_JUNTA_GRUPOS) window.CIIP_JUNTA_GRUPOS();
+        igual('grupo: repintar no lo duplica',
+              rej.querySelectorAll('.grupo-t').length, 1);
+        igual('grupo: y las cuatro siguen donde estaban',
+              [].slice.call(rej.children)
+                .slice([].slice.call(rej.children).indexOf(t) + 1, 
+                       [].slice.call(rej.children).indexOf(t) + 5)
+                .map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
+              'c9 c25 c26 c27');
+
+        /* Y se traduce al cambiar de idioma, como cualquier otro rótulo:
+           lleva data-i18n, así que de eso se encarga applyLang. */
+        (function(){
+          var antes = curLang;
+          applyLang('en');
+          igual('grupo: y se traduce', t.textContent.trim(),
+                'Payroll and parafiscal obligations');
+          applyLang(antes || 'es');
+        })();
+      })();
+
       /* ── y la misma regla en las demás fases ──
          «¿Podemos trabajar las otras fases de la misma manera?» (CIIP).
 
@@ -1060,7 +1151,7 @@
          puede pasar sin que nadie se entere. */
       igual('camino: las cinco etapas se llaman como deben',
             nombres.join(' → '),
-            'Acreditación de identidad y legitimación → Constituir → Operar → Crecer → Invertir');
+            'Acreditación de identidad y legitimación → Estructuración corporativa → Habilitación operativa y cumplimiento → Crecer → Invertir');
       /* En el ÍNDICE de abajo hace falta algo que ponga las cuatro en orden,
          pero no la palabra: el mismo punto numerado que usa el camino. */
       /* Los números, centrados de verdad dentro de su punto. Centrar la caja
@@ -2332,6 +2423,26 @@
     ok('pista: el botón dice de qué recaudo es',
        etiq.length > 3 && etiq !== 'i',
        etiq || 'sin etiqueta', 'algo con el nombre del recaudo');
+
+    /* SE PUEDE PULSAR CON EL DEDO. Veinticuatro píxeles es el mínimo de un
+       blanco, y este botón se hizo pensando en quien entra desde el móvil
+       —es la razón de que no sea un title=—, así que quedarse corto aquí
+       era fallar justo donde más falta hacía. Estuvo en quince.
+
+       Se mide el ÁREA y no el círculo, que son dos cosas distintas a
+       propósito: el círculo se queda en 20 para no poner doce pelotas
+       compitiendo con los nombres de los recaudos, y el área sube a 24 con
+       un ::after transparente. Por eso se suma el pseudoelemento en vez de
+       leer el alto del botón, que diría 20 y se daría por bueno. */
+    (function(){
+      var r  = btn.getBoundingClientRect();
+      var cs = window.getComputedStyle(btn, '::after');
+      var ancho = Math.max(r.width,  parseFloat(cs.width)  || 0);
+      var alto  = Math.max(r.height, parseFloat(cs.height) || 0);
+      ok('pista: se puede pulsar con el dedo',
+         ancho >= 24 && alto >= 24,
+         Math.round(ancho) + 'x' + Math.round(alto) + ' px', '24x24 o más');
+    })();
 
     /* Y NO es un title=. Es la mitad del trabajo de ayer: el atributo
        nativo no sale en táctil, se va solo mientras lo lees, no admite
