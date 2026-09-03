@@ -52,3 +52,10 @@ pruebas/cuentas.local.json
 # cuando hace falta y no tiene por que viajar: es el panel de al lado con
 # una linea cambiada.
 vista-cola.html
+
+# Los PDF de la carta de acuerdos y de la vista previa del pliego. Se
+# generan del HTML con el navegador -asi que no hay una version que
+# mantener- y pesan 650 KB entre los dos. Se colaron una vez en un commit
+# con un `add -A`; la copia buena vive en el escritorio, para mandarla.
+Carta-de-acuerdos-CIIP.pdf
+Pliego-vista-previa.pdf
