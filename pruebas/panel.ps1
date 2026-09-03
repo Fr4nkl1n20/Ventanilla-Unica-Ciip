@@ -123,7 +123,15 @@ $casos = @(
   @{ caso='admin';     ancho='1400,1000' },
   @{ caso='sinsector';   ancho='1400,1000' },
   @{ caso='sincatalogo'; ancho='1400,1000' },
-  @{ caso='sinsectorsql'; ancho='1400,1000' }
+  @{ caso='sinsectorsql'; ancho='1400,1000' },
+  # Un inversionista al que le falta aceptar el pliego. En los demas casos
+  # la tabla de pliegos esta VACIA -como nace, y como estara en produccion
+  # hasta que el abogado apruebe el texto-, asi que este es el unico sitio
+  # donde la puerta llega a abrirse.
+  @{ caso='pliego';       ancho='1400,1000' },
+  # Y quien YA lo acepto: sin puerta, pero con el enlace para releerlo.
+  # Es el caso normal de todo el mundo a partir del dia siguiente.
+  @{ caso='pliegoya';     ancho='1400,1000' }
 )
 foreach ($c in $casos) {
   $caso  = $c.caso

@@ -54,6 +54,24 @@
      el usuario es un GESTOR, y a un gestor no se le pregunta el sector
      nunca, asi que alli la prueba de "no bloquea" pasaria sola sin llegar
      a medir nada. Es el mismo punto ciego del F5, otra vez. */
+  /* 'pliego' es un inversionista al que le falta aceptar el pliego de
+     datos. Necesita caso propio y no vale reusar 'vacio': en TODOS los
+     demas la tabla de pliegos esta VACIA, que es como nace y como va a
+     estar en produccion hasta que el abogado apruebe el texto.
+
+     Y esa es justamente la otra mitad de lo que hay que probar: que con
+     la tabla vacia no se bloquee a nadie. Con un solo caso no se pueden
+     medir las dos cosas, porque son la misma pregunta contestada al
+     reves. */
+  /* 'pliego' es a quien le FALTA aceptar; 'pliegoya' es quien YA acepto.
+     Los dos hacen falta y no son el mismo: el segundo es el caso normal
+     -todo el mundo, a partir del dia siguiente- y es el unico donde se
+     puede ver si queda un sitio donde RELEERLO. En el primero el enlace lo
+     enciende otra rama, asi que alli esa comprobacion pasaba sola. */
+  var conPliego = (caso === 'pliego' || caso === 'pliegoya');
+  var yaAceptado = (caso === 'pliegoya');
+  if (conPliego) caso = 'vacio';
+
   var sinSectorSql = (caso === 'sinsectorsql');
   var sinSql = (caso === 'sinsql') || sinSectorSql;
   if (caso === 'sinsql') caso = 'gestor';
@@ -83,6 +101,28 @@
 
   /* El catálogo, con los tres tipos que usan las pruebas. ref_panel es lo
      que ata cada tipo a su tarjeta del panel (data-tr). */
+  /* El pliego que sirve el caso 'pliego'. Uno solo y vigente, como manda
+     el indice de la base: dos vigentes a la vez no pueden existir alli,
+     asi que tampoco aqui.
+
+     Con texto en DOS idiomas y no en seis: hace falta uno que este y uno
+     que falte para poder comprobar que la pantalla cae al castellano
+     -que es el que obliga- en vez de quedarse en blanco. */
+  var PLIEGOS = conPliego ? [{
+    version: 1,
+    titulo: 'Pliego de prueba',
+    texto: {
+      es: 'Primer parrafo del pliego de prueba.\n\nSegundo parrafo.',
+      en: 'First paragraph of the test terms.\n\nSecond paragraph.'
+    },
+    vigente: true,
+    publicado_en: '2026-09-01T10:00:00Z'
+  }] : [];
+
+  /* Se acepta de verdad, no se finge. Si esto fuera fijo, la prueba de
+     que aceptar cierra la puerta pasaria igual con el insert roto. */
+  var pliegoAceptado = yaAceptado;
+
   var TIPOS = [
     {codigo:'rif_personal', ref_panel:'c3', ente:'SENIAT', activo:true, emite:'rif_personal', plazo_dias:14,
      nombre:'RIF personal', fase:1, nivel:'obligatorio',
@@ -596,6 +636,30 @@
                  user_metadata: (caso === 'sinnombre' ? {} : {nombre_completo:'Franklin Reyes', pais:'Italia'})};
 
   function respuesta(tabla, op){
+    /* ── el pliego de datos ── */
+    if (tabla === 'pliegos'){
+      var fila = PLIEGOS.filter(function(p){
+        return !(op && op.eq && 'version' in op.eq) || p.version === op.eq.version;
+      });
+      /* .single() sobre cero filas NO devuelve null: devuelve error, y el
+         panel tiene que saber distinguirlo de una fila vacia. */
+      if (op && op.single){
+        return fila.length
+          ? {data: fila[0], error:null}
+          : {data:null, error:{message:'JSON object requested, multiple (or no) rows returned',
+                               code:'PGRST116'}};
+      }
+      return {data: fila, error:null};
+    }
+
+    if (tabla === 'pliego_aceptaciones'){
+      if (op && op.insert){
+        pliegoAceptado = true;
+        return {data:[{id:1, version:1, cuando:new Date().toISOString()}], error:null};
+      }
+      return {data: pliegoAceptado ? [{id:1, version:1}] : [], error:null};
+    }
+
     if (tabla === 'perfiles'){
       /* Bloquear. Se apunta de verdad para que la ficha cambie: un falso
          que dice "hecho" sin cambiar nada da verde a una prueba que no
@@ -1156,6 +1220,16 @@
           /* Sin supabase-presencia.sql la funcion no existe, y Postgrest NO
              rechaza: contesta con el error DENTRO de la respuesta. Un panel
              que espere un fallo de promesa no se entera de nada. */
+          /* pliego_pendiente devuelve la VERSION que falta por aceptar, o
+             null. Null significa las dos cosas -«ya aceptaste» y «todavia
+             no hay pliego»- y esta bien que signifique las dos: en los dos
+             casos el panel hace lo mismo, dejar pasar. */
+          if (nombre === 'pliego_pendiente'){
+            var pend = PLIEGOS.filter(function(p){ return p.vigente; })[0];
+            var r0 = {data: (pend && !pliegoAceptado) ? pend.version : null, error:null};
+            return {then:function(bien, mal){ return Promise.resolve(r0).then(bien, mal); }};
+          }
+
           var r = sinSql
             ? {data:null, error:{message:'function public.tocar_visto() does not exist',
                                  code:'42883'}}

@@ -35,7 +35,14 @@
      saldria roja por el nombre del pase, no por lo que mide. */
   var SIN_SQL = (PASE === 'sinsql');
   var ES_ADMIN = (PASE === 'admin');
-  var CASO = (SIN_SQL || ES_ADMIN) ? 'gestor' : PASE;
+  /* 'pliego' trae LOS MISMOS DATOS que 'vacio': lo unico que cambia es que
+     hay un pliego sin aceptar. Si CASO valiera 'pliego', las pruebas que
+     miran el expediente vacio se saltarian todas y este pase mediria solo
+     la puerta -y de paso dejaria sin comprobar que el panel funciona con
+     normalidad DESPUES de aceptar, que es la mitad que importa-. */
+  var CASO = (SIN_SQL || ES_ADMIN) ? 'gestor'
+           : (PASE === 'pliego' || PASE === 'pliegoya') ? 'vacio'
+           : PASE;
   /* El rol de la cabecera sale del PASE, no de los datos: 'admin' trae
      los mismos tramites que un gestor, pero no el mismo rotulo. */
   var ROL_ESPERADO = ES_ADMIN ? 'Administrador'
@@ -127,7 +134,13 @@
   }
 
   cuandoConteste(function(){
-    enCadena([puertaEspera, puertaMira, puertaTrasResponder,
+    /* El pliego PRIMERO, y no es capricho de orden: mientras su puerta
+       esta puesta el panel no termina de pintarse -plDejaPasar guarda en
+       una cola lo que va despues- asi que cualquier prueba que corriera
+       antes miraria un panel a medio hacer. Se comprueba la puerta, se
+       acepta, y desde ahi la tanda sigue como en cualquier otro pase. */
+    enCadena([pliegoMira, pliegoAcepta, pliegoCerrada,
+              puertaEspera, puertaMira, puertaTrasResponder,
               pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir, citasAnula, citasTrasAnular,
               colaAbre,
               /* El reparto ANTES de desplegar nada: tomar un tramite
@@ -180,6 +193,154 @@
      Se pregunta una vez, antes de dejar entrar. Lo que hay que medir no
      es solo que se abra: es que NO se abra en los tres casos en que
      abrirla dejaria a alguien fuera para siempre. */
+  /* ═══════════ LA PUERTA DEL PLIEGO DE DATOS ═══════════
+     Del punto 3 del informe del 2 de septiembre. La pantalla se escribio
+     el 3 de septiembre y llego SIN una sola prueba: 541 lineas de las
+     cuales la mas delicada es un bloqueo al entrar.
+
+     Y no llegaba a ejecutarse aqui. El doble no sabia nada del pliego:
+     sb.rpc devolvia null para cualquier nombre, plPidePendiente lo leia
+     como «no hay nada que aceptar» y el panel dejaba pasar. O sea que la
+     puerta habria podido estar completamente rota y la tanda en verde.
+
+     Se mide en los DOS sentidos, y el segundo importa igual:
+
+       con pliego sin aceptar  la puerta se abre y no deja pasar
+       sin pliego publicado    NO se abre, y eso hay que comprobarlo en
+                               todos los demas pases, porque es el estado
+                               real de produccion hasta que el abogado
+                               apruebe el texto. Una puerta cerrada con
+                               nada detras deja fuera a todo el mundo.  */
+  function pliegoMira(){
+    var back = document.getElementById('pliegoBack');
+    var abierta = !!(back && back.classList.contains('open'));
+
+    /* ── quien YA lo aceptó ──
+       El caso normal de todo el mundo a partir del día siguiente: no hay
+       puerta, pero tiene que quedar dónde releerlo.
+
+       Necesita pase propio, y lo dijo el sabotaje: en el pase 'pliego' ese
+       enlace lo enciende OTRA rama del código, así que quitar la que lo
+       enciende aquí no ponía nada en rojo. Un consentimiento que no se
+       puede volver a leer es medio habeas data sin hacer. */
+    if (PASE === 'pliegoya'){
+      var nav0 = document.getElementById('navPliego');
+      ok('pliego: a quien ya lo aceptó no se le vuelve a pedir', !abierta,
+         abierta ? 'abierta' : 'cerrada', 'cerrada');
+      ok('pliego: pero puede volver a leerlo cuando quiera',
+         !!nav0 && !nav0.hidden,
+         nav0 ? (nav0.hidden ? 'escondido' : 'a la vista') : 'no existe', 'a la vista');
+      return;
+    }
+
+    if (PASE !== 'pliego'){
+      /* Ésta es la que corre en los otros diez pases. */
+      /* Se mira SOLO la puerta del pliego y no el bloqueo del cuerpo: en
+         el pase 'sinsector' hay otra puerta legitima puesta -la del sector-
+         y las dos usan la misma clase en el body. Mirar el body media las
+         dos a la vez y salia roja por la que no toca. */
+      ok('pliego: sin pliego publicado no hay puerta', !abierta,
+         abierta ? 'abierta' : 'cerrada', 'cerrada');
+      return;
+    }
+
+    ok('pliego: con uno sin aceptar, la puerta se abre', abierta,
+       back ? back.className : 'no hay puerta', 'con la clase open');
+    ok('pliego: y el panel queda bloqueado detras',
+       document.body.classList.contains('con-puerta'),
+       document.body.className || 'sin clase', 'con con-puerta');
+
+    /* El titulo sale de la BASE y no del diccionario: es el nombre que le
+       puso el abogado a esa version, y traducirlo seria renombrarle un
+       documento juridico. */
+    igual('pliego: el titulo es el de la version publicada',
+          (document.getElementById('plTitulo') || {}).textContent, 'Pliego de prueba');
+    ok('pliego: y dice que version es',
+       ((document.getElementById('plSub') || {}).textContent || '').indexOf('1') !== -1,
+       (document.getElementById('plSub') || {}).textContent, 'algo con el 1');
+
+    /* El texto, en parrafos y no en un ladrillo. Dos, que es lo que trae
+       el doble: si saliera uno, los saltos de linea se estarian comiendo. */
+    var parrafos = document.querySelectorAll('#plTexto p');
+    igual('pliego: el texto se parte en parrafos', parrafos.length, 2);
+    ok('pliego: y es el de la base, no un relleno',
+       (parrafos[0] || {}).textContent === 'Primer parrafo del pliego de prueba.',
+       (parrafos[0] || {}).textContent, 'Primer parrafo del pliego de prueba.');
+
+    /* NO se puede aceptar sin marcar. Es el boton el que esta apagado, y
+       no un aviso al pulsar: un boton encendido que luego riñe es peor.  */
+    var bt = document.getElementById('plAceptar');
+    var cx = document.getElementById('plCasilla');
+    ok('pliego: no se acepta sin marcar la casilla', !!bt && bt.disabled,
+       bt ? (bt.disabled ? 'apagado' : 'ENCENDIDO') : 'no hay boton', 'apagado');
+    ok('pliego: y la casilla empieza sin marcar', !!cx && !cx.checked,
+       cx ? (cx.checked ? 'marcada' : 'sin marcar') : 'no hay casilla', 'sin marcar');
+
+    if (cx && bt){
+      cx.checked = true;  cx.dispatchEvent(new Event('change'));
+      ok('pliego: al marcarla se puede aceptar', !bt.disabled,
+         bt.disabled ? 'sigue apagado' : 'encendido', 'encendido');
+      /* Y al revés. Sin esto, un boton que se enciende y no se apaga
+         nunca pasaria igual: se mide una vez y parece bien. */
+      cx.checked = false; cx.dispatchEvent(new Event('change'));
+      ok('pliego: y al desmarcarla vuelve a apagarse', bt.disabled,
+         bt.disabled ? 'apagado' : 'SIGUE ENCENDIDO', 'apagado');
+    }
+
+    /* El idioma se cambia AQUI DENTRO. Quien no lea castellano se
+       quedaria delante de un documento juridico en una lengua que no
+       entiende, con la casilla como unica salida. */
+    ok('pliego: se puede cambiar de idioma sin salir',
+       document.querySelectorAll('#plLang button[data-lang]').length >= 6,
+       document.querySelectorAll('#plLang button[data-lang]').length + ' idiomas', '6 o mas');
+
+    /* Y si esa version no esta traducida a tu idioma, se cae al
+       CASTELLANO -que es el que obliga- y lo DICE. Quedarse en blanco
+       seria pedir que se firme una hoja vacia; no decirlo, hacer creer que
+       lo que se lee es la version que rige. El doble trae solo es y en, y
+       el italiano es de los que faltan. */
+    (function(){
+      var antes = curLang;
+      applyLang('it');
+      if (window.CIIP_REPINTA_PLIEGO) window.CIIP_REPINTA_PLIEGO();
+      var p = document.querySelectorAll('#plTexto p');
+      ok('pliego: sin traducir, se lee el castellano',
+         (p[0] || {}).textContent === 'Primer parrafo del pliego de prueba.',
+         (p[0] || {}).textContent, 'el parrafo en castellano');
+      ok('pliego: y se avisa de que se esta leyendo el castellano',
+         ((document.getElementById('plNota') || {}).textContent || '').trim() !== '',
+         (document.getElementById('plNota') || {}).textContent || 'sin nota', 'una nota');
+      applyLang(antes || 'es');
+      if (window.CIIP_REPINTA_PLIEGO) window.CIIP_REPINTA_PLIEGO();
+    })();
+  }
+
+  function pliegoAcepta(){
+    if (PASE !== 'pliego') return;
+    var cx = document.getElementById('plCasilla');
+    var bt = document.getElementById('plAceptar');
+    if (!cx || !bt) return;
+    cx.checked = true; cx.dispatchEvent(new Event('change'));
+    bt.click();
+  }
+
+  function pliegoCerrada(){
+    if (PASE !== 'pliego') return;
+    var back = document.getElementById('pliegoBack');
+    ok('pliego: al aceptarlo, se entra', !back.classList.contains('open'),
+       back.className, 'cerrada');
+    ok('pliego: y el panel deja de estar bloqueado',
+       !document.body.classList.contains('con-puerta'),
+       document.body.className || 'sin clase', 'sin con-puerta');
+
+    /* Y queda donde releerlo. Un consentimiento que no se puede volver a
+       leer es medio habeas data sin hacer: la version vieja se guarda en
+       la base justamente para eso. */
+    var nav = document.getElementById('navPliego');
+    ok('pliego: y queda un sitio donde releerlo', !!nav && !nav.hidden,
+       nav ? (nav.hidden ? 'escondido' : 'a la vista') : 'no existe', 'a la vista');
+  }
+
   function puertaEspera(){
     /* Un paso vacio. La puerta se abre despues de que conteste el perfil
        Y de que conteste el catalogo, o sea dos idas y venidas; este medio
@@ -886,8 +1047,19 @@
 
       var nombres = [];
       etapas().forEach(function(e){ nombres.push(e.querySelector('.jname').textContent.trim()); });
-      igual('camino: los cinco nombres son verbos del mismo tipo',
-            nombres.join(' → '), 'Llegar → Constituir → Operar → Crecer → Invertir');
+      /* Eran cinco verbos del mismo tipo -Llegar, Constituir, Operar,
+         Crecer, Invertir- y la fase 1 dejo de serlo el 3 de septiembre de
+         2026, por decision del CIIP: «Llegar» describia el viaje y el
+         nombre nuevo describe el TRAMITE, que es lo que hay dentro.
+
+         Se pierde la simetria y se gana precision; el cambio esta
+         argumentado en su commit. Lo que la prueba sujeta ahora no es que
+         rimen, sino que sean EXACTAMENTE estos cinco: cambiar el nombre de
+         una fase es cambiar como se llama el producto por dentro, y no
+         puede pasar sin que nadie se entere. */
+      igual('camino: las cinco etapas se llaman como deben',
+            nombres.join(' → '),
+            'Acreditación de identidad y legitimación → Constituir → Operar → Crecer → Invertir');
       /* En el ÍNDICE de abajo hace falta algo que ponga las cuatro en orden,
          pero no la palabra: el mismo punto numerado que usa el camino. */
       /* Los números, centrados de verdad dentro de su punto. Centrar la caja
@@ -3953,15 +4125,19 @@
        /Ya tienes \d+ de \d+/.test(caja.textContent),
        (caja.querySelector('.ft-rh .c') || {}).textContent || 'no lo dice',
        'la cuenta');
-    var marcados = caja.querySelectorAll('.ft-rec li.ya').length;
-    var faltan   = caja.querySelectorAll('.ft-rec li.no').length;
+    var marcados = caja.querySelectorAll('.ft-rec > li.ya').length;
+    var faltan   = caja.querySelectorAll('.ft-rec > li.no').length;
     ok('ficha: y marca uno por uno cual tienes y cual no',
-       marcados + faltan === caja.querySelectorAll('.ft-rec li').length && faltan > 0,
+       marcados + faltan === caja.querySelectorAll('.ft-rec > li').length && faltan > 0,
        marcados + ' con visto y ' + faltan + ' sin el', 'todos marcados');
 
     /* Los recaudos se LEEN aqui; subirlos es el paso siguiente. Y no hay
-       ni un campo de archivo todavia. */
-    var recs = caja.querySelectorAll('.ft-rec li');
+       ni un campo de archivo todavia.
+
+       Hijos DIRECTOS -'.ft-rec > li'- desde que cada recaudo lleva su
+       globo con las reglas de forma: ese globo es una lista, y con el
+       selector suelto los seis recaudos contaban cincuenta y dos. */
+    var recs = caja.querySelectorAll('.ft-rec > li');
     igual('ficha: y los recaudos que pide, para leerlos', recs.length, 6);
     igual('ficha: sin pedir todavia ni un archivo',
           caja.querySelectorAll('input[type=file]').length, 0);
@@ -3995,7 +4171,7 @@
   function cacheMira(){
     if (CASO !== 'vacio') return;
     var caja = document.getElementById('trReal');
-    var fila = [].filter.call(caja.querySelectorAll('.ft-rec li'), function(li){
+    var fila = [].filter.call(caja.querySelectorAll('.ft-rec > li'), function(li){
       return /Solvencia del IVSS/.test(li.textContent);
     })[0];
     ok('cache: el tramite pide la solvencia del IVSS', !!fila,
@@ -4035,7 +4211,7 @@
   function cacheTrasVolver(){
     if (CASO !== 'vacio' || !window.PRUEBA_CACHE) return;
     var caja = document.getElementById('trReal');
-    var fila = [].filter.call(caja.querySelectorAll('.ft-rec li'), function(li){
+    var fila = [].filter.call(caja.querySelectorAll('.ft-rec > li'), function(li){
       return /Solvencia del IVSS/.test(li.textContent);
     })[0];
     /* SIN recargar la pagina. Es lo unico que se mide aqui. */
