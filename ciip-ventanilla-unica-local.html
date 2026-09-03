@@ -19,12 +19,12 @@ html.ciip-verificando body{visibility:hidden;}
 html.ciip-verificando::before{
   content:"Verificando acceso…"; position:fixed; inset:0; z-index:99999;
   display:flex; align-items:center; justify-content:center;
-  font:600 13px/1.45 'Helvetica Neue',Arial,sans-serif; color:#5B6478; background:#FFFFFF;
+  font:600 13px/1.45 'Helvetica Neue',Arial,sans-serif; color:#0E1424; background:#FFFFFF;
 }
 @media (prefers-color-scheme:dark){
-  html.ciip-verificando:not([data-theme="light"])::before{color:#9AA6BC; background:#0F1A2E;}
+  html.ciip-verificando:not([data-theme="light"])::before{color:#EAEEF6; background:#0F1A2E;}
 }
-html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A2E;}
+html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A2E;}
 #ciip-sin-guardia{
   position:fixed; left:0; right:0; bottom:0; z-index:99998;
   background:#FBF3E2; color:#B7791F; border-top:1px solid #B7791F;
@@ -240,8 +240,22 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
 
 /* ============ TOKENS (matched to Atlas / css/app.css) ============ */
 :root{
+    /* EL GRIS, EN NEGRO. «Que todos los textos que tengan letras gris sean
+       negro de color normal.» (CIIP, 3 de septiembre de 2026)
+
+       Se cambia el TOKEN y no las 171 reglas que lo usan: una linea por tema
+       y se deshace igual de facil. Los dos grises apuntan ahora a la misma
+       tinta que el texto corriente, en los dos temas.
+
+       Lo que se pierde, dicho: el gris era la jerarquia. Un subtitulo, una
+       nota al pie y el nombre de un tramite pesaban distinto sin que nadie
+       tuviera que fijarse. Ahora pesan igual, y lo que separa unas cosas de
+       otras es el tamaño y el grosor de la letra, que siguen ahi.
+
+       Si algun dia se quiere volver, los valores de antes eran #5B6478 y
+       #8A93A6 en claro, y #9AA6BC y #6E7B93 en oscuro. */
   --navy:#004090; --navy2:#0060B0; --navy-deep:#00336d; --cyan:#20B0F0; --cyan-deep:#0E8FD6;
-  --ink:#0E1424; --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6;
+  --ink:#0E1424; --gray:#0E1424; --gray-soft:#0E1424; --line:#E4E7EE; --line-soft:#EEF1F6;
   --block:#F4F7FB; --bg:#FFFFFF; --card-2:#FBFCFE;
   --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9; --good:#1E7F5C; --good-bg:#E7F4EE;
   --r:10px; --r-sm:7px;
@@ -251,7 +265,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
 }
 @media (prefers-color-scheme:dark){
   :root{
-    --ink:#EAEEF6; --gray:#9AA6BC; --gray-soft:#6E7B93; --line:#1E2A44; --line-soft:#172239;
+    --ink:#EAEEF6; --gray:#EAEEF6; --gray-soft:#EAEEF6; --line:#1E2A44; --line-soft:#172239;
     --block:#0A1120; --bg:#0F1A2E; --card-2:#12203A;
     --navy2:#4C97E8; --cyan-deep:#5CC6FF;
     --amber:#DBA94C; --amber-bg:#33280F; --rust:#E28A67; --rust-bg:#33201A; --good:#43B48C; --good-bg:#11291F;
@@ -260,7 +274,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
   }
 }
 :root[data-theme="light"]{
-  --ink:#0E1424; --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6;
+  --ink:#0E1424; --gray:#0E1424; --gray-soft:#0E1424; --line:#E4E7EE; --line-soft:#EEF1F6;
   --block:#F4F7FB; --bg:#FFFFFF; --card-2:#FBFCFE;
   --navy2:#0060B0; --cyan-deep:#0E8FD6;
   --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9; --good:#1E7F5C; --good-bg:#E7F4EE;
@@ -268,7 +282,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#9AA6BC; background:#0F1A
   --shadow-lg:0 2px 6px rgba(14,20,36,.06), 0 18px 44px rgba(14,20,36,.10);
 }
 :root[data-theme="dark"]{
-  --ink:#EAEEF6; --gray:#9AA6BC; --gray-soft:#6E7B93; --line:#1E2A44; --line-soft:#172239;
+  --ink:#EAEEF6; --gray:#EAEEF6; --gray-soft:#EAEEF6; --line:#1E2A44; --line-soft:#172239;
   --block:#0A1120; --bg:#0F1A2E; --card-2:#12203A;
   --navy2:#4C97E8; --cyan-deep:#5CC6FF;
   --amber:#DBA94C; --amber-bg:#33280F; --rust:#E28A67; --rust-bg:#33201A; --good:#43B48C; --good-bg:#11291F;
@@ -1835,11 +1849,18 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .jp.done .jbar>span{background:var(--good);}
 
 .jcount{font-size:10.5px; font-weight:700; color:var(--gray); letter-spacing:.02em; margin-top:7px;}
-/* El renglón de los obligatorios va en ámbar mientras falten: es lo
-   único de la etapa que impide seguir, y tiene que leerse antes que la
-   cuenta de arriba. En verde cuando están, que también es información:
-   quitarlo dejaría sin saber si es que no faltan o es que no hay. */
-.joblig{font-size:10.5px; font-weight:700; letter-spacing:.02em; margin-top:4px; color:var(--amber);}
+/* El renglón de los obligatorios. Es lo único de la etapa que impide
+   seguir, y tiene que leerse antes que la cuenta de arriba.
+
+   Iba en ámbar y pasa a AZUL el 3 de septiembre, a petición del CIIP. Se
+   usa --navy2 y no el cian del panel por el tamaño: son diez píxeles y
+   medio, y el cian sobre blanco se queda corto de contraste para una letra
+   tan pequeña. --navy2 trae sus dos versiones —oscura sobre claro, clara
+   sobre oscuro—, así que se lee en los dos temas.
+
+   En verde cuando están, que también es información: quitar el renglón
+   dejaría sin saber si es que no faltan o es que no hay. */
+.joblig{font-size:10.5px; font-weight:700; letter-spacing:.02em; margin-top:4px; color:var(--navy2);}
 .joblig.ok{color:var(--good);}
 .jp.active .jcount{color:var(--ink);}
 
@@ -15228,6 +15249,23 @@ applyLang(idiomaParaMi());
     return nombreDe(id) || u.ra_sinnombre || '';
   }
 
+  /* Pintar FUERA de la cadena que carga.
+
+     Aqui se llamaba a pintaRastro() dentro del .then, y entonces un fallo AL
+     PINTAR lo cazaba el .catch del que CARGA. Y ese catch hace tres cosas
+     seguidas, las tres equivocadas para ese caso: lo degrada a aviso -asi que
+     en la consola no sale nada en rojo-, tira el historial de tramites
+     -rastro = []- culpando a los datos de un fallo de pintura, y vuelve a
+     pintar. La pantalla queda con los contadores puestos y la tabla sin
+     cabecera ni filas, que es justo lo que vio el CIIP el 3 de septiembre.
+
+     Costo media tarde encontrarlo porque no habia error a la vista: el
+     propio codigo se habia comido la prueba del fallo.
+
+     En otro tick, el que carga ya no puede taparlo: si pintar falla, sale en
+     la consola como el error que es, con su linea. */
+  function pintaFueraDeLaCadena(){ setTimeout(pintaRastro, 0); }
+
   function cargaRastro(){
     /* Los perfiles primero: sin ellos el rastro sale lleno de uuids, que
        es peor que no tenerlo. Se reusan si la otra pantalla ya los trajo. */
@@ -15285,7 +15323,7 @@ applyLang(idiomaParaMi());
         if (x.bit){
           bitacora = x.bit;
           rastro = ev;
-          pintaRastro();
+          pintaFueraDeLaCadena();
           return;
         }
         /* Sin bitacora, las dos columnas de siempre. Los cambios de rol
@@ -15315,13 +15353,13 @@ applyLang(idiomaParaMi());
             }
             ev.sort(function(a, b){ return Date.parse(b.cuando) - Date.parse(a.cuando); });
             rastro = ev;
-            pintaRastro();
+            pintaFueraDeLaCadena();
           });
       })
       .catch(function(e){
-        console.warn('[CIIP] rastro:', e && (e.message || e));
+        console.error('[CIIP] rastro, al cargar:', e && (e.message || e));
         rastro = [];
-        pintaRastro();
+        pintaFueraDeLaCadena();
       });
   }
 

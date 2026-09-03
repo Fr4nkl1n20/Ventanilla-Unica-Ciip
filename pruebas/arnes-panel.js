@@ -192,6 +192,7 @@
               franjaDescarta, franjaTrasDescartar,
               fotoAbre, fotoMira, fotoMala, fotoSube, fotoTrasSubir, fotoCierra,
               logosMiran,
+              rastroAbre, rastroMira,
               alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno], volcar);
   });
 
@@ -5111,6 +5112,59 @@
     igual('al día: ni con una puerta abierta delante',
           window.CIIP_AL_DIA(), false);
     document.body.classList.remove('con-puerta');
+  }
+
+  /* ═══════════ EL RASTRO ═══════════
+     No tenía NI UNA prueba, y por eso llegó a producción una pantalla que
+     enseñaba los contadores y una tabla sin cabecera ni filas. Lo vio el
+     CIIP el 3 de septiembre entrando por la dirección directa.
+
+     Y no había error a la vista: pintaRastro se llamaba dentro de la cadena
+     que carga, así que un fallo AL PINTAR lo cazaba el .catch del que CARGA,
+     que lo degradaba a aviso, tiraba el historial de trámites culpando a los
+     datos, y volvía a pintar. El propio código se comía la prueba del fallo.
+
+     Lo que se sujeta aquí es lo que se veía roto: que la tabla tenga sus
+     cinco títulos y una fila por apunte. */
+  function rastroAbre(){
+    if (!ES_ADMIN) return;
+    location.hash = 'rastro';
+  }
+
+  function rastroMira(){
+    if (!ES_ADMIN) return;
+    igual('rastro: se abre la vista', document.body.getAttribute('data-vista'), 'rastro');
+
+    /* La CABECERA. Se monta siempre, también sin apuntes: una tabla sin
+       títulos parece rota y no vacía. Y era lo primero que faltaba. */
+    var cab = document.querySelectorAll('#raCab th');
+    igual('rastro: la tabla tiene sus cinco títulos', cab.length, 5);
+
+    /* Y una fila por apunte. El doble trae siete. */
+    var filas = document.querySelectorAll('#raLista tr');
+    ok('rastro: y una fila por cada cosa apuntada', filas.length >= 7,
+       filas.length + ' filas', 'siete o más');
+
+    /* Que no sea una fila suelta diciendo que no hay nada: eso también
+       cuenta como «una fila» y se vería casi igual de vacío. */
+    ok('rastro: y no es el aviso de que no hay nada',
+       !document.querySelector('#raLista .ra-vacio'),
+       document.querySelector('#raLista .ra-vacio') ? 'dice que no hay nada' : 'hay apuntes',
+       'apuntes de verdad');
+
+    /* El contador de arriba y las filas de abajo salen de la MISMA lista.
+       Cuando esto se rompió, el de arriba decía cinco y abajo no había
+       ninguna: son las dos mitades de la misma cuenta y tienen que cuadrar. */
+    /* La ficha de «Todos» es el primer botón del grupo; el número va en un
+       .n dentro. Aquí estaba escrito .ftab, que es la clase de los filtros de
+       la portada y no la de éstos: el selector no encontraba nada y la
+       comprobación se quedaba en «(sin contador)», o sea sin medir. */
+    var todos = document.querySelector('#raFiltros button');
+    var num = todos && todos.querySelector('.n');
+    ok('rastro: el contador cuadra con lo que se ve',
+       !!num && Number(num.textContent) === filas.length,
+       (num ? num.textContent : '(sin contador)') + ' contadas, ' + filas.length + ' pintadas',
+       'las mismas');
   }
 
   function logosMiran(){
