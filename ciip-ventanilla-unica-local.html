@@ -3989,6 +3989,10 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <div class="ct-chip" id="ctChip"></div>
       <div class="ct-linea" id="ctLinea"></div>
       <div class="ct-detalle" id="ctDetalle"></div>
+      <!-- La conversación de esta cita. Va DESPUÉS del detalle: primero
+           cuándo y dónde es, que es a lo que se entra, y debajo lo que se
+           haya hablado. Se llena desde pintaCita; vacío no ocupa nada. -->
+      <div class="ct-hilo" id="ctHilo"></div>
       <div class="pf-aviso" id="ctAviso2"></div>
     </div>
 
@@ -7721,7 +7725,8 @@ applyLang(idiomaParaMi());
        DESPUÉS de saber en qué va: primero el estado, luego el papel si lo
        hay, luego los pasos, y sólo entonces «¿y esto qué quiere decir?».
        Puesta arriba empujaría hacia abajo lo que se vino a mirar. */
-    pintaHilo(tr, caja);
+    pintaHilo(caja, {tabla:'tramite_mensajes', col:'tramite',
+                     id:tr.id, inversionista:tr.inversionista});
   }
 
 
@@ -7732,7 +7737,26 @@ applyLang(idiomaParaMi());
      Va pegada al trámite y no suelta en el panel, y ésa es toda la
      decisión: cada línea sabe de qué solicitud es. En un chat general
      cada mensaje tendría que decir de qué habla, y la mitad no lo dirían. */
-  function pintaHilo(tr, caja){
+  /* ── la conversación ──
+     Sirve para DOS hilos y por eso no sabe de trámites: el del expediente
+     y el de una cita. Son dos tablas distintas -sus llaves foráneas
+     apuntan a sitios distintos, y juntarlas habría pedido una columna
+     nula en cada fila- pero la conversación es la misma cosa: una lista,
+     una caja para escribir, un adjunto que va a tu bóveda.
+
+     Escribir una segunda copia casi igual era lo fácil y es de donde
+     salen los dos comportamientos que se separan sin que nadie lo note:
+     se arregla un fallo en una y la otra se queda con él.
+
+     `de` dice de dónde cuelga:
+
+       tabla          cita_mensajes o tramite_mensajes
+       col            la columna que las ata: cita o tramite
+       id             de cuál
+       inversionista  de quién es, para saber en qué bóveda dejar un
+                      adjunto que suba el equipo
+   */
+  function pintaHilo(caja, de){
     var u = T();
     var bloque = el('div', 'sol-adj hilo');
     bloque.appendChild(el('div', 'sol-h', u['hilo.t'] || ''));
@@ -7813,9 +7837,9 @@ applyLang(idiomaParaMi());
     }
 
     function lee(){
-      return Promise.resolve(sb.from('tramite_mensajes')
+      return Promise.resolve(sb.from(de.tabla)
         .select('id, texto, del_equipo, creado_en, documento, documentos(nombre_original, tipo, archivo)')
-        .eq('tramite', tr.id).order('creado_en', {ascending:true}))
+        .eq(de.col, de.id).order('creado_en', {ascending:true}))
         .then(function(r){
           if (r && r.error) throw r.error;
           pinta((r && r.data) || []);
@@ -7846,12 +7870,16 @@ applyLang(idiomaParaMi());
          suya. La misma caja, dos destinos, y ninguno de los dos tiene que
          saberlo. */
       var deQuien = (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO())
-        ? tr.inversionista : null;
+        ? de.inversionista : null;
       var conPapel = papel ? sube('otro', papel, null, deQuien) : Promise.resolve(null);
 
       conPapel.then(function(docId){
-        return Promise.resolve(sb.from('tramite_mensajes')
-          .insert({tramite: tr.id, texto: dice, documento: docId}))
+        /* La columna se pone por su nombre y no con dos ramas: una
+           conversación que sepa que existen los trámites vuelve a saber
+           de citas mañana, y de lo que venga después. */
+        var fila = {texto: dice, documento: docId};
+        fila[de.col] = de.id;
+        return Promise.resolve(sb.from(de.tabla).insert(fila))
           .then(function(r){ if (r && r.error) throw r.error; });
       }).then(function(){
         texto.value = '';
@@ -10025,6 +10053,8 @@ applyLang(idiomaParaMi());
 
     var form   = document.getElementById('ctForm');
     var estado = document.getElementById('ctEnMarcha');
+    montaHiloCita();
+
     var enviar = document.getElementById('ctEnviar');
     var cerrar = document.getElementById('ctCancelar');
 
@@ -10063,9 +10093,55 @@ applyLang(idiomaParaMi());
     }
   }
 
+  /* ── la conversación de la cita ──
+     La tabla cita_mensajes existe desde el 2 de septiembre, con sus
+     disparadores y sus políticas, y no la usaba nadie: era una
+     conversación que la base sabía guardar y la pantalla no sabía pedir.
+
+     Es la MISMA función que la del expediente, con otro `de`. Aquí está
+     la mitad del trabajo: una copia casi igual habría acabado con dos
+     comportamientos que se separan sin que nadie lo note.
+
+     Y esto es lo que contesta a quien todavía no ha empezado nada. El
+     hilo del expediente cuelga de una solicitud, y quien acaba de entrar
+     no tiene ninguna: sus primeras preguntas —«¿por dónde empiezo?»,
+     «¿mi caso califica?»— salían por correo y no quedaban en ninguna
+     parte. Una cita SIN trámite es la consulta general, y eso ya lo decía
+     supabase-citas.sql de su propia columna antes de que existiera esto.
+
+     SE MONTA UNA VEZ POR CITA, y no en cada repintado. pintaCita se
+     vuelve a llamar al cambiar de idioma y en cuanto contesta la base;
+     volver a montarlo dejaría dos hilos, y de paso borraría lo que
+     estuvieras escribiendo. El data-cita dice de cuál es el que hay. */
+  function montaHiloCita(){
+    var caja = document.getElementById('ctHilo');
+    if (!caja) return;
+
+    if (!citaEnMarcha){ caja.textContent = ''; caja.removeAttribute('data-cita'); return; }
+    if (caja.getAttribute('data-cita') === citaEnMarcha.id) return;
+
+    caja.textContent = '';
+    caja.setAttribute('data-cita', citaEnMarcha.id);
+    pintaHilo(caja, {tabla:'cita_mensajes', col:'cita',
+                     id:citaEnMarcha.id, inversionista:citaEnMarcha.inversionista});
+  }
+
+  /* Se expone para poder comprobar que montar dos veces no duplica.
+     pintaCita() sólo se llama al abrir la ventana y al cancelar, y en las
+     dos el hilo se limpia antes, así que por el camino normal la guarda no
+     llega a hacer falta hoy. Está para el día que alguien repinte la cita
+     sin pasar por ahí -al cambiar de idioma, por ejemplo- y sin este
+     gancho no habría forma de medirla: el sabotaje que la quitaba salía
+     verde. */
+  window.CIIP_MONTA_HILO_CITA = montaHiloCita;
+
   function cargaCita(){
     return sb.from('citas')
-      .select('id, tipo_tramite, modo, desde, hasta, nota, estado, cuando, lugar, creado_en')
+      /* inversionista: para saber en qué bóveda dejar un adjunto que suba
+         el equipo. Aquí siempre es de quien mira -RLS no enseña otras- pero
+         el hilo no tiene por qué saberlo, y el día que el equipo abra esta
+         vista tiene que ir a la bóveda correcta. */
+      .select('id, inversionista, tipo_tramite, modo, desde, hasta, nota, estado, cuando, lugar, creado_en')
       .in('estado', ['solicitada', 'confirmada'])
       .order('creado_en', {ascending:false}).limit(1)
       .then(function(r){
@@ -10967,7 +11043,8 @@ applyLang(idiomaParaMi());
        Al final del expediente por lo mismo que en el detalle: se lee
        después de mirar los datos y los recaudos, que es lo que el gestor
        vino a revisar. */
-    pintaHilo(tr, caja);
+    pintaHilo(caja, {tabla:'tramite_mensajes', col:'tramite',
+                     id:tr.id, inversionista:tr.inversionista});
   }
 
   /* Deja el documento emitido en la bóveda del inversionista y lo cuelga

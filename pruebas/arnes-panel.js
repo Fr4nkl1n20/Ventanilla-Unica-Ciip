@@ -141,7 +141,11 @@
        acepta, y desde ahi la tanda sigue como en cualquier otro pase. */
     enCadena([pliegoMira, pliegoAcepta, pliegoCerrada,
               puertaEspera, puertaMira, puertaTrasResponder,
-              pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir, citasAnula, citasTrasAnular,
+              pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir,
+              /* El hilo ANTES de anular: al cancelar la cita, el hilo se
+                 va con ella y no habría nada que mirar. */
+              hiloCitaMira, hiloCitaEscribe, hiloCitaTrasEscribir,
+              citasAnula, citasTrasAnular, hiloCitaTrasAnular,
               colaAbre,
               /* El reparto ANTES de desplegar nada: tomar un tramite
                  repinta la cola entera, y eso pliega el expediente que
@@ -2216,6 +2220,112 @@
     ok('citas: y ya no ofrece pedir otra',
        document.getElementById('ctEnviar').style.display === 'none',
        'display=' + document.getElementById('ctEnviar').style.display, 'display=none');
+  }
+
+  /* ═══════════ LA CONVERSACIÓN DE UNA CITA ═══════════
+     La tabla existía desde el 2 de septiembre —con sus disparadores, sus
+     políticas y sus comprobaciones en el SQL— y no la usaba nadie: era una
+     conversación que la base sabía guardar y la pantalla no sabía pedir.
+
+     Es lo que contesta a quien todavía no ha empezado nada. El hilo del
+     expediente cuelga de una solicitud y quien acaba de entrar no tiene
+     ninguna; sus primeras preguntas salían por correo y no quedaban en
+     ninguna parte.
+
+     Se mira en el expediente «lleno», que es el que trae una cita ya
+     pedida. En los demás no hay cita en marcha, y eso también se comprueba:
+     sin cita no hay hilo que colgar de ningún sitio. */
+  function hiloCitaMira(){
+    if (CASO === 'gestor') return;
+    var caja = document.getElementById('ctHilo');
+
+    if (CASO !== 'lleno'){
+      /* Recién pedida, la cita existe: el hilo tiene que aparecer también
+         ahí. Una consulta general sin sitio donde preguntar es justo lo
+         que esto vino a arreglar. */
+      ok('hilo cita: en cuanto hay cita, hay dónde escribir',
+         !!caja && !!caja.querySelector('.hilo'),
+         caja ? (caja.querySelector('.hilo') ? 'está' : 'vacío') : 'no existe',
+         'el hilo montado');
+      return;
+    }
+
+    ok('hilo cita: la cita en marcha trae su conversación',
+       !!caja && !!caja.querySelector('.hilo'),
+       caja ? (caja.querySelector('.hilo') ? 'está' : 'vacío') : 'no existe',
+       'el hilo montado');
+    if (!caja || !caja.querySelector('.hilo')) return;
+
+    /* Las dos líneas del doble, y en orden. Si saliera vacío se vería igual
+       que si no cargara, que es la confusión que este arnés ya ha tenido
+       antes con el otro hilo. */
+    var msj = caja.querySelectorAll('.hilo-m');
+    igual('hilo cita: con lo que ya se habló', msj.length, 2);
+
+    /* Y se ve QUIÉN habla. Es la mitad del valor de un hilo: sin eso son
+       dos frases sueltas. */
+    ok('hilo cita: la primera es del inversionista',
+       msj[0] && msj[0].classList.contains('mio'),
+       msj[0] ? msj[0].className : 'no hay', 'mío');
+    ok('hilo cita: y la respuesta es del CIIP',
+       msj[1] && msj[1].classList.contains('suyo'),
+       msj[1] ? msj[1].className : 'no hay', 'suyo');
+
+    /* Es la MISMA función que la del expediente, no una copia: si algún día
+       se separan, una enseñará algo que la otra no, y en una conversación
+       eso significa que uno de los dos cree haber dicho algo que el otro no
+       leyó. Se comprueba por la forma: mismas piezas, mismas clases. */
+    ok('hilo cita: es la misma conversación del expediente, no una copia',
+       !!caja.querySelector('.hilo-lista') && !!caja.querySelector('.hilo-txt') &&
+       !!caja.querySelector('.hilo-clip'),
+       ['lista','txt','clip'].filter(function(k){
+         return !caja.querySelector('.hilo-' + k);
+       }).join(' ') || 'las tres piezas', 'lista, caja de texto y adjuntar');
+
+    /* Y NO se monta dos veces: con dos hilos, lo que estuvieras escribiendo
+       se perdería en el segundo.
+
+       Se pide el montaje A MANO. Aquí estaba escrito con applyLang, y no
+       medía nada: pintaCita sólo se llama al abrir la ventana y al
+       cancelar, no al cambiar de idioma, así que la guarda no llegaba a
+       ejercitarse y quitarla salía verde. */
+    /* Lo que la guarda promete NO es que no haya dos hilos -sin ella se
+       limpia y se vuelve a montar, así que sigue habiendo uno- sino que no
+       se pierda lo que estabas escribiendo. Medir el número de hilos salía
+       verde con la guarda quitada: contaba lo que no era.
+
+       Se escribe algo, se pide montar otra vez, y tiene que seguir ahí. */
+    var cajaTxt = caja.querySelector('.hilo-txt');
+    if (cajaTxt) cajaTxt.value = 'a medio escribir…';
+    if (window.CIIP_MONTA_HILO_CITA) window.CIIP_MONTA_HILO_CITA();
+    igual('hilo cita: montarlo otra vez no lo duplica',
+          caja.querySelectorAll('.hilo').length, 1);
+    igual('hilo cita: ni se lleva por delante lo que ibas escribiendo',
+          (caja.querySelector('.hilo-txt') || {}).value, 'a medio escribir…');
+    if (caja.querySelector('.hilo-txt')) caja.querySelector('.hilo-txt').value = '';
+  }
+
+  function hiloCitaEscribe(){
+    if (CASO !== 'lleno') return;
+    var caja = document.getElementById('ctHilo');
+    var txt  = caja && caja.querySelector('.hilo-txt');
+    var bts  = caja && caja.querySelectorAll('.hilo-fila .btn');
+    if (!txt || !bts || !bts.length) return;
+    txt.value = 'Gracias, entonces empiezo por la visa.';
+    bts[bts.length - 1].click();
+  }
+
+  function hiloCitaTrasEscribir(){
+    if (CASO !== 'lleno') return;
+    var caja = document.getElementById('ctHilo');
+    igual('hilo cita: lo escrito aparece en el hilo',
+          caja.querySelectorAll('.hilo-m').length, 3);
+    var ult = caja.querySelectorAll('.hilo-m')[2];
+    ok('hilo cita: y queda como tuyo, no del CIIP',
+       !!ult && ult.classList.contains('mio'),
+       ult ? ult.className : 'no hay', 'mío');
+    var txt = caja.querySelector('.hilo-txt');
+    igual('hilo cita: y la caja se vacía para la siguiente', txt.value, '');
   }
 
   function citasAnula(){
@@ -5512,6 +5622,22 @@
     /* Quedan una cita y un trámite: se devolvió uno antes y ahora se
        confirmó una. El contador cuenta las dos colas juntas. */
     igual('cola: y el contador baja', (document.getElementById('colaN') || {}).textContent, '2');
+  }
+
+  /* Y al cancelar la cita, el hilo se va con ella. No es limpieza: el hilo
+     cuelga de UNA cita, y dejarlo puesto sobre la siguiente enseñaría la
+     conversación de la anterior. */
+  function hiloCitaTrasAnular(){
+    if (CASO === 'gestor') return;
+    var caja = document.getElementById('ctHilo');
+    ok('hilo cita: al cancelar la cita, el hilo se va con ella',
+       !!caja && !caja.querySelector('.hilo'),
+       caja ? (caja.querySelector('.hilo') ? 'sigue puesto' : 'vacío') : 'no existe',
+       'vacío');
+    ok('hilo cita: y no se queda apuntando a la cita cancelada',
+       !!caja && !caja.hasAttribute('data-cita'),
+       caja ? (caja.getAttribute('data-cita') || 'sin apuntar') : 'no existe',
+       'sin apuntar');
   }
 
   function citasTrasAnular(){

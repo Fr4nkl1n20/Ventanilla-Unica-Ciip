@@ -348,6 +348,8 @@
      mensaje y volver a leer devolvia lo mismo de antes y no habia forma
      de medir que aparece. */
   var dichos = [];
+  /* Lo que se escriba en el hilo de una cita durante la tanda. */
+  var dichosCita = [];
   /* Lo que se borro en esta pasada, para que la lista lo respete. */
   var borrados = {};
   /* La configuracion del acompañamiento, con sus valores de fabrica. */
@@ -1047,6 +1049,57 @@
       }
       return {data:mios, error:null};
     }
+    /* ── la conversación de una cita ──
+       Misma forma que la del expediente y tabla distinta, como en la base:
+       las dos llaves foráneas apuntan a sitios distintos.
+
+       Empieza con DOS líneas y no vacía, por lo mismo que la otra: un hilo
+       vacío y uno que no carga se ven igual en pantalla, y con el vacío no
+       habría forma de comprobar que se pinta quién habla.
+
+       Y son de la CITA DEL EXPEDIENTE -la c1-, que es la que el panel
+       tiene en marcha. Se escribieron primero para la q2 -una de la cola
+       del gestor- y el hilo salia vacio: el panel pide las de SU cita, y
+       aquella no lo es nunca. Vacio y roto se ven igual en pantalla. */
+    if (tabla === 'cita_mensajes'){
+      if (op && op.insert){
+        /* NOT NULL, como en la base: `cita uuid not null references
+           citas(id)`. El doble aceptaba una fila sin ella y la guardaba
+           tan contento, asi que quitar del panel la linea que dice de que
+           cita es no ponia nada en rojo. Postgres habria contestado 23502
+           y el mensaje no se habria escrito. */
+        if (op.insert.cita == null){
+          return {data:null, error:{
+            message:'null value in column "cita" of relation "cita_mensajes" violates not-null constraint',
+            code:'23502'}};
+        }
+        var msjC = {
+          id: 'cmsj' + (dichosCita.length + 1),
+          cita: op.insert.cita,
+          texto: op.insert.texto || '',
+          documento: op.insert.documento || null,
+          /* Del inversionista, nunca del equipo: lo pone el disparador con
+             la sesión, y si aquí se dijera lo contrario la prueba de «nadie
+             firma por otro» mediría al revés. */
+          del_equipo: false,
+          creado_en: new Date().toISOString()
+        };
+        dichosCita.push(msjC);
+        return {data:[msjC], error:null};
+      }
+      var hiloC = [
+        {id:'cmsj-a', cita:'c1', texto:'Buenos dias, todavia no he empezado ningun tramite. Por donde empiezo?',
+         del_equipo:false, documento:null, creado_en:'2026-08-12T09:10:00Z'},
+        {id:'cmsj-b', cita:'c1', texto:'Buenos dias. Con la visa y el RIF personal ya se puede constituir.',
+         del_equipo:true, documento:null, creado_en:'2026-08-12T11:40:00Z'}
+      ].concat(dichosCita);
+      var deLaCita = hiloC;
+      if (op && op.eq && op.eq.cita){
+        deLaCita = hiloC.filter(function(m){ return m.cita === op.eq.cita; });
+      }
+      return {data: deLaCita, error:null};
+    }
+
     if (tabla === 'tramite_mensajes'){
       /* La conversacion de un expediente. Empieza con DOS lineas y no
          vacia: un hilo vacio y uno que no carga se ven igual en pantalla,
@@ -1057,6 +1110,12 @@
          conversacion tiene sentido: el CIIP dice que falta algo y el
          inversionista pregunta que exactamente. */
       if (op && op.insert){
+        /* NOT NULL, igual que la de las citas y por la misma razon. */
+        if (op.insert.tramite == null){
+          return {data:null, error:{
+            message:'null value in column "tramite" of relation "tramite_mensajes" violates not-null constraint',
+            code:'23502'}};
+        }
         var msj = {
           id: 'msj' + (dichos.length + 1),
           tramite: op.insert.tramite,
