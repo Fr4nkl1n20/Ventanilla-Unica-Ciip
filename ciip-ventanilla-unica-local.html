@@ -11900,6 +11900,51 @@ applyLang(idiomaParaMi());
     });
     window.CIIP_PINTA_MISTRAM   = cargaMisTramites;
     window.CIIP_REPINTA_MISTRAM = pintaMisTramites;
+
+    /* ── AL VOLVER A LA PESTAÑA, LOS DATOS AL DÍA ──
+       Esto se pedía UNA vez, al cargar. Así que un trámite nuevo en el
+       catálogo, uno que el CIIP acaba de encender o una solicitud que cambió
+       de estado no se veían hasta pulsar F5. Y nadie recarga una página que
+       ya está abierta: se queda mirando algo viejo creyendo que es lo de
+       ahora.
+
+       Ya había un vigilante parecido y es para otra cosa: aquél mira si la
+       PÁGINA cambió —el Last-Modified— y ofrece recargar. Eso cubre el
+       código; esto cubre los datos, que cambian mucho más a menudo.
+
+       TRES GUARDAS, y ninguna sobra:
+
+       1. Un mínimo de veinte segundos. Cambiar de pestaña y volver es lo que
+          más se hace en una oficina; sin esto, cada ida y vuelta son dos
+          consultas.
+
+       2. Con una PUERTA abierta, no. El pliego y el sector bloquean el panel
+          a propósito, y repintar por debajo es trabajo que nadie ve y que
+          puede moverle el suelo a quien está leyendo algo que va a aceptar.
+
+       3. Y con un TRÁMITE abierto, tampoco. Ahí vive el formulario, y
+          recargar mientras alguien lo rellena es lo mismo que se acaba de
+          arreglar en el hilo: llevarse por delante lo que iba escrito. Quien
+          esté mirando un trámite lo verá al volver a la portada.
+
+       No recarga la página: vuelve a pedir el catálogo y las solicitudes, que
+       es lo que cambia. Olvidar el catálogo hace falta porque se guarda una
+       sola vez, y esa copia es justo la que hace que encender un trámite no
+       se note hasta recargar. */
+    var ultimoAlDia = Date.now();
+    function alDiaSiToca(){
+      if (document.hidden) return false;
+      if (Date.now() - ultimoAlDia < 20000) return false;
+      if (document.body.classList.contains('con-puerta')) return false;
+      if (document.body.getAttribute('data-vista') === 'tramite') return false;
+      ultimoAlDia = Date.now();
+      if (window.CIIP_OLVIDA_CATALOGO) window.CIIP_OLVIDA_CATALOGO();
+      cargaMisTramites();
+      return true;
+    }
+    window.CIIP_AL_DIA = alDiaSiToca;
+    document.addEventListener('visibilitychange', alDiaSiToca);
+
     /* El contador sí se pide al cargar: es lo único que avisa de que ahí
        dentro hay algo tuyo esperando. */
     cargaMisTramites();

@@ -591,6 +591,28 @@
   };
   var citasVivas = (CITAS[caso] || []).slice();
 
+  /* ── un tramite que aparece DESPUES ──
+     Para poder comprobar que el panel se pone al dia sin recargar. La
+     primera lectura no lo trae; de la segunda en adelante, si.
+
+     Es lo que pasa de verdad: el CIIP enciende un tramite, o llega una
+     solicitud nueva, mientras la pagina lleva horas abierta. Sin esto no
+     hay forma de distinguir «se puso al dia» de «no hizo nada», porque las
+     dos dejan la pantalla igual. */
+  /* Aparece cuando la prueba lo PIDE, no en la segunda lectura.
+
+     Se hizo primero por contador -de la segunda en adelante- y se colaba en
+     pruebas ajenas: la portada relee sus tramites mas de una vez durante la
+     tanda, asi que el tramite nuevo asomaba en mitad de otra cosa y ponia en
+     rojo lo que no tocaba. Un doble no debe cambiar por su cuenta.
+
+     De un tipo que ESTE catalogo conoce y que no usa ninguna otra prueba. Se
+     puso primero cedula_residencia y el panel no podia pintarlo: sin su fila
+     en tipos_tramite no sabe a que tarjeta pertenece. */
+  var TRAMITE_TARDIO = {id:'t9', tipo:'registro_inversion', estado:'enviado',
+    datos:{}, creado_en:'2026-09-03T09:00:00Z', enviado_en:'2026-09-03T09:00:00Z',
+    actualizado_en:'2026-09-03T09:00:00Z'};
+
   /* Canceladas y hechas. Hacian falta: una cita no se borra -solo se
      cancela, para que quede constancia de que se pidio-, asi que la
      lista de una cuenta usada de verdad se llena de ellas. Tres
@@ -788,6 +810,17 @@
           }
         });
         return {data: tocado ? [tocado] : [], error:null};
+      }
+      /* Y con el tramite tardio se enciende tambien el registro de marca,
+         que nacia apagado. Son dos cosas distintas y hacen falta las dos:
+         una SOLICITUD nueva se ve releyendo tramites, pero un tramite que
+         el CIIP acaba de ENCENDER solo se ve si ademas se tira la copia del
+         catalogo, que se guarda una vez y no se vuelve a pedir.
+
+         Sin esto, quitar del panel la linea que olvida el catalogo no ponia
+         nada en rojo. */
+      if (window.CIIP_MENTIRA_TARDIO){
+        TIPOS.forEach(function(t){ if (t.codigo === 'marca') t.activo = true; });
       }
       return {data:TIPOS, error:null};
     }
@@ -1038,7 +1071,16 @@
         });
         return {data: todo, error:null};
       }
-      var mios = TRAMITES[caso] || [];
+      /* La lista del inversionista. A partir de la SEGUNDA lectura trae uno
+         mas: es como se comprueba que el panel se pone al dia sin recargar.
+         Ver TRAMITE_TARDIO, arriba.
+
+         Se cuenta aqui y no en cada rama porque esta es la unica que pide la
+         portada: las de mas arriba son la cola del equipo y las guardas
+         contra duplicados, y contarlas tambien haria que el tramite tardio
+         apareciera antes de tiempo. */
+      var mios = (TRAMITES[caso] || []).slice();
+      if (window.CIIP_MENTIRA_TARDIO) mios = mios.concat([TRAMITE_TARDIO]);
       if (op && op.eq && op.eq.tipo){
         mios = mios.filter(function(t){ return t.tipo === op.eq.tipo; });
       }

@@ -191,7 +191,8 @@
               supAbre, supMira, supTemas, supVuelve,
               franjaDescarta, franjaTrasDescartar,
               fotoAbre, fotoMira, fotoMala, fotoSube, fotoTrasSubir, fotoCierra,
-              logosMiran], volcar);
+              logosMiran,
+              alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno], volcar);
   });
 
   /* ═══════════════ LA PUERTA DEL SECTOR ═══════════════
@@ -5013,6 +5014,103 @@
   function fotoCierra(){
     var x = document.getElementById('pfCerrar');
     if (x) x.click();
+  }
+
+  /* ═══════════ SIN PULSAR F5 ═══════════
+     «Y no tengo que pisar F5 para ver trámites nuevos.» (CIIP)
+
+     El catálogo y las solicitudes se pedían UNA vez, al cargar. Un trámite
+     que el CIIP acaba de encender, o una solicitud que cambió de estado, no
+     se veían hasta recargar — y nadie recarga una página que ya está
+     abierta: se queda mirando algo viejo creyendo que es lo de ahora.
+
+     El doble estrena un trámite a partir de la SEGUNDA lectura, que es lo
+     único que distingue «se puso al día» de «no hizo nada»: las dos dejan
+     la pantalla igual si no hay nada nuevo que traer.
+
+     Va al final de la cadena a propósito. La guarda pide veinte segundos
+     entre puestas al día, y aquí ya han pasado de sobra. */
+  function alDiaAntes(){
+    if (CASO !== 'vacio') return;
+    var c2 = document.querySelector('.tcard[data-tr="c31"]');
+    igual('al día: antes, el registro de inversión está por iniciar',
+          c2 ? c2.getAttribute('data-st') : '(no hay tarjeta)', 'pendiente');
+    /* Y el registro de marca, apagado: todavía no se puede solicitar.
+       Son dos cosas distintas y hacen falta las dos: una SOLICITUD nueva se
+       ve releyendo trámites, pero uno que el CIIP acaba de ENCENDER sólo se
+       ve si además se tira la copia del catálogo, que se guarda una vez. */
+    var cat0 = window.CIIP_TIPOS_POR_REF || {};
+    igual('al día: y el registro de marca está apagado',
+          !!(cat0.c8 && cat0.c8.activo), false);
+  }
+
+  function alDiaVuelve(){
+    if (CASO !== 'vacio') return;
+    /* Ahora sí hay algo nuevo que traer: el doble lo estrena cuando se le
+       pide, y no por su cuenta. */
+    window.CIIP_MENTIRA_TARDIO = true;
+    /* Como cuando vuelves a la pestaña después de un rato. */
+    document.dispatchEvent(new Event('visibilitychange'));
+  }
+
+  function alDiaDespues(){
+    if (CASO !== 'vacio') return;
+    var c2 = document.querySelector('.tcard[data-tr="c31"]');
+    ok('al día: al volver a la pestaña aparece lo nuevo, sin recargar',
+       !!c2 && c2.getAttribute('data-st') !== 'pendiente',
+       c2 ? c2.getAttribute('data-st') : '(no hay tarjeta)',
+       'algo distinto de pendiente');
+
+    /* Y NO se recargó la página: si se hubiera recargado, el arnés habría
+       empezado de cero y no estaríamos aquí. Se comprueba que sigue siendo
+       la misma sesión de la tanda. */
+    ok('al día: y sin recargar la página',
+       typeof R !== 'undefined' && R.length > 0,
+       (typeof R !== 'undefined' ? R.length : 0) + ' comprobaciones ya hechas',
+       'la misma página');
+
+    /* Y el CATÁLOGO también, que es la otra mitad y se olvida aparte: una
+       solicitud nueva se ve releyendo trámites, pero uno que el CIIP acaba
+       de encender sólo se ve si además se tira la copia guardada. */
+    var cat = window.CIIP_TIPOS_POR_REF || {};
+    igual('al día: y un trámite recién encendido ya se puede solicitar',
+          !!(cat.c8 && cat.c8.activo), true);
+  }
+
+  /* EL FRENO. Cambiar de pestaña y volver es lo que más se hace en una
+     oficina; sin esto, cada ida y vuelta son dos consultas. Se mide justo
+     después de una puesta al día, que es cuando tiene que decir que no. */
+  function alDiaFreno(){
+    if (CASO !== 'vacio' || !window.CIIP_AL_DIA) return;
+    igual('al día: y no se repite a cada ida y vuelta',
+          window.CIIP_AL_DIA(), false);
+  }
+
+  /* Y las dos guardas que impiden repintar por debajo de alguien.
+     La función devuelve si hizo algo, que es lo que se mide. */
+  /* LAS GUARDAS VAN PRIMERO EN LA CADENA, y el orden no es capricho: cada
+     puesta al día rearma el freno de veinte segundos, así que probándolas
+     DESPUÉS del refresco salían verdes por el freno y no por la guarda. Se
+     vio quitándolas: la tanda seguía pasando.
+
+     Aquí todavía no se ha refrescado nada y del arranque han pasado setenta
+     segundos de sobra, así que lo único que puede decir «no» es la guarda
+     que se está midiendo. Y decir «no» no gasta el turno: el reloj sólo se
+     rearma cuando de verdad se pone al día. */
+  function alDiaGuardas(){
+    if (CASO !== 'vacio' || !window.CIIP_AL_DIA) return;
+
+    var era = document.body.getAttribute('data-vista');
+    document.body.setAttribute('data-vista', 'tramite');
+    igual('al día: con un trámite abierto no se repinta por debajo',
+          window.CIIP_AL_DIA(), false);
+    if (era) document.body.setAttribute('data-vista', era);
+    else document.body.removeAttribute('data-vista');
+
+    document.body.classList.add('con-puerta');
+    igual('al día: ni con una puerta abierta delante',
+          window.CIIP_AL_DIA(), false);
+    document.body.classList.remove('con-puerta');
   }
 
   function logosMiran(){
