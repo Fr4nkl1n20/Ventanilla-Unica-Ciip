@@ -162,6 +162,7 @@
               fichaAbre, fichaMira, empiezaSolicitud, fichaTrasEmpezar,
               rncAbre, empiezaSolicitud, rncTrasAbrir,
               sisrefAbre, empiezaSolicitud, sisrefTrasAbrir,
+              pistaAbre, empiezaSolicitud, pistaMira,
               solvenciasAbre, empiezaSolicitud, solvenciasTrasAbrir,
               activosAbre, activosMira, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
@@ -2289,6 +2290,113 @@
      pantalla. Por eso aquí se mira el TEXTO y no sólo el número.
 
      Los nueve campos salen del portal, https://sisref.saren.gob.ve/. */
+  /* ═══════════ EL GLOBO DE «CÓMO DEBE VENIR CADA RECAUDO» ═══════════
+     Primera pieza de los instrumentos guía para operadores jurídicos: que
+     el apoderado suba los papeles igual siempre y dejen de rechazárselos
+     por vicios de forma.
+
+     Llegó sin pruebas, y es de las cosas que MÁS las necesitan: no es un
+     texto que se lee, es un trozo de interfaz con estado -se abre, se
+     cierra, se reancla, devuelve el foco- y cada una de esas cuatro cosas
+     se rompe por su cuenta sin que se note en las otras.
+
+     Se mira en el FORMULARIO, que es donde se sube el papel de verdad. */
+  function pistaAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c1';
+  }
+
+  function pistaMira(){
+    if (CASO !== 'vacio') return;
+    var caja = document.getElementById('trReal');
+    var envs = caja.querySelectorAll('.sol-doc .pista-env');
+
+    ok('pista: cada recaudo trae su «i»',
+       envs.length === caja.querySelectorAll('.sol-doc').length && envs.length > 0,
+       envs.length + ' de ' + caja.querySelectorAll('.sol-doc').length + ' recaudos',
+       'una por recaudo');
+    if (!envs.length) return;
+
+    var btn = envs[0].querySelector('.pista');
+    var glo = envs[0].querySelector('.pista-caja');
+
+    /* Cerrado al entrar. Un globo abierto de salida tapa el formulario y
+       no lo ha pedido nadie. */
+    igual('pista: empieza cerrada', glo.hidden, true);
+    igual('pista: y el botón lo declara', btn.getAttribute('aria-expanded'), 'false');
+
+    /* El rótulo del botón dice DE QUÉ recaudo es. Con doce «i» iguales en
+       la misma pantalla, un lector de pantalla que anuncie doce veces «más
+       información» deja sin saber de cuál es cada una. */
+    var etiq = btn.getAttribute('aria-label') || '';
+    ok('pista: el botón dice de qué recaudo es',
+       etiq.length > 3 && etiq !== 'i',
+       etiq || 'sin etiqueta', 'algo con el nombre del recaudo');
+
+    /* Y NO es un title=. Es la mitad del trabajo de ayer: el atributo
+       nativo no sale en táctil, se va solo mientras lo lees, no admite
+       lista y el lector lo anuncia o no según el navegador. */
+    ok('pista: no es un title del navegador', !btn.hasAttribute('title'),
+       btn.getAttribute('title') || 'sin title', 'sin title');
+
+    btn.click();
+    igual('pista: al pulsarla se abre', glo.hidden, false);
+    igual('pista: y el botón lo declara abierto', btn.getAttribute('aria-expanded'), 'true');
+
+    /* Lo que hay dentro son REGLAS, en lista y no en un renglón corrido.
+       Y las propias del documento van ANTES que las generales: quien abre
+       la del pasaporte viene a saber qué tiene el pasaporte de particular,
+       no que los papeles se suben legibles. */
+    ok('pista: dentro hay reglas, en lista',
+       glo.querySelectorAll('li').length >= 2,
+       glo.querySelectorAll('li').length + ' renglones', '2 o más');
+    ok('pista: y lleva su título',
+       ((glo.querySelector('.pc-t') || {}).textContent || '').trim() !== '',
+       (glo.querySelector('.pc-t') || {}).textContent || 'sin título', 'un título');
+
+    /* Se cierra sola al abrir otra: dos globos abiertos a la vez se tapan
+       entre ellos, y el segundo sale encima del primero sin decirlo. */
+    if (envs.length > 1){
+      var btn2 = envs[1].querySelector('.pista');
+      btn2.click();
+      ok('pista: abrir otra cierra la primera',
+         glo.hidden === true && envs[1].querySelector('.pista-caja').hidden === false,
+         'primera ' + (glo.hidden ? 'cerrada' : 'ABIERTA'), 'solo una abierta');
+      btn2.click();
+    }
+
+    /* Pulsar el mismo botón otra vez la cierra. */
+    btn.click();
+    igual('pista: vuelve a abrirse', glo.hidden, false);
+    btn.click();
+    igual('pista: y la segunda pulsación la recoge', glo.hidden, true);
+
+    /* Escape la cierra Y DEVUELVE EL FOCO al botón. Si se quedara suelto,
+       quien navega con teclado tendría que recorrer la página entera para
+       volver donde estaba. */
+    btn.click();
+    document.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape'}));
+    igual('pista: Escape la cierra', glo.hidden, true);
+    ok('pista: y devuelve el foco al botón', document.activeElement === btn,
+       document.activeElement ? (document.activeElement.className || document.activeElement.tagName) : 'nada',
+       'el botón de la pista');
+
+    /* Un clic fuera también la cierra; uno DENTRO no, que si no no se
+       podría seleccionar el texto para copiarlo, que es justo lo que hace
+       quien prepara un expediente.
+
+       Lo de dentro lo guardan DOS cosas a la vez -el stopPropagation de la
+       caja y el closest('.pista-env') del manejador del documento- y se
+       comprobó: quitar cualquiera de las dos por separado no rompe nada,
+       porque la otra sigue. Rompiendo las dos, esta prueba se pone roja.
+       O sea que mide, aunque haga falta quitar las dos para verlo. */
+    btn.click();
+    glo.dispatchEvent(new MouseEvent('click', {bubbles:true}));
+    igual('pista: un clic dentro no la cierra', glo.hidden, false);
+    document.body.dispatchEvent(new MouseEvent('click', {bubbles:true}));
+    igual('pista: pero uno fuera sí', glo.hidden, true);
+  }
+
   function sisrefAbre(){
     if (CASO !== 'vacio') return;
     location.hash = 'tramite-c32';
