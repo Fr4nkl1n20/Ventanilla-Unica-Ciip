@@ -89,6 +89,240 @@ window.CIIP_PASOS = {
          s5:"Агропромышленность", s6:"Здравоохранение", s7:"Рыболовство и аквакультура", s8:"Лесное хозяйство"}
   },
 
+  /* ══════════════════════════════════════════════════════════════════
+     LA GUÍA DE CADA RECAUDO
+     ══════════════════════════════════════════════════════════════════
+     Lo que sale al pulsar la «i» que hay al lado de cada recaudo, en la
+     ficha del trámite y en el formulario. Del encargo de los
+     «Instrumentos Guía para Operadores Jurídicos»: que el apoderado suba
+     los papeles igual siempre y dejen de rechazarse por vicios de forma.
+
+     DOS NIVELES, Y LA DIFERENCIA IMPORTA
+
+     · `forma` son las reglas que valen para CUALQUIER documento y ante
+       cualquier organismo: completo, legible, con sus sellos, en el
+       formato que admite el cubo. Salen debajo en todos los recaudos.
+     · `propio` es lo que tiene de particular ese recaudo, y hoy sólo
+       dice cosas de FORMA -qué cara de la cédula, qué página del
+       pasaporte, qué tiene que verse-. Está a propósito.
+
+     LO QUE FALTA, DICHO PARA QUE NO SE DÉ POR HECHO
+
+     Aquí NO están los requisitos que exige cada organismo, porque los
+     fija su normativa y no los puede inventar quien programa la
+     pantalla. Un plazo de vigencia equivocado o una firma que no hacía
+     falta causarían el mismo rechazo que se quiere evitar, y encima con
+     el sello del CIIP detrás.
+
+     Cuando el CIIP los fije, se añaden a `propio` del idioma que toque:
+     un recaudo más en la lista, sin tocar el código. Los tipos que
+     todavía no tienen entrada propia enseñan sólo las reglas generales,
+     que ya es más de lo que enseñaban.
+
+     Los códigos de `propio` son los de public.tipos_documento, los
+     mismos que usa RECAUDOS en el panel.
+     ══════════════════════════════════════════════════════════════════ */
+  guia: {
+    es: {
+      titulo:   "Cómo debe venir",
+      boton:    "Cómo debe venir: {doc}",
+      caduca:   "Caduca. Tiene que estar vigente el día que lo entregues, y al subirlo se te pedirá su fecha de vencimiento.",
+      opcional: "En este trámite es opcional: súbelo sólo si te aplica.",
+      forma: [
+        "Completo: todas las páginas, y el reverso si lleva algo escrito.",
+        "Legible de punta a punta: sin recortes, sin sombras, sin reflejos y sin dedos encima.",
+        "Con los sellos, las firmas y los números de registro a la vista.",
+        "En PDF o en imagen, y por debajo de 10 MB.",
+        "El nombre y el número de documento tienen que coincidir con los de tu expediente.",
+        "Si está en otro idioma, acompáñalo de su traducción.",
+        "Si se emitió fuera de Venezuela, apostillado o legalizado."
+      ],
+      propio: {
+        pasaporte:        ["La página de datos entera: la foto, el nombre, el número y las dos líneas del pie."],
+        cedula:           ["Las dos caras. En un archivo o en dos, pero las dos."],
+        rif_personal:     ["El certificado completo, con su código de validación visible."],
+        rif_empresa:      ["El certificado completo, con su código de validación visible."],
+        acta_constitutiva:["El acta registrada, con la nota del registro mercantil legible: número, tomo y folio."],
+        acta_asamblea:    ["El acta registrada, con la nota del registro legible."],
+        poder:            ["El documento completo, con la nota de autenticación o de registro."],
+        traduccion:       ["Con el sello y la firma de quien traduce.", "Súbela junto al documento traducido, no en su lugar."],
+        foto:             ["Tipo carnet: de frente, fondo claro, sin gorra y sin gafas de sol.", "Reciente: que se te reconozca hoy."],
+        domicilio:        ["A tu nombre, y con la dirección completa legible."],
+        recibo_servicio:  ["A nombre tuyo o de la empresa, con la dirección completa y la fecha legibles."],
+        nomina:           ["Firmada y sellada por la empresa."],
+        titulo_inmueble:  ["Con las firmas de las partes y la nota de registro o de autenticación."],
+        arrendamiento:    ["Con las firmas de las partes y la nota de autenticación.", "Vigente: si el plazo ya venció, no sirve de soporte."],
+        plano_local:      ["Con las medidas legibles y la firma de quien lo elabora."],
+        antecedentes:     ["El certificado completo, con su código de verificación visible."]
+      }
+    },
+    en: {
+      titulo:   "How it must look",
+      boton:    "How it must look: {doc}",
+      caduca:   "It expires. It must be valid on the day you file it, and you will be asked for its expiry date when you upload it.",
+      opcional: "Optional for this procedure: upload it only if it applies to you.",
+      forma: [
+        "Complete: every page, and the back of the sheet if anything is written on it.",
+        "Legible throughout: nothing cropped, no shadows, no glare, no fingers in the way.",
+        "Stamps, signatures and registry numbers in plain view.",
+        "As a PDF or an image, under 10 MB.",
+        "The name and document number must match the ones in your file.",
+        "If it is in another language, send its translation with it.",
+        "If it was issued outside Venezuela, apostilled or legalised."
+      ],
+      propio: {
+        pasaporte:        ["The whole data page: photo, name, number and the two lines at the bottom."],
+        cedula:           ["Both sides. One file or two, but both."],
+        rif_personal:     ["The complete certificate, with its validation code visible."],
+        rif_empresa:      ["The complete certificate, with its validation code visible."],
+        acta_constitutiva:["The registered deed, with the commercial registry note legible: number, volume and folio."],
+        acta_asamblea:    ["The registered minutes, with the registry note legible."],
+        poder:            ["The complete document, with the notarisation or registry note."],
+        traduccion:       ["With the translator's stamp and signature.", "Upload it alongside the translated document, not instead of it."],
+        foto:             ["Passport style: facing forward, light background, no hat, no sunglasses.", "Recent: you should be recognisable from it today."],
+        domicilio:        ["In your name, with the full address legible."],
+        recibo_servicio:  ["In your name or the company's, with the full address and the date legible."],
+        nomina:           ["Signed and stamped by the company."],
+        titulo_inmueble:  ["With the parties' signatures and the registry or notarisation note."],
+        arrendamiento:    ["With the parties' signatures and the notarisation note.", "Current: an expired term is no support."],
+        plano_local:      ["With the measurements legible and signed by whoever drew it."],
+        antecedentes:     ["The complete certificate, with its verification code visible."]
+      }
+    },
+    pt: {
+      titulo:   "Como deve vir",
+      boton:    "Como deve vir: {doc}",
+      caduca:   "Caduca. Tem de estar válido no dia em que o entregar, e ao carregá-lo ser-lhe-á pedida a data de validade.",
+      opcional: "Neste trâmite é opcional: carregue-o só se lhe aplicar.",
+      forma: [
+        "Completo: todas as páginas, e o verso se tiver algo escrito.",
+        "Legível de ponta a ponta: sem cortes, sem sombras, sem reflexos e sem dedos por cima.",
+        "Com os selos, as assinaturas e os números de registo à vista.",
+        "Em PDF ou em imagem, e abaixo de 10 MB.",
+        "O nome e o número do documento têm de coincidir com os do seu processo.",
+        "Se estiver noutro idioma, junte a tradução.",
+        "Se foi emitido fora da Venezuela, apostilado ou legalizado."
+      ],
+      propio: {
+        pasaporte:        ["A página de dados inteira: a foto, o nome, o número e as duas linhas do rodapé."],
+        cedula:           ["Os dois lados. Num ficheiro ou em dois, mas os dois."],
+        rif_personal:     ["O certificado completo, com o código de validação visível."],
+        rif_empresa:      ["O certificado completo, com o código de validação visível."],
+        acta_constitutiva:["A escritura registada, com a nota do registo comercial legível: número, tomo e fólio."],
+        acta_asamblea:    ["A ata registada, com a nota do registo legível."],
+        poder:            ["O documento completo, com a nota de autenticação ou de registo."],
+        traduccion:       ["Com o selo e a assinatura de quem traduz.", "Carregue-a junto do documento traduzido, não em vez dele."],
+        foto:             ["Tipo passe: de frente, fundo claro, sem boné e sem óculos de sol.", "Recente: que o reconheçam hoje."],
+        domicilio:        ["Em seu nome, e com a morada completa legível."],
+        recibo_servicio:  ["Em seu nome ou da empresa, com a morada completa e a data legíveis."],
+        nomina:           ["Assinada e carimbada pela empresa."],
+        titulo_inmueble:  ["Com as assinaturas das partes e a nota de registo ou de autenticação."],
+        arrendamiento:    ["Com as assinaturas das partes e a nota de autenticação.", "Em vigor: se o prazo já terminou, não serve de suporte."],
+        plano_local:      ["Com as medidas legíveis e a assinatura de quem o elabora."],
+        antecedentes:     ["O certificado completo, com o código de verificação visível."]
+      }
+    },
+    it: {
+      titulo:   "Come deve arrivare",
+      boton:    "Come deve arrivare: {doc}",
+      caduca:   "Scade. Deve essere valido il giorno in cui lo presenti, e nel caricarlo ti sarà chiesta la data di scadenza.",
+      opcional: "In questa pratica è facoltativo: caricalo solo se ti riguarda.",
+      forma: [
+        "Completo: tutte le pagine, e il retro se vi è scritto qualcosa.",
+        "Leggibile da cima a fondo: senza tagli, senza ombre, senza riflessi e senza dita sopra.",
+        "Con i timbri, le firme e i numeri di registro in vista.",
+        "In PDF o in immagine, e sotto i 10 MB.",
+        "Il nome e il numero del documento devono coincidere con quelli del tuo fascicolo.",
+        "Se è in un'altra lingua, allega la traduzione.",
+        "Se è stato rilasciato fuori dal Venezuela, apostillato o legalizzato."
+      ],
+      propio: {
+        pasaporte:        ["L'intera pagina dei dati: la foto, il nome, il numero e le due righe in fondo."],
+        cedula:           ["Entrambi i lati. In un file o in due, ma entrambi."],
+        rif_personal:     ["Il certificato completo, con il codice di validazione visibile."],
+        rif_empresa:      ["Il certificato completo, con il codice di validazione visibile."],
+        acta_constitutiva:["L'atto registrato, con la nota del registro delle imprese leggibile: numero, tomo e foglio."],
+        acta_asamblea:    ["Il verbale registrato, con la nota di registro leggibile."],
+        poder:            ["Il documento completo, con la nota di autentica o di registrazione."],
+        traduccion:       ["Con il timbro e la firma di chi traduce.", "Caricala insieme al documento tradotto, non al suo posto."],
+        foto:             ["Formato tessera: di fronte, sfondo chiaro, senza cappello e senza occhiali da sole.", "Recente: che ti si riconosca oggi."],
+        domicilio:        ["A tuo nome, e con l'indirizzo completo leggibile."],
+        recibo_servicio:  ["A tuo nome o della società, con l'indirizzo completo e la data leggibili."],
+        nomina:           ["Firmata e timbrata dall'azienda."],
+        titulo_inmueble:  ["Con le firme delle parti e la nota di registrazione o di autentica."],
+        arrendamiento:    ["Con le firme delle parti e la nota di autentica.", "In corso di validità: se il termine è scaduto, non fa da supporto."],
+        plano_local:      ["Con le misure leggibili e la firma di chi lo redige."],
+        antecedentes:     ["Il certificato completo, con il codice di verifica visibile."]
+      }
+    },
+    zh: {
+      titulo:   "提交要求",
+      boton:    "提交要求：{doc}",
+      caduca:   "该文件有有效期。提交当日必须仍在有效期内，上传时会要求填写到期日。",
+      opcional: "本手续中为选填：仅在适用于您时上传。",
+      forma: [
+        "完整：所有页面；背面如有内容也须包含。",
+        "全文清晰：不得裁切，无阴影、无反光，不得有手指遮挡。",
+        "印章、签名和登记编号须清楚可见。",
+        "PDF 或图片格式，小于 10 MB。",
+        "姓名与证件号码须与您档案中的一致。",
+        "如为其他语种，请一并提交译文。",
+        "如在委内瑞拉境外签发，须经海牙认证或领事认证。"
+      ],
+      propio: {
+        pasaporte:        ["资料页整页：照片、姓名、号码以及底部两行机读码。"],
+        cedula:           ["正反两面。可为一个文件或两个，但两面都要有。"],
+        rif_personal:     ["完整证书，验证码须清晰可见。"],
+        rif_empresa:      ["完整证书，验证码须清晰可见。"],
+        acta_constitutiva:["已登记的章程，商事登记批注须清晰：编号、卷号与页号。"],
+        acta_asamblea:    ["已登记的会议记录，登记批注须清晰。"],
+        poder:            ["完整文件，须含公证或登记批注。"],
+        traduccion:       ["须有译者印章与签名。", "与被翻译的文件一并上传，不可只传译文。"],
+        foto:             ["证件照：正面、浅色背景、不戴帽子和墨镜。", "近期照片：应能据此认出本人。"],
+        domicilio:        ["须为本人名下，地址完整清晰。"],
+        recibo_servicio:  ["须为本人或公司名下，地址与日期完整清晰。"],
+        nomina:           ["由公司签字并盖章。"],
+        titulo_inmueble:  ["须有各方签字及登记或公证批注。"],
+        arrendamiento:    ["须有各方签字及公证批注。", "须在租期内：已到期的合同不能作为凭证。"],
+        plano_local:      ["尺寸标注清晰，并由制图人签字。"],
+        antecedentes:     ["完整证书，查验码须清晰可见。"]
+      }
+    },
+    ru: {
+      titulo:   "Как должен выглядеть",
+      boton:    "Как должен выглядеть: {doc}",
+      caduca:   "Документ имеет срок действия. Он должен быть действителен в день подачи, а при загрузке у вас спросят дату окончания срока.",
+      opcional: "В этой процедуре необязателен: загружайте, только если он к вам относится.",
+      forma: [
+        "Полностью: все страницы, а также оборот, если на нём что-то написано.",
+        "Читаемо целиком: без обрезки, без теней, без бликов и без пальцев в кадре.",
+        "Печати, подписи и регистрационные номера должны быть видны.",
+        "В формате PDF или изображения, до 10 МБ.",
+        "Имя и номер документа должны совпадать с теми, что в вашем деле.",
+        "Если документ на другом языке, приложите перевод.",
+        "Если он выдан за пределами Венесуэлы — с апостилем или легализацией."
+      ],
+      propio: {
+        pasaporte:        ["Страница с данными целиком: фотография, имя, номер и две строки внизу."],
+        cedula:           ["Обе стороны. Одним файлом или двумя, но обе."],
+        rif_personal:     ["Полное свидетельство, код проверки должен быть виден."],
+        rif_empresa:      ["Полное свидетельство, код проверки должен быть виден."],
+        acta_constitutiva:["Зарегистрированный устав с читаемой отметкой торгового реестра: номер, том и лист."],
+        acta_asamblea:    ["Зарегистрированный протокол с читаемой отметкой реестра."],
+        poder:            ["Документ целиком, с отметкой о нотариальном удостоверении или регистрации."],
+        traduccion:       ["С печатью и подписью переводчика.", "Загружайте вместе с переведённым документом, а не вместо него."],
+        foto:             ["Как на документы: анфас, светлый фон, без головного убора и тёмных очков.", "Свежая: чтобы вас узнали сегодня."],
+        domicilio:        ["На ваше имя, с полностью читаемым адресом."],
+        recibo_servicio:  ["На ваше имя или на имя компании, с читаемыми адресом и датой."],
+        nomina:           ["С подписью и печатью компании."],
+        titulo_inmueble:  ["С подписями сторон и отметкой о регистрации или удостоверении."],
+        arrendamiento:    ["С подписями сторон и отметкой об удостоверении.", "Действующий: истёкший срок основанием не служит."],
+        plano_local:      ["С читаемыми размерами и подписью составителя."],
+        antecedentes:     ["Полное свидетельство, код проверки должен быть виден."]
+      }
+    }
+  },
+
   /* Textos del formulario y de los avisos */
   ui: {
     es: {

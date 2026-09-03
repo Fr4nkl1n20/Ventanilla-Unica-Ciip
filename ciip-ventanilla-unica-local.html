@@ -1985,6 +1985,61 @@ body[data-vista="tramite"] #secTramites{display:none;}
 @media (max-width:700px){ .sol-campos{grid-template-columns:1fr;} }
 
 /* --- recaudos --- */
+
+/* ---------- la pista de cada recaudo ---------- */
+/* Un botón, no un title=. El atributo nativo del navegador no vale para
+   esto por cuatro razones y las cuatro importan aquí: no aparece en
+   táctil -y media oficina entra desde el móvil-, se va solo a los pocos
+   segundos mientras lo estás leyendo, no admite una lista sino un
+   renglón corrido, y el lector de pantalla lo anuncia o no según el
+   navegador. Un recaudo rechazado por vicio de forma se rechaza igual en
+   un teléfono.
+
+   Va DESPUÉS del nombre y no delante: quien ya sabe qué es el documento
+   no debería tropezar con una interrogación antes de leer cómo se llama. */
+.pista-env{position:relative; display:inline-flex; align-items:center; vertical-align:middle;}
+.pista{margin-left:6px; width:15px; height:15px; flex:none; padding:0; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+  font:inherit; font-size:9.5px; font-weight:800; line-height:1;
+  border:1px solid var(--line); border-radius:50%;
+  background:var(--bg); color:var(--gray-soft);}
+.pista:hover{border-color:var(--cyan-deep); color:var(--cyan-deep);}
+.pista[aria-expanded="true"]{border-color:var(--navy2); color:var(--navy2); background:var(--block);}
+.pista:focus-visible{outline:2px solid var(--navy); outline-offset:2px;}
+
+/* El globo. z-index por encima de la ficha y de la hoja del formulario,
+   que llevan sombra propia y si no lo tapaban por la mitad. */
+.pista-caja{position:absolute; top:calc(100% + 7px); left:-8px; z-index:70;
+  width:max-content; max-width:min(340px, 78vw);
+  background:var(--bg); border:1px solid var(--line); border-radius:var(--r-sm);
+  box-shadow:var(--shadow-lg); padding:12px 14px; text-align:left;
+  white-space:normal; cursor:auto;}
+/* Cuando el globo no cabe por la derecha se ancla por el otro lado. Lo
+   pone el JS midiendo, no una media query: depende de dónde esté el
+   recaudo en la fila, no del ancho de la pantalla. */
+.pista-caja.izq{left:auto; right:-8px;}
+.pista-caja[hidden]{display:none;}
+.pista-caja .pc-t{font-size:11px; font-weight:800; letter-spacing:.03em;
+  text-transform:uppercase; color:var(--gray-soft); margin-bottom:7px;}
+/* list-style:disc EXPLICITO y display:list-item EXPLICITO, y no por gusto:
+   este globo tambien cuelga de la lista de recaudos de la ficha, que es un
+   <ul class="ft-rec"> con list-style:none -y list-style SE HEREDA- y con una
+   regla .ft-rec li que pone display:flex y padding, y que alcanza a mis <li>
+   por ser descendientes suyos. Sin este blindaje los puntos desaparecian y
+   los renglones se separaban el triple, pero SOLO dentro de la ficha: en el
+   formulario se veia bien, que es la clase de fallo que se escapa mirando
+   una sola pantalla. */
+.pista-caja ul{margin:0; padding-left:16px; display:flex; flex-direction:column;
+  gap:5px; list-style:disc;}
+.pista-caja li{display:list-item; padding:0; gap:0; font-size:12px; line-height:1.5;
+  color:var(--ink); font-weight:400;}
+/* Los dos renglones que salen de la BASE y no del texto fijo: que este
+   recaudo caduca, y que es opcional. Se separan con una línea para que no
+   se confundan con las reglas de forma, que son otra cosa. */
+.pista-caja .pc-base{margin-top:9px; padding-top:9px; border-top:1px solid var(--line-soft);
+  display:flex; flex-direction:column; gap:5px;}
+.pista-caja .pc-base div{font-size:11.5px; line-height:1.45; color:var(--gray); font-weight:600;}
+.pista-caja .pc-base .caduca{color:var(--amber);}
 .sol-docs{margin-top:24px; display:flex; flex-direction:column; gap:10px; max-width:620px;}
 .sol-doc{display:flex; align-items:center; gap:12px; background:var(--bg); border:1px solid var(--line);
   border-radius:9px; padding:11px 13px;}
@@ -5601,6 +5656,137 @@ applyLang(idiomaParaMi());
      una se cachea y la otra no. */
   window.CIIP_TIPOS_POR_REF = {};
 
+  /* ──────────────────────────────────────────────────────────────
+     LA PISTA DE CADA RECAUDO
+     ──────────────────────────────────────────────────────────────
+     Del encargo de los «Instrumentos Guía para Operadores Jurídicos»:
+     que el apoderado o el gestor corporativo suba los recaudos igual
+     siempre, y que dejen de rechazarse por vicios de forma.
+
+     QUÉ CUENTA, Y DE DÓNDE SALE CADA COSA
+
+     · Las REGLAS DE FORMA, que valen para todos: documento completo,
+       legible, con sus sellos, en el formato y el tamaño que admite el
+       cubo. Salen de pasos.js, traducidas, y son las que de verdad
+       explican la mayoría de los rechazos.
+     · Lo PROPIO de ese recaudo, cuando lo hay: qué cara de la cédula,
+       qué página del pasaporte. Va por código de tipo, también en
+       pasos.js.
+     · Y dos renglones que NO están escritos en ningún texto porque los
+       sabe la BASE: si ese tipo caduca -tipos_documento.vence- y si en
+       este trámite concreto es opcional. Repetirlos a mano en las seis
+       traducciones sería tener la misma verdad en dos sitios, y el día
+       que la base cambiara sólo cambiaría uno.
+
+     LO QUE ESTA PISTA NO ES
+
+     No es la lista de requisitos del organismo. Lo que exige el SAREN o
+     una alcaldía sale de su normativa, y aquí sólo está lo que es
+     verdad de forma con independencia de quién reciba el papel. Los
+     requisitos propios de cada ente se añaden a `guia.<idioma>.propio`
+     cuando el CIIP los fije, y hasta entonces el recaudo enseña las
+     reglas generales, que ya es más de lo que enseñaba.
+
+     Por eso montaPista devuelve NULL cuando no hay nada que contar: un
+     botón de ayuda que al pulsarlo no dice nada es peor que ninguno.
+     ────────────────────────────────────────────────────────────── */
+  var pistaAbierta = null;
+  var pistaN = 0;
+
+  function cierraPista(){
+    if (!pistaAbierta) return;
+    pistaAbierta.caja.hidden = true;
+    pistaAbierta.btn.setAttribute('aria-expanded', 'false');
+    pistaAbierta = null;
+  }
+
+  /* Se cierra al pulsar fuera y con Escape, como las demás ventanas del
+     panel. Al cerrar con Escape el foco vuelve al botón: si se quedara
+     suelto, quien navega con teclado tendría que recorrer la página
+     entera para volver donde estaba. */
+  document.addEventListener('click', function(e){
+    if (!pistaAbierta) return;
+    if (e.target.closest && e.target.closest('.pista-env')) return;
+    cierraPista();
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Escape' || !pistaAbierta) return;
+    var b = pistaAbierta.btn;
+    cierraPista();
+    if (b) b.focus();
+  });
+
+  function guiaDelIdioma(){
+    var G = (window.CIIP_PASOS && window.CIIP_PASOS.guia) || {};
+    return G[curLang] || G.es || {};
+  }
+
+  /* El nombre llega como parámetro y no se busca aquí: quien llama ya lo
+     ha compuesto -es u[r.clave], con su «(opcional)» si lo lleva- y el
+     mapa de tipo a clave vive en OTRO módulo, el de la bóveda. Ir a
+     buscarlo allí sería atarse a un vecino para averiguar algo que el
+     propio bucle ya tiene en la mano. */
+  function montaPista(tipo, opcional, nombre){
+    var g = guiaDelIdioma();
+    var propios   = (g.propio && g.propio[tipo]) || [];
+    var generales = g.forma || [];
+    if (!propios.length && !generales.length) return null;
+
+    var env = el('span', 'pista-env');
+    var btn = el('button', 'pista', 'i');
+    btn.type = 'button';
+    btn.setAttribute('aria-expanded', 'false');
+    /* El rótulo lleva el nombre del recaudo dentro. Con doce pistas en la
+       misma pantalla, doce botones que se anuncian «más información» dejan
+       a quien usa lector de pantalla sin saber de cuál es cada uno. */
+    btn.setAttribute('aria-label',
+      (g.boton || '').replace('{doc}', nombre || '') || (g.titulo || 'i'));
+
+    var caja = el('div', 'pista-caja');
+    caja.hidden = true;
+    caja.id = 'pista-' + (++pistaN);
+    btn.setAttribute('aria-controls', caja.id);
+    caja.appendChild(el('div', 'pc-t', g.titulo || ''));
+
+    var lista = document.createElement('ul');
+    /* Lo propio del recaudo primero y las reglas generales después: quien
+       abre la pista de la cédula viene a saber qué tiene la cédula de
+       particular, no que los documentos se suben legibles. */
+    propios.concat(generales).forEach(function(p){
+      lista.appendChild(el('li', null, p));
+    });
+    caja.appendChild(lista);
+
+    /* Lo que dice la base, aparte y con su línea: no son reglas de forma. */
+    var base = el('div', 'pc-base');
+    if (caduca(tipo) && g.caduca) base.appendChild(el('div', 'caduca', g.caduca));
+    if (opcional && g.opcional)   base.appendChild(el('div', null, g.opcional));
+    if (base.childNodes.length) caja.appendChild(base);
+
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      e.preventDefault();
+      var abierta = (pistaAbierta && pistaAbierta.btn === btn);
+      cierraPista();
+      if (abierta) return;
+      caja.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+      pistaAbierta = {btn:btn, caja:caja};
+      /* Si el globo se sale por la derecha se ancla por el otro lado. Se
+         mide DESPUÉS de enseñarlo, que es cuando tiene ancho. */
+      caja.classList.remove('izq');
+      var r = caja.getBoundingClientRect();
+      if (r.right > (window.innerWidth - 8)) caja.classList.add('izq');
+    });
+    /* Un clic DENTRO del globo no lo cierra: se puede seleccionar el texto
+       para copiarlo, que es justo lo que hace quien prepara un expediente. */
+    caja.addEventListener('click', function(e){ e.stopPropagation(); });
+
+    env.appendChild(btn);
+    env.appendChild(caja);
+    return env;
+  }
+
   /* Los recaudos que pide cada tipo. Vive aquí y no en la base porque es
      una regla de la interfaz —qué se le pide al usuario en pantalla—, no
      un dato del expediente. Cuando haya más de dos o tres trámites vivos,
@@ -6807,6 +6993,11 @@ applyLang(idiomaParaMi());
         var txt = el('span');
         txt.appendChild(document.createTextNode(u[r.clave] || r.tipo));
         if (r.opcional) txt.appendChild(el('span', 'o', ' ' + (u.opcional || '')));
+        /* Tambien en la ficha, que es donde se PREPARA el expediente. Leer
+           alli como debe venir cada papel evita el viaje de subirlo mal,
+           que es justo el rechazo que se quiere quitar de en medio. */
+        var pis = montaPista(r.tipo, r.opcional, u[r.clave] || r.tipo);
+        if (pis) txt.appendChild(pis);
         li.appendChild(txt);
         lista.appendChild(li);
       });
@@ -6938,8 +7129,15 @@ applyLang(idiomaParaMi());
 
       var txt = el('div');
       txt.style.flex = '1 1 auto';
-      txt.appendChild(el('div', 'sd-n',
-        (u[r.clave] || r.tipo) + (r.opcional ? ' ' + (u.opcional || '') : '')));
+      /* La pista va DENTRO del renglon del nombre, no en una columna
+         aparte: asi acompana al recaudo aunque la fila se estreche, y
+         en movil no se queda colgando debajo del boton de subir. */
+      var nom = el("div", "sd-n");
+      nom.appendChild(document.createTextNode(
+        (u[r.clave] || r.tipo) + (r.opcional ? " " + (u.opcional || "") : "")));
+      var pis = montaPista(r.tipo, r.opcional, u[r.clave] || r.tipo);
+      if (pis) nom.appendChild(pis);
+      txt.appendChild(nom);
       var est = el('div', 'sd-e', '');
       txt.appendChild(est);
       fila.appendChild(txt);
