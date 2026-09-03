@@ -144,10 +144,28 @@ foreach ($c in $casos) {
   # una portada que casi nadie ve. 1400 es una pantalla de escritorio normal,
   # que es donde las cuatro etapas van en fila.
   $args = @('--headless=new','--disable-gpu','--no-sandbox','--dump-dom',
-            # El presupuesto de tiempo crece con la cadena de pasos del arnes: cada uno
-  # espera medio segundo a que la base conteste. Si se queda corto, el arnes
-  # no llega a volcar y el fallo parece un error de JavaScript que no existe.
-  '--enable-logging=stderr','--virtual-time-budget=70000',
+            # EL PRESUPUESTO DE TIEMPO, Y LA CUENTA ESCRITA
+  #
+  # Crece con la cadena de pasos del arnes: cada uno espera medio segundo a
+  # que la base conteste. Si se queda corto, el arnes no llega a volcar y el
+  # fallo parece un error de JavaScript que no existe.
+  #
+  # Y eso paso. La cuenta de hoy:
+  #
+  #   la cadena tiene ~142 pasos
+  #   x 500 ms de espera cada uno
+  #   = 71 s SOLO de esperas
+  #
+  # O sea que con 70000 ya ibamos por debajo, y solo terminaba porque
+  # algunos pasos usan la forma de callback -60 ms- en vez del temporizador.
+  # Al añadir las pruebas del hilo de las citas, un sabotaje empezo a
+  # quedarse sin tiempo y esto lo cantaba como error de JavaScript. No habia
+  # ninguno: se acababa el reloj, y costo media hora buscar un fallo que no
+  # existia.
+  #
+  # 150000 deja el doble del margen que hace falta hoy. Cuando la cadena
+  # vuelva a crecer, la cuenta esta aqui arriba.
+  '--enable-logging=stderr','--virtual-time-budget=150000',
             "--window-size=$ancho",
             "--user-data-dir=$trabajo\perfil-$caso", $url)
   $p = Start-Process $navegador -ArgumentList $args -RedirectStandardOutput $salida `
@@ -158,11 +176,26 @@ foreach ($c in $casos) {
   $m = [regex]::Match($dom, '###(\[.*?\])###', [Text.RegularExpressions.RegexOptions]::Singleline)
   if (-not $m.Success) {
     Write-Host ''
-    Write-Host "  El arnes no llego a ejecutarse en el expediente '$caso'. Suele" -ForegroundColor Red
-    Write-Host '  significar que hay un error de JavaScript que corta la pagina.' -ForegroundColor Red
-    Get-Content $errores -ErrorAction SilentlyContinue |
-      Where-Object { $_ -match 'ERROR|Uncaught|TypeError|SyntaxError' } |
-      Select-Object -First 10 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+    # DOS CAUSAS DISTINTAS, Y ANTES SE DECIAN IGUAL.
+    #
+    # Si no hay volcado puede ser que la pagina se cayera... o que se acabara
+    # el reloj. Esto decia siempre lo primero, y mandaba a buscar un error de
+    # JavaScript que no existia. Ahora se mira si hay alguno de verdad en la
+    # consola antes de acusarlo.
+    $rotos = @(Get-Content $errores -ErrorAction SilentlyContinue |
+               Where-Object { $_ -match 'Uncaught|TypeError|SyntaxError|is not defined|is not a function' })
+    Write-Host "  El arnes no llego a volcar sus resultados en el expediente '$caso'." -ForegroundColor Red
+    if ($rotos.Count -gt 0) {
+      Write-Host '  Hay un error de JavaScript que corta la pagina:' -ForegroundColor Red
+      $rotos | Select-Object -First 10 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+    } else {
+      Write-Host '  Y NO hay ningun error de JavaScript en la consola, asi que lo mas' -ForegroundColor Red
+      Write-Host '  probable es que se quedara sin tiempo: el volcado va al final de la' -ForegroundColor Red
+      Write-Host '  cadena, y si no llega, no se escribe nada.' -ForegroundColor Red
+      Write-Host ''
+      Write-Host '  Sube --virtual-time-budget en este mismo archivo. La cuenta de' -ForegroundColor DarkGray
+      Write-Host '  cuanto hace falta esta escrita al lado, donde se pasa el argumento.' -ForegroundColor DarkGray
+    }
     exit 1
   }
   $todos += ,@($caso, ($m.Groups[1].Value | ConvertFrom-Json))

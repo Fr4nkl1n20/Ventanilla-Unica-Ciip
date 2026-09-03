@@ -159,7 +159,7 @@
                  delante la ficha entera. */
               idMira, idRechazaSinNota, idFirma, idTrasFirmar,
               colaExpediente, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
-              agendaMira, agendaTrasEntrar, agendaTrasSalir,
+              agendaMira, agendaTrasEntrar, agendaHilo, agendaHiloMira, agendaTrasSalir,
               paisesMira, empiezaSolicitud, paisesTrasAbrir,
               dupeAbre, empiezaSolicitud, dupeMira, dupeTrasEnviar,
               antesAbre, empiezaSolicitud, antesMira, fecha3Mira, fecha3Cambia,
@@ -5200,6 +5200,105 @@
     /* Y "Mi panel" saca de aquí. Era un <div> que solo se iluminaba, así que
        desde la vista de citas no había salida por la barra. */
     document.getElementById('navPanel').click();
+  }
+
+  /* ── y el CIIP contesta ──
+     Es la mitad que faltaba. El equipo veía la cita y de qué era, y no
+     tenía dónde responder: la política de la base ya se lo permitía y era
+     la pantalla la que no lo ofrecía. Un hilo donde sólo una parte puede
+     escribir no es una conversación, y eso ya estaba dicho en
+     supabase-hilo.sql sobre los adjuntos.
+
+     Se mira en la AGENDA, que es la lista de citas, y que ven los dos: el
+     inversionista con las suyas y el equipo con todas. */
+  function agendaHilo(){
+    var fichas = document.querySelectorAll('#ciLista .ci-ficha');
+    if (!fichas.length) return;
+
+    var bts = document.querySelectorAll('#ciLista .ci-habla');
+    igual('agenda: cada cita tiene dónde conversar', bts.length, fichas.length);
+    if (!bts.length) return;
+
+    /* La ficha de LA cita que tiene conversación, no la primera de la lista.
+       Aquí estaba escrito bts[0] y medía una cita cualquiera: la nuestra se
+       cancela antes y baja a su sección, así que el hilo salía vacío y la
+       comprobación del contenido no podía distinguir nada. */
+    var ficha = document.querySelector('#ciLista .ci-ficha[data-cita="k1"]') || fichas[0];
+    var bt0   = ficha.querySelector('.ci-habla');
+    if (!bt0) return;
+
+    /* Cerrado al entrar, y esto NO es cosmética: una agenda con doce citas
+       montaría doce hilos, o sea doce consultas y doce cajas de escribir
+       que casi nadie va a mirar. Se monta al pulsar. */
+    var caja = ficha.querySelector('.ci-hilo-caja');
+    igual('agenda: la conversación empieza cerrada', caja.hidden, true);
+    ok('agenda: y no se ha pedido nada todavía',
+       !caja.querySelector('.hilo'),
+       caja.querySelector('.hilo') ? 'ya montado' : 'sin montar', 'sin montar');
+
+    bt0.click();
+    igual('agenda: al pulsar se abre', caja.hidden, false);
+    ok('agenda: y entonces sí se monta la conversación',
+       !!caja.querySelector('.hilo'),
+       caja.querySelector('.hilo') ? 'montada' : 'vacía', 'montada');
+
+    /* Y es la MISMA de siempre, no una tercera copia. Van tres sitios: el
+       detalle del trámite, la ventana de la cita y esta ficha. */
+    ok('agenda: es la misma conversación de siempre',
+       !!caja.querySelector('.hilo-lista') && !!caja.querySelector('.hilo-txt'),
+       ['lista','txt'].filter(function(k){
+         return !caja.querySelector('.hilo-' + k);
+       }).join(' ') || 'las dos piezas', 'lista y caja de texto');
+
+
+    /* Se recoge, y al volver a abrir NO se monta otra vez: lo que hubieras
+       escrito se perdería. Es la misma guarda que en la ventana de la cita,
+       y aquí también se mide por el texto y no por cuántos hilos hay. */
+    var txt = caja.querySelector('.hilo-txt');
+    if (txt) txt.value = 'a medio escribir…';
+    bt0.click();
+    igual('agenda: se vuelve a recoger', caja.hidden, true);
+    bt0.click();
+    igual('agenda: y al reabrir sigue lo que ibas escribiendo',
+          (caja.querySelector('.hilo-txt') || {}).value, 'a medio escribir…');
+    /* Y sigue habiendo UNO. Sin la guarda se monta otro encima: el de
+       arriba conserva el texto -por eso la comprobación anterior pasaba
+       igual- pero debajo queda un segundo hilo con la misma conversación
+       repetida y su propia caja de escribir. */
+    igual('agenda: y no queda un segundo hilo debajo',
+          caja.querySelectorAll('.hilo').length, 1);
+    if (caja.querySelector('.hilo-txt')) caja.querySelector('.hilo-txt').value = '';
+    /* Y se queda ABIERTA. Aquí había un último clic que la cerraba «para
+       dejarlo como estaba», y con eso el paso siguiente -el que mira lo que
+       dice la conversación- se encontraba la caja oculta y se salía sin
+       comprobar nada. Dos comprobaciones que no habían corrido nunca, y que
+       sólo se vieron al romper la tabla a propósito y ver que seguía verde. */
+  }
+
+  /* El contenido se mira en un paso APARTE, y no es manía: pintaHilo pinta
+     la caja al momento pero los mensajes llegan de la base, o sea un tick
+     después. Comprobándolo en el mismo instante del clic salía «no hay
+     mensajes» con todo bien puesto. La cadena espera medio segundo entre
+     pasos, que es justo para esto. */
+  function agendaHiloMira(){
+    var ficha = document.querySelector('#ciLista .ci-ficha[data-cita="k1"]');
+    if (!ficha) return;
+    var caja = ficha.querySelector('.ci-hilo-caja');
+    if (!caja || caja.hidden) return;
+
+    /* Comprobar que «hay un hilo montado» no distingue de dónde salió: se
+       cambió la tabla a la del expediente y aquello seguía verde, enseñando
+       los mensajes de los trámites dentro de una ficha de cita. Se mira lo
+       que DICE la primera línea, que es lo único que las separa. */
+    var m0 = caja.querySelector('.hilo-m .hm-t');
+    ok('agenda: y es la conversación de la cita, no la de un trámite',
+       !!m0 && /empezado ning/i.test(m0.textContent),
+       m0 ? m0.textContent.slice(0, 46) : 'no hay mensajes',
+       'la primera de la cita');
+
+    /* Y las dos líneas que ya se habían dicho sobre esa cita. */
+    igual('agenda: con lo que ya se habló en ella',
+          caja.querySelectorAll('.hilo-m').length, 2);
   }
 
   function agendaTrasSalir(){

@@ -304,7 +304,7 @@ svg{display:block;}
 .sb-nav{flex:1 1 auto; overflow-y:auto; padding:12px 10px 24px;}
 .sb-nav::-webkit-scrollbar{width:7px;} .sb-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16); border-radius:8px;}
 .sb-group{margin-top:15px;} .sb-group:first-child{margin-top:2px;}
-.sb-gl{font-size:8.5px; font-weight:700; letter-spacing:.11em; text-transform:uppercase;
+.sb-gl{font-size:8.5px; font-weight:700; letter-spacing:.01em;
   color:rgba(255,255,255,.42); padding:0 10px 6px;}
 /* Uno de estos renglones es un <button> de verdad —el de las citas— y los
    demas siguen siendo <div>. Un boton no hereda la fuente ni el color del
@@ -333,8 +333,7 @@ svg{display:block;}
 .sb-item .cnt{margin-left:auto; font-size:10px; font-weight:700; background:rgba(255,255,255,.14);
   color:#fff; border-radius:20px; padding:1px 7px; min-width:20px; text-align:center;}
 .sb-item.soon{color:rgba(255,255,255,.45); cursor:default;}
-.sb-item .soon-tag{margin-left:auto; font-size:8.5px; font-weight:700; letter-spacing:.06em;
-  text-transform:uppercase; color:rgba(255,255,255,.5); border:1px solid rgba(255,255,255,.2);
+.sb-item .soon-tag{margin-left:auto; font-size:8.5px; font-weight:700; letter-spacing:.01em; color:rgba(255,255,255,.5); border:1px solid rgba(255,255,255,.2);
   border-radius:20px; padding:1px 6px;}
 .sb-foot{padding:12px 14px; border-top:1px solid rgba(255,255,255,.10);}
 .sb-locale{display:flex; gap:3px; background:rgba(255,255,255,.08); border-radius:8px; padding:3px;}
@@ -468,8 +467,7 @@ body[data-vista="acomp"] #soVolver{display:inline-flex;}
 .so-caja{background:var(--bg); border:1px solid var(--line);
   border-radius:var(--r); padding:18px 20px; margin-bottom:16px;
   box-shadow:var(--shadow); max-width:760px;}
-.so-t{font-size:12px; font-weight:700; letter-spacing:.06em;
-  text-transform:uppercase; color:var(--gray-soft); margin-bottom:14px;}
+.so-t{font-size:12px; font-weight:700; letter-spacing:.01em; color:var(--gray-soft); margin-bottom:14px;}
 
 /* Un interruptor por renglon, con su explicacion debajo. La casilla va a
    la izquierda y no a la derecha: se leen en columna, y con la casilla
@@ -623,8 +621,7 @@ body[data-vista="pulso"] #puVolver{display:inline-flex;}
 .pu-caja{background:var(--bg); border:1px solid var(--line);
   border-radius:var(--r); padding:18px 20px; margin-bottom:16px;
   box-shadow:var(--shadow); max-width:1000px;}
-.pu-t{font-size:12px; font-weight:700; letter-spacing:.06em;
-  text-transform:uppercase; color:var(--gray-soft); margin-bottom:14px;}
+.pu-t{font-size:12px; font-weight:700; letter-spacing:.01em; color:var(--gray-soft); margin-bottom:14px;}
 .pu-barra{display:grid; grid-template-columns:minmax(120px,190px) 1fr auto;
   align-items:center; gap:12px; margin-bottom:9px;}
 .pu-barra:last-child{margin-bottom:0;}
@@ -706,8 +703,7 @@ body[data-vista="catalogo"] #cgVolver{display:inline-flex;}
 .cg-fase svg{width:9px; height:9px; flex:none; stroke:var(--gray-soft);
   stroke-width:2.6; fill:none; transition:transform .16s;}
 .cg-fase[aria-expanded="false"] svg{transform:rotate(-90deg);}
-.cg-fase-n{font-size:10px; font-weight:700; letter-spacing:.11em;
-  text-transform:uppercase; color:var(--gray-soft); flex:1;}
+.cg-fase-n{font-size:10px; font-weight:700; letter-spacing:.01em; color:var(--gray-soft); flex:1;}
 .cg-fase-c{font-size:11px; color:var(--gray-soft);
   font-variant-numeric:tabular-nums;}
 .cg-fase-c b{color:var(--good);}
@@ -724,8 +720,7 @@ body[data-vista="catalogo"] #cgVolver{display:inline-flex;}
 .cg-que{flex:1; min-width:200px;}
 .cg-nombre{font-weight:700; font-size:13.5px;}
 .cg-ente{font-size:11.5px; color:var(--gray); margin-top:2px;}
-.cg-chip{font-size:9.5px; font-weight:700; letter-spacing:.06em;
-  text-transform:uppercase; border-radius:5px; padding:4px 8px;
+.cg-chip{font-size:9.5px; font-weight:700; letter-spacing:.01em; border-radius:5px; padding:4px 8px;
   white-space:nowrap; color:var(--gray); background:var(--block);}
 .cg-chip.on{color:var(--good); background:var(--good-bg);}
 .cg-fila .t-btn{min-width:92px; text-align:center;}
@@ -785,8 +780,7 @@ body[data-vista="usuarios"] #usVolver{display:inline-flex;}
 .us-m .l{font-size:11px; color:var(--gray); margin-top:6px; line-height:1.35;}
 .us-m.ojo .n{color:var(--amber);}
 
-.us-sec{font-size:10.5px; font-weight:800; letter-spacing:.09em;
-  text-transform:uppercase; color:var(--gray-soft); margin:20px 0 9px;}
+.us-sec{font-size:10.5px; font-weight:800; letter-spacing:.01em; color:var(--gray-soft); margin:20px 0 9px;}
 .us-sec:first-child{margin-top:0;}
 
 /* Las cuentas van en rejilla y no en columna: una ficha de usuario ocupa
@@ -863,21 +857,19 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
 /* El rotulo de cada apartado en la ficha. Los mismos tres nombres que
    los pasos del formulario: dos vocabularios para lo mismo obligan a
    traducir mentalmente entre una pantalla y la otra. */
-.em-sec{font-size:9.5px; font-weight:800; letter-spacing:.09em;
-  text-transform:uppercase; color:var(--gray-soft); margin:16px 0 8px;}
+.em-sec{font-size:9.5px; font-weight:800; letter-spacing:.01em; color:var(--gray-soft); margin:16px 0 8px;}
 .em-sec:first-of-type{margin-top:14px;}
 .em-datos{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
   gap:14px 26px; margin-top:17px; padding-top:16px; border-top:1px solid var(--line-soft);}
 .em-dato .k{font-size:10.5px; font-weight:700; color:var(--gray-soft);
-  letter-spacing:.02em; text-transform:uppercase;}
+  letter-spacing:.02em;}
 .em-dato .v{font-size:13px; margin-top:3px; word-break:break-word;}
 .em-nota{font-size:11.5px; color:var(--gray); margin-top:17px; padding-top:14px;
   border-top:1px solid var(--line-soft); line-height:1.55; max-width:60ch;}
 /* En el formulario de un tramite, el campo que vino de la empresa lo dice:
    si no, parece que el panel se invento el dato. */
 .sol-campo .de-empresa,
-.sol-campo .de-antes{font-size:9.5px; font-weight:700; letter-spacing:.03em;
-  text-transform:uppercase; color:var(--navy2); background:var(--block);
+.sol-campo .de-antes{font-size:9.5px; font-weight:700; letter-spacing:.03em; color:var(--navy2); background:var(--block);
   border-radius:4px; padding:1px 5px; margin-left:7px;}
 /* El de "ya lo escribiste" va en gris y no en azul: es mas debil que el de
    la empresa -aquello es la ficha oficial, esto una copia de otro
@@ -924,7 +916,7 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
 .ft-t{margin-bottom:13px;}
 .ft-t .n{font-size:22px; font-weight:800; letter-spacing:-.02em; line-height:1.1;
   color:var(--ink);}
-.ft-t .k{font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+.ft-t .k{font-size:10px; font-weight:700; letter-spacing:.01em;
   color:var(--gray-soft); margin-top:3px;}
 .ft-t.tarde .n, .ft-t.tarde .k{color:var(--amber);}
 /* La barra: "30 y 95" obliga a hacer la cuenta, y la cuenta es el dato.
@@ -940,8 +932,7 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
    partida en una columna de dos palabras. */
 .ft-filas{display:grid; grid-template-columns:max-content 1fr; gap:10px 18px;
   margin:0 0 4px; align-items:baseline;}
-.ft-filas dt{font-size:10px; font-weight:700; letter-spacing:.05em;
-  text-transform:uppercase; color:var(--gray-soft); white-space:nowrap;
+.ft-filas dt{font-size:10px; font-weight:700; letter-spacing:.01em; color:var(--gray-soft); white-space:nowrap;
   padding-top:2px;}
 .ft-filas dd{margin:0; font-size:13px; color:var(--ink); line-height:1.45;}
 .ft-filas dd .c{display:block; font-size:12px; color:var(--gray); margin-top:1px;}
@@ -982,8 +973,7 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
 .tabla-caja{overflow-x:auto; border:1px solid var(--line); border-radius:12px;
   background:var(--bg);}
 .tabla{width:100%; border-collapse:collapse; font-size:12.5px; min-width:720px;}
-.tabla th{text-align:left; font-size:10px; font-weight:700; letter-spacing:.05em;
-  text-transform:uppercase; color:var(--gray-soft); padding:10px 12px;
+.tabla th{text-align:left; font-size:10px; font-weight:700; letter-spacing:.01em; color:var(--gray-soft); padding:10px 12px;
   border-bottom:1px solid var(--line); white-space:nowrap; background:var(--block);}
 .tabla td{padding:11px 12px; border-bottom:1px solid var(--line-soft);
   vertical-align:middle; color:var(--ink);}
@@ -1019,8 +1009,7 @@ body[data-vista="empresa"] #emVolver{display:inline-flex;}
    con el teclado, y no hay forma de saber que se puede pulsar.
    La flecha solo se ve en la columna por la que se esta ordenando: seis
    flechas grises en la cabecera no dicen cual manda. */
-.th-orden{font:inherit; font-size:10px; font-weight:700; letter-spacing:.05em;
-  text-transform:uppercase; color:inherit; background:none; border:0;
+.th-orden{font:inherit; font-size:10px; font-weight:700; letter-spacing:.01em; color:inherit; background:none; border:0;
   padding:0; cursor:pointer; display:inline-flex; align-items:center; gap:4px;}
 .th-orden:hover{color:var(--navy2);}
 .th-orden:focus-visible{outline:2px solid var(--navy2); outline-offset:3px;
@@ -1303,8 +1292,7 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
    cita de verdad debajo de diez fichas identicas que ya no importan. */
 .ag-sec{display:flex; align-items:baseline; gap:9px; margin:20px 0 9px;}
 .ag-sec:first-child{margin-top:0;}
-.ag-sec .t{font-size:10.5px; font-weight:800; letter-spacing:.09em;
-  text-transform:uppercase; color:var(--gray-soft);}
+.ag-sec .t{font-size:10.5px; font-weight:800; letter-spacing:.01em; color:var(--gray-soft);}
 .ag-sec .n{font-size:10.5px; font-weight:700; color:var(--gray-soft);
   font-variant-numeric:tabular-nums;}
 /* Lo cancelado no gasta una ficha entera: gasta un renglon. */
@@ -1433,7 +1421,7 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .co-ver{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
   background:transparent; border:0; padding:0; margin-top:9px; cursor:pointer;}
 .co-ver:hover{text-decoration:underline;}
-.co-exp-t{font-size:9.5px; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+.co-exp-t{font-size:9.5px; font-weight:800; letter-spacing:.01em;
   color:var(--gray-soft); margin:9px 0 5px;}
 /* Etiqueta y valor en dos columnas: en una sola, con doce campos, no se
    distingue lo que preguntó el formulario de lo que contestó el usuario. */
@@ -1454,10 +1442,10 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .co-vacia{font-size:12.5px; color:var(--gray); padding:16px 12px 20px; text-align:center;}
 /* Dos colas en la misma ventana —trámites y citas— necesitan decir cuál es
    cuál: sin cabecera, una ficha de cada tipo seguida parece la misma cosa. */
-.co-seccion{font-size:9.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+.co-seccion{font-size:9.5px; font-weight:800; letter-spacing:.1em;
   color:var(--gray-soft); padding:12px 10px 6px;}
 .co-seccion:empty{display:none;}
-.co-estado{font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+.co-estado{font-size:10px; font-weight:800; letter-spacing:.01em;
   padding:4px 8px; border-radius:20px; background:var(--block); color:var(--gray);
   display:inline-block; margin-bottom:7px;}
 .co-estado.mirando{background:var(--amber-bg); color:var(--amber);}
@@ -1567,8 +1555,7 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .cal.open{display:block;}
 .cal-h{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
 .cal-h .mes{font-size:12.5px; font-weight:700; color:var(--ink); text-transform:capitalize;}
-.cal-h .cual{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.05em;
-  text-transform:uppercase; color:var(--gray-soft);}
+.cal-h .cual{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.01em; color:var(--gray-soft);}
 .cal-h button{width:28px; height:28px; flex:none; border:1px solid var(--line); border-radius:8px;
   background:var(--bg); color:var(--gray); cursor:pointer;
   display:flex; align-items:center; justify-content:center;}
@@ -1576,8 +1563,7 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .cal-h button:disabled{opacity:.3; cursor:default;}
 .cal-h button svg{width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2.2;}
 .cal-sem, .cal-dias{display:grid; grid-template-columns:repeat(7,1fr); gap:2px;}
-.cal-sem span{text-align:center; font-size:9.5px; font-weight:700; letter-spacing:.03em;
-  text-transform:uppercase; color:var(--gray-soft); padding:4px 0;}
+.cal-sem span{text-align:center; font-size:9.5px; font-weight:700; letter-spacing:.03em; color:var(--gray-soft); padding:4px 0;}
 .cal-dias button{font:inherit; font-size:12.5px; color:var(--ink); background:transparent;
   border:1px solid transparent; border-radius:8px; padding:6px 0; cursor:pointer;}
 .cal-dias button:hover:not(:disabled){background:var(--block); border-color:var(--line);}
@@ -1601,7 +1587,7 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .ct-estado.puesto{display:block;}
 #ctForm.oculto{display:none;}
 .ct-chip{display:inline-flex; align-items:center; gap:6px; font-size:10px; font-weight:800;
-  letter-spacing:.08em; text-transform:uppercase; padding:5px 9px; border-radius:20px;
+  letter-spacing:.01em; padding:5px 9px; border-radius:20px;
   background:var(--amber-bg); color:var(--amber);}
 .ct-chip.listo{background:var(--good-bg); color:var(--good);}
 /* Cómo es la cita —verse, llamarse o ir—. Va al lado del estado y no
@@ -1653,8 +1639,7 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 
 /* El que ya no es el bueno. En gris y sin caja: no es un error ni un
    aviso, es un dato —sigue ahí porque va adjunto a lo que ya se envió—. */
-.dc-viejo{font-size:10px; font-weight:700; letter-spacing:.04em;
-  text-transform:uppercase; color:var(--gray-soft);}
+.dc-viejo{font-size:10px; font-weight:700; letter-spacing:.04em; color:var(--gray-soft);}
 
 .pf-aviso{font-size:12px; color:var(--rust); min-height:16px;}
 .pf-aviso.ok{color:var(--good);}
@@ -1680,7 +1665,7 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
   box-shadow:var(--shadow-lg);}
 .hero::after{content:""; position:absolute; right:-60px; top:-60px; width:280px; height:280px;
   background:radial-gradient(circle, rgba(32,176,240,.42), transparent 62%); pointer-events:none;}
-.hero-eyebrow{font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+.hero-eyebrow{font-size:10px; font-weight:700; letter-spacing:.01em;
   color:rgba(255,255,255,.72); margin-bottom:9px;}
 .hero h1{font-family:'Instrument Serif',Georgia,serif; font-weight:400; font-size:34px; line-height:1.08;
   letter-spacing:.005em; text-wrap:balance; max-width:22ch;}
@@ -1695,7 +1680,7 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 .hero-ring{position:absolute; right:30px; top:50%; transform:translateY(-50%); z-index:1; text-align:center;}
 .hero-ring svg{width:104px; height:104px;}
 .hero-ring .pct{font-size:22px; font-weight:800;}
-.hero-ring .pl{font-size:9.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.7); margin-top:2px;}
+.hero-ring .pl{font-size:9.5px; font-weight:700; letter-spacing:.01em; color:rgba(255,255,255,.7); margin-top:2px;}
 
 /* ===================== NEXT STEP ===================== */
 .section-gap{margin-top:22px;}
@@ -1710,7 +1695,7 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
   display:flex; align-items:center; justify-content:center; flex:none;}
 .nextstep .ns-ico svg{width:21px; height:21px; stroke:currentColor; stroke-width:1.9; fill:none;}
 .ns-body{flex:1 1 auto; min-width:0;}
-.ns-k{font-size:9.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--amber);}
+.ns-k{font-size:9.5px; font-weight:700; letter-spacing:.1em; color:var(--amber);}
 .ns-t{font-size:14.5px; font-weight:700; margin-top:2px;}
 .ns-d{font-size:12px; color:var(--gray); margin-top:3px;}
 .ns-d b{color:var(--ink); font-weight:600;}
@@ -1965,7 +1950,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
   text-decoration:underline;}
 
 .tr-aqui{display:inline-flex; align-items:center; gap:6px; margin-top:6px;
-  font-size:10px; font-weight:800; letter-spacing:.07em; text-transform:uppercase;
+  font-size:10px; font-weight:800; letter-spacing:.01em;
   line-height:1; color:var(--navy2);
   /* Respira -y una prueba lo exige, porque apretado parecia un boton a
      medio hacer- pero solo por arriba y por abajo: el relleno lateral es
@@ -2063,8 +2048,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
    recaudo en la fila, no del ancho de la pantalla. */
 .pista-caja.izq{left:auto; right:-8px;}
 .pista-caja[hidden]{display:none;}
-.pista-caja .pc-t{font-size:11px; font-weight:800; letter-spacing:.03em;
-  text-transform:uppercase; color:var(--gray-soft); margin-bottom:7px;}
+.pista-caja .pc-t{font-size:11px; font-weight:800; letter-spacing:.03em; color:var(--gray-soft); margin-bottom:7px;}
 /* list-style:disc EXPLICITO y display:list-item EXPLICITO, y no por gusto:
    este globo tambien cuelga de la lista de recaudos de la ficha, que es un
    <ul class="ft-rec"> con list-style:none -y list-style SE HEREDA- y con una
@@ -2124,8 +2108,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .hilo-m.mio{margin-left:auto; border-bottom-right-radius:4px;}
 .hilo-m.suyo{margin-right:auto; border-bottom-left-radius:4px;
   background:var(--bg);}
-.hm-q{font-size:9.5px; font-weight:700; letter-spacing:.08em;
-  text-transform:uppercase; color:var(--gray-soft); margin-bottom:3px;}
+.hm-q{font-size:9.5px; font-weight:700; letter-spacing:.01em; color:var(--gray-soft); margin-bottom:3px;}
 .hm-t{font-size:12.5px; line-height:1.45; white-space:pre-wrap;
   overflow-wrap:anywhere;}
 .hm-arch{margin-top:6px; font:inherit; font-size:11.5px; font-weight:600;
@@ -2150,7 +2133,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 /* El nivel: sobrio a proposito. El de 'obligatorio' lleva el color de
    la casa porque es el que pide accion; el de 'actividad' va en gris,
    que es lo que dice de verdad -«puede que a ti no»- y no una alarma. */
-.chip.niv{font-size:11px; letter-spacing:.04em; text-transform:uppercase;
+.chip.niv{font-size:11px; letter-spacing:.04em;
   padding:2px 7px; border-radius:3px; white-space:nowrap;
   background:transparent; border:1px solid var(--line); color:var(--gray);}
 .chip.niv.obliga{border-color:var(--navy); color:var(--navy);}
@@ -2167,9 +2150,22 @@ body[data-vista="tramite"] #secTramites{display:none;}
    borde y en versalitas, que es lo que ya hace el resto del panel para
    los encabezados pequeños. */
 .grupo-t{grid-column:1 / -1; margin:6px 0 -2px;
-  font-size:10.5px; font-weight:800; letter-spacing:.06em;
-  text-transform:uppercase; color:var(--gray);}
+  font-size:10.5px; font-weight:800; letter-spacing:.01em; color:var(--gray);}
 .grupo-t:first-child{margin-top:0;}
+/* La conversación dentro de una ficha de la agenda. El botón va discreto
+   -es una puerta, no una acción- y la caja hereda el estilo del hilo. */
+.ci-hilo{margin-top:11px;}
+.ci-habla{font:inherit; font-size:12px; font-weight:600; padding:5px 11px;
+  background:none; border:1px dashed var(--line); border-radius:8px;
+  color:var(--gray); cursor:pointer;}
+.ci-habla:hover{border-color:var(--gray); color:var(--ink);}
+.ci-habla:focus-visible{outline:2px solid var(--navy); outline-offset:2px;}
+.ci-habla::after{content:'›'; margin-left:6px; display:inline-block;
+  transform:rotate(90deg); transition:transform .18s;}
+.ci-habla[aria-expanded="true"]::after{transform:rotate(-90deg);}
+.ci-hilo-caja{margin-top:10px;}
+.ci-hilo-caja[hidden]{display:none;}
+@media (prefers-reduced-motion: reduce){ .ci-habla::after{transition:none;} }
 .opc-caja{margin-top:14px;}
 .opc-btn{display:inline-flex; align-items:center; gap:7px; background:none;
   border:1px dashed var(--line); color:var(--gray); border-radius:8px;
@@ -2422,7 +2418,7 @@ body.menu-abierto .menu-fondo{display:block;}
 @media (prefers-reduced-motion:reduce){*{transition:none !important; scroll-behavior:auto;}}
 
 .sb-langs-wrap{display:flex; flex-direction:column; gap:7px;}
-.sb-langs-lbl{font-size:8.5px; font-weight:700; letter-spacing:.11em; text-transform:uppercase; color:rgba(255,255,255,.42);}
+.sb-langs-lbl{font-size:8.5px; font-weight:700; letter-spacing:.01em; color:rgba(255,255,255,.42);}
 .sb-langs{display:grid; grid-template-columns:1fr 1fr; gap:5px;}
 .sb-langs button{display:flex; align-items:center; gap:7px; justify-content:flex-start; font:inherit; font-size:11px; font-weight:700; color:rgba(255,255,255,.72); background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); border-radius:7px; padding:7px 9px; cursor:pointer; transition:background .12s, color .12s, border-color .12s;}
 .sb-langs button:hover{background:rgba(255,255,255,.12); color:#fff;}
@@ -2518,7 +2514,7 @@ body.con-puerta{overflow:hidden;}
 .bub.a{align-self:flex-start; background:var(--block); color:var(--ink); border:1px solid var(--line-soft); border-bottom-left-radius:5px;}
 .bub.u{align-self:flex-end; background:var(--navy); color:#fff; border-bottom-right-radius:5px;}
 .asst-sug{padding:4px 18px 10px;}
-.asst-sug .sl{font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--gray-soft); margin-bottom:8px;}
+.asst-sug .sl{font-size:10px; font-weight:700; letter-spacing:.01em; color:var(--gray-soft); margin-bottom:8px;}
 .sug-chips{display:flex; flex-wrap:wrap; gap:7px;}
 .sug-chips button{font:inherit; font-size:11.5px; font-weight:600; color:var(--navy2); background:var(--bg); border:1px solid var(--line); border-radius:20px; padding:7px 12px; cursor:pointer; text-align:left;}
 .sug-chips button:hover{border-color:var(--cyan-deep); background:var(--block);}
@@ -2724,8 +2720,7 @@ body[data-vista="pliego"] #plVolver{display:inline-flex;}
   font-size:9.5px; font-weight:700; line-height:1; color:var(--navy-deep);
   margin-top:1px;}
 .sup-nube-dicho{display:grid; gap:2px; min-width:0;}
-.sup-nube-quien{font-size:9.5px; font-weight:700; letter-spacing:.1em;
-  text-transform:uppercase; color:rgba(255,255,255,.64);}
+.sup-nube-quien{font-size:9.5px; font-weight:700; letter-spacing:.1em; color:rgba(255,255,255,.64);}
 .sup-nube-t{font:inherit; font-size:12.5px; font-weight:600; line-height:1.35;
   color:inherit; background:none; border:0; padding:0; cursor:pointer;
   text-align:left;}
@@ -2794,7 +2789,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
   width:340px; max-width:calc(100vw - 32px); background:var(--bg); border:1px solid var(--line);
   border-radius:12px; box-shadow:var(--shadow-lg); padding:6px; display:none;}
 .avisos-menu.open{display:block;}
-.av-h{font-size:9.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+.av-h{font-size:9.5px; font-weight:800; letter-spacing:.1em;
   color:var(--gray-soft); padding:8px 10px 7px;}
 /* La lista se desborda dentro de si misma: un buzon que estire la barra de
    arriba hasta el pie de la pagina tapa el panel entero. */
@@ -2853,9 +2848,13 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <!-- Escrito como los otros cuatro rotulos de grupo: en el
            diccionario y en minusculas. Aqui iba "ADMIN" a pelo, en
            mayusculas y sin traducir, asi que a un ruso le salia ADMIN
-           entre АДМИНИСТРИРОВАНИЕ y ПРОЧЕЕ. Las mayusculas las pone el
-           CSS -text-transform:uppercase-, que es donde tienen que estar:
-           asi el texto se puede leer, traducir y buscar. -->
+           entre АДМИНИСТРИРОВАНИЕ y ПРОЧЕЕ.
+
+           Las mayusculas las ponia el CSS, que es donde tenian que estar, y
+           por eso quitarlas el 3 de septiembre costo una linea por regla y
+           ni una palabra del diccionario: el texto siempre estuvo bien
+           escrito. Ahora los rotulos van como se escriben, con la mayuscula
+           solo en la primera letra. -->
       <div class="sb-gl" data-i18n="nav.g.admin">Administration</div>
       <button class="sb-item" id="navUsuarios" type="button"><span class="dot"></span><span data-i18n="nav.users">Users &amp; team</span></button>
       <button class="sb-item" id="navCatalogo" type="button"><span class="dot"></span><span data-i18n="nav.catalogo">Catalogue</span></button>
@@ -11563,6 +11562,11 @@ applyLang(idiomaParaMi());
     var u = T();
     var viva = (CI_VIVAS.indexOf(c.estado) >= 0);
     var f = el('div', 'ci-ficha' + (viva ? ' viva' : ' pasada'));
+    /* De qué cita es. Hasta ahora la ficha no lo decía y no hacía falta;
+       desde que lleva conversación sí: sin esto no hay forma de señalar una
+       cita concreta ni de comprobar que su hilo es el suyo y no el de la
+       vecina. */
+    f.setAttribute('data-cita', c.id);
 
     var cab = el('div', 'ci-cab');
     var chip = chipDeCita(c.estado);
@@ -11582,6 +11586,54 @@ applyLang(idiomaParaMi());
     var partes = [nombreDeTipo(c.tipo_tramite)];
     if (c.lugar) partes.push(c.lugar);
     f.appendChild(el('div', 'ci-que', partes.join(' · ')));
+    /* ── la conversación, en la ficha ──
+       Aquí es donde el CIIP contesta. Sin esto, el equipo veía quién pidió
+       la cita y de qué, y no tenía dónde responder: la base se lo permitía
+       -su política deja escribir al gestor- y era la pantalla la que no lo
+       ofrecía.
+
+       SE MONTA AL PULSAR, no al pintar la lista. Una agenda con doce citas
+       montaría doce hilos, o sea doce consultas y doce cajas de escribir
+       que casi nadie va a mirar. Es la misma decisión que la del globo de
+       los recaudos y la de las URL firmadas, que se piden al abrir.
+
+       Y es la MISMA función que las otras dos veces. Van tres.
+
+       El botón se pone antes que la nota para que no quede colgando al
+       final de una ficha que puede tener nota o no tenerla. */
+    (function(){
+      var envH = el('div', 'ci-hilo');
+      /* SIN la clase 'btn', y no es un descuido de estilo. La ficha de una
+         cita lleva sus botones de confirmar y cancelar, y hay pruebas que
+         los pulsan por INDICE -querySelectorAll('.btn')[1]-. Con el mio
+         dentro, el indice se corria y la prueba de confirmar acababa
+         pulsando la conversacion.
+
+         Es la regla que este archivo ya tenia escrita en el hilo del
+         expediente y que aqui volvi a pisar: un elemento nuevo no debe
+         contestar a un selector que ya significa algo. Se estila solo. */
+      var bH   = el('button', 'ci-habla', u['hilo.t'] || '');
+      bH.type = 'button';
+      bH.setAttribute('aria-expanded', 'false');
+      var cajH = el('div', 'ci-hilo-caja');
+      cajH.hidden = true;
+      bH.addEventListener('click', function(){
+        var abierto = bH.getAttribute('aria-expanded') === 'true';
+        bH.setAttribute('aria-expanded', abierto ? 'false' : 'true');
+        cajH.hidden = abierto;
+        /* Una sola vez: volver a montarlo se llevaría por delante lo que
+           estuvieras escribiendo, igual que en la ventana de la cita. */
+        if (!abierto && !cajH.getAttribute('data-puesto')){
+          cajH.setAttribute('data-puesto', '1');
+          pintaHilo(cajH, {tabla:'cita_mensajes', col:'cita',
+                           id:c.id, inversionista:c.inversionista});
+        }
+      });
+      envH.appendChild(bH);
+      envH.appendChild(cajH);
+      f.appendChild(envH);
+    })();
+
     if (c.nota) f.appendChild(el('div', 'ci-nota', c.nota));
 
     ciLista.appendChild(f);
@@ -11589,7 +11641,9 @@ applyLang(idiomaParaMi());
 
   function cargaAgenda(){
     return sb.from('citas')
-      .select('id, tipo_tramite, modo, desde, hasta, nota, estado, cuando, lugar, creado_en')
+      /* inversionista: para que un adjunto que suba el equipo vaya a la
+         bóveda de quien pidió la cita, y no a la suya. */
+      .select('id, inversionista, tipo_tramite, modo, desde, hasta, nota, estado, cuando, lugar, creado_en')
       .order('creado_en', {ascending:false})
       .then(function(r){
         if (r && r.error) throw r.error;

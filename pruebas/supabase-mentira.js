@@ -1091,7 +1091,22 @@
         {id:'cmsj-a', cita:'c1', texto:'Buenos dias, todavia no he empezado ningun tramite. Por donde empiezo?',
          del_equipo:false, documento:null, creado_en:'2026-08-12T09:10:00Z'},
         {id:'cmsj-b', cita:'c1', texto:'Buenos dias. Con la visa y el RIF personal ya se puede constituir.',
-         del_equipo:true, documento:null, creado_en:'2026-08-12T11:40:00Z'}
+         del_equipo:true, documento:null, creado_en:'2026-08-12T11:40:00Z'},
+
+        /* Y otra en la cita CONFIRMADA -la k1-, que es la que se ve en la
+           agenda. Hacen falta las dos: la de la ventana -la c1- desaparece de
+           la agenda en cuanto se cancela, asi que sin esta no habia ninguna
+           ficha con conversacion que mirar alli.
+
+           Se probo primero con una CANCELADA y no valia: esas no se pintan
+           como ficha sino como renglon compacto dentro de una lista plegada,
+           por una decision que ya estaba tomada -«una pantalla llena de
+           fichas que no sirven para nada parece una pantalla llena de
+           citas»-. O sea que ahi no hay hilo que abrir. */
+        {id:'cmsj-k1', cita:'k1', texto:'Buenos dias, todavia no he empezado ningun tramite. Por donde empiezo?',
+         del_equipo:false, documento:null, creado_en:'2026-07-01T10:00:00Z'},
+        {id:'cmsj-k2', cita:'k1', texto:'Nos vemos el 26 en la Torre CIIP. Trae el pasaporte.',
+         del_equipo:true, documento:null, creado_en:'2026-07-01T12:00:00Z'}
       ].concat(dichosCita);
       var deLaCita = hiloC;
       if (op && op.eq && op.eq.cita){
