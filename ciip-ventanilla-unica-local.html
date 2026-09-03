@@ -6761,9 +6761,22 @@ applyLang(idiomaParaMi());
       if (!t || !t.activo) return;              /* sigue siendo maqueta */
       enteActual = t.ente || '';
 
-      return sb.auth.getUser().then(function(r){
+      /* quienSoy() y no getUser(), y esto se midio antes de tocarlo.
+
+         getUser() SALE A LA RED: le pregunta al servidor si el token vale.
+         Y la consulta de abajo cuelga de su .then, asi que espera detras.
+         Son DOS viajes ENCADENADOS por cada tarjeta que se abre, y el
+         primero no hacia falta para nada: quien decide de verdad que filas
+         se ven es RLS, que mira el token en el servidor conteste lo que
+         conteste el navegador. Preguntar aqui no protegia nada; solo hacia
+         esperar mirando el hueco vacio donde va el formulario.
+
+         Medido con el doble contestando 100 ms tarde, y las dos veces:
+         abrir una tarjeta costaba dos saltos encadenados y ahora cuesta uno.
+         Las doce tarjetas encendidas daban lo mismo, una por una. */
+      return quienSoy().catch(function(){ return null; }).then(function(u){
         if (miTurno !== turno) return;
-        usuario = r && r.data && r.data.user;
+        usuario = u;
         if (!usuario) return;
         return sb.from('tramites')
           .select('id, estado, datos, creado_en, enviado_en')
@@ -7443,8 +7456,13 @@ applyLang(idiomaParaMi());
      la subida reventaba antes de empezar. */
   function quienSoy(){
     if (usuario) return Promise.resolve(usuario);
-    return sb.auth.getUser().then(function(r){
-      usuario = r && r.data && r.data.user;
+    /* getSession y no getUser: la sesion ya esta guardada en el navegador
+       y leerla no cuesta ningun viaje. getUser cuesta uno entero para
+       confirmar algo que el servidor va a volver a comprobar el solo en la
+       consulta siguiente. La cerradura no se toca -sigue siendo RLS-; lo
+       que se quita es la espera. */
+    return sb.auth.getSession().then(function(r){
+      usuario = r && r.data && r.data.session && r.data.session.user;
       if (!usuario) throw new Error('sin sesión');
       return usuario;
     });

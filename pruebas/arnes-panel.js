@@ -133,7 +133,14 @@
     })();
   }
 
+  /* Lo que costo ARRANCAR, apuntado en cuanto el panel termina y antes de
+     que la cadena toque nada. Medirlo mas tarde contaria los viajes del
+     propio arnes: la primera version de esta prueba hacia justo eso y daba
+     rojo por pasos que no tenian nada que ver. */
+  var VIAJES_ARRANQUE = null;
+
   cuandoConteste(function(){
+    if (window.CIIP_VIAJES) VIAJES_ARRANQUE = window.CIIP_VIAJES.getUser;
     /* El pliego PRIMERO, y no es capricho de orden: mientras su puerta
        esta puesta el panel no termina de pintarse -plDejaPasar guarda en
        una cola lo que va despues- asi que cualquier prueba que corriera
@@ -192,6 +199,8 @@
               franjaDescarta, franjaTrasDescartar,
               fotoAbre, fotoMira, fotoMala, fotoSube, fotoTrasSubir, fotoCierra,
               logosMiran,
+              velocidadArranque, velocidadAbre, velocidadMira,
+              velocidadRepite, velocidadTrasRepetir,
               rastroAbre, rastroMira,
               alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno], volcar);
   });
@@ -5126,6 +5135,84 @@
 
      Lo que se sujeta aquí es lo que se veía roto: que la tabla tenga sus
      cinco títulos y una fila por apunte. */
+  /* ═══════════ LO QUE CUESTA ABRIR UN TRAMITE ═══════════
+     «Verifica que la velocidad de carga de la página sea la correcta en
+     todos los trámites.» (CIIP)
+
+     Se midió antes de escribir esto, con el doble contestando 100 ms tarde
+     para que los viajes encadenados se pudieran ver en el reloj. Lo que
+     salió: cada tarjeta hacía DOS viajes en fila, auth.getUser y detrás la
+     consulta de la solicitud. El primero no servía para nada —quien decide
+     qué filas se ven es RLS, en el servidor— y se pagaba entero, cada vez,
+     también al volver a abrir la misma tarjeta.
+
+     Aquí no se mide el reloj, y es a propósito: el doble contesta al
+     instante y el navegador sin ventana lleva un reloj virtual que salta.
+     Un número de milisegundos sería un adorno. Lo que sí es verdad y no
+     depende de ninguna máquina es CUÁNTAS veces se sale a la red. */
+  function velocidadArranque(){
+    if (CASO !== 'vacio') return;
+    if (VIAJES_ARRANQUE === null)
+      return ok('velocidad: el doble cuenta los viajes', false,
+                'no hay contador', 'window.CIIP_VIAJES');
+    igual('velocidad: arrancar el panel no gasta ningún viaje en preguntar quién eres',
+          VIAJES_ARRANQUE, 0);
+  }
+
+  function velocidadAbre(){
+    if (CASO !== 'vacio' || !window.CIIP_VIAJES) return;
+    location.hash = '';
+    var V = window.CIIP_VIAJES;
+    V.getUser = 0; V.consultas = 0; V.tablas.length = 0;
+    location.hash = 'tramite-c31';
+  }
+
+  function velocidadMira(){
+    if (CASO !== 'vacio' || !window.CIIP_VIAJES) return;
+    var V = window.CIIP_VIAJES;
+
+    /* ESTA PRIMERO, y sostiene a las demás: una tarjeta que no cargara
+       nada tampoco preguntaría quién eres, y las tres de abajo saldrían
+       verdes por no hacer nada. Aquí se comprueba que sí fue a buscar la
+       solicitud, que es el viaje que de verdad hace falta. */
+    ok('velocidad: abrir un trámite va a buscar la solicitud',
+       V.tablas.indexOf('tramites') >= 0,
+       V.tablas.join(' > ') || '(ningún viaje)', 'una consulta a tramites');
+
+    igual('velocidad: y no gasta otro viaje en preguntar quién eres',
+          V.getUser, 0);
+
+    /* El catálogo se pide UNA vez y se guarda. Volver a pedirlo en cada
+       tarjeta serían 33 viajes por una lista que no cambia. */
+    ok('velocidad: y no vuelve a pedir el catálogo',
+       V.tablas.indexOf('tipos_tramite') < 0,
+       V.tablas.join(' > '), 'sin tipos_tramite');
+
+    /* Un techo, no un número exacto: lo que no puede pasar es que abrir
+       una tarjeta encadene media docena de viajes sin que nadie se entere. */
+    ok('velocidad: y no encadena más viajes de los que hacen falta',
+       V.consultas <= 3, V.consultas + ' consultas: ' + V.tablas.join(' > '),
+       'tres o menos');
+  }
+
+  function velocidadRepite(){
+    if (CASO !== 'vacio' || !window.CIIP_VIAJES) return;
+    location.hash = '';
+    var V = window.CIIP_VIAJES;
+    V.getUser = 0; V.tablas.length = 0;
+    location.hash = 'tramite-c31';
+  }
+
+  function velocidadTrasRepetir(){
+    if (CASO !== 'vacio' || !window.CIIP_VIAJES) return;
+    var V = window.CIIP_VIAJES;
+    ok('velocidad: y abrirlo otra vez sigue sin preguntar quién eres',
+       V.getUser === 0 && V.tablas.indexOf('tramites') >= 0,
+       'getUser=' + V.getUser + ', ' + (V.tablas.join(' > ') || '(nada)'),
+       'cero getUser, y la solicitud sí');
+    location.hash = '';
+  }
+
   function rastroAbre(){
     if (!ES_ADMIN) return;
     location.hash = 'rastro';

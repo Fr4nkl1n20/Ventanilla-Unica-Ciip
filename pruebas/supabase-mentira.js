@@ -1272,8 +1272,21 @@
   /* Una consulta encadenable. Cada método devuelve el mismo objeto, y el
      objeto es "esperable": basta con que tenga .then para que valga en un
      await o en una cadena de promesas. */
+  /* ─── CUANTOS VIAJES SE HACEN ───────────────────────────────────────
+     Lo que cuesta abrir una tarjeta en la conexion de una oficina de
+     Caracas no es el codigo que corre: son las veces que hay que salir a
+     la red, y sobre todo cuantas de esas van UNA DETRAS DE OTRA, porque
+     esas se suman. Diez en paralelo cuestan un viaje; dos encadenadas
+     cuestan dos.
+
+     El doble contesta al instante, asi que sin contar esto un viaje de
+     mas no se nota en ninguna prueba: todo sigue verde y la pantalla
+     tarda el doble solo en la maquina del que lo usa. Se conto, y habia
+     uno de mas en CADA tarjeta. ─────────────────────────────────────── */
+  window.CIIP_VIAJES = {getUser:0, consultas:0, tablas:[]};
+
   function consulta(tabla){
-    var api = {}, op = {};
+    var api = {}, op = {}, contado = false;
     ['neq','is','limit','range']
       .forEach(function(m){ api[m] = function(){ return api; }; });
     /* order era de los que no se miraban. Ahora si: hay consultas que
@@ -1316,7 +1329,13 @@
        sb.rpc(...).catch(...) que reventaba nada mas cargar la pagina.
 
        Un doble tambien tiene que parecerse en lo que NO sabe hacer. */
-    api.then  = function(bien, mal){ return Promise.resolve(respuesta(tabla, op)).then(bien, mal); };
+    api.then  = function(bien, mal){
+      /* Se cuenta AQUI y no en from(): un constructor que se arma y no se
+         llega a esperar no sale a la red. Y una sola vez por consulta. */
+      if (!contado){ contado = true;
+        window.CIIP_VIAJES.consultas++; window.CIIP_VIAJES.tablas.push(tabla); }
+      return Promise.resolve(respuesta(tabla, op)).then(bien, mal);
+    };
     return api;
   }
 
@@ -1325,7 +1344,14 @@
       return {
         auth: {
           getSession: function(){ return Promise.resolve({data:{session:{user:USUARIO}}, error:null}); },
-          getUser:    function(){ return Promise.resolve({data:{user:USUARIO}, error:null}); },
+          /* getUser SALE A LA RED en el Supabase de verdad: valida el
+             token contra el servidor. getSession no: lee el almacen del
+             navegador. Por eso solo se cuenta este. */
+          getUser:    function(){
+            window.CIIP_VIAJES.getUser++;
+            window.CIIP_VIAJES.tablas.push('auth.getUser');
+            return Promise.resolve({data:{user:USUARIO}, error:null});
+          },
           signOut:    function(){ return Promise.resolve({error:null}); },
           onAuthStateChange: function(){ return {data:{subscription:{unsubscribe:function(){}}}}; }
         },
