@@ -1805,8 +1805,8 @@
            no la hora de esta máquina: con la hora local, un reloj adelantado
            escondería avisos que nunca llegaste a ver. */
         ok('buzón: recuerda lo visto con la fecha del servidor',
-           g === String(Date.parse('2026-08-14T10:00:00Z')),
-           'guardado=' + g, String(Date.parse('2026-08-14T10:00:00Z')));
+           g === String((Date.parse('2026-08-14T10:00:00Z') + (window.CIIP_MENTIRA_DESLIZ || 0))),
+           'guardado=' + g, String((Date.parse('2026-08-14T10:00:00Z') + (window.CIIP_MENTIRA_DESLIZ || 0))));
       })();
 
       /* Navegación. Va al final porque cambia de vista. */
@@ -1827,11 +1827,22 @@
         var cita = avisos()[3];
         igual('buzón: la cita confirmada va con los demás avisos',
               cita.querySelector('.av-t').textContent.trim(), 'Tu cita');
-        ok('buzón: y dice para cuándo quedó, con su hora',
-           /Confirmada para el/.test(cita.querySelector('.av-q').textContent) &&
-           /26 ago 2026/.test(cita.querySelector('.av-q').textContent) &&
-           cita.querySelector('.av-q').textContent.indexOf('{') < 0,
-           cita.querySelector('.av-q').textContent, 'la fecha puesta, sin llaves');
+        /* La fecha se CALCULA con el mismo desliz que lleva el expediente, en
+           vez de escribir «26 ago 2026» a mano. Lo que hay que ver es que la
+           plantilla se rellenó -que no quedó un {cuando} a la vista- y que lo
+           que puso es la fecha de la cita; el día del calendario en que se
+           corra la tanda no pinta nada. */
+        (function(){
+          var q = cita.querySelector('.av-q').textContent;
+          var d = new Date(Date.parse('2026-08-26T10:00:00Z') +
+                           (window.CIIP_MENTIRA_DESLIZ || 0));
+          ok('buzón: y dice para cuándo quedó, con su hora',
+             /Confirmada para el/.test(q) &&
+             q.indexOf(String(d.getDate())) >= 0 &&
+             q.indexOf(String(d.getFullYear())) >= 0 &&
+             q.indexOf('{') < 0,
+             q, 'la fecha de la cita, sin llaves');
+        })();
         igual('buzón: y dónde', (cita.querySelector('.av-nota') || {}).textContent, 'Torre CIIP, piso 4');
 
         /* Va la última porque se confirmó en julio, antes que los tres
@@ -5597,10 +5608,15 @@
     igual('cola: enseña las dos que esperan', fichas.length, 2);
 
     /* La más vieja primero: una cola que empieza por lo recién llegado deja
-       lo de hace un mes al final para siempre. */
-    ok('cola: la más vieja va primero',
-       fichas[0].querySelector('.co-cuando').textContent.indexOf('10 ago') >= 0,
-       fichas[0].querySelector('.co-cuando').textContent, 'la del 10 de agosto');
+       lo de hace un mes al final para siempre.
+
+       Se mira el IDENTIFICADOR y no la fecha escrita. Antes ponía
+       indexOf('10 ago'), y eso no comprobaba el orden: comprobaba el
+       almanaque. El día que las fechas del expediente dejaron de estar
+       clavadas, esta se puso roja sin que el orden hubiera cambiado. q1 es la
+       vieja y q2 la nueva, y eso es verdad se corra el día que se corra. */
+    igual('cola: la más vieja va primero',
+          fichas[0].getAttribute('data-cita'), 'q1');
 
     igual('cola: dice quién la pidió',
           fichas[0].querySelector('.co-quien').textContent.trim(), 'Marta Bianchi');

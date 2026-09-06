@@ -656,10 +656,87 @@
   var empresaMia = EMPRESAS[caso] || null;
 
   /* Nadie ha mirado el documento de nadie todavia. */
+
+  /* ─── EL CALENDARIO NO SE QUEDA QUIETO ─────────────────────────
+     Las fechas de arriba se escribieron a mano y dicen cosas como «esta
+     solicitud lleva 27 dias esperando». Dejadas fijas, esa frase se cambia
+     sola: pasan cuatro dias, la fila cruza los treinta, y el panel deja de
+     decir «hace 27 dias» para decir «el mes pasado», que es lo correcto.
+
+     Y una prueba que comprobaba que ahi ponia dias se pone roja sin que
+     nadie haya tocado una linea de codigo.
+
+     Paso exactamente eso. La tanda estaba en verde el 2 de septiembre y el
+     6 salio roja sola. Costo un rato entender que no lo habia roto nadie:
+     lo rompio el almanaque, y lo primero que se mira cuando algo se pone
+     rojo es el ultimo que toco el archivo, que ahi no habia tocado nada.
+
+     Asi que el expediente entero se DESLIZA en bloque. Se conserva la
+     distancia entre las fechas -que es lo unico que las pruebas miden: quien
+     llego antes, cuanto lleva esperando, que documento vencio- y se pierde
+     la fecha del calendario, que no la mide nadie.
+
+     Lo que NO arregla, dicho: una prueba que compruebe la PALABRA que sale
+     -«dias», «hace un mes»- sigue atada a donde caiga la fila respecto de
+     los tramos de Intl. Esto la deja siempre en el mismo tramo, que es lo
+     que hacia falta, pero el que escriba la siguiente que sepa que esa
+     forma de comprobar es fragil por su cuenta. ─────────────────── */
+  var ANCLA  = Date.parse('2026-09-02T00:00:00Z');
+  /* En DIAS ENTEROS. Con los milisegundos crudos, un expediente sembrado
+     a las 10:00 pasaba a las 06:45, y hay comprobaciones que leen la hora
+     de una cita. Deslizar dias enteros mueve el calendario y deja la hora
+     donde estaba, que es justo lo que hace falta. */
+  var DIA = 86400000;
+  var DESLIZ = Math.floor((Date.now() - ANCLA) / DIA) * DIA;
+  if (DESLIZ < 0) DESLIZ = 0;          /* nadie prueba hacia atras */
+  /* Lo mira el arnes: hay una comprobacion que necesita la fecha exacta que
+     dio el servidor, y sin esto compararia contra la de antes de deslizar. */
+  window.CIIP_MENTIRA_DESLIZ = DESLIZ;
+
+  var ES_FECHA = /^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9:.]+Z?)?$/;
+  function deslizaUno(v){
+    var t = Date.parse(v);
+    if (isNaN(t)) return v;
+    var d = new Date(t + DESLIZ);
+    /* Se devuelve con la MISMA forma que traia. Hay campos -vence_el- que la
+       base guarda como dia sin hora, y devolverlos con hora cambia lo que el
+       panel pinta debajo. */
+    return v.length === 10 ? d.toISOString().slice(0, 10) : d.toISOString();
+  }
+  /* LO QUE NO SE DESLIZA, que importa tanto como lo que si.
+
+     `datos` es el formulario tal y como lo relleno la persona. Ahi dentro
+     hay fechas que NO son historia: la de nacimiento, la de un pasaporte.
+     Deslizarlas le cambia el cumpleanos al inversionista cada dia que
+     pasa, y eso lo canto una prueba que esperaba 1979-04-11 y recibio
+     1979-04-15. Tenia razon: nadie nace cuatro dias mas tarde por que
+     hoy sea jueves.
+
+     La regla, dicha entera: se desliza CUANDO PASO algo -creado_en,
+     enviado_en, vence_el-, y no se desliza lo que alguien ESCRIBIO. */
+  var NO_SE_MUEVE = {datos: true};
+  function desliza(x){
+    if (!x || typeof x !== 'object') return x;
+    Object.keys(x).forEach(function(k){
+      if (NO_SE_MUEVE[k]) return;
+      var v = x[k];
+      if (typeof v === 'string'){ if (ES_FECHA.test(v)) x[k] = deslizaUno(v); }
+      else if (v && typeof v === 'object') desliza(v);
+    });
+    return x;
+  }
+
   var IDENTIDAD = [];
 
   var USUARIO = {id:'u1', email:'f.reyes@ciip.com.ve',
                  user_metadata: (caso === 'sinnombre' ? {} : {nombre_completo:'Franklin Reyes', pais:'Italia'})};
+
+  /* Y aqui, no antes: puesta mas arriba, USUARIO todavia valia undefined
+     -var lo declara desde el principio pero no lo rellena hasta su linea-
+     y se quedaba sin deslizar sin que nada lo dijera. */
+  [PLIEGOS, TIPOS, TRAMITES, COLA, ACTIVOS, COLA_TRAM, COLA_DEMO, CONFIRMADAS,
+   OTROS_PERFILES, PERFILES, EVENTOS, CITAS, TRAMITE_TARDIO, MUERTAS,
+   EMPRESAS, USUARIO].forEach(desliza);
 
   function respuesta(tabla, op){
     /* ── el pliego de datos ── */

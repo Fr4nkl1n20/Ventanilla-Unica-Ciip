@@ -41,6 +41,13 @@ const claves = Object.keys(I18N.es);
 /* Dónde se pide una clave: por atributo, o desde el código. Los prefijos
    sueltos —'rol.' + rol, 'faq.q' + i— se tratan aparte: son familias
    enteras que se piden en tiempo de ejecución. */
+/* AVISO PARA EL QUE ESCRIBA UN COMENTARIO EN EL PANEL.
+   Esto busca por el texto en crudo: no distingue codigo de comentario. Un
+   ejemplo escrito dentro de un comentario —dic, corchete, comilla, nombre—
+   cuenta como si alguien pidiera esa clave de verdad, y la comprobacion de
+   «ninguna clave pedida se queda sin definir» se pone roja pidiendo una que
+   no existe. Paso con un comentario que explicaba precisamente como se
+   piden las claves. Si hay que poner un ejemplo, se dice con palabras. */
 const usadas = new Set();
 for (const m of PANEL.matchAll(/data-i18n(?:-ph|-title)?="([^"]+)"/g)) usadas.add(m[1]);
 /* 'u' es el accesor de siempre —var u = T()— y faltaba en esta lista. Una
@@ -50,6 +57,25 @@ for (const m of PANEL.matchAll(/data-i18n(?:-ph|-title)?="([^"]+)"/g)) usadas.ad
    añadir ocho de golpe sin esa reserva, saltaron las ocho. */
 for (const m of PANEL.matchAll(/(?:dic|d|D|u)\[['"]([^'"]+)['"]\]/g)) usadas.add(m[1]);
 for (const m of PANEL.matchAll(/I18N(?:\.[a-z]{2}|\[[^\]]+\])\[['"]([^'"]+)['"]\]/g)) usadas.add(m[1]);
+/* Y AQUI NO HAY UNA TERCERA LINEA, a proposito.
+   La hubo durante una tarde. Alguien escribio un ayudante nuevo —function
+   t(k){ return dic[k] || I18N.en[k]; }— y pidio con el cuatro claves. Esta
+   lista no lo conocia, asi que las cuatro salieron como «definidas y sin
+   usar» estandolo, y el que las habia escrito tuvo que oir que su trabajo
+   rompia una prueba que no rompia nada.
+
+   El arreglo evidente era añadir 't' aqui. Es el que se hizo primero, y es
+   el equivocado: esta lista no sabe leer JavaScript, solo sabe los accesores
+   que alguien se acordo de apuntar, asi que cada dialecto nuevo del panel le
+   saca otra linea y el detector va siempre un paso por detras.
+
+   El bueno fue el otro: quitar el ayudante y volver a dic['clave'], que ya
+   existia. Un dialecto menos que reconocer en vez de uno mas. Y por eso este
+   comentario ocupa el sitio del patron: para que el siguiente que se
+   encuentre unas claves «sin usar» que si se usan sepa que la pregunta no es
+   «como se lo enseño al detector», sino «por que hay tres formas distintas
+   de pedir lo mismo». */
+
 const familias = ['rol.', 'faq.q', 'st.'];
 
 const huerfanas = claves.filter(k =>

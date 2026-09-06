@@ -5975,8 +5975,14 @@ applyLang(idiomaParaMi());
     if (viejo) viejo.remove();     /* al cambiar de idioma se rehace */
 
     var dic = (typeof I18N !== 'undefined' && (I18N[curLang] || I18N.en)) || {};
-    /* Se piden con dic['clave'], que es una de las dos formas que el panel
-       ya usaba. Aqui hubo un ayudante t() propio y duro poco: era una
+    /* Se piden con dic y la clave entre corchetes, que es una de las dos
+       formas que el panel ya usaba. Escrito asi, con palabras y no con el
+       ejemplo literal, porque pruebas/claves.js busca por el texto en crudo
+       y un ejemplo dentro de un comentario le cuenta como si alguien pidiera
+       esa clave: la primera version de este comentario puso roja la tanda
+       pidiendo una clave llamada «clave».
+
+       Aqui hubo un ayudante t() propio y duro poco: era una
        TERCERA manera de pedir lo mismo, y el vigilante de claves sin usar
        -pruebas/claves.js- no la reconocia, asi que daba por muertas cuatro
        claves que se usan. El arreglo no era enseñarle el tercer dialecto:
@@ -10732,6 +10738,11 @@ applyLang(idiomaParaMi());
 
     enCola.forEach(function(c){
       var f = el('div', 'co-ficha');
+      /* Cada ficha dice de qué cita es, igual que ya hacía la de la agenda.
+         Sin esto, la única forma de señalar una era por la fecha que llevaba
+         escrita, y una fecha escrita cambia de aspecto sola con el paso de
+         los días. */
+      f.setAttribute('data-cita', c.id);
 
       var cab = el('div', 'co-cab');
       cab.appendChild(el('div', 'co-quien', c.nombre || u.co_sinnombre || ''));
