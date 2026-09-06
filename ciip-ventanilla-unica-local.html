@@ -2557,10 +2557,6 @@ body.con-puerta{overflow:hidden;}
 .se-campo + .se-campo{margin-top:15px;}
 .se-campo .se-ayuda{margin-bottom:2px;}
 .se-campo .se-buscar{margin-bottom:0;}
-/* La pista del nombre explica POR QUE se pregunta. Sin ella, un campo
-   obligatorio delante de una puerta parece un peaje mas. */
-.se-pista{font-size:11px; color:var(--gray); line-height:1.5;}
-.pf-campo.mal .se-pista{color:var(--rust);}
 /* El sector no tiene caja que enrojecer: son botones, y ponerlos los ocho en
    rojo seria gritar. Cuando falta, el filo lo lleva su rotulo, que es lo
    mismo que hace la ficha de la cola con lo que queda por entregar. Y hace
@@ -4443,7 +4439,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <div class="pf-campo se-campo" id="seCampoNombre">
         <label for="seNombre" id="seLnombre"></label>
         <input type="text" id="seNombre" autocomplete="name" maxlength="120">
-        <div class="se-pista" id="seNombrePista"></div>
       </div>
       <div class="pf-campo se-campo" id="seCampoSector">
         <span id="seLsector"></span>
@@ -9917,7 +9912,6 @@ applyLang(idiomaParaMi());
     pon('seTitulo',  u.se_titulo);
     pon('seSub',     u.se_sub);
     pon('seLnombre', u.se_lnombre);
-    pon('seNombrePista', u.se_nombrepista);
     pon('seLsector', u.se_lsector);
     pon('seAyuda',   u.se_ayuda);
     pon('seGuardar', u.se_guardar);
@@ -10019,7 +10013,6 @@ applyLang(idiomaParaMi());
     pon('seTitulo',  u.se_titulo);
     pon('seSub',     u.se_sub);
     pon('seLnombre', u.se_lnombre);
-    pon('seNombrePista', u.se_nombrepista);
     pon('seLsector', u.se_lsector);
     pon('seAyuda',   u.se_ayuda);
     pon('seGuardar', u.se_guardar);
