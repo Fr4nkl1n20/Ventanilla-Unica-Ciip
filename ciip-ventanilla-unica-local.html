@@ -5946,14 +5946,22 @@ applyLang(idiomaParaMi());
     if (viejo) viejo.remove();     /* al cambiar de idioma se rehace */
 
     var dic = (typeof I18N !== 'undefined' && (I18N[curLang] || I18N.en)) || {};
-    function t(k){ return dic[k] || (typeof I18N !== 'undefined' ? (I18N.en || {})[k] : '') || ''; }
-    var p1 = t('j.intro1'), p2 = t('j.intro2');
+    /* Se piden con dic['clave'], que es una de las dos formas que el panel
+       ya usaba. Aqui hubo un ayudante t() propio y duro poco: era una
+       TERCERA manera de pedir lo mismo, y el vigilante de claves sin usar
+       -pruebas/claves.js- no la reconocia, asi que daba por muertas cuatro
+       claves que se usan. El arreglo no era enseñarle el tercer dialecto:
+       era dejar de inventarlo. */
+    var p1 = dic['j.intro1'] || I18N.en['j.intro1'] || '';
+    var p2 = dic['j.intro2'] || I18N.en['j.intro2'] || '';
     if (!p1 && !p2) return;
+
+    var rotulo = dic['j.gtit'] || I18N.en['j.gtit'] || dic['j.title'] || '';
 
     var pie = el('div', 'pc-pie');
     var bt = el('button', 'btn ghost', '');
     bt.type = 'button';
-    bt.appendChild(el('span', null, t('j.cita')));
+    bt.appendChild(el('span', null, dic['j.cita'] || I18N.en['j.cita'] || ''));
     bt.addEventListener('click', function(){
       cierraPista();
       if (typeof abreCita === 'function') abreCita();
@@ -5962,8 +5970,8 @@ applyLang(idiomaParaMi());
     pie.appendChild(bt);
 
     var g = montaGlobo({
-      titulo: t('j.gtit') || t('j.title'),
-      etiqueta: t('j.gtit') || t('j.title'),
+      titulo: rotulo,
+      etiqueta: rotulo,
       puntos: [p1, p2].filter(Boolean),
       parrafos: true,
       ancho: true,
