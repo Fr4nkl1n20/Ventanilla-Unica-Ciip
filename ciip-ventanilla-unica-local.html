@@ -2550,6 +2550,23 @@ body.con-puerta{overflow:hidden;}
 .se-lang button.on{opacity:1; border-color:var(--navy2);}
 .se-lang img{display:block; width:20px; height:14px; object-fit:cover; border-radius:2px;}
 .se-ayuda{font-size:12px; color:var(--gray); line-height:1.55; margin-bottom:13px;}
+/* Las dos preguntas de la puerta, con el mismo aire que los campos de la
+   ficha: son lo mismo -nombre y sector- preguntado antes en vez de despues.
+   El margen de la ayuda se anula aqui porque dentro del campo el hueco lo
+   pone el gap, y sumados dejaban el sector flotando lejos de su rotulo. */
+.se-campo + .se-campo{margin-top:15px;}
+.se-campo .se-ayuda{margin-bottom:2px;}
+.se-campo .se-buscar{margin-bottom:0;}
+/* La pista del nombre explica POR QUE se pregunta. Sin ella, un campo
+   obligatorio delante de una puerta parece un peaje mas. */
+.se-pista{font-size:11px; color:var(--gray); line-height:1.5;}
+.pf-campo.mal .se-pista{color:var(--rust);}
+/* El sector no tiene caja que enrojecer: son botones, y ponerlos los ocho en
+   rojo seria gritar. Cuando falta, el filo lo lleva su rotulo, que es lo
+   mismo que hace la ficha de la cola con lo que queda por entregar. Y hace
+   falta de verdad: con menos de diez sectores el buscador esta escondido,
+   asi que en ese campo no hay ni una sola caja que se pueda poner roja. */
+.se-campo.mal > label, .se-campo.mal > span{color:var(--rust);}
 .se-buscar{width:100%; font:inherit; font-size:13px; padding:9px 11px; margin-bottom:11px;
   border:1px solid var(--line); border-radius:var(--r-sm); background:var(--bg); color:var(--ink);}
 .se-buscar[hidden]{display:none;}
@@ -4414,10 +4431,27 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
         <button type="button" data-lang="zh" title="中文"><img src="banderas/cn.svg" alt="中文" onerror="this.replaceWith(document.createTextNode('ZH'))"></button>
         <button type="button" data-lang="ru" title="Русский"><img src="banderas/ru.svg" alt="Русский" onerror="this.replaceWith(document.createTextNode('RU'))"></button>
       </div>
-      <div class="se-ayuda" id="seAyuda"></div>
-      <input type="search" class="se-buscar" id="seBuscar" autocomplete="off" hidden>
-      <div class="se-lista" id="seLista" role="radiogroup"></div>
-      <div class="se-nada" id="seNada" hidden></div>
+      <!-- EL NOMBRE. Va ANTES del sector a proposito: es la primera vez que
+           el panel pregunta quien eres, y sin esto la cabecera se quedaba
+           llamandote por el trozo del correo que va delante de la arroba.
+
+           La caja nace VACIA aunque la esquina ya diga "milagros": ese
+           nombre no lo escribio nadie, lo dedujo el panel del correo, y
+           traerlo escrito aqui seria invitar a pulsar Continuar sin mirar
+           y a guardar la deduccion como si fuera un nombre. Solo se
+           rellena cuando hay un nombre de verdad guardado. -->
+      <div class="pf-campo se-campo" id="seCampoNombre">
+        <label for="seNombre" id="seLnombre"></label>
+        <input type="text" id="seNombre" autocomplete="name" maxlength="120">
+        <div class="se-pista" id="seNombrePista"></div>
+      </div>
+      <div class="pf-campo se-campo" id="seCampoSector">
+        <span id="seLsector"></span>
+        <div class="se-ayuda" id="seAyuda"></div>
+        <input type="search" class="se-buscar" id="seBuscar" autocomplete="off" hidden>
+        <div class="se-lista" id="seLista" role="radiogroup" aria-labelledby="seLsector"></div>
+        <div class="se-nada" id="seNada" hidden></div>
+      </div>
       <div class="pf-aviso" id="seAviso"></div>
     </div>
     <div class="pf-pie">
@@ -9740,6 +9774,10 @@ applyLang(idiomaParaMi());
   var seBack   = document.getElementById('sectorBack');
   var SECTORES = [];
   var seElegido = '';
+  /* Que reproche esta puesto, no su texto: al cambiar de idioma hay que
+     volver a decirlo en el idioma nuevo, y del texto ya no se puede
+     deducir cual era. */
+  var seFalla = '';
 
   /* ── El icono y el color de cada sector ──
      Van AQUI y no en la base porque son presentacion, igual que los logos
@@ -9831,10 +9869,45 @@ applyLang(idiomaParaMi());
       b.addEventListener('click', function(){
         seElegido = sec.codigo;
         pintaListaSectores();
+        /* Y si habia un reproche puesto, se pone al dia: quien acaba de
+           elegir sector no tiene que seguir leyendo que le falta elegirlo. */
+        if (seFalla){ seFalla = reprochaSector(); ponAvisoSector(); }
       });
       lista.appendChild(b);
     });
     if (nada) nada.hidden = vistos.length > 0;
+  }
+
+  /* El nombre tal y como se guardaria: sin los espacios de los bordes y sin
+     los de sobra de dentro, porque "Ana  Perez" y "Ana Perez" son el mismo
+     nombre y en la base no pueden ser dos. Es el mismo aseo que la ficha. */
+  function nombreDeLaPuerta(){
+    var c = document.getElementById('seNombre');
+    return ((c && c.value) || '').trim().replace(/\s+/g, ' ');
+  }
+
+  /* Que falta, en una sola frase, y el filo rojo en los campos que lo
+     provocan. Se dicen LAS DOS cosas cuando faltan las dos: avisar solo de
+     la primera obliga a pulsar Continuar otra vez para enterarse de la
+     segunda. Devuelve la CLAVE, no el texto, porque el idioma puede cambiar
+     con el reproche ya puesto. */
+  function reprochaSector(){
+    var hayNombre = !!nombreDeLaPuerta();
+    /* Por id y no por el sitio que ocupan: el dia que se meta un campo mas
+       en medio, el filo rojo no puede acabar en el de al lado. */
+    var cn = document.getElementById('seCampoNombre');
+    var cs = document.getElementById('seCampoSector');
+    if (cn) cn.classList.toggle('mal', !hayNombre);
+    if (cs) cs.classList.toggle('mal', !seElegido);
+    if (!hayNombre && !seElegido) return 'se_faltan';
+    if (!hayNombre) return 'se_faltanombre';
+    if (!seElegido) return 'se_falta';
+    return '';
+  }
+
+  function ponAvisoSector(){
+    var av = document.getElementById('seAviso');
+    if (av) av.textContent = (seFalla && T()[seFalla]) || '';
   }
 
   function abreSector(){
@@ -9843,10 +9916,22 @@ applyLang(idiomaParaMi());
     function pon(id, txt){ var e = document.getElementById(id); if (e) e.textContent = txt || ''; }
     pon('seTitulo',  u.se_titulo);
     pon('seSub',     u.se_sub);
+    pon('seLnombre', u.se_lnombre);
+    pon('seNombrePista', u.se_nombrepista);
+    pon('seLsector', u.se_lsector);
     pon('seAyuda',   u.se_ayuda);
     pon('seGuardar', u.se_guardar);
     pon('seSalir',   u.se_salir);
     pon('seNada',    u.se_falta);
+    /* Vacia salvo que haya un nombre ESCRITO por alguien. PERFIL.nombre casi
+       nunca esta vacio -si no hay nada guardado se saca uno del correo para
+       no dejar la esquina en blanco-, y traer aqui esa deduccion es justo lo
+       que esta puerta viene a arreglar: se aceptaria de un clic y el correo
+       quedaria de nombre para siempre. nombreReal es lo unico que distingue
+       un nombre de una deduccion. */
+    var nom = document.getElementById('seNombre');
+    if (nom) nom.value = (typeof PERFIL !== 'undefined' && PERFIL.nombreReal)
+                         ? PERFIL.nombre : '';
     var busca = document.getElementById('seBuscar');
     if (busca){
       /* El buscador solo cuando hay bastantes. Con seis sectores delante
@@ -9855,33 +9940,50 @@ applyLang(idiomaParaMi());
       busca.value  = '';
       busca.setAttribute('placeholder', u.se_buscar || '');
     }
-    seElegido = '';
+    /* Si ya habia sector -esta puerta se abre ahora tambien por el nombre
+       solo- se llega con el suyo marcado. Presentarle la rejilla en blanco a
+       quien ya contesto le haria elegir otra vez y arriesgarse a fallar. */
+    seElegido = (typeof PERFIL !== 'undefined' && PERFIL.sector) || '';
     pintaListaSectores();
-    var av = document.getElementById('seAviso'); if (av) av.textContent = '';
+    seFalla = '';
+    ponAvisoSector();
+    [].forEach.call(seBack.querySelectorAll('.pf-campo'), function(c){
+      c.classList.remove('mal');
+    });
     seBack.classList.add('open');
     marcaIdiomaSector();
     document.body.classList.add('con-puerta');
+    /* El foco, en el nombre: es el primer campo y el unico que se escribe. */
+    setTimeout(function(){ if (nom) nom.focus(); }, 60);
   }
 
   function guardaSector(){
     var u  = T();
     var av = document.getElementById('seAviso');
     var bt = document.getElementById('seGuardar');
-    if (!seElegido){ if (av) av.textContent = u.se_falta || ''; return; }
+    var nombre = nombreDeLaPuerta();
+    seFalla = reprochaSector();
+    if (seFalla){ ponAvisoSector(); return; }
     bt.disabled = true;
     bt.textContent = u.se_yendo || '';
     if (av) av.textContent = '';
 
+    /* Las dos respuestas en UN update. Guardarlas por separado deja la
+       puerta a medias si la segunda falla: el sector puesto y el nombre no,
+       y al volver a entrar se pregunta otra vez lo ya contestado. */
     sb.auth.getUser().then(function(r){
       var usu = r && r.data && r.data.user;
       if (!usu) throw new Error('sin sesión');
-      return sb.from('perfiles').update({sector: seElegido})
+      return sb.from('perfiles').update({nombre_completo: nombre, sector: seElegido})
                .eq('id', usu.id).select().single();
     }).then(function(r){
       if (r && r.error) throw r.error;
       bt.disabled = false;
       bt.textContent = u.se_guardar || '';
       if (typeof PERFIL !== 'undefined') PERFIL.sector = seElegido;
+      /* La esquina deja de llamarte por el correo AQUI, sin recargar: por la
+         misma puerta que usa la ficha del perfil, CIIP_APLICA_PERFIL. */
+      if (window.CIIP_APLICA_PERFIL) window.CIIP_APLICA_PERFIL(nombre, null, null);
       seBack.classList.remove('open');
       document.body.classList.remove('con-puerta');
     }).catch(function(e){
@@ -9891,7 +9993,11 @@ applyLang(idiomaParaMi());
          al recargar volveria a salir sin que nadie entienda por que. */
       bt.disabled = false;
       bt.textContent = u.se_guardar || '';
-      if (av) av.textContent = u.se_error || '';
+      /* Tambien por la marca: si se cambia de idioma con el fallo en pantalla,
+         antes se releia el texto y se sustituia por el reproche de otra cosa.
+         Ahora se vuelve a decir lo que de verdad paso. */
+      seFalla = 'se_error';
+      ponAvisoSector();
     });
   }
 
@@ -9912,15 +10018,20 @@ applyLang(idiomaParaMi());
     function pon(id, txt){ var e = document.getElementById(id); if (e) e.textContent = txt || ''; }
     pon('seTitulo',  u.se_titulo);
     pon('seSub',     u.se_sub);
+    pon('seLnombre', u.se_lnombre);
+    pon('seNombrePista', u.se_nombrepista);
+    pon('seLsector', u.se_lsector);
     pon('seAyuda',   u.se_ayuda);
     pon('seGuardar', u.se_guardar);
     pon('seSalir',   u.se_salir);
     pon('seNada',    u.se_falta);
     var busca = document.getElementById('seBuscar');
     if (busca) busca.setAttribute('placeholder', u.se_buscar || '');
-    var av = document.getElementById('seAviso');
-    /* Si habia un reproche puesto, se vuelve a decir en el idioma nuevo. */
-    if (av && av.textContent) av.textContent = u.se_falta || '';
+    /* Si habia un reproche puesto, se vuelve a decir en el idioma nuevo. Se
+       repinta desde la MARCA y no releyendo lo escrito: con tres reproches
+       distintos, el texto ya no dice cual de ellos estaba puesto. Lo que el
+       usuario haya tecleado en el nombre no se toca. */
+    ponAvisoSector();
     /* Y los sectores se retraducen sin perder lo elegido: lo que se guarda
        es el codigo, no el nombre. */
     pintaListaSectores();
@@ -9980,6 +10091,20 @@ applyLang(idiomaParaMi());
       var cfg = window.CIIP_CONFIG || {};
       location.replace(cfg.RUTA_ACCESO || './acceso.html');
     });
+    /* Enter en el nombre continua, como en la ficha del perfil. */
+    var seNom = document.getElementById('seNombre');
+    if (seNom){
+      seNom.addEventListener('keydown', function(e){
+        if (e.key === 'Enter'){ e.preventDefault(); guardaSector(); }
+      });
+      /* Y el reproche se retira en cuanto se empieza a escribir: dejarlo
+         puesto mientras tecleas es reganar por algo que ya estas haciendo. */
+      seNom.addEventListener('input', function(){
+        if (!seFalla) return;
+        seFalla = reprochaSector();
+        ponAvisoSector();
+      });
+    }
     var seBusca = document.getElementById('seBuscar');
     if (seBusca) seBusca.addEventListener('input', pintaListaSectores);
     var seLang = document.getElementById('seLang');
@@ -10006,7 +10131,11 @@ applyLang(idiomaParaMi());
       }
       if (PERFIL.rol !== 'inversionista') return;   /* el CIIP no invierte */
       if (!PERFIL.sectorReal) return;               /* la base no lo guarda */
-      if (PERFIL.sector) return;                    /* ya contesto */
+      /* Se pregunta si falta CUALQUIERA de las dos. Antes solo miraba el
+         sector, y quien lo hubiera contestado ya no volvia a ver esta puerta
+         nunca: se quedaba sin que nadie le pidiera el nombre, y el panel
+         seguia llamandole por el trozo del correo anterior a la arroba. */
+      if (PERFIL.sector && PERFIL.nombreReal) return;   /* ya contesto */
       pideSectores().then(function(l){
         if (!l.length) return;                      /* puerta sin llave */
         SECTORES = l;
