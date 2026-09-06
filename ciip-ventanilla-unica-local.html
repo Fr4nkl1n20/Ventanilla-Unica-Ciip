@@ -805,11 +805,8 @@ body[data-vista="usuarios"] #usVolver{display:inline-flex;}
    que el de las cuentas -300 y no 280- porque aqui el nombre del tramite
    es largo: "Registro de la inversion extranjera directa" no cabe en
    280 sin partirse en tres lineas. */
-#mtLista{display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
-  gap:12px; align-items:start;}
 /* El aviso de "no tienes ninguna" cruza entero: es el techo de la vista,
    no una ficha mas metida en la fila. */
-#mtLista > .ci-vacia{grid-column:1 / -1;}
 /* Los rótulos de sección cruzan entera: son el techo de lo que viene
    debajo, no una ficha más de la fila. */
 #usLista .us-sec{grid-column:1 / -1;}
@@ -1439,6 +1436,33 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
 
 .co-aviso{font-size:11.5px; color:var(--rust); margin-top:7px; min-height:14px;}
 .co-vacia{font-size:12.5px; color:var(--gray); padding:16px 12px 20px; text-align:center;}
+/* --- «Mis tramites», en tabla --- */
+/* La fila NO es pulsable aqui, y por eso se le quita el cursor que .tabla
+   pone a todas: la accion vive en el boton de la ultima columna. En la cola
+   del equipo la fila entera abre la ventana de revisar; aqui abrir un
+   tramite es ir a otra pantalla, y una fila que navega sin avisar se pulsa
+   sin querer al intentar seleccionar un texto. */
+#mtTabla tbody tr{cursor:default;}
+/* Lo que reclama algo TUYO -devuelto o borrador- lleva su filo ambar, como
+   lo llevaba la ficha de la rejilla. Va en el borde y no en el fondo: un
+   fondo de color en una fila compite con el resaltado del raton y deja de
+   verse justo cuando pasas por encima. */
+#mtTabla tbody tr.reclama td:first-child{box-shadow:inset 3px 0 0 var(--amber);}
+/* Y lo terminado se apaga un punto. Solo el nombre y la fecha: el distintivo
+   de estado tiene que seguir leyendose entero. */
+#mtTabla tbody tr.pasada .mt-nombre,
+#mtTabla tbody tr.pasada .mt-fecha{color:var(--gray);}
+.mt-nombre{font-weight:700; color:var(--ink);}
+/* «Enviada el 18 jun» y «resuelta el 21 jun» salen del mismo par de textos
+   que usaba la ficha, y el segundo empieza en minuscula porque alli iba
+   pegado detras de otra cosa. En una celda es la primera palabra. */
+.mt-fecha::first-letter{text-transform:uppercase;}
+.mt-fecha{white-space:nowrap;}
+/* El reloj de «lleva N dias» cae debajo del distintivo, no a su lado: la
+   columna de estado es la mas estrecha y en linea partia el chip. */
+#mtTabla .ct-chip + *{display:block; margin-top:4px;}
+#mtTabla td:last-child{text-align:right;}
+.mt-ir{padding:5px 12px; font-size:11px;}
 /* Dos colas en la misma ventana —trámites y citas— necesitan decir cuál es
    cuál: sin cabecera, una ficha de cada tipo seguida parece la misma cosa. */
 .co-seccion{font-size:9.5px; font-weight:800; letter-spacing:.1em;
@@ -3846,7 +3870,21 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
            palabras: quien ya sabe filtrar alli no tiene que aprender otra
            cosa aqui. -->
       <div class="co-filtros" id="mtFiltros"></div>
-      <div class="ci-lista" id="mtLista"></div>
+      <!-- En tabla, y con la MISMA maquinaria que la cola del equipo y la
+           boveda: .tabla, cabeceras que ordenan con .th-orden y su
+           aria-sort. Quien aprendio a ordenar en Documentos no tiene que
+           aprender otra cosa aqui.
+
+           Antes era una rejilla de fichas. Se leia bien con tres tramites
+           y mal con quince: para comparar dos fechas habia que ir saltando
+           de una tarjeta a otra, y no habia forma de ordenar por nada. -->
+      <div class="tabla-caja">
+        <table class="tabla" id="mtTabla">
+          <thead><tr id="mtCab"></tr></thead>
+          <tbody id="mtCuerpo"></tbody>
+        </table>
+      </div>
+      <div class="co-vacia" id="mtVacia" hidden></div>
     </div>
 
     <!-- Citas y agenda. Es una vista propia, con su direccion: se llega
@@ -11996,7 +12034,10 @@ applyLang(idiomaParaMi());
      La portada de al lado sigue enseñando el catálogo entero —lo que se
      puede pedir— y esto es la otra mitad: lo que pediste.
      ──────────────────────────────────────────────────────────── */
-  var mtLista = document.getElementById('mtLista');
+  /* El contenedor de antes ya no existe; se conserva la variable porque
+     de ella cuelga el enganche del renglon de la barra lateral, y ahora
+     apunta a la tabla. */
+  var mtLista = document.getElementById("mtTabla");
   var mtNav   = document.getElementById('navTramites');
   var mtNavN  = document.getElementById('navTramitesN');
   var mios    = [];
@@ -12054,8 +12095,40 @@ applyLang(idiomaParaMi());
     });
   }
 
+  /* ── MIS TRAMITES, EN TABLA ──
+     Cinco columnas, y la ultima son botones. Mismo esqueleto que la cola
+     del equipo -COLUMNAS + un mapa de por que valor ordena cada una +
+     ordenDeTabla-, porque es la misma clase de pantalla: una lista de
+     solicitudes que se compara entre si.
+
+     Lo que se ORDENA no es lo que se VE, y en dos columnas importa:
+     · la fecha se compara en numero y se enseña en letra;
+     · el estado se compara por su texto ya traducido, para que ordenar
+       en castellano no de el orden del ingles. */
+  var MT_COLUMNAS = ['mt_c_tramite', 'mt_c_ente', 'mt_c_estado', 'mt_c_fecha', 'mt_c_abrir'];
+
+  var MT_ORDENA = {
+    mt_c_tramite: function(t){
+      var ref = tipoRefDe(t.tipo);
+      return ref ? nombreDeTarjeta(ref) : (t.tipo || '');
+    },
+    mt_c_ente: function(t){
+      var ref = tipoRefDe(t.tipo);
+      return ((TIPOS || {})[ref] || {}).ente || '';
+    },
+    mt_c_estado: function(t){ return textoDeEvento(t.estado, '') || ''; },
+    /* La fecha de la fila es la ultima que hubo: se resolvio, o se envio,
+       o se creo. Ordenar por «creado» dejaria un resuelto de ayer por
+       debajo de un borrador de hace un mes. */
+    mt_c_fecha:  function(t){
+      return Date.parse(t.resuelto_en || t.enviado_en || t.creado_en) || 0;
+    }
+  };
+  var mtOrden = ordenDeTabla(function(){ pintaMisTramites(); });
+
   function pintaMisTramites(){
-    if (!mtLista) return;
+    var cuerpo = document.getElementById('mtCuerpo');
+    if (!cuerpo) return;
     var u = T();
     var sub = document.getElementById('mtSub');
     if (sub) sub.textContent = u.mt_sub || '';
@@ -12066,13 +12139,38 @@ applyLang(idiomaParaMi());
       mtNavN.hidden = (vivos.length === 0);
     }
 
+    /* La cabecera se rehace en cada pasada: lleva la flecha de por que
+       columna se esta ordenando, y eso cambia al pulsarla. */
+    var cab = document.getElementById('mtCab');
+    if (cab){
+      cab.textContent = '';
+      MT_COLUMNAS.forEach(function(k){
+        var th = document.createElement('th');
+        th.scope = 'col';
+        /* La ultima no lleva rotulo a la vista: son botones, y «Abrir»
+           repetido encima de quince botones que dicen Abrir es ruido. Se
+           queda para el lector de pantalla. */
+        if (k === 'mt_c_abrir') th.appendChild(el('span', 'visualmente-oculto', u[k] || ''));
+        else mtOrden.rotula(th, k, u[k] || '', MT_ORDENA[k]);
+        cab.appendChild(th);
+      });
+    }
+
     pintaFiltrosMt();
 
-    mtLista.textContent = '';
+    cuerpo.textContent = '';
+    var vaciaCaja = document.getElementById('mtVacia');
+    var tabla = document.getElementById('mtTabla');
+
+    /* Sin NADA pedido: se dice, y se esconde la tabla entera. Una cabecera
+       de cinco columnas sobre un cuerpo vacio parece una pantalla rota. */
     if (!mios.length){
-      mtLista.appendChild(el('div', 'ci-vacia', u.mt_vacia || ''));
+      if (vaciaCaja){ vaciaCaja.textContent = u.mt_vacia || ''; vaciaCaja.hidden = false; }
+      if (tabla) tabla.hidden = true;
       return;
     }
+    if (tabla) tabla.hidden = false;
+    if (vaciaCaja) vaciaCaja.hidden = true;
 
     /* Si el filtro de turno se queda sin nada -porque se descarto el
        ultimo borrador, por ejemplo- se vuelve a todas en vez de dejar la
@@ -12082,7 +12180,7 @@ applyLang(idiomaParaMi());
       pintaFiltrosMt();
     }
 
-    mios.filter(mtCuadra).forEach(function(t){
+    mtOrden.ordena(mios.filter(mtCuadra), MT_ORDENA).forEach(function(t){
       var ref  = tipoRefDe(t.tipo);
       /* TIPOS puede seguir siendo null si el catálogo aún no ha llegado.
          Sin este paréntesis, TIPOS[null] revienta y la lista se queda vacía
@@ -12091,37 +12189,41 @@ applyLang(idiomaParaMi());
       var chip = chipDeTramite(t.estado, ente);
       var reclama = (t.estado === 'devuelto' || t.estado === 'borrador');
 
-      var f = el('div', 'ci-ficha' + (reclama ? ' reclama' : '') +
-                        (t.estado === 'resuelto' ? ' pasada' : ''));
-      /* Lo mismo del lado del inversionista, salvo en los resueltos: ahi
-         "lleva veinte dias" no dice nada, ya termino. */
-      var relojMt = (t.estado === 'resuelto') ? null
-        : relojDe(t.desde_en || t.enviado_en || t.creado_en, u.mt_desde);
+      var tr = document.createElement('tr');
+      /* Las que reclaman algo tuyo se marcan, como en la rejilla de antes
+         y como en la cola del equipo. */
+      if (reclama) tr.className = 'reclama';
+      else if (t.estado === 'resuelto') tr.className = 'pasada';
 
-      var cab = el('div', 'ci-cab');
-      cab.appendChild(el('span', 'ct-chip' + (chip.clase === 'listo' ? ' listo' : ''), chip.txt));
-      if (relojMt) cab.appendChild(relojMt);
-      f.appendChild(cab);
+      tr.appendChild(el('td', 'mt-nombre', ref ? nombreDeTarjeta(ref) : t.tipo));
+      tr.appendChild(el('td', null, ente));
 
-      f.appendChild(el('div', 'ci-linea', ref ? nombreDeTarjeta(ref) : t.tipo));
+      var tdEstado = document.createElement('td');
+      tdEstado.appendChild(el('span', 'ct-chip' + (chip.clase === 'listo' ? ' listo' : ''), chip.txt));
+      /* Cuanto lleva parado, debajo del estado y solo si sigue vivo: en un
+         resuelto «lleva veinte dias» no dice nada, ya termino. */
+      if (t.estado !== 'resuelto'){
+        var rel = relojDe(t.desde_en || t.enviado_en || t.creado_en, u.mt_desde);
+        if (rel) tdEstado.appendChild(rel);
+      }
+      tr.appendChild(tdEstado);
 
-      var cuando = [];
-      if (t.enviado_en) cuando.push(String(u.mt_enviada || '').replace('{fecha}', fecha(t.enviado_en)));
-      if (t.resuelto_en) cuando.push(String(u.mt_resuelta || '').replace('{fecha}', fecha(t.resuelto_en)));
-      f.appendChild(el('div', 'ci-que', [ente].concat(cuando).filter(Boolean).join(' · ')));
+      /* La fecha, con su rotulo: sin el, una columna de fechas sueltas no
+         dice si es cuando se envio o cuando se resolvio. */
+      var cuando = '';
+      if (t.resuelto_en)     cuando = String(u.mt_resuelta || '').replace('{fecha}', fecha(t.resuelto_en));
+      else if (t.enviado_en) cuando = String(u.mt_enviada  || '').replace('{fecha}', fecha(t.enviado_en));
+      tr.appendChild(el('td', 'mt-fecha', cuando));
 
-      /* Se pulsa para ir a su detalle, que es donde están la escalera y el
-         botón de corregir. */
-      f.setAttribute('role', 'button');
-      f.setAttribute('tabindex', '0');
-      f.style.cursor = 'pointer';
-      function ir(){ if (ref) location.hash = 'tramite-' + ref; }
-      f.addEventListener('click', ir);
-      f.addEventListener('keydown', function(e){
-        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); ir(); }
-      });
+      var tdIr = document.createElement('td');
+      var bt = el('button', 'btn ghost mt-ir', u.mt_abrir || '');
+      bt.type = 'button';
+      bt.disabled = !ref;
+      bt.addEventListener('click', function(){ if (ref) location.hash = 'tramite-' + ref; });
+      tdIr.appendChild(bt);
+      tr.appendChild(tdIr);
 
-      mtLista.appendChild(f);
+      cuerpo.appendChild(tr);
     });
   }
 
