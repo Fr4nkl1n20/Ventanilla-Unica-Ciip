@@ -1584,20 +1584,22 @@
       ok('sesión: nunca se queda el nombre de la demostración',
          enPantalla.trim() !== 'Marco Bianchi', enPantalla.trim(), 'cualquier cosa menos Marco Bianchi');
 
-      /* El aviso de que parte del panel sigue siendo maqueta. Se enciende con
-         la sesión, y tiene que seguir encendido mientras las 24 tarjetas
-         lleven el estado escrito a mano. Es lo único que impide que alguien
-         se crea las cifras de la cabecera. */
+      /* El aviso de «datos de ejemplo» se retiró. Vigilaba que nadie se
+         creyera las cifras mientras las 24 tarjetas llevaban el estado
+         escrito a mano; hoy ese estado sale de la base -pintaEstadoTarjetas-
+         y el recuento de cada etapa se compone contándolas, así que no queda
+         cifra inventada de la que avisar.
+
+         La comprobación no se borra: se le da la vuelta. Antes vigilaba que
+         el aviso siguiera encendido; ahora, que no vuelva sin querer y que
+         no vuelva tampoco la razón por la que hacía falta. */
       (function(){
         var d = document.getElementById('avisoDemo');
-        ok('sesión: el aviso de datos de ejemplo sigue a la vista',
-           !!d && d.classList.contains('show'),
-           d ? d.className : '(no existe)', 'con la clase show');
-        /* Y ya no puede decir que TUS solicitudes son de ejemplo: el buzón y
-           la franja salen de la base. */
-        ok('sesión: el aviso no desmiente lo que sí es de verdad',
-           !!d && d.textContent.indexOf('tus solicitudes son reales') >= 0,
-           d ? d.textContent.trim() : '(no existe)', 'nombra tus solicitudes como reales');
+        ok('sesión: el aviso de datos de ejemplo ya no está',
+           !d, d ? 'sigue en el marcado' : '(no existe)', 'retirado');
+        var aMano = document.querySelectorAll('.tcard[data-estado]').length;
+        ok('sesión: ninguna tarjeta lleva el estado escrito a mano',
+           aMano === 0, aMano, 0);
       })();
 
       /* El país va pegado al rol: "{rol} · {pais}". Sin país en el
