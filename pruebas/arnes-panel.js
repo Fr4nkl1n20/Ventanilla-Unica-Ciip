@@ -204,6 +204,8 @@
               pliegaAbre, pliegaMira, pliegaVuelve, pliegaTrasVolver,
               pliegaTramite, pliegaVuelveDeTramite, pliegaTrasTramite,
               opacidadMira, opacidadSenal,
+              migajaAbre, migajaMira, migajaVuelve,
+              cuadraAbre, cuadraMira, cuadraMira, cuadraMira,
               nuevaVersionMira, guardaCatalogo,
               rastroAbre, rastroMira,
               rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
@@ -835,16 +837,43 @@
           var c = document.querySelector('.tcard[data-tr="' + ref + '"] .chip.niv');
           return c ? c.textContent.trim() : '';
         }
-        igual('nivel: el obligatorio lo dice',        niv('c3'),  'Obligatorio');
+        /* ── QUIEN LO PIDE, O NADA ──
+           Decia «Obligatorio», y el CIIP lo quito con un motivo que no es de
+           estilo: una ventanilla unica no obliga a nadie. Quien exige es la
+           ley o el organismo.
+
+           Asi que ahora dice quien lo pide, y SOLO cuando se sabe. El dato
+           no existe todavia -lo tiene que decir el CIIP, tramite por
+           tramite- y por eso hoy casi ninguna tarjeta lleva distintivo.
+
+           Se comprueban las DOS mitades. Sin la segunda, vaciar el
+           diccionario entero pasaria por bueno: todo callado es todo
+           correcto si solo se mira que no diga «Obligatorio». */
+        ok('nivel: el obligatorio ya no dice Obligatorio',
+           niv('c3') !== 'Obligatorio', '"' + niv('c3') + '"', 'cualquier cosa menos eso');
+
+        igual('nivel: sin saber quien lo pide, no dice nada', niv('c3'), '');
+
+        /* Y con el dato puesto, lo dice. Se rellena a mano lo que el CIIP
+           rellenara en el guion, y se repinta. */
+        if (window.CIIP_EXIGE && window.CIIP_REPINTA_ESTADOS){
+          window.CIIP_EXIGE.c3 = 'SAIME';
+          window.CIIP_REPINTA_ESTADOS();
+          igual('nivel: y sabiendolo, dice quien lo pide', niv('c3'), 'Lo pide el SAIME');
+
+          var pide = document.querySelector('.tcard[data-tr="c3"] .chip.niv');
+          ok('nivel: y se distingue del resto',
+             !!pide && pide.classList.contains('obliga'),
+             pide ? pide.className : 'no hay distintivo', 'chip niv obliga');
+
+          /* Y se deja como estaba: una prueba que cambia el catalogo y no lo
+             devuelve le mueve el suelo a las de despues. */
+          delete window.CIIP_EXIGE.c3;
+          window.CIIP_REPINTA_ESTADOS();
+        }
+
         igual('nivel: el que depende del ramo tambien', niv('c13'), 'Según tu actividad');
         igual('nivel: y el corriente no lleva nada',  niv('c6'),  '');
-
-        /* Y el obligatorio va con su color; el otro, no. Sin esto los tres
-           se verian igual y volveriamos al muro con mas letra. */
-        var oblig = document.querySelector('.tcard[data-tr="c3"] .chip.niv');
-        ok('nivel: el obligatorio se distingue del resto',
-           !!oblig && oblig.classList.contains('obliga'),
-           oblig ? oblig.className : 'no hay distintivo', 'chip niv obliga');
       })();
 
       /* ── cuántos obligatorios faltan ──
@@ -886,13 +915,13 @@
            fase 04 son cosas distintas. */
         pon(0, 'listo'); pon(1, 'listo'); pon(2, 'listo');
         window.CIIP_REPINTA_ETAPAS();
-        igual('obligatorios: con los tres hechos lo dice', deEtapa(0, '.joblig'), 'Los 3 obligatorios, listos');
+        igual('obligatorios: con los tres hechos lo dice', deEtapa(0, '.joblig'), 'Los 3, listos');
         igual('obligatorios: y entonces va en verde', verde(0), true);
 
         /* Uno sin hacer: cambia la cuenta y sale del verde. */
         pon(2, 'pendiente');
         window.CIIP_REPINTA_ETAPAS();
-        igual('obligatorios: con uno sin hacer, resta', deEtapa(0, '.joblig'), 'Te faltan 1 de 3 obligatorios');
+        igual('obligatorios: con uno sin hacer, resta', deEtapa(0, '.joblig'), 'Te quedan 1 de 3 por hacer');
         igual('obligatorios: y mientras falten, no va en verde', verde(0), false);
 
         /* Y no es la cuenta de la etapa con otras palabras: arriba dicen
@@ -905,7 +934,7 @@
            un renglon que dijera siempre "1" pasaria igual. */
         pon(1, 'pendiente');
         window.CIIP_REPINTA_ETAPAS();
-        igual('obligatorios: y la resta se mueve', deEtapa(0, '.joblig'), 'Te faltan 2 de 3 obligatorios');
+        igual('obligatorios: y la resta se mueve', deEtapa(0, '.joblig'), 'Te quedan 2 de 3 por hacer');
 
         obl.forEach(function(o){ o.c.setAttribute('data-st', o.era); });
         window.CIIP_REPINTA_ETAPAS();
@@ -4622,14 +4651,21 @@
     var bt = caja.querySelector('.ft-ir');
     if (bt) bt.click();
   }
+  /* ═════ SE ENTRA DIRECTO AL FORMULARIO ═════
+     Aqui habia veinte comprobaciones de la FICHA: el plazo legal, de que
+     depende, cuando aplica, como se presenta. La ficha se quito -decision del
+     CIIP, con el dato delante de que 16 de los 33 tramites la tenian con
+     plazos y 17 salian casi vacios-, asi que ya no hay nada de eso que medir.
 
-  /* ═════ LO QUE CUENTA LA FICHA ═════
-     El c14 -solvencias- es de los dieciseis que tienen datos en el
-     catalogo del CIIP: diez dias de plazo legal, diecisiete reales, se
-     repite, y depende del IVSS. Se mide sobre ese porque trae las cinco
-     filas; en los quince que no tienen pareja la ficha sale sin el cuadro
-     y con los recaudos, que es lo correcto: lo que no se sabe no se
-     rellena con humo. */
+     No se borran sin mas: lo que la ficha resolvia sigue teniendo que estar,
+     solo que repartido. Eso es lo que se comprueba ahora.
+
+     Y ojo con como estaba escrito: el bloque empezaba mirando los tiempos y
+     seguia con «if (!tiempos.length) return;». Al desaparecer la ficha, las
+     otras diecinueve se habrian saltado en silencio -ni verdes ni rojas- y el
+     total habria bajado veinte sin una sola linea roja que lo explicara. Es
+     el tercer sitio esta semana donde una guarda de «si no hay datos, no
+     midas» convierte una prueba rota en una prueba invisible. */
   function fichaAbre(){
     if (CASO !== 'vacio') return;
     location.hash = 'tramite-c14';
@@ -4638,82 +4674,69 @@
   function fichaMira(){
     if (CASO !== 'vacio') return;
     var caja = document.getElementById('trReal');
-    /* Dos bloques con trabajos distintos: el TIEMPO grande y aparte -es
-       lo primero que se busca- y lo demas en renglones de rotulo y
-       valor, que es la forma de una frase. */
-    var tiempos = caja.querySelectorAll('.ft-lado .ft-t');
-    ok('ficha: al abrir un tramite se cuenta antes de pedir nada',
-       tiempos.length > 0, tiempos.length + ' tiempos', 'con los tiempos');
-    if (!tiempos.length) return;
-    var texto = caja.textContent;
 
-    /* UNO, no dos. Antes se enseñaban el plazo legal y el de la practica
-       uno al lado del otro; lo quito la revision del 2 de septiembre de
-       2026 y esta prueba pasa a vigilar lo contrario de lo que vigilaba,
-       que es lo que impide que vuelva sin querer. */
-    igual('ficha: solo el plazo legal, y solo uno', tiempos.length, 1);
-    igual('ficha: y los otros tres datos en renglones',
-          caja.querySelectorAll('.ft-filas dt').length, 3);
-    ok('ficha: dice el plazo legal', /Plazo legal/.test(texto) && /10 días/.test(texto),
-       'busca "Plazo legal" y "10 dias"', 'aparecen');
-    /* Y el de la practica NO se enseña. El motivo no es de pantalla:
-       «mantener el señalamiento del plazo factico admite retardo
-       institucional y distorsiona la seguridad juridica». Enseñar que la
-       ley dice diez y la practica diecisiete es el CIIP dando por bueno,
-       por escrito y a un extranjero, el retraso del organismo.
+    /* SIN PULSAR NADA: el formulario esta puesto al abrir la tarjeta. */
+    var campos = caja.querySelectorAll('.sol-campo');
+    ok('directo: al abrir un tramite ya esta el formulario, sin pulsar nada',
+       campos.length > 0, campos.length + ' casillas', 'las casillas puestas');
 
-       El dato sigue en la ficha para uso del CIIP; lo que se comprueba
-       aqui es que no llega a la pantalla. */
-    ok('ficha: y el plazo de la practica ya NO se enseña',
-       !/En la práctica/.test(texto) && !/17 días/.test(texto),
-       'no debe salir "En la practica" ni "17 dias"', 'no salen');
-    /* De que depende, con el NOMBRE del otro tramite y no su codigo: "c9"
-       no le dice nada a nadie. */
-    ok('ficha: de que depende, por su nombre y no por su codigo',
-       /Inscripción en el IVSS/.test(texto) && !/c9/.test(texto),
-       'busca "Inscripcion en el IVSS" y no "c9"', 'el nombre');
-    ok('ficha: cuando aplica, y en que caso',
-       /Se repite/.test(texto) && /contratar con el Estado/.test(texto),
-       'busca "Se repite" y su condicion', 'aparecen');
-    ok('ficha: y como se presenta',
-       /ventanilla, sin salir/.test(texto), 'busca como se presenta', 'aparece');
+    /* Y NO queda rastro de la ficha. Sin esto, las de arriba se cumplirian
+       igual con la ficha todavia delante y el formulario debajo. */
+    igual('directo: y la ficha ya no se pinta',
+          caja.querySelectorAll('.ft-hoja').length, 0);
 
-    /* La CUENTA de los que ya tienes: es lo que decide si puedes empezar
-       hoy o te toca ir a buscar un papel, y ya lo sabemos -esta en tu
-       boveda-. Una lista plana de nombres obliga a recordarlo a ti. */
-    ok('ficha: dice cuantos recaudos ya tienes',
-       /Ya tienes \d+ de \d+/.test(caja.textContent),
-       (caja.querySelector('.ft-rh .c') || {}).textContent || 'no lo dice',
-       'la cuenta');
-    var marcados = caja.querySelectorAll('.ft-rec > li.ya').length;
-    var faltan   = caja.querySelectorAll('.ft-rec > li.no').length;
-    ok('ficha: y marca uno por uno cual tienes y cual no',
-       marcados + faltan === caja.querySelectorAll('.ft-rec > li').length && faltan > 0,
-       marcados + ' con visto y ' + faltan + ' sin el', 'todos marcados');
+    /* ── LA COLUMNA DE LOS PAPELES ──
+       Es lo que sustituye a la ficha: sin ella, el que rellena no sabria que
+       papeles le van a pedir hasta llegar al final. */
+    var lado = caja.querySelector('.sol-lado');
+    ok('directo: y al lado, los papeles que te van a pedir',
+       !!lado, lado ? 'esta' : 'no esta', 'la columna de recaudos');
+    if (!lado) return;
 
-    /* Los recaudos se LEEN aqui; subirlos es el paso siguiente. Y no hay
-       ni un campo de archivo todavia.
+    /* HIJOS DIRECTOS. Con '.ft-rec li' salian 52: cada recaudo lleva dentro
+     su globo de ayuda, y el globo lleva su propia lista de li. Se contaban
+     los renglones de las ayudas junto con los papeles. */
+    var recs = lado.querySelectorAll('.sol-doc');
+    igual('directo: los seis papeles del trámite, ni uno menos', recs.length, 6);
 
-       Hijos DIRECTOS -'.ft-rec > li'- desde que cada recaudo lleva su
-       globo con las reglas de forma: ese globo es una lista, y con el
-       selector suelto los seis recaudos contaban cincuenta y dos. */
-    var recs = caja.querySelectorAll('.ft-rec > li');
-    igual('ficha: y los recaudos que pide, para leerlos', recs.length, 6);
-    igual('ficha: sin pedir todavia ni un archivo',
-          caja.querySelectorAll('input[type=file]').length, 0);
-    igual('ficha: ni una casilla del formulario',
-          caja.querySelectorAll('.sol-campo').length, 0);
+    /* Y son los de SUBIR, no una copia para leer.
+
+       Aqui hubo un fallo de bulto: la primera version puso al lado una lista
+       de referencia y dejo abajo la seccion de subir, asi que los mismos
+       tres papeles salian DOS VECES en la misma pantalla. Se vio en una
+       captura, no en la tanda: ninguna comprobacion miraba si algo aparecia
+       repetido, y contar dos listas que salen bien por separado da verde. */
+    var subir = lado.querySelectorAll('.sol-doc input[type="file"]');
+    igual('directo: y son los de subir, no una copia para leer',
+          subir.length, recs.length);
+    igual('directo: y no queda ningun papel suelto fuera de la columna',
+          caja.querySelectorAll('.sol-col .sol-doc').length, 0);
+
+    /* Y cada uno con su «i»: leer alli como debe venir cada papel evita el
+       viaje de subirlo mal, que es el rechazo que se quiere quitar de en
+       medio. En la ficha estaban; al mover la lista no se podian perder. */
+    var pistas = lado.querySelectorAll('.pista');
+    igual('directo: y cada papel con su ayuda', pistas.length, recs.length);
+
+    /* Y la columna dice de que es: sin rotulo, tres cajas sueltas a la
+       derecha no se sabe si son requisitos, avisos o adjuntos ya subidos. */
+    ok('directo: y la columna dice de que es',
+       /\S/.test((lado.querySelector('.sol-h2') || {}).textContent || ''),
+       (lado.querySelector('.sol-h2') || {}).textContent || '(sin rotulo)',
+       'su rotulo');
   }
 
-  /* Y el formulario cuando lo pidas, no antes. */
+  /* El plazo y la descripcion NO se fueron con la ficha: estaban y siguen en
+     la cabecera del tramite, que es la otra mitad de lo que la ficha decia. */
   function fichaTrasEmpezar(){
     if (CASO !== 'vacio') return;
-    var caja = document.getElementById('trReal');
-    ok('ficha: al pulsar Empezar sale el formulario',
-       caja.querySelectorAll('.sol-campo').length > 0,
-       caja.querySelectorAll('.sol-campo').length + ' casillas', 'con casillas');
-    igual('ficha: y la ficha deja el sitio',
-          caja.querySelectorAll('.ft-cuerpo').length, 0);
+    var d = document.getElementById('trDesc');
+    var p = document.getElementById('trPlazo');
+    ok('directo: la cabecera sigue diciendo de que va el tramite',
+       !!d && /\S/.test(d.textContent), d ? d.textContent.slice(0, 50) : '(no hay)',
+       'la descripcion');
+    ok('directo: y el plazo se ve, que la ficha lo escondia',
+       !!p && !p.hidden, p ? ('oculto=' + p.hidden) : '(no hay)', 'a la vista');
   }
 
   /* ═════ SUBIR UN PAPEL Y QUE LA FICHA SE ENTERE ═════
@@ -4731,14 +4754,16 @@
   function cacheMira(){
     if (CASO !== 'vacio') return;
     var caja = document.getElementById('trReal');
-    var fila = [].filter.call(caja.querySelectorAll('.ft-rec > li'), function(li){
-      return /Solvencia del IVSS/.test(li.textContent);
+    /* En la columna de subir, que es donde vive ahora la lista. */
+    var fila = [].filter.call(caja.querySelectorAll('.sol-lado .sol-doc'), function(d){
+      return /Solvencia del IVSS/.test(d.textContent);
     })[0];
     ok('cache: el tramite pide la solvencia del IVSS', !!fila,
        fila ? 'la pide' : 'no la pide', 'la pide');
     if (!fila) return;
+    /* Sin marca de reusado: todavia no esta en la boveda. */
     ok('cache: y de momento dice que no la tienes',
-       fila.classList.contains('no'), fila.className, 'sin visto');
+       !fila.querySelector('.sd-ya'), fila.className, 'sin la marca de ya lo tienes');
     window.PRUEBA_CACHE = true;
   }
 
@@ -4771,12 +4796,13 @@
   function cacheTrasVolver(){
     if (CASO !== 'vacio' || !window.PRUEBA_CACHE) return;
     var caja = document.getElementById('trReal');
-    var fila = [].filter.call(caja.querySelectorAll('.ft-rec > li'), function(li){
-      return /Solvencia del IVSS/.test(li.textContent);
+    /* En la columna de subir, que es donde vive ahora la lista. */
+    var fila = [].filter.call(caja.querySelectorAll('.sol-lado .sol-doc'), function(d){
+      return /Solvencia del IVSS/.test(d.textContent);
     })[0];
     /* SIN recargar la pagina. Es lo unico que se mide aqui. */
     ok('cache: al subirla, el tramite se entera sin recargar',
-       !!fila && fila.classList.contains('ya'),
+       !!fila && !!fila.querySelector('.sd-ya'),
        fila ? fila.className : 'no esta la fila', 'con visto');
   }
 
@@ -5285,11 +5311,30 @@
        V.tablas.indexOf('tipos_tramite') < 0,
        V.tablas.join(' > '), 'sin tipos_tramite');
 
-    /* Un techo, no un número exacto: lo que no puede pasar es que abrir
-       una tarjeta encadene media docena de viajes sin que nadie se entere. */
-    ok('velocidad: y no encadena más viajes de los que hacen falta',
-       V.consultas <= 3, V.consultas + ' consultas: ' + V.tablas.join(' > '),
-       'tres o menos');
+    /* EL TECHO SE MIDE CONTRA LOS RECAUDOS, no contra un numero a mano.
+
+       Antes eran tres y bastaba: abrir una tarjeta pintaba la ficha, y la
+       ficha no pedia nada. Desde que se entra directo al formulario, abrir
+       una tarjeta ES cargar el formulario, y el formulario pregunta por cada
+       recaudo si ya lo tienes en la boveda para ofrecerte reusarlo. O sea
+       que el numero crece con el tramite: uno de seis papeles pide mas que
+       uno de dos, y eso es correcto.
+
+       Lo que NO puede pasar es que pida DOS por papel, o que empiece a
+       pedir cosas que no dependen de cuantos recaudos haya. Por eso el techo
+       es «uno por recaudo, mas un par de sitio», y no una cifra fija que
+       habria que subir cada vez que alguien añade un papel.
+
+       Y lo que de verdad cuesta -si van en fila o en paralelo- no se mide
+       aqui: el doble contesta al instante. Se midio aparte, con 100 ms de
+       retardo por viaje, y van EN PARALELO: abrir una tarjeta paso de un
+       salto encadenado a dos, no a siete. */
+    var papeles = document.querySelectorAll("#trReal .sol-lado .sol-doc").length;
+    var techo = papeles + 3;
+    ok("velocidad: y no pide mas de una consulta por recaudo",
+       V.consultas <= techo,
+       V.consultas + " consultas para " + papeles + " recaudos: " + V.tablas.join(" > "),
+       techo + " o menos");
   }
 
   function velocidadRepite(){
@@ -5543,6 +5588,129 @@
     caja.classList.remove("se-ve");
   }
 
+  /* ═══════════ LOS DOS CUADROS, CUADRADOS ═══════════
+     «Podemos verificar que todo este cuadrado tanto en esto como en las
+     otras solicitudes?» (CIIP)
+
+     Se midieron los TREINTA tramites que tienen formulario y los treinta
+     salian a cero: el cuadro de los papeles empieza y acaba donde el de los
+     datos, los 300 px de ancho son iguales en todos y ninguno se sale.
+
+     Aqui se miran tres, no los treinta: cada uno cuesta setecientos
+     milisegundos de reloj y la cadena ya va cargada. Se eligen los que
+     rompen por sitios distintos -el formulario mas largo, el que mas
+     papeles pide, y uno corto-, que es donde un alto mal puesto se nota
+     antes que en el termino medio.
+
+     Y se mide la CAJA de verdad, con getBoundingClientRect, no la regla de
+     CSS: lo que hay que saber es si en pantalla acaban a la misma altura,
+     no si alguien escribio align-items en algun sitio. */
+  /* De los ENCENDIDOS en el expediente de pruebas. Puse c21 -que es corto- y
+     salio rojo diciendo «sin datos, sin papeles»: no esta en el catalogo del
+     doble, asi que no llega a pintar formulario. La prueba tenia razon y el
+     equivocado era yo eligiendo. c17 es corto y si esta. */
+  var CUADRA = ['c31', 'c13', 'c17'];
+  var cuadraQueda = null;
+
+  /* ═══════════ LA MIGAJA DICE DONDE ESTAS ═══════════
+     «Necesito que cambie el nombre de mi panel al sitio seleccionado: ahí
+     está Mis trámites y sale Mi expediente · Mi panel.» (CIIP)
+
+     Estaba escrita a mano en el marcado, asi que anunciaba el panel
+     estuvieras donde estuvieras. Con la barra lateral plegada es lo unico
+     que dice en que pantalla estas, y decia otra cosa.
+
+     Se comprueba contra el RENGLON ENCENDIDO y no contra una lista de
+     nombres escrita aqui: si la prueba llevara su propia tabla, el dia que
+     alguien añada una vista habria que acordarse de tres sitios en vez de
+     dos. Lo que se mide es que los dos digan lo MISMO, que es la propiedad
+     que importa; cual sea ese texto es cosa del diccionario. */
+  function migajaAbre(){
+    if (CASO !== 'lleno') return;
+    /* Se PULSA el renglon, no se escribe la direccion. Con el hash puesto a
+       mano la vista no llegaba a cambiar -para un inversionista la direccion
+       es #tramites y no #mistramites- y la comprobacion salia verde
+       comparando el panel consigo mismo. Pulsar es ademas lo que hace una
+       persona, asi que se prueba el camino de verdad. */
+    var nav = document.getElementById('navTramites');
+    if (nav) nav.click();
+  }
+
+  function migajaMira(){
+    if (CASO !== 'lleno') return;
+    var mig = document.querySelector('.tb-crumb');
+    var don = mig && mig.querySelector('b');
+    var enc = document.querySelector('.sb-item.active [data-i18n]');
+
+    ok('migaja: hay migaja y hay renglon encendido',
+       !!don && !!enc, (don ? 'migaja' : 'sin migaja') + ', ' +
+       (enc ? 'encendido' : 'sin encendido'), 'los dos');
+    if (!don || !enc) return;
+
+    igual('migaja: dice el sitio donde estas, no siempre el panel',
+          don.textContent.trim(), enc.textContent.trim());
+
+    /* Y NO es «Mi panel»: sin esto, la comprobacion de arriba se cumpliria
+       igual si la barra se hubiera quedado encendida tambien en el panel. */
+    ok('migaja: y aqui eso no es «Mi panel»',
+       don.textContent.trim() !== 'Mi panel' && /\S/.test(don.textContent),
+       '"' + don.textContent.trim() + '"', 'el nombre de esta vista');
+
+    /* Se lleva su data-i18n: sin el, el cambio de idioma la dejaria atras
+       diciendo el nombre viejo en el idioma viejo. */
+    ok('migaja: y se traducira con el resto',
+       don.getAttribute('data-i18n') === enc.getAttribute('data-i18n'),
+       don.getAttribute('data-i18n') + ' vs ' + enc.getAttribute('data-i18n'),
+       'la misma clave');
+
+    location.hash = '';
+  }
+
+  function migajaVuelve(){
+    if (CASO !== 'lleno') return;
+    var don = document.querySelector('.tb-crumb b');
+    var enc = document.querySelector('.sb-item.active [data-i18n]');
+    /* Y al volver a la portada vuelve a decir el panel: una migaja que se
+       queda con el nombre de donde estuviste es peor que una fija. */
+    ok('migaja: y al volver a la portada vuelve a decir el panel',
+       !!don && !!enc && don.textContent.trim() === enc.textContent.trim(),
+       don ? '"' + don.textContent.trim() + '"' : '(no hay)', 'lo que diga el renglon');
+  }
+
+  function cuadraAbre(){
+    if (CASO !== 'vacio') return;
+    cuadraQueda = CUADRA.slice();
+    location.hash = 'tramite-' + cuadraQueda[0];
+  }
+
+  function cuadraMira(){
+    if (CASO !== 'vacio' || !cuadraQueda || !cuadraQueda.length) return;
+    var ref = cuadraQueda.shift();
+    var caja = document.getElementById('trReal');
+    var dos = caja && caja.querySelector('.sol-dos');
+    var col = dos && dos.querySelector('.sol-col');
+    var lado = dos && dos.querySelector('.sol-lado');
+
+    ok('cuadre: ' + ref + ' abre con sus dos cuadros',
+       !!col && !!lado, (col ? 'datos' : 'sin datos') + ', ' +
+       (lado ? 'papeles' : 'sin papeles'), 'los dos');
+    if (col && lado){
+      var c = col.getBoundingClientRect(), l = lado.getBoundingClientRect();
+      ok('cuadre: ' + ref + ' empieza y acaba a la misma altura que el otro',
+         Math.abs(l.top - c.top) <= 1 && Math.abs(l.bottom - c.bottom) <= 1,
+         'arriba ' + Math.round(l.top - c.top) + ', abajo ' + Math.round(l.bottom - c.bottom),
+         'cero por los dos lados');
+      /* Y ninguno se sale de su sitio, que es lo que pasa cuando un texto
+         largo empuja la columna en vez de partirse. */
+      var d = dos.getBoundingClientRect();
+      ok('cuadre: ' + ref + ' no se sale por los lados',
+         l.right - d.right <= 1 && c.left - d.left >= -1,
+         'derecha ' + Math.round(l.right - d.right), 'dentro');
+    }
+
+    location.hash = cuadraQueda.length ? ('tramite-' + cuadraQueda[0]) : '';
+  }
+
   function guardaCatalogo(){
     if (CASO !== 'lleno' || !window.CIIP_ENCENDIDAS) return;
     var antes = document.querySelectorAll('.tcard[data-tr]').length;
@@ -5697,27 +5865,37 @@
     ok('logos: y no repite la sigla al lado del nombre', repes.length === 0,
        repes.length ? repes.join(', ') : 'ninguna repetida', 'ninguna repetida');
 
-    /* La marca de agua del fondo. Iba solo en la primera tarjeta: las otras
-       dieciséis tenían el logo arriba y el fondo vacío. data-marca sin su
-       regla de CSS no pinta nada —el pseudo-elemento existe y se queda sin
-       imagen—, así que no basta con mirar el atributo: hay que preguntarle al
-       navegador qué fondo le salió. */
-    var sinFondo = [], desparejas = [];
+    /* ── LA MARCA DE AGUA, RETIRADA ──
+       Cada tarjeta llevaba detras del texto el logo de su organismo, grande
+       y al 7%. Lo quito el CIIP: el logo ya esta en su placa arriba con su
+       sigla debajo, asi que el del fondo no añadia un dato -era el mismo- y
+       ensuciaba el sitio por donde pasa la vista al leer la descripcion.
+
+       Esta comprobacion exigia lo contrario: que TODAS lo llevaran. Se le da
+       la vuelta en vez de borrarla, y se sigue mirando el fondo CALCULADO y
+       no la ausencia de la regla: la regla se puede volver a colar desde
+       otro sitio -un tema, una hoja de mas- y lo que hay que saber es que la
+       tarjeta no lo pinta, venga de donde venga.
+
+       Lo que SI se sigue exigiendo es que la placa de arriba y el atributo
+       digan el mismo organismo. Ese emparejamiento no se ha retirado, y sin
+       el una tarjeta podria llevar el logo del SAIME y decir SENIAT. */
+    var conFondo = [], desparejas = [];
     [].forEach.call(document.querySelectorAll('.tcard'), function(c){
       var im = c.querySelector('.t-marca img.ilogo');
       var marca = c.getAttribute('data-marca');
       if (!im && !marca) return;                 /* sin organismo: ni logo ni fondo */
       if (!im || !marca){ desparejas.push(c.getAttribute('data-tr')); return; }
-      /* el mismo archivo arriba y al fondo */
       if (im.getAttribute('src').indexOf('logos/' + marca + '.') !== 0)
         desparejas.push(c.getAttribute('data-tr'));
       var fondo = window.getComputedStyle(c, '::before').backgroundImage || '';
-      if (fondo.indexOf('logos/' + marca + '.') < 0) sinFondo.push(c.getAttribute('data-tr'));
+      if (fondo.indexOf('logos/') >= 0) conFondo.push(c.getAttribute('data-tr'));
     });
-    ok('marca: cada tarjeta con logo lo lleva también al fondo',
-       sinFondo.length === 0,
-       sinFondo.length ? sinFondo.join(', ') : 'ninguna sin fondo', 'ninguna sin fondo');
-    ok('marca: y es el mismo logo arriba y detrás', desparejas.length === 0,
+    ok('marca: ninguna tarjeta lleva el logo detras del texto',
+       conFondo.length === 0,
+       conFondo.length ? conFondo.join(', ') : 'ninguna con fondo', 'ninguna con fondo');
+    ok('marca: pero la placa de arriba sigue siendo la de su organismo',
+       desparejas.length === 0,
        desparejas.length ? desparejas.join(', ') : 'ninguna despareja', 'ninguna despareja');
   }
 
