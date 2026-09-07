@@ -206,6 +206,8 @@
               opacidadMira, opacidadSenal,
               guardaCatalogo,
               rastroAbre, rastroMira,
+              rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
+              rastroDesdeTramiteSalta, rastroDesdeTramiteMira,
               alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno], volcar);
   });
 
@@ -5503,6 +5505,71 @@
     ok('apagadas: con el catalogo vacio no se esconde ni una tarjeta',
        despues === antes && antes > 0,
        antes + ' antes, ' + despues + ' despues', 'las mismas, y no cero');
+  }
+
+  /* ═══════════ Y ENTRANDO DESDE UN TRAMITE ═══════════
+     «Fue cuando entre a solicitud de RIF y desde ese apartado le di a
+     trazabilidad.» (CIIP, mirando la de produccion)
+
+     La tabla salia otra vez sin cabecera y sin filas, con los contadores de
+     arriba puestos —Todos 10, Roles 1, Catalogo 6, Citas 3—. O sea que los
+     datos llegaron y lo que fallo fue pintar, igual que la primera vez.
+
+     Pero las comprobaciones de aqui abajo abren Trazabilidad DESDE DONDE
+     ESTUVIERA la cadena, y ese no es el camino que la rompe. Un trámite
+     abierto deja cosas puestas —el detalle montado, trAbierto, la vista en
+     'tramite'— y el paso de ahi a otra vista es distinto del paso desde la
+     portada. Por eso la tanda seguia verde con el fallo delante.
+
+     Esto reproduce el camino entero, que es lo primero que habia que hacer
+     y no se hizo la vez anterior. */
+  function rastroDesdeTramiteAbre(){
+    if (!ES_ADMIN) return;
+    location.hash = '';
+  }
+
+  function rastroDesdeTramiteEntra(){
+    if (!ES_ADMIN) return;
+    /* Un tramite de verdad, de los encendidos: el RIF personal. */
+    location.hash = 'tramite-c3';
+  }
+
+  function rastroDesdeTramiteSalta(){
+    if (!ES_ADMIN) return;
+    igual('trazabilidad: primero se esta en un tramite',
+          document.body.getAttribute('data-vista'), 'tramite');
+    location.hash = 'rastro';
+  }
+
+  function rastroDesdeTramiteMira(){
+    if (!ES_ADMIN) return;
+    igual('trazabilidad: viniendo de un tramite, la vista se abre igual',
+          document.body.getAttribute('data-vista'), 'rastro');
+
+    var cab = document.querySelectorAll('#raCab th');
+    igual('trazabilidad: y viniendo de un tramite la tabla trae sus titulos',
+          cab.length, 5);
+
+    var filas = document.querySelectorAll('#raLista tr');
+    ok('trazabilidad: y sus filas, no solo los contadores de arriba',
+       filas.length >= 7 && !document.querySelector('#raLista .ra-vacio'),
+       filas.length + ' filas', 'siete o mas, y con contenido');
+
+    /* Y que el contador de arriba cuadre con lo de abajo, que es
+       exactamente lo que se vio descuadrado en produccion: 10 arriba y
+       nada debajo. */
+      /* El selector es button y NO .ftab: estos filtros no llevan esa clase,
+         que es la de la portada. Lo escribi mal aqui a pesar de que la
+         comprobacion de unas lineas mas arriba lleva ese mismo aviso puesto
+         desde que se corrigio la primera vez. Copiar el bloque de al lado
+         copia tambien sus erratas si no se lee el comentario. */
+      var todos = document.querySelector("#raFiltros button");
+    var num = todos && todos.querySelector('.n');
+    ok('trazabilidad: y el contador cuadra con lo que se ve',
+       !!num && Number(num.textContent) === filas.length,
+       (num ? num.textContent : '(sin contador)') + ' contadas, ' + filas.length + ' pintadas',
+       'las mismas');
+    location.hash = '';
   }
 
   function rastroAbre(){
