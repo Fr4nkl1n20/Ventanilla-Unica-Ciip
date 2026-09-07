@@ -204,6 +204,9 @@
               pliegaAbre, pliegaMira, pliegaVuelve, pliegaTrasVolver,
               pliegaTramite, pliegaVuelveDeTramite, pliegaTrasTramite,
               opacidadMira, opacidadSenal,
+              loHacemosMira,
+              gestionAbre, gestionMira, escaleraNoParpadea, gestionTrasPulsar,
+              escaleraApagadoAbre, escaleraApagadoMira,
               migajaAbre, migajaMira, migajaVuelve,
               cuadraAbre, cuadraMira, cuadraMira, cuadraMira,
               nuevaVersionMira, guardaCatalogo,
@@ -5625,6 +5628,148 @@
      alguien añada una vista habria que acordarse de tres sitios en vez de
      dos. Lo que se mide es que los dos digan lo MISMO, que es la propiedad
      que importa; cual sea ese texto es cosa del diccionario. */
+  /* ═══════════ QUE LO HAGA EL CIIP ═══════════
+     «¿Podemos dar clic y que nos diga que nosotros podemos realizar la
+     gestión por ti?» (CIIP)
+
+     Debajo del formulario, y el boton no promete: ABRE LA CITA con este
+     tramite ya elegido en el asunto. Un boton que dijera «nos encargamos» y
+     no hiciera nada seria peor que no ponerlo, porque promete el CIIP y lo
+     cumple nadie.
+
+     Por eso lo que se mide no es que el texto este ahi -eso lo cumple
+     cualquier cartel- sino que al pulsarlo pase algo y que ese algo lleve el
+     tramite del que venias. */
+  /* ═══════════ EL RENGLON DE «COMO SE HACE», PULSABLE ═══════════
+     «Quiero que al comentario de 'se pide en el consulado' pueda darle clic
+     y decirle al inversionista que el tramite lo puede realizar el CIIP.»
+
+     Ese renglon es donde a alguien le aparece la pregunta -¿tengo que ir yo
+     al consulado?- asi que es donde tiene que estar la respuesta.
+
+     Lo que se mide no es que el texto exista: es que al pulsarlo se ABRA
+     algo, que ese algo hable de que lo puede hacer el CIIP, y -esto es lo
+     que se rompio al montarlo- que el clic NO abra el tramite entero. Un
+     control dentro de otro control se lleva el clic si nadie lo para. */
+  /* ═══════════ LA ESCALERA DE MUESTRA NO PARPADEA ═══════════
+     «¿Por que al darle clic a la plantilla me sale esto un segundo?» (CIIP,
+     con «El proceso» y sus cuatro pasos delante).
+
+     Esos cuatro pasos son de MUESTRA: los enseña un tramite que todavia no
+     esta hecho. Se pintaban nada mas pulsar y se quitaban al llegar los
+     datos; mientras habia una ficha por delante eso era un parpadeo, pero
+     desde que se entra directo al formulario hay dos consultas por medio y
+     dio tiempo a leerlos.
+
+     Contar algo falso durante un segundo y luego cambiarlo es peor que no
+     contar nada, y aqui lo falso era nada menos que «este tramite todavia no
+     esta hecho» sobre uno que si lo esta.
+
+     Se miran las DOS mitades: en un tramite encendido la escalera no llega a
+     salir, y en uno apagado si sale. Sin la segunda, esconderla siempre
+     pasaria por bueno y los que de verdad son maqueta se quedarian mudos. */
+  function escaleraNoParpadea(){
+    if (CASO !== 'vacio') return;
+    var esc = document.getElementById('trProceso');
+    ok('parpadeo: en un tramite encendido no se enseña la escalera de muestra',
+       !!esc && esc.classList.contains('oculto'),
+       esc ? esc.className : '(no hay escalera)', 'oculta');
+
+    /* Y la cabecera SI esta puesta: si no, el hueco de la espera seria una
+       pantalla en blanco, que tampoco vale. */
+    var nom = document.getElementById('trNombre');
+    ok('parpadeo: pero la cabecera del tramite si esta',
+       !!nom && /\S/.test(nom.textContent),
+       nom ? nom.textContent.trim().slice(0, 34) : '(vacia)', 'su nombre');
+  }
+
+  function escaleraApagadoAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c33';
+  }
+
+  function escaleraApagadoMira(){
+    if (CASO !== 'vacio') return;
+    var esc = document.getElementById('trProceso');
+    ok('parpadeo: y en uno que aun no esta hecho, si se enseña',
+       !!esc && !esc.classList.contains('oculto'),
+       esc ? esc.className : '(no hay escalera)', 'a la vista');
+    location.hash = '';
+  }
+
+  function loHacemosMira(){
+    if (CASO !== 'vacio') return;
+    var pie = document.querySelector('.tcard[data-tr="c1"] .t-time[data-globo]');
+    ok('lo hacemos: el renglon de como se hace se puede pulsar',
+       !!pie, pie ? 'pulsable' : 'no lleva globo', 'con su globo');
+    if (!pie) return;
+
+    var caja = pie.parentNode.querySelector('.pista-caja');
+    igual('lo hacemos: y llega cerrado', !!caja && caja.hidden, true);
+
+    var vista = document.body.getAttribute('data-vista');
+    pie.click();
+
+    ok('lo hacemos: al pulsarlo se abre', !!caja && !caja.hidden,
+       caja ? ('oculto=' + caja.hidden) : '(no hay globo)', 'abierto');
+    ok('lo hacemos: y dice que lo puede hacer el CIIP',
+       !!caja && /CIIP/.test(caja.textContent),
+       caja ? caja.textContent.trim().slice(0, 50) : '(vacio)', 'nombra al CIIP');
+
+    /* Y NO se ha abierto el tramite: el clic se queda en el renglon. */
+    igual('lo hacemos: y no se lleva por delante la tarjeta',
+          document.body.getAttribute('data-vista'), vista);
+
+    pie.click();
+  }
+
+  function gestionAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c14';
+  }
+
+  function gestionMira(){
+    if (CASO !== 'vacio') return;
+    var caja = document.getElementById('trReal');
+    var of = caja && caja.querySelector('.sol-gestion');
+    ok('gestion: el tramite ofrece que lo lleve el CIIP',
+       !!of && /\S/.test(of.textContent),
+       of ? of.textContent.trim().slice(0, 45) : '(no esta)', 'el ofrecimiento');
+    if (!of) return;
+
+    /* Y no compite con el de enviar: el de verdad de esta pantalla es
+       «Enviar solicitud», y dos botones iguales no dicen cual es cual. */
+    var bt = of.querySelector('button');
+    ok('gestion: con su boton, y aparte del de enviar',
+       !!bt && !bt.classList.contains('navy'),
+       bt ? bt.className : '(sin boton)', 'un boton que no es el principal');
+    if (!bt) return;
+
+    bt.click();
+  }
+
+  function gestionTrasPulsar(){
+    if (CASO !== 'vacio') return;
+    var back = document.getElementById('citaBack');
+    ok('gestion: al pulsarlo se abre la cita, no se queda en el cartel',
+       !!back && back.classList.contains('open'),
+       back ? back.className : '(no hay ventana)', 'la ventana abierta');
+
+    /* Y CON EL TRAMITE PUESTO. Sin esto, abrir la ventana se cumpliria
+       igual dejando el asunto en «una consulta general», y quien acaba de
+       estar mirando un tramite tendria que volver a decir cual era. */
+    var sel = document.getElementById('ctAsunto');
+    ok('gestion: y con el tramite del que venias ya elegido',
+       !!sel && sel.value === 'solvencias',
+       sel ? ('"' + sel.value + '"') : '(no hay asunto)', 'solvencias');
+
+    /* Se cierra: una prueba que deja una ventana abierta le tapa la
+       pantalla a las de despues. */
+    var cerrar = document.getElementById('ctCerrar');
+    if (cerrar) cerrar.click();
+    location.hash = '';
+  }
+
   function migajaAbre(){
     if (CASO !== 'lleno') return;
     /* Se PULSA el renglon, no se escribe la direccion. Con el hash puesto a
