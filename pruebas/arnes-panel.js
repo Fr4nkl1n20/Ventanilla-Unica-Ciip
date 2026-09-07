@@ -175,7 +175,7 @@
               sisrefAbre, empiezaSolicitud, sisrefTrasAbrir,
               pistaAbre, empiezaSolicitud, pistaMira,
               solvenciasAbre, empiezaSolicitud, solvenciasTrasAbrir,
-              activosAbre, activosMira, activosPublica, activosTrasPublicar,
+              activosAbre, activosMira, opacidadActivos, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
               devueltoAbre, devueltoMira, escaleraAbre, escaleraMira, variasAbre, variasMira,
               usuariosMira, usuariosCambia, usuariosTrasCambiar, usuariosSeMueve,
@@ -203,6 +203,7 @@
               velocidadRepite, velocidadTrasRepetir,
               pliegaAbre, pliegaMira, pliegaVuelve, pliegaTrasVolver,
               pliegaTramite, pliegaVuelveDeTramite, pliegaTrasTramite,
+              opacidadMira, opacidadSenal,
               guardaCatalogo,
               rastroAbre, rastroMira,
               alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno], volcar);
@@ -5391,6 +5392,92 @@
     ok('plegado: pero volviendo de un tramite se queda donde estabas',
        !!f2 && !f2.classList.contains('plegada'),
        f2 ? f2.className : '(no hay fase 02)', 'sin la clase plegada');
+  }
+
+  /* ═══════════ NINGUNA FICHA SE APAGA ENTERA ═══════════
+     «Por que se ve mas opaco?» (CIIP, preguntado dos veces)
+
+     Habia tres reglas que bajaban la opacidad de una ficha COMPLETA: el
+     tramite que espera a otro al 72%, el activo reservado al 72% y el
+     cerrado al 55%. Con la caja se apagaba tambien la letra, y eso es el
+     gris volviendo por otro camino cuatro dias despues de haberlo quitado
+     de todo el panel.
+
+     Y con opacity no hay arreglo a medias: puesta en la caja, ningun hijo
+     puede recuperar su tinta. O no se pone, o el texto se apaga.
+
+     Lo que se mide es la opacidad CALCULADA, no que la regla no este
+     escrita: da igual de donde venga -una clase nueva, un tema, algo
+     heredado-; si una ficha con texto dentro se queda por debajo de 1, esto
+     se pone rojo. Los botones desactivados no cuentan: apagarlos es la
+     convencion de siempre y ahi no hay nada que leer. */
+  function opacidadMira(){
+    if (CASO !== 'lleno') return;
+    var malas = [];
+    document.querySelectorAll('.tcard, .ci-ficha, #mtCuerpo tr, #paCuerpo tr')
+      .forEach(function(f){
+        var o = parseFloat(getComputedStyle(f).opacity);
+        if (!isNaN(o) && o < 1) malas.push((f.getAttribute('data-tr') || f.className || 'fila') + '=' + o);
+      });
+    ok('opacidad: ninguna ficha con texto se apaga entera',
+       malas.length === 0, malas.join(', ') || 'ninguna', 'todas a 1');
+  }
+
+  /* Y la señal NO se pierde: el tramite que espera sigue diciendolo con
+     letras. Sin esto, quitar la opacidad se cumpliria igual habiendo
+     borrado tambien el aviso, y la ficha quedaria sin decir que no te toca. */
+  /* Y LAS FICHAS DE ACTIVOS, que no estaban cubiertas y no se veia.
+
+     La comprobacion de arriba corre en el expediente 'lleno', donde la vista
+     de activos no esta pintada: no hay ni una .ci-ficha en el documento. Se
+     descubrio saboteando -devolver el apagado del activo cerrado salia
+     VERDE- y no mirando el codigo, porque desde fuera una comprobacion que
+     recorre cero elementos y una que recorre veinte se ven igual.
+
+     El activo cerrado solo existe en el expediente 'gestor', asi que esto va
+     donde su vista esta abierta y no donde estaba lo demas. */
+  function opacidadActivos(){
+    var fichas = document.querySelectorAll('#acLista .ci-ficha');
+    if (!fichas.length) return;
+
+    var malas = [];
+    [].forEach.call(fichas, function(f){
+      var o = parseFloat(getComputedStyle(f).opacity);
+      if (!isNaN(o) && o < 1) malas.push(f.className + '=' + o);
+    });
+    ok('opacidad: ninguna ficha de activos se apaga entera',
+       malas.length === 0,
+       malas.join(', ') || fichas.length + ' fichas, todas a 1', 'todas a 1');
+
+    /* Y su estado se sigue diciendo con letras: cada ficha lleva su
+       distintivo. Sin esto, quitar el apagado dejaria al reservado y al
+       cerrado sin nada que los distinga del disponible. */
+    var sinChip = [].filter.call(fichas, function(f){
+      var ch = f.querySelector('.ct-chip');
+      return !ch || !/\S/.test(ch.textContent);
+    });
+    igual('opacidad: y cada activo dice su estado con letras', sinChip.length, 0);
+  }
+
+  function opacidadSenal(){
+    if (CASO !== 'lleno') return;
+    var esperan = document.querySelectorAll('.tcard.espera');
+    ok('opacidad: pero las que esperan siguen siendo las que esperan',
+       esperan.length > 0, esperan.length + ' en espera', 'al menos una');
+    if (!esperan.length) return;
+
+    var t = esperan[0];
+    var pie = t.querySelector('.t-time');
+    ok('opacidad: y lo dicen con letras, no solo apagandose',
+       !!pie && /\S/.test(pie.textContent),
+       pie ? '"' + pie.textContent.trim().slice(0, 40) + '"' : '(sin pie)',
+       'el renglon de a quien espera');
+
+    /* La placa del organismo si se atenua: es lo que no se lee. */
+    var marca = t.querySelector('.t-marca');
+    ok('opacidad: la placa del organismo si se atenua, que ahi no hay nada que leer',
+       !!marca && parseFloat(getComputedStyle(marca).opacity) < 1,
+       marca ? String(getComputedStyle(marca).opacity) : '(no hay placa)', 'menos de 1');
   }
 
   function guardaCatalogo(){

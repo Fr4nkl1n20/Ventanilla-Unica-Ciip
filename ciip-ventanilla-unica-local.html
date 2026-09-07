@@ -1196,11 +1196,17 @@ body[data-vista="activos"] #acVolver{display:inline-flex;}
   background:transparent; border:0; padding:0; cursor:pointer;}
 .ac-mas:hover{text-decoration:underline;}
 .ac-pie .btn{margin-left:auto; font-size:12px; padding:8px 13px;}
-/* Un activo reservado se ve, pero apagado: sigue en el catálogo y ya tiene
-   a alguien en conversaciones. Un cerrado ya no se ofrece y solo lo ve el
-   equipo, así que se apaga más. */
-.ci-ficha.reservado{opacity:.72;}
-.ci-ficha.cerrado{opacity:.55;}
+/* Un activo reservado sigue en el catálogo y ya tiene a alguien en
+   conversaciones; uno cerrado ya no se ofrece y solo lo ve el equipo.
+
+   Se apagaba la ficha ENTERA —.72 y .55— y con la caja se apagaba la letra.
+   Eso es volver al gris por otro camino, justo lo que se quitó del panel el
+   4 de septiembre cambiando el token: al 55% la tinta ya no es tinta.
+
+   Y no hacía falta, porque el estado YA está dicho con todas las letras: la
+   ficha lleva su distintivo arriba —«Reservado», «Cerrado»— desde antes que
+   esta regla. Se estaba diciendo dos veces, y la segunda a costa de poder
+   leerlo. Se queda la que se lee. */
 
 /* El botón de publicar solo sale si eres del equipo. */
 .btn[hidden]{display:none;}
@@ -2231,7 +2237,26 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .opc-btn[aria-expanded="true"]::after{transform:rotate(-90deg);}
 .opc-rejilla{margin-top:14px;}
 @media (prefers-reduced-motion: reduce){ .opc-btn::after{transition:none;} }
-.tcard.espera{opacity:.72;}
+/* UN TRAMITE QUE ESPERA A OTRO, SIN APAGAR LA LETRA.
+   Esto era .tcard.espera{opacity:.72} y apagaba la tarjeta entera: logo,
+   marco, distintivo y texto. Se pregunto por que se veian «mas opacas» dos
+   veces, y las dos veces la respuesta era esta linea.
+
+   El contraste aguantaba —7,4:1, por encima del 4,5 que se pide— asi que no
+   era ilegible; era que la letra volvia a parecer gris justo despues de
+   haberlo quitado de todo el panel. Y con opacity no hay arreglo a medias:
+   puesta en la caja, ningun hijo puede recuperar su tinta.
+
+   Asi que se atenua lo que NO se lee. La placa del organismo baja al 45% y
+   el marco se suaviza; el nombre, el ente, la descripcion y el pie se quedan
+   a plena tinta. La señal de que no te toca todavia sigue estando donde
+   siempre estuvo y donde se lee: el renglon de «Esperando: {tramite}».
+
+   No se pone marco discontinuo ni ninguna otra marca nueva a cambio: cinco
+   tarjetas de treinta y dos con el borde a rayas se leen como algo a medio
+   hacer, y la queja de la que sale todo esto era precisamente que unas
+   fichas parecian de peor calidad que otras. */
+.tcard.espera .t-marca{opacity:.45;}
 .tcard.tarde{border-color:var(--rust);}
 
 /* --- estado real, una vez enviada --- */
