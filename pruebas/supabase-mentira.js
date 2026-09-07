@@ -308,6 +308,11 @@
   /* Cuantos tipos declara este catalogo. Lo usa el arnes para no tener que
      escribir a mano un numero que cambia cada vez que se activa un tramite. */
   window.PRUEBA_TIPOS = TIPOS.length;
+  /* Y cuantos de ellos estan ENCENDIDOS, que desde que lo apagado no se
+     ofrece ya no es lo mismo. El arnes necesita las dos: una lista de
+     asuntos que ofreciera tambien los apagados seria pedir cita sobre un
+     tramite que la ventanilla no da. */
+  window.PRUEBA_TIPOS_ON = TIPOS.filter(function(t){ return t.activo; }).length;
 
   var ACTIVOS = {
     lleno: [

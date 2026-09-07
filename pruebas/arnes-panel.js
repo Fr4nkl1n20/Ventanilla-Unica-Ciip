@@ -201,6 +201,7 @@
               logosMiran,
               velocidadArranque, velocidadAbre, velocidadMira,
               velocidadRepite, velocidadTrasRepetir,
+              guardaCatalogo,
               rastroAbre, rastroMira,
               alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno], volcar);
   });
@@ -580,7 +581,16 @@
        es justo lo que un marcador escrito a mano no podía hacer. */
     igual('camino: la fase 01 cuenta lo que tú llevas hecho', deEtapa(0, '.jcount'),
           (CASO === 'lleno') ? '1 de 11 listos' : '0 de 11 listos');
-    igual('camino: la fase 02 cuenta sus 8',           deEtapa(1, '.jcount'), '0 de 8 listos');
+    /* SIETE, y antes eran ocho. No se ha perdido ninguna: el registro de
+       marca está APAGADO en el catálogo, y desde que el interruptor gobierna
+       la portada, lo apagado no se enseña ni se cuenta.
+
+       Contar ocho y ofrecer siete sería lo peor de los dos mundos: el camino
+       prometiendo un trámite que no está debajo. La cuenta dice lo que hay.
+       Y en cuanto el CIIP lo encienda vuelve a ser ocho sin recargar, que eso
+       lo comprueba el bloque de «sin pulsar F5». */
+    igual('camino: la fase 02 cuenta las que están encendidas',
+          deEtapa(1, '.jcount'), '0 de 7 listos');
     igual('camino: la fase 03 cuenta sus 11',          deEtapa(2, '.jcount'), '0 de 11 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
        inversión extranjera tenía una etapa para él solo —y una etapa con una
@@ -607,14 +617,23 @@
 
     /* El numero del marcado tambien, no solo el que calcula el script: es lo
        que se ve durante el instante que tarda la pagina en contar, y llevaba
-       24 con 33 tarjetas puestas. */
-    ok('camino: y el marcado no arranca con una cuenta vieja',
-       /<span class="n">33<\/span>/.test(document.querySelector('.ftab[data-f="todos"]').outerHTML) ||
-       document.querySelector('.ftab[data-f="todos"] .n').textContent === '33',
-       document.querySelector('.ftab[data-f="todos"] .n').textContent, '33');
+       24 con 33 tarjetas puestas.
 
-    igual('camino: los filtros cuentan las 33 tarjetas',
-          (document.querySelector('.ftab[data-f="todos"] .n') || {}).textContent, '33');
+       Se admiten 32 o 33, y no es dejarlo pasar: el marcado se escribe antes
+       de que el catalogo llegue, asi que NO PUEDE saber cuantas estan
+       encendidas. Lo que se le exige es que no arranque con una cuenta de
+       otra epoca, que es lo que hacia. La cuenta de verdad -la de despues de
+       contar- se mide en la linea siguiente y esa si es exacta. */
+    ok('camino: y el marcado no arranca con una cuenta vieja',
+       /<span class="n">3[23]<\/span>/.test(document.querySelector('.ftab[data-f="todos"]').outerHTML),
+       document.querySelector('.ftab[data-f="todos"]').outerHTML.slice(0, 80), '32 o 33');
+
+    /* 32 y no 33: la que falta es el registro de marca, apagado en el
+       catalogo. El filtro cuenta lo que se OFRECE, no lo que hay escrito en
+       el documento; si contara las 33, el numero de arriba prometeria una
+       tarjeta mas de las que hay debajo. */
+    igual('camino: los filtros cuentan las que se ofrecen',
+          (document.querySelector('.ftab[data-f="todos"] .n') || {}).textContent, '32');
 
     /* ═══════════ EL ESTADO DE CADA TARJETA ═══════════
        Iba escrito a mano en las 33: tres decían "Completado" y una fecha de
@@ -695,7 +714,10 @@
            prueba miraba, que el borrador se vea tambien en su tarjeta. */
         var pendS = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
         ok('estados: con un borrador, treinta y dos por iniciar y no treinta y tres',
-           pendS === 32, pendS + ' por iniciar de 33', '32');
+          /* 31 y no 32: el registro de marca esta apagado y su tarjeta ya no
+             esta en el documento, asi que no puede decir «por iniciar» ni
+             ninguna otra cosa. Una menos arriba y una menos abajo. */
+             pendS === 31, pendS + ' por iniciar de 32 ofrecidas', '31');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -704,8 +726,8 @@
            nacía 'pendiente' en el marcado -lo suyo es el distintivo, que
            sigue diciendo Disponible-. */
         var pend = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
-        ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 33,
-           pend + ' por iniciar de 33', '33');
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 32,
+             pend + ' por iniciar de 32 ofrecidas', '32');
       }
 
       /* ── la cadena entre trámites ──
@@ -1128,8 +1150,17 @@
         var f2 = document.querySelector('[data-fase="2"]');
         igual('fases: la 02 no aparta nada',
           f2 ? f2.querySelectorAll('.opc-caja').length : -1, 0);
-        igual('fases: y enseña sus ocho, con el SISREF',
-          document.querySelectorAll('#trs-2 > .tcard[data-tr]').length, 8);
+        /* Siete de las ocho. La octava es el registro de marca, que está
+           apagado en el catálogo; las otras siete siguen ahí, que es lo que
+           esta comprobación vino a defender: que apartar los opcionales no se
+           llevara por delante media fase. */
+        igual('fases: y enseña las encendidas de sus ocho',
+          document.querySelectorAll('#trs-2 > .tcard[data-tr]').length, 7);
+        /* Y la que falta es LA APAGADA, no otra cualquiera. Sin esto, el 7 se
+           cumpliría igual habiéndose caído una tarjeta encendida por error. */
+        ok('fases: y la que falta es la apagada, no otra',
+           !document.querySelector('#trs-2 > .tcard[data-tr="c8"]'),
+           'c8 sigue puesta', 'c8 fuera, por apagada');
 
         /* Y el SISREF es una de las ocho: es el que pedía el informe y el
            que no estaba. Que salga el número bien sin que él esté sería
@@ -2082,7 +2113,9 @@
        cada trámite que se activa lo cambiaba, y la prueba rompía sin que
        nadie hubiera tocado las citas. */
     (function(){
-      var deberian = (window.PRUEBA_TIPOS || 0) + 1;
+        /* Los ENCENDIDOS, no todo el catalogo: lo apagado no se ofrece ni
+           como tarjeta ni como asunto de una cita. */
+        var deberian = (window.PRUEBA_TIPOS_ON || 0) + 1;
       ok('citas: el asunto ofrece la consulta general y los trámites',
          sel.options.length === deberian && sel.options[0].value === '',
          sel.options.length + ' opciones, la primera "' + sel.options[0].textContent + '"',
@@ -5098,6 +5131,19 @@
     var cat = window.CIIP_TIPOS_POR_REF || {};
     igual('al día: y un trámite recién encendido ya se puede solicitar',
           !!(cat.c8 && cat.c8.activo), true);
+
+      /* Y SU TARJETA VUELVE A LA PORTADA. Es la otra mitad de «lo apagado no
+         se ve»: apagar la quita del documento, y encender tiene que
+         devolverla, sin recargar y a su fase.
+
+         Sin esta comprobación, quitarlas podría ser un viaje de ida —fuera
+         para siempre hasta que alguien pulse F5— y en pantalla se vería
+         igual de bien, porque nadie echa de menos lo que nunca estuvo. */
+      var vuelta = document.querySelector('#trs-2 > .tcard[data-tr="c8"]');
+      ok('al día: y su tarjeta vuelve a la portada, a su fase',
+         !!vuelta, vuelta ? 'está' : 'no volvió', 'la tarjeta c8 en la fase 02');
+      igual('al día: y la fase 02 vuelve a contar sus ocho',
+            deEtapa(1, '.jcount'), '0 de 8 listos');
   }
 
   /* EL FRENO. Cambiar de pestaña y volver es lo que más se hace en una
@@ -5224,6 +5270,35 @@
        'getUser=' + V.getUser + ', ' + (V.tablas.join(' > ') || '(nada)'),
        'cero getUser, y la solicitud sí');
     location.hash = '';
+  }
+
+  /* ═══════════ SIN CATALOGO NO SE ESCONDE NADA ═══════════
+     Desde que lo apagado se quita de la portada, hay una linea que decide si
+     se quita algo o no: la que se planta cuando el catalogo viene vacio.
+
+     Y viene vacio mas a menudo de lo que parece. No hace falta que la base
+     se caiga: basta con que la consulta salga antes de que la sesion este
+     puesta, porque entonces las politicas contestan CERO FILAS y SIN ERROR.
+     Es indistinguible de «no hay ningun tramite en el catalogo». Sin la
+     guarda, eso significa apagarlos todos: la portada en blanco, sin una
+     sola tarjeta, y sin nada en la consola que lo explique.
+
+     Se prueba llamando a la funcion a mano y contando las tarjetas antes y
+     despues. Montar una pasada entera del arnes para esto costaria doce
+     segundos de reloj en cada tanda; esto cuesta dos lineas. */
+  function guardaCatalogo(){
+    if (CASO !== 'lleno' || !window.CIIP_ENCENDIDAS) return;
+    var antes = document.querySelectorAll('.tcard[data-tr]').length;
+
+    /* Vacio, nulo y sin definir: las tres formas en que puede no llegar. */
+    window.CIIP_ENCENDIDAS({});
+    window.CIIP_ENCENDIDAS(null);
+    window.CIIP_ENCENDIDAS(undefined);
+
+    var despues = document.querySelectorAll('.tcard[data-tr]').length;
+    ok('apagadas: con el catalogo vacio no se esconde ni una tarjeta',
+       despues === antes && antes > 0,
+       antes + ' antes, ' + despues + ' despues', 'las mismas, y no cero');
   }
 
   function rastroAbre(){

@@ -10200,8 +10200,19 @@ applyLang(idiomaParaMi());
 
     Object.keys(TIPOS || {}).forEach(function(ref){
       var t = TIPOS[ref];
+      /* Lo APAGADO tampoco se ofrece aquí, y se dice en voz alta en vez de
+         dejarlo pasar por casualidad: desde que la tarjeta de un trámite
+         apagado se quita del documento, la línea de abajo —que busca el
+         nombre en la tarjeta— ya no lo encontraba y la opción desaparecía
+         sola. Salía bien por un efecto de lado, no porque nadie lo hubiera
+         decidido, y el día que las tarjetas se pinten de otra manera la lista
+         de asuntos cambiaría sin que se entere nadie.
+
+         Y decidido está: no se pide cita sobre un trámite que el CIIP no
+         ofrece todavía. */
+      if (!t || !t.activo) return;
       var tarjeta = document.querySelector('.tcard[data-tr="' + ref + '"] .t-name');
-      if (!t || !t.codigo || !tarjeta) return;
+      if (!t.codigo || !tarjeta) return;
       var o = el('option', null, tarjeta.textContent.trim());
       o.value = t.codigo;
       sel.appendChild(o);
@@ -13385,8 +13396,79 @@ applyLang(idiomaParaMi());
   }
   window.CIIP_APARTA_OPCIONALES = apartaOpcionales;
 
+  /* ─── LO APAGADO NO SE ENSEÑA ────────────────────────────────────────
+     «Quiero que al desactivar no se vea en la lista.» (CIIP)
+
+     El interruptor del catálogo no tocaba la portada: se apagaba un trámite
+     y su tarjeta seguía ahí, y en el caso del Banco de activos seguía además
+     diciendo «Disponible» y ofreciendo entrar. El interruptor decía una cosa
+     y la portada otra.
+
+     SE QUITAN DEL DOCUMENTO, no se ocultan con una clase. Ocultarlas habría
+     obligado a enseñarle la clase nueva a los nueve sitios que cuentan
+     tarjetas —el contador de obligatorios de cada etapa, el de cada filtro,
+     el avance del camino, los grupos, la lista de opcionales— y basta con
+     olvidar uno para que la cuenta de arriba deje de cuadrar con lo que hay
+     debajo. Quitándolas no hay nada que enseñar a nadie: lo que no está, no
+     se cuenta.
+
+     Y se GUARDAN, no se tiran: el CIIP enciende un trámite y la tarjeta
+     vuelve a su sitio sin recargar, que es la otra mitad de lo mismo.
+     ──────────────────────────────────────────────────────────────────── */
+  var GUARDADAS = {};
+
+  function ponAlDiaLoEncendido(cat){
+    /* SIN CATÁLOGO NO SE QUITA NADA, y esta línea es media función.
+       Si la consulta falla, o vuelve vacía porque todavía no hay sesión, o
+       porque las políticas contestan cero filas —que es lo que contestan, sin
+       error—, esconderlo todo dejaría la portada EN BLANCO. Enseñar de más
+       mientras llega el catálogo es un momento incómodo; enseñar de menos es
+       una ventanilla que parece cerrada. */
+    if (!cat) return false;
+    var refs = Object.keys(cat);
+    if (!refs.length) return false;
+
+    var movidas = 0;
+    refs.forEach(function(ref){
+      if (!/^c[0-9]+$/.test(ref)) return;
+      if (cat[ref].activo) {
+        var g = GUARDADAS[ref];
+        if (!g) return;
+        /* Al sitio donde estaba. Si el vecino que tenía detrás ya no está en
+           ese padre —porque apartaOpcionales movió media rejilla— entra al
+           final, que es preferible a no volver. */
+        var antes = (g.antes && g.antes.parentNode === g.padre) ? g.antes : null;
+        g.padre.insertBefore(g.nodo, antes);
+        delete GUARDADAS[ref];
+        movidas++;
+      } else {
+        if (GUARDADAS[ref]) return;
+        var c = document.querySelector('.tcard[data-tr="' + ref + '"]');
+        if (!c || !c.parentNode) return;
+        GUARDADAS[ref] = {nodo: c, padre: c.parentNode, antes: c.nextSibling};
+        c.parentNode.removeChild(c);
+        movidas++;
+      }
+    });
+
+    /* Una etapa que se queda sin ninguna tarjeta no deja el título solo
+       encima del vacío. Se mira lo mismo que mira el filtro —si queda alguna
+       tarjeta a la vista— para que los dos no se contradigan. */
+    document.querySelectorAll('[data-phase]').forEach(function(p){
+      p.classList.toggle('is-hidden', !p.querySelector('.tcard:not(.is-hidden)'));
+    });
+    return movidas > 0;
+  }
+
+  /* Se expone para poder probar la guarda del catálogo vacío sin montar una
+     pasada entera del arnés: es la línea que impide que un fallo de la
+     consulta deje la portada en blanco, y es la que hay que poder romper a
+     propósito para saber que sigue puesta. */
+  window.CIIP_ENCENDIDAS = ponAlDiaLoEncendido;
+
   function pintaEstadoTarjetas(){
     if (!TIPOS) return;
+    ponAlDiaLoEncendido(TIPOS);
 
     /* La cadena necesita saber qué papeles tienes ya. Si todavía no han
        llegado se piden y se vuelve a pintar: sin esto, un trámite cuyo
