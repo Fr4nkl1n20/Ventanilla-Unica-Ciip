@@ -393,6 +393,30 @@
          abierta ? 'bloquea sin lista' : 'no bloquea', 'no bloquea');
       return;
     }
+      /* ESTA PUERTA YA NO ES SOLO DEL SECTOR. Pregunta las dos cosas -quien
+         eres y a que te dedicas- y se abre si falta CUALQUIERA de las dos.
+
+         El expediente 'sinnombre' tiene el sector contestado -turismo- y el
+         nombre en blanco, asi que ahora le sale, y le tiene que salir: sin
+         eso el panel le seguia llamando por el trozo del correo anterior a
+         la arroba, porque nadie le habia preguntado como se llama.
+
+         Esta comprobacion exigia lo contrario y se puso roja al cambiar la
+         puerta. Tenia razon en preguntar -algo habia cambiado- pero la
+         respuesta buena es la nueva, no la vieja. */
+      if (PASE === 'sinnombre'){
+        ok('sector: al que no dio su nombre se le pregunta, aunque tenga sector',
+           abierta, abierta ? 'le sale' : 'no le sale', 'le sale');
+        /* Y le sale POR EL NOMBRE: el campo esta ahi y en blanco. Sin esto,
+           lo de arriba se cumpliria igual si la puerta se abriera por
+           cualquier otro motivo, que es como una prueba deja de medir lo que
+           dice medir sin que se note. */
+        var camp = document.getElementById('seNombre');
+        ok('sector: y la puerta trae el campo del nombre, en blanco',
+           !!camp && !camp.value,
+           camp ? 'valor="' + camp.value + '"' : 'no hay campo', 'el campo, vacio');
+        return;
+      }
     if (PASE !== 'sinsector'){
       ok('sector: al que ya contesto no se le vuelve a preguntar', !abierta,
          abierta ? 'se lo repregunta' : 'no se lo repregunta', 'no se lo repregunta');
@@ -1226,7 +1250,7 @@
          "vacío" no es "sin filas" sino "sin nada que anunciar". Una cifra a
          mano aquí rompería cada vez que alguien toque un fixture. */
       var vivos = 0;
-      document.querySelectorAll('#mtLista .ci-ficha').forEach(function(f){
+      document.querySelectorAll('#mtCuerpo tr').forEach(function(f){
         if (!f.classList.contains('pasada')) vivos++;
       });
       igual('barra: "Mis trámites" cuenta los tuyos en marcha, no el catálogo',
@@ -3760,7 +3784,7 @@
 
   function mtLlevaMira(){
     if (CASO !== 'lleno') return;
-    var fichas = document.querySelectorAll('#mtLista .ci-ficha');
+    var fichas = document.querySelectorAll('#mtCuerpo tr');
     ok('mis trámites: los vivos dicen desde cuándo están así',
        [].filter.call(fichas, function(f){ return f.querySelector('.lleva'); }).length >= 3,
        [].filter.call(fichas, function(f){ return f.querySelector('.lleva'); }).length +
@@ -3790,43 +3814,52 @@
       igual('mis trámites: y ninguno lleva a una lista vacía', vacios.length, 0);
 
       /* Filtrar de verdad enseña menos de las que hay. */
-      var todas = document.querySelectorAll('#mtLista .ci-ficha').length;
+      var todas = document.querySelectorAll('#mtCuerpo tr').length;
       var otro = [].filter.call(fil, function(b){ return !b.classList.contains('aqui'); })[0];
       if (otro){
         var cuantas = parseInt(otro.querySelector('.n').textContent, 10);
         otro.click();
         igual('mis trámites: y filtrar enseña solo las de ese montón',
-              document.querySelectorAll('#mtLista .ci-ficha').length, cuantas);
+              document.querySelectorAll('#mtCuerpo tr').length, cuantas);
         ok('mis trámites: que son menos que todas', cuantas < todas,
            cuantas + ' de ' + todas, 'menos');
         /* Y volver las devuelve: un filtro que no se limpia deja la vista
            coja para el resto de la sesión. */
         document.querySelectorAll('#mtFiltros button')[0].click();
         igual('mis trámites: y "Todos" las devuelve',
-              document.querySelectorAll('#mtLista .ci-ficha').length, todas);
+              document.querySelectorAll('#mtCuerpo tr').length, todas);
       }
     })();
 
-    /* ── EN REJILLA ── Una ficha de trámite son tres renglones cortos y
-       a lo ancho sobraba media pantalla: ver seis solicitudes obligaba a
-       rodar. Es el mismo cambio que se hizo en las cuentas. */
+    /* ── EN TABLA ──
+       Esto medía una REJILLA de fichas: que dos compartieran fila y que
+       ninguna se saliera por la derecha. Ya no hay rejilla, hay tabla.
+
+       Y no dieron rojo al cambiar, que es lo peor que podían hacer: el bloque
+       empezaba con «if (f.length < 2) return;», así que al quedarse el
+       selector sin encontrar nada se saltaba entero y las dos comprobaciones
+       DESAPARECÍAN de la cuenta. Ni verdes ni rojas: sin correr. El total
+       bajaba dos y no había ninguna línea roja que lo explicara.
+
+       Ahora se mide lo que una tabla puede romper: que tenga sus cinco
+       columnas —cabecera sin cuerpo, o al revés, parece una pantalla a medio
+       cargar—, que haya una fila por solicitud, y que ninguna se salga por la
+       derecha, que es la misma preocupación de antes con otra forma. */
     (function(){
-      var f = document.querySelectorAll('#mtLista .ci-ficha');
-      if (f.length < 2) return;
-      var arriba = {};
-      [].forEach.call(f, function(x){
-        var y = Math.round(x.getBoundingClientRect().top);
-        arriba[y] = (arriba[y] || 0) + 1;
-      });
-      var enFila = Math.max.apply(null, Object.keys(arriba).map(function(k){ return arriba[k]; }));
-      ok('mis trámites: en pantalla ancha van una al lado de otra',
-         enFila >= 2, 'lo más que comparten fila: ' + enFila, '2 o más');
-      /* Y ninguna se sale por la derecha: 300px de mínimo con la barra
-         lateral puesta es justo donde esto se rompería. */
-      var caja = document.getElementById('mtLista').getBoundingClientRect();
-      var fuera = [].filter.call(f, function(x){
-        return x.getBoundingClientRect().right > caja.right + 1; });
-      igual('mis trámites: y ninguna se sale por la derecha', fuera.length, 0);
+      igual('mis trámites: la tabla tiene sus cinco columnas',
+            document.querySelectorAll('#mtCab th').length, 5);
+
+      var filas = document.querySelectorAll('#mtCuerpo tr');
+      ok('mis trámites: y una fila por cada solicitud tuya',
+         filas.length >= 3, filas.length + ' filas', 'tres o más');
+
+      var caja = document.getElementById('mtTabla');
+      if (caja && filas.length){
+        var r = caja.getBoundingClientRect();
+        var fuera = [].filter.call(filas, function(x){
+          return x.getBoundingClientRect().right > r.right + 1; });
+        igual('mis trámites: y ninguna fila se sale por la derecha', fuera.length, 0);
+      }
     })();
 
     location.hash = '';
