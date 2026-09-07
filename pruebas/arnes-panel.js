@@ -5473,11 +5473,21 @@
        pie ? '"' + pie.textContent.trim().slice(0, 40) + '"' : '(sin pie)',
        'el renglon de a quien espera');
 
-    /* La placa del organismo si se atenua: es lo que no se lee. */
-    var marca = t.querySelector('.t-marca');
-    ok('opacidad: la placa del organismo si se atenua, que ahi no hay nada que leer',
-       !!marca && parseFloat(getComputedStyle(marca).opacity) < 1,
-       marca ? String(getComputedStyle(marca).opacity) : '(no hay placa)', 'menos de 1');
+      /* Y LA PLACA TAMPOCO se atenua, que es lo contrario de lo que decia
+         esta comprobacion hace un rato.
+
+         El primer arreglo dejo el texto entero y bajo el logo del organismo
+         al 45%, por no quedarse sin señal. La pregunta volvio igual: «ahora
+         estos logos por que se ven opacos?», con el SAREN y el SENIAT medio
+         borrados. Un logo a medio pintar no se lee como «esto todavia no te
+         toca»; se lee como que la imagen no ha cargado.
+
+         Asi que no se atenua nada, y lo que queda sujetando la señal es la
+         comprobacion de aqui arriba: que lo diga con letras. */
+      var marca = t.querySelector('.t-marca');
+      ok('opacidad: y la placa del organismo se ve entera, como en las demas',
+         !!marca && parseFloat(getComputedStyle(marca).opacity) === 1,
+         marca ? String(getComputedStyle(marca).opacity) : '(no hay placa)', '1');
   }
 
   function guardaCatalogo(){
