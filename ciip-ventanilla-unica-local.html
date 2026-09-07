@@ -4785,6 +4785,10 @@ function applyLang(lang){
     fases.forEach(function(f){ if (f.querySelector('.tcard:not(.is-hidden)')) pliega(f, false); });
   };
   window.CIIP_ABRE_FASE = function(fase){ pliega(fase, false); };
+  /* Devolver la portada a como nace. Lo llama el router al volver de otra
+     sección: plegarlas sólo al cargar la página dejaba la portada desplegada
+     para el resto de la sesión en cuanto alguien tocaba una cabecera. */
+  window.CIIP_PLIEGA_FASES = function(){ fases.forEach(function(f){ pliega(f, true); }); };
 })();
 
 /* ---------- el estado de cada etapa sale de sus trámites ----------
@@ -5181,6 +5185,22 @@ function applyLang(lang){
       if (fase && window.CIIP_ABRE_FASE) window.CIIP_ABRE_FASE(fase);
     } else {
       cuerpo.setAttribute('data-vista', 'inicio');
+      /* Y la portada vuelve a ser el índice.
+         «Quedan abiertas al cambiar de panel y volver.» (CIIP)
+
+         Las cuatro etapas se plegaban UNA sola vez, al cargar la página, y
+         nada volvía a plegarlas: se desplegaba la fase 04, se iba uno a la
+         bóveda o a la ayuda, y al volver la portada seguía siendo la lista
+         larga en vez del índice de cuatro renglones.
+
+         Pero NO se pliega viniendo de un trámite ni de la página de una fase.
+         Ahí sí se está volviendo al mismo sitio -es el botón de atrás, no un
+         cambio de sección- y plegar le quitaría a la persona la tarjeta que
+         acaba de mirar de debajo del cursor. Es la misma distinción que ya
+         hace la línea de arriba con la altura del scroll: salir de la portada
+         es una cosa y moverse dentro de ella es otra. */
+      if (previa && previa !== 'inicio' && previa !== 'tramite' && previa !== 'fase' &&
+          window.CIIP_PLIEGA_FASES) window.CIIP_PLIEGA_FASES();
     }
     if (tipo !== 'tramite') trAbierto = null;
     /* La barra lateral se entera del cambio de vista por aquí, y no en el

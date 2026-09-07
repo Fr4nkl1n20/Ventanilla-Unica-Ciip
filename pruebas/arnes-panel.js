@@ -201,6 +201,8 @@
               logosMiran,
               velocidadArranque, velocidadAbre, velocidadMira,
               velocidadRepite, velocidadTrasRepetir,
+              pliegaAbre, pliegaMira, pliegaVuelve, pliegaTrasVolver,
+              pliegaTramite, pliegaVuelveDeTramite, pliegaTrasTramite,
               guardaCatalogo,
               rastroAbre, rastroMira,
               alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno], volcar);
@@ -5286,6 +5288,78 @@
      Se prueba llamando a la funcion a mano y contando las tarjetas antes y
      despues. Montar una pasada entera del arnes para esto costaria doce
      segundos de reloj en cada tanda; esto cuesta dos lineas. */
+  /* ═══════════ LA PORTADA VUELVE A SER EL INDICE ═══════════
+     «Quedan abiertas al cambiar de panel y volver.» (CIIP)
+
+     Las cuatro etapas se plegaban UNA vez, al cargar la pagina. En cuanto
+     alguien desplegaba una, se quedaba desplegada para el resto de la
+     sesion: se iba a la boveda, volvia, y la portada seguia siendo la lista
+     larga en vez del indice de cuatro renglones.
+
+     Y la otra mitad, que es la que hace que esto no sea molesto: volviendo
+     de un TRAMITE no se pliega. Ahi se esta volviendo al mismo sitio con el
+     boton de atras, y plegar le quitaria de debajo del cursor la tarjeta que
+     acaba de mirar. Las dos se comprueban, porque arreglar la primera
+     rompiendo la segunda se ve igual de bien en una captura. */
+  function pliegaAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = '';
+    var f = document.querySelector('.phase[data-fase="2"] .phase-h');
+    if (f) f.click();
+  }
+
+  function pliegaMira(){
+    if (CASO !== 'vacio') return;
+    var f2 = document.querySelector('.phase[data-fase="2"]');
+    ok('plegado: al pulsar la cabecera, la etapa se despliega',
+       !!f2 && !f2.classList.contains('plegada'),
+       f2 ? f2.className : '(no hay fase 02)', 'sin la clase plegada');
+    /* A otra seccion. La boveda vale: es una vista entera y distinta. */
+    location.hash = 'documentos';
+  }
+
+  function pliegaVuelve(){
+    if (CASO !== 'vacio') return;
+    location.hash = '';
+  }
+
+  function pliegaTrasVolver(){
+    if (CASO !== 'vacio') return;
+    var f2 = document.querySelector('.phase[data-fase="2"]');
+    ok('plegado: y al volver de otra seccion, la portada vuelve a estar plegada',
+       !!f2 && f2.classList.contains('plegada'),
+       f2 ? f2.className : '(no hay fase 02)', 'con la clase plegada');
+    /* Y ahora la otra mitad: se despliega, se abre un TRAMITE suyo y se
+       vuelve. Eso no es cambiar de seccion, es el boton de atras.
+
+       Se despliega SIN pulsar la cabecera, y a proposito: pulsando, esto era
+       un interruptor. Si la comprobacion de arriba fallaba -si la etapa ya
+       venia desplegada- el clic la PLEGABA, y el paso siguiente salia rojo
+       arrastrado por este en vez de por lo suyo. Se vio saboteando: quitar el
+       plegado ponia rojas las dos, y solo una de las dos lo era de verdad.
+       Un rojo prestado cuesta mas de leer que uno propio. */
+    if (window.CIIP_ABRE_FASE)
+      window.CIIP_ABRE_FASE(document.querySelector('.phase[data-fase="2"]'));
+  }
+
+  function pliegaTramite(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c3';
+  }
+
+  function pliegaVuelveDeTramite(){
+    if (CASO !== 'vacio') return;
+    location.hash = '';
+  }
+
+  function pliegaTrasTramite(){
+    if (CASO !== 'vacio') return;
+    var f2 = document.querySelector('.phase[data-fase="2"]');
+    ok('plegado: pero volviendo de un tramite se queda donde estabas',
+       !!f2 && !f2.classList.contains('plegada'),
+       f2 ? f2.className : '(no hay fase 02)', 'sin la clase plegada');
+  }
+
   function guardaCatalogo(){
     if (CASO !== 'lleno' || !window.CIIP_ENCENDIDAS) return;
     var antes = document.querySelectorAll('.tcard[data-tr]').length;
