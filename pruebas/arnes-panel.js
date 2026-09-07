@@ -204,7 +204,7 @@
               pliegaAbre, pliegaMira, pliegaVuelve, pliegaTrasVolver,
               pliegaTramite, pliegaVuelveDeTramite, pliegaTrasTramite,
               opacidadMira, opacidadSenal,
-              guardaCatalogo,
+              nuevaVersionMira, guardaCatalogo,
               rastroAbre, rastroMira,
               rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
               rastroDesdeTramiteSalta, rastroDesdeTramiteMira,
@@ -5490,6 +5490,57 @@
       ok('opacidad: y la placa del organismo se ve entera, como en las demas',
          !!marca && parseFloat(getComputedStyle(marca).opacity) === 1,
          marca ? String(getComputedStyle(marca).opacity) : '(no hay placa)', '1');
+  }
+
+  /* ═══════════ EL AVISO DE VERSION NUEVA ═══════════
+     «Uncaught ReferenceError: T is not defined, at avisa» (consola del CIIP,
+     en produccion).
+
+     El panel se pregunta cada minuto y medio si el archivo del que salio
+     sigue siendo el mismo, y cuando cambia avisa para que quien tenga la
+     pestaña abierta recargue. Ese aviso llamaba a T() -los textos- desde un
+     bloque que NO ve a T: son dos bloques hermanos.
+
+     Reventaba justo al hablar. O sea que el aviso no salia NUNCA y quien
+     tuviera la pestaña abierta seguia mirando JavaScript viejo sin
+     enterarse. Con tres personas conectadas, cada una con una version
+     distinta y las diferencias achacadas al panel. Es exactamente lo que ese
+     bloque existe para evitar.
+
+     NO LO CAZABA NADIE, y eso es lo de fondo: el bloque se planta en su
+     primera linea si el protocolo no es http, y la tanda corre sobre file:.
+     Estaba entero fuera de alcance. Ahora se llama a mano. */
+  function nuevaVersionMira(){
+    if (CASO !== 'lleno' || !window.CIIP_AVISA_NUEVA) return;
+    var caja = document.getElementById('nuevaV');
+    if (!caja) return ok('version: hay donde avisar', false, 'no existe #nuevaV', 'la caja');
+
+    var salto = null;
+    try { window.CIIP_AVISA_NUEVA(); }
+    catch(e){ salto = e && e.message; }
+    ok('version: avisar de una version nueva no revienta',
+       salto === null, salto || 'sin excepcion', 'sin excepcion');
+
+    /* Y con los textos PUESTOS. Sin esto, un aviso que no lanzara pero
+       dejara los tres huecos en blanco pasaria por bueno: una caja vacia
+       avisando de nada. */
+    var t = ['nuevaVtxt', 'nuevaVsi', 'nuevaVno'].map(function(id){
+      var e = document.getElementById(id);
+      return e ? e.textContent.trim() : '';
+    });
+    ok('version: y deja escritos los tres textos del aviso',
+       t.every(function(x){ return x.length > 0; }),
+       t.join(' / ') || '(los tres en blanco)', 'los tres con texto');
+
+    ok('version: y la caja se ve', caja.classList.contains('se-ve'),
+       caja.className, 'con la clase se-ve');
+
+    /* Y SE CIERRA. Dejarla puesta tapaba media tanda: es una franja fija que
+       se pone delante, asi que los pasos siguientes pulsaban sobre ella y
+       cuarenta comprobaciones se pusieron rojas por un aviso abierto. Una
+       prueba que deja la pantalla tocada no prueba una cosa: estropea las
+       de despues. */
+    caja.classList.remove("se-ve");
   }
 
   function guardaCatalogo(){

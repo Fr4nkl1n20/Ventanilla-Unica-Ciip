@@ -5109,6 +5109,13 @@ function applyLang(lang){
      formulario perderia lo escrito, y eso es peor que ir una version por
      detras. Se avisa y decide quien esta delante. \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
   (function(){
+    /* El aviso se puede pedir a mano, y el gancho va AQUI ARRIBA a proposito:
+       dos lineas mas abajo este bloque se planta si el protocolo no es http,
+       y la tanda corre sobre file:. Puesto despues del corte, no existiria
+       para las pruebas y esto seguiria sin mirarlo nadie -que es como se colo
+       un T() llamado desde un bloque que no ve a T-. */
+    window.CIIP_AVISA_NUEVA = avisa;
+
     /* Sin servidor no hay a quien preguntar: abierto con doble clic, el
        protocolo es file: y un HEAD no significa nada. */
     if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
@@ -5129,11 +5136,23 @@ function applyLang(lang){
     }
 
     function avisa(){
-      var u = T();
-      document.getElementById('nuevaVtxt').textContent = u.nv_hay || '';
-      document.getElementById('nuevaVsi').textContent = u.nv_recarga || '';
-      document.getElementById('nuevaVno').textContent = u.nv_luego || '';
-      caja.classList.add('se-ve');
+      /* La caja se busca AQUI y no se hereda de arriba. Antes venia de una
+         variable que se rellena despues del corte por protocolo, asi que
+         llamar a avisa sin haber pasado por ahi reventaba. Buscandola, la
+         funcion vale por si sola y se puede probar. */
+      var c = document.getElementById('nuevaV');
+      if (!c) return;
+      /* Por window y no por T() a secas: T se declara en otro bloque de este
+         mismo guion, hermano de este, y desde aqui no se ve. Llamarla
+         directamente reventaba con «T is not defined» justo al avisar. */
+      var u = (window.CIIP_T && window.CIIP_T()) || {};
+      var t = document.getElementById('nuevaVtxt');
+      var s = document.getElementById('nuevaVsi');
+      var n = document.getElementById('nuevaVno');
+      if (t) t.textContent = u.nv_hay || '';
+      if (s) s.textContent = u.nv_recarga || '';
+      if (n) n.textContent = u.nv_luego || '';
+      c.classList.add('se-ve');
     }
 
     document.getElementById('nuevaVsi').addEventListener('click', function(){
@@ -5735,6 +5754,15 @@ applyLang(idiomaParaMi());
     var u = (D.ui && (D.ui[curLang] || D.ui.en)) || {};
     return u;
   }
+   /* T vive dentro de este bloque y la necesita OTRO: el que avisa de que
+      hay una version nueva del panel. Estaba llamando a T() desde su propio
+      bloque, que es hermano de este y no la ve, asi que reventaba con
+      «T is not defined» justo cuando tenia que hablar.
+
+      Y no lo cazaba nadie: ese bloque se planta en la primera linea si el
+      protocolo no es http, y las pruebas corren sobre file:. Estaba entero
+      fuera del alcance de la tanda. */
+   window.CIIP_T = T;
   /* "Vas por aquí" vive en CIIP_PASOS.aqui, al lado de los pasos, y NO en
      CIIP_PASOS.ui. La escalera de la maqueta lo lee bien; la de verdad lo
      buscaba dentro de ui, donde nunca estuvo, así que pintaba una etiqueta
