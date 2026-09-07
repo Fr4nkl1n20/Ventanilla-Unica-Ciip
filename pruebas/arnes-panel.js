@@ -5713,74 +5713,97 @@
 
   function agendaTrasEntrar(){
     igual('agenda: y la vista se abre', document.body.getAttribute('data-vista'), 'citas');
-    var fichas = document.querySelectorAll('#ciLista .ci-ficha');
+    /* ── LA AGENDA, EN TABLA ──
+       Eran tres montones de fichas, uno debajo de otro, y las canceladas
+       plegadas al final. Ahora es una tabla como la cola, la boveda y Mis
+       tramites: los montones pasan a ser filtros con su cuenta arriba, y cada
+       cita es un renglon.
 
+       La ficha NO desaparecio: baja debajo de su renglon cuando se pulsa «Ver
+       la cita», porque la conversacion con el CIIP vive dentro de ella. Por eso
+       las comprobaciones del hilo, mas abajo, empiezan desplegando una. */
     if (CASO === 'lleno'){
-      /* ── REPARTIDA EN TRES ── Una cita no se borra: solo se cancela, para
-         que quede constancia de que se pidió. Así que la lista de una
-         cuenta usada de verdad se llena de canceladas, y en una sola pila
-         ordenada por fecha de petición enterraban a la que sí importa. */
-      var secs = [].map.call(document.querySelectorAll('#ciLista .ag-sec .t'),
-                             function(x){ return x.textContent.trim(); });
+      igual('agenda: la tabla tiene sus cinco columnas',
+            document.querySelectorAll('#ciCab th').length, 5);
+
+      var filas = document.querySelectorAll('#ciCuerpo tr');
+      igual('agenda: y un renglon por cada cita, tambien las canceladas',
+            filas.length, 5);
+
+      /* Los montones, con su cuenta. El de «todas» primero y encendido. */
+      var mont = [].map.call(document.querySelectorAll('#ciFiltros button'),
+        function(b){ return b.textContent.trim(); });
       igual('agenda: se reparte en marcha, pasadas y canceladas',
-            secs.join(' | '), 'En marcha | Ya pasaron | Canceladas');
-      /* Lo que está en marcha va PRIMERO: es lo único sobre lo que se
-         puede hacer algo. */
-      igual('agenda: y lo que está en marcha va primero', secs[0], 'En marcha');
+            mont.join(' | '), 'Todas5 | En marcha1 | Ya pasaron1 | Canceladas3');
 
-      igual('agenda: enseña la cita viva y la que ya pasó', fichas.length, 2);
+      /* La viva se distingue del historial, y sigue siendo una sola. */
+      igual('agenda: la viva se distingue del historial',
+            document.querySelectorAll('#ciCuerpo tr.viva').length, 1);
 
-      /* Las canceladas no gastan una ficha entera, y llegan plegadas: son
-         tres y solo estorban. */
-      igual('agenda: las canceladas no ocupan una ficha cada una',
-            document.querySelectorAll('#ciLista .ag-fila').length, 3);
-      var pleg = document.querySelector('#ciLista .ag-mas');
-      ok('agenda: llegan plegadas, y el botón dice cuántas son',
-         pleg && /Ver las 3 canceladas/.test(pleg.textContent),
-         pleg ? pleg.textContent : 'no hay botón', 'Ver las 3 canceladas');
-      ok('agenda: y de verdad no se ven',
-         document.querySelector('#ciLista .ag-fila').offsetHeight === 0,
-         'alto ' + document.querySelector('#ciLista .ag-fila').offsetHeight, '0');
-      pleg.click();
-      ok('agenda: al pulsar se despliegan',
-         document.querySelector('#ciLista .ag-fila').offsetHeight > 0,
-         'alto ' + document.querySelector('#ciLista .ag-fila').offsetHeight, 'mayor que 0');
-      ok('agenda: y lo dice para quien no lo ve',
-         pleg.getAttribute('aria-expanded') === 'true',
-         'aria-expanded=' + pleg.getAttribute('aria-expanded'), 'true');
-      /* Tres canceladas que pedían LOS MISMOS días. Sin la fecha de
-         petición son tres renglones idénticos y no se sabe cuál es cuál. */
-      var pedidas = [].map.call(document.querySelectorAll('#ciLista .ag-fila .pe'),
-                                function(x){ return x.textContent.trim(); });
-      igual('agenda: cada cancelada dice cuándo se pidió', pedidas.length, 3);
-      igual('agenda: y las tres se distinguen entre sí', new Set(pedidas).size, 3);
-      pleg.click();
-      ok('agenda: con su fecha puesta, no un hueco',
-         /Confirmada para el/.test(fichas[0].querySelector('.ci-linea').textContent) &&
-         fichas[0].querySelector('.ci-linea').textContent.indexOf('{') < 0,
-         fichas[0].querySelector('.ci-linea').textContent, 'la fecha, sin llaves');
-      ok('agenda: la viva se distingue del historial',
-         fichas[0].classList.contains('viva'), fichas[0].className, 'con la clase viva');
+      /* Cada renglon dice de que cita es: sin eso no hay forma de señalar una
+         concreta ni de comprobar que su conversacion es la suya. */
+      var conId = [].filter.call(filas, function(f){ return !!f.getAttribute('data-cita'); });
+      igual('agenda: y cada renglon dice de que cita es', conId.length, filas.length);
 
-      /* Cómo es la cita —verse, llamarse o ir— decide si tienes que salir de
-         casa, así que va con el estado y no perdido en el renglón gris. */
-      var mo = fichas[0].querySelector('.ci-cab .ct-chip.modo');
-      ok('agenda: el modo lleva su propio distintivo', !!mo,
-         mo ? mo.textContent : 'no existe', 'un distintivo aparte');
-      igual('agenda: y dice cuál de los tres es', mo.textContent, 'Presencial');
-      ok('agenda: con su dibujo, no solo la palabra', !!mo.querySelector('svg'),
-         mo.querySelector('svg') ? 'lo lleva' : 'sin dibujo', 'con dibujo');
-      /* Y sale del renglón gris: decirlo dos veces en la misma ficha es
-         gastar la línea que lleva el trámite y el sitio. */
-      ok('agenda: y no se repite abajo',
-         !/Presencial/.test(fichas[0].querySelector('.ci-que').textContent),
-         fichas[0].querySelector('.ci-que').textContent, 'sin el modo');
-      /* Con una cita viva no se ofrece pedir otra: la ventana no dejaría. */
+      /* ── filtrar de verdad enseña menos ── */
+      var canc = [].filter.call(document.querySelectorAll('#ciFiltros button'),
+        function(b){ return /Cancelada/.test(b.textContent); })[0];
+      if (canc){
+        canc.click();
+        igual('agenda: y filtrar por canceladas deja solo las tres',
+              document.querySelectorAll('#ciCuerpo tr').length, 3);
+        document.querySelectorAll('#ciFiltros button')[0].click();
+        igual('agenda: y «Todas» las devuelve',
+              document.querySelectorAll('#ciCuerpo tr').length, 5);
+      }
+
+      /* ── la ficha, desplegada bajo su renglon ── */
+      var viva = document.querySelector('#ciCuerpo tr.viva');
+      var ver = viva && viva.querySelector('button');
+      ok('agenda: cada renglon ofrece abrir la cita', !!ver,
+         ver ? ver.textContent.trim() : 'no hay boton', 'un boton');
+      if (ver){
+        igual('agenda: y llega recogida', document.querySelectorAll('#ciCuerpo tr.ci-detalle').length, 0);
+        ver.click();
+        var det = document.querySelector('#ciCuerpo tr.ci-detalle');
+        ok('agenda: al pulsar se despliega debajo, no en otra pantalla',
+           !!det && !!det.querySelector('.ci-ficha'),
+           det ? (det.querySelector('.ci-ficha') ? 'con su ficha' : 'sin ficha') : 'no se desplego',
+           'la ficha debajo del renglon');
+
+        if (det && det.querySelector('.ci-ficha')){
+          var fi = det.querySelector('.ci-ficha');
+          ok('agenda: con su fecha puesta, no un hueco',
+             /Confirmada para el/.test(fi.querySelector('.ci-linea').textContent) &&
+             fi.querySelector('.ci-linea').textContent.indexOf('{') < 0,
+             fi.querySelector('.ci-linea').textContent, 'la fecha, sin llaves');
+
+          /* Como es la cita -verse, llamarse o ir- decide si tienes que salir de
+             casa, asi que va con el estado y no perdido en el renglon gris. */
+          var mo = fi.querySelector('.ci-cab .ct-chip.modo');
+          ok('agenda: el modo lleva su propio distintivo', !!mo,
+             mo ? mo.textContent : 'no existe', 'un distintivo aparte');
+          if (mo){
+            igual('agenda: y dice cual de los tres es', mo.textContent, 'Presencial');
+            ok('agenda: con su dibujo, no solo la palabra', !!mo.querySelector('svg'),
+               mo.querySelector('svg') ? 'lo lleva' : 'sin dibujo', 'con dibujo');
+          }
+          ok('agenda: y no se repite abajo',
+             !/Presencial/.test(fi.querySelector('.ci-que').textContent),
+             fi.querySelector('.ci-que').textContent, 'sin el modo');
+        }
+        /* Se vuelve a recoger: dejarla abierta cambiaria lo que miran los
+           pasos de despues. */
+        ver = document.querySelector('#ciCuerpo tr.viva button');
+        if (ver) ver.click();
+      }
+
+      /* Con una cita viva no se ofrece pedir otra: la ventana no dejaria. */
       igual('agenda: y no ofrece pedir otra',
             document.getElementById('ciPedir').style.display, 'none');
     } else {
       igual('agenda: sin ninguna, lo dice en vez de dejarlo en blanco',
-            (document.querySelector('#ciLista .ci-vacia') || {}).textContent,
+            (document.getElementById('ciVacia') || {}).textContent,
             'Todavía no has pedido ninguna cita.');
       ok('agenda: y ofrece pedir una', document.getElementById('ciPedir').style.display !== 'none',
          'display=' + document.getElementById('ciPedir').style.display, 'visible');
@@ -5810,6 +5833,22 @@
      Se mira en la AGENDA, que es la lista de citas, y que ven los dos: el
      inversionista con las suyas y el equipo con todas. */
   function agendaHilo(){
+    /* DESPLEGAR PRIMERO. Desde que la agenda es una tabla, la ficha -y con
+       ella la conversacion- solo existe cuando se pulsa «Ver la cita».
+
+       Y esto es lo que antes hacia que el bloque entero se saltara en
+       silencio: empieza con «if (!fichas.length) return;», asi que sin
+       desplegar nada no habria ni una ficha, no habria ningun rojo y las
+       nueve comprobaciones de la conversacion DESAPARECERIAN de la cuenta.
+       Es el mismo agujero que dejo la tabla de Mis tramites, visto a tiempo
+       esta vez. */
+    var reng = document.querySelector("#ciCuerpo tr[data-cita=\"k1\"]")
+           || document.querySelector("#ciCuerpo tr");
+    if (reng && !document.querySelector("#ciCuerpo tr.ci-detalle")){
+      var abre = reng.querySelector("button");
+      if (abre) abre.click();
+    }
+
     var fichas = document.querySelectorAll('#ciLista .ci-ficha');
     if (!fichas.length) return;
 

@@ -1292,20 +1292,11 @@ body[data-vista="citas"] #ciVolver{display:inline-flex;}
    fecha de peticion, y como una cita no se puede borrar -solo cancelar,
    y a proposito- una cuenta con unas cuantas pruebas encima enterraba la
    cita de verdad debajo de diez fichas identicas que ya no importan. */
-.ag-sec{display:flex; align-items:baseline; gap:9px; margin:20px 0 9px;}
-.ag-sec:first-child{margin-top:0;}
-.ag-sec .t{font-size:10.5px; font-weight:800; letter-spacing:.01em; color:var(--gray-soft);}
-.ag-sec .n{font-size:10.5px; font-weight:700; color:var(--gray-soft);
   font-variant-numeric:tabular-nums;}
 /* Lo cancelado no gasta una ficha entera: gasta un renglon. */
-.ag-fila{display:flex; align-items:center; gap:10px; flex-wrap:wrap;
   padding:9px 12px; border:1px solid var(--line-soft); border-radius:var(--r-sm);
   background:var(--block); margin-bottom:6px; font-size:12.5px; color:var(--gray);}
-.ag-fila .cu{font-weight:600; color:var(--ink);}
-.ag-fila .pe{margin-left:auto; font-size:11px; color:var(--gray-soft);}
-.ag-mas{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy);
   background:none; border:0; padding:6px 0; cursor:pointer; text-align:left;}
-.ag-mas:hover{text-decoration:underline;}
 @media(max-width:560px){ .ag-fila .pe{margin-left:0; width:100%;} }
 
 .ci-vacia{background:var(--bg); border:1px dashed var(--line); border-radius:var(--r);
@@ -3941,7 +3932,30 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
         <div class="spacer"></div>
         <button class="btn navy" id="ciPedir" type="button"></button>
       </div>
-      <div class="ci-lista" id="ciLista"></div>
+      <!-- EN TABLA, con la MISMA maquinaria que la cola del equipo, la
+           boveda y Mis tramites: .tabla, cabeceras que ordenan con .th-orden
+           y su aria-sort, y los montones arriba con su cuenta. Quien aprendio
+           a ordenar en una de las otras no tiene que aprender nada aqui.
+
+           Antes eran tres montones de fichas -en marcha, pasadas,
+           canceladas- uno debajo de otro. Se leia bien con dos citas y mal
+           con doce: para comparar dos fechas habia que ir saltando de ficha
+           en ficha, y no habia forma de ordenar por nada.
+
+           La ficha NO se tira: la conversacion con el CIIP vive dentro de
+           ella y es lo unico de esta pantalla sobre lo que se actua. Se
+           despliega debajo de su renglon, que es lo mismo que hace la cola
+           del equipo con su expediente. -->
+      <div class="ci-lista" id="ciLista">
+        <div class="co-filtros" id="ciFiltros"></div>
+        <div class="tabla-caja">
+          <table class="tabla" id="ciTabla">
+            <thead><tr id="ciCab"></tr></thead>
+            <tbody id="ciCuerpo"></tbody>
+          </table>
+        </div>
+        <div class="co-vacia" id="ciVacia" hidden></div>
+      </div>
     </div>
 
     <div class="section-gap solo-inicio faq-sec plegada">
@@ -11996,6 +12010,46 @@ applyLang(idiomaParaMi());
     return {txt:u.ct_chip_ped || '', clase:''};
   }
 
+  /* ── LA AGENDA, EN TABLA ──────────────────────────────────────────
+     Eran tres montones de fichas -en marcha, pasadas, canceladas- uno debajo
+     de otro. Se leia bien con dos citas y mal con doce: para comparar dos
+     fechas habia que ir saltando de ficha en ficha, y no habia forma de
+     ordenar por nada.
+
+     Las columnas y el orden se declaran igual que en las otras tres tablas, y
+     por la misma razon: lo que se COMPARA no es lo que se ve. La fecha se
+     compara en numero y se enseña en letra; el estado se compara por su
+     nombre y no por el rotulo traducido, que en cada idioma ordenaria
+     distinto. ───────────────────────────────────────────────────────── */
+  var CI_COLUMNAS = ['ci_c_estado', 'ci_c_tramite', 'ci_c_cuando',
+                     'ci_c_modo', 'ci_c_abrir'];
+
+  var CI_ORDENA = {
+    ci_c_estado:  function(c){ return c.estado || ''; },
+    ci_c_tramite: function(c){ return nombreDeTipo(c.tipo_tramite) || ''; },
+    /* La confirmada ordena por el dia que ES; la que aun no lo esta, por el
+       primer dia que se pidio. Mezclarlas en una columna es lo correcto:
+       quien mira la agenda quiere saber que hay antes. */
+    ci_c_cuando:  function(c){ return Date.parse(c.cuando || c.desde || c.creado_en) || 0; },
+    ci_c_modo:    function(c){ return c.modo || ''; }
+    /* ci_c_abrir no ordena: es la columna del boton. */
+  };
+
+  /* Los montones, con las palabras que ya usaban los titulos de antes. */
+  var CI_MONTONES = ['todas', 'activas', 'pasadas', 'canceladas'];
+  var CI_ROTULO = {todas:'ci_m_todas', activas:'ag_activas',
+                   pasadas:'ag_pasadas', canceladas:'ag_canceladas'};
+  var ciFiltro = 'todas';
+  var ciAbierta = null;        /* que cita esta desplegada, si alguna */
+  var ciOrden = ordenDeTabla(function(){ pintaAgenda(); });
+
+  function ciMonton(c){
+    if (c.estado === 'cancelada') return 'canceladas';
+    if (CI_VIVAS.indexOf(c.estado) >= 0) return 'activas';
+    return 'pasadas';
+  }
+  function ciCuadra(c){ return ciFiltro === 'todas' || ciMonton(c) === ciFiltro; }
+
   function pintaAgenda(){
     if (!ciLista) return;
     var u = T();
@@ -12015,80 +12069,109 @@ applyLang(idiomaParaMi());
       ciNavN.hidden = (vivas.length === 0);
     }
 
-    ciLista.textContent = '';
-    if (!agenda.length){
-      ciLista.appendChild(el('div', 'ci-vacia', u.ci_vacia || ''));
-      return;
+    /* La tabla se rehace entera en cada pasada. La cabecera SIEMPRE, tambien
+       sin citas: una tabla con cinco titulos y el cuerpo vacio se lee como
+       «no tienes ninguna», y una sin titulos se lee como rota. */
+    var cuerpo = document.getElementById('ciCuerpo');
+    var cab    = document.getElementById('ciCab');
+    var vacia  = document.getElementById('ciVacia');
+    var fils   = document.getElementById('ciFiltros');
+    if (!cuerpo || !cab) return;
+
+    /* ── los montones, arriba, con su cuenta ──
+       El que no tiene ninguna NO se ofrece: un boton que lleva a una lista en
+       blanco es una promesa que no se cumple. Es la misma regla que en Mis
+       tramites. */
+    if (fils){
+      fils.textContent = '';
+      CI_MONTONES.forEach(function(m){
+        var cuantas = (m === 'todas') ? agenda.length
+                    : agenda.filter(function(c){ return ciMonton(c) === m; }).length;
+        if (!cuantas && m !== 'todas') return;
+        var b = el('button', ciFiltro === m ? 'aqui' : null);
+        b.type = 'button';
+        b.setAttribute('aria-pressed', String(ciFiltro === m));
+        b.appendChild(document.createTextNode(u[CI_ROTULO[m]] || ''));
+        b.appendChild(el('span', 'n', String(cuantas)));
+        b.addEventListener('click', function(){ ciFiltro = m; pintaAgenda(); });
+        fils.appendChild(b);
+      });
     }
 
-    /* Tres montones, y en este orden: lo que está en marcha primero,
-       porque es lo único sobre lo que se puede hacer algo.
+    cab.textContent = '';
+    CI_COLUMNAS.forEach(function(k){
+      var th = document.createElement('th');
+      th.scope = 'col';
+      /* La columna del boton lleva su rotulo escondido: sin el, quien usa
+         lector de pantalla oye una columna sin nombre. */
+      if (k === 'ci_c_abrir') th.appendChild(el('span', 'visualmente-oculto', u[k] || ''));
+      else ciOrden.rotula(th, k, u[k] || '', CI_ORDENA[k]);
+      cab.appendChild(th);
+    });
 
-       Una cita 'solicitada' cuya ventana ya pasó SIGUE en marcha: el CIIP
-       no ha contestado, y bajarla a "ya pasaron" escondería justo eso. */
-    var enMarcha = agenda.filter(function(c){ return CI_VIVAS.indexOf(c.estado) >= 0; });
-    var pasadas  = agenda.filter(function(c){ return c.estado === 'hecha'; });
-    var muertas  = agenda.filter(function(c){ return c.estado === 'cancelada'; });
-
-    function seccion(titulo, n){
-      var h = el('div', 'ag-sec');
-      h.appendChild(el('span', 't', titulo || ''));
-      h.appendChild(el('span', 'n', String(n)));
-      ciLista.appendChild(h);
+    cuerpo.textContent = '';
+    var mias = agenda.filter(ciCuadra);
+    if (vacia){
+      vacia.hidden = !!mias.length;
+      vacia.textContent = mias.length ? ''
+        : (agenda.length ? (u.ag_sin_activas || '') : (u.ci_vacia || ''));
     }
+    if (!mias.length) return;
 
-    seccion(u.ag_activas, enMarcha.length);
-    if (enMarcha.length) enMarcha.forEach(pintaFichaCita);
-    /* Que no haya ninguna viva se dice, aunque debajo haya veinte
-       canceladas. Una pantalla llena de fichas que no sirven para nada
-       parece, de lejos, una pantalla llena de citas. */
-    else ciLista.appendChild(el('div', 'ci-vacia', u.ag_sin_activas || ''));
+    ciOrden.ordena(mias, CI_ORDENA).forEach(function(c){
+      var viva = (CI_VIVAS.indexOf(c.estado) >= 0);
+      var tr = document.createElement('tr');
+      /* De que cita es el renglon. Lo mismo que ya hacia la ficha, y por lo
+         mismo: sin esto no hay forma de señalar una cita concreta. */
+      tr.setAttribute('data-cita', c.id);
+      if (viva) tr.className = 'viva';
+      else if (c.estado === 'cancelada') tr.className = 'pasada';
 
-    if (pasadas.length){
-      seccion(u.ag_pasadas, pasadas.length);
-      pasadas.forEach(pintaFichaCita);
-    }
+      var chip = chipDeCita(c.estado);
+      var tdE = document.createElement('td');
+      tdE.appendChild(el('span', 'ct-chip' + (chip.clase ? ' ' + chip.clase : ''), chip.txt));
+      tr.appendChild(tdE);
 
-    /* Lo cancelado, plegado. Una cita no se borra —solo se cancela, para
-       que quede constancia de que se pidió—, así que esta lista solo
-       crece. Que crezca por debajo y no por encima. */
-    if (muertas.length){
-      seccion(u.ag_canceladas, muertas.length);
-      var pleg = el('button', 'ag-mas');
-      pleg.type = 'button';
-      var caja = el('div');
-      caja.hidden = true;
-      var rotula = function(){
-        pleg.textContent = caja.hidden
-          ? String(u.ag_ver || '').replace('{n}', muertas.length)
-          : (u.ag_ocultar || '');
-        pleg.setAttribute('aria-expanded', caja.hidden ? 'false' : 'true');
-      };
-      pleg.addEventListener('click', function(){ caja.hidden = !caja.hidden; rotula(); });
-      rotula();
-      ciLista.appendChild(pleg);
-      ciLista.appendChild(caja);
-      muertas.forEach(function(c){ caja.appendChild(filaCancelada(c)); });
-    }
-  }
+      tr.appendChild(el('td', 'mt-nombre', nombreDeTipo(c.tipo_tramite) || ''));
 
-  /* Una cancelada en un renglón: su modo, para cuándo la querías y
-     cuándo la pediste. Lo justo para reconocerla, que es todo lo que se
-     hace con una cita cancelada. */
-  function filaCancelada(c){
-    var u = T();
-    var f = el('div', 'ag-fila');
-    if (c.modo) f.appendChild(chipDeModo(c.modo));
-    f.appendChild(el('span', 'cu', c.cuando ? fechaHora(c.cuando)
-      : String(u.ci_ventana || '').replace('{desde}', fecha(c.desde))
-                                  .replace('{hasta}', fecha(c.hasta))));
-    /* La fecha de petición es lo único que distingue dos canceladas que
-       pedían los mismos días. Sin ella son veinte renglones idénticos. */
-    if (c.creado_en){
-      f.appendChild(el('span', 'pe',
-        String(u.ag_pedida || '').replace('{fecha}', fecha(c.creado_en))));
-    }
-    return f;
+      /* Confirmada dice cuando ES; sin confirmar, que dias pedias. Poner una
+         raya donde va la fecha seria dejar el renglon diciendo nada. */
+      tr.appendChild(el('td', 'mt-fecha', c.cuando
+        ? fechaHora(c.cuando)
+        : String(u.ci_ventana || '').replace('{desde}', fecha(c.desde)).replace('{hasta}', fecha(c.hasta))));
+
+      var tdM = document.createElement('td');
+      if (c.modo) tdM.appendChild(chipDeModo(c.modo));
+      tr.appendChild(tdM);
+
+      /* ── el boton que despliega la ficha ──
+         La ficha entera -con la conversacion del CIIP dentro- baja debajo de
+         su renglon. No se abre en otra pantalla a proposito: el hilo se lee
+         mirando la cita, y mandar a otra vista para contestar es justo lo que
+         hacia falta arreglar cuando se puso la conversacion aqui. */
+      var tdI = document.createElement('td');
+      var bt = el('button', 'btn ghost mt-ir', u.ci_c_abrir || '');
+      bt.type = 'button';
+      bt.setAttribute('aria-expanded', String(ciAbierta === c.id));
+      bt.addEventListener('click', function(){
+        ciAbierta = (ciAbierta === c.id) ? null : c.id;
+        pintaAgenda();
+      });
+      tdI.appendChild(bt);
+      tr.appendChild(tdI);
+      cuerpo.appendChild(tr);
+
+      if (ciAbierta === c.id){
+        var det = document.createElement('tr');
+        det.className = 'ci-detalle';
+        det.setAttribute('data-detalle', c.id);
+        var td = document.createElement('td');
+        td.colSpan = CI_COLUMNAS.length;
+        td.appendChild(pintaFichaCita(c));
+        det.appendChild(td);
+        cuerpo.appendChild(det);
+      }
+    });
   }
 
   function pintaFichaCita(c){
@@ -12169,7 +12252,13 @@ applyLang(idiomaParaMi());
 
     if (c.nota) f.appendChild(el('div', 'ci-nota', c.nota));
 
-    ciLista.appendChild(f);
+    /* DEVUELVE la ficha en vez de colgarla de la lista. Desde que la
+       agenda es una tabla, la ficha ya no va suelta: va dentro del
+       renglon desplegado de su cita, y quien la pide decide donde
+       ponerla. Eso es lo que permitio no reescribirla: la conversacion
+       con el CIIP vive aqui dentro y es lo unico de esta pantalla
+       sobre lo que se actua. */
+    return f;
   }
 
   function cargaAgenda(){
