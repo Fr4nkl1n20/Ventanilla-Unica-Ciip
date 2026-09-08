@@ -530,7 +530,22 @@ body[data-vista="acomp"] #cgVolver,
 body[data-vista="acomp"] #puVolver,
 body[data-vista="acomp"] #raVolver,
 body[data-vista="acomp"] #emVolver{display:none;}
-body[data-vista="acomp"] #soVolver{display:inline-flex;}
+/* ── LAS PANTALLAS EMPIEZAN POR SU CONTENIDO ──
+   Cada vista llevaba arriba un botón de volver, un título y un subtítulo.
+   Fuera los tres, por decisión del CIIP: quien entra en Documentos ya sabe
+   que está en Documentos, y la frase que lo explicaba se comía una franja
+   entera antes de lo que se venía a ver.
+
+   No se queda nadie encerrado, y se comprobó antes de quitarlo: el nombre de
+   la pantalla lo dice la miga de la barra de arriba y el renglón encendido de
+   la lateral, y la vuelta está en esa misma lateral, que por debajo de 840px
+   se abre con el botón de menú. Sin ese botón de menú esto no se haría.
+
+   DOS CONSERVAN SU VUELTA, por motivos distintos: el TRÁMITE, porque se llega
+   pulsando una ficha y volver a la lista de su fase es el gesto natural; y el
+   PLIEGO, que es una puerta legal y su botón es parte de la puerta. */
+body[data-vista="acomp"] #soVolver{display:none;}
+body[data-vista="acomp"] .fase-bar{display:none;}
 #soVolver{display:none;}
 
 .so-caja{background:var(--bg); border:1px solid var(--line);
@@ -594,7 +609,8 @@ body[data-vista="rastro"] #usVolver,
 body[data-vista="rastro"] #cgVolver,
 body[data-vista="rastro"] #puVolver,
 body[data-vista="rastro"] #emVolver{display:none;}
-body[data-vista="rastro"] #raVolver{display:inline-flex;}
+body[data-vista="rastro"] #raVolver{display:none;}
+body[data-vista="rastro"] .fase-bar{display:none;}
 #raVolver{display:none;}
 
 /* El rastro va en columnas: aqui no se actua sobre ningun renglon -solo se
@@ -657,7 +673,8 @@ body[data-vista="pulso"] #dcVolver,
 body[data-vista="pulso"] #usVolver,
 body[data-vista="pulso"] #cgVolver,
 body[data-vista="pulso"] #emVolver{display:none;}
-body[data-vista="pulso"] #puVolver{display:inline-flex;}
+body[data-vista="pulso"] #puVolver{display:none;}
+body[data-vista="pulso"] .fase-bar{display:none;}
 #puVolver{display:none;}
 
 /* Los numeros de arriba. Cinco columnas fijas y no auto-fit, por lo mismo
@@ -720,7 +737,8 @@ body[data-vista="catalogo"] #ayVolver,
 body[data-vista="catalogo"] #dcVolver,
 body[data-vista="catalogo"] #usVolver,
 body[data-vista="catalogo"] #emVolver{display:none;}
-body[data-vista="catalogo"] #cgVolver{display:inline-flex;}
+body[data-vista="catalogo"] #cgVolver{display:none;}
+body[data-vista="catalogo"] .fase-bar{display:none;}
 #cgVolver{display:none;}
 
 /* El aviso de lo que hace apagar. Va arriba y una sola vez: repetirlo en
@@ -805,7 +823,8 @@ body[data-vista="usuarios"] #acVolver,
 body[data-vista="usuarios"] #ayVolver,
 body[data-vista="usuarios"] #dcVolver,
 body[data-vista="usuarios"] #emVolver{display:none;}
-body[data-vista="usuarios"] #usVolver{display:inline-flex;}
+body[data-vista="usuarios"] #usVolver{display:none;}
+body[data-vista="usuarios"] .fase-bar{display:none;}
 #usVolver{display:none;}
 .sb-group[hidden]{display:none;}
 
@@ -906,7 +925,8 @@ body[data-vista="empresa"] #mtVolver,
 body[data-vista="empresa"] #acVolver,
 body[data-vista="empresa"] #ayVolver,
 body[data-vista="empresa"] #dcVolver{display:none;}
-body[data-vista="empresa"] #emVolver{display:inline-flex;}
+body[data-vista="empresa"] #emVolver{display:none;}
+body[data-vista="empresa"] .fase-bar{display:none;}
 #emVolver{display:none;}
 
 .em-tarjeta{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
@@ -1121,7 +1141,8 @@ body[data-vista="poratender"] #ciVolver,
 body[data-vista="poratender"] #mtVolver,
 body[data-vista="poratender"] #acVolver,
 body[data-vista="poratender"] #ayVolver{display:none;}
-body[data-vista="poratender"] #paVolver{display:inline-flex;}
+body[data-vista="poratender"] #paVolver{display:none;}
+body[data-vista="poratender"] .fase-bar{display:none;}
 #paVolver{display:none;}
 
 /* La fila entera se pulsa. El botón de la última columna se queda igual:
@@ -1155,7 +1176,8 @@ body[data-vista="documentos"] #ciVolver,
 body[data-vista="documentos"] #mtVolver,
 body[data-vista="documentos"] #acVolver,
 body[data-vista="documentos"] #ayVolver{display:none;}
-body[data-vista="documentos"] #dcVolver{display:inline-flex;}
+body[data-vista="documentos"] #dcVolver{display:none;}
+body[data-vista="documentos"] .fase-bar{display:none;}
 #dcVolver{display:none;}
 
 /* El formulario de subir uno nuevo. Empuja la lista en vez de flotar
@@ -1202,7 +1224,8 @@ body[data-vista="ayuda"] #trVolver,
 body[data-vista="ayuda"] #ciVolver,
 body[data-vista="ayuda"] #mtVolver,
 body[data-vista="ayuda"] #acVolver{display:none;}
-body[data-vista="ayuda"] #ayVolver{display:inline-flex;}
+body[data-vista="ayuda"] #ayVolver{display:none;}
+body[data-vista="ayuda"] .fase-bar{display:none;}
 #ayVolver{display:none;}
 
 .ay-lista{display:flex; flex-direction:column; gap:14px; max-width:760px;}
@@ -1242,7 +1265,8 @@ body[data-vista="activos"] #faseVolver,
 body[data-vista="activos"] #trVolver,
 body[data-vista="activos"] #ciVolver,
 body[data-vista="activos"] #mtVolver{display:none;}
-body[data-vista="activos"] #acVolver{display:inline-flex;}
+body[data-vista="activos"] #acVolver{display:none;}
+body[data-vista="activos"] .fase-bar{display:none;}
 #acVolver{display:none;}
 
 /* El monto en grande: es lo primero que mira quien viene a invertir. */
@@ -1336,7 +1360,8 @@ body[data-vista="citas"] .faq-sec{display:none;}
 body[data-vista="citas"] .fase-bar{display:flex;}
 body[data-vista="citas"] #faseVolver,
 body[data-vista="citas"] #trVolver{display:none;}
-body[data-vista="citas"] #ciVolver{display:inline-flex;}
+body[data-vista="citas"] #ciVolver{display:none;}
+body[data-vista="citas"] .fase-bar{display:none;}
 #ciVolver{display:none;}
 
 .ci-lista{display:flex; flex-direction:column; gap:10px;}
@@ -2681,7 +2706,8 @@ body[data-vista="fase"] .phase-cab > .chev{display:none;}
    Se arregla con las dos piezas juntas, y hacen falta las dos: la rejilla
    estira todas las de una fila a la misma altura, y el pie se va al fondo con
    el margen automatico. Solo lo primero deja el pie flotando a media tarjeta;
-   solo lo segundo no hace nada, porque sin estirar no hay fondo al que ir. */
+   solo lo segundo no hace nada, porque sin estirar no hay fondo al que ir.
+
    Y hacen falta TRES piezas, no dos. La tercera es align-self en el cuerpo:
    la tarjeta se coloca con align-items:flex-start -para que la placa del
    organismo no se estire- y eso encoge tambien al cuerpo, que se queda tan
@@ -4011,8 +4037,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
          fijo, tres constantes y el diccionario. -->
     <div class="acomp-vista">
       <div class="sec-h">
-        <div class="t" data-i18n="nav.acomp">Support widget</div>
-        <div class="sub" id="soSub"></div>
       </div>
       <div class="ra-nota" id="soSinSql" hidden></div>
       <div class="so-caja">
@@ -4039,8 +4063,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
          apuntaban en la base desde el primer dia y no los enseñaba nadie. -->
     <div class="rastro-vista">
       <div class="sec-h">
-        <div class="t" data-i18n="nav.rastro">Trail</div>
-        <div class="sub" id="raSub"></div>
       </div>
       <div class="ra-nota" id="raNota"></div>
       <div class="ra-mandos" id="raMandos" hidden>
@@ -4065,8 +4087,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
          era tener dos cifras esperando a no coincidir. -->
     <div class="pulso-vista">
       <div class="sec-h">
-        <div class="t" data-i18n="nav.pulso">Pulse</div>
-        <div class="sub" id="puSub"></div>
       </div>
       <div class="pu-nums" id="puNums"></div>
       <div class="pu-caja">
@@ -4085,8 +4105,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
          esto se movia escribiendo SQL a mano en Supabase. -->
     <div class="catalogo-vista">
       <div class="sec-h">
-        <div class="t" data-i18n="nav.catalogo">Catalogue</div>
-        <div class="sub" id="cgSub"></div>
       </div>
       <div class="cg-nota" id="cgNota"></div>
       <!-- Los mandos. Nacen escondidos y pintaCatalogo decide: con menos de
@@ -4111,8 +4129,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 
     <div class="usuarios-vista">
       <div class="sec-h">
-        <div class="t" data-i18n="nav.users">Users &amp; team</div>
-        <div class="sub" id="usSub"></div>
       </div>
       <div id="usMetricas"></div>
       <div class="us-mandos" id="usMandos" hidden>
@@ -4130,8 +4146,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
          formularios, el RIF en seis, la direccion fiscal en cinco. -->
     <div class="empresa-vista">
       <div class="sec-h">
-        <div class="t" data-i18n="nav.company">My company</div>
-        <div class="sub" id="emSub"></div>
         <div class="spacer"></div>
         <button class="btn navy" id="emBoton" type="button" hidden></button>
       </div>
@@ -4143,8 +4157,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
          alguno esta vencido antes de que un ente te lo diga. -->
     <div class="docs-vista">
       <div class="sec-h">
-        <div class="t" data-i18n="nav.documents">Documents</div>
-        <div class="sub" id="dcSub"></div>
       </div>
 
       <!-- El "guardado" va antes de la tabla, no dentro: el formulario que
@@ -4202,8 +4214,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
          primer día. -->
     <div class="pa-vista">
       <div class="sec-h">
-        <div class="t" data-i18n="nav.queue">Procedures to handle</div>
-        <div class="sub" id="paSub"></div>
       </div>
       <div class="co-filtros" id="paFiltros"></div>
       <div class="tabla-caja">
@@ -4220,8 +4230,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
          lo que no explicaba nadie. -->
     <div class="ayuda-vista">
       <div class="sec-h">
-        <div class="t" data-i18n="nav.help">Help & guide</div>
-        <div class="sub" id="aySub"></div>
       </div>
       <div class="ay-lista" id="ayLista"></div>
     </div>
@@ -4247,8 +4255,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
          mirarlo. Por eso es un listado y no un formulario. -->
     <div class="activos-vista">
       <div class="sec-h">
-        <div class="t" data-i18n="nav.assets">Assets & projects</div>
-        <div class="sub" id="acSub"></div>
         <div class="spacer"></div>
         <!-- La tabla se llena A MANO, y se llena desde aqui. Mandar al
              equipo al editor de tablas de Supabase para publicar una
@@ -4291,8 +4297,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
          desde la barra lateral y la flecha "atras" del navegador funciona. -->
     <div class="citas-vista">
       <div class="sec-h">
-        <div class="t" data-i18n="nav.appointments">Appointments</div>
-        <div class="sub" id="ciSub"></div>
         <div class="spacer"></div>
         <button class="btn navy" id="ciPedir" type="button"></button>
       </div>
@@ -12826,7 +12830,7 @@ applyLang(idiomaParaMi());
     if (!cuerpo) return;
     var u = T();
     var sub = document.getElementById('paSub');
-    if (sub) sub.textContent = u.co_sub || '';
+    if (sub) sub.textContent = '';
 
     var cab = document.getElementById('paCab');
     if (cab){
@@ -13086,7 +13090,7 @@ applyLang(idiomaParaMi());
     if (!ciLista) return;
     var u = T();
     var sub = document.getElementById('ciSub');
-    if (sub) sub.textContent = u.ci_sub || '';
+    if (sub) sub.textContent = '';
 
     /* El botón de pedir solo cuando no hay ninguna viva: con una en marcha,
        la ventana no dejaría pedir otra, y ofrecerlo sería mentir. */
@@ -13708,7 +13712,7 @@ applyLang(idiomaParaMi());
       acNuevo.hidden = !equipo;
     }
     var sub = document.getElementById('acSub');
-    if (sub) sub.textContent = u.ac_sub || '';
+    if (sub) sub.textContent = '';
 
     /* El contador cuenta lo que se puede tomar, no lo que hay listado: un
        activo reservado ya tiene a alguien delante. */
@@ -14827,7 +14831,7 @@ applyLang(idiomaParaMi());
     var u = T();
     var dic = I18N[curLang] || I18N.en;
     var sub = document.getElementById('aySub');
-    if (sub) sub.textContent = u.ay_sub || '';
+    if (sub) sub.textContent = '';
 
     ayLista.textContent = '';
 
@@ -15087,7 +15091,7 @@ applyLang(idiomaParaMi());
     if (!dcLista) return;
     var u = T();
     var sub = document.getElementById('dcSub');
-    if (sub) sub.textContent = u.dc_sub || '';
+    if (sub) sub.textContent = '';
     /* El renglón se va del menú entero, no se queda en gris: un sitio al
        que no vas a entrar no tiene por qué ocuparte una línea. */
     if (dcNav) dcNav.hidden = !laBovedaEsMia();
@@ -15845,7 +15849,7 @@ applyLang(idiomaParaMi());
     if (!emCuerpo) return;
     var u = T();
     var sub = document.getElementById('emSub');
-    if (sub) sub.textContent = u.em_sub || '';
+    if (sub) sub.textContent = '';
 
     if (emBoton){
       emBoton.textContent = EMPRESA ? (u.ac_editar || '') : (u.em_registrar || '');
@@ -16653,7 +16657,7 @@ applyLang(idiomaParaMi());
     if (!usLista) return;
     var u = T();
     var sub = document.getElementById('usSub');
-    if (sub) sub.textContent = u.us_sub || '';
+    if (sub) sub.textContent = '';
     if (usGrupo) usGrupo.hidden = !esAdmin();
 
     pintaMetricas();
@@ -17330,7 +17334,7 @@ applyLang(idiomaParaMi());
     var u = T();
     var d = I18N[curLang] || I18N.en;
     var sub = document.getElementById('raSub');
-    if (sub) sub.textContent = u.ra_sub || '';
+    if (sub) sub.textContent = '';
     /* Y la nota dice lo que falta HOY, que no es lo mismo con bitacora
        que sin ella. Una nota fija acaba avisando de un agujero que ya se
        tapo, y eso es tan falso como callar el que sigue abierto. */
@@ -17576,7 +17580,7 @@ applyLang(idiomaParaMi());
     if (!puNums) return;
     var u = T();
     var sub = document.getElementById('puSub');
-    if (sub) sub.textContent = u.pu_sub || '';
+    if (sub) sub.textContent = '';
     document.getElementById('puTestados').textContent = u.pu_estados || '';
     document.getElementById('puTcola').textContent = u.pu_cola || '';
 
@@ -17828,7 +17832,7 @@ applyLang(idiomaParaMi());
     var u = T();
     var d = I18N[curLang] || I18N.en;
     var sub = document.getElementById('cgSub');
-    if (sub) sub.textContent = u.cg_sub || '';
+    if (sub) sub.textContent = '';
     var nota = document.getElementById('cgNota');
     if (nota) nota.textContent = u.cg_aviso || '';
 

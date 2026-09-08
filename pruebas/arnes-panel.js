@@ -199,6 +199,8 @@
               franjaDescarta, franjaTrasDescartar,
               fotoAbre, fotoMira, fotoMala, fotoSube, fotoTrasSubir, fotoCierra,
               logosMiran, tokensMiran,
+              cabecerasMiran,
+              comentariosMiran,
               letraMira,
               habilesMira,
               iFasesMira,
@@ -6297,6 +6299,79 @@
        la CAUSA esté donde esté el fallo. Con eso basta. */
   }
 
+
+
+  /* ── LOS COMENTARIOS DE LA HOJA, CUADRADOS ───────────────────────────────
+     Tercera vez que esto muerde, y las tres iguales: alguien amplía un
+     comentario y el texto nuevo cae DETRÁS del cierre que ya lo terminaba
+     -las dos letras que aqui no se pueden ni escribir, porque cerrarian este
+     mismo comentario-. Lo que
+     queda suelto no da error —el navegador lo lee como si fuera un selector—
+     y se traga la regla siguiente entera.
+
+     La primera vez se comió la línea de --navy y todos los botones azules del
+     panel salieron blancos sobre blanco. La tercera se comió
+     «.grid-tr{align-items:stretch}», una de las tres piezas que cuadran las
+     fichas: seguía cuadrando por las otras dos, así que ni se notaba.
+
+     Contar aperturas y cierres cuesta una milésima y lo caza siempre. */
+  function comentariosMiran(){
+    var texto = '';
+    [].forEach.call(document.querySelectorAll('style'), function(h){ texto += h.textContent; });
+    ok('comentarios: hay hoja que mirar', texto.length > 20000,
+       texto.length + ' caracteres de estilos', 'la hoja entera');
+
+    var i = 0, prof = 0, sobran = 0, dentro = 0;
+    while (i < texto.length){
+      if (texto.charAt(i) === '/' && texto.charAt(i + 1) === '*'){
+        if (prof > 0) dentro++;
+        prof++; i += 2; continue;
+      }
+      if (texto.charAt(i) === '*' && texto.charAt(i + 1) === '/'){
+        prof--;
+        if (prof < 0){ sobran++; prof = 0; }
+        i += 2; continue;
+      }
+      i++;
+    }
+    igual('comentarios: ninguno se queda sin cerrar', prof, 0);
+    igual('comentarios: y ningún cierre sobra, que se lleva la regla de al lado', sobran, 0);
+    igual('comentarios: ni se abre uno dentro de otro', dentro, 0);
+  }
+
+
+  /* ── LAS PANTALLAS EMPIEZAN POR SU CONTENIDO ─────────────────────────────
+     Cada vista llevaba arriba un botón de volver, un título y un subtítulo.
+     Fuera los tres. Se comprueba en el ÁRBOL y sin navegar: las quince
+     pantallas están todas en el documento, sólo se enseña una.
+
+     Y se comprueban las DOS caras. La segunda es la que importa: dentro de
+     esas cabeceras vivían tres BOTONES DE ACCIÓN —«Editar» en Mi empresa,
+     «Publicar» en Activos, «Pedir cita» en Citas— y llevárselos por delante
+     al quitar la cabecera sería quitar funciones, no adorno. Un borrado
+     alegre habría pasado la primera mitad y roto tres pantallas. */
+  function cabecerasMiran(){
+    var vistas = document.querySelectorAll('[class$="-vista"]');
+    ok('cabeceras: hay pantallas que mirar', vistas.length >= 10,
+       vistas.length + ' pantallas', '10 o más');
+
+    var conTitulo = [];
+    [].forEach.call(vistas, function(v){
+      /* El pliego se queda con el suyo: es un documento legal. */
+      if (v.className.indexOf('pliego') >= 0) return;
+      var h = v.querySelector('.sec-h .t');
+      if (h) conTitulo.push(v.className);
+    });
+    igual('cabeceras: ninguna pantalla lleva ya su título arriba',
+          conTitulo.length ? conTitulo.slice(0, 3).join(', ') : '(ninguna)', '(ninguna)');
+
+    /* Los tres botones que vivían ahí dentro siguen existiendo. */
+    var faltan = ['emBoton', 'acNuevo', 'ciPedir'].filter(function(id){
+      return !document.getElementById(id);
+    });
+    igual('cabeceras: pero los botones que había dentro siguen',
+          faltan.length ? faltan.join(', ') : '(están los tres)', '(están los tres)');
+  }
 
   function gestionAbre(){
     if (CASO !== 'vacio') return;

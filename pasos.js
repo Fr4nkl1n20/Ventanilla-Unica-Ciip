@@ -515,7 +515,6 @@ window.CIIP_PASOS = {
       co_sinarch:   "No adjuntó ningún archivo.",
       co_noabre:    "No se pudo abrir el archivo.",
       /* --- Citas y agenda --- */
-      ac_sub:       "Lo que el CIIP tiene abierto a inversión",
       ac_vacia:     "Todavía no hay activos publicados. El equipo del CIIP los va cargando.",
       ac_disponible:"Disponible",
       ac_reservado: "Reservado",
@@ -555,7 +554,6 @@ window.CIIP_PASOS = {
       /* Ayuda y guía. No repite las preguntas de la portada -esas van de
          invertir en Venezuela-: esto explica cómo funciona el panel, que
          no lo contaba nadie. */
-      ay_sub:     "Cómo funciona tu panel",
       ay_h1:      "Cómo va una solicitud",
       ay_ente:    "el organismo",
       /* Y que pasa en cada paso. Enumerarlos sin explicarlos deja sin
@@ -642,7 +640,6 @@ window.CIIP_PASOS = {
       pf_sector0: "Sin elegir",
       /* La bóveda. Los recaudos ya se guardaban y se reutilizaban; lo que
          faltaba era poder verlos todos juntos. */
-      dc_sub:      "Todo lo que has subido, en un solo sitio",
       dc_vacia:    "Todavía no has subido ningún documento. Sube aquí los que ya tengas: cada formulario que los pida te los ofrecerá ya cargados.",
       dc_subido:   "Subido el {fecha}",
       dc_c_doc:     "Documento",
@@ -725,7 +722,6 @@ window.CIIP_PASOS = {
       /* Mi empresa. Las etiquetas de los campos NO se escriben aquí: son
          las mismas f_* que usan los formularios, para que la empresa y el
          trámite llamen igual a lo mismo. */
-      em_sub:       "Los datos de tu compañía, escritos una sola vez",
       em_vacia:     "Todavía no has registrado tu empresa. Cuando lo hagas, los formularios que pidan estos datos te los ofrecerán ya escritos.",
       em_registrar: "Registrar mi empresa",
       em_ficha_n:   "Registrar tu empresa",
@@ -772,7 +768,6 @@ window.CIIP_PASOS = {
       /* El catálogo. Encender un trámite es la palanca más grande del
          panel: decide si enseña su formulario de verdad o solo la
          escalera. Hasta ahora se movía escribiendo SQL a mano. */
-      cg_sub:       "Qué ofrece la ventanilla hoy, y qué no",
       cg_f_todos:   "Todos",
       cg_f_on:      "Encendidos",
       cg_f_off:     "Apagados",
@@ -794,7 +789,6 @@ window.CIIP_PASOS = {
       cg_nopudo:    "No se guardó: la base no dejó. Pasa supabase-catalogos.sql en Supabase y vuelve a intentarlo.",
       cg_error:     "No se pudo guardar. Vuelve a intentarlo.",
       cg_aviso:     "Apagar no borra nada: los expedientes ya enviados siguen donde estaban. Lo que se apaga deja de ofrecerse a quien no lo haya empezado.",
-      us_sub:      "Quién entra y con qué papel",
       us_equipo:   "El equipo",
       us_todos:    "Todas las cuentas",
       us_tuya:     "Tu cuenta",
@@ -848,7 +842,6 @@ window.CIIP_PASOS = {
       sop_guardado:   "Guardado. Ya está en el panel de todos.",
       sop_nopudo:     "No se guardó. Puede que la base no te deje: pasa supabase-acompanamiento.sql.",
       sop_sinsql:     "Falta pasar supabase-acompanamiento.sql en Supabase. Mientras tanto el acompañamiento usa sus valores de siempre.",
-      ra_sub:        "Quién hizo qué, y cuándo",
       /* En columnas el verbo y el objeto van en celdas distintas, asi que
          las frases enteras no valen: se guardan partidas. */
       ra_c_cuando:   "Cuándo",
@@ -893,7 +886,6 @@ window.CIIP_PASOS = {
       ra_base:       "Desde la base",
       ra_sinnombre:  "Sin nombre",
       ra_nota:       "Se guarda el último movimiento de cada cosa, no su historial. Y los papeles y las citas todavía no dejan rastro.",
-      pu_sub:        "Cómo va la oficina ahora mismo",
       pu_m_marcha:   "Trámites en marcha",
       pu_m_espera:   "Esperando respuesta",
       pu_m_citas:    "Citas por confirmar",
@@ -945,7 +937,6 @@ window.CIIP_PASOS = {
       mt_c_fecha:   "Fecha",
       mt_c_abrir:   "Abrir el trámite",
       mt_abrir:     "Abrir",
-      ci_sub:       "Tus citas con el equipo del CIIP",
       ci_vacia:     "Todavía no has pedido ninguna cita.",
       /* La agenda repartida. Lo cancelado es lo menos util y era lo que
          se comia la pantalla: baja a un renglon que se despliega. */
@@ -1324,7 +1315,6 @@ window.CIIP_PASOS = {
       co_sinarch:   "No files attached.",
       co_noabre:    "Could not open the file.",
       /* --- Meetings --- */
-      ac_sub:       "What CIIP has open to investment",
       ac_vacia:     "No assets published yet. The CIIP team is still loading them.",
       ac_disponible:"Available",
       ac_reservado: "Reserved",
@@ -1364,7 +1354,6 @@ window.CIIP_PASOS = {
       /* Help & guide. It does not repeat the questions on the dashboard
          —those are about investing in Venezuela—: this explains how the
          panel works, which nothing did. */
-      ay_sub:     "How your panel works",
       ay_h1:      "How a request moves",
       ay_ente:    "the agency",
       ay_e1: "It is on record with a date and time, and you can no longer edit it. If something is missing we send it back with a note, and it is in your hands again.",
@@ -1436,7 +1425,6 @@ window.CIIP_PASOS = {
       pf_sector0: "Not chosen",
       /* The vault. Documents were already stored and reused; what was
          missing was seeing them all in one place. */
-      dc_sub:      "Everything you've uploaded, in one place",
       dc_vacia:    "You haven't uploaded any documents yet. Upload the ones you already have: every form that asks for them will offer them already loaded.",
       dc_subido:   "Uploaded {fecha}",
       dc_c_doc:     "Document",
@@ -1515,7 +1503,6 @@ window.CIIP_PASOS = {
       /* My company. Field labels are NOT written here: they are the same
          f_* the forms use, so company and procedure call the same thing by
          the same name. */
-      em_sub:       "Your company's details, written once",
       em_vacia:     "You haven't registered your company yet. Once you do, the forms that ask for these details will offer them already filled in.",
       em_registrar: "Register my company",
       em_ficha_n:   "Register your company",
@@ -1550,7 +1537,6 @@ window.CIIP_PASOS = {
       tr_entrega_p: "The agency issued it and CIIP left it in your file.",
       /* Users and team. Only an admin sees it, and the database checks
          again: hiding the row was never the lock. */
-      cg_sub:       "What the window offers today, and what it does not",
       cg_f_todos:   "All",
       cg_f_on:      "On",
       cg_f_off:     "Off",
@@ -1572,7 +1558,6 @@ window.CIIP_PASOS = {
       cg_nopudo:    "Not saved: the database refused. Run supabase-catalogos.sql in Supabase and try again.",
       cg_error:     "It could not be saved. Try again.",
       cg_aviso:     "Switching off deletes nothing: applications already sent stay where they were. What you switch off stops being offered to anyone who has not started it.",
-      us_sub:      "Who gets in, and in what role",
       us_equipo:   "The team",
       us_todos:    "All accounts",
       us_tuya:     "Your account",
@@ -1616,7 +1601,6 @@ window.CIIP_PASOS = {
       sop_guardado:   "Saved. It is live for everyone.",
       sop_nopudo:     "It was not saved. The database may not allow it: run supabase-acompanamiento.sql.",
       sop_sinsql:     "Run supabase-acompanamiento.sql in Supabase. Until then the support widget uses its built-in values.",
-      ra_sub:        "Who did what, and when",
       ra_c_cuando:   "When",
       ra_c_quien:    "Who",
       ra_c_que:      "What",
@@ -1650,7 +1634,6 @@ window.CIIP_PASOS = {
       ra_base:       "From the database",
       ra_sinnombre:  "No name",
       ra_nota:       "Only the latest change to each thing is kept, not its history. And papers and meetings leave no trail yet.",
-      pu_sub:        "How the office is doing right now",
       pu_m_marcha:   "Procedures under way",
       pu_m_espera:   "Waiting for an answer",
       pu_m_citas:    "Meetings to confirm",
@@ -1697,7 +1680,6 @@ window.CIIP_PASOS = {
       mt_c_fecha:   "Date",
       mt_c_abrir:   "Open the procedure",
       mt_abrir:     "Open",
-      ci_sub:       "Your meetings with the CIIP team",
       ci_vacia:     "You have not requested any meeting yet.",
       ag_activas:  "Active",
       j_aqui:"You are here",
@@ -2074,7 +2056,6 @@ window.CIIP_PASOS = {
       co_sinarch:   "Não anexou nenhum ficheiro.",
       co_noabre:    "Não foi possível abrir o ficheiro.",
       /* --- Reuniões --- */
-      ac_sub:       "O que o CIIP tem aberto a investimento",
       ac_vacia:     "Ainda não há ativos publicados. A equipa do CIIP está a carregá-los.",
       ac_disponible:"Disponível",
       ac_reservado: "Reservado",
@@ -2112,7 +2093,6 @@ window.CIIP_PASOS = {
       ac_rango:     "O montante «até» não pode ser menor do que o de «desde».",
       ac_error:     "Não foi possível guardar. {e}",
       /* Ajuda e guia. Não repete as perguntas da página inicial. */
-      ay_sub:     "Como funciona o seu painel",
       ay_h1:      "Como anda um pedido",
       ay_ente:    "o organismo",
       ay_e1: "Ficou registada com data e hora e já não a pode editar. Se faltar algo, devolvemo-la com uma nota e volta a estar nas suas mãos.",
@@ -2175,7 +2155,6 @@ window.CIIP_PASOS = {
       pf_fotolista:  "Guardada.",
       pf_sector0: "Por escolher",
       /* O cofre dos documentos. */
-      dc_sub:      "Tudo o que carregou, num só sítio",
       dc_vacia:    "Ainda não carregou nenhum documento. Carregue aqui os que já tem: cada formulário que os pedir vai oferecê-los já carregados.",
       dc_subido:   "Carregado a {fecha}",
       dc_c_doc:     "Documento",
@@ -2252,7 +2231,6 @@ window.CIIP_PASOS = {
       dc_pesa:      "O ficheiro tem mais de 10 MB. Carregue um mais leve.",
       dc_tipo:      "Tem de ser uma imagem ou um PDF.",
       /* A minha empresa. */
-      em_sub:       "Os dados da sua empresa, escritos uma só vez",
       em_vacia:     "Ainda não registou a sua empresa. Quando o fizer, os formulários que peçam estes dados oferecê-los-ão já escritos.",
       em_registrar: "Registar a minha empresa",
       em_ficha_n:   "Registar a sua empresa",
@@ -2284,7 +2262,6 @@ window.CIIP_PASOS = {
       tr_entregado: "O seu documento",
       tr_entrega_p: "Foi o organismo que o emitiu e o CIIP deixou-o no seu processo.",
       /* Utilizadores e equipa. */
-      cg_sub:       "O que a ventanilla oferece hoje, e o que não",
       cg_f_todos:   "Todos",
       cg_f_on:      "Ligados",
       cg_f_off:     "Desligados",
@@ -2306,7 +2283,6 @@ window.CIIP_PASOS = {
       cg_nopudo:    "Não se guardou: a base não deixou. Passe supabase-catalogos.sql no Supabase e tente outra vez.",
       cg_error:     "Não se pôde guardar. Tente outra vez.",
       cg_aviso:     "Desligar não apaga nada: os processos já enviados ficam onde estavam. O que se desliga deixa de se oferecer a quem não o tenha começado.",
-      us_sub:      "Quem entra e com que papel",
       us_equipo:   "A equipa",
       us_todos:    "Todas as contas",
       us_tuya:     "A sua conta",
@@ -2350,7 +2326,6 @@ window.CIIP_PASOS = {
       sop_guardado:   "Guardado. Já está no painel de todos.",
       sop_nopudo:     "Não se guardou. Talvez a base não deixe: passe supabase-acompanamiento.sql.",
       sop_sinsql:     "Falta passar supabase-acompanamiento.sql no Supabase. Entretanto o acompanhamento usa os valores de sempre.",
-      ra_sub:        "Quem fez o quê, e quando",
       ra_c_cuando:   "Quando",
       ra_c_quien:    "Quem",
       ra_c_que:      "O quê",
@@ -2384,7 +2359,6 @@ window.CIIP_PASOS = {
       ra_base:       "A partir da base",
       ra_sinnombre:  "Sem nome",
       ra_nota:       "Guarda-se o último movimento de cada coisa, não o seu historial. E os papéis e as reuniões ainda não deixam rasto.",
-      pu_sub:        "Como vai o escritório neste momento",
       pu_m_marcha:   "Trâmites em curso",
       pu_m_espera:   "À espera de resposta",
       pu_m_citas:    "Reuniões por confirmar",
@@ -2430,7 +2404,6 @@ window.CIIP_PASOS = {
       mt_c_fecha:   "Data",
       mt_c_abrir:   "Abrir o trâmite",
       mt_abrir:     "Abrir",
-      ci_sub:       "As suas reuniões com a equipa do CIIP",
       ci_vacia:     "Ainda não pediu nenhuma reunião.",
       ag_activas:  "Em curso",
       j_aqui:"Está aqui",
@@ -2807,7 +2780,6 @@ window.CIIP_PASOS = {
       co_sinarch:   "Non ha allegato nessun file.",
       co_noabre:    "Non è stato possibile aprire il file.",
       /* --- Appuntamenti --- */
-      ac_sub:       "Ciò che il CIIP ha aperto agli investimenti",
       ac_vacia:     "Non ci sono ancora asset pubblicati. Il team CIIP li sta caricando.",
       ac_disponible:"Disponibile",
       ac_reservado: "Riservato",
@@ -2845,7 +2817,6 @@ window.CIIP_PASOS = {
       ac_rango:     "L'importo «a» non può essere minore di quello «da».",
       ac_error:     "Non è stato possibile salvare. {e}",
       /* Aiuto e guida. Non ripete le domande della pagina iniziale. */
-      ay_sub:     "Come funziona il tuo pannello",
       ay_h1:      "Come procede una richiesta",
       ay_ente:    "l'ente",
       ay_e1: "È registrata con data e ora e non puoi più modificarla. Se manca qualcosa te la restituiamo con una nota e torna nelle tue mani.",
@@ -2908,7 +2879,6 @@ window.CIIP_PASOS = {
       pf_fotolista:  "Salvata.",
       pf_sector0: "Non scelto",
       /* L'archivio dei documenti. */
-      dc_sub:      "Tutto quello che hai caricato, in un solo posto",
       dc_vacia:    "Non hai ancora caricato nessun documento. Carica qui quelli che hai già: ogni modulo che li chiede te li propone già caricati.",
       dc_subido:   "Caricato il {fecha}",
       dc_c_doc:     "Documento",
@@ -2985,7 +2955,6 @@ window.CIIP_PASOS = {
       dc_pesa:      "Il file supera i 10 MB. Caricane uno più leggero.",
       dc_tipo:      "Deve essere un’immagine o un PDF.",
       /* La mia azienda. */
-      em_sub:       "I dati della tua azienda, scritti una volta sola",
       em_vacia:     "Non hai ancora registrato la tua azienda. Quando lo farai, i moduli che chiedono questi dati te li proporranno già scritti.",
       em_registrar: "Registra la mia azienda",
       em_ficha_n:   "Registra la tua azienda",
@@ -3017,7 +2986,6 @@ window.CIIP_PASOS = {
       tr_entregado: "Il tuo documento",
       tr_entrega_p: "L'ha rilasciato l'ente e il CIIP l'ha messo nel tuo fascicolo.",
       /* Utenti e team. */
-      cg_sub:       "Cosa offre lo sportello oggi, e cosa no",
       cg_f_todos:   "Tutti",
       cg_f_on:      "Accesi",
       cg_f_off:     "Spenti",
@@ -3039,7 +3007,6 @@ window.CIIP_PASOS = {
       cg_nopudo:    "Non salvato: il database non lo ha permesso. Esegui supabase-catalogos.sql su Supabase e riprova.",
       cg_error:     "Non si è potuto salvare. Riprova.",
       cg_aviso:     "Spegnere non cancella nulla: le pratiche già inviate restano dov'erano. Ciò che si spegne smette di essere offerto a chi non l'ha iniziato.",
-      us_sub:      "Chi entra, e con che ruolo",
       us_equipo:   "Il team",
       us_todos:    "Tutti gli account",
       us_tuya:     "Il tuo account",
@@ -3083,7 +3050,6 @@ window.CIIP_PASOS = {
       sop_guardado:   "Salvato. È già nel pannello di tutti.",
       sop_nopudo:     "Non è stato salvato. Forse il database non lo permette: passa supabase-acompanamiento.sql.",
       sop_sinsql:     "Manca passare supabase-acompanamiento.sql in Supabase. Nel frattempo l'assistenza usa i valori di sempre.",
-      ra_sub:        "Chi ha fatto cosa, e quando",
       ra_c_cuando:   "Quando",
       ra_c_quien:    "Chi",
       ra_c_que:      "Cosa",
@@ -3117,7 +3083,6 @@ window.CIIP_PASOS = {
       ra_base:       "Dal database",
       ra_sinnombre:  "Senza nome",
       ra_nota:       "Si conserva solo l'ultimo movimento di ogni cosa, non la sua storia. E documenti e incontri non lasciano ancora traccia.",
-      pu_sub:        "Come va l'ufficio in questo momento",
       pu_m_marcha:   "Pratiche in corso",
       pu_m_espera:   "In attesa di risposta",
       pu_m_citas:    "Incontri da confermare",
@@ -3163,7 +3128,6 @@ window.CIIP_PASOS = {
       mt_c_fecha:   "Data",
       mt_c_abrir:   "Apri la pratica",
       mt_abrir:     "Apri",
-      ci_sub:       "I tuoi appuntamenti con il team CIIP",
       ci_vacia:     "Non hai ancora chiesto nessun appuntamento.",
       ag_activas:  "In corso",
       j_aqui:"Sei qui",
@@ -3540,7 +3504,6 @@ window.CIIP_PASOS = {
       co_sinarch:   "未上传任何文件。",
       co_noabre:    "无法打开文件。",
       /* --- 会面与日程 --- */
-      ac_sub:       "CIIP 开放投资的项目",
       ac_vacia:     "尚未发布项目。CIIP 团队正在录入。",
       ac_disponible:"可投资",
       ac_reservado: "已预留",
@@ -3578,7 +3541,6 @@ window.CIIP_PASOS = {
       ac_rango:     "上限金额不能小于下限金额。",
       ac_error:     "保存失败。{e}",
       /* 帮助与指南。不重复首页的问答。 */
-      ay_sub:     "面板怎么用",
       ay_h1:      "一份申请如何推进",
       ay_ente:    "主管机关",
       ay_e1: "申请已连同日期和时间存档，您不能再修改。若有缺漏，我们会附上说明退回，它便重新回到您手上。",
@@ -3641,7 +3603,6 @@ window.CIIP_PASOS = {
       pf_fotolista:  "已保存。",
       pf_sector0: "尚未选择",
       /* 材料库。 */
-      dc_sub:      "您上传的全部材料，都在这里",
       dc_vacia:    "您还没有上传任何文件。把已有的传到这里：以后需要它们的表单会自动带上。",
       dc_subido:   "{fecha} 上传",
       dc_c_doc:     "文件",
@@ -3718,7 +3679,6 @@ window.CIIP_PASOS = {
       dc_pesa:      "文件超过 10 MB，请上传更小的文件。",
       dc_tipo:      "必须是图片或 PDF 文件。",
       /* 我的公司。 */
-      em_sub:       "公司资料，只填一次",
       em_vacia:     "您还没有登记公司。登记后，需要这些资料的表单会直接帮您填好。",
       em_registrar: "登记我的公司",
       em_ficha_n:   "登记您的公司",
@@ -3750,7 +3710,6 @@ window.CIIP_PASOS = {
       tr_entregado: "您的文件",
       tr_entrega_p: "由主管机关签发，CIIP 已放入您的档案。",
       /* 用户与团队。 */
-      cg_sub:       "窗口今天提供什么，不提供什么",
       cg_f_todos:   "全部",
       cg_f_on:      "已开启",
       cg_f_off:     "已关闭",
@@ -3772,7 +3731,6 @@ window.CIIP_PASOS = {
       cg_nopudo:    "未保存：数据库拒绝了。请在 Supabase 中运行 supabase-catalogos.sql 后重试。",
       cg_error:     "无法保存。请重试。",
       cg_aviso:     "关闭不会删除任何内容：已提交的申请保持原样。关闭后，尚未开始办理的人将看不到它。",
-      us_sub:      "谁能进来，以什么身份",
       us_equipo:   "团队",
       us_todos:    "全部账号",
       us_tuya:     "您的账号",
@@ -3816,7 +3774,6 @@ window.CIIP_PASOS = {
       sop_guardado:   "已保存，所有人的面板都已生效。",
       sop_nopudo:     "未能保存。可能是数据库不允许：请执行 supabase-acompanamiento.sql。",
       sop_sinsql:     "尚未在 Supabase 执行 supabase-acompanamiento.sql。在此之前支持服务使用默认值。",
-      ra_sub:        "谁做了什么，什么时候",
       ra_c_cuando:   "时间",
       ra_c_quien:    "谁",
       ra_c_que:      "类别",
@@ -3850,7 +3807,6 @@ window.CIIP_PASOS = {
       ra_base:       "来自数据库",
       ra_sinnombre:  "未填姓名",
       ra_nota:       "只保留每项的最后一次变动，而非完整历史。文件和会面目前还不留痕迹。",
-      pu_sub:        "办公室当前的运转情况",
       pu_m_marcha:   "进行中的业务",
       pu_m_espera:   "等待答复",
       pu_m_citas:    "待确认的会面",
@@ -3896,7 +3852,6 @@ window.CIIP_PASOS = {
       mt_c_fecha:   "日期",
       mt_c_abrir:   "打开该手续",
       mt_abrir:     "打开",
-      ci_sub:       "您与 CIIP 团队的会面",
       ci_vacia:     "您尚未申请任何会面。",
       ag_activas:  "进行中",
       j_aqui:"您在这里",
@@ -4273,7 +4228,6 @@ window.CIIP_PASOS = {
       co_sinarch:   "Файлы не приложены.",
       co_noabre:    "Не удалось открыть файл.",
       /* --- Встречи и расписание --- */
-      ac_sub:       "Что CIIP открыл для инвестиций",
       ac_vacia:     "Пока нет опубликованных активов. Команда CIIP их загружает.",
       ac_disponible:"Доступен",
       ac_reservado: "Зарезервирован",
@@ -4311,7 +4265,6 @@ window.CIIP_PASOS = {
       ac_rango:     "Сумма «до» не может быть меньше суммы «от».",
       ac_error:     "Не удалось сохранить. {e}",
       /* Помощь и руководство. Не повторяет вопросы с главной. */
-      ay_sub:     "Как устроен ваш панель",
       ay_h1:      "Как движется заявка",
       ay_ente:    "ведомство",
       ay_e1: "Заявка зарегистрирована с датой и временем, изменить её вы уже не можете. Если чего-то не хватает, мы вернём её с примечанием, и она снова будет в ваших руках.",
@@ -4374,7 +4327,6 @@ window.CIIP_PASOS = {
       pf_fotolista:  "Сохранено.",
       pf_sector0: "Не выбрана",
       /* Хранилище документов. */
-      dc_sub:      "Всё загруженное — в одном месте",
       dc_vacia:    "Вы ещё не загружали документы. Загрузите те, что у вас уже есть: любая форма, которая их запросит, подставит их сама.",
       dc_subido:   "Загружено {fecha}",
       dc_c_doc:     "Документ",
@@ -4451,7 +4403,6 @@ window.CIIP_PASOS = {
       dc_pesa:      "Файл больше 10 МБ. Загрузите файл поменьше.",
       dc_tipo:      "Нужно изображение или PDF.",
       /* Моя компания. */
-      em_sub:       "Данные вашей компании — один раз",
       em_vacia:     "Вы ещё не зарегистрировали компанию. Когда сделаете это, формы будут предлагать эти данные уже заполненными.",
       em_registrar: "Зарегистрировать компанию",
       em_ficha_n:   "Регистрация компании",
@@ -4483,7 +4434,6 @@ window.CIIP_PASOS = {
       tr_entregado: "Ваш документ",
       tr_entrega_p: "Его выдало ведомство, а CIIP положил его в ваше дело.",
       /* Пользователи и команда. */
-      cg_sub:       "Что окно предлагает сегодня, а что нет",
       cg_f_todos:   "Все",
       cg_f_on:      "Включённые",
       cg_f_off:     "Выключенные",
@@ -4505,7 +4455,6 @@ window.CIIP_PASOS = {
       cg_nopudo:    "Не сохранено: база данных не разрешила. Выполните supabase-catalogos.sql в Supabase и попробуйте снова.",
       cg_error:     "Не удалось сохранить. Попробуйте снова.",
       cg_aviso:     "Выключение ничего не удаляет: уже отправленные заявки остаются на месте. Выключенное перестаёт предлагаться тем, кто его ещё не начал.",
-      us_sub:      "Кто входит и в какой роли",
       us_equipo:   "Команда",
       us_todos:    "Все учётные записи",
       us_tuya:     "Ваша запись",
@@ -4549,7 +4498,6 @@ window.CIIP_PASOS = {
       sop_guardado:   "Сохранено. Уже видно всем.",
       sop_nopudo:     "Не сохранилось. Возможно, база не разрешает: выполните supabase-acompanamiento.sql.",
       sop_sinsql:     "Не выполнен supabase-acompanamiento.sql в Supabase. Пока сопровождение использует обычные значения.",
-      ra_sub:        "Кто что сделал и когда",
       ra_c_cuando:   "Когда",
       ra_c_quien:    "Кто",
       ra_c_que:      "Что",
@@ -4583,7 +4531,6 @@ window.CIIP_PASOS = {
       ra_base:       "Из базы данных",
       ra_sinnombre:  "Без имени",
       ra_nota:       "Сохраняется только последнее изменение каждого, а не вся история. Документы и встречи пока следа не оставляют.",
-      pu_sub:        "Как идут дела в офисе прямо сейчас",
       pu_m_marcha:   "Процедуры в работе",
       pu_m_espera:   "Ждут ответа",
       pu_m_citas:    "Встречи к подтверждению",
@@ -4629,7 +4576,6 @@ window.CIIP_PASOS = {
       mt_c_fecha:   "Дата",
       mt_c_abrir:   "Открыть процедуру",
       mt_abrir:     "Открыть",
-      ci_sub:       "Ваши встречи с командой CIIP",
       ci_vacia:     "Вы ещё не запрашивали встреч.",
       ag_activas:  "В работе",
       j_aqui:"Вы здесь",
