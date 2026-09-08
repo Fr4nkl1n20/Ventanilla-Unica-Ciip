@@ -151,7 +151,7 @@
               pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir,
               /* El hilo ANTES de anular: al cancelar la cita, el hilo se
                  va con ella y no habría nada que mirar. */
-              hiloCitaMira, hiloCitaEscribe, hiloCitaTrasEscribir,
+              hiloCitaMira,
               citasAnula, citasTrasAnular, hiloCitaTrasAnular,
               colaAbre,
               /* El reparto ANTES de desplegar nada: tomar un tramite
@@ -187,7 +187,7 @@
               tablaMira, tablaAbre, tablaTrasAbrir,
               empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
               entregaAbre, entregaMira,
-              hiloAbre, hiloMira, hiloEscribe, hiloEsperaEnvio, hiloTrasEscribir,
+              hiloAbre, hiloMira,
               docsAbre, docsMira, docsCambia, docsEsperaCambio, docsTrasCambiar,
               docsNuevoMira, docsNuevoFalta, docsNuevoSube, docsEsperaSubida, docsTrasSubir,
               /* DESPUES de todo lo de la boveda: estos pasos suben un papel,
@@ -198,7 +198,21 @@
               supAbre, supMira, supTemas, supVuelve,
               franjaDescarta, franjaTrasDescartar,
               fotoAbre, fotoMira, fotoMala, fotoSube, fotoTrasSubir, fotoCierra,
-              logosMiran,
+              logosMiran, tokensMiran,
+              letraMira,
+              habilesMira,
+              iFasesMira,
+              tablasMiran,
+              /* La consulta DESPUES de tokensMiran y antes de lo que
+                 abre ventanas: estas abren la suya y la cierran al
+                 final, y dejarla abierta le taparia la pantalla a las
+                 de despues -que es como 886 pruebas se pusieron rojas
+                 de golpe una vez-. */
+              puertaTodos,
+              consultaAbre, consultaMira, consultaEntra, consultaDentro,
+              rotulosMiran, consultaNueva, consultaNuevaMira, consultaTrasCrear,
+              consultaCola, consultaToma, consultaTrasTomar,
+              consultaResuelve, consultaTrasResolver,
               velocidadArranque, velocidadAbre, velocidadMira,
               velocidadRepite, velocidadTrasRepetir,
               pliegaAbre, pliegaMira, pliegaVuelve, pliegaTrasVolver,
@@ -1286,7 +1300,9 @@
          mano aquí rompería cada vez que alguien toque un fixture. */
       var vivos = 0;
       document.querySelectorAll('#mtCuerpo tr').forEach(function(f){
-        if (!f.classList.contains('pasada')) vivos++;
+        /* Ni las pasadas ni la fila de «no hay ninguno», que desde que la
+           tabla ya no se esconde vive dentro del cuerpo y no es un tramite. */
+        if (!f.classList.contains('pasada') && !f.classList.contains('sin-nada')) vivos++;
       });
       igual('barra: "Mis trámites" cuenta los tuyos en marcha, no el catálogo',
             n.hidden ? '0' : n.textContent, String(vivos));
@@ -1767,7 +1783,12 @@
            mas ? (mas.hidden ? '(oculto)' : mas.textContent.trim()) : 'no existe',
            'Y hay 1 más esperando por ti');
         mas.click();
-        igual('franja: y lleva a la lista de todas', location.hash, '#mistramites');
+        /* #tramites: la ruta de verdad. Esta comprobación decía «#mistramites»
+         y con eso daba por bueno un botón que no llevaba a ninguna parte —el
+         enrutador ignora esa dirección y el usuario se queda en la portada—.
+         Una prueba que copia lo que hace el código no comprueba el código:
+         comprueba que sigue igual. */
+      igual('franja: y lleva a la lista de todas', location.hash, '#tramites');
         location.hash = '';
       })();
     }
@@ -2353,98 +2374,37 @@
      Se mira en el expediente «lleno», que es el que trae una cita ya
      pedida. En los demás no hay cita en marcha, y eso también se comprueba:
      sin cita no hay hilo que colgar de ningún sitio. */
+  /* ── UNA CITA ES UNA CITA ──
+     Llevaba su propia conversación dentro. Se quita el 8 de septiembre de
+     2026 por decisión del CIIP: fecha, modo y estado por un lado; hablar por
+     otro. Estaban mezclados, y eso repartía las conversaciones en tres
+     sitios —una cita, un expediente, y sueltas—. Con tres, ninguno es EL
+     sitio.
+
+     Estas pruebas medían el hilo; ahora fijan que NO está y que en su lugar
+     queda la puerta al chat. Lo segundo importa tanto como lo primero: quien
+     tiene una cita pedida es justo quien quiere preguntar algo antes de que
+     llegue el día, y quitarle el hilo sin darle a dónde ir es dejarlo con la
+     ventana delante y sin salida. */
   function hiloCitaMira(){
     if (CASO === 'gestor') return;
     var caja = document.getElementById('ctHilo');
+    ok('cita: la cita ya no lleva conversación dentro',
+       !!caja && !caja.querySelector('.hilo'),
+       caja ? (caja.querySelector('.hilo') ? 'sigue puesta' : 'fuera') : 'no existe',
+       'fuera');
 
-    if (CASO !== 'lleno'){
-      /* Recién pedida, la cita existe: el hilo tiene que aparecer también
-         ahí. Una consulta general sin sitio donde preguntar es justo lo
-         que esto vino a arreglar. */
-      ok('hilo cita: en cuanto hay cita, hay dónde escribir',
-         !!caja && !!caja.querySelector('.hilo'),
-         caja ? (caja.querySelector('.hilo') ? 'está' : 'vacío') : 'no existe',
-         'el hilo montado');
-      return;
-    }
-
-    ok('hilo cita: la cita en marcha trae su conversación',
-       !!caja && !!caja.querySelector('.hilo'),
-       caja ? (caja.querySelector('.hilo') ? 'está' : 'vacío') : 'no existe',
-       'el hilo montado');
-    if (!caja || !caja.querySelector('.hilo')) return;
-
-    /* Las dos líneas del doble, y en orden. Si saliera vacío se vería igual
-       que si no cargara, que es la confusión que este arnés ya ha tenido
-       antes con el otro hilo. */
-    var msj = caja.querySelectorAll('.hilo-m');
-    igual('hilo cita: con lo que ya se habló', msj.length, 2);
-
-    /* Y se ve QUIÉN habla. Es la mitad del valor de un hilo: sin eso son
-       dos frases sueltas. */
-    ok('hilo cita: la primera es del inversionista',
-       msj[0] && msj[0].classList.contains('mio'),
-       msj[0] ? msj[0].className : 'no hay', 'mío');
-    ok('hilo cita: y la respuesta es del CIIP',
-       msj[1] && msj[1].classList.contains('suyo'),
-       msj[1] ? msj[1].className : 'no hay', 'suyo');
-
-    /* Es la MISMA función que la del expediente, no una copia: si algún día
-       se separan, una enseñará algo que la otra no, y en una conversación
-       eso significa que uno de los dos cree haber dicho algo que el otro no
-       leyó. Se comprueba por la forma: mismas piezas, mismas clases. */
-    ok('hilo cita: es la misma conversación del expediente, no una copia',
-       !!caja.querySelector('.hilo-lista') && !!caja.querySelector('.hilo-txt') &&
-       !!caja.querySelector('.hilo-clip'),
-       ['lista','txt','clip'].filter(function(k){
-         return !caja.querySelector('.hilo-' + k);
-       }).join(' ') || 'las tres piezas', 'lista, caja de texto y adjuntar');
-
-    /* Y NO se monta dos veces: con dos hilos, lo que estuvieras escribiendo
-       se perdería en el segundo.
-
-       Se pide el montaje A MANO. Aquí estaba escrito con applyLang, y no
-       medía nada: pintaCita sólo se llama al abrir la ventana y al
-       cancelar, no al cambiar de idioma, así que la guarda no llegaba a
-       ejercitarse y quitarla salía verde. */
-    /* Lo que la guarda promete NO es que no haya dos hilos -sin ella se
-       limpia y se vuelve a montar, así que sigue habiendo uno- sino que no
-       se pierda lo que estabas escribiendo. Medir el número de hilos salía
-       verde con la guarda quitada: contaba lo que no era.
-
-       Se escribe algo, se pide montar otra vez, y tiene que seguir ahí. */
-    var cajaTxt = caja.querySelector('.hilo-txt');
-    if (cajaTxt) cajaTxt.value = 'a medio escribir…';
-    if (window.CIIP_MONTA_HILO_CITA) window.CIIP_MONTA_HILO_CITA();
-    igual('hilo cita: montarlo otra vez no lo duplica',
-          caja.querySelectorAll('.hilo').length, 1);
-    igual('hilo cita: ni se lleva por delante lo que ibas escribiendo',
-          (caja.querySelector('.hilo-txt') || {}).value, 'a medio escribir…');
-    if (caja.querySelector('.hilo-txt')) caja.querySelector('.hilo-txt').value = '';
+    /* Se pide el BOTÓN y no sólo el cuadro: un cartel que dice «escríbenos»
+       sin nada que pulsar deja al inversionista buscando dónde. */
+    ok('cita: y en su lugar hay por dónde hablar con el CIIP',
+       !!caja && !!caja.querySelector('.ct-hablar .btn'),
+       caja && caja.querySelector('.ct-hablar') ? 'con su botón' : 'no hay puerta',
+       'la puerta al chat');
   }
 
-  function hiloCitaEscribe(){
-    if (CASO !== 'lleno') return;
-    var caja = document.getElementById('ctHilo');
-    var txt  = caja && caja.querySelector('.hilo-txt');
-    var bts  = caja && caja.querySelectorAll('.hilo-fila .btn');
-    if (!txt || !bts || !bts.length) return;
-    txt.value = 'Gracias, entonces empiezo por la visa.';
-    bts[bts.length - 1].click();
-  }
-
-  function hiloCitaTrasEscribir(){
-    if (CASO !== 'lleno') return;
-    var caja = document.getElementById('ctHilo');
-    igual('hilo cita: lo escrito aparece en el hilo',
-          caja.querySelectorAll('.hilo-m').length, 3);
-    var ult = caja.querySelectorAll('.hilo-m')[2];
-    ok('hilo cita: y queda como tuyo, no del CIIP',
-       !!ult && ult.classList.contains('mio'),
-       ult ? ult.className : 'no hay', 'mío');
-    var txt = caja.querySelector('.hilo-txt');
-    igual('hilo cita: y la caja se vacía para la siguiente', txt.value, '');
-  }
+  /* hiloCitaEscribe y hiloCitaTrasEscribir se van con el hilo: escribían en
+     una caja que ya no existe. Escribir sigue probado en la conversación de
+     una consulta, que es la MISMA función de pintar con otra tabla. */
 
   function citasAnula(){
     if (CASO === 'gestor') return;
@@ -2543,59 +2503,40 @@
 
   function hiloMira(){
     if (CASO !== 'lleno') return;
-    var lista = document.querySelector('.hilo-lista');
-    ok('hilo: la conversación se pinta en el trámite',
-       !!lista, lista ? 'está' : 'no hay .hilo-lista', 'está');
-    if (!lista) return;
 
-    var lineas = lista.querySelectorAll('.hilo-m');
-    igual('hilo: con las dos líneas que ya había', lineas.length, 2);
+    /* ── LA CONVERSACIÓN YA NO VIVE AQUÍ ──
+       Estuvo al final de esta pantalla y se quitó el 8 de septiembre de 2026
+       por decisión del CIIP: hablar con el equipo pasa a estar en un solo
+       sitio, la burbuja. Esto lo fija, porque una pantalla no vuelve sola
+       pero un parche descuidado sí la puede devolver.
 
-    /* Quién habla se ve por la FORMA, no sólo por el rótulo: en un hilo
-       largo, leer «Tú / CIIP» en cada línea para saberlo es trabajo que
-       puede hacer el sitio donde se pega el globo. */
-    ok('hilo: se distingue lo del CIIP de lo tuyo',
-       lista.querySelectorAll('.hilo-m.suyo').length === 1 &&
-       lista.querySelectorAll('.hilo-m.mio').length === 1,
-       lista.querySelectorAll('.hilo-m.suyo').length + ' del CIIP, ' +
-       lista.querySelectorAll('.hilo-m.mio').length + ' tuyas', '1 y 1');
+       ACOTADO a #trReal, y no es un detalle: escrito como
+       document.querySelector('.hilo-lista') estas pruebas seguían VERDES
+       después de quitar el hilo, porque encontraban el de la ventana de
+       consultas —que se queda en el árbol aunque esté cerrada—. Tres de las
+       cuatro medían una conversación que no era la suya y no se notó; la
+       cuarta se puso roja solo porque aquel ejemplo no lleva adjunto. */
+    var ficha = document.getElementById('trReal');
+    ok('hilo: la conversación ya no está en la ficha del trámite',
+       !!ficha && !ficha.querySelector('.hilo-lista'),
+       ficha ? (ficha.querySelector('.hilo-lista') ? 'sigue puesta' : 'fuera') : '(no hay ficha)',
+       'fuera');
 
-    /* Y el adjunto sale por su NOMBRE, no como «documento adjunto»: lo
-       que se busca en un hilo es «dónde mandé el comprobante». */
-    ok('hilo: el adjunto se ve por su nombre de archivo',
-       /comprobante-banco\.pdf/.test(lista.textContent),
-       'busca comprobante-banco.pdf', 'está en el hilo');
-  }
+    /* Lo que NO se puede perder: leer por qué te lo devolvieron. Esa nota no
+       sale del hilo sino de tramite_eventos, y tenía que seguir estando. Sin
+       esta prueba, quitar el hilo podía llevarse por delante la explicación
+       y nadie se enteraría hasta que un inversionista preguntara por qué le
+       devolvieron algo sin decirle qué falta. */
+    var texto = ficha ? ficha.textContent : '';
+    ok('hilo: pero la nota con la que te lo devolvieron sigue a la vista',
+       /ilegible|escaneado/i.test(texto),
+       texto.replace(/\s+/g, ' ').slice(0, 70), 'la nota del gestor');
 
-  function hiloEscribe(){
-    if (CASO !== 'lleno') return;
-    var txt = document.querySelector('.hilo-txt');
-    var env = document.querySelector('.hilo .btn.navy');
-    if (!txt || !env) return;
-    window.PRUEBA_HILO_ANTES = document.querySelectorAll('.hilo-m').length;
-    txt.value = 'El del banco lleva sello, ¿sirve?';
-    env.click();
-  }
-
-  function hiloEsperaEnvio(sigue){
-    if (CASO !== 'lleno') return sigue();
-    esperaFilas('.hilo-m', (window.PRUEBA_HILO_ANTES || 0) + 1, sigue);
-  }
-
-  function hiloTrasEscribir(){
-    if (CASO !== 'lleno') return;
-    var lineas = document.querySelectorAll('.hilo-m');
-    igual('hilo: al enviar, la conversación tiene una línea más',
-          lineas.length, (window.PRUEBA_HILO_ANTES || 0) + 1);
-    ok('hilo: y se lee lo que acabas de escribir',
-       /lleva sello/.test(document.querySelector('.hilo-lista').textContent),
-       'busca "lleva sello"', 'está');
-    /* La caja se vacía: dejarla con lo de antes dentro invita a mandarlo
-       dos veces, que es el mismo error que ya se corrigió al subir un
-       documento. */
-    var txt = document.querySelector('.hilo-txt');
-    ok('hilo: y la caja se vacía sola',
-       txt && txt.value === '', txt ? '"' + txt.value + '"' : 'no hay caja', 'vacía');
+    /* Y sigue habiendo por dónde contestar: el cuadro que abre la consulta. */
+    ok('hilo: y queda por dónde hablar con el CIIP',
+       !!ficha && !!ficha.querySelector('.sol-gestion .btn'),
+       ficha && ficha.querySelector('.sol-gestion') ? 'está el cuadro' : 'no hay',
+       'el cuadro que abre la consulta');
   }
 
   function dupeAbre(){
@@ -3814,7 +3755,12 @@
      "lleva veinte días" no dice nada, ya terminó. */
   function mtLleva(){
     if (CASO !== 'lleno') return;
-    location.hash = 'mistramites';
+    /* #tramites, NO #mistramites. La segunda no es ninguna ruta: el enrutador
+       la ignora y la vista se queda en la portada. Aquí llevaba tiempo
+       puesta, y las comprobaciones de abajo pasaban igual porque sólo cuentan
+       filas del árbol —que existen aunque la pantalla esté escondida—. Se vio
+       al medir el ALTO de un reloj: cero, porque nada estaba a la vista. */
+    location.hash = 'tramites';
   }
 
   function mtLlevaMira(){
@@ -3824,6 +3770,32 @@
        [].filter.call(fichas, function(f){ return f.querySelector('.lleva'); }).length >= 3,
        [].filter.call(fichas, function(f){ return f.querySelector('.lleva'); }).length +
        ' de ' + fichas.length + ' con reloj', '3 o más');
+    /* ── Y EL RELOJ VA EN UNA SOLA LÍNEA ──
+       El reloj de «lleva N días» es un inline-flex: su icono y su texto van
+       uno al lado del otro. Una regla de la tabla lo bajaba a su propio
+       renglón —bien— pero con display:block, y eso le quitaba el inline-flex:
+       el icono se iba solo a una línea y el texto a la siguiente, como si
+       algo se hubiera roto. No lo vio ninguna prueba; se vio en un pantallazo
+       de la tabla con trámites dentro.
+
+       Se mide el ALTO, que es lo que delata dos líneas, y que el icono esté a
+       la misma altura que su texto. Comprobar que existe el elemento no
+       distingue una línea de dos. */
+    var reloj = document.querySelector('#mtCuerpo .lleva');
+    if (reloj){
+      var r = reloj.getBoundingClientRect();
+      ok('mis trámites: y el reloj cabe en una sola línea',
+         r.height > 0 && r.height <= 20, Math.round(r.height) + 'px de alto', 'como mucho 20');
+      var svg = reloj.querySelector('svg');
+      if (svg){
+        var sr = svg.getBoundingClientRect();
+        ok('mis trámites: con su icono a la altura del texto, no encima',
+           Math.abs((sr.top + sr.height / 2) - (r.top + r.height / 2)) < 3,
+           'centro del icono a ' + Math.round(Math.abs((sr.top + sr.height/2) - (r.top + r.height/2))) + 'px',
+           'al mismo nivel');
+      }
+    }
+
     /* El resuelto no: ya terminó, y "lleva veinte días" ahí sobra. */
     var hecho = [].filter.call(fichas, function(f){
       return f.classList.contains('pasada'); })[0];
@@ -3938,7 +3910,11 @@
       /* Al inversionista el renglon le lleva a su lista de siempre. */
       igual('barra: y al inversionista le abre su lista',
             document.body.getAttribute('data-vista'), 'mistramites');
-      if (document.getElementById('mtVolver')) document.getElementById('mtVolver').click();
+      /* Se sale por la direccion y no pulsando el boton de volver: desde
+         que esa pantalla empieza por la tabla, ese boton ya no esta. Pulsar
+         un elemento escondido funciona en JS y no funciona para una persona:
+         una prueba que lo hiciera seguiria verde con la salida tapada. */
+      location.hash = '';
       /* Y la tabla del equipo no es suya: el hash a mano no le entra. */
       location.hash = 'poratender';
       return;
@@ -5699,9 +5675,35 @@
 
   function loHacemosMira(){
     if (CASO !== 'vacio') return;
-    var pie = document.querySelector('.tcard[data-tr="c1"] .t-time[data-globo]');
-    ok('lo hacemos: el renglon de como se hace se puede pulsar',
+    /* Cuelga de «Ver detalles» y ya no del renglón del reloj. El reloj no
+       parecía pulsable —era un texto con un icono al lado— así que había que
+       descubrirlo por casualidad; «Ver detalles» es donde alguien busca
+       justamente eso, y lo llevan las treinta y tres fichas igual. */
+    var pie = document.querySelector('.tcard[data-tr="c1"] .t-foot .go[data-globo]');
+    ok('lo hacemos: «Ver detalles» se puede pulsar',
        !!pie, pie ? 'pulsable' : 'no lleva globo', 'con su globo');
+
+    /* Y SE VE que se puede pulsar. Esto no es cosmética: cuando el globo se
+       mudó del reloj al enlace, la regla que lo vestía se quedó apuntando al
+       reloj, y «Ver detalles» pasó a abrir un globo sin ninguna señal de que
+       hiciera nada. Encima, al recibir el foco le salía el recuadro azul de
+       fábrica del navegador, que parecía un fallo. Nada de eso rompió una
+       sola prueba: todas miraban que el globo se abriera, no que se notara
+       que hay algo que pulsar. */
+    if (pie){
+      var cs = window.getComputedStyle(pie);
+      igual('lo hacemos: el enlace se ve pulsable', cs.cursor, 'pointer');
+      ok('lo hacemos: y lleva su señal de que abre algo',
+         cs.textDecorationLine !== 'none' && /\S/.test(cs.textDecorationStyle),
+         cs.textDecorationLine + ' ' + cs.textDecorationStyle, 'algún subrayado');
+    }
+
+    /* Y el reloj deja de serlo: si se quedaran los dos habría dos sitios que
+       abren lo mismo, y el de al lado sin decir que se puede pulsar. */
+    ok('lo hacemos: y el reloj ya no abre nada',
+       !document.querySelector('.tcard[data-tr="c1"] .t-time[data-globo]'),
+       document.querySelector('.tcard[data-tr="c1"] .t-time[data-globo]') ? 'sigue' : 'limpio',
+       'limpio');
     if (!pie) return;
 
     var caja = pie.parentNode.querySelector('.pista-caja');
@@ -5712,9 +5714,85 @@
 
     ok('lo hacemos: al pulsarlo se abre', !!caja && !caja.hidden,
        caja ? ('oculto=' + caja.hidden) : '(no hay globo)', 'abierto');
-    ok('lo hacemos: y dice que lo puede hacer el CIIP',
-       !!caja && /CIIP/.test(caja.textContent),
-       caja ? caja.textContent.trim().slice(0, 50) : '(vacio)', 'nombra al CIIP');
+    /* Lo que cuenta son LOS PASOS del trámite —los mismos de pasos.js que
+       la ficha enseña bajo «El proceso»—, no un texto escrito aparte. Se
+       comprueba contra el diccionario y no contra una frase copiada aquí:
+       copiada, esta prueba se rompería cada vez que el CIIP retoque una
+       palabra, y peor, pasaría a medir la copia en vez de lo que hay. */
+    var Dp = (window.CIIP_PASOS && window.CIIP_PASOS.pasos) || {};
+    var suyos = (Dp[curLang] || Dp.en || {})['c1'] || [];
+    ok('lo hacemos: y cuenta los pasos del trámite, no un texto aparte',
+       suyos.length > 0 && caja &&
+         suyos.every(function(p){ return caja.textContent.indexOf(p) >= 0; }),
+       caja ? caja.textContent.trim().slice(0, 60) : '(vacio)',
+       suyos.length + ' pasos del trámite');
+
+    /* Y al final, aparte de la lista, lo que estaba en el reloj: que el CIIP
+       puede llevarlo contigo. APARTE y no como una viñeta más, que dentro de
+       la lista se leía como un quinto paso. */
+    var suelta = caja && caja.querySelector('.pc-ciip');
+    ok('lo hacemos: y que el CIIP puede hacerlo contigo, separado de los pasos',
+       !!suelta && /CIIP/.test(suelta.textContent),
+       suelta ? suelta.textContent.slice(0, 50) : '(no esta aparte)',
+       'fuera de la lista de pasos');
+
+    /* Y lo dice CONTIGO, no POR TI. No es matiz de redacción: «por ti» suena
+       a delegar y desentenderse, y no es verdad —hay papeles que solo puede
+       firmar el inversionista—. Prometer lo primero hace que alguien se
+       lleve la sorpresa a mitad de camino, que es cuando peor sienta.
+
+       Se mira en el diccionario y no en la pantalla: el pase corre en un
+       idioma y esto tiene que valer para los seis. */
+    /* Aquí NO se comprueba la frase palabra por palabra, y es a propósito.
+       Esta línea ya se ha reescrito tres veces —«por ti», «contigo»,
+       «acompañarte»— y cada vez que el CIIP la afina, una prueba que llevara
+       la copia dentro se pondría roja sin que nada estuviera mal. Peor: la
+       forma rápida de arreglarla es pegar la frase nueva, y entonces la
+       prueba mide su propia copia y ya no protege nada.
+
+       Lo que sí se sujeta es lo que la decisión significa: que existe en los
+       seis, y que en ninguno se promete hacerlo POR TI —esa promesa es falsa,
+       hay papeles que solo puede firmar el inversionista, y descubrirlo a
+       mitad de camino es la peor forma de enterarse—. */
+    var D = (window.CIIP_PASOS && window.CIIP_PASOS.ui) || {};
+    var sin = Object.keys(D).filter(function(l){
+      return !/\S/.test(String((D[l] || {}).lh_uno || ''));
+    });
+    ok('lo hacemos: la frase está escrita en los seis idiomas',
+       Object.keys(D).length === 6 && sin.length === 0,
+       sin.length ? ('faltan en: ' + sin.join(', ')) : (Object.keys(D).length + ' idiomas'),
+       'los seis');
+
+    /* Y ninguna de las otras cinco se quedó con la promesa de antes. Cambiar
+       solo el español es la forma silenciosa de que un inversionista italiano
+       siga leyendo algo que ya no decimos. */
+    var promete = Object.keys(D).filter(function(l){
+      return /por ti|for you|por si|per te|за вас|为您代办/.test(String((D[l] || {}).lh_uno || ''));
+    });
+    ok('lo hacemos: y en ningún idioma se quedó el «por ti»',
+       promete.length === 0, promete.length ? promete.join(', ') : 'ninguno', 'ninguno');
+
+    /* ── Y SIGUE AL IDIOMA DEL PANEL ──
+       Este globo se monta con la tarjeta y una guarda impide rehacerlo, asi
+       que su texto se quedaba congelado en el idioma que hubiera en ese
+       momento. applyLang repinta a mano las piezas sin data-i18n -los pasos,
+       las etapas, la franja, los avisos- y los globos no estaban en la lista:
+       el panel entero pasaba a italiano y este seguia en español. Se vio en
+       una pantalla, no aqui: ninguna prueba miraba en QUE idioma habla algo
+       que ya estaba pintado. */
+    (function(){
+      var era = curLang;
+      applyLang('it');
+      /* Se cierra y se vuelve a abrir, que es lo que hace una persona. */
+      pie.click(); pie.click();
+      var d = ((window.CIIP_PASOS || {}).ui || {}).it || {};
+      var ahora = caja ? caja.textContent : '';
+      ok('lo hacemos: y habla en el idioma del panel, no en el de cuando se montó',
+         !!d.lh_uno && ahora.indexOf(d.lh_uno) >= 0,
+         ahora.trim().slice(0, 60), (d.lh_uno || '').slice(0, 60));
+      applyLang(era || 'es');
+      pie.click(); pie.click();
+    })();
 
     /* Y NO se ha abierto el tramite: el clic se queda en el renglon. */
     igual('lo hacemos: y no se lleva por delante la tarjeta',
@@ -5722,6 +5800,503 @@
 
     pie.click();
   }
+
+
+  /* ── HABLAR CON EL CIIP SIN PEDIR CITA ────────────────────────────────────
+     La cita era la unica puerta. Estas miden la otra: que se abre, que se
+     ve lo que ya hay, que se puede escribir una nueva, y que lo escrito
+     llega. Corren sobre el inversionista; la parte del equipo va aparte. */
+  function consultaAbre(){
+    if (CASO === 'gestor') return;
+    if (window.CIIP_ABRE_CONSULTA) window.CIIP_ABRE_CONSULTA();
+  }
+
+  function consultaMira(){
+    if (CASO === 'gestor') return;
+    var back = document.getElementById('consBack');
+    ok('consulta: la ventana se abre',
+       !!back && back.classList.contains('open'),
+       back ? back.className : '(no hay ventana)', 'abierta');
+    if (!back) return;
+
+    /* LA LINEA HONRADA. Es la que separa esto de un chat: un chat promete
+       que hay alguien AHORA, y el equipo del CIIP no esta las veinticuatro
+       horas. Sin esta frase, quien escribe un domingo se encuentra el
+       silencio y concluye que la ventanilla no funciona. Que este puesta es
+       parte de lo que la funcion hace, no decoracion. */
+    var sub = document.getElementById('consSub');
+    ok('consulta: y dice cuando responde el equipo, que no es un chat en vivo',
+       !!sub && /\S/.test(sub.textContent),
+       sub ? sub.textContent : '(no hay)', 'una frase sobre cuando se responde');
+
+    /* DOS: las dos tuyas del ejemplo. La tercera es de otra persona y no
+       puede salir aqui —eso es lo que hace la RLS, y el doble la imita—.
+       Y una de las dos esta RESUELTA: tu lista son todas, no solo las
+       vivas, que es justo lo contrario de la cola del equipo. Si el filtro
+       de "solo las mias" desapareciera, esto pasaria a tres. */
+    var suyas = document.querySelectorAll('#consCuerpo .cons-i');
+    igual('consulta: salen las tuyas, resueltas incluidas', suyas.length, 2);
+
+    /* Y dicho al reves, que es lo que de verdad importa: la de otra persona
+       NO esta. Contar dos se cumpliria igual enseñando la ajena y
+       escondiendo una tuya. */
+    var textos = [].map.call(suyas, function(x){ return x.textContent; }).join(' | ');
+    ok('consulta: y ninguna de otra persona',
+       textos.indexOf('visa para constituir') < 0,
+       textos.slice(0, 70), 'sin la de otro');
+
+    /* Y con su estado a la vista. Sin el, una lista de tres es tres
+       renglones iguales y no se sabe cual espera respuesta. */
+    var conEstado = 0;
+    [].forEach.call(suyas, function(x){
+      var e = x.querySelector('.cons-est');
+      if (e && /\S/.test(e.textContent)) conEstado++;
+    });
+    igual('consulta: cada una dice en que estado esta', conEstado, suyas.length);
+  }
+
+  function consultaEntra(){
+    if (CASO === 'gestor') return;
+    var uno = document.querySelector('#consCuerpo .cons-i');
+    if (uno) uno.click();
+  }
+
+  function consultaDentro(){
+    if (CASO === 'gestor') return;
+    /* La conversacion, con la MISMA funcion que el expediente y la cita. */
+    var hilo = document.querySelector('#consCuerpo .hilo');
+    ok('consulta: dentro esta la conversacion',
+       !!hilo, hilo ? 'esta' : '(no hay hilo)', 'el hilo');
+    if (!hilo) return;
+
+    var dichos = hilo.querySelectorAll('.hilo-m');
+    igual('consulta: con lo que ya se hablo', dichos.length, 2);
+
+    /* Y se distingue quien habla. Es la mitad de lo que hace un hilo: sin
+       esto son dos parrafos seguidos y no una conversacion. */
+    var mio = hilo.querySelector('.hilo-m.mio'), suyo = hilo.querySelector('.hilo-m.suyo');
+    ok('consulta: y se ve quien dijo cada cosa',
+       !!mio && !!suyo,
+       (mio ? 'tuyo ' : '') + (suyo ? 'del CIIP' : ''), 'los dos');
+  }
+
+  /* ── LOS ROTULOS TIENEN LETRA ─────────────────────────────────────────────
+     Esta nace de un fallo que ninguna de las cuatro mil pruebas veia. El
+     panel tiene DOS diccionarios -el I18N de la pagina y el CIIP_PASOS.ui de
+     pasos.js- y T() devolvia solo el segundo. pintaHilo pide sus rotulos con
+     u['hilo.t'], u['hilo.env']... y esas claves viven en el primero: no
+     resolvia ninguna. La conversacion salia con el titulo en blanco, el
+     boton de enviar en blanco y la caja sin placeholder.
+
+     Nadie lo vio porque ninguna prueba miraba que un rotulo TUVIERA LETRA, y
+     el comprobador de claves tampoco: escanea el texto del archivo, ve
+     escrito 'hilo.t' y da la clave por usada sin mirar de que diccionario se
+     lee. Un boton vacio pasa todos los selectores del mundo. */
+  function rotulosMiran(){
+    if (CASO === 'gestor') return;
+    var hilo = document.querySelector('#consCuerpo .hilo');
+    if (!hilo) { ok('rotulos: hay un hilo que mirar', false, '(no hay)', 'un hilo'); return; }
+
+    var caso = [
+      ['el titulo de la conversacion', hilo.querySelector('.sol-h')],
+      ['el boton de enviar',           hilo.querySelector('.btn.navy')],
+      ['el de adjuntar',               hilo.querySelector('.hilo-clip')]
+    ];
+    caso.forEach(function(c){
+      var e = c[1];
+      ok('rotulos: ' + c[0] + ' tiene letra',
+         !!e && /\S/.test(e.textContent),
+         e ? ('"' + e.textContent + '"') : '(no esta)', 'algo escrito');
+    });
+
+    var caja = hilo.querySelector('.hilo-txt');
+    ok('rotulos: y la caja de escribir dice que poner',
+       !!caja && /\S/.test(caja.placeholder || ''),
+       caja ? ('"' + (caja.placeholder || '') + '"') : '(no esta)', 'algo escrito');
+
+    /* Y la ventana entera, no solo el hilo: el mismo agujero se llevaba por
+       delante el titulo y el boton de abrir una nueva. */
+    var t = document.getElementById('consTitulo');
+    ok('rotulos: la ventana de la consulta tiene titulo',
+       !!t && /\S/.test(t.textContent),
+       t ? ('"' + t.textContent + '"') : '(no esta)', 'algo escrito');
+  }
+
+  function consultaNueva(){
+    if (CASO === 'gestor') return;
+    var v = document.querySelector('#consCuerpo .cons-volver');
+    if (v) v.click();
+  }
+
+  function consultaNuevaMira(){
+    if (CASO === 'gestor') return;
+    /* Se vuelve a la lista, y de ahi al formulario. */
+    var b = document.querySelector('#consCuerpo .btn.navy');
+    if (b) b.click();
+    var campo = document.getElementById('consAsunto');
+    ok('consulta: se puede abrir una nueva',
+       !!campo, campo ? 'con su campo' : '(no hay formulario)', 'el formulario');
+    if (!campo) return;
+
+    /* Sin asunto no se abre. Una consulta sin asunto llega a la cola del
+       equipo como un renglon en blanco: hay que abrirla para saber que
+       pide, y con quince encima eso es quince veces. */
+    var crear = document.getElementById('consCrear');
+    if (crear) crear.click();
+    var aviso = document.querySelector('#consCuerpo .cons-aviso');
+    ok('consulta: sin decir de que va no se abre, y lo dice',
+       !!aviso && /\S/.test(aviso.textContent),
+       aviso ? aviso.textContent : '(sin aviso)', 'que falta el asunto');
+
+    campo.value = 'Cuanto tarda el registro mercantil?';
+    if (crear) crear.click();
+  }
+
+  function consultaTrasCrear(){
+    if (CASO === 'gestor') return;
+    /* Al abrirla se entra en ella: quien acaba de escribir de que va, lo
+       siguiente que quiere es contarlo, no volver a una lista. */
+    var hilo = document.querySelector('#consCuerpo .hilo');
+    ok('consulta: al abrirla se entra en su conversacion',
+       !!hilo, hilo ? 'dentro' : '(sigue el formulario)', 'la conversacion');
+
+    var cab = document.querySelector('#consCuerpo .sol-h');
+    ok('consulta: y con el asunto que escribiste',
+       !!cab && cab.textContent.indexOf('registro mercantil') >= 0,
+       cab ? cab.textContent : '(no hay)', 'Cuanto tarda el registro mercantil?');
+
+    var cerrar = document.getElementById('consCerrar');
+    if (cerrar) cerrar.click();
+  }
+
+  /* ── Y LA OTRA PUNTA: LA COLA DEL EQUIPO ──
+     Una consulta que el inversionista abre y el equipo no ve es un buzon sin
+     fondo. Estas corren sobre el gestor. */
+  function consultaCola(){
+    if (CASO !== 'gestor') return;
+    var caja = document.getElementById('colaCons');
+    ok('consulta: el equipo las ve en su cola',
+       !!caja, caja ? 'esta la seccion' : '(no hay seccion)', 'la seccion');
+    if (!caja) return;
+
+    /* Las DOS vivas. La tercera del ejemplo esta resuelta y no es cola: sin
+       ella en la mesa, este filtro pasaria aunque no filtrara nada. */
+    var fichas = caja.querySelectorAll('.co-ficha');
+    igual('consulta: y solo las que siguen vivas, no las resueltas', fichas.length, 2);
+    if (!fichas.length) return;
+
+    /* CON EL NOMBRE de quien pregunta. Una pregunta sin nombre obliga a
+       abrir el expediente para saber a quien se le contesta. */
+    var quien = fichas[0].querySelector('.co-quien');
+    ok('consulta: y con el nombre de quien pregunta',
+       !!quien && /\S/.test(quien.textContent),
+       quien ? quien.textContent : '(no hay)', 'un nombre');
+
+    /* Y la conversacion dentro: tomar una consulta sin poder leerla antes es
+       aceptar un trabajo sin saber cual. */
+    ok('consulta: y su conversacion, para poder leerla antes de tomarla',
+       !!fichas[0].querySelector('.hilo'),
+       fichas[0].querySelector('.hilo') ? 'esta' : '(no hay hilo)', 'el hilo');
+  }
+
+  function consultaToma(){
+    if (CASO !== 'gestor') return;
+    /* La segunda es la que nadie lleva: la primera ya tiene gestor y por eso
+       no trae boton de tomar. */
+    var fichas = document.querySelectorAll('#colaCons .co-ficha');
+    if (fichas.length < 2) { ok('consulta: hay una libre que tomar', false,
+                                fichas.length + ' fichas', '2'); return; }
+    var b = fichas[1].querySelector('.co-botones .btn');
+    ok('consulta: la que no lleva nadie se puede tomar',
+       !!b, b ? b.textContent : '(sin boton)', 'un boton de tomarla');
+    if (b) b.click();
+  }
+
+  function consultaTrasTomar(){
+    if (CASO !== 'gestor') return;
+    var fichas = document.querySelectorAll('#colaCons .co-ficha');
+    if (fichas.length < 2) { ok('consulta: sigue habiendo dos', false,
+                                fichas.length + ' fichas', '2'); return; }
+    /* Tomarla NO la saca de la cola -sigue siendo trabajo- pero cambia su
+       estado. Sin esto, el boton podria no hacer nada y la prueba de arriba
+       -que solo mira que se pueda pulsar- seguiria verde. */
+    var est = fichas[1].querySelector('.cons-est');
+    ok('consulta: al tomarla pasa a en curso',
+       !!est && est.classList.contains('en_curso'),
+       est ? est.className : '(no hay)', 'en_curso');
+
+    /* Y ya no se puede volver a tomar: dos gestores llevando la misma
+       conversacion es la forma de que conteste uno y el otro no se entere. */
+    var botones = fichas[1].querySelectorAll('.co-botones .btn');
+    igual('consulta: y ya nadie mas la puede tomar', botones.length, 1);
+  }
+
+  function consultaResuelve(){
+    if (CASO !== 'gestor') return;
+    var fichas = document.querySelectorAll('#colaCons .co-ficha');
+    if (fichas.length < 2) return;
+    var bs = fichas[1].querySelectorAll('.co-botones .btn');
+    if (bs.length) bs[bs.length - 1].click();
+  }
+
+  function consultaTrasResolver(){
+    if (CASO !== 'gestor') return;
+    /* Resuelta SALE de la cola: dejarla puesta hace que el numero de arriba
+       mienta, y el numero es lo que el equipo mira para saber si puede irse
+       a casa. */
+    igual('consulta: al resolverla sale de la cola',
+          document.querySelectorAll('#colaCons .co-ficha').length, 1);
+    igual('consulta: y el contador baja',
+          (document.getElementById('colaN') || {}).textContent, '3');
+  }
+
+
+  /* ── DESDE CADA TRÁMITE SE PUEDE HABLAR CON EL CIIP ───────────────────────
+     Un paso ASÍNCRONO -declara «sigue»- porque entra en las treinta y tres
+     fichas una por una y cada una tarda en pintarse. Corre en un solo pase:
+     lo que comprueba no depende del expediente, y repetirlo doce veces son
+     doce navegaciones de treinta y tres pantallas por el mismo resultado.
+
+     LO QUE SE AFIRMA es «donde hay solicitud, hay puerta», y no «las treinta
+     y tres tienen puerta». La diferencia no es de matiz: escrito de la
+     segunda forma, esta prueba medía el CATÁLOGO del doble en vez del panel
+     —el doble sólo enciende trece trámites, así que veinte ni llegan a tener
+     formulario— y salían veinte rojos que no eran fallos de nada. Un trámite
+     que la base no conoce no puede enseñar una solicitud, y exigirle una
+     puerta es exigirle algo que no existe.
+
+     Así además no depende de cuántos trámites traiga el ejemplo: el día que
+     el CIIP encienda diez más, la prueba los cubre sola. */
+  function puertaTodos(sigue){
+    if (CASO !== 'vacio') return sigue();
+
+    var refs = [].map.call(document.querySelectorAll('.tcard[data-tr]'), function(c){
+      return c.getAttribute('data-tr');
+    });
+    ok('puerta: hay fichas que recorrer', refs.length >= 30,
+       refs.length + ' fichas', '30 o más');
+    if (!refs.length) return sigue();
+
+    var conSolicitud = [], sinPuerta = [];
+    (function mira(i){
+      if (i >= refs.length){
+        location.hash = '';
+        /* Sin este contador, la prueba de abajo pasaría con CERO solicitudes
+           miradas: si un cambio dejara de pintar formularios, «ninguno sin
+           puerta» seguiría siendo cierto y el verde no significaría nada. */
+        /* Se DICEN cuáles y no cuántas: cuando esto falle, «3 con solicitud»
+           no dice nada y «c1,c5,c6» dice exactamente dónde mirar. */
+        ok('puerta: y varias de ellas llevan a una solicitud',
+           conSolicitud.length >= 5, conSolicitud.join(',') || '(ninguna)', '5 o más');
+        igual('puerta: y desde toda solicitud se puede hablar con el CIIP',
+              sinPuerta.join(',') || '(ninguna sin puerta)', '(ninguna sin puerta)');
+        return sigue();
+      }
+      location.hash = 'tramite-' + refs[i];
+      /* SE ESPERA A QUE APAREZCA, no un rato fijo. Con 420 ms clavados, dos
+         trámites -los de formulario más largo- no llegaban a tiempo y se
+         contaban como «sin solicitud»: quedaban fuera de la comprobación sin
+         que nada lo dijera. Se vio quitándole la puerta a uno de ellos a
+         propósito y comprobando que la prueba seguía verde.
+
+         Se rinde a los dos segundos y sigue: rendirse es correcto porque el
+         que no apareció se queda fuera de la lista de «con solicitud», y esa
+         lista se enseña entera cuando algo falla. */
+      var vueltas = 0;
+      (function espera(){
+        var ficha = document.getElementById('trReal');
+        var hay = ficha && ficha.querySelector('.sol-col');
+        if (!hay && ++vueltas < 50) return setTimeout(espera, 40);
+        /* Sólo cuentan las que de verdad enseñan una solicitud: sin
+           formulario no hay «etapa de enviar la solicitud» que mirar. */
+        if (hay){
+          conSolicitud.push(refs[i]);
+          /* El cuadro Y su botón: un cartel sin nada que pulsar deja a quien
+             lo lee buscando dónde, que es igual de malo que no tenerlo. */
+          if (!ficha.querySelector('.sol-gestion .btn')) sinPuerta.push(refs[i]);
+        }
+        mira(i + 1);
+      })();
+    })(0);
+  }
+
+
+
+  /* ── LA «i» DE LAS FASES ──
+     Las cabeceras de fase llevaban una «i» con la lista de trámites de esa
+     etapa. El CIIP la quitó: lo que contaba está justo debajo, desplegando la
+     propia fase, y un globo que repite lo de abajo hace pulsar para leer lo
+     que ya se iba a ver.
+
+     Se comprueban las DOS mitades. Sólo la primera se cumpliría igual con una
+     regla que borrara todas las «i» del panel —incluida la del camino, que sí
+     cuenta algo que no está escrito en ninguna otra parte—, y eso es un
+     estropicio mucho mayor que pasaría por arreglo. */
+  /* ── NINGUNA TABLA SE ESCONDE A SÍ MISMA ─────────────────────────────────
+     «Mis trámites» era la única de las cinco tablas del panel que, al
+     quedarse sin filas, se escondía entera y sacaba el aviso suelto debajo:
+     una frase flotando entre dos rayas, que se lee como una página a medio
+     cargar. Ahora el aviso va dentro, en una celda que ocupa las columnas —lo
+     que ya hacía Documentos— y el marco y las cabeceras se quedan.
+
+     SE COMPRUEBA LEYENDO EL CÓDIGO y no la pantalla, y es una decisión, no
+     pereza: para ver el estado vacío hace falta un expediente sin ningún
+     trámite, y ninguno de los tres ejemplos lo es. Se intentó con un gancho
+     que vaciaba el doble, y no sirve —la lista está cacheada, así que
+     vaciarla no repinta nada— y quedaba una prueba que decía mirar el estado
+     vacío sin llegar a verlo nunca. Eso es peor que no tenerla.
+
+     Lo que sí es cierto y comprobable: en el código no debe quedar ni una
+     línea que esconda una tabla por estar vacía. */
+  function tablasMiran(){
+    var texto = '';
+    [].forEach.call(document.querySelectorAll('script'), function(h){ texto += h.textContent; });
+    /* Se busca el texto tal cual, sin expresión regular: una barra invertida
+       de menos aquí daría una prueba que corre y no encuentra nada. */
+    var malo = texto.indexOf('tabla.hidden = true') >= 0 ||
+               texto.indexOf('Tabla.hidden = true') >= 0;
+    ok('tablas: hay código que mirar', texto.length > 50000,
+       texto.length + ' caracteres de script', 'el panel entero');
+    ok('tablas: ninguna se esconde a sí misma por quedarse vacía',
+       !malo, malo ? 'alguna se esconde' : 'ninguna', 'ninguna');
+  }
+
+  function iFasesMira(){
+    var fases = document.querySelectorAll('.phase[data-fase]');
+    ok('fases: hay fases que mirar', fases.length >= 3,
+       fases.length + ' fases', '3 o más');
+    if (!fases.length) return;
+
+    var conI = [].filter.call(fases, function(f){
+      return !!f.querySelector('.phase-cab .pista');
+    }).length;
+    igual('fases: ninguna cabecera de fase lleva ya la «i»', conI, 0);
+
+    /* Y la del camino NO se ha ido con ellas. Se mira que SE VEA y no sólo
+       que exista: escondida con un display:none esta comprobación pasaba
+       igual, y una «i» que está en el árbol pero no en la pantalla es una «i»
+       que no tiene nadie. Se vio sabotéandolo. */
+    var iCamino = document.querySelector('.sec-h .pista');
+    ok('fases: pero la del camino sigue a la vista, que ésa sí cuenta algo aparte',
+       !!iCamino && window.getComputedStyle(iCamino).display !== 'none' &&
+         iCamino.getBoundingClientRect().width > 0,
+       iCamino ? ('display ' + window.getComputedStyle(iCamino).display) : 'no está',
+       'a la vista');
+  }
+
+
+  /* ── EL TIEMPO ESTIMADO SE CUENTA EN HÁBILES ──
+     Decisión del CIIP: los números se quedan en semanas y meses, y se dice
+     que el conteo excluye fines de semana y feriados. Un inversionista que
+     lee «2–3 semanas» y cuenta días de calendario se planta en el CIIP tres
+     días antes de tiempo.
+
+     Se comprueban las DOS caras, y la segunda es la que de verdad cuesta:
+
+       · toda línea que es una ESTIMACIÓN lo dice;
+       · y ninguna de las que NO lo son lo dice. De las 33 del catálogo, 8 no
+         son estimaciones —«Se pide en el consulado», «Abierto para ti»— y un
+         parche descuidado que añada la palabra a todas escribiría tonterías
+         sin que nada se pusiera rojo.
+
+     Se mira el diccionario y no la pantalla: el pase corre en un idioma y
+     esto tiene que valer para los seis. */
+  function habilesMira(){
+    var I = (typeof I18N !== 'undefined') ? I18N : null;
+    if (!I){ ok('hábiles: hay diccionario que mirar', false, '(no hay)', 'el I18N'); return; }
+
+    /* SI ES ESTIMACIÓN LO DECIDE LA CLAVE, no cómo empieza cada traducción,
+       y ese detalle no es teórico: la primera versión de esto miraba el
+       prefijo de cada idioma, el portugués usa «Estimativa:» además de
+       «Estimado:» y el italiano «Stima:» además de «Stimato:», y cuatro
+       líneas se quedaron sin la aclaración SIN que esta prueba dijera nada
+       —porque compartía la lista de prefijos con el parche, así que las dos
+       tenían el mismo punto ciego—. Se vio en un pantallazo.
+
+       Mirando el castellano, que no varía, la pregunta se contesta una sola
+       vez por clave y vale para los seis. */
+    var DICE = /hábil|útil|úteis|working|lavorativ|工作|рабоч/;
+    var todas = Object.keys(I.es).filter(function(k){ return /.time$/.test(k); });
+    ok('hábiles: hay tiempos que mirar', todas.length >= 30,
+       todas.length + ' líneas de tiempo', '30 o más');
+
+    var claves = todas.filter(function(k){ return I.es[k].indexOf('Estimado:') === 0; });
+    var otras  = todas.filter(function(k){ return I.es[k].indexOf('Estimado:') !== 0; });
+    ok('hábiles: y las hay de los dos tipos, estimación y no',
+       claves.length >= 20 && otras.length >= 5,
+       claves.length + ' estimaciones y ' + otras.length + ' que no lo son',
+       'de las dos');
+
+    var sinDecir = [], loDicenSinSerlo = [];
+    ['es','en','pt','it','zh','ru'].forEach(function(idi){
+      claves.forEach(function(k){
+        if (!DICE.test(String((I[idi] || {})[k] || ''))) sinDecir.push(idi + ' ' + k);
+      });
+      otras.forEach(function(k){
+        if (DICE.test(String((I[idi] || {})[k] || ''))) loDicenSinSerlo.push(idi + ' ' + k);
+      });
+    });
+
+    igual('hábiles: toda estimación dice que se cuenta en días hábiles',
+          sinDecir.length ? sinDecir.slice(0, 4).join(', ') : '(todas lo dicen)',
+          '(todas lo dicen)');
+    igual('hábiles: y ninguna línea que no es estimación lo dice',
+          loDicenSinSerlo.length ? loDicenSinSerlo.slice(0, 4).join(', ') : '(ninguna)',
+          '(ninguna)');
+  }
+
+
+  /* ── NINGUNA LETRA AL TAMAÑO DE FÁBRICA ──────────────────────────────────
+     Nace de un fallo que no daba error ni se veía en ninguna prueba: el botón
+     de volver decía «font:700 12.5px/1 inherit», y eso es CSS inválido —dentro
+     del atajo «font», la familia no admite palabras como inherit—. El
+     navegador tira la declaración ENTERA, así que el botón se quedaba sin
+     tamaño Y sin negrita, y caía a 13,33px, que es lo que Chrome le pone por
+     defecto a un <button>. Se descubrió contando los tamaños de letra de la
+     página, no probándola.
+
+     Se comprueban las dos puntas:
+
+       · LA CAUSA, leyendo la hoja: ningún atajo «font:» puede llevar una
+         palabra clave de CSS donde va la familia. Es estático y no depende de
+         qué pantalla esté abierta.
+
+       · EL SÍNTOMA, en pantalla: nada con letra propia puede salir a 13,33px.
+         Ese número no lo ha elegido nadie; si aparece, es que algo se quedó
+         sin tamaño. */
+  function letraMira(){
+    var texto = '';
+    [].forEach.call(document.querySelectorAll('style'), function(h){ texto += h.textContent; });
+
+    /* Sin expresión regular: se parte por «font:» y se mira lo que hay hasta
+       el punto y coma. Una barra invertida de menos en un patrón aquí daría
+       una prueba que corre y no encuentra nada, que ya ha pasado. */
+    var malos = [], trozos = texto.split('font:');
+    for (var i = 1; i < trozos.length; i++){
+      var fin = trozos[i].indexOf(';');
+      if (fin < 0) fin = trozos[i].indexOf('}');
+      var d = trozos[i].slice(0, fin < 0 ? 60 : fin).trim();
+      /* «font:inherit» a secas es válido: es el valor entero. Lo inválido es
+         llevar la palabra al final, detrás de un tamaño. */
+      if (d === 'inherit' || d === 'initial' || d === 'unset' || d === 'revert') continue;
+      ['inherit', 'initial', 'unset', 'revert'].forEach(function(p){
+        if (d.length > p.length && d.slice(-p.length) === p) malos.push(d.slice(0, 40));
+      });
+    }
+    igual('letra: ningún atajo «font:» lleva una palabra de CSS como familia',
+          malos.length ? malos[0] : '(ninguno)', '(ninguno)');
+
+    /* AQUÍ HABÍA una segunda mitad que miraba la PANTALLA: que nada saliera
+       a 13,33px. Se quitó porque en el punto de la cadena donde corre esto la
+       vista tiene cinco elementos con letra —lo dijo un contador puesto a
+       propósito— así que no tenía nada que cazar y pasaba en verde siempre.
+       Una comprobación que no examina nada es peor que ninguna: ocupa el
+       sitio de la que sí haría falta.
+
+       Lo de arriba no depende de la pantalla: lee la hoja entera y encuentra
+       la CAUSA esté donde esté el fallo. Con eso basta. */
+  }
+
 
   function gestionAbre(){
     if (CASO !== 'vacio') return;
@@ -5737,6 +6312,41 @@
        of ? of.textContent.trim().slice(0, 45) : '(no esta)', 'el ofrecimiento');
     if (!of) return;
 
+    /* Y VIVE FUERA del formulario, en su propio cuadro. Esto se pide aparte
+       porque la prueba de arriba lo encuentra en cualquier sitio de la
+       pantalla: cuando el bloque estaba metido dentro de la tarjeta de «Tus
+       datos» pasaba igual de verde, y ahi dentro se leia como el ultimo paso
+       de rellenarla, que es justo lo contrario de lo que es. */
+    ok('gestion: y en su propio cuadro, no dentro del formulario',
+       !of.closest('.sol-col') && !of.closest('.sol-lado'),
+       of.closest('.sol-col') ? 'dentro de «Tus datos»'
+         : of.closest('.sol-lado') ? 'dentro de los recaudos' : 'fuera de los dos',
+       'fuera de los dos');
+
+    /* Con el mismo marco que sus hermanos. Sin esto, sacarlo fuera lo dejaria
+       suelto sobre el fondo, que es peor que donde estaba. */
+    var formu = document.querySelector('#trReal .sol-col');
+    if (formu) {
+      var a = window.getComputedStyle(of), b = window.getComputedStyle(formu);
+      igual('gestion: con el mismo borde que el formulario',
+            a.borderTopColor + ' / ' + a.borderTopWidth,
+            b.borderTopColor + ' / ' + b.borderTopWidth);
+      igual('gestion: y el mismo redondeo', a.borderRadius, b.borderRadius);
+    }
+
+    /* AQUÍ SE INTENTÓ comprobar que el cartel no promete una cita —decía
+       «Pide una cita y lo hablamos» mucho después de que el botón dejara de
+       pedirla— buscando esas palabras en los seis idiomas. No sirve, y se
+       quita: el texto nuevo dice «sin pedir cita», o sea que nombra la cita
+       precisamente para descartarla, y el buscador de palabras no distingue
+       prometer de negar. Daba rojo sobre el texto correcto.
+
+       Lo que de verdad importa ya está probado, y por comportamiento y no
+       por palabras: en gestionTrasPulsar se comprueba que el botón abre la
+       consulta Y que la ventana de la cita se queda cerrada. Una prueba de
+       palabras encima de esa no añade protección; solo añade rojos falsos
+       cada vez que el CIIP retoca la frase. */
+
     /* Y no compite con el de enviar: el de verdad de esta pantalla es
        «Enviar solicitud», y dos botones iguales no dicen cual es cual. */
     var bt = of.querySelector('button');
@@ -5750,22 +6360,35 @@
 
   function gestionTrasPulsar(){
     if (CASO !== 'vacio') return;
-    var back = document.getElementById('citaBack');
-    ok('gestion: al pulsarlo se abre la cita, no se queda en el cartel',
+    /* Abre una CONSULTA, no una cita. Antes llevaba a reservar una hora, y
+       eso obligaba a esperar al día de la reunión para algo que se contesta
+       por escrito: hasta entonces el equipo ni sabía que se lo habían
+       pedido. La cita sigue existiendo, en la burbuja, para cuando de verdad
+       haga falta hablar. */
+    var back = document.getElementById('consBack');
+    ok('gestion: al pulsarlo se abre una consulta, sin pedir cita',
        !!back && back.classList.contains('open'),
        back ? back.className : '(no hay ventana)', 'la ventana abierta');
 
-    /* Y CON EL TRAMITE PUESTO. Sin esto, abrir la ventana se cumpliria
-       igual dejando el asunto en «una consulta general», y quien acaba de
-       estar mirando un tramite tendria que volver a decir cual era. */
-    var sel = document.getElementById('ctAsunto');
-    ok('gestion: y con el tramite del que venias ya elegido',
-       !!sel && sel.value === 'solvencias',
-       sel ? ('"' + sel.value + '"') : '(no hay asunto)', 'solvencias');
+    /* Y no la de la cita. Se pide aparte porque las dos ventanas son
+       distintas y podrían abrirse las dos: eso dejaría al inversionista
+       reservando una hora igualmente. */
+    var cita = document.getElementById('citaBack');
+    ok('gestion: y la ventana de la cita se queda cerrada',
+       !cita || !cita.classList.contains('open'),
+       cita ? cita.className : '(no hay ventana)', 'cerrada');
+
+    /* CON EL ASUNTO YA ESCRITO. Sin esto, abrir la ventana se cumpliría
+       igual con el campo en blanco, y quien acaba de estar mirando un
+       trámite tendría que volver a contar de cuál habla. */
+    var as = document.getElementById('consAsunto');
+    ok('gestion: y con el trámite del que venías ya escrito',
+       !!as && /\S/.test(as.value),
+       as ? ('"' + as.value + '"') : '(no hay asunto)', 'el nombre del trámite');
 
     /* Se cierra: una prueba que deja una ventana abierta le tapa la
        pantalla a las de despues. */
-    var cerrar = document.getElementById('ctCerrar');
+    var cerrar = document.getElementById('consCerrar');
     if (cerrar) cerrar.click();
     location.hash = '';
   }
@@ -6207,6 +6830,12 @@
      Se mira en la AGENDA, que es la lista de citas, y que ven los dos: el
      inversionista con las suyas y el equipo con todas. */
   function agendaHilo(){
+    /* Sólo el pase 'lleno' tiene una cita en la agenda; en los demás no hay
+       ninguna que desplegar. La guarda es por el CASO y no por «si no hay
+       fichas, me callo»: lo segundo también se cumple cuando SÍ debería
+       haberlas y algo se rompió, y entonces la prueba desaparece en vez de
+       ponerse roja. Atada al caso, el rojo llega donde tiene que llegar. */
+    if (CASO !== 'lleno') return;
     /* DESPLEGAR PRIMERO. Desde que la agenda es una tabla, la ficha -y con
        ella la conversacion- solo existe cuando se pulsa «Ver la cita».
 
@@ -6224,66 +6853,17 @@
     }
 
     var fichas = document.querySelectorAll('#ciLista .ci-ficha');
+    /* SIN «if (!fichas.length) return»: esa guarda hacía desaparecer de la
+       cuenta todo lo que viene detrás en vez de ponerlo rojo. Si la agenda
+       no se desplegó, eso ES el fallo y hay que decirlo. */
+    ok('agenda: al desplegar sale la ficha de la cita',
+       fichas.length > 0, fichas.length + ' fichas', 'al menos una');
     if (!fichas.length) return;
 
-    var bts = document.querySelectorAll('#ciLista .ci-habla');
-    igual('agenda: cada cita tiene dónde conversar', bts.length, fichas.length);
-    if (!bts.length) return;
-
-    /* La ficha de LA cita que tiene conversación, no la primera de la lista.
-       Aquí estaba escrito bts[0] y medía una cita cualquiera: la nuestra se
-       cancela antes y baja a su sección, así que el hilo salía vacío y la
-       comprobación del contenido no podía distinguir nada. */
-    var ficha = document.querySelector('#ciLista .ci-ficha[data-cita="k1"]') || fichas[0];
-    var bt0   = ficha.querySelector('.ci-habla');
-    if (!bt0) return;
-
-    /* Cerrado al entrar, y esto NO es cosmética: una agenda con doce citas
-       montaría doce hilos, o sea doce consultas y doce cajas de escribir
-       que casi nadie va a mirar. Se monta al pulsar. */
-    var caja = ficha.querySelector('.ci-hilo-caja');
-    igual('agenda: la conversación empieza cerrada', caja.hidden, true);
-    ok('agenda: y no se ha pedido nada todavía',
-       !caja.querySelector('.hilo'),
-       caja.querySelector('.hilo') ? 'ya montado' : 'sin montar', 'sin montar');
-
-    bt0.click();
-    igual('agenda: al pulsar se abre', caja.hidden, false);
-    ok('agenda: y entonces sí se monta la conversación',
-       !!caja.querySelector('.hilo'),
-       caja.querySelector('.hilo') ? 'montada' : 'vacía', 'montada');
-
-    /* Y es la MISMA de siempre, no una tercera copia. Van tres sitios: el
-       detalle del trámite, la ventana de la cita y esta ficha. */
-    ok('agenda: es la misma conversación de siempre',
-       !!caja.querySelector('.hilo-lista') && !!caja.querySelector('.hilo-txt'),
-       ['lista','txt'].filter(function(k){
-         return !caja.querySelector('.hilo-' + k);
-       }).join(' ') || 'las dos piezas', 'lista y caja de texto');
-
-
-    /* Se recoge, y al volver a abrir NO se monta otra vez: lo que hubieras
-       escrito se perdería. Es la misma guarda que en la ventana de la cita,
-       y aquí también se mide por el texto y no por cuántos hilos hay. */
-    var txt = caja.querySelector('.hilo-txt');
-    if (txt) txt.value = 'a medio escribir…';
-    bt0.click();
-    igual('agenda: se vuelve a recoger', caja.hidden, true);
-    bt0.click();
-    igual('agenda: y al reabrir sigue lo que ibas escribiendo',
-          (caja.querySelector('.hilo-txt') || {}).value, 'a medio escribir…');
-    /* Y sigue habiendo UNO. Sin la guarda se monta otro encima: el de
-       arriba conserva el texto -por eso la comprobación anterior pasaba
-       igual- pero debajo queda un segundo hilo con la misma conversación
-       repetida y su propia caja de escribir. */
-    igual('agenda: y no queda un segundo hilo debajo',
-          caja.querySelectorAll('.hilo').length, 1);
-    if (caja.querySelector('.hilo-txt')) caja.querySelector('.hilo-txt').value = '';
-    /* Y se queda ABIERTA. Aquí había un último clic que la cerraba «para
-       dejarlo como estaba», y con eso el paso siguiente -el que mira lo que
-       dice la conversación- se encontraba la caja oculta y se salía sin
-       comprobar nada. Dos comprobaciones que no habían corrido nunca, y que
-       sólo se vieron al romper la tabla a propósito y ver que seguía verde. */
+    /* Y NINGUNA lleva ya botón de conversar: una cita es fecha, modo y
+       estado. Antes se comprobaba lo contrario —que todas lo tuvieran—. */
+    igual('agenda: y ninguna lleva ya botón de conversar',
+          document.querySelectorAll('#ciLista .ci-habla').length, 0);
   }
 
   /* El contenido se mira en un paso APARTE, y no es manía: pintaHilo pinta
@@ -6292,24 +6872,27 @@
      mensajes» con todo bien puesto. La cadena espera medio segundo entre
      pasos, que es justo para esto. */
   function agendaHiloMira(){
+    /* Sólo el pase 'lleno' tiene una cita en la agenda; en los demás no hay
+       ninguna que desplegar. La guarda es por el CASO y no por «si no hay
+       fichas, me callo»: lo segundo también se cumple cuando SÍ debería
+       haberlas y algo se rompió, y entonces la prueba desaparece en vez de
+       ponerse roja. Atada al caso, el rojo llega donde tiene que llegar. */
+    if (CASO !== 'lleno') return;
+    /* SIN el «if (!caja || caja.hidden) return» que había aquí: con el hilo
+       quitado, esa guarda hacía DESAPARECER estas comprobaciones de la cuenta
+       en vez de ponerlas rojas. Es el agujero que este arnés ya se ha comido
+       dos veces —una prueba que no corre no es una prueba que pasa—. */
     var ficha = document.querySelector('#ciLista .ci-ficha[data-cita="k1"]');
+    ok('agenda: la ficha de la cita se despliega',
+       !!ficha, ficha ? 'está' : 'no hay ficha', 'está');
     if (!ficha) return;
-    var caja = ficha.querySelector('.ci-hilo-caja');
-    if (!caja || caja.hidden) return;
 
-    /* Comprobar que «hay un hilo montado» no distingue de dónde salió: se
-       cambió la tabla a la del expediente y aquello seguía verde, enseñando
-       los mensajes de los trámites dentro de una ficha de cita. Se mira lo
-       que DICE la primera línea, que es lo único que las separa. */
-    var m0 = caja.querySelector('.hilo-m .hm-t');
-    ok('agenda: y es la conversación de la cita, no la de un trámite',
-       !!m0 && /empezado ning/i.test(m0.textContent),
-       m0 ? m0.textContent.slice(0, 46) : 'no hay mensajes',
-       'la primera de la cita');
-
-    /* Y las dos líneas que ya se habían dicho sobre esa cita. */
-    igual('agenda: con lo que ya se habló en ella',
-          caja.querySelectorAll('.hilo-m').length, 2);
+    /* Y tampoco lleva conversación del lado del equipo. Lo que el
+       inversionista escriba llega a la cola de consultas, que es donde ahora
+       llega todo. */
+    ok('agenda: y la cita del equipo tampoco lleva conversación',
+       !ficha.querySelector('.ci-hilo') && !ficha.querySelector('.hilo'),
+       ficha.querySelector('.ci-hilo') ? 'sigue puesta' : 'fuera', 'fuera');
   }
 
   function agendaTrasSalir(){
@@ -6352,9 +6935,12 @@
     /* "Cola" era ambiguo: en español es tanto fila como pegamento. */
     igual('cola: el botón dice para qué sirve',
           (document.getElementById('colaTxt') || {}).textContent, 'Por atender');
-    /* Dos citas y dos trámites: el contador es "cuánto tienes encima". */
+    /* Dos citas, dos trámites y dos consultas: el contador es "cuánto tienes
+       encima", y desde que se puede hablar con el CIIP sin pedir cita, las
+       consultas son trabajo igual que lo demás. La tercera del ejemplo está
+       resuelta y por eso NO cuenta: resuelta ya no es cola. */
     igual('cola: el botón lleva cuántas esperan',
-          (document.getElementById('colaN') || {}).textContent, '4');
+          (document.getElementById('colaN') || {}).textContent, '6');
 
     document.getElementById('colaBtn').click();
     var caja = document.getElementById('colaBack');
@@ -6465,10 +7051,10 @@
     var fichas = document.querySelectorAll('#colaTram .co-ficha');
     igual('cola: enseña los trámites que esperan por el CIIP', fichas.length, 2);
 
-    /* El contador es "cuánto tienes encima", no "cuántas citas": dos citas
-       y dos trámites. */
-    igual('cola: y el contador suma las dos colas',
-          (document.getElementById('colaN') || {}).textContent, '4');
+    /* El contador es "cuánto tienes encima", no "cuántas citas": dos citas,
+       dos trámites y dos consultas. */
+    igual('cola: y el contador suma las tres colas',
+          (document.getElementById('colaN') || {}).textContent, '6');
 
     /* Los pasos que se ofrecen salen del estado. Enseñarlos todos siempre
        invitaría a presentar ante el ente algo que nadie ha revisado. */
@@ -6728,28 +7314,103 @@
     igual('cola: y la nota viaja con la devolución',
           (window.PRUEBA_NOTA && window.PRUEBA_NOTA()) || '(ninguna)',
           'Falta el comprobante del capital.');
-    igual('cola: el contador baja', (document.getElementById('colaN') || {}).textContent, '3');
+    igual('cola: el contador baja', (document.getElementById('colaN') || {}).textContent, '5');
   }
 
+
+  /* ── LOS TOKENS, Y QUE LA HOJA DE SHADCN SEA LA QUE MANDA ──────────────
+     Esta tanda nace de un fallo que las otras 4116 pruebas no vieron: un
+     comentario nuevo se metio DENTRO de otro comentario, su cierre remato
+     el de fuera antes de tiempo, y el texto que quedaba suelto se comio la
+     linea de --navy. Resultado: todos los botones azules del panel pasaron
+     a ser blancos sobre blanco -invisibles- y el arnes siguio en verde,
+     porque nadie miraba el COLOR con el que sale nada.
+
+     Y de un segundo fallo: el bloque de forma se escribio al final del
+     primer <style>, pero la hoja de verdad es el segundo. Todas sus reglas
+     de la misma fuerza perdian contra las de abajo y no hacian nada, sin
+     un solo error en la consola. */
+  function tokensMiran(){
+    /* Uno: ninguna variable que la hoja usa puede estar sin declarar. Si
+       una se pierde, var(--x) se queda en nada y lo que dependia de ella
+       cae al valor de fabrica, casi siempre transparente. */
+    var texto = '';
+    [].forEach.call(document.querySelectorAll('style'), function(h){ texto += h.textContent; });
+    /* A mano y sin expresión regular: la hoja es un archivo enorme y una
+       barra invertida de menos aquí no da error, da una regla que corre y
+       no encuentra nada. Buscando el texto tal cual, eso no puede pasar. */
+    var usados = {}, trozos = texto.split('var(');
+    for (var k = 1; k < trozos.length; k++){
+      var t = trozos[k], i = 0;
+      while (i < t.length && t.charCodeAt(i) <= 32) i++;
+      if (t.charAt(i) !== '-' || t.charAt(i + 1) !== '-') continue;
+      var f = i;
+      while (f < t.length && t.charCodeAt(f) > 32 && ',)('.indexOf(t.charAt(f)) < 0) f++;
+      /* Sólo cuentan las que NO llevan valor de reserva: var(--x, algo)
+         sigue pintando aunque --x se pierda, así que exigirle que exista
+         daría rojos que no son fallos. */
+      var resto = f, hueco = 0;
+      while (resto < t.length && t.charCodeAt(resto) <= 32) { resto++; hueco++; }
+      if (t.charAt(resto) !== ')') continue;
+      usados[t.slice(i, f)] = 1;
+    }
+    var raiz = window.getComputedStyle(document.documentElement), sueltas = [];
+    Object.keys(usados).forEach(function(n){
+      if (!raiz.getPropertyValue(n).trim()) sueltas.push(n);
+    });
+    var cuantas = Object.keys(usados).length;
+    ok('tokens: la hoja usa variables de verdad, no dos sueltas',
+       cuantas >= 20, cuantas + ' variables', '20 o mas');
+    ok('tokens: y todas las que usa estan declaradas',
+       sueltas.length === 0, sueltas.length ? sueltas.join(', ') : 'ninguna suelta',
+       'ninguna suelta');
+
+    /* Dos: el azul del CIIP, medido donde se ve. Que --navy exista no basta;
+       lo que importa es que el boton salga azul. */
+    /* Se mira un botón AZUL de verdad y ya no el de la etapa: ése pasó a ser
+       un enlace -sin fondo- al bajar la altura de las cuatro tarjetas, y
+       seguir midiéndolo aquí habría convertido esta prueba en un rojo fijo
+       sobre algo que está bien. Lo que tiene que seguir siendo cierto es
+       que el azul del CIIP llega a la pantalla, y eso lo dice cualquier
+       botón principal. */
+    var btn = document.querySelector('.btn.navy') || document.querySelector('.btn');
+    igual('tokens: el botón principal sale del azul del CIIP',
+          btn ? window.getComputedStyle(btn).backgroundColor : '(no hay botón)',
+          'rgb(0, 64, 144)');
+
+    /* Tres: la capa de shadcn manda. .t-name lo trae la hoja en 700 y el
+       bloque de shadcn lo baja a 600; si el bloque volviera a caer en un
+       <style> que no manda, esto sale 700 y no 600. */
+    var nom = document.querySelector('.t-name') || document.querySelector('.jname');
+    igual('tokens: y el bloque de shadcn es el que manda, no el de arriba',
+          nom ? window.getComputedStyle(nom).fontWeight : '(no hay título)', '600');
+
+    /* Cuatro: el contador de la pestaña encendida. Era blanco porque la
+       pestaña era azul; al volverse blanca la pestaña, el numero se
+       borraba. Se mira que su letra NO sea blanca. */
+    var enc = document.querySelector('#filters .ftab.on .n');
+    var col = enc ? window.getComputedStyle(enc).color : '(no hay)';
+    ok('tokens: el contador de la pestaña encendida se ve',
+       col !== 'rgb(255, 255, 255)' && col !== '(no hay)', col, 'un color que no sea blanco');
+  }
   function colaTrasConfirmar(){
     if (CASO !== 'gestor') return;
     igual('cola: confirmada, sale de la cola', document.querySelectorAll('#colaLista .co-ficha').length, 1);
     /* Quedan una cita y un trámite: se devolvió uno antes y ahora se
        confirmó una. El contador cuenta las dos colas juntas. */
-    igual('cola: y el contador baja', (document.getElementById('colaN') || {}).textContent, '2');
+    igual('cola: y el contador baja', (document.getElementById('colaN') || {}).textContent, '4');
   }
 
-  /* Y al cancelar la cita, el hilo se va con ella. No es limpieza: el hilo
-     cuelga de UNA cita, y dejarlo puesto sobre la siguiente enseñaría la
-     conversación de la anterior. */
+  /* Al cancelar, la caja se queda limpia del todo: ni conversación —que ya
+     no hay— ni la puerta, que sin cita no lleva a ningún sitio con sentido. */
   function hiloCitaTrasAnular(){
     if (CASO === 'gestor') return;
     var caja = document.getElementById('ctHilo');
-    ok('hilo cita: al cancelar la cita, el hilo se va con ella',
-       !!caja && !caja.querySelector('.hilo'),
-       caja ? (caja.querySelector('.hilo') ? 'sigue puesto' : 'vacío') : 'no existe',
-       'vacío');
-    ok('hilo cita: y no se queda apuntando a la cita cancelada',
+    ok('cita: al cancelarla, la caja se queda limpia',
+       !!caja && !caja.querySelector('.ct-hablar') && !caja.querySelector('.hilo'),
+       caja ? (caja.textContent.trim() ? 'queda algo' : 'limpia') : 'no existe',
+       'limpia');
+    ok('cita: y no se queda apuntando a la cita cancelada',
        !!caja && !caja.hasAttribute('data-cita'),
        caja ? (caja.getAttribute('data-cita') || 'sin apuntar') : 'no existe',
        'sin apuntar');

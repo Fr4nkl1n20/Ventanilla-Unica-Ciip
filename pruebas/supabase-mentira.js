@@ -355,6 +355,35 @@
   var dichos = [];
   /* Lo que se escriba en el hilo de una cita durante la tanda. */
   var dichosCita = [];
+
+  /* LAS CONSULTAS. Empieza con dos y no vacia, y las dos hacen falta:
+
+       cs1  del inversionista, ya contestada por el equipo. Sin una que
+            tenga respuesta no habria forma de probar que se distingue
+            quien habla, que es la mitad de lo que hace un hilo.
+
+       cs2  SIN gestor y de otra persona: es la que tiene que salir en la
+            cola del equipo. Puesta a nombre del propio inversionista, la
+            cola se probaria con una consulta que ya es suya y el filtro
+            de "sin asignar" pasaria por casualidad. */
+  var consultas = [
+    {id:'cs1', inversionista:'u1', tramite:'t1', tipo:'rif_personal', asunto:'Acreditacion de identidad y legitimacion',
+     estado:'en_curso', gestor:'g1', creado_en:'2026-08-20T09:00:00Z',
+     actualizado_en:'2026-08-20T11:00:00Z', resuelto_en:null},
+    {id:'cs2', inversionista:'u9', tramite:null, tipo:null, asunto:'Necesito visa para constituir la empresa?',
+     estado:'abierta', gestor:null, creado_en:'2026-08-22T15:30:00Z',
+     actualizado_en:'2026-08-22T15:30:00Z', resuelto_en:null},
+    /* Y una RESUELTA. No es adorno: la cola del equipo pide las vivas con
+       .in('estado', ['abierta','en_curso']), y sin una resuelta en la mesa
+       ese filtro pasaria aunque no filtrara nada. Ademas el inversionista
+       tiene que verla en su lista -las suyas son todas, no solo las vivas-,
+       que es la otra mitad de lo que hay que distinguir. */
+    {id:'cs3', inversionista:'u1', tramite:null, tipo:null, asunto:'Como se apostilla un poder desde Italia?',
+     estado:'resuelta', gestor:'g1', creado_en:'2026-08-10T08:00:00Z',
+     actualizado_en:'2026-08-11T16:00:00Z', resuelto_en:'2026-08-11T16:00:00Z'}
+  ];
+  /* Lo que se escriba en el hilo de una consulta durante la tanda. */
+  var dichosConsulta = [];
   /* Lo que se borro en esta pasada, para que la lista lo respete. */
   var borrados = {};
   /* La configuracion del acompañamiento, con sus valores de fabrica. */
@@ -455,6 +484,18 @@
      sin esto solo se sabria que el tramite cambio de estado. */
   var notaPuesta = null;
   window.PRUEBA_NOTA = function(){ return notaPuesta; };
+
+  /* Vaciar la lista de tramites, para poder mirar el estado vacio de «Mis
+     tramites». Ninguno de los tres ejemplos tiene cero -el que se llama
+     «vacio» lo es de empresa, no de tramites- y sin esto la pantalla que se
+     le ensena a quien acaba de entrar no la comprobaba nadie.
+
+     Es un gancho de PRUEBA y no un caso nuevo a proposito: un pase entero
+     mas cuesta un minuto de reloj en cada tanda para mirar una sola cosa. */
+  window.PRUEBA_SIN_TRAMITES = function(){
+    TRAMITES[caso] = [];
+    return true;
+  };
 
   /* Una cita YA CONFIRMADA, para el buzon de avisos. Se fecha ANTES que los
      eventos de tramites a proposito: asi se comprueba que el buzon la mete
@@ -1288,6 +1329,108 @@
       }
       return {data:hilo, error:null};
     }
+    if (tabla === 'consultas'){
+      /* ABRIRLA. Lo que manda el navegador NO decide de quien es ni en que
+         estado nace: eso lo pone el disparador consulta_la_firma_la_base()
+         en la base de verdad. Si el doble aceptara lo que le mandan, la
+         prueba de "nadie abre una consulta a nombre de otro" saldria verde
+         midiendo justo lo contrario de lo que dice. */
+      if (op && op.insert){
+        var nueva = {
+          id: 'cs' + (consultas.length + 1),
+          inversionista: USUARIO.id,
+          tramite: op.insert.tramite || null,
+          tipo: op.insert.tipo || null,
+          asunto: op.insert.asunto || '',
+          estado: 'abierta',
+          gestor: null,
+          creado_en: new Date().toISOString(),
+          actualizado_en: new Date().toISOString(),
+          resuelto_en: null
+        };
+        consultas.push(nueva);
+        return {data:[nueva], error:null};
+      }
+
+      /* TOMARLA o CERRARLA, que es del equipo. */
+      if (op && op.update && op.eq && op.eq.id){
+        var cual = consultas.filter(function(c){ return c.id === op.eq.id; })[0];
+        if (cual){
+          if ('estado' in op.update) cual.estado = op.update.estado;
+          if ('gestor' in op.update) cual.gestor = op.update.gestor;
+          cual.actualizado_en = new Date().toISOString();
+          /* La hora de cierre la pone la base y cuadra con el estado, igual
+             que el disparador consulta_al_cambiar(). */
+          cual.resuelto_en = (cual.estado === 'resuelta') ? new Date().toISOString() : null;
+        }
+        return {data: cual || {}, error:null};
+      }
+
+      /* LEERLAS. El equipo las ve todas; el inversionista, las suyas. Esto
+         es lo que hace la RLS de verdad, y el doble tiene que hacer lo mismo
+         o la pantalla del inversionista se probaria con las de todos. */
+      var mias = consultas.filter(function(c){
+        return (caso === 'gestor') ? true : c.inversionista === USUARIO.id;
+      });
+      if (op && op.eq && op.eq.id){
+        mias = mias.filter(function(c){ return c.id === op.eq.id; });
+      }
+      if (op && op.eq && op.eq.estado){
+        mias = mias.filter(function(c){ return c.estado === op.eq.estado; });
+      }
+      /* .is('gestor', null) es como la cola pide las que no lleva nadie. */
+      if (op && op.is && 'gestor' in op.is && op.is.gestor === null){
+        mias = mias.filter(function(c){ return c.gestor == null; });
+      }
+      /* Y .in('estado', [...]), que es como la cola del equipo pide las que
+         siguen vivas. Sin esta rama el filtro se ignoraba y la cola salia
+         bien por casualidad -porque ninguna del ejemplo estaba resuelta-.
+         Por eso ahora hay una que si lo esta: un filtro sin nada que filtrar
+         no prueba que filtre. */
+      if (op && op.in && op.in.estado){
+        mias = mias.filter(function(c){ return op.in.estado.indexOf(c.estado) >= 0; });
+      }
+      if (op && op.single) return {data: mias[0] || null, error:null};
+      return {data: mias.slice(), error:null};
+    }
+
+    if (tabla === 'consulta_mensajes'){
+      if (op && op.insert){
+        /* NOT NULL, igual que en las otras dos conversaciones. */
+        if (op.insert.consulta == null){
+          return {data:null, error:{
+            message:'null value in column "consulta" of relation "consulta_mensajes" violates not-null constraint',
+            code:'23502'}};
+        }
+        var dicho = {
+          id: 'cmsj' + (dichosConsulta.length + 1),
+          consulta: op.insert.consulta,
+          texto: op.insert.texto || '',
+          documento: op.insert.documento || null,
+          /* Lo pone la BASE. El mismo disparador que firma los otros hilos. */
+          del_equipo: (caso === 'gestor'),
+          creado_en: new Date().toISOString()
+        };
+        dichosConsulta.push(dicho);
+        return {data:[dicho], error:null};
+      }
+      var charla = [
+        {id:'cmsj-a', consulta:'cs1', texto:'Quisiera que el CIIP lleve este tramite por mi.',
+         del_equipo:false, documento:null, creado_en:'2026-08-20T09:00:00Z'},
+        {id:'cmsj-b', consulta:'cs1', texto:'Con gusto. Necesitamos el poder notariado y su pasaporte.',
+         del_equipo:true, documento:null, creado_en:'2026-08-20T11:00:00Z'},
+        /* La de la cola del equipo empieza sin contestar: es lo que hace que
+           salga como pendiente, y con una respuesta puesta la prueba de la
+           cola mediria una consulta ya atendida. */
+        {id:'cmsj-c', consulta:'cs2', texto:'Necesito visa para constituir la empresa?',
+         del_equipo:false, documento:null, creado_en:'2026-08-22T15:30:00Z'}
+      ].concat(dichosConsulta);
+      if (op && op.eq && op.eq.consulta){
+        charla = charla.filter(function(m){ return m.consulta === op.eq.consulta; });
+      }
+      return {data:charla, error:null};
+    }
+
     if (tabla === 'tramite_documentos'){
       /* El detalle de un tramite resuelto pregunta por lo ENTREGADO. Es la
          misma consulta -con .eq('tramite')- pero de otro expediente, asi
@@ -1393,6 +1536,12 @@
     api.lte = function(){ return api; };
     api.gte = function(){ return api; };
     api.in = function(k, v){ (op.in = op.in || {})[k] = v; return api; };
+    /* .is es la unica forma de preguntar por un null en Supabase: .eq(x, null)
+       no compara, filtra por la cadena "null". La cola de consultas pide las
+       que no lleva nadie con .is('gestor', null), y sin esto el doble
+       reventaba con "api.is is not a function" -un fallo del arnes con
+       aspecto de fallo del panel-. */
+    api.is = function(k, v){ (op.is = op.is || {})[k] = v; return api; };
     api.single = function(){ op.single = true; return api; };
     /* Estos dos SÍ se miran: son los que cambian algo. */
     api.insert = function(fila){ op.insert = fila; return api; };
