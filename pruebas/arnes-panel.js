@@ -1448,6 +1448,101 @@
          'activa=' + ca + ' otra=' + co, 'colores distintos');
     })();
 
+    /* ── Y CUÁL ES LA ETAPA EN CURSO ──
+       Venía escrita a mano en el marcado -la 2 nacía con .active desde la
+       maqueta-, así que cada recarga plantaba el «Estás aquí» sobre
+       «Estructuración corporativa» aunque no se hubiera hecho ni el primer
+       trámite. Ahora la decide quien cuenta las tarjetas.
+
+       No se comprueba contra un número fijo: las pasadas del arnés traen
+       expedientes distintos, y en una de ellas la 1 podría estar hecha. Se
+       comprueba la REGLA, contando las tarjetas aquí otra vez y a mano. */
+    (function(){
+      function completa(n){
+        var b = document.querySelector('[data-fase="' + n + '"]');
+        var t = b ? b.querySelectorAll('.tcard') : [];
+        if (!t.length) return null;          /* una etapa sin tarjetas no cuenta */
+        var hechos = 0;
+        t.forEach(function(c){ if (c.getAttribute('data-st') === 'listo') hechos++; });
+        return hechos === t.length;
+      }
+      function debeSer(){
+        var conTarjetas = [], primeraFloja = null;
+        etapas().forEach(function(e){
+          var c = completa(e.getAttribute('data-ir'));
+          if (c === null) return;
+          conTarjetas.push(e);
+          if (!primeraFloja && !c) primeraFloja = e;
+        });
+        return primeraFloja || conTarjetas[conTarjetas.length - 1] || null;
+      }
+      function marcada(){
+        var a = document.querySelector('.jp.active');
+        return a ? a.getAttribute('data-ir') : '(ninguna)';
+      }
+      function toca(){
+        var d = debeSer();
+        return d ? d.getAttribute('data-ir') : '(ninguna)';
+      }
+
+      igual('camino: la etapa en curso es la primera sin terminar', marcada(), toca());
+
+      /* Y que de verdad la MUEVE, que es lo que no hacía. Se dan por hechas
+         las tarjetas de la primera etapa y tiene que pasar a la siguiente;
+         luego se devuelve todo como estaba. */
+      var laUna = document.querySelector('[data-fase="1"]');
+      var suyas = laUna ? [].slice.call(laUna.querySelectorAll('.tcard')) : [];
+      var antes = suyas.map(function(c){ return c.getAttribute('data-st'); });
+      if (suyas.length && window.CIIP_REPINTA_ETAPAS){
+        suyas.forEach(function(c){ c.setAttribute('data-st', 'listo'); });
+        window.CIIP_REPINTA_ETAPAS();
+        ok('camino: y se mueve cuando terminas una etapa', marcada() === toca() && marcada() !== '1',
+           'marcada=' + marcada() + ' toca=' + toca(), 'la misma, y ya no la 1');
+
+        /* Y el borde azul esta YA, sin desvanecerse. La caja tiene una
+           transicion de 140 ms para cuando eliges tu; si se dejara correr
+           tambien aqui, al abrir el panel las cuatro se verian iguales
+           durante ese rato y el «Estas aqui» llegaria antes que su borde.
+           Se mide en el acto, en el mismo golpe que acaba de moverlo. */
+        (function(){
+          /* Se pregunta por las TRANSICIONES EN MARCHA y no por el color.
+             Preguntar por el color casi siempre sale bien aunque el
+             desvanecido este puesto: la transicion no empieza hasta el
+             siguiente recalculo, asi que leer el color justo despues
+             devuelve el de destino y la prueba pasa con el fallo dentro.
+             Se comprobo: con el desvanecido puesto, esa version solo se
+             ponia roja en una de las doce pasadas.
+             getComputedStyle fuerza ese recalculo -sin el no hay
+             transicion que contar ni con el fallo dentro- y getAnimations
+             dice si quedo alguna corriendo. */
+          window.getComputedStyle(etapas()[0]).borderTopColor;
+          var enMarcha = [];
+          etapas().forEach(function(e){
+            (e.getAnimations ? e.getAnimations() : []).forEach(function(t){
+              if (t.transitionProperty) enMarcha.push(e.getAttribute('data-ir') + ':' + t.transitionProperty);
+            });
+          });
+          ok('camino: y su borde no llega desvaneciendose', enMarcha.length === 0,
+             enMarcha.join(' ') || 'ninguna', 'ninguna transicion en marcha');
+        })();
+
+        /* Pero en cuanto eliges tú, manda tu elección: el catálogo llegando
+           por detrás vuelve a llamar aquí, y no puede moverte la página. */
+        var otra = document.querySelector('.jp[data-ir="1"]');
+        window.CIIP_ETAPA_A_MANO = true;
+        etapas().forEach(function(e){ e.classList.toggle('active', e === otra); });
+        window.CIIP_REPINTA_ETAPAS();
+        igual('camino: y deja de moverse en cuanto eliges una', marcada(), '1');
+        window.CIIP_ETAPA_A_MANO = false;
+
+        suyas.forEach(function(c, i){
+          if (antes[i] === null) c.removeAttribute('data-st');
+          else c.setAttribute('data-st', antes[i]);
+        });
+        window.CIIP_REPINTA_ETAPAS();
+      }
+    })();
+
     /* La bandera del selector de idioma llevaba el mismo emoji, y el botón
        decía "ES ES": la bandera convertida en dos letras al lado del código. */
     (function(){

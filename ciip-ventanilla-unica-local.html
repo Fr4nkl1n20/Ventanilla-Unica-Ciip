@@ -3554,7 +3554,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
           <span class="jcta"><span data-i18n="jc.ver">See the procedures</span><span class="fl" aria-hidden="true">→</span></span>
         </div>
 
-        <div class="jp active" data-ir="2" role="button" tabindex="0" aria-pressed="true">
+        <div class="jp" data-ir="2" role="button" tabindex="0" aria-pressed="false">
           <div class="num">2</div>
           <div class="jname" data-i18n="p2.name">Incorporate</div>
           <div class="jsub" data-i18n="p2.sub">Incorporation, tax ID and banking</div>
@@ -5252,6 +5252,11 @@ function applyLang(lang){
     var dic = I18N[curLang] || I18N.en;
     var plantilla = dic['j.count'] || I18N.en['j.count'] || '{n} of {t} done';
 
+    /* La primera sin terminar es donde estas; la ultima con tarjetas, por si
+       ya estan todas hechas. Se apuntan aqui dentro para no recorrer dos
+       veces las mismas ciento y pico tarjetas. */
+    var laDeAqui = null, laUltima = null;
+
     document.querySelectorAll('.jp[data-ir]').forEach(function(et){
       var n = et.getAttribute('data-ir');
       var bloque = document.querySelector('[data-fase="'+n+'"]');
@@ -5262,6 +5267,9 @@ function applyLang(lang){
       var hechos = 0;
       tarjetas.forEach(function(c){ if (c.getAttribute('data-st') === 'listo') hechos++; });
       var completa = (hechos === tarjetas.length);
+
+      laUltima = et;
+      if (!laDeAqui && !completa) laDeAqui = et;
 
       et.classList.toggle('done', completa);
       var num = et.querySelector('.num');
@@ -5289,6 +5297,50 @@ function applyLang(lang){
          números seguidos que cuentan cosas distintas se leen como uno mal.
          Si algún día vuelve, el nivel de cada trámite sigue en el catálogo. */
     });
+
+    /* ── Y EN CUÁL ESTÁS ──
+       Esto venía escrito a mano en el marcado: la etapa 2 nacía con .active
+       desde la maqueta, así que cada recarga plantaba el «Estás aquí» sobre
+       «Estructuración corporativa» a quien no había hecho ni el primer
+       trámite. Un dato a mano que envejeció, como los «3 of 10 done» de al
+       lado, y por eso se arregla en el mismo sitio y de la misma manera:
+       contándolo.
+
+       Se recalcula en cada repintado y no sólo al abrir, porque el estado de
+       verdad llega DESPUÉS —pintaEstadoTarjetas vuelve a llamar aquí cuando
+       la base contesta—, y una etapa elegida con el panel todavía vacío se
+       quedaría mal para siempre.
+
+       Salvo que la persona ya haya elegido. A partir de ese golpe manda
+       ella: recolocarle la etapa porque acaba de llegar el catálogo sería
+       moverle la página debajo de la mano. */
+    if (!window.CIIP_ETAPA_A_MANO){
+      var aqui = laDeAqui || laUltima;
+      if (aqui){
+        document.querySelectorAll('.jp[data-ir]').forEach(function(et){
+          var on = (et === aqui);
+          /* SIN DESVANECIDO. La caja tiene una transicion de borde de 140 ms
+             para cuando la persona elige otra etapa, y ahi esta bien. Aqui no:
+             esto corre al abrir y al llegar los datos, y el borde azul entraba
+             desvanenciendose desde el gris. Durante esos 140 ms las cuatro
+             cajas se ven iguales -lo caza la prueba del borde, que lee justo
+             al cargar- y, lo que importa mas, la que dice «estas aqui» aparece
+             despues que su propio rotulo.
+             Se apaga la transicion, se cambia, se fuerza el recalculo leyendo
+             offsetWidth y se devuelve. Sin esa lectura de por medio el
+             navegador junta los tres cambios y no se apaga nada. */
+          var tenia = et.style.transition;
+          et.style.transition = 'none';
+          et.classList.toggle('active', on);
+          et.setAttribute('aria-pressed', on ? 'true' : 'false');
+          void et.offsetWidth;
+          et.style.transition = tenia;
+        });
+        /* El rótulo lo pone otro bloque, que en el primer pase todavía no
+           existe: entonces no hace falta, porque él mismo se llama al nacer. */
+        if (window.CIIP_REPINTA_AQUI) window.CIIP_REPINTA_AQUI();
+      }
+    }
   }
 
   pinta();
@@ -5730,7 +5782,12 @@ function applyLang(lang){
     var n = et.getAttribute('data-ir');
     function ir(){
       if (et.classList.contains('active')) ve('fase-'+n, {tipo:'fase', n:n});
-      else elige(et);
+      else {
+        /* Desde aquí manda la persona: el repintado de las cuentas deja de
+           recolocar la etapa marcada. Ver «Y EN CUÁL ESTÁS», más arriba. */
+        window.CIIP_ETAPA_A_MANO = true;
+        elige(et);
+      }
     }
     et.addEventListener('click', ir);
     et.addEventListener('keydown', function(e){
