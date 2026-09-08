@@ -895,75 +895,15 @@
         igual('nivel: y el corriente no lleva nada',  niv('c6'),  '');
       })();
 
-      /* ── cuántos obligatorios faltan ──
-         «Como saber cuales son los requisitos obligatorios?» (CIIP).
+      /* AQUI SE MEDIA el renglon de «Te quedan N de T por hacer», que
+         contaba solo los obligatorios de cada etapa. El CIIP lo quito de la
+         tarjeta: ya lleva su cuenta -«0 de 8 listos»- y dos numeros seguidos
+         que cuentan cosas distintas se leen como uno mal puesto.
 
-         La cuenta de arriba —«3 de 11 listos»— mide la etapa entera, y en
-         la etapa entera hay opcionales y trámites que dependen del ramo.
-         No contesta lo único que hace falta saber para seguir. Este
-         renglón sí, y por eso tiene que decir dos números distintos de
-         los de arriba: si dijera los mismos, sobraría.
-
-         El nivel viene del catálogo, así que entre la columna de la base y
-         este texto hay tres sitios donde perderse. Se mira el TEXTO, no la
-         clase: el distintivo de al lado estuvo un rato saliendo vacío y
-         con su clase puesta, y en verde. */
-      (function(){
-        /* deEtapa y etapas() ya existen arriba: el renglon se lee con el
-           mismo ayudante que la cuenta de la etapa, para que los dos miren
-           por fuerza la misma etapa. */
-        function verde(i){
-          var e = etapas()[i];
-          var r = e && e.querySelector('.joblig');
-          return !!r && r.classList.contains('ok');
-        }
-
-        /* Los estados se ponen A MANO aqui, no se toman del expediente.
-           Escritos a ojo -"te faltan 1 de 3"- la misma prueba pedia 1, 2 o 3
-           segun por que expediente fuera la tanda, porque cada uno trae la
-           visa y el RIF en un punto distinto. Poniendolos aqui, los tres
-           casos se miden igual en todos. */
-        var obl = ['c1', 'c3', 'c17'].map(function(r){
-          var c = document.querySelector('.tcard[data-tr="' + r + '"]');
-          return {c: c, era: c && c.getAttribute('data-st')};
-        });
-        function pon(i, st){ obl[i].c.setAttribute('data-st', st); }
-
-        /* Los tres hechos: el renglon lo dice y se pone verde. Quitarlo al
-           terminar dejaria sin distinguir "no faltan" de "no hay", que en la
-           fase 04 son cosas distintas. */
-        pon(0, 'listo'); pon(1, 'listo'); pon(2, 'listo');
-        window.CIIP_REPINTA_ETAPAS();
-        igual('obligatorios: con los tres hechos lo dice', deEtapa(0, '.joblig'), 'Los 3, listos');
-        igual('obligatorios: y entonces va en verde', verde(0), true);
-
-        /* Uno sin hacer: cambia la cuenta y sale del verde. */
-        pon(2, 'pendiente');
-        window.CIIP_REPINTA_ETAPAS();
-        igual('obligatorios: con uno sin hacer, resta', deEtapa(0, '.joblig'), 'Te quedan 1 de 3 por hacer');
-        igual('obligatorios: y mientras falten, no va en verde', verde(0), false);
-
-        /* Y no es la cuenta de la etapa con otras palabras: arriba dicen
-           once, aqui tres. Si coincidieran, este renglon no estaria mirando
-           el nivel sino repitiendo lo de arriba. */
-        ok('obligatorios: no es la misma cuenta de la etapa',
-           deEtapa(0, '.joblig').indexOf('11') === -1, deEtapa(0, '.joblig'), 'sin el 11 de la etapa');
-
-        /* Dos sin hacer, para que la resta se vea moverse: con un solo caso
-           un renglon que dijera siempre "1" pasaria igual. */
-        pon(1, 'pendiente');
-        window.CIIP_REPINTA_ETAPAS();
-        igual('obligatorios: y la resta se mueve', deEtapa(0, '.joblig'), 'Te quedan 2 de 3 por hacer');
-
-        obl.forEach(function(o){ o.c.setAttribute('data-st', o.era); });
-        window.CIIP_REPINTA_ETAPAS();
-
-        /* Una etapa sin obligatorios no estrena un "te faltan 0 de 0": eso es
-           ruido con cara de aviso. deEtapa avisa con su propio texto cuando
-           el renglon no esta, que es justo lo que aqui se espera ver. */
-        igual('obligatorios: la fase sin ninguno no lleva renglón',
-          deEtapa(3, '.joblig'), '(no hay .joblig)');
-      })();
+         Se van con el sus seis comprobaciones. No se dejan «por si acaso»:
+         una prueba de algo que no existe no protege nada y hace creer que
+         si. El nivel de cada tramite sigue en el catalogo, asi que el dia
+         que vuelva, vuelven. */
 
       /* ── los opcionales, apartados ──
          «Los que son opcionales quiero que los coloques en una lista aparte,
