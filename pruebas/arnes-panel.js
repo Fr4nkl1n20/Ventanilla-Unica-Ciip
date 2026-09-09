@@ -5800,6 +5800,44 @@
            'pointer y subrayado');
       }
 
+      /* ── Y ABIERTO, LA FICHA SE PONE POR DELANTE ──
+         Pasó y se vio en pantalla: el globo del reloj sale hacia la
+         izquierda, se mete en la columna vecina, y la ficha de al lado se
+         dibujaba encima. El globo quedaba cortado por la mitad.
+
+         LO QUE ESTA PRUEBA NO HACE, y conviene decirlo: no comprueba que
+         el globo se vea. Se intentó, midiendo con elementFromPoint quién
+         está delante en un punto de dentro del globo, y esa prueba pasaba
+         con el arreglo Y SIN ÉL: en la ventana del arnés ese solape no
+         llega a ocurrir. Se comprobó quitando los dos arreglos, uno por
+         uno, y salió verde las dos veces. Una prueba que no puede
+         ponerse roja no protege nada, así que se quitó.
+
+         Lo que sí se sujeta es que la REGLA se aplique: con el globo
+         abierto la ficha es su propio contexto de apilado, y al cerrarlo
+         deja de serlo. Eso sí se pone rojo si alguien quita la regla, y
+         es la mitad del arreglo que se puede comprobar sin ojos. */
+      if (reloj){
+        var ficha = reloj.closest('.tcard');
+        var antes = ficha ? window.getComputedStyle(ficha).zIndex : '?';
+        reloj.click();
+        var durante = ficha ? window.getComputedStyle(ficha).zIndex : '?';
+        reloj.click();
+        var luego = ficha ? window.getComputedStyle(ficha).zIndex : '?';
+
+        ok('plazo legal: con el globo abierto la ficha se pone por delante',
+           durante !== 'auto' && parseInt(durante, 10) > 0,
+           'cerrada=' + antes + '  abierta=' + durante,
+           'un z-index por encima de cero');
+        /* Y vuelve. Una ficha elevada para siempre se come la sombra de
+           las de al lado y le gana a cualquier cosa que se ponga encima
+           mañana. */
+        ok('plazo legal: y al cerrarlo vuelve a su sitio',
+           luego === antes,
+           'antes=' + antes + '  después=' + luego,
+           'como estaba');
+      }
+
       /* Una sin norma leída: su reloj se queda como estaba.
          LA c5 Y NO LA c4, y la diferencia es toda la prueba: la c4 no está
          en el catálogo, así que su reloj se queda mudo porque no hay ficha

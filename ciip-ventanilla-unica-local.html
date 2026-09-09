@@ -2426,6 +2426,17 @@ body[data-vista="tramite"] #secTramites{display:none;}
    recaudo en la fila, no del ancho de la pantalla. */
 .pista-caja.izq{left:auto; right:-8px;}
 .pista-caja[hidden]{display:none;}
+
+/* Y LA FICHA QUE LO TIENE ABIERTO SE PONE POR DELANTE DE LAS DEMÁS.
+   El z-index de arriba sube el globo dentro de SU ficha, y eso bastaba
+   mientras el globo salía del pie hacia abajo y a la derecha. Con el del
+   reloj no: sale hacia la izquierda, se mete en la columna de al lado, y
+   la ficha vecina se dibujaba encima. Se veía el globo cortado por la
+   mitad con una tarjeta encima.
+   No se sube la ficha SIEMPRE, sólo mientras hay un globo abierto: una
+   ficha permanentemente elevada se comería la sombra de las de al lado y
+   ganaría a cualquier cosa que se ponga encima mañana. */
+.tcard:has(.pista-caja:not([hidden])){position:relative; z-index:60;}
 .pista-caja .pc-t{font-size:11px; font-weight:800; letter-spacing:.03em; color:var(--gray-soft); margin-bottom:7px;}
 /* list-style:disc EXPLICITO y display:list-item EXPLICITO, y no por gusto:
    este globo tambien cuelga de la lista de recaudos de la ficha, que es un
@@ -6609,8 +6620,31 @@ applyLang(idiomaParaMi());
       /* Si el globo se sale por la derecha se ancla por el otro lado. Se
          mide DESPUES de ensenarlo, que es cuando tiene ancho. */
       caja.classList.remove('izq');
+      caja.style.left = '';
       var r = caja.getBoundingClientRect();
       if (r.right > (window.innerWidth - 8)) caja.classList.add('izq');
+
+      /* Y POR LA IZQUIERDA TAMBIÉN, que es la mitad que faltaba.
+         Sólo se miraba el borde derecho. Mientras el único globo colgaba
+         de «Ver detalles» -pegado a la derecha del pie- no se notaba; el
+         del reloj sale del extremo IZQUIERDO y se metía debajo de la
+         barra lateral, que es fija y va por encima. El globo aparecía
+         cortado y la mitad no se podía leer.
+         El límite es el borde derecho de la barra cuando la barra está a
+         la vista; por debajo de 840px se aparta y entonces manda el borde
+         de la ventana. Se mide, no se supone: así vale con la barra
+         abierta, plegada o desplegada encima. */
+      var barra = document.getElementById('barraLateral');
+      var suRect = barra ? barra.getBoundingClientRect() : null;
+      var tope = (suRect && suRect.width > 0 && suRect.right > 0) ? (suRect.right + 8) : 8;
+      var ahora = caja.getBoundingClientRect();
+      if (ahora.left < tope){
+        /* Se empuja con un left propio, sin tocar la clase: la clase dice
+           de qué lado se ancla y esto sólo corrige cuánto. */
+        var actual = parseFloat(window.getComputedStyle(caja).left) || 0;
+        caja.style.left = (actual + (tope - ahora.left)) + 'px';
+        caja.classList.remove('izq');
+      }
     });
     /* Un clic DENTRO del globo no lo cierra: se puede seleccionar el texto
        para copiarlo, y ademas aqui dentro puede haber un boton. */
