@@ -1187,8 +1187,21 @@ async function principal(){
 
   const sinRecoger = [];
   for (const t of basura.tramites){
-    const q = await pide('/rest/v1/tramites?id=eq.' + t.id, { method: 'DELETE', token: t.token });
-    if (!q.ok) sinRecoger.push(t.id);
+    /* Con json(), que trae Prefer: return=representation. Sin eso, la
+       misma trampa que este archivo explica doscientas lineas mas arriba
+       y que aqui se colo: un DELETE que no borra NADA contesta 204, o sea
+       q.ok, porque RLS filtra en vez de negar. Asi que un tramite enviado
+       -que su dueño no puede borrar, que es justamente la cerradura- se
+       daba por recogido, no entraba en sinRecoger, no se apartaba, y se
+       quedaba VIVO.
+       Y una viva impide crear otra del mismo tipo, asi que la tanda
+       siguiente se caia con un 23505. Se vio corriendo dos veces seguidas:
+       la primera 85 de 85, la segunda 81 de 84. El apartado de abajo
+       llevaba desde que se escribio sin recibir una sola fila. */
+    const q = await pide('/rest/v1/tramites?id=eq.' + t.id, {
+      method: 'DELETE', token: t.token, headers: json()
+    });
+    if (!(q.ok && Array.isArray(q.cuerpo) && q.cuerpo.length === 1)) sinRecoger.push(t.id);
   }
 
   /* ── y lo que no se pudo borrar, se aparta ──
