@@ -6447,7 +6447,26 @@ applyLang(idiomaParaMi());
      guardado. Sin esto, encender un tramite en la pantalla de admin no se
      notaba en la portada hasta recargar: seguia contestando la copia que
      se guardo la primera vez. */
-  window.CIIP_OLVIDA_CATALOGO = function(){ catalogo = null; TIPOS = {}; window.CIIP_TIPOS_POR_REF = {}; };
+  /* OLVIDAR NO BASTA: HAY QUE VOLVER A PREGUNTAR.
+     Esto sólo tiraba la copia, y con eso valía mientras lo único que se
+     cambiaba desde Administración era encender o apagar un trámite: al
+     volver a la portada, algo pedía el catálogo otra vez y de paso traía
+     lo nuevo.
+     Con los días no valía. Quien cambia el número está en Administración,
+     vuelve a la portada y abre el reloj de una ficha; ese globo lee el
+     catálogo, se lo encuentra VACÍO -acabamos de tirarlo- y se queda con
+     lo último que sabía, que es justo el número viejo. La pantalla decía
+     una cosa y la base otra hasta recargar.
+     Así que se tira, se vuelve a pedir, y cuando llega se repintan las
+     tarjetas. Y se devuelve la promesa para que quien llame pueda esperar
+     si le hace falta. */
+  window.CIIP_OLVIDA_CATALOGO = function(){
+    catalogo = null; TIPOS = {}; window.CIIP_TIPOS_POR_REF = {};
+    return cargaCatalogo().then(function(t){
+      if (window.CIIP_REPINTA_ESTADOS) window.CIIP_REPINTA_ESTADOS();
+      return t;
+    });
+  };
 
   /* El camino vive en otro bloque y necesita el nivel de cada trámite para
      contar los obligatorios. Se expone en vez de duplicar la consulta: dos
@@ -14562,6 +14581,10 @@ applyLang(idiomaParaMi());
      texto y ya: colgarle un globo que dijera «no se sabe» sería prometer
      un dato en 31 de 33 tarjetas para no darlo. */
   function pintaPlazoLegal(tarjeta, tipo){
+    /* Con qué ficha se corresponde. Se guarda para poder releer el
+       catálogo al abrir el globo en vez de quedarse con el de ahora: ver
+       la nota de puntosFn, más abajo. */
+    var ref = tarjeta.getAttribute('data-tr');
     var reloj = tarjeta.querySelector('.t-time');
     if (!reloj || reloj.getAttribute('data-globo')) return;
     /* Con que haya UNO de los dos basta: la norma leída, o el número que
@@ -14583,26 +14606,37 @@ applyLang(idiomaParaMi());
       titulo: function(){ return T().lg_titulo || ''; },
       puntosFn: function(){
         var t = T(), fila = [];
+        /* EL CATALOGO DE AHORA MISMO, no el de cuando se monto la ficha.
+           Esto se monta una sola vez -la guarda de data-globo lo impide
+           despues- asi que quedarse con el objeto de entonces significaba
+           que el admin cambiaba los dias en Administracion, la base los
+           guardaba, la portada volvia a pedir el catalogo... y este globo
+           seguia diciendo el numero viejo hasta recargar la pagina.
+           Se lee por el ref, que no cambia, del mismo sitio del que come
+           el resto del panel. Si por lo que sea no esta, se usa el de
+           entonces: mejor un dato viejo que ninguno. */
+        var v = (window.CIIP_TIPOS_POR_REF || {})[ref] || tipo;
+
         /* LO LEGAL, SOLO SI ALGUIEN LEYO LA NORMA. La guarda es lo mas
            importante de esta funcion: «su norma no fija plazo» dicho de
            un tramite que nadie ha mirado no es una omision, es una
            afirmacion falsa con cara de comprobada. Son 31 de 33.
            Lo que dice la norma, o que no dice nada. Las dos cosas son
            informacion; la segunda es la que mas sorprende. */
-        if (tipo.plazo_legal_norma){
-          fila.push(tipo.plazo_legal_dias
-            ? String(t.lg_dias || '').replace('{n}', tipo.plazo_legal_dias)
+        if (v.plazo_legal_norma){
+          fila.push(v.plazo_legal_dias
+            ? String(t.lg_dias || '').replace('{n}', v.plazo_legal_dias)
             : (t.lg_sin || ''));
           /* La cita NO se traduce: una Gaceta se llama igual en los seis
              idiomas, y traducirla la volveria imposible de buscar. */
-          fila.push(tipo.plazo_legal_norma);
+          fila.push(v.plazo_legal_norma);
         }
         /* Y lo que tarda EN LA PRACTICA, que es el unico de los tres que
            el CIIP puede afirmar: lo ve pasar. Va con su nombre y detras
            del legal, para que no se lean como el mismo dato. Si no hay
            numero no se dice nada: ocho tramites no prometen ninguno. */
-        if (tipo.plazo_dias){
-          fila.push(String(t.lg_practica || '').replace('{n}', tipo.plazo_dias));
+        if (v.plazo_dias){
+          fila.push(String(t.lg_practica || '').replace('{n}', v.plazo_dias));
         }
         return fila.filter(function(x){ return !!x; });
       },
@@ -18160,6 +18194,11 @@ applyLang(idiomaParaMi());
   function filaDeTramite(x){
     var u = T();
     var fila = el('div', 'cg-fila' + (x.activo ? ' on' : ''));
+    /* De qué ficha es. No lo usa la pantalla: lo usa quien tenga que atar
+       esta fila con su tarjeta de la portada -hoy, la prueba que comprueba
+       que cambiar el número aquí se ve allí-. Sin esto habría que buscar
+       la fila por su nombre, que se traduce y se retoca. */
+    if (x.ref_panel) fila.setAttribute('data-cg', x.ref_panel);
 
     var que = el('div', 'cg-que');
     que.appendChild(el('div', 'cg-nombre', x.nombre || x.codigo));

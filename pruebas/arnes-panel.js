@@ -212,6 +212,8 @@
                  de despues -que es como 886 pruebas se pusieron rojas
                  de golpe una vez-. */
               catalogoAbre, catalogoEspera, catalogoMira, catalogoGuarda, catalogoTrasGuardar,
+              catalogoVuelveEspera, catalogoSeVeEnLaFicha,
+              catalogoDeshace, catalogoDeshaceEspera, catalogoDeshacePonlo,
               puertaTodos,
               consultaAbre, consultaMira, consultaEntra, consultaDentro,
               rotulosMiran, consultaNueva, consultaNuevaMira, consultaTrasCrear,
@@ -6093,10 +6095,16 @@
      salir y no en cada tecla. Escribiendo «21» se pasa por «2», y guardar
      el 2 dejaria el dato mal un instante y una escritura de mas por cada
      digito. */
-  var CAT_ANTES = null, CAT_CODIGO = null;
+  /* LA FILA DEL c1 y no la primera que caiga: hace falta que sea una
+     ficha con globo en el reloj para poder ir a mirarla despues, y la del
+     c1 lo tiene. Se busca por data-cg -el ref del panel- y no por su
+     nombre, que se traduce y se retoca. */
+  var CAT_ANTES = null;
   function catalogoGuarda(){
     if (!ES_ADMIN) return;
-    var campo = document.querySelector("#cgLista .cg-fila .cg-plazo-n");
+    var campo = document.querySelector('#cgLista .cg-fila[data-cg="c1"] .cg-plazo-n');
+    ok("catalogo: la fila dice de que ficha es", !!campo,
+       campo ? "c1 localizada" : "no encontre la fila del c1", "con su data-cg");
     if (!campo) return;
     CAT_ANTES = campo.value;
     campo.value = "77";
@@ -6118,9 +6126,67 @@
        typeof window.CIIP_OLVIDA_CATALOGO === "function",
        typeof window.CIIP_OLVIDA_CATALOGO, "una funcion que tira la copia");
 
-    /* Se devuelve como estaba: una prueba que cambia el catalogo y no lo
-       deja igual le mueve el suelo a las de despues. */
-    if (campo && CAT_ANTES !== null){
+    location.hash = "";
+  }
+
+  /* Y AHORA LO QUE DE VERDAD SE PEDIA: que se vea en la ficha.
+
+     Entre «la base lo guardo» y «la persona lo ve» hay tres cosas que
+     pueden fallar, y una fallaba: el globo del reloj se monta UNA vez y
+     se quedaba con el catalogo de aquel momento, asi que seguia diciendo
+     el numero viejo hasta recargar la pagina. Ahora lo relee al abrirse.
+
+     Se espera a que la portada vuelva: el cambio de vista es asincrono y
+     mirar en la misma vuelta mide la pantalla anterior. */
+  function catalogoVuelveEspera(sigue){
+    if (!ES_ADMIN) return sigue();
+    esperaFilas('.tcard[data-tr="c1"] .t-time', 1, sigue);
+  }
+
+  function catalogoSeVeEnLaFicha(){
+    if (!ES_ADMIN) return;
+    var reloj = document.querySelector('.tcard[data-tr="c1"] .t-time[data-globo]');
+    if (!reloj){
+      ok("catalogo: el numero nuevo llega a la ficha", false,
+         "el reloj de la c1 no abre nada", "con su globo");
+      return;
+    }
+    var cab = document.querySelector('.phase-h[aria-controls="trs-1"]');
+    var estabaAbierta = cab && cab.getAttribute("aria-expanded") === "true";
+    if (cab && !estabaAbierta) cab.click();
+
+    reloj.click();
+    var glob = reloj.nextElementSibling &&
+               reloj.nextElementSibling.querySelector(".pista-caja");
+    var dice = glob ? (glob.textContent || "") : "";
+    ok("catalogo: el numero nuevo llega a la ficha",
+       dice.indexOf("77") >= 0,
+       dice.replace(/\s+/g, " ").trim().slice(0, 90) || "(el globo no dijo nada)",
+       "el globo dice 77");
+    reloj.click();
+    if (cab && !estabaAbierta) cab.click();
+  }
+
+  /* Y se devuelve el catalogo como estaba. Una prueba que lo cambia y no
+     lo deja igual le mueve el suelo a las de despues. */
+  function catalogoDeshace(){
+    if (!ES_ADMIN || CAT_ANTES === null) return;
+    location.hash = "catalogo";
+  }
+
+  function catalogoDeshaceEspera(sigue){
+    if (!ES_ADMIN || CAT_ANTES === null) return sigue();
+    esperaFilas("#cgLista .cg-fase", 1, function(){
+      var c = document.querySelector("#cgLista .cg-fase");
+      if (c && c.getAttribute("aria-expanded") !== "true") c.click();
+      esperaFilas('#cgLista .cg-fila[data-cg="c1"] .cg-plazo-n', 1, sigue);
+    });
+  }
+
+  function catalogoDeshacePonlo(){
+    if (!ES_ADMIN || CAT_ANTES === null) return;
+    var campo = document.querySelector('#cgLista .cg-fila[data-cg="c1"] .cg-plazo-n');
+    if (campo){
       campo.value = CAT_ANTES;
       campo.dispatchEvent(new Event("change", {bubbles:true}));
     }

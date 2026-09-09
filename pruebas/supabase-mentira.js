@@ -951,7 +951,18 @@
       if (window.CIIP_MENTIRA_TARDIO){
         TIPOS.forEach(function(t){ if (t.codigo === 'marca') t.activo = true; });
       }
-      return {data:TIPOS, error:null};
+      /* COPIAS, no los mismos objetos. Un Supabase de verdad contesta con
+         JSON nuevo en cada consulta: quien pida el catalogo dos veces
+         recibe dos juegos de objetos distintos. Este doble devolvia
+         siempre los mismos, y eso lo hacia MAS INDULGENTE que la realidad:
+         una pantalla que tocaba su copia tocaba tambien la de las demas, y
+         un panel que se quedaba con un objeto viejo parecia enterarse de
+         los cambios sin releer nada.
+         Se vio con los dias del catalogo: el globo de la ficha se quedaba
+         con el catalogo de cuando se monto -en produccion enseñaria el
+         numero viejo hasta recargar- y la prueba de punta a punta pasaba
+         igual, porque aqui los dos apuntaban a lo mismo. */
+      return {data: TIPOS.map(function(t){ return Object.assign({}, t); }), error:null};
     }
     if (tabla === 'activos'){
       /* El banco de activos. En 'lleno' hay dos publicados -uno reservado-;
