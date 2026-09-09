@@ -5841,6 +5841,28 @@
          fichas.length > 0 && mudas.length === 0,
          mudas.length ? ('callan: ' + mudas.join(', ')) : (fichas.length + ' fichas'),
          'todas');
+
+      /* Y va LO ÚLTIMO del cuerpo, detrás de la descripción. Estuvo
+         debajo del organismo y el CIIP lo movió: ahí se colaba entre el
+         nombre del ente y la descripción del trámite, que se leen
+         seguidas. Esto no describe el trámite, se ofrece después de
+         haberlo entendido.
+         Se compara la posición real en el documento, no la clase del
+         hermano: con compareDocumentPosition da igual cuántas cosas se
+         metan en medio mañana. */
+      var fuera = [];
+      fichas.forEach(function(c){
+        var acomp = c.querySelector('.t-acomp');
+        var desc  = c.querySelector('.t-desc');
+        if (!acomp || !desc) return;          /* sin descripción no hay orden que comprobar */
+        var despues = (desc.compareDocumentPosition(acomp) &
+                       Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+        if (!despues) fuera.push(c.getAttribute('data-tr'));
+      });
+      ok('acompaña: y va detrás de la descripción, no antes',
+         fuera.length === 0,
+         fuera.length ? ('antes en: ' + fuera.join(', ')) : 'todas detrás',
+         'todas detrás');
     })();
 
     /* Y SE VE que se puede pulsar. Esto no es cosmética: cuando el globo se

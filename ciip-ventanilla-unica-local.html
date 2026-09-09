@@ -14462,9 +14462,14 @@ applyLang(idiomaParaMi());
      que esto es demasiado, se va antes de pulsar nada.
 
      Por decisión del CIIP, se dice SIEMPRE y sin abrir nada. Va en la
-     cara, debajo del nombre del organismo, en letra pequeña y apagada
-     -no compite con el título- y en las treinta y tres igual, que es lo
-     que quiere decir «siempre».
+     cara, LO ÚLTIMO del cuerpo -detrás de la descripción, justo encima
+     del pie- en letra pequeña y apagada, y en las treinta y tres igual,
+     que es lo que quiere decir «siempre».
+
+     Lo último y no debajo del organismo, que es donde estuvo primero: ahí
+     se metía entre el nombre del ente y la descripción del trámite, o
+     sea, entre dos cosas que se leen seguidas. Esto no describe el
+     trámite: es lo que se ofrece DESPUÉS de haberlo entendido.
 
      El texto se REESCRIBE en cada repintado, y no sólo al crear el hueco.
      Es lo único que hace que el cambio de idioma lo alcance: applyLang
@@ -14477,10 +14482,14 @@ applyLang(idiomaParaMi());
     if (!u.lh_uno) return;
     var linea = tarjeta.querySelector('.t-acomp');
     if (!linea){
-      var donde = tarjeta.querySelector('.t-ente');
-      if (!donde) return;
+      /* Justo ANTES del pie, que es lo último del cuerpo. Se ancla en el
+         pie y no detrás de la descripción porque hay fichas donde la
+         descripción no está y el pie sí: anclando en lo que puede faltar,
+         la frase desaparecería de esas. */
+      var pie = tarjeta.querySelector('.t-foot');
+      if (!pie) return;
       linea = el('div', 't-acomp', '');
-      donde.parentNode.insertBefore(linea, donde.nextSibling);
+      pie.parentNode.insertBefore(linea, pie);
     }
     linea.textContent = u.lh_uno;
   }
