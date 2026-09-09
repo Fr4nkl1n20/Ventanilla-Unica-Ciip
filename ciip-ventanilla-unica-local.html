@@ -315,7 +315,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
    que tenia este panel desde el principio. ────────────────────────────── */
   --navy:#004090; --navy2:#0060B0; --navy-deep:#00336d; --cyan:#20B0F0; --cyan-deep:#0E8FD6;
   --ink:#0E1424; --gray:#0E1424; --gray-soft:#0E1424; --line:#E5E5E5; --line-soft:#F0F0F0;
-  --block:#F5F5F5; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#F5F5F5;--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#737373;
+  --block:#F5F5F5; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#737373;
   --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9; --good:#1E7F5C; --good-bg:#E7F4EE;
   --r:10px; --r-sm:7px;
   --shadow:0 1px 2px 0 rgba(0,0,0,.05);
@@ -334,7 +334,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
 }
 :root[data-theme="light"]{
   --ink:#0E1424; --gray:#0E1424; --gray-soft:#0E1424; --line:#E5E5E5; --line-soft:#F0F0F0;
-  --block:#F5F5F5; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#F5F5F5;--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#737373;
+  --block:#F5F5F5; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#737373;
   --navy2:#0060B0; --cyan-deep:#0E8FD6;
   --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9; --good:#1E7F5C; --good-bg:#E7F4EE;
   --shadow:0 1px 2px 0 rgba(0,0,0,.05);
@@ -2241,11 +2241,13 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .sol-dos{display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:22px;
   align-items:stretch;}
 .sol-dos.sola{grid-template-columns:minmax(0,1fr);}
-/* El fondo sale de --hoja y no de --block: en claro, --block es #F4F7FB, un
-   gris a un paso del blanco, y la tarjeta no se despegaba de la pagina. En
-   oscuro los dos valen lo mismo -alli el contraste ya estaba bien-, asi que
-   el token existe para poder subir el gris del tema claro sin tocar las 60
-   reglas que usan --block para otras cosas. */
+/* El fondo de las dos tarjetas es BLANCO. --hoja se queda como token para
+   decirlo en un solo sitio -lo usan el formulario, los recaudos y el
+   ofrecimiento del CIIP- y para poder volver a subirlo sin tocar las 60
+   reglas que usan --block para otras cosas. Lo que despega la tarjeta de
+   la pagina ya no es el gris, es el borde, que estaba puesto desde el
+   principio. En oscuro no cambia nada: alli --hoja sigue siendo el fondo
+   hondo, porque el blanco de este lado no tiene pareja al otro. */
 /* El formulario, en su tarjeta. Suelto sobre el fondo no se sabia donde
    empezaba lo que hay que rellenar y donde acababa la cabecera. */
 .sol-col{min-width:0; border:1px solid var(--line); background:var(--hoja);
@@ -2387,7 +2389,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .sol-campo.ancho{grid-column:1 / -1;}
 .sol-campo label{display:block; font-size:11px; font-weight:700; color:var(--gray); margin-bottom:5px;}
 .sol-campo input, .sol-campo select{width:100%; font:inherit; font-size:12.5px; color:var(--ink);
-  background:var(--block); border:1.5px solid var(--line); border-radius:8px; padding:9px 11px; outline:none;}
+  background:var(--bg); border:1.5px solid var(--line); border-radius:8px; padding:9px 11px; outline:none;}
 .sol-campo input:focus, .sol-campo select:focus{border-color:var(--cyan-deep); background:var(--bg);
   box-shadow:0 0 0 3px rgba(32,176,240,.12);}
 .sol-campo.mal input, .sol-campo.mal select{border-color:var(--rust);}
