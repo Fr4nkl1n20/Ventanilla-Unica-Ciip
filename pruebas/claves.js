@@ -383,6 +383,51 @@ ok('escritura: el punto final, o en todos los idiomas o en ninguno',
    puntos.length === 0,
    puntos.slice(0, 8).join('\n          '));
 
+/* ── CADA IDIOMA EN SU SITIO ──
+   El panel enseñaba «Waiting on: Visa de inversionista» en castellano, y
+   no era un texto sin traducir: la clave t.espera tenia el ingles bajo la
+   etiqueta 'es' y el castellano bajo la 'en'. CRUZADOS. Ya habia pasado
+   antes con las ocho claves del hilo del expediente.
+
+   Es el fallo que mas facil se cuela, porque ninguna de las otras nueve
+   comprobaciones lo ve: las claves estan las seis, ninguna falta, ninguna
+   sobra, y las dos frases existen. Solo estan cambiadas de sitio.
+
+   Y engaña tambien a las pruebas de pantalla. La primera que escribi para
+   esto comparaba lo pintado con el diccionario, y pasaba tan tranquila:
+   los dos decian lo mismo, los dos mal.
+
+   Se mira con palabras que solo pueden ser de un idioma, y solo se acusa
+   cuando la sospecha es DOBLE -el castellano suena a ingles Y el ingles
+   suena a castellano-. Con una sola no basta: hay rotulos legitimos en
+   castellano que llevan una palabra inglesa dentro. Con las 257 claves
+   del panel y las 689 de tramites, esto no da un solo falso positivo. */
+const SOLO_ING = [' the ', ' of ', ' your ', ' you ', ' with ', 'Waiting',
+                  'See ', 'Sign ', 'Show ', 'Hide ', ' done', ' and ', ' for '];
+const SOLO_ESP = [' el ', ' la ', ' los ', ' las ', ' tu ', ' tus ', ' con ',
+                  ' para ', 'Esperando', 'Ver ', 'Elige', 'Sube ', ' de ', ' y '];
+function suenaA(s, lista){
+  const t = ' ' + String(s) + ' ';
+  return lista.some(w => t.indexOf(w) >= 0);
+}
+function cruzados(donde, dic){
+  const malos = [];
+  if (!dic.es || !dic.en) return malos;
+  for (const k of Object.keys(dic.es)){
+    const es = dic.es[k], en = dic.en[k];
+    if (typeof es !== 'string' || typeof en !== 'string') continue;
+    if (suenaA(es, SOLO_ING) && !suenaA(es, SOLO_ESP) &&
+        suenaA(en, SOLO_ESP) && !suenaA(en, SOLO_ING)){
+      malos.push(`${donde} ${k}: es="${es}" en="${en}"`);
+    }
+  }
+  return malos;
+}
+const revueltos = cruzados('i18n', I18N).concat(cruzados('pasos', UI));
+ok('escritura: ningún texto está bajo la bandera de otro idioma',
+   revueltos.length === 0,
+   revueltos.slice(0, 8).join('\n          '));
+
 console.log('\n  ' + pasan + ' de ' + (pasan + fallan) + ' comprobaciones superadas');
 console.log('  ' + claves.length + ' claves de interfaz y ' + clavesUI.length +
             ' de trámites, en ' + idiomas.length + ' idiomas.\n');

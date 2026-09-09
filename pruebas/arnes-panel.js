@@ -695,6 +695,43 @@
       function chip(ref){ var c = document.querySelector('.tcard[data-tr="' + ref + '"] .t-top .chip'); return c ? c.textContent.trim() : ''; }
       function reloj(ref){ var t = document.querySelector('.tcard[data-tr="' + ref + '"] .t-time'); return t ? t.textContent.trim() : ''; }
 
+      /* ── «Esperando: …» EN EL IDIOMA DE TURNO ──
+         Ese renglón lo escribe pintaCuando a mano y le QUITA el data-i18n
+         a su hueco, asi que applyLang ya no puede alcanzarlo: si se pinta
+         antes de que el panel resuelva tu idioma, se queda congelado.
+         En produccion se veia «Waiting on: Visa de inversionista» dentro
+         de un panel entero en castellano.
+         Se comprueba contra el molde del diccionario y no contra la frase
+         escrita aqui: escribirla obligaria a tocar esta prueba cada vez
+         que se retoque el texto, y una prueba que hay que retocar acaba
+         retocandose hasta que pasa.
+
+         LO QUE ESTA PRUEBA NO VE, dicho para que nadie se fie de mas: si
+         el diccionario tiene el ingles bajo la etiqueta 'es' -que es
+         justamente como aparecio este renglon en produccion- esto pasa
+         tan tranquilo, porque compara lo pintado con el diccionario y los
+         dos dicen lo mismo, los dos mal. Se comprobo: con los idiomas
+         cruzados a proposito, las 4605 pruebas siguieron en verde.
+         De los idiomas cruzados se encarga «escritura: ningun texto esta
+         bajo la bandera de otro idioma», en pruebas/claves.js. Hacen
+         falta las dos: esta ve que el renglon no se quede congelado en el
+         idioma de arranque, y aquella que el diccionario diga la verdad. */
+      (function(){
+        var molde = (I18N[curLang] || I18N.en)['t.espera'] || '';
+        var prefijo = molde.split('{tramite}')[0];
+        var esperando = document.querySelectorAll('.tcard.espera .t-time');
+        var mal = [];
+        [].forEach.call(esperando, function(x){
+          var dice = (x.textContent || '').trim();
+          if (prefijo && dice.indexOf(prefijo) !== 0) mal.push(dice);
+        });
+        ok('estados: «esperando a» sale en el idioma del panel',
+           esperando.length > 0 && mal.length === 0,
+           esperando.length ? (mal.join(' | ') || 'todas en ' + curLang)
+                            : 'ninguna tarjeta esperando',
+           'todas empiezan por ' + JSON.stringify(prefijo));
+      })();
+
       /* Tantas tarjetas en verde como trámites resueltos tengas: ni una
          más. En 'lleno' hay uno —la visa— y en los demás ninguno. */
       var listas = document.querySelectorAll('.tcard[data-st="listo"]').length;
