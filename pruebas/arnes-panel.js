@@ -1254,6 +1254,42 @@
          vivos ? 'oculto=false' : 'oculto=true');
     })();
 
+    /* ── Y EL NÚMERO EN LA PESTAÑA ──
+       Las dos chapas sólo se ven con el panel delante, y una consulta se
+       pierde justo en el otro caso: el gestor trabajando en otra pestaña.
+       Como de aquí no sale ni un correo -no hay quien lance el mensajero-,
+       el título del navegador es lo único que llega hasta donde está.
+
+       Se comprueba contra la CHAPA y no contra un número escrito: los doce
+       expedientes traen colas distintas, y una cifra a mano aquí se rompe
+       en cuanto alguien toque un fixture. Lo que se prueba es que los dos
+       digan lo mismo, que es lo que de verdad importa: dos números
+       distintos para una sola cosa hacen dudar de los dos.
+
+       Sin expresión regular a propósito. Ya nos ha pasado que el escapado
+       se coma una barra y quede un patrón que corre, no encuentra nada y
+       deja la prueba en verde para siempre. */
+    (function(){
+      var t = document.title;
+      var chapa = document.getElementById('colaN');
+      var seVe = !!(chapa && !chapa.hidden && (chapa.textContent || '').trim());
+
+      if (seVe){
+        var pref = '(' + chapa.textContent.trim() + ') ';
+        /* Y detrás del prefijo NO puede venir otro. Si el título se
+           compusiera leyéndose a sí mismo, la segunda pasada dejaría
+           «(3) (3) CIIP …» y el indexOf de arriba seguiría diciendo que
+           sí. Es el fallo que tiene esto si se escribe mal, así que es el
+           que hay que mirar. */
+        ok('pestaña: el título lleva el número de la cola',
+           t.indexOf(pref) === 0 && t.charAt(pref.length) !== '(',
+           JSON.stringify(t), 'empieza por ' + JSON.stringify(pref) + ' y una sola vez');
+      } else {
+        ok('pestaña: y sin cola no lleva número',
+           t.charAt(0) !== '(', JSON.stringify(t), 'sin "(...)" delante');
+      }
+    })();
+
     /* El renglón ya no lleva data-i18n: lo compone el mismo bloque que lo
        cuenta, así que el cambio de idioma tiene que alcanzarlo aparte. */
     (function(){

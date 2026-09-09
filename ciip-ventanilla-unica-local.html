@@ -11736,6 +11736,14 @@ applyLang(idiomaParaMi());
   var coN     = document.getElementById('colaN');
   var enCola  = [];
 
+  /* El título tal como viene, leído UNA vez y antes de tocarlo.
+     Se guarda en vez de escribirlo aquí a mano por lo de siempre: escrito
+     dos veces, el día que alguien cambie el de arriba quedan dos títulos y
+     gana éste sin que nadie se entere. Y se lee una sola vez porque en la
+     segunda vuelta el documento ya llevaría el «(3)» delante: leerlo cada
+     vez lo iría amontonando. */
+  var TITULO_BASE = document.title;
+
   function esDelEquipo(){
     var r = (typeof PERFIL !== 'undefined' && PERFIL.rol) || '';
     return r === 'gestor' || r === 'admin';
@@ -11975,6 +11983,32 @@ applyLang(idiomaParaMi());
         cN.textContent = String(total);
         cN.hidden = (total === 0);
       }
+
+      /* ── Y EN LA PESTAÑA ──
+         Las dos chapas de arriba sólo se ven con el panel delante, y el
+         momento en que se pierde una consulta es justo el otro: el gestor
+         está trabajando en otra pestaña y nadie le dice nada. Desde que
+         existen las consultas, alguien puede escribir al CIIP sin pedir
+         cita, y hoy no sale un solo correo de aquí -no hay quien lance el
+         mensajero ni por dónde salga-, así que la barra del navegador es
+         lo único que llega a donde está la persona.
+
+         Se pone al día solo: esto se vuelve a llamar al recuperar el foco
+         de la pestaña, que es exactamente cuando se mira el título.
+
+         Sólo para el equipo. A un inversionista un «(2)» en la pestaña le
+         estaría contando la carga de trabajo de otro.
+
+         Y ese esDelEquipo() es LA ÚNICA LÍNEA DE AQUÍ QUE NO ESTÁ PROBADA,
+         dicho para que nadie la dé por comprobada: quitarlo no pone ni una
+         prueba en rojo. No es que falte la prueba, es que no se puede
+         escribir: pintaCola() no llega a correr para un inversionista -su
+         cola nunca se carga-, así que la situación no ocurre en ninguna de
+         las doce pasadas. Se queda por si mañana alguien llama a esto desde
+         otro sitio, que es cuando empezaría a hacer falta. */
+      document.title = (esDelEquipo() && total > 0)
+        ? '(' + total + ') ' + TITULO_BASE
+        : TITULO_BASE;
     }
     if (!enCola.length){
       coLista.appendChild(el('div', 'co-vacia', u.co_vacia || ''));
