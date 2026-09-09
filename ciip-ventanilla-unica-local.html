@@ -9,6 +9,41 @@
      Sin esto el panel se abre directamente con solo escribir su nombre de
      archivo, y el acceso de acceso.html no protege nada.
      ══════════════════════════════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════════════════════════════
+     EL TEMA, ANTES QUE NADA
+     ══════════════════════════════════════════════════════════════════════
+     Va aquí arriba y no con el resto del guion, y las dos cosas importan.
+
+     QUÉ ARREGLA. El interruptor de la barra cambiaba el tema y NO LO
+     GUARDABA en ninguna parte. Al recargar no quedaba nada escrito, así
+     que se caía en lo que dijera el sistema operativo -aquí, oscuro- y el
+     panel amanecía en negro por más veces que lo pusieras en claro.
+
+     Y ABRE EN CLARO, por decisión del CIIP. Sin nada guardado se pone
+     'light' en vez de seguir al sistema: la ventanilla se enseña, se
+     proyecta y se imprime, y en todos esos sitios el fondo blanco es el
+     que se espera. Quien prefiera el oscuro lo pulsa una vez y se le
+     queda, que es lo que antes no pasaba.
+
+     POR QUÉ TAN ARRIBA. Si esto corriera con el resto del guion, entre
+     que el navegador pinta la hoja y que llega aquí hay un instante en el
+     que manda la media query del sistema: en una máquina en oscuro se
+     vería un fogonazo negro antes de aclararse. Puesto antes de la hoja,
+     el atributo ya está cuando se calcula el primer color.
+
+     El try/catch no es adorno: en una ventana privada, o con las cookies
+     de sitio bloqueadas, localStorage LANZA al leerlo. Sin él, esa
+     excepción se llevaría por delante la carga de config.js y pasos.js
+     -que van justo debajo- y el panel no arrancaría en absoluto. -->
+<script>
+(function(){
+  var guardado = null;
+  try { guardado = window.localStorage.getItem('ciip_tema'); } catch(e){}
+  document.documentElement.setAttribute(
+    'data-theme', (guardado === 'dark' || guardado === 'light') ? guardado : 'light');
+})();
+</script>
+
 <script src="config.js"></script>
 <script src="pasos.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -4983,7 +5018,18 @@ const I18N = {"en":{"jc.ver":"See the procedures","nav.g.file":"My file","nav.pa
   function cur(){var t=root.getAttribute('data-theme'); if(t) return t; return window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}
   function paint(){document.getElementById('themeIco').innerHTML=cur()==='dark'?moon:sun;}
   paint();
-  btn.addEventListener('click',function(){root.setAttribute('data-theme', cur()==='dark'?'light':'dark'); paint();});
+  /* Y SE GUARDA. Antes sólo se ponía el atributo, que vive lo que vive la
+     página: al recargar no quedaba nada y el panel volvía al tema del
+     sistema. Quien lo cambiaba tenía que volver a cambiarlo cada vez.
+     El try/catch, por lo mismo que arriba: en una ventana privada esto
+     lanza, y una excepción aquí dejaría el botón sin funcionar. Que no se
+     pueda guardar es un incordio; que no se pueda cambiar, un fallo. */
+  btn.addEventListener('click',function(){
+    var quiere = cur()==='dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', quiere);
+    try { window.localStorage.setItem('ciip_tema', quiere); } catch(e){}
+    paint();
+  });
 })();
 
 var curLang='en';

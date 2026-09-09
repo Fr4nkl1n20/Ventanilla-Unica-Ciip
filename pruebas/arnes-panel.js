@@ -198,6 +198,7 @@
               supAbre, supMira, supTemas, supVuelve,
               franjaDescarta, franjaTrasDescartar,
               fotoAbre, fotoMira, fotoMala, fotoSube, fotoTrasSubir, fotoCierra,
+              temaMira,
               logosMiran, tokensMiran,
               cabecerasMiran,
               comentariosMiran,
@@ -7854,6 +7855,61 @@
      primer <style>, pero la hoja de verdad es el segundo. Todas sus reglas
      de la misma fuerza perdian contra las de abajo y no hacian nada, sin
      un solo error en la consola. */
+  /* ── EL TEMA SE ELIGE UNA VEZ, NO CADA VEZ ──
+     El interruptor cambiaba el tema y no lo guardaba: al recargar no
+     quedaba nada escrito y se caía en lo que dijera el sistema operativo.
+     En una máquina en oscuro, el panel amanecía en negro por más veces
+     que lo pusieras en claro.
+
+     Y abre en CLARO por decisión del CIIP, no siguiendo al sistema: la
+     ventanilla se enseña, se proyecta y se imprime.
+
+     No se puede recargar la página desde aquí, así que se comprueban las
+     dos mitades por separado: que el atributo esté puesto al arrancar
+     -que es lo que decide el primer color- y que pulsar deje escrito lo
+     elegido, que es lo que leerá la próxima carga. */
+  function temaMira(){
+    var root = document.documentElement;
+    var btn = document.getElementById('themeBtn');
+
+    ok('tema: el panel arranca con un tema decidido, no al azar',
+       root.getAttribute('data-theme') === 'light',
+       JSON.stringify(root.getAttribute('data-theme')), '"light"');
+
+    if (!btn){
+      ok('tema: y la elección se guarda para la próxima vez', false,
+         'no hay botón de tema', 'con su botón');
+      return;
+    }
+
+    var antes = root.getAttribute('data-theme');
+    var guardadoAntes = null;
+    try { guardadoAntes = window.localStorage.getItem('ciip_tema'); } catch(e){}
+
+    btn.click();
+    var ahora = root.getAttribute('data-theme');
+    var enDisco = null;
+    try { enDisco = window.localStorage.getItem('ciip_tema'); } catch(e){}
+
+    ok('tema: al pulsar cambia',
+       ahora !== antes && (ahora === 'dark' || ahora === 'light'),
+       antes + ' → ' + ahora, 'el otro');
+    /* LO QUE FALTABA: que quede ESCRITO. Sin esto el botón funcionaba y
+       la siguiente carga se lo comía. */
+    ok('tema: y la elección se guarda para la próxima vez',
+       enDisco === ahora,
+       'en pantalla ' + ahora + ', guardado ' + JSON.stringify(enDisco),
+       'los dos iguales');
+
+    /* Se deja como estaba: el resto de la tanda mide colores. */
+    btn.click();
+    try {
+      if (guardadoAntes === null) window.localStorage.removeItem('ciip_tema');
+      else window.localStorage.setItem('ciip_tema', guardadoAntes);
+    } catch(e){}
+    root.setAttribute('data-theme', antes);
+  }
+
   function tokensMiran(){
     /* Uno: ninguna variable que la hoja usa puede estar sin declarar. Si
        una se pierde, var(--x) se queda en nada y lo que dependia de ella
