@@ -2310,7 +2310,10 @@ body[data-vista="tramite"] #secTramites{display:none;}
    Debajo del organismo y en el tono apagado del resto de la letra chica:
    tiene que estar SIEMPRE, no llamar la atencion mas que el nombre del
    tramite. */
-.t-acomp{font-size:11px; line-height:1.45; color:var(--mudo); margin-top:6px;}
+/* En negro como el resto de la ficha, por lo mismo: a 11 px el gris se
+   lee mal, y esta es la frase que el CIIP pidio recalcar en las 33. Una
+   frase que se quiere recalcar no se pone del color de lo prescindible. */
+.t-acomp{font-size:11px; line-height:1.45; color:var(--ink); margin-top:6px;}
 /* El globo cuelga del renglon, no de una «i» que no existe. */
 .pista-env:has(> .pista-txt){display:inline;}
 /* Su propio cuadro, hermano de los otros dos y no un apartado del formulario:
@@ -3353,8 +3356,18 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 .jp:not(.active) .jname{ font-weight:600; }
 .sol-lado .sol-h2{ font-weight:600; }
 
-/* — lo secundario, con UN solo gris — */
-.t-desc, .jsub, .sol-lado-pie, .t-ente{ color:var(--mudo); }
+/* — lo secundario, con UN solo gris —
+   Menos DENTRO DE LAS FICHAS. Ahi lo pidio el CIIP en negro, y tiene
+   razon de sobra: la descripcion y el organismo van a 11,5 y 10,5 px, y
+   a ese tamaño el gris #737373 sobre blanco se queda en el limite de lo
+   legible. Y no son adorno: son las dos lineas con las que se decide si
+   una ficha es la que buscas.
+
+   Los rotulos de las FASES si se quedan en gris. Son de otro plano -el
+   del camino, no el del tramite- y si se ponen negros compiten con los
+   nombres de las fichas que llevan debajo. */
+.jsub, .sol-lado-pie{ color:var(--mudo); }
+.t-desc, .t-ente{ color:var(--ink); }
 .jcount{ color:var(--mudo); font-weight:500; }
 
 /* — pestañas: un carril, no cuatro pildoras — */
