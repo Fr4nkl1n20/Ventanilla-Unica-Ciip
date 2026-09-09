@@ -217,6 +217,58 @@ async function principal(){
   console.log('  Cuenta A: ' + A.correo + '  ' + A.id);
   console.log('  Cuenta B: ' + B.correo + '  ' + B.id + '\n');
 
+  /* ── QUE LA TANDA ENTRE LIMPIA, VENGA DE DONDE VENGA ──────────────
+     El recogedor del final solo sabe de lo que ha creado ESTA vuelta. Si
+     una anterior se corto a la mitad -o traia el fallo del DELETE que se
+     arreglo mas arriba- dejo un tramite VIVO, y ese ya no lo recoge nadie
+     nunca: no esta en ninguna lista.
+
+     Y una viva impide crear otra del mismo tipo -tramites_una_viva-, asi
+     que la tanda se cae con un 23505 y sale en rojo por algo que no es un
+     agujero. Pasa una vez y ya no vuelve a pasar ninguna vuelta buena
+     hasta que una persona entre al SQL Editor a soltarlo a mano. Eso ya
+     nos costo dos dias de rojos que no eran rojos.
+
+     Asi que antes de empezar se sueltan los vivos de las dos cuentas de
+     prueba. A 'devuelto', que es un paso legitimo de la escalera desde
+     los tres estados vivos y no borra nada: el expediente queda, con su
+     historial entero. Y solo de A y de B, que son las cuentas de esta
+     tanda; lo de cualquier otra persona no se toca.
+
+     Va con la cuenta del equipo porque es la unica que puede: un tramite
+     enviado no lo mueve su dueño, y esa es justamente una de las
+     cerraduras que se prueban aqui abajo. Sin cuenta "g" no se barre, y
+     entonces se avisa, que es lo que hay que hacer cuando no se puede.
+
+     Se entra con ella APARTE de donde se usa mas abajo, y a proposito: el
+     barrido tiene que ocurrir ANTES de la primera prueba de tramites, y
+     el bloque de la constancia de identidad vive cuatrocientas lineas mas
+     alla. Mover aquel hasta aqui por ahorrar un inicio de sesion habria
+     movido tambien sus avisos, que se leen donde se leen. */
+  if (cuentas.g && String(cuentas.g.clave || '').trim()){
+    const barrendero = await entra(cuentas.g.correo, cuentas.g.clave);
+    const vivos = await pide('/rest/v1/tramites?select=id&estado=in.(enviado,en_revision,ante_el_ente)' +
+                             '&inversionista=in.(' + A.id + ',' + B.id + ')', { token: barrendero.token });
+    const cuantos = (vivos.ok && Array.isArray(vivos.cuerpo)) ? vivos.cuerpo.length : 0;
+    let sueltos = 0;
+    for (const t of (cuantos ? vivos.cuerpo : [])){
+      const q = await pide('/rest/v1/tramites?id=eq.' + t.id, {
+        method: 'PATCH', token: barrendero.token, headers: json(),
+        body: JSON.stringify({ estado: 'devuelto' })
+      });
+      if (q.ok && Array.isArray(q.cuerpo) && q.cuerpo.length) sueltos++;
+    }
+    if (cuantos){
+      console.log('  Habia ' + cuantos + ' solicitud(es) viva(s) de una vuelta anterior. Sueltas: ' +
+                  sueltos + '.');
+      console.log('  Se pasan a "devuelto" para que esta entre limpia; no se borra nada.\n');
+    }
+  } else {
+    console.log('  SIN BARRER: no hay cuenta "g", asi que no se puede soltar lo que');
+    console.log('  quedara vivo de una vuelta anterior. Si algo sale en rojo con un');
+    console.log('  23505, es eso y no un agujero.\n');
+  }
+
   /* ── las dos tienen que ser inversionistas ────────────────────────
      El que intenta colarse tiene que ser el usuario con MENOS permisos
      que hay. Si A fuera gestor, media docena de estos intentos saldrian
