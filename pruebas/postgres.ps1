@@ -125,8 +125,13 @@ try {
     'supabase-una-viva.sql',         # 22  solo necesita tramites
     'supabase-hilo.sql',             # 23  necesita tramites y documentos
     'supabase-hilo-citas.sql',       # 24  necesita citas y documentos
-    'supabase-informe-victor.sql',   # 25  el catalogo, tras encadenado y plazos
-    'supabase-pliego.sql'            # 26  solo necesita es_admin y es_gestor
+    # 25  reusa dos funciones del hilo, asi que va detras. Este archivo no
+    #     existia: su SQL estaba escrito a mano al final de TODO-EN-ORDEN,
+    #     asi que esta tanda no lo probaba y regenerar el archivo unico lo
+    #     habria borrado. Ahora es uno mas.
+    'supabase-consultas.sql',
+    'supabase-informe-victor.sql',   # 26  el catalogo, tras encadenado y plazos
+    'supabase-pliego.sql'            # 27  solo necesita es_admin y es_gestor
   )
   $n = 0
   foreach ($f in $once) {

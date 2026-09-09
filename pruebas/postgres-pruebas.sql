@@ -1712,6 +1712,201 @@ $p$;
 reset role;
 
 
+-- ══ 13.1 · LA CONSULTA ═══════════════════════════════════════════════
+-- Esta seccion no existia. El SQL de las consultas se escribio a mano al
+-- final de TODO-EN-ORDEN.sql, sin archivo propio, asi que esta tanda ni
+-- siquiera lo ejecutaba: la funcion mas nueva del sistema -y la unica que
+-- ya esta viva en produccion- no la miraba nadie aqui.
+--
+-- Lo que se prueba es lo que PROBAR-CERRADURAS no puede: los disparadores
+-- por dentro. Aquel entra por HTTP con sesion y se topa con RLS antes; lo
+-- de aqui corre por la puerta de servicio, que es por donde entra el
+-- equipo del CIIP desde el SQL Editor.
+--
+-- ── LA SESION SE PONE A PROPOSITO, Y ESO COSTO TRES ROJAS ──
+-- La primera version de esta seccion heredaba la sesion que dejaba el
+-- bloque anterior -la del GESTOR- y de ahi salieron tres fallos que no lo
+-- eran: la consulta nacia siendo del gestor y no de A, asi que «cambio de
+-- dueño» era falso sin que nada cambiara; el papel supuestamente ajeno
+-- era del mismo gestor, asi que el disparador hacia bien en dejarlo
+-- pasar; y «su dueño no la borra» leia a traves de RLS, o sea que
+-- «no la veo» se contaba como «se la llevaron».
+--
+-- Las tres median otra cosa. Por eso aqui se dice quien eres antes de
+-- cada paso, y lo que se comprueba se lee SIN RLS delante: mirar el
+-- resultado de una cerradura a traves de otra cerradura no dice nada.
+reset role;
+select arnes.soy(null);
+
+do $p$
+declare
+  quienA uuid;
+  laCons uuid;
+begin
+  select id into quienA from arnes.gente where papel = 'A';
+  -- Sin sesion, el disparador de la firma respeta lo que se le pasa: es la
+  -- puerta de servicio, la misma por la que se siembran datos de ejemplo.
+  insert into public.consultas (inversionista, asunto)
+  values (quienA, 'Necesito visa para invertir en agroindustria?')
+  returning id into laCons;
+  insert into arnes.escenario values ('consulta_suelta', laCons);
+
+  perform arnes.comprueba(
+    'consulta: nace de quien se dice, por la puerta de servicio',
+    (select inversionista = quienA from public.consultas where id = laCons),
+    'nacio de otro');
+end
+$p$;
+
+-- La fecha de resuelto la pone la base, y CUADRA con el estado. Sin esto
+-- una consulta puede quedar 'resuelta' sin fecha -y el informe de cuanto
+-- tarda el equipo en contestar mide humo- o con la fecha de la vez
+-- anterior, que es peor porque parece un dato.
+do $p$
+declare laCons uuid;
+begin
+  select id into laCons from arnes.escenario where clave = 'consulta_suelta';
+
+  perform arnes.comprueba(
+    'consulta: nace sin fecha de resuelta',
+    (select resuelto_en is null from public.consultas where id = laCons),
+    'nacio con fecha');
+
+  update public.consultas set estado = 'resuelta' where id = laCons;
+  perform arnes.comprueba(
+    'consulta: al resolverla se le pone la fecha sola',
+    (select resuelto_en is not null from public.consultas where id = laCons),
+    'se resolvio sin fecha');
+
+  -- Y al reabrirla se quita. Una consulta abierta con fecha de resuelta
+  -- es una fila que se contradice a si misma.
+  update public.consultas set estado = 'en_curso' where id = laCons;
+  perform arnes.comprueba(
+    'consulta: y al reabrirla se le quita',
+    (select resuelto_en is null from public.consultas where id = laCons),
+    'se quedo con la fecha vieja');
+end
+$p$;
+
+-- De quien es una consulta no se cambia NUNCA, ni por la puerta de
+-- servicio. Una conversacion que cambia de dueño es una conversacion
+-- privada apareciendo en la pantalla de otro. El disparador lo pisa con
+-- el valor viejo en vez de dar error, asi que no se espera excepcion: se
+-- mira que siga siendo de quien era.
+-- Se intenta mudarla al GESTOR y no a B, y eso lo enseño el sabotaje: con
+-- B, al quitar la linea que fija el dueño, la tanda no se ponia roja sino
+-- que REVENTABA con una violacion de clave foranea. La cuenta B ya no
+-- existe a esta altura -la borra la seccion del archivo que se va con su
+-- ficha- y el update solo llegaba a intentarse de verdad cuando el
+-- disparador estaba roto. Una prueba que al fallar mata la tanda no dice
+-- cual fallo. La del equipo sigue viva hasta el final.
+do $p$
+declare laCons uuid; quienA uuid; otro uuid;
+begin
+  select id into laCons from arnes.escenario where clave = 'consulta_suelta';
+  select id into quienA from arnes.gente where papel = 'A';
+  select id into otro   from arnes.gente where papel = 'G';
+  update public.consultas set inversionista = otro where id = laCons;
+  perform arnes.comprueba(
+    'consulta: no se le puede cambiar el dueño',
+    (select inversionista = quienA from public.consultas where id = laCons),
+    'cambio de dueño');
+end
+$p$;
+
+-- El adjunto tiene que ser de la boveda del dueño de la consulta. Sin
+-- esto, y como el hilo enseña sus adjuntos, colgar un id cualquiera seria
+-- una forma de leer la boveda ajena: pruebas a ver que sale.
+-- El 'papel_ajeno' es un documento del GESTOR y la consulta es de A, asi
+-- que son de dos personas distintas de verdad. Cuando no lo eran, esta
+-- prueba salia roja y tenia razon.
+do $p$
+declare laCons uuid; ajeno uuid;
+begin
+  select id into laCons from arnes.escenario where clave = 'consulta_suelta';
+  select id into ajeno  from arnes.escenario where clave = 'papel_ajeno';
+  insert into public.consulta_mensajes (consulta, texto, documento)
+  values (laCons, 'mira este', ajeno);
+  perform arnes.comprueba('consulta: NO se adjunta el papel de otra persona', false, 'LO ADJUNTO');
+exception when others then
+  perform arnes.comprueba('consulta: NO se adjunta el papel de otra persona', true, sqlerrm);
+end
+$p$;
+
+-- Un mensaje vacio y sin adjunto no dice nada y ensucia el hilo.
+do $p$
+declare laCons uuid;
+begin
+  select id into laCons from arnes.escenario where clave = 'consulta_suelta';
+  insert into public.consulta_mensajes (consulta, texto) values (laCons, '   ');
+  perform arnes.comprueba('consulta: un mensaje vacio no entra', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('consulta: un mensaje vacio no entra', true, sqlerrm);
+end
+$p$;
+
+do $p$
+declare laCons uuid; cuantos int;
+begin
+  select id into laCons from arnes.escenario where clave = 'consulta_suelta';
+  insert into public.consulta_mensajes (consulta, texto) values (laCons, 'una pregunta');
+  select count(*) into cuantos from public.consulta_mensajes where consulta = laCons;
+  perform arnes.comprueba('consulta: se puede escribir en ella (esto TIENE que salir)',
+                          cuantos > 0, 'no entro ningun mensaje');
+end
+$p$;
+
+-- ── BORRAR UNA CONSULTA: LAS DOS PUERTAS ──
+-- Por la de la aplicacion NO se borra: no hay politica de delete y RLS
+-- descarta la fila. No hay error, simplemente no pasa nada, que es lo que
+-- se quiere -la conversacion con un inversionista es registro-.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+do $p$
+declare laCons uuid;
+begin
+  select id into laCons from arnes.escenario where clave = 'consulta_suelta';
+  begin
+    delete from public.consultas where id = laCons;
+  exception when others then null;   -- da igual como se niegue; importa que siga ahi
+  end;
+end
+$p$;
+
+-- Y se comprueba DESDE FUERA, sin RLS delante. Mirarlo con la sesion de A
+-- puesta diria «no esta» cuando lo cierto seria «no la ve», que es otra
+-- cosa: asi es como esta prueba salio roja la primera vez.
+reset role;
+select arnes.soy(null);
+
+select arnes.comprueba(
+  'consulta: su dueño no la borra',
+  exists (select 1 from public.consultas
+           where id = (select id from arnes.escenario where clave = 'consulta_suelta')));
+
+-- Y por la puerta de servicio SI se borra, y se lleva sus mensajes. Es la
+-- unica forma de limpiar una conversacion de prueba, y hace falta que
+-- funcione: el arnes de cerraduras siembra dos cada vez que corre y no
+-- puede recogerlas de ninguna otra manera.
+do $p$
+declare laCons uuid;
+begin
+  select id into laCons from arnes.escenario where clave = 'consulta_suelta';
+  delete from public.consultas where id = laCons;
+  perform arnes.comprueba(
+    'consulta: por la puerta de servicio si se borra',
+    not exists (select 1 from public.consultas where id = laCons),
+    'sigue ahi');
+  perform arnes.comprueba(
+    'consulta: y se lleva sus mensajes',
+    (select count(*) = 0 from public.consulta_mensajes where consulta = laCons),
+    'quedaron mensajes sin consulta');
+end
+$p$;
+
+
+
 -- ══ 14 · LO QUE PIDIO LA REVISION DEL 2 DE SEPTIEMBRE ════════════════
 -- Cada comprobacion es una frase del informe convertida en algo que
 -- Postgres puede decir que si o que no. Sin esto, "hecho" seria una

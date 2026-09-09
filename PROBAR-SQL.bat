@@ -1,11 +1,12 @@
 @echo off
-REM Doble clic aqui para ejecutar los once archivos SQL en un Postgres de
+REM Doble clic aqui para ejecutar todos los archivos SQL en un Postgres de
 REM esta maquina y comprobar que los triggers y las politicas hacen lo que
 REM dicen.
 REM
 REM Crea una base nueva y la borra al acabar. No toca ninguna existente.
-REM Hace falta PostgreSQL instalado y pruebas\postgres.local.json con la
-REM clave (el propio script te dice como si falta).
+REM Hace falta PostgreSQL instalado, y nada mas: levanta su propio Postgres
+REM de usar y tirar en una carpeta temporal y lo borra al acabar. No pide
+REM claves ni toca ninguna base existente.
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0pruebas\postgres.ps1"
 REM El codigo de salida se guarda AQUI, antes del echo: echo. pisa el
 REM ERRORLEVEL y sin esto el .bat contesta 0 aunque la tanda se caiga.

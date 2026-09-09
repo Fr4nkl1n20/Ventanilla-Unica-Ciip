@@ -32,9 +32,15 @@ $RAIZ = Split-Path -Parent $PSScriptRoot
 # Lo que necesita cada puerta ademas de Node. Si falta, no se corre y se
 # dice por que, en vez de correrla para que se caiga sola con un error que
 # no distingue "falta una clave" de "hay un agujero".
+# El de las cerraduras pide un archivo; el del SQL pide un PROGRAMA, que es
+# otra cosa y por eso van por separado. Estuvo mal puesto: pedia
+# pruebas\postgres.local.json, un archivo que postgres.ps1 ya no usa -levanta
+# su propio Postgres de usar y tirar-, asi que la puerta salia como "sin
+# probar" en una maquina donde funcionaba perfectamente. Un requisito
+# inventado esconde una tanda igual de bien que un fallo.
 $REQUISITOS = @{
-  'PROBAR-CERRADURAS' = @{ archivo = 'pruebas\cuentas.local.json';  por = 'faltan las cuentas de prueba (pruebas\cuentas.local.json)' }
-  'PROBAR-SQL'        = @{ archivo = 'pruebas\postgres.local.json'; por = 'falta un Postgres local (pruebas\postgres.local.json)' }
+  'PROBAR-CERRADURAS' = @{ archivo = 'pruebas\cuentas.local.json'; por = 'faltan las cuentas de prueba (pruebas\cuentas.local.json)' }
+  'PROBAR-SQL'        = @{ programa = 'C:\Program Files\PostgreSQL\*\bin\initdb.exe'; por = 'no hay PostgreSQL instalado en esta maquina' }
 }
 
 # El orden es de mas barato a mas caro: lo que no toca la red primero, para
@@ -77,7 +83,10 @@ foreach ($nombre in $ORDEN) {
   }
 
   $req = $REQUISITOS[$nombre]
-  if ($req -and -not (Test-Path (Join-Path $RAIZ $req.archivo))) {
+  $falta = $false
+  if ($req -and $req.archivo)  { $falta = -not (Test-Path (Join-Path $RAIZ $req.archivo)) }
+  if ($req -and $req.programa) { $falta = -not (Get-ChildItem $req.programa -ErrorAction SilentlyContinue) }
+  if ($falta) {
     Write-Host ('  {0,-20} sin probar' -f $nombre) -ForegroundColor Yellow
     $filas += [pscustomobject]@{ puerta = $nombre; estado = 'sin probar'; detalle = $req.por }
     continue
