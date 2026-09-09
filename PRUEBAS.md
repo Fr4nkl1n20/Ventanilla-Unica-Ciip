@@ -5,14 +5,22 @@ funcionan de verdad.
 
 ---
 
-## Parte 0 · La forma rápida: doble clic en `PROBAR.bat`
+## Parte 0 · La forma rápida: doble clic en `PROBAR-TODO.bat`
 
-Hay 57 pruebas automáticas. **Haz doble clic en `PROBAR.bat`** y en unos
-segundos sale la lista con `PASA` o `FALLA` en cada línea.
+**Haz doble clic en `PROBAR-TODO.bat`.** Corre las diez tandas —el acceso,
+el panel, los conectores, el trabajador, los avisos, el barrendero, el
+cobrador, el SQL y las cerraduras— y termina con un cuadro: cuántas fueron
+bien, cuáles fallaron y **cuáles no se pudieron probar y por qué**.
 
-Cubren lo mismo que la parte 1 de esta guía, más comprobaciones que a mano son
-tediosas: que ningún texto se quede sin traducir en los seis idiomas, que el
-logo cargue, que la casilla de la sesión guarde donde debe.
+Esa tercera columna es la razón de que exista. Una tanda que no corre por
+falta de una clave local no es un fallo, pero tampoco es un verde, y
+contarla como verde es exactamente lo que pasó: el arnés del acceso estuvo
+días sin ejecutarse mientras su `.bat` contestaba que todo bien.
+
+Si solo quieres el acceso, `PROBAR.bat` sigue ahí: **31 pruebas** que
+cubren lo mismo que la parte 1 de esta guía, más comprobaciones que a mano
+son tediosas —que ningún texto se quede sin traducir en los seis idiomas,
+que la ilustración cargue, que el ojo de la clave la muestre y la esconda—.
 
 No hace falta instalar nada: usa el Chrome o el Edge que ya tienes. **No modifica
 `acceso.html`**; trabaja sobre una copia temporal en `%TEMP%\ciip-pruebas`.

@@ -11,6 +11,31 @@
    Solo prueba lo que ocurre dentro del navegador. Todo lo que necesita
    Supabase (crear cuenta de verdad, entrar, correos) está en PRUEBAS.md,
    parte 4, y hay que hacerlo a mano.
+
+   ── LO QUE SE FUE DE AQUÍ, Y POR QUÉ ──────────────────────────────────
+   Este arnés llevaba días SIN EJECUTARSE Y SIN QUE NADIE LO SUPIERA. Se
+   caía en la primera línea —limpiaTodo() pedía seis campos que ya no
+   existen— y el .bat contestaba que todo bien, porque el `echo.` del
+   final le pisaba el código de salida. Las dos cosas están arregladas: el
+   .bat devuelve ahora lo que devuelve la tanda, y esto se ajusta a la
+   página que hay.
+
+   acceso.html perdió el REGISTRO y la RECUPERACIÓN -las cuentas las crea
+   el equipo del CIIP- y con ellos se fueron de la página el medidor de
+   fuerza, el buscador de países, el arreglo de mayúsculas del nombre y el
+   almacén de sesión a medida. Quedan tres vistas: entrar, poner una clave
+   nueva -a la que se llega desde el enlace del correo- y dentro.
+
+   Así que se retiran las pruebas de todo eso. NO se esconden ni se dejan
+   comentadas: una prueba de algo que no existe no protege nada y hace
+   creer que sí. Si alguna de esas piezas vuelve a la página, sus pruebas
+   se recuperan del historial, que para eso está.
+
+   Se retiran con ellas 'venezuela2024', 'qwertyui' y las demás claves
+   adivinables: comprobaban fuerzaClave(), que ya no está en la página. La
+   de «tu propio nombre dentro de la clave» no volvería aunque volviera el
+   medidor tal cual: a la clave nueva se llega desde un correo, sin nombre
+   delante que darle.
    ══════════════════════════════════════════════════════════════════════ */
 (function(){
   var R = [];
@@ -18,9 +43,11 @@
   function malos(){ return Array.prototype.slice.call(document.querySelectorAll('.field.bad')).map(function(f){return f.id;}).sort().join(','); }
   function val(id,v){ var e=document.getElementById(id); if(e.type==='checkbox'){e.checked=v;} else {e.value=v;} }
   function limpiaTodo(){
-    ['li-email','li-pass','rg-nombre','rg-pais','rg-email','rg-pass','rg-pass2','rc-email','nv-pass','nv-pass2']
+    /* Los cuatro que quedan en la página. Antes había once, y seis de
+       ellos se fueron con el registro: pedirlos devolvía null y la línea
+       de abajo reventaba antes de la primera prueba. */
+    ['li-email','li-pass','nv-pass','nv-pass2']
       .forEach(function(i){ val(i,''); });
-    val('rg-terms',false);
     document.querySelectorAll('.msg').forEach(function(m){m.classList.remove('show','err','ok');});
     document.querySelectorAll('.field').forEach(function(f){f.classList.remove('bad');});
   }
@@ -39,18 +66,21 @@
   var CORREO = 'Introduce un correo válido.';
   var CORTA  = 'La clave debe tener al menos 8 caracteres.';
   var DISTIN = 'Las claves no coinciden.';
-  var DEBIL  = 'Esa clave se adivina en segundos. Elige otra.';
 
-  /* Las pruebas usaban '12345678' para todo. Cuando llegó el medidor de
-     fuerza dejó de pasar —es una fila del teclado— y su aviso tapaba a los
-     tres de después: las claves no coinciden, faltan los términos y no hay
-     base de datos. Cuatro pruebas en rojo sin que el código tuviera nada
-     malo: el medidor hacía su trabajo y las pruebas se habían quedado atrás.
-
-     FUERTE es una clave que el medidor da por buena, para que cada prueba
-     llegue a comprobar lo suyo. Que el medidor rechace las malas se prueba
-     aparte, más abajo, que es como debía haber estado desde el principio. */
+  /* Una clave larga de verdad, para que la prueba de «no coinciden» llegue
+     a comprobar lo suyo y no se quede en «es corta». */
   var FUERTE = 'Guacamaya-Tepuy-41';
+
+  /* ---------- LA PÁGINA ES LA QUE CREEMOS ----------
+     Esto va PRIMERO y a propósito. El arnés estuvo roto porque la página
+     cambió debajo y nadie se enteró: probaba formularios que ya no
+     existían. Si mañana desaparece otra pieza, que lo diga una prueba en
+     rojo con su nombre, y no una excepción a mitad de la tanda. */
+  ['formLogin','msgLogin','formNueva','msgNueva','li-email','li-pass','nv-pass','nv-pass2']
+    .forEach(function(id){
+      R.push({n:'la página tiene #'+id, ok:!!document.getElementById(id),
+              got:(document.getElementById(id)?'está':'NO ESTÁ'), exp:'está'});
+    });
 
   /* ---------- INICIAR SESIÓN ---------- */
   caso('login vacío', function(){}, 'formLogin','msgLogin',VACIO);
@@ -58,124 +88,32 @@
   caso('login correo inválido', function(){ val('li-email','hola'); val('li-pass','12345678'); }, 'formLogin','msgLogin',CORREO);
   caso('login datos correctos (sin Supabase)', function(){ val('li-email','a@b.com'); val('li-pass','12345678'); }, 'formLogin','msgLogin',SIN_BD);
 
-  /* ---------- CREAR CUENTA ---------- */
-  /* el país ya no es texto libre: hay que elegir uno real */
-  function regOk(){ val('rg-nombre','X'); val('rg-pais','Italia'); val('rg-email','a@b.com'); val('rg-pass',FUERTE); val('rg-pass2',FUERTE); val('rg-terms',true); }
-  caso('registro vacío', function(){}, 'formReg','msgReg',VACIO);
-  caso('registro correo inválido', function(){ regOk(); val('rg-email','nope'); }, 'formReg','msgReg',CORREO);
-  caso('registro clave corta', function(){ regOk(); val('rg-pass','1234'); val('rg-pass2','1234'); }, 'formReg','msgReg',CORTA);
-  caso('registro claves distintas', function(){ regOk(); val('rg-pass2','87654321'); }, 'formReg','msgReg',DISTIN);
-  caso('registro sin aceptar términos', function(){ regOk(); val('rg-terms',false); }, 'formReg','msgReg','Debes aceptar el tratamiento de datos para continuar.');
-  caso('registro correcto (sin Supabase)', regOk, 'formReg','msgReg',SIN_BD);
-
-  caso('registro con país inventado', function(){ regOk(); val('rg-pais','Talia'); }, 'formReg','msgReg','Elige un país de la lista.');
-
-  /* ---------- EL MEDIDOR DE FUERZA ----------
-     Cuatro maneras distintas de que una clave sea adivinable, una por cada
-     rama que tiene fuerzaClave(). Solo se rechaza el nivel 0: los niveles 1
-     y 2 se aconsejan pero pasan, y de eso da fe 'registro correcto', que
-     usa una clave normal y llega hasta el final. */
-  function conClave(p){ return function(){ regOk(); val('rg-pass',p); val('rg-pass2',p); }; }
-  caso('clave del diccionario, aunque lleve año detrás', conClave('venezuela2024'), 'formReg','msgReg',DEBIL);
-  caso('una fila del teclado',                              conClave('qwertyui'),      'formReg','msgReg',DEBIL);
-  caso('un trocito repetido',                               conClave('abcabcabc'),     'formReg','msgReg',DEBIL);
-  caso('tu propio nombre dentro de la clave', function(){
-    regOk(); val('rg-nombre','Franklin Reyes'); val('rg-pass','franklin-2026'); val('rg-pass2','franklin-2026');
-  }, 'formReg','msgReg',DEBIL);
-
-  /* La longitud manda sobre la fuerza: a una clave de tres letras hay que
-     decirle que es corta, no que es adivinable. */
-  caso('corta antes que débil', conClave('abc'), 'formReg','msgReg',CORTA);
-
-  /* ---------- NOMBRE EN MAYÚSCULAS ---------- */
-  (function(){
-    var n = document.getElementById('rg-nombre');
-    function teclea(v){ n.value=v; n.dispatchEvent(new Event('input',{bubbles:true})); return n.value; }
-    function sale(v){ n.value=v; n.dispatchEvent(new Event('blur',{bubbles:true})); return n.value; }
-
-    R.push({n:'al escribir sube las iniciales', ok:(teclea('marco bianchi')==='Marco Bianchi'),
-            got:teclea('marco bianchi'), exp:'Marco Bianchi'});
-    R.push({n:'no estropea lo ya escrito en mayúscula', ok:(teclea('McDonald Llosa')==='McDonald Llosa'),
-            got:teclea('McDonald Llosa'), exp:'McDonald Llosa'});
-    R.push({n:'nombres compuestos con guion', ok:(teclea('jean-pierre du pont')==='Jean-Pierre Du Pont'),
-            got:teclea('jean-pierre du pont'), exp:'Jean-Pierre Du Pont'});
-    R.push({n:'respeta las tildes', ok:(teclea('ángel íñigo')==='Ángel Íñigo'),
-            got:teclea('ángel íñigo'), exp:'Ángel Íñigo'});
-    R.push({n:'al salir arregla TODO EN MAYÚSCULAS', ok:(sale('PEDRO PEREZ RONDON')==='Pedro Perez Rondon'),
-            got:sale('PEDRO PEREZ RONDON'), exp:'Pedro Perez Rondon'});
-    R.push({n:'al salir deja en minúscula las partículas', ok:(sale('juan DE LA cruz')==='Juan de la Cruz'),
-            got:sale('juan DE LA cruz'), exp:'Juan de la Cruz'});
-    R.push({n:'una partícula al principio sí va en mayúscula', ok:(sale('de la torre ana')==='De la Torre Ana'),
-            got:sale('de la torre ana'), exp:'De la Torre Ana'});
-    R.push({n:'al salir quita espacios de sobra', ok:(sale('  ana   maria  ')==='Ana Maria'),
-            got:'"'+sale('  ana   maria  ')+'"', exp:'Ana Maria'});
-    n.value='';
-  })();
-
-  /* ---------- BUSCADOR DE PAÍSES ---------- */
-  R.push({n:'la lista de países se construyó', ok:(PAISES.length>180), got:PAISES.length+' países', exp:'más de 180'});
-
-  var campo=document.getElementById('rg-pais'), lista=document.getElementById('listaPais');
-  limpiaTodo();
-  campo.value='ital'; campo.dispatchEvent(new Event('input',{bubbles:true}));
-  var op=lista.querySelectorAll('li[role="option"]');
-  R.push({n:'escribir "ital" filtra', ok:(op.length>0 && op.length<12 && /Italia/.test(lista.textContent)), got:op.length+' resultados: '+lista.textContent.replace(/\s+/g,' ').slice(0,60), exp:'pocos, con Italia'});
-
-  campo.value='peru'; campo.dispatchEvent(new Event('input',{bubbles:true}));
-  R.push({n:'busca sin tildes ("peru" halla "Perú")', ok:/Per/.test(lista.textContent), got:lista.textContent.replace(/\s+/g,' ').slice(0,40), exp:'aparece Perú'});
-
-  campo.value='venez'; campo.dispatchEvent(new Event('input',{bubbles:true}));
-  var pri=lista.querySelector('li[role="option"]');
-  if(pri) pri.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true}));
-  R.push({n:'elegir con el ratón rellena el campo', ok:(campo.value.indexOf('Venezuela')>=0 && document.getElementById('rg-pais-cod').value==='VE'),
-          got:'campo="'+campo.value+'" codigo="'+document.getElementById('rg-pais-cod').value+'"', exp:'Venezuela / VE'});
-
-  campo.value='esp'; campo.dispatchEvent(new Event('input',{bubbles:true}));
-  campo.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));
-  var sel=lista.querySelector('li.sel');
-  R.push({n:'la flecha abajo marca un resultado', ok:!!sel, got:(sel?sel.textContent.trim():'ninguno'), exp:'uno marcado'});
-
-  /* el país elegido se retraduce al cambiar de idioma, sin perder el código */
-  campo.value='venez'; campo.dispatchEvent(new Event('input',{bubbles:true}));
-  var p0=lista.querySelector('li[role="option"]'); if(p0) p0.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true}));
-  var antes=campo.value;
-  applyLang('zh');
-  var despues=campo.value, codIgual=(document.getElementById('rg-pais-cod').value==='VE');
-  applyLang('es');
-  R.push({n:'el país se retraduce al cambiar de idioma', ok:(antes!==despues && codIgual && campo.value===antes),
-          got:'es="'+antes+'" zh="'+despues+'" vuelve="'+campo.value+'"', exp:'cambia y vuelve, código intacto'});
-
-  R.push({n:'lo que se guarda va siempre en español', ok:(function(){
-            campo.value='venez'; campo.dispatchEvent(new Event('input',{bubbles:true}));
-            var x=lista.querySelector('li[role="option"]'); if(x) x.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true}));
-            applyLang('en'); var g=window.paisParaGuardar(); applyLang('es');
-            return g==='Venezuela';
-          })(), got:'—', exp:'Venezuela'});
-
-  /* ---------- RECUPERAR ---------- */
-  caso('recuperar vacío', function(){}, 'formRec','msgRec',VACIO);
-  caso('recuperar correo inválido', function(){ val('rc-email','xx'); }, 'formRec','msgRec',CORREO);
-  caso('recuperar correcto (sin Supabase)', function(){ val('rc-email','a@b.com'); }, 'formRec','msgRec',SIN_BD);
-
   /* ---------- CLAVE NUEVA ---------- */
   caso('clave nueva vacía', function(){}, 'formNueva','msgNueva',VACIO);
   caso('clave nueva corta', function(){ val('nv-pass','123'); val('nv-pass2','123'); }, 'formNueva','msgNueva',CORTA);
   caso('clave nueva no coincide', function(){ val('nv-pass',FUERTE); val('nv-pass2','87654321'); }, 'formNueva','msgNueva',DISTIN);
-  /* Aquí el medidor va sin pistas: a la clave nueva se llega desde el enlace
-     del correo, sin nombre ni correo delante. */
-  caso('clave nueva débil', function(){ val('nv-pass','password1'); val('nv-pass2','password1'); }, 'formNueva','msgNueva',DEBIL);
 
   /* ---------- NAVEGACIÓN ---------- */
   limpiaTodo();
-  ['registro','recuperar','nueva','login'].forEach(function(v){
+  ['nueva','login'].forEach(function(v){
     irA(v);
     var on = document.querySelector('.view.on');
     R.push({n:'navegar a '+v, ok:(on && on.id==='v-'+v), got:(on?on.id:'ninguna'), exp:'v-'+v});
   });
 
+  /* Y una vista que ya no existe no deja la tarjeta en blanco: irA() la
+     manda al login. Es lo que le pasa a un enlace viejo a #registro, que
+     los hay repartidos por correos ya enviados. */
+  irA('registro');
+  (function(){
+    var on = document.querySelector('.view.on');
+    R.push({n:'un enlace viejo a una vista que ya no está cae en el login',
+            ok:(on && on.id==='v-login'), got:(on?on.id:'ninguna'), exp:'v-login'});
+  })();
+
   limpiaTodo(); enviar('formLogin');
   var habia = texto('msgLogin') !== '';
-  irA('registro'); irA('login');
+  irA('nueva'); irA('login');
   R.push({n:'cambiar de vista limpia el mensaje', ok:(habia && texto('msgLogin')===''), got:'antes='+habia+' despues="'+texto('msgLogin')+'"', exp:'vacío'});
 
   /* ---------- TRADUCCIÓN EN CALIENTE ---------- */
@@ -209,18 +147,6 @@
     var k=el.getAttribute('data-i18n'); if(!I18N.es[k]) sinClave.push(k);
   });
   R.push({n:'todo data-i18n tiene su clave', ok:(sinClave.length===0), got:(sinClave.join(' ')||'ninguno'), exp:'ninguno'});
-
-  /* ---------- ADAPTADOR DE SESIÓN ---------- */
-  almacenSesion.recordar = false;
-  var r1 = almacenSesion.recordar;
-  almacenSesion.setItem('prueba-x','1');
-  var enSession = (window.sessionStorage.getItem('prueba-x')==='1');
-  var enLocal   = (window.localStorage.getItem('prueba-x')==='1');
-  almacenSesion.recordar = true;
-  var r2 = almacenSesion.recordar;
-  almacenSesion.removeItem('prueba-x');
-  R.push({n:'recordar=false guarda en sessionStorage', ok:(r1===false && enSession && !enLocal), got:'recordar='+r1+' session='+enSession+' local='+enLocal, exp:'session sí, local no'});
-  R.push({n:'la preferencia persiste', ok:(r2===true && window.localStorage.getItem('ciip_recordar')==='1'), got:'recordar='+r2+' guardado='+window.localStorage.getItem('ciip_recordar'), exp:'true / "1"'});
 
   /* ---------- CONFIGURACIÓN CENTRALIZADA ---------- */
   R.push({n:'config.js se carga', ok:(typeof window.CIIP_CONFIG==='object' && !!window.CIIP_CONFIG),

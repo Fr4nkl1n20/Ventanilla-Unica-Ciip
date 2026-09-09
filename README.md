@@ -66,8 +66,9 @@ usar esa base o la de pruebas — ver el bloque de comentarios ahí mismo.
 | `CONFIGURAR.bat` | Pegar las claves de Supabase sin editar archivos |
 | `ABRIR-LOCAL.bat` | Levantar el proyecto en `http://localhost:8080`, solo para ti |
 | `ABRIR-EN-RED.bat` | Igual, pero abierto a la red: otros PC de la oficina pueden entrar |
-| `PROBAR.bat` | Lanzar las 57 pruebas del acceso — desactualizadas, ver [Qué está probado](#qué-está-probado-y-qué-no) |
-| `PROBAR-PANEL.bat` | Lanzar las 2668 pruebas del panel y las 10 comprobaciones de las claves de traducción |
+| `PROBAR-TODO.bat` | **Las diez de una vez**, con un cuadro al final: cuántas fueron bien, cuáles fallaron y cuáles **no se pudieron probar y por qué**. Es lo que hay que mirar antes de subir a `main` |
+| `PROBAR.bat` | Lanzar las 31 pruebas del acceso |
+| `PROBAR-PANEL.bat` | Lanzar las 4569 pruebas del panel y las 10 comprobaciones de las claves de traducción |
 | `PROBAR-CONECTOR.bat` | Lanzar las 28 pruebas del conector del RIF |
 | `PROBAR-SAREN.bat` | Lanzar las 42 pruebas del conector de la constitución de compañía |
 | `PROBAR-TRABAJADOR.bat` | Lanzar las 44 pruebas del trabajador, que es quien ejecuta lo que el conector decide |
@@ -156,17 +157,29 @@ en vez de dejar la pantalla en blanco.
 Las dos tandas ejecutan la página de verdad en un navegador sin ventana; no
 leen el código, lo corren.
 
-**El acceso** (57 pruebas, `PROBAR.bat`) — **desactualizadas**: se
-escribieron para cuatro formularios (iniciar sesión, crear cuenta,
-recuperar clave, clave nueva); `acceso.html` hoy solo tiene dos —iniciar
-sesión y clave nueva—, porque las cuentas las crea el equipo del CIIP
-desde Supabase, sin autorregistro. El arnés (`pruebas/arnes.js`) todavía
-busca los campos de los formularios que ya no están y se corta antes de
-correr ni una prueba. Falta o achicar el arnés a los dos formularios
-reales, o decidir que el registro y la recuperación por formulario
-propio vuelven — no es una decisión de este archivo.
+**El acceso** (31 pruebas, `PROBAR.bat`). Estuvieron rotas: se escribieron
+para cuatro formularios y `acceso.html` hoy solo tiene dos —iniciar sesión
+y clave nueva—, porque las cuentas las crea el equipo del CIIP desde
+Supabase, sin autorregistro. El arnés buscaba campos que ya no existen y se
+cortaba antes de correr ni una prueba.
 
-**El panel** (2668 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
+De las dos salidas que quedaban escritas aquí se tomó la primera: **se
+achicó el arnés a los dos formularios reales**. Se fueron con él las
+pruebas del registro, de la recuperación, del medidor de fuerza, del
+buscador de países, del arreglo de mayúsculas del nombre y del almacén de
+sesión — todas ellas de piezas que ya no están en la página. No se dejaron
+comentadas: una prueba de algo que no existe no protege nada y hace creer
+que sí. Si el CIIP decide que el registro vuelve, sus pruebas se recuperan
+del historial.
+
+Y se arregló lo que hacía que nadie se enterara, que era lo de fondo: **los
+diez `.bat` contestaban 0 pasara lo que pasara**, porque el `echo.` del
+final pisaba el código de salida. Ahora lo devuelven. Además el arnés
+empieza comprobando que la página tiene las piezas que va a usar, así que
+si mañana desaparece otra sale una prueba roja con su nombre en vez de
+morirse la tanda entera en silencio.
+
+**El panel** (4569 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
 los filtros, que las cuatro etapas son cuatro cajas parejas, la franja de "te
 toca a ti", el buzón de avisos, la ventana de tu perfil, las citas, el banco de
 activos —mirarlo, y publicarlo, corregirlo y borrarlo si eres del equipo—, que el panel
