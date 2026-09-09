@@ -5773,6 +5773,76 @@
     ok('lo hacemos: «Ver detalles» se puede pulsar',
        !!pie, pie ? 'pulsable' : 'no lleva globo', 'con su globo');
 
+    /* ── EL PLAZO LEGAL, EN EL RELOJ ──
+       El reloj dice el estimado; al pulsarlo sale lo que dice la norma.
+       Son datos distintos y por eso van separados: el estimado no obliga
+       a nadie, y el legal no describe lo que pasa.
+
+       SOLO donde hay norma leída. Hoy dos de treinta y tres, y por eso se
+       comprueban las DOS caras: que la c1 -que la tiene- lo lleva, y que
+       una sin ella NO lo lleva. Sin la segunda, esto pasaría igual con un
+       globo colgado de las treinta y tres prometiendo un dato que no hay.
+
+       Y que se VEA pulsable, que es por lo que se quitó de aquí la vez
+       anterior: el reloj era texto con un icono y había que dar con él de
+       casualidad. Se mide el subrayado, no la clase: la clase se puede
+       poner sin que pinte nada. */
+    (function(){
+      var reloj = document.querySelector('.tcard[data-tr="c1"] .t-time[data-globo]');
+      ok('plazo legal: el reloj de la c1 se puede pulsar',
+         !!reloj, reloj ? 'con globo' : 'sin globo', 'con su globo');
+
+      if (reloj){
+        var e = window.getComputedStyle(reloj);
+        ok('plazo legal: y se nota que se puede pulsar',
+           e.cursor === 'pointer' && e.textDecorationLine.indexOf('underline') >= 0,
+           'cursor=' + e.cursor + ' subrayado=' + e.textDecorationLine,
+           'pointer y subrayado');
+      }
+
+      /* Una sin norma leída: su reloj se queda como estaba.
+         LA c5 Y NO LA c4, y la diferencia es toda la prueba: la c4 no está
+         en el catálogo, así que su reloj se queda mudo porque no hay ficha
+         que mirar, no porque falte la norma. Con ella esto pasaba también
+         con el panel roto —comprobado: colgando el globo sin mirar la
+         norma, seguía en verde—. La c5 sí está en el catálogo y no tiene
+         norma leída, que es justo el caso. */
+      var mudo = document.querySelector('.tcard[data-tr="c5"] .t-time');
+      ok('plazo legal: y sin norma leída el reloj no promete nada',
+         !!mudo && !mudo.getAttribute('data-globo'),
+         mudo ? (mudo.getAttribute('data-globo') ? 'lleva globo' : 'texto y ya') : '(no hay c4)',
+         'texto y ya');
+    })();
+
+    /* ── QUE EL CIIP TE ACOMPAÑA, EN TODAS ──
+       El CIIP lo pidió así: siempre y sin abrir nada. Se cuenta contra el
+       número de fichas y no contra un número escrito: el catálogo crece.
+       Y se mira el TEXTO, no que exista el hueco: un renglón vacío está
+       igual de presente y no dice nada. */
+    (function(){
+      /* Las que son TRÁMITE. En el camino hay una que no lo es —el banco
+         de activos: se mira, no se solicita— y ofrecerle acompañamiento
+         para «realizar este trámite» sería ofrecer algo que no existe.
+         Se descarta con LA LISTA DEL PANEL, no con una copia: el día que
+         entre otra ficha de mirar, una copia se quedaría vieja y esta
+         prueba pediría acompañamiento para algo que no se pide. */
+      var noSon = window.CIIP_NO_ES_TRAMITE || [];
+      var fichas = [].filter.call(
+        document.querySelectorAll('.tcard[data-tr]'),
+        function(c){ return noSon.indexOf(c.getAttribute('data-tr')) < 0; });
+      var mudas = [];
+      [].forEach.call(fichas, function(c){
+        var x = c.querySelector('.t-acomp');
+        if (!x || !(x.textContent || '').trim()) mudas.push(c.getAttribute('data-tr'));
+      });
+      /* Se nombran las que faltan, no se cuentan: «31 de 32» obliga a
+         salir a buscar cuál, y eso son diez minutos cada vez. */
+      ok('acompaña: las fichas dicen que el CIIP puede acompañarte',
+         fichas.length > 0 && mudas.length === 0,
+         mudas.length ? ('callan: ' + mudas.join(', ')) : (fichas.length + ' fichas'),
+         'todas');
+    })();
+
     /* Y SE VE que se puede pulsar. Esto no es cosmética: cuando el globo se
        mudó del reloj al enlace, la regla que lo vestía se quedó apuntando al
        reloj, y «Ver detalles» pasó a abrir un globo sin ninguna señal de que
@@ -5788,15 +5858,26 @@
          cs.textDecorationLine + ' ' + cs.textDecorationStyle, 'algún subrayado');
     }
 
-    /* Y el reloj deja de serlo: si se quedaran los dos habría dos sitios que
-       abren lo mismo, y el de al lado sin decir que se puede pulsar. */
-    ok('lo hacemos: y el reloj ya no abre nada',
-       !document.querySelector('.tcard[data-tr="c1"] .t-time[data-globo]'),
-       document.querySelector('.tcard[data-tr="c1"] .t-time[data-globo]') ? 'sigue' : 'limpio',
-       'limpio');
+    /* AQUÍ DECÍA QUE EL RELOJ NO ABRE NADA, Y AHORA SÍ ABRE.
+       No es que la prueba estuviera mal: aquel globo se quitó del reloj
+       porque duplicaba éste —dos sitios para lo mismo— y porque el reloj
+       no parecía pulsable. Lo que abre ahora es OTRA COSA: lo que dice la
+       norma sobre el plazo, que no está en ningún otro sitio. Y va vestido
+       de pulsable, que era la otra mitad de aquella queja.
+       Que sean dos cosas distintas y no la misma dos veces lo sujetan las
+       pruebas de «plazo legal», más arriba. */
     if (!pie) return;
 
-    var caja = pie.parentNode.querySelector('.pista-caja');
+    /* EL GLOBO DE ESTE ENLACE, no el primero del pie. Desde que el reloj
+       tiene el suyo hay DOS en la misma caja, y pie.parentNode.querySelector
+       devolvía el del reloj: se pulsaba «Ver detalles» y esta prueba miraba
+       si se había abierto el otro, que seguía cerrado. Tres pruebas en rojo
+       sin que el panel tuviera nada malo.
+       Es la misma trampa que ocultó Trazabilidad: un selector que ayer
+       encontraba una cosa y hoy encuentra dos. Se ata al hermano siguiente,
+       que es donde el panel lo inserta. */
+    var caja = pie.nextElementSibling &&
+               pie.nextElementSibling.querySelector('.pista-caja');
     igual('lo hacemos: y llega cerrado', !!caja && caja.hidden, true);
 
     var vista = document.body.getAttribute('data-vista');

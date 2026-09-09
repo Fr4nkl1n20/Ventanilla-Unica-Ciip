@@ -4533,6 +4533,131 @@ update public.tipos_tramite set plazo_dias = 120 where codigo = 'registro_invers
 --    tiempo como retraso del organismo sería echarle la culpa al de
 --    enfrente de lo que uno no ha hecho.
 
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  Y EL PLAZO LEGAL, QUE NO ES EL ESTIMADO
+-- ═══════════════════════════════════════════════════════════════════════
+--  Los veintitrés números de arriba salen del texto de las tarjetas: son
+--  lo que se TARDA, o lo que el CIIP calcula que se tarda. Esto es otra
+--  cosa: lo que dice la NORMA. Van aparte porque casi nunca coinciden y
+--  porque enseñar uno en lugar del otro engaña de las dos maneras.
+--
+--  EL INFORME PEDÍA SUSTITUIR UNO POR OTRO, Y ES PEOR
+--  ─────────────────────────────────────────────────────────────────────
+--  «Se recomienda suprimir de la vista del usuario el plazo en la
+--   práctica y conservar de manera exclusiva el plazo legal regulatorio.»
+--
+--  Al ir a buscarlos aparece por qué eso no se puede hacer así. De las
+--  dos normas leídas hasta hoy, NINGUNA fija plazo de respuesta: regulan
+--  lo que debe hacer el ciudadano y cuánto vale el documento, no cuánto
+--  tarda el organismo. Si no hay plazo propio, lo que queda es el
+--  supletorio de la LOPA -cuatro meses, artículo 60-, y entonces la
+--  tarjeta del RIF pasaría de «2–3 semanas» a «4 meses». Cierto, y mucho
+--  peor para quien lo lee.
+--
+--  Así que se guardan los DOS, cada uno con su nombre.
+--
+--  CÓMO SE LEEN ESTAS DOS COLUMNAS
+--  ─────────────────────────────────────────────────────────────────────
+--  plazo_legal_norma es la que manda, y sirve de marca de comprobado:
+--
+--    norma NULL                  nadie lo ha mirado todavía. El panel no
+--                                dice nada. Es el caso de 31 de 33.
+--    norma puesta, días NULL     mirado, y su norma NO fija plazo de
+--                                respuesta. El panel lo dice con esas
+--                                palabras, que es la verdad y es útil.
+--    norma puesta, días puestos  la norma fija plazo. Los días son suyos.
+--
+--  La cita va en castellano y no se traduce: «Gaceta Oficial
+--  Extraordinaria 5.427» se llama igual en los seis idiomas. Lo que sí se
+--  traduce -el rótulo y la frase de «no fija plazo»- vive en pasos.js.
+--
+--  NO SE INVENTA NINGUNO
+--  ─────────────────────────────────────────────────────────────────────
+--  Sólo entran los que se han leído en su fuente. Poner aquí el supletorio
+--  de la LOPA en los treinta y tres sería escribir treinta y tres veces
+--  una interpretación jurídica que no ha hecho ningún abogado, y con la
+--  cara de dato comprobado. Los que faltan se van añadiendo con un UPDATE
+--  cada vez que se confirme uno.
+-- ═══════════════════════════════════════════════════════════════════════
+
+alter table public.tipos_tramite
+  add column if not exists plazo_legal_dias  smallint,
+  add column if not exists plazo_legal_norma text;
+
+comment on column public.tipos_tramite.plazo_legal_dias is
+  'Plazo que fija la norma, en dias. Null con norma puesta = la norma no fija plazo';
+comment on column public.tipos_tramite.plazo_legal_norma is
+  'La norma leida, citada. Null = todavia no lo ha mirado nadie';
+
+alter table public.tipos_tramite
+  drop constraint if exists tipos_tramite_plazo_legal_valido;
+alter table public.tipos_tramite
+  add  constraint tipos_tramite_plazo_legal_valido
+  check (plazo_legal_dias is null or plazo_legal_dias > 0);
+
+-- Un plazo sin norma que lo respalde es justo lo que este archivo viene a
+-- evitar: un numero con cara de ley y sin ley detras.
+alter table public.tipos_tramite
+  drop constraint if exists tipos_tramite_plazo_legal_con_fuente;
+alter table public.tipos_tramite
+  add  constraint tipos_tramite_plazo_legal_con_fuente
+  check (plazo_legal_dias is null or plazo_legal_norma is not null);
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- LOS COMPROBADOS. HOY, DOS DE TREINTA Y TRES.
+-- ───────────────────────────────────────────────────────────────────────
+-- c1 · Visa de inversionista (TR-I)
+--   Normas de Procedimiento para la Expedicion de Visados, Gaceta Oficial
+--   Extraordinaria 5.427 del 5 de enero de 2000. Leida entera. Sus
+--   articulos 11 y 12 dicen a quien se otorga y cuanto VALE la visa
+--   -tres años, prorrogables dos-, y no fijan plazo para decidirla. La
+--   unica mencion al respecto es el articulo 1: los consulados «atenderan
+--   y decidiran» las solicitudes, sin plazo.
+update public.tipos_tramite
+   set plazo_legal_norma = 'Normas de Procedimiento para la Expedición de Visados, Gaceta Oficial Extraordinaria 5.427 del 5-1-2000',
+       plazo_legal_dias  = null
+ where codigo = 'visa_inversionista';
+
+-- c3 · RIF personal
+--   Providencia SNAT/2026/00080, Gaceta Oficial 43.435 del 12 de agosto
+--   de 2026, que deroga la SNAT/2013/0048. Es la vigente. No fija plazo
+--   para que el SENIAT emita el RIF.
+--
+--   OJO CON EL DATO QUE CORRE POR AHI: los «30 dias habiles» que aparecen
+--   en todas partes son el plazo que tiene el CONTRIBUYENTE para
+--   inscribirse -articulo 5-, no el que tiene la administracion para
+--   atenderle. Es la obligacion al reves, y meterla aqui seria mentir
+--   con un dato verdadero.
+update public.tipos_tramite
+   set plazo_legal_norma = 'Providencia SNAT/2026/00080, Gaceta Oficial 43.435 del 12-8-2026',
+       plazo_legal_dias  = null
+ where codigo = 'rif_personal';
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- COMPROBACIONES
+-- ───────────────────────────────────────────────────────────────────────
+-- 1) Cuantos llevan norma leida. Hoy dos; que suba es el trabajo.
+--
+--   select count(*) filter (where plazo_legal_norma is not null) as mirados,
+--          count(*)                                              as total
+--   from public.tipos_tramite;
+--
+-- 2) Y cuales, con lo que se encontro:
+--
+--   select ref_panel, codigo, plazo_legal_dias, plazo_legal_norma
+--   from public.tipos_tramite
+--   where plazo_legal_norma is not null
+--   order by ref_panel;
+--
+-- 3) Que no haya dias sin norma. Tiene que salir vacio; ademas lo impide
+--    la restriccion de arriba, asi que esto es para leerlo:
+--
+--   select ref_panel from public.tipos_tramite
+--   where plazo_legal_dias is not null and plazo_legal_norma is null;
+
 -- ====================================================================
 --  22 / 27   supabase-una-viva.sql
 -- ====================================================================

@@ -125,6 +125,8 @@
 
   var TIPOS = [
     {codigo:'rif_personal', ref_panel:'c3', ente:'SENIAT', activo:true, emite:'rif_personal', plazo_dias:14,
+     plazo_legal_dias:null,
+     plazo_legal_norma:'Providencia SNAT/2026/00080, Gaceta Oficial 43.435 del 12-8-2026',
      nombre:'RIF personal', fase:1, nivel:'obligatorio',
      activo_por:null, activo_en: haceHoras(30)},
     {codigo:'constitucion', ref_panel:'c5', ente:'SAREN',  activo:true, emite:'acta_constitutiva', plazo_dias:21,
@@ -226,7 +228,11 @@
     /* La visa, que es la del tramite ya resuelto. Sin su tipo aqui, el
        panel no sabe a que tarjeta pertenece y la deja en "por iniciar"
        aunque el tramite este resuelto. */
+    /* Con el plazo legal puesto: es uno de los dos comprobados en su
+       fuente, y el unico con el que se puede probar el globo del reloj. */
     {codigo:'visa_inversionista', ref_panel:'c1', ente:'SAIME', activo:true, emite:'visa', plazo_dias:30,
+     plazo_legal_dias:null,
+     plazo_legal_norma:'Normas de Procedimiento para la Expedición de Visados, Gaceta Oficial Extraordinaria 5.427 del 5-1-2000',
      nombre:'Visa de inversionista', fase:1, nivel:'obligatorio'},
     /* La visa de dependientes pregunta pasaporte, pais emisor y fecha de
        nacimiento: las tres que la de inversionista ya contesto. Es donde se

@@ -2240,6 +2240,26 @@ body[data-vista="tramite"] #secTramites{display:none;}
 /* Y mientras el globo esta abierto se queda marcado: con el globo delante,
    saber cual de las dos fichas de la fila lo abrio no es evidente. */
 .t-foot .go[aria-expanded="true"]{text-decoration-color:var(--navy); color:var(--navy);}
+
+/* EL RELOJ, CUANDO LLEVA EL PLAZO LEGAL DETRAS.
+   Exactamente el mismo traje que «Ver detalles», y no por ahorrar: aqui
+   ya hubo un globo y se quito porque el reloj no parecia pulsable -texto
+   con un icono al lado- y habia que dar con el por casualidad. Vuelve
+   solo con esto puesto. Y solo cuando de verdad abre algo: el selector
+   pide data-globo, asi que en las 31 fichas sin norma leida el reloj
+   sigue siendo texto y no promete nada. */
+.t-time[data-globo]{cursor:pointer; text-decoration:underline dotted;
+  text-underline-offset:3px; text-decoration-color:var(--line);}
+.t-time[data-globo]:hover{text-decoration-color:var(--navy); color:var(--navy);}
+.t-time[data-globo]:focus{outline:none;}
+.t-time[data-globo]:focus-visible{outline:2px solid var(--navy2); outline-offset:3px; border-radius:5px;}
+.t-time[aria-expanded="true"]{text-decoration-color:var(--navy); color:var(--navy);}
+
+/* Que el CIIP te acompaña, en la cara de la ficha y en las treinta y tres.
+   Debajo del organismo y en el tono apagado del resto de la letra chica:
+   tiene que estar SIEMPRE, no llamar la atencion mas que el nombre del
+   tramite. */
+.t-acomp{font-size:11px; line-height:1.45; color:var(--mudo); margin-top:6px;}
 /* El globo cuelga del renglon, no de una «i» que no existe. */
 .pista-env:has(> .pista-txt){display:inline;}
 /* Su propio cuadro, hermano de los otros dos y no un apartado del formulario:
@@ -6352,7 +6372,24 @@ applyLang(idiomaParaMi());
            sesión puesta tiene que encontrar el catálogo de verdad. */
         catalogo = null; TIPOS = {}; return TIPOS;
       }
-      return sb.from('tipos_tramite').select('codigo, ref_panel, ente, activo, emite, plazo_dias, nivel')
+      /* Las dos del plazo legal van APARTE y con vuelta atrás. Si el
+         proyecto todavía no ha corrido supabase-plazos.sql, PostgREST
+         rechaza el select ENTERO por una columna que no conoce: no
+         devuelve el resto de campos, devuelve un error. Y este bloque no
+         mira r.error, así que el catálogo se quedaría vacío y el panel
+         entero en maqueta —las 33 tarjetas apagadas— por un dato de
+         adorno. Se pide con ellas, y si la base no las tiene se vuelve a
+         pedir sin ellas y se dice en la consola. */
+      var CAMPOS = 'codigo, ref_panel, ente, activo, emite, plazo_dias, nivel';
+      var CON_LEY = CAMPOS + ', plazo_legal_dias, plazo_legal_norma';
+      return sb.from('tipos_tramite').select(CON_LEY)
+      .then(function(r0){
+        var m = (r0 && r0.error && r0.error.message) || '';
+        if (!m) return r0;
+        console.warn('[CIIP] el catálogo no trae el plazo legal (' + m +
+                     '); sigo sin él. ¿Falta correr supabase-plazos.sql?');
+        return sb.from('tipos_tramite').select(CAMPOS);
+      })
       .then(function(r){
         var t = {};
         (r.data || []).forEach(function(x){ t[x.ref_panel] = x; });
@@ -14122,6 +14159,10 @@ applyLang(idiomaParaMi());
      es un estado que se pueda empezar.
      ──────────────────────────────────────────────────── */
   var NO_ES_TRAMITE = ['c15'];
+  /* Se asoma para que las pruebas usen ESTA lista y no una copia suya:
+     el dia que entre otra ficha que no se solicita, una copia se queda
+     vieja y la prueba pide acompañamiento para algo que no se pide. */
+  window.CIIP_NO_ES_TRAMITE = NO_ES_TRAMITE;
 
   /* De los seis estados de la base a los cuatro de la portada. Son cuatro
      porque es lo que el inversionista necesita saber: si ya está, si
@@ -14412,6 +14453,95 @@ applyLang(idiomaParaMi());
 
     /* Y el clic se queda aqui: la tarjeta entera abre el tramite. */
     pie.addEventListener('click', function(e){ e.stopPropagation(); });
+  }
+
+  /* ── QUE EL CIIP TE ACOMPAÑA, EN LA CARA DE LA FICHA ──
+     Ya se ofrecía en tres sitios: dentro de «Ver detalles», en la pantalla
+     de la solicitud y en el globo de la consulta. Los tres tienen algo en
+     común: hay que pulsar algo para verlos. Quien mira la portada y decide
+     que esto es demasiado, se va antes de pulsar nada.
+
+     Por decisión del CIIP, se dice SIEMPRE y sin abrir nada. Va en la
+     cara, debajo del nombre del organismo, en letra pequeña y apagada
+     -no compite con el título- y en las treinta y tres igual, que es lo
+     que quiere decir «siempre».
+
+     El texto se REESCRIBE en cada repintado, y no sólo al crear el hueco.
+     Es lo único que hace que el cambio de idioma lo alcance: applyLang
+     llama aquí -CIIP_REPINTA_ESTADOS- y si esto saliera antes por tener ya
+     su renglón, se quedaría congelado en el idioma de arranque. Es
+     exactamente como se quedó «Waiting on: …» dentro de un panel entero
+     en castellano. */
+  function pintaAcompana(tarjeta){
+    var u = T();
+    if (!u.lh_uno) return;
+    var linea = tarjeta.querySelector('.t-acomp');
+    if (!linea){
+      var donde = tarjeta.querySelector('.t-ente');
+      if (!donde) return;
+      linea = el('div', 't-acomp', '');
+      donde.parentNode.insertBefore(linea, donde.nextSibling);
+    }
+    linea.textContent = u.lh_uno;
+  }
+
+  /* ── EL PLAZO LEGAL, AL PULSAR EL RELOJ ──
+     El renglón del reloj dice el ESTIMADO: lo que se tarda. Al pulsarlo
+     sale lo que dice la NORMA, que casi nunca es lo mismo y por eso van
+     por separado y con su nombre. Sustituir uno por otro engaña de las
+     dos maneras: el estimado no obliga a nadie, y el legal —cuando la
+     norma calla y queda el supletorio de cuatro meses de la LOPA— no
+     describe lo que pasa.
+
+     AQUÍ VIVIÓ OTRO GLOBO Y SE QUITÓ, con razón: el reloj no parecía
+     pulsable —texto con un icono al lado— y había que descubrirlo por
+     casualidad. Así que vuelve, pero vestido como lo que es: el mismo
+     subrayado de puntos y el mismo azul al pasar por encima que lleva
+     «Ver detalles». Si se pone sin eso, se repite el fallo entero.
+
+     Y sólo donde hay norma leída. Sin ella el reloj se queda como está,
+     texto y ya: colgarle un globo que dijera «no se sabe» sería prometer
+     un dato en 31 de 33 tarjetas para no darlo. */
+  function pintaPlazoLegal(tarjeta, tipo){
+    var reloj = tarjeta.querySelector('.t-time');
+    if (!reloj || reloj.getAttribute('data-globo')) return;
+    if (!tipo || !tipo.plazo_legal_norma) return;
+    var u = T();
+    if (!u.lg_titulo) return;
+
+    reloj.setAttribute('data-globo', '1');
+    reloj.setAttribute('role', 'button');
+    reloj.setAttribute('tabindex', '0');
+
+    /* Todo por función, como el de al lado: la tarjeta se monta una vez y
+       un texto fijo se quedaría congelado en el idioma de entonces. */
+    var env = montaGlobo({
+      disparador: reloj,
+      ancho: true,
+      titulo: function(){ return T().lg_titulo || ''; },
+      puntosFn: function(){
+        var t = T(), fila = [];
+        /* Lo que dice la norma, o que no dice nada. Las dos cosas son
+           informacion; la segunda es la que mas sorprende. */
+        fila.push(tipo.plazo_legal_dias
+          ? String(t.lg_dias || '').replace('{n}', tipo.plazo_legal_dias)
+          : (t.lg_sin || ''));
+        /* La cita NO se traduce: una Gaceta se llama igual en los seis
+           idiomas, y traducirla la volveria imposible de buscar. */
+        fila.push(tipo.plazo_legal_norma);
+        return fila.filter(function(x){ return !!x; });
+      },
+      extraFn: function(){
+        var frase = T().lg_nota;
+        if (!frase) return null;
+        return el('div', 'pc-ciip', frase);
+      }
+    });
+    if (!env){ reloj.removeAttribute('role'); reloj.removeAttribute('tabindex'); return; }
+
+    var sitio = reloj.parentNode;
+    if (sitio) sitio.insertBefore(env, reloj.nextSibling);
+    reloj.addEventListener('click', function(e){ e.stopPropagation(); });
   }
 
   function pintaNivel(tarjeta, tipo){
@@ -14829,6 +14959,8 @@ applyLang(idiomaParaMi());
       pintaCuando(c, tr);
       pintaNivel(c, (TIPOS || {})[ref]);
       pintaLoHacemos(c, (TIPOS || {})[ref]);
+      pintaPlazoLegal(c, (TIPOS || {})[ref]);
+      pintaAcompana(c);
     });
 
     /* Apartar ANTES de recontar: los filtros cuentan tarjetas y da igual
