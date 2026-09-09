@@ -238,7 +238,7 @@ async function principal(){
     }
   }
 
-  const basura = { tramites: [], citas: [], documentos: [], archivos: [] };
+  const basura = { tramites: [], citas: [], documentos: [], archivos: [], consultas: [] };
 
   /* ── B pone el cebo ─────────────────────────────────────────────── */
   /* DOS tipos, no uno. El indice tramites_una_viva impide que una misma
@@ -1037,6 +1037,127 @@ async function principal(){
     }
   }
 
+  /* ═══ 16 · LAS CONSULTAS ════════════════════════════════════════
+     Las dos tablas mas nuevas, y las unicas cuyas cerraduras no habian
+     pasado nunca por aqui: la seccion de consultas se escribio despues
+     que este archivo. Son cinco politicas y dos disparadores.
+
+     OJO CON LO QUE ESTA TANDA DEJA. Una consulta NO SE BORRA -no hay
+     politica de delete, y es a proposito: «la conversacion con un
+     inversionista es registro»- y un mensaje tampoco, que lo corta el
+     disparador mensaje_no_se_toca. Asi que lo que se siembre aqui se
+     queda en la base para siempre, tambien en el proyecto de verdad.
+
+     Por eso se siembra el minimo que prueba algo -dos consultas y un
+     mensaje- y al recoger se APARTAN con la cuenta del equipo,
+     poniendolas 'resuelta': el indice de la cola solo mira 'abierta' y
+     'en_curso', asi que dejan de salirle al CIIP en «Por atender». Es el
+     mismo trato que ya se les da a los tramites enviados, que tampoco se
+     pueden borrar. */
+  const ASUNTO = 'PRUEBA DE CERRADURAS - no atender';
+
+  const consA = await pide('/rest/v1/consultas', {
+    method: 'POST', token: A.token, headers: json(),
+    body: JSON.stringify({ inversionista: A.id, asunto: ASUNTO })
+  });
+  const CONS_A = consA.ok && consA.cuerpo[0] ? consA.cuerpo[0].id : null;
+  debeFallar('consultas: A puede abrir la suya (esto TIENE que salir)',
+             !!CONS_A, CONS_A ? 'abierta' : 'no pudo (' + consA.estado + ')');
+
+  /* Y nace 'abierta' y sin gestor, lo pida quien lo pida: eso lo fuerza el
+     disparador y no el navegador. Sin el, cualquiera podria nacerse una
+     consulta ya 'resuelta', que es la forma mas limpia de que el equipo no
+     la vea nunca. */
+  if (CONS_A){
+    basura.consultas.push({ id: CONS_A });
+    debeFallar('consultas: y nace abierta y sin gestor, lo pida quien lo pida',
+               consA.cuerpo[0].estado === 'abierta' && !consA.cuerpo[0].gestor,
+               'estado=' + consA.cuerpo[0].estado + ' gestor=' + consA.cuerpo[0].gestor);
+  }
+
+  /* B abre la suya DICIENDO que es de A. No tiene que fallar: tiene que
+     salir a nombre de B. El disparador pisa el inversionista con auth.uid()
+     antes de que la politica mire nada, asi que la suplantacion no se
+     rechaza, se corrige. Comprobar que «falla» seria comprobar algo que no
+     hace, y saldria en rojo con la base bien puesta. */
+  const consB = await pide('/rest/v1/consultas', {
+    method: 'POST', token: B.token, headers: json(),
+    body: JSON.stringify({ inversionista: A.id, asunto: ASUNTO })
+  });
+  const CONS_B = consB.ok && consB.cuerpo[0] ? consB.cuerpo[0].id : null;
+  if (CONS_B) basura.consultas.push({ id: CONS_B });
+  debeFallar('consultas: B no puede abrir una a nombre de A',
+             !!CONS_B && consB.cuerpo[0].inversionista === B.id,
+             CONS_B ? ('salio a nombre de ' + (consB.cuerpo[0].inversionista === B.id ? 'B' : 'A'))
+                    : 'no pudo crearla (' + consB.estado + ')');
+
+  if (CONS_A){
+    const msg = await pide('/rest/v1/consulta_mensajes', {
+      method: 'POST', token: A.token, headers: json(),
+      body: JSON.stringify({ consulta: CONS_A, texto: ASUNTO })
+    });
+    debeFallar('consultas: A puede escribir en la suya (esto TIENE que salir)',
+               msg.ok && Array.isArray(msg.cuerpo) && msg.cuerpo.length === 1,
+               msg.ok ? 'escrito' : 'no pudo (' + msg.estado + ')');
+
+    /* La firma la pone la base, venga escrito lo que venga. */
+    if (msg.ok && msg.cuerpo[0]){
+      debeFallar('consultas: y el mensaje sale firmado por quien lo escribe',
+                 msg.cuerpo[0].autor === A.id && msg.cuerpo[0].del_equipo === false,
+                 'autor=' + (msg.cuerpo[0].autor === A.id ? 'A' : msg.cuerpo[0].autor) +
+                 ' del_equipo=' + msg.cuerpo[0].del_equipo);
+    }
+
+    /* Lo unico que de verdad importa: que B no la vea. Cero filas, no un
+       error; RLS no da error, filtra. */
+    let r16 = await pide('/rest/v1/consultas?select=*&id=eq.' + CONS_A, { token: B.token });
+    debeFallar('consultas: B no ve la consulta de A',
+               r16.ok && Array.isArray(r16.cuerpo) && r16.cuerpo.length === 0,
+               r16.ok ? (r16.cuerpo.length + ' fila(s)') : 'error ' + r16.estado);
+
+    r16 = await pide('/rest/v1/consulta_mensajes?select=*&consulta=eq.' + CONS_A, { token: B.token });
+    debeFallar('consultas: ni lo que se dijo en ella',
+               r16.ok && Array.isArray(r16.cuerpo) && r16.cuerpo.length === 0,
+               r16.ok ? (r16.cuerpo.length + ' fila(s)') : 'error ' + r16.estado);
+
+    /* Ni escriba en ella. Este es el que se olvida: leer tapado y escribir
+       abierto deja meter una frase en el expediente de otro. */
+    const cuela = await pide('/rest/v1/consulta_mensajes', {
+      method: 'POST', token: B.token, headers: json(),
+      body: JSON.stringify({ consulta: CONS_A, texto: ASUNTO })
+    });
+    let w = noEscribe(cuela);
+    debeFallar('consultas: ni puede escribir en ella', w.bien, w.d);
+
+    /* Cerrarla es decir «esto ya esta contestado», y eso lo dice quien
+       contesta. */
+    const cierra = await pide('/rest/v1/consultas?id=eq.' + CONS_A, {
+      method: 'PATCH', token: A.token, headers: json(),
+      body: JSON.stringify({ estado: 'resuelta' })
+    });
+    w = noEscribe(cierra);
+    debeFallar('consultas: A no puede darse por contestado', w.bien, w.d);
+
+    /* Y el adjunto tiene que ser de la boveda del dueño. Sin esto, y como el
+       hilo enseña sus adjuntos, colgar un id cualquiera seria una forma de
+       leer la boveda ajena: pruebas a ver que sale. */
+    if (DOC_B){
+      const roba16 = await pide('/rest/v1/consulta_mensajes', {
+        method: 'POST', token: A.token, headers: json(),
+        body: JSON.stringify({ consulta: CONS_A, texto: ASUNTO, documento: DOC_B })
+      });
+      w = noEscribe(roba16);
+      debeFallar('consultas: ni colgar de ella un papel de B', w.bien, w.d);
+    }
+
+    /* Y que A SI ve la suya, para saber que lo de arriba salio tapado y no
+       porque la tabla no le conteste a nadie. */
+    r16 = await pide('/rest/v1/consultas?select=*&id=eq.' + CONS_A, { token: A.token });
+    debeFallar('consultas: A si ve la suya (esto TIENE que salir)',
+               r16.ok && Array.isArray(r16.cuerpo) && r16.cuerpo.length === 1,
+               r16.ok ? (r16.cuerpo.length + ' fila(s)') : 'error ' + r16.estado);
+  }
+
   /* ── recoger ────────────────────────────────────────────────────── */
   console.log('  Recogiendo el cebo...\n');
   for (const a of basura.archivos){
@@ -1050,6 +1171,20 @@ async function principal(){
   for (const c of basura.citas){
     await pide('/rest/v1/citas?id=eq.' + c.id, { method: 'DELETE', token: c.token });
   }
+  /* Las consultas NO se borran: no hay politica de delete, y es a proposito.
+     Se apartan poniendolas 'resuelta' con la cuenta del equipo -la unica que
+     puede-, y asi salen de la cola de «Por atender». Si no hay cuenta de
+     equipo se dice en voz alta al final: quedan abiertas y alguien las vera. */
+  const consultasAbiertas = [];
+  for (const c of basura.consultas){
+    if (!conGestor){ consultasAbiertas.push(c.id); continue; }
+    const q = await pide('/rest/v1/consultas?id=eq.' + c.id, {
+      method: 'PATCH', token: conGestor.token, headers: json(),
+      body: JSON.stringify({ estado: 'resuelta' })
+    });
+    if (!(q.ok && Array.isArray(q.cuerpo) && q.cuerpo.length === 1)) consultasAbiertas.push(c.id);
+  }
+
   const sinRecoger = [];
   for (const t of basura.tramites){
     const q = await pide('/rest/v1/tramites?id=eq.' + t.id, { method: 'DELETE', token: t.token });
@@ -1111,6 +1246,17 @@ async function principal(){
     console.log('  Se apartaron a "devuelto" ' + apartados.length + ' solicitud(es) que esta');
     console.log('  tanda envio y no puede borrar: una enviada no la borra su dueño.');
     console.log('  Asi no ocupan sitio y la vuelta siguiente entra limpia.' + String.fromCharCode(10));
+  }
+
+  /* Las consultas de esta tanda no se borran nunca -no hay politica de
+     delete-, asi que aqui solo se puede decir en que estado quedaron. Si el
+     apartado salio bien no se dice nada: estan resueltas y fuera de la cola.
+     Si no, se nombran, porque le van a salir al equipo en «Por atender». */
+  if (consultasAbiertas.length){
+    console.log('  QUEDAN ABIERTAS ' + consultasAbiertas.length + ' consulta(s) de prueba, y no hay');
+    console.log('  forma de borrarlas: ' + consultasAbiertas.map(function(i){ return i.slice(0,8); }).join(', '));
+    console.log('  Le saldran al CIIP en «Por atender». Se cierran desde el panel, o');
+    console.log('  desde el SQL Editor poniendo su estado en "resuelta".\n');
   }
 
   if (sinRecoger.length){
