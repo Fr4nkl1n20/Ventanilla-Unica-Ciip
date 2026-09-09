@@ -12888,7 +12888,21 @@ applyLang(idiomaParaMi());
       vacia.hidden = !!vistos.length;
       vacia.textContent = vistos.length ? '' : (u.co_tram_vacio || '');
     }
-    var caja = document.querySelector('.tabla-caja');
+    /* La caja DE ESTA TABLA, no la primera del documento.
+       Aqui se buscaba la clase a secas, en todo el documento, y hay
+       cinco: el rastro, los papeles, esta, mis tramites y las citas. La
+       primera del marcado es la del RASTRO, asi que cuando la cola del
+       equipo se quedaba vacia -que es lo normal- esta linea le ponia
+       hidden a la Trazabilidad.
+       Se veia asi: entrabas en Trazabilidad, los contadores decian 17 y
+       debajo no habia nada; con F5 aparecia todo, porque recargando sobre
+       #rastro este pintor no ha llegado a correr. Y no salia ni un error
+       en la consola: la tabla estaba entera, con sus cinco titulos y sus
+       diecisiete filas, midiendo cero de alto dentro de un padre oculto.
+       Por el id y no por la clase: el id no se repite, y si algun dia esta
+       tabla se mueve de sitio el closest la sigue. */
+    var caja = (document.getElementById('paTabla') || {closest: function(){ return null; }})
+                 .closest('.tabla-caja');
     if (caja) caja.hidden = !vistos.length;
     if (!vistos.length) return;
 

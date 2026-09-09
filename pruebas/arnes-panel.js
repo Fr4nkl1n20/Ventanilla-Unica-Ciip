@@ -201,6 +201,7 @@
               logosMiran, tokensMiran,
               cabecerasMiran,
               comentariosMiran,
+              cajasConDueño,
               letraMira,
               habilesMira,
               iFasesMira,
@@ -6365,6 +6366,70 @@
      fichas: seguía cuadrando por las otras dos, así que ni se notaba.
 
      Contar aperturas y cierres cuesta una milésima y lo caza siempre. */
+  /* ── NADIE BUSCA POR UNA CLASE QUE SE REPITE ──
+     El pintor de «Por atender» buscaba la caja de su tabla por la clase
+     a secas, en todo el documento, y le ponia hidden segun tuviera filas
+     o no.
+
+     Y hay CINCO cajas de tabla. La primera del marcado es la de
+     Trazabilidad, asi que cuando la cola del equipo se quedaba vacia
+     -que es lo normal- aquella linea le ponia hidden al rastro.
+
+     Lo que se veia: entrabas en Trazabilidad, los contadores decian 17 y
+     debajo no habia nada; con F5 aparecia. Y ni un error en la consola,
+     porque no habia ninguno: la tabla estaba entera -cinco titulos,
+     diecisiete filas- midiendo cero de alto dentro de un padre oculto.
+     Costo tres pantallazos de consola encontrarlo.
+
+     Esto no vigila ese caso: vigila la FAMILIA. Se lee el guion entero
+     buscando cada document.querySelector('.algo') y se cuenta cuantos
+     elementos tienen esa clase AHORA MISMO. Si hay mas de uno, la linea
+     esta cogiendo el primero del documento, que casi nunca es el que
+     quiere. Con id no pasa: un id no se repite.
+
+     Se busca el texto tal cual, sin expresion regular. Ya nos ha comido
+     el escapado una barra mas de una vez, y un patron que corre sin
+     encontrar nada deja esto en verde para siempre.
+
+     Y OJO AL ESCRIBIR COMENTARIOS: esto lee el guion ENTERO, comentarios
+     incluidos, asi que dejar la linea mala escrita como ejemplo la vuelve
+     a encontrar. Paso nada mas estrenarla, con el arreglo ya puesto. Es
+     el mismo tropiezo que escribir un cierre de comentario dentro de otro
+     comentario: el texto de al lado del codigo cuenta como codigo.
+
+     Y ese cierre NO se escribe aqui ni de ejemplo, porque cerraria este
+     mismo bloque en seco. Acaba de pasar, escribiendo esta linea. */
+  function cajasConDueño(){
+    var codigo = '';
+    [].forEach.call(document.querySelectorAll('script'), function(s){ codigo += s.textContent; });
+    ok('cajas con dueño: hay guion que mirar', codigo.length > 100000,
+       codigo.length + ' caracteres de guion', 'el guion entero');
+
+    var marca = "document.querySelector('.";
+    var malas = [], mirados = {}, desde = 0;
+    while (true){
+      var i = codigo.indexOf(marca, desde);
+      if (i < 0) break;
+      desde = i + marca.length;
+      var fin = codigo.indexOf("'", desde);
+      if (fin < 0) break;
+      var clase = codigo.slice(desde, fin);
+      /* Solo clases a secas. Un selector con espacios o combinadores ya
+         dice de donde cuelga, y ese es justamente el arreglo. */
+      if (clase.indexOf(' ') >= 0 || clase.indexOf('.') >= 0 ||
+          clase.indexOf('[') >= 0 || clase.indexOf('>') >= 0) continue;
+      if (mirados[clase]) continue;
+      mirados[clase] = true;
+      var cuantos = document.querySelectorAll('.' + clase).length;
+      if (cuantos > 1) malas.push('.' + clase + ' (' + cuantos + ')');
+    }
+
+    ok('cajas con dueño: ninguna búsqueda global de una clase repetida',
+       malas.length === 0,
+       malas.join(', ') || 'ninguna',
+       'ninguna');
+  }
+
   function comentariosMiran(){
     var texto = '';
     [].forEach.call(document.querySelectorAll('style'), function(h){ texto += h.textContent; });
