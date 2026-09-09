@@ -211,6 +211,7 @@
                  final, y dejarla abierta le taparia la pantalla a las
                  de despues -que es como 886 pruebas se pusieron rojas
                  de golpe una vez-. */
+              catalogoAbre, catalogoEspera, catalogoMira, catalogoGuarda, catalogoTrasGuardar,
               puertaTodos,
               consultaAbre, consultaMira, consultaEntra, consultaDentro,
               rotulosMiran, consultaNueva, consultaNuevaMira, consultaTrasCrear,
@@ -5839,13 +5840,14 @@
       }
 
       /* Una sin norma leída: su reloj se queda como estaba.
-         LA c5 Y NO LA c4, y la diferencia es toda la prueba: la c4 no está
-         en el catálogo, así que su reloj se queda mudo porque no hay ficha
-         que mirar, no porque falte la norma. Con ella esto pasaba también
-         con el panel roto —comprobado: colgando el globo sin mirar la
-         norma, seguía en verde—. La c5 sí está en el catálogo y no tiene
-         norma leída, que es justo el caso. */
-      var mudo = document.querySelector('.tcard[data-tr="c5"] .t-time');
+         LA c13, y elegirla tiene su historia de dos pasos. Primero fue la
+         c4, que NO está en el catálogo: su reloj se quedaba mudo porque no
+         hay ficha que mirar, no porque falte el dato, y la prueba pasaba
+         igual con el panel roto. Luego la c5, que sí está y no tiene norma
+         leída; valió hasta que el globo pasó a salir también donde sólo
+         hay días del CIIP, y la c5 tiene 21. La c13 no tiene ninguno de
+         los dos, que es el único caso que de verdad no promete nada. */
+      var mudo = document.querySelector('.tcard[data-tr="c13"] .t-time');
       ok('plazo legal: y sin norma leída el reloj no promete nada',
          !!mudo && !mudo.getAttribute('data-globo'),
          mudo ? (mudo.getAttribute('data-globo') ? 'lleva globo' : 'texto y ya') : '(no hay c4)',
@@ -6037,6 +6039,94 @@
      La cita era la unica puerta. Estas miden la otra: que se abre, que se
      ve lo que ya hay, que se puede escribir una nueva, y que lo escrito
      llega. Corren sobre el inversionista; la parte del equipo va aparte. */
+  /* ── EL CATALOGO DEL ADMIN, Y SUS DIAS ──
+     De los tres numeros que puede llevar un tramite, el de «lo que suele
+     tardar» es el unico que el CIIP puede afirmar: lo ve pasar. El legal
+     lo dice la norma y la vigencia la Gaceta. Hasta ahora no habia forma
+     de tocarlo sin entrar a la base.
+
+     Solo el admin: la pantalla es suya y la politica de la base tambien.
+     En las demas pasadas estas cuatro no hacen nada. */
+  function catalogoAbre(){
+    if (!ES_ADMIN) return;
+    location.hash = "catalogo";
+  }
+
+  /* Se ESPERA a que la lista llegue. La primera version miraba en la
+     misma vuelta y contaba cero filas: el catalogo lo pide el enrutador
+     al entrar y eso es un viaje a la base. Contar cero y darlo por bueno
+     habria sido una prueba que pasa con la pantalla vacia. */
+  function catalogoEspera(sigue){
+    if (!ES_ADMIN) return sigue();
+    /* Y hay que ABRIR una fase. La lista nace con las cuatro plegadas, y
+       una fase plegada no pinta sus filas: no las esconde, no las crea.
+       La primera version esperaba filas que no iban a llegar nunca y
+       contaba cero. */
+    esperaFilas("#cgLista .cg-fase", 1, function(){
+      var cab = document.querySelector("#cgLista .cg-fase");
+      if (cab && cab.getAttribute("aria-expanded") !== "true") cab.click();
+      esperaFilas("#cgLista .cg-fila", 1, sigue);
+    });
+  }
+
+  function catalogoMira(){
+    if (!ES_ADMIN) return;
+    igual("catalogo: se abre la vista", document.body.getAttribute("data-vista"), "catalogo");
+    var filas = document.querySelectorAll("#cgLista .cg-fila");
+    ok("catalogo: y lista los tramites", filas.length > 0,
+       filas.length + " filas", "alguna");
+
+    /* El campo va en TODAS, tambien en las que hoy no tienen numero: es
+       donde se pone el primero. Si solo saliera donde ya hay dato, no
+       habria manera de estrenar uno. */
+    var sin = [];
+    [].forEach.call(filas, function(f){
+      if (!f.querySelector(".cg-plazo-n")) sin.push((f.querySelector(".cg-nombre") || {}).textContent || "?");
+    });
+    ok("catalogo: todas las filas dejan poner los dias",
+       filas.length > 0 && sin.length === 0,
+       sin.length ? ("sin campo: " + sin.slice(0, 3).join(", ")) : (filas.length + " filas"),
+       "todas");
+  }
+
+  /* Se escribe un numero y se sale del campo, que es como se guarda: al
+     salir y no en cada tecla. Escribiendo «21» se pasa por «2», y guardar
+     el 2 dejaria el dato mal un instante y una escritura de mas por cada
+     digito. */
+  var CAT_ANTES = null, CAT_CODIGO = null;
+  function catalogoGuarda(){
+    if (!ES_ADMIN) return;
+    var campo = document.querySelector("#cgLista .cg-fila .cg-plazo-n");
+    if (!campo) return;
+    CAT_ANTES = campo.value;
+    campo.value = "77";
+    campo.dispatchEvent(new Event("change", {bubbles:true}));
+  }
+
+  function catalogoTrasGuardar(){
+    if (!ES_ADMIN) return;
+    var campo = document.querySelector("#cgLista .cg-fila .cg-plazo-n");
+    ok("catalogo: el numero se guarda y vuelve de la base",
+       !!campo && campo.value === "77",
+       campo ? ("dice " + campo.value) : "(no hay campo)", "77");
+
+    /* Y LO QUE DE VERDAD IMPORTA: que se note en la ficha. Sin esto, el
+       admin cambia el numero, la base lo guarda, y la portada sigue
+       diciendo lo de antes hasta que alguien recargue. Es el mismo olvido
+       que ya tuvo el interruptor de encender un tramite. */
+    ok("catalogo: y el panel se entera, sin recargar",
+       typeof window.CIIP_OLVIDA_CATALOGO === "function",
+       typeof window.CIIP_OLVIDA_CATALOGO, "una funcion que tira la copia");
+
+    /* Se devuelve como estaba: una prueba que cambia el catalogo y no lo
+       deja igual le mueve el suelo a las de despues. */
+    if (campo && CAT_ANTES !== null){
+      campo.value = CAT_ANTES;
+      campo.dispatchEvent(new Event("change", {bubbles:true}));
+    }
+    location.hash = "";
+  }
+
   function consultaAbre(){
     if (CASO === 'gestor') return;
     if (window.CIIP_ABRE_CONSULTA) window.CIIP_ABRE_CONSULTA();

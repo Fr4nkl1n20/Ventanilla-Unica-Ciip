@@ -796,6 +796,22 @@ body[data-vista="catalogo"] .fase-bar{display:none;}
 /* Un renglon por tramite. La linea de la izquierda dice de un vistazo
    cual esta vivo: en una lista de treinta y uno, leer treinta y una
    etiquetas para encontrar el encendido no es leer, es buscar. */
+/* Los días que suele tardar, editables aquí mismo. Estrecho a propósito:
+   caben tres cifras y nadie va a escribir más -el más largo del catálogo
+   son 240 días- y así no se lleva el sitio del nombre del trámite, que es
+   por donde se busca. El rótulo va PEGADO al campo y no en una cabecera
+   de columna: esta lista no es una tabla, es una fila por trámite que se
+   parte en pantallas estrechas, y una cabecera se quedaría arriba
+   hablando de una columna que abajo ya no está. */
+.cg-plazo{margin-left:auto;}
+.cg-plazo-r{display:inline-flex; align-items:center; gap:7px;
+  font-size:11px; font-weight:600; color:var(--mudo);}
+.cg-plazo-n{width:62px; font-family:inherit; font-size:12.5px; font-weight:700;
+  color:var(--ink); background:var(--bg); border:1px solid var(--line);
+  border-radius:8px; padding:5px 7px; text-align:right;}
+.cg-plazo-n:focus-visible{outline:2px solid var(--navy2); outline-offset:1px;}
+.cg-plazo-n:disabled{opacity:.55;}
+
 .cg-fila{display:flex; align-items:center; gap:14px; flex-wrap:wrap;
   background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
   padding:12px 15px; margin-bottom:8px; box-shadow:var(--shadow);
@@ -14548,7 +14564,10 @@ applyLang(idiomaParaMi());
   function pintaPlazoLegal(tarjeta, tipo){
     var reloj = tarjeta.querySelector('.t-time');
     if (!reloj || reloj.getAttribute('data-globo')) return;
-    if (!tipo || !tipo.plazo_legal_norma) return;
+    /* Con que haya UNO de los dos basta: la norma leída, o el número que
+       el CIIP mantiene. Pedir los dos dejaría sin globo a los veintitrés
+       que sí tienen estimado, que son casi todos. */
+    if (!tipo || (!tipo.plazo_legal_norma && !tipo.plazo_dias)) return;
     var u = T();
     if (!u.lg_titulo) return;
 
@@ -14564,14 +14583,27 @@ applyLang(idiomaParaMi());
       titulo: function(){ return T().lg_titulo || ''; },
       puntosFn: function(){
         var t = T(), fila = [];
-        /* Lo que dice la norma, o que no dice nada. Las dos cosas son
+        /* LO LEGAL, SOLO SI ALGUIEN LEYO LA NORMA. La guarda es lo mas
+           importante de esta funcion: «su norma no fija plazo» dicho de
+           un tramite que nadie ha mirado no es una omision, es una
+           afirmacion falsa con cara de comprobada. Son 31 de 33.
+           Lo que dice la norma, o que no dice nada. Las dos cosas son
            informacion; la segunda es la que mas sorprende. */
-        fila.push(tipo.plazo_legal_dias
-          ? String(t.lg_dias || '').replace('{n}', tipo.plazo_legal_dias)
-          : (t.lg_sin || ''));
-        /* La cita NO se traduce: una Gaceta se llama igual en los seis
-           idiomas, y traducirla la volveria imposible de buscar. */
-        fila.push(tipo.plazo_legal_norma);
+        if (tipo.plazo_legal_norma){
+          fila.push(tipo.plazo_legal_dias
+            ? String(t.lg_dias || '').replace('{n}', tipo.plazo_legal_dias)
+            : (t.lg_sin || ''));
+          /* La cita NO se traduce: una Gaceta se llama igual en los seis
+             idiomas, y traducirla la volveria imposible de buscar. */
+          fila.push(tipo.plazo_legal_norma);
+        }
+        /* Y lo que tarda EN LA PRACTICA, que es el unico de los tres que
+           el CIIP puede afirmar: lo ve pasar. Va con su nombre y detras
+           del legal, para que no se lean como el mismo dato. Si no hay
+           numero no se dice nada: ocho tramites no prometen ninguno. */
+        if (tipo.plazo_dias){
+          fila.push(String(t.lg_practica || '').replace('{n}', tipo.plazo_dias));
+        }
         return fila.filter(function(x){ return !!x; });
       },
       extraFn: function(){
@@ -17906,7 +17938,7 @@ applyLang(idiomaParaMi());
 
   function cargaCatalogoAdmin(){
     return sb.from('tipos_tramite')
-      .select('codigo, ref_panel, nombre, ente, fase, activo')
+      .select('codigo, ref_panel, nombre, ente, fase, activo, plazo_dias')
       .then(function(r){
         if (r.error) throw r.error;
         cgTipos = r.data || [];
@@ -18147,8 +18179,90 @@ applyLang(idiomaParaMi());
       mueveInterruptor(x, !x.activo, bt, aviso);
     });
     fila.appendChild(bt);
+
+    /* ── LO QUE TARDA EN LA PRÁCTICA, Y AQUÍ SE CAMBIA ──
+       De los tres números que puede llevar un trámite, éste es el único
+       que el CIIP puede AFIRMAR: lo veis pasar. El plazo legal lo dice la
+       norma -y de las leídas hasta hoy, ninguna fija uno- y la vigencia
+       la dice la Gaceta. Este es vuestro, y hasta ahora no había forma de
+       tocarlo sin entrar a la base.
+
+       Se guarda al SALIR del campo y no en cada tecla: escribiendo «21»
+       se pasa por «2», y guardar el 2 dejaría el dato mal durante un
+       instante y una escritura de más en la base por cada dígito.
+
+       Vacío significa «no prometemos ninguno», que es un estado legítimo
+       -ocho trámites lo tienen- y por eso se guarda como null y no se
+       ignora. */
+    var caja = el('div', 'cg-plazo');
+    var rot = el('label', 'cg-plazo-r', u.cg_plazo || '');
+    var campo = document.createElement('input');
+    campo.type = 'number';
+    campo.min = '1';
+    campo.className = 'cg-plazo-n';
+    campo.value = (x.plazo_dias === null || x.plazo_dias === undefined) ? '' : String(x.plazo_dias);
+    campo.setAttribute('aria-label', (u.cg_plazo || '') + ' · ' + (x.nombre || x.codigo));
+    rot.appendChild(campo);
+    caja.appendChild(rot);
+    fila.appendChild(caja);
+
+    campo.addEventListener('change', function(){
+      var crudo = campo.value.trim();
+      var dias = crudo === '' ? null : Math.round(Number(crudo));
+      /* La base tiene un check de que sea mayor que cero. Se comprueba
+         aquí también para no mandar un viaje que se sabe que va a fallar,
+         y sobre todo para poder decir POR QUÉ: el error de Postgres habla
+         de una restricción y no de lo que la persona escribió. */
+      if (dias !== null && (!isFinite(dias) || dias < 1)){
+        aviso.textContent = u.cg_plazo_mal || '';
+        campo.value = (x.plazo_dias === null || x.plazo_dias === undefined) ? '' : String(x.plazo_dias);
+        return;
+      }
+      guardaElPlazo(x, dias, campo, aviso);
+    });
+
     fila.appendChild(aviso);
     return fila;
+  }
+
+  /* El mismo cuidado que el interruptor de al lado, y por el mismo motivo:
+     RLS no da error cuando bloquea, contesta que todo fue bien y no cambia
+     ni una fila. Sin pedir la fila de vuelta, el número se quedaría escrito
+     en la pantalla, no estaría en la base, y nadie se enteraría hasta que
+     alguien recargara. */
+  function guardaElPlazo(x, dias, campo, aviso){
+    var u = T();
+    var antes = x.plazo_dias;
+    campo.disabled = true;
+    aviso.textContent = '';
+    sb.from('tipos_tramite')
+      .update({plazo_dias: dias})
+      .eq('codigo', x.codigo)
+      .select('codigo, plazo_dias')
+      .then(function(r){
+        campo.disabled = false;
+        if (r.error) throw r.error;
+        var filas = r.data || [];
+        if (!filas.length){
+          campo.value = (antes === null || antes === undefined) ? '' : String(antes);
+          aviso.textContent = u.cg_nopudo || '';
+          return;
+        }
+        /* Se cree lo que contestó la BASE y no lo que se pidió. */
+        x.plazo_dias = filas[0].plazo_dias;
+        campo.value = (x.plazo_dias === null || x.plazo_dias === undefined) ? '' : String(x.plazo_dias);
+        aviso.textContent = u.cg_guardado || '';
+        /* Y se olvida el catálogo que guarda el panel para las tarjetas:
+           sin esto, cambiar el número aquí no se notaría en la portada
+           hasta recargar. Es el mismo olvido que hace el interruptor. */
+        if (window.CIIP_OLVIDA_CATALOGO) window.CIIP_OLVIDA_CATALOGO();
+      })
+      .catch(function(e){
+        console.warn('[CIIP] plazo del catalogo:', e && (e.message || e));
+        campo.disabled = false;
+        campo.value = (antes === null || antes === undefined) ? '' : String(antes);
+        aviso.textContent = u.cg_error || '';
+      });
   }
 
   /* Y AQUI esta el cuidado que se gana el dinero. RLS no da error cuando
