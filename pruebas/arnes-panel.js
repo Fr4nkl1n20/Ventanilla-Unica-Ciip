@@ -1437,109 +1437,88 @@
          'iguales dentro de su fila');
     })();
 
-    /* Separadas las cuatro, el punto azul solo no bastaba para encontrar la
-       etapa en curso: se marca también el borde de su caja. */
-    (function(){
-      var activa = document.querySelector('.jp.active');
-      var otra   = document.querySelector('.jp[data-ir]:not(.active)');
-      var ca = activa ? window.getComputedStyle(activa).borderTopColor : '';
-      var co = otra   ? window.getComputedStyle(otra).borderTopColor   : '';
-      ok('cajas: la etapa en curso se distingue por el borde', !!ca && ca !== co,
-         'activa=' + ca + ' otra=' + co, 'colores distintos');
-    })();
+    /* ── NINGUNA MARCADA HASTA QUE ELIJAS ──
+       Esto se ha escrito tres veces y conviene que quede por qué. La 2 nacía
+       con .active desde la maqueta, así que cada recarga plantaba el «Estás
+       aquí» sobre «Estructuración corporativa» aunque no se hubiera hecho ni
+       el primer trámite. Se cambió por una cuenta -la primera sin terminar-, y
+       el CIIP lo quiso de otra manera: al abrir NINGUNA. Que se ilumine sola
+       una etapa que no ha tocado nadie es contarle a la persona dónde está, y
+       eso lo dice ella.
 
-    /* ── Y CUÁL ES LA ETAPA EN CURSO ──
-       Venía escrita a mano en el marcado -la 2 nacía con .active desde la
-       maqueta-, así que cada recarga plantaba el «Estás aquí» sobre
-       «Estructuración corporativa» aunque no se hubiera hecho ni el primer
-       trámite. Ahora la decide quien cuenta las tarjetas.
-
-       No se comprueba contra un número fijo: las pasadas del arnés traen
-       expedientes distintos, y en una de ellas la 1 podría estar hecha. Se
-       comprueba la REGLA, contando las tarjetas aquí otra vez y a mano. */
+       Se prueba en las dos mitades: que no aparece sola -ni al abrir ni cuando
+       llega el catálogo, que es el momento en que volvía a colarse- y que al
+       elegirla sí sale entera, con su borde y su rótulo. Sin la segunda mitad,
+       borrar elige() dejaría esto en verde. */
     (function(){
-      function completa(n){
-        var b = document.querySelector('[data-fase="' + n + '"]');
-        var t = b ? b.querySelectorAll('.tcard') : [];
-        if (!t.length) return null;          /* una etapa sin tarjetas no cuenta */
-        var hechos = 0;
-        t.forEach(function(c){ if (c.getAttribute('data-st') === 'listo') hechos++; });
-        return hechos === t.length;
-      }
-      function debeSer(){
-        var conTarjetas = [], primeraFloja = null;
+      function marcadas(){ return document.querySelectorAll('.jp.active'); }
+      function comoEstaban(){
         etapas().forEach(function(e){
-          var c = completa(e.getAttribute('data-ir'));
-          if (c === null) return;
-          conTarjetas.push(e);
-          if (!primeraFloja && !c) primeraFloja = e;
+          e.classList.remove('active');
+          e.removeAttribute('data-aqui');
+          e.setAttribute('aria-pressed', 'false');
         });
-        return primeraFloja || conTarjetas[conTarjetas.length - 1] || null;
-      }
-      function marcada(){
-        var a = document.querySelector('.jp.active');
-        return a ? a.getAttribute('data-ir') : '(ninguna)';
-      }
-      function toca(){
-        var d = debeSer();
-        return d ? d.getAttribute('data-ir') : '(ninguna)';
       }
 
-      igual('camino: la etapa en curso es la primera sin terminar', marcada(), toca());
+      igual('camino: al abrir no hay ninguna etapa marcada', marcadas().length, 0);
 
-      /* Y que de verdad la MUEVE, que es lo que no hacía. Se dan por hechas
-         las tarjetas de la primera etapa y tiene que pasar a la siguiente;
-         luego se devuelve todo como estaba. */
-      var laUna = document.querySelector('[data-fase="1"]');
-      var suyas = laUna ? [].slice.call(laUna.querySelectorAll('.tcard')) : [];
-      var antes = suyas.map(function(c){ return c.getAttribute('data-st'); });
+      /* Y tampoco cuando contesta la base. Es el momento en que se colaba: el
+         repintado de las cuentas elegía una, y el panel llevaba un rato
+         abierto y sin marcar cuando de pronto se encendía sola. */
+      var laUna  = document.querySelector('[data-fase="1"]');
+      var suyas  = laUna ? [].slice.call(laUna.querySelectorAll('.tcard')) : [];
+      var antes  = suyas.map(function(c){ return c.getAttribute('data-st'); });
       if (suyas.length && window.CIIP_REPINTA_ETAPAS){
         suyas.forEach(function(c){ c.setAttribute('data-st', 'listo'); });
         window.CIIP_REPINTA_ETAPAS();
-        ok('camino: y se mueve cuando terminas una etapa', marcada() === toca() && marcada() !== '1',
-           'marcada=' + marcada() + ' toca=' + toca(), 'la misma, y ya no la 1');
-
-        /* Y el borde azul esta YA, sin desvanecerse. La caja tiene una
-           transicion de 140 ms para cuando eliges tu; si se dejara correr
-           tambien aqui, al abrir el panel las cuatro se verian iguales
-           durante ese rato y el «Estas aqui» llegaria antes que su borde.
-           Se mide en el acto, en el mismo golpe que acaba de moverlo. */
-        (function(){
-          /* Se pregunta por las TRANSICIONES EN MARCHA y no por el color.
-             Preguntar por el color casi siempre sale bien aunque el
-             desvanecido este puesto: la transicion no empieza hasta el
-             siguiente recalculo, asi que leer el color justo despues
-             devuelve el de destino y la prueba pasa con el fallo dentro.
-             Se comprobo: con el desvanecido puesto, esa version solo se
-             ponia roja en una de las doce pasadas.
-             getComputedStyle fuerza ese recalculo -sin el no hay
-             transicion que contar ni con el fallo dentro- y getAnimations
-             dice si quedo alguna corriendo. */
-          window.getComputedStyle(etapas()[0]).borderTopColor;
-          var enMarcha = [];
-          etapas().forEach(function(e){
-            (e.getAnimations ? e.getAnimations() : []).forEach(function(t){
-              if (t.transitionProperty) enMarcha.push(e.getAttribute('data-ir') + ':' + t.transitionProperty);
-            });
-          });
-          ok('camino: y su borde no llega desvaneciendose', enMarcha.length === 0,
-             enMarcha.join(' ') || 'ninguna', 'ninguna transicion en marcha');
-        })();
-
-        /* Pero en cuanto eliges tú, manda tu elección: el catálogo llegando
-           por detrás vuelve a llamar aquí, y no puede moverte la página. */
-        var otra = document.querySelector('.jp[data-ir="1"]');
-        window.CIIP_ETAPA_A_MANO = true;
-        etapas().forEach(function(e){ e.classList.toggle('active', e === otra); });
-        window.CIIP_REPINTA_ETAPAS();
-        igual('camino: y deja de moverse en cuanto eliges una', marcada(), '1');
-        window.CIIP_ETAPA_A_MANO = false;
-
-        suyas.forEach(function(c, i){
-          if (antes[i] === null) c.removeAttribute('data-st');
-          else c.setAttribute('data-st', antes[i]);
+        igual('camino: y no se marca ninguna cuando llegan los datos', marcadas().length, 0);
+        suyas.forEach(function(c, k){
+          if (antes[k] === null) c.removeAttribute('data-st');
+          else c.setAttribute('data-st', antes[k]);
         });
         window.CIIP_REPINTA_ETAPAS();
+      }
+
+      /* La otra mitad: elegida, se marca ESA y ninguna más. Se pulsa de
+         verdad en vez de ponerle la clase a mano, que probaría el CSS y no el
+         panel. */
+      var tercera = document.querySelector('.jp[data-ir="3"]');
+      if (tercera){
+        tercera.click();
+        var m = marcadas();
+        ok('camino: al elegir una se marca esa, y sólo esa',
+           m.length === 1 && m[0] === tercera,
+           m.length + ' marcada(s)' + (m.length ? ' — la ' + m[0].getAttribute('data-ir') : ''),
+           '1 marcada — la 3');
+
+        /* El punto azul solo no bastaba para encontrarla con las cuatro cajas
+           separadas: se marca también el borde.
+
+           Antes hay que ADELANTAR la transición. La caja tiene 140 ms de
+           desvanecido de borde, y ahí está bien -lo acabas de pulsar, y el
+           cambio se sigue con la vista-; pero leer el color recién pulsada
+           devuelve el de PARTIDA, o sea el gris, y la prueba se ponía roja en
+           las doce pasadas con el panel correcto. Esperar 140 ms tampoco vale:
+           bajo el reloj del arnés no hay forma de esperar de verdad. Se le
+           dice a la transición que termine y se lee el destino, que es lo que
+           la prueba quiere saber: a dónde llega el borde, no por dónde va. */
+        etapas().forEach(function(e){
+          (e.getAnimations ? e.getAnimations() : []).forEach(function(t){
+            if (t.transitionProperty) t.finish();
+          });
+        });
+        var otra = document.querySelector('.jp[data-ir]:not(.active)');
+        var ca = window.getComputedStyle(tercera).borderTopColor;
+        var co = otra ? window.getComputedStyle(otra).borderTopColor : '';
+        ok('camino: y se distingue por el borde', !!ca && ca !== co,
+           'elegida=' + ca + ' otra=' + co, 'colores distintos');
+
+        /* Y el rótulo, que va en un atributo y lo pinta el CSS con ::after. */
+        ok('camino: y le sale su «Estás aquí»',
+           !!(tercera.getAttribute('data-aqui') || '').trim(),
+           JSON.stringify(tercera.getAttribute('data-aqui')), 'un rótulo con texto');
+
+        comoEstaban();
       }
     })();
 
