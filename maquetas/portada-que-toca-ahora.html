@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · La portada contesta «¿qué hago hoy?»</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   IDEA 3 — QUE LA PORTADA CONTESTE OTRA PREGUNTA
+
+   Hoy la portada contesta «que hay»: cuatro fases y treinta y dos
+   tramites. Nunca contesta «que hago hoy». Con todo en cero -que es
+   como entra TODO el que llega por primera vez- eso son treinta y dos
+   cosas y ningun punto de partida.
+
+   Aqui se invierte: arriba va UN tramite, el siguiente, con su nombre,
+   su organismo y su boton. El mapa de las cuatro fases no desaparece,
+   baja a un renglon: sigue estando para quien quiera ver el camino
+   entero, pero deja de ser lo primero que se lee.
+   ══════════════════════════════════════════════════════════════════ */
+
+.saludo{font-size:20px; font-weight:600; letter-spacing:-.015em; margin:0 0 3px;}
+.saludo + .sub{font-size:12.5px; color:var(--mudo); margin-bottom:20px;}
+
+/* ── LO QUE TOCA AHORA ──
+   Es la unica caja grande de la portada, y lo es a proposito: si compite
+   con algo, deja de ser una respuesta y vuelve a ser un menu. */
+.ahora{background:var(--bg); border:1px solid var(--line); border-radius:12px;
+  box-shadow:var(--shadow); overflow:hidden;}
+.ahora-c{display:flex; gap:18px; padding:22px 24px; align-items:flex-start;}
+.ahora .t-marca{width:66px;}
+.ahora .t-marca .t-ico{width:66px; height:45px;}
+.ahora-txt{flex:1 1 auto; min-width:0;}
+
+/* El cintillo dice DONDE estas sin dibujar el mapa: «paso 1 de 32» es el
+   mismo dato que las cuatro barras de arriba, en seis palabras. */
+.ahora-ceja{font-size:10px; font-weight:800; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--navy2); margin-bottom:7px;}
+.ahora-n{font-size:19px; font-weight:600; letter-spacing:-.015em; line-height:1.25;}
+.ahora-d{font-size:12.5px; color:var(--ink); margin-top:7px; line-height:1.5; max-width:62ch;}
+.ahora-meta{display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-top:13px;}
+.ahora-meta span{display:inline-flex; align-items:center; gap:5px;
+  font-size:11.5px; font-weight:600; color:var(--mudo);}
+.ahora-meta svg{width:13px; height:13px; stroke:currentColor; stroke-width:2; fill:none;}
+.ahora-bt{display:flex; gap:9px; margin-top:17px; flex-wrap:wrap;}
+.ahora-bt .btn.navy{font-size:12.5px; padding:11px 20px;}
+
+/* ── Y DESPUES ──
+   Dos renglones, no una lista entera. Lo que hace falta saber es que esto
+   TIENE continuacion; para ver las treinta y dos ya esta la seccion de
+   abajo, y ofrecerlas aqui seria volver al menu. */
+.despues{border-top:1px solid var(--line); background:var(--card-2); padding:13px 24px 15px;}
+.despues .dt{font-size:10px; font-weight:800; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--mudo); margin-bottom:9px;}
+.dfila{display:flex; align-items:center; gap:10px; padding:6px 0; font-size:12px;}
+.dfila + .dfila{border-top:1px solid var(--line-soft);}
+.dfila .dn{font-weight:600;}
+.dfila .de{color:var(--mudo); font-size:11px;}
+.dfila .dnum{width:19px; height:19px; border-radius:50%; background:var(--block);
+  color:var(--mudo); font-size:9.5px; font-weight:800; flex:none;
+  display:flex; align-items:center; justify-content:center;}
+
+/* ── EL CAMINO, EN UN RENGLON ──
+   Lo que antes eran cuatro cajas del alto de media pantalla. El dato que
+   daban -en que fase vas y cuanto llevas- cabe en una linea y una barra
+   de cuatro tramos. Lo demas era repetir los nombres que ya estan abajo. */
+.rail{display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
+  padding:13px 16px; box-shadow:var(--shadow);}
+.rail-t{font-size:12px; font-weight:500;}
+.rail-t b{font-weight:700;}
+.rail-t .cnt{color:var(--mudo);}
+.rail-b{display:flex; gap:4px; flex:1 1 200px; min-width:160px;}
+.rail-b i{flex:1; height:5px; border-radius:20px; background:var(--line-soft); display:block;}
+.rail-b i.aqui{background:linear-gradient(90deg,var(--cyan-deep),var(--cyan));}
+.rail a{font-size:11.5px; font-weight:700; color:var(--navy2); text-decoration:none; white-space:nowrap;}
+.rail a:hover{text-decoration:underline; text-underline-offset:3px;}
+
+/* Las cabeceras de fase de abajo se quedan EXACTAMENTE como hoy: lo unico
+   que cambia en esta maqueta es lo de arriba. */
+.phase{margin-top:0;}
+.phase-h{display:flex; align-items:baseline; gap:10px; width:100%; background:none;
+  border:0; padding:11px 0; font:inherit; text-align:left; cursor:pointer; color:inherit;}
+.phase-h .pn{width:22px; height:22px; border-radius:50%; background:var(--block);
+  color:var(--gray); font-size:11px; font-weight:700; flex:none; align-self:center;
+  display:flex; align-items:center; justify-content:center;}
+.phase-h .pt{font-size:15px; font-weight:600;}
+.phase-h .pd{font-size:11.5px; color:var(--mudo);}
+.phase-h .chev{margin-left:auto; align-self:center; color:var(--mudo); font-size:15px;}
+.phase + .phase{border-top:1px solid var(--line);}
+</style>
+</head>
+<body>
+
+<div class="mq-cartel">
+  <b>Maqueta · idea 3</b>
+  <span>La portada contesta «¿qué hago hoy?» en vez de «¿qué hay?».<br>
+  Arriba, un solo trámite: el siguiente. El mapa de las cuatro fases baja a un renglón.</span>
+  <a class="mq-ir" href="portada-sin-repetir.html">Ver la otra maqueta (2+5) →</a>
+</div>
+
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sb-head"><img src="../logos/ciip.png" alt="CIIP"></div>
+  <nav class="sb-nav">
+    <div class="sb-g">Mi expediente</div>
+    <div class="sb-i on"><span class="d"></span>Mi panel</div>
+    <div class="sb-i"><span class="d"></span>Mis trámites</div>
+    <div class="sb-i"><span class="d"></span>Mi empresa</div>
+    <div class="sb-i"><span class="d"></span>Documentos</div>
+    <div class="sb-g">Acompañamiento</div>
+    <div class="sb-i"><span class="d"></span>Citas</div>
+    <div class="sb-i"><span class="d"></span>Ayuda y guía</div>
+  </nav>
+</aside>
+
+<div class="marco">
+  <div class="topbar">
+    <div class="tb-crumb">Mi panel</div>
+    <div class="tb-sp"></div>
+    <div class="tb-user">
+      <div class="tb-av">FR</div>
+      <div><div>Franklin Reyes</div><div class="r">Inversionista · Venezuela</div></div>
+    </div>
+  </div>
+
+  <main>
+    <h1 class="saludo">Hola, Franklin</h1>
+    <div class="sub">Aún no has empezado ningún trámite. Este es el primero.</div>
+
+    <!-- ══ LO QUE TOCA AHORA ══ -->
+    <div class="ahora">
+      <div class="ahora-c">
+        <div class="t-marca">
+          <div class="t-ico"><img class="ilogo" src="../logos/ciip.png" alt=""></div>
+          <div class="t-sigla">CIIP</div>
+        </div>
+        <div class="ahora-txt">
+          <div class="ahora-ceja">Empieza por aquí · paso 1 de 32</div>
+          <div class="ahora-n">Acreditación de representación legal</div>
+          <div class="ahora-d">Si actúas por medio de un abogado o apoderado, aquí el CIIP da por bueno el poder.</div>
+          <div class="ahora-meta">
+            <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Estimado: 1 semana hábil</span>
+            <span><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>3 recaudos, uno opcional</span>
+          </div>
+          <div class="ahora-bt">
+            <button class="btn navy" type="button">Empezar este trámite</button>
+            <button class="btn ghost" type="button">No actúo por apoderado</button>
+          </div>
+        </div>
+      </div>
+      <div class="despues">
+        <div class="dt">Y después de este</div>
+        <div class="dfila"><span class="dnum">2</span><span class="dn">Visa de inversionista</span><span class="de">SAIME · se pide en el consulado</span></div>
+        <div class="dfila"><span class="dnum">3</span><span class="dn">RIF personal</span><span class="de">SENIAT · con tu pasaporte o cédula</span></div>
+      </div>
+    </div>
+
+    <!-- ══ EL CAMINO, EN UN RENGLON ══ -->
+    <div class="section-gap">
+      <div class="rail">
+        <div class="rail-t">Tu camino en Venezuela: <b>fase 1 de 4</b> <span class="cnt">· 0 de 32 trámites listos</span></div>
+        <div class="rail-b"><i class="aqui"></i><i></i><i></i><i></i></div>
+        <a href="#tramites">Ver el camino completo →</a>
+      </div>
+    </div>
+
+    <!-- ══ TUS TRAMITES: igual que hoy ══ -->
+    <div class="section-gap" id="tramites">
+      <div class="sec-h"><div class="t">Tus trámites</div><div class="sub">32 en total</div></div>
+      <div class="phase"><button class="phase-h" type="button"><span class="pn">1</span><span class="pt">Acreditación de identidad y legitimación</span><span class="pd">Visa, identidad y lo personal</span><span class="chev">›</span></button></div>
+      <div class="phase"><button class="phase-h" type="button"><span class="pn">2</span><span class="pt">Estructuración corporativa</span><span class="pd">Constitución, RIF y banca</span><span class="chev">›</span></button></div>
+      <div class="phase"><button class="phase-h" type="button"><span class="pn">3</span><span class="pt">Habilitación operativa y cumplimiento</span><span class="pd">Nómina, permisos y comercio exterior</span><span class="chev">›</span></button></div>
+      <div class="phase"><button class="phase-h" type="button"><span class="pn">4</span><span class="pt">Expansión y consolidación de inversión</span><span class="pd">Contratos, solvencias y registro de la inversión</span><span class="chev">›</span></button></div>
+    </div>
+  </main>
+</div>
+
+</div>
+
+</body>
+</html>

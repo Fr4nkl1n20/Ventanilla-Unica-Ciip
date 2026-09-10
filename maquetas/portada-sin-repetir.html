@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · El camino manda, la lista obedece</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   IDEAS 2 + 5 — QUITAR LA REPETICION SIN REHACER LA PORTADA
+
+   (2) Las cuatro tarjetas se quedan: son el mapa. Lo que se va son las
+       cuatro cabeceras de fase de abajo, que decian exactamente lo mismo
+       -mismo numero, mismo nombre, mismo subtitulo- diez centimetros mas
+       abajo. «Tus tramites» pasa a enseñar SOLO la fase abierta, y
+       pulsar una tarjeta cambia lo que hay debajo. El cableado ya existe
+       en el panel de verdad: data-ir de la tarjeta apunta al data-fase
+       de la seccion.
+
+   (5) Los ceros. Un filtro que esta en cero no filtra nada: se esconde y
+       vuelve solo cuando haya algo que contar. Y las fases 2, 3 y 4
+       dejan de ofrecerse igual que la 1 -atenuadas y diciendo cuando
+       tocan-, porque hoy las cuatro compiten por la misma atencion y
+       hay que leer las cuatro para descubrir que solo una importa.
+
+       Ojo: atenuadas, NO bloqueadas. Se siguen pudiendo abrir. Lo que
+       cambia es a cual se le va la vista primero, no lo que se puede
+       hacer.
+   ══════════════════════════════════════════════════════════════════ */
+
+.saludo{font-size:20px; font-weight:600; letter-spacing:-.015em; margin:0 0 3px;}
+.saludo + .sub{font-size:12.5px; color:var(--mudo); margin-bottom:20px;}
+
+/* ── EL CAMINO ── */
+.journey{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+.jp{position:relative; display:flex; flex-direction:column; align-items:flex-start;
+  background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
+  padding:14px; box-shadow:var(--shadow); cursor:pointer;
+  transition:border-color .12s, box-shadow .12s;}
+.jp .num{width:22px; height:22px; border-radius:50%; background:var(--block);
+  color:var(--gray); font-size:11px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; margin-bottom:9px;}
+.jname{font-size:13px; font-weight:600; line-height:1.3; letter-spacing:-.01em;}
+.jsub{font-size:11px; color:var(--mudo); margin-top:4px; line-height:1.4;}
+.jbar{height:5px; border-radius:20px; background:var(--line-soft); margin-top:11px;
+  width:100%; overflow:hidden;}
+.jbar>span{display:block; height:100%; border-radius:20px;
+  background:linear-gradient(90deg,var(--cyan-deep),var(--cyan));}
+.jcount{font-size:10.5px; font-weight:700; color:var(--mudo); margin-top:6px;}
+
+/* La fase en la que estas: marco azul, fondo claro y su llamada. Igual
+   que hoy. */
+.jp.active{border-color:var(--navy); border-width:1.5px; padding:13.5px;
+  background:var(--activa-bg);}
+.jp.active .num{background:var(--navy); color:#fff;}
+.jp.active .jcount{color:var(--ink);}
+.jp.active .jaqui{font-size:11px; font-weight:700; color:var(--navy2); margin-bottom:6px;}
+.jcta{display:none;}
+.jp.active .jcta{display:inline-flex; align-items:center; gap:5px; margin-top:9px;
+  font-size:11.5px; font-weight:700; color:var(--navy2);}
+.jp.active:hover .jcta{text-decoration:underline; text-underline-offset:3px;}
+
+/* ── (5) LAS QUE TODAVIA NO TOCAN ──
+   Sin barra y sin contador: una barra al 0% y un «0 de 8» no dicen nada
+   que no diga ya el hecho de no haber empezado, y repetidos tres veces
+   son tres ceros mas en una pantalla que ya tenia nueve. En su sitio va
+   CUANDO toca, que es el dato que falta. */
+.jp.dormida{background:var(--dormida-bg); box-shadow:none;}
+.jp.dormida .jname{color:var(--mudo); font-weight:500;}
+.jp.dormida .jsub{display:none;}
+.jp.dormida .num{background:transparent; border:1px solid var(--line); color:var(--mudo);}
+.jp.dormida .jluego{font-size:10.5px; color:var(--mudo); margin-top:11px;}
+.jp.dormida:hover{border-color:var(--mudo); background:var(--bg);}
+.jp.dormida:hover .jname{color:var(--ink);}
+
+/* ── TUS TRAMITES: solo la fase abierta ── */
+/* El rotulo NO repite el nombre de la fase.
+   Llego a llevarlo -numero azul y «Acreditacion de identidad y
+   legitimacion»- con la excusa de que era el titulo de lo que se esta
+   viendo. Pero es que se esta viendo a dos dedos de la tarjeta que ya lo
+   dice, encendida y con su «Estas aqui»: en pantalla salian los dos
+   nombres uno encima de otro, que es exactamente lo que esta maqueta
+   venia a quitar. Una excusa buena no deja de ser una repeticion.
+
+   Se queda «Tus tramites», y la fase la dice el contador de la derecha
+   con un numero, que es lo unico que no estaba dicho ya. */
+
+/* Los filtros: solo los que cuentan algo. Con todo en cero queda uno, y
+   uno solo tampoco es un filtro -es una etiqueta-, asi que se dibuja
+   como tal. */
+.filtros{display:flex; gap:7px; flex-wrap:wrap; align-items:center;}
+.ftab{font:inherit; font-size:11.5px; font-weight:500; color:var(--gray);
+  background:var(--bg); border:1px solid var(--line); border-radius:6px;
+  padding:5px 11px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;}
+.ftab .n{font-size:10px; background:var(--block); color:var(--mudo);
+  border-radius:9999px; padding:0 6px; font-weight:700;}
+.ftab.on{background:var(--navy); border-color:var(--navy); color:#fff;}
+.ftab.on .n{background:rgba(255,255,255,.2); color:#fff;}
+.solo-cuenta{font-size:11.5px; color:var(--mudo); font-weight:500;}
+
+/* El pie de la lista: la salida hacia la fase siguiente. Va DESPUES de
+   los tramites, que es donde se llega cuando se acaban. */
+.tsec-pie{margin-top:16px; padding-top:14px; border-top:1px solid var(--line);
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12px;}
+.tsec-pie .k{color:var(--mudo);}
+.tsec-pie a{color:var(--navy2); font-weight:700; text-decoration:none;}
+.tsec-pie a:hover{text-decoration:underline; text-underline-offset:3px;}
+</style>
+</head>
+<body>
+
+<div class="mq-cartel">
+  <b>Maqueta · ideas 2 + 5</b>
+  <span>El camino se queda arriba como mapa; abajo ya no se repite.<br>
+  «Tus trámites» enseña solo la fase abierta, y los ceros dejan de ocupar sitio.</span>
+  <a class="mq-ir" href="portada-que-toca-ahora.html">Ver la otra maqueta (3) →</a>
+</div>
+
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sb-head"><img src="../logos/ciip.png" alt="CIIP"></div>
+  <nav class="sb-nav">
+    <div class="sb-g">Mi expediente</div>
+    <div class="sb-i on"><span class="d"></span>Mi panel</div>
+    <div class="sb-i"><span class="d"></span>Mis trámites</div>
+    <div class="sb-i"><span class="d"></span>Mi empresa</div>
+    <div class="sb-i"><span class="d"></span>Documentos</div>
+    <div class="sb-g">Acompañamiento</div>
+    <div class="sb-i"><span class="d"></span>Citas</div>
+    <div class="sb-i"><span class="d"></span>Ayuda y guía</div>
+  </nav>
+</aside>
+
+<div class="marco">
+  <div class="topbar">
+    <div class="tb-crumb">Mi panel</div>
+    <div class="tb-sp"></div>
+    <div class="tb-user">
+      <div class="tb-av">FR</div>
+      <div><div>Franklin Reyes</div><div class="r">Inversionista · Venezuela</div></div>
+    </div>
+  </div>
+
+  <main>
+    <h1 class="saludo">Hola, Franklin</h1>
+    <div class="sub">Estás en la fase 1. Aún no has empezado ningún trámite.</div>
+
+    <!-- ══ EL CAMINO: el mapa se queda ══ -->
+    <div class="section-gap">
+      <div class="sec-h"><div class="t">Tu camino en Venezuela</div></div>
+      <div class="journey">
+
+        <div class="jp active">
+          <div class="num">1</div>
+          <div class="jaqui">Estás aquí</div>
+          <div class="jname">Acreditación de identidad y legitimación</div>
+          <div class="jsub">Visa, identidad y lo personal</div>
+          <div class="jbar"><span style="width:0%"></span></div>
+          <div class="jcount">0 de 11 listos</div>
+          <span class="jcta">Ver los trámites <span>→</span></span>
+        </div>
+
+        <div class="jp dormida">
+          <div class="num">2</div>
+          <div class="jname">Estructuración corporativa</div>
+          <div class="jluego">Después de la fase 1 · 8 trámites</div>
+        </div>
+
+        <div class="jp dormida">
+          <div class="num">3</div>
+          <div class="jname">Habilitación operativa y cumplimiento</div>
+          <div class="jluego">Con la empresa constituida · 11 trámites</div>
+        </div>
+
+        <div class="jp dormida">
+          <div class="num">4</div>
+          <div class="jname">Expansión y consolidación de inversión</div>
+          <div class="jluego">Cuando ya estés operando · 2 trámites</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ TUS TRAMITES: solo la fase abierta ══ -->
+    <div class="section-gap">
+      <div class="sec-h">
+        <div class="t">Tus trámites</div>
+        <div class="spacer"></div>
+        <div class="filtros">
+          <!-- Con todo en cero solo queda uno. «Requiere acción», «En proceso» y
+               «Completados» vuelven en cuanto tengan algo que contar. -->
+          <span class="solo-cuenta">Los 11 de la fase 1</span>
+        </div>
+      </div>
+
+      <div class="grid-tr">
+
+        <div class="tcard">
+          <div class="t-marca">
+            <div class="t-ico"><img class="ilogo" src="../logos/ciip.png" alt=""></div>
+            <div class="t-sigla">CIIP</div>
+          </div>
+          <div class="t-body">
+            <div class="t-top"><div class="t-name">Acreditación de representación legal</div><span class="chip mute">Por iniciar</span></div>
+            <div class="t-ente"><span>CIIP</span></div>
+            <div class="t-desc">Si actúas por medio de un abogado o apoderado, aquí el CIIP da por bueno el poder.</div>
+            <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Estimado: 1 semana hábil</span><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+
+        <div class="tcard">
+          <div class="t-marca">
+            <div class="t-ico"><img class="ilogo" src="../logos/saime.png" alt=""></div>
+            <div class="t-sigla">SAIME</div>
+          </div>
+          <div class="t-body">
+            <div class="t-top"><div class="t-name">Visa de inversionista</div><span class="chip mute">Por iniciar</span></div>
+            <div class="t-ente"><span>SAIME</span></div>
+            <div class="t-desc">La visa TR-I de inversionista. Vigencia de tres años, prorrogable dos más.</div>
+            <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Se pide en el consulado</span><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+
+        <div class="tcard">
+          <div class="t-marca">
+            <div class="t-ico"><img class="ilogo" src="../logos/saime.png" alt=""></div>
+            <div class="t-sigla">SAIME</div>
+          </div>
+          <div class="t-body">
+            <div class="t-top"><div class="t-name">Cédula de residencia</div><span class="chip mute">Por iniciar</span></div>
+            <div class="t-ente"><span>SAIME</span></div>
+            <div class="t-desc">Tu cédula venezolana. La necesitas para banca, inmuebles y contratos.</div>
+            <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Después de la visa</span><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+
+        <div class="tcard">
+          <div class="t-marca">
+            <div class="t-ico"><img class="ilogo" src="../logos/seniat.png" alt=""></div>
+            <div class="t-sigla">SENIAT</div>
+          </div>
+          <div class="t-body">
+            <div class="t-top"><div class="t-name">RIF personal</div><span class="chip mute">Por iniciar</span></div>
+            <div class="t-ente"><span>SENIAT</span></div>
+            <div class="t-desc">Tu identificación tributaria como persona natural. Base para todo lo demás.</div>
+            <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Con tu pasaporte o cédula</span><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+
+        <div class="tcard">
+          <div class="t-marca">
+            <div class="t-ico"><img class="ilogo" src="../logos/intt.png" alt=""></div>
+            <div class="t-sigla">INTT</div>
+          </div>
+          <div class="t-body">
+            <div class="t-top"><div class="t-name">Homologación de licencia de conducir</div><span class="chip mute">Por iniciar</span></div>
+            <div class="t-ente"><span>INTT</span></div>
+            <div class="t-desc">Convierte tu licencia extranjera en una venezolana. Sube tu licencia y su traducción certificada.</div>
+            <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Estimado: 3–4 semanas hábiles</span><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+
+        <div class="tcard">
+          <div class="t-marca">
+            <div class="t-ico"><img class="ilogo" src="../logos/mpprijp.png" alt=""></div>
+            <div class="t-sigla">MPPRIJP</div>
+          </div>
+          <div class="t-body">
+            <div class="t-top"><div class="t-name">Antecedentes penales apostillados</div><span class="chip mute">Por iniciar</span></div>
+            <div class="t-ente"><span>MPPRIJP</span></div>
+            <div class="t-desc">Certificado de antecedentes de tu país de origen, apostillado y traducido. Lo piden la visa, la residencia y a veces los bancos.</div>
+            <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Estimado: 3–6 semanas hábiles</span><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="tsec-pie">
+        <span class="k">Quedan 5 trámites más de esta fase.</span>
+        <a href="#">Ver los 5 →</a>
+        <span class="k">·</span>
+        <a href="#">Ir a la fase 2, Estructuración corporativa →</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+</div>
+
+</body>
+</html>
