@@ -341,6 +341,26 @@ window.CIIP_PASOS = {
       sin_archivo:  "Elige el archivo",
       error:        "No se pudo enviar. Inténtalo otra vez.",
       reutilizado:  "ya estaba en tu expediente",
+
+
+      /* --- La solicitud, en pasos ---
+         Rotulos de la barra de arriba, de los dos botones de abajo y de la
+         pantalla de repaso. El nombre del primer paso y el del segundo NO se
+         repiten aqui: son 'tus_datos' y 'recaudos', los mismos de siempre. */
+      pa_repasar:     "Repasar",
+      pa_paso:        "Paso {n} de {t}",
+      pa_atras:       "Atrás",
+      pa_sigue:       "Siguiente",
+      pa_cambiar:     "Cambiar",
+      pa_hecho:       "Hecho",
+      pa_ahora:       "Vas por aquí",
+      pa_falta_paso:  "Falta algo en este paso: mira lo que está marcado.",
+      pa_nota_datos:  "Escribe los nombres y las fechas tal como aparecen en tu pasaporte. Una letra distinta basta para que el organismo te la devuelva.",
+      pa_ya_tuyos:    "{n} de {t} recaudos ya están en tu expediente: no hace falta que los vuelvas a subir.",
+      pa_ninguno_tuyo:"Ninguno de estos recaudos está todavía en tu expediente. Súbelos aquí y quedan guardados para los demás trámites.",
+      pa_soltar:      "Suelta el archivo aquí",
+      pa_repaso_q:    "Esto es lo que va a recibir el CIIP. Pulsa «Cambiar» en cualquier línea para corregirla antes de enviar.",
+      pa_vacio:       "Sin rellenar",
       /* Cuanto llevas en este paso de la escalera. Un HECHO, no un
          plazo: cuanto DEBERIA tardar no lo ha dicho nadie todavia. */
       ns_desde_paso: "· desde {cuando}",
@@ -1154,6 +1174,26 @@ window.CIIP_PASOS = {
       sin_archivo:  "Choose the file",
       error:        "It could not be sent. Please try again.",
       reutilizado:  "already in your file",
+
+
+      /* --- La solicitud, en pasos ---
+         Rotulos de la barra de arriba, de los dos botones de abajo y de la
+         pantalla de repaso. El nombre del primer paso y el del segundo NO se
+         repiten aqui: son 'tus_datos' y 'recaudos', los mismos de siempre. */
+      pa_repasar:     "Review",
+      pa_paso:        "Step {n} of {t}",
+      pa_atras:       "Back",
+      pa_sigue:       "Next",
+      pa_cambiar:     "Change",
+      pa_hecho:       "Done",
+      pa_ahora:       "You are here",
+      pa_falta_paso:  "Something is missing on this step: check what is highlighted.",
+      pa_nota_datos:  "Write names and dates exactly as they appear on your passport. A single different letter is enough for the body to send it back.",
+      pa_ya_tuyos:    "{n} of {t} documents are already in your file: you do not need to upload them again.",
+      pa_ninguno_tuyo:"None of these documents are in your file yet. Upload them here and they stay for the other procedures.",
+      pa_soltar:      "Drop the file here",
+      pa_repaso_q:    "This is what CIIP will receive. Press “Change” on any line to correct it before sending.",
+      pa_vacio:       "Not filled in",
       ns_desde_paso: "· since {cuando}",
       nv_hay:     "There is a newer version of the panel",
       nv_recarga: "Reload",
@@ -1887,6 +1927,26 @@ window.CIIP_PASOS = {
       sin_archivo:  "Escolha o ficheiro",
       error:        "Não foi possível enviar. Tente outra vez.",
       reutilizado:  "já estava no seu processo",
+
+
+      /* --- La solicitud, en pasos ---
+         Rotulos de la barra de arriba, de los dos botones de abajo y de la
+         pantalla de repaso. El nombre del primer paso y el del segundo NO se
+         repiten aqui: son 'tus_datos' y 'recaudos', los mismos de siempre. */
+      pa_repasar:     "Rever",
+      pa_paso:        "Passo {n} de {t}",
+      pa_atras:       "Voltar",
+      pa_sigue:       "Seguinte",
+      pa_cambiar:     "Alterar",
+      pa_hecho:       "Feito",
+      pa_ahora:       "Está aqui",
+      pa_falta_paso:  "Falta algo neste passo: veja o que está assinalado.",
+      pa_nota_datos:  "Escreva os nomes e as datas tal como aparecem no seu passaporte. Uma letra diferente basta para que o organismo a devolva.",
+      pa_ya_tuyos:    "{n} de {t} documentos já estão no seu processo: não precisa de os voltar a enviar.",
+      pa_ninguno_tuyo:"Nenhum destes documentos está ainda no seu processo. Envie-os aqui e ficam guardados para os outros trâmites.",
+      pa_soltar:      "Largue o ficheiro aqui",
+      pa_repaso_q:    "Isto é o que o CIIP vai receber. Carregue em «Alterar» em qualquer linha para a corrigir antes de enviar.",
+      pa_vacio:       "Por preencher",
       ns_desde_paso: "· desde {cuando}",
       nv_hay:     "Há uma versão nova do painel",
       nv_recarga: "Recarregar",
@@ -2603,6 +2663,26 @@ window.CIIP_PASOS = {
       sin_archivo:  "Scegli il file",
       error:        "Non è stato possibile inviarla. Riprova.",
       reutilizado:  "era già nella tua pratica",
+
+
+      /* --- La solicitud, en pasos ---
+         Rotulos de la barra de arriba, de los dos botones de abajo y de la
+         pantalla de repaso. El nombre del primer paso y el del segundo NO se
+         repiten aqui: son 'tus_datos' y 'recaudos', los mismos de siempre. */
+      pa_repasar:     "Rivedi",
+      pa_paso:        "Passo {n} di {t}",
+      pa_atras:       "Indietro",
+      pa_sigue:       "Avanti",
+      pa_cambiar:     "Modifica",
+      pa_hecho:       "Fatto",
+      pa_ahora:       "Sei qui",
+      pa_falta_paso:  "Manca qualcosa in questo passo: guarda ciò che è segnalato.",
+      pa_nota_datos:  "Scrivi nomi e date esattamente come compaiono sul tuo passaporto. Una sola lettera diversa basta perché l'ente la respinga.",
+      pa_ya_tuyos:    "{n} di {t} documenti sono già nella tua pratica: non devi caricarli di nuovo.",
+      pa_ninguno_tuyo:"Nessuno di questi documenti è ancora nella tua pratica. Caricali qui e restano per le altre pratiche.",
+      pa_soltar:      "Trascina qui il file",
+      pa_repaso_q:    "Questo è ciò che riceverà il CIIP. Premi «Modifica» su una riga per correggerla prima di inviare.",
+      pa_vacio:       "Non compilato",
       ns_desde_paso: "· da {cuando}",
       nv_hay:     "C'è una versione nuova del pannello",
       nv_recarga: "Ricarica",
@@ -3319,6 +3399,26 @@ window.CIIP_PASOS = {
       sin_archivo:  "请选择文件",
       error:        "提交失败，请重试。",
       reutilizado:  "档案中已有",
+
+
+      /* --- La solicitud, en pasos ---
+         Rotulos de la barra de arriba, de los dos botones de abajo y de la
+         pantalla de repaso. El nombre del primer paso y el del segundo NO se
+         repiten aqui: son 'tus_datos' y 'recaudos', los mismos de siempre. */
+      pa_repasar:     "核对",
+      pa_paso:        "第 {n} 步，共 {t} 步",
+      pa_atras:       "上一步",
+      pa_sigue:       "下一步",
+      pa_cambiar:     "修改",
+      pa_hecho:       "已完成",
+      pa_ahora:       "当前步骤",
+      pa_falta_paso:  "这一步还缺内容：请看标出的地方。",
+      pa_nota_datos:  "姓名和日期请与护照上完全一致。哪怕一个字母不同，主管机关也会退回。",
+      pa_ya_tuyos:    "{t} 份材料中已有 {n} 份在您的档案里，无需重新上传。",
+      pa_ninguno_tuyo:"这些材料还都不在您的档案里。在这里上传后，办理其他手续时可直接使用。",
+      pa_soltar:      "把文件拖到这里",
+      pa_repaso_q:    "这就是 CIIP 将收到的内容。发送前可点击任意一行的「修改」进行更正。",
+      pa_vacio:       "未填写",
       ns_desde_paso: "· {cuando}起",
       nv_hay:     "面板有新版本",
       nv_recarga: "重新载入",
@@ -4035,6 +4135,26 @@ window.CIIP_PASOS = {
       sin_archivo:  "Выберите файл",
       error:        "Не удалось отправить. Попробуйте ещё раз.",
       reutilizado:  "уже есть в вашем деле",
+
+
+      /* --- La solicitud, en pasos ---
+         Rotulos de la barra de arriba, de los dos botones de abajo y de la
+         pantalla de repaso. El nombre del primer paso y el del segundo NO se
+         repiten aqui: son 'tus_datos' y 'recaudos', los mismos de siempre. */
+      pa_repasar:     "Проверка",
+      pa_paso:        "Шаг {n} из {t}",
+      pa_atras:       "Назад",
+      pa_sigue:       "Далее",
+      pa_cambiar:     "Изменить",
+      pa_hecho:       "Готово",
+      pa_ahora:       "Вы здесь",
+      pa_falta_paso:  "На этом шаге чего-то не хватает: посмотрите на отмеченное.",
+      pa_nota_datos:  "Пишите имена и даты точно так, как в паспорте. Одной другой буквы достаточно, чтобы ведомство вернуло заявку.",
+      pa_ya_tuyos:    "{n} из {t} документов уже есть в вашем деле: загружать их заново не нужно.",
+      pa_ninguno_tuyo:"Ни одного из этих документов пока нет в вашем деле. Загрузите их здесь — они останутся для других процедур.",
+      pa_soltar:      "Перетащите файл сюда",
+      pa_repaso_q:    "Это то, что получит CIIP. Нажмите «Изменить» в любой строке, чтобы исправить перед отправкой.",
+      pa_vacio:       "Не заполнено",
       ns_desde_paso: "· с {cuando}",
       nv_hay:     "Есть новая версия панели",
       nv_recarga: "Обновить",

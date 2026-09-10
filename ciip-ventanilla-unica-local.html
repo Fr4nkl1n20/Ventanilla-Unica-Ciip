@@ -2387,12 +2387,6 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .sol-gestion .sg-btn:hover{background:var(--block);}
 .sol-lado{min-width:0; border:1px solid var(--line); background:var(--hoja);
   border-radius:12px; padding:15px 17px;}
-/* El rotulo, IGUAL que el de «Tus datos»: mismo tamaño, mismo grosor, misma
-   tinta. Estaba en cian y en mayusculas, y eso lo hacia parecer otra cosa
-   -un aviso, una seccion menor- cuando es la otra mitad de la misma
-   pantalla. Dos cuadros hermanos se anuncian igual. */
-.sol-lado .sol-h2{font-size:13px; font-weight:700; letter-spacing:0;
-  text-transform:none; color:var(--ink); margin:0 0 4px;}
 /* Sin caja propia: el cuadro es el de fuera. Se separan con una linea y no
    con aire, que con seis papeles el aire suma media pantalla. */
 .sol-lado .sol-doc{background:transparent; border:0; border-radius:0;
@@ -2410,7 +2404,6 @@ body[data-vista="tramite"] #secTramites{display:none;}
   .sol-lado{order:-1;}
 }
 .sol-h{font-size:13px; font-weight:700; margin-bottom:14px;}
-.sol-h2{margin-top:26px;}
 .sol-campos{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px 16px; max-width:620px;}
 .sol-campo.ancho{grid-column:1 / -1;}
 .sol-campo label{display:block; font-size:11px; font-weight:700; color:var(--gray); margin-bottom:5px;}
@@ -2567,6 +2560,148 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .sol-aviso{font-size:11.5px; font-weight:700;}
 .sol-aviso.err{color:var(--rust);}
 .sol-aviso.ok{color:var(--good);}
+
+/* ── LA SOLICITUD, EN PASOS ──
+   Antes esto era UNA pantalla: doce casillas a la izquierda, seis papeles a
+   la derecha y un botón de enviar al final. Todo cabía, y ese era el
+   problema: quien la abría veía de golpe todo lo que le iban a pedir.
+
+   Ahora son tres: los datos, los papeles y un repaso de lo que se va a
+   mandar. La barra de arriba dice cuántos son y por cuál vas -sin eso, un
+   formulario partido es peor que uno entero: no se sabe si quedan dos
+   pantallas o veinte-, y el repaso final existe porque una vez enviada la
+   solicitud, corregirla ya no depende del inversionista.
+
+   El reparto sale de lo que hacen los portales públicos que mejor
+   funcionan: la barra de pasos del sistema de diseño del gobierno de EEUU
+   -que pide justo esto, tres fases o más y camino en línea recta- y la
+   pantalla de «repasa tus respuestas» del sistema de diseño británico.
+
+   Lo de dentro NO cambia: siguen siendo .sol-col, .sol-campos, .sol-lado y
+   .sol-doc, los mismos de siempre, cada uno en su hoja. Lo que se añade es
+   el andamio de alrededor. */
+/* Un ancho de lectura, y no el de la pantalla. Con las dos columnas de antes
+   el cuadro de los datos medía setecientos y pico y las casillas llenaban
+   los seiscientos veinte que tienen de tope; solo, se estiraba hasta los mil
+   cien y las mismas casillas quedaban amontonadas a la izquierda con medio
+   metro de blanco al lado. Un formulario de gobierno se lee en columna
+   estrecha -eso hacen los que funcionan-, y aquí además es lo que hace que
+   la barra de pasos y las casillas se vean como una sola cosa.
+
+   El cuadro de «lo hacemos nosotros» va detrás y se iguala: es su hermano,
+   y dejarlo más ancho lo separaría de lo único a lo que acompaña. */
+.pa, .pa + .sol-gestion{max-width:880px;}
+.pa-hoja[hidden]{display:none;}
+
+/* La barra. Cada tramo es un botón: se puede volver a un paso ya visto
+   pulsándolo, que es más corto que darle tres veces a «Atrás». Hacia
+   adelante no lleva -eso lo decide la validación del paso-, y por eso el
+   que aún no toca no es pulsable y lo dice con el cursor. */
+.pa-barra{display:flex; gap:10px; list-style:none; margin:0 0 6px; padding:0;}
+.pa-seg{flex:1 1 0; min-width:0;}
+.pa-ir{display:block; width:100%; font:inherit; text-align:left; padding:0;
+  background:none; border:0; cursor:default; color:inherit;}
+.pa-seg.hecho .pa-ir, .pa-seg.visto .pa-ir{cursor:pointer;}
+.pa-linea{display:block; height:5px; border-radius:99px; background:var(--line);
+  transition:background .18s;}
+.pa-seg.ahora .pa-linea{background:var(--navy2);}
+.pa-seg.hecho .pa-linea{background:var(--good);}
+.pa-cuerpo{display:flex; align-items:center; gap:7px; margin-top:9px;}
+.pa-n{flex:none; width:19px; height:19px; border-radius:50%; display:flex;
+  align-items:center; justify-content:center; font-size:10.5px; font-weight:800;
+  background:var(--block); color:var(--mudo); border:1px solid var(--line);}
+.pa-seg.ahora .pa-n{background:var(--navy2); color:#fff; border-color:var(--navy2);}
+.pa-seg.hecho .pa-n{background:var(--good-bg); color:var(--good); border-color:var(--good);}
+.pa-l{font-size:11.5px; font-weight:700; color:var(--mudo); overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap;}
+.pa-seg.ahora .pa-l{color:var(--ink);}
+/* En móvil el rótulo se cae y quedan los números: tres palabras partidas en
+   tres tramos de setenta píxeles no se leen. La barra sigue diciendo por
+   dónde vas, y el renglón de debajo dice el nombre del paso de turno. */
+@media (max-width:620px){
+  .pa-l{display:none;}
+  .pa-cuerpo{justify-content:center;}
+}
+/* El renglón que cuenta: «Paso 2 de 3 · Recaudos». Es lo que hace que la
+   barra signifique algo para quien no la mira de cerca. */
+.pa-cuenta{display:flex; align-items:baseline; gap:9px; margin:16px 0 14px; flex-wrap:wrap;}
+.pa-cuenta .pc-n{font-size:11px; font-weight:800; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--mudo);}
+.pa-cuenta .pc-t{font-size:15px; font-weight:700; color:var(--ink);}
+
+/* El cuadro que informa. Uno por paso, y dice algo VERDADERO de ese paso:
+   cuántos papeles ya tienes, qué le pasa a una solicitud mal escrita. Un
+   cuadro de éstos con una frase de relleno no informa, sólo ocupa. */
+.pa-nota{display:flex; gap:10px; align-items:flex-start; border:1px solid var(--line);
+  border-left:3px solid var(--cyan-deep); background:var(--block); border-radius:9px;
+  padding:11px 13px; margin-bottom:18px; font-size:12px; line-height:1.5; color:var(--ink);}
+.pa-nota.bien{border-left-color:var(--good); background:var(--good-bg);}
+.pa-nota svg{flex:none; width:16px; height:16px; margin-top:1px; fill:none;
+  stroke:var(--cyan-deep); stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+.pa-nota.bien svg{stroke:var(--good);}
+
+/* Los recaudos, con su hoja entera para ellos. En la columna estrecha de
+   antes eran renglones de doce píxeles; aquí caben como lo que son -una
+   cosa que hay que buscar, mirar y subir- y se puede soltar el archivo
+   encima sin abrir el explorador. */
+.pa-hoja[data-paso="2"] .sol-lado{border:0; background:none; padding:0;}
+.pa-hoja[data-paso="2"] .sol-docs{max-width:none; gap:12px; margin-top:0;}
+.pa-hoja[data-paso="2"] .sol-doc{border:1px solid var(--line); background:var(--hoja);
+  border-radius:12px; padding:14px 16px; gap:14px; flex-wrap:wrap;}
+.pa-hoja[data-paso="2"] .sol-doc + .sol-doc{border-top:1px solid var(--line);}
+.pa-hoja[data-paso="2"] .sol-doc:last-child{padding-bottom:14px;}
+.pa-hoja[data-paso="2"] .sol-doc > div:first-child{flex:1 1 auto !important;}
+.pa-hoja[data-paso="2"] .sd-n{font-size:13px; font-weight:700;}
+.pa-hoja[data-paso="2"] .sol-doc .sd-btn{margin-left:auto;}
+/* Mientras se arrastra un archivo por encima. Sin esto no hay forma de
+   saber que la fila lo acepta, y quien lo suelta al lado lo pierde. */
+.sol-doc.encima{border-color:var(--cyan-deep) !important; background:var(--activa-bg) !important;}
+.sol-doc.encima .sd-n{color:var(--cyan-deep);}
+
+/* El repaso. Cada línea con su «Cambiar», que devuelve al paso donde está
+   esa casilla Y la deja enfocada: mandar a alguien a «Tus datos» a buscar
+   cuál de las doce era es la mitad del favor. */
+.pa-repaso{border:1px solid var(--line); background:var(--hoja); border-radius:12px;
+  overflow:hidden; margin-bottom:6px;}
+.pa-grupo{padding:13px 15px 3px; font-size:10.5px; font-weight:800; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--mudo); border-top:1px solid var(--line);}
+.pa-repaso > .pa-grupo:first-child{border-top:0;}
+.pa-fila{display:flex; align-items:baseline; gap:12px; padding:10px 15px;
+  border-top:1px solid var(--line-soft);}
+.pa-k{flex:0 0 38%; min-width:0; font-size:11.5px; font-weight:700; color:var(--mudo);}
+.pa-v{flex:1 1 auto; min-width:0; font-size:12.5px; font-weight:600; color:var(--ink);
+  overflow-wrap:anywhere;}
+.pa-v.vacio{color:var(--rust); font-weight:700;}
+.pa-v .pv-ya{font-size:10px; font-weight:800; letter-spacing:.03em; color:var(--good);
+  margin-left:7px;}
+.pa-cam{flex:none; font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
+  background:none; border:0; padding:0; cursor:pointer; text-decoration:underline;}
+.pa-cam:hover{color:var(--cyan-deep);}
+@media (max-width:560px){
+  .pa-fila{flex-wrap:wrap; gap:2px 12px;}
+  .pa-k{flex:1 1 100%;}
+}
+
+/* El pie: atrás a la izquierda, seguir a la derecha, y en medio el aviso de
+   lo que falta. En el último paso el que manda es el de siempre -.sol-enviar,
+   con su .sol-aviso al lado- y aquí sólo queda «Atrás». */
+.pa-pie{margin-top:22px; padding-top:16px; border-top:1px solid var(--line);
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+.pa-atras{font:inherit; font-size:12.5px; font-weight:700; cursor:pointer; color:var(--ink);
+  background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px 17px;}
+.pa-atras:hover{border-color:var(--navy2); color:var(--navy2);}
+.pa-sigue{font:inherit; font-size:12.5px; font-weight:700; cursor:pointer; color:#fff;
+  background:var(--navy); border:0; border-radius:8px; padding:11px 22px; margin-left:auto;}
+.pa-sigue:hover{background:var(--navy-deep, #00336d);}
+.pa-aviso{font-size:11.5px; font-weight:700; color:var(--rust);}
+/* El de enviar vive en la misma fila que «Atrás», no debajo: el paso de
+   repaso no tiene «Siguiente» y sin esto el botón se quedaba solo en un
+   renglón aparte, lejos de donde acaba de mirar el ojo. */
+.pa-pie .sol-pie{margin-top:0; margin-left:auto;}
+/* Y el atributo 'hidden' tiene que poder con el display de cada uno: el pie
+   se esconde con él en las hojas que no son la última, y un display:flex
+   escrito arriba se lo lleva por delante sin decir nada. */
+.pa-pie .sol-pie[hidden], .pa-pie [hidden]{display:none;}
 
 /* --- la conversación del expediente ---
    Los dos lados se distinguen por el lado al que se pegan y por el color,
@@ -2779,28 +2914,27 @@ body[data-vista="fase"] .phase-cab > .chev{display:none;}
   display:flex; gap:13px; align-items:flex-start; box-shadow:var(--shadow); transition:transform .12s, box-shadow .12s, border-color .12s; cursor:pointer;}
 .tcard:hover{transform:translateY(-2px); box-shadow:var(--shadow-lg); border-color:var(--cyan-deep);}
 .tcard.action{border-color:var(--amber); box-shadow:0 0 0 1px var(--amber) inset, var(--shadow);}
-.t-ico{width:38px; height:38px; border-radius:10px; background:var(--block); color:var(--navy2);
+.t-ico{width:48px; height:34px; border-radius:9px; background:var(--block); color:var(--navy2);
   display:flex; align-items:center; justify-content:center; flex:none;}
 .t-ico svg{width:20px; height:20px; stroke:currentColor; stroke-width:1.8; fill:none;}
 
-/* --- casilla del organismo: logo arriba, siglas debajo ---
-   Sustituye al icono generico en las tarjetas cuyo organismo tiene logo.
-   El ancho fijo evita que las siglas largas (IVSS · INCES · FAOV) estiren
-   la columna y descuadren la rejilla: se parten en varias lineas. */
-.t-marca{display:flex; flex-direction:column; align-items:center; gap:5px; flex:none; width:56px;}
-/* Placa blanca: los logos oficiales vienen en tintas oscuras sobre fondo
-   transparente y en el tema oscuro se perderian.
+/* --- la casilla del organismo, en línea ---
+   Era una columna: la placa del logo arriba y la sigla debajo, 56 px de
+   ancho para ella sola. Ahora la sigla vive en el renglón del organismo, en
+   su etiqueta, y aquí queda sólo el recuadro. Es la forma de la maqueta, y
+   se gana el alto de la sigla y catorce píxeles de ancho en las veinte
+   fichas que llevan logo.
 
-   La placa es apaisada (56x38), no cuadrada. Casi todos estos logos son
-   mas anchos que altos —el del CIIP es 2,8:1— y en un cuadrado de 38 px
-   quedaban en una franja de 10 px, ilegible. Con la placa apaisada el
-   ancho manda y se ven al doble. Los logos cuadrados (SAIME, IVSS) siguen
-   ajustando por alto y se quedan centrados. */
-.t-marca .t-ico{background:#fff; border:1px solid var(--line); padding:4px 6px;
-  width:56px; height:38px; border-radius:9px;}
-.t-marca .ilogo{max-width:100%; max-height:100%; object-fit:contain; display:block;}
-.t-sigla{font-size:8.5px; font-weight:800; letter-spacing:.02em; color:var(--gray);
-  text-align:center; line-height:1.25; text-wrap:balance;}
+   Y el recuadro es el MISMO para las treinta y tres, lleven logo o dibujo:
+   antes medían 56 y 38, así que el texto de unas empezaba catorce píxeles
+   más adentro que el de las otras y la rejilla no cuadraba por ningún lado.
+
+   Sigue siendo apaisado, y eso no es estético. Casi todos estos logos son
+   más anchos que altos —el del CIIP es 2,8:1— y en un cuadrado quedaban en
+   una franja de diez píxeles, ilegibles. Con el recuadro apaisado manda el
+   ancho. Los cuadrados (SAIME, IVSS) ajustan por alto y quedan centrados. */
+.t-ico.placa{background:#fff; border:1px solid var(--line); padding:4px 5px;}
+.t-ico .ilogo{max-width:100%; max-height:100%; object-fit:contain; display:block;}
 /* La línea del CIIP dentro del globo de «Ver más detalles»: separada de los
    pasos por una raya, porque no es uno más de ellos sino la alternativa a
    darlos. */
@@ -3390,7 +3524,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 .sec-h .t, .sol-h, .ft-rh .t{ font-weight:600; letter-spacing:-.01em; }
 .jname, .t-name{ font-weight:600; letter-spacing:-.01em; }
 .jp:not(.active) .jname{ font-weight:600; }
-.sol-lado .sol-h2{ font-weight:600; }
 
 /* — lo secundario, con UN solo gris —
    Menos DENTRO DE LAS FICHAS. Ahi lo pidio el CIIP en negro, y tiene
@@ -3735,85 +3868,69 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
         <button class="phase-h" type="button" aria-expanded="true" aria-controls="trs-1"><span class="pn" aria-hidden="true">1</span><span class="pt" data-i18n="p1.name">Identity Accreditation and Legal Standing</span><span class="pd" data-i18n="p1.sub">Visa, identity and personal matters</span><span class="chev">›</span></button>
         <div class="grid-tr" id="trs-1">
           <div class="tcard" data-st="pendiente" data-marca="ciip" data-tr="c33">
-              <div class="t-marca">
-                <div class="t-ico"><img class="ilogo" src="logos/ciip.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-                <div class="t-sigla">CIIP</div>
-              </div>
+              <div class="t-ico placa"><img class="ilogo" src="logos/ciip.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c33.name"></div><span class="chip mute"><span data-i18n="st.pending">Not started</span></span></div>
-              <div class="t-ente"><span>CIIP</span></div>
+              <div class="t-ente"><span class="ebadge">CIIP</span>
+              <!-- El nombre entero, como en las otras. Decia «CIIP» a secas, y con
+                   el logo -que ES la palabra CIIP- y la etiqueta, la palabra salia
+                   TRES veces en la misma ficha. El sitio del organismo es para lo
+                   que la sigla no cabe: el nombre. -->
+              <span>Centro Internacional de Inversión Productiva</span></div>
               <div class="t-desc" data-i18n="c33.desc"></div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c33.time"></span></span><span class="go"><span data-i18n="c33.cta"></span> ›</span></div>
             </div>
           </div>
           <div class="tcard" data-st="listo" data-marca="saime" data-tr="c1" data-sin-plazo>
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/saime.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">SAIME</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/saime.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c1.name">Investor visa</div><span class="chip good"><span class="cd"></span><span data-i18n="st.done">Completed</span></span></div>
-              <div class="t-ente"><span>Servicio Administrativo de Identificación, Migración y Extranjería</span></div>
+              <div class="t-ente"><span class="ebadge">SAIME</span><span>Servicio Administrativo de Identificación, Migración y Extranjería</span></div>
               <div class="t-desc" data-i18n="c1.desc">Your TR-I investor visa has been stamped. Valid for one year, renewable.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c1.time">Issued Jun 18</span></span><span class="go"><span data-i18n="c1.cta">View visa</span> ›</span></div>
             </div>
           </div>
           <div class="tcard" data-st="listo" data-marca="saime" data-tr="c2" data-sin-plazo>
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/saime.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">SAIME</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/saime.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c2.name">Residence card</div><span class="chip good"><span class="cd"></span><span data-i18n="st.done">Completed</span></span></div>
-              <div class="t-ente"><span>Registro y cedulación de extranjeros</span></div>
+              <div class="t-ente"><span class="ebadge">SAIME</span><span>Registro y cedulación de extranjeros</span></div>
               <div class="t-desc" data-i18n="c2.desc">Your Venezuelan ID is ready. You'll need it for banking, real estate and contracts.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c2.time">Issued · expires in 12 d</span></span><span class="go"><span data-i18n="c2.cta">View detail</span> ›</span></div>
             </div>
           </div>
           <div class="tcard" data-st="listo" data-marca="seniat" data-tr="c3" data-sin-plazo>
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/seniat.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">SENIAT</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/seniat.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c3.name">Personal tax ID (RIF)</div><span class="chip good"><span class="cd"></span><span data-i18n="st.done">Completed</span></span></div>
-              <div class="t-ente"><span>Registro Único de Información Fiscal</span></div>
+              <div class="t-ente"><span class="ebadge">SENIAT</span><span>Registro Único de Información Fiscal</span></div>
               <div class="t-desc" data-i18n="c3.desc">Your tax identification as an individual. The basis for everything else.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c3.time">Issued Jun 21</span></span><span class="go"><span data-i18n="c3.cta">View RIF</span> ›</span></div>
             </div>
           </div>
           <div class="tcard action" data-st="accion" data-marca="intt" data-tr="c4" data-aviso="cargar">
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/intt.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">INTT</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/intt.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c4.name">Driver's license conversion</div><span class="chip warn"><span class="cd"></span><span data-i18n="st.action">Needs action</span></span></div>
-              <div class="t-ente"><span>Instituto Nacional de Transporte Terrestre</span></div>
+              <div class="t-ente"><span class="ebadge">INTT</span><span>Instituto Nacional de Transporte Terrestre</span></div>
               <div class="t-desc" data-i18n="c4.desc">Convert your Italian license into a Venezuelan one. Upload your license and its certified translation.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c4.time">Est.: 3–4 weeks</span></span><span class="go"><span data-i18n="c4.cta">Upload documents</span> ›</span></div>
             </div>
           </div>
           <div class="tcard" data-st="pendiente" data-marca="mpprijp" data-tr="c16">
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/mpprijp.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">MPPRIJP</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/mpprijp.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c16.name">Apostilled criminal record</div><span class="chip mute"><span data-i18n="st.pending">Not started</span></span></div>
-              <div class="t-ente"><span>Ministerio del Poder Popular para Relaciones Interiores, Justicia y Paz</span></div>
+              <div class="t-ente"><span class="ebadge">MPPRIJP</span><span>Ministerio del Poder Popular para Relaciones Interiores, Justicia y Paz</span></div>
               <div class="t-desc" data-i18n="c16.desc">Criminal record certificate from your home country, apostilled and translated. Required for the visa and residence, and sometimes by banks.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c16.time">Est.: 3–6 weeks</span></span><span class="go"><span data-i18n="c16.cta">View detail</span> ›</span></div>
             </div>
           </div>
           <div class="tcard" data-st="pendiente" data-marca="mppre" data-tr="c17">
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/mppre.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">MPPRE</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/mppre.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c17.name">Apostille and translation of documents</div><span class="chip mute"><span data-i18n="st.pending">Not started</span></span></div>
-              <div class="t-ente"><span>Ministerio del Poder Popular para Relaciones Exteriores</span></div>
+              <div class="t-ente"><span class="ebadge">MPPRE</span><span>Ministerio del Poder Popular para Relaciones Exteriores</span></div>
               <div class="t-desc" data-i18n="c17.desc">Birth certificate, degree and marriage certificate, apostilled and translated. The basis for dependants, conversions and banking.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c17.time">Est.: 2–4 weeks</span></span><span class="go"><span data-i18n="c17.cta">View detail</span> ›</span></div>
             </div>
@@ -3828,25 +3945,19 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
             </div>
           </div>
           <div class="tcard" data-st="pendiente" data-marca="suscerte" data-tr="c19">
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/suscerte.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">SUSCERTE</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/suscerte.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c19.name">Electronic signature</div><span class="chip mute"><span data-i18n="st.pending">Not started</span></span></div>
-              <div class="t-ente"><span>Superintendencia de Servicios de Certificación Electrónica</span></div>
+              <div class="t-ente"><span class="ebadge">SUSCERTE</span><span>Superintendencia de Servicios de Certificación Electrónica</span></div>
               <div class="t-desc" data-i18n="c19.desc">Digital certificate to operate on the State portals. Getting it early avoids delays in the procedures that follow.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c19.time">Est.: 2–3 weeks</span></span><span class="go"><span data-i18n="c19.cta">View detail</span> ›</span></div>
             </div>
           </div>
           <div class="tcard" data-st="pendiente" data-marca="saime" data-tr="c20">
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/saime.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">SAIME</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/saime.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c20.name">Visa and ID for dependants</div><span class="chip mute"><span data-i18n="st.pending">Not started</span></span></div>
-              <div class="t-ente"><span>Servicio Administrativo de Identificación, Migración y Extranjería · Consulado</span></div>
+              <div class="t-ente"><span class="ebadge">SAIME</span><span>Servicio Administrativo de Identificación, Migración y Extranjería · Consulado</span></div>
               <div class="t-desc" data-i18n="c20.desc">Visa and ID card for your spouse and children. Requires the relationship documents apostilled and translated.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c20.time">Est.: 6–10 weeks</span></span><span class="go"><span data-i18n="c20.cta">View detail</span> ›</span></div>
             </div>
@@ -3875,25 +3986,19 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
             </div>
           </div>
           <div class="tcard action" data-st="accion" data-marca="saren" data-tr="c5" data-aviso="firmar">
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/saren.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">SAREN</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/saren.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c5.name">Company incorporation</div><span class="chip warn"><span class="cd"></span><span data-i18n="st.action">Needs action</span></span></div>
-              <div class="t-ente"><span>Registro Mercantil · SAREN</span></div>
+              <div class="t-ente"><span class="ebadge">SAREN</span><span>Registro Mercantil · SAREN</span></div>
               <div class="t-desc" data-i18n="c5.desc">Bianchi Agroindustrias, C.A. — deed ready with an allied law firm. Your signature is needed to register it.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c5.time">Est.: 2–3 weeks</span></span><span class="go"><span data-i18n="c5.cta">Review & sign</span> ›</span></div>
             </div>
           </div>
           <div class="tcard" data-st="pendiente" data-marca="saren" data-tr="c22">
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/saren.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">SAREN</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/saren.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c22.name">Filing of the articles</div><span class="chip mute"><span data-i18n="st.pending">Not started</span></span></div>
-              <div class="t-ente"><span>Registro Mercantil · SAREN</span></div>
+              <div class="t-ente"><span class="ebadge">SAREN</span><span>Registro Mercantil · SAREN</span></div>
               <div class="t-desc" data-i18n="c22.desc">Files the articles of incorporation with the Mercantile Registry. This is the act that gives your company legal personality.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c22.time">Est.: 2–6 weeks</span></span><span class="go"><span data-i18n="c22.cta">View detail</span> ›</span></div>
             </div>
@@ -3908,13 +4013,10 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
             </div>
           </div>
           <div class="tcard" data-st="pendiente" data-marca="seniat" data-tr="c6" data-sin-plazo>
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/seniat.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">SENIAT</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/seniat.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c6.name">Company tax ID (RIF)</div><span class="chip mute"><span data-i18n="st.pending">Not started</span></span></div>
-              <div class="t-ente"><span>Registro Único de Información Fiscal</span></div>
+              <div class="t-ente"><span class="ebadge">SENIAT</span><span>Registro Único de Información Fiscal</span></div>
               <div class="t-desc" data-i18n="c6.desc">Processed as soon as the company is registered. We handle it automatically for you.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c6.time">Enabled after signing</span></span><span class="go"><span data-i18n="c6.cta">View detail</span> ›</span></div>
             </div>
@@ -3929,25 +4031,19 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
             </div>
           </div>
           <div class="tcard" data-st="pendiente" data-marca="seniat" data-tr="c24">
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/seniat.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">SENIAT</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/seniat.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c24.name">Accounting books and invoicing</div><span class="chip mute"><span data-i18n="st.pending">Not started</span></span></div>
-              <div class="t-ente"><span>Servicio Nacional Integrado de Administración Aduanera y Tributaria</span></div>
+              <div class="t-ente"><span class="ebadge">SENIAT</span><span>Servicio Nacional Integrado de Administración Aduanera y Tributaria</span></div>
               <div class="t-desc" data-i18n="c24.desc">Books stamped and paginated, and an approved invoicing system. Mandatory before issuing your first invoice.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c24.time">Est.: 2–4 weeks</span></span><span class="go"><span data-i18n="c24.cta">View detail</span> ›</span></div>
             </div>
           </div>
           <div class="tcard" data-st="pendiente" data-marca="sapi" data-tr="c8">
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/sapi.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">SAPI</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/sapi.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c8.name">Trademark registration</div><span class="chip mute"><span data-i18n="st.pending">Not started</span></span></div>
-              <div class="t-ente"><span>Servicio Autónomo de la Propiedad Intelectual</span></div>
+              <div class="t-ente"><span class="ebadge">SAPI</span><span>Servicio Autónomo de la Propiedad Intelectual</span></div>
               <div class="t-desc" data-i18n="c8.desc">Protect your company's name and logo in Venezuela.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c8.time">Est.: 4–8 months</span></span><span class="go"><span data-i18n="c8.cta">View detail</span> ›</span></div>
             </div>
@@ -3958,10 +4054,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
         <button class="phase-h" type="button" aria-expanded="true" aria-controls="trs-3"><span class="pn" aria-hidden="true">3</span><span class="pt" data-i18n="p3.name">Operate</span><span class="pd" data-i18n="p3.sub">Payroll, permits and foreign trade</span><span class="chev">›</span></button>
         <div class="grid-tr" id="trs-3">
           <div class="tcard" data-st="pendiente" data-marca="snc" data-tr="c13" data-sin-plazo>
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/snc.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">SNC</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/snc.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c13.name">National Contractors Registry</div><span class="chip mute"><span data-i18n="st.pending">Not started</span></span></div>
               <div class="t-ente"><span class="ebadge">RNC</span><span>Servicio Nacional de Contrataciones</span></div>
@@ -3970,15 +4063,10 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
             </div>
           </div>
           <div class="tcard" data-st="pendiente" data-marca="ivss" data-tr="c9">
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/ivss.svg" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <!-- El &nbsp; pega el punto a la sigla anterior y el <wbr> deja partir
-                   despues: asi el separador nunca abre una linea. -->
-              <div class="t-sigla">IVSS</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/ivss.svg" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c9.name">Social security (IVSS) enrolment</div><span class="chip mute"><span data-i18n="st.pending">Not started</span></span></div>
-              <div class="t-ente"><span>Instituto Venezolano de los Seguros Sociales</span></div>
+              <div class="t-ente"><span class="ebadge">IVSS</span><span>Instituto Venezolano de los Seguros Sociales</span></div>
               <div class="t-desc" data-i18n="c9.desc">Employer registration with social security and enrolment of your workers.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c9.time">Est.: 2–4 weeks</span></span><span class="go"><span data-i18n="c9.cta">View detail</span> ›</span></div>
             </div>
@@ -4007,13 +4095,10 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
                sigla y sin imagen, como la del VUCE. Antes llevaba el de
                SENCAMER, que ni siquiera es el ente de este permiso. -->
           <div class="tcard" data-st="pendiente" data-marca="sacs" data-tr="c12">
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/sacs.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">SACS</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/sacs.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c12.name">Health permit for the premises</div><span class="chip mute"><span data-i18n="st.pending">Not started</span></span></div>
-              <div class="t-ente"><span>Servicio Autónomo de Contraloría Sanitaria</span></div>
+              <div class="t-ente"><span class="ebadge">SACS</span><span>Servicio Autónomo de Contraloría Sanitaria</span></div>
               <div class="t-desc" data-i18n="c12.desc">Inspection of the premises for food, health, pharmacy or beauty. Depends on your sector.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c12.time">Est.: 1–3 months</span></span><span class="go"><span data-i18n="c12.cta">View detail</span> ›</span></div>
             </div>
@@ -4028,22 +4113,16 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
             </div>
           </div>
           <div class="tcard" data-st="pendiente" data-marca="inces" data-tr="c26">
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/inces.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">INCES</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/inces.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c26.name">INCES enrolment</div><span class="chip mute"><span data-i18n="st.pending">Not started</span></span></div>
-              <div class="t-ente"><span>Instituto Nacional de Capacitación y Educación Socialista</span></div>
+              <div class="t-ente"><span class="ebadge">INCES</span><span>Instituto Nacional de Capacitación y Educación Socialista</span></div>
               <div class="t-desc" data-i18n="c26.desc">Registration and levy with the training institute: mandatory from your fifth employee.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c26.time">Est.: 2–3 weeks</span></span><span class="go"><span data-i18n="c26.cta">View detail</span> ›</span></div>
             </div>
           </div>
           <div class="tcard" data-st="pendiente" data-marca="mpppst" data-tr="c27">
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/mpppst.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">MPPPST</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/mpppst.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c27.name">National Register of Work Entities</div><span class="chip mute"><span data-i18n="st.pending">Not started</span></span></div>
               <div class="t-ente"><span class="ebadge">RNET</span><span>Ministerio del Poder Popular para el Proceso Social de Trabajo</span></div>
@@ -4093,13 +4172,10 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
             </div>
           </div>
           <div class="tcard" data-st="pendiente" data-marca="ciip" data-tr="c15">
-            <div class="t-marca">
-              <div class="t-ico"><img class="ilogo" src="logos/ciip.png" alt="" onerror="this.closest(&quot;.t-marca&quot;).remove()"></div>
-              <div class="t-sigla">CIIP</div>
-            </div>
+            <div class="t-ico placa"><img class="ilogo" src="logos/ciip.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c15.name">Assets & opportunities bank</div><span class="chip info"><span data-i18n="st.available">Available</span></span></div>
-              <div class="t-ente"><span>Centro Internacional de Inversión Productiva</span></div>
+              <div class="t-ente"><span class="ebadge">CIIP</span><span>Centro Internacional de Inversión Productiva</span></div>
               <div class="t-desc" data-i18n="c15.desc">42 assets and projects open to your capital, with the center's support.</div>
               <div class="t-foot"><span class="t-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="c15.time">Open for you</span></span><span class="go"><span data-i18n="c15.cta">Explore assets</span> ›</span></div>
             </div>
@@ -8423,20 +8499,74 @@ applyLang(idiomaParaMi());
     var u = T();
     var datos = (borrador && borrador.datos) || {};
 
-    /* Dos columnas: lo que se rellena a la izquierda, y a la derecha los
-       papeles que hay que traer -leerlos y subirlos en el mismo sitio-.
+    /* Tres hojas, una detras de otra: los datos, los papeles y el repaso de
+       lo que se va a mandar. Antes eran dos columnas en la misma pantalla, y
+       el porque del cambio esta escrito arriba, en el CSS de .pa-barra.
 
-       Sin recaudos no hay columna y el formulario ocupa el ancho entero: una
-       columna vacia al lado es peor que no tenerla. */
+       Sin recaudos son dos: una hoja vacia de papeles seria peor que no
+       tenerla, igual que lo era la columna vacia de antes. */
     var hayPapeles = (RECAUDOS[tipo.codigo] || []).length > 0;
-    var dos = el("div", "sol-dos" + (hayPapeles ? "" : " sola"));
-    var col = el("div", "sol-col");
-    var lado = hayPapeles ? el("aside", "sol-lado") : null;
-    dos.appendChild(col);
-    if (lado) dos.appendChild(lado);
-    caja.appendChild(dos);
 
-    col.appendChild(el('div', 'sol-h', u.tus_datos));
+    var pa = el('div', 'pa');
+    var barra = document.createElement('ol');
+    barra.className = 'pa-barra';
+    pa.appendChild(barra);
+    /* «Paso 2 de 3» arriba y «Recaudos» debajo. Este renglon ES el titulo de
+       la hoja: por eso los cuadros de dentro ya no llevan el suyo -decir
+       «Tus datos» dos veces con dos centimetros de por medio no informa. */
+    var cuenta = el('div', 'pa-cuenta');
+    cuenta.appendChild(el('span', 'pc-n', ''));
+    cuenta.appendChild(el('h3', 'pc-t', ''));
+    pa.appendChild(cuenta);
+
+    var HOJAS = [];
+    function hojaNueva(nombre){
+      var h = el('div', 'pa-hoja');
+      h.setAttribute('data-paso', String(HOJAS.length + 1));
+      pa.appendChild(h);
+      HOJAS.push({nombre: nombre || '', hoja: h});
+      return h;
+    }
+
+    /* El cuadro que informa, uno por hoja. Dice algo VERDADERO de esa hoja
+       -cuantos papeles ya tienes, que le pasa a una solicitud mal copiada-;
+       uno de estos con una frase de relleno no informa, solo ocupa. */
+    function ponNota(n, txt, bien){
+      n.className = 'pa-nota' + (bien ? ' bien' : '');
+      n.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+        (bien ? '<path d="M20 6L9 17l-5-5"/>'
+              : '<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.7h.01"/>') +
+        '</svg>';
+      n.appendChild(el('span', null, txt || ''));
+      return n;
+    }
+    function nota(txt, bien){ return ponNota(el('div', 'pa-nota'), txt, bien); }
+
+    /* .sol-dos y .sol-col siguen siendo los de siempre: con ellos se dibuja
+       el cuadro de «Tus datos», y el ofrecimiento del final le copia el
+       borde para igualarse. Lo unico que cambia es que ahora va solo en su
+       hoja, y 'sola' es la variante de una columna que ya existia. */
+    var hDatos = hojaNueva(u.tus_datos);
+    var dos = el('div', 'sol-dos sola');
+    var col = el('div', 'sol-col');
+    dos.appendChild(col);
+    hDatos.appendChild(dos);
+
+    var lado = null, notaPap = null;
+    if (hayPapeles){
+      var hPapeles = hojaNueva(u.recaudos);
+      var dosP = el('div', 'sol-dos sola');
+      lado = el('aside', 'sol-lado');
+      dosP.appendChild(lado);
+      hPapeles.appendChild(dosP);
+    }
+
+    var hRepaso = hojaNueva(u.pa_repasar || '');
+    caja.appendChild(pa);
+
+    /* La devolucion mas comun y la mas tonta: un nombre copiado a ojo. Cuesta
+       un renglon avisarlo aqui, y se ahorra un viaje entero. */
+    col.appendChild(nota(u.pa_nota_datos));
 
     var rejilla = el('div', 'sol-campos');
     (CAMPOS[tipo.codigo] || []).forEach(function(c){
@@ -8542,7 +8672,25 @@ applyLang(idiomaParaMi());
        Asi el que rellena los ve mientras escribe -que es lo que la ficha
        hacia y por lo que existia- sin que nadie tenga que leer la misma
        lista dos veces. */
-    lado.appendChild(el('div', 'sol-h sol-h2', u.recaudos));
+    /* Cuantos de estos papeles ya estan en la boveda. Nace en cero y sube
+       sola: el «ya lo tienes» de cada recaudo llega por su cuenta y tarde,
+       una consulta por fila, asi que la cuenta se rehace cada vez que
+       contesta una -y cada vez que se elige un archivo a mano-. */
+    notaPap = el('div', 'pa-nota');
+    lado.appendChild(notaPap);
+    function cuentaPapeles(){
+      var pedidos = 0, ya = 0;
+      lado.querySelectorAll('.sol-doc').forEach(function(f){
+        if (f.getAttribute('data-opcional')) return;
+        pedidos++;
+        if (f.getAttribute('data-ya') || f.querySelector('input[type=file]').files[0]) ya++;
+      });
+      ponNota(notaPap,
+        ya ? String(u.pa_ya_tuyos || '').replace('{n}', ya).replace('{t}', pedidos)
+           : (u.pa_ninguno_tuyo || ''),
+        pedidos > 0 && ya === pedidos);
+    }
+
     var lista = el('div', 'sol-docs');
 
     (RECAUDOS[tipo.codigo] || []).forEach(function(r){
@@ -8586,8 +8734,61 @@ applyLang(idiomaParaMi());
         fila.removeAttribute('data-ya');
         var selloYa = fila.querySelector('.sd-ya'); if (selloYa) selloYa.remove();
         var verYa   = fila.querySelector('.sd-ver'); if (verYa) verYa.remove();
+        cuentaPapeles();
       });
       fila.appendChild(btn);
+
+      /* Soltar el archivo encima de la fila. Ahora que los recaudos tienen
+         la pantalla entera para ellos, la fila es un blanco grande y quien
+         llega con la carpeta abierta al lado no tiene que pasar por el
+         explorador. El boton se queda: arrastrar no se puede con el dedo.
+
+         DataTransfer y no una copia a mano: 'files' de un input es de solo
+         lectura, y sin esto lo soltado se veria en pantalla pero no viajaria
+         al enviar -que es el peor de los fallos posibles aqui-. */
+      /* Y mientras el archivo esta encima, el renglon de estado lo dice. Sin
+         una palabra, un borde de otro color no distingue «suelta aqui» de
+         «aqui no»; y decirlo SOLO durante el arrastre lo deja fuera del
+         camino de quien entra desde el movil, donde no hay nada que
+         arrastrar y la frase seria mentira. */
+      var estAntes = null;
+      ['dragenter', 'dragover'].forEach(function(ev){
+        fila.addEventListener(ev, function(e){
+          e.preventDefault();
+          if (!fila.classList.contains('encima')){
+            estAntes = est.textContent;
+            est.textContent = u.pa_soltar || '';
+          }
+          fila.classList.add('encima');
+        });
+      });
+      ['dragleave', 'dragend', 'drop'].forEach(function(ev){
+        fila.addEventListener(ev, function(){
+          if (fila.classList.contains('encima') && estAntes !== null){
+            est.textContent = estAntes;
+            estAntes = null;
+          }
+          fila.classList.remove('encima');
+        });
+      });
+      fila.addEventListener('drop', function(e){
+        e.preventDefault();
+        var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (!f) return;
+        try {
+          var dt = new DataTransfer();
+          dt.items.add(f);
+          inp.files = dt.files;
+        } catch (err){
+          /* Si el navegador no deja, no se finge que ha entrado: se abre el
+             explorador, que es lo que hay debajo de todo esto. */
+          console.warn('[CIIP] soltar recaudo:', err && (err.message || err));
+          inp.click();
+          return;
+        }
+        inp.dispatchEvent(new Event('change'));
+      });
+
       lista.appendChild(fila);
 
       /* Si ya hay un documento de ese tipo en la bóveda, se reutiliza: no
@@ -8630,9 +8831,11 @@ applyLang(idiomaParaMi());
               });
           });
           fila.insertBefore(mirar, btn);
+          cuentaPapeles();
         }).catch(function(){});
     });
     lado.appendChild(lista);
+    cuentaPapeles();
 
     /* --- enviar --- */
     var pie = el('div', 'sol-pie');
@@ -8640,7 +8843,10 @@ applyLang(idiomaParaMi());
     enviar.type = 'button';
     var aviso = el('div', 'sol-aviso', '');
     pie.appendChild(enviar); pie.appendChild(aviso);
-    col.appendChild(pie);
+    /* Ya no cuelga del cuadro de «Tus datos»: vive en el pie de los pasos,
+       en el mismo renglon que «Atras», y solo se enseña en el ultimo. Enviar
+       desde la primera hoja seria mandar una solicitud sin haber visto los
+       recaudos. Lo coloca el andamio, mas abajo. */
 
     /* ── ¿PREFIERES QUE LO HAGAMOS NOSOTROS? ──
        Va aqui y no en la portada, y no es indiferente: quien acaba de ver
@@ -8686,6 +8892,195 @@ applyLang(idiomaParaMi());
       bloque.appendChild(bt);
       caja.appendChild(bloque);
     })();
+
+    /* ── EL ANDAMIO: que hoja se ve, y como se pasa de una a otra ──
+       Va al final a proposito: para entonces ya existen las hojas, los
+       campos, los recaudos y el boton de enviar, y esto solo los coloca. */
+
+    var pasoPie = el('div', 'pa-pie');
+    var bAtras = el('button', 'pa-atras', u.pa_atras || '');
+    bAtras.type = 'button';
+    var avisoPaso = el('div', 'pa-aviso', '');
+    var bSigue = el('button', 'pa-sigue', u.pa_sigue || '');
+    bSigue.type = 'button';
+    pasoPie.appendChild(bAtras);
+    pasoPie.appendChild(avisoPaso);
+    pasoPie.appendChild(bSigue);
+    pasoPie.appendChild(pie);
+    pa.appendChild(pasoPie);
+
+    var paso = 1, visto = {1: true};
+
+    HOJAS.forEach(function(h, i){
+      var li = document.createElement('li');
+      li.className = 'pa-seg';
+      var b = el('button', 'pa-ir');
+      b.type = 'button';
+      b.appendChild(el('i', 'pa-linea'));
+      var cuerpoSeg = el('span', 'pa-cuerpo');
+      cuerpoSeg.appendChild(el('span', 'pa-n', String(i + 1)));
+      cuerpoSeg.appendChild(el('span', 'pa-l', h.nombre));
+      b.appendChild(cuerpoSeg);
+      /* Solo hacia atras, o a una hoja por la que ya se paso: hacia adelante
+         manda la validacion del paso, no la barra. Un tramo que aun no toca
+         y que al pulsarlo no hace nada es peor que uno que no se pulsa. */
+      b.addEventListener('click', function(){ if (visto[i + 1]) vePaso(i + 1); });
+      li.appendChild(b);
+      barra.appendChild(li);
+      h.seg = li;
+    });
+
+    function vePaso(n){
+      paso = n;
+      visto[n] = true;
+      avisoPaso.textContent = '';
+      var ultimo = (n === HOJAS.length);
+      HOJAS.forEach(function(h, i){
+        var cual = i + 1;
+        h.hoja.hidden = (cual !== n);
+        h.seg.className = 'pa-seg' + (cual === n ? ' ahora'
+                                    : cual < n   ? ' hecho'
+                                    : visto[cual] ? ' visto' : '');
+        var boton = h.seg.querySelector('.pa-ir');
+        if (cual === n) boton.setAttribute('aria-current', 'step');
+        else boton.removeAttribute('aria-current');
+        /* El palote del que ya paso no se oye: el rotulo lleva escrito si
+           esta hecho o si es el de ahora, escondido para el que ve. */
+        h.seg.querySelector('.pa-n').textContent = cual < n ? '✓' : String(cual);
+        var dice = h.nombre +
+          (cual < n ? ' · ' + (u.pa_hecho || '')
+           : cual === n ? ' · ' + (u.pa_ahora || '') : '');
+        boton.setAttribute('aria-label', dice);
+      });
+      cuenta.querySelector('.pc-n').textContent =
+        String(u.pa_paso || '').replace('{n}', n).replace('{t}', HOJAS.length);
+      cuenta.querySelector('.pc-t').textContent = HOJAS[n - 1].nombre;
+      bAtras.hidden = (n === 1);
+      bSigue.hidden = ultimo;
+      pie.hidden = !ultimo;
+      if (ultimo) pintaRepaso();
+    }
+
+    /* Lo que falta se dice AQUI y no al enviar: hacerle rellenar tres hojas a
+       quien se dejo la primera casilla, para decirselo al final, es el
+       formulario de una sola pantalla otra vez y con mas pasos. */
+    function validaPaso(n){
+      var hoja = HOJAS[n - 1].hoja, falta = false, primero = null;
+      hoja.querySelectorAll('.sol-campo').forEach(function(c){
+        var e = c.querySelector('input, select');
+        var v = (c.getAttribute('data-es') || (e && e.value) || '').trim();
+        var suelto = c.getAttribute('data-opcional');
+        c.classList.toggle('mal', !v && !suelto);
+        if (!v && !suelto){ falta = true; if (!primero) primero = e; }
+      });
+      hoja.querySelectorAll('.sol-doc').forEach(function(f){
+        var tiene = f.querySelector('input[type=file]').files[0] || f.getAttribute('data-ya');
+        var suelto = f.getAttribute('data-opcional');
+        f.classList.toggle('mal', !tiene && !suelto);
+        if (!tiene && !suelto){ falta = true; if (!primero) primero = f.querySelector('.sd-btn'); }
+      });
+      if (!falta) return true;
+      avisoPaso.textContent = u.pa_falta_paso || u.falta || '';
+      if (primero && primero.focus) primero.focus();
+      return false;
+    }
+
+    bSigue.addEventListener('click', function(){
+      if (!validaPaso(paso)) return;
+      vePaso(Math.min(paso + 1, HOJAS.length));
+    });
+    bAtras.addEventListener('click', function(){ vePaso(Math.max(paso - 1, 1)); });
+
+    /* ── EL REPASO ──
+       Todo lo que se va a mandar, en una lista, con un «Cambiar» por linea
+       que devuelve a la hoja donde esta esa casilla Y la deja enfocada:
+       mandar a alguien a «Tus datos» a buscar cual de las doce era es la
+       mitad del favor.
+
+       Se rehace cada vez que se entra, no una sola vez: entre una visita y la
+       siguiente ha podido cambiar cualquier cosa. */
+    function filaRepaso(k, v, nPaso, foco, ya){
+      var f = el('div', 'pa-fila');
+      f.appendChild(el('div', 'pa-k', k));
+      var d = el('div', 'pa-v' + (v ? '' : ' vacio'), v || (u.pa_vacio || ''));
+      if (ya) d.appendChild(el('span', 'pv-ya', '✓'));
+      f.appendChild(d);
+      var b = el('button', 'pa-cam', u.pa_cambiar || '');
+      b.type = 'button';
+      b.setAttribute('aria-label', (u.pa_cambiar || '') + ': ' + k);
+      b.addEventListener('click', function(){
+        vePaso(nPaso);
+        if (foco && foco.focus) foco.focus();
+      });
+      f.appendChild(b);
+      return f;
+    }
+
+    /* El primer nodo de texto y no el textContent entero: dentro del rotulo
+       vive tambien la «i» de la pista, y con ella el repaso diria «Pasaporte
+       i» en cada linea. */
+    function soloElNombre(nodo){
+      if (!nodo) return '';
+      var t = nodo.firstChild;
+      return ((t && t.nodeType === 3 ? t.textContent : nodo.textContent) || '').trim();
+    }
+
+    function pintaRepaso(){
+      hRepaso.innerHTML = '';
+      hRepaso.appendChild(nota(u.pa_repaso_q));
+      var lis = el('div', 'pa-repaso');
+
+      lis.appendChild(el('div', 'pa-grupo', u.tus_datos));
+      hDatos.querySelectorAll('.sol-campo').forEach(function(c){
+        var e = c.querySelector('input, select');
+        /* Se enseña lo que SE VE escrito, no lo que se guarda: en las listas
+           y en los paises son dos cosas distintas -se guarda el español- y
+           repasar un dato en un idioma que no es el tuyo no es repasarlo. */
+        var vista = '';
+        if (e && e.tagName === 'SELECT' && e.selectedIndex >= 0)
+          vista = e.options[e.selectedIndex].text;
+        else if (e) vista = (e.value || '').trim();
+        /* La fecha, escrita como se dice y no como se guarda: '2026-07-21' es
+           lo que entiende la base, y repasar es cosa de personas.
+
+           Se arma a mano y NO con new Date del texto entero: '1979-04-11' se
+           lee como medianoche en Greenwich, y en Caracas -cuatro horas por
+           detras- el mismo dato saldria como el 10. Un dia de menos en una
+           fecha de nacimiento es justo de lo que devuelven una solicitud. */
+        var p = /^(\d{4})-(\d{2})-(\d{2})$/.exec(vista);
+        if (p){
+          try {
+            vista = new Date(+p[1], +p[2] - 1, +p[3]).toLocaleDateString(
+              curLang === 'zh' ? 'zh-CN' : curLang,
+              {day: 'numeric', month: 'long', year: 'numeric'});
+          } catch (err){ /* si el idioma no le gusta, se queda el crudo */ }
+        }
+        lis.appendChild(filaRepaso(soloElNombre(c.querySelector('label')), vista, 1, e));
+      });
+
+      if (hayPapeles){
+        lis.appendChild(el('div', 'pa-grupo', u.recaudos));
+        lado.querySelectorAll('.sol-doc').forEach(function(f){
+          var archivo = f.querySelector('input[type=file]').files[0];
+          var deLaBoveda = !archivo && !!f.getAttribute('data-ya');
+          var val = archivo ? archivo.name
+                  : deLaBoveda ? (soloElNombre(f.querySelector('.sd-e')) || '') : '';
+          lis.appendChild(filaRepaso(soloElNombre(f.querySelector('.sd-n')),
+                                     val, 2, f.querySelector('.sd-btn'), deLaBoveda));
+        });
+      }
+
+      hRepaso.appendChild(lis);
+    }
+
+    /* Para que el que envia pueda traer aqui al que se dejo algo dos hojas
+       atras: marcarselo en rojo donde no lo ve es no decirle nada. */
+    caja.CIIP_VE_PASO = function(n, txt){
+      vePaso(n);
+      if (txt) avisoPaso.textContent = txt;
+    };
+
+    vePaso(1);
 
     enviar.addEventListener('click', function(){
       envia(tipo, borrador, enviar, aviso);
@@ -8779,7 +9174,19 @@ applyLang(idiomaParaMi());
       f.classList.toggle('mal', !tiene && !suelto);
       if (!tiene && !suelto) falta = true;
     });
-    if (falta){ aviso.textContent = u.falta; aviso.className = 'sol-aviso err'; return; }
+    if (falta){
+      aviso.textContent = u.falta; aviso.className = 'sol-aviso err';
+      /* Y SE VA a donde esta el fallo. Con la solicitud partida en hojas, lo
+         que falta puede estar dos pantallas atras: marcarlo en rojo donde no
+         se ve es no decir nada. Cada hoja se valida al salir de ella, asi
+         que llegar aqui con algo pendiente es raro -pasa si se vuelve atras
+         y se borra algo-, pero raro no es nunca. */
+      var mal = caja.querySelector('.sol-campo.mal, .sol-doc.mal');
+      var hoja = mal && mal.closest && mal.closest('.pa-hoja');
+      if (hoja && caja.CIIP_VE_PASO)
+        caja.CIIP_VE_PASO(+hoja.getAttribute('data-paso'), u.pa_falta_paso || u.falta);
+      return;
+    }
 
     boton.disabled = true;
     boton.textContent = u.enviando;

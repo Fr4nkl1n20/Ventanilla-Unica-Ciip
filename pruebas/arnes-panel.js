@@ -2821,6 +2821,11 @@
   function pistaMira(){
     if (CASO !== 'vacio') return;
     var caja = document.getElementById('trReal');
+    /* Los recaudos viven en el SEGUNDO paso de la solicitud, y la hoja nace
+       recogida. Un boton que no esta a la vista no puede coger el foco, asi
+       que la comprobacion del Escape contestaba BODY sin que hubiera nada
+       roto. Se abre esa hoja por la misma puerta que usa el envio. */
+    if (caja && caja.CIIP_VE_PASO) caja.CIIP_VE_PASO(2);
     var envs = caja.querySelectorAll('.sol-doc .pista-env');
 
     ok('pista: cada recaudo trae su «i»',
@@ -4818,12 +4823,21 @@
     var pistas = lado.querySelectorAll('.pista');
     igual('directo: y cada papel con su ayuda', pistas.length, recs.length);
 
-    /* Y la columna dice de que es: sin rotulo, tres cajas sueltas a la
-       derecha no se sabe si son requisitos, avisos o adjuntos ya subidos. */
-    ok('directo: y la columna dice de que es',
-       /\S/.test((lado.querySelector('.sol-h2') || {}).textContent || ''),
-       (lado.querySelector('.sol-h2') || {}).textContent || '(sin rotulo)',
-       'su rotulo');
+    /* Y se dice de que es: sin rotulo, unas cajas sueltas no se sabe si son
+       requisitos, avisos o adjuntos ya subidos.
+
+       El rotulo ya NO va dentro de la columna. Los papeles tienen ahora su
+       propia hoja, y quien la titula es el renglon de los pasos -«Paso 2 de
+       3 · Recaudos»- mas el tramo de la barra. Escribirlo otra vez dentro
+       seria decir lo mismo dos veces con dos centimetros de por medio, que
+       es lo que se le quito a la pantalla al partirla. Asi que se mide donde
+       vive: en el tramo de la barra que le toca a esa hoja. */
+    var hojaPap = lado.closest('.pa-hoja');
+    var tramo = hojaPap && caja.querySelectorAll('.pa-seg')[
+                  (+hojaPap.getAttribute('data-paso') || 1) - 1];
+    var rotulo = tramo && (tramo.querySelector('.pa-l') || {}).textContent;
+    ok('directo: y la hoja de los papeles dice de que es',
+       /\S/.test(rotulo || ''), rotulo || '(sin rotulo)', 'su rotulo');
   }
 
   /* El plazo y la descripcion NO se fueron con la ficha: estaban y siguen en
@@ -5604,7 +5618,9 @@
 
          Asi que no se atenua nada, y lo que queda sujetando la señal es la
          comprobacion de aqui arriba: que lo diga con letras. */
-      var marca = t.querySelector('.t-marca');
+      /* La placa dejo de ser una columna y es el recuadro de siempre; lo que
+         se mide -que se vea entera y no a medio pintar- no cambia. */
+      var marca = t.querySelector('.t-ico.placa') || t.querySelector('.t-ico');
       ok('opacidad: y la placa del organismo se ve entera, como en las demas',
          !!marca && parseFloat(getComputedStyle(marca).opacity) === 1,
          marca ? String(getComputedStyle(marca).opacity) : '(no hay placa)', '1');
@@ -7014,25 +7030,47 @@
     if (CASO !== 'vacio' || !cuadraQueda || !cuadraQueda.length) return;
     var ref = cuadraQueda.shift();
     var caja = document.getElementById('trReal');
-    var dos = caja && caja.querySelector('.sol-dos');
-    var col = dos && dos.querySelector('.sol-col');
-    var lado = dos && dos.querySelector('.sol-lado');
+    var pa = caja && caja.querySelector('.pa');
+    var hojas = pa ? pa.querySelectorAll('.pa-hoja') : [];
+    var tramos = pa ? pa.querySelectorAll('.pa-seg') : [];
+    var col = caja && caja.querySelector('.sol-col');
 
-    ok('cuadre: ' + ref + ' abre con sus dos cuadros',
-       !!col && !!lado, (col ? 'datos' : 'sin datos') + ', ' +
-       (lado ? 'papeles' : 'sin papeles'), 'los dos');
-    if (col && lado){
-      var c = col.getBoundingClientRect(), l = lado.getBoundingClientRect();
-      ok('cuadre: ' + ref + ' empieza y acaba a la misma altura que el otro',
-         Math.abs(l.top - c.top) <= 1 && Math.abs(l.bottom - c.bottom) <= 1,
-         'arriba ' + Math.round(l.top - c.top) + ', abajo ' + Math.round(l.bottom - c.bottom),
-         'cero por los dos lados');
-      /* Y ninguno se sale de su sitio, que es lo que pasa cuando un texto
-         largo empuja la columna en vez de partirse. */
-      var d = dos.getBoundingClientRect();
+    ok('cuadre: ' + ref + ' abre en el primer paso, con su barra',
+       hojas.length >= 2 && tramos.length === hojas.length && !!col,
+       hojas.length + ' hojas y ' + tramos.length + ' tramos',
+       'los mismos, y dos por lo menos');
+    if (!pa || !hojas.length) {
+      location.hash = cuadraQueda.length ? ('tramite-' + cuadraQueda[0]) : '';
+      return;
+    }
+
+    /* UNA sola a la vista. Partir la solicitud y luego enseñarla entera es
+       no haberla partido. */
+    var vistas = [].filter.call(hojas, function(h){ return !h.hidden; });
+    ok('cuadre: ' + ref + ' enseña una hoja y no dos',
+       vistas.length === 1, vistas.length + ' a la vista', 'una');
+    ok('cuadre: ' + ref + ' empieza por «Tus datos»',
+       vistas.length === 1 && vistas[0].getAttribute('data-paso') === '1',
+       vistas.length === 1 ? 'la ' + vistas[0].getAttribute('data-paso') : '(ninguna)',
+       'la 1');
+
+    /* El primer tramo encendido, y el botón de enviar guardado: enviar desde
+       la primera hoja sería mandar la solicitud sin ver los recaudos. */
+    ok('cuadre: ' + ref + ' enciende el primer tramo de la barra',
+       tramos[0].classList.contains('ahora'),
+       tramos[0].className, 'pa-seg ahora');
+    var enviar = caja.querySelector('.sol-pie');
+    ok('cuadre: ' + ref + ' no ofrece enviar todavía',
+       !!enviar && enviar.hidden,
+       enviar ? (enviar.hidden ? 'guardado' : 'a la vista') : '(no hay)', 'guardado');
+
+    if (vistas.length === 1){
+      var v = vistas[0].getBoundingClientRect();
+      var d = pa.getBoundingClientRect();
       ok('cuadre: ' + ref + ' no se sale por los lados',
-         l.right - d.right <= 1 && c.left - d.left >= -1,
-         'derecha ' + Math.round(l.right - d.right), 'dentro');
+         v.right - d.right <= 1 && v.left - d.left >= -1,
+         'derecha ' + Math.round(v.right - d.right) +
+         ', izquierda ' + Math.round(v.left - d.left), 'dentro');
     }
 
     location.hash = cuadraQueda.length ? ('tramite-' + cuadraQueda[0]) : '';
@@ -7159,8 +7197,13 @@
        'las mismas');
   }
 
+  /* La placa dejo de ser una columna con la sigla debajo: es el mismo
+     recuadro que ya usaban las fichas sin logo, y la sigla se fue al renglon
+     del organismo, en su etiqueta. Es la forma de la maqueta.
+
+     Lo que estas comprobaciones piden NO cambia; cambia donde mirarlo. */
   function logosMiran(){
-    var placas = document.querySelectorAll('.t-marca img.ilogo');
+    var placas = document.querySelectorAll('.t-ico.placa img.ilogo');
     ok('logos: las tarjetas con organismo llevan el suyo', placas.length >= 15,
        placas.length + ' placas', 'quince o más');
 
@@ -7173,24 +7216,55 @@
 
     /* Debajo de cada logo va la sigla del organismo. Sin ella, un logo que
        no se reconoce no dice de quién es. */
+    /* Dentro de las FICHAS: la cabecera del tramite abierto clona la placa
+       con su clase, y alli la sigla la pone el renglon que se clona aparte. */
     var sinSigla = [];
-    [].forEach.call(document.querySelectorAll('.t-marca'), function(m){
-      var s = m.querySelector('.t-sigla');
-      if (!s || !s.textContent.trim()) sinSigla.push(m.parentNode.getAttribute('data-tr'));
+    [].forEach.call(document.querySelectorAll('.tcard .t-ico.placa'), function(m){
+      var c = m.closest('.tcard');
+      var e = c && c.querySelector('.t-ente .ebadge');
+      if (!e || !e.textContent.trim()) sinSigla.push(c ? c.getAttribute('data-tr') : '?');
     });
     ok('logos: y cada uno dice de quién es', sinSigla.length === 0,
        sinSigla.length ? sinSigla.join(', ') : 'ninguna sin sigla', 'ninguna sin sigla');
 
-    /* Y donde la sigla ya lo dice, el distintivo de al lado no lo repite.
-       Antes de esto, "SUSCERTE" salía dos veces en la misma tarjeta. */
+    /* Y ninguna ficha se quedo con la placa en columna. Sin esto, dejarse la
+       mitad sin convertir pasaria igual de verde. */
+    igual('logos: y ninguna se quedo con la placa en columna',
+          document.querySelectorAll('.t-marca, .t-sigla').length, 0);
+
+    /* Donde la sigla ya lo dice, el renglon no lo repite. Antes de esto,
+       "SUSCERTE" salia dos veces en la misma tarjeta. La etiqueta y la sigla
+       son ya la misma cosa, asi que lo que se mira es lo que la acompaña: el
+       renglon entero menos la etiqueta tiene que ser el NOMBRE. */
     var repes = [];
     [].forEach.call(document.querySelectorAll('.tcard'), function(c){
-      var s = c.querySelector('.t-sigla'), b = c.querySelector('.ebadge');
-      if (s && b && s.textContent.trim() === b.textContent.trim())
-        repes.push(c.getAttribute('data-tr'));
+      var b = c.querySelector('.t-ente .ebadge');
+      var sig = b ? b.textContent.trim() : '';
+      if (!sig) return;
+      var e = c.querySelector('.t-ente');
+      var resto = e ? e.textContent.replace(sig, '').replace(/\s+/g, ' ').trim() : '';
+      if (!resto || resto === sig) repes.push(c.getAttribute('data-tr'));
     });
     ok('logos: y no repite la sigla al lado del nombre', repes.length === 0,
        repes.length ? repes.join(', ') : 'ninguna repetida', 'ninguna repetida');
+
+    /* UNA sola etiqueta por renglon. Al bajar la sigla de la placa se colo
+       este fallo: dos fichas -la c13 y la c27- ya llevaban la suya, la del
+       REGISTRO al que se solicita -RNC, RNET-, y se quedaron con dos seguidas
+       diciendo cosas distintas, «SNC RNC Servicio Nacional de
+       Contrataciones». Se ve en cuanto se mira la pantalla y no lo cazaba
+       nada: la comprobacion de arriba se queda con la primera etiqueta y da
+       por bueno lo que venga detras. */
+    var conDos = [];
+    [].forEach.call(document.querySelectorAll('.tcard .t-ente'), function(e){
+      if (e.querySelectorAll('.ebadge').length > 1){
+        var c = e.closest('.tcard');
+        conDos.push((c ? c.getAttribute('data-tr') : '?') + ': ' +
+                    e.textContent.replace(/\s+/g, ' ').trim().slice(0, 34));
+      }
+    });
+    igual('logos: y una sola etiqueta por renglon, no dos seguidas',
+          conDos.length ? conDos.join(' | ') : '(ninguna)', '(ninguna)');
 
     /* ── LA MARCA DE AGUA, RETIRADA ──
        Cada tarjeta llevaba detras del texto el logo de su organismo, grande
@@ -7209,7 +7283,7 @@
        el una tarjeta podria llevar el logo del SAIME y decir SENIAT. */
     var conFondo = [], desparejas = [];
     [].forEach.call(document.querySelectorAll('.tcard'), function(c){
-      var im = c.querySelector('.t-marca img.ilogo');
+      var im = c.querySelector('.t-ico.placa img.ilogo');
       var marca = c.getAttribute('data-marca');
       if (!im && !marca) return;                 /* sin organismo: ni logo ni fondo */
       if (!im || !marca){ desparejas.push(c.getAttribute('data-tr')); return; }
