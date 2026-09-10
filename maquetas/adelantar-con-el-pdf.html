@@ -7,18 +7,23 @@
 <link rel="stylesheet" href="_base.css">
 <style>
 /* ══════════════════════════════════════════════════════════════════
-   CINCO MANERAS DE DECIR «SI YA LO TIENES, SÚBELO Y ADELANTA»
+   CUATRO MANERAS DE DECIR «SI YA LO TIENES, SÚBELO Y ADELANTA»
 
-   El caso que las cinco atacan es el mismo, y es real. La ficha del
+   El caso que las cuatro atacan es el mismo, y es real. La ficha del
    c33 —«Acreditación de representación legal»— dice de sí misma:
 
        «Si actúas por medio de un abogado o apoderado, aquí el CIIP da
         por bueno el poder.»
 
-   O sea que el trámite ES el documento. Y aun así se piden cinco
-   casillas a mano —apoderado, documento, número, notaría, fecha— antes
-   de llegar al paso 2, que es donde por fin se sube el PDF que ya
-   contiene esas cinco cosas escritas por un notario.
+   O sea que el trámite ES el documento. Y aun así se piden SEIS casillas
+   a mano —apoderado, documento, número, notaría, fecha y para qué lo
+   autorizas— antes de llegar al paso 2, que es donde por fin se sube el
+   PDF que ya lleva cinco de esas seis escritas por un notario. La sexta,
+   el «para qué», no está en ningún poder: ésa se teclea siempre.
+
+   Las seis salen del panel de verdad, no de la memoria: son los campos
+   de CAMPOS.poder_representacion, y se comprobaron abriendo el trámite
+   en una copia con el atajo montado encima.
 
    Quien llega con el poder firmado en la mano copia a mano lo que ya
    está en el papel, y encima con el riesgo de equivocarse en un dígito
@@ -32,13 +37,26 @@
    · Soltar el archivo encima de la fila, sin abrir el explorador.
    · tipos_documento.vence, que ya sabe qué papeles caducan.
 
-   Ninguna de las cinco ideas necesita una tabla nueva.
+   Ninguna de las cuatro ideas necesita una tabla nueva.
+
+   POR QUÉ CUATRO Y NO CINCO
+
+   Eran cinco, y la 1 y la 3 se han fundido. Estaban partidas en dos: la
+   1 ponía la puerta —el sitio de soltar, arriba del paso 1— y la 3
+   decía lo que pasa después de cruzarla. Separada, la 1 arrastraba un
+   riesgo —«¿y si el organismo sigue necesitando los datos escritos?»—
+   que la 3 ya resolvía tres párrafos más abajo.
+
+   El precio de fundirlas: se pierde la versión barata. La 1 sola se
+   hacía en días, porque comprobar que un PDF se lee no toca el
+   contenido; leerlo sí, y eso ya no es una tarde de trabajo. Queda
+   escrito en su cuadro que puede partirse en dos entregas.
 
    DÓNDE ENTRA LA IA, Y DÓNDE NO
 
-   Entra en tres de las cinco, y con distinta profundidad: mirar si el
-   PDF es legible (1), leerlo y PROPONER los datos (3), y avisar de lo
-   que le pasa al documento —vencido, sin apostilla— (5).
+   Entra en dos de las cuatro: leer el documento y PROPONER los datos
+   (1), y avisar de lo que le pasa al papel —vencido, sin apostilla—
+   (3).
 
    No entra en ninguna a decidir. La IA propone y la persona confirma;
    nada se guarda ni se envía sin que alguien lo haya mirado. Un dato
@@ -105,6 +123,12 @@
 .idea-q{font-size:12.5px; color:var(--mudo); line-height:1.6; max-width:74ch;
   margin:0 0 14px;}
 .idea-q b{color:var(--ink); font-weight:600;}
+/* La idea 1 enseña DOS momentos, antes y después de soltar: sin un rótulo
+   encima parecen dos pantallas distintas en vez de la misma dos segundos
+   más tarde. */
+.momento{font-size:9.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--mudo); margin:0 0 9px;}
+.marco-mq + .marco-mq{margin-top:12px;}
 .marco-mq{border:1px solid var(--line); border-radius:12px; overflow:hidden;
   background:var(--block); padding:18px; box-shadow:var(--shadow);}
 .cuesta{display:flex; gap:22px; margin-top:12px; flex-wrap:wrap; font-size:11.5px;
@@ -186,7 +210,7 @@
 
 <div class="mq-cartel">
   <b>Maqueta · Si ya tienes el papel, no lo escribas otra vez</b>
-  <span>Cinco maneras de dejar subir el PDF y adelantar la solicitud. Tres llevan IA.
+  <span>Cuatro maneras de dejar subir el PDF y adelantar la solicitud. Dos llevan IA.
         No es la aplicación: nada de lo que hay aquí funciona.</span>
   <a class="mq-ir" href="portada-sin-repetir.html">Ver las maquetas de la portada →</a>
 </div>
@@ -218,28 +242,35 @@
 
       <p class="idea-q" style="max-width:78ch">
         La ficha de este trámite dice de sí misma: <b>«aquí el CIIP da por bueno el
-        poder»</b>. O sea que el trámite ES el documento — y aun así se piden cinco
-        casillas a mano antes de llegar al paso donde por fin se sube el PDF que ya
-        las contiene, escritas por un notario. Quien llega con el poder en la mano
-        copia lo que ya está en el papel, con el riesgo de equivocarse en un dígito,
-        que es la devolución más común.
+        poder»</b>. O sea que el trámite ES el documento — y aun así se piden seis
+        casillas a mano antes de llegar al paso donde por fin se sube el PDF, que ya
+        lleva cinco de las seis escritas por un notario. Quien llega con el poder en
+        la mano copia lo que ya está en el papel, con el riesgo de equivocarse en un
+        dígito, que es la devolución más común.
       </p>
 
       <!-- ── 1 ────────────────────────────────────────────────── -->
       <section class="idea">
         <div class="idea-h">
           <span class="idea-n">1</span>
-          <span class="idea-t">El atajo, arriba del paso 1</span>
-          <span class="ia-sello">IA · comprueba</span>
+          <span class="idea-t">El atajo arriba, y lo que sueltas se lee</span>
+          <span class="ia-sello">IA · lee y propone</span>
         </div>
         <p class="idea-q">
-          Una franja encima de las casillas, antes de que empieces a teclear. Se suelta
-          el PDF ahí y la solicitud salta directa al repaso, con el documento ya puesto
-          como recaudo. <b>La IA no lee el contenido: sólo mira que sea legible, que
-          tenga las páginas y que parezca un poder</b> — que es el 80 % de las
-          devoluciones y se puede comprobar antes de enviar nada.
+          Una franja encima de las casillas, antes de que empieces a teclear: <b>la puerta
+          va arriba porque abajo no sirve de nada</b> — quien ya tiene el papel la
+          encontraría cuando ya ha empezado a copiar. Sueltas el PDF ahí, y lo que has
+          soltado <b>se lee</b>: las casillas aparecen propuestas con lo que el documento
+          dice, cada una marcada, y el archivo queda puesto como recaudo del paso 2 sin
+          volver a subirlo.
+        </p>
+        <p class="idea-q">
+          <b>Propone; no da nada por bueno.</b> Repasas y confirmas, o corriges — el papel
+          manda. Un dato que el panel escriba solo en una solicitud oficial es un dato que
+          nadie ha revisado, y quien responde de él es el inversionista.
         </p>
         <div class="marco-mq">
+          <p class="momento">Al entrar en el paso 1</p>
           <ol class="pa-barra">
             <li class="pa-seg ahora"><button class="pa-ir" type="button"><i class="pa-linea"></i>
               <span class="pa-cuerpo"><span class="pa-n">1</span><span class="pa-l">Tus datos</span></span></button></li>
@@ -252,8 +283,8 @@
           <div class="pa-hoja">
             <div class="atajo">
               <div class="atajo-t">¿Ya tienes el poder firmado ante notario?</div>
-              <div class="atajo-q">Súbelo y te saltas estas cinco casillas: el CIIP lo lee del
-                documento. Si aún no lo tienes, sigue rellenando abajo.</div>
+              <div class="atajo-q">Suéltalo aquí y lo leemos por ti: rellenamos lo que diga el
+                documento y tú lo repasas. Si aún no lo tienes, sigue rellenando abajo.</div>
               <div class="soltar">Suelta aquí el PDF del poder
                 <span>o pulsa para elegirlo · PDF o foto, hasta 10 MB</span></div>
             </div>
@@ -262,18 +293,60 @@
               <div class="sol-campo"><label>Documento del apoderado</label><div class="caja"></div></div>
               <div class="sol-campo"><label>Número del poder</label><div class="caja"></div></div>
               <div class="sol-campo"><label>Notaría donde se otorgó</label><div class="caja"></div></div>
+              <div class="sol-campo"><label>Fecha del poder</label><div class="caja"></div></div>
+              <div class="sol-campo ancho"><label>Para qué lo autorizas</label><div class="caja"></div></div>
             </div>
             <div class="pa-pie"><button class="btn navy sig" type="button">Siguiente</button></div>
           </div>
         </div>
+        <div class="marco-mq">
+          <p class="momento">Segundo y medio después de soltarlo</p>
+          <div class="pa-hoja">
+            <div class="leido">
+              <div class="leido-h">
+                <svg viewBox="0 0 24 24"><path d="M12 3l1.7 4.8L18.5 9l-4.8 1.2L12 15l-1.7-4.8L5.5 9l4.8-1.2z"/></svg>
+                Leído de «poder-notaria-12.pdf»
+              </div>
+              <div class="leido-q">Esto es lo que hemos entendido del documento, y ya queda puesto
+                como recaudo del paso 2. Repásalo: si algo no coincide con el papel, corrígelo
+                aquí — el papel manda.</div>
+            </div>
+            <div class="sol-campos">
+              <div class="sol-campo propuesto"><label>Nombre del apoderado <span class="de-ia">del documento</span></label>
+                <div class="caja">Ana María Rojas Betancourt</div></div>
+              <div class="sol-campo propuesto"><label>Documento del apoderado <span class="de-ia">del documento</span></label>
+                <div class="caja">V-12.345.678</div></div>
+              <div class="sol-campo propuesto"><label>Número del poder <span class="de-ia">del documento</span></label>
+                <div class="caja">12, Tomo 45-A</div></div>
+              <div class="sol-campo propuesto"><label>Notaría donde se otorgó <span class="de-ia">del documento</span></label>
+                <div class="caja">Notaría Pública Cuarta de Caracas</div></div>
+              <div class="sol-campo propuesto"><label>Fecha del poder <span class="de-ia">del documento</span></label>
+                <div class="caja">12 de marzo de 2025</div></div>
+              <div class="sol-campo ancho"><label>Para qué lo autorizas <span class="de-ia">no lo dice el documento</span></label>
+                <div class="caja">Escríbelo tú</div></div>
+            </div>
+            <div class="confirmar">
+              <button class="btn ghost" type="button">Corregir a mano</button>
+              <button class="btn navy" type="button">Está bien, sigue</button>
+            </div>
+          </div>
+        </div>
+        <p class="idea-q" style="margin-top:14px">
+          <b>Cinco de seis, no seis de seis.</b> «Para qué lo autorizas» se queda vacía y
+          con su etiqueta gris: eso no está escrito en ningún poder notarial, así que se
+          teclea siempre. No es un fallo que se pueda pulir — es que el dato no existe en
+          el documento.
+        </p>
         <div class="cuesta">
-          <div><b>Lo que cuesta</b> Poco. La zona de soltar ya existe en el paso 2; se
-            duplica arriba y se le enseña a saltar al paso 3.</div>
-          <div><b>Lo que arriesga</b> Que el organismo siga necesitando los datos escritos.
-            Sola, esta idea no lo arregla: aquí la IA sólo mira que el PDF valga, no lo
-            lee. <b>Quien lo arregla es la 3</b>, que saca los datos del documento y te
-            los pone a repasar. Y casi del todo, no del todo: «para qué lo autorizas»
-            no está escrito en ningún poder, y ése se teclea siempre.</div>
+          <div><b>Lo que cuesta</b> Lo más caro de las cuatro, y se puede partir en dos
+            entregas: primero la puerta, que sólo comprueba que el PDF se lee y se hace en
+            días; después la lectura. Para leerlo hay que decidir DÓNDE: el documento lleva
+            datos personales, así que no puede salir a cualquier sitio. Lo natural es una
+            función del propio Supabase.</div>
+          <div><b>Lo que arriesga</b> Que la lectura falle en silencio y nadie lo note. Por
+            eso cada casilla dice de dónde salió y ninguna se da por buena sin que la mires.
+            Y una pregunta que no arregla el código: si el organismo no necesita los datos
+            escritos, estas casillas sobran para todo el mundo.</div>
         </div>
       </section>
 
@@ -301,9 +374,9 @@
             </div>
             <div class="camino">
               <div class="ct">Todavía no lo tengo</div>
-              <div class="cq">Vas a otorgarlo ahora. Te acompañamos con las cinco casillas
+              <div class="cq">Vas a otorgarlo ahora. Te acompañamos con las seis casillas
                 y te decimos qué llevar a la notaría.</div>
-              <div class="cp">5 casillas y 3 documentos →</div>
+              <div class="cp">6 casillas y 3 documentos →</div>
             </div>
           </div>
         </div>
@@ -319,58 +392,6 @@
       <section class="idea">
         <div class="idea-h">
           <span class="idea-n">3</span>
-          <span class="idea-t">La IA lee el documento y propone</span>
-          <span class="ia-sello">IA · lee y propone</span>
-        </div>
-        <p class="idea-q">
-          La que de verdad ahorra teclear. Subes el PDF y el panel <b>propone</b> las cinco
-          casillas con lo que ha leído, cada una marcada y con el trozo del documento de
-          donde salió. Tú confirmas o corriges. <b>Nada se guarda ni se envía sin que lo
-          apruebes</b>: un dato que el panel escriba solo en una solicitud oficial es un
-          dato que nadie ha revisado, y quien responde de él es el inversionista.
-        </p>
-        <div class="marco-mq">
-          <div class="pa-cuenta"><span class="pc-n">Paso 1 de 3</span><h3 class="pc-t">Tus datos</h3></div>
-          <div class="pa-hoja">
-            <div class="leido">
-              <div class="leido-h">
-                <svg viewBox="0 0 24 24"><path d="M12 3l1.7 4.8L18.5 9l-4.8 1.2L12 15l-1.7-4.8L5.5 9l4.8-1.2z"/></svg>
-                Leído de «poder-notaria-12.pdf»
-              </div>
-              <div class="leido-q">Esto es lo que hemos entendido del documento. Repásalo:
-                si algo no coincide con el papel, córrigelo aquí — el papel manda.</div>
-            </div>
-            <div class="sol-campos">
-              <div class="sol-campo propuesto"><label>Nombre del apoderado <span class="de-ia">del documento</span></label>
-                <div class="caja">Ana María Rojas Betancourt</div></div>
-              <div class="sol-campo propuesto"><label>Documento del apoderado <span class="de-ia">del documento</span></label>
-                <div class="caja">V-12.345.678</div></div>
-              <div class="sol-campo propuesto"><label>Número del poder <span class="de-ia">del documento</span></label>
-                <div class="caja">12, Tomo 45-A</div></div>
-              <div class="sol-campo propuesto"><label>Notaría donde se otorgó <span class="de-ia">del documento</span></label>
-                <div class="caja">Notaría Pública Cuarta de Caracas</div></div>
-              <div class="sol-campo ancho"><label>Para qué lo autorizas <span class="de-ia">no lo dice el documento</span></label>
-                <div class="caja">Escríbelo tú</div></div>
-            </div>
-            <div class="confirmar">
-              <button class="btn ghost" type="button">Corregir a mano</button>
-              <button class="btn navy" type="button">Está bien, sigue</button>
-            </div>
-          </div>
-        </div>
-        <div class="cuesta">
-          <div><b>Lo que cuesta</b> Lo más caro de las cinco. Hace falta decidir DÓNDE se
-            lee el PDF: el documento lleva datos personales, así que no puede salir a
-            cualquier sitio. Lo natural es una función del propio Supabase.</div>
-          <div><b>Lo que arriesga</b> Que la lectura falle en silencio. Por eso cada casilla
-            dice de dónde salió y ninguna se da por buena sin que la mires.</div>
-        </div>
-      </section>
-
-      <!-- ── 4 ────────────────────────────────────────────────── -->
-      <section class="idea">
-        <div class="idea-h">
-          <span class="idea-n">4</span>
           <span class="idea-t">Decirlo antes de entrar, en la ficha</span>
           <span class="ia-sello">IA · avisa</span>
         </div>
@@ -392,7 +413,7 @@
               <span class="sem-n">Traducción certificada<div class="rec-e">opcional · sólo si el poder no está en castellano</div></span></div>
             <div class="sem-pie">
               <b>Tienes los dos que hacen falta.</b> Si entras ahora, esta solicitud se
-              envía hoy: sólo hay que confirmar cinco datos.
+              envía hoy: sólo hay que rellenar seis datos.
               <div style="margin-top:11px"><button class="btn navy" type="button">Empezar y enviar hoy</button></div>
             </div>
           </div>
@@ -406,10 +427,10 @@
         </div>
       </section>
 
-      <!-- ── 5 ────────────────────────────────────────────────── -->
+      <!-- ── 4 ────────────────────────────────────────────────── -->
       <section class="idea">
         <div class="idea-h">
-          <span class="idea-n">5</span>
+          <span class="idea-n">4</span>
           <span class="idea-t">Dar la vuelta al orden: el papel primero</span>
         </div>
         <p class="idea-q">
@@ -449,42 +470,41 @@
           </div>
         </div>
         <div class="cuesta">
-          <div><b>Lo que cuesta</b> Lo más barato: reordenar los pasos que ya existen y
+          <div><b>Lo que cuesta</b> Lo más barato de las cuatro: reordenar los pasos que ya existen y
             marcar el primero como hecho cuando la bóveda contesta que sí.</div>
           <div><b>Lo que arriesga</b> Casi nada. Es el cambio que se puede hacer esta
-            semana y medir antes de decidir los otros cuatro.</div>
+            semana y medir antes de decidir los otros tres.</div>
         </div>
       </section>
 
       <!-- ── comparación ──────────────────────────────────────── -->
       <section class="idea">
-        <div class="idea-h"><span class="idea-t">Las cinco, de un vistazo</span></div>
+        <div class="idea-h"><span class="idea-t">Las cuatro, de un vistazo</span></div>
         <table class="tabla-fin">
           <thead><tr><th>Idea</th><th>IA</th><th>Cuánto cuesta</th><th>Cuánto ahorra</th></tr></thead>
           <tbody>
-            <tr><td>1 · El atajo arriba</td><td>Comprueba el PDF</td><td>Bajo</td>
-              <td>Se salta 5 casillas, si el organismo lo permite</td></tr>
+            <tr><td>1 · El atajo, y se lee</td><td>Lee y propone</td><td>Alto (partible)</td>
+              <td>Cinco de seis casillas sin teclear; se confirman</td></tr>
             <tr><td>2 · Preguntar antes</td><td>—</td><td>Medio</td>
               <td>El que ya lo tiene no ve el formulario largo</td></tr>
-            <tr><td>3 · La IA lee y propone</td><td>Lee y rellena</td><td>Alto</td>
-              <td>No se teclea nada; se confirma</td></tr>
-            <tr><td>4 · Decirlo en la ficha</td><td>Avisa de vencimientos</td><td>Bajo</td>
+            <tr><td>3 · Decirlo en la ficha</td><td>Avisa de vencimientos</td><td>Bajo</td>
               <td>No ahorra pasos: evita empezar sin poder terminar</td></tr>
-            <tr><td>5 · El papel primero</td><td>—</td><td>Muy bajo</td>
+            <tr><td>4 · El papel primero</td><td>—</td><td>Muy bajo</td>
               <td>Con la bóveda llena, un paso entero desaparece</td></tr>
           </tbody>
         </table>
         <p class="idea-q" style="margin-top:16px">
-          <b>Por dónde empezaría:</b> la 5 y la 4. Las dos se apoyan en cosas que el panel
+          <b>Por dónde empezaría:</b> la 4 y la 3. Las dos se apoyan en cosas que el panel
           ya sabe —la bóveda y la cuenta de recaudos—, se pueden hacer en días y dejan
           medir cuánta gente llega con el papel ya en la mano. Ese número es el que decide
-          si merece la pena la 3, que es la cara.
+          si merece la pena la 1, que es la cara.
         </p>
         <p class="idea-q">
-          <b>Y una pregunta que hay que hacerle al CIIP antes de la 1 y la 3:</b> ¿el
-          organismo necesita los cinco datos escritos, o le basta el documento? Si le basta,
-          las casillas sobran para todo el mundo y esto deja de ser un atajo para ser el
-          trámite entero. Si no le basta, la 3 es la única que quita trabajo de verdad.
+          <b>Y una pregunta que hay que hacerle al CIIP antes de la 1:</b> ¿el organismo
+          necesita los seis datos escritos, o le basta el documento? Si le basta, las
+          casillas sobran para todo el mundo y esto deja de ser un atajo para ser el trámite
+          entero. Si no le basta, la 1 es la única que quita trabajo de verdad — y entonces
+          su precio está justificado.
         </p>
       </section>
 
