@@ -6967,8 +6967,13 @@
        'fuera de los dos');
 
     /* Con el mismo marco que sus hermanos. Sin esto, sacarlo fuera lo dejaria
-       suelto sobre el fondo, que es peor que donde estaba. */
-    var formu = document.querySelector('#trReal .sol-col');
+       suelto sobre el fondo, que es peor que donde estaba.
+
+       El hermano es la HOJA del paso, no el .sol-col de dentro: el borde se
+       mudo alli para que el pie con «Siguiente» cayera dentro de la ficha, y
+       .sol-col se quedo sin marco propio. Medido contra el de dentro, esta
+       prueba pedia que el ofrecimiento tampoco tuviera ninguno. */
+    var formu = document.querySelector('#trReal .pa-hoja:not([hidden])');
     if (formu) {
       var a = window.getComputedStyle(of), b = window.getComputedStyle(formu);
       igual('gestion: con el mismo borde que el formulario',
@@ -7139,6 +7144,21 @@
          v.right - d.right <= 1 && v.left - d.left >= -1,
          'derecha ' + Math.round(v.right - d.right) +
          ', izquierda ' + Math.round(v.left - d.left), 'dentro');
+
+      /* «Siguiente» DENTRO de la hoja que se ve. Debajo de las tres, suelto
+         sobre el fondo, se leia como un boton flotando al lado de la ficha
+         y no como el final de lo que acabas de rellenar. Se mira el pie
+         entero -no solo el boton-, que es lo que se muda de hoja en hoja, y
+         se comprueba que no hay mas de uno. */
+      var pies = pa.querySelectorAll('.pa-pie');
+      var sigue = pa.querySelector('.pa-sigue');
+      ok('cuadre: ' + ref + ' tiene «Siguiente» dentro de la ficha',
+         pies.length === 1 && !!sigue && sigue.closest('.pa-hoja') === vistas[0],
+         pies.length + ' pie(s), ' +
+         (sigue ? (sigue.closest('.pa-hoja') ? 'en la hoja ' +
+            sigue.closest('.pa-hoja').getAttribute('data-paso') : 'fuera de las hojas')
+                : '(no hay boton)'),
+         '1 pie, en la hoja ' + vistas[0].getAttribute('data-paso'));
     }
 
     location.hash = cuadraQueda.length ? ('tramite-' + cuadraQueda[0]) : '';

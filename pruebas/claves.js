@@ -467,6 +467,81 @@ ok('filtros: ningún contador escrito a mano en el marcado',
    contadoresAMano.length === 0,
    contadoresAMano.length ? ('lleva: ' + contadoresAMano.join(', ')) : '');
 
+/* ══════════ LO QUE LA FICHA DICE ANTES DE SABER NADA ══════════
+   «Al darle F5, por unos milisegundos salen fichas que dicen Completadas.»
+   (CIIP)
+
+   El panel nacio como maqueta estatica y traia un expediente de ejemplo
+   escrito en el marcado: tres fichas con data-st="listo", su distintivo
+   verde y renglones como «Issued Jun 18». El navegador lo pinta al instante
+   -esta en el archivo- y solo despues llega la respuesta de Supabase y lo
+   repinta. En ese hueco, unos cientos de milisegundos en cada recarga, el
+   panel le decia a un inversionista que su visa estaba resuelta.
+
+   Esto lo mira EN EL ARCHIVO y no en la pantalla, y ahi esta el porque de
+   que durara tanto: cuando el arnes abre el panel, la base ya contesto y el
+   ejemplo ya se borro. Una prueba de pantalla no puede ver esto.
+
+   La del banco de activos se queda fuera: no es un tramite -no tiene cola ni
+   estado- y su «Disponible» no lo pinta nadie desde la base. Se nombra aqui
+   igual que en el panel, y si algun dia entra otra ficha de mirar, esta
+   lista es el segundo sitio que hay que tocar. */
+const NO_ES_TRAMITE_MARCADO = ['c15'];
+
+function fichasDelMarcado() {
+  const fichas = [];
+  const re = /<div class="tcard([^>]*)>([\s\S]*?)<div class="t-ente">/g;
+  let m;
+  while ((m = re.exec(PANEL))) {
+    const ref = (/data-tr="(c\d+)"/.exec(m[1]) || [])[1];
+    if (ref) fichas.push({ ref, attrs: m[1], cuerpo: m[2] });
+  }
+  return fichas.filter(f => !NO_ES_TRAMITE_MARCADO.includes(f.ref));
+}
+
+{
+  const fichas = fichasDelMarcado();
+  ok('arranque: hay fichas que mirar en el marcado', fichas.length >= 30,
+     fichas.length + ' fichas');
+
+  const conEstado = fichas.filter(f => /data-st="/.test(f.attrs)).map(f => f.ref);
+  ok('arranque: ninguna ficha trae su estado escrito',
+     conEstado.length === 0,
+     conEstado.length ? conEstado.length + ': ' + conEstado.slice(0, 6).join(', ') : '');
+
+  const conChip = fichas
+    .filter(f => /<span class="chip [a-z]/.test(f.cuerpo))
+    .map(f => f.ref);
+  ok('arranque: ni su distintivo de color',
+     conChip.length === 0,
+     conChip.length ? conChip.length + ': ' + conChip.slice(0, 6).join(', ') : '');
+
+  /* El reloj: ni texto de ejemplo, ni a la vista. Las dos cosas, porque
+     esconderlo con algo escrito dentro lo dejaria listo para asomar el dia
+     que alguien toque el CSS. */
+  const conHora = fichas
+    .filter(f => /<span class="t-time"[^>]*>[\s\S]*?<span>[^<]+<\/span>/.test(f.cuerpo))
+    .map(f => f.ref);
+  ok('arranque: ni una hora de ejemplo en el reloj',
+     conHora.length === 0,
+     conHora.length ? conHora.length + ': ' + conHora.slice(0, 6).join(', ') : '');
+
+  const alaVista = fichas
+    .filter(f => /<span class="t-time">/.test(f.cuerpo))
+    .map(f => f.ref);
+  ok('arranque: y el reloj nace escondido',
+     alaVista.length === 0,
+     alaVista.length ? alaVista.length + ': ' + alaVista.slice(0, 6).join(', ') : '');
+
+  /* Y las etapas, que contaban «3 of 10 done» antes de saber nada. */
+  const cuentas = (PANEL.match(/class="jcount">[^<]+</g) || []).length;
+  ok('arranque: las etapas no cuentan nada todavia', cuentas === 0,
+     cuentas + ' cuentas escritas');
+  const barras = (PANEL.match(/<span style="width:(?!0%)\d+%"><\/span>/g) || []).length;
+  ok('arranque: ni sus barras traen avance', barras === 0,
+     barras + ' barras con avance');
+}
+
 console.log('\n  ' + pasan + ' de ' + (pasan + fallan) + ' comprobaciones superadas');
 console.log('  ' + claves.length + ' claves de interfaz y ' + clavesUI.length +
             ' de trámites, en ' + idiomas.length + ' idiomas.\n');
