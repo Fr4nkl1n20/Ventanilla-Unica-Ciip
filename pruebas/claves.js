@@ -542,6 +542,51 @@ function fichasDelMarcado() {
      barras + ' barras con avance');
 }
 
+/* ══════════ NI TE LLAMA POR EL NOMBRE DE OTRO ══════════
+   La esquina de la barra traia escrito el inversionista de la maqueta: «MB»
+   en el avatar, «Marco Bianchi» y «Investor · Italy». El navegador lo pinta
+   al instante, asi que en cada F5 habia un momento en que el panel te
+   llamaba por el nombre de otra persona.
+
+   Ya paso una vez, y esta escrito en el panel lo que se penso entonces: las
+   cuentas creadas fuera del registro llegan con el nombre vacio, caian en un
+   'if (nombre)' y se quedaban con el de la demostracion. «Un panel que te
+   llama por el nombre de otro no es un detalle estetico, es una cuenta que
+   parece la equivocada.» Aquello se arreglo; el arranque se quedo.
+
+   Se mira el archivo en crudo, como las de arriba: cuando el arnes abre el
+   panel la sesion ya contesto y la esquina ya dice quien eres.
+
+   Y NO basta con vaciarlo: el chip tiene que nacer OCULTO. Vacio y visible
+   deja un circulo gris y un hueco en la barra que se mueve al llenarse, y
+   sobre todo deja el sitio listo para que alguien vuelva a escribir un
+   ejemplo dentro. Es lo mismo que ya hace el boton de la cola, dos lineas
+   mas arriba en el mismo marcado. */
+{
+  const chip = /<button class="user"[^>]*>([\s\S]*?)<\/button>/.exec(PANEL);
+  ok('esquina: hay chip de usuario que mirar', !!chip, chip ? '' : '(no esta)');
+  if (chip) {
+    ok('esquina: nace oculto, que quien eres no se sabe todavia',
+       /<button class="user"[^>]*\shidden[\s>]/.test(chip[0]),
+       /<button class="user"([^>]*)>/.exec(chip[0])[1].trim() || '(sin atributos)');
+
+    const conTexto = [...chip[1].matchAll(/<div class="(avatar|u-name|u-sub)"[^>]*>([^<]+)<\/div>/g)]
+      .map(m => m[1] + '="' + m[2].trim() + '"')
+      .filter(s => !/=""$/.test(s));
+    ok('esquina: y sin nombre, iniciales ni rol escritos',
+       conTexto.length === 0,
+       conTexto.join(', '));
+  }
+
+  /* Y que no quede el nombre de la demostracion en ninguna parte del
+     marcado. La variable PERFIL lo sigue teniendo de arranque —el panel se
+     puede abrir sin sesion— pero eso vive en el guion, no en lo que el
+     navegador pinta antes de saber nada. */
+  const enElMarcado = [...PANEL.matchAll(/<[^>]*>\s*Marco Bianchi\s*</g)].length;
+  ok('esquina: ni el nombre de la maqueta suelto en el marcado',
+     enElMarcado === 0, enElMarcado + ' veces');
+}
+
 console.log('\n  ' + pasan + ' de ' + (pasan + fallan) + ' comprobaciones superadas');
 console.log('  ' + claves.length + ' claves de interfaz y ' + clavesUI.length +
             ' de trámites, en ' + idiomas.length + ' idiomas.\n');

@@ -229,6 +229,9 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
     PERFIL.real = true;
 
     var n = document.querySelector('.u-name');   if (n) n.textContent = PERFIL.nombre;
+    /* Y ahora se enseña: hasta aqui no habia con que llenarlo. */
+    var chipU = document.querySelector('.user');
+    if (chipU) chipU.hidden = false;
     /* Las iniciales SOLO si no hay foto dentro. Esto se vuelve a llamar
        cada vez que se guarda la ficha, y escribir texto en el círculo se
        llevaba por delante la foto que acababa de ponerse ahí. */
@@ -490,6 +493,9 @@ svg{display:block;}
    creería que "Bianchi Agroindustrias" es su expediente. */
 /* Es un <button>, así que hay que devolverle el aspecto que tenía de <div>:
    sin fondo, sin borde y con el texto alineado a la izquierda. */
+/* 'hidden' tiene que poder con el display de aqui abajo, o el chip se
+   enseñaria igual mientras espera a la sesion. */
+.user[hidden]{display:none;}
 .user{display:flex; align-items:center; gap:9px; cursor:pointer; flex:none; max-width:210px;
   background:transparent; border:0; padding:0; font:inherit; color:inherit; text-align:left;}
 /* Un nombre largo se corta con puntos suspensivos en vez de partirse: la
@@ -3751,9 +3757,19 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
     </div>
     <!-- Se pulsa para completar el perfil. Ya llevaba cursor de mano desde
          antes, pero no hacía nada. -->
-    <button class="user" id="perfilBtn" type="button" aria-haspopup="dialog">
-      <div class="avatar">MB</div>
-      <div class="u-meta-txt"><div class="u-name">Marco Bianchi</div><div class="u-sub" data-i18n="user.role">Investor · Italy</div></div>
+    <!-- Nace OCULTO y vacio, igual que el boton de la cola de aqui arriba y
+         por la misma razon: quien eres no se sabe hasta que contesta la
+         sesion. Traia escrito el inversionista de la maqueta -«MB», «Marco
+         Bianchi», «Investor · Italy»- y el navegador lo pintaba al instante,
+         asi que en cada F5 habia un momento en que la esquina te llamaba por
+         el nombre de otra persona. Ya paso una vez con las cuentas sin nombre
+         y esta escrito arriba lo que se penso entonces: un panel que te llama
+         por el nombre de otro no es un detalle estetico, es una cuenta que
+         parece la equivocada.
+         Lo enseña aplicarPerfil, que es quien sabe quien eres. -->
+    <button class="user" id="perfilBtn" type="button" aria-haspopup="dialog" hidden>
+      <div class="avatar"></div>
+      <div class="u-meta-txt"><div class="u-name"></div><div class="u-sub" data-i18n="user.role"></div></div>
     </button>
     <button class="tb-btn salir-btn" id="btnSalir" type="button" data-i18n-title="tb.logout" title="Sign out" aria-label="Sign out">
       <svg viewBox="0 0 24 24"><path d="M15 17l5-5-5-5M20 12H9M12 3H6a2 2 0 00-2 2v14a2 2 0 002 2h6"/></svg>
