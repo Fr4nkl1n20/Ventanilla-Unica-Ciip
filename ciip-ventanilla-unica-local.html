@@ -2663,6 +2663,20 @@ body[data-vista="tramite"] #secTramites{display:none;}
    encima sin abrir el explorador. */
 .pa-hoja[data-paso="2"] .sol-lado{border:0; background:none; padding:0;}
 .pa-hoja[data-paso="2"] .sol-docs{max-width:none; gap:12px; margin-top:0;}
+/* ── LAS CASILLAS LLENAN LA HOJA ──
+   La rejilla llevaba un tope de 620 px de cuando el formulario compartia
+   pantalla con la columna de los papeles: alli el cuadro media unos 740 y
+   620 era todo lo que cabia sin pegarse al borde.
+
+   Con la solicitud en pasos, la hoja mide 880 y los papeles tienen la suya,
+   asi que ese tope dejaba 260 px de blanco a la derecha en todos los pasos:
+   dos columnas estrechas arrinconadas a la izquierda de una hoja ancha.
+
+   El tope se levanta y las dos columnas reparten el ancho. Lo que NO se
+   toca es .sol-campo.corto: un numero de cinco cifras en una caja de medio
+   palmo se lee como si esperara un parrafo, y eso ya estaba resuelto. */
+.pa-hoja .sol-campos{max-width:none;}
+
 .pa-hoja[data-paso="2"] .sol-doc{border:1px solid var(--line); background:var(--hoja);
   border-radius:12px; padding:14px 16px; gap:14px; flex-wrap:wrap;}
 .pa-hoja[data-paso="2"] .sol-doc + .sol-doc{border-top:1px solid var(--line);}
