@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · La IA en el formulario de la visa</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   CÓMO FUNCIONARÍA LA IA EN ESTE FORMULARIO
+
+   El de la visa de inversionista, que es el caso DIFÍCIL y por eso el
+   que merece dibujarse. En el poder, el PDF contenía lo que el
+   formulario pedía: subirlo era casi el trámite entero. Aquí no.
+
+   Las seis casillas son:
+
+     N.º de pasaporte          ─┐
+     País emisor                │ están en el pasaporte
+     Vencimiento del pasaporte ─┘
+     Consulado donde tramitas  ─┐
+     Monto estimado             │ NO están en ningún papel:
+     En qué vas a invertir     ─┘ las decides tú
+
+   O sea que leer el documento resuelve TRES de seis, y ahí se acaba lo
+   que la lectura puede hacer. Para las otras tres la IA sirve, pero
+   para otra cosa: entender lo que escribes, ponerlo en el idioma en que
+   lo van a leer, y avisarte de lo que va a hacer que te lo devuelvan.
+
+   Por eso son cinco mecanismos y no uno. Rellenar es sólo el primero, y
+   es el que menos falta hace en esta pantalla.
+
+   UNA COSA QUE CONVIENE NO CONFUNDIR
+
+   Lo del pasaporte no es IA. Un pasaporte lleva abajo dos renglones en
+   letra de máquina -la zona de lectura mecánica, la del estándar 9303
+   de la OACI- que dicen el número, el país y la fecha de vencimiento
+   con dígito de control. Eso se lee exacto, y por eso es MÁS fiable que
+   preguntárselo a un modelo. La IA entra de plan B: foto torcida,
+   pasaporte antiguo sin esos renglones, o un papel que no es un
+   pasaporte.
+
+   Decirlo importa porque «ponle IA» y «que lo lea solo» no son la misma
+   petición, y la segunda a veces se resuelve mejor sin la primera.
+
+   Y DÓNDE NO ENTRA
+
+   En ninguno de los cinco decide, envía ni guarda sin que alguien lo
+   mire. El repaso avisa y deja enviar igual: una pantalla que bloquea
+   por lo que un modelo cree haber entendido convierte una sospecha en
+   una puerta cerrada, y quien se queda fuera no tiene a quién
+   reclamarle.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Piezas del panel, copiadas a mano ── */
+.pa-barra{display:flex; gap:10px; list-style:none; margin:0 0 6px; padding:0;}
+.pa-seg{flex:1 1 0; min-width:0;}
+.pa-ir{display:block; width:100%; font:inherit; text-align:left; padding:0;
+  background:none; border:0; cursor:default; color:inherit;}
+.pa-linea{display:block; height:5px; border-radius:99px; background:var(--line);}
+.pa-seg.ahora .pa-linea{background:var(--navy2);}
+.pa-seg.hecho .pa-linea{background:var(--good);}
+.pa-cuerpo{display:flex; align-items:center; gap:7px; margin-top:9px;}
+.pa-n{flex:none; width:19px; height:19px; border-radius:50%; display:flex;
+  align-items:center; justify-content:center; font-size:10.5px; font-weight:800;
+  background:var(--block); color:var(--mudo); border:1px solid var(--line);}
+.pa-seg.ahora .pa-n{background:var(--navy2); color:#fff; border-color:var(--navy2);}
+.pa-seg.hecho .pa-n{background:var(--good-bg); color:var(--good); border-color:var(--good);}
+.pa-l{font-size:11.5px; font-weight:700; color:var(--mudo); overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap;}
+.pa-seg.ahora .pa-l{color:var(--ink);}
+@media (max-width:620px){ .pa-l{display:none;} .pa-cuerpo{justify-content:center;} }
+.pa-cuenta{display:flex; align-items:baseline; gap:9px; margin:16px 0 14px; flex-wrap:wrap;}
+.pa-cuenta .pc-n{font-size:11px; font-weight:800; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--mudo);}
+.pa-cuenta .pc-t{font-size:15px; font-weight:700; color:var(--ink); margin:0;}
+.pa-hoja{border:1px solid var(--line); background:var(--bg); border-radius:12px;
+  padding:18px 20px;}
+.pa-nota{display:flex; gap:10px; align-items:flex-start; border:1px solid var(--line);
+  border-left:3px solid var(--cyan-deep); background:var(--block); border-radius:9px;
+  padding:11px 13px; margin-bottom:18px; font-size:12px; line-height:1.5;}
+.pa-nota svg{flex:none; width:16px; height:16px; margin-top:1px; fill:none;
+  stroke:var(--cyan-deep); stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+.sol-campos{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px 16px;}
+.sol-campo.ancho{grid-column:1 / -1;}
+.sol-campo label{display:block; font-size:11px; font-weight:700; color:var(--gray);
+  margin-bottom:5px;}
+.sol-campo .caja{border:1px solid var(--line); border-radius:9px; background:var(--bg);
+  padding:10px 12px; font-size:12.5px; color:var(--mudo); min-height:38px;}
+.sol-campo .caja.alta{min-height:62px;}
+.sol-campo.propuesto .caja{border-color:#C4B5FD; background:#FBF9FF; color:var(--ink);}
+.tres{display:flex; gap:8px;}
+.tres .caja{flex:1 1 0;}
+
+/* ── Andamio de la maqueta ── */
+.idea{margin:0 0 34px;}
+.idea-h{display:flex; align-items:baseline; gap:11px; margin-bottom:6px; flex-wrap:wrap;}
+.idea-n{flex:none; width:26px; height:26px; border-radius:50%; background:var(--navy);
+  color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center;
+  justify-content:center;}
+.idea-t{font-size:16px; font-weight:700; letter-spacing:-.01em;}
+.ia-sello{font-size:9.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+  color:#6D28D9; background:#F3EEFF; border:1px solid #DDD0FF; border-radius:99px;
+  padding:3px 9px;}
+.ia-sello.no{color:var(--mudo); background:var(--block); border-color:var(--line);}
+.idea-q{font-size:12.5px; color:var(--mudo); line-height:1.6; max-width:76ch; margin:0 0 14px;}
+.idea-q b{color:var(--ink); font-weight:600;}
+.marco-mq{border:1px solid var(--line); border-radius:12px; background:var(--block);
+  padding:18px; box-shadow:var(--shadow);}
+.cuesta{display:flex; gap:22px; margin-top:12px; flex-wrap:wrap; font-size:11.5px;
+  line-height:1.55;}
+.cuesta div{flex:1 1 230px; min-width:0;}
+.cuesta b{display:block; font-size:9.5px; font-weight:800; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--mudo); margin-bottom:3px;}
+
+/* ── Lo que aporta cada mecanismo ── */
+.leido{border:1px solid #DDD0FF; background:#FBF9FF; border-radius:11px;
+  padding:13px 15px; margin-bottom:16px;}
+.leido.plano{border-color:var(--good); background:var(--good-bg);}
+.leido-h{display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700;
+  margin-bottom:4px;}
+.leido-h svg{flex:none; width:15px; height:15px; fill:none; stroke:#6D28D9; stroke-width:2;
+  stroke-linecap:round; stroke-linejoin:round;}
+.leido.plano .leido-h svg{stroke:var(--good);}
+.leido-q{font-size:11.5px; color:var(--gray); line-height:1.55;}
+.de-ia{font-size:9px; font-weight:800; letter-spacing:.03em; color:#6D28D9;
+  background:#F3EEFF; border-radius:4px; padding:1px 5px; margin-left:6px;}
+.de-ia.doc{color:var(--good); background:var(--good-bg);}
+.de-ia.no{color:var(--mudo); background:var(--block);}
+
+.propone{border:1px solid #DDD0FF; background:#FBF9FF; border-radius:10px;
+  padding:11px 13px; margin-top:9px;}
+.propone-h{font-size:11.5px; font-weight:700; margin-bottom:7px;}
+.opciones{display:flex; gap:7px; flex-wrap:wrap; margin-bottom:9px;}
+.op{font-size:11.5px; font-weight:700; border:1px solid var(--line); background:var(--bg);
+  border-radius:99px; padding:5px 12px; cursor:pointer;}
+.op.elegida{border-color:#6D28D9; background:#F3EEFF; color:#6D28D9;}
+.propone-q{font-size:11px; color:var(--gray); line-height:1.55;}
+
+.dos-textos{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;
+  margin-top:10px;}
+.texto{border:1px solid var(--line); background:var(--bg); border-radius:10px; padding:11px 13px;}
+.texto .tn{font-size:9.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--mudo); margin-bottom:5px;}
+.texto .tq{font-size:12px; line-height:1.5;}
+.texto.suya{border-color:#C4B5FD; background:#FBF9FF;}
+
+.repaso{border:1px solid var(--line); background:var(--bg); border-radius:12px; padding:16px;}
+.rp-h{font-size:13px; font-weight:700; margin-bottom:3px;}
+.rp-q{font-size:11.5px; color:var(--mudo); line-height:1.5; margin-bottom:11px;}
+.rp-f{display:flex; align-items:flex-start; gap:10px; padding:10px 0; font-size:12px;
+  border-top:1px solid var(--line-soft);}
+.rp-s{flex:none; width:17px; height:17px; border-radius:50%; display:flex;
+  align-items:center; justify-content:center; font-size:10px; font-weight:800; margin-top:1px;}
+.rp-s.si{background:var(--good-bg); color:var(--good);}
+.rp-s.ojo{background:var(--amber-bg); color:var(--amber);}
+.rp-s.mal{background:var(--rust-bg); color:var(--rust);}
+.rp-n{flex:1 1 auto; min-width:0; line-height:1.5;}
+.rp-n i{display:block; font-style:normal; font-size:11px; color:var(--mudo); margin-top:2px;}
+.rp-pie{margin-top:13px; padding-top:13px; border-top:1px solid var(--line);
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap; font-size:11.5px;
+  color:var(--gray);}
+.rp-pie .btn{margin-left:auto;}
+
+.burbuja{position:relative; border:1px solid var(--line); background:var(--bg);
+  border-radius:11px; padding:13px 15px; margin-top:10px; box-shadow:var(--shadow-lg);}
+.bu-h{display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700;
+  margin-bottom:5px;}
+.bu-q{font-size:11.5px; line-height:1.55;}
+.bu-f{margin-top:9px; padding-top:9px; border-top:1px solid var(--line-soft);
+  font-size:10.5px; color:var(--mudo); line-height:1.5;}
+.bu-f b{color:var(--gray); font-weight:700;}
+.ayuda-b{font:inherit; font-size:10px; font-weight:800; width:16px; height:16px;
+  border-radius:50%; border:1px solid var(--line); background:var(--bg); color:var(--mudo);
+  cursor:pointer; margin-left:6px;}
+
+.limites{border:1px solid var(--line); border-left:3px solid var(--rust);
+  background:var(--bg); border-radius:11px; padding:16px 18px; margin-bottom:20px;}
+.limites h3{margin:0 0 9px; font-size:14px;}
+.limites ul{margin:0; padding-left:18px; font-size:12px; line-height:1.65; color:var(--gray);}
+.limites li{margin-bottom:6px;}
+.limites b{color:var(--ink);}
+
+.tabla-fin{width:100%; border-collapse:collapse; font-size:12px; margin-top:10px;}
+.tabla-fin th, .tabla-fin td{text-align:left; padding:9px 10px; border-top:1px solid var(--line);
+  vertical-align:top;}
+.tabla-fin th{font-size:10px; font-weight:800; letter-spacing:.04em; text-transform:uppercase;
+  color:var(--mudo); border-top:0;}
+.tabla-fin td:first-child{font-weight:700;}
+@media (max-width:760px){
+  .sol-campos, .dos-textos{grid-template-columns:1fr;}
+  .tres{flex-wrap:wrap;}
+  .tabla-fin, .tabla-fin tbody, .tabla-fin tr, .tabla-fin td{display:block; width:100%;}
+  .tabla-fin thead{display:none;}
+  .tabla-fin tr{border-top:1px solid var(--line); padding:8px 0;}
+  .tabla-fin td{border:0; padding:2px 0;}
+}
+</style>
+</head>
+<body>
+
+<div class="mq-cartel">
+  <b>Maqueta · La IA en el formulario de la visa</b>
+  <span>Cinco mecanismos, y uno de ellos no es IA aunque lo parezca.<br>
+        No es la aplicación: nada de lo que hay aquí funciona.</span>
+  <a class="mq-ir" href="adelantar-con-el-pdf.html">Ver la del PDF del poder →</a>
+</div>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sb-head"><img src="../logos/ciip.png" alt="CIIP"></div>
+    <nav class="sb-nav">
+      <div class="sb-g">Mi expediente</div>
+      <div class="sb-i"><span class="d"></span>Mi panel</div>
+      <div class="sb-i on"><span class="d"></span>Mis trámites</div>
+      <div class="sb-i"><span class="d"></span>Mi empresa</div>
+      <div class="sb-i"><span class="d"></span>Documentos</div>
+      <div class="sb-g">Acompañamiento</div>
+      <div class="sb-i"><span class="d"></span>Citas y agenda</div>
+      <div class="sb-i"><span class="d"></span>Ayuda y guía</div>
+    </nav>
+  </aside>
+
+  <div class="marco">
+    <div class="topbar">
+      <div class="tb-crumb">Visa de inversionista · SAIME</div>
+      <div class="tb-sp"></div>
+      <div class="tb-user"><div class="tb-av">FR</div>
+        <div>Franklin Reyes<div class="r">Inversionista · Venezuela</div></div></div>
+    </div>
+
+    <main>
+
+      <!-- ── el porqué ─────────────────────────────────────────── -->
+      <section class="idea">
+        <div class="idea-h"><span class="idea-t">Por qué aquí no basta con leer el documento</span></div>
+        <p class="idea-q">
+          En el poder, el PDF contenía lo que el formulario pedía: subirlo era casi el
+          trámite entero. <b>En la visa no.</b> De las seis casillas, tres están escritas
+          en el pasaporte —número, país y vencimiento— y las otras tres no están en ningún
+          papel del mundo, porque <b>las decides tú</b>: en qué consulado tramitas, cuánto
+          piensas invertir y en qué.
+        </p>
+        <p class="idea-q">
+          Así que leer resuelve la mitad, y ahí se acaba lo que la lectura puede hacer.
+          Para la otra mitad la IA sirve, pero <b>para otra cosa</b>: entender lo que
+          escribes, ponerlo en el idioma en que lo van a leer, y avisarte de lo que va a
+          hacer que te lo devuelvan. Por eso abajo hay cinco mecanismos y no uno.
+        </p>
+      </section>
+
+      <!-- ── 1 ────────────────────────────────────────────────── -->
+      <section class="idea">
+        <div class="idea-h">
+          <span class="idea-n">1</span>
+          <span class="idea-t">El pasaporte se lee, no se adivina</span>
+          <span class="ia-sello no">Esto no es IA</span>
+        </div>
+        <p class="idea-q">
+          Un pasaporte lleva abajo dos renglones en letra de máquina —la zona de lectura
+          mecánica del estándar 9303— que dicen el número, el país y el vencimiento
+          <b>con dígito de control</b>. Eso se lee exacto: no hay nada que interpretar, y
+          por eso es <b>más fiable que preguntárselo a un modelo</b>. La IA entra de plan B,
+          cuando esos renglones no se pueden leer: foto torcida, pasaporte viejo que no los
+          lleva, o un papel que no es un pasaporte.
+        </p>
+        <p class="idea-q">
+          Lo digo porque «ponle IA» y «que lo lea solo» no son la misma petición, y
+          <b>la segunda a veces se resuelve mejor sin la primera</b>.
+        </p>
+        <div class="marco-mq">
+          <ol class="pa-barra">
+            <li class="pa-seg ahora"><button class="pa-ir" type="button"><i class="pa-linea"></i>
+              <span class="pa-cuerpo"><span class="pa-n">1</span><span class="pa-l">Tus datos</span></span></button></li>
+            <li class="pa-seg"><button class="pa-ir" type="button"><i class="pa-linea"></i>
+              <span class="pa-cuerpo"><span class="pa-n">2</span><span class="pa-l">Recaudos</span></span></button></li>
+            <li class="pa-seg"><button class="pa-ir" type="button"><i class="pa-linea"></i>
+              <span class="pa-cuerpo"><span class="pa-n">3</span><span class="pa-l">Repasar</span></span></button></li>
+          </ol>
+          <div class="pa-cuenta"><span class="pc-n">Paso 1 de 3</span><h3 class="pc-t">Tus datos</h3></div>
+          <div class="pa-hoja">
+            <div class="leido plano">
+              <div class="leido-h">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+                Leído del pasaporte que subiste
+              </div>
+              <div class="leido-q">Tres casillas salen de los dos renglones de lectura mecánica,
+                y el nombre coincide con el de tu perfil. Las otras tres las decides tú:
+                nadie las lleva escritas.</div>
+            </div>
+            <div class="sol-campos">
+              <div class="sol-campo propuesto"><label>N.º de pasaporte <span class="de-ia doc">del pasaporte</span></label>
+                <div class="caja">YB1234567</div></div>
+              <div class="sol-campo propuesto"><label>País emisor del pasaporte <span class="de-ia doc">del pasaporte</span></label>
+                <div class="caja">Italia</div></div>
+              <div class="sol-campo propuesto"><label>Vencimiento del pasaporte <span class="de-ia doc">del pasaporte</span></label>
+                <div class="tres"><div class="caja">14</div><div class="caja">agosto</div><div class="caja">2031</div></div></div>
+              <div class="sol-campo"><label>Consulado donde tramitas <span class="de-ia no">lo decides tú</span></label>
+                <div class="caja">Elige el consulado</div></div>
+              <div class="sol-campo"><label>Monto estimado de la inversión <span class="de-ia no">lo decides tú</span></label>
+                <div class="caja">Escríbelo</div></div>
+              <div class="sol-campo ancho"><label>En qué vas a invertir <span class="de-ia no">lo decides tú</span></label>
+                <div class="caja alta">Cuéntalo con tus palabras</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="cuesta">
+          <div><b>Lo que cuesta</b> Bajo. Leer la zona mecánica es una biblioteca hecha, y
+            corre en el propio navegador: el pasaporte no sale de tu ordenador.</div>
+          <div><b>Lo que arriesga</b> Poco, y es lo que lo hace bueno: si no puede leer,
+            no propone nada y lo dice. Un lector exacto no se equivoca a medias.</div>
+        </div>
+      </section>
+
+      <!-- ── 2 ────────────────────────────────────────────────── -->
+      <section class="idea">
+        <div class="idea-h">
+          <span class="idea-n">2</span>
+          <span class="idea-t">Entender lo que escribes, y decirte qué cambia</span>
+          <span class="ia-sello">IA · entiende y clasifica</span>
+        </div>
+        <p class="idea-q">
+          «En qué vas a invertir» es texto libre, y detrás de esa casilla hay una decisión
+          que hoy nadie te enseña: <b>el sector</b>. El CIIP tiene ocho, y el sector cambia
+          qué trámites te tocan. Escribes con tus palabras y la IA propone en cuál cae —y,
+          más importante que la etiqueta, <b>te dice qué te añade al camino</b>. Si no
+          acierta, eliges de la lista: la propuesta no manda.
+        </p>
+        <div class="marco-mq">
+          <div class="pa-hoja">
+            <div class="sol-campos">
+              <div class="sol-campo ancho"><label>En qué vas a invertir</label>
+                <div class="caja alta" style="color:var(--ink)">Quiero montar una planta de empaque
+                  y frío para mango y aguacate cerca de Barquisimeto, para exportar.</div>
+                <div class="propone">
+                  <div class="propone-h">Esto parece del sector:</div>
+                  <div class="opciones">
+                    <span class="op elegida">Agroindustrial</span>
+                    <span class="op">Industrial</span>
+                    <span class="op">Otro de los ocho…</span>
+                  </div>
+                  <div class="propone-q">Si es agroindustrial, tu camino suma dos trámites que
+                    ahora no tienes: <b>registro sanitario</b> y <b>permiso de exportación</b>.
+                    Confírmalo y te los añadimos; corrígelo y no tocamos nada.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cuesta">
+          <div><b>Lo que cuesta</b> Medio. La lista de sectores ya está en la base y ya manda
+            sobre el camino; lo nuevo es la propuesta y el renglón que la explica.</div>
+          <div><b>Lo que arriesga</b> Que clasifique mal y te añada trámites que no te tocan.
+            Por eso propone y no aplica: los dos trámites entran cuando tú lo confirmas.</div>
+        </div>
+      </section>
+
+      <!-- ── 3 ────────────────────────────────────────────────── -->
+      <section class="idea">
+        <div class="idea-h">
+          <span class="idea-n">3</span>
+          <span class="idea-t">Escrito en tu idioma, leído en el suyo</span>
+          <span class="ia-sello">IA · traduce</span>
+        </div>
+        <p class="idea-q">
+          El panel habla seis idiomas, pero <b>lo que tecleas viaja tal cual</b>. Un
+          inversionista italiano rellena la casilla en italiano —es lo natural, la pantalla
+          está en italiano— y al otro lado hay un funcionario del SAIME leyendo castellano.
+          Eso vuelve devuelto y nadie entiende por qué: el formulario no dijo en ningún
+          momento en qué idioma tenía que escribirse.
+        </p>
+        <p class="idea-q">
+          Se guardan <b>las dos versiones</b>: la tuya, que es lo que quisiste decir, y la
+          traducida, que es lo que va a leer el ente. Si la traducción se queda corta,
+          corriges tú sobre ella.
+        </p>
+        <div class="marco-mq">
+          <div class="pa-hoja">
+            <div class="sol-campo ancho"><label>En qué vas a invertir</label>
+              <div class="caja alta" style="color:var(--ink)">Voglio aprire un impianto di
+                confezionamento e refrigerazione per mango e avocado vicino a Barquisimeto,
+                per esportare.</div>
+            </div>
+            <div class="burbuja">
+              <div class="bu-h">Lo has escrito en italiano</div>
+              <div class="bu-q">El SAIME lo va a leer en castellano. Podemos traducirlo y guardar
+                las dos versiones: la tuya se queda, y la traducida es la que viaja en la
+                solicitud.</div>
+              <div class="dos-textos">
+                <div class="texto"><div class="tn">Lo que escribiste</div>
+                  <div class="tq">Voglio aprire un impianto di confezionamento e refrigerazione
+                    per mango e avocado vicino a Barquisimeto, per esportare.</div></div>
+                <div class="texto suya"><div class="tn">Lo que leería el ente</div>
+                  <div class="tq">Quiero abrir una planta de empaque y refrigeración para mango
+                    y aguacate cerca de Barquisimeto, para exportar.</div></div>
+              </div>
+              <div style="display:flex; gap:8px; margin-top:11px; flex-wrap:wrap">
+                <button class="btn navy" type="button">Guardar las dos</button>
+                <button class="btn ghost" type="button">Dejarlo como lo escribí</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cuesta">
+          <div><b>Lo que cuesta</b> Bajo de construir, y es el único de los cinco que se nota
+            en los seis idiomas a la vez.</div>
+          <div><b>Lo que arriesga</b> Que la traducción cambie el sentido de algo que
+            luego te reclamen. Por eso se guardan las dos y se ve cuál viaja.</div>
+        </div>
+      </section>
+
+      <!-- ── 4 ────────────────────────────────────────────────── -->
+      <section class="idea">
+        <div class="idea-h">
+          <span class="idea-n">4</span>
+          <span class="idea-t">El repaso antes de enviar</span>
+          <span class="ia-sello">IA · avisa, no bloquea</span>
+        </div>
+        <p class="idea-q">
+          El que más devoluciones evita, porque mira <b>el formulario y los papeles juntos</b>
+          —que es justo lo que ninguna validación de casilla puede hacer—. El vencimiento del
+          pasaporte contra lo que tarda el trámite. El nombre que escribiste contra el que
+          está en el pasaporte. La fecha de los antecedentes contra lo que el SAIME acepta.
+        </p>
+        <p class="idea-q">
+          <b>Avisa y deja enviar igual.</b> Una pantalla que bloquea por lo que un modelo
+          cree haber entendido convierte una sospecha en una puerta cerrada, y quien se
+          queda fuera no tiene a quién reclamarle.
+        </p>
+        <div class="marco-mq">
+          <div class="pa-cuenta"><span class="pc-n">Paso 3 de 3</span><h3 class="pc-t">Repasar</h3></div>
+          <div class="repaso">
+            <div class="rp-h">Antes de enviarlo, tres cosas</div>
+            <div class="rp-q">Hemos mirado lo que escribiste junto con los papeles que subiste.
+              Nada de esto te impide enviar.</div>
+            <div class="rp-f"><span class="rp-s mal">!</span><span class="rp-n">
+              El nombre no coincide con el del pasaporte
+              <i>Escribiste «Franklin Reyes». El pasaporte dice «Franklin José Reyes Marcano».
+                 El SAIME compara los dos, y ésta es la devolución más común.</i></span></div>
+            <div class="rp-f"><span class="rp-s ojo">!</span><span class="rp-n">
+              Los antecedentes penales son de hace 8 meses
+              <i>El SAIME los pide de menos de 6. Sirve el que tienes para otros trámites,
+                 pero para éste conviene pedir uno nuevo antes de enviar.</i></span></div>
+            <div class="rp-f"><span class="rp-s si">✓</span><span class="rp-n">
+              El pasaporte sigue vigente cuando termine el trámite
+              <i>Vence en agosto de 2031 y esto tarda hasta 1 mes hábil. Con margen de sobra.</i></span></div>
+            <div class="rp-pie">
+              Puedes arreglarlo ahora o enviarlo como está.
+              <button class="btn navy" type="button">Enviar de todos modos</button>
+            </div>
+          </div>
+        </div>
+        <div class="cuesta">
+          <div><b>Lo que cuesta</b> Medio-alto: hay que leer los papeles y saber qué pide cada
+            ente. Pero la mitad de las comprobaciones no necesitan IA —el vencimiento contra
+            el plazo es una resta, y el plazo ya está en la base.</div>
+          <div><b>Lo que arriesga</b> Avisar de más y que se deje de leer. Tres renglones, no
+            quince: un repaso que siempre encuentra algo acaba siendo un botón que se pulsa
+            sin mirar.</div>
+        </div>
+      </section>
+
+      <!-- ── 5 ────────────────────────────────────────────────── -->
+      <section class="idea">
+        <div class="idea-h">
+          <span class="idea-n">5</span>
+          <span class="idea-t">La ayuda de la casilla, sin inventar</span>
+          <span class="ia-sello">IA · contesta con fuente</span>
+        </div>
+        <p class="idea-q">
+          «Consulado donde tramitas» parece obvio hasta que estás en Milán y hay uno en Roma
+          y otro en Nápoles. La ayuda contesta ahí mismo, en el idioma del panel, y
+          <b>dice de dónde lo ha sacado</b>. Si no lo sabe, lo dice y te pasa al equipo del
+          CIIP —que es un botón que la ficha ya tiene, no uno nuevo—.
+        </p>
+        <p class="idea-q">
+          La regla que hace que esto valga algo: <b>contesta sólo con los textos del CIIP</b>.
+          Una ayuda que se inventa un requisito es peor que no tener ayuda, porque quien la
+          lee se fía y llega al consulado con lo que no era.
+        </p>
+        <div class="marco-mq">
+          <div class="pa-hoja">
+            <div class="sol-campo"><label>Consulado donde tramitas
+              <button class="ayuda-b" type="button">?</button></label>
+              <div class="caja">Elige el consulado</div>
+            </div>
+            <div class="burbuja">
+              <div class="bu-h">¿Cuál me toca?</div>
+              <div class="bu-q">El que corresponde a donde vives, no a donde naciste. Tu perfil
+                dice Italia: el consulado de Venezuela en <b>Milán</b> atiende Lombardía,
+                Piamonte y Véneto; el de <b>Roma</b>, el resto del país. Si te has mudado hace
+                poco, manda la dirección actual.</div>
+              <div class="bu-f"><b>De dónde sale:</b> guía de la visa de inversionista del CIIP,
+                apartado «Dónde se presenta». · ¿No es tu caso?
+                <a href="#" onclick="return false">Escríbele al equipo del CIIP</a></div>
+            </div>
+          </div>
+        </div>
+        <div class="cuesta">
+          <div><b>Lo que cuesta</b> Medio, y casi todo el trabajo no es de IA: hay que tener
+            los textos del CIIP ordenados y al día. Sin eso, no hay nada que citar.</div>
+          <div><b>Lo que arriesga</b> Que conteste de más. Se ataja obligándola a citar: lo que
+            no puede citar, no lo dice.</div>
+        </div>
+      </section>
+
+      <!-- ── límites ──────────────────────────────────────────── -->
+      <section class="idea">
+        <div class="limites">
+          <h3>Dónde no entra la IA, en los cinco</h3>
+          <ul>
+            <li><b>No decide.</b> Propone, y lo propuesto queda marcado hasta que alguien lo
+              confirma. Un dato que el panel escriba solo en una solicitud oficial es un dato
+              que nadie ha revisado, y quien responde de él eres tú.</li>
+            <li><b>No envía.</b> Ninguno de los cinco pulsa «Enviar», ni siquiera cuando todo
+              está en verde.</li>
+            <li><b>No bloquea.</b> El repaso avisa; la puerta la abres tú. Bloquear por una
+              sospecha de un modelo deja fuera a gente que tenía razón.</li>
+            <li><b>No calla de dónde salió.</b> Cada casilla rellenada dice si vino del
+              documento, de la IA o de ti, y la ayuda cita su fuente.</li>
+            <li><b>No manda tus papeles a cualquier sitio.</b> El pasaporte se lee en tu
+              propio navegador. Lo que sí tenga que salir —una traducción, una
+              clasificación— sale sabiendo qué sale y a dónde.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ── comparación ──────────────────────────────────────── -->
+      <section class="idea">
+        <div class="idea-h"><span class="idea-t">Los cinco, de un vistazo</span></div>
+        <table class="tabla-fin">
+          <thead><tr><th>Mecanismo</th><th>¿Es IA?</th><th>Cuesta</th><th>Qué gana quien rellena</th></tr></thead>
+          <tbody>
+            <tr><td>1 · Leer el pasaporte</td><td>No — lectura exacta</td><td>Bajo</td>
+              <td>Tres de seis casillas, sin poder equivocarse</td></tr>
+            <tr><td>2 · Clasificar en qué inviertes</td><td>Sí</td><td>Medio</td>
+              <td>Se entera de qué trámites le añade su sector</td></tr>
+            <tr><td>3 · Traducir lo que escribe</td><td>Sí</td><td>Bajo</td>
+              <td>No le devuelven la solicitud por el idioma</td></tr>
+            <tr><td>4 · El repaso antes de enviar</td><td>A medias</td><td>Medio-alto</td>
+              <td>Evita el viaje entero de una devolución</td></tr>
+            <tr><td>5 · La ayuda de la casilla</td><td>Sí</td><td>Medio</td>
+              <td>Contesta sin salir del formulario</td></tr>
+          </tbody>
+        </table>
+        <p class="idea-q" style="margin-top:16px">
+          <b>Por dónde empezaría:</b> el 1 y la mitad del 4. El 1 porque no es IA —es una
+          biblioteca hecha, corre en el navegador y no puede equivocarse a medias—, y del 4
+          la parte que tampoco lo es: comparar el vencimiento del pasaporte con el plazo del
+          trámite es una resta, y los dos números ya están en la base. Eso se hace esta
+          semana y ya evita devoluciones.
+        </p>
+        <p class="idea-q">
+          <b>Y lo que hay que tener antes del 5:</b> los textos del CIIP ordenados y al día.
+          Ese es el trabajo de verdad; la IA que los cita es lo fácil. Sin ellos no hay nada
+          que citar, y una ayuda sin fuente es justo la que no queremos.
+        </p>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+</body>
+</html>
