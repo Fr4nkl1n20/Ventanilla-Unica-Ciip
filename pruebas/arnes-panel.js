@@ -219,6 +219,7 @@
               pliegaTramite, pliegaVuelveDeTramite, pliegaTrasTramite,
               faqAbre, faqMira,
               volverAbre, volverMira, volverTrasVolver,
+              rutaLargaEtapa, rutaLargaFicha, rutaLargaVuelve, rutaLargaMira,
               opacidadMira, opacidadSenal,
               loHacemosMira,
               gestionAbre, gestionMira, escaleraNoParpadea, gestionTrasPulsar,
@@ -7182,6 +7183,47 @@
     /* Y las cuatro etapas estan ahi, que es lo que se venia a ver. */
     igual('volver: con sus cuatro etapas',
           document.querySelectorAll('.jp[data-ir]').length, 4);
+  }
+
+  /* ── Y TAMBIEN LLEGANDO POR LA ETAPA ──
+     Lo de arriba abre la ficha directamente. Esta hace el camino largo, que
+     es el que el CIIP describio: portada → «Ir a la etapa 2» → la etapa →
+     una ficha suya → volver. Antes ese volver devolvia a la etapa, o sea al
+     paso de en medio; ahora sale a la portada igual que el corto.
+
+     Hacen falta las dos. Con solo la corta, alguien podria devolverle la
+     memoria del origen -«vuelve a donde venias»- y seguiria verde: abierta
+     de frente, se viene de la portada. */
+  function rutaLargaEtapa(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'fase-2';
+  }
+
+  function rutaLargaFicha(){
+    if (CASO !== 'vacio') return;
+    igual('ruta: se entra en la sub-pagina de la etapa',
+          document.body.getAttribute('data-vista'), 'fase');
+    /* Una ficha DE ESA ETAPA, cogida de la pantalla y no escrita aqui: el
+       reparto por etapas se retoca, y una referencia a mano se queda vieja. */
+    var t = document.querySelector('.phase[data-fase="2"] .tcard[data-tr]');
+    ok('ruta: y la etapa trae fichas que abrir', !!t,
+       t ? t.getAttribute('data-tr') : 'ninguna', 'al menos una');
+    location.hash = t ? ('tramite-' + t.getAttribute('data-tr')) : '';
+  }
+
+  function rutaLargaVuelve(){
+    if (CASO !== 'vacio') return;
+    igual('ruta: la ficha se abre desde la etapa',
+          document.body.getAttribute('data-vista'), 'tramite');
+    var b = document.getElementById('trVolver');
+    if (b) b.click();
+  }
+
+  function rutaLargaMira(){
+    if (CASO !== 'vacio') return;
+    var v = document.body.getAttribute('data-vista');
+    ok('ruta: y al volver sale a la portada, sin pasar por la etapa',
+       v === 'inicio' || !v, v || '(sin vista)', 'inicio');
   }
 
   function cuadraAbre(){
