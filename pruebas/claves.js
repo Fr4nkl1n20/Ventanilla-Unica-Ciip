@@ -296,7 +296,15 @@ const SALTOS = new Set([
   'ft_falta',
   /* Y este, que se pega detras del nombre del tipo en el desplegable de
      subir: «Pasaporte · ya lo tienes». */
-  'dc_yatienes'
+  'dc_yatienes',
+  /* Y el sello de la casilla que salio de un papel: va DETRAS del rotulo,
+     igual que los de la empresa y el de «ya lo escribiste» —«Capital
+     social · del documento»—. En mayuscula seria un rotulo suyo, y no lo
+     es: es el final del de al lado. */
+  'pa_lee_sello',
+  /* Y la segunda linea del sitio donde se suelta el papel, que continua la
+     primera: «Suelta aqui el documento / o pulsa para elegirlo». */
+  'pa_lee_elegir'
 ]);
 
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\s*/gu;
@@ -585,6 +593,66 @@ function fichasDelMarcado() {
   const enElMarcado = [...PANEL.matchAll(/<[^>]*>\s*Marco Bianchi\s*</g)].length;
   ok('esquina: ni el nombre de la maqueta suelto en el marcado',
      enElMarcado === 0, enElMarcado + ' veces');
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LA TABLA DEL LECTOR: QUE CASILLA SALE DE QUE DOCUMENTO
+   ═══════════════════════════════════════════════════════════════════
+   LEE_DE ata nombres de casilla con tipos de documento, y los dos lados
+   viven en otras dos tablas del mismo archivo. Nada comprueba que
+   coincidan: escribir 'razon_sociaal' o 'acta_constitutiba' no da error en
+   ninguna parte —simplemente esa casilla no se rellena nunca, y si el tipo
+   mal escrito era el unico del tramite, el cuadro de «suelta el papel» no
+   llega a pintarse—.
+
+   Un fallo que no dice nada es el que hay que cazar leyendo el texto. */
+{
+  const bloque = /var LEE_DE = \{([\s\S]*?)\n  \};/.exec(PANEL);
+  ok('lector: la tabla LEE_DE esta en el panel', !!bloque, bloque ? '' : '(no esta)');
+
+  if (bloque) {
+    /* Los nombres de casilla que la tabla promete rellenar. */
+    const promete = [...bloque[1].matchAll(/^\s*([a-z_]+):\s*\[/gm)].map(m => m[1]);
+    /* Los que de verdad existen, en CAMPOS. */
+    const existen = new Set([...PANEL.matchAll(/\{n:'([a-z_]+)'/g)].map(m => m[1]));
+    const inventadas = promete.filter(n => !existen.has(n));
+    ok('lector: no promete rellenar casillas que no existen',
+       inventadas.length === 0,
+       inventadas.length ? inventadas.join(', ') : promete.length + ' casillas, todas de CAMPOS');
+
+    /* Y los documentos: los que nombra contra los que algun tramite pide. */
+    const nombra = new Set([...bloque[1].matchAll(/'([a-z_]+)'/g)].map(m => m[1]));
+    const pedidos = new Set([...PANEL.matchAll(/\{tipo:'([a-z_]+)'/g)].map(m => m[1]));
+    const fantasmas = [...nombra].filter(d => !pedidos.has(d));
+    ok('lector: ni leer de documentos que ningun tramite pide',
+       fantasmas.length === 0,
+       fantasmas.length ? fantasmas.join(', ') : nombra.size + ' documentos, todos de RECAUDOS');
+
+    /* Lo que NO esta en la tabla importa tanto como lo que esta. Estas
+       cuatro no las lleva escritas ningun papel del mundo: las decide el
+       inversionista —en que consulado tramita, cuanto invierte, en que, y
+       para que autoriza al apoderado—. Si alguna apareciera aqui, el panel
+       estaria prometiendo sacar de un documento algo que no puede estar
+       dentro. */
+    const inventables = ['consulado', 'monto_inversion', 'motivo_inversion', 'poder_alcance']
+      .filter(n => promete.indexOf(n) >= 0);
+    ok('lector: y no promete leer lo que decide el inversionista',
+       inventables.length === 0,
+       inventables.length ? inventables.join(', ') : 'ninguna de las cuatro');
+  }
+}
+
+/* El cuadro no se pinta si no hay lector configurado, y hoy no lo hay. Si
+   algun dia se subiera una direccion sin querer, esto lo canta: el panel
+   empezaria a mandar documentos a un sitio que nadie ha decidido. */
+{
+  const conf = fs.readFileSync(path.join(RAIZ, 'config.js'), 'utf8');
+  const puestas = [...conf.matchAll(/LECTOR_URL:\s*'([^']*)'/g)].map(m => m[1]);
+  ok('lector: config.js declara el lector en los dos proyectos',
+     puestas.length === 2, puestas.length + ' veces');
+  ok('lector: y el panel no se pone un lector por su cuenta',
+     !/CIIP_LECTOR\s*=/.test(PANEL),
+     /CIIP_LECTOR\s*=/.test(PANEL) ? 'el panel se lo pone solo' : 'solo lo lee');
 }
 
 console.log('\n  ' + pasan + ' de ' + (pasan + fallan) + ' comprobaciones superadas');

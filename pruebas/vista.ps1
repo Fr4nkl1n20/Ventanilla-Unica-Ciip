@@ -78,6 +78,12 @@ Write-Host "  Escrita: $salida"
 Write-Host ''
 Write-Host '  La cola del equipo, con doce solicitudes:' -ForegroundColor DarkGray
 Write-Host '    http://localhost:8080/vista-cola.html?caso=cola' -ForegroundColor Green
+Write-Host '  Un expediente vacio CON lector de documentos, para probar' -ForegroundColor DarkGray
+Write-Host '  el cuadro de «si ya tienes el papel, lo leemos»:' -ForegroundColor DarkGray
+Write-Host '    http://localhost:8080/vista-cola.html?caso=lector#tramite-c6' -ForegroundColor Green
+Write-Host '    (el lector es de mentira: lo pone pruebas/supabase-mentira.js.' -ForegroundColor DarkGray
+Write-Host '     En produccion no hay ninguno todavia y el cuadro no se pinta.)' -ForegroundColor DarkGray
+Write-Host ''
 Write-Host '  Un inversionista con su expediente:' -ForegroundColor DarkGray
 Write-Host '    http://localhost:8080/vista-cola.html?caso=lleno' -ForegroundColor Green
 Write-Host ''

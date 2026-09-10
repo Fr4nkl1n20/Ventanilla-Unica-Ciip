@@ -1035,6 +1035,13 @@ body[data-vista="empresa"] .fase-bar{display:none;}
    la empresa -aquello es la ficha oficial, esto una copia de otro
    formulario- y conviene que se note cual es cual. */
 .sol-campo .de-antes{color:var(--gray); cursor:help;}
+/* Y el tercero: lo que salio del documento que subiste. Va en morado
+   porque no es lo mismo que los otros dos —aquellos son datos tuyos que
+   el panel ya tenia; este lo ha leido una maquina de un papel— y quien
+   repasa tiene que poder distinguirlos de un vistazo. */
+.sol-campo .de-papel{font-size:9.5px; font-weight:700; letter-spacing:.03em;
+  color:#6D28D9; background:#F3EEFF; border-radius:4px; padding:1px 5px; margin-left:7px;}
+.sol-campo.de-un-papel input, .sol-campo.de-un-papel select{border-color:#C4B5FD;}
 
 /* --- la boveda de documentos --- */
 /* ── La cola en tabla ──
@@ -2679,6 +2686,34 @@ body[data-vista="tramite"] #secTramites{display:none;}
    toca es .sol-campo.corto: un numero de cinco cifras en una caja de medio
    palmo se lee como si esperara un parrafo, y eso ya estaba resuelto. */
 .pa-hoja .sol-campos{max-width:none;}
+
+/* ── El cuadro de «si ya tienes el papel, lo leemos» ──
+   Va ARRIBA del aviso y de las casillas. Debajo no serviria de nada:
+   quien ya tiene el documento lo encontraria cuando ya ha empezado a
+   copiarlo a mano, que es justo lo que viene a evitar. */
+.pa-lee{border:1px solid var(--navy2); background:var(--activa-bg); border-radius:11px;
+  padding:14px 16px; margin-bottom:16px;}
+.pa-lee-t{font-size:13px; font-weight:700; margin-bottom:3px;}
+.pa-lee-q{font-size:12px; color:var(--gray); line-height:1.5; margin-bottom:11px;}
+.pa-lee-z{display:block; width:100%; font:inherit; cursor:pointer; text-align:center;
+  border:1.5px dashed var(--cyan-deep); border-radius:10px; background:var(--hoja);
+  padding:16px; color:var(--navy2);}
+.pa-lee-z b{display:block; font-size:12px; font-weight:700;}
+.pa-lee-z span{display:block; font-size:11px; color:var(--mudo); margin-top:3px;}
+.pa-lee-z:hover{background:var(--activa-bg);}
+.pa-lee-z.encima{background:var(--activa-bg); border-style:solid;}
+.pa-lee-z.leyendo{cursor:default; border-style:solid; opacity:.75;}
+.pa-lee.hecho{border-color:#C4B5FD; background:#FBF9FF;}
+.pa-lee.falla{border-color:var(--amber); background:var(--amber-bg);}
+.pa-lee-h{display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700;
+  margin-bottom:4px;}
+.pa-lee-h svg{flex:none; width:15px; height:15px; fill:none; stroke:#6D28D9; stroke-width:2;
+  stroke-linecap:round; stroke-linejoin:round;}
+.pa-lee.falla .pa-lee-h svg{stroke:var(--amber);}
+.pa-lee-r{font-size:11.5px; color:var(--gray); line-height:1.55;}
+.pa-lee-otro{font:inherit; font-size:11px; font-weight:700; cursor:pointer; margin-top:10px;
+  border:1px solid var(--line); background:var(--hoja); border-radius:7px; padding:6px 12px;
+  color:var(--ink);}
 
 
 .pa-hoja[data-paso="2"] .sol-doc{border:1px solid var(--line); background:var(--hoja);
@@ -8183,6 +8218,96 @@ applyLang(idiomaParaMi());
   };
 
   /* ─────────────────────────────────────────────────────────────────
+     QUE CASILLA SALE DE QUE DOCUMENTO
+     ─────────────────────────────────────────────────────────────────
+     Va por NOMBRE DE CASILLA, no por tramite. Los nombres se repiten, y
+     mucho: contando los 33 tramites de arriba, 'razon_social' sale 19
+     veces, 'rif_empresa' 16, 'actividad_economica' 12, 'representante'
+     y 'direccion_fiscal' 8 cada una. Con una tabla por tramite habria
+     que escribir el mismo par treinta y tantas veces y acordarse de
+     cambiarlo en todas; asi son treinta y una lineas y se acabo.
+
+     El valor es una LISTA porque hay casillas que pueden salir de dos
+     papeles distintos: la fecha de nacimiento esta en la cedula y en el
+     pasaporte. Manda el primero que ESE tramite pida como recaudo; si
+     no pide ninguno, la casilla no se rellena sola y se teclea, que es
+     lo que pasaba siempre.
+
+     Lo que NO esta aqui importa tanto como lo que esta. El consulado
+     donde tramitas, el monto que piensas invertir, para que autorizas
+     al apoderado o en que vas a invertir no estan escritos en ningun
+     papel del mundo: los decides tu. Una tabla que prometiera
+     rellenarlos estaria mintiendo.
+     ───────────────────────────────────────────────────────────────── */
+  var LEE_DE = {
+    /* el acta constitutiva */
+    razon_social:          ['acta_constitutiva'],
+    numero_registro:       ['acta_constitutiva'],
+    registro_mercantil:    ['acta_constitutiva'],
+    fecha_constitucion:    ['acta_constitutiva'],
+    fecha_protocolizacion: ['acta_constitutiva'],
+    capital_social:        ['acta_constitutiva'],
+    objeto_social:         ['acta_constitutiva'],
+    domicilio_social:      ['acta_constitutiva'],
+    socios:                ['acta_constitutiva'],
+    tipo_sociedad:         ['acta_constitutiva'],
+
+    /* el RIF de la empresa */
+    rif_empresa:           ['rif_empresa'],
+    actividad_economica:   ['rif_empresa'],
+    direccion_fiscal:      ['rif_empresa', 'domicilio_empresa'],
+
+    /* el pasaporte y la cedula */
+    numero_pasaporte:      ['pasaporte'],
+    pais_emisor:           ['pasaporte'],
+    vence_pasaporte:       ['pasaporte'],
+    numero_documento:      ['cedula', 'pasaporte'],
+    fecha_nacimiento:      ['cedula', 'pasaporte'],
+
+    /* la visa estampada */
+    numero_visa:           ['visa'],
+
+    /* la licencia de conducir extranjera */
+    numero_licencia:       ['licencia_extranjera'],
+    pais_licencia:         ['licencia_extranjera'],
+    categoria:             ['licencia_extranjera'],
+    fecha_emision:         ['licencia_extranjera'],
+    vence_licencia:        ['licencia_extranjera'],
+
+    /* el poder notariado */
+    apoderado_nombre:      ['poder'],
+    apoderado_documento:   ['poder'],
+    poder_numero:          ['poder'],
+    poder_notaria:         ['poder'],
+    poder_fecha:           ['poder'],
+
+    /* los comprobantes de domicilio */
+    direccion_vzla:        ['domicilio'],
+    direccion_local:       ['domicilio_empresa']
+  };
+
+  /* De los papeles que ESTE tramite pide, cuales rellenan casillas suyas.
+     Devuelve {tipo de documento: [nombres de casilla]}. Vacio si ninguno,
+     que es cuando el cuadro de soltar no tiene nada que ofrecer y no se
+     pinta. */
+  function papelesQueRellenan(codigo){
+    var claveDe = {};
+    (RECAUDOS[codigo] || []).forEach(function(r){ claveDe[r.tipo] = r.clave; });
+    var porDoc = {};
+    (CAMPOS[codigo] || []).forEach(function(c){
+      var de = LEE_DE[c.n];
+      if (!de) return;
+      for (var i = 0; i < de.length; i++){
+        if (claveDe.hasOwnProperty(de[i])){
+          (porDoc[de[i]] = porDoc[de[i]] || []).push(c.n);
+          return;   /* el primero que el tramite pida manda */
+        }
+      }
+    });
+    return {porDoc: porDoc, claveDe: claveDe};
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
      PUNTO DE ENTRADA
      Lo llama pintaTramite() cada vez que se abre el detalle de uno.
      ───────────────────────────────────────────────────────────────── */
@@ -8687,6 +8812,215 @@ applyLang(idiomaParaMi());
        un renglon avisarlo aqui, y se ahorra un viaje entero. */
     col.appendChild(nota(u.pa_nota_datos));
 
+    /* ── SI YA TIENES EL PAPEL, QUE LO LEA ──
+       Va ARRIBA del aviso y de las casillas, y esa es media idea. Debajo
+       no serviria de nada: quien llega con el documento en la mano lo
+       encontraria cuando ya ha empezado a copiarlo, que es justo el
+       trabajo que viene a quitar.
+
+       Solo aparece si se cumplen las dos cosas: que haya un lector
+       configurado, y que alguno de los papeles que ESTE tramite pide
+       contenga alguna de SUS casillas. Sin lector no se pinta nada —no
+       hay interfaz muerta, ni se finge que lee—; y en un tramite cuyos
+       recaudos no lleven los datos dentro, el cuadro seria un adorno que
+       promete algo que no puede cumplir. */
+    (function(){
+      var lector = window.CIIP_LECTOR;
+      if (typeof lector !== 'function') return;
+
+      var mapa = papelesQueRellenan(tipo.codigo);
+      var docs = Object.keys(mapa.porDoc);
+      if (!docs.length) return;
+
+      var ESTRELLA = '<path d="M12 3l1.7 4.8L18.5 9l-4.8 1.2L12 15l-1.7-4.8L5.5 9l4.8-1.2z"/>';
+      var AVISO    = '<circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/>';
+
+      var cuadro = el('div', 'pa-lee');
+      var zona = null, arch = null;
+      pidePapel();
+      col.insertBefore(cuadro, col.firstChild);
+
+      /* ── el cuadro cuando todavia no has soltado nada ── */
+      function pidePapel(){
+        cuadro.className = 'pa-lee';
+        cuadro.textContent = '';
+        cuadro.appendChild(el('div', 'pa-lee-t', u.pa_lee_t || ''));
+        /* Se dicen QUE papeles sirven, con el nombre que ya tienen en los
+           recaudos de abajo: prometer «sube el documento» a secas hace que
+           alguien suelte el que no era y se lleve un no sin saber por que. */
+        var nombres = docs.map(function(d){ return u[mapa.claveDe[d]] || d; });
+        cuadro.appendChild(el('div', 'pa-lee-q',
+          String(u.pa_lee_q || '').replace('{papeles}', nombres.join(' \u00b7 '))));
+
+        zona = el('button', 'pa-lee-z');
+        zona.type = 'button';
+        ponZona(u.pa_lee_soltar, u.pa_lee_elegir);
+
+        arch = document.createElement('input');
+        arch.type = 'file';
+        arch.accept = 'image/*,application/pdf';
+        arch.hidden = true;
+
+        zona.addEventListener('click', function(){ arch.click(); });
+        arch.addEventListener('change', function(){
+          if (arch.files[0]) lee(arch.files[0]);
+        });
+        /* Soltarlo encima, igual que en las filas de recaudos. El boton se
+           queda: arrastrar no se puede con el dedo. */
+        ['dragenter', 'dragover'].forEach(function(ev){
+          zona.addEventListener(ev, function(e){
+            e.preventDefault();
+            zona.classList.add('encima');
+          });
+        });
+        ['dragleave', 'dragend', 'drop'].forEach(function(ev){
+          zona.addEventListener(ev, function(){ zona.classList.remove('encima'); });
+        });
+        zona.addEventListener('drop', function(e){
+          e.preventDefault();
+          var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+          if (f) lee(f);
+        });
+
+        cuadro.appendChild(zona);
+        cuadro.appendChild(arch);
+      }
+
+      function ponZona(gordo, fino){
+        zona.textContent = '';
+        zona.appendChild(el('b', null, gordo || ''));
+        zona.appendChild(el('span', null, fino || ''));
+      }
+
+      /* ── el cuadro cuando ya ha pasado algo ── */
+      function cabecera(clase, icono, titulo, texto){
+        cuadro.className = 'pa-lee ' + clase;
+        cuadro.textContent = '';
+        var h = el('div', 'pa-lee-h');
+        h.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + icono + '</svg>';
+        h.appendChild(el('span', null, titulo || ''));
+        cuadro.appendChild(h);
+        cuadro.appendChild(el('div', 'pa-lee-r', texto || ''));
+        var otro = el('button', 'pa-lee-otro', u.pa_lee_otro || '');
+        otro.type = 'button';
+        otro.addEventListener('click', function(){ pidePapel(); });
+        cuadro.appendChild(otro);
+      }
+
+      function lee(f){
+        zona.classList.add('leyendo');
+        ponZona(String(u.pa_lee_leyendo || '').replace('{n}', f.name), '');
+        /* Envuelto en Promise.resolve: un lector que devuelva un valor a
+           secas, o que reviente antes de devolver nada, no puede tumbar la
+           pantalla entera. */
+        Promise.resolve().then(function(){
+          return lector(f, docs);
+        }).then(function(r){
+          if (!r || !r.doc || !mapa.porDoc[r.doc]) return falla();
+          bien(f, r);
+        }, function(err){
+          console.warn('[CIIP] lector de documentos:', err && (err.message || err));
+          falla();
+        });
+      }
+
+      function bien(f, r){
+        /* Si el formulario se repinto mientras leia, esto ya no pinta nada:
+           el cuadro de ahora es otro. */
+        if (!document.body.contains(cuadro)) return;
+        var puestas = 0;
+        (mapa.porDoc[r.doc] || []).forEach(function(n){
+          var v = r.campos && r.campos[n];
+          if (v === undefined || v === null || v === '') return;
+          if (ponCampo(n, String(v))) puestas++;
+        });
+        ponEnSuRecaudo(f, r.doc);
+        cabecera('hecho', ESTRELLA,
+          String(u.pa_lee_ok || '').replace('{n}', f.name),
+          puestas ? String(unoDeEsos(puestas) ? (u.pa_lee_ok_1 || '')
+                                                    : (u.pa_lee_ok_q || '')).replace('{n}', puestas)
+                  : (u.pa_lee_ok_0 || ''));
+      }
+
+      function falla(){
+        if (!document.body.contains(cuadro)) return;
+        cabecera('falla', AVISO, u.pa_lee_falla || '', u.pa_lee_falla_q || '');
+      }
+
+      /* ── el relleno ── */
+      function ponCampo(n, valor){
+        var campo = hDatos.querySelector('.sol-campo[data-campo="' + n + '"]');
+        if (!campo) return false;
+        var ent = campo.querySelector('[name="' + n + '"]');
+        if (!ent) return false;
+        /* Lo que ya hubieras escrito manda: el documento no pisa tu letra.
+           Vale tambien para lo que vino de tu empresa o de otro tramite,
+           que ya estaba puesto antes de que soltaras nada. */
+        if (ent.value) return false;
+
+        ent.value = valor;
+        /* Un desplegable solo se queda con lo que este en su lista: si el
+           documento dice algo que no esta, mejor vacio que un valor que
+           parece elegido y no lo esta. */
+        if (ent.tagName === 'SELECT' && ent.value !== valor){ ent.value = ''; return false; }
+        /* Y las dos casillas que no son un input a secas. */
+        if (campo._pais) campo._pais.pon(valor);
+        if (campo.querySelector('.fecha3')) ponFecha3(campo, valor);
+
+        campo.classList.add('de-un-papel');
+        var lb = campo.querySelector('label');
+        if (lb && !lb.querySelector('.de-papel')){
+          lb.appendChild(el('span', 'de-papel', u.pa_lee_sello || ''));
+        }
+        /* En cuanto lo tocas deja de ser del documento y pasa a ser tuyo. Un
+           sello que sigue puesto despues de que alguien haya corregido el
+           dato dice una mentira pequena, y esas son las que nadie comprueba. */
+        function tuyo(){
+          campo.classList.remove('de-un-papel');
+          var s = campo.querySelector('.de-papel');
+          if (s) s.remove();
+        }
+        campo.addEventListener('input', tuyo);
+        campo.addEventListener('change', tuyo);
+        return true;
+      }
+
+      /* La fecha son tres listas con un escondido detras. Se pone el
+         escondido y se mueven las tres, que es lo que se ve. */
+      function ponFecha3(campo, iso){
+        var p = String(iso).split('-');
+        if (p.length !== 3) return;
+        [['.a', p[0]], ['.m', p[1]], ['.d', p[2]]].forEach(function(par){
+          var s = campo.querySelector('.fecha3 select' + par[0]);
+          if (!s) return;
+          /* Con el cero delante o sin el, segun como se monten las listas. */
+          var suelto = String(parseInt(par[1], 10));
+          var op = [].filter.call(s.options, function(o){
+            return o.value === par[1] || o.value === suelto;
+          })[0];
+          if (op){ s.value = op.value; s.dispatchEvent(new Event('change')); }
+        });
+      }
+
+      /* Y el archivo entra en su recaudo por el mismo camino que si lo
+         hubieras soltado alli: asi la cuenta de papeles y el envio se
+         enteran sin que haya que tocarlos, y no hay que subirlo dos veces. */
+      function ponEnSuRecaudo(f, doc){
+        var fila = lado && lado.querySelector('.sol-doc[data-doc="' + doc + '"]');
+        var inp = fila && fila.querySelector('input[type=file]');
+        if (!inp) return;
+        try {
+          var dt = new DataTransfer();
+          dt.items.add(f);
+          inp.files = dt.files;
+          inp.dispatchEvent(new Event('change'));
+        } catch (err){
+          console.warn('[CIIP] el papel leido no entro en su recaudo:',
+                       err && (err.message || err));
+        }
+      }
+    })();
+
     var rejilla = el('div', 'sol-campos');
     (CAMPOS[tipo.codigo] || []).forEach(function(c){
       var campo = el('div', 'sol-campo' + (c.ancho ? ' ancho' : ''));
@@ -8765,6 +9099,11 @@ applyLang(idiomaParaMi());
          estorbaria mas de lo que ayuda. */
       if (c.paises && entrada.tagName === 'INPUT'){
         var b = montaBuscadorPais(campo, entrada);
+        /* Guardado en la casilla porque el lector de documentos lo va a
+           necesitar mas tarde: poner el valor a mano en el input no mueve
+           la caja que se ve, y quedaria el pais escrito por dentro y la
+           casilla vacia por fuera. */
+        campo._pais = b;
         if (entrada.value) b.pon(entrada.value);
       } else if (c.tipo === 'date'){
         /* El escondido, PRIMERO: el que valida coge el primer input o

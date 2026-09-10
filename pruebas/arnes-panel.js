@@ -34,13 +34,19 @@
      saldria roja por el nombre del pase, no por lo que mide. */
   var SIN_SQL = (PASE === 'sinsql');
   var ES_ADMIN = (PASE === 'admin');
+  /* El pase con lector de documentos. Los DATOS son los mismos que 'vacio'
+     -el doble lo dice igual-, asi que CASO tiene que valer 'vacio' o las
+     pruebas del expediente vacio se saltarian enteras en este pase. Lo
+     unico que cambia es que aqui window.CIIP_LECTOR existe, y eso se
+     pregunta con esta bandera y no con CASO. */
+  var CON_LECTOR = (PASE === 'lector');
   /* 'pliego' trae LOS MISMOS DATOS que 'vacio': lo unico que cambia es que
      hay un pliego sin aceptar. Si CASO valiera 'pliego', las pruebas que
      miran el expediente vacio se saltarian todas y este pase mediria solo
      la puerta -y de paso dejaria sin comprobar que el panel funciona con
      normalidad DESPUES de aceptar, que es la mitad que importa-. */
   var CASO = (SIN_SQL || ES_ADMIN) ? 'gestor'
-           : (PASE === 'pliego' || PASE === 'pliegoya') ? 'vacio'
+           : (PASE === 'pliego' || PASE === 'pliegoya' || CON_LECTOR) ? 'vacio'
            : PASE;
   /* El rol de la cabecera sale del PASE, no de los datos: 'admin' trae
      los mismos tramites que un gestor, pero no el mismo rotulo. */
@@ -220,6 +226,10 @@
               faqAbre, faqMira,
               volverAbre, volverMira, volverTrasVolver,
               rutaLargaEtapa, rutaLargaFicha, rutaLargaVuelve, rutaLargaMira,
+              lectorAbre, lectorMira, lectorEscribe, lectorEscribe2, lectorSuelta, lectorRelleno,
+              lectorToca, lectorTocada,
+              lectorOtra, lectorNoLoConoce, lectorLoDice,
+              lectorApagadoAbre, lectorApagadoMira, lectorApagadoVuelve,
               opacidadMira, opacidadSenal,
               loHacemosMira,
               gestionAbre, gestionMira, escaleraNoParpadea, gestionTrasPulsar,
@@ -7233,6 +7243,226 @@
     var v = document.body.getAttribute('data-vista');
     ok('ruta: y al volver sale a la portada, sin pasar por la etapa',
        v === 'inicio' || !v, v || '(sin vista)', 'inicio');
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     EL LECTOR DE DOCUMENTOS
+     ═══════════════════════════════════════════════════════════════
+     «Si ya tienes el papel, lo leemos y rellenamos por ti». Se prueba en
+     el c6 -RIF de la empresa- porque es el caso completo: de sus seis
+     casillas, cuatro salen del acta constitutiva y una del comprobante de
+     domicilio, que son dos de sus recaudos. La sexta, la actividad
+     economica, sale del RIF de la empresa... que es lo que este tramite
+     EMITE, no lo que pide. Asi que no se rellena, y eso tambien se mide:
+     la tabla no puede prometer lo que el tramite no tiene.
+
+     Y hay un pase entero -el resto- donde el lector NO existe. Que el
+     cuadro no aparezca alli es la mitad de la regla: hoy en produccion no
+     hay lector, y una pantalla que promete leer y no lee es peor que no
+     tenerla. */
+  function lectorAbre(){
+    if (!CON_LECTOR) return;
+    location.hash = 'tramite-c6';
+  }
+
+  function lectorMira(){
+    if (!CON_LECTOR) return;
+    var c = document.querySelector('#trReal .pa-lee');
+    ok('lector: el cuadro de soltar el papel esta arriba del paso 1', !!c,
+       c ? 'esta' : 'no esta', 'un .pa-lee');
+    if (!c) return;
+    /* Arriba del todo: por debajo del aviso o de las casillas no ahorraria
+       nada, porque se leeria cuando ya has empezado a copiar. */
+    var col = c.parentNode;
+    ok('lector: y es lo PRIMERO de la hoja, antes del aviso',
+       col.firstElementChild === c,
+       col.firstElementChild ? col.firstElementChild.className : '(nada)', 'el .pa-lee');
+    /* Dice QUE papeles sirven, con su nombre. Sin eso alguien suelta el que
+       no era y se lleva un no sin saber por que. */
+    var q = (c.querySelector('.pa-lee-q') || {}).textContent || '';
+    ok('lector: y dice que papeles sirven, por su nombre',
+       q.indexOf('{papeles}') < 0 && q.length > 40, q.slice(0, 70), 'la lista puesta');
+    ok('lector: con su sitio donde soltar', !!c.querySelector('.pa-lee-z'),
+       c.innerHTML.indexOf('pa-lee-z') >= 0 ? 'esta' : 'no esta', 'una zona');
+  }
+
+  /* La situacion que se quiere medir: alguien que TODAVIA no tiene empresa
+     registrada y llega con el acta en la mano. La hoja no nace vacia -la
+     ficha de la empresa y lo escrito en otros tramites ya ponen varias
+     casillas de este-, asi que se vacian a proposito. No es maquillaje: sin
+     esto lo unico que se media era que el lector NO pisa lo que ya estaba,
+     que se mide aparte y a proposito con razon_social.
+
+     Y esa es la otra mitad: razon_social se deja escrita a mano. El
+     documento no puede tocarla. Es lo unico que separa «te ayudo» de «te
+     cambio lo que habias puesto». */
+  function lectorEscribe(){
+    if (!CON_LECTOR) return;
+    var caja = document.getElementById('trReal');
+    ['numero_registro', 'capital_social', 'actividad_economica',
+     'fecha_constitucion'].forEach(function(n){
+      var c = caja.querySelector('.sol-campo[data-campo="' + n + '"]');
+      if (!c) return;
+      var e = c.querySelector('[name="' + n + '"]');
+      if (e) e.value = '';
+      /* Una fecha son tres listas con un escondido detras: vaciar solo el
+         escondido dejaria las listas puestas y la casilla mentiria. */
+      [].forEach.call(c.querySelectorAll('.fecha3 select'), function(s){
+        s.value = '';
+        s.dispatchEvent(new Event('change'));
+      });
+      /* Y el sello de donde vino, que ya no viene de ahi. */
+      var v = c.querySelector('.de-empresa, .de-antes');
+      if (v) v.remove();
+    });
+    var r = caja.querySelector('[name="razon_social"]');
+    if (r) r.value = 'Lo que yo escribi';
+  }
+
+  /* El escondido de la fecha, al final: vaciar las tres listas dispara sus
+     'change', y cada uno vuelve a escribirlo. Limpiarlo en el mismo paso
+     dependeria de en que orden reaccionan, que es justo lo que no hay que
+     dar por supuesto. */
+  function lectorEscribe2(){
+    if (!CON_LECTOR) return;
+    var e = document.querySelector('#trReal [name="fecha_constitucion"]');
+    if (e) e.value = '';
+  }
+
+  function lectorSuelta(){
+    if (!CON_LECTOR) return;
+    dale(document.querySelector('#trReal .pa-lee input[type=file]'), 'acta.pdf');
+  }
+
+  /* Meter un archivo en un input de fichero desde una prueba: 'files' es de
+     solo lectura, asi que se pasa por un DataTransfer, igual que hace el
+     panel cuando sueltas algo encima de una fila. */
+  function dale(inp, nombre){
+    if (!inp) return;
+    try {
+      var f = new File(['%PDF-1.4 de mentira'], nombre, {type: 'application/pdf'});
+      var dt = new DataTransfer();
+      dt.items.add(f);
+      inp.files = dt.files;
+      inp.dispatchEvent(new Event('change'));
+    } catch (e){
+      console.warn('[arnes] no se pudo soltar el archivo:', e && e.message);
+    }
+  }
+
+  function lectorRelleno(){
+    if (!CON_LECTOR) return;
+    var caja = document.getElementById('trReal');
+
+    /* Lo que yo habia escrito sigue ahi, y SIN sello: no lo puso el papel. */
+    var mio = caja.querySelector('.sol-campo[data-campo="razon_social"]');
+    igual('lector: lo que yo escribi no lo pisa el documento',
+          (mio.querySelector('[name="razon_social"]') || {}).value, 'Lo que yo escribi');
+    ok('lector: y esa casilla no lleva el sello del documento',
+       !mio.querySelector('.de-papel'), mio.className, 'sin .de-papel');
+
+    /* Las tres que estaban vacias, puestas y marcadas. */
+    ['numero_registro', 'capital_social'].forEach(function(n){
+      var c = caja.querySelector('.sol-campo[data-campo="' + n + '"]');
+      var v = c && (c.querySelector('[name="' + n + '"]') || {}).value;
+      ok('lector: ' + n + ' sale del documento', !!v, v || '(vacia)', 'con valor');
+      ok('lector: y ' + n + ' dice que salio de ahi',
+         !!(c && c.querySelector('.de-papel')), c ? c.className : '(no esta)', 'con .de-papel');
+    });
+
+    /* La fecha son tres listas con un escondido detras: se comprueban las
+       tres, que es lo que se ve. Poner solo el escondido dejaba la casilla
+       llena por dentro y vacia por fuera. */
+    var fe = caja.querySelector('.sol-campo[data-campo="fecha_constitucion"]');
+    igual('lector: la fecha entra en el escondido',
+          (fe.querySelector('[name="fecha_constitucion"]') || {}).value, '2024-06-18');
+    var tres = [].map.call(fe.querySelectorAll('.fecha3 select'), function(s){ return s.value; });
+    ok('lector: y tambien en las tres listas que se ven',
+       tres.every(function(v){ return v !== ''; }), tres.join('/'), 'las tres puestas');
+
+    /* La que sale de un papel que este tramite NO pide, vacia. La tabla no
+       puede prometer lo que el tramite no tiene delante. */
+    var act = caja.querySelector('.sol-campo[data-campo="actividad_economica"]');
+    ok('lector: la casilla cuyo papel este tramite no pide se queda vacia',
+       !(act && (act.querySelector('[name="actividad_economica"]') || {}).value),
+       act ? ((act.querySelector('[name="actividad_economica"]') || {}).value || '(vacia)') : '(no esta)',
+       'vacia');
+
+    /* Y el archivo, en su recaudo, sin subirlo dos veces. */
+    var fila = caja.querySelector('.sol-doc[data-doc="acta_constitutiva"]');
+    var arch = fila && fila.querySelector('input[type=file]').files[0];
+    igual('lector: el papel entra solo en su recaudo', arch ? arch.name : '(ninguno)', 'acta.pdf');
+
+    /* El cuadro cuenta lo que ha hecho. */
+    ok('lector: y el cuadro dice de donde ha leido',
+       !!caja.querySelector('.pa-lee.hecho .pa-lee-h'),
+       (caja.querySelector('.pa-lee') || {}).className || '(no esta)', 'pa-lee hecho');
+  }
+
+  /* En cuanto tocas una casilla que puso el papel, el sello se va: deja de
+     ser del documento y pasa a ser tuya. Un sello que sobrevive a la
+     correccion dice una mentira pequena, y esas no las comprueba nadie. */
+  function lectorToca(){
+    if (!CON_LECTOR) return;
+    var e = document.querySelector('#trReal [name="capital_social"]');
+    if (e){ e.value = '750000'; e.dispatchEvent(new Event('input', {bubbles: true})); }
+  }
+
+  function lectorTocada(){
+    if (!CON_LECTOR) return;
+    var c = document.querySelector('#trReal .sol-campo[data-campo="capital_social"]');
+    ok('lector: al corregir a mano, el sello del documento se va',
+       !!c && !c.querySelector('.de-papel'), c ? c.className : '(no esta)', 'sin .de-papel');
+  }
+
+  /* Un documento que el lector no reconoce: lo dice y no rellena nada. Lo
+     peor que podria hacer aqui es callarse. */
+  function lectorOtra(){
+    if (!CON_LECTOR) return;
+    var b = document.querySelector('#trReal .pa-lee-otro');
+    if (b) b.click();
+  }
+
+  function lectorNoLoConoce(){
+    if (!CON_LECTOR) return;
+    dale(document.querySelector('#trReal .pa-lee input[type=file]'), 'nose-que-es.pdf');
+  }
+
+  function lectorLoDice(){
+    if (!CON_LECTOR) return;
+    var c = document.querySelector('#trReal .pa-lee');
+    ok('lector: un documento que no reconoce se dice, no se calla',
+       !!c && c.classList.contains('falla'), c ? c.className : '(no esta)', 'pa-lee falla');
+    ok('lector: y se puede volver a intentar', !!(c && c.querySelector('.pa-lee-otro')),
+       c ? c.innerHTML.indexOf('pa-lee-otro') >= 0 : false, 'con el boton');
+  }
+
+  /* LA OTRA MITAD DE LA REGLA: sin lector configurado, el cuadro no existe.
+     Hoy en produccion no hay ninguno. Una pantalla que ofrece leer el papel
+     y no lo lee es peor que no tenerla. */
+  function lectorApagadoAbre(){
+    if (CASO !== 'vacio' || CON_LECTOR) return;
+    location.hash = 'tramite-c6';
+  }
+
+  function lectorApagadoMira(){
+    if (CASO !== 'vacio' || CON_LECTOR) return;
+    var caja = document.getElementById('trReal');
+    ok('lector: sin lector configurado, el cuadro no se pinta',
+       !caja.querySelector('.pa-lee'),
+       caja.querySelector('.pa-lee') ? 'se pinto' : 'no esta', 'nada');
+    ok('lector: y el formulario sigue estando entero',
+       caja.querySelectorAll('.sol-campo').length >= 5,
+       caja.querySelectorAll('.sol-campo').length, 'sus casillas');
+  }
+
+  /* Y se deja el panel donde estaba. Detras vienen las pruebas de la ficha
+     de la empresa, y estaban midiendo la pantalla de c6: dos rojas que no
+     eran suyas. Un paso que se lleva la pantalla y no la devuelve rompe
+     pruebas lejos de donde esta el error, que es la peor manera de romper. */
+  function lectorApagadoVuelve(){
+    if (CASO !== 'vacio' || CON_LECTOR) return;
+    location.hash = '';
   }
 
   function cuadraAbre(){

@@ -99,6 +99,49 @@
   var demoCola = (caso === 'cola');
   if (demoCola) caso = 'gestor';
 
+  /* ── UN LECTOR DE DOCUMENTOS DE MENTIRA ──
+     El panel llama a window.CIIP_LECTOR para sacar de un papel lo que el
+     papel dice. En produccion lo pone config.js, y hoy no hay ninguno: por
+     eso el cuadro de «suelta el papel» no se pinta para nadie. Aqui se pone
+     uno falso para poder probar el camino entero.
+
+     Va en el pase 'lector', que por lo demas es un expediente vacio. Si
+     estuviera encendido en todos, el cuadro apareceria en las otras once
+     pasadas y estaria midiendose una pantalla que en produccion todavia no
+     existe.
+
+     Lo que devuelve NO depende del archivo de verdad -aqui no se lee nada-,
+     sino de como se llame: asi una prueba puede pedir un documento que se
+     reconoce, uno que no, y uno que revienta. */
+  var conLector = (caso === 'lector');
+  if (conLector) caso = 'vacio';
+  if (conLector){
+    var LEIDO = {
+      acta_constitutiva: {
+        razon_social:       'Inversiones Montebello, C.A.',
+        numero_registro:    '48, Tomo 112-A',
+        fecha_constitucion: '2024-06-18',
+        capital_social:     '500000',
+        /* Tres que este tramite NO pide. El panel tiene que ignorarlas: si
+           las escribiera en algun sitio, estaria inventando. */
+        objeto_social:      'Empaque y frio de frutas',
+        socios:             'Franklin Reyes (60%), Ana Rojas (40%)',
+        tipo_sociedad:      'C.A.'
+      },
+      domicilio_empresa: {
+        direccion_fiscal: 'Av. Libertador, Torre 4, Caracas'
+      }
+    };
+    window.CIIP_LECTOR = function(archivo, papeles){
+      var n = String(archivo && archivo.name || '');
+      if (/revienta/.test(n)) return Promise.reject(new Error('el lector de mentira revienta'));
+      if (/nose/.test(n))     return Promise.resolve({doc: null, campos: {}});
+      var doc = /domicilio/.test(n) ? 'domicilio_empresa' : 'acta_constitutiva';
+      if ((papeles || []).indexOf(doc) < 0) return Promise.resolve({doc: null, campos: {}});
+      return Promise.resolve({doc: doc, campos: LEIDO[doc]});
+    };
+  }
+
   /* El catálogo, con los tres tipos que usan las pruebas. ref_panel es lo
      que ata cada tipo a su tarjeta del panel (data-tr). */
   /* El pliego que sirve el caso 'pliego'. Uno solo y vigente, como manda

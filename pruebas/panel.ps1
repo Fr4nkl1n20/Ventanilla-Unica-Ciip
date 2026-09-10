@@ -131,7 +131,13 @@ $casos = @(
   @{ caso='pliego';       ancho='1400,1000' },
   # Y quien YA lo acepto: sin puerta, pero con el enlace para releerlo.
   # Es el caso normal de todo el mundo a partir del dia siguiente.
-  @{ caso='pliegoya';     ancho='1400,1000' }
+  @{ caso='pliegoya';     ancho='1400,1000' },
+  # Un expediente vacio CON lector de documentos. Es el unico pase donde
+  # window.CIIP_LECTOR existe: en produccion todavia no hay ninguno, asi que
+  # el cuadro de «suelta el papel» no se pinta, y sin este pase el camino
+  # entero -soltar, leer, rellenar, marcar, meterlo en su recaudo- no lo
+  # miraria nadie.
+  @{ caso='lector';       ancho='1400,1000' }
 )
 foreach ($c in $casos) {
   $caso  = $c.caso
