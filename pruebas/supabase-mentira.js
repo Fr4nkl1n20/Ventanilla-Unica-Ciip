@@ -123,6 +123,14 @@
      que aceptar cierra la puerta pasaria igual con el insert roto. */
   var pliegoAceptado = yaAceptado;
 
+  /* ── LOS PLAZOS, COMO EN LA BASE DE VERDAD ──
+     Cinco filas estaban encendidas y sin 'plazo_dias' teniendolo en
+     produccion. Mientras el renglon del reloj decia siempre dias daba igual;
+     desde que dice la unidad en la que se piensa -7 dias son «1 semana», 120
+     son «4 meses»- la rama de los meses no la alcanzaba NINGUNA ficha del
+     arnes, y una rama que solo corre en produccion es una rama sin probar.
+     Los cinco numeros salen de supabase-plazos.sql: c9=28, c31=120, c19=21,
+     c17=28, c20=70. Las que siguen sin plazo tampoco lo tienen alli. */
   var TIPOS = [
     {codigo:'rif_personal', ref_panel:'c3', ente:'SENIAT', activo:true, emite:'rif_personal', plazo_dias:14,
      plazo_legal_dias:null,
@@ -168,7 +176,7 @@
      activo:true, emite:'constancia_sisref', plazo_dias:14,
      nombre:'Solicitud de firma en el Registro de Extranjeros', fase:2, nivel:'obligatorio'},
 
-    {codigo:'registros_laborales', ref_panel:'c9', ente:'IVSS', activo:true,
+    {codigo:'registros_laborales', ref_panel:'c9', ente:'IVSS', activo:true, plazo_dias:28,
      nombre:'Registros laborales', fase:3, nivel:'obligatorio'},
     /* Y va en 'opcional', que TAMPOCO es lo que dice el catálogo de verdad
        -allí se queda con el 'esencial' por defecto-. Es la segunda fila que
@@ -182,7 +190,7 @@
        tarjeta vive en la 4, que no tiene ningún obligatorio. Sin la guarda,
        sus tres tarjetas se irían detrás de un botón y la etapa quedaría
        vacía. */
-    {codigo:'registro_inversion', ref_panel:'c31', ente:'CIIP', activo:true,
+    {codigo:'registro_inversion', ref_panel:'c31', ente:'CIIP', activo:true, plazo_dias:120,
      nombre:'Registro de inversión extranjera', fase:5, nivel:'opcional'},
     /* Con nivel explicito, como en la base: la columna es NOT NULL con
        DEFAULT 'esencial', asi que alli NINGUNA fila llega sin nivel. Una
@@ -208,12 +216,12 @@
        misma tarjeta -y la lista de asuntos de las citas, que va por
        ref_panel, se quedo con una opcion menos-. Se le puso el nivel alli,
        en la fila que ya existia. */
-    {codigo:'firma_electronica', ref_panel:'c19', ente:'SUSCERTE', activo:true,
+    {codigo:'firma_electronica', ref_panel:'c19', ente:'SUSCERTE', activo:true, plazo_dias:21,
      nombre:'Firma electrónica', fase:1, nivel:'opcional'},
     /* La apostilla, obligatoria y PENDIENTE. Es la que hace que la fase 01
        tenga algo que faltar: sin ella los tres obligatorios estarían
        hechos y el rótulo en ámbar no se pintaría nunca. */
-    {codigo:'apostilla_documentos', ref_panel:'c17', ente:'MPPRE', activo:true,
+    {codigo:'apostilla_documentos', ref_panel:'c17', ente:'MPPRE', activo:true, plazo_dias:28,
      nombre:'Apostilla de documentos', fase:1, nivel:'obligatorio'},
     /* Uno APAGADO a proposito. Con todos encendidos, la prueba de que el
        interruptor enciende no se puede distinguir de la de que no hace
@@ -237,7 +245,7 @@
     /* La visa de dependientes pregunta pasaporte, pais emisor y fecha de
        nacimiento: las tres que la de inversionista ya contesto. Es donde se
        mide que no se pide dos veces lo mismo. */
-    {codigo:'visa_dependientes', ref_panel:'c20', ente:'SAIME', activo:true,
+    {codigo:'visa_dependientes', ref_panel:'c20', ente:'SAIME', activo:true, plazo_dias:70,
      nombre:'Visa de dependientes', fase:1, nivel:'opcional'}
   ];
 

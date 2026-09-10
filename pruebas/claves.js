@@ -410,6 +410,22 @@ function suenaA(s, lista){
   const t = ' ' + String(s) + ' ';
   return lista.some(w => t.indexOf(w) >= 0);
 }
+/* LA SEGUNDA SEÑAL, Y POR QUE HIZO FALTA.
+
+   Las listas de arriba son palabras funcionales: ' the ', ' de ', 'Esperando'.
+   Sirven cuando la frase es larga y lleva alguna. Se colo t.tarde, que estaba
+   cruzado en produccion —quien tenia la pagina en ingles leia «Va mas lento de
+   lo previsto»— porque «Slower than expected» no contiene NI UNA de las trece
+   palabras inglesas de la lista. Las dos mitades pasaron por buenas.
+
+   Una tilde española bajo la bandera inglesa es señal de sobra, y casi no da
+   falsos: el ingles no lleva vocales con tilde, ni ñ, ni ¡ ni ¿. Se pide ademas
+   que el castellano NO las lleve, que es lo que descarta el caso legitimo -un
+   nombre propio acentuado que aparece en los dos, «Migracion», «Alcaldia»-. Si
+   estan en los dos, no hay nada cruzado; si solo estan en el ingles, la frase
+   española se ha ido al lado de enfrente. */
+const TILDES = /[áíóúñ¡¿]/i;
+
 function cruzados(donde, dic){
   const malos = [];
   if (!dic.es || !dic.en) return malos;
@@ -419,6 +435,10 @@ function cruzados(donde, dic){
     if (suenaA(es, SOLO_ING) && !suenaA(es, SOLO_ESP) &&
         suenaA(en, SOLO_ESP) && !suenaA(en, SOLO_ING)){
       malos.push(`${donde} ${k}: es="${es}" en="${en}"`);
+      continue;
+    }
+    if (es !== en && TILDES.test(en) && !TILDES.test(es)){
+      malos.push(`${donde} ${k}: el ingles lleva tildes y el castellano no — es="${es}" en="${en}"`);
     }
   }
   return malos;

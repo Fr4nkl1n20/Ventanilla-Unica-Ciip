@@ -709,7 +709,37 @@
     (function(){
       function st(ref){ return (document.querySelector('.tcard[data-tr="' + ref + '"]') || {getAttribute:function(){return null;}}).getAttribute('data-st'); }
       function chip(ref){ var c = document.querySelector('.tcard[data-tr="' + ref + '"] .t-top .chip'); return c ? c.textContent.trim() : ''; }
-      function reloj(ref){ var t = document.querySelector('.tcard[data-tr="' + ref + '"] .t-time'); return t ? t.textContent.trim() : ''; }
+      /* ── DESHACER EL PLAZO DEL RELOJ ──
+     El renglon dice el estimado en la unidad en la que se piensa: 7 dias son
+     «1 semana» y 240 son «8 meses». Esto va al reves -del renglon al numero-
+     para comprobar que la conversion es EXACTA sin volver a escribir aqui la
+     regla que la elige. Los moldes salen del diccionario, asi que vale en los
+     seis idiomas sin una lista de palabras a mano. Devuelve dias, o null. */
+  function deshaceElPlazo(dice, dic){
+    var MOLDES = [['t.estmes', 30], ['t.estmesN', 30],
+                  ['t.estsem',  7], ['t.estsemN',  7],
+                  ['t.est1', 1], ['t.estN', 1]];
+    function escapa(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+    for (var i = 0; i < MOLDES.length; i++){
+      var molde = String((dic || {})[MOLDES[i][0]] || '');
+      if (!molde) continue;
+      var trozos = molde.split('{n}');
+      var re = new RegExp('^' + trozos.map(escapa).join('(\\d+)') + '$');
+      var m = re.exec(String(dice || '').trim());
+      if (!m) continue;
+      return (trozos.length > 1 ? parseInt(m[1], 10) : 1) * MOLDES[i][1];
+    }
+    return null;
+  }
+
+  /* A quién espera una ficha. Vive en el atributo desde que el reloj se
+     quedó sólo para el tiempo; lleva la REFERENCIA del trámite que bloquea. */
+  function esperaDe(ref){
+    var c = document.querySelector('.tcard[data-tr="' + ref + '"]');
+    return c ? (c.getAttribute('data-espera') || '') : '';
+  }
+
+  function reloj(ref){ var t = document.querySelector('.tcard[data-tr="' + ref + '"] .t-time'); return t ? t.textContent.trim() : ''; }
 
       /* ── «Esperando: …» EN EL IDIOMA DE TURNO ──
          Ese renglón lo escribe pintaCuando a mano y le QUITA el data-i18n
@@ -733,19 +763,44 @@
          falta las dos: esta ve que el renglon no se quede congelado en el
          idioma de arranque, y aquella que el diccionario diga la verdad. */
       (function(){
-        var molde = (I18N[curLang] || I18N.en)['t.espera'] || '';
-        var prefijo = molde.split('{tramite}')[0];
-        var esperando = document.querySelectorAll('.tcard.espera .t-time');
-        var mal = [];
-        [].forEach.call(esperando, function(x){
-          var dice = (x.textContent || '').trim();
-          if (prefijo && dice.indexOf(prefijo) !== 0) mal.push(dice);
+        /* Esto vigilaba el «Esperando: …», que ya no se escribe: el reloj es
+           para el tiempo y a quien esperas vive en data-espera. El RIESGO no
+           se fue con la frase, solo cambio de sujeto -el renglon lo sigue
+           escribiendo pintaCuando a mano, sin data-i18n que lo alcance-, asi
+           que la prueba se queda y mira lo que hay ahora.
+
+           Las que esperan a otra son justo las que antes NO enseñaban el
+           estimado: si alguien vuelve a dejar que otra cosa gane el renglon,
+           aqui se ve primero. Y se DESHACE la cifra, para que esto no pase
+           con un numero cualquiera: tiene que ser el de la base. */
+        var dic2 = (I18N[curLang] || I18N.en) || {};
+        var cat = window.CIIP_TIPOS_POR_REF || {};
+        var esperando = document.querySelectorAll('.tcard.espera');
+        var mal = [], conCifra = 0;
+        [].forEach.call(esperando, function(c){
+          var v = cat[c.getAttribute('data-tr')] || {};
+          if (!v.plazo_dias) return;
+          conCifra++;
+          var t = c.querySelector('.t-time');
+          var dice = ((t && t.textContent) || '').trim();
+          if (deshaceElPlazo(dice, dic2) !== v.plazo_dias)
+            mal.push(c.getAttribute('data-tr') + ': "' + dice.slice(0, 40) + '"');
         });
-        ok('estados: «esperando a» sale en el idioma del panel',
-           esperando.length > 0 && mal.length === 0,
-           esperando.length ? (mal.join(' | ') || 'todas en ' + curLang)
-                            : 'ninguna tarjeta esperando',
-           'todas empiezan por ' + JSON.stringify(prefijo));
+        ok('estados: la que espera dice su tiempo, en el idioma del panel',
+           conCifra > 0 && mal.length === 0,
+           conCifra ? (mal.join(' | ') || 'las ' + conCifra + ' en ' + curLang)
+                    : 'ninguna esperando con cifra',
+           'todas con su plazo de la base');
+
+        /* Y sigue sabiendo a quien espera, aunque ya no lo escriba: sin esto,
+           borrar el calculo entero pasaria igual de verde. */
+        var sinRastro = [];
+        [].forEach.call(esperando, function(c){
+          if (!(c.getAttribute('data-espera') || '').trim())
+            sinRastro.push(c.getAttribute('data-tr'));
+        });
+        igual('estados: y la ficha sigue sabiendo a quien espera',
+              sinRastro.length ? sinRastro.join(', ') : '(ninguna)', '(ninguna)');
       })();
 
       /* Tantas tarjetas en verde como trámites resueltos tengas: ni una
@@ -875,9 +930,15 @@
         /* El c5 pide el RIF personal, ese papel no está aquí, y lo emite
            el c3. La tarjeta lo dice con su nombre, en vez del «Estimado:
            2–3 semanas» que llevaba escrito a mano. */
-        ok('cadena: sin el papel, la tarjeta dice a quién espera',
-           /RIF personal|RIF personale|RIF pessoal|个人|Личный/.test(reloj('c5')),
-           reloj('c5'), 'que espera al RIF personal');
+        /* Se pregunta al ATRIBUTO. El reloj lo decia con el nombre del
+           tramite y ahi se leia; desde que ese renglon es solo para el
+           tiempo, lo que la ficha deduce vive en data-espera, igual que su
+           estado vive en data-st. Y se gana algo: el atributo lleva la
+           REFERENCIA, asi que esto pregunta por 'c3' en vez de por cinco
+           maneras de escribir «RIF personal» -esa lista se quedaba coja con
+           el sexto idioma-. */
+        ok('cadena: sin el papel, la tarjeta apunta a quién espera',
+           esperaDe('c5') === 'c3', esperaDe('c5') || '(a nadie)', 'c3');
 
         /* Y ésta es la que separa "encadenar por el PAPEL" de "encadenar
            por el TRÁMITE".
@@ -890,9 +951,7 @@
            Si se encadenara por el trámite anterior, o si se olvidara mirar
            lo que ya tienes, diría «Constitución» y esto se pondría rojo. */
         ok('cadena: espera al papel que falta, no al primero de la lista',
-           /RIF personal|RIF personale|RIF pessoal|个人|Личный/.test(reloj('c6')) &&
-           !/Constituc|Costituz|Constitui|公司注册|Учрежд/.test(reloj('c6')),
-           reloj('c6'), 'espera al RIF personal, no a la constitución');
+           esperaDe('c6') === 'c3', esperaDe('c6') || '(a nadie)', 'c3');
       }
 
       /* ── el plazo, comparado ──
@@ -6653,16 +6712,25 @@
 
        Mirando el castellano, que no varía, la pregunta se contesta una sola
        vez por clave y vale para los seis. */
-    var DICE = /hábil|útil|úteis|working|lavorativ|工作|рабоч/;
-    var todas = Object.keys(I.es).filter(function(k){ return /.time$/.test(k); });
-    ok('hábiles: hay tiempos que mirar', todas.length >= 30,
-       todas.length + ' líneas de tiempo', '30 o más');
+    /* Eran 33 renglones escritos a mano, uno por ficha, y ahora son SEIS
+       moldes: el plazo sale de la base y se dice en dias, semanas o meses.
+       La decision del CIIP no cambia -el conteo excluye fines de semana y
+       feriados, y hay que decirlo-, cambia cuantos sitios hay que mirar.
 
-    var claves = todas.filter(function(k){ return I.es[k].indexOf('Estimado:') === 0; });
-    var otras  = todas.filter(function(k){ return I.es[k].indexOf('Estimado:') !== 0; });
+       Y la otra cara sigue haciendo falta: t.sinestimado NO es una
+       estimacion y no puede decirlo. Un parche descuidado que añadiera la
+       palabra a todo escribiria «sin plazo estimado hábil». */
+    var DICE = /hábil|útil|úteis|working|lavorativ|工作|рабоч/;
+    var claves = ['t.est1', 't.estN', 't.estsem', 't.estsemN', 't.estmes', 't.estmesN'];
+    var otras  = ['t.sinestimado'];
+    var todas  = claves.concat(otras);
+    ok('hábiles: hay tiempos que mirar',
+       todas.every(function(k){ return I.es[k]; }),
+       todas.filter(function(k){ return !I.es[k]; }).join(', ') || 'los siete moldes',
+       'los seis del plazo y el de sin plazo');
     ok('hábiles: y las hay de los dos tipos, estimación y no',
-       claves.length >= 20 && otras.length >= 5,
-       claves.length + ' estimaciones y ' + otras.length + ' que no lo son',
+       claves.length === 6 && otras.length === 1,
+       claves.length + ' estimaciones y ' + otras.length + ' que no lo es',
        'de las dos');
 
     var sinDecir = [], loDicenSinSerlo = [];

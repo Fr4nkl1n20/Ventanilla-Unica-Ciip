@@ -90,6 +90,22 @@ update public.tipos_tramite set plazo_dias = 180 where codigo = 'permiso_ambient
 update public.tipos_tramite set plazo_dias = 120 where codigo = 'registro_inversion';                -- c31  Estimado: 2–4 meses
 
 -- ───────────────────────────────────────────────────────────────────────
+-- LAS DOS QUE FALTABAN
+-- ───────────────────────────────────────────────────────────────────────
+-- La c32 y la c33 SÍ prometían un plazo en su tarjeta y no tenían fila
+-- aquí. Mientras el renglón del reloj salía del diccionario no se notaba;
+-- desde que sale de esta columna, sin fila no hay reloj, y estas dos lo
+-- perderían diciendo un tiempo que sí tienen.
+--
+-- Salen del mismo sitio y por el mismo método que las veintitrés de
+-- arriba: el texto que llevaba su propia tarjeta, tomando el tope del
+-- rango. Ese texto ya no está en el panel —las 33 claves cN.time se
+-- retiraron al dejar una sola cifra—, así que queda escrito aquí, que es
+-- ahora el único sitio donde vive el dato.
+update public.tipos_tramite set plazo_dias =  14 where codigo = 'registro_extranjeros_saren';        -- c32  Estimado: 1–2 semanas
+update public.tipos_tramite set plazo_dias =   7 where codigo = 'poder_representacion';              -- c33  Estimado: 1 semana
+
+-- ───────────────────────────────────────────────────────────────────────
 -- COMPROBACIONES
 -- ───────────────────────────────────────────────────────────────────────
 -- 1) Veintitrés con plazo y ocho sin él:
