@@ -6494,9 +6494,110 @@ var IDX={employees:1,present:2,realestate:3,profits:4,capital:5,time:6,taxes:7};
   function idxFor(t){ t=t.toLowerCase(); for(var i=0;i<KB.length;i++){var it=KB[i]; for(var j=0;j<it.kw.length;j++){ if(t.indexOf(it.kw[j])>=0) return IDX[it.id]; } } return 0; }
   function bub(cls,txt){ var d=document.createElement('div'); d.className='bub '+cls; d.textContent=txt; body.appendChild(d); body.scrollTop=body.scrollHeight; return d; }
   function ans(i){ var d=I18N[curLang]||I18N.en; return i? d['faq.q'+i+'.a'] : d['faq.fallback']; }
-  function ask(text,idx){ bub('u',text); var i=(idx!=null)?idx:idxFor(text);
-    if(window.matchMedia('(prefers-reduced-motion:reduce)').matches){ bub('a',ans(i)); }
-    else { var t=bub('a','· · ·'); setTimeout(function(){ t.textContent=ans(i); body.scrollTop=body.scrollHeight; },460); } }
+
+  /* ══════════════ EL ASISTENTE TIENE DOS CABEZAS ══════════════════════
+     La de siempre: siete respuestas fijas, traducidas a los seis idiomas,
+     que se eligen por coincidencia de palabras clave. Es instantánea,
+     gratis y exacta, porque las escribió una persona.
+
+     La nueva: /api/asistente, que es lo único del proyecto que corre en un
+     servidor. Allí vive la clave de Anthropic —aquí no puede estar: este
+     archivo lo descarga el navegador entero— y allí se le pregunta al
+     modelo, con los 33 trámites de la base delante.
+
+     CUÁL CONTESTA:
+
+     · Los chips de sugerencias siguen siendo de la cabeza vieja. Son siete
+       preguntas conocidas con siete respuestas revisadas y traducidas.
+       Mandarlas al modelo costaría dinero para contestar peor.
+
+     · Lo que la persona escribe a mano va al servidor, que es donde está
+       lo que la lista de palabras clave no cubre. Si el servidor no está
+       —despliegue sin clave, panel abierto en local, sin red— contesta la
+       cabeza vieja y el usuario no se entera de que hubo un plan A.
+
+     Esa última parte es la que importa: hoy, sin clave puesta, el panel se
+     comporta EXACTAMENTE como antes de este cambio. */
+
+  var RUTA_ASISTENTE = '/api/asistente';
+
+  /* Cuando el servidor dice que no está, deja de preguntársele durante el
+     resto de la sesión: si no, cada pregunta pagaría un viaje de ida y
+     vuelta para descubrir lo mismo. Un fallo suelto de red no cuenta —eso
+     se reintenta—, solo el "aquí no hay nada montado". */
+  var hayServidor = true;
+
+  /* Lo que se ha dicho, para que el modelo entienda un "¿y cuánto tarda
+     ese?" que va detrás de otra pregunta. Solo la conversación: ni el
+     nombre, ni el correo, ni el expediente de nadie salen de esta página. */
+  var conversacion = [];
+
+  function tokenDeLaSesion(){
+    /* El guardián del <head> dejó el cliente de Supabase aquí. Si no está
+       —panel abierto suelto, sin base configurada— no hay sesión que
+       mandar, y el servidor rechazaría la pregunta de todos modos. */
+    if (!window.sbCIIP) return Promise.resolve(null);
+    return window.sbCIIP.auth.getSession().then(function(r){
+      return (r && r.data && r.data.session && r.data.session.access_token) || null;
+    }).catch(function(){ return null; });
+  }
+
+  function preguntarAlServidor(texto){
+    if (!hayServidor) return Promise.resolve(null);
+    return tokenDeLaSesion().then(function(token){
+      if (!token) return null;
+      conversacion.push({ papel:'usuario', texto:texto });
+      return fetch(RUTA_ASISTENTE, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
+        body: JSON.stringify({ mensajes: conversacion })
+      }).then(function(r){
+        return r.json().catch(function(){ return {}; }).then(function(d){
+          if (r.ok && d.respuesta){
+            conversacion.push({ papel:'asistente', texto:d.respuesta });
+            return d.respuesta;
+          }
+          /* 'sin-clave' y 'sin-base' son estados del despliegue, no
+             tropiezos: no van a arreglarse solos mientras la página siga
+             abierta, así que no se vuelve a intentar. El resto —429, 502,
+             un corte de red— sí puede ir mejor a la siguiente. */
+          if (d.motivo === 'sin-clave' || d.motivo === 'sin-base') hayServidor = false;
+          conversacion.pop();
+          return null;
+        });
+      });
+    }).catch(function(){
+      /* Sin red o sin esa dirección: se cae a las respuestas fijas y ya
+         está. Que el asistente enmudezca porque el servidor no contesta
+         sería peor que la versión que había antes de tenerlo. */
+      if (conversacion.length && conversacion[conversacion.length-1].papel === 'usuario') conversacion.pop();
+      return null;
+    });
+  }
+
+  function ask(text,idx){
+    bub('u',text);
+    var quieto = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+    /* Un chip: respuesta escrita a mano, al instante. */
+    if (idx != null){
+      if (quieto){ bub('a',ans(idx)); }
+      else { var c=bub('a','· · ·'); setTimeout(function(){ c.textContent=ans(idx); body.scrollTop=body.scrollHeight; },460); }
+      return;
+    }
+
+    /* Escrito a mano: al servidor, con los puntos suspensivos puestos
+       desde ya. Aquí no son un adorno que finge que se piensa —eso eran
+       antes, un setTimeout de 460 ms sobre una respuesta que ya estaba
+       elegida—: ahora hay de verdad una ida y vuelta esperando. */
+    var t = bub('a','· · ·');
+    var deReserva = idxFor(text);
+    preguntarAlServidor(text).then(function(respuesta){
+      t.textContent = respuesta || ans(deReserva);
+      body.scrollTop = body.scrollHeight;
+    });
+  }
+
   function submit(){ var v=input.value.trim(); if(!v) return; input.value=''; ask(v,null); }
   document.getElementById('asstSend').addEventListener('click',submit);
   input.addEventListener('keydown',function(e){ if(e.key==='Enter') submit(); });

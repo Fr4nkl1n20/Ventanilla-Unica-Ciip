@@ -5,6 +5,10 @@
     { "source": "/", "destination": "/login/", "permanent": false }
   ],
 
+  "functions": {
+    "api/asistente.js": { "maxDuration": 30 }
+  },
+
   "headers": [
     {
       "source": "/(.*)",

@@ -190,6 +190,7 @@
               cacheAbre, cacheMira, cacheSube, cacheSube2, cacheVuelve, cacheTrasVolver,
               ayudaAbre, ayudaMira, ayudaFaq,
               supAbre, supMira, supTemas, supVuelve,
+              asstConServidor, asstSinServidor,
               fotoAbre, fotoMira, fotoMala, fotoSube, fotoTrasSubir, fotoCierra,
               temaMira,
               logosMiran, tokensMiran,
@@ -5158,6 +5159,146 @@
                                function(b){ return !b.hidden; });
     igual('burbuja: y volver por invertir las devuelve todas', todos.length, 7);
     document.getElementById('asstClose').click();
+  }
+
+  /* ═══════════ EL ASISTENTE ESCRIBIENDO A MANO ═══════════
+     Los chips de arriba son la cabeza vieja: siete respuestas escritas y
+     traducidas, elegidas por palabras clave. Lo que se prueba aquí es la
+     OTRA, la que sale a /api/asistente.
+
+     Esto llevaba sin probarse desde que se escribió, y no por descuido:
+     el arnés pulsaba chips y nunca escribía en el campo. Un camino que
+     ninguna prueba recorre es un camino que nadie sabe si existe.
+
+     Se comprueban los dos finales, y el segundo importa más que el
+     primero: mientras la clave de Anthropic no esté puesta, el segundo
+     es el ÚNICO que ocurre en producción. */
+
+  function esperaBurbuja(dice, sigue){
+    var n = 0;
+    (function mira(){
+      var burbujas = document.querySelectorAll('#asstBody .bub.a');
+      var ultima = burbujas[burbujas.length - 1];
+      if ((ultima && dice(ultima.textContent)) || ++n > 60) return sigue();
+      setTimeout(mira, 40);
+    })();
+  }
+
+  var fetchDeVerdad = window.fetch;
+
+  function asstConServidor(sigue){
+    var visto = null;
+    window.fetch = function(url, opciones){
+      visto = { url: url, opciones: opciones };
+      return Promise.resolve({
+        ok: true, status: 200,
+        json: function(){ return Promise.resolve({ respuesta: 'Contesta el servidor.' }); }
+      });
+    };
+
+    document.getElementById('supFab').click();
+    document.getElementById('supInv').click();
+    var campo = document.getElementById('asstInput');
+    campo.value = '¿me hace falta un socio venezolano?';
+    document.getElementById('asstSend').click();
+
+    esperaBurbuja(function(t){ return t === 'Contesta el servidor.'; }, function(){
+      var burbujas = document.querySelectorAll('#asstBody .bub.a');
+      var ultima = burbujas[burbujas.length - 1];
+      ok('asistente: lo escrito a mano lo contesta el servidor',
+         !!ultima && ultima.textContent === 'Contesta el servidor.',
+         ultima ? ultima.textContent.slice(0, 40) : '(nada)', 'Contesta el servidor.');
+
+      ok('asistente: va a /api/asistente',
+         !!visto && String(visto.url).indexOf('/api/asistente') >= 0,
+         visto ? String(visto.url) : '(no llamó)', '/api/asistente');
+
+      /* Sin esto la dirección quedaría abierta a internet entero, y
+         cualquiera podría gastar la cuenta del CIIP desde una terminal. */
+      ok('asistente: y lleva la sesión, para que el servidor sepa quién pregunta',
+         !!visto && visto.opciones.headers.Authorization === 'Bearer token-de-mentira',
+         visto ? visto.opciones.headers.Authorization : '(sin cabecera)',
+         'Bearer token-de-mentira');
+
+      var mandado = visto ? JSON.parse(visto.opciones.body) : null;
+      ok('asistente: manda la pregunta, y solo la pregunta',
+         !!mandado && mandado.mensajes.length === 1 &&
+         mandado.mensajes[0].papel === 'usuario' &&
+         /socio venezolano/.test(mandado.mensajes[0].texto),
+         mandado ? JSON.stringify(mandado.mensajes) : '(nada)', 'un turno de usuario');
+
+      /* La clave de Anthropic no puede salir de aquí porque aquí no está.
+         Se mira igual: es lo único de todo esto que no tiene arreglo si se
+         escapa una vez. */
+      ok('asistente: no se manda ninguna clave desde el navegador',
+         !!visto && visto.opciones.body.indexOf('sk-ant') < 0,
+         'sin claves', 'sin claves');
+
+      /* Y la segunda pregunta lleva la conversación, para que un «¿y ese
+         cuánto tarda?» se entienda.
+
+         Aquí se espera a la PETICIÓN, no a la burbuja. Esperando a la
+         burbuja esto daba rojo con razones falsas: la burbuja de los
+         puntos suspensivos aparece en cuanto se pulsa, o sea antes de que
+         salga la petición, así que se miraba el envío anterior y salía un
+         turno donde tenía que haber tres. */
+      campo.value = '¿y cuánto tarda?';
+      var deLaPrimera = visto.opciones.body;
+      document.getElementById('asstSend').click();
+      var n = 0;
+      (function esperaSegunda(){
+        if (visto.opciones.body === deLaPrimera && ++n <= 60){
+          return setTimeout(esperaSegunda, 40);
+        }
+        var seg = JSON.parse(visto.opciones.body);
+        ok('asistente: la segunda pregunta lleva lo ya dicho',
+           seg.mensajes.length === 3 && seg.mensajes[1].papel === 'asistente',
+           seg.mensajes.length + ' turnos (' +
+             seg.mensajes.map(function(m){ return m.papel; }).join(', ') + ')',
+           '3 turnos (usuario, asistente, usuario)');
+        document.getElementById('asstClose').click();
+        sigue();
+      })();
+    });
+  }
+
+  function asstSinServidor(sigue){
+    /* Y AHORA LO QUE PASA HOY EN PRODUCCIÓN. Sin clave de Anthropic
+       puesta, el servidor contesta 'sin-clave' y el asistente tiene que
+       volver a las respuestas de siempre sin que el usuario note que
+       hubo un plan A. Si esto falla, encender la IA a medias deja el
+       asistente mudo, que es peor que no haberlo tocado. */
+    window.fetch = function(){
+      return Promise.resolve({
+        ok: false, status: 503,
+        json: function(){ return Promise.resolve({ motivo:'sin-clave', error:'no configurado' }); }
+      });
+    };
+
+    document.getElementById('supFab').click();
+    document.getElementById('supInv').click();
+    var campo = document.getElementById('asstInput');
+    /* 'taxes' está en la lista de palabras clave, así que la cabeza vieja
+       sabe contestar esto: se comprueba que contesta ELLA, no un hueco. */
+    campo.value = 'what about taxes?';
+    document.getElementById('asstSend').click();
+
+    esperaBurbuja(function(t){ return t !== '· · ·'; }, function(){
+      var burbujas = document.querySelectorAll('#asstBody .bub.a');
+      var ultima = burbujas[burbujas.length - 1];
+      var esperada = (I18N[curLang] || I18N.en)['faq.q7.a'];
+      ok('asistente: sin servidor, contesta la respuesta de siempre',
+         !!ultima && ultima.textContent === esperada,
+         ultima ? ultima.textContent.slice(0, 40) : '(nada)',
+         String(esperada).slice(0, 40));
+      ok('asistente: y no se queda con los puntos suspensivos puestos',
+         !!ultima && ultima.textContent !== '· · ·',
+         ultima ? ultima.textContent.slice(0, 20) : '(nada)', 'algo escrito');
+
+      document.getElementById('asstClose').click();
+      window.fetch = fetchDeVerdad;
+      sigue();
+    });
   }
 
   /* ═══════════ LA FOTO TIPO CARNET ═══════════

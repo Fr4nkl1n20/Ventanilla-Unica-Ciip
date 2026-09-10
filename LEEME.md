@@ -70,7 +70,13 @@ marcado no tiene efecto. Para cambiar un texto hay que editar el diccionario.
   el acceso. Falta añadir esa comprobación al cargar.
 - Los datos del inversionista (Marco Bianchi, los 15 trámites y sus estados)
   están escritos a mano en el marcado; no vienen de la base de datos.
-- El asistente responde por coincidencia de palabras clave contra respuestas
-  fijas. No hay IA ni backend detrás.
+- El asistente tiene dos cabezas. Los chips de sugerencias siguen siendo
+  siete respuestas fijas escogidas por palabras clave: escritas a mano,
+  traducidas a los seis idiomas, instantáneas y gratis. Lo que la persona
+  escribe a mano va a `api/asistente.js`, el intermediario que corre en
+  Vercel y le pregunta al modelo con los 33 trámites de la base delante.
+  Si ese servidor no está —sin clave de Anthropic puesta, panel abierto en
+  local, sin red— contesta la cabeza vieja y no se nota. Cómo se enciende:
+  `api/LEEME.md`.
 - Contiene CSS muerto (`.hero`, `.hero-ring`, `.duo`, `.gestor`, `.help-list`)
   y claves de idioma sin usar, de una portada que se eliminó.

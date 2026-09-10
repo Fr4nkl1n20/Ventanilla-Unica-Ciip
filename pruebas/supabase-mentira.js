@@ -1599,7 +1599,13 @@
     createClient: function(){
       return {
         auth: {
-          getSession: function(){ return Promise.resolve({data:{session:{user:USUARIO}}, error:null}); },
+          /* El access_token no estaba, y una sesión de verdad SIEMPRE lo
+             trae: es lo que el navegador manda en cada consulta para
+             decir quién es. Sin él aquí, cualquier cosa que lo use —el
+             asistente, que se lo pasa a /api/asistente— se encontraba un
+             'undefined' en la prueba y un token en producción, que es la
+             manera más silenciosa de que algo pase el arnés y falle fuera. */
+          getSession: function(){ return Promise.resolve({data:{session:{user:USUARIO, access_token:'token-de-mentira'}}, error:null}); },
           /* getUser SALE A LA RED en el Supabase de verdad: valida el
              token contra el servidor. getSession no: lee el almacen del
              navegador. Por eso solo se cuenta este. */

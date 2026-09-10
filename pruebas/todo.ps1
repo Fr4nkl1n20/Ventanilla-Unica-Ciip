@@ -41,13 +41,18 @@ $RAIZ = Split-Path -Parent $PSScriptRoot
 $REQUISITOS = @{
   'PROBAR-CERRADURAS' = @{ archivo = 'pruebas\cuentas.local.json'; por = 'faltan las cuentas de prueba (pruebas\cuentas.local.json)' }
   'PROBAR-SQL'        = @{ programa = 'C:\Program Files\PostgreSQL\*\bin\initdb.exe'; por = 'no hay PostgreSQL instalado en esta maquina' }
+  # El intermediario del asistente es lo unico del proyecto con una
+  # dependencia. Recien clonado no esta instalada, y sin este requisito la
+  # tanda saldria en rojo con un "Cannot find module" que parece un fallo
+  # del codigo y es solo un `npm install` que nadie corrio.
+  'PROBAR-ASISTENTE'  = @{ archivo = 'node_modules\@anthropic-ai\sdk\package.json'; por = 'falta correr `npm install` una vez (api\asistente.js usa el SDK de Anthropic)' }
 }
 
 # El orden es de mas barato a mas caro: lo que no toca la red primero, para
 # que un fallo tonto salte en los primeros segundos y no en el minuto ocho.
 $ORDEN = @(
   'PROBAR-CONECTOR', 'PROBAR-SAREN', 'PROBAR-TRABAJADOR', 'PROBAR-PAGOS',
-  'PROBAR-AVISOS', 'PROBAR-BARRENDERO',
+  'PROBAR-AVISOS', 'PROBAR-BARRENDERO', 'PROBAR-ASISTENTE',
   'PROBAR', 'PROBAR-PANEL',
   'PROBAR-SQL', 'PROBAR-CERRADURAS'
 )

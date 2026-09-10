@@ -6,6 +6,13 @@ constitución de empresa y operación en Venezuela.
 Es un sitio **estático**: HTML, CSS y JavaScript sin compilación. La
 autenticación y los datos los pone Supabase.
 
+Con una excepción, y solo una: `api/asistente.js`, que corre en un servidor
+de Vercel. Está ahí porque la clave de Anthropic no puede viajar al
+navegador —a diferencia de la `anon` de Supabase, que es pública por
+diseño—. Mientras esa clave no esté puesta, el asistente contesta con las
+respuestas fijas de siempre y el sitio se comporta como antes de que ese
+archivo existiera. Cómo se enciende: `api/LEEME.md`.
+
 ---
 
 ## Estado actual
@@ -31,6 +38,7 @@ usar esa base o la de pruebas — ver el bloque de comentarios ahí mismo.
 | `acceso.html` | Iniciar sesión, y clave nueva (por el enlace del correo de recuperación) |
 | `ciip-ventanilla-unica-local.html` | El panel, una vez dentro |
 | `config.js` | **Lo único que hay que rellenar**: las claves de Supabase |
+| `api/asistente.js` | El intermediario del asistente: lo único que corre en un servidor. Guarda la clave de Anthropic, que el navegador no puede ver. Ver `api/LEEME.md` |
 | `pasos.js` | Los cuatro pasos de cada trámite, en los seis idiomas |
 | `supabase-setup.sql` | Esquema del acceso y políticas RLS. Se ejecuta una vez |
 | `supabase-tramites.sql` | Esquema de trámites y bóveda de documentos. Se ejecuta una vez |
