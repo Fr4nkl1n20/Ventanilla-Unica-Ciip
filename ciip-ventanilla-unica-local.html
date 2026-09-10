@@ -1276,8 +1276,7 @@ body[data-vista="documentos"] .fase-bar{display:none;}
 .ayuda-vista{display:none;}
 body[data-vista="ayuda"] .ayuda-vista{display:block;}
 body[data-vista="ayuda"] .solo-inicio,
-body[data-vista="ayuda"] #secTramites,
-body[data-vista="ayuda"] .faq-sec{display:none;}
+body[data-vista="ayuda"] #secTramites{display:none;}
 body[data-vista="ayuda"] .fase-bar{display:flex;}
 body[data-vista="ayuda"] #faseVolver,
 body[data-vista="ayuda"] #trVolver,
@@ -4546,6 +4545,47 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <div class="sec-h">
       </div>
       <div class="ay-lista" id="ayLista"></div>
+      <!-- Las preguntas frecuentes, que vivian al final de la portada. Se
+           mudan aqui, que es la pantalla a la que se va a preguntar, y de
+           paso la portada acaba en las fichas de tu etapa.
+           No se borraron: son las mismas siete, con sus catorce claves. -->
+      <div class="section-gap faq-sec">
+        <button class="sec-h faq-h" type="button" aria-expanded="true" aria-controls="faqLista">
+          <span class="t" id="faqTitulo" data-i18n="faq.title">Frequently asked questions</span>
+          <span class="sub" data-i18n="faq.sub">The doubts investors raise most often</span>
+          <span class="chev">›</span>
+        </button>
+        <div class="faq" id="faqLista">
+          <details class="faq-item">
+              <summary><span class="qi">1</span><span class="qt" data-i18n="faq.q1.t">Can I have more than 10 foreign employees?</span><span class="chev">›</span></summary>
+              <div class="faq-a" data-i18n="faq.q1.a">Venezuelan labor law asks that at least 90% of your staff be Venezuelan (the 90/10 rule), so foreign hires are generally capped at 10% of payroll. For specialized roles you can request an exception from the Ministry of Labor — we prepare the filing and the work permits for you.</div>
+            </details>
+          <details class="faq-item">
+              <summary><span class="qi">2</span><span class="qt" data-i18n="faq.q2.t">Do I need to be in Venezuela to do all this?</span><span class="chev">›</span></summary>
+              <div class="faq-a" data-i18n="faq.q2.a">Most steps can start remotely if you grant us a power of attorney. Only a few — opening the bank account and your biometric ID — need one in-person visit, which we schedule together so you resolve everything in a single trip.</div>
+            </details>
+          <details class="faq-item">
+              <summary><span class="qi">3</span><span class="qt" data-i18n="faq.q3.t">Can I buy real estate as a foreigner?</span><span class="chev">›</span></summary>
+              <div class="faq-a" data-i18n="faq.q3.a">Yes. Once you have your tax ID (RIF) and residence card you can buy property in your name or your company's. We review the title and handle the notary and the registry.</div>
+            </details>
+          <details class="faq-item">
+              <summary><span class="qi">4</span><span class="qt" data-i18n="faq.q4.t">How do I repatriate profits?</span><span class="chev">›</span></summary>
+              <div class="faq-a" data-i18n="faq.q4.a">Dividends are converted and transferred abroad through the central bank's (BCV) foreign-exchange framework. We keep your accounting and tax filings in order so the transfer clears without friction.</div>
+            </details>
+          <details class="faq-item">
+              <summary><span class="qi">5</span><span class="qt" data-i18n="faq.q5.t">How much capital do I need to open a company?</span><span class="chev">›</span></summary>
+              <div class="faq-a" data-i18n="faq.q5.a">There's no fixed legal minimum for a C.A.; you declare capital in line with your business plan. We help you size it so it's credible for banking and permits without over-committing.</div>
+            </details>
+          <details class="faq-item">
+              <summary><span class="qi">6</span><span class="qt" data-i18n="faq.q6.t">How long does it take to set up a company?</span><span class="chev">›</span></summary>
+              <div class="faq-a" data-i18n="faq.q6.a">About 2–3 weeks from the moment you sign the deed. The company's tax ID (RIF) follows automatically, and banking usually adds 1–2 weeks.</div>
+            </details>
+          <details class="faq-item">
+              <summary><span class="qi">7</span><span class="qt" data-i18n="faq.q7.t">What taxes will my company pay?</span><span class="chev">›</span></summary>
+              <div class="faq-a" data-i18n="faq.q7.a">Mainly corporate income tax (ISLR), 16% VAT (IVA) and a municipal business tax, plus payroll contributions (IVSS, INCES, FAOV). We register you with each and keep your clearances current.</div>
+            </details>
+        </div>
+      </div>
     </div>
 
     <!-- El pliego, para leerlo cuando quieras y no solo cuando la puerta lo
@@ -4640,43 +4680,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       </div>
     </div>
 
-    <div class="section-gap solo-inicio faq-sec plegada">
-      <button class="sec-h faq-h" type="button" aria-expanded="false" aria-controls="faqLista">
-        <span class="t" id="faqTitulo" data-i18n="faq.title">Frequently asked questions</span>
-        <span class="sub" data-i18n="faq.sub">The doubts investors raise most often</span>
-        <span class="chev">›</span>
-      </button>
-      <div class="faq" id="faqLista">
-        <details class="faq-item">
-            <summary><span class="qi">1</span><span class="qt" data-i18n="faq.q1.t">Can I have more than 10 foreign employees?</span><span class="chev">›</span></summary>
-            <div class="faq-a" data-i18n="faq.q1.a">Venezuelan labor law asks that at least 90% of your staff be Venezuelan (the 90/10 rule), so foreign hires are generally capped at 10% of payroll. For specialized roles you can request an exception from the Ministry of Labor — we prepare the filing and the work permits for you.</div>
-          </details>
-        <details class="faq-item">
-            <summary><span class="qi">2</span><span class="qt" data-i18n="faq.q2.t">Do I need to be in Venezuela to do all this?</span><span class="chev">›</span></summary>
-            <div class="faq-a" data-i18n="faq.q2.a">Most steps can start remotely if you grant us a power of attorney. Only a few — opening the bank account and your biometric ID — need one in-person visit, which we schedule together so you resolve everything in a single trip.</div>
-          </details>
-        <details class="faq-item">
-            <summary><span class="qi">3</span><span class="qt" data-i18n="faq.q3.t">Can I buy real estate as a foreigner?</span><span class="chev">›</span></summary>
-            <div class="faq-a" data-i18n="faq.q3.a">Yes. Once you have your tax ID (RIF) and residence card you can buy property in your name or your company's. We review the title and handle the notary and the registry.</div>
-          </details>
-        <details class="faq-item">
-            <summary><span class="qi">4</span><span class="qt" data-i18n="faq.q4.t">How do I repatriate profits?</span><span class="chev">›</span></summary>
-            <div class="faq-a" data-i18n="faq.q4.a">Dividends are converted and transferred abroad through the central bank's (BCV) foreign-exchange framework. We keep your accounting and tax filings in order so the transfer clears without friction.</div>
-          </details>
-        <details class="faq-item">
-            <summary><span class="qi">5</span><span class="qt" data-i18n="faq.q5.t">How much capital do I need to open a company?</span><span class="chev">›</span></summary>
-            <div class="faq-a" data-i18n="faq.q5.a">There's no fixed legal minimum for a C.A.; you declare capital in line with your business plan. We help you size it so it's credible for banking and permits without over-committing.</div>
-          </details>
-        <details class="faq-item">
-            <summary><span class="qi">6</span><span class="qt" data-i18n="faq.q6.t">How long does it take to set up a company?</span><span class="chev">›</span></summary>
-            <div class="faq-a" data-i18n="faq.q6.a">About 2–3 weeks from the moment you sign the deed. The company's tax ID (RIF) follows automatically, and banking usually adds 1–2 weeks.</div>
-          </details>
-        <details class="faq-item">
-            <summary><span class="qi">7</span><span class="qt" data-i18n="faq.q7.t">What taxes will my company pay?</span><span class="chev">›</span></summary>
-            <div class="faq-a" data-i18n="faq.q7.a">Mainly corporate income tax (ISLR), 16% VAT (IVA) and a municipal business tax, plus payroll contributions (IVSS, INCES, FAOV). We register you with each and keep your clearances current.</div>
-          </details>
-      </div>
-    </div>
 
     <!-- Acompanamiento. En reposo solo la burbuja; el panel sale al pulsarla.
 
@@ -15824,25 +15827,6 @@ applyLang(idiomaParaMi());
     b4.appendChild(pie);
     ayLista.appendChild(b4);
 
-    /* 5 · las preguntas de la portada. No se copian: se lleva hasta
-       ellas y se despliegan, que si no habría dos sitios que mantener. */
-    var b5 = ayBloque(u.ay_h5);
-    b5.appendChild(el('div', 'ay-p', u.ay_faq || ''));
-    var pie5 = el('div', 'ay-pie');
-    var ver = el('button', 'btn ghost', u.ay_verfaq || '');
-    ver.type = 'button';
-    ver.addEventListener('click', function(){
-      location.hash = '';
-      setTimeout(function(){
-        var sec = document.querySelector('.faq-sec');
-        var cab = sec && sec.querySelector('.faq-h');
-        if (cab && sec.classList.contains('plegada')) cab.click();
-        if (sec) sec.scrollIntoView({block:'start'});
-      }, 60);
-    });
-    pie5.appendChild(ver);
-    b5.appendChild(pie5);
-    ayLista.appendChild(b5);
   }
 
   if (ayLista){

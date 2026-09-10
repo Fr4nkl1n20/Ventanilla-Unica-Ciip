@@ -217,6 +217,7 @@
               velocidadRepite, velocidadTrasRepetir,
               pliegaAbre, pliegaMira, pliegaVuelve, pliegaTrasVolver,
               pliegaTramite, pliegaVuelveDeTramite, pliegaTrasTramite,
+              faqAbre, faqMira,
               opacidadMira, opacidadSenal,
               loHacemosMira,
               gestionAbre, gestionMira, escaleraNoParpadea, gestionTrasPulsar,
@@ -1930,46 +1931,6 @@
       nom.textContent = antes;
     })();
 
-    /* ═══════════ LAS PREGUNTAS FRECUENTES ═══════════
-       Se pliegan bajo su cabecera, igual que los trámites de cada fase. Se
-       probó antes con una caja de alto fijo y barra propia: se recorría por
-       dentro, pero gastaba su alto siempre y metía una segunda barra dentro
-       de la página, que nadie espera en una portada. */
-    (function(){
-      var secF = document.querySelector('.faq-sec');
-      var cabF = secF && secF.querySelector('.faq-h');
-      var lisF = secF && secF.querySelector('.faq');
-      if (!secF || !cabF || !lisF){
-        ok('preguntas: la sección se pliega', false, 'falta .faq-sec o su cabecera', 'las tres piezas');
-        return;
-      }
-
-      ok('preguntas: arranca plegada, que la portada es el índice',
-         secF.classList.contains('plegada') && lisF.offsetHeight === 0,
-         'plegada=' + secF.classList.contains('plegada') + ' alto=' + lisF.offsetHeight,
-         'plegada y sin alto');
-
-      igual('preguntas: y sin barra de desplazamiento propia',
-            window.getComputedStyle(lisF).overflowY, 'visible');
-
-      cabF.click();
-      ok('preguntas: al pulsar la cabecera se despliegan',
-         !secF.classList.contains('plegada') && lisF.offsetHeight > 100,
-         'plegada=' + secF.classList.contains('plegada') + ' alto=' + lisF.offsetHeight,
-         'desplegada y con alto');
-      igual('preguntas: y lo dice para quien no la ve',
-            cabF.getAttribute('aria-expanded'), 'true');
-      igual('preguntas: hay siete', lisF.querySelectorAll('details').length, 7);
-
-      /* Al cerrar se cierran también las respuestas abiertas: si no, al
-         volver a desplegar aparecerían sueltas sin que nadie las pidiera. */
-      lisF.querySelectorAll('details')[2].open = true;
-      cabF.click();
-      cabF.click();
-      igual('preguntas: al plegarla se cierran las respuestas que quedaran abiertas',
-            lisF.querySelectorAll('details[open]').length, 0);
-      cabF.click();   /* se deja como estaba */
-    })();
 
     /* ═══════════ QUIÉN DICE EL PANEL QUE ERES ═══════════
        El panel nace con el nombre de una persona inventada, que es lo que se
@@ -4986,7 +4947,11 @@
   function ayudaMira(){
     igual('ayuda: el renglón abre su vista', document.body.getAttribute('data-vista'), 'ayuda');
     var bloques = document.querySelectorAll('#ayLista .ay-bloque');
-    igual('ayuda: con sus cinco apartados', bloques.length, 5);
+    /* Eran cinco. El quinto no explicaba nada: decia que las preguntas
+       estaban al final de la portada y traia un boton para ir. Desde que las
+       preguntas viven en esta misma pantalla, ese apartado era un cartel
+       señalando lo que hay dos dedos mas abajo. */
+    igual('ayuda: con sus cuatro apartados', bloques.length, 4);
 
     /* Los cuatro pasos NO se escriben en la ayuda: salen de donde ya
        estaban, para que no puedan contradecir a la pantalla que describen. */
@@ -5053,17 +5018,27 @@
        !I18N.es['help.title'] && !I18N.en['help.q1.t'],
        I18N.es['help.title'] || 'ninguna', 'ninguna');
 
-    document.querySelector('#ayLista .btn.ghost').click();
   }
 
   function ayudaFaq(){
-    /* Las preguntas de la portada no se copian aquí: se lleva hasta ellas
-       y se despliegan. Copiarlas dejaría dos sitios que mantener. */
-    igual('ayuda: "ver las preguntas" vuelve a la portada',
-          document.body.getAttribute('data-vista'), 'inicio');
-    var sec = document.querySelector('.faq-sec');
-    ok('ayuda: y las deja desplegadas', !sec.classList.contains('plegada'),
+    /* Las preguntas ESTAN AQUI. Antes vivian al final de la portada y esta
+       pantalla traia un boton para ir hasta ellas; se mudaron, y con ellas
+       se fue el boton. Lo que se comprueba ahora es que estan y que se
+       llega a ellas abiertas: quien entra en «Ayuda y guia» viene a
+       preguntar, y encontrarlas cerradas es una puerta de mas.
+
+       Sin salir de la vista: si alguna vez volvieran a la portada, esto se
+       pondria rojo por partida doble -no estan aqui, y ademas seguimos en
+       ayuda-. */
+    igual('ayuda: no se sale de la pantalla para verlas',
+          document.body.getAttribute('data-vista'), 'ayuda');
+    var sec = document.querySelector('.ayuda-vista .faq-sec');
+    ok('ayuda: las preguntas estan en esta misma pantalla', !!sec,
+       sec ? 'aqui' : 'no estan', 'en .ayuda-vista');
+    if (!sec) return;
+    ok('ayuda: y se llega a ellas abiertas', !sec.classList.contains('plegada'),
        sec.className, 'sin la clase plegada');
+    igual('ayuda: con sus siete', sec.querySelectorAll('details').length, 7);
   }
 
   /* ═══════════ LOS LOGOS DE LOS ORGANISMOS ═══════════
@@ -6927,7 +6902,14 @@
     [].forEach.call(vistas, function(v){
       /* El pliego se queda con el suyo: es un documento legal. */
       if (v.className.indexOf('pliego') >= 0) return;
-      var h = v.querySelector('.sec-h .t');
+      /* Y en Ayuda, «Preguntas frecuentes» tampoco cuenta: no es el titulo de
+         la pantalla repetido -esa se llama «Ayuda y guia»- sino la cabecera
+         de una seccion de dentro, y ademas es el boton que la pliega. Lo que
+         esta comprobacion persigue es que una pantalla no repita su propio
+         nombre nada mas entrar. */
+      var h = [].filter.call(v.querySelectorAll('.sec-h .t'), function(t){
+        return !t.closest('.faq-sec');
+      })[0];
       if (h) conTitulo.push(v.className);
     });
     igual('cabeceras: ninguna pantalla lleva ya su título arriba',
@@ -7091,6 +7073,75 @@
     ok('migaja: y al volver a la portada vuelve a decir el panel',
        !!don && !!enc && don.textContent.trim() === enc.textContent.trim(),
        don ? '"' + don.textContent.trim() + '"' : '(no hay)', 'lo que diga el renglon');
+  }
+
+  /* ═══════════ LAS PREGUNTAS FRECUENTES ═══════════
+     Vivian al final de la portada y se mudaron a «Ayuda y guia», que es la
+     pantalla a la que se va a preguntar. Con la mudanza cambian dos cosas de
+     lo que se comprueba, y las dos a proposito:
+
+       · YA NO ARRANCAN PLEGADAS. En la portada eran un indice que no
+         estorbara; en Ayuda son a lo que vienes, y llegar a la pantalla de
+         las preguntas y encontrarlas cerradas es una puerta de mas.
+       · Y hay que NAVEGAR para verlas. Por eso esto son dos pasos de la
+         cadena y no un bloque dentro de otra prueba: cambiar de vista a
+         mitad de una funcion deja lo de despues midiendo una pantalla que
+         se esta yendo.
+
+     Lo que NO cambia es lo demas: que se plieguen al pulsar la cabecera, que
+     no tengan barra propia, que sean siete, y que al plegarlas se cierren
+     las respuestas que quedaran abiertas. */
+  function faqAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'ayuda';
+  }
+
+  function faqMira(){
+    if (CASO !== 'vacio') return;
+    var secF = document.querySelector('.faq-sec');
+    var cabF = secF && secF.querySelector('.faq-h');
+    var lisF = secF && secF.querySelector('.faq');
+    if (!secF || !cabF || !lisF){
+      ok('preguntas: la seccion esta en Ayuda y guia', false,
+         'falta .faq-sec o su cabecera', 'las tres piezas');
+      location.hash = '';
+      return;
+    }
+
+    /* Y dentro de la pantalla de ayuda, no sueltas en el documento: si se
+       quedaran fuera de .ayuda-vista se verian en todas partes. */
+    ok('preguntas: viven dentro de «Ayuda y guia»',
+       !!secF.closest('.ayuda-vista'),
+       secF.parentNode ? secF.parentNode.className : '(sin padre)', 'en .ayuda-vista');
+
+    ok('preguntas: y se llega a ellas abiertas, que es a lo que vienes',
+       !secF.classList.contains('plegada') && lisF.offsetHeight > 100,
+       'plegada=' + secF.classList.contains('plegada') + ' alto=' + lisF.offsetHeight,
+       'desplegada y con alto');
+
+    igual('preguntas: y sin barra de desplazamiento propia',
+          window.getComputedStyle(lisF).overflowY, 'visible');
+
+    cabF.click();
+    ok('preguntas: al pulsar la cabecera se pliegan',
+       secF.classList.contains('plegada') && lisF.offsetHeight === 0,
+       'plegada=' + secF.classList.contains('plegada') + ' alto=' + lisF.offsetHeight,
+       'plegada y sin alto');
+    igual('preguntas: y lo dice para quien no la ve',
+          cabF.getAttribute('aria-expanded'), 'false');
+
+    cabF.click();
+    igual('preguntas: hay siete', lisF.querySelectorAll('details').length, 7);
+
+    /* Al cerrar se cierran tambien las respuestas abiertas: si no, al volver
+       a desplegar apareceria una suelta sin que nadie la pidiera. */
+    lisF.querySelectorAll('details')[2].open = true;
+    cabF.click();
+    cabF.click();
+    igual('preguntas: al plegarla se cierran las respuestas que quedaran abiertas',
+          lisF.querySelectorAll('details[open]').length, 0);
+
+    location.hash = '';
   }
 
   function cuadraAbre(){
