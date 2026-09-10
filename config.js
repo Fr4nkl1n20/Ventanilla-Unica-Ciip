@@ -125,8 +125,15 @@
 
      EL TRATO, POR SI SE ESCRIBE OTRO LECTOR
 
-     Se le llama:   CIIP_LECTOR(archivo, ['acta_constitutiva', 'rif_empresa'])
-                    —el segundo es que papeles espera ESE tramite—.
+     Se le llama:   CIIP_LECTOR(archivo, {acta_constitutiva: ['razon_social',
+                                                             'capital_social'],
+                                          domicilio_empresa: ['direccion_fiscal']})
+
+                    El segundo es el mapa de ESE tramite: que papeles acepta
+                    y, en cada uno, que casillas hay que buscar. Va entero y
+                    no solo la lista de papeles porque el que lee necesita
+                    los dos datos; copiar la tabla al otro lado seria tener
+                    dos que mantener, y un dia dirian cosas distintas.
 
      Devuelve una promesa con:
                     {doc: 'acta_constitutiva',
@@ -140,10 +147,10 @@
      sube el papel a mano y no pasa nada mas.
      ═══════════════════════════════════════════════════════════════════ */
   if (elegido.LECTOR_URL){
-    window.CIIP_LECTOR = function(archivo, papeles){
+    window.CIIP_LECTOR = function(archivo, quePapeles){
       var sobre = new FormData();
       sobre.append('archivo', archivo);
-      sobre.append('papeles', (papeles || []).join(','));
+      sobre.append('casillas', JSON.stringify(quePapeles || {}));
       return fetch(elegido.LECTOR_URL, {method: 'POST', body: sobre})
         .then(function(r){
           if (!r.ok) throw new Error('el lector contesto ' + r.status);

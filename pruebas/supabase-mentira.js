@@ -115,6 +115,12 @@
      reconoce, uno que no, y uno que revienta. */
   var conLector = (caso === 'lector');
   if (conLector) caso = 'vacio';
+  /* El doble manda sobre el lector en TODAS las pasadas, tambien para
+     quitarlo. Este archivo se carga despues de config.js: el dia que
+     LECTOR_URL tenga una direccion -en local eso es el proyecto de
+     pruebas-, config.js pondria un lector de verdad y la prueba de que «sin
+     lector no se pinta el cuadro» se apagaria sola, en silencio. */
+  if (!conLector) { try { delete window.CIIP_LECTOR; } catch (e){ window.CIIP_LECTOR = undefined; } }
   if (conLector){
     var LEIDO = {
       acta_constitutiva: {
@@ -132,12 +138,14 @@
         direccion_fiscal: 'Av. Libertador, Torre 4, Caracas'
       }
     };
-    window.CIIP_LECTOR = function(archivo, papeles){
+    window.CIIP_LECTOR = function(archivo, quePapeles){
       var n = String(archivo && archivo.name || '');
       if (/revienta/.test(n)) return Promise.reject(new Error('el lector de mentira revienta'));
       if (/nose/.test(n))     return Promise.resolve({doc: null, campos: {}});
       var doc = /domicilio/.test(n) ? 'domicilio_empresa' : 'acta_constitutiva';
-      if ((papeles || []).indexOf(doc) < 0) return Promise.resolve({doc: null, campos: {}});
+      /* El panel manda {papel: [casillas]}. Si este tramite no pide ese
+         papel, no viene en el mapa y no hay nada que devolver. */
+      if (!quePapeles || !quePapeles[doc]) return Promise.resolve({doc: null, campos: {}});
       return Promise.resolve({doc: doc, campos: LEIDO[doc]});
     };
   }
@@ -1084,7 +1092,37 @@
          estado:'cargado', nota_revision:'', creado_en:'2026-05-20T10:00:00Z'},
         {id:'doc3', tipo:'acta_constitutiva', archivo:'u1/acta.pdf',
          nombre_original:'acta-constitutiva.pdf', vence_el:fechaEn(12),
-         estado:'cargado', nota_revision:'', creado_en:'2026-08-01T10:00:00Z'}
+         estado:'cargado', nota_revision:'', creado_en:'2026-08-01T10:00:00Z'},
+        /* El RIF de la empresa. No es de adorno: con el, los registros
+           laborales -c9, que solo piden ese papel- pasan a tener TODOS sus
+           recaudos en la boveda, y es el UNICO tramite SIN EMPEZAR del
+           catalogo al que le pasa. Eso es lo que permite medir la marca de
+           «tienes los papeles»: sin una sola tarjeta que la lleve, esa
+           prueba solo mediria que NO sale, que es la mitad barata.
+
+           Se probo primero con el RIF PERSONAL y hubo que deshacerlo: dos
+           pruebas de la cadena -c5 y c6 esperan al c3 porque les falta ese
+           papel- se pusieron rojas, y con razon. Meter un papel en esta
+           boveda no es gratis: apaga las esperas que ese papel causaba.
+
+           Y es realista: la empresa esta constituida y su RIF hecho, que
+           es justo cuando toca inscribir a los trabajadores. */
+        {id:'doc4', tipo:'rif_empresa', archivo:'u1/rif-empresa.pdf',
+         nombre_original:'rif-empresa.pdf', vence_el:null,
+         estado:'cargado', nota_revision:'', creado_en:'2026-07-05T10:00:00Z'},
+        /* Y un comprobante de domicilio. Este NO esta para que salga una
+           marca, sino para que se pueda quitar: con el, el RIF personal
+           -c3- tiene todos sus recaudos Y esta EMPEZADO, que es la unica
+           combinacion capaz de comprobar que «tienes los papeles» NO sale
+           en lo que ya empezaste.
+
+           Sin este papel esa prueba pasaba igual con la regla puesta y con
+           la regla quitada -se comprobo por sabotaje-, o sea que no
+           probaba nada. Una prueba que no puede ponerse roja es peor que
+           no tenerla: ocupa sitio y da tranquilidad falsa. */
+        {id:'doc5', tipo:'domicilio', archivo:'u1/domicilio.pdf',
+         nombre_original:'recibo-de-luz.pdf', vence_el:null,
+         estado:'cargado', nota_revision:'', creado_en:'2026-07-06T10:00:00Z'}
       ]);
       /* Y por TIPO cuando lo piden, que es como lo pregunta el formulario
          de un tramite -¿tengo ya este recaudo?- y la foto de la ficha.

@@ -655,6 +655,31 @@ function fichasDelMarcado() {
      /CIIP_LECTOR\s*=/.test(PANEL) ? 'el panel se lo pone solo' : 'solo lo lee');
 }
 
+/* EL PIE DE LA TARJETA, QUE YA LLEVA TRES COSAS
+   Desde que existe «tienes los papeles», el pie lleva el reloj, la marca y
+   «Ver detalles». En dos columnas la tarjeta deja unos 313 px por dentro y
+   los tres suman mas: sin envoltura se estrujan entre ellos y los TRES
+   textos se parten por la mitad -«Vedi / dettagli» en dos renglones-.
+
+   Se comprueba AQUI, leyendo el CSS, y no con el arnes, por una razon
+   concreta: eso solo pasa entre 860 y 1160 px de ventana, y ninguna de las
+   trece pasadas mide ahi -doce van a 1400 y una a 760-. Una prueba de
+   pantalla que no corre en el ancho donde esta el fallo no sirve de nada, y
+   añadir una pasada entera para un renglon de CSS sale caro. */
+{
+  /* Anclado al principio de renglon. Sin la ^ tambien encaja
+     «.t-body .t-foot{margin-top:auto}», que es otra regla y no lleva la
+     envoltura: la primera version de esta comprobacion se puso roja por eso,
+     y no por el panel. */
+  const pie = /^\.t-foot\{([^}]*)\}/m.exec(PANEL);
+  ok('tarjeta: la regla del pie esta donde se espera', !!pie, pie ? '' : '(no esta)');
+  if (pie) {
+    ok('tarjeta: el pie envuelve, que ya lleva tres cosas',
+       /flex-wrap:\s*wrap/.test(pie[1]),
+       pie[1].replace(/\s+/g, ' ').trim().slice(0, 70), 'con flex-wrap:wrap');
+  }
+}
+
 console.log('\n  ' + pasan + ' de ' + (pasan + fallan) + ' comprobaciones superadas');
 console.log('  ' + claves.length + ' claves de interfaz y ' + clavesUI.length +
             ' de trámites, en ' + idiomas.length + ' idiomas.\n');

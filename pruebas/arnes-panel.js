@@ -230,6 +230,8 @@
               lectorToca, lectorTocada,
               lectorOtra, lectorNoLoConoce, lectorLoDice,
               lectorApagadoAbre, lectorApagadoMira, lectorApagadoVuelve,
+              listoMira, listoEmpezados,
+              notaVisaAbre, notaVisaMira, notaRifAbre, notaRifMira,
               opacidadMira, opacidadSenal,
               loHacemosMira,
               gestionAbre, gestionMira, escaleraNoParpadea, gestionTrasPulsar,
@@ -1091,7 +1093,7 @@
         igual('opcionales: los dos están dentro de la caja',
           rej.querySelectorAll('.tcard[data-tr]').length, 2);
         igual('opcionales: y ya no cuelgan de la rejilla de la fase',
-          document.querySelectorAll('#trs-1 > .tcard[data-tr="c19"], #trs-1 > .tcard[data-tr="c20"]').length, 0);
+          document.querySelectorAll('#trs-1 > .tcard[data-tr="c9"], #trs-1 > .tcard[data-tr="c20"]').length, 0);
 
         /* Apartar NO es quitar. La etapa sigue diciendo once, no nueve:
            el inversionista tiene once trámites en la fase 01, estén donde
@@ -4502,11 +4504,11 @@
     /* Renglones, no fichas: una pila de fichas no se compara, y para
        saber cual vence antes habia que leerlas una a una. */
     var filas = document.querySelectorAll('#dcLista tr[data-doc]');
-    igual('bóveda: están los tres documentos', filas.length, 3);
+    igual('bóveda: están los cinco documentos', filas.length, 5);
     igual('bóveda: con sus siete columnas',
           document.querySelectorAll('#dcCab th').length, 7);
     igual('bóveda: y el renglón los cuenta',
-          document.getElementById('navDocsN').textContent, '3');
+          document.getElementById('navDocsN').textContent, '5');
 
     /* Lo caducado primero: es lo único de esta lista sobre lo que hay algo
        que hacer. */
@@ -7462,6 +7464,174 @@
      pruebas lejos de donde esta el error, que es la peor manera de romper. */
   function lectorApagadoVuelve(){
     if (CASO !== 'vacio' || CON_LECTOR) return;
+    location.hash = '';
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     «TIENES LOS PAPELES», EN LA TARJETA
+     ═══════════════════════════════════════════════════════════════
+     La cuenta de recaudos ya existia, pero dentro del formulario: se lee
+     cuando ya has entrado, y para entonces la decision que informaba -por
+     cual empiezo- ya esta tomada. Esto la dice antes.
+
+     En la boveda de pruebas hay cuatro papeles: cedula, antecedentes,
+     acta constitutiva y RIF de la empresa. Con esos, el UNICO tramite SIN
+     EMPEZAR del catalogo que tiene todos los suyos son los registros
+     laborales -c9, que solo piden el RIF de la empresa-. Por eso se mide
+     ahi, y por eso se mide tambien que en los demas no sale: una marca
+     puesta en las treinta y tres pasaria la primera prueba y seria
+     inutil.
+
+     Dos intentos anteriores salieron rojos, y los dos por la PRUEBA y no
+     por el panel. El primero midio en c3, que en este expediente ya esta
+     EN PROCESO -ahi la marca no debe salir-. El segundo metio el RIF
+     PERSONAL en la boveda para completar la firma electronica, y apago las
+     dos esperas de la cadena que c5 y c6 tienen con c3.
+
+     Y se mide en el expediente VACIO, donde nada esta empezado. En
+     'lleno' hay solicitudes en marcha y la marca no debe salir en ellas,
+     que es la tercera comprobacion. */
+  function listoMira(){
+    if (CASO !== 'vacio') return;
+    var c9 = document.querySelector('.tcard[data-tr="c9"]');
+    ok('listo: hay tarjeta de los registros laborales que mirar', !!c9, c9 ? '' : '(no esta)');
+    if (!c9) return;
+    igual('listo: y es una que no has empezado', c9.getAttribute('data-st'), 'pendiente');
+
+    var marca = c9.querySelector('.t-listo');
+    ok('listo: los registros laborales dicen que ya tienes sus papeles', !!marca,
+       marca ? marca.textContent.trim() : '(sin marca)', 'la marca');
+    if (marca){
+      ok('listo: y lo dice con palabras, no solo con un color',
+         marca.textContent.trim().length > 3, marca.textContent.trim(), 'un texto');
+      /* Lo que significa va en el titulo: en el pie no cabe la frase. */
+      ok('listo: y al pasar por encima explica que significa',
+         (marca.getAttribute('title') || '').length > 20,
+         marca.getAttribute('title') || '(sin titulo)', 'una explicacion');
+      /* Delante de «Ver detalles», que es quien se va a la derecha. */
+      var go = c9.querySelector('.t-foot .go');
+      ok('listo: y va antes de «Ver detalles», no despues',
+         !!go && (marca.compareDocumentPosition(go) & 4) !== 0,
+         c9.querySelector('.t-foot').textContent.trim().slice(0, 40), 'antes');
+    }
+
+    /* LA OTRA MITAD. El RIF de la empresa -c6- pide el acta, que si la
+       tienes, pero tambien el RIF personal y el domicilio de la empresa,
+       que no. Si saliera marcado, la marca estaria mintiendo. */
+    var c6 = document.querySelector('.tcard[data-tr="c6"]');
+    ok('listo: y no sale donde todavia falta algun papel',
+       !!c6 && !c6.querySelector('.t-listo'),
+       c6 && c6.querySelector('.t-listo') ? 'sale' : 'no sale', 'no sale');
+
+    /* Y sigue al idioma. Esta marca la pinta el guion y NO lleva data-i18n,
+       asi que el cambio de idioma no la toca por su cuenta: la repinta
+       CIIP_REPINTA_ESTADOS, y solo si pintaListo reescribe la que ya existe
+       en vez de salirse.
+
+       La primera version se salia, y se vio en una captura: el panel entero
+       en italiano y este renglon en castellano. Ninguna prueba lo cazaba,
+       porque todas miraban un solo idioma. */
+    if (marca){
+      var eraLang = curLang;
+      var eraTexto = marca.textContent.trim();
+      /* Lo GUARDADO, no solo lo que se ve. Pulsar una bandera escribe
+         ciip_lang, y los perfiles del navegador se quedan de una tanda para
+         la siguiente: sin devolverlo, la prueba de «el panel abre en el
+         idioma de tu pais» se pone roja en la tanda siguiente y parece que
+         se rompio el panel. Paso. */
+      var eraGuardado = null;
+      try { eraGuardado = window.localStorage.getItem('ciip_lang'); } catch(e){}
+      var otro = (eraLang === 'es') ? 'en' : 'es';
+      document.querySelector('#langMenu button[data-lang="' + otro + '"]').click();
+      var ahora = document.querySelector('.tcard[data-tr="c9"] .t-listo');
+      ok('listo: y la marca cambia de idioma con el panel',
+         !!ahora && ahora.textContent.trim() !== eraTexto,
+         (ahora ? ahora.textContent.trim() : '(desaparecio)') + ' / antes: ' + eraTexto,
+         'otro texto');
+      document.querySelector('#langMenu button[data-lang="' + eraLang + '"]').click();
+      var vuelta = document.querySelector('.tcard[data-tr="c9"] .t-listo');
+      igual('listo: y vuelve al de antes',
+            vuelta ? vuelta.textContent.trim() : '(desaparecio)', eraTexto);
+      try {
+        if (eraGuardado === null) window.localStorage.removeItem('ciip_lang');
+        else window.localStorage.setItem('ciip_lang', eraGuardado);
+      } catch(e){}
+    }
+
+    /* Y no en todas: una marca puesta en las treinta y tres tarjetas
+       pasaria la primera comprobacion y no diria nada. */
+    var cuantas = document.querySelectorAll('.tcard .t-listo').length;
+    var todas = document.querySelectorAll('.tcard[data-tr]').length;
+    ok('listo: y no en todas las tarjetas, que entonces no seria una senal',
+       cuantas > 0 && cuantas < todas, cuantas + ' de ' + todas, 'algunas, no todas');
+  }
+
+  /* En un tramite ya empezado la marca no informa de nada: los papeles los
+     mandaste hace un mes. El expediente 'lleno' tiene solicitudes en
+     marcha, asi que es donde se puede medir. */
+  function listoEmpezados(){
+    if (CASO !== 'lleno') return;
+    var malas = [].filter.call(document.querySelectorAll('.tcard[data-tr]'), function(c){
+      var st = c.getAttribute('data-st');
+      return st && st !== 'pendiente' && c.querySelector('.t-listo');
+    });
+    ok('listo: no sale en tramites que ya empezaste',
+       malas.length === 0,
+       malas.map(function(c){ return c.getAttribute('data-tr') + '=' + c.getAttribute('data-st'); })
+         .join(', ') || 'ninguna', 'ninguna');
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     EL AVISO DEL PASAPORTE YA NO ESTA
+     ═══════════════════════════════════════════════════════════════
+     «Copia los nombres y las fechas tal como estan en tu pasaporte» estuvo
+     encima del primer campo de los treinta y dos formularios. Primero se
+     dejo solo en los seis que piden pasaporte -en los otros veintiseis
+     nombraba un papel que nadie pedia-, y despues se quito del todo: esos
+     seis lo piden como recaudo, y el lector de documentos saca de ahi esos
+     mismos nombres y fechas. Un aviso que explica como copiar a mano lo
+     que ya no se copia a mano ocupa el mejor sitio del formulario.
+
+     Se mide en los dos: la visa, que era donde mas sentido tenia, y el RIF
+     de la empresa, que era donde menos.
+
+     Y se mide que NO se llevo por delante el otro aviso. El paso 2 tiene
+     el suyo -«2 de 3 recaudos ya estan en tu expediente»- y ese si es
+     verdad en todos: los dos usan la misma clase .pa-nota, asi que un
+     borrado con la mano suelta se habria llevado los dos y ninguna prueba
+     lo habria dicho. */
+  function notaVisaAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c1';
+  }
+
+  function notaVisaMira(){
+    if (CASO !== 'vacio') return;
+    var hoja = document.querySelector('#trReal .pa-hoja[data-paso="1"]');
+    var av = hoja && hoja.querySelector('.pa-nota');
+    ok('aviso: el paso 1 de la visa ya no lleva el aviso del pasaporte',
+       !!hoja && !av, av ? av.textContent.trim().slice(0, 40) : 'no lo lleva', 'sin aviso');
+    /* Y el del paso 2 sigue: es otro, y ese si es verdad. */
+    var pap = document.querySelector('#trReal .pa-hoja[data-paso="2"] .pa-nota');
+    ok('aviso: y el del paso 2, que cuenta tus recaudos, sigue puesto',
+       !!pap, pap ? pap.textContent.trim().slice(0, 40) : '(no esta)', 'puesto');
+  }
+
+  function notaRifAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c6';
+  }
+
+  function notaRifMira(){
+    if (CASO !== 'vacio') return;
+    var hoja = document.querySelector('#trReal .pa-hoja[data-paso="1"]');
+    var av = hoja && hoja.querySelector('.pa-nota');
+    ok('aviso: ni el del RIF de la empresa, que nunca pidio un pasaporte',
+       !!hoja && !av, av ? av.textContent.trim().slice(0, 40) : 'no lo lleva', 'sin aviso');
+    /* Se quito un cuadro, no una casilla. */
+    ok('aviso: y el formulario sigue estando entero',
+       !!hoja && hoja.querySelectorAll('.sol-campo').length >= 5,
+       hoja ? hoja.querySelectorAll('.sol-campo').length : 0, 'sus casillas');
     location.hash = '';
   }
 
