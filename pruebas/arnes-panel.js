@@ -4244,14 +4244,22 @@
     /* La tira de arriba: sin ella, partir el formulario solo escondería
        campos. Lo que convierte "menos campos" en "vas por aquí" es ver los
        tres de un vistazo y cuál es el tuyo. */
-    var pasos = document.querySelectorAll('#emTira .em-paso');
+    /* Es la MISMA barra que la de la solicitud, con sus mismas clases: por
+       eso se busca .pa-seg y no .em-paso. Dos indicadores de pasos con dos
+       formas distintas en el mismo panel se leen como dos cosas distintas. */
+    var pasos = document.querySelectorAll('#emTira .pa-seg');
     igual('empresa: con los tres pasos a la vista', pasos.length, 3);
     igual('empresa: y con sus nombres, no solo números',
-          [].map.call(pasos, function(p){ return p.querySelector('.t').textContent.trim(); }).join(' | '),
+          [].map.call(pasos, function(p){ return p.querySelector('.pa-l').textContent.trim(); }).join(' | '),
           'La empresa | Actividad | Dónde y quién');
     ok('empresa: el primero es el que está marcado',
-       pasos[0].classList.contains('aqui') && !pasos[1].classList.contains('aqui'),
-       pasos[0].className + ' / ' + pasos[1].className, 'solo el primero con "aqui"');
+       pasos[0].classList.contains('ahora') && !pasos[1].classList.contains('ahora'),
+       pasos[0].className + ' / ' + pasos[1].className, 'solo el primero con "ahora"');
+    /* Y es la de verdad, no una copia con el mismo aspecto. */
+    ok('empresa: y la barra es la misma que la de la solicitud',
+       !!document.querySelector('#emTira .pa-barra'),
+       document.querySelector('#emTira') ? document.querySelector('#emTira').firstChild.className : '(no hay)',
+       'una .pa-barra');
     igual('empresa: y el pie dice por dónde vas',
           document.getElementById('emCuenta').querySelector('b').textContent.trim(), 'Paso 1 de 3');
 
@@ -4377,11 +4385,12 @@
     igual('empresa: y en el tercero el botón ya guarda',
           document.getElementById('emGuardar').textContent.trim(), 'Guardar');
     igual('empresa: con los cuatro del último paso', visibles().length, 4);
-    var p1 = document.querySelectorAll('#emTira .em-paso')[0];
+    var p1 = document.querySelectorAll('#emTira .pa-seg')[0];
     ok('empresa: y el primero se puede pulsar para volver',
-       p1.classList.contains('hecho') && p1.classList.contains('pulsable'),
-       p1.className, 'hecho y pulsable');
-    p1.click();
+       p1.classList.contains('hecho'), p1.className, 'con la clase hecho');
+    /* Se pulsa el BOTON de dentro, que es lo que escucha: en esta barra el
+       renglon es un <li> y el que se pulsa es el <button> que lleva. */
+    p1.querySelector('.pa-ir').click();
     igual('empresa: pulsarlo vuelve al primero',
           document.getElementById('emCuenta').querySelector('b').textContent.trim(), 'Paso 1 de 3');
 
@@ -4429,7 +4438,7 @@
     document.getElementById('emGuardar').click();
     ok('empresa: en el ultimo paso el atajo sobra y no sale',
        document.getElementById('emGuardarYa').hidden, 'oculto', 'oculto');
-    document.querySelectorAll('#emTira .em-paso')[0].click();
+    document.querySelector('#emTira .pa-seg .pa-ir').click();
 
     /* Y guarda desde el paso 1, sin pasar por los otros dos. */
     document.getElementById('emGuardarYa').click();
