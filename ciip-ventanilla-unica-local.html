@@ -3630,13 +3630,21 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <button class="sb-item active" id="navPanel" type="button"><span class="dot"></span><span data-i18n="nav.panel">Dashboard</span></button>
       <!-- El numero contaba las 31 tarjetas del catalogo, no las tuyas: decia
            cuantos tramites EXISTEN, que es justo lo que "Mis" no significa. -->
-      <button class="sb-item" id="navTramites" type="button"><span class="dot"></span><span data-i18n="nav.procedures">My procedures</span><span class="cnt" id="navTramitesN" hidden></span></button>
+      <!-- Nace OCULTO: este renglon cambia de nombre segun quien seas -«Mis
+           tramites» para el inversionista, «Tramites por atender» para el
+           equipo- y hasta que el perfil no contesta no se sabe cual poner.
+           Visible desde el marcado, un administrador leia «Mis tramites» en
+           cada F5 hasta que el rol llegaba. Lo enseña menuPorRol(). -->
+      <button class="sb-item" id="navTramites" type="button" hidden><span class="dot"></span><span data-i18n="nav.procedures">My procedures</span><span class="cnt" id="navTramitesN" hidden></span></button>
       <!-- Se iluminaba y no llevaba a nada. La razon social se escribia a
            mano en ocho formularios. -->
       <button class="sb-item" id="navEmpresa" type="button"><span class="dot"></span><span data-i18n="nav.company">My company</span></button>
       <!-- El 9 era de ejemplo. Ahora cuenta los que de verdad has subido, y
            si no has subido ninguno no se enseña. -->
-      <button class="sb-item" id="navDocs" type="button"><span class="dot"></span><span data-i18n="nav.documents">Documents</span><span class="cnt" id="navDocsN" hidden></span></button>
+      <!-- Y este tambien: la boveda es del inversionista, no del equipo, asi
+           que al equipo se le quita del menu. Nacia visible y desaparecia al
+           llegar el rol. -->
+      <button class="sb-item" id="navDocs" type="button" hidden><span class="dot"></span><span data-i18n="nav.documents">Documents</span><span class="cnt" id="navDocsN" hidden></span></button>
     </div>
     <div class="sb-group">
       <div class="sb-gl" data-i18n="nav.g.opps">Opportunities</div>
@@ -13581,8 +13589,30 @@ applyLang(idiomaParaMi());
   /* El renglón de la barra pasa a ser la cola cuando el perfil dice que eres
      del equipo, y con él llega su cuenta. Se llama también desde applyLang
      porque el perfil llega después que la página. */
-  function revisaCola(){
+  /* ── EL MENU, CUANDO SE SABE QUIEN ERES ──
+     Dos renglones cambian con el rol: el de tramites cambia de NOMBRE -«Mis
+     tramites» o «Tramites por atender»- y el de documentos se va del menu
+     para el equipo, porque la boveda no es suya.
+
+     Los dos nacian visibles con la version del inversionista, que es la que
+     acierta para casi todos; el precio lo pagaba el equipo, que en cada F5
+     leia un menu que no era el suyo antes de que llegara su rol.
+
+     Ahora nacen ocultos y salen aqui. Y salen SIEMPRE, tenga o no tenga rol
+     la respuesta: esconder por defecto y esperar a un dato que puede no
+     llegar -si la consulta de perfiles falla- dejaria a un inversionista sin
+     menu, que es mucho peor que verlo un instante mal. Por eso la red de mas
+     abajo los saca de todas formas. */
+  function menuPorRol(){
     renglonDeCola();
+    var mt = document.getElementById('navTramites');
+    if (mt) mt.hidden = false;
+    var dc = document.getElementById('navDocs');
+    if (dc) dc.hidden = !laBovedaEsMia();
+  }
+
+  function revisaCola(){
+    menuPorRol();
     var mio = esDelEquipo();
     if (!mio) return;
     pintaCola();
@@ -16228,6 +16258,25 @@ applyLang(idiomaParaMi());
   /* Quién es el dueño de esta bóveda. Se mira 'rolReal' y no 'rol' a
      secas: PERFIL nace diciendo 'inversionista' y hasta que contesta la
      consulta de perfiles eso es una suposición, no un dato. */
+  /* LA RED. Si el perfil no contesta -la consulta de perfiles falla, o la
+     sesion tarda mas de la cuenta- los dos renglones saldrian escondidos
+     para siempre y el inversionista se quedaria sin menu. Asi que a los dos
+     segundos salen igual, con lo que se sepa: verlos un instante mal es un
+     incordio, no tenerlos es una puerta cerrada.
+
+     Se mira si siguen ocultos antes de tocarlos: si el perfil ya llego, esto
+     no hace nada. */
+  setTimeout(function(){
+    var mt = document.getElementById('navTramites');
+    if (mt && mt.hidden){
+      if (typeof menuPorRol === 'function') menuPorRol();
+      else mt.hidden = false;
+    }
+    var dc = document.getElementById('navDocs');
+    if (dc && dc.hidden && typeof laBovedaEsMia === 'function' && laBovedaEsMia())
+      dc.hidden = false;
+  }, 2000);
+
   function laBovedaEsMia(){
     if (typeof PERFIL === 'undefined') return true;
     if (!PERFIL.rolReal) return true;         /* todavía no se sabe */
