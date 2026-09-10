@@ -59,3 +59,19 @@ vista-cola.html
 # con un `add -A`; la copia buena vive en el escritorio, para mandarla.
 Carta-de-acuerdos-CIIP.pdf
 Pliego-vista-previa.pdf
+
+# ── Lo que instala npm ────────────────────────────────────────────────
+# Desde que existe api/asistente.js hay UNA dependencia (@anthropic-ai/sdk)
+# y, con ella, una carpeta node_modules de varios megas que se reconstruye
+# sola con `npm install`. Vercel la instala en cada despliegue a partir de
+# package.json; subirla al repositorio no aporta nada y ensucia cada diff.
+node_modules/
+
+# ── Las variables de entorno de local ─────────────────────────────────
+# La clave de Anthropic vive en Vercel, no en el repositorio. Si alguna vez
+# se prueba en local con `vercel dev`, la clave acaba en un .env: que no
+# suba. Esta es la clave que de verdad hay que guardar, porque se factura
+# por uso y quien la tenga gasta en la cuenta del CIIP.
+.env
+.env.local
+.env*.local
