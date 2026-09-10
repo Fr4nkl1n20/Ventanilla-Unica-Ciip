@@ -427,8 +427,8 @@ svg{display:block;}
 
    Se parten en dos, con una raya entre medias:
 
-     EL TRABAJO   dónde estás, el buscador, «Por atender» con su cuenta y los
-                  avisos con la suya. Todo lo que dice qué hay que hacer.
+     EL TRABAJO   dónde estás, el buscador y los avisos con su cuenta. Todo
+                  lo que dice qué hay que hacer.
 
      TÚ           el idioma, el tema, tu nombre y salir. Lo que no cambia
                   según la pantalla.
@@ -437,13 +437,16 @@ svg{display:block;}
    dice que a un trámite le falta algo, o sea que hay algo que hacer. Puesto
    junto a «salir» se leería como una preferencia más.
 
+   Aquí iba tercero «Por atender», el botón de la cola del equipo, y se
+   retiró: el renglón de la barra lateral ya lleva a lo mismo y ya lleva su
+   cuenta. El hueco del `order` no se rellena a propósito —los números no son
+   posiciones, son un orden— y así se ve de un vistazo que falta uno.
+
    Se ordena con `order` y no moviendo el marcado: el orden del HTML es el que
-   recorre un lector de pantalla y el que sigue el tabulador, y ahí «Por
-   atender» ya está donde tiene que estar. Lo que se cambia es dónde se
-   DIBUJA. */
+   recorre un lector de pantalla y el que sigue el tabulador, y ahí cada cosa
+   ya está donde tiene que estar. Lo que se cambia es dónde se DIBUJA. */
 .topbar .tb-crumb{order:1;}
 .topbar #askBar{order:2;}
-.topbar .cola-sel{order:3;}
 .topbar .avisos-sel{order:4;}
 .topbar .lang-sel{order:5;}
 .topbar .theme-btn{order:6;}
@@ -1441,9 +1444,11 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .ci-vacia{background:var(--bg); border:1px dashed var(--line); border-radius:var(--r);
   padding:26px 18px; text-align:center; font-size:13px; color:var(--gray);}
 
-/* --- la cola del equipo del CIIP --- */
-.cola-sel{flex:none;}
-.cola-sel[hidden]{display:none;}
+/* --- la cola del equipo del CIIP ---
+   Aquí estaban las reglas de .cola-sel, el botón «Por atender» de la barra
+   de arriba. La ventana sigue entera: ahora se abre por el renglón del
+   trámite en la tabla de «Trámites por atender», que es donde el equipo se
+   sienta a trabajar. */
 /* El alto lo pone el armazón del asistente (max-height:82vh); aquí solo se
    permite que la lista se desborde dentro en vez de estirar la ventana. */
 .cola-lista{padding:6px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;}
@@ -1851,44 +1856,10 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .hero-ring .pct{font-size:22px; font-weight:800;}
 .hero-ring .pl{font-size:9.5px; font-weight:700; letter-spacing:.01em; color:rgba(255,255,255,.7); margin-top:2px;}
 
-/* ===================== NEXT STEP ===================== */
+/* Aqui estaban las reglas de la franja ambar de "te toca a ti", retirada
+   con su bloque de guion: lo que anunciaba se dice ya en Avisos y en la
+   propia tarjeta del tramite. */
 .section-gap{margin-top:22px;}
-/* Nace oculta. Una franja que anuncia algo pendiente solo tiene sentido si
-   hay algo pendiente de verdad, y eso no se sabe hasta que contesta la base;
-   .puesta la enseña. Sin sesion o sin Supabase no se enseña nunca, que es lo
-   honesto: sin base no se puede saber que te toca. */
-.nextstep{display:none; align-items:center; gap:16px; background:var(--bg); border:1px solid var(--amber);
-  border-radius:var(--r); padding:15px 18px; box-shadow:var(--shadow);}
-.nextstep.puesta{display:flex;}
-.nextstep .ns-ico{width:40px; height:40px; border-radius:10px; background:var(--amber-bg); color:var(--amber);
-  display:flex; align-items:center; justify-content:center; flex:none;}
-.nextstep .ns-ico svg{width:21px; height:21px; stroke:currentColor; stroke-width:1.9; fill:none;}
-.ns-body{flex:1 1 auto; min-width:0;}
-.ns-k{font-size:9.5px; font-weight:700; letter-spacing:.1em; color:var(--amber);}
-.ns-t{font-size:14.5px; font-weight:700; margin-top:2px;}
-.ns-d{font-size:12px; color:var(--gray); margin-top:3px;}
-.ns-d b{color:var(--ink); font-weight:600;}
-/* Cuanto lleva subido. Un borrador aqui no es un formulario a medias -el
-   tramite se crea al enviar, con los datos ya validados-: se queda en
-   borrador cuando falla la subida de un recaudo. Asi que la barra mide
-   RECAUDOS, y por eso el texto dice "recaudos" y no "datos": un contador
-   que promete una cosa y al entrar hay otra es peor que no contar. */
-.ns-barra{height:5px; border-radius:3px; background:var(--line-soft);
-  margin-top:8px; max-width:320px; overflow:hidden;}
-.ns-barra i{display:block; height:5px; border-radius:3px; background:var(--amber);}
-.ns-mas{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy);
-  background:none; border:0; padding:5px 0 0; cursor:pointer; text-align:left;}
-.ns-mas:hover{text-decoration:underline;}
-.ns-lado{display:flex; flex-direction:column; align-items:stretch; gap:6px; flex:none;}
-/* Gris y pequeno: descartar no es lo que se espera que hagas. En rojo
-   desde el primer momento seria un boton que da miedo pulsar sin querer,
-   y en azul competiria con "Seguir". */
-.ns-desc{font:inherit; font-size:11px; font-weight:700; color:var(--gray-soft);
-  background:none; border:0; padding:3px 0; cursor:pointer;}
-.ns-desc:hover{color:var(--rust);}
-/* Armado: la segunda pulsacion si borra, y entonces si se pone en rojo. */
-.ns-desc.armado{color:var(--rust);}
-
 /* ===================== JOURNEY STEPPER ===================== */
 .sec-h{display:flex; align-items:center; gap:10px; margin-bottom:13px; flex-wrap:wrap;}
 .sec-h .t{font-size:14px; font-weight:700; letter-spacing:-.01em;}
@@ -3578,17 +3549,19 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
     <button class="tb-btn theme-btn" id="themeBtn" title="Theme" aria-label="Theme">
       <svg id="themeIco" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
     </button>
-    <!-- La cola del equipo del CIIP. Nace OCULTA: el rol no se sabe hasta
-         que contesta la base, y enseñarla antes sería ofrecerle al
-         inversionista un botón que no es suyo. Lo que de verdad protege los
-         datos es la política de la base, no que el botón no se vea. -->
-    <div class="cola-sel" id="colaSel" hidden>
-      <button class="tb-btn" id="colaBtn" type="button" aria-haspopup="dialog" aria-expanded="false">
-        <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
-        <span id="colaTxt"></span>
-        <span class="av-n" id="colaN" hidden></span>
-      </button>
-    </div>
+    <!-- Aquí vivía «Por atender», el botón de la cola del equipo del CIIP,
+         con su cuenta al lado. Nacía oculto y salía cuando el perfil decía
+         que eras del equipo.
+
+         Se retira por decisión del CIIP: el renglón «Trámites por atender»
+         de la barra lateral ya lleva a la misma cola y ya lleva la misma
+         cuenta. Eran dos puertas y dos números para una sola cosa, y la de
+         aquí arriba era la de asomarse; la de la barra es la de sentarse a
+         trabajar, que es lo que se hace con una cola.
+
+         La ventana no se va con el botón: se abre desde el renglón de cada
+         trámite en la tabla, y ahí se abre POR ESE trámite en vez de por
+         arriba, que obligaba a buscarlo otra vez. -->
 
     <!-- El buzón de avisos. La cabecera y la lista las llena el bloque de
          trámites con el historial de tus solicitudes; aquí van vacías. -->
@@ -3667,32 +3640,24 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       </button>
     </div>
 
-    <!-- La franja de "te toca a ti". Arranca VACIA y oculta: lo que dice
-         sale de tus solicitudes en Supabase, no de aqui. Antes tenia escrito
-         a mano el acta constitutiva de una empresa de ejemplo y un boton que
-         no hacia nada; ahora la llena el bloque de mas abajo, o no se
-         enseña. Sin data-i18n a proposito: applyLang no puede traducir un
-         texto que todavia no se sabe cual es, y quien lo compone vuelve a
-         componerlo al cambiar de idioma. -->
-    <div class="nextstep solo-inicio" id="teToca">
-      <div class="ns-ico"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></div>
-      <div class="ns-body">
-        <div class="ns-k"></div>
-        <div class="ns-t"></div>
-        <div class="ns-barra" hidden><i></i></div>
-        <div class="ns-d"></div>
-        <!-- El aviso ensena UNA sola. Sin este renglon, quien tiene tres
-             pendientes ve una y las otras dos no existen. -->
-        <button class="ns-mas" id="nsMas" type="button" hidden></button>
-      </div>
-      <div class="ns-lado">
-        <button class="btn navy" type="button"></button>
-        <!-- Solo para borradores. Una devuelta es una solicitud viva con
-             trabajo del CIIP dentro, y borrarla se llevaria por delante la
-             nota que dice que hay que corregir. -->
-        <button class="ns-desc" id="nsDescartar" type="button" hidden></button>
-      </div>
-    </div>
+    <!-- Aqui vivia la franja ambar de "te toca a ti": una devolucion o un
+         borrador a medias, anunciados a lo ancho encima del camino, con su
+         boton y su "y hay 1 mas esperando por ti".
+
+         Se retira por decision del CIIP: una devolucion ya se marca en
+         AVISOS, con su campana y su contador, y ademas la tarjeta del
+         tramite se pone en ambar y su distintivo dice que requiere tu
+         accion. Eran tres sitios contando lo mismo, y el mas grande de los
+         tres se llevaba una franja entera de la portada por delante del
+         camino, que es lo que se viene a mirar.
+
+         Con la franja se va todo lo suyo: su bloque de guion -que preguntaba
+         a la base por los devueltos y los borradores-, sus reglas de CSS y
+         sus quince claves ns_* de pasos.js. De las ns_ solo queda
+         ns_desde_paso, que no era de la franja: la escalera la usa para
+         decir cuanto llevas en el paso en curso. Si algun dia vuelve, lo
+         que hacia esta en el historial de git; dejarlo aqui apagado solo
+         haria que el proximo que pase se pregunte si esta roto. -->
 
     <div class="section-gap solo-inicio">
       <div class="sec-h">
@@ -3751,11 +3716,18 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
       <div class="sec-h">
         <div class="t" data-i18n="tsec.title">Your procedures</div>
         <div class="spacer"></div>
+        <!-- Los cuatro huecos nacen VACIOS. Llevaron numeros escritos a mano
+             -33, 2, 1 y 3- y ninguno podia ser verdad ya: los filtros cuentan
+             la etapa que esta abierta, y cual abre depende de lo que la base
+             conteste. Un numero puesto aqui seria del panel entero y de otro
+             dia, y se veria durante el instante que tarda en contar; el hueco
+             vacio no promete nada y se llena solo en cuanto hay algo que
+             decir. Lo llena recuentaFiltros. -->
         <div class="filters" id="filters">
-          <button class="ftab on" data-f="todos"><span data-i18n="f.all">All</span> <span class="n">33</span></button>
-          <button class="ftab" data-f="accion"><span data-i18n="f.action">Needs action</span> <span class="n">2</span></button>
-          <button class="ftab" data-f="proceso"><span data-i18n="f.progress">In progress</span> <span class="n">1</span></button>
-          <button class="ftab" data-f="listo"><span data-i18n="f.done">Completed</span> <span class="n">3</span></button>
+          <button class="ftab on" data-f="todos"><span data-i18n="f.all">All</span> <span class="n"></span></button>
+          <button class="ftab" data-f="accion"><span data-i18n="f.action">Needs action</span> <span class="n"></span></button>
+          <button class="ftab" data-f="proceso"><span data-i18n="f.progress">In progress</span> <span class="n"></span></button>
+          <button class="ftab" data-f="listo"><span data-i18n="f.done">Completed</span> <span class="n"></span></button>
         </div>
       </div>
 
@@ -5293,9 +5265,7 @@ function applyLang(lang){
      compone contando tarjetas y tampoco lleva data-i18n. */
   if (window.CIIP_REPINTA_ETAPAS) window.CIIP_REPINTA_ETAPAS();
   if (window.CIIP_REPINTA_AQUI) window.CIIP_REPINTA_AQUI();
-  /* Y con la franja de "te toca a ti", que compone el bloque de trámites
-     con lo que diga la base. Lo mismo el buzón de avisos. */
-  if (window.CIIP_REPINTA_FRANJA) window.CIIP_REPINTA_FRANJA();
+  /* Y con el buzón de avisos, que se compone con lo que diga la base. */
   if (window.CIIP_REPINTA_AVISOS) window.CIIP_REPINTA_AVISOS();
   if (window.CIIP_REPINTA_NUEVAV) window.CIIP_REPINTA_NUEVAV();
   /* Y la ventana del perfil, con su lista de países: los nombres se ven en
@@ -6005,25 +5975,52 @@ function applyLang(lang){
      renglones. Decision del CIIP el 9 de septiembre: que abra elegida, y
      que sean LAS TARJETAS las que enseñen los tramites.
 
-     Cual: la primera que no este terminada. Fijarla siempre en la 01 seria
-     recibir con una lista de cosas hechas a quien ya va por la tercera.
-     Con todo por hacer -que es como entra cualquiera la primera vez- esa
-     primera sin terminar es justamente la 01.
+     Cual, y son dos reglas por orden:
+
+     1. LA QUE TE RECLAMA. Si hay una etapa con algun tramite devuelto o a
+        medias -data-st="accion"-, abre esa. Lo que espera por ti va antes
+        que lo que sigue en el camino.
+
+        Esto se decidio al retirar la franja ambar de «te toca a ti». La
+        franja los anunciaba a lo ancho de la portada; sin ella, y con los
+        filtros contando la etapa abierta, quien tenia dos solicitudes
+        devueltas en la 02 abria en la 01 y veia «Requiere accion 0».
+        Quedaban la campana y la tarjeta en ambar, pero la tarjeta estaba en
+        una etapa que no se estaba mirando.
+
+     2. Si no te reclama nada, la primera que no este terminada. Fijarla
+        siempre en la 01 seria recibir con una lista de cosas hechas a quien
+        ya va por la tercera. Con todo por hacer -que es como entra
+        cualquiera la primera vez- esa primera sin terminar es la 01.
 
      El «auto» existe para no pisar a nadie. Al cargar no se sabe todavia
-     que hay hecho -los estados llegan de la base despues-, asi que la
-     primera pasada elige la 01 y esta funcion se vuelve a llamar cuando
-     llegan los datos, por si habia que moverse. Pero en cuanto alguien
-     pulsa una tarjeta, eleccionAuto se apaga y ya no se le mueve nada de
-     debajo del cursor. */
+     que hay hecho ni que te reclaman -los estados llegan de la base
+     despues-, asi que la primera pasada elige la 01 y esta funcion se
+     vuelve a llamar cuando llegan los datos, por si habia que moverse. Pero
+     en cuanto alguien pulsa una tarjeta, eleccionAuto se apaga y ya no se le
+     mueve nada de debajo del cursor. */
   var eleccionAuto = false;
+
+  /* Si en el bloque de esa etapa hay algo que espera por ti. Se mira el
+     data-st de las tarjetas, que es de donde sale tambien el ambar y el
+     distintivo: un tercer sitio que lo calculara a su manera acabaria
+     diciendo que te reclama una etapa donde no hay ninguna en ambar. */
+  function etapaReclama(et){
+    var b = document.querySelector('[data-fase="' + et.getAttribute('data-ir') + '"]');
+    return !!(b && b.querySelector('.tcard[data-st="accion"]'));
+  }
 
   function eligeSola(){
     var act = document.querySelector('.jp.active[data-ir]');
     if (act && !eleccionAuto) return;      /* eligio una persona: no se toca */
-    var quiere = null;
-    for (var i = 0; i < etapas.length; i++){
-      if (!etapas[i].classList.contains('done')) { quiere = etapas[i]; break; }
+    var quiere = null, i;
+    for (i = 0; i < etapas.length; i++){
+      if (etapaReclama(etapas[i])) { quiere = etapas[i]; break; }
+    }
+    if (!quiere){
+      for (i = 0; i < etapas.length; i++){
+        if (!etapas[i].classList.contains('done')) { quiere = etapas[i]; break; }
+      }
     }
     /* Todas terminadas: se queda en la ultima, que es donde acaba el camino. */
     if (!quiere) quiere = etapas[etapas.length - 1];
@@ -6666,9 +6663,9 @@ applyLang(idiomaParaMi());
        entrado, vuelve vacía y sin error.
 
        Esperar aquí lo arregla para todos los que llaman, en vez de que cada
-       uno tenga que acordarse. La franja ya lo hacía por su cuenta; el
-       detalle de un trámite no, porque al pulsar una tarjeta la sesión ya
-       estaba puesta y no podía fallar.
+       uno tenga que acordarse. El buzón de avisos ya lo hace por su cuenta;
+       el detalle de un trámite no, porque al pulsar una tarjeta la sesión
+       ya estaba puesta y no podía fallar.
 
        Podía, entrando por la dirección directa —…#tramite-c1—, que abre el
        detalle AL CARGAR. Entonces el catálogo volvía vacío, el trámite no
@@ -6711,7 +6708,7 @@ applyLang(idiomaParaMi());
            queda en maqueta hasta recargar, porque nadie vuelve a preguntar.
            Mientras solo llamaba aquí el detalle de un trámite —al pulsar una
            tarjeta, con la sesión ya puesta— no podía pasar; ahora también
-           pregunta la franja al cargar la página, y sí. */
+           pregunta el buzón de avisos al cargar la página, y sí. */
         if (!Object.keys(t).length){
           catalogo = null;
           console.warn('[CIIP] el catálogo de trámites vino vacío: ¿sesión sin poner, o falta correr supabase-tramites.sql?');
@@ -6877,8 +6874,8 @@ applyLang(idiomaParaMi());
     function pinta(){
       caja.textContent = '';
       /* El titulo puede ser una FUNCION, y no es un lujo: applyLang repinta a
-         mano las piezas que no llevan data-i18n -los pasos, las etapas, la
-         franja, los avisos- y los globos no estaban en esa lista. El que
+         mano las piezas que no llevan data-i18n -los pasos, las etapas, los
+         avisos- y los globos no estaban en esa lista. El que
          cuenta que el CIIP puede hacer el tramite por ti se quedaba en el
          idioma que hubiera cuando se monto la tarjeta: panel en italiano y el
          globo en español. Resuelto en el sitio donde se pinta, vale para
@@ -8815,11 +8812,10 @@ applyLang(idiomaParaMi());
       if (r.error) throw r.error;
       /* repintar: ahora hay que enseñar el estado, no el formulario */
       window.CIIP_TRAMITE_REAL(tipoRefDe(tipo.codigo));
-      /* Y la franja de la portada deja de reclamar lo que acabas de mandar:
-         si no, seguiría pidiéndote algo ya hecho hasta recargar. El envío
-         acaba de dejar una línea nueva en el historial, así que el buzón
-         también se vuelve a leer. */
-      revisaFranja();
+      /* El envío acaba de dejar una línea nueva en el historial, así que el
+         buzón se vuelve a leer. Aquí se llamaba además a revisaFranja(),
+         para que la franja de la portada dejara de reclamar lo que acababas
+         de mandar; ya no hay franja. */
       cargaAvisos();
     }).catch(function(e){
       console.warn('[CIIP] enviar:', e && (e.message || e));
@@ -8836,6 +8832,21 @@ applyLang(idiomaParaMi());
   function tipoRefDe(codigo){
     for (var ref in TIPOS){ if (TIPOS[ref].codigo === codigo) return ref; }
     return null;
+  }
+
+  /* Cómo se llama un trámite. El nombre sale de su TARJETA, que ya lo lleva
+     traducido en los seis idiomas. Guardar aquí una segunda copia sería
+     mantener el mismo texto en dos sitios, que es como se desincronizan.
+
+     Nació dentro de la franja de "te toca a ti" y por eso estaba escrita
+     allí; al retirar la franja se fue con ella y se llevó por delante el
+     buzón de avisos, mis trámites, la cola del equipo y las consultas, que
+     nombran los trámites con esta y no tenían por qué enterarse. Vive aquí
+     desde entonces, al lado de tipoRefDe, que es su pareja: una traduce
+     código a ref, la otra ref a nombre. */
+  function nombreDeTarjeta(ref){
+    var n = document.querySelector('.tcard[data-tr="' + ref + '"] .t-name');
+    return n ? n.textContent.trim() : ref;
   }
 
   /* Quién está dentro. `usuario` lo pone la tarjeta de un trámite al
@@ -9567,295 +9578,6 @@ applyLang(idiomaParaMi());
     });
   })();
 
-
-  /* ──────────────────────────────────────────────────────────────
-     LA FRANJA DE "TE TOCA A TI"
-     ──────────────────────────────────────────────────────────────
-     Era un cartel fijo: anunciaba el acta constitutiva de una empresa de
-     ejemplo, decía "revísala y fírmala digitalmente" y su botón no llevaba
-     a ninguna parte. Prometía además algo que esta ventanilla no puede
-     dar: la firma con valor legal se saca en el c19, ante SUSCERTE, y en
-     el esquema no hay ni tabla de firmas ni estado que las guarde.
-
-     Lo que sí sabe la base es quién tiene la pelota. De los seis estados
-     del circuito hay dos en los que la ventanilla está esperando por el
-     inversionista y no al revés:
-
-         devuelto   el gestor la revisó y falta algo, con su nota
-         borrador   la empezó y no llegó a enviarla
-
-     La franja anuncia esa, y su botón abre ese trámite. Si no hay ninguna,
-     no se enseña: un aviso permanente de algo pendiente deja de leerse a
-     la semana. Sin sesión o sin Supabase tampoco, porque entonces no hay
-     forma de saberlo.
-
-     Nota sobre el borrador: hoy solo aparece si un envío se quedó a medio
-     camino —la solicitud se crea y se manda en el mismo gesto—, así que
-     casi siempre la franja hablará de una devolución. La rama del borrador
-     está igualmente porque ese caso a medias es justo el que el usuario no
-     tiene otra manera de descubrir.
-     ──────────────────────────────────────────────────────────── */
-  var franja = document.getElementById('teToca');
-
-  /* El lápiz dice "lo dejaste a medias" y el triángulo "hay algo que
-     corregir". Un mismo dibujo para las dos cosas contaría una de las dos
-     mal, y el ámbar del marco no distingue entre ellas. */
-  var ICONO = {
-    borrador: 'M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z',
-    devuelto: 'M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z'
-  };
-
-  /* Devuelto va antes que borrador: en el devuelto el CIIP ya hizo su parte
-     y está esperando por ti; el borrador lo dejaste tú a medias. */
-  var PRIORIDAD = {devuelto:0, borrador:1};
-
-  var loQueToca = null;   /* lo elegido, para repintarlo al cambiar de idioma */
-  /* Todas las pendientes, no solo la elegida: el aviso ensena una, pero
-     tiene que poder decir cuantas mas hay detras. */
-  var pendientesTodas = [];
-
-  /* El nombre sale de la tarjeta del trámite, que ya lo lleva traducido en
-     los seis idiomas. Guardar aquí una segunda copia sería mantener el
-     mismo texto en dos sitios, que es como se desincronizan. */
-  function nombreDeTarjeta(ref){
-    var n = document.querySelector('.tcard[data-tr="' + ref + '"] .t-name');
-    return n ? n.textContent.trim() : ref;
-  }
-
-  /* Por qué te la devolvieron lo escribió el gestor en el historial. Se lee
-     el ÚLTIMO evento de devolución: si una solicitud fue y volvió dos veces,
-     la nota vieja ya no es la que hay que corregir. */
-  function notaDeDevolucion(id){
-    return sb.from('tramite_eventos').select('nota, creado_en')
-      .eq('tramite', id).eq('a_estado', 'devuelto')
-      .order('creado_en', {ascending:false}).limit(1)
-      .then(function(r){ return (((r.data || [])[0]) || {}).nota || ''; })
-      .catch(function(){ return ''; });
-  }
-
-  /* Cuantos recaudos OBLIGATORIOS le faltan a un borrador. Los opcionales
-     no cuentan: exigirlos aqui haria que un tramite listo para enviar
-     dijera que le falta algo que nadie le va a pedir. */
-  function faltanDe(q){
-    var pide = (RECAUDOS[q.tipo] || []).filter(function(r){ return !r.opcional; });
-    if (!pide.length) return null;
-    var tiene = q.subidos || [];
-    var puestos = pide.filter(function(r){ return tiene.indexOf(r.tipo) >= 0; }).length;
-    return {pide: pide.length, puestos: puestos, faltan: pide.length - puestos};
-  }
-
-  /* El enlace a las demas y el de descartar. Se enganchan una vez, no en
-     cada repintado: un boton que acumula manejadores acaba navegando tres
-     veces, y el de borrar acaba borrando tres cosas. */
-  var nsArmado = false;
-
-  (function(){
-    var mas = document.getElementById('nsMas');
-    if (mas) mas.addEventListener('click', function(){ location.hash = 'tramites'; });
-
-    var desc = document.getElementById('nsDescartar');
-    if (!desc) return;
-    desc.addEventListener('click', function(){
-      var u = T();
-      if (!loQueToca || loQueToca.estado !== 'borrador') return;
-      /* Dos pulsaciones, como en el banco de activos. Una confirmacion
-         con ventana para descartar algo que no se ha enviado es mas
-         ceremonia de la que merece; una sola pulsacion, demasiado poca. */
-      if (!nsArmado){
-        nsArmado = true;
-        desc.textContent = u.ns_descartar_ok || '';
-        desc.classList.add('armado');
-        return;
-      }
-      desc.disabled = true;
-      desc.textContent = u.ns_descartando || '';
-      /* Se va el tramite y con el sus eventos y sus vinculos, por
-         cascada. Los documentos NO: el recaudo que subiste sigue siendo
-         tuyo y sirve para el proximo tramite, que es justo para lo que
-         existe la boveda. Se dice, porque nadie tiene por que suponerlo. */
-      sb.from('tramites').delete().eq('id', loQueToca.id)
-        .then(function(r){
-          if (r && r.error) throw r.error;
-          nsArmado = false;
-          desc.disabled = false;
-          desc.classList.remove('armado');
-          /* Se vuelve a mirar que queda pendiente: puede haber otra
-             detras, o ninguna y entonces la franja se calla sola. */
-          /* revisaFranja es la que vuelve a preguntar que queda
-             pendiente: puede haber otra detras, o ninguna y entonces la
-             franja se calla sola. */
-          revisaFranja();
-          if (window.CIIP_PINTA_MISTRAM) window.CIIP_PINTA_MISTRAM();
-        })
-        .catch(function(e){
-          console.warn('[CIIP] descartar borrador:', e && e.message);
-          nsArmado = false;
-          desc.disabled = false;
-          desc.classList.remove('armado');
-          desc.textContent = u.ns_descartar || '';
-        });
-    });
-  })();
-
-  function pintaFranja(){
-    if (!franja) return;
-    if (!loQueToca){ franja.classList.remove('puesta'); return; }
-
-    var u = T();
-    var q = loQueToca;
-    var devuelto = (q.estado === 'devuelto');
-
-    franja.querySelector('.ns-k').textContent = (devuelto ? u.ns_accion : u.ns_borrador) || '';
-    franja.querySelector('.ns-t').textContent = nombreDeTarjeta(q.ref);
-    var linea = franja.querySelector('.ns-d');
-    var barra = franja.querySelector('.ns-barra');
-    linea.textContent = '';
-    barra.hidden = true;
-
-    if (devuelto){
-      linea.textContent = q.nota || u.ns_devuelta || '';
-      franja.querySelector('.btn').textContent = u.ns_ir || '';
-    } else {
-      /* Lo que falta primero y en negro; cuanto lleva despues y en gris.
-         Al reves, lo que mueve a terminar algo queda de segundo. */
-      var c = faltanDe(q);
-      if (c && c.faltan > 0){
-        franja.querySelector('.ns-k').textContent =
-          (u.ns_borrador || '') + ' \u00b7 ' + c.puestos + '/' + c.pide;
-        barra.hidden = false;
-        barra.querySelector('i').style.width =
-          Math.round(100 * c.puestos / c.pide) + '%';
-        var fuerte = el('b', null, String(c.faltan === 1 ? u.ns_faltan : u.ns_faltanN)
-          .replace('{n}', c.faltan));
-        linea.appendChild(fuerte);
-      } else if (c){
-        linea.appendChild(el('b', null, u.ns_completo || ''));
-      }
-      /* "hace 3 dias" y no una fecha: restar mentalmente cuesta, y el
-         numero de dias es justo lo que dice si urge. */
-      linea.appendChild(document.createTextNode(
-        (linea.textContent ? ' \u00b7 ' : '') +
-        String(u.ns_desde || '').replace('{cuando}', haceCuanto(q.creado_en))));
-      franja.querySelector('.btn').textContent = u.ns_seguir || u.ns_ir || '';
-    }
-
-    /* Descartar, solo si es un borrador. Y desarmado cada vez que se
-       repinta: un boton que se queda armado de la vez anterior borra al
-       primer clic de la siguiente. */
-    var desc = document.getElementById('nsDescartar');
-    if (desc){
-      desc.hidden = devuelto;
-      nsArmado = false;
-      desc.classList.remove('armado');
-      desc.textContent = u.ns_descartar || '';
-    }
-
-    /* Y las demas, que hasta ahora no existian para quien mirase esto. */
-    var mas = document.getElementById('nsMas');
-    if (mas){
-      var otras = (pendientesTodas.length - 1);
-      mas.hidden = (otras < 1);
-      mas.textContent = String(u.ns_mas || '').replace('{n}', otras);
-    }
-
-    var trazo = franja.querySelector('.ns-ico path');
-    if (trazo) trazo.setAttribute('d', ICONO[q.estado] || ICONO.borrador);
-
-    franja.classList.add('puesta');
-  }
-
-  function revisaFranja(){
-    if (!franja) return;
-    /* La sesión PRIMERO, y con getSession, que la lee de local sin salir a
-       la red. Preguntar por el catálogo antes de tenerla devuelve una lista
-       vacía —la política solo se la enseña a quien ha entrado— y entonces
-       ningún trámite encuentra su tarjeta y la franja calla por un motivo
-       falso. */
-    return sb.auth.getSession().then(function(r0){
-      if (!(r0 && r0.data && r0.data.session)) return;
-      return cargaCatalogo().then(function(){
-        if (!Object.keys(TIPOS || {}).length) return;
-        /* La política de la base ya limita esto a tus propias solicitudes.
-           Filtrar aquí por inversionista daría a entender que la protección
-           es de este lado, y no lo es. */
-        /* Se piden TODAS y no solo las pendientes: hace falta saber si esa
-           misma gestión ya siguió adelante. Un borrador que se quedó atrás
-           —porque se reintentó el envío y el segundo sí entró— no es "lo que
-           te toca": el detalle enseña la enviada, y la franja estaría
-           anunciando como sin terminar algo que el usuario ya resolvió. Las
-           dos pantallas decían cosas distintas de la misma gestión. */
-        return sb.from('tramites')
-          .select('id, tipo, estado, creado_en, actualizado_en')
-          .then(function(r2){
-            var filas = r2.data || [];
-            var yaEnMarcha = {};
-            filas.forEach(function(t){
-              if (t.estado !== 'borrador') yaEnMarcha[t.tipo] = true;
-            });
-            var pendientes = [];
-            filas.forEach(function(t){
-              if (t.estado !== 'devuelto' && t.estado !== 'borrador') return;
-              if (t.estado === 'borrador' && yaEnMarcha[t.tipo]) return;
-              var ref = tipoRefDe(t.tipo);
-              /* Sin tarjeta en el panel no hay adónde llevar al usuario. */
-              if (ref) pendientes.push({
-                id: t.id, ref: ref, estado: t.estado, tipo: t.tipo,
-                creado_en: t.creado_en, actualizado_en: t.actualizado_en,
-                nota: '', subidos: []
-              });
-            });
-            pendientes.sort(function(a, b){
-              var d = PRIORIDAD[a.estado] - PRIORIDAD[b.estado];
-              return d || String(b.actualizado_en).localeCompare(String(a.actualizado_en));
-            });
-
-            pendientesTodas = pendientes;
-            loQueToca = pendientes[0] || null;
-            if (!loQueToca){ pintaFranja(); return; }
-            /* Que recaudos lleva ya subidos el borrador. Un viaje mas, y
-               solo cuando hay algo pendiente: sin esto la barra no puede
-               decir 3 de 4 y solo quedaria repetir "sin terminar". */
-            var pedir = (loQueToca.estado === 'borrador')
-              ? sb.from('tramite_documentos')
-                  .select('documento, documentos(tipo)')
-                  .eq('tramite', loQueToca.id)
-                  .then(function(rd){
-                    loQueToca.subidos = ((rd && rd.data) || []).map(function(x){
-                      return (x.documentos || {}).tipo;
-                    }).filter(Boolean);
-                  })
-                  .catch(function(e){
-                    /* Sin la lista, la barra no sale y el aviso dice lo de
-                       siempre. Peor, pero no roto. */
-                    console.warn('[CIIP] recaudos del borrador:', e && e.message);
-                  })
-              : Promise.resolve();
-
-            return pedir.then(function(){
-              if (loQueToca.estado !== 'devuelto'){ pintaFranja(); return; }
-              return notaDeDevolucion(loQueToca.id).then(function(nota){
-                loQueToca.nota = nota;
-                pintaFranja();
-              });
-            });
-          });
-      });
-    }).catch(function(e){ console.warn('[CIIP] la franja de te toca:', e && e.message); });
-  }
-
-  if (franja){
-    franja.querySelector('.btn').addEventListener('click', function(){
-      if (!loQueToca) return;
-      /* Se navega poniendo el hash y no llamando al router a mano: así la
-         flecha "atrás" del navegador sabe volver también de este salto. */
-      location.hash = 'tramite-' + loQueToca.ref;
-    });
-    /* El texto no lleva data-i18n —no se sabe cuál es hasta que contesta la
-       base—, así que applyLang vuelve a componerlo por aquí. Repintar no
-       vuelve a preguntar: lo elegido ya está en loQueToca. */
-    window.CIIP_REPINTA_FRANJA = pintaFranja;
-    revisaFranja();
-  }
 
   /* ──────────────────────────────────────────────────────────────
      EL BUZÓN DE AVISOS
@@ -12118,11 +11840,8 @@ applyLang(idiomaParaMi());
      leer el de otro. Se enseña "(sin nombre en su expediente)" en vez de
      dejar el hueco, que parecería un fallo del dato y no del permiso.
      ──────────────────────────────────────────────────────────── */
-  var coSel   = document.getElementById('colaSel');
-  var coBtn   = document.getElementById('colaBtn');
   var coBack  = document.getElementById('colaBack');
   var coLista = document.getElementById('colaLista');
-  var coN     = document.getElementById('colaN');
   var enCola  = [];
 
   /* El título tal como viene, leído UNA vez y antes de tocarlo.
@@ -12137,10 +11856,12 @@ applyLang(idiomaParaMi());
     var r = (typeof PERFIL !== 'undefined' && PERFIL.rol) || '';
     return r === 'gestor' || r === 'admin';
   }
-  /* Los usa el renglón de la barra, que para el equipo del CIIP deja de
-     ser «Mis trámites» y pasa a ser esta misma cola. */
+  /* Lo usa el renglón de la barra, que para el equipo del CIIP deja de
+     ser «Mis trámites» y pasa a ser esta misma cola.
+     Aquí había también un CIIP_ABRE_COLA para abrir la ventana desde fuera:
+     lo pedía el botón «Por atender» de arriba, que ya no está, y sin él no
+     quedaba nadie llamándolo. */
   window.CIIP_ES_EQUIPO = esDelEquipo;
-  window.CIIP_ABRE_COLA = function(){ abreCola(); };
 
   /* ── El renglón de la barra, para el equipo ──
      «Mis trámites» le enseñaba trámites de OTROS: la política de la base le
@@ -12149,9 +11870,11 @@ applyLang(idiomaParaMi());
      pantalla que miente, y encima no le sirve: lo que él necesita es lo que
      está esperando su turno.
 
-     Así que se llama como el botón de arriba y abre lo mismo. Un solo sitio
-     donde llegan las solicitudes de los inversionistas, con dos puertas.
-     Dos listas distintas para lo mismo se desincronizan el primer día. */
+     Así que se llama «Trámites por atender» y abre la cola. Durante un tiempo
+     hubo también un botón con ese nombre en la barra de arriba —dos puertas
+     al mismo sitio, y dos números—; se quitó y esta se quedó, que es la que
+     lleva a la tabla donde se trabaja. Una sola lista: dos listas distintas
+     para lo mismo se desincronizan el primer día. */
   function renglonDeCola(){
     var fila = document.getElementById('navTramites');
     if (!fila) return;
@@ -12175,11 +11898,12 @@ applyLang(idiomaParaMi());
         et.textContent = dic['nav.procedures'] || I18N.en['nav.procedures'] || '';
       }
     }
-    /* Y el contador es el mismo de la cola: lo pone pintaCola. Aquí solo
-       se limpia el que hubiera de la lista personal. */
+    /* Y el contador lo pone pintaCola, que corre justo detrás. Aquí solo se
+       borra el que hubiera de la lista personal: el número de «Mis trámites»
+       cuenta los tuyos, y en el renglón del equipo diría otra cosa. */
     if (mio){
       var c = document.getElementById('navTramitesN');
-      if (c && !coN) { c.textContent = ''; c.hidden = true; }
+      if (c) { c.textContent = ''; c.hidden = true; }
     }
   }
 
@@ -12345,9 +12069,9 @@ applyLang(idiomaParaMi());
     if (!coLista) return;
     var u = T();
     var pon = function(id, txt){ var e = document.getElementById(id); if (e) e.textContent = txt || ''; };
-    pon('colaTxt',    u.co_boton);
-    /* La ventana ya no es solo de citas: el titulo pasa a ser el del boton,
-       y "Citas por confirmar" baja a ser la cabecera de su seccion. */
+    /* La ventana ya no es solo de citas: el titulo es el mismo rotulo que
+       lleva el renglon de la barra, y "Citas por confirmar" baja a ser la
+       cabecera de su seccion. */
     pon('colaTitulo', u.co_boton);
     pon('colaSub',    u.co_sub);
     pon('colaHcitas', enCola.length ? (u.co_titulo || '') : '');
@@ -12356,17 +12080,19 @@ applyLang(idiomaParaMi());
     coLista.textContent = '';
     pintaConsultas();
     pintaTramites();
-    if (coN){
-      /* El contador suma las dos colas: es "cuánto tienes encima", no
-         "cuántas citas". */
-      /* Las consultas cuentan igual que lo demas: el numero dice «cuanto
-         tienes encima», y dejarlas fuera lo haria mentir por lo bajo. */
+    {
+      /* El contador suma las tres colas: es "cuánto tienes encima", no
+         "cuántas citas". Las consultas cuentan igual que lo demas: dejarlas
+         fuera lo haria mentir por lo bajo.
+
+         Este bloque colgaba de `if (coN)`, la chapa del boton «Por atender»
+         de la barra de arriba. Al quitarse el boton, colgar de el lo de
+         debajo habria apagado en silencio las otras dos cosas que cuentan
+         lo mismo: el numero del renglon de la barra lateral y el de la
+         pestaña del navegador. */
       var total = enCola.length + enRevision.length + consultas.length;
-      coN.textContent = String(total);
-      coN.hidden = (total === 0);
-      /* Y el renglón de la barra dice lo mismo: son la misma cola por dos
-         puertas, y dos números distintos para una sola cosa es lo que hace
-         dudar de los dos. */
+      /* El renglón de la barra es ahora el ÚNICO sitio del panel donde el
+         equipo ve cuánto tiene encima sin entrar. */
       var cN = document.getElementById('navTramitesN');
       if (cN && esDelEquipo()){
         cN.textContent = String(total);
@@ -12374,7 +12100,7 @@ applyLang(idiomaParaMi());
       }
 
       /* ── Y EN LA PESTAÑA ──
-         Las dos chapas de arriba sólo se ven con el panel delante, y el
+         La chapa del renglón sólo se ve con el panel delante, y el
          momento en que se pierde una consulta es justo el otro: el gestor
          está trabajando en otra pestaña y nadie le dice nada. Desde que
          existen las consultas, alguien puede escribir al CIIP sin pedir
@@ -12488,8 +12214,9 @@ applyLang(idiomaParaMi());
 
   /* ── los trámites que esperan por el CIIP ──
      Una solicitud enviada se quedaba en la base sin que nadie pudiera
-     moverla: la franja de "te toca a ti" del inversionista depende del
-     estado 'devuelto', y ese estado solo se podía poner a mano por SQL.
+     moverla: lo que el inversionista ve como "requiere tu acción" —el aviso
+     en la campana y la tarjeta en ámbar— depende del estado 'devuelto', y
+     ese estado solo se podía poner a mano por SQL.
 
      Se listan los tres estados en los que la pelota la tiene el CIIP.
      'devuelto' no entra —ahí espera el inversionista— y 'borrador' tampoco,
@@ -13360,7 +13087,6 @@ applyLang(idiomaParaMi());
   function abreCola(irA){
     if (!coBack) return;
     coBack.classList.add('open');
-    coBtn.setAttribute('aria-expanded', 'true');
     cargaCola().then(function(){
       pintaCola();
       /* Y si se viene de un renglón de la tabla, a ESE. Abrir la ventana
@@ -13380,16 +13106,14 @@ applyLang(idiomaParaMi());
   function cierraCola(){
     if (!coBack) return;
     coBack.classList.remove('open');
-    coBtn.setAttribute('aria-expanded', 'false');
   }
 
-  /* El botón aparece cuando el perfil dice que eres del equipo. Se llama
-     también desde applyLang porque el perfil llega después que la página. */
+  /* El renglón de la barra pasa a ser la cola cuando el perfil dice que eres
+     del equipo, y con él llega su cuenta. Se llama también desde applyLang
+     porque el perfil llega después que la página. */
   function revisaCola(){
     renglonDeCola();
-    if (!coSel) return;
     var mio = esDelEquipo();
-    coSel.hidden = !mio;
     if (!mio) return;
     pintaCola();
     cargaCola().then(pintaCola).catch(function(e){
@@ -13397,8 +13121,7 @@ applyLang(idiomaParaMi());
     });
   }
 
-  if (coBack && coBtn){
-    coBtn.addEventListener('click', abreCola);
+  if (coBack){
     document.getElementById('colaCerrar').addEventListener('click', cierraCola);
     coBack.addEventListener('click', function(e){ if (e.target === coBack) cierraCola(); });
     document.addEventListener('keydown', function(e){ if (e.key === 'Escape') cierraCola(); });
@@ -13408,8 +13131,8 @@ applyLang(idiomaParaMi());
        applyLang vuelve a llamar aquí cuando llega. Pero solo si para entonces
        este bloque ya existía: si la sesión se resolviera muy pronto —sesión
        guardada, red rápida— esa llamada se habría perdido contra un
-       CIIP_REPINTA_COLA que aún no existía, y el botón no saldría nunca por
-       mucho que el rol fuese el bueno.
+       CIIP_REPINTA_COLA que aún no existía, y el renglón se quedaría diciendo
+       «Mis trámites» por mucho que el rol fuese el bueno.
 
        Se vuelve a mirar hasta que el perfil esté puesto, y SOLO se consulta la
        cola cuando el rol cambia: si no, serían cuarenta peticiones seguidas. */
@@ -13848,7 +13571,16 @@ applyLang(idiomaParaMi());
     var u = T();
 
     var vivos = mios.filter(function(t){ return MT_VIVOS.indexOf(t.estado) >= 0; });
-    if (mtNavN){
+    /* La chapa es del RENGLÓN, y el renglón no dice lo mismo para todos: al
+       equipo del CIIP se le llama «Trámites por atender» y su número es el de
+       la COLA, que pone pintaCola. Escribir aquí el de sus propios trámites
+       —que casi siempre es cero— la apagaba.
+
+       No se notaba mientras el equipo leía su número en el botón «Por
+       atender» de la barra de arriba: eran dos chapas y cada una tenía su
+       dueño. Al retirarse ese botón esta se quedó sola, y entonces sí
+       importaba cuál de los dos bloques escribía el último. */
+    if (mtNavN && !(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO())){
       mtNavN.textContent = String(vivos.length);
       mtNavN.hidden = (vivos.length === 0);
     }
@@ -14034,8 +13766,10 @@ applyLang(idiomaParaMi());
   if (mtLista){
     if (mtNav) mtNav.addEventListener('click', function(){
       /* Para el equipo del CIIP este renglón lleva a la cola en TABLA, no
-         a la ventana. La ventana sigue colgando del botón de arriba, que
-         es para asomarse; esto es para sentarse a trabajar. */
+         a la ventana: la tabla es para sentarse a trabajar y la ventana
+         para actuar sobre UN trámite, y a ella se entra por su renglón.
+         Hubo un botón arriba que abría la ventana por lo alto; se quitó,
+         porque abrir por arriba obliga a buscar otra vez el trámite. */
       if (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()){
         location.hash = 'poratender';
         return;
@@ -14902,7 +14636,29 @@ applyLang(idiomaParaMi());
      Y sólo donde hay norma leída. Sin ella el reloj se queda como está,
      texto y ya: colgarle un globo que dijera «no se sabe» sería prometer
      un dato en 31 de 33 tarjetas para no darlo. */
+  /* ── Y APAGADO, POR AHORA ──
+     Decisión del CIIP: que «Los plazos de este trámite» no salga. El reloj
+     vuelve a ser texto y ya: sin subrayado de puntos, sin cursor de mano y
+     sin nada que abrir.
+
+     Se apaga con este interruptor y NO se borra el bloque, porque la
+     palabra fue «por ahora». Lo de debajo —la norma leída con su Gaceta, y
+     los días que el CIIP mantiene en Catálogos— sigue entero y vuelve
+     poniendo esto en true.
+
+     Si la decisión se confirma, hay que BORRARLO: un interruptor que nadie
+     va a mover nunca es código muerto con otro nombre, y este archivo ya
+     dice en tres sitios lo que opina de eso. */
+  var GLOBO_DE_PLAZOS = false;
+  /* Y el arnés tiene que poder leerlo. Sin esto solo puede mirar si algún
+     reloj lleva globo, y «apagado a propósito» y «roto» se ven igual desde
+     fuera: las pruebas del globo se pondrían rojas por una decisión, o se
+     borrarían y entonces no habría nada que se pusiera rojo el día que el
+     interruptor vuelva a true y el globo no salga. */
+  window.CIIP_GLOBO_DE_PLAZOS = GLOBO_DE_PLAZOS;
+
   function pintaPlazoLegal(tarjeta, tipo){
+    if (!GLOBO_DE_PLAZOS) return;
     /* Con qué ficha se corresponde. Se guarda para poder releer el
        catálogo al abrir el globo en vez de quedarse con el de ahora: ver
        la nota de puntosFn, más abajo. */

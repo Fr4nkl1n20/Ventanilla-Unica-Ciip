@@ -8,7 +8,6 @@
 
        el camino     que los contadores y las barras salen de las tarjetas
        las cajas     que las cuatro etapas son cuatro cajas parejas
-       la franja     que anuncia lo que de verdad te toca, o se calla
        el buzón      que la campana enseña el historial y lleva a él
        la sesión     que el panel te llama a TI y no a la demostración
        el perfil     que puedes completar tu nombre y tu país, y que se ven
@@ -59,11 +58,6 @@
     if (!e) return '(no hay etapa ' + i + ')';
     var x = e.querySelector(sel);
     return x ? x.textContent.trim() : '(no hay ' + sel + ')';
-  }
-  function franja(){ return document.getElementById('teToca'); }
-  function enFranja(sel){
-    var f = franja(); if (!f) return '(no hay franja)';
-    var x = f.querySelector(sel); return x ? x.textContent.trim() : '';
   }
   function avisos(){ return document.querySelectorAll('#avisosLista .av-i'); }
 
@@ -196,7 +190,6 @@
               cacheAbre, cacheMira, cacheSube, cacheSube2, cacheVuelve, cacheTrasVolver,
               ayudaAbre, ayudaMira, ayudaFaq,
               supAbre, supMira, supTemas, supVuelve,
-              franjaDescarta, franjaTrasDescartar,
               fotoAbre, fotoMira, fotoMala, fotoSube, fotoTrasSubir, fotoCierra,
               temaMira,
               logosMiran, tokensMiran,
@@ -670,25 +663,44 @@
          'done=' + e.classList.contains('done') + ' num=' + num, 'done=false num=1');
     })();
 
-    /* El numero del marcado tambien, no solo el que calcula el script: es lo
-       que se ve durante el instante que tarda la pagina en contar, y llevaba
-       24 con 33 tarjetas puestas.
+    /* ── EL FILTRO NO PUEDE PROMETER MAS TARJETAS DE LAS QUE HAY DEBAJO ──
+       Aqui se exigia un 32: los filtros contaban el panel entero. Desde que
+       la portada abre con una etapa elegida cuentan LA ETAPA ABIERTA, que es
+       lo unico que se ve; un 32 encima de una lista de once seria el mismo
+       engaño que se acaba de quitar de las tarjetas.
 
-       Se admiten 32 o 33, y no es dejarlo pasar: el marcado se escribe antes
-       de que el catalogo llegue, asi que NO PUEDE saber cuantas estan
-       encendidas. Lo que se le exige es que no arranque con una cuenta de
-       otra epoca, que es lo que hacia. La cuenta de verdad -la de despues de
-       contar- se mide en la linea siguiente y esa si es exacta. */
-    ok('camino: y el marcado no arranca con una cuenta vieja',
-       /<span class="n">3[23]<\/span>/.test(document.querySelector('.ftab[data-f="todos"]').outerHTML),
-       document.querySelector('.ftab[data-f="todos"]').outerHTML.slice(0, 80), '32 o 33');
+       Y no se compara contra un numero escrito aqui -el catalogo crece y la
+       copia se queda vieja, que es como esta prueba acabo pidiendo 32 con
+       once delante-, sino contra las tarjetas de la etapa abierta. Eso solo
+       repetiria la cuenta del panel, asi que va con una segunda mitad que no
+       la repite: que no se vea NINGUNA tarjeta de otra etapa.
 
-    /* 32 y no 33: la que falta es el registro de marca, apagado en el
-       catalogo. El filtro cuenta lo que se OFRECE, no lo que hay escrito en
-       el documento; si contara las 33, el numero de arriba prometeria una
-       tarjeta mas de las que hay debajo. */
-    igual('camino: los filtros cuentan las que se ofrecen',
-          (document.querySelector('.ftab[data-f="todos"] .n') || {}).textContent, '32');
+       El numero escrito a mano en el marcado no se mira aqui: el arnes lee
+       el DOM, o sea lo que el script ya reescribio, asi que le llega
+       corregido. Eso vive en pruebas/claves.js, que lee el archivo. */
+    (function(){
+      var abierta = document.querySelector('.phase.etapa-abierta');
+      var suyas = abierta ? abierta.querySelectorAll('.tcard') : [];
+      igual('camino: el filtro de todos cuenta las de la etapa abierta',
+            (document.querySelector('.ftab[data-f="todos"] .n') || {}).textContent,
+            String(suyas.length));
+
+      /* La mitad que no es repetir su cuenta: que no haya NINGUNA tarjeta de
+         otra etapa a la vista. Si el numero saliera bien contando el panel
+         entero, o si abajo se colara la lista de otra fase, esto se cae.
+         Los pasos opcionales van plegados y no se ven; entran igual en el
+         numero, y eso esta bien: estan ahi, a un golpe de «Ver 2 pasos
+         opcionales», no en otra pantalla. */
+      var deOtra = [].filter.call(
+        document.querySelectorAll('#secTramites .tcard'),
+        function(c){ return c.offsetParent !== null && (!abierta || !abierta.contains(c)); });
+      ok('camino: y no se ve ninguna tarjeta de otra etapa',
+         suyas.length > 0 && deOtra.length === 0,
+         deOtra.length ? ('se cuelan: ' + deOtra.map(function(c){
+           return c.getAttribute('data-tr'); }).join(', '))
+                       : (suyas.length + ' en la etapa abierta'),
+         'ninguna de fuera');
+    })();
 
     /* ═══════════ EL ESTADO DE CADA TARJETA ═══════════
        Iba escrito a mano en las 33: tres decían "Completado" y una fecha de
@@ -781,12 +793,41 @@
         ok('estados: y el reloj dice cuándo lo enviaste',
            /Enviada el/.test(reloj('c3')), reloj('c3'), 'Enviada el ...');
 
-        igual('estados: el filtro de acción cuenta los dos',
+        /* ── LOS FILTROS, ETAPA POR ETAPA ──
+           Cuentan la etapa que está abierta, no el panel entero, así que
+           aquí hace falta decir DÓNDE está cada cosa o el número no
+           significa nada. Los dos que te reclaman -el RIF de empresa y la
+           constitución- viven en la 02, y son los que hacen que la portada
+           abra ahí; el RIF personal en marcha y la visa resuelta están en la
+           01, y para verlos contados hay que pulsarla.
+
+           Que los cinco números no salgan a la vez es la consecuencia de la
+           decisión, y por eso se prueba así en vez de sumarlos todos: si
+           algún día vuelven a contar el panel entero, estas dos mitades se
+           caen y hay que venir a mirar. */
+        igual('estados: el filtro de acción cuenta los dos, en su etapa',
               document.querySelector('.ftab[data-f="accion"] .n').textContent, '2');
-        igual('estados: y el de en proceso, el uno',
-              document.querySelector('.ftab[data-f="proceso"] .n').textContent, '1');
-        igual('estados: y el de completados, el resuelto',
-              document.querySelector('.ftab[data-f="listo"] .n').textContent, '1');
+
+        (function(){
+          var laUna = document.querySelector('.jp[data-ir="1"]');
+          if (!laUna) return;
+          laUna.click();
+          igual('estados: y en la 01, el de en proceso cuenta el uno',
+                document.querySelector('.ftab[data-f="proceso"] .n').textContent, '1');
+          igual('estados: y el de completados, el resuelto',
+                document.querySelector('.ftab[data-f="listo"] .n').textContent, '1');
+
+          /* Y se devuelve la portada a COMO ABRIÓ, no a la 02 con otro
+             golpe: pulsar deja apagada la elección automática, y las pruebas
+             de más abajo comprueban justamente qué elige sola. Se borra la
+             marca y se le pide que vuelva a elegir. */
+          document.querySelectorAll('.jp[data-ir]').forEach(function(e){
+            e.classList.remove('active');
+            e.removeAttribute('data-aqui');
+            e.setAttribute('aria-pressed', 'false');
+          });
+          if (window.CIIP_ELIGE_SOLA) window.CIIP_ELIGE_SOLA();
+        })();
         ok('estados: un trámite resuelto pone su tarjeta en verde',
            st('c1') === 'listo' && chip('c1') === 'Completado',
            st('c1') + ' / ' + chip('c1'), 'listo / Completado');
@@ -794,16 +835,16 @@
 
       if (CASO === 'vacio'){
         /* Dos del mismo trámite: un borrador viejo y una revisión en
-           marcha. La tarjeta enseña la de ahora, no la que se quedó atrás
-           —que es lo mismo que ya hace la franja de arriba—. */
+           marcha. La tarjeta enseña la de ahora, no la que se quedó atrás. */
         igual('estados: entre dos del mismo trámite manda la más reciente', st('c3'), 'proceso');
       }
 
       if (CASO === 'sinnombre'){
-        /* Este expediente tiene UN borrador -el que hace salir el aviso de
-           "sin terminar"-, asi que su tarjeta no puede decir "por
-           iniciar": 32 y no 33. Y de paso se comprueba lo que ninguna
-           prueba miraba, que el borrador se vea tambien en su tarjeta. */
+        /* Este expediente tiene UN borrador, asi que su tarjeta no puede
+           decir "por iniciar": 32 y no 33. Y de paso se comprueba lo que
+           ninguna prueba miraba, que el borrador se vea en su tarjeta.
+           Desde que se retiro la franja de "te toca a ti", esta es la
+           unica pantalla que lo dice. */
         var pendS = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
         ok('estados: con un borrador, treinta y dos por iniciar y no treinta y tres',
           /* 31 y no 32: el registro de marca esta apagado y su tarjeta ya no
@@ -1278,6 +1319,13 @@
        recién enviado. Ninguno resuelto, así que los tres están en marcha. */
     (function(){
       var n = document.getElementById('navTramitesN');
+      /* Solo donde el renglón ES «Mis trámites». Al equipo del CIIP ese
+         mismo renglón se llama «Trámites por atender» y su chapa cuenta la
+         COLA, que no tiene por qué parecerse a los trámites que ese gestor
+         haya pedido para sí —normalmente ninguno—. Se mira el rótulo, que es
+         como lo distingue una persona. */
+      var rot = document.querySelector('#navTramites [data-i18n]');
+      if (rot && rot.getAttribute('data-i18n') === 'nav.queue') return;
       /* Se cuenta contra lo que la propia lista dibuja, no contra un número
          escrito: cada expediente de prueba trae los suyos, y el expediente
          "vacío" no es "sin filas" sino "sin nada que anunciar". Una cifra a
@@ -1297,7 +1345,7 @@
     })();
 
     /* ── Y EL NÚMERO EN LA PESTAÑA ──
-       Las dos chapas sólo se ven con el panel delante, y una consulta se
+       La chapa del renglón sólo se ve con el panel delante, y una consulta se
        pierde justo en el otro caso: el gestor trabajando en otra pestaña.
        Como de aquí no sale ni un correo -no hay quien lance el mensajero-,
        el título del navegador es lo único que llega hasta donde está.
@@ -1308,13 +1356,30 @@
        digan lo mismo, que es lo que de verdad importa: dos números
        distintos para una sola cosa hacen dudar de los dos.
 
+       La chapa era la del botón «Por atender» de arriba, que ya no está, y
+       ahora es la del renglón de la barra. Con una diferencia que hay que
+       tener en cuenta o esto se pone rojo en varios expedientes: esa chapa
+       la comparten los dos roles y NO cuenta lo mismo en cada uno. Al equipo
+       le cuenta la cola —y eso sí va a la pestaña—; a un inversionista le
+       cuenta sus propios trámites en marcha, y ese número no sale ni tiene
+       que salir en el título: le estaría contando trabajo de otro.
+
+       Cuál de los dos es se lee en el RÓTULO del renglón, que es como lo
+       distingue una persona: si dice «Trámites por atender», la chapa es la
+       cola. No se pregunta CIIP_ES_EQUIPO() ni se mira el nombre del pase:
+       lo primero sería comprobar el panel con el panel, y lo segundo se
+       equivoca —hay cuatro pases del equipo que no se llaman 'gestor'—.
+
        Sin expresión regular a propósito. Ya nos ha pasado que el escapado
        se coma una barra y quede un patrón que corre, no encuentra nada y
        deja la prueba en verde para siempre. */
     (function(){
       var t = document.title;
-      var chapa = document.getElementById('colaN');
-      var seVe = !!(chapa && !chapa.hidden && (chapa.textContent || '').trim());
+      var chapa = document.getElementById('navTramitesN');
+      var rot = document.querySelector('#navTramites [data-i18n]');
+      var esCola = !!rot && rot.getAttribute('data-i18n') === 'nav.queue';
+      var seVe = esCola &&
+                 !!(chapa && !chapa.hidden && (chapa.textContent || '').trim());
 
       if (seVe){
         var pref = '(' + chapa.textContent.trim() + ') ';
@@ -1327,8 +1392,15 @@
            t.indexOf(pref) === 0 && t.charAt(pref.length) !== '(',
            JSON.stringify(t), 'empieza por ' + JSON.stringify(pref) + ' y una sola vez');
       } else {
+        /* El rótulo y la chapa van en el detalle: si esto se pone rojo, lo
+           primero que hay que saber es CUÁL de los dos renglones se estaba
+           mirando, y sin eso son diez minutos de ir a buscarlo. */
         ok('pestaña: y sin cola no lleva número',
-           t.charAt(0) !== '(', JSON.stringify(t), 'sin "(...)" delante');
+           t.charAt(0) !== '(',
+           JSON.stringify(t) + ' — renglón=' +
+           (rot ? rot.getAttribute('data-i18n') : 'sin rótulo') +
+           ' chapa=' + (chapa ? (chapa.hidden ? '(oculta)' : chapa.textContent) : 'no hay'),
+           'sin "(...)" delante');
       }
     })();
 
@@ -1385,20 +1457,37 @@
            Y absoluta daba 232 px de diferencia con todo bien puesto. Lo que
            tiene que ser igual es cuanto baja la barra desde el borde de su
            propia caja. */
-        var yy = [];
-        etapas().forEach(function(e){
-          var b = e.querySelector('.jbar');
-          if (b) yy.push(Math.round(b.getBoundingClientRect().top -
-                                   e.getBoundingClientRect().top));
-        });
-        function desnivel(){
-          var v = [];
-          etapas().forEach(function(e){
-            var b = e.querySelector('.jbar');
-            if (b) v.push(Math.round(b.getBoundingClientRect().top -
-                                     e.getBoundingClientRect().top));
+        /* ── Y CON LAS CUATRO BARRAS PUESTAS ──
+           Las etapas POSTERIORES a la elegida cambian su barra por «cuando
+           te toca», asi que en la portada recien abierta solo hay una barra
+           que medir y esto no medía nada: daba 105 / -139 / -139 / -139,
+           que son tres barras escondidas leidas como si estuvieran en el
+           borde de la pantalla.
+
+           Se les quita la clase «luego» a mano mientras dura la medida. Lo
+           que se mide es la CAJA -a que altura cae la barra cuando el nombre
+           envuelve a tres renglones-, y eso es CSS: pulsar la ultima etapa
+           dejaria las cuatro barras puestas igual, pero le dejaria al panel
+           una eleccion hecha por una persona, y tres pruebas mas abajo miden
+           justo eso. Se devuelve como estaba al terminar. */
+        function conLasCuatro(fn){
+          var puestas = [].filter.call(etapas(), function(e){
+            return e.classList.contains('luego');
           });
-          return {lista:v, dif: v.length ? Math.max.apply(null,v) - Math.min.apply(null,v) : -1};
+          puestas.forEach(function(e){ e.classList.remove('luego'); });
+          try { return fn(); }
+          finally { puestas.forEach(function(e){ e.classList.add('luego'); }); }
+        }
+        function desnivel(){
+          return conLasCuatro(function(){
+            var v = [];
+            etapas().forEach(function(e){
+              var b = e.querySelector('.jbar');
+              if (b) v.push(Math.round(b.getBoundingClientRect().top -
+                                       e.getBoundingClientRect().top));
+            });
+            return {lista:v, dif: v.length ? Math.max.apply(null,v) - Math.min.apply(null,v) : -1};
+          });
         }
         var d = desnivel();
         ok('camino: las cuatro barras quedan a la misma altura',
@@ -1515,47 +1604,86 @@
          'iguales dentro de su fila');
     })();
 
-    /* ── NINGUNA MARCADA HASTA QUE ELIJAS ──
-       Esto se ha escrito tres veces y conviene que quede por qué. La 2 nacía
-       con .active desde la maqueta, así que cada recarga plantaba el «Estás
-       aquí» sobre «Estructuración corporativa» aunque no se hubiera hecho ni
-       el primer trámite. Se cambió por una cuenta -la primera sin terminar-, y
-       el CIIP lo quiso de otra manera: al abrir NINGUNA. Que se ilumine sola
-       una etapa que no ha tocado nadie es contarle a la persona dónde está, y
-       eso lo dice ella.
+    /* ── LA PORTADA ABRE CON UNA ETAPA ELEGIDA, Y NO SALE POR SORTEO ──
+       Esto se ha escrito cuatro veces y conviene que quede el recorrido. La 2
+       nacía con .active desde la maqueta, así que cada recarga plantaba el
+       «Estás aquí» sobre «Estructuración corporativa» sin haber hecho ni el
+       primer trámite. Se cambió por una cuenta -la primera sin terminar-. El
+       CIIP lo quiso de otra manera: al abrir NINGUNA. Y el 9 de septiembre lo
+       volvió a querer elegida, porque «ninguna» dejaba debajo las cuatro
+       cabeceras de fase repetidas: el mismo índice dos veces, una en tarjetas
+       y otra en renglones.
 
-       Se prueba en las dos mitades: que no aparece sola -ni al abrir ni cuando
-       llega el catálogo, que es el momento en que volvía a colarse- y que al
-       elegirla sí sale entera, con su borde y su rótulo. Sin la segunda mitad,
-       borrar elige() dejaría esto en verde. */
+       Así que ahora hay UNA, y cuál importa, y son dos reglas por orden: la
+       etapa donde algo espera por ti -devuelto o a medias-, y si no te
+       reclama nada, la primera que no esté terminada. Fijarla siempre en la
+       01 sería recibir con una lista de cosas hechas a quien ya va por la
+       tercera. Y la primera regla es de hoy: la franja ámbar que anunciaba
+       los devueltos se retiró, y sin ella quien tenía dos en la 02 abría en
+       la 01 y leía «Requiere acción 0».
+
+       Se prueba en tres mitades -valga-: que al abrir hay una y sólo una; que
+       cuando llegan los estados de la base se corrige sola, que es el momento
+       en que antes se colaba y ahora es cuando tiene que moverse; y que una
+       elegida a mano no se la mueve nadie por debajo. */
     (function(){
       function marcadas(){ return document.querySelectorAll('.jp.active'); }
+      function cual(){
+        var m = document.querySelector('.jp.active[data-ir]');
+        return m ? m.getAttribute('data-ir') : '(ninguna)';
+      }
+      /* Se devuelve la eleccion AUTOMATICA, no un borrado: quitar el .active
+         y marcharse dejaria la portada sin etapa y sin lista debajo para todo
+         lo que viene despues. Borrarla y volver a pedirla es lo que apaga la
+         marca de «esto lo eligio una persona». */
       function comoEstaban(){
         etapas().forEach(function(e){
           e.classList.remove('active');
           e.removeAttribute('data-aqui');
           e.setAttribute('aria-pressed', 'false');
         });
+        if (window.CIIP_ELIGE_SOLA) window.CIIP_ELIGE_SOLA();
       }
 
-      igual('camino: al abrir no hay ninguna etapa marcada', marcadas().length, 0);
+      igual('camino: al abrir hay una etapa elegida, y sólo una', marcadas().length, 1);
 
-      /* Y tampoco cuando contesta la base. Es el momento en que se colaba: el
-         repintado de las cuentas elegía una, y el panel llevaba un rato
-         abierto y sin marcar cuando de pronto se encendía sola. */
+      /* CUÁL, y se escribe el número a pelo en vez de recalcular la regla
+         aquí: una prueba que repite el cálculo del panel comprueba que sigue
+         igual, no que esté bien.
+
+         En 'lleno' es la 02, y no por ser la segunda: ahí están el RIF de
+         empresa devuelto y la constitución a medias, y lo que espera por ti
+         va antes que lo que sigue en el camino. En los demás expedientes no
+         te reclama nada dentro de una etapa terminada, así que sale la
+         primera sin terminar, que es la 01. */
+      igual('camino: y es la que te reclama, o la primera sin terminar',
+            cual(), (CASO === 'lleno') ? '2' : '1');
+
+      /* Y SE CORRIGE cuando contesta la base. Al cargar no se sabe todavía
+         qué hay hecho -los estados llegan después-, así que la primera pasada
+         da la 01; si resulta que la 01 está entera, la elegida tiene que
+         moverse sola a la siguiente. Antes este era el momento en que una
+         etapa se encendía sola y estaba mal; ahora es cuando tiene que
+         moverse, y es el mismo sitio el que lo prueba. */
       var laUna  = document.querySelector('[data-fase="1"]');
       var suyas  = laUna ? [].slice.call(laUna.querySelectorAll('.tcard')) : [];
       var antes  = suyas.map(function(c){ return c.getAttribute('data-st'); });
-      if (suyas.length && window.CIIP_REPINTA_ETAPAS){
+      /* Sólo donde la elegida es la 01, que es de donde tiene que moverse.
+         En 'lleno' ya está en la 02 porque allí te reclaman, y terminar la
+         01 no la mueve de sitio: no habría nada que ver. */
+      if (suyas.length && window.CIIP_REPINTA_ETAPAS && cual() === '1'){
         suyas.forEach(function(c){ c.setAttribute('data-st', 'listo'); });
         window.CIIP_REPINTA_ETAPAS();
-        igual('camino: y no se marca ninguna cuando llegan los datos', marcadas().length, 0);
+        ok('camino: con la 01 terminada, la elegida se mueve a la 02',
+           marcadas().length === 1 && cual() === '2',
+           marcadas().length + ' marcada(s) — la ' + cual(), '1 marcada — la 2');
         suyas.forEach(function(c, k){
           if (antes[k] === null) c.removeAttribute('data-st');
           else c.setAttribute('data-st', antes[k]);
         });
         window.CIIP_REPINTA_ETAPAS();
       }
+
 
       /* La otra mitad: elegida, se marca ESA y ninguna más. Se pulsa de
          verdad en vez de ponerle la clase a mano, que probaría el CSS y no el
@@ -1595,6 +1723,16 @@
         ok('camino: y le sale su «Estás aquí»',
            !!(tercera.getAttribute('data-aqui') || '').trim(),
            JSON.stringify(tercera.getAttribute('data-aqui')), 'un rótulo con texto');
+
+        /* Y AHÍ SE QUEDA. Es la otra mitad de «se corrige sola»: si la
+           elección se recalculara en cada repintado, la 3 volvería a la 01 en
+           cuanto la base contestara y la lista se te cambiaría sola mientras
+           la miras. Aquí no ha cambiado ningún estado, así que la automática
+           querría la 01 y no la 3. */
+        if (window.CIIP_REPINTA_ETAPAS){
+          window.CIIP_REPINTA_ETAPAS();
+          igual('camino: y a la elegida a mano no se la mueve la base', cual(), '3');
+        }
 
         comoEstaban();
       }
@@ -1833,124 +1971,6 @@
       }
     })();
 
-    /* ═══════════ LA FRANJA DE "TE TOCA A TI" ═══════════ */
-    if (CASO === 'lleno'){
-      ok('franja: sale cuando hay una solicitud devuelta',
-         franja().classList.contains('puesta'), franja().className, 'con la clase puesta');
-
-      /* El borrador del expediente es MÁS RECIENTE que la devolución. Si la
-         franja cogiera sin más lo último movido, aquí diría "Constitución". */
-      igual('franja: antepone la devolución al borrador más reciente',
-            enFranja('.ns-t'), 'RIF de la empresa');
-      igual('franja: avisa de que requiere tu acción',
-            enFranja('.ns-k'), 'Requiere tu acción');
-      igual('franja: enseña la nota que escribió el gestor',
-            enFranja('.ns-d'), 'El comprobante del capital esta ilegible: vuelve a subirlo escaneado.');
-
-      /* La nota es del gestor, no del diccionario: no se traduce. */
-      (function(){
-        applyLang('ru');
-        var nota = enFranja('.ns-d');
-        var titular = enFranja('.ns-k');
-        applyLang('es');
-        ok('franja: se traduce, pero la nota del gestor no',
-           nota === 'El comprobante del capital esta ilegible: vuelve a subirlo escaneado.' &&
-           titular !== 'Requiere tu acción' && titular.length > 0,
-           'nota="' + nota + '" titular ru="' + titular + '"',
-           'la nota intacta y el titular en ruso');
-      })();
-
-      /* Una devuelta es una solicitud VIVA con trabajo del CIIP dentro:
-         borrarla se llevaria por delante la nota que dice que hay que
-         corregir. Aqui no se ofrece descartar, y eso es la mitad del
-         valor de la funcion. */
-      ok('franja: en una devuelta no se ofrece descartar',
-         document.getElementById('nsDescartar').hidden, 'oculto', 'oculto');
-
-      /* Hay DOS pendientes -la devuelta y un borrador- y el aviso ensena
-         una. Sin este renglón, la otra no existe para quien mire la
-         portada. */
-      (function(){
-        var mas = document.getElementById('nsMas');
-        ok('franja: dice cuántas más hay esperando',
-           mas && !mas.hidden && /1 más/.test(mas.textContent),
-           mas ? (mas.hidden ? '(oculto)' : mas.textContent.trim()) : 'no existe',
-           'Y hay 1 más esperando por ti');
-        mas.click();
-        /* #tramites: la ruta de verdad. Esta comprobación decía «#mistramites»
-         y con eso daba por bueno un botón que no llevaba a ninguna parte —el
-         enrutador ignora esa dirección y el usuario se queda en la portada—.
-         Una prueba que copia lo que hace el código no comprueba el código:
-         comprueba que sigue igual. */
-      igual('franja: y lleva a la lista de todas', location.hash, '#tramites');
-        location.hash = '';
-      })();
-    }
-
-    if (CASO === 'sinnombre'){
-      /* ── EL BORRADOR ── En 'lleno' gana siempre el devuelto, así que
-         este es el único expediente donde se ve el otro caso.
-
-         Un borrador aquí NO es un formulario a medias: el trámite se crea
-         al enviar, con los datos ya validados, y se queda en borrador
-         cuando falla la subida de un recaudo. Por eso la cuenta es de
-         RECAUDOS y el texto dice "recaudos": un contador que promete una
-         cosa y al entrar hay otra es peor que no contar. */
-      ok('franja: el borrador también sale', franja().classList.contains('puesta'),
-         franja().className, 'con la clase puesta');
-      igual('franja: y dice cuántos recaudos lleva',
-            enFranja('.ns-k'), 'Sin terminar \u00b7 2/4');
-      ok('franja: y cuántos le faltan, en cristiano',
-         /Te faltan 2 recaudos por subir/.test(enFranja('.ns-d')),
-         enFranja('.ns-d'), 'Te faltan 2 recaudos por subir');
-      /* "hace N días" y no una fecha: restar mentalmente cuesta. */
-      ok('franja: y cuánto lleva, sin hacer restas',
-         /hace/.test(enFranja('.ns-d')) && !/2026/.test(enFranja('.ns-d')),
-         enFranja('.ns-d'), 'algo como "hace 3 días", sin la fecha');
-      /* La barra: media, no llena ni vacía. */
-      (function(){
-        var b = franja().querySelector('.ns-barra');
-        ok('franja: con su barra a la mitad',
-           b && !b.hidden && b.querySelector('i').style.width === '50%',
-           b ? (b.hidden ? '(oculta)' : b.querySelector('i').style.width) : 'no existe',
-           '50%');
-      })();
-      /* "Seguir donde lo dejaste" y no "Ir al trámite": lo primero dice
-         que hay algo empezado, lo segundo no dice nada. */
-      igual('franja: y el botón dice que se retoma, no que se va',
-            franja().querySelector('.btn').textContent.trim(), 'Seguir donde lo dejaste');
-      /* Y con una sola pendiente, el enlace a las demás no sale. */
-      ok('franja: con una sola, no ofrece "y hay más"',
-         document.getElementById('nsMas').hidden, 'oculto', 'oculto');
-
-      /* ── DESCARTAR ── Lo que ya no vas a terminar tiene que poder irse.
-         A dos toques, como el banco de activos: una ventana de
-         confirmación para algo que no se ha enviado es más ceremonia de
-         la que merece, y un solo toque es demasiado poco. */
-      (function(){
-        var d = document.getElementById('nsDescartar');
-        ok('franja: y en un borrador sí se ofrece descartar',
-           d && !d.hidden && /Descartarla/.test(d.textContent),
-           d ? (d.hidden ? '(oculto)' : d.textContent.trim()) : 'no existe', 'Descartarla');
-        d.click();
-        ok('franja: el primer toque avisa, no borra',
-           /no se recupera/.test(d.textContent) && d.classList.contains('armado'),
-           d.textContent.trim(), 'Pulsa otra vez: no se recupera');
-        ok('franja: y el borrador sigue ahí',
-           franja().classList.contains('puesta'), franja().className, 'con la clase puesta');
-      })();
-    }
-
-    if (CASO === 'vacio'){
-      /* El caso trae un borrador de RIF personal Y su envío posterior. Lo
-         único pendiente, por tanto, no lo está: la franja debe callar.
-         Antes anunciaba "no la has enviado" mientras el detalle del mismo
-         trámite decía "Enviada", y las dos pantallas se contradecían. */
-      ok('franja: un borrador ya superado por el envío no se anuncia',
-         !franja().classList.contains('puesta'), franja().className, 'sin la clase puesta');
-      igual('franja: y no deja textos sueltos del marcado', enFranja('.ns-t'), '');
-    }
-
     /* ═══════════ EL BUZÓN DE AVISOS ═══════════ */
     var campana = document.getElementById('avisosBtn');
     var buzon   = document.getElementById('avisosMenu');
@@ -2073,9 +2093,11 @@
         document.getElementById('ctCerrar').click();
       })();
 
-      location.hash = '';
-      franja().querySelector('.btn').click();
-      igual('franja: el botón lleva al trámite que anuncia', location.hash, '#tramite-c6');
+      /* Y se vuelve a la portada. Pulsar un aviso deja la dirección en
+         #tramite-c6, y quien viene detrás -el reloj del plazo legal, el
+         catálogo- busca tarjetas que con el detalle abierto no están.
+         Antes lo dejaba limpio la prueba de la franja, que iba después;
+         al retirarla, tres pruebas se pusieron rojas sin haberlas tocado. */
       location.hash = '';
     }
 
@@ -3987,11 +4009,16 @@
           et ? et.getAttribute('data-i18n') : 'sin etiqueta', 'nav.queue');
     igual('barra: y lo dice con todas las letras',
           et ? et.textContent.trim() : '', 'Trámites por atender');
-    /* Y el numero es el MISMO de la cola: dos numeros distintos para una
-       sola cosa es lo que hace dudar de los dos. */
-    igual('barra: y el numero es el de la cola',
+    /* Y el numero es el de la COLA, no el de sus tramites. Antes esto se
+       comprobaba contra la chapa del boton «Por atender» de arriba -que los
+       dos dijeran lo mismo-; el boton se retiro y esta chapa se quedo sola,
+       asi que ahora se compara contra lo que la propia cola dibuja: la
+       ventana ya esta pintada a estas alturas de la tanda. */
+    igual('barra: y el numero es el de la cola, no el de sus tramites',
           (document.getElementById('navTramitesN') || {}).textContent,
-          (document.getElementById('colaN') || {}).textContent);
+          String(document.querySelectorAll('#colaLista .co-ficha').length +
+                 document.querySelectorAll('#colaTram .co-ficha').length +
+                 document.querySelectorAll('#colaCons .co-ficha').length));
     /* Su panel no cuenta lo de los demas: de esa misma consulta salen los
        estados de las 31 tarjetas y las cuentas de las cinco fases. */
     igual('barra: y su panel no cuenta los tramites de otros',
@@ -5060,33 +5087,6 @@
     document.getElementById('asstClose').click();
   }
 
-  /* El segundo toque, que borra de verdad. Va en su propio paso porque la
-     respuesta de la base llega después, y comprobarla en el mismo paso
-     sería comprobar lo de antes. */
-  function franjaDescarta(){
-    if (CASO !== 'sinnombre') return;
-    var d = document.getElementById('nsDescartar');
-    /* Se arma otra vez: cualquier repintado por el medio lo desarma, y eso
-       es a propósito —un botón que se queda armado de la vez anterior borra
-       al primer clic de la siguiente—. */
-    if (!d.classList.contains('armado')) d.click();
-    d.click();
-  }
-
-  function franjaTrasDescartar(){
-    if (CASO !== 'sinnombre') return;
-    ok('franja: el segundo toque lo descarta y la franja se calla',
-       !franja().classList.contains('puesta'),
-       franja().className, 'sin la clase puesta');
-    /* Y su tarjeta vuelve a estar libre: si la portada siguiera diciendo
-       "sin terminar" de algo que ya no existe, las dos pantallas se
-       contradirían —el mismo fallo que ya se arregló una vez con el
-       borrador superado por el envío—. */
-    igual('franja: y su tarjeta vuelve a estar por iniciar',
-          document.querySelector('.tcard[data-tr="c1"]').getAttribute('data-st'),
-          'pendiente');
-  }
-
   /* ═══════════ LA FOTO TIPO CARNET ═══════════
      La piden tres tramites y hasta ahora solo se podia subir DENTRO de
      uno: para tener la foto guardada habia que empezar una solicitud que
@@ -5792,7 +5792,35 @@
        casualidad. Se mide el subrayado, no la clase: la clase se puede
        poner sin que pinte nada. */
     (function(){
+      /* ── Y AHORA MISMO ESTÁ APAGADO ──
+         Decisión del CIIP: que «Los plazos de este trámite» no salga, por
+         ahora. El panel lo apaga con un interruptor y NO borra el bloque,
+         así que estas pruebas hacen lo mismo: siguen al interruptor.
+
+         Leerlo y no adivinarlo es lo importante. Mirar sólo si algún reloj
+         lleva globo no distingue «apagado a propósito» de «roto», y las dos
+         salidas fáciles son malas: dejarlas rojas convierte una decisión en
+         un fallo, y borrarlas deja sin nada que se ponga rojo el día que el
+         interruptor vuelva a true y el globo no aparezca. */
       var reloj = document.querySelector('.tcard[data-tr="c1"] .t-time[data-globo]');
+
+      if (!window.CIIP_GLOBO_DE_PLAZOS){
+        /* Se mira el SUBRAYADO y el papel de botón, no el cursor: la ficha
+           entera se pulsa y lleva su cursor de mano, así que ahí el reloj
+           apagado y el encendido se ven igual. */
+        var c1 = document.querySelector('.tcard[data-tr="c1"] .t-time');
+        var deco = c1 ? window.getComputedStyle(c1).textDecorationLine : '?';
+        ok('plazo legal: apagado, el reloj de la c1 es texto y ya',
+           !!c1 && !reloj && !c1.getAttribute('role') && !c1.hasAttribute('tabindex') &&
+           deco.indexOf('underline') < 0,
+           c1 ? (reloj ? 'lleva globo'
+                       : 'papel=' + (c1.getAttribute('role') || 'ninguno') +
+                         ' subrayado=' + deco)
+              : '(no hay reloj)',
+           'sin globo, sin papel de botón y sin subrayado');
+        return;
+      }
+
       ok('plazo legal: el reloj de la c1 se puede pulsar',
          !!reloj, reloj ? 'con globo' : 'sin globo', 'con su globo');
 
@@ -6012,7 +6040,7 @@
        Este globo se monta con la tarjeta y una guarda impide rehacerlo, asi
        que su texto se quedaba congelado en el idioma que hubiera en ese
        momento. applyLang repinta a mano las piezas sin data-i18n -los pasos,
-       las etapas, la franja, los avisos- y los globos no estaban en la lista:
+       las etapas, los avisos- y los globos no estaban en la lista:
        el panel entero pasaba a italiano y este seguia en español. Se vio en
        una pantalla, no aqui: ninguna prueba miraba en QUE idioma habla algo
        que ya estaba pintado. */
@@ -6146,6 +6174,12 @@
 
   function catalogoSeVeEnLaFicha(){
     if (!ES_ADMIN) return;
+    /* El globo del reloj es el UNICO sitio donde ese numero se ve, y ahora
+       mismo esta apagado por decision del CIIP. Sin globo no hay nada que
+       mirar: comprobar aqui otra cosa seria inventarse una pantalla. Lo de
+       arriba -que la base lo guarda y que el panel tira su copia- sigue
+       comprobandose igual, y esto vuelve solo cuando vuelva el globo. */
+    if (!window.CIIP_GLOBO_DE_PLAZOS) return;
     var reloj = document.querySelector('.tcard[data-tr="c1"] .t-time[data-globo]');
     if (!reloj){
       ok("catalogo: el numero nuevo llega a la ficha", false,
@@ -6435,7 +6469,7 @@
     igual('consulta: al resolverla sale de la cola',
           document.querySelectorAll('#colaCons .co-ficha').length, 1);
     igual('consulta: y el contador baja',
-          (document.getElementById('colaN') || {}).textContent, '3');
+          (document.getElementById('navTramitesN') || {}).textContent, '3');
   }
 
 
@@ -7445,31 +7479,50 @@
   /* ═══════════ LA COLA DEL EQUIPO ═══════════
      Una cita pedida se quedaba en la base esperando a que alguien mirara la
      tabla a mano. */
-  function colaAbre(){
-    var sel = document.getElementById('colaSel');
+  /* ── POR DÓNDE SE ENTRA ──
+     Aquí se pulsaba «Por atender», el botón de la barra de arriba. Se retiró:
+     el renglón de la barra lateral llevaba a la misma cola y llevaba el mismo
+     número, y la ventana se abría por lo alto, obligando a buscar otra vez el
+     trámite que ibas a atender.
 
-    /* Lo primero, y lo que más importa: a un inversionista ni se le ofrece.
-       No es la protección —esa es la política de la base— pero ofrecer una
-       puerta que no se puede abrir es peor que no ofrecerla. */
-    ok('cola: solo se le ofrece al equipo del CIIP',
-       sel.hidden === (CASO !== 'gestor'),
-       'oculta=' + sel.hidden + ' (caso ' + CASO + ')',
-       CASO === 'gestor' ? 'oculta=false' : 'oculta=true');
-    if (CASO !== 'gestor') return;
+     Así que este paso entra por donde entra una persona: el renglón de la
+     barra abre la cola EN TABLA, y el renglón de un trámite abre la ventana
+     por ese trámite. Es asíncrono —declara «sigue»— porque la tabla pide su
+     cola al entrar y las filas llegan después.
 
-    /* "Cola" era ambiguo: en español es tanto fila como pegamento. */
-    igual('cola: el botón dice para qué sirve',
-          (document.getElementById('colaTxt') || {}).textContent, 'Por atender');
+     Que al inversionista no se le ofrezca esto ya no se mira aquí, y no se
+     ha perdido: su renglón dice «Mis trámites» y le lleva a su lista -eso lo
+     miran 'barra: y al inversionista le abre su lista'- y la dirección
+     #poratender no le entra -'tabla: al inversionista la cola del equipo no
+     le entra'-. */
+  function colaAbre(sigue){
+    if (CASO !== 'gestor') return sigue();
+
     /* Dos citas, dos trámites y dos consultas: el contador es "cuánto tienes
        encima", y desde que se puede hablar con el CIIP sin pedir cita, las
        consultas son trabajo igual que lo demás. La tercera del ejemplo está
-       resuelta y por eso NO cuenta: resuelta ya no es cola. */
-    igual('cola: el botón lleva cuántas esperan',
-          (document.getElementById('colaN') || {}).textContent, '6');
+       resuelta y por eso NO cuenta: resuelta ya no es cola.
 
-    document.getElementById('colaBtn').click();
-    var caja = document.getElementById('colaBack');
-    ok('cola: se abre al pulsarlo', caja.classList.contains('open'), caja.className, 'con la clase open');
+       Se mira en el renglón de la barra, que desde que no hay botón arriba
+       es el único sitio donde el equipo ve esto sin entrar. */
+    igual('cola: el renglón de la barra lleva cuántas esperan',
+          (document.getElementById('navTramitesN') || {}).textContent, '6');
+
+    document.getElementById('navTramites').click();
+    esperaFilas('#paCuerpo tr', 1, function(){
+      var filas = document.querySelectorAll('#paCuerpo tr');
+      ok('cola: la tabla trae los que esperan', filas.length > 0,
+         filas.length + ' renglones', 'al menos uno');
+      if (filas.length) filas[0].click();
+      var caja = document.getElementById('colaBack');
+      ok('cola: y el renglón de un trámite abre su ventana',
+         caja.classList.contains('open'), caja.className, 'con la clase open');
+      /* Se vuelve a la portada por debajo de la ventana: los pasos de la
+         cola que vienen detrás trabajan sobre la ventana, y dejarlos con la
+         tabla puesta detrás cambiaría el suelo de los que van después. */
+      if (location.hash) location.hash = '';
+      sigue();
+    });
   }
 
   function colaConfirma(){
@@ -7579,7 +7632,7 @@
     /* El contador es "cuánto tienes encima", no "cuántas citas": dos citas,
        dos trámites y dos consultas. */
     igual('cola: y el contador suma las tres colas',
-          (document.getElementById('colaN') || {}).textContent, '6');
+          (document.getElementById('navTramitesN') || {}).textContent, '6');
 
     /* Los pasos que se ofrecen salen del estado. Enseñarlos todos siempre
        invitaría a presentar ante el ente algo que nadie ha revisado. */
@@ -7839,7 +7892,7 @@
     igual('cola: y la nota viaja con la devolución',
           (window.PRUEBA_NOTA && window.PRUEBA_NOTA()) || '(ninguna)',
           'Falta el comprobante del capital.');
-    igual('cola: el contador baja', (document.getElementById('colaN') || {}).textContent, '5');
+    igual('cola: el contador baja', (document.getElementById('navTramitesN') || {}).textContent, '5');
   }
 
 
@@ -7978,7 +8031,7 @@
     igual('cola: confirmada, sale de la cola', document.querySelectorAll('#colaLista .co-ficha').length, 1);
     /* Quedan una cita y un trámite: se devolvió uno antes y ahora se
        confirmó una. El contador cuenta las dos colas juntas. */
-    igual('cola: y el contador baja', (document.getElementById('colaN') || {}).textContent, '4');
+    igual('cola: y el contador baja', (document.getElementById('navTramitesN') || {}).textContent, '4');
   }
 
   /* Al cancelar, la caja se queda limpia del todo: ni conversación —que ya

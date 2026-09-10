@@ -428,6 +428,25 @@ ok('escritura: ningún texto está bajo la bandera de otro idioma',
    revueltos.length === 0,
    revueltos.slice(0, 8).join('\n          '));
 
+/* ── 6 · NINGÚN CONTADOR ESCRITO A MANO EN LOS FILTROS ───────────
+   Los cuatro filtros de «Tus trámites» llevaban 33, 2, 1 y 3 escritos en el
+   marcado. Ninguno podía ser verdad: cuentan la etapa que está abierta, y
+   cuál abre depende de lo que conteste la base. El número se veía durante
+   el instante que la página tarda en contar, y prometía tarjetas que abajo
+   no estaban.
+
+   Esto se mira AQUÍ y no en el arnés del navegador, y por eso hay que
+   decirlo: el arnés lee el DOM, o sea el marcado DESPUÉS de que el script
+   lo haya reescrito, así que un número viejo en el archivo le llega ya
+   corregido y no puede verlo. La prueba que lo intentaba pasó dos años
+   dando por bueno el 32 porque coincidía con lo que el script acababa de
+   poner. Lo que hay que leer es el TEXTO del archivo. */
+const contadoresAMano = [...PANEL.matchAll(/<span class="n">([^<]*)<\/span>/g)]
+  .map(m => m[1].trim()).filter(Boolean);
+ok('filtros: ningún contador escrito a mano en el marcado',
+   contadoresAMano.length === 0,
+   contadoresAMano.length ? ('lleva: ' + contadoresAMano.join(', ')) : '');
+
 console.log('\n  ' + pasan + ' de ' + (pasan + fallan) + ' comprobaciones superadas');
 console.log('  ' + claves.length + ' claves de interfaz y ' + clavesUI.length +
             ' de trámites, en ' + idiomas.length + ' idiomas.\n');

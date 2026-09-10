@@ -20,7 +20,18 @@
 #  El servidor tiene que estar corriendo (ABRIR-LOCAL.bat). Con doble clic
 #  sobre el archivo también abre, pero sin servidor algunas cosas del
 #  navegador se comportan distinto: mejor por localhost.
+#
+#  -Plazos enciende el globo del reloj de la tarjeta, «Los plazos de este
+#  trámite», que en el panel está apagado por decisión del CIIP. Se enciende
+#  SOLO en esta copia: el panel de verdad no se toca. Es para lo que sirve
+#  este archivo —mirar una pantalla— y una pantalla apagada por un
+#  interruptor no se puede mirar de ninguna otra manera sin cambiar el panel
+#  y acordarse luego de devolverlo.
+#
+#      powershell -File pruebas\vista.ps1 -Plazos
 # ══════════════════════════════════════════════════════════════════════
+
+param([switch]$Plazos)
 
 $ErrorActionPreference = 'Stop'
 $raiz    = Split-Path -Parent $PSScriptRoot
@@ -45,6 +56,19 @@ if ($html.IndexOf($cdn) -lt 0) {
 # -config.js, pasos.js, banderas, logos- sigue resolviendo como siempre.
 $html = $html.Replace($cdn, '<script src="pruebas/supabase-mentira.js"></script>')
 
+# Se busca la línea EXACTA del interruptor y se avisa si no está, en vez de
+# escribir la copia como si nada: una vista que dice que enciende el globo y
+# lo deja apagado hace perder la tarde mirando por qué no sale.
+if ($Plazos) {
+  $apagado = '  var GLOBO_DE_PLAZOS = false;'
+  if ($html.IndexOf($apagado) -lt 0) {
+    Write-Host '  No se encontro el interruptor GLOBO_DE_PLAZOS en el panel.' -ForegroundColor Red
+    Write-Host '  Si se borro -la decision se confirmo- este pase ya no hace falta.' -ForegroundColor DarkGray
+    exit 1
+  }
+  $html = $html.Replace($apagado, '  var GLOBO_DE_PLAZOS = true;   /* encendido SOLO en esta copia */')
+}
+
 [IO.File]::WriteAllText($salida, $html, $utf8)
 
 Write-Host ''
@@ -57,5 +81,12 @@ Write-Host '    http://localhost:8080/vista-cola.html?caso=cola' -ForegroundColo
 Write-Host '  Un inversionista con su expediente:' -ForegroundColor DarkGray
 Write-Host '    http://localhost:8080/vista-cola.html?caso=lleno' -ForegroundColor Green
 Write-Host ''
+if ($Plazos) {
+  Write-Host '  El globo de plazos, ENCENDIDO en esta copia.' -ForegroundColor Yellow
+  Write-Host '  Se abre pulsando el reloj de una tarjeta, el que dice "Est.: 10 dias".' -ForegroundColor DarkGray
+  Write-Host '  Lo llevan las que tienen norma leida o dias del CIIP en Catalogos.' -ForegroundColor DarkGray
+  Write-Host '  En el panel de verdad sigue apagado.' -ForegroundColor DarkGray
+  Write-Host ''
+}
 Write-Host '  No toca la base de datos: todo lo que se ve es de mentira.' -ForegroundColor DarkGray
 Write-Host ''
