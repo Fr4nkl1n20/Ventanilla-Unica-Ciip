@@ -3003,6 +3003,66 @@
     if (CASO !== 'vacio') return;
     igual('sisref: se abre su detalle', document.body.getAttribute('data-vista'), 'tramite');
 
+    /* ── EL PLAZO, DEBAJO DE LA DESCRIPCIÓN ──
+       La pantalla del trámite no calcula el plazo: lo CLONA de la tarjeta.
+       Y ese renglón de la tarjeta no está escrito en el marcado -lo pone
+       pintaCuando cuando la base contesta-, así que la copia se hacía
+       antes de que existiera el texto y se traía el reloj MUDO: un icono
+       suelto debajo de la descripción y el plazo sin verse por ninguna
+       parte.
+
+       Abriendo desde la portada no se notaba, porque para cuando pulsas
+       una tarjeta la base ya contestó. Solo pasaba entrando por la
+       dirección directa -que es justo lo que hace esta prueba-, o
+       recargando con el trámite abierto. Se vio en pantalla, no aquí:
+       ninguna prueba miraba este renglón.
+
+       Se exige TEXTO, no que el hueco exista: el hueco existía siempre y
+       es lo que hacía el fallo invisible. */
+    var plazo = document.getElementById('trPlazo');
+    var dice  = ((plazo && plazo.textContent) || '').trim();
+    ok('sisref: el plazo se ve en la pantalla del trámite',
+       dice.length > 0, dice ? ('«' + dice + '»') : '(el reloj, mudo)',
+       'el estimado, escrito');
+
+    /* ── Y AHORA LA QUE DE VERDAD PILLA EL FALLO ──
+       La de arriba pasaba también SIN el arreglo, y se comprobó quitándolo:
+       aquí la cadena lleva medio arnés corrido cuando abre el trámite, así
+       que la base ya contestó y la copia nunca sale muda. La prueba miraba
+       una pantalla que no puede fallar, que es la manera más cara de estar
+       en verde.
+
+       Lo que falla en producción es el ORDEN, no el contenido: la copia
+       hecha antes de que llegara el texto. Se reproduce dejando el renglón
+       vacío -que es exactamente como queda esa copia temprana- y pidiendo
+       el repintado que hace la base al contestar. Si nadie rehace la copia,
+       se queda vacío para siempre, que es lo que se veía al recargar. */
+    if (plazo && window.CIIP_REPINTA_ESTADOS){
+      plazo.textContent = '';
+      window.CIIP_REPINTA_ESTADOS();
+      var vuelve = (plazo.textContent || '').trim();
+      ok('sisref: y si llega vacío, el repintado lo rellena',
+         vuelve.length > 0,
+         vuelve ? ('«' + vuelve + '»') : '(sigue mudo tras repintar)',
+         'el estimado, escrito');
+    }
+
+    /* Y donde se pidió: pegado a la descripción, encima de los pasos. Si
+       mañana alguien lo mueve al pie o al final, esto lo dice. */
+    var desc = document.getElementById('trDesc');
+    var pasos = document.getElementById('trProceso') ||
+                document.getElementById('trReal');
+    if (plazo && desc && pasos){
+      var trasLaDesc = (desc.compareDocumentPosition(plazo) &
+                        Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+      var antesDeLosPasos = (pasos.compareDocumentPosition(plazo) &
+                             Node.DOCUMENT_POSITION_PRECEDING) !== 0;
+      ok('sisref: y va entre la descripción y los pasos',
+         trasLaDesc && antesDeLosPasos,
+         'tras la descripción: ' + trasLaDesc + ', antes de los pasos: ' + antesDeLosPasos,
+         'las dos ciertas');
+    }
+
     var caja   = document.getElementById('trReal');
     var campos = caja.querySelectorAll('.sol-campo');
     var docs   = caja.querySelectorAll('.sol-doc');

@@ -5694,6 +5694,34 @@ function applyLang(lang){
      llevan data-i18n. Este gancho los vuelve a dibujar. */
   window.CIIP_REPINTA_PASOS = function(){ if (trAbierto) pintaTramite(trAbierto); };
 
+  /* ── EL PLAZO DE LA PANTALLA DEL TRÁMITE ES UNA COPIA, Y LAS COPIAS SE
+        QUEDAN VIEJAS ────────────────────────────────────────────────────
+     Todo lo de arriba se CLONA de la tarjeta, y eso funciona para lo que
+     ya está escrito en el marcado: el nombre, el organismo, la
+     descripción. El renglón del reloj no: lo escribe pintaCuando cuando
+     la base contesta, y hasta entonces es un reloj con el texto vacío.
+
+     Abriendo desde la portada no se notaba —para cuando pulsas una
+     tarjeta la base ya contestó—. Entrando por la dirección directa,
+     …#tramite-c33, sí: la pantalla se pinta primero y la respuesta llega
+     después, así que se copiaba el reloj MUDO. Quedaba un icono suelto
+     debajo de la descripción, sin nada al lado, y el plazo del trámite no
+     se veía por ninguna parte al recargar.
+
+     Por eso este gancho: cuando la tarjeta abierta reciba su texto, el
+     renglón de la pantalla se rehace. Se comprueba que sea LA MISMA
+     tarjeta -las treinta y tres se repintan a la vez- o cualquiera de
+     ellas escribiría en la pantalla de otra. */
+  window.CIIP_REFRESCA_PLAZO = function(tarjeta){
+    if (!trAbierto || !tarjeta) return;
+    if (tarjeta.getAttribute('data-tr') !== trAbierto) return;
+    var destino = document.getElementById('trPlazo');
+    if (!destino) return;
+    var origen = tarjeta.querySelector('.t-time');
+    destino.textContent = '';
+    if (origen) destino.appendChild(origen.cloneNode(true));
+  };
+
   /* Las vistas que piden datos al entrar no pueden pedirlos ANTES de que la
      sesión esté puesta. Pulsando el renglón no se nota —para entonces hace
      rato que se restauró—, pero con F5 sobre #usuarios el router corre
@@ -14940,6 +14968,11 @@ applyLang(idiomaParaMi());
     if (!(tr && tr.resuelto_en) && !vaTarde) partes.push(cuanto);
     span.removeAttribute('data-i18n');
     span.textContent = partes.join(' · ');
+
+    /* Y si esta tarjeta es la que está abierta en su pantalla, allí hay una
+       COPIA de este renglón que se hizo antes de que existiera el texto.
+       Se rehace ahora, que es cuando por fin lo hay. */
+    if (window.CIIP_REFRESCA_PLAZO) window.CIIP_REFRESCA_PLAZO(tarjeta);
   }
 
   /* ── ¿va más lento de lo que se prometió? ──
