@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Si ya tienes el papel, no lo escribas otra vez</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   CINCO MANERAS DE DECIR «SI YA LO TIENES, SÚBELO Y ADELANTA»
+
+   El caso que las cinco atacan es el mismo, y es real. La ficha del
+   c33 —«Acreditación de representación legal»— dice de sí misma:
+
+       «Si actúas por medio de un abogado o apoderado, aquí el CIIP da
+        por bueno el poder.»
+
+   O sea que el trámite ES el documento. Y aun así se piden cinco
+   casillas a mano —apoderado, documento, número, notaría, fecha— antes
+   de llegar al paso 2, que es donde por fin se sube el PDF que ya
+   contiene esas cinco cosas escritas por un notario.
+
+   Quien llega con el poder firmado en la mano copia a mano lo que ya
+   está en el papel, y encima con el riesgo de equivocarse en un dígito
+   —que es la devolución más común—.
+
+   LO QUE EL PANEL YA TIENE, Y NO HAY QUE INVENTAR
+
+   · La bóveda. Un documento subido una vez se reutiliza en los demás
+     trámites, y la fila lo dice: «ya estaba en tu expediente».
+   · La cuenta de recaudos, antes de empezar: «2 de 3 ya son tuyos».
+   · Soltar el archivo encima de la fila, sin abrir el explorador.
+   · tipos_documento.vence, que ya sabe qué papeles caducan.
+
+   Ninguna de las cinco ideas necesita una tabla nueva.
+
+   DÓNDE ENTRA LA IA, Y DÓNDE NO
+
+   Entra en tres de las cinco, y con distinta profundidad: mirar si el
+   PDF es legible (1), leerlo y PROPONER los datos (3), y avisar de lo
+   que le pasa al documento —vencido, sin apostilla— (5).
+
+   No entra en ninguna a decidir. La IA propone y la persona confirma;
+   nada se guarda ni se envía sin que alguien lo haya mirado. Un dato
+   que el panel escriba solo en una solicitud oficial es un dato que
+   nadie ha revisado, y quien responde de él es el inversionista.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Piezas de la solicitud, copiadas del panel ──
+   Las maquetas no cargan el panel: si allí cambia una de estas, aquí
+   hay que traerla a mano. Es el precio de que se abra con doble clic. */
+.pa-barra{display:flex; gap:10px; list-style:none; margin:0 0 6px; padding:0;}
+.pa-seg{flex:1 1 0; min-width:0;}
+.pa-ir{display:block; width:100%; font:inherit; text-align:left; padding:0;
+  background:none; border:0; cursor:default; color:inherit;}
+.pa-linea{display:block; height:5px; border-radius:99px; background:var(--line);}
+.pa-seg.ahora .pa-linea{background:var(--navy2);}
+.pa-seg.hecho .pa-linea{background:var(--good);}
+.pa-cuerpo{display:flex; align-items:center; gap:7px; margin-top:9px;}
+.pa-n{flex:none; width:19px; height:19px; border-radius:50%; display:flex;
+  align-items:center; justify-content:center; font-size:10.5px; font-weight:800;
+  background:var(--block); color:var(--mudo); border:1px solid var(--line);}
+.pa-seg.ahora .pa-n{background:var(--navy2); color:#fff; border-color:var(--navy2);}
+.pa-seg.hecho .pa-n{background:var(--good-bg); color:var(--good); border-color:var(--good);}
+.pa-l{font-size:11.5px; font-weight:700; color:var(--mudo); overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap;}
+.pa-seg.ahora .pa-l{color:var(--ink);}
+/* Copiada del panel: en estrecho el rotulo se cae y quedan los numeros. Tres
+   palabras partidas en tres tramos de setenta pixeles no se leen. */
+@media (max-width:620px){
+  .pa-l{display:none;}
+  .pa-cuerpo{justify-content:center;}
+}
+.pa-cuenta{display:flex; align-items:baseline; gap:9px; margin:16px 0 14px; flex-wrap:wrap;}
+.pa-cuenta .pc-n{font-size:11px; font-weight:800; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--mudo);}
+.pa-cuenta .pc-t{font-size:15px; font-weight:700; color:var(--ink); margin:0;}
+.pa-hoja{border:1px solid var(--line); background:var(--bg); border-radius:12px;
+  padding:18px 20px;}
+.pa-nota{display:flex; gap:10px; align-items:flex-start; border:1px solid var(--line);
+  border-left:3px solid var(--cyan-deep); background:var(--block); border-radius:9px;
+  padding:11px 13px; margin-bottom:18px; font-size:12px; line-height:1.5;}
+.pa-nota svg{flex:none; width:16px; height:16px; margin-top:1px; fill:none;
+  stroke:var(--cyan-deep); stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+.sol-campos{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px 16px;}
+.sol-campo.ancho{grid-column:1 / -1;}
+.sol-campo label{display:block; font-size:11px; font-weight:700; color:var(--gray);
+  margin-bottom:5px;}
+.sol-campo .caja{border:1px solid var(--line); border-radius:9px; background:var(--bg);
+  padding:10px 12px; font-size:12.5px; color:var(--mudo); min-height:38px;}
+.pa-pie{margin-top:18px; padding-top:16px; border-top:1px solid var(--line);
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+.btn.sig{margin-left:auto;}
+
+/* ── El andamio de la maqueta ── */
+.idea{margin:0 0 34px;}
+.idea-h{display:flex; align-items:baseline; gap:11px; margin-bottom:6px; flex-wrap:wrap;}
+.idea-n{flex:none; width:26px; height:26px; border-radius:50%; background:var(--navy);
+  color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center;
+  justify-content:center;}
+.idea-t{font-size:16px; font-weight:700; letter-spacing:-.01em;}
+.ia-sello{font-size:9.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+  color:#6D28D9; background:#F3EEFF; border:1px solid #DDD0FF; border-radius:99px;
+  padding:3px 9px;}
+.idea-q{font-size:12.5px; color:var(--mudo); line-height:1.6; max-width:74ch;
+  margin:0 0 14px;}
+.idea-q b{color:var(--ink); font-weight:600;}
+.marco-mq{border:1px solid var(--line); border-radius:12px; overflow:hidden;
+  background:var(--block); padding:18px; box-shadow:var(--shadow);}
+.cuesta{display:flex; gap:22px; margin-top:12px; flex-wrap:wrap; font-size:11.5px;
+  line-height:1.55;}
+.cuesta div{flex:1 1 230px; min-width:0;}
+.cuesta b{display:block; font-size:9.5px; font-weight:800; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--mudo); margin-bottom:3px;}
+
+/* ── Lo nuevo que proponen las ideas ── */
+.atajo{border:1px solid var(--navy2); background:var(--activa-bg); border-radius:11px;
+  padding:14px 16px; margin-bottom:18px;}
+.atajo-t{font-size:13px; font-weight:700; margin-bottom:3px;}
+.atajo-q{font-size:12px; color:var(--gray); line-height:1.5; margin-bottom:11px;}
+.soltar{border:1.5px dashed var(--cyan-deep); border-radius:10px; background:var(--bg);
+  padding:16px; text-align:center; font-size:12px; color:var(--navy2); font-weight:600;}
+.soltar span{display:block; font-size:11px; color:var(--mudo); font-weight:500; margin-top:3px;}
+
+.dos-caminos{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px;}
+.camino{border:1px solid var(--line); background:var(--bg); border-radius:12px; padding:16px;
+  cursor:pointer;}
+.camino.reco{border-color:var(--navy2); box-shadow:0 0 0 1px var(--navy2) inset;}
+.camino .ct{font-size:13.5px; font-weight:700; margin-bottom:4px;}
+.camino .cq{font-size:12px; color:var(--mudo); line-height:1.5;}
+.camino .cp{margin-top:11px; font-size:11px; font-weight:700; color:var(--navy2);}
+
+.leido{border:1px solid #DDD0FF; background:#FBF9FF; border-radius:11px; padding:13px 15px;
+  margin-bottom:16px;}
+.leido-h{display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700;
+  margin-bottom:4px;}
+.leido-h svg{width:15px; height:15px; fill:none; stroke:#6D28D9; stroke-width:2;}
+.leido-q{font-size:11.5px; color:var(--gray); line-height:1.55;}
+.sol-campo.propuesto .caja{border-color:#C4B5FD; background:#FBF9FF; color:var(--ink);}
+.de-ia{font-size:9px; font-weight:800; letter-spacing:.03em; color:#6D28D9;
+  background:#F3EEFF; border-radius:4px; padding:1px 5px; margin-left:6px;}
+.confirmar{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
+
+.semaforo{border:1px solid var(--line); background:var(--bg); border-radius:12px; padding:16px;}
+.sem-h{font-size:13px; font-weight:700; margin-bottom:9px;}
+.sem-fila{display:flex; align-items:center; gap:9px; padding:8px 0; font-size:12px;
+  border-top:1px solid var(--line-soft);}
+.sem-fila:first-of-type{border-top:0;}
+.sem-s{flex:none; width:17px; height:17px; border-radius:50%; display:flex;
+  align-items:center; justify-content:center; font-size:10px; font-weight:800;}
+.sem-s.si{background:var(--good-bg); color:var(--good);}
+.sem-s.no{background:var(--block); color:var(--mudo);}
+.sem-s.ojo{background:var(--amber-bg); color:var(--amber);}
+.sem-n{flex:1 1 auto; min-width:0;}
+.sem-av{font-size:11px; color:var(--amber); margin-top:2px;}
+.sem-pie{margin-top:12px; padding-top:12px; border-top:1px solid var(--line);
+  font-size:12px; color:var(--gray); line-height:1.55;}
+
+.recaudo{display:flex; align-items:center; gap:12px; border:1px solid var(--line);
+  background:var(--bg); border-radius:11px; padding:13px 15px; margin-bottom:9px;}
+.recaudo.ya{border-color:var(--good);}
+.rec-n{flex:1 1 auto; min-width:0; font-size:12.5px; font-weight:700;}
+.rec-e{font-size:11px; color:var(--mudo); font-weight:500; margin-top:2px;}
+.rec-v{flex:none; font-size:11px; font-weight:800; color:var(--good);}
+
+.tabla-fin{width:100%; border-collapse:collapse; font-size:12px; margin-top:10px;}
+.tabla-fin th, .tabla-fin td{text-align:left; padding:9px 10px; border-top:1px solid var(--line);
+  vertical-align:top;}
+.tabla-fin th{font-size:10px; font-weight:800; letter-spacing:.04em; text-transform:uppercase;
+  color:var(--mudo); border-top:0;}
+.tabla-fin td:first-child{font-weight:700; white-space:nowrap;}
+@media (max-width:760px){
+  .sol-campos, .dos-caminos{grid-template-columns:1fr;}
+  /* La fila del recaudo lleva el nombre y dos botones. En estrecho no caben
+     en un renglon y el nombre se comia; que bajen los botones. */
+  .recaudo{flex-wrap:wrap;}
+  .rec-n{flex-basis:100%;}
+  .tabla-fin, .tabla-fin tbody, .tabla-fin tr, .tabla-fin td{display:block; width:100%;}
+  .tabla-fin thead{display:none;}
+  .tabla-fin tr{border-top:1px solid var(--line); padding:8px 0;}
+  .tabla-fin td{border:0; padding:2px 0;}
+}
+</style>
+</head>
+<body>
+
+<div class="mq-cartel">
+  <b>Maqueta · Si ya tienes el papel, no lo escribas otra vez</b>
+  <span>Cinco maneras de dejar subir el PDF y adelantar la solicitud. Tres llevan IA.
+        No es la aplicación: nada de lo que hay aquí funciona.</span>
+  <a class="mq-ir" href="portada-sin-repetir.html">Ver las maquetas de la portada →</a>
+</div>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sb-head"><img src="../logos/ciip.png" alt="CIIP"></div>
+    <nav class="sb-nav">
+      <div class="sb-g">Mi expediente</div>
+      <div class="sb-i"><span class="d"></span>Mi panel</div>
+      <div class="sb-i on"><span class="d"></span>Mis trámites</div>
+      <div class="sb-i"><span class="d"></span>Mi empresa</div>
+      <div class="sb-i"><span class="d"></span>Documentos</div>
+      <div class="sb-g">Acompañamiento</div>
+      <div class="sb-i"><span class="d"></span>Citas y agenda</div>
+      <div class="sb-i"><span class="d"></span>Ayuda y guía</div>
+    </nav>
+  </aside>
+
+  <div class="marco">
+    <div class="topbar">
+      <div class="tb-crumb">Acreditación de representación legal</div>
+      <div class="tb-sp"></div>
+      <div class="tb-user"><div class="tb-av">FR</div>
+        <div>Franklin Reyes<div class="r">Inversionista · Venezuela</div></div></div>
+    </div>
+
+    <main>
+
+      <p class="idea-q" style="max-width:78ch">
+        La ficha de este trámite dice de sí misma: <b>«aquí el CIIP da por bueno el
+        poder»</b>. O sea que el trámite ES el documento — y aun así se piden cinco
+        casillas a mano antes de llegar al paso donde por fin se sube el PDF que ya
+        las contiene, escritas por un notario. Quien llega con el poder en la mano
+        copia lo que ya está en el papel, con el riesgo de equivocarse en un dígito,
+        que es la devolución más común.
+      </p>
+
+      <!-- ── 1 ────────────────────────────────────────────────── -->
+      <section class="idea">
+        <div class="idea-h">
+          <span class="idea-n">1</span>
+          <span class="idea-t">El atajo, arriba del paso 1</span>
+          <span class="ia-sello">IA · comprueba</span>
+        </div>
+        <p class="idea-q">
+          Una franja encima de las casillas, antes de que empieces a teclear. Se suelta
+          el PDF ahí y la solicitud salta directa al repaso, con el documento ya puesto
+          como recaudo. <b>La IA no lee el contenido: sólo mira que sea legible, que
+          tenga las páginas y que parezca un poder</b> — que es el 80 % de las
+          devoluciones y se puede comprobar antes de enviar nada.
+        </p>
+        <div class="marco-mq">
+          <ol class="pa-barra">
+            <li class="pa-seg ahora"><button class="pa-ir" type="button"><i class="pa-linea"></i>
+              <span class="pa-cuerpo"><span class="pa-n">1</span><span class="pa-l">Tus datos</span></span></button></li>
+            <li class="pa-seg"><button class="pa-ir" type="button"><i class="pa-linea"></i>
+              <span class="pa-cuerpo"><span class="pa-n">2</span><span class="pa-l">Recaudos</span></span></button></li>
+            <li class="pa-seg"><button class="pa-ir" type="button"><i class="pa-linea"></i>
+              <span class="pa-cuerpo"><span class="pa-n">3</span><span class="pa-l">Repasar</span></span></button></li>
+          </ol>
+          <div class="pa-cuenta"><span class="pc-n">Paso 1 de 3</span><h3 class="pc-t">Tus datos</h3></div>
+          <div class="pa-hoja">
+            <div class="atajo">
+              <div class="atajo-t">¿Ya tienes el poder firmado ante notario?</div>
+              <div class="atajo-q">Súbelo y te saltas estas cinco casillas: el CIIP lo lee del
+                documento. Si aún no lo tienes, sigue rellenando abajo.</div>
+              <div class="soltar">Suelta aquí el PDF del poder
+                <span>o pulsa para elegirlo · PDF o foto, hasta 10 MB</span></div>
+            </div>
+            <div class="sol-campos">
+              <div class="sol-campo"><label>Nombre del apoderado</label><div class="caja"></div></div>
+              <div class="sol-campo"><label>Documento del apoderado</label><div class="caja"></div></div>
+              <div class="sol-campo"><label>Número del poder</label><div class="caja"></div></div>
+              <div class="sol-campo"><label>Notaría donde se otorgó</label><div class="caja"></div></div>
+            </div>
+            <div class="pa-pie"><button class="btn navy sig" type="button">Siguiente</button></div>
+          </div>
+        </div>
+        <div class="cuesta">
+          <div><b>Lo que cuesta</b> Poco. La zona de soltar ya existe en el paso 2; se
+            duplica arriba y se le enseña a saltar al paso 3.</div>
+          <div><b>Lo que arriesga</b> Que el organismo siga necesitando los datos escritos.
+            Si es así, el atajo sólo mueve el trabajo, no lo quita.</div>
+        </div>
+      </section>
+
+      <!-- ── 2 ────────────────────────────────────────────────── -->
+      <section class="idea">
+        <div class="idea-h">
+          <span class="idea-n">2</span>
+          <span class="idea-t">Preguntarlo antes de empezar</span>
+        </div>
+        <p class="idea-q">
+          Una pantalla previa con dos caminos, y ya está. No es un invento: es el patrón
+          <b>«comprueba si este trámite es para ti»</b> del sistema de diseño británico, y
+          existe justamente para no meter a nadie en un formulario de doce casillas que no
+          le tocaba. El que ya tiene el poder no llega a ver el formulario largo.
+        </p>
+        <div class="marco-mq">
+          <div class="pa-cuenta"><span class="pc-n">Antes de empezar</span>
+            <h3 class="pc-t">¿En qué punto estás?</h3></div>
+          <div class="dos-caminos">
+            <div class="camino reco">
+              <div class="ct">Ya lo tengo firmado</div>
+              <div class="cq">Tienes el poder otorgado ante notario, en papel o en PDF.
+                Te pedimos el documento y dos datos para localizarlo. Nada más.</div>
+              <div class="cp">2 casillas y 1 documento →</div>
+            </div>
+            <div class="camino">
+              <div class="ct">Todavía no lo tengo</div>
+              <div class="cq">Vas a otorgarlo ahora. Te acompañamos con las cinco casillas
+                y te decimos qué llevar a la notaría.</div>
+              <div class="cp">5 casillas y 3 documentos →</div>
+            </div>
+          </div>
+        </div>
+        <div class="cuesta">
+          <div><b>Lo que cuesta</b> Una pantalla nueva y una bifurcación en el guion. No
+            toca la base.</div>
+          <div><b>Lo que arriesga</b> Un paso más para quien no tiene el papel. Se paga en
+            el caso menos frecuente.</div>
+        </div>
+      </section>
+
+      <!-- ── 3 ────────────────────────────────────────────────── -->
+      <section class="idea">
+        <div class="idea-h">
+          <span class="idea-n">3</span>
+          <span class="idea-t">La IA lee el documento y propone</span>
+          <span class="ia-sello">IA · lee y propone</span>
+        </div>
+        <p class="idea-q">
+          La que de verdad ahorra teclear. Subes el PDF y el panel <b>propone</b> las cinco
+          casillas con lo que ha leído, cada una marcada y con el trozo del documento de
+          donde salió. Tú confirmas o corriges. <b>Nada se guarda ni se envía sin que lo
+          apruebes</b>: un dato que el panel escriba solo en una solicitud oficial es un
+          dato que nadie ha revisado, y quien responde de él es el inversionista.
+        </p>
+        <div class="marco-mq">
+          <div class="pa-cuenta"><span class="pc-n">Paso 1 de 3</span><h3 class="pc-t">Tus datos</h3></div>
+          <div class="pa-hoja">
+            <div class="leido">
+              <div class="leido-h">
+                <svg viewBox="0 0 24 24"><path d="M12 3l1.7 4.8L18.5 9l-4.8 1.2L12 15l-1.7-4.8L5.5 9l4.8-1.2z"/></svg>
+                Leído de «poder-notaria-12.pdf»
+              </div>
+              <div class="leido-q">Esto es lo que hemos entendido del documento. Repásalo:
+                si algo no coincide con el papel, córrigelo aquí — el papel manda.</div>
+            </div>
+            <div class="sol-campos">
+              <div class="sol-campo propuesto"><label>Nombre del apoderado <span class="de-ia">del documento</span></label>
+                <div class="caja">Ana María Rojas Betancourt</div></div>
+              <div class="sol-campo propuesto"><label>Documento del apoderado <span class="de-ia">del documento</span></label>
+                <div class="caja">V-12.345.678</div></div>
+              <div class="sol-campo propuesto"><label>Número del poder <span class="de-ia">del documento</span></label>
+                <div class="caja">12, Tomo 45-A</div></div>
+              <div class="sol-campo propuesto"><label>Notaría donde se otorgó <span class="de-ia">del documento</span></label>
+                <div class="caja">Notaría Pública Cuarta de Caracas</div></div>
+              <div class="sol-campo ancho"><label>Para qué lo autorizas <span class="de-ia">no lo dice el documento</span></label>
+                <div class="caja">Escríbelo tú</div></div>
+            </div>
+            <div class="confirmar">
+              <button class="btn ghost" type="button">Corregir a mano</button>
+              <button class="btn navy" type="button">Está bien, sigue</button>
+            </div>
+          </div>
+        </div>
+        <div class="cuesta">
+          <div><b>Lo que cuesta</b> Lo más caro de las cinco. Hace falta decidir DÓNDE se
+            lee el PDF: el documento lleva datos personales, así que no puede salir a
+            cualquier sitio. Lo natural es una función del propio Supabase.</div>
+          <div><b>Lo que arriesga</b> Que la lectura falle en silencio. Por eso cada casilla
+            dice de dónde salió y ninguna se da por buena sin que la mires.</div>
+        </div>
+      </section>
+
+      <!-- ── 4 ────────────────────────────────────────────────── -->
+      <section class="idea">
+        <div class="idea-h">
+          <span class="idea-n">4</span>
+          <span class="idea-t">Decirlo antes de entrar, en la ficha</span>
+          <span class="ia-sello">IA · avisa</span>
+        </div>
+        <p class="idea-q">
+          El panel ya sabe, antes de que abras nada, cuántos de los papeles tienes en la
+          bóveda. Hoy lo dice con un número. La idea es que además <b>diga qué significa
+          ese número</b>: si los tienes todos, esto se cierra hoy. Y la IA añade lo que la
+          cuenta no ve: que el pasaporte de la bóveda <b>vence en 40 días</b>, o que a la
+          traducción le falta la apostilla.
+        </p>
+        <div class="marco-mq">
+          <div class="semaforo">
+            <div class="sem-h">Lo que te van a pedir</div>
+            <div class="sem-fila"><span class="sem-s si">✓</span>
+              <span class="sem-n">Poder de representación<div class="rec-e">ya está en tu expediente</div></span></div>
+            <div class="sem-fila"><span class="sem-s ojo">!</span>
+              <span class="sem-n">Pasaporte vigente<div class="sem-av">El que tienes vence en 40 días. Al organismo le vale hoy, pero no en marzo.</div></span></div>
+            <div class="sem-fila"><span class="sem-s no">○</span>
+              <span class="sem-n">Traducción certificada<div class="rec-e">opcional · sólo si el poder no está en castellano</div></span></div>
+            <div class="sem-pie">
+              <b>Tienes los dos que hacen falta.</b> Si entras ahora, esta solicitud se
+              envía hoy: sólo hay que confirmar cinco datos.
+              <div style="margin-top:11px"><button class="btn navy" type="button">Empezar y enviar hoy</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="cuesta">
+          <div><b>Lo que cuesta</b> Casi nada para la parte de la cuenta: el dato ya está.
+            Lo del vencimiento necesita leer <code>tipos_documento.vence</code>, que también
+            existe ya.</div>
+          <div><b>Lo que arriesga</b> Prometer «hoy» y que el organismo tarde. La frase
+            tiene que hablar del envío, no de la respuesta.</div>
+        </div>
+      </section>
+
+      <!-- ── 5 ────────────────────────────────────────────────── -->
+      <section class="idea">
+        <div class="idea-h">
+          <span class="idea-n">5</span>
+          <span class="idea-t">Dar la vuelta al orden: el papel primero</span>
+        </div>
+        <p class="idea-q">
+          La más barata de todas, porque no añade nada: sólo cambia el orden. El poder deja
+          de ser el paso 2 y pasa a ser lo primero que se pide. <b>Si la bóveda ya lo tiene,
+          el paso 1 nace hecho</b> y el botón deja de decir «Siguiente» para decir a dónde
+          lleva de verdad. El formulario largo sigue existiendo, pero detrás.
+        </p>
+        <div class="marco-mq">
+          <ol class="pa-barra">
+            <li class="pa-seg hecho"><button class="pa-ir" type="button"><i class="pa-linea"></i>
+              <span class="pa-cuerpo"><span class="pa-n">✓</span><span class="pa-l">El poder</span></span></button></li>
+            <li class="pa-seg ahora"><button class="pa-ir" type="button"><i class="pa-linea"></i>
+              <span class="pa-cuerpo"><span class="pa-n">2</span><span class="pa-l">Tus datos</span></span></button></li>
+            <li class="pa-seg"><button class="pa-ir" type="button"><i class="pa-linea"></i>
+              <span class="pa-cuerpo"><span class="pa-n">3</span><span class="pa-l">Repasar</span></span></button></li>
+          </ol>
+          <div class="pa-cuenta"><span class="pc-n">Paso 1 de 3</span><h3 class="pc-t">El poder</h3></div>
+          <div class="pa-hoja">
+            <div class="recaudo ya">
+              <span class="rec-n">Poder de representación
+                <div class="rec-e">poder-notaria-12.pdf · ya estaba en tu expediente</div></span>
+              <span class="rec-v">✓</span>
+              <button class="btn ghost" type="button">Ver</button>
+              <button class="btn ghost" type="button">Cambiarlo</button>
+            </div>
+            <div class="recaudo">
+              <span class="rec-n">Pasaporte vigente
+                <div class="rec-e">pasaporte.pdf · ya estaba en tu expediente</div></span>
+              <span class="rec-v">✓</span>
+              <button class="btn ghost" type="button">Ver</button>
+            </div>
+            <div class="pa-pie">
+              <span style="font-size:11.5px; color:var(--mudo)">Ya tienes los dos. No hay nada que subir.</span>
+              <button class="btn navy sig" type="button">Saltar al repaso →</button>
+            </div>
+          </div>
+        </div>
+        <div class="cuesta">
+          <div><b>Lo que cuesta</b> Lo más barato: reordenar los pasos que ya existen y
+            marcar el primero como hecho cuando la bóveda contesta que sí.</div>
+          <div><b>Lo que arriesga</b> Casi nada. Es el cambio que se puede hacer esta
+            semana y medir antes de decidir los otros cuatro.</div>
+        </div>
+      </section>
+
+      <!-- ── comparación ──────────────────────────────────────── -->
+      <section class="idea">
+        <div class="idea-h"><span class="idea-t">Las cinco, de un vistazo</span></div>
+        <table class="tabla-fin">
+          <thead><tr><th>Idea</th><th>IA</th><th>Cuánto cuesta</th><th>Cuánto ahorra</th></tr></thead>
+          <tbody>
+            <tr><td>1 · El atajo arriba</td><td>Comprueba el PDF</td><td>Bajo</td>
+              <td>Se salta 5 casillas, si el organismo lo permite</td></tr>
+            <tr><td>2 · Preguntar antes</td><td>—</td><td>Medio</td>
+              <td>El que ya lo tiene no ve el formulario largo</td></tr>
+            <tr><td>3 · La IA lee y propone</td><td>Lee y rellena</td><td>Alto</td>
+              <td>No se teclea nada; se confirma</td></tr>
+            <tr><td>4 · Decirlo en la ficha</td><td>Avisa de vencimientos</td><td>Bajo</td>
+              <td>No ahorra pasos: evita empezar sin poder terminar</td></tr>
+            <tr><td>5 · El papel primero</td><td>—</td><td>Muy bajo</td>
+              <td>Con la bóveda llena, un paso entero desaparece</td></tr>
+          </tbody>
+        </table>
+        <p class="idea-q" style="margin-top:16px">
+          <b>Por dónde empezaría:</b> la 5 y la 4. Las dos se apoyan en cosas que el panel
+          ya sabe —la bóveda y la cuenta de recaudos—, se pueden hacer en días y dejan
+          medir cuánta gente llega con el papel ya en la mano. Ese número es el que decide
+          si merece la pena la 3, que es la cara.
+        </p>
+        <p class="idea-q">
+          <b>Y una pregunta que hay que hacerle al CIIP antes de la 1 y la 3:</b> ¿el
+          organismo necesita los cinco datos escritos, o le basta el documento? Si le basta,
+          las casillas sobran para todo el mundo y esto deja de ser un atajo para ser el
+          trámite entero. Si no le basta, la 3 es la única que quita trabajo de verdad.
+        </p>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+</body>
+</html>
