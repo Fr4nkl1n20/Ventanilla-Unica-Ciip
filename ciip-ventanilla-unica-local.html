@@ -515,6 +515,25 @@ svg{display:block;}
 .perfil{max-width:440px;}
 .pf-cuerpo{padding:16px 18px 4px; display:flex; flex-direction:column; gap:13px;}
 .pf-campo{display:flex; flex-direction:column; gap:6px;}
+/* ── EL CUADRO DE LA EMPRESA, EN DOS COLUMNAS ──
+   Doce casillas en una sola columna dentro de una caja de 720 px de ancho:
+   la mitad derecha vacia, y el cuerpo tan alto que le salia barra propia y
+   cortaba una fila por la mitad -la fecha, con sus tres listas-. Es el mismo
+   desperdicio que tenia la hoja del formulario.
+
+   En dos columnas, el paso 1 pasa de cinco filas a tres y cabe sin rodar.
+   Las que piden una linea larga -razon social y direccion- siguen ocupando
+   el ancho entero: ya venian marcadas 'ancho' en la lista de campos, solo
+   que hasta ahora esa marca no la miraba nadie en este cuadro.
+
+   El aviso de arriba tambien cruza: es una frase, no un dato. */
+#emCampos{display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:13px 16px; align-content:start;}
+#emCampos > .em-minimo,
+#emCampos > .pf-campo.ancho{grid-column:1 / -1;}
+/* Por debajo de 560 px la caja ya es estrecha y dos columnas dejarian las
+   listas de la fecha una encima de otra. Una sola, como antes. */
+@media (max-width:560px){ #emCampos{grid-template-columns:1fr;} }
 /* Y esta linea, que no es de adorno: [hidden] del navegador es
    display:none, pero CUALQUIER display de la hoja de estilos le gana.
    Con solo la de arriba, esconder un campo con .hidden = true no
@@ -17089,7 +17108,10 @@ applyLang(idiomaParaMi());
        tocan. Crearlos por pasos habria borrado lo escrito al ir y volver,
        que es justo lo que hace odioso un formulario por pasos. */
     EM_CAMPOS.forEach(function(c){
-      var campo = el('div', 'pf-campo');
+      /* 'ancho' ya venia en la lista de campos -razon social y direccion- y
+         no lo usaba nadie aqui: solo lo miraba el formulario de la
+         solicitud. Con las dos columnas vuelve a significar algo. */
+      var campo = el('div', 'pf-campo' + (c.ancho ? ' ancho' : ''));
       campo.setAttribute('data-paso', String(c.paso || 1));
       var lb = el('label', null, u[c.clave] || c.n);
       /* El "for" apunta a un sitio distinto segun el tipo de campo -en
