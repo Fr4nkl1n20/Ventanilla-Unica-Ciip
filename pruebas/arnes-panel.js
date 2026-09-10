@@ -218,6 +218,7 @@
               pliegaAbre, pliegaMira, pliegaVuelve, pliegaTrasVolver,
               pliegaTramite, pliegaVuelveDeTramite, pliegaTrasTramite,
               faqAbre, faqMira,
+              volverAbre, volverMira, volverTrasVolver,
               opacidadMira, opacidadSenal,
               loHacemosMira,
               gestionAbre, gestionMira, escaleraNoParpadea, gestionTrasPulsar,
@@ -7142,6 +7143,45 @@
           lisF.querySelectorAll('details[open]').length, 0);
 
     location.hash = '';
+  }
+
+  /* ═══════════ VOLVER DESDE UNA FICHA ═══════════
+     «Cuando retrocedo de la ficha me envía aquí y no quiero que pase, quiero
+     que me envíe a mis 4 paneles.» (CIIP)
+
+     Llevaba al catalogo de la etapa de la que salio el tramite: otra lista
+     larga, con la migaja diciendo «Tu camino en Venezuela» y el titulo
+     «Catalogo de tramites». Ahora lleva a la portada, que es donde estan las
+     cuatro etapas y donde se decide que hacer.
+
+     Se comprueban las DOS cosas, y la segunda es la que se olvida: que
+     LLEVE alli, y que lo DIGA. El rotulo nombraba la etapa de origen, y un
+     boton que promete una pantalla y abre otra se pulsa una vez. */
+  function volverAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c3';
+  }
+
+  function volverMira(){
+    if (CASO !== 'vacio') return;
+    igual('volver: la ficha esta abierta', document.body.getAttribute('data-vista'), 'tramite');
+    var b = document.getElementById('trVolver');
+    var t = document.getElementById('trVolverTxt');
+    var dic = (typeof I18N !== 'undefined') ? (I18N[curLang] || I18N.en) : {};
+    ok('volver: y el boton dice a donde lleva',
+       !!t && t.textContent.trim() === String(dic['j.title'] || '').trim(),
+       t ? t.textContent.trim() : '(no hay)', dic['j.title'] || 'el camino');
+    if (b) b.click();
+  }
+
+  function volverTrasVolver(){
+    if (CASO !== 'vacio') return;
+    var v = document.body.getAttribute('data-vista');
+    ok('volver: y lleva a la portada, no al catalogo de su etapa',
+       v === 'inicio' || !v, v || '(sin vista)', 'inicio');
+    /* Y las cuatro etapas estan ahi, que es lo que se venia a ver. */
+    igual('volver: con sus cuatro etapas',
+          document.querySelectorAll('.jp[data-ir]').length, 4);
   }
 
   function cuadraAbre(){

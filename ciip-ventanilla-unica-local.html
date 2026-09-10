@@ -5777,14 +5777,16 @@ function applyLang(lang){
       lista.appendChild(li);
     });
 
-    /* El botón de volver nombra la fase de la que salió este trámite. Se le
-       pone el data-i18n para que applyLang lo siga traduciendo. */
-    var bloque = tarjeta.closest('[data-fase]');
-    var fase   = bloque ? bloque.getAttribute('data-fase') : '1';
+    /* Y el boton dice a donde lleva: a la portada. Nombraba la etapa de la
+       que salio el tramite -«Acreditacion de identidad y legitimacion»- y
+       desde que lleva a la portada eso seria prometer una pantalla y abrir
+       otra. Un boton de volver que no dice la verdad se pulsa una vez.
+
+       Se le deja el data-i18n para que applyLang lo siga traduciendo cuando
+       se cambia de idioma con la ficha abierta. */
     var txtVol = document.getElementById('trVolverTxt');
-    txtVol.setAttribute('data-i18n', 'p' + fase + '.name');
-    txtVol.textContent = dic['p'+fase+'.name'] || I18N.en['p'+fase+'.name'] || '';
-    volverTr.setAttribute('data-fase-origen', fase);
+    txtVol.setAttribute('data-i18n', 'j.title');
+    txtVol.textContent = dic['j.title'] || I18N.en['j.title'] || '';
 
     /* Si este tipo esta activo en el catalogo, el modulo de solicitudes
        sustituye la escalera decorativa por el tramite de verdad. */
@@ -6282,9 +6284,18 @@ function applyLang(lang){
     pinta(null);
   });
 
+  /* ── VOLVER DESDE UNA FICHA LLEVA A LA PORTADA ──
+     Llevaba al catalogo de la etapa de la que salio el tramite: otra lista
+     larga, con la migaja diciendo «Tu camino en Venezuela» y el titulo
+     «Catalogo de tramites». Quien cierra una ficha no quiere la lista de al
+     lado, quiere volver a donde se decide: las cuatro etapas.
+
+     Es el mismo gesto que el boton de al lado -el de la etapa-, asi que van
+     al mismo sitio y de la misma forma: se limpia el hash y se pinta la
+     portada. */
   if (volverTr) volverTr.addEventListener('click', function(){
-    var f = volverTr.getAttribute('data-fase-origen') || '1';
-    ve('fase-'+f, {tipo:'fase', n:f});
+    if (location.hash) location.hash = '';
+    pinta(null);
   });
 
   window.addEventListener('hashchange', function(){ pinta(deHash()); });
