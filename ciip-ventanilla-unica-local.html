@@ -3845,7 +3845,11 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 #filters .ftab:hover, .co-filtros button:hover, #mtFiltros button:hover, #ciFiltros button:hover, #raFiltros button:hover{color:var(--ink);}
 #filters .ftab.on, .co-filtros button.aqui, #mtFiltros button.aqui, #ciFiltros button.aqui, #raFiltros button.aqui{background:var(--bg); color:var(--navy2); font-weight:700; box-shadow:0 1px 2px rgba(14,20,36,.08);}
 .ftab .n{background:var(--block); color:var(--gray-soft); border:1px solid var(--line-soft); font-weight:700;}
-.ftab.on .n{background:color-mix(in srgb, var(--cyan) 12%, var(--bg)); color:var(--cyan-deep); border-color:color-mix(in srgb, var(--cyan) 30%, var(--bg));}</style>
+.ftab.on .n{background:color-mix(in srgb, var(--cyan) 12%, var(--bg)); color:var(--cyan-deep); border-color:color-mix(in srgb, var(--cyan) 30%, var(--bg));}
+/* El aviso de la tabla por atender: lo que el numero del menu cuenta y no
+   es un tramite -citas por confirmar, consultas-, con su puerta a la cola. */
+.pa-otros{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:0 0 12px; padding:10px 14px; background:var(--activa-bg); border:1px solid var(--line); border-radius:var(--r); font-size:var(--fs-parrafo); color:var(--ink);}
+.pa-otros[hidden]{display:none;}</style>
 
 <aside class="sidebar" id="barraLateral">
   <div class="sb-head">
@@ -4747,6 +4751,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
     <div class="pa-vista">
       <div class="sec-h">
       </div>
+      <div class="pa-otros" id="paOtros" hidden></div>
       <div class="co-filtros" id="paFiltros"></div>
       <div class="tabla-caja">
         <table class="tabla" id="paTabla">
@@ -14081,6 +14086,26 @@ applyLang(idiomaParaMi());
     pintaFiltrosCola(document.getElementById('paFiltros'), pintaTabla);
 
     cuerpo.textContent = '';
+    /* LO QUE EL NUMERO CUENTA Y ESTA TABLA NO ENSENA. El renglon del menu
+       suma tres colas -citas por confirmar, tramites y consultas- y aqui
+       solo hay tramites: con una cita pendiente el menu decia 1 y la
+       pantalla "No hay ningun tramite esperando". Se avisa encima, con la
+       puerta a la ventana de la cola, que es donde se atienden. */
+    var otros = document.getElementById('paOtros');
+    if (otros){
+      otros.textContent = '';
+      var nCitas = enCola.length, nCons = consultas.length, partes = [];
+      if (nCitas) partes.push(String(nCitas === 1 ? (u.pa_otros_cita1 || '') : (u.pa_otros_citas || '')).replace('{n}', nCitas));
+      if (nCons)  partes.push(String(nCons === 1 ? (u.pa_otros_cons1 || '') : (u.pa_otros_cons || '')).replace('{n}', nCons));
+      otros.hidden = !partes.length;
+      if (partes.length){
+        otros.appendChild(el('span', null, String(u.pa_otros || '').replace('{que}', partes.join(' \u00b7 '))));
+        var ver = el('button', 't-btn', u.pa_otros_ver || '');
+        ver.type = 'button';
+        ver.addEventListener('click', function(){ abreCola(); });
+        otros.appendChild(ver);
+      }
+    }
     var vacia = document.getElementById('paVacia');
     var vistos = enRevision.filter(coCuadra);
     if (vacia){

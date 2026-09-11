@@ -4127,6 +4127,26 @@
           filas.length, document.querySelectorAll('#colaTram .co-ficha').length);
     igual('tabla: con sus siete columnas',
           document.querySelectorAll('#paCab th').length, 7);
+
+    /* El numero del menu cuenta tres colas y la tabla solo ensena una. Con
+       una cita pendiente y ningun tramite, el menu decia 1 y la pantalla
+       «No hay ningun tramite esperando». Lo que la tabla no ensena se avisa
+       encima, y el aviso tiene que salir justo cuando la ventana de la cola
+       tiene citas o consultas. Va ANTES del return de abajo: el caso que
+       fallaba es precisamente el de la tabla vacia. */
+    (function(){
+      var otros = document.getElementById('paOtros');
+      var nOtros = document.querySelectorAll('#colaLista .co-ficha').length +
+                   document.querySelectorAll('#colaCons .co-ficha').length;
+      igual('tabla: avisa de lo que el numero cuenta y no es un tramite',
+            otros ? (otros.hidden ? 'escondido' : 'a la vista') : 'no existe',
+            nOtros ? 'a la vista' : 'escondido');
+      if (otros && !otros.hidden){
+        ok('tabla: y el aviso lleva la puerta a la cola',
+           !!otros.querySelector('button'),
+           otros.querySelector('button') ? 'con boton' : 'sin boton', 'con boton');
+      }
+    })();
     if (!filas.length) return;
 
     var celdas = filas[0].querySelectorAll('td');
