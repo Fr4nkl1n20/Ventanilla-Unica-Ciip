@@ -7761,8 +7761,9 @@
      por la burbuja de acompañamiento, y eso se mide abajo. Sin esa
      segunda mitad, haberlo borrado del todo pasaria por bueno.
 
-     Y el saludo lleva el nombre de PILA a proposito: el completo ya esta
-     en la misma barra, junto al avatar. */
+     Y el saludo lleva el nombre ENTERO, nombre y apellido. Hasta el 11 de
+     septiembre llevaba solo el de pila, porque el completo ya estaba junto
+     al avatar; el CIIP lo quiso completo tambien en el saludo. */
   function holaMira(){
     var b = document.getElementById('askBar');
     ok('barra: la de «pregunta lo que sea» ya no esta', !b,
@@ -7778,15 +7779,18 @@
        maqueta a quien acababa de entrar con su cuenta. */
     var quien = (document.querySelector('.u-name') || {}).textContent || '';
     var pila = quien.trim().split(/\s+/)[0] || '';
-    ok('barra: y te saluda a TI, por tu nombre de pila',
+    ok('barra: y te saluda a TI, por tu nombre',
        !!pila && h.textContent.indexOf(pila) >= 0,
        h.textContent.trim() + ' / en la esquina: ' + quien.trim(), pila);
-    /* Y el de pila, no el entero: el completo ya esta en la esquina. */
+    /* Y con el nombre ENTERO, nombre y apellido: lo pidio el CIIP el 11 de
+       septiembre. Antes se exigia lo contrario -solo el de pila, porque el
+       completo esta junto al avatar-; la comprobacion se da la vuelta para
+       que el de pila no vuelva sin querer. */
     var apellido = quien.trim().split(/\s+/)[1] || '';
     if (apellido){
-      ok('barra: con el nombre de pila y no el entero, que ya esta al lado',
-         h.textContent.indexOf(apellido) < 0,
-         h.textContent.trim(), 'sin «' + apellido + '»');
+      ok('barra: con nombre y apellido, no solo el de pila',
+         h.textContent.indexOf(quien.trim()) >= 0,
+         h.textContent.trim(), 'con «' + quien.trim() + '»');
     }
   }
 
