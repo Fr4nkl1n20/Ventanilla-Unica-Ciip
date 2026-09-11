@@ -303,6 +303,10 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
        tuviera que fijarse. Ahora pesan igual, y lo que separa unas cosas de
        otras es el tamaño y el grosor de la letra, que siguen ahi.
 
+       El 11 de septiembre se suma --mudo, que se habia quedado fuera y
+       seguia gris en filtros, contadores y huecos vacios. Era #737373 en
+       claro y #A1A1A1 en oscuro.
+
        Si algun dia se quiere volver, los valores de antes eran #5B6478 y
        #8A93A6 en claro, y #9AA6BC y #6E7B93 en oscuro. */
 /* ─── DE DONDE SALEN ESTOS GRISES ───────────────────────────────────────
@@ -328,9 +332,15 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
    que tenia este panel desde el principio. ────────────────────────────── */
   --navy:#004090; --navy2:#0060B0; --navy-deep:#00336d; --cyan:#20B0F0; --cyan-deep:#0E8FD6;
   --ink:#0E1424; --gray:#0E1424; --gray-soft:#0E1424; --line:#E5E5E5; --line-soft:#F0F0F0;
-  --block:#F5F5F5; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#737373;
+  --block:#F5F5F5; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#0E1424;
   --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9; --good:#1E7F5C; --good-bg:#E7F4EE;
   --r:10px; --r-sm:7px;
+  /* Escala tipografica de Atlas: un escalon por trabajo. Esta entera en
+     TIPOGRAFIA.md, con lo que va en cada uno. */
+  --fs-cifra:24px; --fs-titulo:20px; --fs-tarjeta:14px; --fs-valor:13.5px;
+  --fs-seccion:13px; --fs-enlace:13px; --fs-parrafo:12.5px; --fs-campo:12.5px;
+  --fs-pestana:12.5px; --fs-fila:12px; --fs-boton:11.5px; --fs-rotulo-form:11.5px;
+  --fs-rotulo:11px; --fs-nota:11px; --fs-chip:10px;
   --shadow:0 1px 2px 0 rgba(0,0,0,.05);
   --shadow-lg:0 2px 6px rgba(14,20,36,.06), 0 18px 44px rgba(14,20,36,.10);
   --sb:256px; --tb:58px;
@@ -338,7 +348,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
 @media (prefers-color-scheme:dark){
   :root{
     --ink:#EAEEF6; --gray:#EAEEF6; --gray-soft:#EAEEF6; --line:rgba(255,255,255,.10); --line-soft:rgba(255,255,255,.06);
-    --block:#0A1120; --bg:#0F1A2E; --card-2:#12203A;--hoja:#0A1120;--activa-bg:#132745; --dormida-bg:#0C1526; --mudo:#A1A1A1;
+    --block:#0A1120; --bg:#0F1A2E; --card-2:#12203A;--hoja:#0A1120;--activa-bg:#132745; --dormida-bg:#0C1526; --mudo:#EAEEF6;
     --navy2:#4C97E8; --cyan-deep:#5CC6FF;
     --amber:#DBA94C; --amber-bg:#33280F; --rust:#E28A67; --rust-bg:#33201A; --good:#43B48C; --good-bg:#11291F;
     --shadow:0 1px 2px 0 rgba(0,0,0,.25);
@@ -347,7 +357,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
 }
 :root[data-theme="light"]{
   --ink:#0E1424; --gray:#0E1424; --gray-soft:#0E1424; --line:#E5E5E5; --line-soft:#F0F0F0;
-  --block:#F5F5F5; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#737373;
+  --block:#F5F5F5; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#0E1424;
   --navy2:#0060B0; --cyan-deep:#0E8FD6;
   --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9; --good:#1E7F5C; --good-bg:#E7F4EE;
   --shadow:0 1px 2px 0 rgba(0,0,0,.05);
@@ -355,7 +365,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
 }
 :root[data-theme="dark"]{
   --ink:#EAEEF6; --gray:#EAEEF6; --gray-soft:#EAEEF6; --line:rgba(255,255,255,.10); --line-soft:rgba(255,255,255,.06);
-  --block:#0A1120; --bg:#0F1A2E; --card-2:#12203A;--hoja:#0A1120;--activa-bg:#132745; --dormida-bg:#0C1526; --mudo:#A1A1A1;
+  --block:#0A1120; --bg:#0F1A2E; --card-2:#12203A;--hoja:#0A1120;--activa-bg:#132745; --dormida-bg:#0C1526; --mudo:#EAEEF6;
   --navy2:#4C97E8; --cyan-deep:#5CC6FF;
   --amber:#DBA94C; --amber-bg:#33280F; --rust:#E28A67; --rust-bg:#33201A; --good:#43B48C; --good-bg:#11291F;
   --shadow:0 1px 2px 0 rgba(0,0,0,.25);
@@ -374,6 +384,11 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
 html{scroll-behavior:smooth;}
 body{font-family:'Helvetica Neue',Arial,sans-serif; color:var(--ink); background:var(--block);
   font-size:13px; line-height:1.45; -webkit-font-smoothing:antialiased;}
+/* TIPOGRAFIA DE ATLAS. Dos reglas de base: los controles no traen su propia
+   letra -sin esto un <button> sale con la del sistema-, y las cifras que se
+   comparan van en tabular para que no bailen de fila en fila. */
+input, select, textarea, button{font-family:inherit;}
+.tnum, .pu-n .v, .ft-t .n, .hm .v, .us-m .n, .hero-ring .pct, .ac-monto{font-variant-numeric:tabular-nums;}
 .tnum{font-variant-numeric:tabular-nums;}
 svg{display:block;}
 ::selection{background:rgba(32,176,240,.24);}
@@ -390,7 +405,7 @@ svg{display:block;}
 .sb-nav{flex:1 1 auto; overflow-y:auto; padding:12px 10px 24px;}
 .sb-nav::-webkit-scrollbar{width:7px;} .sb-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16); border-radius:8px;}
 .sb-group{margin-top:15px;} .sb-group:first-child{margin-top:2px;}
-.sb-gl{font-size:8.5px; font-weight:700; letter-spacing:.01em;
+.sb-gl{font-size:var(--fs-chip); font-weight:700; letter-spacing:.01em;
   color:rgba(255,255,255,.42); padding:0 10px 6px;}
 /* Uno de estos renglones es un <button> de verdad —el de las citas— y los
    demas siguen siendo <div>. Un boton no hereda la fuente ni el color del
@@ -419,7 +434,7 @@ svg{display:block;}
 .sb-item .cnt{margin-left:auto; font-size:10px; font-weight:700; background:rgba(255,255,255,.14);
   color:#fff; border-radius:20px; padding:1px 7px; min-width:20px; text-align:center;}
 .sb-item.soon{color:rgba(255,255,255,.45); cursor:default;}
-.sb-item .soon-tag{margin-left:auto; font-size:8.5px; font-weight:700; letter-spacing:.01em; color:rgba(255,255,255,.5); border:1px solid rgba(255,255,255,.2);
+.sb-item .soon-tag{margin-left:auto; font-size:var(--fs-chip); font-weight:700; letter-spacing:.01em; color:rgba(255,255,255,.5); border:1px solid rgba(255,255,255,.2);
   border-radius:20px; padding:1px 6px;}
 .sb-foot{padding:12px 14px; border-top:1px solid rgba(255,255,255,.10);}
 .sb-locale{display:flex; gap:3px; background:rgba(255,255,255,.08); border-radius:8px; padding:3px;}
@@ -503,8 +518,8 @@ svg{display:block;}
 .tb-spacer{flex:1 1 auto;}
 .tb-btn{display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 12px; border-radius:8px; flex:none;
   white-space:nowrap;
-  border:1px solid var(--line); background:var(--bg); color:var(--ink); font:inherit; font-size:11.5px;
-  font-weight:600; cursor:pointer;} .tb-btn:hover{border-color:var(--cyan-deep); color:var(--navy2);}
+  border:1px solid var(--line); background:var(--bg); color:var(--ink); font:inherit; font-size:var(--fs-boton);
+  font-weight:700; cursor:pointer;} .tb-btn:hover{border-color:var(--cyan-deep); color:var(--navy2);}
 .tb-btn svg{width:15px; height:15px; stroke:currentColor; stroke-width:2; fill:none;}
 .theme-btn{width:34px; padding:0; justify-content:center;}
 /* Cerrar sesión: mismo botón que los demás de la barra, pero el hover tira a
@@ -574,21 +589,21 @@ svg{display:block;}
 .fecha3 select{flex:1 1 0; min-width:0;}
 .fecha3 select.a{flex:1.25 1 0;}
 @media(max-width:420px){ .fecha3{flex-wrap:wrap;} .fecha3 select{flex:1 1 90px;} }
-.pf-campo > span, .pf-campo > label{font-size:11.5px; font-weight:700; color:var(--gray);}
-.pf-campo input, .pf-campo select{font:inherit; font-size:13px; color:var(--ink);
+.pf-campo > span, .pf-campo > label{font-size:var(--fs-rotulo-form); font-weight:700; color:var(--gray);}
+.pf-campo input, .pf-campo select{font:inherit; font-size:var(--fs-campo); color:var(--ink);
   background:var(--bg); border:1px solid var(--line); border-radius:9px;
   padding:10px 12px; outline:none; width:100%;}
 .pf-campo input:focus, .pf-campo select:focus{border-color:var(--navy2);}
 .pf-campo.mal input, .pf-campo.mal select{border-color:var(--rust);}
 /* --- entregar lo emitido, en la cola --- */
 .co-emitir{display:flex; flex-direction:column; gap:5px; margin-top:11px;}
-.co-emitir label{font-size:11.5px; font-weight:700; color:var(--gray);}
+.co-emitir label{font-size:var(--fs-rotulo-form); font-weight:700; color:var(--gray);}
 .co-emitir input[type="file"]{font:inherit; font-size:12px; color:var(--ink);}
 .co-ficha.mal .co-emitir label{color:var(--rust);}
 /* Lo entregado, en el detalle del trámite del inversionista. */
 .tr-entrega{background:var(--good-bg); border:1px solid var(--good);
   border-radius:var(--r); padding:15px 17px; margin-bottom:16px;}
-.tr-entrega .te-t{font-size:13px; font-weight:800; color:var(--good);
+.tr-entrega .te-t{font-size:var(--fs-seccion); font-weight:700; color:var(--good);
   letter-spacing:.01em;}
 .tr-entrega .te-p{font-size:12px; color:var(--gray); margin-top:4px;}
 .tr-entrega .te-pie{display:flex; align-items:center; gap:10px; margin-top:12px;
@@ -649,7 +664,7 @@ body[data-vista="acomp"] .fase-bar{display:none;}
 .so-fila:last-child{border-bottom:0; padding-bottom:0;}
 .so-fila input[type="checkbox"]{width:16px; height:16px; margin:2px 0 0;
   accent-color:var(--navy2); cursor:pointer;}
-.so-fila label{font-size:13.5px; font-weight:600; color:var(--ink);
+.so-fila label{font-size:var(--fs-campo); font-weight:600; color:var(--ink);
   cursor:pointer;}
 .so-fila .d{grid-column:2; font-size:12px; color:var(--gray); margin-top:3px;}
 
@@ -657,8 +672,8 @@ body[data-vista="acomp"] .fase-bar{display:none;}
 .so-num{display:flex; align-items:center; gap:9px; flex-wrap:wrap;
   padding:9px 0; border-bottom:1px solid var(--line-soft);}
 .so-num:last-child{border-bottom:0;}
-.so-num label{flex:1; min-width:150px; font-size:13.5px; color:var(--ink);}
-.so-num input{width:82px; font:inherit; font-size:13px; color:var(--ink);
+.so-num label{flex:1; min-width:150px; font-size:var(--fs-campo); color:var(--ink);}
+.so-num input{width:82px; font:inherit; font-size:var(--fs-campo); color:var(--ink);
   background:var(--block); border:1px solid var(--line); border-radius:8px;
   padding:7px 10px; text-align:right; font-variant-numeric:tabular-nums;}
 .so-num input:focus{border-color:var(--navy2); outline:none;}
@@ -666,13 +681,13 @@ body[data-vista="acomp"] .fase-bar{display:none;}
 
 .so-txt{padding:10px 0; border-bottom:1px solid var(--line-soft);}
 .so-txt:last-child{border-bottom:0;}
-.so-txt label{display:block; font-size:13px; font-weight:600;
+.so-txt label{display:block; font-size:var(--fs-campo); font-weight:600;
   color:var(--ink); margin-bottom:5px;}
-.so-txt input{width:100%; font:inherit; font-size:13px; color:var(--ink);
+.so-txt input{width:100%; font:inherit; font-size:var(--fs-campo); color:var(--ink);
   background:var(--block); border:1px solid var(--line); border-radius:8px;
   padding:8px 11px;}
 .so-txt input:focus{border-color:var(--navy2); outline:none;}
-.so-nota{font-size:12px; color:var(--gray-soft); margin-top:9px;}
+.so-nota{font-size:var(--fs-nota); color:var(--gray-soft); margin-top:9px;}
 .so-pie{display:flex; align-items:center; gap:12px; flex-wrap:wrap;
   max-width:760px; margin-top:4px;}
 .so-aviso{font-size:12.5px;}
@@ -742,7 +757,7 @@ body[data-vista="rastro"] .fase-bar{display:none;}
   background:var(--gray-soft);}
 .ra-punto.rol{background:var(--navy2);}
 .ra-punto.cat{background:var(--cyan-deep);}
-.ra-vacio{font-size:12.5px; color:var(--gray-soft); padding:18px 12px;}
+.ra-vacio{font-size:var(--fs-parrafo); color:var(--gray-soft); padding:18px 12px;}
 
 /* El pulso. Misma mecanica que las otras dos vistas de administracion. */
 .pulso-vista{display:none;}
@@ -776,9 +791,9 @@ body[data-vista="pulso"] .fase-bar{display:none;}
 @media(max-width:700px){  .pu-nums{grid-template-columns:repeat(2, minmax(0, 1fr));} }
 .pu-n{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
   padding:14px 16px; box-shadow:var(--shadow);}
-.pu-n .v{font-size:25px; font-weight:700; line-height:1.05;
-  font-variant-numeric:tabular-nums; color:var(--ink);}
-.pu-n .l{font-size:11.5px; color:var(--gray); margin-top:5px;}
+.pu-n .v{font-size:var(--fs-cifra); font-weight:700; line-height:1.05;
+  font-variant-numeric:tabular-nums; color:var(--ink);letter-spacing:-.02em;}
+.pu-n .l{font-size:var(--fs-rotulo); color:var(--gray); margin-top:5px;font-weight:700;letter-spacing:.01em;}
 .pu-n.ojo{border-color:var(--amber);}
 .pu-n.ojo .v{color:var(--amber);}
 .pu-n.mal{border-color:var(--rust);}
@@ -807,7 +822,7 @@ body[data-vista="pulso"] .fase-bar{display:none;}
   min-width:2px;}
 .pu-barra .v{font-size:12.5px; font-weight:700; color:var(--ink);
   font-variant-numeric:tabular-nums; min-width:26px; text-align:right;}
-.pu-vacio{font-size:12.5px; color:var(--gray-soft); padding:6px 0;}
+.pu-vacio{font-size:var(--fs-parrafo); color:var(--gray-soft); padding:6px 0;}
 /* El catalogo. Misma mecanica que la vista de usuarios: se enseña sola
    cuando data-vista lo dice, y se lleva por delante la portada. */
 .catalogo-vista{display:none;}
@@ -906,9 +921,9 @@ body[data-vista="catalogo"] .fase-bar{display:none;}
   box-shadow:inset 3px 0 0 var(--line), var(--shadow);}
 .cg-fila.on{box-shadow:inset 3px 0 0 var(--good), var(--shadow);}
 .cg-que{flex:1; min-width:200px;}
-.cg-nombre{font-weight:700; font-size:13.5px;}
-.cg-ente{font-size:11.5px; color:var(--gray); margin-top:2px;}
-.cg-chip{font-size:9.5px; font-weight:700; letter-spacing:.01em; border-radius:5px; padding:4px 8px;
+.cg-nombre{font-weight:700; font-size:var(--fs-tarjeta);letter-spacing:-.01em;}
+.cg-ente{font-size:var(--fs-nota); color:var(--gray); margin-top:2px;}
+.cg-chip{font-size:var(--fs-chip); font-weight:700; letter-spacing:.01em; border-radius:5px; padding:4px 8px;
   white-space:nowrap; color:var(--gray); background:var(--block);}
 .cg-chip.on{color:var(--good); background:var(--good-bg);}
 .cg-fila .t-btn{min-width:92px; text-align:center;}
@@ -964,11 +979,11 @@ body[data-vista="usuarios"] .fase-bar{display:none;}
 @media(max-width:700px){  .us-metricas{grid-template-columns:repeat(2, minmax(0, 1fr));} }
 .us-m{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
   padding:14px 16px; box-shadow:var(--shadow);}
-.us-m .n{font-size:24px; font-weight:800; line-height:1; font-variant-numeric:tabular-nums;}
-.us-m .l{font-size:11px; color:var(--gray); margin-top:6px; line-height:1.35;}
+.us-m .n{font-size:var(--fs-cifra); font-weight:700; line-height:1; font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
+.us-m .l{font-size:var(--fs-rotulo); color:var(--gray); margin-top:6px; line-height:1.35;font-weight:700;letter-spacing:.01em;}
 .us-m.ojo .n{color:var(--amber);}
 
-.us-sec{font-size:10.5px; font-weight:800; letter-spacing:.01em; color:var(--gray-soft); margin:20px 0 9px;}
+.us-sec{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em; color:var(--gray-soft); margin:20px 0 9px;}
 .us-sec:first-child{margin-top:0;}
 
 /* Las cuentas van en rejilla y no en columna: una ficha de usuario ocupa
@@ -1000,7 +1015,7 @@ body[data-vista="usuarios"] .fase-bar{display:none;}
 .us-pie select{font:inherit; font-size:12.5px; color:var(--ink); background:var(--bg);
   border:1px solid var(--line); border-radius:8px; padding:7px 10px; margin-left:auto;}
 .us-pie select:disabled{opacity:.5;}
-.us-nota{font-size:11.5px; color:var(--gray-soft);}
+.us-nota{font-size:var(--fs-nota); color:var(--gray-soft);}
 /* En linea: un punto verde, no una palabra mas en la fila. Es lo unico de
    esta lista que se mira de un vistazo. */
 .us-presencia{display:inline-flex; align-items:center; gap:6px; font-size:11.5px;
@@ -1035,26 +1050,26 @@ body[data-vista="empresa"] .fase-bar{display:none;}
 
 .em-tarjeta{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
   padding:19px 21px; box-shadow:var(--shadow); max-width:760px;}
-.em-nombre{font-size:17px; font-weight:800; letter-spacing:-.01em;}
+.em-nombre{font-size:var(--fs-titulo); font-weight:700; letter-spacing:-.02em;}
 .em-rif{font-size:12.5px; color:var(--navy2); font-weight:700; margin-top:3px;}
 /* Dos columnas de dato: etiqueta arriba en gris, valor debajo. Los que
    estan vacios no se enseñan: un panel lleno de rayas no informa. */
 /* El rotulo de cada apartado en la ficha. Los mismos tres nombres que
    los pasos del formulario: dos vocabularios para lo mismo obligan a
    traducir mentalmente entre una pantalla y la otra. */
-.em-sec{font-size:9.5px; font-weight:800; letter-spacing:.01em; color:var(--gray-soft); margin:16px 0 8px;}
+.em-sec{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em; color:var(--gray-soft); margin:16px 0 8px;}
 .em-sec:first-of-type{margin-top:14px;}
 .em-datos{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
   gap:14px 26px; margin-top:17px; padding-top:16px; border-top:1px solid var(--line-soft);}
-.em-dato .k{font-size:10.5px; font-weight:700; color:var(--gray-soft);
-  letter-spacing:.02em;}
-.em-dato .v{font-size:13px; margin-top:3px; word-break:break-word;}
-.em-nota{font-size:11.5px; color:var(--gray); margin-top:17px; padding-top:14px;
+.em-dato .k{font-size:var(--fs-rotulo); font-weight:700; color:var(--gray-soft);
+  letter-spacing:.01em;}
+.em-dato .v{font-size:var(--fs-valor); margin-top:3px; word-break:break-word;font-weight:500;}
+.em-nota{font-size:var(--fs-nota); color:var(--gray); margin-top:17px; padding-top:14px;
   border-top:1px solid var(--line-soft); line-height:1.55; max-width:60ch;}
 /* En el formulario de un tramite, el campo que vino de la empresa lo dice:
    si no, parece que el panel se invento el dato. */
 .sol-campo .de-empresa,
-.sol-campo .de-antes{font-size:9.5px; font-weight:700; letter-spacing:.03em; color:var(--navy2); background:var(--block);
+.sol-campo .de-antes{font-size:var(--fs-chip); font-weight:700; letter-spacing:.03em; color:var(--navy2); background:var(--block);
   border-radius:4px; padding:1px 5px; margin-left:7px;}
 /* El de "ya lo escribiste" va en gris y no en azul: es mas debil que el de
    la empresa -aquello es la ficha oficial, esto una copia de otro
@@ -1106,9 +1121,9 @@ body[data-vista="empresa"] .fase-bar{display:none;}
 .ft-lado{background:var(--block); border:1px solid var(--line);
   border-radius:12px; padding:16px;}
 .ft-t{margin-bottom:13px;}
-.ft-t .n{font-size:22px; font-weight:800; letter-spacing:-.02em; line-height:1.1;
+.ft-t .n{font-size:var(--fs-cifra); font-weight:700; letter-spacing:-.02em; line-height:1.1;
   color:var(--ink);}
-.ft-t .k{font-size:10px; font-weight:700; letter-spacing:.01em;
+.ft-t .k{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em;
   color:var(--gray-soft); margin-top:3px;}
 .ft-t.tarde .n, .ft-t.tarde .k{color:var(--amber);}
 /* La barra: "30 y 95" obliga a hacer la cuenta, y la cuenta es el dato.
@@ -1124,9 +1139,9 @@ body[data-vista="empresa"] .fase-bar{display:none;}
    partida en una columna de dos palabras. */
 .ft-filas{display:grid; grid-template-columns:max-content 1fr; gap:10px 18px;
   margin:0 0 4px; align-items:baseline;}
-.ft-filas dt{font-size:10px; font-weight:700; letter-spacing:.01em; color:var(--gray-soft); white-space:nowrap;
+.ft-filas dt{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em; color:var(--gray-soft); white-space:nowrap;
   padding-top:2px;}
-.ft-filas dd{margin:0; font-size:13px; color:var(--ink); line-height:1.45;}
+.ft-filas dd{margin:0; font-size:var(--fs-valor); color:var(--ink); line-height:1.45;font-weight:500;}
 .ft-filas dd .c{display:block; font-size:12px; color:var(--gray); margin-top:1px;}
 @media (max-width:520px){
   .ft-filas{grid-template-columns:1fr; gap:2px 0;}
@@ -1139,7 +1154,7 @@ body[data-vista="empresa"] .fase-bar{display:none;}
    obliga a recordarlo tú. */
 .ft-rh{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap;
   margin:22px 0 2px;}
-.ft-rh .t{font-size:13px; font-weight:700; color:var(--ink);}
+.ft-rh .t{font-size:var(--fs-seccion); font-weight:700; color:var(--ink);letter-spacing:.01em;}
 .ft-rh .c{font-size:11.5px; font-weight:700; color:var(--good);}
 .ft-rh .c.ninguno{color:var(--gray-soft);}
 .ft-rec{margin:6px 0 0; padding:0; list-style:none; columns:2; column-gap:26px;}
@@ -1165,7 +1180,7 @@ body[data-vista="empresa"] .fase-bar{display:none;}
 .tabla-caja{overflow-x:auto; border:1px solid var(--line); border-radius:12px;
   background:var(--bg);}
 .tabla{width:100%; border-collapse:collapse; font-size:12.5px; min-width:720px;}
-.tabla th{text-align:left; font-size:10px; font-weight:700; letter-spacing:.01em; color:var(--gray-soft); padding:10px 12px;
+.tabla th{text-align:left; font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em; color:var(--gray-soft); padding:10px 12px;
   border-bottom:1px solid var(--line); white-space:nowrap; background:var(--block);}
 .tabla td{padding:11px 12px; border-bottom:1px solid var(--line-soft);
   vertical-align:middle; color:var(--ink);}
@@ -1179,7 +1194,7 @@ body[data-vista="empresa"] .fase-bar{display:none;}
 .t-sub{font-size:11px; color:var(--gray); margin-top:2px;}
 .t-fecha{color:var(--gray); white-space:nowrap;}
 .t-suave{color:var(--gray-soft);}
-.t-btn{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
+.t-btn{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy2);
   background:transparent; border:1px solid var(--line); border-radius:7px;
   padding:6px 11px; cursor:pointer; white-space:nowrap;}
 .t-btn:hover{border-color:var(--cyan-deep); background:var(--block);}
@@ -1215,7 +1230,7 @@ body[data-vista="empresa"] .fase-bar{display:none;}
 /* El boton de anadir, con la pinta de "una linea mas" y no de accion
    principal: el azul de la cabecera competia con el titulo de la pantalla
    y quedaba lejos de la lista a la que se anade. */
-.t-mas{font:inherit; font-size:12px; font-weight:700; color:var(--navy2);
+.t-mas{font:inherit; font-size:var(--fs-enlace); font-weight:600; color:var(--navy2);
   background:transparent; border:1px dashed var(--line); border-radius:8px;
   padding:8px 13px; cursor:pointer;}
 .t-mas:hover{border-color:var(--cyan-deep); background:var(--bg);}
@@ -1233,7 +1248,7 @@ body[data-vista="empresa"] .fase-bar{display:none;}
    Y recortado con puntos, no partido por la mitad: "antecedentes-apost /
    illados.pdf" en dos lineas cuesta mas de leer que "antecedentes-apo…",
    y el nombre entero se queda en el title para quien lo necesite. */
-.t-arch{display:block; max-width:190px; font-size:11.5px; color:var(--gray);
+.t-arch{display:block; max-width:190px; font-size:var(--fs-nota); color:var(--gray);
   font-family:ui-monospace, "Cascadia Mono", Consolas, monospace;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 
@@ -1302,7 +1317,7 @@ body[data-vista="documentos"] .fase-bar{display:none;}
 #docBack select:focus{border-color:var(--cyan-deep);}
 #docBack .pf-campo.mal select{border-color:var(--rust);}
 .dc-fila{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
-.dc-fila .btn{font-size:12px; padding:8px 13px;}
+.dc-fila .btn{font-size:var(--fs-boton); padding:8px 13px;font-weight:700;}
 .dc-pie2{justify-content:flex-end;}
 /* Sin archivo elegido no hay nada que decir, y un hueco vacío con su
    sitio reservado se lee como que falta algo que cargar. */
@@ -1317,7 +1332,7 @@ body[data-vista="documentos"] .fase-bar{display:none;}
    con dos botones se lo llevaban los dos: el primero empujaba hasta el
    medio y se quedaba ahi colgado. Ahora empuja lo de la izquierda. */
 .dc-pie .dc-usos{margin-right:auto;}
-.dc-pie .btn{font-size:12px; padding:8px 13px;}
+.dc-pie .btn{font-size:var(--fs-boton); padding:8px 13px;font-weight:700;}
 .dc-usos{font-size:11.5px; color:var(--gray-soft);}
 /* Un documento vencido no es un aviso mas: es el que va a devolverte el
    tramite. Se marca como se marca una devolucion. */
@@ -1341,20 +1356,20 @@ body[data-vista="ayuda"] .fase-bar{display:none;}
 .ay-lista{display:flex; flex-direction:column; gap:14px; max-width:760px;}
 .ay-bloque{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
   padding:17px 19px; box-shadow:var(--shadow);}
-.ay-t{font-size:13.5px; font-weight:700; margin-bottom:11px;}
-.ay-p{font-size:12.5px; color:var(--gray); line-height:1.6;}
+.ay-t{font-size:var(--fs-tarjeta); font-weight:700; margin-bottom:11px;letter-spacing:-.01em;}
+.ay-p{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.6;}
 .ay-p + .ay-p{margin-top:9px;}
 /* Los cuatro pasos, numerados: el orden es la informacion. */
 .ay-paso{display:flex; align-items:baseline; gap:11px; padding:11px 0;
   border-top:1px solid var(--line-soft);}
 .ay-paso:first-of-type{border-top:0; padding-top:0;}
-.ay-n{font-size:10.5px; font-weight:800; color:var(--navy2); flex:none;
-  width:18px; font-variant-numeric:tabular-nums;}
+.ay-n{font-size:var(--fs-rotulo); font-weight:700; color:var(--navy2); flex:none;
+  width:18px; font-variant-numeric:tabular-nums;letter-spacing:.01em;}
 .ay-paso-txt{min-width:0;}
 .ay-paso-q{font-size:12.5px; color:var(--ink); font-weight:600;}
 /* La explicacion, en gris y debajo: se lee el nombre del paso primero, y
    el detalle solo si hace falta. Al mismo tamano competirian. */
-.ay-paso-e{font-size:11.5px; color:var(--gray); line-height:1.55;
+.ay-paso-e{font-size:var(--fs-nota); color:var(--gray); line-height:1.55;
   margin-top:4px; max-width:64ch;}
 /* Cada distintivo con el suyo al lado, para reconocerlo de un vistazo. */
 .ay-chip{display:flex; align-items:flex-start; gap:11px; padding:8px 0;
@@ -1380,15 +1395,15 @@ body[data-vista="activos"] .fase-bar{display:none;}
 #acVolver{display:none;}
 
 /* El monto en grande: es lo primero que mira quien viene a invertir. */
-.ac-monto{font-size:15px; font-weight:800; color:var(--navy2); margin-top:8px;}
-.ac-detalle{display:none; font-size:12.5px; color:var(--gray); line-height:1.55;
+.ac-monto{font-size:var(--fs-tarjeta); font-weight:700; color:var(--navy2); margin-top:8px;}
+.ac-detalle{display:none; font-size:var(--fs-parrafo); color:var(--gray); line-height:1.6;
   margin-top:9px; border-top:1px solid var(--line-soft); padding-top:9px;}
 .ac-detalle.abierto{display:block;}
 .ac-pie{display:flex; gap:9px; align-items:center; margin-top:11px; flex-wrap:wrap;}
-.ac-mas{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
+.ac-mas{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy2);
   background:transparent; border:0; padding:0; cursor:pointer;}
 .ac-mas:hover{text-decoration:underline;}
-.ac-pie .btn{margin-left:auto; font-size:12px; padding:8px 13px;}
+.ac-pie .btn{margin-left:auto; font-size:var(--fs-boton); padding:8px 13px;font-weight:700;}
 /* Un activo reservado sigue en el catálogo y ya tiene a alguien en
    conversaciones; uno cerrado ya no se ofrece y solo lo ve el equipo.
 
@@ -1405,7 +1420,7 @@ body[data-vista="activos"] .fase-bar{display:none;}
 .btn[hidden]{display:none;}
 /* Editar va a la izquierda, discreto: la ficha se lee para invertir, no
    para administrarla. */
-.ac-editar{font:inherit; font-size:11.5px; font-weight:700; color:var(--gray);
+.ac-editar{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--gray);
   background:transparent; border:1px solid var(--line); border-radius:8px;
   padding:6px 11px; cursor:pointer;}
 .ac-editar:hover{border-color:var(--navy2); color:var(--navy2);}
@@ -1481,9 +1496,9 @@ body[data-vista="citas"] .fase-bar{display:none;}
    se puede hacer algo. */
 .ci-ficha.viva{border-color:var(--navy);}
 .ci-cab{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
-.ci-linea{font-size:14px; font-weight:700; margin-top:9px;}
+.ci-linea{font-size:var(--fs-tarjeta); font-weight:700; margin-top:9px;letter-spacing:-.01em;}
 .ci-que{font-size:12px; color:var(--gray); margin-top:3px;}
-.ci-nota{font-size:12px; color:var(--ink); margin-top:6px;}
+.ci-nota{font-size:var(--fs-nota); color:var(--ink); margin-top:6px;}
 /* El historial se lee, no se toca: en gris y sin borde azul. */
 .ci-ficha.pasada .ci-linea{color:var(--gray); font-weight:600;}
 /* La agenda repartida en tres. Antes era una sola pila ordenada por
@@ -1498,7 +1513,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 @media(max-width:560px){ .ag-fila .pe{margin-left:0; width:100%;} }
 
 .ci-vacia{background:var(--bg); border:1px dashed var(--line); border-radius:var(--r);
-  padding:26px 18px; text-align:center; font-size:13px; color:var(--gray);}
+  padding:26px 18px; text-align:center; font-size:var(--fs-parrafo); color:var(--gray);}
 
 /* --- la cola del equipo del CIIP ---
    Aquí estaban las reglas de .cola-sel, el botón «Por atender» de la barra
@@ -1515,9 +1530,9 @@ body[data-vista="citas"] .fase-bar{display:none;}
    gris que todo lo demás. */
 .co-cab{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
 .co-cab .ct-chip.modo{margin-left:auto;}
-.co-quien{font-size:13.5px; font-weight:700;}
+.co-quien{font-size:var(--fs-tarjeta); font-weight:700;letter-spacing:-.01em;}
 .co-que{font-size:12px; color:var(--gray); margin-top:2px;}
-.co-nota{font-size:12px; color:var(--ink); margin-top:6px;}
+.co-nota{font-size:var(--fs-nota); color:var(--ink); margin-top:6px;}
 /* Cuanto lleva parado. Va en gris y sin color de alarma A PROPOSITO: es
    un HECHO -"esperando desde hace 12 dias"- y no un plazo. El CIIP no ha
    dicho todavia cuanto deberia tardar cada tramite, y pintar de rojo a
@@ -1529,7 +1544,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
    mismas palabras que la portada. */
 .co-filtros, #mtFiltros{display:flex; gap:7px; flex-wrap:wrap; margin:0 0 11px;}
 #mtFiltros[hidden]{display:none;}
-.co-filtros button, #mtFiltros button{font:inherit; font-size:11.5px; font-weight:700;
+.co-filtros button, #mtFiltros button{font:inherit; font-size:var(--fs-pestana); font-weight:600;
   color:var(--gray); background:var(--bg); border:1px solid var(--line);
   border-radius:20px; padding:6px 12px; cursor:pointer;
   display:inline-flex; align-items:center; gap:6px;}
@@ -1578,7 +1593,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .co-fijar input:focus{border-color:var(--navy2);}
 .co-ficha.mal .co-fijar input[type="datetime-local"]{border-color:var(--rust);}
 .co-botones{display:flex; gap:8px; justify-content:flex-end; margin-top:10px;}
-.co-botones .btn{font-size:12px; padding:8px 13px;}
+.co-botones .btn{font-size:var(--fs-boton); padding:8px 13px;font-weight:700;}
 /* El expediente. Nace plegado: la cola es para ver QUÉ hay que atender, y
    doce recaudos abiertos por ficha la volverían ilegible. */
 .co-exp{display:none; margin-top:11px; border-top:1px solid var(--line-soft); padding-top:11px;}
@@ -1598,10 +1613,10 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .id-ojo{font-size:11px; color:var(--gray-soft); line-height:1.5; margin-top:8px;
   border-left:2px solid var(--line); padding-left:9px;}
 .id-form{margin-top:11px; display:grid; gap:9px;}
-.id-form label{display:block; font-size:11px; font-weight:700; color:var(--gray);
+.id-form label{display:block; font-size:var(--fs-rotulo-form); font-weight:700; color:var(--gray);
   margin-bottom:3px;}
 .id-form select, .id-form input, .id-form textarea{width:100%; font:inherit;
-  font-size:13px; color:var(--ink); background:var(--bg);
+  font-size:var(--fs-campo); color:var(--ink); background:var(--bg);
   border:1px solid var(--line); border-radius:8px; padding:8px 10px;}
 .id-form textarea{min-height:56px; resize:vertical;}
 .id-fila{display:flex; gap:9px; flex-wrap:wrap; align-items:center;}
@@ -1611,14 +1626,14 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .id-av.bien{color:var(--good);}
 .id-hist{margin-top:9px; font-size:11px; color:var(--gray-soft); line-height:1.6;}
 .id-hist b{color:var(--gray); font-weight:600;}
-.co-ver{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
+.co-ver{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy2);
   background:transparent; border:0; padding:0; margin-top:9px; cursor:pointer;}
 .co-ver:hover{text-decoration:underline;}
-.co-exp-t{font-size:9.5px; font-weight:800; letter-spacing:.01em;
+.co-exp-t{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em;
   color:var(--gray-soft); margin:9px 0 5px;}
 /* Etiqueta y valor en dos columnas: en una sola, con doce campos, no se
    distingue lo que preguntó el formulario de lo que contestó el usuario. */
-.co-dato{display:flex; gap:8px; font-size:12px; padding:3px 0; align-items:baseline;}
+.co-dato{display:flex; gap:8px; font-size:var(--fs-valor); padding:3px 0; align-items:baseline;font-weight:500;}
 .co-dato .k{color:var(--gray); flex:0 0 42%; min-width:0;}
 .co-dato .v{color:var(--ink); font-weight:600; flex:1 1 auto; min-width:0; word-break:break-word;}
 .co-arch{display:flex; align-items:center; gap:9px; font-size:12px; padding:6px 0;
@@ -1626,13 +1641,13 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .co-arch:last-child{border-bottom:0;}
 .co-arch .n{flex:1 1 auto; min-width:0; color:var(--ink); word-break:break-word;}
 .co-arch .t{color:var(--gray-soft); font-size:11px; flex:none;}
-.co-arch button{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
+.co-arch button{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy2);
   background:transparent; border:1px solid var(--line); border-radius:7px;
   padding:5px 10px; cursor:pointer; flex:none;}
 .co-arch button:hover{border-color:var(--navy2);}
 
 .co-aviso{font-size:11.5px; color:var(--rust); margin-top:7px; min-height:14px;}
-.co-vacia{font-size:12.5px; color:var(--gray); padding:16px 12px 20px; text-align:center;}
+.co-vacia{font-size:var(--fs-parrafo); color:var(--gray); padding:16px 12px 20px; text-align:center;}
 /* --- «Mis tramites», en tabla --- */
 /* La fila NO es pulsable aqui, y por eso se le quita el cursor que .tabla
    pone a todas: la accion vive en el boton de la ultima columna. En la cola
@@ -1672,10 +1687,10 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .mt-ir{padding:5px 12px; font-size:11px;}
 /* Dos colas en la misma ventana —trámites y citas— necesitan decir cuál es
    cuál: sin cabecera, una ficha de cada tipo seguida parece la misma cosa. */
-.co-seccion{font-size:9.5px; font-weight:800; letter-spacing:.1em;
+.co-seccion{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
   color:var(--gray-soft); padding:12px 10px 6px;}
 .co-seccion:empty{display:none;}
-.co-estado{font-size:10px; font-weight:800; letter-spacing:.01em;
+.co-estado{font-size:var(--fs-chip); font-weight:700; letter-spacing:.01em;
   padding:4px 8px; border-radius:20px; background:var(--block); color:var(--gray);
   display:inline-block; margin-bottom:7px;}
 .co-estado.mirando{background:var(--amber-bg); color:var(--amber);}
@@ -1705,18 +1720,18 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .em-ya:hover{text-decoration:underline;}
 /* Lo que se puede dejar para luego, dicho antes de empezar y no al
    final: al final ya te lo has escrito todo. */
-.em-minimo{font-size:11.5px; color:var(--gray); line-height:1.55;
+.em-minimo{font-size:var(--fs-nota); color:var(--gray); line-height:1.55;
   background:var(--block); border-radius:9px; padding:10px 12px;}
 @media(max-width:560px){ .em-ya{white-space:normal; text-align:left;} }
 /* En estrecho no caben los tres nombres. Ya no hace falta decirlo aqui: la
    barra de la solicitud se los quita ella sola por debajo de 620 px, y se
    queda con los numeros. Una regla menos que mantener. */
 
-.pf-campo textarea{font:inherit; font-size:13px; color:var(--ink); background:var(--bg);
+.pf-campo textarea{font:inherit; font-size:var(--fs-campo); color:var(--ink); background:var(--bg);
   border:1px solid var(--line); border-radius:9px; padding:10px 12px; outline:none;
   width:100%; resize:vertical; min-height:44px;}
 .pf-campo textarea:focus{border-color:var(--navy2);}
-.pf-campo select{font:inherit; font-size:13px; color:var(--ink); background:var(--bg);
+.pf-campo select{font:inherit; font-size:var(--fs-campo); color:var(--ink); background:var(--bg);
   border:1px solid var(--line); border-radius:9px; padding:10px 12px; outline:none; width:100%;}
 .pf-campo select:focus{border-color:var(--navy2);}
 
@@ -1770,7 +1785,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .cal.open{display:block;}
 .cal-h{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
 .cal-h .mes{font-size:12.5px; font-weight:700; color:var(--ink); text-transform:capitalize;}
-.cal-h .cual{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.01em; color:var(--gray-soft);}
+.cal-h .cual{margin-left:auto; font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em; color:var(--gray-soft);}
 .cal-h button{width:28px; height:28px; flex:none; border:1px solid var(--line); border-radius:8px;
   background:var(--bg); color:var(--gray); cursor:pointer;
   display:flex; align-items:center; justify-content:center;}
@@ -1778,7 +1793,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .cal-h button:disabled{opacity:.3; cursor:default;}
 .cal-h button svg{width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2.2;}
 .cal-sem, .cal-dias{display:grid; grid-template-columns:repeat(7,1fr); gap:2px;}
-.cal-sem span{text-align:center; font-size:9.5px; font-weight:700; letter-spacing:.03em; color:var(--gray-soft); padding:4px 0;}
+.cal-sem span{text-align:center; font-size:var(--fs-chip); font-weight:700; letter-spacing:.03em; color:var(--gray-soft); padding:4px 0;}
 .cal-dias button{font:inherit; font-size:12.5px; color:var(--ink); background:transparent;
   border:1px solid transparent; border-radius:8px; padding:6px 0; cursor:pointer;}
 .cal-dias button:hover:not(:disabled){background:var(--block); border-color:var(--line);}
@@ -1801,7 +1816,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .ct-estado{display:none; padding:16px 18px 4px;}
 .ct-estado.puesto{display:block;}
 #ctForm.oculto{display:none;}
-.ct-chip{display:inline-flex; align-items:center; gap:6px; font-size:10px; font-weight:800;
+.ct-chip{display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-chip); font-weight:700;
   letter-spacing:.01em; padding:5px 9px; border-radius:20px;
   background:var(--amber-bg); color:var(--amber);}
 .ct-chip.listo{background:var(--good-bg); color:var(--good);}
@@ -1812,7 +1827,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .ct-chip.modo{background:var(--block); color:var(--gray);}
 .ct-chip.modo svg{width:12px; height:12px; stroke:currentColor; stroke-width:2;
   fill:none; flex:none;}
-.ct-linea{font-size:13.5px; font-weight:700; margin-top:9px;}
+.ct-linea{font-size:var(--fs-tarjeta); font-weight:700; margin-top:9px;letter-spacing:-.01em;}
 .ct-detalle{font-size:12px; color:var(--gray); margin-top:4px;}
 
 /* --- el buscador de países --- */
@@ -1822,17 +1837,17 @@ body[data-vista="citas"] .fase-bar{display:none;}
   border-radius:10px; box-shadow:var(--shadow-lg); padding:5px; display:none;}
 .combo-list.open{display:block;}
 .combo-list li{display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:7px;
-  font-size:12.5px; color:var(--ink); cursor:pointer;}
+  font-size:var(--fs-fila); color:var(--ink); cursor:pointer;}
 .combo-list li:hover, .combo-list li.sel{background:var(--block);}
 /* La marca del país. Es un <img> y no un emoji porque Windows no dibuja los
    emoji de bandera: enseña las dos letras del código. El <span> de reserva
    queda debajo y sale solo si la imagen no carga. */
 .combo-list li .bandera{width:20px; height:15px; flex:none; border-radius:2px;
   object-fit:cover; background:var(--line-soft);}
-.combo-list li .bandera-cod{font-size:9px; font-weight:800; letter-spacing:.04em;
+.combo-list li .bandera-cod{font-size:9.5px; font-weight:600; letter-spacing:.04em;
   color:var(--gray-soft); width:20px; text-align:center; flex:none;}
 .combo-list li mark{background:transparent; color:var(--navy2); font-weight:700;}
-.combo-vacio{padding:11px 10px; font-size:12px; color:var(--gray-soft); cursor:default;}
+.combo-vacio{padding:11px 10px; font-size:var(--fs-parrafo); color:var(--gray-soft); cursor:default;}
 .combo-vacio:hover{background:transparent;}
 
 /* Tu foto. AHORA sí es un círculo, y eso dice de qué va: es la que sale
@@ -1869,7 +1884,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
    la dejaría con dos bandas de fondo a los lados. */
 .avatar.con-foto{background:var(--block); overflow:hidden;}
 .avatar img{width:100%; height:100%; object-fit:cover; display:block;}
-.u-name{font-size:12.5px; font-weight:700;} .u-sub{font-size:10.5px; color:var(--gray);}
+.u-name{font-size:var(--fs-fila); font-weight:600;} .u-sub{font-size:var(--fs-nota); color:var(--gray);}
 .u-name, .u-sub{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 
 .content{flex:1 1 auto; padding:26px 26px 60px; max-width:1180px; width:100%; margin:0 auto;}
@@ -1887,15 +1902,15 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .hero p{margin-top:9px; font-size:13.5px; color:rgba(255,255,255,.86); max-width:56ch; line-height:1.5;}
 .hero-meta{margin-top:18px; display:flex; flex-wrap:wrap; gap:26px; position:relative; z-index:1;}
 .hm{display:flex; flex-direction:column; gap:2px;}
-.hm .v{font-size:19px; font-weight:800; letter-spacing:-.01em;}
-.hm .l{font-size:10.5px; color:rgba(255,255,255,.72); font-weight:600;}
+.hm .v{font-size:var(--fs-cifra); font-weight:700; letter-spacing:-.02em;}
+.hm .l{font-size:var(--fs-rotulo); color:rgba(255,255,255,.72); font-weight:700;letter-spacing:.01em;}
 .hm .v .u{font-size:12px; font-weight:600; color:rgba(255,255,255,.7);}
 
 /* progress ring in hero */
 .hero-ring{position:absolute; right:30px; top:50%; transform:translateY(-50%); z-index:1; text-align:center;}
 .hero-ring svg{width:104px; height:104px;}
-.hero-ring .pct{font-size:22px; font-weight:800;}
-.hero-ring .pl{font-size:9.5px; font-weight:700; letter-spacing:.01em; color:rgba(255,255,255,.7); margin-top:2px;}
+.hero-ring .pct{font-size:var(--fs-cifra); font-weight:700;letter-spacing:-.02em;}
+.hero-ring .pl{font-size:var(--fs-chip); font-weight:700; letter-spacing:.01em; color:rgba(255,255,255,.7); margin-top:2px;}
 
 /* Aqui estaban las reglas de la franja ambar de "te toca a ti", retirada
    con su bloque de guion: lo que anunciaba se dice ya en Avisos y en la
@@ -1903,8 +1918,8 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .section-gap{margin-top:22px;}
 /* ===================== JOURNEY STEPPER ===================== */
 .sec-h{display:flex; align-items:center; gap:10px; margin-bottom:13px; flex-wrap:wrap;}
-.sec-h .t{font-size:14px; font-weight:700; letter-spacing:-.01em;}
-.sec-h .sub{font-size:12px; color:var(--gray); font-weight:500;}
+.sec-h .t{font-size:var(--fs-tarjeta); font-weight:700; letter-spacing:-.01em;}
+.sec-h .sub{font-size:var(--fs-nota); color:var(--gray); font-weight:500;}
 .sec-h .spacer{flex:1 1 auto;}
 
 /* ===================== EL CAMINO =====================
@@ -1941,12 +1956,12 @@ body[data-vista="citas"] .fase-bar{display:none;}
    · y mas ancho, porque un parrafo en una columna de 340 px se lee a
      tirones. */
 .pista-caja.ancho{max-width:min(460px, 82vw);}
-.pista-caja .pc-p{margin:0 0 9px; font-size:12.5px; line-height:1.6; color:var(--ink);}
+.pista-caja .pc-p{margin:0 0 9px; font-size:var(--fs-parrafo); line-height:1.6; color:var(--ink);}
 /* El rotulo de cada monton dentro del globo. Mas discreto que el titulo
    -que nombra el globo entero- pero mas fuerte que los renglones, que es
    justo su sitio en la jerarquia: separa dos listas sin competir con
    ninguna. El primero no lleva aire arriba porque va pegado al titulo. */
-.pista-caja .pc-g{font-size:10.5px; font-weight:800; letter-spacing:.05em;
+.pista-caja .pc-g{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
   text-transform:uppercase; color:var(--navy2); margin:13px 0 6px;}
 .pista-caja .pc-g:first-of-type{margin-top:0;}
 .pista-caja ul + .pc-g{margin-top:12px;}
@@ -1997,13 +2012,13 @@ body[data-vista="citas"] .fase-bar{display:none;}
    a la que sustituye -- ni un grado mas-, porque lo de aqui arriba sigue
    en pie: la tinta no baja. */
 .jp.luego .jbar, .jp.luego .jcount{display:none;}
-.jluego{display:none; font-size:10.5px; font-weight:500; color:var(--mudo);
+.jluego{display:none; font-size:var(--fs-nota); font-weight:500; color:var(--mudo);
   letter-spacing:.02em; margin-top:9px;}
 .jp.luego .jluego{display:block;}
 /* El rotulo de «estas aqui», solo en la de en curso y solo cuando el panel
    sabe cual es: sin data-ir no hay etapa elegida y anunciarla seria mentir. */
 .jp.active[data-ir]::after{content:attr(data-aqui); position:absolute; top:15px; left:44px;
-  font-size:10px; font-weight:800; letter-spacing:.05em; color:var(--navy2);}
+  font-size:var(--fs-chip); font-weight:700; letter-spacing:.05em; color:var(--navy2);}
 /* --navy2 y no --navy: --navy es el mismo azul oscuro en los dos temas, y
    sobre el fondo oscuro de la tarjeta en curso el rotulo se lei­a casi negro
    sobre azul. --navy2 aclara de noche y oscurece de dia, que es lo que hace
@@ -2038,7 +2053,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 
    En el ÍNDICE de fases de más abajo SÍ se queda: allí no hay punto que
    numere, así que "Fase 01" es lo único que pone las cuatro en orden. */
-.jp .jname{font-size:13.5px; font-weight:700; margin-top:9px; line-height:1.25;
+.jp .jname{font-size:var(--fs-tarjeta); font-weight:700; margin-top:9px; line-height:1.25;
   /* Dos renglones SIEMPRE, ocupe uno el nombre u ocupe dos. Es la misma
      regla de la nota de abajo -el nombre mide igual en las cinco- y hubo
      que volver a ponerla cuando la fase 01 paso de "Llegar" a un nombre de
@@ -2048,7 +2063,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
      No se hace con margin-top:auto empujando la barra al fondo, que era lo
      primero que probe: la caja de turno lleva ademas su boton, asi que
      pegarlo todo abajo la descuadraba a ELLA contra las otras cuatro. */
-  min-height:3.75em;}
+  min-height:3.75em;letter-spacing:-.01em;}
 /* TRES renglones, no dos.
 
    La regla es la de siempre -el nombre mide igual en las cuatro, ocupe lo
@@ -2085,7 +2100,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .jbar>span{display:block; height:100%; border-radius:20px; background:linear-gradient(90deg,var(--cyan-deep),var(--cyan));}
 .jp.done .jbar>span{background:var(--good);}
 
-.jcount{font-size:10.5px; font-weight:700; color:var(--gray); letter-spacing:.02em; margin-top:5px;}
+.jcount{font-size:var(--fs-nota); font-weight:700; color:var(--gray); letter-spacing:.02em; margin-top:5px;}
 /* El renglón de los obligatorios. Es lo único de la etapa que impide
    seguir, y tiene que leerse antes que la cuenta de arriba.
 
@@ -2152,7 +2167,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
      medida que haya elegido nadie. No fallaba nada ni avisaba nada: se vio
      contando los tamaños de letra de la página. */
   padding:8px 12px 8px 10px; font-family:inherit; font-weight:700;
-  font-size:12.5px; line-height:1; color:var(--ink);
+  font-size:var(--fs-boton); line-height:1; color:var(--ink);
   transition:background .13s ease;}
 .volver:hover{background:color-mix(in srgb, var(--ink) 14%, transparent); color:var(--ink);}
 .volver:focus-visible{outline:2px solid var(--navy); outline-offset:2px;}
@@ -2195,7 +2210,7 @@ body[data-vista="inicio"].etapa-elegida .phase.etapa-abierta > .phase-cab{displa
    cambia de etapa: sin esto hay que subir la pantalla entera. */
 .tsec-sig{margin-top:18px; padding-top:14px; border-top:1px solid var(--line);
   display:none; align-items:center; gap:6px;
-  font:inherit; font-size:12px; font-weight:600; color:var(--navy2);
+  font:inherit; font-size:var(--fs-enlace); font-weight:600; color:var(--navy2);
   background:none; border-left:0; border-right:0; border-bottom:0; cursor:pointer;
   padding-left:0; padding-right:0; width:100%;}
 /* El :not([hidden]) hace falta: la ultima etapa no tiene siguiente, y sin
@@ -2227,10 +2242,10 @@ body[data-vista="tramite"] #secTramites{display:none;}
    a su propio renglon debajo de la descripcion y ya no es hijo de una fila
    flex, asi que la regla sobraba. */
 .tr-cab-txt{flex:1 1 auto; min-width:0;}
-.tr-nombre{font-size:19px; font-weight:700; line-height:1.22;}
+.tr-nombre{font-size:var(--fs-titulo); font-weight:700; line-height:1.22;letter-spacing:-.02em;}
 .tr-ente{font-size:11.5px; font-weight:700; color:var(--gray); margin-top:6px;}
-.tr-desc{font-size:13px; color:var(--gray); line-height:1.5; max-width:68ch;}
-.tr-plazo{display:inline-flex; align-items:center; gap:6px; font-size:11.5px;
+.tr-desc{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.6; max-width:68ch;}
+.tr-plazo{display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-nota);
   color:var(--gray); margin-top:11px;}
 .tr-plazo svg{width:13px; height:13px; stroke:currentColor; stroke-width:1.8; fill:none;}
 /* EN NEGRITA, y la regla va sobre .t-time y no sobre .tr-plazo: lo que hay
@@ -2250,7 +2265,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-plazo .t-time{font-weight:700;}
 
 .tr-proceso{margin-top:28px;}
-.tr-h{font-size:13px; font-weight:700; margin-bottom:15px;}
+.tr-h{font-size:var(--fs-seccion); font-weight:700; margin-bottom:15px;letter-spacing:.01em;}
 .tr-pasos{list-style:none; margin:0; padding:0;}
 .tr-paso{display:flex; gap:13px; padding-bottom:20px; position:relative;}
 .tr-paso:last-child{padding-bottom:0;}
@@ -2259,14 +2274,14 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-paso:not(:last-child)::before{content:""; position:absolute; left:11px; top:26px;
   bottom:2px; width:2px; background:var(--line); border-radius:2px;}
 .tr-paso.hecho:not(:last-child)::before{background:var(--good);}
-.tr-punto{width:24px; height:24px; border-radius:50%; flex:none; font-size:10px; font-weight:800;
+.tr-punto{width:24px; height:24px; border-radius:50%; flex:none; font-size:var(--fs-chip); font-weight:700;
   display:flex; align-items:center; justify-content:center;
   background:var(--block); color:var(--gray-soft); border:2px solid var(--line-soft);}
 .tr-paso.hecho .tr-punto{background:var(--good); border-color:transparent; color:#fff;}
 .tr-paso.ahora .tr-punto{background:var(--navy); border-color:transparent; color:#fff;
   box-shadow:0 0 0 4px rgba(0,64,144,.12);}
 .tr-txt{padding-top:3px;}
-.tr-paso-n{font-size:12.5px; font-weight:600; line-height:1.35;}
+.tr-paso-n{font-size:var(--fs-fila); font-weight:600; line-height:1.35;}
 .tr-paso.porhacer .tr-paso-n{color:var(--gray);}
 /* Es un distintivo, y el panel ya tiene una familia de distintivos: .chip,
    .ct-chip y .co-estado, todos en versalitas, esquina redonda y 4-5px de
@@ -2292,7 +2307,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
   text-decoration:underline;}
 
 .tr-aqui{display:inline-flex; align-items:center; gap:6px; margin-top:6px;
-  font-size:10px; font-weight:800; letter-spacing:.01em;
+  font-size:var(--fs-chip); font-weight:700; letter-spacing:.01em;
   line-height:1; color:var(--navy2);
   /* Respira -y una prueba lo exige, porque apretado parecia un boton a
      medio hacer- pero solo por arriba y por abajo: el relleno lateral es
@@ -2303,7 +2318,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 /* Cuanto lleva en este paso. En gris y sin mayusculas: es el dato, no el
    rotulo. Y es un HECHO -"desde hace 6 dias"- y no un plazo: cuanto
    DEBERIA tardar no lo ha dicho nadie todavia. */
-.tr-desde{font-size:10.5px; font-weight:400; letter-spacing:0; text-transform:none;
+.tr-desde{font-size:var(--fs-nota); font-weight:400; letter-spacing:0; text-transform:none;
   color:var(--gray-soft);}
 
 /* ============ EL TRAMITE DE VERDAD ============
@@ -2429,18 +2444,18 @@ body[data-vista="tramite"] #secTramites{display:none;}
   font:inherit; cursor:pointer; border:1px solid var(--line); background:var(--bg);
   border-radius:var(--r); padding:11px 13px;}
 .cons-i:hover{border-color:var(--navy2);}
-.cons-i .ci-as{font-size:13px; font-weight:600; flex:1 1 auto; min-width:0;}
+.cons-i .ci-as{font-size:var(--fs-fila); font-weight:600; flex:1 1 auto; min-width:0;}
 .cons-i .ci-cu{font-size:11.5px; color:var(--mudo); white-space:nowrap;}
 /* El estado, con color y no solo con letra: en una lista de ocho, cual
    espera respuesta se tiene que ver sin leerlas una por una. */
-.cons-est{font-size:10.5px; font-weight:600; border-radius:9999px;
+.cons-est{font-size:var(--fs-chip); font-weight:700; border-radius:9999px;
   padding:2px 9px; white-space:nowrap;}
 .cons-est.abierta{background:var(--amber-bg); color:var(--amber);}
 .cons-est.en_curso{background:var(--block); color:var(--mudo);}
 .cons-est.resuelta{background:var(--good-bg); color:var(--good);}
-.cons-vacio{font-size:12.5px; color:var(--mudo); padding:14px 2px;}
+.cons-vacio{font-size:var(--fs-parrafo); color:var(--mudo); padding:14px 2px;}
 .cons-sobre{font-size:12px; color:var(--mudo); margin-top:3px;}
-.cons-volver{font:inherit; font-size:12px; font-weight:600; color:var(--navy2);
+.cons-volver{font:inherit; font-size:var(--fs-enlace); font-weight:600; color:var(--navy2);
   background:none; border:0; cursor:pointer; padding:0; margin-bottom:10px;}
 .cons-volver:hover{text-decoration:underline;}
 .cons-aviso{font-size:12px; color:var(--rust); margin-top:6px; min-height:1px;}
@@ -2450,7 +2465,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .sol-gestion{margin-top:22px; border:1px solid var(--line); background:var(--hoja);
   border-radius:12px; padding:18px 20px;
   display:flex; flex-direction:column; align-items:flex-start; gap:7px;}
-.sol-gestion .sg-t{font-size:13px; font-weight:800;}
+.sol-gestion .sg-t{font-size:var(--fs-seccion); font-weight:700;letter-spacing:.01em;}
 .sol-gestion .sg-q{font-size:12.5px; line-height:1.5; max-width:52ch;}
 /* En gris y no en azul: el boton de verdad de esta pantalla es «Enviar
    solicitud». Dos botones azules uno debajo de otro no dicen cual es cual. */
@@ -2470,15 +2485,15 @@ body[data-vista="tramite"] #secTramites{display:none;}
    propio elemento, y lo de fuera no puede con lo de dentro sin decirlo. */
 .sol-lado .sol-doc > div:first-child{flex:1 1 100% !important; min-width:0;}
 .sol-lado .sol-doc .btn, .sol-lado .sol-doc .sd-ver{margin-left:0;}
-.sol-lado .sd-n{font-size:12.5px; font-weight:600; line-height:1.35;}
+.sol-lado .sd-n{font-size:var(--fs-fila); font-weight:600; line-height:1.35;}
 @media (max-width:900px){
   .sol-dos{grid-template-columns:minmax(0,1fr);}
   .sol-lado{order:-1;}
 }
-.sol-h{font-size:13px; font-weight:700; margin-bottom:14px;}
+.sol-h{font-size:var(--fs-seccion); font-weight:700; margin-bottom:14px;letter-spacing:.01em;}
 .sol-campos{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px 16px; max-width:620px;}
 .sol-campo.ancho{grid-column:1 / -1;}
-.sol-campo label{display:block; font-size:11px; font-weight:700; color:var(--gray); margin-bottom:5px;}
+.sol-campo label{display:block; font-size:var(--fs-rotulo-form); font-weight:700; color:var(--gray); margin-bottom:5px;}
 .sol-campo input, .sol-campo select{width:100%; font:inherit; font-size:12.5px; color:var(--ink);
   background:var(--bg); border:1.5px solid var(--line); border-radius:8px; padding:9px 11px; outline:none;}
 .sol-campo input:focus, .sol-campo select:focus{border-color:var(--cyan-deep); background:var(--bg);
@@ -2595,7 +2610,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
    una sola pantalla. */
 .pista-caja ul{margin:0; padding-left:16px; display:flex; flex-direction:column;
   gap:5px; list-style:disc;}
-.pista-caja li{display:list-item; padding:0; gap:0; font-size:12px; line-height:1.5;
+.pista-caja li{display:list-item; padding:0; gap:0; font-size:var(--fs-parrafo); line-height:1.6;
   color:var(--ink); font-weight:400;}
 /* Los dos renglones que salen de la BASE y no del texto fijo: que este
    recaudo caduca, y que es opcional. Se separan con una línea para que no
@@ -2608,24 +2623,24 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .sol-doc{display:flex; align-items:center; gap:12px; background:var(--bg); border:1px solid var(--line);
   border-radius:9px; padding:11px 13px;}
 .sol-doc.mal{border-color:var(--rust);}
-.sol-doc .sd-n{font-size:12.5px; font-weight:700; flex:1 1 auto; min-width:0;}
-.sol-doc .sd-e{font-size:10.5px; color:var(--gray); margin-top:2px; font-weight:600;}
+.sol-doc .sd-n{font-size:var(--fs-fila); font-weight:600; flex:1 1 auto; min-width:0;}
+.sol-doc .sd-e{font-size:var(--fs-nota); color:var(--gray); margin-top:2px; font-weight:600;}
 .sol-doc input[type=file]{display:none;}
-.sol-doc .sd-btn{font:inherit; font-size:11px; font-weight:700; cursor:pointer; flex:none;
+.sol-doc .sd-btn{font:inherit; font-size:var(--fs-boton); font-weight:700; cursor:pointer; flex:none;
   background:var(--block); color:var(--navy2); border:1px solid var(--line);
   border-radius:7px; padding:7px 12px;}
 .sol-doc .sd-btn:hover{border-color:var(--cyan-deep);}
-.sd-ver{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
+.sd-ver{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy2);
   background:transparent; border:1px solid var(--line); border-radius:8px;
   padding:6px 11px; cursor:pointer; flex:none; margin-right:8px;}
 .sd-ver:hover{border-color:var(--navy2);}
 .sd-ver:disabled{opacity:.5; cursor:default;}
-.sol-doc .sd-ya{font-size:10px; font-weight:800; letter-spacing:.03em; color:var(--good);
+.sol-doc .sd-ya{font-size:var(--fs-chip); font-weight:700; letter-spacing:.03em; color:var(--good);
   background:var(--good-bg); border-radius:5px; padding:2px 7px; flex:none;}
 
 /* --- pie del formulario --- */
 .sol-pie{margin-top:22px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
-.sol-enviar{font:inherit; font-size:12.5px; font-weight:700; cursor:pointer; color:#fff;
+.sol-enviar{font:inherit; font-size:var(--fs-boton); font-weight:700; cursor:pointer; color:#fff;
   background:var(--navy); border:0; border-radius:8px; padding:11px 20px;}
 .sol-enviar:hover{background:var(--navy-deep, #00336d);}
 .sol-enviar:disabled{opacity:.55; cursor:progress;}
@@ -2691,12 +2706,12 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .pa-seg.hecho .pa-linea{background:var(--good);}
 .pa-cuerpo{display:flex; align-items:center; gap:7px; margin-top:9px;}
 .pa-n{flex:none; width:19px; height:19px; border-radius:50%; display:flex;
-  align-items:center; justify-content:center; font-size:10.5px; font-weight:800;
-  background:var(--block); color:var(--mudo); border:1px solid var(--line);}
+  align-items:center; justify-content:center; font-size:var(--fs-rotulo); font-weight:700;
+  background:var(--block); color:var(--mudo); border:1px solid var(--line);letter-spacing:.01em;}
 .pa-seg.ahora .pa-n{background:var(--navy2); color:#fff; border-color:var(--navy2);}
 .pa-seg.hecho .pa-n{background:var(--good-bg); color:var(--good); border-color:var(--good);}
-.pa-l{font-size:11.5px; font-weight:700; color:var(--mudo); overflow:hidden;
-  text-overflow:ellipsis; white-space:nowrap;}
+.pa-l{font-size:var(--fs-rotulo); font-weight:700; color:var(--mudo); overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap;letter-spacing:.01em;}
 .pa-seg.ahora .pa-l{color:var(--ink);}
 /* En móvil el rótulo se cae y quedan los números: tres palabras partidas en
    tres tramos de setenta píxeles no se leen. La barra sigue diciendo por
@@ -2710,14 +2725,14 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .pa-cuenta{display:flex; align-items:baseline; gap:9px; margin:16px 0 14px; flex-wrap:wrap;}
 .pa-cuenta .pc-n{font-size:11px; font-weight:800; letter-spacing:.04em;
   text-transform:uppercase; color:var(--mudo);}
-.pa-cuenta .pc-t{font-size:15px; font-weight:700; color:var(--ink);}
+.pa-cuenta .pc-t{font-size:var(--fs-tarjeta); font-weight:700; color:var(--ink);letter-spacing:-.01em;}
 
 /* El cuadro que informa. Uno por paso, y dice algo VERDADERO de ese paso:
    cuántos papeles ya tienes, qué le pasa a una solicitud mal escrita. Un
    cuadro de éstos con una frase de relleno no informa, sólo ocupa. */
 .pa-nota{display:flex; gap:10px; align-items:flex-start; border:1px solid var(--line);
   border-left:3px solid var(--cyan-deep); background:var(--block); border-radius:9px;
-  padding:11px 13px; margin-bottom:18px; font-size:12px; line-height:1.5; color:var(--ink);}
+  padding:11px 13px; margin-bottom:18px; font-size:var(--fs-parrafo); line-height:1.6; color:var(--ink);}
 .pa-nota.bien{border-left-color:var(--good); background:var(--good-bg);}
 .pa-nota svg{flex:none; width:16px; height:16px; margin-top:1px; fill:none;
   stroke:var(--cyan-deep); stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
@@ -2777,7 +2792,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .pa-hoja[data-paso="2"] .sol-doc + .sol-doc{border-top:1px solid var(--line);}
 .pa-hoja[data-paso="2"] .sol-doc:last-child{padding-bottom:14px;}
 .pa-hoja[data-paso="2"] .sol-doc > div:first-child{flex:1 1 auto !important;}
-.pa-hoja[data-paso="2"] .sd-n{font-size:13px; font-weight:700;}
+.pa-hoja[data-paso="2"] .sd-n{font-size:var(--fs-seccion); font-weight:700;letter-spacing:.01em;}
 .pa-hoja[data-paso="2"] .sol-doc .sd-btn{margin-left:auto;}
 /* Mientras se arrastra un archivo por encima. Sin esto no hay forma de
    saber que la fila lo acepta, y quien lo suelta al lado lo pierde. */
@@ -2795,18 +2810,18 @@ body[data-vista="tramite"] #secTramites{display:none;}
    lados, para que las líneas lleguen de una punta a otra de la ficha. */
 .pa-hoja .pa-repaso{border:0; border-radius:0; background:none; margin-bottom:0;}
 .pa-hoja .pa-fila, .pa-hoja .pa-grupo{padding-left:0; padding-right:0;}
-.pa-grupo{padding:13px 15px 3px; font-size:10.5px; font-weight:800; letter-spacing:.05em;
+.pa-grupo{padding:13px 15px 3px; font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
   text-transform:uppercase; color:var(--mudo); border-top:1px solid var(--line);}
 .pa-repaso > .pa-grupo:first-child{border-top:0;}
 .pa-fila{display:flex; align-items:baseline; gap:12px; padding:10px 15px;
   border-top:1px solid var(--line-soft);}
-.pa-k{flex:0 0 38%; min-width:0; font-size:11.5px; font-weight:700; color:var(--mudo);}
-.pa-v{flex:1 1 auto; min-width:0; font-size:12.5px; font-weight:600; color:var(--ink);
+.pa-k{flex:0 0 38%; min-width:0; font-size:var(--fs-rotulo); font-weight:700; color:var(--mudo);letter-spacing:.01em;}
+.pa-v{flex:1 1 auto; min-width:0; font-size:var(--fs-valor); font-weight:500; color:var(--ink);
   overflow-wrap:anywhere;}
 .pa-v.vacio{color:var(--rust); font-weight:700;}
-.pa-v .pv-ya{font-size:10px; font-weight:800; letter-spacing:.03em; color:var(--good);
+.pa-v .pv-ya{font-size:var(--fs-chip); font-weight:700; letter-spacing:.03em; color:var(--good);
   margin-left:7px;}
-.pa-cam{flex:none; font:inherit; font-size:11.5px; font-weight:700; color:var(--navy2);
+.pa-cam{flex:none; font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy2);
   background:none; border:0; padding:0; cursor:pointer; text-decoration:underline;}
 .pa-cam:hover{color:var(--cyan-deep);}
 @media (max-width:560px){
@@ -2846,10 +2861,10 @@ body[data-vista="tramite"] #secTramites{display:none;}
 @media (max-width:1260px){
   .pa-pie, .pa-hoja > .pa-pie{padding-right:72px;}
 }
-.pa-atras{font:inherit; font-size:12.5px; font-weight:700; cursor:pointer; color:var(--ink);
+.pa-atras{font:inherit; font-size:var(--fs-boton); font-weight:700; cursor:pointer; color:var(--ink);
   background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px 17px;}
 .pa-atras:hover{border-color:var(--navy2); color:var(--navy2);}
-.pa-sigue{font:inherit; font-size:12.5px; font-weight:700; cursor:pointer; color:#fff;
+.pa-sigue{font:inherit; font-size:var(--fs-boton); font-weight:700; cursor:pointer; color:#fff;
   background:var(--navy); border:0; border-radius:8px; padding:11px 22px; margin-left:auto;}
 .pa-sigue:hover{background:var(--navy-deep, #00336d);}
 .pa-aviso{font-size:11.5px; font-weight:700; color:var(--rust);}
@@ -2867,13 +2882,13 @@ body[data-vista="tramite"] #secTramites{display:none;}
    no sólo por el rótulo: en un hilo largo, leer «Tú / CIIP» en cada línea
    para saber quién habla es trabajo que puede hacer la forma. */
 .hilo-lista{display:grid; gap:9px; margin:8px 0 12px;}
-.hilo-vacio{font-size:12px; color:var(--gray-soft); line-height:1.45;}
+.hilo-vacio{font-size:var(--fs-parrafo); color:var(--gray-soft); line-height:1.45;}
 .hilo-m{max-width:min(80%, 520px); padding:8px 11px; border-radius:12px;
   background:var(--block); border:1px solid var(--line);}
 .hilo-m.mio{margin-left:auto; border-bottom-right-radius:4px;}
 .hilo-m.suyo{margin-right:auto; border-bottom-left-radius:4px;
   background:var(--bg);}
-.hm-q{font-size:9.5px; font-weight:700; letter-spacing:.01em; color:var(--gray-soft); margin-bottom:3px;}
+.hm-q{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em; color:var(--gray-soft); margin-bottom:3px;}
 .hm-t{font-size:12.5px; line-height:1.45; white-space:pre-wrap;
   overflow-wrap:anywhere;}
 .hm-arch{margin-top:6px; font:inherit; font-size:11.5px; font-weight:600;
@@ -2898,9 +2913,9 @@ body[data-vista="tramite"] #secTramites{display:none;}
 /* El nivel: sobrio a proposito. El de 'obligatorio' lleva el color de
    la casa porque es el que pide accion; el de 'actividad' va en gris,
    que es lo que dice de verdad -«puede que a ti no»- y no una alarma. */
-.chip.niv{font-size:11px; letter-spacing:.04em;
+.chip.niv{font-size:var(--fs-chip); letter-spacing:.04em;
   padding:2px 7px; border-radius:3px; white-space:nowrap;
-  background:transparent; border:1px solid var(--line); color:var(--gray);}
+  background:transparent; border:1px solid var(--line); color:var(--gray);font-weight:700;}
 .chip.niv.obliga{border-color:var(--navy); color:var(--navy);}
 /* El de 'opcional' va SIN borde: los tres distintivos con marco pesaban
    igual y la fila de tarjetas volvia a parecer plana. Este dice lo mas
@@ -2915,7 +2930,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
    borde y en versalitas, que es lo que ya hace el resto del panel para
    los encabezados pequeños. */
 .grupo-t{grid-column:1 / -1; margin:6px 0 -2px;
-  font-size:10.5px; font-weight:800; letter-spacing:.01em; color:var(--gray);}
+  font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em; color:var(--gray);}
 .grupo-t:first-child{margin-top:0;}
 /* La conversación dentro de una ficha de la agenda. El botón va discreto
    -es una puerta, no una acción- y la caja hereda el estilo del hilo. */
@@ -2971,7 +2986,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 
 /* --- estado real, una vez enviada --- */
 .sol-estado{display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
-.sol-estado .se-t{font-size:13px; font-weight:700;}
+.sol-estado .se-t{font-size:var(--fs-seccion); font-weight:700;letter-spacing:.01em;}
 .sol-estado .se-f{font-size:11px; color:var(--gray); font-weight:600;}
 .sol-devuelta{background:var(--amber-bg); border:1px solid var(--amber); border-radius:9px;
   padding:11px 13px; margin-bottom:16px;}
@@ -2984,11 +2999,11 @@ body[data-vista="tramite"] #secTramites{display:none;}
 
 /* ===================== FILTER TABS ===================== */
 .filters{display:flex; gap:7px; flex-wrap:wrap;}
-.ftab{font:inherit; font-size:11.5px; font-weight:700; color:var(--gray); background:var(--bg);
+.ftab{font:inherit; font-size:var(--fs-pestana); font-weight:600; color:var(--gray); background:var(--bg);
   border:1px solid var(--line); border-radius:20px; padding:6px 13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;}
 .ftab:hover{border-color:var(--cyan-deep); color:var(--navy2);}
 .ftab.on{background:var(--navy); border-color:var(--navy); color:#fff;}
-.ftab .n{font-size:10px; background:var(--block); color:var(--gray); border-radius:20px; padding:0 6px; font-weight:800;}
+.ftab .n{font-size:var(--fs-chip); background:var(--block); color:var(--gray); border-radius:20px; padding:0 6px; font-weight:700;}
 .ftab.on .n{background:rgba(255,255,255,.2); color:#fff;}
 /* Dentro de una fase puede no quedar nada de un estado. El filtro se
    ESCONDE, y antes se quedaba puesto y atenuado.
@@ -3065,8 +3080,8 @@ body[data-vista="fase"] .phase-cab > .chev{display:none;}
   font-variant-numeric:tabular-nums; line-height:1; padding-bottom:1px;
   flex:none; display:flex; align-items:center; justify-content:center; align-self:center;}
 .phase.fase-abierta .phase-h .pn, .phase-h:hover .pn{background:var(--navy); color:#fff; border-color:var(--navy);}
-.phase-h .pt{font-size:15px; font-weight:700;}
-.phase-h .pd{font-size:11.5px; color:var(--gray);}
+.phase-h .pt{font-size:var(--fs-tarjeta); font-weight:700;letter-spacing:-.01em;}
+.phase-h .pd{font-size:var(--fs-nota); color:var(--gray);}
 .grid-tr{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
 
 .tcard{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); padding:15px 16px;
@@ -3132,10 +3147,10 @@ body[data-vista="fase"] .phase-cab > .chev{display:none;}
   display:flex; flex-direction:column;}
 .t-body .t-foot{margin-top:auto; padding-top:11px;}
 .t-top{display:flex; align-items:flex-start; gap:8px;}
-.t-name{font-size:13.5px; font-weight:700; line-height:1.25; flex:1 1 auto;}
-.t-ente{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; color:var(--gray);
+.t-name{font-size:var(--fs-tarjeta); font-weight:700; line-height:1.25; flex:1 1 auto;letter-spacing:-.01em;}
+.t-ente{display:inline-flex; align-items:center; gap:5px; font-size:var(--fs-rotulo); font-weight:700; color:var(--gray);
   margin-top:5px; letter-spacing:.01em;}
-.t-ente .ebadge{font-size:9px; font-weight:800; letter-spacing:.03em; color:var(--navy2);
+.t-ente .ebadge{font-size:var(--fs-chip); font-weight:700; letter-spacing:.03em; color:var(--navy2);
   background:var(--block); border:1px solid var(--line); border-radius:5px; padding:1px 6px;}
 
 /* ── LA MARCA DE AGUA, RETIRADA ──
@@ -3148,7 +3163,7 @@ body[data-vista="fase"] .phase-cab > .chev{display:none;}
    Se van las quince reglas: la del pseudo-elemento, una por organismo, y
    las tres del reparto claro/oscuro que le subian la opacidad de noche.
    Los archivos de logos NO se tocan: los sigue usando la placa. */
-.t-desc{font-size:11.5px; color:var(--gray); margin-top:7px; line-height:1.45;}
+.t-desc{font-size:var(--fs-nota); color:var(--gray); margin-top:7px; line-height:1.55;}
 /* El pie lleva hasta TRES cosas -el reloj, «tienes los papeles» y «Ver
    detalles»- y en dos columnas la tarjeta mide unos 313 px de dentro. Los
    tres suman mas, asi que sin envolver se estrujaban entre ellos y los
@@ -3162,7 +3177,7 @@ body[data-vista="fase"] .phase-cab > .chev{display:none;}
   flex-wrap:wrap; row-gap:6px;}
 .t-time{display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--gray-soft); font-weight:600;}
 .t-time svg{width:13px; height:13px; stroke:currentColor; stroke-width:2; fill:none;}
-.t-foot .go{margin-left:auto; font-size:11px; font-weight:700; color:var(--navy2); display:inline-flex; align-items:center; gap:3px;}
+.t-foot .go{margin-left:auto; font-size:var(--fs-boton); font-weight:700; color:var(--navy2); display:inline-flex; align-items:center; gap:3px;}
 
 /* ── LO QUE TODAVIA NO SE SABE, NO SE DICE ──
    La ficha nace sin estado: sin distintivo y sin reloj. El marcado traia el
@@ -3183,7 +3198,7 @@ body[data-vista="fase"] .phase-cab > .chev{display:none;}
 .t-time[hidden]{display:none;}
 
 /* status chips (mirrors .chip in app.css) */
-.chip{display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:700; border-radius:20px;
+.chip{display:inline-flex; align-items:center; gap:5px; font-size:var(--fs-chip); font-weight:700; border-radius:20px;
   padding:2px 9px; white-space:nowrap; flex:none;}
 .chip .cd{width:6px; height:6px; border-radius:50%; background:currentColor;}
 .chip.good{background:var(--good-bg); color:var(--good);}
@@ -3198,10 +3213,10 @@ body[data-vista="fase"] .phase-cab > .chev{display:none;}
 .gestor{display:flex; gap:15px; align-items:center;}
 .gestor .g-av{width:56px; height:56px; border-radius:50%; flex:none; background:linear-gradient(135deg,var(--navy),var(--navy2));
   color:#fff; font-size:19px; font-weight:800; display:flex; align-items:center; justify-content:center;}
-.g-name{font-size:15px; font-weight:700;} .g-role{font-size:11.5px; color:var(--gray); margin-top:1px;}
-.g-line{font-size:12px; color:var(--gray); margin-top:9px; line-height:1.5;}
+.g-name{font-size:var(--fs-tarjeta); font-weight:700;letter-spacing:-.01em;} .g-role{font-size:var(--fs-nota); color:var(--gray); margin-top:1px;}
+.g-line{font-size:var(--fs-parrafo); color:var(--gray); margin-top:9px; line-height:1.6;}
 .g-actions{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
-.btn{font:inherit; font-size:11.5px; font-weight:700; border-radius:8px; padding:9px 15px; cursor:pointer;
+.btn{font:inherit; font-size:var(--fs-boton); font-weight:700; border-radius:8px; padding:9px 15px; cursor:pointer;
   border:1px solid transparent; display:inline-flex; align-items:center; gap:7px;}
 .btn svg{width:15px; height:15px; stroke:currentColor; stroke-width:2; fill:none;}
 .btn.primary{background:var(--cyan); color:#06283b;}
@@ -3215,11 +3230,11 @@ body[data-vista="fase"] .phase-cab > .chev{display:none;}
 .help-row .hi{width:32px; height:32px; border-radius:8px; background:var(--block); color:var(--navy2);
   display:flex; align-items:center; justify-content:center; flex:none;}
 .help-row .hi svg{width:17px; height:17px; stroke:currentColor; stroke-width:1.8; fill:none;}
-.help-row .ht{font-size:12.5px; font-weight:700;} .help-row .hs{font-size:11px; color:var(--gray); margin-top:1px;}
+.help-row .ht{font-size:var(--fs-fila); font-weight:600;} .help-row .hs{font-size:11px; color:var(--gray); margin-top:1px;}
 .help-row .harrow{margin-left:auto; color:var(--gray-soft);}
 
 .foot-note{margin-top:30px; padding-top:18px; border-top:1px solid var(--line); display:flex; gap:10px;
-  align-items:center; flex-wrap:wrap; font-size:11px; color:var(--gray-soft);}
+  align-items:center; flex-wrap:wrap; font-size:var(--fs-nota); color:var(--gray-soft);}
 .foot-note img{height:22px; opacity:.9;}
 /* Esta copia del logo es la variante azul marino (#004090). Sobre el fondo
    claro contrasta bien, pero en modo oscuro queda sobre #0A1120: relación de
@@ -3278,7 +3293,7 @@ body.menu-abierto .menu-fondo{display:block;}
 @media (prefers-reduced-motion:reduce){*{transition:none !important; scroll-behavior:auto;}}
 
 .sb-langs-wrap{display:flex; flex-direction:column; gap:7px;}
-.sb-langs-lbl{font-size:8.5px; font-weight:700; letter-spacing:.01em; color:rgba(255,255,255,.42);}
+.sb-langs-lbl{font-size:var(--fs-chip); font-weight:700; letter-spacing:.01em; color:rgba(255,255,255,.42);}
 .sb-langs{display:grid; grid-template-columns:1fr 1fr; gap:5px;}
 .sb-langs button{display:flex; align-items:center; gap:7px; justify-content:flex-start; font:inherit; font-size:11px; font-weight:700; color:rgba(255,255,255,.72); background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); border-radius:7px; padding:7px 9px; cursor:pointer; transition:background .12s, color .12s, border-color .12s;}
 .sb-langs button:hover{background:rgba(255,255,255,.12); color:#fff;}
@@ -3334,7 +3349,7 @@ body.con-puerta{overflow:hidden;}
 .se-lang button:hover{opacity:1; border-color:var(--navy2);}
 .se-lang button.on{opacity:1; border-color:var(--navy2);}
 .se-lang img{display:block; width:20px; height:14px; object-fit:cover; border-radius:2px;}
-.se-ayuda{font-size:12px; color:var(--gray); line-height:1.55; margin-bottom:13px;}
+.se-ayuda{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.6; margin-bottom:13px;}
 /* Las dos preguntas de la puerta, con el mismo aire que los campos de la
    ficha: son lo mismo -nombre y sector- preguntado antes en vez de despues.
    El margen de la ayuda se anula aqui porque dentro del campo el hueco lo
@@ -3348,7 +3363,7 @@ body.con-puerta{overflow:hidden;}
    falta de verdad: con menos de diez sectores el buscador esta escondido,
    asi que en ese campo no hay ni una sola caja que se pueda poner roja. */
 .se-campo.mal > label, .se-campo.mal > span{color:var(--rust);}
-.se-buscar{width:100%; font:inherit; font-size:13px; padding:9px 11px; margin-bottom:11px;
+.se-buscar{width:100%; font:inherit; font-size:var(--fs-campo); padding:9px 11px; margin-bottom:11px;
   border:1px solid var(--line); border-radius:var(--r-sm); background:var(--bg); color:var(--ink);}
 .se-buscar[hidden]{display:none;}
 .se-lista{display:grid; grid-template-columns:repeat(2,1fr); gap:8px;}
@@ -3356,7 +3371,7 @@ body.con-puerta{overflow:hidden;}
    ultima quedaba coja. */
 @media (max-width:520px){ .se-lista{grid-template-columns:1fr;} }
 .se-op{display:flex; align-items:center; gap:11px;
-  font:inherit; font-size:12.5px; font-weight:600; text-align:left; cursor:pointer;
+  font:inherit; font-size:var(--fs-fila); font-weight:600; text-align:left; cursor:pointer;
   padding:11px 13px; border:1px solid var(--line); border-radius:var(--r-sm);
   background:var(--bg); color:var(--ink);}
 .se-op:hover{border-color:var(--navy2);}
@@ -3375,7 +3390,7 @@ body.con-puerta{overflow:hidden;}
 }
 :root[data-theme="light"] .se-ico{background:var(--sc-bg, var(--block)); color:var(--sc, var(--navy2));}
 :root[data-theme="dark"]  .se-ico{background:var(--sc-bg-osc, var(--block)); color:var(--sc-osc, var(--navy2));}
-.se-nada{font-size:12px; color:var(--gray); padding:8px 0;}
+.se-nada{font-size:var(--fs-parrafo); color:var(--gray); padding:8px 0;}
 .se-nada[hidden]{display:none;}
 
 .asst-back{position:fixed; inset:0; z-index:60; background:rgba(6,16,32,.55); display:none; align-items:flex-start; justify-content:center; padding:64px 16px 16px;}
@@ -3384,7 +3399,7 @@ body.con-puerta{overflow:hidden;}
 .asst-h{display:flex; align-items:center; gap:12px; padding:15px 18px; border-bottom:1px solid var(--line);}
 .asst-h .ai{width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,var(--navy),var(--cyan-deep)); display:flex; align-items:center; justify-content:center; flex:none;}
 .asst-h .ai svg{width:20px; height:20px; fill:#fff; stroke:none;}
-.asst-h .at{font-size:14px; font-weight:700;} .asst-h .as{font-size:11.5px; color:var(--gray); margin-top:1px;}
+.asst-h .at{font-size:var(--fs-tarjeta); font-weight:700;letter-spacing:-.01em;} .asst-h .as{font-size:var(--fs-nota); color:var(--gray); margin-top:1px;}
 .asst-h .ax{margin-left:auto; width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--gray); cursor:pointer; font-size:17px; line-height:1; display:flex; align-items:center; justify-content:center;}
 .asst-h .ax:hover{border-color:var(--rust); color:var(--rust);}
 .asst-body{flex:1 1 auto; overflow-y:auto; padding:16px 18px; display:flex; flex-direction:column; gap:11px;}
@@ -3396,12 +3411,12 @@ body.con-puerta{overflow:hidden;}
 .sug-chips{display:flex; flex-wrap:wrap; gap:7px;}
 .sug-chips button{font:inherit; font-size:11.5px; font-weight:600; color:var(--navy2); background:var(--bg); border:1px solid var(--line); border-radius:20px; padding:7px 12px; cursor:pointer; text-align:left;}
 .sug-chips button:hover{border-color:var(--cyan-deep); background:var(--block);}
-.sug-nada{font-size:11.5px; color:var(--gray); line-height:1.55; padding-bottom:2px;}
+.sug-nada{font-size:var(--fs-nota); color:var(--gray); line-height:1.55; padding-bottom:2px;}
 .asst-in{display:flex; gap:8px; padding:12px 14px; border-top:1px solid var(--line); background:var(--card-2);}
-.asst-in input{flex:1 1 auto; font:inherit; font-size:13px; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:10px 13px; outline:none;}
+.asst-in input{flex:1 1 auto; font:inherit; font-size:var(--fs-campo); color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:10px 13px; outline:none;}
 .asst-in input:focus{border-color:var(--cyan-deep); box-shadow:0 0 0 3px rgba(32,176,240,.12);}
-.asst-in button{font:inherit; font-size:12px; font-weight:700; color:#06283b; background:var(--cyan); border:0; border-radius:9px; padding:0 18px; cursor:pointer;}
-.asst-note{font-size:10px; color:var(--gray-soft); text-align:center; padding:8px 0 11px;}
+.asst-in button{font:inherit; font-size:var(--fs-boton); font-weight:700; color:#06283b; background:var(--cyan); border:0; border-radius:9px; padding:0 18px; cursor:pointer;}
+.asst-note{font-size:var(--fs-nota); color:var(--gray-soft); text-align:center; padding:8px 0 11px;}
 
 /* ---------- el pliego de tratamiento de datos ---------- */
 /* La puerta del pliego, POR ENCIMA de la del sector: 81 contra 80. Las dos
@@ -3421,7 +3436,7 @@ body.con-puerta{overflow:hidden;}
   inset:0; align-items:center; padding:24px 16px;}
 .asst-back.pliego-back .asst{max-width:720px; max-height:88vh;}
 .pl-cuerpo{padding:16px 18px; overflow:auto; display:flex; flex-direction:column;}
-.pl-ayuda{font-size:12px; color:var(--gray); line-height:1.55; margin-bottom:12px;}
+.pl-ayuda{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.6; margin-bottom:12px;}
 /* El texto, en caja hundida y con barra propia. Va enmarcado y no suelto en
    la ventana para que se lea como un DOCUMENTO: lo de dentro lo escribio un
    abogado, no el panel, y el marco lo dice sin tener que ponerlo por
@@ -3430,18 +3445,18 @@ body.con-puerta{overflow:hidden;}
    ladrillo. */
 .pl-texto{flex:1 1 auto; min-height:170px; max-height:44vh; overflow:auto;
   background:var(--block); border:1px solid var(--line); border-radius:var(--r-sm);
-  padding:15px 17px; font-size:12.5px; line-height:1.65; color:var(--ink);
+  padding:15px 17px; font-size:var(--fs-parrafo); line-height:1.6; color:var(--ink);
   white-space:pre-wrap; overflow-wrap:break-word;}
 /* La nota del idioma sale SOLO si lo que se esta leyendo no es el
    castellano. El instrumento que obliga es el venezolano y los demas son
    cortesia, asi que quien lea la traduccion tiene que saber cual firma. En
    castellano la nota sobra, y una advertencia que sobra es ruido. */
-.pl-nota{font-size:11px; color:var(--gray-soft); line-height:1.5; margin-top:9px;}
+.pl-nota{font-size:var(--fs-nota); color:var(--gray-soft); line-height:1.55; margin-top:9px;}
 .pl-nota[hidden]{display:none;}
 /* La casilla. Sin marcarla el boton no se habilita: un consentimiento que se
    da pulsando "continuar" y ya es el boton de siempre con otro nombre. */
 .pl-marca{display:flex; align-items:flex-start; gap:9px; margin-top:13px;
-  font-size:12.5px; line-height:1.5; color:var(--ink); cursor:pointer;}
+  font-size:var(--fs-parrafo); line-height:1.6; color:var(--ink); cursor:pointer;}
 .pl-marca input{margin:2px 0 0; flex:none; width:15px; height:15px; cursor:pointer;}
 /* Solo en este pie: .btn no tiene estado deshabilitado en toda la hoja, y
    ponerselo aqui a secas cambiaria de aspecto botones de otras siete
@@ -3462,8 +3477,8 @@ body[data-vista="pliego"] #plVolver{display:inline-flex;}
 .pl-caja{background:var(--bg); border:1px solid var(--line);
   border-radius:var(--r); padding:18px 20px; margin-bottom:16px;
   box-shadow:var(--shadow); max-width:820px;}
-.pl-caja .pc-t{font-size:13.5px; font-weight:800; color:var(--ink);}
-.pl-caja .pc-s{font-size:11.5px; color:var(--gray); margin-top:3px;}
+.pl-caja .pc-t{font-size:var(--fs-seccion); font-weight:700; color:var(--ink);letter-spacing:.01em;}
+.pl-caja .pc-s{font-size:var(--fs-nota); color:var(--gray); margin-top:3px;}
 /* En la vista, sin alto minimo. En la puerta ese min-height mantiene la
    caja del mismo tamano aunque el pliego sea corto, que alli esta bien:
    es una sola caja y se lee como un documento. Aqui hay una por version,
@@ -3510,14 +3525,14 @@ body[data-vista="pliego"] #plVolver{display:inline-flex;}
    hijo flexible por omision— y no desborda nada: quedaba una lista apretada
    con barra muerta, que es peor que la lista larga de antes. */
 .faq-item{flex:none; background:var(--bg); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; box-shadow:var(--shadow);}
-.faq-item summary{list-style:none; cursor:pointer; padding:14px 16px; display:flex; align-items:center; gap:11px; font-size:13px; font-weight:700; color:var(--ink);}
+.faq-item summary{list-style:none; cursor:pointer; padding:14px 16px; display:flex; align-items:center; gap:11px; font-size:var(--fs-seccion); font-weight:700; color:var(--ink);letter-spacing:.01em;}
 .faq-item summary::-webkit-details-marker{display:none;}
 .faq-item summary .qi{width:26px; height:26px; border-radius:7px; background:var(--block); color:var(--navy2); display:flex; align-items:center; justify-content:center; flex:none; font-weight:800; font-size:12px; font-variant-numeric:tabular-nums; line-height:1; padding-top:1px;}
 .faq-item summary .qt{flex:1 1 auto;}
 .faq-item summary .chev{margin-left:auto; color:var(--gray-soft); transition:transform .15s; flex:none; font-size:15px;}
 .faq-item[open] summary .chev{transform:rotate(90deg);}
 .faq-item[open] summary{color:var(--navy2);}
-.faq-a{padding:0 16px 15px 53px; font-size:12.5px; color:var(--gray); line-height:1.55;}
+.faq-a{padding:0 16px 15px 53px; font-size:var(--fs-parrafo); color:var(--gray); line-height:1.6;}
 @media(max-width:560px){ .faq-a{padding-left:16px;} }
 
 /* ---------- acompanamiento: burbuja flotante ---------- */
@@ -3555,8 +3570,8 @@ body[data-vista="pliego"] #plVolver{display:inline-flex;}
    las versalitas: en texto normal queda desparramado. */
 .sup-panel .sb-t{font-size:11px; font-weight:700; letter-spacing:.01em;
   color:var(--navy2); padding-right:26px;}
-.sup-panel .sb-q{font-size:15.5px; font-weight:700; line-height:1.25; margin-top:5px;}
-.sup-panel .sb-d{font-size:11.5px; color:var(--gray); margin-top:6px; line-height:1.5;}
+.sup-panel .sb-q{font-size:var(--fs-tarjeta); font-weight:700; line-height:1.25; margin-top:5px;letter-spacing:-.01em;}
+.sup-panel .sb-d{font-size:var(--fs-parrafo); color:var(--gray); margin-top:6px; line-height:1.6;}
 .sup-panel .sb-actions{display:flex; flex-direction:column; gap:7px; margin-top:13px;}
 .sup-panel .sb-actions .btn{width:100%; justify-content:center;}
 
@@ -3594,10 +3609,10 @@ body[data-vista="pliego"] #plVolver{display:inline-flex;}
 .sup-nube-marca{width:22px; height:22px; border-radius:50%; flex:none;
   background:linear-gradient(135deg,var(--cyan),var(--cyan-deep));
   display:flex; align-items:center; justify-content:center;
-  font-size:9.5px; font-weight:700; line-height:1; color:var(--navy-deep);
+  font-size:var(--fs-chip); font-weight:700; line-height:1; color:var(--navy-deep);
   margin-top:1px;}
 .sup-nube-dicho{display:grid; gap:2px; min-width:0;}
-.sup-nube-quien{font-size:9.5px; font-weight:700; letter-spacing:.1em; color:rgba(255,255,255,.64);}
+.sup-nube-quien{font-size:var(--fs-chip); font-weight:700; letter-spacing:.1em; color:rgba(255,255,255,.64);}
 .sup-nube-t{font:inherit; font-size:12.5px; font-weight:600; line-height:1.35;
   color:inherit; background:none; border:0; padding:0; cursor:pointer;
   text-align:left;}
@@ -3618,7 +3633,7 @@ body[data-vista="pliego"] #plVolver{display:inline-flex;}
   padding:10px 12px 10px 16px; box-shadow:var(--shadow-lg);
   font-size:12px; font-weight:600; max-width:calc(100vw - 24px);}
 .nueva-v.se-ve{display:flex;}
-.nueva-v button{font:inherit; font-size:11.5px; font-weight:700; cursor:pointer;
+.nueva-v button{font:inherit; font-size:var(--fs-boton); font-weight:700; cursor:pointer;
   border-radius:8px; padding:7px 12px; border:0; white-space:nowrap;}
 .nueva-v .si{background:#fff; color:var(--navy);}
 .nueva-v .no{background:transparent; color:#fff; opacity:.7;}
@@ -3644,7 +3659,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 .lang-btn .caret{font-size:9px; color:var(--gray-soft); margin-left:-2px;}
 .lang-menu{position:absolute; top:calc(100% + 7px); right:0; z-index:45; min-width:184px; background:var(--bg); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow-lg); padding:6px; display:none; flex-direction:column; gap:1px;}
 .lang-menu.open{display:flex;}
-.lang-menu button{display:flex; align-items:center; gap:11px; font:inherit; font-size:12.5px; font-weight:600; color:var(--ink); background:transparent; border:0; border-radius:8px; padding:9px 11px; cursor:pointer; text-align:left; width:100%;}
+.lang-menu button{display:flex; align-items:center; gap:11px; font:inherit; font-size:var(--fs-fila); font-weight:600; color:var(--ink); background:transparent; border:0; border-radius:8px; padding:9px 11px; cursor:pointer; text-align:left; width:100%;}
 .lang-menu button:hover{background:var(--block);}
 .lang-menu button.on{color:var(--navy2); font-weight:700; background:var(--block);}
 .lang-menu button.on::after{content:'✓'; margin-left:auto; color:var(--navy2); font-size:12px;}
@@ -3659,14 +3674,14 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 .avisos-sel{position:relative; flex:none;}
 .av-n{display:inline-flex; align-items:center; justify-content:center; min-width:17px; height:17px;
   padding:0 5px; border-radius:9px; background:var(--amber); color:#fff;
-  font-size:10px; font-weight:800; line-height:1;}
+  font-size:var(--fs-chip); font-weight:700; line-height:1;}
 .av-n[hidden]{display:none;}
 
 .avisos-menu{position:absolute; top:calc(100% + 7px); right:0; z-index:45;
   width:340px; max-width:calc(100vw - 32px); background:var(--bg); border:1px solid var(--line);
   border-radius:12px; box-shadow:var(--shadow-lg); padding:6px; display:none;}
 .avisos-menu.open{display:block;}
-.av-h{font-size:9.5px; font-weight:800; letter-spacing:.1em;
+.av-h{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
   color:var(--gray-soft); padding:8px 10px 7px;}
 /* La lista se desborda dentro de si misma: un buzon que estire la barra de
    arriba hasta el pie de la pagina tapa el panel entero. */
@@ -3675,17 +3690,17 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
   border-radius:8px; padding:9px 10px; cursor:pointer;}
 .av-i:hover{background:var(--block);}
 .av-i:focus-visible{outline:2px solid var(--navy); outline-offset:-2px;}
-.av-i .av-t{font-size:12.5px; font-weight:700; color:var(--ink);}
+.av-i .av-t{font-size:var(--fs-fila); font-weight:600; color:var(--ink);}
 .av-i .av-q{font-size:11.5px; color:var(--gray); margin-top:2px;}
 /* La nota del gestor va en el color del texto normal, no en el gris de lo
    secundario: es lo unico del aviso que hay que leer entero. */
 .av-i .av-nota{font-size:11.5px; color:var(--ink); margin-top:4px;}
-.av-i .av-f{font-size:10.5px; color:var(--gray-soft); margin-top:4px;}
+.av-i .av-f{font-size:var(--fs-nota); color:var(--gray-soft); margin-top:4px;}
 /* El punto marca lo que no habias visto. Se apaga al cerrar el buzon, no al
    abrirlo: si se apagara al abrirlo no llegarias a ver cual era nuevo. */
 .av-i.nuevo .av-t::before{content:''; display:inline-block; width:6px; height:6px; border-radius:50%;
   background:var(--amber); margin-right:6px; vertical-align:middle;}
-.av-vacio{font-size:12px; color:var(--gray); padding:4px 10px 12px;}
+.av-vacio{font-size:var(--fs-parrafo); color:var(--gray); padding:4px 10px 12px;}
 /* ═══════════════════════════════════════════════════════════════════════
    LA FORMA DE SHADCN
    ═══════════════════════════════════════════════════════════════════════
@@ -3737,7 +3752,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
   padding:4px; border-radius:var(--r); border:0; }
 #filters .ftab, .co-filtros button, #mtFiltros button, #ciFiltros button, #raFiltros button{
   border:0; background:transparent; color:var(--mudo); border-radius:calc(var(--r) - 4px);
-  padding:6px 12px; font-size:12.5px; font-weight:500; box-shadow:none; }
+  padding:6px 12px; font-size:var(--fs-pestana); font-weight:600; box-shadow:none; }
 #filters .ftab.on, .co-filtros button.aqui, #mtFiltros button.aqui,
 #ciFiltros button.aqui, #raFiltros button.aqui{
   background:var(--bg); color:var(--ink); box-shadow:var(--shadow); }
