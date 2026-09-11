@@ -15370,14 +15370,26 @@ applyLang(idiomaParaMi());
                                : (u['t.estN'] || dic['t.estN'] || '')).replace('{n}', n);
   }
 
+  /* ── EL ESTIMADO, APAGADO ──
+     Decisión del CIIP: que la ficha no diga «Estimado: hasta 1 semana
+     hábil» ni «Sin plazo estimado». El reloj sigue diciendo cuándo
+     enviaste, cuándo se resolvió y si va tarde; lo que calla es el
+     pronóstico.
+
+     Se apaga con este interruptor y NO se borra, igual que el globo de
+     los plazos: plazo_dias sigue en la base y sigue decidiendo si un
+     trámite va tarde. Vuelve poniendo esto en true. */
+  var ESTIMADO_EN_FICHA = false;
+  window.CIIP_ESTIMADO_EN_FICHA = ESTIMADO_EN_FICHA;
+
   function pintaCuando(tarjeta, tr){
     var span = tarjeta.querySelector('.t-time span:last-child');
     if (!span) return;
     /* El renglon nace escondido -el marcado ya no trae un tiempo de ejemplo-
-       y sale en cuanto hay algo que decir, que es siempre que se llegue
-       aqui: o el estado de tu solicitud, o el plazo, o que no hay plazo. */
+       y sale en cuanto hay algo que decir. Con el estimado encendido eso era
+       siempre; apagado, la que no has pedido no tiene nada que decir, asi
+       que se destapa al final, solo si hay texto. */
     var pieR = tarjeta.querySelector('.t-time');
-    if (pieR) pieR.hidden = false;
 
     var u = T(), dic = I18N[curLang] || I18N.en;
     var texto = '';
@@ -15452,9 +15464,14 @@ applyLang(idiomaParaMi());
        dando su veredicto. */
     var partes = [];
     if (texto) partes.push(texto);
-    if (!(tr && tr.resuelto_en) && !vaTarde) partes.push(cuanto);
+    if (ESTIMADO_EN_FICHA && !(tr && tr.resuelto_en) && !vaTarde) partes.push(cuanto);
     span.removeAttribute('data-i18n');
     span.textContent = partes.join(' · ');
+
+    /* Sin nada que decir se queda escondido: un icono solo, sin frase, se
+       lee como un dato que no cargó. La ficha copia este renglón con el
+       atributo puesto, así que allí tampoco sale. */
+    if (pieR) pieR.hidden = !span.textContent;
   }
 
   /* ── ¿va más lento de lo que se prometió? ──

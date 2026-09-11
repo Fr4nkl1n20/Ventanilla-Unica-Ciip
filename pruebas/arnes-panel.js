@@ -793,21 +793,40 @@
         var dic2 = (I18N[curLang] || I18N.en) || {};
         var cat = window.CIIP_TIPOS_POR_REF || {};
         var esperando = document.querySelectorAll('.tcard.espera');
-        var mal = [], conCifra = 0;
-        [].forEach.call(esperando, function(c){
-          var v = cat[c.getAttribute('data-tr')] || {};
-          if (!v.plazo_dias) return;
-          conCifra++;
-          var t = c.querySelector('.t-time');
-          var dice = ((t && t.textContent) || '').trim();
-          if (deshaceElPlazo(dice, dic2) !== v.plazo_dias)
-            mal.push(c.getAttribute('data-tr') + ': "' + dice.slice(0, 40) + '"');
-        });
-        ok('estados: la que espera dice su tiempo, en el idioma del panel',
-           conCifra > 0 && mal.length === 0,
-           conCifra ? (mal.join(' | ') || 'las ' + conCifra + ' en ' + curLang)
-                    : 'ninguna esperando con cifra',
-           'todas con su plazo de la base');
+
+        if (window.CIIP_ESTIMADO_EN_FICHA){
+          var mal = [], conCifra = 0;
+          [].forEach.call(esperando, function(c){
+            var v = cat[c.getAttribute('data-tr')] || {};
+            if (!v.plazo_dias) return;
+            conCifra++;
+            var t = c.querySelector('.t-time');
+            var dice = ((t && t.textContent) || '').trim();
+            if (deshaceElPlazo(dice, dic2) !== v.plazo_dias)
+              mal.push(c.getAttribute('data-tr') + ': "' + dice.slice(0, 40) + '"');
+          });
+          ok('estados: la que espera dice su tiempo, en el idioma del panel',
+             conCifra > 0 && mal.length === 0,
+             conCifra ? (mal.join(' | ') || 'las ' + conCifra + ' en ' + curLang)
+                      : 'ninguna esperando con cifra',
+             'todas con su plazo de la base');
+        } else {
+          /* Con el estimado apagado a proposito, lo que hay que ver es lo
+             contrario: que ninguna diga un plazo, y que el reloj vacio se
+             esconda en vez de quedarse con el icono solo. */
+          var hablan = [], iconoSolo = [];
+          [].forEach.call(document.querySelectorAll('.tcard'), function(c){
+            var t = c.querySelector('.t-time');
+            if (!t) return;
+            var dice = (t.textContent || '').trim();
+            if (dice && deshaceElPlazo(dice, dic2) !== null) hablan.push(c.getAttribute('data-tr'));
+            if (!dice && !t.hidden) iconoSolo.push(c.getAttribute('data-tr'));
+          });
+          igual('estados: apagado, ninguna ficha dice su estimado',
+                hablan.length ? hablan.join(', ') : '(ninguna)', '(ninguna)');
+          igual('estados: y el reloj sin nada que decir se esconde',
+                iconoSolo.length ? iconoSolo.join(', ') : '(ninguno)', '(ninguno)');
+        }
 
         /* Y sigue sabiendo a quien espera, aunque ya no lo escriba: sin esto,
            borrar el calculo entero pasaria igual de verde. */
@@ -5662,10 +5681,20 @@
 
     var t = esperan[0];
     var pie = t.querySelector('.t-time');
-    ok('opacidad: y lo dicen con letras, no solo apagandose',
-       !!pie && /\S/.test(pie.textContent),
-       pie ? '"' + pie.textContent.trim().slice(0, 40) + '"' : '(sin pie)',
-       'el renglon de a quien espera');
+    /* Lo que decia con letras era el estimado. Apagado, la que espera y aun
+       no has empezado no tiene nada que decir en ese renglon: lo que se
+       mira entonces es que no quede el reloj con el icono solo. */
+    if (window.CIIP_ESTIMADO_EN_FICHA){
+      ok('opacidad: y lo dicen con letras, no solo apagandose',
+         !!pie && /\S/.test(pie.textContent),
+         pie ? '"' + pie.textContent.trim().slice(0, 40) + '"' : '(sin pie)',
+         'el renglon de a quien espera');
+    } else {
+      ok('opacidad: y sin estimado el reloj no se queda con el icono solo',
+         !!pie && (pie.hidden || /\S/.test(pie.textContent)),
+         pie ? (pie.hidden ? 'escondido' : '"' + pie.textContent.trim().slice(0, 40) + '"') : '(sin pie)',
+         'escondido, o con algo que decir');
+    }
 
       /* Y LA PLACA TAMPOCO se atenua, que es lo contrario de lo que decia
          esta comprobacion hace un rato.
@@ -7664,14 +7693,18 @@
     if (CASO !== 'vacio') return;
     var hueco = document.getElementById('trPlazo');
     if (!hueco) return;
-    ok('plazo F5: de entrada la ficha trae su estimado',
-       /\S/.test(hueco.textContent), hueco.textContent.trim() || '(vacio)', 'con hora');
+    if (window.CIIP_ESTIMADO_EN_FICHA)
+      ok('plazo F5: de entrada la ficha trae su estimado',
+         /\S/.test(hueco.textContent), hueco.textContent.trim() || '(vacio)', 'con hora');
     /* Se deja como lo dejaba el fallo: la copia de un reloj recien nacido,
-       sin texto y escondida. */
+       sin texto y escondida. Lleva una marca para poder ver que se rehace:
+       con el estimado apagado la c6 tampoco tiene nada que decir, y la copia
+       buena y la rota serian iguales a la vista. */
     hueco.textContent = '';
     var vacio = document.createElement('span');
     vacio.className = 't-time';
     vacio.hidden = true;
+    vacio.setAttribute('data-roto', '1');
     hueco.appendChild(vacio);
     igual('plazo F5: y asi es como quedaba al recargar',
           hueco.textContent.trim(), '');
@@ -7686,16 +7719,29 @@
     if (CASO !== 'vacio') return;
     var hueco = document.getElementById('trPlazo');
     var reloj = hueco && hueco.querySelector('.t-time');
-    ok('plazo F5: al pintarse las tarjetas, el estimado vuelve',
-       !!hueco && /\S/.test(hueco.textContent),
-       hueco ? (hueco.textContent.trim() || '(sigue vacio)') : '(no hay hueco)', 'con hora');
-    /* Y sin el 'hidden' que traia la copia rota: un renglon con texto y
-       escondido se mide como lleno y no se ve, que es el peor de los dos. */
-    ok('plazo F5: y se ve, que la copia rota venia escondida',
-       !!reloj && !reloj.hidden, reloj ? ('escondido=' + reloj.hidden) : '(sin reloj)',
-       'a la vista');
-    /* Y dice lo MISMO que la tarjeta: son el mismo dato. */
     var enLaTarjeta = document.querySelector('.tcard[data-tr="c6"] .t-time');
+    if (window.CIIP_ESTIMADO_EN_FICHA){
+      ok('plazo F5: al pintarse las tarjetas, el estimado vuelve',
+         !!hueco && /\S/.test(hueco.textContent),
+         hueco ? (hueco.textContent.trim() || '(sigue vacio)') : '(no hay hueco)', 'con hora');
+      /* Y sin el 'hidden' que traia la copia rota: un renglon con texto y
+         escondido se mide como lleno y no se ve, que es el peor de los dos. */
+      ok('plazo F5: y se ve, que la copia rota venia escondida',
+         !!reloj && !reloj.hidden, reloj ? ('escondido=' + reloj.hidden) : '(sin reloj)',
+         'a la vista');
+    } else {
+      /* Apagado, lo que se mide es que la copia se REHIZO -la marca de la
+         rota ya no esta- y que va escondida o a la vista igual que su
+         tarjeta: ni un icono suelto ni un renglon con texto tapado. */
+      ok('plazo F5: al pintarse las tarjetas, la copia se rehace',
+         !!reloj && !reloj.hasAttribute('data-roto'),
+         !reloj ? '(sin reloj)' : (reloj.hasAttribute('data-roto') ? '(sigue la rota)' : 'rehecha'),
+         'rehecha');
+      igual('plazo F5: y se ve o se esconde igual que su tarjeta',
+            reloj ? reloj.hidden : '(sin reloj)',
+            enLaTarjeta ? enLaTarjeta.hidden : '(no hay tarjeta)');
+    }
+    /* Y dice lo MISMO que la tarjeta: son el mismo dato. */
     igual('plazo F5: y dice lo mismo que su tarjeta',
           hueco.textContent.trim(),
           enLaTarjeta ? enLaTarjeta.textContent.trim() : '(no hay tarjeta)');
