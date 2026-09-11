@@ -1,8 +1,8 @@
 # Tipografía de la Ventanilla
 
-Cómo llevar la escala y la jerarquía tipográfica de Atlas a
-`ciip-ventanilla-unica-local.html`. La referencia es `tipografia-atlas.md`,
-del repositorio `ciip-app`.
+Cómo llevar la escala, la jerarquía, los colores y las figuras de Atlas a
+`ciip-ventanilla-unica-local.html`. Las referencias son `tipografia-atlas.md`
+y `css/app.css` del repositorio `ciip-app` (https://ciip-app.vercel.app).
 
 | | |
 | --- | --- |
@@ -10,31 +10,29 @@ del repositorio `ciip-app`.
 | Reglas con tamaño de letra | 319 |
 | Tamaños distintos hoy | 23 |
 | Tamaños distintos al terminar | 10 de texto, más la serif (34 / 27) y la mono (9.5) |
-| Estado | Aplicado el 2026-09-11: 169 reglas |
+| Estado | Escala aplicada el 2026-09-11 (180 reglas). Colores y figuras de Atlas, el mismo día (§10) |
 
 ---
 
 ## 1. Principio
 
-La jerarquía la hace el **peso**, no el tamaño.
+La jerarquía la hacen el **peso** y la **tinta**, no el tamaño.
 
-Atlas se apoya en dos cosas: el peso y la tinta. En la Ventanilla la tinta no
-está disponible. El CIIP pidió el 3 de septiembre de 2026 que *«todos los
-textos que tengan letras gris sean negro de color normal»*, y `--gray` y
-`--gray-soft` apuntan a `--ink` en los dos temas.
+Como en Atlas. Los grises vuelven: `--gray` `#5B6478` y `--gray-soft`
+`#8A93A6` (`#9AA6BC` y `#6E7B93` en oscuro). El 3 de septiembre el CIIP había
+pedido todo el texto en negro; el 11 de septiembre se decidió traer el
+lenguaje de Atlas entero, y su jerarquía necesita el gris.
 
-Consecuencias:
-
-- Los grises de Atlas (`#5B6478`, `#8A93A6`) **no se aplican**.
-- Toda la jerarquía descansa en el peso. Donde Atlas baja la tinta, aquí se
-  mantiene o se sube el peso.
-- Si dos textos no se distinguen, se cambia el peso o el aire entre ellos.
+- Un título manda sobre su dato por ser más negro y más pesado, no más grande.
+- Si dos textos no se distinguen, se cambia el peso, la tinta o el aire.
   Nunca el tamaño.
+- Lo que falta por llenar va en tinta normal, no en gris apagado: el gris
+  apagado se lee como deshabilitado.
 
-**El techo es 700, no 800.** Atlas usa 800 porque se diseñó con Helvetica
-Neue. En Windows no hay Helvetica y la pila cae en Arial, que no tiene 800:
-Chrome salta a **Arial Black**, otra letra, ancha y pesada. Donde Atlas pone
-800, aquí va 700.
+**800 solo en cifras.** En Windows no hay Helvetica y la pila cae en Arial,
+que no tiene 800: Chrome salta a **Arial Black**. En una cifra grande es la
+voz de Atlas; en un rótulo pequeño, una letra que no encaja. Por eso las
+cifras van en 800 y todo lo demás tiene el techo en 700.
 
 ---
 
@@ -58,7 +56,7 @@ Quince escalones sobre diez tamaños. Cada uno tiene un solo trabajo.
 
 | Token | px | Peso | Interletraje | Interlínea | Rol |
 | --- | --- | --- | --- | --- | --- |
-| `--fs-cifra` | 24 | 700 | -.02em | 1 | Cifra de indicador |
+| `--fs-cifra` | 24 | 800 | -.02em | 1 | Cifra de indicador |
 | `--fs-titulo` | 20 | 700 | -.02em | 1.2 | Título de página |
 | `--fs-tarjeta` | 14 | 700 | -.01em | 1.3 | Título de tarjeta |
 | `--fs-valor` | 13.5 | 500 | — | 1.45 | Valor de un dato |
@@ -69,7 +67,7 @@ Quince escalones sobre diez tamaños. Cada uno tiene un solo trabajo.
 | `--fs-pestana` | 12.5 | 600 | — | — | Pestaña y filtro |
 | `--fs-fila` | 12 | 600 | — | 1.35 | Nombre en una fila de lista |
 | `--fs-boton` | 11.5 | 700 | — | 1 | Botón y enlace dentro de una ficha |
-| `--fs-rotulo-form` | 11.5 | 700 | — | — | Rótulo de un campo de formulario |
+| `--fs-rotulo-form` | 11.5 | 500, gris | — | — | Rótulo de un campo de formulario |
 | `--fs-rotulo` | 11 | 700 | .01em | — | Rótulo de un dato |
 | `--fs-nota` | 11 | 400 | — | 1.55 | Nota, texto de apoyo |
 | `--fs-chip` | 10 | 700 | .01em | 1 | Pastilla, contador, microrótulo |
@@ -92,7 +90,7 @@ no aparecen.
 
 | Destino | Hoy | Selectores |
 | --- | --- | --- |
-| Cifra 24 / 700 | 19–25 px | `.pu-n .v` `.ft-t .n` `.hm .v` `.hero-ring .pct` |
+| Cifra 24 / 800 | 19–25 px | `.pu-n .v` `.ft-t .n` `.hm .v` `.hero-ring .pct` |
 | Título de página 20 / 700 | 17–19 px | `.tr-nombre` `.em-nombre` |
 | Tarjeta 14 / 700 | 15–15.5 px | `.phase-h .pt` `.g-name` `.pa-cuenta .pc-t` `.sup-panel .sb-q` |
 | Tarjeta 14 / 700 | 13.5 / 700 | `.t-name` `.jp .jname` `.cg-nombre` `.ct-linea` `.co-quien` `.ay-t` |
@@ -129,7 +127,7 @@ peso: 700 contra 500.
 | Botón 11.5 / 700 | 11.5 / 600 | `.tb-btn` |
 | Pestaña 12.5 / 600 | 12.5 / 500 · 11.5 / 700 | filtros (`#mtFiltros` `#ciFiltros` `#raFiltros` `.co-filtros`) `.ftab` |
 | Campo 12.5 | 13–13.5 px | `.pf-campo input/select/textarea` `.id-form input/select/textarea` `.so-txt input` `.so-num input` `.asst-in input` `.se-buscar` `.so-num label` `.so-fila label` `.so-txt label` |
-| Rótulo de formulario 11.5 / 700 | 11 / 700 | `.sol-campo label` `.id-form label` |
+| Rótulo de formulario 11.5 / 500, gris | 11–11.5 / 700 | `.sol-campo label` `.id-form label` `.pf-campo > span/label` `.co-emitir label` |
 | Enlace suelto 13 / 600 | 12 px | `.cons-volver` `.tsec-sig` `.t-mas` |
 | Enlace en ficha 11.5 / 700 | 11 px | `.sol-doc .sd-btn` `.t-foot .go` |
 
@@ -150,13 +148,13 @@ peso: 700 contra 500.
 
 | Qué | Por qué |
 | --- | --- |
-| `.hero h1`, `.sb-head .pn` | Ya son la serif de Atlas: 34 px, peso 400 |
+| `.hero h1` | Ya es la serif de Atlas: 34 px, peso 400 |
+| `.sb-head .pn` | «Ventanilla» en Instrument Serif 28 px: la de Atlas es 34, pero «Atlas» es más corta y aquí tiene que caber junto al logo |
 | `.hero p` | Texto de portada sobre el azul: se queda en 13.5 |
 | Chevrones, flechas, íconos de letra | No son texto: `.faq-h .chev` `.phase-h .chev` `.volver .v-ico` `.asst-h .ax` `.th-orden .flecha` `.lang-btn .caret` |
 | Iniciales de avatar, banderas | Se dimensionan con su caja: `.avatar` `.gestor .g-av` `.pf-foto-vista` `.sb-langs .flag` |
 | Burbujas de conversación | `.bub` `.hilo-txt` tienen su propia interlínea de chat |
-| Tokens de color | Pedido del CIIP del 3 de septiembre (ver §1) |
-| Pesos de la capa shadcn | Una capa posterior fija su propio peso y manda sobre la escala: `.btn` 500 · `.sec-h .t` `.sol-h` `.ft-rh .t` 600 · `.jname` `.t-name` 600 (lo exige la prueba) · `.jcount` 500 · `.ftab .n` 600. El tamaño sí es el de Atlas |
+| `.jname` `.t-name` en 600 | La capa shadcn los baja a 600 y la prueba lo exige. `.jcount` sigue en 500. Los demás pesos de esa capa (`.btn`, `.sec-h .t` `.sol-h` `.ft-rh .t`, `.ftab .n`) los pisa la capa Atlas: 700 |
 | `acceso.html`, `login/index.html` | Ya usan Helvetica e Instrument Serif. Se revisan aparte |
 
 ---
@@ -217,25 +215,80 @@ descarta la declaración entera (ya pasó con `.volver`).
 
 ## 8. Decisiones tomadas
 
-- [x] **Rótulo de formulario: 11.5 / 700.** Atlas usa 11.5 / 500 gris. Sin
-      gris, a 500 se confundía con lo escrito.
+- [x] **Rótulo de formulario: 11.5 / 500, gris,** como Atlas. Estuvo en 700
+      mientras no había gris: a 500 y en negro se confundía con lo escrito.
 - [x] **Enlaces de acción: mixto.** 13 / 600 los sueltos; 11.5 / 700 los que
       van dentro de una ficha, para no agrandarla.
-- [x] **`--mudo` pasa a tinta.** Era #737373 en claro y #A1A1A1 en oscuro;
-      ahora sigue a `--ink`, como los otros dos grises.
+- [x] **`--mudo` sigue al gris de Atlas:** `#5B6478` en claro, `#9AA6BC` en
+      oscuro. Era `#737373` / `#A1A1A1` (shadcn), y un rato estuvo en tinta.
+- [x] **Todo el lenguaje de Atlas** —gris, fondo azulado, cabecera azul, menú
+      con íconos—, aunque deshace el negro del 3 de septiembre y los neutros
+      de shadcn. Decisión del 11 de septiembre (§10).
 
 ---
 
 ## 9. Antipatrones
 
-1. **Subir el tamaño para crear jerarquía.** Aquí no hay tinta: sube el peso.
-2. **Un rótulo con el mismo peso que su dato.** Sin gris, esto borra la
-   jerarquía por completo.
+1. **Subir el tamaño para crear jerarquía.** Sube el peso o baja la tinta.
+2. **Un rótulo con el mismo peso y la misma tinta que su dato.** La columna
+   se lee a dos voces y deja de saberse qué encabeza a qué.
 3. **Un tamaño nuevo fuera de la escala.** Si ningún escalón sirve, el problema
    es el diseño, no la escala.
 4. **Un control nuevo sin `font-family: inherit`.** La regla global lo cubre;
    no la sobrescribas.
 5. **Interletraje en texto corrido.** Solo en rótulos pequeños, mayúsculas y
    títulos grandes.
-6. **Peso 800 o 900.** En Windows se convierte en Arial Black. El más pesado
-   que se usa es 700.
+6. **Peso 800 o 900 fuera de una cifra.** En Windows se convierte en Arial
+   Black. Ojo con `<b>` y `<strong>`: heredan `bolder`, y sobre un 600 dan
+   900 (pasó con «Mi panel» en la cabecera).
+7. **Pintar de blanco la cabecera entera.** Los menús que cuelgan de ella
+   son blancos y heredarían la letra. El color va pieza a pieza.
+
+---
+
+## 10. Figuras y colores de Atlas
+
+Leídos de `css/app.css` de Atlas, no de capturas. Viven en la **capa Atlas**,
+al final del `<style>` grande, para mandar sobre la capa shadcn.
+
+### Colores
+
+| Token | Antes (shadcn) | Ahora (Atlas) | Oscuro |
+| --- | --- | --- | --- |
+| `--gray` | = tinta | `#5B6478` | `#9AA6BC` |
+| `--gray-soft` | = tinta | `#8A93A6` | `#6E7B93` |
+| `--mudo` | = tinta | `#5B6478` | `#9AA6BC` |
+| `--block` (fondo) | `#F5F5F5` | `#F4F7FB` | sin cambio |
+| `--line` / `--line-soft` | `#E5E5E5` / `#F0F0F0` | `#E4E7EE` / `#EEF1F6` | sin cambio |
+| `--shadow` | `0 1px 2px rgba(0,0,0,.05)` | `0 1px 2px rgba(14,20,36,.04), 0 6px 18px rgba(14,20,36,.06)` | sin cambio |
+
+Atlas no tiene tema oscuro: en oscuro sigue la paleta de la Ventanilla, con
+los grises que ya tenía antes del 3 de septiembre.
+
+### Figuras
+
+| Pieza | Cómo queda |
+| --- | --- |
+| Cabecera | Azul `--navy`, sin borde. Botones translúcidos (blanco al 8 %, borde al 16 %), letra blanca; avatar con aro blanco |
+| Marca | Logo + «Ventanilla» en Instrument Serif 28 px, separados por una raya blanca al 25 % |
+| Menú lateral | Degradado `--navy` → `--navy-deep`. Grupo 11 / 700 blanco al 55 % |
+| Opción del menú | Ícono de línea 15 px (trazo 1.8) donde había un punto. Activa: fondo cyan al 16 %, raya cyan de 3 px a la izquierda, ícono cyan |
+| Contadores del menú | Número suelto 10 / 700, blanco al 55 %, sin pastilla |
+| Títulos de sección | Cuadradito cyan de 7 px, radio 2 (`.tick` de Atlas), delante de `.sec-h .t` |
+| Filtros | Control segmentado: fondo `--block`, borde, radio 8. Activo en blanco con sombra y letra `--navy2`; su contador en cyan |
+| Botones | 700, como Atlas |
+
+### Íconos del menú
+
+Trazos de 24 × 24, en el estilo de los de Atlas: panel (cuatro bloques),
+trámites (casilla marcada), empresa (edificio), documentos (hoja), activos
+(cubo), usuarios (dos personas), catálogo (libro), pulso (el mismo trazo que
+el panel de inteligencia de Atlas), trazabilidad (ruta), acompañamiento
+(globo), citas (calendario), ayuda (interrogación), datos (escudo) y pagos
+(tarjeta).
+
+### Lo que no se trae
+
+- **Grupos plegables del menú.** Aquí son cinco grupos cortos: plegarlos
+  esconde más de lo que ordena.
+- **Geist.** Atlas la carga pero solo la usan dos pantallas de administración.
