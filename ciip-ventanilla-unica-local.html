@@ -2197,9 +2197,10 @@ body[data-vista="tramite"] #secTramites{display:none;}
    vacio en una fila flex no se ve, pero su separacion si: catorce pixeles
    de nada al final de la cabecera. */
 #trChip:empty{display:none;}
-/* Y el plazo no se estira ni se encoge: es un dato corto y va pegado a la
-   derecha, a la altura del nombre. */
-.tr-cab .tr-plazo{flex:none; margin-top:2px;}
+/* Aqui habia una regla para el plazo cuando vivia dentro de la cabecera
+   -que no se estirara ni se encogiera, pegado a la derecha-. El plazo bajo
+   a su propio renglon debajo de la descripcion y ya no es hijo de una fila
+   flex, asi que la regla sobraba. */
 .tr-cab-txt{flex:1 1 auto; min-width:0;}
 .tr-nombre{font-size:19px; font-weight:700; line-height:1.22;}
 .tr-ente{font-size:11.5px; font-weight:700; color:var(--gray); margin-top:6px;}
@@ -4386,13 +4387,20 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
           <div class="tr-ente" id="trEnte"></div>
         </div>
         <div id="trChip"></div>
-        <!-- El plazo, a la derecha del titulo. Estaba en su propio renglon
-             debajo de la descripcion, y con «Por iniciar» fuera ese lado
-             quedaba vacio: un renglon de 16 px de alto por 202 de ancho
-             para decir una cosa. Aqui llena el hueco y ahorra la fila. -->
-        <div class="tr-plazo" id="trPlazo"></div>
       </div>
       <div class="tr-desc" id="trDesc"></div>
+      <!-- El plazo, DEBAJO DE LA DESCRIPCION y encima de lo que venga: la
+           tira de pasos de la solicitud, o la escalera del proceso cuando el
+           tramite todavia no esta encendido.
+
+           Estuvo aqui, subio a la cabecera -a la derecha del titulo, para
+           llenar el hueco que dejaba el distintivo y ahorrar una fila- y
+           vuelve por decision del CIIP. Arriba competia con el nombre y el
+           distintivo, que es lo primero que se lee; aqui cae justo donde se
+           hace la pregunta: acabas de leer de que va el tramite y lo
+           siguiente que quieres saber es cuanto tarda, antes de empezar a
+           rellenar. -->
+      <div class="tr-plazo" id="trPlazo"></div>
       <div class="tr-proceso" id="trProceso">
         <div class="tr-h" id="trTitulo">The process</div>
         <ol class="tr-pasos" id="trPasos"></ol>
