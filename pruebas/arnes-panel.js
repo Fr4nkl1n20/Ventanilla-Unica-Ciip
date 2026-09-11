@@ -226,6 +226,7 @@
               faqAbre, faqMira,
               volverAbre, volverMira, volverTrasVolver,
               rutaLargaEtapa, rutaLargaFicha, rutaLargaVuelve, rutaLargaMira,
+              holaMira, holaPuerta, holaPuertaMira, holaPuertaAbierta,
               lectorAbre, lectorMira, lectorEscribe, lectorEscribe2, lectorSuelta, lectorRelleno,
               lectorToca, lectorTocada,
               lectorOtra, lectorNoLoConoce, lectorLoDice,
@@ -7699,6 +7700,70 @@
           hueco.textContent.trim(),
           enLaTarjeta ? enLaTarjeta.textContent.trim() : '(no hay tarjeta)');
     location.hash = '';
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     LA BARRA DE ARRIBA: FUERA LA BUSQUEDA, DENTRO EL SALUDO
+     ═══════════════════════════════════════════════════════════════
+     Donde estaba «Pregunta lo que sea sobre invertir en Venezuela» hay
+     ahora «Bienvenido, <nombre>».
+
+     Aquella barra no era un buscador: era la puerta al asistente, que es
+     una DEMOSTRACION -contesta por palabras clave sobre siete temas
+     escritos a mano-. Con esa cara y en el sitio mas visible del panel
+     prometia bastante mas de lo que da. El asistente NO se fue: se llega
+     por la burbuja de acompañamiento, y eso se mide abajo. Sin esa
+     segunda mitad, haberlo borrado del todo pasaria por bueno.
+
+     Y el saludo lleva el nombre de PILA a proposito: el completo ya esta
+     en la misma barra, junto al avatar. */
+  function holaMira(){
+    var b = document.getElementById('askBar');
+    ok('barra: la de «pregunta lo que sea» ya no esta', !b,
+       b ? 'sigue ahi' : 'no esta', 'fuera');
+
+    var h = document.getElementById('tbHola');
+    ok('barra: y en su sitio saluda', !!h && !h.hidden,
+       h ? ('oculto=' + h.hidden) : '(no esta)', 'a la vista');
+    if (!h || h.hidden) return;
+
+    /* Con TU nombre. Que salude es facil; que salude a quien es, no: aqui
+       ya hubo una vez en que la esquina llamaba por el nombre de la
+       maqueta a quien acababa de entrar con su cuenta. */
+    var quien = (document.querySelector('.u-name') || {}).textContent || '';
+    var pila = quien.trim().split(/\s+/)[0] || '';
+    ok('barra: y te saluda a TI, por tu nombre de pila',
+       !!pila && h.textContent.indexOf(pila) >= 0,
+       h.textContent.trim() + ' / en la esquina: ' + quien.trim(), pila);
+    /* Y el de pila, no el entero: el completo ya esta en la esquina. */
+    var apellido = quien.trim().split(/\s+/)[1] || '';
+    if (apellido){
+      ok('barra: con el nombre de pila y no el entero, que ya esta al lado',
+         h.textContent.indexOf(apellido) < 0,
+         h.textContent.trim(), 'sin «' + apellido + '»');
+    }
+  }
+
+  /* El asistente no se fue con la barra. */
+  function holaPuerta(){
+    var fab = document.getElementById('supFab');
+    if (fab) fab.click();
+  }
+
+  function holaPuertaMira(){
+    var b = document.getElementById('supCiip');
+    ok('barra: el asistente se sigue llegando por la burbuja', !!b,
+       b ? 'esta' : '(no esta)', 'su boton');
+    if (b) b.click();
+  }
+
+  function holaPuertaAbierta(){
+    var back = document.getElementById('asstBack');
+    ok('barra: y abre de verdad',
+       !!back && back.classList.contains('open'),
+       back ? back.className : '(no hay)', 'abierto');
+    var cerrar = document.getElementById('asstClose');
+    if (cerrar) cerrar.click();
   }
 
   function cuadraAbre(){

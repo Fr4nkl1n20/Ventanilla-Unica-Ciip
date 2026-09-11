@@ -680,6 +680,26 @@ function fichasDelMarcado() {
   }
 }
 
+/* EL SALUDO NACE VACIO Y OCULTO
+   Quien eres no se sabe hasta que contesta la sesion. Un «Bienvenido,
+   Fulano» escrito en el marcado se veria durante ese rato, y seria el
+   nombre de quien escribio el HTML: ya paso en esta misma barra con el de
+   la maqueta, y quien entraba con su cuenta veia en la esquina el nombre
+   de otra persona.
+
+   Se comprueba leyendo el marcado, que es donde estaria el fallo: para
+   cuando el arnes mira, la sesion ya contesto. */
+{
+  const hola = /<div class="tb-hola"([^>]*)>([\s\S]*?)<\/div>/.exec(PANEL);
+  ok('saludo: el hueco esta en el marcado', !!hola, hola ? '' : '(no esta)');
+  if (hola) {
+    ok('saludo: nace oculto, que a quien saludar no se sabe todavia',
+       /\shidden[\s>]/.test(hola[1] + '>'), hola[1].trim() || '(sin atributos)');
+    ok('saludo: y sin ningun nombre escrito dentro',
+       hola[2].trim() === '', hola[2].trim().slice(0, 40) || '(vacio)');
+  }
+}
+
 console.log('\n  ' + pasan + ' de ' + (pasan + fallan) + ' comprobaciones superadas');
 console.log('  ' + claves.length + ' claves de interfaz y ' + clavesUI.length +
             ' de trámites, en ' + idiomas.length + ' idiomas.\n');
