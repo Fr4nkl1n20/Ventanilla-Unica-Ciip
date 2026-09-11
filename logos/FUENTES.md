@@ -21,6 +21,7 @@ muestran (13 px), para que se vean nítidos en pantallas densas sin pesar.
 | `mpprijp.png` | MPPRIJP (Interiores, Justicia y Paz) | Sitio oficial, `mpprijp.gob.ve` (recortado del cintillo de cabecera) |
 | `mpppst.png` | MPPPST (Ministerio del Trabajo) | Cintillo oficial publicado en `inces.gob.ve`, recortado |
 | `ciip.png` | CIIP | Extraído del propio panel, donde ya iba incrustado en base64 |
+| `banavih.png` | BANAVIH | Sitio oficial, `banavih.gob.ve` (`Logo_BANAVIH_Blanco-1.webp`, pintado con el azul `#009ABC` de su favicon) |
 
 ## Cómo se prepararon
 
@@ -36,7 +37,6 @@ No se encontró logo utilizable para:
 | Organismo | Por qué |
 |---|---|
 | **MINEC** (permiso ambiental) | Su logo lleva el texto en gris clarísimo; a 13 px queda una mancha ilegible. El icono del sitio es solo la bandera, que no dice MINEC |
-| **BANAVIH** (FAOV) | Solo publica la versión en blanco, invisible sobre la placa. Su icono es un arco azul sin nombre |
 | **VUCE** (importación y exportación) | El sitio no respondió |
 | **INSAI**, **FAOV**, **RNET como tal** | Sin sitio propio con logo |
 
