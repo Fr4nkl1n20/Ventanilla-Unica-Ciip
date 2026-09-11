@@ -2208,6 +2208,21 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-plazo{display:inline-flex; align-items:center; gap:6px; font-size:11.5px;
   color:var(--gray); margin-top:11px;}
 .tr-plazo svg{width:13px; height:13px; stroke:currentColor; stroke-width:1.8; fill:none;}
+/* EN NEGRITA, y la regla va sobre .t-time y no sobre .tr-plazo: lo que hay
+   dentro es un CLON del reloj de la tarjeta, con su clase puesta, asi que el
+   peso que manda es el suyo -600- y ponerlo en el padre no lo alcanzaria.
+
+   700 y no 600: la familia es Helvetica Neue / Arial, que trae redonda y
+   negrita y nada en medio. Un 600 se lo queda el navegador y lo resuelve
+   como puede -o lo redondea a una de las dos, o se la inventa engordando la
+   redonda-, asi que pedirlo es pedir algo que no existe. En la tarjeta del
+   catalogo sigue en 600 a proposito: ahi el reloj es un dato mas del pie y
+   no tiene que pesar mas que el nombre del tramite.
+
+   Solo el peso. El tamaño y el color se quedan como estan: subirlos de paso
+   convertiria «que se lea» en «que grite», y esto acompaña a la descripcion,
+   no la encabeza. */
+.tr-plazo .t-time{font-weight:700;}
 
 .tr-proceso{margin-top:28px;}
 .tr-h{font-size:13px; font-weight:700; margin-bottom:15px;}
