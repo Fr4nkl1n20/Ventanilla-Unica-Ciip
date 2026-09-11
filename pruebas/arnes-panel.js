@@ -2729,6 +2729,25 @@
     igual('horario: un tramo al revés no se guarda, y lo dice',
           (document.getElementById('hoAviso') || {}).textContent,
           'La hora de fin tiene que ser posterior a la de inicio.');
+    /* SIN FINES DE SEMANA. El desplegable del dia llega hasta el viernes:
+       la base no acepta mas, y ofrecer aqui un sabado seria ofrecer algo
+       que al guardar da error. */
+    var dias = [].map.call(document.querySelectorAll('#hoDia option'),
+                           function(o){ return o.value; }).join(',');
+    igual('horario: el desplegable del dia va de lunes a viernes', dias, '1,2,3,4,5');
+
+    /* Y el calendario es el del navegador, que no deja esconder dias: un
+       sabado se puede elegir. Tiene que decirlo y no mandarlo. El 26 de
+       diciembre de 2026 es sabado. */
+    document.getElementById('hoFecha').value = '2026-12-26';
+    document.getElementById('hoCerrar').click();
+    igual('horario: un sabado no se cierra, y lo dice con palabras',
+          (document.getElementById('hoAviso') || {}).textContent,
+          'El CIIP no atiende sábados ni domingos: ese día ya no ofrece citas.');
+    ok('horario: y el boton no se queda bloqueado despues de avisar',
+       !document.getElementById('hoCerrar').disabled,
+       document.getElementById('hoCerrar').disabled ? 'bloqueado' : 'libre', 'libre');
+
     /* Un día cerrado. */
     document.getElementById('hoFecha').value = '2026-12-24';
     document.getElementById('hoMotivo').value = 'Navidad';

@@ -31,7 +31,12 @@
    Las cuentas de la cabecera se calculan de orden.length. Estaban a mano
    y decian 23, 26 y 25 a la vez, en el mismo archivo. */
 const fs = require('fs');
-process.chdir('C:/Users/ciip/Ventanilla-Unica-Ciip');
+/* La raiz se saca de DONDE ESTA ESTE ARCHIVO, no de una ruta escrita a
+   mano. Estaba puesto 'C:/Users/ciip/Ventanilla-Unica-Ciip', que en esta
+   maquina es OTRO clon del proyecto y va por detras: correr el generador
+   desde la carpeta buena regeneraba TODO-EN-ORDEN.sql con el SQL del clon
+   viejo. Un fallo que no da error: da un SQL de la semana pasada. */
+process.chdir(require('path').join(__dirname, '..'));
 const BARRA = String.fromCharCode(92);
 
 const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-citas',

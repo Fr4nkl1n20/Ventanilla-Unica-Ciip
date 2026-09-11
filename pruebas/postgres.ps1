@@ -131,7 +131,11 @@ try {
     #     habria borrado. Ahora es uno mas.
     'supabase-consultas.sql',
     'supabase-informe-victor.sql',   # 26  el catalogo, tras encadenado y plazos
-    'supabase-pliego.sql'            # 27  solo necesita es_admin y es_gestor
+    'supabase-pliego.sql',           # 27  solo necesita es_admin y es_gestor
+    # 28  el horario y los cierres de las citas. Estaba en TODO-EN-ORDEN.sql
+    #     pero no aqui, asi que nunca se habia pasado por un Postgres: sus
+    #     reglas -y la de los fines de semana- no las comprobaba nadie.
+    'supabase-disponibilidad.sql'
   )
   $n = 0
   foreach ($f in $once) {

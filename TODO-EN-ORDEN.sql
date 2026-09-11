@@ -6548,13 +6548,18 @@ create table if not exists public.horario_citas (
 
   creado_en timestamptz not null default now(),
 
-  constraint horario_dia_valido   check (dia between 1 and 7),
+  -- De lunes a viernes. El CIIP no atiende fines de semana, y un tramo en
+  -- sabado seria un hueco que el panel ofreceria a los inversionistas sin
+  -- que nadie lo hubiera decidido. La numeracion sigue siendo la de
+  -- isodow -1 lunes, 7 domingo- para no traducir dias entre la base y la
+  -- pantalla; lo que cambia es cuales valen.
+  constraint horario_dia_valido   check (dia between 1 and 5),
   constraint horario_tramo_valido check (hasta > desde),
   constraint horario_cada_valido  check (cada_min between 10 and 240)
 );
 
 comment on table  public.horario_citas          is 'Cuándo atiende el CIIP, semana a semana. Lo edita el equipo desde el panel';
-comment on column public.horario_citas.dia      is '1 lunes ... 7 domingo (isodow)';
+comment on column public.horario_citas.dia      is '1 lunes ... 5 viernes (isodow). Sin fines de semana';
 comment on column public.horario_citas.desde    is 'Hora de Caracas en que empieza el tramo';
 comment on column public.horario_citas.hasta    is 'Hora de Caracas en que acaba: el último hueco tiene que caber antes';
 comment on column public.horario_citas.cada_min is 'Duración de cada hueco, en minutos';
@@ -6568,7 +6573,11 @@ create table if not exists public.cierres_citas (
   motivo    text not null default '',
   creado_en timestamptz not null default now(),
 
-  constraint cierre_motivo_cabe check (length(motivo) <= 200)
+  constraint cierre_motivo_cabe check (length(motivo) <= 200),
+  -- Cerrar un sabado no significa nada: ese dia ya no hay citas. Dejarlo
+  -- pasar llena la lista de cierres de dias que nunca estuvieron abiertos,
+  -- y al mirarla ya no se distingue el feriado de verdad.
+  constraint cierre_dia_laborable check (extract(isodow from fecha) between 1 and 5)
 );
 
 comment on table public.cierres_citas is 'Días sin citas aunque el horario diga lo contrario: feriados, vacaciones';
@@ -6770,3 +6779,37 @@ $res$;
 
 revoke all on function public.reserva_cita(timestamptz, text, text, text) from public;
 grant execute on function public.reserva_cita(timestamptz, text, text, text) to authenticated;
+
+-- ───────────────────────────────────────────────────────────────────────
+-- SIN FINES DE SEMANA, TAMBIEN EN UNA BASE QUE YA TENIA LAS TABLAS
+-- ───────────────────────────────────────────────────────────────────────
+-- Arriba la regla va dentro del create table, y eso solo sirve en una base
+-- nueva: si la tabla ya existe, «create table if not exists» no la toca.
+-- Asi que aqui se pone otra vez, por su nombre, para que tambien la tenga
+-- la base donde este archivo ya se habia pasado.
+--
+-- Si hay tramos o cierres en fin de semana, se para y lo dice. No se
+-- borran solos: son datos que alguien escribio, y decidir tirarlos no le
+-- toca a un archivo de SQL.
+do $$
+begin
+  if exists (select 1 from public.horario_citas where dia > 5) then
+    raise exception using message =
+      'Hay tramos en sabado o domingo en horario_citas. El CIIP no atiende ' ||
+      'fines de semana: borralos desde el panel y vuelve a pasar este archivo.';
+  end if;
+  if exists (select 1 from public.cierres_citas
+             where extract(isodow from fecha) > 5) then
+    raise exception using message =
+      'Hay dias cerrados que caen en sabado o domingo en cierres_citas. ' ||
+      'Esos dias ya no tenian citas: borralos y vuelve a pasar este archivo.';
+  end if;
+end $$;
+
+alter table public.horario_citas drop constraint if exists horario_dia_valido;
+alter table public.horario_citas add  constraint horario_dia_valido
+  check (dia between 1 and 5);
+
+alter table public.cierres_citas drop constraint if exists cierre_dia_laborable;
+alter table public.cierres_citas add  constraint cierre_dia_laborable
+  check (extract(isodow from fecha) between 1 and 5);

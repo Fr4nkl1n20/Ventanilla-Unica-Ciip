@@ -2064,6 +2064,70 @@ values (1, 'Pliego de prueba',
 -- que aceptar.
 set role authenticated;
 select arnes.soy((select id from arnes.gente where papel = 'A'));
+-- ══════════════════════════════════════════════════════════════════
+--  LAS CITAS NO TIENEN FIN DE SEMANA
+-- ══════════════════════════════════════════════════════════════════
+--  La regla va en la base y no solo en la pantalla: si solo estuviera
+--  alli, un insert a mano abriria un sabado y el panel se lo ofreceria a
+--  los inversionistas sin que nadie lo hubiera decidido. Se prueba como
+--  la clave de servicio, que es quien se salta las politicas: lo que se
+--  mide aqui son las REGLAS de la tabla, que no se salta nadie.
+
+reset role;
+
+do $p$
+begin
+  insert into public.horario_citas (dia, desde, hasta) values (6, '09:00', '12:00');
+  perform arnes.comprueba('citas: no se puede abrir un sabado', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('citas: no se puede abrir un sabado', true, sqlerrm);
+end
+$p$;
+
+do $p$
+begin
+  insert into public.horario_citas (dia, desde, hasta) values (7, '09:00', '12:00');
+  perform arnes.comprueba('citas: ni un domingo', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('citas: ni un domingo', true, sqlerrm);
+end
+$p$;
+
+--  Y el viernes si. Sin esta, una regla que lo rechazara TODO pasaria las
+--  dos de arriba.
+do $p$
+begin
+  insert into public.horario_citas (dia, desde, hasta) values (5, '09:00', '12:00');
+  perform arnes.comprueba('citas: y el viernes si se abre', true, 'entro');
+exception when others then
+  perform arnes.comprueba('citas: y el viernes si se abre', false, sqlerrm);
+end
+$p$;
+
+--  Cerrar un sabado no significa nada: ese dia ya no hay citas. El 26 de
+--  diciembre de 2026 es sabado.
+do $p$
+begin
+  insert into public.cierres_citas (fecha, motivo) values ('2026-12-26', 'Sabado');
+  perform arnes.comprueba('citas: no se cierra un sabado', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('citas: no se cierra un sabado', true, sqlerrm);
+end
+$p$;
+
+--  Y un jueves -el 24- si.
+do $p$
+begin
+  insert into public.cierres_citas (fecha, motivo) values ('2026-12-24', 'Navidad');
+  perform arnes.comprueba('citas: y un dia de diario si se cierra', true, 'entro');
+exception when others then
+  perform arnes.comprueba('citas: y un dia de diario si se cierra', false, sqlerrm);
+end
+$p$;
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
 select arnes.comprueba(
   'pliego: con uno vigente, a quien no lo acepto le falta',
   public.pliego_pendiente() = 1,
