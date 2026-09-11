@@ -4170,7 +4170,6 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
              vacio no promete nada y se llena solo en cuanto hay algo que
              decir. Lo llena recuentaFiltros. -->
         <div class="filters" id="filters">
-          <button class="ftab on" data-f="todos"><span data-i18n="f.all">All</span> <span class="n"></span></button>
           <button class="ftab" data-f="accion"><span data-i18n="f.action">Needs action</span> <span class="n"></span></button>
           <button class="ftab" data-f="proceso"><span data-i18n="f.progress">In progress</span> <span class="n"></span></button>
           <button class="ftab" data-f="listo"><span data-i18n="f.done">Completed</span> <span class="n"></span></button>
@@ -5740,16 +5739,25 @@ function applyLang(lang){
 
 (function(){
   var tabs=document.getElementById('filters');
-  tabs.addEventListener('click',function(e){
-    var b=e.target.closest('.ftab'); if(!b) return;
+  /* Ya no hay pestaña «Todos»: la pidio quitar el CIIP el 11 de septiembre.
+     El filtro encendido se apaga pulsandolo otra vez, y sin ninguno
+     encendido se ven todas, que es lo que hacia «Todos». */
+  function filtra(b){
     tabs.querySelectorAll('.ftab').forEach(function(t){t.classList.toggle('on', t===b);});
-    var f=b.getAttribute('data-f');
-    document.querySelectorAll('.tcard').forEach(function(c){ c.classList.toggle('is-hidden', f!=='todos' && c.getAttribute('data-st')!==f); });
+    var f = b ? b.getAttribute('data-f') : null;
+    document.querySelectorAll('.tcard').forEach(function(c){ c.classList.toggle('is-hidden', !!f && c.getAttribute('data-st')!==f); });
     document.querySelectorAll('[data-phase]').forEach(function(p){ p.classList.toggle('is-hidden', !p.querySelector('.tcard:not(.is-hidden)')); });
     /* Una tarjeta que el filtro deja pasar pero que se queda detras de una
        fase plegada parece un filtro roto: al filtrar se abren todas. */
-    if (f !== 'todos' && window.CIIP_ABRE_FASES) window.CIIP_ABRE_FASES();
+    if (f && window.CIIP_ABRE_FASES) window.CIIP_ABRE_FASES();
+  }
+  tabs.addEventListener('click',function(e){
+    var b=e.target.closest('.ftab'); if(!b) return;
+    filtra(b.classList.contains('on') ? null : b);
   });
+  /* Para quien tenga que volver a verlas todas desde fuera: al cambiar de
+     vista y cuando el filtro encendido se queda sin nada que contar. */
+  window.CIIP_QUITA_FILTRO = function(){ if (tabs.querySelector('.ftab.on')) filtra(null); };
 })();
 
 /* ---------- la portada se pliega por fases ----------
@@ -5890,7 +5898,6 @@ function applyLang(lang){
   var cuerpo   = document.body;
   var volverFa = document.getElementById('faseVolver');
   var volverTr = document.getElementById('trVolver');
-  var tabTodo  = document.querySelector('.ftab[data-f="todos"]');
   var sig      = document.getElementById('tsecSig');
   var dondeEstaba = 0;    /* altura de la portada, para devolver al usuario */
   var trAbierto   = null; /* trámite a la vista, para repintarlo al cambiar de idioma */
@@ -5905,7 +5912,7 @@ function applyLang(lang){
        y el índice de la izquierda no puede decir que hay cuatro trámites.
        Estaba escrito a mano —decía 15 cuando ya eran 24— así que ahora
        sale de contarlas: el catálogo crece y el número va detrás solo. */
-    var n = {todos:tarjetas.length, accion:0, proceso:0, listo:0};
+    var n = {accion:0, proceso:0, listo:0};
     tarjetas.forEach(function(c){
       var s = c.getAttribute('data-st');
       if (n[s] !== undefined) n[s]++;
@@ -5917,6 +5924,10 @@ function applyLang(lang){
       /* un filtro sin nada que enseñar solo lleva a una pantalla vacía */
       t.disabled = (c === 0);
     });
+    /* Un filtro encendido que se queda en cero se esconde, y sin «Todos»
+       no quedaria con que apagarlo: se apaga solo y se ven todas. */
+    if (document.querySelector('#filters .ftab.on:disabled') && window.CIIP_QUITA_FILTRO)
+      window.CIIP_QUITA_FILTRO();
   }
 
   /* Lo usa el bloque de trámites: cuando los estados de las tarjetas
@@ -6249,9 +6260,9 @@ function applyLang(lang){
     if (window.CIIP_BARRA) window.CIIP_BARRA(tipo || 'inicio');
 
     /* El filtro de estado pertenece a la portada. Al cambiar de vista se
-       vuelve a "todos": si no, se entraría en una fase que el filtro deja
-       vacía y parecería que no hay nada. */
-    if (tabTodo && !tabTodo.classList.contains('on')) tabTodo.click();
+       apaga y se ven todas: si no, se entraría en una fase que el filtro
+       deja vacía y parecería que no hay nada. */
+    if (window.CIIP_QUITA_FILTRO) window.CIIP_QUITA_FILTRO();
     recuentaFiltros(fase || document);
 
     window.scrollTo(0, tipo ? 0 : dondeEstaba);

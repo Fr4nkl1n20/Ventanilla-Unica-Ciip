@@ -698,9 +698,36 @@
     (function(){
       var abierta = document.querySelector('.phase.etapa-abierta');
       var suyas = abierta ? abierta.querySelectorAll('.tcard') : [];
-      igual('camino: el filtro de todos cuenta las de la etapa abierta',
-            (document.querySelector('.ftab[data-f="todos"] .n') || {}).textContent,
-            String(suyas.length));
+      /* Ya no hay «Todos»: la pidio quitar el CIIP el 11 de septiembre. Lo
+         que ella miraba -que se cuente la etapa abierta y no el panel- se
+         mira ahora en cada uno de los tres, contra las tarjetas de su estado. */
+      igual('filtros: ya no hay pestaña «Todos»',
+            document.querySelector('.ftab[data-f="todos"]') ? 'existe' : 'no existe', 'no existe');
+      ['accion', 'proceso', 'listo'].forEach(function(f){
+        var t = document.querySelector('.ftab[data-f="' + f + '"] .n');
+        var cuantas = [].filter.call(suyas, function(c){ return c.getAttribute('data-st') === f; }).length;
+        igual('camino: el filtro «' + f + '» cuenta las de la etapa abierta',
+              t ? t.textContent : '(no hay)', String(cuantas));
+      });
+
+      /* Sin «Todos», el filtro encendido se apaga pulsandolo otra vez. Si
+         eso fallara, quien filtra se quedaria sin forma de volver a verlo
+         todo. Filtrar abre las fases plegadas, asi que se devuelven como
+         estaban para no mover lo que miran las pruebas de despues. */
+      var vivo = document.querySelector('#filters .ftab:not(:disabled)');
+      if (vivo){
+        var fases = [].slice.call(document.querySelectorAll('.phase[data-fase]'));
+        var plegadas = fases.map(function(p){ return p.classList.contains('plegada'); });
+        vivo.click();
+        igual('filtros: pulsado, se enciende',
+              vivo.classList.contains('on') ? 'encendido' : 'apagado', 'encendido');
+        vivo.click();
+        igual('filtros: pulsado otra vez, se apaga',
+              vivo.classList.contains('on') ? 'encendido' : 'apagado', 'apagado');
+        igual('filtros: y apagado se ven todas',
+              document.querySelectorAll('.tcard.is-hidden').length, 0);
+        fases.forEach(function(p, i){ p.classList.toggle('plegada', plegadas[i]); });
+      }
 
       /* La mitad que no es repetir su cuenta: que no haya NINGUNA tarjeta de
          otra etapa a la vista. Si el numero saliera bien contando el panel
@@ -5214,12 +5241,14 @@
   function fotoMira(){
     var campo = document.getElementById('pfCampoFoto');
     var av = document.querySelector('.avatar');
-    /* El equipo del CIIP no tiene recaudos que subir: pedirle una foto de
-       carnet es pedirle algo que no le toca. */
+    /* Desde el 11 de septiembre el equipo del CIIP tambien puede poner su
+       foto: ya no es la de carnet de los tramites, es la del circulo de la
+       cabecera, y ahi sirve a todos. Se lo pidio el CIIP. Antes esta prueba
+       exigia lo contrario; se da la vuelta para que no vuelva a esconderse. */
     if (CASO === 'gestor'){
-      ok('foto: al equipo del CIIP no se le pide', !!campo && campo.hidden,
-         campo ? ('hidden=' + campo.hidden) : 'no hay campo', 'escondido');
-      ok('foto: y su circulo sigue con las iniciales',
+      ok('foto: al equipo del CIIP tambien se le ofrece', !!campo && !campo.hidden,
+         campo ? ('hidden=' + campo.hidden) : 'no hay campo', 'a la vista');
+      ok('foto: y sin subirla, su circulo sigue con las iniciales',
          !!av && !av.querySelector('img'),
          av ? ('"' + av.textContent.trim() + '"') : 'no hay circulo', 'las iniciales');
       return;
@@ -8925,11 +8954,21 @@
 
     /* Cuatro: el contador de la pestaña encendida. Era blanco porque la
        pestaña era azul; al volverse blanca la pestaña, el numero se
-       borraba. Se mira que su letra NO sea blanca. */
-    var enc = document.querySelector('#filters .ftab.on .n');
-    var col = enc ? window.getComputedStyle(enc).color : '(no hay)';
-    ok('tokens: el contador de la pestaña encendida se ve',
-       col !== 'rgb(255, 255, 255)' && col !== '(no hay)', col, 'un color que no sea blanco');
+       borraba. Se mira que su letra NO sea blanca.
+       Sin «Todos» ya no hay siempre una encendida: se enciende la primera
+       que cuente algo, se mira y se apaga, con las fases como estaban. */
+    var vivo = document.querySelector('#filters .ftab:not(:disabled)');
+    if (vivo){
+      var fases = [].slice.call(document.querySelectorAll('.phase[data-fase]'));
+      var plegadas = fases.map(function(p){ return p.classList.contains('plegada'); });
+      if (!vivo.classList.contains('on')) vivo.click();
+      var enc = document.querySelector('#filters .ftab.on .n');
+      var col = enc ? window.getComputedStyle(enc).color : '(no hay)';
+      if (vivo.classList.contains('on')) vivo.click();
+      fases.forEach(function(p, i){ p.classList.toggle('plegada', plegadas[i]); });
+      ok('tokens: el contador de la pestaña encendida se ve',
+         col !== 'rgb(255, 255, 255)' && col !== '(no hay)', col, 'un color que no sea blanco');
+    }
   }
   function colaTrasConfirmar(){
     if (CASO !== 'gestor') return;
