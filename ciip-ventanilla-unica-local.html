@@ -14888,6 +14888,18 @@ applyLang(idiomaParaMi());
                                : (u['t.estN'] || dic['t.estN'] || '')).replace('{n}', n);
   }
 
+  /* ── EL ESTIMADO, APAGADO ──
+     Decisión del CIIP: que la ficha no diga «Estimado: hasta 1 semana
+     hábil» ni «Sin plazo estimado». El reloj sigue diciendo cuándo
+     enviaste, cuándo se resolvió y si va tarde; lo que calla es el
+     pronóstico.
+
+     Se apaga con este interruptor y NO se borra, igual que el globo de
+     los plazos: plazo_dias sigue en la base y sigue decidiendo si un
+     trámite va tarde. Vuelve poniendo esto en true. */
+  var ESTIMADO_EN_FICHA = false;
+  window.CIIP_ESTIMADO_EN_FICHA = ESTIMADO_EN_FICHA;
+
   function pintaCuando(tarjeta, tr){
     var span = tarjeta.querySelector('.t-time span:last-child');
     if (!span) return;
@@ -14965,9 +14977,15 @@ applyLang(idiomaParaMi());
        dando su veredicto. */
     var partes = [];
     if (texto) partes.push(texto);
-    if (!(tr && tr.resuelto_en) && !vaTarde) partes.push(cuanto);
+    if (ESTIMADO_EN_FICHA && !(tr && tr.resuelto_en) && !vaTarde) partes.push(cuanto);
     span.removeAttribute('data-i18n');
     span.textContent = partes.join(' · ');
+
+    /* Sin nada que decir el reloj se esconde entero: un icono solo, sin
+       frase, se lee como un dato que no cargó. La pantalla del trámite
+       copia este renglón con el atributo puesto, así que allí también. */
+    var reloj = span.parentNode;
+    if (reloj) reloj.hidden = !span.textContent;
 
     /* Y si esta tarjeta es la que está abierta en su pantalla, allí hay una
        COPIA de este renglón que se hizo antes de que existiera el texto.

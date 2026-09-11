@@ -777,21 +777,42 @@
         var dic2 = (I18N[curLang] || I18N.en) || {};
         var cat = window.CIIP_TIPOS_POR_REF || {};
         var esperando = document.querySelectorAll('.tcard.espera');
-        var mal = [], conCifra = 0;
-        [].forEach.call(esperando, function(c){
-          var v = cat[c.getAttribute('data-tr')] || {};
-          if (!v.plazo_dias) return;
-          conCifra++;
-          var t = c.querySelector('.t-time');
-          var dice = ((t && t.textContent) || '').trim();
-          if (deshaceElPlazo(dice, dic2) !== v.plazo_dias)
-            mal.push(c.getAttribute('data-tr') + ': "' + dice.slice(0, 40) + '"');
-        });
-        ok('estados: la que espera dice su tiempo, en el idioma del panel',
-           conCifra > 0 && mal.length === 0,
-           conCifra ? (mal.join(' | ') || 'las ' + conCifra + ' en ' + curLang)
-                    : 'ninguna esperando con cifra',
-           'todas con su plazo de la base');
+
+        /* Con el estimado apagado a proposito, lo que hay que ver es lo
+           contrario: que ninguna diga un plazo, y que el reloj vacio se
+           esconda en vez de quedarse con el icono solo. */
+        if (!window.CIIP_ESTIMADO_EN_FICHA){
+          var hablan = [], iconoSolo = [];
+          [].forEach.call(document.querySelectorAll('.tcard'), function(c){
+            var t = c.querySelector('.t-time');
+            if (!t) return;
+            var dice = (t.textContent || '').trim();
+            if (dice && deshaceElPlazo(dice, dic2) !== null) hablan.push(c.getAttribute('data-tr'));
+            if (!dice && !t.hidden) iconoSolo.push(c.getAttribute('data-tr'));
+          });
+          igual('estados: apagado, ninguna ficha dice su estimado',
+                hablan.length ? hablan.join(', ') : '(ninguna)', '(ninguna)');
+          igual('estados: y el reloj sin nada que decir se esconde',
+                iconoSolo.length ? iconoSolo.join(', ') : '(ninguno)', '(ninguno)');
+        }
+
+        if (window.CIIP_ESTIMADO_EN_FICHA){
+          var mal = [], conCifra = 0;
+          [].forEach.call(esperando, function(c){
+            var v = cat[c.getAttribute('data-tr')] || {};
+            if (!v.plazo_dias) return;
+            conCifra++;
+            var t = c.querySelector('.t-time');
+            var dice = ((t && t.textContent) || '').trim();
+            if (deshaceElPlazo(dice, dic2) !== v.plazo_dias)
+              mal.push(c.getAttribute('data-tr') + ': "' + dice.slice(0, 40) + '"');
+          });
+          ok('estados: la que espera dice su tiempo, en el idioma del panel',
+             conCifra > 0 && mal.length === 0,
+             conCifra ? (mal.join(' | ') || 'las ' + conCifra + ' en ' + curLang)
+                      : 'ninguna esperando con cifra',
+             'todas con su plazo de la base');
+        }
 
         /* Y sigue sabiendo a quien espera, aunque ya no lo escriba: sin esto,
            borrar el calculo entero pasaria igual de verde. */
@@ -3021,9 +3042,27 @@
        es lo que hacía el fallo invisible. */
     var plazo = document.getElementById('trPlazo');
     var dice  = ((plazo && plazo.textContent) || '').trim();
-    ok('sisref: el plazo se ve en la pantalla del trámite',
-       dice.length > 0, dice ? ('«' + dice + '»') : '(el reloj, mudo)',
-       'el estimado, escrito');
+
+    /* Con el estimado apagado, el c32 sin solicitud no tiene nada que decir
+       en ese renglon. El riesgo de fondo sigue siendo el mismo -el reloj
+       mudo, un icono suelto debajo de la descripcion-, asi que eso es lo
+       que se mira: o dice algo, o la copia llega escondida. */
+    function mudoALaVista(){
+      var r = plazo && plazo.querySelector('.t-time');
+      return !!r && !r.hidden && !(r.textContent || '').trim();
+    }
+    var CON_ESTIMADO = !!window.CIIP_ESTIMADO_EN_FICHA;
+
+    if (CON_ESTIMADO){
+      ok('sisref: el plazo se ve en la pantalla del trámite',
+         dice.length > 0, dice ? ('«' + dice + '»') : '(el reloj, mudo)',
+         'el estimado, escrito');
+    } else {
+      ok('sisref: sin estimado, la pantalla del trámite no deja el reloj mudo',
+         !!plazo && !mudoALaVista(),
+         dice ? ('«' + dice + '»') : (mudoALaVista() ? '(el reloj, mudo)' : 'escondido'),
+         'escondido, o con algo que decir');
+    }
 
     /* ── Y AHORA LA QUE DE VERDAD PILLA EL FALLO ──
        La de arriba pasaba también SIN el arreglo, y se comprobó quitándolo:
@@ -3041,10 +3080,20 @@
       plazo.textContent = '';
       window.CIIP_REPINTA_ESTADOS();
       var vuelve = (plazo.textContent || '').trim();
-      ok('sisref: y si llega vacío, el repintado lo rellena',
-         vuelve.length > 0,
-         vuelve ? ('«' + vuelve + '»') : '(sigue mudo tras repintar)',
-         'el estimado, escrito');
+      if (CON_ESTIMADO){
+        ok('sisref: y si llega vacío, el repintado lo rellena',
+           vuelve.length > 0,
+           vuelve ? ('«' + vuelve + '»') : '(sigue mudo tras repintar)',
+           'el estimado, escrito');
+      } else {
+        /* Vaciado a mano no queda ni el reloj: lo que se pide es que el
+           repintado vuelva a poner la copia, y que llegue escondida. */
+        ok('sisref: y si llega vacío, el repintado rehace la copia sin dejarla muda',
+           !!plazo.querySelector('.t-time') && !mudoALaVista(),
+           !plazo.querySelector('.t-time') ? '(no rehizo la copia)'
+             : (mudoALaVista() ? '(el reloj, mudo)' : (vuelve ? '«' + vuelve + '»' : 'escondido')),
+           'la copia, escondida o con algo que decir');
+      }
     }
 
     /* Y donde se pidió: pegado a la descripción, encima de los pasos. Si
@@ -5862,10 +5911,20 @@
 
     var t = esperan[0];
     var pie = t.querySelector('.t-time');
-    ok('opacidad: y lo dicen con letras, no solo apagandose',
-       !!pie && /\S/.test(pie.textContent),
-       pie ? '"' + pie.textContent.trim().slice(0, 40) + '"' : '(sin pie)',
-       'el renglon de a quien espera');
+    /* Lo que decia con letras era el estimado. Apagado, la que espera y aun
+       no has empezado no tiene nada que decir en ese renglon: lo que se
+       mira entonces es que no quede el reloj con el icono solo. */
+    if (window.CIIP_ESTIMADO_EN_FICHA){
+      ok('opacidad: y lo dicen con letras, no solo apagandose',
+         !!pie && /\S/.test(pie.textContent),
+         pie ? '"' + pie.textContent.trim().slice(0, 40) + '"' : '(sin pie)',
+         'el renglon de a quien espera');
+    } else {
+      ok('opacidad: y sin estimado el reloj no se queda con el icono solo',
+         !!pie && (pie.hidden || /\S/.test(pie.textContent)),
+         pie ? (pie.hidden ? 'escondido' : '"' + pie.textContent.trim().slice(0, 40) + '"') : '(sin pie)',
+         'escondido, o con algo que decir');
+    }
 
       /* Y LA PLACA TAMPOCO se atenua, que es lo contrario de lo que decia
          esta comprobacion hace un rato.
