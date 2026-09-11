@@ -22,6 +22,7 @@ muestran (13 px), para que se vean nítidos en pantallas densas sin pesar.
 | `mpppst.png` | MPPPST (Ministerio del Trabajo) | Cintillo oficial publicado en `inces.gob.ve`, recortado |
 | `ciip.png` | CIIP | Extraído del propio panel, donde ya iba incrustado en base64 |
 | `banavih.png` | BANAVIH | Sitio oficial, `banavih.gob.ve` (`Logo_BANAVIH_Blanco-1.webp`, pintado con el azul `#009ABC` de su favicon) |
+| `vuce.png` | VUCE | `vitrinavenezuela.com/vuce` (`VUCE_NEW_001.jpg`): recortado del círculo blanco del centro y con el blanco pasado a transparente. `vuce.gob.ve` daba 502 y la foto de la noticia de `mincoex.gob.ve` estaba rota |
 
 ## Cómo se prepararon
 
@@ -37,7 +38,6 @@ No se encontró logo utilizable para:
 | Organismo | Por qué |
 |---|---|
 | **MINEC** (permiso ambiental) | Su logo lleva el texto en gris clarísimo; a 13 px queda una mancha ilegible. El icono del sitio es solo la bandera, que no dice MINEC |
-| **VUCE** (importación y exportación) | El sitio no respondió |
 | **INSAI**, **FAOV**, **RNET como tal** | Sin sitio propio con logo |
 
 Y hay tarjetas que **no tienen un organismo único**, así que no les toca logo:
