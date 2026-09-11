@@ -16175,6 +16175,32 @@ applyLang(idiomaParaMi());
     if (go) pie.insertBefore(s, go); else pie.appendChild(s);
   }
 
+  /* ── EL PLAZO DE LA FICHA, AL DIA ──
+     El renglon del estimado que hay dentro de una ficha abierta es una
+     COPIA del reloj de su tarjeta, y la copia se hace al abrirla. Viniendo
+     de la portada da igual -la tarjeta ya tiene su hora-, pero recargando
+     con F5 sobre #tramite-c33 la ficha se pinta ANTES de que conteste el
+     catalogo: se copia un reloj vacio y escondido, que es como nace el
+     marcado a proposito para que no parpadee una hora de ejemplo.
+
+     Y ahi se quedaba. Al llegar la respuesta, pintaCuando rellena y destapa
+     el reloj DE LA TARJETA; la copia de la ficha es otro nodo y nadie la
+     volvia a copiar. El estimado desaparecia, y solo al recargar.
+
+     Se rehace la copia cada vez que se pintan las tarjetas, que es justo
+     cuando la hora ya existe. Si no hay ficha abierta no hace nada. */
+  function ponAlDiaElPlazoDeLaFicha(){
+    var m = /^#tramite-(.+)$/.exec(location.hash || '');
+    if (!m) return;
+    var hueco = document.getElementById('trPlazo');
+    var reloj = document.querySelector('.tcard[data-tr="' + m[1] + '"] .t-time');
+    if (!hueco || !reloj) return;
+    /* Solo el contenido. El 'hidden' del hueco no se toca: hay tramites que
+       lo apartan a proposito porque traen sus propios datos. */
+    hueco.textContent = '';
+    hueco.appendChild(reloj.cloneNode(true));
+  }
+
   function pintaEstadoTarjetas(){
     if (!TIPOS) return;
     ponAlDiaLoEncendido(TIPOS);
@@ -16228,6 +16254,7 @@ applyLang(idiomaParaMi());
        orden importa para que no se quede el título solo. */
     juntaLosDelGrupo();
     apartaOpcionales();
+    ponAlDiaElPlazoDeLaFicha();
     if (window.CIIP_REPINTA_ETAPAS)   window.CIIP_REPINTA_ETAPAS();
     if (window.CIIP_RECUENTA_FILTROS) window.CIIP_RECUENTA_FILTROS();
   }

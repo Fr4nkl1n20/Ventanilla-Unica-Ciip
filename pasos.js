@@ -737,7 +737,7 @@ window.CIIP_PASOS = {
          las mismas f_* que usan los formularios, para que la empresa y el
          trámite llamen igual a lo mismo. */
       em_vacia:     "Todavía no has registrado tu empresa. Cuando lo hagas, los formularios que pidan estos datos te los ofrecerán ya escritos.",
-      em_registrar: "Registrar mi empresa",
+      em_registrar: "Registrar mi empresa con el CIIP",
       em_ficha_n:   "Registrar tu empresa",
       em_ficha_e:   "Editar tu empresa",
       em_fsub:      "Se escribe una vez y la usan ocho formularios",
@@ -1539,7 +1539,7 @@ window.CIIP_PASOS = {
          f_* the forms use, so company and procedure call the same thing by
          the same name. */
       em_vacia:     "You haven't registered your company yet. Once you do, the forms that ask for these details will offer them already filled in.",
-      em_registrar: "Register my company",
+      em_registrar: "Register my company with CIIP",
       em_ficha_n:   "Register your company",
       em_ficha_e:   "Edit your company",
       em_fsub:      "Written once, used by eight forms",
@@ -2288,7 +2288,7 @@ window.CIIP_PASOS = {
       dc_tipo:      "Tem de ser uma imagem ou um PDF.",
       /* A minha empresa. */
       em_vacia:     "Ainda não registou a sua empresa. Quando o fizer, os formulários que peçam estes dados oferecê-los-ão já escritos.",
-      em_registrar: "Registar a minha empresa",
+      em_registrar: "Registar a minha empresa no CIIP",
       em_ficha_n:   "Registar a sua empresa",
       em_ficha_e:   "Editar a sua empresa",
       em_fsub:      "Escreve-se uma vez e usam-na oito formulários",
@@ -3033,7 +3033,7 @@ window.CIIP_PASOS = {
       dc_tipo:      "Deve essere un’immagine o un PDF.",
       /* La mia azienda. */
       em_vacia:     "Non hai ancora registrato la tua azienda. Quando lo farai, i moduli che chiedono questi dati te li proporranno già scritti.",
-      em_registrar: "Registra la mia azienda",
+      em_registrar: "Registra la mia azienda presso il CIIP",
       em_ficha_n:   "Registra la tua azienda",
       em_ficha_e:   "Modifica la tua azienda",
       em_fsub:      "Si scrive una volta e la usano otto moduli",
@@ -3778,7 +3778,7 @@ window.CIIP_PASOS = {
       dc_tipo:      "必须是图片或 PDF 文件。",
       /* 我的公司。 */
       em_vacia:     "您还没有登记公司。登记后，需要这些资料的表单会直接帮您填好。",
-      em_registrar: "登记我的公司",
+      em_registrar: "在 CIIP 登记我的公司",
       em_ficha_n:   "登记您的公司",
       em_ficha_e:   "编辑公司资料",
       em_fsub:      "填一次，八个表单共用",
@@ -4523,7 +4523,7 @@ window.CIIP_PASOS = {
       dc_tipo:      "Нужно изображение или PDF.",
       /* Моя компания. */
       em_vacia:     "Вы ещё не зарегистрировали компанию. Когда сделаете это, формы будут предлагать эти данные уже заполненными.",
-      em_registrar: "Зарегистрировать компанию",
+      em_registrar: "Зарегистрировать компанию в CIIP",
       em_ficha_n:   "Регистрация компании",
       em_ficha_e:   "Изменить данные компании",
       em_fsub:      "Пишется один раз, используется в восьми формах",

@@ -232,6 +232,7 @@
               lectorApagadoAbre, lectorApagadoMira, lectorApagadoVuelve,
               listoMira, listoEmpezados,
               notaVisaAbre, notaVisaMira, notaRifAbre, notaRifMira,
+              plazoF5Abre, plazoF5Rompe, plazoF5Repinta, plazoF5Mira,
               opacidadMira, opacidadSenal,
               loHacemosMira,
               gestionAbre, gestionMira, escaleraNoParpadea, gestionTrasPulsar,
@@ -4205,7 +4206,8 @@
             (document.querySelector('#emCuerpo .ci-vacia') || {}).textContent,
             'Todavía no has registrado tu empresa. Cuando lo hagas, los formularios que pidan estos datos te los ofrecerán ya escritos.');
       igual('empresa: y ofrece registrarla',
-            document.getElementById('emBoton').textContent.trim(), 'Registrar mi empresa');
+            document.getElementById('emBoton').textContent.trim(),
+            'Registrar mi empresa con el CIIP');
     }
   }
 
@@ -7632,6 +7634,70 @@
     ok('aviso: y el formulario sigue estando entero',
        !!hoja && hoja.querySelectorAll('.sol-campo').length >= 5,
        hoja ? hoja.querySelectorAll('.sol-campo').length : 0, 'sus casillas');
+    location.hash = '';
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     EL ESTIMADO NO SE PIERDE AL RECARGAR
+     ═══════════════════════════════════════════════════════════════
+     Recargando con F5 sobre una ficha, el estimado desaparecia: el
+     renglon de la ficha es una COPIA del reloj de la tarjeta, hecha al
+     abrirla, y con F5 la ficha se pinta antes de que conteste el catalogo.
+     Se copiaba un reloj vacio y escondido, y nadie lo volvia a copiar.
+
+     La carrera NO se puede reproducir aqui: el doble contesta tan rapido
+     que la tarjeta siempre gana. Asi que en vez de perseguir el reloj se
+     mide el ARREGLO: se deja el hueco como lo dejaba el fallo -con un
+     reloj vacio y escondido dentro- y se pide un repintado. Si la copia se
+     rehace, la hora vuelve.
+
+     Es la misma manera de medir que usa la prueba de los opcionales, que
+     pone un estado a mano y llama al repintado. Perseguir una carrera que
+     no ocurre aqui daria una prueba que pasa siempre. */
+  function plazoF5Abre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c6';
+  }
+
+  function plazoF5Rompe(){
+    if (CASO !== 'vacio') return;
+    var hueco = document.getElementById('trPlazo');
+    if (!hueco) return;
+    ok('plazo F5: de entrada la ficha trae su estimado',
+       /\S/.test(hueco.textContent), hueco.textContent.trim() || '(vacio)', 'con hora');
+    /* Se deja como lo dejaba el fallo: la copia de un reloj recien nacido,
+       sin texto y escondida. */
+    hueco.textContent = '';
+    var vacio = document.createElement('span');
+    vacio.className = 't-time';
+    vacio.hidden = true;
+    hueco.appendChild(vacio);
+    igual('plazo F5: y asi es como quedaba al recargar',
+          hueco.textContent.trim(), '');
+  }
+
+  function plazoF5Repinta(){
+    if (CASO !== 'vacio') return;
+    if (window.CIIP_REPINTA_ESTADOS) window.CIIP_REPINTA_ESTADOS();
+  }
+
+  function plazoF5Mira(){
+    if (CASO !== 'vacio') return;
+    var hueco = document.getElementById('trPlazo');
+    var reloj = hueco && hueco.querySelector('.t-time');
+    ok('plazo F5: al pintarse las tarjetas, el estimado vuelve',
+       !!hueco && /\S/.test(hueco.textContent),
+       hueco ? (hueco.textContent.trim() || '(sigue vacio)') : '(no hay hueco)', 'con hora');
+    /* Y sin el 'hidden' que traia la copia rota: un renglon con texto y
+       escondido se mide como lleno y no se ve, que es el peor de los dos. */
+    ok('plazo F5: y se ve, que la copia rota venia escondida',
+       !!reloj && !reloj.hidden, reloj ? ('escondido=' + reloj.hidden) : '(sin reloj)',
+       'a la vista');
+    /* Y dice lo MISMO que la tarjeta: son el mismo dato. */
+    var enLaTarjeta = document.querySelector('.tcard[data-tr="c6"] .t-time');
+    igual('plazo F5: y dice lo mismo que su tarjeta',
+          hueco.textContent.trim(),
+          enLaTarjeta ? enLaTarjeta.textContent.trim() : '(no hay tarjeta)');
     location.hash = '';
   }
 
