@@ -44,7 +44,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    mensaje_lo_firma_la_base() y mensaje_no_se_toca(), y lo comprueba al
    entrar. Puesto antes, se pararia solo diciendo cual falta. */
 'supabase-consultas',
-'supabase-informe-victor','supabase-pliego'];
+'supabase-informe-victor','supabase-pliego',
+/* El horario de citas. Solo necesita que existan citas y es_gestor(), asi
+   que podria ir mucho antes; va el ULTIMO para no mover el numero de
+   ninguno de los otros, que es por el que se les nombra en PARA-LA-BASE-REAL
+   y en las conversaciones. */
+'supabase-disponibilidad'];
 
 let mal = 0;
 for (const n of orden) {

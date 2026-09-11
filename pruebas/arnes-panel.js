@@ -40,13 +40,18 @@
      unico que cambia es que aqui window.CIIP_LECTOR existe, y eso se
      pregunta con esta bandera y no con CASO. */
   var CON_LECTOR = (PASE === 'lector');
+  /* 'huecos' es un expediente vacio CON el horario de citas del CIIP
+     publicado: el unico pase donde la ventana de la cita ofrece huecos en
+     vez de una ventana de dias. Los datos son los de 'vacio', asi que CASO
+     vale 'vacio' y la diferencia se pregunta con esta bandera. */
+  var CON_HUECOS = (PASE === 'huecos');
   /* 'pliego' trae LOS MISMOS DATOS que 'vacio': lo unico que cambia es que
      hay un pliego sin aceptar. Si CASO valiera 'pliego', las pruebas que
      miran el expediente vacio se saltarian todas y este pase mediria solo
      la puerta -y de paso dejaria sin comprobar que el panel funciona con
      normalidad DESPUES de aceptar, que es la mitad que importa-. */
   var CASO = (SIN_SQL || ES_ADMIN) ? 'gestor'
-           : (PASE === 'pliego' || PASE === 'pliegoya' || CON_LECTOR) ? 'vacio'
+           : (PASE === 'pliego' || PASE === 'pliegoya' || CON_LECTOR || CON_HUECOS) ? 'vacio'
            : PASE;
   /* El rol de la cabecera sale del PASE, no de los datos: 'admin' trae
      los mismos tramites que un gestor, pero no el mismo rotulo. */
@@ -148,7 +153,10 @@
        acepta, y desde ahi la tanda sigue como en cualquier otro pase. */
     enCadena([pliegoMira, pliegoAcepta, pliegoCerrada,
               puertaEspera, puertaMira, puertaTrasResponder,
-              pruebas, trasGuardar, citasAbre, citasPide, citasTrasPedir,
+              pruebas, trasGuardar, citasAbre, citasPide,
+              /* Los huecos solo en el pase 'huecos'; en los demas no hacen nada. */
+              huecosMira, huecosOcupado, huecosReserva, huecosTrasReservar,
+              citasTrasPedir,
               /* El hilo ANTES de anular: al cancelar la cita, el hilo se
                  va con ella y no habría nada que mirar. */
               hiloCitaMira,
@@ -167,6 +175,9 @@
               idMira, idRechazaSinNota, idFirma, idTrasFirmar,
               colaExpediente, colaTrasDevolver, colaConfirma, colaTrasConfirmar,
               agendaMira, agendaTrasEntrar, agendaHilo, agendaHiloMira, agendaTrasSalir,
+              /* El horario del equipo: se entra, se toca y se sale a la portada. */
+              horarioBarra, horarioAbre, horarioMira, horarioTrasAnadir,
+              horarioQuita, horarioTrasQuitar, horarioTrasCerrar,
               paisesMira, empiezaSolicitud, paisesTrasAbrir,
               dupeAbre, empiezaSolicitud, dupeMira, dupeTrasEnviar,
               antesAbre, empiezaSolicitud, antesMira, fecha3Mira, fecha3Cambia,
@@ -2351,6 +2362,8 @@
 
   function citasPide(){
     if (CASO === 'gestor') return;
+    /* Con horario la ventana ofrece huecos: lo miden huecosMira y los suyos. */
+    if (CON_HUECOS) return;
     var hayUna = (CASO === 'lleno');   /* el expediente 'lleno' ya trae una pedida */
 
     if (hayUna){
@@ -2543,6 +2556,7 @@
   function citasTrasPedir(){
     if (CASO === 'gestor') return;
     if (CASO === 'lleno') return;
+    if (CON_HUECOS) return;
     ok('citas: pedida, la ventana pasa a enseñar su estado',
        ctForm().classList.contains('oculto') && ctEstado().classList.contains('puesto'),
        'form oculto=' + ctForm().classList.contains('oculto') +
@@ -2557,6 +2571,179 @@
     ok('citas: y ya no ofrece pedir otra',
        document.getElementById('ctEnviar').style.display === 'none',
        'display=' + document.getElementById('ctEnviar').style.display, 'display=none');
+  }
+
+  /* ═══════════ LOS HUECOS DEL CIIP ═══════════
+     Desde el 11 de septiembre de 2026 el CIIP publica su horario y quien pide
+     cita elige un hueco: la cita nace confirmada. Se mira en el pase
+     'huecos', el único con horario publicado. En los demás la ventana sigue
+     pidiendo una ventana de días, y eso lo miden las pruebas de arriba. */
+  function huecosMira(){
+    if (!CON_HUECOS) return;
+    var campoH = document.getElementById('ctCampoHuecos');
+    var rot = document.getElementById('ctLcuando');
+    var campoV = rot && rot.closest('.pf-campo');
+    ok('huecos: con horario, la ventana ofrece huecos y no una ventana de días',
+       !!campoH && !campoH.hidden && !!campoV && campoV.hidden,
+       'huecos ' + (campoH ? (campoH.hidden ? 'escondidos' : 'a la vista') : 'no existen') +
+       ', días ' + (campoV ? (campoV.hidden ? 'escondidos' : 'a la vista') : 'no existen'),
+       'huecos a la vista, días escondidos');
+    igual('huecos: y el subtítulo lo dice', ctTexto('ctSub'),
+          'Elige un día y una hora libres. La cita queda confirmada al momento.');
+    igual('huecos: el botón reserva', ctTexto('ctEnviar'), 'Reservar la cita');
+    igual('huecos: y avisa de que la hora es la de Venezuela', ctTexto('ctZona'), 'Hora de Venezuela');
+
+    var dias = document.querySelectorAll('#ctDias .ct-dia');
+    ok('huecos: ofrece días con huecos libres', dias.length > 0, dias.length + ' días', 'al menos uno');
+    var P = window.CIIP_PRUEBA_HUECOS || {};
+    ok('huecos: el día cerrado no se ofrece',
+       !!P.cerrado && !document.querySelector('#ctDias .ct-dia[data-fecha="' + P.cerrado + '"]'),
+       P.cerrado || '(la prueba no trae día cerrado)', 'fuera de la lista');
+    /* El horario de la prueba es de lunes a viernes: ningún día ofrecido
+       puede caer en fin de semana. */
+    var finde = [].filter.call(dias, function(b){
+      var d = new Date(b.getAttribute('data-fecha') + 'T12:00:00Z').getUTCDay();
+      return d === 0 || d === 6;
+    }).length;
+    igual('huecos: y solo los días que el horario atiende', finde, 0);
+    ok('huecos: el primer día sale elegido, con sus horas',
+       !!document.querySelector('#ctDias .ct-dia.puesto') &&
+       document.querySelectorAll('#ctHoras .ct-hora').length > 0,
+       document.querySelectorAll('#ctHoras .ct-hora').length + ' horas', 'con horas');
+
+    /* Sin hueco elegido no se reserva, y lo dice con palabras. */
+    document.getElementById('ctEnviar').click();
+    igual('huecos: sin hueco elegido no reserva, y lo dice', ctTexto('ctAviso'), 'Elige un día y una hora.');
+  }
+
+  /* La hora que ya tiene otro no se ofrece. El doble de la base contesta
+     que las 09:00 de ese día están tomadas; las 09:30 no. */
+  function huecosOcupado(){
+    if (!CON_HUECOS) return;
+    var P = window.CIIP_PRUEBA_HUECOS || {};
+    var fecha = String(P.ocupado || '').slice(0, 10);
+    var dia = document.querySelector('#ctDias .ct-dia[data-fecha="' + fecha + '"]');
+    ok('huecos: el día de la hora ocupada se ofrece', !!dia, fecha || '(sin fecha)', 'en la lista');
+    if (!dia) return;
+    dia.click();
+    var horas = [].map.call(document.querySelectorAll('#ctHoras .ct-hora'), function(b){ return b.textContent; });
+    ok('huecos: pero sin la hora que ya está tomada',
+       horas.indexOf('09:00') < 0 && horas.indexOf('09:30') >= 0,
+       horas.join(' '), 'sin 09:00 y con 09:30');
+  }
+
+  function huecosReserva(){
+    if (!CON_HUECOS) return;
+    var hora = document.querySelector('#ctHoras .ct-hora');
+    window.PRUEBA_HUECO = hora ? hora.getAttribute('data-iso') : null;
+    if (hora) hora.click();
+    ok('huecos: la hora elegida queda marcada y guardada',
+       !!document.querySelector('#ctHoras .ct-hora.puesto') &&
+       document.getElementById('ctHueco').value === window.PRUEBA_HUECO,
+       document.getElementById('ctHueco').value, String(window.PRUEBA_HUECO));
+    document.getElementById('ctNota').value = 'Prefiero por la mañana';
+    document.getElementById('ctEnviar').click();
+  }
+
+  function huecosTrasReservar(){
+    if (!CON_HUECOS) return;
+    var a = window.CIIP_PRUEBA_RESERVA || {};
+    igual('huecos: reserva la base, con el hueco elegido', a.p_cuando, window.PRUEBA_HUECO);
+    igual('huecos: y con el modo', a.p_modo, 'video');
+    ok('huecos: reservada, la ventana enseña la cita',
+       ctForm().classList.contains('oculto') && ctEstado().classList.contains('puesto'),
+       'form oculto=' + ctForm().classList.contains('oculto') +
+       ' estado puesto=' + ctEstado().classList.contains('puesto'),
+       'form oculto, estado puesto');
+    igual('huecos: y ya está confirmada, sin esperar al CIIP', ctTexto('ctChip'), 'Confirmada');
+    ok('huecos: con su fecha y su hora',
+       ctTexto('ctLinea').indexOf('Confirmada para el') === 0, ctTexto('ctLinea'),
+       'empieza por "Confirmada para el"');
+    ok('huecos: dicha en hora de Venezuela',
+       ctTexto('ctDetalle').indexOf('Hora de Venezuela') === 0, ctTexto('ctDetalle'),
+       'empieza por "Hora de Venezuela"');
+  }
+
+  /* ═══════════ EL HORARIO, DEL LADO DEL EQUIPO ═══════════
+     La pantalla donde el CIIP escribe su horario. Es del equipo -gestor o
+     admin- y no de Administración, que solo ve el admin. */
+  function horarioBarra(){
+    var nav = document.getElementById('navHorario');
+    if (CASO !== 'gestor'){
+      ok('horario: al inversionista no se le ofrece', !!nav && nav.hidden,
+         nav ? ('oculto=' + nav.hidden) : 'no existe', 'oculto=true');
+      return;
+    }
+    ok('horario: al equipo se le ofrece en la barra', !!nav && !nav.hidden,
+       nav ? ('oculto=' + nav.hidden) : 'no existe', 'oculto=false');
+  }
+
+  function horarioAbre(sigue){
+    if (CASO !== 'gestor') return sigue();
+    var nav = document.getElementById('navHorario');
+    if (nav) nav.click();
+    esperaFilas('#hoSemana .ho-fila', 2, sigue);
+  }
+
+  function horarioMira(){
+    if (CASO !== 'gestor') return;
+    igual('horario: abre su pantalla', document.body.getAttribute('data-vista'), 'horario');
+    var filas = document.querySelectorAll('#hoSemana .ho-fila');
+    igual('horario: con los tramos de la base', filas.length, 2);
+    var primera = filas.length ? filas[0].textContent : '';
+    ok('horario: cada tramo dice su día, sus horas y cada cuánto',
+       /Lunes/.test(primera) && /09:00/.test(primera) && /Cada 30 min/.test(primera),
+       primera.trim(), 'Lunes 09:00 - 12:00 Cada 30 min');
+    ok('horario: y debajo, las citas ya reservadas o que no hay ninguna',
+       document.querySelectorAll('#hoProximas .ho-cita, #hoProximas .ho-vacio').length > 0,
+       ((document.getElementById('hoProximas') || {}).textContent || '').slice(0, 80), 'la lista o su aviso');
+    /* Un tramo nuevo: el viernes de 10 a 11. */
+    document.getElementById('hoDia').value = '5';
+    document.getElementById('hoDesde').value = '10:00';
+    document.getElementById('hoHasta').value = '11:00';
+    document.getElementById('hoAnadir').click();
+  }
+
+  function horarioTrasAnadir(sigue){
+    if (CASO !== 'gestor') return sigue();
+    esperaFilas('#hoSemana .ho-fila', 3, function(){
+      igual('horario: el tramo nuevo se guarda y sale',
+            document.querySelectorAll('#hoSemana .ho-fila').length, 3);
+      sigue();
+    });
+  }
+
+  function horarioQuita(){
+    if (CASO !== 'gestor') return;
+    var q = document.querySelector('#hoSemana .ho-fila .t-btn');
+    if (q) q.click();
+  }
+
+  function horarioTrasQuitar(){
+    if (CASO !== 'gestor') return;
+    igual('horario: y un tramo se quita', document.querySelectorAll('#hoSemana .ho-fila').length, 2);
+    /* Al revés no se guarda: la base tampoco lo dejaría, y aquí se dice con palabras. */
+    document.getElementById('hoDesde').value = '12:00';
+    document.getElementById('hoHasta').value = '09:00';
+    document.getElementById('hoAnadir').click();
+    igual('horario: un tramo al revés no se guarda, y lo dice',
+          (document.getElementById('hoAviso') || {}).textContent,
+          'La hora de fin tiene que ser posterior a la de inicio.');
+    /* Un día cerrado. */
+    document.getElementById('hoFecha').value = '2026-12-24';
+    document.getElementById('hoMotivo').value = 'Navidad';
+    document.getElementById('hoCerrar').click();
+  }
+
+  function horarioTrasCerrar(sigue){
+    if (CASO !== 'gestor') return sigue();
+    esperaFilas('#hoCierres .ho-fila', 1, function(){
+      ok('horario: el día cerrado se guarda y sale',
+         !!document.querySelector('#hoCierres .ho-fila[data-fecha="2026-12-24"]'),
+         ((document.getElementById('hoCierres') || {}).textContent || '').slice(0, 80), 'el 24 de diciembre');
+      location.hash = '';
+      sigue();
+    });
   }
 
   /* ═══════════ LA CONVERSACIÓN DE UNA CITA ═══════════

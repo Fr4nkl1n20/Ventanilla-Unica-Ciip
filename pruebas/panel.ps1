@@ -138,6 +138,11 @@ $casos = @(
   # entero -soltar, leer, rellenar, marcar, meterlo en su recaudo- no lo
   # miraria nadie.
   @{ caso='lector';       ancho='1400,1000' }
+  # Un expediente vacio CON el horario de citas del CIIP publicado. Es el
+  # unico pase donde la ventana de la cita ofrece huecos: en los demas no hay
+  # horario -como en produccion hasta que el equipo lo escriba- y se pide con
+  # una ventana de dias.
+  @{ caso='huecos';       ancho='1400,1000' }
 )
 foreach ($c in $casos) {
   $caso  = $c.caso

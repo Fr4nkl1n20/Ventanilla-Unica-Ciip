@@ -115,6 +115,12 @@
      reconoce, uno que no, y uno que revienta. */
   var conLector = (caso === 'lector');
   if (conLector) caso = 'vacio';
+  /* ── EL HORARIO DEL CIIP ──
+     El pase 'huecos' es un expediente vacio con el horario de citas
+     publicado: el unico donde la ventana de la cita ofrece huecos en vez de
+     una ventana de dias. Los datos, los de 'vacio'. */
+  var conHuecos = (caso === 'huecos');
+  if (conHuecos) caso = 'vacio';
   /* El doble manda sobre el lector en TODAS las pasadas, tambien para
      quitarlo. Este archivo se carga despues de config.js: el dia que
      LECTOR_URL tenga una direccion -en local eso es el proyecto de
@@ -702,6 +708,32 @@
   };
   var citasVivas = (CITAS[caso] || []).slice();
 
+  /* ── EL HORARIO DE CITAS ──
+     En 'huecos' se atiende de lunes a viernes de 9 a 12, cada media hora. El
+     primer dia laborable despues de hoy esta CERRADO, y en el siguiente las
+     09:00 ya las tiene otro: asi la prueba comprueba que ni uno ni otro se
+     ofrecen. Se calcula desde hoy, en hora de Caracas, para que la prueba no
+     caduque. El equipo ('gestor') ve dos tramos para editar. */
+  function huHoy(){ return new Date(Date.now() - 4 * 3600000).toISOString().slice(0, 10); }
+  function huMas(iso, n){ var d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+  function huSem(iso){ var d = new Date(iso + 'T12:00:00Z').getUTCDay(); return d === 0 ? 7 : d; }
+  var horarioCitas = conHuecos
+    ? [1, 2, 3, 4, 5].map(function(d){ return {id:'h' + d, dia:d, desde:'09:00:00', hasta:'12:00:00', cada_min:30}; })
+    : (caso === 'gestor'
+        ? [{id:'h1', dia:1, desde:'09:00:00', hasta:'12:00:00', cada_min:30},
+           {id:'h3', dia:3, desde:'14:00:00', hasta:'16:00:00', cada_min:60}]
+        : []);
+  var huCerrado = '', huOcupado = '';
+  if (conHuecos){
+    var huF = huHoy();
+    do { huF = huMas(huF, 1); } while (huSem(huF) > 5);
+    huCerrado = huF;
+    do { huF = huMas(huF, 1); } while (huSem(huF) > 5);
+    huOcupado = huF + 'T09:00:00-04:00';
+    window.CIIP_PRUEBA_HUECOS = {cerrado: huCerrado, ocupado: huOcupado};
+  }
+  var cierresCitas = huCerrado ? [{fecha: huCerrado, motivo: 'Feriado'}] : [];
+
   /* ── un tramite que aparece DESPUES ──
      Para poder comprobar que el panel se pone al dia sin recargar. La
      primera lectura no lo trae; de la segunda en adelante, si.
@@ -850,6 +882,34 @@
    EMPRESAS, USUARIO].forEach(desliza);
 
   function respuesta(tabla, op){
+    /* ── el horario de citas y sus dias cerrados ── */
+    if (tabla === 'horario_citas'){
+      if (op && op.insert){
+        var tr = {id:'h' + (horarioCitas.length + 20), dia:+op.insert.dia,
+                  desde:String(op.insert.desde), hasta:String(op.insert.hasta),
+                  cada_min:+op.insert.cada_min};
+        horarioCitas = horarioCitas.concat([tr]);
+        return {data:tr, error:null};
+      }
+      if (op && op.borra && op.eq && op.eq.id){
+        horarioCitas = horarioCitas.filter(function(t){ return t.id !== op.eq.id; });
+        return {data:null, error:null};
+      }
+      return {data:horarioCitas.slice(), error:null};
+    }
+    if (tabla === 'cierres_citas'){
+      if (op && op.insert){
+        var ci = {fecha:op.insert.fecha, motivo:op.insert.motivo || ''};
+        cierresCitas = cierresCitas.concat([ci]);
+        return {data:ci, error:null};
+      }
+      if (op && op.borra && op.eq && op.eq.fecha){
+        cierresCitas = cierresCitas.filter(function(c){ return c.fecha !== op.eq.fecha; });
+        return {data:null, error:null};
+      }
+      return {data:cierresCitas.slice(), error:null};
+    }
+
     /* ── el pliego de datos ── */
     if (tabla === 'pliegos'){
       var fila = PLIEGOS.filter(function(p){
@@ -1709,6 +1769,32 @@
             var pend = PLIEGOS.filter(function(p){ return p.vigente; })[0];
             var r0 = {data: (pend && !pliegoAceptado) ? pend.version : null, error:null};
             return {then:function(bien, mal){ return Promise.resolve(r0).then(bien, mal); }};
+          }
+
+          /* Las horas ya tomadas: en 'huecos', las 09:00 del segundo dia
+             laborable. Solo la hora, como la de verdad: de quien, no. */
+          if (nombre === 'huecos_ocupados'){
+            var rH = {data: huOcupado ? [{cuando: new Date(huOcupado).toISOString()}] : [], error:null};
+            return {then:function(bien, mal){ return Promise.resolve(rH).then(bien, mal); }};
+          }
+          /* Reservar: la cita nace CONFIRMADA. La hora ocupada se rechaza con
+             el mismo mensaje que da la base cuando dos pulsan a la vez. */
+          if (nombre === 'reserva_cita'){
+            window.CIIP_PRUEBA_RESERVA = args;
+            var rR;
+            if (args && huOcupado && Date.parse(args.p_cuando) === Date.parse(huOcupado)){
+              rR = {data:null, error:{message:'Ese hueco se acaba de ocupar', code:'23505'}};
+            } else {
+              var dRes = String((args && args.p_cuando) || '').slice(0, 10);
+              var res = {id:'c9', tipo_tramite:(args && args.p_tipo) || null,
+                         modo:(args && args.p_modo) || 'video', desde:dRes, hasta:dRes,
+                         nota:(args && args.p_nota) || '', estado:'confirmada',
+                         cuando:new Date(args.p_cuando).toISOString(), lugar:'',
+                         creado_en:new Date().toISOString()};
+              citasVivas = [res];
+              rR = {data:res, error:null};
+            }
+            return {then:function(bien, mal){ return Promise.resolve(rR).then(bien, mal); }};
           }
 
           var r = sinSql
