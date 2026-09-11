@@ -3794,6 +3794,10 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 .topbar{background:var(--navy); border-bottom:0; box-shadow:0 1px 0 rgba(0,0,0,.08);}
 .topbar .tb-crumb{color:rgba(255,255,255,.7);}
 .topbar .tb-crumb b{color:#fff; font-weight:700;}  /* <b> hereda bolder sobre 600 = 900: Arial Black */
+/* La migaja no se ve: repetia lo que ya dice el renglon encendido del menu
+   -«Mi panel» con «Mi panel» marcado al lado-. Se esconde y NO se borra: el
+   panel la sigue rellenando y las pruebas de la migaja la leen. */
+.topbar .tb-crumb{display:none;}
 .topbar .tb-hola{color:rgba(255,255,255,.82);}
 .topbar .lang-sel::before{background:rgba(255,255,255,.18);}
 .topbar > .tb-btn, .topbar .lang-sel > .tb-btn, .topbar .avisos-sel > .tb-btn{background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.16); color:#fff;}
