@@ -231,7 +231,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
     var n = document.querySelector('.u-name');   if (n) n.textContent = PERFIL.nombre;
     /* Y ahora se enseña: hasta aqui no habia con que llenarlo. */
     var chipU = document.querySelector('.user');
-    if (chipU) chipU.hidden = false;
+    if (chipU){ chipU.hidden = false; chipU.title = PERFIL.nombre; }
     /* Las iniciales SOLO si no hay foto dentro. Esto se vuelve a llamar
        cada vez que se guarda la ficha, y escribir texto en el círculo se
        llevaba por delante la foto que acababa de ponerse ahí. */
@@ -543,9 +543,12 @@ svg{display:block;}
 .user[hidden]{display:none;}
 .user{display:flex; align-items:center; gap:9px; cursor:pointer; flex:none; max-width:210px;
   background:transparent; border:0; padding:0; font:inherit; color:inherit; text-align:left;}
-/* Un nombre largo se corta con puntos suspensivos en vez de partirse: la
-   ventana del perfil lo enseña entero, y ahí es donde se lee. */
-.u-meta-txt{min-width:0; overflow:hidden;}
+/* En la cabecera solo va el círculo: la foto o las iniciales ya dicen de
+   quién es la cuenta, y el nombre entero se lee en la ventana del perfil.
+   El texto se oculta a la vista pero NO se quita: es lo que da nombre al
+   botón para un lector de pantalla. Al pasar el ratón sale en el title. */
+.u-meta-txt{position:absolute; width:1px; height:1px; margin:-1px; padding:0;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;}
 .user:focus-visible{outline:2px solid var(--navy); outline-offset:3px; border-radius:8px;}
 
 /* El punto ámbar sobre el avatar mientras falte el nombre o el país. Sin
@@ -3649,10 +3652,8 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 @media(max-width:560px){ .sup-fab{right:14px; bottom:14px;} }
 @media (prefers-reduced-motion:reduce){ .sup-panel{transition:none;} .sidebar{transition:none;} }
 /* Cuando ya no caben, sobra primero la miga de pan —la barra lateral dice
-   lo mismo— y después el nombre al lado del avatar, que las iniciales ya
-   dicen de quién es la cuenta. */
+   lo mismo—. El nombre al lado del avatar ya no sale a ningún ancho. */
 @media(max-width:1180px){ .tb-crumb{display:none;} }
-@media(max-width:1000px){ .u-meta-txt{display:none;} }
 @media(max-width:840px){ .ask{max-width:none;} }
 
 /* ---------- header language dropdown ---------- */
@@ -11269,9 +11270,9 @@ applyLang(idiomaParaMi());
   function miraMiFoto(){
     var campo = document.getElementById('pfCampoFoto');
     if (!campo) return Promise.resolve();
-    /* Al equipo del CIIP tampoco se le pide: su ficha no la mira ningún
-       inversionista, y era la unica razon para tener foto aqui. */
-    var suya = (typeof PERFIL !== 'undefined') && PERFIL.rol === 'inversionista';
+    /* Cualquier cuenta con sesión puede poner la suya, también el equipo
+       del CIIP: sale en el círculo de la cabecera, y ahí sirve a todos. */
+    var suya = (typeof PERFIL !== 'undefined') && !!PERFIL.rolReal;
     campo.hidden = !suya;
     if (!suya) return Promise.resolve();
 
@@ -11284,15 +11285,13 @@ applyLang(idiomaParaMi());
     });
   }
 
-  /* Se pide UNA vez al cargar, y solo si eres inversionista: el equipo del
-     CIIP no tiene foto aquí, y preguntarla sería una firma por cada
-     pantalla que abren para nada. */
+  /* Se pide UNA vez al cargar, para cualquier cuenta: inversionista o
+     equipo del CIIP, la foto va en el círculo de la cabecera. */
   (function esperaALaFoto(intentos){
     if (typeof PERFIL === 'undefined' || !PERFIL.rolReal){
       if (intentos < 40) setTimeout(function(){ esperaALaFoto(intentos + 1); }, 100);
       return;
     }
-    if (PERFIL.rol !== 'inversionista') return;
     buscaMiFoto().then(function(url){ if (url) ponFotoEnAvatar(url); });
   })(0);
 
