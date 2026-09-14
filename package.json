@@ -2,9 +2,10 @@
   "name": "ventanilla-unica-ciip",
   "version": "1.0.0",
   "private": true,
-  "description": "Ventanilla Unica del CIIP. El sitio es estatico; este archivo existe solo por la unica pieza que corre en un servidor: api/asistente.js.",
+  "description": "Ventanilla Unica del CIIP. El sitio es estatico; este archivo existe solo por las piezas que corren en un servidor: api/asistente.js y api/leer-documento.js.",
   "scripts": {
-    "probar-asistente": "node pruebas/asistente.js"
+    "probar-asistente": "node pruebas/asistente.js",
+    "probar-lector": "node pruebas/leer-documento.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0"

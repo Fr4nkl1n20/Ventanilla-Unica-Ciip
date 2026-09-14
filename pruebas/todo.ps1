@@ -46,13 +46,14 @@ $REQUISITOS = @{
   # tanda saldria en rojo con un "Cannot find module" que parece un fallo
   # del codigo y es solo un `npm install` que nadie corrio.
   'PROBAR-ASISTENTE'  = @{ archivo = 'node_modules\@anthropic-ai\sdk\package.json'; por = 'falta correr `npm install` una vez (api\asistente.js usa el SDK de Anthropic)' }
+  'PROBAR-LECTOR'     = @{ archivo = 'node_modules\@anthropic-ai\sdk\package.json'; por = 'falta correr `npm install` una vez (api\leer-documento.js usa el SDK de Anthropic)' }
 }
 
 # El orden es de mas barato a mas caro: lo que no toca la red primero, para
 # que un fallo tonto salte en los primeros segundos y no en el minuto ocho.
 $ORDEN = @(
   'PROBAR-CONECTOR', 'PROBAR-SAREN', 'PROBAR-TRABAJADOR', 'PROBAR-PAGOS',
-  'PROBAR-AVISOS', 'PROBAR-BARRENDERO', 'PROBAR-ASISTENTE',
+  'PROBAR-AVISOS', 'PROBAR-BARRENDERO', 'PROBAR-ASISTENTE', 'PROBAR-LECTOR',
   'PROBAR', 'PROBAR-PANEL',
   'PROBAR-SQL', 'PROBAR-CERRADURAS'
 )

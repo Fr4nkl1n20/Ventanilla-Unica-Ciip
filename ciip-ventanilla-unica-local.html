@@ -9407,7 +9407,17 @@ applyLang(idiomaParaMi());
       var cuadro = el('div', 'pa-lee');
       var zona = null, arch = null;
       pidePapel();
-      col.insertBefore(cuadro, col.firstChild);
+      /* El lector del sitio -el de Vercel- trae listo(): tener la direccion
+         puesta no quiere decir que este encendido, y el cuadro no sale
+         hasta que el servidor dice que si. Un lector sin listo() -el de
+         pruebas, el local- ya esta encendido por el hecho de existir. */
+      if (typeof lector.listo !== 'function'){
+        col.insertBefore(cuadro, col.firstChild);
+      } else {
+        lector.listo().then(function(si){
+          if (si && document.body.contains(col)) col.insertBefore(cuadro, col.firstChild);
+        }, function(){});
+      }
 
       /* ── el cuadro cuando todavia no has soltado nada ── */
       function pidePapel(){

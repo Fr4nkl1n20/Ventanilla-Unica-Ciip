@@ -55,7 +55,11 @@
     real: {
       SUPABASE_URL:      'https://fbxdwryppfctuwlnjjqr.supabase.co',
       SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZieGR3cnlwcGZjdHV3bG5qanFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyODY0MzcsImV4cCI6MjEwMzg2MjQzN30.3pu7IrjE5Lgu3J9csZUHyE_kY1DA-czgb5Z8G3_kfyw',
-      LECTOR_URL:        ''
+      /* El de Vercel, al lado del asistente. Tener la direccion puesta NO
+         lo enciende: el panel le pregunta primero y, mientras en Vercel
+         falten la clave o LECTOR_ACTIVO, contesta que no y no se pinta
+         nada. Ver api/LEEME.md. */
+      LECTOR_URL:        '/api/leer-documento'
     },
 
     /* ---- el de pruebas: aquí se monta lo nuevo y se puede romper ---- */
@@ -106,22 +110,32 @@
      poder- y devuelve lo que ese papel dice, para que el panel proponga
      las casillas ya rellenas y la persona las repase.
 
-     HOY NO HAY NINGUNO, y LECTOR_URL esta vacio a proposito. Mientras lo
-     este, el panel NO PINTA el cuadro de «suelta el papel»: no hay
-     interfaz muerta, ni se le promete a nadie algo que no va a pasar.
-     El dia que exista el servicio, se pone su direccion arriba y
-     funciona; no hay que tocar el panel.
+     HAY DOS MANERAS DE ENCHUFARLO, y la direccion dice cual:
 
-     LO QUE HAY QUE DECIDIR ANTES DE PONER UNA DIRECCION AQUI
+     · Empieza por «/»  →  el de Vercel, api/leer-documento.js, en el mismo
+       sitio que el panel. El papel NO viaja en la peticion -Vercel corta
+       a 4,5 MB y un poder escaneado pasa de eso-: se sube un momento a
+       tu carpeta del cubo, {uid}/lector/, y alli va solo la ruta. El
+       servidor lo lee con tu sesion y lo borra al terminar.
+
+       Y antes de pintar nada, el panel le pregunta si esta encendido
+       (CIIP_LECTOR.listo). Asi la direccion puede estar puesta en el
+       proyecto real sin que aparezca un cuadro que no lee: mientras en
+       Vercel falten la clave o LECTOR_ACTIVO=si, contesta que no.
+
+     · Cualquier otra  →  un lector que recibe el archivo entero en un
+       formulario: la funcion de Supabase o pruebas/lector-local.js.
+
+     Vacia, no hay lector y el cuadro de «suelta el papel» no se pinta.
+
+     LO QUE HAY QUE DECIDIR ANTES DE ENCENDERLO
 
      No es una decision tecnica. Un acta constitutiva lleva nombres,
      cedulas, capital y domicilios; un poder lleva el numero de la
-     notaria y la identidad del apoderado. Poner una direccion en esta
-     linea es decidir A DONDE SALEN esos documentos, y eso lo tiene que
-     decir el CIIP.
-
-     Lo natural es una funcion del propio Supabase, que ya guarda los
-     mismos papeles: asi no aparece un tercero nuevo en la cadena.
+     notaria y la identidad del apoderado. Encender el lector es decidir
+     que esos documentos SALEN hacia Anthropic para leerse, y eso lo
+     tiene que decir el CIIP. Por eso en Vercel es un interruptor aparte
+     de la clave del asistente.
 
      EL TRATO, POR SI SE ESCRIBE OTRO LECTOR
 
@@ -146,7 +160,66 @@
      Si no reconoce el documento, o falla, el panel lo dice y sigue: se
      sube el papel a mano y no pasa nada mas.
      ═══════════════════════════════════════════════════════════════════ */
-  if (elegido.LECTOR_URL){
+  function lectorDelSitio(url){
+    var listoPide = null;
+
+    function lector(archivo, quePapeles){
+      /* El guardian del <head> del panel deja aqui el cliente de Supabase.
+         Cuando se llama al lector ya hay sesion: el cuadro solo existe
+         dentro de un tramite abierto. */
+      var sb = window.sbCIIP;
+      if (!sb) return Promise.reject(new Error('sin cliente de Supabase'));
+      var ruta = null, token = null;
+
+      return sb.auth.getSession().then(function(r){
+        var s = r && r.data && r.data.session;
+        if (!s || !s.access_token || !s.user || !s.user.id) throw new Error('sin sesion');
+        token = s.access_token;
+        /* {uid}/lector/: la primera carpeta es la del dueño, que es lo que
+           miran las politicas del cubo, y la segunda es la unica de la que
+           el servidor acepta borrar. */
+        var limpio = String(archivo && archivo.name || 'papel').replace(/[^\w.\-]+/g, '_').slice(-60);
+        ruta = s.user.id + '/lector/' + Math.random().toString(36).slice(2, 10) + '-' + limpio;
+        return sb.storage.from('recaudos').upload(ruta, archivo, {upsert: false});
+      }).then(function(subido){
+        if (subido && subido.error){ ruta = null; throw subido.error; }
+        return fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token},
+          body: JSON.stringify({ruta: ruta, casillas: quePapeles || {}})
+        });
+      }).then(function(resp){
+        if (!resp.ok) throw new Error('el lector contesto ' + resp.status);
+        return resp.json();
+      }).catch(function(e){
+        /* El servidor borra el papel en cuanto sabe que es suyo. Si no
+           llego a contestar -sin red, o se corto-, nadie lo ha borrado:
+           se intenta desde aqui. Si ya no esta, no pasa nada. */
+        if (ruta){
+          try { sb.storage.from('recaudos').remove([ruta]).catch(function(){}); } catch (x){}
+        }
+        throw e;
+      });
+    }
+
+    /* Una vez por pagina. Un fallo de red cuenta como «no»: mejor sin
+       cuadro que con uno que no contesta. */
+    lector.listo = function(){
+      if (!listoPide){
+        listoPide = fetch(url, {method: 'GET'})
+          .then(function(r){ return r.ok ? r.json() : {}; })
+          .then(function(d){ return !!(d && d.listo === true); })
+          .catch(function(){ return false; });
+      }
+      return listoPide;
+    };
+
+    return lector;
+  }
+
+  if (elegido.LECTOR_URL && elegido.LECTOR_URL.charAt(0) === '/'){
+    window.CIIP_LECTOR = lectorDelSitio(elegido.LECTOR_URL);
+  } else if (elegido.LECTOR_URL){
     window.CIIP_LECTOR = function(archivo, quePapeles){
       var sobre = new FormData();
       sobre.append('archivo', archivo);

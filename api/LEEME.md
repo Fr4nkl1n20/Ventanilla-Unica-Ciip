@@ -1,9 +1,11 @@
 # El intermediario, y cómo se enciende
 
-Esta carpeta tiene un solo archivo, `asistente.js`, y es **la única pieza del
-proyecto que no corre en el navegador**. Todo lo demás —el panel, el acceso,
-las maquetas— son archivos que Vercel entrega tal cual. Este se ejecuta en una
-máquina de Vercel cada vez que alguien escribe una pregunta en el asistente.
+Esta carpeta tiene dos archivos, `asistente.js` y `leer-documento.js`, y son
+**las únicas piezas del proyecto que no corren en el navegador**. Todo lo demás
+—el panel, el acceso, las maquetas— son archivos que Vercel entrega tal cual.
+Estos se ejecutan en una máquina de Vercel: el primero cada vez que alguien
+escribe una pregunta en el asistente, el segundo cada vez que alguien suelta un
+papel para que se lea. El lector tiene su propio apartado al final.
 
 Existe por una razón sola: **la clave de Anthropic no puede viajar al
 navegador**. La clave `anon` de Supabase que está en `config.js` sí puede —es
@@ -134,3 +136,80 @@ Conviene tenerlo claro antes de enseñárselo a nadie:
   base. Se le pide expresamente que diga que no lo sabe y remita al CIIP, en
   vez de inventárselo. El día que los recaudos estén en una tabla, se añaden a
   `loQueSabe()` y el asistente los usa.
+
+---
+
+# El lector de documentos
+
+`leer-documento.js` es el cuadro de **«si ya tienes el papel, lo leemos»** que
+sale encima de las casillas del paso 1 de un trámite. Sueltas el poder, el acta
+o el pasaporte, y las casillas que ese papel contiene se rellenan solas, con un
+sello que dice de dónde salió cada dato. La persona las repasa antes de enviar.
+
+## Qué pasa hoy
+
+Nada visible. `config.js` ya apunta el proyecto real a `/api/leer-documento`,
+pero el panel **le pregunta primero si está encendido**, y mientras falte algo
+contesta que no y el cuadro no se pinta.
+
+## Encenderlo
+
+Además de lo del asistente (la clave y las dos variables de Supabase), una
+variable más en Vercel:
+
+| Nombre | Valor |
+|---|---|
+| `LECTOR_ACTIVO` | `si` |
+
+Es un interruptor **aparte de la clave a propósito**. El asistente solo manda la
+conversación; el lector manda poderes, actas y pasaportes —nombres, cédulas,
+domicilios— a Anthropic para leerlos. Eso lo tiene que decidir el CIIP, y no
+puede quedar decidido de rebote por haber puesto la clave para el asistente.
+
+Para apagarlo, se quita la variable (o se pone cualquier otra cosa) y un
+despliegue nuevo.
+
+## Cómo viaja el papel
+
+Vercel no deja entrar en una función más de 4,5 MB, y un poder escaneado pasa
+de eso. Así que el papel **no va en la petición**:
+
+1. El panel lo sube a la carpeta de la persona en el cubo `recaudos`, dentro de
+   `{uid}/lector/`. Las políticas del cubo ya le dejan escribir ahí.
+2. A `/api/leer-documento` llega solo la ruta y qué casillas buscar.
+3. La función comprueba la sesión, baja el papel **con el token de la persona**
+   —ninguna llave de servicio—, se lo enseña a `claude-opus-5` y **lo borra**,
+   haya ido bien o mal.
+
+Solo acepta rutas de `{uid}/lector/` de quien pregunta, porque borra lo que lee:
+un gestor puede leer la carpeta de cualquiera, y sin esa guarda podría hacer
+desaparecer un recaudo de verdad pasándole su ruta.
+
+## Lo que lee y lo que no
+
+- **PDF, JPEG, PNG, WebP y GIF.** Las fotos HEIC de iPhone, TIFF y BMP las
+  admite el cubo pero no el modelo: el cuadro dice que no pudo, y el papel se
+  sube a mano como siempre.
+- **Solo lo que está escrito.** Lo que el modelo no lee con seguridad se queda
+  vacío, y lo que devuelva de más —un tipo de papel que el trámite no pide, una
+  casilla que no es de ese papel— se recorta antes de salir.
+- **Lo que ya habías escrito manda**: el papel no pisa una casilla llena.
+
+## Frenos
+
+- **20 lecturas por persona y hora** (`TOPE_POR_HORA`). Cada lectura es un
+  documento entero, bastante más cara que una pregunta al asistente.
+- **10 MB por papel**, igual que el cubo.
+- Mismo aviso que arriba: el contador no es exacto entre copias de la función.
+  El tope que de verdad no se salta es el de la consola de Anthropic.
+
+## Comprobar que quedó bien
+
+```
+node pruebas/leer-documento.js
+```
+
+O `PROBAR-LECTOR.bat`. Prueba la función contra un Anthropic y un Supabase de
+mentira —los dos interruptores, la puerta, que solo borre de su carpeta, que
+borre siempre, la tijera, el tope, cada fallo— y el trozo de `config.js` que le
+habla desde el navegador. No gasta un céntimo ni toca la red.
