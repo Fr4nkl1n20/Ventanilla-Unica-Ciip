@@ -1694,10 +1694,74 @@ body[data-vista="citas"] .fase-bar{display:none;}
 
    width:max-content para que no se estire por toda la celda: un contenedor
    flex a lo ancho no se nota hasta que alguien le pone un fondo. */
-#mtTabla .ct-chip + *{display:flex; align-items:center; width:max-content;
+#mtTabla .mt-est + *{display:flex; align-items:center; width:max-content;
   margin-top:4px;}
 #mtTabla td:last-child{text-align:right;}
 .mt-ir{padding:5px 12px; font-size:11px;}
+/* ── «MIS TRÁMITES» CON LA TABLA DE ATLAS ──
+   El formato de la tabla de contratos suscritos de Atlas (ciip-app,
+   .pv-tabla .tb-consola), para que quien usa los dos sistemas del CIIP lea
+   las listas igual. De maquetas/mis-tramites-atlas.html.
+
+   Lo que se trae: cabecera en mayusculas espaciadas y fija al rodar, anchos
+   declarados, el nombre con el organismo debajo, el estado con icono y
+   palabra, y el pie con la cuenta y las paginas.
+
+   Lo que NO se trae: la fila entera pulsable. Aqui abre el boton «Abrir»,
+   por lo que dice la regla de #mtTabla tbody tr de mas arriba.
+
+   Y los TAMAÑOS no se copian de Atlas: van por la escala de la Ventanilla
+   (TIPOGRAFIA.md), que es la de Atlas ya pasada a diez escalones. La tabla
+   de contratos lleva la cabecera en 10.5 y peso 800; 10.5 no es de la
+   escala, y 800 en un rotulo pequeño sale en Arial Black en Windows, que
+   no tiene Arial 800. Aqui es --fs-rotulo, 11 y 700. */
+.mt-caja{max-height:60vh; overflow:auto;}
+.mt-caja::-webkit-scrollbar{width:8px; height:8px;}
+.mt-caja::-webkit-scrollbar-thumb{background:var(--line); border-radius:8px;}
+#mtTabla{table-layout:fixed;}
+/* El borde de la cabecera va en box-shadow y no en border-bottom: sobre un
+   th fijo, el borde se despega de la celda al rodar y queda una rendija. */
+#mtTabla th{position:sticky; top:0; z-index:2; background:var(--bg); padding:11px 14px;
+  font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--gray);
+  border-bottom:0; box-shadow:inset 0 -1px 0 var(--line);}
+#mtTabla th .th-orden{font-size:inherit; font-weight:inherit; letter-spacing:inherit; text-transform:inherit;}
+#mtTabla th .th-orden .flecha{opacity:.35;}
+#mtTabla th[aria-sort] .th-orden{color:var(--navy);}
+#mtTabla th[aria-sort] .th-orden .flecha{opacity:1;}
+#mtTabla th:nth-child(1){width:32%;} #mtTabla th:nth-child(2){width:12%;}
+#mtTabla th:nth-child(3){width:30%;} #mtTabla th:nth-child(4){width:16%;}
+#mtTabla th:nth-child(5){width:10%;}
+#mtTabla td{padding:11px 14px; overflow:hidden;}
+/* El recorte a dos lineas va en el elemento de dentro y nunca en el <td>:
+   sobre la celda, display:-webkit-box la saca de la tabla. */
+#mtTabla .mt-nombre{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden; line-height:1.35; font-size:var(--fs-fila); font-weight:600;}
+.mt-sub{display:block; margin-top:2px; font-size:var(--fs-nota); color:var(--gray);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.mt-sigla{font-size:var(--fs-rotulo); font-weight:700; color:var(--ink);}
+#mtTabla .mt-fecha{font-size:var(--fs-nota); color:var(--gray); white-space:normal;}
+/* El estado con su icono al lado de la palabra: un color solo no lo
+   distingue quien no separa el verde del ambar. */
+.mt-est{display:inline-flex; align-items:center; gap:8px; font-size:var(--fs-fila); font-weight:600; max-width:100%;}
+.mt-est svg{width:15px; height:15px; flex:none; fill:none; stroke:currentColor; stroke-width:2.4;
+  stroke-linecap:round; stroke-linejoin:round;}
+.mt-est > span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.mt-est.good{color:var(--good);} .mt-est.rust{color:var(--rust);}
+.mt-est.warn{color:var(--amber);} .mt-est.info{color:var(--navy2);}
+.mt-pie{display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:11px 2px 2px;
+  font-size:var(--fs-nota); color:var(--gray-soft);}
+.mt-pie[hidden]{display:none;}
+.mt-pie b{color:var(--ink); font-variant-numeric:tabular-nums;}
+.mt-pie select{border:1px solid var(--line); border-radius:7px; padding:3px 6px; background:var(--bg);
+  color:var(--ink); font:inherit; font-weight:700; margin:0 4px;}
+.mt-pags{margin-left:auto; display:flex; gap:2px;}
+.mt-p{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--gray); border:1px solid transparent; background:none;
+  border-radius:7px; padding:4px 9px; cursor:pointer;}
+.mt-p:hover{background:var(--block); color:var(--navy2); border-color:var(--line);}
+.mt-p.on, .mt-p.on:hover{background:var(--navy); color:#fff; border-color:var(--navy);}
+.mt-vacia b{display:block; color:var(--ink); font-size:var(--fs-seccion); font-weight:700; margin-bottom:4px;}
+.mt-vacia-ir{font:inherit; color:var(--navy2); font-weight:700; background:none; border:0; padding:0; cursor:pointer;}
+.mt-vacia-ir:hover{text-decoration:underline; text-underline-offset:3px;}
 /* Dos colas en la misma ventana —trámites y citas— necesitan decir cuál es
    cuál: sin cabecera, una ficha de cada tipo seguida parece la misma cosa. */
 .co-seccion{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
@@ -4944,12 +5008,16 @@ body[data-vista="horario"] .fase-bar{display:none;}
            Antes era una rejilla de fichas. Se leia bien con tres tramites
            y mal con quince: para comparar dos fechas habia que ir saltando
            de una tarjeta a otra, y no habia forma de ordenar por nada. -->
-      <div class="tabla-caja">
+      <!-- Con la tabla de Atlas (ciip-app, la de los contratos suscritos):
+           caja con tope de alto y la cabecera fija dentro, y un pie con la
+           cuenta, cuantos por pagina y los numeros. -->
+      <div class="tabla-caja mt-caja">
         <table class="tabla" id="mtTabla">
           <thead><tr id="mtCab"></tr></thead>
           <tbody id="mtCuerpo"></tbody>
         </table>
       </div>
+      <div class="mt-pie" id="mtPie" hidden></div>
       <div class="co-vacia" id="mtVacia" hidden></div>
     </div>
 
@@ -14993,6 +15061,21 @@ applyLang(idiomaParaMi());
     }
   };
   var mtOrden = ordenDeTabla(function(){ pintaMisTramites(); });
+  /* La pagina y cuantas caben. Diez por pagina y no las cinco de la maqueta:
+     un inversionista suele tener menos de diez, y asi casi nunca le salen
+     numeros de pagina que no necesita. La pagina vuelve a la primera cuando
+     cambia el filtro o el orden -mtClave-: quedarse en la tercera de una
+     lista que ahora tiene una sola dejaria la tabla en blanco. */
+  var mtPagina = 0, mtPorPagina = 10, mtClave = '';
+  /* Los tres primeros son los de Atlas. El de «en marcha» no: sus contratos
+     no tienen estados en camino, y un reloj chocaria con el de «En este
+     estado desde», que va justo debajo. */
+  var MT_ICONO = {
+    good: '<circle cx="12" cy="12" r="9"/><polyline points="8 12.5 11 15.5 16 9"/>',
+    rust: '<circle cx="12" cy="12" r="9"/><line x1="12" y1="7.5" x2="12" y2="13"/><line x1="12" y1="16.4" x2="12" y2="16.5"/>',
+    warn: '<path d="M12 4 21 19H3z"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="12" y1="16.5" x2="12" y2="16.6"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M9 12h6M13 9l3 3-3 3"/>'
+  };
 
   function pintaMisTramites(){
     var cuerpo = document.getElementById('mtCuerpo');
@@ -15060,10 +15143,19 @@ applyLang(idiomaParaMi());
       fv.className = 'sin-nada';
       var tdv = document.createElement('td');
       tdv.colSpan = MT_COLUMNAS.length;
-      tdv.appendChild(el('div', 'ci-vacia', u.mt_vacia || ''));
+      /* El recuadro de Atlas, y con la salida: quien llega sin tramites
+         busca por donde se empieza. */
+      var vac = el('div', 'ci-vacia mt-vacia');
+      vac.appendChild(el('b', null, u.mt_vacia || ''));
+      var alPanel = el('button', 'mt-vacia-ir', u.mt_vacia_ir || '');
+      alPanel.type = 'button';
+      alPanel.addEventListener('click', function(){ location.hash = ''; });
+      vac.appendChild(alPanel);
+      tdv.appendChild(vac);
       fv.appendChild(tdv);
       fv.style.cursor = 'default';
       cuerpo.appendChild(fv);
+      pintaPieMt(0, 0, 1, 1);
       return;
     }
     if (tabla) tabla.hidden = false;
@@ -15077,7 +15169,15 @@ applyLang(idiomaParaMi());
       pintaFiltrosMt();
     }
 
-    mtOrden.ordena(mios.filter(mtCuadra), MT_ORDENA).forEach(function(t){
+    var lista = mtOrden.ordena(mios.filter(mtCuadra), MT_ORDENA);
+    var clave = mtFiltro + '|' + mtOrden.campo + '|' + mtOrden.sube;
+    if (clave !== mtClave){ mtPagina = 0; mtClave = clave; }
+    var total = lista.length;
+    var porPag = mtPorPagina > 0 ? mtPorPagina : (total || 1);
+    var paginas = Math.max(1, Math.ceil(total / porPag));
+    if (mtPagina > paginas - 1) mtPagina = paginas - 1;
+
+    lista.slice(mtPagina * porPag, mtPagina * porPag + porPag).forEach(function(t){
       var ref  = tipoRefDe(t.tipo);
       /* TIPOS puede seguir siendo null si el catálogo aún no ha llegado.
          Sin este paréntesis, TIPOS[null] revienta y la lista se queda vacía
@@ -15091,12 +15191,20 @@ applyLang(idiomaParaMi());
          y como en la cola del equipo. */
       if (reclama) tr.className = 'reclama';
       else if (t.estado === 'resuelto') tr.className = 'pasada';
+      if (t.id) tr.setAttribute('data-id', t.id);
 
-      tr.appendChild(el('td', 'mt-nombre', ref ? nombreDeTarjeta(ref) : t.tipo));
-      tr.appendChild(el('td', null, ente));
+      /* La primera celda identifica el tramite entero: el nombre y, debajo,
+         el organismo con su nombre largo -el de su tarjeta-. La columna de
+         al lado se queda con la sigla, que es por lo que se ordena. */
+      var tdN = el('td', 'mt-quien');
+      tdN.appendChild(el('b', 'mt-nombre', ref ? nombreDeTarjeta(ref) : t.tipo));
+      var largo = ref && document.querySelector('.tcard[data-tr="' + ref + '"] .t-ente > span:not(.ebadge)');
+      if (largo && largo.textContent.trim()) tdN.appendChild(el('span', 'mt-sub', largo.textContent.trim()));
+      tr.appendChild(tdN);
+      tr.appendChild(el('td', 'mt-sigla', ente));
 
       var tdEstado = document.createElement('td');
-      tdEstado.appendChild(el('span', 'ct-chip' + (chip.clase === 'listo' ? ' listo' : ''), chip.txt));
+      tdEstado.appendChild(estadoMt(t.estado, chip.txt));
       /* Cuanto lleva parado, debajo del estado y solo si sigue vivo: en un
          resuelto «lleva veinte dias» no dice nada, ya termino. */
       if (t.estado !== 'resuelto'){
@@ -15122,7 +15230,73 @@ applyLang(idiomaParaMi());
 
       cuerpo.appendChild(tr);
     });
+    pintaPieMt(total, mtPagina, porPag, paginas);
   }
+
+  function estadoMt(estado, txt){
+    var tono = estado === 'resuelto' ? 'good' : estado === 'devuelto' ? 'rust'
+             : estado === 'borrador' ? 'warn' : 'info';
+    var s = el('span', 'mt-est ' + tono);
+    s.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + MT_ICONO[tono] + '</svg>';
+    s.appendChild(el('span', null, txt));
+    return s;
+  }
+
+  /* El pie: cuantos hay, cuantos por pagina y los numeros. Sin tramites no
+     sale: el recuadro vacio ya lo dice. */
+  function pintaPieMt(total, pag, porPag, paginas){
+    var pie = document.getElementById('mtPie');
+    if (!pie) return;
+    pie.textContent = '';
+    pie.hidden = !total;
+    if (!total) return;
+    var u = T();
+    var datos = {desde: pag * porPag + 1, hasta: Math.min(total, (pag + 1) * porPag), total: total};
+    var cuenta = el('span', 'mt-cuenta');
+    String(u.mt_mostrando || '').split(/(\{desde\}|\{hasta\}|\{total\})/).forEach(function(x){
+      if (!x) return;
+      var m = /^\{(desde|hasta|total)\}$/.exec(x);
+      cuenta.appendChild(m ? el('b', null, String(datos[m[1]])) : document.createTextNode(x));
+    });
+    pie.appendChild(cuenta);
+
+    var ver = el('span', 'mt-ver');
+    var sel = el('select');
+    sel.setAttribute('aria-label', u.mt_por_pag_aria || '');
+    [10, 25, 0].forEach(function(n){
+      var o = el('option', null, n ? String(n) : (u.mt_todos || ''));
+      o.value = String(n);
+      if (n === mtPorPagina) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', function(){
+      mtPorPagina = parseInt(sel.value, 10) || 0;
+      mtPagina = 0;
+      pintaMisTramites();
+    });
+    var partes = String(u.mt_ver_pag || '{sel}').split('{sel}');
+    ver.appendChild(document.createTextNode(partes[0] || ''));
+    ver.appendChild(sel);
+    ver.appendChild(document.createTextNode(partes[1] || ''));
+    pie.appendChild(ver);
+
+    if (paginas > 1){
+      var pags = el('span', 'mt-pags');
+      for (var i = 0; i < paginas; i++){
+        (function(n){
+          var b = el('button', 'mt-p' + (n === pag ? ' on' : ''), String(n + 1));
+          b.type = 'button';
+          if (n === pag) b.setAttribute('aria-current', 'page');
+          b.addEventListener('click', function(){ mtPagina = n; pintaMisTramites(); });
+          pags.appendChild(b);
+        })(i);
+      }
+      pie.appendChild(pags);
+    }
+  }
+  /* Gancho de PRUEBA: ningun expediente de prueba tiene diez tramites, y sin
+     esto la paginacion no se podria comprobar sin inventar uno. */
+  window.CIIP_MT_POR_PAGINA = function(n){ mtPorPagina = n; mtPagina = 0; pintaMisTramites(); };
 
   function cargaMisTramites(){
     /* Al equipo del CIIP no. La política de la base le deja leer los

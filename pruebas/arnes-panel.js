@@ -4278,6 +4278,65 @@
       }
     })();
 
+    /* ── CON LA TABLA DE ATLAS ──
+       El formato de la tabla de contratos de Atlas, con el boton «Abrir»
+       que Atlas no tiene. Se mide lo que se ve -la cabecera fija, el icono
+       al lado de la palabra, el organismo debajo- y la paginacion, que con
+       menos de diez no sale y por eso se fuerza de dos en dos con el gancho. */
+    (function(){
+      var filas = [].filter.call(document.querySelectorAll('#mtCuerpo tr'), function(f){
+        return !f.classList.contains('sin-nada'); });
+      var th = document.querySelector('#mtCab th');
+      igual('mis trámites: la cabecera se queda fija al rodar',
+            th ? getComputedStyle(th).position : '(no hay)', 'sticky');
+      /* Con la escala de la Ventanilla y no con los numeros de Atlas: la
+         cabecera en --fs-rotulo, 11 y 700 -800 en Windows es Arial Black-,
+         y el nombre de cada fila en --fs-fila, 12 y 600. Se compara con la
+         VARIABLE leida de la raiz, no con un numero: si la escala se mueve,
+         la tabla se mueve con ella y esto sigue verde. */
+      var raiz = getComputedStyle(document.documentElement);
+      igual('mis trámites: la cabecera, con el rótulo de la escala',
+            th ? getComputedStyle(th).fontSize + ' / ' + getComputedStyle(th).fontWeight : '(no hay)',
+            raiz.getPropertyValue('--fs-rotulo').trim() + ' / 700');
+      var nom = document.querySelector('#mtCuerpo .mt-nombre');
+      if (nom) igual('mis trámites: y el nombre, con el de una fila de lista',
+            getComputedStyle(nom).fontSize + ' / ' + getComputedStyle(nom).fontWeight,
+            raiz.getPropertyValue('--fs-fila').trim() + ' / 600');
+      var mal = filas.filter(function(f){
+        var e = f.querySelector('.mt-est');
+        return !e || !e.querySelector('svg') || !/\S/.test(e.textContent);
+      });
+      igual('mis trámites: cada estado con su icono y su palabra', mal.length, 0);
+      var conSub = filas.filter(function(f){
+        var s = f.querySelector('.mt-sub'); return s && /\S/.test(s.textContent); });
+      ok('mis trámites: el organismo, con su nombre, debajo del trámite', conSub.length >= 3,
+         conSub.length + ' de ' + filas.length, 'tres o más');
+      igual('mis trámites: y cada fila con su botón «Abrir»',
+            filas.filter(function(f){ return f.querySelector('.mt-ir'); }).length, filas.length);
+
+      var pie = document.getElementById('mtPie');
+      ok('mis trámites: el pie dice cuántos hay',
+         !!pie && !pie.hidden && new RegExp('\\b' + filas.length + '\\b').test(pie.textContent),
+         pie ? pie.textContent.replace(/\s+/g, ' ').trim() : '(no hay)', 'con ' + filas.length);
+      ok('mis trámites: con menos de diez, sin números de página', !document.querySelector('#mtPie .mt-pags'),
+         document.querySelector('#mtPie .mt-pags') ? 'los lleva' : 'sin números', 'sin números');
+
+      if (!window.CIIP_MT_POR_PAGINA || filas.length < 3) return;
+      function ids(){ return [].map.call(document.querySelectorAll('#mtCuerpo tr'), function(f){
+        return f.getAttribute('data-id'); }); }
+      window.CIIP_MT_POR_PAGINA(2);
+      var p1 = ids();
+      igual('mis trámites: de dos en dos, la primera página trae dos', p1.length, 2);
+      var nums = document.querySelectorAll('#mtPie .mt-p');
+      igual('mis trámites: con sus números de página', nums.length, Math.ceil(filas.length / 2));
+      if (nums[1]) nums[1].click();
+      var p2 = ids();
+      ok('mis trámites: y la segunda trae otras', p2.length > 0 && p2.every(function(x){ return p1.indexOf(x) < 0; }),
+         p2.join(',') + ' / antes ' + p1.join(','), 'ninguna repetida');
+      window.CIIP_MT_POR_PAGINA(10);
+      igual('mis trámites: y al volver a diez están todas', document.querySelectorAll('#mtCuerpo tr').length, filas.length);
+    })();
+
     location.hash = '';
   }
 

@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Mis trámites con la tabla de Atlas</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   MIS TRAMITES CON LA TABLA DE ATLAS
+
+   Atlas (ciip-app, css/app.css) tiene dos formatos de tabla: la general,
+   table.tbl, y la de los contratos suscritos en «formato consola»
+   (.pv-tabla .tb-consola), escrita de cero cuando dejo DataTables. Esta
+   maqueta pasa la segunda a «Mis trámites» con los mismos datos que la
+   tabla de hoy, para compararlas.
+
+   Lo que se trae de Atlas, tal cual:
+     · cabecera en mayusculas espaciadas, fija al rodar, que ordena;
+     · anchos de columna declarados (table-layout:fixed);
+     · la primera celda identifica el tramite entero -nombre en negrita y
+       un dato debajo-;
+     · el estado con icono y palabra, no solo con color;
+     · caja con tope de alto y pie con la cuenta, el tamaño de pagina y
+       los numeros;
+     · el recuadro vacio punteado.
+
+   Lo que se añade porque Atlas no lo tiene: un icono de reloj para los
+   estados en marcha. Los contratos de Atlas no tienen «en revision».
+   ══════════════════════════════════════════════════════════════════ */
+[hidden]{display:none !important;}
+:root{--gray:#5B6478; --gray-soft:#8A93A6;}
+
+.caso{margin-top:40px;}
+.caso:first-child{margin-top:0;}
+.caso-h{display:flex; align-items:baseline; gap:10px; margin-bottom:4px;}
+.caso-n{flex:none; width:24px; height:24px; border-radius:50%; background:var(--ink); color:#fff;
+  font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; align-self:center;}
+.caso-n.gris{background:var(--mudo);}
+.caso-t{font-size:15px; font-weight:700; letter-spacing:-.01em;}
+.caso-q{font-size:12.5px; color:var(--mudo); line-height:1.6; max-width:86ch; margin:0 0 14px 34px;}
+.caso-q b{color:var(--ink); font-weight:600;}
+.pruebalo{display:inline-block; font-size:10px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+  background:var(--activa-bg); color:var(--navy2); border-radius:4px; padding:2px 7px; margin-left:4px;}
+.pantalla{border:1px dashed #C9CED8; border-radius:14px; padding:18px; background:#F2F5FA;}
+.pantalla-r{font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--mudo); margin-bottom:10px;}
+
+/* ── los filtros, iguales en las dos ── */
+.filtros{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;}
+.fi{font:inherit; font-size:12px; font-weight:600; border:1px solid var(--line); background:var(--bg);
+  border-radius:8px; padding:6px 11px; color:var(--gray); cursor:pointer; display:inline-flex; gap:7px; align-items:center;}
+.fi .n{font-size:10.5px; font-weight:800; color:var(--gray-soft);}
+.fi.on{border-color:var(--navy); color:var(--navy); box-shadow:0 0 0 1px var(--navy);}
+.fi.on .n{color:var(--navy);}
+
+/* ══ 0 · HOY: la .tabla de la Ventanilla ══ */
+.hoy-caja{overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:var(--bg);}
+.hoy{width:100%; border-collapse:collapse; font-size:12.5px; min-width:720px;}
+.hoy th{text-align:left; font-size:11px; font-weight:700; letter-spacing:.01em; color:var(--gray-soft);
+  padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; background:var(--block);}
+.hoy td{padding:11px 12px; border-bottom:1px solid var(--line-soft); vertical-align:middle;}
+.hoy tr:last-child td{border-bottom:0;}
+.hoy tbody tr:hover{background:var(--block);}
+.hoy .nm{font-weight:700;}
+.ct-chip{display:inline-block; font-size:10.5px; font-weight:700; border-radius:99px; padding:3px 9px;
+  background:var(--activa-bg); color:var(--navy2);}
+.ct-chip.reclama{background:#FBF3E2; color:#8A5A12;}
+.ct-chip.listo{background:var(--good-bg); color:var(--good);}
+.reloj{display:block; font-size:10.5px; color:var(--gray-soft); margin-top:3px;}
+.hoy .fe{color:var(--gray); white-space:nowrap;}
+.hoy .ir{font:inherit; font-size:11.5px; font-weight:600; border:1px solid var(--line); background:var(--bg);
+  border-radius:6px; padding:6px 12px; color:var(--gray);}
+.hoy td:last-child{text-align:right;}
+
+/* ══ 1 · ATLAS: .pv-tabla .tb-consola ══ */
+.caja-atlas{border:1px solid var(--line); border-radius:var(--r); background:var(--bg); overflow:hidden;}
+.pv-tabla{padding:4px 14px 12px;}
+.tscroll{max-height:60vh; overflow:auto;}
+.tscroll::-webkit-scrollbar{width:8px; height:8px;}
+.tscroll::-webkit-scrollbar-thumb{background:var(--line); border-radius:8px;}
+table.tb-consola{width:100%; border-collapse:collapse; table-layout:fixed; min-width:640px;}
+.tb-consola th{position:sticky; top:0; z-index:2; background:var(--bg); text-align:left; padding:11px 14px;
+  font-size:10.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--gray);
+  white-space:nowrap; cursor:pointer; box-shadow:inset 0 -1px 0 var(--line); user-select:none;}
+.tb-consola th:hover{color:var(--navy2);}
+.tb-consola th.orden{color:var(--navy);}
+.tb-consola th .fl{margin-left:6px; font-size:9px; color:var(--gray-soft); letter-spacing:0; font-weight:700;}
+.tb-consola th.orden .fl{color:var(--navy);}
+.tb-consola th.c-tr{width:34%;} .tb-consola th.c-ente{width:18%;}
+.tb-consola th.c-est{width:28%;} .tb-consola th.c-fe{width:20%;}
+.tb-consola td{padding:11px 14px; font-size:12.5px; color:var(--ink); vertical-align:middle;
+  border-bottom:1px solid var(--line-soft); overflow:hidden;}
+.tb-consola tr.click{cursor:pointer;}
+.tb-consola tr.click:hover td{background:#F7FAFD;}
+.tb-consola tr:last-child td{border-bottom:0;}
+.tb-consola td.who b{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; font-weight:700;
+  overflow:hidden; line-height:1.35;}
+.tb-consola td.who .sub{display:block; margin-top:2px; font-size:11px; color:var(--gray);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.tb-consola td.mini{color:var(--gray); font-size:11.5px;}
+.tb-consola td.mini b{color:var(--ink); font-weight:700;}
+.cs-est{display:inline-flex; align-items:center; gap:8px; font-weight:600; max-width:100%;}
+.cs-est span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.cs-est svg{width:15px; height:15px; flex:none;}
+.cs-est.good{color:#1E7F5C;} .cs-est.rust{color:var(--rust);} .cs-est.warn{color:#9A6512;}
+.cs-est.info{color:var(--navy2);} .cs-est.mute{color:var(--gray-soft);}
+.cs-desde{display:block; font-size:11px; color:var(--gray-soft); margin:2px 0 0 23px;}
+.tb-pie{display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:11px 2px 2px; font-size:11.5px; color:var(--gray-soft);}
+.tb-pie b{color:var(--ink); font-variant-numeric:tabular-nums;}
+.tb-ver select{border:1px solid var(--line); border-radius:7px; padding:3px 6px; background:var(--bg); color:var(--ink);
+  font-family:inherit; font-size:11.5px; font-weight:700; margin:0 4px;}
+.tb-pags{margin-left:auto; display:flex; gap:2px;}
+.tb-p{font:inherit; font-size:11.5px; font-weight:700; color:var(--gray); border:1px solid transparent; background:none;
+  border-radius:7px; padding:4px 9px; cursor:pointer;}
+.tb-p:hover{background:var(--block); color:var(--navy2); border-color:var(--line);}
+.tb-p.on, .tb-p.on:hover{background:var(--navy); color:#fff; border-color:var(--navy);}
+
+/* El recuadro vacio de Atlas: .empty */
+.empty{padding:34px; text-align:center; color:var(--gray-soft); font-size:12px; border:1px dashed var(--line); border-radius:10px;}
+.empty b{display:block; color:var(--ink); font-size:13px; margin-bottom:4px;}
+.empty a{color:var(--navy2); font-weight:700; text-decoration:none; cursor:pointer;}
+.vacia-td{padding:12px 0 2px !important; border-bottom:0 !important;}
+
+/* ── comparacion ── */
+.cambios{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:40px;}
+.nota{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:16px 18px;}
+.nota h3{margin:0 0 8px; font-size:13.5px;}
+.nota ul{margin:0; padding-left:18px; font-size:12px; line-height:1.65;}
+.nota li b{font-weight:700;}
+.nota.gana h3{color:var(--good);} .nota.pierde h3{color:var(--rust);}
+
+@media (max-width:820px){
+  .sidebar{display:none;}
+  .caso-q{margin-left:0;}
+  .cambios{grid-template-columns:minmax(0,1fr);}
+}
+</style>
+</head>
+<body>
+
+<div class="mq-cartel">
+  <b>Maqueta · Mis trámites con la tabla de Atlas</b>
+  <span>La tabla de hoy y la misma lista en el «formato consola» de Atlas (ciip-app), con los mismos datos.<br>
+  No es la aplicación: los datos son de ejemplo. En la tabla de Atlas, filtrar, ordenar y paginar funcionan.</span>
+</div>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sb-head"><img src="../logos/ciip.png" alt="CIIP"></div>
+    <nav class="sb-nav">
+      <div class="sb-g">Mi expediente</div>
+      <div class="sb-i"><span class="d"></span>Mi panel</div>
+      <div class="sb-i on"><span class="d"></span>Mis trámites</div>
+      <div class="sb-i"><span class="d"></span>Mi empresa</div>
+      <div class="sb-i"><span class="d"></span>Documentos</div>
+      <div class="sb-g">Acompañamiento</div>
+      <div class="sb-i"><span class="d"></span>Citas y agenda</div>
+      <div class="sb-i"><span class="d"></span>Ayuda y guía</div>
+    </nav>
+  </aside>
+
+  <div class="marco">
+    <div class="topbar">
+      <div class="tb-crumb">Te damos la bienvenida: Marta Bianchi</div>
+      <div class="tb-sp"></div>
+      <div class="tb-user"><div class="tb-av">M</div>
+        <div>Marta Bianchi<div class="r">Inversionista · Italia</div></div></div>
+    </div>
+
+    <main>
+
+      <!-- ══ 0 · HOY ═══════════════════════════════════════════════ -->
+      <section class="caso">
+        <div class="caso-h"><span class="caso-n gris">0</span>
+          <span class="caso-t">Así está hoy en la Ventanilla</span></div>
+        <p class="caso-q">La <b>.tabla</b> del panel: cabecera gris, el estado en un distintivo de color y un botón
+          «Abrir» en cada fila. Es la referencia.</p>
+        <div class="pantalla">
+          <div class="pantalla-r">Mis trámites</div>
+          <div class="filtros" id="hoyFiltros"></div>
+          <div class="hoy-caja">
+            <table class="hoy">
+              <thead><tr><th>Trámite</th><th>Organismo</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+              <tbody id="hoyCuerpo"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 1 · ATLAS ═════════════════════════════════════════════ -->
+      <section class="caso">
+        <div class="caso-h"><span class="caso-n">1</span>
+          <span class="caso-t">Con el formato consola de Atlas</span>
+          <span class="pruebalo">Pruébalo</span></div>
+        <p class="caso-q">Pulsa una cabecera para ordenar, cambia cuántos se ven por página y filtra arriba. La
+          cabecera <b>se queda fija</b> al rodar dentro de la caja, el estado lleva <b>icono y palabra</b>, y
+          la fila entera abre el trámite.</p>
+        <div class="pantalla">
+          <div class="pantalla-r">Mis trámites</div>
+          <div class="filtros" id="atFiltros"></div>
+          <div class="caja-atlas">
+            <div class="pv-tabla">
+              <div class="tscroll">
+                <table class="tb-consola">
+                  <thead><tr id="atCab"></tr></thead>
+                  <tbody id="atCuerpo"></tbody>
+                </table>
+              </div>
+              <div class="tb-pie" id="atPie"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 2 · VACIA ═════════════════════════════════════════════ -->
+      <section class="caso">
+        <div class="caso-h"><span class="caso-n">2</span>
+          <span class="caso-t">Y cuando todavía no hay ninguno</span></div>
+        <p class="caso-q">El marco de la tabla se queda —dice «esto es una lista, y está vacía»— y dentro va el
+          recuadro punteado de Atlas. Se aprovecha para decir <b>dónde se empieza</b>, que es lo que busca
+          quien llega aquí sin trámites.</p>
+        <div class="pantalla">
+          <div class="pantalla-r">Mis trámites · sin trámites</div>
+          <div class="caja-atlas">
+            <div class="pv-tabla">
+              <table class="tb-consola">
+                <thead><tr>
+                  <th class="c-tr">Trámite</th><th class="c-ente">Organismo</th>
+                  <th class="c-est">Estado</th><th class="c-fe">Fecha</th>
+                </tr></thead>
+                <tbody><tr><td class="vacia-td" colspan="4">
+                  <div class="empty"><b>Todavía no has pedido ningún trámite.</b>
+                    Los tienes todos en <a>Mi panel</a>, ordenados por etapa.</div>
+                </td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ QUÉ CAMBIA ═══════════════════════════════════════════ -->
+      <div class="cambios">
+        <section class="nota gana">
+          <h3>Qué se gana</h3>
+          <ul>
+            <li><b>La misma tabla que Atlas.</b> Quien usa los dos sistemas del CIIP no aprende dos formas de leer una lista.</li>
+            <li><b>El estado se distingue sin color:</b> cada uno con su icono, útil para quien no separa verde de ámbar.</li>
+            <li><b>Una columna menos que leer por fila:</b> el nombre completo del organismo va debajo del trámite, y la columna de al lado queda con la sigla.</li>
+            <li><b>Cabecera fija y pie con la cuenta:</b> con veinte trámites se sigue sabiendo qué es cada columna y cuántos hay.</li>
+          </ul>
+        </section>
+        <section class="nota pierde">
+          <h3>Qué se pierde, o hay que decidir</h3>
+          <ul>
+            <li><b>El botón «Abrir» de cada fila.</b> Atlas abre con la fila entera; en la Ventanilla ese botón es el que alcanza quien va con el teclado, así que habría que dejar la fila enfocable.</li>
+            <li><b>La paginación con pocos trámites sobra.</b> Un inversionista suele tener menos de diez: el pie se podría esconder hasta que haga falta.</li>
+            <li><b>Las otras tablas</b> —Documentos, Citas y la cola del equipo— usan la misma <b>.tabla</b>. Cambiar solo una las separa; lo coherente es pasar las cinco.</li>
+          </ul>
+        </section>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+/* Solo para la maqueta. Los estados y sus palabras son los de la Ventanilla
+   (pasos.js: estados, devuelta, iniciar); los tramites, un ejemplo. */
+(function(){
+  var ESTADOS = {
+    borrador:     {txt:'Iniciar esta solicitud',        ico:'warn', grupo:'accion',  orden:0},
+    devuelto:     {txt:'Te la devolvimos: falta algo',  ico:'rust', grupo:'accion',  orden:1},
+    enviado:      {txt:'Solicitud recibida por el CIIP', ico:'info', grupo:'proceso', orden:2},
+    en_revision:  {txt:'Revisión de tus recaudos',      ico:'info', grupo:'proceso', orden:3},
+    ante_el_ente: {txt:'Presentada ante {ente}',        ico:'info', grupo:'proceso', orden:4},
+    resuelto:     {txt:'Resuelta',                      ico:'good', grupo:'listo',   orden:5}
+  };
+  var TR = [
+    {nm:'Constitución de la compañía', ente:'SAREN', largo:'Registro Mercantil', est:'borrador', desde:'hace 2 días'},
+    {nm:'RIF de la empresa', ente:'SENIAT', largo:'Servicio Nacional Integrado de Administración Aduanera y Tributaria', est:'devuelto', env:'2026-09-02', desde:'hace 3 días'},
+    {nm:'RIF personal', ente:'SENIAT', largo:'Servicio Nacional Integrado de Administración Aduanera y Tributaria', est:'ante_el_ente', env:'2026-08-25', desde:'hace 12 días'},
+    {nm:'Visa de inversionista', ente:'SAIME', largo:'Servicio Administrativo de Identificación, Migración y Extranjería', est:'en_revision', env:'2026-09-08', desde:'hace 4 días'},
+    {nm:'Antecedentes penales apostillados', ente:'MPPRIJP', largo:'Ministerio del Poder Popular para Relaciones Interiores, Justicia y Paz', est:'enviado', env:'2026-09-12', desde:'hace 2 días'},
+    {nm:'Acreditación de representación legal', ente:'CIIP', largo:'Centro Internacional de Inversión Productiva', est:'resuelto', env:'2026-08-10', res:'2026-08-20'},
+    {nm:'Apostilla y traducción de documentos', ente:'MPPRE', largo:'Ministerio del Poder Popular para Relaciones Exteriores', est:'resuelto', env:'2026-08-12', res:'2026-09-01'}
+  ];
+  var ICO = {
+    good:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12.5 11 15.5 16 9"/></svg>',
+    rust:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7.5" x2="12" y2="13"/><line x1="12" y1="16.4" x2="12" y2="16.5"/></svg>',
+    warn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 21 19H3z"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="12" y1="16.5" x2="12" y2="16.6"/></svg>',
+    /* No es de Atlas: sus contratos no tienen estados en marcha. Un reloj. */
+    info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7.5 12 12 15 14"/></svg>'
+  };
+  var MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sept','oct','nov','dic'];
+  function fecha(iso){ if (!iso) return ''; var p = iso.split('-'); return +p[2] + ' ' + MESES[+p[1]-1] + ' ' + p[0]; }
+  function txtEstado(t){ return ESTADOS[t.est].txt.replace('{ente}', t.ente); }
+  function cuando(t){
+    if (t.res) return 'Enviada el ' + fecha(t.env) + ', resuelta el ' + fecha(t.res);
+    if (t.env) return 'Enviada el ' + fecha(t.env);
+    return 'Sin enviar';
+  }
+  function $(i){ return document.getElementById(i); }
+  function el(tag, cls, txt){ var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+
+  var FILTROS = [['todas','Todos'], ['accion','Requiere acción'], ['proceso','En proceso'], ['listo','Completados']];
+  function pintaFiltros(caja, actual, alPulsar){
+    caja.textContent = '';
+    FILTROS.forEach(function(f){
+      var n = TR.filter(function(t){ return f[0] === 'todas' || ESTADOS[t.est].grupo === f[0]; }).length;
+      var b = el('button', 'fi' + (f[0] === actual ? ' on' : ''));
+      b.type = 'button';
+      b.setAttribute('data-f', f[0]);
+      b.appendChild(document.createTextNode(f[1]));
+      b.appendChild(el('span', 'n', String(n)));
+      b.addEventListener('click', function(){ alPulsar(f[0]); });
+      caja.appendChild(b);
+    });
+  }
+
+  /* ── 0 · hoy ── */
+  var hoyF = 'todas';
+  function pintaHoy(){
+    pintaFiltros($('hoyFiltros'), hoyF, function(f){ hoyF = f; pintaHoy(); });
+    var c = $('hoyCuerpo'); c.textContent = '';
+    TR.filter(function(t){ return hoyF === 'todas' || ESTADOS[t.est].grupo === hoyF; }).forEach(function(t){
+      var tr = el('tr');
+      tr.appendChild(el('td', 'nm', t.nm));
+      tr.appendChild(el('td', null, t.ente));
+      var td = el('td');
+      var g = ESTADOS[t.est].grupo;
+      td.appendChild(el('span', 'ct-chip' + (g === 'accion' ? ' reclama' : g === 'listo' ? ' listo' : ''), txtEstado(t)));
+      if (t.est !== 'resuelto' && t.desde) td.appendChild(el('span', 'reloj', 'En este estado desde ' + t.desde));
+      tr.appendChild(td);
+      tr.appendChild(el('td', 'fe', t.env ? cuando(t) : ''));
+      var ir = el('td'); ir.appendChild(el('button', 'ir', 'Abrir')); tr.appendChild(ir);
+      c.appendChild(tr);
+    });
+  }
+
+  /* ── 1 · atlas ── */
+  var AT = {filtro:'todas', orden:'est', desc:false, porPagina:5, pagina:0};
+  var COLS = [
+    {k:'tr',   cls:'c-tr',   th:'Trámite',   val:function(t){ return t.nm; }},
+    {k:'ente', cls:'c-ente', th:'Organismo', val:function(t){ return t.ente; }},
+    {k:'est',  cls:'c-est',  th:'Estado',    val:function(t){ return ESTADOS[t.est].orden; }},
+    {k:'fe',   cls:'c-fe',   th:'Fecha',     val:function(t){ return t.res || t.env || null; }}
+  ];
+  function pintaAtlas(){
+    pintaFiltros($('atFiltros'), AT.filtro, function(f){ AT.filtro = f; AT.pagina = 0; pintaAtlas(); });
+
+    var cab = $('atCab'); cab.textContent = '';
+    COLS.forEach(function(c){
+      var act = c.k === AT.orden;
+      var th = el('th', c.cls + (act ? ' orden' : ''), c.th);
+      th.setAttribute('data-k', c.k);
+      th.setAttribute('aria-sort', act ? (AT.desc ? 'descending' : 'ascending') : 'none');
+      th.title = 'Ordenar por ' + c.th.toLowerCase();
+      th.appendChild(el('span', 'fl', act ? (AT.desc ? '▾' : '▴') : '⇅'));
+      th.addEventListener('click', function(){
+        if (AT.orden === c.k) AT.desc = !AT.desc; else { AT.orden = c.k; AT.desc = false; }
+        pintaAtlas();
+      });
+      cab.appendChild(th);
+    });
+
+    var col = COLS.filter(function(c){ return c.k === AT.orden; })[0];
+    var lista = TR.filter(function(t){ return AT.filtro === 'todas' || ESTADOS[t.est].grupo === AT.filtro; });
+    /* Sin dato al final, suba o baje el orden: como en Atlas. */
+    lista.sort(function(a, b){
+      var va = col.val(a), vb = col.val(b);
+      if (va == null && vb == null) return a.nm.localeCompare(b.nm);
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      var d = typeof va === 'string' ? va.localeCompare(vb) : va - vb;
+      return (AT.desc ? -d : d) || a.nm.localeCompare(b.nm);
+    });
+
+    var total = lista.length;
+    var porPag = AT.porPagina > 0 ? AT.porPagina : (total || 1);
+    var paginas = Math.max(1, Math.ceil(total / porPag));
+    var pag = Math.min(AT.pagina, paginas - 1);
+    var trozo = lista.slice(pag * porPag, pag * porPag + porPag);
+
+    var cuerpo = $('atCuerpo'); cuerpo.textContent = '';
+    trozo.forEach(function(t){
+      var tr = el('tr', 'click');
+      tr.tabIndex = 0;
+      tr.setAttribute('data-nm', t.nm);
+      var who = el('td', 'who');
+      who.appendChild(el('b', null, t.nm));
+      who.appendChild(el('span', 'sub', t.largo));
+      tr.appendChild(who);
+      var ente = el('td', 'mini'); ente.appendChild(el('b', null, t.ente)); tr.appendChild(ente);
+      var tdE = el('td');
+      var e = el('span', 'cs-est ' + ESTADOS[t.est].ico);
+      e.innerHTML = ICO[ESTADOS[t.est].ico];
+      e.appendChild(el('span', null, txtEstado(t)));
+      tdE.appendChild(e);
+      if (t.est !== 'resuelto' && t.desde) tdE.appendChild(el('span', 'cs-desde', 'desde ' + t.desde));
+      tr.appendChild(tdE);
+      tr.appendChild(el('td', 'mini', cuando(t)));
+      cuerpo.appendChild(tr);
+    });
+
+    var pie = $('atPie'); pie.textContent = '';
+    var desde = total ? pag * porPag + 1 : 0, hasta = Math.min(total, (pag + 1) * porPag);
+    var cuenta = el('span', 'tb-cuenta');
+    cuenta.innerHTML = 'Mostrando <b>' + desde + '</b>–<b>' + hasta + '</b> de <b>' + total + '</b> trámite' + (total === 1 ? '' : 's');
+    pie.appendChild(cuenta);
+    var ver = el('span', 'tb-ver', 'Ver');
+    var sel = el('select');
+    sel.setAttribute('aria-label', 'Trámites por página');
+    [5, 10, 0].forEach(function(n){
+      var o = el('option', null, n || 'Todos'); o.value = n; if (n === AT.porPagina) o.selected = true; sel.appendChild(o);
+    });
+    sel.addEventListener('change', function(){ AT.porPagina = +sel.value; AT.pagina = 0; pintaAtlas(); });
+    ver.appendChild(sel);
+    ver.appendChild(document.createTextNode('por página'));
+    pie.appendChild(ver);
+    if (paginas > 1){
+      var pags = el('span', 'tb-pags');
+      for (var i = 0; i < paginas; i++){
+        (function(n){
+          var b = el('button', 'tb-p' + (n === pag ? ' on' : ''), String(n + 1));
+          b.type = 'button';
+          b.addEventListener('click', function(){ AT.pagina = n; pintaAtlas(); });
+          pags.appendChild(b);
+        })(i);
+      }
+      pie.appendChild(pags);
+    }
+  }
+
+  pintaHoy();
+  pintaAtlas();
+})();
+</script>
+
+</body>
+</html>
