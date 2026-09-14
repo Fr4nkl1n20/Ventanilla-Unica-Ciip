@@ -2400,6 +2400,126 @@ delete from public.pliegos;
 
 reset role;
 
+-- ── LOS TEXTOS EDITABLES (supabase-textos.sql) ────────────────────────
+-- Lo que el admin cambia lo tiene que ver el inversionista, y el
+-- inversionista no puede cambiarlo. En esta tanda no habia ningun admin:
+-- se crea uno. El ascenso va con los disparadores apagados porque el de
+-- roles, con razon, no deja que nadie se haga admin a si mismo ni que lo
+-- haga quien no lo es; aqui lo hace el superusuario, que es el SQL Editor.
+reset role;
+select arnes.nadie();
+insert into auth.users (email, raw_user_meta_data) values
+  ('x@prueba.local', '{"nombre_completo":"Xiomara Admin","pais":"Venezuela"}');
+insert into arnes.gente (papel, id)
+select 'X', id from auth.users where email = 'x@prueba.local';
+set session_replication_role = replica;
+update public.perfiles set rol = 'admin' where id = (select id from arnes.gente where papel = 'X');
+set session_replication_role = origin;
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+do $p$
+begin
+  insert into public.textos_panel (clave, idioma, texto) values ('c33.name', 'es', 'Poder de representación');
+  perform arnes.comprueba('textos: el admin guarda un texto', true);
+exception when others then
+  perform arnes.comprueba('textos: el admin guarda un texto', false, sqlerrm);
+end
+$p$;
+select arnes.comprueba('textos: y queda firmado por quien lo cambio',
+  coalesce((select actualizado_por = (select id from arnes.gente where papel = 'X')
+              from public.textos_panel where clave = 'c33.name' and idioma = 'es'), false));
+do $p$
+begin
+  -- Lo que hace el panel: upsert por (clave, idioma).
+  insert into public.textos_panel (clave, idioma, texto) values ('c33.name', 'es', 'Poder de representación legal')
+  on conflict (clave, idioma) do update set texto = excluded.texto;
+  perform arnes.comprueba('textos: el admin lo vuelve a cambiar',
+    (select texto from public.textos_panel where clave = 'c33.name' and idioma = 'es') = 'Poder de representación legal');
+exception when others then
+  perform arnes.comprueba('textos: el admin lo vuelve a cambiar', false, sqlerrm);
+end
+$p$;
+
+-- El inversionista B: lo ve, y no lo toca.
+select arnes.soy((select id from arnes.gente where papel = 'B'));
+select arnes.comprueba('textos: el inversionista ve el texto que cambio el admin',
+  (select count(*) = 1 from public.textos_panel
+    where clave = 'c33.name' and idioma = 'es' and texto = 'Poder de representación legal'),
+  (select count(*)::text || ' fila(s) visibles' from public.textos_panel));
+do $p$
+begin
+  insert into public.textos_panel (clave, idioma, texto) values ('tsec.title', 'es', 'Colado');
+  perform arnes.comprueba('textos: un inversionista no escribe textos', false, 'ESCRIBIO');
+exception when others then
+  perform arnes.comprueba('textos: un inversionista no escribe textos', true, sqlerrm);
+end
+$p$;
+do $p$
+declare n int;
+begin
+  update public.textos_panel set texto = 'Colado' where clave = 'c33.name';
+  get diagnostics n = row_count;
+  perform arnes.comprueba('textos: ni cambia el del admin', n = 0, n || ' fila(s)');
+exception when others then
+  perform arnes.comprueba('textos: ni cambia el del admin', true, sqlerrm);
+end
+$p$;
+do $p$
+declare n int;
+begin
+  delete from public.textos_panel where clave = 'c33.name';
+  get diagnostics n = row_count;
+  perform arnes.comprueba('textos: ni lo borra', n = 0, n || ' fila(s)');
+exception when others then
+  perform arnes.comprueba('textos: ni lo borra', true, sqlerrm);
+end
+$p$;
+reset role;
+
+-- Sin entrar, nada.
+set role anon;
+select arnes.nadie();
+do $p$
+begin
+  perform arnes.comprueba('textos: sin entrar no se leen',
+    (select count(*) = 0 from public.textos_panel));
+exception when insufficient_privilege then
+  perform arnes.comprueba('textos: sin entrar no se leen', true, sqlerrm);
+end
+$p$;
+reset role;
+
+-- Lo que la base no deja guardar ni al admin.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+do $p$
+begin
+  insert into public.textos_panel (clave, idioma, texto) values ('c1.name', 'ES', 'Visa');
+  perform arnes.comprueba('textos: no cabe un idioma que el panel no tiene', false, 'ENTRO');
+exception when check_violation then
+  perform arnes.comprueba('textos: no cabe un idioma que el panel no tiene', true, sqlerrm);
+end
+$p$;
+do $p$
+begin
+  insert into public.textos_panel (clave, idioma, texto) values ('c1.name', 'es', '   ');
+  perform arnes.comprueba('textos: ni un texto vacio', false, 'ENTRO');
+exception when check_violation then
+  perform arnes.comprueba('textos: ni un texto vacio', true, sqlerrm);
+end
+$p$;
+do $p$
+declare n int;
+begin
+  delete from public.textos_panel where clave = 'c33.name' and idioma = 'es';
+  get diagnostics n = row_count;
+  perform arnes.comprueba('textos: el admin vuelve al original borrando la fila', n = 1, n || ' fila(s)');
+end
+$p$;
+reset role;
+select arnes.nadie();
+
 \o
 \pset tuples_only on
 \pset format unaligned

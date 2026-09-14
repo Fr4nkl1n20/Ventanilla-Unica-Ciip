@@ -1,7 +1,7 @@
 -- ====================================================================
---  LOS 28 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat
+--  LOS 29 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat
 -- ====================================================================
---  Esto es la union literal de los 28 supabase-*.sql, sin cambiar una
+--  Esto es la union literal de los 29 supabase-*.sql, sin cambiar una
 --  coma, pegados en el orden que ejecuta el arnes contra un Postgres de
 --  usar y tirar. Ese orden no esta deducido leyendo cabeceras: si uno
 --  usara algo que otro define despues, la tanda se caeria diciendo cual.
@@ -11,13 +11,13 @@
 --  policy if exists-, asi que volver a correrlo no rompe nada y es la
 --  forma de poner al dia un proyecto que ya tenia la mitad.
 --
---  Generado el 2026-09-11. Si cambia un archivo, se vuelve a generar:
---  no se edita a mano, que entonces son 28 sitios donde mirar.
+--  Generado el 2026-09-14. Si cambia un archivo, se vuelve a generar:
+--  no se edita a mano, que entonces son 29 sitios donde mirar.
 -- ====================================================================
 
 
 -- ====================================================================
---  01 / 28   supabase-setup.sql
+--  01 / 29   supabase-setup.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -192,7 +192,7 @@ where p.id is null;
 --   from pg_class where relname = 'perfiles';
 
 -- ====================================================================
---  02 / 28   supabase-tramites.sql
+--  02 / 29   supabase-tramites.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1237,7 +1237,7 @@ create policy "recaudos: borrar de su carpeta" on storage.objects
 --    desde el SQL Editor no vale: ahí auth.uid() es null y RLS no aplica.
 
 -- ====================================================================
---  03 / 28   supabase-admin.sql
+--  03 / 29   supabase-admin.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1387,7 +1387,7 @@ create policy "perfiles: el admin reparte roles" on public.perfiles
 --   select relrowsecurity from pg_class where relname = 'perfiles';
 
 -- ====================================================================
---  04 / 28   supabase-citas.sql
+--  04 / 29   supabase-citas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1552,7 +1552,7 @@ create trigger citas_marca_tiempo
 -- (No se crea ninguna política de DELETE, así que RLS lo impide.)
 
 -- ====================================================================
---  05 / 28   supabase-empresa.sql
+--  05 / 29   supabase-empresa.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1653,7 +1653,7 @@ create trigger empresas_marca_tiempo
 --   select relname, relrowsecurity from pg_class where relname = 'empresas';
 
 -- ====================================================================
---  06 / 28   supabase-activos.sql
+--  06 / 29   supabase-activos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1787,7 +1787,7 @@ create trigger activos_marca_tiempo
 -- asi que no hay nada que añadir aqui.
 
 -- ====================================================================
---  07 / 28   supabase-identidad.sql
+--  07 / 29   supabase-identidad.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1946,7 +1946,7 @@ create policy "identidad: solo el equipo la firma"
 --  intenta con una sesión de gestor, que es como llegaría de fuera.
 
 -- ====================================================================
---  08 / 28   supabase-emision.sql
+--  08 / 29   supabase-emision.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2047,7 +2047,7 @@ create policy "recaudos: el equipo deja lo emitido" on storage.objects
 --   select * from public.tipos_documento where codigo = 'resolucion';
 
 -- ====================================================================
---  09 / 28   supabase-presencia.sql
+--  09 / 29   supabase-presencia.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2127,7 +2127,7 @@ grant execute on function public.tocar_visto() to authenticated;
 --   select nombre_completo, visto_en from public.perfiles order by visto_en desc nulls last;
 
 -- ====================================================================
---  10 / 28   supabase-sectores.sql
+--  10 / 29   supabase-sectores.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2295,7 +2295,7 @@ begin
 end $$;
 
 -- ====================================================================
---  11 / 28   supabase-catalogos.sql
+--  11 / 29   supabase-catalogos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2521,7 +2521,7 @@ from   pg_trigger
 where  not tgisinternal and tgrelid = 'public.tipos_tramite'::regclass;
 
 -- ====================================================================
---  12 / 28   supabase-bitacora.sql
+--  12 / 29   supabase-bitacora.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2777,7 +2777,7 @@ order  by cuando desc
 limit  20;
 
 -- ====================================================================
---  13 / 28   supabase-bloqueo.sql
+--  13 / 29   supabase-bloqueo.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2952,7 +2952,7 @@ where  p.bloqueado
 order  by p.bloqueado_en desc;
 
 -- ====================================================================
---  14 / 28   supabase-acompanamiento.sql
+--  14 / 29   supabase-acompanamiento.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3130,7 +3130,7 @@ where  schemaname = 'public' and tablename = 'acompanamiento';
 -- insert into public.acompanamiento (id) values (true);
 
 -- ====================================================================
---  15 / 28   supabase-gestor.sql
+--  15 / 29   supabase-gestor.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3241,7 +3241,7 @@ create trigger eventos_proteger
   for each row execute function public.eventos_solo_la_nota();
 
 -- ====================================================================
---  16 / 28   supabase-cola.sql
+--  16 / 29   supabase-cola.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3476,7 +3476,7 @@ create policy "trabajos: el equipo los ve" on public.trabajos
 --    no tenía conector o el trigger no está.
 
 -- ====================================================================
---  17 / 28   supabase-avisos.sql
+--  17 / 29   supabase-avisos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3778,7 +3778,7 @@ create policy "avisos: el equipo los ve" on public.avisos
 --    devolver 0 la segunda: no se avisa dos veces del mismo vencimiento.
 
 -- ====================================================================
---  18 / 28   supabase-aranceles.sql
+--  18 / 29   supabase-aranceles.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4106,7 +4106,7 @@ create policy "ordenes: la mia" on public.ordenes_pago
 --    en public.trabajos hasta que la orden quede 'pagada'.
 
 -- ====================================================================
---  19 / 28   supabase-huellas.sql
+--  19 / 29   supabase-huellas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4293,7 +4293,7 @@ create trigger documentos_huella_fija
 --   select count(*) from public.verificar_documento(repeat('a', 64));
 
 -- ====================================================================
---  20 / 28   supabase-encadenado.sql
+--  20 / 29   supabase-encadenado.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4411,7 +4411,7 @@ update public.tipos_tramite set emite = 'conformidad_uso'    where codigo = 'con
 --    en la tarjeta que diga «esperando a».
 
 -- ====================================================================
---  21 / 28   supabase-plazos.sql
+--  21 / 29   supabase-plazos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4675,7 +4675,7 @@ update public.tipos_tramite
 --   where plazo_legal_dias is not null and plazo_legal_norma is null;
 
 -- ====================================================================
---  22 / 28   supabase-una-viva.sql
+--  22 / 29   supabase-una-viva.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4782,7 +4782,7 @@ comment on index public.tramites_una_viva is
 --    where tipo = 'solvencias' group by estado;
 
 -- ====================================================================
---  23 / 28   supabase-hilo.sql
+--  23 / 29   supabase-hilo.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -5044,7 +5044,7 @@ create policy "documentos: el equipo adjunta en un hilo" on public.documentos
 --    dos cuentas, y es lo que hace PROBAR-CERRADURAS.bat.
 
 -- ====================================================================
---  24 / 28   supabase-hilo-citas.sql
+--  24 / 29   supabase-hilo-citas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -5290,7 +5290,7 @@ create policy "cita_mensajes: escribir en mi cita" on public.cita_mensajes
 --    dos cuentas, y es lo que hace PROBAR-CERRADURAS.bat.
 
 -- ====================================================================
---  25 / 28   supabase-consultas.sql
+--  25 / 29   supabase-consultas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -5656,7 +5656,7 @@ create policy "consulta_mensajes: escribir en mi consulta" on public.consulta_me
 --      inversionista = <el id de B> tiene que ser rechazado.
 
 -- ====================================================================
---  26 / 28   supabase-informe-victor.sql
+--  26 / 29   supabase-informe-victor.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6091,7 +6091,7 @@ update public.tipos_tramite
 --   select ref_panel, nombre, fase, nivel from public.tipos_tramite where codigo = 'rnc';
 
 -- ====================================================================
---  27 / 28   supabase-pliego.sql
+--  27 / 29   supabase-pliego.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6484,7 +6484,7 @@ create policy "pliego: aceptar el propio" on public.pliego_aceptaciones
 --    PROBAR-CERRADURAS.bat.
 
 -- ====================================================================
---  28 / 28   supabase-disponibilidad.sql
+--  28 / 29   supabase-disponibilidad.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6813,3 +6813,146 @@ alter table public.horario_citas add  constraint horario_dia_valido
 alter table public.cierres_citas drop constraint if exists cierre_dia_laborable;
 alter table public.cierres_citas add  constraint cierre_dia_laborable
   check (extract(isodow from fecha) between 1 and 5);
+
+-- ====================================================================
+--  29 / 29   supabase-textos.sql
+-- ====================================================================
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  LOS TEXTOS DEL PANEL, EDITABLES POR EL ADMINISTRADOR
+-- ═══════════════════════════════════════════════════════════════════════
+--  «quiero tener la opcion de como administrador poder editar titulos de la
+--   pagina y de los que dicen las fichas» (Franklin Reyes, 14 de septiembre
+--   de 2026).
+--
+--  Los textos del panel viven en el diccionario del propio HTML, en seis
+--  idiomas, y cambiar uno era cambiar el archivo y volver a publicarlo. Esta
+--  tabla guarda SOLO lo que el administrador ha cambiado: una fila por texto
+--  y por idioma. Lo que no esté aquí lo sigue poniendo el diccionario, así
+--  que la tabla vacía deja el panel exactamente como estaba.
+--
+--  Por idioma, y no un texto para todos: cambiar el español no toca las
+--  otras cinco traducciones. Lo decidió Franklin el mismo día: «Edita cada
+--  idioma».
+--
+--  QUÉ ES LA CLAVE
+--  La misma que usa el panel, sin inventar otra:
+--    · las del diccionario, con punto:     'c33.name', 'tsec.title'
+--    · las de pasos.js, sin punto:          'lh_uno'
+--    · las del organismo de cada tarjeta:   'c33.sigla', 'c33.ente'
+--  El panel decide a cuál de los tres corresponde. La base no lo valida
+--  contra el diccionario porque el diccionario no está en la base: una clave
+--  que ya no exista simplemente no se pinta en ningún sitio.
+--
+--  Mismo patrón que acompanamiento.textos, pero en filas y no en un jsonb:
+--  aquí hay cientos de textos posibles, y una fila por texto deja ver quién
+--  cambió cuál y cuándo.
+--
+--  Depende de: supabase-setup.sql (perfiles) y supabase-admin.sql (es_admin).
+-- ═══════════════════════════════════════════════════════════════════════
+
+do $$
+begin
+  if to_regprocedure('public.es_admin()') is null then
+    raise exception 'Falta public.es_admin(): corre antes supabase-admin.sql';
+  end if;
+end $$;
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 1. LA TABLA
+-- ───────────────────────────────────────────────────────────────────────
+create table if not exists public.textos_panel (
+  clave           text        not null,
+  idioma          text        not null,
+  texto           text        not null,
+  actualizado_en  timestamptz not null default now(),
+  actualizado_por uuid references auth.users(id) on delete set null,
+
+  primary key (clave, idioma),
+  -- Los seis idiomas del panel, ni uno más: un 'ES' o un 'spa' guardaría
+  -- una fila que no se pinta nunca y nadie sabría por qué.
+  constraint textos_panel_idioma_valido check (idioma in ('es', 'en', 'pt', 'it', 'zh', 'ru')),
+  -- Una clave con forma de clave: letras, números, punto, guion y guion
+  -- bajo. Así no cabe un texto pegado por error en el sitio de la clave.
+  constraint textos_panel_clave_valida  check (clave ~ '^[A-Za-z0-9_.-]{1,80}$'),
+  -- Un texto vacío no es «sin texto»: es un hueco en la pantalla. Para
+  -- volver al original se BORRA la fila, que es lo que hace el panel.
+  constraint textos_panel_texto_lleno   check (length(btrim(texto)) > 0),
+  -- Tope generoso: la descripción más larga del diccionario ronda las
+  -- doscientas letras. Mil deja sitio de sobra y corta un pegado accidental.
+  constraint textos_panel_texto_tope    check (length(texto) <= 1000)
+);
+
+comment on table  public.textos_panel        is 'Textos del panel cambiados por el administrador, por idioma. Lo que falte lo pone el diccionario';
+comment on column public.textos_panel.clave  is 'La clave del panel: la del diccionario (c33.name), la de pasos.js (lh_uno) o la del organismo (c33.ente)';
+comment on column public.textos_panel.idioma is 'es, en, pt, it, zh o ru';
+
+alter table public.textos_panel enable row level security;
+
+-- Leer: cualquiera con sesión. El inversionista ve los textos cambiados, así
+-- que tiene que poder leerlos.
+drop policy if exists "textos_panel: lo lee cualquiera" on public.textos_panel;
+create policy "textos_panel: lo lee cualquiera" on public.textos_panel
+  for select to authenticated using (true);
+
+-- Escribir: solo el admin. Insertar y cambiar (el panel hace upsert) y
+-- borrar (volver al original).
+drop policy if exists "textos_panel: el admin lo escribe" on public.textos_panel;
+create policy "textos_panel: el admin lo escribe" on public.textos_panel
+  for insert to authenticated
+  with check (public.es_admin());
+
+drop policy if exists "textos_panel: el admin lo cambia" on public.textos_panel;
+create policy "textos_panel: el admin lo cambia" on public.textos_panel
+  for update to authenticated
+  using      (public.es_admin())
+  with check (public.es_admin());
+
+drop policy if exists "textos_panel: el admin lo borra" on public.textos_panel;
+create policy "textos_panel: el admin lo borra" on public.textos_panel
+  for delete to authenticated
+  using (public.es_admin());
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 2. QUIÉN LO TOCÓ
+-- ───────────────────────────────────────────────────────────────────────
+-- Lo escribe un disparador, como en acompanamiento: un campo que rellena
+-- quien escribe es un campo que quien escribe puede mentir.
+create or replace function public.marca_textos_panel()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  new.actualizado_por := auth.uid();
+  new.actualizado_en  := now();
+  return new;
+end $$;
+
+drop trigger if exists textos_panel_quien on public.textos_panel;
+create trigger textos_panel_quien
+  before insert or update on public.textos_panel
+  for each row execute function public.marca_textos_panel();
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- LO QUE ESTO NO HACE
+-- ───────────────────────────────────────────────────────────────────────
+-- · No entra en la bitácora. Quién cambió cada texto por última vez queda
+--   en su propia fila, igual que en acompanamiento.
+-- · No toca tipos_tramite.nombre. Ese nombre es el de la pantalla de
+--   Catálogo y del filtro; el que ve el inversionista en la tarjeta sale
+--   del diccionario, y es el que se cambia aquí.
+-- · No guarda el texto original. El original está en el HTML; borrar la
+--   fila es volver a él.
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- COMPROBACIONES
+-- ───────────────────────────────────────────────────────────────────────
+-- 1. Las cuatro políticas: leer, escribir, cambiar y borrar.
+select policyname, cmd from pg_policies
+where  schemaname = 'public' and tablename = 'textos_panel'
+order  by cmd;
+
+-- 2. Lo que hay cambiado, por idioma.
+select idioma, count(*) from public.textos_panel group by idioma order by idioma;

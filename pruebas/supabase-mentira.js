@@ -1237,6 +1237,26 @@
     /* La configuracion del acompañamiento. Con la nube apagada y un
        retoque de texto, que son los dos casos que la pantalla tiene que
        saber pintar y la burbuja obedecer. */
+    /* Los textos que el administrador ha cambiado (supabase-textos.sql).
+       Nace VACIA, como la tabla: sin nada guardado el panel tiene que verse
+       igual que sin ella. Guardar y volver al original se apuntan de verdad,
+       para que una prueba pueda ver el texto cambiar y volver. */
+    if (tabla === 'textos_panel'){
+      var TXP = window.__TEXTOS_PANEL = window.__TEXTOS_PANEL || [];
+      if (op && op.upsert){
+        var fu = op.upsert;
+        window.__TEXTOS_PANEL = TXP.filter(function(x){ return !(x.clave === fu.clave && x.idioma === fu.idioma); });
+        window.__TEXTOS_PANEL.push({clave: fu.clave, idioma: fu.idioma, texto: fu.texto});
+        return {data:[{clave: fu.clave}], error:null};
+      }
+      if (op && op.borra){
+        var eq2 = op.eq || {};
+        var fuera = TXP.filter(function(x){ return x.clave === eq2.clave && x.idioma === eq2.idioma; });
+        window.__TEXTOS_PANEL = TXP.filter(function(x){ return fuera.indexOf(x) < 0; });
+        return {data: fuera, error:null};
+      }
+      return {data: TXP.slice(), error:null};
+    }
     if (tabla === 'acompanamiento'){
       if (op && op.update){
         Object.keys(op.update).forEach(function(k){ ACOMP[k] = op.update[k]; });

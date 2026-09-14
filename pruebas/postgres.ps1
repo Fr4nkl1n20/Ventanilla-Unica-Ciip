@@ -135,7 +135,9 @@ try {
     # 28  el horario y los cierres de las citas. Estaba en TODO-EN-ORDEN.sql
     #     pero no aqui, asi que nunca se habia pasado por un Postgres: sus
     #     reglas -y la de los fines de semana- no las comprobaba nadie.
-    'supabase-disponibilidad.sql'
+    'supabase-disponibilidad.sql',
+    # 29  los textos que cambia el admin. Solo necesita es_admin(), del 3
+    'supabase-textos.sql'
   )
   $n = 0
   foreach ($f in $once) {

@@ -54,7 +54,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    que podria ir mucho antes; va el ULTIMO para no mover el numero de
    ninguno de los otros, que es por el que se les nombra en PARA-LA-BASE-REAL
    y en las conversaciones. */
-'supabase-disponibilidad'];
+'supabase-disponibilidad',
+/* Los textos que el administrador cambia desde el panel. Solo necesita
+   es_admin(); va al final por la misma razon que el horario: no mover el
+   numero de nadie. */
+'supabase-textos'];
 
 let mal = 0;
 for (const n of orden) {
