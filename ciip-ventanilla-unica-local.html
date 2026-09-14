@@ -9920,8 +9920,10 @@ applyLang(idiomaParaMi());
        con su borde, se lee como lo que es -otra opcion- y de paso no le corta
        el final al formulario. */
     (function(){
+      /* Sin titulo desde el 14 de septiembre de 2026: «¿Quieres que te
+         acompañemos?» lo quito Franklin. La frase ya dice lo mismo y el
+         boton lo hace. */
       var bloque = el('div', 'sol-gestion');
-      bloque.appendChild(el('div', 'sg-t', u.sg_titulo || ''));
       bloque.appendChild(el('div', 'sg-q', u.sg_texto || ''));
       var bt = el('button', 'btn sg-btn', u.sg_boton || '');
       bt.type = 'button';

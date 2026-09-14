@@ -412,7 +412,6 @@ window.CIIP_PASOS = {
       pf_incompleto:"Falta completar tu perfil",
       /* --- Las citas --- */
       ct_titulo:    "Solicitar una cita",
-      sg_titulo:"¿Quieres que te acompañemos?",
       lh_titulo:"¿Prefieres no hacerlo tú?",
       lg_titulo:"Los plazos de este trámite",
       lg_practica:"Lo que suele tardar, según el CIIP: {n} días.",
@@ -1281,7 +1280,6 @@ window.CIIP_PASOS = {
       pf_incompleto:"Your profile is incomplete",
       /* --- Appointments --- */
       ct_titulo:    "Request a meeting",
-      sg_titulo:"Would you like us alongside you?",
       lh_titulo:"Would you rather not do it yourself?",
       lg_titulo:"This procedure's timings",
       lg_practica:"How long it usually takes, per the CIIP: {n} days.",
@@ -2083,7 +2081,6 @@ window.CIIP_PASOS = {
       pf_incompleto:"Falta completar o seu perfil",
       /* --- As marcações --- */
       ct_titulo:    "Pedir uma reunião",
-      sg_titulo:"Quer que o acompanhemos?",
       lh_titulo:"Prefere não o fazer você?",
       lg_titulo:"Os prazos deste trâmite",
       lg_practica:"O que costuma demorar, segundo o CIIP: {n} dias.",
@@ -2868,7 +2865,6 @@ window.CIIP_PASOS = {
       pf_incompleto:"Il tuo profilo è incompleto",
       /* --- Gli appuntamenti --- */
       ct_titulo:    "Richiedere un appuntamento",
-      sg_titulo:"Vuoi che ti accompagniamo?",
       lh_titulo:"Preferisci non farlo tu?",
       lg_titulo:"I tempi di questa pratica",
       lg_practica:"Quanto ci vuole di solito, secondo il CIIP: {n} giorni.",
@@ -3653,7 +3649,6 @@ window.CIIP_PASOS = {
       pf_incompleto:"您的资料尚未填写完整",
       /* --- 预约会面 --- */
       ct_titulo:    "申请会面",
-      sg_titulo:"需要我们陪同办理吗？",
       lh_titulo:"不想自己办理？",
       lg_titulo:"本手续的时限",
       lg_practica:"据 CIIP，通常需要 {n} 天。",
@@ -4438,7 +4433,6 @@ window.CIIP_PASOS = {
       pf_incompleto:"Профиль заполнен не полностью",
       /* --- Встречи --- */
       ct_titulo:    "Запросить встречу",
-      sg_titulo:"Хотите, чтобы мы были рядом?",
       lh_titulo:"Не хотите заниматься этим сами?",
       lg_titulo:"Сроки этого процесса",
       lg_practica:"Обычно занимает, по данным CIIP: {n} дней.",
