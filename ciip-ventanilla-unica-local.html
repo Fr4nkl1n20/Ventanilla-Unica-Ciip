@@ -1762,6 +1762,86 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .mt-vacia b{display:block; color:var(--ink); font-size:var(--fs-seccion); font-weight:700; margin-bottom:4px;}
 .mt-vacia-ir{font:inherit; color:var(--navy2); font-weight:700; background:none; border:0; padding:0; cursor:pointer;}
 .mt-vacia-ir:hover{text-decoration:underline; text-underline-offset:3px;}
+/* ── LAS DEMAS TABLAS, CON EL MISMO FORMATO QUE «MIS TRAMITES» ──
+   Documentos, Citas, la cola del equipo y la trazabilidad pasan al formato
+   de la tabla de Atlas, con la escala de la Ventanilla: cabecera fija en
+   mayusculas, caja con tope de alto, el estado con icono y palabra, y el
+   mismo pie con la cuenta y las paginas. «Mis tramites» ya lo llevaba y
+   sus reglas propias siguen mandando sobre estas.
+
+   Los ICONOS de los distintivos van por CSS -una mascara en ::before- y no
+   tocando cada pantalla: el texto y las clases del distintivo se quedan
+   como estaban, y con ellos lo que ya comprueban las pruebas. Donde la
+   clase no distingue el estado -una cita pedida y una cancelada llevan la
+   misma-, lo distingue la fila, que ya lo decia. */
+/* En la raiz y no en .tabla: la prueba de tokens exige que toda variable
+   usada sin reserva este declarada en la raiz del documento. */
+:root{
+  --ico-bien:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpolyline points='8 12.5 11 15.5 16 9'/%3E%3C/svg%3E");
+  --ico-alerta:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cline x1='12' y1='7.5' x2='12' y2='13'/%3E%3Cline x1='12' y1='16.4' x2='12' y2='16.5'/%3E%3C/svg%3E");
+  --ico-aviso:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4 21 19H3z'/%3E%3Cline x1='12' y1='10' x2='12' y2='14'/%3E%3Cline x1='12' y1='16.5' x2='12' y2='16.6'/%3E%3C/svg%3E");
+  --ico-marcha:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M9 12h6M13 9l3 3-3 3'/%3E%3C/svg%3E");
+  --ico-nada:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cline x1='8.5' y1='12' x2='15.5' y2='12'/%3E%3C/svg%3E");}
+.tabla-caja{max-height:60vh; overflow:auto;}
+.tabla-caja::-webkit-scrollbar{width:8px; height:8px;}
+.tabla-caja::-webkit-scrollbar-thumb{background:var(--line); border-radius:8px;}
+.tabla th{position:sticky; top:0; z-index:2; background:var(--bg); padding:11px 14px;
+  font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--gray); border-bottom:0; box-shadow:inset 0 -1px 0 var(--line);}
+.tabla th .th-orden{font-size:inherit; font-weight:inherit; letter-spacing:inherit; text-transform:inherit;}
+.tabla th .th-orden .flecha{opacity:.35;}
+.tabla th[aria-sort] .th-orden{color:var(--navy);}
+.tabla th[aria-sort] .th-orden .flecha{opacity:1;}
+.tabla td{padding:11px 14px;}
+.tabla .t-fuerte{font-size:var(--fs-fila); font-weight:600;}
+.tabla .t-sub{font-size:var(--fs-nota);}
+.tabla .t-fecha{font-size:var(--fs-nota);}
+
+/* El distintivo, sin pastilla: icono y palabra en el color del estado. */
+.tabla .ct-chip:not(.modo){background:none; padding:0; border-radius:0; gap:8px;
+  font-size:var(--fs-fila); font-weight:600; letter-spacing:0; color:var(--amber);}
+.tabla .ct-chip:not(.modo)::before{content:""; flex:none; width:15px; height:15px;
+  background:currentColor; -webkit-mask:var(--ico-aviso) center/contain no-repeat;
+  mask:var(--ico-aviso) center/contain no-repeat;}
+.tabla .ct-chip.listo{color:var(--good);}
+.tabla .ct-chip.listo::before{-webkit-mask-image:var(--ico-bien); mask-image:var(--ico-bien);}
+/* Documentos: la fila ya dice si esta vencido o rechazado (mal) o si
+   vence pronto (avisa). */
+#dcTabla tr.mal .ct-chip{color:var(--rust);}
+#dcTabla tr.mal .ct-chip::before{-webkit-mask-image:var(--ico-alerta); mask-image:var(--ico-alerta);}
+/* Citas: pedida y confirmada son «vivas»; cancelada es «pasada»; la hecha
+   no lleva ninguna de las dos. */
+#ciTabla tr.viva .ct-chip:not(.listo):not(.modo){color:var(--navy2);}
+#ciTabla tr.viva .ct-chip:not(.listo):not(.modo)::before{-webkit-mask-image:var(--ico-marcha); mask-image:var(--ico-marcha);}
+#ciTabla tr.pasada .ct-chip:not(.modo){color:var(--gray-soft);}
+#ciTabla tr.pasada .ct-chip:not(.modo)::before{-webkit-mask-image:var(--ico-nada); mask-image:var(--ico-nada);}
+#ciTabla tr:not(.viva):not(.pasada) .ct-chip:not(.modo){color:var(--good);}
+#ciTabla tr:not(.viva):not(.pasada) .ct-chip:not(.modo)::before{-webkit-mask-image:var(--ico-bien); mask-image:var(--ico-bien);}
+/* Como es la cita -verse, llamarse o ir- no es un estado: sin pastilla,
+   pero con su propio dibujo y en gris. */
+.tabla .ct-chip.modo{background:none; padding:0; color:var(--gray); font-size:var(--fs-nota); font-weight:600;}
+
+/* El pie de las demas tablas es el de «Mis tramites», con otro nombre. */
+.tabla-pie{display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:11px 2px 2px;
+  font-size:var(--fs-nota); color:var(--gray-soft);}
+.tabla-pie[hidden]{display:none;}
+.tabla-pie b{color:var(--ink); font-variant-numeric:tabular-nums;}
+.tabla-pie select{border:1px solid var(--line); border-radius:7px; padding:3px 6px; background:var(--bg);
+  color:var(--ink); font:inherit; font-weight:700; margin:0 4px;}
+/* El estado en una sola linea: «Vence pronto» partido en dos renglones se
+   lee como dos datos. */
+.tabla .ct-chip{white-space:nowrap;}
+/* La cola del equipo no usa .ct-chip sino .co-estado, y sus reglas van mas
+   abajo en la hoja: con el id de la tabla delante estas mandan igual. En
+   marcha en azul; «Revision de tus recaudos» -mirando- en ambar, que es lo
+   que el equipo tiene entre manos. */
+#paTabla .co-estado{display:inline-flex; align-items:center; gap:8px; background:none; border:0;
+  border-radius:0; padding:0; box-shadow:none; text-transform:none; letter-spacing:0; white-space:nowrap;
+  font-size:var(--fs-fila); font-weight:600; color:var(--navy2);}
+#paTabla .co-estado::before{content:""; flex:none; width:15px; height:15px; background:currentColor;
+  -webkit-mask:var(--ico-marcha) center/contain no-repeat; mask:var(--ico-marcha) center/contain no-repeat;}
+#paTabla .co-estado.mirando{background:none; color:var(--amber);}
+.fuera-pagina{display:none !important;}
 /* Dos colas en la misma ventana —trámites y citas— necesitan decir cuál es
    cuál: sin cabecera, una ficha de cada tipo seguida parece la misma cosa. */
 .co-seccion{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
@@ -15297,6 +15377,106 @@ applyLang(idiomaParaMi());
   /* Gancho de PRUEBA: ningun expediente de prueba tiene diez tramites, y sin
      esto la paginacion no se podria comprobar sin inventar uno. */
   window.CIIP_MT_POR_PAGINA = function(n){ mtPorPagina = n; mtPagina = 0; pintaMisTramites(); };
+
+  /* ── EL PIE DE LAS DEMAS TABLAS ──
+     El mismo de «Mis tramites» -la cuenta, cuantos por pagina, los numeros-
+     para Documentos, Citas, la cola del equipo y la trazabilidad.
+
+     No se mete en cada pantalla: cada una pinta sus filas a su manera, con
+     sus vacios y sus salidas antes de tiempo. Un observador por tabla mira
+     cuando cambian sus filas y, en cuanto la pantalla termina de pintar,
+     reparte. Las filas se esconden con una clase, no se quitan: siguen en
+     el arbol para quien las cuente.
+
+     Una fila de una sola celda no es un dato: es un aviso -«no hay nada»,
+     «ninguno coincide»- y no cuenta. Salvo el detalle desplegado de una
+     cita, que va pegado a la suya y cambia de pagina con ella. */
+  var PIE_TABLAS = ['raLista', 'dcLista', 'paCuerpo', 'ciCuerpo'];
+  function paginaTabla(cuerpo){
+    var caja = cuerpo.closest('.tabla-caja');
+    if (!caja || !caja.parentNode) return;
+    var pie = caja.nextElementSibling;
+    if (!pie || !pie.classList.contains('tabla-pie')){
+      pie = el('div', 'tabla-pie');
+      caja.parentNode.insertBefore(pie, caja.nextSibling);
+    }
+    var grupos = [];
+    [].forEach.call(cuerpo.children, function(tr){
+      var una = tr.children.length === 1 && tr.children[0].colSpan > 1;
+      if (una && tr.classList.contains('ci-detalle') && grupos.length){ grupos[grupos.length - 1].push(tr); return; }
+      if (una){ tr.classList.remove('fuera-pagina'); return; }
+      grupos.push([tr]);
+    });
+    var st = cuerpo.ciipPagina || (cuerpo.ciipPagina = {pag:0, por:10});
+    var total = grupos.length;
+    var por = st.por > 0 ? st.por : (total || 1);
+    var paginas = Math.max(1, Math.ceil(total / por));
+    if (st.pag > paginas - 1) st.pag = paginas - 1;
+    grupos.forEach(function(g, i){
+      var fuera = Math.floor(i / por) !== st.pag;
+      g.forEach(function(tr){ tr.classList.toggle('fuera-pagina', fuera); });
+    });
+
+    pie.textContent = '';
+    pie.hidden = !total || caja.hidden;
+    if (pie.hidden) return;
+    var u = T();
+    var datos = {desde: st.pag * por + 1, hasta: Math.min(total, (st.pag + 1) * por), total: total};
+    var cuenta = el('span', 'mt-cuenta');
+    String(u.tb_mostrando || '').split(/(\{desde\}|\{hasta\}|\{total\})/).forEach(function(x){
+      if (!x) return;
+      var m = /^\{(desde|hasta|total)\}$/.exec(x);
+      cuenta.appendChild(m ? el('b', null, String(datos[m[1]])) : document.createTextNode(x));
+    });
+    pie.appendChild(cuenta);
+    var ver = el('span', 'mt-ver');
+    var sel = el('select');
+    sel.setAttribute('aria-label', u.tb_por_pag_aria || '');
+    [10, 25, 0].forEach(function(n){
+      var o = el('option', null, n ? String(n) : (u.mt_todos || ''));
+      o.value = String(n);
+      if (n === st.por) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', function(){ st.por = parseInt(sel.value, 10) || 0; st.pag = 0; paginaTabla(cuerpo); });
+    var partes = String(u.mt_ver_pag || '{sel}').split('{sel}');
+    ver.appendChild(document.createTextNode(partes[0] || ''));
+    ver.appendChild(sel);
+    ver.appendChild(document.createTextNode(partes[1] || ''));
+    pie.appendChild(ver);
+    if (paginas > 1){
+      var pags = el('span', 'mt-pags');
+      for (var i = 0; i < paginas; i++){
+        (function(n){
+          var b = el('button', 'mt-p' + (n === st.pag ? ' on' : ''), String(n + 1));
+          b.type = 'button';
+          if (n === st.pag) b.setAttribute('aria-current', 'page');
+          b.addEventListener('click', function(){ st.pag = n; paginaTabla(cuerpo); });
+          pags.appendChild(b);
+        })(i);
+      }
+      pie.appendChild(pags);
+    }
+  }
+  PIE_TABLAS.forEach(function(id){
+    var cuerpo = document.getElementById(id);
+    if (!cuerpo || !window.MutationObserver) return;
+    var pendiente = false;
+    new MutationObserver(function(){
+      if (pendiente) return;
+      pendiente = true;
+      /* Detras de lo que este pintando: la pantalla vacia el cuerpo y lo
+         vuelve a llenar en el mismo golpe, y se reparte al terminar. */
+      Promise.resolve().then(function(){ pendiente = false; paginaTabla(cuerpo); });
+    }).observe(cuerpo, {childList: true});
+  });
+  /* Gancho de PRUEBA, como el de «Mis tramites». */
+  window.CIIP_PAGINA_TABLA = function(id, por){
+    var c = document.getElementById(id);
+    if (!c) return;
+    c.ciipPagina = {pag: 0, por: por};
+    paginaTabla(c);
+  };
 
   function cargaMisTramites(){
     /* Al equipo del CIIP no. La política de la base le deja leer los

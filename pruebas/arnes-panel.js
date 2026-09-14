@@ -4841,6 +4841,53 @@
     igual('bóveda: están los cinco documentos', filas.length, 5);
     igual('bóveda: con sus siete columnas',
           document.querySelectorAll('#dcCab th').length, 7);
+
+    /* ── CON EL FORMATO DE «MIS TRÁMITES» ──
+       Las demas tablas pasaron al formato de Atlas con la escala de la
+       Ventanilla. La boveda es la que tiene aqui papeles a la vista, asi que
+       se mide en ella: la cabecera, el icono de cada estado -que va en
+       ::before, por CSS- y el pie comun, con la paginacion forzada de dos en
+       dos porque cinco papeles no llegan a una segunda pagina. */
+    (function(){
+      var th = document.querySelector('#dcCab th');
+      igual('bóveda: la cabecera se queda fija al rodar',
+            th ? getComputedStyle(th).position : '(no hay)', 'sticky');
+      var raiz = getComputedStyle(document.documentElement);
+      igual('bóveda: y con el rótulo de la escala',
+            th ? getComputedStyle(th).fontSize + ' / ' + getComputedStyle(th).fontWeight : '(no hay)',
+            raiz.getPropertyValue('--fs-rotulo').trim() + ' / 700');
+      var chips = document.querySelectorAll('#dcLista .ct-chip');
+      var sinIcono = [].filter.call(chips, function(c){
+        var b = getComputedStyle(c, '::before');
+        return !b || b.content === 'none' || parseFloat(b.width) < 10;
+      });
+      ok('bóveda: cada estado con su icono', chips.length > 0 && sinIcono.length === 0,
+         chips.length + ' distintivos, ' + sinIcono.length + ' sin icono', 'todos con icono');
+      /* El vencido en rojo y no en ambar: lo dice la fila, no la clase. */
+      var vencido = document.querySelector('#dcLista tr.mal .ct-chip');
+      if (vencido){
+        var muestra = document.createElement('span');
+        muestra.style.color = 'var(--rust)';
+        document.body.appendChild(muestra);
+        var rojo = getComputedStyle(muestra).color;
+        muestra.remove();
+        igual('bóveda: y el vencido en el rojo de Atlas', getComputedStyle(vencido).color, rojo);
+      }
+      var pie = document.querySelector('#dcCaja + .tabla-pie');
+      ok('bóveda: el pie dice cuántos hay', !!pie && !pie.hidden && /\b5\b/.test(pie.textContent),
+         pie ? pie.textContent.replace(/\s+/g, ' ').trim() : '(no hay)', 'con 5');
+      if (!window.CIIP_PAGINA_TABLA) return;
+      window.CIIP_PAGINA_TABLA('dcLista', 2);
+      var vis = [].filter.call(document.querySelectorAll('#dcLista tr[data-doc]'), function(tr){
+        return !tr.classList.contains('fuera-pagina'); });
+      igual('bóveda: de dos en dos, se ven dos', vis.length, 2);
+      igual('bóveda: con sus números de página',
+            document.querySelectorAll('#dcCaja + .tabla-pie .mt-p').length, 3);
+      window.CIIP_PAGINA_TABLA('dcLista', 10);
+      igual('bóveda: y al volver a diez se ven los cinco',
+            [].filter.call(document.querySelectorAll('#dcLista tr[data-doc]'), function(tr){
+              return !tr.classList.contains('fuera-pagina'); }).length, 5);
+    })();
     igual('bóveda: y el renglón los cuenta',
           document.getElementById('navDocsN').textContent, '5');
 
