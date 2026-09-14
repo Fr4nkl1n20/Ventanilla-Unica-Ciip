@@ -8007,7 +8007,7 @@
      LA BARRA DE ARRIBA: FUERA LA BUSQUEDA, DENTRO EL SALUDO
      ═══════════════════════════════════════════════════════════════
      Donde estaba «Pregunta lo que sea sobre invertir en Venezuela» hay
-     ahora «Bienvenido, <nombre>».
+     ahora «Te damos la bienvenida: <nombre y apellido>».
 
      Aquella barra no era un buscador: era la puerta al asistente, que es
      una DEMOSTRACION -contesta por palabras clave sobre siete temas
@@ -8047,6 +8047,17 @@
          h.textContent.indexOf(quien.trim()) >= 0,
          h.textContent.trim(), 'con «' + quien.trim() + '»');
     }
+
+    /* Y sin dar por hecho si eres hombre o mujer. Decia «Bienvenido» a
+       todo el mundo, tambien a Milagros. El panel no sabe el genero de
+       nadie, asi que en los tres idiomas donde el saludo lo marca va en
+       forma neutra. Se mira el DICCIONARIO de los tres, no solo el idioma
+       de esta pasada: la pasada va en español y el portugues se colaria. */
+    var conGenero = [['es', /^bienvenid[oa]\b/i], ['pt', /^bem-vind[oa]\b/i], ['it', /^benvenut[oa]\b/i]]
+      .filter(function(par){ return par[1].test(String((I18N[par[0]] || {})['tb.hola'] || '')); })
+      .map(function(par){ return par[0] + ': ' + I18N[par[0]]['tb.hola']; });
+    ok('barra: el saludo no da por hecho si eres hombre o mujer',
+       conGenero.length === 0, conGenero.join(' · ') || 'neutro en los tres', 'neutro en los tres');
   }
 
   /* El asistente no se fue con la barra. */
