@@ -137,7 +137,10 @@ try {
     #     reglas -y la de los fines de semana- no las comprobaba nadie.
     'supabase-disponibilidad.sql',
     # 29  los textos que cambia el admin. Solo necesita es_admin(), del 3
-    'supabase-textos.sql'
+    'supabase-textos.sql',
+    # 30  lo que la bitacora no apuntaba. Se engancha a tablas del 13, 14,
+    #     21, 28 y 29, asi que va el ultimo
+    'supabase-bitacora-ajustes.sql'
   )
   $n = 0
   foreach ($f in $once) {

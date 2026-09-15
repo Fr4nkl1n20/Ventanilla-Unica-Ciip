@@ -8519,6 +8519,30 @@
        !!num && Number(num.textContent) === filas.length,
        (num ? num.textContent : '(sin contador)') + ' contadas, ' + filas.length + ' pintadas',
        'las mismas');
+
+    /* Lo que apunta supabase-bitacora-ajustes.sql: el plazo, el bloqueo,
+       los textos, los activos, el horario y el acompañamiento. Antes de
+       eso, con fuente 'catalogo' todo lo que no era «encendio» se pintaba
+       «Apagó», y un plazo se habria leido como un apagado. */
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var acciones = [].map.call(filas, function(f){
+      return f.children[3] ? f.children[3].textContent : '';
+    });
+    igual('rastro: ninguna fila se queda sin acción',
+          acciones.filter(function(t){ return !t.trim(); }).length, 0);
+    var plazo = String(U.ra_v_plazo || '').replace('{n}', '30');
+    ok('rastro: cambiar un plazo se lee como un plazo, no como un apagado',
+       !!U.ra_v_plazo && acciones.indexOf(plazo) >= 0,
+       acciones.join(' | '), plazo);
+    ['ra_f_tex', 'ra_f_act', 'ra_f_aju'].forEach(function(k){
+      var b = [].filter.call(document.querySelectorAll('#raFiltros button'), function(x){
+        return !!U[k] && x.firstChild && x.firstChild.textContent === U[k];
+      })[0];
+      var n = b && b.querySelector('.n');
+      ok('rastro: la ficha «' + (U[k] || k) + '» cuenta lo suyo',
+         !!n && Number(n.textContent) >= 1,
+         n ? n.textContent : '(no está la ficha)', 'uno o más');
+    });
   }
 
   /* La placa dejo de ser una columna con la sigla debajo: es el mismo

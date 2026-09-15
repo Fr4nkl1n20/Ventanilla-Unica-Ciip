@@ -58,7 +58,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* Los textos que el administrador cambia desde el panel. Solo necesita
    es_admin(); va al final por la misma razon que el horario: no mover el
    numero de nadie. */
-'supabase-textos'];
+'supabase-textos',
+/* Lo que la bitacora no apuntaba: el plazo, el bloqueo, los activos, el
+   horario, el acompañamiento y los textos. Se engancha a tablas de cinco
+   archivos distintos, asi que va detras de todos. */
+'supabase-bitacora-ajustes'];
 
 let mal = 0;
 for (const n of orden) {

@@ -53,6 +53,7 @@ usar esa base o la de pruebas — ver el bloque de comentarios ahí mismo.
 | `supabase-gestor.sql` | Lo que necesita el equipo del CIIP: leer los perfiles, anotar una devolución, y cómo nombrar un gestor |
 | `supabase-catalogos.sql` | Encender y apagar un trámite del catálogo desde el panel, dejando rastro de quién lo movió |
 | `supabase-bitacora.sql` | El registro de lo que hace el equipo: quién tocó el catálogo, los roles, los papeles y las citas |
+| `supabase-bitacora-ajustes.sql` | Lo que la bitácora no apuntaba: el plazo de las fichas, bloquear cuentas, los activos, el horario de citas, el acompañamiento y los textos. Va **el último**; es el 30 de `TODO-EN-ORDEN.sql` |
 | `supabase-bloqueo.sql` | Bloquear una cuenta: deja de poder escribir en trámites, documentos y citas |
 | `supabase-acompanamiento.sql` | Los ajustes de la burbuja y la nube de soporte, para que los mande el admin y no el código |
 | `supabase-cola.sql` | La lista de lo que hay que hacer con los organismos **cuando nadie mira**. La llena un trigger y la vacía el trabajador |

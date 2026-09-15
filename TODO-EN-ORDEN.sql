@@ -1,7 +1,7 @@
 -- ====================================================================
---  LOS 29 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat
+--  LOS 30 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat
 -- ====================================================================
---  Esto es la union literal de los 29 supabase-*.sql, sin cambiar una
+--  Esto es la union literal de los 30 supabase-*.sql, sin cambiar una
 --  coma, pegados en el orden que ejecuta el arnes contra un Postgres de
 --  usar y tirar. Ese orden no esta deducido leyendo cabeceras: si uno
 --  usara algo que otro define despues, la tanda se caeria diciendo cual.
@@ -11,13 +11,13 @@
 --  policy if exists-, asi que volver a correrlo no rompe nada y es la
 --  forma de poner al dia un proyecto que ya tenia la mitad.
 --
---  Generado el 2026-09-14. Si cambia un archivo, se vuelve a generar:
---  no se edita a mano, que entonces son 29 sitios donde mirar.
+--  Generado el 2026-09-15. Si cambia un archivo, se vuelve a generar:
+--  no se edita a mano, que entonces son 30 sitios donde mirar.
 -- ====================================================================
 
 
 -- ====================================================================
---  01 / 29   supabase-setup.sql
+--  01 / 30   supabase-setup.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -192,7 +192,7 @@ where p.id is null;
 --   from pg_class where relname = 'perfiles';
 
 -- ====================================================================
---  02 / 29   supabase-tramites.sql
+--  02 / 30   supabase-tramites.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1237,7 +1237,7 @@ create policy "recaudos: borrar de su carpeta" on storage.objects
 --    desde el SQL Editor no vale: ahí auth.uid() es null y RLS no aplica.
 
 -- ====================================================================
---  03 / 29   supabase-admin.sql
+--  03 / 30   supabase-admin.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1387,7 +1387,7 @@ create policy "perfiles: el admin reparte roles" on public.perfiles
 --   select relrowsecurity from pg_class where relname = 'perfiles';
 
 -- ====================================================================
---  04 / 29   supabase-citas.sql
+--  04 / 30   supabase-citas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1552,7 +1552,7 @@ create trigger citas_marca_tiempo
 -- (No se crea ninguna política de DELETE, así que RLS lo impide.)
 
 -- ====================================================================
---  05 / 29   supabase-empresa.sql
+--  05 / 30   supabase-empresa.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1653,7 +1653,7 @@ create trigger empresas_marca_tiempo
 --   select relname, relrowsecurity from pg_class where relname = 'empresas';
 
 -- ====================================================================
---  06 / 29   supabase-activos.sql
+--  06 / 30   supabase-activos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1787,7 +1787,7 @@ create trigger activos_marca_tiempo
 -- asi que no hay nada que añadir aqui.
 
 -- ====================================================================
---  07 / 29   supabase-identidad.sql
+--  07 / 30   supabase-identidad.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1946,7 +1946,7 @@ create policy "identidad: solo el equipo la firma"
 --  intenta con una sesión de gestor, que es como llegaría de fuera.
 
 -- ====================================================================
---  08 / 29   supabase-emision.sql
+--  08 / 30   supabase-emision.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2047,7 +2047,7 @@ create policy "recaudos: el equipo deja lo emitido" on storage.objects
 --   select * from public.tipos_documento where codigo = 'resolucion';
 
 -- ====================================================================
---  09 / 29   supabase-presencia.sql
+--  09 / 30   supabase-presencia.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2127,7 +2127,7 @@ grant execute on function public.tocar_visto() to authenticated;
 --   select nombre_completo, visto_en from public.perfiles order by visto_en desc nulls last;
 
 -- ====================================================================
---  10 / 29   supabase-sectores.sql
+--  10 / 30   supabase-sectores.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2295,7 +2295,7 @@ begin
 end $$;
 
 -- ====================================================================
---  11 / 29   supabase-catalogos.sql
+--  11 / 30   supabase-catalogos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2521,7 +2521,7 @@ from   pg_trigger
 where  not tgisinternal and tgrelid = 'public.tipos_tramite'::regclass;
 
 -- ====================================================================
---  12 / 29   supabase-bitacora.sql
+--  12 / 30   supabase-bitacora.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2777,7 +2777,7 @@ order  by cuando desc
 limit  20;
 
 -- ====================================================================
---  13 / 29   supabase-bloqueo.sql
+--  13 / 30   supabase-bloqueo.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2952,7 +2952,7 @@ where  p.bloqueado
 order  by p.bloqueado_en desc;
 
 -- ====================================================================
---  14 / 29   supabase-acompanamiento.sql
+--  14 / 30   supabase-acompanamiento.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3130,7 +3130,7 @@ where  schemaname = 'public' and tablename = 'acompanamiento';
 -- insert into public.acompanamiento (id) values (true);
 
 -- ====================================================================
---  15 / 29   supabase-gestor.sql
+--  15 / 30   supabase-gestor.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3241,7 +3241,7 @@ create trigger eventos_proteger
   for each row execute function public.eventos_solo_la_nota();
 
 -- ====================================================================
---  16 / 29   supabase-cola.sql
+--  16 / 30   supabase-cola.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3476,7 +3476,7 @@ create policy "trabajos: el equipo los ve" on public.trabajos
 --    no tenía conector o el trigger no está.
 
 -- ====================================================================
---  17 / 29   supabase-avisos.sql
+--  17 / 30   supabase-avisos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3778,7 +3778,7 @@ create policy "avisos: el equipo los ve" on public.avisos
 --    devolver 0 la segunda: no se avisa dos veces del mismo vencimiento.
 
 -- ====================================================================
---  18 / 29   supabase-aranceles.sql
+--  18 / 30   supabase-aranceles.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4106,7 +4106,7 @@ create policy "ordenes: la mia" on public.ordenes_pago
 --    en public.trabajos hasta que la orden quede 'pagada'.
 
 -- ====================================================================
---  19 / 29   supabase-huellas.sql
+--  19 / 30   supabase-huellas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4293,7 +4293,7 @@ create trigger documentos_huella_fija
 --   select count(*) from public.verificar_documento(repeat('a', 64));
 
 -- ====================================================================
---  20 / 29   supabase-encadenado.sql
+--  20 / 30   supabase-encadenado.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4411,7 +4411,7 @@ update public.tipos_tramite set emite = 'conformidad_uso'    where codigo = 'con
 --    en la tarjeta que diga «esperando a».
 
 -- ====================================================================
---  21 / 29   supabase-plazos.sql
+--  21 / 30   supabase-plazos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4675,7 +4675,7 @@ update public.tipos_tramite
 --   where plazo_legal_dias is not null and plazo_legal_norma is null;
 
 -- ====================================================================
---  22 / 29   supabase-una-viva.sql
+--  22 / 30   supabase-una-viva.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4782,7 +4782,7 @@ comment on index public.tramites_una_viva is
 --    where tipo = 'solvencias' group by estado;
 
 -- ====================================================================
---  23 / 29   supabase-hilo.sql
+--  23 / 30   supabase-hilo.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -5044,7 +5044,7 @@ create policy "documentos: el equipo adjunta en un hilo" on public.documentos
 --    dos cuentas, y es lo que hace PROBAR-CERRADURAS.bat.
 
 -- ====================================================================
---  24 / 29   supabase-hilo-citas.sql
+--  24 / 30   supabase-hilo-citas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -5290,7 +5290,7 @@ create policy "cita_mensajes: escribir en mi cita" on public.cita_mensajes
 --    dos cuentas, y es lo que hace PROBAR-CERRADURAS.bat.
 
 -- ====================================================================
---  25 / 29   supabase-consultas.sql
+--  25 / 30   supabase-consultas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -5656,7 +5656,7 @@ create policy "consulta_mensajes: escribir en mi consulta" on public.consulta_me
 --      inversionista = <el id de B> tiene que ser rechazado.
 
 -- ====================================================================
---  26 / 29   supabase-informe-victor.sql
+--  26 / 30   supabase-informe-victor.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6091,7 +6091,7 @@ update public.tipos_tramite
 --   select ref_panel, nombre, fase, nivel from public.tipos_tramite where codigo = 'rnc';
 
 -- ====================================================================
---  27 / 29   supabase-pliego.sql
+--  27 / 30   supabase-pliego.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6484,7 +6484,7 @@ create policy "pliego: aceptar el propio" on public.pliego_aceptaciones
 --    PROBAR-CERRADURAS.bat.
 
 -- ====================================================================
---  28 / 29   supabase-disponibilidad.sql
+--  28 / 30   supabase-disponibilidad.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6815,7 +6815,7 @@ alter table public.cierres_citas add  constraint cierre_dia_laborable
   check (extract(isodow from fecha) between 1 and 5);
 
 -- ====================================================================
---  29 / 29   supabase-textos.sql
+--  29 / 30   supabase-textos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6956,3 +6956,224 @@ order  by cmd;
 
 -- 2. Lo que hay cambiado, por idioma.
 select idioma, count(*) from public.textos_panel group by idioma order by idioma;
+
+-- ====================================================================
+--  30 / 30   supabase-bitacora-ajustes.sql
+-- ====================================================================
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  CIIP · VENTANILLA ÚNICA — LA BITÁCORA, CON LO QUE VINO DESPUÉS
+-- ═══════════════════════════════════════════════════════════════════════
+--  Se pega entero en el SQL Editor de Supabase y se pulsa Run. Es
+--  reejecutable.
+--
+--  ORDEN: el ÚLTIMO. Se engancha a tablas que crean archivos posteriores a
+--  supabase-bitacora.sql: bloqueo (13), acompañamiento (14), plazos (21),
+--  disponibilidad (28) y textos (29). Si en la base falta alguna de esas
+--  tablas no se cae: se salta ese disparador y lo dice al final. Pasado el
+--  archivo que falte, se vuelve a correr este.
+-- ═══════════════════════════════════════════════════════════════════════
+--
+--  QUÉ ARREGLA
+--  ─────────────────────────────────────────────────────────────────────
+--  La bitácora se hizo cuando el panel solo tocaba cuatro cosas: el
+--  interruptor del catálogo, los roles, los papeles y las citas. Luego
+--  llegaron el plazo de cada ficha, bloquear cuentas, los activos, el
+--  horario de citas, el acompañamiento y «Editar textos», y ninguno dejaba
+--  apunte. Trazabilidad seguía enseñando lo de hace cinco días como si
+--  desde entonces nadie hubiera tocado nada.
+--
+--  Dónde sale cada uno en la pantalla:
+--    · el plazo de una ficha          → Catálogo
+--    · bloquear y desbloquear         → Roles (es quién puede qué)
+--    · el horario y los días cerrados → Citas
+--    · textos, activos, acompañamiento → una ficha nueva cada uno
+--
+--  Y UN AGUJERO QUE SE CIERRA DE PASO
+--  ─────────────────────────────────────────────────────────────────────
+--  supabase-bitacora.sql promete que nadie puede escribir en la bitácora.
+--  Pero apunta() es security definer y no llevaba revoke, y Supabase da
+--  EXECUTE sobre toda función nueva a anon y a authenticated. Desde el
+--  navegador, sb.rpc('apunta', ...) escribía el apunte que uno quisiera.
+--  Los disparadores la siguen llamando: corren como su dueño, que conserva
+--  el permiso.
+-- ═══════════════════════════════════════════════════════════════════════
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 0. QUE ESTÉ LO QUE HACE FALTA
+-- ───────────────────────────────────────────────────────────────────────
+do $$
+begin
+  if to_regclass('public.bitacora') is null then
+    raise exception 'Falta la tabla bitacora. Pasa antes supabase-bitacora.sql.';
+  end if;
+end $$;
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 1. LAS FUENTES NUEVAS, Y NADIE MÁS ESCRIBE
+-- ───────────────────────────────────────────────────────────────────────
+alter table public.bitacora drop constraint if exists bitacora_fuente_valida;
+alter table public.bitacora add constraint bitacora_fuente_valida
+  check (fuente in ('catalogo','roles','papeles','citas',
+                    'textos','activos','acompanamiento'));
+
+revoke execute on function public.apunta(text, text, text, text)
+  from public, anon, authenticated;
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 2. LAS FUNCIONES
+-- ───────────────────────────────────────────────────────────────────────
+-- Se crean aunque falte su tabla: plpgsql no mira las columnas hasta que
+-- corre. Lo que depende de la tabla es el disparador, más abajo.
+
+-- El plazo. Solo cuando CAMBIA: guardar el mismo número no es un apunte.
+-- 'detalle' vacío es quitar el plazo.
+create or replace function public.bit_catalogo_plazo()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.plazo_dias is distinct from old.plazo_dias then
+    perform public.apunta('catalogo', 'plazo', new.nombre,
+                          coalesce(new.plazo_dias::text, ''));
+  end if;
+  return null;
+end $$;
+
+create or replace function public.bit_bloqueo()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.bloqueado is distinct from old.bloqueado then
+    perform public.apunta('roles',
+      case when new.bloqueado then 'bloqueo' else 'desbloqueo' end,
+      new.nombre_completo);
+  end if;
+  return null;
+end $$;
+
+-- Un activo. Guardar la ficha sin tocar nada no es editarla: se compara la
+-- fila entera menos la marca de tiempo, que la pone otro disparador.
+create or replace function public.bit_activos()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'INSERT' then
+    perform public.apunta('activos', 'creo', new.titulo, new.estado);
+  elsif tg_op = 'DELETE' then
+    perform public.apunta('activos', 'borro', old.titulo, old.estado);
+  elsif (to_jsonb(new) - 'actualizado_en') is distinct from
+        (to_jsonb(old) - 'actualizado_en') then
+    perform public.apunta('activos', 'edito', new.titulo, new.estado);
+  end if;
+  return null;
+end $$;
+
+-- Un tramo del horario. 'sobre' lleva las horas y 'detalle' el día en
+-- número (1 lunes): el nombre del día lo pone la pantalla en su idioma.
+create or replace function public.bit_horario()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'INSERT' then
+    perform public.apunta('citas', 'puso_tramo',
+      to_char(new.desde, 'HH24:MI') || '-' || to_char(new.hasta, 'HH24:MI'), new.dia::text);
+  else
+    perform public.apunta('citas', 'quito_tramo',
+      to_char(old.desde, 'HH24:MI') || '-' || to_char(old.hasta, 'HH24:MI'), old.dia::text);
+  end if;
+  return null;
+end $$;
+
+-- Un día cerrado. La fecha va como 2026-12-24, y la pantalla la escribe.
+create or replace function public.bit_cierres()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'INSERT' then
+    perform public.apunta('citas', 'cerro_dia', new.fecha::text, new.motivo);
+  else
+    perform public.apunta('citas', 'abrio_dia', old.fecha::text, old.motivo);
+  end if;
+  return null;
+end $$;
+
+-- Los textos. Se guarda el TEXTO y no la clave: «c33.name» no le dice nada
+-- a quien lee la bitácora, y el texto sí. Al volver al original se apunta
+-- el texto que se quitó, que es lo único que ya no está en ningún sitio.
+create or replace function public.bit_textos()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'DELETE' then
+    perform public.apunta('textos', 'original', left(old.texto, 160), old.idioma);
+  elsif tg_op = 'INSERT' or new.texto is distinct from old.texto then
+    perform public.apunta('textos', 'cambio', left(new.texto, 160), new.idioma);
+  end if;
+  return null;
+end $$;
+
+create or replace function public.bit_acompanamiento()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if (to_jsonb(new) - 'actualizado_en' - 'actualizado_por') is distinct from
+     (to_jsonb(old) - 'actualizado_en' - 'actualizado_por') then
+    perform public.apunta('acompanamiento', 'ajusto', '', '');
+  end if;
+  return null;
+end $$;
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 3. LOS DISPARADORES, SOLO DONDE HAY TABLA
+-- ───────────────────────────────────────────────────────────────────────
+do $$
+declare
+  d record;
+begin
+  for d in
+    select * from (values
+      ('bitacora_catalogo_plazo', 'tipos_tramite',  'plazo_dias', 'after update of plazo_dias',          'bit_catalogo_plazo'),
+      ('bitacora_bloqueo',        'perfiles',       'bloqueado',  'after update of bloqueado',           'bit_bloqueo'),
+      ('bitacora_activos',        'activos',        null,         'after insert or update or delete',    'bit_activos'),
+      ('bitacora_horario',        'horario_citas',  null,         'after insert or delete',              'bit_horario'),
+      ('bitacora_cierres',        'cierres_citas',  null,         'after insert or delete',              'bit_cierres'),
+      ('bitacora_textos',         'textos_panel',   null,         'after insert or update or delete',    'bit_textos'),
+      ('bitacora_acompanamiento', 'acompanamiento', null,         'after update',                        'bit_acompanamiento')
+    ) as t(disparador, tabla, columna, cuando, funcion)
+  loop
+    if to_regclass('public.' || d.tabla) is null
+       or (d.columna is not null and not exists (
+             select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = d.tabla and column_name = d.columna))
+    then
+      raise notice 'Sin %: falta public.%', d.disparador,
+        d.tabla || case when d.columna is null then '' else '.' || d.columna end;
+      continue;
+    end if;
+    execute format('drop trigger if exists %I on public.%I', d.disparador, d.tabla);
+    execute format('create trigger %I %s on public.%I for each row execute function public.%I()',
+                   d.disparador, d.cuando, d.tabla, d.funcion);
+  end loop;
+end $$;
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- LO QUE ESTO NO HACE
+-- ───────────────────────────────────────────────────────────────────────
+-- · Lo de antes de correrlo sigue sin estar. Un plazo cambiado ayer no
+--   aparece: la bitácora empieza a contar lo nuevo desde hoy.
+-- · No apunta lo que hace el inversionista con lo suyo (su empresa, sus
+--   consultas). Esto es el registro de lo que hace el equipo.
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- COMPROBACIONES
+-- ───────────────────────────────────────────────────────────────────────
+-- 1. Doce disparadores 'bitacora_%': los cinco de antes y los siete de
+--    ahora. Si falta alguno de los nuevos, falta su tabla: ver arriba.
+select tgrelid::regclass as tabla, tgname as disparador
+from   pg_trigger
+where  not tgisinternal
+  and  tgname like 'bitacora_%'
+order  by tabla, disparador;
+
+-- 2. apunta() cerrada. Las dos columnas tienen que salir en false.
+select has_function_privilege('anon', 'public.apunta(text,text,text,text)', 'execute')          as anon_puede,
+       has_function_privilege('authenticated', 'public.apunta(text,text,text,text)', 'execute') as con_sesion_puede;

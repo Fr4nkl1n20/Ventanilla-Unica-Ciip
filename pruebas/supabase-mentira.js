@@ -1266,6 +1266,25 @@
     }
     if (tabla === 'bitacora'){
       return {data:[
+        /* Lo que apunta supabase-bitacora-ajustes.sql, uno de cada. El
+           plazo va con el MISMO tramite que el interruptor: comparten
+           fuente, y es justo lo que se leia mal. */
+        {id:14, cuando:haceHoras(0.5), quien:'u4', fuente:'catalogo',
+         accion:'plazo',    sobre:'Registro de marca', detalle:'30'},
+        {id:13, cuando:haceHoras(2),   quien:'u4', fuente:'textos',
+         accion:'cambio',   sobre:'Poder de representación legal', detalle:'es'},
+        {id:12, cuando:haceHoras(4),   quien:'u4', fuente:'textos',
+         accion:'original', sobre:'Investor visa', detalle:'en'},
+        {id:11, cuando:haceHoras(5),   quien:'u4', fuente:'activos',
+         accion:'creo',     sobre:'Finca La Esperanza', detalle:'disponible'},
+        {id:10, cuando:haceHoras(6),   quien:'u4', fuente:'citas',
+         accion:'puso_tramo', sobre:'09:00-12:00', detalle:'1'},
+        {id:9,  cuando:haceHoras(12),  quien:'u4', fuente:'citas',
+         accion:'cerro_dia', sobre:'2026-12-24', detalle:'Nochebuena'},
+        {id:8,  cuando:haceHoras(20),  quien:'u4', fuente:'acompanamiento',
+         accion:'ajusto',   sobre:'', detalle:''},
+        {id:7,  cuando:haceHoras(40),  quien:'u4', fuente:'roles',
+         accion:'bloqueo',  sobre:'Bruno Pereira', detalle:''},
         {id:6, cuando:haceHoras(0.2), quien:'u4', fuente:'catalogo',
          accion:'encendio', sobre:'Registro de marca', detalle:''},
         {id:5, cuando:haceHoras(1),   quien:'u4', fuente:'catalogo',

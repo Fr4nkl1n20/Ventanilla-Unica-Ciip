@@ -2520,6 +2520,105 @@ $p$;
 reset role;
 select arnes.nadie();
 
+
+-- ══ 30 · LA BITACORA APUNTA LO QUE VINO DESPUES ═════════════════════
+-- supabase-bitacora.sql solo apuntaba el interruptor del catalogo, los
+-- roles, los papeles y las citas. Todo lo que el panel aprendio a tocar
+-- despues -el plazo, bloquear, los activos, el horario, el acompañamiento
+-- y los textos- no dejaba rastro, y Trazabilidad se quedo parada.
+--
+-- Se hace como dueño con el uid del admin: aqui no se prueban las
+-- politicas de cada tabla, que tienen su seccion, sino que cada cambio
+-- deje UNA fila, y que guardar sin cambiar nada no deje ninguna.
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+do $p$
+declare
+  antes bigint;
+  yo    uuid := (select id from arnes.gente where papel = 'X');
+  tipo  text;
+  act   uuid;
+  tramo uuid;
+  lunes date := date_trunc('week', current_date + 400)::date;
+  vistos text;
+begin
+  select coalesce(max(id), 0) into antes from public.bitacora;
+  select codigo into tipo from public.tipos_tramite order by codigo limit 1;
+
+  update public.tipos_tramite set plazo_dias = coalesce(plazo_dias, 0) + 7 where codigo = tipo;
+  update public.tipos_tramite set nombre = nombre where codigo = tipo;
+
+  -- Una cuenta suya: las de arriba ya han pasado por otras secciones, y
+  -- bloquear a alguien que no está no deja apunte ni da error.
+  insert into auth.users (email, raw_user_meta_data)
+  values ('bit@prueba.local', '{"nombre_completo":"Beto Bitacora","pais":"Chile"}')
+  returning id into act;
+  update public.perfiles set bloqueado = true  where id = act;
+  update public.perfiles set bloqueado = false where id = act;
+
+  insert into public.activos (titulo) values ('Finca de la bitacora') returning id into act;
+  update public.activos set destacado = true where id = act;
+  update public.activos set destacado = true where id = act;
+  delete from public.activos where id = act;
+
+  insert into public.horario_citas (dia, desde, hasta) values (5, '16:00', '17:00') returning id into tramo;
+  delete from public.horario_citas where id = tramo;
+
+  insert into public.cierres_citas (fecha, motivo) values (lunes, 'Feriado de la bitacora');
+  delete from public.cierres_citas where fecha = lunes;
+
+  update public.acompanamiento set nube = not nube;
+  update public.acompanamiento set nube = not nube;
+  update public.acompanamiento set nube = nube;
+
+  insert into public.textos_panel (clave, idioma, texto) values ('bit.prueba', 'es', 'Primero')
+    on conflict (clave, idioma) do update set texto = excluded.texto;
+  insert into public.textos_panel (clave, idioma, texto) values ('bit.prueba', 'es', 'Segundo')
+    on conflict (clave, idioma) do update set texto = excluded.texto;
+  update public.textos_panel set texto = 'Segundo' where clave = 'bit.prueba';
+  delete from public.textos_panel where clave = 'bit.prueba';
+
+  select coalesce(string_agg(fuente || '/' || accion, ', ' order by id), 'nada')
+    into vistos from public.bitacora where id > antes;
+
+  perform arnes.comprueba('bitacora: cambiar un plazo deja un apunte, y guardar otro campo no',
+    (select count(*) = 1 from public.bitacora where id > antes and fuente = 'catalogo' and accion = 'plazo'
+       and detalle <> ''), vistos);
+  perform arnes.comprueba('bitacora: bloquear y desbloquear, uno cada uno',
+    (select count(*) filter (where accion = 'bloqueo') = 1 and count(*) filter (where accion = 'desbloqueo') = 1
+       from public.bitacora where id > antes and fuente = 'roles'), vistos);
+  perform arnes.comprueba('bitacora: un activo se crea, se edita y se borra, y guardarlo igual no cuenta',
+    (select count(*) filter (where accion = 'creo') = 1 and count(*) filter (where accion = 'edito') = 1
+        and count(*) filter (where accion = 'borro') = 1 and count(*) = 3
+       from public.bitacora where id > antes and fuente = 'activos'), vistos);
+  perform arnes.comprueba('bitacora: el horario, con sus horas y su dia',
+    (select count(*) = 2 and bool_and(sobre = '16:00-17:00' and detalle = '5')
+       from public.bitacora where id > antes and accion in ('puso_tramo', 'quito_tramo')), vistos);
+  perform arnes.comprueba('bitacora: cerrar un dia y volver a abrirlo',
+    (select count(*) = 2 and bool_and(sobre = lunes::text)
+       from public.bitacora where id > antes and accion in ('cerro_dia', 'abrio_dia')), vistos);
+  perform arnes.comprueba('bitacora: el acompañamiento, solo cuando algo cambia',
+    (select count(*) = 2 from public.bitacora where id > antes and fuente = 'acompanamiento'), vistos);
+  perform arnes.comprueba('bitacora: los textos, dos cambios y una vuelta al original',
+    (select count(*) filter (where accion = 'cambio') = 2 and count(*) filter (where accion = 'original') = 1
+        and count(*) = 3
+       from public.bitacora where id > antes and fuente = 'textos'), vistos);
+  perform arnes.comprueba('bitacora: y todo a nombre de quien lo hizo',
+    (select count(*) > 0 and bool_and(quien = yo) from public.bitacora where id > antes), vistos);
+end
+$p$;
+select arnes.nadie();
+
+-- Y lo que prometia la cabecera de la bitacora y no se cumplia: nadie
+-- escribe en ella desde fuera. apunta() estaba abierta a cualquiera.
+select arnes.comprueba(
+  'bitacora: apunta() no la llama la clave anonima',
+  not has_function_privilege('anon', 'public.apunta(text,text,text,text)', 'execute'),
+  'anon SI puede inventarse apuntes');
+select arnes.comprueba(
+  'bitacora: ni quien haya entrado',
+  not has_function_privilege('authenticated', 'public.apunta(text,text,text,text)', 'execute'),
+  'authenticated SI puede inventarse apuntes');
+
 \o
 \pset tuples_only on
 \pset format unaligned

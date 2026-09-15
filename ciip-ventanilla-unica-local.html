@@ -770,6 +770,9 @@ body[data-vista="rastro"] .fase-bar{display:none;}
   background:var(--gray-soft);}
 .ra-punto.rol{background:var(--navy2);}
 .ra-punto.cat{background:var(--cyan-deep);}
+.ra-punto.tex{background:var(--amber);}
+.ra-punto.act{background:var(--navy);}
+.ra-punto.aju{background:var(--cyan);}
 .ra-vacio{font-size:var(--fs-parrafo); color:var(--gray-soft); padding:18px 12px;}
 
 /* El pulso. Misma mecanica que las otras dos vistas de administracion. */
@@ -13924,7 +13927,7 @@ applyLang(idiomaParaMi());
 
         var b = el('button', coFiltro === x[0] ? 'aqui' : null);
         b.type = 'button';
-        b.appendChild(document.createTextNode(x[1] || ''));
+        b.appendChild(document.createTextNode(dic[x[1]] || ''));
         b.appendChild(el('span', 'n', String(n)));
         b.addEventListener('click', function(){ coFiltro = x[0]; repinta(); });
         caja.appendChild(b);
@@ -15229,7 +15232,7 @@ applyLang(idiomaParaMi());
 
       var b = el('button', mtFiltro === x[0] ? 'aqui' : null);
       b.type = 'button';
-      b.appendChild(document.createTextNode(dic[x[1]] || ''));
+      b.appendChild(document.createTextNode(x[1] || ''));
       b.appendChild(el('span', 'n', String(n)));
       b.addEventListener('click', function(){ mtFiltro = x[0]; pintaMisTramites(); });
       caja.appendChild(b);
@@ -19677,11 +19680,14 @@ applyLang(idiomaParaMi());
 
   /* Las tres fuentes, y el rotulo de cada una. El orden es el del menu de
      fichas: primero todo, luego lo mas mirado. */
-  var RA_MONTONES = ['todos', 'rol', 'cat', 'tra', 'pap', 'cit'];
+  var RA_MONTONES = ['todos', 'rol', 'cat', 'tra', 'pap', 'cit', 'tex', 'act', 'aju'];
   var RA_ROTULO = {todos:'ra_f_todos', rol:'ra_f_roles', cat:'ra_f_cat',
-                   tra:'ra_f_tram', pap:'ra_f_pap', cit:'ra_f_citas'};
-  /* Lo que dice la bitacora en 'fuente' y como se llama aqui dentro. */
-  var RA_FUENTE = {catalogo:'cat', roles:'rol', papeles:'pap', citas:'cit'};
+                   tra:'ra_f_tram', pap:'ra_f_pap', cit:'ra_f_citas',
+                   tex:'ra_f_tex', act:'ra_f_act', aju:'ra_f_aju'};
+  /* Lo que dice la bitacora en 'fuente' y como se llama aqui dentro. Las
+     tres ultimas las trajo supabase-bitacora-ajustes.sql. */
+  var RA_FUENTE = {catalogo:'cat', roles:'rol', papeles:'pap', citas:'cit',
+                   textos:'tex', activos:'act', acompanamiento:'aju'};
   var RA_ESTADO_CITA = {solicitada:'ra_e_solicitada', confirmada:'ra_e_confirmada',
                         hecha:'ra_e_hecha', cancelada:'ra_e_cancelada'};
   var raFiltro = 'todos', raBusca = '', raEnganchado = false;
@@ -19720,13 +19726,40 @@ applyLang(idiomaParaMi());
   function raDeBitacora(b, u, d){
     var monton = RA_FUENTE[b.fuente] || 'tra';
     var accion = '', sobre = b.sobre || '';
+    /* Cada fuente mira su 'accion' ENTERA. Aqui se decia «si no es
+       encendio, es apago», y con dos verbos valia; el plazo de una ficha
+       llega por la misma fuente y se habria leido como un apagado. */
     if (b.fuente === 'catalogo'){
-      accion = (b.accion === 'encendio' ? u.ra_v_on : u.ra_v_off) || '';
+      if (b.accion === 'plazo'){
+        accion = b.detalle ? String(u.ra_v_plazo || '').replace('{n}', b.detalle)
+                           : (u.ra_v_sinplazo || '');
+      } else {
+        accion = (b.accion === 'encendio' ? u.ra_v_on : u.ra_v_off) || '';
+      }
     } else if (b.fuente === 'roles'){
-      accion = String(u.ra_v_rol || '').replace('{rol}', d['rol.' + b.detalle] || b.detalle || '');
+      if (b.accion === 'bloqueo')         accion = u.ra_v_bloq || '';
+      else if (b.accion === 'desbloqueo') accion = u.ra_v_desbloq || '';
+      else accion = String(u.ra_v_rol || '').replace('{rol}', d['rol.' + b.detalle] || b.detalle || '');
       if (!sobre) sobre = u.ra_sinnombre || '';
     } else if (b.fuente === 'papeles'){
       accion = (b.accion === 'subio' ? u.ra_v_subio : u.ra_v_borro) || '';
+    } else if (b.fuente === 'textos'){
+      /* El idioma va en la accion: el mismo texto se cambia por separado en
+         cada uno, y sin el dos filas iguales parecerian repetidas. */
+      accion = String((b.accion === 'original' ? u.ra_v_txorig : u.ra_v_texto) || '')
+        .replace('{idioma}', String(b.detalle || '').toUpperCase());
+    } else if (b.fuente === 'activos'){
+      accion = (b.accion === 'creo'  ? u.ra_v_anadio
+              : b.accion === 'borro' ? u.ra_v_borro : u.ra_v_edito) || '';
+    } else if (b.fuente === 'acompanamiento'){
+      accion = u.ra_v_ajusto || '';
+      sobre  = u.ra_acomp || '';
+    } else if (b.accion === 'puso_tramo' || b.accion === 'quito_tramo'){
+      accion = (b.accion === 'puso_tramo' ? u.ra_v_tramo : u.ra_v_sintramo) || '';
+      sobre  = raDia(b.detalle) + ' ' + String(sobre).replace('-', ' ' + String.fromCharCode(8211) + ' ');
+    } else if (b.accion === 'cerro_dia' || b.accion === 'abrio_dia'){
+      accion = (b.accion === 'cerro_dia' ? u.ra_v_cierre : u.ra_v_sincierre) || '';
+      sobre  = raFecha(sobre) + (b.detalle ? ' ' + String.fromCharCode(183) + ' ' + b.detalle : '');
     } else {
       accion = (b.accion === 'pidio') ? (u.ra_v_pidio || '')
              : String(u.ra_v_cita || '').replace('{estado}',
@@ -19738,6 +19771,29 @@ applyLang(idiomaParaMi());
     }
     return {cuando:b.cuando, quien:quienEs(b.quien, u), monton:monton,
             que:u[RA_ROTULO[monton]] || '', accion:accion, sobre:sobre};
+  }
+
+  /* El dia y la fecha del horario, en el idioma de la pantalla. La base
+     guarda el numero (1 lunes) y la fecha ISO: escribirlos alli en letra
+     dejaria el registro en un idioma para siempre. Son los mismos calculos
+     que la pantalla del horario, que los tiene dentro de su bloque. */
+  function raDia(n){
+    n = +n;
+    if (!(n >= 1 && n <= 7)) return '';
+    try {
+      /* El 1 de febrero de 2026 fue domingo: el 2 es lunes, que es el dia 1. */
+      var s = new Intl.DateTimeFormat(curLang, {weekday:'long', timeZone:'UTC'})
+                .format(new Date(Date.UTC(2026, 1, 1 + n)));
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    } catch (e){ return ''; }
+  }
+  function raFecha(iso){
+    var f = new Date(String(iso || '') + 'T12:00:00Z');
+    if (isNaN(f.getTime())) return String(iso || '');
+    try {
+      return new Intl.DateTimeFormat(curLang, {day:'numeric', month:'long',
+        year:'numeric', timeZone:'UTC'}).format(f);
+    } catch (e){ return String(iso); }
   }
 
   /* El nombre legible de un tramite, si el catalogo ya se cargo. La
