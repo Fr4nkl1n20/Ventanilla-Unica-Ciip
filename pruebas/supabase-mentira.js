@@ -295,10 +295,10 @@
        aunque el tramite este resuelto. */
     /* Con el plazo legal puesto: es uno de los dos comprobados en su
        fuente, y el unico con el que se puede probar el globo del reloj. */
-    {codigo:'visa_inversionista', ref_panel:'c1', ente:'SAIME', activo:true, emite:'visa', plazo_dias:30,
+    {codigo:'visa_inversionista', ref_panel:'c1', ente:'MPPRE', activo:true, plazo_dias:30,
      plazo_legal_dias:null,
      plazo_legal_norma:'Normas de Procedimiento para la Expedición de Visados, Gaceta Oficial Extraordinaria 5.427 del 5-1-2000',
-     nombre:'Visa de inversionista', fase:1, nivel:'obligatorio'},
+     nombre:'Visa de negocios (TR-N)', fase:1, nivel:'obligatorio'},
     /* La visa de dependientes pregunta pasaporte, pais emisor y fecha de
        nacimiento: las tres que la de inversionista ya contesto. Es donde se
        mide que no se pide dos veces lo mismo. */
@@ -356,7 +356,7 @@
       /* Un borrador SOLO, y a medio subir: es el unico expediente donde
          el aviso ensena el caso del borrador. En 'lleno' gana siempre el
          devuelto, y sin esto la barra de "2 de 4 recaudos" no la mira
-         nadie. La visa pide cuatro obligatorios. */
+         nadie. La visa pide seis obligatorios. */
       {id:'s1', tipo:'visa_inversionista', estado:'borrador',
        creado_en:'2026-08-18T10:00:00Z', actualizado_en:'2026-08-18T10:00:00Z'}
     ]
@@ -1221,8 +1221,8 @@
     if (tabla === 'tramite_documentos' && op && op.in && op.in.tramite){
       return {data: op.in.tramite.indexOf('t4') >= 0
         ? [{tramite:'t4', documento:'dr1', documentos:{tipo:'resolucion',
-            nombre_original:'visa-tr1-estampada.pdf',
-            archivo:'u1/emitidos/visa-tr1-estampada.pdf'}}]
+            nombre_original:'visa-trn-estampada.pdf',
+            archivo:'u1/emitidos/visa-trn-estampada.pdf'}}]
         : [], error:null};
     }
     if (tabla === 'tramite_documentos' && !(op && op.eq)){
@@ -1285,7 +1285,7 @@
         {id:13, cuando:haceHoras(2),   quien:'u4', fuente:'textos',
          accion:'cambio',   sobre:'Poder de representación legal', detalle:'es'},
         {id:12, cuando:haceHoras(4),   quien:'u4', fuente:'textos',
-         accion:'original', sobre:'Investor visa', detalle:'en'},
+         accion:'original', sobre:'Business visa (TR-N)', detalle:'en'},
         {id:11, cuando:haceHoras(5),   quien:'u4', fuente:'activos',
          accion:'creo',     sobre:'Finca La Esperanza', detalle:'disponible'},
         {id:10, cuando:haceHoras(6),   quien:'u4', fuente:'citas',
@@ -1322,6 +1322,8 @@
         {codigo:'domicilio', vence:false},     {codigo:'foto', vence:false},
         {codigo:'acta_constitutiva', vence:false}, {codigo:'traduccion', vence:false},
         {codigo:'domicilio_empresa', vence:false}, {codigo:'inversion', vence:false},
+        {codigo:'carta_motivo_viaje', vence:false}, {codigo:'registro_comercio', vence:false},
+        {codigo:'certificado_medico_origen', vence:true}, {codigo:'arancel_consular', vence:false},
         {codigo:'comprobante_capital', vence:false}
       ], error:null};
     }
@@ -1660,8 +1662,8 @@
       }
       if (op && op.eq && op.eq.tramite === 't4'){
         return {data:[{documento:'dr1', documentos:{tipo:'resolucion',
-          nombre_original:'visa-tr1-estampada.pdf',
-          archivo:'u1/emitidos/visa-tr1-estampada.pdf'}}], error:null};
+          nombre_original:'visa-trn-estampada.pdf',
+          archivo:'u1/emitidos/visa-trn-estampada.pdf'}}], error:null};
       }
       /* Lo que subio el inversionista, para que el gestor lo revise. */
       return {data:[

@@ -54,14 +54,20 @@ comment on column public.tipos_tramite.emite is
 -- ───────────────────────────────────────────────────────────────────────
 -- LOS QUE SE SABEN DE CIERTO
 -- ───────────────────────────────────────────────────────────────────────
--- Siete, y ninguno inventado: cinco porque el código del trámite y el del
+-- Seis, y ninguno inventado: cuatro porque el código del trámite y el del
 -- documento son EL MISMO o el nombre no admite otra lectura, y el del
 -- acta porque lo dice el comentario del panel.
 --
 -- Se activan con UPDATE y no en el INSERT del catálogo, que lleva ON
 -- CONFLICT DO NOTHING y en una base que ya existe no tocaría nada.
 
-update public.tipos_tramite set emite = 'visa'               where codigo = 'visa_inversionista';
+-- La visa ya NO. La c1 era la TR-I, que abría la cédula de residencia, y
+-- desde el 15 de septiembre de 2026 es la TR-N, de transeúnte: estampa una
+-- visa, pero no la que pide la cédula, así que emitir 'visa' pondría a la
+-- cédula a esperar por un trámite que no le sirve. Se pone a null con
+-- UPDATE y no se borra la línea sin más: en una base que ya existe, el
+-- 'visa' de antes seguiría puesto.
+update public.tipos_tramite set emite = null                 where codigo = 'visa_inversionista';
 update public.tipos_tramite set emite = 'cedula'             where codigo = 'cedula_residencia';
 update public.tipos_tramite set emite = 'rif_personal'       where codigo = 'rif_personal';
 update public.tipos_tramite set emite = 'acta_constitutiva'  where codigo = 'constitucion';

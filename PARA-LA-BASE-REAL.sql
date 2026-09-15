@@ -50,6 +50,13 @@
 --     Va DETRAS de los otros tres. Si alguna tabla falta, no se cae: se
 --     salta ese disparador. Lo de antes de correrlo no aparece.
 --
+--  5. LA VISA TR-N EN LUGAR DE LA TR-I. Nuevo el 2026-09-15, al final del
+--     todo. La c1 pasa a ser la visa de negocios (TR-N), ante el MPPRE:
+--     cuatro tipos de documento nuevos para sus recaudos, el nombre y el
+--     organismo de la ficha, y deja de emitir 'visa' -la cédula de
+--     residencia ya no espera por ella-. Las solicitudes que ya hubiera de
+--     la c1 se quedan como estan.
+--
 --  SI TIENES CUALQUIER DUDA, PEGA TODO-EN-ORDEN.sql EN VEZ DE ESTE
 --  ─────────────────────────────────────────────────────────────────────
 --  Aquel trae los treinta y siempre es correcto, aunque este archivo se
@@ -1185,3 +1192,35 @@ order  by tabla, disparador;
 -- 2. apunta() cerrada. Las dos columnas tienen que salir en false.
 select has_function_privilege('anon', 'public.apunta(text,text,text,text)', 'execute')          as anon_puede,
        has_function_privilege('authenticated', 'public.apunta(text,text,text,text)', 'execute') as con_sesion_puede;
+
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  5. LA VISA TR-N EN LUGAR DE LA TR-I · 2026-09-15
+-- ═══════════════════════════════════════════════════════════════════════
+--  Lo mismo que ya dicen supabase-tramites.sql y supabase-encadenado.sql,
+--  sacado aparte para no pegar los dos enteros. Se puede correr mas de
+--  una vez.
+
+insert into public.tipos_documento (codigo, nombre, vence) values
+  ('carta_motivo_viaje',        'Carta con el motivo del viaje',        false),
+  ('registro_comercio',         'Registro Mercantil o carta de la Cámara', false),
+  ('certificado_medico_origen', 'Certificado médico del país de origen', true),
+  ('arancel_consular',          'Comprobante del arancel consular',     false)
+on conflict (codigo) do nothing;
+
+update public.tipos_tramite
+   set nombre = 'Visa de negocios (TR-N)', ente = 'MPPRE', emite = null
+ where codigo = 'visa_inversionista';
+
+-- COMPROBACIONES
+-- 1. Una fila: c1 · Visa de negocios (TR-N) · MPPRE · emite vacio.
+select ref_panel, nombre, ente, emite
+from   public.tipos_tramite
+where  codigo = 'visa_inversionista';
+
+-- 2. Tiene que salir VACIO. Si sale algo, alguien cambio los textos de la
+--    c1 con «Editar textos», y lo guardado alli manda sobre los nuevos: la
+--    tarjeta seguiria diciendo la TR-I. Se corrige desde esa pantalla.
+select clave, idioma, texto
+from   public.textos_panel
+where  clave like 'c1.%';

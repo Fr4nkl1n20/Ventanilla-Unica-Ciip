@@ -208,13 +208,14 @@ alter table public.tipos_tramite
 -- ───────────────────────────────────────────────────────────────────────
 -- LOS COMPROBADOS. HOY, DOS DE TREINTA Y TRES.
 -- ───────────────────────────────────────────────────────────────────────
--- c1 · Visa de inversionista (TR-I)
+-- c1 · Visa de negocios (TR-N). Hasta el 15-9-2026, la de inversionista (TR-I)
 --   Normas de Procedimiento para la Expedicion de Visados, Gaceta Oficial
---   Extraordinaria 5.427 del 5 de enero de 2000. Leida entera. Sus
---   articulos 11 y 12 dicen a quien se otorga y cuanto VALE la visa
---   -tres años, prorrogables dos-, y no fijan plazo para decidirla. La
---   unica mencion al respecto es el articulo 1: los consulados «atenderan
---   y decidiran» las solicitudes, sin plazo.
+--   Extraordinaria 5.427 del 5 de enero de 2000. Se leyo entera cuando la
+--   c1 era la TR-I: sus articulos 11 y 12 dicen a quien se otorga y cuanto
+--   VALE aquella visa -tres años, prorrogables dos-, y no fijan plazo para
+--   decidirla. Lo que vale igual para la TR-N es lo general: el articulo 1
+--   dice que los consulados «atenderan y decidiran» las solicitudes, sin
+--   plazo. El articulo propio de la TR-N NO se ha vuelto a leer.
 update public.tipos_tramite
    set plazo_legal_norma = 'Normas de Procedimiento para la Expedición de Visados, Gaceta Oficial Extraordinaria 5.427 del 5-1-2000',
        plazo_legal_dias  = null

@@ -102,10 +102,23 @@ insert into public.tipos_documento (codigo, nombre, vence) values
   ('poder',             'Poder / carta de representación',        true),
   ('traduccion',        'Traducción certificada',                 false),
   ('domicilio_empresa', 'Domicilio fiscal de la empresa',         false),
-  -- Recaudos de la visa de inversionista. Los antecedentes penales caducan
-  -- (los consulados suelen pedirlos recientes), la constancia de inversión no.
+  -- Eran los recaudos de la visa de inversionista (TR-I). Los antecedentes
+  -- penales caducan (los consulados suelen pedirlos recientes), la
+  -- constancia de inversión no. La c1 pasó a ser la TR-N el 15-9-2026 y
+  -- los dos se QUEDAN: puede haberlos ya en alguna bóveda, y
+  -- documentos.tipo apunta aquí.
   ('antecedentes',      'Antecedentes penales apostillados',      true),
   ('inversion',         'Constancia de la inversión',             false),
+  -- Recaudos de la visa de negocios (TR-N), los que publica el MPPRE en
+  -- https://mppre.gob.ve/descripcion/28. Tipos PROPIOS y no los que se
+  -- parecen: el certificado médico del país de origen no es el que pide el
+  -- INTT, ni el arancel consular el del registro, y con el mismo tipo la
+  -- bóveda daría el uno por el otro. Caduca el certificado médico; la
+  -- carta, el registro y el comprobante acreditan algo de una fecha dada.
+  ('carta_motivo_viaje',        'Carta con el motivo del viaje',        false),
+  ('registro_comercio',         'Registro Mercantil o carta de la Cámara', false),
+  ('certificado_medico_origen', 'Certificado médico del país de origen', true),
+  ('arancel_consular',          'Comprobante del arancel consular',     false),
   -- Recaudos de la homologación de licencia. La licencia extranjera y el
   -- certificado médico caducan; la traducción acompaña al documento.
   ('licencia_extranjera','Licencia de conducir extranjera',       true),
@@ -299,7 +312,7 @@ begin
 end $$;
 
 insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values
-  ('visa_inversionista',  'c1',  'Visa de inversionista',            'SAIME',               1, false),
+  ('visa_inversionista',  'c1',  'Visa de negocios (TR-N)',          'MPPRE',               1, false),
   ('cedula_residencia',   'c2',  'Cédula de residencia',             'SAIME',               1, false),
   ('rif_personal',        'c3',  'RIF personal',                     'SENIAT',              1, true ),
   ('licencia_conducir',   'c4',  'Homologación de licencia',         'INTT',                1, false),
@@ -391,6 +404,15 @@ update public.tipos_tramite set activo = true
 update public.tipos_tramite set activo = false
   where codigo not in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'registros_laborales', 'licencia_municipal', 'antecedentes_penales', 'apostilla_documentos', 'constancia_domicilio', 'firma_electronica', 'visa_dependientes', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
 
+
+-- La c1 era la visa de inversionista (TR-I), ante el SAIME. Desde el 15 de
+-- septiembre de 2026 es la de negocios (TR-N), que se pide en el consulado
+-- y publica el MPPRE. El CODIGO se queda: hay solicitudes con el, y
+-- cambiarlo las dejaria huerfanas. Va con UPDATE por lo mismo que lo de
+-- arriba: el INSERT no toca una base que ya tiene la fila.
+update public.tipos_tramite
+   set nombre = 'Visa de negocios (TR-N)', ente = 'MPPRE'
+ where codigo = 'visa_inversionista';
 
 -- (La mudanza del c12 va ANTES del INSERT del catalogo, mas arriba.)
 
@@ -521,7 +543,7 @@ alter table public.tramites
 
 comment on table  public.tramites        is 'Una solicitud concreta de un inversionista';
 comment on column public.tramites.banco  is 'Banco aliado asignado (solo cuenta_bancaria). Null = todavía sin asignar';
-comment on column public.tramites.datos  is 'Campos del formulario, distintos por tipo. rif_personal: numero_documento, tipo_documento, fecha_nacimiento, direccion_fiscal, telefono, profesion. visa_inversionista: numero_pasaporte, pais_emisor, vence_pasaporte, consulado, monto_inversion, motivo_inversion. cedula_residencia: numero_visa, fecha_ingreso, estado_civil, ocupacion, telefono_local, direccion_vzla. licencia_conducir: numero_licencia, pais_licencia, categoria, fecha_emision, vence_licencia, direccion_vzla. rif_empresa: razon_social, numero_registro, fecha_constitucion, capital_social, actividad_economica, direccion_fiscal. constitucion: denominacion, denominacion_alt, tipo_sociedad, capital_social, objeto_social, domicilio_social, socios. cuenta_bancaria: razon_social, rif_empresa, tipo_cuenta, moneda, ciudad_agencia, movimiento_estimado, firmantes, origen_fondos. marca: signo, tipo_signo, titular, en_uso, productos. registros_laborales: razon_social, rif_empresa, representante, actividad_economica, inicio_actividades, num_trabajadores, telefono, direccion_fiscal. licencia_municipal: razon_social, rif_empresa, municipio, tenencia, actividad_economica, metros, inicio_actividades, direccion_local. comercio_exterior: razon_social, rif_empresa, operacion, rubro, arancel, paises, aduana, mercancia. faov_banavih: razon_social, rif_empresa, representante, num_trabajadores, inicio_actividades, telefono, direccion_fiscal. inces: razon_social, rif_empresa, representante, actividad_economica, num_trabajadores, telefono, direccion_fiscal. rnet: razon_social, rif_empresa, representante, actividad_economica, num_trabajadores, inicio_actividades, direccion_fiscal. conformidad_uso: razon_social, rif_empresa, municipio, tenencia, actividad_economica, metros, direccion_local. permiso_bomberos: razon_social, rif_empresa, municipio, actividad_economica, metros, aforo, direccion_local. permiso_ambiental: razon_social, rif_empresa, impacto, municipio, actividad_economica, direccion_local, proceso. registro_inversion: razon_social, rif_empresa, modalidad, monto_inversion, moneda, pais_origen_fondos, fecha_aporte, financiamiento_interno, actividad_economica, destino_inversion. permiso_sanitario: razon_social, rif_empresa, tipo_establecimiento, rubro_sanitario, municipio, metros, num_trabajadores, direccion_local. rnc: razon_social, rif_empresa, numero_registro, representante, actividad_economica, clasificacion, capital_social, fecha_constitucion. solvencias: razon_social, rif_empresa, numero_patronal, nil_inces, nrc_faov, municipio, representante';
+comment on column public.tramites.datos  is 'Campos del formulario, distintos por tipo. rif_personal: numero_documento, tipo_documento, fecha_nacimiento, direccion_fiscal, telefono, profesion. visa_inversionista (la TR-N): numero_pasaporte, pais_emisor, vence_pasaporte, consulado, motivo_viaje, contacto_venezuela. cedula_residencia: numero_visa, fecha_ingreso, estado_civil, ocupacion, telefono_local, direccion_vzla. licencia_conducir: numero_licencia, pais_licencia, categoria, fecha_emision, vence_licencia, direccion_vzla. rif_empresa: razon_social, numero_registro, fecha_constitucion, capital_social, actividad_economica, direccion_fiscal. constitucion: denominacion, denominacion_alt, tipo_sociedad, capital_social, objeto_social, domicilio_social, socios. cuenta_bancaria: razon_social, rif_empresa, tipo_cuenta, moneda, ciudad_agencia, movimiento_estimado, firmantes, origen_fondos. marca: signo, tipo_signo, titular, en_uso, productos. registros_laborales: razon_social, rif_empresa, representante, actividad_economica, inicio_actividades, num_trabajadores, telefono, direccion_fiscal. licencia_municipal: razon_social, rif_empresa, municipio, tenencia, actividad_economica, metros, inicio_actividades, direccion_local. comercio_exterior: razon_social, rif_empresa, operacion, rubro, arancel, paises, aduana, mercancia. faov_banavih: razon_social, rif_empresa, representante, num_trabajadores, inicio_actividades, telefono, direccion_fiscal. inces: razon_social, rif_empresa, representante, actividad_economica, num_trabajadores, telefono, direccion_fiscal. rnet: razon_social, rif_empresa, representante, actividad_economica, num_trabajadores, inicio_actividades, direccion_fiscal. conformidad_uso: razon_social, rif_empresa, municipio, tenencia, actividad_economica, metros, direccion_local. permiso_bomberos: razon_social, rif_empresa, municipio, actividad_economica, metros, aforo, direccion_local. permiso_ambiental: razon_social, rif_empresa, impacto, municipio, actividad_economica, direccion_local, proceso. registro_inversion: razon_social, rif_empresa, modalidad, monto_inversion, moneda, pais_origen_fondos, fecha_aporte, financiamiento_interno, actividad_economica, destino_inversion. permiso_sanitario: razon_social, rif_empresa, tipo_establecimiento, rubro_sanitario, municipio, metros, num_trabajadores, direccion_local. rnc: razon_social, rif_empresa, numero_registro, representante, actividad_economica, clasificacion, capital_social, fecha_constitucion. solvencias: razon_social, rif_empresa, numero_patronal, nil_inces, nrc_faov, municipio, representante';
 comment on column public.tramites.gestor is 'Quién del CIIP lo lleva. Null = sin asignar, que es justo lo que la cola debe mostrar primero';
 
 create index if not exists tramites_por_inversionista on public.tramites (inversionista, estado);

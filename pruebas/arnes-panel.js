@@ -2979,7 +2979,7 @@
      El pasaporte se pide en tres formularios y la fecha de nacimiento en
      otros tres. El dato esta guardado desde la primera vez; hasta ahora
      nadie iba a buscarlo. La visa de dependientes pregunta las tres cosas
-     que la visa de inversionista ya contesto. */
+     que la visa de negocios ya contesto. */
   function antesAbre(){
     if (CASO !== 'lleno') return;
     location.hash = 'tramite-c20';
@@ -3805,7 +3805,7 @@
        b ? 'la enseña' : 'no hay caja', 'una caja con el documento');
     igual('entrega: con su título', b.querySelector('.te-t').textContent.trim(), 'Tu documento');
     igual('entrega: y el archivo que dejó el equipo',
-          b.querySelector('.te-n').textContent.trim(), 'visa-tr1-estampada.pdf');
+          b.querySelector('.te-n').textContent.trim(), 'visa-trn-estampada.pdf');
     ok('entrega: con un botón para abrirlo', !!b.querySelector('.btn'),
        b.querySelector('.btn') ? 'lo tiene' : 'sin botón', 'con botón');
     /* Encima de la escalera: quien abre un trámite terminado viene a por el

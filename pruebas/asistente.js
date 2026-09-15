@@ -47,7 +47,7 @@ console.log('\n  EL INTERMEDIARIO DEL ASISTENTE\n');
    ═══════════════════════════════════════════════════════════════════════ */
 
 const CATALOGO = [
-  { ref_panel:'c1', nombre:'Visa de inversionista', ente:'SAIME',  fase:1, activo:false, plazo_dias:45 },
+  { ref_panel:'c1', nombre:'Visa de negocios (TR-N)', ente:'MPPRE', fase:1, activo:false, plazo_dias:45 },
   { ref_panel:'c3', nombre:'RIF personal',          ente:'SENIAT', fase:1, activo:true,  plazo_dias:7  },
   { ref_panel:'c8', nombre:'Registro de marca',     ente:'SAPI',   fase:2, activo:false, plazo_dias:null }
 ];

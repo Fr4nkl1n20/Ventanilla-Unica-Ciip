@@ -629,16 +629,16 @@ function fichasDelMarcado() {
        fantasmas.length ? fantasmas.join(', ') : nombra.size + ' documentos, todos de RECAUDOS');
 
     /* Lo que NO esta en la tabla importa tanto como lo que esta. Estas
-       cuatro no las lleva escritas ningun papel del mundo: las decide el
-       inversionista —en que consulado tramita, cuanto invierte, en que, y
-       para que autoriza al apoderado—. Si alguna apareciera aqui, el panel
+       tres no las lleva escritas ningun papel del mundo: las decide el
+       inversionista —en que consulado tramita, cuanto invierte y para que
+       autoriza al apoderado—. Si alguna apareciera aqui, el panel
        estaria prometiendo sacar de un documento algo que no puede estar
        dentro. */
-    const inventables = ['consulado', 'monto_inversion', 'motivo_inversion', 'poder_alcance']
+    const inventables = ['consulado', 'monto_inversion', 'poder_alcance']
       .filter(n => promete.indexOf(n) >= 0);
     ok('lector: y no promete leer lo que decide el inversionista',
        inventables.length === 0,
-       inventables.length ? inventables.join(', ') : 'ninguna de las cuatro');
+       inventables.length ? inventables.join(', ') : 'ninguna de las tres');
   }
 }
 
