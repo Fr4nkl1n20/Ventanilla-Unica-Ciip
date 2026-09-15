@@ -20022,6 +20022,13 @@ applyLang(idiomaParaMi());
   var emActa = null;     /* el archivo elegido */
   var emActaId = null;   /* su id en la boveda, en cuanto se ha subido */
   var emLectura = '';    /* '', 'leyendo', 'falla' o cuantas casillas puso */
+  /* El acta que ya estaba en Documentos, si la hay: se OFRECE, y solo
+     cuenta cuando se pulsa usarla (emDeDocs). */
+  var emGuardada = null;
+  var emDeDocs = false;
+  /* Cada eleccion de acta tiene su numero. Una lectura que vuelve cuando ya
+     se eligio otra -o se cerro la ficha- no es de nadie y no pinta nada. */
+  var emActaVez = 0;
 
   function pintaActa(){
     var caja = document.getElementById('emActa');
@@ -20040,14 +20047,31 @@ applyLang(idiomaParaMi());
       if (arch.files[0]) ponActa(arch.files[0]);
     });
 
+    /* Si ya hay una en Documentos, se ofrece ANTES de la zona de soltar:
+       es la manera mas corta de hacer lo mismo. Con la clase y el gesto de
+       la del lector de los tramites. Y solo mientras no se haya elegido
+       ninguna: a quien ya solto la suya no se le cambia la caja. */
+    if (emGuardada && !emActa && !emDeDocs){
+      var ya = el('div', 'pa-lee-ya');
+      ya.appendChild(el('div', 'pa-lee-ya-q', u.em_acta_ya || ''));
+      var usar = el('button', 'pa-lee-usar', u.em_acta_usar || '');
+      usar.type = 'button';
+      usar.id = 'emActaUsar';
+      usar.title = emGuardada.nombre;
+      usar.addEventListener('click', usaActaGuardada);
+      ya.appendChild(usar);
+      caja.appendChild(ya);
+    }
+
+    var puesta = emActa ? emActa.name : ((emDeDocs && emGuardada) ? emGuardada.nombre : '');
     /* La MISMA zona que la del lector de los tramites, con sus clases:
        soltar un papel se ve igual en todo el panel. */
-    var zona = el('button', 'pa-lee-z' + (emActa ? ' puesta' : ''));
+    var zona = el('button', 'pa-lee-z' + (puesta ? ' puesta' : ''));
     zona.type = 'button';
-    zona.appendChild(el('b', null, emActa
-      ? String(u.em_acta_puesta || '').replace('{n}', emActa.name)
+    zona.appendChild(el('b', null, puesta
+      ? String(u.em_acta_puesta || '').replace('{n}', puesta)
       : (u.em_acta_soltar || '')));
-    zona.appendChild(el('span', null, emActa ? (u.em_acta_cambiar || '') : (u.em_acta_elegir || '')));
+    zona.appendChild(el('span', null, puesta ? (u.em_acta_cambiar || '') : (u.em_acta_elegir || '')));
     zona.addEventListener('click', function(){ arch.click(); });
     ['dragenter', 'dragover'].forEach(function(ev){
       zona.addEventListener(ev, function(e){
@@ -20084,19 +20108,60 @@ applyLang(idiomaParaMi());
       if (av) av.textContent = u[mal] || '';
       return;
     }
+    var vez = ++emActaVez;
     emActa = f;
+    emDeDocs = false;
     emActaId = null;
     emLectura = '';
     if (caja) caja.classList.remove('mal');
     if (av) av.textContent = '';
     pintaActa();
-    leeActa(f);
+    leeActa(f, vez);
+  }
+
+  /* Usar la que ya esta en Documentos. No se sube otra vez: al guardar,
+     emActaId ya apunta a ella. Y si hay lector, se baja del cubo con tu
+     sesion y se lee como si la hubieras soltado: pulsar «usar» es la
+     misma decision que soltarla. */
+  function usaActaGuardada(){
+    if (!emGuardada) return;
+    var g = emGuardada;
+    var vez = ++emActaVez;
+    emActa = null;
+    emDeDocs = true;
+    emActaId = g.id;
+    emLectura = '';
+    var caja = document.getElementById('emActa');
+    if (caja) caja.classList.remove('mal');
+    var av = document.getElementById('emAviso');
+    if (av) av.textContent = '';
+    pintaActa();
+
+    var lector = window.CIIP_LECTOR;
+    if (typeof lector !== 'function') return;
+    /* Primero si el lector esta encendido: bajar un papel para no leerlo
+       es gastar la descarga. */
+    Promise.resolve(typeof lector.listo === 'function' ? lector.listo() : true)
+      .then(function(si){
+        if (!si || vez !== emActaVez) return;
+        return sb.storage.from('recaudos').download(g.archivo).then(function(r){
+          if (!r || r.error || !r.data) throw (r && r.error) || new Error('sin archivo');
+          if (vez !== emActaVez) return;
+          leeActa(new File([r.data], g.nombre || 'acta', {type: r.data.type || ''}), vez);
+        });
+      })
+      .catch(function(err){
+        console.warn('[CIIP] acta de Documentos:', err && (err.message || err));
+        if (vez !== emActaVez) return;
+        emLectura = 'falla';
+        pintaActa();
+      });
   }
 
   /* Si hay lector, el acta rellena lo suyo. Las casillas salen de LEE_DE,
      la misma tabla que usan los tramites: si un dia el acta deja de traer
      el capital, se cambia alli y aqui se entera solo. */
-  function leeActa(f){
+  function leeActa(f, vez){
     var lector = window.CIIP_LECTOR;
     if (typeof lector !== 'function') return;
     var casillas = EM_CAMPOS.filter(function(c){
@@ -20107,7 +20172,7 @@ applyLang(idiomaParaMi());
        encendido, y apagado no se finge que lee. */
     var enciende = (typeof lector.listo === 'function') ? lector.listo() : true;
     Promise.resolve(enciende).then(function(si){
-      if (!si || emActa !== f) return;
+      if (!si || vez !== emActaVez) return;
       emLectura = 'leyendo';
       pintaActa();
       return Promise.resolve().then(function(){
@@ -20115,7 +20180,7 @@ applyLang(idiomaParaMi());
       }).then(function(r){
         /* Si mientras leia se eligio otra acta o se cerro la ficha, esta
            respuesta ya no es de nadie. */
-        if (emActa !== f) return;
+        if (vez !== emActaVez) return;
         if (!r || r.doc !== 'acta_constitutiva'){
           emLectura = 'falla';
           pintaActa();
@@ -20132,7 +20197,7 @@ applyLang(idiomaParaMi());
         refrescaPieEmpresa();
       }, function(err){
         console.warn('[CIIP] lector, acta de la empresa:', err && (err.message || err));
-        if (emActa !== f) return;
+        if (vez !== emActaVez) return;
         emLectura = 'falla';
         pintaActa();
       });
@@ -20413,11 +20478,30 @@ applyLang(idiomaParaMi());
     emActa = null;
     emActaId = null;
     emLectura = '';
+    emGuardada = null;
+    emDeDocs = false;
+    emActaVez++;
     if (!EMPRESA){
       var acta = el('div', 'pa-lee em-acta');
       acta.id = 'emActa';
       caja.appendChild(acta);
       pintaActa();
+      /* ¿Ya hay una en Documentos? La mas reciente, igual que en los
+         recaudos. Y SOLO las tuyas, por inversionista: la politica de la
+         base deja al equipo del CIIP leer los documentos de todos, y sin
+         este filtro a un administrador que registra su empresa se le
+         ofreceria el acta de otra persona. */
+      var vezFicha = emActaVez;
+      quienSoy().then(function(yo){
+        return sb.from('documentos').select('id, nombre_original, archivo')
+          .eq('tipo', 'acta_constitutiva').eq('inversionista', yo.id)
+          .order('creado_en', {ascending:false}).limit(1);
+      }).then(function(r){
+        var hay = ((r && r.data) || [])[0];
+        if (!hay || !hay.archivo || EMPRESA || vezFicha !== emActaVez) return;
+        emGuardada = {id: hay.id, nombre: hay.nombre_original || '', archivo: hay.archivo};
+        pintaActa();
+      }, function(){});
     }
 
     var minimo = el('div', 'em-minimo', EMPRESA ? (u.em_minimo || '') : (u.em_minimo_acta || ''));
@@ -20622,7 +20706,7 @@ applyLang(idiomaParaMi());
     /* Y al registrarla, el acta. Se pide en el mismo paso que la razon
        social y por lo mismo: descubrir en el tercero que faltaba algo del
        primero. */
-    if (!EMPRESA && !emActa){
+    if (!EMPRESA && !emActa && !emDeDocs){
       emAtajo = false;
       ponPasoEmpresa(1);
       var cajaActa = document.getElementById('emActa');

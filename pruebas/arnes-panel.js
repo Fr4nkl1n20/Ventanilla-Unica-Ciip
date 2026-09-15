@@ -205,7 +205,8 @@
               hoyEspacioEspera, hoyEspacioMira, hoyTrasVale, hoyNoValeAbre,
               hoyNoValeMira, hoyNoValeGuarda, hoyTrasNoVale, hoyTrasDevolver,
               hoyRespuestaMira, hoyTrasCerrar, hoyRestaura,
-              empresaAbre, empresaMira, empresaNueva, empresaGuarda, empresaActaLeida,
+              empresaAbre, empresaMira, empresaNueva, empresaFichaAbre, empresaOfreceGuardada,
+              empresaGuarda, empresaActaLeida,
               empresaTrasGuardar,
               entregaAbre, entregaMira,
               hiloAbre, hiloMira,
@@ -4989,6 +4990,35 @@
          'abierta la ' + document.querySelector('.phase.etapa-abierta').getAttribute('data-fase') : 'ninguna abierta',
        'la c5 en la etapa 2 abierta');
     document.getElementById('navEmpresa').click();
+  }
+
+  /* ── EL ACTA QUE YA ESTÁ EN DOCUMENTOS ── Quien ya la subió para un
+     trámite no tiene por qué subirla otra vez. Se abre en un paso y se mira
+     en el siguiente: la búsqueda en la bóveda contesta después de abrir. */
+  function empresaFichaAbre(){
+    if (CASO !== 'gestor') return;
+    document.getElementById('emConActa').click();
+  }
+
+  function empresaOfreceGuardada(){
+    if (CASO !== 'gestor') return;
+    var usar = document.getElementById('emActaUsar');
+    ok('empresa: si ya hay un acta en Documentos, se ofrece',
+       !!usar && usar.offsetHeight > 0 && usar.textContent === 'Usar esa acta',
+       usar ? usar.textContent : '(no se ofrece)', 'Usar esa acta');
+    if (!usar) { document.getElementById('emCancelar').click(); return; }
+    usar.click();
+    ok('empresa: al usarla, la caja dice cuál es',
+       /«acta-constitutiva\.pdf»/.test(document.getElementById('emActa').textContent),
+       document.getElementById('emActa').textContent.slice(0, 80), '«acta-constitutiva.pdf»');
+    ok('empresa: y la oferta se va',
+       !document.getElementById('emActaUsar'), 'sigue', 'se fue');
+    /* Y cuenta como acta: con la razón social puesta, ya se pasa de paso. */
+    document.getElementById('em_razon_social').value = 'Cacao del Tuy, C.A.';
+    document.getElementById('emGuardar').click();
+    igual('empresa: con el acta de Documentos, se pasa de paso sin subir otra',
+          document.getElementById('emCuenta').querySelector('b').textContent.trim(), 'Paso 2 de 3');
+    document.getElementById('emCancelar').click();
   }
 
   function empresaGuarda(){
