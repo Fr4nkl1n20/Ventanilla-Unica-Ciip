@@ -566,6 +566,50 @@
   ];
   var colaTram = (demoCola ? COLA_DEMO : (COLA_TRAM[caso] || [])).slice();
 
+  /* «Lo que toca hoy» se prueba con trámites PROPIOS. Cuando la cadena llega
+     a esa pantalla, los dos de COLA_TRAM ya se devolvieron o presentaron y
+     no queda nada que tomar ni que revisar; tocarlos antes le cambiaria las
+     cuentas a media tanda. Así que el arnés siembra tres, trabaja con ellos
+     y deja la cola como estaba.
+
+     'sembrado' cambia una regla: al pasar a revisión o ante el ente estos
+     SIGUEN en la cola, que es lo que hace la base. Los de COLA_TRAM salen
+     con cualquier cambio de estado, y hay pruebas que cuentan con eso. */
+  var HOY_DOCS = {}, HOY_DOC = {};
+  function siembraHoy(){
+    function hace(n){ return new Date(Date.now() - n * 86400000).toISOString(); }
+    colaTram = [
+      {id:'h1', inversionista:'u2', tipo:'rif_personal', estado:'enviado', gestor:null, sembrado:true,
+       datos:{tipo_documento:'Pasaporte', numero_documento:'YA8812345', telefono:'+58 412 555 0132',
+              direccion_fiscal:'Av. Francisco de Miranda, Chacao'},
+       creado_en: hace(2), enviado_en: hace(2)},
+      {id:'h2', inversionista:'u7', tipo:'constitucion', estado:'en_revision', gestor:'u1', sembrado:true,
+       datos:{denominacion:'Ferreira Turismo Costa, C.A.', capital_social:'80.000'},
+       creado_en: hace(30), enviado_en: hace(30)},
+      {id:'h3', inversionista:'u5', tipo:'rif_empresa', estado:'ante_el_ente', gestor:'u1', sembrado:true,
+       datos:{razon_social:'Tanaka Hidro, C.A.', numero_registro:'Tomo 12-A, n.º 44'},
+       creado_en: hace(3), enviado_en: hace(3)}
+    ];
+    HOY_DOCS = {
+      h1: [{id:'hd1', tipo:'pasaporte', nombre_original:'pasaporte-bianchi.pdf', archivo:'u2/pasaporte-bianchi.pdf',
+            estado:'cargado', nota_revision:''},
+           {id:'hd2', tipo:'domicilio', nombre_original:'recibo-bianchi.jpg', archivo:'u2/recibo-bianchi.jpg',
+            estado:'validado', nota_revision:''}],
+      h2: [{id:'hd3', tipo:'comprobante_capital', nombre_original:'deposito.pdf', archivo:'u7/deposito.pdf',
+            estado:'cargado', nota_revision:''}],
+      h3: [{id:'hd4', tipo:'acta_constitutiva', nombre_original:'acta-tanaka.pdf', archivo:'u5/acta-tanaka.pdf',
+            estado:'validado', nota_revision:''}]
+    };
+    HOY_DOC = {};
+    Object.keys(HOY_DOCS).forEach(function(k){ HOY_DOCS[k].forEach(function(d){ HOY_DOC[d.id] = d; }); });
+  }
+  window.CIIP_DOBLE = {
+    cola: function(){ return colaTram.slice(); },
+    ponCola: function(lista){ colaTram = lista; HOY_DOCS = {}; HOY_DOC = {}; },
+    siembraHoy: siembraHoy,
+    doc: function(id){ return HOY_DOC[id]; }
+  };
+
   /* La nota de una devolucion viaja en un UPDATE aparte, sobre el evento que
      escribe el trigger. Se guarda para que la prueba compruebe que llego:
      sin esto solo se sabria que el tramite cambio de estado. */
@@ -1138,6 +1182,13 @@
       return {data:visibles, error:null};
     }
     if (tabla === 'documentos'){
+      /* Revisar un papel de los sembrados: se APUNTA, para que la prueba
+         compruebe que el panel escribio el estado y quien lo reviso. */
+      if (op && op.update && op.eq && op.eq.id && HOY_DOC[op.eq.id]){
+        var revisado = HOY_DOC[op.eq.id];
+        Object.keys(op.update).forEach(function(k){ revisado[k] = op.update[k]; });
+        return {data:[revisado], error:null};
+      }
       /* La boveda. El formulario los reutiliza y ofrece mirarlos antes de
          enviar; la vista de Documentos los enseña todos.
 
@@ -1235,6 +1286,11 @@
        boveda porque aquella se queda con cualquier consulta sin .eq, y le
        daria a la portada los recaudos de otro en vez del documento emitido. */
     if (tabla === 'tramite_documentos' && op && op.in && op.in.tramite){
+      var deHoy = [];
+      op.in.tramite.forEach(function(id){
+        (HOY_DOCS[id] || []).forEach(function(d){ deHoy.push({tramite:id, documento:d.id, documentos:d}); });
+      });
+      if (deHoy.length) return {data:deHoy, error:null};
       return {data: op.in.tramite.indexOf('t4') >= 0
         ? [{tramite:'t4', documento:'dr1', documentos:{tipo:'resolucion',
             nombre_original:'visa-trn-estampada.pdf',
@@ -1393,6 +1449,17 @@
          habria hecho desaparecer, que es lo contrario de lo que hace.
          Los dos son un update sobre la misma tabla, y como en perfiles se
          distinguen por lo que traen. */
+      if (op && op.update && 'estado' in op.update && op.eq && op.eq.id){
+        var sembrado = colaTram.filter(function(t){ return t.id === op.eq.id && t.sembrado; })[0];
+        if (sembrado){
+          if (['enviado', 'en_revision', 'ante_el_ente'].indexOf(op.update.estado) >= 0){
+            sembrado.estado = op.update.estado;
+            return {data:sembrado, error:null};
+          }
+          colaTram = colaTram.filter(function(t){ return t.id !== op.eq.id; });
+          return {data:{}, error:null};
+        }
+      }
       if (op && op.update && 'gestor' in op.update && op.eq && op.eq.id){
         var suyo = colaTram.filter(function(t){ return t.id === op.eq.id; })[0];
         if (suyo) suyo.gestor = op.update.gestor;

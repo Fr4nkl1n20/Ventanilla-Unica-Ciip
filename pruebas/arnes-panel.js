@@ -201,7 +201,10 @@
               f5Entra, f5Espera, f5Llega,
               f5TardeEntra, f5TardeEspera, f5TardeLlega,
               mtLleva, mtLlevaMira, colaRenglon, colaRenglonAbre,
-              tablaMira, tablaAbre, tablaTrasAbrir,
+              hoySiembra, hoyMira, hoyTrasTomar, hoyTrasDeshacer, hoyRevisa,
+              hoyEspacioEspera, hoyEspacioMira, hoyTrasVale, hoyNoValeAbre,
+              hoyNoValeMira, hoyNoValeGuarda, hoyTrasNoVale, hoyTrasDevolver,
+              hoyRespuestaMira, hoyTrasCerrar, hoyRestaura,
               empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
               entregaAbre, entregaMira,
               hiloAbre, hiloMira,
@@ -1537,11 +1540,18 @@
       var chapa = document.getElementById('navTramitesN');
       var rot = document.querySelector('#navTramites [data-i18n]');
       var esCola = !!rot && rot.getAttribute('data-i18n') === 'nav.queue';
-      var seVe = esCola &&
-                 !!(chapa && !chapa.hidden && (chapa.textContent || '').trim());
+      /* El título suma las dos colas del equipo aunque cada renglón de la
+         barra cuente lo suyo: trámites por un lado, consultas y citas por
+         otro. Una chapa oculta cuenta cero. */
+      var cuentaDe = function(id){
+        var c = document.getElementById(id);
+        return (c && !c.hidden) ? (parseInt(c.textContent, 10) || 0) : 0;
+      };
+      var totalCola = cuentaDe('navTramitesN') + cuentaDe('navConsultasN');
+      var seVe = esCola && totalCola > 0;
 
       if (seVe){
-        var pref = '(' + chapa.textContent.trim() + ') ';
+        var pref = '(' + totalCola + ') ';
         /* Y detrás del prefijo NO puede venir otro. Si el título se
            compusiera leyéndose a sí mismo, la segunda pasada dejaría
            «(3) (3) CIIP …» y el indexOf de arriba seguiría diciendo que
@@ -4584,6 +4594,10 @@
     if (CASO !== 'gestor'){
       igual('barra: al inversionista le sigue diciendo Mis tramites',
             et ? et.getAttribute('data-i18n') : 'sin etiqueta', 'nav.procedures');
+      /* Y «Consultas y citas» es del equipo: al inversionista no le sale. */
+      ok('barra: al inversionista no le sale «Consultas y citas»',
+         !document.getElementById('navConsultas') || document.getElementById('navConsultas').hidden,
+         document.getElementById('navConsultas') ? 'hidden=' + document.getElementById('navConsultas').hidden : 'no existe', 'oculto');
       fila.click();
       return;
     }
@@ -4596,10 +4610,15 @@
        dos dijeran lo mismo-; el boton se retiro y esta chapa se quedo sola,
        asi que ahora se compara contra lo que la propia cola dibuja: la
        ventana ya esta pintada a estas alturas de la tanda. */
-    igual('barra: y el numero es el de la cola, no el de sus tramites',
+    /* Cada renglón cuenta lo que enseña su pantalla: este, los trámites que
+       esperan; «Consultas y citas», las otras dos colas. Desde el 15 de
+       septiembre de 2026 este apartado es solo de solicitudes de trámites. */
+    igual('barra: y el numero es el de los tramites de la cola, no el de sus tramites',
           (document.getElementById('navTramitesN') || {}).textContent,
+          String(document.querySelectorAll('#colaTram .co-ficha').length));
+    igual('barra: y «Consultas y citas» cuenta las consultas y las citas',
+          (document.getElementById('navConsultasN') || {}).textContent,
           String(document.querySelectorAll('#colaLista .co-ficha').length +
-                 document.querySelectorAll('#colaTram .co-ficha').length +
                  document.querySelectorAll('#colaCons .co-ficha').length));
     /* Su panel no cuenta lo de los demas: de esa misma consulta salen los
        estados de las 31 tarjetas y las cuentas de las cinco fases. */
@@ -4622,101 +4641,266 @@
       location.hash = 'poratender';
       return;
     }
-    igual('barra: y al equipo le abre la cola en tabla',
+    igual('barra: y al equipo le abre lo que toca hoy',
           document.body.getAttribute('data-vista'), 'poratender');
+
+    /* «Consultas y citas» abre la ventana de la cola SIN los trámites, que
+       tienen su propio apartado. */
+    var cs = document.getElementById('navConsultas');
+    ok('barra: el equipo tiene su renglón de consultas y citas', !!cs && !cs.hidden,
+       cs ? 'hidden=' + cs.hidden : 'no existe', 'a la vista');
+    if (!cs) return;
+    cs.click();
+    var back = document.getElementById('colaBack');
+    ok('consultas y citas: abre la ventana de la cola', back.classList.contains('open'),
+       back.className, 'con la clase open');
+    igual('consultas y citas: y sin la sección de trámites',
+          window.getComputedStyle(document.getElementById('colaTram')).display, 'none');
+    document.getElementById('colaCerrar').click();
   }
 
-  /* ═════ LA COLA EN TABLA ═════
-     La ventana es para ACTUAR sobre un tramite. Esto es para ver la cola
-     entera de un vistazo -quien espera, desde cuando y quien la lleva- en
-     columnas que se comparan; una pila de fichas se lee una por una. */
-  function tablaMira(){
+  /* ═════ LO QUE TOCA HOY: TARJETAS CON PLAZO ═════
+     La tabla se fue: la pantalla del equipo es una tarjeta por trámite, de
+     la más urgente a la que más margen tiene, y al pulsarla se abre el
+     espacio de trabajo. Cuando la cadena llega aquí la cola de la ventana
+     ya está vacía -los pasos de arriba devolvieron y presentaron lo que
+     había-, así que se siembran tres trámites propios y al final se deja la
+     cola como estaba: los pasos de después no saben nada de esto.
+
+       h1  RIF personal, recién llegado y sin dueño, dos recaudos
+       h2  constitución, tuya y fuera de plazo
+       h3  RIF de la empresa, tuyo y ante el organismo */
+  var HOY_ANTES = null;
+  function hoyTarjeta(id){
+    var caja = document.getElementById('paTandas');
+    return caja && caja.querySelector('.hoy-card[data-tr="' + id + '"]');
+  }
+  function hoyBotonQueDice(caja, texto){
+    return caja && [].filter.call(caja.querySelectorAll('button'), function(b){
+      return b.textContent.trim() === texto;
+    })[0];
+  }
+  function hoyEscape(){
+    document.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true}));
+  }
+  function hoyPrincipal(id){
+    var t = hoyTarjeta(id);
+    return t && t.querySelector('.hoy-card-pie .btn');
+  }
+
+  function hoySiembra(sigue){
     if (CASO !== 'gestor'){
-      igual('tabla: al inversionista la cola del equipo no le entra',
+      igual('hoy: al inversionista la cola del equipo no le entra',
             document.body.getAttribute('data-vista') === 'poratender', false);
       if (location.hash) location.hash = '';
-      return;
+      return sigue();
     }
-    var filas = document.querySelectorAll('#paCuerpo tr');
-    /* Cuantos hay depende de lo que hayan hecho los pasos de arriba -uno
-       se devolvio y otro se presento-, asi que el numero exacto no se
-       escribe: lo que se mide es que haya cola y que sea la MISMA que la
-       de la ventana. Si tuviera su propia consulta, los dos numeros
-       dejarian de cuadrar el dia que una se quedara vieja. */
-    ok('tabla: hay un renglon por cada tramite que espera', filas.length > 0,
-       filas.length + ' renglones', 'al menos uno');
-    igual('tabla: y son los mismos que ensena la ventana',
-          filas.length, document.querySelectorAll('#colaTram .co-ficha').length);
-    igual('tabla: con sus siete columnas',
-          document.querySelectorAll('#paCab th').length, 7);
-
-    /* El numero del menu cuenta tres colas y la tabla solo ensena una. Con
-       una cita pendiente y ningun tramite, el menu decia 1 y la pantalla
-       «No hay ningun tramite esperando». Lo que la tabla no ensena se avisa
-       encima, y el aviso tiene que salir justo cuando la ventana de la cola
-       tiene citas o consultas. Va ANTES del return de abajo: el caso que
-       fallaba es precisamente el de la tabla vacia. */
-    (function(){
-      var otros = document.getElementById('paOtros');
-      var nOtros = document.querySelectorAll('#colaLista .co-ficha').length +
-                   document.querySelectorAll('#colaCons .co-ficha').length;
-      igual('tabla: avisa de lo que el numero cuenta y no es un tramite',
-            otros ? (otros.hidden ? 'escondido' : 'a la vista') : 'no existe',
-            nOtros ? 'a la vista' : 'escondido');
-      if (otros && !otros.hidden){
-        ok('tabla: y el aviso lleva la puerta a la cola',
-           !!otros.querySelector('button'),
-           otros.querySelector('button') ? 'con boton' : 'sin boton', 'con boton');
-      }
-    })();
-    if (!filas.length) return;
-
-    var celdas = filas[0].querySelectorAll('td');
-    ok('tabla: el renglon dice de quien es', celdas[0].textContent.trim().length > 0,
-       '"' + celdas[0].textContent.trim() + '"', 'un nombre');
-    ok('tabla: y que tramite es', celdas[1].textContent.trim().length > 0,
-       '"' + celdas[1].textContent.trim() + '"', 'un tramite');
-    /* Quien lo lleva es la columna que convierte la lista en reparto. */
-    ok('tabla: y quien lo lleva', celdas[5].textContent.trim().length > 0,
-       '"' + celdas[5].textContent.trim() + '"', 'alguien o "sin asignar"');
-    /* El reloj: es lo que decide a quien se atiende primero. */
-    ok('tabla: y cuanto lleva esperando',
-       /día|hora|semana|minuto|giorn|ora|settiman/i.test(celdas[4].textContent),
-       '"' + celdas[4].textContent.trim() + '"', 'un tiempo');
+    var D = window.CIIP_DOBLE;
+    if (!D){
+      ok('hoy: el doble deja sembrar la cola', false, 'sin window.CIIP_DOBLE', 'con él');
+      return sigue();
+    }
+    HOY_ANTES = D.cola();
+    D.siembraHoy();
+    if (document.body.getAttribute('data-vista') !== 'poratender') location.hash = 'poratender';
+    window.CIIP_PINTA_PORATENDER();
+    esperaFilas('#paTandas .hoy-card[data-tr]', 3, sigue);
   }
 
-  /* Y no duplica ni una accion: el renglon abre la ventana por SU tramite.
-     Dos sitios donde tomar la misma solicitud se desincronizan el primer
-     dia. */
-  function tablaAbre(){
-    if (CASO !== 'gestor') return;
-    var back = document.getElementById('colaBack');
-    if (back) back.classList.remove('open');   /* que la medida sea de esto */
-    var filas = document.querySelectorAll('#paCuerpo tr');
-    if (!filas.length){ window.PRUEBA_TR = null; return; }
-    /* El ultimo, que es el que menos posibilidades tiene de ser tambien
-       el primero de la ventana: asi "se abrio por el que pulsaste" mide
-       algo y no coincide por casualidad. */
-    var cual = filas[filas.length - 1];
-    window.PRUEBA_TR = cual.getAttribute('data-tr');
-    cual.click();
+  function hoyMira(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    var tarjetas = document.querySelectorAll('#paTandas .hoy-card[data-tr]');
+    igual('hoy: una tarjeta por cada trámite que espera', tarjetas.length, 3);
+    ok('hoy: y la tabla de antes ya no está', !document.getElementById('paTabla'),
+       document.getElementById('paTabla') ? 'sigue' : 'no está', 'no está');
+
+    /* El orden ES la pantalla: lo que va tarde primero, lo que más margen
+       tiene al final. */
+    igual('hoy: primero la que va tarde',
+          [].map.call(tarjetas, function(t){ return t.getAttribute('data-tr'); }).join(' '), 'h2 h3 h1');
+    var tarde = hoyTarjeta('h2');
+    ok('hoy: la que pasó del plazo se pinta como tarde', !!tarde && tarde.classList.contains('tarde'),
+       tarde ? tarde.className : '(sin tarjeta)', 'hoy-card tarde');
+    ok('hoy: y dice cuánto se pasó', !!tarde && /días fuera de plazo/.test(tarde.querySelector('.hoy-plazo').textContent),
+       tarde ? tarde.querySelector('.hoy-plazo').textContent : '(sin tarjeta)', '«N días fuera de plazo»');
+    ok('hoy: con el anillo del plazo', !!tarde && !!tarde.querySelector('.hoy-anillo svg'),
+       'busca el anillo', 'con anillo');
+    igual('hoy: y lo que toca hacer', tarde ? tarde.querySelector('.hoy-verbo').textContent : '', 'Valida 1 recaudo');
+
+    var sin = hoyTarjeta('h1');
+    igual('hoy: la que nadie lleva ofrece tomarla',
+          hoyPrincipal('h1') ? hoyPrincipal('h1').textContent.trim() : '(sin botón)', 'Tomarlo');
+    igual('hoy: y enseña sus papeles en miniatura, uno por recaudo',
+          sin ? sin.querySelectorAll('.hoy-th').length : 0, 2);
+
+    var cifras = document.getElementById('paCifras');
+    igual('hoy: la cifra de arriba cuenta lo que va tarde',
+          (cifras.querySelector('.hoy-cifra.tarde b') || {}).textContent, '1');
+    igual('hoy: y lo que nadie ha tomado',
+          cifras.querySelectorAll('.hoy-cifra b')[2].textContent, '1');
+
+    /* Solo trámites: las consultas y las citas tienen su apartado. */
+    ok('hoy: y solo trámites, sin consultas ni citas',
+       !document.querySelector('.pa-vista [data-cons], .pa-vista [data-cita]'),
+       document.querySelector('.pa-vista [data-cons], .pa-vista [data-cita]') ? 'hay alguna' : 'ninguna', 'ninguna');
+
+    if (hoyPrincipal('h1')) hoyPrincipal('h1').click();
   }
 
-  function tablaTrasAbrir(){
-    if (CASO !== 'gestor' || !window.PRUEBA_TR) return;
-    var back = document.getElementById('colaBack');
-    ok('tabla: al pulsar un renglon se abre la ventana',
-       !!back && back.classList.contains('open'),
-       back ? back.className : 'no hay ventana', 'abierta');
-    /* Y por el que pulsaste. Abrirla por arriba obliga a buscar otra vez
-       el que acabas de senalar, y con quince en la cola eso es volver a
-       empezar. */
-    var suya = document.querySelector('#colaTram [data-tr="' + window.PRUEBA_TR + '"]');
-    ok('tabla: y senalando el que pulsaste',
-       !!suya && suya.classList.contains('recien'),
-       suya ? suya.className : 'no esta esa ficha', 'marcada');
-    if (document.getElementById('colaCerrar')) document.getElementById('colaCerrar').click();
-    if (location.hash) location.hash = '';
+  function hoyTrasTomar(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    var t = hoyTarjeta('h1');
+    ok('hoy: al tomarla pasa a ser tuya', !!t && /Lo llevas tú/.test(t.querySelector('.hoy-card-pie').textContent),
+       t ? t.querySelector('.hoy-card-pie').textContent.trim() : '(sin tarjeta)', 'Lo llevas tú');
+    igual('hoy: y el botón ofrece el paso siguiente',
+          hoyPrincipal('h1') ? hoyPrincipal('h1').textContent.trim() : '(sin botón)', 'Revisar');
+    var aviso = document.getElementById('paToast');
+    ok('hoy: un aviso dice que ahora es tuya', !aviso.hidden && /Ahora lo llevas tú/.test(aviso.textContent),
+       aviso.hidden ? 'escondido' : aviso.textContent, 'Ahora lo llevas tú.');
+    var deshacer = hoyBotonQueDice(aviso, 'Deshacer');
+    ok('hoy: y se puede deshacer', !!deshacer, deshacer ? 'con botón' : 'sin botón', 'Deshacer');
+    if (deshacer) deshacer.click();
+  }
+
+  function hoyTrasDeshacer(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    igual('hoy: deshacer la deja sin dueño otra vez',
+          hoyPrincipal('h1') ? hoyPrincipal('h1').textContent.trim() : '(sin botón)', 'Tomarlo');
+    if (hoyPrincipal('h1')) hoyPrincipal('h1').click();
+  }
+
+  function hoyRevisa(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    if (hoyPrincipal('h1')) hoyPrincipal('h1').click();
+  }
+
+  function hoyEspacioEspera(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    esperaFilas('#paVisor .visor-doc iframe, #paVisor .visor-doc img', 1, sigue);
+  }
+
+  function hoyEspacioMira(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    var v = document.getElementById('paVisor');
+    ok('hoy: revisar abre el espacio de trabajo', !v.hidden && !!v.querySelector('[role="dialog"]'),
+       v.hidden ? 'escondido' : 'a la vista', 'a la vista');
+    igual('hoy: con el nombre del trámite', (document.getElementById('paVisorTit') || {}).textContent, 'RIF personal');
+    ok('hoy: y abrirlo lo pone en revisión',
+       !!v.querySelector('.visor-meta .co-estado.mirando'), 'busca el estado', 'en revisión');
+    igual('hoy: a la izquierda, sus papeles', v.querySelectorAll('.visor-chk button').length, 2);
+    igual('hoy: y empieza por el que falta por mirar',
+          (document.getElementById('paVisorDoc') || {}).textContent, 'pasaporte-bianchi.pdf');
+    ok('hoy: el documento se ve dentro, sin salir a otra pestaña',
+       !!v.querySelector('.visor-doc iframe, .visor-doc img'), 'busca el marco', 'con el documento');
+    ok('hoy: y al lado, lo que ese papel respalda', v.querySelectorAll('.visor-lado .co-dato').length > 0,
+       v.querySelectorAll('.visor-lado .co-dato').length + ' datos', 'al menos uno');
+    var pre = hoyBotonQueDice(v, 'Presentar ante SENIAT');
+    ok('hoy: no deja presentar con papeles sin mirar', !!pre && pre.disabled,
+       pre ? (pre.disabled ? 'apagado' : 'encendido') : 'no hay botón', 'apagado');
+    igual('hoy: y dice cuántos faltan', (v.querySelector('.visor-fin .hoy-pista') || {}).textContent, 'Falta 1 recaudo por mirar.');
+    igual('hoy: el foco entra al espacio', document.activeElement && document.activeElement.id, 'paVisorCerrar');
+    var vale = document.getElementById('paVisorVale');
+    if (vale) vale.click();
+  }
+
+  function hoyTrasVale(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    var papel = window.CIIP_DOBLE.doc('hd1') || {};
+    igual('hoy: «Vale» lo guarda en la base', papel.estado, 'validado');
+    igual('hoy: y firma quién lo revisó', papel.revisado_por, 'u1');
+    var v = document.getElementById('paVisor');
+    var pre = hoyBotonQueDice(v, 'Presentar ante SENIAT');
+    ok('hoy: con todo validado ya deja presentar', !!pre && !pre.disabled,
+       pre ? (pre.disabled ? 'apagado' : 'encendido') : 'no hay botón', 'encendido');
+    igual('hoy: y la miniatura de la tarjeta cambia con él',
+          hoyTarjeta('h1') ? hoyTarjeta('h1').querySelectorAll('.hoy-th.validado').length : 0, 2);
+    /* «No vale» en el segundo papel. */
+    var segundo = v.querySelectorAll('.visor-chk button')[1];
+    if (segundo) segundo.click();
+  }
+
+  function hoyNoValeAbre(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    igual('hoy: pulsar un papel de la lista lo enseña',
+          (document.getElementById('paVisorDoc') || {}).textContent, 'recibo-bianchi.jpg');
+    var no = document.getElementById('paVisorNoVale');
+    if (no) no.click();
+  }
+
+  function hoyNoValeMira(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    var motivos = document.querySelectorAll('#paVisor .visor-motivos button');
+    igual('hoy: «No vale» ofrece los motivos de siempre', motivos.length, 5);
+    if (motivos[0]) motivos[0].click();
+  }
+
+  function hoyNoValeGuarda(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    var ta = document.getElementById('paVisorNota');
+    ok('hoy: el motivo escribe la nota por ti, con el papel por su nombre',
+       !!ta && /^Sube de nuevo «.+»/.test(ta.value), ta ? ta.value : '(sin nota)', 'Sube de nuevo «…»');
+    var guarda = document.getElementById('paVisorGuarda');
+    if (guarda) guarda.click();
+  }
+
+  function hoyTrasNoVale(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    var papel = window.CIIP_DOBLE.doc('hd2') || {};
+    igual('hoy: «No vale» lo guarda como rechazado', papel.estado, 'rechazado');
+    ok('hoy: con la nota que leerá el inversionista', /^Sube de nuevo/.test(papel.nota_revision || ''),
+       papel.nota_revision || '(vacía)', 'Sube de nuevo…');
+    var v = document.getElementById('paVisor');
+    var pre = hoyBotonQueDice(v, 'Presentar ante SENIAT');
+    ok('hoy: con un papel que no vale, no deja presentar', !!pre && pre.disabled,
+       pre ? (pre.disabled ? 'apagado' : 'encendido') : 'no hay botón', 'apagado');
+    var nota = document.getElementById('hoy-nota-h1');
+    ok('hoy: y la nota de devolver ya lleva el motivo', !!nota && /^Sube de nuevo/.test(nota.value),
+       nota ? nota.value : '(sin nota)', 'Sube de nuevo…');
+    var dev = hoyBotonQueDice(v, 'Devolver');
+    if (dev) dev.click();
+  }
+
+  function hoyTrasDevolver(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    ok('hoy: devolver cierra el espacio', document.getElementById('paVisor').hidden, 'mira hidden', 'escondido');
+    ok('hoy: y saca la tarjeta de la lista', !hoyTarjeta('h1'), hoyTarjeta('h1') ? 'sigue' : 'fuera', 'fuera');
+    var aviso = document.getElementById('paToast');
+    ok('hoy: y el aviso dice a quién', !aviso.hidden && /Devuelto a Marta Bianchi/.test(aviso.textContent),
+       aviso.textContent, 'Devuelto a Marta Bianchi…');
+    var t = hoyTarjeta('h3');
+    if (t) t.click();
+  }
+
+  function hoyRespuestaMira(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    var v = document.getElementById('paVisor');
+    ok('hoy: lo que está ante el organismo pide lo que emitió',
+       !v.hidden && !!document.getElementById('hoy-doc-h3'), v.hidden ? 'no se abrió' : 'abierto', 'con el archivo');
+    var res = hoyBotonQueDice(v, 'Resolver y entregar');
+    if (res) res.click();
+    igual('hoy: y no resuelve sin el documento',
+          (v.querySelector('.visor-fin .co-aviso') || {}).textContent,
+          'Adjunta el documento que emitió el organismo: es lo que el inversionista vino a buscar.');
+    hoyEscape();
+  }
+
+  function hoyTrasCerrar(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    ok('hoy: Escape cierra el espacio', document.getElementById('paVisor').hidden, 'mira hidden', 'escondido');
+    igual('hoy: y el foco vuelve a la tarjeta',
+          document.activeElement && document.activeElement.getAttribute('data-tr'), 'h3');
+  }
+
+  function hoyRestaura(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    if (!document.getElementById('paVisor').hidden) hoyEscape();
+    window.CIIP_DOBLE.ponCola(HOY_ANTES);
+    HOY_ANTES = null;
+    /* Y el panel vuelve a preguntar. Sin esto se quedaba con los sembrados
+       en la memoria, y el número del menú -que suma la cola- seguía
+       contando dos trámites que ya no existen. */
+    window.CIIP_PINTA_PORATENDER();
+    location.hash = '';
   }
 
   function empresaAbre(){
@@ -6359,7 +6543,7 @@
   function opacidadMira(){
     if (CASO !== 'lleno') return;
     var malas = [];
-    document.querySelectorAll('.tcard, .ci-ficha, #mtCuerpo tr, #paCuerpo tr')
+    document.querySelectorAll('.tcard, .ci-ficha, #mtCuerpo tr, #paTandas .hoy-card')
       .forEach(function(f){
         var o = parseFloat(getComputedStyle(f).opacity);
         if (!isNaN(o) && o < 1) malas.push((f.getAttribute('data-tr') || f.className || 'fila') + '=' + o);
@@ -7305,8 +7489,13 @@
        a casa. */
     igual('consulta: al resolverla sale de la cola',
           document.querySelectorAll('#colaCons .co-ficha').length, 1);
-    igual('consulta: y el contador baja',
-          (document.getElementById('navTramitesN') || {}).textContent, '3');
+    /* Se compara con lo que la ventana enseña, y no con un número a mano:
+       a estas alturas de la cadena otras pruebas han creado y confirmado
+       cosas, y lo que importa es que el renglón cuente lo que hay. */
+    igual('consulta: y el contador de consultas y citas cuenta lo que queda',
+          (document.getElementById('navConsultasN') || {}).textContent,
+          String(document.querySelectorAll('#colaCons .co-ficha').length +
+                 document.querySelectorAll('#colaLista .co-ficha').length));
   }
 
 
@@ -9207,15 +9396,23 @@
 
        Se mira en el renglón de la barra, que desde que no hay botón arriba
        es el único sitio donde el equipo ve esto sin entrar. */
-    igual('cola: el renglón de la barra lleva cuántas esperan',
-          (document.getElementById('navTramitesN') || {}).textContent, '6');
+    igual('cola: el renglón de trámites lleva cuántos esperan',
+          (document.getElementById('navTramitesN') || {}).textContent, '2');
+    igual('cola: y el de consultas y citas, las suyas',
+          (document.getElementById('navConsultasN') || {}).textContent, '4');
 
     document.getElementById('navTramites').click();
-    esperaFilas('#paCuerpo tr', 1, function(){
-      var filas = document.querySelectorAll('#paCuerpo tr');
-      ok('cola: la tabla trae los que esperan', filas.length > 0,
+    esperaFilas('#paTandas .hoy-card[data-tr]', 1, function(){
+      var filas = document.querySelectorAll('#paTandas .hoy-card[data-tr]');
+      ok('cola: las tarjetas traen los que esperan', filas.length > 0,
          filas.length + ' renglones', 'al menos uno');
-      if (filas.length) filas[0].click();
+      /* La tarjeta abre el espacio de trabajo, y su barra lleva a la ventana
+         de la cola con «Ver el expediente». */
+      if (filas.length){
+        filas[0].click();
+        var aLaCola = document.getElementById('paVisorCola');
+        if (aLaCola) aLaCola.click();
+      }
       var caja = document.getElementById('colaBack');
       ok('cola: y el renglón de un trámite abre su ventana',
          caja.classList.contains('open'), caja.className, 'con la clase open');
@@ -9331,10 +9528,12 @@
     var fichas = document.querySelectorAll('#colaTram .co-ficha');
     igual('cola: enseña los trámites que esperan por el CIIP', fichas.length, 2);
 
-    /* El contador es "cuánto tienes encima", no "cuántas citas": dos citas,
-       dos trámites y dos consultas. */
-    igual('cola: y el contador suma las tres colas',
-          (document.getElementById('navTramitesN') || {}).textContent, '6');
+    /* Cada renglón cuenta lo suyo: dos trámites en el de «Trámites por
+       atender», y dos citas y dos consultas en el de «Consultas y citas». */
+    igual('cola: y el contador de trámites cuenta los trámites',
+          (document.getElementById('navTramitesN') || {}).textContent, '2');
+    igual('cola: y el de consultas y citas, las otras dos colas',
+          (document.getElementById('navConsultasN') || {}).textContent, '4');
 
     /* Los pasos que se ofrecen salen del estado. Enseñarlos todos siempre
        invitaría a presentar ante el ente algo que nadie ha revisado. */
@@ -9594,7 +9793,7 @@
     igual('cola: y la nota viaja con la devolución',
           (window.PRUEBA_NOTA && window.PRUEBA_NOTA()) || '(ninguna)',
           'Falta el comprobante del capital.');
-    igual('cola: el contador baja', (document.getElementById('navTramitesN') || {}).textContent, '5');
+    igual('cola: el contador de trámites baja', (document.getElementById('navTramitesN') || {}).textContent, '1');
   }
 
 
@@ -9741,9 +9940,10 @@
   function colaTrasConfirmar(){
     if (CASO !== 'gestor') return;
     igual('cola: confirmada, sale de la cola', document.querySelectorAll('#colaLista .co-ficha').length, 1);
-    /* Quedan una cita y un trámite: se devolvió uno antes y ahora se
-       confirmó una. El contador cuenta las dos colas juntas. */
-    igual('cola: y el contador baja', (document.getElementById('navTramitesN') || {}).textContent, '4');
+    /* Quedan una cita, dos consultas y un trámite: se devolvió uno antes y
+       ahora se confirmó una. La cita cuenta en «Consultas y citas». */
+    igual('cola: y el contador de consultas y citas baja', (document.getElementById('navConsultasN') || {}).textContent, '3');
+    igual('cola: y el de trámites no se mueve', (document.getElementById('navTramitesN') || {}).textContent, '1');
   }
 
   /* Al cancelar, la caja se queda limpia del todo: ni conversación —que ya
