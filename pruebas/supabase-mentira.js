@@ -238,6 +238,16 @@
     {codigo:'opinion_zodi', ref_panel:'c34', ente:'ZODI',
      activo:true, emite:'no_objecion_zodi', plazo_dias:null,
      nombre:'Opinión favorable de la ZODI', fase:2, nivel:'actividad'},
+    /* El RUPDAE y el Registro Único Minero, en la fase 3. Como en la base
+       de verdad: el RUPDAE 'esencial' -le toca a todos, sin distintivo- y
+       con sus 14 días; el RUM 'actividad' y SIN plazo -la resolución no da
+       ninguno-. Sin ellas aquí el panel pintaría dos fichas de lectura. */
+    {codigo:'rupdae', ref_panel:'c35', ente:'SUNDDE',
+     activo:true, emite:'certificado_rupdae', plazo_dias:14,
+     nombre:'Inscripción en el RUPDAE', fase:3, nivel:'esencial'},
+    {codigo:'registro_minero', ref_panel:'c36', ente:'Ministerio de Desarrollo Minero',
+     activo:true, emite:'certificado_rum', plazo_dias:null,
+     nombre:'Registro Único Minero', fase:3, nivel:'actividad'},
 
     {codigo:'registros_laborales', ref_panel:'c9', ente:'IVSS', activo:true, plazo_dias:28,
      nombre:'Registros laborales', fase:3, nivel:'obligatorio'},
@@ -1332,7 +1342,8 @@
         {codigo:'certificado_medico_origen', vence:true}, {codigo:'arancel_consular', vence:false},
         {codigo:'comprobante_capital', vence:false}, {codigo:'carta_comisario', vence:false},
         {codigo:'estatutos_accionista', vence:false}, {codigo:'good_standing', vence:true},
-        {codigo:'beneficiarios_finales', vence:false}, {codigo:'no_objecion_zodi', vence:false}
+        {codigo:'beneficiarios_finales', vence:false}, {codigo:'no_objecion_zodi', vence:false},
+        {codigo:'certificado_rupdae', vence:false}, {codigo:'certificado_rum', vence:true}
       ], error:null};
     }
 

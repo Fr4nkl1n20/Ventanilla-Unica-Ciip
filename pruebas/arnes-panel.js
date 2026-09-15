@@ -188,6 +188,8 @@
               rncAbre, empiezaSolicitud, rncTrasAbrir,
               sisrefAbre, empiezaSolicitud, sisrefTrasAbrir,
               zodiAbre, empiezaSolicitud, zodiTrasAbrir,
+              rupdaeAbre, empiezaSolicitud, rupdaeTrasAbrir,
+              rumAbre, empiezaSolicitud, rumTrasAbrir,
               pistaAbre, empiezaSolicitud, pistaMira,
               solvenciasAbre, empiezaSolicitud, solvenciasTrasAbrir,
               activosAbre, activosMira, opacidadActivos, activosPublica, activosTrasPublicar,
@@ -675,7 +677,8 @@
        OCHO desde la opinión favorable de la ZODI (c34): una encendida más. */
     igual('camino: la fase 02 cuenta las que están encendidas',
           deEtapa(1, '.jcount'), '0 de 8 listos');
-    igual('camino: la fase 03 cuenta sus 11',          deEtapa(2, '.jcount'), '0 de 11 listos');
+    /* Trece desde el RUPDAE (c35) y el Registro Único Minero (c36). */
+    igual('camino: la fase 03 cuenta sus 13',          deEtapa(2, '.jcount'), '0 de 13 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
        inversión extranjera tenía una etapa para él solo —y una etapa con una
        sola tarjeta dentro— y ahora comparte la 4 con el banco de activos y
@@ -983,12 +986,13 @@
            Desde que se retiro la franja de "te toca a ti", esta es la
            unica pantalla que lo dice. */
         var pendS = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
-        ok('estados: con un borrador, treinta y tres por iniciar y no treinta y cuatro',
+        ok('estados: con un borrador, treinta y cuatro por iniciar y no treinta y cinco',
           /* 31 y no 32: el registro de marca esta apagado y su tarjeta ya no
              esta en el documento, asi que no puede decir «por iniciar» ni
              ninguna otra cosa. Una menos arriba y una menos abajo.
-             Y 32 y no 31 desde la ZODI (c34), que es una ofrecida más. */
-             pendS === 32, pendS + ' por iniciar de 33 ofrecidas', '32');
+             Y 32 y no 31 desde la ZODI (c34), que es una ofrecida más.
+             Y 34 desde el RUPDAE (c35) y el RUM (c36). */
+             pendS === 34, pendS + ' por iniciar de 35 ofrecidas', '34');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -997,9 +1001,9 @@
            nacía 'pendiente' en el marcado -lo suyo es el distintivo, que
            sigue diciendo Disponible-. */
         var pend = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
-          /* 33 desde la ZODI (c34). */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 33,
-             pend + ' por iniciar de 33 ofrecidas', '33');
+          /* 33 desde la ZODI (c34), y 35 desde el RUPDAE y el RUM. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 35,
+             pend + ' por iniciar de 35 ofrecidas', '35');
       }
 
       /* ── la cadena entre trámites ──
@@ -1119,6 +1123,10 @@
 
         igual('nivel: el que depende del ramo tambien', niv('c13'), 'Según tu actividad');
         igual('nivel: y el corriente no lleva nada',  niv('c6'),  '');
+        /* El RUPDAE le toca a todos: 'esencial', sin distintivo. El RUM sólo
+           a la minería, y lo dice. */
+        igual('nivel: el RUPDAE, que es de todos, no lleva nada', niv('c35'), '');
+        igual('nivel: el Registro Único Minero depende del ramo',   niv('c36'), 'Según tu actividad');
       })();
 
       /* AQUI SE MEDIA el renglon de «Te quedan N de T por hacer», que
@@ -1303,9 +1311,10 @@
         if (t2){
           var h2 = [].slice.call(rej.children);
           var j  = h2.indexOf(t2);
-          igual('grupo: con sus dos detrás',
-                h2.slice(j+1, j+3).map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
-                'c12 c30');
+          /* Tres desde el Registro Único Minero (c36). */
+          igual('grupo: con sus tres detrás',
+                h2.slice(j+1, j+4).map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
+                'c12 c30 c36');
         }
         igual('grupo: y son dos títulos, no uno repetido',
               rej.querySelectorAll('.grupo-t').length, 2);
@@ -1325,8 +1334,8 @@
            tarjetas dentro. Es lo que hace que nada de lo que las cuenta
            se entere: acaba de pasar con los recaudos, donde meter una
            lista dentro de cada renglón hizo que seis contaran 52. */
-        igual('grupo: la fase 03 sigue teniendo sus once tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 11);
+        igual('grupo: la fase 03 sigue teniendo sus trece tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 13);
         ok('grupo: y el título no es una tarjeta',
            !t.classList.contains('tcard') && !t.hasAttribute('data-tr'),
            t.className, 'sin ser tarjeta');
@@ -3345,6 +3354,65 @@
     ok('zodi: sin plazo, y sin «undefined» en su lugar',
        /* innerText y no textContent: este lee también el código de los
           <script>, y el propio arnés escribe esa palabra en el suyo. */
+       document.body.innerText.indexOf('undefined') === -1,
+       'dice «undefined»', 'limpio');
+  }
+
+  /* ═══════════ EL RUPDAE (c35) Y EL REGISTRO ÚNICO MINERO (c36) ═══════════
+     Del encargo del 15-9-2026. Lo mismo que en la ZODI: que el formulario
+     no salga vacío y que los recaudos sean los suyos, en su orden. Y lo
+     propio de cada uno: el RUPDAE con sus dos opcionales -la asamblea y el
+     poder-, y el RUM con su «No lo sé» y sin plazo. */
+  function rupdaeAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c35';
+  }
+
+  function rupdaeTrasAbrir(){
+    if (CASO !== 'vacio') return;
+    igual('rupdae: se abre su detalle', document.body.getAttribute('data-vista'), 'tramite');
+
+    var caja = document.getElementById('trReal');
+    igual('rupdae: pide los siete datos del portal',
+          caja.querySelectorAll('.sol-campo').length, 7);
+
+    var tipos = [];
+    caja.querySelectorAll('.sol-doc').forEach(function(d){ tipos.push(d.getAttribute('data-doc')); });
+    igual('rupdae: sus seis recaudos, los de la SUNDDE',
+          tipos.join(' '),
+          'acta_constitutiva acta_asamblea rif_empresa cedula rif_personal poder');
+
+    var opc = [];
+    caja.querySelectorAll('.sol-doc[data-opcional]').forEach(function(d){ opc.push(d.getAttribute('data-doc')); });
+    igual('rupdae: y sólo la asamblea y el poder son opcionales', opc.join(' '), 'acta_asamblea poder');
+  }
+
+  function rumAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c36';
+  }
+
+  function rumTrasAbrir(){
+    if (CASO !== 'vacio') return;
+    igual('rum: se abre su detalle', document.body.getAttribute('data-vista'), 'tramite');
+
+    var caja = document.getElementById('trReal');
+    igual('rum: pide los siete datos del alta del SIGDME',
+          caja.querySelectorAll('.sol-campo').length, 7);
+
+    var tipos = [];
+    caja.querySelectorAll('.sol-doc').forEach(function(d){ tipos.push(d.getAttribute('data-doc')); });
+    igual('rum: sus cuatro recaudos, los de una empresa conformada',
+          tipos.join(' '), 'cedula rif_empresa acta_constitutiva acta_asamblea');
+
+    var mot = caja.querySelector('.sol-campo[data-campo="actividad_minera"] select');
+    var ops = [];
+    if (mot) mot.querySelectorAll('option').forEach(function(o){ if (o.value) ops.push(o.value); });
+    ok('rum: la actividad minera deja decir «no lo sé»',
+       ops.indexOf('No lo sé: que lo revise el CIIP') !== -1,
+       ops.join(' | ') || '(sin opciones)', 'la salida para quien no sabe');
+
+    ok('rum: sin plazo, y sin «undefined» en su lugar',
        document.body.innerText.indexOf('undefined') === -1,
        'dice «undefined»', 'limpio');
   }

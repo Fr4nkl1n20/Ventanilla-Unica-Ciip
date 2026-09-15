@@ -68,6 +68,13 @@
 --     catalogo, en 'actividad' y sin plazo. Es supabase-zodi.sql entero,
 --     que es corto. PENDIENTE DE CONFIRMAR con el CIIP en que casos toca.
 --
+--  8. EL RUPDAE (c35) Y EL REGISTRO UNICO MINERO (c36). Nuevo el
+--     2026-09-15, al final del todo. Dos fichas nuevas en la fase 3: dos
+--     tipos de documento -los dos certificados- y las dos filas del
+--     catalogo, el RUPDAE en 'esencial' con 14 dias y el RUM en 'actividad'
+--     y sin plazo. Es supabase-rupdae-rum.sql entero. PENDIENTE DE CONFIRMAR
+--     con el CIIP el nivel del RUPDAE.
+--
 --  SI TIENES CUALQUIER DUDA, PEGA TODO-EN-ORDEN.sql EN VEZ DE ESTE
 --  ─────────────────────────────────────────────────────────────────────
 --  Aquel trae los treinta y siempre es correcto, aunque este archivo se
@@ -1311,6 +1318,66 @@ update public.tipos_tramite
 --                    'beneficiarios_finales','no_objecion_zodi');
 --
 -- 3) Los obligatorios siguen siendo DIEZ, cinco y cinco: el c34 no suma.
+--
+--   select fase, count(*) from public.tipos_tramite
+--   where nivel = 'obligatorio' group by fase;
+
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  8. EL RUPDAE (c35) Y EL REGISTRO UNICO MINERO (c36) · 2026-09-15
+-- ═══════════════════════════════════════════════════════════════════════
+--  Lo mismo que supabase-rupdae-rum.sql, sin su cabecera: el porque esta
+--  alli. Se puede correr mas de una vez.
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 1. LOS PAPELES NUEVOS
+-- ───────────────────────────────────────────────────────────────────────
+--  Sólo lo que sale de cada trámite: lo que piden -acta, RIF, cédula- ya
+--  estaba en la bóveda.
+insert into public.tipos_documento (codigo, nombre, vence) values
+  ('certificado_rupdae', 'Certificado de inscripción en el RUPDAE',          false),
+  ('certificado_rum',    'Certificado electrónico del Registro Único Minero', true)
+on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.vence;
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 2. LOS TRÁMITES
+-- ───────────────────────────────────────────────────────────────────────
+insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values
+  ('rupdae',          'c35', 'Inscripción en el RUPDAE',     'SUNDDE',                           3, true),
+  ('registro_minero', 'c36', 'Registro Único Minero (RUM)',  'Ministerio de Desarrollo Minero',  3, true)
+on conflict (codigo) do nothing;
+
+update public.tipos_tramite
+   set emite      = 'certificado_rupdae',
+       plazo_dias = 14,
+       nivel      = 'esencial',
+       activo     = true
+ where codigo = 'rupdae';
+
+update public.tipos_tramite
+   set emite      = 'certificado_rum',
+       plazo_dias = null,
+       nivel      = 'actividad',
+       activo     = true
+ where codigo = 'registro_minero';
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- COMPROBACIONES
+-- ───────────────────────────────────────────────────────────────────────
+-- 1) Dos filas: c35 · SUNDDE · fase 3 · esencial · 14 días, y c36 ·
+--    ministerio · fase 3 · actividad · sin plazo. Las dos encendidas.
+--
+--   select ref_panel, codigo, nombre, ente, fase, nivel, emite, plazo_dias, activo
+--   from public.tipos_tramite where ref_panel in ('c35','c36');
+--
+-- 2) Los dos papeles nuevos, y sólo el del RUM caduca:
+--
+--   select codigo, nombre, vence from public.tipos_documento
+--   where codigo in ('certificado_rupdae','certificado_rum');
+--
+-- 3) Los obligatorios siguen siendo DIEZ, cinco y cinco: ninguno suma.
 --
 --   select fase, count(*) from public.tipos_tramite
 --   where nivel = 'obligatorio' group by fase;

@@ -143,7 +143,10 @@ try {
     'supabase-bitacora-ajustes.sql',
     # 31  la opinion favorable de la ZODI (c34). Solo necesita el catalogo
     #     con nivel y emite; va al final para no mover el numero de nadie
-    'supabase-zodi.sql'
+    'supabase-zodi.sql',
+    # 32  el RUPDAE (c35) y el Registro Unico Minero (c36). Como la ZODI:
+    #     solo necesita el catalogo con nivel y emite
+    'supabase-rupdae-rum.sql'
   )
   $n = 0
   foreach ($f in $once) {

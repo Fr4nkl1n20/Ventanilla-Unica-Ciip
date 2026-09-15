@@ -2659,6 +2659,41 @@ select arnes.comprueba(
   (select count(*) = 10 from public.tipos_tramite where nivel = 'obligatorio'),
   (select count(*)::text || ' obligatorios' from public.tipos_tramite where nivel = 'obligatorio'));
 
+-- El RUPDAE (c35) y el Registro Unico Minero (c36), del encargo del 15 de
+-- septiembre de 2026: los dos a la fase 3, «Habilitacion operativa y
+-- cumplimiento», y encendidos.
+select arnes.comprueba(
+  'rupdae y rum: estan en la fase 3 y encendidos',
+  (select count(*) = 2 from public.tipos_tramite
+    where (codigo, ref_panel) in (('rupdae', 'c35'), ('registro_minero', 'c36'))
+      and fase = 3 and activo));
+
+-- El RUPDAE le toca a toda empresa que vende, fabrica o presta servicios,
+-- pero no suma a los diez obligatorios del informe: 'esencial'. El RUM
+-- solo a la mineria: 'actividad'.
+select arnes.comprueba(
+  'rupdae y rum: el RUPDAE es esencial y el RUM depende de la actividad',
+  (select bool_and(case codigo when 'rupdae' then nivel = 'esencial'
+                               else nivel = 'actividad' end)
+     from public.tipos_tramite where codigo in ('rupdae', 'registro_minero')),
+  (select string_agg(codigo || ' ' || nivel, ', ') from public.tipos_tramite
+    where codigo in ('rupdae', 'registro_minero')));
+
+-- La SUNDDE da de cinco a diez dias habiles. La Resolucion 0010 del RUM no
+-- da ninguno: un numero ahi marcaria como tardia una solicitud sin hora.
+select arnes.comprueba(
+  'rupdae y rum: catorce dias el RUPDAE, y el RUM sin plazo',
+  (select plazo_dias = 14 from public.tipos_tramite where codigo = 'rupdae')
+  and (select plazo_dias is null from public.tipos_tramite where codigo = 'registro_minero'));
+
+-- El certificado del RUM dura tres anos; el del RUPDAE ya no vence.
+select arnes.comprueba(
+  'rupdae y rum: emiten su certificado, y solo el del RUM caduca',
+  (select count(*) = 2 from public.tipos_tramite t
+     join public.tipos_documento d on d.codigo = t.emite
+    where (t.codigo = 'rupdae' and d.codigo = 'certificado_rupdae' and not d.vence)
+       or (t.codigo = 'registro_minero' and d.codigo = 'certificado_rum' and d.vence)));
+
 \o
 \pset tuples_only on
 \pset format unaligned

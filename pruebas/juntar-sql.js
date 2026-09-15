@@ -65,7 +65,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-bitacora-ajustes',
 /* La opinion favorable de la ZODI (c34). Solo necesita el catalogo con
    `nivel` y `emite`; va al final para no mover el numero de nadie. */
-'supabase-zodi'];
+'supabase-zodi',
+/* El RUPDAE (c35) y el Registro Unico Minero (c36). Como la ZODI: solo
+   necesita el catalogo con `nivel` y `emite`, y va al final. */
+'supabase-rupdae-rum'];
 
 let mal = 0;
 for (const n of orden) {
