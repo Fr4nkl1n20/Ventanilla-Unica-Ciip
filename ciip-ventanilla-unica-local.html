@@ -9087,6 +9087,11 @@ applyLang(idiomaParaMi());
 
     /* La marca: el signo es lo que esta escrito en el logo. */
     signo:                 ['logo_marca'],
+
+    /* La ZODI pide la cadena de accionistas hasta los beneficiarios finales,
+       y eso es justo lo que trae su lista. Los estatutos de la empresa
+       accionista van detras: dicen quien es, pero no toda la cadena. */
+    accionistas_extranjeros: ['beneficiarios_finales', 'estatutos_accionista'],
     direccion_local:       ['domicilio_empresa']
   };
 
