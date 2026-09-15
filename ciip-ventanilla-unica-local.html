@@ -13927,7 +13927,7 @@ applyLang(idiomaParaMi());
 
         var b = el('button', coFiltro === x[0] ? 'aqui' : null);
         b.type = 'button';
-        b.appendChild(document.createTextNode(dic[x[1]] || ''));
+        b.appendChild(document.createTextNode(x[1] || ''));
         b.appendChild(el('span', 'n', String(n)));
         b.addEventListener('click', function(){ coFiltro = x[0]; repinta(); });
         caja.appendChild(b);
@@ -15220,8 +15220,11 @@ applyLang(idiomaParaMi());
     caja.hidden = (mios.length < 2);
     if (caja.hidden) return;
 
-    [['todas', 'f.all'], ['accion', 'f.action'],
-     ['proceso', 'f.progress'], ['listo', 'f.done']].forEach(function(x){
+    /* Los rotulos se leen aqui, con dic[...], y no dentro del bucle con
+       dic[x[1]]: pedida asi, pruebas/claves.js no ve la clave y da f.all
+       por huerfana desde que la portada dejo de pintarla. */
+    [['todas', dic['f.all']], ['accion', dic['f.action']],
+     ['proceso', dic['f.progress']], ['listo', dic['f.done']]].forEach(function(x){
       var antes = mtFiltro;
       mtFiltro = x[0];
       var n = mios.filter(mtCuadra).length;
