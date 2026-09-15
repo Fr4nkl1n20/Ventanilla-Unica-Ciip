@@ -1095,9 +1095,12 @@ body[data-vista="empresa"] .fase-bar{display:none;}
    porque no es lo mismo que los otros dos —aquellos son datos tuyos que
    el panel ya tenia; este lo ha leido una maquina de un papel— y quien
    repasa tiene que poder distinguirlos de un vistazo. */
-.sol-campo .de-papel{font-size:9.5px; font-weight:700; letter-spacing:.03em;
+/* Y en la ficha de la empresa, cuando lo rellena el acta: el mismo sello. */
+.sol-campo .de-papel,
+.pf-campo .de-papel{font-size:9.5px; font-weight:700; letter-spacing:.03em;
   color:#6D28D9; background:#F3EEFF; border-radius:4px; padding:1px 5px; margin-left:7px;}
-.sol-campo.de-un-papel input, .sol-campo.de-un-papel select{border-color:#C4B5FD;}
+.sol-campo.de-un-papel input, .sol-campo.de-un-papel select,
+.pf-campo.de-un-papel input, .pf-campo.de-un-papel select{border-color:#C4B5FD;}
 
 /* --- la boveda de documentos --- */
 /* ── La cola en tabla ──
@@ -1866,6 +1869,28 @@ body[data-vista="citas"] .fase-bar{display:none;}
    final: al final ya te lo has escrito todo. */
 .em-minimo{font-size:var(--fs-nota); color:var(--gray); line-height:1.55;
   background:var(--block); border-radius:9px; padding:10px 12px;}
+/* ── MI EMPRESA SIN EMPRESA: DOS CAMINOS ──
+   Uno para quien ya la tiene constituida y otro para quien no. Lado a lado
+   y con la misma caja: ninguno es el "normal". El boton de color es el de
+   registrar, que es lo unico que se hace aqui mismo; el otro lleva a otra
+   pantalla. Por debajo de 560 px, uno encima de otro. */
+.em-intro{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.55;
+  margin-bottom:14px; max-width:70ch;}
+.em-caminos{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; max-width:860px;}
+@media (max-width:560px){ .em-caminos{grid-template-columns:1fr;} }
+.em-camino{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
+  padding:19px 21px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:7px;}
+.em-camino-t{font-size:var(--fs-seccion); font-weight:700;}
+.em-camino-q{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.55; flex:1;}
+.em-camino .btn{align-self:flex-start; margin-top:8px;}
+#emBoton[hidden]{display:none;}
+/* El acta dentro de la ficha: la caja del lector de los tramites, a lo
+   ancho de las dos columnas y solo en el paso 1. */
+#emCampos > .em-acta{grid-column:1 / -1; margin-bottom:0;}
+.em-acta[hidden]{display:none;}
+.em-acta.mal{border-color:var(--rust);}
+.em-acta-r{margin-top:9px;}
+.pa-lee-z.puesta{border-style:solid;}
 @media(max-width:560px){ .em-ya{white-space:normal; text-align:left;} }
 /* En estrecho no caben los tres nombres. Ya no hace falta decirlo aqui: la
    barra de la solicitud se los quita ella sola por debajo de 620 px, y se
@@ -6926,6 +6951,21 @@ function applyLang(lang){
   /* La cuenta de cada etapa se rehace cuando llegan los estados de la base;
      desde alli se vuelve a llamar aqui. */
   window.CIIP_ELIGE_SOLA = eligeSola;
+
+  /* La puerta a una etapa desde fuera de la portada. «Mi empresa», sin
+     empresa, ofrece constituirla, y eso es la etapa 02: llevar a la portada
+     sin elegirla dejaria a la persona buscando entre cuatro tarjetas la que
+     le acaban de nombrar. Hace lo mismo que pulsar la tarjeta, y como alli
+     la eleccion ya es suya: eligeSola no se la vuelve a mover. Arriba del
+     todo, porque se viene de otra pantalla y las tarjetas son lo primero. */
+  window.CIIP_VE_ETAPA = function(n){
+    var et = document.querySelector('.jp[data-ir="' + n + '"]');
+    if (!et) return;
+    ve('', null);
+    eleccionAuto = false;
+    elige(et);
+    window.scrollTo(0, 0);
+  };
 
   etapas.forEach(function(et){
     /* ── UN SOLO GOLPE ──
@@ -19886,15 +19926,33 @@ applyLang(idiomaParaMi());
     var sub = document.getElementById('emSub');
     if (sub) sub.textContent = '';
 
+    /* Sin empresa, el boton de arriba sobra: la eleccion son los dos caminos
+       de abajo, y un tercer boton arriba con el mismo nombre que uno de ellos
+       obligaria a preguntarse si hacen lo mismo. */
     if (emBoton){
-      emBoton.textContent = EMPRESA ? (u.ac_editar || '') : (u.em_registrar || '');
-      emBoton.hidden = false;
-      emBoton.className = 'btn ' + (EMPRESA ? 'ghost' : 'navy');
+      emBoton.textContent = u.ac_editar || '';
+      emBoton.hidden = !EMPRESA;
+      emBoton.className = 'btn ghost';
     }
 
     emCuerpo.textContent = '';
     if (!EMPRESA){
-      emCuerpo.appendChild(el('div', 'ci-vacia', u.em_vacia || ''));
+      /* ── DOS CAMINOS ──
+         Llegaba aqui gente con la empresa ya constituida y gente que todavia
+         no la tiene, y a las dos se les ofrecia lo mismo: un formulario. Al
+         que no la tiene, ese formulario le pedia una razon social y un RIF
+         que no existen. Ahora cada uno elige el suyo: el que la tiene la
+         registra con su acta; el que no, va a la etapa del panel donde se
+         constituye. */
+      emCuerpo.appendChild(el('div', 'em-intro', u.em_vacia || ''));
+      var caminos = el('div', 'em-caminos');
+      caminos.appendChild(caminoEmpresa('emConActa', 'navy',
+        u.em_ya_t, u.em_ya_q, u.em_registrar, abreFichaEmpresa));
+      caminos.appendChild(caminoEmpresa('emNueva', 'ghost',
+        u.em_nueva_t, u.em_nueva_q, u.em_nueva_ir, function(){
+          if (window.CIIP_VE_ETAPA) window.CIIP_VE_ETAPA(2);
+        }));
+      emCuerpo.appendChild(caminos);
       return;
     }
 
@@ -19937,6 +19995,184 @@ applyLang(idiomaParaMi());
     emCuerpo.appendChild(t);
   }
 
+  /* Uno de los dos caminos de Mi empresa sin empresa: a quien le toca, que
+     supone, y el boton que lo empieza. */
+  function caminoEmpresa(id, color, titulo, texto, rotulo, alPulsar){
+    var c = el('div', 'em-camino');
+    c.appendChild(el('div', 'em-camino-t', titulo || ''));
+    c.appendChild(el('div', 'em-camino-q', texto || ''));
+    var b = el('button', 'btn ' + color, rotulo || '');
+    b.type = 'button';
+    b.id = id;
+    b.addEventListener('click', function(){ alPulsar(); });
+    c.appendChild(b);
+    return c;
+  }
+
+  /* ── EL ACTA, AL REGISTRARLA ──
+     Una empresa ya constituida tiene un papel que lo prueba, y ese papel
+     lleva dentro casi todo el primer paso: la razon social, el numero de
+     registro, la fecha y el capital. Pedirlo primero sirve dos veces: el
+     CIIP tiene con que comprobar lo escrito, y si hay lector, el acta
+     rellena lo que dice en vez de copiarlo a mano.
+
+     Se guarda en la boveda como 'acta_constitutiva', el mismo tipo que
+     piden los tramites: los que la llevan de recaudo la encuentran ya
+     subida. Al EDITAR no se pide: ya se subio al registrarla. */
+  var emActa = null;     /* el archivo elegido */
+  var emActaId = null;   /* su id en la boveda, en cuanto se ha subido */
+  var emLectura = '';    /* '', 'leyendo', 'falla' o cuantas casillas puso */
+
+  function pintaActa(){
+    var caja = document.getElementById('emActa');
+    if (!caja) return;
+    var u = T();
+    caja.textContent = '';
+    caja.appendChild(el('div', 'pa-lee-t', u.em_acta_t || ''));
+    caja.appendChild(el('div', 'pa-lee-q', u.em_acta_q || ''));
+
+    var arch = document.createElement('input');
+    arch.type = 'file';
+    arch.id = 'emActaArchivo';
+    arch.accept = 'image/*,application/pdf';
+    arch.hidden = true;
+    arch.addEventListener('change', function(){
+      if (arch.files[0]) ponActa(arch.files[0]);
+    });
+
+    /* La MISMA zona que la del lector de los tramites, con sus clases:
+       soltar un papel se ve igual en todo el panel. */
+    var zona = el('button', 'pa-lee-z' + (emActa ? ' puesta' : ''));
+    zona.type = 'button';
+    zona.appendChild(el('b', null, emActa
+      ? String(u.em_acta_puesta || '').replace('{n}', emActa.name)
+      : (u.em_acta_soltar || '')));
+    zona.appendChild(el('span', null, emActa ? (u.em_acta_cambiar || '') : (u.em_acta_elegir || '')));
+    zona.addEventListener('click', function(){ arch.click(); });
+    ['dragenter', 'dragover'].forEach(function(ev){
+      zona.addEventListener(ev, function(e){
+        e.preventDefault();
+        zona.classList.add('encima');
+      });
+    });
+    ['dragleave', 'dragend', 'drop'].forEach(function(ev){
+      zona.addEventListener(ev, function(){ zona.classList.remove('encima'); });
+    });
+    zona.addEventListener('drop', function(e){
+      e.preventDefault();
+      var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) ponActa(f);
+    });
+    caja.appendChild(zona);
+    caja.appendChild(arch);
+
+    var dice = (emLectura === 'leyendo') ? (u.em_acta_leyendo || '')
+             : (emLectura === 'falla')   ? (u.em_acta_nolee || '')
+             : (emLectura > 0) ? String(unoDeEsos(emLectura) ? (u.em_acta_lee_1 || '')
+                                                             : (u.em_acta_lee_q || '')).replace('{n}', emLectura)
+             : '';
+    if (dice) caja.appendChild(el('div', 'pa-lee-r em-acta-r', dice));
+  }
+
+  function ponActa(f){
+    var u = T();
+    var caja = document.getElementById('emActa');
+    var av = document.getElementById('emAviso');
+    var mal = papelMal(f);
+    if (mal){
+      if (caja) caja.classList.add('mal');
+      if (av) av.textContent = u[mal] || '';
+      return;
+    }
+    emActa = f;
+    emActaId = null;
+    emLectura = '';
+    if (caja) caja.classList.remove('mal');
+    if (av) av.textContent = '';
+    pintaActa();
+    leeActa(f);
+  }
+
+  /* Si hay lector, el acta rellena lo suyo. Las casillas salen de LEE_DE,
+     la misma tabla que usan los tramites: si un dia el acta deja de traer
+     el capital, se cambia alli y aqui se entera solo. */
+  function leeActa(f){
+    var lector = window.CIIP_LECTOR;
+    if (typeof lector !== 'function') return;
+    var casillas = EM_CAMPOS.filter(function(c){
+      return (LEE_DE[c.n] || []).indexOf('acta_constitutiva') >= 0;
+    }).map(function(c){ return c.n; });
+    if (!casillas.length) return;
+    /* Como en los tramites: el lector del sitio dice antes si esta
+       encendido, y apagado no se finge que lee. */
+    var enciende = (typeof lector.listo === 'function') ? lector.listo() : true;
+    Promise.resolve(enciende).then(function(si){
+      if (!si || emActa !== f) return;
+      emLectura = 'leyendo';
+      pintaActa();
+      return Promise.resolve().then(function(){
+        return lector(f, {acta_constitutiva: casillas});
+      }).then(function(r){
+        /* Si mientras leia se eligio otra acta o se cerro la ficha, esta
+           respuesta ya no es de nadie. */
+        if (emActa !== f) return;
+        if (!r || r.doc !== 'acta_constitutiva'){
+          emLectura = 'falla';
+          pintaActa();
+          return;
+        }
+        var puestas = 0;
+        casillas.forEach(function(n){
+          var v = r.campos && r.campos[n];
+          if (v === undefined || v === null || v === '') return;
+          if (ponDelActa(n, String(v))) puestas++;
+        });
+        emLectura = puestas;
+        pintaActa();
+        refrescaPieEmpresa();
+      }, function(err){
+        console.warn('[CIIP] lector, acta de la empresa:', err && (err.message || err));
+        if (emActa !== f) return;
+        emLectura = 'falla';
+        pintaActa();
+      });
+    });
+  }
+
+  /* Lo que ya hubieras escrito manda: el papel no pisa tu letra. */
+  function ponDelActa(n, valor){
+    var u = T();
+    var i = document.getElementById('em_' + n);
+    if (!i || String(i.value || '').trim()) return false;
+    var campo = i.closest('.pf-campo');
+    if (campo && campo.querySelector('.fecha3')){
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(valor)) return false;
+      [['a', valor.slice(0, 4)], ['m', valor.slice(5, 7)], ['d', valor.slice(8, 10)]].forEach(function(p){
+        var s = document.getElementById('em_' + n + '_' + p[0]);
+        if (s){ s.value = p[1]; s.dispatchEvent(new Event('change')); }
+      });
+      /* Una fecha que las listas no ofrecen -del futuro- no cuenta como
+         puesta: el campo se ve vacio y decir que se relleno seria mentir. */
+      if (i.value !== valor) return false;
+    } else {
+      i.value = valor;
+    }
+    if (campo){
+      campo.classList.add('de-un-papel');
+      var lb = campo.querySelector('label');
+      if (lb && !lb.querySelector('.de-papel')) lb.appendChild(el('span', 'de-papel', u.pa_lee_sello || ''));
+      /* En cuanto lo tocas deja de ser del acta y pasa a ser tuyo. */
+      var tuyo = function(){
+        campo.classList.remove('de-un-papel');
+        var s = campo.querySelector('.de-papel');
+        if (s) s.remove();
+      };
+      campo.addEventListener('input', tuyo);
+      campo.addEventListener('change', tuyo);
+    }
+    return true;
+  }
+
   /* ── la ficha ── */
   function pintaFichaEmpresa(){
     if (!emBack) return;
@@ -19959,6 +20195,7 @@ applyLang(idiomaParaMi());
       var lb = emBack.querySelector('label[data-campo="' + c.n + '"]');
       if (lb) lb.textContent = u[c.clave] || c.n;
     });
+    pintaActa();
   }
 
   /* \u2500\u2500 UNA FECHA EN TRES LISTAS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -20170,7 +20407,20 @@ applyLang(idiomaParaMi());
 
     /* Lo que se puede dejar para luego, dicho ANTES de empezar. Al final
        ya te lo has escrito todo y enterarte entonces no sirve de nada. */
-    var minimo = el('div', 'em-minimo', T().em_minimo || '');
+    /* Al registrarla, el acta va lo PRIMERO: es el papel del que salen los
+       datos de este paso, y quien lo tiene en la mano no deberia empezar a
+       copiarlo antes de ver que se puede soltar. */
+    emActa = null;
+    emActaId = null;
+    emLectura = '';
+    if (!EMPRESA){
+      var acta = el('div', 'pa-lee em-acta');
+      acta.id = 'emActa';
+      caja.appendChild(acta);
+      pintaActa();
+    }
+
+    var minimo = el('div', 'em-minimo', EMPRESA ? (u.em_minimo || '') : (u.em_minimo_acta || ''));
     minimo.id = 'emMinimo';
     caja.appendChild(minimo);
 
@@ -20278,6 +20528,8 @@ applyLang(idiomaParaMi());
 
     var mn = document.getElementById('emMinimo');
     if (mn) mn.hidden = (emPaso !== 1);
+    var ac = document.getElementById('emActa');
+    if (ac) ac.hidden = (emPaso !== 1);
     refrescaPieEmpresa();
 
 
@@ -20350,7 +20602,10 @@ applyLang(idiomaParaMi());
       var v = i ? String(i.value || '').trim() : '';
       /* Las fechas vacías van como null: una cadena vacía en una columna
          date es un error de Postgres, no un dato en blanco. */
-      fila[c.n] = (c.tipo === 'date') ? (v || null) : v;
+      /* 'fecha3' tambien: son las tres listas, pero la columna sigue siendo
+         date. Sin mirarla, una empresa guardada sin fecha mandaba '' y la
+         base de verdad la rechazaba; la de mentira no se entera. */
+      fila[c.n] = (c.tipo === 'date' || c.tipo === 'fecha3') ? (v || null) : v;
     });
 
     /* Lo unico obligatorio es la razon social, y vive en el paso 1: se
@@ -20361,6 +20616,20 @@ applyLang(idiomaParaMi());
       document.getElementById('em_razon_social').closest('.pf-campo').classList.add('mal');
       document.getElementById('emAviso').textContent = u.em_falta || '';
       document.getElementById('em_razon_social').focus();
+      return;
+    }
+
+    /* Y al registrarla, el acta. Se pide en el mismo paso que la razon
+       social y por lo mismo: descubrir en el tercero que faltaba algo del
+       primero. */
+    if (!EMPRESA && !emActa){
+      emAtajo = false;
+      ponPasoEmpresa(1);
+      var cajaActa = document.getElementById('emActa');
+      if (cajaActa) cajaActa.classList.add('mal');
+      document.getElementById('emAviso').textContent = u.em_acta_falta || '';
+      var zonaActa = cajaActa && cajaActa.querySelector('.pa-lee-z');
+      if (zonaActa) zonaActa.focus();
       return;
     }
 
@@ -20398,6 +20667,14 @@ applyLang(idiomaParaMi());
       var usu = r && r.data && r.data.user;
       if (!usu) throw new Error('sin sesión');
       fila.inversionista = usu.id;
+      /* El acta, ANTES que la fila: una empresa guardada sin su acta es
+         justo lo que este paso vino a evitar. Entra por sube(), el mismo
+         camino que un recaudo, asi que la ven Documentos y los tramites que
+         la piden sin tocar nada mas. Y una sola vez: si la fila falla y se
+         reintenta, el acta ya esta subida. */
+      if (EMPRESA || !emActa || emActaId) return null;
+      return sube('acta_constitutiva', emActa).then(function(id){ emActaId = id; });
+    }).then(function(){
       /* upsert y no insert: la llave primaria es el inversionista, así que
          registrar y editar son la misma operación. */
       return sb.from('empresas').upsert(fila).select().single();

@@ -304,7 +304,10 @@ const SALTOS = new Set([
   'pa_lee_sello',
   /* Y la segunda linea del sitio donde se suelta el papel, que continua la
      primera: «Suelta aqui el documento / o pulsa para elegirlo». */
-  'pa_lee_elegir'
+  'pa_lee_elegir',
+  /* La misma segunda linea en la caja del acta de Mi empresa: «Suelta
+     aqui el acta / o pulsa para elegirla». */
+  'em_acta_elegir'
 ]);
 
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\s*/gu;

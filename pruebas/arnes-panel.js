@@ -205,7 +205,8 @@
               hoyEspacioEspera, hoyEspacioMira, hoyTrasVale, hoyNoValeAbre,
               hoyNoValeMira, hoyNoValeGuarda, hoyTrasNoVale, hoyTrasDevolver,
               hoyRespuestaMira, hoyTrasCerrar, hoyRestaura,
-              empresaAbre, empresaMira, empresaGuarda, empresaTrasGuardar,
+              empresaAbre, empresaMira, empresaNueva, empresaGuarda, empresaActaLeida,
+              empresaTrasGuardar,
               entregaAbre, entregaMira,
               hiloAbre, hiloMira,
               docsAbre, docsMira, docsCambia, docsEsperaCambio, docsTrasCambiar,
@@ -4950,17 +4951,49 @@
          document.getElementById('emBoton').textContent, 'Editar');
     } else {
       igual('empresa: sin registrar, lo dice',
-            (document.querySelector('#emCuerpo .ci-vacia') || {}).textContent,
+            (document.querySelector('#emCuerpo .em-intro') || {}).textContent,
             'Todavía no has registrado tu empresa. Cuando lo hagas, los formularios que pidan estos datos te los ofrecerán ya escritos.');
-      igual('empresa: y ofrece registrarla',
-            document.getElementById('emBoton').textContent.trim(),
-            'Registrar mi empresa con el CIIP');
+      /* Dos caminos, porque llega gente con la empresa hecha y gente sin
+         ella, y a quien no la tiene un formulario le pedia una razon social
+         y un RIF que no existen. */
+      igual('empresa: y ofrece dos caminos, según la tengas o no',
+            [].map.call(document.querySelectorAll('#emCuerpo .em-camino-t'),
+                        function(x){ return x.textContent.trim(); }).join(' | '),
+            'Ya tengo mi empresa | Todavía no tengo empresa');
+      igual('empresa: quien ya la tiene, la registra con el acta',
+            (document.getElementById('emConActa') || {}).textContent, 'Registrarla con el acta');
+      igual('empresa: y quien no, empieza a constituirla',
+            (document.getElementById('emNueva') || {}).textContent, 'Empezar a constituirla');
+      /* Se mide que NO SE VE: .btn trae su display, y un display de la hoja
+         le gana a [hidden]. */
+      ok('empresa: y arriba no se repite el botón',
+         document.getElementById('emBoton').offsetParent === null,
+         document.getElementById('emBoton').hidden ? 'hidden pero pintado' : 'a la vista', 'sin pintar');
     }
+  }
+
+  /* Quien no tiene empresa no la registra: la constituye, y eso es la etapa
+     02 del panel. El botón lleva allí con la etapa ya elegida, no a la
+     portada a buscarla entre cuatro. */
+  function empresaNueva(){
+    if (CASO !== 'gestor') return;
+    document.getElementById('emNueva').click();
+    igual('empresa: «empezar a constituirla» lleva a la portada',
+          document.body.getAttribute('data-vista'), 'inicio');
+    var et = document.querySelector('.jp.active[data-ir]');
+    igual('empresa: con la etapa de la constitución elegida',
+          et ? et.getAttribute('data-ir') : '(ninguna)', '2');
+    ok('empresa: y la constitución a la vista entre sus trámites',
+       !!document.querySelector('.phase.etapa-abierta[data-fase="2"] .tcard[data-tr="c5"]'),
+       document.querySelector('.phase.etapa-abierta') ?
+         'abierta la ' + document.querySelector('.phase.etapa-abierta').getAttribute('data-fase') : 'ninguna abierta',
+       'la c5 en la etapa 2 abierta');
+    document.getElementById('navEmpresa').click();
   }
 
   function empresaGuarda(){
     if (CASO !== 'gestor') return;
-    document.getElementById('emBoton').click();
+    document.getElementById('emConActa').click();
     ok('empresa: la ficha se abre', document.getElementById('empresaBack').classList.contains('open'),
        document.getElementById('empresaBack').className, 'con la clase open');
 
@@ -5124,6 +5157,88 @@
 
     document.getElementById('em_razon_social').value = 'Cacao del Tuy, C.A.';
     document.getElementById('em_rif_empresa').value  = 'J-40987654-3';
+
+    /* ── EL ACTA ── Registrar una empresa ya constituida pide su acta, y la
+       pide en el primer paso: arriba del todo, antes de las casillas que
+       salen de ella. */
+    var acta = document.getElementById('emActa');
+    ok('empresa: al registrarla, la ficha pide el acta',
+       !!acta && acta.offsetHeight > 0 && /El acta constitutiva/.test(acta.textContent),
+       acta ? acta.textContent.slice(0, 40) : '(no hay caja)', 'la caja del acta a la vista');
+    ok('empresa: y la pide antes que las casillas',
+       !!acta && acta === document.getElementById('emCampos').firstElementChild,
+       acta ? 'la ' + ([].indexOf.call(acta.parentNode.children, acta) + 1) + 'ª' : '-', 'la primera');
+
+    document.getElementById('emGuardar').click();
+    igual('empresa: sin acta no se pasa de paso',
+          document.getElementById('emAviso').textContent,
+          'Sube el acta constitutiva: con ella el CIIP comprueba los datos de tu empresa, y los trámites la tendrán a mano.');
+    ok('empresa: y la caja del acta se marca',
+       document.getElementById('emActa').classList.contains('mal'),
+       document.getElementById('emActa').className, 'con la clase mal');
+
+    function sueltaActa(nombre, tipo){
+      var inp = document.getElementById('emActaArchivo');
+      var dt = new DataTransfer();
+      dt.items.add(new File([new Uint8Array(8)], nombre, {type: tipo}));
+      inp.files = dt.files;
+      inp.dispatchEvent(new Event('change'));
+    }
+    /* Un archivo que no es papel no entra, con el mismo aviso que la bóveda. */
+    sueltaActa('acta.txt', 'text/plain');
+    igual('empresa: un archivo que no es PDF ni foto no se toma por el acta',
+          document.getElementById('emAviso').textContent, 'Tiene que ser una imagen o un PDF.');
+
+    /* Con un lector de mentira: lee el acta y devuelve lo que dice. */
+    empresaLectorAntes = window.CIIP_LECTOR;
+    window.CIIP_LECTOR = function(archivo, casillas){
+      empresaPidio = casillas;
+      return Promise.resolve({doc: 'acta_constitutiva', campos: {
+        razon_social: 'CACAO DEL TUY CA',
+        numero_registro: 'N.º 34, tomo 12-A',
+        capital_social: 'Bs. 100.000,00'
+      }});
+    };
+    sueltaActa('acta-cacao.pdf', 'application/pdf');
+    ok('empresa: el acta elegida se queda con su nombre a la vista',
+       /acta-cacao\.pdf/.test(document.getElementById('emActa').textContent),
+       document.getElementById('emActa').textContent.slice(0, 60), 'dice acta-cacao.pdf');
+    ok('empresa: y el aviso y la marca se van',
+       !document.getElementById('emActa').classList.contains('mal') &&
+       !document.getElementById('emAviso').textContent,
+       document.getElementById('emAviso').textContent || document.getElementById('emActa').className,
+       'sin aviso ni marca');
+  }
+
+  /* Estado que cruza de un paso a otro: el lector de verdad, para
+     devolverlo, y lo que se le pidio al de mentira. */
+  var empresaLectorAntes = null, empresaPidio = null;
+
+  function empresaActaLeida(){
+    if (CASO !== 'gestor') return;
+    window.CIIP_LECTOR = empresaLectorAntes;
+    var visibles = function(){
+      return [].filter.call(document.querySelectorAll('#emCampos .pf-campo'),
+                            function(c){ return c.offsetHeight > 0; });
+    };
+
+    /* Solo las casillas del acta que tiene la ficha, sacadas de la misma
+       tabla que usan los trámites. */
+    igual('empresa: al lector se le piden las casillas del acta que hay en la ficha',
+          JSON.stringify(empresaPidio),
+          '{"acta_constitutiva":["razon_social","numero_registro","fecha_constitucion","capital_social"]}');
+    igual('empresa: el acta rellena lo que no estaba escrito',
+          document.getElementById('em_numero_registro').value, 'N.º 34, tomo 12-A');
+    igual('empresa: pero no pisa lo que ya escribiste',
+          document.getElementById('em_razon_social').value, 'Cacao del Tuy, C.A.');
+    ok('empresa: y lo que puso lleva el sello del documento',
+       !!document.getElementById('em_capital_social').closest('.pf-campo').querySelector('.de-papel'),
+       document.getElementById('em_capital_social').closest('.pf-campo').querySelector('label').textContent,
+       'con «del documento»');
+    ok('empresa: y la caja dice cuántas puso',
+       /Hemos rellenado 2 casillas/.test(document.getElementById('emActa').textContent),
+       document.getElementById('emActa').textContent.slice(-110), 'Hemos rellenado 2 casillas');
+
     document.getElementById('emGuardar').click();
 
     igual('empresa: con ella puesta, adelanta',
@@ -5190,8 +5305,8 @@
     /* El contador de los doce, que es el unico que dice cuanto falta de
        verdad: "paso 1 de 3" no distingue entre uno escrito y doce. */
     ok('empresa: y cuenta cuantos de los doce llevas',
-       /2 de 12 escritos/.test(document.getElementById('emCuenta').textContent),
-       document.getElementById('emCuenta').querySelector('b').textContent.trim(), '2 de 12 escritos');
+       /4 de 12 escritos/.test(document.getElementById('emCuenta').textContent),
+       document.getElementById('emCuenta').textContent.trim(), '4 de 12 escritos: dos a mano y dos del acta');
 
     /* En el ultimo paso el atajo NO sale: alli "Guardar" ya es
        exactamente eso, y dos botones que hacen lo mismo confunden. */
@@ -5205,14 +5320,28 @@
     document.getElementById('emGuardarYa').click();
   }
 
-  function empresaTrasGuardar(){
-    if (CASO !== 'gestor') return;
+  function empresaTrasGuardar(hecho){
+    if (CASO !== 'gestor') return hecho();
     ok('empresa: al guardar se cierra la ficha',
        !document.getElementById('empresaBack').classList.contains('open'),
        document.getElementById('empresaBack').className, 'sin la clase open');
     igual('empresa: y la tarjeta ya la enseña',
-          document.querySelector('#emCuerpo .em-nombre').textContent.trim(), 'Cacao del Tuy, C.A.');
-    document.getElementById('emVolver').click();
+          (document.querySelector('#emCuerpo .em-nombre') || {}).textContent, 'Cacao del Tuy, C.A.');
+    /* Y el acta, en la bóveda y con el tipo que piden los trámites: es lo
+       que hace que no haya que subirla otra vez en cada uno. */
+    Promise.resolve(window.sbCIIP.from('documentos').select('id, tipo, nombre_original'))
+      .then(function(r){
+        var acta = ((r && r.data) || []).filter(function(d){
+          return d.nombre_original === 'acta-cacao.pdf'; })[0];
+        igual('empresa: y el acta queda en tus documentos, como acta constitutiva',
+              acta ? acta.tipo : '(no está)', 'acta_constitutiva');
+      }, function(e){
+        ok('empresa: la bóveda contesta', false, e && e.message, 'contesta');
+      })
+      .then(function(){
+        document.getElementById('emVolver').click();
+        hecho();
+      });
   }
 
   /* ═══════════ LA BÓVEDA ═══════════
