@@ -1214,6 +1214,17 @@
       }
       return {data:boveda, error:null};
     }
+    /* La columna «Listo» de la portada pregunta por lo ENTREGADO de todos
+       sus resueltos a la vez, con .in('tramite'). Va delante de la de la
+       boveda porque aquella se queda con cualquier consulta sin .eq, y le
+       daria a la portada los recaudos de otro en vez del documento emitido. */
+    if (tabla === 'tramite_documentos' && op && op.in && op.in.tramite){
+      return {data: op.in.tramite.indexOf('t4') >= 0
+        ? [{tramite:'t4', documento:'dr1', documentos:{tipo:'resolucion',
+            nombre_original:'visa-tr1-estampada.pdf',
+            archivo:'u1/emitidos/visa-tr1-estampada.pdf'}}]
+        : [], error:null};
+    }
     if (tabla === 'tramite_documentos' && !(op && op.eq)){
       /* SIN .eq: la boveda pregunta por TODOS para contar en cuantos
          tramites se usa cada documento. La otra consulta de esta misma

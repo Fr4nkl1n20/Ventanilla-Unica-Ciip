@@ -2380,6 +2380,53 @@ body[data-vista="inicio"].etapa-elegida .tsec-sig:not([hidden]){display:flex;}
 .tsec-sig:hover{text-decoration:underline; text-underline-offset:3px;}
 .tsec-sig:focus-visible{outline:2px solid var(--navy); outline-offset:2px;}
 
+/* ── TUS SOLICITUDES, POR QUIEN TIENE QUE MOVERSE ──
+   La idea 6 de la maqueta de solicitudes en proceso. Tres columnas, y la
+   cabecera de cada una en el color de su monton: el ambar de lo que te toca,
+   el azul de lo que esta en manos de otros y el verde de lo listo. Son los
+   mismos tres colores de los distintivos de las tarjetas, asi que no hay
+   que aprender otro codigo. */
+.qm{margin-bottom:22px;}
+.qm[hidden]{display:none;}
+.qm-cols{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:14px;}
+.qm-col{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow);
+  overflow:hidden; display:flex; flex-direction:column; min-width:0;}
+.qm-cab{display:flex; align-items:center; gap:8px; padding:11px 14px; border-bottom:1px solid var(--line-soft);}
+.qm-cab-t{min-width:0; flex:1 1 auto;}
+.qm-t{display:block; font-size:var(--fs-parrafo); font-weight:700;}
+.qm-d{display:block; font-size:var(--fs-nota); font-weight:500; margin-top:1px;}
+.qm-k{flex:none; font-size:var(--fs-rotulo); font-weight:800; border-radius:999px; padding:1px 8px; color:var(--bg);}
+.qm-col.accion .qm-cab{background:var(--amber-bg); color:var(--amber);}
+.qm-col.accion .qm-k{background:var(--amber);}
+.qm-col.proceso .qm-cab{background:var(--activa-bg); color:var(--navy2);}
+.qm-col.proceso .qm-k{background:var(--navy2);}
+.qm-col.listo .qm-cab{background:var(--good-bg); color:var(--good);}
+.qm-col.listo .qm-k{background:var(--good);}
+.qm-it{display:flex; gap:10px; padding:12px 14px; align-items:flex-start;}
+.qm-it + .qm-it{border-top:1px solid var(--line-soft);}
+/* Blanco tambien en el tema oscuro, como la placa de las tarjetas: los
+   logos de los organismos estan dibujados para ir sobre blanco. */
+.qm-placa{width:40px; height:28px; flex:none; border-radius:7px; background:#fff; border:1px solid var(--line);
+  padding:3px 4px; display:flex; align-items:center; justify-content:center;}
+.qm-placa img{max-width:100%; max-height:100%; object-fit:contain;}
+.qm-q{min-width:0; flex:1 1 auto;}
+.qm-nombre{display:block; font:inherit; font-size:var(--fs-parrafo); font-weight:700; line-height:1.3; color:var(--ink);
+  background:none; border:0; padding:0; text-align:left; cursor:pointer; overflow-wrap:anywhere;}
+.qm-nombre:hover{text-decoration:underline; text-underline-offset:3px;}
+.qm-nombre:focus-visible, .qm-mas:focus-visible{outline:2px solid var(--navy); outline-offset:2px;}
+.qm-b{font-size:var(--fs-fila); line-height:1.45; margin-top:3px; color:var(--ink); overflow-wrap:anywhere;}
+.qm-it .lleva{display:flex; align-items:center; gap:5px; margin-top:4px; font-size:var(--fs-nota); color:var(--mudo);}
+.qm-it .lleva svg{width:13px; height:13px; flex:none; stroke:currentColor; stroke-width:2; fill:none;}
+.qm-it .btn{margin-top:8px; padding:6px 11px; display:inline-flex; align-items:center; gap:6px;}
+.qm-it .btn svg{width:14px; height:14px; stroke:currentColor; stroke-width:2.2; fill:none;}
+.qm-it .btn.qm-toca{background:var(--amber); color:var(--bg); border-color:var(--amber);}
+.qm-it .btn.qm-descarga{background:var(--good); color:var(--bg); border-color:var(--good);}
+.qm-nada{padding:14px; font-size:var(--fs-nota); color:var(--mudo);}
+.qm-mas{font:inherit; font-size:var(--fs-nota); font-weight:700; color:var(--navy2); background:none; border:0;
+  border-top:1px solid var(--line-soft); padding:9px 14px; text-align:left; cursor:pointer;}
+.qm-mas:hover{text-decoration:underline; text-underline-offset:3px;}
+@media (max-width:900px){ .qm-cols{grid-template-columns:1fr;} }
+
 /* ============== DETALLE DE UN TRAMITE (tercer nivel) ==============
    portada -> fase -> tramite. Cada nivel tiene su vista y su boton de
    volver; el de aqui regresa a la fase de la que salio el tramite. */
@@ -4316,6 +4363,19 @@ body[data-vista="horario"] .fase-bar{display:none;}
          decir cuanto llevas en el paso en curso. Si algun dia vuelve, lo
          que hacia esta en el historial de git; dejarlo aqui apagado solo
          haria que el proximo que pase se pregunte si esta roto. -->
+
+    <!-- TUS SOLICITUDES, POR QUIEN TIENE QUE MOVERSE. La idea 6 de
+         maquetas/solicitudes-en-proceso.html. Nace OCULTA y vacia: lo que
+         dice sale de tus solicitudes en la base, y sin ninguna no hay nada
+         que repartir. La compone pintaQuienMueve; los textos llevan data-ui
+         para que el administrador los pueda cambiar sobre la pantalla. -->
+    <div class="qm solo-inicio" id="quienMueve" hidden>
+      <div class="sec-h">
+        <div class="t" id="qmTitulo" data-ui="qm_titulo"></div>
+        <div class="sub" id="qmSub" data-ui="qm_sub"></div>
+      </div>
+      <div class="qm-cols" id="qmCols"></div>
+    </div>
 
     <div class="section-gap solo-inicio">
       <div class="sec-h">
@@ -9085,6 +9145,27 @@ applyLang(idiomaParaMi());
      La caja aparece SOLO si hay documento. Un "Tu documento" vacío sobre
      un trámite resuelto sería peor que no ponerlo: diría que existe algo
      que no se puede abrir. */
+  /* Abrir lo que emitio el organismo: un enlace firmado de dos minutos, en
+     otra pestaña. Vivia dentro de pintaEntregado; salio de ahi cuando la
+     columna «Listo» de la portada empezo a ofrecer la misma descarga, para
+     que un arreglo en una no se quede sin llegar a la otra. */
+  function abreEmitido(d, boton){
+    var u = T();
+    boton.disabled = true;
+    sb.storage.from('recaudos').createSignedUrl(d.archivo, 120)
+      .then(function(rs){
+        boton.disabled = false;
+        var url = rs && rs.data && rs.data.signedUrl;
+        if (!url) throw new Error('sin url');
+        window.open(url, '_blank', 'noopener');
+      })
+      .catch(function(e){
+        console.warn('[CIIP] abrir lo emitido:', e && (e.message || e));
+        boton.disabled = false;
+        boton.textContent = u.co_noabre || '';
+      });
+  }
+
   function pintaEntregado(tr, caja){
     var u = T();
     sb.from('tramite_documentos').select('documento, documentos(tipo, nombre_original, archivo)')
@@ -9104,21 +9185,7 @@ applyLang(idiomaParaMi());
         pie.appendChild(el('span', 'te-n', d.nombre_original || ''));
         var abrir = el('button', 'btn navy', u.co_abrir || '');
         abrir.type = 'button';
-        abrir.addEventListener('click', function(){
-          abrir.disabled = true;
-          sb.storage.from('recaudos').createSignedUrl(d.archivo, 120)
-            .then(function(rs){
-              abrir.disabled = false;
-              var url = rs && rs.data && rs.data.signedUrl;
-              if (!url) throw new Error('sin url');
-              window.open(url, '_blank', 'noopener');
-            })
-            .catch(function(e){
-              console.warn('[CIIP] abrir lo emitido:', e && (e.message || e));
-              abrir.disabled = false;
-              abrir.textContent = u.co_noabre || '';
-            });
-        });
+        abrir.addEventListener('click', function(){ abreEmitido(d, abrir); });
         pie.appendChild(abrir);
         b.appendChild(pie);
 
@@ -15200,6 +15267,226 @@ applyLang(idiomaParaMi());
     return {txt: i >= 0 ? estadoTexto(i, ente) : estado, clase:''};
   }
 
+  /* ── TUS SOLICITUDES, POR QUIÉN TIENE QUE MOVERSE ──
+     La idea 6 de maquetas/solicitudes-en-proceso.html, elegida por Franklin
+     el 15 de septiembre de 2026. Arriba de la portada, tres columnas que
+     contestan la pregunta con la que se abre el panel, «¿tengo que hacer
+     algo?»: lo que te toca a ti, lo que está en manos del CIIP o del
+     organismo y lo que ya está listo.
+
+     No son tres montones nuevos: son los de A_TARJETA -accion, proceso,
+     listo-, los mismos que dan color a las tarjetas y que filtran Mis
+     trámites. Y de cada trámite sale UNA solicitud, la que elige
+     mandaSobre, igual que en su tarjeta: un borrador que se quedó atrás no
+     puede pedirte nada sobre algo que su tarjeta ya da por resuelto.
+
+     Lo que se cuenta sale de la base: la nota de la última devolución,
+     desde cuándo espera cada una y el documento emitido. Lo que NO se
+     cuenta es cuánto suele tardar, aunque la maqueta lo traía: el CIIP
+     apagó el estimado (ESTIMADO_EN_FICHA) y la portada no lo enciende por
+     su cuenta.
+
+     Y a sabiendas de lo que se quitó el 10 de septiembre: la franja ámbar
+     de «te toca a ti», por anunciar lo mismo que la campana y la tarjeta.
+     Esto no anuncia una solicitud, reparte todas. Si un día sobra, se va
+     este bloque, su sección del marcado, sus reglas y las claves qm_. */
+  var QM_MONTONES = [
+    {m:'accion',  t:'qm_tu',    d:'qm_tu_d'},
+    {m:'proceso', t:'qm_ellos', d:'qm_ellos_d'},
+    {m:'listo',   t:'qm_listo', d:'qm_listo_d'}
+  ];
+  /* Cuántas filas por columna. Con más, la columna se hace más alta que el
+     camino que tiene debajo; el resto se cuenta y se ve en Mis trámites. */
+  var QM_TOPE = 3;
+
+  /* Lo que la portada sabe además del estado. Dos consultas, las dos a la
+     vez y cada una para TODAS las solicitudes de golpe, no una por fila. Si
+     alguna falla, la columna sale igual, con menos detalle. */
+  function ponLoDeLaPortada(lista){
+    var ids = function(estado){
+      return lista.filter(function(t){ return t.estado === estado; }).map(function(t){ return t.id; });
+    };
+    var devueltas = ids('devuelto'), resueltas = ids('resuelto');
+
+    var notas = !devueltas.length ? Promise.resolve() :
+      sb.from('tramite_eventos').select('tramite, nota, creado_en')
+        .in('tramite', devueltas).eq('a_estado', 'devuelto')
+        .order('creado_en', {ascending:false})
+        .then(function(r){
+          if (r && r.error) throw r.error;
+          /* Del más nuevo al más viejo: la primera nota de cada trámite es
+             la de la última devolución. Si fue y volvió dos veces, la vieja
+             ya no es la que hay que corregir. */
+          var ultima = {};
+          (r.data || []).forEach(function(e){
+            if (e.tramite && e.nota && !(e.tramite in ultima)) ultima[e.tramite] = e.nota;
+          });
+          lista.forEach(function(t){ if (t.id in ultima) t.nota_devuelta = ultima[t.id]; });
+        })
+        .catch(function(e){ console.warn('[CIIP] notas de la portada:', e && e.message); });
+
+    var emitidos = !resueltas.length ? Promise.resolve() :
+      sb.from('tramite_documentos').select('tramite, documentos(tipo, nombre_original, archivo)')
+        .in('tramite', resueltas)
+        .then(function(r){
+          if (r && r.error) throw r.error;
+          (r.data || []).forEach(function(x){
+            if (!x.documentos || x.documentos.tipo !== 'resolucion') return;
+            lista.forEach(function(t){ if (t.id === x.tramite) t.emitido = x.documentos; });
+          });
+        })
+        .catch(function(e){ console.warn('[CIIP] emitidos de la portada:', e && e.message); });
+
+    return Promise.all([notas, emitidos]);
+  }
+
+  function pintaQuienMueve(){
+    var caja = document.getElementById('quienMueve');
+    var cols = document.getElementById('qmCols');
+    if (!caja || !cols) return;
+    var u = T();
+
+    var porRef = {};
+    (mios || []).forEach(function(t){
+      var ref = tipoRefDe(t.tipo);
+      if (!ref) return;
+      var ya = porRef[ref];
+      if (!ya || mandaSobre(t, ya)) porRef[ref] = t;
+    });
+
+    var grupos = {accion:[], proceso:[], listo:[]};
+    Object.keys(porRef).forEach(function(ref){
+      var t = porRef[ref], m = A_TARJETA[t.estado];
+      /* Sin tarjeta no se ofrece: un trámite apagado ya no está en la
+         portada, y una fila que lleva a él llevaría a ninguna parte. */
+      if (!grupos[m] || !document.querySelector('.tcard[data-tr="' + ref + '"]')) return;
+      grupos[m].push({t:t, ref:ref});
+    });
+
+    var total = grupos.accion.length + grupos.proceso.length + grupos.listo.length;
+    caja.hidden = !total;
+    cols.textContent = '';
+    if (!total) return;
+
+    var tit = document.getElementById('qmTitulo'), sub = document.getElementById('qmSub');
+    if (tit) tit.textContent = u.qm_titulo || '';
+    if (sub) sub.textContent = u.qm_sub || '';
+
+    /* Dentro de cada columna, primero lo devuelto -hay trabajo del CIIP
+       esperando- y luego lo que se movió más tarde. */
+    var cuandoDe = function(t){ return String(t.resuelto_en || t.desde_en || t.enviado_en || t.creado_en || ''); };
+
+    QM_MONTONES.forEach(function(g){
+      var lista = grupos[g.m].sort(function(a, b){
+        return (RANGO_TRAMITE[a.t.estado] - RANGO_TRAMITE[b.t.estado]) ||
+               (cuandoDe(b.t) > cuandoDe(a.t) ? 1 : cuandoDe(b.t) < cuandoDe(a.t) ? -1 : 0);
+      });
+
+      var col = el('div', 'qm-col ' + g.m);
+      col.setAttribute('data-monton', g.m);
+      var cab = el('div', 'qm-cab');
+      var tx = el('div', 'qm-cab-t');
+      var ct = el('span', 'qm-t', u[g.t] || '');
+      ct.setAttribute('data-ui', g.t);
+      var cd = el('span', 'qm-d', u[g.d] || '');
+      cd.setAttribute('data-ui', g.d);
+      tx.appendChild(ct);
+      tx.appendChild(cd);
+      cab.appendChild(tx);
+      cab.appendChild(el('span', 'qm-k', String(lista.length)));
+      col.appendChild(cab);
+
+      /* La columna vacía lo dice. Sin esto quedaba un hueco blanco, que es
+         la «pega» que la propia maqueta apuntaba de esta idea. */
+      if (!lista.length){
+        var nada = el('div', 'qm-nada', u.qm_nada || '');
+        nada.setAttribute('data-ui', 'qm_nada');
+        col.appendChild(nada);
+      }
+
+      lista.slice(0, QM_TOPE).forEach(function(x){ col.appendChild(filaQm(x.t, x.ref, u)); });
+
+      if (lista.length > QM_TOPE){
+        var mas = el('button', 'qm-mas', String(u.qm_mas || '').replace('{n}', lista.length));
+        mas.type = 'button';
+        mas.setAttribute('data-resto', String(lista.length - QM_TOPE));
+        /* A Mis trámites con el mismo montón ya puesto: quien pulsa «Ver las
+           cinco» de lo que le toca no quiere volver a filtrar allí. */
+        mas.addEventListener('click', function(){
+          mtFiltro = g.m;
+          location.hash = 'tramites';
+          pintaMisTramites();
+        });
+        col.appendChild(mas);
+      }
+      cols.appendChild(col);
+    });
+  }
+
+  function filaQm(t, ref, u){
+    var it = el('div', 'qm-it');
+
+    /* El logo, el de su tarjeta. Si no lo tiene, la fila va sin placa. */
+    var logo = document.querySelector('.tcard[data-tr="' + ref + '"] .t-ico img');
+    if (logo && logo.getAttribute('src')){
+      var placa = el('span', 'qm-placa');
+      var img = document.createElement('img');
+      img.src = logo.getAttribute('src');
+      img.alt = '';
+      placa.appendChild(img);
+      it.appendChild(placa);
+    }
+
+    var q = el('div', 'qm-q');
+    /* El nombre abre el trámite en las tres columnas: también quien solo
+       espera puede querer ver en qué punto va. */
+    var nom = el('button', 'qm-nombre', nombreDeTarjeta(ref));
+    nom.type = 'button';
+    nom.addEventListener('click', function(){ location.hash = 'tramite-' + ref; });
+    q.appendChild(nom);
+
+    var ente = ((TIPOS || {})[ref] || {}).ente || '';
+    var ir = function(texto){
+      var b = el('button', 'btn qm-ir qm-toca', texto || '');
+      b.type = 'button';
+      b.addEventListener('click', function(){ location.hash = 'tramite-' + ref; });
+      return b;
+    };
+
+    if (t.estado === 'devuelto'){
+      /* La nota del gestor tal cual, que dice QUÉ falta. Si no la dejó, una
+         frase que dice lo que hay que hacer sin sonar a castigo. */
+      q.appendChild(el('div', 'qm-b', t.nota_devuelta || u.qm_devuelta || ''));
+      q.appendChild(ir(u.corregir));
+    } else if (t.estado === 'borrador'){
+      q.appendChild(el('div', 'qm-b', u.qm_borrador || ''));
+      q.appendChild(ir(u.qm_seguir));
+    } else if (t.estado === 'resuelto'){
+      var cuando = t.resuelto_en ? String(u.mt_resuelta || '').replace('{fecha}', fecha(t.resuelto_en)) : '';
+      if (cuando) q.appendChild(el('div', 'qm-b', cuando.charAt(0).toUpperCase() + cuando.slice(1)));
+      /* Descargar SOLO si hay documento. Un botón que no abre nada diría
+         que existe algo que no está. */
+      if (t.emitido && t.emitido.archivo){
+        var bajar = el('button', 'btn qm-descarga');
+        bajar.type = 'button';
+        bajar.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>';
+        bajar.appendChild(document.createTextNode(u.qm_descargar || ''));
+        bajar.addEventListener('click', function(){ abreEmitido(t.emitido, bajar); });
+        q.appendChild(bajar);
+      }
+    } else {
+      /* En manos de otros: dónde está y desde cuándo, con las mismas
+         palabras y el mismo reloj que Mis trámites. Sin botón: aquí solo
+         toca esperar. */
+      q.appendChild(el('div', 'qm-b', chipDeTramite(t.estado, ente).txt));
+      var rel = relojDe(t.desde_en || t.enviado_en || t.creado_en, u.mt_desde);
+      if (rel) q.appendChild(rel);
+    }
+
+    it.appendChild(q);
+    return it;
+  }
+
   /* 'todas' | 'accion' | 'proceso' | 'listo'. Vive fuera de la funcion
      que pinta para que repintar -al cambiar de idioma, al descartar un
      borrador- no devuelva al monton comun. */
@@ -15292,6 +15579,9 @@ applyLang(idiomaParaMi());
     var cuerpo = document.getElementById('mtCuerpo');
     if (!cuerpo) return;
     var u = T();
+
+    /* La portada reparte las mismas solicitudes: se repinta con ellas. */
+    pintaQuienMueve();
 
     var vivos = mios.filter(function(t){ return MT_VIVOS.indexOf(t.estado) >= 0; });
     /* La chapa es del RENGLÓN, y el renglón no dice lo mismo para todos: al
@@ -15665,7 +15955,9 @@ applyLang(idiomaParaMi());
         pintaMisTramites();
         /* Y con ellos, el estado de las 31 tarjetas de la portada. */
         pintaEstadoTarjetas();
-        return ponDesdeCuando(mios).then(pintaMisTramites);
+        /* Y a la vez, lo que la portada cuenta de cada una: la nota de la
+           devolución y el documento emitido. */
+        return Promise.all([ponDesdeCuando(mios), ponLoDeLaPortada(mios)]).then(pintaMisTramites);
       });
     })
       .catch(function(e){

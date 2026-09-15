@@ -153,6 +153,9 @@
        acepta, y desde ahi la tanda sigue como en cualquier otro pase. */
     enCadena([pliegoMira, pliegoAcepta, pliegoCerrada,
               puertaEspera, puertaMira, puertaTrasResponder,
+              /* La portada por quien tiene que moverse, recien cargada y
+                 antes de que ningun paso toque una solicitud. */
+              quienMira,
               pruebas, trasGuardar, citasAbre, citasPide,
               /* Los huecos solo en el pase 'huecos'; en los demas no hacen nada. */
               huecosMira, huecosOcupado, huecosReserva, huecosTrasReservar,
@@ -4155,6 +4158,101 @@
     igual('usuarios: las cuentas siguen siendo las mismas cuatro',
           m[0].querySelector('.n').textContent, '4');
     location.hash = '';
+  }
+
+  /* ── TUS SOLICITUDES, POR QUIÉN TIENE QUE MOVERSE ──
+     La idea 6 de maquetas/solicitudes-en-proceso.html. Tres columnas con los
+     mismos tres montones que las tarjetas y los filtros de Mis trámites, y
+     UNA solicitud por trámite: la que manda en su tarjeta. Si la portada
+     eligiera otra, diría de la visa «te toca a ti» mientras su tarjeta dice
+     «Completado». */
+  function quienMira(sigue){
+    var caja = document.getElementById('quienMueve');
+    function col(m){ return caja && caja.querySelector('.qm-col[data-monton="' + m + '"]'); }
+    function items(m){ var c = col(m); return c ? c.querySelectorAll('.qm-it') : []; }
+    function cuenta(m){ var c = col(m), k = c && c.querySelector('.qm-k'); return k ? k.textContent : '(sin cuenta)'; }
+    function nombre(ref){
+      var n = document.querySelector('.tcard[data-tr="' + ref + '"] .t-name');
+      return n ? n.textContent.trim() : ref;
+    }
+
+    /* Solo tres expedientes traen solicitudes propias. Los demas pases
+       -gestor, estrecho, sinsector, sincatalogo...- reciben la lista vacia
+       del doble de la base, y ahi lo correcto es que la seccion NO salga:
+       tres columnas que dicen «Nada por ahora» son una seccion entera de
+       ruido. Antes esto solo lo miraba en 'gestor', y los otros pases se
+       tomaban por un expediente con una solicitud que no tienen. */
+    var cuantas = {lleno:4, vacio:1, sinnombre:1}[CASO];
+    if (!cuantas){
+      ok('quién se mueve: sin solicitudes propias no sale',
+         !caja || caja.hidden, caja ? (caja.hidden ? 'escondida' : 'a la vista') : 'no está', 'escondida');
+      return sigue();
+    }
+    esperaFilas('#quienMueve .qm-it', cuantas, function(){
+      /* La descarga llega con su propia consulta, un instante después. */
+      esperaFilas(CASO === 'lleno' ? '#quienMueve .qm-descarga' : 'body', 1, function(){
+        mira();
+        sigue();
+      });
+    });
+
+    function mira(){
+      ok('quién se mueve: con solicitudes, la sección sale en la portada',
+         !!caja && !caja.hidden && caja.offsetHeight > 0,
+         caja ? (caja.hidden ? 'escondida' : caja.offsetHeight + 'px de alto') : 'no está', 'a la vista');
+      igual('quién se mueve: tres columnas, en el orden de la maqueta',
+            [].map.call(caja ? caja.querySelectorAll('.qm-col') : [], function(c){
+              return c.getAttribute('data-monton'); }).join(' '),
+            'accion proceso listo');
+      /* El número de la cabecera es lo que hay debajo. Si algún día se
+         recortan las filas, el número tiene que seguir diciendo el total. */
+      ['accion', 'proceso', 'listo'].forEach(function(m){
+        var c = col(m), mas = c && c.querySelector('.qm-mas');
+        igual('quién se mueve: la cuenta de «' + m + '» dice lo que hay',
+              cuenta(m), String(items(m).length + (mas ? Number(mas.getAttribute('data-resto')) : 0)));
+        /* Una columna vacía no deja un hueco: lo dice. Es la «pega» que la
+           propia maqueta apuntaba. */
+        if (!items(m).length){
+          ok('quién se mueve: la columna «' + m + '» vacía dice que no hay nada',
+             !!(c && c.querySelector('.qm-nada') && c.querySelector('.qm-nada').textContent.trim()),
+             c ? c.textContent.trim().slice(0, 60) : 'no está', 'Nada por ahora');
+        }
+      });
+
+      if (CASO === 'lleno'){
+        igual('quién se mueve: te toca a ti, la devuelta y el borrador', items('accion').length, 2);
+        igual('quién se mueve: en manos de otros, la enviada', items('proceso').length, 1);
+        igual('quién se mueve: y lista, la visa resuelta', items('listo').length, 1);
+        var tu = col('accion') ? col('accion').textContent : '';
+        ok('quién se mueve: la devuelta dice lo que pidió el CIIP, con sus palabras',
+           tu.indexOf('comprobante del capital') >= 0, tu.slice(0, 90), 'la nota del gestor');
+        ok('quién se mueve: el borrador nuevo de la visa no pide nada, que la visa ya está',
+           tu.indexOf(nombre('c1')) < 0, tu.slice(0, 90), 'sin «' + nombre('c1') + '»');
+        ok('quién se mueve: cada una de las tuyas lleva su botón',
+           [].every.call(items('accion'), function(it){ return !!it.querySelector('.qm-ir'); }),
+           [].filter.call(items('accion'), function(it){ return !it.querySelector('.qm-ir'); }).length + ' sin botón',
+           'todas con botón');
+        var listo = col('listo');
+        ok('quién se mueve: lo resuelto se descarga desde aquí',
+           !!(listo && listo.querySelector('.qm-descarga')),
+           listo ? listo.textContent.trim().slice(0, 60) : 'no está', 'botón Descargar');
+        /* En manos de otros no se ofrece nada que hacer: solo toca esperar,
+           y un botón ahí invitaría a tocar algo que no está en tu mano. */
+        igual('quién se mueve: y lo que está en manos de otros no pide nada',
+              col('proceso') ? col('proceso').querySelectorAll('.btn').length : -1, 0);
+      }
+
+      if (CASO === 'vacio'){
+        /* Un borrador viejo y una revisión en marcha del mismo trámite:
+           manda la revisión, igual que en su tarjeta. */
+        igual('quién se mueve: el borrador que se quedó atrás no te pide nada', items('accion').length, 0);
+        igual('quién se mueve: y la revisión en marcha sí sale', items('proceso').length, 1);
+      }
+
+      if (CASO === 'sinnombre'){
+        igual('quién se mueve: el borrador a medias te toca a ti', items('accion').length, 1);
+      }
+    }
   }
 
   /* ═══════════ MI EMPRESA ═══════════
