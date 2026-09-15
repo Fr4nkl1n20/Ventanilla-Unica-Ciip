@@ -7982,6 +7982,14 @@
        q.indexOf('{papeles}') < 0 && q.length > 40, q.slice(0, 70), 'la lista puesta');
     ok('lector: con su sitio donde soltar', !!c.querySelector('.pa-lee-z'),
        c.innerHTML.indexOf('pa-lee-z') >= 0 ? 'esta' : 'no esta', 'una zona');
+
+    /* Y en TODAS las fichas menos una. Se pregunta a la tabla y no abriendo
+       las treinta y dos: el cuadro sale si y solo si algun papel de la ficha
+       rellena alguna casilla suya, y eso es justo lo que la tabla dice. Si
+       mañana una ficha nueva llega sin su linea, esto lo canta. */
+    igual('lector: el cuadro sale en todas las fichas menos la firma electrónica',
+          window.CIIP_SIN_LECTOR ? window.CIIP_SIN_LECTOR().join(', ') : '(no está la función)',
+          'firma_electronica');
   }
 
   /* La situacion que se quiere medir: alguien que TODAVIA no tiene empresa

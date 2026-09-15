@@ -9022,14 +9022,21 @@ applyLang(idiomaParaMi());
      ───────────────────────────────────────────────────────────────── */
   var LEE_DE = {
     /* el acta constitutiva */
-    razon_social:          ['acta_constitutiva'],
-    numero_registro:       ['acta_constitutiva'],
+    /* El acta protocolizada es la misma acta con la nota del registro
+       encima: trae la razon social, el numero y la fecha. Sin ella aqui, la
+       publicacion del acta -que pide esa y no la constitutiva- no tenia
+       nada que leer. */
+    razon_social:          ['acta_constitutiva', 'acta_protocolizada'],
+    numero_registro:       ['acta_constitutiva', 'acta_protocolizada'],
     registro_mercantil:    ['acta_constitutiva'],
     fecha_constitucion:    ['acta_constitutiva'],
-    fecha_protocolizacion: ['acta_constitutiva'],
-    capital_social:        ['acta_constitutiva'],
+    fecha_protocolizacion: ['acta_constitutiva', 'acta_protocolizada'],
+    /* Antes de que exista el acta, el capital esta en el comprobante del
+       deposito, y el domicilio en su comprobante: es lo que la constitucion
+       pide. */
+    capital_social:        ['acta_constitutiva', 'comprobante_capital'],
     objeto_social:         ['acta_constitutiva'],
-    domicilio_social:      ['acta_constitutiva'],
+    domicilio_social:      ['acta_constitutiva', 'domicilio_empresa'],
     socios:                ['acta_constitutiva'],
     tipo_sociedad:         ['acta_constitutiva'],
 
@@ -9039,11 +9046,14 @@ applyLang(idiomaParaMi());
     direccion_fiscal:      ['rif_empresa', 'domicilio_empresa'],
 
     /* el pasaporte y la cedula */
-    numero_pasaporte:      ['pasaporte'],
-    pais_emisor:           ['pasaporte'],
+    /* El pasaporte del familiar, para la visa de dependientes: las mismas
+       casillas, del pasaporte de otra persona. */
+    numero_pasaporte:      ['pasaporte', 'pasaporte_dependiente'],
+    pais_emisor:           ['pasaporte', 'pasaporte_dependiente'],
     vence_pasaporte:       ['pasaporte'],
     numero_documento:      ['cedula', 'pasaporte'],
-    fecha_nacimiento:      ['cedula', 'pasaporte'],
+    fecha_nacimiento:      ['cedula', 'pasaporte', 'pasaporte_dependiente'],
+    nombre_familiar:       ['pasaporte_dependiente'],
 
     /* la visa estampada */
     numero_visa:           ['visa'],
@@ -9063,8 +9073,37 @@ applyLang(idiomaParaMi());
     poder_fecha:           ['poder'],
 
     /* los comprobantes de domicilio */
-    direccion_vzla:        ['domicilio'],
+    /* El contrato de arrendamiento y el recibo de un servicio dicen donde
+       vives: son los dos papeles que pide la constancia de domicilio. */
+    direccion_vzla:        ['domicilio', 'arrendamiento', 'recibo_servicio'],
+    ciudad:                ['arrendamiento', 'recibo_servicio'],
+    municipio:             ['arrendamiento', 'recibo_servicio'],
+
+    /* El documento que se apostilla dice de donde es, en que idioma esta y
+       de que fecha. Lo que no dice es para que lo quieres. */
+    pais_origen:           ['documento_original'],
+    idioma:                ['documento_original'],
+    fecha_documento:       ['documento_original'],
+
+    /* La marca: el signo es lo que esta escrito en el logo. */
+    signo:                 ['logo_marca'],
     direccion_local:       ['domicilio_empresa']
+  };
+
+  /* LAS FICHAS SIN CUADRO (15 de septiembre de 2026). Eran siete y ahora es
+     una, por decision de Franklin: «subelo a todas». La que queda es la
+     firma electronica, y no por olvido: pide tipo de certificado, correo,
+     telefono y uso previsto, y nada de eso esta escrito en la cedula ni en
+     el RIF. Un cuadro alli prometeria leer y no rellenaria nada.
+
+     Y ninguna casilla de desplegable entro en la ampliacion -el parentesco,
+     el tipo de signo, el documento que se apostilla-: al lector le llegan
+     los nombres de las casillas y no sus opciones, asi que contestaria con
+     palabras que casi nunca son una opcion, y ponCampo las deja vacias. */
+  window.CIIP_SIN_LECTOR = function(){
+    return Object.keys(CAMPOS).filter(function(c){
+      return !Object.keys(papelesQueRellenan(c).porDoc).length;
+    });
   };
 
   /* De los papeles que ESTE tramite pide, cuales rellenan casillas suyas.
