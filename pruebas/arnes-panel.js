@@ -188,6 +188,8 @@
               rncAbre, empiezaSolicitud, rncTrasAbrir,
               sisrefAbre, empiezaSolicitud, sisrefTrasAbrir,
               zodiAbre, empiezaSolicitud, zodiTrasAbrir,
+              /* La constitucion en tres tramos: la ficha, su detalle y un tramo. */
+              tramosMira, tramosDetalle, tramosTramo,
               rupdaeAbre, empiezaSolicitud, rupdaeTrasAbrir,
               rumAbre, empiezaSolicitud, rumTrasAbrir,
               pistaAbre, empiezaSolicitud, pistaMira,
@@ -681,9 +683,14 @@
        Y en cuanto el CIIP lo encienda vuelve a ser ocho sin recargar, que eso
        lo comprueba el bloque de «sin pulsar F5».
 
-       OCHO desde la opinión favorable de la ZODI (c34): una encendida más. */
+       OCHO desde la opinión favorable de la ZODI (c34): una encendida más.
+
+       Y SEIS desde el 15 de septiembre de 2026: la protocolización (c22) y la
+       publicación (c23) pasan a ser tramos de la constitución (c5) y se ven
+       dentro de su ficha. No se cuentan dos veces: la constitución está lista
+       cuando lo están sus tres tramos. */
     igual('camino: la fase 02 cuenta las que están encendidas',
-          deEtapa(1, '.jcount'), '0 de 8 listos');
+          deEtapa(1, '.jcount'), '0 de 6 listos');
     /* Trece desde el RUPDAE (c35) y el Registro Único Minero (c36). */
     igual('camino: la fase 03 cuenta sus 13',          deEtapa(2, '.jcount'), '0 de 13 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
@@ -1417,8 +1424,11 @@
            Eran ocho y siete hasta la opinión favorable de la ZODI (c34), que
            es 'actividad': lo de 'actividad' no se aparta nunca, así que
            suma una a la vista. */
+        /* Seis a la vista desde que la protocolización y la publicación son
+           tramos de la constitución: siguen en la rejilla -su detalle las
+           necesita- pero con data-tramo-de, y no se enseñan como fichas. */
         igual('fases: y enseña las encendidas de sus nueve',
-          document.querySelectorAll('#trs-2 > .tcard[data-tr]').length, 8);
+          document.querySelectorAll('#trs-2 > .tcard[data-tr]:not([data-tramo-de])').length, 6);
         ok('fases: la ZODI está en la fase 02, a la vista',
            !!document.querySelector('#trs-2 > .tcard[data-tr="c34"]'),
            'no está', 'la tarjeta c34');
@@ -2803,6 +2813,61 @@
       location.hash = '';
       sigue();
     });
+  }
+
+  /* ═══════════ LA CONSTITUCIÓN, EN TRES TRAMOS ═══════════
+     Desde el 15 de septiembre de 2026 la protocolización (c22) y la
+     publicación (c23) no son fichas aparte: son tramos de la constitución
+     (c5), que los enseña dentro. Por detrás siguen siendo tres trámites. Se
+     mira en el expediente vacío, donde los tres están por iniciar. */
+  function tramosMira(){
+    if (CASO !== 'vacio') return;
+    var madre = document.querySelector('.tcard[data-tr="c5"]');
+    var ocultas = ['c22', 'c23'].filter(function(ref){
+      var c = document.querySelector('.tcard[data-tr="' + ref + '"]');
+      return !!c && window.getComputedStyle(c).display === 'none';
+    });
+    igual('tramos: protocolización y publicación ya no son fichas a la vista', ocultas.join(','), 'c22,c23');
+    var filas = madre ? madre.querySelectorAll('.t-tramos .t-tramo') : [];
+    igual('tramos: la constitución lleva sus tres tramos', filas.length, 3);
+    igual('tramos: el primero es la redacción y firma del acta',
+          filas.length ? filas[0].querySelector('.tt-t').textContent : '(sin tramos)',
+          'Redacción y firma del acta');
+    igual('tramos: el segundo, la protocolización',
+          filas.length > 1 ? filas[1].querySelector('.tt-t').textContent : '(sin tramos)',
+          'Protocolización del acta');
+    /* Y la ficha dice el estado de los tres, no el del primero. */
+    igual('tramos: la ficha dice el estado de los tres',
+          madre ? madre.getAttribute('data-st') : '(sin ficha)', 'pendiente');
+    location.hash = 'tramite-c5';
+  }
+
+  function tramosDetalle(){
+    if (CASO !== 'vacio') return;
+    var bloques = document.querySelectorAll('#trTramos .tr-bloque');
+    igual('tramos: el detalle de la constitución enseña los tres bloques', bloques.length, 3);
+    ok('tramos: cada bloque con sus cuatro pasos',
+       bloques.length === 3 && [].every.call(bloques, function(b){ return b.querySelectorAll('.tr-paso').length === 4; }),
+       [].map.call(bloques, function(b){ return b.querySelectorAll('.tr-paso').length; }).join('/'), '4/4/4');
+    var proc = document.getElementById('trProceso');
+    ok('tramos: y sin la escalera de un solo trámite encima',
+       !!proc && window.getComputedStyle(proc).display === 'none',
+       proc ? window.getComputedStyle(proc).display : 'no existe', 'none');
+    var abre = bloques.length > 1 ? bloques[1].querySelector('.tr-bloque-pie button') : null;
+    ok('tramos: el bloque de la protocolización se puede abrir', !!abre,
+       abre ? 'con botón' : 'sin botón', 'con botón');
+    if (abre) abre.click();
+  }
+
+  function tramosTramo(){
+    if (CASO !== 'vacio') return;
+    igual('tramos: abre la protocolización con su detalle de siempre',
+          ((document.getElementById('trNombre') || {}).textContent || '').trim(), 'Protocolización del acta');
+    var nota = document.querySelector('#trTramos .tr-tramo-de');
+    ok('tramos: y dice de qué tramo se trata',
+       !!nota && nota.textContent.indexOf('Tramo 2 de 3') >= 0,
+       nota ? nota.textContent : '(sin nota)', 'Tramo 2 de 3 ...');
+    location.hash = '';
   }
 
   /* ═══════════ LA CONVERSACIÓN DE UNA CITA ═══════════
@@ -6564,9 +6629,10 @@
       var vuelta = document.querySelector('#trs-2 > .tcard[data-tr="c8"]');
       ok('al día: y su tarjeta vuelve a la portada, a su fase',
          !!vuelta, vuelta ? 'está' : 'no volvió', 'la tarjeta c8 en la fase 02');
-      /* Nueve y no ocho desde la ZODI (c34). */
-      igual('al día: y la fase 02 vuelve a contar sus nueve',
-            deEtapa(1, '.jcount'), '0 de 9 listos');
+      /* Nueve fichas desde la ZODI (c34), pero siete cuentan: la
+         protocolización y la publicación son tramos de la constitución. */
+      igual('al día: y la fase 02 vuelve a contar sus siete',
+            deEtapa(1, '.jcount'), '0 de 7 listos');
   }
 
   /* EL FRENO. Cambiar de pestaña y volver es lo que más se hace en una

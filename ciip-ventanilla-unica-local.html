@@ -4352,6 +4352,33 @@ body[data-vista="horario"] .fase-bar{display:none;}
 .ho-t{display:inline-flex; align-items:center; font-size:var(--fs-tarjeta); font-weight:700; letter-spacing:-.01em; color:var(--ink);}
 .ho-t::before{content:""; width:7px; height:7px; background:var(--cyan); border-radius:2px; flex:0 0 auto; margin-right:9px;}
 .ho-sub{font-size:var(--fs-nota); color:var(--gray);}
+
+/* -- LA CONSTITUCION, EN TRES TRAMOS --
+   Las fichas de la protocolizacion y la publicacion siguen en el marcado
+   -su detalle y su formulario las necesitan- pero no se ven: son tramos de
+   la constitucion, que las ensena dentro. */
+.tcard[data-tramo-de]{display:none !important;}
+.t-tramos{margin-top:10px; padding-top:10px; border-top:1px solid var(--line-soft); display:flex; flex-direction:column; gap:6px;}
+.t-tramo{display:flex; align-items:center; gap:9px; font-size:var(--fs-nota);}
+.t-tramo .tt-n{width:18px; height:18px; border-radius:50%; border:1.5px solid var(--line); background:var(--bg); color:var(--gray); font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;}
+.t-tramo[data-st="listo"] .tt-n{background:var(--good); border-color:var(--good); color:#fff;}
+.t-tramo[data-st="proceso"] .tt-n, .t-tramo[data-st="accion"] .tt-n{border-color:var(--navy2); color:var(--navy2);}
+.t-tramo .tt-t{flex:1 1 auto; min-width:0; font-weight:600; color:var(--ink);}
+.t-tramo .chip{flex:none;}
+
+/* En el detalle: tres bloques con sus pasos, y en los tramos 2 y 3 la linea
+   que dice cual son y lleva de vuelta. */
+.tr-tramos{margin:14px 0 4px;}
+.tr-bloque{border:1px solid var(--line); border-radius:var(--r); background:var(--bg); padding:12px 16px; margin-top:10px;}
+.tr-bloque.apagado{opacity:.6;}
+.tr-bloque-h{display:flex; align-items:center; gap:10px;}
+.tr-bloque-n{width:22px; height:22px; border-radius:50%; background:var(--block); color:var(--navy2); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;}
+.tr-bloque-t{flex:1 1 auto; min-width:0; font-size:var(--fs-tarjeta); font-weight:700; letter-spacing:-.01em; color:var(--ink);}
+.tr-bloque-pasos{margin-top:8px;}
+.tr-bloque-pie{margin-top:8px; display:flex; justify-content:flex-end;}
+.tr-bloque-nota{font-size:var(--fs-nota); color:var(--gray);}
+.con-tramos #trProceso{display:none !important;}
+.tr-tramo-de{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:12px 0 4px; padding:10px 14px; border-radius:var(--r); background:var(--activa-bg); font-size:var(--fs-parrafo); color:var(--ink);}
 </style>
 
 <aside class="sidebar" id="barraLateral">
@@ -4830,6 +4857,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
               <div class="t-top"><div class="t-name" data-i18n="c5.name">Company incorporation</div><span class="chip"></span></div>
               <div class="t-ente"><span class="ebadge" data-texto="c5.sigla">SAREN</span><span data-texto="c5.ente">Registro Mercantil · SAREN</span></div>
               <div class="t-desc" data-i18n="c5.desc">Bianchi Agroindustrias, C.A. — deed ready with an allied law firm. Your signature is needed to register it.</div>
+              <div class="t-tramos" hidden></div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c5.cta">Review & sign</span> ›</span></div>
             </div>
           </div>
@@ -4842,7 +4870,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c34.cta"></span> ›</span></div>
             </div>
           </div>
-          <div class="tcard" data-marca="saren" data-tr="c22">
+          <div class="tcard" data-marca="saren" data-tramo-de="c5" data-tr="c22">
             <div class="t-ico placa"><img class="ilogo" src="logos/saren.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c22.name">Filing of the articles</div><span class="chip"></span></div>
@@ -4851,7 +4879,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c22.cta">View detail</span> ›</span></div>
             </div>
           </div>
-          <div class="tcard" data-tr="c23">
+          <div class="tcard" data-tramo-de="c5" data-tr="c23">
             <div class="t-ico"><svg viewBox="0 0 24 24"><path d="M4 6h16v13H4z"/><path d="M4 6l8 5 8-5"/><path d="M8 14h5"/></svg></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c23.name">Publication of the articles</div><span class="chip"></span></div>
@@ -5108,6 +5136,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
            siguiente que quieres saber es cuanto tarda, antes de empezar a
            rellenar. -->
       <div class="tr-plazo" id="trPlazo"></div>
+      <div class="tr-tramos" id="trTramos" hidden></div>
       <div class="tr-proceso" id="trProceso">
         <div class="tr-h" id="trTitulo">The process</div>
         <ol class="tr-pasos" id="trPasos"></ol>
@@ -6425,7 +6454,7 @@ function applyLang(lang){
       var n = et.getAttribute('data-ir');
       var bloque = document.querySelector('[data-fase="'+n+'"]');
       if (!bloque) return;
-      var tarjetas = bloque.querySelectorAll('.tcard');
+      var tarjetas = bloque.querySelectorAll('.tcard:not([data-tramo-de])');
       if (!tarjetas.length) return;
 
       var hechos = 0;
@@ -6513,7 +6542,7 @@ function applyLang(lang){
      Los números están escritos a mano para las 15 tarjetas. Dentro de una
      fase esos totales mienten, así que se recalculan sobre lo que se ve. */
   function recuentaFiltros(ambito){
-    var tarjetas = ambito.querySelectorAll('.tcard');
+    var tarjetas = ambito.querySelectorAll('.tcard:not([data-tramo-de])');
     /* El renglón de la barra cuenta SIEMPRE sobre el panel entero y no
        sobre el ámbito: dentro de una fase el ámbito son solo sus tarjetas,
        y el índice de la izquierda no puede decir que hay cuatro trámites.
@@ -6557,6 +6586,112 @@ function applyLang(lang){
      Cuántos pasos van hechos NO se guarda en pasos.js: se deduce del estado
      de la tarjeta, para que el avance y el distintivo no se contradigan. */
   var AVANCE = {listo:4, proceso:2, accion:1, pendiente:0};
+
+  /* -- LOS TRES TRAMOS, EN EL DETALLE --
+     Al abrir la constitucion se ven sus tres tramos, cada uno con sus cuatro
+     pasos de pasos.js y su estado, y un boton que abre ese tramo con su
+     detalle y su formulario de siempre. Al abrir la protocolizacion o la
+     publicacion, una linea dice que tramo es y lleva de vuelta a los tres.
+
+     La escalera de un solo tramite no se ensena en la madre (con-tramos): los
+     bloques ya llevan sus pasos, y dos escaleras seguidas se leerian como un
+     tramite de ocho pasos. Lo que SI sigue debajo es el tramite de verdad del
+     primer tramo -su formulario o su estado-, que es donde se trabaja. */
+  var TRAMOS_DE = {c5: ['c5', 'c22', 'c23']};
+  var ESTADO_CHIP = {listo:['good', 'st.done'], proceso:['info', 'st.progress'],
+                     accion:['warn', 'st.action'], pendiente:['mute', 'st.pending']};
+
+  function trEl(tag, cls, txt){
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (txt != null) e.textContent = txt;
+    return e;
+  }
+
+  function pintaTramosDetalle(id, D, lang){
+    var caja = document.getElementById('trTramos');
+    var det = document.getElementById('trDetalle');
+    if (!caja) return;
+    caja.textContent = '';
+    var U = (D.ui && (D.ui[curLang] || D.ui.en)) || {};
+    var dic = I18N[curLang] || I18N.en;
+    var lista = TRAMOS_DE[id] || null, madre = null;
+    if (!lista){
+      for (var k in TRAMOS_DE){ if (TRAMOS_DE[k].indexOf(id) > 0) madre = k; }
+    }
+    if (det) det.classList.toggle('con-tramos', !!lista);
+    caja.hidden = !(lista || madre);
+
+    if (madre){
+      var pos = TRAMOS_DE[madre].indexOf(id) + 1;
+      var nota = trEl('div', 'tr-tramo-de');
+      nota.appendChild(trEl('span', null, String(U.tm_parte || '')
+        .replace('{n}', pos).replace('{t}', TRAMOS_DE[madre].length)));
+      var volver = trEl('button', 't-btn', U.tm_ver || '');
+      volver.type = 'button';
+      volver.addEventListener('click', function(){ location.hash = 'tramite-' + madre; });
+      nota.appendChild(volver);
+      caja.appendChild(nota);
+      return;
+    }
+    if (!lista) return;
+
+    caja.appendChild(trEl('div', 'tr-h', U.tm_titulo || ''));
+    lista.forEach(function(ref, i){
+      var tarjeta = document.querySelector('.tcard[data-tr="' + ref + '"]');
+      var st = 'pendiente';
+      if (tarjeta) st = tarjeta.getAttribute(i === 0 ? 'data-st-propio' : 'data-st') ||
+                        tarjeta.getAttribute('data-st') || 'pendiente';
+
+      var bloque = trEl('div', 'tr-bloque' + (tarjeta ? '' : ' apagado'));
+      bloque.setAttribute('data-tramo', ref);
+      bloque.setAttribute('data-st', st);
+
+      var cab = trEl('div', 'tr-bloque-h');
+      cab.appendChild(trEl('span', 'tr-bloque-n', String(i + 1)));
+      var nombre = (i === 0) ? (U.tm_acta || '')
+                 : (tarjeta ? ((tarjeta.querySelector('.t-name') || {}).textContent || ref)
+                            : (dic[ref + '.name'] || ref));
+      cab.appendChild(trEl('span', 'tr-bloque-t', nombre));
+      var ec = ESTADO_CHIP[st] || ESTADO_CHIP.pendiente;
+      var chip = trEl('span', 'chip ' + ec[0]);
+      var tx = trEl('span', null, dic[ec[1]] || I18N.en[ec[1]] || '');
+      tx.setAttribute('data-i18n', ec[1]);
+      chip.appendChild(tx);
+      cab.appendChild(chip);
+      bloque.appendChild(cab);
+
+      var pasos = (D.pasos && D.pasos[lang] && D.pasos[lang][ref]) || [];
+      var hechos = AVANCE[st];
+      if (hechos === undefined) hechos = 0;
+      var ol = trEl('ol', 'tr-pasos tr-bloque-pasos');
+      pasos.forEach(function(txt, j){
+        var hecho = j < hechos;
+        var ahora = (j === hechos) && (hechos > 0) && (hechos < pasos.length);
+        var li = trEl('li', 'tr-paso ' + (hecho ? 'hecho' : (ahora ? 'ahora' : 'porhacer')));
+        li.appendChild(trEl('span', 'tr-punto', hecho ? String.fromCharCode(10003) : String(j + 1)));
+        var caja2 = trEl('div', 'tr-txt');
+        caja2.appendChild(trEl('div', 'tr-paso-n', txt));
+        li.appendChild(caja2);
+        ol.appendChild(li);
+      });
+      bloque.appendChild(ol);
+
+      var pie = trEl('div', 'tr-bloque-pie');
+      if (i === 0){
+        pie.appendChild(trEl('span', 'tr-bloque-nota', U.tm_aqui || ''));
+      } else if (tarjeta){
+        var abre = trEl('button', 'btn ghost sm', U.tm_abrir || '');
+        abre.type = 'button';
+        abre.addEventListener('click', function(){ location.hash = 'tramite-' + ref; });
+        pie.appendChild(abre);
+      } else {
+        pie.appendChild(trEl('span', 'tr-bloque-nota', U.tm_apagado || ''));
+      }
+      bloque.appendChild(pie);
+      caja.appendChild(bloque);
+    });
+  }
 
   function pintaTramite(id){
     var tarjeta = document.querySelector('.tcard[data-tr="'+id+'"]');
@@ -6634,6 +6769,8 @@ function applyLang(lang){
 
     /* Si este tipo esta activo en el catalogo, el modulo de solicitudes
        sustituye la escalera decorativa por el tramite de verdad. */
+    pintaTramosDetalle(id, D, lang);
+
     if (window.CIIP_TRAMITE_REAL) window.CIIP_TRAMITE_REAL(id);
 
     trAbierto = id;
@@ -19310,6 +19447,82 @@ applyLang(idiomaParaMi());
     hueco.appendChild(reloj.cloneNode(true));
   }
 
+  /* -- LA CONSTITUCION, EN TRES TRAMOS --
+     Desde el 15 de septiembre de 2026 la constitucion de la compania se ve
+     como UNA ficha con tres tramos dentro: redaccion y firma del acta (c5),
+     protocolizacion (c22) y publicacion (c23). Por detras siguen siendo tres
+     tramites, cada uno con su solicitud, su estado, su plazo y su sitio en la
+     cola del equipo.
+
+     Las fichas de c22 y c23 SIGUEN en el marcado, con data-tramo-de: asi su
+     detalle, su formulario y los nombres de Mis tramites funcionan igual,
+     pero no se ven en la portada ni se cuentan en la etapa ni en los filtros.
+
+     La ficha madre dice el estado de LOS TRES, no el del primero: lista solo
+     cuando lo estan los tres, y con uno terminado y el siguiente sin pedir,
+     te toca a ti. Un tramo apagado en el catalogo -su ficha no esta- ni se
+     cuenta ni se ofrece. */
+  var TRAMOS_DE_LA_CONSTITUCION = ['c5', 'c22', 'c23'];
+
+  function estadoDeLosTramos(sts){
+    if (!sts.length) return 'pendiente';
+    function todos(x){ return sts.every(function(s){ return s === x; }); }
+    if (todos('listo')) return 'listo';
+    if (sts.indexOf('accion') >= 0) return 'accion';
+    if (sts.indexOf('proceso') >= 0) return 'proceso';
+    if (todos('pendiente')) return 'pendiente';
+    return 'accion';
+  }
+
+  function pintaTramosDeLaConstitucion(){
+    var madre = document.querySelector('.tcard[data-tr="' + TRAMOS_DE_LA_CONSTITUCION[0] + '"]');
+    if (!madre) return;
+    /* data-st acaba de ponerlo pintaEstadoTarjetas con el estado del primer
+       tramo solo. Se guarda aparte antes de pisarlo con el de los tres: el
+       detalle lo necesita para pintar el primer bloque. */
+    var propio = madre.getAttribute('data-st') || 'pendiente';
+    madre.setAttribute('data-st-propio', propio);
+    var u = T(), dic = I18N[curLang] || I18N.en;
+    var sts = [], filas = [];
+    TRAMOS_DE_LA_CONSTITUCION.forEach(function(ref, i){
+      var c = (i === 0) ? madre : document.querySelector('.tcard[data-tr="' + ref + '"]');
+      if (!c) return;
+      var st = (i === 0) ? propio : (c.getAttribute('data-st') || 'pendiente');
+      sts.push(st);
+      var nombre = (i === 0) ? (u.tm_acta || '') : ((c.querySelector('.t-name') || {}).textContent || ref);
+      filas.push({ref: ref, n: i + 1, st: st, nombre: nombre});
+    });
+
+    var junto = estadoDeLosTramos(sts);
+    madre.setAttribute('data-st', junto);
+    madre.classList.toggle('action', junto === 'accion');
+    /* El aviso de la ficha -la firma- es del primer tramo. Si lo que toca es
+       pedir el siguiente, el distintivo no puede seguir pidiendo la firma. */
+    var aviso = madre.getAttribute('data-aviso');
+    if (aviso && propio !== 'accion') madre.removeAttribute('data-aviso');
+    pintaChip(madre, junto);
+    if (aviso) madre.setAttribute('data-aviso', aviso);
+
+    var caja = madre.querySelector('.t-tramos');
+    if (!caja) return;
+    caja.textContent = '';
+    caja.hidden = filas.length < 2;
+    filas.forEach(function(f){
+      var fila = el('div', 't-tramo');
+      fila.setAttribute('data-tramo', f.ref);
+      fila.setAttribute('data-st', f.st);
+      fila.appendChild(el('span', 'tt-n', f.st === 'listo' ? String.fromCharCode(10003) : String(f.n)));
+      fila.appendChild(el('span', 'tt-t', f.nombre));
+      var ch = CHIP_DE[f.st] || CHIP_DE.pendiente;
+      var chip = el('span', 'chip ' + ch.clase);
+      var t = el('span', null, dic[ch.clave] || I18N.en[ch.clave] || '');
+      t.setAttribute('data-i18n', ch.clave);
+      chip.appendChild(t);
+      fila.appendChild(chip);
+      caja.appendChild(fila);
+    });
+  }
+
   function pintaEstadoTarjetas(){
     if (!TIPOS) return;
     ponAlDiaLoEncendido(TIPOS);
@@ -19361,6 +19574,7 @@ applyLang(idiomaParaMi());
     /* Juntar ANTES de apartar: apartar mueve tarjetas a otra rejilla, y
        si un día un trámite estuviera en un grupo Y fuera opcional, el
        orden importa para que no se quede el título solo. */
+    pintaTramosDeLaConstitucion();
     juntaLosDelGrupo();
     apartaOpcionales();
     ponAlDiaElPlazoDeLaFicha();
