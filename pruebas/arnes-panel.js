@@ -201,6 +201,7 @@
               f5Entra, f5Espera, f5Llega,
               f5TardeEntra, f5TardeEspera, f5TardeLlega,
               mtLleva, mtLlevaMira, colaRenglon, colaRenglonAbre,
+              cmAbre, cmMira, cmEscribe, cmTrasEscribir, cmCitaMira, cmSale, cmF5Entra, cmF5Mira,
               hoySiembra, hoyMira, hoyTrasTomar, hoyTrasDeshacer, hoyRevisa,
               hoyEspacioEspera, hoyEspacioMira, hoyTrasVale, hoyNoValeAbre,
               hoyNoValeMira, hoyNoValeGuarda, hoyTrasNoVale, hoyTrasDevolver,
@@ -4647,19 +4648,135 @@
     igual('barra: y al equipo le abre lo que toca hoy',
           document.body.getAttribute('data-vista'), 'poratender');
 
-    /* «Consultas y citas» abre la ventana de la cola SIN los trámites, que
-       tienen su propio apartado. */
+    /* Y el renglón de «Consultas y citas», que es del equipo. A dónde lleva
+       lo miran los pasos cm* de más abajo. */
     var cs = document.getElementById('navConsultas');
     ok('barra: el equipo tiene su renglón de consultas y citas', !!cs && !cs.hidden,
        cs ? 'hidden=' + cs.hidden : 'no existe', 'a la vista');
-    if (!cs) return;
+  }
+
+  /* ═════ CONSULTAS Y CITAS: LA MENSAJERÍA ═════
+     El renglón lleva a su pantalla -#consultas-: la lista de conversaciones,
+     la abierta en el centro y quién es a la derecha. La conversación habla
+     con la voz del equipo, y una cita se abre con la fecha por poner.
+
+     No confirma ni rechaza ninguna cita: los pasos de después cuentan las
+     que quedan, y sacar una aquí les cambiaría el suelo. */
+  function cmAbre(sigue){
+    if (CASO !== 'gestor'){
+      location.hash = 'consultas';
+      return setTimeout(sigue, 200);
+    }
+    var cs = document.getElementById('navConsultas');
+    if (!cs){
+      ok('mensajería: hay renglón', false, 'no existe', 'navConsultas');
+      return sigue();
+    }
     cs.click();
-    var back = document.getElementById('colaBack');
-    ok('consultas y citas: abre la ventana de la cola', back.classList.contains('open'),
-       back.className, 'con la clase open');
-    igual('consultas y citas: y sin la sección de trámites',
-          window.getComputedStyle(document.getElementById('colaTram')).display, 'none');
-    document.getElementById('colaCerrar').click();
+    esperaFilas('#cmLista .cm-fila', 1, sigue);
+  }
+
+  function cmMira(){
+    if (CASO !== 'gestor'){
+      igual('mensajería: al inversionista la pantalla del equipo no le entra',
+            document.body.getAttribute('data-vista') === 'consultas', false);
+      return;
+    }
+    igual('mensajería: el renglón lleva a su pantalla', document.body.getAttribute('data-vista'), 'consultas');
+    ok('mensajería: y se ilumina en la barra',
+       document.getElementById('navConsultas').classList.contains('active'),
+       document.getElementById('navConsultas').className, 'con la clase active');
+    var filas = document.querySelectorAll('#cmLista .cm-fila');
+    igual('mensajería: una fila por cada consulta y cita que espera',
+          String(filas.length), (document.getElementById('navConsultasN') || {}).textContent);
+    igual('mensajería: con sus cuatro filtros', document.querySelectorAll('#cmFiltros button').length, 4);
+    ok('mensajería: la primera ya está abierta',
+       !!filas[0] && filas[0].getAttribute('aria-current') === 'true',
+       filas[0] ? filas[0].getAttribute('aria-current') : '(sin filas)', 'true');
+    /* Lo que espera respuesta va primero: es a quien hay que contestar. */
+    ok('mensajería: y es la que espera respuesta',
+       !!filas[0] && !!filas[0].querySelector('.cm-punto'),
+       filas[0] ? filas[0].textContent : '(sin filas)', 'con el punto de sin responder');
+    var ta = document.querySelector('#cmConv .hilo-txt');
+    ok('mensajería: la caja habla con la voz del equipo',
+       !!ta && /^Escribe tu respuesta a /.test(ta.placeholder),
+       ta ? ta.placeholder : '(sin caja)', 'Escribe tu respuesta a …');
+    var suyos = document.querySelectorAll('#cmConv .hilo-m.suyo');
+    ok('mensajería: lo del inversionista va a la izquierda, con su nombre',
+       !!suyos.length && !/^CIIP/.test(suyos[0].querySelector('.hm-q').textContent),
+       suyos.length ? suyos[0].querySelector('.hm-q').textContent : '(ningún mensaje suyo)', 'su nombre');
+    ok('mensajería: y a la derecha, quién es',
+       /\S/.test((document.getElementById('cmInfo') || {}).textContent || ''),
+       'mira el lado', 'con texto');
+  }
+
+  function cmEscribe(){
+    if (CASO !== 'gestor') return;
+    var ta = document.querySelector('#cmConv .hilo-txt');
+    if (!ta) return;
+    ta.value = 'Recibido, lo revisamos hoy.';
+    ta.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true}));
+  }
+
+  function cmTrasEscribir(){
+    if (CASO !== 'gestor') return;
+    var mios = document.querySelectorAll('#cmConv .hilo-m.mio');
+    var ult = mios[mios.length - 1];
+    ok('mensajería: Enter envía, y lo del equipo va a la derecha',
+       !!ult && /Recibido, lo revisamos hoy\./.test(ult.textContent),
+       ult ? ult.textContent : '(ninguno)', 'el mensaje enviado');
+    ok('mensajería: firmado con «Tú»', !!ult && /^Tú/.test(ult.querySelector('.hm-q').textContent),
+       ult ? ult.querySelector('.hm-q').textContent : '(ninguno)', 'Tú · …');
+    var abierta = document.querySelector('#cmLista .cm-fila[aria-current="true"] .n2');
+    ok('mensajería: y la lista enseña el último mensaje',
+       !!abierta && /^Tú: Recibido/.test(abierta.textContent),
+       abierta ? abierta.textContent : '(sin fila)', 'Tú: Recibido…');
+  }
+
+  function cmCitaMira(){
+    if (CASO !== 'gestor') return;
+    var citas = document.querySelector('#cmFiltros button[data-filtro="citas"]');
+    if (citas) citas.click();
+    var filas = document.querySelectorAll('#cmLista .cm-fila');
+    ok('mensajería: el filtro Citas deja solo las citas',
+       filas.length > 0 && [].every.call(filas, function(f){ return f.getAttribute('data-cm').indexOf('cita:') === 0; }),
+       [].map.call(filas, function(f){ return f.getAttribute('data-cm'); }).join(' ') || '(ninguna)', 'solo cita:…');
+    var cuando = document.getElementById('cmCuando');
+    ok('mensajería: una cita se abre con la fecha por poner',
+       !!cuando && cuando.type === 'datetime-local', cuando ? cuando.type : '(sin campo)', 'datetime-local');
+    var conf = [].filter.call(document.querySelectorAll('#cmConv .co-botones button'), function(b){
+      return b.textContent.trim() === 'Confirmar';
+    })[0];
+    if (conf) conf.click();
+    igual('mensajería: y no se confirma sin fecha',
+          (document.querySelector('#cmConv .cm-cita .co-aviso') || {}).textContent, 'Pon la fecha y la hora.');
+    var todas = document.querySelector('#cmFiltros button[data-filtro="todas"]');
+    if (todas) todas.click();
+  }
+
+  function cmSale(){
+    if (location.hash) location.hash = '';
+  }
+
+  /* F5 sobre #consultas: el enrutador corre antes de que llegue el perfil.
+     Con el rol vacío la guarda mandaba al equipo a la portada. Se recrea
+     dejando el rol vacío y sin llegar, como durante la carga. */
+  var cmF5 = null;
+  function cmF5Entra(){
+    if (CASO !== 'gestor') return;
+    cmF5 = {rol: PERFIL.rol, real: PERFIL.rolReal};
+    PERFIL.rol = '';
+    PERFIL.rolReal = false;
+    location.hash = 'consultas';
+  }
+  function cmF5Mira(){
+    if (CASO !== 'gestor' || !cmF5) return;
+    igual('mensajería: F5 sobre #consultas no te saca antes de saber tu rol',
+          document.body.getAttribute('data-vista'), 'consultas');
+    PERFIL.rol = cmF5.rol;
+    PERFIL.rolReal = cmF5.real;
+    cmF5 = null;
+    location.hash = '';
   }
 
   /* ═════ LO QUE TOCA HOY: TARJETAS CON PLAZO ═════

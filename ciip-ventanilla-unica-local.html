@@ -1271,6 +1271,102 @@ body[data-vista="empresa"] .fase-bar{display:none;}
   font-family:ui-monospace, "Cascadia Mono", Consolas, monospace;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 
+/* ── CONSULTAS Y CITAS: LA MENSAJERÍA ──
+   Tres columnas: las conversaciones, la conversación abierta y quién es.
+   Lo del equipo va a la derecha en azul; lo del inversionista, a la
+   izquierda en blanco. La caja de escribir se queda abajo. */
+.cm-vista{display:none;}
+body[data-vista="consultas"] .cm-vista{display:block;}
+body[data-vista="consultas"] .solo-inicio,
+body[data-vista="consultas"] #secTramites,
+body[data-vista="consultas"] .faq-sec,
+body[data-vista="consultas"] .fase-bar,
+body[data-vista="consultas"] #faseVolver,
+body[data-vista="consultas"] #trVolver,
+body[data-vista="consultas"] #ciVolver,
+body[data-vista="consultas"] #mtVolver,
+body[data-vista="consultas"] #acVolver,
+body[data-vista="consultas"] #ayVolver,
+body[data-vista="consultas"] #paVolver{display:none;}
+
+.cm{display:grid; grid-template-columns:320px minmax(0,1fr) 260px; background:var(--bg); border:1px solid var(--line);
+  border-radius:14px; overflow:hidden; height:calc(100vh - var(--tb) - 110px); min-height:520px;}
+.cm-izq{border-right:1px solid var(--line); display:flex; flex-direction:column; min-height:0;}
+.cm-busca{padding:10px; border-bottom:1px solid var(--line);}
+.cm-busca input{width:100%; font:inherit; font-size:var(--fs-campo); color:var(--ink); background:var(--block);
+  border:1px solid var(--line); border-radius:9px; padding:8px 11px;}
+.cm-busca input:focus{border-color:var(--navy2); outline:none;}
+.cm-filtros{display:flex; flex-wrap:wrap; gap:5px; padding:8px 10px; border-bottom:1px solid var(--line);}
+.cm-filtros button{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--gray); background:var(--bg);
+  border:1px solid var(--line); border-radius:9999px; padding:4px 10px; cursor:pointer; display:inline-flex; align-items:center; gap:5px;}
+.cm-filtros button[aria-pressed="true"]{background:var(--navy); border-color:var(--navy); color:#fff;}
+.cm-filtros .n{font-variant-numeric:tabular-nums; opacity:.75;}
+.cm-lista{overflow:auto; flex:1 1 auto;}
+.cm-fila{display:grid; grid-template-columns:34px minmax(0,1fr) auto; gap:2px 10px; align-items:center; width:100%;
+  text-align:left; font:inherit; color:var(--ink); background:var(--bg); border:0; border-bottom:1px solid var(--line-soft);
+  padding:11px 12px; cursor:pointer;}
+.cm-fila:hover{background:var(--block);}
+.cm-fila[aria-current="true"]{background:var(--activa-bg); box-shadow:inset 3px 0 0 var(--cyan);}
+.cm-av{width:34px; height:34px; flex:none; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:800; color:#fff; background:var(--navy2);}
+.cm-av.cita{background:var(--good);}
+.cm-fila .cm-av{grid-row:1 / span 2;}
+.cm-fila .n1{font-weight:700; font-size:var(--fs-valor); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.cm-fila .n2{grid-column:2; font-size:var(--fs-fila); color:var(--gray); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.cm-fila .der{grid-row:1 / span 2; grid-column:3; display:flex; flex-direction:column; align-items:flex-end; gap:5px;
+  font-size:var(--fs-nota); color:var(--gray-soft); white-space:nowrap;}
+.cm-punto{width:8px; height:8px; border-radius:50%; background:var(--cyan-deep);}
+
+.cm-centro{display:flex; flex-direction:column; min-width:0; min-height:0;}
+.cm-cab{display:flex; align-items:center; gap:10px 12px; flex-wrap:wrap; padding:12px 16px; border-bottom:1px solid var(--line);}
+.cm-cab .q{flex:1 1 200px; min-width:0;}
+.cm-cab h3{margin:0; font-size:var(--fs-tarjeta); color:var(--ink);}
+.cm-cab .s{font-size:var(--fs-fila); color:var(--gray); margin-top:2px;}
+.cm-cab .acc{display:flex; gap:8px; flex-wrap:wrap;}
+.cm-cuerpo{flex:1 1 auto; min-height:0; display:flex; flex-direction:column; overflow:auto;}
+.cm-vacia{margin:auto; color:var(--gray); font-size:var(--fs-parrafo); text-align:center; padding:24px;}
+
+/* La conversación, estirada: la lista ocupa lo que haya y la caja se
+   queda abajo. */
+.cm-cuerpo .hilo{flex:1 1 auto; min-height:260px; display:flex; flex-direction:column; margin:0; padding:0;
+  border:0; border-radius:0; background:transparent;}
+.cm-cuerpo .hilo > .sol-h{display:none;}
+.cm-cuerpo .hilo-lista{flex:1 1 auto; overflow:auto; margin:0; padding:16px; background:var(--block); align-content:start;}
+.cm-cuerpo .hilo-vacio{text-align:center; max-width:420px; margin:16px auto; color:var(--gray);}
+.cm-cuerpo .hilo-m{background:var(--bg);}
+.cm-cuerpo .hilo-m.mio{background:var(--navy); border-color:var(--navy); color:#fff;}
+.cm-cuerpo .hilo-m.mio .hm-q{color:rgba(255,255,255,.72);}
+.cm-cuerpo .hilo-m.mio .hm-arch{color:#fff;}
+.cm-cuerpo .hilo-pie{border-top:1px solid var(--line); padding:10px 14px 12px; background:var(--bg);}
+.cm-cuerpo .hilo-txt{resize:none; min-height:44px;}
+
+.cm-cita{padding:14px 16px; display:flex; flex-direction:column; gap:10px; border-bottom:1px solid var(--line);}
+.cm-dl{display:grid; grid-template-columns:120px minmax(0,1fr); gap:6px 12px; margin:0; font-size:var(--fs-valor); align-items:center;}
+.cm-dl dt{color:var(--gray);}
+.cm-dl dd{margin:0; font-weight:600;}
+.cm-cita .co-exp-t{margin:4px 0 0;}
+.cm-cita .co-fijar{margin-top:0;}
+.cm-cita .co-botones{justify-content:flex-start; margin-top:0;}
+.cm-cita .co-aviso{margin-top:0;}
+
+.cm-info{border-left:1px solid var(--line); padding:16px; overflow:auto; display:flex; flex-direction:column; gap:14px;}
+.cm-info .quien{display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; padding-bottom:12px; border-bottom:1px solid var(--line);}
+.cm-info .cm-av{width:56px; height:56px; font-size:18px;}
+.cm-info b{font-size:var(--fs-tarjeta); color:var(--ink);}
+.cm-info dl{margin:0; display:grid; gap:2px;}
+.cm-info dt{font-size:var(--fs-rotulo); color:var(--gray); font-weight:700; text-transform:uppercase; letter-spacing:.05em;}
+.cm-info dd{margin:0 0 10px; font-weight:600; font-size:var(--fs-valor); color:var(--ink);}
+
+@media (max-width:1100px){
+  .cm{grid-template-columns:280px minmax(0,1fr);}
+  .cm-info{display:none;}
+}
+@media (max-width:760px){
+  .cm{grid-template-columns:minmax(0,1fr); height:auto;}
+  .cm-izq{max-height:280px; border-right:0; border-bottom:1px solid var(--line);}
+  .cm-centro{min-height:480px;}
+}
+
 .pa-vista{display:none;}
 body[data-vista="poratender"] .pa-vista{display:block;}
 body[data-vista="poratender"] .solo-inicio,
@@ -1831,9 +1927,6 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .fuera-pagina{display:none !important;}
 /* Dos colas en la misma ventana —trámites y citas— necesitan decir cuál es
    cuál: sin cabecera, una ficha de cada tipo seguida parece la misma cosa. */
-/* Desde «Consultas y citas» la ventana no enseña los trámites: tienen su
-   propio apartado. */
-#colaBack.solo-otros #colaHtram, #colaBack.solo-otros #colaFiltros, #colaBack.solo-otros #colaTram{display:none;}
 .co-seccion{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
   color:var(--gray-soft); padding:12px 10px 6px;}
 .co-seccion:empty{display:none;}
@@ -4284,8 +4377,8 @@ body[data-vista="horario"] .fase-bar{display:none;}
       <!-- Consultas y citas: lo que el equipo atiende y no es un trámite.
            Vivían dentro de «Trámites por atender», y el CIIP pidió que ese
            apartado fuera solo de solicitudes de trámites (15 de septiembre
-           de 2026). Abre la ventana de la cola con esas dos secciones y
-           nada más. Nace oculto: es solo del equipo, y lo enseña
+           de 2026). Lleva a su pantalla, #consultas: una mensajería con
+           las conversaciones, la abierta y quién es. Nace oculto: es solo del equipo, y lo enseña
            menuPorRol() cuando llega el rol. -->
       <button class="sb-item" id="navConsultas" type="button" hidden><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4L4 21l1.1-4.3A8.4 8.4 0 1 1 21 11.5z"/></svg></span><span data-i18n="nav.consultas">Enquiries and appointments</span><span class="cnt" id="navConsultasN" hidden></span></button>
       <!-- Se iluminaba y no llevaba a nada. La razon social se escribia a
@@ -5240,6 +5333,23 @@ body[data-vista="horario"] .fase-bar{display:none;}
       <div class="co-vacia" id="paVacia" hidden></div>
       <div class="hoy-toast" id="paToast" role="status" aria-live="polite" hidden></div>
       <div class="visor" id="paVisor" hidden></div>
+    </div>
+
+    <!-- Consultas y citas: una mensajería. A la izquierda las conversaciones
+         con búsqueda y filtros, en el centro la abierta y a la derecha quién
+         es. Solo del equipo; la pinta CIIP_PINTA_CONSULTAS al entrar. -->
+    <div class="cm-vista">
+      <div class="sec-h">
+      </div>
+      <div class="cm" id="cm">
+        <div class="cm-izq">
+          <div class="cm-busca"><input type="search" id="cmBusca" autocomplete="off"></div>
+          <div class="cm-filtros" id="cmFiltros"></div>
+          <div class="cm-lista" id="cmLista"></div>
+        </div>
+        <div class="cm-centro" id="cmConv"></div>
+        <aside class="cm-info" id="cmInfo"></aside>
+      </div>
     </div>
 
     <!-- Ayuda y guia. NO repite las preguntas de la portada -esas van de
@@ -6683,7 +6793,15 @@ function applyLang(lang){
        escrito a mano vería una tabla vacía —la política de la base no le
        deja leer lo de nadie— y una pantalla en blanco sin decir por qué es
        peor que no tenerla. */
-    if (tipo === 'poratender' && !(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO())) tipo = null;
+    /* Pero SOLO cuando ya se sabe el rol. Al recargar sobre #poratender o
+       #consultas el enrutador corre antes de que llegue el perfil, y con el
+       rol todavía vacío esto mandaba al equipo a la portada: F5 sobre su
+       propia pantalla lo sacaba de ella. Si el rol no ha llegado se entra, y
+       el pintor -que espera al rol con traeAlEntrar- saca de ahí a quien no
+       sea del equipo. «Consultas y citas» va por la misma regla. */
+    var rolSabido = typeof PERFIL !== 'undefined' && PERFIL.rolReal;
+    var delEquipo = !!(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO());
+    if ((tipo === 'poratender' || tipo === 'consultas') && rolSabido && !delEquipo) tipo = null;
     /* Y el horario de citas, igual: es del equipo. */
     if (tipo === 'horario' && !(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO())) tipo = null;
     /* La agenda se rellena al entrar, no al cargar la página: la mayoría de
@@ -6694,6 +6812,7 @@ function applyLang(lang){
     if (tipo === 'ayuda' && window.CIIP_REPINTA_AYUDA) window.CIIP_REPINTA_AYUDA();
     if (tipo === 'documentos') traeAlEntrar('CIIP_PINTA_DOCS');
     if (tipo === 'poratender') traeAlEntrar('CIIP_PINTA_PORATENDER');
+    if (tipo === 'consultas') traeAlEntrar('CIIP_PINTA_CONSULTAS');
     if (tipo === 'empresa') traeAlEntrar('CIIP_PINTA_EMPRESA');
     if (tipo === 'usuarios') traeAlEntrar('CIIP_PINTA_USUARIOS');
     if (tipo === 'catalogo') traeAlEntrar('CIIP_PINTA_CATALOGO');
@@ -6787,6 +6906,7 @@ function applyLang(lang){
     if (h === '#ayuda') return {tipo:'ayuda'};
     if (h === '#documentos') return {tipo:'documentos'};
     if (h === '#poratender') return {tipo:'poratender'};
+    if (h === '#consultas') return {tipo:'consultas'};
     if (h === '#empresa') return {tipo:'empresa'};
     if (h === '#usuarios') return {tipo:'usuarios'};
     if (h === '#catalogo') return {tipo:'catalogo'};
@@ -7095,6 +7215,7 @@ function applyLang(lang){
              : (vista === 'ayuda') ? document.getElementById('navAyuda')
              : (vista === 'documentos') ? document.getElementById('navDocs')
              : (vista === 'poratender') ? document.getElementById('navTramites')
+             : (vista === 'consultas') ? document.getElementById('navConsultas')
              : (vista === 'empresa') ? document.getElementById('navEmpresa')
              : (vista === 'usuarios') ? document.getElementById('navUsuarios')
              : (vista === 'catalogo') ? document.getElementById('navCatalogo')
@@ -11341,8 +11462,17 @@ applyLang(idiomaParaMi());
    */
   function pintaHilo(caja, de){
     var u = T();
-    var bloque = el('div', 'sol-adj hilo');
-    bloque.appendChild(el('div', 'sol-h', u['hilo.t'] || ''));
+    /* equipo = la mira alguien del CIIP. Los lados y las palabras son los
+       suyos: lo que escribió el equipo va a la derecha y dice «Tú», lo del
+       inversionista a la izquierda con su nombre, y la caja invita a
+       responderle a él. Sin esto el gestor leía «Conversación con el CIIP»
+       y «Si algo no te queda claro, pregúntalo aquí», que es la voz del otro
+       lado de la mesa. */
+    var equipo = !!de.equipo;
+    var quien = de.quien || u.co_sinnombre || '';
+    var bloque = el('div', 'sol-adj hilo' + (equipo ? ' hilo-equipo' : ''));
+    bloque.appendChild(el('div', 'sol-h', equipo
+      ? String(u.co_m_conv || '').replace('{quien}', quien) : (u['hilo.t'] || '')));
 
     var lista = el('div', 'hilo-lista');
     bloque.appendChild(lista);
@@ -11355,7 +11485,8 @@ applyLang(idiomaParaMi());
     var texto = document.createElement('textarea');
     texto.className = 'hilo-txt';
     texto.rows = 2;
-    texto.placeholder = u['hilo.ph'] || '';
+    texto.placeholder = equipo
+      ? String(u.co_m_escribe || '').replace('{quien}', quien) : (u['hilo.ph'] || '');
     var arch  = document.createElement('input');
     arch.type = 'file';
     arch.accept = 'image/*,application/pdf';
@@ -11379,6 +11510,14 @@ applyLang(idiomaParaMi());
       avisoH.textContent = '';
     });
 
+    /* Enter envía y Mayúsculas+Enter salta de línea, como en cualquier
+       mensajería. Solo para el equipo: al inversionista la caja le sigue
+       dejando escribir párrafos sin mandarlos por accidente. */
+    if (equipo){
+      texto.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); bEnv.click(); }
+      });
+    }
     pie.appendChild(texto);
     var fila = el('div', 'hilo-fila');
     fila.appendChild(bClip); fila.appendChild(nomb); fila.appendChild(bEnv);
@@ -11391,13 +11530,16 @@ applyLang(idiomaParaMi());
     function pinta(filas){
       lista.textContent = '';
       if (!filas.length){
-        lista.appendChild(el('div', 'hilo-vacio', u['hilo.vacio'] || ''));
+        lista.appendChild(el('div', 'hilo-vacio', equipo
+          ? String(u.co_m_vacio_hilo || '').replace('{quien}', quien) : (u['hilo.vacio'] || '')));
         return;
       }
       filas.forEach(function(m){
-        var f = el('div', 'hilo-m' + (m.del_equipo ? ' suyo' : ' mio'));
+        var delOtro = equipo ? !m.del_equipo : m.del_equipo;
+        var f = el('div', 'hilo-m' + (delOtro ? ' suyo' : ' mio'));
         f.appendChild(el('div', 'hm-q',
-          (m.del_equipo ? (u['hilo.ciip'] || '') : (u['hilo.tu'] || '')) +
+          (equipo ? (m.del_equipo ? (u['hilo.tu'] || '') : quien)
+                  : (m.del_equipo ? (u['hilo.ciip'] || '') : (u['hilo.tu'] || ''))) +
           ' · ' + fecha(m.creado_en)));
         if (m.texto) f.appendChild(el('div', 'hm-t', m.texto));
         /* El adjunto, por su nombre. La URL firmada se pide al pulsar y
@@ -11417,6 +11559,8 @@ applyLang(idiomaParaMi());
         }
         lista.appendChild(f);
       });
+      /* Lo último, a la vista: una conversación se lee desde abajo. */
+      if (equipo) lista.scrollTop = lista.scrollHeight;
     }
 
     function lee(){
@@ -11469,7 +11613,7 @@ applyLang(idiomaParaMi());
         arch.value = ''; nomb.textContent = '';
         avisoH.textContent = '';
         bEnv.disabled = false;
-        return lee();
+        return lee().then(function(){ if (de.alEnviar) de.alEnviar(); });
       }).catch(function(e){
         console.warn('[CIIP] enviar mensaje:', e && (e.message || e));
         bEnv.disabled = false;
@@ -14299,44 +14443,14 @@ applyLang(idiomaParaMi());
         var bT = el('button', 'btn ghost', u['cons.tomar'] || '');
         bT.type = 'button';
         bT.addEventListener('click', function(){
-          bT.disabled = true;
-          Promise.resolve(sb.from('consultas')
-            .update({estado:'en_curso', gestor: YO}).eq('id', c.id))
-            .then(function(r){
-              if (r && r.error) throw r.error;
-              c.gestor = YO; c.estado = 'en_curso';
-              pintaConsultas();
-            })
-            .catch(function(e){
-              console.warn('[CIIP] tomar consulta:', e && e.message);
-              bT.disabled = false;
-            });
+          tomaConsulta(c, bT).then(function(bien){ if (bien) pintaConsultas(); });
         });
         botones.appendChild(bT);
       }
 
       var bR = el('button', 'btn ghost', u['cons.resolver'] || '');
       bR.type = 'button';
-      bR.addEventListener('click', function(){
-        bR.disabled = true;
-        Promise.resolve(sb.from('consultas')
-          .update({estado:'resuelta'}).eq('id', c.id))
-          .then(function(r){
-            if (r && r.error) throw r.error;
-            /* Sale de la cola: resuelta ya no es trabajo pendiente, y
-               dejarla puesta hace que el numero de arriba mienta.
-               Se repinta la cola ENTERA y no solo esta seccion: el contador
-               lo pone pintaCola, asi que llamando solo a pintaConsultas la
-               ficha desaparecia y el numero de arriba se quedaba como
-               estaba. Lo cazo una prueba nueva, no la vista. */
-            consultas = consultas.filter(function(x){ return x.id !== c.id; });
-            pintaCola();
-          })
-          .catch(function(e){
-            console.warn('[CIIP] resolver consulta:', e && e.message);
-            bR.disabled = false;
-          });
-      });
+      bR.addEventListener('click', function(){ resuelveConsulta(c, bR); });
       botones.appendChild(bR);
       f.appendChild(botones);
 
@@ -14374,7 +14488,7 @@ applyLang(idiomaParaMi());
     /* La ventana ya no es solo de citas: el titulo es el mismo rotulo que
        lleva el renglon de la barra, y "Citas por confirmar" baja a ser la
        cabecera de su seccion. */
-    pon('colaTitulo', coBack && coBack.classList.contains('solo-otros') ? u['nav.consultas'] : u.co_boton);
+    pon('colaTitulo', u.co_boton);
     pon('colaSub',    u.co_sub);
     pon('colaHcitas', enCola.length ? (u.co_titulo || '') : '');
     pon('colaHtram',  u.co_tram || '');
@@ -14409,6 +14523,9 @@ applyLang(idiomaParaMi());
         cC.textContent = String(otros);
         cC.hidden = (otros === 0);
       }
+      /* «Consultas y citas» bebe del mismo montón: confirmar una cita o
+         resolver una consulta la saca también de allí. */
+      if (document.body.getAttribute('data-vista') === 'consultas') pintaCm();
 
       /* ── Y EN LA PESTAÑA ──
          La chapa del renglón sólo se ve con el panel delante, y el
@@ -16183,6 +16300,12 @@ applyLang(idiomaParaMi());
   });
 
   window.CIIP_PINTA_PORATENDER = function(){
+    /* El enrutador deja entrar mientras no se sabe el rol; esto corre ya
+       con él. Si no eres del equipo, fuera: la cola no es tuya. */
+    if (!esDelEquipo()){
+      if (location.hash === '#poratender') location.hash = '';
+      return Promise.resolve();
+    }
     return cargaCola().then(cargaRecaudosHoy).then(pintaHoy).catch(function(e){
       console.warn('[CIIP] lo que toca hoy:', e && e.message);
       pintaHoy();
@@ -16190,12 +16313,8 @@ applyLang(idiomaParaMi());
   };
   window.CIIP_REPINTA_PORATENDER = pintaHoy;
 
-  /* soloOtros = abrirla desde «Consultas y citas»: la misma ventana, sin la
-     sección de trámites, que tienen su propio apartado. Desde un trámite
-     -«Ver el expediente»- se abre entera y señalando ese. */
-  function abreCola(irA, soloOtros){
+  function abreCola(irA){
     if (!coBack) return;
-    coBack.classList.toggle('solo-otros', !!soloOtros);
     coBack.classList.add('open');
     cargaCola().then(function(){
       pintaCola();
@@ -16213,8 +16332,379 @@ applyLang(idiomaParaMi());
       coLista.appendChild(el('div', 'co-vacia', T().co_error || ''));
     });
   }
+  /* ── CONSULTAS Y CITAS: LA MENSAJERÍA ─────────────────────────────
+     «Consultas y citas» abría la ventana de la cola, y dentro cada consulta
+     desplegaba su conversación entera con su caja de escribir, una detrás
+     de otra en una ventana estrecha: con dos ya no se leía nada. Y el equipo
+     leía la voz del inversionista -«Si algo no te queda claro, pregúntalo
+     aquí»-.
+
+     Ahora es una pantalla de mensajería, la que el CIIP eligió entre cuatro
+     maquetas el 15 de septiembre de 2026: a la izquierda las conversaciones
+     con su último mensaje, búsqueda y filtros; en el centro la conversación;
+     a la derecha quién es y de qué habla. Las citas por confirmar son una
+     conversación más, con la fecha que hay que ponerles arriba.
+
+     Bebe de lo que ya carga la cola -consultas y enCola-, la conversación es
+     pintaHilo con la voz del equipo, tomar y resolver son las mismas dos
+     funciones que usa la ventana, y confirmar una cita es mueve(). No hay
+     una segunda copia de nada. ─────────────────────────────────────── */
+  var cmSel = null;       /* 'cons:<id>' o 'cita:<id>' abierta */
+  var cmFiltro = 'todas';
+  var cmBusca = '';
+  var cmUltimos = {};     /* consulta -> su último mensaje */
+
   var navConsultas = document.getElementById('navConsultas');
-  if (navConsultas) navConsultas.addEventListener('click', function(){ abreCola(null, true); });
+  if (navConsultas) navConsultas.addEventListener('click', function(){ location.hash = 'consultas'; });
+  var cmBuscaIn = document.getElementById('cmBusca');
+  if (cmBuscaIn) cmBuscaIn.addEventListener('input', function(){
+    cmBusca = (cmBuscaIn.value || '').trim().toLowerCase();
+    pintaCm();
+  });
+
+  /* Tomar una consulta: tu nombre y 'en_curso', los dos a la vez. Una
+     consulta en curso sin gestor es una que nadie lleva pero que ya no sale
+     como libre, o sea una que se pierde. */
+  function tomaConsulta(c, boton){
+    boton.disabled = true;
+    return Promise.resolve(sb.from('consultas')
+      .update({estado:'en_curso', gestor: YO}).eq('id', c.id))
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        c.gestor = YO; c.estado = 'en_curso';
+        return true;
+      })
+      .catch(function(e){
+        console.warn('[CIIP] tomar consulta:', e && e.message);
+        boton.disabled = false;
+        return false;
+      });
+  }
+
+  /* Resuelta sale de la cola: dejarla puesta hace que el número de la barra
+     mienta. Se repinta la cola ENTERA y no solo una sección: el contador lo
+     pone pintaCola, y llamando solo a la sección la ficha desaparecía y el
+     número se quedaba como estaba. */
+  function resuelveConsulta(c, boton){
+    boton.disabled = true;
+    return Promise.resolve(sb.from('consultas')
+      .update({estado:'resuelta'}).eq('id', c.id))
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        consultas = consultas.filter(function(x){ return x.id !== c.id; });
+        pintaCola();
+        return true;
+      })
+      .catch(function(e){
+        console.warn('[CIIP] resolver consulta:', e && e.message);
+        boton.disabled = false;
+        return false;
+      });
+  }
+
+  /* El último mensaje de cada consulta, en un viaje para todas. Se compara
+     la fecha y no se fía del orden: una lista que llega en otro orden no
+     puede cambiar cuál es el último. */
+  function cargaUltimosCm(){
+    var ids = consultas.map(function(c){ return c.id; });
+    if (!ids.length){ cmUltimos = {}; return Promise.resolve(); }
+    return Promise.resolve(sb.from('consulta_mensajes')
+      .select('consulta, texto, del_equipo, documento, creado_en')
+      .in('consulta', ids)
+      .order('creado_en', {ascending:false}))
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        var de = {};
+        (r.data || []).forEach(function(m){
+          if (ids.indexOf(m.consulta) < 0) return;
+          var ya = de[m.consulta];
+          if (!ya || Date.parse(m.creado_en) > Date.parse(ya.creado_en)) de[m.consulta] = m;
+        });
+        cmUltimos = de;
+      })
+      .catch(function(e){
+        /* Sin últimos mensajes la lista sale igual, con el asunto: mejor eso
+           que una pantalla en blanco por un dato de adorno. */
+        console.warn('[CIIP] últimos mensajes:', e && e.message);
+        cmUltimos = {};
+      });
+  }
+
+  function cmItems(){
+    var out = [];
+    consultas.forEach(function(c){ out.push({clase:'cons', id:'cons:' + c.id, x:c}); });
+    enCola.forEach(function(c){ out.push({clase:'cita', id:'cita:' + c.id, x:c}); });
+    return out;
+  }
+  /* Sin responder = lo último lo escribió el inversionista. Si todavía no
+     ha escrito nadie, lo dice el estado: abierta es que nadie la ha tocado. */
+  function cmSinResponder(c){
+    var m = cmUltimos[c.id];
+    return m ? !m.del_equipo : c.estado === 'abierta';
+  }
+  function cmCuadra(it, filtro, busca){
+    if (filtro === 'citas' && it.clase !== 'cita') return false;
+    if (filtro === 'sin' && !(it.clase === 'cons' && cmSinResponder(it.x))) return false;
+    if (filtro === 'curso' && !(it.clase === 'cons' && it.x.estado === 'en_curso')) return false;
+    if (busca){
+      var tipo = it.clase === 'cita' ? it.x.tipo_tramite : it.x.tipo;
+      var texto = [it.x.nombre || '', it.x.asunto || '', tipo ? nombreDeTipo(tipo) : ''].join(' ').toLowerCase();
+      if (texto.indexOf(busca) < 0) return false;
+    }
+    return true;
+  }
+  /* Lo que espera respuesta primero, luego lo que está en curso, luego las
+     citas; dentro de cada grupo, lo más viejo arriba. */
+  function cmOrden(a, b){
+    var pa = a.clase === 'cita' ? 2 : (cmSinResponder(a.x) ? 0 : 1);
+    var pb = b.clase === 'cita' ? 2 : (cmSinResponder(b.x) ? 0 : 1);
+    if (pa !== pb) return pa - pb;
+    return (Date.parse(a.x.creado_en) || 0) - (Date.parse(b.x.creado_en) || 0);
+  }
+  function cmIniciales(nombre){
+    return String(nombre || '').split(/\s+/).filter(Boolean).slice(0, 2)
+      .map(function(p){ return p.charAt(0); }).join('').toUpperCase() || '?';
+  }
+  function cmAvatar(it){
+    var a = el('span', 'cm-av' + (it.clase === 'cita' ? ' cita' : ''), cmIniciales(it.x.nombre));
+    a.setAttribute('aria-hidden', 'true');
+    return a;
+  }
+  function cmChip(it){
+    var u = T();
+    if (it.clase === 'cita') return el('span', 'ct-chip listo', u.co_m_cita || '');
+    return el('span', 'cons-est ' + (it.x.estado || 'abierta'),
+      it.x.estado === 'en_curso' ? (u['cons.encurso'] || '') : (u['cons.abierta'] || ''));
+  }
+
+  function pintaCm(){
+    var lista = document.getElementById('cmLista');
+    if (!lista) return;
+    var u = T();
+    if (cmBuscaIn){
+      cmBuscaIn.placeholder = u.co_m_busca || '';
+      cmBuscaIn.setAttribute('aria-label', u.co_m_busca || '');
+    }
+    var todos = cmItems();
+
+    var fil = document.getElementById('cmFiltros');
+    if (fil){
+      fil.textContent = '';
+      [['todas', u.co_m_f_todas], ['sin', u.co_m_f_sin], ['curso', u.co_m_f_curso], ['citas', u.co_m_f_citas]]
+        .forEach(function(x){
+          var b = el('button', null, x[1] || '');
+          b.type = 'button';
+          b.setAttribute('data-filtro', x[0]);
+          b.setAttribute('aria-pressed', cmFiltro === x[0] ? 'true' : 'false');
+          b.appendChild(el('span', 'n', String(todos.filter(function(it){ return cmCuadra(it, x[0], ''); }).length)));
+          b.addEventListener('click', function(){ cmFiltro = x[0]; pintaCm(); });
+          fil.appendChild(b);
+        });
+    }
+
+    var vistos = todos.filter(function(it){ return cmCuadra(it, cmFiltro, cmBusca); }).sort(cmOrden);
+    if (!vistos.some(function(it){ return it.id === cmSel; })) cmSel = vistos[0] ? vistos[0].id : null;
+    lista.textContent = '';
+    if (!vistos.length){
+      lista.appendChild(el('div', 'co-vacia', todos.length ? (u.co_m_nada_filtro || '') : (u.co_m_vacio || '')));
+    }
+    vistos.forEach(function(it){ lista.appendChild(cmFila(it)); });
+    pintaCmCentro();
+  }
+
+  function cmFila(it){
+    var u = T(), x = it.x;
+    var b = el('button', 'cm-fila');
+    b.type = 'button';
+    b.setAttribute('data-cm', it.id);
+    b.setAttribute('aria-current', it.id === cmSel ? 'true' : 'false');
+    b.appendChild(cmAvatar(it));
+    b.appendChild(el('span', 'n1', x.nombre || u.co_sinnombre || ''));
+    var ult = it.clase === 'cons' ? cmUltimos[x.id] : null;
+    b.appendChild(el('span', 'n2', it.clase === 'cita'
+      ? (u.co_m_cita || '') + ' · ' + nombreDeTipo(x.tipo_tramite)
+      : ult ? ((ult.del_equipo ? (u.co_m_tu || '') + ': ' : '') + (ult.texto || u.co_m_adjunto || ''))
+      : (x.asunto || '')));
+    var der = el('span', 'der');
+    der.appendChild(el('span', null, fecha(ult ? ult.creado_en : x.creado_en)));
+    if (it.clase === 'cons' && cmSinResponder(x)){
+      var p = el('span', 'cm-punto');
+      p.title = u.co_m_f_sin || '';
+      der.appendChild(p);
+    }
+    b.appendChild(der);
+    b.addEventListener('click', function(){ cmSel = it.id; pintaCm(); });
+    return b;
+  }
+
+  function pintaCmCentro(){
+    var centro = document.getElementById('cmConv');
+    if (!centro) return;
+    var u = T();
+    var it = cmItems().filter(function(i){ return i.id === cmSel; })[0];
+    pintaCmInfo(it);
+    if (!it){
+      centro.removeAttribute('data-cm');
+      centro.textContent = '';
+      centro.appendChild(el('div', 'cm-vacia', u.co_m_elige || ''));
+      return;
+    }
+    /* La conversación que ya está pintada no se rehace: se perdería lo que
+       se está escribiendo y se volvería a pedir el hilo. Solo la cabecera,
+       que es donde cambia algo al tomarla. */
+    var cab = cmCabecera(it);
+    if (centro.getAttribute('data-cm') === it.id && centro.firstChild){
+      centro.replaceChild(cab, centro.firstChild);
+      return;
+    }
+    centro.setAttribute('data-cm', it.id);
+    centro.textContent = '';
+    centro.appendChild(cab);
+    var cuerpo = el('div', 'cm-cuerpo');
+    centro.appendChild(cuerpo);
+    if (it.clase === 'cita') cmCuerpoCita(it.x, cuerpo);
+    else cmCuerpoConsulta(it.x, cuerpo);
+  }
+
+  function cmCabecera(it){
+    var u = T(), x = it.x;
+    var cab = el('div', 'cm-cab');
+    cab.appendChild(cmAvatar(it));
+    var q = el('div', 'q');
+    q.appendChild(el('h3', null, x.nombre || u.co_sinnombre || ''));
+    q.appendChild(el('div', 's', it.clase === 'cita'
+      ? String(u.co_pidio || '').replace('{fecha}', fecha(x.creado_en))
+      : (x.asunto || '') + ' · ' + String(u.co_m_abierta_el || '').replace('{fecha}', fecha(x.creado_en))));
+    cab.appendChild(q);
+    cab.appendChild(cmChip(it));
+    if (it.clase === 'cons'){
+      var acc = el('div', 'acc');
+      if (!x.gestor){
+        var bT = el('button', 'btn navy', u['cons.tomar'] || '');
+        bT.type = 'button';
+        bT.addEventListener('click', function(){
+          tomaConsulta(x, bT).then(function(bien){ if (bien) pintaCm(); });
+        });
+        acc.appendChild(bT);
+      }
+      var bR = el('button', 'btn ghost', u['cons.resolver'] || '');
+      bR.type = 'button';
+      bR.addEventListener('click', function(){ resuelveConsulta(x, bR); });
+      acc.appendChild(bR);
+      cab.appendChild(acc);
+    }
+    return cab;
+  }
+
+  function cmCuerpoConsulta(c, cuerpo){
+    var u = T();
+    pintaHilo(cuerpo, {tabla:'consulta_mensajes', col:'consulta', id:c.id,
+      inversionista:c.inversionista, equipo:true, quien:c.nombre || u.co_sinnombre || '',
+      alEnviar:function(){ cargaUltimosCm().then(pintaCm); }});
+  }
+
+  /* Una cita por confirmar: lo que pidió y, debajo, la fecha que hay que
+     ponerle. Confirmar y rechazar son mueve(), lo mismo que en la ventana;
+     la base rechaza una cita confirmada sin fecha, así que se avisa antes. */
+  function cmCuerpoCita(c, cuerpo){
+    var u = T();
+    var caja = el('div', 'cm-cita');
+    var dl = el('dl', 'cm-dl');
+    dl.appendChild(el('dt', null, u.co_m_sobre || ''));
+    dl.appendChild(el('dd', null, nombreDeTipo(c.tipo_tramite)));
+    dl.appendChild(el('dt', null, u.co_m_como || ''));
+    var modo = el('dd');
+    if (c.modo) modo.appendChild(chipDeModo(c.modo));
+    dl.appendChild(modo);
+    dl.appendChild(el('dt', null, u.co_m_cuando || ''));
+    dl.appendChild(el('dd', null, fecha(c.desde) + ' – ' + fecha(c.hasta)));
+    caja.appendChild(dl);
+    if (c.nota) caja.appendChild(el('div', 'co-nota', c.nota));
+
+    caja.appendChild(el('div', 'co-exp-t', u.co_m_ponfecha || ''));
+    var fijar = el('div', 'co-fijar');
+    var cuando = document.createElement('input');
+    cuando.type = 'datetime-local';
+    cuando.id = 'cmCuando';
+    cuando.setAttribute('aria-label', u.co_cuando || '');
+    var lugar = document.createElement('input');
+    lugar.type = 'text';
+    lugar.id = 'cmLugar';
+    lugar.placeholder = u.co_lugar || '';
+    lugar.setAttribute('aria-label', u.co_lugar || '');
+    fijar.appendChild(cuando);
+    fijar.appendChild(lugar);
+    caja.appendChild(fijar);
+    var aviso = el('div', 'co-aviso');
+    caja.appendChild(aviso);
+    var botones = el('div', 'co-botones');
+    var rechazar = el('button', 'btn ghost', u.co_rechazar || '');
+    rechazar.type = 'button';
+    var confirmar = el('button', 'btn navy', u.co_confirmar || '');
+    confirmar.type = 'button';
+    botones.appendChild(rechazar);
+    botones.appendChild(confirmar);
+    caja.appendChild(botones);
+    confirmar.addEventListener('click', function(){
+      var iso = conZona(cuando.value);
+      if (!iso){
+        aviso.textContent = u.co_falta || '';
+        cuando.focus();
+        return;
+      }
+      aviso.textContent = '';
+      confirmar.disabled = true;
+      mueve(c, {estado:'confirmada', cuando: iso, lugar: (lugar.value || '').trim()}, confirmar, aviso, u.co_confirmar);
+    });
+    rechazar.addEventListener('click', function(){
+      rechazar.disabled = true;
+      mueve(c, {estado:'cancelada'}, rechazar, aviso, u.co_rechazar);
+    });
+    cuerpo.appendChild(caja);
+
+    pintaHilo(cuerpo, {tabla:'cita_mensajes', col:'cita', id:c.id,
+      inversionista:c.inversionista, equipo:true, quien:c.nombre || u.co_sinnombre || ''});
+  }
+
+  function pintaCmInfo(it){
+    var info = document.getElementById('cmInfo');
+    if (!info) return;
+    var u = T();
+    info.textContent = '';
+    if (!it) return;
+    var x = it.x;
+    var quien = el('div', 'quien');
+    quien.appendChild(cmAvatar(it));
+    quien.appendChild(el('b', null, x.nombre || u.co_sinnombre || ''));
+    quien.appendChild(cmChip(it));
+    info.appendChild(quien);
+    var dl = el('dl');
+    var tipo = it.clase === 'cita' ? x.tipo_tramite : x.tipo;
+    var filas = [[u.co_m_sobre, tipo ? nombreDeTipo(tipo) : (u.co_general || '')],
+                 [it.clase === 'cita' ? u.co_m_pidio : u.co_m_abierta, fecha(x.creado_en)]];
+    if (it.clase === 'cons'){
+      filas.push([u.co_m_lleva, x.gestor
+        ? (x.gestor === YO ? (u.co_lollevas || '') : nombreDeGestor(x.gestor))
+        : (u.co_sinasig || '')]);
+    }
+    filas.forEach(function(f){
+      dl.appendChild(el('dt', null, f[0] || ''));
+      dl.appendChild(el('dd', null, f[1] || ''));
+    });
+    info.appendChild(dl);
+  }
+
+  window.CIIP_PINTA_CONSULTAS = function(){
+    if (!esDelEquipo()){
+      if (location.hash === '#consultas') location.hash = '';
+      return Promise.resolve();
+    }
+    return cargaCola().then(cargaUltimosCm).then(pintaCm).catch(function(e){
+      console.warn('[CIIP] consultas y citas:', e && e.message);
+      pintaCm();
+    });
+  };
+  window.CIIP_REPINTA_CONSULTAS = pintaCm;
 
   function cierraCola(){
     if (!coBack) return;
