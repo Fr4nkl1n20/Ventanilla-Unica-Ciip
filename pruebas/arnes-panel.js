@@ -187,6 +187,7 @@
               fichaAbre, fichaMira, empiezaSolicitud, fichaTrasEmpezar,
               rncAbre, empiezaSolicitud, rncTrasAbrir,
               sisrefAbre, empiezaSolicitud, sisrefTrasAbrir,
+              zodiAbre, empiezaSolicitud, zodiTrasAbrir,
               pistaAbre, empiezaSolicitud, pistaMira,
               solvenciasAbre, empiezaSolicitud, solvenciasTrasAbrir,
               activosAbre, activosMira, opacidadActivos, activosPublica, activosTrasPublicar,
@@ -669,9 +670,11 @@
        Contar ocho y ofrecer siete sería lo peor de los dos mundos: el camino
        prometiendo un trámite que no está debajo. La cuenta dice lo que hay.
        Y en cuanto el CIIP lo encienda vuelve a ser ocho sin recargar, que eso
-       lo comprueba el bloque de «sin pulsar F5». */
+       lo comprueba el bloque de «sin pulsar F5».
+
+       OCHO desde la opinión favorable de la ZODI (c34): una encendida más. */
     igual('camino: la fase 02 cuenta las que están encendidas',
-          deEtapa(1, '.jcount'), '0 de 7 listos');
+          deEtapa(1, '.jcount'), '0 de 8 listos');
     igual('camino: la fase 03 cuenta sus 11',          deEtapa(2, '.jcount'), '0 de 11 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
        inversión extranjera tenía una etapa para él solo —y una etapa con una
@@ -980,11 +983,12 @@
            Desde que se retiro la franja de "te toca a ti", esta es la
            unica pantalla que lo dice. */
         var pendS = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
-        ok('estados: con un borrador, treinta y dos por iniciar y no treinta y tres',
+        ok('estados: con un borrador, treinta y tres por iniciar y no treinta y cuatro',
           /* 31 y no 32: el registro de marca esta apagado y su tarjeta ya no
              esta en el documento, asi que no puede decir «por iniciar» ni
-             ninguna otra cosa. Una menos arriba y una menos abajo. */
-             pendS === 31, pendS + ' por iniciar de 32 ofrecidas', '31');
+             ninguna otra cosa. Una menos arriba y una menos abajo.
+             Y 32 y no 31 desde la ZODI (c34), que es una ofrecida más. */
+             pendS === 32, pendS + ' por iniciar de 33 ofrecidas', '32');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -993,8 +997,9 @@
            nacía 'pendiente' en el marcado -lo suyo es el distintivo, que
            sigue diciendo Disponible-. */
         var pend = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 32,
-             pend + ' por iniciar de 32 ofrecidas', '32');
+          /* 33 desde la ZODI (c34). */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 33,
+             pend + ' por iniciar de 33 ofrecidas', '33');
       }
 
       /* ── la cadena entre trámites ──
@@ -1388,12 +1393,19 @@
         var f2 = document.querySelector('[data-fase="2"]');
         igual('fases: la 02 no aparta nada',
           f2 ? f2.querySelectorAll('.opc-caja').length : -1, 0);
-        /* Siete de las ocho. La octava es el registro de marca, que está
-           apagado en el catálogo; las otras siete siguen ahí, que es lo que
+        /* Ocho de las nueve. La que falta es el registro de marca, que está
+           apagado en el catálogo; las otras ocho siguen ahí, que es lo que
            esta comprobación vino a defender: que apartar los opcionales no se
-           llevara por delante media fase. */
-        igual('fases: y enseña las encendidas de sus ocho',
-          document.querySelectorAll('#trs-2 > .tcard[data-tr]').length, 7);
+           llevara por delante media fase.
+
+           Eran ocho y siete hasta la opinión favorable de la ZODI (c34), que
+           es 'actividad': lo de 'actividad' no se aparta nunca, así que
+           suma una a la vista. */
+        igual('fases: y enseña las encendidas de sus nueve',
+          document.querySelectorAll('#trs-2 > .tcard[data-tr]').length, 8);
+        ok('fases: la ZODI está en la fase 02, a la vista',
+           !!document.querySelector('#trs-2 > .tcard[data-tr="c34"]'),
+           'no está', 'la tarjeta c34');
         /* Y la que falta es LA APAGADA, no otra cualquiera. Sin esto, el 7 se
            cumpliría igual habiéndose caído una tarjeta encendida por error. */
         ok('fases: y la que falta es la apagada, no otra',
@@ -3285,6 +3297,56 @@
     });
     igual('sisref: las opciones son las del portal, sin traducir',
       ops.join(' '), 'Solicitante Otorgante Accionista Director Comprador Vendedor');
+  }
+
+  /* ═══════════ LA OPINIÓN FAVORABLE DE LA ZODI (c34) ═══════════
+     Del mensaje de Milagros Torres, 15-9-2026. Se mira lo mismo que en
+     el SISREF, que fue donde se aprendió: que el formulario no salga
+     vacío, y que los recaudos sean los suyos y no copiados de otra
+     tarjeta. Y dos cosas propias: que el motivo deje decir «no lo sé»
+     -en qué casos toca está por confirmar-, y que la ficha sin plazo no
+     escriba «undefined» donde iba el número. */
+  function zodiAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c34';
+  }
+
+  function zodiTrasAbrir(){
+    if (CASO !== 'vacio') return;
+    igual('zodi: se abre su detalle', document.body.getAttribute('data-vista'), 'tramite');
+
+    var caja   = document.getElementById('trReal');
+    var campos = caja.querySelectorAll('.sol-campo');
+    var docs   = caja.querySelectorAll('.sol-doc');
+
+    igual('zodi: pide los siete datos de la carta al Comandante', campos.length, 7);
+
+    var tipos = [];
+    docs.forEach(function(d){ tipos.push(d.getAttribute('data-doc')); });
+    igual('zodi: sus siete recaudos, con la cadena corporativa en medio',
+      tipos.join(' '),
+      'acta_constitutiva estatutos_accionista good_standing beneficiarios_finales poder cedula rif_personal');
+
+    /* Ninguno opcional: a quien le toca la ZODI le tocan todos. El poder
+       tampoco, que en el SISREF sí lo es: aquí el accionista es una
+       empresa y siempre firma alguien por ella. */
+    igual('zodi: y ninguno es opcional',
+      caja.querySelectorAll('.sol-doc[data-opcional]').length, 0);
+
+    var mot = caja.querySelector('.sol-campo[data-campo="motivo_zodi"] select');
+    var ops = [];
+    if (mot) mot.querySelectorAll('option').forEach(function(o){
+      if (o.value) ops.push(o.value);
+    });
+    ok('zodi: el motivo deja decir «no lo sé»',
+       ops.indexOf('No lo sé: que lo revise el CIIP') !== -1,
+       ops.join(' | ') || '(sin opciones)', 'la salida para quien no sabe');
+
+    ok('zodi: sin plazo, y sin «undefined» en su lugar',
+       /* innerText y no textContent: este lee también el código de los
+          <script>, y el propio arnés escribe esa palabra en el suyo. */
+       document.body.innerText.indexOf('undefined') === -1,
+       'dice «undefined»', 'limpio');
   }
 
   function rncAbre(){
@@ -5973,8 +6035,9 @@
       var vuelta = document.querySelector('#trs-2 > .tcard[data-tr="c8"]');
       ok('al día: y su tarjeta vuelve a la portada, a su fase',
          !!vuelta, vuelta ? 'está' : 'no volvió', 'la tarjeta c8 en la fase 02');
-      igual('al día: y la fase 02 vuelve a contar sus ocho',
-            deEtapa(1, '.jcount'), '0 de 8 listos');
+      /* Nueve y no ocho desde la ZODI (c34). */
+      igual('al día: y la fase 02 vuelve a contar sus nueve',
+            deEtapa(1, '.jcount'), '0 de 9 listos');
   }
 
   /* EL FRENO. Cambiar de pestaña y volver es lo que más se hace en una

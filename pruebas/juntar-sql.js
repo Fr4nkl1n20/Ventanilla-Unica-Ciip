@@ -62,7 +62,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* Lo que la bitacora no apuntaba: el plazo, el bloqueo, los activos, el
    horario, el acompañamiento y los textos. Se engancha a tablas de cinco
    archivos distintos, asi que va detras de todos. */
-'supabase-bitacora-ajustes'];
+'supabase-bitacora-ajustes',
+/* La opinion favorable de la ZODI (c34). Solo necesita el catalogo con
+   `nivel` y `emite`; va al final para no mover el numero de nadie. */
+'supabase-zodi'];
 
 let mal = 0;
 for (const n of orden) {

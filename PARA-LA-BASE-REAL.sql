@@ -62,6 +62,12 @@
 --     las empresas menos la firma personal. Sin correrlo la página no se
 --     rompe: solo no se puede subir esa carta.
 --
+--  7. LA OPINION FAVORABLE DE LA ZODI (c34). Nuevo el 2026-09-15, al
+--     final del todo. Una ficha nueva en la fase 2, entre la constitucion
+--     y la protocolizacion: cuatro tipos de documento nuevos y la fila del
+--     catalogo, en 'actividad' y sin plazo. Es supabase-zodi.sql entero,
+--     que es corto. PENDIENTE DE CONFIRMAR con el CIIP en que casos toca.
+--
 --  SI TIENES CUALQUIER DUDA, PEGA TODO-EN-ORDEN.sql EN VEZ DE ESTE
 --  ─────────────────────────────────────────────────────────────────────
 --  Aquel trae los treinta y siempre es correcto, aunque este archivo se
@@ -1242,3 +1248,69 @@ on conflict (codigo) do nothing;
 
 -- COMPROBACION: una fila.
 select codigo, nombre, vence from public.tipos_documento where codigo = 'carta_comisario';
+
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  7. LA OPINION FAVORABLE DE LA ZODI (c34) · 2026-09-15
+-- ═══════════════════════════════════════════════════════════════════════
+--  Lo mismo que supabase-zodi.sql, sin su cabecera: el porque esta alli.
+--  Se puede correr mas de una vez.
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 1. LOS PAPELES NUEVOS
+-- ───────────────────────────────────────────────────────────────────────
+--  Tres son la cadena corporativa: sin ellos no se puede demostrar quién
+--  está detrás de una empresa accionista extranjera. El cuarto es lo que
+--  sale del trámite.
+--
+--  Que caduque o no sigue el criterio del resto del catálogo: caduca lo
+--  que acredita una situación VIGENTE -el certificado de existencia legal,
+--  como una solvencia- y no lo que acredita un hecho de una fecha -los
+--  estatutos, la lista firmada-.
+insert into public.tipos_documento (codigo, nombre, vence) values
+  ('estatutos_accionista',  'Documento constitutivo y estatutos de la empresa accionista y de su matriz', false),
+  ('good_standing',         'Certificado de existencia legal (Good Standing)',                         true),
+  ('beneficiarios_finales', 'Lista de accionistas y directores hasta los beneficiarios finales',         false),
+  ('no_objecion_zodi',      'Opinión favorable (no objeción) de la ZODI',                                false)
+on conflict (codigo) do update set nombre = excluded.nombre;
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 2. EL TRÁMITE
+-- ───────────────────────────────────────────────────────────────────────
+--  Fase 2, entre la constitución (c5) y la protocolización (c22): necesita
+--  el proyecto del acta y tiene que estar antes de protocolizar.
+--
+--  El ente va como 'ZODI' y no con la región: hay una por región, y cuál
+--  es lo dice el estado que se escribe en el formulario.
+insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values
+  ('opinion_zodi', 'c34', 'Opinión favorable de la ZODI', 'ZODI', 2, true)
+on conflict (codigo) do nothing;
+
+update public.tipos_tramite
+   set emite      = 'no_objecion_zodi',
+       plazo_dias = null,
+       nivel      = 'actividad',
+       activo     = true
+ where codigo = 'opinion_zodi';
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- COMPROBACIONES
+-- ───────────────────────────────────────────────────────────────────────
+-- 1) Una fila: c34 · ZODI · fase 2 · actividad · emite la no objeción ·
+--    sin plazo · encendido.
+--
+--   select ref_panel, codigo, nombre, ente, fase, nivel, emite, plazo_dias, activo
+--   from public.tipos_tramite where ref_panel = 'c34';
+--
+-- 2) Los cuatro papeles nuevos:
+--
+--   select codigo, nombre, vence from public.tipos_documento
+--   where codigo in ('estatutos_accionista','good_standing',
+--                    'beneficiarios_finales','no_objecion_zodi');
+--
+-- 3) Los obligatorios siguen siendo DIEZ, cinco y cinco: el c34 no suma.
+--
+--   select fase, count(*) from public.tipos_tramite
+--   where nivel = 'obligatorio' group by fase;

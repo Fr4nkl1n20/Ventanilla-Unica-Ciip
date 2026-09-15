@@ -232,6 +232,12 @@
     {codigo:'registro_extranjeros_saren', ref_panel:'c32', ente:'SAREN · SISREF',
      activo:true, emite:'constancia_sisref', plazo_dias:14,
      nombre:'Solicitud de firma en el Registro de Extranjeros', fase:2, nivel:'obligatorio'},
+    /* La opinion favorable de la ZODI. Como en la base de verdad: fase 2,
+       'actividad', encendida y SIN plazo -nadie lo ha dado-. Sin ella aqui
+       el panel pintaria una ficha de lectura, sin formulario. */
+    {codigo:'opinion_zodi', ref_panel:'c34', ente:'ZODI',
+     activo:true, emite:'no_objecion_zodi', plazo_dias:null,
+     nombre:'Opinión favorable de la ZODI', fase:2, nivel:'actividad'},
 
     {codigo:'registros_laborales', ref_panel:'c9', ente:'IVSS', activo:true, plazo_dias:28,
      nombre:'Registros laborales', fase:3, nivel:'obligatorio'},
@@ -1324,7 +1330,9 @@
         {codigo:'domicilio_empresa', vence:false}, {codigo:'inversion', vence:false},
         {codigo:'carta_motivo_viaje', vence:false}, {codigo:'registro_comercio', vence:false},
         {codigo:'certificado_medico_origen', vence:true}, {codigo:'arancel_consular', vence:false},
-        {codigo:'comprobante_capital', vence:false}, {codigo:'carta_comisario', vence:false}
+        {codigo:'comprobante_capital', vence:false}, {codigo:'carta_comisario', vence:false},
+        {codigo:'estatutos_accionista', vence:false}, {codigo:'good_standing', vence:true},
+        {codigo:'beneficiarios_finales', vence:false}, {codigo:'no_objecion_zodi', vence:false}
       ], error:null};
     }
 

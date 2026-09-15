@@ -2619,6 +2619,46 @@ select arnes.comprueba(
   not has_function_privilege('authenticated', 'public.apunta(text,text,text,text)', 'execute'),
   'authenticated SI puede inventarse apuntes');
 
+-- La opinion favorable de la ZODI (c34), del mensaje de Milagros Torres
+-- del 15 de septiembre de 2026. Entra como el SISREF: encendida, en la
+-- fase 2 y encadenada. Pero NO obligatoria, que es lo que la separa.
+select arnes.comprueba(
+  'zodi: existe la opinion favorable, en la fase 2 y encendida',
+  (select count(*) = 1 from public.tipos_tramite
+    where codigo = 'opinion_zodi' and ref_panel = 'c34' and fase = 2 and activo));
+
+-- No le toca a todos: solo a quien se instala en zona fronteriza o de
+-- seguridad, o toca la defensa. Como obligatoria, la fase 2 le diria a
+-- una tienda de Caracas que no puede seguir sin ella.
+select arnes.comprueba(
+  'zodi: depende de la actividad, no es obligatoria',
+  (select nivel = 'actividad' from public.tipos_tramite where codigo = 'opinion_zodi'),
+  (select 'nivel ' || nivel from public.tipos_tramite where codigo = 'opinion_zodi'));
+
+select arnes.comprueba(
+  'zodi: emite la no objecion, y esta en el catalogo de recaudos',
+  (select t.emite = 'no_objecion_zodi' and d.codigo is not null
+     from public.tipos_tramite t
+     left join public.tipos_documento d on d.codigo = t.emite
+    where t.codigo = 'opinion_zodi'));
+
+-- Nadie ha dado un plazo. Un numero puesto aqui marcaria como tardia una
+-- solicitud que no tenia hora.
+select arnes.comprueba(
+  'zodi: no promete plazo, porque nadie lo ha dado',
+  (select plazo_dias is null from public.tipos_tramite where codigo = 'opinion_zodi'));
+
+select arnes.comprueba(
+  'zodi: los tres papeles de la cadena corporativa estan en la boveda',
+  (select count(*) = 3 from public.tipos_documento
+    where codigo in ('estatutos_accionista', 'good_standing', 'beneficiarios_finales')));
+
+-- Y no le cuesta un obligatorio a nadie: siguen los diez del informe.
+select arnes.comprueba(
+  'zodi: y los obligatorios siguen siendo diez',
+  (select count(*) = 10 from public.tipos_tramite where nivel = 'obligatorio'),
+  (select count(*)::text || ' obligatorios' from public.tipos_tramite where nivel = 'obligatorio'));
+
 \o
 \pset tuples_only on
 \pset format unaligned

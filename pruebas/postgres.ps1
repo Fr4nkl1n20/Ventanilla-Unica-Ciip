@@ -140,7 +140,10 @@ try {
     'supabase-textos.sql',
     # 30  lo que la bitacora no apuntaba. Se engancha a tablas del 13, 14,
     #     21, 28 y 29, asi que va el ultimo
-    'supabase-bitacora-ajustes.sql'
+    'supabase-bitacora-ajustes.sql',
+    # 31  la opinion favorable de la ZODI (c34). Solo necesita el catalogo
+    #     con nivel y emite; va al final para no mover el numero de nadie
+    'supabase-zodi.sql'
   )
   $n = 0
   foreach ($f in $once) {
