@@ -248,6 +248,7 @@
               lectorApagadoAbre, lectorApagadoMira, lectorApagadoVuelve,
               listoMira, listoEmpezados,
               notaVisaAbre, notaVisaMira, notaRifAbre, notaRifMira,
+              oficinaAbre, oficinaMira,
               plazoF5Abre, plazoF5Rompe, plazoF5Repinta, plazoF5Mira,
               opacidadMira, opacidadSenal,
               loHacemosMira,
@@ -8266,6 +8267,48 @@
        hoja ? hoja.querySelectorAll('.sol-campo').length : 0, 'sus casillas');
     location.hash = '';
   }
+
+  /* ═══════════ LA OFICINA DEL SAREN, SEGUN EL ESTADO ═══════════
+     En la constitucion la oficina ya no se escribe: se elige entre las del
+     estado, como en el portal del SAREN. Se mide que nazca llena con las
+     del estado que viene puesto, que al cambiar el estado cambie la lista,
+     y que lo elegido se vacie: una oficina del Distrito Capital con el
+     estado Zulia ya no es verdad.
+
+     Se compara con las del otro estado y no con una cuenta escrita aqui:
+     el SAREN abre y cierra oficinas, y una prueba que dijera «cinco» se
+     pondria roja el dia que abran la sexta sin que nada estuviera roto. */
+  function oficinaAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c5';
+  }
+
+  function oficinaMira(){
+    if (CASO !== 'vacio') return;
+    var est = document.querySelector('#trReal select[name="estado_solicitud"]');
+    var ofi = document.querySelector('#trReal select[name="oficina_registro"]');
+    ok('oficina: el estado y la oficina son listas', !!est && !!ofi,
+       (est ? 'estado' : 'sin estado') + ' / ' + (ofi ? 'oficina' : 'sin oficina'), 'las dos');
+    if (!est || !ofi){ location.hash = ''; return; }
+    function nombres(){
+      return [].map.call(ofi.options, function(o){ return o.value; }).filter(Boolean);
+    }
+    var antes = nombres();
+    ok('oficina: nace con las del estado que viene puesto',
+       antes.length > 0 && antes.every(function(n){ return n.indexOf(est.value) >= 0; }),
+       est.value + ': ' + antes.length + ' oficinas', 'las de ' + est.value);
+
+    ofi.value = antes[0];
+    est.value = 'ZULIA';
+    est.dispatchEvent(new Event('change'));
+    var despues = nombres();
+    ok('oficina: al cambiar el estado, cambia la lista',
+       despues.length > 0 && despues.every(function(n){ return antes.indexOf(n) < 0; }),
+       despues.slice(0, 2).join(' | ') || '(vacia)', 'otras, las de Zulia');
+    igual('oficina: y lo elegido antes se vacia', ofi.value, '');
+    location.hash = '';
+  }
+
 
   /* ═══════════════════════════════════════════════════════════════
      EL ESTIMADO NO SE PIERDE AL RECARGAR

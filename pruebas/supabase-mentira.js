@@ -1324,7 +1324,7 @@
         {codigo:'domicilio_empresa', vence:false}, {codigo:'inversion', vence:false},
         {codigo:'carta_motivo_viaje', vence:false}, {codigo:'registro_comercio', vence:false},
         {codigo:'certificado_medico_origen', vence:true}, {codigo:'arancel_consular', vence:false},
-        {codigo:'comprobante_capital', vence:false}
+        {codigo:'comprobante_capital', vence:false}, {codigo:'carta_comisario', vence:false}
       ], error:null};
     }
 

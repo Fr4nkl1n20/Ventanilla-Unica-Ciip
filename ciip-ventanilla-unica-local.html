@@ -8057,12 +8057,19 @@ applyLang(idiomaParaMi());
        prestada. Tampoco pide la reserva de nombre: reservarlo es el primer
        paso del trámite y lo hace el CIIP con las dos opciones de abajo.
        Lo que sí hace falta es la identidad de quien constituye, su RIF y
-       cómo se respalda el capital. */
+       cómo se respalda el capital.
+
+       La carta del comisario la pide el formulario del SAREN a todos los
+       tipos de empresa MENOS la firma personal. Va como opcional porque
+       esta lista no sabe de condiciones: marcada obligatoria, a una firma
+       personal no la dejaria enviar. Los recaudos propios de cada tipo el
+       portal los carga aparte y no estan en la pagina guardada. */
     constitucion: [
       {tipo:'cedula',             clave:'d_identidad'},
       {tipo:'rif_personal',       clave:'d_rifpersonal'},
       {tipo:'comprobante_capital',clave:'d_capital'},
-      {tipo:'domicilio_empresa',  clave:'d_domemp'}
+      {tipo:'domicilio_empresa',  clave:'d_domemp'},
+      {tipo:'carta_comisario',    clave:'d_comisario', opcional:true}
     ],
     /* Este es el trámite donde la bóveda se ve entera: los cuatro recaudos
        vienen del c5 y del c6, así que a quien haya pasado por aquí no se le
@@ -8447,6 +8454,43 @@ applyLang(idiomaParaMi());
     inicio_actividades: {desde:'1900-01-01', hasta:'+10'}
   };
 
+  /* Las oficinas del Registro Mercantil donde el SAREN deja hacer la
+     constitucion, por estado. Salen de su propia consulta
+     (https://tramites.saren.gob.ve/get/oficina, la que usa su formulario
+     al elegir el estado), hecha con sesion el 15 de septiembre de 2026:
+     48 oficinas. De cada una se guarda solo el NOMBRE, tal como lo
+     escribe el portal; telefonos, direcciones y datos internos del SAREN
+     no le hacen falta a nadie aqui.
+
+     Ojo con Miranda: su oficina es el «Tercero de la Circunscripcion
+     Judicial del Distrito Capital y Estado Miranda». No es un error de
+     copia, es como la tiene el SAREN. */
+  var OFICINAS_SAREN = {
+    'DISTRITO CAPITAL': ['REGISTRO MERCANTIL PRIMERO DEL DISTRITO CAPITAL', 'REGISTRO MERCANTIL SEGUNDO DEL DISTRITO CAPITAL', 'REGISTRO MERCANTIL CUARTO DEL DISTRITO CAPITAL', 'REGISTRO MERCANTIL QUINTO DEL DISTRITO CAPITAL', 'REGISTRO MERCANTIL SEPTIMO DEL DISTRITO CAPITAL'],
+    'AMAZONAS': ['REGISTRO MERCANTIL DEL ESTADO AMAZONAS'],
+    'ANZOÁTEGUI': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO ANZOÁTEGUI', 'REGISTRO MERCANTIL SEGUNDO DEL ESTADO ANZOÁTEGUI', 'REGISTRO MERCANTIL TERCERO DEL ESTADO ANZOÁTEGUI'],
+    'APURE': ['REGISTRO MERCANTIL DEL ESTADO APURE', 'REGISTRO MERCANTIL SEGUNDO DE LA CIRCUNSCRIPCIÓN JUDICIAL DEL DISTRITO ALTO APURE'],
+    'ARAGUA': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO ARAGUA', 'REGISTRO MERCANTIL SEGUNDO DEL ESTADO ARAGUA'],
+    'BARINAS': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO BARINAS', 'REGISTRO MERCANTIL SEGUNDO DEL ESTADO BARINAS'],
+    'BOLIVAR': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO BOLÍVAR', 'REGISTRO MERCANTIL SEGUNDO DEL ESTADO BOLÍVAR'],
+    'CARABOBO': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO CARABOBO', 'REGISTRO MERCANTIL SEGUNDO DEL ESTADO CARABOBO', 'REGISTRO MERCANTIL TERCERO DEL ESTADO CARABOBO'],
+    'COJEDES': ['REGISTRO MERCANTIL DEL ESTADO COJEDES'],
+    'DELTA AMACURO': ['REGISTRO MERCANTIL DEL ESTADO DELTA AMACURO'],
+    'FALCÓN': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO FALCÓN', 'REGISTRO MERCANTIL SEGUNDO DEL ESTADO FALCÓN'],
+    'GUÁRICO': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO GUÁRICO', 'REGISTRO MERCANTIL SEGUNDO DEL ESTADO GUÁRICO', 'REGISTRO MERCANTIL TERCERO DEL ESTADO GUÁRICO'],
+    'LARA': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO LARA', 'REGISTRO MERCANTIL SEGUNDO DEL ESTADO LARA'],
+    'MÉRIDA': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO MÉRIDA', 'REGISTRO MERCANTIL SEGUNDO DEL ESTADO MÉRIDA'],
+    'MIRANDA': ['REGISTRO MERCANTIL TERCERO DE LA CIRCUNSCRIPCION JUDICIAL DEL DISTRITO CAPITAL Y ESTADO BOLIVARIANO DE MIRANDA.'],
+    'MONAGAS': ['REGISTRO MERCANTIL DEL ESTADO MONAGAS'],
+    'NUEVA ESPARTA': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO NUEVA ESPARTA', 'REGISTRO MERCANTIL SEGUNDO DEL ESTADO NUEVA ESPARTA'],
+    'PORTUGUESA': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO PORTUGUESA', 'REGISTRO MERCANTIL SEGUNDO DEL ESTADO PORTUGUESA'],
+    'SUCRE': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO SUCRE'],
+    'TÁCHIRA': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO TACHIRA', 'REGISTRO MERCANTIL SEGUNDO DEL ESTADO TACHIRA', 'REGISTRO MERCANTIL TERCERO DEL ESTADO TACHIRA'],
+    'TRUJILLO': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO TRUJILLO'],
+    'YARACUY': ['REGISTRO MERCANTIL DEL ESTADO YARACUY'],
+    'ZULIA': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO ZULIA', 'REGISTRO MERCANTIL SEGUNDO DEL ESTADO ZULIA', 'REGISTRO MERCANTIL TERCERO DEL ESTADO ZULIA', 'REGISTRO MERCANTIL CUARTO DEL ESTADO ZULIA', 'REGISTRO MERCANTIL QUINTO DEL ESTADO ZULIA']
+  };
+
   var CAMPOS = {
     /* ── el poder de representacion ──
        El tramite estaba en el catalogo desde el 3 de septiembre, con sus
@@ -8558,15 +8602,50 @@ applyLang(idiomaParaMi());
       {n:'actividad_economica', clave:'f_actividad'},
       {n:'direccion_fiscal',    clave:'f_direccion',    ancho:true}
     ],
-    /* Dos nombres y no uno: el SAREN rechaza la denominación si ya está
+    /* ── la constitucion ──
+       Los campos y sus opciones salen del formulario del SAREN,
+       https://tramites.saren.gob.ve/empresa/create, guardado con sesion
+       el 15 de septiembre de 2026. Como en el Registro de Extranjeros: no
+       estan deducidos, se leyo el formulario.
+
+       Dos nombres y no uno: el SAREN rechaza la denominación si ya está
        tomada, y con la alternativa a mano la reserva no cuesta un viaje
-       más. El tipo de sociedad se traduce pero se guarda en español
-       (opcionesClave), para que cambiar de idioma no cambie el dato. */
+       más. La reserva va ANTES del formulario del portal -la solicitud
+       nace de una denominacion ya reservada-, y la hace el CIIP.
+
+       Las opciones de estado, actividad y tipo de empresa van LITERALES y
+       sin traducir: son lo que el portal espera recibir, y el gestor las
+       transcribe sin deshacer nada. El estado NO es la lista del Registro
+       de Extranjeros: este portal escribe los estados con tilde, trae
+       veintitres, y ni La Guaira ni las Dependencias Federales.
+
+       La actividad es la SECCION de la clasificacion (21), con su propio
+       nombre de casilla y no 'actividad_economica': aquella es texto libre
+       en once tramites, y el nombre de la seccion copiado alli no le diria
+       nada al SENIAT. El tipo de empresa se guarda en 'tipo_sociedad', que
+       es como lo lee el acta. El capital va en bolivares: el portal no
+       acepta menos de Bs. 63,00.
+
+       La oficina se elige entre las del estado elegido, como en el portal:
+       la lista es OFICINAS_SAREN, mas arriba, y se rehace al cambiar el
+       estado.
+
+       Lo que el SAREN pide y aqui NO se pregunta:
+         division, grupo y clase  el portal los carga uno detras de otro a
+           partir de la seccion; los elige el gestor con el objeto delante.
+         cantidad de copias  el portal solo admite una.
+         habilitar tramite  es el cupo del dia de la oficina; lo mira el
+           gestor al presentar. */
     constitucion: [
       {n:'denominacion',      clave:'f_denominacion'},
       {n:'denominacion_alt',  clave:'f_denomalt'},
-      {n:'tipo_sociedad',     clave:'f_tiposoc',    opcionesClave:'o_tiposoc'},
-      {n:'capital_social',    clave:'f_capital'},
+      {n:'estado_solicitud',  clave:'f_estadosol',  opciones:['DISTRITO CAPITAL','AMAZONAS','ANZOÁTEGUI','APURE','ARAGUA','BARINAS','BOLIVAR','CARABOBO','COJEDES','DELTA AMACURO','FALCÓN','GUÁRICO','LARA','MÉRIDA','MIRANDA','MONAGAS','NUEVA ESPARTA','PORTUGUESA','SUCRE','TÁCHIRA','TRUJILLO','YARACUY','ZULIA']},
+      {n:'oficina_registro',  clave:'f_oficinasol',
+       opcionesSegun:'estado_solicitud', opcionesDe:OFICINAS_SAREN},
+      {n:'capital_social',    clave:'f_capsuscrito'},
+      {n:'seccion_actividad', clave:'f_seccionact', opciones:['AGRICULTURA, GANADERÍA, SILVICULTURA Y PESCA','EXPLOTACIÓN DE MINAS Y CANTERAS','INDUSTRIAS MANUFACTURERAS','SUMINISTRO DE ELECTRICIDAD, GAS, VAPOR Y AIRE ACONDICIONADO','SUMINISTRO DE AGUA; EVACUACIÓN DE AGUAS RESIDUALES, GESTIÓN DE DESECHOS Y DESCONTAMINACIÓN','CONSTRUCCIÓN','COMERCIO AL POR MAYOR Y AL POR MENOR; REPARACIÓN DE VEHÍCULOS AUTOMOTORES Y MOTOCICLETAS','TRANSPORTE Y ALMACENAMIENTO','ACTIVIDADES DE ALOJAMIENTO Y DE SERVICIO DE COMIDAS','INFORMACIÓN Y COMUNICACIONES','ACTIVIDADES FINANCIERAS Y DE SEGUROS','ACTIVIDADES INMOBILIARIAS','ACTIVIDADES PROFESIONALES, CIENTÍFICAS Y TÉCNICAS','ACTIVIDADES DE SERVICIOS ADMINISTRATIVOS Y DE APOYO','ADMINISTRACIÓN PÚBLICA Y DEFENSA; PLANES DE SEGURIDAD SOCIAL DE AFILIACIÓN OBLIGATORIA','ENSEÑANZA','ACTIVIDADES DE ATENCIÓN DE LA SALUD HUMANA Y DE ASISTENCIA SOCIAL','ACTIVIDADES ARTÍSTICAS, DE ENTRETENIMIENTO Y RECREATIVAS','OTRAS ACTIVIDADES DE SERVICIOS','ACTIVIDADES DE LOS HOGARES COMO EMPLEADORES; ACTIVIDADES NO DIFERENCIADAS DE LOS HOGARES COMO PRODUCTORES DE BIENES Y SERVICIOS PARA USO PROPIO','ACTIVIDADES DE ORGANIZACIONES Y ÓRGANOS EXTRATERRITORIALES']},
+      {n:'tipo_sociedad',     clave:'f_tiposoc',    ancho:true,
+       opciones:['(C.A) CONSTITUCIÓN COMPAÑÍAS ANÓNIMAS','(S.R.L) CONSTITUCIÓN SOCIEDADES DE RESPONSABILIDAD LIMITADA','(S.N.C) CONSTITUCIÓN SOCIEDAD EN NOMBRE COLECTIVO','(S.C.S) CONSTITUCIÓN SOCIEDADES DE COMANDITAS SIMPLES','(S.C.A) CONSTITUCIÓN DE SOCIEDADES EN COMANDITA POR ACCIONES','(F.P) CONSTITUCIÓN FIRMA PERSONAL','(S.A) CONSTITUCIÓN SOCIEDADES ANÓNIMAS','(F.P) CONSTITUCIÓN CORREDOR CARÁCTER PÚBLICO','(CONSORCIO) CONSTITUCIÓN DE CONSORCIOS','(INC) CONSTITUCION DE SOCIEDAD MERCANTIL EXTRANJERA','(C.C.S) CONSTITUCIÓN DE COMPAÑIA EN COMANDITA SIMPLE','(C.C.A) CONSTITUCIÓN DE COMPAÑIA EN COMANDITA POR ACCIONES','(S.L.) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (SOCIEDADES DE RESPONSABILIDAD LIMITADA)','(S.A) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (SOCIEDADES ANÓNIMAS)','(C.A) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (COMPAÑÍA ANÓNIMA)','(C.C.A) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (COMPAÑÍA EN COMANDITA POR ACCIONES)','(C.C.S) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (COMPAÑÍA EN COMANDITA SIMPLE)','(S.C.A) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (SOCIEDADES EN COMANDITA POR ACCIONES)','(S.C.S) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (SOCIEDADES EN COMANDITAS SIMPLES)','(F.P) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (FIRMA PERSONAL)','(C.A) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES NACIONALES (COMPAÑÍA ANÓNIMA)','(S.A) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES NACIONALES (SOCIEDADES ANÓNIMAS)']},
       {n:'objeto_social',     clave:'f_objeto',     ancho:true},
       {n:'domicilio_social',  clave:'f_domsocial',  ancho:true},
       {n:'socios',            clave:'f_socios',     ancho:true}
@@ -9723,9 +9802,12 @@ applyLang(idiomaParaMi());
         valores = (window.CIIP_PASOS.ui.es[c.opcionesClave]) || [];
         lista   = (u[c.opcionesClave]) || valores;
       }
-      if (lista){
+      /* opcionesSegun: la lista depende de lo elegido en OTRA casilla -la
+         oficina segun el estado-. Nace vacia y se llena mas abajo, cuando
+         ya existen las dos. */
+      if (lista || c.opcionesSegun){
         entrada = document.createElement('select');
-        lista.forEach(function(o, i){
+        (lista || []).forEach(function(o, i){
           var op = document.createElement('option');
           op.value = (valores[i] !== undefined ? valores[i] : o);
           op.textContent = o;
@@ -9801,6 +9883,37 @@ applyLang(idiomaParaMi());
         campo.appendChild(entrada);
       }
       rejilla.appendChild(campo);
+    });
+    /* Las listas que dependen de otra casilla. Van DESPUES de montar todas:
+       la de origen tiene que existir, y el valor guardado solo se puede
+       poner cuando la lista ya tiene sus opciones -puesto antes, un select
+       vacio se lo traga sin decir nada-. Cambiar el origen vacia la
+       eleccion: una oficina de Zulia con el estado Lara ya no es verdad. */
+    (CAMPOS[tipo.codigo] || []).forEach(function(c){
+      if (!c.opcionesSegun) return;
+      var sel = rejilla.querySelector('select[name="' + c.n + '"]');
+      var origen = rejilla.querySelector('[name="' + c.opcionesSegun + '"]');
+      if (!sel || !origen) return;
+      function llena(quiero){
+        var ops = (c.opcionesDe || {})[origen.value] || [];
+        sel.innerHTML = '';
+        sel.appendChild(document.createElement('option'));
+        ops.forEach(function(o){
+          var op = document.createElement('option');
+          op.value = o; op.textContent = o;
+          sel.appendChild(op);
+        });
+        /* Lo escrito cuando la oficina era texto libre no se pierde: sale
+           como una opcion mas, hasta que se elija otra. */
+        if (quiero && ops.indexOf(quiero) < 0){
+          var vieja = document.createElement('option');
+          vieja.value = quiero; vieja.textContent = quiero;
+          sel.appendChild(vieja);
+        }
+        sel.value = quiero || '';
+      }
+      llena(datos[c.n] || (ANTES && ANTES[c.n] && ANTES[c.n].valor) || '');
+      origen.addEventListener('change', function(){ llena(''); });
     });
     col.appendChild(rejilla);
 

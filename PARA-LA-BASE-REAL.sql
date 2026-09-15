@@ -57,6 +57,11 @@
 --     residencia ya no espera por ella-. Las solicitudes que ya hubiera de
 --     la c1 se quedan como estan.
 --
+--  6. LA CARTA DEL COMISARIO. Nuevo el 2026-09-15, al final del todo. Un
+--     tipo de documento para la constitución, que el SAREN pide a todas
+--     las empresas menos la firma personal. Sin correrlo la página no se
+--     rompe: solo no se puede subir esa carta.
+--
 --  SI TIENES CUALQUIER DUDA, PEGA TODO-EN-ORDEN.sql EN VEZ DE ESTE
 --  ─────────────────────────────────────────────────────────────────────
 --  Aquel trae los treinta y siempre es correcto, aunque este archivo se
@@ -1224,3 +1229,16 @@ where  codigo = 'visa_inversionista';
 select clave, idioma, texto
 from   public.textos_panel
 where  clave like 'c1.%';
+
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  6. LA CARTA DEL COMISARIO · 2026-09-15
+-- ═══════════════════════════════════════════════════════════════════════
+--  Lo mismo que ya dice supabase-tramites.sql. Se puede correr mas de una vez.
+
+insert into public.tipos_documento (codigo, nombre, vence) values
+  ('carta_comisario',   'Carta de aceptación del comisario',      false)
+on conflict (codigo) do nothing;
+
+-- COMPROBACION: una fila.
+select codigo, nombre, vence from public.tipos_documento where codigo = 'carta_comisario';
