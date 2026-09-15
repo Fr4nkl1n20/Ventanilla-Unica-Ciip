@@ -4368,7 +4368,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
 
 /* En el detalle: tres bloques con sus pasos, y en los tramos 2 y 3 la linea
    que dice cual son y lleva de vuelta. */
-.tr-tramos{margin:14px 0 4px;}
+.tr-tramos{margin:14px 0 4px;} .tr-siguen{margin-top:28px;}
 .tr-bloque{border:1px solid var(--line); border-radius:var(--r); background:var(--bg); padding:12px 16px; margin-top:10px;}
 .tr-bloque.apagado{opacity:.6;}
 .tr-bloque-h{display:flex; align-items:center; gap:10px;}
@@ -4377,7 +4377,6 @@ body[data-vista="horario"] .fase-bar{display:none;}
 .tr-bloque-pasos{margin-top:8px;}
 .tr-bloque-pie{margin-top:8px; display:flex; justify-content:flex-end;}
 .tr-bloque-nota{font-size:var(--fs-nota); color:var(--gray);}
-.con-tramos #trProceso{display:none !important;}
 .tr-tramo-de{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:12px 0 4px; padding:10px 14px; border-radius:var(--r); background:var(--activa-bg); font-size:var(--fs-parrafo); color:var(--ink);}
 </style>
 
@@ -5152,6 +5151,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
            repintado sin que se viera nunca. -->
       <div class="tr-varias" id="trVarias" hidden></div>
       <div class="tr-real" id="trReal"></div>
+      <div class="tr-tramos tr-siguen" id="trSiguen" hidden></div>
     </section>
 
     <!-- Las preguntas se pliegan bajo su cabecera, igual que los trámites de
@@ -6587,16 +6587,15 @@ function applyLang(lang){
      de la tarjeta, para que el avance y el distintivo no se contradigan. */
   var AVANCE = {listo:4, proceso:2, accion:1, pendiente:0};
 
-  /* -- LOS TRES TRAMOS, EN EL DETALLE --
-     Al abrir la constitucion se ven sus tres tramos, cada uno con sus cuatro
-     pasos de pasos.js y su estado, y un boton que abre ese tramo con su
-     detalle y su formulario de siempre. Al abrir la protocolizacion o la
-     publicacion, una linea dice que tramo es y lleva de vuelta a los tres.
+  /* -- LOS TRAMOS, EN EL DETALLE --
+     Al abrir la constitucion se ve PRIMERO su tramite -el formulario o su
+     estado, como en cualquier otro- y DEBAJO los tramos que siguen, cada uno
+     con sus cuatro pasos de pasos.js, su estado y un boton que lo abre con
+     su detalle y su formulario de siempre. Al abrir la protocolizacion o la
+     publicacion, una linea arriba dice que tramo es y lleva de vuelta.
 
-     La escalera de un solo tramite no se ensena en la madre (con-tramos): los
-     bloques ya llevan sus pasos, y dos escaleras seguidas se leerian como un
-     tramite de ocho pasos. Lo que SI sigue debajo es el tramite de verdad del
-     primer tramo -su formulario o su estado-, que es donde se trabaja. */
+     El 15 de septiembre de 2026 iban los tres bloques encima del formulario;
+     el CIIP pidio ver primero el tramite abierto y los demas abajo. */
   var TRAMOS_DE = {c5: ['c5', 'c22', 'c23']};
   var ESTADO_CHIP = {listo:['good', 'st.done'], proceso:['info', 'st.progress'],
                      accion:['warn', 'st.action'], pendiente:['mute', 'st.pending']};
@@ -6609,18 +6608,19 @@ function applyLang(lang){
   }
 
   function pintaTramosDetalle(id, D, lang){
-    var caja = document.getElementById('trTramos');
-    var det = document.getElementById('trDetalle');
-    if (!caja) return;
-    caja.textContent = '';
+    var arriba = document.getElementById('trTramos');
+    var abajo = document.getElementById('trSiguen');
+    if (!arriba || !abajo) return;
+    arriba.textContent = '';
+    abajo.textContent = '';
     var U = (D.ui && (D.ui[curLang] || D.ui.en)) || {};
     var dic = I18N[curLang] || I18N.en;
     var lista = TRAMOS_DE[id] || null, madre = null;
     if (!lista){
       for (var k in TRAMOS_DE){ if (TRAMOS_DE[k].indexOf(id) > 0) madre = k; }
     }
-    if (det) det.classList.toggle('con-tramos', !!lista);
-    caja.hidden = !(lista || madre);
+    arriba.hidden = !madre;
+    abajo.hidden = !lista;
 
     if (madre){
       var pos = TRAMOS_DE[madre].indexOf(id) + 1;
@@ -6631,17 +6631,16 @@ function applyLang(lang){
       volver.type = 'button';
       volver.addEventListener('click', function(){ location.hash = 'tramite-' + madre; });
       nota.appendChild(volver);
-      caja.appendChild(nota);
+      arriba.appendChild(nota);
       return;
     }
     if (!lista) return;
 
-    caja.appendChild(trEl('div', 'tr-h', U.tm_titulo || ''));
+    abajo.appendChild(trEl('div', 'tr-h', U.tm_titulo || ''));
     lista.forEach(function(ref, i){
+      if (i === 0) return;   /* el primero es el tramite de arriba */
       var tarjeta = document.querySelector('.tcard[data-tr="' + ref + '"]');
-      var st = 'pendiente';
-      if (tarjeta) st = tarjeta.getAttribute(i === 0 ? 'data-st-propio' : 'data-st') ||
-                        tarjeta.getAttribute('data-st') || 'pendiente';
+      var st = (tarjeta && tarjeta.getAttribute('data-st')) || 'pendiente';
 
       var bloque = trEl('div', 'tr-bloque' + (tarjeta ? '' : ' apagado'));
       bloque.setAttribute('data-tramo', ref);
@@ -6649,9 +6648,8 @@ function applyLang(lang){
 
       var cab = trEl('div', 'tr-bloque-h');
       cab.appendChild(trEl('span', 'tr-bloque-n', String(i + 1)));
-      var nombre = (i === 0) ? (U.tm_acta || '')
-                 : (tarjeta ? ((tarjeta.querySelector('.t-name') || {}).textContent || ref)
-                            : (dic[ref + '.name'] || ref));
+      var nombre = tarjeta ? ((tarjeta.querySelector('.t-name') || {}).textContent || ref)
+                           : (dic[ref + '.name'] || ref);
       cab.appendChild(trEl('span', 'tr-bloque-t', nombre));
       var ec = ESTADO_CHIP[st] || ESTADO_CHIP.pendiente;
       var chip = trEl('span', 'chip ' + ec[0]);
@@ -6678,9 +6676,7 @@ function applyLang(lang){
       bloque.appendChild(ol);
 
       var pie = trEl('div', 'tr-bloque-pie');
-      if (i === 0){
-        pie.appendChild(trEl('span', 'tr-bloque-nota', U.tm_aqui || ''));
-      } else if (tarjeta){
+      if (tarjeta){
         var abre = trEl('button', 'btn ghost sm', U.tm_abrir || '');
         abre.type = 'button';
         abre.addEventListener('click', function(){ location.hash = 'tramite-' + ref; });
@@ -6689,7 +6685,7 @@ function applyLang(lang){
         pie.appendChild(trEl('span', 'tr-bloque-nota', U.tm_apagado || ''));
       }
       bloque.appendChild(pie);
-      caja.appendChild(bloque);
+      abajo.appendChild(bloque);
     });
   }
 

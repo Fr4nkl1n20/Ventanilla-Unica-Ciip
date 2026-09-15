@@ -2844,16 +2844,22 @@
 
   function tramosDetalle(){
     if (CASO !== 'vacio') return;
-    var bloques = document.querySelectorAll('#trTramos .tr-bloque');
-    igual('tramos: el detalle de la constitución enseña los tres bloques', bloques.length, 3);
+    /* Primero el trámite abierto, con su formulario; los otros dos tramos,
+       debajo. */
+    var bloques = document.querySelectorAll('#trSiguen .tr-bloque');
+    igual('tramos: debajo de la constitución van los otros dos tramos',
+          [].map.call(bloques, function(b){ return b.getAttribute('data-tramo'); }).join(','), 'c22,c23');
     ok('tramos: cada bloque con sus cuatro pasos',
-       bloques.length === 3 && [].every.call(bloques, function(b){ return b.querySelectorAll('.tr-paso').length === 4; }),
-       [].map.call(bloques, function(b){ return b.querySelectorAll('.tr-paso').length; }).join('/'), '4/4/4');
-    var proc = document.getElementById('trProceso');
-    ok('tramos: y sin la escalera de un solo trámite encima',
-       !!proc && window.getComputedStyle(proc).display === 'none',
-       proc ? window.getComputedStyle(proc).display : 'no existe', 'none');
-    var abre = bloques.length > 1 ? bloques[1].querySelector('.tr-bloque-pie button') : null;
+       bloques.length === 2 && [].every.call(bloques, function(b){ return b.querySelectorAll('.tr-paso').length === 4; }),
+       [].map.call(bloques, function(b){ return b.querySelectorAll('.tr-paso').length; }).join('/'), '4/4');
+    var real = document.getElementById('trReal'), siguen = document.getElementById('trSiguen');
+    ok('tramos: el trámite abierto va antes que los tramos',
+       !!real && !!siguen && !!(real.compareDocumentPosition(siguen) & Node.DOCUMENT_POSITION_FOLLOWING),
+       real && siguen ? 'orden mirado' : 'falta un hueco', '#trReal y luego #trSiguen');
+    var arriba = document.getElementById('trTramos');
+    ok('tramos: y arriba no queda nada de los tramos', !!arriba && arriba.hidden && !arriba.childNodes.length,
+       arriba ? (arriba.hidden ? 'oculto' : 'visible') : 'no existe', 'oculto y vacío');
+    var abre = bloques.length ? bloques[0].querySelector('.tr-bloque-pie button') : null;
     ok('tramos: el bloque de la protocolización se puede abrir', !!abre,
        abre ? 'con botón' : 'sin botón', 'con botón');
     if (abre) abre.click();
@@ -2867,6 +2873,9 @@
     ok('tramos: y dice de qué tramo se trata',
        !!nota && nota.textContent.indexOf('Tramo 2 de 3') >= 0,
        nota ? nota.textContent : '(sin nota)', 'Tramo 2 de 3 ...');
+    var siguen = document.getElementById('trSiguen');
+    ok('tramos: y no repite los tramos debajo', !!siguen && siguen.hidden,
+       siguen ? (siguen.hidden ? 'oculto' : 'visible') : 'no existe', 'oculto');
     location.hash = '';
   }
 
