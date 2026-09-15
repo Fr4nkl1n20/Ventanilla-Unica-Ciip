@@ -2973,6 +2973,15 @@ body[data-vista="tramite"] #secTramites{display:none;}
   stroke-linecap:round; stroke-linejoin:round;}
 .pa-lee.falla .pa-lee-h svg{stroke:var(--amber);}
 .pa-lee-r{font-size:11.5px; color:var(--gray); line-height:1.55;}
+/* El papel que ya está en Documentos: se ofrece, no se lee solo. Va dentro
+   del cuadro y encima de la zona de soltar, porque es la manera más corta
+   de hacer lo mismo. */
+.pa-lee-ya{display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; margin:0 0 11px;
+  padding:9px 11px; border:1px solid var(--navy2); border-radius:9px; background:#fff;}
+.pa-lee-ya-q{flex:1 1 220px; font-size:12px; color:var(--ink); line-height:1.5;}
+.pa-lee-usar{font:inherit; font-size:11.5px; font-weight:700; cursor:pointer; padding:6px 11px;
+  border:1px solid var(--navy2); border-radius:8px; background:var(--navy2); color:#fff;}
+.pa-lee-usar:hover{filter:brightness(1.08);}
 .pa-lee-otro{font:inherit; font-size:11px; font-weight:700; cursor:pointer; margin-top:10px;
   border:1px solid var(--line); background:var(--hoja); border-radius:7px; padding:6px 12px;
   color:var(--ink);}
@@ -9903,7 +9912,38 @@ applyLang(idiomaParaMi());
 
       var cuadro = el('div', 'pa-lee');
       var zona = null, arch = null;
+      /* Antes de pidePapel(), que ya pregunta por ella: declarada despues
+         valdria undefined en esa primera llamada y el cuadro reventaria. */
+      var guardados = [];
       pidePapel();
+
+      /* ── SI EL PAPEL YA ESTÁ EN TUS DOCUMENTOS, SE OFRECE ──
+         Del 15-9-2026: quien ya subió el acta o el RIF no tiene por qué
+         volver a soltarlos para que se lean. Pero NO se leen solos. Leer es
+         mandar el papel al lector -con IA, fuera de la ventanilla-, y un
+         documento guardado para un trámite no lleva dentro el permiso de
+         leerlo para otro. Así que se PREGUNTA, un botón por papel, y sólo
+         se lee el que se pulsa.
+
+         Se busca igual que en los recaudos de abajo -el más reciente de
+         cada tipo- para que el que se ofrece sea el mismo que se reutiliza. */
+      var sbLee = window.sbCIIP;
+      if (sbLee) docs.forEach(function(d){
+        sbLee.from('documentos').select('id, nombre_original, archivo')
+          .eq('tipo', d).order('creado_en', {ascending:false}).limit(1)
+          .then(function(r){
+            var ya = ((r && r.data) || [])[0];
+            if (!ya || !ya.archivo) return;
+            guardados.push({doc:d, nombre:ya.nombre_original || '', archivo:ya.archivo});
+            /* En el orden de la tabla, llegue antes la consulta que llegue. */
+            guardados.sort(function(a, b){ return docs.indexOf(a.doc) - docs.indexOf(b.doc); });
+            /* Sólo si el cuadro sigue esperando: a quien ya está leyendo, o ya
+               ha leído, no se le cambia la pantalla por debajo. */
+            if (cuadro.className === 'pa-lee' && zona && !zona.classList.contains('leyendo')){
+              pintaGuardados();
+            }
+          }, function(){});
+      });
       /* El lector del sitio -el de Vercel- trae listo(): tener la direccion
          puesta no quiere decir que este encendido, y el cuadro no sale
          hasta que el servidor dice que si. Un lector sin listo() -el de
@@ -9960,6 +10000,7 @@ applyLang(idiomaParaMi());
 
         cuadro.appendChild(zona);
         cuadro.appendChild(arch);
+        pintaGuardados();
       }
 
       function ponZona(gordo, fino){
@@ -9983,7 +10024,7 @@ applyLang(idiomaParaMi());
         cuadro.appendChild(otro);
       }
 
-      function lee(f){
+      function lee(f, yaGuardado){
         zona.classList.add('leyendo');
         ponZona(String(u.pa_lee_leyendo || '').replace('{n}', f.name), '');
         /* Envuelto en Promise.resolve: un lector que devuelva un valor a
@@ -9997,14 +10038,14 @@ applyLang(idiomaParaMi());
           return lector(f, mapa.porDoc);
         }).then(function(r){
           if (!r || !r.doc || !mapa.porDoc[r.doc]) return falla();
-          bien(f, r);
+          bien(f, r, yaGuardado);
         }, function(err){
           console.warn('[CIIP] lector de documentos:', err && (err.message || err));
           falla();
         });
       }
 
-      function bien(f, r){
+      function bien(f, r, yaGuardado){
         /* Si el formulario se repinto mientras leia, esto ya no pinta nada:
            el cuadro de ahora es otro. */
         if (!document.body.contains(cuadro)) return;
@@ -10014,7 +10055,9 @@ applyLang(idiomaParaMi());
           if (v === undefined || v === null || v === '') return;
           if (ponCampo(n, String(v))) puestas++;
         });
-        ponEnSuRecaudo(f, r.doc);
+        /* El que vino de Documentos ya está en su recaudo, reutilizado: meterlo
+           otra vez lo subiría dos veces. */
+        if (!yaGuardado) ponEnSuRecaudo(f, r.doc);
         cabecera('hecho', ESTRELLA,
           String(u.pa_lee_ok || '').replace('{n}', f.name),
           puestas ? String(unoDeEsos(puestas) ? (u.pa_lee_ok_1 || '')
@@ -10025,6 +10068,46 @@ applyLang(idiomaParaMi());
       function falla(){
         if (!document.body.contains(cuadro)) return;
         cabecera('falla', AVISO, u.pa_lee_falla || '', u.pa_lee_falla_q || '');
+      }
+
+      /* ── la pregunta por lo que ya tienes guardado ── */
+      function pintaGuardados(){
+        var vieja = cuadro.querySelector('.pa-lee-ya');
+        if (vieja) vieja.remove();
+        if (!guardados.length || !zona || cuadro.className !== 'pa-lee') return;
+
+        var caja = el('div', 'pa-lee-ya');
+        caja.appendChild(el('div', 'pa-lee-ya-q', u.pa_lee_ya || ''));
+        guardados.forEach(function(g){
+          var b = el('button', 'pa-lee-usar',
+            String(u.pa_lee_usar || '').replace('{doc}', u[mapa.claveDe[g.doc]] || g.doc));
+          b.type = 'button';
+          b.setAttribute('data-doc', g.doc);
+          b.title = g.nombre;
+          b.addEventListener('click', function(){ usaGuardado(g); });
+          caja.appendChild(b);
+        });
+        cuadro.insertBefore(caja, zona);
+      }
+
+      /* Se baja del cubo -privado: lo baja tu sesión- y se le da al lector
+         como si lo hubieras soltado. Si no se puede bajar, se dice igual que
+         un papel que no se reconoce: callarse es lo único que no vale. */
+      function usaGuardado(g){
+        var caja = cuadro.querySelector('.pa-lee-ya');
+        if (caja) caja.remove();
+        zona.classList.add('leyendo');
+        ponZona(String(u.pa_lee_leyendo || '').replace('{n}', g.nombre), '');
+        Promise.resolve().then(function(){
+          return window.sbCIIP.storage.from('recaudos').download(g.archivo);
+        }).then(function(r){
+          if (!r || r.error || !r.data) throw (r && r.error) || new Error('sin archivo');
+          var f = new File([r.data], g.nombre || 'documento', {type: r.data.type || ''});
+          lee(f, true);
+        }).catch(function(err){
+          console.warn('[CIIP] lector, papel guardado:', err && (err.message || err));
+          falla();
+        });
       }
 
       /* ── el relleno ── */

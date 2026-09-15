@@ -1966,6 +1966,16 @@
                 subidas[ruta] = true;
                 return Promise.resolve({data:{path:ruta}, error:null});
               },
+              /* Bajar un archivo, como hace el lector con el papel que ya
+                 esta en Documentos. Lo mismo que createSignedUrl: lo que no
+                 existe da el error de Storage, no un archivo inventado. */
+              download: function(ruta){
+                if (!subidas[ruta] && !enLaBoveda(ruta)){
+                  return Promise.resolve({data:null, error:{message:'Object not found'}});
+                }
+                return Promise.resolve({data:new Blob(['%PDF-1.4 de mentira'], {type:'application/pdf'}),
+                                        error:null});
+              },
               /* Una imagen de verdad, de un pixel: con '#' el <img> falla
                  al cargar y el panel se cae a las iniciales -que es lo
                  correcto-, asi que la prueba de que la foto se ve no podia

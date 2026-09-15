@@ -251,6 +251,7 @@
               lectorAbre, lectorMira, lectorEscribe, lectorEscribe2, lectorSuelta, lectorRelleno,
               lectorToca, lectorTocada,
               lectorOtra, lectorNoLoConoce, lectorLoDice,
+              lectorGuardadoOfrece, lectorGuardadoMira, lectorGuardadoVacia, lectorGuardadoLeido,
               lectorApagadoAbre, lectorApagadoMira, lectorApagadoVuelve,
               listoMira, listoEmpezados,
               notaVisaAbre, notaVisaMira, notaRifAbre, notaRifMira,
@@ -8398,6 +8399,60 @@
        !!c && c.classList.contains('falla'), c ? c.className : '(no esta)', 'pa-lee falla');
     ok('lector: y se puede volver a intentar', !!(c && c.querySelector('.pa-lee-otro')),
        c ? c.innerHTML.indexOf('pa-lee-otro') >= 0 : false, 'con el boton');
+  }
+
+  /* EL PAPEL QUE YA ESTA EN DOCUMENTOS (15-9-2026). Se ofrece con una
+     pregunta y un boton por papel, y solo se lee el que se pulsa. En el c6
+     la boveda de mentira trae el acta constitutiva, y NO el comprobante de
+     domicilio de la empresa -el que hay es de otro tipo-: asi que sale un
+     boton, el del acta, y eso mide tambien que no se ofrece lo que no hay. */
+  function lectorGuardadoOfrece(){
+    if (!CON_LECTOR) return;
+    var b = document.querySelector('#trReal .pa-lee-otro');
+    if (b) b.click();
+  }
+
+  function lectorGuardadoMira(){
+    if (!CON_LECTOR) return;
+    var c = document.querySelector('#trReal .pa-lee');
+    var ya = c && c.querySelector('.pa-lee-ya');
+    ok('lector: si el papel ya esta en Documentos, lo pregunta', !!ya,
+       ya ? 'esta' : 'no esta', 'un .pa-lee-ya');
+    if (!ya) return;
+    var bs = [].map.call(ya.querySelectorAll('.pa-lee-usar'), function(b){ return b.getAttribute('data-doc'); });
+    igual('lector: un boton por papel guardado, y solo de los que sirven', bs.join(' '), 'acta_constitutiva');
+    ok('lector: y el boton dice que papel es, por su nombre',
+       /Acta constitutiva/.test(ya.textContent), ya.textContent.slice(0, 90), 'Acta constitutiva');
+    /* Preguntar no es leer: hasta que se pulsa, el cuadro sigue esperando. */
+    ok('lector: y preguntar no es leer: el cuadro sigue esperando',
+       c.className === 'pa-lee' && !!c.querySelector('.pa-lee-z'), c.className, 'pa-lee');
+  }
+
+  /* Se vacia una casilla que el acta rellena, para ver que el papel guardado
+     la pone, y se pulsa. */
+  function lectorGuardadoVacia(){
+    if (!CON_LECTOR) return;
+    var e = document.querySelector('#trReal [name="numero_registro"]');
+    if (e){ e.value = ''; e.dispatchEvent(new Event('input', {bubbles: true})); }
+    var b = document.querySelector('#trReal .pa-lee-usar[data-doc="acta_constitutiva"]');
+    if (b) b.click();
+  }
+
+  function lectorGuardadoLeido(){
+    if (!CON_LECTOR) return;
+    var caja = document.getElementById('trReal');
+    igual('lector: el papel guardado rellena la casilla vacia',
+          (caja.querySelector('[name="numero_registro"]') || {}).value, '48, Tomo 112-A');
+    ok('lector: y el cuadro dice que lo ha leido',
+       !!caja.querySelector('.pa-lee.hecho'),
+       (caja.querySelector('.pa-lee') || {}).className || '(no esta)', 'pa-lee hecho');
+    ok('lector: y ya no pregunta lo mismo encima',
+       !caja.querySelector('.pa-lee-ya'), caja.querySelector('.pa-lee-ya') ? 'sigue' : 'se fue', 'se fue');
+    /* El recaudo se queda como estaba: el guardado no se sube dos veces, y
+       no le quita el sitio al que soltaste antes a mano. */
+    var fila = caja.querySelector('.sol-doc[data-doc="acta_constitutiva"]');
+    var arch = fila && fila.querySelector('input[type=file]').files[0];
+    igual('lector: y leer el guardado no toca su recaudo', arch ? arch.name : '(ninguno)', 'acta.pdf');
   }
 
   /* LA OTRA MITAD DE LA REGLA: sin lector configurado, el cuadro no existe.
