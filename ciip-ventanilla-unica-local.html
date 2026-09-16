@@ -3585,8 +3585,15 @@ body[data-vista="fase"] .phase-cab > .chev{display:none;}
 .t-name{font-size:var(--fs-tarjeta); font-weight:700; line-height:1.25; flex:1 1 auto;letter-spacing:-.01em;}
 .t-ente{display:inline-flex; align-items:center; gap:5px; font-size:var(--fs-rotulo); font-weight:700; color:var(--gray);
   margin-top:5px; letter-spacing:.01em;}
-.t-ente .ebadge{font-size:var(--fs-chip); font-weight:700; letter-spacing:.03em; color:var(--navy2);
-  background:var(--block); border:1px solid var(--line); border-radius:5px; padding:1px 6px;}
+/* -- LA SIGLA, RETIRADA --
+   Cada ficha llevaba delante del nombre del organismo una casilla con su
+   sigla -SAREN, SENIAT, CIIP-. Lo quito el CIIP: el nombre ya dice de quien
+   es, y el logo de la placa tambien; la casilla era una tercera forma de
+   decir lo mismo y ocupaba el renglon (Franklin Reyes, 16-9-2026).
+
+   La sigla no se pierde: se queda en el renglon como data-sigla, sin
+   pintarse. La usan las pruebas para comprobar que ningun nombre repite
+   su organismo entre parentesis. */
 
 /* ── LA MARCA DE AGUA, RETIRADA ──
    Cada tarjeta llevaba el logo de su organismo grande y al 7% detras del
@@ -4857,7 +4864,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
               <div class="t-ico placa"><img class="ilogo" src="logos/ciip.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c33.name"></div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c33.sigla">CIIP</span>
+              <div class="t-ente" data-sigla="CIIP">
               <!-- El nombre entero, como en las otras. Decia «CIIP» a secas, y con
                    el logo -que ES la palabra CIIP- y la etiqueta, la palabra salia
                    TRES veces en la misma ficha. El sitio del organismo es para lo
@@ -4871,7 +4878,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/mppre.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c1.name">Business visa (TR-N)</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c1.sigla">MPPRE</span><span data-texto="c1.ente">Ministerio del Poder Popular para Relaciones Exteriores</span></div>
+              <div class="t-ente" data-sigla="MPPRE"><span data-texto="c1.ente">Ministerio del Poder Popular para Relaciones Exteriores</span></div>
               <div class="t-desc" data-i18n="c1.desc">For merchants, executives and company representatives coming to do business without settling. Valid for one year with multiple entries and a stay of up to 90 days, not extendable.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c1.cta">View visa</span> ›</span></div>
             </div>
@@ -4880,7 +4887,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/saime.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c2.name">Residence card</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c2.sigla">SAIME</span><span data-texto="c2.ente">Registro y cedulación de extranjeros</span></div>
+              <div class="t-ente" data-sigla="SAIME"><span data-texto="c2.ente">Registro y cedulación de extranjeros</span></div>
               <div class="t-desc" data-i18n="c2.desc">Your Venezuelan ID is ready. You'll need it for banking, real estate and contracts.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c2.cta">View detail</span> ›</span></div>
             </div>
@@ -4889,7 +4896,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/seniat.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c3.name">Personal tax ID (RIF)</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c3.sigla">SENIAT</span><span data-texto="c3.ente">Registro Único de Información Fiscal</span></div>
+              <div class="t-ente" data-sigla="SENIAT"><span data-texto="c3.ente">Registro Único de Información Fiscal</span></div>
               <div class="t-desc" data-i18n="c3.desc">Your tax identification as an individual. The basis for everything else.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c3.cta">View RIF</span> ›</span></div>
             </div>
@@ -4898,7 +4905,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/intt.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c4.name">Driver's license conversion</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c4.sigla">INTT</span><span data-texto="c4.ente">Instituto Nacional de Transporte Terrestre</span></div>
+              <div class="t-ente" data-sigla="INTT"><span data-texto="c4.ente">Instituto Nacional de Transporte Terrestre</span></div>
               <div class="t-desc" data-i18n="c4.desc">Convert your Italian license into a Venezuelan one. Upload your license and its certified translation.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c4.cta">Upload documents</span> ›</span></div>
             </div>
@@ -4907,7 +4914,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/mpprijp.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c16.name">Apostilled criminal record</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c16.sigla">MPPRIJP</span><span data-texto="c16.ente">Ministerio del Poder Popular para Relaciones Interiores, Justicia y Paz</span></div>
+              <div class="t-ente" data-sigla="MPPRIJP"><span data-texto="c16.ente">Ministerio del Poder Popular para Relaciones Interiores, Justicia y Paz</span></div>
               <div class="t-desc" data-i18n="c16.desc">Criminal record certificate from your home country, apostilled and translated. Required for the visa and residence, and sometimes by banks.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c16.cta">View detail</span> ›</span></div>
             </div>
@@ -4916,7 +4923,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/mppre.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c17.name">Apostille and translation of documents</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c17.sigla">MPPRE</span><span data-texto="c17.ente">Ministerio del Poder Popular para Relaciones Exteriores</span></div>
+              <div class="t-ente" data-sigla="MPPRE"><span data-texto="c17.ente">Ministerio del Poder Popular para Relaciones Exteriores</span></div>
               <div class="t-desc" data-i18n="c17.desc">Birth certificate, degree and marriage certificate, apostilled and translated. The basis for dependants, conversions and banking.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c17.cta">View detail</span> ›</span></div>
             </div>
@@ -4925,7 +4932,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico"><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6"/><path d="M6 10v10h12V10"/><path d="M10 20v-5h4v5"/></svg></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c18.name">Proof of address</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c18.sigla">R. Civil</span><span data-texto="c18.ente">Registro Civil o consejo comunal</span></div>
+              <div class="t-ente" data-sigla="R. Civil"><span data-texto="c18.ente">Registro Civil o consejo comunal</span></div>
               <div class="t-desc" data-i18n="c18.desc">Proof of where you live in Venezuela. Required for the ID card, the tax ID and to open a bank account.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c18.cta">View detail</span> ›</span></div>
             </div>
@@ -4934,7 +4941,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/suscerte.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c19.name">Electronic signature</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c19.sigla">SUSCERTE</span><span data-texto="c19.ente">Superintendencia de Servicios de Certificación Electrónica</span></div>
+              <div class="t-ente" data-sigla="SUSCERTE"><span data-texto="c19.ente">Superintendencia de Servicios de Certificación Electrónica</span></div>
               <div class="t-desc" data-i18n="c19.desc">Digital certificate to operate on the State portals. Getting it early avoids delays in the procedures that follow.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c19.cta">View detail</span> ›</span></div>
             </div>
@@ -4943,7 +4950,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/saime.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c20.name">Visa and ID for dependants</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c20.sigla">SAIME</span><span data-texto="c20.ente">Servicio Administrativo de Identificación, Migración y Extranjería · Consulado</span></div>
+              <div class="t-ente" data-sigla="SAIME"><span data-texto="c20.ente">Servicio Administrativo de Identificación, Migración y Extranjería · Consulado</span></div>
               <div class="t-desc" data-i18n="c20.desc">Visa and ID card for your spouse and children. Requires the relationship documents apostilled and translated.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c20.cta">View detail</span> ›</span></div>
             </div>
@@ -4952,7 +4959,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c21.name">Medical certificate</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c21.sigla">Salud</span><span data-texto="c21.ente">Centro de salud autorizado</span></div>
+              <div class="t-ente" data-sigla="Salud"><span data-texto="c21.ente">Centro de salud autorizado</span></div>
               <div class="t-desc" data-i18n="c21.desc">Examination at an authorised health centre, when your visa type or the licence conversion requires it.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c21.cta">View detail</span> ›</span></div>
             </div>
@@ -4975,7 +4982,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/saren.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c5.name">Company incorporation</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c5.sigla">SAREN</span><span data-texto="c5.ente">Registro Mercantil · SAREN</span></div>
+              <div class="t-ente" data-sigla="SAREN"><span data-texto="c5.ente">Registro Mercantil · SAREN</span></div>
               <div class="t-desc" data-i18n="c5.desc">Bianchi Agroindustrias, C.A. — deed ready with an allied law firm. Your signature is needed to register it.</div>
               <div class="t-tramos" hidden></div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c5.cta">Review & sign</span> ›</span></div>
@@ -4985,7 +4992,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c34.name"></div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c34.sigla">ZODI</span><span data-texto="c34.ente">Zona Operativa de Defensa Integral</span></div>
+              <div class="t-ente" data-sigla="ZODI"><span data-texto="c34.ente">Zona Operativa de Defensa Integral</span></div>
               <div class="t-desc" data-i18n="c34.desc"></div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c34.cta"></span> ›</span></div>
             </div>
@@ -4994,7 +5001,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/saren.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c22.name">Filing of the articles</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c22.sigla">SAREN</span><span data-texto="c22.ente">Registro Mercantil · SAREN</span></div>
+              <div class="t-ente" data-sigla="SAREN"><span data-texto="c22.ente">Registro Mercantil · SAREN</span></div>
               <div class="t-desc" data-i18n="c22.desc">Files the articles of incorporation with the Mercantile Registry. This is the act that gives your company legal personality.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c22.cta">View detail</span> ›</span></div>
             </div>
@@ -5003,7 +5010,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico"><svg viewBox="0 0 24 24"><path d="M4 6h16v13H4z"/><path d="M4 6l8 5 8-5"/><path d="M8 14h5"/></svg></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c23.name">Publication of the articles</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c23.sigla">Prensa</span><span data-texto="c23.ente">Periódico mercantil</span></div>
+              <div class="t-ente" data-sigla="Prensa"><span data-texto="c23.ente">Periódico mercantil</span></div>
               <div class="t-desc" data-i18n="c23.desc">Publication of the filed articles in a mercantile newspaper, and delivery of the copies back to the Registry.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c23.cta">View detail</span> ›</span></div>
             </div>
@@ -5012,7 +5019,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/seniat.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c6.name">Company tax ID (RIF)</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c6.sigla">SENIAT</span><span data-texto="c6.ente">Registro Único de Información Fiscal</span></div>
+              <div class="t-ente" data-sigla="SENIAT"><span data-texto="c6.ente">Registro Único de Información Fiscal</span></div>
               <div class="t-desc" data-i18n="c6.desc">Processed as soon as the company is registered. We handle it automatically for you.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c6.cta">View detail</span> ›</span></div>
             </div>
@@ -5021,7 +5028,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico"><svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M10 10v8M14 10v8M19 10v8M3 21h18M3 10h18"/></svg></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c7.name">Corporate bank account</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c7.sigla">Banca aliada</span><span data-texto="c7.ente">Red de bancos aliados del CIIP</span></div>
+              <div class="t-ente" data-sigla="Banca aliada"><span data-texto="c7.ente">Red de bancos aliados del CIIP</span></div>
               <div class="t-desc" data-i18n="c7.desc">Guided account opening at a partner bank, with an in-person appointment we coordinate.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c7.cta">View detail</span> ›</span></div>
             </div>
@@ -5030,7 +5037,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/seniat.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c24.name">Accounting books and invoicing</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c24.sigla">SENIAT</span><span data-texto="c24.ente">Servicio Nacional Integrado de Administración Aduanera y Tributaria</span></div>
+              <div class="t-ente" data-sigla="SENIAT"><span data-texto="c24.ente">Servicio Nacional Integrado de Administración Aduanera y Tributaria</span></div>
               <div class="t-desc" data-i18n="c24.desc">Books stamped and paginated, and an approved invoicing system. Mandatory before issuing your first invoice.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c24.cta">View detail</span> ›</span></div>
             </div>
@@ -5039,7 +5046,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/sapi.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c8.name">Trademark registration</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c8.sigla">SAPI</span><span data-texto="c8.ente">Servicio Autónomo de la Propiedad Intelectual</span></div>
+              <div class="t-ente" data-sigla="SAPI"><span data-texto="c8.ente">Servicio Autónomo de la Propiedad Intelectual</span></div>
               <div class="t-desc" data-i18n="c8.desc">Protect your company's name and logo in Venezuela.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c8.cta">View detail</span> ›</span></div>
             </div>
@@ -5056,7 +5063,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico"><svg viewBox="0 0 24 24"><path d="M4 9l1.5-5h13L20 9M5 9v11h14V9M4 9h16"/><path d="M9 14h6M9 17h4"/></svg></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c35.name"></div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c35.sigla">SUNDDE</span><span data-texto="c35.ente">Superintendencia Nacional para la Defensa de los Derechos Socioeconómicos</span></div>
+              <div class="t-ente" data-sigla="SUNDDE"><span data-texto="c35.ente">Superintendencia Nacional para la Defensa de los Derechos Socioeconómicos</span></div>
               <div class="t-desc" data-i18n="c35.desc"></div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c35.cta"></span> ›</span></div>
             </div>
@@ -5065,7 +5072,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/snc.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c13.name">National Contractors Registry</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c13.sigla">RNC</span><span data-texto="c13.ente">Servicio Nacional de Contrataciones</span></div>
+              <div class="t-ente" data-sigla="RNC"><span data-texto="c13.ente">Servicio Nacional de Contrataciones</span></div>
               <div class="t-desc" data-i18n="c13.desc">Required to take part in tenders and contracts with the State.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c13.cta">View detail</span> ›</span></div>
             </div>
@@ -5074,7 +5081,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/ivss.svg" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c9.name">Social security (IVSS) enrolment</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c9.sigla">IVSS</span><span data-texto="c9.ente">Instituto Venezolano de los Seguros Sociales</span></div>
+              <div class="t-ente" data-sigla="IVSS"><span data-texto="c9.ente">Instituto Venezolano de los Seguros Sociales</span></div>
               <div class="t-desc" data-i18n="c9.desc">Employer registration with social security and enrolment of your workers.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c9.cta">View detail</span> ›</span></div>
             </div>
@@ -5085,7 +5092,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
               <div class="t-top"><div class="t-name" data-i18n="c10.name">Operating license</div><span class="chip"></span></div>
               <!-- La conformidad de uso salio de aqui al c28: la tarjeta no
                    puede seguir anunciando un trabajo que ya no hace. -->
-              <div class="t-ente"><span class="ebadge" data-texto="c10.sigla">Alcaldía</span><span data-texto="c10.ente">Patente de industria y comercio</span></div>
+              <div class="t-ente" data-sigla="Alcaldía"><span data-texto="c10.ente">Patente de industria y comercio</span></div>
               <div class="t-desc" data-i18n="c10.desc">Permit from the municipality where your plant or premises operate. Varies by mayor's office.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c10.cta">View detail</span> ›</span></div>
             </div>
@@ -5094,7 +5101,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/vuce.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c11.name">Import & export permits</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c11.sigla">VUCE</span><span data-texto="c11.ente">Ventanilla Única de Comercio Exterior</span></div>
+              <div class="t-ente" data-sigla="VUCE"><span data-texto="c11.ente">Ventanilla Única de Comercio Exterior</span></div>
               <div class="t-desc" data-i18n="c11.desc">Register as an importer or exporter and process certificates of origin.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c11.cta">View detail</span> ›</span></div>
             </div>
@@ -5106,7 +5113,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/sacs.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c12.name">Health permit for the premises</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c12.sigla">SACS</span><span data-texto="c12.ente">Servicio Autónomo de Contraloría Sanitaria</span></div>
+              <div class="t-ente" data-sigla="SACS"><span data-texto="c12.ente">Servicio Autónomo de Contraloría Sanitaria</span></div>
               <div class="t-desc" data-i18n="c12.desc">Inspection of the premises for food, health, pharmacy or beauty. Depends on your sector.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c12.cta">View detail</span> ›</span></div>
             </div>
@@ -5115,7 +5122,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/banavih.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c25.name">Housing fund (FAOV) enrolment</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c25.sigla">BANAVIH</span><span data-texto="c25.ente">Banco Nacional de Vivienda y Hábitat</span></div>
+              <div class="t-ente" data-sigla="BANAVIH"><span data-texto="c25.ente">Banco Nacional de Vivienda y Hábitat</span></div>
               <div class="t-desc" data-i18n="c25.desc">Employer registration with BANAVIH for your workers' housing savings.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c25.cta">View detail</span> ›</span></div>
             </div>
@@ -5124,7 +5131,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/inces.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c26.name">INCES enrolment</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c26.sigla">INCES</span><span data-texto="c26.ente">Instituto Nacional de Capacitación y Educación Socialista</span></div>
+              <div class="t-ente" data-sigla="INCES"><span data-texto="c26.ente">Instituto Nacional de Capacitación y Educación Socialista</span></div>
               <div class="t-desc" data-i18n="c26.desc">Registration and levy with the training institute: mandatory from your fifth employee.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c26.cta">View detail</span> ›</span></div>
             </div>
@@ -5133,7 +5140,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/mpppst.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c27.name">National Register of Work Entities</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c27.sigla">RNET</span><span data-texto="c27.ente">Ministerio del Poder Popular para el Proceso Social de Trabajo</span></div>
+              <div class="t-ente" data-sigla="RNET"><span data-texto="c27.ente">Ministerio del Poder Popular para el Proceso Social de Trabajo</span></div>
               <div class="t-desc" data-i18n="c27.desc">The RNET identifies your company as an employer before the Ministry of Labour.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c27.cta">View detail</span> ›</span></div>
             </div>
@@ -5142,7 +5149,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c28.name">Land-use conformity for the premises</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c28.sigla">Alcaldía</span><span data-texto="c28.ente">Dirección de Ingeniería Municipal</span></div>
+              <div class="t-ente" data-sigla="Alcaldía"><span data-texto="c28.ente">Dirección de Ingeniería Municipal</span></div>
               <div class="t-desc" data-i18n="c28.desc">The municipality certifies that your activity is allowed there. It comes before the licence.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c28.cta">View detail</span> ›</span></div>
             </div>
@@ -5151,7 +5158,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico"><svg viewBox="0 0 24 24"><path d="M12 3s5 4 5 8a5 5 0 01-10 0c0-2 1-3 1-3s1 2 2 2 2-4 2-7z"/></svg></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c29.name">Fire department permit</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c29.sigla">Bomberos</span><span data-texto="c29.ente">Cuerpo de Bomberos del municipio</span></div>
+              <div class="t-ente" data-sigla="Bomberos"><span data-texto="c29.ente">Cuerpo de Bomberos del municipio</span></div>
               <div class="t-desc" data-i18n="c29.desc">Safety inspection of the premises: exits, extinguishers and fire detection.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c29.cta">View detail</span> ›</span></div>
             </div>
@@ -5160,7 +5167,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/minec.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c30.name">Environmental permit</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c30.sigla">MINEC</span><span data-texto="c30.ente">Ministerio del Poder Popular para el Ecosocialismo</span></div>
+              <div class="t-ente" data-sigla="MINEC"><span data-texto="c30.ente">Ministerio del Poder Popular para el Ecosocialismo</span></div>
               <div class="t-desc" data-i18n="c30.desc">Depends on your activity's impact: some only register, others need a full study.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c30.cta">View detail</span> ›</span></div>
             </div>
@@ -5172,7 +5179,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico"><svg viewBox="0 0 24 24"><path d="M3 20l6-10 4 6 3-4 5 8z"/><path d="M14 7l2-3 2 3"/></svg></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c36.name"></div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c36.sigla">MPPDME</span><span data-texto="c36.ente">Ministerio del Poder Popular de Desarrollo Minero Ecológico</span></div>
+              <div class="t-ente" data-sigla="MPPDME"><span data-texto="c36.ente">Ministerio del Poder Popular de Desarrollo Minero Ecológico</span></div>
               <div class="t-desc" data-i18n="c36.desc"></div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c36.cta"></span> ›</span></div>
             </div>
@@ -5186,7 +5193,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></svg></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c14.name">Labor & municipal clearances</div><span class="chip"></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c14.sigla">Entes varios</span><span data-texto="c14.ente">Solvencias del IVSS, INCES y de la alcaldía</span></div>
+              <div class="t-ente" data-sigla="Entes varios"><span data-texto="c14.ente">Solvencias del IVSS, INCES y de la alcaldía</span></div>
               <div class="t-desc" data-i18n="c14.desc">They certify you're up to date. We warn you before each expiry.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c14.cta">View detail</span> ›</span></div>
             </div>
@@ -5195,7 +5202,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
             <div class="t-ico placa"><img class="ilogo" src="logos/ciip.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
               <div class="t-top"><div class="t-name" data-i18n="c15.name">Assets & opportunities bank</div><span class="chip info"><span data-i18n="st.available">Available</span></span></div>
-              <div class="t-ente"><span class="ebadge" data-texto="c15.sigla">CIIP</span><span data-texto="c15.ente">Centro Internacional de Inversión Productiva</span></div>
+              <div class="t-ente" data-sigla="CIIP"><span data-texto="c15.ente">Centro Internacional de Inversión Productiva</span></div>
               <div class="t-desc" data-i18n="c15.desc">42 assets and projects open to your capital, with the center's support.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c15.cta">Explore assets</span> ›</span></div>
             </div>
@@ -18518,7 +18525,7 @@ applyLang(idiomaParaMi());
          al lado se queda con la sigla, que es por lo que se ordena. */
       var tdN = el('td', 'mt-quien');
       tdN.appendChild(el('b', 'mt-nombre', ref ? nombreDeTarjeta(ref) : t.tipo));
-      var largo = ref && document.querySelector('.tcard[data-tr="' + ref + '"] .t-ente > span:not(.ebadge)');
+      var largo = ref && document.querySelector('.tcard[data-tr="' + ref + '"] .t-ente > span');
       if (largo && largo.textContent.trim()) tdN.appendChild(el('span', 'mt-sub', largo.textContent.trim()));
       tr.appendChild(tdN);
       tr.appendChild(el('td', 'mt-sigla', ente));
@@ -20440,7 +20447,14 @@ applyLang(idiomaParaMi());
     caja.querySelectorAll('.tr-bloque[data-tramo]').forEach(function(b){
       var ref = b.getAttribute('data-tramo');
       var tr = tramiteDeLaFicha(ref);
-      if (!tr) return;
+      /* Sin solicitud el dibujo se queda como estaba, PERO el recuadro del
+         comprobante sale igual: subirlo es lo que pone el tramo en marcha
+         (Franklin Reyes, 16-9-2026). Antes solo salia con una solicitud ya
+         hecha, y como nadie la creaba el recuadro no aparecia nunca. */
+      if (!tr || tr.estado === 'borrador'){
+        ponElComprobante(b, ref, tr, b.querySelectorAll('.tr-paso'), -1);
+        return;
+      }
       var alcanzado = ORDEN.indexOf(tr.estado);
       /* Una devuelta vuelve al principio, como en "Tu solicitud": lo que
          hay que rehacer no puede seguir contando como hecho. Un borrador
@@ -20492,6 +20506,13 @@ applyLang(idiomaParaMi());
     /* Antes de llegar al paso no se pide: nadie paga aranceles de algo que
        todavia no se ha consignado. */
     if (quiere.paso > alcanzado + 1) return;
+    /* El equipo del CIIP no paga aranceles de nadie: el comprobante lo ve
+       en su cola, enganchado a la solicitud. */
+    if (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) return;
+    /* Sin solicitud, el comprobante tiene que crearla, y eso pide el tramite
+       en el catalogo de la base. Si no esta -o esta apagado-, ofrecer subirlo
+       seria un boton que acaba en error. */
+    if (!tr && !((TIPOS || {})[ref] && TIPOS[ref].codigo && TIPOS[ref].activo !== false)) return;
     var txt = li.querySelector('.tr-txt');
     if (!txt || txt.querySelector('.tr-papel')) return;
     var u = T();
@@ -20513,13 +20534,39 @@ applyLang(idiomaParaMi());
       if (!archivo) return;
       btn.disabled = true;
       est.textContent = u.enviando || '';
-      sube(quiere.tipo, archivo)
-        .then(function(docId){ return engancha(tr.id, docId); })
+      /* Sin solicitud, el comprobante la crea: se hace como en el formulario
+         -borrador, papel enganchado y luego enviada-, y al pasar a enviada
+         el CIIP la recibe y el primer paso, el pago, queda hecho. */
+      var nueva = !tr;
+      var conTramite = tr ? Promise.resolve(tr) : quienSoy().then(function(yo){
+        var tipo = (TIPOS || {})[ref];
+        if (!tipo || !tipo.codigo) throw new Error('tramo sin tipo: ' + ref);
+        return sb.from('tramites').insert({inversionista: yo.id, tipo: tipo.codigo, datos: {}})
+          .select().single().then(function(r){ if (r.error) throw r.error; return r.data; });
+      });
+      conTramite.then(function(t){
+        tr = t;
+        return sube(quiere.tipo, archivo).then(function(docId){ return engancha(t.id, docId); });
+      })
+        .then(function(){
+          if (!nueva) return;
+          return sb.from('tramites').update({estado: 'enviado'}).eq('id', tr.id).select().single()
+            .then(function(r){ if (r.error) throw r.error; });
+        })
         .then(function(){
           PAPELES_DE[tr.id] = null;
           fila.classList.add('puesto');
           est.textContent = archivo.name;
           btn.disabled = false;
+          /* Con la solicitud nueva, el tramo se repinta con su estado de
+             verdad: visto en el pago, su fecha y el chip del bloque. */
+          if (nueva){
+            HISTORIAL[tr.id] = null;
+            cargaMisTramites().then(function(){
+              if (window.CIIP_REPINTA_PASOS) window.CIIP_REPINTA_PASOS();
+              if (typeof cargaAvisos === 'function') cargaAvisos();
+            });
+          }
         })
         .catch(function(e){
           console.warn('[CIIP] comprobante del pago:', e && (e.message || e));
@@ -20531,7 +20578,7 @@ applyLang(idiomaParaMi());
     txt.appendChild(fila);
 
     /* Y si ya se subio, se dice: la fila deja de pedir y ensena cual es. */
-    papelesDe(tr.id).then(function(hay){
+    if (tr) papelesDe(tr.id).then(function(hay){
       if (!fila.isConnected || !hay[quiere.tipo]) return;
       fila.classList.add('puesto');
       est.textContent = hay[quiere.tipo];
@@ -24688,7 +24735,7 @@ applyLang(idiomaParaMi());
      cambiado. Hay tres clases de clave y este bloque decide de cual es:
        · data-i18n  → el diccionario I18N          (c33.name, tsec.title)
        · data-ui    → CIIP_PASOS.ui, de pasos.js    (lh_uno)
-       · data-texto → lo escrito en el marcado     (c33.sigla, c33.ente)
+       · data-texto → lo escrito en el marcado     (c33.ente)
      El original se guarda la primera vez que se pisa, para poder volver.
 
      Va todo aqui, al final y aparte, a proposito: en el resto del panel solo

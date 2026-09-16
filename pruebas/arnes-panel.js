@@ -1259,12 +1259,29 @@
            iba en inglés.
 
            El ente es el mismo en los seis -es una sigla, no se traduce-, así
-           que se lee del marcado una vez y se cruza con las seis. */
+           que se lee del marcado una vez y se cruza con las seis. Desde el
+           16 de septiembre de 2026 la sigla ya no se pinta: vive en el
+           renglón del organismo como data-sigla, y de ahí se lee. */
         var entes = {};
         document.querySelectorAll('.tcard[data-tr]').forEach(function(c){
-          var eb = (c.querySelector('.t-ente .ebadge') || {}).textContent || '';
+          var e = c.querySelector('.t-ente');
+          var eb = (e && e.getAttribute('data-sigla')) || '';
           if (eb.trim()) entes[c.getAttribute('data-tr')] = eb.trim().toLowerCase();
         });
+        /* Sin esto, perder el atributo dejaría la lista vacía y la prueba de
+           abajo saldría verde sin cruzar nada. */
+        /* Dos nunca la tuvieron, y no por olvido: la c31 lleva solo el nombre
+           del órgano, sin sigla que abreviar, y el renglón de la c32 ya ES la
+           sigla -«SAREN · SISREF»-. */
+        var NUNCA_TUVO = ['c31', 'c32'];
+        var sinSigla = [].filter.call(document.querySelectorAll('.tcard[data-tr] .t-ente'), function(e){
+          return !(e.getAttribute('data-sigla') || '').trim() &&
+                 NUNCA_TUVO.indexOf(e.closest('.tcard').getAttribute('data-tr')) < 0;
+        }).map(function(e){ return e.closest('.tcard').getAttribute('data-tr'); });
+        ok('tarjetas: cada ficha sabe la sigla de su organismo',
+           Object.keys(entes).length > 0 && sinSigla.length === 0,
+           sinSigla.length ? 'sin sigla: ' + sinSigla.join(', ') : Object.keys(entes).length + ' con sigla',
+           'todas con sigla');
 
         var repes = [];
         Object.keys(I18N).forEach(function(lang){
@@ -10020,57 +10037,36 @@
     ok('logos: todos cargan de verdad', rotos.length === 0,
        rotos.length ? rotos.join(', ') : 'ninguno roto', 'ninguno roto');
 
-    /* Debajo de cada logo va la sigla del organismo. Sin ella, un logo que
+    /* Junto a cada logo, el organismo dice de quién es CON SU NOMBRE. Hasta
+       el 16 de septiembre de 2026 lo decía una casilla con la sigla; el CIIP
+       la quitó, y lo que tiene que quedar es el nombre: sin él, un logo que
        no se reconoce no dice de quién es. */
-    /* Dentro de las FICHAS: la cabecera del tramite abierto clona la placa
-       con su clase, y alli la sigla la pone el renglon que se clona aparte. */
-    var sinSigla = [];
+    var sinNombre = [];
     [].forEach.call(document.querySelectorAll('.tcard .t-ico.placa'), function(m){
       var c = m.closest('.tcard');
-      var e = c && c.querySelector('.t-ente .ebadge');
-      if (!e || !e.textContent.trim()) sinSigla.push(c ? c.getAttribute('data-tr') : '?');
+      var e = c && c.querySelector('.t-ente');
+      if (!e || !e.textContent.trim()) sinNombre.push(c ? c.getAttribute('data-tr') : '?');
     });
-    ok('logos: y cada uno dice de quién es', sinSigla.length === 0,
-       sinSigla.length ? sinSigla.join(', ') : 'ninguna sin sigla', 'ninguna sin sigla');
+    ok('logos: y cada uno dice de quién es', sinNombre.length === 0,
+       sinNombre.length ? sinNombre.join(', ') : 'ninguna sin organismo', 'ninguna sin organismo');
 
     /* Y ninguna ficha se quedo con la placa en columna. Sin esto, dejarse la
        mitad sin convertir pasaria igual de verde. */
     igual('logos: y ninguna se quedo con la placa en columna',
           document.querySelectorAll('.t-marca, .t-sigla').length, 0);
 
-    /* Donde la sigla ya lo dice, el renglon no lo repite. Antes de esto,
-       "SUSCERTE" salia dos veces en la misma tarjeta. La etiqueta y la sigla
-       son ya la misma cosa, asi que lo que se mira es lo que la acompaña: el
-       renglon entero menos la etiqueta tiene que ser el NOMBRE. */
-    var repes = [];
-    [].forEach.call(document.querySelectorAll('.tcard'), function(c){
-      var b = c.querySelector('.t-ente .ebadge');
-      var sig = b ? b.textContent.trim() : '';
-      if (!sig) return;
-      var e = c.querySelector('.t-ente');
-      var resto = e ? e.textContent.replace(sig, '').replace(/\s+/g, ' ').trim() : '';
-      if (!resto || resto === sig) repes.push(c.getAttribute('data-tr'));
+    /* LA CASILLA DE LA SIGLA, RETIRADA. Aqui se miraba que no repitiera el
+       nombre y que no hubiera dos seguidas; el 16 de septiembre de 2026 el
+       CIIP la quito de todas las fichas -el nombre y el logo ya dicen de
+       quien es-. Lo que se comprueba ahora es que no vuelva: ni en las
+       fichas ni en la cabecera del tramite abierto, que clona su renglon. */
+    var conCasilla = [];
+    [].forEach.call(document.querySelectorAll('.t-ente .ebadge, .tr-ente .ebadge, #trEnte .ebadge'), function(b){
+      var c = b.closest('.tcard');
+      conCasilla.push(c ? c.getAttribute('data-tr') : 'detalle');
     });
-    ok('logos: y no repite la sigla al lado del nombre', repes.length === 0,
-       repes.length ? repes.join(', ') : 'ninguna repetida', 'ninguna repetida');
-
-    /* UNA sola etiqueta por renglon. Al bajar la sigla de la placa se colo
-       este fallo: dos fichas -la c13 y la c27- ya llevaban la suya, la del
-       REGISTRO al que se solicita -RNC, RNET-, y se quedaron con dos seguidas
-       diciendo cosas distintas, «SNC RNC Servicio Nacional de
-       Contrataciones». Se ve en cuanto se mira la pantalla y no lo cazaba
-       nada: la comprobacion de arriba se queda con la primera etiqueta y da
-       por bueno lo que venga detras. */
-    var conDos = [];
-    [].forEach.call(document.querySelectorAll('.tcard .t-ente'), function(e){
-      if (e.querySelectorAll('.ebadge').length > 1){
-        var c = e.closest('.tcard');
-        conDos.push((c ? c.getAttribute('data-tr') : '?') + ': ' +
-                    e.textContent.replace(/\s+/g, ' ').trim().slice(0, 34));
-      }
-    });
-    igual('logos: y una sola etiqueta por renglon, no dos seguidas',
-          conDos.length ? conDos.join(' | ') : '(ninguna)', '(ninguna)');
+    igual('logos: ninguna ficha lleva ya la casilla de la sigla',
+          conCasilla.length ? conCasilla.join(', ') : '(ninguna)', '(ninguna)');
 
     /* ── LA MARCA DE AGUA, RETIRADA ──
        Cada tarjeta llevaba detras del texto el logo de su organismo, grande
