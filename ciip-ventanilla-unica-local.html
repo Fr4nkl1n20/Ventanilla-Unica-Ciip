@@ -2898,6 +2898,12 @@ body[data-vista="tramite"] #secTramites{display:none;}
    quién es. */
 .sol-lista .sl-persona{display:grid; gap:6px;}
 .sol-lista .sl-docs{margin-top:0; max-width:none; gap:6px;}
+/* El grupo de papeles de la junta, en la hoja de recaudos: un rotulo y
+   debajo las filas de cada miembro, con su nombre al lado del tipo. */
+.sol-junta{margin-top:14px;}
+.sol-junta[hidden]{display:none;}
+.sol-junta .sd-grupo{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--mudo); margin:0 0 8px;}
 @media (max-width:560px){
   .sol-lista .sl-fila{flex-wrap:wrap;}
   .sol-lista .sl-fila select{flex:1 1 160px;}
@@ -10340,7 +10346,7 @@ applyLang(idiomaParaMi());
     dos.appendChild(col);
     hDatos.appendChild(dos);
 
-    var lado = null, notaPap = null;
+    var lado = null, notaPap = null, cajaJunta = null;
     if (hayPapeles){
       var hPapeles = hojaNueva(u.recaudos);
       var dosP = el('div', 'sol-dos sola');
@@ -10740,7 +10746,14 @@ applyLang(idiomaParaMi());
           quitaL.type = 'button';
           quitaL.title = u[c.quita] || '';
           quitaL.setAttribute('aria-label', u[c.quita] || '');
-          quitaL.addEventListener('click', function(){ persona.remove(); apuntaL(); });
+          /* Quitar a alguien se lleva sus papeles, que ya no cuelgan de su
+             fila sino de la otra hoja. */
+          quitaL.addEventListener('click', function(){
+            persona.remove();
+            if (suyos) suyos.remove();
+            repasaJunta();
+            apuntaL();
+          });
           f.appendChild(quitaL);
           nom.addEventListener('input', apuntaL);
           car.addEventListener('change', apuntaL);
@@ -10753,7 +10766,7 @@ applyLang(idiomaParaMi());
              Sin nombre no hay papel: no se pide la cédula de nadie. */
           if (c.docsPorPersona){
             var suyos = el('div', 'sol-docs sl-docs');
-            persona.appendChild(suyos);
+            bloqueJunta().appendChild(suyos);
             var ponPapeles = function(){
               var quien = (nom.value || '').trim();
               var viejos = suyos.querySelectorAll('.sol-doc');
@@ -10777,8 +10790,8 @@ applyLang(idiomaParaMi());
                 catch (err){ console.warn('[CIIP] el archivo no pasó al nombre corregido:', err && err.message); }
               });
             };
-            nom.addEventListener('change', ponPapeles);
-            if (nombre) ponPapeles();
+            nom.addEventListener('change', function(){ ponPapeles(); repasaJunta(); });
+            if (nombre){ ponPapeles(); repasaJunta(); }
           }
           filasL.appendChild(persona);
           return f;
@@ -10997,6 +11010,31 @@ applyLang(idiomaParaMi());
 
     var lista = el('div', 'sol-docs');
 
+    /* -- LOS PAPELES DE LA JUNTA, CON LOS DEMAS RECAUDOS --
+       La cedula y el RIF de cada miembro se pedian dentro de la lista de la
+       junta, en la hoja de los datos: dos cajas de subir archivos metidas
+       entre las casillas de escribir, y los papeles del tramite en otra
+       hoja. Ahora van todos al mismo sitio -la hoja de recaudos-, en un
+       grupo con su rotulo, y cada fila dice de quien es: "RIF - Maria
+       Perez". Asi el que sube papeles los sube de una vez, y el que revisa
+       sabe de quien es cada uno (Franklin Reyes, 16-9-2026).
+
+       El grupo nace SUELTO y se cuelga al final, cuando la hoja de
+       recaudos ya existe: las casillas se pintan antes que ella. */
+    function bloqueJunta(){
+      if (!cajaJunta){
+        cajaJunta = el('div', 'sol-junta');
+        cajaJunta.appendChild(el('div', 'sd-grupo', u.d_juntagrupo || ''));
+      }
+      return cajaJunta;
+    }
+    /* Sin nadie escrito no hay papeles que pedir, y un rotulo solo, encima
+       de nada, seria un grupo vacio en mitad de la hoja. */
+    function repasaJunta(){
+      if (!cajaJunta) return;
+      cajaJunta.hidden = !cajaJunta.querySelector('.sol-doc');
+      cuentaPapeles();
+    }
     /* Una fila de subir, puesta donde se le diga: la hoja de recaudos las
        quiere todas seguidas en su columna, y una casilla las quiere debajo
        de su pregunta. Es la misma fila -bóveda, arrastrar, «ya lo tienes»-,
@@ -11163,6 +11201,8 @@ applyLang(idiomaParaMi());
     }
 
     (RECAUDOS[tipo.codigo] || []).forEach(function(r){ montaDoc(r, lista); });
+    /* Y detras de ellos los de la junta, si los hay. */
+    if (cajaJunta) lista.appendChild(cajaJunta);
     lado.appendChild(lista);
     cuentaPapeles();
 
@@ -11271,13 +11311,13 @@ applyLang(idiomaParaMi());
       /* Solo hacia atras, o a una hoja por la que ya se paso: hacia adelante
          manda la validacion del paso, no la barra. Un tramo que aun no toca
          y que al pulsarlo no hace nada es peor que uno que no se pulsa. */
-      b.addEventListener('click', function(){ if (visto[i + 1]) vePaso(i + 1); });
+      b.addEventListener('click', function(){ if (visto[i + 1]) vePaso(i + 1, true); });
       li.appendChild(b);
       barra.appendChild(li);
       h.seg = li;
     });
 
-    function vePaso(n){
+    function vePaso(n, sube){
       paso = n;
       visto[n] = true;
       avisoPaso.textContent = '';
@@ -11312,6 +11352,30 @@ applyLang(idiomaParaMi());
          pintaRepaso a proposito: esa vacia la ultima hoja entera, y puesto
          antes se lo llevaria por delante. */
       HOJAS[n - 1].hoja.appendChild(pasoPie);
+
+      /* -- CAMBIAR DE HOJA TIENE QUE NOTARSE --
+         Las hojas se cambian sin recargar, y la pagina sigue donde estaba:
+         quien pulsa "Siguiente" desde el final de una hoja larga se queda a
+         media altura, mirando lo que hay DEBAJO del formulario -los otros
+         tramos de la constitucion-, y parece que no ha pasado nada. Asi que
+         se hacen dos cosas (Franklin Reyes, 16-9-2026):
+
+         Los tramos se apartan mientras se rellena. Estan ahi para el que
+         llega a mirar, no para el que esta escribiendo; a partir de la
+         segunda hoja solo estorban y alargan la pagina.
+
+         Y la vista sube al principio del tramite, que es donde estan el
+         nombre de la hoja y lo primero que hay que rellenar. Solo cuando el
+         cambio lo pide alguien: al abrir el tramite la pagina ya esta donde
+         tiene que estar, y subirla otra vez seria dar un salto sin motivo. */
+      var otrosTramos = document.getElementById('trSiguen');
+      if (otrosTramos && otrosTramos.querySelector('.tr-bloque'))
+        otrosTramos.hidden = (n > 1);
+      if (sube){
+        var arriba = document.getElementById('trDetalle') || pa;
+        try { arriba.scrollIntoView(true); }
+        catch (err){ /* si el navegador no quiere, la hoja cambia igual */ }
+      }
     }
 
     /* Lo que falta se dice AQUI y no al enviar: hacerle rellenar tres hojas a
@@ -11344,9 +11408,9 @@ applyLang(idiomaParaMi());
 
     bSigue.addEventListener('click', function(){
       if (!validaPaso(paso)) return;
-      vePaso(Math.min(paso + 1, HOJAS.length));
+      vePaso(Math.min(paso + 1, HOJAS.length), true);
     });
-    bAtras.addEventListener('click', function(){ vePaso(Math.max(paso - 1, 1)); });
+    bAtras.addEventListener('click', function(){ vePaso(Math.max(paso - 1, 1), true); });
 
     /* ── EL REPASO ──
        Todo lo que se va a mandar, en una lista, con un «Cambiar» por linea
@@ -11366,7 +11430,7 @@ applyLang(idiomaParaMi());
       b.type = 'button';
       b.setAttribute('aria-label', (u.pa_cambiar || '') + ': ' + k);
       b.addEventListener('click', function(){
-        vePaso(nPaso);
+        vePaso(nPaso, true);
         if (foco && foco.focus) foco.focus();
       });
       f.appendChild(b);
@@ -11422,10 +11486,7 @@ applyLang(idiomaParaMi());
 
       /* Lo escondido no se repasa: un papel que no se pide no puede salir
          en la lista de lo que vas a enviar. */
-      /* Y los de la junta, que viven en la primera hoja: van en el mismo
-         grupo -son papeles que se envían-, pero «cambiar» lleva a SU hoja. */
-      var deLaJunta = [].filter.call(hDatos.querySelectorAll('.sl-docs .sol-doc'), seVe);
-      if ((hayPapeles && lado) || deLaJunta.length){
+      if (hayPapeles && lado){
         lis.appendChild(el('div', 'pa-grupo', u.recaudos));
         var pintaDoc = function(f, nPaso){
           var archivo = f.querySelector('input[type=file]').files[0];
@@ -11435,9 +11496,7 @@ applyLang(idiomaParaMi());
           lis.appendChild(filaRepaso(soloElNombre(f.querySelector('.sd-n')),
                                      val, nPaso, f.querySelector('.sd-btn'), deLaBoveda));
         };
-        deLaJunta.forEach(function(f){ pintaDoc(f, 1); });
-        if (hayPapeles && lado)
-          lado.querySelectorAll('.sol-doc').forEach(function(f){ if (seVe(f)) pintaDoc(f, 2); });
+        lado.querySelectorAll('.sol-doc').forEach(function(f){ if (seVe(f)) pintaDoc(f, 2); });
       }
 
       hRepaso.appendChild(lis);
@@ -11446,7 +11505,7 @@ applyLang(idiomaParaMi());
     /* Para que el que envia pueda traer aqui al que se dejo algo dos hojas
        atras: marcarselo en rojo donde no lo ve es no decirle nada. */
     caja.CIIP_VE_PASO = function(n, txt){
-      vePaso(n);
+      vePaso(n, true);
       if (txt) avisoPaso.textContent = txt;
     };
 

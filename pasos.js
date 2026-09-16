@@ -1248,6 +1248,7 @@ window.CIIP_PASOS = {
       d_idsociosacc: "Empresa accionista: documento de identidad de sus accionistas",
       d_idjunta: "Cédula o pasaporte",
       d_rifjunta: "RIF",
+      d_juntagrupo: "Papeles de los miembros de la junta directiva",
       d_certinventario: "Certificación de inventario por contador público",
       /* --- Cuenta bancaria corporativa (banca aliada) --- */
       f_rifempresa:  "N.º de RIF de la empresa",
@@ -2183,6 +2184,7 @@ window.CIIP_PASOS = {
       d_idsociosacc: "Corporate shareholder: ID documents of its shareholders",
       d_idjunta: "ID card or passport",
       d_rifjunta: "Tax ID (RIF)",
+      d_juntagrupo: "Documents of the board members",
       d_certinventario: "Inventory certification by a public accountant",
       /* --- Corporate bank account (partner banks) --- */
       f_rifempresa:  "Company RIF number",
@@ -3101,6 +3103,7 @@ window.CIIP_PASOS = {
       d_idsociosacc: "Empresa acionista: documento de identidade dos seus acionistas",
       d_idjunta: "Cédula de identidade ou passaporte",
       d_rifjunta: "RIF (número fiscal)",
+      d_juntagrupo: "Documentos dos membros do conselho de administração",
       d_certinventario: "Certificação de inventário por contabilista certificado",
       /* --- Conta bancária da empresa (banca parceira) --- */
       f_rifempresa:  "N.º de RIF da empresa",
@@ -4019,6 +4022,7 @@ window.CIIP_PASOS = {
       d_idsociosacc: "Società socia: documento d’identità dei suoi soci",
       d_idjunta: "Carta d’identità o passaporto",
       d_rifjunta: "RIF (codice fiscale)",
+      d_juntagrupo: "Documenti dei membri del consiglio di amministrazione",
       d_certinventario: "Certificazione dell’inventario da parte di un commercialista",
       /* --- Conto corrente aziendale (banche partner) --- */
       f_rifempresa:  "Numero RIF della società",
@@ -4937,6 +4941,7 @@ window.CIIP_PASOS = {
       d_idsociosacc: "法人股东：其股东的身份证件",
       d_idjunta: "身份证或护照",
       d_rifjunta: "税号（RIF）",
+      d_juntagrupo: "董事会成员的文件",
       d_certinventario: "注册会计师出具的存货证明",
       /* --- 公司银行账户（合作银行） --- */
       f_rifempresa:  "公司 RIF 号码",
@@ -5855,6 +5860,7 @@ window.CIIP_PASOS = {
       d_idsociosacc: "Компания-акционер: документы, удостоверяющие личность её акционеров",
       d_idjunta: "Удостоверение личности или паспорт",
       d_rifjunta: "RIF (налоговый номер)",
+      d_juntagrupo: "Документы членов правления",
       d_certinventario: "Инвентаризационная ведомость, заверенная бухгалтером",
       /* --- Корпоративный счёт (банки-партнёры) --- */
       f_rifempresa:  "Номер RIF компании",

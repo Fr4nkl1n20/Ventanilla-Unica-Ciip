@@ -9311,6 +9311,12 @@
     ok('junta: la constitución pregunta por la junta directiva',
        !!campo, campo ? 'está la lista' : 'no está', 'la lista');
     if (!campo){ location.hash = ''; return; }
+    /* Los papeles de cada miembro NO cuelgan de su fila: viven con los demás
+       recaudos, en la segunda hoja y bajo un rótulo que dice de quiénes son.
+       Aquí, entre las casillas de escribir, no puede quedar ninguno. */
+    function deLaJunta(){
+      return document.querySelectorAll('#trReal .pa-hoja[data-paso="2"] .sol-junta .sol-doc');
+    }
     igual('junta: y empieza con una fila donde escribir',
           campo.querySelectorAll('.sl-fila').length, 1);
     ok('junta: el cargo se elige, no se escribe',
@@ -9323,8 +9329,7 @@
     igual('junta: se pueden añadir más miembros',
           campo.querySelectorAll('.sl-fila').length, 2);
     /* Sin nombre no se pide la cédula de nadie. */
-    igual('junta: sin nombre no se pide ningún papel',
-          campo.querySelectorAll('.sl-docs .sol-doc').length, 0);
+    igual('junta: sin nombre no se pide ningún papel', deLaJunta().length, 0);
 
     var filas = campo.querySelectorAll('.sl-fila');
     function escribe(f, nombre, cargo){
@@ -9341,10 +9346,17 @@
 
     /* Cada miembro trae SUS DOS papeles -cédula o pasaporte, y RIF-, con su
        nombre: no uno para todos, ni los dos en uno. */
-    var papeles = campo.querySelectorAll('.sl-docs .sol-doc');
+    var papeles = deLaJunta();
     igual('junta: cada miembro trae dos papeles', papeles.length, 4);
+    /* Y se piden donde se piden los papeles, no entre las casillas. */
+    igual('junta: ninguno se pide en la hoja de los datos',
+          campo.querySelectorAll('.sol-doc').length, 0);
+    var grupo = document.querySelector('#trReal .pa-hoja[data-paso="2"] .sol-junta .sd-grupo');
+    ok('junta: y el grupo dice de quiénes son esos papeles',
+       !!grupo && /junta directiva/i.test(grupo.textContent),
+       grupo ? grupo.textContent : '(sin rótulo)', 'nombra a la junta directiva');
     function deQuien(nombre){
-      return [].filter.call(campo.querySelectorAll('.sl-docs .sol-doc'), function(f){
+      return [].filter.call(deLaJunta(), function(f){
         return f.getAttribute('data-titular') === nombre;
       });
     }
@@ -9368,14 +9380,12 @@
     nomJuan.dispatchEvent(new Event('change'));
     igual('junta: al corregir el nombre, los papeles lo siguen',
           deQuien('Juan Rodríguez Gil').length, 2);
-    igual('junta: y no se duplican',
-          campo.querySelectorAll('.sl-docs .sol-doc').length, 4);
+    igual('junta: y no se duplican', deLaJunta().length, 4);
 
     filas[1].querySelector('.sl-quita').click();
     igual('junta: y al quitar a uno, se va también del dato',
           campo.getAttribute('data-es'), 'María Pérez (PRESIDENTE)');
-    igual('junta: y sus papeles se van con él',
-          campo.querySelectorAll('.sl-docs .sol-doc').length, 2);
+    igual('junta: y sus papeles se van con él', deLaJunta().length, 2);
 
     /* Y la certificación de inventario, en la hoja de recaudos y obligatoria:
        es requisito de la constitución. */
@@ -9385,6 +9395,24 @@
     ok('inventario: y es obligatoria',
        !!inv && !inv.getAttribute('data-opcional'),
        inv ? (inv.getAttribute('data-opcional') ? 'opcional' : 'obligatoria') : '(no está)', 'obligatoria');
+
+    /* Pasar de hoja tiene que NOTARSE: los tramos que cuelgan debajo del
+       formulario se apartan mientras se rellena —si no, quien pulsa
+       «Siguiente» desde el final de una hoja larga se queda mirándolos y
+       parece que no ha pasado nada— y vuelven al salir de la solicitud. */
+    var real = document.getElementById('trReal');
+    var otros = document.getElementById('trSiguen');
+    ok('hojas: en la primera, los tramos siguen debajo',
+       !!otros && !otros.hidden, otros ? (otros.hidden ? 'escondidos' : 'a la vista') : 'no están',
+       'a la vista');
+    if (real && real.CIIP_VE_PASO) real.CIIP_VE_PASO(2);
+    ok('hojas: al pasar a los recaudos, se apartan',
+       !!otros && otros.hidden, otros ? (otros.hidden ? 'escondidos' : 'a la vista') : 'no están',
+       'escondidos');
+    if (real && real.CIIP_VE_PASO) real.CIIP_VE_PASO(1);
+    ok('hojas: y al volver a la primera, vuelven',
+       !!otros && !otros.hidden, otros ? (otros.hidden ? 'escondidos' : 'a la vista') : 'no están',
+       'a la vista');
     location.hash = '';
   }
 
