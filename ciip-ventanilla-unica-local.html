@@ -2870,7 +2870,9 @@ body[data-vista="tramite"] #secTramites{display:none;}
    cuando está marcada. */
 .sol-casilla .sc-fila{display:flex; align-items:center; gap:9px;}
 .sol-casilla .sc-fila input{width:16px; height:16px; flex:none; accent-color:var(--navy);}
-.sol-casilla .sc-fila label{margin:0; cursor:pointer; font-size:var(--fs-campo); font-weight:700; color:var(--ink);}
+/* El rótulo de la casilla, igual que el de los demás campos -gris, sin
+   negrita, a su tamaño-: en negrita parecía un título de sección. */
+.sol-casilla .sc-fila label{margin:0; cursor:pointer; font-size:var(--fs-rotulo-form); font-weight:500; color:var(--gray);}
 .sc-nota{margin-top:10px; border:1px solid var(--line); border-left:3px solid var(--navy2);
   background:var(--block); border-radius:var(--r-sm); padding:10px 12px;}
 .sc-q{font-size:var(--fs-parrafo); color:var(--ink); margin-bottom:6px;}
