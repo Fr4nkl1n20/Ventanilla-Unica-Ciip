@@ -10313,9 +10313,6 @@ applyLang(idiomaParaMi());
     hDatos.appendChild(dos);
 
     var lado = null, notaPap = null;
-    /* Una fila escondida no se envía, no se repasa y no se cuenta: una
-       escondida es un papel que no se pide. */
-    function seVe(f){ return !f.hidden && !f.closest('[hidden]'); }
     if (hayPapeles){
       var hPapeles = hojaNueva(u.recaudos);
       var dosP = el('div', 'sol-dos sola');
@@ -11432,6 +11429,17 @@ applyLang(idiomaParaMi());
     });
   }
 
+  /* Una fila escondida no se envía, no se repasa y no se cuenta: una
+     escondida es un papel que no se pide.
+
+     Vivía DENTRO del que monta el formulario, y desde ahí no se ve en el
+     que envía: enviar reventaba con «seVe is not defined» en cuanto miraba
+     el primer recaudo. Nadie lo notó porque el envío entero llevaba tres
+     semanas sin ejecutarse —la función que lo hacía no la llamaba nadie—,
+     así que el camino muerto acumuló DOS fallos en vez de uno. Así
+     envejece el código que ninguna prueba recorre. */
+  function seVe(f){ return !f.hidden && !f.closest('[hidden]'); }
+
   /* ─────────────────────────────────────────────────────────────────
      ENVIAR: crea el borrador, sube lo que falte y lo manda
      Si algo revienta a mitad, el borrador queda guardado con lo que sí
@@ -11586,6 +11594,12 @@ applyLang(idiomaParaMi());
       aviso.className = 'sol-aviso err';
     });
     }
+
+    /* Y se llama. Sin esta línea el botón se quedaba en «Enviando…» para
+       siempre: la comprobación de duplicados envolvió todo el envío en esta
+       función y nadie la invocaba, así que el repaso era el final del
+       camino. Nada salía hacia el CIIP y nada lo decía. */
+    sigueEnviando();
     }
   }
 

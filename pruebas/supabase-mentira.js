@@ -628,6 +628,22 @@
     return true;
   };
 
+  /* Lo que hay en la tabla de tramites AHORA MISMO. Lo mira la prueba del
+     envio: que la pantalla cambie esta bien, pero lo que hay que comprobar
+     es que la solicitud llego, y eso no se ve en pantalla. Devuelve copias
+     para que una prueba no pueda escribir en los datos de la siguiente. */
+  window.PRUEBA_TRAMITES = function(){
+    return (TRAMITES[caso] || []).map(function(t){
+      var c = {}; Object.keys(t).forEach(function(k){ c[k] = t[k]; }); return c;
+    });
+  };
+
+  /* De donde salen los id y las fechas de lo que se crea durante la tanda.
+     Contados y no al azar: un id que cambia en cada pase convierte una
+     prueba roja en un misterio distinto cada vez. */
+  var nCreados = 0;
+  function ahora(){ return new Date().toISOString(); }
+
   /* Una cita YA CONFIRMADA, para el buzon de avisos. Se fecha ANTES que los
      eventos de tramites a proposito: asi se comprueba que el buzon la mete
      en su sitio por fecha y no simplemente al final o al principio. */
@@ -1438,6 +1454,35 @@
         }), error:null};
       }
 
+      /* CREAR una solicitud. El doble no sabia hacerlo: el insert se caia
+         hasta la lista del inversionista del final y contestaba con el
+         expediente entero, asi que el `.select().single()` del panel se
+         llevaba por respuesta un tramite AJENO y el envio seguia con el id
+         de otro.
+
+         Que nadie lo notara en tres semanas no es casualidad: ninguna
+         prueba llegaba a enviar de verdad -la unica que pulsaba Enviar
+         mide la guarda de duplicados, que contesta y se para antes de
+         crear nada-, y un doble solo se equivoca donde no lo mira nadie.
+         Es el mismo agujero por el que paso el fallo que esto viene a
+         cazar: el envio entero envuelto en una funcion que no llamaba
+         nadie.
+
+         El estado no lo manda el panel: lo pone la base por defecto
+         -`estado text not null default 'borrador'`-, y aqui igual. */
+      if (op && op.insert){
+        var nuevo = {
+          id: 'nt' + (++nCreados),
+          tipo: op.insert.tipo,
+          estado: 'borrador',
+          datos: op.insert.datos || {},
+          creado_en: ahora(),
+          actualizado_en: ahora()
+        };
+        (TRAMITES[caso] = TRAMITES[caso] || []).push(nuevo);
+        return {data: (op.single ? nuevo : [nuevo]), error:null};
+      }
+
       /* Dos colas distintas sobre la misma tabla: la del equipo pide lo que
          espera por el CIIP, y la franja del inversionista lo que espera por
          el. Confundirlas seria enseñarle a cada uno lo del otro. */
@@ -1464,6 +1509,24 @@
         var suyo = colaTram.filter(function(t){ return t.id === op.eq.id; })[0];
         if (suyo) suyo.gestor = op.update.gestor;
         return {data:(suyo || {}), error:null};
+      }
+      /* Y cambiar una MIA, que es como se envia. Sin esta regla caia en la
+         de abajo -la del gestor, que la saca de la cola y contesta {}- y el
+         tramite se quedaba en borrador mientras la pantalla decia que lo
+         habias mandado. Se distingue por donde vive el id: la de abajo
+         trabaja sobre la cola del equipo, esta sobre lo que es tuyo.
+
+         'enviado_en' lo pone la base con un disparador, no el panel: la
+         pantalla del estado lee esa fecha para decir «Enviada el...», y un
+         doble que no la pusiera dejaria sin comprobar justo esa linea. */
+      if (op && op.update && op.eq && op.eq.id){
+        var mio = (TRAMITES[caso] || []).filter(function(t){ return t.id === op.eq.id; })[0];
+        if (mio){
+          Object.keys(op.update).forEach(function(k){ mio[k] = op.update[k]; });
+          mio.actualizado_en = ahora();
+          if (op.update.estado === 'enviado' && !mio.enviado_en) mio.enviado_en = ahora();
+          return {data: (op.single ? mio : [mio]), error:null};
+        }
       }
       if (op && op.update && op.eq && op.eq.id){
         colaTram = colaTram.filter(function(t){ return t.id !== op.eq.id; });

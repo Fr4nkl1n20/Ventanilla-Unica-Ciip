@@ -276,7 +276,12 @@
               rastroAbre, rastroMira,
               rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
               rastroDesdeTramiteSalta, rastroDesdeTramiteMira,
-              alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno], volcar);
+              alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno,
+              /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
+                 trámite nuevo en la tabla, y puesta antes le cambiaría las
+                 cuentas a todo lo que cuenta tarjetas. */
+              envioAbre, empiezaSolicitud, envioRellena, envioPasa,
+              envioRepaso, envioManda, envioMira], volcar);
   });
 
   /* ═══════════════ LA PUERTA DEL SECTOR ═══════════════
@@ -3086,6 +3091,187 @@
        av.textContent.trim().slice(0, 60), 'lo dice y no la crea');
     ok('duplicados: y lo dice como un error, no como un aviso suelto',
        /err/.test(av.className), av.className, 'sol-aviso err');
+    location.hash = '';
+  }
+
+  /* ═══════════ Y LA QUE SÍ SALE ═══════════
+     La de arriba comprueba que una solicitud repetida NO se manda. Esta
+     comprueba lo contrario, que es para lo que existe el panel: que una
+     completa SÍ llega.
+
+     Faltaba, y se notó. Del 21 de agosto al 16 de septiembre el botón de
+     Enviar no hizo nada: al añadir la guarda de duplicados, el envío
+     entero quedó envuelto en una función -sigueEnviando- que no llamaba
+     nadie. El repaso era el final del camino. El botón se quedaba en
+     «Enviando…» para siempre, sin error, sin aviso y sin que nada saliera
+     hacia el CIIP.
+
+     Y la tanda entera seguía en verde. La única prueba que pulsaba Enviar
+     era dupeMira, y lo pulsa sobre un trámite que YA tiene una en marcha:
+     la guarda contesta que sí la hay y se para ahí, dos pasos antes de la
+     función huérfana. Una prueba del camino que falla no prueba el camino
+     que funciona.
+
+     Va LA ÚLTIMA de la tanda a propósito: manda una solicitud de verdad y
+     eso deja un trámite nuevo en la tabla. Puesta en medio le cambiaría
+     las cuentas a todo lo que cuenta tarjetas por detrás.
+
+     El c6 -RIF de la empresa- y no otro: en el expediente 'vacio' no hay
+     ninguno suyo, así que la guarda de duplicados deja pasar, y sus seis
+     casillas se rellenan escribiendo. Un trámite con país o con lista de
+     socios mediría de paso dos widgets que ya tienen sus propias pruebas. */
+  function envioAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c6';
+  }
+
+  /* Todo de una vez, las tres hojas, y no hoja por hoja: las casillas
+     escondidas se dejan escribir igual, y así el paso de abajo solo tiene
+     que ir pulsando «Siguiente». */
+  function envioRellena(){
+    if (CASO !== 'vacio') return;
+    var caja = document.getElementById('trReal');
+    if (!caja) return;
+
+    caja.querySelectorAll('.sol-campo').forEach(function(c){
+      /* La fecha son tres listas. El año PRIMERO y el día el ÚLTIMO: la
+         lista de días se rehace al cambiar los otros dos, y puesto antes
+         el día se pierde con la lista vieja. Es el mismo orden que sigue
+         el panel cuando rellena una fecha ya guardada. */
+      if (c.querySelector('.fecha3')){
+        ['.a', '.m', '.d'].forEach(function(cual){
+          var s = c.querySelector('.fecha3 select' + cual);
+          if (!s || s.options.length < 2) return;
+          s.value = s.options[1].value;
+          s.dispatchEvent(new Event('change'));
+        });
+        return;
+      }
+      var e = c.querySelector('input, select');
+      if (!e) return;
+      if (e.tagName === 'SELECT'){
+        if (e.options.length < 2) return;
+        e.value = e.options[1].value;
+      } else if (e.type === 'checkbox'){
+        return;   /* en el c6 no hay ninguna, y marcarla pediría más papeles */
+      } else {
+        e.value = (e.type === 'tel') ? '04141234567' : 'Lo que escribe el arnés';
+      }
+      e.dispatchEvent(new Event('input', {bubbles:true}));
+      e.dispatchEvent(new Event('change', {bubbles:true}));
+    });
+
+    /* Y un papel en cada recaudo que se pida. El escondido se mira en la
+       FILA y no en lo que tenga por encima, que es donde se torció esto la
+       primera vez: el panel pregunta `!f.hidden && !f.closest('[hidden]')`,
+       copié las dos mitades, y la segunda se tragaba la hoja de recaudos
+       entera —está oculta hasta que llegas a ella—. Los tres recaudos se
+       quedaban sin papel y el formulario no pasaba de la segunda hoja.
+
+       No es lo mismo escondido que oculto: al panel esa pregunta le llega
+       con la hoja delante, y lo que quiere saber es si la CASILLA de la que
+       cuelga el recaudo está marcada. Eso vive en la fila. */
+    caja.querySelectorAll('.sol-doc').forEach(function(f){
+      if (f.hidden) return;
+      dale(f.querySelector('input[type=file]'), 'recaudo-del-arnes.pdf');
+    });
+  }
+
+  /* De la primera hoja al repaso, pulsando «Siguiente» como se pulsa. Si
+     algo quedó sin rellenar, validaPaso frena el paso y el bucle se rinde:
+     entonces falla la prueba de abajo diciendo que no se llegó al repaso,
+     que es justo lo que habría pasado. */
+  function envioPasa(sigue){
+    if (CASO !== 'vacio') return sigue();
+    var caja = document.getElementById('trReal');
+    var vueltas = 0;
+    (function anda(){
+      var bt = caja && caja.querySelector('.pa-sigue');
+      if (!bt || bt.hidden || ++vueltas > 12) return sigue();
+      bt.click();
+      setTimeout(anda, 60);
+    })();
+  }
+
+  function envioRepaso(){
+    if (CASO !== 'vacio') return;
+    var caja = document.getElementById('trReal');
+    var lista = caja && caja.querySelector('.pa-repaso');
+    /* Si no se llegó, lo que hace falta saber es QUÉ quedó sin rellenar, y
+       eso lo dice el panel solo: marca en rojo lo que frena el paso. Un
+       «no se llegó» a secas manda a repetir a mano un formulario de tres
+       hojas para averiguar lo que ya está en pantalla. */
+    var falta = caja ? [].map.call(caja.querySelectorAll('.sol-campo.mal, .sol-doc.mal'),
+      function(x){ return x.getAttribute('data-campo') || x.getAttribute('data-doc'); }) : [];
+    ok('envio: rellenada entera, se llega al repaso',
+       !!lista,
+       lista ? 'el repaso está'
+             : (caja ? 'se quedó por: ' + (falta.join(', ') || '(nada en rojo)')
+                     : 'no se abrió el formulario'),
+       'el repaso');
+    ok('envio: y el repaso enseña lo que se va a mandar',
+       !!lista && lista.querySelectorAll('.pa-fila').length > 0,
+       lista ? lista.querySelectorAll('.pa-fila').length + ' líneas' : '0', 'más de 0');
+  }
+
+  function envioManda(sigue){
+    if (CASO !== 'vacio') return sigue();
+    var caja = document.getElementById('trReal');
+    var bt = caja && caja.querySelector('.sol-enviar');
+    ok('envio: y en el repaso hay un botón de enviar',
+       !!bt, bt ? bt.textContent.trim() : 'no está', 'Enviar solicitud');
+    if (!bt) return sigue();
+    bt.click();
+    /* Se espera a que la pantalla cambie y no un rato fijo: el envío sube
+       los recaudos -y cada uno calcula su SHA-256- antes de tocar la base.
+       Y se RINDE, para que lo que falle sea la prueba de abajo diciendo
+       qué no ocurrió, en vez de quedarse el arnés colgado sin decir nada.
+       Rendirse tarda cinco segundos; es justo lo que medía este fallo. */
+    var vueltas = 0;
+    (function mira(){
+      if (document.querySelector('#trReal .sol-estado') || ++vueltas > 100) return sigue();
+      setTimeout(mira, 50);
+    })();
+  }
+
+  function envioMira(){
+    if (CASO !== 'vacio') return;
+
+    /* LO PRIMERO, y lo que de verdad importa: que la solicitud esté en la
+       tabla y esté enviada. Lo demás es cómo se cuenta en pantalla; esto
+       es si salió o no salió. */
+    var suyos = (window.PRUEBA_TRAMITES ? window.PRUEBA_TRAMITES() : [])
+      .filter(function(t){ return t.tipo === 'rif_empresa'; });
+    var mandada = suyos.filter(function(t){ return t.estado === 'enviado'; })[0];
+    ok('envio: la solicitud llega a la base, y enviada',
+       !!mandada,
+       suyos.length ? suyos.map(function(t){ return t.estado; }).join(', ') : 'ninguna',
+       'una enviada');
+    /* Con sus datos dentro: un trámite enviado vacío es papeleo que el
+       CIIP recibe y tiene que devolver. */
+    ok('envio: y con lo que se escribió dentro',
+       !!(mandada && mandada.datos && mandada.datos.razon_social),
+       mandada ? JSON.stringify(mandada.datos || {}).slice(0, 60) : '(no hay)',
+       'los datos del formulario');
+
+    /* El botón NO se queda en «Enviando…». Este es el fallo tal y como se
+       veía: deshabilitado, con el rótulo puesto, y ahí para siempre. */
+    var bt = document.querySelector('#trReal .sol-enviar');
+    ok('envio: y el botón no se queda en «Enviando…»',
+       !bt || !/Enviando/i.test(bt.textContent),
+       bt ? bt.textContent.trim() : 'ya no está el formulario', 'sin «Enviando…»');
+
+    /* Y la ficha pasa a enseñar el estado, que es lo que hay que ver
+       después de mandar algo: el formulario ya no pinta nada ahí. */
+    ok('envio: y la ficha pasa a enseñar el estado',
+       !!document.querySelector('#trReal .sol-estado'),
+       document.querySelector('#trReal .sol-estado') ? 'el estado' : 'sigue el formulario',
+       'el estado');
+
+    var av = document.querySelector('#trReal .sol-aviso.err');
+    ok('envio: y sin decir que algo ha fallado',
+       !av || !av.textContent.trim(), av ? av.textContent.trim().slice(0, 60) : '(nada)', 'sin error');
+
     location.hash = '';
   }
 

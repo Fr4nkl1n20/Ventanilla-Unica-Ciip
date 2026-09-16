@@ -163,20 +163,25 @@ foreach ($c in $casos) {
   #
   # Y eso paso. La cuenta de hoy:
   #
-  #   la cadena tiene ~142 pasos
+  #   la cadena tiene ~320 pasos
   #   x 500 ms de espera cada uno
-  #   = 71 s SOLO de esperas
+  #   = 160 s SOLO de esperas
   #
-  # O sea que con 70000 ya ibamos por debajo, y solo terminaba porque
+  # O sea que con 150000 volviamos a ir por debajo, y solo terminaba porque
   # algunos pasos usan la forma de callback -60 ms- en vez del temporizador.
-  # Al añadir las pruebas del hilo de las citas, un sabotaje empezo a
-  # quedarse sin tiempo y esto lo cantaba como error de JavaScript. No habia
-  # ninguno: se acababa el reloj, y costo media hora buscar un fallo que no
-  # existia.
+  # Paso dos veces igual: primero al añadir las pruebas del hilo de las
+  # citas, y otra vez el 16 de septiembre al añadir las siete del envio. Las
+  # dos veces la tanda lo canto como error de JavaScript y no habia ninguno:
+  # se acababa el reloj.
   #
-  # 150000 deja el doble del margen que hace falta hoy. Cuando la cadena
+  # La cuenta de arriba es la que hay que rehacer, y se rehace sola:
+  #
+  #   awk '/enCadena\(\[/,/\], volcar\)/' pruebas/arnes-panel.js |
+  #     perl -0pe 's{/\*.*?\*/}{}gs' | grep -oE '[a-zA-Z0-9_]+,' | wc -l
+  #
+  # 330000 deja el doble del margen que hace falta hoy. Cuando la cadena
   # vuelva a crecer, la cuenta esta aqui arriba.
-  '--enable-logging=stderr','--virtual-time-budget=150000',
+  '--enable-logging=stderr','--virtual-time-budget=330000',
             "--window-size=$ancho",
             "--user-data-dir=$trabajo\perfil-$caso", $url)
   $p = Start-Process $navegador -ArgumentList $args -RedirectStandardOutput $salida `
