@@ -79,6 +79,7 @@ usar esa base o la de pruebas — ver el bloque de comentarios ahí mismo.
 | `PROBAR-TODO.bat` | **Las diez de una vez**, con un cuadro al final: cuántas fueron bien, cuáles fallaron y cuáles **no se pudieron probar y por qué**. Es lo que hay que mirar antes de subir a `main` |
 | `PROBAR.bat` | Lanzar las 31 pruebas del acceso |
 | `PROBAR-PANEL.bat` | Lanzar las 4569 pruebas del panel y las 10 comprobaciones de las claves de traducción |
+| `PROBAR-A-MANO.bat` | Abrir el panel **para mirarlo y pulsarlo**, contra la misma base de mentira de las pruebas: catorce expedientes —vacío, con trabajo, gestor, administrador, sin los SQL nuevos— con un índice para elegir. Sin clave y sin tocar la base real |
 | `PROBAR-CONECTOR.bat` | Lanzar las 28 pruebas del conector del RIF |
 | `PROBAR-SAREN.bat` | Lanzar las 42 pruebas del conector de la constitución de compañía |
 | `PROBAR-TRABAJADOR.bat` | Lanzar las 44 pruebas del trabajador, que es quien ejecuta lo que el conector decide |

@@ -53,6 +53,13 @@ pruebas/cuentas.local.json
 # una linea cambiada.
 vista-cola.html
 
+# ── Las páginas para probar a mano ────────────────────────────────────
+# PROBAR-A-MANO.bat deja aquí el panel contra la base de mentira, con un
+# índice para elegir expediente. Es una copia del panel —megabyte y medio—
+# que estaría vieja al día siguiente: se rehace en un segundo ejecutando
+# el .bat, y lo que se guarda son el guion y sus textos.
+pruebas-a-mano/
+
 # Los PDF de la carta de acuerdos y de la vista previa del pliego. Se
 # generan del HTML con el navegador -asi que no hay una version que
 # mantener- y pesan 650 KB entre los dos. Se colaron una vez en un commit

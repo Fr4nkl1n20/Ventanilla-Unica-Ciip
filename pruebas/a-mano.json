@@ -1,0 +1,51 @@
+{
+  "titulo": "Probar la ventanilla a mano",
+  "entrada": "Estas páginas son el panel de verdad, con una base de datos de mentira: la misma que usan las pruebas automáticas. No hay que entrar con clave, no se guarda nada y no se toca la base real. Elige con qué expediente quieres entrar.",
+  "aviso": "Nada de lo que hagas aquí sale de tu equipo: enviar una solicitud, subir un papel o pedir una cita se queda en esta pestaña y desaparece al recargar.",
+  "rehacer": "Para rehacerlas con los últimos cambios, vuelve a ejecutar PROBAR-A-MANO.bat.",
+  "grupos": [
+    {
+      "titulo": "El inversionista",
+      "casos": [
+        {"caso": "vacio", "nombre": "Expediente vacío",
+         "dice": "Recién entrado: ni solicitudes ni historial. Es donde se ve la constitución con sus tres tramos y el formulario desde el principio."},
+        {"caso": "lleno", "nombre": "Expediente con trabajo",
+         "dice": "Una solicitud devuelta, otra en borrador y el historial de la primera."},
+        {"caso": "sinnombre", "nombre": "Sin nombre en el perfil",
+         "dice": "Una cuenta creada fuera del registro, que llega sin nombre completo."},
+        {"caso": "sinsector", "nombre": "Sin sector contestado",
+         "dice": "Todavía no ha dicho a qué se dedica."},
+        {"caso": "lector", "nombre": "Con lector de documentos",
+         "dice": "Expediente vacío con el lector encendido: se puede soltar un papel y ver cómo rellena el formulario."},
+        {"caso": "huecos", "nombre": "Citas con horario publicado",
+         "dice": "El CIIP ha publicado huecos, así que la cita se elige y queda confirmada al instante."},
+        {"caso": "pliego", "nombre": "Le falta aceptar el pliego",
+         "dice": "Hay un pliego de datos publicado y esta cuenta no lo ha aceptado."},
+        {"caso": "pliegoya", "nombre": "Pliego ya aceptado",
+         "dice": "Lo aceptó: aquí se ve dónde se relee."}
+      ]
+    },
+    {
+      "titulo": "El equipo del CIIP",
+      "casos": [
+        {"caso": "gestor", "nombre": "Gestor",
+         "dice": "Una cuenta del equipo, con la cola de trámites y dos citas esperando."},
+        {"caso": "cola", "nombre": "Gestor con la cola llena",
+         "dice": "Doce solicitudes de siete inversionistas: para ver cómo queda la pantalla con trabajo encima."},
+        {"caso": "admin", "nombre": "Administrador",
+         "dice": "Los mismos datos del gestor, con el renglón de administración encendido."}
+      ]
+    },
+    {
+      "titulo": "Cuando a la base le falta algo",
+      "casos": [
+        {"caso": "sinsql", "nombre": "Sin los SQL nuevos",
+         "dice": "Un gestor cuya base no tiene corridos los últimos archivos. Es el estado de quien se baja el panel hoy."},
+        {"caso": "sinsectorsql", "nombre": "Sin la columna del sector",
+         "dice": "Un inversionista sin sector y una base que tampoco tiene la columna: no puede bloquear a nadie."},
+        {"caso": "sincatalogo", "nombre": "Sin catálogo de trámites",
+         "dice": "La base responde sin tipos de trámite."}
+      ]
+    }
+  ]
+}
