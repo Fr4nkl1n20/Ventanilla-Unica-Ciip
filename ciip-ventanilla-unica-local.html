@@ -8647,10 +8647,11 @@ applyLang(idiomaParaMi());
       {tipo:'certificacion_inventario', clave:'d_certinventario'},
       /* Si uno de los accionistas es una empresa: su documento constitutivo
          con la última acta de asamblea, y el documento de identidad de SUS
-         accionistas. Obligatorios cuando la casilla está marcada; sin
-         marcar, ni se ven ni se piden. */
-      {tipo:'constitutivo_accionista',     clave:'d_constacc',    siCasilla:'accionista_juridico'},
-      {tipo:'identidad_socios_accionista', clave:'d_idsociosacc', siCasilla:'accionista_juridico'}
+         accionistas. Con la casilla marcada se ven y se piden, pero son
+         OPCIONALES -no frenan el envío-, por decisión de Franklin el 16 de
+         septiembre de 2026. Sin marcar, ni se ven ni se piden. */
+      {tipo:'constitutivo_accionista',     clave:'d_constacc',    opcional:true, siCasilla:'accionista_juridico'},
+      {tipo:'identidad_socios_accionista', clave:'d_idsociosacc', opcional:true, siCasilla:'accionista_juridico'}
     ],
     /* Este es el trámite donde la bóveda se ve entera: los cuatro recaudos
        vienen del c5 y del c6, así que a quien haya pasado por aquí no se le
@@ -9301,12 +9302,6 @@ applyLang(idiomaParaMi());
       {n:'objeto_social',     clave:'f_objeto',     ancho:true},
       {n:'domicilio_social',  clave:'f_domsocial',  ancho:true},
       {n:'socios',            clave:'f_socios',     ancho:true},
-      /* ¿Alguno de los accionistas es, a su vez, una empresa? Se PREGUNTA
-         aquí, al lado de los socios, y al marcarlo se dice qué habrá que
-         traer de esa empresa; los papeles se suben en la hoja de recaudos,
-         y solo se piden si está marcada (Franklin Reyes, 16-9-2026). */
-      {n:'accionista_juridico', clave:'f_accjuridico', tipo:'casilla', ancho:true,
-       nota:'f_accjuridico_i', notaLista:['d_constacc', 'd_idsociosacc']},
       /* La junta directiva no es UN dato: son varias personas, y cada una
          tiene nombre y cargo. Los cargos van literales y en mayúsculas,
          como los estados y las oficinas del SAREN: son los del acta, no
@@ -9322,7 +9317,12 @@ applyLang(idiomaParaMi());
           papel lleva el nombre de quien sale en él, y así la bóveda no
           confunde la cédula de uno con la de otro. */
        docsPorPersona:[{tipo:'cedula_pasaporte_junta', clave:'d_idjunta'},
-                       {tipo:'rif_junta',              clave:'d_rifjunta'}]}
+                       {tipo:'rif_junta',              clave:'d_rifjunta'}]},
+      /* ¿Alguno de los accionistas es, a su vez, una empresa? Va la ÚLTIMA de
+         la ficha, detrás de la junta, y SIN nota: marcarla solo hace que en la
+         hoja de recaudos aparezcan los papeles de esa empresa para subirlos
+         (Franklin Reyes, 16-9-2026). */
+      {n:'accionista_juridico', clave:'f_accjuridico', tipo:'casilla', ancho:true}
     ],
     /* No se pregunta el banco: la tarjeta promete que la cita la coordina
        el CIIP, y la red de aliados cambia más deprisa que este archivo.

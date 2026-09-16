@@ -9192,7 +9192,7 @@
 
   /* ACCIONISTA JURÍDICA. La casilla detrás de los socios, lo que dice al
      marcarla, y sus dos recaudos: escondidos y sin pedirse mientras no se
-     marca, a la vista y OBLIGATORIOS cuando se marca. */
+     marca, y a la vista pero OPCIONALES cuando se marca. */
   function ajAbre(){
     if (CASO !== 'vacio') return;
     location.hash = 'tramite-c5';
@@ -9206,24 +9206,27 @@
     var campos = [].map.call(document.querySelectorAll('#trReal .sol-campo'), function(c){
       return c.getAttribute('data-campo');
     });
-    igual('accionista juridica: y va justo detrás de los socios',
-          campos[campos.indexOf('accionista_juridico') - 1], 'socios');
+    igual('accionista juridica: y va la última de la ficha',
+          campos.filter(Boolean).pop(), 'accionista_juridico');
     var marca = campo.querySelector('input[type=checkbox]');
     var nota = campo.querySelector('.sc-nota');
     var suyos = document.querySelectorAll('#trReal .sol-lado .sol-doc[data-si="accionista_juridico"]');
+    /* Al iniciar la solicitud nace SIN marcar: solo sale marcada si vuelves
+       a un borrador donde ya la marcaste (Franklin, 16-9-2026). */
+    ok('accionista juridica: al iniciar la solicitud nace sin marcar',
+       !!marca && !marca.checked, marca && marca.checked ? 'marcada' : 'sin marcar', 'sin marcar');
     igual('accionista juridica: tiene sus dos recaudos en la hoja de papeles', suyos.length, 2);
     ok('accionista juridica: sin marcar no se ven',
        [].every.call(suyos, function(f){ return f.hidden; }), 'mira hidden', 'escondidos');
     marca.checked = true;
     marca.dispatchEvent(new Event('change'));
-    ok('accionista juridica: al marcarla dice qué hará falta',
-       !!nota && !nota.hidden && nota.querySelectorAll('li').length === 2,
-       nota ? nota.querySelectorAll('li').length + ' en la lista' : 'sin nota', 'dos');
+    ok('accionista juridica: al marcarla no enseña ningún texto, solo los papeles',
+       !nota, nota ? 'hay nota' : 'sin nota', 'sin nota');
     ok('accionista juridica: y sus recaudos salen',
        [].every.call(suyos, function(f){ return !f.hidden; }), 'mira hidden', 'a la vista');
-    ok('accionista juridica: y son obligatorios',
-       [].every.call(suyos, function(f){ return !f.getAttribute('data-opcional'); }),
-       'mira data-opcional', 'obligatorios');
+    ok('accionista juridica: y son opcionales, no frenan el envío',
+       [].every.call(suyos, function(f){ return f.getAttribute('data-opcional') === '1'; }),
+       'mira data-opcional', 'opcionales');
     marca.checked = false;
     marca.dispatchEvent(new Event('change'));
     ok('accionista juridica: al desmarcarla se vuelven a esconder',
