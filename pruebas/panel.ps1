@@ -143,6 +143,11 @@ $casos = @(
   # horario -como en produccion hasta que el equipo lo escriba- y se pide con
   # una ventana de dias.
   @{ caso='huecos';       ancho='1400,1000' }
+  # Un expediente vacio con la PROTOCOLIZACION del acta ya en revision. Es el
+  # unico pase donde un tramo de la constitucion tiene solicitud de verdad:
+  # en los demas el catalogo ni siquiera trae ese tipo, asi que los pasos del
+  # bloque salen como dibujo y el comprobante del pago no se pide nunca.
+  @{ caso='tramos';       ancho='1400,1000' }
 )
 foreach ($c in $casos) {
   $caso  = $c.caso

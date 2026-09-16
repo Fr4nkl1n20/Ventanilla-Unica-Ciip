@@ -262,6 +262,7 @@
               notaVisaAbre, notaVisaMira, notaRifAbre, notaRifMira,
               oficinaAbre, oficinaMira,
               juntaAbre, juntaMira,
+              tramoVerdadAbre, tramoVerdadMira,
               textosMira,
               rvAbre, rvMira, rvDespues,
               ajAbre, ajMira,
@@ -4679,7 +4680,9 @@
        tres columnas que dicen «Nada por ahora» son una seccion entera de
        ruido. Antes esto solo lo miraba en 'gestor', y los otros pases se
        tomaban por un expediente con una solicitud que no tienen. */
-    var cuantas = {lleno:4, vacio:1, sinnombre:1}[CASO];
+    /* 'tramos' son los datos de 'vacio' más la protocolización en revisión:
+       una solicitud más que se mueve. */
+    var cuantas = {lleno:4, vacio:1, sinnombre:1, tramos:2}[CASO];
     if (!cuantas){
       ok('quién se mueve: sin solicitudes propias no sale',
          !caja || caja.hidden, caja ? (caja.hidden ? 'escondida' : 'a la vista') : 'no está', 'escondida');
@@ -5382,7 +5385,9 @@
   function empresaMira(){
     igual('empresa: el renglón abre su vista', document.body.getAttribute('data-vista'), 'empresa');
 
-    if (CASO === 'lleno' || CASO === 'vacio'){
+    /* 'tramos' trae la misma empresa que 'vacio': es ese expediente con un
+       tramo de la constitución en marcha. */
+    if (CASO === 'lleno' || CASO === 'vacio' || CASO === 'tramos'){
       var t = document.querySelector('#emCuerpo .em-tarjeta');
       ok('empresa: enseña la que tienes registrada', !!t,
          t ? 'la enseña' : 'no hay tarjeta', 'una tarjeta');
@@ -9413,6 +9418,56 @@
     ok('hojas: y al volver a la primera, vuelven',
        !!otros && !otros.hidden, otros ? (otros.hidden ? 'escondidos' : 'a la vista') : 'no están',
        'a la vista');
+    location.hash = '';
+  }
+
+  /* ── EL TRAMO, CON SU ESTADO DE VERDAD ──
+     Los pasos del bloque de un tramo son el dibujo del trámite ante el SAREN.
+     En el pase 'tramos' la protocolización ya está EN REVISIÓN, así que sus
+     dos primeros pasos tienen que salir hechos y con la fecha en que pasaron,
+     el tercero en curso, y en el del pago el sitio para subir el comprobante
+     —ese papel no existía cuando se pidió el trámite, así que no puede ser un
+     recaudo del formulario—. Los nombres no se tocan: son los del acta. */
+  function tramoVerdadAbre(){
+    if (CASO !== 'tramos') return;
+    location.hash = 'tramite-c5';
+  }
+
+  function tramoVerdadMira(){
+    if (CASO !== 'tramos') return;
+    var b = document.querySelector('#trSiguen .tr-bloque[data-tramo="c22"]');
+    ok('verdad: la constitución enseña el tramo de la protocolización',
+       !!b, b ? 'está' : 'no está', 'el bloque de la protocolización');
+    if (!b){ location.hash = ''; return; }
+    var pasos = b.querySelectorAll('.tr-paso');
+    igual('verdad: sus pasos van con el estado real de la solicitud',
+          [].map.call(pasos, function(li){
+            return li.classList.contains('hecho') ? 'hecho'
+                 : li.classList.contains('ahora') ? 'ahora' : 'porhacer';
+          }).join(','), 'hecho,hecho,ahora,porhacer');
+    var f1 = pasos[0].querySelector('.tr-paso-f');
+    ok('verdad: y cada paso hecho dice cuándo lo fue',
+       !!f1 && /2026/.test(f1.textContent), f1 ? f1.textContent : '(sin fecha)',
+       'una fecha de 2026');
+    ok('verdad: lo que no ha pasado no lleva fecha',
+       !pasos[3].querySelector('.tr-paso-f'),
+       pasos[3].querySelector('.tr-paso-f') ? 'lleva fecha' : 'sin fecha', 'sin fecha');
+    igual('verdad: los nombres siguen siendo los del acta',
+          ((pasos[1].querySelector('.tr-paso-n') || {}).textContent || '').trim(),
+          'Pago de aranceles registrales');
+
+    var papel = b.querySelector('.tr-papel[data-doc="comprobante_pago_registro"]');
+    ok('verdad: el comprobante se sube en el paso del pago',
+       !!papel && papel.closest('.tr-paso') === pasos[1],
+       papel ? 'en el paso ' + ([].indexOf.call(pasos, papel.closest('.tr-paso')) + 1)
+             : '(no se pide)', 'en el paso 2');
+    ok('verdad: con su nombre y su botón',
+       !!papel && /omprobante/.test(papel.textContent) && !!papel.querySelector('.sd-btn'),
+       papel ? papel.textContent.slice(0, 60) : '(no hay)', 'nombre y botón');
+    /* Y solo ahí: la publicación no paga aranceles de registro. */
+    var otro = document.querySelector('#trSiguen .tr-bloque[data-tramo="c23"] .tr-papel');
+    ok('verdad: la publicación no pide comprobante',
+       !otro, otro ? 'lo pide' : 'no lo pide', 'no lo pide');
     location.hash = '';
   }
 

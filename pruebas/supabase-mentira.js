@@ -121,6 +121,18 @@
      una ventana de dias. Los datos, los de 'vacio'. */
   var conHuecos = (caso === 'huecos');
   if (conHuecos) caso = 'vacio';
+  /* ── UN TRAMO DE LA CONSTITUCIÓN, EN MARCHA ──
+     'tramos' es un expediente vacío al que se le añaden DOS cosas: la
+     protocolización del acta en el catálogo —en los demás pases no está, y
+     sin tipo no hay trámite que seguir— y una solicitud suya en revisión,
+     con su historial.
+
+     Hace falta un pase propio y no vale ampliar 'vacio' ni 'lleno': un tipo
+     más en el catálogo cambia el número de fichas que cuentan las etapas y
+     los filtros, y eso lo miden treinta pruebas de las otras pasadas. Aquí
+     el catálogo crece solo cuando este pase lo pide. */
+  var conTramos = (caso === 'tramos');
+  if (conTramos) caso = 'vacio';
   /* El doble manda sobre el lector en TODAS las pasadas, tambien para
      quitarlo. Este archivo se carga despues de config.js: el dia que
      LECTOR_URL tenga una direccion -en local eso es el proyecto de
@@ -321,6 +333,13 @@
     {codigo:'visa_dependientes', ref_panel:'c20', ente:'SAIME', activo:true, plazo_dias:70,
      nombre:'Visa de dependientes', fase:1, nivel:'opcional'}
   ];
+  /* Solo en 'tramos', y por eso va aparte del catálogo de arriba: en la base
+     de verdad este tipo está encendido desde el 15 de septiembre, pero
+     encenderlo en todas las pasadas movería los contadores de las fichas. */
+  if (conTramos){
+    TIPOS.push({codigo:'protocolizacion_acta', ref_panel:'c22', ente:'SAREN', activo:true,
+                nombre:'Protocolización del acta', fase:2, nivel:'obligatorio'});
+  }
 
   /* El borrador se toca DESPUÉS que el devuelto a propósito: así se
      comprueba que la franja antepone la devolución y no coge sin más lo
@@ -367,7 +386,14 @@
        creado_en:'2026-08-17T09:00:00Z', actualizado_en:'2026-08-17T09:00:00Z'},
       {id:'t4', tipo:'rif_personal', estado:'en_revision',
        creado_en:'2026-08-17T11:00:00Z', actualizado_en:'2026-08-18T08:00:00Z'}
-    ],
+    ].concat(conTramos ? [
+      /* La protocolización, ya presentada y en revisión: sus dos primeros
+         pasos —consignación y pago de aranceles— están hechos y con fecha,
+         y es donde se pide el comprobante del pago. */
+      {id:'p1', tipo:'protocolizacion_acta', estado:'en_revision',
+       creado_en:'2026-09-01T10:00:00Z', enviado_en:'2026-09-01T10:00:00Z',
+       actualizado_en:'2026-09-08T10:00:00Z'}
+    ] : []),
     sinnombre: [
       /* Un borrador SOLO, y a medio subir: es el unico expediente donde
          el aviso ensena el caso del borrador. En 'lleno' gana siempre el
@@ -766,7 +792,12 @@
       {id:2, tramite:'t1', de_estado:'borrador',    a_estado:'enviado',     nota:'', creado_en:'2026-07-02T10:00:00Z'},
       {id:1, tramite:'t1', de_estado:null,          a_estado:'borrador',    nota:'', creado_en:'2026-07-02T09:59:00Z'}
     ],
-    vacio: [],
+    /* El historial de la protocolización de 'tramos': de ahí salen las dos
+       fechas que se ven en sus pasos. */
+    vacio: conTramos ? [
+      {id:71, tramite:'p1', de_estado:'enviado',  a_estado:'en_revision', nota:'', creado_en:'2026-09-08T10:00:00Z'},
+      {id:70, tramite:'p1', de_estado:'borrador', a_estado:'enviado',     nota:'', creado_en:'2026-09-01T10:00:00Z'}
+    ] : [],
     sinnombre: []
   };
 

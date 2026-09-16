@@ -2900,6 +2900,17 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .sol-lista .sl-docs{margin-top:0; max-width:none; gap:6px;}
 /* El grupo de papeles de la junta, en la hoja de recaudos: un rotulo y
    debajo las filas de cada miembro, con su nombre al lado del tipo. */
+/* El comprobante del pago, dentro de su paso del tramo: se pide donde se
+   paga, y no en el formulario -cuando se pidio el tramite ese papel no
+   existia todavia-. */
+.tr-papel{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:7px;
+  padding:8px 12px; border:1px solid var(--line); border-radius:var(--r); background:var(--bg);}
+.tr-papel input[type=file]{display:none;}
+.tr-papel .tp-n{font-size:var(--fs-nota); font-weight:600; color:var(--ink);}
+.tr-papel .tp-e{font-size:var(--fs-nota); color:var(--gray); flex:1 1 auto; min-width:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.tr-papel.puesto{border-color:var(--good);}
+.tr-bloque .tr-paso-f{margin-top:2px;}
 .sol-junta{margin-top:14px;}
 .sol-junta[hidden]{display:none;}
 .sol-junta .sd-grupo{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
@@ -6807,6 +6818,9 @@ function applyLang(lang){
       bloque.appendChild(pie);
       abajo.appendChild(bloque);
     });
+    /* Y encima, lo que la base sabe de cada tramo: su estado y sus fechas.
+       Vive en el otro guion -el que habla con la base- y puede no estar. */
+    if (window.CIIP_TRAMOS_DE_VERDAD) window.CIIP_TRAMOS_DE_VERDAD();
   }
 
   function pintaTramite(id){
@@ -20341,6 +20355,183 @@ applyLang(idiomaParaMi());
     });
   }
 
+  /* -- LOS TRAMOS, CON SU ESTADO DE VERDAD ------------------
+     Los bloques de la constitucion -protocolizacion y publicacion- pintan
+     los cuatro pasos que describen el tramite ante el SAREN, sacados de
+     pasos.js. Eso es un dibujo: dice lo que VA a pasar, no lo que ha
+     pasado.
+
+     Aqui se les pone encima lo que la base sabe de cada uno: su solicitud,
+     el estado en el que esta y la fecha en que cambio. Los nombres no se
+     tocan -son los del acta, y el CIIP los quiere tal cual-; lo que se
+     enciende es el visto de cada paso y su fecha, igual que en "Tu
+     solicitud" (Franklin Reyes, 16-9-2026).
+
+     Los cuatro estados del circuito del CIIP van uno a uno con los cuatro
+     pasos: recibida es el primero, en revision el segundo, ante el ente el
+     tercero y resuelta el cuarto. El gestor mueve el tramite desde su cola,
+     como en cualquier otro, y cada movimiento enciende el paso que le toca.
+     Sin solicitud no se toca nada: el dibujo se queda como estaba.
+
+     Y EL COMPROBANTE DEL PAGO. El segundo paso de la protocolizacion es
+     pagar los aranceles del registro, y ese papel no existia cuando se pidio
+     el tramite: aparece despues, cuando se paga. Por eso no es un recaudo
+     del formulario -alli seria un hueco imposible de rellenar- sino un papel
+     que se sube DESDE el paso, cuando se llega a el. Va enganchado a la
+     solicitud del tramo, asi que el equipo lo ve donde ve los demas.
+     -------------------------------------------------------- */
+  /* Que papel se sube en que paso. La cuenta empieza en cero: el 1 es el
+     segundo paso, "Pago de aranceles registrales". */
+  var PAPEL_DE_PASO = {c22: {paso: 1, tipo: 'comprobante_pago_registro', clave: 'd_comprobpago'}};
+
+  /* La solicitud que manda de un tramo, con el mismo criterio que la ficha:
+     la que va mas adelante, no la mas reciente. Si la portada y el bloque
+     eligieran distinto, dirian cosas distintas del mismo tramite. */
+  function tramiteDeLaFicha(ref){
+    var manda = null;
+    (mios || []).forEach(function(t){
+      if (tipoRefDe(t.tipo) !== ref) return;
+      if (!manda || mandaSobre(t, manda)) manda = t;
+    });
+    return manda;
+  }
+
+  /* El historial de un tramite, una vez por solicitud y guardado: los dos
+     bloques se repintan cada vez que se abre la constitucion, y sin esto
+     serian dos consultas mas en cada vuelta. */
+  var HISTORIAL = {};
+  function historialDe(id){
+    if (HISTORIAL[id]) return HISTORIAL[id];
+    return (HISTORIAL[id] = Promise.resolve(
+      sb.from('tramite_eventos').select('a_estado, creado_en')
+        .eq('tramite', id).order('creado_en', {ascending: true}))
+      .then(function(r){
+        var cuando = {};
+        ((r && r.data) || []).forEach(function(ev){
+          if (!cuando[ev.a_estado]) cuando[ev.a_estado] = ev.creado_en;
+        });
+        return cuando;
+      }).catch(function(){ return {}; }));
+  }
+
+  /* Los papeles ya enganchados a una solicitud, para no ofrecer subir lo
+     que ya esta subido. */
+  var PAPELES_DE = {};
+  function papelesDe(id){
+    if (PAPELES_DE[id]) return PAPELES_DE[id];
+    return (PAPELES_DE[id] = Promise.resolve(
+      sb.from('tramite_documentos').select('documentos(tipo, nombre_original)')
+        .eq('tramite', id))
+      .then(function(r){
+        var hay = {};
+        ((r && r.data) || []).forEach(function(f){
+          var d = f.documentos || {};
+          if (d.tipo && !hay[d.tipo]) hay[d.tipo] = d.nombre_original || '';
+        });
+        return hay;
+      }).catch(function(){ return {}; }));
+  }
+
+  function pintaTramosDeVerdad(){
+    var caja = document.getElementById('trSiguen');
+    if (!caja || !window.sbCIIP) return;
+    caja.querySelectorAll('.tr-bloque[data-tramo]').forEach(function(b){
+      var ref = b.getAttribute('data-tramo');
+      var tr = tramiteDeLaFicha(ref);
+      if (!tr) return;
+      var alcanzado = ORDEN.indexOf(tr.estado);
+      /* Una devuelta vuelve al principio, como en "Tu solicitud": lo que
+         hay que rehacer no puede seguir contando como hecho. Un borrador
+         todavia no ha entrado en el circuito. */
+      if (tr.estado === 'devuelto') alcanzado = 0;
+      if (alcanzado < 0) return;
+
+      var pasos = b.querySelectorAll('.tr-paso');
+      [].forEach.call(pasos, function(li, i){
+        var hecho = i <= alcanzado;
+        var ahora = (i === alcanzado + 1) && tr.estado !== 'resuelto';
+        li.className = 'tr-paso ' + (hecho ? 'hecho' : (ahora ? 'ahora' : 'porhacer'));
+        var punto = li.querySelector('.tr-punto');
+        if (punto) punto.textContent = hecho ? String.fromCharCode(10003) : String(i + 1);
+      });
+      ponLasFechasDelTramo(b, tr, pasos);
+      ponElComprobante(b, ref, tr, pasos, alcanzado);
+    });
+  }
+
+  function ponLasFechasDelTramo(bloque, tr, pasos){
+    historialDe(tr.id).then(function(cuando){
+      /* El bloque puede haberse rehecho mientras llegaba la consulta: si ya
+         no esta en la pagina, lo que se escriba no lo lee nadie. */
+      if (!bloque.isConnected) return;
+      [].forEach.call(pasos, function(li, i){
+        var f = cuando[ORDEN[i]];
+        var vieja = li.querySelector('.tr-paso-f');
+        if (vieja) vieja.remove();
+        if (!f) return;
+        var txt = li.querySelector('.tr-txt');
+        if (txt) txt.appendChild(el('div', 'sd-e tr-paso-f', fecha(f)));
+      });
+    });
+  }
+
+  function ponElComprobante(bloque, ref, tr, pasos, alcanzado){
+    var quiere = PAPEL_DE_PASO[ref];
+    if (!quiere) return;
+    var li = pasos[quiere.paso];
+    if (!li) return;
+    /* Antes de llegar al paso no se pide: nadie paga aranceles de algo que
+       todavia no se ha consignado. */
+    if (quiere.paso > alcanzado + 1) return;
+    var txt = li.querySelector('.tr-txt');
+    if (!txt || txt.querySelector('.tr-papel')) return;
+    var u = T();
+
+    var fila = el('div', 'tr-papel');
+    fila.setAttribute('data-doc', quiere.tipo);
+    fila.appendChild(el('span', 'tp-n', u[quiere.clave] || quiere.tipo));
+    var est = el('span', 'tp-e', '');
+    fila.appendChild(est);
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'image/*,application/pdf';
+    fila.appendChild(inp);
+    var btn = el('button', 'sd-btn', u.sin_archivo || '');
+    btn.type = 'button';
+    btn.addEventListener('click', function(){ inp.click(); });
+    inp.addEventListener('change', function(){
+      var archivo = inp.files[0];
+      if (!archivo) return;
+      btn.disabled = true;
+      est.textContent = u.enviando || '';
+      sube(quiere.tipo, archivo)
+        .then(function(docId){ return engancha(tr.id, docId); })
+        .then(function(){
+          PAPELES_DE[tr.id] = null;
+          fila.classList.add('puesto');
+          est.textContent = archivo.name;
+          btn.disabled = false;
+        })
+        .catch(function(e){
+          console.warn('[CIIP] comprobante del pago:', e && (e.message || e));
+          btn.disabled = false;
+          est.textContent = u.error || '';
+        });
+    });
+    fila.appendChild(btn);
+    txt.appendChild(fila);
+
+    /* Y si ya se subio, se dice: la fila deja de pedir y ensena cual es. */
+    papelesDe(tr.id).then(function(hay){
+      if (!fila.isConnected || !hay[quiere.tipo]) return;
+      fila.classList.add('puesto');
+      est.textContent = hay[quiere.tipo];
+      btn.textContent = u.pa_cambiar || btn.textContent;
+    });
+  }
+  window.CIIP_TRAMOS_DE_VERDAD = pintaTramosDeVerdad;
+
+
   function pintaEstadoTarjetas(){
     if (!TIPOS) return;
     ponAlDiaLoEncendido(TIPOS);
@@ -20393,6 +20584,7 @@ applyLang(idiomaParaMi());
        si un día un trámite estuviera en un grupo Y fuera opcional, el
        orden importa para que no se quede el título solo. */
     pintaTramosDeLaConstitucion();
+    pintaTramosDeVerdad();
     juntaLosDelGrupo();
     apartaOpcionales();
     ponAlDiaElPlazoDeLaFicha();
@@ -20543,6 +20735,12 @@ applyLang(idiomaParaMi());
             if (!CLAVE_DE_TIPO[d.tipo]) CLAVE_DE_TIPO[d.tipo] = d.clave;
           });
         });
+      });
+      /* Y el comprobante del pago, que no es recaudo de ninguna solicitud:
+         se sube desde el tramo, con el tramite ya en marcha. */
+      Object.keys(PAPEL_DE_PASO).forEach(function(ref){
+        var p = PAPEL_DE_PASO[ref];
+        if (p.tipo && p.clave && !CLAVE_DE_TIPO[p.tipo]) CLAVE_DE_TIPO[p.tipo] = p.clave;
       });
     }
     return CLAVE_DE_TIPO;
