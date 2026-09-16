@@ -262,7 +262,7 @@
               notaVisaAbre, notaVisaMira, notaRifAbre, notaRifMira,
               oficinaAbre, oficinaMira,
               juntaAbre, juntaMira,
-              tramoVerdadAbre, tramoVerdadMira,
+              tramoVerdadAbre, reservaMira, tramoVerdadMira,
               textosMira,
               rvAbre, rvMira, rvDespues,
               ajAbre, ajMira,
@@ -4697,9 +4697,9 @@
        tres columnas que dicen «Nada por ahora» son una seccion entera de
        ruido. Antes esto solo lo miraba en 'gestor', y los otros pases se
        tomaban por un expediente con una solicitud que no tienen. */
-    /* 'tramos' son los datos de 'vacio' más la protocolización en revisión:
-       una solicitud más que se mueve. */
-    var cuantas = {lleno:4, vacio:1, sinnombre:1, tramos:2}[CASO];
+    /* 'tramos' son los datos de 'vacio' más la protocolización en revisión y
+       la constitución ante el ente: dos solicitudes más que se mueven. */
+    var cuantas = {lleno:4, vacio:1, sinnombre:1, tramos:3}[CASO];
     if (!cuantas){
       ok('quién se mueve: sin solicitudes propias no sale',
          !caja || caja.hidden, caja ? (caja.hidden ? 'escondida' : 'a la vista') : 'no está', 'escondida');
@@ -9450,6 +9450,37 @@
     location.hash = 'tramite-c5';
   }
 
+  /* ── LA RESERVA DEL NOMBRE ──
+     La constitución de 'tramos' está ante el ente, con el nombre reservado.
+     En «Tu solicitud» tiene que salir un paso más entre la reserva y
+     «Resuelta» -el comprobante de la reserva, con su sitio para subirlo-, y
+     «Resuelta» pasa a ser el quinto. Mientras falte el papel, lo que toca
+     es subirlo: «Resuelta» no puede decir que va por ahí. */
+  function reservaMira(){
+    if (CASO !== 'tramos') return;
+    var pasos = document.querySelectorAll('#trReal .tr-pasos .tr-paso');
+    igual('reserva: la constitución lleva cinco pasos', pasos.length, 5);
+    var paso = document.querySelector('#trReal .tr-paso[data-paso="reserva_nombre"]');
+    ok('reserva: el cuarto es el comprobante de la reserva del nombre',
+       !!paso && pasos[3] === paso &&
+         /reserva del nombre/.test((paso.querySelector('.tr-paso-n') || {}).textContent || ''),
+       paso ? ((paso.querySelector('.tr-paso-n') || {}).textContent || '(sin nombre)') : '(no está)',
+       'el cuarto, con su nombre');
+    ok('reserva: y es el que toca ahora',
+       !!paso && paso.classList.contains('ahora'),
+       paso ? paso.className : '(no está)', 'tr-paso ahora');
+    var fila = paso && paso.querySelector('.tr-papel[data-doc="reserva_nombre"]');
+    ok('reserva: con su sitio para subir el comprobante',
+       !!fila && !!fila.querySelector('.sd-btn') && !!fila.querySelector('input[type=file]'),
+       fila ? 'está' : '(no está)', 'botón y archivo');
+    var ultimo = pasos.length ? pasos[pasos.length - 1] : null;
+    igual('reserva: «Resuelta» pasa a ser el quinto',
+          ultimo ? (ultimo.querySelector('.tr-punto') || {}).textContent : '(sin pasos)', '5');
+    ok('reserva: y no dice que va por ahí mientras falte el papel',
+       !!ultimo && !ultimo.classList.contains('ahora'),
+       ultimo ? ultimo.className : '(sin pasos)', 'no ahora');
+  }
+
   function tramoVerdadMira(){
     if (CASO !== 'tramos') return;
     var b = document.querySelector('#trSiguen .tr-bloque[data-tramo="c22"]');
@@ -9477,7 +9508,10 @@
           }).slice(0, 2).join(' | '),
           'Pago de aranceles registrales | Consignación del documento en el Registro Mercantil');
 
-    var papel = b.querySelector('.tr-papel[data-doc="comprobante_pago_registro"]');
+    /* Con el tipo que existe en la base -pago_aranceles, el mismo recaudo del
+       formulario-: uno inventado lo rechaza tipos_documento al subirlo, y
+       aquí, sin base de verdad, nadie lo notaría. */
+    var papel = b.querySelector('.tr-papel[data-doc="pago_aranceles"]');
     ok('verdad: el comprobante se sube en el paso del pago',
        !!papel && papel.closest('.tr-paso') === pasos[0],
        papel ? 'en el paso ' + ([].indexOf.call(pasos, papel.closest('.tr-paso')) + 1)

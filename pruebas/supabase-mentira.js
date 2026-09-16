@@ -392,7 +392,13 @@
          y es donde se pide el comprobante del pago. */
       {id:'p1', tipo:'protocolizacion_acta', estado:'en_revision',
        creado_en:'2026-09-01T10:00:00Z', enviado_en:'2026-09-01T10:00:00Z',
-       actualizado_en:'2026-09-08T10:00:00Z'}
+       actualizado_en:'2026-09-08T10:00:00Z'},
+      /* Y la constitución, con el nombre ya reservado: está ante el ente y
+         le falta el comprobante de esa reserva, que es el paso que se sube
+         antes de poder resolverla. */
+      {id:'p2', tipo:'constitucion', estado:'ante_el_ente',
+       creado_en:'2026-08-20T10:00:00Z', enviado_en:'2026-08-20T10:00:00Z',
+       actualizado_en:'2026-08-30T10:00:00Z'}
     ] : []),
     sinnombre: [
       /* Un borrador SOLO, y a medio subir: es el unico expediente donde
@@ -796,7 +802,10 @@
        fechas que se ven en sus pasos. */
     vacio: conTramos ? [
       {id:71, tramite:'p1', de_estado:'enviado',  a_estado:'en_revision', nota:'', creado_en:'2026-09-08T10:00:00Z'},
-      {id:70, tramite:'p1', de_estado:'borrador', a_estado:'enviado',     nota:'', creado_en:'2026-09-01T10:00:00Z'}
+      {id:70, tramite:'p1', de_estado:'borrador', a_estado:'enviado',     nota:'', creado_en:'2026-09-01T10:00:00Z'},
+      {id:62, tramite:'p2', de_estado:'en_revision', a_estado:'ante_el_ente', nota:'', creado_en:'2026-08-30T10:00:00Z'},
+      {id:61, tramite:'p2', de_estado:'enviado',     a_estado:'en_revision',  nota:'', creado_en:'2026-08-24T10:00:00Z'},
+      {id:60, tramite:'p2', de_estado:'borrador',    a_estado:'enviado',      nota:'', creado_en:'2026-08-20T10:00:00Z'}
     ] : [],
     sinnombre: []
   };

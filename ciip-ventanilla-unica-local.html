@@ -11966,12 +11966,18 @@ applyLang(idiomaParaMi());
         var alcanzado = ORDEN.indexOf(tr.estado);
         if (tr.estado === 'devuelto') alcanzado = 0;    /* volvió al principio */
 
+        /* La constitucion lleva un paso mas antes de "Resuelta": el
+           comprobante de la reserva del nombre. Va detras del tercero,
+           "Resuelta" pasa a ser el quinto, y mientras la constitucion esta
+           ante el ente lo que toca es subir ese papel, no la resolucion. */
+        var conReserva = (tipo.codigo === 'constitucion');
         ORDEN.forEach(function(est, i){
           var hecho = i <= alcanzado;
-          var ahora = (i === alcanzado + 1) && tr.estado !== 'resuelto';
+          var ahora = (i === alcanzado + 1) && tr.estado !== 'resuelto' &&
+                      !(conReserva && est === 'resuelto');
 
           var li = el('li', 'tr-paso ' + (hecho ? 'hecho' : (ahora ? 'ahora' : 'porhacer')));
-          var punto = el('span', 'tr-punto', hecho ? '✓' : String(i + 1));
+          var punto = el('span', 'tr-punto', hecho ? '✓' : String(conReserva && est === 'resuelto' ? i + 2 : i + 1));
           var txt = el('div', 'tr-txt');
           txt.appendChild(el('div', 'tr-paso-n', estadoTexto(i, tipo.ente)));
           if (cuando[est]) txt.appendChild(el('div', 'sd-e', fecha(cuando[est])));
@@ -11998,6 +12004,7 @@ applyLang(idiomaParaMi());
           }
           li.appendChild(punto); li.appendChild(txt);
           lista.appendChild(li);
+          if (conReserva && est === 'ante_el_ente') lista.appendChild(pasoDeLaReserva(tr));
         });
       }).catch(function(){});
 
@@ -15514,6 +15521,24 @@ applyLang(idiomaParaMi());
             if (archivo) archivo.focus();
             return;
           }
+          /* Y una constitucion sin el comprobante de la reserva del nombre: la
+             base no la deja resolver, y entregar antes el acta para que luego
+             rebote dejaria un papel entregado en un tramite sin resolver. Se
+             mira antes de tocar nada. */
+          if (p.a === 'resuelto' && t.tipo === 'constitucion' && !b.getAttribute('data-reserva')){
+            b.disabled = true;
+            faltaLaReserva(t).then(function(falta){
+              b.disabled = false;
+              if (falta){
+                f.classList.add('mal');
+                aviso.textContent = u.co_faltareserva || '';
+                return;
+              }
+              b.setAttribute('data-reserva', 'vista');
+              b.click();
+            });
+            return;
+          }
           f.classList.remove('mal');
           aviso.textContent = '';
           b.disabled = true;
@@ -15906,7 +15931,10 @@ applyLang(idiomaParaMi());
       .catch(function(e){
         console.warn('[CIIP] mover trámite:', e && (e.message || e));
         if (boton){ boton.disabled = false; boton.textContent = textoBoton || ''; }
-        if (aviso) aviso.textContent = T().co_error || '';
+        /* Si es la base la que dice que no por la reserva, se dice eso y no
+           un error cualquiera. */
+        var porReserva = /reserva del nombre/.test((e && e.message) || '');
+        if (aviso) aviso.textContent = (porReserva && T().co_faltareserva) || T().co_error || '';
         return false;
       });
   }
@@ -16427,6 +16455,18 @@ applyLang(idiomaParaMi());
     if (!papel){
       aviso.textContent = u.co_faltadoc || '';
       if (archivo) archivo.focus();
+      return;
+    }
+    /* Lo mismo que la ventana de la cola: sin la reserva del nombre, ni se
+       entrega el acta ni se intenta resolver. */
+    if (t.tipo === 'constitucion' && !boton.getAttribute('data-reserva')){
+      boton.disabled = true;
+      faltaLaReserva(t).then(function(falta){
+        boton.disabled = false;
+        if (falta){ aviso.textContent = u.co_faltareserva || ''; return; }
+        boton.setAttribute('data-reserva', 'vista');
+        hoyResuelve(t, archivo, boton, aviso);
+      });
       return;
     }
     var quien = t.nombre || u.co_sinnombre || '';
@@ -20391,7 +20431,9 @@ applyLang(idiomaParaMi());
      primer paso, "Pago de aranceles registrales", que desde el 16 de septiembre
      de 2026 va delante de la consignacion: en el registro se paga antes de
      consignar, y el papel que sale de ahi es el que pide el registrador. */
-  var PAPEL_DE_PASO = {c22: {paso: 0, tipo: 'comprobante_pago_registro', clave: 'd_comprobpago'}};
+  /* El tipo es el del catalogo -tipos_documento-: uno inventado lo rechaza la
+     base al subirlo. Es el mismo recaudo que pide el formulario de la c22. */
+  var PAPEL_DE_PASO = {c22: {paso: 0, tipo: 'pago_aranceles', clave: 'd_aranceles'}};
 
   /* La solicitud que manda de un tramo, con el mismo criterio que la ficha:
      la que va mas adelante, no la mas reciente. Si la portada y el bloque
@@ -20498,6 +20540,59 @@ applyLang(idiomaParaMi());
     });
   }
 
+  /* La fila para subir un papel SUELTO: el que no es recaudo del formulario
+     porque aparece con el tramite ya en marcha -el pago de aranceles de la
+     protocolizacion, el comprobante de la reserva del nombre-. Sube a la
+     boveda y lo engancha a la solicitud; si ya estaba enganchado, lo dice.
+     alSubir se llama cuando el papel queda puesto, venga de ahora o de
+     antes. El tipo tiene que existir en tipos_documento: la base rechaza
+     cualquier otro, y aqui nadie se enteraria hasta subirlo de verdad. */
+  function filaDeComprobante(tr, tipo, clave, alSubir){
+    var u = T();
+    var fila = el('div', 'tr-papel');
+    fila.setAttribute('data-doc', tipo);
+    fila.appendChild(el('span', 'tp-n', u[clave] || tipo));
+    var est = el('span', 'tp-e', '');
+    fila.appendChild(est);
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'image/*,application/pdf';
+    fila.appendChild(inp);
+    var btn = el('button', 'sd-btn', u.sin_archivo || '');
+    btn.type = 'button';
+    btn.addEventListener('click', function(){ inp.click(); });
+    var puesto = function(nombre){
+      fila.classList.add('puesto');
+      est.textContent = nombre || '';
+      btn.textContent = u.pa_cambiar || btn.textContent;
+      if (alSubir) alSubir(nombre);
+    };
+    inp.addEventListener('change', function(){
+      var archivo = inp.files[0];
+      if (!archivo) return;
+      btn.disabled = true;
+      est.textContent = u.enviando || '';
+      sube(tipo, archivo)
+        .then(function(docId){ return engancha(tr.id, docId); })
+        .then(function(){
+          PAPELES_DE[tr.id] = null;
+          btn.disabled = false;
+          puesto(archivo.name);
+        })
+        .catch(function(e){
+          console.warn('[CIIP] papel de un paso:', e && (e.message || e));
+          btn.disabled = false;
+          est.textContent = u.error || '';
+        });
+    });
+    fila.appendChild(btn);
+    papelesDe(tr.id).then(function(hay){
+      if (!Object.prototype.hasOwnProperty.call(hay, tipo)) return;
+      puesto(hay[tipo]);
+    });
+    return fila;
+  }
+
   function ponElComprobante(bloque, ref, tr, pasos, alcanzado){
     var quiere = PAPEL_DE_PASO[ref];
     if (!quiere) return;
@@ -20584,6 +20679,55 @@ applyLang(idiomaParaMi());
       est.textContent = hay[quiere.tipo];
       btn.textContent = u.pa_cambiar || btn.textContent;
     });
+  }
+
+  /* -- LA RESERVA DEL NOMBRE, UN PASO MAS DE LA CONSTITUCION --
+     Entre la reserva del nombre -el tercer estado, "ante el ente"- y
+     "Resuelta", la constitucion pide el comprobante de esa reserva, y lo
+     sube el inversionista. Sin el, la constitucion no se resuelve: la base
+     lo rechaza (supabase-reserva-nombre.sql) y la cola del equipo lo avisa
+     antes de intentarlo (Franklin Reyes, 16-9-2026).
+
+     El paso se ofrece para subir solo con el tramite en "ante el ente":
+     antes no hay nombre reservado del que traer comprobante, y despues ya
+     esta resuelta. */
+  var TIPO_RESERVA = 'reserva_nombre';
+
+  function pasoDeLaReserva(tr){
+    var u = T();
+    var resuelta = (tr.estado === 'resuelto');
+    var toca = (tr.estado === 'ante_el_ente');
+    var li = el('li', 'tr-paso ' + (resuelta ? 'hecho' : (toca ? 'ahora' : 'porhacer')));
+    li.setAttribute('data-paso', TIPO_RESERVA);
+    var punto = el('span', 'tr-punto', resuelta ? String.fromCharCode(10003) : '4');
+    var txt = el('div', 'tr-txt');
+    txt.appendChild(el('div', 'tr-paso-n', u.d_reserva || ''));
+    li.appendChild(punto);
+    li.appendChild(txt);
+    if (toca){
+      txt.appendChild(filaDeComprobante(tr, TIPO_RESERVA, 'd_reserva', function(){
+        li.className = 'tr-paso hecho';
+        punto.textContent = String.fromCharCode(10003);
+      }));
+    }
+    return li;
+  }
+
+  /* Para la cola del equipo: si a esta constitucion le falta el comprobante.
+     Si no se puede mirar -politica sin poner, red caida- se deja pasar: la
+     base es la que decide, y un aviso inventado cerraria el paso sin
+     motivo. */
+  function faltaLaReserva(t){
+    if (!t || t.tipo !== 'constitucion') return Promise.resolve(false);
+    return Promise.resolve(
+      sb.from('tramite_documentos').select('documentos(tipo)').eq('tramite', t.id))
+      .then(function(r){
+        if (r && r.error) return false;
+        return !((r && r.data) || []).some(function(f){
+          return f.documentos && f.documentos.tipo === TIPO_RESERVA;
+        });
+      })
+      .catch(function(){ return false; });
   }
   window.CIIP_TRAMOS_DE_VERDAD = pintaTramosDeVerdad;
 
@@ -20798,6 +20942,7 @@ applyLang(idiomaParaMi());
         var p = PAPEL_DE_PASO[ref];
         if (p.tipo && p.clave && !CLAVE_DE_TIPO[p.tipo]) CLAVE_DE_TIPO[p.tipo] = p.clave;
       });
+      if (!CLAVE_DE_TIPO[TIPO_RESERVA]) CLAVE_DE_TIPO[TIPO_RESERVA] = 'd_reserva';
     }
     return CLAVE_DE_TIPO;
   }

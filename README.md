@@ -65,6 +65,7 @@ usar esa base o la de pruebas — ver el bloque de comentarios ahí mismo.
 | `supabase-una-viva.sql` | Una sola solicitud viva por persona y trámite. Las resueltas y las devueltas no cuentan |
 | `supabase-hilo.sql` | La conversación sobre una solicitud, en los dos sentidos y con adjuntos que van a la bóveda |
 | `supabase-disponibilidad.sql` | El horario de citas del CIIP: el horario semanal, los días cerrados y la reserva de un hueco, que nace confirmada. Va **después** de `supabase-citas.sql`; es el 28 de `TODO-EN-ORDEN.sql` |
+| `supabase-reserva-nombre.sql` | La constitución no se resuelve sin el **comprobante de la reserva del nombre**, que sube el inversionista desde su paso. Añade ese tipo de papel, deja adjuntarlo con el trámite en marcha (y el pago de aranceles de la protocolización) y pone el bloqueo en la base. Va **después** de `supabase-tramites.sql`; es el 37 de `TODO-EN-ORDEN.sql` |
 | `logos/` | Logos de los organismos, con su procedencia en [FUENTES.md](logos/FUENTES.md) |
 | `banderas/` | 197 banderas SVG para el buscador de países, con su procedencia en [FUENTES.md](banderas/FUENTES.md) |
 | `original/` | La demostración de partida, intacta, como referencia |

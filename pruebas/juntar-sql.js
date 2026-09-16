@@ -81,7 +81,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-revision-papeles',
 /* La accionista jurídica (c5): dos tipos de documento. Solo necesita el
    catálogo de documentos; va al final. */
-'supabase-accionista-juridica'];
+'supabase-accionista-juridica',
+/* La reserva del nombre antes de resolver la constitución (c5), y el pago
+   de aranceles adjuntable con la protocolización en marcha (c22). Necesita
+   tramites, documentos y tramite_documentos; va al final. */
+'supabase-reserva-nombre'];
 
 let mal = 0;
 for (const n of orden) {
