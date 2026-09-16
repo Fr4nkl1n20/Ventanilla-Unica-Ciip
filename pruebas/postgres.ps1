@@ -146,7 +146,10 @@ try {
     'supabase-zodi.sql',
     # 32  el RUPDAE (c35) y el Registro Unico Minero (c36). Como la ZODI:
     #     solo necesita el catalogo con nivel y emite
-    'supabase-rupdae-rum.sql'
+    'supabase-rupdae-rum.sql',
+    # 33  los papeles de la junta directiva (c5): la columna titular de
+    #     documentos y dos tipos. Solo necesita el 2; va al final
+    'supabase-junta.sql'
   )
   $n = 0
   foreach ($f in $once) {

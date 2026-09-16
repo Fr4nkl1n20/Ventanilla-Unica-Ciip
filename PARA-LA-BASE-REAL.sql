@@ -75,6 +75,13 @@
 --     y sin plazo. Es supabase-rupdae-rum.sql entero. PENDIENTE DE CONFIRMAR
 --     con el CIIP el nivel del RUPDAE.
 --
+--  9. LOS PAPELES DE LA JUNTA DIRECTIVA (c5). Nuevo el 2026-09-16, al
+--     final del todo. Una columna en documentos -titular: de quién es el
+--     papel cuando es de un miembro de la junta- y dos tipos de documento:
+--     la cédula o pasaporte y RIF de cada miembro, y la certificación de
+--     inventario por contador público. No toca permisos ni cambia nada de
+--     lo guardado. Es supabase-junta.sql entero, que es corto.
+--
 --  SI TIENES CUALQUIER DUDA, PEGA TODO-EN-ORDEN.sql EN VEZ DE ESTE
 --  ─────────────────────────────────────────────────────────────────────
 --  Aquel trae los treinta y siempre es correcto, aunque este archivo se
@@ -1381,3 +1388,70 @@ update public.tipos_tramite
 --
 --   select fase, count(*) from public.tipos_tramite
 --   where nivel = 'obligatorio' group by fase;
+
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  9. LOS PAPELES DE LA JUNTA DIRECTIVA (c5) · 2026-09-16
+-- ═══════════════════════════════════════════════════════════════════════
+--  Lo mismo que supabase-junta.sql, sin su cabecera: el porqué está allí.
+--  Se puede correr más de una vez.
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 1. DE QUIÉN ES CADA PAPEL
+-- ───────────────────────────────────────────────────────────────────────
+--  Null para todo lo que ya está guardado: sigue siendo de quien lo subió,
+--  como hasta hoy. Sólo lo lleva un papel que es de OTRA persona -un
+--  miembro de la junta directiva-, y entonces lleva su nombre.
+alter table public.documentos add column if not exists titular text;
+
+comment on column public.documentos.titular is
+  'De quién es el papel cuando no es del dueño de la cuenta (un miembro de la junta directiva). Null: de quien lo subió.';
+
+--  Un nombre en blanco no es un titular: sería un papel de nadie, y en el
+--  visor del equipo saldría como si fuera tuyo.
+do $junta$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'documentos_titular_no_vacio') then
+    alter table public.documentos add constraint documentos_titular_no_vacio
+      check (titular is null or length(btrim(titular)) > 0);
+  end if;
+end
+$junta$;
+
+--  La bóveda busca «el más reciente de este tipo» para reutilizarlo. Con
+--  titular, busca «de este tipo y de esta persona».
+create index if not exists documentos_por_titular
+  on public.documentos (inversionista, tipo, titular);
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 2. LOS PAPELES NUEVOS
+-- ───────────────────────────────────────────────────────────────────────
+--  Ninguno caduca en el catálogo. La cédula y el RIF de un miembro van en
+--  UN solo papel, y cada uno vence en su fecha: pedir una sola fecha de
+--  vencimiento para los dos no diría nada cierto. La certificación de
+--  inventario acredita un hecho de una fecha, como el comprobante del
+--  capital.
+insert into public.tipos_documento (codigo, nombre, vence) values
+  ('cedula_rif_junta',         'Cédula o pasaporte y RIF de un miembro de la junta directiva', false),
+  ('certificacion_inventario', 'Certificación de inventario por contador público',            false)
+on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.vence;
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- COMPROBACIONES
+-- ───────────────────────────────────────────────────────────────────────
+-- 1) La columna existe y admite vacío (lo guardado antes no tiene titular):
+--
+--   select column_name, is_nullable from information_schema.columns
+--   where table_schema = 'public' and table_name = 'documentos'
+--     and column_name = 'titular';
+--
+-- 2) Los dos papeles nuevos, ninguno caduca:
+--
+--   select codigo, nombre, vence from public.tipos_documento
+--   where codigo in ('cedula_rif_junta', 'certificacion_inventario');
+--
+-- 3) Nada de lo guardado cambió de dueño: tiene que salir 0.
+--
+--   select count(*) from public.documentos where titular is not null;

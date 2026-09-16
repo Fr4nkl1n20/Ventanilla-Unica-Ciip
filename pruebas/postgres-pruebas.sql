@@ -2694,6 +2694,32 @@ select arnes.comprueba(
     where (t.codigo = 'rupdae' and d.codigo = 'certificado_rupdae' and not d.vence)
        or (t.codigo = 'registro_minero' and d.codigo = 'certificado_rum' and d.vence)));
 
+-- ── LA JUNTA DIRECTIVA (c5): de quién es cada papel ────────────────────
+-- Sin titular, cinco cédulas de cinco miembros eran cinco papeles del mismo
+-- tipo, y la bóveda enseñaba la última a los cinco.
+select arnes.comprueba(
+  'junta: la bóveda sabe de quién es cada papel',
+  (select count(*) = 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'documentos'
+      and column_name = 'titular'));
+
+-- Y lo guardado antes sigue siendo de quien lo subió: la columna admite vacío.
+select arnes.comprueba(
+  'junta: lo que ya estaba guardado no cambia de dueño',
+  (select is_nullable = 'YES' from information_schema.columns
+    where table_schema = 'public' and table_name = 'documentos'
+      and column_name = 'titular'));
+
+-- Un nombre en blanco sería un papel de nadie.
+select arnes.comprueba(
+  'junta: un titular en blanco no se acepta',
+  (select count(*) = 1 from pg_constraint where conname = 'documentos_titular_no_vacio'));
+
+select arnes.comprueba(
+  'junta: los dos papeles nuevos están en el catálogo, y no caducan',
+  (select count(*) = 2 from public.tipos_documento
+    where codigo in ('cedula_rif_junta', 'certificacion_inventario') and not vence));
+
 \o
 \pset tuples_only on
 \pset format unaligned

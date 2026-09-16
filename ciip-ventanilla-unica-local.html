@@ -2802,6 +2802,30 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .sol-h{font-size:var(--fs-seccion); font-weight:700; margin-bottom:14px;letter-spacing:.01em;}
 .sol-campos{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px 16px; max-width:620px;}
 .sol-campo.ancho{grid-column:1 / -1;}
+/* La junta directiva: una fila por persona, el nombre se escribe y el cargo
+   se elige. En pantalla estrecha la fila se parte en dos renglones antes de
+   dejar el nombre en cuatro letras. */
+.sol-lista .sl-filas{display:grid; gap:8px;}
+.sol-lista .sl-fila{display:flex; align-items:center; gap:8px;}
+.sol-lista .sl-fila input{flex:1 1 auto; min-width:0;}
+.sol-lista .sl-fila select{flex:0 0 190px;}
+.sol-lista .sl-quita{font:inherit; font-size:15px; line-height:1; flex:none; cursor:pointer;
+  width:28px; height:28px; padding:0; border:1px solid var(--line);
+  border-radius:var(--r-sm); background:var(--bg); color:var(--gray);}
+.sol-lista .sl-quita:hover{border-color:var(--rust); color:var(--rust);}
+.sol-lista .sl-quita[hidden]{display:none;}
+.sol-lista .sl-mas{font:inherit; font-size:var(--fs-boton); font-weight:700; cursor:pointer;
+  margin-top:9px; padding:6px 12px; border:1px solid var(--line);
+  border-radius:var(--r-sm); background:var(--bg); color:var(--navy2);}
+.sol-lista .sl-mas:hover{border-color:var(--cyan-deep);}
+/* Cada persona es su fila y, debajo, su papel: pegados, para que se lea de
+   quién es. */
+.sol-lista .sl-persona{display:grid; gap:6px;}
+.sol-lista .sl-docs{margin-top:0; max-width:none; gap:6px;}
+@media (max-width:560px){
+  .sol-lista .sl-fila{flex-wrap:wrap;}
+  .sol-lista .sl-fila select{flex:1 1 160px;}
+}
 .sol-campo label{display:block; font-size:var(--fs-rotulo-form); font-weight:700; color:var(--gray); margin-bottom:5px;}
 .sol-campo input, .sol-campo select{width:100%; font:inherit; font-size:12.5px; color:var(--ink);
   background:var(--bg); border:1.5px solid var(--line); border-radius:8px; padding:9px 11px; outline:none;}
@@ -8524,7 +8548,11 @@ applyLang(idiomaParaMi());
       {tipo:'cedula',             clave:'d_identidad'},
       {tipo:'rif_personal',       clave:'d_rifpersonal'},
       {tipo:'comprobante_capital',clave:'d_capital'},
-      {tipo:'carta_comisario',    clave:'d_comisario', opcional:true}
+      {tipo:'carta_comisario',    clave:'d_comisario', opcional:true},
+      /* Si el capital se aporta en bienes y no en dinero. El comprobante del
+         capital ya admitía «depósito o inventario»; esta se pidió aparte y
+         opcional, y convive con él. */
+      {tipo:'certificacion_inventario', clave:'d_certinventario', opcional:true}
     ],
     /* Este es el trámite donde la bóveda se ve entera: los cuatro recaudos
        vienen del c5 y del c6, así que a quien haya pasado por aquí no se le
@@ -9174,7 +9202,20 @@ applyLang(idiomaParaMi());
        opciones:['(C.A) CONSTITUCIÓN COMPAÑÍAS ANÓNIMAS','(S.R.L) CONSTITUCIÓN SOCIEDADES DE RESPONSABILIDAD LIMITADA','(S.N.C) CONSTITUCIÓN SOCIEDAD EN NOMBRE COLECTIVO','(S.C.S) CONSTITUCIÓN SOCIEDADES DE COMANDITAS SIMPLES','(S.C.A) CONSTITUCIÓN DE SOCIEDADES EN COMANDITA POR ACCIONES','(F.P) CONSTITUCIÓN FIRMA PERSONAL','(S.A) CONSTITUCIÓN SOCIEDADES ANÓNIMAS','(F.P) CONSTITUCIÓN CORREDOR CARÁCTER PÚBLICO','(CONSORCIO) CONSTITUCIÓN DE CONSORCIOS','(INC) CONSTITUCION DE SOCIEDAD MERCANTIL EXTRANJERA','(C.C.S) CONSTITUCIÓN DE COMPAÑIA EN COMANDITA SIMPLE','(C.C.A) CONSTITUCIÓN DE COMPAÑIA EN COMANDITA POR ACCIONES','(S.L.) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (SOCIEDADES DE RESPONSABILIDAD LIMITADA)','(S.A) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (SOCIEDADES ANÓNIMAS)','(C.A) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (COMPAÑÍA ANÓNIMA)','(C.C.A) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (COMPAÑÍA EN COMANDITA POR ACCIONES)','(C.C.S) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (COMPAÑÍA EN COMANDITA SIMPLE)','(S.C.A) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (SOCIEDADES EN COMANDITA POR ACCIONES)','(S.C.S) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (SOCIEDADES EN COMANDITAS SIMPLES)','(F.P) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES EXTRANJERAS (FIRMA PERSONAL)','(C.A) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES NACIONALES (COMPAÑÍA ANÓNIMA)','(S.A) CONSTITUCIÓN DE SUCURSAL EN VENEZUELA DE SOCIEDADES MERCANTILES NACIONALES (SOCIEDADES ANÓNIMAS)']},
       {n:'objeto_social',     clave:'f_objeto',     ancho:true},
       {n:'domicilio_social',  clave:'f_domsocial',  ancho:true},
-      {n:'socios',            clave:'f_socios',     ancho:true}
+      {n:'socios',            clave:'f_socios',     ancho:true},
+      /* La junta directiva no es UN dato: son varias personas, y cada una
+         tiene nombre y cargo. Los cargos van literales y en mayúsculas,
+         como los estados y las oficinas del SAREN: son los del acta, no
+         una palabra nuestra que haya que traducir. */
+      {n:'junta_directiva', clave:'f_junta', tipo:'lista', ancho:true,
+       columnaN:'f_junta_n', columnaC:'f_junta_c',
+       mas:'f_junta_mas', quita:'f_junta_quita',
+       cargos:['PRESIDENTE', 'VICEPRESIDENTE', 'DIRECTOR PRINCIPAL', 'DIRECTOR SUPLENTE',
+               'SECRETARIO', 'TESORERO', 'GERENTE GENERAL', 'ADMINISTRADOR'],
+       /* Y cada miembro trae SU cédula o pasaporte y SU RIF. Uno por persona
+          y no uno para todos: cada papel lleva el nombre de quien sale en
+          él, y así la bóveda no confunde la cédula de uno con la de otro. */
+       docPorPersona:{tipo:'cedula_rif_junta', clave:'d_cedrifjunta'}}
     ],
     /* No se pregunta el banco: la tarjeta promete que la cita la coordina
        el CIIP, y la red de aliados cambia más deprisa que este archivo.
@@ -10160,6 +10201,9 @@ applyLang(idiomaParaMi());
     hDatos.appendChild(dos);
 
     var lado = null, notaPap = null;
+    /* Una fila escondida no se envía, no se repasa y no se cuenta: una
+       escondida es un papel que no se pide. */
+    function seVe(f){ return !f.hidden && !f.closest('[hidden]'); }
     if (hayPapeles){
       var hPapeles = hojaNueva(u.recaudos);
       var dosP = el('div', 'sol-dos sola');
@@ -10479,6 +10523,143 @@ applyLang(idiomaParaMi());
 
     var rejilla = el('div', 'sol-campos');
     (CAMPOS[tipo.codigo] || []).forEach(function(c){
+      /* UNA LISTA DE PERSONAS.
+         En una caja de texto libre cada quien escribe lo suyo —«María
+         Pérez, presidenta», «Presidenta: María Pérez»— y el que recibe la
+         solicitud interpreta. Aquí el nombre se escribe y el cargo SE
+         ELIGE, así que llega siempre igual.
+
+         Y se guarda en UNA sola línea, «Nombre (CARGO); Nombre (CARGO)»:
+         al otro lado hay una columna de texto y un PDF, no una tabla.
+         Partir el dato en filas obligaría a tocar la base, el panel del
+         equipo y el documento que se entrega, para enseñar lo mismo. */
+      if (c.tipo === 'lista'){
+        var campoL = el('div', 'sol-campo sol-lista' + (c.ancho ? ' ancho' : ''));
+        campoL.setAttribute('data-campo', c.n);
+        if (c.opcional) campoL.setAttribute('data-opcional', '1');
+        campoL.appendChild(el('label', null,
+          (u[c.clave] || c.n) + (c.opcional ? ' ' + (u.opcional || '') : '')));
+        var filasL = el('div', 'sl-filas');
+        campoL.appendChild(filasL);
+        var masL = el('button', 'sl-mas', u[c.mas] || '');
+        masL.type = 'button';
+        campoL.appendChild(masL);
+
+        /* La línea que se guarda se rehace entera cada vez que algo cambia:
+           es corta, y rehacerla cuesta menos que llevar la cuenta de qué
+           fila se tocó. Va en data-es, que es de donde leen el que valida,
+           el que envía y el que repasa. */
+        var apuntaL = function(){
+          var partes = [];
+          filasL.querySelectorAll('.sl-fila').forEach(function(f){
+            var nom = (f.querySelector('input').value || '').trim();
+            var car = f.querySelector('select').value;
+            if (nom) partes.push(car ? nom + ' (' + car + ')' : nom);
+          });
+          if (partes.length) campoL.setAttribute('data-es', partes.join('; '));
+          else campoL.removeAttribute('data-es');
+          /* Con una sola fila no se ofrece quitarla: dejaría la lista sin
+             sitio donde escribir, y un botón que no se puede pulsar es un
+             botón que sobra. */
+          var todas = filasL.querySelectorAll('.sl-fila');
+          todas.forEach(function(f){
+            var q = f.querySelector('.sl-quita');
+            if (q) q.hidden = todas.length < 2;
+          });
+        };
+
+        var ponFilaL = function(nombre, cargo){
+          /* La persona es la fila Y su papel, juntos: quitar a alguien tiene
+             que llevarse su cédula, no dejarla colgando en la lista. */
+          var persona = el('div', 'sl-persona');
+          var f = el('div', 'sl-fila');
+          var nom = document.createElement('input');
+          nom.type = 'text';
+          nom.name = c.n + '_nombre';
+          /* El rótulo va DENTRO de cada caja y no encima: con cuatro filas,
+             dos rótulos repetidos cuatro veces son ocho renglones que no
+             dicen nada nuevo. */
+          nom.placeholder = u[c.columnaN] || '';
+          nom.value = nombre || '';
+          f.appendChild(nom);
+          var car = document.createElement('select');
+          car.name = c.n + '_cargo';
+          /* La primera opción va vacía y con el rótulo dentro: sin ella, el
+             primer cargo de la lista quedaría elegido sin que nadie lo
+             eligiera, y el acta diría «presidente» de quien no lo es. */
+          var vacia = document.createElement('option');
+          vacia.value = '';
+          vacia.textContent = u[c.columnaC] || '';
+          car.appendChild(vacia);
+          (c.cargos || []).forEach(function(o){
+            var op = document.createElement('option');
+            op.value = o; op.textContent = o;
+            car.appendChild(op);
+          });
+          car.value = cargo || '';
+          f.appendChild(car);
+          var quitaL = el('button', 'sl-quita', '\u00d7');
+          quitaL.type = 'button';
+          quitaL.title = u[c.quita] || '';
+          quitaL.setAttribute('aria-label', u[c.quita] || '');
+          quitaL.addEventListener('click', function(){ persona.remove(); apuntaL(); });
+          f.appendChild(quitaL);
+          nom.addEventListener('input', apuntaL);
+          car.addEventListener('change', apuntaL);
+          persona.appendChild(f);
+
+          /* EL PAPEL DE ESTA PERSONA.
+             Sale al terminar de escribir el nombre -al salir de la caja-, y
+             no letra a letra: cada nombre a medias sería una consulta a la
+             bóveda buscando la cédula de «Mar», de «Marí», de «María».
+             Sin nombre no hay papel: no se pide la cédula de nadie. */
+          if (c.docPorPersona){
+            var suyos = el('div', 'sol-docs sl-docs');
+            persona.appendChild(suyos);
+            var ponPapel = function(){
+              var quien = (nom.value || '').trim();
+              var viejo = suyos.querySelector('.sol-doc');
+              if (viejo && viejo.getAttribute('data-titular') === quien) return;
+              /* Si se corrige el nombre, el papel se rehace con el nuevo,
+                 pero el archivo que ya habías elegido se queda: corregir una
+                 tilde no puede obligar a buscar la cédula otra vez. */
+              var llevaba = viejo ? viejo.querySelector('input[type=file]').files : null;
+              if (viejo) viejo.remove();
+              if (!quien) return;
+              var nuevo = montaDoc({tipo: c.docPorPersona.tipo, clave: c.docPorPersona.clave,
+                                    titular: quien}, suyos);
+              if (llevaba && llevaba.length){
+                var inpN = nuevo.querySelector('input[type=file]');
+                try { inpN.files = llevaba; inpN.dispatchEvent(new Event('change')); }
+                catch (err){ console.warn('[CIIP] el archivo no pasó al nombre corregido:', err && err.message); }
+              }
+            };
+            nom.addEventListener('change', ponPapel);
+            if (nombre) ponPapel();
+          }
+          filasL.appendChild(persona);
+          return f;
+        };
+
+        /* Lo ya escrito vuelve a su sitio: se guarda «Nombre (CARGO)» y se
+           lee igual, para que volver a un borrador no borre la junta. */
+        var traigoL = String(datos[c.n] || '').split(';')
+          .map(function(s){ return s.trim(); }).filter(Boolean);
+        if (!traigoL.length) traigoL = [''];
+        traigoL.forEach(function(t){
+          var m = /^(.*?)\s*\(([^()]*)\)$/.exec(t);
+          ponFilaL(m ? m[1] : t, m ? m[2] : '');
+        });
+        masL.addEventListener('click', function(){
+          var nueva = ponFilaL('', '');
+          apuntaL();
+          nueva.querySelector('input').focus();
+        });
+        apuntaL();
+        rejilla.appendChild(campoL);
+        return;
+      }
+
       var campo = el('div', 'sol-campo' + (c.ancho ? ' ancho' : ''));
       campo.setAttribute('data-campo', c.n);
       if (c.opcional) campo.setAttribute('data-opcional', '1');
@@ -10641,10 +10822,18 @@ applyLang(idiomaParaMi());
 
     var lista = el('div', 'sol-docs');
 
-    (RECAUDOS[tipo.codigo] || []).forEach(function(r){
+    /* Una fila de subir, puesta donde se le diga: la hoja de recaudos las
+       quiere todas seguidas en su columna, y una casilla las quiere debajo
+       de su pregunta. Es la misma fila -bóveda, arrastrar, «ya lo tienes»-,
+       y por eso se monta una sola vez. */
+    function montaDoc(r, donde){
       var fila = el('div', 'sol-doc');
       fila.setAttribute('data-doc', r.tipo);
       if (r.opcional) fila.setAttribute('data-opcional', '1');
+      /* De quién es el papel, cuando no es tuyo: el miembro de la junta. Viaja
+         hasta la base -documentos.titular- y es lo que separa su cédula de
+         la de los demás. */
+      if (r.titular) fila.setAttribute('data-titular', r.titular);
 
       var txt = el('div');
       txt.style.flex = '1 1 auto';
@@ -10653,7 +10842,8 @@ applyLang(idiomaParaMi());
          en movil no se queda colgando debajo del boton de subir. */
       var nom = el("div", "sd-n");
       nom.appendChild(document.createTextNode(
-        (u[r.clave] || r.tipo) + (r.opcional ? " " + (u.opcional || "") : "")));
+        (u[r.clave] || r.tipo) + (r.titular ? " \u00b7 " + r.titular : "") +
+        (r.opcional ? " " + (u.opcional || "") : "")));
       var pis = montaPista(r.tipo, r.opcional, u[r.clave] || r.tipo);
       if (pis) nom.appendChild(pis);
       txt.appendChild(nom);
@@ -10737,12 +10927,18 @@ applyLang(idiomaParaMi());
         inp.dispatchEvent(new Event('change'));
       });
 
-      lista.appendChild(fila);
+      donde.appendChild(fila);
 
       /* Si ya hay un documento de ese tipo en la bóveda, se reutiliza: no
          se le vuelve a pedir. Ese es el punto de todo el diseño. */
-      sb.from('documentos').select('id, nombre_original, archivo')
-        .eq('tipo', r.tipo).order('creado_en', {ascending:false}).limit(1)
+      var enBoveda = sb.from('documentos').select('id, nombre_original, archivo')
+        .eq('tipo', r.tipo);
+      /* Y si el papel es de una persona, el de ESA persona: sin esto, la
+         cédula más reciente de la junta se ofrecería a todos sus miembros.
+         Si la base aún no tiene la columna, la consulta falla y no se
+         reutiliza nada, que es lo prudente: se pide subirlo. */
+      if (r.titular) enBoveda = enBoveda.eq('titular', r.titular);
+      enBoveda.order('creado_en', {ascending:false}).limit(1)
         .then(function(d){
           var ya = (d.data || [])[0];
           if (!ya) return;
@@ -10781,9 +10977,13 @@ applyLang(idiomaParaMi());
           fila.insertBefore(mirar, btn);
           cuentaPapeles();
         }).catch(function(){});
-    });
+      return fila;
+    }
+
+    (RECAUDOS[tipo.codigo] || []).forEach(function(r){ montaDoc(r, lista); });
     lado.appendChild(lista);
     cuentaPapeles();
+
 
     /* --- enviar --- */
     var pie = el('div', 'sol-pie');
@@ -10994,7 +11194,11 @@ applyLang(idiomaParaMi());
            y en los paises son dos cosas distintas -se guarda el español- y
            repasar un dato en un idioma que no es el tuyo no es repasarlo. */
         var vista = '';
-        if (e && e.tagName === 'SELECT' && e.selectedIndex >= 0)
+        /* Una lista de personas no cabe en «el primer control de la
+           casilla»: eso sería el primer nombre y nadie más. Lo que vale es
+           la línea entera que se va a guardar. */
+        if (c.classList.contains('sol-lista')) vista = c.getAttribute('data-es') || '';
+        else if (e && e.tagName === 'SELECT' && e.selectedIndex >= 0)
           vista = e.options[e.selectedIndex].text;
         else if (e) vista = (e.value || '').trim();
         /* La fecha, escrita como se dice y no como se guarda: '2026-07-21' es
@@ -11015,16 +11219,24 @@ applyLang(idiomaParaMi());
         lis.appendChild(filaRepaso(soloElNombre(c.querySelector('label')), vista, 1, e));
       });
 
-      if (hayPapeles){
+      /* Lo escondido no se repasa: un papel que no se pide no puede salir
+         en la lista de lo que vas a enviar. */
+      /* Y los de la junta, que viven en la primera hoja: van en el mismo
+         grupo -son papeles que se envían-, pero «cambiar» lleva a SU hoja. */
+      var deLaJunta = [].filter.call(hDatos.querySelectorAll('.sl-docs .sol-doc'), seVe);
+      if ((hayPapeles && lado) || deLaJunta.length){
         lis.appendChild(el('div', 'pa-grupo', u.recaudos));
-        lado.querySelectorAll('.sol-doc').forEach(function(f){
+        var pintaDoc = function(f, nPaso){
           var archivo = f.querySelector('input[type=file]').files[0];
           var deLaBoveda = !archivo && !!f.getAttribute('data-ya');
           var val = archivo ? archivo.name
                   : deLaBoveda ? (soloElNombre(f.querySelector('.sd-e')) || '') : '';
           lis.appendChild(filaRepaso(soloElNombre(f.querySelector('.sd-n')),
-                                     val, 2, f.querySelector('.sd-btn'), deLaBoveda));
-        });
+                                     val, nPaso, f.querySelector('.sd-btn'), deLaBoveda));
+        };
+        deLaJunta.forEach(function(f){ pintaDoc(f, 1); });
+        if (hayPapeles && lado)
+          lado.querySelectorAll('.sol-doc').forEach(function(f){ if (seVe(f)) pintaDoc(f, 2); });
       }
 
       hRepaso.appendChild(lis);
@@ -11159,11 +11371,15 @@ applyLang(idiomaParaMi());
       /* 3. subir lo que sea nuevo y engancharlo */
       var tareas = [];
       caja.querySelectorAll('.sol-doc').forEach(function(f){
+        /* Escondido es que no se pide: un recaudo de la bóveda colgado de
+           una casilla sin marcar sería un papel enganchado sin pedirlo. */
+        if (!seVe(f)) return;
         var archivo = f.querySelector('input[type=file]').files[0];
         var yaHecho = f.getAttribute('data-ya');
         if (!archivo && yaHecho){ tareas.push(engancha(tr.id, yaHecho)); return; }
         if (!archivo) return;
-        tareas.push(sube(f.getAttribute('data-doc'), archivo).then(function(docId){
+        tareas.push(sube(f.getAttribute('data-doc'), archivo, null, null,
+                         f.getAttribute('data-titular') || null).then(function(docId){
           return engancha(tr.id, docId);
         }));
       });
@@ -11330,7 +11546,7 @@ applyLang(idiomaParaMi());
      políticas del cubo dejan escribir al equipo dentro de la carpeta de
      otro, y porque separa lo que dejó el CIIP de lo que subió la persona
      sin tener que consultar nada. */
-  function sube(tipoDoc, archivo, venceEl, duenio){
+  function sube(tipoDoc, archivo, venceEl, duenio, titular){
     return quienSoy().then(function(yo){
       var deQuien = duenio || yo.id;
       var limpio = archivo.name.replace(/[^\w.\-]+/g, '_').slice(-60);
@@ -11351,6 +11567,10 @@ applyLang(idiomaParaMi());
              Postgres, y un null es exactamente lo que significa: este
              papel no caduca. */
           if (venceEl) fila.vence_el = venceEl;
+          /* Solo si viene, igual que la fecha: un papel sin titular es de
+             quien lo sube, que es lo que ha sido siempre. Así lo que no es
+             de la junta no pide una columna que la base puede no tener. */
+          if (titular) fila.titular = titular;
           return sb.from('documentos').insert(fila).select().single();
         })
         .then(function(r){
@@ -15532,7 +15752,10 @@ applyLang(idiomaParaMi());
     var ids = enRevision.map(function(t){ return t.id; });
     if (!ids.length){ hoyDocs = {}; return Promise.resolve(); }
     return Promise.resolve(sb.from('tramite_documentos')
-      .select('tramite, documento, documentos(id, tipo, nombre_original, archivo, estado, nota_revision)')
+      /* documentos(*) y no la lista de columnas: pedir titular por su nombre
+         en una base que aún no la tiene haría fallar la consulta entera, y
+         la cola saldría sin un solo recaudo. Con * la trae cuando exista. */
+      .select('tramite, documento, documentos(*)')
       .in('tramite', ids))
       .then(function(r){
         if (r && r.error) throw r.error;
@@ -15543,7 +15766,7 @@ applyLang(idiomaParaMi());
           if (!d || !de[f.tramite] || d.tipo === 'resolucion') return;
           de[f.tramite].push({id: d.id || f.documento, tipo: d.tipo, archivo: d.archivo,
             nombre_original: d.nombre_original || '', estado: d.estado || 'cargado',
-            nota_revision: d.nota_revision || ''});
+            nota_revision: d.nota_revision || '', titular: d.titular || ''});
         });
         hoyDocs = de;
       })
@@ -15747,7 +15970,8 @@ applyLang(idiomaParaMi());
       var papeles = el('div', 'hoy-thumbs');
       hoyDocs[t.id].forEach(function(d){
         var th = el('span', 'hoy-th ' + d.estado + (/\.(png|jpe?g|gif|webp)$/i.test(d.archivo || '') ? ' img' : ''));
-        th.title = (d.nombre_original || nombreDeTipo_doc(d.tipo)) + ' · ' + hoyTextoEstado(d);
+        th.title = (d.nombre_original || nombreDeTipo_doc(d.tipo)) +
+          (d.titular ? ' · ' + d.titular : '') + ' · ' + hoyTextoEstado(d);
         papeles.appendChild(th);
       });
       papeles.appendChild(el('b', null, cuenta.total
@@ -16157,7 +16381,10 @@ applyLang(idiomaParaMi());
       b.setAttribute('aria-current', k === visor.i ? 'true' : 'false');
       b.appendChild(el('span', 'o ' + d.estado, d.estado === 'validado' ? '✓' : d.estado === 'rechazado' ? '✕' : ''));
       var n = el('span', 'n', d.nombre_original || nombreDeTipo_doc(d.tipo));
-      n.appendChild(el('small', null, nombreDeTipo_doc(d.tipo) + ' · ' + hoyTextoEstado(d)));
+      /* Con cinco cédulas de cinco miembros de la junta, el tipo solo no dice
+         cuál es cuál: el nombre de la persona va al lado. */
+      n.appendChild(el('small', null, nombreDeTipo_doc(d.tipo) +
+        (d.titular ? ' · ' + d.titular : '') + ' · ' + hoyTextoEstado(d)));
       b.appendChild(n);
       b.addEventListener('click', function(){ visorVe(k); });
       lista.appendChild(b);
@@ -19705,6 +19932,15 @@ applyLang(idiomaParaMi());
           if (r.tipo && r.clave && !CLAVE_DE_TIPO[r.tipo]) CLAVE_DE_TIPO[r.tipo] = r.clave;
         });
       });
+      /* Y los que no son recaudos del trámite sino de cada persona de una
+         lista -la cédula de un miembro de la junta-: sin esto, la bóveda
+         enseñaría «cedula_rif_junta» en vez de su nombre. */
+      Object.keys(CAMPOS).forEach(function(t){
+        (CAMPOS[t] || []).forEach(function(c){
+          var d = c.docPorPersona;
+          if (d && d.tipo && d.clave && !CLAVE_DE_TIPO[d.tipo]) CLAVE_DE_TIPO[d.tipo] = d.clave;
+        });
+      });
     }
     return CLAVE_DE_TIPO;
   }
@@ -19920,9 +20156,12 @@ applyLang(idiomaParaMi());
     var vigenteDeTipo = {}, fechaDeTipo = {};
     papeles.forEach(function(d){
       var t = Date.parse(d.creado_en) || 0;
-      if (fechaDeTipo[d.tipo] === undefined || t > fechaDeTipo[d.tipo]){
-        fechaDeTipo[d.tipo] = t;
-        vigenteDeTipo[d.tipo] = d.id;
+      /* El vigente es el más reciente de cada tipo Y PERSONA. Por tipo solo,
+         la cédula de un miembro de la junta marcaba como vieja la de otro. */
+      var k = d.tipo + '|' + (d.titular || '');
+      if (fechaDeTipo[k] === undefined || t > fechaDeTipo[k]){
+        fechaDeTipo[k] = t;
+        vigenteDeTipo[k] = d.id;
       }
     });
 
@@ -19948,7 +20187,7 @@ applyLang(idiomaParaMi());
 
     dcVistos.forEach(function(d){
       var est = comoEsta(d);
-      var elBueno = (vigenteDeTipo[d.tipo] === d.id);
+      var elBueno = (vigenteDeTipo[d.tipo + '|' + (d.titular || '')] === d.id);
       var fila = document.createElement('tr');
       fila.setAttribute('data-doc', d.id);
       if (est && est.mal) fila.classList.add('mal');
@@ -19965,7 +20204,8 @@ applyLang(idiomaParaMi());
 
       /* Qué documento es, y si ya no es el que vale. */
       var qué = el('div');
-      qué.appendChild(el('div', 't-fuerte', nombreDeTipo_doc(d.tipo)));
+      qué.appendChild(el('div', 't-fuerte',
+        nombreDeTipo_doc(d.tipo) + (d.titular ? ' · ' + d.titular : '')));
       if (!elBueno) qué.appendChild(el('div', 'dc-viejo', u.dc_viejo || ''));
       celda(qué);
 
@@ -20423,7 +20663,9 @@ applyLang(idiomaParaMi());
       return Promise.resolve();
     }
     return sb.from('documentos')
-      .select('id, tipo, archivo, nombre_original, vence_el, estado, nota_revision, creado_en')
+      /* * y no la lista: por la misma razón que el visor del equipo, una
+         columna que la base aún no tiene no puede dejar la bóveda vacía. */
+      .select('*')
       .order('creado_en', {ascending:false})
       .then(function(r){
         if (r && r.error) throw r.error;

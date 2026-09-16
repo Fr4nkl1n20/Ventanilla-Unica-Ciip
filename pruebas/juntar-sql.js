@@ -68,7 +68,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-zodi',
 /* El RUPDAE (c35) y el Registro Unico Minero (c36). Como la ZODI: solo
    necesita el catalogo con `nivel` y `emite`, y va al final. */
-'supabase-rupdae-rum'];
+'supabase-rupdae-rum',
+/* Los papeles de la junta directiva (c5): de quién es cada papel, y la
+   certificación de inventario. Sólo necesita documentos y el catálogo;
+   va al final para no mover el número de nadie. */
+'supabase-junta'];
 
 let mal = 0;
 for (const n of orden) {

@@ -261,6 +261,7 @@
               listoMira, listoEmpezados,
               notaVisaAbre, notaVisaMira, notaRifAbre, notaRifMira,
               oficinaAbre, oficinaMira,
+              juntaAbre, juntaMira,
               plazoF5Abre, plazoF5Rompe, plazoF5Repinta, plazoF5Mira,
               opacidadMira, opacidadSenal,
               loHacemosMira,
@@ -9012,6 +9013,95 @@
      Se compara con las del otro estado y no con una cuenta escrita aqui:
      el SAREN abre y cierra oficinas, y una prueba que dijera «cinco» se
      pondria roja el dia que abran la sexta sin que nada estuviera roto. */
+  /* ═════ EL ACCIONISTA QUE ES UNA EMPRESA ═════
+     La constitución pregunta si hay un accionista jurídico. Marcarla no
+     pide nada al enviar -si no aplica, se deja en paz- pero enumera lo que
+     habrá que aportar cuando el accionista es una empresa extranjera: sus
+     estatutos y los de su matriz, el Good Standing y la cadena de
+     accionistas hasta las personas naturales. */
+  function juntaAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c5';
+  }
+
+  /* La junta directiva se escribe por personas, no de corrido: lo que se
+     comprueba aquí es que cada una llegue con su cargo pegado, que se
+     puedan añadir y quitar, y que quitar a uno lo borre DEL DATO y no solo
+     de la pantalla -que es el fallo que nadie ve hasta que llega el acta-. */
+  function juntaMira(){
+    if (CASO !== 'vacio') return;
+    var campo = document.querySelector('#trReal .sol-lista[data-campo="junta_directiva"]');
+    ok('junta: la constitución pregunta por la junta directiva',
+       !!campo, campo ? 'está la lista' : 'no está', 'la lista');
+    if (!campo){ location.hash = ''; return; }
+    igual('junta: y empieza con una fila donde escribir',
+          campo.querySelectorAll('.sl-fila').length, 1);
+    ok('junta: el cargo se elige, no se escribe',
+       !!campo.querySelector('.sl-fila select'),
+       campo.querySelector('.sl-fila select') ? 'es una lista' : 'es texto libre', 'una lista');
+    ok('junta: y con uno solo no se ofrece quitarlo',
+       campo.querySelector('.sl-quita').hidden, 'mira el botón', 'escondido');
+
+    campo.querySelector('.sl-mas').click();
+    igual('junta: se pueden añadir más miembros',
+          campo.querySelectorAll('.sl-fila').length, 2);
+    /* Sin nombre no se pide la cédula de nadie. */
+    igual('junta: sin nombre no se pide ningún papel',
+          campo.querySelectorAll('.sl-docs .sol-doc').length, 0);
+
+    var filas = campo.querySelectorAll('.sl-fila');
+    function escribe(f, nombre, cargo){
+      var n = f.querySelector('input'), c = f.querySelector('select');
+      n.value = nombre; n.dispatchEvent(new Event('input'));
+      n.dispatchEvent(new Event('change'));
+      c.value = cargo;  c.dispatchEvent(new Event('change'));
+    }
+    escribe(filas[0], 'María Pérez', 'PRESIDENTE');
+    escribe(filas[1], 'Juan Rodríguez', 'SECRETARIO');
+    igual('junta: cada uno se guarda con su cargo al lado',
+          campo.getAttribute('data-es'),
+          'María Pérez (PRESIDENTE); Juan Rodríguez (SECRETARIO)');
+
+    /* Cada miembro trae SU papel, con su nombre: no uno para todos. */
+    var papeles = campo.querySelectorAll('.sl-docs .sol-doc');
+    igual('junta: cada miembro trae su propio papel', papeles.length, 2);
+    ok('junta: con el nombre de quien sale en él',
+       papeles.length === 2 && /María Pérez/.test(papeles[0].textContent) &&
+         /Juan Rodríguez/.test(papeles[1].textContent),
+       papeles.length ? papeles[0].textContent.slice(0, 60) : '(ninguno)', 'cada uno el suyo');
+    igual('junta: y el papel sabe de quién es',
+          papeles.length ? papeles[0].getAttribute('data-titular') : null, 'María Pérez');
+    ok('junta: y es obligatorio',
+       [].every.call(papeles, function(f){ return !f.getAttribute('data-opcional'); }),
+       'mira data-opcional', 'ninguno opcional');
+
+    /* Corregir el nombre rehace el papel con el nombre nuevo. */
+    var nomJuan = filas[1].querySelector('input');
+    nomJuan.value = 'Juan Rodríguez Gil';
+    nomJuan.dispatchEvent(new Event('input'));
+    nomJuan.dispatchEvent(new Event('change'));
+    var suyoJuan = campo.querySelectorAll('.sl-docs .sol-doc')[1];
+    igual('junta: al corregir el nombre, el papel lo sigue',
+          suyoJuan ? suyoJuan.getAttribute('data-titular') : null, 'Juan Rodríguez Gil');
+    igual('junta: y no se duplica',
+          campo.querySelectorAll('.sl-docs .sol-doc').length, 2);
+
+    filas[1].querySelector('.sl-quita').click();
+    igual('junta: y al quitar a uno, se va también del dato',
+          campo.getAttribute('data-es'), 'María Pérez (PRESIDENTE)');
+    igual('junta: y su papel se va con él',
+          campo.querySelectorAll('.sl-docs .sol-doc').length, 1);
+
+    /* Y la certificación de inventario, en la hoja de recaudos y opcional. */
+    var inv = document.querySelector('#trReal .sol-lado .sol-doc[data-doc="certificacion_inventario"]');
+    ok('inventario: la constitución pide la certificación del contador',
+       !!inv, inv ? 'está' : 'no está', 'en recaudos');
+    ok('inventario: y es opcional',
+       !!inv && inv.getAttribute('data-opcional') === '1',
+       inv ? (inv.getAttribute('data-opcional') || '(obligatoria)') : '(no está)', 'opcional');
+    location.hash = '';
+  }
+
   function oficinaAbre(){
     if (CASO !== 'vacio') return;
     location.hash = 'tramite-c5';
