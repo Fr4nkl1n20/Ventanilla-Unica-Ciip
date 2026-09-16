@@ -1215,7 +1215,8 @@ window.CIIP_PASOS = {
       f_seccionact:  "Actividad económica de la empresa",
       d_capital:     "Comprobante del capital (depósito o inventario)",
       d_comisario:   "Carta de aceptación del comisario (todas menos la firma personal)",
-      d_cedrifjunta: "Cédula o pasaporte y RIF",
+      d_idjunta: "Cédula o pasaporte",
+      d_rifjunta: "RIF",
       d_certinventario: "Certificación de inventario por contador público",
       /* --- Cuenta bancaria corporativa (banca aliada) --- */
       f_rifempresa:  "N.º de RIF de la empresa",
@@ -2118,7 +2119,8 @@ window.CIIP_PASOS = {
       f_seccionact:  "Economic activity of the company",
       d_capital:     "Proof of capital (bank deposit or asset inventory)",
       d_comisario:   "Statutory auditor’s letter of acceptance (all except sole traders)",
-      d_cedrifjunta: "ID card or passport and tax ID (RIF)",
+      d_idjunta: "ID card or passport",
+      d_rifjunta: "Tax ID (RIF)",
       d_certinventario: "Inventory certification by a public accountant",
       /* --- Corporate bank account (partner banks) --- */
       f_rifempresa:  "Company RIF number",
@@ -3004,7 +3006,8 @@ window.CIIP_PASOS = {
       f_seccionact:  "Atividade económica da empresa",
       d_capital:     "Comprovativo do capital (depósito ou inventário)",
       d_comisario:   "Carta de aceitação do comissário (todas exceto empresário em nome individual)",
-      d_cedrifjunta: "Cédula de identidade ou passaporte e RIF",
+      d_idjunta: "Cédula de identidade ou passaporte",
+      d_rifjunta: "RIF (número fiscal)",
       d_certinventario: "Certificação de inventário por contabilista certificado",
       /* --- Conta bancária da empresa (banca parceira) --- */
       f_rifempresa:  "N.º de RIF da empresa",
@@ -3890,7 +3893,8 @@ window.CIIP_PASOS = {
       f_seccionact:  "Attività economica della società",
       d_capital:     "Prova del capitale (versamento o inventario dei beni)",
       d_comisario:   "Lettera di accettazione del sindaco (tutte tranne la ditta individuale)",
-      d_cedrifjunta: "Carta d’identità o passaporto e RIF",
+      d_idjunta: "Carta d’identità o passaporto",
+      d_rifjunta: "RIF (codice fiscale)",
       d_certinventario: "Certificazione dell’inventario da parte di un commercialista",
       /* --- Conto corrente aziendale (banche partner) --- */
       f_rifempresa:  "Numero RIF della società",
@@ -4776,7 +4780,8 @@ window.CIIP_PASOS = {
       f_seccionact:  "公司经济活动类别",
       d_capital:     "资本金证明（银行存款或资产清单）",
       d_comisario:   "监察人接受函（个人商号除外）",
-      d_cedrifjunta: "身份证或护照及税号（RIF）",
+      d_idjunta: "身份证或护照",
+      d_rifjunta: "税号（RIF）",
       d_certinventario: "注册会计师出具的存货证明",
       /* --- 公司银行账户（合作银行） --- */
       f_rifempresa:  "公司 RIF 号码",
@@ -5662,7 +5667,8 @@ window.CIIP_PASOS = {
       f_seccionact:  "Вид экономической деятельности компании",
       d_capital:     "Подтверждение капитала (взнос или опись имущества)",
       d_comisario:   "Письмо о согласии ревизора (кроме индивидуального предпринимателя)",
-      d_cedrifjunta: "Удостоверение личности или паспорт и RIF",
+      d_idjunta: "Удостоверение личности или паспорт",
+      d_rifjunta: "RIF (налоговый номер)",
       d_certinventario: "Инвентаризационная ведомость, заверенная бухгалтером",
       /* --- Корпоративный счёт (банки-партнёры) --- */
       f_rifempresa:  "Номер RIF компании",

@@ -9062,35 +9062,43 @@
           campo.getAttribute('data-es'),
           'María Pérez (PRESIDENTE); Juan Rodríguez (SECRETARIO)');
 
-    /* Cada miembro trae SU papel, con su nombre: no uno para todos. */
+    /* Cada miembro trae SUS DOS papeles -cédula o pasaporte, y RIF-, con su
+       nombre: no uno para todos, ni los dos en uno. */
     var papeles = campo.querySelectorAll('.sl-docs .sol-doc');
-    igual('junta: cada miembro trae su propio papel', papeles.length, 2);
+    igual('junta: cada miembro trae dos papeles', papeles.length, 4);
+    function deQuien(nombre){
+      return [].filter.call(campo.querySelectorAll('.sl-docs .sol-doc'), function(f){
+        return f.getAttribute('data-titular') === nombre;
+      });
+    }
+    var deMaria = deQuien('María Pérez');
+    igual('junta: y los dos son de su persona', deMaria.length, 2);
+    igual('junta: uno la cédula o pasaporte y otro el RIF',
+          deMaria.map(function(f){ return f.getAttribute('data-doc'); }).join(' + '),
+          'cedula_pasaporte_junta + rif_junta');
     ok('junta: con el nombre de quien sale en él',
-       papeles.length === 2 && /María Pérez/.test(papeles[0].textContent) &&
-         /Juan Rodríguez/.test(papeles[1].textContent),
-       papeles.length ? papeles[0].textContent.slice(0, 60) : '(ninguno)', 'cada uno el suyo');
-    igual('junta: y el papel sabe de quién es',
-          papeles.length ? papeles[0].getAttribute('data-titular') : null, 'María Pérez');
-    ok('junta: y es obligatorio',
+       deMaria.length === 2 && /María Pérez/.test(deMaria[0].textContent) &&
+         /María Pérez/.test(deMaria[1].textContent) && deQuien('Juan Rodríguez').length === 2,
+       deMaria.length ? deMaria[0].textContent.slice(0, 60) : '(ninguno)', 'cada uno los suyos');
+    ok('junta: y son obligatorios',
        [].every.call(papeles, function(f){ return !f.getAttribute('data-opcional'); }),
        'mira data-opcional', 'ninguno opcional');
 
-    /* Corregir el nombre rehace el papel con el nombre nuevo. */
+    /* Corregir el nombre rehace los dos papeles con el nombre nuevo. */
     var nomJuan = filas[1].querySelector('input');
     nomJuan.value = 'Juan Rodríguez Gil';
     nomJuan.dispatchEvent(new Event('input'));
     nomJuan.dispatchEvent(new Event('change'));
-    var suyoJuan = campo.querySelectorAll('.sl-docs .sol-doc')[1];
-    igual('junta: al corregir el nombre, el papel lo sigue',
-          suyoJuan ? suyoJuan.getAttribute('data-titular') : null, 'Juan Rodríguez Gil');
-    igual('junta: y no se duplica',
-          campo.querySelectorAll('.sl-docs .sol-doc').length, 2);
+    igual('junta: al corregir el nombre, los papeles lo siguen',
+          deQuien('Juan Rodríguez Gil').length, 2);
+    igual('junta: y no se duplican',
+          campo.querySelectorAll('.sl-docs .sol-doc').length, 4);
 
     filas[1].querySelector('.sl-quita').click();
     igual('junta: y al quitar a uno, se va también del dato',
           campo.getAttribute('data-es'), 'María Pérez (PRESIDENTE)');
-    igual('junta: y su papel se va con él',
-          campo.querySelectorAll('.sl-docs .sol-doc').length, 1);
+    igual('junta: y sus papeles se van con él',
+          campo.querySelectorAll('.sl-docs .sol-doc').length, 2);
 
     /* Y la certificación de inventario, en la hoja de recaudos y opcional. */
     var inv = document.querySelector('#trReal .sol-lado .sol-doc[data-doc="certificacion_inventario"]');

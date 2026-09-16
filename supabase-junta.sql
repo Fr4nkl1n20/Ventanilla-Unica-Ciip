@@ -81,6 +81,16 @@ insert into public.tipos_documento (codigo, nombre, vence) values
   ('certificacion_inventario', 'Certificación de inventario por contador público',            false)
 on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.vence;
 
+--  16-9-2026, el mismo día: la cédula y el RIF de cada miembro pasan a ser
+--  DOS papeles, y no uno con los dos dentro. Se piden, se revisan y caducan
+--  cada uno por su lado. El tipo de arriba, cedula_rif_junta, ya no lo usa
+--  el panel y se queda: puede que alguien subiera algo con él, y
+--  documentos.tipo apunta aquí.
+insert into public.tipos_documento (codigo, nombre, vence) values
+  ('cedula_pasaporte_junta', 'Cédula o pasaporte de un miembro de la junta directiva', false),
+  ('rif_junta',              'RIF de un miembro de la junta directiva',               false)
+on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.vence;
+
 
 -- ───────────────────────────────────────────────────────────────────────
 -- COMPROBACIONES
@@ -94,7 +104,7 @@ on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.ve
 -- 2) Los dos papeles nuevos, ninguno caduca:
 --
 --   select codigo, nombre, vence from public.tipos_documento
---   where codigo in ('cedula_rif_junta', 'certificacion_inventario');
+--   where codigo in ('cedula_pasaporte_junta', 'rif_junta', 'certificacion_inventario');
 --
 -- 3) Nada de lo guardado cambió de dueño: tiene que salir 0.
 --

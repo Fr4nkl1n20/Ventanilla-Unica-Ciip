@@ -2715,10 +2715,13 @@ select arnes.comprueba(
   'junta: un titular en blanco no se acepta',
   (select count(*) = 1 from pg_constraint where conname = 'documentos_titular_no_vacio'));
 
+-- La cédula y el RIF de cada miembro son DOS papeles, y la certificación
+-- de inventario el tercero.
 select arnes.comprueba(
-  'junta: los dos papeles nuevos están en el catálogo, y no caducan',
-  (select count(*) = 2 from public.tipos_documento
-    where codigo in ('cedula_rif_junta', 'certificacion_inventario') and not vence));
+  'junta: la cédula, el RIF y la certificación están en el catálogo, y no caducan',
+  (select count(*) = 3 from public.tipos_documento
+    where codigo in ('cedula_pasaporte_junta', 'rif_junta', 'certificacion_inventario')
+      and not vence));
 
 \o
 \pset tuples_only on

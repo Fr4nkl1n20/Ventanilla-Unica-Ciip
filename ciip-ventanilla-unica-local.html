@@ -9212,10 +9212,13 @@ applyLang(idiomaParaMi());
        mas:'f_junta_mas', quita:'f_junta_quita',
        cargos:['PRESIDENTE', 'VICEPRESIDENTE', 'DIRECTOR PRINCIPAL', 'DIRECTOR SUPLENTE',
                'SECRETARIO', 'TESORERO', 'GERENTE GENERAL', 'ADMINISTRADOR'],
-       /* Y cada miembro trae SU cédula o pasaporte y SU RIF. Uno por persona
-          y no uno para todos: cada papel lleva el nombre de quien sale en
-          él, y así la bóveda no confunde la cédula de uno con la de otro. */
-       docPorPersona:{tipo:'cedula_rif_junta', clave:'d_cedrifjunta'}}
+       /* Y cada miembro trae SU cédula o pasaporte y SU RIF, en dos papeles
+          y no en uno: son dos documentos que se piden, se revisan y caducan
+          cada uno por su lado. Uno por persona y no uno para todos: cada
+          papel lleva el nombre de quien sale en él, y así la bóveda no
+          confunde la cédula de uno con la de otro. */
+       docsPorPersona:[{tipo:'cedula_pasaporte_junta', clave:'d_idjunta'},
+                       {tipo:'rif_junta',              clave:'d_rifjunta'}]}
     ],
     /* No se pregunta el banco: la tarjeta promete que la cita la coordina
        el CIIP, y la red de aliados cambia más deprisa que este archivo.
@@ -10613,29 +10616,34 @@ applyLang(idiomaParaMi());
              no letra a letra: cada nombre a medias sería una consulta a la
              bóveda buscando la cédula de «Mar», de «Marí», de «María».
              Sin nombre no hay papel: no se pide la cédula de nadie. */
-          if (c.docPorPersona){
+          if (c.docsPorPersona){
             var suyos = el('div', 'sol-docs sl-docs');
             persona.appendChild(suyos);
-            var ponPapel = function(){
+            var ponPapeles = function(){
               var quien = (nom.value || '').trim();
-              var viejo = suyos.querySelector('.sol-doc');
-              if (viejo && viejo.getAttribute('data-titular') === quien) return;
-              /* Si se corrige el nombre, el papel se rehace con el nuevo,
-                 pero el archivo que ya habías elegido se queda: corregir una
-                 tilde no puede obligar a buscar la cédula otra vez. */
-              var llevaba = viejo ? viejo.querySelector('input[type=file]').files : null;
-              if (viejo) viejo.remove();
+              var viejos = suyos.querySelectorAll('.sol-doc');
+              if (viejos.length && viejos[0].getAttribute('data-titular') === quien) return;
+              /* Si se corrige el nombre, los papeles se rehacen con el nuevo,
+                 pero cada archivo que ya habías elegido vuelve a SU caja -la
+                 cédula a la de la cédula, el RIF a la del RIF-: corregir una
+                 tilde no puede obligar a buscarlos otra vez. */
+              var llevaban = {};
+              [].forEach.call(viejos, function(v){
+                llevaban[v.getAttribute('data-doc')] = v.querySelector('input[type=file]').files;
+                v.remove();
+              });
               if (!quien) return;
-              var nuevo = montaDoc({tipo: c.docPorPersona.tipo, clave: c.docPorPersona.clave,
-                                    titular: quien}, suyos);
-              if (llevaba && llevaba.length){
+              c.docsPorPersona.forEach(function(dp){
+                var nuevo = montaDoc({tipo: dp.tipo, clave: dp.clave, titular: quien}, suyos);
+                var llevaba = llevaban[dp.tipo];
+                if (!llevaba || !llevaba.length) return;
                 var inpN = nuevo.querySelector('input[type=file]');
                 try { inpN.files = llevaba; inpN.dispatchEvent(new Event('change')); }
                 catch (err){ console.warn('[CIIP] el archivo no pasó al nombre corregido:', err && err.message); }
-              }
+              });
             };
-            nom.addEventListener('change', ponPapel);
-            if (nombre) ponPapel();
+            nom.addEventListener('change', ponPapeles);
+            if (nombre) ponPapeles();
           }
           filasL.appendChild(persona);
           return f;
@@ -19924,6 +19932,10 @@ applyLang(idiomaParaMi());
      por los trámites que lo piden. Se junta una vez en vez de escribir una
      segunda lista que se quedaría atrás. */
   var CLAVE_DE_TIPO = null;
+  /* Los tipos que son de UNA PERSONA -la cédula de un miembro de la junta-.
+     Se nombran como los demás, pero no se ofrecen en «Subir documento»:
+     subidos desde ahí no llevarían de quién son. */
+  var TIPOS_POR_PERSONA = {};
   function clavesDeTipo(){
     if (!CLAVE_DE_TIPO){
       CLAVE_DE_TIPO = {};
@@ -19937,8 +19949,11 @@ applyLang(idiomaParaMi());
          enseñaría «cedula_rif_junta» en vez de su nombre. */
       Object.keys(CAMPOS).forEach(function(t){
         (CAMPOS[t] || []).forEach(function(c){
-          var d = c.docPorPersona;
-          if (d && d.tipo && d.clave && !CLAVE_DE_TIPO[d.tipo]) CLAVE_DE_TIPO[d.tipo] = d.clave;
+          (c.docsPorPersona || []).forEach(function(d){
+            if (!d.tipo || !d.clave) return;
+            TIPOS_POR_PERSONA[d.tipo] = true;
+            if (!CLAVE_DE_TIPO[d.tipo]) CLAVE_DE_TIPO[d.tipo] = d.clave;
+          });
         });
       });
     }
@@ -20423,6 +20438,9 @@ applyLang(idiomaParaMi());
     papeles.forEach(function(d){ yaTengo[d.tipo] = true; });
 
     Object.keys(clavesDeTipo())
+      /* Lo de una persona se sube desde su fila, con su nombre: aquí saldría
+         sin titular, y en la bóveda no se sabría de quién es. */
+      .filter(function(t){ return !TIPOS_POR_PERSONA[t]; })
       .map(function(t){ return {tipo:t, nombre:nombreDeTipo_doc(t)}; })
       /* Por nombre y en el idioma de turno, no por el código interno: en
          una lista de cincuenta, buscar «Pasaporte» donde el orden lo pone

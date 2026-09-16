@@ -82,6 +82,11 @@
 --     inventario por contador público. No toca permisos ni cambia nada de
 --     lo guardado. Es supabase-junta.sql entero, que es corto.
 --
+--  10. LA CÉDULA Y EL RIF DE LA JUNTA, POR SEPARADO. Nuevo el 2026-09-16,
+--     al final del todo. Dos tipos de documento -cédula o pasaporte, y
+--     RIF, de un miembro de la junta- en lugar del que los juntaba. Si ya
+--     corriste el 9, basta con este; si no, corre los dos.
+--
 --  SI TIENES CUALQUIER DUDA, PEGA TODO-EN-ORDEN.sql EN VEZ DE ESTE
 --  ─────────────────────────────────────────────────────────────────────
 --  Aquel trae los treinta y siempre es correcto, aunque este archivo se
@@ -1455,3 +1460,23 @@ on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.ve
 -- 3) Nada de lo guardado cambió de dueño: tiene que salir 0.
 --
 --   select count(*) from public.documentos where titular is not null;
+
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  10. LA CÉDULA Y EL RIF DE LA JUNTA, POR SEPARADO · 2026-09-16
+-- ═══════════════════════════════════════════════════════════════════════
+--  El mismo día que el 9: cada miembro de la junta sube DOS papeles -su
+--  cédula o pasaporte, y su RIF- y no uno con los dos dentro. Va aparte
+--  para no tener que repetir el 9. El tipo cedula_rif_junta del 9 se queda
+--  en la base sin usarse: no se borra por si ya se subió algo con él.
+--  Se puede correr más de una vez.
+
+insert into public.tipos_documento (codigo, nombre, vence) values
+  ('cedula_pasaporte_junta', 'Cédula o pasaporte de un miembro de la junta directiva', false),
+  ('rif_junta',              'RIF de un miembro de la junta directiva',               false)
+on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.vence;
+
+-- COMPROBACIÓN: dos filas, las dos con vence = false.
+--
+--   select codigo, nombre, vence from public.tipos_documento
+--   where codigo in ('cedula_pasaporte_junta', 'rif_junta');
