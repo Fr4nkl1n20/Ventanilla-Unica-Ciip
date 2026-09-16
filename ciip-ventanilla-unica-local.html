@@ -20380,9 +20380,11 @@ applyLang(idiomaParaMi());
      que se sube DESDE el paso, cuando se llega a el. Va enganchado a la
      solicitud del tramo, asi que el equipo lo ve donde ve los demas.
      -------------------------------------------------------- */
-  /* Que papel se sube en que paso. La cuenta empieza en cero: el 1 es el
-     segundo paso, "Pago de aranceles registrales". */
-  var PAPEL_DE_PASO = {c22: {paso: 1, tipo: 'comprobante_pago_registro', clave: 'd_comprobpago'}};
+  /* Que papel se sube en que paso. La cuenta empieza en cero: el 0 es el
+     primer paso, "Pago de aranceles registrales", que desde el 16 de septiembre
+     de 2026 va delante de la consignacion: en el registro se paga antes de
+     consignar, y el papel que sale de ahi es el que pide el registrador. */
+  var PAPEL_DE_PASO = {c22: {paso: 0, tipo: 'comprobante_pago_registro', clave: 'd_comprobpago'}};
 
   /* La solicitud que manda de un tramo, con el mismo criterio que la ficha:
      la que va mas adelante, no la mas reciente. Si la portada y el bloque
@@ -20470,7 +20472,14 @@ applyLang(idiomaParaMi());
         if (vieja) vieja.remove();
         if (!f) return;
         var txt = li.querySelector('.tr-txt');
-        if (txt) txt.appendChild(el('div', 'sd-e tr-paso-f', fecha(f)));
+        if (!txt) return;
+        /* Pegada al nombre del paso y no al final: si el paso lleva ademas el
+           comprobante del pago, la fecha caeria DEBAJO del recuadro de subir
+           y pareceria la fecha del papel. */
+        var nom = li.querySelector('.tr-paso-n');
+        var cuadro = el('div', 'sd-e tr-paso-f', fecha(f));
+        if (nom && nom.nextSibling) txt.insertBefore(cuadro, nom.nextSibling);
+        else txt.appendChild(cuadro);
       });
     });
   }

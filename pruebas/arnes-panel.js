@@ -9452,15 +9452,19 @@
     ok('verdad: lo que no ha pasado no lleva fecha',
        !pasos[3].querySelector('.tr-paso-f'),
        pasos[3].querySelector('.tr-paso-f') ? 'lleva fecha' : 'sin fecha', 'sin fecha');
-    igual('verdad: los nombres siguen siendo los del acta',
-          ((pasos[1].querySelector('.tr-paso-n') || {}).textContent || '').trim(),
-          'Pago de aranceles registrales');
+    /* En el registro se paga ANTES de consignar, así que el pago es el
+       primero de los cuatro. Los nombres, los del acta. */
+    igual('verdad: el pago va delante de la consignación',
+          [].map.call(pasos, function(li){
+            return ((li.querySelector('.tr-paso-n') || {}).textContent || '').trim();
+          }).slice(0, 2).join(' | '),
+          'Pago de aranceles registrales | Consignación del documento en el Registro Mercantil');
 
     var papel = b.querySelector('.tr-papel[data-doc="comprobante_pago_registro"]');
     ok('verdad: el comprobante se sube en el paso del pago',
-       !!papel && papel.closest('.tr-paso') === pasos[1],
+       !!papel && papel.closest('.tr-paso') === pasos[0],
        papel ? 'en el paso ' + ([].indexOf.call(pasos, papel.closest('.tr-paso')) + 1)
-             : '(no se pide)', 'en el paso 2');
+             : '(no se pide)', 'en el paso 1');
     ok('verdad: con su nombre y su botón',
        !!papel && /omprobante/.test(papel.textContent) && !!papel.querySelector('.sd-btn'),
        papel ? papel.textContent.slice(0, 60) : '(no hay)', 'nombre y botón');

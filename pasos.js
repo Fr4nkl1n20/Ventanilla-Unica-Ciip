@@ -6022,7 +6022,7 @@ window.CIIP_PASOS = {
       c19: ["Solicitud ante un proveedor acreditado por SUSCERTE", "Validación presencial de tu identidad", "Emisión del certificado digital", "Firma lista para los portales del Estado"],
       c20: ["Acreditación del vínculo familiar", "Solicitud consular para cada familiar", "Evaluación del SAIME", "Visa y cédula de tus familiares"],
       c21: ["Elección del centro de salud autorizado", "Cita para la evaluación médica", "Evaluación y firma del médico", "Certificado guardado en tu bóveda"],
-      c22: ["Consignación del documento en el Registro Mercantil", "Pago de aranceles registrales", "Revisión del registrador", "Acta protocolizada con personalidad jurídica"],
+      c22: ["Pago de aranceles registrales", "Consignación del documento en el Registro Mercantil", "Revisión del registrador", "Acta protocolizada con personalidad jurídica"],
       c23: ["Elección del periódico mercantil", "Envío del acta protocolizada", "Publicación del extracto", "Consignación de ejemplares en el Registro"],
       c24: ["Apertura de los libros obligatorios", "Sellado y foliado en el Registro Mercantil", "Elección del sistema de facturación", "Homologación del sistema ante el SENIAT"]
     },
@@ -6061,7 +6061,7 @@ window.CIIP_PASOS = {
       c19: ["Application to a SUSCERTE-accredited provider", "In-person identity validation", "Digital certificate issued", "Signature ready for the State portals"],
       c20: ["Proof of the family relationship", "Consular application for each relative", "SAIME assessment", "Visa and ID card for your family"],
       c21: ["Choice of an authorised health centre", "Appointment for the medical assessment", "Assessment signed by the doctor", "Certificate stored in your vault"],
-      c22: ["Filing of the document at the Mercantile Registry", "Payment of registry fees", "Review by the registrar", "Articles filed, legal personality granted"],
+      c22: ["Payment of registry fees", "Filing of the document at the Mercantile Registry", "Review by the registrar", "Articles filed, legal personality granted"],
       c23: ["Choice of the mercantile newspaper", "Submission of the filed articles", "Publication of the extract", "Copies filed back at the Registry"],
       c24: ["Opening of the mandatory books", "Books stamped and paginated at the Registry", "Choice of the invoicing system", "System approved by SENIAT"]
     },
@@ -6100,7 +6100,7 @@ window.CIIP_PASOS = {
       c19: ["Pedido a um provedor credenciado pelo SUSCERTE", "Validação presencial da sua identidade", "Emissão do certificado digital", "Assinatura pronta para os portais do Estado"],
       c20: ["Comprovação do vínculo familiar", "Pedido consular para cada familiar", "Avaliação do SAIME", "Visto e cédula dos seus familiares"],
       c21: ["Escolha do centro de saúde autorizado", "Consulta para a avaliação médica", "Avaliação e assinatura do médico", "Certificado guardado no seu cofre"],
-      c22: ["Consignação do documento no Registro Mercantil", "Pagamento das taxas registrais", "Análise do registrador", "Ata protocolizada com personalidade jurídica"],
+      c22: ["Pagamento das taxas registrais", "Consignação do documento no Registro Mercantil", "Análise do registrador", "Ata protocolizada com personalidade jurídica"],
       c23: ["Escolha do jornal mercantil", "Envio da ata protocolizada", "Publicação do extrato", "Consignação dos exemplares no Registro"],
       c24: ["Abertura dos livros obrigatórios", "Selagem e numeração no Registro Mercantil", "Escolha do sistema de faturação", "Homologação do sistema no SENIAT"]
     },
@@ -6139,7 +6139,7 @@ window.CIIP_PASOS = {
       c19: ["Richiesta a un fornitore accreditato da SUSCERTE", "Convalida di persona della tua identità", "Rilascio del certificato digitale", "Firma pronta per i portali dello Stato"],
       c20: ["Prova del legame familiare", "Domanda consolare per ogni familiare", "Valutazione del SAIME", "Visto e documento per i tuoi familiari"],
       c21: ["Scelta della struttura sanitaria autorizzata", "Appuntamento per la visita medica", "Visita e firma del medico", "Certificato conservato nel tuo archivio"],
-      c22: ["Deposito dell’atto al Registro delle Imprese", "Pagamento dei diritti di registro", "Esame del conservatore", "Atto depositato, personalità giuridica acquisita"],
+      c22: ["Pagamento dei diritti di registro", "Deposito dell’atto al Registro delle Imprese", "Esame del conservatore", "Atto depositato, personalità giuridica acquisita"],
       c23: ["Scelta del giornale commerciale", "Invio dell’atto depositato", "Pubblicazione dell’estratto", "Consegna delle copie al Registro"],
       c24: ["Apertura dei libri obbligatori", "Vidimazione e numerazione al Registro", "Scelta del sistema di fatturazione", "Omologazione del sistema presso il SENIAT"]
     },
@@ -6178,7 +6178,7 @@ window.CIIP_PASOS = {
       c19: ["向 SUSCERTE 认证的服务商提出申请", "现场核验你的身份", "签发数字证书", "可用于政府各门户网站"],
       c20: ["证明家庭关系", "为每位家属提出领事申请", "SAIME 审核", "家属取得签证与身份证"],
       c21: ["选择获授权的医疗机构", "预约体检", "医生检查并签字", "证明存入你的档案库"],
-      c22: ["向商事登记处提交文件", "缴纳登记规费", "登记官审查", "章程登记完成，取得法人资格"],
+      c22: ["缴纳登记规费", "向商事登记处提交文件", "登记官审查", "章程登记完成，取得法人资格"],
       c23: ["选择商事报纸", "提交已登记的章程", "刊登摘要", "将样报交回登记处"],
       c24: ["开立法定账簿", "在商事登记处盖章编号", "选择开票系统", "系统通过 SENIAT 认证"]
     },
@@ -6217,7 +6217,7 @@ window.CIIP_PASOS = {
       c19: ["Заявка аккредитованному SUSCERTE провайдеру", "Личная проверка вашей личности", "Выпуск цифрового сертификата", "Подпись готова для госпорталов"],
       c20: ["Подтверждение родственной связи", "Консульская заявка на каждого родственника", "Рассмотрение в SAIME", "Виза и удостоверение для близких"],
       c21: ["Выбор аккредитованного медцентра", "Запись на медосмотр", "Осмотр и подпись врача", "Справка в вашем хранилище"],
-      c22: ["Подача документа в Торговый реестр", "Оплата регистрационных пошлин", "Проверка регистратором", "Устав зарегистрирован, получена правосубъектность"],
+      c22: ["Оплата регистрационных пошлин", "Подача документа в Торговый реестр", "Проверка регистратором", "Устав зарегистрирован, получена правосубъектность"],
       c23: ["Выбор коммерческой газеты", "Направление зарегистрированного устава", "Публикация выписки", "Сдача экземпляров в реестр"],
       c24: ["Заведение обязательных книг", "Прошивка и нумерация в реестре", "Выбор системы выставления счетов", "Согласование системы с SENIAT"]
     }
