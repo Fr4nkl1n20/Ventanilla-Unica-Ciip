@@ -8549,10 +8549,11 @@ applyLang(idiomaParaMi());
       {tipo:'rif_personal',       clave:'d_rifpersonal'},
       {tipo:'comprobante_capital',clave:'d_capital'},
       {tipo:'carta_comisario',    clave:'d_comisario', opcional:true},
-      /* Si el capital se aporta en bienes y no en dinero. El comprobante del
-         capital ya admitía «depósito o inventario»; esta se pidió aparte y
-         opcional, y convive con él. */
-      {tipo:'certificacion_inventario', clave:'d_certinventario', opcional:true}
+      /* La certificación de inventario por contador público. Entró el 16 de
+         septiembre como opcional, al lado del comprobante del capital, y el
+         mismo día Franklin la pidió como REQUISITO de la constitución: sin
+         ella no se envía. */
+      {tipo:'certificacion_inventario', clave:'d_certinventario'}
     ],
     /* Este es el trámite donde la bóveda se ve entera: los cuatro recaudos
        vienen del c5 y del c6, así que a quien haya pasado por aquí no se le

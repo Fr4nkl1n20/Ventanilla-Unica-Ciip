@@ -47,7 +47,8 @@ Idempotency-Key: <id del trámite en la VUI>
   "recaudos": [
     { "tipo": "cedula", "nombre": "…", "sha256": "…", "url": "…" },
     { "tipo": "rif_personal", "…": "…" },
-    { "tipo": "comprobante_capital", "…": "…" }
+    { "tipo": "comprobante_capital", "…": "…" },
+    { "tipo": "certificacion_inventario", "…": "…" }
   ]
 }
 ```

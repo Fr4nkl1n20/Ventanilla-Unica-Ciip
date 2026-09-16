@@ -9101,13 +9101,14 @@
     igual('junta: y sus papeles se van con él',
           campo.querySelectorAll('.sl-docs .sol-doc').length, 2);
 
-    /* Y la certificación de inventario, en la hoja de recaudos y opcional. */
+    /* Y la certificación de inventario, en la hoja de recaudos y obligatoria:
+       es requisito de la constitución. */
     var inv = document.querySelector('#trReal .sol-lado .sol-doc[data-doc="certificacion_inventario"]');
     ok('inventario: la constitución pide la certificación del contador',
        !!inv, inv ? 'está' : 'no está', 'en recaudos');
-    ok('inventario: y es opcional',
-       !!inv && inv.getAttribute('data-opcional') === '1',
-       inv ? (inv.getAttribute('data-opcional') || '(obligatoria)') : '(no está)', 'opcional');
+    ok('inventario: y es obligatoria',
+       !!inv && !inv.getAttribute('data-opcional'),
+       inv ? (inv.getAttribute('data-opcional') ? 'opcional' : 'obligatoria') : '(no está)', 'obligatoria');
     location.hash = '';
   }
 

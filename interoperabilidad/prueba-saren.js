@@ -43,7 +43,8 @@ function unTramite(datos) {
 const RECAUDOS = [
   { tipo: 'cedula',              nombre_original: 'cedula.pdf',    sha256: '9f86d081', url_firmada: 'https://x/a' },
   { tipo: 'rif_personal',        nombre_original: 'rif.pdf',       sha256: 'a1b2c3d4', url_firmada: 'https://x/b' },
-  { tipo: 'comprobante_capital', nombre_original: 'capital.pdf',   sha256: 'e5f6a7b8', url_firmada: 'https://x/c' }
+  { tipo: 'comprobante_capital', nombre_original: 'capital.pdf',   sha256: 'e5f6a7b8', url_firmada: 'https://x/c' },
+  { tipo: 'certificacion_inventario', nombre_original: 'inventario.pdf', sha256: 'c9d0e1f2', url_firmada: 'https://x/d' }
 ];
 const SOLICITANTE = { nombre: 'Franklin Reyes', representante: 'Franklin Reyes', documento: 'V-12345678' };
 
@@ -80,7 +81,7 @@ const SOLICITANTE = { nombre: 'Franklin Reyes', representante: 'Franklin Reyes',
     igual('envio: la referencia es el id del tramite', e.referencia, t1.id);
     igual('envio: van los siete campos de la compania',
           Object.keys(e.compania).length, 7);
-    igual('envio: y los tres recaudos', e.recaudos.length, 3);
+    igual('envio: y los cuatro recaudos', e.recaudos.length, 4);
     ok('envio: los archivos van por URL firmada, no dentro del cuerpo',
        e.recaudos.every(function (r) { return !!r.url && r.url.indexOf('http') === 0; }),
        JSON.stringify(e.recaudos[0]), 'una url');

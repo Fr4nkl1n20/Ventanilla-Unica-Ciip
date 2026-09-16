@@ -150,7 +150,7 @@ function revisa(cuerpo) {
    'domicilio_social', 'socios']
     .forEach((k) => { if (!c[k]) faltan.push('compania.' + k); });
   const tipos = (cuerpo.recaudos || []).map((r) => r.tipo);
-  ['cedula', 'rif_personal', 'comprobante_capital']
+  ['cedula', 'rif_personal', 'comprobante_capital', 'certificacion_inventario']
     .forEach((t) => { if (tipos.indexOf(t) < 0) faltan.push('recaudos.' + t); });
   return faltan;
 }
