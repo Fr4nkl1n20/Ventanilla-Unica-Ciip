@@ -2723,6 +2723,41 @@ select arnes.comprueba(
     where codigo in ('cedula_pasaporte_junta', 'rif_junta', 'certificacion_inventario')
       and not vence));
 
+-- ── LOS TEXTOS: quién cambió cuál, y qué decía antes ──────────────────
+select arnes.comprueba(
+  'textos: se guarda lo que decía antes al lado del cambio',
+  (select count(*) = 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'textos_panel'
+      and column_name = 'original'));
+
+select arnes.comprueba(
+  'textos: el disparador de la bitácora está puesto',
+  (select count(*) = 1 from pg_trigger
+    where tgname = 'bitacora_textos' and not tgisinternal));
+
+-- Y lo hace de verdad: un cambio deja apuntada su clave y lo de antes.
+insert into public.textos_panel (clave, idioma, texto, original)
+  values ('arnes.rastro', 'es', 'Texto nuevo', 'Texto de antes')
+  on conflict (clave, idioma) do update set texto = excluded.texto, original = excluded.original;
+
+select arnes.comprueba(
+  'textos: el apunte dice qué texto era y qué decía antes',
+  (select (detalle::jsonb ->> 'clave') = 'arnes.rastro'
+      and (detalle::jsonb ->> 'antes') = 'Texto de antes'
+      and (detalle::jsonb ->> 'idioma') = 'es'
+      and sobre = 'Texto nuevo'
+     from public.bitacora where fuente = 'textos'
+     order by id desc limit 1));
+
+delete from public.textos_panel where clave = 'arnes.rastro';
+
+select arnes.comprueba(
+  'textos: y volver al original también se apunta',
+  (select accion = 'original' and (detalle::jsonb ->> 'antes') = 'Texto nuevo'
+      and sobre = 'Texto de antes'
+     from public.bitacora where fuente = 'textos'
+     order by id desc limit 1));
+
 \o
 \pset tuples_only on
 \pset format unaligned

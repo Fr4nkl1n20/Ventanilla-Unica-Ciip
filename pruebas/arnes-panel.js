@@ -262,6 +262,7 @@
               notaVisaAbre, notaVisaMira, notaRifAbre, notaRifMira,
               oficinaAbre, oficinaMira,
               juntaAbre, juntaMira,
+              textosMira,
               plazoF5Abre, plazoF5Rompe, plazoF5Repinta, plazoF5Mira,
               opacidadMira, opacidadSenal,
               loHacemosMira,
@@ -9108,6 +9109,49 @@
        !!inv && inv.getAttribute('data-opcional') === '1',
        inv ? (inv.getAttribute('data-opcional') || '(obligatoria)') : '(no está)', 'opcional');
     location.hash = '';
+  }
+
+  /* EDITAR TODOS LOS TEXTOS. Lo que se prueba aquí es lo que no se ve al
+     pulsar: que el editor sepa de qué clave sale un texto que el panel pinta
+     por código -sin marca-, uno con algo pegado detrás, un paso de una ficha
+     de pasos.js; que un dato NO salga del diccionario; y que un paso se
+     cambie en su sitio y vuelva. */
+  function textosMira(){
+    if (CASO !== 'vacio') return;
+    var TX = window.CIIP_TEXTOS;
+    ok('textos: el editor sabe buscar de qué clave sale un texto',
+       !!(TX && TX.busca && TX.pon), TX ? 'hay CIIP_TEXTOS' : 'no hay', 'busca y pon');
+    if (!TX || !TX.busca || !TX.pon) return;
+    var lang = document.documentElement.getAttribute('lang') || 'es';
+    var u = window.CIIP_T();
+    function lleva(lista, clave){
+      return lista.some(function(c){ return c.clave === clave; });
+    }
+    function claves(lista){
+      return lista.map(function(c){ return c.clave; }).join(', ') || '(ninguna)';
+    }
+    var r1 = TX.busca(u.f_junta);
+    ok('textos: encuentra un rótulo que el panel pinta por código',
+       lleva(r1, 'f_junta'), claves(r1), 'f_junta');
+    var r2 = TX.busca(u.d_comisario + ' ' + (u.opcional || ''));
+    ok('textos: y aunque lleve algo pegado detrás',
+       lleva(r2, 'd_comisario'), claves(r2), 'd_comisario');
+    var P = window.CIIP_PASOS;
+    var paso = P && P.pasos && P.pasos[lang] && P.pasos[lang].c1 && P.pasos[lang].c1[0];
+    var r3 = paso ? TX.busca(paso) : [];
+    ok('textos: encuentra un paso de una ficha, que vive en pasos.js',
+       lleva(r3, '_p.pasos.c1.0'), claves(r3), '_p.pasos.c1.0');
+    igual('textos: un nombre de persona no sale del diccionario',
+          TX.busca('Zacarías Quintero Ybarra').length, 0);
+    if (!paso) return;
+    TX.pon(lang, '_p.pasos.c1.0', 'Paso cambiado en la prueba');
+    igual('textos: un paso de ficha se cambia en su sitio',
+          P.pasos[lang].c1[0], 'Paso cambiado en la prueba');
+    ok('textos: y el buscador ya lo encuentra con el texto nuevo',
+       lleva(TX.busca('Paso cambiado en la prueba'), '_p.pasos.c1.0'),
+       claves(TX.busca('Paso cambiado en la prueba')), '_p.pasos.c1.0');
+    TX.pon(lang, '_p.pasos.c1.0', null);
+    igual('textos: y vuelve al original', P.pasos[lang].c1[0], paso);
   }
 
   function oficinaAbre(){

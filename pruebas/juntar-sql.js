@@ -72,7 +72,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* Los papeles de la junta directiva (c5): de quién es cada papel, y la
    certificación de inventario. Sólo necesita documentos y el catálogo;
    va al final para no mover el número de nadie. */
-'supabase-junta'];
+'supabase-junta',
+/* Quién cambió qué texto y qué decía antes. Necesita textos_panel y la
+   bitácora; va al final para no mover el número de nadie. */
+'supabase-textos-rastro'];
 
 let mal = 0;
 for (const n of orden) {

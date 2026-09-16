@@ -149,7 +149,10 @@ try {
     'supabase-rupdae-rum.sql',
     # 33  los papeles de la junta directiva (c5): la columna titular de
     #     documentos y dos tipos. Solo necesita el 2; va al final
-    'supabase-junta.sql'
+    'supabase-junta.sql',
+    # 34  quien cambio que texto y que decia antes: textos_panel.original
+    #     y el apunte con la clave. Necesita el 12 y el 29; va al final
+    'supabase-textos-rastro.sql'
   )
   $n = 0
   foreach ($f in $once) {
