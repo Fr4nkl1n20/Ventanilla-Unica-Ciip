@@ -100,6 +100,12 @@
 --     la fecha y Trazabilidad no apunta las revisiones. Es
 --     supabase-revision-papeles.sql entero.
 --
+--  13. LA ACCIONISTA JURÍDICA (c5). Nuevo el 2026-09-16, al final del todo.
+--     Dos tipos de documento de la empresa accionista: su documento
+--     constitutivo con la última acta de asamblea, y la identidad de sus
+--     accionistas. Sin correrlo no se puede enviar una constitución con la
+--     casilla marcada. Es supabase-accionista-juridica.sql entero.
+--
 --  SI TIENES CUALQUIER DUDA, PEGA TODO-EN-ORDEN.sql EN VEZ DE ESTE
 --  ─────────────────────────────────────────────────────────────────────
 --  Aquel trae los treinta y siempre es correcto, aunque este archivo se
@@ -1714,3 +1720,30 @@ $bitacora$;
 --
 --   select cuando, accion, sobre, detalle from public.bitacora
 --   where fuente = 'papeles' order by id desc limit 3;
+
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  13. LA ACCIONISTA JURÍDICA (c5) · 2026-09-16
+-- ═══════════════════════════════════════════════════════════════════════
+--  Lo mismo que supabase-accionista-juridica.sql, sin su cabecera: el
+--  porqué está allí. Se puede correr más de una vez.
+
+-- ───────────────────────────────────────────────────────────────────────
+-- LOS DOS PAPELES DE LA EMPRESA ACCIONISTA
+-- ───────────────────────────────────────────────────────────────────────
+--  Tipos PROPIOS y no los de la ficha de la ZODI (estatutos_accionista…):
+--  aquellos son de una empresa extranjera -estatutos de la matriz, Good
+--  Standing- y estos de cualquier empresa accionista. Con el mismo tipo, la
+--  bóveda daría el uno por el otro. Ninguno caduca: acreditan un hecho de
+--  una fecha, como el acta constitutiva.
+insert into public.tipos_documento (codigo, nombre, vence) values
+  ('constitutivo_accionista',     'Documento constitutivo y última acta de asamblea de la empresa accionista', false),
+  ('identidad_socios_accionista', 'Documento de identidad de los accionistas de la empresa accionista',        false)
+on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.vence;
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- COMPROBACIÓN: dos filas, las dos con vence = false.
+-- ───────────────────────────────────────────────────────────────────────
+--   select codigo, nombre, vence from public.tipos_documento
+--   where codigo in ('constitutivo_accionista', 'identidad_socios_accionista');

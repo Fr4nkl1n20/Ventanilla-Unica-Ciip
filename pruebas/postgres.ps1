@@ -155,7 +155,10 @@ try {
     'supabase-textos-rastro.sql',
     # 35  la revision de los documentos: documentos.revisado_en y el apunte
     #     de quien valido o rechazo. Necesita el 2 y el 12; va al final
-    'supabase-revision-papeles.sql'
+    'supabase-revision-papeles.sql',
+    # 36  la accionista juridica (c5): dos tipos de documento. Solo
+    #     necesita el 2; va al final
+    'supabase-accionista-juridica.sql'
   )
   $n = 0
   foreach ($f in $once) {

@@ -78,7 +78,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-textos-rastro',
 /* La revisión de los documentos: cuándo se revisó y el apunte de quién.
    Necesita documentos, perfiles y la bitácora; va al final. */
-'supabase-revision-papeles'];
+'supabase-revision-papeles',
+/* La accionista jurídica (c5): dos tipos de documento. Solo necesita el
+   catálogo de documentos; va al final. */
+'supabase-accionista-juridica'];
 
 let mal = 0;
 for (const n of orden) {

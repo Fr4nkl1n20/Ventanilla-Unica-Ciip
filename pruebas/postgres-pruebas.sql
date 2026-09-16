@@ -2825,6 +2825,13 @@ select arnes.comprueba(
   (select count(*) = :n_antes from public.bitacora where fuente = 'papeles'));
 select arnes.nadie();
 
+-- ── LA ACCIONISTA JURÍDICA (c5) ─────────────────────────────────────────
+select arnes.comprueba(
+  'accionista juridica: sus dos papeles están en el catálogo, y no caducan',
+  (select count(*) = 2 from public.tipos_documento
+    where codigo in ('constitutivo_accionista', 'identidad_socios_accionista')
+      and not vence));
+
 \o
 \pset tuples_only on
 \pset format unaligned

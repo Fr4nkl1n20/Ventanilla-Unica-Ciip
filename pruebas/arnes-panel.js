@@ -264,6 +264,7 @@
               juntaAbre, juntaMira,
               textosMira,
               rvAbre, rvMira, rvDespues,
+              ajAbre, ajMira,
               plazoF5Abre, plazoF5Rompe, plazoF5Repinta, plazoF5Mira,
               opacidadMira, opacidadSenal,
               loHacemosMira,
@@ -9186,6 +9187,47 @@
     var aviso = document.querySelector('#rv .rv-msg.bien');
     ok('revisar: y se dice que quedó validado', !!aviso && !!aviso.textContent,
        aviso ? aviso.textContent : '(sin aviso)', 'un aviso');
+    location.hash = '';
+  }
+
+  /* ACCIONISTA JURÍDICA. La casilla detrás de los socios, lo que dice al
+     marcarla, y sus dos recaudos: escondidos y sin pedirse mientras no se
+     marca, a la vista y OBLIGATORIOS cuando se marca. */
+  function ajAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c5';
+  }
+  function ajMira(){
+    if (CASO !== 'vacio') return;
+    var campo = document.querySelector('#trReal .sol-casilla[data-campo="accionista_juridico"]');
+    ok('accionista juridica: la constitución pregunta si un accionista es una empresa',
+       !!campo, campo ? 'está la casilla' : 'no está', 'la casilla');
+    if (!campo){ location.hash = ''; return; }
+    var campos = [].map.call(document.querySelectorAll('#trReal .sol-campo'), function(c){
+      return c.getAttribute('data-campo');
+    });
+    igual('accionista juridica: y va justo detrás de los socios',
+          campos[campos.indexOf('accionista_juridico') - 1], 'socios');
+    var marca = campo.querySelector('input[type=checkbox]');
+    var nota = campo.querySelector('.sc-nota');
+    var suyos = document.querySelectorAll('#trReal .sol-lado .sol-doc[data-si="accionista_juridico"]');
+    igual('accionista juridica: tiene sus dos recaudos en la hoja de papeles', suyos.length, 2);
+    ok('accionista juridica: sin marcar no se ven',
+       [].every.call(suyos, function(f){ return f.hidden; }), 'mira hidden', 'escondidos');
+    marca.checked = true;
+    marca.dispatchEvent(new Event('change'));
+    ok('accionista juridica: al marcarla dice qué hará falta',
+       !!nota && !nota.hidden && nota.querySelectorAll('li').length === 2,
+       nota ? nota.querySelectorAll('li').length + ' en la lista' : 'sin nota', 'dos');
+    ok('accionista juridica: y sus recaudos salen',
+       [].every.call(suyos, function(f){ return !f.hidden; }), 'mira hidden', 'a la vista');
+    ok('accionista juridica: y son obligatorios',
+       [].every.call(suyos, function(f){ return !f.getAttribute('data-opcional'); }),
+       'mira data-opcional', 'obligatorios');
+    marca.checked = false;
+    marca.dispatchEvent(new Event('change'));
+    ok('accionista juridica: al desmarcarla se vuelven a esconder',
+       [].every.call(suyos, function(f){ return f.hidden; }), 'mira hidden', 'escondidos');
     location.hash = '';
   }
 

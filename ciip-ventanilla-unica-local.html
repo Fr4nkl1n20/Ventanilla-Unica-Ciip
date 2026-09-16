@@ -2866,6 +2866,16 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .sol-h{font-size:var(--fs-seccion); font-weight:700; margin-bottom:14px;letter-spacing:.01em;}
 .sol-campos{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px 16px; max-width:620px;}
 .sol-campo.ancho{grid-column:1 / -1;}
+/* La casilla de sí o no: la etiqueta al lado, y lo que pide debajo, sólo
+   cuando está marcada. */
+.sol-casilla .sc-fila{display:flex; align-items:center; gap:9px;}
+.sol-casilla .sc-fila input{width:16px; height:16px; flex:none; accent-color:var(--navy);}
+.sol-casilla .sc-fila label{margin:0; cursor:pointer; font-size:var(--fs-campo); font-weight:700; color:var(--ink);}
+.sc-nota{margin-top:10px; border:1px solid var(--line); border-left:3px solid var(--navy2);
+  background:var(--block); border-radius:var(--r-sm); padding:10px 12px;}
+.sc-q{font-size:var(--fs-parrafo); color:var(--ink); margin-bottom:6px;}
+.sc-nota ul{margin:0; padding-left:18px; display:grid; gap:5px;}
+.sc-nota li{font-size:var(--fs-parrafo); color:var(--ink); line-height:1.5;}
 /* La junta directiva: una fila por persona, el nombre se escribe y el cargo
    se elige. En pantalla estrecha la fila se parte en dos renglones antes de
    dejar el nombre en cuatro letras. */
@@ -8634,7 +8644,13 @@ applyLang(idiomaParaMi());
          septiembre como opcional, al lado del comprobante del capital, y el
          mismo día Franklin la pidió como REQUISITO de la constitución: sin
          ella no se envía. */
-      {tipo:'certificacion_inventario', clave:'d_certinventario'}
+      {tipo:'certificacion_inventario', clave:'d_certinventario'},
+      /* Si uno de los accionistas es una empresa: su documento constitutivo
+         con la última acta de asamblea, y el documento de identidad de SUS
+         accionistas. Obligatorios cuando la casilla está marcada; sin
+         marcar, ni se ven ni se piden. */
+      {tipo:'constitutivo_accionista',     clave:'d_constacc',    siCasilla:'accionista_juridico'},
+      {tipo:'identidad_socios_accionista', clave:'d_idsociosacc', siCasilla:'accionista_juridico'}
     ],
     /* Este es el trámite donde la bóveda se ve entera: los cuatro recaudos
        vienen del c5 y del c6, así que a quien haya pasado por aquí no se le
@@ -9285,6 +9301,12 @@ applyLang(idiomaParaMi());
       {n:'objeto_social',     clave:'f_objeto',     ancho:true},
       {n:'domicilio_social',  clave:'f_domsocial',  ancho:true},
       {n:'socios',            clave:'f_socios',     ancho:true},
+      /* ¿Alguno de los accionistas es, a su vez, una empresa? Se PREGUNTA
+         aquí, al lado de los socios, y al marcarlo se dice qué habrá que
+         traer de esa empresa; los papeles se suben en la hoja de recaudos,
+         y solo se piden si está marcada (Franklin Reyes, 16-9-2026). */
+      {n:'accionista_juridico', clave:'f_accjuridico', tipo:'casilla', ancho:true,
+       nota:'f_accjuridico_i', notaLista:['d_constacc', 'd_idsociosacc']},
       /* La junta directiva no es UN dato: son varias personas, y cada una
          tiene nombre y cargo. Los cargos van literales y en mayúsculas,
          como los estados y las oficinas del SAREN: son los del acta, no
@@ -10175,7 +10197,10 @@ applyLang(idiomaParaMi());
     /* Los recaudos, con la cuenta de los que ya tienes: es lo que decide
        si puedes empezar hoy o te toca ir a buscar un papel. Los opcionales
        no entran en la cuenta -no faltan si no los tienes-. */
-    var recs = RECAUDOS[tipo.codigo] || [];
+    /* Los que dependen de una casilla del formulario no se enumeran en la
+       ficha: la lee todo el mundo, y contarlos sería pedirle dos papeles de
+       más a quien no tiene ningún accionista que sea una empresa. */
+    var recs = (RECAUDOS[tipo.codigo] || []).filter(function(r){ return !r.siCasilla; });
     if (recs.length){
       var pedidos = recs.filter(function(r){ return !r.opcional; });
       var tengo = pedidos.filter(function(r){ return MIOS && MIOS[r.tipo]; }).length;
@@ -10751,6 +10776,38 @@ applyLang(idiomaParaMi());
         return;
       }
 
+      /* LA CASILLA. No es un campo que se rellena: es una pregunta de sí o
+         no. Lleva su etiqueta AL LADO y no encima, y nunca puede faltar -sin
+         marcar quiere decir «no aplica», que es una respuesta-. Al marcarla
+         sale debajo lo que habrá que traer. */
+      if (c.tipo === 'casilla'){
+        var casilla = el('div', 'sol-campo sol-casilla' + (c.ancho ? ' ancho' : ''));
+        casilla.setAttribute('data-campo', c.n);
+        casilla.setAttribute('data-opcional', '1');
+        var marca = document.createElement('input');
+        marca.type = 'checkbox';
+        marca.name = c.n;
+        marca.id = 'sc-' + c.n;
+        marca.checked = !!datos[c.n];
+        var etiq = el('label', null, u[c.clave] || c.n);
+        etiq.setAttribute('for', marca.id);
+        var filaC = el('div', 'sc-fila');
+        filaC.appendChild(marca);
+        filaC.appendChild(etiq);
+        casilla.appendChild(filaC);
+        if (c.nota){
+          var pide = el('div', 'sc-nota');
+          pide.appendChild(el('div', 'sc-q', u[c.nota] || ''));
+          var lisC = document.createElement('ul');
+          (c.notaLista || []).forEach(function(k){ lisC.appendChild(el('li', null, u[k] || '')); });
+          pide.appendChild(lisC);
+          pide.hidden = !marca.checked;
+          marca.addEventListener('change', function(){ pide.hidden = !marca.checked; });
+          casilla.appendChild(pide);
+        }
+        rejilla.appendChild(casilla);
+        return;
+      }
       var campo = el('div', 'sol-campo' + (c.ancho ? ' ancho' : ''));
       campo.setAttribute('data-campo', c.n);
       if (c.opcional) campo.setAttribute('data-opcional', '1');
@@ -10901,7 +10958,7 @@ applyLang(idiomaParaMi());
     function cuentaPapeles(){
       var pedidos = 0, ya = 0;
       lado.querySelectorAll('.sol-doc').forEach(function(f){
-        if (f.getAttribute('data-opcional')) return;
+        if (f.getAttribute('data-opcional') || !seVe(f)) return;
         pedidos++;
         if (f.getAttribute('data-ya') || f.querySelector('input[type=file]').files[0]) ya++;
       });
@@ -10921,6 +10978,13 @@ applyLang(idiomaParaMi());
       var fila = el('div', 'sol-doc');
       fila.setAttribute('data-doc', r.tipo);
       if (r.opcional) fila.setAttribute('data-opcional', '1');
+      /* Los que dependen de una casilla nacen escondidos: pedir papeles de
+         una empresa accionista que no existe es lo que hace largo un
+         formulario. */
+      if (r.siCasilla){
+        fila.setAttribute('data-si', r.siCasilla);
+        fila.hidden = !datos[r.siCasilla];
+      }
       /* De quién es el papel, cuando no es tuyo: el miembro de la junta. Viaja
          hasta la base -documentos.titular- y es lo que separa su cédula de
          la de los demás. */
@@ -11075,6 +11139,20 @@ applyLang(idiomaParaMi());
     lado.appendChild(lista);
     cuentaPapeles();
 
+    /* La casilla de «Tus datos» manda sobre sus recaudos de la hoja de
+       papeles. Se ata aquí, con las dos hojas ya montadas. */
+    lista.querySelectorAll('.sol-doc[data-si]').forEach(function(fila){
+      var deQuien = fila.getAttribute('data-si');
+      var marca = caja.querySelector('input[type="checkbox"][name="' + deQuien + '"]');
+      if (!marca) return;
+      marca.addEventListener('change', function(){
+        fila.hidden = !marca.checked;
+        /* Un papel que se deja de pedir no puede seguir marcado en rojo. */
+        if (fila.hidden) fila.classList.remove('mal');
+        cuentaPapeles();
+      });
+    });
+
 
     /* --- enviar --- */
     var pie = el('div', 'sol-pie');
@@ -11216,12 +11294,16 @@ applyLang(idiomaParaMi());
       var hoja = HOJAS[n - 1].hoja, falta = false, primero = null;
       hoja.querySelectorAll('.sol-campo').forEach(function(c){
         var e = c.querySelector('input, select');
-        var v = (c.getAttribute('data-es') || (e && e.value) || '').trim();
+        var v = (e && e.type === 'checkbox')
+          ? (e.checked ? (u.f_si || '') : '')
+          : (c.getAttribute('data-es') || (e && e.value) || '').trim();
         var suelto = c.getAttribute('data-opcional');
         c.classList.toggle('mal', !v && !suelto);
         if (!v && !suelto){ falta = true; if (!primero) primero = e; }
       });
       hoja.querySelectorAll('.sol-doc').forEach(function(f){
+        /* Escondido es que no se pide: no puede frenar el paso. */
+        if (!seVe(f)){ f.classList.remove('mal'); return; }
         var tiene = f.querySelector('input[type=file]').files[0] || f.getAttribute('data-ya');
         var suelto = f.getAttribute('data-opcional');
         f.classList.toggle('mal', !tiene && !suelto);
@@ -11289,6 +11371,7 @@ applyLang(idiomaParaMi());
            casilla»: eso sería el primer nombre y nadie más. Lo que vale es
            la línea entera que se va a guardar. */
         if (c.classList.contains('sol-lista')) vista = c.getAttribute('data-es') || '';
+        else if (e && e.type === 'checkbox') vista = e.checked ? (u.f_si || '') : (u.f_no || '');
         else if (e && e.tagName === 'SELECT' && e.selectedIndex >= 0)
           vista = e.options[e.selectedIndex].text;
         else if (e) vista = (e.value || '').trim();
@@ -11422,13 +11505,17 @@ applyLang(idiomaParaMi());
          lista: es el nombre en ESPANOL. Lo que se ve en pantalla esta en
          el idioma de turno, y guardar eso haria que el mismo pais entrara
          en la base de seis maneras distintas. */
-      var v = (c.getAttribute('data-es') || e.value || '').trim();
+      /* Una casilla no tiene texto: vale lo que diga marcada o sin marcar. */
+      var v = (e && e.type === 'checkbox')
+        ? (e.checked ? (u.f_si || '') : '')
+        : (c.getAttribute('data-es') || e.value || '').trim();
       var suelto = c.getAttribute('data-opcional');
       c.classList.toggle('mal', !v && !suelto);
       if (v) datos[c.getAttribute('data-campo')] = v;
       else if (!suelto) falta = true;
     });
     caja.querySelectorAll('.sol-doc').forEach(function(f){
+      if (!seVe(f)){ f.classList.remove('mal'); return; }
       var tiene = f.querySelector('input[type=file]').files[0] || f.getAttribute('data-ya');
       var suelto = f.getAttribute('data-opcional');
       f.classList.toggle('mal', !tiene && !suelto);
@@ -19329,7 +19416,7 @@ applyLang(idiomaParaMi());
 
     for (var i = 0; i < pide.length; i++){
       var r = pide[i];
-      if (r.opcional) continue;
+      if (r.opcional || r.siCasilla) continue;
       if (MIOS && MIOS[r.tipo]) continue;   /* ya lo tienes: no te detiene */
 
       for (var otro in TIPOS){
@@ -20008,7 +20095,7 @@ applyLang(idiomaParaMi());
      «tienes los papeles» no informa de nada: los mandaste hace un mes. */
   function tieneLosPapeles(codigo){
     var pide = RECAUDOS[codigo] || [];
-    var hacenFalta = pide.filter(function(r){ return !r.opcional; });
+    var hacenFalta = pide.filter(function(r){ return !r.opcional && !r.siCasilla; });
     /* Sin recaudos no hay nada que celebrar: la tarjeta no diria «los
        tienes», diria «no hacen falta», que es otra cosa y no se ha pedido. */
     if (!hacenFalta.length) return false;
