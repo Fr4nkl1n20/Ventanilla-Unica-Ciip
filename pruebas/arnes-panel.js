@@ -9121,6 +9121,24 @@
     ok('inventario: y es obligatoria',
        !!inv && !inv.getAttribute('data-opcional'),
        inv ? (inv.getAttribute('data-opcional') ? 'opcional' : 'obligatoria') : '(no está)', 'obligatoria');
+
+    /* Pasar de hoja tiene que NOTARSE: los tramos que cuelgan debajo del
+       formulario se apartan mientras se rellena —si no, quien pulsa
+       «Siguiente» desde el final de una hoja larga se queda mirándolos y
+       parece que no ha pasado nada— y vuelven al salir de la solicitud. */
+    var real = document.getElementById('trReal');
+    var otros = document.getElementById('trSiguen');
+    ok('hojas: en la primera, los tramos siguen debajo',
+       !!otros && !otros.hidden, otros ? (otros.hidden ? 'escondidos' : 'a la vista') : 'no están',
+       'a la vista');
+    if (real && real.CIIP_VE_PASO) real.CIIP_VE_PASO(2);
+    ok('hojas: al pasar a los recaudos, se apartan',
+       !!otros && otros.hidden, otros ? (otros.hidden ? 'escondidos' : 'a la vista') : 'no están',
+       'escondidos');
+    if (real && real.CIIP_VE_PASO) real.CIIP_VE_PASO(1);
+    ok('hojas: y al volver a la primera, vuelven',
+       !!otros && !otros.hidden, otros ? (otros.hidden ? 'escondidos' : 'a la vista') : 'no están',
+       'a la vista');
     location.hash = '';
   }
 

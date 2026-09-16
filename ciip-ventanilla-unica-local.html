@@ -11286,13 +11286,13 @@ applyLang(idiomaParaMi());
       /* Solo hacia atras, o a una hoja por la que ya se paso: hacia adelante
          manda la validacion del paso, no la barra. Un tramo que aun no toca
          y que al pulsarlo no hace nada es peor que uno que no se pulsa. */
-      b.addEventListener('click', function(){ if (visto[i + 1]) vePaso(i + 1); });
+      b.addEventListener('click', function(){ if (visto[i + 1]) vePaso(i + 1, true); });
       li.appendChild(b);
       barra.appendChild(li);
       h.seg = li;
     });
 
-    function vePaso(n){
+    function vePaso(n, sube){
       paso = n;
       visto[n] = true;
       avisoPaso.textContent = '';
@@ -11327,6 +11327,30 @@ applyLang(idiomaParaMi());
          pintaRepaso a proposito: esa vacia la ultima hoja entera, y puesto
          antes se lo llevaria por delante. */
       HOJAS[n - 1].hoja.appendChild(pasoPie);
+
+      /* -- CAMBIAR DE HOJA TIENE QUE NOTARSE --
+         Las hojas se cambian sin recargar, y la pagina sigue donde estaba:
+         quien pulsa "Siguiente" desde el final de una hoja larga se queda a
+         media altura, mirando lo que hay DEBAJO del formulario -los otros
+         tramos de la constitucion-, y parece que no ha pasado nada. Asi que
+         se hacen dos cosas (Franklin Reyes, 16-9-2026):
+
+         Los tramos se apartan mientras se rellena. Estan ahi para el que
+         llega a mirar, no para el que esta escribiendo; a partir de la
+         segunda hoja solo estorban y alargan la pagina.
+
+         Y la vista sube al principio del tramite, que es donde estan el
+         nombre de la hoja y lo primero que hay que rellenar. Solo cuando el
+         cambio lo pide alguien: al abrir el tramite la pagina ya esta donde
+         tiene que estar, y subirla otra vez seria dar un salto sin motivo. */
+      var otrosTramos = document.getElementById('trSiguen');
+      if (otrosTramos && otrosTramos.querySelector('.tr-bloque'))
+        otrosTramos.hidden = (n > 1);
+      if (sube){
+        var arriba = document.getElementById('trDetalle') || pa;
+        try { arriba.scrollIntoView(true); }
+        catch (err){ /* si el navegador no quiere, la hoja cambia igual */ }
+      }
     }
 
     /* Lo que falta se dice AQUI y no al enviar: hacerle rellenar tres hojas a
@@ -11359,9 +11383,9 @@ applyLang(idiomaParaMi());
 
     bSigue.addEventListener('click', function(){
       if (!validaPaso(paso)) return;
-      vePaso(Math.min(paso + 1, HOJAS.length));
+      vePaso(Math.min(paso + 1, HOJAS.length), true);
     });
-    bAtras.addEventListener('click', function(){ vePaso(Math.max(paso - 1, 1)); });
+    bAtras.addEventListener('click', function(){ vePaso(Math.max(paso - 1, 1), true); });
 
     /* ── EL REPASO ──
        Todo lo que se va a mandar, en una lista, con un «Cambiar» por linea
@@ -11381,7 +11405,7 @@ applyLang(idiomaParaMi());
       b.type = 'button';
       b.setAttribute('aria-label', (u.pa_cambiar || '') + ': ' + k);
       b.addEventListener('click', function(){
-        vePaso(nPaso);
+        vePaso(nPaso, true);
         if (foco && foco.focus) foco.focus();
       });
       f.appendChild(b);
@@ -11456,7 +11480,7 @@ applyLang(idiomaParaMi());
     /* Para que el que envia pueda traer aqui al que se dejo algo dos hojas
        atras: marcarselo en rojo donde no lo ve es no decirle nada. */
     caja.CIIP_VE_PASO = function(n, txt){
-      vePaso(n);
+      vePaso(n, true);
       if (txt) avisoPaso.textContent = txt;
     };
 
