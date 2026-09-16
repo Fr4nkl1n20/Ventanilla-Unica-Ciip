@@ -263,6 +263,7 @@
               oficinaAbre, oficinaMira,
               juntaAbre, juntaMira,
               textosMira,
+              rvAbre, rvMira, rvDespues,
               plazoF5Abre, plazoF5Rompe, plazoF5Repinta, plazoF5Mira,
               opacidadMira, opacidadSenal,
               loHacemosMira,
@@ -5607,7 +5608,7 @@
     var filas = document.querySelectorAll('#dcLista tr[data-doc]');
     igual('bóveda: están los cinco documentos', filas.length, 5);
     igual('bóveda: con sus siete columnas',
-          document.querySelectorAll('#dcCab th').length, 7);
+          document.querySelectorAll('#dcCab th').length, 8);
 
     /* ── CON EL FORMATO DE «MIS TRÁMITES» ──
        Las demas tablas pasaron al formato de Atlas con la escala de la
@@ -9153,6 +9154,39 @@
        claves(TX.busca('Paso cambiado en la prueba')), '_p.pasos.c1.0');
     TX.pon(lang, '_p.pasos.c1.0', null);
     igual('textos: y vuelve al original', P.pasos[lang].c1[0], paso);
+  }
+
+  /* DOCUMENTOS POR REVISAR. Del equipo: el renglón del menú, la bandeja con
+     los pendientes, el papel abierto con Validar y Rechazar, y que al
+     validarlo salga de los pendientes. */
+  var RV_ANTES = 0;
+  function rvAbre(){
+    if (CASO !== 'gestor') return;
+    location.hash = 'revisar';
+  }
+  function rvMira(){
+    if (CASO !== 'gestor') return;
+    var nav = document.getElementById('navRevisar');
+    ok('revisar: el equipo tiene su renglón «Documentos por revisar»',
+       !!nav && !nav.hidden, nav ? (nav.hidden ? 'escondido' : 'a la vista') : 'no está', 'a la vista');
+    var filas = document.querySelectorAll('#rv .rv-fila');
+    RV_ANTES = filas.length;
+    ok('revisar: la bandeja enseña los papeles pendientes',
+       filas.length > 0, filas.length + ' filas', 'alguna');
+    ok('revisar: el primero se abre con «Validar» y «Rechazar»',
+       !!document.querySelector('#rv .rv-btn.ok') && !!document.querySelector('#rv .rv-btn.no'),
+       document.querySelector('#rv .rv-visor') ? 'visor abierto' : 'sin visor', 'los dos botones');
+    var validar = document.querySelector('#rv .rv-btn.ok');
+    if (validar) validar.click();
+  }
+  function rvDespues(){
+    if (CASO !== 'gestor') return;
+    var filas = document.querySelectorAll('#rv .rv-fila');
+    igual('revisar: al validarlo sale de los pendientes', filas.length, Math.max(RV_ANTES - 1, 0));
+    var aviso = document.querySelector('#rv .rv-msg.bien');
+    ok('revisar: y se dice que quedó validado', !!aviso && !!aviso.textContent,
+       aviso ? aviso.textContent : '(sin aviso)', 'un aviso');
+    location.hash = '';
   }
 
   function oficinaAbre(){

@@ -152,7 +152,10 @@ try {
     'supabase-junta.sql',
     # 34  quien cambio que texto y que decia antes: textos_panel.original
     #     y el apunte con la clave. Necesita el 12 y el 29; va al final
-    'supabase-textos-rastro.sql'
+    'supabase-textos-rastro.sql',
+    # 35  la revision de los documentos: documentos.revisado_en y el apunte
+    #     de quien valido o rechazo. Necesita el 2 y el 12; va al final
+    'supabase-revision-papeles.sql'
   )
   $n = 0
   foreach ($f in $once) {

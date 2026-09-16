@@ -2758,6 +2758,73 @@ select arnes.comprueba(
      from public.bitacora where fuente = 'textos'
      order by id desc limit 1));
 
+-- ── LA REVISIÓN DE LOS PAPELES: quién validó o rechazó cuál ─────────────
+select arnes.comprueba(
+  'revision: el papel guarda cuándo se revisó',
+  (select count(*) = 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'documentos'
+      and column_name = 'revisado_en'));
+
+select arnes.comprueba(
+  'revision: el disparador de la bitácora está puesto',
+  (select count(*) = 1 from pg_trigger
+    where tgname = 'bitacora_papeles_revision' and not tgisinternal));
+
+-- Ana sube un papel; Gabriela, del equipo, lo valida y luego lo rechaza.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $rv$
+declare
+  laRuta text;
+  ficha  uuid;
+begin
+  laRuta := auth.uid() || '/revision-prueba.pdf';
+  insert into storage.objects (bucket_id, name, owner) values ('recaudos', laRuta, auth.uid());
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original, estado)
+    values (auth.uid(), 'cedula', laRuta, 'revision-prueba.pdf', 'cargado')
+    returning id into ficha;
+  delete from arnes.escenario where clave = 'rv_doc';
+  insert into arnes.escenario (clave, id) values ('rv_doc', ficha);
+end
+$rv$;
+
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+update public.documentos set estado = 'validado', revisado_en = now()
+ where id = (select id from arnes.escenario where clave = 'rv_doc');
+
+-- El apunte se mira con el rol quitado: la bitácora no la lee el gestor, y
+-- lo que se prueba aquí es que el disparador escribe.
+reset role;
+select arnes.comprueba(
+  'revision: validar un papel deja apuntado quién, qué papel y de quién era',
+  (select accion = 'valido'
+      and quien = (select id from arnes.gente where papel = 'G')
+      and (detalle::jsonb ->> 'tipo') = 'cedula'
+      and coalesce(detalle::jsonb ->> 'de', '') <> ''
+      and sobre = 'revision-prueba.pdf'
+     from public.bitacora where fuente = 'papeles'
+     order by id desc limit 1));
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+update public.documentos set estado = 'rechazado', nota_revision = 'No se lee bien.'
+ where id = (select id from arnes.escenario where clave = 'rv_doc');
+reset role;
+select arnes.comprueba(
+  'revision: y rechazarlo, con su motivo',
+  (select accion = 'rechazo' and (detalle::jsonb ->> 'motivo') = 'No se lee bien.'
+     from public.bitacora where fuente = 'papeles'
+     order by id desc limit 1));
+
+-- Guardar el mismo estado otra vez no es una revisión nueva.
+select count(*) as n_antes from public.bitacora where fuente = 'papeles' \gset
+update public.documentos set nota_revision = 'No se lee bien.'
+ where id = (select id from arnes.escenario where clave = 'rv_doc');
+select arnes.comprueba(
+  'revision: retocar el papel sin cambiar su estado no deja apunte',
+  (select count(*) = :n_antes from public.bitacora where fuente = 'papeles'));
+select arnes.nadie();
+
 \o
 \pset tuples_only on
 \pset format unaligned

@@ -75,7 +75,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-junta',
 /* Quién cambió qué texto y qué decía antes. Necesita textos_panel y la
    bitácora; va al final para no mover el número de nadie. */
-'supabase-textos-rastro'];
+'supabase-textos-rastro',
+/* La revisión de los documentos: cuándo se revisó y el apunte de quién.
+   Necesita documentos, perfiles y la bitácora; va al final. */
+'supabase-revision-papeles'];
 
 let mal = 0;
 for (const n of orden) {
