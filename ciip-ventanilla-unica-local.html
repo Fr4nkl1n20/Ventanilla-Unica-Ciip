@@ -16434,10 +16434,19 @@ applyLang(idiomaParaMi());
     });
   }
 
+  /* Un trámite tomado desde la ventana abierta sigue en 'enviado': solo
+     hoyAbre lo pasa a revisión. La escalera de la base no deja saltar de
+     'enviado' a 'ante_el_ente', así que primero se sube el escalón que
+     falta, que es lo que ha pasado de verdad: alguien lo miró. */
   function hoyPresenta(t, boton, aviso){
     var u = T(), ente = hoyEnte(t), texto = boton.textContent;
     boton.disabled = true;
-    mueveTramite(t, 'ante_el_ente', '', boton, aviso, texto).then(function(bien){
+    var revisado = t.estado === 'enviado'
+      ? mueveTramite(t, 'en_revision', '', boton, aviso, texto)
+      : Promise.resolve(true);
+    revisado.then(function(bien){
+      return bien && mueveTramite(t, 'ante_el_ente', '', boton, aviso, texto);
+    }).then(function(bien){
       if (!bien) return;
       hoyRecien = t.id;
       cierraVisor();
