@@ -2888,10 +2888,12 @@
     var arriba = document.getElementById('trTramos');
     ok('tramos: y arriba no queda nada de los tramos', !!arriba && arriba.hidden && !arriba.childNodes.length,
        arriba ? (arriba.hidden ? 'oculto' : 'visible') : 'no existe', 'oculto y vacío');
-    var abre = bloques.length ? bloques[0].querySelector('.tr-bloque-pie button') : null;
-    ok('tramos: el bloque de la protocolización se puede abrir', !!abre,
-       abre ? 'con botón' : 'sin botón', 'con botón');
-    if (abre) abre.click();
+    /* Sin «Abrir este tramo»: el tramo se abre desde su ficha
+       (Franklin Reyes, 17-9-2026). */
+    var abre = bloques.length ? bloques[0].querySelector('button') : null;
+    ok('tramos: los bloques ya no traen «Abrir este tramo»', !abre,
+       abre ? 'con botón' : 'sin botón', 'sin botón');
+    location.hash = 'tramite-c22';
   }
 
   function tramosTramo(){

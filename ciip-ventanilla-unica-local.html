@@ -6859,16 +6859,14 @@ function applyLang(lang){
       });
       bloque.appendChild(ol);
 
-      var pie = trEl('div', 'tr-bloque-pie');
-      if (tarjeta){
-        var abre = trEl('button', 'btn ghost sm', U.tm_abrir || '');
-        abre.type = 'button';
-        abre.addEventListener('click', function(){ location.hash = 'tramite-' + ref; });
-        pie.appendChild(abre);
-      } else {
+      /* Sin «Abrir este tramo» (Franklin Reyes, 17-9-2026). Los tramos no
+         tienen ficha a la vista: se llega a ellos desde el tablero y desde
+         los avisos. El pie queda solo para decir que un tramo está apagado. */
+      if (!tarjeta){
+        var pie = trEl('div', 'tr-bloque-pie');
         pie.appendChild(trEl('span', 'tr-bloque-nota', U.tm_apagado || ''));
+        bloque.appendChild(pie);
       }
-      bloque.appendChild(pie);
       abajo.appendChild(bloque);
     });
     /* Y encima, lo que la base sabe de cada tramo: su estado y sus fechas.
