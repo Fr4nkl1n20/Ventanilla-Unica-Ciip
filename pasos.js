@@ -1112,6 +1112,8 @@ window.CIIP_PASOS = {
          que ya existían no se repiten: «Todos» sale de f.all, «Te toca a ti»
          de qm_tu, «Listo» de qm_listo y «Fuera de plazo» de co_h_n_tarde
          (Franklin Reyes, 17-9-2026). */
+      mtq_sub:       "Seguimiento de tus trámites ante el CIIP y los organismos",
+      mtq_aldia:     "Actualizado · {hora}",
       mtq_total_d:   "Todas tus solicitudes",
       mtq_ciip:      "En el CIIP",
       mtq_ciip_d:    "Revisión del equipo",
@@ -2080,6 +2082,8 @@ window.CIIP_PASOS = {
          que ya existían no se repiten: «Todos» sale de f.all, «Te toca a ti»
          de qm_tu, «Listo» de qm_listo y «Fuera de plazo» de co_h_n_tarde
          (Franklin Reyes, 17-9-2026). */
+      mtq_sub:       "Your procedures with CIIP and the authorities, step by step",
+      mtq_aldia:     "Updated · {hora}",
       mtq_total_d:   "All your requests",
       mtq_ciip:      "With CIIP",
       mtq_ciip_d:    "The team is reviewing it",
@@ -3026,6 +3030,8 @@ window.CIIP_PASOS = {
          que ya existían no se repiten: «Todos» sale de f.all, «Te toca a ti»
          de qm_tu, «Listo» de qm_listo y «Fuera de plazo» de co_h_n_tarde
          (Franklin Reyes, 17-9-2026). */
+      mtq_sub:       "Acompanhamento dos seus trâmites no CIIP e nos organismos",
+      mtq_aldia:     "Atualizado · {hora}",
       mtq_total_d:   "Todos os seus pedidos",
       mtq_ciip:      "No CIIP",
       mtq_ciip_d:    "Revisão da equipa",
@@ -3972,6 +3978,8 @@ window.CIIP_PASOS = {
          que ya existían no se repiten: «Todos» sale de f.all, «Te toca a ti»
          de qm_tu, «Listo» de qm_listo y «Fuera de plazo» de co_h_n_tarde
          (Franklin Reyes, 17-9-2026). */
+      mtq_sub:       "Le tue pratiche al CIIP e agli enti, passo per passo",
+      mtq_aldia:     "Aggiornato · {hora}",
       mtq_total_d:   "Tutte le tue richieste",
       mtq_ciip:      "Al CIIP",
       mtq_ciip_d:    "La revisione del team",
@@ -4918,6 +4926,8 @@ window.CIIP_PASOS = {
          que ya existían no se repiten: «Todos» sale de f.all, «Te toca a ti»
          de qm_tu, «Listo» de qm_listo y «Fuera de plazo» de co_h_n_tarde
          (Franklin Reyes, 17-9-2026). */
+      mtq_sub:       "你在 CIIP 和各主管机关的手续进度",
+      mtq_aldia:     "已更新 · {hora}",
       mtq_total_d:   "你的全部申请",
       mtq_ciip:      "在 CIIP",
       mtq_ciip_d:    "团队审核中",
@@ -5864,6 +5874,8 @@ window.CIIP_PASOS = {
          que ya existían no se repiten: «Todos» sale de f.all, «Te toca a ti»
          de qm_tu, «Listo» de qm_listo y «Fuera de plazo» de co_h_n_tarde
          (Franklin Reyes, 17-9-2026). */
+      mtq_sub:       "Ход ваших процедур в CIIP и ведомствах",
+      mtq_aldia:     "Обновлено · {hora}",
       mtq_total_d:   "Все ваши заявки",
       mtq_ciip:      "В CIIP",
       mtq_ciip_d:    "Проверяет команда",

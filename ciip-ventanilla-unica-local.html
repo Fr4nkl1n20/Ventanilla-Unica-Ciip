@@ -1695,6 +1695,20 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .co-filtros button.aqui, #mtFiltros button.aqui{background:var(--navy); border-color:var(--navy); color:#fff;}
 .co-filtros button .n, #mtFiltros button .n{font-variant-numeric:tabular-nums; opacity:.75;}
 
+/* ── LA CABECERA DE MIS TRÁMITES ──
+   El título con su frase, y a la derecha la hora del último vistazo a la
+   base. El punto verde dice que esto se refresca solo; sin él, «Actualizado
+   · 15:17» se lee como una fecha muerta. */
+.mt-cab{display:flex; align-items:flex-start; justify-content:space-between;
+  gap:12px; flex-wrap:wrap; margin:0 0 14px;}
+.mt-cab .t{font-size:var(--fs-seccion); font-weight:800; color:var(--navy); line-height:1.2;}
+.mt-cab .sub{font-size:var(--fs-nota); color:var(--gray); margin-top:3px;}
+.mt-aldia{display:inline-flex; align-items:center; gap:7px; flex:none;
+  font-size:var(--fs-nota); font-weight:600; color:var(--ink);
+  background:var(--bg); border:1px solid var(--line); border-radius:20px; padding:6px 12px;}
+.mt-aldia[hidden]{display:none;}
+.mt-aldia .pt{width:8px; height:8px; border-radius:50%; background:var(--good);}
+
 /* ── LOS SEIS MONTONES DE MIS TRÁMITES, EN TARJETAS ──
    Franklin Reyes, 17 de septiembre de 2026. Eran cuatro pastillas
    -«Todos 6», «Te toca a ti 2»…- y pasan a ser seis tarjetas con su
@@ -5699,9 +5713,19 @@ body[data-vista="horario"] .fase-bar{display:none;}
            volver. Se quitaron: la pantalla empieza por sus filtros y su
            tabla. Dónde estás lo dice la barra de arriba y el renglón
            encendido de la lateral; volver, la propia lateral. -->
-      <!-- Los mismos cuatro montones que la portada y con las mismas
-           palabras: quien ya sabe filtrar alli no tiene que aprender otra
-           cosa aqui. -->
+      <!-- La cabecera: de qué va esta pantalla, y desde cuándo es cierto lo
+           que enseña. La hora no es un adorno: el panel se pone al día solo
+           cada minuto desde el 17-9-2026, y sin decirlo nadie sabe si está
+           mirando lo de ahora o lo de hace media hora (Franklin Reyes). -->
+      <div class="mt-cab">
+        <div class="mt-cab-t">
+          <div class="t" id="mtCabT"></div>
+          <div class="sub" id="mtCabS"></div>
+        </div>
+        <div class="mt-aldia" id="mtAlDia" hidden><span class="pt" aria-hidden="true"></span><span id="mtAlDiaT"></span></div>
+      </div>
+      <!-- Los mismos montones que la portada y con las mismas palabras:
+           quien ya sabe filtrar alli no tiene que aprender otra cosa aqui. -->
       <div class="co-filtros" id="mtFiltros"></div>
       <!-- En tabla, y con la MISMA maquinaria que la cola del equipo y la
            boveda: .tabla, cabeceras que ordenan con .th-orden y su
@@ -18863,7 +18887,30 @@ applyLang(idiomaParaMi());
     tarde:  'M4 6h16v15H4zM4 10h16M8 3v4M16 3v4'
   };
 
+  /* Cuando se miro la base por ultima vez. Se apunta al llegar los datos y
+     NO al pintar: repintar por cambiar de monton no es noticia fresca, y un
+     reloj que se mueve al pulsar un filtro miente. null = todavia no ha
+     contestado nadie, y entonces no se enseña nada. */
+  var mtAlDiaEn = null;
+
+  function pintaCabeceraMt(){
+    var u = T();
+    var t = document.getElementById('mtCabT'), sub = document.getElementById('mtCabS');
+    if (t)   t.textContent   = u.qm_titulo || '';
+    if (sub) sub.textContent = u.mtq_sub || '';
+    var caja = document.getElementById('mtAlDia'),
+        txt  = document.getElementById('mtAlDiaT');
+    if (!caja || !txt) return;
+    if (!mtAlDiaEn){ caja.hidden = true; return; }
+    var d = new Date(mtAlDiaEn);
+    var hora = String(d.getHours()).padStart(2, '0') + ':' +
+               String(d.getMinutes()).padStart(2, '0');
+    txt.textContent = String(u.mtq_aldia || '').replace('{hora}', hora);
+    caja.hidden = false;
+  }
+
   function pintaFiltrosMt(){
+    pintaCabeceraMt();
     var caja = document.getElementById('mtFiltros');
     if (!caja) return;
     var dic = I18N[curLang] || I18N.en, u = T();
@@ -19329,6 +19376,7 @@ applyLang(idiomaParaMi());
       .then(function(r){
         if (r && r.error) throw r.error;
         mios = r.data || [];
+        mtAlDiaEn = Date.now();
         /* Las devueltas y los borradores arriba, aunque no sean lo más
            reciente: son las únicas donde la pelota la tienes tú. Es el mismo
            criterio de la franja y de la cola del equipo. */

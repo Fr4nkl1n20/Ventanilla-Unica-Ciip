@@ -4858,6 +4858,23 @@
        hecho && !hecho.querySelector('.lleva'),
        hecho ? (hecho.querySelector('.lleva') ? 'lo lleva' : 'sin reloj') : 'no hay resuelto',
        'sin reloj');
+    /* ── LA CABECERA ── De qué va la pantalla, y desde cuándo es cierto lo
+       que enseña: el panel se pone al día solo cada minuto, y sin decir la
+       hora nadie sabe si mira lo de ahora (Franklin Reyes, 17-9-2026). */
+    (function(){
+      var t = document.getElementById('mtCabT'), sub = document.getElementById('mtCabS');
+      igual('mis trámites: la pantalla dice cómo se llama',
+            t ? t.textContent : '(no está)', 'Tus solicitudes');
+      ok('mis trámites: y de qué va, en una línea',
+         !!sub && /trámites/i.test(sub.textContent),
+         sub ? sub.textContent : '(no está)', 'una frase con «trámites»');
+      var al = document.getElementById('mtAlDia');
+      ok('mis trámites: y a qué hora se miró la base por última vez',
+         !!al && !al.hidden && /\d\d:\d\d/.test(al.textContent),
+         al ? (al.hidden ? 'escondido' : al.textContent) : '(no está)',
+         'Actualizado · HH:MM');
+    })();
+
     /* ── LOS SEIS MONTONES, EN TARJETAS ── Con seis solicitudes del mismo
        trámite la lista no dice nada; separadas por estado, sí. Eran cuatro
        pastillas y son seis tarjetas con su cifra (Franklin Reyes,
