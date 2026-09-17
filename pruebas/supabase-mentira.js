@@ -1341,6 +1341,13 @@
        sus resueltos a la vez, con .in('tramite'). Va delante de la de la
        boveda porque aquella se queda con cualquier consulta sin .eq, y le
        daria a la portada los recaudos de otro en vez del documento emitido. */
+    /* Lo que el envío engancha a la solicitud. Se apunta para que la prueba
+       del envío pueda ver que los papeles llegaron: sin esto, una solicitud
+       enviada sin un solo archivo pasaba la tanda en verde. */
+    if (tabla === 'tramite_documentos' && op && op.upsert){
+      (window.__ADJUNTOS = window.__ADJUNTOS || []).push(op.upsert);
+      return {data:[op.upsert], error:null};
+    }
     if (tabla === 'tramite_documentos' && op && op.in && op.in.tramite){
       var deHoy = [];
       op.in.tramite.forEach(function(id){

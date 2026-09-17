@@ -11545,8 +11545,21 @@ applyLang(idiomaParaMi());
      el primer recaudo. Nadie lo notó porque el envío entero llevaba tres
      semanas sin ejecutarse —la función que lo hacía no la llamaba nadie—,
      así que el camino muerto acumuló DOS fallos en vez de uno. Así
-     envejece el código que ninguna prueba recorre. */
-  function seVe(f){ return !f.hidden && !f.closest('[hidden]'); }
+     envejece el código que ninguna prueba recorre.
+
+     Y se mira hasta la HOJA, sin ella. Con la solicitud en tres hojas,
+     «Enviar» se pulsa desde el repaso, y la de recaudos está oculta en ese
+     momento: preguntar por cualquier [hidden] de arriba daba todos los
+     papeles por no pedidos, y la solicitud llegaba al CIIP sin un solo
+     archivo aunque el inversionista los hubiera elegido. Lo que dice si un
+     papel se pide es su fila o el grupo que la esconde (una casilla sin
+     marcar); que la hoja no esté delante no dice nada. */
+  function seVe(f){
+    for (var p = f; p && !(p.classList && p.classList.contains('pa-hoja')); p = p.parentElement){
+      if (p.hidden) return false;
+    }
+    return true;
+  }
 
   /* ─────────────────────────────────────────────────────────────────
      ENVIAR: crea el borrador, sube lo que falte y lo manda

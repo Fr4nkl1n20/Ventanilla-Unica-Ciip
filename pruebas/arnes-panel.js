@@ -3271,6 +3271,14 @@
        !!(mandada && mandada.datos && mandada.datos.razon_social),
        mandada ? JSON.stringify(mandada.datos || {}).slice(0, 60) : '(no hay)',
        'los datos del formulario');
+    /* Y con sus papeles. «Enviar» se pulsa desde el repaso, con la hoja de
+       recaudos oculta, y el envío los daba por no pedidos: la solicitud
+       llegaba al CIIP con «No adjuntó ningún archivo» (Franklin, 17-9-2026). */
+    var pegados = (window.__ADJUNTOS || []).filter(function(a){
+      return mandada && a.tramite === mandada.id;
+    });
+    ok('envio: y con los recaudos enganchados',
+       pegados.length > 0, pegados.length + ' papeles', 'al menos uno');
 
     /* El botón NO se queda en «Enviando…». Este es el fallo tal y como se
        veía: deshabilitado, con el rótulo puesto, y ahí para siempre. */
