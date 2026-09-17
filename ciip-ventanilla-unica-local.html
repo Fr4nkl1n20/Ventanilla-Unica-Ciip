@@ -15583,7 +15583,7 @@ applyLang(idiomaParaMi());
       var archivo = null;
       var reserva = casillaDeLaReserva(t, 'co-res-');
       if (reserva) f.appendChild(reserva);
-      if (t.estado === 'ante_el_ente'){
+      if (t.estado === 'ante_el_ente' && pideEmitido(t)){
         var sube = el('div', 'co-emitir');
         var etiq = el('label', null, u.co_emitido || '');
         etiq.setAttribute('for', 'co-doc-' + t.id);
@@ -15611,7 +15611,7 @@ applyLang(idiomaParaMi());
           }
           /* Y resolver SIN el documento deja al inversionista con un
              aviso de que ya está y sin nada en la mano. */
-          if (p.a === 'resuelto' && !(archivo && archivo.files && archivo.files[0])){
+          if (p.a === 'resuelto' && pideEmitido(t) && !(archivo && archivo.files && archivo.files[0])){
             f.classList.add('mal');
             aviso.textContent = u.co_faltadoc || '';
             if (archivo) archivo.focus();
@@ -16020,6 +16020,14 @@ applyLang(idiomaParaMi());
      así el inversionista ya lo tiene en su paso para pagar. Si ya está
      enganchado se dice cuál y no se pide otro. Solo para una constitución
      ante el ente. */
+  /* Si al resolver se pide «Documento emitido por el organismo». La
+     constitución no: lo que el inversionista tenía que tener en la mano ya
+     pasó por su paso de la reserva, y Franklin Reyes lo quitó (17-9-2026).
+     Los demás trámites lo siguen pidiendo: es su «Tu documento». */
+  function pideEmitido(t){
+    return !t || t.tipo !== 'constitucion';
+  }
+
   function casillaDeLaReserva(t, idBase){
     if (!t || t.tipo !== 'constitucion' || t.estado !== 'ante_el_ente') return null;
     var u = T();
@@ -16621,7 +16629,7 @@ applyLang(idiomaParaMi());
   function hoyResuelve(t, archivo, boton, aviso){
     var u = T();
     var papel = archivo && archivo.files && archivo.files[0];
-    if (!papel){
+    if (!papel && pideEmitido(t)){
       aviso.textContent = u.co_faltadoc || '';
       if (archivo) archivo.focus();
       return;
@@ -16639,10 +16647,11 @@ applyLang(idiomaParaMi());
       return;
     }
     var quien = t.nombre || u.co_sinnombre || '';
+    var rotulo = pideEmitido(t) ? u.co_h_resolver : u.co_h_resolver_c;
     boton.disabled = true;
     boton.textContent = u.co_subiendo || '';
-    entrega(t, papel)
-      .then(function(){ return mueveTramite(t, 'resuelto', '', boton, aviso, u.co_h_resolver); })
+    (papel ? entrega(t, papel) : Promise.resolve(true))
+      .then(function(){ return mueveTramite(t, 'resuelto', '', boton, aviso, rotulo); })
       .then(function(bien){
         if (!bien) return;
         cierraVisor();
@@ -16652,7 +16661,7 @@ applyLang(idiomaParaMi());
       .catch(function(e){
         console.warn('[CIIP] entregar:', e && (e.message || e));
         boton.disabled = false;
-        boton.textContent = u.co_h_resolver || '';
+        boton.textContent = rotulo || '';
         aviso.textContent = (e && e.ciip && u[e.ciip]) || u.co_error || '';
       });
   }
@@ -17041,21 +17050,25 @@ applyLang(idiomaParaMi());
       toma.addEventListener('click', function(){ hoyToma(t, toma); });
       botones.appendChild(toma);
     } else if (mio && t.estado === 'ante_el_ente'){
-      pista.textContent = u.co_h_p_emitido || '';
+      var conEmitido = pideEmitido(t);
+      pista.textContent = (conEmitido ? u.co_h_p_emitido : u.co_h_p_reserva) || '';
       fin.appendChild(pista);
       var reserva = casillaDeLaReserva(t, 'hoy-res-');
       if (reserva) fin.appendChild(reserva);
-      var sube = el('div', 'co-emitir');
-      var etiq = el('label', null, u.co_emitido || '');
-      etiq.setAttribute('for', 'hoy-doc-' + t.id);
-      sube.appendChild(etiq);
-      var archivo = el('input');
-      archivo.type = 'file';
-      archivo.id = 'hoy-doc-' + t.id;
-      archivo.accept = '.pdf,.jpg,.jpeg,.png';
-      sube.appendChild(archivo);
-      fin.appendChild(sube);
-      var res = el('button', 'btn navy', u.co_h_resolver || '');
+      var archivo = null;
+      if (conEmitido){
+        var sube = el('div', 'co-emitir');
+        var etiq = el('label', null, u.co_emitido || '');
+        etiq.setAttribute('for', 'hoy-doc-' + t.id);
+        sube.appendChild(etiq);
+        archivo = el('input');
+        archivo.type = 'file';
+        archivo.id = 'hoy-doc-' + t.id;
+        archivo.accept = '.pdf,.jpg,.jpeg,.png';
+        sube.appendChild(archivo);
+        fin.appendChild(sube);
+      }
+      var res = el('button', 'btn navy', (conEmitido ? u.co_h_resolver : u.co_h_resolver_c) || '');
       res.type = 'button';
       res.addEventListener('click', function(){ hoyResuelve(t, archivo, res, aviso); });
       botones.appendChild(res);
