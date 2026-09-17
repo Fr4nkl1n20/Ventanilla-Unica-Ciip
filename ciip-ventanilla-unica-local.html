@@ -2143,6 +2143,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .rv-vacio{padding:26px 14px; text-align:center; color:var(--gray); font-size:var(--fs-parrafo);}
 .rv-visor{border:1px solid var(--line); border-radius:var(--r); background:var(--bg); display:grid; min-width:0;}
 .rv-cab{padding:12px 14px; border-bottom:1px solid var(--line); display:flex; gap:10px; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;}
+.rv-cab-acc{display:flex; gap:8px; flex-wrap:wrap;}
 .rv-cab .t{font-size:var(--fs-tarjeta); font-weight:700;}
 .rv-cab .s{font-size:var(--fs-nota); color:var(--gray); margin-top:2px;}
 .rv-cuerpo{padding:14px; display:grid; gap:12px;}
@@ -18007,14 +18008,25 @@ applyLang(idiomaParaMi());
     ti.appendChild(el('div', 's', nombreDeTipo_doc(d.tipo) + (d.creado_en
       ? ' · ' + String(u.rv_subido || '').replace('{fecha}', fecha(d.creado_en)) : '')));
     cab.appendChild(ti);
+    /* Dos botones: mirarlo y llevárselo. Abrir deja el comprobante en una
+       pestaña, y al organismo hay que entregarle el archivo
+       (Franklin Reyes, 17-9-2026). */
+    var accCab = el('div', 'rv-cab-acc');
+    var bajar = el('button', 'rv-btn', u.co_descargar || '');
+    bajar.type = 'button';
+    accCab.appendChild(bajar);
     var abrir = el('button', 'rv-btn', u.co_abrir || '');
     abrir.type = 'button';
-    cab.appendChild(abrir);
+    accCab.appendChild(abrir);
+    cab.appendChild(accCab);
     visor.appendChild(cab);
 
     var cuerpo = el('div', 'rv-cuerpo');
-    function firmada(){
-      return Promise.resolve(sb.storage.from('recaudos').createSignedUrl(d.archivo, 300))
+    function firmada(baja){
+      /* La misma dirección firmada sirve para las dos cosas; con {download}
+         el cubo manda el archivo con su nombre en vez de enseñarlo. */
+      var op = baja ? {download: d.nombre_original || true} : undefined;
+      return Promise.resolve(sb.storage.from('recaudos').createSignedUrl(d.archivo, 300, op))
         .then(function(r){ return r && r.data && r.data.signedUrl; });
     }
     abrir.addEventListener('click', function(){
@@ -18027,6 +18039,26 @@ applyLang(idiomaParaMi());
         console.warn('[CIIP] comprobantes, abrir:', e && (e.message || e));
         abrir.disabled = false;
         abrir.textContent = u.co_noabre || '';
+      });
+    });
+    bajar.addEventListener('click', function(){
+      bajar.disabled = true;
+      firmada(true).then(function(url){
+        bajar.disabled = false;
+        if (!url) throw new Error('sin url');
+        /* Un enlace con download y un clic: así el navegador lo guarda en
+           vez de abrir una pestaña que se cierra sola. */
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = d.nombre_original || '';
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }).catch(function(e){
+        console.warn('[CIIP] comprobantes, descargar:', e && (e.message || e));
+        bajar.disabled = false;
+        bajar.textContent = u.co_nobaja || '';
       });
     });
     if (/\.(png|jpe?g|webp|gif)$/i.test(d.archivo || d.nombre_original || '') && d.archivo){

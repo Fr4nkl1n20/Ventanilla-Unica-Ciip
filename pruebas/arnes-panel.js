@@ -9764,6 +9764,14 @@
     }
     igual('comprobantes: y encuentra a quien sí lo subió, sin mirar mayúsculas',
           document.querySelectorAll('#cb .rv-fila').length, 1);
+    /* El comprobante hay que poder llevárselo, no solo mirarlo
+       (Franklin Reyes, 17-9-2026). */
+    var fila2 = document.querySelector('#cb .rv-fila[data-doc="doc6"]');
+    if (fila2) fila2.click();
+    var botones = [].map.call(document.querySelectorAll('#cb .rv-visor .rv-cab-acc .rv-btn'),
+                              function(b){ return b.textContent; });
+    igual('comprobantes: el comprobante abierto se puede descargar y abrir',
+          botones.join(','), 'Descargar,Abrir');
     campo = document.getElementById('cbBusca');
     if (campo){
       campo.value = '';

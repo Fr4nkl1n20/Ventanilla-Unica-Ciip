@@ -603,6 +603,8 @@ window.CIIP_PASOS = {
       co_abrir:     "Abrir",
       co_sinarch:   "No adjuntó ningún archivo.",
       co_noabre:    "No se pudo abrir el archivo.",
+      co_descargar: "Descargar",
+      co_nobaja:    "No se pudo descargar el archivo.",
       /* --- Citas y agenda --- */
       ac_vacia:     "Todavía no hay activos publicados. El equipo del CIIP los va cargando.",
       ac_disponible:"Disponible",
@@ -1618,6 +1620,8 @@ window.CIIP_PASOS = {
       co_abrir:     "Open",
       co_sinarch:   "No files attached.",
       co_noabre:    "Could not open the file.",
+      co_descargar: "Download",
+      co_nobaja:    "Could not download the file.",
       /* --- Meetings --- */
       ac_vacia:     "No assets published yet. The CIIP team is still loading them.",
       ac_disponible:"Available",
@@ -2567,6 +2571,8 @@ window.CIIP_PASOS = {
       co_abrir:     "Abrir",
       co_sinarch:   "Não anexou nenhum ficheiro.",
       co_noabre:    "Não foi possível abrir o ficheiro.",
+      co_descargar: "Descarregar",
+      co_nobaja:    "Não foi possível descarregar o ficheiro.",
       /* --- Reuniões --- */
       ac_vacia:     "Ainda não há ativos publicados. A equipa do CIIP está a carregá-los.",
       ac_disponible:"Disponível",
@@ -3499,6 +3505,8 @@ window.CIIP_PASOS = {
       co_abrir:     "Apri",
       co_sinarch:   "Non ha allegato nessun file.",
       co_noabre:    "Non è stato possibile aprire il file.",
+      co_descargar: "Scarica",
+      co_nobaja:    "Non è stato possibile scaricare il file.",
       /* --- Appuntamenti --- */
       ac_vacia:     "Non ci sono ancora asset pubblicati. Il team CIIP li sta caricando.",
       ac_disponible:"Disponibile",
@@ -4431,6 +4439,8 @@ window.CIIP_PASOS = {
       co_abrir:     "打开",
       co_sinarch:   "未上传任何文件。",
       co_noabre:    "无法打开文件。",
+      co_descargar: "下载",
+      co_nobaja:    "无法下载文件。",
       /* --- 会面与日程 --- */
       ac_vacia:     "尚未发布项目。CIIP 团队正在录入。",
       ac_disponible:"可投资",
@@ -5363,6 +5373,8 @@ window.CIIP_PASOS = {
       co_abrir:     "Открыть",
       co_sinarch:   "Файлы не приложены.",
       co_noabre:    "Не удалось открыть файл.",
+      co_descargar: "Скачать",
+      co_nobaja:    "Не удалось скачать файл.",
       /* --- Встречи и расписание --- */
       ac_vacia:     "Пока нет опубликованных активов. Команда CIIP их загружает.",
       ac_disponible:"Доступен",
