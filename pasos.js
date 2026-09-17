@@ -892,7 +892,7 @@ window.CIIP_PASOS = {
          cambiaba a "Resuelta" y el documento se mandaba por fuera. */
       co_emitido:   "Documento emitido por el organismo",
       co_faltadoc:  "Adjunta el documento que emitió el organismo: es lo que el inversionista vino a buscar.",
-      co_faltareserva: "Falta el comprobante de la reserva del nombre: el inversionista tiene que subirlo antes de resolver la constitución.",
+      co_faltareserva: "Falta el comprobante de la reserva del nombre: súbelo en su casilla, justo arriba, y la constitución ya se puede resolver.",
       co_subiendo:  "Entregando…",
       tr_entregado: "Tu documento",
       tr_entrega_p: "Lo emitió el organismo y el CIIP lo dejó en tu expediente.",
@@ -1866,7 +1866,7 @@ window.CIIP_PASOS = {
          means. */
       co_emitido:   "Document issued by the agency",
       co_faltadoc:  "Attach the document the agency issued: it is what the investor came for.",
-      co_faltareserva: "The name reservation proof is missing: the investor has to upload it before the incorporation can be completed.",
+      co_faltareserva: "The name reservation proof is missing: upload it in its box just above, and the incorporation can then be completed.",
       co_subiendo:  "Delivering…",
       tr_entregado: "Your document",
       tr_entrega_p: "The agency issued it and CIIP left it in your file.",
@@ -2789,7 +2789,7 @@ window.CIIP_PASOS = {
       /* Entregar o que foi emitido. */
       co_emitido:   "Documento emitido pelo organismo",
       co_faltadoc:  "Anexe o documento que o organismo emitiu: é o que o investidor veio buscar.",
-      co_faltareserva: "Falta o comprovativo da reserva do nome: o investidor tem de o carregar antes de concluir a constituição.",
+      co_faltareserva: "Falta o comprovativo da reserva do nome: carregue-o na sua caixa, logo acima, e a constituição já pode ser concluída.",
       co_subiendo:  "A entregar…",
       tr_entregado: "O seu documento",
       tr_entrega_p: "Foi o organismo que o emitiu e o CIIP deixou-o no seu processo.",
@@ -3710,7 +3710,7 @@ window.CIIP_PASOS = {
       /* Consegnare quello che è stato rilasciato. */
       co_emitido:   "Documento rilasciato dall'ente",
       co_faltadoc:  "Allega il documento che ha rilasciato l'ente: è quello per cui l'investitore è venuto.",
-      co_faltareserva: "Manca la ricevuta della riserva del nome: l'investitore deve caricarla prima di concludere la costituzione.",
+      co_faltareserva: "Manca la ricevuta della riserva del nome: caricala nella sua casella qui sopra, e la costituzione si potrà concludere.",
       co_subiendo:  "Consegna in corso…",
       tr_entregado: "Il tuo documento",
       tr_entrega_p: "L'ha rilasciato l'ente e il CIIP l'ha messo nel tuo fascicolo.",
@@ -4631,7 +4631,7 @@ window.CIIP_PASOS = {
       /* 交付已签发的文件。 */
       co_emitido:   "主管机关签发的文件",
       co_faltadoc:  "请附上主管机关签发的文件：那才是投资人要的东西。",
-      co_faltareserva: "缺少名称预留凭证：投资人须先上传，才能办结公司设立。",
+      co_faltareserva: "缺少名称预留凭证：请在上方对应栏上传，之后即可办结公司设立。",
       co_subiendo:  "交付中…",
       tr_entregado: "您的文件",
       tr_entrega_p: "由主管机关签发，CIIP 已放入您的档案。",
@@ -5552,7 +5552,7 @@ window.CIIP_PASOS = {
       /* Выдача выпущенного документа. */
       co_emitido:   "Документ, выданный ведомством",
       co_faltadoc:  "Приложите документ, выданный ведомством: именно за ним пришёл инвестор.",
-      co_faltareserva: "Нет подтверждения резервирования наименования: инвестор должен загрузить его, прежде чем завершить учреждение.",
+      co_faltareserva: "Нет подтверждения резервирования наименования: загрузите его в поле чуть выше, и учреждение можно будет завершить.",
       co_subiendo:  "Передаём…",
       tr_entregado: "Ваш документ",
       tr_entrega_p: "Его выдало ведомство, а CIIP положил его в ваше дело.",

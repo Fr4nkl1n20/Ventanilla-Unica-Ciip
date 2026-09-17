@@ -11,7 +11,7 @@
 --  policy if exists-, asi que volver a correrlo no rompe nada y es la
 --  forma de poner al dia un proyecto que ya tenia la mitad.
 --
---  Generado el 2026-09-16. Si cambia un archivo, se vuelve a generar:
+--  Generado el 2026-09-17. Si cambia un archivo, se vuelve a generar:
 --  no se edita a mano, que entonces son 37 sitios donde mirar.
 -- ====================================================================
 
@@ -7946,6 +7946,45 @@ create policy "adjuntos: papeles de un paso, con el tramite en marcha" on public
 
 
 -- ───────────────────────────────────────────────────────────────────────
+-- 2b. Y QUE LO PUEDA SUBIR EL EQUIPO
+-- ───────────────────────────────────────────────────────────────────────
+--  Franklin Reyes, 17 de septiembre de 2026: el comprobante de la reserva
+--  lo tramita el CIIP ante el SAREN, así que es el equipo quien lo tiene en
+--  la mano. Esperar a que el inversionista lo suba dejaba la constitución
+--  parada en la cola con «Falta el comprobante» y nada que hacer.
+--
+--  «documentos: el equipo entrega lo emitido» (supabase-emision.sql) solo
+--  deja al gestor dejar papeles de tipo 'resolucion'. Se abre este otro al
+--  lado, con su propia política, y con el mismo cerrojo que aquella: entra
+--  'validado', que es lo que impide al inversionista borrarlo sin querer.
+--  El archivo va a la carpeta 'emitidos', que el cubo ya le deja al equipo.
+drop policy if exists "documentos: el equipo sube la reserva del nombre" on public.documentos;
+create policy "documentos: el equipo sube la reserva del nombre" on public.documentos
+  for insert
+  with check (public.es_gestor() and tipo = 'reserva_nombre' and estado = 'validado');
+
+--  Y engancharlo: solo a una constitución, y solo ante el ente, que es
+--  cuando el paso se ofrece. El papel tiene que ser de la bóveda del mismo
+--  inversionista del trámite, para no colgarle a alguien el de otro.
+drop policy if exists "adjuntos: el equipo engancha la reserva del nombre" on public.tramite_documentos;
+create policy "adjuntos: el equipo engancha la reserva del nombre" on public.tramite_documentos
+  for insert
+  with check (
+    public.es_gestor()
+    and exists (
+      select 1
+        from public.tramites t, public.documentos d
+       where t.id = tramite_documentos.tramite
+         and d.id = tramite_documentos.documento
+         and d.inversionista = t.inversionista
+         and d.tipo = 'reserva_nombre'
+         and t.tipo = 'constitucion'
+         and t.estado = 'ante_el_ente'
+    )
+  );
+
+
+-- ───────────────────────────────────────────────────────────────────────
 -- 3. SIN COMPROBANTE, NO HAY «RESUELTA»
 -- ───────────────────────────────────────────────────────────────────────
 --  Va en su propio trigger y no dentro de tramites_solo_la_escalera: aquel
@@ -8008,7 +8047,10 @@ create trigger tramites_reserva_nombre
 --    where codigo = 'reserva_nombre';                      -- una fila
 --
 --   select polname from pg_policy
---    where polname = 'adjuntos: papeles de un paso, con el tramite en marcha';
+--    where polname in ('adjuntos: papeles de un paso, con el tramite en marcha',
+--                      'documentos: el equipo sube la reserva del nombre',
+--                      'adjuntos: el equipo engancha la reserva del nombre');
+--                                                          -- tres filas
 --
 --   select tgname from pg_trigger where tgname = 'tramites_reserva_nombre';
 --
