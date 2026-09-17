@@ -2917,6 +2917,148 @@ select arnes.comprueba('logos: poner y quitar el logo deja dos apuntes en la bit
   (select coalesce(string_agg(accion || ':' || detalle, ', '), 'nada')
      from public.bitacora where id > :logo_antes));
 
+-- ── LA PROTOCOLIZACIÓN NACE AL RESOLVERSE LA CONSTITUCIÓN ──────
+-- Franklin Reyes, 17-9-2026. Tres cosas: que nazca, que traiga lo que la
+-- constitución ya decía, y que luego no se resuelva sin el comprobante
+-- del pago de los aranceles.
+-- Una cuenta propia: la B se borra mucho antes, probando el cascade.
+insert into auth.users (email, raw_user_meta_data) values
+  ('p@prueba.local', '{"nombre_completo":"Pablo Protocoliza","pais":"Brasil"}');
+insert into arnes.gente (papel, id)
+select 'P', id from auth.users where email = 'p@prueba.local';
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'P'));
+
+do $pr$
+declare
+  cual uuid;
+begin
+  insert into public.tramites (inversionista, tipo, estado, datos)
+  values (auth.uid(), 'constitucion', 'borrador', jsonb_build_object(
+            'denominacion',     'INVERSIONES BRUNO C.A.',
+            'capital_social',   '100000',
+            'oficina_registro', 'REGISTRO MERCANTIL PRIMERO DEL DISTRITO CAPITAL',
+            'junta_directiva',  'Bruno Silva (PRESIDENTE); Ana Costa (TESORERO)'))
+  returning id into cual;
+  delete from arnes.escenario where clave = 'pr_c5';
+  insert into arnes.escenario (clave, id) values ('pr_c5', cual);
+  update public.tramites set estado = 'enviado' where id = cual;
+end
+$pr$;
+
+-- El equipo la sube hasta resuelta, peldaño a peldaño.
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $pr$
+declare
+  cual uuid := (select id from arnes.escenario where clave = 'pr_c5');
+  paso text;
+begin
+  foreach paso in array array['en_revision','ante_el_ente','resuelto'] loop
+    update public.tramites set estado = paso where id = cual;
+  end loop;
+end
+$pr$;
+
+reset role;
+select arnes.nadie();
+select arnes.comprueba(
+  'protocolizacion: resuelta la constitucion, nace la protocolizacion enviada',
+  (select count(*) = 1 from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'P')
+      and tipo = 'protocolizacion_acta' and estado = 'enviado'),
+  (select coalesce(string_agg(tipo || ':' || estado, ', '), 'ninguna')
+     from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'P')
+      and tipo = 'protocolizacion_acta'));
+
+select arnes.comprueba(
+  'protocolizacion: y trae lo que la constitucion ya decia',
+  (select datos->>'razon_social' = 'INVERSIONES BRUNO C.A.'
+      and datos->>'capital_social' = '100000'
+      and datos->>'registro_mercantil' = 'REGISTRO MERCANTIL PRIMERO DEL DISTRITO CAPITAL'
+      and datos->>'representante' = 'Bruno Silva'
+     from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'P')
+      and tipo = 'protocolizacion_acta'),
+  (select datos::text from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'P')
+      and tipo = 'protocolizacion_acta'));
+
+-- La fecha de firma del acta no se copia: no existía todavía.
+select arnes.comprueba(
+  'protocolizacion: la fecha de firma se queda sin poner',
+  (select not (datos ? 'fecha_firma') from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'P')
+      and tipo = 'protocolizacion_acta'));
+
+-- Y no nace una segunda si se vuelve a tocar la constitución.
+select arnes.comprueba(
+  'protocolizacion: y no nace dos veces',
+  (select count(*) = 1 from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'P')
+      and tipo = 'protocolizacion_acta'));
+
+-- Sin el comprobante del pago, el equipo no la resuelve.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $pr$
+declare
+  cual uuid := (select id from public.tramites
+                 where inversionista = (select id from arnes.gente where papel = 'P')
+                   and tipo = 'protocolizacion_acta' limit 1);
+  paso text;
+begin
+  delete from arnes.escenario where clave = 'pr_c22';
+  insert into arnes.escenario (clave, id) values ('pr_c22', cual);
+  foreach paso in array array['en_revision','ante_el_ente'] loop
+    update public.tramites set estado = paso where id = cual;
+  end loop;
+  begin
+    update public.tramites set estado = 'resuelto' where id = cual;
+    perform arnes.comprueba(
+      'protocolizacion: sin el comprobante del pago no se resuelve', false, 'LO DEJO PASAR');
+  exception when others then
+    perform arnes.comprueba(
+      'protocolizacion: sin el comprobante del pago no se resuelve',
+      sqlerrm like '%aranceles%', sqlerrm);
+  end;
+end
+$pr$;
+
+-- Con el comprobante colgado, sí. Se cuelga con el rol quitado: lo que se
+-- prueba aquí es el trigger, no la política que deja adjuntarlo.
+reset role;
+select arnes.nadie();
+do $pr$
+declare
+  ficha uuid;
+begin
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original, estado)
+  values ((select id from arnes.gente where papel = 'P'), 'pago_aranceles',
+          'b/aranceles.pdf', 'aranceles.pdf', 'cargado')
+  returning id into ficha;
+  insert into public.tramite_documentos (tramite, documento)
+  values ((select id from arnes.escenario where clave = 'pr_c22'), ficha);
+end
+$pr$;
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $pr$
+begin
+  update public.tramites set estado = 'resuelto'
+   where id = (select id from arnes.escenario where clave = 'pr_c22');
+  perform arnes.comprueba('protocolizacion: con el comprobante, se resuelve',
+    (select estado = 'resuelto' from public.tramites
+      where id = (select id from arnes.escenario where clave = 'pr_c22')), 'resuelto');
+exception when others then
+  perform arnes.comprueba('protocolizacion: con el comprobante, se resuelve', false, sqlerrm);
+end
+$pr$;
+reset role;
+select arnes.nadie();
+
 \o
 \pset tuples_only on
 \pset format unaligned

@@ -66,6 +66,7 @@ usar esa base o la de pruebas — ver el bloque de comentarios ahí mismo.
 | `supabase-hilo.sql` | La conversación sobre una solicitud, en los dos sentidos y con adjuntos que van a la bóveda |
 | `supabase-disponibilidad.sql` | El horario de citas del CIIP: el horario semanal, los días cerrados y la reserva de un hueco, que nace confirmada. Va **después** de `supabase-citas.sql`; es el 28 de `TODO-EN-ORDEN.sql` |
 | `supabase-reserva-nombre.sql` | La constitución no se resuelve sin el **comprobante de la reserva del nombre**, que sube el inversionista desde su paso, después de pagar con el documento que el equipo le deja desde la cola. Añade ese tipo de papel, deja adjuntarlo con el trámite en marcha (y el pago de aranceles de la protocolización) y pone el bloqueo en la base. Va **después** de `supabase-tramites.sql`; es el 37 de `TODO-EN-ORDEN.sql` |
+| `supabase-protocolizacion.sql` | Resuelta la constitución, la **protocolización del acta nace sola**, ya enviada y con lo que aquélla decía (razón social, capital, registro, representante). Añade el **documento para pagar los aranceles** que el equipo le deja desde la cola, y la protocolización no se resuelve sin el comprobante de ese pago. Va **después** de `supabase-reserva-nombre.sql`; es el 39 de `TODO-EN-ORDEN.sql` |
 | `logos/` | Logos de los organismos, con su procedencia en [FUENTES.md](logos/FUENTES.md) |
 | `banderas/` | 197 banderas SVG para el buscador de países, con su procedencia en [FUENTES.md](banderas/FUENTES.md) |
 | `original/` | La demostración de partida, intacta, como referencia |

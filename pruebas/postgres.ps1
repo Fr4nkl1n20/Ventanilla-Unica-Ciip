@@ -161,7 +161,11 @@ try {
     'supabase-accionista-juridica.sql',
     # 37  el logo de cada ficha: tipos_tramite.logo, el cubo logos-fichas y
     #     su apunte. Necesita el 11 y el 12; va al final
-    'supabase-logos-fichas.sql'
+    'supabase-logos-fichas.sql',
+    # 38  la protocolizacion que nace al resolverse la constitucion, el
+    #     documento para pagar los aranceles y la guarda de su comprobante.
+    #     Necesita el 2 -tramites, documentos, tipos_documento- y es_gestor
+    'supabase-protocolizacion.sql'
   )
   $n = 0
   foreach ($f in $once) {

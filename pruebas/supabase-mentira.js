@@ -1871,6 +1871,14 @@
           nombre_original:'planilla-reserva-saren.pdf',
           archivo:'u1/emitidos/planilla-reserva-saren.pdf'}}], error:null};
       }
+      /* Y la protocolización de 'tramos': el equipo ya le dejó el documento
+         para pagar los aranceles del registro, y el comprobante del pago
+         todavía no está (Franklin Reyes, 17-9-2026). */
+      if (op && op.eq && op.eq.tramite === 'p1'){
+        return {data:[{documento:'dp2', documentos:{tipo:'planilla_aranceles',
+          nombre_original:'planilla-aranceles-saren.pdf',
+          archivo:'u1/emitidos/planilla-aranceles-saren.pdf'}}], error:null};
+      }
       if (op && op.eq && op.eq.tramite === 't4'){
         return {data:[{documento:'dr1', documentos:{tipo:'resolucion',
           nombre_original:'visa-trn-estampada.pdf',

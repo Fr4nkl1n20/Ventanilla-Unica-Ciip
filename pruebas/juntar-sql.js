@@ -88,7 +88,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-reserva-nombre',
 /* El logo de cada ficha, que sube el admin. Necesita el catalogo con su
    politica de escritura y la bitacora; va al final. */
-'supabase-logos-fichas'];
+'supabase-logos-fichas',
+/* La protocolizacion del acta (c22), que nace al resolverse la
+   constitucion, con su documento para pagar los aranceles y la guarda de
+   su comprobante. Necesita tramites, documentos y es_gestor(); va al
+   final. */
+'supabase-protocolizacion'];
 
 let mal = 0;
 for (const n of orden) {

@@ -15620,13 +15620,13 @@ applyLang(idiomaParaMi());
              base no la deja resolver, y entregar antes el acta para que luego
              rebote dejaria un papel entregado en un tramite sin resolver. Se
              mira antes de tocar nada. */
-          if (p.a === 'resuelto' && t.tipo === 'constitucion' && !b.getAttribute('data-reserva')){
+          if (p.a === 'resuelto' && comprobanteParaResolver(t) && !b.getAttribute('data-reserva')){
             b.disabled = true;
             faltaLaReserva(t).then(function(falta){
               b.disabled = false;
               if (falta){
                 f.classList.add('mal');
-                aviso.textContent = u.co_faltareserva || '';
+                aviso.textContent = u[comprobanteParaResolver(t).aviso] || '';
                 return;
               }
               b.setAttribute('data-reserva', 'vista');
@@ -16027,11 +16027,31 @@ applyLang(idiomaParaMi());
     return !t || t.tipo !== 'constitucion';
   }
 
+  /* QUÉ documento para pagar deja el equipo, y en qué trámite. Son dos, el
+     mismo gesto en dos pisos (Franklin Reyes, 17-9-2026): la reserva del
+     nombre en la constitución, y los aranceles del registro en la
+     protocolización, que desde hoy nace sola al resolverse aquélla.
+     Devuelve null donde no toca dejar nada. */
+  function loQueSePaga(t){
+    if (!t) return null;
+    if (t.tipo === 'constitucion' && t.estado === 'ante_el_ente'){
+      return {tipo: 'planilla_reserva_nombre', clave: 'd_planilla_reserva'};
+    }
+    /* La protocolización, en cuanto está en marcha: el arancel se paga al
+       principio, antes de consignar, así que no hay que esperar a nada. */
+    if (t.tipo === 'protocolizacion_acta' &&
+        ['enviado','en_revision','ante_el_ente'].indexOf(t.estado) >= 0){
+      return {tipo: 'planilla_aranceles', clave: 'd_planilla_aranceles'};
+    }
+    return null;
+  }
+
   function casillaDeLaReserva(t, idBase){
-    if (!t || t.tipo !== 'constitucion' || t.estado !== 'ante_el_ente') return null;
+    var pide = loQueSePaga(t);
+    if (!pide) return null;
     var u = T();
     var caja = el('div', 'co-emitir co-reserva');
-    var etiq = el('label', null, u.d_planilla_reserva || '');
+    var etiq = el('label', null, u[pide.clave] || '');
     etiq.setAttribute('for', idBase + t.id);
     caja.appendChild(etiq);
     var inp = document.createElement('input');
@@ -16049,14 +16069,14 @@ applyLang(idiomaParaMi());
       if (!archivo) return;
       inp.disabled = true;
       est.textContent = u.co_subiendo || '';
-      entrega(t, archivo, 'planilla_reserva_nombre')
+      entrega(t, archivo, pide.tipo)
         .then(function(){
           if (typeof PAPELES_DE !== 'undefined') PAPELES_DE[t.id] = null;
           inp.disabled = false;
           puesto(archivo.name);
         })
         .catch(function(e){
-          console.warn('[CIIP] documento para pagar la reserva:', e && (e.message || e));
+          console.warn('[CIIP] documento para pagar:', e && (e.message || e));
           inp.disabled = false;
           inp.value = '';
           est.textContent = (e && e.ciip && u[e.ciip]) || u.co_error || '';
@@ -16067,7 +16087,7 @@ applyLang(idiomaParaMi());
     Promise.resolve(sb.from('tramite_documentos').select('documentos(tipo, nombre_original)').eq('tramite', t.id))
       .then(function(r){
         var ya = ((r && r.data) || []).filter(function(f){
-          return f.documentos && f.documentos.tipo === 'planilla_reserva_nombre';
+          return f.documentos && f.documentos.tipo === pide.tipo;
         })[0];
         if (ya) puesto(ya.documentos.nombre_original);
       })
@@ -16100,7 +16120,9 @@ applyLang(idiomaParaMi());
         /* Si es la base la que dice que no por la reserva, se dice eso y no
            un error cualquiera. */
         var porReserva = /reserva del nombre/.test((e && e.message) || '');
-        if (aviso) aviso.textContent = (porReserva && T().co_faltareserva) || T().co_error || '';
+        var porAranceles = /aranceles/.test((e && e.message) || '');
+        if (aviso) aviso.textContent = (porReserva && T().co_faltareserva) ||
+                                       (porAranceles && T().co_faltaaranceles) || T().co_error || '';
         return false;
       });
   }
@@ -16635,11 +16657,11 @@ applyLang(idiomaParaMi());
     }
     /* Lo mismo que la ventana de la cola: sin la reserva del nombre, ni se
        entrega el acta ni se intenta resolver. */
-    if (t.tipo === 'constitucion' && !boton.getAttribute('data-reserva')){
+    if (comprobanteParaResolver(t) && !boton.getAttribute('data-reserva')){
       boton.disabled = true;
       faltaLaReserva(t).then(function(falta){
         boton.disabled = false;
-        if (falta){ aviso.textContent = u.co_faltareserva || ''; return; }
+        if (falta){ aviso.textContent = u[comprobanteParaResolver(t).aviso] || ''; return; }
         boton.setAttribute('data-reserva', 'vista');
         hoyResuelve(t, archivo, boton, aviso);
       });
@@ -17082,6 +17104,12 @@ applyLang(idiomaParaMi());
         pista.textContent = u.co_h_p_listo || '';
       }
       fin.appendChild(pista);
+      /* El documento para pagar los aranceles se deja en cuanto la
+         protocolización está en marcha, sin esperar a presentarla ante el
+         registro: allí se paga antes de consignar (Franklin Reyes,
+         17-9-2026). */
+      var pagar = casillaDeLaReserva(t, 'hoy-pag-');
+      if (pagar) fin.appendChild(pagar);
       var nota = el('textarea');
       nota.id = 'hoy-nota-' + t.id;
       nota.rows = 2;
@@ -20859,7 +20887,14 @@ applyLang(idiomaParaMi());
      consignar, y el papel que sale de ahi es el que pide el registrador. */
   /* El tipo es el del catalogo -tipos_documento-: uno inventado lo rechaza la
      base al subirlo. Es el mismo recaudo que pide el formulario de la c22. */
-  var PAPEL_DE_PASO = {c22: {paso: 0, tipo: 'pago_aranceles', clave: 'd_aranceles'}};
+  /* Y con que se paga: desde el 17 de septiembre de 2026 el equipo deja en
+     la solicitud el documento para pagar los aranceles, igual que el de la
+     reserva del nombre un piso mas arriba. Sale encima de la fila de subir,
+     con su boton para abrirlo; mientras no lo haya, el paso solo pide el
+     comprobante, como antes. */
+  var PAPEL_DE_PASO = {c22: {paso: 0, tipo: 'pago_aranceles', clave: 'd_aranceles',
+                             planilla: 'planilla_aranceles', claveP: 'd_planilla_aranceles',
+                             clavePista: 'tr_pagaranceles'}};
 
   /* La solicitud que manda de un tramo, con el mismo criterio que la ficha:
      la que va mas adelante, no la mas reciente. Si la portada y el bloque
@@ -21038,6 +21073,14 @@ applyLang(idiomaParaMi());
     if (!txt || txt.querySelector('.tr-papel')) return;
     var u = T();
 
+    /* Con que pagar: el documento que dejo el equipo, encima de la fila de
+       subir. Solo si la solicitud existe -a un tramite que todavia no se ha
+       pedido nadie le ha colgado nada- y solo se destapa cuando lo hay
+       (Franklin Reyes, 17-9-2026). */
+    if (tr && quiere.planilla){
+      txt.appendChild(filaDelDocumentoParaPagar(tr, quiere.planilla, quiere.claveP, quiere.clavePista));
+    }
+
     var fila = el('div', 'tr-papel');
     fila.setAttribute('data-doc', quiere.tipo);
     fila.appendChild(el('span', 'tp-n', u[quiere.clave] || quiere.tipo));
@@ -21146,16 +21189,22 @@ applyLang(idiomaParaMi());
     return li;
   }
 
-  /* El documento que dejo el equipo para pagar la reserva: escondido hasta
-     saber que existe, para no ofrecer abrir algo que no esta. */
-  function filaDelDocumentoParaPagar(tr){
+  /* El documento que dejo el equipo para pagar: escondido hasta saber que
+     existe, para no ofrecer abrir algo que no esta.
+
+     Sirve para los dos pisos (Franklin Reyes, 17-9-2026): la reserva del
+     nombre en la constitucion, y los aranceles del registro en la
+     protocolizacion. Los argumentos dicen cual, y por defecto es la
+     reserva, que es quien lo llamaba antes. */
+  function filaDelDocumentoParaPagar(tr, tipoPapel, claveNombre, clavePista){
     var u = T();
+    var tipoP = tipoPapel || TIPO_PLANILLA;
     var caja = el('div', 'tr-pagar');
     caja.hidden = true;
-    caja.appendChild(el('div', 'sd-e tr-pagar-p', u.tr_pagareserva || ''));
+    caja.appendChild(el('div', 'sd-e tr-pagar-p', u[clavePista || 'tr_pagareserva'] || ''));
     var fila = el('div', 'tr-papel');
-    fila.setAttribute('data-doc', TIPO_PLANILLA);
-    fila.appendChild(el('span', 'tp-n', u.d_planilla_reserva || ''));
+    fila.setAttribute('data-doc', tipoP);
+    fila.appendChild(el('span', 'tp-n', u[claveNombre || 'd_planilla_reserva'] || ''));
     var est = el('span', 'tp-e', '');
     fila.appendChild(est);
     var abrir = el('button', 'sd-btn', u.co_abrir || '');
@@ -21166,7 +21215,7 @@ applyLang(idiomaParaMi());
       .select('documentos(tipo, nombre_original, archivo)').eq('tramite', tr.id))
       .then(function(r){
         var d = ((r && r.data) || []).map(function(f){ return f.documentos; })
-          .filter(function(x){ return x && x.tipo === TIPO_PLANILLA && x.archivo; })[0];
+          .filter(function(x){ return x && x.tipo === tipoP && x.archivo; })[0];
         if (!d) return;
         est.textContent = d.nombre_original || '';
         abrir.addEventListener('click', function(){ abreEmitido(d, abrir); });
@@ -21176,18 +21225,30 @@ applyLang(idiomaParaMi());
     return caja;
   }
 
-  /* Para la cola del equipo: si a esta constitucion le falta el comprobante.
+  /* Que comprobante hace falta para poder resolver, y con que aviso se
+     dice que no esta. Son dos trámites, el mismo trato (Franklin Reyes,
+     17-9-2026): la constitucion pide el de la reserva del nombre y la
+     protocolizacion el del pago de los aranceles. Los demas, nada. */
+  function comprobanteParaResolver(t){
+    if (!t) return null;
+    if (t.tipo === 'constitucion') return {tipo: TIPO_RESERVA, aviso: 'co_faltareserva'};
+    if (t.tipo === 'protocolizacion_acta') return {tipo: 'pago_aranceles', aviso: 'co_faltaaranceles'};
+    return null;
+  }
+
+  /* Para la cola del equipo: si a este tramite le falta ese comprobante.
      Si no se puede mirar -politica sin poner, red caida- se deja pasar: la
      base es la que decide, y un aviso inventado cerraria el paso sin
      motivo. */
   function faltaLaReserva(t){
-    if (!t || t.tipo !== 'constitucion') return Promise.resolve(false);
+    var pide = comprobanteParaResolver(t);
+    if (!pide) return Promise.resolve(false);
     return Promise.resolve(
       sb.from('tramite_documentos').select('documentos(tipo)').eq('tramite', t.id))
       .then(function(r){
         if (r && r.error) return false;
         return !((r && r.data) || []).some(function(f){
-          return f.documentos && f.documentos.tipo === TIPO_RESERVA;
+          return f.documentos && f.documentos.tipo === pide.tipo;
         });
       })
       .catch(function(){ return false; });

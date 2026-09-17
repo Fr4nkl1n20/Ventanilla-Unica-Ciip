@@ -9666,6 +9666,23 @@
     ok('verdad: con su nombre y su botón',
        !!papel && /omprobante/.test(papel.textContent) && !!papel.querySelector('.sd-btn'),
        papel ? papel.textContent.slice(0, 60) : '(no hay)', 'nombre y botón');
+    /* Y encima del sitio para subirlo, el documento que dejó el CIIP para
+       pagar los aranceles: el mismo trato que la reserva del nombre un piso
+       más arriba (Franklin Reyes, 17-9-2026). */
+    var pagar = b.querySelector('.tr-pagar');
+    var planilla = pagar && pagar.querySelector('.tr-papel[data-doc="planilla_aranceles"]');
+    ok('verdad: y encima, el documento que dejó el CIIP para pagar los aranceles',
+       !!pagar && !pagar.hidden && !!planilla && !!planilla.querySelector('.sd-btn') &&
+         /planilla-aranceles-saren/.test(planilla.textContent) &&
+         !planilla.querySelector('input[type=file]') &&
+         !!(pagar.compareDocumentPosition(papel) & Node.DOCUMENT_POSITION_FOLLOWING),
+       planilla ? planilla.textContent : (pagar ? (pagar.hidden ? 'escondido' : 'sin fila') : '(no está)'),
+       'a la vista, con el archivo y «Abrir», antes de subir');
+    ok('verdad: y el documento va dentro del paso del pago',
+       !!pagar && pagar.closest('.tr-paso') === pasos[0],
+       pagar && pagar.closest('.tr-paso')
+         ? 'en el paso ' + ([].indexOf.call(pasos, pagar.closest('.tr-paso')) + 1)
+         : '(no está)', 'en el paso 1');
     /* Y solo ahí: la publicación no paga aranceles de registro. */
     var otro = document.querySelector('#trSiguen .tr-bloque[data-tramo="c23"] .tr-papel');
     ok('verdad: la publicación no pide comprobante',
