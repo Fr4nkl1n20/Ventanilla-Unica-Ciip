@@ -12138,22 +12138,9 @@ applyLang(idiomaParaMi());
         }).catch(function(){});
     }
 
-    /* recaudos entregados */
-    sb.from('tramite_documentos').select('documento, documentos(tipo, nombre_original)')
-      .eq('tramite', tr.id)
-      .then(function(r){
-        var filas = r.data || [];
-        if (!filas.length) return;
-        var bloque = el('div', 'sol-adj');
-        bloque.appendChild(el('div', 'sol-h', u.adjuntos));
-        var l = el('div', 'sa-l');
-        filas.forEach(function(f){
-          var d = f.documentos || {};
-          l.appendChild(el('span', 'sa-i', d.nombre_original || d.tipo || '—'));
-        });
-        bloque.appendChild(l);
-        caja.appendChild(bloque);
-      }).catch(function(){});
+    /* La lista de «Recaudos entregados» ya no sale aquí: eran nombres de
+       archivo sueltos, repetidos, que no decían nada que no esté en
+       Documentos (Franklin Reyes, 17-9-2026). */
 
     /* AQUÍ NO VA LA CONVERSACIÓN, y es a propósito.
        Estuvo al final de esta pantalla, y se quita el 8 de septiembre de 2026
@@ -12194,7 +12181,9 @@ applyLang(idiomaParaMi());
         window.CIIP_ABRE_CONSULTA(tr.id, nombreDeTarjeta(ref2) || '', tr.tipo);
       });
       bloque.appendChild(bt);
-      caja.appendChild(bloque);
+      /* Al final de la página, en el mismo hueco que «Que me acompañe el
+         CIIP» (Franklin Reyes, 17-9-2026). pintaEstado lo vacía al empezar. */
+      (acompana || caja).appendChild(bloque);
     })();
   }
 

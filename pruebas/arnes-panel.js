@@ -3079,11 +3079,19 @@
        /ilegible|escaneado/i.test(texto),
        texto.replace(/\s+/g, ' ').slice(0, 70), 'la nota del gestor');
 
-    /* Y sigue habiendo por dónde contestar: el cuadro que abre la consulta. */
-    ok('hilo: y queda por dónde hablar con el CIIP',
-       !!ficha && !!ficha.querySelector('.sol-gestion .btn'),
-       ficha && ficha.querySelector('.sol-gestion') ? 'está el cuadro' : 'no hay',
+    /* Y sigue habiendo por dónde contestar: el cuadro que abre la consulta,
+       al final de la página (Franklin Reyes, 17-9-2026). */
+    var alFinal = document.getElementById('trAcompana');
+    ok('hilo: y queda por dónde hablar con el CIIP, al final de la página',
+       !!alFinal && !!alFinal.querySelector('.sol-gestion .btn'),
+       alFinal && alFinal.querySelector('.sol-gestion') ? 'está el cuadro' : 'no hay',
        'el cuadro que abre la consulta');
+
+    /* Y la lista de «Recaudos entregados» ya no sale en la ficha. */
+    var cabeceras = ficha ? [].map.call(ficha.querySelectorAll('.sol-h'), function(h){ return h.textContent; }) : [];
+    ok('hilo: y ya no sale la lista de «Recaudos entregados»',
+       cabeceras.indexOf('Recaudos entregados') < 0,
+       cabeceras.join(' | ') || '(ninguna)', 'sin esa lista');
   }
 
   function dupeAbre(){
