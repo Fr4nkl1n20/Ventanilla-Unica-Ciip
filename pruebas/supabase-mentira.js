@@ -1306,7 +1306,15 @@
         {id:'doc5', tipo:'domicilio', archivo:'u1/domicilio.pdf',
          nombre_original:'recibo-de-luz.pdf', vence_el:null,
          estado:'cargado', nota_revision:'', creado_en:'2026-07-06T10:00:00Z'}
-      ]);
+      ]).concat(caso === 'gestor' ? [
+        /* Un comprobante, solo para el equipo: la bóveda de comprobantes
+           tiene que enseñarlo con el nombre de quien lo subió, y los demás
+           papeles de esta lista no. Validado para no mover la cuenta de
+           «Documentos por revisar». */
+        {id:'doc6', tipo:'reserva_nombre', archivo:'u2/reserva.pdf', inversionista:'u2',
+         nombre_original:'reserva-denominacion.pdf', vence_el:null,
+         estado:'validado', nota_revision:'', creado_en:'2026-09-16T15:00:00Z'}
+      ] : []);
       /* Y por TIPO cuando lo piden, que es como lo pregunta el formulario
          de un tramite -¿tengo ya este recaudo?- y la foto de la ficha.
          Devolver los tres para cualquier tipo hacia que TODO recaudo

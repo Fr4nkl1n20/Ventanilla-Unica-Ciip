@@ -265,6 +265,7 @@
               tramoVerdadAbre, reservaMira, tramoVerdadMira,
               textosMira,
               rvAbre, rvMira, rvDespues,
+              cbAbre, cbMira,
               ajAbre, ajMira,
               plazoF5Abre, plazoF5Rompe, plazoF5Repinta, plazoF5Mira,
               opacidadMira, opacidadSenal,
@@ -9607,6 +9608,44 @@
     var aviso = document.querySelector('#rv .rv-msg.bien');
     ok('revisar: y se dice que quedó validado', !!aviso && !!aviso.textContent,
        aviso ? aviso.textContent : '(sin aviso)', 'un aviso');
+    location.hash = '';
+  }
+
+  /* LA BÓVEDA DE COMPROBANTES. Del equipo: su renglón, solo comprobantes
+     -ni la cédula ni el acta de la misma bóveda- y cada uno con el nombre
+     del inversionista que lo subió. */
+  function cbAbre(){
+    if (CASO !== 'gestor') return;
+    location.hash = 'comprobantes';
+  }
+  function cbMira(){
+    if (CASO !== 'gestor') return;
+    var nav = document.getElementById('navComprobantes');
+    ok('comprobantes: el equipo tiene su renglón «Bóveda de comprobantes»',
+       !!nav && !nav.hidden, nav ? (nav.hidden ? 'escondido' : 'a la vista') : 'no está', 'a la vista');
+    var filas = [].map.call(document.querySelectorAll('#cb .rv-fila'), function(f){ return f.getAttribute('data-doc'); });
+    igual('comprobantes: sale el comprobante, y solo él', filas.join(','), 'doc6');
+    var fila = document.querySelector('#cb .rv-fila[data-doc="doc6"] .t');
+    igual('comprobantes: con el nombre de quien lo subió', fila && fila.textContent, 'Marta Bianchi');
+    var campo = document.getElementById('cbBusca');
+    if (campo){
+      campo.value = 'nadie con este nombre';
+      campo.dispatchEvent(new Event('input'));
+    }
+    igual('comprobantes: el buscador filtra por inversionista',
+          document.querySelectorAll('#cb .rv-fila').length, 0);
+    campo = document.getElementById('cbBusca');
+    if (campo){
+      campo.value = 'bianchi';
+      campo.dispatchEvent(new Event('input'));
+    }
+    igual('comprobantes: y encuentra a quien sí lo subió, sin mirar mayúsculas',
+          document.querySelectorAll('#cb .rv-fila').length, 1);
+    campo = document.getElementById('cbBusca');
+    if (campo){
+      campo.value = '';
+      campo.dispatchEvent(new Event('input'));
+    }
     location.hash = '';
   }
 
