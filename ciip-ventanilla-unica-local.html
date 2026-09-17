@@ -3131,7 +3131,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 
    El cuadro de «lo hacemos nosotros» va detrás y se iguala: es su hermano,
    y dejarlo más ancho lo separaría de lo único a lo que acompaña. */
-.pa, .pa + .sol-gestion{max-width:880px;}
+.pa, #trAcompana .sol-gestion{max-width:880px;}
 /* La ficha es LA HOJA, no lo que lleva dentro. Antes el borde lo ponía cada
    cosa por su cuenta -.sol-col en el primer paso, .pa-repaso en el último- y
    el pie con «Siguiente» se quedaba fuera de todos ellos, suelto sobre el
@@ -5312,6 +5312,10 @@ body[data-vista="horario"] .fase-bar{display:none;}
       <div class="tr-varias" id="trVarias" hidden></div>
       <div class="tr-real" id="trReal"></div>
       <div class="tr-tramos tr-siguen" id="trSiguen" hidden></div>
+      <!-- «Que me acompañe el CIIP», siempre lo último de la página, detrás
+           también de los tramos que siguen (Franklin Reyes, 17-9-2026). Lo
+           pinta el formulario de #trReal y se vacía con él. -->
+      <div id="trAcompana"></div>
     </section>
 
     <!-- Las preguntas se pliegan bajo su cabecera, igual que los trámites de
@@ -7990,6 +7994,11 @@ applyLang(idiomaParaMi());
   var caja      = document.getElementById('trReal');
   var escalera  = document.getElementById('trProceso');
   if (!caja || !escalera) return;
+  /* El cuadro de «Que me acompañe el CIIP» vive fuera de #trReal, al final
+     de la página: se vacía cada vez que se vacía el trámite, o quedaría el
+     de un formulario que ya no está. */
+  var acompana  = document.getElementById('trAcompana');
+  function vaciaAcompana(){ if (acompana) acompana.textContent = ''; }
 
   var TIPOS = null;      /* ref_panel -> {codigo, ente, activo} */
   var usuario = null;
@@ -9957,6 +9966,7 @@ applyLang(idiomaParaMi());
   window.CIIP_TRAMITE_REAL = function(refPanel){
     var miTurno = ++turno;
     caja.textContent = '';
+    vaciaAcompana();
     caja.classList.remove('puesto');
     /* LA ESCALERA DE MUESTRA NO SE ENSEÑA TODAVIA.
 
@@ -10391,6 +10401,7 @@ applyLang(idiomaParaMi());
 
   function pintaFormulario(tipo, borrador){
     var u = T();
+    vaciaAcompana();
     var datos = (borrador && borrador.datos) || {};
 
     /* Tres hojas, una detras de otra: los datos, los papeles y el repaso de
@@ -11376,7 +11387,7 @@ applyLang(idiomaParaMi());
         window.CIIP_ABRE_CONSULTA(null, nombreDeTarjeta(refT) || '', tipo.codigo);
       });
       bloque.appendChild(bt);
-      caja.appendChild(bloque);
+      (acompana || caja).appendChild(bloque);
     })();
 
     /* ── EL ANDAMIO: que hoja se ve, y como se pasa de una a otra ──
@@ -11998,6 +12009,7 @@ applyLang(idiomaParaMi());
 
   function pintaEstado(tipo, tr){
     var u = T();
+    vaciaAcompana();
 
     var cab = el('div', 'sol-estado');
     cab.appendChild(el('div', 'se-t', u.tu_solicitud));

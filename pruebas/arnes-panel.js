@@ -8316,7 +8316,7 @@
           conSolicitud.push(refs[i]);
           /* El cuadro Y su botón: un cartel sin nada que pulsar deja a quien
              lo lee buscando dónde, que es igual de malo que no tenerlo. */
-          if (!ficha.querySelector('.sol-gestion .btn')) sinPuerta.push(refs[i]);
+          if (!document.querySelector('#trAcompana .sol-gestion .btn')) sinPuerta.push(refs[i]);
         }
         mira(i + 1);
       })();
@@ -8661,12 +8661,20 @@
 
   function gestionMira(){
     if (CASO !== 'vacio') return;
-    var caja = document.getElementById('trReal');
-    var of = caja && caja.querySelector('.sol-gestion');
+    var of = document.querySelector('#trAcompana .sol-gestion');
     ok('gestion: el tramite ofrece que lo lleve el CIIP',
        !!of && /\S/.test(of.textContent),
        of ? of.textContent.trim().slice(0, 45) : '(no esta)', 'el ofrecimiento');
     if (!of) return;
+
+    /* Y lo ÚLTIMO de la página, detrás también de los tramos que siguen
+       (Franklin Reyes, 17-9-2026). */
+    var detalle = document.getElementById('trDetalle');
+    igual('gestion: y va al final de la página, detrás de todo',
+          detalle && detalle.lastElementChild && detalle.lastElementChild.id, 'trAcompana');
+    ok('gestion: y detrás de los tramos que siguen',
+       !!(document.getElementById('trSiguen').compareDocumentPosition(of) & Node.DOCUMENT_POSITION_FOLLOWING),
+       'busca el orden', 'después de #trSiguen');
 
     /* Y VIVE FUERA del formulario, en su propio cuadro. Esto se pide aparte
        porque la prueba de arriba lo encuentra en cualquier sitio de la
