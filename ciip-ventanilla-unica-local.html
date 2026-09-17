@@ -19275,18 +19275,55 @@ applyLang(idiomaParaMi());
        sola vez, y esa copia es justo la que hace que encender un trámite no
        se note hasta recargar. */
     var ultimoAlDia = Date.now();
+    /* ¿Hay algo a medio rellenar en el trámite abierto? Un campo con el foco
+       -o con algo escrito, o con un archivo ya elegido- quiere decir que
+       alguien está trabajando ahí: eso no se toca. */
+    function escribiendoEnElTramite(){
+      var caja = document.getElementById('trReal');
+      if (!caja) return false;
+      if (caja.contains(document.activeElement)) return true;
+      var hay = false;
+      [].forEach.call(caja.querySelectorAll('input, textarea, select'), function(c){
+        if (hay) return;
+        /* Un select SIEMPRE trae valor -la primera opción-, así que solo
+           cuenta si se eligió otra: mirando el valor, la escalera de
+           cualquier trámite con una lista dentro parecía un formulario a
+           medio rellenar y no se ponía al día nunca. */
+        if (c.tagName === 'SELECT') hay = c.selectedIndex > 0;
+        else if (c.type === 'file') hay = !!(c.files && c.files.length);
+        else if (c.type === 'checkbox' || c.type === 'radio') hay = c.checked;
+        else if (c.type === 'hidden' || c.type === 'button' || c.type === 'submit') hay = false;
+        else hay = !!(c.value || '').trim();
+      });
+      return hay;
+    }
     function alDiaSiToca(){
       if (document.hidden) return false;
       if (Date.now() - ultimoAlDia < 20000) return false;
       if (document.body.classList.contains('con-puerta')) return false;
-      if (document.body.getAttribute('data-vista') === 'tramite') return false;
+      /* Con un trámite abierto TAMBIÉN, desde el 17-9-2026: es justo la
+         pantalla donde se espera el paso que mueve el CIIP, y quedarse
+         fuera obligaba a recargar la página para verlo (Franklin Reyes).
+         Lo único intocable es un formulario a medio rellenar. */
+      var enTramite = document.body.getAttribute('data-vista') === 'tramite';
+      if (enTramite && escribiendoEnElTramite()) return false;
       ultimoAlDia = Date.now();
       if (window.CIIP_OLVIDA_CATALOGO) window.CIIP_OLVIDA_CATALOGO();
-      cargaMisTramites();
+      Promise.resolve(cargaMisTramites()).then(function(){
+        /* La escalera del trámite abierto se dibuja al abrirlo y no la
+           repinta nadie cuando llegan datos nuevos: sin esto, la solicitud
+           cambiaba de estado en la portada y el detalle seguía igual. */
+        if (enTramite && window.CIIP_REPINTA_PASOS) window.CIIP_REPINTA_PASOS();
+      }, function(){});
       return true;
     }
     window.CIIP_AL_DIA = alDiaSiToca;
     document.addEventListener('visibilitychange', alDiaSiToca);
+    /* Y sin tener que cambiar de pestaña: quien deja el panel abierto
+       esperando que el CIIP mueva su solicitud no tiene por qué recargar.
+       Un minuto se nota y no es un martilleo a la base; con la pestaña
+       escondida la guarda de arriba no pide nada. */
+    setInterval(alDiaSiToca, 60000);
 
     /* El contador sí se pide al cargar: es lo único que avisa de que ahí
        dentro hay algo tuyo esperando. */

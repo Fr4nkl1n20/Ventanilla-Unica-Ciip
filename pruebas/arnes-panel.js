@@ -6931,12 +6931,17 @@
     /* Ahora sí hay algo nuevo que traer: el doble lo estrena cuando se le
        pide, y no por su cuenta. */
     window.CIIP_MENTIRA_TARDIO = true;
+    /* Y con un trámite abierto, que es donde más falta hacía: hasta el
+       17-9-2026 esta vista se quedaba fuera y había que recargar la página
+       para ver el paso que acababa de mover el CIIP. */
+    document.body.setAttribute('data-vista', 'tramite');
     /* Como cuando vuelves a la pestaña después de un rato. */
     document.dispatchEvent(new Event('visibilitychange'));
   }
 
   function alDiaDespues(){
     if (CASO !== 'vacio') return;
+    document.body.removeAttribute('data-vista');
     var c2 = document.querySelector('.tcard[data-tr="c31"]');
     ok('al día: al volver a la pestaña aparece lo nuevo, sin recargar',
        !!c2 && c2.getAttribute('data-st') !== 'pendiente',
@@ -6997,10 +7002,20 @@
   function alDiaGuardas(){
     if (CASO !== 'vacio' || !window.CIIP_AL_DIA) return;
 
+    /* Con un trámite abierto AHORA SÍ se pone al día -es la pantalla donde
+       se espera el paso que mueve el CIIP-, y lo que queda intocable es un
+       formulario a medio rellenar: repintar por debajo se llevaría por
+       delante lo que alguien está escribiendo. */
     var era = document.body.getAttribute('data-vista');
+    var real = document.getElementById('trReal');
+    var campo = document.createElement('input');
+    campo.type = 'text';
+    campo.value = 'a medio escribir';
     document.body.setAttribute('data-vista', 'tramite');
-    igual('al día: con un trámite abierto no se repinta por debajo',
+    if (real) real.appendChild(campo);
+    igual('al día: con un formulario a medio rellenar no se repinta por debajo',
           window.CIIP_AL_DIA(), false);
+    campo.remove();
     if (era) document.body.setAttribute('data-vista', era);
     else document.body.removeAttribute('data-vista');
 
