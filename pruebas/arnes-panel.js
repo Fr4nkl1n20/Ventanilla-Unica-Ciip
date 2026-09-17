@@ -4858,26 +4858,41 @@
        hecho && !hecho.querySelector('.lleva'),
        hecho ? (hecho.querySelector('.lleva') ? 'lo lleva' : 'sin reloj') : 'no hay resuelto',
        'sin reloj');
-    /* ── LOS CUATRO MONTONES ── Con seis solicitudes del mismo trámite
-       la lista no dice nada; separadas por estado, sí. Y con las MISMAS
-       palabras que la portada: quien ya sabe filtrar allí no tiene que
-       aprender otra cosa aquí. */
+    /* ── LOS SEIS MONTONES, EN TARJETAS ── Con seis solicitudes del mismo
+       trámite la lista no dice nada; separadas por estado, sí. Eran cuatro
+       pastillas y son seis tarjetas con su cifra (Franklin Reyes,
+       17-9-2026): «en proceso» se parte en el CIIP y el organismo, y entra
+       lo que va tarde. Los rótulos que ya existían no cambian: quien sabe
+       filtrar en la portada no tiene que aprender otra cosa aquí. */
     (function(){
       var fil = document.querySelectorAll('#mtFiltros button');
-      ok('mis trámites: hay filtros por estado', fil.length >= 2,
-         fil.length + ' botones', '2 o más');
-      igual('mis trámites: con las palabras de la portada',
-            fil[0].textContent.replace(/[0-9]/g, '').trim(), 'Todos');
+      igual('mis trámites: seis montones, uno por sitio donde puede estar',
+            [].map.call(fil, function(b){ return b.getAttribute('data-monton'); }).join(','),
+            'todas,accion,ciip,ente,listo,tarde');
+      igual('mis trámites: el primero, con la palabra de la portada',
+            (fil[0].querySelector('.mtc-t') || {}).textContent, 'Todos');
+      ok('mis trámites: cada uno con su cifra y lo que quiere decir',
+         [].every.call(fil, function(b){
+           return b.querySelector('.n') && /[0-9]/.test(b.querySelector('.n').textContent) &&
+                  b.querySelector('.mtc-d') && b.querySelector('.mtc-d').textContent.length > 3;
+         }),
+         [].map.call(fil, function(b){ return b.querySelector('.n').textContent; }).join(','),
+         'seis cifras');
 
-      /* El montón vacío no se ofrece: un botón que lleva a una lista en
-         blanco es una promesa que no se cumple. */
+      /* El montón vacío se lee -es un tablero, y un cero dice algo- pero no
+         se pulsa: un filtro que deja la tabla en blanco es una promesa que
+         no se cumple. */
       var vacios = [].filter.call(fil, function(b){
         return b.querySelector('.n').textContent === '0'; });
-      igual('mis trámites: y ninguno lleva a una lista vacía', vacios.length, 0);
+      ok('mis trámites: el montón vacío se lee pero no se pulsa',
+         vacios.every(function(b){ return b.getAttribute('aria-disabled') === 'true'; }),
+         vacios.length + ' vacíos', 'todos sin pulsar');
 
       /* Filtrar de verdad enseña menos de las que hay. */
       var todas = document.querySelectorAll('#mtCuerpo tr').length;
-      var otro = [].filter.call(fil, function(b){ return !b.classList.contains('aqui'); })[0];
+      var otro = [].filter.call(fil, function(b){
+        return !b.classList.contains('aqui') && b.getAttribute('aria-disabled') !== 'true';
+      })[0];
       if (otro){
         var cuantas = parseInt(otro.querySelector('.n').textContent, 10);
         otro.click();

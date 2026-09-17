@@ -1108,6 +1108,15 @@ window.CIIP_PASOS = {
       qm_seguir:     "Seguir con ella",
       qm_descargar:  "Descargar",
       qm_mas:        "Ver las {n} en Mis trámites",
+      /* Los seis montones de Mis trámites, que además cuentan. Los rótulos
+         que ya existían no se repiten: «Todos» sale de f.all, «Te toca a ti»
+         de qm_tu, «Listo» de qm_listo y «Fuera de plazo» de co_h_n_tarde
+         (Franklin Reyes, 17-9-2026). */
+      mtq_total_d:   "Todas tus solicitudes",
+      mtq_ciip:      "En el CIIP",
+      mtq_ciip_d:    "Revisión del equipo",
+      mtq_ente:      "En el organismo",
+      mtq_tarde_d:   "Pasó el plazo del trámite",
       /* Las cinco columnas de la tabla. mt_c_abrir no se ve: la ultima
          columna son botones, y su rotulo se queda para el lector de
          pantalla. */
@@ -2067,6 +2076,15 @@ window.CIIP_PASOS = {
       qm_seguir:     "Continue",
       qm_descargar:  "Download",
       qm_mas:        "See all {n} in My procedures",
+      /* Los seis montones de Mis trámites, que además cuentan. Los rótulos
+         que ya existían no se repiten: «Todos» sale de f.all, «Te toca a ti»
+         de qm_tu, «Listo» de qm_listo y «Fuera de plazo» de co_h_n_tarde
+         (Franklin Reyes, 17-9-2026). */
+      mtq_total_d:   "All your requests",
+      mtq_ciip:      "With CIIP",
+      mtq_ciip_d:    "The team is reviewing it",
+      mtq_ente:      "With the authority",
+      mtq_tarde_d:   "The procedure is past its deadline",
       mt_c_tramite: "Procedure",
       mt_c_ente:    "Body",
       mt_c_estado:  "Status",
@@ -3004,6 +3022,15 @@ window.CIIP_PASOS = {
       qm_seguir:     "Continuar",
       qm_descargar:  "Baixar",
       qm_mas:        "Ver as {n} em Meus trâmites",
+      /* Los seis montones de Mis trámites, que además cuentan. Los rótulos
+         que ya existían no se repiten: «Todos» sale de f.all, «Te toca a ti»
+         de qm_tu, «Listo» de qm_listo y «Fuera de plazo» de co_h_n_tarde
+         (Franklin Reyes, 17-9-2026). */
+      mtq_total_d:   "Todos os seus pedidos",
+      mtq_ciip:      "No CIIP",
+      mtq_ciip_d:    "Revisão da equipa",
+      mtq_ente:      "No organismo",
+      mtq_tarde_d:   "Passou o prazo do trâmite",
       mt_c_tramite: "Trâmite",
       mt_c_ente:    "Organismo",
       mt_c_estado:  "Estado",
@@ -3941,6 +3968,15 @@ window.CIIP_PASOS = {
       qm_seguir:     "Continua",
       qm_descargar:  "Scarica",
       qm_mas:        "Vedi tutte le {n} in Le mie pratiche",
+      /* Los seis montones de Mis trámites, que además cuentan. Los rótulos
+         que ya existían no se repiten: «Todos» sale de f.all, «Te toca a ti»
+         de qm_tu, «Listo» de qm_listo y «Fuera de plazo» de co_h_n_tarde
+         (Franklin Reyes, 17-9-2026). */
+      mtq_total_d:   "Tutte le tue richieste",
+      mtq_ciip:      "Al CIIP",
+      mtq_ciip_d:    "La revisione del team",
+      mtq_ente:      "All'ente",
+      mtq_tarde_d:   "Il termine della pratica è scaduto",
       mt_c_tramite: "Pratica",
       mt_c_ente:    "Ente",
       mt_c_estado:  "Stato",
@@ -4878,6 +4914,15 @@ window.CIIP_PASOS = {
       qm_seguir:     "继续",
       qm_descargar:  "下载",
       qm_mas:        "在“我的手续”中查看全部 {n} 项",
+      /* Los seis montones de Mis trámites, que además cuentan. Los rótulos
+         que ya existían no se repiten: «Todos» sale de f.all, «Te toca a ti»
+         de qm_tu, «Listo» de qm_listo y «Fuera de plazo» de co_h_n_tarde
+         (Franklin Reyes, 17-9-2026). */
+      mtq_total_d:   "你的全部申请",
+      mtq_ciip:      "在 CIIP",
+      mtq_ciip_d:    "团队审核中",
+      mtq_ente:      "在主管机关",
+      mtq_tarde_d:   "已超过办理期限",
       mt_c_tramite: "手续",
       mt_c_ente:    "机构",
       mt_c_estado:  "状态",
@@ -5815,6 +5860,15 @@ window.CIIP_PASOS = {
       qm_seguir:     "Продолжить",
       qm_descargar:  "Скачать",
       qm_mas:        "Все {n} в разделе «Мои процедуры»",
+      /* Los seis montones de Mis trámites, que además cuentan. Los rótulos
+         que ya existían no se repiten: «Todos» sale de f.all, «Te toca a ti»
+         de qm_tu, «Listo» de qm_listo y «Fuera de plazo» de co_h_n_tarde
+         (Franklin Reyes, 17-9-2026). */
+      mtq_total_d:   "Все ваши заявки",
+      mtq_ciip:      "В CIIP",
+      mtq_ciip_d:    "Проверяет команда",
+      mtq_ente:      "В ведомстве",
+      mtq_tarde_d:   "Срок процедуры истёк",
       mt_c_tramite: "Процедура",
       mt_c_ente:    "Орган",
       mt_c_estado:  "Статус",

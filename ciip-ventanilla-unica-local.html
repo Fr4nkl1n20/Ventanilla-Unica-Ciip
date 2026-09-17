@@ -1694,6 +1694,53 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .co-filtros button:hover, #mtFiltros button:hover{border-color:var(--navy2);}
 .co-filtros button.aqui, #mtFiltros button.aqui{background:var(--navy); border-color:var(--navy); color:#fff;}
 .co-filtros button .n, #mtFiltros button .n{font-variant-numeric:tabular-nums; opacity:.75;}
+
+/* ── LOS SEIS MONTONES DE MIS TRÁMITES, EN TARJETAS ──
+   Franklin Reyes, 17 de septiembre de 2026. Eran cuatro pastillas
+   -«Todos 6», «Te toca a ti 2»…- y pasan a ser seis tarjetas con su
+   cifra grande, como el tablero que él tenía delante. Siguen siendo los
+   filtros de la tabla: la cifra se lee y además se pulsa, en vez de tener
+   dos mecanismos que cuentan lo mismo.
+
+   Van por id + clase para ganarle a las reglas de arriba, que este mismo
+   hueco compartía con la cola del equipo. */
+#mtFiltros.mt-cifras{display:grid; gap:10px; margin:0 0 14px; background:none;
+  border:0; padding:0; grid-template-columns:repeat(6, minmax(0, 1fr));}
+#mtFiltros.mt-cifras button{display:flex; flex-direction:column; align-items:stretch;
+  gap:6px; text-align:left; border:1px solid var(--line); border-radius:var(--r);
+  background:var(--bg); color:var(--ink); padding:12px 13px; cursor:pointer;
+  border-bottom-width:3px; border-bottom-color:var(--navy);}
+#mtFiltros.mt-cifras button:hover{border-color:var(--cyan-deep); border-bottom-color:var(--navy);}
+#mtFiltros.mt-cifras button.aqui{background:var(--bg); color:var(--ink);
+  border-color:var(--navy); box-shadow:inset 0 0 0 1px var(--navy);}
+/* El montón vacío se lee pero no se pulsa: llevar a una lista en blanco
+   es una promesa que no se cumple, y esconderlo dejaría un hueco en la
+   rejilla y una cifra que el tablero sí quiere enseñar. */
+#mtFiltros.mt-cifras button[aria-disabled="true"]{cursor:default; opacity:.85;
+  border-bottom-color:var(--line);}
+#mtFiltros.mt-cifras .mtc-h{display:flex; align-items:flex-start; gap:8px;
+  justify-content:space-between;}
+#mtFiltros.mt-cifras .mtc-t{font-size:var(--fs-nota); font-weight:700; color:var(--navy);
+  text-transform:uppercase; letter-spacing:.04em; line-height:1.25;}
+#mtFiltros.mt-cifras button[aria-disabled="true"] .mtc-t{color:var(--gray);}
+#mtFiltros.mt-cifras .mtc-i{flex:none; width:26px; height:26px; border-radius:7px;
+  background:var(--block); display:flex; align-items:center; justify-content:center;}
+#mtFiltros.mt-cifras .mtc-i svg{width:15px; height:15px; fill:none; stroke:var(--navy);
+  stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+#mtFiltros.mt-cifras .n{font-size:26px; font-weight:800; line-height:1; opacity:1;
+  font-variant-numeric:tabular-nums; color:var(--ink);}
+#mtFiltros.mt-cifras .mtc-d{font-size:var(--fs-nota); color:var(--gray); line-height:1.3;}
+/* Lo que va tarde se dice en rojo, con la misma palabra y el mismo color
+   que la cola del equipo. */
+#mtFiltros.mt-cifras button.tarde .n, #mtFiltros.mt-cifras button.tarde .mtc-t{color:var(--rust);}
+#mtFiltros.mt-cifras button.tarde{border-bottom-color:var(--rust);}
+#mtFiltros.mt-cifras button.tarde .mtc-i svg{stroke:var(--rust);}
+@media (max-width: 1100px){
+  #mtFiltros.mt-cifras{grid-template-columns:repeat(3, minmax(0, 1fr));}
+}
+@media (max-width: 620px){
+  #mtFiltros.mt-cifras{grid-template-columns:repeat(2, minmax(0, 1fr));}
+}
 /* Los mandos de la boveda: los montones y la busca, en una linea. Los
    montones reusan .co-filtros tal cual -el patron ya estaba inventado en
    la cola, y dos maneras de pintar un filtro en el mismo panel acaban
@@ -18770,44 +18817,103 @@ applyLang(idiomaParaMi());
     return it;
   }
 
-  /* 'todas' | 'accion' | 'proceso' | 'listo'. Vive fuera de la funcion
-     que pinta para que repintar -al cambiar de idioma, al descartar un
-     borrador- no devuelva al monton comun. */
+  /* 'todas' | 'accion' | 'ciip' | 'ente' | 'listo' | 'tarde'. Vive fuera
+     de la funcion que pinta para que repintar -al cambiar de idioma, al
+     descartar un borrador- no devuelva al monton comun.
+
+     Eran cuatro y son seis desde el 17 de septiembre de 2026: «en proceso»
+     se parte en dos -quien lo tiene ahora es el CIIP o es el organismo, y
+     no es lo mismo esperar por uno que por otro- y entra el monton de lo
+     que va tarde. */
   var mtFiltro = 'todas';
 
-  function mtCuadra(t){
-    if (mtFiltro === 'todas') return true;
-    return A_TARJETA[t.estado] === mtFiltro;
+  /* Si a una solicitud se le paso el plazo. Es la misma cuenta que la cola
+     del equipo -desde que se ENVIO y contra plazo_dias del catalogo-, y a
+     proposito: si el equipo ve «va tarde» y el inversionista no, uno de
+     los dos esta mirando otra cosa. Lo resuelto no va tarde: ya llego. */
+  function mtTarde(t){
+    if (!t || t.estado === 'resuelto' || t.estado === 'borrador') return false;
+    var plazo = ((TIPOS || {})[tipoRefDe(t.tipo)] || {}).plazo_dias;
+    if (!plazo || !t.enviado_en) return false;
+    var lleva = Math.floor((Date.now() - new Date(t.enviado_en).getTime()) / 86400000);
+    return (plazo - lleva) < 0;
   }
+
+  function mtDelMonton(t, monton){
+    if (monton === 'todas')  return true;
+    if (monton === 'tarde')  return mtTarde(t);
+    if (monton === 'ciip')   return t.estado === 'enviado' || t.estado === 'en_revision';
+    if (monton === 'ente')   return t.estado === 'ante_el_ente';
+    return A_TARJETA[t.estado] === monton;
+  }
+
+  function mtCuadra(t){
+    return mtDelMonton(t, mtFiltro);
+  }
+
+  /* El dibujito de cada monton. Van aqui y no en el marcado porque las
+     tarjetas se pintan: seis trazos, del mismo grosor que los de la barra
+     lateral. */
+  var MT_ICONOS = {
+    todas:  'M7 3h7l4 4v14H7zM14 3v5h4',
+    accion: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM5 20a7 7 0 0 1 14 0',
+    ciip:   'M4 20V9l8-5 8 5v11M9 20v-6h6v6',
+    ente:   'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2',
+    listo:  'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8 12l3 3 5-6',
+    tarde:  'M4 6h16v15H4zM4 10h16M8 3v4M16 3v4'
+  };
 
   function pintaFiltrosMt(){
     var caja = document.getElementById('mtFiltros');
     if (!caja) return;
-    var dic = I18N[curLang] || I18N.en;
+    var dic = I18N[curLang] || I18N.en, u = T();
     caja.textContent = '';
-    /* Con una sola solicitud los cuatro montones dicen lo mismo, y cuatro
-       botones que no reparten nada solo estorban. */
-    caja.hidden = (mios.length < 2);
-    if (caja.hidden) return;
+    /* Antes se escondia con menos de dos solicitudes, cuando eran cuatro
+       pastillas que no repartian nada. Ahora son un tablero: un cero
+       tambien dice algo, y la pantalla ya no empieza en blanco. */
+    caja.hidden = false;
+    caja.classList.add('mt-cifras');
 
-    /* Los rotulos se leen aqui, con dic[...], y no dentro del bucle con
-       dic[x[1]]: pedida asi, pruebas/claves.js no ve la clave y da f.all
+    /* Los rotulos que ya existian se leen aqui, con dic[...], y no dentro
+       del bucle: pedida asi, pruebas/claves.js no ve la clave y da f.all
        por huerfana desde que la portada dejo de pintarla. */
-    [['todas', dic['f.all']], ['accion', dic['f.action']],
-     ['proceso', dic['f.progress']], ['listo', dic['f.done']]].forEach(function(x){
-      var antes = mtFiltro;
-      mtFiltro = x[0];
-      var n = mios.filter(mtCuadra).length;
-      mtFiltro = antes;
-      /* El monton vacio no se ofrece: un boton que lleva a una lista en
-         blanco es una promesa que no se cumple. 'Todas' siempre esta. */
-      if (!n && x[0] !== 'todas') return;
+    [['todas',  dic['f.all'],    u.mtq_total_d],
+     ['accion', u.qm_tu,         u.qm_tu_d],
+     ['ciip',   u.mtq_ciip,      u.mtq_ciip_d],
+     ['ente',   u.mtq_ente,      u.qm_ellos_d],
+     ['listo',  u.qm_listo,      u.qm_listo_d],
+     ['tarde',  u.co_h_n_tarde,  u.mtq_tarde_d]].forEach(function(x){
+      var n = mios.filter(function(t){ return mtDelMonton(t, x[0]); }).length;
 
-      var b = el('button', mtFiltro === x[0] ? 'aqui' : null);
+      /* La portada manda aqui con su propio monton: «En manos del CIIP o
+         del organismo» es uno solo alli y dos tarjetas aqui, asi que se
+         encienden las dos y la tabla sigue enseñando las mismas. */
+      var puesto = (mtFiltro === x[0]) ||
+                   (mtFiltro === 'proceso' && (x[0] === 'ciip' || x[0] === 'ente'));
+      var b = el('button', (puesto ? 'aqui' : '') +
+                           (x[0] === 'tarde' && n ? ' tarde' : ''));
       b.type = 'button';
-      b.appendChild(document.createTextNode(x[1] || ''));
+      b.setAttribute('data-monton', x[0]);
+
+      var cab = el('div', 'mtc-h');
+      cab.appendChild(el('span', 'mtc-t', x[1] || ''));
+      var ico = el('span', 'mtc-i');
+      ico.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' +
+                      (MT_ICONOS[x[0]] || '') + '"/></svg>';
+      cab.appendChild(ico);
+      b.appendChild(cab);
       b.appendChild(el('span', 'n', String(n)));
-      b.addEventListener('click', function(){ mtFiltro = x[0]; pintaMisTramites(); });
+      b.appendChild(el('span', 'mtc-d', x[2] || ''));
+
+      /* El monton vacio se lee pero no lleva a ninguna parte: un filtro
+         que deja la tabla en blanco es una promesa que no se cumple.
+         'Todos' siempre se puede pulsar, que es como se vuelve. */
+      if (!n && x[0] !== 'todas'){
+        b.setAttribute('aria-disabled', 'true');
+      } else {
+        b.setAttribute('aria-pressed', puesto ? 'true' : 'false');
+        b.addEventListener('click', function(){ mtFiltro = x[0]; pintaMisTramites(); });
+      }
       caja.appendChild(b);
     });
   }
