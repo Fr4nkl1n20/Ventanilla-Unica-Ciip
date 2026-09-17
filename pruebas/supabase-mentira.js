@@ -2099,6 +2099,14 @@
                  correcto-, asi que la prueba de que la foto se ve no podia
                  pasar nunca. Y para lo que no existe, el mismo error que
                  da Storage. */
+              /* La URL de un cubo publico -el de los logos de las fichas-.
+                 Storage la da sin preguntar si el archivo existe, y aqui
+                 igual; la imagen es el mismo pixel, para que cargue. */
+              getPublicUrl: function(ruta){
+                return {data:{publicUrl:
+                  'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==#' + ruta
+                }};
+              },
               createSignedUrl: function(ruta){
                 if (!subidas[ruta] && !enLaBoveda(ruta)){
                   return Promise.resolve({data:null, error:{message:'Object not found'}});

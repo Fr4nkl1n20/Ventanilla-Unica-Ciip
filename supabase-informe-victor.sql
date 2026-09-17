@@ -316,8 +316,15 @@ update public.tipos_tramite set nivel = 'opcional'
 --  Por eso entra encadenado: EMITE la constancia de firma, y la
 --  constitución la PIDE. Así la tarjeta del c5 dirá «esperando a» en vez
 --  de dejar entrar a ciegas. Ver supabase-encadenado.sql.
+--  Y el papel que se ENTREGA, que es otro: el documento del trámite que
+--  se va a otorgar. El panel lo pedía con el tipo 'otro' -el cajón del
+--  catálogo- y así la bóveda le colgaba encima el último papel suelto que
+--  hubiera, con su ✓ de «ya lo tienes». Aquí eso no es un adorno: es el
+--  papel que dice qué se va a firmar, y con el equivocado el portal
+--  rechaza la solicitud entera. No vence: es el documento de una fecha.
 insert into public.tipos_documento (codigo, nombre, vence) values
-  ('constancia_sisref', 'Constancia de firma en el Registro de Extranjeros (SISREF)', false)
+  ('constancia_sisref',         'Constancia de firma en el Registro de Extranjeros (SISREF)', false),
+  ('documento_tramite_sisref',  'Documento del trámite que se va a otorgar',                  false)
 on conflict (codigo) do update set nombre = excluded.nombre;
 
 insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values

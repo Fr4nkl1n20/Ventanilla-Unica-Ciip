@@ -85,7 +85,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* La reserva del nombre antes de resolver la constitución (c5), y el pago
    de aranceles adjuntable con la protocolización en marcha (c22). Necesita
    tramites, documentos y tramite_documentos; va al final. */
-'supabase-reserva-nombre'];
+'supabase-reserva-nombre',
+/* El logo de cada ficha, que sube el admin. Necesita el catalogo con su
+   politica de escritura y la bitacora; va al final. */
+'supabase-logos-fichas'];
 
 let mal = 0;
 for (const n of orden) {

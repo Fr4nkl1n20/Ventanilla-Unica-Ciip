@@ -947,6 +947,15 @@ body[data-vista="catalogo"] .fase-bar{display:none;}
 .cg-fila .t-btn{min-width:92px; text-align:center;}
 .cg-aviso{flex-basis:100%; font-size:11.5px; color:var(--rust); margin-top:2px;}
 .cg-aviso:empty{display:none;}
+/* El logo de la ficha, con su muestra: la misma caja que en la portada,
+   para que quien lo cambia vea aquí lo que verá el inversionista. */
+.cg-logo{display:inline-flex; align-items:center; gap:8px;}
+.cg-logo .t-ico{margin:0;}
+.cg-logo .cg-logo-b{font:inherit; font-size:11px; font-weight:700; color:var(--navy2);
+  background:none; border:0; padding:2px 0; cursor:pointer;}
+.cg-logo .cg-logo-b:hover{text-decoration:underline; text-underline-offset:3px;}
+.cg-logo .cg-logo-b:disabled{opacity:.55; cursor:default; text-decoration:none;}
+.cg-logo input[type=file]{display:none;}
 body[data-vista="usuarios"] .usuarios-vista{display:block;}
 body[data-vista="usuarios"] .solo-inicio,
 body[data-vista="usuarios"] #secTramites,
@@ -8202,7 +8211,17 @@ applyLang(idiomaParaMi());
          pedir sin ellas y se dice en la consola. */
       var CAMPOS = 'codigo, ref_panel, ente, activo, emite, plazo_dias, nivel';
       var CON_LEY = CAMPOS + ', plazo_legal_dias, plazo_legal_norma';
-      return sb.from('tipos_tramite').select(CON_LEY)
+      /* El logo subido por el admin, con la misma vuelta atrás: sin
+         supabase-logos-fichas.sql la columna no existe, y las fichas se
+         quedan con su icono de siempre. */
+      return sb.from('tipos_tramite').select(CON_LEY + ', logo')
+      .then(function(r0){
+        var m = (r0 && r0.error && r0.error.message) || '';
+        if (!m) return r0;
+        console.warn('[CIIP] el catálogo no trae el logo (' + m +
+                     '); sigo sin él. ¿Falta correr supabase-logos-fichas.sql?');
+        return sb.from('tipos_tramite').select(CON_LEY);
+      })
       .then(function(r0){
         var m = (r0 && r0.error && r0.error.message) || '';
         if (!m) return r0;
@@ -8646,7 +8665,17 @@ applyLang(idiomaParaMi());
          para el del trámite). El cubo ya tiene su propio tope de 10 MB;
          el del portal lo comprueba el gestor al transcribir. */
       {tipo:'pasaporte',   clave:'d_pasaporte'},
-      {tipo:'otro',        clave:'d_doctramite'},
+      /* Con su propio tipo y no con 'otro'. 'otro' es el cajón del
+         catálogo -se llama «Otro documento»- y la bóveda busca por tipo:
+         colgaba aquí el último papel suelto que hubieras subido, fuera
+         cual fuera, con el ✓ de «ya lo tienes» al lado. Y justo aquí
+         importa, porque es el papel que dice QUÉ se va a otorgar: mandar
+         otro es que el portal rechace la solicitud entera.
+
+         El comentario de arriba avisa de esto mismo dos párrafos antes
+         -la traducción con el rótulo de la licencia- y esta línea volvía
+         a hacerlo. Un cajón compartido es una clave reusada. */
+      {tipo:'documento_tramite_sisref', clave:'d_doctramite'},
       {tipo:'poder',       clave:'d_poder', opcional:true}
     ],
 
@@ -9052,7 +9081,22 @@ applyLang(idiomaParaMi());
        La carta al Comandante NO se pide: la redacta el CIIP con lo que
        se escribe en el formulario, igual que la solicitud del SISREF. */
     opinion_zodi: [
-      {tipo:'acta_constitutiva',     clave:'d_actaproyecto'},
+      /* El PROYECTO del acta, y por eso no lleva la llave del acta de
+         verdad. Llevaba 'acta_constitutiva', que es lo que EMITE el c5, y
+         eso hacía dos cosas mal a la vez: la bóveda colgaba aquí el acta
+         ya registrada con su ✓ de «ya lo tienes», y el papel que se manda
+         a la ZODI acababa siendo el definitivo en vez del borrador.
+
+         Y es imposible por fechas: la opinión de la ZODI va ANTES del
+         Registro Mercantil -lo dice supabase-zodi.sql, y es su motivo de
+         existir-, así que cuando esto se pide el acta registrada no puede
+         existir todavía. Si existe, es que vienes de otra constitución, y
+         entonces es el acta de otra empresa.
+
+         Es el mismo fallo del que avisa el comentario del SISREF unas
+         líneas más arriba -reusar una clave sin mirar qué dice- y se
+         cazan igual: leyendo el rótulo al lado del tipo. */
+      {tipo:'proyecto_acta',         clave:'d_actaproyecto'},
       {tipo:'estatutos_accionista',  clave:'d_estatutosacc'},
       {tipo:'good_standing',         clave:'d_goodstanding'},
       {tipo:'beneficiarios_finales', clave:'d_beneficiarios'},
@@ -21026,6 +21070,59 @@ applyLang(idiomaParaMi());
   window.CIIP_TRAMOS_DE_VERDAD = pintaTramosDeVerdad;
 
 
+  /* ── EL LOGO QUE SUBE EL ADMIN ──
+     El icono de cada ficha va escrito en el HTML, y ése sigue siendo el de
+     siempre. Si el catálogo trae un logo subido, se pone ENCIMA; si se
+     quita, vuelve el de siempre. Por eso el original se guarda la primera
+     vez, antes de tocar nada: sin él, quitar un logo dejaría la ficha sin
+     icono hasta recargar.
+
+     Va a la caja .t-ico y no a otra parte porque de ahí lo copian el
+     detalle del trámite y la fila de quién lo mueve: cambiándolo aquí, se
+     ve en los tres sitios. */
+  function urlDelLogo(ruta){
+    if (!ruta) return '';
+    try {
+      var r = sb.storage.from('logos-fichas').getPublicUrl(ruta);
+      return (r && r.data && r.data.publicUrl) || '';
+    } catch (e){ return ''; }
+  }
+  window.CIIP_URL_LOGO = urlDelLogo;
+
+  var ICO_ORIGINAL = new WeakMap();
+  function pintaLogo(c, tipo){
+    var ico = c.querySelector('.t-ico');
+    if (!ICO_ORIGINAL.has(c)){
+      ICO_ORIGINAL.set(c, (ico && !ico.classList.contains('subido')) ? ico.cloneNode(true) : null);
+    }
+    var url = urlDelLogo(tipo && tipo.logo);
+    if (url){
+      var img = ico && ico.classList.contains('subido') && ico.querySelector('img');
+      if (img && img.getAttribute('src') === url) return;
+      var caja = el('div', 't-ico placa subido');
+      var im = document.createElement('img');
+      im.className = 'ilogo';
+      im.alt = '';
+      /* Si el archivo no carga, mejor el icono de siempre que un hueco. */
+      im.addEventListener('error', function(){
+        var orig = ICO_ORIGINAL.get(c);
+        if (!caja.parentNode) return;
+        if (orig) caja.parentNode.replaceChild(orig.cloneNode(true), caja);
+        else caja.remove();
+      });
+      im.src = url;
+      caja.appendChild(im);
+      if (ico) ico.parentNode.replaceChild(caja, ico);
+      else c.insertBefore(caja, c.firstChild);
+      return;
+    }
+    if (ico && ico.classList.contains('subido')){
+      var orig = ICO_ORIGINAL.get(c);
+      if (orig) ico.parentNode.replaceChild(orig.cloneNode(true), ico);
+      else ico.remove();
+    }
+  }
+
   function pintaEstadoTarjetas(){
     if (!TIPOS) return;
     ponAlDiaLoEncendido(TIPOS);
@@ -21069,6 +21166,7 @@ applyLang(idiomaParaMi());
       pintaPlazoLegal(c, (TIPOS || {})[ref]);
       pintaAcompana(c);
       pintaListo(c, (TIPOS || {})[ref], st);
+      pintaLogo(c, (TIPOS || {})[ref]);
     });
 
     /* Apartar ANTES de recontar: los filtros cuentan tarjetas y da igual
@@ -21213,6 +21311,16 @@ applyLang(idiomaParaMi());
   function clavesDeTipo(){
     if (!CLAVE_DE_TIPO){
       CLAVE_DE_TIPO = {};
+      /* El cajón, a mano: 'otro' no es recaudo de ningún trámite —ya no—,
+         así que por la vuelta de abajo no entra, y sin nombre la bóveda
+         enseñaría el código pelado a quien tenga uno guardado.
+
+         Estaba colgado del SISREF, con el rótulo del documento que ese
+         portal pide, y eso hacía dos cosas: nombraba «Documento del
+         trámite que vas a hacer» a CUALQUIER papel suelto del expediente,
+         y ofrecía el cajón en «Subir documento» bajo ese nombre. Un cajón
+         se llama cajón; lo que pide el SAREN tiene su propio tipo. */
+      CLAVE_DE_TIPO.otro = 'd_otro';
       Object.keys(RECAUDOS).forEach(function(t){
         (RECAUDOS[t] || []).forEach(function(r){
           if (r.tipo && r.clave && !CLAVE_DE_TIPO[r.tipo]) CLAVE_DE_TIPO[r.tipo] = r.clave;
@@ -24006,6 +24114,8 @@ applyLang(idiomaParaMi());
       if (b.accion === 'plazo'){
         accion = b.detalle ? String(u.ra_v_plazo || '').replace('{n}', b.detalle)
                            : (u.ra_v_sinplazo || '');
+      } else if (b.accion === 'logo'){
+        accion = (b.detalle ? u.ra_v_logo : u.ra_v_sinlogo) || '';
       } else {
         accion = (b.accion === 'encendio' ? u.ra_v_on : u.ra_v_off) || '';
       }
@@ -24742,9 +24852,21 @@ applyLang(idiomaParaMi());
     return true;
   }
 
+  /* Si la base todavía no tiene la columna del logo, la fila no enseña su
+     mando: ofrecer subir algo que no se puede guardar es peor que no
+     ofrecerlo. */
+  var cgConLogo = false;
   function cargaCatalogoAdmin(){
+    var CAMPOS = 'codigo, ref_panel, nombre, ente, fase, activo, plazo_dias';
     return sb.from('tipos_tramite')
-      .select('codigo, ref_panel, nombre, ente, fase, activo, plazo_dias')
+      .select(CAMPOS + ', logo')
+      .then(function(r){
+        cgConLogo = !(r && r.error);
+        if (cgConLogo) return r;
+        console.warn('[CIIP] catalogo sin logo (' + (r.error.message || '') +
+                     '). ¿Falta correr supabase-logos-fichas.sql?');
+        return sb.from('tipos_tramite').select(CAMPOS);
+      })
       .then(function(r){
         if (r.error) throw r.error;
         cgTipos = r.data || [];
@@ -25032,8 +25154,139 @@ applyLang(idiomaParaMi());
       guardaElPlazo(x, dias, campo, aviso);
     });
 
+    if (cgConLogo) fila.insertBefore(mandoDelLogo(x, aviso), que);
+
     fila.appendChild(aviso);
     return fila;
+  }
+
+  /* ── EL LOGO DE LA FICHA ──
+     La muestra es la caja de la portada tal cual -la del HTML o la que ya
+     tiene un logo subido-, así que aquí se ve lo mismo que verá el
+     inversionista. «Cambiar» sube y guarda; «Volver al de siempre» borra
+     la ruta y la ficha recupera el icono del código. */
+  var LOGO_TIPOS = ['image/png', 'image/jpeg', 'image/webp'];
+  var LOGO_MAX = 1024 * 1024;
+
+  function mandoDelLogo(x, aviso){
+    var u = T();
+    var caja = el('div', 'cg-logo');
+
+    var tarjeta = x.ref_panel && document.querySelector('.tcard[data-tr="' + x.ref_panel + '"] .t-ico');
+    var muestra;
+    if (x.logo && window.CIIP_URL_LOGO){
+      muestra = el('div', 't-ico placa subido');
+      var im = document.createElement('img');
+      im.className = 'ilogo';
+      im.alt = '';
+      im.src = window.CIIP_URL_LOGO(x.logo);
+      muestra.appendChild(im);
+    } else if (tarjeta && !tarjeta.classList.contains('subido')){
+      muestra = tarjeta.cloneNode(true);
+    } else {
+      muestra = el('div', 't-ico');
+    }
+    muestra.setAttribute('aria-hidden', 'true');
+    caja.appendChild(muestra);
+
+    var archivo = document.createElement('input');
+    archivo.type = 'file';
+    archivo.accept = LOGO_TIPOS.join(',');
+    caja.appendChild(archivo);
+
+    var cambia = el('button', 'cg-logo-b', u.cg_logo_cambia || '');
+    cambia.type = 'button';
+    cambia.setAttribute('aria-label', (u.cg_logo_cambia || '') + ' · ' + (x.nombre || x.codigo));
+    cambia.addEventListener('click', function(){ archivo.click(); });
+    caja.appendChild(cambia);
+
+    var quita = null;
+    if (x.logo){
+      quita = el('button', 'cg-logo-b', u.cg_logo_quita || '');
+      quita.type = 'button';
+      quita.addEventListener('click', function(){
+        cambia.disabled = quita.disabled = true;
+        aviso.textContent = '';
+        guardaElLogo(x, null, aviso, function(){ cambia.disabled = quita.disabled = false; });
+      });
+      caja.appendChild(quita);
+    }
+
+    archivo.addEventListener('change', function(){
+      var f = archivo.files && archivo.files[0];
+      archivo.value = '';
+      if (!f) return;
+      aviso.textContent = '';
+      /* El cubo ya rechaza lo que no es, pero con un error que habla de
+         mime types. Aquí se dice en cristiano y sin gastar la subida. */
+      if (LOGO_TIPOS.indexOf(f.type) < 0 || f.size > LOGO_MAX){
+        aviso.textContent = u.cg_logo_mal || '';
+        return;
+      }
+      cambia.disabled = true;
+      if (quita) quita.disabled = true;
+      cambia.textContent = u.cg_logo_subiendo || '';
+      guardaElLogo(x, f, aviso, function(){
+        cambia.disabled = false;
+        if (quita) quita.disabled = false;
+        cambia.textContent = u.cg_logo_cambia || '';
+      });
+    });
+
+    return caja;
+  }
+
+  /* Subir, apuntar y SOLO ENTONCES borrar el viejo. En ese orden: si falla
+     el apunte, se quita lo recién subido y la ficha sigue como estaba; si
+     se borrara antes el viejo, un fallo a medias dejaría la ficha
+     apuntando a un archivo que ya no existe.
+
+     El nombre lleva la hora para que cada logo sea una URL nueva: el cubo
+     es público y se cachea, y con el mismo nombre la portada seguiría
+     enseñando el de antes durante horas. */
+  function guardaElLogo(x, f, aviso, alTerminar){
+    var u = T();
+    var cubo = sb.storage.from('logos-fichas');
+    var antes = x.logo || null;
+    var ruta = null;
+
+    var subida = Promise.resolve(null);
+    if (f){
+      var ext = {'image/png':'png', 'image/jpeg':'jpg', 'image/webp':'webp'}[f.type] || 'png';
+      ruta = x.codigo + '/' + Date.now() + '.' + ext;
+      subida = cubo.upload(ruta, f, {contentType: f.type, upsert: false})
+        .then(function(r){ if (r.error) throw r.error; });
+    }
+
+    subida
+      .then(function(){
+        return sb.from('tipos_tramite')
+          .update({logo: ruta})
+          .eq('codigo', x.codigo)
+          .select('codigo, logo');
+      })
+      .then(function(r){
+        if (r.error) throw r.error;
+        var filas = r.data || [];
+        if (!filas.length){
+          /* RLS no dejó: lo subido sobra. */
+          if (ruta) cubo.remove([ruta]);
+          aviso.textContent = u.cg_nopudo || '';
+          alTerminar();
+          return;
+        }
+        x.logo = filas[0].logo || null;
+        if (antes && antes !== x.logo) cubo.remove([antes]);
+        aviso.textContent = u.cg_guardado || '';
+        var hecho = window.CIIP_OLVIDA_CATALOGO ? window.CIIP_OLVIDA_CATALOGO() : Promise.resolve();
+        Promise.resolve(hecho).then(function(){ pintaCatalogo(); });
+      })
+      .catch(function(e){
+        console.warn('[CIIP] logo del catalogo:', e && (e.message || e));
+        if (ruta && x.logo !== ruta) cubo.remove([ruta]);
+        aviso.textContent = u.cg_error || '';
+        alTerminar();
+      });
   }
 
   /* El mismo cuidado que el interruptor de al lado, y por el mismo motivo:

@@ -761,8 +761,15 @@ update public.tipos_tramite set nivel = 'opcional'
 --  Por eso entra encadenado: EMITE la constancia de firma, y la
 --  constitución la PIDE. Así la tarjeta del c5 dirá «esperando a» en vez
 --  de dejar entrar a ciegas. Ver supabase-encadenado.sql.
+--  Y el papel que se ENTREGA, que es otro: el documento del trámite que
+--  se va a otorgar. El panel lo pedía con el tipo 'otro' -el cajón del
+--  catálogo- y así la bóveda le colgaba encima el último papel suelto que
+--  hubiera, con su ✓ de «ya lo tienes». Aquí eso no es un adorno: es el
+--  papel que dice qué se va a firmar, y con el equivocado el portal
+--  rechaza la solicitud entera. No vence: es el documento de una fecha.
 insert into public.tipos_documento (codigo, nombre, vence) values
-  ('constancia_sisref', 'Constancia de firma en el Registro de Extranjeros (SISREF)', false)
+  ('constancia_sisref',         'Constancia de firma en el Registro de Extranjeros (SISREF)', false),
+  ('documento_tramite_sisref',  'Documento del trámite que se va a otorgar',                  false)
 on conflict (codigo) do update set nombre = excluded.nombre;
 
 insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values
@@ -1305,7 +1312,14 @@ select codigo, nombre, vence from public.tipos_documento where codigo = 'carta_c
 --  que acredita una situación VIGENTE -el certificado de existencia legal,
 --  como una solvencia- y no lo que acredita un hecho de una fecha -los
 --  estatutos, la lista firmada-.
+--  Y el PROYECTO del acta es un tipo propio, no el acta. El panel lo pedía
+--  con 'acta_constitutiva' -lo que emite el c5- y por ahí la bóveda le
+--  colgaba el acta ya registrada con su ✓ de «ya lo tienes». Es imposible
+--  por fechas: esta opinión va ANTES del Registro Mercantil, así que
+--  cuando se pide, el acta registrada no existe; si existe, es de otra
+--  empresa. No vence: es el borrador de una fecha.
 insert into public.tipos_documento (codigo, nombre, vence) values
+  ('proyecto_acta',         'Proyecto del documento constitutivo',                                      false),
   ('estatutos_accionista',  'Documento constitutivo y estatutos de la empresa accionista y de su matriz', false),
   ('good_standing',         'Certificado de existencia legal (Good Standing)',                         true),
   ('beneficiarios_finales', 'Lista de accionistas y directores hasta los beneficiarios finales',         false),
@@ -1342,10 +1356,10 @@ update public.tipos_tramite
 --   select ref_panel, codigo, nombre, ente, fase, nivel, emite, plazo_dias, activo
 --   from public.tipos_tramite where ref_panel = 'c34';
 --
--- 2) Los cuatro papeles nuevos:
+-- 2) Los cinco papeles nuevos:
 --
 --   select codigo, nombre, vence from public.tipos_documento
---   where codigo in ('estatutos_accionista','good_standing',
+--   where codigo in ('proyecto_acta','estatutos_accionista','good_standing',
 --                    'beneficiarios_finales','no_objecion_zodi');
 --
 -- 3) Los obligatorios siguen siendo DIEZ, cinco y cinco: el c34 no suma.

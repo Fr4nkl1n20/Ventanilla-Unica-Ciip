@@ -240,6 +240,7 @@
               catalogoAbre, catalogoEspera, catalogoMira, catalogoGuarda, catalogoTrasGuardar,
               catalogoVuelveEspera, catalogoSeVeEnLaFicha,
               catalogoDeshace, catalogoDeshaceEspera, catalogoDeshacePonlo,
+              logoAbre, logoEspera, logoSube, logoTrasSubir, logoQuita, logoTrasQuitar,
               puertaTodos,
               consultaAbre, consultaMira, consultaEntra, consultaDentro,
               rotulosMiran, consultaNueva, consultaNuevaMira, consultaTrasCrear,
@@ -3660,11 +3661,15 @@
     igual('sisref: pide los nueve datos', campos.length, 9);
     igual('sisref: y sus tres recaudos', docs.length, 3);
 
-    /* Los tres que pide el portal, por su tipo de la bóveda. */
+    /* Los tres que pide el portal, por su tipo de la bóveda. El del medio
+       tiene tipo PROPIO: llevaba 'otro', que es el cajón del catálogo, y
+       la bóveda busca por tipo -le colgaba encima el último papel suelto
+       que hubiera, con el ✓ de «ya lo tienes» al lado-. Justo aquí no es
+       un detalle: es el papel que dice qué se va a otorgar. */
     var tipos = [];
     docs.forEach(function(d){ tipos.push(d.getAttribute('data-doc')); });
     igual('sisref: identidad, documento del trámite y poder',
-      tipos.join(' '), 'pasaporte otro poder');
+      tipos.join(' '), 'pasaporte documento_tramite_sisref poder');
 
     /* Ni una palabra de la licencia de conducir. Es la comprobación que
        habría cazado el rótulo copiado, y la única que lo habría hecho. */
@@ -3677,7 +3682,7 @@
     /* El del trámite es el que de verdad faltaba, y va OBLIGATORIO: sin él
        la solicitud no dice qué se va a otorgar, que es lo que el SAREN
        mira. El poder va opcional, que sólo le hace falta al apoderado. */
-    var doc = caja.querySelector('.sol-doc[data-doc="otro"]');
+    var doc = caja.querySelector('.sol-doc[data-doc="documento_tramite_sisref"]');
     ok('sisref: el documento del trámite es obligatorio',
        !!doc && !doc.hasAttribute('data-opcional'),
        doc ? (doc.hasAttribute('data-opcional') ? 'opcional' : 'obligatorio') : 'no está',
@@ -3725,9 +3730,15 @@
 
     var tipos = [];
     docs.forEach(function(d){ tipos.push(d.getAttribute('data-doc')); });
+    /* El primero es el PROYECTO del acta y tiene tipo propio, no el del
+       acta registrada: con 'acta_constitutiva' la bóveda le colgaba
+       encima el acta del c5, que cuando esto se pide no puede existir
+       -la ZODI va antes del Registro Mercantil-. Se comprueba el tipo y
+       no solo que haya siete filas, porque el fallo no se veía contando:
+       eran siete igual, con el papel equivocado dentro. */
     igual('zodi: sus siete recaudos, con la cadena corporativa en medio',
       tipos.join(' '),
-      'acta_constitutiva estatutos_accionista good_standing beneficiarios_finales poder cedula rif_personal');
+      'proyecto_acta estatutos_accionista good_standing beneficiarios_finales poder cedula rif_personal');
 
     /* Ninguno opcional: a quien le toca la ZODI le tocan todos. El poder
        tampoco, que en el SISREF sí lo es: aquí el accionista es una
@@ -7910,6 +7921,89 @@
     location.hash = "";
   }
 
+  /* ── EL LOGO DE LA FICHA ──
+     El admin sube uno para la c1 desde el catalogo, se mira que la ficha
+     de la portada lo enseña, y se quita para ver que vuelve el icono de
+     siempre: quitar no puede dejar la ficha sin nada. */
+  var LOGO_ANTES = null;
+  function logoAbre(){
+    if (!ES_ADMIN) return;
+    var ico = document.querySelector('.tcard[data-tr="c1"] .t-ico');
+    LOGO_ANTES = ico ? ico.outerHTML : null;
+    location.hash = "catalogo";
+  }
+
+  function logoEspera(sigue){
+    if (!ES_ADMIN) return sigue();
+    esperaFilas("#cgLista .cg-fase", 1, function(){
+      var c = document.querySelector("#cgLista .cg-fase");
+      if (c && c.getAttribute("aria-expanded") !== "true") c.click();
+      esperaFilas('#cgLista .cg-fila[data-cg="c1"] .cg-logo', 1, sigue);
+    });
+  }
+
+  function logoSube(){
+    if (!ES_ADMIN) return;
+    var filas = document.querySelectorAll("#cgLista .cg-fila");
+    var sin = [].filter.call(filas, function(f){ return !f.querySelector(".cg-logo input[type=file]"); });
+    ok("logo: todas las filas del catalogo dejan cambiar el logo",
+       filas.length > 0 && sin.length === 0,
+       sin.length ? (sin.length + " sin mando") : (filas.length + " filas"), "todas");
+
+    var inp = document.querySelector('#cgLista .cg-fila[data-cg="c1"] .cg-logo input[type=file]');
+    if (!inp) return;
+
+    /* Primero uno que no vale: no se sube nada y se dice por que. */
+    var dt0 = new DataTransfer();
+    dt0.items.add(new File([new Uint8Array(64)], 'logo.gif', {type:'image/gif'}));
+    inp.files = dt0.files;
+    inp.dispatchEvent(new Event('change'));
+    var aviso = document.querySelector('#cgLista .cg-fila[data-cg="c1"] .cg-aviso');
+    ok("logo: un GIF no se sube, y lo dice",
+       !!aviso && aviso.textContent.length > 0,
+       aviso ? (aviso.textContent || "(vacio)") : "(sin aviso)", "un aviso");
+
+    var dt = new DataTransfer();
+    dt.items.add(new File([new Uint8Array(64)], 'logo.png', {type:'image/png'}));
+    inp.files = dt.files;
+    inp.dispatchEvent(new Event('change'));
+  }
+
+  function logoTrasSubir(sigue){
+    if (!ES_ADMIN) return sigue();
+    esperaFilas('.tcard[data-tr="c1"] .t-ico.subido img', 1, function(){
+      var im = document.querySelector('.tcard[data-tr="c1"] .t-ico.subido img');
+      ok("logo: la ficha de la portada enseña el logo subido, sin recargar",
+         !!im, im ? "con logo" : "sigue el icono de siempre", "con logo");
+      var quita = document.querySelectorAll('#cgLista .cg-fila[data-cg="c1"] .cg-logo .cg-logo-b');
+      ok("logo: y la fila ofrece volver al de siempre",
+         quita.length === 2, quita.length + " botones", "2 botones");
+      sigue();
+    });
+  }
+
+  function logoQuita(){
+    if (!ES_ADMIN) return;
+    var bs = document.querySelectorAll('#cgLista .cg-fila[data-cg="c1"] .cg-logo .cg-logo-b');
+    if (bs.length === 2) bs[1].click();
+  }
+
+  function logoTrasQuitar(sigue){
+    if (!ES_ADMIN) return sigue();
+    var n = 0;
+    (function mira(){
+      if (!document.querySelector('.tcard[data-tr="c1"] .t-ico.subido') || ++n > 80){
+        var ico = document.querySelector('.tcard[data-tr="c1"] .t-ico');
+        ok("logo: al quitarlo vuelve el icono de siempre",
+           !!ico && ico.outerHTML === LOGO_ANTES,
+           ico ? ico.className : "(sin icono)", "el del HTML");
+        location.hash = "";
+        return sigue();
+      }
+      setTimeout(mira, 40);
+    })();
+  }
+
   function consultaAbre(){
     if (CASO === 'gestor') return;
     if (window.CIIP_ABRE_CONSULTA) window.CIIP_ABRE_CONSULTA();
@@ -10166,6 +10260,9 @@
        el una tarjeta podria llevar el logo del SAIME y decir SENIAT. */
     var conFondo = [], desparejas = [];
     [].forEach.call(document.querySelectorAll('.tcard'), function(c){
+      /* Un logo que subio el admin manda sobre el del organismo: no sale
+         de logos/ ni tiene por que parecerse a la marca. */
+      if (c.querySelector('.t-ico.subido')) return;
       var im = c.querySelector('.t-ico.placa img.ilogo');
       var marca = c.getAttribute('data-marca');
       if (!im && !marca) return;                 /* sin organismo: ni logo ni fondo */

@@ -67,7 +67,14 @@
 --  que acredita una situación VIGENTE -el certificado de existencia legal,
 --  como una solvencia- y no lo que acredita un hecho de una fecha -los
 --  estatutos, la lista firmada-.
+--  Y el PROYECTO del acta es un tipo propio, no el acta. El panel lo pedía
+--  con 'acta_constitutiva' -lo que emite el c5- y por ahí la bóveda le
+--  colgaba el acta ya registrada con su ✓ de «ya lo tienes». Es imposible
+--  por fechas: esta opinión va ANTES del Registro Mercantil, así que
+--  cuando se pide, el acta registrada no existe; si existe, es de otra
+--  empresa. No vence: es el borrador de una fecha.
 insert into public.tipos_documento (codigo, nombre, vence) values
+  ('proyecto_acta',         'Proyecto del documento constitutivo',                                      false),
   ('estatutos_accionista',  'Documento constitutivo y estatutos de la empresa accionista y de su matriz', false),
   ('good_standing',         'Certificado de existencia legal (Good Standing)',                         true),
   ('beneficiarios_finales', 'Lista de accionistas y directores hasta los beneficiarios finales',         false),
@@ -104,10 +111,10 @@ update public.tipos_tramite
 --   select ref_panel, codigo, nombre, ente, fase, nivel, emite, plazo_dias, activo
 --   from public.tipos_tramite where ref_panel = 'c34';
 --
--- 2) Los cuatro papeles nuevos:
+-- 2) Los cinco papeles nuevos:
 --
 --   select codigo, nombre, vence from public.tipos_documento
---   where codigo in ('estatutos_accionista','good_standing',
+--   where codigo in ('proyecto_acta','estatutos_accionista','good_standing',
 --                    'beneficiarios_finales','no_objecion_zodi');
 --
 -- 3) Los obligatorios siguen siendo DIEZ, cinco y cinco: el c34 no suma.

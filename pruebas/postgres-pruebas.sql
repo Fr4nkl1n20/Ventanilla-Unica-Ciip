@@ -2653,6 +2653,22 @@ select arnes.comprueba(
   (select count(*) = 3 from public.tipos_documento
     where codigo in ('estatutos_accionista', 'good_standing', 'beneficiarios_finales')));
 
+-- El PROYECTO del acta es un tipo propio y no el acta registrada. El panel
+-- lo pedia con 'acta_constitutiva' -lo que emite el c5- y la boveda le
+-- colgaba encima el acta ya registrada con su visto de "ya lo tienes".
+-- Por fechas es imposible: esta opinion va ANTES del Registro Mercantil.
+-- Sin el tipo en la base, subirlo lo rechaza la clave foranea.
+select arnes.comprueba(
+  'zodi: el proyecto del acta tiene tipo propio, no el del acta registrada',
+  (select count(*) = 1 from public.tipos_documento where codigo = 'proyecto_acta'));
+
+-- Lo mismo en el c32: el documento del tramite iba con el tipo 'otro', que
+-- es el cajon del catalogo, y ahi la boveda ofrece cualquier papel suelto.
+select arnes.comprueba(
+  'sisref: el documento del tramite tiene tipo propio, no el cajon',
+  (select count(*) = 1 from public.tipos_documento
+    where codigo = 'documento_tramite_sisref'));
+
 -- Y no le cuesta un obligatorio a nadie: siguen los diez del informe.
 select arnes.comprueba(
   'zodi: y los obligatorios siguen siendo diez',
@@ -2831,6 +2847,75 @@ select arnes.comprueba(
   (select count(*) = 2 from public.tipos_documento
     where codigo in ('constitutivo_accionista', 'identidad_socios_accionista')
       and not vence));
+
+-- ── EL LOGO DE LAS FICHAS ───────────────────────────────────────────────
+-- Lo sube el admin; un inversionista no sube, no apunta y no borra, y
+-- cualquiera lo ve.
+reset role;
+select arnes.nadie();
+select arnes.comprueba(
+  'logos: el cubo es publico, con tope de 1 MB y tres tipos, sin SVG',
+  coalesce((select public and file_size_limit = 1048576
+                   and array_length(allowed_mime_types, 1) = 3
+                   and not ('image/svg+xml' = any(allowed_mime_types))
+              from storage.buckets where id = 'logos-fichas'), false));
+
+select coalesce(max(id), 0) as logo_antes from public.bitacora \gset
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'B'));
+do $p$
+begin
+  insert into storage.objects (bucket_id, name, owner)
+  values ('logos-fichas', 'rif_personal/colado.png', auth.uid());
+  perform arnes.comprueba('logos: un inversionista no sube un logo', false, 'SUBIO');
+exception when others then
+  perform arnes.comprueba('logos: un inversionista no sube un logo', true, sqlerrm);
+end
+$p$;
+with t as (
+  update public.tipos_tramite set logo = 'rif_personal/colado.png'
+   where codigo = 'rif_personal' returning 1)
+select arnes.comprueba('logos: ni lo apunta en el catalogo',
+  (select count(*) = 0 from t));
+
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+do $p$
+begin
+  insert into storage.objects (bucket_id, name, owner)
+  values ('logos-fichas', 'rif_personal/1.png', auth.uid());
+  perform arnes.comprueba('logos: el admin sube un logo', true);
+exception when others then
+  perform arnes.comprueba('logos: el admin sube un logo', false, sqlerrm);
+end
+$p$;
+with t as (
+  update public.tipos_tramite set logo = 'rif_personal/1.png'
+   where codigo = 'rif_personal' returning 1)
+select arnes.comprueba('logos: y lo apunta en el catalogo',
+  (select count(*) = 1 from t));
+
+select arnes.soy((select id from arnes.gente where papel = 'B'));
+select arnes.comprueba('logos: el inversionista ve la ruta en el catalogo',
+  (select logo = 'rif_personal/1.png' from public.tipos_tramite where codigo = 'rif_personal'));
+with t as (
+  delete from storage.objects where bucket_id = 'logos-fichas' returning 1)
+select arnes.comprueba('logos: pero no lo borra', (select count(*) = 0 from t));
+
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+update public.tipos_tramite set logo = null where codigo = 'rif_personal';
+with t as (
+  delete from storage.objects
+   where bucket_id = 'logos-fichas' and name = 'rif_personal/1.png' returning 1)
+select arnes.comprueba('logos: el admin lo quita y lo borra', (select count(*) = 1 from t));
+
+reset role;
+select arnes.nadie();
+select arnes.comprueba('logos: poner y quitar el logo deja dos apuntes en la bitacora',
+  (select count(*) = 2 from public.bitacora
+    where id > :logo_antes and fuente = 'catalogo' and accion = 'logo'),
+  (select coalesce(string_agg(accion || ':' || detalle, ', '), 'nada')
+     from public.bitacora where id > :logo_antes));
 
 \o
 \pset tuples_only on

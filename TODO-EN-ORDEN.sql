@@ -1,7 +1,7 @@
 -- ====================================================================
---  LOS 37 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat
+--  LOS 38 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat
 -- ====================================================================
---  Esto es la union literal de los 37 supabase-*.sql, sin cambiar una
+--  Esto es la union literal de los 38 supabase-*.sql, sin cambiar una
 --  coma, pegados en el orden que ejecuta el arnes contra un Postgres de
 --  usar y tirar. Ese orden no esta deducido leyendo cabeceras: si uno
 --  usara algo que otro define despues, la tanda se caeria diciendo cual.
@@ -12,12 +12,12 @@
 --  forma de poner al dia un proyecto que ya tenia la mitad.
 --
 --  Generado el 2026-09-17. Si cambia un archivo, se vuelve a generar:
---  no se edita a mano, que entonces son 37 sitios donde mirar.
+--  no se edita a mano, que entonces son 38 sitios donde mirar.
 -- ====================================================================
 
 
 -- ====================================================================
---  01 / 37   supabase-setup.sql
+--  01 / 38   supabase-setup.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -192,7 +192,7 @@ where p.id is null;
 --   from pg_class where relname = 'perfiles';
 
 -- ====================================================================
---  02 / 37   supabase-tramites.sql
+--  02 / 38   supabase-tramites.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1263,7 +1263,7 @@ create policy "recaudos: borrar de su carpeta" on storage.objects
 --    desde el SQL Editor no vale: ahí auth.uid() es null y RLS no aplica.
 
 -- ====================================================================
---  03 / 37   supabase-admin.sql
+--  03 / 38   supabase-admin.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1413,7 +1413,7 @@ create policy "perfiles: el admin reparte roles" on public.perfiles
 --   select relrowsecurity from pg_class where relname = 'perfiles';
 
 -- ====================================================================
---  04 / 37   supabase-citas.sql
+--  04 / 38   supabase-citas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1578,7 +1578,7 @@ create trigger citas_marca_tiempo
 -- (No se crea ninguna política de DELETE, así que RLS lo impide.)
 
 -- ====================================================================
---  05 / 37   supabase-empresa.sql
+--  05 / 38   supabase-empresa.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1679,7 +1679,7 @@ create trigger empresas_marca_tiempo
 --   select relname, relrowsecurity from pg_class where relname = 'empresas';
 
 -- ====================================================================
---  06 / 37   supabase-activos.sql
+--  06 / 38   supabase-activos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1813,7 +1813,7 @@ create trigger activos_marca_tiempo
 -- asi que no hay nada que añadir aqui.
 
 -- ====================================================================
---  07 / 37   supabase-identidad.sql
+--  07 / 38   supabase-identidad.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1972,7 +1972,7 @@ create policy "identidad: solo el equipo la firma"
 --  intenta con una sesión de gestor, que es como llegaría de fuera.
 
 -- ====================================================================
---  08 / 37   supabase-emision.sql
+--  08 / 38   supabase-emision.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2073,7 +2073,7 @@ create policy "recaudos: el equipo deja lo emitido" on storage.objects
 --   select * from public.tipos_documento where codigo = 'resolucion';
 
 -- ====================================================================
---  09 / 37   supabase-presencia.sql
+--  09 / 38   supabase-presencia.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2153,7 +2153,7 @@ grant execute on function public.tocar_visto() to authenticated;
 --   select nombre_completo, visto_en from public.perfiles order by visto_en desc nulls last;
 
 -- ====================================================================
---  10 / 37   supabase-sectores.sql
+--  10 / 38   supabase-sectores.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2321,7 +2321,7 @@ begin
 end $$;
 
 -- ====================================================================
---  11 / 37   supabase-catalogos.sql
+--  11 / 38   supabase-catalogos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2547,7 +2547,7 @@ from   pg_trigger
 where  not tgisinternal and tgrelid = 'public.tipos_tramite'::regclass;
 
 -- ====================================================================
---  12 / 37   supabase-bitacora.sql
+--  12 / 38   supabase-bitacora.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2803,7 +2803,7 @@ order  by cuando desc
 limit  20;
 
 -- ====================================================================
---  13 / 37   supabase-bloqueo.sql
+--  13 / 38   supabase-bloqueo.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2978,7 +2978,7 @@ where  p.bloqueado
 order  by p.bloqueado_en desc;
 
 -- ====================================================================
---  14 / 37   supabase-acompanamiento.sql
+--  14 / 38   supabase-acompanamiento.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3156,7 +3156,7 @@ where  schemaname = 'public' and tablename = 'acompanamiento';
 -- insert into public.acompanamiento (id) values (true);
 
 -- ====================================================================
---  15 / 37   supabase-gestor.sql
+--  15 / 38   supabase-gestor.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3267,7 +3267,7 @@ create trigger eventos_proteger
   for each row execute function public.eventos_solo_la_nota();
 
 -- ====================================================================
---  16 / 37   supabase-cola.sql
+--  16 / 38   supabase-cola.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3502,7 +3502,7 @@ create policy "trabajos: el equipo los ve" on public.trabajos
 --    no tenía conector o el trigger no está.
 
 -- ====================================================================
---  17 / 37   supabase-avisos.sql
+--  17 / 38   supabase-avisos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3804,7 +3804,7 @@ create policy "avisos: el equipo los ve" on public.avisos
 --    devolver 0 la segunda: no se avisa dos veces del mismo vencimiento.
 
 -- ====================================================================
---  18 / 37   supabase-aranceles.sql
+--  18 / 38   supabase-aranceles.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4132,7 +4132,7 @@ create policy "ordenes: la mia" on public.ordenes_pago
 --    en public.trabajos hasta que la orden quede 'pagada'.
 
 -- ====================================================================
---  19 / 37   supabase-huellas.sql
+--  19 / 38   supabase-huellas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4319,7 +4319,7 @@ create trigger documentos_huella_fija
 --   select count(*) from public.verificar_documento(repeat('a', 64));
 
 -- ====================================================================
---  20 / 37   supabase-encadenado.sql
+--  20 / 38   supabase-encadenado.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4443,7 +4443,7 @@ update public.tipos_tramite set emite = 'conformidad_uso'    where codigo = 'con
 --    en la tarjeta que diga «esperando a».
 
 -- ====================================================================
---  21 / 37   supabase-plazos.sql
+--  21 / 38   supabase-plazos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4708,7 +4708,7 @@ update public.tipos_tramite
 --   where plazo_legal_dias is not null and plazo_legal_norma is null;
 
 -- ====================================================================
---  22 / 37   supabase-una-viva.sql
+--  22 / 38   supabase-una-viva.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4815,7 +4815,7 @@ comment on index public.tramites_una_viva is
 --    where tipo = 'solvencias' group by estado;
 
 -- ====================================================================
---  23 / 37   supabase-hilo.sql
+--  23 / 38   supabase-hilo.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -5077,7 +5077,7 @@ create policy "documentos: el equipo adjunta en un hilo" on public.documentos
 --    dos cuentas, y es lo que hace PROBAR-CERRADURAS.bat.
 
 -- ====================================================================
---  24 / 37   supabase-hilo-citas.sql
+--  24 / 38   supabase-hilo-citas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -5323,7 +5323,7 @@ create policy "cita_mensajes: escribir en mi cita" on public.cita_mensajes
 --    dos cuentas, y es lo que hace PROBAR-CERRADURAS.bat.
 
 -- ====================================================================
---  25 / 37   supabase-consultas.sql
+--  25 / 38   supabase-consultas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -5689,7 +5689,7 @@ create policy "consulta_mensajes: escribir en mi consulta" on public.consulta_me
 --      inversionista = <el id de B> tiene que ser rechazado.
 
 -- ====================================================================
---  26 / 37   supabase-informe-victor.sql
+--  26 / 38   supabase-informe-victor.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6010,8 +6010,15 @@ update public.tipos_tramite set nivel = 'opcional'
 --  Por eso entra encadenado: EMITE la constancia de firma, y la
 --  constitución la PIDE. Así la tarjeta del c5 dirá «esperando a» en vez
 --  de dejar entrar a ciegas. Ver supabase-encadenado.sql.
+--  Y el papel que se ENTREGA, que es otro: el documento del trámite que
+--  se va a otorgar. El panel lo pedía con el tipo 'otro' -el cajón del
+--  catálogo- y así la bóveda le colgaba encima el último papel suelto que
+--  hubiera, con su ✓ de «ya lo tienes». Aquí eso no es un adorno: es el
+--  papel que dice qué se va a firmar, y con el equivocado el portal
+--  rechaza la solicitud entera. No vence: es el documento de una fecha.
 insert into public.tipos_documento (codigo, nombre, vence) values
-  ('constancia_sisref', 'Constancia de firma en el Registro de Extranjeros (SISREF)', false)
+  ('constancia_sisref',         'Constancia de firma en el Registro de Extranjeros (SISREF)', false),
+  ('documento_tramite_sisref',  'Documento del trámite que se va a otorgar',                  false)
 on conflict (codigo) do update set nombre = excluded.nombre;
 
 insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values
@@ -6124,7 +6131,7 @@ update public.tipos_tramite
 --   select ref_panel, nombre, fase, nivel from public.tipos_tramite where codigo = 'rnc';
 
 -- ====================================================================
---  27 / 37   supabase-pliego.sql
+--  27 / 38   supabase-pliego.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6517,7 +6524,7 @@ create policy "pliego: aceptar el propio" on public.pliego_aceptaciones
 --    PROBAR-CERRADURAS.bat.
 
 -- ====================================================================
---  28 / 37   supabase-disponibilidad.sql
+--  28 / 38   supabase-disponibilidad.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6848,7 +6855,7 @@ alter table public.cierres_citas add  constraint cierre_dia_laborable
   check (extract(isodow from fecha) between 1 and 5);
 
 -- ====================================================================
---  29 / 37   supabase-textos.sql
+--  29 / 38   supabase-textos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6991,7 +6998,7 @@ order  by cmd;
 select idioma, count(*) from public.textos_panel group by idioma order by idioma;
 
 -- ====================================================================
---  30 / 37   supabase-bitacora-ajustes.sql
+--  30 / 38   supabase-bitacora-ajustes.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7212,7 +7219,7 @@ select has_function_privilege('anon', 'public.apunta(text,text,text,text)', 'exe
        has_function_privilege('authenticated', 'public.apunta(text,text,text,text)', 'execute') as con_sesion_puede;
 
 -- ====================================================================
---  31 / 37   supabase-zodi.sql
+--  31 / 38   supabase-zodi.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7284,7 +7291,14 @@ select has_function_privilege('anon', 'public.apunta(text,text,text,text)', 'exe
 --  que acredita una situación VIGENTE -el certificado de existencia legal,
 --  como una solvencia- y no lo que acredita un hecho de una fecha -los
 --  estatutos, la lista firmada-.
+--  Y el PROYECTO del acta es un tipo propio, no el acta. El panel lo pedía
+--  con 'acta_constitutiva' -lo que emite el c5- y por ahí la bóveda le
+--  colgaba el acta ya registrada con su ✓ de «ya lo tienes». Es imposible
+--  por fechas: esta opinión va ANTES del Registro Mercantil, así que
+--  cuando se pide, el acta registrada no existe; si existe, es de otra
+--  empresa. No vence: es el borrador de una fecha.
 insert into public.tipos_documento (codigo, nombre, vence) values
+  ('proyecto_acta',         'Proyecto del documento constitutivo',                                      false),
   ('estatutos_accionista',  'Documento constitutivo y estatutos de la empresa accionista y de su matriz', false),
   ('good_standing',         'Certificado de existencia legal (Good Standing)',                         true),
   ('beneficiarios_finales', 'Lista de accionistas y directores hasta los beneficiarios finales',         false),
@@ -7321,10 +7335,10 @@ update public.tipos_tramite
 --   select ref_panel, codigo, nombre, ente, fase, nivel, emite, plazo_dias, activo
 --   from public.tipos_tramite where ref_panel = 'c34';
 --
--- 2) Los cuatro papeles nuevos:
+-- 2) Los cinco papeles nuevos:
 --
 --   select codigo, nombre, vence from public.tipos_documento
---   where codigo in ('estatutos_accionista','good_standing',
+--   where codigo in ('proyecto_acta','estatutos_accionista','good_standing',
 --                    'beneficiarios_finales','no_objecion_zodi');
 --
 -- 3) Los obligatorios siguen siendo DIEZ, cinco y cinco: el c34 no suma.
@@ -7333,7 +7347,7 @@ update public.tipos_tramite
 --   where nivel = 'obligatorio' group by fase;
 
 -- ====================================================================
---  32 / 37   supabase-rupdae-rum.sql
+--  32 / 38   supabase-rupdae-rum.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7457,7 +7471,7 @@ update public.tipos_tramite
 --   where nivel = 'obligatorio' group by fase;
 
 -- ====================================================================
---  33 / 37   supabase-junta.sql
+--  33 / 38   supabase-junta.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7573,7 +7587,7 @@ on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.ve
 --   select count(*) from public.documentos where titular is not null;
 
 -- ====================================================================
---  34 / 37   supabase-textos-rastro.sql
+--  34 / 38   supabase-textos-rastro.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7711,7 +7725,7 @@ $bitacora$;
 --   where fuente = 'textos' order by id desc limit 3;
 
 -- ====================================================================
---  35 / 37   supabase-revision-papeles.sql
+--  35 / 38   supabase-revision-papeles.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7829,7 +7843,7 @@ $bitacora$;
 --   where fuente = 'papeles' order by id desc limit 3;
 
 -- ====================================================================
---  36 / 37   supabase-accionista-juridica.sql
+--  36 / 38   supabase-accionista-juridica.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7872,7 +7886,7 @@ on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.ve
 --   where codigo in ('constitutivo_accionista', 'identidad_socios_accionista');
 
 -- ====================================================================
---  37 / 37   supabase-reserva-nombre.sql
+--  37 / 38   supabase-reserva-nombre.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -8058,3 +8072,102 @@ create trigger tramites_reserva_nombre
 --  estorba): marcar resuelta una constitución en 'ante_el_ente' sin el
 --  papel tiene que responder
 --    La constitución no se resuelve sin el comprobante de la reserva del nombre
+
+-- ====================================================================
+--  38 / 38   supabase-logos-fichas.sql
+-- ====================================================================
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  CIIP · VENTANILLA ÚNICA — EL LOGO DE CADA FICHA, DESDE EL PANEL
+--  Va DESPUÉS de supabase-catalogos.sql (el admin ya puede escribir en
+--  tipos_tramite) y de supabase-bitacora.sql (apunta()). Va al final para
+--  no mover el número de nadie.
+-- ═══════════════════════════════════════════════════════════════════════
+--  DE DÓNDE SALE
+--  ───────────────────────────────────────────────────────────────────────
+--  Franklin Reyes, 17 de septiembre de 2026: que el administrador pueda
+--  cambiar o poner el logo de las fichas del catálogo sin tocar el código.
+--  Hasta hoy el icono iba escrito a mano en el HTML de cada tarjeta.
+--
+--  CÓMO QUEDA
+--  ───────────────────────────────────────────────────────────────────────
+--  · tipos_tramite.logo guarda la RUTA dentro del cubo 'logos-fichas'.
+--    null = la ficha enseña el icono de siempre, el del código. Así quitar
+--    un logo subido es volver atrás, no quedarse sin nada.
+--  · El cubo es PÚBLICO de lectura: un logo no es un dato de nadie, lo ve
+--    cualquiera que abra la portada, y una URL pública se cachea. Escribir
+--    y borrar, solo el admin.
+--  · Sin SVG, por lo mismo que en 'recaudos': un SVG puede llevar script.
+--
+--  SIN CORRERLO LA PÁGINA NO SE ROMPE: las fichas siguen con sus iconos
+--  de siempre y la pantalla del catálogo no enseña el mando del logo.
+-- ═══════════════════════════════════════════════════════════════════════
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 1. LA COLUMNA
+-- ───────────────────────────────────────────────────────────────────────
+alter table public.tipos_tramite
+  add column if not exists logo text;
+
+comment on column public.tipos_tramite.logo is
+  'Ruta del logo subido por el admin en el cubo logos-fichas. null = el icono de siempre';
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 2. EL CUBO
+-- ───────────────────────────────────────────────────────────────────────
+-- 1 MB sobra para un logo de 48 px de ancho, y deja fuera la foto de 8 MB
+-- que alguien sube sin mirar.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('logos-fichas', 'logos-fichas', true, 1048576,
+        array['image/png', 'image/jpeg', 'image/webp'])
+on conflict (id) do update set
+  public             = excluded.public,
+  file_size_limit    = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+-- La lectura de un cubo público por su URL no pasa por estas políticas;
+-- esta hace falta para que el admin pueda BORRAR, que Storage consulta la
+-- fila antes de quitarla.
+drop policy if exists "logos-fichas: se leen" on storage.objects;
+create policy "logos-fichas: se leen" on storage.objects
+  for select to anon, authenticated
+  using (bucket_id = 'logos-fichas');
+
+drop policy if exists "logos-fichas: el admin sube" on storage.objects;
+create policy "logos-fichas: el admin sube" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'logos-fichas' and public.es_admin());
+
+drop policy if exists "logos-fichas: el admin reemplaza" on storage.objects;
+create policy "logos-fichas: el admin reemplaza" on storage.objects
+  for update to authenticated
+  using      (bucket_id = 'logos-fichas' and public.es_admin())
+  with check (bucket_id = 'logos-fichas' and public.es_admin());
+
+drop policy if exists "logos-fichas: el admin borra" on storage.objects;
+create policy "logos-fichas: el admin borra" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'logos-fichas' and public.es_admin());
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 3. LA BITÁCORA
+-- ───────────────────────────────────────────────────────────────────────
+-- Solo cuando CAMBIA. 'detalle' vacío es volver al icono de siempre.
+create or replace function public.bit_catalogo_logo()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.logo is distinct from old.logo then
+    perform public.apunta('catalogo', 'logo', new.nombre, coalesce(new.logo, ''));
+  end if;
+  return null;
+end $$;
+
+revoke execute on function public.bit_catalogo_logo() from public, anon, authenticated;
+
+drop trigger if exists bitacora_catalogo_logo on public.tipos_tramite;
+create trigger bitacora_catalogo_logo
+  after update of logo on public.tipos_tramite
+  for each row execute function public.bit_catalogo_logo();

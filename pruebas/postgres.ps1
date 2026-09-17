@@ -158,7 +158,10 @@ try {
     'supabase-revision-papeles.sql',
     # 36  la accionista juridica (c5): dos tipos de documento. Solo
     #     necesita el 2; va al final
-    'supabase-accionista-juridica.sql'
+    'supabase-accionista-juridica.sql',
+    # 37  el logo de cada ficha: tipos_tramite.logo, el cubo logos-fichas y
+    #     su apunte. Necesita el 11 y el 12; va al final
+    'supabase-logos-fichas.sql'
   )
   $n = 0
   foreach ($f in $once) {
