@@ -31,7 +31,8 @@
 --  acta constitutiva acredita un acto. El pago de aranceles ya existe en el
 --  catálogo (supabase-tramites.sql) y no se toca.
 insert into public.tipos_documento (codigo, nombre, vence) values
-  ('reserva_nombre', 'Comprobante de la reserva del nombre', false)
+  ('reserva_nombre',          'Comprobante de la reserva del nombre',       false),
+  ('planilla_reserva_nombre', 'Documento para pagar la reserva del nombre', false)
 on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.vence;
 
 
@@ -69,28 +70,34 @@ create policy "adjuntos: papeles de un paso, con el tramite en marcha" on public
 
 
 -- ───────────────────────────────────────────────────────────────────────
--- 2b. Y QUE LO PUEDA SUBIR EL EQUIPO
+-- 2b. EL EQUIPO DEJA EL DOCUMENTO PARA PAGARLA
 -- ───────────────────────────────────────────────────────────────────────
---  Franklin Reyes, 17 de septiembre de 2026: el comprobante de la reserva
---  lo tramita el CIIP ante el SAREN, así que es el equipo quien lo tiene en
---  la mano. Esperar a que el inversionista lo suba dejaba la constitución
---  parada en la cola con «Falta el comprobante» y nada que hacer.
+--  Franklin Reyes, 17 de septiembre de 2026, por la tarde: el CIIP no
+--  sube el comprobante de la reserva. Envía un documento para que el
+--  inversionista pague, y el comprobante lo sube él. Subido, el requisito
+--  queda cumplido.
 --
+--  Por la mañana esta sección dejaba al equipo subir el propio comprobante
+--  (reserva_nombre). Esas dos políticas se quitan: con ellas puestas el
+--  equipo podría seguir haciéndolo desde fuera de la pantalla.
+drop policy if exists "documentos: el equipo sube la reserva del nombre" on public.documentos;
+drop policy if exists "adjuntos: el equipo engancha la reserva del nombre" on public.tramite_documentos;
+
 --  «documentos: el equipo entrega lo emitido» (supabase-emision.sql) solo
 --  deja al gestor dejar papeles de tipo 'resolucion'. Se abre este otro al
 --  lado, con su propia política, y con el mismo cerrojo que aquella: entra
 --  'validado', que es lo que impide al inversionista borrarlo sin querer.
 --  El archivo va a la carpeta 'emitidos', que el cubo ya le deja al equipo.
-drop policy if exists "documentos: el equipo sube la reserva del nombre" on public.documentos;
-create policy "documentos: el equipo sube la reserva del nombre" on public.documentos
+drop policy if exists "documentos: el equipo sube el documento para pagar la reserva" on public.documentos;
+create policy "documentos: el equipo sube el documento para pagar la reserva" on public.documentos
   for insert
-  with check (public.es_gestor() and tipo = 'reserva_nombre' and estado = 'validado');
+  with check (public.es_gestor() and tipo = 'planilla_reserva_nombre' and estado = 'validado');
 
 --  Y engancharlo: solo a una constitución, y solo ante el ente, que es
 --  cuando el paso se ofrece. El papel tiene que ser de la bóveda del mismo
 --  inversionista del trámite, para no colgarle a alguien el de otro.
-drop policy if exists "adjuntos: el equipo engancha la reserva del nombre" on public.tramite_documentos;
-create policy "adjuntos: el equipo engancha la reserva del nombre" on public.tramite_documentos
+drop policy if exists "adjuntos: el equipo engancha el documento para pagar la reserva" on public.tramite_documentos;
+create policy "adjuntos: el equipo engancha el documento para pagar la reserva" on public.tramite_documentos
   for insert
   with check (
     public.es_gestor()
@@ -100,7 +107,7 @@ create policy "adjuntos: el equipo engancha la reserva del nombre" on public.tra
        where t.id = tramite_documentos.tramite
          and d.id = tramite_documentos.documento
          and d.inversionista = t.inversionista
-         and d.tipo = 'reserva_nombre'
+         and d.tipo = 'planilla_reserva_nombre'
          and t.tipo = 'constitucion'
          and t.estado = 'ante_el_ente'
     )
@@ -167,13 +174,18 @@ create trigger tramites_reserva_nombre
 -- COMPROBACIÓN
 -- ───────────────────────────────────────────────────────────────────────
 --   select codigo, nombre, vence from public.tipos_documento
---    where codigo = 'reserva_nombre';                      -- una fila
+--    where codigo in ('reserva_nombre', 'planilla_reserva_nombre');  -- dos filas
 --
 --   select polname from pg_policy
 --    where polname in ('adjuntos: papeles de un paso, con el tramite en marcha',
---                      'documentos: el equipo sube la reserva del nombre',
---                      'adjuntos: el equipo engancha la reserva del nombre');
+--                      'documentos: el equipo sube el documento para pagar la reserva',
+--                      'adjuntos: el equipo engancha el documento para pagar la reserva');
 --                                                          -- tres filas
+--
+--   select polname from pg_policy
+--    where polname in ('documentos: el equipo sube la reserva del nombre',
+--                      'adjuntos: el equipo engancha la reserva del nombre');
+--                                                          -- ninguna
 --
 --   select tgname from pg_trigger where tgname = 'tramites_reserva_nombre';
 --

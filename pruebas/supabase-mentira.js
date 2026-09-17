@@ -1864,6 +1864,13 @@
         return {data:[{documento:'ds1', documentos:{tipo:'pasaporte'}},
                       {documento:'ds2', documentos:{tipo:'foto'}}], error:null};
       }
+      /* La constitución de 'tramos', ante el ente: el equipo ya le dejó el
+         documento para pagar la reserva, y el comprobante todavía no está. */
+      if (op && op.eq && op.eq.tramite === 'p2'){
+        return {data:[{documento:'dp1', documentos:{tipo:'planilla_reserva_nombre',
+          nombre_original:'planilla-reserva-saren.pdf',
+          archivo:'u1/emitidos/planilla-reserva-saren.pdf'}}], error:null};
+      }
       if (op && op.eq && op.eq.tramite === 't4'){
         return {data:[{documento:'dr1', documentos:{tipo:'resolucion',
           nombre_original:'visa-trn-estampada.pdf',

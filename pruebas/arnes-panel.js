@@ -9592,6 +9592,17 @@
     ok('reserva: con su sitio para subir el comprobante',
        !!fila && !!fila.querySelector('.sd-btn') && !!fila.querySelector('input[type=file]'),
        fila ? 'está' : '(no está)', 'botón y archivo');
+    /* El CIIP no sube el comprobante: deja el documento para pagar, y el
+       inversionista lo abre ahí mismo, ENCIMA de la fila de subir. */
+    var pagar = paso && paso.querySelector('.tr-pagar');
+    var planilla = pagar && pagar.querySelector('.tr-papel[data-doc="planilla_reserva_nombre"]');
+    ok('reserva: y encima, el documento que dejó el CIIP para pagarla, para abrirlo',
+       !!pagar && !pagar.hidden && !!planilla && !!planilla.querySelector('.sd-btn') &&
+         /planilla-reserva-saren/.test(planilla.textContent) &&
+         !planilla.querySelector('input[type=file]') &&
+         !!(pagar.compareDocumentPosition(fila) & Node.DOCUMENT_POSITION_FOLLOWING),
+       planilla ? planilla.textContent : (pagar ? (pagar.hidden ? 'escondido' : 'sin fila') : '(no está)'),
+       'a la vista, con el archivo y «Abrir», antes de subir');
     var ultimo = pasos.length ? pasos[pasos.length - 1] : null;
     igual('reserva: «Resuelta» pasa a ser el quinto',
           ultimo ? (ultimo.querySelector('.tr-punto') || {}).textContent : '(sin pasos)', '5');

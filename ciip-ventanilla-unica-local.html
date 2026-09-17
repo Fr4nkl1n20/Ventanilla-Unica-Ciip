@@ -2938,6 +2938,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-papel .tp-e{font-size:var(--fs-nota); color:var(--gray); flex:1 1 auto; min-width:0;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .tr-papel.puesto{border-color:var(--good);}
+.tr-pagar-p{margin-top:7px;}
 .tr-bloque .tr-paso-f{margin-top:2px;}
 .sol-junta{margin-top:14px;}
 .sol-junta[hidden]{display:none;}
@@ -15965,8 +15966,9 @@ applyLang(idiomaParaMi());
      La carpeta 'emitidos' separa lo que deja el equipo de lo que subió la
      persona, y es lo que mira la política del cubo para dejarlo entrar.
 
-     tipo es 'resolucion' salvo para el comprobante de la reserva del
-     nombre, que también lo deja el equipo: la base solo admite esos dos. */
+     tipo es 'resolucion' salvo para el documento con el que el
+     inversionista paga la reserva del nombre, que también lo deja el
+     equipo: la base solo admite esos dos. */
   function entrega(tr, archivo, tipo){
     var mal = papelMal(archivo);
     if (mal) return Promise.reject(papelNo(mal));
@@ -16007,21 +16009,22 @@ applyLang(idiomaParaMi());
     });
   }
 
-  /* La casilla del comprobante de la reserva del nombre, para el equipo.
-     La reserva la tramita el CIIP ante el SAREN, así que el papel lo tiene
-     el equipo en la mano; esperar a que lo subiera el inversionista dejaba
-     la constitución parada con «Falta el comprobante» y nada que hacer
-     (Franklin Reyes, 17-9-2026).
+  /* La casilla del DOCUMENTO PARA PAGAR la reserva del nombre, para el
+     equipo. El 17-9 por la mañana esta casilla subía el comprobante de la
+     reserva; por la tarde Franklin Reyes lo corrigió: «el CIIP no lo envía,
+     el CIIP envía un documento para que el inversionista pague, y el
+     comprobante lo sube él». Subido el comprobante, el requisito queda
+     cumplido: no hay nada más que validar.
 
-     Se sube al elegirlo, sin esperar a «Resolver»: el comprobante sale
-     antes que el acta, y así el inversionista ya lo ve en su paso. Si ya
-     está enganchado -lo subió él o alguien del equipo- se dice cuál y no
-     se pide otro. Solo para una constitución ante el ente. */
+     Se sube al elegirlo, sin esperar a «Resolver»: va antes que el acta, y
+     así el inversionista ya lo tiene en su paso para pagar. Si ya está
+     enganchado se dice cuál y no se pide otro. Solo para una constitución
+     ante el ente. */
   function casillaDeLaReserva(t, idBase){
     if (!t || t.tipo !== 'constitucion' || t.estado !== 'ante_el_ente') return null;
     var u = T();
     var caja = el('div', 'co-emitir co-reserva');
-    var etiq = el('label', null, u.d_reserva || '');
+    var etiq = el('label', null, u.d_planilla_reserva || '');
     etiq.setAttribute('for', idBase + t.id);
     caja.appendChild(etiq);
     var inp = document.createElement('input');
@@ -16039,14 +16042,14 @@ applyLang(idiomaParaMi());
       if (!archivo) return;
       inp.disabled = true;
       est.textContent = u.co_subiendo || '';
-      entrega(t, archivo, 'reserva_nombre')
+      entrega(t, archivo, 'planilla_reserva_nombre')
         .then(function(){
           if (typeof PAPELES_DE !== 'undefined') PAPELES_DE[t.id] = null;
           inp.disabled = false;
           puesto(archivo.name);
         })
         .catch(function(e){
-          console.warn('[CIIP] reserva del nombre:', e && (e.message || e));
+          console.warn('[CIIP] documento para pagar la reserva:', e && (e.message || e));
           inp.disabled = false;
           inp.value = '';
           est.textContent = (e && e.ciip && u[e.ciip]) || u.co_error || '';
@@ -16057,7 +16060,7 @@ applyLang(idiomaParaMi());
     Promise.resolve(sb.from('tramite_documentos').select('documentos(tipo, nombre_original)').eq('tramite', t.id))
       .then(function(r){
         var ya = ((r && r.data) || []).filter(function(f){
-          return f.documentos && f.documentos.tipo === 'reserva_nombre';
+          return f.documentos && f.documentos.tipo === 'planilla_reserva_nombre';
         })[0];
         if (ya) puesto(ya.documentos.nombre_original);
       })
@@ -16249,7 +16252,8 @@ applyLang(idiomaParaMi());
         ids.forEach(function(id){ de[id] = []; });
         (r.data || []).forEach(function(f){
           var d = f.documentos;
-          if (!d || !de[f.tramite] || d.tipo === 'resolucion') return;
+          if (!d || !de[f.tramite] || d.tipo === 'resolucion' ||
+              d.tipo === 'planilla_reserva_nombre') return;
           de[f.tramite].push({id: d.id || f.documento, tipo: d.tipo, archivo: d.archivo,
             nombre_original: d.nombre_original || '', estado: d.estado || 'cargado',
             nota_revision: d.nota_revision || '', titular: d.titular || ''});
@@ -17600,8 +17604,11 @@ applyLang(idiomaParaMi());
       Promise.resolve(sb.from('tramites').select('id, tipo'))
     ]).then(function(rs){
       if (rs[0] && rs[0].error) throw rs[0].error;
-      /* Lo que emitió el organismo no se revisa: se entrega. */
-      rvDocs = ((rs[0] && rs[0].data) || []).filter(function(d){ return d && d.tipo !== 'resolucion'; });
+      /* Lo que emitió el organismo no se revisa: se entrega. Y el documento
+         para pagar la reserva tampoco: lo deja el propio equipo. */
+      rvDocs = ((rs[0] && rs[0].data) || []).filter(function(d){
+        return d && d.tipo !== 'resolucion' && d.tipo !== 'planilla_reserva_nombre';
+      });
       rvNombres = {};
       ((rs[1] && rs[1].data) || []).forEach(function(p){ if (p && p.id) rvNombres[p.id] = p.nombre_completo || ''; });
       var tipoDe = {};
@@ -21029,8 +21036,14 @@ applyLang(idiomaParaMi());
 
      El paso se ofrece para subir solo con el tramite en "ante el ente":
      antes no hay nombre reservado del que traer comprobante, y despues ya
-     esta resuelta. */
+     esta resuelta.
+
+     Para pagar, el equipo le deja en la cola un documento
+     (planilla_reserva_nombre, Franklin Reyes, 17-9-2026): sale encima de
+     la fila de subir, con su boton para abrirlo. Mientras no lo haya, el
+     paso solo pide el comprobante, como antes. */
   var TIPO_RESERVA = 'reserva_nombre';
+  var TIPO_PLANILLA = 'planilla_reserva_nombre';
 
   function pasoDeLaReserva(tr){
     var u = T();
@@ -21044,12 +21057,43 @@ applyLang(idiomaParaMi());
     li.appendChild(punto);
     li.appendChild(txt);
     if (toca){
+      txt.appendChild(filaDelDocumentoParaPagar(tr));
       txt.appendChild(filaDeComprobante(tr, TIPO_RESERVA, 'd_reserva', function(){
         li.className = 'tr-paso hecho';
         punto.textContent = String.fromCharCode(10003);
       }));
     }
     return li;
+  }
+
+  /* El documento que dejo el equipo para pagar la reserva: escondido hasta
+     saber que existe, para no ofrecer abrir algo que no esta. */
+  function filaDelDocumentoParaPagar(tr){
+    var u = T();
+    var caja = el('div', 'tr-pagar');
+    caja.hidden = true;
+    caja.appendChild(el('div', 'sd-e tr-pagar-p', u.tr_pagareserva || ''));
+    var fila = el('div', 'tr-papel');
+    fila.setAttribute('data-doc', TIPO_PLANILLA);
+    fila.appendChild(el('span', 'tp-n', u.d_planilla_reserva || ''));
+    var est = el('span', 'tp-e', '');
+    fila.appendChild(est);
+    var abrir = el('button', 'sd-btn', u.co_abrir || '');
+    abrir.type = 'button';
+    fila.appendChild(abrir);
+    caja.appendChild(fila);
+    Promise.resolve(sb.from('tramite_documentos')
+      .select('documentos(tipo, nombre_original, archivo)').eq('tramite', tr.id))
+      .then(function(r){
+        var d = ((r && r.data) || []).map(function(f){ return f.documentos; })
+          .filter(function(x){ return x && x.tipo === TIPO_PLANILLA && x.archivo; })[0];
+        if (!d) return;
+        est.textContent = d.nombre_original || '';
+        abrir.addEventListener('click', function(){ abreEmitido(d, abrir); });
+        caja.hidden = false;
+      })
+      .catch(function(){});
+    return caja;
   }
 
   /* Para la cola del equipo: si a esta constitucion le falta el comprobante.
@@ -21346,6 +21390,9 @@ applyLang(idiomaParaMi());
         if (p.tipo && p.clave && !CLAVE_DE_TIPO[p.tipo]) CLAVE_DE_TIPO[p.tipo] = p.clave;
       });
       if (!CLAVE_DE_TIPO[TIPO_RESERVA]) CLAVE_DE_TIPO[TIPO_RESERVA] = 'd_reserva';
+      /* El documento para pagar la reserva lo deja el equipo: se nombra en la
+         bóveda, y como el de una persona, no se ofrece en «Subir documento». */
+      CLAVE_DE_TIPO[TIPO_PLANILLA] = 'd_planilla_reserva';
     }
     return CLAVE_DE_TIPO;
   }
@@ -21854,7 +21901,7 @@ applyLang(idiomaParaMi());
     Object.keys(clavesDeTipo())
       /* Lo de una persona se sube desde su fila, con su nombre: aquí saldría
          sin titular, y en la bóveda no se sabría de quién es. */
-      .filter(function(t){ return !TIPOS_POR_PERSONA[t]; })
+      .filter(function(t){ return !TIPOS_POR_PERSONA[t] && t !== TIPO_PLANILLA; })
       .map(function(t){ return {tipo:t, nombre:nombreDeTipo_doc(t)}; })
       /* Por nombre y en el idioma de turno, no por el código interno: en
          una lista de cincuenta, buscar «Pasaporte» donde el orden lo pone
