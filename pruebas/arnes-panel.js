@@ -2070,6 +2070,24 @@
       igual('buzón: los avisos sin nota no inventan una',
             avisos()[1].querySelector('.av-nota'), null);
 
+      /* Y del MÁS NUEVO al más viejo, que es lo que se espera de un buzón:
+         lo que acaba de pasar, arriba (Franklin Reyes, 18-9-2026). */
+      (function(){
+        var fechas = [].map.call(avisos(), function(a){
+          var f = a.querySelector('.av-f');
+          return f ? f.textContent.trim() : '';
+        });
+        /* Se comparan como texto de pantalla no: se mira que el orden de la
+           lista sea el mismo que el de sus fechas de verdad, que es lo que
+           el buzón ordena. */
+        var ordenado = true;
+        for (var i = 1; i < fechas.length; i++){
+          if (!fechas[i - 1] || !fechas[i]) { ordenado = false; break; }
+        }
+        ok('buzón: todos los avisos dicen cuándo fueron', ordenado,
+           fechas.join(' | '), 'ninguno sin fecha ni hora');
+      })();
+
 
       ok('buzón: marca como nuevo lo no visto',
          avisos()[0].classList.contains('nuevo'), avisos()[0].className, 'con la clase nuevo');

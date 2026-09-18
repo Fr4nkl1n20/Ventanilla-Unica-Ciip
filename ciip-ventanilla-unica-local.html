@@ -12797,6 +12797,23 @@ applyLang(idiomaParaMi());
     };
   }
 
+  /* El buzón va del más nuevo al más viejo, y en un día de trabajo casi
+     todos son de HOY: seis renglones diciendo «18 sept 2026» no dejan ver
+     cuál acaba de llegar, y parecía que los nuevos no subían arriba
+     (Franklin Reyes, 18-9-2026). Lo de hoy dice la hora; lo de antes, su
+     fecha, que es lo que hace falta de un aviso viejo. */
+  function avCuando(iso){
+    if (!iso) return '';
+    var d = new Date(iso), h = new Date();
+    if (isNaN(d.getTime())) return '';
+    var mismoDia = d.getFullYear() === h.getFullYear() &&
+                   d.getMonth() === h.getMonth() && d.getDate() === h.getDate();
+    if (!mismoDia) return fecha(iso);
+    try { return d.toLocaleTimeString(curLang === 'zh' ? 'zh-CN' : curLang,
+            {hour:'2-digit', minute:'2-digit'}); }
+    catch(e){ return fecha(iso); }
+  }
+
   function pintaAvisos(){
     if (!avLista) return;
     var u = T();
@@ -12821,7 +12838,7 @@ applyLang(idiomaParaMi());
       b.appendChild(el('div', 'av-t', f.t));
       if (f.q) b.appendChild(el('div', 'av-q', f.q));
       if (f.nota) b.appendChild(el('div', 'av-nota', f.nota));
-      b.appendChild(el('div', 'av-f', fecha(ev.creado_en)));
+      b.appendChild(el('div', 'av-f', avCuando(ev.creado_en)));
       b.addEventListener('click', function(){
         /* Se cierra ANTES de irse. Si no, el menú se queda abierto encima
            de la pantalla nueva y hay que pincharlo aparte para verla. */
@@ -13148,6 +13165,15 @@ applyLang(idiomaParaMi());
     });
     document.addEventListener('keydown', function(e){ if (e.key === 'Escape') cierraAvisos(); });
     window.CIIP_REPINTA_AVISOS = pintaAvisos;
+    /* Y para el vigilante que pone al día el panel: el buzón se leía solo
+       al cargar la página, así que un aviso nuevo -el documento que acaba
+       de dejar el CIIP- no aparecía hasta recargar (Franklin Reyes,
+       18-9-2026). Con el menú abierto no se toca: la lista se movería
+       bajo el dedo de quien está leyéndola. */
+    window.CIIP_AVISOS_AL_DIA = function(){
+      if (avMenu && avMenu.classList.contains('open')) return;
+      cargaAvisos();
+    };
     cargaAvisos();
   }
 
@@ -19626,6 +19652,9 @@ applyLang(idiomaParaMi());
          solo se repinta «lo que toca hoy» si es lo que se está mirando:
          repintar una pantalla que no se ve es trabajo tirado, y con el
          visor abierto encima sería quitárselo de delante. */
+      /* El buzón de avisos, en la misma vuelta: es donde se entera cada uno
+         de lo que hizo el otro. */
+      if (window.CIIP_AVISOS_AL_DIA) window.CIIP_AVISOS_AL_DIA();
       if (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()){
         if (document.body.getAttribute('data-vista') === 'poratender'){
           if (window.CIIP_PINTA_PORATENDER) window.CIIP_PINTA_PORATENDER();
