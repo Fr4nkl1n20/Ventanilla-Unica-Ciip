@@ -1390,6 +1390,18 @@
             archivo:'u1/emitidos/visa-trn-estampada.pdf'}}]
         : [], error:null};
     }
+    /* El buzon de avisos pregunta por TODOS los enganches CON su papel
+       -documentos(...)- para anunciar el documento de pagar y su
+       comprobante. Va antes que la de la boveda, que pide los mismos
+       enganches pero sin papel: se distinguen por lo que piden. */
+    if (tabla === 'tramite_documentos' && !(op && (op.eq || op.in)) &&
+        /documentos\(/.test((op && op.cols) || '')){
+      if (!conTramos) return {data:[], error:null};
+      return {data:[{tramite:'p2', documento:'dp1', documentos:{
+        id:'dp1', tipo:'planilla_reserva_nombre',
+        nombre_original:'planilla-reserva-saren.pdf',
+        creado_en:new Date(Date.now() - 3600000).toISOString()}}], error:null};
+    }
     if (tabla === 'tramite_documentos' && !(op && op.eq)){
       /* SIN .eq: la boveda pregunta por TODOS para contar en cuantos
          tramites se usa cada documento. La otra consulta de esta misma

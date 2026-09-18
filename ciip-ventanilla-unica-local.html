@@ -12754,6 +12754,28 @@ applyLang(idiomaParaMi());
         }
       };
     }
+    /* El documento para pagar que dejó el equipo. Lleva a la ficha del
+       trámite y no a Mis trámites: el botón «Abrir» del papel está en su
+       paso, que es lo que hay que hacer al leer el aviso. */
+    if (ev.clase === 'planilla'){
+      return {
+        t: ev.ref ? nombreDeTarjeta(ev.ref) : nombreDeTipo_doc(ev.tipo),
+        q: u.av_planilla || '',
+        nota: nombreDeTipo_doc(ev.tipo),
+        ir: function(){ if (ev.ref) location.hash = 'tramite-' + ev.ref; else avAMisTramites(ev.tramite); }
+      };
+    }
+    /* Y su vuelta, para el equipo: con el comprobante subido, esa
+       solicitud ya se puede resolver. Lleva a la cola, que es donde se
+       resuelve. */
+    if (ev.clase === 'comprobante'){
+      return {
+        t: ev.ref ? nombreDeTarjeta(ev.ref) : nombreDeTipo_doc(ev.tipo),
+        q: u.av_comprobante || '',
+        nota: nombreDeTipo_doc(ev.tipo),
+        ir: function(){ location.hash = 'poratender'; }
+      };
+    }
     if (ev.clase === 'pago'){
       /* El concepto y el monto, que es lo que hay que saber para decidir si
          se paga hoy. El monto va formateado por dinero(), el mismo de
@@ -12863,7 +12885,8 @@ applyLang(idiomaParaMi());
                 sumaPapeles(uid),
                 sumaMensajes(uid, refDe),
                 sumaConsultas(uid),
-                sumaPagos(uid, refDe)
+                sumaPagos(uid, refDe),
+                sumaPapelesDePago(refDe)
               ]).then(ordenaYPinta);
             });
         });
@@ -13060,6 +13083,42 @@ applyLang(idiomaParaMi());
           clase: 'pago', tramite: o.tramite, ref: refDe[o.tramite] || '',
           concepto: o.concepto || '', monto: o.monto, moneda: o.moneda || '',
           nota: '', creado_en: o.creado_en, ente: ''
+        });
+      });
+    });
+  }
+
+  /* ── EL PAPEL DEL PAGO, EN LOS DOS SENTIDOS ──
+     «necesito que esta información llegue al panel de avisos» (Franklin
+     Reyes, 18-9-2026). El documento para pagar y su comprobante viajan uno
+     detrás del otro entre el CIIP y el inversionista, y hasta hoy ninguno
+     de los dos se enteraba: había que entrar al trámite a mirar si ya
+     estaba. Los dos van por aquí, y cada uno ve el que NO subió:
+
+       al inversionista  el documento para pagar que le dejó el equipo;
+       al equipo         el comprobante que subió el inversionista, que es
+                         lo que faltaba para poder resolver.
+
+     Una sola consulta para los dos: los enganches de cada solicitud con su
+     papel. La fecha es la de cuando se subió el papel, que es cuando la
+     noticia ocurrió. */
+  var AV_PARA_PAGAR = ['planilla_reserva_nombre', 'planilla_aranceles'];
+  var AV_COMPROBANTES = ['reserva_nombre', 'pago_aranceles'];
+
+  function sumaPapelesDePago(refDe){
+    var equipo = !!(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO());
+    var busco  = equipo ? AV_COMPROBANTES : AV_PARA_PAGAR;
+    return avPide('papeles del pago', function(){
+      return sb.from('tramite_documentos')
+        .select('tramite, documentos(id, tipo, nombre_original, creado_en)');
+    }, function(filas){
+      filas.forEach(function(f){
+        var d = f.documentos;
+        if (!d || busco.indexOf(d.tipo) < 0) return;
+        avisos.push({
+          clase: equipo ? 'comprobante' : 'planilla',
+          tipo: d.tipo, tramite: f.tramite, ref: refDe[f.tramite] || '',
+          nota: d.nombre_original || '', creado_en: d.creado_en, ente: ''
         });
       });
     });
@@ -21192,19 +21251,36 @@ applyLang(idiomaParaMi());
       if (alcanzado < 0) return;
 
       var pasos = b.querySelectorAll('.tr-paso');
-      [].forEach.call(pasos, function(li, i){
-        var hecho = i <= alcanzado;
-        var ahora = (i === alcanzado + 1) && tr.estado !== 'resuelto';
-        li.className = 'tr-paso ' + (hecho ? 'hecho' : (ahora ? 'ahora' : 'porhacer'));
-        var punto = li.querySelector('.tr-punto');
-        if (punto) punto.textContent = hecho ? String.fromCharCode(10003) : String(i + 1);
+
+      /* UN PASO QUE PIDE UN PAPEL NO SE DA POR HECHO SIN EL (Franklin
+         Reyes, 18-9-2026). La escalera de arriba la marca el ESTADO de la
+         solicitud, y la protocolizacion nace ya enviada al resolverse la
+         constitucion: su primer paso -pagar los aranceles- salia con su
+         visto y su fecha sin que nadie hubiera pagado nada.
+         Mientras el comprobante no este, la escalera no pasa de ahi. */
+      var quiere = PAPEL_DE_PASO[ref];
+      var mira = quiere ? papelesDe(tr.id).then(function(hay){ return !hay[quiere.tipo]; })
+                        : Promise.resolve(false);
+      mira.then(function(sinPapel){
+        if (!b.isConnected) return;
+        var tope = sinPapel ? Math.min(alcanzado, quiere.paso - 1) : alcanzado;
+        [].forEach.call(pasos, function(li, i){
+          var hecho = i <= tope;
+          var ahora = (i === tope + 1) && tr.estado !== 'resuelto';
+          li.className = 'tr-paso ' + (hecho ? 'hecho' : (ahora ? 'ahora' : 'porhacer'));
+          var punto = li.querySelector('.tr-punto');
+          if (punto) punto.textContent = hecho ? String.fromCharCode(10003) : String(i + 1);
+        });
+        ponLasFechasDelTramo(b, tr, pasos, tope);
+        ponElComprobante(b, ref, tr, pasos, alcanzado);
       });
-      ponLasFechasDelTramo(b, tr, pasos);
-      ponElComprobante(b, ref, tr, pasos, alcanzado);
     });
   }
 
-  function ponLasFechasDelTramo(bloque, tr, pasos){
+  /* tope = hasta que paso se da la escalera por hecha. Un paso que todavia
+     no lo esta no lleva fecha: una fecha debajo de un paso pendiente se lee
+     como que ya paso. */
+  function ponLasFechasDelTramo(bloque, tr, pasos, tope){
     historialDe(tr.id).then(function(cuando){
       /* El bloque puede haberse rehecho mientras llegaba la consulta: si ya
          no esta en la pagina, lo que se escriba no lo lee nadie. */
@@ -21214,6 +21290,7 @@ applyLang(idiomaParaMi());
         var vieja = li.querySelector('.tr-paso-f');
         if (vieja) vieja.remove();
         if (!f) return;
+        if (typeof tope === 'number' && i > tope) return;
         var txt = li.querySelector('.tr-txt');
         if (!txt) return;
         /* Pegada al nombre del paso y no al final: si el paso lleva ademas el

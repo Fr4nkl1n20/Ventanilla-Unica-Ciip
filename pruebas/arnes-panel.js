@@ -271,7 +271,7 @@
               notaVisaAbre, notaVisaMira, notaRifAbre, notaRifMira,
               oficinaAbre, oficinaMira,
               juntaAbre, juntaMira,
-              tramoVerdadAbre, reservaMira, tramoVerdadMira,
+              tramoVerdadAbre, reservaMira, reservaAviso, tramoVerdadMira,
               textosMira,
               rvAbre, rvMira, rvDespues,
               cbAbre, cbMira,
@@ -9597,6 +9597,28 @@
      «Resuelta» -el comprobante de la reserva, con su sitio para subirlo-, y
      «Resuelta» pasa a ser el quinto. Mientras falte el papel, lo que toca
      es subirlo: «Resuelta» no puede decir que va por ahí. */
+  /* Y que el inversionista SE ENTERE sin entrar a mirar: el documento para
+     pagar que le dejó el CIIP suena en la campana (Franklin Reyes,
+     18-9-2026). */
+  function reservaAviso(){
+    if (CASO !== 'tramos') return;
+    var campana = document.getElementById('avisosBtn');
+    if (campana) campana.click();
+    var suyos = [].filter.call(avisos(), function(a){
+      return /documento para pagar/i.test(a.textContent);
+    });
+    ok('reserva: el documento para pagar suena en la campana',
+       suyos.length > 0, suyos.length + ' avisos', 'al menos uno');
+    if (suyos.length){
+      ok('reserva: y el aviso dice de qué trámite es y qué papel es',
+         /Constitución/i.test(suyos[0].textContent) &&
+           /reserva del nombre/i.test(suyos[0].textContent),
+         suyos[0].textContent.replace(/\s+/g, ' ').slice(0, 90),
+         'el trámite y el papel');
+    }
+    if (campana) campana.click();
+  }
+
   function reservaMira(){
     if (CASO !== 'tramos') return;
     var pasos = document.querySelectorAll('#trReal .tr-pasos .tr-paso');
@@ -9640,15 +9662,20 @@
        !!b, b ? 'está' : 'no está', 'el bloque de la protocolización');
     if (!b){ location.hash = ''; return; }
     var pasos = b.querySelectorAll('.tr-paso');
-    igual('verdad: sus pasos van con el estado real de la solicitud',
+    /* La solicitud está en revisión, así que por estado los dos primeros
+       pasos estarían hechos. Pero el primero es PAGAR, y el comprobante no
+       está: un paso que pide un papel no se da por hecho sin él, por mucho
+       que la solicitud haya avanzado (Franklin Reyes, 18-9-2026). La
+       protocolización nace ya enviada al resolverse la constitución, y sin
+       esto su primer paso salía pagado desde el primer día. */
+    igual('verdad: el paso del pago no se da por hecho sin el comprobante',
           [].map.call(pasos, function(li){
             return li.classList.contains('hecho') ? 'hecho'
                  : li.classList.contains('ahora') ? 'ahora' : 'porhacer';
-          }).join(','), 'hecho,hecho,ahora,porhacer');
-    var f1 = pasos[0].querySelector('.tr-paso-f');
-    ok('verdad: y cada paso hecho dice cuándo lo fue',
-       !!f1 && /2026/.test(f1.textContent), f1 ? f1.textContent : '(sin fecha)',
-       'una fecha de 2026');
+          }).join(','), 'ahora,porhacer,porhacer,porhacer');
+    ok('verdad: y sin estar hecho, tampoco lleva fecha',
+       !pasos[0].querySelector('.tr-paso-f'),
+       pasos[0].querySelector('.tr-paso-f') ? 'lleva fecha' : 'sin fecha', 'sin fecha');
     ok('verdad: lo que no ha pasado no lleva fecha',
        !pasos[3].querySelector('.tr-paso-f'),
        pasos[3].querySelector('.tr-paso-f') ? 'lleva fecha' : 'sin fecha', 'sin fecha');

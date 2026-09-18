@@ -424,6 +424,8 @@ window.CIIP_PASOS = {
       av_mensaje:   "El CIIP te escribió sobre este trámite.",
       av_consulta:  "El CIIP respondió a tu consulta.",
       av_pago:      "Queda un pago por hacer.",
+      av_planilla:  "El CIIP te dejó el documento para pagar. Ábrelo, paga y sube el comprobante.",
+      av_comprobante: "El inversionista subió su comprobante: ya se puede resolver.",
       /* --- Tu perfil --- */
       pf_titulo:    "Tu perfil",
       pf_sub:       "Así te llama la ventanilla",
@@ -1443,6 +1445,8 @@ window.CIIP_PASOS = {
       av_mensaje:   "The CIIP wrote to you about this procedure.",
       av_consulta:  "The CIIP answered your enquiry.",
       av_pago:      "There is still a payment to make.",
+      av_planilla:  "CIIP left you the document to pay with. Open it, pay and upload the proof.",
+      av_comprobante: "The investor uploaded the proof of payment: it can now be completed.",
       /* --- Your profile --- */
       pf_titulo:    "Your profile",
       pf_sub:       "How the window addresses you",
@@ -2399,6 +2403,8 @@ window.CIIP_PASOS = {
       av_mensaje:   "O CIIP escreveu-lhe sobre este trâmite.",
       av_consulta:  "O CIIP respondeu à sua consulta.",
       av_pago:      "Falta fazer um pagamento.",
+      av_planilla:  "O CIIP deixou-lhe o documento para pagar. Abra-o, pague e carregue o comprovativo.",
+      av_comprobante: "O investidor carregou o comprovativo: já se pode concluir.",
       /* --- O seu perfil --- */
       pf_titulo:    "O seu perfil",
       pf_sub:       "É assim que a janela o trata",
@@ -3338,6 +3344,8 @@ window.CIIP_PASOS = {
       av_mensaje:   "Il CIIP ti ha scritto su questa pratica.",
       av_consulta:  "Il CIIP ha risposto alla tua richiesta.",
       av_pago:      "Resta un pagamento da fare.",
+      av_planilla:  "Il CIIP ti ha lasciato il documento per pagare. Aprilo, paga e carica la ricevuta.",
+      av_comprobante: "L'investitore ha caricato la ricevuta: ora si può concludere.",
       /* --- Il tuo profilo --- */
       pf_titulo:    "Il tuo profilo",
       pf_sub:       "Così ti chiama lo sportello",
@@ -4277,6 +4285,8 @@ window.CIIP_PASOS = {
       av_mensaje:   "CIIP 就此业务给您留言。",
       av_consulta:  "CIIP 已回复您的咨询。",
       av_pago:      "还有一笔费用待缴纳。",
+      av_planilla:  "CIIP 已为您留下缴费文件。请打开、缴费并上传凭证。",
+      av_comprobante: "投资人已上传凭证：现在可以办结。",
       /* --- 您的资料 --- */
       pf_titulo:    "您的资料",
       pf_sub:       "窗口将以此称呼您",
@@ -5216,6 +5226,8 @@ window.CIIP_PASOS = {
       av_mensaje:   "CIIP написал вам по этой заявке.",
       av_consulta:  "CIIP ответил на ваш вопрос.",
       av_pago:      "Остался неоплаченный платёж.",
+      av_planilla:  "CIIP оставил вам документ для оплаты. Откройте его, оплатите и загрузите квитанцию.",
+      av_comprobante: "Инвестор загрузил квитанцию: заявку можно завершать.",
       /* --- Ваш профиль --- */
       pf_titulo:    "Ваш профиль",
       pf_sub:       "Так к вам обращается служба",
