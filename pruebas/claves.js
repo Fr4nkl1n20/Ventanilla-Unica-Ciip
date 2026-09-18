@@ -501,7 +501,15 @@ const NO_ES_TRAMITE_MARCADO = ['c15'];
 
 function fichasDelMarcado() {
   const fichas = [];
-  const re = /<div class="tcard([^>]*)>([\s\S]*?)<div class="t-ente">/g;
+  /* El cierre del <div class="t-ente"> se busca SIN el `>`, porque desde
+     que la ficha lleva la sigla al lado del organismo ese div tiene
+     atributos: `<div class="t-ente" data-sigla="MPPRE">`. Con el `>` pegado
+     solo casaban los dos que se quedaron sin sigla, y entonces cada "ficha"
+     abarcaba treinta tarjetas de golpe: la tanda decia «2 fichas» donde hay
+     treinta y cuatro, y le colgaba a c5 el distintivo del banco de activos,
+     que esta doce tarjetas mas abajo. Las dos comprobaciones salian en rojo
+     por lo mismo, y ninguna de las dos hablaba de lo que parecia. */
+  const re = /<div class="tcard([^>]*)>([\s\S]*?)<div class="t-ente"/g;
   let m;
   while ((m = re.exec(PANEL))) {
     const ref = (/data-tr="(c\d+)"/.exec(m[1]) || [])[1];

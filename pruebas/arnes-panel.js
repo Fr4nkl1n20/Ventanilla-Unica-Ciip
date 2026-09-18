@@ -2149,16 +2149,27 @@
     var cuenta  = document.getElementById('avisosN');
 
     if (CASO === 'lleno'){
-      /* El historial trae cinco eventos; dos son de creación del borrador. */
-      /* Tres del historial de trámites y uno de la cita confirmada. */
-      igual('buzón: cuenta los avisos sin abrirlo', cuenta.textContent, '4');
+      /* SEIS, y de cuatro sitios distintos. El historial trae cinco eventos y
+         dos son de creación del borrador, que no se anuncian:
+
+           3  movimientos del trámite   enviada, en revisión, devuelta
+           1  la cita confirmada
+           1  lo que el equipo escribió en el expediente
+           1  la respuesta del CIIP a una consulta
+
+         Los otros dos que el buzón sabe traer -papeles revisados y pagos
+         pendientes- no salen aquí porque el expediente de ejemplo no tiene
+         ninguno, y ésa es la comprobación de que no se inventa nada: si
+         algún día este número sube solo, es que una fuente está contando
+         filas que no cumplen su filtro. */
+      igual('buzón: cuenta los avisos sin abrirlo', cuenta.textContent, '6');
       ok('buzón: el contador se ve', !cuenta.hidden, 'oculto=' + cuenta.hidden, 'oculto=false');
 
       campana.click();
       ok('buzón: se abre al pulsar la campana', buzon.classList.contains('open'),
          buzon.className, 'con la clase open');
 
-      igual('buzón: no anuncia la creación del borrador', avisos().length, 4);
+      igual('buzón: no anuncia la creación del borrador', avisos().length, 6);
 
       (function(){
         var primero = avisos()[0];
@@ -2208,10 +2219,27 @@
            'guardado=' + g, String((Date.parse('2026-08-14T10:00:00Z') + (window.CIIP_MENTIRA_DESLIZ || 0))));
       })();
 
-      /* Navegación. Va al final porque cambia de vista. */
+      /* Navegación. Va al final porque cambia de vista.
+
+         Llevaba a #tramite-c6, la FICHA del catálogo, y desde el 17 de
+         septiembre de 2026 lleva a Mis trámites: la ficha cuenta qué es el
+         trámite —lo que ya sabe quien acaba de pedirlo—, y lo que se busca
+         al pulsar «revisión de tus recaudos» es en qué punto va la tuya.
+
+         La fila señalada no se puede mirar aquí: la tabla se dibuja cuando
+         vuelve de la base, y eso pasa después de esta tanda, que es toda
+         del tirón. Lo que sí se comprueba ahora es que el aviso pide
+         señalar LA SOLICITUD DE LA QUE HABLA -t1, la devuelta- y no otra
+         cualquiera; se envuelve la puerta para verlo y se deja como
+         estaba. */
+      var pedido = null;
+      var puerta = window.CIIP_MT_SENALA;
+      window.CIIP_MT_SENALA = function(id){ pedido = id; return puerta.apply(null, arguments); };
       campana.click();
       avisos()[0].click();
-      igual('buzón: pulsar un aviso lleva a su trámite', location.hash, '#tramite-c6');
+      window.CIIP_MT_SENALA = puerta;
+      igual('buzón: pulsar un aviso lleva a Mis trámites', location.hash, '#tramites');
+      igual('buzón: y señala la solicitud de la que habla', pedido, 't1');
       ok('buzón: y se cierra al hacerlo', !buzon.classList.contains('open'),
          buzon.className, 'sin la clase open');
 
@@ -2223,9 +2251,20 @@
          Es lo único de una cita que se anuncia: pedirla y cancelarla lo hace
          el propio inversionista, y confirmarla solo puede hacerlo el CIIP. */
       (function(){
-        var cita = avisos()[3];
-        igual('buzón: la cita confirmada va con los demás avisos',
-              cita.querySelector('.av-t').textContent.trim(), 'Tu cita');
+        /* Se busca POR SU TÍTULO y no por su puesto en la lista. Era
+           avisos()[3], y dejó de serlo el día que el buzón empezó a traer
+           también los papeles revisados, los mensajes del equipo, las
+           respuestas a las consultas y los pagos: la cita se corrió un sitio
+           y tres pruebas se pusieron rojas hablando de la cita cuando lo que
+           medían era un mensaje. El puesto cambia cada vez que entra una
+           fuente; el título, no. */
+        var cita = null;
+        [].forEach.call(avisos(), function(a){
+          if (a.querySelector('.av-t').textContent.trim() === 'Tu cita') cita = a;
+        });
+        ok('buzón: la cita confirmada va con los demás avisos', !!cita,
+           cita ? 'está' : '(no está)', 'Tu cita');
+        if (!cita) return;
         /* La fecha se CALCULA con el mismo desliz que lleva el expediente, en
            vez de escribir «26 ago 2026» a mano. Lo que hay que ver es que la
            plantilla se rellenó -que no quedó un {cuando} a la vista- y que lo
@@ -2266,21 +2305,55 @@
       })();
 
       /* Y se vuelve a la portada. Pulsar un aviso deja la dirección en
-         #tramite-c6, y quien viene detrás -el reloj del plazo legal, el
-         catálogo- busca tarjetas que con el detalle abierto no están.
+         #tramites, y quien viene detrás -el reloj del plazo legal, el
+         catálogo- busca tarjetas que con otra vista delante no están.
          Antes lo dejaba limpio la prueba de la franja, que iba después;
          al retirarla, tres pruebas se pusieron rojas sin haberlas tocado. */
       location.hash = '';
     }
 
     if (CASO === 'vacio'){
-      ok('buzón: sin historial, el contador no se ve', cuenta.hidden,
-         'oculto=' + cuenta.hidden, 'oculto=true');
-      igual('buzón: sin historial, no hay avisos', avisos().length, 0);
+      /* ── SIN TRÁMITES, EL BUZÓN YA NO SE QUEDA VACÍO ──
+         Y está bien que no se quede: esta cuenta no ha pedido nada, pero
+         tiene una consulta abierta y el CIIP la contestó. Eso es lo que el
+         buzón trajo el 17 de septiembre de 2026; antes la respuesta solo se
+         veía abriendo la burbuja y entrando en la consulta, así que quien no
+         la abriera no sabía que le habían contestado.
+
+         Aquí eso se aprovecha: es el único caso donde la respuesta llega
+         SOLA, sin trámites alrededor, y se puede comprobar de qué habla el
+         aviso sin contar posiciones en una lista.
+
+         Lo que este caso ya no puede probar es el texto de «todavía no hay
+         nada que contarte»: con seis fuentes, y una consulta contestada en
+         los datos de ejemplo de TODAS las cuentas, no queda ningún caso de
+         la tanda que llegue al buzón vacío. */
+      igual('buzón: sin trámites queda lo que el CIIP contestó', avisos().length, 1);
+      ok('buzón: y el contador lo cuenta', !cuenta.hidden && cuenta.textContent === '1',
+         'oculto=' + cuenta.hidden + ' cuenta=' + cuenta.textContent, 'oculto=false cuenta=1');
       campana.click();
-      igual('buzón: sin historial lo dice, en vez de quedarse en blanco',
-            (document.querySelector('#avisosLista .av-vacio') || {}).textContent,
-            'Todavía no hay nada que contarte.');
+      (function(){
+        var uno = avisos()[0];
+        var t = uno.querySelector('.av-t').textContent.trim();
+        var q = uno.querySelector('.av-q').textContent.trim();
+        var nota = uno.querySelector('.av-nota');
+        /* El ASUNTO arriba y no el nombre de un trámite: una consulta puede
+           no hablar de ninguno. Y debajo, lo que contestó el CIIP: con eso
+           delante se sabe si hay que entrar ahora o puede esperar. */
+        ok('buzón: el aviso dice de qué consulta habla y qué contestaron',
+           t === 'Acreditacion de identidad y legitimacion' &&
+           q === 'El CIIP respondió a tu consulta.' &&
+           !!nota && nota.textContent.indexOf('poder notariado') >= 0,
+           t + ' / ' + q + ' / ' + (nota ? nota.textContent.trim() : '(sin nota)'),
+           'el asunto / El CIIP respondió a tu consulta. / con lo que dijeron');
+
+        /* Lo que NO puede salir: la pregunta del propio inversionista. El
+           buzón trae lo del equipo, no el eco de lo que escribiste tú. */
+        var todo = document.getElementById('avisosLista').textContent;
+        ok('buzón: y no te devuelve lo que escribiste tú',
+           todo.indexOf('Quisiera que el CIIP lleve') < 0,
+           todo.slice(0, 80), 'sin la pregunta propia');
+      })();
       document.body.click();
     }
 
@@ -8396,29 +8469,51 @@
      «Mis trámites» era la única de las cinco tablas del panel que, al
      quedarse sin filas, se escondía entera y sacaba el aviso suelto debajo:
      una frase flotando entre dos rayas, que se lee como una página a medio
-     cargar. Ahora el aviso va dentro, en una celda que ocupa las columnas —lo
-     que ya hacía Documentos— y el marco y las cabeceras se quedan.
+     cargar. Por eso nació esta regla: que ninguna tabla se esconda sola.
+
+     LO QUE CAMBIÓ (Franklin Reyes, 17 y 18 de septiembre de 2026). Esa
+     pantalla ya no empieza por la tabla: empieza por su cabecera —«Tus
+     solicitudes», con la hora del último vistazo— y por los seis montones
+     con su cifra. Con eso arriba, esconder la CAJA de la tabla cuando no
+     hay ni una solicitud no deja una página a medio cargar: deja un tablero
+     de ceros, que es lo que hay que enseñar. El aviso suelto que motivó la
+     regla se quitó entero, así que ya no hay frase flotando.
+
+     Lo que la regla sigue prohibiendo es lo que de verdad hacía daño:
+     esconder el <table>, con sus cabeceras y su marco, en cualquiera de las
+     cinco tablas. Esconder el contenedor de «Mis trámites» —cajaTabla— es
+     la excepción, y se nombra aquí una por una: si mañana aparece otra,
+     tiene que venir con su decisión escrita, no colarse.
 
      SE COMPRUEBA LEYENDO EL CÓDIGO y no la pantalla, y es una decisión, no
      pereza: para ver el estado vacío hace falta un expediente sin ningún
      trámite, y ninguno de los tres ejemplos lo es. Se intentó con un gancho
      que vaciaba el doble, y no sirve —la lista está cacheada, así que
      vaciarla no repinta nada— y quedaba una prueba que decía mirar el estado
-     vacío sin llegar a verlo nunca. Eso es peor que no tenerla.
-
-     Lo que sí es cierto y comprobable: en el código no debe quedar ni una
-     línea que esconda una tabla por estar vacía. */
+     vacío sin llegar a verlo nunca. Eso es peor que no tenerla. */
   function tablasMiran(){
     var texto = '';
     [].forEach.call(document.querySelectorAll('script'), function(h){ texto += h.textContent; });
-    /* Se busca el texto tal cual, sin expresión regular: una barra invertida
-       de menos aquí daría una prueba que corre y no encuentra nada. */
-    var malo = texto.indexOf('tabla.hidden = true') >= 0 ||
-               texto.indexOf('Tabla.hidden = true') >= 0;
     ok('tablas: hay código que mirar', texto.length > 50000,
        texto.length + ' caracteres de script', 'el panel entero');
-    ok('tablas: ninguna se esconde a sí misma por quedarse vacía',
+
+    /* La excepción se quita del texto ANTES de buscar, y así la búsqueda
+       sigue siendo literal: 'cajaTabla.hidden' lleva dentro
+       'Tabla.hidden', y sin esto la excepción se contaría como infracción.
+       Se busca el texto tal cual, sin expresión regular: una barra
+       invertida de menos aquí daría una prueba que corre y no encuentra
+       nada. */
+    var sinLaExcepcion = texto.split('cajaTabla.hidden = true').join('');
+    var malo = sinLaExcepcion.indexOf('tabla.hidden = true') >= 0 ||
+               sinLaExcepcion.indexOf('Tabla.hidden = true') >= 0;
+    ok('tablas: ninguna esconde su tabla por quedarse vacía',
        !malo, malo ? 'alguna se esconde' : 'ninguna', 'ninguna');
+
+    /* Y la excepción es UNA: la caja de «Mis trámites», una sola vez. Dos
+       apariciones querrían decir que la regla se está usando de coladero. */
+    var cuantas = texto.split('cajaTabla.hidden = true').length - 1;
+    ok('tablas: y la única excepción es la caja de «Mis trámites»',
+       cuantas === 1, cuantas + ' veces', 'una');
   }
 
   function iFasesMira(){

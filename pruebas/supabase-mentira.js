@@ -1979,6 +1979,14 @@
        reventaba con "api.is is not a function" -un fallo del arnes con
        aspecto de fallo del panel-. */
     api.is = function(k, v){ (op.is = op.is || {})[k] = v; return api; };
+    /* .not es la negacion de cualquiera de los anteriores, y lleva TRES
+       argumentos: la columna, el operador y el valor -.not('revisado_en',
+       'is', null)-. El buzon de avisos la usa para dejar fuera los papeles
+       revisados antes de que la base guardara la fecha, y sin esto el doble
+       reventaba con "api.not is not a function". Como no todas las filas
+       del doble traen las columnas nuevas, se acepta y se ignora, igual
+       que .neq: lo que se prueba es que el panel aguanta lo que reciba. */
+    api.not = function(){ return api; };
     api.single = function(){ op.single = true; return api; };
     /* Estos dos SÍ se miran: son los que cambian algo. */
     api.insert = function(fila){ op.insert = fila; return api; };

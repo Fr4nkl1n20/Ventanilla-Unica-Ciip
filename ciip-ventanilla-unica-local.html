@@ -1864,6 +1864,20 @@ body[data-vista="citas"] .fase-bar{display:none;}
    fondo de color en una fila compite con el resaltado del raton y deja de
    verse justo cuando pasas por encima. */
 #mtTabla tbody tr.reclama td:first-child{box-shadow:inset 3px 0 0 var(--amber);}
+/* La fila por la que vienes desde la campana. Dura seis segundos y se apaga
+   sola: es para encontrarla entre veinte, no para quedarse marcada.
+
+   Aqui el fondo SI vale, al reves que en .reclama: aquello es permanente y
+   tenia que convivir con el raton por encima; esto dura lo que dura mirar, y
+   un filo de tres pixeles no se encuentra de un vistazo en una tabla larga.
+   El filo tambien se pone, en azul, para quien no distinga el fondo del de
+   al lado. La transicion es lo que hace que se vea llegar: apareciendo de
+   golpe pasa por un fallo de pintado. */
+#mtTabla tbody tr.senalada td{background:var(--activa-bg); transition:background .4s;}
+#mtTabla tbody tr.senalada td:first-child{box-shadow:inset 3px 0 0 var(--navy2);}
+@media (prefers-reduced-motion: reduce){
+  #mtTabla tbody tr.senalada td{transition:none;}
+}
 /* Y lo terminado se apaga un punto. Solo el nombre y la fecha: el distintivo
    de estado tiene que seguir leyendose entero. */
 #mtTabla tbody tr.pasada .mt-nombre,
@@ -1950,9 +1964,9 @@ body[data-vista="citas"] .fase-bar{display:none;}
   border-radius:7px; padding:4px 9px; cursor:pointer;}
 .mt-p:hover{background:var(--block); color:var(--navy2); border-color:var(--line);}
 .mt-p.on, .mt-p.on:hover{background:var(--navy); color:#fff; border-color:var(--navy);}
-.mt-vacia b{display:block; color:var(--ink); font-size:var(--fs-seccion); font-weight:700; margin-bottom:4px;}
-.mt-vacia-ir{font:inherit; color:var(--navy2); font-weight:700; background:none; border:0; padding:0; cursor:pointer;}
-.mt-vacia-ir:hover{text-decoration:underline; text-underline-offset:3px;}
+/* Aqui vivian .mt-vacia y .mt-vacia-ir, el aviso de «todavia no has pedido
+   ningun tramite» y su enlace al panel. Se fueron con el recuadro: sin
+   tramites esta pantalla no dibuja nada. */
 /* ── LAS DEMAS TABLAS, CON EL MISMO FORMATO QUE «MIS TRAMITES» ──
    Documentos, Citas, la cola del equipo y la trazabilidad pasan al formato
    de la tabla de Atlas, con la escala de la Ventanilla: cabecera fija en
@@ -5745,7 +5759,9 @@ body[data-vista="horario"] .fase-bar{display:none;}
         </table>
       </div>
       <div class="mt-pie" id="mtPie" hidden></div>
-      <div class="co-vacia" id="mtVacia" hidden></div>
+      <!-- Aqui habia un <div id="mtVacia"> para el aviso de «no has pedido
+           ningun tramite». Ya no hay aviso: sin tramites se esconde la caja
+           de la tabla y esta pantalla se queda con sus filtros. -->
     </div>
 
     <!-- Citas y agenda. Es una vista propia, con su direccion: se llega
@@ -12648,6 +12664,28 @@ applyLang(idiomaParaMi());
       if (sugerido) pintaNueva(); else pintaLista();
     };
 
+    /* La otra puerta: abrir UNA consulta que ya existe, por su conversacion.
+       La usa el buzon de avisos, que cuando el CIIP contesta tiene que
+       llevarte a lo que contesto y no a la lista de todas: con cinco
+       consultas abiertas, dejarte en la lista es pedirte que adivines cual
+       de ellas se movio.
+
+       Recibe la FILA entera de consultas -id, asunto, estado, tipo- y no
+       solo el id, porque pintaUna necesita esos cuatro campos para dibujar
+       la cabecera y quien llama ya los tiene: pedirlos otra vez seria un
+       viaje a la base para repetir lo que viene en la mano. */
+    window.CIIP_ABRE_UNA_CONSULTA = function(c){
+      if (!c || !c.id) return;
+      sugerido = null;
+      var u = T();
+      var t = document.getElementById('consTitulo');
+      var b = document.getElementById('consSub');
+      if (t) t.textContent = u['cons.t'] || '';
+      if (b) b.textContent = u['cons.sub'] || '';
+      back.classList.add('open');
+      pintaUna(c);
+    };
+
     /* El boton de la burbuja. Se engancha aqui y no alla arriba a proposito:
        la burbuja vive en otro bloque de este archivo y no ve nada de este,
        asi que su codigo tendria que pasar por window igualmente. Mejor que
@@ -12677,6 +12715,37 @@ applyLang(idiomaParaMi());
      se guarda es la FECHA DEL SERVIDOR del último aviso visto y no la hora
      de tu máquina: con la hora local, un reloj adelantado escondería avisos
      que nunca llegaste a ver.
+
+     ─────────────────────────────────────────────────────────────────────
+     LO QUE LLEGA AQUÍ (Franklin Reyes, 17 de septiembre de 2026)
+     ─────────────────────────────────────────────────────────────────────
+     Traía dos cosas: los cambios de estado de tus solicitudes y las citas
+     confirmadas. Lo demás que el CIIP hace sobre un trámite tuyo pasaba
+     sin decírtelo, y había que ir a buscarlo pantalla por pantalla:
+
+       recaudo revisado    lo veías entrando en Documentos
+       mensaje del equipo  vivía dentro del expediente
+       respuesta a una     había que abrir la burbuja y la consulta
+         consulta
+       pago pendiente      no lo decía nadie hasta abrir el trámite
+
+     Ahora los cuatro entran por aquí. Son SEIS consultas pequeñas y no una
+     grande, cada una con su propio catch: si a una tabla le falta su SQL
+     -o su política- falla esa sola y el buzón enseña las otras cinco. Una
+     consulta con cinco embebidos se cae entera por el mismo motivo, y
+     entonces la campana se queda muda sin decir por qué.
+
+     ─────────────────────────────────────────────────────────────────────
+     Y ADÓNDE LLEVA CADA UNO
+     ─────────────────────────────────────────────────────────────────────
+     A donde se resuelve, que no siempre es lo mismo que de dónde salió.
+     Un aviso de trámite llevaba a la FICHA del catálogo -#tramite-c5-, que
+     cuenta qué es la constitución de una compañía: lo que ya sabe quien
+     acaba de pedirla. Ahora lleva a Mis trámites, con su fila señalada,
+     que es donde se ve en qué punto va LA TUYA y desde donde se abre.
+
+     Un recaudo lleva a Documentos, que es donde se vuelve a subir; una
+     consulta abre su propia conversación, no la lista de todas.
      ──────────────────────────────────────────────────────────── */
   var avBtn   = document.getElementById('avisosBtn');
   var avMenu  = document.getElementById('avisosMenu');
@@ -12715,6 +12784,104 @@ applyLang(idiomaParaMi());
   }
   function esNuevo(ev){ return (Date.parse(ev.creado_en) || 0) > avVisto; }
 
+  /* Un mensaje puede traer cuatro mil caracteres y aquí caben dos líneas.
+     Se corta por la última palabra entera: cortar a media palabra hace
+     dudar de si falta texto o el mensaje llegó roto. */
+  function avRecorta(x){
+    x = String(x || '').replace(/\s+/g, ' ').trim();
+    if (x.length <= 140) return x;
+    var corto = x.slice(0, 140);
+    var esp = corto.lastIndexOf(' ');
+    return (esp > 60 ? corto.slice(0, esp) : corto) + '…';
+  }
+
+  /* A Mis trámites, con la fila de ESA solicitud señalada. Si la vista aún
+     no se ha presentado -se puede pulsar un aviso a los dos segundos de
+     entrar-, se va igual a la lista: llegar sin la fila marcada es un
+     inconveniente; no llegar a ninguna parte es un botón roto. */
+  function avAMisTramites(id){
+    if (id && window.CIIP_MT_SENALA) return window.CIIP_MT_SENALA(id);
+    location.hash = 'tramites';
+  }
+
+  /* Qué enseña cada aviso y adónde lleva, por clase. Van los seis juntos y
+     no repartidos por pintaAvisos a propósito: lo que cambia de uno a otro
+     son tres líneas de texto y un destino, y verlos en columna es lo que
+     deja comprobar de un golpe que ninguno lleva a una pantalla donde no
+     se pueda hacer nada.
+
+       t     de qué es el aviso: el trámite, el recaudo, el asunto
+       q     qué pasó, en una línea
+       nota  el detalle que hace falta para decidir si abrirlo
+       ir    adónde */
+  function avFicha(ev, u){
+    if (ev.clase === 'cita'){
+      /* De una cita solo se anuncia que se CONFIRMÓ. Pedirla y cancelarla
+         lo hace el propio inversionista —no es noticia para él—, y la fila
+         no guarda quién la canceló, así que anunciar "cancelada" sería
+         contarle a veces algo que acaba de hacer. Confirmar solo puede
+         hacerlo el CIIP: la política y el trigger no dejan otra cosa. */
+      return {
+        t: u.ct_tucita || '',
+        q: String(u.ct_confirmada || '').replace('{fecha}', fechaHora(ev.cuando)),
+        nota: ev.lugar || '',
+        ir: function(){ abreCita(); }
+      };
+    }
+    if (ev.clase === 'papel'){
+      /* El motivo del rechazo tal cual lo escribió el gestor: es lo único
+         que dice qué corregir. En un papel dado por bueno no hay nota que
+         enseñar -no la pide el panel al validar- y tampoco hace falta. */
+      return {
+        t: nombreDeTipo_doc(ev.tipo),
+        q: ev.estado === 'rechazado' ? (u.av_papel_mal || '') : (u.av_papel_ok || ''),
+        nota: ev.nota || '',
+        ir: function(){ location.hash = 'documentos'; }
+      };
+    }
+    if (ev.clase === 'mensaje'){
+      /* El trozo del mensaje va en la nota. El buzón no es el hilo -no se
+         contesta desde aquí-, pero con el principio delante se sabe si hay
+         que dejar lo que se esté haciendo o puede esperar. */
+      return {
+        t: ev.ref ? nombreDeTarjeta(ev.ref) : (u.av_mensaje || ''),
+        q: u.av_mensaje || '',
+        nota: ev.nota || '',
+        ir: function(){ avAMisTramites(ev.tramite); }
+      };
+    }
+    if (ev.clase === 'consulta'){
+      return {
+        t: ev.asunto || (u.av_consulta || ''),
+        q: u.av_consulta || '',
+        nota: ev.nota || '',
+        ir: function(){
+          if (window.CIIP_ABRE_UNA_CONSULTA) window.CIIP_ABRE_UNA_CONSULTA(ev.consulta);
+          else if (window.CIIP_ABRE_CONSULTA) window.CIIP_ABRE_CONSULTA();
+        }
+      };
+    }
+    if (ev.clase === 'pago'){
+      /* El concepto y el monto, que es lo que hay que saber para decidir si
+         se paga hoy. El monto va formateado por dinero(), el mismo de
+         Activos: "250000" al lado de una moneda se lee mal justo donde
+         más importa. */
+      var cuanto = dinero(ev.monto, ev.moneda);
+      return {
+        t: ev.ref ? nombreDeTarjeta(ev.ref) : (u.av_pago || ''),
+        q: u.av_pago || '',
+        nota: ev.concepto + (cuanto ? ' · ' + cuanto : ''),
+        ir: function(){ avAMisTramites(ev.tramite); }
+      };
+    }
+    return {
+      t: nombreDeTarjeta(ev.ref),
+      q: textoDeEvento(ev.estado, ev.ente),
+      nota: ev.nota || '',
+      ir: function(){ avAMisTramites(ev.tramite); }
+    };
+  }
+
   function pintaAvisos(){
     if (!avLista) return;
     var u = T();
@@ -12735,31 +12902,17 @@ applyLang(idiomaParaMi());
       var b = el('button', 'av-i' + (nuevo ? ' nuevo' : ''));
       b.type = 'button';
 
-      if (ev.clase === 'cita'){
-        /* De una cita solo se anuncia que se CONFIRMÓ. Pedirla y cancelarla
-           lo hace el propio inversionista —no es noticia para él—, y la fila
-           no guarda quién la canceló, así que anunciar "cancelada" sería
-           contarle a veces algo que acaba de hacer. Confirmar solo puede
-           hacerlo el CIIP: la política y el trigger no dejan otra cosa. */
-        b.appendChild(el('div', 'av-t', u.ct_tucita || ''));
-        b.appendChild(el('div', 'av-q',
-          String(u.ct_confirmada || '').replace('{fecha}', fechaHora(ev.cuando))));
-        if (ev.lugar) b.appendChild(el('div', 'av-nota', ev.lugar));
-        b.appendChild(el('div', 'av-f', fecha(ev.creado_en)));
-        b.addEventListener('click', function(){
-          cierraAvisos();
-          abreCita();
-        });
-      } else {
-        b.appendChild(el('div', 'av-t', nombreDeTarjeta(ev.ref)));
-        b.appendChild(el('div', 'av-q', textoDeEvento(ev.estado, ev.ente)));
-        if (ev.nota) b.appendChild(el('div', 'av-nota', ev.nota));
-        b.appendChild(el('div', 'av-f', fecha(ev.creado_en)));
-        b.addEventListener('click', function(){
-          cierraAvisos();
-          location.hash = 'tramite-' + ev.ref;
-        });
-      }
+      var f = avFicha(ev, u);
+      b.appendChild(el('div', 'av-t', f.t));
+      if (f.q) b.appendChild(el('div', 'av-q', f.q));
+      if (f.nota) b.appendChild(el('div', 'av-nota', f.nota));
+      b.appendChild(el('div', 'av-f', fecha(ev.creado_en)));
+      b.addEventListener('click', function(){
+        /* Se cierra ANTES de irse. Si no, el menú se queda abierto encima
+           de la pantalla nueva y hay que pincharlo aparte para verla. */
+        cierraAvisos();
+        f.ir();
+      });
       avLista.appendChild(b);
     });
 
@@ -12769,12 +12922,19 @@ applyLang(idiomaParaMi());
     }
   }
 
+  /* Cuántos se enseñan como mucho. Seis fuentes con veinte cada una son
+     ciento veinte renglones en una lista que mide cuatro dedos: nadie llega
+     al final, y lo de abajo del todo es de hace meses. Se ordena todo por
+     fecha y se queda lo de arriba. */
+  var AV_TOPE = 30;
+
   function cargaAvisos(){
     if (!avBtn) return;
     return sb.auth.getSession().then(function(r0){
       var ses = r0 && r0.data && r0.data.session;
       if (!ses) return;
-      leeVisto(ses.user.id);
+      var uid = ses.user.id;
+      leeVisto(uid);
       return cargaCatalogo().then(function(){
         if (!Object.keys(TIPOS || {}).length) return;
         /* Dos consultas y no una con embebido: el historial no dice de qué
@@ -12782,8 +12942,11 @@ applyLang(idiomaParaMi());
            PostgREST resuelva bien la relación. Así, si algo falla, falla
            una consulta pequeña y no el buzón entero. */
         return sb.from('tramites').select('id, tipo').then(function(rt){
-          var deQueTipo = {};
-          (rt.data || []).forEach(function(t){ deQueTipo[t.id] = t.tipo; });
+          /* De cada solicitud, la tarjeta a la que pertenece. Lo usan tres
+             de las fuentes -estados, mensajes y pagos- para poder decir de
+             qué trámite hablan sin volver a preguntarlo. */
+          var refDe = {};
+          (rt.data || []).forEach(function(t){ refDe[t.id] = tipoRefDe(t.tipo || ''); });
 
           return sb.from('tramite_eventos')
             .select('id, tramite, a_estado, nota, creado_en')
@@ -12792,18 +12955,62 @@ applyLang(idiomaParaMi());
               avisos = [];
               (re.data || []).forEach(function(ev){
                 if (AV_ORDEN.indexOf(ev.a_estado) < 0 && ev.a_estado !== 'devuelto') return;
-                var ref = tipoRefDe(deQueTipo[ev.tramite] || '');
-                if (!ref) return;      /* sin tarjeta no hay adónde llevarte */
+                var ref = refDe[ev.tramite];
+                if (!ref) return;      /* sin tarjeta no hay cómo nombrarlo */
                 avisos.push({
                   estado: ev.a_estado, nota: ev.nota || '', creado_en: ev.creado_en,
-                  ref: ref, ente: (TIPOS[ref] || {}).ente || ''
+                  tramite: ev.tramite, ref: ref, ente: (TIPOS[ref] || {}).ente || ''
                 });
               });
-              return sumaCitas();
+              /* Las cinco a la vez y no en fila: son independientes, y
+                 encadenarlas haría que el buzón tardara la suma de las
+                 cinco en vez de lo que tarde la más lenta. */
+              return Promise.all([
+                sumaCitas(),
+                sumaPapeles(uid),
+                sumaMensajes(uid, refDe),
+                sumaConsultas(uid),
+                sumaPagos(uid, refDe)
+              ]).then(ordenaYPinta);
             });
         });
       });
     }).catch(function(e){ console.warn('[CIIP] avisos:', e && e.message); });
+  }
+
+  /* Se reordena el buzón entero: una cita confirmada hoy tiene que ir por
+     delante de un trámite movido la semana pasada. */
+  function ordenaYPinta(){
+    avisos.sort(function(a, b){
+      return (Date.parse(b.creado_en) || 0) - (Date.parse(a.creado_en) || 0);
+    });
+    if (avisos.length > AV_TOPE) avisos = avisos.slice(0, AV_TOPE);
+    pintaAvisos();
+  }
+
+  /* ── UNA FUENTE QUE NO PUEDE TUMBAR A LAS DEMÁS ──
+     Envolver la consulta en Promise.resolve(…) NO basta, y es una trampa
+     que parece resuelta: el encadenado -.select().eq().not()- corre entero
+     ANTES de que nada se envuelva en promesa, así que si a la biblioteca le
+     falta un método el error salta en seco, se sale del Promise.all y se
+     lleva por delante las otras cinco fuentes de golpe.
+
+     Construyéndola DENTRO del then, ese tropiezo es un rechazo, y un
+     rechazo lo recoge el catch de aquí abajo: falla su fuente y las demás
+     se pintan. Pasó de verdad -con .not, que el doble de las pruebas no
+     tenía- y el buzón entero se quedó mudo por una consulta.
+
+       nombre  para el aviso de la consola, que si no dice «avisos» a secas
+               y hay que ir a buscar cuál de las seis fue
+       hazla   devuelve la consulta ya encadenada
+       guarda  recibe las filas y las mete en el buzón */
+  function avPide(nombre, hazla, guarda){
+    return Promise.resolve().then(hazla).then(function(r){
+      if (r && r.error) throw r.error;
+      guarda((r && r.data) || []);
+    }).catch(function(e){
+      console.warn('[CIIP] avisos de ' + nombre + ':', e && (e.message || e));
+    });
   }
 
   /* Las citas confirmadas entran en el mismo buzón. Van en su propia
@@ -12811,30 +13018,158 @@ applyLang(idiomaParaMi());
      corrido, esta falla sola y el buzón sigue enseñando el historial de
      trámites, en vez de quedarse vacío por una tabla que no existe. */
   function sumaCitas(){
-    return sb.from('citas')
-      .select('id, tipo_tramite, cuando, lugar, actualizado_en')
-      .eq('estado', 'confirmada')
-      .then(function(r){
-        if (r && r.error) throw r.error;
-        (r.data || []).forEach(function(c){
-          if (!c.cuando) return;    /* la base no debería dejarlas, pero por si acaso */
+    return avPide('citas', function(){
+      return sb.from('citas')
+        .select('id, tipo_tramite, cuando, lugar, actualizado_en')
+        .eq('estado', 'confirmada');
+    }, function(filas){
+      filas.forEach(function(c){
+        if (!c.cuando) return;    /* la base no debería dejarlas, pero por si acaso */
+        avisos.push({
+          clase: 'cita', estado: 'confirmada', nota: '',
+          cuando: c.cuando, lugar: c.lugar || '',
+          creado_en: c.actualizado_en, ref: '', ente: ''
+        });
+      });
+    });
+  }
+
+  /* ── LOS RECAUDOS REVISADOS ──
+     Validado o rechazado, que son los dos estados que pone el equipo; el
+     tercero, 'cargado', es el que tiene un papel nada más subirlo y ése lo
+     acabas de hacer tú.
+
+     Se pide con inversionista = el mío y no fiándolo todo a RLS. Para un
+     inversionista da igual -su política solo le deja ver los suyos-, pero
+     quien es del CIIP ve la bóveda entera, y sin este filtro su campana se
+     llenaría de papeles de otros. La cerradura sigue siendo RLS; esto es
+     para que la pregunta diga lo que quiere decir.
+
+     revisado_en lo añadió supabase-revision-papeles.sql. Un papel revisado
+     antes de eso lo tiene en nulo, y sin el `not is null` esos nulos se
+     colocarían los primeros -en Postgres «order by … desc» los pone
+     delante- y se llevarían por delante el tope de veinte. */
+  function sumaPapeles(uid){
+    return avPide('papeles', function(){
+      return sb.from('documentos')
+        .select('id, tipo, estado, nota_revision, revisado_en')
+        .eq('inversionista', uid)
+        .in('estado', ['validado', 'rechazado'])
+        .not('revisado_en', 'is', null)
+        .order('revisado_en', {ascending:false}).limit(20);
+    }, function(filas){
+      filas.forEach(function(d){
+        /* Los dos filtros, otra vez: un papel recién subido está en
+           'cargado' y no lo ha mirado nadie, y uno sin fecha se revisó antes
+           de que la base guardara cuándo. Ni el uno ni el otro son noticia. */
+        if (d.estado !== 'validado' && d.estado !== 'rechazado') return;
+        if (!d.revisado_en) return;
+        avisos.push({
+          clase: 'papel', tipo: d.tipo || '', estado: d.estado,
+          nota: d.estado === 'rechazado' ? avRecorta(d.nota_revision) : '',
+          creado_en: d.revisado_en, ref: '', ente: ''
+        });
+      });
+    });
+  }
+
+  /* ── LO QUE EL EQUIPO ESCRIBE EN EL EXPEDIENTE ──
+     del_equipo lo pone la base al insertar, con el rol de quien escribe, y
+     por eso se puede preguntar por él sin mirar perfiles.
+
+     Lo propio se descarta AQUÍ y no con un .neq en la consulta: `autor`
+     puede ser nulo -la cuenta se borró y el mensaje se queda, que es lo que
+     dice la tabla-, y en SQL `autor <> yo` con autor nulo no es cierto ni
+     falso, así que esos mensajes desaparecerían del buzón sin que nadie
+     supiera por qué. Descartando en JavaScript, un mensaje sin autor se
+     queda, que es lo correcto: alguien del CIIP lo escribió. */
+  function sumaMensajes(uid, refDe){
+    return avPide('mensajes', function(){
+      return sb.from('tramite_mensajes')
+        .select('id, tramite, autor, texto, creado_en')
+        .eq('del_equipo', true)
+        .order('creado_en', {ascending:false}).limit(20);
+    }, function(filas){
+      filas.forEach(function(m){
+        /* del_equipo se vuelve a mirar aquí, aunque la consulta ya lo pida.
+           Anunciarle a alguien lo que acaba de escribir él mismo es el
+           fallo más tonto que puede tener un buzón, y es el que se cuela si
+           un día la consulta pierde el filtro por un retoque. */
+        if (!m.del_equipo) return;
+        if (m.autor && m.autor === uid) return;   /* lo escribí yo */
+        var ref = refDe[m.tramite];
+        if (!ref) return;      /* de un expediente que no es mío, o sin tarjeta */
+        if (!String(m.texto || '').trim()) return;  /* solo adjunto, sin nada que leer */
+        avisos.push({
+          clase: 'mensaje', tramite: m.tramite, ref: ref,
+          nota: avRecorta(m.texto), creado_en: m.creado_en, ente: ''
+        });
+      });
+    });
+  }
+
+  /* ── LAS RESPUESTAS A TUS CONSULTAS ──
+     Dos viajes: primero cuáles son mías, después qué se dijo en ellas. El
+     primero hace falta de todos modos —el aviso enseña el ASUNTO, y el
+     mensaje no lo lleva—, así que no sobra nada.
+
+     Y con `in(...)` sobre esos ids: sin él, quien es del CIIP se traería la
+     mensajería de toda la oficina para tirarla después. */
+  function sumaConsultas(uid){
+    var mias = {};
+    return avPide('consultas', function(){
+      return sb.from('consultas').select('id, asunto, estado, tipo')
+        .eq('inversionista', uid);
+    }, function(filas){
+      filas.forEach(function(c){ if (c && c.id) mias[c.id] = c; });
+    }).then(function(){
+      var ids = Object.keys(mias);
+      if (!ids.length) return;
+      return avPide('respuestas', function(){
+        return sb.from('consulta_mensajes')
+          .select('id, consulta, autor, texto, creado_en')
+          .eq('del_equipo', true).in('consulta', ids)
+          .order('creado_en', {ascending:false}).limit(20);
+      }, function(filas){
+        filas.forEach(function(m){
+          if (!m.del_equipo) return;   /* por lo mismo que en el expediente */
+          if (m.autor && m.autor === uid) return;
+          var c = mias[m.consulta];
+          if (!c) return;
+          if (!String(m.texto || '').trim()) return;
           avisos.push({
-            clase: 'cita', estado: 'confirmada', nota: '',
-            cuando: c.cuando, lugar: c.lugar || '',
-            creado_en: c.actualizado_en, ref: '', ente: ''
+            clase: 'consulta', consulta: c, asunto: c.asunto || '',
+            nota: avRecorta(m.texto), creado_en: m.creado_en, ref: '', ente: ''
           });
         });
-        /* Se reordena el buzón entero: una cita confirmada hoy tiene que ir
-           por delante de un trámite movido la semana pasada. */
-        avisos.sort(function(a, b){
-          return (Date.parse(b.creado_en) || 0) - (Date.parse(a.creado_en) || 0);
-        });
-        pintaAvisos();
-      })
-      .catch(function(e){
-        console.warn('[CIIP] avisos de citas:', e && e.message);
-        pintaAvisos();
       });
+    });
+  }
+
+  /* ── LO QUE QUEDA POR PAGAR ──
+     Solo las pendientes: una orden pagada o anulada ya no pide nada, y el
+     buzón es para lo que todavía se mueve.
+
+     La fecha del aviso es la de cuando NACIÓ la orden y no la del último
+     retoque: una orden pendiente no cambia hasta que se paga, y si se toca
+     por otra cosa -se corrige el concepto- volvería a subir al principio
+     del buzón como si fuera nueva, y no lo es. */
+  function sumaPagos(uid, refDe){
+    return avPide('pagos', function(){
+      return sb.from('ordenes_pago')
+        .select('id, tramite, concepto, monto, moneda, creado_en')
+        .eq('inversionista', uid)
+        .eq('estado', 'pendiente')
+        .order('creado_en', {ascending:false}).limit(20);
+    }, function(filas){
+      filas.forEach(function(o){
+        avisos.push({
+          clase: 'pago', tramite: o.tramite, ref: refDe[o.tramite] || '',
+          concepto: o.concepto || '', monto: o.monto, moneda: o.moneda || '',
+          nota: '', creado_en: o.creado_en, ente: ''
+        });
+      });
+    });
   }
 
   function abreAvisos(){
@@ -18851,6 +19186,12 @@ applyLang(idiomaParaMi());
      que va tarde. */
   var mtFiltro = 'todas';
 
+  /* Cuál hay que señalar al pintar, y el reloj que lo olvida. Va aquí
+     arriba y no dentro de pintaMisTramites porque entre pulsar el aviso y
+     tener la tabla dibujada hay un viaje a la base: quien pulsa dice CUÁL,
+     y la tabla la marca cuando existe. */
+  var mtSenala = null, mtSenalaReloj = null;
+
   /* Si a una solicitud se le paso el plazo. Es la misma cuenta que la cola
      del equipo -desde que se ENVIO y contra plazo_dias del catalogo-, y a
      proposito: si el equipo ve «va tarde» y el inversionista no, uno de
@@ -19054,49 +19395,36 @@ applyLang(idiomaParaMi());
     pintaFiltrosMt();
 
     cuerpo.textContent = '';
-    var vaciaCaja = document.getElementById('mtVacia');
     var tabla = document.getElementById('mtTabla');
 
-    /* ── SIN NADA PEDIDO, LA TABLA SE QUEDA ──
-       Aquí se escondía la tabla entera y el aviso salía suelto debajo. El
-       razonamiento escrito era «una cabecera de cinco columnas sobre un
-       cuerpo vacío parece una pantalla rota», y visto en pantalla pasa lo
-       contrario: sin tabla queda una frase flotando entre dos rayas y la
-       página parece a medio cargar. El marco es lo que dice «esto es una
-       lista, y está vacía».
+    /* La caja del borde y el alto tope es la que se ve: escondiendo la
+       <table> sola quedaba el marco vacío dibujado. */
+    var cajaTabla = tabla && tabla.closest('.tabla-caja');
 
-       El aviso va DENTRO, en una celda que ocupa las cinco columnas. No es
-       un invento: es exactamente lo que ya hace Documentos con su tabla unas
-       mil líneas más abajo, y era la única de las cinco que se escondía.
-       Ahora las cinco se portan igual. */
+    /* ── SIN NADA PEDIDO, AQUÍ NO SE DIBUJA NADA ──
+       Ni tabla, ni recuadro, ni aviso: quedan los filtros de arriba y se
+       acabó. Esto ha ido y vuelto dos veces, así que queda escrito por
+       dónde pasó:
+
+       1. La tabla se escondía y el aviso salía suelto debajo.
+       2. El aviso se metió DENTRO de la tabla, en una celda de cinco
+          columnas y con su recuadro de rayas, para que la cabecera no
+          quedara sobre un cuerpo vacío.
+       3. Y ahora se quita entero. Una cabecera de cinco columnas que no
+          va a ordenar nada, un marco de rayas y una frase diciendo que no
+          hay nada son tres formas de anunciar el mismo vacío. Quien entra
+          por primera vez no necesita que se lo digan tres veces: necesita
+          el catálogo, y ahí se llega por la barra lateral.
+
+       El pie se apaga solo -pintaPieMt lo esconde en cuanto el total es
+       cero-, así que con ocultar la caja basta. */
     if (!mios.length){
-      if (vaciaCaja) vaciaCaja.hidden = true;
-      if (tabla) tabla.hidden = false;
-      var fv = document.createElement('tr');
-      /* Marcada: esta fila NO es un tramite. Quien cuente las filas del
-         cuerpo -y hay una prueba que lo hace, para cotejar el contador de la
-         barra- tiene que poder distinguirla. Sin la marca, un expediente sin
-         tramites contaba uno. */
-      fv.className = 'sin-nada';
-      var tdv = document.createElement('td');
-      tdv.colSpan = MT_COLUMNAS.length;
-      /* El recuadro de Atlas, y con la salida: quien llega sin tramites
-         busca por donde se empieza. */
-      var vac = el('div', 'ci-vacia mt-vacia');
-      vac.appendChild(el('b', null, u.mt_vacia || ''));
-      var alPanel = el('button', 'mt-vacia-ir', u.mt_vacia_ir || '');
-      alPanel.type = 'button';
-      alPanel.addEventListener('click', function(){ location.hash = ''; });
-      vac.appendChild(alPanel);
-      tdv.appendChild(vac);
-      fv.appendChild(tdv);
-      fv.style.cursor = 'default';
-      cuerpo.appendChild(fv);
+      if (cajaTabla) cajaTabla.hidden = true;
       pintaPieMt(0, 0, 1, 1);
       return;
     }
+    if (cajaTabla) cajaTabla.hidden = false;
     if (tabla) tabla.hidden = false;
-    if (vaciaCaja) vaciaCaja.hidden = true;
 
     /* Si el filtro de turno se queda sin nada -porque se descarto el
        ultimo borrador, por ejemplo- se vuelve a todas en vez de dejar la
@@ -19113,6 +19441,31 @@ applyLang(idiomaParaMi());
     var porPag = mtPorPagina > 0 ? mtPorPagina : (total || 1);
     var paginas = Math.max(1, Math.ceil(total / porPag));
     if (mtPagina > paginas - 1) mtPagina = paginas - 1;
+
+    /* ── LA SOLICITUD POR LA QUE VIENES ──
+       Quien llega desde la campana viene a por UNA, y esa una puede estar
+       en la página cuatro o caer fuera del filtro de turno. Se busca en la
+       lista ya ordenada y se salta a su página.
+
+       Si el filtro la deja fuera, cede el filtro: llegar a Mis trámites y
+       no ver aquello de lo que te acaban de avisar se lee como que el
+       aviso no era verdad. Y si no aparece ni estando todas -se descartó
+       entre el aviso y el clic- se deja de buscarla, en vez de andar
+       señalando una fila que ya no existe. */
+    if (mtSenala){
+      var donde = mtDonde(lista, mtSenala);
+      if (donde < 0 && mtFiltro !== 'todas'){
+        mtFiltro = 'todas';
+        pintaFiltrosMt();
+        lista   = mtOrden.ordena(mios.filter(mtCuadra), MT_ORDENA);
+        total   = lista.length;
+        porPag  = mtPorPagina > 0 ? mtPorPagina : (total || 1);
+        paginas = Math.max(1, Math.ceil(total / porPag));
+        donde   = mtDonde(lista, mtSenala);
+      }
+      if (donde >= 0) mtPagina = Math.min(Math.floor(donde / porPag), paginas - 1);
+      else mtSenala = null;
+    }
 
     lista.slice(mtPagina * porPag, mtPagina * porPag + porPag).forEach(function(t){
       var ref  = tipoRefDe(t.tipo);
@@ -19168,6 +19521,26 @@ applyLang(idiomaParaMi());
       cuerpo.appendChild(tr);
     });
     pintaPieMt(total, mtPagina, porPag, paginas);
+    if (mtSenala) senalaFila(cuerpo, mtSenala);
+  }
+
+  /* En qué puesto de la lista está esa solicitud. -1 si no está. */
+  function mtDonde(lista, id){
+    for (var i = 0; i < lista.length; i++){ if (lista[i].id === id) return i; }
+    return -1;
+  }
+
+  /* La marca y la trae a la vista. No borra mtSenala al terminar, y es a
+     propósito: cargaMisTramites pinta DOS veces -la lista primero, y otra
+     vez cuando llegan los relojes y las notas-, y el segundo pintado
+     rehace las filas. Borrándola aquí, la marca duraba lo que tardaba el
+     segundo viaje. La olvida el reloj de CIIP_MT_SENALA. */
+  function senalaFila(cuerpo, id){
+    var fila = cuerpo.querySelector('tr[data-id="' + id + '"]');
+    if (!fila) return;
+    fila.classList.add('senalada');
+    try { fila.scrollIntoView({block:'center', behavior:'smooth'}); }
+    catch(e){ fila.scrollIntoView(); }
   }
 
   function estadoMt(estado, txt){
@@ -19425,6 +19798,34 @@ applyLang(idiomaParaMi());
     });
     window.CIIP_PINTA_MISTRAM   = cargaMisTramites;
     window.CIIP_REPINTA_MISTRAM = pintaMisTramites;
+
+    /* ── LA PUERTA DEL BUZÓN DE AVISOS ──
+       Pulsar un aviso de una solicitud deja aquí, con esa fila señalada.
+       Antes llevaba a la FICHA del catálogo, que cuenta qué es el trámite:
+       lo que ya sabe quien acaba de pedirlo. Lo que se quiere ver al leer
+       «revisión de tus recaudos» es en qué punto va LA TUYA.
+
+       Dos caminos porque el hash no siempre viaja: puesto al mismo valor
+       que ya tenía -pulsar un aviso estando ya en Mis trámites- no dispara
+       hashchange, el enrutador no se entera y la vista se quedaría igual,
+       sin señalar nada. Desde otra pantalla sí viaja, y pintar aquí además
+       sería pintar dos veces. */
+    window.CIIP_MT_SENALA = function(id){
+      if (!id) return;
+      mtSenala = id;
+      /* Se olvida sola. Sin esto la fila volvería a señalarse en cada
+         repintado -y la tabla se repinta al volver a la pestaña y cada
+         minuto- mucho después de que el aviso dejara de importar. */
+      if (mtSenalaReloj) clearTimeout(mtSenalaReloj);
+      mtSenalaReloj = setTimeout(function(){
+        mtSenala = null;
+        var y = document.querySelector('#mtCuerpo tr.senalada');
+        if (y) y.classList.remove('senalada');
+      }, 6000);
+      var yaEstaba = (location.hash === '#tramites');
+      location.hash = 'tramites';
+      if (yaEstaba) cargaMisTramites();
+    };
 
     /* ── AL VOLVER A LA PESTAÑA, LOS DATOS AL DÍA ──
        Esto se pedía UNA vez, al cargar. Así que un trámite nuevo en el
@@ -21048,7 +21449,8 @@ applyLang(idiomaParaMi());
      comprobante, como antes. */
   var PAPEL_DE_PASO = {c22: {paso: 0, tipo: 'pago_aranceles', clave: 'd_aranceles',
                              planilla: 'planilla_aranceles', claveP: 'd_planilla_aranceles',
-                             clavePista: 'tr_pagaranceles'}};
+                             clavePista: 'tr_pagaranceles',
+                             claveEspera: 'tr_esperaranceles'}};
 
   /* La solicitud que manda de un tramo, con el mismo criterio que la ficha:
      la que va mas adelante, no la mas reciente. Si la portada y el bloque
@@ -21235,7 +21637,28 @@ applyLang(idiomaParaMi());
       txt.appendChild(filaDelDocumentoParaPagar(tr, quiere.planilla, quiere.claveP, quiere.clavePista));
     }
 
+    /* Y MIENTRAS NO LO HAYA, EL PASO NO PIDE COMPROBANTE (Franklin Reyes,
+       18-9-2026). Los aranceles se pagan con el documento que emite el
+       registro y que el CIIP le hace llegar: sin ese papel no hay pago que
+       hacer, y una fila para subir el comprobante invita a algo que no se
+       puede. Mientras no este, el paso dice que viene de camino, y la fila
+       espera escondida a que llegue.
+
+       Lo ya subido se ensena igual: si el comprobante esta ahi -de antes,
+       o pagado por otra via- esconderlo seria perder lo guardado. */
+    var espera = quiere.claveEspera ? el('div', 'sd-e tr-pagar-p', u[quiere.claveEspera] || '') : null;
+    if (espera){
+      /* Escondidos los dos hasta saber cual toca: sin esto, con la
+         planilla ya puesta, el aviso de espera se ensena y desaparece
+         medio segundo despues, y parece que algo fallo. Sin solicitud no
+         hay a quien preguntar -ni planilla que pueda haber-, asi que la
+         espera sale de una vez. */
+      espera.hidden = !!tr;
+      txt.appendChild(espera);
+    }
+
     var fila = el('div', 'tr-papel');
+    if (espera) fila.hidden = true;
     fila.setAttribute('data-doc', quiere.tipo);
     fila.appendChild(el('span', 'tp-n', u[quiere.clave] || quiere.tipo));
     var est = el('span', 'tp-e', '');
@@ -21295,9 +21718,22 @@ applyLang(idiomaParaMi());
     fila.appendChild(btn);
     txt.appendChild(fila);
 
-    /* Y si ya se subio, se dice: la fila deja de pedir y ensena cual es. */
+    /* Y si ya se subio, se dice: la fila deja de pedir y ensena cual es.
+       Aqui se decide tambien la espera: la fila se destapa en cuanto esta
+       la planilla del CIIP -ya hay con que pagar- o el comprobante -ya se
+       pago-. Sin solicitud no se pregunta: no hay a quien, y entonces
+       tampoco hay planilla, asi que la espera se queda. */
     if (tr) papelesDe(tr.id).then(function(hay){
-      if (!fila.isConnected || !hay[quiere.tipo]) return;
+      if (!fila.isConnected) return;
+      if (espera){
+        if (hay[quiere.planilla] || hay[quiere.tipo]){
+          espera.remove();
+          fila.hidden = false;
+        } else {
+          espera.hidden = false;
+        }
+      }
+      if (!hay[quiere.tipo]) return;
       fila.classList.add('puesto');
       est.textContent = hay[quiere.tipo];
       btn.textContent = u.pa_cambiar || btn.textContent;
