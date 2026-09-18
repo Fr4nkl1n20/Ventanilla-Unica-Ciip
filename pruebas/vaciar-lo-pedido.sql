@@ -17,6 +17,13 @@
 --  Después de correrlo se entra igual, con las mismas cuentas, a un panel
 --  que no tiene nada pedido.
 --
+--  ═══ SE CORRE TANTAS VECES COMO QUIERAS ═════════════════════════════
+--  Es la escoba de después de cada ensayo, no un arreglo de una vez: se
+--  guarda y se vuelve a pegar el día que la base se haya llenado otra vez
+--  de pruebas. Con la base ya limpia no rompe nada —borra cero y lo dice—,
+--  y como las cuentas no se tocan, en cuanto termina puedes entrar y
+--  volver a pedir un trámite desde el principio.
+--
 --  ═══ ESTO VALE PARA LAS DOS BASES, Y AHÍ ESTÁ EL PELIGRO ═════════════
 --  Pruebas     ifhdzxetixhrzqixcfbe
 --  Producción  fbxdwryppfctuwlnjjqr
@@ -89,11 +96,17 @@ declare
   cuantas bigint;
   lista   constant text[] := array[
     'tramites',    -- las solicitudes
-    'documentos'   -- la bóveda entera: lo que subió él y lo que dejó el equipo
-    --  Y si además quieres vaciar la agenda y lo que preguntó, añade aquí
-    --  'citas', 'consultas' y 'empresas'. No van de fábrica: una cita
-    --  confirmada es un compromiso con una persona, y los datos de «Mi
-    --  empresa» se teclean una vez y valen para todos los trámites.
+    'documentos',  -- la bóveda entera: lo que subió él y lo que dejó el equipo
+    --  Y la agenda y lo que se preguntó. Entraron el 18-9-2026, cuando en
+    --  la barra del equipo quedaban «Consultas y citas 2» y «Documentos
+    --  por revisar 1» después de vaciar lo demás: eran ensayos suyos, y
+    --  una bandeja que dice 2 sobre cosas que ya no existen manda a mirar
+    --  algo que no está. Sus mensajes se van por cascade.
+    'citas',
+    'consultas'
+    --  Lo que NO entra de fábrica: 'empresas'. Los datos de «Mi empresa»
+    --  se teclean una vez y valen para todos los trámites; si también los
+    --  quieres fuera, añádelo aquí.
   ];
 begin
   foreach cual in array lista loop
