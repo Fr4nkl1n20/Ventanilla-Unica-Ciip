@@ -137,7 +137,14 @@
      justo lo que decide si el paso pide comprobante o dice que el
      documento viene de camino (Franklin Reyes, 18-9-2026). */
   var sinPlanilla = (caso === 'tramossinpagar');
-  var conTramos = (caso === 'tramos' || sinPlanilla);
+  /* Y el mismo expediente un escalon antes: en 'tramospagado' la
+     protocolizacion acaba de nacer -'enviado', que es como la deja el
+     disparador al resolverse la constitucion- y el inversionista YA subio
+     el comprobante del pago. Es el caso que encendia el segundo paso sin
+     que el CIIP hubiera movido nada: el tramo lo mueve la base, no el
+     comprobante (Franklin Reyes, 18-9-2026). */
+  var yaPagado = (caso === 'tramospagado');
+  var conTramos = (caso === 'tramos' || sinPlanilla || yaPagado);
   if (conTramos) caso = 'vacio';
   /* El doble manda sobre el lector en TODAS las pasadas, tambien para
      quitarlo. Este archivo se carga despues de config.js: el dia que
@@ -393,12 +400,15 @@
       {id:'t4', tipo:'rif_personal', estado:'en_revision',
        creado_en:'2026-08-17T11:00:00Z', actualizado_en:'2026-08-18T08:00:00Z'}
     ].concat(conTramos ? [
-      /* La protocolización, ya presentada y en revisión: sus dos primeros
-         pasos —consignación y pago de aranceles— están hechos y con fecha,
-         y es donde se pide el comprobante del pago. */
-      {id:'p1', tipo:'protocolizacion_acta', estado:'en_revision',
+      /* La protocolización: en 'tramos' ya presentada y en revisión, y en
+         'tramospagado' recién nacida —'enviado'—. Es donde se pide el
+         comprobante del pago, y en los dos casos su primer paso es el que
+         toca: sin el comprobante porque falta el papel, y con él porque
+         el estado todavía no ha pasado de ese paso. */
+      {id:'p1', tipo:'protocolizacion_acta',
+       estado: yaPagado ? 'enviado' : 'en_revision',
        creado_en:'2026-09-01T10:00:00Z', enviado_en:'2026-09-01T10:00:00Z',
-       actualizado_en:'2026-09-08T10:00:00Z'},
+       actualizado_en: yaPagado ? '2026-09-01T10:00:00Z' : '2026-09-08T10:00:00Z'},
       /* Y la constitución, con el nombre ya reservado: está ante el ente y
          le falta el comprobante de esa reserva, que es el paso que se sube
          antes de poder resolverla. */
@@ -822,13 +832,14 @@
     ],
     /* El historial de la protocolización de 'tramos': de ahí salen las dos
        fechas que se ven en sus pasos. */
-    vacio: conTramos ? [
-      {id:71, tramite:'p1', de_estado:'enviado',  a_estado:'en_revision', nota:'', creado_en:'2026-09-08T10:00:00Z'},
+    vacio: conTramos ? (yaPagado ? [] : [
+      {id:71, tramite:'p1', de_estado:'enviado',  a_estado:'en_revision', nota:'', creado_en:'2026-09-08T10:00:00Z'}
+    ]).concat([
       {id:70, tramite:'p1', de_estado:'borrador', a_estado:'enviado',     nota:'', creado_en:'2026-09-01T10:00:00Z'},
       {id:62, tramite:'p2', de_estado:'en_revision', a_estado:'ante_el_ente', nota:'', creado_en:'2026-08-30T10:00:00Z'},
       {id:61, tramite:'p2', de_estado:'enviado',     a_estado:'en_revision',  nota:'', creado_en:'2026-08-24T10:00:00Z'},
       {id:60, tramite:'p2', de_estado:'borrador',    a_estado:'enviado',      nota:'', creado_en:'2026-08-20T10:00:00Z'}
-    ] : [],
+    ]) : [],
     sinnombre: []
   };
 
@@ -1911,9 +1922,15 @@
       if (op && op.eq && op.eq.tramite === 'p1'){
         /* Salvo en 'tramossinpagar', donde no ha dejado nada todavía. */
         if (sinPlanilla) return {data:[], error:null};
-        return {data:[{documento:'dp2', documentos:{tipo:'planilla_aranceles',
+        var delPago = [{documento:'dp2', documentos:{tipo:'planilla_aranceles',
           nombre_original:'planilla-aranceles-saren.pdf',
-          archivo:'u1/emitidos/planilla-aranceles-saren.pdf'}}], error:null};
+          archivo:'u1/emitidos/planilla-aranceles-saren.pdf'}}];
+        /* Y en 'tramospagado', el comprobante que el inversionista ya subió
+           desde su paso (Franklin Reyes, 18-9-2026). */
+        if (yaPagado) delPago.push({documento:'dp3', documentos:{tipo:'pago_aranceles',
+          nombre_original:'pago-aranceles.pdf',
+          archivo:'u1/pago-aranceles.pdf'}});
+        return {data:delPago, error:null};
       }
       if (op && op.eq && op.eq.tramite === 't4'){
         return {data:[{documento:'dr1', documentos:{tipo:'resolucion',

@@ -21270,18 +21270,32 @@ applyLang(idiomaParaMi());
 
       var pasos = b.querySelectorAll('.tr-paso');
 
-      /* UN PASO QUE PIDE UN PAPEL NO SE DA POR HECHO SIN EL (Franklin
-         Reyes, 18-9-2026). La escalera de arriba la marca el ESTADO de la
-         solicitud, y la protocolizacion nace ya enviada al resolverse la
-         constitucion: su primer paso -pagar los aranceles- salia con su
-         visto y su fecha sin que nadie hubiera pagado nada.
-         Mientras el comprobante no este, la escalera no pasa de ahi. */
+      /* EL PASO QUE PIDE UN PAPEL NO SE DA POR HECHO SIN EL, Y TAMPOCO LO
+         CIERRA EL PAPEL: LO CIERRA LA BASE (Franklin Reyes, 18-9-2026).
+
+         La escalera la marca el ESTADO de la solicitud, y la protocolizacion
+         nace ya enviada al resolverse la constitucion: su primer paso -pagar
+         los aranceles- salia con su visto y su fecha sin que nadie hubiera
+         pagado nada. Esta manana se freno con el comprobante, y quedo medio
+         arreglado: mientras no estuviera, la escalera no pasaba de ahi; pero
+         subirlo la soltaba, y el tramo se iba solo al segundo paso sin que el
+         CIIP hubiera movido nada. Es lo mismo que ya se quito de la reserva
+         del nombre: el tramo no lo abre un comprobante, lo abre la base.
+
+         Asi que hacen falta las dos cosas para dar el paso por hecho: que el
+         papel este y que el estado haya PASADO de ese paso. Con la solicitud
+         recien enviada el paso del pago es el que toca -con su recuadro para
+         subir-, y lo cierra el gestor al moverla a revision. Sin estar hecho
+         no lleva fecha: la de 'enviado' es la del dia en que el tramo nacio,
+         no la del pago. */
       var quiere = PAPEL_DE_PASO[ref];
       var mira = quiere ? papelesDe(tr.id).then(function(hay){ return !hay[quiere.tipo]; })
                         : Promise.resolve(false);
       mira.then(function(sinPapel){
         if (!b.isConnected) return;
-        var tope = sinPapel ? Math.min(alcanzado, quiere.paso - 1) : alcanzado;
+        var tope = alcanzado;
+        if (quiere && (sinPapel || alcanzado <= quiere.paso))
+          tope = Math.min(alcanzado, quiere.paso - 1);
         [].forEach.call(pasos, function(li, i){
           var hecho = i <= tope;
           var ahora = (i === tope + 1) && tr.estado !== 'resuelto';

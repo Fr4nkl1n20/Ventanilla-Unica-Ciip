@@ -153,6 +153,11 @@ $casos = @(
   # el comprobante o dice que el papel viene de camino, y sin pase propio
   # eso no se prueba nunca: en 'tramos' la planilla siempre esta.
   @{ caso='tramossinpagar'; ancho='1400,1000' }
+  # Y el mismo expediente un escalon antes: la protocolizacion recien nacida
+  # -'enviado'- con el comprobante del pago YA subido. Es donde se ve que el
+  # papel por si solo no cierra el paso: el tramo lo mueve la base, cuando el
+  # gestor mueve la solicitud, y no el comprobante.
+  @{ caso='tramospagado'; ancho='1400,1000' }
 )
 foreach ($c in $casos) {
   $caso  = $c.caso

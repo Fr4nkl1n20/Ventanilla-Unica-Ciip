@@ -57,9 +57,15 @@
      Sin pase propio no se prueba nunca: en 'tramos' la planilla esta
      siempre (Franklin Reyes, 18-9-2026). */
   var SIN_PLANILLA = (PASE === 'tramossinpagar');
+  /* Y 'tramospagado', tambien con los datos de 'tramos', mueve dos cosas a
+     la vez: la protocolizacion esta recien nacida -'enviado'- y el
+     comprobante del pago YA esta subido. Es el unico pase donde se ve que
+     el papel por si solo NO cierra el paso: hasta que el gestor no mueva la
+     solicitud, el tramo sigue en el primero (Franklin Reyes, 18-9-2026). */
+  var YA_PAGADO = (PASE === 'tramospagado');
   var CASO = (SIN_SQL || ES_ADMIN) ? 'gestor'
            : (PASE === 'pliego' || PASE === 'pliegoya' || CON_LECTOR || CON_HUECOS) ? 'vacio'
-           : SIN_PLANILLA ? 'tramos'
+           : (SIN_PLANILLA || YA_PAGADO) ? 'tramos'
            : PASE;
   /* El rol de la cabecera sale del PASE, no de los datos: 'admin' trae
      los mismos tramites que un gestor, pero no el mismo rotulo. */
@@ -9679,6 +9685,28 @@
     ok('verdad: lo que no ha pasado no lleva fecha',
        !pasos[3].querySelector('.tr-paso-f'),
        pasos[3].querySelector('.tr-paso-f') ? 'lleva fecha' : 'sin fecha', 'sin fecha');
+
+    /* Y CON EL COMPROBANTE YA SUBIDO, TAMPOCO SE DA POR HECHO (Franklin
+       Reyes, 18-9-2026). En 'tramospagado' el papel esta y la solicitud
+       sigue recien enviada. Subirlo NO abre el tramo -eso lo hace la base,
+       cuando el gestor la mueve-, asi que el paso del pago sigue siendo el
+       que toca y el segundo no se enciende solo. Con el freno anterior
+       -solo miraba si el papel faltaba- el papel lo soltaba y la escalera
+       se iba al segundo paso sin que nadie del CIIP hubiera hecho nada. */
+    if (YA_PAGADO){
+      var yaEsta = b.querySelector('.tr-papel[data-doc="pago_aranceles"]');
+      ok('pagado: el comprobante del pago ya esta subido',
+         !!yaEsta && yaEsta.classList.contains('puesto'),
+         yaEsta ? yaEsta.className : '(no esta la fila)', 'puesto');
+      igual('pagado: y aun asi el tramo no pasa del paso del pago',
+            [].map.call(pasos, function(li){
+              return li.classList.contains('hecho') ? 'hecho'
+                   : li.classList.contains('ahora') ? 'ahora' : 'porhacer';
+            }).join(','), 'ahora,porhacer,porhacer,porhacer');
+      ok('pagado: el paso del pago tampoco lleva fecha todavia',
+         !pasos[0].querySelector('.tr-paso-f'),
+         pasos[0].querySelector('.tr-paso-f') ? 'lleva fecha' : 'sin fecha', 'sin fecha');
+    }
     /* En el registro se paga ANTES de consignar, así que el pago es el
        primero de los cuatro. Los nombres, los del acta. */
     igual('verdad: el pago va delante de la consignación',
