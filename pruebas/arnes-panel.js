@@ -50,8 +50,16 @@
      miran el expediente vacio se saltarian todas y este pase mediria solo
      la puerta -y de paso dejaria sin comprobar que el panel funciona con
      normalidad DESPUES de aceptar, que es la mitad que importa-. */
+  /* 'tramossinpagar' trae LOS MISMOS datos que 'tramos' menos uno: el CIIP
+     todavia no ha dejado el documento con que pagar los aranceles. Todas
+     las pruebas del tramo tienen que correr igual -por eso CASO vale
+     'tramos'- y las tres que miran ese papel preguntan por esta bandera.
+     Sin pase propio no se prueba nunca: en 'tramos' la planilla esta
+     siempre (Franklin Reyes, 18-9-2026). */
+  var SIN_PLANILLA = (PASE === 'tramossinpagar');
   var CASO = (SIN_SQL || ES_ADMIN) ? 'gestor'
            : (PASE === 'pliego' || PASE === 'pliegoya' || CON_LECTOR || CON_HUECOS) ? 'vacio'
+           : SIN_PLANILLA ? 'tramos'
            : PASE;
   /* El rol de la cabecera sale del PASE, no de los datos: 'admin' trae
      los mismos tramites que un gestor, pero no el mismo rotulo. */
@@ -9798,6 +9806,40 @@
        más arriba (Franklin Reyes, 17-9-2026). */
     var pagar = b.querySelector('.tr-pagar');
     var planilla = pagar && pagar.querySelector('.tr-papel[data-doc="planilla_aranceles"]');
+    /* SIN EL DOCUMENTO DEL CIIP NO SE PIDE COMPROBANTE (Franklin Reyes,
+       18-9-2026). Los aranceles se pagan con el papel que emite el registro
+       y que el CIIP le hace llegar: mientras no esté, una fila para subir
+       el comprobante invita a algo que no se puede hacer. El paso dice que
+       viene de camino y la fila espera escondida. */
+    if (SIN_PLANILLA){
+      ok('espera: sin el documento del CIIP, el paso no pide el comprobante',
+         !!papel && papel.hidden,
+         papel ? (papel.hidden ? 'escondido' : 'a la vista') : '(no está)', 'escondido');
+      /* El aviso es hijo directo del paso: el otro '.tr-pagar-p' vive dentro
+         de '.tr-pagar', que aquí está escondido y vacío. */
+      var aviso = pasos[0].querySelector('.tr-txt > .tr-espera');
+      ok('espera: y dice que el CIIP se lo enviará',
+         !!aviso && !aviso.hidden && /enviar/i.test(aviso.textContent),
+         aviso ? (aviso.hidden ? 'escondido' : aviso.textContent.slice(0, 60)) : '(no hay)',
+         'el aviso, a la vista');
+      /* La caja de la planilla se arma siempre y se destapa al saber que
+         hay documento: lo que se comprueba es que siga tapada y sin nombre
+         de archivo dentro, no que falte del marcado. */
+      ok('espera: y no ofrece abrir un documento que nadie ha dejado',
+         !!pagar && pagar.hidden &&
+           !((planilla && planilla.querySelector('.tp-e') || {}).textContent || '').trim(),
+         pagar ? (pagar.hidden ? 'escondido' : 'a la vista') : '(no está)',
+         'escondido y sin archivo');
+      location.hash = '';
+      return;
+    }
+    /* Y con el documento ya dejado, ni rastro de la espera: lo que se
+       enseña es con qué pagar y dónde subir el comprobante. */
+    ok('verdad: con el documento ya dejado, el aviso de espera no está',
+       !b.querySelector('.tr-espera') && !!papel && !papel.hidden,
+       b.querySelector('.tr-espera') ? 'sigue el aviso'
+         : (papel && papel.hidden ? 'la fila, escondida' : 'la fila, a la vista'),
+       'la fila, a la vista');
     ok('verdad: y encima, el documento que dejó el CIIP para pagar los aranceles',
        !!pagar && !pagar.hidden && !!planilla && !!planilla.querySelector('.sd-btn') &&
          /planilla-aranceles-saren/.test(planilla.textContent) &&

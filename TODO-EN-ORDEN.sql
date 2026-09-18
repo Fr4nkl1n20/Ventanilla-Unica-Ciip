@@ -8350,8 +8350,20 @@ begin
     end if;
   end if;
 
-  insert into public.tramites (inversionista, tipo, estado, datos, enviado_en)
-  values (new.inversionista, 'protocolizacion_acta', 'enviado', copia, now());
+  --  Y NACE EN MANOS DE QUIEN RESOLVIÓ LA CONSTITUCIÓN (Franklin Reyes,
+  --  18-9-2026). Sin esto nacía sin dueño, y un trámite sin dueño solo
+  --  ofrece «Tómalo» en la cola: la casilla donde el equipo deja el
+  --  documento con que pagar los aranceles vive un paso más adentro, y no
+  --  aparecía sola. El gestor esperaba a que apareciera y el
+  --  inversionista, a un papel que nadie le mandaba —y sin ese papel no
+  --  tiene con qué pagar ni, por tanto, qué comprobante subir—.
+  --
+  --  Es el mismo que acaba de llevar la constitución, así que la
+  --  protocolización le cae en «Míos» y ve la casilla en cuanto la abre.
+  --  Si la constitución se resolvió desde el SQL Editor no hay gestor que
+  --  copiar: queda null, sin asignar, como antes.
+  insert into public.tramites (inversionista, tipo, estado, datos, enviado_en, gestor)
+  values (new.inversionista, 'protocolizacion_acta', 'enviado', copia, now(), new.gestor);
 
   return new;
 end;

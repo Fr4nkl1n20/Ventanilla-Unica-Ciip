@@ -131,7 +131,13 @@
      más en el catálogo cambia el número de fichas que cuentan las etapas y
      los filtros, y eso lo miden treinta pruebas de las otras pasadas. Aquí
      el catálogo crece solo cuando este pase lo pide. */
-  var conTramos = (caso === 'tramos');
+  /* Y el MISMO expediente sin una cosa: en 'tramossinpagar' el equipo
+     todavía no ha dejado el documento con que pagar los aranceles. Los
+     datos son los de 'tramos'; lo único que cambia es ese papel, que es
+     justo lo que decide si el paso pide comprobante o dice que el
+     documento viene de camino (Franklin Reyes, 18-9-2026). */
+  var sinPlanilla = (caso === 'tramossinpagar');
+  var conTramos = (caso === 'tramos' || sinPlanilla);
   if (conTramos) caso = 'vacio';
   /* El doble manda sobre el lector en TODAS las pasadas, tambien para
      quitarlo. Este archivo se carga despues de config.js: el dia que
@@ -1875,6 +1881,8 @@
          para pagar los aranceles del registro, y el comprobante del pago
          todavía no está (Franklin Reyes, 17-9-2026). */
       if (op && op.eq && op.eq.tramite === 'p1'){
+        /* Salvo en 'tramossinpagar', donde no ha dejado nada todavía. */
+        if (sinPlanilla) return {data:[], error:null};
         return {data:[{documento:'dp2', documentos:{tipo:'planilla_aranceles',
           nombre_original:'planilla-aranceles-saren.pdf',
           archivo:'u1/emitidos/planilla-aranceles-saren.pdf'}}], error:null};

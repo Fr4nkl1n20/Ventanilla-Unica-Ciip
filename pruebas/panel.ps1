@@ -148,6 +148,11 @@ $casos = @(
   # en los demas el catalogo ni siquiera trae ese tipo, asi que los pasos del
   # bloque salen como dibujo y el comprobante del pago no se pide nunca.
   @{ caso='tramos';       ancho='1400,1000' }
+  # Y el MISMO expediente sin una cosa: el CIIP todavia no ha dejado el
+  # documento con que pagar los aranceles. Es lo que decide si el paso pide
+  # el comprobante o dice que el papel viene de camino, y sin pase propio
+  # eso no se prueba nunca: en 'tramos' la planilla siempre esta.
+  @{ caso='tramossinpagar'; ancho='1400,1000' }
 )
 foreach ($c in $casos) {
   $caso  = $c.caso
