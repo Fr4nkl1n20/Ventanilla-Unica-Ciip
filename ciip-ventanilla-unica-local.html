@@ -19615,6 +19615,24 @@ applyLang(idiomaParaMi());
          justo lo que este refresco viene a evitar (Franklin Reyes,
          18-9-2026). */
       if (window.CIIP_OLVIDA_PAPELES) window.CIIP_OLVIDA_PAPELES();
+      /* Y LA COLA DEL EQUIPO, que hasta hoy se llenaba solo al entrar en
+         ella (Franklin Reyes, 18-9-2026): quien se queda en «Trámites por
+         atender» esperando que entre una solicitud no la veía llegar, y
+         tenía que recargar. cargaMisTramites no sirve para esto: al equipo
+         le devuelve la lista vacía a propósito, que lo suyo no son sus
+         trámites sino los de los demás.
+
+         Se pide la cola, que ademas pone al día el número del renglón, y
+         solo se repinta «lo que toca hoy» si es lo que se está mirando:
+         repintar una pantalla que no se ve es trabajo tirado, y con el
+         visor abierto encima sería quitárselo de delante. */
+      if (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()){
+        if (document.body.getAttribute('data-vista') === 'poratender'){
+          if (window.CIIP_PINTA_PORATENDER) window.CIIP_PINTA_PORATENDER();
+        } else if (window.CIIP_REPINTA_COLA){
+          window.CIIP_REPINTA_COLA();
+        }
+      }
       Promise.resolve(cargaMisTramites()).then(function(){
         /* La escalera del trámite abierto se dibuja al abrirlo y no la
            repinta nadie cuando llegan datos nuevos: sin esto, la solicitud
