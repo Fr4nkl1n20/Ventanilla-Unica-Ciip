@@ -3869,33 +3869,16 @@ body.menu-abierto .menu-fondo{display:block;}
    pinta algo. */
 
 /* ---------- assistant modal ---------- */
-/* La puerta del sector, por encima de todo lo demas: si otra ventana
-   quedara delante, el bloqueo tendria un agujero.
-
-   Y opaca, no un velo. Lo que hay detras no es informacion todavia -son
-   datos de ejemplo hasta que se conteste- y verlo a medias solo compite
-   con lo unico que hay que hacer. Ademas asi no parece una ventana que se
-   pueda cerrar para volver a lo de atras, que es justo lo que NO se puede.
-   Va con --block y no con blanco puro: el dialogo ya es blanco, y sobre
-   blanco se perderia. */
-/* .asst-back.sector-back y no .sector-back a secas: la regla general vive
-   MAS ABAJO en esta hoja y, con la misma especificidad, gana la ultima. El
-   velo volvia sin que se notara. */
-.asst-back.sector-back{z-index:80; background:var(--block);
-  /* Solo la zona de contenido: la barra lateral y la de arriba se siguen
-     viendo, para saber donde estas, y lo de las fases queda en blanco. Las
-     medidas salen de las mismas variables que arman el panel, asi que en
-     pantalla estrecha -donde --sb vale 0- se ajusta sola. */
-  top:var(--tb); left:var(--sb); right:0; bottom:0;
-  align-items:center; padding:24px 16px;}
-/* Se ve, pero no se toca. Si el menu siguiera vivo se podria navegar por
-   detras de una pantalla que existe para no dejar pasar. Lo que hace falta
-   de esa barra -el idioma y salir- esta dentro de la puerta. */
+/* El panel, bloqueado detras. Lo pone el pliego, que es la unica pantalla
+   que queda sin dejar pasar -la del sector se quito el 18 de septiembre de
+   2026-. Se ve, pero no se toca: si el menu siguiera vivo se podria navegar
+   por detras de algo que existe para no dejar pasar. Lo que hace falta de
+   esa barra -el idioma y salir- esta dentro del propio pliego. */
 body.con-puerta .sidebar, body.con-puerta .topbar{pointer-events:none;}
 body.con-puerta{overflow:hidden;}
-.se-cuerpo{padding:16px 18px; overflow:auto;}
-/* Las banderas van arriba y pequenas: son una salida, no una decision.
-   Quien entiende la pregunta ni las mira. */
+/* Las banderas del pliego, arriba y pequenas: son una salida, no una
+   decision. Quien entiende lo que lee ni las mira. El nombre .se- viene de
+   la puerta del sector, que las estreno y ya no esta. */
 .se-lang{display:flex; gap:5px; flex-wrap:wrap; margin-bottom:13px;}
 .se-lang button{font:inherit; font-size:10px; font-weight:700; line-height:1;
   padding:4px; border:1px solid var(--line); border-radius:5px;
@@ -3903,49 +3886,6 @@ body.con-puerta{overflow:hidden;}
 .se-lang button:hover{opacity:1; border-color:var(--navy2);}
 .se-lang button.on{opacity:1; border-color:var(--navy2);}
 .se-lang img{display:block; width:20px; height:14px; object-fit:cover; border-radius:2px;}
-.se-ayuda{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.6; margin-bottom:13px;}
-/* Las dos preguntas de la puerta, con el mismo aire que los campos de la
-   ficha: son lo mismo -nombre y sector- preguntado antes en vez de despues.
-   El margen de la ayuda se anula aqui porque dentro del campo el hueco lo
-   pone el gap, y sumados dejaban el sector flotando lejos de su rotulo. */
-.se-campo + .se-campo{margin-top:15px;}
-.se-campo .se-ayuda{margin-bottom:2px;}
-.se-campo .se-buscar{margin-bottom:0;}
-/* El sector no tiene caja que enrojecer: son botones, y ponerlos los ocho en
-   rojo seria gritar. Cuando falta, el filo lo lleva su rotulo, que es lo
-   mismo que hace la ficha de la cola con lo que queda por entregar. Y hace
-   falta de verdad: con menos de diez sectores el buscador esta escondido,
-   asi que en ese campo no hay ni una sola caja que se pueda poner roja. */
-.se-campo.mal > label, .se-campo.mal > span{color:var(--rust);}
-.se-buscar{width:100%; font:inherit; font-size:var(--fs-campo); padding:9px 11px; margin-bottom:11px;
-  border:1px solid var(--line); border-radius:var(--r-sm); background:var(--bg); color:var(--ink);}
-.se-buscar[hidden]{display:none;}
-.se-lista{display:grid; grid-template-columns:repeat(2,1fr); gap:8px;}
-/* Con ocho sectores, DOS columnas dan cuatro filas enteras. Con tres, la
-   ultima quedaba coja. */
-@media (max-width:520px){ .se-lista{grid-template-columns:1fr;} }
-.se-op{display:flex; align-items:center; gap:11px;
-  font:inherit; font-size:var(--fs-fila); font-weight:600; text-align:left; cursor:pointer;
-  padding:11px 13px; border:1px solid var(--line); border-radius:var(--r-sm);
-  background:var(--bg); color:var(--ink);}
-.se-op:hover{border-color:var(--navy2);}
-.se-op.puesto{border-color:var(--navy2); background:var(--block);
-  box-shadow:inset 0 0 0 1px var(--navy2);}
-/* El icono, en su cuadro y del color del sector. El color va como variable
-   en el propio boton: asi el tema oscuro puede pedir otro sin que el codigo
-   tenga que saber en que tema esta. */
-.se-ico{width:30px; height:30px; border-radius:8px; flex:none;
-  display:flex; align-items:center; justify-content:center;
-  background:var(--sc-bg, var(--block)); color:var(--sc, var(--navy2));}
-.se-ico svg{width:16px; height:16px; fill:none; stroke:currentColor;
-  stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
-@media (prefers-color-scheme:dark){
-  .se-ico{background:var(--sc-bg-osc, var(--block)); color:var(--sc-osc, var(--navy2));}
-}
-:root[data-theme="light"] .se-ico{background:var(--sc-bg, var(--block)); color:var(--sc, var(--navy2));}
-:root[data-theme="dark"]  .se-ico{background:var(--sc-bg-osc, var(--block)); color:var(--sc-osc, var(--navy2));}
-.se-nada{font-size:var(--fs-parrafo); color:var(--gray); padding:8px 0;}
-.se-nada[hidden]{display:none;}
 
 .asst-back{position:fixed; inset:0; z-index:60; background:rgba(6,16,32,.55); display:none; align-items:flex-start; justify-content:center; padding:64px 16px 16px;}
 .asst-back.open{display:flex;}
@@ -6283,61 +6223,6 @@ body[data-vista="horario"] .fase-bar{display:none;}
   </div>
 </div>
 
-<!-- LA PUERTA DEL SECTOR. Cubre el panel entero y NO se cierra: no lleva
-     aspa, no se cierra al pulsar fuera y Escape no la toca. Lo unico que
-     ofrece aparte de contestar es salir de la cuenta, porque bloquear sin
-     salida no es bloquear, es encerrar. -->
-<div class="asst-back sector-back" id="sectorBack">
-  <div class="asst sector" role="dialog" aria-modal="true">
-    <div class="asst-h">
-      <div class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M3 20h18M6 20V9l6-4 6 4v11M10 20v-5h4v5"/></svg></div>
-      <div>
-        <div class="at" id="seTitulo"></div>
-        <div class="as" id="seSub"></div>
-      </div>
-    </div>
-    <div class="se-cuerpo">
-      <!-- El idioma, AQUI DENTRO. La puerta tapa la barra de arriba, asi
-           que quien abriera el panel en el idioma equivocado se quedaba
-           sin poder cambiarlo: una pregunta que no entiendes, que no deja
-           pasar, y con cerrar sesion como unica salida. -->
-      <div class="se-lang" id="seLang" role="group">
-        <button type="button" data-lang="en" title="English"><img src="banderas/gb.svg" alt="English" onerror="this.replaceWith(document.createTextNode('EN'))"></button>
-        <button type="button" data-lang="es" title="Español"><img src="banderas/es.svg" alt="Español" onerror="this.replaceWith(document.createTextNode('ES'))"></button>
-        <button type="button" data-lang="pt" title="Português"><img src="banderas/br.svg" alt="Português" onerror="this.replaceWith(document.createTextNode('PT'))"></button>
-        <button type="button" data-lang="it" title="Italiano"><img src="banderas/it.svg" alt="Italiano" onerror="this.replaceWith(document.createTextNode('IT'))"></button>
-        <button type="button" data-lang="zh" title="中文"><img src="banderas/cn.svg" alt="中文" onerror="this.replaceWith(document.createTextNode('ZH'))"></button>
-        <button type="button" data-lang="ru" title="Русский"><img src="banderas/ru.svg" alt="Русский" onerror="this.replaceWith(document.createTextNode('RU'))"></button>
-      </div>
-      <!-- EL NOMBRE. Va ANTES del sector a proposito: es la primera vez que
-           el panel pregunta quien eres, y sin esto la cabecera se quedaba
-           llamandote por el trozo del correo que va delante de la arroba.
-
-           La caja nace VACIA aunque la esquina ya diga "milagros": ese
-           nombre no lo escribio nadie, lo dedujo el panel del correo, y
-           traerlo escrito aqui seria invitar a pulsar Continuar sin mirar
-           y a guardar la deduccion como si fuera un nombre. Solo se
-           rellena cuando hay un nombre de verdad guardado. -->
-      <div class="pf-campo se-campo" id="seCampoNombre">
-        <label for="seNombre" id="seLnombre"></label>
-        <input type="text" id="seNombre" autocomplete="name" maxlength="120">
-      </div>
-      <div class="pf-campo se-campo" id="seCampoSector">
-        <span id="seLsector"></span>
-        <div class="se-ayuda" id="seAyuda"></div>
-        <input type="search" class="se-buscar" id="seBuscar" autocomplete="off" hidden>
-        <div class="se-lista" id="seLista" role="radiogroup" aria-labelledby="seLsector"></div>
-        <div class="se-nada" id="seNada" hidden></div>
-      </div>
-      <div class="pf-aviso" id="seAviso"></div>
-    </div>
-    <div class="pf-pie">
-      <button class="btn ghost" id="seSalir"   type="button"></button>
-      <button class="btn navy"  id="seGuardar" type="button"></button>
-    </div>
-  </div>
-</div>
-
 <div class="asst-back" id="asstBack">
   <div class="asst" role="dialog" aria-modal="true" aria-label="Investor assistant">
     <div class="asst-h">
@@ -6577,7 +6462,6 @@ function applyLang(lang){
   /* Y la ventana del perfil, con su lista de países: los nombres se ven en
      el idioma de turno aunque lo que se guarde sea siempre el español. */
   if (window.CIIP_REPINTA_PERFIL) window.CIIP_REPINTA_PERFIL();
-  if (window.CIIP_REPINTA_SECTOR) window.CIIP_REPINTA_SECTOR();
   if (window.CIIP_REPINTA_CITA)   window.CIIP_REPINTA_CITA();
   /* La cola también: sus textos, y de paso si el botón debe verse, porque el
      perfil —y con él el rol— llega después de que la página se dibuje. */
@@ -13806,16 +13690,16 @@ applyLang(idiomaParaMi());
        abogado del CIIP— asi que nadie ve nada. Es lo mismo que ya hacian
        los sectores y los bancos aliados.
 
-     · VA ANTES QUE LA PUERTA DEL SECTOR, y por eso aquella espera a esta.
-       Preguntar en que sector inviertes es recoger un dato personal, y
-       recogerlo antes de que se haya consentido el tratamiento seria
-       empezar por donde no se puede. Las dos tocan el mismo dia en una
-       cuenta recien creada.
+     · HOY NO ESPERA NADIE DETRAS. Quien esperaba era la puerta del
+       sector, que se quito el 18 de septiembre de 2026; plCuandoPase
+       sigue aqui porque el orden es del pliego y no de quien lo use:
+       lo que sea que vuelva a pedir un dato personal al entrar tiene
+       que ir despues de esto, no antes.
 
      · SI LA BASE NO LO APUNTA, NO SE PASA. Un consentimiento que el
        usuario cree haber dado y el CIIP no puede demostrar es lo peor de
        las dos posibilidades. Cuando falla, las salidas son reintentar o
-       salir de la cuenta. Mismo criterio que la puerta del sector.
+       salir de la cuenta.
 
      · EL TITULO SALE DE LA BASE, NO DEL DICCIONARIO. Es el nombre del
        instrumento que se firma, y traducirlo por nuestra cuenta seria
@@ -13829,7 +13713,7 @@ applyLang(idiomaParaMi());
 
   function plPon(id, txt){ var e = document.getElementById(id); if (e) e.textContent = txt || ''; }
 
-  /* ── La puerta del sector espera a esta ──
+  /* ── Lo que tenga que esperar al pliego, espera aqui ──
      No es orden de pantalla: es que la segunda pregunta ya es un dato
      personal. Se deja pasar cuando no queda nada pendiente —no hay pliego,
      o ya esta aceptado— y no antes. Si algo se tuerce por el camino
@@ -13983,7 +13867,7 @@ applyLang(idiomaParaMi());
         document.body.classList.remove('con-puerta');
         PLIEGO = null;
         if (plNav) plNav.hidden = false;
-        plDejaPasar();                 /* ahora si, la puerta del sector */
+        plDejaPasar();
         /* La vista no se repinta aqui: nadie la esta mirando -la puerta tapa
            el panel entero- y entrar en ella la pinta sola desde el router.
            Lo unico que hacia falta al aceptar era enseñar el renglon, y eso
@@ -14185,61 +14069,29 @@ applyLang(idiomaParaMi());
   })();
 
   /* ──────────────────────────────────────────────────────────────
-     LA PUERTA DEL SECTOR
+     EL CATALOGO DE SECTORES
      ──────────────────────────────────────────────────────────────
-     Se pregunta UNA vez, antes de dejar entrar, y la respuesta vive en
-     el perfil. Tres cosas que NO hace, y las tres a proposito:
+     Aqui vivio LA PUERTA DEL SECTOR: una pantalla que cubria el panel al
+     entrar y no dejaba pasar hasta contestar dos cosas -como te llamas y
+     en que inviertes-. Se quito el 18 de septiembre de 2026.
 
-     · No filtra los treinta y un tramites. Que permiso exige cada
-       sector lo dice la normativa, y esa matriz todavia no esta. Un
-       filtro inventado que esconda un tramite que si hacia falta es
-       peor que no filtrar nada: el inversionista no se entera de que
-       le falta algo hasta que se lo dice el organismo.
-     · No bloquea si el catalogo esta vacio. Una puerta cerrada con
-       una lista vacia detras es una puerta sin llave, y dejaria fuera
-       a todo el mundo hasta que alguien corriera el SQL.
-     · No bloquea si la columna no existe. Sin ella la respuesta no se
-       puede guardar, asi que preguntarla seria dejar al usuario
-       delante de una puerta que no abre.
+     Por que se quito. Cobraba peaje por entrar a cambio de nada que el
+     panel necesitara todavia: el sector NO filtra los tramites -esa
+     matriz la dice la normativa y aun no esta-, asi que la respuesta se
+     guardaba y no cambiaba ni una pantalla. Lo unico seguro que hacia
+     una puerta que no se cierra es dejar fuera a quien no la entienda.
+
+     Lo que se pierde, y conviene tenerlo escrito: nadie pregunta ya el
+     nombre, asi que la cabecera y la cola del CIIP seguiran llamando al
+     inversionista por el trozo de su correo anterior a la arroba hasta
+     que el mismo lo escriba en "Mi perfil". Ahi estan los dos campos
+     -nombre y sector-, que es de donde no tenian que haberse movido.
+
+     Lo que queda aqui es el catalogo, que la ficha del perfil sigue
+     necesitando para su desplegable. Ya nadie lo pide al arrancar: se
+     carga cuando se abre el perfil, y no antes.
      ────────────────────────────────────────────────────────────── */
-  var seBack   = document.getElementById('sectorBack');
   var SECTORES = [];
-  var seElegido = '';
-  /* Que reproche esta puesto, no su texto: al cambiar de idioma hay que
-     volver a decirlo en el idioma nuevo, y del texto ya no se puede
-     deducir cual era. */
-  var seFalla = '';
-
-  /* ── El icono y el color de cada sector ──
-     Van AQUI y no en la base porque son presentacion, igual que los logos
-     de los organismos. Se buscan por ref_panel, que es la llave que da el
-     catalogo; un sector que llegue sin los suyos se dibuja con el generico
-     y el azul del panel: sale feo, pero sale.
-
-     LOS COLORES ESTAN SACADOS A OJO del cartel de los motores productivos
-     y NO son los de la marca. Cuando lleguen los buenos, se cambian aqui y
-     en ningun otro sitio. 'osc' es la version para el tema oscuro: el
-     granate y el azul marino sobre fondo negro no se ven. */
-  var PINTA_SECTOR = {
-    s1: {col:'#7B1E3C', osc:'#D4718F',
-         d:'<path d="M12 3s6 6.6 6 10a6 6 0 1 1-12 0c0-3.4 6-10 6-10z"/>'},
-    s2: {col:'#E0891F', osc:'#F0A94E',
-         d:'<path d="M3 20l7-9 3.5 4.4L17 11l4 9z"/><path d="M14 4l6 4"/>'},
-    s3: {col:'#1B2A6B', osc:'#7C90D8',
-         d:'<path d="M3 20V10l5 3.2V10l5 3.2V10l5 3.2V20z"/><path d="M7 20v-3M12 20v-3M17 20v-3"/>'},
-    s4: {col:'#F05A22', osc:'#FF8A5C',
-         d:'<path d="M4 9h16v11H4z"/><path d="M9 9V6h6v3"/><path d="M4 14h16"/>'},
-    s5: {col:'#57A544', osc:'#86C877',
-         d:'<path d="M12 21V9"/><path d="M12 13c-2.4 0-4-1.6-4-4 2.4 0 4 1.6 4 4z"/><path d="M12 13c2.4 0 4-1.6 4-4-2.4 0-4 1.6-4 4z"/><path d="M12 8c-2 0-3.2-1.3-3.2-3.2C10.8 4.8 12 6 12 8z"/><path d="M12 8c2 0 3.2-1.3 3.2-3.2C13.2 4.8 12 6 12 8z"/>'},
-    s6: {col:'#DE2A24', osc:'#F0736D',
-         d:'<path d="M12 20s-7.2-4.6-7.2-9.2A4 4 0 0 1 12 8.4a4 4 0 0 1 7.2 2.4C19.2 15.4 12 20 12 20z"/>'},
-    s7: {col:'#2C8FD1', osc:'#6BB8ED',
-         d:'<path d="M3 12c4.4-5.2 10.6-5.2 15 0-4.4 5.2-10.6 5.2-15 0z"/><path d="M18 12l3-3.2v6.4z"/>'},
-    s8: {col:'#00874A', osc:'#4FBE87',
-         d:'<path d="M12 21v-4"/><path d="M12 3L6.5 11h3L5 17h14l-4.5-6h3z"/>'}
-  };
-  var SECTOR_SIN_ICONO = '<rect x="4.5" y="4.5" width="15" height="15" rx="3.5"/>';
-
   function nombreDeSector(sec){
     /* El nombre traducido si lo hay; si no, el que tenga la base. Un
        sector recien anadido por el CIIP se ve en espanol antes que no
@@ -14267,207 +14119,6 @@ applyLang(idiomaParaMi());
       return l;
     }, function(){ return []; });
   }
-
-  function pintaListaSectores(){
-    var lista = document.getElementById('seLista');
-    var busca = document.getElementById('seBuscar');
-    var nada  = document.getElementById('seNada');
-    if (!lista) return;
-    var filtro = (busca && !busca.hidden ? busca.value : '').trim().toLowerCase();
-    lista.textContent = '';
-    var vistos = SECTORES.filter(function(sec){
-      return !filtro || nombreDeSector(sec).toLowerCase().indexOf(filtro) >= 0;
-    });
-    vistos.forEach(function(sec){
-      var b = el('button', 'se-op' + (sec.codigo === seElegido ? ' puesto' : ''));
-      b.type = 'button';
-      var p = PINTA_SECTOR[sec.ref_panel];
-      var ico = el('span', 'se-ico');
-      /* Cadena fija de este archivo, no viene de la base: aqui innerHTML no
-         puede traer nada de fuera. */
-      ico.innerHTML = '<svg viewBox="0 0 24 24">' + ((p && p.d) || SECTOR_SIN_ICONO) + '</svg>';
-      if (p){
-        b.style.setProperty('--sc', p.col);
-        b.style.setProperty('--sc-bg', p.col + '1F');
-        b.style.setProperty('--sc-osc', p.osc);
-        b.style.setProperty('--sc-bg-osc', p.osc + '24');
-      }
-      b.appendChild(ico);
-      b.appendChild(el('span', null, nombreDeSector(sec)));
-      b.setAttribute('role', 'radio');
-      b.setAttribute('data-cod', sec.codigo);
-      b.setAttribute('aria-checked', sec.codigo === seElegido ? 'true' : 'false');
-      b.addEventListener('click', function(){
-        seElegido = sec.codigo;
-        pintaListaSectores();
-        /* Y si habia un reproche puesto, se pone al dia: quien acaba de
-           elegir sector no tiene que seguir leyendo que le falta elegirlo. */
-        if (seFalla){ seFalla = reprochaSector(); ponAvisoSector(); }
-      });
-      lista.appendChild(b);
-    });
-    if (nada) nada.hidden = vistos.length > 0;
-  }
-
-  /* El nombre tal y como se guardaria: sin los espacios de los bordes y sin
-     los de sobra de dentro, porque "Ana  Perez" y "Ana Perez" son el mismo
-     nombre y en la base no pueden ser dos. Es el mismo aseo que la ficha. */
-  function nombreDeLaPuerta(){
-    var c = document.getElementById('seNombre');
-    return ((c && c.value) || '').trim().replace(/\s+/g, ' ');
-  }
-
-  /* Que falta, en una sola frase, y el filo rojo en los campos que lo
-     provocan. Se dicen LAS DOS cosas cuando faltan las dos: avisar solo de
-     la primera obliga a pulsar Continuar otra vez para enterarse de la
-     segunda. Devuelve la CLAVE, no el texto, porque el idioma puede cambiar
-     con el reproche ya puesto. */
-  function reprochaSector(){
-    var hayNombre = !!nombreDeLaPuerta();
-    /* Por id y no por el sitio que ocupan: el dia que se meta un campo mas
-       en medio, el filo rojo no puede acabar en el de al lado. */
-    var cn = document.getElementById('seCampoNombre');
-    var cs = document.getElementById('seCampoSector');
-    if (cn) cn.classList.toggle('mal', !hayNombre);
-    if (cs) cs.classList.toggle('mal', !seElegido);
-    if (!hayNombre && !seElegido) return 'se_faltan';
-    if (!hayNombre) return 'se_faltanombre';
-    if (!seElegido) return 'se_falta';
-    return '';
-  }
-
-  function ponAvisoSector(){
-    var av = document.getElementById('seAviso');
-    if (av) av.textContent = (seFalla && T()[seFalla]) || '';
-  }
-
-  function abreSector(){
-    if (!seBack) return;
-    var u = T();
-    function pon(id, txt){ var e = document.getElementById(id); if (e) e.textContent = txt || ''; }
-    pon('seTitulo',  u.se_titulo);
-    pon('seSub',     u.se_sub);
-    pon('seLnombre', u.se_lnombre);
-    pon('seLsector', u.se_lsector);
-    pon('seAyuda',   u.se_ayuda);
-    pon('seGuardar', u.se_guardar);
-    pon('seSalir',   u.se_salir);
-    pon('seNada',    u.se_falta);
-    /* Vacia salvo que haya un nombre ESCRITO por alguien. PERFIL.nombre casi
-       nunca esta vacio -si no hay nada guardado se saca uno del correo para
-       no dejar la esquina en blanco-, y traer aqui esa deduccion es justo lo
-       que esta puerta viene a arreglar: se aceptaria de un clic y el correo
-       quedaria de nombre para siempre. nombreReal es lo unico que distingue
-       un nombre de una deduccion. */
-    var nom = document.getElementById('seNombre');
-    if (nom) nom.value = (typeof PERFIL !== 'undefined' && PERFIL.nombreReal)
-                         ? PERFIL.nombre : '';
-    var busca = document.getElementById('seBuscar');
-    if (busca){
-      /* El buscador solo cuando hay bastantes. Con seis sectores delante
-         una caja de buscar es un estorbo y un paso de mas. */
-      busca.hidden = SECTORES.length < 10;
-      busca.value  = '';
-      busca.setAttribute('placeholder', u.se_buscar || '');
-    }
-    /* Si ya habia sector -esta puerta se abre ahora tambien por el nombre
-       solo- se llega con el suyo marcado. Presentarle la rejilla en blanco a
-       quien ya contesto le haria elegir otra vez y arriesgarse a fallar. */
-    seElegido = (typeof PERFIL !== 'undefined' && PERFIL.sector) || '';
-    pintaListaSectores();
-    seFalla = '';
-    ponAvisoSector();
-    [].forEach.call(seBack.querySelectorAll('.pf-campo'), function(c){
-      c.classList.remove('mal');
-    });
-    seBack.classList.add('open');
-    marcaIdiomaSector();
-    document.body.classList.add('con-puerta');
-    /* El foco, en el nombre: es el primer campo y el unico que se escribe. */
-    setTimeout(function(){ if (nom) nom.focus(); }, 60);
-  }
-
-  function guardaSector(){
-    var u  = T();
-    var av = document.getElementById('seAviso');
-    var bt = document.getElementById('seGuardar');
-    var nombre = nombreDeLaPuerta();
-    seFalla = reprochaSector();
-    if (seFalla){ ponAvisoSector(); return; }
-    bt.disabled = true;
-    bt.textContent = u.se_yendo || '';
-    if (av) av.textContent = '';
-
-    /* Las dos respuestas en UN update. Guardarlas por separado deja la
-       puerta a medias si la segunda falla: el sector puesto y el nombre no,
-       y al volver a entrar se pregunta otra vez lo ya contestado. */
-    sb.auth.getUser().then(function(r){
-      var usu = r && r.data && r.data.user;
-      if (!usu) throw new Error('sin sesión');
-      return sb.from('perfiles').update({nombre_completo: nombre, sector: seElegido})
-               .eq('id', usu.id).select().single();
-    }).then(function(r){
-      if (r && r.error) throw r.error;
-      bt.disabled = false;
-      bt.textContent = u.se_guardar || '';
-      if (typeof PERFIL !== 'undefined') PERFIL.sector = seElegido;
-      /* La esquina deja de llamarte por el correo AQUI, sin recargar: por la
-         misma puerta que usa la ficha del perfil, CIIP_APLICA_PERFIL. */
-      if (window.CIIP_APLICA_PERFIL) window.CIIP_APLICA_PERFIL(nombre, null, null);
-      seBack.classList.remove('open');
-      document.body.classList.remove('con-puerta');
-    }).catch(function(e){
-      console.warn('[CIIP] guardar sector:', e && (e.message || e));
-      /* La puerta NO se abre si no se guardo. Cerrarla igualmente seria
-         darle por contestada una pregunta que la base no llego a oir, y
-         al recargar volveria a salir sin que nadie entienda por que. */
-      bt.disabled = false;
-      bt.textContent = u.se_guardar || '';
-      /* Tambien por la marca: si se cambia de idioma con el fallo en pantalla,
-         antes se releia el texto y se sustituia por el reproche de otra cosa.
-         Ahora se vuelve a decir lo que de verdad paso. */
-      seFalla = 'se_error';
-      ponAvisoSector();
-    });
-  }
-
-  function marcaIdiomaSector(){
-    var caja = document.getElementById('seLang');
-    if (!caja) return;
-    [].forEach.call(caja.querySelectorAll('button'), function(b){
-      b.classList.toggle('on', b.getAttribute('data-lang') === curLang);
-    });
-  }
-
-  /* Repinta la puerta al cambiar de idioma. Sin esto las banderas
-     cambiarian el panel de detras -que no se ve- y dejarian la pregunta
-     escrita en el idioma de antes. */
-  function repintaSector(){
-    if (!seBack || !seBack.classList.contains('open')) return;
-    var u = T();
-    function pon(id, txt){ var e = document.getElementById(id); if (e) e.textContent = txt || ''; }
-    pon('seTitulo',  u.se_titulo);
-    pon('seSub',     u.se_sub);
-    pon('seLnombre', u.se_lnombre);
-    pon('seLsector', u.se_lsector);
-    pon('seAyuda',   u.se_ayuda);
-    pon('seGuardar', u.se_guardar);
-    pon('seSalir',   u.se_salir);
-    pon('seNada',    u.se_falta);
-    var busca = document.getElementById('seBuscar');
-    if (busca) busca.setAttribute('placeholder', u.se_buscar || '');
-    /* Si habia un reproche puesto, se vuelve a decir en el idioma nuevo. Se
-       repinta desde la MARCA y no releyendo lo escrito: con tres reproches
-       distintos, el texto ya no dice cual de ellos estaba puesto. Lo que el
-       usuario haya tecleado en el nombre no se toca. */
-    ponAvisoSector();
-    /* Y los sectores se retraducen sin perder lo elegido: lo que se guarda
-       es el codigo, no el nombre. */
-    pintaListaSectores();
-    marcaIdiomaSector();
-  }
-  window.CIIP_REPINTA_SECTOR = repintaSector;
-
   /* El campo del perfil, para poder cambiarlo despues. Preguntarlo una
      vez y dejarlo clavado convierte un error de un clic en algo que solo
      arregla el CIIP. */
@@ -14497,81 +14148,6 @@ applyLang(idiomaParaMi());
     pideSectores().then(function(l){ SECTORES = l; pinta(); });
   }
   window.CIIP_SECTOR_EN_PERFIL = ponSectorEnPerfil;
-
-  if (seBack){
-    document.getElementById('seGuardar').addEventListener('click', guardaSector);
-    document.getElementById('seSalir').addEventListener('click', function(){
-      /* Bloquear sin salida es encerrar. Contestar o irse; irse tiene que
-         poder, aunque sea saliendo de la cuenta.
-
-         Y se sale por el MISMO sitio que el botón de la cabecera, que es
-         ciipSalir(). Esto de aquí llamaba a signOut() sin esperarlo y se
-         iba en la misma línea: la petición se quedaba a medias, la
-         sesión seguía en el navegador, y el acceso —que mira si hay
-         sesión y devuelve al panel— te metía otra vez dentro. Darle a
-         "salir" te dejaba donde estabas.
-
-         Ahí se colaban otras dos: la ruta a mano en vez de la de la
-         configuración —que en red no es './acceso.html'— y un href en
-         vez de un replace, que deja la puerta en el historial para que
-         la flecha de atrás vuelva a ella. */
-      this.disabled = true;
-      if (window.ciipSalir) return window.ciipSalir();
-      var cfg = window.CIIP_CONFIG || {};
-      location.replace(cfg.RUTA_ACCESO || './acceso.html');
-    });
-    /* Enter en el nombre continua, como en la ficha del perfil. */
-    var seNom = document.getElementById('seNombre');
-    if (seNom){
-      seNom.addEventListener('keydown', function(e){
-        if (e.key === 'Enter'){ e.preventDefault(); guardaSector(); }
-      });
-      /* Y el reproche se retira en cuanto se empieza a escribir: dejarlo
-         puesto mientras tecleas es reganar por algo que ya estas haciendo. */
-      seNom.addEventListener('input', function(){
-        if (!seFalla) return;
-        seFalla = reprochaSector();
-        ponAvisoSector();
-      });
-    }
-    var seBusca = document.getElementById('seBuscar');
-    if (seBusca) seBusca.addEventListener('input', pintaListaSectores);
-    var seLang = document.getElementById('seLang');
-    if (seLang) seLang.addEventListener('click', function(e){
-      var b = e.target.closest('button[data-lang]');
-      if (b) applyLang(b.getAttribute('data-lang'));
-    });
-
-    /* Se espera al rol de verdad, no a que "la sesion contesto": la
-       sesion no trae el rol, y sin el se preguntaria el sector tambien a
-       los gestores. Es el mismo desfase que dejaba escondido el renglon
-       de administrador. */
-    var seIntentos = 0;
-    /* Y NO se abre hasta que el pliego este resuelto. Preguntar en que
-       sector inviertes es recoger un dato personal y guardarlo en el
-       perfil: hacerlo antes de que se haya consentido el tratamiento
-       seria empezar por donde no se puede. Con la tabla del pliego vacia
-       -que es como esta hoy- plCuandoPase llama en el acto y esto se
-       comporta igual que antes. */
-    plCuandoPase(function esperaAlSector(){
-      if (typeof PERFIL === 'undefined' || !PERFIL.rolReal){
-        if (seIntentos++ < 40) setTimeout(esperaAlSector, 100);
-        return;
-      }
-      if (PERFIL.rol !== 'inversionista') return;   /* el CIIP no invierte */
-      if (!PERFIL.sectorReal) return;               /* la base no lo guarda */
-      /* Se pregunta si falta CUALQUIERA de las dos. Antes solo miraba el
-         sector, y quien lo hubiera contestado ya no volvia a ver esta puerta
-         nunca: se quedaba sin que nadie le pidiera el nombre, y el panel
-         seguia llamandole por el trozo del correo anterior a la arroba. */
-      if (PERFIL.sector && PERFIL.nombreReal) return;   /* ya contesto */
-      pideSectores().then(function(l){
-        if (!l.length) return;                      /* puerta sin llave */
-        SECTORES = l;
-        abreSector();
-      });
-    });
-  }
 
   /* ──────────────────────────────────────────────────────────────
      LAS CITAS

@@ -160,7 +160,7 @@
        antes miraria un panel a medio hacer. Se comprueba la puerta, se
        acepta, y desde ahi la tanda sigue como en cualquier otro pase. */
     enCadena([pliegoMira, pliegoAcepta, pliegoCerrada,
-              puertaEspera, puertaMira, puertaTrasResponder,
+              sinPuertaDelSector, abreElPerfil, sectorEnElPerfil,
               /* La portada por quien tiene que moverse, recien cargada y
                  antes de que ningun paso toque una solicitud. */
               quienMira,
@@ -341,10 +341,11 @@
 
     if (PASE !== 'pliego'){
       /* Ésta es la que corre en los otros diez pases. */
-      /* Se mira SOLO la puerta del pliego y no el bloqueo del cuerpo: en
-         el pase 'sinsector' hay otra puerta legitima puesta -la del sector-
-         y las dos usan la misma clase en el body. Mirar el body media las
-         dos a la vez y salia roja por la que no toca. */
+      /* Se mira SOLO la puerta del pliego y no el bloqueo del cuerpo.
+         Cuando existia la puerta del sector las dos usaban la misma clase
+         en el body y mirar el body medía las dos a la vez: salía roja por
+         la que no tocaba. Aquella ya no esta, pero la razon sigue siendo
+         buena el dia que vuelva a haber dos. */
       ok('pliego: sin pliego publicado no hay puerta', !abierta,
          abierta ? 'abierta' : 'cerrada', 'cerrada');
       return;
@@ -447,224 +448,92 @@
        nav ? (nav.hidden ? 'escondido' : 'a la vista') : 'no existe', 'a la vista');
   }
 
-  function puertaEspera(){
-    /* Un paso vacio. La puerta se abre despues de que conteste el perfil
-       Y de que conteste el catalogo, o sea dos idas y venidas; este medio
-       segundo es para no medirla antes de que exista. */
-  }
+  /* ── LA PUERTA DEL SECTOR YA NO ESTA ──
+     Aqui vivian veintitantas comprobaciones de una pantalla que cubria el
+     panel al entrar y no dejaba pasar hasta dar nombre y sector. Se quito
+     el 18 de septiembre de 2026 y sus pruebas se fueron con ella.
 
-  function puertaMira(){
+     Queda esta, que mide lo contrario: que NO hay puerta. Y se mide en
+     todos los pases y no solo en el de quien no habia contestado, porque
+     el dia que alguien vuelva a colgar algo que bloquee la entrada es
+     esta linea la que lo dice. El pase 'sinsector' -un inversionista con
+     el sector en blanco- es el que de verdad la aprieta: era exactamente
+     a quien se le abria antes. */
+  function sinPuertaDelSector(){
     var back = document.getElementById('sectorBack');
-    var abierta = !!(back && back.classList.contains('open'));
-
-    /* Aqui se mira el PASE y no el CASO. CASO junta a proposito varios
-       pases bajo 'gestor' -sinsql es uno-, y con el la prueba del que no
-       puede guardar la respuesta caia en la rama del equipo del CIIP y
-       pasaba sin comprobar nada. */
-    if (PASE === 'gestor' || PASE === 'admin' || PASE === 'sinsql'){
-      ok('sector: al equipo del CIIP no se le pregunta', !abierta,
-         abierta ? 'le sale la puerta' : 'no le sale', 'no le sale');
-      return;
-    }
-    /* La columna no existe: la respuesta no se podria guardar, asi que
-       preguntarla seria plantarle delante una puerta que no abre. Este es
-       el pase con un INVERSIONISTA de verdad detras. */
-    if (PASE === 'sinsectorsql'){
-      ok('sector: si la base no sabe guardarlo, no se pregunta', !abierta,
-         abierta ? 'bloquea igual' : 'no bloquea', 'no bloquea');
-      return;
-    }
-    /* Y sin nada que elegir, tampoco. */
-    if (PASE === 'sincatalogo'){
-      ok('sector: con el catalogo vacio no bloquea a nadie', !abierta,
-         abierta ? 'bloquea sin lista' : 'no bloquea', 'no bloquea');
-      return;
-    }
-      /* ESTA PUERTA YA NO ES SOLO DEL SECTOR. Pregunta las dos cosas -quien
-         eres y a que te dedicas- y se abre si falta CUALQUIERA de las dos.
-
-         El expediente 'sinnombre' tiene el sector contestado -turismo- y el
-         nombre en blanco, asi que ahora le sale, y le tiene que salir: sin
-         eso el panel le seguia llamando por el trozo del correo anterior a
-         la arroba, porque nadie le habia preguntado como se llama.
-
-         Esta comprobacion exigia lo contrario y se puso roja al cambiar la
-         puerta. Tenia razon en preguntar -algo habia cambiado- pero la
-         respuesta buena es la nueva, no la vieja. */
-      if (PASE === 'sinnombre'){
-        ok('sector: al que no dio su nombre se le pregunta, aunque tenga sector',
-           abierta, abierta ? 'le sale' : 'no le sale', 'le sale');
-        /* Y le sale POR EL NOMBRE: el campo esta ahi y en blanco. Sin esto,
-           lo de arriba se cumpliria igual si la puerta se abriera por
-           cualquier otro motivo, que es como una prueba deja de medir lo que
-           dice medir sin que se note. */
-        var camp = document.getElementById('seNombre');
-        ok('sector: y la puerta trae el campo del nombre, en blanco',
-           !!camp && !camp.value,
-           camp ? 'valor="' + camp.value + '"' : 'no hay campo', 'el campo, vacio');
-        return;
-      }
-    if (PASE !== 'sinsector'){
-      ok('sector: al que ya contesto no se le vuelve a preguntar', !abierta,
-         abierta ? 'se lo repregunta' : 'no se lo repregunta', 'no se lo repregunta');
-      return;
-    }
-
-    /* ── y aqui, el unico que no ha contestado ── */
-    ok('sector: al que no ha contestado se le pregunta', abierta,
-       abierta ? 'le sale la puerta' : 'no le sale', 'le sale');
-    if (!abierta) return;
-
-    var ops = document.querySelectorAll('#seLista .se-op');
-    /* Ocho motores mas uno inventado, para medir que un sector que el CIIP
-       añada por SQL sale igual aunque el panel no tenga su icono. */
-    igual('sector: los que da la base, sin recortar', ops.length, 9);
-    /* Cada uno con su icono. Sin esto, un dibujo que se dejara de pintar
-       daria un cuadro vacio y las pruebas seguirian en verde. */
-    var conIcono = [].filter.call(ops, function(o){
-      return !!o.querySelector('.se-ico svg path, .se-ico svg rect');
-    });
-    igual('sector: y cada uno con su icono', conIcono.length, 9);
-    /* Los ocho conocidos llevan color propio; el noveno, ninguno, y cae al
-       azul del panel. */
-    var conColor = [].filter.call(ops, function(o){
-      return !!o.style.getPropertyValue('--sc');
-    });
-    igual('sector: los ocho conocidos, con su color', conColor.length, 8);
-    ok('sector: y el que el panel no conoce sale igual',
-       ops[8] && !ops[8].style.getPropertyValue('--sc') &&
-       !!ops[8].querySelector('.se-ico svg'),
-       ops[8] ? 'sale con el generico' : 'no sale', 'sale con el generico');
-    /* Sin escribir el nombre a mano: en este pase el panel esta en
-       italiano, asi que comparar con "Hidrocarburos" fallaria por el
-       idioma y no por el orden. Se compara con lo que dice pasos.js para
-       s1, que de paso comprueba que la traduccion se esta usando. */
-    var s1 = ((window.CIIP_PASOS.sectores || {})[curLang] || {}).s1 || '';
-    igual('sector: y por el orden que dice la base',
-          ops[0].textContent.trim(), s1);
-    /* Con ocho, la caja de filtrar estorba y no sale. Sale a partir de
-       diez. Si el CIIP amplia la lista, esto se entera. */
-    ok('sector: con menos de diez no saca caja de filtrar',
-       document.getElementById('seBuscar').hidden,
-       document.getElementById('seBuscar').hidden ? 'escondida' : 'a la vista',
-       'escondida');
-
-    /* El fondo tapa del todo. Un velo translucido deja ver datos de
-       ejemplo detras de la unica pregunta que hay que contestar, y da a
-       entender que hay algo ahi a lo que se puede volver. */
-    var fondo = window.getComputedStyle(back).backgroundColor;
-    ok('sector: el fondo tapa lo de detras', /^rgb\(/.test(fondo),
-       fondo, 'opaco, sin transparencia');
-
-    /* El panel se sigue viendo -la barra lateral y la de arriba- y lo que
-       queda en blanco es la zona de las fases. Si la puerta volviera a
-       taparlo todo, se perderia el sitio donde estas. */
-    var caja = back.getBoundingClientRect();
-    var lat  = document.querySelector('.sidebar').getBoundingClientRect();
-    ok('sector: la barra lateral se sigue viendo',
-       caja.left >= lat.right - 1,
-       Math.round(caja.left) + ' contra ' + Math.round(lat.right),
-       'la puerta empieza donde acaba la barra');
-    ok('sector: y la cabecera tambien', caja.top > 40,
-       Math.round(caja.top), 'por debajo de la cabecera');
-
-    /* Se ve, pero no se toca: si el menu siguiera vivo se podria navegar
-       por detras de una pantalla que existe para no dejar pasar. */
-    igual('sector: pero el menu no se puede usar',
-          window.getComputedStyle(document.querySelector('.sidebar')).pointerEvents,
-          'none');
-    igual('sector: ni la cabecera',
-          window.getComputedStyle(document.querySelector('.topbar')).pointerEvents,
-          'none');
-
-    /* No se cierra sola. Si se cerrara pulsando fuera o con Escape, el
-       bloqueo seria un adorno. */
-    back.click();
-    ok('sector: no se cierra al pulsar fuera', back.classList.contains('open'),
-       back.className, 'sigue abierta');
-    document.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape'}));
-    ok('sector: ni con Escape', back.classList.contains('open'),
-       back.className, 'sigue abierta');
-
-    /* Sin elegir no deja pasar, pero DICE por que: una puerta que no se
-       abre y no explica nada es una pantalla rota. */
-    document.getElementById('seGuardar').click();
-    ok('sector: sin elegir no deja pasar', back.classList.contains('open'),
-       back.className, 'sigue abierta');
-    var esperado = ((window.CIIP_PASOS.ui[curLang] || {}).se_falta || '');
-    igual('sector: y dice por que no',
-          document.getElementById('seAviso').textContent.trim(), esperado);
-
-    /* Y siempre hay por donde salir: bloquear sin salida es encerrar. */
-    var btSalir = document.getElementById('seSalir');
-    ok('sector: y se puede salir de la cuenta', !!btSalir, 'hay boton', 'hay boton');
-
-    /* Que el boton ESTÉ no es que funcione, y esta prueba se quedó ahí.
-       Llamaba a signOut() sin esperarlo y se iba en la misma línea: la
-       petición quedaba a medias, la sesión seguía en el navegador y el
-       acceso —que mira si hay sesión y devuelve al panel— metía otra vez
-       dentro. Darle a "salir" te dejaba donde estabas.
-
-       Se mide que sale por ciipSalir(), que es el único camino que espera
-       a que la sesión se cierre de verdad antes de irse. Se sustituye por
-       uno de mentira: el de verdad navega, y ahí se acabaría el arnés. */
-    ok('sector: y el panel sabe cerrar la sesion',
-       typeof window.ciipSalir === 'function',
-       typeof window.ciipSalir, 'function');
-    var salioPor = 'nada';
-    var salirDeVerdad = window.ciipSalir;
-    window.ciipSalir = function(){ salioPor = 'ciipSalir'; return Promise.resolve(); };
-    if (btSalir) btSalir.click();
-    window.ciipSalir = salirDeVerdad;
-    if (btSalir) btSalir.disabled = false;
-    igual('sector: y salir cierra la sesion antes de irse', salioPor, 'ciipSalir');
-
-    /* ── El idioma, sin salir ──
-       La puerta tapa la barra de arriba. Quien abriera el panel en un
-       idioma que no entiende se quedaba delante de una pregunta que no
-       deja pasar, con cerrar sesion como unica salida. */
-    var banderas = document.querySelectorAll('#seLang button');
-    igual('sector: se puede cambiar de idioma sin salir', banderas.length, 6);
-    var eraTitulo = document.getElementById('seTitulo').textContent.trim();
-    var eraLang = curLang;
-    document.querySelector('#seLang button[data-lang="es"]').click();
-    igual('sector: y la pregunta se repinta en el nuevo',
-          document.getElementById('seTitulo').textContent.trim(),
-          window.CIIP_PASOS.ui.es.se_titulo);
-    ok('sector: y no se queda con el texto de antes',
-       document.getElementById('seTitulo').textContent.trim() !== eraTitulo,
-       eraTitulo.slice(0, 30), 'otro distinto');
-    /* Los sectores tambien se retraducen: son el contenido, no el marco. */
-    igual('sector: y los sectores tambien se traducen',
-          document.querySelectorAll('#seLista .se-op')[0].textContent.trim(),
-          window.CIIP_PASOS.sectores.es.s1);
-    /* Y se vuelve al de este pase: si no, todo lo que corre despues
-       mediria una pantalla en un idioma que nadie eligio. */
-    document.querySelector('#seLang button[data-lang="' + eraLang + '"]').click();
-    igual('sector: y se puede volver al de antes', curLang, eraLang);
-
-    /* Se elige el segundo -mineria- y se contesta. La lista se rehizo al
-       cambiar de idioma, asi que se vuelve a pedir: la de antes son nodos
-       que ya no estan en la pagina. */
-    ops = document.querySelectorAll('#seLista .se-op');
-    ops[1].click();
-    var puestos = document.querySelectorAll('#seLista .se-op.puesto');
-    igual('sector: al elegir se marca uno, y solo uno', puestos.length, 1);
-    document.getElementById('seGuardar').click();
-  }
-
-  function puertaTrasResponder(){
-    if (PASE !== 'sinsector') return;
-    var back = document.getElementById('sectorBack');
-    ok('sector: al contestar, se entra', !back.classList.contains('open'),
-       back.className, 'cerrada');
-    ok('sector: y el panel deja de estar bloqueado',
+    ok('sector: la puerta que preguntaba al entrar ya no existe', !back,
+       back ? 'sigue en la pagina' : 'no esta', 'no esta');
+    /* Y nada bloquea el panel. Lo unico que puede bloquear es el pliego, y
+       en el unico pase donde llega a abrirse ya se acepto en el paso de
+       antes. */
+    ok('sector: y al entrar no queda nada bloqueando el panel',
        !document.body.classList.contains('con-puerta'),
        document.body.className || 'sin clase', 'sin con-puerta');
-    ok('sector: y queda guardado en el perfil',
-       (typeof PERFIL !== 'undefined' && PERFIL.sector === 'mineria'),
-       (typeof PERFIL !== 'undefined' ? (PERFIL.sector || 'ninguno') : 'sin PERFIL'),
-       'mineria');
+    /* Quitar la pregunta no es quitar el dato. El sector se sigue pudiendo
+       elegir donde tenia que haber estado siempre: en la ficha del perfil.
+       Sin esto, 'se quito la puerta' y 'se quito el sector' pasarian por
+       lo mismo, y no lo son. */
+    var sel = document.getElementById('pfSector');
+    ok('sector: pero se sigue pudiendo elegir desde el perfil', !!sel,
+       sel ? 'el campo esta en el perfil' : 'no esta', 'el campo esta en el perfil');
+  }
+
+  /* ── Y el sector, donde ahora se contesta ──
+     Al quitar la puerta, la ficha del perfil dejo de ser un sitio mas donde
+     cambiarlo y paso a ser el UNICO. Nadie lo medía: la lista la llenaba de
+     rebote la puerta, que pedia el catalogo al arrancar. Ahora lo pide la
+     ficha cuando se abre, y si eso se rompiera el desplegable saldria vacio
+     sin que ninguna prueba dijera nada.
+
+     Va en dos pasos porque el catalogo es una ida y vuelta a la base: entre
+     un paso y el siguiente la cadena espera medio segundo, que es lo que
+     hace falta para no medir la lista antes de que llegue. */
+  function abreElPerfil(){
+    var chip = document.querySelector('.user');
+    if (chip) chip.click();
+  }
+
+  function sectorEnElPerfil(){
+    var campo = document.getElementById('pfCampoSector');
+    var sel   = document.getElementById('pfSector');
+    /* Al equipo del CIIP no se le pregunta el sector: no invierte. Y si la
+       columna no existe -pase 'sinsectorsql'- tampoco, porque no habria
+       donde guardarlo. En los dos el campo tiene que estar ESCONDIDO, no
+       vacio: un desplegable sin nada dentro parece algo roto. */
+    var leToca = (typeof PERFIL !== 'undefined') &&
+                 PERFIL.rol === 'inversionista' && PERFIL.sectorReal;
+    if (!leToca){
+      ok('perfil: a quien no le toca, el sector ni se le ensena',
+         !!campo && campo.hidden,
+         campo ? (campo.hidden ? 'escondido' : 'a la vista') : 'no existe',
+         'escondido');
+    } else if (PASE === 'sincatalogo'){
+      /* Con el catalogo vacio tampoco, y por la misma razon. */
+      ok('perfil: y con el catalogo vacio, tampoco',
+         !!campo && campo.hidden,
+         campo ? (campo.hidden ? 'escondido' : 'a la vista') : 'no existe',
+         'escondido');
+    } else {
+      ok('perfil: al inversionista se le ofrece elegir sector',
+         !!campo && !campo.hidden,
+         campo ? (campo.hidden ? 'escondido' : 'a la vista') : 'no existe',
+         'a la vista');
+      /* Los que da la base y uno mas, el vacio de «sin elegir»: sin el, a
+         quien no ha contestado se le marcaria un sector que nadie eligio. */
+      ok('perfil: y con los sectores que da la base dentro',
+         !!sel && sel.options.length > 1,
+         sel ? sel.options.length + ' opciones' : 'no hay campo',
+         'mas de una');
+      /* Y el suyo, marcado. En el pase 'sinsector' no hay ninguno, y tiene
+         que quedarse en el vacio y no en el primero de la lista. */
+      igual('perfil: y el suyo ya marcado, si lo tiene',
+            (sel && sel.value) || '',
+            (typeof PERFIL !== 'undefined' && PERFIL.sector) || '');
+    }
+    /* Y se cierra: lo que corre despues abre esta misma ventana desde cero
+       y la mide recien abierta. */
+    var cerrar = document.getElementById('pfCerrar');
+    if (cerrar) cerrar.click();
   }
 
   function pruebas(){
