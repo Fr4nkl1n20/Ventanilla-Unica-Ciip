@@ -7890,19 +7890,23 @@ on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.ve
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
---  CIIP · VENTANILLA ÚNICA — LA RESERVA DEL NOMBRE, ANTES DE RESOLVER (c5)
---  Va DESPUÉS de supabase-tramites.sql: toca tipos_documento, una política
---  de tramite_documentos y un trigger de tramites. Va al final para no
---  mover el número de nadie.
+--  CIIP · VENTANILLA ÚNICA — EL COMPROBANTE DE LA RESERVA DEL NOMBRE (c5)
+--  Va DESPUÉS de supabase-tramites.sql: toca tipos_documento y tres
+--  políticas. Va al final para no mover el número de nadie.
 -- ═══════════════════════════════════════════════════════════════════════
 --  DE DÓNDE SALE
 --  ───────────────────────────────────────────────────────────────────────
 --  Franklin Reyes, 16 de septiembre de 2026: la constitución de la
---  compañía gana un paso entre «Reserva de nombre» y «Resuelta». En él, el
---  inversionista sube el comprobante de la reserva del nombre, y SIN ESE
---  COMPROBANTE LA CONSTITUCIÓN NO SE PUEDE RESOLVER. Ni desde la pantalla
---  ni desde la base: la pantalla avisa antes, y esto es lo que lo hace
---  cierto aunque alguien se salte la pantalla.
+--  compañía gana un paso entre «Reserva de nombre» y «Resuelta», donde va
+--  el comprobante de la reserva del nombre.
+--
+--  CÓMO ES EL CIRCUITO (Franklin Reyes, 18 de septiembre de 2026)
+--  ───────────────────────────────────────────────────────────────────────
+--  El CIIP manda al inversionista el documento con los datos para pagar,
+--  el inversionista paga, y DESPUÉS sube el comprobante. Así que el papel
+--  llega tarde por definición, y no puede cerrarle el paso a nadie: el
+--  trigger que impedía resolver sin él estuvo puesto dos días y se quitó
+--  (apartado 3).
 --
 --  Y de paso lo mismo para el pago de los aranceles de la protocolización
 --  (c22): ese papel se sube desde su paso, con el trámite ya en marcha, y
@@ -7910,8 +7914,7 @@ on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.ve
 --  devuelta.
 --
 --  SIN CORRERLO LA PÁGINA NO SE ROMPE, pero el paso se queda cojo: el
---  inversionista ve el botón de subir y la subida falla al engancharla, y
---  el gestor puede resolver una constitución sin comprobante.
+--  inversionista ve el botón de subir y la subida falla al engancharla.
 -- ═══════════════════════════════════════════════════════════════════════
 
 
@@ -8004,61 +8007,28 @@ create policy "adjuntos: el equipo engancha el documento para pagar la reserva" 
     )
   );
 
-
 -- ───────────────────────────────────────────────────────────────────────
--- 3. SIN COMPROBANTE, NO HAY «RESUELTA»
+-- 3. AQUÍ HUBO UN CANDADO, Y SE QUITÓ
 -- ───────────────────────────────────────────────────────────────────────
---  Va en su propio trigger y no dentro de tramites_solo_la_escalera: aquel
---  dice en qué ORDEN se pasa de un estado a otro, para todos los trámites;
---  esto dice qué hace falta para UN paso de UN trámite. Juntos se leerían
---  como una sola regla, y el día que haya otra condición así se añade otro
---  trigger al lado en vez de un if más dentro de la escalera.
+--  El 16 de septiembre esto era «sin comprobante no hay resuelta»: un
+--  trigger que impedía marcar resuelta una constitución sin el comprobante
+--  de la reserva del nombre.
 --
---  Los BEFORE UPDATE corren por orden alfabético de nombre, así que este
---  (tramites_reserva_nombre) va detrás de la escalera (tramites_proteger):
---  un salto que la escalera no deja ya no llega aquí.
+--  Se quita el 18 de septiembre de 2026, con el circuito ya contado por el
+--  CIIP: el equipo manda al inversionista el documento con los datos para
+--  pagar, el inversionista paga, y SÓLO DESPUÉS sube el comprobante. Entre
+--  una cosa y otra pasan días que no dependen del CIIP, y el candado dejaba
+--  la constitución parada sin que nadie del equipo pudiera destrabarla.
 --
---  security definer para mirar los papeles sin depender del RLS de quien
---  resuelve: la regla es la misma la resuelva quien la resuelva.
+--  El paso NO desaparece: sigue en la escalera del inversionista, con su
+--  casilla para subir el comprobante, y las políticas de arriba siguen
+--  dejando que lo adjunte con el trámite en marcha. Lo único que se va es
+--  el cierre a quien todavía no tiene el papel en la mano.
 --
---  Desde el SQL Editor (auth.uid() nulo) no estorba, igual que la escalera:
---  hace falta poder enderezar a mano un expediente atascado.
-create or replace function public.tramites_constitucion_con_reserva()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  if new.estado is not distinct from old.estado then
-    return new;
-  end if;
-  if new.estado <> 'resuelto' or new.tipo <> 'constitucion' then
-    return new;
-  end if;
-  if auth.uid() is null then
-    return new;
-  end if;
-
-  if not exists (
-    select 1
-      from public.tramite_documentos td
-      join public.documentos d on d.id = td.documento
-     where td.tramite = new.id
-       and d.tipo = 'reserva_nombre'
-  ) then
-    raise exception 'La constitución no se resuelve sin el comprobante de la reserva del nombre'
-      using errcode = 'check_violation';
-  end if;
-
-  return new;
-end;
-$$;
-
+--  Se borra aquí, y no en un archivo nuevo, para que una base que ya lo
+--  tenía puesto se quede sin él al volver a pasar este archivo.
 drop trigger if exists tramites_reserva_nombre on public.tramites;
-create trigger tramites_reserva_nombre
-  before update on public.tramites
-  for each row execute function public.tramites_constitucion_con_reserva();
+drop function if exists public.tramites_constitucion_con_reserva();
 
 
 -- ───────────────────────────────────────────────────────────────────────
@@ -8079,11 +8049,7 @@ create trigger tramites_reserva_nombre
 --                                                          -- ninguna
 --
 --   select tgname from pg_trigger where tgname = 'tramites_reserva_nombre';
---
---  Y la regla, con una cuenta del equipo (no desde el SQL Editor, que no
---  estorba): marcar resuelta una constitución en 'ante_el_ente' sin el
---  papel tiene que responder
---    La constitución no se resuelve sin el comprobante de la reserva del nombre
+--                                                          -- NINGUNA fila
 
 -- ====================================================================
 --  38 / 39   supabase-logos-fichas.sql

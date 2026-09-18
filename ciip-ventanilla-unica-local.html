@@ -15607,9 +15607,9 @@ applyLang(idiomaParaMi());
             if (archivo) archivo.focus();
             return;
           }
-          /* Y una constitucion sin el comprobante de la reserva del nombre: la
-             base no la deja resolver, y entregar antes el acta para que luego
-             rebote dejaria un papel entregado en un tramite sin resolver. Se
+          /* Y un tramite sin el comprobante que la base le exige: no lo
+             deja resolver, y entregar antes el acta para que luego rebote
+             dejaria un papel entregado en un tramite sin resolver. Se
              mira antes de tocar nada. */
           if (p.a === 'resuelto' && comprobanteParaResolver(t) && !b.getAttribute('data-reserva')){
             b.disabled = true;
@@ -16646,8 +16646,8 @@ applyLang(idiomaParaMi());
       if (archivo) archivo.focus();
       return;
     }
-    /* Lo mismo que la ventana de la cola: sin la reserva del nombre, ni se
-       entrega el acta ni se intenta resolver. */
+    /* Lo mismo que la ventana de la cola: sin el comprobante que pide la
+       base, ni se entrega el papel ni se intenta resolver. */
     if (comprobanteParaResolver(t) && !boton.getAttribute('data-reserva')){
       boton.disabled = true;
       faltaLaReserva(t).then(function(falta){
@@ -21486,12 +21486,21 @@ applyLang(idiomaParaMi());
   }
 
   /* Que comprobante hace falta para poder resolver, y con que aviso se
-     dice que no esta. Son dos trámites, el mismo trato (Franklin Reyes,
-     17-9-2026): la constitucion pide el de la reserva del nombre y la
-     protocolizacion el del pago de los aranceles. Los demas, nada. */
+     dice que no esta.
+
+     LA CONSTITUCION YA NO PIDE NINGUNO (Franklin Reyes, 18-9-2026). El
+     17 se puso que pidiera el comprobante de la reserva del nombre, y con
+     el circuito contado entero no se sostiene: el CIIP manda el documento
+     con los datos para pagar, el inversionista paga, y sube el
+     comprobante DESPUES. Entre una cosa y otra pasan dias que no dependen
+     del equipo, y la constitucion se quedaba parada sin que nadie del
+     CIIP pudiera destrabarla. El paso sigue en la escalera del
+     inversionista, con su casilla; lo que ya no hace es cerrar el paso.
+
+     La protocolizacion se queda como estaba, que es de otro dia y nadie
+     lo ha pedido; si alli pasa lo mismo, se quita igual. */
   function comprobanteParaResolver(t){
     if (!t) return null;
-    if (t.tipo === 'constitucion') return {tipo: TIPO_RESERVA, aviso: 'co_faltareserva'};
     if (t.tipo === 'protocolizacion_acta') return {tipo: 'pago_aranceles', aviso: 'co_faltaaranceles'};
     return null;
   }
