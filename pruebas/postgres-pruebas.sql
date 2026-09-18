@@ -3017,6 +3017,39 @@ select arnes.comprueba(
     where inversionista = (select id from arnes.gente where papel = 'P')
       and tipo = 'protocolizacion_acta'));
 
+-- ── LAS QUE NACIERON SIN DUEÑO, REPESCADAS ────────────────────
+-- Franklin Reyes, 18-9-2026. El disparador solo mira las que nacen, así
+-- que las protocolizaciones creadas antes del cambio se quedarían sin
+-- gestor para siempre. El archivo trae un update que les pone el de SU
+-- constitución, y corre al instalar —cuando todavía no hay ningún
+-- trámite—, así que la única forma de probarlo es volver a correr el
+-- archivo con una ya creada. De paso dice que correrlo dos veces no rompe
+-- nada, que es como se va a correr en producción.
+reset role;
+select arnes.nadie();
+update public.tramites set gestor = null
+ where inversionista = (select id from arnes.gente where papel = 'P')
+   and tipo = 'protocolizacion_acta';
+
+\i :proto
+
+select arnes.comprueba(
+  'protocolizacion: y a las que nacieron sin duenno se les pone el de su constitucion',
+  (select gestor = (select id from arnes.gente where papel = 'G')
+     from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'P')
+      and tipo = 'protocolizacion_acta'),
+  (select coalesce(gestor::text, 'sigue sin asignar') from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'P')
+      and tipo = 'protocolizacion_acta'));
+
+-- Y no nacio otra por volver a correr el archivo.
+select arnes.comprueba(
+  'protocolizacion: correr el archivo otra vez no abre una segunda',
+  (select count(*) = 1 from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'P')
+      and tipo = 'protocolizacion_acta'));
+
 -- Sin el comprobante del pago, el equipo no la resuelve.
 set role authenticated;
 select arnes.soy((select id from arnes.gente where papel = 'G'));

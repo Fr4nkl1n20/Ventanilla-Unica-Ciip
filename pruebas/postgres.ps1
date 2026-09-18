@@ -88,8 +88,14 @@ try {
   Write-Output ('  Puerto     : ' + $puerto + '  (temporal, se apaga al acabar)')
   Write-Output ''
 
+  # -v proto=... : la ruta del archivo de la protocolizacion, para que
+  # postgres-pruebas.sql pueda volver a correrlo con \i sobre datos ya
+  # creados. Es la unica forma de probar de verdad el repescado de las que
+  # nacieron sin duenno: ese update corre al INSTALAR, y a esas alturas no
+  # hay todavia ningun tramite (Franklin Reyes, 18-9-2026).
+  $rutaProto = Join-Path $raiz 'supabase-protocolizacion.sql'
   function Correr($archivo) {
-    & $psql -h 127.0.0.1 -p $puerto -U ciip -d postgres -v 'ON_ERROR_STOP=1' -q --no-psqlrc -c 'set client_min_messages = warning' -f $archivo
+    & $psql -h 127.0.0.1 -p $puerto -U ciip -d postgres -v 'ON_ERROR_STOP=1' -v ('proto=' + $rutaProto) -q --no-psqlrc -c 'set client_min_messages = warning' -f $archivo
   }
 
   Correr (Join-Path $PSScriptRoot 'postgres-doble.sql')

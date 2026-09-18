@@ -185,6 +185,31 @@ create trigger tramites_abre_protocolizacion
   for each row execute function public.constitucion_abre_la_protocolizacion();
 
 
+--  LAS QUE YA NACIERON SIN DUEÑO (Franklin Reyes, 18-9-2026)
+--  ─────────────────────────────────────────────────────────────────────
+--  El disparador solo mira las que nacen, así que las protocolizaciones
+--  creadas antes de este cambio se quedarían sin gestor para siempre:
+--  nadie las vería en «Míos» y la casilla del documento para pagar los
+--  aranceles no aparecería sola en ninguna de ellas. Habría que tomarlas
+--  a mano, una por una, sabiendo que existen.
+--
+--  Se les pone el gestor de SU constitución, que es de quien habrían
+--  heredado si el disparador ya fuera éste. Solo a las que no tienen
+--  ninguno: si alguien ya la tomó a mano, esa decisión manda.
+--
+--  Va aquí y no en un apaño suelto para que corra también en la base de
+--  pruebas y en cualquiera que se levante de cero. Correrlo dos veces no
+--  hace nada la segunda: después ya no queda ninguna sin gestor.
+update public.tramites c22
+   set gestor = c5.gestor
+  from public.tramites c5
+ where c22.tipo   = 'protocolizacion_acta'
+   and c22.gestor is null
+   and c5.inversionista = c22.inversionista
+   and c5.tipo   = 'constitucion'
+   and c5.gestor is not null;
+
+
 -- ───────────────────────────────────────────────────────────────────────
 -- 4. SIN EL COMPROBANTE DEL PAGO, NO HAY «RESUELTA»
 -- ───────────────────────────────────────────────────────────────────────
