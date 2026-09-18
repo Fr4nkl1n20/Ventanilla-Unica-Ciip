@@ -21291,10 +21291,17 @@ applyLang(idiomaParaMi());
     /* El equipo del CIIP no paga aranceles de nadie: el comprobante lo ve
        en su cola, enganchado a la solicitud. */
     if (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) return;
-    /* Sin solicitud, el comprobante tiene que crearla, y eso pide el tramite
-       en el catalogo de la base. Si no esta -o esta apagado-, ofrecer subirlo
-       seria un boton que acaba en error. */
-    if (!tr && !((TIPOS || {})[ref] && TIPOS[ref].codigo && TIPOS[ref].activo !== false)) return;
+    /* SIN SOLICITUD NO SE PIDE NADA (Franklin Reyes, 18-9-2026, por la
+       tarde). Hasta hoy, subir aqui el comprobante CREABA el tramo y lo
+       mandaba: era la unica forma de que la protocolizacion empezara. Ya
+       no lo es —nace sola al resolverse la constitucion, lo hace
+       constitucion_abre_la_protocolizacion() en supabase-protocolizacion.sql—
+       y dejar el otro camino abierto se vio en la base: una protocolizacion
+       en borrador y enviada en el mismo segundo, hecha por la
+       inversionista desde una casilla que estaba a la vista antes de que
+       su tramo empezara. Dos fichas distintas, y una de ellas en marcha
+       sin que nadie la hubiera pedido. */
+    if (!tr) return;
     var txt = li.querySelector('.tr-txt');
     if (!txt || txt.querySelector('.tr-papel')) return;
     var u = T();
@@ -21345,39 +21352,17 @@ applyLang(idiomaParaMi());
       if (!archivo) return;
       btn.disabled = true;
       est.textContent = u.enviando || '';
-      /* Sin solicitud, el comprobante la crea: se hace como en el formulario
-         -borrador, papel enganchado y luego enviada-, y al pasar a enviada
-         el CIIP la recibe y el primer paso, el pago, queda hecho. */
-      var nueva = !tr;
-      var conTramite = tr ? Promise.resolve(tr) : quienSoy().then(function(yo){
-        var tipo = (TIPOS || {})[ref];
-        if (!tipo || !tipo.codigo) throw new Error('tramo sin tipo: ' + ref);
-        return sb.from('tramites').insert({inversionista: yo.id, tipo: tipo.codigo, datos: {}})
-          .select().single().then(function(r){ if (r.error) throw r.error; return r.data; });
-      });
-      conTramite.then(function(t){
-        tr = t;
-        return sube(quiere.tipo, archivo).then(function(docId){ return engancha(t.id, docId); });
-      })
-        .then(function(){
-          if (!nueva) return;
-          return sb.from('tramites').update({estado: 'enviado'}).eq('id', tr.id).select().single()
-            .then(function(r){ if (r.error) throw r.error; });
-        })
+      /* Se engancha a la solicitud que ya hay, y solo a esa. Aqui se creaba
+         una si faltaba; ya no: el tramo lo abre la base al resolverse el
+         anterior, y crearlo desde una casilla acababa en una ficha en
+         marcha que nadie habia pedido. */
+      sube(quiere.tipo, archivo)
+        .then(function(docId){ return engancha(tr.id, docId); })
         .then(function(){
           PAPELES_DE[tr.id] = null;
           fila.classList.add('puesto');
           est.textContent = archivo.name;
           btn.disabled = false;
-          /* Con la solicitud nueva, el tramo se repinta con su estado de
-             verdad: visto en el pago, su fecha y el chip del bloque. */
-          if (nueva){
-            HISTORIAL[tr.id] = null;
-            cargaMisTramites().then(function(){
-              if (window.CIIP_REPINTA_PASOS) window.CIIP_REPINTA_PASOS();
-              if (typeof cargaAvisos === 'function') cargaAvisos();
-            });
-          }
         })
         .catch(function(e){
           console.warn('[CIIP] comprobante del pago:', e && (e.message || e));
