@@ -2954,6 +2954,9 @@ declare
   cual uuid := (select id from arnes.escenario where clave = 'pr_c5');
   paso text;
 begin
+  --  La toma primero, como en la cola: «Tómalo» va antes de moverla. De
+  --  ese dueño sale el que hereda la protocolización.
+  update public.tramites set gestor = auth.uid() where id = cual;
   foreach paso in array array['en_revision','ante_el_ente','resuelto'] loop
     update public.tramites set estado = paso where id = cual;
   end loop;
@@ -2969,6 +2972,21 @@ select arnes.comprueba(
       and tipo = 'protocolizacion_acta' and estado = 'enviado'),
   (select coalesce(string_agg(tipo || ':' || estado, ', '), 'ninguna')
      from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'P')
+      and tipo = 'protocolizacion_acta'));
+
+-- Y NACE EN MANOS DE QUIEN RESOLVIÓ LA CONSTITUCIÓN (Franklin Reyes,
+-- 18-9-2026). Sin dueño, la cola solo ofrece «Tómalo», y la casilla donde
+-- el equipo le deja el documento con que pagar los aranceles vive un paso
+-- más adentro: no aparecía sola, y el inversionista se quedaba esperando un
+-- papel sin el cual no puede pagar.
+select arnes.comprueba(
+  'protocolizacion: y nace en manos de quien resolvio la constitucion',
+  (select gestor = (select id from arnes.gente where papel = 'G')
+     from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'P')
+      and tipo = 'protocolizacion_acta'),
+  (select coalesce(gestor::text, 'sin asignar') from public.tramites
     where inversionista = (select id from arnes.gente where papel = 'P')
       and tipo = 'protocolizacion_acta'));
 
