@@ -275,6 +275,7 @@
               textosMira,
               rvAbre, rvMira, rvDespues,
               cbAbre, cbMira,
+              tdAbre, tdMira,
               ajAbre, ajMira,
               plazoF5Abre, plazoF5Rompe, plazoF5Repinta, plazoF5Mira,
               opacidadMira, opacidadSenal,
@@ -9846,6 +9847,36 @@
     if (campo){
       campo.value = '';
       campo.dispatchEvent(new Event('input'));
+    }
+    location.hash = '';
+  }
+
+  /* TODOS LOS TRÁMITES, PARA EL ADMINISTRADOR. Su renglón, que la tabla se
+     abre -al gestor se le cierra y cae a la portada- y que cada fila dice de
+     quién es la solicitud. */
+  function tdAbre(){
+    if (!ES_ADMIN && CASO !== 'gestor') return;
+    location.hash = 'tramites';
+  }
+  function tdMira(){
+    if (ES_ADMIN){
+      var nav = document.getElementById('navTodosTram');
+      ok('todos: el administrador tiene su renglón «Todos los trámites»',
+         !!nav && !nav.hidden, nav ? (nav.hidden ? 'escondido' : 'a la vista') : 'no está', 'a la vista');
+      igual('todos: y la tabla se abre', document.body.getAttribute('data-vista'), 'mistramites');
+      var filas = document.querySelectorAll('#mtCuerpo tr:not(.sin-nada)');
+      ok('todos: con las solicitudes de la oficina', filas.length > 0,
+         filas.length + ' filas', 'alguna');
+      var duenio = document.querySelector('#mtCuerpo .mt-duenio');
+      ok('todos: y cada una dice de quién es', !!duenio && /\S/.test(duenio.textContent),
+         duenio ? duenio.textContent : '(sin nombre)', 'el nombre del inversionista');
+    } else if (CASO === 'gestor'){
+      var nav2 = document.getElementById('navTodosTram');
+      ok('todos: al gestor no se le ofrece ese renglón',
+         !!nav2 && nav2.hidden, nav2 && !nav2.hidden ? 'a la vista' : 'escondido', 'escondido');
+      ok('todos: y la tabla no se le abre',
+         document.body.getAttribute('data-vista') !== 'mistramites',
+         document.body.getAttribute('data-vista'), 'cualquiera menos mistramites');
     }
     location.hash = '';
   }
