@@ -8400,6 +8400,43 @@ update public.tramites c22
    and c5.gestor is not null;
 
 
+--  Y LAS QUE NO LLEGARON A NACER (Franklin Reyes, 18-9-2026)
+--  ──────────────────────────────────
+--  Quien tuvo su constitución resuelta ANTES de que existiera el
+--  disparador se quedó sin protocolización y sin forma de conseguirla: en
+--  su paso del pago el panel dice que el CIIP le enviará el documento, y el
+--  CIIP no puede dejárselo porque no hay solicitud donde colgarlo. Los dos
+--  esperando al otro, para siempre.
+--
+--  Así que aquí nacen, igual que habrían nacido: enviadas, con el gestor de
+--  su constitución y con lo que aquélla decía. La copia es la misma que la
+--  del disparador —razón social, capital, registro, representante—, escrita
+--  con jsonb_strip_nulls para no repetir cuatro `if`.
+--
+--  Correrlo dos veces no hace nada la segunda: el `not exists` ya no
+--  encuentra a nadie.
+insert into public.tramites (inversionista, tipo, estado, datos, enviado_en, gestor)
+select c5.inversionista, 'protocolizacion_acta', 'enviado',
+       jsonb_strip_nulls(jsonb_build_object(
+         'razon_social',       nullif(c5.datos->>'denominacion', ''),
+         'capital_social',     nullif(c5.datos->>'capital_social', ''),
+         'registro_mercantil', nullif(c5.datos->>'oficina_registro', ''),
+         'representante',      nullif(btrim(split_part(
+                                 split_part(coalesce(c5.datos->>'junta_directiva', ''), ';', 1),
+                                 '(', 1)), '')
+       )),
+       now(), c5.gestor
+  from public.tramites c5
+ where c5.tipo   = 'constitucion'
+   and c5.estado = 'resuelto'
+   and exists (select 1 from public.tipos_tramite
+                where codigo = 'protocolizacion_acta' and activo)
+   and not exists (
+     select 1 from public.tramites otra
+      where otra.inversionista = c5.inversionista
+        and otra.tipo = 'protocolizacion_acta');
+
+
 -- ───────────────────────────────────────────────────────────────────────
 -- 4. SIN EL COMPROBANTE DEL PAGO, NO HAY «RESUELTA»
 -- ───────────────────────────────────────────────────────────────────────

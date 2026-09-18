@@ -12970,7 +12970,7 @@ applyLang(idiomaParaMi());
   function sumaMensajes(uid, refDe){
     return avPide('mensajes', function(){
       return sb.from('tramite_mensajes')
-        .select('id, tramite, autor, texto, creado_en')
+        .select('id, tramite, autor, texto, del_equipo, creado_en')
         .eq('del_equipo', true)
         .order('creado_en', {ascending:false}).limit(20);
     }, function(filas){
@@ -13011,7 +13011,7 @@ applyLang(idiomaParaMi());
       if (!ids.length) return;
       return avPide('respuestas', function(){
         return sb.from('consulta_mensajes')
-          .select('id, consulta, autor, texto, creado_en')
+          .select('id, consulta, autor, texto, del_equipo, creado_en')
           .eq('del_equipo', true).in('consulta', ids)
           .order('creado_en', {ascending:false}).limit(20);
       }, function(filas){
@@ -19468,6 +19468,13 @@ applyLang(idiomaParaMi());
       if (enTramite && escribiendoEnElTramite()) return false;
       ultimoAlDia = Date.now();
       if (window.CIIP_OLVIDA_CATALOGO) window.CIIP_OLVIDA_CATALOGO();
+      /* Y los papeles de cada solicitud, que se guardan en memoria la
+         primera vez que se miran. Sin olvidarlos, el paso del pago seguía
+         diciendo «el CIIP te enviará el documento» después de que el CIIP
+         lo hubiera dejado: para verlo había que recargar la página, que es
+         justo lo que este refresco viene a evitar (Franklin Reyes,
+         18-9-2026). */
+      if (window.CIIP_OLVIDA_PAPELES) window.CIIP_OLVIDA_PAPELES();
       Promise.resolve(cargaMisTramites()).then(function(){
         /* La escalera del trámite abierto se dibuja al abrirlo y no la
            repinta nadie cuando llegan datos nuevos: sin esto, la solicitud
@@ -21061,6 +21068,12 @@ applyLang(idiomaParaMi());
   /* Los papeles ya enganchados a una solicitud, para no ofrecer subir lo
      que ya esta subido. */
   var PAPELES_DE = {};
+  /* Y se olvidan enteros cuando el panel se pone al dia solo: lo que cuelga
+     de una solicitud lo cambia TAMBIEN el equipo desde su cola -deja el
+     documento con que pagar, por ejemplo-, y esto se guardo la primera vez
+     que se miro. Sin olvidarlo, el paso se quedaba esperando un papel que
+     ya habia llegado (Franklin Reyes, 18-9-2026). */
+  window.CIIP_OLVIDA_PAPELES = function(){ PAPELES_DE = {}; };
   function papelesDe(id){
     if (PAPELES_DE[id]) return PAPELES_DE[id];
     return (PAPELES_DE[id] = Promise.resolve(

@@ -549,6 +549,22 @@
   /* Doce solicitudes para el pase de mirar. Las fechas son RELATIVAS a hoy
      y no fijas: escritas a mano, «lleva esperando 17 días» se convierte en
      «lleva 200» con el tiempo y la pantalla acaba mintiendo sola. */
+  /* Recorta las filas a las columnas pedidas, como hace Postgres. No
+     recorta si la lista trae una relacion incrustada -documentos(...)- o si
+     no se pidio nada: ahi el panel quiere la fila entera. */
+  function soloLoPedido(filas, cols){
+    var lista = String(cols || "").trim();
+    if (!lista || lista === "*" || lista.indexOf("(") >= 0) return filas;
+    var quiere = lista.split(",").map(function(c){ return c.trim(); });
+    return (filas || []).map(function(f){
+      var r = {};
+      quiere.forEach(function(c){
+        if (Object.prototype.hasOwnProperty.call(f, c)) r[c] = f[c];
+      });
+      return r;
+    });
+  }
+
   function haceDias(n){ return new Date(Date.now() - n * 86400000).toISOString(); }
   function haceHoras(n){ return new Date(Date.now() - n * 3600000).toISOString(); }
   var COLA_DEMO = [
@@ -1755,7 +1771,7 @@
       if (op && op.eq && op.eq.tramite){
         hilo = hilo.filter(function(m){ return m.tramite === op.eq.tramite; });
       }
-      return {data:hilo, error:null};
+      return {data:soloLoPedido(hilo, op && op.cols), error:null};
     }
     if (tabla === 'consultas'){
       /* ABRIRLA. Lo que manda el navegador NO decide de quien es ni en que
@@ -1856,7 +1872,7 @@
       if (op && op.eq && op.eq.consulta){
         charla = charla.filter(function(m){ return m.consulta === op.eq.consulta; });
       }
-      return {data:charla, error:null};
+      return {data:soloLoPedido(charla, op && op.cols), error:null};
     }
 
     if (tabla === 'tramite_documentos'){
@@ -1971,6 +1987,13 @@
        piden columnas que la base puede no tener todavia, y la unica forma
        de probar que el panel aguanta eso es saber que pidio. */
     api.select = function(cols){ op.cols = cols || ''; return api; };
+    /* Y se RECORTA lo devuelto a esas columnas, en las tablas donde el
+       panel vuelve a mirar en JavaScript algo que pidio en la consulta.
+       Postgres devuelve solo lo pedido; el doble devolvia la fila entera, y
+       con eso un select al que le falta una columna salia verde aqui y
+       descartaba TODAS las filas en produccion. Paso el 18 de septiembre de
+       2026 con del_equipo: la campana se quedo sin los mensajes del equipo y
+       sin las respuestas a las consultas, y esta tanda no dijo nada. */
     /* Estos S\u00cd se miran: distinguen a qui\u00e9n va dirigida la consulta. */
     /* lt y gt: el pulso pide los documentos vencidos con .lt(vence_el,
        hoy). Sin ellos el falso reventaba con "api.lt is not a function",
