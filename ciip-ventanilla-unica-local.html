@@ -10790,7 +10790,26 @@ applyLang(idiomaParaMi());
       hPapeles.appendChild(dosP);
     }
 
-    var hRepaso = hojaNueva(u.pa_repasar || '');
+    /* Y sin «Repasar» tampoco (Franklin Reyes, 21-9-2026: «en publicación
+       del acta solo quiero que queden recaudos, y dejarme enviar ya la
+       solicitud»). El repaso enseñaba «TUS DATOS» con las cuatro líneas de
+       la hoja escondida y un «Cambiar» al lado que llevaba a una hoja que
+       ya no está: un enlace a ninguna parte, y la fecha en rojo pidiendo
+       algo que el trámite no necesita.
+
+       Con una sola hoja el pie se muda a ella él solo -es el último paso-,
+       así que «Enviar» sale al pie de los recaudos sin tocar nada más:
+       vePaso ya sabe que en el último no hay «Siguiente» y sí pie. Lo
+       mismo que con hDatos: se construye escondida, porque pintaRepaso
+       escribe dentro y el envío no tiene por qué saber de esto. */
+    var hRepaso;
+    if (sinDatos){
+      hRepaso = el('div', 'pa-hoja');
+      hRepaso.hidden = true;
+      pa.appendChild(hRepaso);
+    } else {
+      hRepaso = hojaNueva(u.pa_repasar || '');
+    }
     caja.appendChild(pa);
 
     /* La devolucion mas comun y la mas tonta: un nombre copiado a ojo. Cuesta
