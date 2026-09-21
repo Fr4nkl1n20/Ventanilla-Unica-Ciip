@@ -20796,9 +20796,46 @@ applyLang(idiomaParaMi());
      su renglón, se quedaría congelado en el idioma de arranque. Es
      exactamente como se quedó «Waiting on: …» dentro de un panel entero
      en castellano. */
+
+  /* ── Y CADA FICHA DICE LA SUYA ──
+     «quiero que esta frase no sea para todos los tramites sino que cada
+      tramite lleve una frase diferente que nosotros colocaremos»
+     (Franklin Reyes, 21 de septiembre de 2026).
+
+     La frase salía de ui.lh_uno: UNA clave para las treinta y tres, así
+     que cambiarla las cambiaba todas y por eso tenía que estar escrita
+     sin decir nada de ningún trámite en concreto.
+
+     Ahora cada ficha tiene su clave en pasos.js -'_p.acompana.c5'- y
+     todas nacen diciendo lo que decía la general. El administrador
+     enciende «Editar textos», pulsa la frase de la ficha que quiera y
+     escribe la suya: queda sólo ahí, y en el idioma que esté en
+     pantalla. Ni tabla nueva ni SQL: el editor de textos ya sabe
+     guardar y devolver las claves de este archivo.
+
+     LO QUE IMPORTA AQUÍ ES QUE LA CLAVE SE REESCRIBA TAMBIÉN
+     Y no sólo el texto. Si se pusiera al crear el renglón, una ficha
+     que hoy cae en la general y mañana tiene frase propia se quedaría
+     con 'lh_uno' pegado en el marcado: pulsarla en «Editar textos»
+     cambiaría otra vez las treinta y tres, que es justo lo que esto
+     viene a quitar. Es el mismo motivo por el que el texto se reescribe
+     en cada repintado. */
+  function fraseAcompana(ref){
+    var P = window.CIIP_PASOS || {}, A = P.acompana || {};
+    var v = (A[curLang] || {})[ref];
+    if (typeof v !== 'string' || !v.trim()) v = (A.en || {})[ref];
+    return (typeof v === 'string' && v.trim()) ? v : '';
+  }
+
   function pintaAcompana(tarjeta){
     var u = T();
-    if (!u.lh_uno) return;
+    var ref = tarjeta.getAttribute('data-tr');
+    /* La suya si la tiene; si no, la general de siempre. Una ficha que no
+       esté en pasos.js -no debería, pero el catálogo crece- sigue
+       diciendo algo en lugar de quedarse con el pie en blanco. */
+    var propia = ref ? fraseAcompana(ref) : '';
+    var texto = propia || u.lh_uno;
+    if (!texto) return;
     var linea = tarjeta.querySelector('.t-acomp');
     if (!linea){
       /* Justo ANTES del pie, que es lo último del cuerpo. Se ancla en el
@@ -20808,12 +20845,12 @@ applyLang(idiomaParaMi());
       var pie = tarjeta.querySelector('.t-foot');
       if (!pie) return;
       linea = el('div', 't-acomp', '');
-      /* Para que el modo «Editar textos» sepa que clave es: sale de pasos.js
-         y no lleva data-i18n. */
-      linea.setAttribute('data-ui', 'lh_uno');
       pie.parentNode.insertBefore(linea, pie);
     }
-    linea.textContent = u.lh_uno;
+    /* Para que el modo «Editar textos» sepa qué clave es: sale de pasos.js
+       y no lleva data-i18n. */
+    linea.setAttribute('data-ui', propia ? ('_p.acompana.' + ref) : 'lh_uno');
+    linea.textContent = texto;
   }
 
   /* ── EL PLAZO LEGAL, AL PULSAR EL RELOJ ──

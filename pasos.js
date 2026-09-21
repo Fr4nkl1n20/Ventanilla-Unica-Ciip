@@ -6379,3 +6379,81 @@ window.CIIP_PASOS = {
 
   }
 };
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   ██  LA FRASE DEL ACOMPAÑAMIENTO, UNA POR TRÁMITE  ██
+   ══════════════════════════════════════════════════════════════════════
+
+   «quiero que esta frase no sea para todos los tramites sino que cada
+    tramite lleve una frase diferente que nosotros colocaremos»
+   (Franklin Reyes, 21 de septiembre de 2026).
+
+   La frase que va al pie de cada ficha -«El equipo CIIP puede
+   acompañarte a realizar este trámite»- salía de ui.lh_uno, o sea, de
+   UNA sola clave para las treinta y tres. Cambiarla cambiaba las
+   treinta y tres a la vez, y por eso tenía que estar escrita tan
+   general que no dijera nada de ningún trámite en concreto.
+
+   AQUÍ NO SE ESCRIBE NINGUNA FRASE NUEVA
+   ─────────────────────────────────────────────────────────────────────
+   Lo único que hace este bloque es darle a cada ficha SU PROPIA CLAVE,
+   diciendo de salida lo mismo que decía antes. Hoy, recién corrido,
+   la pantalla se ve exactamente igual. Lo que cambia es que a partir de
+   ahora se pueden separar: el administrador enciende «Editar textos»,
+   pulsa la frase de la ficha que quiera y escribe la suya, y esa queda
+   sólo en esa ficha.
+
+   POR QUÉ SE GENERA Y NO SE ESCRIBEN LAS 33 × 6 A MANO
+   ─────────────────────────────────────────────────────────────────────
+   Serían ciento noventa y ocho copias literales de la misma frase, y
+   ciento noventa y ocho sitios donde corregirla el día que el CIIP
+   cambie la general. Generándola queda una sola fuente -ui.lh_uno- y
+   una ficha nueva del catálogo nace con su frase puesta sin que nadie
+   se acuerde de venir aquí.
+
+   Y va en los seis idiomas, cada uno con SU lh_uno: quien cambie la
+   española no toca las otras cinco, que es como funciona el resto del
+   editor de textos.
+
+   CÓMO SE LLAMA CADA UNA
+   ─────────────────────────────────────────────────────────────────────
+   '_p.acompana.c5' → CIIP_PASOS.acompana[idioma].c5
+
+   Es la forma que el editor de textos ya entiende para los bloques de
+   este archivo, así que no hay tabla nueva ni SQL que correr: lo
+   cambiado se guarda en textos_panel como cualquier otro texto, con su
+   idioma y su «volver al original».
+
+   La ficha que no tenga frase propia -porque no esté en `pasos`- sigue
+   cayendo en ui.lh_uno, como antes. Nunca queda un pie en blanco.
+   ══════════════════════════════════════════════════════════════════════ */
+(function(){
+  var P = window.CIIP_PASOS;
+  if (!P || !P.pasos || !P.ui) return;
+
+  /* La UNIÓN de las fichas de los seis idiomas, y no las de cada uno por
+     su cuenta: si una ficha nueva entró en español y todavía no está
+     traducida, tiene que poder llevar frase propia igualmente. Si no,
+     esa ficha sería la única del catálogo que no se puede separar, y
+     nadie sabría por qué. */
+  var IDIOMAS = Object.keys(P.pasos);
+  var fichas = [];
+  IDIOMAS.forEach(function(l){
+    Object.keys(P.pasos[l] || {}).forEach(function(ref){
+      if (fichas.indexOf(ref) < 0) fichas.push(ref);
+    });
+  });
+
+  var A = P.acompana || (P.acompana = {});
+  IDIOMAS.forEach(function(l){
+    var suyas = A[l] || (A[l] = {});
+    var general = (P.ui[l] && P.ui[l].lh_uno) || (P.ui.en && P.ui.en.lh_uno) || '';
+    if (!general) return;
+    fichas.forEach(function(ref){
+      /* Sin pisar: el día que alguien escriba aquí arriba la frase de una
+         ficha a mano, ésta no se la lleva por delante. */
+      if (suyas[ref] == null) suyas[ref] = general;
+    });
+  });
+})();

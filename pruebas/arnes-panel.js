@@ -7796,6 +7796,63 @@
          fuera.length === 0,
          fuera.length ? ('antes en: ' + fuera.join(', ')) : 'todas detrás',
          'todas detrás');
+
+      /* ── Y CADA UNA ES LA SUYA, NO LA DE TODAS ──
+         «quiero que esta frase no sea para todos los tramites sino que
+          cada tramite lleve una frase diferente» (Franklin Reyes,
+         21-9-2026).
+
+         Hasta hoy las treinta y tres decían el mismo texto Y salían de la
+         misma clave -lh_uno-, así que el editor de textos las cambiaba
+         todas de golpe. Hoy siguen diciendo lo mismo -a propósito: nadie
+         ha escrito todavía las suyas-, y por eso mirar el TEXTO no
+         distinguiría nada. Lo que se mira es de dónde sale: que cada
+         ficha lleve su propia clave. */
+      var mismaClave = [];
+      fichas.forEach(function(c){
+        var x = c.querySelector('.t-acomp');
+        var ref = c.getAttribute('data-tr');
+        if (!x || x.getAttribute('data-ui') !== '_p.acompana.' + ref) mismaClave.push(ref);
+      });
+      ok('acompaña: cada ficha trae su frase de su propia clave',
+         fichas.length > 0 && mismaClave.length === 0,
+         mismaClave.length ? ('comparten clave: ' + mismaClave.join(', ')) : (fichas.length + ' claves'),
+         'una por ficha');
+
+      /* Y que eso sirva de verdad: se le cambia la frase a UNA y se mira
+         que las demás sigan como estaban. Esta es la prueba que hubiera
+         cazado el fallo de antes -la clave está bien puesta en el marcado
+         pero el texto se sigue leyendo de lh_uno-, que desde fuera se ve
+         igual hasta que alguien escribe algo. */
+      (function(){
+        var P = window.CIIP_PASOS;
+        if (!P || !P.acompana || !window.CIIP_REPINTA_ESTADOS || fichas.length < 2) return;
+        var suyas = P.acompana[curLang] || P.acompana.es || {};
+        var uno = fichas[0].getAttribute('data-tr');
+        if (suyas[uno] == null) return;
+        var era = suyas[uno];
+        var puesto = 'PRUEBA · la frase propia de ' + uno;
+        suyas[uno] = puesto;
+        window.CIIP_REPINTA_ESTADOS();
+        var dice = (fichas[0].querySelector('.t-acomp') || {}).textContent;
+        var contagiadas = fichas.slice(1).filter(function(c){
+          var x = c.querySelector('.t-acomp');
+          return x && (x.textContent || '').indexOf(puesto) >= 0;
+        }).map(function(c){ return c.getAttribute('data-tr'); });
+        suyas[uno] = era;
+        window.CIIP_REPINTA_ESTADOS();
+        ok('acompaña: cambiar la de una ficha no cambia las demás',
+           dice === puesto && contagiadas.length === 0,
+           dice !== puesto ? ('la ' + uno + ' no la recogió: ' + String(dice).slice(0, 40))
+                           : (contagiadas.length ? ('se contagiaron: ' + contagiadas.join(', ')) : 'sólo ' + uno),
+           'sólo ' + uno);
+
+        /* Y se deshace: la tanda sigue detrás y no puede quedarse con una
+           ficha diciendo «PRUEBA ·». */
+        var vuelta = (fichas[0].querySelector('.t-acomp') || {}).textContent;
+        ok('acompaña: y la prueba deja la ficha como estaba',
+           vuelta === era, String(vuelta).slice(0, 40), String(era).slice(0, 40));
+      })();
     })();
 
     /* Y SE VE que se puede pulsar. Esto no es cosmética: cuando el globo se
