@@ -4422,7 +4422,8 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
    Cuatro cifras arriba y una tarjeta por trámite, de la más urgente a la
    que más margen tiene. El borde y el anillo son el plazo: óxido si ya
    pasó, ámbar si vence en dos días. */
-.hoy-cifras{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:0 0 16px;}
+/* Cinco desde que «Devueltos» tiene la suya (21-9-2026). */
+.hoy-cifras{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin:0 0 16px;}
 .hoy-cifra{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px 14px;}
 .hoy-cifra b{display:block; font-size:var(--fs-cifra); line-height:1.15; color:var(--ink); font-variant-numeric:tabular-nums;}
 .hoy-cifra span{font-size:var(--fs-nota); color:var(--gray);}
@@ -4551,6 +4552,9 @@ html.visor-abierto{overflow:hidden;}
 
 @media (max-width:1100px){
   .visor-cu{grid-template-columns:220px minmax(0,1fr) 280px;}
+  /* Cinco cifras no caben aquí: a tres, que reparte mejor que a cuatro
+     con una descolgada sola en la segunda fila. */
+  .hoy-cifras{grid-template-columns:repeat(3,minmax(0,1fr));}
 }
 @media (max-width:860px){
   .hoy-cifras{grid-template-columns:repeat(2,minmax(0,1fr));}
@@ -15733,7 +15737,13 @@ applyLang(idiomaParaMi());
          debajo habria apagado en silencio las otras dos cosas que cuentan
          lo mismo: el numero del renglon de la barra lateral y el de la
          pestaña del navegador. */
-      var total = enCola.length + enRevision.length + consultas.length;
+      /* SIN LOS DEVUELTOS. Desde que se traen para que tengan su montón,
+         enRevision ya no es «lo que toca atender»: lleva dentro lo que
+         espera al inversionista. Contarlos aquí es exactamente el fallo
+         que dice el párrafo de abajo -el menú diciendo 3 y la pantalla
+         «No hay ningún trámite esperando»-, solo que por la otra puerta. */
+      var porAtender = enRevision.filter(function(t){ return t.estado !== 'devuelto'; }).length;
+      var total = enCola.length + porAtender + consultas.length;
       /* Cada renglón de la barra cuenta lo que enseña su pantalla: el de
          «Trámites por atender», los trámites, y el de «Consultas y citas»,
          las otras dos colas. Un número que suma lo que la pantalla no
@@ -15741,8 +15751,8 @@ applyLang(idiomaParaMi());
          a la pantalla. */
       var cN = document.getElementById('navTramitesN');
       if (cN && esDelEquipo()){
-        cN.textContent = String(enRevision.length);
-        cN.hidden = (enRevision.length === 0);
+        cN.textContent = String(porAtender);
+        cN.hidden = (porAtender === 0);
       }
       var cC = document.getElementById('navConsultasN');
       var otros = enCola.length + consultas.length;
@@ -15877,6 +15887,14 @@ applyLang(idiomaParaMi());
      'devuelto' no entra —ahí espera el inversionista— y 'borrador' tampoco,
      que ni siquiera se ha enviado. */
   var CO_MIOS = ['enviado', 'en_revision', 'ante_el_ente'];
+  /* Y lo que se TRAE, que no es lo mismo que lo que toca hacer (Franklin
+     Reyes, 21-9-2026: «por qué aquí no sale cuando devuelvo un trámite»).
+     Un devuelto sigue sin esperar al CIIP -la pelota es del inversionista,
+     y por eso no entra en la cola de lo que toca hoy- pero desaparecer del
+     todo en el momento de devolverlo dejaba al gestor sin rastro de que
+     existe: lo devolvía y se esfumaba de su pantalla. Se traen para que
+     tengan su montón, y coCuadra los mantiene fuera de los demás. */
+  var CO_TRAE = CO_MIOS.concat(['devuelto']);
   var enRevision = [];
 
   /* Qué se puede hacer desde cada estado. Enseñar los cuatro botones
@@ -15891,6 +15909,15 @@ applyLang(idiomaParaMi());
   /* Los tres montones. 'sin' y 'mios' son los que hacen falta de verdad
      para trabajar; 'todos' esta para no esconder nada. */
   function coCuadra(t){
+    /* Los devueltos SOLO salen en su montón, y en ninguno de los otros
+       tres -ni siquiera en «Todos»-. No es una excepción caprichosa: esta
+       pantalla se llama «Trámites por atender» y un devuelto no lo espera
+       nadie del CIIP. Metiéndolo en «Todos» se cuela en la lista de lo que
+       toca hoy, que es justo lo que no puede pasar; dejándolo sin montón,
+       se pierde de vista al devolverlo, que es lo que había antes. Con el
+       suyo aparte, se ve cuando se pide y no estorba lo demás. */
+    if (coFiltro === 'devueltos') return t.estado === 'devuelto';
+    if (t.estado === 'devuelto') return false;
     if (coFiltro === 'sin')  return !t.gestor;
     if (coFiltro === 'mios') return !!YO && t.gestor === YO;
     return true;
@@ -15910,7 +15937,10 @@ applyLang(idiomaParaMi());
     caja.hidden = (enRevision.length < 2 && !hayAlguno);
     if (caja.hidden) return;
 
-    [['todos', u.co_f_todos], ['sin', u.co_f_sin], ['mios', u.co_f_mios]]
+    /* «Devueltos» va el último: los tres primeros son para repartir el
+       trabajo de hoy y éste es para no perder de vista lo de ayer. */
+    [['todos', u.co_f_todos], ['sin', u.co_f_sin], ['mios', u.co_f_mios],
+     ['devueltos', u.co_f_devueltos]]
       .forEach(function(x){
         var antes = coFiltro;
         coFiltro = x[0];
@@ -16764,7 +16794,7 @@ applyLang(idiomaParaMi());
         enCola = (r.data || []).map(function(c){ c.nombre = ''; return c; });
         return sb.from('tramites')
           .select('id, inversionista, tipo, estado, datos, creado_en, enviado_en, gestor')
-          .in('estado', CO_MIOS)
+          .in('estado', CO_TRAE)
           .order('creado_en', {ascending:true})
           .then(function(rt){
             if (rt && rt.error) throw rt.error;
@@ -16969,8 +16999,12 @@ applyLang(idiomaParaMi());
   function pintaCifrasHoy(){
     var caja = document.getElementById('paCifras');
     if (!caja) return;
-    var u = T(), tarde = 0, pronto = 0, sin = 0, papeles = 0;
+    var u = T(), tarde = 0, pronto = 0, sin = 0, papeles = 0, devueltos = 0;
     enRevision.forEach(function(t){
+      /* Un devuelto no va tarde ni está sin dueño: está esperando al
+         inversionista. Contarlo en las otras cuatro cifras las volvería
+         mentira el día que se devuelvan tres seguidos. Tiene la suya. */
+      if (t.estado === 'devuelto'){ devueltos++; return; }
       var n = hoyNivel(t), c = hoyCuenta(t);
       if (n === 'tarde') tarde++;
       if (n === 'pronto') pronto++;
@@ -16979,7 +17013,8 @@ applyLang(idiomaParaMi());
     });
     caja.textContent = '';
     [[tarde, u.co_h_n_tarde, 'tarde'], [pronto, u.co_h_n_pronto, 'pronto'],
-     [sin, u.co_h_n_sin, null], [papeles, u.co_h_n_papeles, null]].forEach(function(x){
+     [sin, u.co_h_n_sin, null], [papeles, u.co_h_n_papeles, null],
+     [devueltos, u.co_f_devueltos, null]].forEach(function(x){
       var d = el('div', 'hoy-cifra' + (x[2] && x[0] ? ' ' + x[2] : ''));
       d.appendChild(el('b', null, String(x[0])));
       d.appendChild(el('span', null, x[1] || ''));
@@ -16991,6 +17026,10 @@ applyLang(idiomaParaMi());
      de empresa» no dice qué hacer con ella; «Valida 2 recaudos» sí. */
   function hoyVerbo(t){
     var u = T(), c = hoyCuenta(t), ente = hoyEnte(t);
+    /* Lo primero, antes que nada: un devuelto no espera al CIIP. Sin esta
+       línea caía en «Valida N recaudos» -tiene papeles cargados- y la
+       tarjeta le pedía al gestor que hiciera algo que ya hizo. */
+    if (t.estado === 'devuelto') return u.co_h_v_devuelto || '';
     if (!t.gestor) return u.co_h_v_tomar || '';
     if (t.estado === 'ante_el_ente') return String(u.co_h_v_ente || '').replace('{ente}', ente);
     if (!YO || t.gestor !== YO) return String(u.co_lolleva || '').replace('{quien}', nombreDeGestor(t.gestor));

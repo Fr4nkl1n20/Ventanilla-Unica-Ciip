@@ -581,6 +581,12 @@ window.CIIP_PASOS = {
       co_f_todos:  "Todos",
       co_f_sin:    "Sin asignar",
       co_f_mios:   "Míos",
+      /* El cuarto montón. Un devuelto NO espera al CIIP -por eso no entra
+         en la cola de lo que toca hoy- pero desaparecer del todo al
+         devolverlo dejaba al gestor sin saber que existe. Se ve cuando se
+         pide, y no estorba lo demás. */
+      co_f_devueltos: "Devueltos",
+      co_h_v_devuelto:"Esperando al inversionista",
       mt_desde:   "En este estado desde {cuando}",
       /* Identidad. NO se valida contra ningun organismo: se deja
          constancia de que alguien del CIIP miro el documento. Los textos
@@ -1634,6 +1640,8 @@ window.CIIP_PASOS = {
       co_f_todos:  "All",
       co_f_sin:    "Unassigned",
       co_f_mios:   "Mine",
+      co_f_devueltos: "Sent back",
+      co_h_v_devuelto:"Waiting for the investor",
       mt_desde:   "In this state since {cuando}",
       /* Identity. NOT validated against any authority. */
       id_t:        "Identity",
@@ -2614,6 +2622,8 @@ window.CIIP_PASOS = {
       co_f_todos:  "Todos",
       co_f_sin:    "Sem atribuição",
       co_f_mios:   "Meus",
+      co_f_devueltos: "Devolvidos",
+      co_h_v_devuelto:"À espera do investidor",
       mt_desde:   "Neste estado desde {cuando}",
       /* Identidade. NAO se valida contra nenhum organismo. */
       id_t:        "Identidade",
@@ -3577,6 +3587,8 @@ window.CIIP_PASOS = {
       co_f_todos:  "Tutte",
       co_f_sin:    "Non assegnate",
       co_f_mios:   "Mie",
+      co_f_devueltos: "Restituite",
+      co_h_v_devuelto:"In attesa dell'investitore",
       mt_desde:   "In questo stato da {cuando}",
       /* Identita. NON si convalida presso nessun ente. */
       id_t:        "Identità",
@@ -4540,6 +4552,8 @@ window.CIIP_PASOS = {
       co_f_todos:  "全部",
       co_f_sin:    "未分配",
       co_f_mios:   "我的",
+      co_f_devueltos: "已退回",
+      co_h_v_devuelto:"等待投资者",
       mt_desde:   "处于此状态：{cuando}",
       /* 身份。未向任何机构核验。 */
       id_t:        "身份",
@@ -5503,6 +5517,8 @@ window.CIIP_PASOS = {
       co_f_todos:  "Все",
       co_f_sin:    "Без исполнителя",
       co_f_mios:   "Мои",
+      co_f_devueltos: "Возвращённые",
+      co_h_v_devuelto:"Ожидает инвестора",
       mt_desde:   "В этом состоянии с {cuando}",
       /* Личность. НЕ проверяется ни в каком ведомстве. */
       id_t:        "Личность",
