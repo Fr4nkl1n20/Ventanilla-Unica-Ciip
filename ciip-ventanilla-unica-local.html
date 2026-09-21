@@ -1485,6 +1485,17 @@ body[data-vista="documentos"] .fase-bar{display:none;}
 .dc-pie .dc-usos{margin-right:auto;}
 .dc-pie .btn{font-size:var(--fs-boton); padding:8px 13px;font-weight:700;}
 .dc-usos{font-size:11.5px; color:var(--gray-soft);}
+/* Dónde se usa un papel, con el nombre de cada trámite y pulsable. En
+   columna y no separados por comas: son destinos, y uno debajo de otro se
+   apunta con el dedo sin acertarle al de al lado. Sin fondo ni borde -la
+   fila ya tiene siete columnas y siete cajas serían una reja-; lo que
+   dice que se puede pulsar es el subrayado al pasar por encima, como
+   cualquier enlace. */
+.dc-usos-l{display:flex; flex-direction:column; align-items:flex-start; gap:3px;}
+.dc-uso{font:inherit; font-size:11.5px; font-weight:600; color:var(--navy);
+  background:none; border:0; padding:0; cursor:pointer; text-align:left;}
+.dc-uso:hover{text-decoration:underline;}
+.dc-uso:focus-visible{outline:2px solid var(--navy); outline-offset:2px; border-radius:3px;}
 /* Un documento vencido no es un aviso mas: es el que va a devolverte el
    tramite. Se marca como se marca una devolucion. */
 .ci-ficha.vencido{border-color:var(--rust);}
@@ -23870,7 +23881,7 @@ applyLang(idiomaParaMi());
     /* Sin fecha de vencimiento devuelve hueco, no cero: un acta que no
        caduca no vence en 1970. ordenDeTabla los manda al final. */
     dc_c_vence:  function(d){ return d.vence_el ? Date.parse(d.vence_el) : ''; },
-    dc_c_usos:   function(d){ return usosPorDoc[d.id] || 0; }
+    dc_c_usos:   function(d){ return (usosPorDoc[d.id] || []).length; }
   };
   var dcOrden = ordenDeTabla(function(){ pintaDocs(); });
 
@@ -24126,11 +24137,53 @@ applyLang(idiomaParaMi());
          promete nada. Un acta constitutiva no caduca. */
       celda(d.vence_el ? fecha(d.vence_el) : '\u2014', 't-fecha');
 
-      var n = usosPorDoc[d.id] || 0;
-      celda(n === 0 ? (u.dc_sinusar || '')
-            : n === 1 ? (u.dc_usado1 || '')
-            : String(u.dc_usado || '').replace('{n}', n),
-            n === 0 ? 't-suave' : null);
+      /* DÓNDE SE USA, CON SU NOMBRE Y PULSABLE. Decir «usado en 2
+         trámites» contesta cuántos y deja sin contestar cuáles, que es lo
+         que se pregunta quien mira esta pantalla: si este pasaporte lo
+         puedo cambiar, dónde está metido, qué se rompe.
+
+         El número no se pierde: se va al title, que es donde un dato de
+         resumen estorba menos y sigue estando para quien lo busque.
+
+         Un enganche sin tipo -el trámite ya no está, o la consulta lo
+         trajo a medias- no pinta un botón mudo: cuenta para el resumen y
+         no se ofrece, que un enlace que no lleva a ningún sitio se prueba
+         una vez y no se vuelve a confiar en la columna. */
+      var usos = usosPorDoc[d.id] || [];
+      if (!usos.length){
+        celda(u.dc_sinusar || '', 't-suave');
+      } else {
+        var lista = el('div', 'dc-usos-l');
+        usos.forEach(function(x){
+          var ref = x.tipo && tipoRefDe(x.tipo);
+          if (!ref) return;
+          /* Y sin tarjeta en el documento tampoco: nombreDeTarjeta cae al
+             propio ref cuando no la encuentra, así que una ficha retirada
+             -la c16 y las otras dos, el 21-9-2026- saldría aquí como un
+             botón que dice «c16» y lleva a una pantalla que ya no existe.
+             Sigue contando en el resumen: el papel se usó, aunque la
+             ficha se haya ido. */
+          var nom = nombreDeTarjeta(ref);
+          if (!nom || nom === ref) return;
+          var ir = el('button', 'dc-uso', nom);
+          ir.type = 'button';
+          ir.addEventListener('click', function(e){
+            e.stopPropagation();
+            location.hash = 'tramite-' + ref;
+          });
+          lista.appendChild(ir);
+        });
+        /* Y SI NO SE PUEDE NOMBRAR NINGUNO, EL RECUENTO. Sin catálogo
+           cargado -pasa, y las pruebas lo recorren- no hay tarjeta de la
+           que sacar el nombre. Decir entonces «todavía no se ha usado»
+           sería mentir sobre un papel que sí está enganchado; el número
+           es menos, pero es verdad. Es lo que esta columna decía antes y
+           sigue sirviendo de suelo. */
+        var recuento = usos.length === 1 ? (u.dc_usado1 || '')
+                     : String(u.dc_usado || '').replace('{n}', usos.length);
+        var td = celda(lista.childNodes.length ? lista : recuento);
+        td.title = recuento;
+      }
 
       /* Un rechazado trae el motivo del gestor. Va en la fila de al lado y
          a todo lo ancho: dentro de una celda de siete, una frase se lee en
@@ -24218,7 +24271,7 @@ applyLang(idiomaParaMi());
          va con 'on delete cascade', asi que borrarlo lo quitaria del
          expediente que el CIIP ya recibio, en silencio. */
       if (laBovedaEsMia()){
-        var usado = (usosPorDoc[d.id] || 0) > 0;
+        var usado = (usosPorDoc[d.id] || []).length > 0;
         var validado = (d.estado === 'validado');
         var borrar = el('button', 't-btn peligro', u.dc_borrar || '');
         borrar.type = 'button';
@@ -24577,14 +24630,42 @@ applyLang(idiomaParaMi());
           var mb = (comoEsta(b) || {}).mal ? 0 : 1;
           return (ma - mb) || (Date.parse(b.creado_en) - Date.parse(a.creado_en));
         });
-        /* En cuántos trámites se está usando cada uno. Es lo que convierte
-           la lista en una bóveda y no en una carpeta de descargas. */
-        return sb.from('tramite_documentos').select('documento, tramite');
+        /* En qué trámites se está usando cada uno. Es lo que convierte la
+           lista en una bóveda y no en una carpeta de descargas.
+
+           Con el TIPO del trámite y no solo su id (Franklin Reyes,
+           21-9-2026). Antes se contaba y se decía «usado en 2 trámites»,
+           que responde cuántos y deja sin responder cuáles: para saberlo
+           había que abrirlos uno a uno. El equipo ya los veía por su
+           nombre en su pantalla de revisar; el dueño del papel, no.
+
+           El tipo se pide en su propia consulta y no incrustado
+           -tramite_documentos(tramites(tipo))-, que sería un viaje menos.
+           Es a propósito, y la razón es la de siempre con este panel: las
+           dos van a la vez, así que no cuesta espera, y la pantalla del
+           equipo ya juntaba estas dos tablas exactamente así. Hacerlo
+           distinto aquí sería una segunda manera de resolver lo mismo. */
+        /* Y SOLO SI HACE FALTA. «Mis trámites» ya trae id y tipo de todos
+           los tuyos, y mientras esa lista esté en memoria pedirla otra vez
+           es un viaje por un dato que ya está en la página. La prueba de
+           velocidad lo cuenta -da un techo de consultas por recaudo- y
+           tenía razón en quejarse. */
+        return Promise.all([
+          Promise.resolve(sb.from('tramite_documentos').select('documento, tramite')),
+          (mios && mios.length)
+            ? Promise.resolve({data: mios})
+            : Promise.resolve(sb.from('tramites').select('id, tipo'))
+        ]);
       })
-      .then(function(r){
+      .then(function(rs){
+        var r = rs && rs[0];
+        var tipoDe = {};
+        (((rs && rs[1] && rs[1].data) || [])).forEach(function(t){ tipoDe[t.id] = t.tipo; });
         usosPorDoc = {};
         ((r && r.data) || []).forEach(function(x){
-          usosPorDoc[x.documento] = (usosPorDoc[x.documento] || 0) + 1;
+          if (!x || !x.documento) return;
+          (usosPorDoc[x.documento] || (usosPorDoc[x.documento] = []))
+            .push({id: x.tramite, tipo: tipoDe[x.tramite]});
         });
         pintaDocs();
       })

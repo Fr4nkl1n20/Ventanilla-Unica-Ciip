@@ -6171,10 +6171,39 @@
     ok('bóveda: y con el nombre del archivo que subiste',
        /acta-constitutiva\.pdf/.test(textos), 'busca "acta-constitutiva.pdf"', 'aparece');
 
-    /* En cuántos trámites se usa: es lo que la convierte en bóveda y no en
-       una carpeta de descargas. */
-    ok('bóveda: dice en cuántos trámites se usa cada uno',
-       /Se usa en 2 trámites/.test(textos), 'busca "Se usa en 2 trámites"', 'aparece');
+    /* En QUÉ trámites se usa: es lo que la convierte en bóveda y no en una
+       carpeta de descargas. Desde el 21 de septiembre de 2026 salen sus
+       NOMBRES y no su número: «se usa en 2 trámites» contesta cuántos y
+       deja sin contestar cuáles, que es lo que se pregunta quien mira
+       esta pantalla. El número no se ha perdido, se fue al title, y por
+       eso se sigue comprobando. */
+    var usos = document.querySelectorAll('#dcLista .dc-uso');
+    if (usos.length){
+      ok('bóveda: dice en qué trámites se usa cada uno, por su nombre',
+         /\S/.test(usos[0].textContent || ''),
+         usos.length + ' enlaces, el primero "' + usos[0].textContent.trim() + '"',
+         'al menos uno con nombre');
+      /* Y llevan a alguna parte: un nombre que no es pulsable no ahorra el
+         viaje de ir a buscarlo. */
+      ok('bóveda: y el nombre del trámite es pulsable',
+         usos[0].tagName === 'BUTTON', usos[0].tagName, 'BUTTON');
+      var celdaUso = usos[0].closest('td');
+      ok('bóveda: y el recuento sigue estando, en el title',
+         /* Y no por un dígito: con uno solo el texto dice «se usa en UN
+            trámite», con la palabra. Lo que se comprueba es que el
+            recuento sigue ahí, no cómo se escribe el número. */
+         !!(celdaUso && /trámite/i.test(celdaUso.title || '')),
+         (celdaUso && celdaUso.title) || 'sin title', 'dice cuántos');
+    } else {
+      /* Sin catálogo cargado no hay tarjeta de la que sacar el nombre, y
+         estos expedientes -'sincatalogo' y los que entran sin él- pasan
+         por aquí. Ahí la columna cae al recuento, que es lo que decía
+         antes: menos, pero cierto. Decir «todavía no se ha usado» sería
+         mentir sobre un papel que sí está enganchado. */
+      ok('bóveda: y sin catálogo, al menos dice en cuántos',
+         /Se usa en \d+ trámites|Se usa en 1 trámite/.test(textos),
+         'busca "Se usa en N trámites"', 'el recuento');
+    }
     ok('bóveda: y cuando no se usa en ninguno, lo dice',
        /Todavía no se ha usado/.test(textos), 'busca "Todavía no se ha usado"', 'aparece');
 
