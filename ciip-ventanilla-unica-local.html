@@ -3621,6 +3621,12 @@ body[data-vista="tramite"] #secTramites{display:none;}
    lo único que dice QUÉ arreglar, y antes se borraba justo al pulsar
    «Corregir». Se pega para que no se pierda al bajar por las tres hojas. */
 .sol-devuelta.corrigiendo{position:sticky; top:8px; z-index:5; box-shadow:var(--shadow);}
+/* Cuántos papeles hay que arreglar. En óxido y no en ámbar, por lo mismo
+   que la fila de abajo: el ámbar es «esto te reclama algo» y esto es «son
+   estos y no más». Separado con un filo, porque no es parte de lo que
+   escribió el gestor: es la cuenta que hace el panel. */
+.sol-devuelta .sv-cuantos{font-size:11.5px; font-weight:700; color:var(--rust);
+  margin-top:7px; padding-top:7px; border-top:1px solid rgba(180,80,46,.22);}
 /* El mismo aviso, dentro del bloque de un tramo. Más apretado -está
    metido en una tarjeta, no en una pantalla- y con su salida a la ficha
    para lo que no se arregla desde aquí. */
@@ -11918,7 +11924,29 @@ applyLang(idiomaParaMi());
        cuando ya se ha movido por su cuenta es peor que no llevarle. */
     var corrigiendo = !!borrador && borrador.estado === 'devuelto';
     var llevado = false;
+    /* CUÁNTOS SON, ARRIBA DEL TODO. Saltar al primero deja sin contestar la
+       pregunta que se hace cualquiera al abrir esto: «¿y esto cuánto me va a
+       costar?». Con uno señalado y tres papeles en la hoja, no se sabe si
+       queda algo más abajo. La cuenta va pegada a la nota del gestor, que
+       es lo primero que se lee, y se corrige sola según van contestando las
+       consultas de la bóveda: una fila, dos, las que sean. */
+    var noValen = 0;
+    function cuantosNoValen(){
+      var av = caja.querySelector('.sol-devuelta.corrigiendo');
+      if (!av || !noValen) return;
+      var linea = av.querySelector('.sv-cuantos');
+      if (!linea){
+        linea = el('div', 'sv-cuantos');
+        av.appendChild(linea);
+      }
+      var u2 = T();
+      linea.textContent = noValen === 1 ? (u2.sol_arreglar1 || '')
+        : String(u2.sol_arreglarn || '').replace('{n}', noValen);
+    }
+
     function alQueNoVale(fila){
+      noValen++;
+      cuantosNoValen();
       if (!corrigiendo || llevado || paso !== 1) return;
       var hoja = fila && fila.closest && fila.closest('.pa-hoja');
       var n = hoja && +hoja.getAttribute('data-paso');
@@ -18004,6 +18032,26 @@ applyLang(idiomaParaMi());
       nota.value = hoyNotas[t.id] || '';
       nota.addEventListener('input', function(){ hoyNotas[t.id] = nota.value; });
       fin.appendChild(nota);
+
+      /* QUÉ VA A RECIBIR EL OTRO, DICHO AQUÍ (Franklin Reyes, 21-9-2026:
+         «quiero que ese proceso esté bien estructurado, que al
+         inversionista no le cueste nada arreglarlo»).
+
+         Se podía devolver sin marcar un solo papel, y nada lo decía. Al
+         otro lado eso es una frase suelta y ninguna señal: ni fila en
+         óxido, ni el porqué del gestor, ni el salto al papel: el formulario
+         abre por la primera hoja y a adivinar. Todo el circuito de
+         «arregla ESTE papel» cuelga de una cruz que se puede olvidar.
+
+         No se bloquea, y es a propósito: a veces lo que falla es un dato
+         del formulario y no un papel, y ahí devolver con la nota sola es lo
+         correcto. Lo que no puede pasar es hacerlo sin saberlo. */
+      var loQueRecibe = el('div', 'hoy-pista' + (c && c.rechazado ? ' bien' : ' mal'));
+      loQueRecibe.textContent = !c || !c.rechazado ? (u.co_h_dev_sinmarcar || '')
+        : c.rechazado === 1 ? (u.co_h_dev_con1 || '')
+        : String(u.co_h_dev_conn || '').replace('{n}', c.rechazado);
+      fin.appendChild(loQueRecibe);
+
       var dev = el('button', 'btn ghost', u.co_devolver || '');
       dev.type = 'button';
       dev.addEventListener('click', function(){ hoyDevuelve(t, nota, dev, aviso); });
