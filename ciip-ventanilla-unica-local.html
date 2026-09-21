@@ -10086,10 +10086,16 @@ applyLang(idiomaParaMi());
       {n:'representante',      clave:'f_representante'},
       {n:'capital_social',     clave:'f_capital'}
     ],
+    /* Los cuatro, opcionales desde el 21 de septiembre de 2026. La hoja de
+       «Tus datos» de este trámite no se enseña -sale entera de los tramos
+       de antes-, y un campo obligatorio en una hoja que no se ve es un
+       envío que se frena sin decir dónde: el aviso apunta a un sitio al que
+       no se puede ir. Siguen viajando en el envío, con lo que traigan
+       heredado; lo que se quita es el candado. */
     publicacion_acta: [
-      {n:'razon_social',       clave:'f_razon',        ancho:true},
-      {n:'numero_registro',    clave:'f_registro'},
-      {n:'fecha_protocolizacion', clave:'f_fechaprot', tipo:'date'},
+      {n:'razon_social',       clave:'f_razon',        ancho:true, opcional:true},
+      {n:'numero_registro',    clave:'f_registro',     opcional:true},
+      {n:'fecha_protocolizacion', clave:'f_fechaprot', tipo:'date', opcional:true},
       /* Opcional desde el 21 de septiembre de 2026 (Franklin Reyes). Es el
          único de los cuatro que no se hereda de los tramos de antes -una
          preferencia no la ha escrito nadie todavía- y siendo obligatorio
@@ -10766,7 +10772,30 @@ applyLang(idiomaParaMi());
        el cuadro de «Tus datos», y el ofrecimiento del final le copia el
        borde para igualarse. Lo unico que cambia es que ahora va solo en su
        hoja, y 'sola' es la variante de una columna que ya existia. */
-    var hDatos = hojaNueva(u.tus_datos);
+    /* LA PUBLICACIÓN NO PREGUNTA SUS DATOS (Franklin Reyes, 21-9-2026:
+       «solo en esta quiero eliminar el apartado de Tus datos, que solo
+       quede recaudos»). Sus cuatro campos salen de los tramos de antes o
+       del acta que apuntó el gestor, así que la hoja no preguntaba nada:
+       enseñaba lo que el CIIP ya sabe y obligaba a pasar por delante.
+
+       La hoja SE SIGUE CONSTRUYENDO, escondida y fuera de los pasos, y eso
+       no es pereza. El envío arma `datos` leyendo los campos que hay en la
+       página y lo GUARDA ENCIMA de lo que la solicitud tuviera: sin los
+       campos puestos, reenviar una publicación borraría la razón social y
+       el registro que venía heredando. Se esconde, no se quita.
+
+       Es una excepción de un trámite y está escrita como tal. Si mañana
+       hay un segundo, esto pasa a ser una marca en la tabla de campos y no
+       un `if` con un código dentro. */
+    var sinDatos = (tipo.codigo === 'publicacion_acta');
+    var hDatos;
+    if (sinDatos){
+      hDatos = el('div', 'pa-hoja');
+      hDatos.hidden = true;
+      pa.appendChild(hDatos);
+    } else {
+      hDatos = hojaNueva(u.tus_datos);
+    }
     var dos = el('div', 'sol-dos sola');
     var col = el('div', 'sol-col');
     dos.appendChild(col);
