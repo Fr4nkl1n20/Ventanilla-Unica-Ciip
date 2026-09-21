@@ -3621,6 +3621,12 @@ body[data-vista="tramite"] #secTramites{display:none;}
    lo único que dice QUÉ arreglar, y antes se borraba justo al pulsar
    «Corregir». Se pega para que no se pierda al bajar por las tres hojas. */
 .sol-devuelta.corrigiendo{position:sticky; top:8px; z-index:5; box-shadow:var(--shadow);}
+/* El mismo aviso, dentro del bloque de un tramo. Más apretado -está
+   metido en una tarjeta, no en una pantalla- y con su salida a la ficha
+   para lo que no se arregla desde aquí. */
+.tr-devuelta{margin:10px 0 0; padding:9px 12px;}
+.tr-devuelta .sv-d{white-space:pre-wrap; overflow-wrap:anywhere;}
+.tr-dev-ir{margin-top:9px;}
 
 /* ── EL RECAUDO QUE NO VALIÓ ──
    El contrario de «✓ ya estaba en tu expediente». Va en óxido y no en
@@ -16252,7 +16258,10 @@ applyLang(idiomaParaMi());
           if (elArchivo){
             b.textContent = u.co_subiendo || '';
             entrega(t, elArchivo)
-              .then(function(){ mueveTramite(t, p.a, (nota.value || '').trim(), b, aviso, u[p.k]); })
+              .then(function(){
+                return mueveTramite(t, p.a, (nota.value || '').trim(), b, aviso, u[p.k])
+                  .then(laNotaFalto(t, p.a));
+              })
               .catch(function(e){
                 console.warn('[CIIP] entregar:', e && (e.message || e));
                 b.disabled = false;
@@ -16261,7 +16270,8 @@ applyLang(idiomaParaMi());
               });
             return;
           }
-          mueveTramite(t, p.a, (nota.value || '').trim(), b, aviso, u[p.k]);
+          mueveTramite(t, p.a, (nota.value || '').trim(), b, aviso, u[p.k])
+            .then(laNotaFalto(t, p.a));
         });
         botones.appendChild(b);
       });
@@ -16713,6 +16723,22 @@ applyLang(idiomaParaMi());
     return caja;
   }
 
+  /* La tabla de la cola no espera a mueveTramite para nada -pinta sola-, y
+     por eso el aviso de la nota perdida va por el toast y no por el hueco
+     de la fila: cargaCola repinta antes de que esto corra, y escribir en el
+     hueco sería escribir en un nodo que ya no está en la página.
+
+     Solo para 'devuelto': el mismo recuadro manda la nota con «Empezar la
+     revisión», y ahí no hay ninguna promesa que romperle a nadie. */
+  function laNotaFalto(t, aEstado){
+    return function(bien){
+      if (bien !== 'sin-nota' || aEstado !== 'devuelto') return;
+      var u = T();
+      hoyAvisa(String(u.co_h_devuelto_sinnota || '')
+        .replace('{quien}', t.nombre || u.co_sinnombre || ''));
+    };
+  }
+
   function mueveTramite(tr, aEstado, nota, boton, aviso, textoBoton){
     return sb.from('tramites').update({estado: aEstado}).eq('id', tr.id).select().single()
       .then(function(r){
@@ -16726,12 +16752,25 @@ applyLang(idiomaParaMi());
           .order('creado_en', {ascending:false}).limit(1)
           .then(function(re){
             var ev = (re.data || [])[0];
-            if (!ev) return null;
-            return sb.from('tramite_eventos').update({nota: nota}).eq('id', ev.id);
+            if (!ev) return 'sin-nota';
+            /* Con .select(), igual que en hoyMarca: si esa política no está
+               puesta, el UPDATE no da error, cambia CERO filas. Sin pedir la
+               fila de vuelta eso se leía como hecho, y el trámite le llegaba
+               al inversionista devuelto y mudo, sin nada que corregir
+               (Franklin Reyes, 21-9-2026). El trámite sí se movió, así que
+               esto no es un fallo: es un aviso, y quien devuelve tiene que
+               verlo. */
+            return sb.from('tramite_eventos').update({nota: nota}).eq('id', ev.id).select()
+              .then(function(rn){
+                if (rn && rn.error) throw rn.error;
+                return (rn && Array.isArray(rn.data) && rn.data.length) ? null : 'sin-nota';
+              });
           });
       })
-      .then(function(){ return cargaCola().then(pintaCola); })
-      .then(function(){ return true; })
+      .then(function(falta){
+        return cargaCola().then(pintaCola).then(function(){ return falta; });
+      })
+      .then(function(falta){ return falta || true; })
       .catch(function(e){
         console.warn('[CIIP] mover trámite:', e && (e.message || e));
         if (boton){ boton.disabled = false; boton.textContent = textoBoton || ''; }
@@ -17267,6 +17306,12 @@ applyLang(idiomaParaMi());
     } else if (t.estado === 'ante_el_ente'){
       b = el('button', 'btn ghost', u.co_h_respuesta || '');
       b.addEventListener('click', function(e){ e.stopPropagation(); hoyAbre(t); });
+    } else if (t.estado === 'devuelto'){
+      /* «Revisar» en un devuelto invita a lo que no toca: ya se revisó, y
+         lo que queda es esperar. Se abre igual, para releer lo que se
+         mandó, pero el botón no promete una revisión. */
+      b = el('button', 'btn ghost', u.co_ver || '');
+      b.addEventListener('click', function(e){ e.stopPropagation(); hoyAbre(t); });
     } else {
       b = el('button', 'btn navy', u.co_h_revisar || '');
       b.addEventListener('click', function(e){ e.stopPropagation(); hoyAbre(t); });
@@ -17357,7 +17402,11 @@ applyLang(idiomaParaMi());
       delete hoyNotas[t.id];
       cierraVisor();
       pintaHoy();
-      hoyAvisa(String(u.co_h_devuelto || '').replace('{quien}', quien));
+      /* El trámite se movió igual; lo que puede no haber llegado es la
+         nota. Decir «Devuelto con tu nota» cuando la nota no está es la
+         mentira que hizo falta un rato para descubrir. */
+      hoyAvisa(String((bien === 'sin-nota' ? u.co_h_devuelto_sinnota : u.co_h_devuelto) || '')
+        .replace('{quien}', quien));
     });
   }
 
@@ -17831,7 +17880,22 @@ applyLang(idiomaParaMi());
       res.type = 'button';
       res.addEventListener('click', function(){ hoyResuelve(t, archivo, res, aviso); });
       botones.appendChild(res);
-    } else if (mio){
+    } else if (mio && t.estado === 'devuelto'){
+      /* Un devuelto ya no espera al CIIP: la pelota es del inversionista.
+         Esta rama existe porque no estaba: desde que los devueltos entran
+         en la cola (c791b4f), caían en el `else if (mio)` de abajo y la
+         ventana les ofrecía «Devuélvelo» y «Preséntalo ante el ente». El
+         segundo pedía a la base un salto que la escalera no tiene -de
+         'devuelto' solo se sale a 'enviado', y eso lo hace quien corrige-,
+         así que el gestor veía «No se pudo. Inténtalo otra vez.» sin nada
+         que pudiera intentar (Franklin Reyes, 21-9-2026).
+
+         Los estados con acciones son los mismos que ofrece CO_PASOS en la
+         tabla. Si mañana aparece otro, va en los dos sitios. */
+      pista.textContent = String(u.co_h_p_devuelto || '')
+        .replace('{quien}', t.nombre || u.co_sinnombre || '');
+      fin.appendChild(pista);
+    } else if (mio && (t.estado === 'enviado' || t.estado === 'en_revision')){
       if (c && c.cargado){
         pista.textContent = String(c.cargado === 1 ? u.co_h_p_falta1 : u.co_h_p_faltan).replace('{n}', c.cargado);
       } else if (c && c.rechazado){
@@ -22448,12 +22512,94 @@ applyLang(idiomaParaMi());
       }).catch(function(){ return {}; }));
   }
 
+  /* ── LA DEVOLUCIÓN, DONDE ESTÁN LOS PAPELES ──
+     Franklin Reyes, 21 de septiembre de 2026, con las dos capturas
+     delante: «me manda a la ficha del tramo, pero esta información debería
+     salir en la etapa».
+
+     Y es verdad. El aviso de «te la devolvimos» vivía SOLO en la ficha del
+     tramo -otra pantalla, arriba del todo-, mientras que los papeles que
+     hay que arreglar están aquí, en el bloque de la constitución, cada uno
+     con su botón para cambiarlo. O sea: el porqué en un sitio y el arreglo
+     en otro, con un viaje de ida y vuelta en medio para leer qué se pedía.
+
+     Ahora el aviso sale TAMBIÉN aquí, pegado a la cabecera del tramo y por
+     encima de sus pasos, que es donde se está mirando cuando se descubre
+     que algo falta. Con el papel debajo y su «Cambiar» al lado, corregir
+     deja de ser un recorrido.
+
+     No sustituye al de la ficha: quien llegue por el aviso de la campana
+     entra por allí, y allí tiene que seguir estando. Son el mismo hecho
+     contado en los dos sitios donde se puede descubrir.
+
+     La nota se pide una vez por solicitud y se guarda: este bloque se
+     repinta en cada vuelta a la constitución, y sin la caché serían dos
+     consultas por vuelta para una frase que no cambia. */
+  var NOTA_DEV = {};
+  function notaDevueltaDe(id){
+    if (NOTA_DEV[id]) return NOTA_DEV[id];
+    return (NOTA_DEV[id] = Promise.resolve(
+      sb.from('tramite_eventos').select('nota, creado_en')
+        .eq('tramite', id).eq('a_estado', 'devuelto')
+        .order('creado_en', {ascending: false}).limit(1))
+      .then(function(r){
+        var f = ((r && r.data) || [])[0];
+        return (f && f.nota) || '';
+      }).catch(function(){ return ''; }));
+  }
+  /* Y se olvidan con los papeles: si el equipo vuelve a devolverla, la nota
+     de antes ya no es la que hay que corregir. Se engancha al olvido que ya
+     existe para no inventar un segundo sitio del que acordarse. */
+  var olvidaPapelesAntes = window.CIIP_OLVIDA_PAPELES;
+  window.CIIP_OLVIDA_PAPELES = function(){
+    NOTA_DEV = {};
+    if (olvidaPapelesAntes) olvidaPapelesAntes();
+  };
+
+  function ponDevueltaEnTramo(b, ref, tr){
+    var u = T();
+    var av = el('div', 'sol-devuelta tr-devuelta');
+    av.appendChild(el('div', 'sv-t', u.devuelta || ''));
+    var laNota = el('div', 'sv-d');
+    av.appendChild(laNota);
+
+    /* Y la salida a la ficha, para lo que no se arregla desde aquí: si lo
+       que falla es un dato del formulario y no un papel, el sitio de
+       corregirlo es el suyo. */
+    var ir = el('button', 'btn ghost tr-dev-ir', u.corregir || '');
+    ir.type = 'button';
+    ir.addEventListener('click', function(e){
+      e.stopPropagation();
+      location.hash = 'tramite-' + ref;
+    });
+    av.appendChild(ir);
+
+    /* Debajo de la cabecera del tramo y encima de sus pasos: primero qué
+       pasa, después qué hacer. */
+    var cab = b.querySelector('.tr-bloque-h');
+    if (cab && cab.nextSibling) b.insertBefore(av, cab.nextSibling);
+    else b.appendChild(av);
+
+    notaDevueltaDe(tr.id).then(function(txt){
+      /* Puede haber cambiado de tramo mientras la consulta iba de camino. */
+      if (!av.parentNode) return;
+      if (txt) laNota.textContent = txt;
+      else av.removeChild(laNota);
+    });
+  }
+
   function pintaTramosDeVerdad(){
     var caja = document.getElementById('trSiguen');
     if (!caja || !window.sbCIIP) return;
     caja.querySelectorAll('.tr-bloque[data-tramo]').forEach(function(b){
       var ref = b.getAttribute('data-tramo');
       var tr = tramiteDeLaFicha(ref);
+      /* El aviso de la devolución se quita SIEMPRE antes de nada y se
+         vuelve a poner solo si toca. Este bloque se repinta cada vez que
+         se abre la constitución, y sin esto un tramo ya corregido seguiría
+         enseñando la nota vieja hasta recargar la página. */
+      var viejo = b.querySelector('.tr-devuelta');
+      if (viejo) viejo.parentNode.removeChild(viejo);
       /* Sin solicitud el dibujo se queda como estaba, PERO el recuadro del
          comprobante sale igual: subirlo es lo que pone el tramo en marcha
          (Franklin Reyes, 16-9-2026). Antes solo salia con una solicitud ya
@@ -22466,7 +22612,7 @@ applyLang(idiomaParaMi());
       /* Una devuelta vuelve al principio, como en "Tu solicitud": lo que
          hay que rehacer no puede seguir contando como hecho. Un borrador
          todavia no ha entrado en el circuito. */
-      if (tr.estado === 'devuelto') crudo = 0;
+      if (tr.estado === 'devuelto'){ crudo = 0; ponDevueltaEnTramo(b, ref, tr); }
       if (crudo < 0) return;
 
       var pasos = b.querySelectorAll('.tr-paso');
@@ -22687,12 +22833,33 @@ applyLang(idiomaParaMi());
 
        Lo ya subido se ensena igual: si el comprobante esta ahi -de antes,
        o pagado por otra via- esconderlo seria perder lo guardado. */
+    /* UNA FASE APROBADA NO PIDE NADA MAS (Franklin Reyes, 21-9-2026). Con
+       el tramo resuelto, el bloque deja de ser un formulario y pasa a ser
+       el acta de lo que se hizo: los papeles se ensenan con su nombre y sin
+       un solo boton. Cambiar el comprobante de unos aranceles ya aceptados
+       no lleva a ninguna parte -el registro ya cobro y ya protocolizo-, y
+       el recuadro invitaba a intentarlo.
+
+       Lo que no esta no aparece: si el tramo se resolvio sin comprobante
+       -se pago por otra via-, la fila se queda escondida en vez de ensenar
+       un hueco que ya no se puede llenar. */
+    var cerrado = !!tr && tr.estado === 'resuelto';
     var fila = el('div', 'tr-papel');
-    if (quiere.planilla) fila.hidden = true;
+    if (quiere.planilla || cerrado) fila.hidden = true;
     fila.setAttribute('data-doc', quiere.tipo);
     fila.appendChild(el('span', 'tp-n', u[quiere.clave] || quiere.tipo));
     var est = el('span', 'tp-e', '');
     fila.appendChild(est);
+    if (cerrado){
+      txt.appendChild(fila);
+      papelesDe(tr.id).then(function(hay){
+        if (!fila.isConnected || !hay[quiere.tipo]) return;
+        fila.classList.add('puesto');
+        est.textContent = hay[quiere.tipo];
+        fila.hidden = false;
+      });
+      return;
+    }
     var inp = document.createElement('input');
     inp.type = 'file';
     inp.accept = 'image/*,application/pdf';
@@ -22797,9 +22964,22 @@ applyLang(idiomaParaMi());
     fila.appendChild(el('span', 'tp-n', u[claveNombre || 'd_planilla_reserva'] || ''));
     var est = el('span', 'tp-e', '');
     fila.appendChild(est);
-    var abrir = el('button', 'sd-btn', u.co_abrir || '');
-    abrir.type = 'button';
-    fila.appendChild(abrir);
+    /* Con el tramo resuelto esto es un acta y no un paso: ni boton para
+       abrirlo ni la pista de que con el se paga, que a estas alturas manda
+       hacer algo que ya se hizo (Franklin Reyes, 21-9-2026). El papel no se
+       pierde -sigue en Documentos, que es su sitio-; lo que se va de aqui
+       es la invitacion a usarlo.
+
+       Vale para los dos pisos que comparten esta fila: la reserva del
+       nombre de la constitucion y los aranceles de la protocolizacion. */
+    var cerrado = !!tr && tr.estado === 'resuelto';
+    var abrir = null;
+    if (cerrado) caja.firstChild.remove();
+    else {
+      abrir = el('button', 'sd-btn', u.co_abrir || '');
+      abrir.type = 'button';
+      fila.appendChild(abrir);
+    }
     caja.appendChild(fila);
     Promise.resolve(sb.from('tramite_documentos')
       .select('documentos(tipo, nombre_original, archivo)').eq('tramite', tr.id))
@@ -22808,7 +22988,7 @@ applyLang(idiomaParaMi());
           .filter(function(x){ return x && x.tipo === tipoP && x.archivo; })[0];
         if (!d) return;
         est.textContent = d.nombre_original || '';
-        abrir.addEventListener('click', function(){ abreEmitido(d, abrir); });
+        if (abrir) abrir.addEventListener('click', function(){ abreEmitido(d, abrir); });
         caja.hidden = false;
       })
       .catch(function(){});
