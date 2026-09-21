@@ -172,7 +172,11 @@ try {
     #     documento para pagar los aranceles y la guarda de su comprobante.
     #     Necesita el 2 -tramites, documentos, tipos_documento- y es_gestor
     'supabase-protocolizacion.sql',
-    # 39  las cinco inscripciones en una casilla (c37): BANAVIH, INCES,
+    # 39  la publicacion que nace al resolverse la protocolizacion, el PUB
+    #     para pagar el periodico y la guarda de su comprobante. Va DETRAS
+    #     del 38, que es de quien cuelga
+    'supabase-publicacion.sql',
+    # 40  las cinco inscripciones en una casilla (c37): BANAVIH, INCES,
     #     RNET, RNC y RUPDAE. Va DETRAS del 32, que enciende el c35 que
     #     este apaga; delante, aquel lo volveria a encender
     'supabase-parafiscales.sql'

@@ -2895,12 +2895,12 @@
     var bloques = document.querySelectorAll('#trSiguen .tr-bloque');
     igual('tramos: debajo de la constitución van los otros dos tramos',
           [].map.call(bloques, function(b){ return b.getAttribute('data-tramo'); }).join(','), 'c22,c23');
-    /* Cinco la protocolización desde el 20 de septiembre de 2026 —la emisión
-       del PUB va delante de todo— y cuatro la publicación. */
+    /* Cinco cada uno desde el 20 de septiembre de 2026: los dos tramos
+       empiezan por la emisión de su PUB, que va delante de todo. */
     ok('tramos: cada bloque con sus pasos',
        bloques.length === 2 &&
-         [].map.call(bloques, function(b){ return b.querySelectorAll('.tr-paso').length; }).join('/') === '5/4',
-       [].map.call(bloques, function(b){ return b.querySelectorAll('.tr-paso').length; }).join('/'), '5/4');
+         [].map.call(bloques, function(b){ return b.querySelectorAll('.tr-paso').length; }).join('/') === '5/5',
+       [].map.call(bloques, function(b){ return b.querySelectorAll('.tr-paso').length; }).join('/'), '5/5');
     var real = document.getElementById('trReal'), siguen = document.getElementById('trSiguen');
     ok('tramos: el trámite abierto va antes que los tramos',
        !!real && !!siguen && !!(real.compareDocumentPosition(siguen) & Node.DOCUMENT_POSITION_FOLLOWING),
@@ -9883,6 +9883,15 @@
            !((planilla && planilla.querySelector('.tp-e') || {}).textContent || '').trim(),
          pagar ? (pagar.hidden ? 'escondido' : 'a la vista') : '(no está)',
          'escondido y sin archivo');
+      /* Y el tramo de abajo, esperando el suyo: en este pase el equipo no
+         ha dejado ninguno de los dos PUB (Franklin Reyes, 20-9-2026). */
+      var bPubEspera = document.querySelector('#trSiguen .tr-bloque[data-tramo="c23"]');
+      var avisoPub = bPubEspera &&
+        bPubEspera.querySelectorAll('.tr-paso')[0].querySelector('.tr-txt > .tr-espera');
+      ok('espera: la publicación también dice que el CIIP le enviará su PUB',
+         !!avisoPub && !avisoPub.hidden && /enviar/i.test(avisoPub.textContent),
+         avisoPub ? (avisoPub.hidden ? 'escondido' : avisoPub.textContent.slice(0, 60)) : '(no hay)',
+         'el aviso, a la vista');
       location.hash = '';
       return;
     }
@@ -9907,10 +9916,37 @@
        pagar && pagar.closest('.tr-paso')
          ? 'en el paso ' + ([].indexOf.call(pasos, pagar.closest('.tr-paso')) + 1)
          : '(no está)', 'en el paso 1');
-    /* Y solo ahí: la publicación no paga aranceles de registro. */
-    var otro = document.querySelector('#trSiguen .tr-bloque[data-tramo="c23"] .tr-papel');
-    ok('verdad: la publicación no pide comprobante',
-       !otro, otro ? 'lo pide' : 'no lo pide', 'no lo pide');
+    /* LA PUBLICACIÓN, EL MISMO TRAMO UN PISO MÁS ABAJO (Franklin Reyes,
+       20-9-2026). Nace sola al resolverse la protocolización y lleva su
+       propio PUB delante: el del periódico, que NO es el del registro. Lo
+       que se comprueba es que sean dos papeles distintos en dos tramos
+       distintos, y no el mismo repetido: con una tabla mal puesta, el c23
+       enseñaría el PUB de los aranceles y nadie lo notaría hasta que un
+       inversionista pagara dos veces lo mismo. */
+    var bPub = document.querySelector('#trSiguen .tr-bloque[data-tramo="c23"]');
+    ok('publicación: la constitución enseña también el tramo de la publicación',
+       !!bPub, bPub ? 'está' : 'no está', 'el bloque de la publicación');
+    if (!bPub){ location.hash = ''; return; }
+    var pasosPub = bPub.querySelectorAll('.tr-paso');
+    igual('publicación: su tramo también empieza por la emisión del PUB',
+          pasosPub.length ? ((pasosPub[0].querySelector('.tr-paso-n') || {}).textContent || '').trim()
+                          : '(sin pasos)',
+          'Emisión de PUB de publicación mercantil');
+    var pubPagar = bPub.querySelector('.tr-pagar .tr-papel[data-doc="planilla_publicacion"]');
+    ok('publicación: con el PUB del periódico, y no el del registro',
+       !!pubPagar && /pub-publicacion-mercantil/.test(pubPagar.textContent) &&
+         !bPub.querySelector('.tr-papel[data-doc="planilla_aranceles"]'),
+       pubPagar ? pubPagar.textContent.slice(0, 60) : '(no está)',
+       'el PUB de la publicación, y sólo ése');
+    var pubComp = bPub.querySelector('.tr-papel[data-doc="pago_publicacion"]');
+    ok('publicación: y su comprobante se sube en el paso del pago',
+       !!pubComp && pubComp.closest('.tr-paso') === pasosPub[1],
+       pubComp ? 'en el paso ' + ([].indexOf.call(pasosPub, pubComp.closest('.tr-paso')) + 1)
+               : '(no se pide)', 'en el paso 2');
+    ok('publicación: y no pide el comprobante de los aranceles del registro',
+       !bPub.querySelector('.tr-papel[data-doc="pago_aranceles"]'),
+       bPub.querySelector('.tr-papel[data-doc="pago_aranceles"]') ? 'lo pide' : 'no lo pide',
+       'no lo pide');
     location.hash = '';
   }
 

@@ -889,6 +889,7 @@ window.CIIP_PASOS = {
       co_faltadoc:  "Adjunta el documento que emitió el organismo: es lo que el inversionista vino a buscar.",
       co_faltareserva: "Falta el comprobante de la reserva del nombre: el inversionista lo sube cuando pague con el documento que le enviaste.",
       co_faltaaranceles: "Falta el comprobante del pago de los aranceles: el inversionista lo sube cuando pague con el documento que le enviaste.",
+      co_faltapublicacion: "Falta el comprobante del pago de la publicación: el inversionista lo sube cuando pague con el PUB que le enviaste.",
       co_subiendo:  "Entregando…",
       tr_entregado: "Tu documento",
       tr_entrega_p: "Lo emitió el organismo y el CIIP lo dejó en tu expediente.",
@@ -1258,6 +1259,9 @@ window.CIIP_PASOS = {
       d_planilla_aranceles: "PUB para pagar los aranceles del registro",
       tr_pagaranceles: "Este es el PUB que te envió el CIIP para pagar los aranceles del registro. Con él pagas, y el comprobante lo subes en el paso siguiente.",
       tr_esperaranceles: "El CIIP te enviará aquí el PUB para pagar los aranceles del registro. En cuanto llegue, lo pagas y subes el comprobante en el paso siguiente.",
+      d_planilla_publicacion: "PUB para pagar la publicación mercantil",
+      tr_pagpublicacion: "Este es el PUB que te envió el CIIP para pagar la publicación mercantil. Con él pagas, y el comprobante lo subes en el paso siguiente.",
+      tr_esperapublicacion: "El CIIP te enviará aquí el PUB para pagar la publicación mercantil. En cuanto llegue, lo pagas y subes el comprobante en el paso siguiente.",
       d_comisario:   "Carta de aceptación del comisario (todas menos la firma personal)",
       d_constacc: "Empresa accionista: documento constitutivo y última acta de asamblea",
       d_idsociosacc: "Empresa accionista: documento de identidad de sus accionistas",
@@ -1379,6 +1383,7 @@ window.CIIP_PASOS = {
       f_tipofact:     "Cómo vas a facturar",
       o_tipofact:     ["Imprenta autorizada", "Máquina fiscal", "Sistema homologado"],
       d_aranceles:    "Comprobante del pago de aranceles",
+      d_publicacion:  "Comprobante del pago de la publicación",
       d_actaprot:     "Acta constitutiva protocolizada"
     },
     en: {
@@ -1883,6 +1888,7 @@ window.CIIP_PASOS = {
       co_faltadoc:  "Attach the document the agency issued: it is what the investor came for.",
       co_faltareserva: "The name reservation proof is missing: the investor uploads it once they pay with the document you sent.",
       co_faltaaranceles: "The registry fee receipt is missing: the investor uploads it once they pay with the document you sent.",
+      co_faltapublicacion: "The publication payment receipt is missing: the investor uploads it once they pay with the PUB you sent.",
       co_subiendo:  "Delivering…",
       tr_entregado: "Your document",
       tr_entrega_p: "The agency issued it and CIIP left it in your file.",
@@ -2216,6 +2222,9 @@ window.CIIP_PASOS = {
       d_planilla_aranceles: "PUB payment form for the registry fees",
       tr_pagaranceles: "This is the PUB payment form CIIP sent you for the registry fees. Pay with it, and upload the receipt in the next step.",
       tr_esperaranceles: "CIIP will send the PUB payment form for the registry fees here. As soon as it arrives, you pay it and upload the receipt in the next step.",
+      d_planilla_publicacion: "PUB payment form for the publication",
+      tr_pagpublicacion: "This is the PUB payment form CIIP sent you for the mercantile publication. Pay with it, and upload the receipt in the next step.",
+      tr_esperapublicacion: "CIIP will send the PUB payment form for the mercantile publication here. As soon as it arrives, you pay it and upload the receipt in the next step.",
       d_comisario:   "Statutory auditor’s letter of acceptance (all except sole traders)",
       d_constacc: "Corporate shareholder: articles of incorporation and latest shareholders’ meeting minutes",
       d_idsociosacc: "Corporate shareholder: ID documents of its shareholders",
@@ -2337,6 +2346,7 @@ window.CIIP_PASOS = {
       f_tipofact:     "How you will invoice",
       o_tipofact:     ["Authorised printer", "Fiscal machine", "Approved system"],
       d_aranceles:    "Proof of payment of registry fees",
+      d_publicacion:  "Proof of payment of the publication",
       d_actaprot:     "Filed articles of incorporation"
     },
     pt: {
@@ -2826,6 +2836,7 @@ window.CIIP_PASOS = {
       co_faltadoc:  "Anexe o documento que o organismo emitiu: é o que o investidor veio buscar.",
       co_faltareserva: "Falta o comprovativo da reserva do nome: o investidor carrega-o quando pagar com o documento que lhe enviou.",
       co_faltaaranceles: "Falta o comprovativo do pagamento das taxas: o investidor carrega-o quando pagar com o documento que lhe enviou.",
+      co_faltapublicacion: "Falta o comprovativo do pagamento da publicação: o investidor carrega-o quando pagar com o PUB que lhe enviou.",
       co_subiendo:  "A entregar…",
       tr_entregado: "O seu documento",
       tr_entrega_p: "Foi o organismo que o emitiu e o CIIP deixou-o no seu processo.",
@@ -3157,6 +3168,9 @@ window.CIIP_PASOS = {
       d_planilla_aranceles: "PUB para pagar as taxas do registo",
       tr_pagaranceles: "Este é o PUB que o CIIP lhe enviou para pagar as taxas do registo. Pague com ele e carregue o comprovativo no passo seguinte.",
       tr_esperaranceles: "O CIIP vai enviar-lhe aqui o PUB para pagar as taxas do registo. Assim que chegar, paga e carrega o comprovativo no passo seguinte.",
+      d_planilla_publicacion: "PUB para pagar a publicação mercantil",
+      tr_pagpublicacion: "Este é o PUB que o CIIP lhe enviou para pagar a publicação mercantil. Pague com ele e carregue o comprovativo no passo seguinte.",
+      tr_esperapublicacion: "O CIIP vai enviar-lhe aqui o PUB para pagar a publicação mercantil. Assim que chegar, paga e carrega o comprovativo no passo seguinte.",
       d_comisario:   "Carta de aceitação do comissário (todas exceto empresário em nome individual)",
       d_constacc: "Empresa acionista: documento constitutivo e última ata da assembleia",
       d_idsociosacc: "Empresa acionista: documento de identidade dos seus acionistas",
@@ -3278,6 +3292,7 @@ window.CIIP_PASOS = {
       f_tipofact:     "Como vai faturar",
       o_tipofact:     ["Gráfica autorizada", "Máquina fiscal", "Sistema homologado"],
       d_aranceles:    "Comprovante do pagamento das taxas",
+      d_publicacion:  "Comprovante do pagamento da publicação",
       d_actaprot:     "Ata constitutiva protocolizada"
     },
     it: {
@@ -3767,6 +3782,7 @@ window.CIIP_PASOS = {
       co_faltadoc:  "Allega il documento che ha rilasciato l'ente: è quello per cui l'investitore è venuto.",
       co_faltareserva: "Manca la ricevuta della riserva del nome: l'investitore la carica quando paga con il documento che gli hai inviato.",
       co_faltaaranceles: "Manca la ricevuta del pagamento dei diritti: l'investitore la carica quando paga con il documento che gli hai inviato.",
+      co_faltapublicacion: "Manca la ricevuta del pagamento della pubblicazione: l’investitore la carica quando paga con il PUB che gli hai inviato.",
       co_subiendo:  "Consegna in corso…",
       tr_entregado: "Il tuo documento",
       tr_entrega_p: "L'ha rilasciato l'ente e il CIIP l'ha messo nel tuo fascicolo.",
@@ -4098,6 +4114,9 @@ window.CIIP_PASOS = {
       d_planilla_aranceles: "PUB per pagare i diritti di registro",
       tr_pagaranceles: "Questo è il PUB che il CIIP ti ha inviato per pagare i diritti di registro. Paga con questo e carica la ricevuta nel passaggio successivo.",
       tr_esperaranceles: "Il CIIP ti invierà qui il PUB per pagare i diritti di registro. Appena arriva, lo paghi e carichi la ricevuta nel passaggio successivo.",
+      d_planilla_publicacion: "PUB per pagare la pubblicazione",
+      tr_pagpublicacion: "Questo è il PUB che il CIIP ti ha inviato per pagare la pubblicazione. Paga con questo e carica la ricevuta nel passaggio successivo.",
+      tr_esperapublicacion: "Il CIIP ti invierà qui il PUB per pagare la pubblicazione. Appena arriva, lo paghi e carichi la ricevuta nel passaggio successivo.",
       d_comisario:   "Lettera di accettazione del sindaco (tutte tranne la ditta individuale)",
       d_constacc: "Società socia: atto costitutivo e ultimo verbale di assemblea",
       d_idsociosacc: "Società socia: documento d’identità dei suoi soci",
@@ -4219,6 +4238,7 @@ window.CIIP_PASOS = {
       f_tipofact:     "Come emetterai le fatture",
       o_tipofact:     ["Tipografia autorizzata", "Registratore fiscale", "Sistema omologato"],
       d_aranceles:    "Ricevuta dei diritti di registro",
+      d_publicacion:  "Ricevuta del pagamento della pubblicazione",
       d_actaprot:     "Atto costitutivo depositato"
     },
     zh: {
@@ -4708,6 +4728,7 @@ window.CIIP_PASOS = {
       co_faltadoc:  "请附上主管机关签发的文件：那才是投资人要的东西。",
       co_faltareserva: "缺少名称预留凭证：投资人按你发送的文件付款后会上传。",
       co_faltaaranceles: "缺少规费缴费凭证：投资人按你发送的文件付款后会上传。",
+      co_faltapublicacion: "缺少公告费缴费凭证：投资人按你发送的 PUB 付款后会上传。",
       co_subiendo:  "交付中…",
       tr_entregado: "您的文件",
       tr_entrega_p: "由主管机关签发，CIIP 已放入您的档案。",
@@ -5039,6 +5060,9 @@ window.CIIP_PASOS = {
       d_planilla_aranceles: "登记处规费 PUB 缴费单",
       tr_pagaranceles: "这是 CIIP 发送给您的登记处规费 PUB 缴费单。请据此缴费，并在下一步上传凭证。",
       tr_esperaranceles: "CIIP 将在此发送登记处规费的 PUB 缴费单。收到后请缴费，并在下一步上传凭证。",
+      d_planilla_publicacion: "商事公告 PUB 缴费单",
+      tr_pagpublicacion: "这是 CIIP 发送给您的商事公告 PUB 缴费单。请据此缴费，并在下一步上传凭证。",
+      tr_esperapublicacion: "CIIP 将在此发送商事公告的 PUB 缴费单。收到后请缴费，并在下一步上传凭证。",
       d_comisario:   "监察人接受函（个人商号除外）",
       d_constacc: "法人股东：公司章程及最近一次股东大会记录",
       d_idsociosacc: "法人股东：其股东的身份证件",
@@ -5160,6 +5184,7 @@ window.CIIP_PASOS = {
       f_tipofact:     "开票方式",
       o_tipofact:     ["授权印刷厂", "税控机", "认证系统"],
       d_aranceles:    "登记规费缴纳凭证",
+      d_publicacion:  "公告费缴纳凭证",
       d_actaprot:     "已登记的公司章程"
     },
     ru: {
@@ -5649,6 +5674,7 @@ window.CIIP_PASOS = {
       co_faltadoc:  "Приложите документ, выданный ведомством: именно за ним пришёл инвестор.",
       co_faltareserva: "Нет подтверждения резервирования наименования: инвестор загрузит его после оплаты по документу, который вы отправили.",
       co_faltaaranceles: "Нет подтверждения оплаты пошлин: инвестор загрузит его после оплаты по документу, который вы отправили.",
+      co_faltapublicacion: "Нет подтверждения оплаты публикации: инвестор загрузит его после оплаты по PUB, который вы отправили.",
       co_subiendo:  "Передаём…",
       tr_entregado: "Ваш документ",
       tr_entrega_p: "Его выдало ведомство, а CIIP положил его в ваше дело.",
@@ -5980,6 +6006,9 @@ window.CIIP_PASOS = {
       d_planilla_aranceles: "PUB для оплаты регистрационных пошлин",
       tr_pagaranceles: "Это PUB, который CIIP прислал вам для оплаты регистрационных пошлин. Оплатите по нему, а подтверждение загрузите на следующем шаге.",
       tr_esperaranceles: "CIIP пришлёт сюда PUB для оплаты регистрационных пошлин. Как только он придёт, оплатите его и загрузите подтверждение на следующем шаге.",
+      d_planilla_publicacion: "PUB для оплаты публикации",
+      tr_pagpublicacion: "Это PUB, который CIIP прислал вам для оплаты публикации. Оплатите по нему, а подтверждение загрузите на следующем шаге.",
+      tr_esperapublicacion: "CIIP пришлёт сюда PUB для оплаты публикации. Как только он придёт, оплатите его и загрузите подтверждение на следующем шаге.",
       d_comisario:   "Письмо о согласии ревизора (кроме индивидуального предпринимателя)",
       d_constacc: "Компания-акционер: учредительный документ и последний протокол общего собрания",
       d_idsociosacc: "Компания-акционер: документы, удостоверяющие личность её акционеров",
@@ -6101,6 +6130,7 @@ window.CIIP_PASOS = {
       f_tipofact:     "Как будете выставлять счета",
       o_tipofact:     ["Авторизованная типография", "Фискальный аппарат", "Согласованная система"],
       d_aranceles:    "Квитанция об оплате пошлин",
+      d_publicacion:  "Квитанция об оплате публикации",
       d_actaprot:     "Зарегистрированный устав"
     }
   },
@@ -6143,7 +6173,7 @@ window.CIIP_PASOS = {
       c20: ["Acreditación del vínculo familiar", "Solicitud consular para cada familiar", "Evaluación del SAIME", "Visa y cédula de tus familiares"],
       c21: ["Elección del centro de salud autorizado", "Cita para la evaluación médica", "Evaluación y firma del médico", "Certificado guardado en tu bóveda"],
       c22: ["Emisión de PUB de constitución de compañía", "Pago de aranceles registrales", "Consignación del documento en el Registro Mercantil", "Revisión del registrador", "Acta protocolizada con personalidad jurídica"],
-      c23: ["Elección del periódico mercantil", "Envío del acta protocolizada", "Publicación del extracto", "Consignación de ejemplares en el Registro"],
+      c23: ["Emisión de PUB de publicación mercantil", "Elección del periódico mercantil", "Envío del acta protocolizada", "Publicación del extracto", "Consignación de ejemplares en el Registro"],
       c24: ["Apertura de los libros obligatorios", "Sellado y foliado en el Registro Mercantil", "Elección del sistema de facturación", "Homologación del sistema ante el SENIAT"]
     },
 
@@ -6183,7 +6213,7 @@ window.CIIP_PASOS = {
       c20: ["Proof of the family relationship", "Consular application for each relative", "SAIME assessment", "Visa and ID card for your family"],
       c21: ["Choice of an authorised health centre", "Appointment for the medical assessment", "Assessment signed by the doctor", "Certificate stored in your vault"],
       c22: ["Issue of the PUB payment form for the incorporation", "Payment of registry fees", "Filing of the document at the Mercantile Registry", "Review by the registrar", "Articles filed, legal personality granted"],
-      c23: ["Choice of the mercantile newspaper", "Submission of the filed articles", "Publication of the extract", "Copies filed back at the Registry"],
+      c23: ["Issue of the PUB payment form for the publication", "Choice of the mercantile newspaper", "Submission of the filed articles", "Publication of the extract", "Copies filed back at the Registry"],
       c24: ["Opening of the mandatory books", "Books stamped and paginated at the Registry", "Choice of the invoicing system", "System approved by SENIAT"]
     },
 
@@ -6223,7 +6253,7 @@ window.CIIP_PASOS = {
       c20: ["Comprovação do vínculo familiar", "Pedido consular para cada familiar", "Avaliação do SAIME", "Visto e cédula dos seus familiares"],
       c21: ["Escolha do centro de saúde autorizado", "Consulta para a avaliação médica", "Avaliação e assinatura do médico", "Certificado guardado no seu cofre"],
       c22: ["Emissão do PUB de constituição da empresa", "Pagamento das taxas registrais", "Consignação do documento no Registro Mercantil", "Análise do registrador", "Ata protocolizada com personalidade jurídica"],
-      c23: ["Escolha do jornal mercantil", "Envio da ata protocolizada", "Publicação do extrato", "Consignação dos exemplares no Registro"],
+      c23: ["Emissão do PUB de publicação mercantil", "Escolha do jornal mercantil", "Envio da ata protocolizada", "Publicação do extrato", "Consignação dos exemplares no Registro"],
       c24: ["Abertura dos livros obrigatórios", "Selagem e numeração no Registro Mercantil", "Escolha do sistema de faturação", "Homologação do sistema no SENIAT"]
     },
 
@@ -6263,7 +6293,7 @@ window.CIIP_PASOS = {
       c20: ["Prova del legame familiare", "Domanda consolare per ogni familiare", "Valutazione del SAIME", "Visto e documento per i tuoi familiari"],
       c21: ["Scelta della struttura sanitaria autorizzata", "Appuntamento per la visita medica", "Visita e firma del medico", "Certificato conservato nel tuo archivio"],
       c22: ["Emissione del PUB per la costituzione della società", "Pagamento dei diritti di registro", "Deposito dell’atto al Registro delle Imprese", "Esame del conservatore", "Atto depositato, personalità giuridica acquisita"],
-      c23: ["Scelta del giornale commerciale", "Invio dell’atto depositato", "Pubblicazione dell’estratto", "Consegna delle copie al Registro"],
+      c23: ["Emissione del PUB per la pubblicazione", "Scelta del giornale commerciale", "Invio dell’atto depositato", "Pubblicazione dell’estratto", "Consegna delle copie al Registro"],
       c24: ["Apertura dei libri obbligatori", "Vidimazione e numerazione al Registro", "Scelta del sistema di fatturazione", "Omologazione del sistema presso il SENIAT"]
     },
 
@@ -6303,7 +6333,7 @@ window.CIIP_PASOS = {
       c20: ["证明家庭关系", "为每位家属提出领事申请", "SAIME 审核", "家属取得签证与身份证"],
       c21: ["选择获授权的医疗机构", "预约体检", "医生检查并签字", "证明存入你的档案库"],
       c22: ["签发公司设立的 PUB 缴费单", "缴纳登记规费", "向商事登记处提交文件", "登记官审查", "章程登记完成，取得法人资格"],
-      c23: ["选择商事报纸", "提交已登记的章程", "刊登摘要", "将样报交回登记处"],
+      c23: ["签发商事公告的 PUB 缴费单", "选择商事报纸", "提交已登记的章程", "刊登摘要", "将样报交回登记处"],
       c24: ["开立法定账簿", "在商事登记处盖章编号", "选择开票系统", "系统通过 SENIAT 认证"]
     },
 
@@ -6343,7 +6373,7 @@ window.CIIP_PASOS = {
       c20: ["Подтверждение родственной связи", "Консульская заявка на каждого родственника", "Рассмотрение в SAIME", "Виза и удостоверение для близких"],
       c21: ["Выбор аккредитованного медцентра", "Запись на медосмотр", "Осмотр и подпись врача", "Справка в вашем хранилище"],
       c22: ["Выдача PUB для регистрации компании", "Оплата регистрационных пошлин", "Подача документа в Торговый реестр", "Проверка регистратором", "Устав зарегистрирован, получена правосубъектность"],
-      c23: ["Выбор коммерческой газеты", "Направление зарегистрированного устава", "Публикация выписки", "Сдача экземпляров в реестр"],
+      c23: ["Выдача PUB для публикации", "Выбор коммерческой газеты", "Направление зарегистрированного устава", "Публикация выписки", "Сдача экземпляров в реестр"],
       c24: ["Заведение обязательных книг", "Прошивка и нумерация в реестре", "Выбор системы выставления счетов", "Согласование системы с SENIAT"]
     }
 

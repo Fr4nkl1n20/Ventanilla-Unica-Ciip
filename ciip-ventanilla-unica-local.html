@@ -13242,8 +13242,8 @@ applyLang(idiomaParaMi());
      Una sola consulta para los dos: los enganches de cada solicitud con su
      papel. La fecha es la de cuando se subió el papel, que es cuando la
      noticia ocurrió. */
-  var AV_PARA_PAGAR = ['planilla_reserva_nombre', 'planilla_aranceles'];
-  var AV_COMPROBANTES = ['reserva_nombre', 'pago_aranceles'];
+  var AV_PARA_PAGAR = ['planilla_reserva_nombre', 'planilla_aranceles', 'planilla_publicacion'];
+  var AV_COMPROBANTES = ['reserva_nombre', 'pago_aranceles', 'pago_publicacion'];
 
   function sumaPapelesDePago(refDe){
     var equipo = !!(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO());
@@ -16226,11 +16226,12 @@ applyLang(idiomaParaMi());
     return !t || t.tipo !== 'constitucion';
   }
 
-  /* QUÉ documento para pagar deja el equipo, y en qué trámite. Son dos, el
-     mismo gesto en dos pisos (Franklin Reyes, 17-9-2026): la reserva del
-     nombre en la constitución, y los aranceles del registro en la
-     protocolización, que desde hoy nace sola al resolverse aquélla.
-     Devuelve null donde no toca dejar nada. */
+  /* QUÉ documento para pagar deja el equipo, y en qué trámite. Son tres, el
+     mismo gesto en tres pisos (Franklin Reyes, 17 y 20-9-2026): la reserva
+     del nombre en la constitución, los aranceles del registro en la
+     protocolización —que nace sola al resolverse aquélla— y la publicación
+     mercantil en la publicación del acta, que nace sola al resolverse la
+     protocolización. Devuelve null donde no toca dejar nada. */
   function loQueSePaga(t){
     if (!t) return null;
     if (t.tipo === 'constitucion' && t.estado === 'ante_el_ente'){
@@ -16241,6 +16242,12 @@ applyLang(idiomaParaMi());
     if (t.tipo === 'protocolizacion_acta' &&
         ['enviado','en_revision','ante_el_ente'].indexOf(t.estado) >= 0){
       return {tipo: 'planilla_aranceles', clave: 'd_planilla_aranceles'};
+    }
+    /* Y la publicación igual: el periódico cobra por adelantado, así que
+       el PUB se deja en cuanto el tramo está en marcha. */
+    if (t.tipo === 'publicacion_acta' &&
+        ['enviado','en_revision','ante_el_ente'].indexOf(t.estado) >= 0){
+      return {tipo: 'planilla_publicacion', clave: 'd_planilla_publicacion'};
     }
     return null;
   }
@@ -21345,8 +21352,14 @@ applyLang(idiomaParaMi());
      Los cuatro pasos de detras siguen siendo los del circuito, uno a uno
      con los cuatro estados, corridos un sitio: por eso 'cuantos'. Si el
      tramite ya paso de "recibida" el PUB se da por emitido aunque no se
-     encuentre: no se llega a revision sin haber pagado. */
-  var PASOS_DE_DELANTE = {c22: {cuantos: 1, papel: 'planilla_aranceles'}};
+     encuentre: no se llega a revision sin haber pagado.
+
+     Y LA PUBLICACION IGUAL, el mismo dia y por lo mismo: el periodico
+     tampoco publica sin cobrar, y el PUB lo manda el CIIP. Son dos tramos
+     con el mismo circuito, asi que esto es una tabla y no un `if`: lo que
+     cambia de uno a otro es el papel, no la mecanica. */
+  var PASOS_DE_DELANTE = {c22: {cuantos: 1, papel: 'planilla_aranceles'},
+                          c23: {cuantos: 1, papel: 'planilla_publicacion'}};
 
   /* Que papel se sube en que paso. La cuenta empieza en cero: el 0 es la
      emision del PUB y el 1 es "Pago de aranceles registrales", que desde el
@@ -21361,11 +21374,19 @@ applyLang(idiomaParaMi());
      su propio paso -el de la emision del PUB-, con su boton para abrirlo;
      mientras no lo haya, ahi se dice que viene de camino y el paso del pago
      todavia no pide comprobante. */
+  /* En la publicacion el paso del pago es tambien el 1: el PUB delante, y
+     debajo "Eleccion del periodico mercantil", que es donde se paga lo que
+     cuesta publicar (Franklin Reyes, 20-9-2026). */
   var PAPEL_DE_PASO = {c22: {paso: 1, pasoPub: 0,
                              tipo: 'pago_aranceles', clave: 'd_aranceles',
                              planilla: 'planilla_aranceles', claveP: 'd_planilla_aranceles',
                              clavePista: 'tr_pagaranceles',
-                             claveEspera: 'tr_esperaranceles'}};
+                             claveEspera: 'tr_esperaranceles'},
+                       c23: {paso: 1, pasoPub: 0,
+                             tipo: 'pago_publicacion', clave: 'd_publicacion',
+                             planilla: 'planilla_publicacion', claveP: 'd_planilla_publicacion',
+                             clavePista: 'tr_pagpublicacion',
+                             claveEspera: 'tr_esperapublicacion'}};
 
   /* La solicitud que manda de un tramo, con el mismo criterio que la ficha:
      la que va mas adelante, no la mas reciente. Si la portada y el bloque
@@ -21805,6 +21826,11 @@ applyLang(idiomaParaMi());
   function comprobanteParaResolver(t){
     if (!t) return null;
     if (t.tipo === 'protocolizacion_acta') return {tipo: 'pago_aranceles', aviso: 'co_faltaaranceles'};
+    /* Y la publicacion igual, desde el 20 de septiembre de 2026: el
+       periodico no publica sin cobrar, asi que una publicacion resuelta
+       sin ese papel estaria mintiendo. La base tambien lo sujeta, en
+       supabase-publicacion.sql; esto es para avisar antes de intentarlo. */
+    if (t.tipo === 'publicacion_acta') return {tipo: 'pago_publicacion', aviso: 'co_faltapublicacion'};
     return null;
   }
 

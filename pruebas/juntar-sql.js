@@ -94,6 +94,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    su comprobante. Necesita tramites, documentos y es_gestor(); va al
    final. */
 'supabase-protocolizacion',
+/* La publicacion del acta (c23), que nace al resolverse la
+   protocolizacion, con su PUB para pagar el periodico y la guarda de su
+   comprobante. Necesita tramites, documentos y es_gestor(), y va DETRAS
+   de supabase-protocolizacion, que es de quien cuelga. */
+'supabase-publicacion',
 /* Las cinco inscripciones en una casilla (c37): BANAVIH, INCES, RNET, RNC
    y RUPDAE. Va DETRAS de supabase-rupdae-rum, que es quien enciende el
    c35 que este apaga; si fuera delante, aquel lo volveria a encender. */

@@ -366,6 +366,12 @@
   if (conTramos){
     TIPOS.push({codigo:'protocolizacion_acta', ref_panel:'c22', ente:'SAREN', activo:true,
                 nombre:'Protocolización del acta', fase:2, nivel:'obligatorio'});
+    /* Y la publicación, por lo mismo (Franklin Reyes, 20-9-2026): sin su
+       tipo aquí el panel no sabe de qué tarjeta es la solicitud, deja el
+       bloque como dibujo y el PUB del periódico no se pinta en ninguna
+       parte. */
+    TIPOS.push({codigo:'publicacion_acta', ref_panel:'c23', ente:'Prensa mercantil', activo:true,
+                nombre:'Publicación del acta', fase:2, nivel:'obligatorio'});
   }
 
   /* El borrador se toca DESPUÉS que el devuelto a propósito: así se
@@ -428,7 +434,16 @@
          antes de poder resolverla. */
       {id:'p2', tipo:'constitucion', estado:'ante_el_ente',
        creado_en:'2026-08-20T10:00:00Z', enviado_en:'2026-08-20T10:00:00Z',
-       actualizado_en:'2026-08-30T10:00:00Z'}
+       actualizado_en:'2026-08-30T10:00:00Z'},
+      /* Y LA PUBLICACIÓN (Franklin Reyes, 20-9-2026), recién nacida al
+         resolverse la protocolización: el mismo tramo un piso más abajo,
+         con su PUB delante. Está en 'enviado' a propósito —como nace—, que
+         es donde se ve si el paso del PUB se enciende con el papel y no
+         con el estado. Sin ella, el c23 no era más que un dibujo y el
+         segundo PUB no lo probaba nadie. */
+      {id:'p3', tipo:'publicacion_acta', estado:'enviado',
+       creado_en:'2026-09-10T10:00:00Z', enviado_en:'2026-09-10T10:00:00Z',
+       actualizado_en:'2026-09-10T10:00:00Z'}
     ] : []),
     sinnombre: [
       /* Un borrador SOLO, y a medio subir: es el unico expediente donde
@@ -1929,6 +1944,17 @@
         return {data:[{documento:'dp1', documentos:{tipo:'planilla_reserva_nombre',
           nombre_original:'planilla-reserva-saren.pdf',
           archivo:'u1/emitidos/planilla-reserva-saren.pdf'}}], error:null};
+      }
+      /* Y la publicación de 'tramos': el equipo ya le dejó el PUB para
+         pagar el periódico, y el comprobante todavía no está (Franklin
+         Reyes, 20-9-2026). Igual que un piso más arriba, en
+         'tramossinpagar' no ha dejado nada: así el mismo pase prueba los
+         dos tramos esperando su papel. */
+      if (op && op.eq && op.eq.tramite === 'p3'){
+        if (sinPlanilla) return {data:[], error:null};
+        return {data:[{documento:'dp4', documentos:{tipo:'planilla_publicacion',
+          nombre_original:'pub-publicacion-mercantil.pdf',
+          archivo:'u1/emitidos/pub-publicacion-mercantil.pdf'}}], error:null};
       }
       /* Y la protocolización de 'tramos': el equipo ya le dejó el documento
          para pagar los aranceles del registro, y el comprobante del pago
