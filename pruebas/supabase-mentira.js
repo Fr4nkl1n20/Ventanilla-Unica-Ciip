@@ -741,12 +741,23 @@
      eventos de tramites a proposito: asi se comprueba que el buzon la mete
      en su sitio por fecha y no simplemente al final o al principio. */
   var CONFIRMADAS = {
-    lleno: [{id:'k1', tipo_tramite:'constitucion', modo:'presencial',
+    lleno: [{id:'k1', inversionista:'u1', tipo_tramite:'constitucion', modo:'presencial',
              estado:'confirmada', desde:'2026-08-24', hasta:'2026-08-28', nota:'',
              cuando:'2026-08-26T14:00:00Z', lugar:'Torre CIIP, piso 4',
              creado_en:'2026-06-30T09:00:00Z',
              actualizado_en:'2026-07-01T09:00:00Z'}],
-    vacio: [], sinnombre: [], gestor: []
+    vacio: [], sinnombre: [],
+    /* AQUI FALTA una cita confirmada de OTRA persona, y no es un olvido.
+       Se puso el 21-9-2026 para probar que el .eq('inversionista') nuevo
+       del buzon la deja fuera, y destapo que la pantalla de CITAS tiene la
+       misma fuga por debajo: cargaAgenda() y cargaCita() tampoco preguntan
+       por el dueño, asi que a un gestor su politica le sirve la agenda de
+       toda la oficina. Con la fila puesta, tres pruebas de 'agenda' se
+       ponen rojas -y tienen razon: dicen que el equipo no ha pedido
+       ninguna cita-. Arreglarlo es otro cambio, en otra pantalla y con
+       otra plomeria: esos dos bloques no tienen a mano quien eres.
+       Mientras tanto se deja vacio, que es lo que habia. */
+    gestor: []
   };
 
   /* Los perfiles de los demas. Solo los lee un gestor, y solo si esta puesta
@@ -848,7 +859,14 @@
        que le pasa al primero de la cola nada mas enviarlo. */
     gestor: [
       {id:90, tramite:'x1', de_estado:'borrador', a_estado:'enviado', nota:'',
-       creado_en: dentroDe(37)}
+       creado_en: dentroDe(37)},
+      /* Y uno en el x2, que lleva OTRO gestor -el u4-. Tiene que quedarse
+         FUERA de la campana del que mira: es su compañero quien lo mueve, y
+         antes del 21-9-2026 le sonaba a toda la oficina. Sin este evento
+         aqui, esa prueba daria verde con el filtro quitado, que es la unica
+         manera de que una prueba mienta. */
+      {id:91, tramite:'x2', de_estado:'en_revision', a_estado:'devuelto',
+       nota:'Le falta la firma del comisario.', creado_en: haceHoras(3)}
     ],
     lleno: [
       {id:5, tramite:'t1', de_estado:'en_revision', a_estado:'devuelto',
@@ -1173,9 +1191,17 @@
       /* La cola pregunta por .eq('estado','solicitada'); el inversionista por
          .in('estado',[...]). Son dos listas distintas y no se pueden
          confundir: si no, un gestor veria las citas ajenas como suyas. */
-      /* El buzon pide las confirmadas; son otra lista y otro sitio. */
+      /* El buzon pide las confirmadas; son otra lista y otro sitio. Y las
+         pide CON DUEÑO -.eq('inversionista')-, que es lo unico que separa
+         "tu cita esta confirmada" de la agenda de la oficina entera. Se
+         filtra de verdad: un doble que se saltara ese .eq contestaria lo
+         mismo con el filtro y sin el. */
       if (op && op.eq && op.eq.estado === 'confirmada'){
-        return {data:(CONFIRMADAS[caso] || []), error:null};
+        var confs = CONFIRMADAS[caso] || [];
+        if (op.eq.inversionista){
+          confs = confs.filter(function(c){ return c.inversionista === op.eq.inversionista; });
+        }
+        return {data:confs, error:null};
       }
       if (op && op.eq && op.eq.estado === 'solicitada'){
         if (op.update){
@@ -1686,7 +1712,19 @@
         var todo = colaTram.slice();
         (TRAMITES[caso] || []).forEach(function(x){
           var esta = todo.some(function(y){ return y.id === x.id; });
-          if (!esta) todo.push(x);
+          if (esta) return;
+          /* CON SU DUEÑO. En la base 'inversionista' es NOT NULL, y estas
+             son las del que mira -su politica no le deja otras-, pero las
+             filas de aqui nacieron sin esa columna porque ninguna consulta
+             la miraba. Ahora si: el buzon decide con ella de que lado esta
+             cada uno, y sin el sello daba las PROPIAS por ajenas y le
+             escondia al inversionista el documento que tiene que pagar.
+             Se sella una copia: la fixture se comparte entre pruebas. */
+          if (x.inversionista){ todo.push(x); return; }
+          var c = {};
+          for (var k in x){ if (Object.prototype.hasOwnProperty.call(x, k)) c[k] = x[k]; }
+          c.inversionista = USUARIO.id;
+          todo.push(c);
         });
         return {data: todo, error:null};
       }
@@ -1818,10 +1856,22 @@
         {id:'msj-c', tramite:'x1', texto:'Buenos dias, adjunto el acta que me pidieron.',
          del_equipo:false, documento:null, creado_en:'2026-08-06T08:30:00Z'},
         {id:'msj-d', tramite:'x1', texto:'Recibido. Lo revisamos hoy mismo.',
-         del_equipo:true, documento:null, creado_en:'2026-08-06T11:00:00Z'}
+         del_equipo:true, documento:null, creado_en:'2026-08-06T11:00:00Z'},
+        /* Y otro del equipo en el x2, el expediente que lleva OTRO gestor.
+           Por lo mismo que el evento 91: sin una fila ajena en la mesa, la
+           prueba de que no entra no comprueba nada. */
+        {id:'msj-e', tramite:'x2', texto:'Falta el acta de asamblea firmada.',
+         del_equipo:true, documento:null, creado_en:'2026-08-07T12:00:00Z'}
       ].concat(dichos);
       if (op && op.eq && op.eq.tramite){
         hilo = hilo.filter(function(m){ return m.tramite === op.eq.tramite; });
+      }
+      /* Y por VARIOS a la vez, que es como los pide la campana: los
+         expedientes que son tuyos. Sin esto el doble contestaba el hilo
+         entero y la prueba de que a un gestor no le entra lo de otro
+         gestor habria dado verde sin filtro ninguno. */
+      if (op && op.in && op.in.tramite){
+        hilo = hilo.filter(function(m){ return op.in.tramite.indexOf(m.tramite) >= 0; });
       }
       return {data:soloLoPedido(hilo, op && op.cols), error:null};
     }

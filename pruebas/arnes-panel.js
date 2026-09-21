@@ -2301,6 +2301,52 @@
       document.body.click();
     }
 
+    /* ═══════════ LA CAMPANA DEL EQUIPO: SÓLO LO SUYO ═══════════
+       «quiero que las solicitudes que son del gestor le lleguen al gestor y
+       las del inversionista al inversionista» (Franklin Reyes, 21-9-2026).
+
+       Al inversionista ya le llegaba lo suyo y nada más, pero no porque el
+       buzón lo pidiera: se lo recorta su política, que no le deja leer otra
+       cosa. La del equipo sí le deja leerlo TODO, así que a un gestor —y
+       sólo a él— la campana le sonaba con el trabajo de sus compañeros.
+
+       El caso del equipo tiene dos expedientes a propósito: el x1, que no
+       lleva nadie, y el x2, que lleva el compañero —el u4—. En los dos hay
+       un movimiento y un mensaje del equipo, así que las dos fuentes que se
+       filtran por dueño se miden en la misma pantalla. Una sola de las dos
+       comprobaciones dejaría pasar la fuente que se olvidara.
+
+       Y lo sin asignar entra, que es la otra mitad de lo que se pidió: son
+       del equipo entero mientras nadie las toma, y si no sonaran, una
+       solicitud recién enviada entraría en silencio. */
+    if (CASO === 'gestor'){
+      campana.click();
+      (function(){
+        var buzon = document.getElementById('avisosLista').textContent;
+
+        ok('buzón: al equipo le entra el movimiento de lo que no lleva nadie',
+           buzon.indexOf('Recibido. Lo revisamos hoy mismo.') >= 0,
+           buzon.slice(0, 140), 'con el mensaje del expediente sin asignar');
+
+        /* Las dos fuentes del expediente del compañero, por separado. */
+        ok('buzón: y no le entra lo que otro gestor movió',
+           buzon.indexOf('Le falta la firma del comisario.') < 0,
+           buzon.slice(0, 140), 'sin la nota del expediente del compañero');
+
+        ok('buzón: ni lo que otro gestor escribió',
+           buzon.indexOf('Falta el acta de asamblea firmada.') < 0,
+           buzon.slice(0, 140), 'sin el mensaje del expediente del compañero');
+
+        /* La cita ajena NO se comprueba aquí, y está dicho en el doble:
+           para medirla hace falta una confirmada de otra persona en la
+           mesa, y en cuanto se pone salen rojas tres pruebas de 'agenda'
+           —que tienen razón—. El .eq('inversionista') del buzón sí queda
+           medido por el otro lado, en el caso del inversionista: si se
+           cayera, su cita confirmada dejaría de contarse entre los seis. */
+      })();
+      document.body.click();
+    }
+
     /* ═══════════ TU PERFIL ═══════════
        Una cuenta dada de alta a mano en Supabase llega sin nombre y sin país,
        y hasta ahora no había dónde ponerlos. */

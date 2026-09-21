@@ -12995,16 +12995,61 @@ applyLang(idiomaParaMi());
         /* Dos consultas y no una con embebido: el historial no dice de qué
            tipo es su solicitud, y pedirlo anidado ata el buzón a que
            PostgREST resuelva bien la relación. Así, si algo falla, falla
-           una consulta pequeña y no el buzón entero. */
-        return sb.from('tramites').select('id, tipo').then(function(rt){
+           una consulta pequeña y no el buzón entero.
+
+           ── Y DE PASO, DE QUIÉN ES CADA UNA ──
+           «que las solicitudes que son del gestor le lleguen al gestor y
+           las del inversionista al inversionista» (Franklin Reyes,
+           21-9-2026). La campana le traía la oficina entera a quien es del
+           CIIP. No era el descuido de una fuente suelta: es que estas
+           consultas no preguntan por el dueño porque para un inversionista
+           no hace falta —su política ya le deja sólo lo suyo—, y la de un
+           gestor se lo deja leer TODO. Así que a él, y sólo a él, le sonaba
+           el trabajo de sus compañeros.
+
+           Esta lista pasa a ser la PUERTA del buzón: lo que no esté en ella
+           no entra. Una solicitud es tuya si la pediste tú, si la llevas
+           tú, o si todavía no la lleva nadie —ésas son del equipo entero, y
+           si no sonaran, una recién enviada entraría en silencio—. En
+           cuanto alguien la toma, se apaga en la campana de los demás, que
+           es justo lo que se quería.
+
+           La regla NO mira el rol, y es a propósito: PERFIL.rol nace en
+           'inversionista' y no es de fiar hasta que contesta la sesión
+           —PERFIL.rolReal—, y el buzón se lee antes que eso. Mirando de
+           quién es cada fila no hay nada que esperar, y un gestor que pida
+           algo para sí mismo lo recibe como lo que ahí es: el dueño. */
+        return sb.from('tramites').select('id, tipo, inversionista, gestor')
+          .then(function(rt){
           /* De cada solicitud, la tarjeta a la que pertenece. Lo usan tres
              de las fuentes -estados, mensajes y pagos- para poder decir de
              qué trámite hablan sin volver a preguntarlo. */
-          var refDe = {};
-          (rt.data || []).forEach(function(t){ refDe[t.id] = tipoRefDe(t.tipo || ''); });
+          var refDe = {}, mios = [], loPedi = {};
+          (rt.data || []).forEach(function(t){
+            if (!t || !t.id) return;
+            if (!(t.inversionista === uid || t.gestor === uid || !t.gestor)) return;
+            refDe[t.id] = tipoRefDe(t.tipo || '');
+            mios.push(t.id);
+            /* Y en cuál de los dos lados estoy en ÉSTA. Lo pregunta el papel
+               del pago, que enseña el que NO subiste tú: al que la pidió, el
+               documento para pagar; al que la lleva, el comprobante. */
+            loPedi[t.id] = (t.inversionista === uid);
+          });
 
+          /* Y el .in() no es de adorno, aunque la puerta de arriba ya
+             descarte lo ajeno: el limit(40) se gasta en el SERVIDOR. Sin
+             él, un gestor pedía los cuarenta movimientos más nuevos de la
+             oficina, tiraba aquí los que no son suyos y se quedaba con
+             tres —o con ninguno, si esa mañana los compañeros han movido
+             cuarenta—. Eso no es la campana llena de lo de otros: es la
+             campana VACÍA de lo tuyo, que se nota menos y es peor.
+
+             Por eso el filtro sube al servidor aquí y en los mensajes, que
+             son las dos fuentes con límite, y se queda en JavaScript en
+             las demás, que traen lo que hay. */
           return sb.from('tramite_eventos')
             .select('id, tramite, a_estado, nota, creado_en')
+            .in('tramite', mios)
             .order('creado_en', {ascending:false}).limit(40)
             .then(function(re){
               avisos = [];
@@ -13021,12 +13066,12 @@ applyLang(idiomaParaMi());
                  encadenarlas haría que el buzón tardara la suma de las
                  cinco en vez de lo que tarde la más lenta. */
               return Promise.all([
-                sumaCitas(),
+                sumaCitas(uid),
                 sumaPapeles(uid),
-                sumaMensajes(uid, refDe),
+                sumaMensajes(uid, refDe, mios),
                 sumaConsultas(uid),
                 sumaPagos(uid, refDe),
-                sumaPapelesDePago(refDe)
+                sumaPapelesDePago(refDe, loPedi)
               ]).then(ordenaYPinta);
             });
         });
@@ -13072,11 +13117,22 @@ applyLang(idiomaParaMi());
   /* Las citas confirmadas entran en el mismo buzón. Van en su propia
      consulta y no en la de los trámites: si supabase-citas.sql no está
      corrido, esta falla sola y el buzón sigue enseñando el historial de
-     trámites, en vez de quedarse vacío por una tabla que no existe. */
-  function sumaCitas(){
+     trámites, en vez de quedarse vacío por una tabla que no existe.
+
+     Y las TUYAS, que es el único aviso de aquí que dice «tu cita»: sin el
+     filtro, a quien es del CIIP le llegaba cada reunión que la oficina
+     confirma, redactada como si fuera suya (Franklin Reyes, 21-9-2026).
+
+     Aquí no vale la regla de los trámites —tuya, tuya de llevarla, o de
+     nadie—: citas.gestor existe, pero confirmar una no lo rellena, así
+     que «de nadie» serían TODAS y el filtro no filtraría. Y tampoco hace
+     falta: lo que el equipo tiene que atender son las que están pidiendo
+     hora, y ésas ya las lleva su cola. Una confirmada es trabajo hecho. */
+  function sumaCitas(uid){
     return avPide('citas', function(){
       return sb.from('citas')
         .select('id, tipo_tramite, cuando, lugar, actualizado_en')
+        .eq('inversionista', uid)
         .eq('estado', 'confirmada');
     }, function(filas){
       filas.forEach(function(c){
@@ -13138,12 +13194,20 @@ applyLang(idiomaParaMi());
      dice la tabla-, y en SQL `autor <> yo` con autor nulo no es cierto ni
      falso, así que esos mensajes desaparecerían del buzón sin que nadie
      supiera por qué. Descartando en JavaScript, un mensaje sin autor se
-     queda, que es lo correcto: alguien del CIIP lo escribió. */
-  function sumaMensajes(uid, refDe){
+     queda, que es lo correcto: alguien del CIIP lo escribió.
+
+     El de quién es el expediente, en cambio, sí sube a la consulta. Se
+     hacía abajo, con refDe, y para un inversionista bastaba; pero refDe le
+     traía a un gestor la oficina entera, así que no descartaba nada y por
+     aquí le entraba lo que otro gestor escribía en el expediente de otro.
+     Con el .in() se pide lo suyo, y de paso el limit(20) deja de gastarse
+     en conversaciones que se iban a tirar (Franklin Reyes, 21-9-2026). */
+  function sumaMensajes(uid, refDe, mios){
     return avPide('mensajes', function(){
       return sb.from('tramite_mensajes')
         .select('id, tramite, autor, texto, del_equipo, creado_en')
         .eq('del_equipo', true)
+        .in('tramite', mios)
         .order('creado_en', {ascending:false}).limit(20);
     }, function(filas){
       filas.forEach(function(m){
@@ -13235,9 +13299,13 @@ applyLang(idiomaParaMi());
      de los dos se enteraba: había que entrar al trámite a mirar si ya
      estaba. Los dos van por aquí, y cada uno ve el que NO subió:
 
-       al inversionista  el documento para pagar que le dejó el equipo;
-       al equipo         el comprobante que subió el inversionista, que es
+       al que la pidió   el documento para pagar que le dejó el equipo;
+       al que la lleva   el comprobante que subió el inversionista, que es
                          lo que faltaba para poder resolver.
+
+     Dicho por solicitud y no por rol desde el 21-9-2026, que es lo que
+     hace que las dos frases de arriba sigan siendo verdad cuando quien
+     mira es un gestor con un trámite propio.
 
      Una sola consulta para los dos: los enganches de cada solicitud con su
      papel. La fecha es la de cuando se subió el papel, que es cuando la
@@ -13245,18 +13313,31 @@ applyLang(idiomaParaMi());
   var AV_PARA_PAGAR = ['planilla_reserva_nombre', 'planilla_aranceles', 'planilla_publicacion'];
   var AV_COMPROBANTES = ['reserva_nombre', 'pago_aranceles', 'pago_publicacion'];
 
-  function sumaPapelesDePago(refDe){
-    var equipo = !!(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO());
-    var busco  = equipo ? AV_COMPROBANTES : AV_PARA_PAGAR;
+  function sumaPapelesDePago(refDe, loPedi){
     return avPide('papeles del pago', function(){
       return sb.from('tramite_documentos')
         .select('tramite, documentos(id, tipo, nombre_original, creado_en)');
     }, function(filas){
       filas.forEach(function(f){
         var d = f.documentos;
-        if (!d || busco.indexOf(d.tipo) < 0) return;
+        if (!d) return;
+        /* De un expediente que no es mío no entra nada, ni en un sentido
+           ni en el otro. */
+        if (!Object.prototype.hasOwnProperty.call(loPedi, f.tramite)) return;
+        /* Y el lado se decide POR SOLICITUD, no por el rol de quien mira.
+           Antes lo elegía CIIP_ES_EQUIPO una vez para toda la lista, y eso
+           fallaba por los dos lados: al gestor que pide un trámite para sí
+           mismo le escondía el documento que tiene que pagar, y en la
+           primera pasada del buzón ni siquiera había respuesta —esa
+           función se define más abajo en la página que la campana, así que
+           valía undefined y un gestor pasaba por inversionista hasta el
+           repintado del minuto siguiente—. Preguntándoselo a la fila no
+           hay rol que esperar ni caso raro que atender. */
+        var pidiendo = !!loPedi[f.tramite];
+        var busco = pidiendo ? AV_PARA_PAGAR : AV_COMPROBANTES;
+        if (busco.indexOf(d.tipo) < 0) return;
         avisos.push({
-          clase: equipo ? 'comprobante' : 'planilla',
+          clase: pidiendo ? 'planilla' : 'comprobante',
           tipo: d.tipo, tramite: f.tramite, ref: refDe[f.tramite] || '',
           nota: d.nombre_original || '', creado_en: d.creado_en, ente: ''
         });
