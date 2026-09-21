@@ -8186,6 +8186,44 @@ applyLang(idiomaParaMi());
      dato esta guardado desde la primera: lo unico que faltaba era ir a
      buscarlo. Se pide UNA vez y se recuerda; si la consulta falla, los
      campos salen vacios y no pasa nada mas. */
+  /* ── EL MISMO DATO CON OTRO NOMBRE ──────────────────────────────────
+     Lo de antes se reutiliza buscando por nombre de campo, y eso deja
+     fuera lo que existe pero se llama distinto en cada tramo. Franklin
+     Reyes lo pidió tres veces el 21 de septiembre de 2026 -«esos datos los
+     puedes tomar de constitución y protocolización»- y tenía razón: el
+     Registro Mercantil está en los dos tramos anteriores, con otro rótulo.
+
+       numero_registro       (c23, «N.º de Registro Mercantil»)
+         ← registro_mercantil  (c22, «Registro Mercantil donde protocolizas»)
+         ← oficina_registro    (c5,  «Oficina donde harás la solicitud»)
+       fecha_protocolizacion (c23)
+         ← fecha_firma         (c22, «Fecha de firma del documento»)
+
+     El orden importa: primero el tramo de al lado, que es el más cercano a
+     la verdad, y la constitución detrás.
+
+     Esto ADELANTA TRABAJO, no lo da por bueno: el campo se puede escribir
+     encima y lleva el sello «de antes», que al pasar por encima dice de qué
+     trámite salió. Es la misma promesa que ya hacía el relleno por nombre,
+     y por eso se enchufa aquí y no en la base: lo que la base copia -lo que
+     el gestor apuntó del acta- sí es el dato bueno, y manda sobre esto
+     porque se mira primero.
+
+     'periodico' no está y no puede estarlo: es una elección que todavía no
+     ha hecho nadie. */
+  var TAMBIEN_DE = {
+    numero_registro:       ['registro_mercantil', 'oficina_registro'],
+    fecha_protocolizacion: ['fecha_firma']
+  };
+  function deOtroNombre(campo){
+    var otros = TAMBIEN_DE[campo];
+    if (!otros || !ANTES) return null;
+    for (var i = 0; i < otros.length; i++){
+      if (ANTES[otros[i]]) return ANTES[otros[i]];
+    }
+    return null;
+  }
+
   var ANTES = null, antesPide = null;
   function anteriores(){
     if (antesPide) return antesPide;
@@ -11284,14 +11322,15 @@ applyLang(idiomaParaMi());
         entrada.value = EMPRESA[c.n];
         var sello = el('span', 'de-empresa', u.em_deempresa || '');
         campo.querySelector('label').appendChild(sello);
-      } else if (ANTES && ANTES[c.n]){
+      } else if (ANTES && (ANTES[c.n] || deOtroNombre(c.n))){
         /* Y si no, lo que pusiste en otro tramite. El sello es corto -en
            una etiqueta no cabe una frase- y el nombre del tramite va en el
            titulo: quien se pregunte de donde salio, lo tiene al pasar por
            encima. */
-        entrada.value = ANTES[c.n].valor;
+        var viene = ANTES[c.n] || deOtroNombre(c.n);
+        entrada.value = viene.valor;
         var sa = el('span', 'de-antes', u.em_deantes || '');
-        var refa = tipoRefDe(ANTES[c.n].tipo);
+        var refa = tipoRefDe(viene.tipo);
         var dica = I18N[curLang] || I18N.en;
         var noma = refa && (dica[refa + '.name'] || I18N.en[refa + '.name']);
         if (noma) sa.title = String(u.em_deantes_t || '').replace('{tramite}', noma);
@@ -12014,12 +12053,23 @@ applyLang(idiomaParaMi());
        pendiente en vez de dar por hecho que es la 2. Si no falta nada en
        ninguna -todo puesto y lo que fallaba era un papel- se queda en
        «Recaudos», que es donde estará la cruz cuando llegue. */
-    if (corrigiendo && HOJAS.length > 1){
-      var donde = 0;
+    /* Y SE ABRE POR RECAUDOS, ESTÉN COMO ESTÉN LOS DATOS (Franklin Reyes,
+       21-9-2026, pedido dos veces: «quiero que salga en recaudos»). La
+       primera versión de esto abría por la primera hoja con algo pendiente,
+       y con «Periódico mercantil preferido» vacío eso era siempre «Tus
+       datos»: nunca se llegaba a recaudos solo. Lo que se devuelve casi
+       siempre es un papel, así que ahí se abre.
+
+       No deja a nadie atascado: al enviar, lo que falte en otra hoja
+       devuelve a esa hoja con su aviso -eso ya estaba-, y las tres siguen a
+       un clic en la barra de pasos.
+
+       Se busca la hoja por su contenido -la primera que tenga recaudos- y
+       no por el número: no todos los trámites tienen las mismas hojas. */
+    if (corrigiendo){
       for (var h = 0; h < HOJAS.length; h++){
-        if (faltaAlgoEn(HOJAS[h].hoja)){ donde = h + 1; break; }
+        if (HOJAS[h].hoja.querySelector('.sol-doc')){ vaALaHoja(h + 1); break; }
       }
-      if (donde !== 1) vaALaHoja(donde || Math.min(2, HOJAS.length));
     }
 
     enviar.addEventListener('click', function(){
