@@ -12594,15 +12594,70 @@ applyLang(idiomaParaMi());
            "Resuelta" pasa a ser el quinto, y mientras la constitucion esta
            ante el ente lo que toca es subir ese papel, no la resolucion. */
         var conReserva = (tipo.codigo === 'constitucion');
+
+        /* ── LOS PASOS DE ESTE TRÁMITE, NO LOS DE TODOS ──
+           Franklin Reyes, 21 de septiembre de 2026: «quiero que esto sea el
+           aviso del proceso», señalando los cinco pasos que el bloque del
+           tramo ya enseña.
+
+           La escalera de «Tu solicitud» pintaba los cuatro rótulos
+           genéricos del circuito -recibida, revisión, presentada ante X,
+           resuelta- para cualquier trámite. Para la protocolización y la
+           publicación eso es decir muy poco: sus pasos de verdad están
+           escritos en pasos.js y son los que el equipo y el inversionista
+           usan para hablar del expediente -«el PUB», «la consignación», «el
+           extracto»-. Y encima el tercero salía diciendo «Reserva de
+           nombre» dentro de la publicación, que es de otro trámite.
+
+           Los pasos propios son CINCO y los estados CUATRO: el primero -la
+           emisión del PUB- no lo marca ningún estado, lo cierra el papel
+           que deja el CIIP. Es la misma cuenta que ya hace el bloque del
+           tramo, y por eso se lee de PASOS_DE_DELANTE en vez de repetirla:
+           dos sitios contando lo mismo acaban contando distinto.
+
+           Solo se usan si la cuenta CUADRA -tantos pasos como estados más
+           los de delante-. Si alguien añade un paso en pasos.js y se olvida
+           de esto, la escalera se cae a los rótulos de siempre en vez de
+           quedarse coja o saltarse uno. */
+        var DP = window.CIIP_PASOS || {};
+        var refTr = tipoRefDe(tipo.codigo);
+        var mapaP = (DP.pasos && (DP.pasos[curLang] || DP.pasos.en)) || {};
+        var delante = ((typeof PASOS_DE_DELANTE !== 'undefined' &&
+                        PASOS_DE_DELANTE[refTr]) || {}).cuantos || 0;
+        var propios = (delante && mapaP[refTr] &&
+                       mapaP[refTr].length === ORDEN.length + delante)
+                      ? mapaP[refTr] : null;
+
+        /* Los de delante, antes del circuito. Se dan por hechos cuando la
+           solicitud ya pasó de «recibida»: no se llega a revisión sin haber
+           pagado, así que el PUB estaba. Es, otra vez, la regla del bloque
+           del tramo. */
+        if (propios){
+          for (var p = 0; p < delante; p++){
+            var hechoP = alcanzado >= 1;
+            var ahoraP = !hechoP && tr.estado !== 'devuelto';
+            var liP = el('li', 'tr-paso ' + (hechoP ? 'hecho' : (ahoraP ? 'ahora' : 'porhacer')));
+            liP.appendChild(el('span', 'tr-punto', hechoP ? '✓' : String(p + 1)));
+            var txtP = el('div', 'tr-txt');
+            txtP.appendChild(el('div', 'tr-paso-n', propios[p]));
+            liP.appendChild(txtP);
+            lista.appendChild(liP);
+          }
+        }
+
         ORDEN.forEach(function(est, i){
           var hecho = i <= alcanzado;
           var ahora = (i === alcanzado + 1) && tr.estado !== 'resuelto' &&
                       !(conReserva && est === 'resuelto');
 
           var li = el('li', 'tr-paso ' + (hecho ? 'hecho' : (ahora ? 'ahora' : 'porhacer')));
-          var punto = el('span', 'tr-punto', hecho ? '✓' : String(conReserva && est === 'resuelto' ? i + 2 : i + 1));
+          /* La numeración corre detrás de los pasos de delante: con el PUB
+             arriba, «revisión» es el 2 y no el 1. */
+          var nPaso = (conReserva && est === 'resuelto' ? i + 2 : i + 1) + delante;
+          var punto = el('span', 'tr-punto', hecho ? '✓' : String(nPaso));
           var txt = el('div', 'tr-txt');
-          txt.appendChild(el('div', 'tr-paso-n', estadoTexto(i, tipo.ente)));
+          txt.appendChild(el('div', 'tr-paso-n',
+            propios ? propios[i + delante] : estadoTexto(i, tipo.ente)));
           if (cuando[est]) txt.appendChild(el('div', 'sd-e', fecha(cuando[est])));
           else if (ahora){
             var eti = el('span', 'tr-aqui', textoAqui());
