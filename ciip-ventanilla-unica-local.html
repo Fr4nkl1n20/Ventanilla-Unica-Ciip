@@ -3617,6 +3617,28 @@ body[data-vista="tramite"] #secTramites{display:none;}
   padding:11px 13px; margin-bottom:16px;}
 .sol-devuelta .sv-t{font-size:11.5px; font-weight:800; color:var(--amber);}
 .sol-devuelta .sv-d{font-size:12px; color:var(--ink); margin-top:4px;}
+/* Mientras se corrige, el mismo aviso se queda arriba del formulario: es
+   lo único que dice QUÉ arreglar, y antes se borraba justo al pulsar
+   «Corregir». Se pega para que no se pierda al bajar por las tres hojas. */
+.sol-devuelta.corrigiendo{position:sticky; top:8px; z-index:5; box-shadow:var(--shadow);}
+
+/* ── EL RECAUDO QUE NO VALIÓ ──
+   El contrario de «✓ ya estaba en tu expediente». Va en óxido y no en
+   ámbar: el ámbar de la franja de arriba dice «esto te reclama algo», y
+   esto dice «este papel está mal», que no es lo mismo y conviene que no
+   se confundan a un palmo de distancia. */
+/* flex-wrap aquí y no en .sol-doc: la fila normal es de UNA línea a
+   propósito, y sin el wrap el porqué no baja de renglón, se espachurra
+   contra el nombre del archivo. */
+.sd-novale{border-color:var(--rust); background:var(--rust-bg); flex-wrap:wrap;}
+.sd-no{display:inline-flex; align-items:center; justify-content:center;
+  width:18px; height:18px; border-radius:50%; background:var(--rust); color:#fff;
+  font-size:11px; font-weight:800; flex:none;}
+/* El porqué, con las palabras del gestor. A renglón entero y no al lado
+   del nombre: una frase suya -«súbelo escaneado, se lee a medias»- no
+   cabe en una línea ya ocupada por el nombre del archivo. */
+.sd-porque{flex-basis:100%; font-size:11.5px; color:var(--rust); line-height:1.45;
+  margin-top:6px; padding-top:6px; border-top:1px solid rgba(180,80,46,.22);}
 .sol-adj{margin-top:20px;}
 .sol-adj .sa-l{display:flex; flex-wrap:wrap; gap:7px; margin-top:9px;}
 .sol-adj .sa-i{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700;
@@ -11469,7 +11491,8 @@ applyLang(idiomaParaMi());
 
       /* Si ya hay un documento de ese tipo en la bóveda, se reutiliza: no
          se le vuelve a pedir. Ese es el punto de todo el diseño. */
-      var enBoveda = sb.from('documentos').select('id, nombre_original, archivo')
+      var enBoveda = sb.from('documentos')
+        .select('id, nombre_original, archivo, estado, nota_revision')
         .eq('tipo', r.tipo);
       /* Y si el papel es de una persona, el de ESA persona: sin esto, la
          cédula más reciente de la junta se ofrecería a todos sus miembros.
@@ -11484,6 +11507,30 @@ applyLang(idiomaParaMi());
              llegaría después y le pondría encima la marca del viejo a un
              archivo que acabas de escoger. */
           if (inp.files[0]) return;
+
+          /* ── EL QUE NO VALIÓ NO SE REUTILIZA ──
+             Franklin Reyes, 21 de septiembre de 2026. Esta consulta coge el
+             documento MÁS RECIENTE de ese tipo y lo daba por bueno sin
+             mirar su estado. En el caso que más importa -corregir un
+             trámite devuelto- el más reciente es justo el que el CIIP acaba
+             de rechazar, así que la fila salía con su «✓ reutilizado» y el
+             inversionista reenviaba el mismo papel por el que se lo
+             devolvieron. El trámite volvía con la misma nota, y desde su
+             lado parecía que el CIIP no miraba.
+
+             Ahora un rechazado no se engancha -sin data-ya no viaja en el
+             envío- y la fila dice por qué no vale, con las palabras que
+             escribió el gestor. Es lo que convierte «arregla el trámite» en
+             «arregla ESTE papel»: los demás siguen reutilizándose solos y
+             el único que pide trabajo es el que lo pide de verdad. */
+          if (ya.estado === 'rechazado'){
+            fila.classList.add('sd-novale');
+            est.textContent = ya.nombre_original + ' · ' + (u.sol_novale || '');
+            fila.insertBefore(el('span', 'sd-no', '✕'), btn);
+            if (ya.nota_revision) fila.appendChild(el('div', 'sd-porque', ya.nota_revision));
+            return;
+          }
+
           fila.setAttribute('data-ya', ya.id);
           est.textContent = ya.nombre_original + ' · ' + (u.reutilizado || '');
           var sello = el('span', 'sd-ya', '✓');
@@ -12240,8 +12287,20 @@ applyLang(idiomaParaMi());
       var arreglar = el('button', 'btn navy', u.corregir || '');
       arreglar.type = 'button';
       arreglar.addEventListener('click', function(){
+        /* LA NOTA SE QUEDA. Antes esto era caja.textContent = '' a secas, y
+           con ello se iba por delante el único renglón que dice QUÉ hay que
+           arreglar, justo en el clic en el que uno se pone a arreglarlo.
+           Quedaba el formulario entero y ninguna pista, así que había que
+           salir y volver a entrar para leer la nota, o arreglar de memoria.
+
+           Se saca el aviso de la caja ANTES de vaciarla y se vuelve a
+           poner arriba. Es el mismo nodo, con la nota ya escrita por la
+           consulta del historial. */
+        caja.removeChild(av);
         caja.textContent = '';
         caja.classList.add('puesto');
+        av.classList.add('corrigiendo');
+        caja.appendChild(av);
         chipReal('sin_iniciar');
         /* Se le pasa la fila que ya existe: el envío la reutiliza y la pasa
            a 'enviado' en vez de crear una segunda solicitud del mismo

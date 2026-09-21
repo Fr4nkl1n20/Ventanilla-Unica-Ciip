@@ -359,6 +359,10 @@ window.CIIP_PASOS = {
       sin_archivo:  "Elige el archivo",
       error:        "No se pudo enviar. Inténtalo otra vez.",
       reutilizado:  "ya estaba en tu expediente",
+      /* Y su contrario: el papel que el CIIP miró y no valió. No se
+         reutiliza -reenviarlo es repetir el viaje entero- y la fila dice
+         por qué, con las palabras del gestor. */
+      sol_novale:   "no valió · súbelo de nuevo",
 
 
       /* --- La solicitud, en pasos ---
@@ -1440,6 +1444,7 @@ window.CIIP_PASOS = {
       sin_archivo:  "Choose the file",
       error:        "It could not be sent. Please try again.",
       reutilizado:  "already in your file",
+      sol_novale:   "not accepted · upload it again",
 
 
       /* --- La solicitud, en pasos ---
@@ -2422,6 +2427,7 @@ window.CIIP_PASOS = {
       sin_archivo:  "Escolha o ficheiro",
       error:        "Não foi possível enviar. Tente outra vez.",
       reutilizado:  "já estava no seu processo",
+      sol_novale:   "não foi aceite · carregue-o de novo",
 
 
       /* --- La solicitud, en pasos ---
@@ -3387,6 +3393,7 @@ window.CIIP_PASOS = {
       sin_archivo:  "Scegli il file",
       error:        "Non è stato possibile inviarla. Riprova.",
       reutilizado:  "era già nella tua pratica",
+      sol_novale:   "non è stato accettato · caricalo di nuovo",
 
 
       /* --- La solicitud, en pasos ---
@@ -4352,6 +4359,7 @@ window.CIIP_PASOS = {
       sin_archivo:  "请选择文件",
       error:        "提交失败，请重试。",
       reutilizado:  "档案中已有",
+      sol_novale:   "未通过 · 请重新上传",
 
 
       /* --- La solicitud, en pasos ---
@@ -5317,6 +5325,7 @@ window.CIIP_PASOS = {
       sin_archivo:  "Выберите файл",
       error:        "Не удалось отправить. Попробуйте ещё раз.",
       reutilizado:  "уже есть в вашем деле",
+      sol_novale:   "не принят · загрузите заново",
 
 
       /* --- La solicitud, en pasos ---
