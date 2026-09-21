@@ -16323,12 +16323,22 @@ applyLang(idiomaParaMi());
       .catch(function(e){
         console.warn('[CIIP] mover trámite:', e && (e.message || e));
         if (boton){ boton.disabled = false; boton.textContent = textoBoton || ''; }
-        /* Si es la base la que dice que no por la reserva, se dice eso y no
-           un error cualquiera. */
-        var porReserva = /reserva del nombre/.test((e && e.message) || '');
-        var porAranceles = /aranceles/.test((e && e.message) || '');
-        if (aviso) aviso.textContent = (porReserva && T().co_faltareserva) ||
-                                       (porAranceles && T().co_faltaaranceles) || T().co_error || '';
+        /* Si es la base la que dice que no por un papel que falta, se dice
+           ESO y no un error cualquiera.
+
+           CUÁL falta lo sabe comprobanteParaResolver por el TIPO del
+           trámite, y no una regex por cada uno (Franklin Reyes, 20-9-2026).
+           Había una para la reserva y otra para los aranceles, y el día que
+           la publicación empezó a pedir el suyo su mensaje no lo cogía
+           ninguna: el gestor veía «algo ha fallado» sin saber qué le
+           faltaba. Con el tipo, el siguiente trámite que pida un
+           comprobante ya entra solo. */
+        var msg = (e && e.message) || '';
+        var pide = comprobanteParaResolver(tr);
+        if (aviso) aviso.textContent =
+          (/reserva del nombre/.test(msg) && T().co_faltareserva) ||
+          (/comprobante del pago/i.test(msg) && pide && T()[pide.aviso]) ||
+          T().co_error || '';
         return false;
       });
   }
@@ -19730,6 +19740,52 @@ applyLang(idiomaParaMi());
        sola vez, y esa copia es justo la que hace que encender un trámite no
        se note hasta recargar. */
     var ultimoAlDia = Date.now();
+
+    /* LAS DEMÁS PANTALLAS TAMBIÉN (Franklin Reyes, 20-9-2026). Hasta hoy
+       cada una se llenaba AL ENTRAR y ahí se quedaba: quien se sentaba en
+       «Documentos por revisar» esperando que entrara trabajo no lo veía
+       llegar, y tenía que salir y volver, o recargar. El pintor de cada una
+       ya existe —es el mismo que la llena al pulsar su renglón—; lo único
+       que faltaba era llamarlo otra vez.
+
+       SOLO LAS DE LISTA. El catálogo, el horario, los usuarios, el
+       acompañamiento y la ficha de la empresa son FORMULARIOS: repintarlos
+       mientras alguien edita le borra lo que llevaba escrito, que es
+       exactamente lo que aquí se protege un par de líneas más abajo con el
+       trámite abierto. Ésas se quedan como están, y se ponen al día al
+       entrar, que es cuando se van a mirar.
+
+       La cola del equipo no está en esta tabla: tiene su propio trato más
+       abajo, porque además de repintarse pone al día el número del
+       renglón. */
+    var AL_DIA_DE_LA_VISTA = {
+      revisar:      'CIIP_PINTA_REVISAR',
+      comprobantes: 'CIIP_PINTA_COMPROBANTES',
+      consultas:    'CIIP_PINTA_CONSULTAS',
+      citas:        'CIIP_PINTA_AGENDA',
+      documentos:   'CIIP_PINTA_DOCS',
+      mistramites:  'CIIP_PINTA_MISTRAM',
+      activos:      'CIIP_PINTA_ACTIVOS',
+      pulso:        'CIIP_PINTA_PULSO',
+      rastro:       'CIIP_PINTA_RASTRO'
+    };
+
+    /* ¿Hay alguien tecleando AHORA MISMO, en cualquier pantalla? El foco
+       dentro de un campo es la señal, y basta: en estas listas lo que se
+       escribe es la nota de una devolución o un mensaje, y quien lo está
+       escribiendo tiene el cursor dentro. Un desplegable abierto cuenta
+       igual: repintar lo cierra en las narices de quien lo abrió. */
+    function escribiendoAhora(){
+      var a = document.activeElement;
+      if (!a) return false;
+      var t = (a.tagName || '').toLowerCase();
+      if (t === 'textarea' || t === 'select') return true;
+      if (a.isContentEditable) return true;
+      if (t !== 'input') return false;
+      return ['button','submit','reset','checkbox','radio','file','hidden']
+               .indexOf(a.type) < 0;
+    }
+
     /* ¿Hay algo a medio rellenar en el trámite abierto? Un campo con el foco
        -o con algo escrito, o con un archivo ya elegido- quiere decir que
        alguien está trabajando ahí: eso no se toca. */
@@ -19792,6 +19848,18 @@ applyLang(idiomaParaMi());
           window.CIIP_REPINTA_COLA();
         }
       }
+      /* Y la pantalla que se esté mirando, si es de las que esperan trabajo
+         de fuera. Con el cursor dentro de un campo no se toca: hay alguien
+         escribiendo, y eso vale más que estar al día medio minuto antes.
+
+         Cada pintor va en su propio try: uno que falle -una consulta caída,
+         una pantalla a medio dibujar- no puede llevarse por delante el
+         repaso de los demás, que es lo que mantiene vivo el panel. */
+      var pintor = AL_DIA_DE_LA_VISTA[document.body.getAttribute('data-vista')];
+      if (pintor && typeof window[pintor] === 'function' && !escribiendoAhora()){
+        try { window[pintor](); }
+        catch(e){ console.warn('[CIIP] al día, ' + pintor + ':', e && (e.message || e)); }
+      }
       Promise.resolve(cargaMisTramites()).then(function(){
         /* La escalera del trámite abierto se dibuja al abrirlo y no la
            repinta nadie cuando llegan datos nuevos: sin esto, la solicitud
@@ -19801,6 +19869,12 @@ applyLang(idiomaParaMi());
       return true;
     }
     window.CIIP_AL_DIA = alDiaSiToca;
+    /* A la vista para que la tanda pueda comprobar QUÉ pantallas se ponen
+       al día solas y cuáles no: la lista de arriba es una decisión -las de
+       formulario se quedan fuera a propósito- y una decisión sin prueba se
+       deshace sola el día que alguien añada un renglón sin leer el
+       comentario. */
+    window.CIIP_AL_DIA_VISTAS = AL_DIA_DE_LA_VISTA;
     document.addEventListener('visibilitychange', alDiaSiToca);
     /* Y sin tener que cambiar de pestaña: quien deja el panel abierto
        esperando que el CIIP mueva su solicitud no tiene por qué recargar.

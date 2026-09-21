@@ -278,7 +278,7 @@
               oficinaAbre, oficinaMira,
               juntaAbre, juntaMira,
               tramoVerdadAbre, reservaMira, reservaAviso, tramoVerdadMira,
-              textosMira,
+              textosMira, alDiaMira,
               rvAbre, rvMira, rvDespues,
               cbAbre, cbMira,
               tdAbre, tdMira,
@@ -9991,6 +9991,67 @@
        claves(TX.busca('Paso cambiado en la prueba')), '_p.pasos.c1.0');
     TX.pon(lang, '_p.pasos.c1.0', null);
     igual('textos: y vuelve al original', P.pasos[lang].c1[0], paso);
+  }
+
+  /* EL REPASO QUE PONE AL DÍA LAS PANTALLAS, Y LO QUE NO DEBE TOCAR.
+     Desde el 20-9-2026 el repaso de cada minuto repinta también la pantalla
+     que se esté mirando, para que quien espera trabajo entrante no tenga
+     que recargar. Eso vale para las LISTAS.
+
+     Lo que se prueba aquí es lo contrario, que es lo que puede hacer daño:
+     que las pantallas donde el ADMINISTRADOR ESCRIBE se queden fuera. El
+     catálogo, los textos del panel, el horario de citas, el acompañamiento,
+     los usuarios y la ficha de la empresa son formularios; repintarlos por
+     debajo mientras alguien edita le borra lo que llevaba escrito y nadie
+     entendería por qué. Es un renglón de más en una tabla, así que sin esta
+     prueba se añade sin querer y no se nota hasta que un administrador
+     pierde media hora de trabajo. */
+  function alDiaMira(){
+    if (CASO !== 'vacio') return;
+    var V = window.CIIP_AL_DIA_VISTAS;
+    ok('al día: el repaso sabe qué pantallas repintar solas',
+       !!V && typeof V === 'object', V ? Object.keys(V).length + ' pantallas' : 'no está',
+       'la tabla de pantallas');
+    if (!V) return;
+    ok('al día: el repaso existe y se puede llamar',
+       typeof window.CIIP_AL_DIA === 'function',
+       typeof window.CIIP_AL_DIA, 'una función');
+
+    /* Las que esperan trabajo de fuera: sin éstas hay que recargar. */
+    ['revisar', 'comprobantes', 'consultas', 'citas', 'documentos'].forEach(function(v){
+      ok('al día: «' + v + '» se pone al día sola', !!V[v],
+         V[v] || '(fuera de la tabla)', 'con su pintor');
+    });
+
+    /* Y las del administrador, fuera: son formularios. */
+    ['catalogo', 'horario', 'acomp', 'usuarios', 'empresa', 'textos'].forEach(function(v){
+      ok('al día: «' + v + '» NO se repinta sola, que ahí se escribe', !V[v],
+         V[v] ? 'la repinta ' + V[v] : 'fuera, como debe', 'fuera de la tabla');
+    });
+
+    /* Y con el cursor dentro de un campo tampoco se repinta nada, sea la
+       pantalla que sea: eso es lo que protege lo que se está escribiendo
+       en las listas que SÍ se repintan —la nota de una devolución, un
+       mensaje a medio poner—. */
+    var caja = document.createElement('textarea');
+    document.body.appendChild(caja);
+    caja.focus();
+    var seRepinto = false;
+    var antes = window.CIIP_PINTA_DOCS;
+    /* La vista se deja COMO ESTABA al salir: las pruebas van encadenadas
+       sobre la misma página, y dejarla en otra pantalla le cambia el suelo
+       a la siguiente. */
+    var vistaAntes = document.body.getAttribute('data-vista');
+    window.CIIP_PINTA_DOCS = function(){ seRepinto = true; };
+    document.body.setAttribute('data-vista', 'documentos');
+    if (window.CIIP_AL_DIA) window.CIIP_AL_DIA();
+    ok('al día: con el cursor en un campo, no repinta por debajo',
+       !seRepinto, seRepinto ? 'repintó igual' : 'respetó lo escrito', 'respetó lo escrito');
+    window.CIIP_PINTA_DOCS = antes;
+    if (vistaAntes === null) document.body.removeAttribute('data-vista');
+    else document.body.setAttribute('data-vista', vistaAntes);
+    caja.blur();
+    caja.remove();
   }
 
   /* DOCUMENTOS POR REVISAR. Del equipo: el renglón del menú, la bandeja con
