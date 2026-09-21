@@ -10346,6 +10346,24 @@ applyLang(idiomaParaMi());
             var todas = (r2.data || []).slice();
             todas.sort(function(a, b){ return mandaSobre(a, b) ? -1 : (mandaSobre(b, a) ? 1 : 0); });
             var mio = todas[0] || null;
+            /* SALVO QUE TE HAYAN DICHO CUÁL (Franklin Reyes, 21-9-2026).
+               «Mis trámites» tiene una fila por solicitud y su «Abrir»
+               viajaba por tipo, así que con dos del mismo trámite esta
+               pantalla elegía la más avanzada y abría una que no era la de
+               la fila pulsada. El orden de arriba sigue mandando cuando
+               nadie dice nada -es el que hace que un borrador viejo no
+               tape un envío-; esto solo lo respeta la elección de quien
+               venía señalando una.
+
+               La bandera se gasta al leerla y solo vale si la solicitud es
+               de las que hay aquí: una que no encaje -otro trámite, un
+               viaje que no llegó- se ignora y se abre la de siempre, que
+               es peor que acertar pero mucho mejor que una ficha vacía. */
+            var pedida = window.CIIP_ABRE_ESTA;
+            window.CIIP_ABRE_ESTA = null;
+            if (pedida){
+              todas.forEach(function(x){ if (x.id === pedida) mio = x; });
+            }
             escalera.classList.add('oculto');
             caja.classList.add('puesto');
             caja.textContent = '';
@@ -20783,6 +20801,17 @@ applyLang(idiomaParaMi());
             String(location.hash).replace(/^#/, '') !== destino){
           window.CIIP_CORREGIR_YA = ref;
         }
+        /* Y LA SOLICITUD QUE PULSASTE, NO OTRA (Franklin Reyes, 21-9-2026:
+           «me envía para acá y no directamente al trámite generado»). Esta
+           tabla tiene una fila por SOLICITUD y el enlace viajaba por TIPO,
+           así que con dos del mismo trámite la pantalla elegía por su
+           cuenta -la más avanzada- y abría una que no era la de la fila.
+           Desde la fila no había forma de decir cuál.
+
+           Se dice con el id, y la pantalla solo lo obedece si esa solicitud
+           es de las suyas: una bandera que no encaja se ignora en vez de
+           dejar la ficha en blanco. */
+        window.CIIP_ABRE_ESTA = t.id;
         location.hash = destino;
       });
       tdIr.appendChild(bt);
@@ -23825,6 +23854,25 @@ applyLang(idiomaParaMi());
       /* El documento para pagar la reserva lo deja el equipo: se nombra en la
          bóveda, y como el de una persona, no se ofrece en «Subir documento». */
       CLAVE_DE_TIPO[TIPO_PLANILLA] = 'd_planilla_reserva';
+      /* Y LOS OTROS TRES QUE EL CIIP DEJA O EMITE (Franklin Reyes,
+         21-9-2026, enseñando la bóveda: «resolucion» y
+         «planilla_publicacion» salían con el código pelado).
+
+         La vuelta de arriba saca los nombres de lo que un trámite PIDE, y
+         estos no los pide nadie: el PUB de los aranceles y el de la
+         publicación los deja el equipo en su paso, y la resolución es lo
+         que emite el organismo al final. Nunca son recaudo de un
+         formulario, así que por ahí no entran, y el dueño del papel veía
+         el nombre de la columna de una tabla.
+
+         Los rótulos ya estaban escritos en los seis idiomas -se usan en el
+         paso donde se dejan-, así que esto es enchufarlos, no inventar
+         texto nuevo. La resolución toma el del recuadro donde el gestor la
+         sube: «Documento emitido por el organismo», que es exactamente lo
+         que es. */
+      CLAVE_DE_TIPO.planilla_aranceles   = 'd_planilla_aranceles';
+      CLAVE_DE_TIPO.planilla_publicacion = 'd_planilla_publicacion';
+      CLAVE_DE_TIPO.resolucion           = 'co_emitido';
     }
     return CLAVE_DE_TIPO;
   }
