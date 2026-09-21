@@ -351,11 +351,8 @@ insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo)
   -- c5 en adelante: ref_panel es la llave que une esta tabla con las
   -- tarjetas y con pasos.js, y correrla dejaría los tres desalineados.
   -- El orden en pantalla lo da el panel, no este número.
-  ('antecedentes_penales','c16', 'Antecedentes penales apostillados','MPPRIJP',            1, false),
   ('apostilla_documentos','c17', 'Apostilla y traducción de documentos','MPPRE',           1, false),
-  ('constancia_domicilio','c18', 'Constancia de domicilio',          'Registro Civil',     1, false),
   ('firma_electronica',   'c19', 'Firma electrónica',                'SUSCERTE',           1, false),
-  ('visa_dependientes',   'c20', 'Visa y cédula de dependientes',    'SAIME',              1, false),
   ('cert_medico',         'c21', 'Certificado médico',               'Centro de salud',    1, false),
   -- Fase 02. Protocolizar y publicar eran hasta ahora dos PASOS del c5;
   -- la hoja de trámites por fase los cuenta como trámites propios, y de
@@ -404,9 +401,9 @@ on conflict (codigo) do nothing;
 -- Aquí se dice en positivo y en negativo, para que la lista de activos sea
 -- exactamente esta y no se quede uno encendido de una prueba anterior.
 update public.tipos_tramite set activo = true
-  where codigo in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'registros_laborales', 'licencia_municipal', 'antecedentes_penales', 'apostilla_documentos', 'constancia_domicilio', 'firma_electronica', 'visa_dependientes', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
+  where codigo in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'registros_laborales', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
 update public.tipos_tramite set activo = false
-  where codigo not in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'registros_laborales', 'licencia_municipal', 'antecedentes_penales', 'apostilla_documentos', 'constancia_domicilio', 'firma_electronica', 'visa_dependientes', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
+  where codigo not in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'registros_laborales', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
 
 
 -- La c1 era la visa de inversionista (TR-I), ante el SAIME. Desde el 15 de

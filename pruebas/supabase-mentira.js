@@ -355,10 +355,10 @@
      plazo_legal_norma:'Normas de Procedimiento para la Expedición de Visados, Gaceta Oficial Extraordinaria 5.427 del 5-1-2000',
      nombre:'Visa de negocios (TR-N)', fase:1, nivel:'obligatorio'},
     /* La visa de dependientes pregunta pasaporte, pais emisor y fecha de
-       nacimiento: las tres que la de inversionista ya contesto. Es donde se
+       nacimiento, que la de inversionista ya contesto. Es donde se
        mide que no se pide dos veces lo mismo. */
-    {codigo:'visa_dependientes', ref_panel:'c20', ente:'SAIME', activo:true, plazo_dias:70,
-     nombre:'Visa de dependientes', fase:1, nivel:'opcional'}
+    {codigo:'cert_medico', ref_panel:'c21', ente:'Centro de salud', activo:true, plazo_dias:7,
+     nombre:'Certificado médico', fase:1, nivel:'obligatorio'}
   ];
   /* Solo en 'tramos', y por eso va aparte del catálogo de arriba: en la base
      de verdad este tipo está encendido desde el 15 de septiembre, pero
@@ -623,8 +623,8 @@
      datos:{numero_pasaporte:'TR8842019', pais_emisor:'Japón',
             consulado:'Consulado de Venezuela en Tokio'},
      creado_en: haceDias(4), enviado_en: haceDias(4), gestor:'u1'},
-    {id:'d5', inversionista:'u9', tipo:'visa_dependientes', estado:'enviado',
-     datos:{nombre_familiar:'Chen Li', parentesco:'Hijo/a', numero_pasaporte:'EA9920114'},
+    {id:'d5', inversionista:'u9', tipo:'cert_medico', estado:'enviado',
+     datos:{centro_salud:'Centro Médico Docente La Trinidad', ciudad:'Caracas'},
      creado_en: haceDias(6), enviado_en: haceDias(6)},
     /* El mismo inversionista con dos cosas a la vez: pasa, y la cola no
        puede juntarlas ni esconder una. */
