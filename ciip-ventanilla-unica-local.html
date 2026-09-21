@@ -13226,7 +13226,7 @@ applyLang(idiomaParaMi());
                 sumaMensajes(uid, refDe, mios),
                 sumaConsultas(uid),
                 sumaPagos(uid, refDe),
-                sumaPapelesDePago(refDe, loPedi)
+                sumaPapelesDePago(refDe, loPedi, mios)
               ]).then(ordenaYPinta);
             });
         });
@@ -13468,13 +13468,31 @@ applyLang(idiomaParaMi());
   var AV_PARA_PAGAR = ['planilla_reserva_nombre', 'planilla_aranceles', 'planilla_publicacion'];
   var AV_COMPROBANTES = ['reserva_nombre', 'pago_aranceles', 'pago_publicacion'];
 
-  function sumaPapelesDePago(refDe, loPedi){
+  function sumaPapelesDePago(refDe, loPedi, mios){
     return avPide('papeles del pago', function(){
       /* 'archivo' es la ruta dentro del cubo, y entra aquí para que el
          aviso pueda abrir el papel sin pedir nada más al pulsarlo. Es una
-         columna en una consulta que ya se hacía. */
+         columna en una consulta que ya se hacía.
+
+         Y EL .in() TAMPOCO ES DE ADORNO (Franklin Reyes, 21-9-2026: «ya me
+         enviaron el comprobante de pago y no me llegó»). Ésta era la única
+         de las seis fuentes sin filtro en el servidor: pedía los enganches
+         de TODA la oficina y tiraba aquí los ajenos. Eso funciona mientras
+         quepan todos en una respuesta, y PostgREST tiene un tope de filas
+         por defecto. Pasado ese tope devuelve una página, y sin un
+         .order() esa página es ARBITRARIA: el comprobante que acaban de
+         subir puede quedarse fuera y no hay error que lo diga.
+
+         Es el mismo fallo que ya está anotado arriba para los movimientos,
+         con las mismas palabras: no es la campana llena de lo de otros, es
+         la campana VACÍA de lo tuyo, que se nota menos y es peor.
+
+         Con el .in() el conjunto baja a los trámites de quien mira -los
+         suyos, los que lleva y los que no lleva nadie-, que caben de
+         sobra, y deja de depender de cuántos papeles tenga la oficina. */
       return sb.from('tramite_documentos')
-        .select('tramite, documentos(id, tipo, nombre_original, archivo, creado_en)');
+        .select('tramite, documentos(id, tipo, nombre_original, archivo, creado_en)')
+        .in('tramite', mios);
     }, function(filas){
       filas.forEach(function(f){
         var d = f.documentos;
