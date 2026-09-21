@@ -10090,7 +10090,14 @@ applyLang(idiomaParaMi());
       {n:'razon_social',       clave:'f_razon',        ancho:true},
       {n:'numero_registro',    clave:'f_registro'},
       {n:'fecha_protocolizacion', clave:'f_fechaprot', tipo:'date'},
-      {n:'periodico',          clave:'f_periodico'}
+      /* Opcional desde el 21 de septiembre de 2026 (Franklin Reyes). Es el
+         único de los cuatro que no se hereda de los tramos de antes -una
+         preferencia no la ha escrito nadie todavía- y siendo obligatorio
+         era lo que dejaba la primera hoja siempre incompleta: con él vacío
+         la solicitud no se podía enviar aunque todo lo demás estuviera.
+         Preferir un periódico es preferir, no un requisito: sin elección,
+         el CIIP publica donde toque. */
+      {n:'periodico',          clave:'f_periodico', opcional:true}
     ],
     libros_contables: [
       {n:'razon_social',        clave:'f_razon',       ancho:true},
