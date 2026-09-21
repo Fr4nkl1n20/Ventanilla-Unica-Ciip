@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Constitución, protocolización y publicación</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   CONSTITUCIÓN, PROTOCOLIZACIÓN Y PUBLICACIÓN: CUATRO FORMAS DE JUNTARLAS
+
+   El CIIP quiere que «Protocolización del acta» (c22) y «Publicación del
+   acta» (c23) dejen de ser fichas aparte y formen parte de «Constitución de
+   la compañía» (c5). El informe del 2 de septiembre ya lo decía: no son
+   trámites aparte, son condiciones sin las cuales el acta no queda otorgada.
+
+   Esta maqueta enseña cuatro formas de hacerlo, con los textos y los pasos
+   de verdad de pasos.js, para elegir mirando. No toca el panel.
+   ══════════════════════════════════════════════════════════════════ */
+[hidden]{display:none !important;}
+/* Los colores de hoy: la capa Atlas del panel. _base.css se quedó en los de antes. */
+:root{
+  --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB;
+  --shadow:0 1px 2px rgba(14,20,36,.04), 0 6px 18px rgba(14,20,36,.06);
+}
+main{max-width:1180px; padding:28px 26px 90px; margin:0 auto;}
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:92ch; margin:0;}
+.intro b{color:var(--ink);}
+.indice{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 0;}
+.indice a{font-size:12px; font-weight:700; color:var(--navy2); text-decoration:none; background:#fff;
+  border:1px solid var(--line); border-radius:8px; padding:6px 11px;}
+.indice a:hover{border-color:var(--navy2);}
+
+/* ── cada idea ── */
+.caso{margin-top:52px; scroll-margin-top:16px;}
+.caso-h{display:flex; align-items:center; gap:11px; margin-bottom:6px;}
+.caso-n{width:28px; height:28px; border-radius:50%; background:var(--navy); color:#fff; font-size:13px;
+  font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;}
+.caso-n.hoy{background:var(--gray-soft);}
+.caso-t{font-size:17px; font-weight:700; letter-spacing:-.01em;}
+.rec{font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--good);
+  background:var(--good-bg); border-radius:5px; padding:3px 8px;}
+.caso-q{font-size:12.5px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0 0 12px 39px;}
+.caso-q b{color:var(--ink);}
+.balanza{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 0 16px 39px; max-width:940px;}
+.pro, .contra{font-size:12px; line-height:1.55; border-radius:10px; padding:10px 13px;}
+.pro{background:var(--good-bg); color:#16573F;}
+.contra{background:var(--amber-bg); color:#7A5214;}
+.pro b, .contra b{display:block; font-size:10px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:3px;}
+
+.pantalla{border:1px dashed #C9CED8; border-radius:14px; padding:18px; background:var(--block); margin-left:39px;}
+.pantalla + .pantalla{margin-top:12px;}
+.pantalla-r{font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--gray);
+  margin-bottom:11px;}
+
+/* ── las fichas, como las de hoy ── */
+.grid{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; align-items:stretch;}
+.tc{background:#fff; border:1px solid var(--line); border-radius:var(--r); padding:16px 18px; display:flex;
+  gap:14px; box-shadow:var(--shadow);}
+.tc .ico{flex:none; width:54px; height:46px; border:1px solid var(--line); border-radius:10px; background:#fff;
+  display:flex; align-items:center; justify-content:center;}
+.tc .ico img{max-width:40px; max-height:28px; display:block;}
+.tc .ico svg{width:21px; height:21px; stroke:var(--navy2); fill:none; stroke-width:1.8;}
+.tc .ico.suave{background:var(--block); border-color:transparent;}
+.tc .b{flex:1 1 auto; min-width:0; display:flex; flex-direction:column;}
+.tc .top{display:flex; gap:8px; align-items:flex-start;}
+.tc .nm{font-size:14px; font-weight:700; letter-spacing:-.01em; line-height:1.3; flex:1 1 auto;}
+.ente{display:flex; gap:7px; align-items:center; margin-top:6px; font-size:11px; font-weight:700; color:var(--ink);}
+.eb{font-size:10px; font-weight:700; color:var(--navy2); border:1px solid #CFE0F0; background:#fff;
+  border-radius:5px; padding:1px 6px;}
+.ds{font-size:12px; line-height:1.55; margin-top:8px; color:var(--ink);}
+.ft{margin-top:auto; padding-top:12px; display:flex; align-items:center; gap:10px;}
+.ft .nota{font-size:11px; color:var(--gray);}
+.go{margin-left:auto; font-size:12px; font-weight:700; color:var(--navy2);}
+.ch{font-size:10px; font-weight:700; border-radius:999px; padding:3px 9px; white-space:nowrap; flex:none;
+  background:var(--line-soft); color:var(--gray);}
+.ch.curso{background:var(--activa-bg); color:var(--navy2);}
+.ch.listo{background:var(--good-bg); color:var(--good);}
+.ch.luego{background:#fff; border:1px solid var(--line); color:var(--gray);}
+.tc.apagada{opacity:.55;}
+
+/* ── idea 2: los tramos dentro de la ficha ── */
+.tramos{margin-top:11px; display:flex; flex-direction:column; gap:7px; padding-top:10px; border-top:1px solid var(--line-soft);}
+.tramo{display:flex; align-items:center; gap:10px; font-size:12px;}
+.tramo .pt{width:19px; height:19px; border-radius:50%; border:1.5px solid var(--line); font-size:10px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; color:var(--gray); flex:none; background:#fff;}
+.tramo.hecho .pt{background:var(--good); border-color:var(--good); color:#fff;}
+.tramo.curso .pt{border-color:var(--navy2); color:var(--navy2);}
+.tramo .tn{flex:1 1 auto; font-weight:600;}
+.tramo.hecho .tn{color:var(--gray);}
+.barra{height:4px; border-radius:4px; background:var(--line-soft); overflow:hidden; margin-top:10px;}
+.barra span{display:block; height:100%; background:var(--cyan-deep); border-radius:4px;}
+
+/* ── el detalle: El proceso ── */
+.detalle{background:#fff; border:1px solid var(--line); border-radius:var(--r); padding:18px 22px; box-shadow:var(--shadow);}
+.det-cab{display:flex; gap:14px; align-items:flex-start; padding-bottom:14px; border-bottom:1px solid var(--line-soft); margin-bottom:12px;}
+.det-cab .nm{font-size:16px; font-weight:700; letter-spacing:-.01em;}
+.det-t{font-size:13px; font-weight:700; margin:4px 0 6px;}
+.pasos{list-style:none; margin:0; padding:0;}
+.paso{display:flex; gap:12px; align-items:flex-start; padding:6px 0;}
+.paso .pn{width:23px; height:23px; border-radius:50%; border:1.5px solid var(--line); display:flex; align-items:center;
+  justify-content:center; font-size:10.5px; font-weight:700; color:var(--gray); flex:none; background:#fff;}
+.paso.hecho .pn{background:var(--good); border-color:var(--good); color:#fff;}
+.paso.ahora .pn{border-color:var(--navy2); color:var(--navy2); box-shadow:0 0 0 3px var(--activa-bg);}
+.paso .px{font-size:12.5px; padding-top:3px; line-height:1.4;}
+.paso.hecho .px{color:var(--gray);}
+.paso.ahora .px{font-weight:700;}
+.aqui{font-size:10px; font-weight:700; color:var(--navy2); margin-left:8px; white-space:nowrap;}
+.nuevo{font-size:9.5px; font-weight:700; color:var(--navy2); background:var(--activa-bg); border-radius:4px;
+  padding:1px 6px; margin-left:8px; white-space:nowrap;}
+.bloque{border:1px solid var(--line-soft); border-radius:10px; padding:10px 14px; margin-top:10px;}
+.bloque-h{display:flex; align-items:center; gap:10px; margin-bottom:4px;}
+.bloque-h .t{font-size:13px; font-weight:700; flex:1 1 auto;}
+.bloque-h .p{font-size:11px; color:var(--gray);}
+.bloque.cerrado .pasos{display:none;}
+
+/* ── idea 3: el expediente ── */
+.exp{background:#fff; border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden;}
+.exp-f{display:flex; align-items:center; gap:12px; padding:13px 18px; border-bottom:1px solid var(--line-soft); font-size:12.5px;}
+.exp-f:last-child{border-bottom:0;}
+.exp-f .nm{font-weight:700; flex:1 1 auto;}
+.exp-f.hija{padding-left:46px; position:relative;}
+.exp-f.hija::before{content:""; position:absolute; left:26px; top:0; bottom:50%; width:12px;
+  border-left:2px solid var(--line); border-bottom:2px solid var(--line); border-bottom-left-radius:6px;}
+.exp-f .cuando{font-size:11px; color:var(--gray); white-space:nowrap;}
+.aviso-eq{font-size:12px; color:var(--gray); line-height:1.6; margin-top:12px;}
+.aviso-eq b{color:var(--ink);}
+
+/* ── idea 4: el grupo ── */
+.grupo{background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px 14px 16px; box-shadow:var(--shadow);}
+.grupo-h{display:flex; align-items:baseline; gap:10px; margin:0 4px 11px;}
+.grupo-h .t{font-size:13.5px; font-weight:700; letter-spacing:-.01em;}
+.grupo-h .s{font-size:11.5px; color:var(--gray);}
+.grupo .tc{box-shadow:none;}
+.hijos{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:10px 0 0 30px; padding-left:18px; border-left:2px solid var(--line);}
+.tc.mini{padding:12px 14px; gap:12px;}
+.tc.mini .ico{width:44px; height:38px;}
+.tc.mini .nm{font-size:13px;}
+.tc.mini .ds{font-size:11.5px;}
+details.mas > summary{cursor:pointer; list-style:none; font-size:12px; font-weight:700; color:var(--navy2); margin:12px 0 0 30px;}
+details.mas > summary::-webkit-details-marker{display:none;}
+details.mas[open] > summary .abrir{display:none;}
+details.mas:not([open]) > summary .cerrar{display:none;}
+
+@media (max-width:860px){
+  .grid, .balanza, .hijos{grid-template-columns:1fr;}
+  .caso-q, .balanza, .pantalla{margin-left:0;}
+}
+</style>
+</head>
+<body>
+
+<div class="mq-cartel">
+  <b>Maqueta · Constitución, protocolización y publicación</b>
+  <span>Cuatro formas de juntar los tres trámites. No es la aplicación: los datos son de ejemplo y nada se guarda.</span>
+</div>
+
+<main>
+  <p class="intro">
+    Hoy <b>Constitución de la compañía</b>, <b>Protocolización del acta</b> y <b>Publicación del acta</b>
+    son tres fichas en la etapa 2, y el inversionista las pide por separado. El informe del 2 de septiembre
+    ya decía que no son trámites aparte: sin protocolizar y sin publicar, el acta no queda otorgada.
+    Abajo, lo de hoy y cuatro formas de juntarlas, con los pasos de verdad de cada trámite.
+  </p>
+  <div class="indice">
+    <a href="#hoy">0 · Hoy</a>
+    <a href="#idea1">1 · Una sola ficha</a>
+    <a href="#idea2">2 · Tres tramos dentro</a>
+    <a href="#idea3">3 · Se abren solas</a>
+    <a href="#idea4">4 · Agrupadas</a>
+  </div>
+
+  <!-- ═══════════════════════════ 0 · HOY ═══════════════════════════ -->
+  <section class="caso" id="hoy">
+    <div class="caso-h"><div class="caso-n hoy">0</div><div class="caso-t">Hoy: tres fichas separadas</div></div>
+    <p class="caso-q">Tres solicitudes, cada una con su formulario, su estado y sus cuatro pasos. El RIF espera a que la compañía esté inscrita.</p>
+    <div class="pantalla">
+      <div class="pantalla-r">Portada · Etapa 2, Estructuración corporativa</div>
+      <div class="grid">
+        <div class="tc">
+          <div class="ico"><img src="../logos/saren.png" alt=""></div>
+          <div class="b">
+            <div class="top"><div class="nm">Constitución de la compañía</div><span class="ch">Por iniciar</span></div>
+            <div class="ente"><span class="eb">SAREN</span>Registro Mercantil · SAREN</div>
+            <div class="ds">Redacción del acta con un despacho jurídico aliado y firma para inscribirla en el Registro Mercantil.</div>
+            <div class="ft"><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+        <div class="tc">
+          <div class="ico"><img src="../logos/saren.png" alt=""></div>
+          <div class="b">
+            <div class="top"><div class="nm">Protocolización del acta</div><span class="ch">Por iniciar</span></div>
+            <div class="ente"><span class="eb">SAREN</span>Registro Mercantil · SAREN</div>
+            <div class="ds">Consigna el documento constitutivo en el Registro Mercantil. Es el acto que le da personalidad jurídica a tu compañía.</div>
+            <div class="ft"><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+        <div class="tc">
+          <div class="ico suave"><svg viewBox="0 0 24 24"><path d="M4 6h16v13H4z"/><path d="M4 6l8 5 8-5"/><path d="M8 14h5"/></svg></div>
+          <div class="b">
+            <div class="top"><div class="nm">Publicación del acta</div><span class="ch">Por iniciar</span></div>
+            <div class="ente"><span class="eb">Prensa</span>Periódico mercantil</div>
+            <div class="ds">Publicación del acta ya protocolizada en un periódico mercantil, y consignación de los ejemplares en el Registro.</div>
+            <div class="ft"><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+        <div class="tc">
+          <div class="ico"><img src="../logos/seniat.png" alt=""></div>
+          <div class="b">
+            <div class="top"><div class="nm">RIF de la empresa</div><span class="ch">Por iniciar</span></div>
+            <div class="ente"><span class="eb">SENIAT</span>Registro Único de Información Fiscal</div>
+            <div class="ds">Se pide apenas quede inscrita la compañía. El CIIP lo presenta por ti.</div>
+            <div class="ft"><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ 1 · UNA SOLA FICHA ═══════════════════════════ -->
+  <section class="caso" id="idea1">
+    <div class="caso-h"><div class="caso-n">1</div><div class="caso-t">Una sola ficha, con el proceso más largo</div><span class="rec">La más fiel al informe</span></div>
+    <p class="caso-q">
+      Las fichas de Protocolización y Publicación <b>desaparecen</b>. Constitución de la compañía se pide
+      <b>una vez</b> y su proceso junta los doce pasos de hoy en siete. En la base, los dos trámites se apagan
+      (no se borran) y la constitución pasa a entregar el acta protocolizada que espera el RIF.
+    </p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>El inversionista pide una sola cosa y ve el camino entero de principio a fin. Es lo que pide el informe.</div>
+      <div class="contra"><b>En contra</b>Una solicitud más larga. Hay que decidir qué pasa con quien ya tenga una protocolización o una publicación en marcha.</div>
+    </div>
+    <div class="pantalla">
+      <div class="pantalla-r">Portada · Etapa 2</div>
+      <div class="grid">
+        <div class="tc">
+          <div class="ico"><img src="../logos/saren.png" alt=""></div>
+          <div class="b">
+            <div class="top"><div class="nm">Constitución de la compañía</div><span class="ch curso">En curso</span></div>
+            <div class="ente"><span class="eb">SAREN</span>Registro Mercantil · SAREN</div>
+            <div class="ds">Redacción y firma del acta, protocolización en el Registro Mercantil y publicación en prensa: todo en una sola solicitud.</div>
+            <div class="barra"><span style="width:28%"></span></div>
+            <div class="ft"><span class="nota">Paso 3 de 7</span><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+        <div class="tc">
+          <div class="ico"><img src="../logos/seniat.png" alt=""></div>
+          <div class="b">
+            <div class="top"><div class="nm">RIF de la empresa</div><span class="ch luego">Espera a la constitución</span></div>
+            <div class="ente"><span class="eb">SENIAT</span>Registro Único de Información Fiscal</div>
+            <div class="ds">Se pide apenas quede inscrita la compañía. El CIIP lo presenta por ti.</div>
+            <div class="ft"><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pantalla">
+      <div class="pantalla-r">Al abrir la ficha · El proceso</div>
+      <div class="detalle">
+        <div class="det-cab">
+          <div class="tc" style="padding:0;border:0;box-shadow:none;"><div class="ico"><img src="../logos/saren.png" alt=""></div></div>
+          <div><div class="nm">Constitución de la compañía</div><div class="ente"><span class="eb">SAREN</span>Registro Mercantil · SAREN</div></div>
+        </div>
+        <div class="det-t">El proceso</div>
+        <ol class="pasos">
+          <li class="paso hecho"><span class="pn">✓</span><span class="px">Búsqueda y reserva del nombre</span></li>
+          <li class="paso hecho"><span class="pn">✓</span><span class="px">Redacción del documento por abogado colegiado</span></li>
+          <li class="paso ahora"><span class="pn">3</span><span class="px">Revisión y firma de los socios<span class="aqui">Estás aquí</span></span></li>
+          <li class="paso"><span class="pn">4</span><span class="px">Consignación en el Registro Mercantil y pago de aranceles<span class="nuevo">antes: Protocolización</span></span></li>
+          <li class="paso"><span class="pn">5</span><span class="px">Revisión del registrador: acta protocolizada, con personalidad jurídica<span class="nuevo">antes: Protocolización</span></span></li>
+          <li class="paso"><span class="pn">6</span><span class="px">Publicación del extracto en un periódico mercantil<span class="nuevo">antes: Publicación</span></span></li>
+          <li class="paso"><span class="pn">7</span><span class="px">Consignación de los ejemplares en el Registro<span class="nuevo">antes: Publicación</span></span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ 2 · TRES TRAMOS DENTRO ═══════════════════════════ -->
+  <section class="caso" id="idea2">
+    <div class="caso-h"><div class="caso-n">2</div><div class="caso-t">Una ficha con tres tramos dentro</div></div>
+    <p class="caso-q">
+      En la portada se ve <b>una sola ficha</b>, pero lleva dentro tres tramos con su propio estado. Por detrás
+      siguen siendo tres trámites: cada tramo conserva su plazo, sus documentos y su historial, y el equipo
+      sigue viendo en cuál va cada empresa.
+    </p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Una ficha para el inversionista, y el seguimiento por tramos intacto para el equipo. No se pierde ningún dato.</div>
+      <div class="contra"><b>En contra</b>Es la que más pantalla hay que hacer: la ficha, el detalle y la cola tienen que entender los tramos.</div>
+    </div>
+    <div class="pantalla">
+      <div class="pantalla-r">Portada · Etapa 2</div>
+      <div class="grid">
+        <div class="tc">
+          <div class="ico"><img src="../logos/saren.png" alt=""></div>
+          <div class="b">
+            <div class="top"><div class="nm">Constitución de la compañía</div><span class="ch curso">En curso</span></div>
+            <div class="ente"><span class="eb">SAREN</span>Registro Mercantil · SAREN</div>
+            <div class="ds">Tu compañía nace en tres tramos: el acta, su registro y su publicación.</div>
+            <div class="tramos">
+              <div class="tramo hecho"><span class="pt">✓</span><span class="tn">Redacción y firma del acta</span><span class="ch listo">Listo</span></div>
+              <div class="tramo curso"><span class="pt">2</span><span class="tn">Protocolización en el Registro</span><span class="ch curso">En curso</span></div>
+              <div class="tramo"><span class="pt">3</span><span class="tn">Publicación en prensa</span><span class="ch">Por iniciar</span></div>
+            </div>
+            <div class="ft"><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+        <div class="tc">
+          <div class="ico"><img src="../logos/seniat.png" alt=""></div>
+          <div class="b">
+            <div class="top"><div class="nm">RIF de la empresa</div><span class="ch luego">Espera a la constitución</span></div>
+            <div class="ente"><span class="eb">SENIAT</span>Registro Único de Información Fiscal</div>
+            <div class="ds">Se pide apenas quede inscrita la compañía. El CIIP lo presenta por ti.</div>
+            <div class="ft"><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pantalla">
+      <div class="pantalla-r">Al abrir la ficha · cada tramo con sus pasos</div>
+      <div class="detalle">
+        <div class="det-t">El proceso</div>
+        <div class="bloque">
+          <div class="bloque-h"><span class="t">1 · Redacción y firma del acta</span><span class="p">SAREN · terminó el 8 sept</span><span class="ch listo">Listo</span></div>
+          <ol class="pasos">
+            <li class="paso hecho"><span class="pn">✓</span><span class="px">Búsqueda y reserva del nombre</span></li>
+            <li class="paso hecho"><span class="pn">✓</span><span class="px">Redacción del documento por abogado colegiado</span></li>
+            <li class="paso hecho"><span class="pn">✓</span><span class="px">Revisión y firma de los socios</span></li>
+            <li class="paso hecho"><span class="pn">✓</span><span class="px">Documento constitutivo listo para protocolizar</span></li>
+          </ol>
+        </div>
+        <div class="bloque">
+          <div class="bloque-h"><span class="t">2 · Protocolización en el Registro Mercantil</span><span class="p">SAREN · plazo 15 días</span><span class="ch curso">En curso</span></div>
+          <ol class="pasos">
+            <li class="paso hecho"><span class="pn">✓</span><span class="px">Consignación del documento en el Registro Mercantil</span></li>
+            <li class="paso ahora"><span class="pn">2</span><span class="px">Pago de aranceles registrales<span class="aqui">Estás aquí</span></span></li>
+            <li class="paso"><span class="pn">3</span><span class="px">Revisión del registrador</span></li>
+            <li class="paso"><span class="pn">4</span><span class="px">Acta protocolizada con personalidad jurídica</span></li>
+          </ol>
+        </div>
+        <div class="bloque cerrado">
+          <div class="bloque-h"><span class="t">3 · Publicación en un periódico mercantil</span><span class="p">Prensa · empieza al protocolizar</span><span class="ch">Por iniciar</span></div>
+          <ol class="pasos">
+            <li class="paso"><span class="pn">1</span><span class="px">Elección del periódico mercantil</span></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ 3 · SE ABREN SOLAS ═══════════════════════════ -->
+  <section class="caso" id="idea3">
+    <div class="caso-h"><div class="caso-n">3</div><div class="caso-t">Que se abran solas al terminar la constitución</div></div>
+    <p class="caso-q">
+      La ficha de Constitución se queda como está, y las otras dos <b>salen del catálogo</b>. Cuando el CIIP da por
+      resuelta la constitución, la protocolización se abre sola dentro del mismo expediente, y al terminarla,
+      la publicación. El inversionista pide una cosa; el equipo sigue atendiendo tres.
+    </p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Casi no toca formularios ni la base: los trámites siguen siendo los mismos. El equipo trabaja por tramos, como hoy.</div>
+      <div class="contra"><b>En contra</b>Trámites que el inversionista no pidió aparecen en su expediente, y hay lógica automática que vigilar: si no se abre, nadie lo nota.</div>
+    </div>
+    <div class="pantalla">
+      <div class="pantalla-r">Portada · Etapa 2</div>
+      <div class="grid">
+        <div class="tc">
+          <div class="ico"><img src="../logos/saren.png" alt=""></div>
+          <div class="b">
+            <div class="top"><div class="nm">Constitución de la compañía</div><span class="ch curso">En curso</span></div>
+            <div class="ente"><span class="eb">SAREN</span>Registro Mercantil · SAREN</div>
+            <div class="ds">Redacción del acta con un despacho jurídico aliado y firma para inscribirla en el Registro Mercantil.</div>
+            <div class="ft"><span class="nota">Ahora: protocolización del acta</span><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+        <div class="tc">
+          <div class="ico"><img src="../logos/seniat.png" alt=""></div>
+          <div class="b">
+            <div class="top"><div class="nm">RIF de la empresa</div><span class="ch luego">Espera a la constitución</span></div>
+            <div class="ente"><span class="eb">SENIAT</span>Registro Único de Información Fiscal</div>
+            <div class="ds">Se pide apenas quede inscrita la compañía. El CIIP lo presenta por ti.</div>
+            <div class="ft"><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pantalla">
+      <div class="pantalla-r">Mis trámites · el expediente de la constitución</div>
+      <div class="exp">
+        <div class="exp-f"><span class="nm">Constitución de la compañía</span><span class="cuando">Resuelta el 8 sept</span><span class="ch listo">Listo</span></div>
+        <div class="exp-f hija"><span class="nm">Protocolización del acta</span><span class="cuando">Se abrió sola el 8 sept</span><span class="ch curso">En curso</span></div>
+        <div class="exp-f hija"><span class="nm">Publicación del acta</span><span class="cuando">Se abrirá al protocolizar</span><span class="ch luego">Después</span></div>
+      </div>
+      <p class="aviso-eq"><b>En la cola del equipo</b> siguen siendo tres solicitudes, cada una con su responsable y su plazo. Lo único que cambia es que las dos últimas no las pide el inversionista: las abre el panel.</p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ 4 · AGRUPADAS ═══════════════════════════ -->
+  <section class="caso" id="idea4">
+    <div class="caso-h"><div class="caso-n">4</div><div class="caso-t">Agruparlas en la portada</div><span class="rec" style="color:var(--navy2);background:var(--activa-bg);">La más rápida</span></div>
+    <p class="caso-q">
+      Las tres siguen siendo <b>trámites independientes</b>, pero se dibujan juntas: un grupo «Constituir la
+      compañía» con la Constitución arriba y las otras dos debajo, colgando de ella. Se pueden plegar. No cambia
+      nada por detrás.
+    </p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Se hace ya, sin tocar la base ni los formularios, y sin riesgo para las solicitudes que ya están en marcha.</div>
+      <div class="contra"><b>En contra</b>No reduce trámites: el inversionista sigue pidiendo tres cosas. Solo ordena la pantalla.</div>
+    </div>
+    <div class="pantalla">
+      <div class="pantalla-r">Portada · Etapa 2 (pulsa «Ver los dos que van después» para plegarlas)</div>
+      <div class="grupo">
+        <div class="grupo-h"><span class="t">Constituir la compañía</span><span class="s">Tres pasos que van juntos, en este orden</span></div>
+        <div class="tc">
+          <div class="ico"><img src="../logos/saren.png" alt=""></div>
+          <div class="b">
+            <div class="top"><div class="nm">Constitución de la compañía</div><span class="ch curso">En curso</span></div>
+            <div class="ente"><span class="eb">SAREN</span>Registro Mercantil · SAREN</div>
+            <div class="ds">Redacción del acta con un despacho jurídico aliado y firma para inscribirla en el Registro Mercantil.</div>
+            <div class="ft"><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+        <details class="mas" open>
+          <summary><span class="cerrar">Ocultar los dos que van después ▴</span><span class="abrir">Ver los dos que van después ▾</span></summary>
+          <div class="hijos">
+            <div class="tc mini">
+              <div class="ico"><img src="../logos/saren.png" alt=""></div>
+              <div class="b">
+                <div class="top"><div class="nm">Protocolización del acta</div><span class="ch luego">Después</span></div>
+                <div class="ente"><span class="eb">SAREN</span>Registro Mercantil</div>
+                <div class="ds">Consigna el documento constitutivo en el Registro Mercantil.</div>
+                <div class="ft"><span class="go">Ver detalles ›</span></div>
+              </div>
+            </div>
+            <div class="tc mini">
+              <div class="ico suave"><svg viewBox="0 0 24 24"><path d="M4 6h16v13H4z"/><path d="M4 6l8 5 8-5"/><path d="M8 14h5"/></svg></div>
+              <div class="b">
+                <div class="top"><div class="nm">Publicación del acta</div><span class="ch luego">Después</span></div>
+                <div class="ente"><span class="eb">Prensa</span>Periódico mercantil</div>
+                <div class="ds">Publicación del acta protocolizada y consignación de los ejemplares.</div>
+                <div class="ft"><span class="go">Ver detalles ›</span></div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+      <div class="grid" style="margin-top:12px;">
+        <div class="tc">
+          <div class="ico"><img src="../logos/seniat.png" alt=""></div>
+          <div class="b">
+            <div class="top"><div class="nm">RIF de la empresa</div><span class="ch luego">Espera a la constitución</span></div>
+            <div class="ente"><span class="eb">SENIAT</span>Registro Único de Información Fiscal</div>
+            <div class="ds">Se pide apenas quede inscrita la compañía. El CIIP lo presenta por ti.</div>
+            <div class="ft"><span class="go">Ver detalles ›</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>
