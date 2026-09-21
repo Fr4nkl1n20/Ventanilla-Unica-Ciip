@@ -4478,6 +4478,19 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 .hoy-plazo.tarde{color:var(--rust);}
 .hoy-plazo.pronto{color:var(--amber);}
 .hoy-verbo{display:block; font-size:var(--fs-fila); font-weight:700; color:var(--navy2); margin-top:2px;}
+/* El porqué de una devuelta, dentro de su tarjeta. En ámbar y con filo a
+   la izquierda: se lee como una cita -son las palabras del gestor, no una
+   frase del panel- y no compite con el óxido, que en esta pantalla
+   significa «va tarde». */
+.hoy-porque{background:var(--amber-bg); border-left:3px solid var(--amber);
+  border-radius:0 8px 8px 0; padding:8px 11px; margin-top:10px;}
+.hoy-porque .hp-r{display:block; font-size:var(--fs-chip); font-weight:800;
+  letter-spacing:.04em; text-transform:uppercase; color:var(--amber);}
+/* Sin recortar y respetando los saltos: es lo mismo que está leyendo el
+   inversionista del otro lado, y una nota a medias manda a abrir la ficha
+   para leer el resto, que es lo que esto venía a evitar. */
+.hoy-porque .hp-t{display:block; font-size:var(--fs-fila); color:var(--ink);
+  margin-top:3px; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere;}
 .hoy-thumbs{display:flex; flex-wrap:wrap; align-items:center; gap:5px;}
 .hoy-thumbs b{font-size:var(--fs-nota); font-weight:600; color:var(--gray); margin-left:4px; font-variant-numeric:tabular-nums;}
 .hoy-th{width:26px; height:34px; flex:none; position:relative; overflow:hidden; border:1px solid var(--line); border-radius:3px;
@@ -15956,6 +15969,42 @@ applyLang(idiomaParaMi());
   var CO_TRAE = CO_MIOS.concat(['devuelto']);
   var enRevision = [];
 
+  /* ── POR QUÉ SE DEVOLVIÓ ──
+     Franklin Reyes, 21 de septiembre de 2026: «aquí dice "te la devolvimos:
+     falta algo" pero no dice qué». La tarjeta traía el distintivo y nada
+     más, y la nota -la que escribió el propio gestor al devolverla- se
+     quedaba en tramite_eventos sin que nadie la enseñara. Un montón de
+     devueltos sin el porqué obliga a abrir una por una para acordarse.
+
+     Es la misma consulta que ya usa la portada del inversionista en
+     ponLoDeLaPortada, con el mismo criterio: del más nuevo al más viejo, y
+     la primera de cada trámite es la de la ÚLTIMA devolución. Si fue y
+     volvió dos veces, la vieja ya no es la que hay que corregir.
+
+     Solo se pide si hay devueltos, y solo por los suyos: sin ninguno, ni
+     se sale a la red. */
+  function ponNotasDevueltas(lista){
+    var ids = lista.filter(function(t){ return t.estado === 'devuelto'; })
+                   .map(function(t){ return t.id; });
+    if (!ids.length) return Promise.resolve();
+    return Promise.resolve(sb.from('tramite_eventos').select('tramite, nota, creado_en')
+      .in('tramite', ids).eq('a_estado', 'devuelto')
+      .order('creado_en', {ascending:false}))
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        var ultima = {};
+        (r.data || []).forEach(function(e){
+          if (e.tramite && e.nota && !(e.tramite in ultima)) ultima[e.tramite] = e.nota;
+        });
+        lista.forEach(function(t){ if (t.id in ultima) t.nota_devuelta = ultima[t.id]; });
+      })
+      .catch(function(e){
+        /* Que falle esto no puede dejar la cola sin pintar: se queda sin el
+           porqué, que es peor tarjeta pero tarjeta al fin. */
+        console.warn('[CIIP] notas de las devueltas:', e && (e.message || e));
+      });
+  }
+
   /* Qué se puede hacer desde cada estado. Enseñar los cuatro botones
      siempre invitaría a saltarse pasos: no se presenta ante el ente algo
      que nadie ha revisado. */
@@ -16858,7 +16907,7 @@ applyLang(idiomaParaMi());
           .then(function(rt){
             if (rt && rt.error) throw rt.error;
             enRevision = (rt.data || []).map(function(t){ t.nombre = ''; return t; });
-            return ponDesdeCuando(enRevision);
+            return ponDesdeCuando(enRevision).then(function(){ return ponNotasDevueltas(enRevision); });
           })
           .catch(function(e){ console.warn('[CIIP] cola de trámites:', e && e.message); enRevision = []; })
           .then(function(){
@@ -17159,6 +17208,19 @@ applyLang(idiomaParaMi());
     dice.appendChild(el('span', 'hoy-verbo', hoyVerbo(t)));
     medio.appendChild(dice);
     c.appendChild(medio);
+
+    /* Y en una devuelta, POR QUÉ se devolvió. Va justo debajo del verbo
+       -«Esperando al inversionista»- porque es lo que lo explica: sin la
+       nota, el montón de devueltos obliga a abrirlas una por una para
+       acordarse de qué se pidió en cada una. Entre comillas y con las
+       palabras del gestor, sin recortar: es lo que el inversionista está
+       leyendo del otro lado, y el equipo tiene que ver lo mismo. */
+    if (t.estado === 'devuelto' && t.nota_devuelta){
+      var porque = el('div', 'hoy-porque');
+      porque.appendChild(el('span', 'hp-r', u.co_h_pediste || ''));
+      porque.appendChild(el('span', 'hp-t', t.nota_devuelta));
+      c.appendChild(porque);
+    }
 
     var cuenta = hoyCuenta(t);
     if (cuenta){

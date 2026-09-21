@@ -560,6 +560,7 @@ window.CIIP_PASOS = {
       co_h_m_firma:"Falta la firma", co_h_mt_firma:"Sube «{doc}» firmado: el organismo solo lo recibe con la firma.", co_h_m_vence:"Está vencido", co_h_mt_vence:"Sube una versión vigente de «{doc}»: el organismo solo acepta documentos en vigor.", co_h_m_otro:"No es el que se pide", co_h_mt_otro:"En «{doc}» llegó otro documento. Sube el que pide la lista y seguimos.",
       co_h_sinplazo:"Sin plazo", co_h_a_dias:"Días", co_h_a_tarde:"Tarde", co_h_sinpapeles:"Sin papeles", co_h_n_tarde:"Fuera de plazo", co_h_n_pronto:"Vencen en 2 días",
       co_h_n_sin:"Sin dueño", co_h_n_papeles:"Papeles tuyos por mirar", co_h_presentado:"Presentado ante {ente}. La tarjeta sigue en la lista hasta que el organismo conteste.",
+      co_h_p_devuelto:"Ya está devuelto: ahora le toca a {quien}. Cuando lo corrija y lo reenvíe, vuelve a la cola.", co_h_devuelto_sinnota:"Devuelto a {quien}, pero la nota no se guardó y no la va a ver. Avisa a quien lleva el sistema.",
       co_envio:     "Enviado el {fecha}",
       co_devolver:  "Devolver",
       co_revisar:   "Empezar la revisión",
@@ -591,6 +592,9 @@ window.CIIP_PASOS = {
          pide, y no estorba lo demás. */
       co_f_devueltos: "Devueltos",
       co_h_v_devuelto:"Esperando al inversionista",
+      /* El rótulo de la nota en la tarjeta devuelta. Sin él, la frase
+         suelta parece del sistema y no de quien la escribió. */
+      co_h_pediste:   "Lo que pediste",
       mt_desde:   "En este estado desde {cuando}",
       /* Identidad. NO se valida contra ningun organismo: se deja
          constancia de que alguien del CIIP miro el documento. Los textos
@@ -1625,6 +1629,7 @@ window.CIIP_PASOS = {
       co_h_m_firma:"Missing signature", co_h_mt_firma:"Please upload “{doc}” signed: the agency only accepts it with the signature.", co_h_m_vence:"Expired", co_h_mt_vence:"Please upload a current version of “{doc}”: the agency only accepts documents that are in force.", co_h_m_otro:"Not the one requested", co_h_mt_otro:"A different document arrived as “{doc}”. Upload the one on the list and we'll carry on.",
       co_h_sinplazo:"No deadline", co_h_a_dias:"Days", co_h_a_tarde:"Late", co_h_sinpapeles:"No documents", co_h_n_tarde:"Past the deadline", co_h_n_pronto:"Due within 2 days",
       co_h_n_sin:"Unassigned", co_h_n_papeles:"Your documents to check", co_h_presentado:"Filed with {ente}. The card stays in the list until the agency replies.",
+      co_h_p_devuelto:"Already sent back: it is {quien}'s turn now. When they fix it and resend it, it comes back to the queue.", co_h_devuelto_sinnota:"Sent back to {quien}, but your note was not saved and they will not see it. Tell whoever runs the system.",
       co_envio:     "Sent on {fecha}",
       co_devolver:  "Send back",
       co_revisar:   "Start the review",
@@ -1647,6 +1652,7 @@ window.CIIP_PASOS = {
       co_f_mios:   "Mine",
       co_f_devueltos: "Sent back",
       co_h_v_devuelto:"Waiting for the investor",
+      co_h_pediste:   "What you asked for",
       mt_desde:   "In this state since {cuando}",
       /* Identity. NOT validated against any authority. */
       id_t:        "Identity",
@@ -2608,6 +2614,7 @@ window.CIIP_PASOS = {
       co_h_m_firma:"Falta a assinatura", co_h_mt_firma:"Carregue «{doc}» assinado: o organismo só o recebe com a assinatura.", co_h_m_vence:"Está caducado", co_h_mt_vence:"Carregue uma versão válida de «{doc}»: o organismo só aceita documentos em vigor.", co_h_m_otro:"Não é o pedido", co_h_mt_otro:"Em «{doc}» chegou outro documento. Carregue o da lista e seguimos.",
       co_h_sinplazo:"Sem prazo", co_h_a_dias:"Dias", co_h_a_tarde:"Atraso", co_h_sinpapeles:"Sem documentos", co_h_n_tarde:"Fora do prazo", co_h_n_pronto:"Vencem em 2 dias",
       co_h_n_sin:"Sem responsável", co_h_n_papeles:"Documentos seus por ver", co_h_presentado:"Apresentado perante {ente}. O cartão continua na lista até o organismo responder.",
+      co_h_p_devuelto:"Já está devolvido: agora é a vez de {quien}. Quando corrigir e reenviar, volta à fila.", co_h_devuelto_sinnota:"Devolvido a {quien}, mas a nota não foi guardada e não a vai ver. Avise quem gere o sistema.",
       co_envio:     "Enviado a {fecha}",
       co_devolver:  "Devolver",
       co_revisar:   "Começar a revisão",
@@ -2630,6 +2637,7 @@ window.CIIP_PASOS = {
       co_f_mios:   "Meus",
       co_f_devueltos: "Devolvidos",
       co_h_v_devuelto:"À espera do investidor",
+      co_h_pediste:   "O que pediu",
       mt_desde:   "Neste estado desde {cuando}",
       /* Identidade. NAO se valida contra nenhum organismo. */
       id_t:        "Identidade",
@@ -3574,6 +3582,7 @@ window.CIIP_PASOS = {
       co_h_m_firma:"Manca la firma", co_h_mt_firma:"Carica «{doc}» firmato: l'ente lo accetta solo con la firma.", co_h_m_vence:"È scaduto", co_h_mt_vence:"Carica una versione valida di «{doc}»: l'ente accetta solo documenti in vigore.", co_h_m_otro:"Non è quello richiesto", co_h_mt_otro:"Come «{doc}» è arrivato un altro documento. Carica quello della lista e andiamo avanti.",
       co_h_sinplazo:"Senza scadenza", co_h_a_dias:"Giorni", co_h_a_tarde:"Ritardo", co_h_sinpapeles:"Nessun documento", co_h_n_tarde:"Oltre la scadenza", co_h_n_pronto:"Scadono entro 2 giorni",
       co_h_n_sin:"Senza responsabile", co_h_n_papeles:"Tuoi documenti da vedere", co_h_presentado:"Presentata a {ente}. La scheda resta nell'elenco finché l'ente non risponde.",
+      co_h_p_devuelto:"È già restituita: ora tocca a {quien}. Quando la corregge e la rinvia, torna in coda.", co_h_devuelto_sinnota:"Restituita a {quien}, ma la tua nota non è stata salvata e non la vedrà. Avvisa chi gestisce il sistema.",
       co_envio:     "Inviata il {fecha}",
       co_devolver:  "Restituisci",
       co_revisar:   "Inizia la revisione",
@@ -3596,6 +3605,7 @@ window.CIIP_PASOS = {
       co_f_mios:   "Mie",
       co_f_devueltos: "Restituite",
       co_h_v_devuelto:"In attesa dell'investitore",
+      co_h_pediste:   "Cosa hai chiesto",
       mt_desde:   "In questo stato da {cuando}",
       /* Identita. NON si convalida presso nessun ente. */
       id_t:        "Identità",
@@ -4540,6 +4550,7 @@ window.CIIP_PASOS = {
       co_h_m_firma:"缺少签名", co_h_mt_firma:"请上传已签名的“{doc}”：机构只接受有签名的文件。", co_h_m_vence:"已过期", co_h_mt_vence:"请上传有效期内的“{doc}”：机构只接受仍然有效的文件。", co_h_m_otro:"不是所要求的文件", co_h_mt_otro:"“{doc}”上传的是另一份文件。请上传清单中要求的文件，我们会继续办理。",
       co_h_sinplazo:"无期限", co_h_a_dias:"天", co_h_a_tarde:"超期", co_h_sinpapeles:"无材料", co_h_n_tarde:"已超期", co_h_n_pronto:"2 天内到期",
       co_h_n_sin:"无人负责", co_h_n_papeles:"待你查看的材料", co_h_presentado:"已提交给{ente}。在机构答复之前，卡片会保留在列表中。",
+      co_h_p_devuelto:"已退回：现在轮到{quien}。对方修改并重新提交后，会回到队列。", co_h_devuelto_sinnota:"已退回给{quien}，但你的说明没有保存，对方看不到。请通知系统管理员。",
       co_envio:     "于 {fecha} 提交",
       co_devolver:  "退回",
       co_revisar:   "开始审核",
@@ -4562,6 +4573,7 @@ window.CIIP_PASOS = {
       co_f_mios:   "我的",
       co_f_devueltos: "已退回",
       co_h_v_devuelto:"等待投资者",
+      co_h_pediste:   "你要求的内容",
       mt_desde:   "处于此状态：{cuando}",
       /* 身份。未向任何机构核验。 */
       id_t:        "身份",
@@ -5506,6 +5518,7 @@ window.CIIP_PASOS = {
       co_h_m_firma:"Нет подписи", co_h_mt_firma:"Загрузите «{doc}» с подписью: ведомство принимает его только подписанным.", co_h_m_vence:"Истёк срок", co_h_mt_vence:"Загрузите действующую версию «{doc}»: ведомство принимает только действующие документы.", co_h_m_otro:"Не тот документ", co_h_mt_otro:"Вместо «{doc}» загружен другой документ. Загрузите документ из списка, и мы продолжим.",
       co_h_sinplazo:"Без срока", co_h_a_dias:"Дней", co_h_a_tarde:"Просрочка", co_h_sinpapeles:"Нет документов", co_h_n_tarde:"Просрочено", co_h_n_pronto:"Срок в ближайшие 2 дня",
       co_h_n_sin:"Без ответственного", co_h_n_papeles:"Ваши документы на проверку", co_h_presentado:"Подано: {ente}. Карточка остаётся в списке, пока ведомство не ответит.",
+      co_h_p_devuelto:"Уже возвращена: теперь очередь за {quien}. Когда исправят и отправят снова, вернётся в очередь.", co_h_devuelto_sinnota:"Возвращено: {quien}. Но ваша заметка не сохранилась, и её не увидят. Сообщите тому, кто ведёт систему.",
       co_envio:     "Отправлена {fecha}",
       co_devolver:  "Вернуть",
       co_revisar:   "Начать проверку",
@@ -5528,6 +5541,7 @@ window.CIIP_PASOS = {
       co_f_mios:   "Мои",
       co_f_devueltos: "Возвращённые",
       co_h_v_devuelto:"Ожидает инвестора",
+      co_h_pediste:   "Что вы попросили",
       mt_desde:   "В этом состоянии с {cuando}",
       /* Личность. НЕ проверяется ни в каком ведомстве. */
       id_t:        "Личность",
