@@ -19614,10 +19614,24 @@ applyLang(idiomaParaMi());
     q.appendChild(nom);
 
     var ente = ((TIPOS || {})[ref] || {}).ente || '';
-    var ir = function(texto){
+    /* corrige = este botón dice «Corregir», y quien lo pulsa va a corregir:
+       se le abre el formulario y no la pantalla del trámite, que enseña el
+       mismo aviso con el mismo botón (Franklin Reyes, 21-9-2026). Es la
+       misma bandera que usa el aviso del tramo; aquí hacía falta también
+       porque la portada es la otra puerta, y arreglar una sola dejaba el
+       camino corto según por dónde entraras.
+
+       El de «Seguir» de un borrador no la necesita: un borrador no tiene
+       pantalla de estado, ya cae en el formulario. */
+    var ir = function(texto, corrige){
       var b = el('button', 'btn qm-ir qm-toca', texto || '');
       b.type = 'button';
-      b.addEventListener('click', function(){ location.hash = 'tramite-' + ref; });
+      b.addEventListener('click', function(){
+        var destino = 'tramite-' + ref;
+        if (corrige && String(location.hash).replace(/^#/, '') !== destino)
+          window.CIIP_CORREGIR_YA = ref;
+        location.hash = destino;
+      });
       return b;
     };
 
@@ -19625,7 +19639,7 @@ applyLang(idiomaParaMi());
       /* La nota del gestor tal cual, que dice QUÉ falta. Si no la dejó, una
          frase que dice lo que hay que hacer sin sonar a castigo. */
       q.appendChild(el('div', 'qm-b', t.nota_devuelta || u.qm_devuelta || ''));
-      q.appendChild(ir(u.corregir));
+      q.appendChild(ir(u.corregir, true));
     } else if (t.estado === 'borrador'){
       q.appendChild(el('div', 'qm-b', u.qm_borrador || ''));
       q.appendChild(ir(u.qm_seguir));
