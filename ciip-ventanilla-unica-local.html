@@ -12361,10 +12361,32 @@ applyLang(idiomaParaMi());
         av.classList.add('corrigiendo');
         caja.appendChild(av);
         chipReal('sin_iniciar');
-        /* Se le pasa la fila que ya existe: el envío la reutiliza y la pasa
+        /* LAS DOS CONSULTAS ANTES DE PINTAR, igual que en el camino del
+           borrador (Franklin Reyes, 21-9-2026: «ya debería pasar este paso
+           porque está lleno con lo que se llenó en la constitución»). Estaba
+           lleno cuando se tardaba en pulsar y vacío cuando no, que es lo
+           peor que puede pasar: anteriores() es la que trae lo que se
+           escribió en los otros tramos -la razón social sale de ahí- y
+           misPapeles() la que dice qué recaudos ya están. Pintar sin
+           esperarlas deja los campos en blanco y la columna diciendo que no
+           tienes nada, para corregirse sola un segundo después.
+
+           No se notaba pulsando a mano porque a un humano le da tiempo a
+           que lleguen; desde que «Corregir» abre el formulario solo, no.
+           Las dos guardan su promesa, así que esperar no cuesta una
+           consulta más.
+
+           Se espera SOLO si falta algo. Cuando las dos ya están -que es lo
+           normal, porque se piden al entrar- se pinta en el acto: meter un
+           salto de promesa por gusto retrasaría el formulario un latido
+           cada vez, y dejaría de ser cierto que al pulsar aparece.
+
+           Se le pasa la fila que ya existe: el envío la reutiliza y la pasa
            a 'enviado' en vez de crear una segunda solicitud del mismo
            trámite. */
-        pintaFormulario(tipo, tr);
+        if (ANTES && MIOS) pintaFormulario(tipo, tr);
+        else Promise.all([misPapeles(), anteriores()])
+          .then(function(){ pintaFormulario(tipo, tr); });
       });
       caja.appendChild(arreglar);
     }
