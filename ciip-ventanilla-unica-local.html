@@ -11547,6 +11547,9 @@ applyLang(idiomaParaMi());
             est.textContent = ya.nombre_original + ' · ' + (u.sol_novale || '');
             fila.insertBefore(el('span', 'sd-no', '✕'), btn);
             if (ya.nota_revision) fila.appendChild(el('div', 'sd-porque', ya.nota_revision));
+            /* Y si se está corrigiendo un devuelto, aquí es donde hay que
+               llegar: el formulario se abre por esta hoja y a esta altura. */
+            alQueNoVale(fila);
             return;
           }
 
@@ -11892,6 +11895,35 @@ applyLang(idiomaParaMi());
       vePaso(n, true);
       if (txt) avisoPaso.textContent = txt;
     };
+
+    /* AL PAPEL QUE HAY QUE CORREGIR, Y NO A LA PRIMERA HOJA (Franklin
+       Reyes, 21-9-2026: «no quiero llegar hasta allá, quiero llegar a donde
+       tengo que corregir»). «Corregir y reenviar» abría por «Tus datos»,
+       que en una devolución es justo la hoja donde no hay nada que tocar:
+       lo que falla es un recaudo, dos hojas más adelante, y había que ir a
+       buscarlo leyendo la nota de memoria.
+
+       El salto lo pide la fila y no esto, porque la marca de «no vale» la
+       pone la bóveda al contestar, que es después de pintar el formulario.
+       Solo el primero que aparezca -si hay dos, el segundo se ve al bajar-
+       y solo mientras quien corrige siga en la hoja 1: cambiarle de hoja
+       cuando ya se ha movido por su cuenta es peor que no llevarle. */
+    var corrigiendo = !!borrador && borrador.estado === 'devuelto';
+    var llevado = false;
+    function alQueNoVale(fila){
+      if (!corrigiendo || llevado || paso !== 1) return;
+      var hoja = fila && fila.closest && fila.closest('.pa-hoja');
+      var n = hoja && +hoja.getAttribute('data-paso');
+      if (!n) return;
+      llevado = true;
+      vePaso(n, true);
+      /* Y a la altura de la fila, no al principio de la hoja: vePaso sube
+         arriba del trámite, que con tres recaudos deja el que importa fuera
+         de la pantalla. La nota del gestor no se pierde por bajar: está
+         pegada arriba desde que se pulsó «Corregir». */
+      try { fila.scrollIntoView({block: 'center'}); }
+      catch (err){ /* la hoja ya cambió, que es lo que de verdad hacía falta */ }
+    }
 
     vePaso(1);
 
