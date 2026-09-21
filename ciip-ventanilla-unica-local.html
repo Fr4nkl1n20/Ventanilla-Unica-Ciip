@@ -12920,6 +12920,42 @@ applyLang(idiomaParaMi());
     location.hash = 'tramites';
   }
 
+  /* ── ABRIR EL PAPEL DESDE EL PROPIO AVISO ──
+     Franklin Reyes, 21 de septiembre de 2026. El aviso decía «Ábrelo, paga
+     y sube el comprobante» y al pulsarlo te dejaba en la ficha del trámite,
+     donde había que encontrar el paso y volver a pulsar «Abrir». Dos clics
+     y una búsqueda para hacer lo que el propio aviso te acababa de mandar
+     hacer.
+
+     LA TRAMPA, Y POR QUÉ ESTO NO ES UNA LÍNEA. El cubo es privado: para ver
+     un papel hace falta una URL firmada, y pedirla es un viaje a la red. Un
+     window.open DESPUÉS de que vuelva esa promesa ya no cuenta como «lo
+     pidió el usuario», y el navegador lo bloquea; el aviso parecería roto
+     justo en el clic que más importa. Por eso la pestaña se abre ANTES,
+     vacía y dentro del propio clic, y cuando llega la firma se le pone la
+     dirección. Si aun así el bloqueador la mata, se navega en esta misma
+     pestaña, que no falla nunca.
+
+     Dos minutos de firma: es para abrirlo ahora, no para guardar el enlace.
+     El resto del panel firma igual estos papeles. */
+  function avAbrePapel(archivo){
+    if (!archivo) return false;
+    var pestana = null;
+    try { pestana = window.open('', '_blank'); } catch(e){}
+    Promise.resolve(sb.storage.from('recaudos').createSignedUrl(archivo, 120))
+      .then(function(r){
+        var url = r && r.data && r.data.signedUrl;
+        if (!url){ if (pestana && !pestana.closed) pestana.close(); return; }
+        if (pestana && !pestana.closed) pestana.location.href = url;
+        else window.open(url, '_blank');
+      })
+      .catch(function(e){
+        if (pestana && !pestana.closed) pestana.close();
+        console.warn('[CIIP] abrir el papel del aviso:', e && (e.message || e));
+      });
+    return true;
+  }
+
   /* Qué enseña cada aviso y adónde lleva, por clase. Van los seis juntos y
      no repartidos por pintaAvisos a propósito: lo que cambia de uno a otro
      son tres líneas de texto y un destino, y verlos en columna es lo que
@@ -12985,7 +13021,17 @@ applyLang(idiomaParaMi());
         t: ev.ref ? nombreDeTarjeta(ev.ref) : nombreDeTipo_doc(ev.tipo),
         q: u.av_planilla || '',
         nota: nombreDeTipo_doc(ev.tipo),
-        ir: function(){ if (ev.ref) location.hash = 'tramite-' + ev.ref; else avAMisTramites(ev.tramite); }
+        /* Se abre el papel Y se va a la ficha. Las dos cosas, porque el
+           aviso manda hacer dos: «ábrelo, paga y SUBE el comprobante». El
+           papel sale en otra pestaña y esta se queda en el paso donde se
+           sube, así que al volver de pagar ya está donde hay que estar.
+           Sin archivo -un aviso viejo, de antes de que se pidiera la
+           columna- se hace lo de siempre y no se rompe nada. */
+        ir: function(){
+          avAbrePapel(ev.archivo);
+          if (ev.ref) location.hash = 'tramite-' + ev.ref;
+          else avAMisTramites(ev.tramite);
+        }
       };
     }
     /* Y su vuelta, para el equipo: con el comprobante subido, esa
@@ -13415,8 +13461,11 @@ applyLang(idiomaParaMi());
 
   function sumaPapelesDePago(refDe, loPedi){
     return avPide('papeles del pago', function(){
+      /* 'archivo' es la ruta dentro del cubo, y entra aquí para que el
+         aviso pueda abrir el papel sin pedir nada más al pulsarlo. Es una
+         columna en una consulta que ya se hacía. */
       return sb.from('tramite_documentos')
-        .select('tramite, documentos(id, tipo, nombre_original, creado_en)');
+        .select('tramite, documentos(id, tipo, nombre_original, archivo, creado_en)');
     }, function(filas){
       filas.forEach(function(f){
         var d = f.documentos;
@@ -13439,7 +13488,8 @@ applyLang(idiomaParaMi());
         avisos.push({
           clase: pidiendo ? 'planilla' : 'comprobante',
           tipo: d.tipo, tramite: f.tramite, ref: refDe[f.tramite] || '',
-          nota: d.nombre_original || '', creado_en: d.creado_en, ente: ''
+          nota: d.nombre_original || '', creado_en: d.creado_en, ente: '',
+          archivo: d.archivo || ''
         });
       });
     });
