@@ -1755,6 +1755,53 @@ body[data-vista="citas"] .fase-bar{display:none;}
 @media (max-width: 620px){
   #mtFiltros.mt-cifras{grid-template-columns:repeat(2, minmax(0, 1fr));}
 }
+/* ── QUIÉN LO LLEVA Y CUÁNTO TARDA EN CONTESTAR ──
+   Franklin Reyes, 21 de septiembre de 2026. Dos columnas y una franja, y
+   solo para el administrador: es el único que mira las de todos.
+
+   El avatar es el mismo de la barra de arriba -mismo tamaño, mismo azul-
+   para que una persona se vea igual en todo el panel. */
+.mt-persona{display:flex; align-items:center; gap:8px; min-width:0;}
+.mt-av{flex:none; width:26px; height:26px; border-radius:50%;
+  font-size:var(--fs-chip); font-weight:800; color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,var(--navy),var(--navy2));}
+/* Sin dueño: hueco de rayas, no una silueta gris. Un gris de relleno se
+   lee como «alguien que no conozco»; el hueco se lee como lo que es. */
+.mt-av.nadie{background:none; border:1.5px dashed var(--gray-soft);
+  color:var(--gray-soft); font-weight:700;}
+.mt-persona-t{min-width:0;}
+.mt-persona-t > b{display:block; font-size:var(--fs-fila); font-weight:600;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.mt-persona-t > b.sin{color:var(--gray); font-weight:700;}
+.mt-marca{display:block; font-size:var(--fs-chip); color:var(--gray); margin-top:1px;
+  white-space:nowrap;}
+.mt-marca b{font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums;}
+
+/* Lo que lleva esperando. En rojo SOLO cuando se pasa de la marca de esa
+   persona, y con la palabra al lado: el color nunca va solo. */
+.mt-espera-v{font-size:var(--fs-fila); font-weight:700; font-variant-numeric:tabular-nums;
+  white-space:nowrap;}
+.mt-espera-d{display:block; font-size:var(--fs-chip); color:var(--rust); font-weight:700;
+  margin-top:1px;}
+.mt-espera.pasa .mt-espera-v{color:var(--rust);}
+/* Lo que no espera al CIIP: una raya, no un hueco. Un hueco se lee como
+   un dato que falta. */
+.mt-nada{color:var(--gray-soft);}
+
+/* La franja del equipo, encima de la tabla. Mismos botones que los
+   montones -borde, radio y el filo azul del puesto- porque hace lo mismo:
+   filtrar. */
+.mt-equipo{display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px;}
+.mt-equipo[hidden]{display:none;}
+.mt-eq{font:inherit; text-align:left; display:flex; align-items:center; gap:8px;
+  background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
+  padding:7px 12px 7px 8px; cursor:pointer; color:var(--ink);}
+.mt-eq:hover{border-color:var(--cyan-deep);}
+.mt-eq.aqui{border-color:var(--navy); box-shadow:inset 0 0 0 1px var(--navy);}
+.mt-eq:focus-visible{outline:2px solid var(--cyan); outline-offset:2px;}
+.mt-eq .mt-av{width:24px; height:24px;}
+
 /* Los mandos de la boveda: los montones y la busca, en una linea. Los
    montones reusan .co-filtros tal cual -el patron ya estaba inventado en
    la cola, y dos maneras de pintar un filtro en el mismo panel acaban
@@ -5709,6 +5756,11 @@ body[data-vista="horario"] .fase-bar{display:none;}
       <!-- Los mismos montones que la portada y con las mismas palabras:
            quien ya sabe filtrar alli no tiene que aprender otra cosa aqui. -->
       <div class="co-filtros" id="mtFiltros"></div>
+      <!-- Quién lleva cada trámite y cuánto tarda en contestar. Nace
+           oculta y solo la enseña pintaEquipoMt() al administrador: es la
+           única tabla que trae las solicitudes de todos, y repartir
+           trabajo es lo que él viene a hacer aquí. -->
+      <div class="mt-equipo" id="mtEquipo" hidden></div>
       <!-- En tabla, y con la MISMA maquinaria que la cola del equipo y la
            boveda: .tabla, cabeceras que ordenan con .th-orden y su
            aria-sort. Quien aprendio a ordenar en Documentos no tiene que
@@ -16433,22 +16485,107 @@ applyLang(idiomaParaMi());
      Si el historial no contesta -politica sin poner, tabla vacia- se cae
      a la fecha de envio. Peor dato, pero dato: mejor eso que una cola sin
      ningun reloj. */
+  /* ── CUÁNTO TARDA CADA UNO EN CONTESTAR ────────────────────────────
+     Franklin Reyes, 21 de septiembre de 2026. La tabla del administrador
+     decía en qué estado está cada trámite y cuánto plazo le queda, pero no
+     quién del CIIP lo tiene encima ni cuánto lleva esperando respuesta: un
+     «en revisión» de alguien que contestó ayer y otro que lleva nueve días
+     sin dueño se leían igual.
+
+     QUÉ SE MIDE, exactamente. Una espera empieza cuando el trámite entra
+     en 'enviado' —ahí la pelota pasa al CIIP— y termina con el evento
+     siguiente, sea cual sea. Ese rato se le apunta a QUIEN LO MOVIÓ, que
+     no tiene por qué ser el gestor de ahora: el que contesta es el que
+     tarda. Y solo cuenta 'enviado': un 'devuelto' abre una espera del
+     INVERSIONISTA, y medirla aquí le colgaría al equipo un tiempo que no
+     es suyo.
+
+     POR QUÉ ES MEDIA Y NO MEDIANA. Con tres o cuatro esperas por persona
+     -que es lo que hay- la mediana salta de golpe al añadir una, y una
+     marca que baila no se puede usar para decir «se pasó». Si algún día
+     hay decenas por cabeza, la mediana es mejor y este comentario sobra.
+
+     LO QUE ESTA MEDIDA NO DICE, y conviene tenerlo escrito: sale solo de
+     los trámites que la tabla tiene delante, así que cambia con la página
+     y con el filtro. Es una marca para comparar dentro de lo que se está
+     mirando, no la estadística de la oficina. Y premia a quien toma los
+     fáciles. Por eso el rojo se reserva para «se pasó DE SU PROPIA marca»
+     y no se pinta de rojo a nadie por tardar más que otro.
+     ────────────────────────────────────────────────────────────────── */
+  var respuestaMt = {};
+
+  function mideRespuestas(porTramite){
+    respuestaMt = {};
+    Object.keys(porTramite).forEach(function(id){
+      /* Llegan del mas nuevo al mas viejo; para emparejar «entro en
+         enviado» con «lo siguiente que paso» hay que leerlos al derecho. */
+      var ev = porTramite[id].slice().reverse();
+      for (var i = 0; i < ev.length - 1; i++){
+        if (ev[i].a_estado !== 'enviado') continue;
+        var quien = ev[i + 1].autor;
+        if (!quien) continue;
+        var ms = Date.parse(ev[i + 1].creado_en) - Date.parse(ev[i].creado_en);
+        if (isNaN(ms) || ms < 0) continue;
+        var r = respuestaMt[quien] = respuestaMt[quien] || {n: 0, ms: 0};
+        r.n++; r.ms += ms;
+      }
+    });
+  }
+
+  /* Lo que suele tardar esa persona, en milisegundos. null = todavia no ha
+     contestado ninguna, y entonces NO se inventa una marca: se dice que no
+     la hay. */
+  function sueleTardar(quien){
+    var r = quien && respuestaMt[quien];
+    return (r && r.n) ? (r.ms / r.n) : null;
+  }
+
+  /* Lo que lleva esperando ESTE tramite, en milisegundos, y solo mientras
+     la pelota esté en el CIIP. En 'devuelto' y 'borrador' espera el
+     inversionista; en 'ante_el_ente', el organismo; y un 'resuelto' no
+     espera a nadie. Devolver un numero en esos casos seria cargarle al
+     equipo un reloj que no es suyo. */
+  function llevaEsperando(t){
+    if (t.estado !== 'enviado' && t.estado !== 'en_revision') return null;
+    var d = Date.parse(t.desde_en || t.enviado_en || t.creado_en);
+    return isNaN(d) ? null : Math.max(0, Date.now() - d);
+  }
+
+  /* Una duracion -no una fecha relativa-, en los seis idiomas y sin una
+     sola clave nueva: Intl la escribe. haceCuanto() no sirve aqui, que
+     diria «dentro de 1 dia». */
+  function enDias(ms){
+    var d = ms / 86400000;
+    try {
+      return new Intl.NumberFormat(curLang === 'zh' ? 'zh-CN' : curLang,
+        {style:'unit', unit:'day', unitDisplay:'short',
+         maximumFractionDigits: d < 10 ? 1 : 0}).format(d);
+    } catch(e){ return (d < 10 ? d.toFixed(1) : Math.round(d)) + ' d'; }
+  }
+
   function ponDesdeCuando(lista){
     var ids = lista.map(function(t){ return t.id; });
     if (!ids.length) return Promise.resolve();
+    /* Dos columnas mas -autor y a_estado- y NINGUNA consulta mas. Esta ya
+       se traia el historial ENTERO de los tramites de la lista y se
+       quedaba solo con la fecha del ultimo; con esas dos, del mismo viaje
+       sale tambien cuanto tarda cada persona en contestar. Pedirlo aparte
+       seria un segundo viaje por datos que ya estaban en el primero. */
     return sb.from('tramite_eventos')
-      .select('tramite, creado_en')
+      .select('tramite, creado_en, autor, a_estado')
       .in('tramite', ids)
       .order('creado_en', {ascending:false})
       .then(function(r){
         if (r && r.error) throw r.error;
-        var ultimo = {};
+        var ultimo = {}, porTramite = {};
         (r.data || []).forEach(function(e){
           /* Vienen del mas nuevo al mas viejo: el primero de cada tramite
              es el que manda, y los demas se ignoran. */
           if (!ultimo[e.tramite]) ultimo[e.tramite] = e.creado_en;
+          (porTramite[e.tramite] = porTramite[e.tramite] || []).push(e);
         });
         lista.forEach(function(t){ t.desde_en = ultimo[t.id] || null; });
+        mideRespuestas(porTramite);
       })
       .catch(function(e){
         console.warn('[CIIP] desde cuando:', e && e.message);
@@ -19124,6 +19261,11 @@ applyLang(idiomaParaMi());
   }
 
   function mtCuadra(t){
+    /* Los dos filtros se SUMAN, no se pisan: el monton dice qué clase de
+       trámite, y la franja del equipo dice de quién. «Fuera de plazo» +
+       «Ana Duarte» es justo la pregunta que se hace un administrador.
+       mtQuien solo lo pone la franja, y la franja solo la ve él. */
+    if (mtQuien !== '' && (t.gestor || '') !== mtQuien) return false;
     return mtDelMonton(t, mtFiltro);
   }
 
@@ -19182,7 +19324,14 @@ applyLang(idiomaParaMi());
      ['ente',   u.mtq_ente,      u.qm_ellos_d],
      ['listo',  u.qm_listo,      u.qm_listo_d],
      ['tarde',  u.co_h_n_tarde,  u.mtq_tarde_d]].forEach(function(x){
-      var n = mtFilas().filter(function(t){ return mtDelMonton(t, x[0]); }).length;
+      /* La cuenta respeta la persona elegida en la franja: con Ana puesta,
+         «Fuera de plazo 4» tiene que decir cuatro DE ELLA. Un tablero que
+         cuenta la oficina entera mientras la tabla enseña lo de una sola
+         convierte cada cifra en una pregunta. */
+      var n = mtFilas().filter(function(t){
+        return (mtQuien === '' || (t.gestor || '') === mtQuien) &&
+               mtDelMonton(t, x[0]);
+      }).length;
 
       /* La portada manda aqui con su propio monton: «En manos del CIIP o
          del organismo» es uno solo alli y dos tarjetas aqui, asi que se
@@ -19228,8 +19377,26 @@ applyLang(idiomaParaMi());
      · el estado se compara por su texto ya traducido, para que ordenar
        en castellano no de el orden del ingles. */
   var MT_COLUMNAS = ['mt_c_tramite', 'mt_c_ente', 'mt_c_estado', 'mt_c_fecha', 'mt_c_abrir'];
+  /* Al administrador, dos columnas mas: quien lo lleva y cuanto lleva
+     esperando. A un inversionista no se le enseñan -el nombre del gestor
+     que lleva su expediente y el reloj de la oficina no son cosa suya-, y
+     a un gestor tampoco: su tabla es la cola, no esta.
+
+     Van ANTES de la fecha a proposito. La fecha cierra la fila en las dos
+     tablas de este panel, y mover la ultima columna de sitio segun quien
+     mire obliga a buscarla cada vez. */
+  var MT_COLUMNAS_ADMIN = ['mt_c_tramite', 'mt_c_ente', 'mt_c_estado',
+                           'mt_c_lleva', 'mt_c_espera', 'mt_c_fecha', 'mt_c_abrir'];
+  function mtColumnas(){ return mtEsAdmin() ? MT_COLUMNAS_ADMIN : MT_COLUMNAS; }
 
   var MT_ORDENA = {
+    /* Sin dueño ordena como cadena vacia, o sea el PRIMERO subiendo. No es
+       casualidad: lo que no lleva nadie es lo que hay que repartir. */
+    mt_c_lleva: function(t){ return t.gestor ? (nombresMt[t.gestor] || '') : ''; },
+    /* Y esta es la que de verdad se va a pulsar: bajando, arriba queda lo
+       que lleva mas tiempo sin respuesta. Lo que no espera al CIIP vale
+       cero y se va al fondo, que es donde tiene que estar. */
+    mt_c_espera: function(t){ return llevaEsperando(t) || 0; },
     mt_c_tramite: function(t){
       var ref = tipoRefDe(t.tipo);
       return ref ? nombreDeTarjeta(ref) : (t.tipo || '');
@@ -19263,6 +19430,131 @@ applyLang(idiomaParaMi());
     info: '<circle cx="12" cy="12" r="9"/><path d="M9 12h6M13 9l3 3-3 3"/>'
   };
 
+  /* Las iniciales de un nombre: dos, y de las dos PRIMERAS palabras, no
+     las dos primeras letras. «Ana Duarte» da AD. Sin nombre no se inventa
+     nada: devuelve vacio y quien llama pinta el hueco de rayas. */
+  function inicialesDe(nombre){
+    var p = String(nombre || '').trim().split(/\s+/).filter(Boolean);
+    if (!p.length) return '';
+    return (p[0][0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase();
+  }
+
+  /* El avatar. Sin dueño NO lleva iniciales inventadas ni una silueta
+     gris de relleno: lleva un hueco de rayas, que se ve vacio desde
+     lejos. Es lo primero que un administrador viene a repartir. */
+  function avatarDe(nombre){
+    var ini = inicialesDe(nombre);
+    var a = el('span', 'mt-av' + (ini ? '' : ' nadie'), ini || '–');
+    a.setAttribute('aria-hidden', 'true');
+    return a;
+  }
+
+  /* QUIÉN LO LLEVA. El nombre, y debajo su marca: lo que suele tardar en
+     contestar. La marca va abajo y en pequeño a proposito -es contexto,
+     no noticia- y sin ella la columna de al lado no se podria leer: seis
+     dias solos no dicen si son muchos o pocos. */
+  function celdaLleva(t, u){
+    var td = el('td', 'mt-lleva');
+    var nombre = t.gestor ? (nombresMt[t.gestor] || '') : '';
+    var caja = el('span', 'mt-persona');
+    caja.appendChild(avatarDe(t.gestor ? (nombre || '?') : ''));
+    var txt = el('span', 'mt-persona-t');
+    txt.appendChild(el('b', t.gestor ? '' : 'sin',
+      t.gestor ? (nombre || (u.co_sinnombre || '')) : (u.mt_sindueno || '')));
+    var marca = t.gestor ? sueleTardar(t.gestor) : null;
+    txt.appendChild(el('span', 'mt-marca',
+      !t.gestor ? (u.mt_sintomar || '')
+      : marca === null ? (u.mt_sinmarca || '')
+      : String(u.mt_suele || '').replace('{t}', enDias(marca))));
+    caja.appendChild(txt);
+    td.appendChild(caja);
+    return td;
+  }
+
+  /* ESPERANDO. Lo que lleva esperando ESTE tramite, y en rojo solo cuando
+     se pasa de la marca de esa persona -no a los ocho dias por decreto: el
+     panel no ha prometido ningun plazo de respuesta, y ya esta anotado en
+     la cola por que no se inventa uno-. Sin dueño se pasa siempre: nadie
+     va a contestar.
+
+     Y el color NUNCA va solo: donde hay rojo va escrita la palabra. */
+  function celdaEspera(t, u){
+    var td = el('td', 'mt-espera');
+    var ms = llevaEsperando(t);
+    /* No espera al CIIP: una raya, y no un cero ni un hueco. El hueco se
+       lee como un dato que falta. */
+    if (ms === null){ td.appendChild(el('span', 'mt-nada', '–')); return td; }
+    var marca = t.gestor ? sueleTardar(t.gestor) : null;
+    var pasa = !t.gestor || (marca !== null && ms > marca);
+    if (pasa) td.className += ' pasa';
+    td.appendChild(el('b', 'mt-espera-v', enDias(ms)));
+    if (pasa) td.appendChild(el('span', 'mt-espera-d', u.mt_sepaso || ''));
+    return td;
+  }
+
+  /* ── LA FRANJA DEL EQUIPO ──
+     Quien lleva cuanto y cuanto tarda cada uno, encima de la lista. Sale
+     de lo que la tabla ya tiene delante, asi que se rehace con ella.
+     Pulsar uno filtra por el; volver a pulsarlo lo quita. */
+  var mtQuien = '';
+
+  function pintaEquipoMt(filas, u){
+    var caja = document.getElementById('mtEquipo');
+    if (!caja) return;
+    caja.textContent = '';
+    /* Solo al administrador, y solo si hay algo que repartir. */
+    if (!mtEsAdmin() || !filas.length){ caja.hidden = true; return; }
+
+    /* Cuenta lo VIVO, no lo resuelto: «cuanto lleva encima» es lo que le
+       queda por hacer, no lo que ya hizo. */
+    var carga = {};
+    filas.forEach(function(t){
+      if (MT_VIVOS.indexOf(t.estado) < 0) return;
+      var k = t.gestor || '';
+      carga[k] = (carga[k] || 0) + 1;
+    });
+    var quienes = Object.keys(carga).sort(function(a, b){
+      /* Sin dueño el primero, y luego de mas cargado a menos. */
+      if (!a) return -1;
+      if (!b) return 1;
+      return carga[b] - carga[a];
+    });
+    if (!quienes.length){ caja.hidden = true; return; }
+
+    quienes.forEach(function(k){
+      var nombre = k ? (nombresMt[k] || (u.co_sinnombre || '')) : (u.mt_sindueno || '');
+      var marca  = k ? sueleTardar(k) : null;
+      var b = el('button', 'mt-eq' + (mtQuien === k ? ' aqui' : ''));
+      b.type = 'button';
+      b.setAttribute('aria-pressed', mtQuien === k ? 'true' : 'false');
+      b.appendChild(avatarDe(k ? nombre : ''));
+      var txt = el('span', 'mt-persona-t');
+      txt.appendChild(el('b', null, nombre));
+      /* La cifra se parte por {n} en vez de quitarlo: en castellano el
+         numero va delante y en ruso detras, asi que borrar el hueco para
+         escribirlo siempre delante dejaba el ruso con los dos puntos
+         colgando y la cifra al otro lado. */
+      var pie = el('span', 'mt-marca');
+      var partes = String(u.mt_equipo_n || '{n}').split('{n}');
+      pie.appendChild(document.createTextNode(partes[0]));
+      pie.appendChild(el('b', null, String(carga[k])));
+      pie.appendChild(document.createTextNode(
+        (partes[1] || '') + ' · ' +
+        (!k ? (u.mt_sintomar || '')
+            : marca === null ? (u.mt_sinmarca || '')
+            : String(u.mt_suele || '').replace('{t}', enDias(marca)))));
+      txt.appendChild(pie);
+      b.appendChild(txt);
+      b.addEventListener('click', function(){
+        mtQuien = (mtQuien === k) ? '' : k;
+        mtPagina = 0;
+        pintaMisTramites();
+      });
+      caja.appendChild(b);
+    });
+    caja.hidden = false;
+  }
+
   function pintaMisTramites(){
     var cuerpo = document.getElementById('mtCuerpo');
     if (!cuerpo) return;
@@ -19292,7 +19584,7 @@ applyLang(idiomaParaMi());
     var cab = document.getElementById('mtCab');
     if (cab){
       cab.textContent = '';
-      MT_COLUMNAS.forEach(function(k){
+      mtColumnas().forEach(function(k){
         var th = document.createElement('th');
         th.scope = 'col';
         /* La ultima no lleva rotulo a la vista: son botones, y «Abrir»
@@ -19305,6 +19597,10 @@ applyLang(idiomaParaMi());
     }
 
     pintaFiltrosMt();
+    /* La franja se pinta con TODAS las filas y no con las filtradas: la
+       carga de una persona no cambia porque alguien pulse un monton, y una
+       cifra que baila al filtrar deja de servir para repartir trabajo. */
+    pintaEquipoMt(filas, u);
 
     cuerpo.textContent = '';
     var tabla = document.getElementById('mtTabla');
@@ -19343,6 +19639,11 @@ applyLang(idiomaParaMi());
        vista en blanco sin explicar por que. */
     if (!filas.filter(mtCuadra).length){
       mtFiltro = 'todas';
+      /* Y tambien se suelta la persona. Sin esto, un administrador que
+         filtraba por alguien se quedaba con la tabla en blanco cuando a
+         esa persona no le quedaba nada: ceder solo el monton no bastaba,
+         porque el que vaciaba la lista era el otro filtro. */
+      mtQuien = '';
       pintaFiltrosMt();
     }
 
@@ -19412,12 +19713,21 @@ applyLang(idiomaParaMi());
       var tdEstado = document.createElement('td');
       tdEstado.appendChild(estadoMt(t.estado, chip.txt));
       /* Cuanto lleva parado, debajo del estado y solo si sigue vivo: en un
-         resuelto «lleva veinte dias» no dice nada, ya termino. */
-      if (t.estado !== 'resuelto'){
+         resuelto «lleva veinte dias» no dice nada, ya termino.
+
+         Al administrador NO, porque a el le sale la columna «Esperando»
+         al lado y serian dos relojes diciendo lo mismo en la misma fila.
+         Se queda el de la columna, que ademas ordena. */
+      if (t.estado !== 'resuelto' && !mtEsAdmin()){
         var rel = relojDe(t.desde_en || t.enviado_en || t.creado_en, u.mt_desde);
         if (rel) tdEstado.appendChild(rel);
       }
       tr.appendChild(tdEstado);
+
+      if (mtEsAdmin()){
+        tr.appendChild(celdaLleva(t, u));
+        tr.appendChild(celdaEspera(t, u));
+      }
 
       /* La fecha, con su rotulo: sin el, una columna de fechas sueltas no
          dice si es cuando se envio o cuando se resolvio. */
@@ -19639,7 +19949,13 @@ applyLang(idiomaParaMi());
     return cargaCatalogo().then(function(){
       return Promise.all([
         Promise.resolve(sb.from('tramites')
-          .select('id, tipo, estado, inversionista, creado_en, enviado_en, resuelto_en')
+          /* 'gestor' entra aqui y no en la consulta personal: es la columna
+             de «quien lo lleva», y esa solo la enseña la tabla del
+             administrador. El nombre sale de nombresMt, que ya trae TODOS
+             los perfiles -no solo los inversionistas-, asi que un gestor se
+             busca en el mismo sitio que un dueño y no hace falta una
+             segunda consulta. */
+          .select('id, tipo, estado, inversionista, gestor, creado_en, enviado_en, resuelto_en')
           .order('creado_en', {ascending:false})),
         Promise.resolve(sb.from('perfiles').select('id, nombre_completo'))
           .catch(function(){ return {data: []}; })
