@@ -613,6 +613,14 @@ svg{display:block;}
 .co-emitir label{font-size:var(--fs-rotulo-form); font-weight:700; color:var(--gray);}
 .co-emitir input[type="file"]{font:inherit; font-size:12px; color:var(--ink);}
 .co-ficha.mal .co-emitir label{color:var(--rust);}
+/* Lo que el gestor copia del acta protocolizada para que la publicación
+   nazca rellena. Mismo aire que «co-emitir», que está justo encima y es el
+   sitio donde sube ese mismo papel: son un gesto, no dos. */
+.co-acta{display:flex; flex-direction:column; gap:5px; margin-top:11px;}
+.co-acta label{font-size:var(--fs-rotulo-form); font-weight:700; color:var(--gray);}
+.co-acta input{font:inherit; font-size:12px; color:var(--ink); padding:6px 8px;
+  border:1px solid var(--line); border-radius:7px; background:var(--hoja);}
+.co-acta .sd-e{margin-bottom:2px;}
 .co-reserva-e{font-size:12px; color:var(--gray);}
 .co-reserva.puesto .co-reserva-e{color:var(--ink); font-weight:600;}
 /* Lo entregado, en el detalle del trámite del inversionista. */
@@ -11923,7 +11931,41 @@ applyLang(idiomaParaMi());
        y solo mientras quien corrige siga en la hoja 1: cambiarle de hoja
        cuando ya se ha movido por su cuenta es peor que no llevarle. */
     var corrigiendo = !!borrador && borrador.estado === 'devuelto';
-    var llevado = false;
+    var hojaPuesta = false, filaPuesta = false;
+
+    /* ¿Queda algo por rellenar en esta hoja? Solo los CAMPOS, y solo mira:
+       no pinta nada en rojo. Es la misma regla que validaPaso -vale lo que
+       tenga valor, y lo opcional no cuenta- pero sin marcar, porque esto
+       corre al abrir y a nadie se le enseña en rojo lo que todavía no ha
+       tenido ocasión de escribir.
+
+       No se miran los recaudos: cuáles están se sabe unos milisegundos
+       después, cuando contesta la bóveda de cada fila, y esperar a las
+       tres para decidir por dónde abrir dejaría el formulario dando un
+       salto tarde. De los recaudos se encarga vaALaFila, que llega cuando
+       llega y manda sobre esto. */
+    function faltaAlgoEn(hoja){
+      var falta = false;
+      hoja.querySelectorAll('.sol-campo').forEach(function(c){
+        if (falta || c.getAttribute('data-opcional')) return;
+        var e = c.querySelector('input, select');
+        var v = (e && e.type === 'checkbox')
+          ? (e.checked ? 'x' : '')
+          : (c.getAttribute('data-es') || (e && e.value) || '').trim();
+        if (!v) falta = true;
+      });
+      return falta;
+    }
+
+    /* A la hoja donde hay trabajo. Quien corrige un devuelto con los datos
+       ya puestos no tiene nada que hacer en «Tus datos»: pasar por delante
+       de tres campos llenos para llegar a lo que falla es el paso de más
+       que Franklin pidió quitar (21-9-2026). */
+    function vaALaHoja(n){
+      if (!corrigiendo || !n || hojaPuesta) return;
+      hojaPuesta = true;
+      vePaso(n, true);
+    }
     /* CUÁNTOS SON, ARRIBA DEL TODO. Saltar al primero deja sin contestar la
        pregunta que se hace cualquiera al abrir esto: «¿y esto cuánto me va a
        costar?». Con uno señalado y tres papeles en la hoja, no se sabe si
@@ -11947,11 +11989,15 @@ applyLang(idiomaParaMi());
     function alQueNoVale(fila){
       noValen++;
       cuantosNoValen();
-      if (!corrigiendo || llevado || paso !== 1) return;
+      /* El papel manda sobre la hoja: si ya se abrió por «Recaudos» porque
+         los datos estaban puestos, esto afina a la altura del que falla; y
+         si se abrió por otra, se cambia. Solo el primero. */
+      if (!corrigiendo || filaPuesta) return;
       var hoja = fila && fila.closest && fila.closest('.pa-hoja');
       var n = hoja && +hoja.getAttribute('data-paso');
       if (!n) return;
-      llevado = true;
+      filaPuesta = true;
+      hojaPuesta = true;
       vePaso(n, true);
       /* Y a la altura de la fila, no al principio de la hoja: vePaso sube
          arriba del trámite, que con tres recaudos deja el que importa fuera
@@ -11962,6 +12008,19 @@ applyLang(idiomaParaMi());
     }
 
     vePaso(1);
+
+    /* Y con la primera hoja ya completa, se entra por la segunda. Hay más
+       de tres hojas en otros trámites, así que se busca la primera con algo
+       pendiente en vez de dar por hecho que es la 2. Si no falta nada en
+       ninguna -todo puesto y lo que fallaba era un papel- se queda en
+       «Recaudos», que es donde estará la cruz cuando llegue. */
+    if (corrigiendo && HOJAS.length > 1){
+      var donde = 0;
+      for (var h = 0; h < HOJAS.length; h++){
+        if (faltaAlgoEn(HOJAS[h].hoja)){ donde = h + 1; break; }
+      }
+      if (donde !== 1) vaALaHoja(donde || Math.min(2, HOJAS.length));
+    }
 
     enviar.addEventListener('click', function(){
       envia(tipo, borrador, enviar, aviso);
@@ -17546,7 +17605,49 @@ applyLang(idiomaParaMi());
   /* Resolver sin entregar nada deja al inversionista con un aviso de que ya
      está y sin nada en la mano: se exige el documento, y va a su bóveda con
      la misma función que la ventana. */
-  function hoyResuelve(t, archivo, boton, aviso){
+  /* Las dos casillas del acta protocolizada, para el gestor que la sube.
+     Devuelve la caja y una función que la lee: así quien resuelve no tiene
+     que saber cómo está montada por dentro.
+
+     Los nombres -numero_registro, fecha_protocolizacion- son los MISMOS que
+     usa el formulario de la publicación. No es casualidad ni se puede
+     cambiar a la ligera: el panel rellena un campo vacío con lo que se
+     escribió en otro trámite buscando por ese nombre, así que escribirlos
+     así es lo que hace que aparezcan solos al otro lado. Y el trigger que
+     abre la publicación los copia por el mismo nombre. */
+  function casillasDelActa(t){
+    var u = T(), d = (t && t.datos) || {};
+    var caja = el('div', 'co-acta');
+    caja.appendChild(el('div', 'sd-e', u.co_acta_p || ''));
+
+    var num = el('input');
+    num.type = 'text';
+    num.id = 'hoy-nreg-' + t.id;
+    num.value = d.numero_registro || '';
+    var eN = el('label', null, u.f_registro || '');
+    eN.setAttribute('for', num.id);
+
+    var fec = el('input');
+    fec.type = 'date';
+    fec.id = 'hoy-fprot-' + t.id;
+    fec.value = d.fecha_protocolizacion || '';
+    var eF = el('label', null, u.f_fechaprot || '');
+    eF.setAttribute('for', fec.id);
+
+    caja.appendChild(eN); caja.appendChild(num);
+    caja.appendChild(eF); caja.appendChild(fec);
+    return {
+      caja: caja,
+      lee: function(){
+        var v = {};
+        if ((num.value || '').trim()) v.numero_registro = num.value.trim();
+        if (fec.value) v.fecha_protocolizacion = fec.value;
+        return v;
+      }
+    };
+  }
+
+  function hoyResuelve(t, archivo, boton, aviso, delActa){
     var u = T();
     var papel = archivo && archivo.files && archivo.files[0];
     if (!papel && pideEmitido(t)){
@@ -17562,7 +17663,7 @@ applyLang(idiomaParaMi());
         boton.disabled = false;
         if (falta){ aviso.textContent = u[comprobanteParaResolver(t).aviso] || ''; return; }
         boton.setAttribute('data-reserva', 'vista');
-        hoyResuelve(t, archivo, boton, aviso);
+        hoyResuelve(t, archivo, boton, aviso, delActa);
       });
       return;
     }
@@ -17570,7 +17671,27 @@ applyLang(idiomaParaMi());
     var rotulo = pideEmitido(t) ? u.co_h_resolver : u.co_h_resolver_c;
     boton.disabled = true;
     boton.textContent = u.co_subiendo || '';
-    (papel ? entrega(t, papel) : Promise.resolve(true))
+    /* Los datos del acta se guardan ANTES de resolver, y ese orden es lo
+       único que hace que sirvan: el trigger que abre la publicación los
+       copia de la fila en el momento del cambio de estado. Guardados
+       después llegarían tarde por un instante y el tramo nuevo nacería sin
+       ellos.
+
+       Si falla, la protocolización se resuelve igual: el acta está subida y
+       el tramo tiene que abrirse. Lo único que se pierde es que la
+       publicación nazca rellena, que es una comodidad y no el trámite. */
+    var guarda = (delActa && Object.keys(delActa).length)
+      ? Promise.resolve(sb.from('tramites')
+          .update({datos: Object.assign({}, t.datos || {}, delActa)})
+          .eq('id', t.id))
+          .then(function(r){
+            if (r && r.error) throw r.error;
+            t.datos = Object.assign({}, t.datos || {}, delActa);
+          })
+          .catch(function(e){ console.warn('[CIIP] datos del acta:', e && e.message); })
+      : Promise.resolve();
+    guarda
+      .then(function(){ return papel ? entrega(t, papel) : true; })
       .then(function(){ return mueveTramite(t, 'resuelto', '', boton, aviso, rotulo); })
       .then(function(bien){
         if (!bien) return;
@@ -17988,9 +18109,25 @@ applyLang(idiomaParaMi());
         sube.appendChild(archivo);
         fin.appendChild(sube);
       }
+      /* LO QUE TRAE EL ACTA PROTOCOLIZADA (Franklin Reyes, 21-9-2026:
+         «esa información debería llenarse con la primera fase»). No puede:
+         el número de registro y la fecha de protocolización no existen
+         cuando se constituye, los produce el registro al protocolizar. El
+         único momento en que alguien los tiene delante es éste, con el acta
+         en la mano para subirla. Se apuntan aquí y el tramo siguiente los
+         hereda, en vez de pedírselos al inversionista, que los tendría que
+         copiar del mismo papel que el CIIP acaba de leer.
+
+         Opcionales a propósito: si el gestor no los pone, la publicación
+         los pide como hasta ahora. Un candado aquí dejaría sin resolver una
+         protocolización que por lo demás está lista. */
+      var delActa = (t.tipo === 'protocolizacion_acta') ? casillasDelActa(t) : null;
+      if (delActa) fin.appendChild(delActa.caja);
       var res = el('button', 'btn navy', (conEmitido ? u.co_h_resolver : u.co_h_resolver_c) || '');
       res.type = 'button';
-      res.addEventListener('click', function(){ hoyResuelve(t, archivo, res, aviso); });
+      res.addEventListener('click', function(){
+        hoyResuelve(t, archivo, res, aviso, delActa && delActa.lee());
+      });
       botones.appendChild(res);
     } else if (mio && t.estado === 'devuelto'){
       /* Un devuelto ya no espera al CIIP: la pelota es del inversionista.

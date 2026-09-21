@@ -134,8 +134,33 @@ begin
     return new;
   end if;
 
+  --  LO QUE EL TRAMO NUEVO HEREDA
+  --  ─────────────────────────────────────────────────────────────────
+  --  La razón social desde el principio. El número de registro y la fecha
+  --  de protocolización desde el 21 de septiembre de 2026, a petición de
+  --  Franklin Reyes: «esa información debería llenarse con la primera
+  --  fase». De la constitución no puede salir —el registro los ASIGNA al
+  --  protocolizar, así que cuando se constituye no existen todavía—, pero
+  --  de la protocolización sí: el gestor los copia del acta en el momento
+  --  de subirla, que es el único momento en que alguien los tiene delante.
+  --
+  --  Los tres nombres son los del formulario de la publicación. Si allí se
+  --  renombra un campo, hay que renombrarlo aquí o la herencia se corta sin
+  --  hacer ruido: lo que se hereda es un nombre, no una columna.
+  --
+  --  Lo que no esté, no se copia: una clave en blanco taparía el relleno
+  --  del panel, que busca en los otros trámites lo que se escribió antes.
   if coalesce(new.datos->>'razon_social', '') <> '' then
     copia := copia || jsonb_build_object('razon_social', new.datos->>'razon_social');
+  end if;
+
+  if coalesce(new.datos->>'numero_registro', '') <> '' then
+    copia := copia || jsonb_build_object('numero_registro', new.datos->>'numero_registro');
+  end if;
+
+  if coalesce(new.datos->>'fecha_protocolizacion', '') <> '' then
+    copia := copia || jsonb_build_object('fecha_protocolizacion',
+                                         new.datos->>'fecha_protocolizacion');
   end if;
 
   --  Y nace en manos de quien resolvió la protocolización, por lo mismo
