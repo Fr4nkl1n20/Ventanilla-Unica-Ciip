@@ -20672,7 +20672,26 @@ applyLang(idiomaParaMi());
       bt.disabled = !ref && !mtEsAdmin();
       bt.addEventListener('click', function(){
         if (mtEsAdmin()){ location.hash = 'poratender'; return; }
-        if (ref) location.hash = 'tramite-' + ref;
+        if (!ref) return;
+        /* Y si está devuelta, directo al formulario. Ésta era la tercera
+           puerta que quedaba sin el camino corto: el aviso del tramo y el
+           de la portada ya entraban a corregir, y desde aquí seguía
+           parando en la pantalla del trámite -la que enseña el MISMO aviso
+           con el MISMO botón-, así que había que pulsar dos veces para lo
+           mismo. Se usa la bandera que ya existe y no un camino nuevo: un
+           segundo mecanismo para la misma cosa acaba comportándose
+           distinto según por dónde entres, que es justo lo que se estaba
+           arreglando.
+
+           Solo si el hash CAMBIA: puesto al valor que ya tenía no dispara
+           hashchange, la ficha no se repinta y la bandera se quedaría
+           armada esperando al siguiente trámite que se abriera. */
+        var destino = 'tramite-' + ref;
+        if (t.estado === 'devuelto' &&
+            String(location.hash).replace(/^#/, '') !== destino){
+          window.CIIP_CORREGIR_YA = ref;
+        }
+        location.hash = destino;
       });
       tdIr.appendChild(bt);
       tr.appendChild(tdIr);
