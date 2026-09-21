@@ -22779,6 +22779,10 @@ applyLang(idiomaParaMi());
     var caja = filaDelDocumentoParaPagar(tr, quiere.planilla, quiere.claveP, quiere.clavePista);
     txt.appendChild(caja);
     if (!quiere.claveEspera) return;
+    /* Y con el tramo resuelto tampoco se anuncia lo que esta por llegar:
+       «el CIIP te enviara aqui el PUB» debajo de una fase completada es una
+       promesa vencida (Franklin Reyes, 21-9-2026). */
+    if (tr.estado === 'resuelto') return;
     /* El aviso y el documento no pueden salir los dos: escondido hasta
        saber cual toca, que si no el aviso se ensena y desaparece medio
        segundo despues y parece que algo fallo. */
@@ -22956,9 +22960,11 @@ applyLang(idiomaParaMi());
   function filaDelDocumentoParaPagar(tr, tipoPapel, claveNombre, clavePista){
     var u = T();
     var tipoP = tipoPapel || TIPO_PLANILLA;
+    var cerradoP = !!tr && tr.estado === 'resuelto';
     var caja = el('div', 'tr-pagar');
     caja.hidden = true;
-    caja.appendChild(el('div', 'sd-e tr-pagar-p', u[clavePista || 'tr_pagareserva'] || ''));
+    if (!cerradoP)
+      caja.appendChild(el('div', 'sd-e tr-pagar-p', u[clavePista || 'tr_pagareserva'] || ''));
     var fila = el('div', 'tr-papel');
     fila.setAttribute('data-doc', tipoP);
     fila.appendChild(el('span', 'tp-n', u[claveNombre || 'd_planilla_reserva'] || ''));
@@ -22972,10 +22978,8 @@ applyLang(idiomaParaMi());
 
        Vale para los dos pisos que comparten esta fila: la reserva del
        nombre de la constitucion y los aranceles de la protocolizacion. */
-    var cerrado = !!tr && tr.estado === 'resuelto';
     var abrir = null;
-    if (cerrado) caja.firstChild.remove();
-    else {
+    if (!cerradoP){
       abrir = el('button', 'sd-btn', u.co_abrir || '');
       abrir.type = 'button';
       fila.appendChild(abrir);
