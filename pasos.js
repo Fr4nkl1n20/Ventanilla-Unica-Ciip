@@ -2128,7 +2128,6 @@ window.CIIP_PASOS = {
       mt_nada_b:    "Show all",
       mt_f_tarjetas:"Cards",
       mt_f_tabla:   "Table",
-${T}
       mt_abrir:     "Open",
       mt_mostrando:   "Showing {desde}–{hasta} of {total} procedures",
       mt_ver_pag:     "Show {sel} per page",
@@ -4055,7 +4054,6 @@ ${T}
       mt_nada_b:    "Mostra tutte",
       mt_f_tarjetas:"Schede",
       mt_f_tabla:   "Tabella",
-${T}
       mt_abrir:     "Apri",
       mt_mostrando:   "Mostrando {desde}–{hasta} di {total} pratiche",
       mt_ver_pag:     "Mostra {sel} per pagina",
@@ -5019,7 +5017,6 @@ ${T}
       mt_nada_b:    "查看全部",
       mt_f_tarjetas:"卡片",
       mt_f_tabla:   "表格",
-${T}
       mt_abrir:     "打开",
       mt_mostrando:   "显示第 {desde}–{hasta} 项，共 {total} 项手续",
       mt_ver_pag:     "每页显示 {sel} 项",
@@ -5983,7 +5980,6 @@ ${T}
       mt_nada_b:    "Показать все",
       mt_f_tarjetas:"Карточки",
       mt_f_tabla:   "Таблица",
-${T}
       mt_abrir:     "Открыть",
       mt_mostrando:   "Показано {desde}–{hasta} из {total} процедур",
       mt_ver_pag:     "Показывать по {sel} на странице",
