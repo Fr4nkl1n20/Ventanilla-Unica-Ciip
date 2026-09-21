@@ -12502,6 +12502,24 @@ applyLang(idiomaParaMi());
          CIIP» (Franklin Reyes, 17-9-2026). pintaEstado lo vacía al empezar. */
       (acompana || caja).appendChild(bloque);
     })();
+
+    /* Y SI SE VIENE DEL TRAMO, SIN PARADA EN ESTA PANTALLA (Franklin Reyes,
+       21-9-2026: «quiero que desde aquí me envíe directamente a resolver el
+       problema»). El aviso de la tarjeta del tramo ya traía su «Corregir y
+       reenviar», pero solo llegaba hasta aquí, que enseña el MISMO aviso con
+       el MISMO botón: dos clics para lo mismo y una pantalla en medio que no
+       hace nada. Ahora el primer clic abre el formulario, y con lo de
+       alQueNoVale se cae directamente en el papel que no valió.
+
+       Va al final del todo porque pulsar vacía la caja: puesto arriba se
+       llevaría por delante la escalera y el cuadro de la consulta según se
+       pintan. Y la bandera se gasta al leerla, para que un viaje que no
+       llegue no deje armado el salto del siguiente trámite que se abra. */
+    if (arreglar && window.CIIP_CORREGIR_YA &&
+        window.CIIP_CORREGIR_YA === tipoRefDe(tr.tipo)){
+      window.CIIP_CORREGIR_YA = false;
+      arreglar.click();
+    }
   }
 
 
@@ -22597,12 +22615,27 @@ applyLang(idiomaParaMi());
 
     /* Y la salida a la ficha, para lo que no se arregla desde aquí: si lo
        que falla es un dato del formulario y no un papel, el sitio de
-       corregirlo es el suyo. */
+       corregirlo es el suyo.
+
+       DERECHO AL FORMULARIO, sin parar en la ficha (Franklin Reyes,
+       21-9-2026). Esto llevaba a la pantalla del trámite y ahí había que
+       pulsar otra vez el mismo botón, debajo del mismo aviso. La bandera se
+       pone ANTES de cambiar la dirección: la pantalla se pinta al vuelo y
+       la lee pintaEstado al acabar, que es quien tiene el botón. */
     var ir = el('button', 'btn ghost tr-dev-ir', u.corregir || '');
     ir.type = 'button';
     ir.addEventListener('click', function(e){
       e.stopPropagation();
-      location.hash = 'tramite-' + ref;
+      var destino = 'tramite-' + ref;
+      /* Estando ya en esa pantalla, cambiar la dirección no repinta nada y
+         la bandera se quedaría armada para la próxima vez. Ahí no hay nada
+         que hacer: el mismo aviso con el mismo botón ya está delante. */
+      if (String(location.hash).replace(/^#/, '') === destino) return;
+      /* Lleva el ref y no un sí a secas: si algo sale mal por el camino, lo
+         peor que puede pasar es que se abra el formulario de ESTE trámite,
+         nunca el de otro. */
+      window.CIIP_CORREGIR_YA = ref;
+      location.hash = destino;
     });
     av.appendChild(ir);
 
