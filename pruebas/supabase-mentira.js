@@ -226,8 +226,19 @@
        comprobar que ese no lo lleva, que es la mitad de la regla. */
     {codigo:'rif_empresa',  ref_panel:'c6', ente:'SENIAT', activo:true, emite:'rif_empresa', plazo_dias:14,
      nombre:'RIF de la empresa', fase:2, nivel:'esencial'},
-    {codigo:'rnc',          ref_panel:'c13', ente:'RNC',   activo:true,
+    /* APAGADO desde el 20-9-2026, como en la base de verdad: el RNC se
+       hace dentro del c37. La fila se queda para que el panel sepa poner
+       nombre a las solicitudes de 'rnc' que ya existen —dos, más abajo—,
+       que es justo lo que pasa en produccion con los expedientes viejos. */
+    {codigo:'rnc',          ref_panel:'c13', ente:'RNC',   activo:false,
      nombre:'Registro Nacional de Contratistas', fase:3, nivel:'actividad'},
+    /* Las cinco inscripciones en una casilla. Como en la base de verdad:
+       fase 3, 'esencial' -le toca a todos, sin distintivo-, 28 dias y SIN
+       'emite', que devuelve cinco constancias y la columna guarda una. */
+    {codigo:'registros_parafiscales', ref_panel:'c37', ente:'Entes varios',
+     activo:true, plazo_dias:28,
+     nombre:'Inscripciones: Registros Parafiscales y Regulatorios',
+     fase:3, nivel:'esencial'},
 
     /* ── dos filas que el catálogo de verdad NO tiene todavía ──
        Y se dice, porque un doble que se aleja de Supabase sin avisar es
@@ -264,11 +275,14 @@
      activo:true, emite:'no_objecion_zodi', plazo_dias:null,
      nombre:'Opinión favorable de la ZODI', fase:2, nivel:'actividad'},
     /* El RUPDAE y el Registro Único Minero, en la fase 3. Como en la base
-       de verdad: el RUPDAE 'esencial' -le toca a todos, sin distintivo- y
-       con sus 14 días; el RUM 'actividad' y SIN plazo -la resolución no da
-       ninguno-. Sin ellas aquí el panel pintaría dos fichas de lectura. */
+       de verdad: el RUM 'actividad' y SIN plazo -la resolución no da
+       ninguno-. Sin él aquí el panel pintaría una ficha de lectura.
+
+       El RUPDAE va APAGADO desde el 20-9-2026: se hace dentro del c37.
+       Conserva su 'emite' y su plazo para que, si el CIIP vuelve a
+       encenderlo desde el panel del admin, no se encienda descalzo. */
     {codigo:'rupdae', ref_panel:'c35', ente:'SUNDDE',
-     activo:true, emite:'certificado_rupdae', plazo_dias:14,
+     activo:false, emite:'certificado_rupdae', plazo_dias:14,
      nombre:'Inscripción en el RUPDAE', fase:3, nivel:'esencial'},
     {codigo:'registro_minero', ref_panel:'c36', ente:'Ministerio de Desarrollo Minero',
      activo:true, emite:'certificado_rum', plazo_dias:null,

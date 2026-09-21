@@ -35,7 +35,7 @@
 --  constancia con fecha de vencimiento. El comprobante del pago
 --  ('pago_aranceles') ya existe en supabase-tramites.sql y no se toca.
 insert into public.tipos_documento (codigo, nombre, vence) values
-  ('planilla_aranceles', 'Documento para pagar los aranceles del registro', false)
+  ('planilla_aranceles', 'PUB para pagar los aranceles del registro', false)
 on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.vence;
 
 

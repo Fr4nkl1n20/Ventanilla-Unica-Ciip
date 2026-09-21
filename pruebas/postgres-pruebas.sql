@@ -2677,12 +2677,21 @@ select arnes.comprueba(
 
 -- El RUPDAE (c35) y el Registro Unico Minero (c36), del encargo del 15 de
 -- septiembre de 2026: los dos a la fase 3, «Habilitacion operativa y
--- cumplimiento», y encendidos.
+-- cumplimiento».
+--
+-- El RUM sigue encendido. El RUPDAE ya NO: desde el encargo del 20 de
+-- septiembre se hace dentro del c37, y lo que se comprueba de el es que
+-- este apagado, no que falte. Su fila se queda -con su nivel, su plazo y su
+-- `emite`- porque las solicitudes que ya existen la referencian y porque el
+-- admin puede volver a encenderlo desde el panel.
 select arnes.comprueba(
-  'rupdae y rum: estan en la fase 3 y encendidos',
+  'rupdae y rum: estan en la fase 3, y solo el RUM encendido',
   (select count(*) = 2 from public.tipos_tramite
     where (codigo, ref_panel) in (('rupdae', 'c35'), ('registro_minero', 'c36'))
-      and fase = 3 and activo));
+      and fase = 3
+      and activo = (codigo = 'registro_minero')),
+  (select string_agg(codigo || ' activo=' || activo::text, ', ' order by codigo)
+     from public.tipos_tramite where codigo in ('rupdae', 'registro_minero')));
 
 -- El RUPDAE le toca a toda empresa que vende, fabrica o presta servicios,
 -- pero no suma a los diez obligatorios del informe: 'esencial'. El RUM
@@ -2709,6 +2718,58 @@ select arnes.comprueba(
      join public.tipos_documento d on d.codigo = t.emite
     where (t.codigo = 'rupdae' and d.codigo = 'certificado_rupdae' and not d.vence)
        or (t.codigo = 'registro_minero' and d.codigo = 'certificado_rum' and d.vence)));
+
+-- ── LAS CINCO INSCRIPCIONES, EN UNA CASILLA (c37) ──────────────────────
+-- Del encargo del 20 de septiembre de 2026: «vamos a agrupar los tramites
+-- de Banavih, Inces, Ministerio de Trabajo, RNC y Rupdae en una sola
+-- casilla», con un solo juego de recaudos. Fase 3 y encendida.
+select arnes.comprueba(
+  'parafiscales: la casilla esta en la fase 3 y encendida',
+  (select count(*) = 1 from public.tipos_tramite
+    where codigo = 'registros_parafiscales' and ref_panel = 'c37'
+      and fase = 3 and activo));
+
+-- Y los cinco que recoge, APAGADOS. Este es el que de verdad importa: con
+-- uno encendido, el inversionista veria la casilla nueva y ademas la vieja,
+-- y subiria los mismos papeles dos veces.
+select arnes.comprueba(
+  'parafiscales: y los cinco que recoge estan apagados',
+  (select count(*) = 0 from public.tipos_tramite
+    where codigo in ('faov_banavih', 'inces', 'rnet', 'rnc', 'rupdae')
+      and activo),
+  (select coalesce(string_agg(codigo, ', ' order by codigo), '(ninguno)')
+     from public.tipos_tramite
+    where codigo in ('faov_banavih', 'inces', 'rnet', 'rnc', 'rupdae') and activo));
+
+-- Pero NO borrados: sus filas siguen, que es lo que da nombre a las
+-- solicitudes que ya existen de esos cinco tipos.
+select arnes.comprueba(
+  'parafiscales: apagar no borro ninguna de las cinco filas',
+  (select count(*) = 5 from public.tipos_tramite
+    where codigo in ('faov_banavih', 'inces', 'rnet', 'rnc', 'rupdae')));
+
+-- El IVSS (c9) se queda fuera y encendido: no estaba en la lista del
+-- encargo, se pregunto, y el CIIP lo dejo con casilla propia.
+select arnes.comprueba(
+  'parafiscales: el IVSS se queda aparte, y encendido',
+  (select activo from public.tipos_tramite where codigo = 'registros_laborales'));
+
+-- Le toca a toda empresa -el RNET y el RUPDAE son de todas-, asi que no
+-- puede decir «segun tu actividad». Y no suma a los diez obligatorios.
+select arnes.comprueba(
+  'parafiscales: es esencial, no de actividad, y no suma obligatorios',
+  (select nivel = 'esencial' from public.tipos_tramite
+    where codigo = 'registros_parafiscales')
+  and (select count(*) = 10 from public.tipos_tramite where nivel = 'obligatorio'),
+  (select nivel from public.tipos_tramite where codigo = 'registros_parafiscales'));
+
+-- Sin `emite`: devuelve CINCO constancias y la columna guarda una. Poner
+-- una de las cinco encadenaria mal -un tramite que pidiera la del RNET se
+-- quedaria esperando por un `emite` que dice otra cosa-.
+select arnes.comprueba(
+  'parafiscales: no dice emitir uno solo de los cinco papeles',
+  (select emite is null from public.tipos_tramite
+    where codigo = 'registros_parafiscales'));
 
 -- ── LA JUNTA DIRECTIVA (c5): de quién es cada papel ────────────────────
 -- Sin titular, cinco cédulas de cinco miembros eran cinco papeles del mismo

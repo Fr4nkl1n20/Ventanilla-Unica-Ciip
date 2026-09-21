@@ -93,7 +93,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    constitucion, con su documento para pagar los aranceles y la guarda de
    su comprobante. Necesita tramites, documentos y es_gestor(); va al
    final. */
-'supabase-protocolizacion'];
+'supabase-protocolizacion',
+/* Las cinco inscripciones en una casilla (c37): BANAVIH, INCES, RNET, RNC
+   y RUPDAE. Va DETRAS de supabase-rupdae-rum, que es quien enciende el
+   c35 que este apaga; si fuera delante, aquel lo volveria a encender. */
+'supabase-parafiscales'];
 
 let mal = 0;
 for (const n of orden) {

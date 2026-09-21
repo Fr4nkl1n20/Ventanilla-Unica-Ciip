@@ -587,8 +587,14 @@
        cuando lo están sus tres tramos. */
     igual('camino: la fase 02 cuenta las que están encendidas',
           deEtapa(1, '.jcount'), '0 de 6 listos');
-    /* Trece desde el RUPDAE (c35) y el Registro Único Minero (c36). */
-    igual('camino: la fase 03 cuenta sus 13',          deEtapa(2, '.jcount'), '0 de 13 listos');
+    /* Trece desde el RUPDAE (c35) y el Registro Único Minero (c36).
+
+       Y NUEVE desde el 20-9-2026. Cinco salen de la cuenta y una entra: el
+       RNC y el RUPDAE se apagan —su tarjeta deja el documento— y el FAOV, el
+       INCES y el RNET pasan a llevar data-tramo-de, que no se cuenta. En su
+       sitio, una sola casilla, el c37. La cuenta dice lo que hay: nueve
+       casillas y nueve que se pueden terminar. */
+    igual('camino: la fase 03 cuenta sus 9',          deEtapa(2, '.jcount'), '0 de 9 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
        inversión extranjera tenía una etapa para él solo —y una etapa con una
        sola tarjeta dentro— y ahora comparte la 4 con el banco de activos y
@@ -896,13 +902,17 @@
            Desde que se retiro la franja de "te toca a ti", esta es la
            unica pantalla que lo dice. */
         var pendS = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
-        ok('estados: con un borrador, treinta y cuatro por iniciar y no treinta y cinco',
+        ok('estados: con un borrador, treinta y tres por iniciar y no treinta y cuatro',
           /* 31 y no 32: el registro de marca esta apagado y su tarjeta ya no
              esta en el documento, asi que no puede decir «por iniciar» ni
              ninguna otra cosa. Una menos arriba y una menos abajo.
              Y 32 y no 31 desde la ZODI (c34), que es una ofrecida más.
-             Y 34 desde el RUPDAE (c35) y el RUM (c36). */
-             pendS === 34, pendS + ' por iniciar de 35 ofrecidas', '34');
+             Y 34 desde el RUPDAE (c35) y el RUM (c36).
+             Y 33 desde el 20-9-2026: el c13 y el c35 se apagan -dos fichas
+             que dejan el documento- y entra el c37, que es una. El FAOV, el
+             INCES y el RNET siguen contando: llevan data-tramo-de, que las
+             esconde pero no las saca. */
+             pendS === 33, pendS + ' por iniciar de 34 ofrecidas', '33');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -911,9 +921,10 @@
            nacía 'pendiente' en el marcado -lo suyo es el distintivo, que
            sigue diciendo Disponible-. */
         var pend = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
-          /* 33 desde la ZODI (c34), y 35 desde el RUPDAE y el RUM. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 35,
-             pend + ' por iniciar de 35 ofrecidas', '35');
+          /* 33 desde la ZODI (c34), 35 desde el RUPDAE y el RUM, y 34 desde
+             que el c13 y el c35 se apagan y entra el c37. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 34,
+             pend + ' por iniciar de 34 ofrecidas', '34');
       }
 
       /* ── la cadena entre trámites ──
@@ -1031,12 +1042,29 @@
           window.CIIP_REPINTA_ESTADOS();
         }
 
-        igual('nivel: el que depende del ramo tambien', niv('c13'), 'Según tu actividad');
         igual('nivel: y el corriente no lleva nada',  niv('c6'),  '');
-        /* El RUPDAE le toca a todos: 'esencial', sin distintivo. El RUM sólo
-           a la minería, y lo dice. */
-        igual('nivel: el RUPDAE, que es de todos, no lleva nada', niv('c35'), '');
+        /* El c13 y el c35 medían aquí los dos niveles, y desde el 20-9-2026
+           están apagados: se hacen dentro del c37 y su tarjeta ya no está en
+           el documento, así que no tienen distintivo que mirar. Los dos
+           niveles se miden ahora en las que sí están.
+
+           Las cinco inscripciones le tocan a toda empresa: 'esencial', sin
+           distintivo. El RUM sólo a la minería, y lo dice. */
+        igual('nivel: las cinco inscripciones, que son de todos, no llevan nada', niv('c37'), '');
         igual('nivel: el Registro Único Minero depende del ramo',   niv('c36'), 'Según tu actividad');
+
+        /* Y que apagarlos hizo lo que tenía que hacer: cinco fichas menos en
+           la portada. Sin esto, dejarse una encendida en el catálogo pasaría
+           inadvertido —se vería una casilla de más y nada saldría en rojo—,
+           que es justo lo que el encargo venía a quitar. */
+        (function(){
+          var siguen = [];
+          ['c13', 'c25', 'c26', 'c27', 'c35'].forEach(function(r){
+            if (document.querySelector('.grid-tr > .tcard[data-tr="' + r + '"]:not([data-tramo-de])')) siguen.push(r);
+          });
+          igual('nivel: y las cinco que recoge el c37 ya no se ofrecen sueltas',
+                siguen.join(' ') || '(ninguna)', '(ninguna)');
+        })();
       })();
 
       /* AQUI SE MEDIA el renglon de «Te quedan N de T por hacer», que
@@ -1195,7 +1223,12 @@
 
          Cuatro trámites ante cuatro organismos que el inversionista hace
          de una vez, y que estaban desperdigados entre los once de la fase
-         con permisos ambientales de por medio. */
+         con permisos ambientales de por medio.
+
+         Y DOS desde el 20-9-2026: cuatro de aquellos se hacen ahora dentro
+         del c37 —con el RNC y el RUPDAE—, y el IVSS se queda con casilla
+         propia porque el CIIP lo dejó fuera del encargo. El rótulo sigue,
+         que sin él el IVSS parecería suelto entre los permisos. */
       (function(){
         var rej = document.getElementById('trs-3');
         var t   = rej && rej.querySelector('.grupo-t');
@@ -1246,23 +1279,32 @@
         igual('grupo: y son dos títulos, no uno repetido',
               rej.querySelectorAll('.grupo-t').length, 2);
 
-        /* Las cuatro, JUNTAS y detrás del título. Se lee la rejilla tal
-           como quedó, en orden, y se comprueba que los cuatro que siguen
-           al título son exactamente esos: si una se quedara donde estaba,
-           el título estaría encabezando a otra cosa. */
+        /* Las dos, JUNTAS y detrás del título. Se lee la rejilla tal
+           como quedó, en orden, y se comprueba que las que siguen
+           al título son exactamente esas: si una se quedara donde estaba,
+           el título estaría encabezando a otra cosa.
+
+           La casilla de las cinco inscripciones va DELANTE del IVSS: es la
+           que le toca a toda empresa, y el IVSS detrás porque no todas
+           tienen a quien inscribir todavía. */
         var hijos = [].slice.call(rej.children);
         var i = hijos.indexOf(t);
-        var siguen = hijos.slice(i + 1, i + 5)
+        var siguen = hijos.slice(i + 1, i + 3)
           .map(function(e){ return e.getAttribute('data-tr'); });
-        igual('grupo: las cuatro van detrás y en orden',
-              siguen.join(' '), 'c9 c25 c26 c27');
+        igual('grupo: las dos van detrás y en orden',
+              siguen.join(' '), 'c37 c9');
 
         /* Y el título es UN HIJO MÁS de la rejilla, no una caja con las
            tarjetas dentro. Es lo que hace que nada de lo que las cuenta
            se entere: acaba de pasar con los recaudos, donde meter una
            lista dentro de cada renglón hizo que seis contaran 52. */
-        igual('grupo: la fase 03 sigue teniendo sus trece tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 13);
+        /* DOCE desde el 20-9-2026: trece que había, más el c37, menos el c13
+           y el c35, que apagados dejan el documento. El FAOV, el INCES y el
+           RNET sí siguen contándose aquí: llevan data-tramo-de —no se ven,
+           pero están— porque el doble no los trae en el catálogo, que es
+           como se comporta una ficha sin fila. */
+        igual('grupo: la fase 03 sigue teniendo sus doce tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 12);
         ok('grupo: y el título no es una tarjeta',
            !t.classList.contains('tcard') && !t.hasAttribute('data-tr'),
            t.className, 'sin ser tarjeta');
@@ -1284,12 +1326,12 @@
            grupo salga dos veces, no que haya dos grupos. */
         igual('grupo: repintar no lo duplica',
               rej.querySelectorAll('.grupo-t[data-grupo="g.parafiscal"]').length, 1);
-        igual('grupo: y las cuatro siguen donde estaban',
+        igual('grupo: y las dos siguen donde estaban',
               [].slice.call(rej.children)
-                .slice([].slice.call(rej.children).indexOf(t) + 1, 
-                       [].slice.call(rej.children).indexOf(t) + 5)
+                .slice([].slice.call(rej.children).indexOf(t) + 1,
+                       [].slice.call(rej.children).indexOf(t) + 3)
                 .map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
-              'c9 c25 c26 c27');
+              'c37 c9');
 
         /* Y se traduce al cambiar de idioma, como cualquier otro rótulo:
            lleva data-i18n, así que de eso se encarga applyLang. */
@@ -2853,9 +2895,12 @@
     var bloques = document.querySelectorAll('#trSiguen .tr-bloque');
     igual('tramos: debajo de la constitución van los otros dos tramos',
           [].map.call(bloques, function(b){ return b.getAttribute('data-tramo'); }).join(','), 'c22,c23');
-    ok('tramos: cada bloque con sus cuatro pasos',
-       bloques.length === 2 && [].every.call(bloques, function(b){ return b.querySelectorAll('.tr-paso').length === 4; }),
-       [].map.call(bloques, function(b){ return b.querySelectorAll('.tr-paso').length; }).join('/'), '4/4');
+    /* Cinco la protocolización desde el 20 de septiembre de 2026 —la emisión
+       del PUB va delante de todo— y cuatro la publicación. */
+    ok('tramos: cada bloque con sus pasos',
+       bloques.length === 2 &&
+         [].map.call(bloques, function(b){ return b.querySelectorAll('.tr-paso').length; }).join('/') === '5/4',
+       [].map.call(bloques, function(b){ return b.querySelectorAll('.tr-paso').length; }).join('/'), '5/4');
     var real = document.getElementById('trReal'), siguen = document.getElementById('trSiguen');
     ok('tramos: el trámite abierto va antes que los tramos',
        !!real && !!siguen && !!(real.compareDocumentPosition(siguen) & Node.DOCUMENT_POSITION_FOLLOWING),
@@ -3750,8 +3795,13 @@
   /* ═══════════ EL RUPDAE (c35) Y EL REGISTRO ÚNICO MINERO (c36) ═══════════
      Del encargo del 15-9-2026. Lo mismo que en la ZODI: que el formulario
      no salga vacío y que los recaudos sean los suyos, en su orden. Y lo
-     propio de cada uno: el RUPDAE con sus dos opcionales -la asamblea y el
-     poder-, y el RUM con su «No lo sé» y sin plazo. */
+     propio de cada uno: el RUM con su «No lo sé» y sin plazo.
+
+     EL RUPDAE YA NO SE PIDE SOLO (20-9-2026). Se hace dentro del c37, así
+     que aquí ya no se comprueba su formulario -no lo tiene- sino las dos
+     mitades de haberlo apagado bien: que su ficha no esté en la portada, y
+     que abriéndola por su enlace no ofrezca un formulario que la base no
+     va a aceptar. Lo que preguntaba se comprueba en el bloque del c37. */
   function rupdaeAbre(){
     if (CASO !== 'vacio') return;
     location.hash = 'tramite-c35';
@@ -3759,21 +3809,18 @@
 
   function rupdaeTrasAbrir(){
     if (CASO !== 'vacio') return;
-    igual('rupdae: se abre su detalle', document.body.getAttribute('data-vista'), 'tramite');
 
-    var caja = document.getElementById('trReal');
-    igual('rupdae: pide los siete datos del portal',
-          caja.querySelectorAll('.sol-campo').length, 7);
-
-    var tipos = [];
-    caja.querySelectorAll('.sol-doc').forEach(function(d){ tipos.push(d.getAttribute('data-doc')); });
-    igual('rupdae: sus seis recaudos, los de la SUNDDE',
-          tipos.join(' '),
-          'acta_constitutiva acta_asamblea rif_empresa cedula rif_personal poder');
-
-    var opc = [];
-    caja.querySelectorAll('.sol-doc[data-opcional]').forEach(function(d){ opc.push(d.getAttribute('data-doc')); });
-    igual('rupdae: y sólo la asamblea y el poder son opcionales', opc.join(' '), 'acta_asamblea poder');
+    /* Apagado en el catálogo, su tarjeta deja el documento —lo mismo que
+       hace cualquier apagado, como el registro de marca— y el enlace se
+       queda en la portada. Es lo que se quiere: el RUPDAE se pide dentro
+       del c37, y una ficha que se abriera a medias invitaría a pedirlo por
+       su cuenta y a subir dos veces los mismos papeles. */
+    ok('rupdae: apagado, su ficha ya no está en la portada',
+       !document.querySelector('.tcard[data-tr="c35"]'),
+       'sigue en el documento', 'se fue con el catálogo');
+    igual('rupdae: y su enlace no abre nada',
+          document.body.getAttribute('data-vista'), 'inicio');
+    location.hash = '';
   }
 
   function rumAbre(){
@@ -3806,14 +3853,20 @@
        'dice «undefined»', 'limpio');
   }
 
+  /* ═══════════ LAS CINCO INSCRIPCIONES, EN UNA CASILLA (c37) ═══════════
+     Del encargo del 20-9-2026: «con un solo paso vamos a recoger todos los
+     recaudos, no es necesario que creemos un proceso por cada inscripción».
+     Lo que hay que comprobar es justo eso: que es UN formulario, que pide
+     la unión de lo que pedían los cinco, y que lo que frena el envío son
+     sólo los cuatro papeles comunes -los que de verdad comparten-. */
   function rncAbre(){
     if (CASO !== 'vacio') return;
-    location.hash = 'tramite-c13';
+    location.hash = 'tramite-c37';
   }
 
   function rncTrasAbrir(){
     if (CASO !== 'vacio') return;
-    igual('rnc: se abre su detalle', document.body.getAttribute('data-vista'), 'tramite');
+    igual('parafiscales: se abre su detalle', document.body.getAttribute('data-vista'), 'tramite');
 
     var caja = document.getElementById('trReal');
     var campos = caja.querySelectorAll('.sol-campo');
@@ -3821,11 +3874,50 @@
 
     /* Lo que separa un trámite vivo de una ficha de lectura: que salga el
        formulario, no solo la escalera de pasos. */
-    ok('rnc: ya se puede solicitar, no solo leer',
+    ok('parafiscales: ya se puede solicitar, no solo leer',
        campos.length > 0 && docs.length > 0,
        campos.length + ' campos y ' + docs.length + ' recaudos', 'formulario con campos y recaudos');
-    igual('rnc: pide los ocho datos de la empresa', campos.length, 8);
-    igual('rnc: y sus doce recaudos', docs.length, 12);
+    igual('parafiscales: pide los catorce datos de los cinco entes', campos.length, 14);
+    igual('parafiscales: y los catorce recaudos, en una sola lista', docs.length, 14);
+
+    (function(){
+      var tipos = [];
+      docs.forEach(function(d){ tipos.push(d.getAttribute('data-doc')); });
+      igual('parafiscales: los cuatro primeros son los comunes a los cinco',
+            tipos.slice(0, 4).join(' '),
+            'acta_constitutiva rif_empresa cedula rif_personal');
+      var opc = [];
+      caja.querySelectorAll('.sol-doc[data-opcional]').forEach(function(d){
+        opc.push(d.getAttribute('data-doc'));
+      });
+      /* Los diez opcionales: los tres que dependen del caso -asamblea,
+         nómina y poder- y los siete propios del RNC, que el SNC sí exige
+         pero que no pueden dejar sin enviar a la empresa recién
+         constituida. El comentario largo está en RECAUDOS. */
+      igual('parafiscales: y los otros diez no frenan el envío', opc.length, 10);
+      ok('parafiscales: ninguno de los cuatro comunes es opcional',
+         opc.indexOf('acta_constitutiva') === -1 && opc.indexOf('rif_empresa') === -1 &&
+         opc.indexOf('cedula') === -1 && opc.indexOf('rif_personal') === -1,
+         opc.join(' '), 'los cuatro obligatorios');
+    })();
+
+    /* Que cada ente siga preguntando lo suyo: si al juntarlos se hubiera
+       perdido un campo, el expediente saldría incompleto y no se vería. */
+    (function(){
+      var faltan = [];
+      ['establecimientos',    /* SUNDDE, el RUPDAE */
+       'correo_empresa',      /* SUNDDE: el correo de la EMPRESA */
+       'num_trabajadores',    /* BANAVIH e INCES */
+       'inicio_actividades',  /* RNET */
+       'actividad_economica', /* INCES */
+       'clasificacion',       /* RNC: bienes, servicios u obras */
+       'capital_social'       /* RNC */
+      ].forEach(function(n){
+        if (!caja.querySelector('.sol-campo[data-campo="' + n + '"]')) faltan.push(n);
+      });
+      igual('parafiscales: no se perdió el dato propio de ningún ente',
+            faltan.join(' ') || '(ninguno)', '(ninguno)');
+    })();
 
     /* Un recaudo que ya estaba en la bóveda se reutiliza, pero hay que poder
        MIRARLO antes de enviar: "pasaporte.pdf" puede ser el vencido, y como
@@ -3862,15 +3954,13 @@
          fila.querySelector('.sd-ver') ? 'sigue el boton' : 'se fue', 'se fue');
     })();
 
-    /* Solo uno, y es el único que el SNC marca como condicional: el poder,
-       cuando quien firma no es el representante de los estatutos. */
-    igual('rnc: solo el poder es opcional',
-          caja.querySelectorAll('.sol-doc[data-opcional]').length, 1);
-    /* La nómina del RNC no es la del RNET: aquí va la de personal TÉCNICO
-       con sus títulos, porque lo que se mide es capacidad técnica. */
-    ok('rnc: la nómina es la técnica, no la de trabajadores',
-       /personal técnico/i.test(caja.textContent) && !/Nómina de trabajadores/.test(caja.textContent),
-       'busca "personal técnico"', 'la técnica y no la otra');
+    /* La nómina del RNC NO es la del RNET, y en una lista única eso pasa de
+       matiz a trampa: son dos recaudos distintos -la de trabajadores y la
+       de personal TÉCNICO con sus títulos- y juntarlos en uno dejaría al
+       RNC midiendo tamaño de plantilla en vez de capacidad técnica. */
+    ok('parafiscales: la nómina de trabajadores y la técnica son dos, no una',
+       /personal técnico/i.test(caja.textContent) && /Nómina de trabajadores/.test(caja.textContent),
+       'busca las dos', 'las dos, cada una por su lado');
 
     /* El relleno: la razón social ya viene escrita desde Mi empresa, y el
        campo dice de dónde salió. Sin decirlo, parecería que el panel se
@@ -3886,7 +3976,7 @@
       igual('empresa: y el RIF también', rif ? rif.value : '(no hay campo)', 'J-40123456-7');
     })();
 
-    ok('rnc: los recaudos salen con su nombre, no con su código',
+    ok('parafiscales: los recaudos salen con su nombre, no con su código',
        /Estados financieros auditados/.test(caja.textContent),
        'busca "Estados financieros auditados"', 'aparece');
 
@@ -6387,8 +6477,9 @@
      pide seguia diciendo que no la tenias. */
   function cacheAbre(){
     if (CASO !== 'vacio') return;
-    /* El c13 -RNC- es el unico que pide la solvencia del IVSS. */
-    location.hash = 'tramite-c13';
+    /* El c37 es el que pide la solvencia del IVSS: la heredó del RNC, que
+       desde el 20-9-2026 se hace dentro de él. */
+    location.hash = 'tramite-c37';
   }
 
   function cacheMira(){
@@ -6430,7 +6521,7 @@
 
   function cacheVuelve(){
     if (CASO !== 'vacio' || !window.PRUEBA_CACHE) return;
-    location.hash = 'tramite-c13';
+    location.hash = 'tramite-c37';
   }
 
   function cacheTrasVolver(){
@@ -9686,31 +9777,49 @@
        !!b, b ? 'está' : 'no está', 'el bloque de la protocolización');
     if (!b){ location.hash = ''; return; }
     var pasos = b.querySelectorAll('.tr-paso');
-    /* La solicitud está en revisión, así que por estado los dos primeros
-       pasos estarían hechos. Pero el primero es PAGAR, y el comprobante no
-       está: un paso que pide un papel no se da por hecho sin él, por mucho
-       que la solicitud haya avanzado (Franklin Reyes, 18-9-2026). La
-       protocolización nace ya enviada al resolverse la constitución, y sin
-       esto su primer paso salía pagado desde el primer día. */
-    igual('verdad: el paso del pago no se da por hecho sin el comprobante',
-          [].map.call(pasos, function(li){
-            return li.classList.contains('hecho') ? 'hecho'
-                 : li.classList.contains('ahora') ? 'ahora' : 'porhacer';
-          }).join(','), 'ahora,porhacer,porhacer,porhacer');
+    /* El PRIMERO es la emisión del PUB, y ése sí va hecho: el equipo ya lo
+       dejó, y es lo único que lo cierra (Franklin Reyes, 20-9-2026).
+
+       El segundo es PAGAR, y ahí la solicitud está en revisión: por estado
+       estaría hecho, pero el comprobante no está, y un paso que pide un
+       papel no se da por hecho sin él, por mucho que la solicitud haya
+       avanzado (Franklin Reyes, 18-9-2026). La protocolización nace ya
+       enviada al resolverse la constitución, y sin esto su paso del pago
+       salía pagado desde el primer día. */
+    var dibujo = [].map.call(pasos, function(li){
+      return li.classList.contains('hecho') ? 'hecho'
+           : li.classList.contains('ahora') ? 'ahora' : 'porhacer';
+    }).join(',');
+    /* Y SIN EL PUB, NI EL PRIMERO. Esta misma prueba corre en los tres
+       pases del tramo, y en 'tramossinpagar' el equipo todavía no ha
+       dejado nada: ahí el tramo se queda esperándolo, que es la verdad
+       —no hay con qué pagar—, y el paso del PUB es el que toca. Sin
+       separarlo, un solo esperado no puede valer para los dos: era el
+       único rojo de la tanda. */
+    igual(SIN_PLANILLA ? 'espera: sin el PUB, el tramo no pasa del paso que lo espera'
+                       : 'verdad: el paso del pago no se da por hecho sin el comprobante',
+          dibujo, SIN_PLANILLA ? 'ahora,porhacer,porhacer,porhacer,porhacer'
+                               : 'hecho,ahora,porhacer,porhacer,porhacer');
     ok('verdad: y sin estar hecho, tampoco lleva fecha',
+       !pasos[1].querySelector('.tr-paso-f'),
+       pasos[1].querySelector('.tr-paso-f') ? 'lleva fecha' : 'sin fecha', 'sin fecha');
+    /* El de la emisión del PUB no es un estado del circuito: no hay evento
+       del que sacarle fecha, y ponerle la del envío sería inventarla. */
+    ok('verdad: el paso de delante no lleva fecha del circuito',
        !pasos[0].querySelector('.tr-paso-f'),
        pasos[0].querySelector('.tr-paso-f') ? 'lleva fecha' : 'sin fecha', 'sin fecha');
     ok('verdad: lo que no ha pasado no lleva fecha',
-       !pasos[3].querySelector('.tr-paso-f'),
-       pasos[3].querySelector('.tr-paso-f') ? 'lleva fecha' : 'sin fecha', 'sin fecha');
+       !pasos[4].querySelector('.tr-paso-f'),
+       pasos[4].querySelector('.tr-paso-f') ? 'lleva fecha' : 'sin fecha', 'sin fecha');
 
     /* Y CON EL COMPROBANTE YA SUBIDO, TAMPOCO SE DA POR HECHO (Franklin
        Reyes, 18-9-2026). En 'tramospagado' el papel esta y la solicitud
        sigue recien enviada. Subirlo NO abre el tramo -eso lo hace la base,
        cuando el gestor la mueve-, asi que el paso del pago sigue siendo el
-       que toca y el segundo no se enciende solo. Con el freno anterior
-       -solo miraba si el papel faltaba- el papel lo soltaba y la escalera
-       se iba al segundo paso sin que nadie del CIIP hubiera hecho nada. */
+       que toca y el de la consignacion no se enciende solo. Con el freno
+       anterior -solo miraba si el papel faltaba- el papel lo soltaba y la
+       escalera se iba un paso mas alla sin que nadie del CIIP hubiera
+       hecho nada. */
     if (YA_PAGADO){
       var yaEsta = b.querySelector('.tr-papel[data-doc="pago_aranceles"]');
       ok('pagado: el comprobante del pago ya esta subido',
@@ -9720,27 +9829,28 @@
             [].map.call(pasos, function(li){
               return li.classList.contains('hecho') ? 'hecho'
                    : li.classList.contains('ahora') ? 'ahora' : 'porhacer';
-            }).join(','), 'ahora,porhacer,porhacer,porhacer');
+            }).join(','), 'hecho,ahora,porhacer,porhacer,porhacer');
       ok('pagado: el paso del pago tampoco lleva fecha todavia',
-         !pasos[0].querySelector('.tr-paso-f'),
-         pasos[0].querySelector('.tr-paso-f') ? 'lleva fecha' : 'sin fecha', 'sin fecha');
+         !pasos[1].querySelector('.tr-paso-f'),
+         pasos[1].querySelector('.tr-paso-f') ? 'lleva fecha' : 'sin fecha', 'sin fecha');
     }
-    /* En el registro se paga ANTES de consignar, así que el pago es el
-       primero de los cuatro. Los nombres, los del acta. */
-    igual('verdad: el pago va delante de la consignación',
+    /* El PUB se emite primero —sin él no hay con qué pagar—, y en el
+       registro se paga ANTES de consignar. Los nombres, los del acta. */
+    igual('verdad: el PUB va delante del pago, y el pago de la consignación',
           [].map.call(pasos, function(li){
             return ((li.querySelector('.tr-paso-n') || {}).textContent || '').trim();
-          }).slice(0, 2).join(' | '),
-          'Pago de aranceles registrales | Consignación del documento en el Registro Mercantil');
+          }).slice(0, 3).join(' | '),
+          'Emisión de PUB de constitución de compañía | Pago de aranceles registrales'
+            + ' | Consignación del documento en el Registro Mercantil');
 
     /* Con el tipo que existe en la base -pago_aranceles, el mismo recaudo del
        formulario-: uno inventado lo rechaza tipos_documento al subirlo, y
        aquí, sin base de verdad, nadie lo notaría. */
     var papel = b.querySelector('.tr-papel[data-doc="pago_aranceles"]');
     ok('verdad: el comprobante se sube en el paso del pago',
-       !!papel && papel.closest('.tr-paso') === pasos[0],
+       !!papel && papel.closest('.tr-paso') === pasos[1],
        papel ? 'en el paso ' + ([].indexOf.call(pasos, papel.closest('.tr-paso')) + 1)
-             : '(no se pide)', 'en el paso 1');
+             : '(no se pide)', 'en el paso 2');
     ok('verdad: con su nombre y su botón',
        !!papel && /omprobante/.test(papel.textContent) && !!papel.querySelector('.sd-btn'),
        papel ? papel.textContent.slice(0, 60) : '(no hay)', 'nombre y botón');
@@ -9790,7 +9900,9 @@
          !!(pagar.compareDocumentPosition(papel) & Node.DOCUMENT_POSITION_FOLLOWING),
        planilla ? planilla.textContent : (pagar ? (pagar.hidden ? 'escondido' : 'sin fila') : '(no está)'),
        'a la vista, con el archivo y «Abrir», antes de subir');
-    ok('verdad: y el documento va dentro del paso del pago',
+    /* Y en SU paso, el primero: el de la emisión del PUB, que es donde el
+       inversionista lo espera (Franklin Reyes, 20-9-2026). */
+    ok('verdad: y el documento va dentro del paso de la emisión del PUB',
        !!pagar && pagar.closest('.tr-paso') === pasos[0],
        pagar && pagar.closest('.tr-paso')
          ? 'en el paso ' + ([].indexOf.call(pasos, pagar.closest('.tr-paso')) + 1)
