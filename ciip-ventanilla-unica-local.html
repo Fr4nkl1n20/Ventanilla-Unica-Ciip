@@ -13042,7 +13042,16 @@ applyLang(idiomaParaMi());
         t: ev.ref ? nombreDeTarjeta(ev.ref) : nombreDeTipo_doc(ev.tipo),
         q: u.av_comprobante || '',
         nota: nombreDeTipo_doc(ev.tipo),
-        ir: function(){ location.hash = 'poratender'; }
+        /* Lo mismo que del otro lado, y por la misma razón: el aviso dice
+           que el comprobante ya está subido y que la solicitud se puede
+           resolver, y lo primero que hace un gestor es MIRAR ese
+           comprobante. Se abre solo en otra pestaña, y esta se queda en la
+           cola, que es donde se resuelve: al volver de comprobarlo ya está
+           donde hay que estar. */
+        ir: function(){
+          avAbrePapel(ev.archivo);
+          location.hash = 'poratender';
+        }
       };
     }
     if (ev.clase === 'pago'){
