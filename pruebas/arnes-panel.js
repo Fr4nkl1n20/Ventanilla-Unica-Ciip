@@ -7700,112 +7700,23 @@
          'texto y ya');
     })();
 
-    /* ── QUE EL CIIP TE ACOMPAÑA, EN TODAS ──
-       El CIIP lo pidió así: siempre y sin abrir nada. Se cuenta contra el
-       número de fichas y no contra un número escrito: el catálogo crece.
-       Y se mira el TEXTO, no que exista el hueco: un renglón vacío está
-       igual de presente y no dice nada. */
+    /* ── Y QUE NO SALGA EN LA CARA DE LA FICHA ──
+       Aquí vivían cinco pruebas que pedían lo contrario: que las treinta y
+       tres dijeran «El equipo CIIP puede acompañarte a realizar este
+       trámite», cada una desde su propia clave. El CIIP la retiró el 22 de
+       septiembre de 2026 y queda ésta, del revés, porque el renglón se
+       pintaba EN CADA REPINTADO y no al crear la tarjeta: un resto de
+       aquella maquinaria no volvería en una ficha suelta, volvería en las
+       treinta y tres a la vez y sin que nadie lo pidiera. */
     (function(){
-      /* Las que son TRÁMITE. En el camino hay una que no lo es —el banco
-         de activos: se mira, no se solicita— y ofrecerle acompañamiento
-         para «realizar este trámite» sería ofrecer algo que no existe.
-         Se descarta con LA LISTA DEL PANEL, no con una copia: el día que
-         entre otra ficha de mirar, una copia se quedaría vieja y esta
-         prueba pediría acompañamiento para algo que no se pide. */
-      var noSon = window.CIIP_NO_ES_TRAMITE || [];
-      var fichas = [].filter.call(
+      var con = [].filter.call(
         document.querySelectorAll('.tcard[data-tr]'),
-        function(c){ return noSon.indexOf(c.getAttribute('data-tr')) < 0; });
-      var mudas = [];
-      [].forEach.call(fichas, function(c){
-        var x = c.querySelector('.t-acomp');
-        if (!x || !(x.textContent || '').trim()) mudas.push(c.getAttribute('data-tr'));
-      });
-      /* Se nombran las que faltan, no se cuentan: «31 de 32» obliga a
-         salir a buscar cuál, y eso son diez minutos cada vez. */
-      ok('acompaña: las fichas dicen que el CIIP puede acompañarte',
-         fichas.length > 0 && mudas.length === 0,
-         mudas.length ? ('callan: ' + mudas.join(', ')) : (fichas.length + ' fichas'),
-         'todas');
-
-      /* Y va LO ÚLTIMO del cuerpo, detrás de la descripción. Estuvo
-         debajo del organismo y el CIIP lo movió: ahí se colaba entre el
-         nombre del ente y la descripción del trámite, que se leen
-         seguidas. Esto no describe el trámite, se ofrece después de
-         haberlo entendido.
-         Se compara la posición real en el documento, no la clase del
-         hermano: con compareDocumentPosition da igual cuántas cosas se
-         metan en medio mañana. */
-      var fuera = [];
-      fichas.forEach(function(c){
-        var acomp = c.querySelector('.t-acomp');
-        var desc  = c.querySelector('.t-desc');
-        if (!acomp || !desc) return;          /* sin descripción no hay orden que comprobar */
-        var despues = (desc.compareDocumentPosition(acomp) &
-                       Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
-        if (!despues) fuera.push(c.getAttribute('data-tr'));
-      });
-      ok('acompaña: y va detrás de la descripción, no antes',
-         fuera.length === 0,
-         fuera.length ? ('antes en: ' + fuera.join(', ')) : 'todas detrás',
-         'todas detrás');
-
-      /* ── Y CADA UNA ES LA SUYA, NO LA DE TODAS ──
-         «quiero que esta frase no sea para todos los tramites sino que
-          cada tramite lleve una frase diferente» (Franklin Reyes,
-         21-9-2026).
-
-         Hasta hoy las treinta y tres decían el mismo texto Y salían de la
-         misma clave -lh_uno-, así que el editor de textos las cambiaba
-         todas de golpe. Hoy siguen diciendo lo mismo -a propósito: nadie
-         ha escrito todavía las suyas-, y por eso mirar el TEXTO no
-         distinguiría nada. Lo que se mira es de dónde sale: que cada
-         ficha lleve su propia clave. */
-      var mismaClave = [];
-      fichas.forEach(function(c){
-        var x = c.querySelector('.t-acomp');
-        var ref = c.getAttribute('data-tr');
-        if (!x || x.getAttribute('data-ui') !== '_p.acompana.' + ref) mismaClave.push(ref);
-      });
-      ok('acompaña: cada ficha trae su frase de su propia clave',
-         fichas.length > 0 && mismaClave.length === 0,
-         mismaClave.length ? ('comparten clave: ' + mismaClave.join(', ')) : (fichas.length + ' claves'),
-         'una por ficha');
-
-      /* Y que eso sirva de verdad: se le cambia la frase a UNA y se mira
-         que las demás sigan como estaban. Esta es la prueba que hubiera
-         cazado el fallo de antes -la clave está bien puesta en el marcado
-         pero el texto se sigue leyendo de lh_uno-, que desde fuera se ve
-         igual hasta que alguien escribe algo. */
-      (function(){
-        var P = window.CIIP_PASOS;
-        if (!P || !P.acompana || !window.CIIP_REPINTA_ESTADOS || fichas.length < 2) return;
-        var suyas = P.acompana[curLang] || P.acompana.es || {};
-        var uno = fichas[0].getAttribute('data-tr');
-        if (suyas[uno] == null) return;
-        var era = suyas[uno];
-        var puesto = 'PRUEBA · la frase propia de ' + uno;
-        suyas[uno] = puesto;
-        window.CIIP_REPINTA_ESTADOS();
-        var dice = (fichas[0].querySelector('.t-acomp') || {}).textContent;
-        var contagiadas = fichas.slice(1).filter(function(c){
-          var x = c.querySelector('.t-acomp');
-          return x && (x.textContent || '').indexOf(puesto) >= 0;
-        }).map(function(c){ return c.getAttribute('data-tr'); });
-        suyas[uno] = era;
-        window.CIIP_REPINTA_ESTADOS();
-        ok('acompaña: cambiar la de una ficha no cambia las demás',
-           dice === puesto && contagiadas.length === 0,
-           dice !== puesto ? ('la ' + uno + ' no la recogió: ' + String(dice).slice(0, 40))
-                           : (contagiadas.length ? ('se contagiaron: ' + contagiadas.join(', ')) : 'sólo ' + uno),
-           'sólo ' + uno);
-
-        /* Y se deshace: la tanda sigue detrás y no puede quedarse con una
-           ficha diciendo «PRUEBA ·». */
-        var vuelta = (fichas[0].querySelector('.t-acomp') || {}).textContent;
-        ok('acompaña: y la prueba deja la ficha como estaba',
-           vuelta === era, String(vuelta).slice(0, 40), String(era).slice(0, 40));
-      })();
+        function(c){ return !!c.querySelector('.t-acomp'); })
+        .map(function(c){ return c.getAttribute('data-tr'); });
+      ok('acompaña: la frase ya no sale en la cara de la ficha',
+         con.length === 0,
+         con.length ? ('sigue en: ' + con.join(', ')) : 'en ninguna',
+         'en ninguna');
     })();
 
     /* Y SE VE que se puede pulsar. Esto no es cosmética: cuando el globo se
@@ -7863,14 +7774,16 @@
        caja ? caja.textContent.trim().slice(0, 60) : '(vacio)',
        suyos.length + ' pasos del trámite');
 
-    /* Y al final, aparte de la lista, lo que estaba en el reloj: que el CIIP
-       puede llevarlo contigo. APARTE y no como una viñeta más, que dentro de
-       la lista se leía como un quinto paso. */
+    /* Y DEBAJO DE LOS PASOS NO VA NADA MÁS. Aquí colgaba «el CIIP puede
+       llevarlo contigo» y esta prueba pedía que estuviera, aparte de la
+       lista. El CIIP la retiró el 22 de septiembre de 2026: este globo
+       cuenta los pasos y se acaba ahí. Del revés sigue sirviendo, que es
+       donde se vería si algo vuelve a pegarse al final. */
     var suelta = caja && caja.querySelector('.pc-ciip');
-    ok('lo hacemos: y que el CIIP puede hacerlo contigo, separado de los pasos',
-       !!suelta && /CIIP/.test(suelta.textContent),
-       suelta ? suelta.textContent.slice(0, 50) : '(no esta aparte)',
-       'fuera de la lista de pasos');
+    ok('lo hacemos: y debajo de los pasos no se ofrece nada más',
+       !suelta,
+       suelta ? suelta.textContent.slice(0, 50) : 'sólo los pasos',
+       'sólo los pasos');
 
     /* Y lo dice CONTIGO, no POR TI. No es matiz de redacción: «por ti» suena
        a delegar y desentenderse, y no es verdad —hay papeles que solo puede
@@ -7890,11 +7803,17 @@
        seis, y que en ninguno se promete hacerlo POR TI —esa promesa es falsa,
        hay papeles que solo puede firmar el inversionista, y descubrirlo a
        mitad de camino es la peor forma de enterarse—. */
+    /* LAS DOS SE MIDEN SOBRE ui.sg_texto, la de la pantalla de la
+       solicitud. Medían la de la ficha -lh_uno-, que se fue el 22 de
+       septiembre de 2026; el ofrecimiento no se fue con ella, se quedó
+       donde alguien ya está pidiendo algo, y ahí las dos cosas que esto
+       sujeta -que existe en los seis, que no promete hacerlo POR TI-
+       importan exactamente igual. */
     var D = (window.CIIP_PASOS && window.CIIP_PASOS.ui) || {};
     var sin = Object.keys(D).filter(function(l){
-      return !/\S/.test(String((D[l] || {}).lh_uno || ''));
+      return !/\S/.test(String((D[l] || {}).sg_texto || ''));
     });
-    ok('lo hacemos: la frase está escrita en los seis idiomas',
+    ok('lo hacemos: el ofrecimiento está escrito en los seis idiomas',
        Object.keys(D).length === 6 && sin.length === 0,
        sin.length ? ('faltan en: ' + sin.join(', ')) : (Object.keys(D).length + ' idiomas'),
        'los seis');
@@ -7903,7 +7822,7 @@
        solo el español es la forma silenciosa de que un inversionista italiano
        siga leyendo algo que ya no decimos. */
     var promete = Object.keys(D).filter(function(l){
-      return /por ti|for you|por si|per te|за вас|为您代办/.test(String((D[l] || {}).lh_uno || ''));
+      return /por ti|for you|por si|per te|за вас|为您代办/.test(String((D[l] || {}).sg_texto || ''));
     });
     ok('lo hacemos: y en ningún idioma se quedó el «por ti»',
        promete.length === 0, promete.length ? promete.join(', ') : 'ninguno', 'ninguno');
@@ -7921,11 +7840,16 @@
       applyLang('it');
       /* Se cierra y se vuelve a abrir, que es lo que hace una persona. */
       pie.click(); pie.click();
-      var d = ((window.CIIP_PASOS || {}).ui || {}).it || {};
+      /* SE MIRA EL PRIMER PASO EN ITALIANO. Se miraba la frase del
+         acompañamiento, que colgaba del final de este mismo globo y se fue
+         el 22 de septiembre de 2026. Lo que queda -los pasos- vale igual
+         para lo que esto mide: que el texto no se quedó congelado en el
+         idioma que hubiera cuando se montó la tarjeta. */
+      var it1 = (((window.CIIP_PASOS || {}).pasos || {}).it || {})['c1'] || [];
       var ahora = caja ? caja.textContent : '';
       ok('lo hacemos: y habla en el idioma del panel, no en el de cuando se montó',
-         !!d.lh_uno && ahora.indexOf(d.lh_uno) >= 0,
-         ahora.trim().slice(0, 60), (d.lh_uno || '').slice(0, 60));
+         it1.length > 0 && ahora.indexOf(it1[0]) >= 0,
+         ahora.trim().slice(0, 60), (it1[0] || '').slice(0, 60));
       applyLang(era || 'es');
       pie.click(); pie.click();
     })();

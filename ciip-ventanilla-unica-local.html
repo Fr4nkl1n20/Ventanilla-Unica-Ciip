@@ -2963,14 +2963,6 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .t-time[data-globo]:focus-visible{outline:2px solid var(--navy2); outline-offset:3px; border-radius:5px;}
 .t-time[aria-expanded="true"]{text-decoration-color:var(--navy); color:var(--navy);}
 
-/* Que el CIIP te acompaña, en la cara de la ficha y en las treinta y tres.
-   Debajo del organismo y en el tono apagado del resto de la letra chica:
-   tiene que estar SIEMPRE, no llamar la atencion mas que el nombre del
-   tramite. */
-/* En negro como el resto de la ficha, por lo mismo: a 11 px el gris se
-   lee mal, y esta es la frase que el CIIP pidio recalcar en las 33. Una
-   frase que se quiere recalcar no se pone del color de lo prescindible. */
-.t-acomp{font-size:11px; line-height:1.45; color:var(--ink); margin-top:6px;}
 /* El globo cuelga del renglon, no de una «i» que no existe. */
 .pista-env:has(> .pista-txt){display:inline;}
 /* Su propio cuadro, hermano de los otros dos y no un apartado del formulario:
@@ -21808,14 +21800,20 @@ applyLang(idiomaParaMi());
      aparte habría creado una segunda versión de lo mismo, y de esas dos la
      que se quedaría vieja sería siempre la de la tarjeta.
 
-     Debajo va lo que antes estaba en el reloj: que el CIIP puede llevarlo
-     contigo. Es donde tiene sentido —acabas de leer los cuatro pasos y es
-     justo ahí donde uno piensa «esto no lo hago yo». */
+     AQUÍ DEBAJO IBA «EL EQUIPO CIIP PUEDE ACOMPAÑARTE A REALIZAR ESTE
+     TRÁMITE», lo que antes estaba en el reloj. El CIIP la retiró el 22 de
+     septiembre de 2026 de los dos sitios donde salía sin que nadie
+     preguntara -de aquí y de la cara de la ficha-, así que este globo se
+     queda sólo con lo que no está en ningún otro sitio: los pasos. */
   function pintaLoHacemos(tarjeta, tipo){
     var pie = tarjeta.querySelector('.t-foot .go');
     if (!pie || pie.getAttribute('data-globo')) return;
-    var u = T();
-    if (!u.lh_titulo) return;
+    /* La guarda miraba ui.lh_titulo -el rótulo «¿Prefieres no hacerlo tú?»,
+       que se fue con la frase-. Lo que este globo necesita para decir algo
+       son LOS PASOS, así que es eso lo que se comprueba: si pasos.js no ha
+       llegado todavía, el renglón se queda como estaba y sin abrir nada. */
+    var P = window.CIIP_PASOS;
+    if (!P || !P.pasos) return;
 
     pie.setAttribute('data-globo', '1');
     pie.setAttribute('role', 'button');
@@ -21827,6 +21825,10 @@ applyLang(idiomaParaMi());
        italiano y este globo seguia en español. Pidiendolo al abrirse, dice
        siempre lo que dice el resto de la pantalla. */
     var ref = tarjeta.getAttribute('data-tr');
+    function rotuloPasos(){
+      var D = window.CIIP_PASOS || {};
+      return (D.titulo && (D.titulo[curLang] || D.titulo.en)) || '';
+    }
     var env = montaGlobo({
       /* Sin esto, montaGlobo se fabrica su propia «i» y la cuelga al lado:
          el enlace se queda con el role y el atributo puestos pero sin abrir
@@ -21834,23 +21836,17 @@ applyLang(idiomaParaMi());
       disparador: pie,
       ancho: true,
       /* El mismo rótulo que la ficha del trámite le pone a sus pasos. */
-      titulo: function(){
-        var D = window.CIIP_PASOS || {};
-        return (D.titulo && (D.titulo[curLang] || D.titulo.en)) || '';
-      },
-      etiqueta: function(){ return T().lh_titulo; },
+      titulo: rotuloPasos,
+      /* Y ese mismo para el lector de pantalla. Decía «¿Prefieres no hacerlo
+         tú?» -el ofrecimiento del CIIP-, y un botón que ahora sólo enseña
+         los pasos tiene que anunciarse por lo que enseña. Va como FUNCIÓN y
+         no como texto: montaGlobo lo vuelve a poner cada vez que pinta, que
+         es lo que hace que siga al idioma del panel. */
+      etiqueta: rotuloPasos,
       puntosFn: function(){
         var D = window.CIIP_PASOS || {};
         var idi = (D.pasos && D.pasos[curLang]) ? curLang : 'en';
         return ((D.pasos && D.pasos[idi] && D.pasos[idi][ref]) || []).slice();
-      },
-      /* Lo del reloj va APARTE y no como una viñeta más. Puesto dentro de la
-         lista se leía como un quinto paso del trámite —«y luego el CIIP lo
-         hace contigo»—, que no es un paso: es la alternativa a darlos. */
-      extraFn: function(){
-        var frase = T().lh_uno;
-        if (!frase) return null;
-        return el('div', 'pc-ciip', frase);
       }
     });
     if (!env) { pie.removeAttribute('role'); pie.removeAttribute('tabindex'); return; }
@@ -21864,84 +21860,26 @@ applyLang(idiomaParaMi());
     pie.addEventListener('click', function(e){ e.stopPropagation(); });
   }
 
-  /* ── QUE EL CIIP TE ACOMPAÑA, EN LA CARA DE LA FICHA ──
-     Ya se ofrecía en tres sitios: dentro de «Ver detalles», en la pantalla
-     de la solicitud y en el globo de la consulta. Los tres tienen algo en
-     común: hay que pulsar algo para verlos. Quien mira la portada y decide
-     que esto es demasiado, se va antes de pulsar nada.
+  /* ── AQUÍ VIVIÓ «EL EQUIPO CIIP PUEDE ACOMPAÑARTE», EN LA CARA DE LA FICHA ──
+     Salía en las treinta y tres sin pulsar nada -lo pidió el CIIP así:
+     «siempre y sin abrir nada»- y cada ficha había pasado a llevar su
+     propia clave, '_p.acompana.c5', para poder escribirle una distinta
+     desde «Editar textos».
 
-     Por decisión del CIIP, se dice SIEMPRE y sin abrir nada. Va en la
-     cara, LO ÚLTIMO del cuerpo -detrás de la descripción, justo encima
-     del pie- en letra pequeña y apagada, y en las treinta y tres igual,
-     que es lo que quiere decir «siempre».
+     El CIIP la retiró el 22 de septiembre de 2026, de aquí y del globo de
+     «Ver más detalles». Se va ENTERA -el renglón, las claves por trámite
+     que generaba pasos.js y la frase general de la que salían todas- y no
+     se deja la maquinaria apagada: código que alguien leerá algún día
+     creyendo que hace algo.
 
-     Lo último y no debajo del organismo, que es donde estuvo primero: ahí
-     se metía entre el nombre del ente y la descripción del trámite, o
-     sea, entre dos cosas que se leen seguidas. Esto no describe el
-     trámite: es lo que se ofrece DESPUÉS de haberlo entendido.
+     Lo que NO se toca es el ofrecimiento donde alguien ya está pidiendo:
+     la pantalla de la solicitud (ui.sg_texto, ui.sg_boton) y el globo de
+     la consulta lo siguen diciendo. Quitarlo de la cara de la ficha no es
+     dejar de ofrecerlo: es dejar de decirlo antes de que pregunten.
 
-     El texto se REESCRIBE en cada repintado, y no sólo al crear el hueco.
-     Es lo único que hace que el cambio de idioma lo alcance: applyLang
-     llama aquí -CIIP_REPINTA_ESTADOS- y si esto saliera antes por tener ya
-     su renglón, se quedaría congelado en el idioma de arranque. Es
-     exactamente como se quedó «Waiting on: …» dentro de un panel entero
-     en castellano. */
+     Si vuelve algún día, vuelve el renglón Y su clave por ficha: lo
+     guardado en textos_panel sigue ahí con su nombre. */
 
-  /* ── Y CADA FICHA DICE LA SUYA ──
-     «quiero que esta frase no sea para todos los tramites sino que cada
-      tramite lleve una frase diferente que nosotros colocaremos»
-     (Franklin Reyes, 21 de septiembre de 2026).
-
-     La frase salía de ui.lh_uno: UNA clave para las treinta y tres, así
-     que cambiarla las cambiaba todas y por eso tenía que estar escrita
-     sin decir nada de ningún trámite en concreto.
-
-     Ahora cada ficha tiene su clave en pasos.js -'_p.acompana.c5'- y
-     todas nacen diciendo lo que decía la general. El administrador
-     enciende «Editar textos», pulsa la frase de la ficha que quiera y
-     escribe la suya: queda sólo ahí, y en el idioma que esté en
-     pantalla. Ni tabla nueva ni SQL: el editor de textos ya sabe
-     guardar y devolver las claves de este archivo.
-
-     LO QUE IMPORTA AQUÍ ES QUE LA CLAVE SE REESCRIBA TAMBIÉN
-     Y no sólo el texto. Si se pusiera al crear el renglón, una ficha
-     que hoy cae en la general y mañana tiene frase propia se quedaría
-     con 'lh_uno' pegado en el marcado: pulsarla en «Editar textos»
-     cambiaría otra vez las treinta y tres, que es justo lo que esto
-     viene a quitar. Es el mismo motivo por el que el texto se reescribe
-     en cada repintado. */
-  function fraseAcompana(ref){
-    var P = window.CIIP_PASOS || {}, A = P.acompana || {};
-    var v = (A[curLang] || {})[ref];
-    if (typeof v !== 'string' || !v.trim()) v = (A.en || {})[ref];
-    return (typeof v === 'string' && v.trim()) ? v : '';
-  }
-
-  function pintaAcompana(tarjeta){
-    var u = T();
-    var ref = tarjeta.getAttribute('data-tr');
-    /* La suya si la tiene; si no, la general de siempre. Una ficha que no
-       esté en pasos.js -no debería, pero el catálogo crece- sigue
-       diciendo algo en lugar de quedarse con el pie en blanco. */
-    var propia = ref ? fraseAcompana(ref) : '';
-    var texto = propia || u.lh_uno;
-    if (!texto) return;
-    var linea = tarjeta.querySelector('.t-acomp');
-    if (!linea){
-      /* Justo ANTES del pie, que es lo último del cuerpo. Se ancla en el
-         pie y no detrás de la descripción porque hay fichas donde la
-         descripción no está y el pie sí: anclando en lo que puede faltar,
-         la frase desaparecería de esas. */
-      var pie = tarjeta.querySelector('.t-foot');
-      if (!pie) return;
-      linea = el('div', 't-acomp', '');
-      pie.parentNode.insertBefore(linea, pie);
-    }
-    /* Para que el modo «Editar textos» sepa qué clave es: sale de pasos.js
-       y no lleva data-i18n. */
-    linea.setAttribute('data-ui', propia ? ('_p.acompana.' + ref) : 'lh_uno');
-    linea.textContent = texto;
-  }
 
   /* ── EL PLAZO LEGAL, AL PULSAR EL RELOJ ──
      El renglón del reloj dice el ESTIMADO: lo que se tarda. Al pulsarlo
@@ -23384,7 +23322,6 @@ applyLang(idiomaParaMi());
       pintaNivel(c, (TIPOS || {})[ref]);
       pintaLoHacemos(c, (TIPOS || {})[ref]);
       pintaPlazoLegal(c, (TIPOS || {})[ref]);
-      pintaAcompana(c);
       pintaListo(c, (TIPOS || {})[ref], st);
       pintaLogo(c, (TIPOS || {})[ref]);
     });
@@ -27738,14 +27675,15 @@ applyLang(idiomaParaMi());
      diccionario, en su sitio; applyLang pinta lo de siempre y ya sale
      cambiado. Hay tres clases de clave y este bloque decide de cual es:
        · data-i18n  → el diccionario I18N          (c33.name, tsec.title)
-       · data-ui    → CIIP_PASOS.ui, de pasos.js    (lh_uno)
+       · data-ui    → CIIP_PASOS.ui, de pasos.js    (lg_nota)
        · data-texto → lo escrito en el marcado     (c33.ente)
      El original se guarda la primera vez que se pisa, para poder volver.
 
      Va todo aqui, al final y aparte, a proposito: en el resto del panel solo
-     se tocaron cuatro sitios (las claves del organismo, CIIP_OLVIDA_T, la
-     marca de la frase del acompanamiento y la llamada del final de
-     applyLang). Quitar esto es quitar este bloque y esos cuatro renglones.
+     se tocaron tres sitios (las claves del organismo, CIIP_OLVIDA_T y la
+     llamada del final de applyLang). El cuarto era la marca de la frase del
+     acompanamiento, y se fue con la frase el 22 de septiembre de 2026.
+     Quitar esto es quitar este bloque y esos tres renglones.
      ══════════════════════════════════════════════════════════════════════ -->
 <style>
 /* Lo editable, marcado solo mientras se edita. Borde de puntos y no fondo:

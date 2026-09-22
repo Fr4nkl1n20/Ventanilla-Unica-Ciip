@@ -446,7 +446,6 @@ window.CIIP_PASOS = {
       pf_incompleto:"Falta completar tu perfil",
       /* --- Las citas --- */
       ct_titulo:    "Solicitar una cita",
-      lh_titulo:"¿Prefieres no hacerlo tú?",
       lg_titulo:"Los plazos de este trámite",
       lg_practica:"Lo que suele tardar, según el CIIP: {n} días.",
       cg_plazo:"Días que suele tardar",
@@ -459,8 +458,6 @@ window.CIIP_PASOS = {
       lg_sin:"Su norma no fija plazo de respuesta.",
       lg_dias:"La norma fija un plazo de {n} días.",
       lg_nota:"El tiempo estimado es lo que suele tardar; no es un plazo que obligue a nadie.",
-      lh_uno:"El equipo CIIP puede acompañarte a realizar este trámite.",
-      lh_dos:"Ábrelo y, al final del formulario, tienes cómo pedírnoslo.",
       sg_texto:"El equipo CIIP puede acompañarte a realizar este trámite. Escríbenos aquí y lo vemos, sin pedir cita.",
       sg_boton:"Que me acompañe el CIIP",
       ct_sub:       "El CIIP te confirma la fecha y la hora",
@@ -1518,7 +1515,6 @@ window.CIIP_PASOS = {
       pf_incompleto:"Your profile is incomplete",
       /* --- Appointments --- */
       ct_titulo:    "Request a meeting",
-      lh_titulo:"Would you rather not do it yourself?",
       lg_titulo:"This procedure's timings",
       lg_practica:"How long it usually takes, per the CIIP: {n} days.",
       cg_plazo:"Days it usually takes",
@@ -1531,8 +1527,6 @@ window.CIIP_PASOS = {
       lg_sin:"Its rules set no deadline for a reply.",
       lg_dias:"The rules set a deadline of {n} days.",
       lg_nota:"The estimate is how long it usually takes; it is not a deadline that binds anyone.",
-      lh_uno:"The CIIP team can accompany you through this procedure.",
-      lh_dos:"Open it and, at the end of the form, you will find how to ask us.",
       sg_texto:"The CIIP team can accompany you through this procedure. Write to us here and we will look at it, no appointment needed.",
       sg_boton:"Ask the CIIP to join me",
       ct_sub:       "CIIP confirms the date and time",
@@ -2499,7 +2493,6 @@ window.CIIP_PASOS = {
       pf_incompleto:"Falta completar o seu perfil",
       /* --- As marcações --- */
       ct_titulo:    "Pedir uma reunião",
-      lh_titulo:"Prefere não o fazer você?",
       lg_titulo:"Os prazos deste trâmite",
       lg_practica:"O que costuma demorar, segundo o CIIP: {n} dias.",
       cg_plazo:"Dias que costuma demorar",
@@ -2512,8 +2505,6 @@ window.CIIP_PASOS = {
       lg_sin:"A sua norma não fixa prazo de resposta.",
       lg_dias:"A norma fixa um prazo de {n} dias.",
       lg_nota:"O tempo estimado é o que costuma demorar; não é um prazo que obrigue ninguém.",
-      lh_uno:"A equipa do CIIP pode acompanhá-lo neste trâmite.",
-      lh_dos:"Abra-o e, no fim do formulário, tem como no-lo pedir.",
       sg_texto:"A equipa do CIIP pode acompanhá-lo neste trâmite. Escreva-nos aqui e vemos, sem marcar reunião.",
       sg_boton:"Que o CIIP me acompanhe",
       ct_sub:       "O CIIP confirma a data e a hora",
@@ -3463,7 +3454,6 @@ window.CIIP_PASOS = {
       pf_incompleto:"Il tuo profilo è incompleto",
       /* --- Gli appuntamenti --- */
       ct_titulo:    "Richiedere un appuntamento",
-      lh_titulo:"Preferisci non farlo tu?",
       lg_titulo:"I tempi di questa pratica",
       lg_practica:"Quanto ci vuole di solito, secondo il CIIP: {n} giorni.",
       cg_plazo:"Giorni che ci vogliono di solito",
@@ -3476,8 +3466,6 @@ window.CIIP_PASOS = {
       lg_sin:"La sua norma non fissa un termine di risposta.",
       lg_dias:"La norma fissa un termine di {n} giorni.",
       lg_nota:"Il tempo stimato è quanto ci vuole di solito; non è un termine vincolante per nessuno.",
-      lh_uno:"Il team del CIIP può accompagnarti in questa pratica.",
-      lh_dos:"Aprila e, in fondo al modulo, trovi come chiedercelo.",
       sg_texto:"Il team del CIIP può accompagnarti in questa pratica. Scrivici qui e la vediamo, senza fissare un incontro.",
       sg_boton:"Fatti accompagnare dal CIIP",
       ct_sub:       "Il CIIP conferma data e ora",
@@ -4427,7 +4415,6 @@ window.CIIP_PASOS = {
       pf_incompleto:"您的资料尚未填写完整",
       /* --- 预约会面 --- */
       ct_titulo:    "申请会面",
-      lh_titulo:"不想自己办理？",
       lg_titulo:"本手续的时限",
       lg_practica:"据 CIIP，通常需要 {n} 天。",
       cg_plazo:"通常所需天数",
@@ -4440,8 +4427,6 @@ window.CIIP_PASOS = {
       lg_sin:"其法规未规定答复期限。",
       lg_dias:"法规规定的期限为 {n} 天。",
       lg_nota:"预计时间是通常所需的时间，并非对任何人具有约束力的期限。",
-      lh_uno:"CIIP 团队可以陪同您办理此项手续。",
-      lh_dos:"打开后，在表单末尾可以向我们提出请求。",
       sg_texto:"CIIP 团队可以陪同您办理此项手续。在这里给我们留言即可，无需预约。",
       sg_boton:"请 CIIP 陪同",
       ct_sub:       "CIIP 会为您确认时间",
@@ -5391,7 +5376,6 @@ window.CIIP_PASOS = {
       pf_incompleto:"Профиль заполнен не полностью",
       /* --- Встречи --- */
       ct_titulo:    "Запросить встречу",
-      lh_titulo:"Не хотите заниматься этим сами?",
       lg_titulo:"Сроки этого процесса",
       lg_practica:"Обычно занимает, по данным CIIP: {n} дней.",
       cg_plazo:"Дней, сколько обычно занимает",
@@ -5404,8 +5388,6 @@ window.CIIP_PASOS = {
       lg_sin:"Её норма не устанавливает срока ответа.",
       lg_dias:"Норма устанавливает срок в {n} дней.",
       lg_nota:"Ориентировочное время — это сколько обычно занимает; это не срок, обязательный для кого-либо.",
-      lh_uno:"Команда CIIP может сопровождать вас в этой процедуре.",
-      lh_dos:"Откройте её — в конце формы есть способ нас попросить.",
       sg_texto:"Команда CIIP может сопровождать вас в этой процедуре. Напишите нам здесь — записываться не нужно.",
       sg_boton:"Пусть CIIP будет рядом",
       ct_sub:       "CIIP подтвердит дату и время",
@@ -6503,78 +6485,26 @@ window.CIIP_PASOS = {
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   ██  LA FRASE DEL ACOMPAÑAMIENTO, UNA POR TRÁMITE  ██
+   ██  AQUÍ SE GENERABA LA FRASE DEL ACOMPAÑAMIENTO, UNA POR TRÁMITE  ██
    ══════════════════════════════════════════════════════════════════════
 
-   «quiero que esta frase no sea para todos los tramites sino que cada
-    tramite lleve una frase diferente que nosotros colocaremos»
-   (Franklin Reyes, 21 de septiembre de 2026).
+   «El equipo CIIP puede acompañarte a realizar este trámite» iba al pie de
+   cada ficha, y este bloque le daba a cada una su propia clave
+   -'_p.acompana.c5'- para que el administrador pudiera escribirle una
+   distinta desde «Editar textos». Las 33 × 6 se generaban de ui.lh_uno,
+   que era la general.
 
-   La frase que va al pie de cada ficha -«El equipo CIIP puede
-   acompañarte a realizar este trámite»- salía de ui.lh_uno, o sea, de
-   UNA sola clave para las treinta y tres. Cambiarla cambiaba las
-   treinta y tres a la vez, y por eso tenía que estar escrita tan
-   general que no dijera nada de ningún trámite en concreto.
+   El CIIP quitó la frase de la cara de la ficha y del globo de «Ver más
+   detalles» el 22 de septiembre de 2026, así que aquí ya no había renglón
+   que llenar: sin él, las ciento noventa y ocho claves no las leía nadie.
+   Se van las tres claves de las que salía -lh_titulo, lh_uno, lh_dos- y el
+   generador entero.
 
-   AQUÍ NO SE ESCRIBE NINGUNA FRASE NUEVA
-   ─────────────────────────────────────────────────────────────────────
-   Lo único que hace este bloque es darle a cada ficha SU PROPIA CLAVE,
-   diciendo de salida lo mismo que decía antes. Hoy, recién corrido,
-   la pantalla se ve exactamente igual. Lo que cambia es que a partir de
-   ahora se pueden separar: el administrador enciende «Editar textos»,
-   pulsa la frase de la ficha que quiera y escribe la suya, y esa queda
-   sólo en esa ficha.
+   NO HAY NADA QUE CORRER EN LA BASE. Lo que alguien hubiera cambiado se
+   quedó guardado en textos_panel con su nombre, sin estorbar a nada y
+   listo por si la frase vuelve.
 
-   POR QUÉ SE GENERA Y NO SE ESCRIBEN LAS 33 × 6 A MANO
-   ─────────────────────────────────────────────────────────────────────
-   Serían ciento noventa y ocho copias literales de la misma frase, y
-   ciento noventa y ocho sitios donde corregirla el día que el CIIP
-   cambie la general. Generándola queda una sola fuente -ui.lh_uno- y
-   una ficha nueva del catálogo nace con su frase puesta sin que nadie
-   se acuerde de venir aquí.
-
-   Y va en los seis idiomas, cada uno con SU lh_uno: quien cambie la
-   española no toca las otras cinco, que es como funciona el resto del
-   editor de textos.
-
-   CÓMO SE LLAMA CADA UNA
-   ─────────────────────────────────────────────────────────────────────
-   '_p.acompana.c5' → CIIP_PASOS.acompana[idioma].c5
-
-   Es la forma que el editor de textos ya entiende para los bloques de
-   este archivo, así que no hay tabla nueva ni SQL que correr: lo
-   cambiado se guarda en textos_panel como cualquier otro texto, con su
-   idioma y su «volver al original».
-
-   La ficha que no tenga frase propia -porque no esté en `pasos`- sigue
-   cayendo en ui.lh_uno, como antes. Nunca queda un pie en blanco.
+   Y el ofrecimiento no desapareció: la pantalla de la solicitud lo sigue
+   haciendo con ui.sg_texto y ui.sg_boton, que es donde alguien ya está
+   pidiendo algo.
    ══════════════════════════════════════════════════════════════════════ */
-(function(){
-  var P = window.CIIP_PASOS;
-  if (!P || !P.pasos || !P.ui) return;
-
-  /* La UNIÓN de las fichas de los seis idiomas, y no las de cada uno por
-     su cuenta: si una ficha nueva entró en español y todavía no está
-     traducida, tiene que poder llevar frase propia igualmente. Si no,
-     esa ficha sería la única del catálogo que no se puede separar, y
-     nadie sabría por qué. */
-  var IDIOMAS = Object.keys(P.pasos);
-  var fichas = [];
-  IDIOMAS.forEach(function(l){
-    Object.keys(P.pasos[l] || {}).forEach(function(ref){
-      if (fichas.indexOf(ref) < 0) fichas.push(ref);
-    });
-  });
-
-  var A = P.acompana || (P.acompana = {});
-  IDIOMAS.forEach(function(l){
-    var suyas = A[l] || (A[l] = {});
-    var general = (P.ui[l] && P.ui[l].lh_uno) || (P.ui.en && P.ui.en.lh_uno) || '';
-    if (!general) return;
-    fichas.forEach(function(ref){
-      /* Sin pisar: el día que alguien escriba aquí arriba la frase de una
-         ficha a mano, ésta no se la lleva por delante. */
-      if (suyas[ref] == null) suyas[ref] = general;
-    });
-  });
-})();
