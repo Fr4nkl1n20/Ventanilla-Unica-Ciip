@@ -57,6 +57,12 @@ $utf8 = New-Object Text.UTF8Encoding($false)
 # pasos.js va tal cual: de ahi salen los textos de los avisos y la franja
 Copy-Item (Join-Path $raiz 'pasos.js') $trabajo -Force
 
+# Y las listas del SAREN, por lo mismo: sin ellas la oficina y el acto
+# del Registro de Extranjeros caen a caja de texto -que es lo que hacen
+# a proposito cuando el archivo no llega- y las pruebas de los dos
+# desplegables saldrian rojas sin que nadie hubiera roto nada.
+Copy-Item (Join-Path $raiz 'saren-listas.js') $trabajo -Force
+
 # Las banderas del buscador de paises. Sin copiarlas, el panel comprobaria
 # que no hay carpeta y caeria al codigo del pais: la prueba de que se
 # dibujan pasaria a rojo por un falso negativo.

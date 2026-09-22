@@ -46,6 +46,11 @@
 
 <script src="config.js"></script>
 <script src="pasos.js"></script>
+<!-- Las oficinas y los actos del SAREN, que son medio centenar de KB de
+     listas y no tienen por que engordar el panel ni pasos.js. Se cargan
+     aparte, como config.js: quien no abra el Registro de Extranjeros no
+     las mira, pero llegan antes que el formulario que las usa. -->
+<script src="saren-listas.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 /* Mientras se comprueba la sesión no se enseña el panel: si no, quien no ha
@@ -9863,9 +9868,21 @@ applyLang(idiomaParaMi());
        Se pueden corregir encima —el nombre partido en dos puede caer mal, y
        de eso avisa el sello—. Ver rellenaDelPerfil().
 
-       El ACTO va como texto y no como desplegable a propósito: el portal
-       ofrece más de NOVECIENTAS opciones, y una lista así no se elige, se
-       sufre. Se escribe, y el gestor la casa con la del portal.
+       LA OFICINA Y EL ACTO SALEN DEL PORTAL, no de una caja de texto (22
+       de septiembre de 2026). Aqui ponia que el acto iba como texto «a
+       proposito», porque el portal ofrece mas de novecientas opciones y
+       «una lista asi no se elige, se sufre». Lo segundo sigue siendo
+       verdad; lo primero era mirar la lista entera. El portal no la
+       ensena entera nunca: el acto cuelga del tipo de oficina -95 en
+       notaria, 197 en registro publico, 4 en registro principal- y la
+       oficina, del tipo Y de la entidad. Partidas asi, se eligen.
+
+       Las listas se sacaron del propio portal, que las sirve por dos
+       rutas, y viven en saren-listas.js con su procedencia escrita. La
+       oficina es un desplegable; el acto, un buscador que ademas admite
+       lo que no este en la lista, que el SAREN anade actos sin avisar.
+       Quien transcribe deja de casar a mano dos casillas de cada
+       solicitud, que era lo que costaba ahorrarselas.
 
        Las opciones de «cómo actúas», «entidad», «tipo de oficina» y «forma
        de pago» van literales y sin traducir, como las de rif_personal: son
@@ -9891,8 +9908,24 @@ applyLang(idiomaParaMi());
       {n:'tipo_oficina',     clave:'f_tipooficina',
        opciones:['NOTARÍA','REGISTRO MERCANTIL','REGISTRO PRINCIPAL','REGISTRO PÚBLICO']},
       {n:'entidad',          clave:'f_entidad',  opciones:['AMAZONAS','ANZOATEGUI','APURE','ARAGUA','BARINAS','BOLIVAR','BOLIVARIANO DE MIRANDA','CARABOBO','COJEDES','DELTA AMACURO','DEPENDENCIAS FEDERALES','DISTRITO CAPITAL','FALCON','GUARICO','LA GUAIRA','LARA','MERIDA','MONAGAS','NUEVA ESPARTA','PORTUGUESA','SUCRE','TACHIRA','TRUJILLO','YARACUY','ZULIA']},
-      {n:'oficina',          clave:'f_oficina',  ancho:true},
-      {n:'acto',             clave:'f_acto',     ancho:true},
+      /* La OFICINA sale de la lista del SAREN, y cuelga de DOS casillas: el
+         tipo de oficina y la entidad. Una notaria de Lara y un registro
+         mercantil de Lara son listas distintas, y el portal las encadena
+         igual. Son 490 oficinas con su numero delante; viven en
+         saren-listas.js, que se carga aparte. */
+      {n:'oficina',          clave:'f_oficina',  ancho:true,
+       opcionesSegun:['tipo_oficina', 'entidad'],
+       opcionesDe:(window.CIIP_SAREN || {}).oficinas},
+      /* El ACTO, con BUSCADOR y no con desplegable. Aqui ponia que un acto
+         no podia ser lista porque el portal ofrece mas de novecientos: es
+         verdad de la lista entera, y deja de serlo en cuanto se parte por
+         tipo de oficina -95 en notaria, 197 en registro publico, 4 en
+         registro principal-. Aun asi doscientos renglones no se recorren
+         con la rueda, asi que se escriben y la lista se filtra. Y sigue
+         admitiendo lo que no este en la lista: el SAREN anade actos, y lo
+         que el organismo acepta no lo puede rechazar la ventanilla. */
+      {n:'acto',             clave:'f_acto',     ancho:true,
+       buscaSegun:'tipo_oficina', buscaEn:(window.CIIP_SAREN || {}).actos},
       {n:'forma_pago',       clave:'f_formapago',
        opciones:['Transferencia','Exonerado','Divisa','Débito','Cheque']},
       {n:'fecha_solicitud',  clave:'f_fechasolicitud', tipo:'date'}
@@ -11641,7 +11674,10 @@ applyLang(idiomaParaMi());
       /* opcionesSegun: la lista depende de lo elegido en OTRA casilla -la
          oficina segun el estado-. Nace vacia y se llena mas abajo, cuando
          ya existen las dos. */
-      if (lista || c.opcionesSegun){
+      /* Sin la tabla no hay desplegable: si saren-listas.js no llegara, la
+         casilla cae a lo que era -una caja donde se escribe- en vez de
+         quedarse en un desplegable vacio del que no se sale. */
+      if (lista || (c.opcionesSegun && c.opcionesDe)){
         entrada = document.createElement('select');
         (lista || []).forEach(function(o, i){
           var op = document.createElement('option');
@@ -11720,6 +11756,13 @@ applyLang(idiomaParaMi());
            casilla vacia por fuera. */
         campo._pais = b;
         if (entrada.value) b.pon(entrada.value);
+      } else if (c.buscaEn && entrada.tagName === 'INPUT'){
+        /* El buscador de lista, para cuando las opciones son tantas que un
+           desplegable no se elige, se sufre. La lista se la pone despues
+           el bloque de las casillas que dependen de otra: aqui todavia no
+           se sabe que tipo de oficina se ha elegido. Guardado en la
+           casilla, como el de paises, para poder alcanzarlo desde alli. */
+        campo._busca = montaBuscadorLista(campo, entrada);
       } else if (c.tipo === 'date'){
         /* El escondido, PRIMERO: el que valida coge el primer input o
            select de la casilla, y si entran antes las listas se lleva el
@@ -11733,19 +11776,61 @@ applyLang(idiomaParaMi());
         campo.appendChild(entrada);
       }
       rejilla.appendChild(campo);
-    });
-    /* Las listas que dependen de otra casilla. Van DESPUES de montar todas:
-       la de origen tiene que existir, y el valor guardado solo se puede
-       poner cuando la lista ya tiene sus opciones -puesto antes, un select
-       vacio se lo traga sin decir nada-. Cambiar el origen vacia la
-       eleccion: una oficina de Zulia con el estado Lara ya no es verdad. */
+    /* Las casillas que dependen de otra. Van DESPUES de montar todas: la de
+       origen tiene que existir, y el valor guardado solo se puede poner
+       cuando la lista ya tiene sus opciones -puesto antes, un select vacio
+       se lo traga sin decir nada-. Cambiar el origen vacia la eleccion: una
+       oficina de Zulia con el estado Lara ya no es verdad.
+
+       DOS ORIGENES Y NO UNO, desde el Registro de Extranjeros. Alli la
+       oficina no cuelga del estado sino del TIPO DE OFICINA Y del estado:
+       una notaria de Lara y un registro mercantil de Lara son dos listas
+       distintas, y con un solo origen habria que elegir cual se pregunta.
+       Asi que opcionesSegun admite tambien una pareja, y la tabla se baja
+       un piso por cada origen. Con uno solo todo sigue igual que estaba,
+       que es como lo usa la constitucion.
+
+       Y no siempre es un desplegable: el ACTO son hasta 197 opciones y
+       lleva buscador (buscaSegun/buscaEn). Lo que cambia es como se le
+       entrega la lista; de donde sale es lo mismo. */
+    function listaSegun(tabla, valores){
+      var t = tabla || {};
+      for (var i = 0; i < valores.length; i++){
+        if (!t || !valores[i]) return [];
+        t = t[valores[i]];
+      }
+      return t || [];
+    }
     (CAMPOS[tipo.codigo] || []).forEach(function(c){
-      if (!c.opcionesSegun) return;
+      var segun = c.opcionesSegun || c.buscaSegun;
+      if (!segun) return;
+      var quienes = [].concat(segun).map(function(n){
+        return rejilla.querySelector('[name="' + n + '"]');
+      });
+      /* Si falta alguna de las casillas de origen no se monta nada: mas
+         vale la casilla como estaba que un desplegable que nace vacio y no
+         se llena nunca. */
+      for (var q = 0; q < quienes.length; q++) if (!quienes[q]) return;
+      function loElegido(){ return quienes.map(function(o){ return o.value; }); }
+
+      /* Con buscador: se le cambia la lista y ya esta. Lo escrito NO se
+         borra al cambiar de tipo de oficina, porque puede ser un acto que
+         el SAREN anadio despues de copiar estas listas -o el que ya venia
+         guardado de cuando esto era texto libre-. */
+      if (c.buscaSegun){
+        var casilla = rejilla.querySelector('[data-campo="' + c.n + '"]');
+        var busca = casilla && casilla._busca;
+        if (!busca) return;
+        var repon = function(){ busca.pon(listaSegun(c.buscaEn, loElegido())); };
+        repon();
+        quienes.forEach(function(o){ o.addEventListener('change', repon); });
+        return;
+      }
+
       var sel = rejilla.querySelector('select[name="' + c.n + '"]');
-      var origen = rejilla.querySelector('[name="' + c.opcionesSegun + '"]');
-      if (!sel || !origen) return;
+      if (!sel) return;
       function llena(quiero){
-        var ops = (c.opcionesDe || {})[origen.value] || [];
+        var ops = listaSegun(c.opcionesDe, loElegido());
         sel.innerHTML = '';
         sel.appendChild(document.createElement('option'));
         ops.forEach(function(o){
@@ -11763,7 +11848,8 @@ applyLang(idiomaParaMi());
         sel.value = quiero || '';
       }
       llena(datos[c.n] || (ANTES && ANTES[c.n] && ANTES[c.n].valor) || '');
-      origen.addEventListener('change', function(){ llena(''); });
+      quienes.forEach(function(o){ o.addEventListener('change', function(){ llena(''); }); });
+    });
     });
     col.appendChild(rejilla);
 
@@ -14333,6 +14419,18 @@ applyLang(idiomaParaMi());
             .toLowerCase();
   }
 
+
+  /* Marca en el renglon el trozo que se ha escrito. La usan los DOS
+     buscadores -el de paises y el de listas- y por eso vive aqui fuera,
+     al lado de sinTildes: estaba dentro del de paises, y el segundo
+     buscador habria sido una copia de siete lineas. */
+  function resaltar(texto, q){
+    if (!q) return texto;
+    var i = sinTildes(texto).indexOf(q);
+    if (i < 0) return texto;
+    return texto.slice(0, i) + '<mark>' + texto.slice(i, i + q.length) + '</mark>' +
+           texto.slice(i + q.length);
+  }
   /* ¿Hay banderas dibujadas en la carpeta? Se pregunta UNA vez, por una sola
      imagen. Si no las hay, cada país enseña su código y no se pide nada más:
      preguntar por doscientas imágenes que no existen en cada tecla llenaría
@@ -14377,13 +14475,6 @@ applyLang(idiomaParaMi());
       lista.classList.remove('open');
       entrada.setAttribute('aria-expanded', 'false');
       marcado = -1;
-    }
-    function resaltar(texto, q){
-      if (!q) return texto;
-      var i = sinTildes(texto).indexOf(q);
-      if (i < 0) return texto;
-      return texto.slice(0, i) + '<mark>' + texto.slice(i, i + q.length) + '</mark>' +
-             texto.slice(i + q.length);
     }
     function marcaPais(cod){
       if (HAY_BANDERAS){
@@ -14548,6 +14639,130 @@ applyLang(idiomaParaMi());
     combo.appendChild(lista);
     campo.appendChild(combo);
     return nuevoBuscadorPais(campo, entrada, oculto, lista);
+  }
+
+  /* ── UN BUSCADOR PARA UNA LISTA CUALQUIERA ────────────────────────────
+     El mismo gesto que el de países —se escribe y la lista se filtra— pero
+     sin nada de lo que aquel tiene de países: ni bandera, ni código ISO, ni
+     traducción. Aquí el texto ES el valor, y lo que se guarda es lo que se
+     ve, porque estas listas viajan literales al portal del SAREN.
+
+     Nace para el ACTO del Registro de Extranjeros, que llega a 197 opciones
+     en un mismo tipo de oficina. En el código estaba escrito que un acto no
+     podía ser desplegable porque el portal ofrece más de novecientos: eso
+     sigue siendo verdad de la lista entera, y deja de serlo en cuanto la
+     lista se parte por tipo de oficina. Lo que no cambia es que doscientos
+     renglones tampoco se recorren con la rueda, así que se buscan.
+
+     ADMITE LO QUE NO ESTÁ EN LA LISTA, a propósito y al revés que el
+     portal. El SAREN añade actos sin avisar, y estas listas se copiaron un
+     día concreto; si el acto que te toca no está, se escribe y el gestor lo
+     casa al transcribir, que es exactamente lo que se hacía antes de esto.
+     Un campo que rechaza lo que el organismo sí acepta es peor que uno que
+     no ayuda.
+
+     La lista se cambia entera con pon(): el acto depende del tipo de
+     oficina, y al cambiarlo la de antes ya no vale. ──────────────────── */
+  var nBuscaLista = 0;
+  function montaBuscadorLista(campo, entrada){
+    var combo = el('div', 'combo');
+    var lista = el('ul', 'combo-list');
+    lista.setAttribute('role', 'listbox');
+    lista.id = 'combo-lista-' + (++nBuscaLista);
+
+    entrada.setAttribute('autocomplete', 'off');
+    entrada.setAttribute('role', 'combobox');
+    entrada.setAttribute('aria-autocomplete', 'list');
+    entrada.setAttribute('aria-expanded', 'false');
+    entrada.setAttribute('aria-controls', lista.id);
+
+    combo.appendChild(entrada);
+    combo.appendChild(lista);
+    campo.appendChild(combo);
+
+    var OPS = [], visibles = [], marcado = -1;
+
+    function cierra(){
+      lista.classList.remove('open');
+      entrada.setAttribute('aria-expanded', 'false');
+      marcado = -1;
+    }
+    function pinta(q){
+      var qn = sinTildes(q || '');
+      visibles = qn ? OPS.filter(function(o){ return sinTildes(o).indexOf(qn) >= 0; })
+                    : OPS.slice();
+      /* Los que EMPIEZAN por lo escrito, primero, igual que en el de
+         países: quien teclea "venta" busca «Venta», no «Reventa». */
+      if (qn) visibles.sort(function(a, b){
+        return (sinTildes(a).indexOf(qn) === 0 ? 0 : 1) - (sinTildes(b).indexOf(qn) === 0 ? 0 : 1);
+      });
+
+      lista.textContent = '';
+      if (!visibles.length){
+        var v = el('li', 'combo-vacio', '—');
+        v.setAttribute('role', 'presentation');
+        lista.appendChild(v);
+      }
+      /* Ochenta y no todos: pintar doscientos renglones en cada tecla se
+         nota, y nadie baja hasta el ochenta sin escribir algo más. */
+      visibles.slice(0, 80).forEach(function(o, idx){
+        var li = el('li');
+        li.setAttribute('role', 'option');
+        li.dataset.i = idx;
+        var t = el('span');
+        t.innerHTML = resaltar(o, qn);
+        li.appendChild(t);
+        /* mousedown y no click: el blur del campo cierra la lista antes de
+           que llegue el click, y la elección se perdería. */
+        li.addEventListener('mousedown', function(e){ e.preventDefault(); elige(o); });
+        lista.appendChild(li);
+      });
+      marcado = -1;
+      lista.classList.add('open');
+      entrada.setAttribute('aria-expanded', 'true');
+    }
+    function marcaFila(n){
+      var filas = lista.querySelectorAll('li[role="option"]');
+      if (!filas.length) return;
+      if (marcado >= 0 && filas[marcado]) filas[marcado].classList.remove('sel');
+      marcado = (n + filas.length) % filas.length;
+      filas[marcado].classList.add('sel');
+      filas[marcado].scrollIntoView({block:'nearest'});
+    }
+    function elige(o){
+      entrada.value = o;
+      cierra();
+      if (campo) campo.classList.remove('mal');
+    }
+
+    /* Cambia la lista entera. Lo ya escrito se queda: si el acto que había
+       sigue estando en la lista nueva, sigue valiendo; y si no está, sigue
+       siendo lo que esa persona escribió, no algo que borramos por su
+       cuenta. Quien cambie el tipo de oficina y quiera otro acto, escribe
+       encima —y ahí sí verá la lista nueva—. */
+    function pon(ops){ OPS = ops || []; if (lista.classList.contains('open')) pinta(entrada.value); }
+
+    entrada.addEventListener('focus', function(){ pinta(entrada.value); });
+    entrada.addEventListener('input', function(){ pinta(entrada.value); });
+    entrada.addEventListener('blur',  function(){ setTimeout(cierra, 120); });
+    entrada.addEventListener('keydown', function(e){
+      if (e.key === 'ArrowDown'){
+        e.preventDefault();
+        if (!lista.classList.contains('open')) pinta(entrada.value);
+        marcaFila(marcado + 1);
+      } else if (e.key === 'ArrowUp'){
+        e.preventDefault(); marcaFila(marcado - 1);
+      } else if (e.key === 'Enter'){
+        if (lista.classList.contains('open') && marcado >= 0){
+          e.preventDefault(); elige(visibles[marcado]);
+        }
+      } else if (e.key === 'Escape'){
+        /* Escape cierra la lista, no la ventana, ni borra lo escrito. */
+        if (lista.classList.contains('open')){ e.stopPropagation(); cierra(); }
+      }
+    });
+
+    return {pon: pon, pinta: pinta, cierra: cierra, elige: elige};
   }
 
   /* El del perfil, que es el único que ya viene en el marcado. */

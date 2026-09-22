@@ -3898,6 +3898,124 @@
       var esperado = (cab.textContent || '').trim().replace(/\s+/g, ' ');
       igual('sisref: nombres y apellidos, juntos, son el nombre entero',
         entero.trim().replace(/\s+/g, ' '), esperado);
+
+    /* ── LA OFICINA Y EL ACTO, QUE AHORA SALEN DEL PORTAL ──
+       Las dos eran cajas de texto y el gestor las casaba a mano con el
+       SISREF. Ahora la oficina es un desplegable que cuelga de DOS
+       casillas -el tipo de oficina Y la entidad- y el acto un buscador que
+       cuelga del tipo. Lo que se prueba aquí no es que existan, sino que se
+       LLENAN: un desplegable encadenado que no se llena no se ve roto, se
+       ve vacío, y vacío es justo como nace. */
+    var ofi = caja.querySelector('.sol-campo[data-campo="oficina"] select');
+    ok('sisref: la oficina es un desplegable, no una caja de texto',
+       !!ofi, ofi ? 'desplegable' : 'no hay select', 'desplegable');
+
+    if (ofi){
+      var tipoOf = caja.querySelector('[name="tipo_oficina"]');
+      var ent    = caja.querySelector('[name="entidad"]');
+      function eligeOficina(t, e){
+        tipoOf.value = t; tipoOf.dispatchEvent(new Event('change'));
+        ent.value = e;    ent.dispatchEvent(new Event('change'));
+        var v = [];
+        ofi.querySelectorAll('option').forEach(function(o){ if (o.value) v.push(o.value); });
+        return v;
+      }
+
+      /* Las notarías de Caracas: cuarenta y cinco, y la primera de la
+         lista es la PRIMERA, no la cuadragésima cuarta. Salen ordenadas
+         por su número porque es como se nombran —«la Cuarta»—, y el
+         portal las devuelve revueltas. */
+      var nDC = eligeOficina('NOTARÍA', 'DISTRITO CAPITAL');
+      igual('sisref: las notarías del Distrito Capital son las del SAREN', nDC.length, 45);
+      ok('sisref: y salen por número, no revueltas como las da el portal',
+         /^8-NOTAR/.test(nDC[0] || ''), nDC[0] || 'vacío', 'la Primera, la 8');
+
+      /* Cambiar el TIPO con la misma entidad da otra lista: es lo que no
+         se podía hacer con un solo origen, y por lo que la oficina no era
+         un desplegable hasta ahora. */
+      var mDC = eligeOficina('REGISTRO MERCANTIL', 'DISTRITO CAPITAL');
+      ok('sisref: el mismo estado con otro tipo de oficina da otra lista',
+         mDC.length !== nDC.length && mDC.length > 0,
+         nDC.length + ' notarías vs ' + mDC.length + ' registros mercantiles',
+         'dos listas distintas');
+      ok('sisref: y son registros mercantiles, no notarías',
+         mDC.every(function(o){ return o.indexOf('REGISTRO MERCANTIL') >= 0; }),
+         mDC[0] || 'vacío', 'todos registros mercantiles');
+
+      /* Y cambiar la ENTIDAD con el mismo tipo, también. Los cinco del
+         Zulia son los que el portal da, y el quinto existe: es el tipo de
+         lista que alguien recorta pensando que se repite. */
+      var mZu = eligeOficina('REGISTRO MERCANTIL', 'ZULIA');
+      igual('sisref: los registros mercantiles del Zulia son cinco', mZu.length, 5);
+
+      /* Una entidad SIN oficinas no deja la de antes puesta: Dependencias
+         Federales no tiene ninguna en ninguno de los cuatro tipos, y lo
+         honrado es enseñar la lista vacía y no la del Zulia. */
+      var mDF = eligeOficina('REGISTRO MERCANTIL', 'DEPENDENCIAS FEDERALES');
+      igual('sisref: y una entidad sin oficinas se queda sin lista, no con la de antes',
+        mDF.length, 0);
+    }
+
+    /* El ACTO: un buscador, no un desplegable. Son hasta 197 en un mismo
+       tipo de oficina, y con la rueda no se recorren. */
+    var actoC = caja.querySelector('.sol-campo[data-campo="acto"]');
+    var actoE = actoC && actoC.querySelector('[name="acto"]');
+    ok('sisref: el acto se escribe y se busca, no se despliega',
+       !!actoE && actoE.tagName === 'INPUT' && !!actoC.querySelector('.combo-list'),
+       actoE ? actoE.tagName + (actoC.querySelector('.combo-list') ? ' con lista' : ' SIN lista') : 'no está',
+       'INPUT con lista');
+
+    if (actoE && actoC.querySelector('.combo-list')){
+      var tipoOf2 = caja.querySelector('[name="tipo_oficina"]');
+      var listaA  = actoC.querySelector('.combo-list');
+      function actosDe(t){
+        tipoOf2.value = t; tipoOf2.dispatchEvent(new Event('change'));
+        actoE.value = '';
+        actoE.dispatchEvent(new Event('input', {bubbles:true}));
+        return listaA.querySelectorAll('li[role="option"]').length;
+      }
+
+      /* El registro principal tiene CUATRO actos. Es la lista corta y por
+         eso es la buena para probar: si el buscador se quedara con la del
+         tipo anterior, aquí saldrían noventa y cinco. */
+      igual('sisref: el registro principal trae sus cuatro actos', actosDe('REGISTRO PRINCIPAL'), 4);
+      /* Y la notaría, noventa y cinco; se pintan hasta ochenta de golpe,
+         que es lo que cabe sin que la lista se haga lenta. */
+      var nNot = actosDe('NOTARÍA');
+      ok('sisref: y la notaría, los suyos', nNot === 80,
+         String(nNot), '80 a la vista de 95');
+
+      /* Escribir filtra, que es para lo que está. */
+      actoE.value = 'poder';
+      actoE.dispatchEvent(new Event('input', {bubbles:true}));
+      var filtr = listaA.querySelectorAll('li[role="option"]');
+      var todos = true;
+      filtr.forEach(function(li){
+        if ((li.textContent || '').toLowerCase().indexOf('poder') < 0) todos = false;
+      });
+      ok('sisref: escribir en el acto filtra la lista',
+         filtr.length > 0 && filtr.length < 80 && todos,
+         filtr.length + ' actos con «poder»', 'unos pocos, y todos con «poder»');
+
+      /* Y admite lo que NO está en la lista: el SAREN añade actos, y un
+         campo que rechaza lo que el organismo acepta es peor que uno que
+         no ayuda. Lo escrito sigue ahí después de cambiar de tipo. */
+      actoE.value = 'Acto que el SAREN inventó ayer';
+      actoE.dispatchEvent(new Event('input', {bubbles:true}));
+      tipoOf2.value = 'REGISTRO PÚBLICO'; tipoOf2.dispatchEvent(new Event('change'));
+      igual('sisref: y lo escrito a mano no se borra al cambiar de oficina',
+        actoE.value, 'Acto que el SAREN inventó ayer');
+    }
+
+    /* Y se deja como estaba: esto escribe en el formulario de verdad, y lo
+       que venga detrás no tiene por qué heredar un acto inventado ni una
+       notaría de Caracas elegida por una prueba. */
+    ['tipo_oficina', 'entidad', 'oficina', 'acto'].forEach(function(n){
+      var e = caja.querySelector('[name="' + n + '"]');
+      if (!e) return;
+      e.value = '';
+      e.dispatchEvent(new Event('change'));
+    });
     }
   }
 
