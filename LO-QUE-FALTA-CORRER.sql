@@ -12,17 +12,25 @@
 --  El proyecto sale arriba a la izquierda del panel de Supabase. MIRALO
 --  ANTES DE PULSAR RUN.
 --
---  Medido el 22 de septiembre de 2026 contra la base de PRUEBAS, y en
---  produccion segun lo que Franklin confirmo que habia corrido:
+--  Medido el 22 de septiembre de 2026 contra la base de PRUEBAS -otra vez,
+--  despues de arreglar el punto 1: la primera medida uso cuatro codigos que
+--  no existen y conto de mas-. Y entrando con una cuenta, porque con la
+--  clave anonima RLS tapa las tablas y TODO sale vacio, que se lee como
+--  «no hay nada» sin serlo:
 --
 --                                        PRODUCCION      PRUEBAS
---    las tres columnas nuevas            hechas          LE FALTAN LAS 3
---    las seis fichas nuevas              hechas          LE FALTAN LAS 6
---    quitar las tres fichas del 21-9     hecha           SIN HACER
+--    las tres columnas nuevas            sin medir       LE FALTAN LAS 3
+--    las seis fichas nuevas              sin medir       le faltan CUATRO:
+--                                                        parafiscales, zodi,
+--                                                        rupdae y minero.
+--                                                        El c22 y el c23 SI
+--                                                        estan.
+--    quitar las tres fichas del 21-9     hecha el 21     SIN HACER
 --    quitar el IVSS (hoy)                SIN HACER       SIN HACER
 --
---  O sea: en produccion solo falta el PUNTO 2. En pruebas falta todo, y
---  el camino corto esta en el punto 4.
+--  La columna de PRODUCCION no esta medida: aqui no hay cuenta suya
+--  guardada, asi que dice lo que Franklin recuerda haber corrido y nada
+--  mas. Para saberlo de verdad, el punto 1 en su SQL Editor.
 --
 --  NO TE FIES DE ESTA TABLA: esta escrita a mano y envejece. El punto 1
 --  lo PREGUNTA a la base que tengas abierta, y manda lo que diga el.
@@ -169,9 +177,8 @@ select codigo, ref_panel, activo
 -- ───────────────────────────────────────────────────────────────────────
 --  PUNTO 4. SI AL PUNTO 1 LE FALTABAN COLUMNAS O FICHAS
 --
---  Eso es la base de PRUEBAS, que se quedo atras: le faltan las tres
---  columnas y las seis fichas de la lista. No hay que ir parcheandolas
---  una a una.
+--  Eso es la base de PRUEBAS, que se quedo atras. No hay que ir
+--  parcheandola columna a columna.
 --
 --  Se pega ENTERO el archivo TODO-EN-ORDEN.sql -los 41 supabase-*.sql en
 --  el orden en que los prueba PROBAR-SQL.bat- y se pulsa Run UNA vez.
@@ -179,9 +186,17 @@ select codigo, ref_panel, activo
 --  policy if exists-, asi que volver a correrlo sobre una base que ya
 --  tiene la mitad no rompe nada: es justo para lo que se hizo.
 --
---  Y DESPUES los puntos 2 y 3 otra vez, en ese orden: TODO-EN-ORDEN
---  vuelve a dar de alta las fichas del catalogo, incluidas las cuatro que
---  hay que quitar. Primero se pone al dia, luego se quita lo que sobra.
+--  Y DESPUES los puntos 2 y 3 otra vez, en ese orden, POR DOS RAZONES:
+--
+--    · TODO-EN-ORDEN vuelve a dar de alta las fichas del catalogo,
+--      incluidas las cuatro que hay que quitar. Primero se pone al dia,
+--      luego se quita lo que sobra.
+--
+--    · Y el 2.4 no puede correr antes. Borra de textos_panel, y el
+--      disparador bit_textos lee la columna 'original' tanto al insertar
+--      como al borrar: en una base que todavia no la tiene, esa tabla no
+--      se deja ni escribir ni limpiar. O sea que en pruebas el orden no
+--      es una preferencia, es la unica forma de que funcione.
 --
 --  Si se regenera TODO-EN-ORDEN.sql:  node pruebas/juntar-sql.js
 -- ───────────────────────────────────────────────────────────────────────
