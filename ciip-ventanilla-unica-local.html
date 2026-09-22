@@ -2775,6 +2775,12 @@ body[data-vista="inicio"].etapa-elegida .tsec-sig:not([hidden]){display:flex;}
 .tr-visas{border:1px solid var(--line); border-radius:var(--r); background:var(--bg);
   box-shadow:var(--shadow); padding:14px 16px; margin:0 0 14px;}
 .tr-visas[hidden]{display:none;}
+/* Mientras no elijas visa, la casilla enseña SOLO la guia: el tramite de
+   verdad y la escalera se apartan. No se les toca su hidden -lo llevan por
+   su cuenta-, se tapan desde el contenedor. */
+.tr-detalle.elige-visa #trProceso,
+.tr-detalle.elige-visa .sol-gestion,
+.tr-detalle.elige-visa #trReal{display:none !important;}
 .gv-h{display:flex; align-items:flex-start; gap:10px; margin-bottom:2px;}
 .gv-ico{width:30px; height:30px; flex:none; border-radius:50%; background:var(--activa-bg);
   color:var(--navy2); display:flex; align-items:center; justify-content:center;
@@ -6960,6 +6966,33 @@ function applyLang(lang){
     {ref:'c38', etapa:'gv_ejec',   nombre:'gv_tri', d:'gv_tri_d'}
   ];
 
+  /* Lo que ya elegiste, mientras dure la visita. La c1 es la casilla de
+     LAS DOS -se llama por las dos- y hasta que no dices cual, enseñar el
+     formulario de la TR-N es contestar por ti: Franklin Reyes, 22 de
+     septiembre de 2026, «quiero que esto no despliegue la lista hasta yo
+     seleccionar una visa».
+
+     La c38 no necesita eleccion: es UNA visa, no la casilla de dos. Se
+     llega a ella eligiendo, o por su direccion, y en los dos casos ya
+     esta dicho cual. */
+  var VISA_ELEGIDA = '';
+
+  /* El tramite de verdad y la escalera, que son lo que se aparta hasta
+     que elijas. El plazo y la descripcion se quedan: eso es de la casilla
+     entera y vale para las dos. */
+  function tramiteALaVista(sePuedeVer){
+    var d = document.getElementById('trDetalle');
+    if (!d) return;
+    /* Una clase en el contenedor, y NO el hidden de cada uno. Aqui se
+       probo al reves y rompio cinco pruebas de los globos: esos dos
+       bloques ya llevan su propio hidden -la escalera se esconde sola
+       cuando el tramite esta encendido, que es cuando hay formulario- y
+       ponerselo a mano desde fuera pisaba esa decision en TODAS las
+       fichas, no solo en las dos visas. Con la clase, al quitarla cada
+       uno vuelve a lo suyo. */
+    d.classList.toggle('elige-visa', !sePuedeVer);
+  }
+
   function pintaGuiaVisas(id, D){
     var caja = document.getElementById('trVisas');
     if (!caja) return;
@@ -6967,7 +7000,14 @@ function applyLang(lang){
     GUIA_VISAS.forEach(function(v){ if (v.ref === id) mia = v; });
     caja.hidden = !mia;
     caja.textContent = '';
-    if (!mia) return;
+    if (!mia){
+      /* Cualquier otra ficha se ve entera, como siempre. */
+      tramiteALaVista(true);
+      return;
+    }
+
+    var hayQueElegir = (id === 'c1' && VISA_ELEGIDA !== 'c1');
+    tramiteALaVista(!hayQueElegir);
 
     /* Los textos salen del diccionario que llega, igual que en
        pintaTramosDetalle: aqui no hay T(), que vive en otro modulo. */
@@ -6996,7 +7036,11 @@ function applyLang(lang){
 
     var cols = trEl('div', 'gv-cols');
     GUIA_VISAS.forEach(function(v){
-      var esta = (v.ref === id);
+      /* «Esta» deja de significar «la de esta ficha» y pasa a significar
+         «la que YA elegiste». Mientras no elijas, la de aqui tampoco esta
+         elegida: se pulsa igual que la otra, y eso es lo que despliega el
+         formulario sin moverte de sitio. */
+      var esta = (v.ref === id) && !hayQueElegir;
       var col = trEl('div', 'gv-col' + (esta ? ' aqui' : ''));
       col.setAttribute('data-visa', v.ref);
       var et = trEl('span', 'gv-etapa', u[v.etapa] || '');
@@ -7027,7 +7071,17 @@ function applyLang(lang){
         col.setAttribute('tabindex', '0');
         col.setAttribute('data-ir', v.ref);
         col.setAttribute('aria-label', (u[v.nombre] || '') + ' · ' + (u[v.d] || ''));
-        var vaALaSuya = function(){ location.hash = 'tramite-' + v.ref; };
+        var vaALaSuya = function(){
+          if (v.ref === id){
+            /* La de esta ficha: no se navega a ningun sitio, se contesta.
+               Recordarlo es lo que hace que al volver de Mis tramites o al
+               cambiar de idioma no te vuelva a preguntar. */
+            VISA_ELEGIDA = v.ref;
+            pintaGuiaVisas(id, D);
+            return;
+          }
+          location.hash = 'tramite-' + v.ref;
+        };
         col.addEventListener('click', vaALaSuya);
         /* Con el teclado: Enter y espacio, que es lo que hace un boton de
            verdad. El espacio ademas desplaza la pagina si no se para. */

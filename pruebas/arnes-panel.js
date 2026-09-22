@@ -3553,6 +3553,15 @@
 
   function pistaMira(){
     if (CASO !== 'vacio') return;
+    /* La c1 es la casilla de LAS DOS visas y desde el 22-9-2026 no enseña
+       su formulario hasta que eliges cual: enseñarlo de entrada era
+       contestar por el inversionista. Asi que aqui se elige primero, que
+       es lo que hace una persona, y despues se miran los globos de los
+       recaudos. Sin esto, el formulario estaba tapado y el boton de la «i»
+       no podia coger el foco: la comprobacion del Escape contestaba BODY y
+       salia roja sin que hubiera nada roto. */
+    var elige = document.querySelector('.gv-col[data-visa="c1"][role="button"]');
+    if (elige) elige.click();
     var caja = document.getElementById('trReal');
     /* Los recaudos viven en el SEGUNDO paso de la solicitud, y la hoja nace
        recogida. Un boton que no esta a la vista no puede coger el foco, asi
@@ -4265,14 +4274,35 @@
             [].map.call(guia.querySelectorAll('.gv-col'), function(c){
               return c.getAttribute('data-visa'); }).join(' '), 'c1 c38');
 
-      /* La que estas mirando: marcada y SIN pulsar. Un «ver tramite» que
-         lleva a donde ya estas es un callejon. */
-      ok('visas: la que estas mirando se dice, y no se pulsa',
-         !!trn && trn.getAttribute('aria-current') === 'true' &&
-           !trn.hasAttribute('role') && !trn.hasAttribute('tabindex'),
-         trn ? ('aria-current=' + trn.getAttribute('aria-current') +
-                ' role=' + (trn.getAttribute('role') || 'sin')) : 'no esta',
-         'aria-current y sin role');
+      /* MIENTRAS NO ELIJAS, las dos se pulsan. La c1 es la casilla de las
+         DOS visas -se llama por las dos- y enseñar de entrada el formulario
+         de la TR-N seria contestar por ti. Asi que la de aqui no dice «estas
+         aqui»: dice «elige esta», y al pulsarla despliega el formulario sin
+         moverte de sitio. */
+      ok('visas: sin elegir, la de esta ficha tambien se pulsa',
+         !!trn && trn.getAttribute('role') === 'button',
+         trn ? ('role=' + (trn.getAttribute('role') || 'sin')) : 'no esta',
+         'role=button');
+      var detalle = document.getElementById('trDetalle');
+      ok('visas: y el formulario no se despliega hasta que elijas',
+         !!detalle && detalle.classList.contains('elige-visa'),
+         detalle ? (detalle.className || '(sin clases)') : 'no esta',
+         'con la clase elige-visa');
+      if (trn){
+        trn.click();
+        ok('visas: al elegirla, el formulario se despliega ahi mismo',
+           !!detalle && !detalle.classList.contains('elige-visa'),
+           detalle ? (detalle.className || '(sin clases)') : 'no esta',
+           'sin la clase elige-visa');
+        var trn2 = document.querySelector('.gv-col[data-visa="c1"]');
+        ok('visas: y entonces si dice «estas aqui» y deja de pulsarse',
+           !!trn2 && trn2.getAttribute('aria-current') === 'true' &&
+             !trn2.hasAttribute('role'),
+           trn2 ? ('aria-current=' + trn2.getAttribute('aria-current') +
+                   ' role=' + (trn2.getAttribute('role') || 'sin')) : 'no esta',
+           'aria-current y sin role');
+        tri = document.querySelector('.gv-col[data-visa="c38"]');
+      }
 
       /* Y la OTRA se pulsa ENTERA, no solo su renglon: con su papel, su
          parada de tabulador y su nombre dicho entero. */
