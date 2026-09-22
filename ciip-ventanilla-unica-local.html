@@ -9791,6 +9791,36 @@ applyLang(idiomaParaMi());
     'ZULIA': ['REGISTRO MERCANTIL PRIMERO DEL ESTADO ZULIA', 'REGISTRO MERCANTIL SEGUNDO DEL ESTADO ZULIA', 'REGISTRO MERCANTIL TERCERO DEL ESTADO ZULIA', 'REGISTRO MERCANTIL CUARTO DEL ESTADO ZULIA', 'REGISTRO MERCANTIL QUINTO DEL ESTADO ZULIA']
   };
 
+  /* ── LAS ENTIDADES DE VENEZUELA, PARA LEERLAS ──
+     Los veintitres estados y el Distrito Capital, escritos como se
+     escriben: con sus tildes y en mayuscula y minuscula.
+
+     Y SI, es una tercera lista de estados, a sabiendas. Las otras dos no
+     valen aqui y no por capricho:
+
+       · la del Registro de Extranjeros son las veinticinco del SISREF,
+         SIN TILDES y con «BOLIVARIANO DE MIRANDA», porque es lo que ese
+         portal espera recibir y el gestor lo transcribe tal cual;
+       · la de la constitucion son las veintitres del portal del SAREN,
+         que no trae La Guaira ni las Dependencias Federales.
+
+     Las dos son literales de un portal: se copian para que nadie tenga
+     que deshacer una traduccion al teclearlas. Esta NO se transcribe a
+     ningun sitio -la ZODI es un tramite del CIIP-, asi que se escribe
+     para el que la lee. Cambiar cualquiera de las otras dos para que
+     sirviese aqui seria romper el portal al que pertenece.
+
+     Sin Dependencias Federales: son islas sin registro ni actividad, y
+     ahi no se instala una empresa. Si el CIIP dice lo contrario, es un
+     renglon. */
+  var ESTADOS_VE = [
+    'Distrito Capital', 'Amazonas', 'Anzoátegui', 'Apure', 'Aragua',
+    'Barinas', 'Bolívar', 'Carabobo', 'Cojedes', 'Delta Amacuro',
+    'Falcón', 'Guárico', 'La Guaira', 'Lara', 'Mérida', 'Miranda',
+    'Monagas', 'Nueva Esparta', 'Portuguesa', 'Sucre', 'Táchira',
+    'Trujillo', 'Yaracuy', 'Zulia'
+  ];
+
   var CAMPOS = {
     /* ── el poder de representacion ──
        El tramite estaba en el catalogo desde el 3 de septiembre, con sus
@@ -10264,13 +10294,16 @@ applyLang(idiomaParaMi());
        y obligar a elegir uno sería obligar a adivinar. Se guarda en
        español (opcionesClave), como el tipo de sociedad.
 
-       El estado se escribe y no se elige: la lista de estados del SAREN
-       se está sacando a una sola variable en otra rama, y copiarla aquí
-       sería una tercera copia. Cuando llegue, esto pasa a desplegable. */
+       El estado SE ELIGE desde el 22 de septiembre de 2026, que lo pidió
+       Franklin: «incluye los Estados de Venezuela para que el
+       inversionista pueda solo seleccionarlo». Escrito a mano llegaban
+       «Miranda», «Edo. Miranda» y «miranda» al mismo campo, y el equipo
+       tenía que adivinar si eran el mismo sitio antes de mandarle el
+       expediente a una ZODI o a otra. */
     opinion_zodi: [
       {n:'denominacion',            clave:'f_denominacion'},
       {n:'motivo_zodi',             clave:'f_zodimotivo', opcionesClave:'o_zodimotivo'},
-      {n:'estado_zodi',             clave:'f_zodiestado'},
+      {n:'estado_zodi',             clave:'f_zodiestado', opciones:ESTADOS_VE},
       {n:'direccion_operacion',     clave:'f_zodidir',    ancho:true},
       {n:'objeto_social',           clave:'f_objeto',     ancho:true},
       {n:'justificacion',           clave:'f_zodijust',   ancho:true},
