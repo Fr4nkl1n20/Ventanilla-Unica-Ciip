@@ -10,7 +10,6 @@ muestran (13 px), para que se vean nítidos en pantallas densas sin pesar.
 | `seniat.png` | SENIAT | Wikimedia Commons, `File:LogoSENIAT.png` |
 | `saren.png` | SAREN | Wikimedia Commons, `File:SAREN logo.png` |
 | `intt.png` | INTT | Wikimedia Commons, `File:INTT logo.png` |
-| `ivss.svg` | IVSS | Wikimedia Commons, `File:IVSS (azul).svg` |
 | `sapi.png` | SAPI | Sitio oficial, `sapi.gob.ve` |
 | `sencamer.png` | SENCAMER | Sitio oficial, `sencamer.gob.ve` |
 | `snc.png` | Servicio Nacional de Contrataciones | Wikimedia Commons, `File:Logo Servicio Nacional de Contrataciones.png` |

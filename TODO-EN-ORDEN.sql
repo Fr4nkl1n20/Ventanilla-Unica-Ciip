@@ -11,7 +11,7 @@
 --  policy if exists-, asi que volver a correrlo no rompe nada y es la
 --  forma de poner al dia un proyecto que ya tenia la mitad.
 --
---  Generado el 2026-09-20. Si cambia un archivo, se vuelve a generar:
+--  Generado el 2026-09-22. Si cambia un archivo, se vuelve a generar:
 --  no se edita a mano, que entonces son 41 sitios donde mirar.
 -- ====================================================================
 
@@ -521,11 +521,6 @@ insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo)
   ('rif_empresa',         'c6',  'RIF de la empresa',                'SENIAT',              2, false),
   ('cuenta_bancaria',     'c7',  'Cuenta bancaria corporativa',      'Banca aliada',        2, false),
   ('marca',               'c8',  'Registro de marca',                'SAPI',                2, false),
-  -- El c9 se queda SOLO con el IVSS: ver la nota de la Fase 03, abajo.
-  -- El codigo no se renombra a proposito. Es la llave con la que estan
-  -- guardados los tramites que ya existan en la base, y cambiarlo los
-  -- dejaria huerfanos; ref_panel y nombre si dicen ya lo que es.
-  ('registros_laborales', 'c9',  'Inscripción en el IVSS',           'IVSS',                3, false),
   ('licencia_municipal',  'c10', 'Licencia de funcionamiento',       'Alcaldía',            3, false),
   ('comercio_exterior',   'c11', 'Permisos de importación',          'VUCE',                3, false),
   -- El c12 estaba mal atribuido. La hoja, en la Fase 03, pide el PERMISO
@@ -548,11 +543,8 @@ insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo)
   -- c5 en adelante: ref_panel es la llave que une esta tabla con las
   -- tarjetas y con pasos.js, y correrla dejaría los tres desalineados.
   -- El orden en pantalla lo da el panel, no este número.
-  ('antecedentes_penales','c16', 'Antecedentes penales apostillados','MPPRIJP',            1, false),
   ('apostilla_documentos','c17', 'Apostilla y traducción de documentos','MPPRE',           1, false),
-  ('constancia_domicilio','c18', 'Constancia de domicilio',          'Registro Civil',     1, false),
   ('firma_electronica',   'c19', 'Firma electrónica',                'SUSCERTE',           1, false),
-  ('visa_dependientes',   'c20', 'Visa y cédula de dependientes',    'SAIME',              1, false),
   ('cert_medico',         'c21', 'Certificado médico',               'Centro de salud',    1, false),
   -- Fase 02. Protocolizar y publicar eran hasta ahora dos PASOS del c5;
   -- la hoja de trámites por fase los cuenta como trámites propios, y de
@@ -564,9 +556,15 @@ insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo)
   ('libros_contables',    'c24', 'Libros contables y facturación',   'SENIAT',             2, false),
   -- Fase 03. La hoja cuenta diez trámites en esta fase y el panel tenía
   -- cuatro. El c9 hacía de una vez el IVSS, el INCES y el FAOV: se quedó
-  -- con el IVSS —que es el que abre el número patronal del que cuelgan
-  -- los otros dos— y el FAOV y el INCES salieron a trámites propios,
-  -- igual que la protocolización salió del c5.
+  -- con el IVSS, y el FAOV y el INCES salieron a trámites propios, igual
+  -- que la protocolización salió del c5.
+  --
+  -- Y EL IVSS SE FUE DEL CATÁLOGO el 22 de septiembre de 2026: «elimina
+  -- la casilla de IVSS», y fuera de la ventanilla, no dentro del c37. Su
+  -- fila ya no se crea aquí. El codigo 'registros_laborales' NO se
+  -- reutiliza para otra cosa: es la llave con la que estan guardadas las
+  -- solicitudes que ya existan, y darselo a otro tramite las renombraria.
+  -- Para una base que ya tenga la fila, QUITAR-IVSS.sql.
   --
   -- La conformidad de uso y la de bomberos eran, respectivamente, el
   -- paso 1 y un recaudo opcional del c10. La hoja las cuenta aparte y de
@@ -601,9 +599,9 @@ on conflict (codigo) do nothing;
 -- Aquí se dice en positivo y en negativo, para que la lista de activos sea
 -- exactamente esta y no se quede uno encendido de una prueba anterior.
 update public.tipos_tramite set activo = true
-  where codigo in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'registros_laborales', 'licencia_municipal', 'antecedentes_penales', 'apostilla_documentos', 'constancia_domicilio', 'firma_electronica', 'visa_dependientes', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
+  where codigo in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
 update public.tipos_tramite set activo = false
-  where codigo not in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'registros_laborales', 'licencia_municipal', 'antecedentes_penales', 'apostilla_documentos', 'constancia_domicilio', 'firma_electronica', 'visa_dependientes', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
+  where codigo not in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
 
 
 -- La c1 era la visa de inversionista (TR-I), ante el SAIME. Desde el 15 de
@@ -8618,8 +8616,33 @@ begin
     return new;
   end if;
 
+  --  LO QUE EL TRAMO NUEVO HEREDA
+  --  ─────────────────────────────────────────────────────────────────
+  --  La razón social desde el principio. El número de registro y la fecha
+  --  de protocolización desde el 21 de septiembre de 2026, a petición de
+  --  Franklin Reyes: «esa información debería llenarse con la primera
+  --  fase». De la constitución no puede salir —el registro los ASIGNA al
+  --  protocolizar, así que cuando se constituye no existen todavía—, pero
+  --  de la protocolización sí: el gestor los copia del acta en el momento
+  --  de subirla, que es el único momento en que alguien los tiene delante.
+  --
+  --  Los tres nombres son los del formulario de la publicación. Si allí se
+  --  renombra un campo, hay que renombrarlo aquí o la herencia se corta sin
+  --  hacer ruido: lo que se hereda es un nombre, no una columna.
+  --
+  --  Lo que no esté, no se copia: una clave en blanco taparía el relleno
+  --  del panel, que busca en los otros trámites lo que se escribió antes.
   if coalesce(new.datos->>'razon_social', '') <> '' then
     copia := copia || jsonb_build_object('razon_social', new.datos->>'razon_social');
+  end if;
+
+  if coalesce(new.datos->>'numero_registro', '') <> '' then
+    copia := copia || jsonb_build_object('numero_registro', new.datos->>'numero_registro');
+  end if;
+
+  if coalesce(new.datos->>'fecha_protocolizacion', '') <> '' then
+    copia := copia || jsonb_build_object('fecha_protocolizacion',
+                                         new.datos->>'fecha_protocolizacion');
   end if;
 
   --  Y nace en manos de quien resolvió la protocolización, por lo mismo
@@ -8788,12 +8811,19 @@ create trigger tramites_publicacion_pago
 --  trámite, UNA solicitud, UN juego de recaudos. El precedente de la casa
 --  es el c14: cuatro solvencias, una sola solicitud.
 --
---  EL IVSS (c9) SE QUEDA FUERA, Y ES A PROPÓSITO
+--  EL IVSS (c9) NO ENTRA AQUÍ, Y DESDE EL 22-9-2026 NO ESTÁ EN NINGÚN SITIO
 --  ─────────────────────────────────────────────────────────────────────
---  No estaba en la lista del encargo y se preguntó: se queda con su
---  casilla propia. Sigue al lado, bajo el mismo rótulo de «Obligaciones
---  parafiscales y laborales», porque es el que abre el número patronal del
---  que cuelgan los demás.
+--  El 20 de septiembre no estaba en la lista del encargo, se preguntó, y
+--  se quedó con casilla propia al lado de ésta.
+--
+--  El 22 de septiembre el CIIP la quitó: «elimina la casilla de IVSS», y
+--  se confirmó que sale DEL CATÁLOGO, no que se hace dentro de esta. Así
+--  que aquí no hay nada que absorber: el c9 no está entre los cinco de
+--  abajo porque no está en el catálogo. Quien tenga la fila todavía la
+--  apaga y la borra con QUITAR-IVSS.sql.
+--
+--  Y el rótulo «Obligaciones parafiscales y laborales» se fue con él: con
+--  una sola ficha debajo repetía lo que la ficha ya dice en su nombre.
 --
 --  QUÉ PASA CON LOS CINCO QUE ABSORBE
 --  ─────────────────────────────────────────────────────────────────────
@@ -8880,11 +8910,9 @@ update public.tipos_tramite
                   'rnc',            -- c13  Servicio Nacional de Contrataciones
                   'rupdae');        -- c35  SUNDDE
 
--- El IVSS NO entra. Se deja dicho en positivo para que nadie lo añada a la
--- lista de arriba por parecerse: el CIIP lo dejó fuera el 20-9-2026.
-update public.tipos_tramite
-   set activo = true
- where codigo = 'registros_laborales';   -- c9  IVSS, con casilla propia
+-- AQUÍ SE ENCENDÍA EL IVSS (c9) A PROPÓSITO, y se fue el 22-9-2026 con la
+-- casilla. Se deja dicho para que nadie lo añada a la lista de arriba por
+-- parecerse: no se apaga porque esté dentro de ésta, es que ya no está.
 
 
 -- ───────────────────────────────────────────────────────────────────────
@@ -8896,8 +8924,9 @@ update public.tipos_tramite
 --   select ref_panel, codigo, nombre, ente, fase, nivel, emite, plazo_dias, activo
 --   from public.tipos_tramite where ref_panel = 'c37';
 --
--- 2) Los cinco apagados, y el IVSS encendido. Tienen que salir cinco
---    'false' y un 'true':
+-- 2) Los cinco apagados. Tienen que salir cinco filas y las cinco en
+--    'false'; 'registros_laborales' va en la lista para comprobar que NO
+--    sale ninguna, que es donde estaba el IVSS:
 --
 --   select ref_panel, codigo, activo from public.tipos_tramite
 --   where codigo in ('faov_banavih','inces','rnet','rnc','rupdae','registros_laborales')

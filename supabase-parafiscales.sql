@@ -22,12 +22,19 @@
 --  trámite, UNA solicitud, UN juego de recaudos. El precedente de la casa
 --  es el c14: cuatro solvencias, una sola solicitud.
 --
---  EL IVSS (c9) SE QUEDA FUERA, Y ES A PROPÓSITO
+--  EL IVSS (c9) NO ENTRA AQUÍ, Y DESDE EL 22-9-2026 NO ESTÁ EN NINGÚN SITIO
 --  ─────────────────────────────────────────────────────────────────────
---  No estaba en la lista del encargo y se preguntó: se queda con su
---  casilla propia. Sigue al lado, bajo el mismo rótulo de «Obligaciones
---  parafiscales y laborales», porque es el que abre el número patronal del
---  que cuelgan los demás.
+--  El 20 de septiembre no estaba en la lista del encargo, se preguntó, y
+--  se quedó con casilla propia al lado de ésta.
+--
+--  El 22 de septiembre el CIIP la quitó: «elimina la casilla de IVSS», y
+--  se confirmó que sale DEL CATÁLOGO, no que se hace dentro de esta. Así
+--  que aquí no hay nada que absorber: el c9 no está entre los cinco de
+--  abajo porque no está en el catálogo. Quien tenga la fila todavía la
+--  apaga y la borra con QUITAR-IVSS.sql.
+--
+--  Y el rótulo «Obligaciones parafiscales y laborales» se fue con él: con
+--  una sola ficha debajo repetía lo que la ficha ya dice en su nombre.
 --
 --  QUÉ PASA CON LOS CINCO QUE ABSORBE
 --  ─────────────────────────────────────────────────────────────────────
@@ -114,11 +121,9 @@ update public.tipos_tramite
                   'rnc',            -- c13  Servicio Nacional de Contrataciones
                   'rupdae');        -- c35  SUNDDE
 
--- El IVSS NO entra. Se deja dicho en positivo para que nadie lo añada a la
--- lista de arriba por parecerse: el CIIP lo dejó fuera el 20-9-2026.
-update public.tipos_tramite
-   set activo = true
- where codigo = 'registros_laborales';   -- c9  IVSS, con casilla propia
+-- AQUÍ SE ENCENDÍA EL IVSS (c9) A PROPÓSITO, y se fue el 22-9-2026 con la
+-- casilla. Se deja dicho para que nadie lo añada a la lista de arriba por
+-- parecerse: no se apaga porque esté dentro de ésta, es que ya no está.
 
 
 -- ───────────────────────────────────────────────────────────────────────
@@ -130,8 +135,9 @@ update public.tipos_tramite
 --   select ref_panel, codigo, nombre, ente, fase, nivel, emite, plazo_dias, activo
 --   from public.tipos_tramite where ref_panel = 'c37';
 --
--- 2) Los cinco apagados, y el IVSS encendido. Tienen que salir cinco
---    'false' y un 'true':
+-- 2) Los cinco apagados. Tienen que salir cinco filas y las cinco en
+--    'false'; 'registros_laborales' va en la lista para comprobar que NO
+--    sale ninguna, que es donde estaba el IVSS:
 --
 --   select ref_panel, codigo, activo from public.tipos_tramite
 --   where codigo in ('faov_banavih','inces','rnet','rnc','rupdae','registros_laborales')

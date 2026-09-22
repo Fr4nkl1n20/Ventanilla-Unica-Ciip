@@ -232,29 +232,46 @@
        que es justo lo que pasa en produccion con los expedientes viejos. */
     {codigo:'rnc',          ref_panel:'c13', ente:'RNC',   activo:false,
      nombre:'Registro Nacional de Contratistas', fase:3, nivel:'actividad'},
-    /* Las cinco inscripciones en una casilla. Como en la base de verdad:
-       fase 3, 'esencial' -le toca a todos, sin distintivo-, 28 dias y SIN
-       'emite', que devuelve cinco constancias y la columna guarda una. */
+    /* Las cinco inscripciones en una casilla. Como en la base de verdad en
+       todo menos en el NIVEL: fase 3, 28 dias y SIN 'emite', que devuelve
+       cinco constancias y la columna guarda una.
+
+       EL NIVEL VA EN 'obligatorio' Y EN LA BASE DE VERDAD ES 'esencial'.
+       Se dice, porque un doble que se aleja de Supabase sin avisar es de
+       donde salen los verdes falsos. Lo heredó del IVSS el 22-9-2026, que
+       era quien traía el único obligatorio de la fase 3 y se fue del
+       catálogo; la razón de que haga falta está escrita entera unas líneas
+       más abajo, en «LA PRIMERA». Es esta ficha y no otra porque es la
+       única encendida de la fase que no depende del ramo.
+
+       No cambia nada de lo que se ve: 'obligatorio' y 'esencial' pintan la
+       tarjeta igual -ninguno lleva distintivo desde que el CIIP quitó el
+       de «Obligatorio»-. Lo que cambia es que la fase 3 aparta. */
     {codigo:'registros_parafiscales', ref_panel:'c37', ente:'Entes varios',
      activo:true, plazo_dias:28,
      nombre:'Inscripciones: Registros Parafiscales y Regulatorios',
-     fase:3, nivel:'esencial'},
+     fase:3, nivel:'obligatorio'},
 
-    /* ── dos filas que el catálogo de verdad NO tiene todavía ──
+    /* ── lo que el catálogo de verdad NO dice todavía ──
        Y se dice, porque un doble que se aleja de Supabase sin avisar es
        de donde salen los verdes falsos.
 
-       LA PRIMERA: un obligatorio en la fase 3. Hoy no hay ninguno —los
-       once dependen del ramo— y por eso la regla de «no apartar lo de
-       'actividad'» no se alcanza NUNCA con los datos de hoy: sin
-       obligatorio, la fase no aparta nada de todas formas. Un sabotaje
-       que apartara lo de 'actividad' salía verde, y salió.
+       LA PRIMERA es el nivel del c37, ahí arriba: un obligatorio en la
+       fase 3. Hoy no hay ninguno —los once dependen del ramo— y por eso
+       la regla de «no apartar lo de 'actividad'» no se alcanza NUNCA con
+       los datos de hoy: sin obligatorio, la fase no aparta nada de todas
+       formas. Un sabotaje que apartara lo de 'actividad' salía verde, y
+       salió.
 
-       No es una fila inventada porque sí: es la fase 3 el día que exista
+       No es un dato torcido porque sí: es la fase 3 el día que exista
        la matriz de sector a permisos —punto 2 de lo que falta en
        supabase-informe-victor.sql—, cuando algunos de esos permisos sean
        obligatorios para un sector. Ese día el permiso sanitario NO puede
        irse detrás de un botón, y esto es lo que lo sujeta.
+
+       Hasta el 22-9-2026 lo traía una fila propia, la del IVSS (c9), que
+       el doble encendía como obligatoria. El CIIP quitó esa casilla del
+       catálogo y el papel pasó al c37.
 
        LA SEGUNDA: un trámite en la fase 5, para poder comprobar aparte
        que una fase sin obligatorios se queda entera. Antes eso se miraba
@@ -288,8 +305,6 @@
      activo:true, emite:'certificado_rum', plazo_dias:null,
      nombre:'Registro Único Minero', fase:3, nivel:'actividad'},
 
-    {codigo:'registros_laborales', ref_panel:'c9', ente:'IVSS', activo:true, plazo_dias:28,
-     nombre:'Registros laborales', fase:3, nivel:'obligatorio'},
     /* Y va en 'opcional', que TAMPOCO es lo que dice el catálogo de verdad
        -allí se queda con el 'esencial' por defecto-. Es la segunda fila que
        se aparta de Supabase a propósito, y por la misma razón que la de
@@ -1364,12 +1379,16 @@
         {id:'doc3', tipo:'acta_constitutiva', archivo:'u1/acta.pdf',
          nombre_original:'acta-constitutiva.pdf', vence_el:fechaEn(12),
          estado:'cargado', nota_revision:'', creado_en:'2026-08-01T10:00:00Z'},
-        /* El RIF de la empresa. No es de adorno: con el, los registros
-           laborales -c9, que solo piden ese papel- pasan a tener TODOS sus
-           recaudos en la boveda, y es el UNICO tramite SIN EMPEZAR del
-           catalogo al que le pasa. Eso es lo que permite medir la marca de
-           «tienes los papeles»: sin una sola tarjeta que la lleve, esa
-           prueba solo mediria que NO sale, que es la mitad barata.
+        /* El RIF de la empresa. No es de adorno: con el, el Registro Unico
+           Minero -c36, que pide cedula, RIF de la empresa y acta- pasa a
+           tener TODOS sus recaudos en la boveda. Eso es lo que permite
+           medir la marca de «tienes los papeles»: sin una sola tarjeta que
+           la lleve, esa prueba solo mediria que NO sale, que es la mitad
+           barata.
+
+           Hasta el 22-9-2026 el sujeto eran los registros laborales -c9,
+           el IVSS-, que pedian los mismos tres papeles. El CIIP quito esa
+           casilla del catalogo y la marca se mide en la que quedaba.
 
            Se probo primero con el RIF PERSONAL y hubo que deshacerlo: dos
            pruebas de la cadena -c5 y c6 esperan al c3 porque les falta ese

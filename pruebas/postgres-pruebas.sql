@@ -2748,11 +2748,17 @@ select arnes.comprueba(
   (select count(*) = 5 from public.tipos_tramite
     where codigo in ('faov_banavih', 'inces', 'rnet', 'rnc', 'rupdae')));
 
--- El IVSS (c9) se queda fuera y encendido: no estaba en la lista del
--- encargo, se pregunto, y el CIIP lo dejo con casilla propia.
+-- El IVSS (c9) ya no esta: el 20-9-2026 se quedo fuera de esta casilla con
+-- ficha propia, y el 22-9-2026 el CIIP quito la ficha del catalogo.
+--
+-- Se mide que NO hay fila, y no solo que este apagada: apagada seguiria
+-- saliendo en el panel del admin para volver a encenderla de un clic.
 select arnes.comprueba(
-  'parafiscales: el IVSS se queda aparte, y encendido',
-  (select activo from public.tipos_tramite where codigo = 'registros_laborales'));
+  'parafiscales: el IVSS ya no esta en el catalogo',
+  (select count(*) = 0 from public.tipos_tramite
+    where codigo = 'registros_laborales'),
+  (select coalesce(string_agg(codigo || ' activo=' || activo, ', '), '(ninguna fila)')
+     from public.tipos_tramite where codigo = 'registros_laborales'));
 
 -- Le toca a toda empresa -el RNET y el RUPDAE son de todas-, asi que no
 -- puede decir «segun tu actividad». Y no suma a los diez obligatorios.

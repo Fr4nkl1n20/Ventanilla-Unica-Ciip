@@ -324,11 +324,6 @@ insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo)
   ('rif_empresa',         'c6',  'RIF de la empresa',                'SENIAT',              2, false),
   ('cuenta_bancaria',     'c7',  'Cuenta bancaria corporativa',      'Banca aliada',        2, false),
   ('marca',               'c8',  'Registro de marca',                'SAPI',                2, false),
-  -- El c9 se queda SOLO con el IVSS: ver la nota de la Fase 03, abajo.
-  -- El codigo no se renombra a proposito. Es la llave con la que estan
-  -- guardados los tramites que ya existan en la base, y cambiarlo los
-  -- dejaria huerfanos; ref_panel y nombre si dicen ya lo que es.
-  ('registros_laborales', 'c9',  'Inscripción en el IVSS',           'IVSS',                3, false),
   ('licencia_municipal',  'c10', 'Licencia de funcionamiento',       'Alcaldía',            3, false),
   ('comercio_exterior',   'c11', 'Permisos de importación',          'VUCE',                3, false),
   -- El c12 estaba mal atribuido. La hoja, en la Fase 03, pide el PERMISO
@@ -364,9 +359,15 @@ insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo)
   ('libros_contables',    'c24', 'Libros contables y facturación',   'SENIAT',             2, false),
   -- Fase 03. La hoja cuenta diez trámites en esta fase y el panel tenía
   -- cuatro. El c9 hacía de una vez el IVSS, el INCES y el FAOV: se quedó
-  -- con el IVSS —que es el que abre el número patronal del que cuelgan
-  -- los otros dos— y el FAOV y el INCES salieron a trámites propios,
-  -- igual que la protocolización salió del c5.
+  -- con el IVSS, y el FAOV y el INCES salieron a trámites propios, igual
+  -- que la protocolización salió del c5.
+  --
+  -- Y EL IVSS SE FUE DEL CATÁLOGO el 22 de septiembre de 2026: «elimina
+  -- la casilla de IVSS», y fuera de la ventanilla, no dentro del c37. Su
+  -- fila ya no se crea aquí. El codigo 'registros_laborales' NO se
+  -- reutiliza para otra cosa: es la llave con la que estan guardadas las
+  -- solicitudes que ya existan, y darselo a otro tramite las renombraria.
+  -- Para una base que ya tenga la fila, QUITAR-IVSS.sql.
   --
   -- La conformidad de uso y la de bomberos eran, respectivamente, el
   -- paso 1 y un recaudo opcional del c10. La hoja las cuenta aparte y de
@@ -401,9 +402,9 @@ on conflict (codigo) do nothing;
 -- Aquí se dice en positivo y en negativo, para que la lista de activos sea
 -- exactamente esta y no se quede uno encendido de una prueba anterior.
 update public.tipos_tramite set activo = true
-  where codigo in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'registros_laborales', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
+  where codigo in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
 update public.tipos_tramite set activo = false
-  where codigo not in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'registros_laborales', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
+  where codigo not in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
 
 
 -- La c1 era la visa de inversionista (TR-I), ante el SAIME. Desde el 15 de

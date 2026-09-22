@@ -589,9 +589,12 @@
        Y NUEVE desde el 20-9-2026. Cinco salen de la cuenta y una entra: el
        RNC y el RUPDAE se apagan —su tarjeta deja el documento— y el FAOV, el
        INCES y el RNET pasan a llevar data-tramo-de, que no se cuenta. En su
-       sitio, una sola casilla, el c37. La cuenta dice lo que hay: nueve
-       casillas y nueve que se pueden terminar. */
-    igual('camino: la fase 03 cuenta sus 9',          deEtapa(2, '.jcount'), '0 de 9 listos');
+       sitio, una sola casilla, el c37.
+
+       Y OCHO desde el 22-9-2026: se va la del IVSS, y se va de verdad —la
+       tarjeta deja el documento, no se esconde—. La cuenta dice lo que
+       hay: ocho casillas y ocho que se pueden terminar. */
+    igual('camino: la fase 03 cuenta sus 8',          deEtapa(2, '.jcount'), '0 de 8 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
        inversión extranjera tenía una etapa para él solo —y una etapa con una
        sola tarjeta dentro— y ahora comparte la 4 con el banco de activos y
@@ -909,8 +912,9 @@
              Y 33 desde el 20-9-2026: el c13 y el c35 se apagan -dos fichas
              que dejan el documento- y entra el c37, que es una. El FAOV, el
              INCES y el RNET siguen contando: llevan data-tramo-de, que las
-             esconde pero no las saca. */
-             pendS === 30, pendS + ' por iniciar de 31 ofrecidas', '30');
+             esconde pero no las saca.
+             Y 32 desde el 22-9-2026, que se va la del IVSS. */
+             pendS === 29, pendS + ' por iniciar de 30 ofrecidas', '29');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -919,10 +923,11 @@
            nacía 'pendiente' en el marcado -lo suyo es el distintivo, que
            sigue diciendo Disponible-. */
         var pend = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
-          /* 33 desde la ZODI (c34), 35 desde el RUPDAE y el RUM, y 34 desde
-             que el c13 y el c35 se apagan y entra el c37. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 31,
-             pend + ' por iniciar de 31 ofrecidas', '31');
+          /* 33 desde la ZODI (c34), 35 desde el RUPDAE y el RUM, 34 desde
+             que el c13 y el c35 se apagan y entra el c37, y 33 desde que
+             se va la del IVSS. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 30,
+             pend + ' por iniciar de 30 ofrecidas', '30');
       }
 
       /* ── la cadena entre trámites ──
@@ -1106,7 +1111,7 @@
         igual('opcionales: el que hay está dentro de la caja',
           rej.querySelectorAll('.tcard[data-tr]').length, 1);
         igual('opcionales: y ya no cuelgan de la rejilla de la fase',
-          document.querySelectorAll('#trs-1 > .tcard[data-tr="c9"]').length, 0);
+          document.querySelectorAll('#trs-1 > .tcard[data-tr="c19"]').length, 0);
 
         /* Apartar NO es quitar. La etapa sigue diciendo ocho, no siete:
            el inversionista tiene ocho trámites en la fase 01, estén donde
@@ -1224,19 +1229,41 @@
          con permisos ambientales de por medio.
 
          Y DOS desde el 20-9-2026: cuatro de aquellos se hacen ahora dentro
-         del c37 —con el RNC y el RUPDAE—, y el IVSS se queda con casilla
-         propia porque el CIIP lo dejó fuera del encargo. El rótulo sigue,
-         que sin él el IVSS parecería suelto entre los permisos. */
+         del c37 —con el RNC y el RUPDAE—, y el IVSS se quedó con casilla
+         propia porque el CIIP lo dejó fuera del encargo.
+
+         Y NINGUNO desde el 22-9-2026: «elimina la casilla de IVSS», y
+         fuera del catálogo. El rótulo se quedaba juntando UNA ficha, y esa
+         ficha ya se llama «Inscripciones: Registros Parafiscales y
+         Regulatorios»: decía con otras palabras lo que ella dice. Así que
+         el grupo se fue con el IVSS, y aquí se mide que se fue -que es lo
+         contrario de que se haya caído sin querer-. */
       (function(){
         var rej = document.getElementById('trs-3');
-        var t   = rej && rej.querySelector('.grupo-t');
 
+        igual('grupo: el rótulo de las parafiscales se fue con el IVSS',
+              rej ? rej.querySelectorAll('.grupo-t[data-grupo="g.parafiscal"]').length : -1, 0);
+
+        /* Y la casilla que juntaba sigue en la fase, a la vista y suelta:
+           quitar un rótulo no puede llevarse la ficha de debajo. */
+        var c37 = rej && rej.querySelector(':scope > .tcard[data-tr="c37"]');
+        ok('grupo: y la casilla de las inscripciones sigue en la fase', !!c37,
+           c37 ? '' : 'no está', 'la del c37');
+
+        /* Y el IVSS no está por ningún lado: ni en su sitio, ni escondido
+           con data-tramo-de como las cinco que el c37 absorbió. Esto es lo
+           que distingue borrar de esconder. */
+        igual('grupo: y el IVSS no está ni escondido',
+              document.querySelectorAll('.tcard[data-tr="c9"]').length, 0);
+
+        var t = rej && rej.querySelector('.grupo-t');
         ok('grupo: la fase 03 lleva su título de grupo', !!t,
            t ? t.textContent : 'no hay título', 'un título');
         if (!t) return;
 
+        /* El primero es ahora el de las licencias sectoriales. */
         igual('grupo: y dice de qué son', t.textContent.trim(),
-              'Obligaciones parafiscales y laborales');
+              'Licencias sectoriales');
 
         /* Y lo escribe QUIEN LO CREA, sin depender de que pase applyLang
            después. Se comprueba quitando el título y volviéndolo a pedir,
@@ -1248,23 +1275,23 @@
         if (window.CIIP_JUNTA_GRUPOS) window.CIIP_JUNTA_GRUPOS();
         t = rej.querySelector('.grupo-t');
         ok('grupo: nace ya con su texto, sin esperar a applyLang',
-           !!t && t.textContent.trim() === 'Obligaciones parafiscales y laborales',
+           !!t && t.textContent.trim() === 'Licencias sectoriales',
            t ? (t.textContent.trim() || '(vacío)') : 'no volvió a salir',
-           'Obligaciones parafiscales y laborales');
+           'Licencias sectoriales');
         if (!t) return;
 
         /* Y lleva data-i18n, que es como se traduce todo lo demás del
            panel: applyLang lo repinta al cambiar de idioma sin que haya
            que volver a montar las tarjetas. */
         igual('grupo: y se traduce como cualquier otro rótulo',
-              t.getAttribute('data-i18n'), 'g.parafiscal');
+              t.getAttribute('data-i18n'), 'g.sectorial');
 
-        /* Y el SEGUNDO grupo: las licencias sectoriales, que son dos y de
-           dos organismos distintos. Se mira aparte porque con uno solo la
-           función podría estar escrita para un caso y no para una lista, y
-           eso no se ve hasta que llega el segundo. */
+        /* Las TRES que junta, y en orden. Se lee la rejilla tal como quedó
+           y se comprueba que las que siguen al título son exactamente
+           esas: si una se quedara donde estaba, el título estaría
+           encabezando a otra cosa. */
         var t2 = rej.querySelector('.grupo-t[data-grupo="g.sectorial"]');
-        ok('grupo: y el de las licencias sectoriales también', !!t2,
+        ok('grupo: y el de las licencias sectoriales es el primero', t2 === t,
            t2 ? t2.textContent.trim() : 'no está', 'Licencias sectoriales');
         if (t2){
           var h2 = [].slice.call(rej.children);
@@ -1274,7 +1301,7 @@
                 h2.slice(j+1, j+4).map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
                 'c12 c30 c36');
         }
-        /* Y el TERCERO: los permisos del local, que no son sectoriales. El
+        /* Y el SEGUNDO: los permisos del local, que no son sectoriales. El
            rótulo de un grupo no cierra nada -es un hijo más de la rejilla-,
            así que estas dos, que venían detrás, se leían como licencias
            sectoriales. Por eso se comprueba QUÉ va detrás de cada rótulo y
@@ -1294,35 +1321,20 @@
              !!t2 && k > h3.indexOf(t2),
              'operativo en ' + k + ', sectorial en ' + h3.indexOf(t2), 'después');
         }
-        igual('grupo: y son tres títulos, no uno repetido',
-              rej.querySelectorAll('.grupo-t').length, 3);
-
-        /* Las dos, JUNTAS y detrás del título. Se lee la rejilla tal
-           como quedó, en orden, y se comprueba que las que siguen
-           al título son exactamente esas: si una se quedara donde estaba,
-           el título estaría encabezando a otra cosa.
-
-           La casilla de las cinco inscripciones va DELANTE del IVSS: es la
-           que le toca a toda empresa, y el IVSS detrás porque no todas
-           tienen a quien inscribir todavía. */
-        var hijos = [].slice.call(rej.children);
-        var i = hijos.indexOf(t);
-        var siguen = hijos.slice(i + 1, i + 3)
-          .map(function(e){ return e.getAttribute('data-tr'); });
-        igual('grupo: las dos van detrás y en orden',
-              siguen.join(' '), 'c37 c9');
+        igual('grupo: y son dos títulos, no uno repetido',
+              rej.querySelectorAll('.grupo-t').length, 2);
 
         /* Y el título es UN HIJO MÁS de la rejilla, no una caja con las
            tarjetas dentro. Es lo que hace que nada de lo que las cuenta
            se entere: acaba de pasar con los recaudos, donde meter una
            lista dentro de cada renglón hizo que seis contaran 52. */
-        /* DOCE desde el 20-9-2026: trece que había, más el c37, menos el c13
-           y el c35, que apagados dejan el documento. El FAOV, el INCES y el
-           RNET sí siguen contándose aquí: llevan data-tramo-de —no se ven,
-           pero están— porque el doble no los trae en el catálogo, que es
-           como se comporta una ficha sin fila. */
-        igual('grupo: la fase 03 sigue teniendo sus doce tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 12);
+        /* ONCE desde el 22-9-2026: eran doce y se va la del IVSS. El FAOV,
+           el INCES y el RNET sí siguen contándose aquí: llevan
+           data-tramo-de —no se ven, pero están— porque el doble no los
+           trae en el catálogo, que es como se comporta una ficha sin fila.
+           El IVSS no: de ése se fue la tarjeta del documento. */
+        igual('grupo: la fase 03 se queda con once tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 11);
         ok('grupo: y el título no es una tarjeta',
            !t.classList.contains('tcard') && !t.hasAttribute('data-tr'),
            t.className, 'sin ser tarjeta');
@@ -1343,13 +1355,13 @@
            rojo sin que nada estuviera mal. Lo que no puede pasar es que un
            grupo salga dos veces, no que haya dos grupos. */
         igual('grupo: repintar no lo duplica',
-              rej.querySelectorAll('.grupo-t[data-grupo="g.parafiscal"]').length, 1);
-        igual('grupo: y las dos siguen donde estaban',
+              rej.querySelectorAll('.grupo-t[data-grupo="g.sectorial"]').length, 1);
+        igual('grupo: y las tres siguen donde estaban',
               [].slice.call(rej.children)
                 .slice([].slice.call(rej.children).indexOf(t) + 1,
-                       [].slice.call(rej.children).indexOf(t) + 3)
+                       [].slice.call(rej.children).indexOf(t) + 4)
                 .map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
-              'c37 c9');
+              'c12 c30 c36');
 
         /* Y se traduce al cambiar de idioma, como cualquier otro rótulo:
            lleva data-i18n, así que de eso se encarga applyLang. */
@@ -1357,7 +1369,7 @@
           var antes = curLang;
           applyLang('en');
           igual('grupo: y se traduce', t.textContent.trim(),
-                'Payroll and parafiscal obligations');
+                'Sector-specific licences');
           applyLang(antes || 'es');
         })();
       })();
@@ -9378,12 +9390,17 @@
      cual empiezo- ya esta tomada. Esto la dice antes.
 
      En la boveda de pruebas hay cuatro papeles: cedula, antecedentes,
-     acta constitutiva y RIF de la empresa. Con esos, el UNICO tramite SIN
-     EMPEZAR del catalogo que tiene todos los suyos son los registros
-     laborales -c9, que solo piden el RIF de la empresa-. Por eso se mide
-     ahi, y por eso se mide tambien que en los demas no sale: una marca
-     puesta en las treinta y tres pasaria la primera prueba y seria
+     acta constitutiva y RIF de la empresa. Con esos, el tramite SIN
+     EMPEZAR que tiene todos los suyos es el Registro Unico Minero -c36,
+     que pide cedula, RIF de la empresa y acta, y los tres estan-. Por eso
+     se mide ahi, y por eso se mide tambien que en los demas no sale: una
+     marca puesta en las treinta y tres pasaria la primera prueba y seria
      inutil.
+
+     Hasta el 22-9-2026 se media en los registros laborales -c9, el IVSS-,
+     que pedian lo mismo. El CIIP quito esa casilla del catalogo y la
+     prueba se mudo a la que quedaba con los mismos papeles. No se ha
+     relajado: mide el mismo mecanismo entero sobre otro sujeto.
 
      Dos intentos anteriores salieron rojos, y los dos por la PRUEBA y no
      por el panel. El primero midio en c3, que en este expediente ya esta
@@ -9396,13 +9413,13 @@
      que es la tercera comprobacion. */
   function listoMira(){
     if (CASO !== 'vacio') return;
-    var c9 = document.querySelector('.tcard[data-tr="c9"]');
-    ok('listo: hay tarjeta de los registros laborales que mirar', !!c9, c9 ? '' : '(no esta)');
-    if (!c9) return;
-    igual('listo: y es una que no has empezado', c9.getAttribute('data-st'), 'pendiente');
+    var c36 = document.querySelector('.tcard[data-tr="c36"]');
+    ok('listo: hay tarjeta del registro minero que mirar', !!c36, c36 ? '' : '(no esta)');
+    if (!c36) return;
+    igual('listo: y es una que no has empezado', c36.getAttribute('data-st'), 'pendiente');
 
-    var marca = c9.querySelector('.t-listo');
-    ok('listo: los registros laborales dicen que ya tienes sus papeles', !!marca,
+    var marca = c36.querySelector('.t-listo');
+    ok('listo: el registro minero dice que ya tienes sus papeles', !!marca,
        marca ? marca.textContent.trim() : '(sin marca)', 'la marca');
     if (marca){
       ok('listo: y lo dice con palabras, no solo con un color',
@@ -9412,10 +9429,10 @@
          (marca.getAttribute('title') || '').length > 20,
          marca.getAttribute('title') || '(sin titulo)', 'una explicacion');
       /* Delante de «Ver detalles», que es quien se va a la derecha. */
-      var go = c9.querySelector('.t-foot .go');
+      var go = c36.querySelector('.t-foot .go');
       ok('listo: y va antes de «Ver detalles», no despues',
          !!go && (marca.compareDocumentPosition(go) & 4) !== 0,
-         c9.querySelector('.t-foot').textContent.trim().slice(0, 40), 'antes');
+         c36.querySelector('.t-foot').textContent.trim().slice(0, 40), 'antes');
     }
 
     /* LA OTRA MITAD. El RIF de la empresa -c6- pide el acta, que si la
@@ -9446,13 +9463,13 @@
       try { eraGuardado = window.localStorage.getItem('ciip_lang'); } catch(e){}
       var otro = (eraLang === 'es') ? 'en' : 'es';
       document.querySelector('#langMenu button[data-lang="' + otro + '"]').click();
-      var ahora = document.querySelector('.tcard[data-tr="c9"] .t-listo');
+      var ahora = document.querySelector('.tcard[data-tr="c36"] .t-listo');
       ok('listo: y la marca cambia de idioma con el panel',
          !!ahora && ahora.textContent.trim() !== eraTexto,
          (ahora ? ahora.textContent.trim() : '(desaparecio)') + ' / antes: ' + eraTexto,
          'otro texto');
       document.querySelector('#langMenu button[data-lang="' + eraLang + '"]').click();
-      var vuelta = document.querySelector('.tcard[data-tr="c9"] .t-listo');
+      var vuelta = document.querySelector('.tcard[data-tr="c36"] .t-listo');
       igual('listo: y vuelve al de antes',
             vuelta ? vuelta.textContent.trim() : '(desaparecio)', eraTexto);
       try {
