@@ -9586,6 +9586,12 @@ applyLang(idiomaParaMi());
       {n:'numero_documento', clave:'f_numero'},
       {n:'fecha_nacimiento', clave:'f_nacimiento', tipo:'date'},
       {n:'telefono',         clave:'f_telefono',   tipo:'tel'},
+      /* El correo lo pide el SENIAT al inscribir el RIF, y es por donde
+         contesta la oficina fiscal. Se llama 'correo' -el mismo nombre que
+         en la firma electrónica- a propósito: los campos se heredan por
+         NOMBRE entre trámites, así que el que escribiste en uno se ofrece
+         en el otro, con su sello y editable. */
+      {n:'correo',           clave:'f_correo',     tipo:'email'},
       {n:'direccion_fiscal', clave:'f_direccion',  ancho:true},
       {n:'profesion',        clave:'f_profesion',  ancho:true}
     ],

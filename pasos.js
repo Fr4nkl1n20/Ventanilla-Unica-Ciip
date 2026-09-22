@@ -1187,6 +1187,11 @@ window.CIIP_PASOS = {
       f_nacimiento: "Fecha de nacimiento",
       f_direccion:  "Dirección fiscal en Venezuela",
       f_telefono:   "Teléfono",
+      /* El SENIAT lo pide al inscribir el RIF, y sin él la oficina no
+         tiene a dónde escribir. Franklin Reyes, 22 de septiembre de 2026.
+         Se llama «correo» a secas -como el de la firma electrónica- para
+         que los dos trámites se ofrezcan el que ya escribiste. */
+      f_correo:     "Correo electrónico",
       f_profesion:  "Profesión u oficio",
       d_identidad:  "Cédula o pasaporte",
       d_domicilio:  "Comprobante de domicilio",
@@ -2167,6 +2172,7 @@ window.CIIP_PASOS = {
       f_nacimiento: "Date of birth",
       f_direccion:  "Tax address in Venezuela",
       f_telefono:   "Phone",
+      f_correo:     "Email",
       f_profesion:  "Occupation",
       d_identidad:  "ID card or passport",
       d_domicilio:  "Proof of address",
@@ -3130,6 +3136,7 @@ window.CIIP_PASOS = {
       f_nacimiento: "Data de nascimento",
       f_direccion:  "Morada fiscal na Venezuela",
       f_telefono:   "Telefone",
+      f_correo:     "E-mail",
       f_profesion:  "Profissão",
       d_identidad:  "Cartão de cidadão ou passaporte",
       d_domicilio:  "Comprovativo de morada",
@@ -4093,6 +4100,7 @@ window.CIIP_PASOS = {
       f_nacimiento: "Data di nascita",
       f_direccion:  "Indirizzo fiscale in Venezuela",
       f_telefono:   "Telefono",
+      f_correo:     "Email",
       f_profesion:  "Professione",
       d_identidad:  "Carta d'identità o passaporto",
       d_domicilio:  "Prova di residenza",
@@ -5056,6 +5064,7 @@ window.CIIP_PASOS = {
       f_nacimiento: "出生日期",
       f_direccion:  "在委内瑞拉的税务地址",
       f_telefono:   "电话",
+      f_correo:     "电子邮箱",
       f_profesion:  "职业",
       d_identidad:  "身份证或护照",
       d_domicilio:  "住址证明",
@@ -6019,6 +6028,7 @@ window.CIIP_PASOS = {
       f_nacimiento: "Дата рождения",
       f_direccion:  "Налоговый адрес в Венесуэле",
       f_telefono:   "Телефон",
+      f_correo:     "Электронная почта",
       f_profesion:  "Профессия",
       d_identidad:  "Удостоверение личности или паспорт",
       d_domicilio:  "Подтверждение адреса",
