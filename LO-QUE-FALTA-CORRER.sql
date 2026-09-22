@@ -2,9 +2,9 @@
 --  LO QUE FALTA CORRER EN LA BASE
 --  Al dia del 22 de septiembre de 2026.
 -- ═══════════════════════════════════════════════════════════════════════
---  Se pega en el SQL Editor de Supabase, POR PUNTOS y no de una vez: el
---  editor solo enseña el resultado de la ULTIMA consulta, asi que pegar
---  los cuatro puntos juntos es quedarse sin ver los tres primeros.
+--  Se pega en el SQL Editor de Supabase, PUNTO A PUNTO y no todo de una
+--  vez: el editor solo enseña el resultado de la ULTIMA consulta, asi que
+--  pegar los puntos juntos es quedarse sin ver los de antes.
 --
 --  ═══ HAY DOS BASES, Y NO LES FALTA LO MISMO ══════════════════════════
 --  Produccion  fbxdwryppfctuwlnjjqr  ← la de ventanilla-unica-2.vercel.app
@@ -16,79 +16,80 @@
 --  produccion segun lo que Franklin confirmo que habia corrido:
 --
 --                                        PRODUCCION      PRUEBAS
---    columnas del panel (11, 12, 9/10)   hechas          LE FALTAN LAS 3
---    fichas nuevas (c35, c36, c34, c37,
---      protocolizacion, publicacion)     hechas          LE FALTAN LAS 6
+--    las tres columnas nuevas            hechas          LE FALTAN LAS 3
+--    las seis fichas nuevas              hechas          LE FALTAN LAS 6
 --    quitar las tres fichas del 21-9     hecha           SIN HACER
 --    quitar el IVSS (hoy)                SIN HACER       SIN HACER
 --
 --  O sea: en produccion solo falta el PUNTO 2. En pruebas falta todo, y
 --  el camino corto esta en el punto 4.
+--
+--  NO TE FIES DE ESTA TABLA: esta escrita a mano y envejece. El punto 1
+--  lo PREGUNTA a la base que tengas abierta, y manda lo que diga el.
 -- ═══════════════════════════════════════════════════════════════════════
 
 
 -- ───────────────────────────────────────────────────────────────────────
 --  PUNTO 1. QUE LE FALTA A ESTA BASE
 --  No cambia nada: solo mira y lo dice. Pegalo SOLO y pulsa Run.
+--
+--  Lo que se comprueba va en las tres listas de abajo y en ningun otro
+--  sitio: añadir una cosa que mirar es añadir UN renglon. Antes cada
+--  comprobacion se escribia entera, y asi fue como cuatro de las seis
+--  fichas quedaron apuntadas con un codigo que no existe -'zodi' por
+--  'opinion_zodi', 'rum' por 'registro_minero', 'protocolizacion' y
+--  'publicacion' sin su '_acta'- y una columna en la tabla equivocada
+--  -'revisado_en' es de DOCUMENTOS, no de tramites-. Cinco de nueve
+--  renglones decian «FALTA» de cosas que estaban, y mandaban a correr el
+--  punto 4 sin ninguna falta que arreglar.
 -- ───────────────────────────────────────────────────────────────────────
-select *
+with columnas (orden, tabla, columna, para_que) as (values
+  (1, 'textos_panel', 'original',    'el editor guarda el texto original para poder deshacer'),
+  (2, 'documentos',   'revisado_en', 'cuando el CIIP reviso el documento'),
+  (3, 'documentos',   'titular',     'de quien es la cedula o el RIF, con junta directiva')
+),
+-- Las fichas que tienen que ESTAR. El codigo es el de la base, no el
+-- ref_panel: 'cXX' aqui es solo para leerlo.
+fichas (orden, codigo, para_que) as (values
+  (11, 'protocolizacion_acta',   'c22 · nace sola al resolver la constitucion'),
+  (12, 'publicacion_acta',       'c23 · el tramo de la publicacion del acta'),
+  (13, 'opinion_zodi',           'c34 · la opinion favorable de la ZODI'),
+  (14, 'rupdae',                 'c35 · la inscripcion en el RUPDAE, ante la SUNDDE'),
+  (15, 'registro_minero',        'c36 · el Registro Unico Minero'),
+  (16, 'registros_parafiscales', 'c37 · las cinco inscripciones en una')
+),
+-- Y las que tienen que HABERSE IDO.
+sobran (orden, codigo, punto, para_que) as (values
+  (31, 'antecedentes_penales', 'punto 3', 'se quito el 21-9'),
+  (32, 'constancia_domicilio', 'punto 3', 'se quito el 21-9'),
+  (33, 'visa_dependientes',    'punto 3', 'se quito el 21-9'),
+  (34, 'registros_laborales',  'punto 2', 'el IVSS, que se quita hoy')
+)
+select orden, que, cosa, como_esta, para_que
   from (
-    --  Las tres columnas que trajeron los puntos 9, 10, 11 y 12.
-    select 1 as orden, 'columna' as que, 'textos_panel.original' as cosa,
-           case when exists (select 1 from information_schema.columns
-                              where table_schema = 'public'
-                                and table_name  = 'textos_panel'
-                                and column_name = 'original')
-                then 'esta'
-                else 'FALTA  → punto 4' end as como_esta,
-           'el editor guarda el texto original para poder deshacer' as para_que
+    select orden, 'columna' as que, tabla || '.' || columna as cosa,
+           case when exists (select 1
+                               from information_schema.columns ic
+                              where ic.table_schema = 'public'
+                                and ic.table_name   = columnas.tabla
+                                and ic.column_name  = columnas.columna)
+                then 'esta' else 'FALTA  → punto 4' end as como_esta,
+           para_que
+      from columnas
     union all
-    select 2, 'columna', 'tramites.revisado_en',
-           case when exists (select 1 from information_schema.columns
-                              where table_schema = 'public'
-                                and table_name  = 'tramites'
-                                and column_name = 'revisado_en')
-                then 'esta' else 'FALTA  → punto 4' end,
-           'cuando el CIIP reviso los documentos de la solicitud'
-    union all
-    select 3, 'columna', 'documentos.titular',
-           case when exists (select 1 from information_schema.columns
-                              where table_schema = 'public'
-                                and table_name  = 'documentos'
-                                and column_name = 'titular')
-                then 'esta' else 'FALTA  → punto 4' end,
-           'de quien es la cedula o el RIF, con junta directiva'
-
-    --  Las fichas que tienen que ESTAR.
-    union all
-    select 10 + row_number() over (order by c.codigo), 'ficha', c.codigo,
+    select orden, 'ficha', codigo,
            case when exists (select 1 from public.tipos_tramite t
-                              where t.codigo = c.codigo)
+                              where t.codigo = fichas.codigo)
                 then 'esta' else 'FALTA  → punto 4' end,
-           c.para_que
-      from (values
-        ('registros_parafiscales', 'c37 · las cinco inscripciones en una'),
-        ('zodi',                   'c34 · la ficha de la ZODI'),
-        ('rupdae',                 'c35 · Registro Unico de Personas del Estado'),
-        ('rum',                    'c36 · Registro Unico Minero'),
-        ('protocolizacion',        'c22 · nace sola al resolver la constitucion'),
-        ('publicacion',            'c23 · el tramo de la publicacion del acta')
-      ) as c(codigo, para_que)
-
-    --  Y las que tienen que HABERSE IDO.
+           para_que
+      from fichas
     union all
-    select 30 + row_number() over (order by c.codigo), 'ficha de mas', c.codigo,
+    select orden, 'ficha de mas', codigo,
            case when not exists (select 1 from public.tipos_tramite t
-                                  where t.codigo = c.codigo)
-                then 'ya no esta'
-                else 'SIGUE  → ' || c.punto end,
-           c.para_que
-      from (values
-        ('antecedentes_penales', 'punto 3', 'se quito el 21-9'),
-        ('constancia_domicilio', 'punto 3', 'se quito el 21-9'),
-        ('visa_dependientes',    'punto 3', 'se quito el 21-9'),
-        ('registros_laborales',  'punto 2', 'el IVSS, que se quita hoy')
-      ) as c(codigo, punto, para_que)
+                                  where t.codigo = sobran.codigo)
+                then 'ya no esta' else 'SIGUE  → ' || punto end,
+           para_que
+      from sobran
   ) d
  order by orden;
 
@@ -135,8 +136,8 @@ select clave, idioma, texto from public.textos_panel
  where clave like 'c9.%' or clave = 'g.parafiscal'
  order by clave, idioma;
 
-delete from public.textos_panel where clave like 'c9.%';
-delete from public.textos_panel where clave = 'g.parafiscal';
+delete from public.textos_panel
+ where clave like 'c9.%' or clave = 'g.parafiscal';
 
 -- 2.5  Comprobar. Lo normal es que no salga nada; si sale, es que habia
 --      solicitudes y la fila se quedo apagada, que es lo correcto.
