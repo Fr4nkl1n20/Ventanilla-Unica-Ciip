@@ -26,7 +26,9 @@
 --                                                        El c22 y el c23 SI
 --                                                        estan.
 --    quitar las tres fichas del 21-9     hecha el 21     SIN HACER
---    quitar el IVSS (hoy)                SIN HACER       SIN HACER
+--    quitar el IVSS (punto 2)            SIN HACER       SIN HACER
+--    el PUB del SISREF (punto 5)         SIN HACER       SIN HACER
+--    la visa en dos (punto 6)            SIN HACER       SIN HACER
 --
 --  La columna de PRODUCCION no esta medida: aqui no hay cuenta suya
 --  guardada, asi que dice lo que Franklin recuerda haber corrido y nada
@@ -238,3 +240,52 @@ select codigo, nombre, vence
   from public.tipos_documento
  where codigo in ('constancia_sisref', 'documento_tramite_sisref', 'pub_saren')
  order by codigo;
+
+
+-- ───────────────────────────────────────────────────────────────────────
+--  PUNTO 6. LA VISA SE PARTE EN DOS    ← nuevo del 22 de septiembre.
+--                                        LAS DOS BASES.
+--
+--  La casilla de la visa pasa a llamarse por las dos -TR-N y TR-I- y al
+--  abrirla se elige cual. Por debajo son DOS tramites, y eso si toca la
+--  base: hay que liberar un codigo y dar de alta una ficha.
+--
+--  QUE ARREGLA, que es lo que no se ve. La c1 nacio siendo la visa de
+--  inversionista, con el codigo 'visa_inversionista'. El 15 de septiembre
+--  paso a ser la de negocios (TR-N) y se le cambio el NOMBRE pero no el
+--  codigo: desde entonces la base dice 'visa_inversionista' de una ficha
+--  que se llama «Visa de negocios». Ese nombre lo necesita la TR-I de
+--  verdad, que vuelve como la c38.
+--
+--      ANTES                                DESPUES
+--      visa_inversionista → TR-N, c1        visa_negocios      → TR-N, c1
+--                                           visa_inversionista → TR-I, c38
+--
+--  AQUI NO SE PEGAN SENTENCIAS SUELTAS: se pega ENTERO el archivo
+--  supabase-visa-tri.sql. Renombrar un codigo no es un update -cuatro
+--  tablas lo referencian sin ON UPDATE CASCADE, y ref_panel es UNIQUE-,
+--  asi que son cinco pasos en un orden que importa, dentro de un bloque
+--  con guardas. Partirlo aqui seria tener el mismo plpgsql en dos sitios
+--  y que un dia dijeran cosas distintas.
+--
+--  Se puede correr varias veces: si ya esta hecho, no hace nada y lo dice.
+--
+--  SIN CORRERLO la casilla se ve igual y la guia sale igual, pero la TR-I
+--  no se puede pedir: su «Ver tramite» lleva a una ficha que el catalogo
+--  no conoce, y el panel no ofrece formulario de un tipo que no esta.
+-- ───────────────────────────────────────────────────────────────────────
+
+-- 6.1  Antes: lo esperado es UNA fila, visa_inversionista en el c1.
+select codigo, ref_panel, nombre from public.tipos_tramite
+ where codigo in ('visa_negocios', 'visa_inversionista');
+
+-- 6.2  Ahora pega supabase-visa-tri.sql entero y pulsa Run.
+--      Su ultima consulta ya comprueba como quedo: tienen que salir DOS
+--      filas, la TR-N en c1 y la TR-I en c38.
+
+-- 6.3  Y que no quede ninguna solicitud con el codigo viejo. Lo normal
+--      es que salga vacio: el propio archivo las muda.
+select tipo, count(*) as solicitudes
+  from public.tramites
+ where tipo = 'visa_inversionista'
+ group by tipo;
