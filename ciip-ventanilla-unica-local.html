@@ -2788,14 +2788,20 @@ body[data-vista="inicio"].etapa-elegida .tsec-sig:not([hidden]){display:flex;}
 .gv-cols{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px;}
 .gv-col{border:1px solid var(--line); border-radius:var(--r); padding:12px 14px;}
 .gv-col.aqui{background:var(--activa-bg); border-color:var(--navy2);}
+/* La que NO estas mirando se pulsa entera. Se nota antes de tocarla: el
+   dedo del raton, y al pasar por encima se levanta y se tiñe el borde. */
+.gv-col[role="button"]{cursor:pointer; transition:border-color .12s, box-shadow .12s, transform .12s;}
+.gv-col[role="button"]:hover{border-color:var(--navy2); box-shadow:var(--shadow); transform:translateY(-1px);}
+.gv-col[role="button"]:focus-visible{outline:2px solid var(--navy); outline-offset:2px;}
+.gv-col[role="button"]:hover .gv-ir{text-decoration:underline; text-underline-offset:3px;}
+.gv-col[role="button"]:active{transform:none;}
 .gv-etapa{display:block; font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
   text-transform:uppercase; color:var(--mudo);}
 .gv-nombre{display:block; font-size:var(--fs-parrafo); font-weight:700; color:var(--navy2); margin-top:3px;}
 .gv-d{font-size:var(--fs-fila); line-height:1.45; color:var(--ink); margin-top:5px;}
-.gv-ir{font:inherit; font-size:var(--fs-fila); font-weight:700; color:var(--navy2);
-  background:none; border:0; padding:8px 0 0; cursor:pointer;}
-.gv-ir:hover{text-decoration:underline; text-underline-offset:3px;}
-.gv-ir:focus-visible{outline:2px solid var(--navy); outline-offset:2px;}
+/* Ya no es un boton: es la señal de que la caja se pulsa. Quien escucha
+   el click es la caja. */
+.gv-ir{display:block; font-size:var(--fs-fila); font-weight:700; color:var(--navy2); padding-top:8px;}
 .gv-estas{display:block; font-size:var(--fs-nota); font-weight:700; color:var(--navy2); margin-top:8px;}
 @media (max-width:760px){ .gv-cols{grid-template-columns:1fr;} }
 
@@ -7006,12 +7012,31 @@ function applyLang(lang){
         var aqui = trEl('span', 'gv-estas', u.gv_aqui || '');
         aqui.setAttribute('data-ui', 'gv_aqui');
         col.appendChild(aqui);
+        /* La que estas mirando no se pulsa, y se dice para el lector de
+           pantalla: aria-current es lo que distingue «esta es la tuya» de
+           «esta esta deshabilitada». */
+        col.setAttribute('aria-current', 'true');
       } else {
-        var b = trEl('button', 'gv-ir', (u.gv_ver || '') + ' ›');
-        b.type = 'button';
-        b.setAttribute('data-ir', v.ref);
-        b.addEventListener('click', function(){ location.hash = 'tramite-' + v.ref; });
-        col.appendChild(b);
+        var ir = trEl('span', 'gv-ir', (u.gv_ver || '') + ' ›');
+        ir.setAttribute('data-ui', 'gv_ver');
+        col.appendChild(ir);
+
+        /* TODA la caja. Con su papel, su parada de tabulador y su nombre
+           dicho entero, que «Ver tramite» solo no dice cual. */
+        col.setAttribute('role', 'button');
+        col.setAttribute('tabindex', '0');
+        col.setAttribute('data-ir', v.ref);
+        col.setAttribute('aria-label', (u[v.nombre] || '') + ' · ' + (u[v.d] || ''));
+        var vaALaSuya = function(){ location.hash = 'tramite-' + v.ref; };
+        col.addEventListener('click', vaALaSuya);
+        /* Con el teclado: Enter y espacio, que es lo que hace un boton de
+           verdad. El espacio ademas desplaza la pagina si no se para. */
+        col.addEventListener('keydown', function(e){
+          if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){
+            e.preventDefault();
+            vaALaSuya();
+          }
+        });
       }
       cols.appendChild(col);
     });

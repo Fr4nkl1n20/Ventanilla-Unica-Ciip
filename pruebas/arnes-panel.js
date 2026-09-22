@@ -4240,6 +4240,62 @@
     ok('varias: y el aviso va encima de la tarjeta',
        av && av.compareDocumentPosition(caja) & Node.DOCUMENT_POSITION_FOLLOWING,
        av ? 'encima' : 'no hay aviso', 'encima');
+
+    /* ── LA GUIA DE LAS VISAS ──
+       La c1 abierta es tambien donde se ve la guia: las dos visas se
+       presentan en UNA casilla y aqui dentro se elige. Se mira aqui para
+       no abrir la misma ficha dos veces.
+
+       Lo que se comprueba no es que la guia salga -eso se ve en cualquier
+       captura- sino que SE PUEDA ELEGIR. Nacio sin poderse: las cajas eran
+       de leer y solo respondia el enlace de dentro, y Franklin lo dijo
+       mirandola: «¿por que no puedo seleccionarlos?». Una caja que ofrece
+       dos caminos y no se deja pulsar es la pantalla contandote algo, no
+       preguntandote. */
+    (function(){
+      var guia = document.getElementById('trVisas');
+      ok('visas: la guia sale en la ficha de la visa',
+         !!guia && !guia.hidden && guia.offsetHeight > 0,
+         guia ? (guia.hidden ? 'escondida' : guia.offsetHeight + 'px') : 'no esta', 'a la vista');
+      if (!guia || guia.hidden) return;
+
+      var trn = guia.querySelector('.gv-col[data-visa="c1"]');
+      var tri = guia.querySelector('.gv-col[data-visa="c38"]');
+      igual('visas: con los dos caminos, TR-N y TR-I',
+            [].map.call(guia.querySelectorAll('.gv-col'), function(c){
+              return c.getAttribute('data-visa'); }).join(' '), 'c1 c38');
+
+      /* La que estas mirando: marcada y SIN pulsar. Un «ver tramite» que
+         lleva a donde ya estas es un callejon. */
+      ok('visas: la que estas mirando se dice, y no se pulsa',
+         !!trn && trn.getAttribute('aria-current') === 'true' &&
+           !trn.hasAttribute('role') && !trn.hasAttribute('tabindex'),
+         trn ? ('aria-current=' + trn.getAttribute('aria-current') +
+                ' role=' + (trn.getAttribute('role') || 'sin')) : 'no esta',
+         'aria-current y sin role');
+
+      /* Y la OTRA se pulsa ENTERA, no solo su renglon: con su papel, su
+         parada de tabulador y su nombre dicho entero. */
+      ok('visas: y la otra se pulsa entera, no solo el renglon',
+         !!tri && tri.getAttribute('role') === 'button' &&
+           tri.getAttribute('tabindex') === '0',
+         tri ? ('role=' + (tri.getAttribute('role') || 'sin') +
+                ' tabindex=' + (tri.getAttribute('tabindex') || 'sin')) : 'no esta',
+         'role=button y tabindex=0');
+      ok('visas: y dice a donde lleva, para quien no la ve',
+         !!tri && (tri.getAttribute('aria-label') || '').length > 20,
+         tri ? ('"' + (tri.getAttribute('aria-label') || '(sin)').slice(0, 45) + '…"') : 'no esta',
+         'su nombre y de que va');
+
+      /* Y lleva de verdad. Pulsarla tiene que abrir la OTRA ficha; si no,
+         la c38 no tendria puerta: esta escondida de la cuadricula. */
+      if (tri){
+        var antes = location.hash;
+        tri.click();
+        igual('visas: y al pulsarla se abre la otra visa', location.hash, '#tramite-c38');
+        location.hash = antes || '';
+      }
+    })();
   }
 
   function escaleraMira(){

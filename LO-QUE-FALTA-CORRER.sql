@@ -68,6 +68,19 @@ fichas (orden, codigo, para_que) as (values
   (15, 'registro_minero',        'c36 · el Registro Unico Minero'),
   (16, 'registros_parafiscales', 'c37 · las cinco inscripciones en una')
 ),
+-- Fichas de las que hay que mirar TAMBIEN donde estan. Para la visa el
+-- codigo solo no sirve: 'visa_inversionista' existe desde siempre, y lo que
+-- dice si el punto 6 corrio es DONDE esta. Si sigue en el c1, no corrio.
+fichas_ref (orden, codigo, ref, para_que) as (values
+  (17, 'visa_negocios',      'c1',  'la TR-N, ya con el codigo liberado'),
+  (18, 'visa_inversionista', 'c38', 'la TR-I, que vuelve como ficha propia')
+),
+-- Los recaudos que la boveda tiene que saber recibir. Sin su fila, el
+-- renglon sale mudo y no deja subir nada.
+documentos (orden, codigo, para_que) as (values
+  (21, 'pub_saren',                 'la Planilla Unica Bancaria del SAREN, en el SISREF'),
+  (22, 'certificado_inversionista', 'el Certificado de Inversionista, en la TR-I')
+),
 -- Y las que tienen que HABERSE IDO.
 sobran (orden, codigo, punto, para_que) as (values
   (31, 'antecedentes_penales', 'punto 3', 'se quito el 21-9'),
@@ -93,6 +106,21 @@ select orden, que, cosa, como_esta, para_que
                 then 'esta' else 'FALTA  → punto 4' end,
            para_que
       from fichas
+    union all
+    select orden, 'ficha', codigo || ' → ' || ref,
+           case when exists (select 1 from public.tipos_tramite t
+                              where t.codigo = fichas_ref.codigo
+                                and t.ref_panel = fichas_ref.ref)
+                then 'esta' else 'FALTA  → punto 6' end,
+           para_que
+      from fichas_ref
+    union all
+    select orden, 'recaudo', codigo,
+           case when exists (select 1 from public.tipos_documento d
+                              where d.codigo = documentos.codigo)
+                then 'esta' else 'FALTA  → puntos 5 y 6' end,
+           para_que
+      from documentos
     union all
     select orden, 'ficha de mas', codigo,
            case when not exists (select 1 from public.tipos_tramite t
