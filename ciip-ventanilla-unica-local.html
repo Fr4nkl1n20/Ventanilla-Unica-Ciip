@@ -3112,6 +3112,9 @@ body[data-vista="tramite"] #secTramites{display:none;}
 /* Cada persona es su fila y, debajo, su papel: pegados, para que se lea de
    quién es. */
 .sol-lista .sl-persona{display:grid; gap:6px;}
+/* En la lista de personas el desplegable es el cargo y va al lado del
+   nombre; aqui el desplegable ES la fila, asi que ocupa lo que hay. */
+.sol-lista.sl-elige .sl-fila select{flex:1 1 auto;}
 .sol-lista .sl-docs{margin-top:0; max-width:none; gap:6px;}
 /* El grupo de papeles de la junta, en la hoja de recaudos: un rotulo y
    debajo las filas de cada miembro, con su nombre al lado del tipo. */
@@ -9926,6 +9929,25 @@ applyLang(idiomaParaMi());
          que el organismo acepta no lo puede rechazar la ventanilla. */
       {n:'acto',             clave:'f_acto',     ancho:true,
        buscaSegun:'tipo_oficina', buscaEn:(window.CIIP_SAREN || {}).actos},
+      /* LOS LIBROS, detras del acto porque es de donde cuelgan: al portal
+         se le dice cuantos son y cuales, y solo cuando lo que se otorga es
+         el sellado de los libros del registro mercantil. Por eso los dos
+         van OPCIONALES: exigirlos frenaria a todo el que viene a firmar
+         cualquier otra cosa, que son casi todos.
+
+         Los siete nombres van literales y en mayuscula, como las demas
+         listas de este tramite: son lo que el portal espera recibir, y
+         quien transcribe no tiene que deshacer ninguna traduccion.
+
+         Y se eligen DE UNO EN UNO, con «Anadir libro»: una misma solicitud
+         puede llevar el DIARIO y el MAYOR, y una casilla sola obligaria a
+         partirla en dos. Se guardan en una linea, «ACTAS; DIARIO», igual
+         que la junta directiva del c5: al otro lado hay una columna de
+         texto y un PDF, no una tabla. */
+      {n:'cantidad_libros',  clave:'f_cantlibros', tipo:'number', opcional:true},
+      {n:'libros',           clave:'f_libros',     tipo:'listaelige', ancho:true, opcional:true,
+       elige:['ACCIONISTAS', 'ACTAS', 'DIARIO', 'MAYOR', 'INVENTARIO', 'JUNTAS DIRECTIVAS', 'SOCIOS'],
+       vacia:'f_libros_elige', mas:'f_libros_mas', quita:'f_libros_quita'},
       {n:'forma_pago',       clave:'f_formapago',
        opciones:['Transferencia','Exonerado','Divisa','Débito','Cheque']},
       {n:'fecha_solicitud',  clave:'f_fechasolicitud', tipo:'date'}
@@ -11626,6 +11648,103 @@ applyLang(idiomaParaMi());
         });
         apuntaL();
         rejilla.appendChild(campoL);
+        return;
+      }
+
+      /* UNA LISTA DE LO QUE SE ELIGE.
+         Es la lista de personas quitandole la persona: aqui no se escribe
+         nada, solo se elige de una lista cerrada y se anaden renglones. Los
+         libros del SAREN son siete y una solicitud puede pedir varios, asi
+         que una casilla sola obligaria a mandar dos solicitudes.
+
+         Rama aparte y no un parametro mas de 'lista': alli cada fila lleva
+         nombre, cargo y los papeles de esa persona, y tocar aquello para
+         que tambien sepa no tener nombre sale mas caro que estas treinta
+         lineas. Lo que SI se comparte es la clase 'sol-lista': de ella
+         cuelgan la hoja de estilo y —lo que importa— el que valida, el que
+         repasa y el que envia, que en una lista leen data-es y no el primer
+         control de la casilla. */
+      if (c.tipo === 'listaelige'){
+        var campoE = el('div', 'sol-campo sol-lista sl-elige' + (c.ancho ? ' ancho' : ''));
+        campoE.setAttribute('data-campo', c.n);
+        if (c.opcional) campoE.setAttribute('data-opcional', '1');
+        campoE.appendChild(el('label', null,
+          (u[c.clave] || c.n) + (c.opcional ? ' ' + (u.opcional || '') : '')));
+        var filasE = el('div', 'sl-filas');
+        campoE.appendChild(filasE);
+        var masE = el('button', 'sl-mas', u[c.mas] || '');
+        masE.type = 'button';
+        campoE.appendChild(masE);
+
+        /* La linea que se guarda se rehace entera cada vez, como en la
+           lista de personas: es corta, y rehacerla cuesta menos que llevar
+           la cuenta de que renglon se toco. Los renglones sin elegir no
+           entran: un renglon vacio es uno que se anadio de mas. */
+        var apuntaE = function(){
+          var partes = [];
+          filasE.querySelectorAll('.sl-fila select').forEach(function(s){
+            if (s.value) partes.push(s.value);
+          });
+          if (partes.length) campoE.setAttribute('data-es', partes.join('; '));
+          else campoE.removeAttribute('data-es');
+          var todasE = filasE.querySelectorAll('.sl-fila');
+          todasE.forEach(function(f){
+            var q = f.querySelector('.sl-quita');
+            if (q) q.hidden = todasE.length < 2;
+          });
+        };
+
+        var ponFilaE = function(valor){
+          var fE = el('div', 'sl-fila');
+          var selE = document.createElement('select');
+          selE.name = c.n;
+          /* La primera opcion, vacia y con el rotulo dentro. Sin ella el
+             primer libro de la lista quedaria elegido sin que nadie lo
+             eligiera, y la solicitud pediria un libro de accionistas que
+             nadie pidio. Es la misma razon que en los cargos de la junta. */
+          var vaciaE = document.createElement('option');
+          vaciaE.value = '';
+          vaciaE.textContent = u[c.vacia] || '';
+          selE.appendChild(vaciaE);
+          (c.elige || []).forEach(function(o){
+            var op = document.createElement('option');
+            op.value = o; op.textContent = o;
+            selE.appendChild(op);
+          });
+          /* Lo que ya venia guardado se respeta aunque no este en la lista
+             -el SAREN puede anadir un libro-: sale como una opcion mas en
+             vez de perderse al abrir el borrador. */
+          if (valor && (c.elige || []).indexOf(valor) < 0){
+            var viejoE = document.createElement('option');
+            viejoE.value = valor; viejoE.textContent = valor;
+            selE.appendChild(viejoE);
+          }
+          selE.value = valor || '';
+          fE.appendChild(selE);
+          var quitaE = el('button', 'sl-quita', '\u00d7');
+          quitaE.type = 'button';
+          quitaE.title = u[c.quita] || '';
+          quitaE.setAttribute('aria-label', u[c.quita] || '');
+          quitaE.addEventListener('click', function(){ fE.remove(); apuntaE(); });
+          fE.appendChild(quitaE);
+          selE.addEventListener('change', apuntaE);
+          filasE.appendChild(fE);
+          return fE;
+        };
+
+        /* Lo ya elegido vuelve a su sitio: se guarda «ACTAS; DIARIO» y se
+           lee igual, para que volver a un borrador no borre los libros. */
+        var traigoE = String(datos[c.n] || '').split(';')
+          .map(function(s){ return s.trim(); }).filter(Boolean);
+        if (!traigoE.length) traigoE = [''];
+        traigoE.forEach(function(t){ ponFilaE(t); });
+        masE.addEventListener('click', function(){
+          var nuevaE = ponFilaE('');
+          apuntaE();
+          nuevaE.querySelector('select').focus();
+        });
+        apuntaE();
+        rejilla.appendChild(campoE);
         return;
       }
 

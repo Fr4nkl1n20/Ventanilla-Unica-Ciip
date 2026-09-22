@@ -1292,6 +1292,18 @@ window.CIIP_PASOS = {
       f_tipooficina:    "Tipo de oficina",
       f_formapago:      "Forma de pago",
       f_fechasolicitud: "Fecha de la solicitud",
+      /* Los libros del registro mercantil, con el rotulo del portal:
+         alli pone «Cantidad de libros» y «Agregar Libros», y quien
+         transcribe tiene las dos pantallas al lado. Lo unico que se le
+         cambia es la L: en esta casa no hay mayusculas en mitad de un
+         rotulo, y la comprobacion de escritura lo dice. Los siete nombres
+         de los libros no se traducen -van al formulario, literales-, pero
+         el rotulo si: quien rellena puede no leer castellano. */
+      f_cantlibros:     "Cantidad de libros",
+      f_libros:         "Agregar libros",
+      f_libros_elige:   "Seleccione una opción",
+      f_libros_mas:     "Añadir libro",
+      f_libros_quita:   "Quitar",
       d_pub:            "Planilla Única Bancaria (PUB) del pago al SAREN",
       /* --- Opinión favorable de la ZODI --- */
       f_zodiestado:   "Estado donde se instalará la empresa",
@@ -2293,6 +2305,11 @@ window.CIIP_PASOS = {
       f_tipooficina:    "Type of office",
       f_formapago:      "Payment method",
       f_fechasolicitud: "Date of the application",
+      f_cantlibros:     "Number of books",
+      f_libros:         "Add books",
+      f_libros_elige:   "Select an option",
+      f_libros_mas:     "Add book",
+      f_libros_quita:   "Remove",
       d_pub:            "Single Bank Form (PUB) for the SAREN payment",
       /* --- ZODI clearance --- */
       f_zodiestado:   "State where the company will set up",
@@ -3277,6 +3294,11 @@ window.CIIP_PASOS = {
       f_tipooficina:    "Tipo de cartório",
       f_formapago:      "Forma de pagamento",
       f_fechasolicitud: "Data do pedido",
+      f_cantlibros:     "Quantidade de livros",
+      f_libros:         "Adicionar livros",
+      f_libros_elige:   "Selecione uma opção",
+      f_libros_mas:     "Adicionar livro",
+      f_libros_quita:   "Remover",
       d_pub:            "Formulário Bancário Único (PUB) do pagamento ao SAREN",
       /* --- Parecer favorável da ZODI --- */
       f_zodiestado:   "Estado onde a empresa se vai instalar",
@@ -4261,6 +4283,11 @@ window.CIIP_PASOS = {
       f_tipooficina:    "Tipo di ufficio",
       f_formapago:      "Modalità di pagamento",
       f_fechasolicitud: "Data della domanda",
+      f_cantlibros:     "Numero di libri",
+      f_libros:         "Aggiungi libri",
+      f_libros_elige:   "Seleziona un'opzione",
+      f_libros_mas:     "Aggiungi libro",
+      f_libros_quita:   "Rimuovi",
       d_pub:            "Modulo bancario unico (PUB) del pagamento al SAREN",
       /* --- Parere favorevole della ZODI --- */
       f_zodiestado:   "Stato in cui si insedierà la società",
@@ -5245,6 +5272,11 @@ window.CIIP_PASOS = {
       f_tipooficina:    "机构类型",
       f_formapago:      "付款方式",
       f_fechasolicitud: "申请日期",
+      f_cantlibros:     "账簿数量",
+      f_libros:         "添加账簿",
+      f_libros_elige:   "请选择",
+      f_libros_mas:     "添加账簿",
+      f_libros_quita:   "移除",
       d_pub:            "向 SAREN 付款的统一银行单（PUB）",
       /* --- ZODI 无异议意见 --- */
       f_zodiestado:   "公司设立所在的州",
@@ -6229,6 +6261,11 @@ window.CIIP_PASOS = {
       f_tipooficina:    "Тип учреждения",
       f_formapago:      "Способ оплаты",
       f_fechasolicitud: "Дата заявки",
+      f_cantlibros:     "Количество книг",
+      f_libros:         "Добавить книги",
+      f_libros_elige:   "Выберите вариант",
+      f_libros_mas:     "Добавить книгу",
+      f_libros_quita:   "Убрать",
       d_pub:            "Единый банковский бланк (PUB) об оплате в SAREN",
       /* --- Заключение ZODI --- */
       f_zodiestado:   "Штат, где будет размещена компания",

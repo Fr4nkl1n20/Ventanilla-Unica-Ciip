@@ -3779,14 +3779,18 @@
 
     /* Esto es lo que estaba mal y no lo veía nadie: cero campos. */
     ok('sisref: «Tus datos» no está vacío', campos.length > 0,
-       campos.length + ' campos', 'los dieciséis del portal');
+       campos.length + ' campos', 'los dieciséis del portal y los dos de los libros');
     /* DIECISÉIS, que son los del portal, y desde el 22 de septiembre de
        2026. Eran nueve: siete se dejaban fuera y el gestor los tenía que
        ir a buscar uno por uno para transcribirlos al SISREF. Un número
        redondo no dice mucho, pero este sí: es el del formulario del SAREN,
        y cualquier otro quiere decir que alguien quitó una casilla que al
        otro lado siguen pidiendo. */
-    igual('sisref: pide los dieciséis datos del portal', campos.length, 16);
+    /* Dieciocho desde el 22 de septiembre de 2026: los dieciséis del
+       portal y los DOS de los libros -cuántos son y cuáles-, que el
+       portal pide aparte y sólo cuando lo que se otorga es el sellado. */
+    igual('sisref: pide los dieciséis del portal y los dos de los libros',
+      campos.length, 18);
     igual('sisref: y sus cuatro recaudos', docs.length, 4);
 
     /* Los cuatro que admite el portal, por su tipo de la bóveda. El segundo
@@ -3811,7 +3815,8 @@
       orden.join(' '),
       'tipo_documento numero_documento nacionalidad nombres apellidos ' +
       'telefono_local telefono_celular correo accion_tramite direccion_vzla ' +
-      'tipo_oficina entidad oficina acto forma_pago fecha_solicitud');
+      'tipo_oficina entidad oficina acto cantidad_libros libros ' +
+      'forma_pago fecha_solicitud');
 
     /* Ni una palabra de la licencia de conducir. Es la comprobación que
        habría cazado el rótulo copiado, y la única que lo habría hecho. */
@@ -4016,6 +4021,63 @@
       e.value = '';
       e.dispatchEvent(new Event('change'));
     });
+    }
+
+    /* ── LOS LIBROS ──
+       Se piden de uno en uno y pueden ser varios, así que lo que hay que
+       mirar no es que la casilla exista sino que AÑADIR otra guarde las
+       dos: con una sola fila, una lista y un desplegable se ven igual.
+       Y que no frenen: son opcionales porque sólo hacen falta cuando lo
+       que se otorga es el sellado de los libros, y casi nadie viene a
+       eso. Una casilla obligatoria de más aquí bloquea el trámite entero
+       a quien viene a firmar cualquier otra cosa. */
+    var libC = caja.querySelector('.sol-campo[data-campo="libros"]');
+    var libS = libC && libC.querySelectorAll('.sl-fila select');
+    ok('sisref: los libros se eligen de una lista, no se escriben',
+       !!libS && libS.length === 1,
+       libC ? (libS.length + ' desplegables') : 'no está la casilla',
+       'uno para empezar');
+
+    if (libS && libS.length){
+      var opsL = [];
+      libS[0].querySelectorAll('option').forEach(function(o){
+        if (o.value) opsL.push(o.value);
+      });
+      /* Los siete del portal, en mayúscula y sin traducir, como las demás
+         listas de este trámite. */
+      igual('sisref: los siete libros del SAREN, literales',
+        opsL.join(' '),
+        'ACCIONISTAS ACTAS DIARIO MAYOR INVENTARIO JUNTAS DIRECTIVAS SOCIOS');
+      /* Y la primera opción, vacía: sin ella toda solicitud saldría
+         pidiendo el libro de ACCIONISTAS sin que nadie lo eligiera. */
+      ok('sisref: y ninguno viene elegido de fábrica',
+         libS[0].value === '', '«' + libS[0].value + '»', 'vacío');
+
+      libS[0].value = 'DIARIO';
+      libS[0].dispatchEvent(new Event('change'));
+      libC.querySelector('.sl-mas').click();
+      var libS2 = libC.querySelectorAll('.sl-fila select');
+      igual('sisref: «Añadir libro» pone otro renglón', libS2.length, 2);
+      libS2[1].value = 'MAYOR';
+      libS2[1].dispatchEvent(new Event('change'));
+      /* Los dos en UNA línea, que es lo que se guarda y lo que el repaso
+         enseña: al otro lado hay una columna de texto, no una tabla. */
+      igual('sisref: y los dos libros se guardan en una línea',
+        libC.getAttribute('data-es'), 'DIARIO; MAYOR');
+
+      libC.querySelectorAll('.sl-quita')[1].click();
+      igual('sisref: y quitar uno se lo lleva de la línea',
+        libC.getAttribute('data-es'), 'DIARIO');
+
+      /* Y se deja como estaba, que esto escribe en el formulario de
+         verdad: un libro elegido por una prueba no puede viajar con la
+         solicitud de nadie. */
+      libS[0].value = '';
+      libS[0].dispatchEvent(new Event('change'));
+      ok('sisref: los libros no frenan al que no los pide',
+         !libC.getAttribute('data-es') && !!libC.getAttribute('data-opcional'),
+         libC.getAttribute('data-opcional') ? 'opcional y vacío' : 'OBLIGATORIO',
+         'opcional');
     }
   }
 
