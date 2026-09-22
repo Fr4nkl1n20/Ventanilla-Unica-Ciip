@@ -3766,19 +3766,39 @@
 
     /* Esto es lo que estaba mal y no lo veía nadie: cero campos. */
     ok('sisref: «Tus datos» no está vacío', campos.length > 0,
-       campos.length + ' campos', 'los nueve del portal');
-    igual('sisref: pide los nueve datos', campos.length, 9);
-    igual('sisref: y sus tres recaudos', docs.length, 3);
+       campos.length + ' campos', 'los dieciséis del portal');
+    /* DIECISÉIS, que son los del portal, y desde el 22 de septiembre de
+       2026. Eran nueve: siete se dejaban fuera y el gestor los tenía que
+       ir a buscar uno por uno para transcribirlos al SISREF. Un número
+       redondo no dice mucho, pero este sí: es el del formulario del SAREN,
+       y cualquier otro quiere decir que alguien quitó una casilla que al
+       otro lado siguen pidiendo. */
+    igual('sisref: pide los dieciséis datos del portal', campos.length, 16);
+    igual('sisref: y sus cuatro recaudos', docs.length, 4);
 
-    /* Los tres que pide el portal, por su tipo de la bóveda. El del medio
+    /* Los cuatro que admite el portal, por su tipo de la bóveda. El segundo
        tiene tipo PROPIO: llevaba 'otro', que es el cajón del catálogo, y
        la bóveda busca por tipo -le colgaba encima el último papel suelto
        que hubiera, con el ✓ de «ya lo tienes» al lado-. Justo aquí no es
-       un detalle: es el papel que dice qué se va a otorgar. */
+       un detalle: es el papel que dice qué se va a otorgar. Y el PUB, el
+       último, por lo mismo y con tipo propio también. */
     var tipos = [];
     docs.forEach(function(d){ tipos.push(d.getAttribute('data-doc')); });
-    igual('sisref: identidad, documento del trámite y poder',
-      tipos.join(' '), 'pasaporte documento_tramite_sisref poder');
+    igual('sisref: identidad, documento del trámite, poder y PUB',
+      tipos.join(' '), 'pasaporte documento_tramite_sisref poder pub_saren');
+
+    /* Y EN EL ORDEN DEL PORTAL. Es la comprobación que de verdad cuesta
+       ganar: el conteo de arriba sigue en verde aunque alguien mueva la
+       fecha al principio, y quien transcribe tiene las dos pantallas al
+       lado leyendo de arriba abajo. Un orden distinto no rompe nada que se
+       vea; se paga en erratas ajenas, tres semanas después. */
+    var orden = [];
+    campos.forEach(function(c){ orden.push(c.getAttribute('data-campo')); });
+    igual('sisref: y en el mismo orden que el formulario del SAREN',
+      orden.join(' '),
+      'tipo_documento numero_documento nacionalidad nombres apellidos ' +
+      'telefono_local telefono_celular correo accion_tramite direccion_vzla ' +
+      'tipo_oficina entidad oficina acto forma_pago fecha_solicitud');
 
     /* Ni una palabra de la licencia de conducir. Es la comprobación que
        habría cazado el rótulo copiado, y la única que lo habría hecho. */
@@ -3801,6 +3821,15 @@
        !!pod && pod.hasAttribute('data-opcional'),
        pod ? (pod.hasAttribute('data-opcional') ? 'opcional' : 'obligatorio') : 'no está',
        'opcional');
+    /* El PUB también opcional, y aquí importa más que en el poder: es el
+       comprobante de un pago, y quien abre esto todavía no sabe cuánto
+       cuesta. Pedírselo obligatorio sería cerrarle el formulario por no
+       traer el recibo de algo que aún no ha pagado. */
+    var pub = caja.querySelector('.sol-doc[data-doc="pub_saren"]');
+    ok('sisref: y el PUB, opcional',
+       !!pub && pub.hasAttribute('data-opcional'),
+       pub ? (pub.hasAttribute('data-opcional') ? 'opcional' : 'obligatorio') : 'no está',
+       'opcional');
 
     /* Y que las opciones son las del portal, no unas parecidas. Se mira la
        de «cómo actúas», que es la lista corta y literal: si alguien la
@@ -3813,6 +3842,50 @@
     });
     igual('sisref: las opciones son las del portal, sin traducir',
       ops.join(' '), 'Solicitante Otorgante Accionista Director Comprador Vendedor');
+
+    /* Las dos listas nuevas, por lo mismo. La de la forma de pago lleva
+       «Exonerado», que no es una forma de pagar y sí una opción del
+       portal: es justo la que alguien quitaría por parecer un error. */
+    var fp = caja.querySelector('.sol-campo[data-campo="forma_pago"] select');
+    var opsP = [];
+    if (fp) fp.querySelectorAll('option').forEach(function(o){
+      if (o.value) opsP.push(o.value);
+    });
+    igual('sisref: y las formas de pago, las cinco del portal',
+      opsP.join(' '), 'Transferencia Exonerado Divisa Débito Cheque');
+
+    /* ── LO QUE NO SE VUELVE A ESCRIBIR ──
+       Nombres, apellidos, nacionalidad y correo se preguntan porque el
+       portal los pide, pero salen puestos. La prueba mira que NO estén
+       vacíos y que lo digan con el sello: un campo relleno sin sello
+       parece que el panel se inventó el dato, y ese fue el motivo por el
+       que existen los otros tres sellos. */
+    ['nombres', 'apellidos', 'correo'].forEach(function(n){
+      var c = caja.querySelector('.sol-campo[data-campo="' + n + '"]');
+      var e = c && c.querySelector('[name="' + n + '"]');
+      var v = e ? (e.value || '') : '';
+      ok('sisref: «' + n + '» sale ya puesto y con su sello',
+         !!v && !!c.querySelector('.de-perfil, .de-antes, .de-empresa'),
+         (v ? '«' + v + '»' : 'vacío') +
+           (c && c.querySelector('.de-perfil, .de-antes, .de-empresa') ? ' con sello' : ' SIN sello'),
+         'con valor y con sello');
+    });
+
+    /* Y el corte del nombre, que es la apuesta de todo esto: el perfil lo
+       guarda entero en una casilla y el portal lo quiere en dos. Se
+       comprueba que las dos mitades JUNTAS son el nombre de la cabecera,
+       que es lo único que se puede exigir sin saber dónde va el corte. Si
+       alguien cambia la regla y se pierde un trozo por el camino -un
+       segundo nombre que no cae en ninguna de las dos-, esto lo dice. */
+    var eN = caja.querySelector('[name="nombres"]');
+    var eA = caja.querySelector('[name="apellidos"]');
+    var entero = ((eN && eN.value) || '') + ' ' + ((eA && eA.value) || '');
+    var cab = document.querySelector('.u-name');
+    if (cab && (cab.textContent || '').trim()){
+      var esperado = (cab.textContent || '').trim().replace(/\s+/g, ' ');
+      igual('sisref: nombres y apellidos, juntos, son el nombre entero',
+        entero.trim().replace(/\s+/g, ' '), esperado);
+    }
   }
 
   /* ═══════════ LA OPINIÓN FAVORABLE DE LA ZODI (c34) ═══════════

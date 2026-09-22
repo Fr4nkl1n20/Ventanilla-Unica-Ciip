@@ -1104,12 +1104,18 @@ body[data-vista="empresa"] .fase-bar{display:none;}
 /* En el formulario de un tramite, el campo que vino de la empresa lo dice:
    si no, parece que el panel se invento el dato. */
 .sol-campo .de-empresa,
+.sol-campo .de-perfil,
 .sol-campo .de-antes{font-size:var(--fs-chip); font-weight:700; letter-spacing:.03em; color:var(--navy2); background:var(--block);
   border-radius:4px; padding:1px 5px; margin-left:7px;}
 /* El de "ya lo escribiste" va en gris y no en azul: es mas debil que el de
    la empresa -aquello es la ficha oficial, esto una copia de otro
    formulario- y conviene que se note cual es cual. */
 .sol-campo .de-antes{color:var(--gray); cursor:help;}
+/* Y el de tu perfil, igual de gris y por lo mismo: tambien es una copia,
+   no la ficha. Lleva ayuda al pasar por encima porque en "Nombres" y
+   "Apellidos" hay algo que de verdad conviene mirar -donde se partio el
+   nombre-, y el sello es el unico sitio donde se puede decir. */
+.sol-campo .de-perfil{color:var(--gray); cursor:help;}
 /* Y el tercero: lo que salio del documento que subiste. Va en morado
    porque no es lo mismo que los otros dos —aquellos son datos tuyos que
    el panel ya tenia; este lo ha leido una maquina de un papel— y quien
@@ -8139,6 +8145,58 @@ applyLang(idiomaParaMi());
     return null;
   }
 
+  /* ── LO QUE YA SABE TU EXPEDIENTE DE TI ─────────────────────────────
+     Cuatro casillas que ningún trámite debería volver a preguntar en
+     frío, porque contestarlas otra vez es copiar de una pantalla del
+     mismo panel: tu nombre, tus apellidos, tu nacionalidad y tu correo.
+
+     Nació con los dieciséis del SISREF (22 de septiembre de 2026), que es
+     donde se vio el problema: el portal del SAREN los pide, así que el
+     panel tiene que preguntarlos, pero preguntarlos EN BLANCO a quien ya
+     los escribió al registrarse es exactamente lo que la ventanilla viene
+     a quitar. Se preguntan y salen puestos.
+
+     Va EL ÚLTIMO de la cadena -tu letra, tu empresa, otro trámite, y esto-
+     a propósito: lo que escribiste en otro formulario es más reciente que
+     el perfil y puede ser una corrección de esto mismo. Pisarla sería
+     devolverte el error que ya arreglaste una vez. */
+  function rellenaDelPerfil(campo){
+    if (typeof PERFIL === 'undefined') return null;
+
+    if (campo === 'correo'){
+      var c = (usuario && usuario.email) || '';
+      return c ? {valor: c} : null;
+    }
+    if (campo === 'nacionalidad'){
+      /* PERFIL.pais viaja a la base en español, que es lo que el buscador
+         de países sabe volver a colocar. */
+      return PERFIL.pais ? {valor: PERFIL.pais} : null;
+    }
+    if (campo !== 'nombres' && campo !== 'apellidos') return null;
+
+    /* SOLO si el nombre es de verdad suyo. PERFIL.nombre nace con el de la
+       demostración y, si la cuenta no tiene nombre, se saca uno del correo:
+       los dos se verían aquí como si fueran su nombre legal, y este es un
+       formulario que se transcribe a un registro público. */
+    if (!PERFIL.nombreReal) return null;
+    var p = String(PERFIL.nombre || '').trim().split(/\s+/).filter(Boolean);
+    if (!p.length) return null;
+
+    /* EL CORTE ES UNA APUESTA, Y SE DICE. El perfil guarda el nombre
+       ENTERO en una sola casilla y el portal lo quiere partido en dos, así
+       que alguien tiene que decidir dónde. Aquí se parte por el ÚLTIMO
+       espacio -el último trozo es el apellido- porque este trámite es el
+       Registro de EXTRANJEROS: quien lo abre viene casi siempre con un
+       apellido, no con dos. «Valeria Ramos» y «Marco Bianchi» salen bien;
+       «Franklin Reyes Pérez» saldría como «Franklin Reyes» / «Pérez».
+       Por eso las dos casillas se pueden escribir encima y llevan el sello
+       que dice de dónde salieron: una apuesta marcada se corrige, una
+       apuesta silenciosa se firma. */
+    if (p.length === 1) return campo === 'nombres' ? {valor: p[0]} : null;
+    return campo === 'nombres' ? {valor: p.slice(0, -1).join(' ')}
+                               : {valor: p[p.length - 1]};
+  }
+
   var ANTES = null, antesPide = null;
   function anteriores(){
     if (antesPide) return antesPide;
@@ -8810,7 +8868,16 @@ applyLang(idiomaParaMi());
          -la traducción con el rótulo de la licencia- y esta línea volvía
          a hacerlo. Un cajón compartido es una clave reusada. */
       {tipo:'documento_tramite_sisref', clave:'d_doctramite'},
-      {tipo:'poder',       clave:'d_poder', opcional:true}
+      {tipo:'poder',       clave:'d_poder', opcional:true},
+      /* El PUB, la Planilla Única Bancaria con la que el SAREN cobra. El
+         portal lo admite y no lo exige, y aquí pasa lo mismo: quien ya
+         pagó lo trae y se ahorra una vuelta; quien viene a que el CIIP le
+         diga cuánto cuesta todavía no lo tiene, y pedírselo sería pedirle
+         el comprobante de algo que aún no ha pagado. Por eso va opcional,
+         como el poder, y con tipo propio: en el cajón 'otro' la bóveda le
+         colgaría encima cualquier papel suelto, que es lo que ya pasó una
+         vez con el documento del trámite, dos líneas más arriba. */
+      {tipo:'pub_saren',   clave:'d_pub',   opcional:true}
     ],
 
     /* El poder es a la vez lo que se ENTREGA y lo que SALE: se sube el
@@ -9427,7 +9494,14 @@ applyLang(idiomaParaMi());
     vence_licencia:     {desde:'-10', hasta:'+15'},
     /* El mismo tope que en la ficha de empresa, y por el mismo motivo:
        una empresa ya constituida puede tener la apertura por delante. */
-    inicio_actividades: {desde:'1900-01-01', hasta:'+10'}
+    inicio_actividades: {desde:'1900-01-01', hasta:'+10'},
+    /* La fecha con la que se pide la cita en el SISREF. No es una fecha de
+       nacimiento ni un vencimiento: es «cuándo se presenta esto», así que
+       vive alrededor de hoy. Un año por delante y otro por detrás deja
+       sitio a quien reabre un borrador de hace meses y a quien apunta una
+       fecha acordada con el registro, y deja fuera el 1987 tecleado de un
+       resbalón en la lista de años. */
+    fecha_solicitud:    {desde:'-1', hasta:'+1'}
   };
 
   /* Las oficinas del Registro Mercantil donde el SAREN deja hacer la
@@ -9510,40 +9584,62 @@ applyLang(idiomaParaMi());
        https://sisref.saren.gob.ve/, leído el 2 de septiembre de 2026. No
        están deducidos del informe ni inventados: se leyó el formulario.
 
-       El portal pide DIECISÉIS y aquí se preguntan NUEVE. Los siete que
-       faltan no se han olvidado:
+       LOS DIECISÉIS, Y EN EL ORDEN DEL PORTAL (22 de septiembre de 2026).
+       Aquí se preguntaban NUEVE. Los otros siete estaban fuera por escrito
+       y con sus razones -están en el historial de este archivo-, y
+       Franklin Reyes las deshizo mirando el portal al lado: «tenemos que
+       solicitar toda esa información». Tiene razón por donde no se miró
+       entonces: lo que el gestor transcribe al SISREF son DIECISÉIS
+       casillas, y las siete que no se preguntaban las tenía que ir a
+       buscar a mano —al perfil, a la cuenta, o preguntándolas por el hilo—
+       una por una y por cada solicitud. Ahorrarle siete cajas al
+       inversionista le costaba siete búsquedas al que rellena el portal.
 
-         nombres, apellidos, nacionalidad y correo  ya están en tu perfil,
-           y volver a pedirlos es exactamente lo que la ventanilla viene a
-           quitar. Es la misma regla que hace que la visa de dependientes
-           no repita lo que preguntó la de inversionista.
-         tipo de oficina  se dice al escribir la oficina: «Registro
-           Mercantil Primero del Distrito Capital» ya lleva dentro que es
-           un registro mercantil. Un desplegable más para repetirlo.
-         forma de pago  la arregla el CIIP con el trámite; preguntársela
-           a quien todavía no sabe cuánto cuesta no sirve de nada.
-         fecha de solicitud  la pone la base al enviar. Un campo de fecha
-           que el usuario rellena con «hoy» es un campo que puede mentir.
+       El ORDEN es el del portal y no el que quedó bonito: quien transcribe
+       tiene las dos pantallas al lado, y leer en zigzag es donde se cuelan
+       los errores.
+
+       LOS CUATRO QUE NO SE VUELVEN A ESCRIBIR. nombres, apellidos,
+       nacionalidad y correo están preguntados, pero SALEN YA PUESTOS con
+       lo que hay en tu expediente y con el sello de dónde vienen. Así el
+       portal tiene sus dieciséis y la ventanilla sigue cumpliendo lo suyo,
+       que no es no preguntar: es no hacerte escribir dos veces lo mismo.
+       Se pueden corregir encima —el nombre partido en dos puede caer mal, y
+       de eso avisa el sello—. Ver rellenaDelPerfil().
 
        El ACTO va como texto y no como desplegable a propósito: el portal
        ofrece más de NOVECIENTAS opciones, y una lista así no se elige, se
        sufre. Se escribe, y el gestor la casa con la del portal.
 
-       Las opciones de «cómo actúas» y de «entidad» sí van literales y sin
-       traducir, como las de rif_personal: son lo que el portal espera
-       recibir, y traducirlas obligaría al gestor a deshacer la traducción
-       para transcribirlas. */
+       Las opciones de «cómo actúas», «entidad», «tipo de oficina» y «forma
+       de pago» van literales y sin traducir, como las de rif_personal: son
+       lo que el portal espera recibir, y traducirlas obligaría al gestor a
+       deshacer la traducción para transcribirlas. */
     registro_extranjeros_saren: [
       {n:'tipo_documento',   clave:'f_tipodoc',  opciones:['Pasaporte','Documento de identidad extranjero']},
       {n:'numero_documento', clave:'f_numero'},
+      /* El buscador de países, no una caja libre: el portal la tiene como
+         lista cerrada, y así se guarda además el código ISO. */
+      {n:'nacionalidad',     clave:'f_nacionalidad', paises:true},
+      {n:'nombres',          clave:'f_nombres'},
+      {n:'apellidos',        clave:'f_apellidos'},
       {n:'telefono_local',   clave:'f_telvzla',  tipo:'tel'},
       {n:'telefono_celular', clave:'f_telcel',   tipo:'tel'},
+      /* Se llama 'correo' y no 'correo_sisref' para que lo herede del RIF
+         personal, que es el otro trámite que lo pregunta. Los campos se
+         heredan por NOMBRE. */
+      {n:'correo',           clave:'f_correo',   tipo:'email'},
       {n:'accion_tramite',   clave:'f_accion',
        opciones:['Solicitante','Otorgante','Accionista','Director','Comprador','Vendedor']},
+      {n:'direccion_vzla',   clave:'f_dirvzla',  ancho:true},
+      {n:'tipo_oficina',     clave:'f_tipooficina',
+       opciones:['NOTARÍA','REGISTRO MERCANTIL','REGISTRO PRINCIPAL','REGISTRO PÚBLICO']},
       {n:'entidad',          clave:'f_entidad',  opciones:['AMAZONAS','ANZOATEGUI','APURE','ARAGUA','BARINAS','BOLIVAR','BOLIVARIANO DE MIRANDA','CARABOBO','COJEDES','DELTA AMACURO','DEPENDENCIAS FEDERALES','DISTRITO CAPITAL','FALCON','GUARICO','LA GUAIRA','LARA','MERIDA','MONAGAS','NUEVA ESPARTA','PORTUGUESA','SUCRE','TACHIRA','TRUJILLO','YARACUY','ZULIA']},
       {n:'oficina',          clave:'f_oficina',  ancho:true},
       {n:'acto',             clave:'f_acto',     ancho:true},
-      {n:'direccion_vzla',   clave:'f_dirvzla',  ancho:true}
+      {n:'forma_pago',       clave:'f_formapago',
+       opciones:['Transferencia','Exonerado','Divisa','Débito','Cheque']},
+      {n:'fecha_solicitud',  clave:'f_fechasolicitud', tipo:'date'}
     ],
 
     licencia_conducir: [
@@ -10090,6 +10186,15 @@ applyLang(idiomaParaMi());
     numero_documento:      ['cedula', 'pasaporte'],
     fecha_nacimiento:      ['cedula', 'pasaporte', 'pasaporte_dependiente'],
     nombre_familiar:       ['pasaporte_dependiente'],
+    /* El nombre partido en dos y la nacionalidad están en la página del
+       pasaporte, escritos por quien lo emitió. Entran aquí porque el
+       SISREF los pide por separado y el perfil los guarda juntos: si hay
+       lector y hay pasaporte, el corte lo hace el documento y no nuestra
+       apuesta del último espacio. Y si ya había algo escrito no se toca,
+       que ponCampo no pisa lo que está puesto. */
+    nombres:               ['pasaporte', 'cedula'],
+    apellidos:             ['pasaporte', 'cedula'],
+    nacionalidad:          ['pasaporte'],
 
     /* la visa estampada */
     numero_visa:           ['visa'],
@@ -11328,6 +11433,19 @@ applyLang(idiomaParaMi());
         var noma = refa && (dica[refa + '.name'] || I18N.en[refa + '.name']);
         if (noma) sa.title = String(u.em_deantes_t || '').replace('{tramite}', noma);
         campo.querySelector('label').appendChild(sa);
+      } else {
+        /* Y en último lugar, tu propio expediente: el nombre, la
+           nacionalidad y el correo con los que entraste. El sello no es
+           un adorno -avisa de que esto lo puso el panel y no tú-, y en
+           «Nombres» y «Apellidos» es además donde se ve si el corte del
+           nombre cayó donde debía. */
+        var dep = rellenaDelPerfil(c.n);
+        if (dep){
+          entrada.value = dep.valor;
+          var sp = el('span', 'de-perfil', u.em_deperfil || '');
+          sp.title = u.em_deperfil_t || '';
+          campo.querySelector('label').appendChild(sp);
+        }
       }
       /* El buscador de paises: el MISMO del perfil, no una copia. Sigue
          admitiendo lo que se teclee -una lista cerrada deja fuera a quien

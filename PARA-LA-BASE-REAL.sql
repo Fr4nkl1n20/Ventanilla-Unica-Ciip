@@ -767,9 +767,18 @@ update public.tipos_tramite set nivel = 'opcional'
 --  hubiera, con su ✓ de «ya lo tienes». Aquí eso no es un adorno: es el
 --  papel que dice qué se va a firmar, y con el equivocado el portal
 --  rechaza la solicitud entera. No vence: es el documento de una fecha.
+--  Y el tercero, el PUB (22 de septiembre de 2026): la Planilla Única
+--  Bancaria con la que el SAREN cobra. El portal la admite y no la
+--  exige, y en el panel va igual, OPCIONAL: quien ya pagó la trae y se
+--  ahorra una vuelta, y a quien viene a que el CIIP le diga cuánto
+--  cuesta no se le puede pedir el comprobante de lo que aún no ha
+--  pagado. Con tipo propio por lo mismo que el de arriba: en el cajón
+--  'otro' la bóveda le cuelga encima cualquier papel suelto. Tampoco
+--  vence: es el recibo de un pago con fecha.
 insert into public.tipos_documento (codigo, nombre, vence) values
   ('constancia_sisref',         'Constancia de firma en el Registro de Extranjeros (SISREF)', false),
-  ('documento_tramite_sisref',  'Documento del trámite que se va a otorgar',                  false)
+  ('documento_tramite_sisref',  'Documento del trámite que se va a otorgar',                  false),
+  ('pub_saren',                 'Planilla Única Bancaria (PUB) del pago al SAREN',            false)
 on conflict (codigo) do update set nombre = excluded.nombre;
 
 insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values

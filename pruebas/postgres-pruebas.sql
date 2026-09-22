@@ -2669,6 +2669,14 @@ select arnes.comprueba(
   (select count(*) = 1 from public.tipos_documento
     where codigo = 'documento_tramite_sisref'));
 
+-- Y el PUB, el cuarto recaudo del c32 desde el 22 de septiembre de 2026.
+-- Las casillas del formulario viven en el panel y no en la base, pero los
+-- recaudos si: sin esta fila, la boveda ensena un renglon sin nombre que
+-- no deja subir nada, y el fallo no se ve hasta abrir el paso 2.
+select arnes.comprueba(
+  'sisref: el PUB esta en el catalogo de documentos',
+  (select count(*) = 1 from public.tipos_documento where codigo = 'pub_saren'));
+
 -- Y no le cuesta un obligatorio a nadie: siguen los diez del informe.
 select arnes.comprueba(
   'zodi: y los obligatorios siguen siendo diez',

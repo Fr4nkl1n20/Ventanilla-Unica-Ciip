@@ -200,3 +200,41 @@ select codigo, ref_panel, activo
 --
 --  Si se regenera TODO-EN-ORDEN.sql:  node pruebas/juntar-sql.js
 -- ───────────────────────────────────────────────────────────────────────
+
+
+-- ───────────────────────────────────────────────────────────────────────
+--  PUNTO 5. EL PUB DEL SISREF      ← nuevo del 22 de septiembre. LAS DOS.
+--
+--  Franklin Reyes, mirando el portal del SAREN al lado del panel: «tenemos
+--  que solicitar toda esa informacion». El c32 pasa de nueve casillas a
+--  las dieciseis del portal, y de tres recaudos a cuatro. Las casillas no
+--  tocan la base -viven en CAMPOS, dentro del panel- y el recaudo nuevo SI:
+--  la boveda busca los papeles por su tipo, y un tipo que no este en
+--  tipos_documento sale como fila muda que no deja subir nada.
+--
+--  El PUB es la Planilla Unica Bancaria con la que el SAREN cobra. Va
+--  OPCIONAL en el panel, como en el portal.
+--
+--  Es lo mismo que hay en supabase-informe-victor.sql, que es el archivo
+--  de referencia. Si los dos dijeran cosas distintas, manda aquel.
+--
+--  Sin correrlo la pagina NO se rompe: salen las dieciseis casillas y los
+--  otros tres recaudos, y el del PUB se queda sin nombre.
+-- ───────────────────────────────────────────────────────────────────────
+
+-- 5.1  Que hay hoy. Tienen que salir dos filas; la tercera es la que falta.
+select codigo, nombre
+  from public.tipos_documento
+ where codigo in ('constancia_sisref', 'documento_tramite_sisref', 'pub_saren')
+ order by codigo;
+
+-- 5.2  El tipo nuevo. Se puede correr las veces que haga falta.
+insert into public.tipos_documento (codigo, nombre, vence) values
+  ('pub_saren', 'Planilla Única Bancaria (PUB) del pago al SAREN', false)
+on conflict (codigo) do update set nombre = excluded.nombre;
+
+-- 5.3  Comprobar: ahora tienen que salir las TRES.
+select codigo, nombre, vence
+  from public.tipos_documento
+ where codigo in ('constancia_sisref', 'documento_tramite_sisref', 'pub_saren')
+ order by codigo;

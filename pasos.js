@@ -896,6 +896,12 @@ window.CIIP_PASOS = {
       em_deempresa: "De tu empresa",
       em_deantes:   "Ya lo escribiste",
       em_deantes_t: "Lo pusiste en {tramite}",
+      /* El cuarto sello. Los otros tres dicen de qué PANTALLA salió el
+         dato; este dice que salió de quién eres. La ayuda pide
+         comprobarlo porque en «Nombres» y «Apellidos» el panel tuvo que
+         partir en dos un nombre que guarda entero, y ahí puede fallar. */
+      em_deperfil:   "De tu perfil",
+      em_deperfil_t: "Sale de tu expediente. Compruébalo y corrígelo si hace falta.",
       /* Entregar lo emitido. El circuito acababa en el aire: el estado
          cambiaba a "Resuelta" y el documento se mandaba por fuera. */
       co_emitido:   "Documento emitido por el organismo",
@@ -1250,6 +1256,16 @@ window.CIIP_PASOS = {
       f_entidad:    "Entidad",
       f_oficina:    "Oficina de registro o notaría",
       f_accion:     "Cómo actúas en el trámite",
+      /* Los seis que faltaban del portal del SAREN. Van juntos y detrás de
+         los otros cuatro porque son del mismo formulario: el día que el
+         SISREF cambie una etiqueta, están todas en el mismo sitio. */
+      f_nacionalidad:   "Nacionalidad",
+      f_nombres:        "Nombres",
+      f_apellidos:      "Apellidos",
+      f_tipooficina:    "Tipo de oficina",
+      f_formapago:      "Forma de pago",
+      f_fechasolicitud: "Fecha de la solicitud",
+      d_pub:            "Planilla Única Bancaria (PUB) del pago al SAREN",
       /* --- Opinión favorable de la ZODI --- */
       f_zodiestado:   "Estado donde se instalará la empresa",
       f_zodimotivo:   "Por qué te toca la ZODI",
@@ -1931,6 +1947,8 @@ window.CIIP_PASOS = {
       em_deempresa: "From your company",
       em_deantes:   "You already typed this",
       em_deantes_t: "You entered it in {tramite}",
+      em_deperfil:   "From your profile",
+      em_deperfil_t: "Taken from your account. Check it and correct it if needed.",
       /* Delivering what was issued. The circuit ended in mid-air: the
          status changed to "Completed" and the document went out by other
          means. */
@@ -2228,6 +2246,13 @@ window.CIIP_PASOS = {
       f_entidad:    "State",
       f_oficina:    "Registry or notary office",
       f_accion:     "Your role in the procedure",
+      f_nacionalidad:   "Nationality",
+      f_nombres:        "First names",
+      f_apellidos:      "Surnames",
+      f_tipooficina:    "Type of office",
+      f_formapago:      "Payment method",
+      f_fechasolicitud: "Date of the application",
+      d_pub:            "Single Bank Form (PUB) for the SAREN payment",
       /* --- ZODI clearance --- */
       f_zodiestado:   "State where the company will set up",
       f_zodimotivo:   "Why the ZODI applies to you",
@@ -2896,6 +2921,8 @@ window.CIIP_PASOS = {
       em_deempresa: "Da sua empresa",
       em_deantes:   "Já o escreveu",
       em_deantes_t: "Escreveu-o em {tramite}",
+      em_deperfil:   "Do teu perfil",
+      em_deperfil_t: "Vem do teu processo. Confirma-o e corrige-o se for preciso.",
       /* Entregar o que foi emitido. */
       co_emitido:   "Documento emitido pelo organismo",
       co_faltadoc:  "Anexe o documento que o organismo emitiu: é o que o investidor veio buscar.",
@@ -3189,6 +3216,13 @@ window.CIIP_PASOS = {
       f_entidad:    "Entidade",
       f_oficina:    "Cartório de registo ou notário",
       f_accion:     "Como atuas no trâmite",
+      f_nacionalidad:   "Nacionalidade",
+      f_nombres:        "Nomes próprios",
+      f_apellidos:      "Apelidos",
+      f_tipooficina:    "Tipo de cartório",
+      f_formapago:      "Forma de pagamento",
+      f_fechasolicitud: "Data do pedido",
+      d_pub:            "Formulário Bancário Único (PUB) do pagamento ao SAREN",
       /* --- Parecer favorável da ZODI --- */
       f_zodiestado:   "Estado onde a empresa se vai instalar",
       f_zodimotivo:   "Porque a ZODI se aplica a si",
@@ -3857,6 +3891,8 @@ window.CIIP_PASOS = {
       em_deempresa: "Dalla tua azienda",
       em_deantes:   "L'hai già scritto",
       em_deantes_t: "L'hai inserito in {tramite}",
+      em_deperfil:   "Dal tuo profilo",
+      em_deperfil_t: "Viene dal tuo fascicolo. Controllalo e correggilo se serve.",
       /* Consegnare quello che è stato rilasciato. */
       co_emitido:   "Documento rilasciato dall'ente",
       co_faltadoc:  "Allega il documento che ha rilasciato l'ente: è quello per cui l'investitore è venuto.",
@@ -4150,6 +4186,13 @@ window.CIIP_PASOS = {
       f_entidad:    "Entità",
       f_oficina:    "Ufficio del registro o notaio",
       f_accion:     "Il tuo ruolo nella pratica",
+      f_nacionalidad:   "Nazionalità",
+      f_nombres:        "Nome",
+      f_apellidos:      "Cognome",
+      f_tipooficina:    "Tipo di ufficio",
+      f_formapago:      "Modalità di pagamento",
+      f_fechasolicitud: "Data della domanda",
+      d_pub:            "Modulo bancario unico (PUB) del pagamento al SAREN",
       /* --- Parere favorevole della ZODI --- */
       f_zodiestado:   "Stato in cui si insedierà la società",
       f_zodimotivo:   "Perché ti riguarda la ZODI",
@@ -4818,6 +4861,8 @@ window.CIIP_PASOS = {
       em_deempresa: "来自公司资料",
       em_deantes:   "您已填写过",
       em_deantes_t: "您在{tramite}中填写过",
+      em_deperfil:   "来自个人资料",
+      em_deperfil_t: "取自你的档案。请核对，必要时修改。",
       /* 交付已签发的文件。 */
       co_emitido:   "主管机关签发的文件",
       co_faltadoc:  "请附上主管机关签发的文件：那才是投资人要的东西。",
@@ -5111,6 +5156,13 @@ window.CIIP_PASOS = {
       f_entidad:    "州",
       f_oficina:    "登记处或公证处",
       f_accion:     "你在该手续中的身份",
+      f_nacionalidad:   "国籍",
+      f_nombres:        "名",
+      f_apellidos:      "姓",
+      f_tipooficina:    "机构类型",
+      f_formapago:      "付款方式",
+      f_fechasolicitud: "申请日期",
+      d_pub:            "向 SAREN 付款的统一银行单（PUB）",
       /* --- ZODI 无异议意见 --- */
       f_zodiestado:   "公司设立所在的州",
       f_zodimotivo:   "为何需要 ZODI 意见",
@@ -5779,6 +5831,8 @@ window.CIIP_PASOS = {
       em_deempresa: "Из данных компании",
       em_deantes:   "Вы это уже вводили",
       em_deantes_t: "Вы ввели это в: {tramite}",
+      em_deperfil:   "Из вашего профиля",
+      em_deperfil_t: "Взято из вашего дела. Проверьте и при необходимости исправьте.",
       /* Выдача выпущенного документа. */
       co_emitido:   "Документ, выданный ведомством",
       co_faltadoc:  "Приложите документ, выданный ведомством: именно за ним пришёл инвестор.",
@@ -6072,6 +6126,13 @@ window.CIIP_PASOS = {
       f_entidad:    "Штат",
       f_oficina:    "Регистратура или нотариат",
       f_accion:     "Ваша роль в процедуре",
+      f_nacionalidad:   "Гражданство",
+      f_nombres:        "Имя",
+      f_apellidos:      "Фамилия",
+      f_tipooficina:    "Тип учреждения",
+      f_formapago:      "Способ оплаты",
+      f_fechasolicitud: "Дата заявки",
+      d_pub:            "Единый банковский бланк (PUB) об оплате в SAREN",
       /* --- Заключение ZODI --- */
       f_zodiestado:   "Штат, где будет размещена компания",
       f_zodimotivo:   "Почему нужна ZODI",
