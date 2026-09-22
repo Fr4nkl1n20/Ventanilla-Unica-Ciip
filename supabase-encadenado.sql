@@ -67,7 +67,7 @@ comment on column public.tipos_tramite.emite is
 -- cédula a esperar por un trámite que no le sirve. Se pone a null con
 -- UPDATE y no se borra la línea sin más: en una base que ya existe, el
 -- 'visa' de antes seguiría puesto.
-update public.tipos_tramite set emite = null                 where codigo = 'visa_inversionista';
+update public.tipos_tramite set emite = null                 where codigo = 'visa_negocios';
 update public.tipos_tramite set emite = 'cedula'             where codigo = 'cedula_residencia';
 update public.tipos_tramite set emite = 'rif_personal'       where codigo = 'rif_personal';
 update public.tipos_tramite set emite = 'acta_constitutiva'  where codigo = 'constitucion';

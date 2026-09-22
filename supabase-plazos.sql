@@ -219,7 +219,7 @@ alter table public.tipos_tramite
 update public.tipos_tramite
    set plazo_legal_norma = 'Normas de Procedimiento para la Expedición de Visados, Gaceta Oficial Extraordinaria 5.427 del 5-1-2000',
        plazo_legal_dias  = null
- where codigo = 'visa_inversionista';
+ where codigo = 'visa_negocios';
 
 -- c3 · RIF personal
 --   Providencia SNAT/2026/00080, Gaceta Oficial 43.435 del 12 de agosto

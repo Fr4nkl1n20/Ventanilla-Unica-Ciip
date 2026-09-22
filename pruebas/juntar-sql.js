@@ -102,7 +102,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* Las cinco inscripciones en una casilla (c37): BANAVIH, INCES, RNET, RNC
    y RUPDAE. Va DETRAS de supabase-rupdae-rum, que es quien enciende el
    c35 que este apaga; si fuera delante, aquel lo volveria a encender. */
-'supabase-parafiscales'];
+'supabase-parafiscales',
+/* La visa se parte en dos (c1 y c38): libera el codigo 'visa_inversionista'
+   -que se habia quedado en la ficha de la TR-N- y da de alta la TR-I. Va el
+   ULTIMO a proposito: toca una fila del catalogo y lo que cuelga de ella en
+   cuatro tablas, asi que todo lo demas tiene que existir ya. */
+'supabase-visa-tri'];
 
 let mal = 0;
 for (const n of orden) {

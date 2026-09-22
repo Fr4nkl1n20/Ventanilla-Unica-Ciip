@@ -365,10 +365,16 @@
        aunque el tramite este resuelto. */
     /* Con el plazo legal puesto: es uno de los dos comprobados en su
        fuente, y el unico con el que se puede probar el globo del reloj. */
-    {codigo:'visa_inversionista', ref_panel:'c1', ente:'MPPRE', activo:true, plazo_dias:30,
+    {codigo:'visa_negocios', ref_panel:'c1', ente:'MPPRE', activo:true, plazo_dias:30,
      plazo_legal_dias:null,
      plazo_legal_norma:'Normas de Procedimiento para la Expedición de Visados, Gaceta Oficial Extraordinaria 5.427 del 5-1-2000',
      nombre:'Visa de negocios (TR-N)', fase:1, nivel:'obligatorio'},
+    /* La TR-I, desde el 22-9-2026. No sale suelta en la portada -su
+       tarjeta lleva data-tramo-de-, pero en el catalogo es un tramite
+       como cualquier otro: se pide desde la guia de la casilla de la
+       visa, y por eso tiene que estar aqui. */
+    {codigo:'visa_inversionista', ref_panel:'c38', ente:'MPPRE', activo:true, plazo_dias:30,
+     nombre:'Visa de inversionista (TR-I)', fase:1, nivel:'obligatorio'},
     /* La visa de dependientes pregunta pasaporte, pais emisor y fecha de
        nacimiento, que la de inversionista ya contesto. Es donde se
        mide que no se pide dos veces lo mismo. */
@@ -411,7 +417,7 @@
       /* Con sus datos dentro: son los que el panel tiene que ofrecer
          cuando otro formulario pregunte lo mismo. Sin ellos, la prueba de
          que no se pide dos veces el pasaporte no mide nada. */
-      {id:'t4', tipo:'visa_inversionista', estado:'resuelto',
+      {id:'t4', tipo:'visa_negocios', estado:'resuelto',
        datos:{numero_pasaporte:'YB1234567', pais_emisor:'Italia',
               fecha_nacimiento:'1979-04-11'},
        creado_en:'2026-06-01T10:00:00Z', enviado_en:'2026-06-02T10:00:00Z',
@@ -420,7 +426,7 @@
          la tarjeta ensenaba el formulario en blanco sobre un tramite que
          YA ESTA RESUELTO: las dos pantallas del mismo tramite decian
          cosas distintas. */
-      {id:'t5', tipo:'visa_inversionista', estado:'borrador', datos:{},
+      {id:'t5', tipo:'visa_negocios', estado:'borrador', datos:{},
        creado_en:'2026-08-20T10:00:00Z',
        actualizado_en:'2026-08-20T10:00:00Z'}
     ],
@@ -465,7 +471,7 @@
          el aviso ensena el caso del borrador. En 'lleno' gana siempre el
          devuelto, y sin esto la barra de "2 de 4 recaudos" no la mira
          nadie. La visa pide seis obligatorios. */
-      {id:'s1', tipo:'visa_inversionista', estado:'borrador',
+      {id:'s1', tipo:'visa_negocios', estado:'borrador',
        creado_en:'2026-08-18T10:00:00Z', actualizado_en:'2026-08-18T10:00:00Z'}
     ]
   };
@@ -634,7 +640,7 @@
      datos:{razon_social:'Méndez Logística Caribe, C.A.', capital_social:'220.000'},
      creado_en: haceDias(3), enviado_en: haceDias(3)},
     /* Mías, para que el montón «Míos» no salga en cero. */
-    {id:'d4', inversionista:'u5', tipo:'visa_inversionista', estado:'en_revision',
+    {id:'d4', inversionista:'u5', tipo:'visa_negocios', estado:'en_revision',
      datos:{numero_pasaporte:'TR8842019', pais_emisor:'Japón',
             consulado:'Consulado de Venezuela en Tokio'},
      creado_en: haceDias(4), enviado_en: haceDias(4), gestor:'u1'},

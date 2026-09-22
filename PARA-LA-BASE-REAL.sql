@@ -480,7 +480,7 @@ grant execute on function public.reserva_cita(timestamptz, text, text, text) to 
 --
 --  FASE 1 · TÚ  ──  cinco, y son los cinco que pide el informe
 --  ─────────────────────────────────────────────────────────────────────
---    c1   visa_inversionista      Visa de inversionista (TR-I)   punto 1
+--    c1   visa_negocios           Visa de negocios (TR-N)        punto 1
 --    c2   cedula_residencia       Cédula de extranjería          punto 4
 --    c3   rif_personal            RIF personal                   punto 4
 --    c17  apostilla_documentos    Documentación apostillada      punto 3
@@ -670,7 +670,7 @@ comment on column public.tipos_tramite.nivel is
 --  regla; los antecedentes pasan a opcional porque no todos los
 --  consulados los exigen igual.
 update public.tipos_tramite set nivel = 'obligatorio'
- where codigo in ('visa_inversionista',      -- 1
+ where codigo in ('visa_negocios',      -- 1
                   'cedula_residencia',       -- 4, "cedula de extranjeria / transeunte"
                   'rif_personal',            -- 4
                   'apostilla_documentos',    -- 3, "documentacion personal apostillada"
@@ -1275,13 +1275,13 @@ on conflict (codigo) do nothing;
 
 update public.tipos_tramite
    set nombre = 'Visa de negocios (TR-N)', ente = 'MPPRE', emite = null
- where codigo = 'visa_inversionista';
+ where codigo = 'visa_negocios';
 
 -- COMPROBACIONES
 -- 1. Una fila: c1 · Visa de negocios (TR-N) · MPPRE · emite vacio.
 select ref_panel, nombre, ente, emite
 from   public.tipos_tramite
-where  codigo = 'visa_inversionista';
+where  codigo = 'visa_negocios';
 
 -- 2. Tiene que salir VACIO. Si sale algo, alguien cambio los textos de la
 --    c1 con «Editar textos», y lo guardado alli manda sobre los nuevos: la

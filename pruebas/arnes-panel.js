@@ -913,8 +913,11 @@
              que dejan el documento- y entra el c37, que es una. El FAOV, el
              INCES y el RNET siguen contando: llevan data-tramo-de, que las
              esconde pero no las saca.
-             Y 32 desde el 22-9-2026, que se va la del IVSS. */
-             pendS === 29, pendS + ' por iniciar de 30 ofrecidas', '29');
+             Y 32 desde el 22-9-2026, que se va la del IVSS.
+             Y 33 el mismo dia, que entra la visa de inversionista (c38):
+             lleva data-tramo-de y no se ve en la cuadricula, pero cuenta
+             igual que el FAOV o el INCES. Esconderla no es sacarla. */
+             pendS === 30, pendS + ' por iniciar de 31 ofrecidas', '30');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -925,9 +928,10 @@
         var pend = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
           /* 33 desde la ZODI (c34), 35 desde el RUPDAE y el RUM, 34 desde
              que el c13 y el c35 se apagan y entra el c37, y 33 desde que
-             se va la del IVSS. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 30,
-             pend + ' por iniciar de 30 ofrecidas', '30');
+             se va la del IVSS, y 34 con la visa de inversionista (c38),
+             que se esconde pero se cuenta. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 31,
+             pend + ' por iniciar de 31 ofrecidas', '31');
       }
 
       /* ── la cadena entre trámites ──

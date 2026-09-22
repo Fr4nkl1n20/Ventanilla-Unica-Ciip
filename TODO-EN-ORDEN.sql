@@ -1,7 +1,7 @@
 -- ====================================================================
---  LOS 41 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat
+--  LOS 42 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat
 -- ====================================================================
---  Esto es la union literal de los 41 supabase-*.sql, sin cambiar una
+--  Esto es la union literal de los 42 supabase-*.sql, sin cambiar una
 --  coma, pegados en el orden que ejecuta el arnes contra un Postgres de
 --  usar y tirar. Ese orden no esta deducido leyendo cabeceras: si uno
 --  usara algo que otro define despues, la tanda se caeria diciendo cual.
@@ -12,12 +12,12 @@
 --  forma de poner al dia un proyecto que ya tenia la mitad.
 --
 --  Generado el 2026-09-22. Si cambia un archivo, se vuelve a generar:
---  no se edita a mano, que entonces son 41 sitios donde mirar.
+--  no se edita a mano, que entonces son 42 sitios donde mirar.
 -- ====================================================================
 
 
 -- ====================================================================
---  01 / 41   supabase-setup.sql
+--  01 / 42   supabase-setup.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -192,7 +192,7 @@ where p.id is null;
 --   from pg_class where relname = 'perfiles';
 
 -- ====================================================================
---  02 / 41   supabase-tramites.sql
+--  02 / 42   supabase-tramites.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -513,7 +513,7 @@ begin
 end $$;
 
 insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values
-  ('visa_inversionista',  'c1',  'Visa de negocios (TR-N)',          'MPPRE',               1, false),
+  ('visa_negocios',  'c1',  'Visa de negocios (TR-N)',          'MPPRE',               1, false),
   ('cedula_residencia',   'c2',  'Cédula de residencia',             'SAIME',               1, false),
   ('rif_personal',        'c3',  'RIF personal',                     'SENIAT',              1, true ),
   ('licencia_conducir',   'c4',  'Homologación de licencia',         'INTT',                1, false),
@@ -599,9 +599,9 @@ on conflict (codigo) do nothing;
 -- Aquí se dice en positivo y en negativo, para que la lista de activos sea
 -- exactamente esta y no se quede uno encendido de una prueba anterior.
 update public.tipos_tramite set activo = true
-  where codigo in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
+  where codigo in ('rif_personal', 'rif_empresa', 'visa_negocios', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
 update public.tipos_tramite set activo = false
-  where codigo not in ('rif_personal', 'rif_empresa', 'visa_inversionista', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
+  where codigo not in ('rif_personal', 'rif_empresa', 'visa_negocios', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
 
 
 -- La c1 era la visa de inversionista (TR-I), ante el SAIME. Desde el 15 de
@@ -611,7 +611,7 @@ update public.tipos_tramite set activo = false
 -- arriba: el INSERT no toca una base que ya tiene la fila.
 update public.tipos_tramite
    set nombre = 'Visa de negocios (TR-N)', ente = 'MPPRE'
- where codigo = 'visa_inversionista';
+ where codigo = 'visa_negocios';
 
 -- (La mudanza del c12 va ANTES del INSERT del catalogo, mas arriba.)
 
@@ -742,7 +742,7 @@ alter table public.tramites
 
 comment on table  public.tramites        is 'Una solicitud concreta de un inversionista';
 comment on column public.tramites.banco  is 'Banco aliado asignado (solo cuenta_bancaria). Null = todavía sin asignar';
-comment on column public.tramites.datos  is 'Campos del formulario, distintos por tipo. rif_personal: numero_documento, tipo_documento, fecha_nacimiento, direccion_fiscal, telefono, profesion. visa_inversionista (la TR-N): numero_pasaporte, pais_emisor, vence_pasaporte, consulado, motivo_viaje, contacto_venezuela. cedula_residencia: numero_visa, fecha_ingreso, estado_civil, ocupacion, telefono_local, direccion_vzla. licencia_conducir: numero_licencia, pais_licencia, categoria, fecha_emision, vence_licencia, direccion_vzla. rif_empresa: razon_social, numero_registro, fecha_constitucion, capital_social, actividad_economica, direccion_fiscal. constitucion: denominacion, denominacion_alt, estado_solicitud, oficina_registro, capital_social (el suscrito, en bolivares), seccion_actividad, tipo_sociedad (el tipo de empresa del SAREN), objeto_social, domicilio_social, socios. cuenta_bancaria: razon_social, rif_empresa, tipo_cuenta, moneda, ciudad_agencia, movimiento_estimado, firmantes, origen_fondos. marca: signo, tipo_signo, titular, en_uso, productos. registros_laborales: razon_social, rif_empresa, representante, actividad_economica, inicio_actividades, num_trabajadores, telefono, direccion_fiscal. licencia_municipal: razon_social, rif_empresa, municipio, tenencia, actividad_economica, metros, inicio_actividades, direccion_local. comercio_exterior: razon_social, rif_empresa, operacion, rubro, arancel, paises, aduana, mercancia. faov_banavih: razon_social, rif_empresa, representante, num_trabajadores, inicio_actividades, telefono, direccion_fiscal. inces: razon_social, rif_empresa, representante, actividad_economica, num_trabajadores, telefono, direccion_fiscal. rnet: razon_social, rif_empresa, representante, actividad_economica, num_trabajadores, inicio_actividades, direccion_fiscal. conformidad_uso: razon_social, rif_empresa, municipio, tenencia, actividad_economica, metros, direccion_local. permiso_bomberos: razon_social, rif_empresa, municipio, actividad_economica, metros, aforo, direccion_local. permiso_ambiental: razon_social, rif_empresa, impacto, municipio, actividad_economica, direccion_local, proceso. registro_inversion: razon_social, rif_empresa, modalidad, monto_inversion, moneda, pais_origen_fondos, fecha_aporte, financiamiento_interno, actividad_economica, destino_inversion. permiso_sanitario: razon_social, rif_empresa, tipo_establecimiento, rubro_sanitario, municipio, metros, num_trabajadores, direccion_local. rnc: razon_social, rif_empresa, numero_registro, representante, actividad_economica, clasificacion, capital_social, fecha_constitucion. solvencias: razon_social, rif_empresa, numero_patronal, nil_inces, nrc_faov, municipio, representante';
+comment on column public.tramites.datos  is 'Campos del formulario, distintos por tipo. rif_personal: numero_documento, tipo_documento, fecha_nacimiento, direccion_fiscal, telefono, profesion. visa_negocios (la TR-N): numero_pasaporte, pais_emisor, vence_pasaporte, consulado, motivo_viaje, contacto_venezuela. cedula_residencia: numero_visa, fecha_ingreso, estado_civil, ocupacion, telefono_local, direccion_vzla. licencia_conducir: numero_licencia, pais_licencia, categoria, fecha_emision, vence_licencia, direccion_vzla. rif_empresa: razon_social, numero_registro, fecha_constitucion, capital_social, actividad_economica, direccion_fiscal. constitucion: denominacion, denominacion_alt, estado_solicitud, oficina_registro, capital_social (el suscrito, en bolivares), seccion_actividad, tipo_sociedad (el tipo de empresa del SAREN), objeto_social, domicilio_social, socios. cuenta_bancaria: razon_social, rif_empresa, tipo_cuenta, moneda, ciudad_agencia, movimiento_estimado, firmantes, origen_fondos. marca: signo, tipo_signo, titular, en_uso, productos. registros_laborales: razon_social, rif_empresa, representante, actividad_economica, inicio_actividades, num_trabajadores, telefono, direccion_fiscal. licencia_municipal: razon_social, rif_empresa, municipio, tenencia, actividad_economica, metros, inicio_actividades, direccion_local. comercio_exterior: razon_social, rif_empresa, operacion, rubro, arancel, paises, aduana, mercancia. faov_banavih: razon_social, rif_empresa, representante, num_trabajadores, inicio_actividades, telefono, direccion_fiscal. inces: razon_social, rif_empresa, representante, actividad_economica, num_trabajadores, telefono, direccion_fiscal. rnet: razon_social, rif_empresa, representante, actividad_economica, num_trabajadores, inicio_actividades, direccion_fiscal. conformidad_uso: razon_social, rif_empresa, municipio, tenencia, actividad_economica, metros, direccion_local. permiso_bomberos: razon_social, rif_empresa, municipio, actividad_economica, metros, aforo, direccion_local. permiso_ambiental: razon_social, rif_empresa, impacto, municipio, actividad_economica, direccion_local, proceso. registro_inversion: razon_social, rif_empresa, modalidad, monto_inversion, moneda, pais_origen_fondos, fecha_aporte, financiamiento_interno, actividad_economica, destino_inversion. permiso_sanitario: razon_social, rif_empresa, tipo_establecimiento, rubro_sanitario, municipio, metros, num_trabajadores, direccion_local. rnc: razon_social, rif_empresa, numero_registro, representante, actividad_economica, clasificacion, capital_social, fecha_constitucion. solvencias: razon_social, rif_empresa, numero_patronal, nil_inces, nrc_faov, municipio, representante';
 comment on column public.tramites.gestor is 'Quién del CIIP lo lleva. Null = sin asignar, que es justo lo que la cola debe mostrar primero';
 
 create index if not exists tramites_por_inversionista on public.tramites (inversionista, estado);
@@ -1261,7 +1261,7 @@ create policy "recaudos: borrar de su carpeta" on storage.objects
 --    desde el SQL Editor no vale: ahí auth.uid() es null y RLS no aplica.
 
 -- ====================================================================
---  03 / 41   supabase-admin.sql
+--  03 / 42   supabase-admin.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1411,7 +1411,7 @@ create policy "perfiles: el admin reparte roles" on public.perfiles
 --   select relrowsecurity from pg_class where relname = 'perfiles';
 
 -- ====================================================================
---  04 / 41   supabase-citas.sql
+--  04 / 42   supabase-citas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1576,7 +1576,7 @@ create trigger citas_marca_tiempo
 -- (No se crea ninguna política de DELETE, así que RLS lo impide.)
 
 -- ====================================================================
---  05 / 41   supabase-empresa.sql
+--  05 / 42   supabase-empresa.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1677,7 +1677,7 @@ create trigger empresas_marca_tiempo
 --   select relname, relrowsecurity from pg_class where relname = 'empresas';
 
 -- ====================================================================
---  06 / 41   supabase-activos.sql
+--  06 / 42   supabase-activos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1811,7 +1811,7 @@ create trigger activos_marca_tiempo
 -- asi que no hay nada que añadir aqui.
 
 -- ====================================================================
---  07 / 41   supabase-identidad.sql
+--  07 / 42   supabase-identidad.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1970,7 +1970,7 @@ create policy "identidad: solo el equipo la firma"
 --  intenta con una sesión de gestor, que es como llegaría de fuera.
 
 -- ====================================================================
---  08 / 41   supabase-emision.sql
+--  08 / 42   supabase-emision.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2071,7 +2071,7 @@ create policy "recaudos: el equipo deja lo emitido" on storage.objects
 --   select * from public.tipos_documento where codigo = 'resolucion';
 
 -- ====================================================================
---  09 / 41   supabase-presencia.sql
+--  09 / 42   supabase-presencia.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2151,7 +2151,7 @@ grant execute on function public.tocar_visto() to authenticated;
 --   select nombre_completo, visto_en from public.perfiles order by visto_en desc nulls last;
 
 -- ====================================================================
---  10 / 41   supabase-sectores.sql
+--  10 / 42   supabase-sectores.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2319,7 +2319,7 @@ begin
 end $$;
 
 -- ====================================================================
---  11 / 41   supabase-catalogos.sql
+--  11 / 42   supabase-catalogos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2545,7 +2545,7 @@ from   pg_trigger
 where  not tgisinternal and tgrelid = 'public.tipos_tramite'::regclass;
 
 -- ====================================================================
---  12 / 41   supabase-bitacora.sql
+--  12 / 42   supabase-bitacora.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2801,7 +2801,7 @@ order  by cuando desc
 limit  20;
 
 -- ====================================================================
---  13 / 41   supabase-bloqueo.sql
+--  13 / 42   supabase-bloqueo.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2976,7 +2976,7 @@ where  p.bloqueado
 order  by p.bloqueado_en desc;
 
 -- ====================================================================
---  14 / 41   supabase-acompanamiento.sql
+--  14 / 42   supabase-acompanamiento.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3154,7 +3154,7 @@ where  schemaname = 'public' and tablename = 'acompanamiento';
 -- insert into public.acompanamiento (id) values (true);
 
 -- ====================================================================
---  15 / 41   supabase-gestor.sql
+--  15 / 42   supabase-gestor.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3265,7 +3265,7 @@ create trigger eventos_proteger
   for each row execute function public.eventos_solo_la_nota();
 
 -- ====================================================================
---  16 / 41   supabase-cola.sql
+--  16 / 42   supabase-cola.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3500,7 +3500,7 @@ create policy "trabajos: el equipo los ve" on public.trabajos
 --    no tenía conector o el trigger no está.
 
 -- ====================================================================
---  17 / 41   supabase-avisos.sql
+--  17 / 42   supabase-avisos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3802,7 +3802,7 @@ create policy "avisos: el equipo los ve" on public.avisos
 --    devolver 0 la segunda: no se avisa dos veces del mismo vencimiento.
 
 -- ====================================================================
---  18 / 41   supabase-aranceles.sql
+--  18 / 42   supabase-aranceles.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4130,7 +4130,7 @@ create policy "ordenes: la mia" on public.ordenes_pago
 --    en public.trabajos hasta que la orden quede 'pagada'.
 
 -- ====================================================================
---  19 / 41   supabase-huellas.sql
+--  19 / 42   supabase-huellas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4317,7 +4317,7 @@ create trigger documentos_huella_fija
 --   select count(*) from public.verificar_documento(repeat('a', 64));
 
 -- ====================================================================
---  20 / 41   supabase-encadenado.sql
+--  20 / 42   supabase-encadenado.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4389,7 +4389,7 @@ comment on column public.tipos_tramite.emite is
 -- cédula a esperar por un trámite que no le sirve. Se pone a null con
 -- UPDATE y no se borra la línea sin más: en una base que ya existe, el
 -- 'visa' de antes seguiría puesto.
-update public.tipos_tramite set emite = null                 where codigo = 'visa_inversionista';
+update public.tipos_tramite set emite = null                 where codigo = 'visa_negocios';
 update public.tipos_tramite set emite = 'cedula'             where codigo = 'cedula_residencia';
 update public.tipos_tramite set emite = 'rif_personal'       where codigo = 'rif_personal';
 update public.tipos_tramite set emite = 'acta_constitutiva'  where codigo = 'constitucion';
@@ -4441,7 +4441,7 @@ update public.tipos_tramite set emite = 'conformidad_uso'    where codigo = 'con
 --    en la tarjeta que diga «esperando a».
 
 -- ====================================================================
---  21 / 41   supabase-plazos.sql
+--  21 / 42   supabase-plazos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4665,7 +4665,7 @@ alter table public.tipos_tramite
 update public.tipos_tramite
    set plazo_legal_norma = 'Normas de Procedimiento para la Expedición de Visados, Gaceta Oficial Extraordinaria 5.427 del 5-1-2000',
        plazo_legal_dias  = null
- where codigo = 'visa_inversionista';
+ where codigo = 'visa_negocios';
 
 -- c3 · RIF personal
 --   Providencia SNAT/2026/00080, Gaceta Oficial 43.435 del 12 de agosto
@@ -4706,7 +4706,7 @@ update public.tipos_tramite
 --   where plazo_legal_dias is not null and plazo_legal_norma is null;
 
 -- ====================================================================
---  22 / 41   supabase-una-viva.sql
+--  22 / 42   supabase-una-viva.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4813,7 +4813,7 @@ comment on index public.tramites_una_viva is
 --    where tipo = 'solvencias' group by estado;
 
 -- ====================================================================
---  23 / 41   supabase-hilo.sql
+--  23 / 42   supabase-hilo.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -5075,7 +5075,7 @@ create policy "documentos: el equipo adjunta en un hilo" on public.documentos
 --    dos cuentas, y es lo que hace PROBAR-CERRADURAS.bat.
 
 -- ====================================================================
---  24 / 41   supabase-hilo-citas.sql
+--  24 / 42   supabase-hilo-citas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -5321,7 +5321,7 @@ create policy "cita_mensajes: escribir en mi cita" on public.cita_mensajes
 --    dos cuentas, y es lo que hace PROBAR-CERRADURAS.bat.
 
 -- ====================================================================
---  25 / 41   supabase-consultas.sql
+--  25 / 42   supabase-consultas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -5687,7 +5687,7 @@ create policy "consulta_mensajes: escribir en mi consulta" on public.consulta_me
 --      inversionista = <el id de B> tiene que ser rechazado.
 
 -- ====================================================================
---  26 / 41   supabase-informe-victor.sql
+--  26 / 42   supabase-informe-victor.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -5727,7 +5727,7 @@ create policy "consulta_mensajes: escribir en mi consulta" on public.consulta_me
 --
 --  FASE 1 · TÚ  ──  cinco, y son los cinco que pide el informe
 --  ─────────────────────────────────────────────────────────────────────
---    c1   visa_inversionista      Visa de inversionista (TR-I)   punto 1
+--    c1   visa_negocios           Visa de negocios (TR-N)        punto 1
 --    c2   cedula_residencia       Cédula de extranjería          punto 4
 --    c3   rif_personal            RIF personal                   punto 4
 --    c17  apostilla_documentos    Documentación apostillada      punto 3
@@ -5917,7 +5917,7 @@ comment on column public.tipos_tramite.nivel is
 --  regla; los antecedentes pasan a opcional porque no todos los
 --  consulados los exigen igual.
 update public.tipos_tramite set nivel = 'obligatorio'
- where codigo in ('visa_inversionista',      -- 1
+ where codigo in ('visa_negocios',      -- 1
                   'cedula_residencia',       -- 4, "cedula de extranjeria / transeunte"
                   'rif_personal',            -- 4
                   'apostilla_documentos',    -- 3, "documentacion personal apostillada"
@@ -6014,9 +6014,18 @@ update public.tipos_tramite set nivel = 'opcional'
 --  hubiera, con su ✓ de «ya lo tienes». Aquí eso no es un adorno: es el
 --  papel que dice qué se va a firmar, y con el equivocado el portal
 --  rechaza la solicitud entera. No vence: es el documento de una fecha.
+--  Y el tercero, el PUB (22 de septiembre de 2026): la Planilla Única
+--  Bancaria con la que el SAREN cobra. El portal la admite y no la
+--  exige, y en el panel va igual, OPCIONAL: quien ya pagó la trae y se
+--  ahorra una vuelta, y a quien viene a que el CIIP le diga cuánto
+--  cuesta no se le puede pedir el comprobante de lo que aún no ha
+--  pagado. Con tipo propio por lo mismo que el de arriba: en el cajón
+--  'otro' la bóveda le cuelga encima cualquier papel suelto. Tampoco
+--  vence: es el recibo de un pago con fecha.
 insert into public.tipos_documento (codigo, nombre, vence) values
   ('constancia_sisref',         'Constancia de firma en el Registro de Extranjeros (SISREF)', false),
-  ('documento_tramite_sisref',  'Documento del trámite que se va a otorgar',                  false)
+  ('documento_tramite_sisref',  'Documento del trámite que se va a otorgar',                  false),
+  ('pub_saren',                 'Planilla Única Bancaria (PUB) del pago al SAREN',            false)
 on conflict (codigo) do update set nombre = excluded.nombre;
 
 insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values
@@ -6129,7 +6138,7 @@ update public.tipos_tramite
 --   select ref_panel, nombre, fase, nivel from public.tipos_tramite where codigo = 'rnc';
 
 -- ====================================================================
---  27 / 41   supabase-pliego.sql
+--  27 / 42   supabase-pliego.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6522,7 +6531,7 @@ create policy "pliego: aceptar el propio" on public.pliego_aceptaciones
 --    PROBAR-CERRADURAS.bat.
 
 -- ====================================================================
---  28 / 41   supabase-disponibilidad.sql
+--  28 / 42   supabase-disponibilidad.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6853,7 +6862,7 @@ alter table public.cierres_citas add  constraint cierre_dia_laborable
   check (extract(isodow from fecha) between 1 and 5);
 
 -- ====================================================================
---  29 / 41   supabase-textos.sql
+--  29 / 42   supabase-textos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6996,7 +7005,7 @@ order  by cmd;
 select idioma, count(*) from public.textos_panel group by idioma order by idioma;
 
 -- ====================================================================
---  30 / 41   supabase-bitacora-ajustes.sql
+--  30 / 42   supabase-bitacora-ajustes.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7217,7 +7226,7 @@ select has_function_privilege('anon', 'public.apunta(text,text,text,text)', 'exe
        has_function_privilege('authenticated', 'public.apunta(text,text,text,text)', 'execute') as con_sesion_puede;
 
 -- ====================================================================
---  31 / 41   supabase-zodi.sql
+--  31 / 42   supabase-zodi.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7345,7 +7354,7 @@ update public.tipos_tramite
 --   where nivel = 'obligatorio' group by fase;
 
 -- ====================================================================
---  32 / 41   supabase-rupdae-rum.sql
+--  32 / 42   supabase-rupdae-rum.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7469,7 +7478,7 @@ update public.tipos_tramite
 --   where nivel = 'obligatorio' group by fase;
 
 -- ====================================================================
---  33 / 41   supabase-junta.sql
+--  33 / 42   supabase-junta.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7585,7 +7594,7 @@ on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.ve
 --   select count(*) from public.documentos where titular is not null;
 
 -- ====================================================================
---  34 / 41   supabase-textos-rastro.sql
+--  34 / 42   supabase-textos-rastro.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7723,7 +7732,7 @@ $bitacora$;
 --   where fuente = 'textos' order by id desc limit 3;
 
 -- ====================================================================
---  35 / 41   supabase-revision-papeles.sql
+--  35 / 42   supabase-revision-papeles.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7841,7 +7850,7 @@ $bitacora$;
 --   where fuente = 'papeles' order by id desc limit 3;
 
 -- ====================================================================
---  36 / 41   supabase-accionista-juridica.sql
+--  36 / 42   supabase-accionista-juridica.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7884,7 +7893,7 @@ on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.ve
 --   where codigo in ('constitutivo_accionista', 'identidad_socios_accionista');
 
 -- ====================================================================
---  37 / 41   supabase-reserva-nombre.sql
+--  37 / 42   supabase-reserva-nombre.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -8050,7 +8059,7 @@ drop function if exists public.tramites_constitucion_con_reserva();
 --                                                          -- NINGUNA fila
 
 -- ====================================================================
---  38 / 41   supabase-logos-fichas.sql
+--  38 / 42   supabase-logos-fichas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -8149,7 +8158,7 @@ create trigger bitacora_catalogo_logo
   for each row execute function public.bit_catalogo_logo();
 
 -- ====================================================================
---  39 / 41   supabase-protocolizacion.sql
+--  39 / 42   supabase-protocolizacion.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -8477,7 +8486,7 @@ create trigger tramites_protocolizacion_pago
 --        los aranceles
 
 -- ====================================================================
---  40 / 41   supabase-publicacion.sql
+--  40 / 42   supabase-publicacion.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -8784,7 +8793,7 @@ create trigger tramites_publicacion_pago
 --        publicación
 
 -- ====================================================================
---  41 / 41   supabase-parafiscales.sql
+--  41 / 42   supabase-parafiscales.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -8944,3 +8953,171 @@ update public.tipos_tramite
 --
 --   select fase, count(*) from public.tipos_tramite
 --   where nivel = 'obligatorio' group by fase;
+
+-- ====================================================================
+--  42 / 42   supabase-visa-tri.sql
+-- ====================================================================
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  LA VISA SE PARTE EN DOS: TR-N DE NEGOCIOS Y TR-I DE INVERSIONISTA
+--  Franklin Reyes, 22 de septiembre de 2026.
+-- ═══════════════════════════════════════════════════════════════════════
+--  En el panel las dos se presentan en UNA casilla -«Visa para
+--  Extranjeros»- y se elige dentro. Por debajo son DOS tramites, porque
+--  piden recaudos distintos y dan cosas distintas: la TR-N es de
+--  transeunte y dura un año; la TR-I dura tres, con multiples entradas y
+--  sin limite de permanencia.
+--
+--  ═══ EL LIO DEL CODIGO, QUE ES LO QUE ARREGLA ESTE ARCHIVO ═══════════
+--  La c1 nacio siendo la visa de inversionista, con el codigo
+--  'visa_inversionista'. El 15 de septiembre paso a ser la de negocios
+--  (TR-N) y se le cambio el NOMBRE, pero no el codigo: desde entonces la
+--  base decia 'visa_inversionista' de una ficha que se llama «Visa de
+--  negocios». Ahora que vuelve la TR-I de verdad, ese nombre lo necesita
+--  ella.
+--
+--      ANTES                                    DESPUES
+--      visa_inversionista → TR-N, c1            visa_negocios      → TR-N, c1
+--                                               visa_inversionista → TR-I, c38
+--
+--  ═══ POR QUE NO ES UN UPDATE Y YA ═══════════════════════════════════
+--  Cuatro tablas apuntan a tipos_tramite.codigo con clave foranea:
+--  tramites.tipo, citas.tipo_tramite, consultas.tipo y aranceles.tramite.
+--  Ninguna lleva ON UPDATE CASCADE, asi que cambiar el codigo con las
+--  solicitudes colgando lo rechaza la base. Y tampoco vale insertar
+--  primero la fila nueva: ref_panel es UNIQUE y 'c1' seguiria ocupado.
+--
+--  El camino que si funciona, y en este orden:
+--    1. copiar la fila con el codigo nuevo y un ref_panel provisional,
+--    2. mudar a ella lo que colgaba de la vieja,
+--    3. borrar la vieja, que ya no tiene hijos,
+--    4. devolverle el 'c1' de verdad,
+--    5. y recien entonces dar de alta la TR-I con el nombre liberado.
+--
+--  La copia se hace con una tabla temporal y `select *`, no enumerando
+--  columnas: tipos_tramite ha ido ganando columnas en otros archivos
+--  -plazo_dias, emite, nivel- y una lista escrita a mano las perderia sin
+--  decirlo.
+--
+--  ═══ SE PUEDE CORRER VARIAS VECES ═══════════════════════════════════
+--  Todo va dentro de guardas: si ya esta hecho, no hace nada y lo dice.
+-- ═══════════════════════════════════════════════════════════════════════
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 1. EL RECAUDO QUE SEPARA A LAS DOS
+--    El Certificado de Inversionista, que se saca por la Ventanilla Unica
+--    de Comercio Exterior. Tipo PROPIO y no el generico 'inversion': con
+--    el mismo tipo la boveda daria el uno por el otro, que es el mismo
+--    criterio que ya separa el certificado medico del pais de origen del
+--    de aqui. No vence: acredita un hecho de una fecha dada, no una
+--    situacion vigente.
+-- ───────────────────────────────────────────────────────────────────────
+insert into public.tipos_documento (codigo, nombre, vence) values
+  ('certificado_inversionista', 'Certificado de Inversionista (VUCE)', false)
+on conflict (codigo) do update
+  set nombre = excluded.nombre,
+      vence  = excluded.vence;
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 2. LIBERAR EL NOMBRE Y DAR DE ALTA LA TR-I
+-- ───────────────────────────────────────────────────────────────────────
+do $visas$
+declare
+  mudadas  bigint := 0;
+  cuantas  bigint;
+begin
+  -- ── 2.1  ¿Hay algo que hacer? ────────────────────────────────────────
+  -- Si 'visa_inversionista' ya no ocupa el c1, este archivo ya corrio.
+  if not exists (select 1 from public.tipos_tramite
+                  where codigo = 'visa_inversionista' and ref_panel = 'c1') then
+    raise notice 'El codigo ya estaba liberado: no hay nada que mudar.';
+  else
+    -- ── 2.2  La copia, con TODAS sus columnas ──────────────────────────
+    drop table if exists pg_temp.visa_vieja;
+    create temporary table visa_vieja as
+      select * from public.tipos_tramite where codigo = 'visa_inversionista';
+    update visa_vieja set codigo = 'visa_negocios', ref_panel = 'c1-provisional';
+    insert into public.tipos_tramite select * from visa_vieja;
+
+    -- ── 2.3  Lo que colgaba de la vieja, a la nueva ────────────────────
+    -- Cada tabla se mira antes: en una base recien creada puede que
+    -- todavia no existan, y el archivo tiene que correr igual.
+    if to_regclass('public.tramites') is not null then
+      update public.tramites set tipo = 'visa_negocios'
+       where tipo = 'visa_inversionista';
+      get diagnostics cuantas = row_count;  mudadas := mudadas + cuantas;
+    end if;
+
+    if to_regclass('public.citas') is not null then
+      update public.citas set tipo_tramite = 'visa_negocios'
+       where tipo_tramite = 'visa_inversionista';
+      get diagnostics cuantas = row_count;  mudadas := mudadas + cuantas;
+    end if;
+
+    if to_regclass('public.consultas') is not null then
+      update public.consultas set tipo = 'visa_negocios'
+       where tipo = 'visa_inversionista';
+      get diagnostics cuantas = row_count;  mudadas := mudadas + cuantas;
+    end if;
+
+    if to_regclass('public.aranceles') is not null then
+      update public.aranceles set tramite = 'visa_negocios'
+       where tramite = 'visa_inversionista';
+      get diagnostics cuantas = row_count;  mudadas := mudadas + cuantas;
+    end if;
+
+    -- ── 2.4  Fuera la vieja, que ya no tiene a nadie colgando ──────────
+    delete from public.tipos_tramite where codigo = 'visa_inversionista';
+
+    -- ── 2.5  Y el c1 de verdad para la TR-N ────────────────────────────
+    update public.tipos_tramite set ref_panel = 'c1'
+     where codigo = 'visa_negocios';
+
+    raise notice 'Codigo liberado. Filas mudadas a visa_negocios: %', mudadas;
+  end if;
+
+  -- ── 2.6  La TR-I, ya con su nombre ───────────────────────────────────
+  -- Nace APAGADA, como nacieron las demas: la enciende el CIIP cuando la
+  -- casilla este lista para recibir solicitudes.
+  insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values
+    ('visa_inversionista', 'c38', 'Visa de inversionista (TR-I)', 'MPPRE', 1, false)
+  on conflict (codigo) do update
+    set ref_panel = excluded.ref_panel,
+        nombre    = excluded.nombre,
+        ente      = excluded.ente,
+        fase      = excluded.fase;
+end
+$visas$;
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 3. SU PLAZO
+--    Los treinta dias son los que el catalogo del CIIP daba a la visa
+--    cuando la c1 ERA la TR-I, asi que vuelven a estar donde nacieron.
+--    Se pone aparte y con guarda porque la columna la crea
+--    supabase-plazos.sql, que puede no haber corrido todavia.
+-- ───────────────────────────────────────────────────────────────────────
+do $plazo$
+begin
+  if exists (select 1 from information_schema.columns
+              where table_schema = 'public'
+                and table_name   = 'tipos_tramite'
+                and column_name  = 'plazo_dias') then
+    update public.tipos_tramite set plazo_dias = 30
+     where codigo = 'visa_inversionista' and plazo_dias is null;
+  end if;
+end
+$plazo$;
+
+
+-- ───────────────────────────────────────────────────────────────────────
+-- 4. COMO QUEDO
+--    Lo esperado: dos filas, la TR-N en c1 y la TR-I en c38, y ninguna
+--    solicitud con el codigo viejo.
+-- ───────────────────────────────────────────────────────────────────────
+select codigo, ref_panel, nombre, ente, fase, activo
+  from public.tipos_tramite
+ where codigo in ('visa_negocios', 'visa_inversionista')
+ order by ref_panel;
