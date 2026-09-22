@@ -1743,50 +1743,50 @@ body[data-vista="citas"] .fase-bar{display:none;}
 
    Van por id + clase para ganarle a las reglas de arriba, que este mismo
    hueco compartía con la cola del equipo. */
-#mtFiltros.mt-cifras{display:grid; gap:10px; margin:0 0 14px; background:none;
+:is(#mtFiltros, #paCifras).mt-cifras{display:grid; gap:10px; margin:0 0 14px; background:none;
   border:0; padding:0; grid-template-columns:repeat(7, minmax(0, 1fr));}
-#mtFiltros.mt-cifras button{display:flex; flex-direction:column; align-items:stretch;
+:is(#mtFiltros, #paCifras).mt-cifras button{display:flex; flex-direction:column; align-items:stretch;
   gap:6px; text-align:left; border:1px solid var(--line); border-radius:var(--r);
   background:var(--bg); color:var(--ink); padding:12px 13px; cursor:pointer;
   border-bottom-width:3px; border-bottom-color:var(--navy);}
-#mtFiltros.mt-cifras button:hover{border-color:var(--cyan-deep); border-bottom-color:var(--navy);}
-#mtFiltros.mt-cifras button.aqui{background:var(--bg); color:var(--ink);
+:is(#mtFiltros, #paCifras).mt-cifras button:hover{border-color:var(--cyan-deep); border-bottom-color:var(--navy);}
+:is(#mtFiltros, #paCifras).mt-cifras button.aqui{background:var(--bg); color:var(--ink);
   border-color:var(--navy); box-shadow:inset 0 0 0 1px var(--navy);}
 /* El montón vacío se lee pero no se pulsa: llevar a una lista en blanco
    es una promesa que no se cumple, y esconderlo dejaría un hueco en la
    rejilla y una cifra que el tablero sí quiere enseñar. */
-#mtFiltros.mt-cifras button[aria-disabled="true"]{cursor:default; opacity:.85;
+:is(#mtFiltros, #paCifras).mt-cifras button[aria-disabled="true"]{cursor:default; opacity:.85;
   border-bottom-color:var(--line);}
-#mtFiltros.mt-cifras .mtc-h{display:flex; align-items:flex-start; gap:8px;
+:is(#mtFiltros, #paCifras).mt-cifras .mtc-h{display:flex; align-items:flex-start; gap:8px;
   justify-content:space-between;}
-#mtFiltros.mt-cifras .mtc-t{font-size:var(--fs-nota); font-weight:700; color:var(--navy);
+:is(#mtFiltros, #paCifras).mt-cifras .mtc-t{font-size:var(--fs-nota); font-weight:700; color:var(--navy);
   text-transform:uppercase; letter-spacing:.04em; line-height:1.25;}
-#mtFiltros.mt-cifras button[aria-disabled="true"] .mtc-t{color:var(--gray);}
-#mtFiltros.mt-cifras .mtc-i{flex:none; width:26px; height:26px; border-radius:7px;
+:is(#mtFiltros, #paCifras).mt-cifras button[aria-disabled="true"] .mtc-t{color:var(--gray);}
+:is(#mtFiltros, #paCifras).mt-cifras .mtc-i{flex:none; width:26px; height:26px; border-radius:7px;
   background:var(--block); display:flex; align-items:center; justify-content:center;}
-#mtFiltros.mt-cifras .mtc-i svg{width:15px; height:15px; fill:none; stroke:var(--navy);
+:is(#mtFiltros, #paCifras).mt-cifras .mtc-i svg{width:15px; height:15px; fill:none; stroke:var(--navy);
   stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
-#mtFiltros.mt-cifras .n{font-size:26px; font-weight:800; line-height:1; opacity:1;
+:is(#mtFiltros, #paCifras).mt-cifras .n{font-size:26px; font-weight:800; line-height:1; opacity:1;
   font-variant-numeric:tabular-nums; color:var(--ink);}
-#mtFiltros.mt-cifras .mtc-d{font-size:var(--fs-nota); color:var(--gray); line-height:1.3;}
+:is(#mtFiltros, #paCifras).mt-cifras .mtc-d{font-size:var(--fs-nota); color:var(--gray); line-height:1.3;}
 /* Lo que va tarde se dice en rojo, con la misma palabra y el mismo color
    que la cola del equipo. */
-#mtFiltros.mt-cifras button.tarde .n, #mtFiltros.mt-cifras button.tarde .mtc-t{color:var(--rust);}
-#mtFiltros.mt-cifras button.tarde{border-bottom-color:var(--rust);}
-#mtFiltros.mt-cifras button.tarde .mtc-i svg{stroke:var(--rust);}
+:is(#mtFiltros, #paCifras).mt-cifras button.tarde .n, :is(#mtFiltros, #paCifras).mt-cifras button.tarde .mtc-t{color:var(--rust);}
+:is(#mtFiltros, #paCifras).mt-cifras button.tarde{border-bottom-color:var(--rust);}
+:is(#mtFiltros, #paCifras).mt-cifras button.tarde .mtc-i svg{stroke:var(--rust);}
 /* Lo devuelto, en ambar: es el mismo color del distintivo de la fila y del
    aviso de la ficha, asi que las tres formas de enterarte de lo mismo se
    reconocen entre si. No en oxido, que aqui al lado significa «pasaste el
    plazo» y son dos cosas distintas. */
-#mtFiltros.mt-cifras button.devuelta .n,
-#mtFiltros.mt-cifras button.devuelta .mtc-t{color:var(--amber);}
-#mtFiltros.mt-cifras button.devuelta{border-bottom-color:var(--amber);}
-#mtFiltros.mt-cifras button.devuelta .mtc-i svg{stroke:var(--amber);}
+:is(#mtFiltros, #paCifras).mt-cifras button.devuelta .n,
+:is(#mtFiltros, #paCifras).mt-cifras button.devuelta .mtc-t{color:var(--amber);}
+:is(#mtFiltros, #paCifras).mt-cifras button.devuelta{border-bottom-color:var(--amber);}
+:is(#mtFiltros, #paCifras).mt-cifras button.devuelta .mtc-i svg{stroke:var(--amber);}
 @media (max-width: 1100px){
-  #mtFiltros.mt-cifras{grid-template-columns:repeat(3, minmax(0, 1fr));}
+  :is(#mtFiltros, #paCifras).mt-cifras{grid-template-columns:repeat(3, minmax(0, 1fr));}
 }
 @media (max-width: 620px){
-  #mtFiltros.mt-cifras{grid-template-columns:repeat(2, minmax(0, 1fr));}
+  :is(#mtFiltros, #paCifras).mt-cifras{grid-template-columns:repeat(2, minmax(0, 1fr));}
 }
 /* ── EL CONMUTADOR DE LA CASILLA ──
    Dos posiciones sobre el mismo fondo hundido, como el de idiomas de la
@@ -16676,6 +16676,17 @@ applyLang(idiomaParaMi());
     if (t.estado === 'devuelto') return false;
     if (coFiltro === 'sin')  return !t.gestor;
     if (coFiltro === 'mios') return !!YO && t.gestor === YO;
+    /* Y los tres que hasta el 22-9-2026 solo eran cifras que se leian.
+       Ahora reparten igual que los otros: la cifra se lee Y se pulsa, que
+       es lo que ya se hizo en Mis tramites. Tener un tablero que cuenta y
+       debajo unos filtros que cuentan lo mismo eran dos mecanismos para
+       una sola pregunta. */
+    if (coFiltro === 'tarde')   return hoyNivel(t) === 'tarde';
+    if (coFiltro === 'pronto')  return hoyNivel(t) === 'pronto';
+    if (coFiltro === 'papeles'){
+      var c = hoyCuenta(t);
+      return !!YO && t.gestor === YO && t.estado === 'en_revision' && !!(c && c.cargado);
+    }
     return true;
   }
 
@@ -17766,7 +17777,12 @@ applyLang(idiomaParaMi());
     /* El conmutador de la casilla, tambien aqui: sin el, desde las
        tarjetas no se podria volver a la tabla sin la barra lateral. */
     if (typeof pintaConmutaMt === 'function') pintaConmutaMt();
-    pintaFiltrosCola(document.getElementById('paFiltros'), pintaHoy);
+    /* Los filtros de esta vista ya no se pintan: sus cuatro montones son
+       ahora cuatro de los siete cuadros de arriba. El hueco se queda en el
+       marcado -y vacio- porque la OTRA vista de la cola, la de tabla,
+       sigue usando pintaFiltrosCola con su propia caja. */
+    var viejos = document.getElementById('paFiltros');
+    if (viejos){ viejos.textContent = ''; viejos.hidden = true; }
     pintaCifrasHoy();
 
     caja.textContent = '';
@@ -17785,32 +17801,89 @@ applyLang(idiomaParaMi());
 
   /* Las cuatro cifras cuentan la cola ENTERA, no el montón filtrado: «Míos»
      no puede hacer que lo que va tarde de otro deje de ir tarde. */
+  /* Los iconos de la cola. Cuatro son LOS MISMOS de MT_ICONOS a proposito:
+     el mismo monton con el mismo dibujo en las dos pantallas.
+
+     Se copian en vez de leerlos de alli, y no es pereza: MT_ICONOS se
+     declara dos mil cuatrocientas lineas mas abajo, asi que al evaluar
+     esto todavia no existe. Referenciarlo tumbaba el panel ENTERO con un
+     TypeError al cargar -de 8467 pruebas pasaban 5395- porque un error
+     aqui arriba se lleva por delante todo lo que viene detras. */
+  var CO_ICONOS = {
+    todos:     'M7 3h7l4 4v14H7zM14 3v5h4',
+    sin:       'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM5 20a7 7 0 0 1 14 0M18 4l4 4M22 4l-4 4',
+    mios:      'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM5 20a7 7 0 0 1 14 0',
+    tarde:     'M4 6h16v15H4zM4 10h16M8 3v4M16 3v4',
+    pronto:    'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2',
+    papeles:   'M7 3h7l4 4v14H7zM14 3v5h4M9 13h6M9 17h4',
+    devueltos: 'M9 14l-4-4 4-4M5 10h9a5 5 0 0 1 0 10h-3'
+  };
+
+  /* ── EL TABLERO DE LA COLA ──
+     Franklin Reyes, 22 de septiembre de 2026: «quiero que el diseño de
+     cuadros sea como el de tramites». Y no solo el aspecto: alli cada
+     cuadro ES el filtro, y aqui habia DOS mecanismos -cinco cifras que se
+     leian y cuatro filtros que se pulsaban- contando lo mismo con formas
+     distintas. Ahora son uno.
+
+     Las cifras cuentan la cola ENTERA y no el monton puesto: «Mios» no
+     puede hacer que lo que va tarde de otro deje de ir tarde. Por eso cada
+     una se cuenta poniendo su propio monton un momento, como hacen los
+     filtros de Mis tramites. */
+  var CO_MONTONES = [
+    ['todos',     'co_f_todos'],
+    ['sin',       'co_f_sin'],
+    ['mios',      'co_f_mios'],
+    ['tarde',     'co_h_n_tarde'],
+    ['pronto',    'co_h_n_pronto'],
+    ['papeles',   'co_h_n_papeles'],
+    ['devueltos', 'co_f_devueltos']
+  ];
+
   function pintaCifrasHoy(){
     var caja = document.getElementById('paCifras');
     if (!caja) return;
-    var u = T(), tarde = 0, pronto = 0, sin = 0, papeles = 0, devueltos = 0;
-    enRevision.forEach(function(t){
-      /* Un devuelto no va tarde ni está sin dueño: está esperando al
-         inversionista. Contarlo en las otras cuatro cifras las volvería
-         mentira el día que se devuelvan tres seguidos. Tiene la suya. */
-      if (t.estado === 'devuelto'){ devueltos++; return; }
-      var n = hoyNivel(t), c = hoyCuenta(t);
-      if (n === 'tarde') tarde++;
-      if (n === 'pronto') pronto++;
-      if (!t.gestor) sin++;
-      if (!!YO && t.gestor === YO && t.estado === 'en_revision' && c) papeles += c.cargado;
-    });
+    var u = T();
+    caja.className = 'mt-cifras';
     caja.textContent = '';
-    [[tarde, u.co_h_n_tarde, 'tarde'], [pronto, u.co_h_n_pronto, 'pronto'],
-     [sin, u.co_h_n_sin, null], [papeles, u.co_h_n_papeles, null],
-     [devueltos, u.co_f_devueltos, null]].forEach(function(x){
-      var d = el('div', 'hoy-cifra' + (x[2] && x[0] ? ' ' + x[2] : ''));
-      d.appendChild(el('b', null, String(x[0])));
-      d.appendChild(el('span', null, x[1] || ''));
-      caja.appendChild(d);
+
+    CO_MONTONES.forEach(function(m){
+      var antes = coFiltro;
+      coFiltro = m[0];
+      var n = enRevision.filter(coCuadra).length;
+      coFiltro = antes;
+
+      var puesto = (coFiltro === m[0]);
+      /* El color solo cuando hay algo que contar: un cero en ambar o en
+         oxido alarma de nada. Es la misma regla que en Mis tramites. */
+      var b = el('button', (puesto ? 'aqui' : '') +
+                           (m[0] === 'tarde' && n ? ' tarde' : '') +
+                           (m[0] === 'pronto' && n ? ' devuelta' : '') +
+                           (m[0] === 'devueltos' && n ? ' devuelta' : ''));
+      b.type = 'button';
+      b.setAttribute('data-monton', m[0]);
+
+      var cab = el('div', 'mtc-h');
+      cab.appendChild(el('span', 'mtc-t', u[m[1]] || ''));
+      var ico = el('span', 'mtc-i');
+      ico.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' +
+                      (CO_ICONOS[m[0]] || '') + '"/></svg>';
+      cab.appendChild(ico);
+      b.appendChild(cab);
+      b.appendChild(el('span', 'n', String(n)));
+
+      /* El monton vacio se lee pero no lleva a ninguna parte: un filtro
+         que deja la cola en blanco es una promesa que no se cumple.
+         'Todos' siempre se puede pulsar, que es como se vuelve. */
+      if (!n && m[0] !== 'todos'){
+        b.setAttribute('aria-disabled', 'true');
+      } else {
+        b.setAttribute('aria-pressed', puesto ? 'true' : 'false');
+        b.addEventListener('click', function(){ coFiltro = m[0]; pintaHoy(); });
+      }
+      caja.appendChild(b);
     });
   }
-
   /* Lo que toca hacer, en una frase que empieza por el verbo. «Constitución
      de empresa» no dice qué hacer con ella; «Valida 2 recaudos» sí. */
   function hoyVerbo(t){

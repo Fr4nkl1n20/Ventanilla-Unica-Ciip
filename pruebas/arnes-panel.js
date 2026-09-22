@@ -5519,10 +5519,29 @@
           sin ? sin.querySelectorAll('.hoy-th').length : 0, 2);
 
     var cifras = document.getElementById('paCifras');
-    igual('hoy: la cifra de arriba cuenta lo que va tarde',
-          (cifras.querySelector('.hoy-cifra.tarde b') || {}).textContent, '1');
-    igual('hoy: y lo que nadie ha tomado',
-          cifras.querySelectorAll('.hoy-cifra b')[2].textContent, '1');
+    /* El tablero de la cola pasa a ser el de Mis tramites el 22-9-2026: la
+       cifra se lee Y se pulsa. Se busca por data-monton y no por posicion
+       -antes era el tercer .hoy-cifra- porque el orden cambio al juntar las
+       cifras con los filtros, y una prueba que cuenta por sitio se rompe
+       cada vez que alguien añade un monton. */
+    function cifraDe(monton){
+      var b = cifras.querySelector('button[data-monton="' + monton + '"] .n');
+      return b ? b.textContent : '(no esta)';
+    }
+    igual('hoy: la cifra de arriba cuenta lo que va tarde', cifraDe('tarde'), '1');
+    igual('hoy: y lo que nadie ha tomado', cifraDe('sin'), '1');
+    /* Y ahora ademas reparten: pulsar un monton deja la cola con lo suyo.
+       'Todos' vuelve a enseñarlo todo, que es como se sale de cualquiera. */
+    var elTarde = cifras.querySelector('button[data-monton="tarde"]');
+    ok('hoy: y la cifra ademas filtra, como en Mis tramites',
+       !!elTarde && elTarde.getAttribute('aria-pressed') !== null,
+       elTarde ? ('aria-pressed=' + elTarde.getAttribute('aria-pressed')) : 'no esta',
+       'se puede pulsar');
+    var vacio = cifras.querySelector('button[aria-disabled="true"]');
+    ok('hoy: y el monton vacio se lee pero no se pulsa',
+       !vacio || vacio.getAttribute('data-monton') !== 'todos',
+       vacio ? ('apagado: ' + vacio.getAttribute('data-monton')) : 'ninguno apagado',
+       'todos nunca se apaga');
 
     /* Solo trámites: las consultas y las citas tienen su apartado. */
     ok('hoy: y solo trámites, sin consultas ni citas',
