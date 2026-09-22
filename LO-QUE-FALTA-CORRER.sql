@@ -311,7 +311,16 @@ select codigo, ref_panel, nombre from public.tipos_tramite
 --      Su ultima consulta ya comprueba como quedo: tienen que salir DOS
 --      filas, la TR-N en c1 y la TR-I en c38.
 
--- 6.3  Y que no quede ninguna solicitud con el codigo viejo. Lo normal
+-- 6.3  SI YA CORRISTE ESTO ANTES DEL 22 POR LA TARDE, esta linea hace
+--      falta: la TR-I se dio de alta APAGADA y asi no se puede abrir. El
+--      panel saca del arbol las tarjetas de lo que esta apagado, asi que
+--      su «Ver tramite» devolvia a la portada; y aunque no la sacara, sin
+--      activo la ficha enseña la escalera de adorno en vez del formulario.
+--      Si corres el archivo entero otra vez, esto ya va dentro.
+update public.tipos_tramite set activo = true
+ where codigo = 'visa_inversionista';
+
+-- 6.4  Y que no quede ninguna solicitud con el codigo viejo. Lo normal
 --      es que salga vacio: el propio archivo las muda.
 select tipo, count(*) as solicitudes
   from public.tramites

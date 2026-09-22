@@ -119,15 +119,24 @@ begin
   end if;
 
   -- ── 2.6  La TR-I, ya con su nombre ───────────────────────────────────
-  -- Nace APAGADA, como nacieron las demas: la enciende el CIIP cuando la
-  -- casilla este lista para recibir solicitudes.
+  -- Nace ENCENDIDA, y no apagada como nacieron otras. La diferencia es que
+  -- esta no tiene casilla propia en la portada: se llega a ella desde la
+  -- guia de la visa, y apagada NO SE PUEDE ABRIR. El panel saca del arbol
+  -- las tarjetas de lo que esta apagado, asi que pulsar «Ver tramite» en la
+  -- guia devolvia a la portada; y aunque no la sacara, sin 'activo' la
+  -- ficha enseña la escalera de adorno en vez del formulario.
+  --
+  -- El 'activo' se pone tambien al actualizar, que es como hacen los demas
+  -- archivos del catalogo -supabase-zodi.sql enciende el c34,
+  -- supabase-parafiscales apaga el c35-: aqui el SQL manda sobre el estado.
   insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values
-    ('visa_inversionista', 'c38', 'Visa de inversionista (TR-I)', 'MPPRE', 1, false)
+    ('visa_inversionista', 'c38', 'Visa de inversionista (TR-I)', 'MPPRE', 1, true)
   on conflict (codigo) do update
     set ref_panel = excluded.ref_panel,
         nombre    = excluded.nombre,
         ente      = excluded.ente,
-        fase      = excluded.fase;
+        fase      = excluded.fase,
+        activo    = excluded.activo;
 end
 $visas$;
 

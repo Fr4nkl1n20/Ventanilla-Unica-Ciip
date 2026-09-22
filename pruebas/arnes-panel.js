@@ -4289,6 +4289,27 @@
 
       /* Y lleva de verdad. Pulsarla tiene que abrir la OTRA ficha; si no,
          la c38 no tendria puerta: esta escondida de la cuadricula. */
+      /* Y que al otro lado HAYA algo. Esto no es de adorno: la c38 nacio
+         apagada en el catalogo, y el panel SACA DEL ARBOL las tarjetas de lo
+         que esta apagado. Pulsar la caja cambiaba el hash y devolvia a la
+         portada, porque no habia ficha que abrir. La prueba de antes miraba
+         el hash y pasaba en verde mientras la pantalla hacia justo eso.
+
+         Asi que se mira lo que de verdad hace falta: que su tarjeta siga en
+         el arbol -escondida por data-tramo-de, no sacada- y que el catalogo
+         la traiga ENCENDIDA, que es lo que decide si sale el formulario o la
+         escalera de adorno. */
+      var suTarjeta = document.querySelector('.tcard[data-tr="c38"]');
+      ok('visas: la ficha de la TR-I sigue en el arbol, no sacada',
+         !!suTarjeta,
+         suTarjeta ? 'esta' : 'la sacaron del arbol: no hay ficha que abrir',
+         'esta');
+      var suFila = (window.CIIP_TIPOS_POR_REF || {})['c38'];
+      ok('visas: y el catalogo la trae encendida, o no habria formulario',
+         !!(suFila && suFila.activo),
+         suFila ? ('activo=' + suFila.activo) : 'no esta en el catalogo',
+         'activo=true');
+
       if (tri){
         var antes = location.hash;
         tri.click();
