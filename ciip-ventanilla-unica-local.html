@@ -10307,7 +10307,19 @@ applyLang(idiomaParaMi());
       {n:'direccion_operacion',     clave:'f_zodidir',    ancho:true},
       {n:'objeto_social',           clave:'f_objeto',     ancho:true},
       {n:'justificacion',           clave:'f_zodijust',   ancho:true},
-      {n:'accionistas_extranjeros', clave:'f_zodicadena', ancho:true}
+      /* La cadena de accionistas NO frena el paso desde el 22 de septiembre
+         de 2026: lo pidio Franklin. Solo la tienen las empresas cuyos socios
+         son a su vez empresas -que es de lo que va este tramite-, pero la
+         ficha la abre cualquiera que crea que le toca la ZODI, y a quien
+         tiene socios personas no le queda nada que escribir ahi. Obligarlo
+         era dejarlo sin poder seguir por una casilla que no es suya.
+
+         El «(si aplica)» va DENTRO del rotulo, como en f_accjuridico. La
+         coletilla automatica de los campos opcionales no dice nada: su
+         clave -ui.opcional- no existe en el diccionario del panel, vive en
+         el bloque guia de pasos.js y es la frase de los DOCUMENTOS,
+         «subelo solo si te aplica». */
+      {n:'accionistas_extranjeros', clave:'f_zodicadena', ancho:true, opcional:true}
     ],
     /* El RUPDAE (c35). Los módulos del portal: datos generales,
        establecimientos y representante legal. El correo va aparte y dicho:
