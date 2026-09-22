@@ -10339,9 +10339,16 @@ applyLang(idiomaParaMi());
       {n:'idioma',           clave:'f_idioma'},
       {n:'numero_pasaporte', clave:'f_pasaporte'}
     ],
+    /* Sin el pais que emite el certificado desde el 22 de septiembre de
+       2026: lo pidio Franklin mirando la casilla. Lo que se traduce llega
+       con su pais escrito en el propio documento, y el interprete no
+       necesita que se lo digan aparte.
+
+       La clave f_paisorigen NO se va: la sigue usando el formulario de los
+       antecedentes penales, donde el pais emisor si decide algo -el MPPRE
+       apostilla segun quien firmo-. */
     apostilla_documentos: [
       {n:'documento',        clave:'f_docapost',   opcionesClave:'o_docapost'},
-      {n:'pais_origen',      clave:'f_paisorigen', paises:true},
       {n:'idioma',           clave:'f_idioma'},
       {n:'fecha_documento',  clave:'f_fechadoc',   tipo:'date'},
       {n:'uso_previsto',     clave:'f_uso',        ancho:true}
