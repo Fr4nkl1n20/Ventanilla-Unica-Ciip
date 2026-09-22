@@ -1274,8 +1274,28 @@
                 h2.slice(j+1, j+4).map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
                 'c12 c30 c36');
         }
-        igual('grupo: y son dos títulos, no uno repetido',
-              rej.querySelectorAll('.grupo-t').length, 2);
+        /* Y el TERCERO: los permisos del local, que no son sectoriales. El
+           rótulo de un grupo no cierra nada -es un hijo más de la rejilla-,
+           así que estas dos, que venían detrás, se leían como licencias
+           sectoriales. Por eso se comprueba QUÉ va detrás de cada rótulo y
+           no sólo que el rótulo exista. */
+        var t3 = rej.querySelector('.grupo-t[data-grupo="g.operativo"]');
+        ok('grupo: y el de los permisos del local', !!t3,
+           t3 ? t3.textContent.trim() : 'no está', 'Permisos operativos');
+        if (t3){
+          var h3 = [].slice.call(rej.children);
+          var k  = h3.indexOf(t3);
+          igual('grupo: con la conformidad de uso y los bomberos detrás',
+                h3.slice(k+1, k+3).map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
+                'c28 c29');
+          /* Y DETRÁS de las sectoriales: lo que depende del ramo primero y
+             lo que depende del inmueble después. */
+          ok('grupo: y va detrás de las licencias sectoriales',
+             !!t2 && k > h3.indexOf(t2),
+             'operativo en ' + k + ', sectorial en ' + h3.indexOf(t2), 'después');
+        }
+        igual('grupo: y son tres títulos, no uno repetido',
+              rej.querySelectorAll('.grupo-t').length, 3);
 
         /* Las dos, JUNTAS y detrás del título. Se lee la rejilla tal
            como quedó, en orden, y se comprueba que las que siguen
