@@ -1275,7 +1275,14 @@ window.CIIP_PASOS = {
       f_acto:       "Acto que vas a otorgar",
       f_entidad:    "Entidad",
       f_oficina:    "Oficina de registro o notaría",
-      f_accion:     "Cómo actúas en el trámite",
+      /* El nombre que trae el portal, letra por letra. Se llamaba «Cómo
+         actúas en el trámite» —más claro en castellano— y eso era justo
+         el problema: quien tiene el SISREF abierto al lado busca «Acción
+         a realizar en el trámite», no la encuentra, y da la casilla por
+         perdida. Pasó el 22 de septiembre de 2026, con las dos pantallas
+         juntas. Ahí el rótulo del portal vale más que el rótulo bonito.
+         Es el mismo motivo por el que las opciones van literales. */
+      f_accion:     "Acción a realizar en el trámite",
       /* Los seis que faltaban del portal del SAREN. Van juntos y detrás de
          los otros cuatro porque son del mismo formulario: el día que el
          SISREF cambie una etiqueta, están todas en el mismo sitio. */
@@ -2279,7 +2286,7 @@ window.CIIP_PASOS = {
       f_acto:       "Act to be executed",
       f_entidad:    "State",
       f_oficina:    "Registry or notary office",
-      f_accion:     "Your role in the procedure",
+      f_accion:     "Action to carry out in the procedure",
       f_nacionalidad:   "Nationality",
       f_nombres:        "First names",
       f_apellidos:      "Surnames",
@@ -3263,7 +3270,7 @@ window.CIIP_PASOS = {
       f_acto:       "Ato a outorgar",
       f_entidad:    "Entidade",
       f_oficina:    "Cartório de registo ou notário",
-      f_accion:     "Como atuas no trâmite",
+      f_accion:     "Ação a realizar no trâmite",
       f_nacionalidad:   "Nacionalidade",
       f_nombres:        "Nomes próprios",
       f_apellidos:      "Apelidos",
@@ -4247,7 +4254,7 @@ window.CIIP_PASOS = {
       f_acto:       "Atto da stipulare",
       f_entidad:    "Entità",
       f_oficina:    "Ufficio del registro o notaio",
-      f_accion:     "Il tuo ruolo nella pratica",
+      f_accion:     "Azione da svolgere nella pratica",
       f_nacionalidad:   "Nazionalità",
       f_nombres:        "Nome",
       f_apellidos:      "Cognome",
@@ -5231,7 +5238,7 @@ window.CIIP_PASOS = {
       f_acto:       "拟办理的法律行为",
       f_entidad:    "州",
       f_oficina:    "登记处或公证处",
-      f_accion:     "你在该手续中的身份",
+      f_accion:     "在该手续中要办理的行为",
       f_nacionalidad:   "国籍",
       f_nombres:        "名",
       f_apellidos:      "姓",
@@ -6215,7 +6222,7 @@ window.CIIP_PASOS = {
       f_acto:       "Оформляемый акт",
       f_entidad:    "Штат",
       f_oficina:    "Регистратура или нотариат",
-      f_accion:     "Ваша роль в процедуре",
+      f_accion:     "Действие в рамках процедуры",
       f_nacionalidad:   "Гражданство",
       f_nombres:        "Имя",
       f_apellidos:      "Фамилия",
