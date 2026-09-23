@@ -180,7 +180,10 @@ try {
     #     RNET, RNC y RUPDAE. Va DETRAS del 32, que enciende el c35 que
     #     este apaga; delante, aquel lo volveria a encender
     'supabase-parafiscales.sql',
-    'supabase-visa-tri.sql'
+    'supabase-visa-tri.sql',
+    # 43  la inscripcion en el SIDCAI (c39). Solo necesita el catalogo con
+    #     nivel y emite; va al final
+    'supabase-locti.sql'
   )
   $n = 0
   foreach ($f in $once) {

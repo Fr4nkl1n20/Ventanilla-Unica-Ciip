@@ -593,8 +593,11 @@
 
        Y OCHO desde el 22-9-2026: se va la del IVSS, y se va de verdad —la
        tarjeta deja el documento, no se esconde—. La cuenta dice lo que
-       hay: ocho casillas y ocho que se pueden terminar. */
-    igual('camino: la fase 03 cuenta sus 8',          deEtapa(2, '.jcount'), '0 de 8 listos');
+       hay: ocho casillas y ocho que se pueden terminar.
+
+       Y NUEVE desde el 23-9-2026: entra el SIDCAI (c39). Su segundo tramo
+       (c40) lleva data-tramo-de y no se cuenta, como la protocolización. */
+    igual('camino: la fase 03 cuenta sus 9',          deEtapa(2, '.jcount'), '0 de 9 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
        inversión extranjera tenía una etapa para él solo —y una etapa con una
        sola tarjeta dentro— y ahora comparte la 4 con el banco de activos y
@@ -916,8 +919,10 @@
              Y 32 desde el 22-9-2026, que se va la del IVSS.
              Y 33 el mismo dia, que entra la visa de inversionista (c38):
              lleva data-tramo-de y no se ve en la cuadricula, pero cuenta
-             igual que el FAOV o el INCES. Esconderla no es sacarla. */
-             pendS === 30, pendS + ' por iniciar de 31 ofrecidas', '30');
+             igual que el FAOV o el INCES. Esconderla no es sacarla.
+             Y 32 desde el 23-9-2026: el SIDCAI (c39) y su segundo tramo
+             (c40), que se esconde pero cuenta, por lo mismo. */
+             pendS === 32, pendS + ' por iniciar de 33 ofrecidas', '32');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -929,9 +934,10 @@
           /* 33 desde la ZODI (c34), 35 desde el RUPDAE y el RUM, 34 desde
              que el c13 y el c35 se apagan y entra el c37, y 33 desde que
              se va la del IVSS, y 34 con la visa de inversionista (c38),
-             que se esconde pero se cuenta. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 31,
-             pend + ' por iniciar de 31 ofrecidas', '31');
+             que se esconde pero se cuenta. Y 33 con el SIDCAI (c39) y su
+             segundo tramo (c40), por lo mismo. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 33,
+             pend + ' por iniciar de 33 ofrecidas', '33');
       }
 
       /* ── la cadena entre trámites ──
@@ -1300,10 +1306,11 @@
         if (t2){
           var h2 = [].slice.call(rej.children);
           var j  = h2.indexOf(t2);
-          /* Tres desde el Registro Único Minero (c36). */
-          igual('grupo: con sus tres detrás',
-                h2.slice(j+1, j+4).map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
-                'c12 c30 c36');
+          /* Tres desde el Registro Único Minero (c36), y cuatro desde el
+             SIDCAI (c39). */
+          igual('grupo: con sus cuatro detrás',
+                h2.slice(j+1, j+5).map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
+                'c12 c30 c36 c39');
         }
         /* Y el SEGUNDO: los permisos del local, que no son sectoriales. El
            rótulo de un grupo no cierra nada -es un hijo más de la rejilla-,
@@ -1337,8 +1344,10 @@
            data-tramo-de —no se ven, pero están— porque el doble no los
            trae en el catálogo, que es como se comporta una ficha sin fila.
            El IVSS no: de ése se fue la tarjeta del documento. */
-        igual('grupo: la fase 03 se queda con once tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 11);
+        /* Y TRECE desde el 23-9-2026: el SIDCAI (c39) y su segundo tramo
+           (c40), que como el FAOV se esconde pero está. */
+        igual('grupo: la fase 03 se queda con trece tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 13);
         ok('grupo: y el título no es una tarjeta',
            !t.classList.contains('tcard') && !t.hasAttribute('data-tr'),
            t.className, 'sin ser tarjeta');
@@ -1360,12 +1369,12 @@
            grupo salga dos veces, no que haya dos grupos. */
         igual('grupo: repintar no lo duplica',
               rej.querySelectorAll('.grupo-t[data-grupo="g.sectorial"]').length, 1);
-        igual('grupo: y las tres siguen donde estaban',
+        igual('grupo: y las cuatro siguen donde estaban',
               [].slice.call(rej.children)
                 .slice([].slice.call(rej.children).indexOf(t) + 1,
-                       [].slice.call(rej.children).indexOf(t) + 4)
+                       [].slice.call(rej.children).indexOf(t) + 5)
                 .map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
-              'c12 c30 c36');
+              'c12 c30 c36 c39');
 
         /* Y se traduce al cambiar de idioma, como cualquier otro rótulo:
            lleva data-i18n, así que de eso se encarga applyLang. */

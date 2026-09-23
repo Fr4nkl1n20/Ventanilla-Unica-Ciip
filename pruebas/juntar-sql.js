@@ -107,7 +107,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    -que se habia quedado en la ficha de la TR-N- y da de alta la TR-I. Va el
    ULTIMO a proposito: toca una fila del catalogo y lo que cuelga de ella en
    cuatro tablas, asi que todo lo demas tiene que existir ya. */
-'supabase-visa-tri'];
+'supabase-visa-tri',
+/* La inscripcion en el SIDCAI (c39). Solo necesita el catalogo con
+   `nivel` y `emite`; va al final para no mover el numero de nadie. */
+'supabase-locti'];
 
 let mal = 0;
 for (const n of orden) {

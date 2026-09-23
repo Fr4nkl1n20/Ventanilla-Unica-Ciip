@@ -304,6 +304,14 @@
     {codigo:'registro_minero', ref_panel:'c36', ente:'Ministerio de Desarrollo Minero',
      activo:true, emite:'certificado_rum', plazo_dias:null,
      nombre:'Registro Único Minero', fase:3, nivel:'actividad'},
+    /* El SIDCAI (c39) y su segundo tramo (c40), del 23-9-2026. Como el
+       RUM: 'actividad' y sin plazo. El certificado sale del segundo. */
+    {codigo:'aporte_locti', ref_panel:'c39', ente:'FONACIT',
+     activo:true, emite:null, plazo_dias:null,
+     nombre:'Inscripción en el SIDCAI (aporte LOCTI)', fase:3, nivel:'actividad'},
+    {codigo:'aporte_locti_pago', ref_panel:'c40', ente:'FONACIT',
+     activo:true, emite:'certificado_locti', plazo_dias:null,
+     nombre:'Declaración y primer pago del aporte LOCTI', fase:3, nivel:'actividad'},
 
     /* Y va en 'opcional', que TAMPOCO es lo que dice el catálogo de verdad
        -allí se queda con el 'esencial' por defecto-. Es la segunda fila que
@@ -1595,7 +1603,9 @@
         {codigo:'comprobante_capital', vence:false}, {codigo:'carta_comisario', vence:false},
         {codigo:'estatutos_accionista', vence:false}, {codigo:'good_standing', vence:true},
         {codigo:'beneficiarios_finales', vence:false}, {codigo:'no_objecion_zodi', vence:false},
-        {codigo:'certificado_rupdae', vence:false}, {codigo:'certificado_rum', vence:true}
+        {codigo:'certificado_rupdae', vence:false}, {codigo:'certificado_rum', vence:true},
+        {codigo:'certificado_locti', vence:true}, {codigo:'planilla_locti', vence:false},
+        {codigo:'pago_locti', vence:false}
       ], error:null};
     }
 

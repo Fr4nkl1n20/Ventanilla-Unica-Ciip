@@ -2727,6 +2727,17 @@ select arnes.comprueba(
     where (t.codigo = 'rupdae' and d.codigo = 'certificado_rupdae' and not d.vence)
        or (t.codigo = 'registro_minero' and d.codigo = 'certificado_rum' and d.vence)));
 
+-- La inscripcion en el SIDCAI (c39), del encargo del 23 de septiembre de
+-- 2026: fase 3, encendida, 'actividad' -solo si se pasa del umbral de
+-- ingresos-, sin plazo, y emite un certificado que vence.
+select arnes.comprueba(
+  'locti: c39 en la fase 3, encendida, por actividad y sin plazo',
+  (select fase = 3 and activo and nivel = 'actividad' and plazo_dias is null
+     from public.tipos_tramite where codigo = 'aporte_locti' and ref_panel = 'c39'),
+  (select coalesce(string_agg(ref_panel || ' ' || nivel || ' activo=' || activo::text, ', '), 'no esta')
+     from public.tipos_tramite where codigo = 'aporte_locti'));
+
+
 -- ── LAS CINCO INSCRIPCIONES, EN UNA CASILLA (c37) ──────────────────────
 -- Del encargo del 20 de septiembre de 2026: «vamos a agrupar los tramites
 -- de Banavih, Inces, Ministerio de Trabajo, RNC y Rupdae en una sola
@@ -3184,6 +3195,111 @@ end
 $pr$;
 reset role;
 select arnes.nadie();
+
+-- ── EL SIDCAI, EN DOS TRAMOS (c39 y c40) ───────────────────────────────
+-- Del encargo del 23-9-2026, con el molde de la constitución: resuelta la
+-- inscripción nace la declaración con el primer pago, con lo que aquélla
+-- decía y en manos del mismo gestor, y no se resuelve sin el comprobante.
+insert into auth.users (email, raw_user_meta_data) values
+  ('l@prueba.local', '{"nombre_completo":"Lucia Locti","pais":"Italia"}');
+insert into arnes.gente (papel, id)
+select 'L', id from auth.users where email = 'l@prueba.local';
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'L'));
+do $lc$
+declare
+  cual uuid;
+begin
+  insert into public.tramites (inversionista, tipo, estado, datos)
+  values (auth.uid(), 'aporte_locti', 'borrador', jsonb_build_object(
+            'razon_social',    'LOCTI PRUEBA C.A.',
+            'rif_empresa',     'J-12345678-9',
+            'ingresos_brutos', '9000000',
+            'usuario_principal', 'Lucia Locti, lucia@locti.com'))
+  returning id into cual;
+  delete from arnes.escenario where clave = 'lc_c39';
+  insert into arnes.escenario (clave, id) values ('lc_c39', cual);
+  update public.tramites set estado = 'enviado' where id = cual;
+end
+$lc$;
+
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $lc$
+declare
+  cual uuid := (select id from arnes.escenario where clave = 'lc_c39');
+  paso text;
+begin
+  update public.tramites set gestor = auth.uid() where id = cual;
+  foreach paso in array array['en_revision','ante_el_ente','resuelto'] loop
+    update public.tramites set estado = paso where id = cual;
+  end loop;
+end
+$lc$;
+
+reset role;
+select arnes.nadie();
+select arnes.comprueba(
+  'sidcai: resuelta la inscripcion, nace el primer pago enviado',
+  (select count(*) = 1 from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'L')
+      and tipo = 'aporte_locti_pago' and estado = 'enviado'),
+  (select coalesce(string_agg(tipo || ':' || estado, ', '), 'ninguna')
+     from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'L')
+      and tipo = 'aporte_locti_pago'));
+
+select arnes.comprueba(
+  'sidcai: y nace en manos de quien resolvio la inscripcion',
+  (select gestor = (select id from arnes.gente where papel = 'G')
+     from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'L')
+      and tipo = 'aporte_locti_pago'),
+  (select coalesce(gestor::text, 'sin asignar') from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'L')
+      and tipo = 'aporte_locti_pago'));
+
+-- Trae la razón social, el RIF y los ingresos; el usuario principal no,
+-- que es de la inscripción.
+select arnes.comprueba(
+  'sidcai: y trae la razon social, el RIF y los ingresos',
+  (select datos->>'razon_social' = 'LOCTI PRUEBA C.A.'
+      and datos->>'rif_empresa' = 'J-12345678-9'
+      and datos->>'ingresos_brutos' = '9000000'
+      and not (datos ? 'usuario_principal')
+     from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'L')
+      and tipo = 'aporte_locti_pago'),
+  (select datos::text from public.tramites
+    where inversionista = (select id from arnes.gente where papel = 'L')
+      and tipo = 'aporte_locti_pago'));
+
+-- Sin el comprobante del pago, el equipo no puede darlo por resuelto.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $lc$
+declare
+  cual uuid := (select id from public.tramites
+                 where inversionista = (select id from arnes.gente where papel = 'L')
+                   and tipo = 'aporte_locti_pago');
+begin
+  update public.tramites set estado = 'resuelto' where id = cual;
+  perform arnes.comprueba('sidcai: sin el comprobante del pago no se resuelve', false,
+                          'se resolvio');
+exception when check_violation then
+  perform arnes.comprueba('sidcai: sin el comprobante del pago no se resuelve', true);
+end
+$lc$;
+reset role;
+select arnes.nadie();
+
+-- Y el certificado sale del segundo tramo, no del primero.
+select arnes.comprueba(
+  'sidcai: el certificado lo emite el primer pago, y caduca',
+  (select emite is null from public.tipos_tramite where codigo = 'aporte_locti')
+  and (select count(*) = 1 from public.tipos_tramite t
+         join public.tipos_documento d on d.codigo = t.emite
+        where t.codigo = 'aporte_locti_pago' and d.codigo = 'certificado_locti' and d.vence));
 
 \o
 \pset tuples_only on
