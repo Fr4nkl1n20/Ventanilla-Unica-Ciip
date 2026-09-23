@@ -3163,17 +3163,20 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .pe-titulo{font-size:var(--fs-seccion); font-weight:700; color:var(--ink);}
 /* Uno debajo del otro (Franklin, 23-9-2026): se probó en fila y se
    prefirió así, cada ente a lo ancho y con espacio para leerlo. */
-.pe-lista{display:flex; flex-direction:column; gap:12px; margin-top:12px; max-width:760px;}
-.pe-ente{display:flex; flex-direction:column; min-width:0; padding:14px;
+.pe-lista{display:flex; flex-direction:column; gap:8px; margin-top:10px; max-width:560px;}
+.pe-ente{display:flex; flex-direction:column; min-width:0; padding:10px 12px;
   border:1px solid var(--line); border-radius:var(--r); background:var(--card-2);}
 .pe-ente[data-st="listo"]{border-color:var(--good); background:var(--good-bg);}
-/* El nombre a la izquierda y el estado a la derecha; si no caben, el
-   estado baja solo. */
-.pe-cab{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px 10px;
-  padding-bottom:12px; border-bottom:1px solid var(--line);}
-.pe-n{font-size:var(--fs-fila); font-weight:700; color:var(--ink); line-height:1.3;}
-.pe-pasos{margin-top:12px;}
-.pe-pasos .tr-paso{padding-bottom:14px;}
+/* El estado pegado al nombre: en el otro extremo de la tarjeta parecía
+   suelto, sin saberse de quién era. */
+.pe-cab{display:flex; align-items:center; justify-content:flex-start; flex-wrap:wrap; gap:6px 8px;
+  padding-bottom:8px; border-bottom:1px solid var(--line);}
+.pe-n{font-size:var(--fs-nota); font-weight:700; color:var(--ink); line-height:1.3;}
+.pe-pasos{margin-top:8px;}
+.pe-pasos .tr-paso{padding-bottom:8px; gap:10px;}
+.pe-pasos .tr-punto{width:20px; height:20px; font-size:10px;}
+.pe-pasos .tr-paso:not(:last-child)::before{left:9px; top:22px;}
+.pe-pasos .tr-txt{padding-top:2px;}
 .pe-pasos .tr-paso:last-child{padding-bottom:0;}
 /* Sin esto el texto del paso no se encoge y la casilla y el botón se
    salían por la derecha de la tarjeta. */
@@ -3186,12 +3189,12 @@ body[data-vista="tramite"] #secTramites{display:none;}
   background:none; border:0; padding:0; cursor:pointer; text-decoration:underline;}
 /* La casilla del código y enviar, en una línea. En un móvil la casilla
    se queda sola arriba. */
-.pe-form{display:flex; align-items:stretch; gap:8px; flex-wrap:wrap; margin-top:8px;}
-.pe-form input[type=text]{flex:0 1 320px; width:320px; max-width:100%; min-width:0; box-sizing:border-box; padding:8px 10px; font:inherit;
+.pe-form{display:flex; align-items:stretch; gap:6px; flex-wrap:wrap; margin-top:6px;}
+.pe-form input[type=text]{flex:0 1 240px; width:240px; max-width:100%; min-width:0; box-sizing:border-box; padding:5px 8px; font:inherit;
   font-size:var(--fs-nota); border:1px solid var(--line); border-radius:var(--r-sm); background:var(--bg); color:var(--ink);}
 .pe-form input[type=text]:focus{outline:none; border-color:var(--cyan-deep);}
 .pe-form input[type=file]{display:none;}
-.pe-form .pe-env{flex:none; padding:8px 16px; justify-content:center; text-align:center;}
+.pe-form .pe-env{flex:none; padding:5px 12px; font-size:var(--fs-nota); min-height:0; justify-content:center; text-align:center;}
 .pe-cab .chip{white-space:normal; max-width:100%;}
 .pe-msg{flex-basis:100%; font-size:var(--fs-nota); color:var(--gray);}
 .pe-msg:empty{display:none;}
