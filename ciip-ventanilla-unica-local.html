@@ -13178,9 +13178,17 @@ applyLang(idiomaParaMi());
     });
   }
 
+  /* ignoreDuplicates: si el papel ya estaba enganchado, no se hace nada.
+     Sin eso el upsert intentaba ACTUALIZAR la fila que ya existía, y
+     tramite_documentos no tiene política de UPDATE -no hay nada que
+     cambiar en ella-, así que la base lo rechazaba con «new row violates
+     row-level security policy (USING expression)». Pasaba al reintentar
+     un envío que había fallado a medias: los papeles que sí se habían
+     enganchado la primera vez tumbaban el segundo intento (23-9-2026). */
   function engancha(tramiteId, documentoId){
     return sb.from('tramite_documentos')
-      .upsert({tramite: tramiteId, documento: documentoId}, {onConflict:'tramite,documento'})
+      .upsert({tramite: tramiteId, documento: documentoId},
+              {onConflict:'tramite,documento', ignoreDuplicates:true})
       .then(function(r){ if (r.error) throw r.error; });
   }
 
