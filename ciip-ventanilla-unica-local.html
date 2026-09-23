@@ -2371,6 +2371,26 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .rv-msg:empty{display:none;}
 @media (max-width:900px){ .rv{grid-template-columns:1fr;} }
 /* La bóveda de comprobantes: la misma bandeja, con buscador por nombre. */
+/* Tres columnas: quién, qué subió y el comprobante abierto (23-9-2026). */
+#cb{grid-template-columns:minmax(0,230px) minmax(0,300px) minmax(0,1fr);}
+@media (max-width:1100px){ #cb{grid-template-columns:minmax(0,220px) minmax(0,1fr);} #cb .rv-visor{grid-column:1 / -1;} }
+@media (max-width:900px){ #cb{grid-template-columns:1fr;} }
+#cb .rv-lista{align-content:start;}
+.cb-sub{padding:10px 13px; border-bottom:1px solid var(--line); font-size:var(--fs-chip); font-weight:800;
+  letter-spacing:.05em; text-transform:uppercase; color:var(--gray);}
+.cb-persona{font:inherit; color:inherit; text-align:left; display:flex; align-items:center; gap:10px; width:100%;
+  padding:10px 12px; border:0; border-bottom:1px solid var(--line-soft); background:none; cursor:pointer;}
+.cb-persona:last-child{border-bottom:0;}
+.cb-persona:hover{background:var(--card-2);}
+.cb-persona[aria-current="true"]{background:var(--activa-bg); box-shadow:inset 3px 0 0 var(--navy2);}
+.cb-ini{width:30px; height:30px; border-radius:50%; flex:none; display:inline-flex; align-items:center; justify-content:center;
+  background:var(--activa-bg); color:var(--navy); font-size:var(--fs-chip); font-weight:800;}
+.cb-persona[aria-current="true"] .cb-ini{background:var(--bg);}
+.cb-quien{display:grid; min-width:0; flex:1;}
+.cb-quien .nom{font-size:var(--fs-fila); font-weight:700; overflow-wrap:anywhere;}
+.cb-quien .cu{font-size:var(--fs-nota); color:var(--gray);}
+.cb-pm{flex:none; min-width:22px; text-align:center; font-size:var(--fs-chip); font-weight:700; border-radius:20px;
+  padding:2px 7px; background:var(--amber-bg); color:var(--amber);}
 .cb-busca{grid-column:1 / -1;}
 .cb-busca input{width:100%; max-width:360px; font:inherit; font-size:var(--fs-campo); padding:8px 10px;
   border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink);}
@@ -20034,10 +20054,42 @@ applyLang(idiomaParaMi());
      nombres, mismos trámites. Dos consultas distintas acabarían diciendo
      cosas distintas del mismo papel. */
   var CB_TIPOS = ['reserva_nombre', 'pago_aranceles', 'comprobante_capital', 'comprobante_aporte'];
-  var cbFiltro = 'todos', cbBusca = '', cbElegido = null;
+  var cbBusca = '', cbPersona = null, cbElegido = null;
 
   function cbTodos(){
     return (rvDocs || []).filter(function(d){ return CB_TIPOS.indexOf(d.tipo) >= 0; });
+  }
+
+  /* Los comprobantes, de persona en persona: el nombre sale una vez en la
+     columna de la izquierda y no encabezando cada renglón
+     (Franklin Reyes, 23-9-2026: «se repite mucho el nombre del
+     inversionista»; eligió la maqueta de tres paneles). Se agrupa por la
+     cuenta que lo subió y no por el nombre: dos personas pueden llamarse
+     igual, y el «sin nombre» no es una sola persona. */
+  function cbGente(docs){
+    var por = {}, orden = [];
+    docs.forEach(function(d){
+      var k = d.inversionista || '';
+      if (!por[k]){ por[k] = {id: k, nombre: rvDueno(d), docs: []}; orden.push(por[k]); }
+      por[k].docs.push(d);
+    });
+    /* Lo más nuevo primero, dentro y fuera: arriba quien acaba de subir algo. */
+    function nuevo(a, b){ return (Date.parse(b.creado_en) || 0) - (Date.parse(a.creado_en) || 0); }
+    orden.forEach(function(p){ p.docs.sort(nuevo); });
+    orden.sort(function(a, b){ return nuevo(a.docs[0], b.docs[0]); });
+    return orden;
+  }
+
+  function cbIniciales(n){
+    return String(n || '').replace(/[()]/g, '').trim().split(/\s+/)
+      .map(function(x){ return x.charAt(0); }).slice(0, 2).join('').toUpperCase();
+  }
+
+  function cbEstado(d){
+    var u = T();
+    if (d.estado === 'validado') return el('span', 'ct-chip listo', u.co_h_validado || '');
+    if (d.estado === 'rechazado') return el('span', 'ct-chip no', u.dc_rechazado || '');
+    return el('span', 'ct-chip', u.co_h_pormirar || '');
   }
 
   function cbPinta(){
@@ -20048,23 +20100,6 @@ applyLang(idiomaParaMi());
        no quitárselo a quien está escribiendo. */
     var escribiendo = document.activeElement && document.activeElement.id === 'cbBusca';
     caja.textContent = '';
-    var todos = cbTodos();
-
-    var filtros = el('div', 'rv-filtros');
-    filtros.setAttribute('role', 'group');
-    [['todos', u.cb_todos || '']].concat(CB_TIPOS.map(function(t){ return [t, nombreDeTipo_doc(t)]; }))
-      .forEach(function(f){
-        var b = el('button', 'rv-filtro', f[1]);
-        b.type = 'button';
-        b.setAttribute('data-f', f[0]);
-        b.setAttribute('aria-pressed', cbFiltro === f[0] ? 'true' : 'false');
-        var cuantos = f[0] === 'todos' ? todos.length
-                    : todos.filter(function(d){ return d.tipo === f[0]; }).length;
-        b.appendChild(el('span', 'n', String(cuantos)));
-        b.addEventListener('click', function(){ cbFiltro = f[0]; cbElegido = null; cbPinta(); });
-        filtros.appendChild(b);
-      });
-    caja.appendChild(filtros);
 
     var busca = el('div', 'cb-busca');
     var campo = el('input');
@@ -20074,44 +20109,69 @@ applyLang(idiomaParaMi());
     campo.placeholder = u.cb_busca || '';
     campo.setAttribute('aria-label', u.cb_busca || '');
     campo.value = cbBusca;
-    campo.addEventListener('input', function(){ cbBusca = campo.value; cbElegido = null; cbPinta(); });
+    campo.addEventListener('input', function(){ cbBusca = campo.value; cbPinta(); });
     busca.appendChild(campo);
     caja.appendChild(busca);
 
-    /* Lo más nuevo primero: lo que interesa es lo que acaba de llegar. */
+    /* El buscador filtra personas, no papeles. */
     var q = cbBusca.trim().toLowerCase();
-    var vistos = todos.filter(function(d){
-      if (cbFiltro !== 'todos' && d.tipo !== cbFiltro) return false;
-      return !q || rvDueno(d).toLowerCase().indexOf(q) >= 0;
-    });
-    vistos.sort(function(a, b){ return (Date.parse(b.creado_en) || 0) - (Date.parse(a.creado_en) || 0); });
-    if (cbElegido && !vistos.some(function(d){ return d.id === cbElegido; })) cbElegido = null;
-    if (!cbElegido && vistos.length) cbElegido = vistos[0].id;
+    var gente = cbGente(cbTodos()).filter(function(p){ return !q || p.nombre.toLowerCase().indexOf(q) >= 0; });
+    var yo = gente.filter(function(p){ return p.id === cbPersona; })[0] || gente[0] || null;
+    cbPersona = yo ? yo.id : null;
+    if (!yo || !yo.docs.some(function(d){ return d.id === cbElegido; })) cbElegido = yo ? yo.docs[0].id : null;
 
-    var lista = el('div', 'rv-lista');
-    if (!vistos.length) lista.appendChild(el('div', 'rv-vacio', u.cb_vacio || ''));
-    vistos.forEach(function(d){
-      var b = el('button', 'rv-fila');
+    /* Primera columna: quién. */
+    var col1 = el('div', 'rv-lista cb-gente');
+    col1.appendChild(el('div', 'cb-sub', (u.cb_gente || '') + ' · ' + gente.length));
+    if (!gente.length) col1.appendChild(el('div', 'rv-vacio', u.cb_vacio || ''));
+    gente.forEach(function(p){
+      var b = el('button', 'cb-persona');
       b.type = 'button';
-      b.setAttribute('data-doc', d.id);
-      b.setAttribute('aria-current', d.id === cbElegido ? 'true' : 'false');
-      b.appendChild(el('span', 't', rvDueno(d)));
-      b.appendChild(el('span', 'h', d.creado_en ? fecha(d.creado_en) : ''));
-      var de = el('span', 'de');
-      de.appendChild(document.createTextNode(nombreDeTipo_doc(d.tipo)));
-      var usos = rvUsos[d.id] || [];
-      de.appendChild(usos.length ? el('span', 'rv-chip', usos[0] + (usos.length > 1 ? ' +' + (usos.length - 1) : ''))
-                                 : el('span', 'rv-chip suelto', u.rv_suelto || ''));
-      b.appendChild(de);
-      b.addEventListener('click', function(){ cbElegido = d.id; cbPinta(); });
-      lista.appendChild(b);
+      b.setAttribute('aria-current', p.id === cbPersona ? 'true' : 'false');
+      b.appendChild(el('span', 'cb-ini', cbIniciales(p.nombre)));
+      var tx = el('span', 'cb-quien');
+      tx.appendChild(el('span', 'nom', p.nombre));
+      tx.appendChild(el('span', 'cu', p.docs.length + ' · '
+        + String(u.cb_ultimo || '').replace('{fecha}', p.docs[0].creado_en ? fecha(p.docs[0].creado_en) : '')));
+      b.appendChild(tx);
+      var pm = p.docs.filter(function(d){ return d.estado === 'cargado'; }).length;
+      if (pm){
+        var n = el('span', 'cb-pm', String(pm));
+        n.title = String(u.cb_pormirar || '').replace('{n}', pm);
+        b.appendChild(n);
+      }
+      b.addEventListener('click', function(){ cbPersona = p.id; cbElegido = null; cbPinta(); });
+      col1.appendChild(b);
     });
-    caja.appendChild(lista);
+    caja.appendChild(col1);
+
+    /* Segunda: qué subió. Cada renglón dice qué comprobante es, no de quién. */
+    var lista = el('div', 'rv-lista');
+    if (yo){
+      lista.appendChild(el('div', 'cb-sub', String(u.cb_de || '').replace('{nombre}', yo.nombre)));
+      yo.docs.forEach(function(d){
+        var b = el('button', 'rv-fila');
+        b.type = 'button';
+        b.setAttribute('data-doc', d.id);
+        b.setAttribute('aria-current', d.id === cbElegido ? 'true' : 'false');
+        b.appendChild(el('span', 't', nombreDeTipo_doc(d.tipo)));
+        b.appendChild(el('span', 'h', d.creado_en ? fecha(d.creado_en) : ''));
+        var de = el('span', 'de');
+        var usos = rvUsos[d.id] || [];
+        de.appendChild(usos.length ? el('span', 'rv-chip', usos[0] + (usos.length > 1 ? ' +' + (usos.length - 1) : ''))
+                                   : el('span', 'rv-chip suelto', u.rv_suelto || ''));
+        de.appendChild(cbEstado(d));
+        b.appendChild(de);
+        b.addEventListener('click', function(){ cbElegido = d.id; cbPinta(); });
+        lista.appendChild(b);
+      });
+      caja.appendChild(lista);
+    }
 
     var visor = el('div', 'rv-visor');
     visor.setAttribute('aria-live', 'polite');
     caja.appendChild(visor);
-    cbVisor(visor, vistos.filter(function(d){ return d.id === cbElegido; })[0]);
+    cbVisor(visor, yo && yo.docs.filter(function(d){ return d.id === cbElegido; })[0]);
 
     if (escribiendo){
       campo.focus();
@@ -20125,8 +20185,8 @@ applyLang(idiomaParaMi());
 
     var cab = el('div', 'rv-cab');
     var ti = el('div');
-    ti.appendChild(el('div', 't', rvDueno(d)));
-    ti.appendChild(el('div', 's', nombreDeTipo_doc(d.tipo) + (d.creado_en
+    ti.appendChild(el('div', 't', nombreDeTipo_doc(d.tipo)));
+    ti.appendChild(el('div', 's', rvDueno(d) + (d.creado_en
       ? ' · ' + String(u.rv_subido || '').replace('{fecha}', fecha(d.creado_en)) : '')));
     cab.appendChild(ti);
     /* Dos botones: mirarlo y llevárselo. Abrir deja el comprobante en una

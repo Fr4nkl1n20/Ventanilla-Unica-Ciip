@@ -10428,8 +10428,14 @@
        !!nav && !nav.hidden, nav ? (nav.hidden ? 'escondido' : 'a la vista') : 'no está', 'a la vista');
     var filas = [].map.call(document.querySelectorAll('#cb .rv-fila'), function(f){ return f.getAttribute('data-doc'); });
     igual('comprobantes: sale el comprobante, y solo él', filas.join(','), 'doc6');
+    /* El nombre sale una vez, en la columna de personas, y el renglón dice
+       qué comprobante es (Franklin Reyes, 23-9-2026). */
+    var quien = [].map.call(document.querySelectorAll('#cb .cb-persona .nom'), function(n){ return n.textContent; });
+    igual('comprobantes: con el nombre de quien lo subió, una sola vez', quien.join(','), 'Marta Bianchi');
     var fila = document.querySelector('#cb .rv-fila[data-doc="doc6"] .t');
-    igual('comprobantes: con el nombre de quien lo subió', fila && fila.textContent, 'Marta Bianchi');
+    ok('comprobantes: el renglón dice qué comprobante es, no de quién',
+       !!fila && fila.textContent !== 'Marta Bianchi' && !!fila.textContent,
+       fila ? fila.textContent : '(sin renglón)', 'el tipo de comprobante');
     var campo = document.getElementById('cbBusca');
     if (campo){
       campo.value = 'nadie con este nombre';
