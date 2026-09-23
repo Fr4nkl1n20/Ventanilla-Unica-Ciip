@@ -9959,25 +9959,6 @@ applyLang(idiomaParaMi());
          que el organismo acepta no lo puede rechazar la ventanilla. */
       {n:'acto',             clave:'f_acto',     ancho:true,
        buscaSegun:'tipo_oficina', buscaEn:(window.CIIP_SAREN || {}).actos},
-      /* LOS LIBROS, detras del acto porque es de donde cuelgan: al portal
-         se le dice cuantos son y cuales, y solo cuando lo que se otorga es
-         el sellado de los libros del registro mercantil. Por eso los dos
-         van OPCIONALES: exigirlos frenaria a todo el que viene a firmar
-         cualquier otra cosa, que son casi todos.
-
-         Los siete nombres van literales y en mayuscula, como las demas
-         listas de este tramite: son lo que el portal espera recibir, y
-         quien transcribe no tiene que deshacer ninguna traduccion.
-
-         Y se eligen DE UNO EN UNO, con «Anadir libro»: una misma solicitud
-         puede llevar el DIARIO y el MAYOR, y una casilla sola obligaria a
-         partirla en dos. Se guardan en una linea, «ACTAS; DIARIO», igual
-         que la junta directiva del c5: al otro lado hay una columna de
-         texto y un PDF, no una tabla. */
-      {n:'cantidad_libros',  clave:'f_cantlibros', tipo:'number', opcional:true},
-      {n:'libros',           clave:'f_libros',     tipo:'listaelige', ancho:true, opcional:true,
-       elige:['ACCIONISTAS', 'ACTAS', 'DIARIO', 'MAYOR', 'INVENTARIO', 'JUNTAS DIRECTIVAS', 'SOCIOS'],
-       vacia:'f_libros_elige', mas:'f_libros_mas', quita:'f_libros_quita'},
       {n:'forma_pago',       clave:'f_formapago',
        opciones:['Transferencia','Exonerado','Divisa','Débito','Cheque']},
       {n:'fecha_solicitud',  clave:'f_fechasolicitud', tipo:'date'}
@@ -10488,6 +10469,29 @@ applyLang(idiomaParaMi());
       {n:'razon_social',        clave:'f_razon',       ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
       {n:'actividad_economica', clave:'f_actividad'},
+      /* LOS LIBROS, aqui y no en el SISREF (22 de septiembre de 2026,
+         Franklin). Entraron con el c32 porque el portal del SAREN los
+         pregunta, y alli los veia todo el que va a firmar cualquier otra
+         cosa -que son casi todos-: el sellado es UN acto de los
+         novecientos que ofrece el portal. Este tramite es el del sellado,
+         asi que es donde la pregunta encuentra a quien sabe contestarla.
+
+         Los siete nombres van literales y en mayuscula, como en el portal
+         del SAREN: es lo que el registro espera recibir, y quien
+         transcribe no tiene que deshacer ninguna traduccion.
+
+         Y se eligen DE UNO EN UNO, con «Anadir libro»: una misma
+         solicitud puede llevar el DIARIO y el MAYOR, y una casilla sola
+         obligaria a partirla en dos. Se guardan en una linea, «ACTAS;
+         DIARIO», igual que la junta directiva del c5: al otro lado hay
+         una columna de texto y un PDF, no una tabla.
+
+         Siguen OPCIONALES: el c24 tambien lleva la facturacion, y quien
+         viene solo a homologar su sistema no tiene libros que sellar. */
+      {n:'cantidad_libros',     clave:'f_cantlibros', tipo:'number', opcional:true},
+      {n:'libros',              clave:'f_libros',     tipo:'listaelige', ancho:true, opcional:true,
+       elige:['ACCIONISTAS', 'ACTAS', 'DIARIO', 'MAYOR', 'INVENTARIO', 'JUNTAS DIRECTIVAS', 'SOCIOS'],
+       vacia:'f_libros_elige', mas:'f_libros_mas', quita:'f_libros_quita'},
       {n:'tipo_facturacion',    clave:'f_tipofact',    opcionesClave:'o_tipofact'},
       {n:'inicio_actividades',  clave:'f_iniciolab',   tipo:'date'},
       {n:'direccion_fiscal',    clave:'f_direccion',   ancho:true}
@@ -11699,8 +11703,8 @@ applyLang(idiomaParaMi());
       /* UNA LISTA DE LO QUE SE ELIGE.
          Es la lista de personas quitandole la persona: aqui no se escribe
          nada, solo se elige de una lista cerrada y se anaden renglones. Los
-         libros del SAREN son siete y una solicitud puede pedir varios, asi
-         que una casilla sola obligaria a mandar dos solicitudes.
+         libros del registro mercantil son siete y una solicitud puede pedir
+         varios, asi que una casilla sola obligaria a mandar dos solicitudes.
 
          Rama aparte y no un parametro mas de 'lista': alli cada fila lleva
          nombre, cargo y los papeles de esa persona, y tocar aquello para
@@ -11757,8 +11761,8 @@ applyLang(idiomaParaMi());
             selE.appendChild(op);
           });
           /* Lo que ya venia guardado se respeta aunque no este en la lista
-             -el SAREN puede anadir un libro-: sale como una opcion mas en
-             vez de perderse al abrir el borrador. */
+             -el registro puede anadir un libro-: sale como una opcion mas
+             en vez de perderse al abrir el borrador. */
           if (valor && (c.elige || []).indexOf(valor) < 0){
             var viejoE = document.createElement('option');
             viejoE.value = valor; viejoE.textContent = valor;

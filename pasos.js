@@ -1298,7 +1298,14 @@ window.CIIP_PASOS = {
          cambia es la L: en esta casa no hay mayusculas en mitad de un
          rotulo, y la comprobacion de escritura lo dice. Los siete nombres
          de los libros no se traducen -van al formulario, literales-, pero
-         el rotulo si: quien rellena puede no leer castellano. */
+         el rotulo si: quien rellena puede no leer castellano.
+
+         Las dos casillas se preguntan en el SELLADO DE LIBROS (c24) desde
+         el 22 de septiembre de 2026, no en el SISREF: el rotulo sigue
+         siendo el del portal del SAREN, que es donde el gestor lo
+         transcribe, pero quien lo rellena es el que viene a sellar. Las
+         claves se quedan aqui, entre las del SAREN, porque de ahi salen
+         las palabras. */
       f_cantlibros:     "Cantidad de libros",
       f_libros:         "Agregar libros",
       f_libros_elige:   "Seleccione una opción",
