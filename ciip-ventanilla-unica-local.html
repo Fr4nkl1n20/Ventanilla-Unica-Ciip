@@ -3162,31 +3162,47 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .pe-bloque{margin-top:22px;}
 .pe-titulo{font-size:var(--fs-seccion); font-weight:700; color:var(--ink);}
 /* Una al lado de la otra (Franklin, 23-9-2026): caben las que quepan y
-   bajan solas cuando no; en un móvil, una debajo de otra. */
-.pe-lista{display:grid; grid-template-columns:repeat(auto-fill, minmax(min(210px, 100%), 1fr));
-  gap:10px; margin-top:10px; align-items:start;}
+   bajan solas cuando no; en un móvil, una debajo de otra. Todas de la
+   misma altura, para que la fila se lea como una fila. */
+.pe-lista{display:grid; grid-template-columns:repeat(auto-fill, minmax(min(185px, 100%), 1fr));
+  gap:12px; margin-top:12px; align-items:stretch;}
+.pe-ente{display:flex; flex-direction:column; min-width:0; padding:14px;
+  border:1px solid var(--line); border-radius:var(--r); background:var(--card-2);}
+.pe-ente[data-st="listo"]{border-color:var(--good); background:var(--good-bg);}
+/* El nombre arriba y el estado debajo: con el nombre largo del Ministerio
+   el estado se bajaba de renglón solo en esa tarjeta y la hacía más alta. */
+.pe-cab{display:flex; flex-direction:column; align-items:flex-start; gap:6px;
+  padding-bottom:12px; border-bottom:1px solid var(--line);}
+.pe-n{font-size:var(--fs-fila); font-weight:700; color:var(--ink); line-height:1.3;}
 .pe-pasos{margin-top:12px;}
 .pe-pasos .tr-paso{padding-bottom:14px;}
 .pe-pasos .tr-paso:last-child{padding-bottom:0;}
-.pe-form .sd-btn{font:inherit; font-size:var(--fs-boton); font-weight:700; cursor:pointer; flex:none;
-  background:var(--block); color:var(--navy2); border:1px solid var(--line);
-  border-radius:7px; padding:7px 12px;}
-.pe-form .sd-btn:hover{border-color:var(--cyan-deep);}
-.pe-ente{padding:12px; border:1px solid var(--line); border-radius:var(--r); background:var(--card-2); min-width:0;}
-.pe-ente[data-st="listo"]{border-color:var(--good);}
-.pe-cab{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
-.pe-n{font-size:var(--fs-nota); font-weight:600; color:var(--ink); flex:1 1 auto; min-width:0;}
+/* Sin esto el texto del paso no se encoge y la casilla y el botón se
+   salían por la derecha de la tarjeta. */
+.pe-pasos .tr-txt{flex:1 1 auto; min-width:0;}
+.pe-pasos .tr-paso-n{font-size:var(--fs-nota);}
 .pe-dice{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;
   font-size:var(--fs-nota); color:var(--gray); overflow-wrap:anywhere;}
 .pe-dice[hidden], .pe-form[hidden], .pe-listo[hidden]{display:none;}
 .pe-ver{font:inherit; font-size:var(--fs-nota); font-weight:700; color:var(--navy2);
   background:none; border:0; padding:0; cursor:pointer; text-decoration:underline;}
-.pe-form{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:8px;}
-.pe-form input[type=text]{flex:1 1 100%; min-width:0; padding:7px 10px; font:inherit;
+/* Casilla, adjuntar y enviar, cada uno a lo ancho: con cinco tarjetas en
+   fila no caben dos botones juntos sin cortar el texto. */
+.pe-form{display:flex; align-items:stretch; gap:8px; flex-wrap:wrap; margin-top:8px;}
+.pe-form input[type=text]{flex:1 1 100%; min-width:0; box-sizing:border-box; padding:8px 10px; font:inherit;
   font-size:var(--fs-nota); border:1px solid var(--line); border-radius:var(--r-sm); background:var(--bg); color:var(--ink);}
+.pe-form input[type=text]:focus{outline:none; border-color:var(--cyan-deep);}
 .pe-form input[type=file]{display:none;}
+.pe-form .sd-btn{flex:1 1 100%; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font:inherit; font-size:var(--fs-nota); font-weight:700; cursor:pointer;
+  background:var(--block); color:var(--navy2); border:1px dashed var(--line);
+  border-radius:var(--r-sm); padding:8px 10px;}
+.pe-form .sd-btn:hover{border-color:var(--cyan-deep);}
+.pe-form .pe-env{flex:1 1 100%; padding:8px 16px; justify-content:center; text-align:center;}
+.pe-cab .chip{white-space:normal; max-width:100%;}
 .pe-msg{flex-basis:100%; font-size:var(--fs-nota); color:var(--gray);}
 .pe-msg:empty{display:none;}
+.pe-listo{margin-top:8px;}
 .co-entes{margin-top:12px;}
 .co-entes-h{font-size:var(--fs-nota); font-weight:700; color:var(--ink);}
 .tr-pagar-p{margin-top:7px;}
