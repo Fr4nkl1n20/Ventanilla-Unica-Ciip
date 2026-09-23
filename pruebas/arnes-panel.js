@@ -4195,7 +4195,7 @@
     ok('parafiscales: ya se puede solicitar, no solo leer',
        campos.length > 0 && docs.length > 0,
        campos.length + ' campos y ' + docs.length + ' recaudos', 'formulario con campos y recaudos');
-    igual('parafiscales: pide los catorce datos de los cinco entes', campos.length, 14);
+    igual('parafiscales: pide los trece datos de los cinco entes', campos.length, 13);
     igual('parafiscales: y los trece recaudos, en una sola lista', docs.length, 13);
 
     (function(){
@@ -4230,7 +4230,6 @@
        'num_trabajadores',    /* BANAVIH e INCES */
        'inicio_actividades',  /* RNET */
        'actividad_economica', /* INCES */
-       'clasificacion',       /* RNC: bienes, servicios u obras */
        'capital_social'       /* RNC */
       ].forEach(function(n){
         if (!caja.querySelector('.sol-campo[data-campo="' + n + '"]')) faltan.push(n);
