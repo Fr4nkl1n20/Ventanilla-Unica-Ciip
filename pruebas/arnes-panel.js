@@ -4089,10 +4089,10 @@
       sino.dispatchEvent(new Event('change'));
     }
 
-    /* Opcionales, los «(si aplica)»: la matriz, el Good Standing, el poder
-       y la cédula y el RIF del representante legal. */
-    igual('zodi: y cinco son opcionales',
-      caja.querySelectorAll('.sol-doc[data-opcional]').length, 5);
+    /* Opcionales, los «si aplica»: el Good Standing, el poder y la cédula
+       y el RIF del representante legal. La matriz es obligatoria con «Sí». */
+    igual('zodi: y cuatro son opcionales',
+      caja.querySelectorAll('.sol-doc[data-opcional]').length, 4);
 
     var mot = caja.querySelector('.sol-campo[data-campo="motivo_zodi"] select');
     var ops = [];

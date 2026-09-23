@@ -9647,12 +9647,13 @@ applyLang(idiomaParaMi());
          cazan igual: leyendo el rótulo al lado del tipo. */
       /* La lista es de Franklin, del 23 de septiembre de 2026. Los cinco
          de la cadena corporativa cuelgan del «Sí» a «¿tiene accionistas
-         jurídicos?»: con «No» ni se ven ni se piden. Los «(si aplica)» son
-         opcionales y lo dicen en su rótulo. El poder dejó de ser
+         jurídicos?»: con «No» ni se ven ni se piden. Los «si aplica» son
+         opcionales; el panel ya les pone «(opcional)» detrás, así que el
+         rótulo no lo repite. La matriz es obligatoria. El poder dejó de ser
          obligatorio, y con eso el c34 ya no espera al c33. */
       {tipo:'proyecto_acta',           clave:'d_actaproyecto'},
       {tipo:'identidad_accionistas',   clave:'d_idaccionistas'},
-      {tipo:'juridico_matriz',         clave:'d_juridicomatriz', opcional:true, siCasilla:'accionistas_extranjeros'},
+      {tipo:'juridico_matriz',         clave:'d_juridicomatriz',                siCasilla:'accionistas_extranjeros'},
       {tipo:'constitutivo_accionista', clave:'d_juridicoacc',                   siCasilla:'accionistas_extranjeros'},
       {tipo:'good_standing',           clave:'d_goodstanding',   opcional:true, siCasilla:'accionistas_extranjeros'},
       {tipo:'beneficiarios_finales',   clave:'d_beneficiarios',                 siCasilla:'accionistas_extranjeros'},
