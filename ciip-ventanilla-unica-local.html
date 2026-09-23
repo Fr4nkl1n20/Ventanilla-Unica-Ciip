@@ -3189,10 +3189,15 @@ body[data-vista="tramite"] #secTramites{display:none;}
   background:none; border:0; padding:0; cursor:pointer; text-decoration:underline;}
 /* La casilla del código y enviar, en una línea. En un móvil la casilla
    se queda sola arriba. */
-.pe-form{display:flex; align-items:stretch; gap:6px; flex-wrap:wrap; margin-top:6px;}
+.pe-form{display:flex; align-items:stretch; gap:0; flex-wrap:wrap; margin-top:6px;}
 .pe-form input[type=text]{flex:0 1 240px; width:240px; max-width:100%; min-width:0; box-sizing:border-box; padding:5px 8px; font:inherit;
   font-size:var(--fs-nota); border:1px solid var(--line); border-radius:var(--r-sm); background:var(--bg); color:var(--ink);}
 .pe-form input[type=text]:focus{outline:none; border-color:var(--cyan-deep);}
+/* Casilla y botón en una sola pieza: pegados, con las esquinas de dentro
+   rectas (Franklin, 23-9-2026). */
+.pe-form input[type=text]{border-top-right-radius:0; border-bottom-right-radius:0; border-right:0;}
+.pe-form .pe-env{border-top-left-radius:0; border-bottom-left-radius:0;}
+.pe-msg{margin-top:6px;}
 .pe-form input[type=file]{display:none;}
 .pe-form .pe-env{flex:none; padding:5px 12px; font-size:var(--fs-nota); min-height:0; justify-content:center; text-align:center;}
 .pe-cab .chip{white-space:normal; max-width:100%;}
