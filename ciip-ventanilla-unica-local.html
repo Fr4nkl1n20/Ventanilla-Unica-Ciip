@@ -3159,8 +3159,20 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-papel.puesto{border-color:var(--good);}
 /* Los cinco entes de los registros parafiscales, cada uno en su recuadro y
    con su avance: van por separado aunque la solicitud sea una. */
-.pe-lista{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
-.pe-ente{padding:10px 12px; border:1px solid var(--line); border-radius:var(--r); background:var(--card-2);}
+.pe-bloque{margin-top:22px;}
+.pe-titulo{font-size:var(--fs-seccion); font-weight:700; color:var(--ink);}
+/* Una al lado de la otra (Franklin, 23-9-2026): caben las que quepan y
+   bajan solas cuando no; en un móvil, una debajo de otra. */
+.pe-lista{display:grid; grid-template-columns:repeat(auto-fill, minmax(min(210px, 100%), 1fr));
+  gap:10px; margin-top:10px; align-items:start;}
+.pe-pasos{margin-top:12px;}
+.pe-pasos .tr-paso{padding-bottom:14px;}
+.pe-pasos .tr-paso:last-child{padding-bottom:0;}
+.pe-form .sd-btn{font:inherit; font-size:var(--fs-boton); font-weight:700; cursor:pointer; flex:none;
+  background:var(--block); color:var(--navy2); border:1px solid var(--line);
+  border-radius:7px; padding:7px 12px;}
+.pe-form .sd-btn:hover{border-color:var(--cyan-deep);}
+.pe-ente{padding:12px; border:1px solid var(--line); border-radius:var(--r); background:var(--card-2); min-width:0;}
 .pe-ente[data-st="listo"]{border-color:var(--good);}
 .pe-cab{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
 .pe-n{font-size:var(--fs-nota); font-weight:600; color:var(--ink); flex:1 1 auto; min-width:0;}
@@ -3170,7 +3182,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .pe-ver{font:inherit; font-size:var(--fs-nota); font-weight:700; color:var(--navy2);
   background:none; border:0; padding:0; cursor:pointer; text-decoration:underline;}
 .pe-form{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:8px;}
-.pe-form input[type=text]{flex:1 1 180px; min-width:0; padding:7px 10px; font:inherit;
+.pe-form input[type=text]{flex:1 1 100%; min-width:0; padding:7px 10px; font:inherit;
   font-size:var(--fs-nota); border:1px solid var(--line); border-radius:var(--r-sm); background:var(--bg); color:var(--ink);}
 .pe-form input[type=file]{display:none;}
 .pe-msg{flex-basis:100%; font-size:var(--fs-nota); color:var(--gray);}
@@ -13450,13 +13462,16 @@ applyLang(idiomaParaMi());
             }
             txt.appendChild(eti);
           }
-          /* Los registros parafiscales cuelgan sus cinco entes del paso de
-             «ante el ente»: cada uno con su avance y su código. Se ven desde
-             que se envía -el código puede llegar antes de que el CIIP pase
-             la solicitud de paso-, salvo devuelta, que vuelve al principio. */
+          /* Los registros parafiscales ponen sus cinco entes DEBAJO de la
+             escalera, cada uno con la suya. Se ven desde que se envía -el
+             código puede llegar antes de que el CIIP pase la solicitud de
+             paso-, salvo devuelta, que vuelve al principio. */
           if (tipo.codigo === TIPO_PARAFISCALES && est === 'ante_el_ente' && tr.estado !== 'devuelto'){
-            txt.appendChild(listaDeEntes(tr,
+            var bloqueE = el('div', 'pe-bloque');
+            bloqueE.appendChild(el('div', 'pe-titulo', u.pe_titulo || ''));
+            bloqueE.appendChild(listaDeEntes(tr,
               (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) ? 'lectura' : 'inversionista'));
+            lista.parentNode.insertBefore(bloqueE, lista.nextSibling);
           }
           li.appendChild(punto); li.appendChild(txt);
           lista.appendChild(li);
@@ -24373,6 +24388,12 @@ applyLang(idiomaParaMi());
       });
   }
 
+  /* Cada ente con SU escalera, como los tramos de la constitución
+     (Franklin, 23-9-2026): tres pasos que se encienden con lo que hay en
+     tramite_entes. Sin fila, toca el primero -mandar el código-; con el
+     código enviado, el segundo -lo revisa el CIIP-; listo, los tres.
+     La casilla del código vive en el primer paso y el botón del equipo en
+     el segundo, que es donde se hace cada cosa. */
   function listaDeEntes(tr, modo){
     var u = T();
     var caja = el('div', 'pe-lista');
@@ -24387,9 +24408,22 @@ applyLang(idiomaParaMi());
       var chip = el('span', 'chip mute', u.pe_por_iniciar || '');
       cab.appendChild(chip);
       fila.appendChild(cab);
+
+      var ol = el('ol', 'tr-pasos pe-pasos');
+      var pasos = ['pe_p1', 'pe_p2', 'pe_p3'].map(function(clave, i){
+        var li = el('li', 'tr-paso porhacer');
+        var punto = el('span', 'tr-punto', String(i + 1));
+        var txt = el('div', 'tr-txt');
+        txt.appendChild(el('div', 'tr-paso-n', u[clave] || ''));
+        li.appendChild(punto); li.appendChild(txt);
+        ol.appendChild(li);
+        return {li: li, punto: punto, txt: txt};
+      });
+      fila.appendChild(ol);
+
       var dice = el('div', 'pe-dice');
       dice.hidden = true;
-      fila.appendChild(dice);
+      pasos[0].txt.appendChild(dice);
 
       var form = null, listo = null;
       if (modo === 'inversionista' && abierto){
@@ -24445,7 +24479,7 @@ applyLang(idiomaParaMi());
               msg.textContent = u.error || '';
             });
         });
-        fila.appendChild(form);
+        pasos[0].txt.appendChild(form);
       }
       if (modo === 'equipo' && tr.estado !== 'resuelto'){
         listo = el('button', 'btn ghost pe-listo', u.pe_marcar || '');
@@ -24467,9 +24501,20 @@ applyLang(idiomaParaMi());
               listo.textContent = u.error || '';
             });
         });
-        cab.appendChild(listo);
+        pasos[1].txt.appendChild(listo);
       }
 
+      /* Cuántos pasos van hechos: 0 sin fila, 1 con el código enviado, 3
+         listo. El que sigue al último hecho es el de «vas por aquí», salvo
+         con la solicitud cerrada, que ya no espera nada. */
+      function enciende(hechos){
+        pasos.forEach(function(p, i){
+          var hecho = i < hechos;
+          var ahora = !hecho && i === hechos && abierto;
+          p.li.className = 'tr-paso ' + (hecho ? 'hecho' : (ahora ? 'ahora' : 'porhacer'));
+          p.punto.textContent = hecho ? String.fromCharCode(10003) : String(i + 1);
+        });
+      }
       function pon(d){
         var st = (d && d.estado === 'listo') ? 'listo' : 'codigo_enviado';
         fila.setAttribute('data-st', st);
@@ -24488,7 +24533,9 @@ applyLang(idiomaParaMi());
         dice.hidden = !dice.childNodes.length;
         if (form) form.hidden = (st === 'listo');
         if (listo) listo.hidden = (st === 'listo');
+        enciende(st === 'listo' ? 3 : 1);
       }
+      enciende(0);
       fila.CIIP_PON = pon;
       caja.appendChild(fila);
     });
