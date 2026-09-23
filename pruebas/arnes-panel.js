@@ -4069,7 +4069,7 @@
        eran siete igual, con el papel equivocado dentro. */
     igual('zodi: sus diez recaudos, con la cadena corporativa en medio',
       tipos.join(' '),
-      'proyecto_acta identidad_accionistas juridico_matriz constitutivo_accionista good_standing ' +
+      'proyecto_acta identidad_accionistas constitutivo_accionista juridico_matriz good_standing ' +
       'beneficiarios_finales directores_accionista poder cedula rif_personal');
 
     /* La cadena corporativa cuelga del Sí/No de accionistas jurídicos
