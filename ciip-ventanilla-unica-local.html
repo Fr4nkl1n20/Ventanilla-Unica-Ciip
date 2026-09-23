@@ -3184,18 +3184,13 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .pe-dice[hidden], .pe-form[hidden], .pe-listo[hidden]{display:none;}
 .pe-ver{font:inherit; font-size:var(--fs-nota); font-weight:700; color:var(--navy2);
   background:none; border:0; padding:0; cursor:pointer; text-decoration:underline;}
-/* Casilla, adjuntar y enviar en una línea: con la tarjeta a lo ancho
-   caben los tres. En un móvil la casilla se queda sola arriba. */
+/* La casilla del código y enviar, en una línea. En un móvil la casilla
+   se queda sola arriba. */
 .pe-form{display:flex; align-items:stretch; gap:8px; flex-wrap:wrap; margin-top:8px;}
 .pe-form input[type=text]{flex:1 1 220px; min-width:0; box-sizing:border-box; padding:8px 10px; font:inherit;
   font-size:var(--fs-nota); border:1px solid var(--line); border-radius:var(--r-sm); background:var(--bg); color:var(--ink);}
 .pe-form input[type=text]:focus{outline:none; border-color:var(--cyan-deep);}
 .pe-form input[type=file]{display:none;}
-.pe-form .sd-btn{flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  font:inherit; font-size:var(--fs-nota); font-weight:700; cursor:pointer;
-  background:var(--block); color:var(--navy2); border:1px dashed var(--line);
-  border-radius:var(--r-sm); padding:8px 10px;}
-.pe-form .sd-btn:hover{border-color:var(--cyan-deep);}
 .pe-form .pe-env{flex:none; padding:8px 16px; justify-content:center; text-align:center;}
 .pe-cab .chip{white-space:normal; max-width:100%;}
 .pe-msg{flex-basis:100%; font-size:var(--fs-nota); color:var(--gray);}
@@ -24345,16 +24340,14 @@ applyLang(idiomaParaMi());
   /* ── LOS CINCO ENTES DE LOS REGISTROS PARAFISCALES ──
      Franklin Reyes, 23-9-2026: la solicitud es una -un solo envío de
      recaudos- pero cada ente es un proceso aparte. El ente le da un código
-     al inversionista, el inversionista nos lo manda desde aquí -escrito, y
-     si quiere con un archivo- y el equipo da ese ente por listo desde su
-     cola. Vive en tramite_entes (supabase-entes-parafiscales.sql): sin fila,
-     el ente está por iniciar.
+     al inversionista, el inversionista nos lo manda desde aquí -escrito- y
+     el equipo da ese ente por listo desde su cola. Vive en tramite_entes
+     (supabase-entes-parafiscales.sql): sin fila, el ente está por iniciar.
 
      Una sola función para las dos pantallas. modo 'inversionista' pone la
      casilla del código; 'equipo', el botón de darlo por listo; cualquier
      otro, solo lectura. */
   var TIPO_PARAFISCALES = 'registros_parafiscales';
-  var TIPO_CODIGO_ENTE  = 'codigo_ente';
   var ENTES_PARAFISCALES = ['banavih', 'inces', 'mpppst', 'sundde', 'snc'];
   var ENTES_SELECT = 'ente, codigo, estado, documento, documentos(archivo, nombre_original)';
   var ENTES_ABIERTOS = ['enviado', 'en_revision', 'ante_el_ente'];
@@ -24447,43 +24440,29 @@ applyLang(idiomaParaMi());
         cod.maxLength = 200;
         cod.placeholder = u.pe_codigo || '';
         cod.setAttribute('aria-label', nombre + ': ' + (u.pe_codigo || ''));
-        var inp = document.createElement('input');
-        inp.type = 'file';
-        inp.accept = 'image/*,application/pdf';
-        var adj = el('button', 'sd-btn', u.pe_adjuntar || '');
-        adj.type = 'button';
-        adj.addEventListener('click', function(){ inp.click(); });
-        inp.addEventListener('change', function(){
-          adj.textContent = inp.files[0] ? inp.files[0].name : (u.pe_adjuntar || '');
-        });
+        /* Solo el código, escrito (Franklin, 23-9-2026): el archivo
+           adjunto se quitó. La columna documento sigue en la tabla, y si
+           alguno llegó a subirse se sigue viendo arriba con «Ver archivo». */
         var env = el('button', 'btn navy pe-env', u.pe_enviar || '');
         env.type = 'button';
         var msg = el('div', 'pe-msg', '');
-        form.appendChild(cod); form.appendChild(inp); form.appendChild(adj);
-        form.appendChild(env); form.appendChild(msg);
+        form.appendChild(cod); form.appendChild(env); form.appendChild(msg);
+        cod.addEventListener('keydown', function(e){ if (e.key === 'Enter') env.click(); });
         env.addEventListener('click', function(){
           var codigo = (cod.value || '').trim();
-          var archivo = inp.files[0];
-          if (!codigo && !archivo){ msg.textContent = u.pe_falta || ''; cod.focus(); return; }
+          if (!codigo){ msg.textContent = u.pe_falta || ''; cod.focus(); return; }
           env.disabled = true;
           msg.textContent = u.enviando || '';
-          (archivo ? sube(TIPO_CODIGO_ENTE, archivo) : Promise.resolve(null))
-            .then(function(docId){
-              /* Lo que no se manda no se pisa: corregir el código deja el
-                 archivo de antes, y al revés. */
-              var f = {tramite: tr.id, ente: ente, estado: 'codigo_enviado'};
-              if (codigo) f.codigo = codigo;
-              if (docId) f.documento = docId;
-              return sb.from('tramite_entes').upsert(f, {onConflict: 'tramite,ente'}).select(ENTES_SELECT);
-            })
+          Promise.resolve(sb.from('tramite_entes')
+            .upsert({tramite: tr.id, ente: ente, estado: 'codigo_enviado', codigo: codigo},
+                    {onConflict: 'tramite,ente'}).select(ENTES_SELECT))
             .then(function(r){
               if (r && r.error) throw r.error;
               /* Cero filas sin error es la política diciendo que no. */
               if (!(r && r.data && r.data.length)) throw new Error('sin permiso');
               ENTES_DE[tr.id] = null;
               pon(r.data[0]);
-              cod.value = ''; inp.value = '';
-              adj.textContent = u.pe_adjuntar || '';
+              cod.value = '';
               env.disabled = false;
               msg.textContent = '';
             })
