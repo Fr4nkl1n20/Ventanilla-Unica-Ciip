@@ -3157,6 +3157,26 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-papel .tp-e{font-size:var(--fs-nota); color:var(--gray); flex:1 1 auto; min-width:0;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .tr-papel.puesto{border-color:var(--good);}
+/* Los cinco entes de los registros parafiscales, cada uno en su recuadro y
+   con su avance: van por separado aunque la solicitud sea una. */
+.pe-lista{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+.pe-ente{padding:10px 12px; border:1px solid var(--line); border-radius:var(--r); background:var(--card-2);}
+.pe-ente[data-st="listo"]{border-color:var(--good);}
+.pe-cab{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.pe-n{font-size:var(--fs-nota); font-weight:600; color:var(--ink); flex:1 1 auto; min-width:0;}
+.pe-dice{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;
+  font-size:var(--fs-nota); color:var(--gray); overflow-wrap:anywhere;}
+.pe-dice[hidden], .pe-form[hidden], .pe-listo[hidden]{display:none;}
+.pe-ver{font:inherit; font-size:var(--fs-nota); font-weight:700; color:var(--navy2);
+  background:none; border:0; padding:0; cursor:pointer; text-decoration:underline;}
+.pe-form{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:8px;}
+.pe-form input[type=text]{flex:1 1 180px; min-width:0; padding:7px 10px; font:inherit;
+  font-size:var(--fs-nota); border:1px solid var(--line); border-radius:var(--r-sm); background:var(--bg); color:var(--ink);}
+.pe-form input[type=file]{display:none;}
+.pe-msg{flex-basis:100%; font-size:var(--fs-nota); color:var(--gray);}
+.pe-msg:empty{display:none;}
+.co-entes{margin-top:12px;}
+.co-entes-h{font-size:var(--fs-nota); font-weight:700; color:var(--ink);}
 .tr-pagar-p{margin-top:7px;}
 .tr-bloque .tr-paso-f{margin-top:2px;}
 .sol-junta{margin-top:14px;}
@@ -13430,6 +13450,14 @@ applyLang(idiomaParaMi());
             }
             txt.appendChild(eti);
           }
+          /* Los registros parafiscales cuelgan sus cinco entes del paso de
+             «ante el ente»: cada uno con su avance y su código. Se ven desde
+             que se envía -el código puede llegar antes de que el CIIP pase
+             la solicitud de paso-, salvo devuelta, que vuelve al principio. */
+          if (tipo.codigo === TIPO_PARAFISCALES && est === 'ante_el_ente' && tr.estado !== 'devuelto'){
+            txt.appendChild(listaDeEntes(tr,
+              (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) ? 'lectura' : 'inversionista'));
+          }
           li.appendChild(punto); li.appendChild(txt);
           lista.appendChild(li);
           if (conReserva && est === 'ante_el_ente') lista.appendChild(pasoDeLaReserva(tr));
@@ -17409,6 +17437,14 @@ applyLang(idiomaParaMi());
       };
       var reserva = casillaDeLaReserva(t, 'co-res-', function(){ rotulaCo(); });
       if (reserva) f.appendChild(reserva.caja);
+      /* Los cinco entes de los registros parafiscales, con el código que
+         mandó el inversionista y el botón de darlo por listo. */
+      if (t.tipo === TIPO_PARAFISCALES && t.estado !== 'borrador'){
+        var entesCo = el('div', 'co-entes');
+        entesCo.appendChild(el('div', 'co-entes-h', u.pe_titulo || ''));
+        entesCo.appendChild(listaDeEntes(t, 'equipo'));
+        f.appendChild(entesCo);
+      }
       if (t.estado === 'ante_el_ente' && pideEmitido(t)){
         var sube = el('div', 'co-emitir');
         var etiq = el('label', null, u.co_emitido || '');
@@ -24277,6 +24313,195 @@ applyLang(idiomaParaMi());
     return li;
   }
 
+  /* ── LOS CINCO ENTES DE LOS REGISTROS PARAFISCALES ──
+     Franklin Reyes, 23-9-2026: la solicitud es una -un solo envío de
+     recaudos- pero cada ente es un proceso aparte. El ente le da un código
+     al inversionista, el inversionista nos lo manda desde aquí -escrito, y
+     si quiere con un archivo- y el equipo da ese ente por listo desde su
+     cola. Vive en tramite_entes (supabase-entes-parafiscales.sql): sin fila,
+     el ente está por iniciar.
+
+     Una sola función para las dos pantallas. modo 'inversionista' pone la
+     casilla del código; 'equipo', el botón de darlo por listo; cualquier
+     otro, solo lectura. */
+  var TIPO_PARAFISCALES = 'registros_parafiscales';
+  var TIPO_CODIGO_ENTE  = 'codigo_ente';
+  var ENTES_PARAFISCALES = ['banavih', 'inces', 'mpppst', 'sundde', 'snc'];
+  var ENTES_SELECT = 'ente, codigo, estado, documento, documentos(archivo, nombre_original)';
+  var ENTES_ABIERTOS = ['enviado', 'en_revision', 'ante_el_ente'];
+
+  var ENTES_DE = {};
+  function entesDe(id){
+    if (ENTES_DE[id]) return ENTES_DE[id];
+    return (ENTES_DE[id] = Promise.resolve(
+      sb.from('tramite_entes').select(ENTES_SELECT).eq('tramite', id))
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        var m = {};
+        ((r && r.data) || []).forEach(function(f){ m[f.ente] = f; });
+        return m;
+      }).catch(function(e){
+        /* Sin la tabla -el SQL sin correr- los cinco se quedan por iniciar
+           y se dice en la consola, no en la pantalla del inversionista. */
+        console.warn('[CIIP] entes de parafiscales:', e && (e.message || e));
+        ENTES_DE[id] = null;
+        return {};
+      }));
+  }
+  /* Y se olvidan con los papeles: lo que marca el equipo tiene que verse
+     cuando el panel se pone al día solo. */
+  var olvidaAntesDeLosEntes = window.CIIP_OLVIDA_PAPELES;
+  window.CIIP_OLVIDA_PAPELES = function(){
+    ENTES_DE = {};
+    if (olvidaAntesDeLosEntes) olvidaAntesDeLosEntes();
+  };
+
+  function abreArchivoDeEnte(ruta, b){
+    var u = T();
+    b.disabled = true;
+    Promise.resolve(sb.storage.from('recaudos').createSignedUrl(ruta, 120))
+      .then(function(rs){
+        b.disabled = false;
+        var url = rs && rs.data && rs.data.signedUrl;
+        if (!url) throw new Error('sin url');
+        window.open(url, '_blank', 'noopener');
+      })
+      .catch(function(e){
+        console.warn('[CIIP] archivo del ente:', e && (e.message || e));
+        b.disabled = false;
+        b.textContent = u.co_noabre || '';
+      });
+  }
+
+  function listaDeEntes(tr, modo){
+    var u = T();
+    var caja = el('div', 'pe-lista');
+    var abierto = ENTES_ABIERTOS.indexOf(tr.estado) >= 0;
+    ENTES_PARAFISCALES.forEach(function(ente){
+      var nombre = u['pe_' + ente] || ente;
+      var fila = el('div', 'pe-ente');
+      fila.setAttribute('data-ente', ente);
+      fila.setAttribute('data-st', 'por_iniciar');
+      var cab = el('div', 'pe-cab');
+      cab.appendChild(el('span', 'pe-n', nombre));
+      var chip = el('span', 'chip mute', u.pe_por_iniciar || '');
+      cab.appendChild(chip);
+      fila.appendChild(cab);
+      var dice = el('div', 'pe-dice');
+      dice.hidden = true;
+      fila.appendChild(dice);
+
+      var form = null, listo = null;
+      if (modo === 'inversionista' && abierto){
+        form = el('div', 'pe-form');
+        var cod = document.createElement('input');
+        cod.type = 'text';
+        cod.maxLength = 200;
+        cod.placeholder = u.pe_codigo || '';
+        cod.setAttribute('aria-label', nombre + ': ' + (u.pe_codigo || ''));
+        var inp = document.createElement('input');
+        inp.type = 'file';
+        inp.accept = 'image/*,application/pdf';
+        var adj = el('button', 'sd-btn', u.pe_adjuntar || '');
+        adj.type = 'button';
+        adj.addEventListener('click', function(){ inp.click(); });
+        inp.addEventListener('change', function(){
+          adj.textContent = inp.files[0] ? inp.files[0].name : (u.pe_adjuntar || '');
+        });
+        var env = el('button', 'btn navy pe-env', u.pe_enviar || '');
+        env.type = 'button';
+        var msg = el('div', 'pe-msg', '');
+        form.appendChild(cod); form.appendChild(inp); form.appendChild(adj);
+        form.appendChild(env); form.appendChild(msg);
+        env.addEventListener('click', function(){
+          var codigo = (cod.value || '').trim();
+          var archivo = inp.files[0];
+          if (!codigo && !archivo){ msg.textContent = u.pe_falta || ''; cod.focus(); return; }
+          env.disabled = true;
+          msg.textContent = u.enviando || '';
+          (archivo ? sube(TIPO_CODIGO_ENTE, archivo) : Promise.resolve(null))
+            .then(function(docId){
+              /* Lo que no se manda no se pisa: corregir el código deja el
+                 archivo de antes, y al revés. */
+              var f = {tramite: tr.id, ente: ente, estado: 'codigo_enviado'};
+              if (codigo) f.codigo = codigo;
+              if (docId) f.documento = docId;
+              return sb.from('tramite_entes').upsert(f, {onConflict: 'tramite,ente'}).select(ENTES_SELECT);
+            })
+            .then(function(r){
+              if (r && r.error) throw r.error;
+              /* Cero filas sin error es la política diciendo que no. */
+              if (!(r && r.data && r.data.length)) throw new Error('sin permiso');
+              ENTES_DE[tr.id] = null;
+              pon(r.data[0]);
+              cod.value = ''; inp.value = '';
+              adj.textContent = u.pe_adjuntar || '';
+              env.disabled = false;
+              msg.textContent = '';
+            })
+            .catch(function(e){
+              console.warn('[CIIP] código del ente:', e && (e.message || e));
+              env.disabled = false;
+              msg.textContent = u.error || '';
+            });
+        });
+        fila.appendChild(form);
+      }
+      if (modo === 'equipo' && tr.estado !== 'resuelto'){
+        listo = el('button', 'btn ghost pe-listo', u.pe_marcar || '');
+        listo.type = 'button';
+        listo.addEventListener('click', function(){
+          listo.disabled = true;
+          Promise.resolve(sb.from('tramite_entes')
+            .upsert({tramite: tr.id, ente: ente, estado: 'listo'}, {onConflict: 'tramite,ente'})
+            .select(ENTES_SELECT))
+            .then(function(r){
+              if (r && r.error) throw r.error;
+              if (!(r && r.data && r.data.length)) throw new Error('sin permiso');
+              ENTES_DE[tr.id] = null;
+              pon(r.data[0]);
+            })
+            .catch(function(e){
+              console.warn('[CIIP] ente listo:', e && (e.message || e));
+              listo.disabled = false;
+              listo.textContent = u.error || '';
+            });
+        });
+        cab.appendChild(listo);
+      }
+
+      function pon(d){
+        var st = (d && d.estado === 'listo') ? 'listo' : 'codigo_enviado';
+        fila.setAttribute('data-st', st);
+        chip.className = 'chip ' + (st === 'listo' ? 'good' : 'info');
+        chip.textContent = (st === 'listo' ? u.pe_listo : u.pe_enviado) || '';
+        dice.textContent = '';
+        if (d.codigo) dice.appendChild(el('span', 'pe-cod', String(u.pe_tucodigo || '{c}').replace('{c}', d.codigo)));
+        var doc = d.documentos;
+        if (doc && doc.archivo){
+          var ver = el('button', 'pe-ver', u.pe_ver || '');
+          ver.type = 'button';
+          ver.title = doc.nombre_original || '';
+          ver.addEventListener('click', function(){ abreArchivoDeEnte(doc.archivo, ver); });
+          dice.appendChild(ver);
+        }
+        dice.hidden = !dice.childNodes.length;
+        if (form) form.hidden = (st === 'listo');
+        if (listo) listo.hidden = (st === 'listo');
+      }
+      fila.CIIP_PON = pon;
+      caja.appendChild(fila);
+    });
+    entesDe(tr.id).then(function(m){
+      if (!m) return;
+      caja.querySelectorAll('.pe-ente').forEach(function(f){
+        var d = m[f.getAttribute('data-ente')];
+        if (d && f.CIIP_PON) f.CIIP_PON(d);
+      });
+    });
+    return caja;
+  }
+
   /* El documento que dejo el equipo para pagar: escondido hasta saber que
      existe, para no ofrecer abrir algo que no esta.
 
@@ -24669,6 +24894,7 @@ applyLang(idiomaParaMi());
       CLAVE_DE_TIPO.planilla_publicacion = 'd_planilla_publicacion';
       CLAVE_DE_TIPO.planilla_locti       = 'd_planilla_locti';
       CLAVE_DE_TIPO.resolucion           = 'co_emitido';
+      CLAVE_DE_TIPO.codigo_ente          = 'd_codigoente';
     }
     return CLAVE_DE_TIPO;
   }
