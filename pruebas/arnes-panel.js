@@ -4196,14 +4196,14 @@
        campos.length > 0 && docs.length > 0,
        campos.length + ' campos y ' + docs.length + ' recaudos', 'formulario con campos y recaudos');
     igual('parafiscales: pide los trece datos de los cinco entes', campos.length, 13);
-    igual('parafiscales: y los trece recaudos, en una sola lista', docs.length, 13);
+    igual('parafiscales: y los doce recaudos, en una sola lista', docs.length, 12);
 
     (function(){
       var tipos = [];
       docs.forEach(function(d){ tipos.push(d.getAttribute('data-doc')); });
-      igual('parafiscales: los cuatro primeros son los comunes a los cinco',
-            tipos.slice(0, 4).join(' '),
-            'acta_constitutiva rif_empresa cedula rif_personal');
+      igual('parafiscales: los tres primeros son los comunes a los cinco',
+            tipos.slice(0, 3).join(' '),
+            'acta_constitutiva rif_empresa cedula');
       var opc = [];
       caja.querySelectorAll('.sol-doc[data-opcional]').forEach(function(d){
         opc.push(d.getAttribute('data-doc'));
@@ -4211,14 +4211,14 @@
       /* Los cinco opcionales: los tres que dependen del caso -asamblea,
          nómina y poder- y los dos propios del RNC, que el SNC sí exige
          pero que no pueden dejar sin enviar a la empresa recién
-         constituida. Los otros ocho son obligatorios: los cuatro comunes
+         constituida. Los otros siete son obligatorios: los tres comunes
          y los cuatro de inversionistas, junta y recibo. El comentario largo está en
          RECAUDOS. */
       igual('parafiscales: y cinco no frenan el envío', opc.length, 5);
-      ok('parafiscales: ninguno de los cuatro comunes es opcional',
+      ok('parafiscales: ninguno de los tres comunes es opcional',
          opc.indexOf('acta_constitutiva') === -1 && opc.indexOf('rif_empresa') === -1 &&
-         opc.indexOf('cedula') === -1 && opc.indexOf('rif_personal') === -1,
-         opc.join(' '), 'los cuatro obligatorios');
+         opc.indexOf('cedula') === -1,
+         opc.join(' '), 'los tres obligatorios');
     })();
 
     /* Que cada ente siga preguntando lo suyo: si al juntarlos se hubiera
@@ -6838,12 +6838,12 @@
      La ficha guarda los tipos que ya tienes -una consulta por sesion, que
      son treinta y una tarjetas-. Sin borrar esa memoria al subir, el papel
      que acabas de guardar seguia saliendo como que te falta hasta que
-     recargabas la pagina: subias la solvencia del IVSS y el tramite que la
+     recargabas la pagina: subias una solvencia y el tramite que la
      pide seguia diciendo que no la tenias. */
   function cacheAbre(){
     if (CASO !== 'vacio') return;
-    /* El c37 es el que pide la solvencia del IVSS: la heredó del RNC, que
-       desde el 20-9-2026 se hace dentro de él. */
+    /* El c37 pide la solvencia del SENIAT. Era la del IVSS, que se quitó
+       de sus recaudos el 23-9-2026. */
     location.hash = 'tramite-c37';
   }
 
@@ -6852,9 +6852,9 @@
     var caja = document.getElementById('trReal');
     /* En la columna de subir, que es donde vive ahora la lista. */
     var fila = [].filter.call(caja.querySelectorAll('.sol-lado .sol-doc'), function(d){
-      return /Solvencia del IVSS/.test(d.textContent);
+      return /Solvencia del SENIAT/.test(d.textContent);
     })[0];
-    ok('cache: el tramite pide la solvencia del IVSS', !!fila,
+    ok('cache: el tramite pide la solvencia del SENIAT', !!fila,
        fila ? 'la pide' : 'no la pide', 'la pide');
     if (!fila) return;
     /* Sin marca de reusado: todavia no esta en la boveda. */
@@ -6876,9 +6876,9 @@
     var sel = document.getElementById('dcTipo');
     var arc = document.getElementById('dcArchivo');
     if (!sel || !arc) return;
-    sel.value = 'solvencia_ivss';
+    sel.value = 'solvencia_seniat';
     var dt = new DataTransfer();
-    dt.items.add(new File([new Uint8Array(8)], 'solvencia-ivss.pdf', {type:'application/pdf'}));
+    dt.items.add(new File([new Uint8Array(8)], 'solvencia-seniat.pdf', {type:'application/pdf'}));
     arc.files = dt.files;
     arc.dispatchEvent(new Event('change'));
     document.getElementById('dcGuarda').click();
@@ -6894,7 +6894,7 @@
     var caja = document.getElementById('trReal');
     /* En la columna de subir, que es donde vive ahora la lista. */
     var fila = [].filter.call(caja.querySelectorAll('.sol-lado .sol-doc'), function(d){
-      return /Solvencia del IVSS/.test(d.textContent);
+      return /Solvencia del SENIAT/.test(d.textContent);
     })[0];
     /* SIN recargar la pagina. Es lo unico que se mide aqui. */
     ok('cache: al subirla, el tramite se entera sin recargar',
