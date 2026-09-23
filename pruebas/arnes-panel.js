@@ -4196,7 +4196,7 @@
        campos.length > 0 && docs.length > 0,
        campos.length + ' campos y ' + docs.length + ' recaudos', 'formulario con campos y recaudos');
     igual('parafiscales: pide los catorce datos de los cinco entes', campos.length, 14);
-    igual('parafiscales: y los catorce recaudos, en una sola lista', docs.length, 14);
+    igual('parafiscales: y los diez recaudos, en una sola lista', docs.length, 10);
 
     (function(){
       var tipos = [];
@@ -4208,11 +4208,11 @@
       caja.querySelectorAll('.sol-doc[data-opcional]').forEach(function(d){
         opc.push(d.getAttribute('data-doc'));
       });
-      /* Los diez opcionales: los tres que dependen del caso -asamblea,
-         nómina y poder- y los siete propios del RNC, que el SNC sí exige
+      /* Los seis opcionales: los tres que dependen del caso -asamblea,
+         nómina y poder- y los tres propios del RNC, que el SNC sí exige
          pero que no pueden dejar sin enviar a la empresa recién
          constituida. El comentario largo está en RECAUDOS. */
-      igual('parafiscales: y los otros diez no frenan el envío', opc.length, 10);
+      igual('parafiscales: y los otros seis no frenan el envío', opc.length, 6);
       ok('parafiscales: ninguno de los cuatro comunes es opcional',
          opc.indexOf('acta_constitutiva') === -1 && opc.indexOf('rif_empresa') === -1 &&
          opc.indexOf('cedula') === -1 && opc.indexOf('rif_personal') === -1,

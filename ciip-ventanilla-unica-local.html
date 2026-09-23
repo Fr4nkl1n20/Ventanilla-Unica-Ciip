@@ -9360,17 +9360,15 @@ applyLang(idiomaParaMi());
        asamblea, porque en una empresa recién constituida la última acta
        ES la constitutiva. El poder, sólo si firma un apoderado.
 
-       LOS SIETE ÚLTIMOS SON DEL RNC, Y VAN OPCIONALES. El Servicio
-       Nacional de Contrataciones sí los exige —mide capacidad legal,
-       financiera y técnica, y sin ellos no califica a nadie—, pero
-       exigirlos aquí dejaría sin poder enviar justo a la empresa que
-       acaba de constituirse: la solvencia del IVSS pide estar inscrito
-       antes, y unos estados financieros no existen todavía. Opcionales,
-       la solicitud se envía con lo común y el CIIP reclama lo que falte
-       cuando toque armar el expediente del RNC.
+       LOS TRES ÚLTIMOS SON DEL RNC, Y VAN OPCIONALES. El Servicio
+       Nacional de Contrataciones sí los exige, pero exigirlos aquí
+       dejaría sin poder enviar justo a la empresa que acaba de
+       constituirse: unos estados financieros no existen todavía. El CIIP
+       reclama lo que falte cuando toque armar el expediente del RNC.
 
-       Si el CIIP prefiere que ni se vean, se borran esas siete líneas y
-       no hay que tocar nada más: el resto del trámite no las mira. */
+       Eran siete. La solvencia del IVSS, la relación de experiencia, la
+       nómina técnica y la relación de equipos se quitaron el 23 de
+       septiembre de 2026, que lo pidió Franklin. */
     registros_parafiscales: [
       {tipo:'acta_constitutiva',    clave:'d_acta'},
       {tipo:'rif_empresa',          clave:'d_rifempresa'},
@@ -9381,11 +9379,7 @@ applyLang(idiomaParaMi());
       {tipo:'poder',                clave:'d_poder',       opcional:true},
       {tipo:'estados_financieros',  clave:'d_estadosfin',  opcional:true},
       {tipo:'declaracion_islr',     clave:'d_islr',        opcional:true},
-      {tipo:'solvencia_seniat',     clave:'d_solvseniat',  opcional:true},
-      {tipo:'solvencia_ivss',       clave:'d_solvivss',    opcional:true},
-      {tipo:'relacion_experiencia', clave:'d_experiencia', opcional:true},
-      {tipo:'nomina_tecnica',       clave:'d_nomtecnica',  opcional:true},
-      {tipo:'relacion_equipos',     clave:'d_equipos',     opcional:true}
+      {tipo:'solvencia_seniat',     clave:'d_solvseniat',  opcional:true}
     ],
     /* ── Fase 03: los seis que faltaban frente a la hoja ──────────
        El FAOV y el INCES piden lo mismo que el IVSS del c9 —acta, RIF de
