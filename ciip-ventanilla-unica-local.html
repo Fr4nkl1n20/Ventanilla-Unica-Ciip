@@ -632,6 +632,14 @@ svg{display:block;}
 /* Lo entregado, en el detalle del trámite del inversionista. */
 .tr-entrega{background:var(--good-bg); border:1px solid var(--good);
   border-radius:var(--r); padding:15px 17px; margin-bottom:16px;}
+/* Pedir otro igual, debajo del papel entregado. En gris y no en verde: el
+   verde de arriba dice «esto está hecho» y esto no celebra nada, solo
+   abre una puerta por si hace falta. Mismo marco para que se lea como
+   parte del final del trámite y no como un aviso suelto. */
+.tr-otra{border:1px solid var(--line); border-radius:var(--r);
+  padding:14px 17px; margin-bottom:16px;}
+.tr-otra .to-t{font-size:var(--fs-seccion); font-weight:700; letter-spacing:.01em;}
+.tr-otra .to-p{font-size:12px; color:var(--gray); margin-top:4px; margin-bottom:11px;}
 .tr-entrega .te-t{font-size:var(--fs-seccion); font-weight:700; color:var(--good);
   letter-spacing:.01em;}
 .tr-entrega .te-p{font-size:12px; color:var(--gray); margin-top:4px;}
@@ -10689,6 +10697,19 @@ applyLang(idiomaParaMi());
      Manda la que va más adelante y sigue viva. El borrador va el último
      —para eso existía el "más reciente", para que un borrador viejo no
      tapara el envío— y esto lo sigue cumpliendo sin depender de fechas. */
+  /* EL BORRADOR SIGUE EL ÚLTIMO, Y SE INTENTÓ CAMBIARLO (23-9-2026). Al
+     dejar pedir otro trámite igual desde uno resuelto, parecía que el
+     borrador nuevo tenía que ganarle a la resuelta: es lo único vivo, y
+     quien lo rellena y se va lo encuentra escondido al volver.
+
+     Lo paró el arnés, y con razón: «varias: y no enseña un formulario en
+     blanco sobre algo resuelto». Un borrador abandonado -que es lo que
+     acaba siendo la mayoría- taparía el trámite resuelto y su documento,
+     y las dos pantallas del mismo trámite volverían a decir cosas
+     distintas. Ese fallo ya se arregló una vez.
+
+     Quien pide otro lo tiene delante mientras lo rellena, y si se va, lo
+     recupera por «Mis trámites», que es donde pintaVarias le manda. */
   var RANGO_TRAMITE = {devuelto:0, ante_el_ente:1, en_revision:2,
                        enviado:3, resuelto:4, borrador:5};
 
@@ -13192,6 +13213,40 @@ applyLang(idiomaParaMi());
        quien abre un trámite terminado —vino a por el papel, no a por la
        escalera—, así que va encima de todo. */
     if (tr.estado === 'resuelto') pintaEntregado(tr, caja);
+
+    /* ── Y SI HACE FALTA OTRO, SE PUEDE PEDIR ───────────────────────────
+       Un trámite resuelto dejaba la pantalla sin salida: el papel, la
+       escalera en verde y nada más. Pero hay motivos de sobra para pedir
+       el mismo otra vez -otra empresa, otro familiar, o el que tenías se
+       venció-, y hasta hoy había que adivinar que se hacía volviendo al
+       catálogo, si es que se le ocurría a alguien.
+
+       El aviso va DELANTE del botón y no detrás, y ese orden es el
+       encargo: lo primero es que ya lo tienes -con su fecha, para que no
+       haya duda de cuál- y solo después la puerta. Al revés sería un
+       botón que invita a repetir un trámite hecho, que es justo lo que no
+       queremos que pase por descuido.
+
+       Abre el formulario EN BLANCO, sin la solicitud de antes: se le pasa
+       null y no `tr`. Pasarle la resuelta la reabriría para editarla, que
+       no es pedir otra, es reescribir el expediente que el CIIP ya cerró.
+       Lo de antes no se toca: se queda en Mis trámites y en la bóveda. */
+    if (tr.estado === 'resuelto'){
+      var otra = el('div', 'tr-otra');
+      otra.appendChild(el('div', 'to-t', u.tr_otra_t || ''));
+      otra.appendChild(el('div', 'to-p', String(u.tr_otra_p || '')
+        .replace('{fecha}', tr.resuelto_en ? fecha(tr.resuelto_en) : '')));
+      var pedir = el('button', 'btn ghost', u.tr_otra_b || '');
+      pedir.type = 'button';
+      pedir.addEventListener('click', function(){
+        caja.textContent = '';
+        caja.classList.add('puesto');
+        chipReal('sin_iniciar');
+        pintaFormulario(tipo, null);
+      });
+      otra.appendChild(pedir);
+      caja.appendChild(otra);
+    }
 
     var lista = el('ol', 'tr-pasos');
     caja.appendChild(lista);
