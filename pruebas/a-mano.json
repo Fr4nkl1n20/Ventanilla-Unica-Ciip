@@ -9,6 +9,8 @@
       "casos": [
         {"caso": "vacio", "nombre": "Expediente vacío",
          "dice": "Recién entrado: ni solicitudes ni historial. Es donde se ve la constitución con sus tres tramos y el formulario desde el principio."},
+        {"caso": "parafiscales", "nombre": "Parafiscales ante los entes",
+         "dice": "Los registros parafiscales ya enviados, con sus cinco entes: el BANAVIH listo, el INCES con el código enviado y los otros tres por iniciar. Entra en Registros Parafiscales y Regulatorios."},
         {"caso": "lleno", "nombre": "Expediente con trabajo",
          "dice": "Una solicitud devuelta, otra en borrador y el historial de la primera."},
         {"caso": "sinnombre", "nombre": "Sin nombre en el perfil",

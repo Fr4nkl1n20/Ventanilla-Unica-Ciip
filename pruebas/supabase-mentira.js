@@ -146,6 +146,19 @@
   var yaPagado = (caso === 'tramospagado');
   var conTramos = (caso === 'tramos' || sinPlanilla || yaPagado);
   if (conTramos) caso = 'vacio';
+  /* 'parafiscales' (23-9-2026): el expediente vacío con los registros
+     parafiscales ya ante los entes, para ver sus cinco escaleras. Uno de
+     cada: el BANAVIH listo, el INCES con el código enviado y los otros tres
+     por iniciar. */
+  var conParafiscales = (caso === 'parafiscales');
+  if (conParafiscales){
+    caso = 'vacio';
+    window.__ENTES = {
+      'r1|banavih': {tramite:'r1', ente:'banavih', estado:'listo', codigo:'FAOV-2026-00418'},
+      'r1|inces':   {tramite:'r1', ente:'inces', estado:'codigo_enviado', codigo:'INC-77215',
+                     documento:'e1', documentos:{archivo:'mentira/e1.pdf', nombre_original:'correo-inces.pdf'}}
+    };
+  }
   /* El doble manda sobre el lector en TODAS las pasadas, tambien para
      quitarlo. Este archivo se carga despues de config.js: el dia que
      LECTOR_URL tenga una direccion -en local eso es el proyecto de
@@ -473,6 +486,10 @@
       {id:'p3', tipo:'publicacion_acta', estado:'enviado',
        creado_en:'2026-09-10T10:00:00Z', enviado_en:'2026-09-10T10:00:00Z',
        actualizado_en:'2026-09-10T10:00:00Z'}
+    ] : []).concat(conParafiscales ? [
+      {id:'r1', tipo:'registros_parafiscales', estado:'ante_el_ente', datos:{},
+       creado_en:'2026-09-15T10:00:00Z', enviado_en:'2026-09-15T10:00:00Z',
+       actualizado_en:'2026-09-20T10:00:00Z'}
     ] : []),
     sinnombre: [
       /* Un borrador SOLO, y a medio subir: es el unico expediente donde
@@ -1473,6 +1490,25 @@
     /* Lo que el envío engancha a la solicitud. Se apunta para que la prueba
        del envío pueda ver que los papeles llegaron: sin esto, una solicitud
        enviada sin un solo archivo pasaba la tanda en verde. */
+    /* Los cinco entes de los registros parafiscales, guardados en esta
+       pestaña: sin esto el código enviado no se quedaba puesto y el «listo»
+       del equipo no encendía nada. Lo que no se manda no se pisa, como en
+       el upsert de verdad. */
+    if (tabla === 'tramite_entes'){
+      var ENT = window.__ENTES = window.__ENTES || {};
+      if (op && op.upsert){
+        var kE = op.upsert.tramite + '|' + op.upsert.ente, filaE = {};
+        [ENT[kE] || {}, op.upsert].forEach(function(o){
+          Object.keys(o).forEach(function(c){ filaE[c] = o[c]; });
+        });
+        if (filaE.documento) filaE.documentos = {archivo: 'mentira/' + filaE.documento + '.pdf', nombre_original: 'codigo-del-ente.pdf'};
+        ENT[kE] = filaE;
+        return {data:[filaE], error:null};
+      }
+      var deE = op && op.eq && op.eq.tramite;
+      return {data: Object.keys(ENT).map(function(k){ return ENT[k]; })
+                      .filter(function(f){ return !deE || f.tramite === deE; }), error:null};
+    }
     if (tabla === 'tramite_documentos' && op && op.upsert){
       (window.__ADJUNTOS = window.__ADJUNTOS || []).push(op.upsert);
       return {data:[op.upsert], error:null};
