@@ -3161,17 +3161,15 @@ body[data-vista="tramite"] #secTramites{display:none;}
    con su avance: van por separado aunque la solicitud sea una. */
 .pe-bloque{margin-top:22px;}
 .pe-titulo{font-size:var(--fs-seccion); font-weight:700; color:var(--ink);}
-/* Una al lado de la otra (Franklin, 23-9-2026): caben las que quepan y
-   bajan solas cuando no; en un móvil, una debajo de otra. Todas de la
-   misma altura, para que la fila se lea como una fila. */
-.pe-lista{display:grid; grid-template-columns:repeat(auto-fill, minmax(min(185px, 100%), 1fr));
-  gap:12px; margin-top:12px; align-items:stretch;}
+/* Uno debajo del otro (Franklin, 23-9-2026): se probó en fila y se
+   prefirió así, cada ente a lo ancho y con espacio para leerlo. */
+.pe-lista{display:flex; flex-direction:column; gap:12px; margin-top:12px; max-width:760px;}
 .pe-ente{display:flex; flex-direction:column; min-width:0; padding:14px;
   border:1px solid var(--line); border-radius:var(--r); background:var(--card-2);}
 .pe-ente[data-st="listo"]{border-color:var(--good); background:var(--good-bg);}
-/* El nombre arriba y el estado debajo: con el nombre largo del Ministerio
-   el estado se bajaba de renglón solo en esa tarjeta y la hacía más alta. */
-.pe-cab{display:flex; flex-direction:column; align-items:flex-start; gap:6px;
+/* El nombre a la izquierda y el estado a la derecha; si no caben, el
+   estado baja solo. */
+.pe-cab{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px 10px;
   padding-bottom:12px; border-bottom:1px solid var(--line);}
 .pe-n{font-size:var(--fs-fila); font-weight:700; color:var(--ink); line-height:1.3;}
 .pe-pasos{margin-top:12px;}
@@ -3186,19 +3184,19 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .pe-dice[hidden], .pe-form[hidden], .pe-listo[hidden]{display:none;}
 .pe-ver{font:inherit; font-size:var(--fs-nota); font-weight:700; color:var(--navy2);
   background:none; border:0; padding:0; cursor:pointer; text-decoration:underline;}
-/* Casilla, adjuntar y enviar, cada uno a lo ancho: con cinco tarjetas en
-   fila no caben dos botones juntos sin cortar el texto. */
+/* Casilla, adjuntar y enviar en una línea: con la tarjeta a lo ancho
+   caben los tres. En un móvil la casilla se queda sola arriba. */
 .pe-form{display:flex; align-items:stretch; gap:8px; flex-wrap:wrap; margin-top:8px;}
-.pe-form input[type=text]{flex:1 1 100%; min-width:0; box-sizing:border-box; padding:8px 10px; font:inherit;
+.pe-form input[type=text]{flex:1 1 220px; min-width:0; box-sizing:border-box; padding:8px 10px; font:inherit;
   font-size:var(--fs-nota); border:1px solid var(--line); border-radius:var(--r-sm); background:var(--bg); color:var(--ink);}
 .pe-form input[type=text]:focus{outline:none; border-color:var(--cyan-deep);}
 .pe-form input[type=file]{display:none;}
-.pe-form .sd-btn{flex:1 1 100%; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+.pe-form .sd-btn{flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   font:inherit; font-size:var(--fs-nota); font-weight:700; cursor:pointer;
   background:var(--block); color:var(--navy2); border:1px dashed var(--line);
   border-radius:var(--r-sm); padding:8px 10px;}
 .pe-form .sd-btn:hover{border-color:var(--cyan-deep);}
-.pe-form .pe-env{flex:1 1 100%; padding:8px 16px; justify-content:center; text-align:center;}
+.pe-form .pe-env{flex:none; padding:8px 16px; justify-content:center; text-align:center;}
 .pe-cab .chip{white-space:normal; max-width:100%;}
 .pe-msg{flex-basis:100%; font-size:var(--fs-nota); color:var(--gray);}
 .pe-msg:empty{display:none;}
