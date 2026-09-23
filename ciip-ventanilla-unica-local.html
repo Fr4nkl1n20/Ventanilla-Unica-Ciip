@@ -17241,8 +17241,17 @@ applyLang(idiomaParaMi());
          conteste: la respuesta "aprobado" trae el documento y se deja
          exactamente aquí. Hoy lo trae una persona. */
       var archivo = null;
-      var reserva = casillaDeLaReserva(t, 'co-res-');
-      if (reserva) f.appendChild(reserva);
+      /* El último botón de la ficha es el que envía el papel para pagar
+         mientras haya uno elegido sin enviar, igual que en el visor; en
+         cuanto sale, vuelve a decir lo suyo. */
+      var principal = null, principalTxt = '';
+      var rotulaCo = function(){
+        if (!principal) return;
+        principal.textContent = (reserva && reserva.pendiente())
+          ? (u[reserva.clave] || '') : principalTxt;
+      };
+      var reserva = casillaDeLaReserva(t, 'co-res-', function(){ rotulaCo(); });
+      if (reserva) f.appendChild(reserva.caja);
       if (t.estado === 'ante_el_ente' && pideEmitido(t)){
         var sube = el('div', 'co-emitir');
         var etiq = el('label', null, u.co_emitido || '');
@@ -17260,7 +17269,15 @@ applyLang(idiomaParaMi());
       (CO_PASOS[t.estado] || []).forEach(function(p, i){
         var b = el('button', 'btn ' + (i === 0 && p.nota ? 'ghost' : 'navy'), u[p.k] || '');
         b.type = 'button';
+        principal = b; principalTxt = u[p.k] || '';
         b.addEventListener('click', function(){
+          /* Primero el papel para pagar, si espera: devolver no lo manda,
+             solo lo manda el de la derecha. */
+          if (b === principal && reserva && reserva.pendiente()){
+            b.disabled = true;
+            reserva.envia().then(function(){ b.disabled = false; rotulaCo(); });
+            return;
+          }
           /* Devolver SIN decir por qué deja al inversionista con un aviso que
              no explica nada: es el único paso que exige la nota. */
           if (p.nota && !(nota.value || '').trim()){
