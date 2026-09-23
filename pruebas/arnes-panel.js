@@ -4196,7 +4196,7 @@
        campos.length > 0 && docs.length > 0,
        campos.length + ' campos y ' + docs.length + ' recaudos', 'formulario con campos y recaudos');
     igual('parafiscales: pide los catorce datos de los cinco entes', campos.length, 14);
-    igual('parafiscales: y los doce recaudos, en una sola lista', docs.length, 12);
+    igual('parafiscales: y los trece recaudos, en una sola lista', docs.length, 13);
 
     (function(){
       var tipos = [];
@@ -4211,8 +4211,8 @@
       /* Los cinco opcionales: los tres que dependen del caso -asamblea,
          nómina y poder- y los dos propios del RNC, que el SNC sí exige
          pero que no pueden dejar sin enviar a la empresa recién
-         constituida. Los otros siete son obligatorios: los cuatro comunes
-         y los tres de inversionistas y junta. El comentario largo está en
+         constituida. Los otros ocho son obligatorios: los cuatro comunes
+         y los cuatro de inversionistas, junta y recibo. El comentario largo está en
          RECAUDOS. */
       igual('parafiscales: y cinco no frenan el envío', opc.length, 5);
       ok('parafiscales: ninguno de los cuatro comunes es opcional',
