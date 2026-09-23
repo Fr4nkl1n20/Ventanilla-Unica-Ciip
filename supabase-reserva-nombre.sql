@@ -67,6 +67,21 @@ create policy "adjuntos: papeles de un paso, con el tramite en marcha" on public
                                                and t.estado = 'ante_el_ente')
            or (t.tipo = 'protocolizacion_acta' and d.tipo = 'pago_aranceles'
                                                and t.estado in ('enviado','en_revision','ante_el_ente'))
+           --  Y LA PUBLICACIÓN, QUE FALTABA (23 de septiembre de 2026).
+           --  El tramo de la publicación nace 'enviado' -lo abre la base al
+           --  resolverse la protocolización- y su comprobante se sube desde
+           --  ese paso, con el trámite ya en marcha. Ninguna política lo
+           --  cubría: ni ésta, que nombraba dos casos, ni la general, que
+           --  solo deja adjuntar en 'borrador' y 'devuelto'.
+           --
+           --  Sin error. El insert cambiaba CERO filas y PostgREST contesta
+           --  que sí, así que el inversionista veía su comprobante subido y
+           --  al volver ya no estaba. Y detrás quedaba el cepo:
+           --  tramites_publicacion_con_pago no deja resolver la publicación
+           --  sin ese papel, de modo que el trámite no lo podía cerrar
+           --  nadie, ni él ni el CIIP.
+           or (t.tipo = 'publicacion_acta'     and d.tipo = 'pago_publicacion'
+                                               and t.estado in ('enviado','en_revision','ante_el_ente'))
          )
     )
   );
