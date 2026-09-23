@@ -9620,14 +9620,12 @@ applyLang(idiomaParaMi());
 
        El proyecto del acta es el MISMO papel que sale del c5, con otro
        rótulo: aquí todavía no está protocolizada, y llamarla «Acta
-       constitutiva» haría creer que ya lo está. El poder encadena con el
-       c33 y va obligatorio: el accionista es una empresa, así que
-       siempre actúa alguien en su nombre.
+       constitutiva» haría creer que ya lo está.
 
-       Los tres de en medio son la cadena corporativa: los estatutos de la
-       accionista y de su matriz, su existencia legal, y la lista hasta
-       las personas naturales. Todos vienen de fuera, así que apostillados
-       y traducidos: lo dice la guía general de cada recaudo.
+       Los de en medio son la cadena corporativa: la matriz, la accionista,
+       su existencia legal, los accionistas hasta el beneficiario final y
+       los directores. Todos vienen de fuera, así que apostillados y
+       traducidos: lo dice la guía general de cada recaudo.
 
        La carta al Comandante NO se pide: la redacta el CIIP con lo que
        se escribe en el formulario, igual que la solicitud del SISREF. */
@@ -9647,13 +9645,21 @@ applyLang(idiomaParaMi());
          Es el mismo fallo del que avisa el comentario del SISREF unas
          líneas más arriba -reusar una clave sin mirar qué dice- y se
          cazan igual: leyendo el rótulo al lado del tipo. */
-      {tipo:'proyecto_acta',         clave:'d_actaproyecto'},
-      {tipo:'estatutos_accionista',  clave:'d_estatutosacc'},
-      {tipo:'good_standing',         clave:'d_goodstanding'},
-      {tipo:'beneficiarios_finales', clave:'d_beneficiarios'},
-      {tipo:'poder',                 clave:'d_poder'},
-      {tipo:'cedula',                clave:'d_identidad'},
-      {tipo:'rif_personal',          clave:'d_rifpersonal'}
+      /* La lista es de Franklin, del 23 de septiembre de 2026. Los cinco
+         de la cadena corporativa cuelgan del «Sí» a «¿tiene accionistas
+         jurídicos?»: con «No» ni se ven ni se piden. Los «(si aplica)» son
+         opcionales y lo dicen en su rótulo. El poder dejó de ser
+         obligatorio, y con eso el c34 ya no espera al c33. */
+      {tipo:'proyecto_acta',           clave:'d_actaproyecto'},
+      {tipo:'identidad_accionistas',   clave:'d_idaccionistas'},
+      {tipo:'juridico_matriz',         clave:'d_juridicomatriz', opcional:true, siCasilla:'accionistas_extranjeros'},
+      {tipo:'constitutivo_accionista', clave:'d_juridicoacc',                   siCasilla:'accionistas_extranjeros'},
+      {tipo:'good_standing',           clave:'d_goodstanding',   opcional:true, siCasilla:'accionistas_extranjeros'},
+      {tipo:'beneficiarios_finales',   clave:'d_beneficiarios',                 siCasilla:'accionistas_extranjeros'},
+      {tipo:'directores_accionista',   clave:'d_directoresacc',                 siCasilla:'accionistas_extranjeros'},
+      {tipo:'poder',                   clave:'d_zodipoder',      opcional:true},
+      {tipo:'cedula',                  clave:'d_cedrep',         opcional:true},
+      {tipo:'rif_personal',            clave:'d_rifrep',         opcional:true}
     ],
     /* El RUPDAE (c35). Lo que pide la pantalla de registro de la SUNDDE a
        una persona jurídica: el Registro Mercantil, la última acta de
@@ -12222,7 +12228,7 @@ applyLang(idiomaParaMi());
          formulario. */
       if (r.siCasilla){
         fila.setAttribute('data-si', r.siCasilla);
-        fila.hidden = !datos[r.siCasilla];
+        fila.hidden = !(datos[r.siCasilla] && datos[r.siCasilla] !== 'No');
       }
       /* De quién es el papel, cuando no es tuyo: el miembro de la junta. Viaja
          hasta la base -documentos.titular- y es lo que separa su cédula de
@@ -12409,17 +12415,23 @@ applyLang(idiomaParaMi());
     cuentaPapeles();
 
     /* La casilla de «Tus datos» manda sobre sus recaudos de la hoja de
-       papeles. Se ata aquí, con las dos hojas ya montadas. */
+       papeles. Se ata aquí, con las dos hojas ya montadas. Puede ser una
+       casilla de marcar o un desplegable Sí/No -el de la ZODI-: el
+       desplegable pide los papeles con cualquier cosa menos «No». Se mira
+       ya al atar, porque el desplegable puede venir relleno de antes. */
     lista.querySelectorAll('.sol-doc[data-si]').forEach(function(fila){
       var deQuien = fila.getAttribute('data-si');
-      var marca = caja.querySelector('input[type="checkbox"][name="' + deQuien + '"]');
+      var marca = caja.querySelector('input[type="checkbox"][name="' + deQuien + '"], select[name="' + deQuien + '"]');
       if (!marca) return;
-      marca.addEventListener('change', function(){
-        fila.hidden = !marca.checked;
+      function mira(){
+        fila.hidden = (marca.type === 'checkbox') ? !marca.checked
+                                                  : (!marca.value || marca.value === 'No');
         /* Un papel que se deja de pedir no puede seguir marcado en rojo. */
         if (fila.hidden) fila.classList.remove('mal');
         cuentaPapeles();
-      });
+      }
+      mira();
+      marca.addEventListener('change', mira);
     });
 
 

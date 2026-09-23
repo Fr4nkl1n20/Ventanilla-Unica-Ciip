@@ -81,6 +81,15 @@ insert into public.tipos_documento (codigo, nombre, vence) values
   ('no_objecion_zodi',      'Opinión favorable (no objeción) de la ZODI',                                false)
 on conflict (codigo) do update set nombre = excluded.nombre;
 
+--  La lista de Franklin del 23-9-2026: los directores van aparte de los
+--  accionistas, y se piden la identidad de los socios y la matriz.
+insert into public.tipos_documento (codigo, nombre, vence) values
+  ('identidad_accionistas', 'Cédula o pasaporte de los accionistas de la empresa a constituir',          false),
+  ('juridico_matriz',       'Información jurídica de la empresa matriz',                                 false),
+  ('directores_accionista', 'Lista de directores del accionista jurídico, con copia de sus pasaportes',  false),
+  ('beneficiarios_finales', 'Lista de accionistas hasta el beneficiario final, con copia de sus pasaportes', false)
+on conflict (codigo) do update set nombre = excluded.nombre;
+
 
 -- ───────────────────────────────────────────────────────────────────────
 -- 2. EL TRÁMITE

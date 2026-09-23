@@ -4067,15 +4067,32 @@
        -la ZODI va antes del Registro Mercantil-. Se comprueba el tipo y
        no solo que haya siete filas, porque el fallo no se veía contando:
        eran siete igual, con el papel equivocado dentro. */
-    igual('zodi: sus siete recaudos, con la cadena corporativa en medio',
+    igual('zodi: sus diez recaudos, con la cadena corporativa en medio',
       tipos.join(' '),
-      'proyecto_acta estatutos_accionista good_standing beneficiarios_finales poder cedula rif_personal');
+      'proyecto_acta identidad_accionistas juridico_matriz constitutivo_accionista good_standing ' +
+      'beneficiarios_finales directores_accionista poder cedula rif_personal');
 
-    /* Ninguno opcional: a quien le toca la ZODI le tocan todos. El poder
-       tampoco, que en el SISREF sí lo es: aquí el accionista es una
-       empresa y siempre firma alguien por ella. */
-    igual('zodi: y ninguno es opcional',
-      caja.querySelectorAll('.sol-doc[data-opcional]').length, 0);
+    /* La cadena corporativa cuelga del Sí/No de accionistas jurídicos
+       (Franklin, 23-9-2026): con «No» no se ve, con «Sí» sale. */
+    var sino = caja.querySelector('select[name="accionistas_extranjeros"]');
+    var cadena = caja.querySelectorAll('.sol-doc[data-si="accionistas_extranjeros"]');
+    igual('zodi: la cadena corporativa son cinco papeles', cadena.length, 5);
+    ok('zodi: con «No» la cadena no se ve',
+       !!sino && sino.value === 'No' && [].every.call(cadena, function(f){ return f.hidden; }),
+       sino ? sino.value : 'sin desplegable', 'No y escondidos');
+    if (sino){
+      sino.value = 'Sí';
+      sino.dispatchEvent(new Event('change'));
+      ok('zodi: con «Sí» sale',
+         [].every.call(cadena, function(f){ return !f.hidden; }), 'mira hidden', 'a la vista');
+      sino.value = 'No';
+      sino.dispatchEvent(new Event('change'));
+    }
+
+    /* Opcionales, los «(si aplica)»: la matriz, el Good Standing, el poder
+       y la cédula y el RIF del representante legal. */
+    igual('zodi: y cinco son opcionales',
+      caja.querySelectorAll('.sol-doc[data-opcional]').length, 5);
 
     var mot = caja.querySelector('.sol-campo[data-campo="motivo_zodi"] select');
     var ops = [];
