@@ -10271,7 +10271,10 @@ applyLang(idiomaParaMi());
       {n:'num_trabajadores',    clave:'f_numtrab',       tipo:'number'},
       {n:'inicio_actividades',  clave:'f_iniciolab',     tipo:'date'},
       {n:'direccion_fiscal',    clave:'f_direccion',     ancho:true},
-      {n:'establecimientos',    clave:'f_rupdaeestab',   ancho:true},
+      /* Opcional desde el 23 de septiembre de 2026, que lo pidió Franklin:
+         una empresa recién constituida puede no tener más sitio que su
+         domicilio fiscal, y eso ya va en el campo de arriba. */
+      {n:'establecimientos',    clave:'f_rupdaeestab',   ancho:true, opcional:true},
       {n:'numero_registro',     clave:'f_registro',      opcional:true},
       {n:'clasificacion',       clave:'f_clasificacion', opcionesClave:'o_clasificacion', opcional:true},
       {n:'capital_social',      clave:'f_capital',       opcional:true},
