@@ -2931,17 +2931,6 @@ body[data-vista="tramite"] #secTramites{display:none;}
 
    Ahora es texto con una barrita delante: se sigue viendo -es el unico
    azul de la escalera- pero ya no invita a pulsarlo. */
-/* Cuando hay varias del mismo tramite. Va arriba del todo y en ambar:
-   no es un error -pedir dos veces algo puede ser legitimo- pero si es
-   algo que hay que saber antes de leer lo de abajo. */
-.tr-varias[hidden]{display:none;}
-.tr-varias{display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-  background:var(--amber-bg); color:var(--amber); border-radius:var(--r-sm);
-  padding:9px 12px; font-size:11.5px; font-weight:600; margin-bottom:13px;}
-.tr-varias button{font:inherit; font-size:11.5px; font-weight:700;
-  color:var(--amber); background:none; border:0; padding:0; cursor:pointer;
-  text-decoration:underline;}
-
 .tr-aqui{display:inline-flex; align-items:center; gap:6px; margin-top:6px;
   font-size:var(--fs-chip); font-weight:700; letter-spacing:.01em;
   line-height:1; color:var(--navy2);
@@ -5558,11 +5547,6 @@ body[data-vista="horario"] .fase-bar{display:none;}
            iniciado, o su estado real si ya se envió. Solo aparece en los
            tipos marcados como activos en el catálogo de la base; en los
            demás se sigue viendo la escalera decorativa de arriba. -->
-      <!-- Su propio hueco, FUERA de #trReal: lo que pinta la tarjeta se
-           rehace entero y de forma asincrona -primero el estado, luego el
-           historial-, y un aviso metido ahi dentro lo barria el segundo
-           repintado sin que se viera nunca. -->
-      <div class="tr-varias" id="trVarias" hidden></div>
       <div class="tr-real" id="trReal"></div>
       <div class="tr-tramos tr-siguen" id="trSiguen" hidden></div>
       <!-- «Que me acompañe el CIIP», siempre lo último de la página, detrás
@@ -10785,7 +10769,7 @@ applyLang(idiomaParaMi());
      distintas. Ese fallo ya se arregló una vez.
 
      Quien pide otro lo tiene delante mientras lo rellena, y si se va, lo
-     recupera por «Mis trámites», que es donde pintaVarias le manda. */
+     recupera por «Mis trámites». */
   var RANGO_TRAMITE = {devuelto:0, ante_el_ente:1, en_revision:2,
                        enviado:3, resuelto:4, borrador:5};
 
@@ -10819,9 +10803,6 @@ applyLang(idiomaParaMi());
        tanto no queda un hueco vacio -la cabecera con su nombre, su
        organismo, su plazo y su descripcion se pinta al instante-. */
     chipReal(null);
-    /* Y el aviso de la tarjeta ANTERIOR se va: si no, se queda diciendo
-       "tienes 2 solicitudes" sobre un tramite que no tiene ninguna. */
-    pintaVarias(0);
 
     cargaCatalogo().then(function(tipos){
       if (miTurno !== turno) return;
@@ -10928,11 +10909,9 @@ applyLang(idiomaParaMi());
                 pintaFormulario(t, mio);
               });
             }
-
-            /* Y si hay varias, se dice. Ensenar una sin avisar de que hay
-               mas es lo que hace pensar que la pantalla no se actualiza:
-               moviste otra y esta sigue como estaba, con razon. */
-            pintaVarias(todas.length);
+            /* Con varias del mismo trámite aquí salía «Tienes 2 solicitudes
+               de este trámite», y se quitó el 23-9-2026: lo pidió Franklin,
+               porque no hacía nada. Las demás están en «Mis trámites». */
           });
       });
     }).catch(function(e){ console.warn('[CIIP] trámite real:', e && e.message); });
@@ -10941,23 +10920,6 @@ applyLang(idiomaParaMi());
   /* El distintivo de la cabecera se clona de la tarjeta, y esa tarjeta lleva
      su estado escrito a mano: decía "Completado" sin existir la solicitud.
      En un trámite de verdad manda la base, así que se reescribe. */
-  /* El aviso de "hay varias". En su propio hueco y no dentro de la
-     tarjeta: lo de la tarjeta se rehace entero, y en dos tiempos. */
-  function pintaVarias(cuantas){
-    var hueco = document.getElementById('trVarias');
-    if (!hueco) return;
-    hueco.textContent = '';
-    hueco.hidden = (cuantas < 2);
-    if (hueco.hidden) return;
-    var u = T();
-    hueco.appendChild(document.createTextNode(
-      String(u.tr_varias || '').replace('{n}', cuantas) + ' '));
-    var ver = el('button', null, u.tr_verlas || '');
-    ver.type = 'button';
-    ver.addEventListener('click', function(){ location.hash = 'tramites'; });
-    hueco.appendChild(ver);
-  }
-
   function chipReal(estado){
     var hueco = document.getElementById('trChip');
     if (!hueco) return;

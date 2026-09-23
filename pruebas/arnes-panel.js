@@ -4384,24 +4384,11 @@
        document.querySelector('#trReal .sol-campos') ? 'hay formulario' : 'sin formulario',
        'sin formulario');
 
-    /* Y se dice que hay más de una: enseñar una sin avisar es justo lo
-       que hace pensar que la pantalla no se actualiza. */
-    var av = document.getElementById('trVarias');
-    if (av && av.hidden) av = null;
-    ok('varias: y avisa de que hay más de una',
-       av && /2 solicitudes de este trámite/.test(av.textContent),
-       av ? av.textContent.trim().slice(0, 52) : 'no lo dice', 'lo dice');
-    ok('varias: y ofrece verlas todas',
-       av && !!av.querySelector('button'),
-       (av && av.querySelector('button')) ? 'con botón' : 'sin botón', 'con botón');
-    /* Arriba del todo: es lo que hay que saber ANTES de leer la escalera
-       de abajo, no después. */
-    /* Arriba de la tarjeta y FUERA de ella: lo de dentro se rehace en
-       dos tiempos -primero el estado, luego el historial- y un aviso
-       metido ahi lo barria el segundo repintado. */
-    ok('varias: y el aviso va encima de la tarjeta',
-       av && av.compareDocumentPosition(caja) & Node.DOCUMENT_POSITION_FOLLOWING,
-       av ? 'encima' : 'no hay aviso', 'encima');
+    /* El aviso «Tienes 2 solicitudes de este trámite» se quitó el
+       23-9-2026 (Franklin): no hacía nada. */
+    ok('varias: ya no sale el aviso de que hay más de una',
+       !document.getElementById('trVarias'),
+       document.getElementById('trVarias') ? 'sigue' : 'no está', 'no está');
 
     /* ── LA GUIA DE LAS VISAS ──
        La c1 abierta es tambien donde se ve la guia: las dos visas se
