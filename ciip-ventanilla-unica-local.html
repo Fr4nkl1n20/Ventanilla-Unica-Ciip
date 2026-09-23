@@ -9344,24 +9344,31 @@ applyLang(idiomaParaMi());
        asamblea, porque en una empresa recién constituida la última acta
        ES la constitutiva. El poder, sólo si firma un apoderado.
 
-       LOS TRES ÚLTIMOS SON DEL RNC, Y VAN OPCIONALES. El Servicio
+       LOS DOS ÚLTIMOS SON DEL RNC, Y VAN OPCIONALES. El Servicio
        Nacional de Contrataciones sí los exige, pero exigirlos aquí
        dejaría sin poder enviar justo a la empresa que acaba de
-       constituirse: unos estados financieros no existen todavía. El CIIP
-       reclama lo que falte cuando toque armar el expediente del RNC.
+       constituirse. El CIIP reclama lo que falte cuando toque armar el
+       expediente del RNC.
 
        Eran siete. La solvencia del IVSS, la relación de experiencia, la
-       nómina técnica y la relación de equipos se quitaron el 23 de
-       septiembre de 2026, que lo pidió Franklin. */
+       nómina técnica, la relación de equipos y los estados financieros
+       se quitaron el 23 de septiembre de 2026, que lo pidió Franklin.
+
+       Ese mismo día entraron, obligatorios, el RIF de los inversionistas
+       y la cédula y el RIF de los miembros de la junta directiva. Un
+       archivo por papel, con todas las personas dentro: Franklin lo
+       prefirió a la lista por persona de la constitución. */
     registros_parafiscales: [
       {tipo:'acta_constitutiva',    clave:'d_acta'},
       {tipo:'rif_empresa',          clave:'d_rifempresa'},
       {tipo:'cedula',               clave:'d_identidad'},
       {tipo:'rif_personal',         clave:'d_rifpersonal'},
+      {tipo:'rif_inversionistas',   clave:'d_rifinversionistas'},
+      {tipo:'cedulas_junta',        clave:'d_cedulasjunta'},
+      {tipo:'rifs_junta',           clave:'d_rifsjunta'},
       {tipo:'acta_asamblea',        clave:'d_asamblea',    opcional:true},
       {tipo:'nomina',               clave:'d_nomina',      opcional:true},
       {tipo:'poder',                clave:'d_poder',       opcional:true},
-      {tipo:'estados_financieros',  clave:'d_estadosfin',  opcional:true},
       {tipo:'declaracion_islr',     clave:'d_islr',        opcional:true},
       {tipo:'solvencia_seniat',     clave:'d_solvseniat',  opcional:true}
     ],

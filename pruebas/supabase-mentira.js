@@ -1605,6 +1605,8 @@
         {codigo:'beneficiarios_finales', vence:false}, {codigo:'no_objecion_zodi', vence:false},
         {codigo:'identidad_accionistas', vence:false}, {codigo:'juridico_matriz', vence:false},
         {codigo:'directores_accionista', vence:false},
+        {codigo:'rif_inversionistas', vence:false}, {codigo:'cedulas_junta', vence:false},
+        {codigo:'rifs_junta', vence:false},
         {codigo:'certificado_rupdae', vence:false}, {codigo:'certificado_rum', vence:true},
         {codigo:'certificado_locti', vence:true}, {codigo:'planilla_locti', vence:false},
         {codigo:'pago_locti', vence:false}

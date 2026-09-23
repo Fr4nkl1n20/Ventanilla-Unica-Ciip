@@ -127,6 +127,18 @@ update public.tipos_tramite
 
 
 -- ───────────────────────────────────────────────────────────────────────
+-- 3. LOS PAPELES DE LOS INVERSIONISTAS Y DE LA JUNTA (23-9-2026)
+-- ───────────────────────────────────────────────────────────────────────
+-- Un archivo por papel con todas las personas dentro. No vencen: con
+-- varias personas en un archivo no hay una sola fecha que pedir.
+insert into public.tipos_documento (codigo, nombre, vence) values
+  ('rif_inversionistas', 'RIF de los inversionistas',                      false),
+  ('cedulas_junta',      'Cédula de los miembros de la junta directiva',   false),
+  ('rifs_junta',         'RIF de los miembros de la junta directiva',      false)
+on conflict (codigo) do update set nombre = excluded.nombre;
+
+
+-- ───────────────────────────────────────────────────────────────────────
 -- COMPROBACIONES
 -- ───────────────────────────────────────────────────────────────────────
 -- 1) La casilla nueva: c37 · Entes varios · fase 3 · esencial · 28 días ·
