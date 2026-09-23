@@ -6524,32 +6524,42 @@
 
   function docsEsperaCambio(sigue){
     if (CASO === 'gestor') return sigue();
-    esperaFilas('#dcLista tr[data-doc]', (window.PRUEBA_DOCS_ANTES || 0) + 1, sigue);
+    /* Ya no se espera a que la lista CREZCA: desde el 23 de septiembre de
+       2026 el reemplazado no abre renglon propio, se dobla bajo el que lo
+       sustituye. Lo que anuncia que el cambio llego es el desplegable. */
+    esperaFilas('#dcLista .dc-antes-b', 1, sigue);
   }
 
   function docsTrasCambiar(){
     if (CASO === 'gestor') return;
+    /* UNA FILA POR DOCUMENTO, no una por version. Antes el viejo abria su
+       propio renglon y la lista crecia: dos veces «Comprobante del pago»
+       con una etiqueta pequeña diciendo cual no vale, que nadie lee
+       (Franklin Reyes, 21-9-2026: «creo que estoy viendo dos veces lo
+       mismo»). Ahora el nuevo OCUPA el sitio del viejo y la cuenta no se
+       mueve. */
     var fichas = document.querySelectorAll('#dcLista tr[data-doc]');
-    igual('docs: al cambiarlo, el nuevo se suma y el viejo se queda',
-          fichas.length, (window.PRUEBA_DOCS_ANTES || 0) + 1);
+    igual('docs: al cambiarlo, el nuevo ocupa el sitio y la lista no crece',
+          fichas.length, (window.PRUEBA_DOCS_ANTES || 0));
     ok('docs: y el nuevo lleva su nombre',
        /el-bueno\.pdf/.test(document.getElementById('dcLista').textContent),
        'busca el-bueno.pdf', 'esta en la lista');
-    /* Y se dice cual ya no vale: dos pasaportes sin decir cual se usa es
-       peor que uno solo equivocado. */
-    var marcas = document.querySelectorAll('#dcLista .dc-viejo');
-    ok('docs: y el de antes queda marcado como reemplazado', marcas.length >= 1,
-       marcas.length + ' marcados', 'al menos uno');
-    /* Al reemplazado no se le ofrece cambiarlo: seria subir un tercero
-       para dejarlo igual. */
-    var vieja = marcas[0] ? marcas[0].closest('tr') : null;
-    var sigue = vieja && [].filter.call(vieja.querySelectorAll('.t-btn'), function(b){
-      return b.textContent.trim() === 'Cambiar';
-    })[0];
-    ok('docs: y al reemplazado ya no se le ofrece cambiar',
-       !!vieja && !sigue,
-       vieja ? (sigue ? 'sigue el boton' : 'sin boton') : 'no hay renglon viejo',
-       'sin boton');
+
+    /* PERO EL VIEJO NO SE BORRA: va adjunto a solicitudes ya enviadas, y
+       borrarlo reescribiria lo que el CIIP recibio. Se aparta, que no es
+       lo mismo que esconderlo: hay un desplegable que lo dice y lo saca. */
+    var ver = document.querySelector('#dcLista .dc-antes-b');
+    ok('docs: y el de antes se dobla debajo, no se pierde', !!ver,
+       ver ? ver.textContent.trim() : 'sin desplegable', 'con desplegable');
+    if (!ver) return;
+    var caja = ver.parentNode.querySelector('.dc-antes-l');
+    igual('docs: y empieza plegado', caja ? caja.hidden : 'sin caja', true);
+    ver.click();
+    ok('docs: y al pulsarlo sale la version anterior',
+       !!caja && !caja.hidden && /\S/.test(caja.textContent || ''),
+       caja ? (caja.hidden ? 'sigue plegado' : caja.textContent.trim().slice(0, 40))
+            : 'sin caja',
+       'se ve con su archivo');
   }
 
   /* ═════ SUBIR UN DOCUMENTO QUE YA TIENES ═════

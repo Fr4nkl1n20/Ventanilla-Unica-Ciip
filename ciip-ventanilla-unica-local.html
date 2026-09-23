@@ -1503,6 +1503,17 @@ body[data-vista="documentos"] .fase-bar{display:none;}
    fila ya tiene siete columnas y siete cajas serían una reja-; lo que
    dice que se puede pulsar es el subrayado al pasar por encima, como
    cualquier enlace. */
+/* Las versiones que un papel vino a reemplazar. Entran hacia dentro -van
+   colgadas de la fila de arriba, no al lado de ella- y el botón no parece
+   un botón de acción: no hace nada, solo destapa. */
+.dc-antes{padding:2px 0 6px 0;}
+.dc-antes-b{font:inherit; font-size:11.5px; font-weight:700; color:var(--navy);
+  background:none; border:0; padding:2px 0; cursor:pointer;}
+.dc-antes-b:hover{text-decoration:underline;}
+.dc-antes-l{display:flex; flex-direction:column; gap:5px; margin-top:6px;
+  padding-left:13px; border-left:2px solid var(--line);}
+.dc-antes-i{display:flex; align-items:center; gap:9px; flex-wrap:wrap;}
+.dc-antes-f{font-size:11px; color:var(--gray); font-weight:600;}
 .dc-usos-l{display:flex; flex-direction:column; align-items:flex-start; gap:3px;}
 .dc-uso{font:inherit; font-size:11.5px; font-weight:600; color:var(--navy);
   background:none; border:0; padding:0; cursor:pointer; text-align:left;}
@@ -24738,7 +24749,41 @@ applyLang(idiomaParaMi());
     /* El orden de la pantalla manda sobre el de carga. Mientras no hayas
        pulsado ninguna cabecera, ordena() devuelve la lista tal cual y
        vale el de siempre: lo caducado primero, luego lo mas reciente. */
-    var dcVistos = dcOrden.ordena(papeles.filter(dcCuadra), DC_ORDENA);
+    /* ── LAS VERSIONES ANTERIORES, DOBLADAS ─────────────────────────────
+       Franklin Reyes, 21 de septiembre de 2026: «creo que estoy viendo dos
+       veces lo mismo». Lo era a medias. Al cambiar un papel el viejo se
+       queda -va adjunto a trámites ya enviados y borrarlo reescribiría lo
+       que el CIIP recibió- y ocupaba una fila entera, con su nombre, su
+       estado y su fecha. Dos renglones que dicen «Comprobante del pago de
+       la publicación» y uno de ellos ya no vale: para leer eso hay que
+       fijarse en una etiqueta pequeña, y nadie se fija.
+
+       Ahora hay una fila por documento y las anteriores van debajo,
+       plegadas. No se esconden: se apartan, que no es lo mismo.
+
+       DOS REGLAS QUE PARECEN DETALLE Y NO LO SON:
+
+       Una anterior se doblá SOLO si su vigente está también en la lista.
+       Si buscas por el nombre del archivo viejo, o filtras por vencidos y
+       el que vence es el viejo, el vigente no pasa el filtro y doblarla
+       dejaría la pantalla vacía diciendo «ninguno se llama así» con el
+       papel delante. Sin vigente que la recoja, sale sola, como hasta hoy.
+
+       Y las que se doblan son las que PASAN EL FILTRO. El desplegable no
+       puede traer de vuelta lo que la pestaña acaba de apartar. */
+    var visibles = papeles.filter(dcCuadra);
+    var claveDe = function(d){ return d.tipo + '|' + (d.titular || ''); };
+    var esVigente = function(d){ return vigenteDeTipo[claveDe(d)] === d.id; };
+    var vigenteAlaVista = {}, anterioresDe = {};
+    visibles.forEach(function(d){ if (esVigente(d)) vigenteAlaVista[claveDe(d)] = true; });
+    visibles.forEach(function(d){
+      if (esVigente(d) || !vigenteAlaVista[claveDe(d)]) return;
+      var jefe = vigenteDeTipo[claveDe(d)];
+      (anterioresDe[jefe] || (anterioresDe[jefe] = [])).push(d);
+    });
+    var dcVistos = dcOrden.ordena(visibles.filter(function(d){
+      return esVigente(d) || !vigenteAlaVista[claveDe(d)];
+    }), DC_ORDENA);
 
     /* Vacio hay dos, y no dicen lo mismo: «no has subido nada» es una
        boveda sin estrenar, y «ninguno se llama asi» es una busca que no
@@ -24979,6 +25024,72 @@ applyLang(idiomaParaMi());
         td.appendChild(el('div', 'ci-nota', u.dc_revisa || ''));
         extra.appendChild(td);
         dcLista.appendChild(extra);
+      }
+
+      /* Y debajo, las que este papel vino a reemplazar. Plegadas: el que
+         mira la bóveda quiere el que vale, y el anterior solo lo busca
+         cuando lo busca. Con nombre, fecha y su botón de abrir, que es
+         para lo que se guarda: comprobar qué se mandó entonces.
+
+         Una lista y no ocho columnas -estado, revisión, vence, usos- para
+         un papel que ya no vale: repetir la tabla entera aquí dentro
+         volvería a ser lo que estábamos quitando. */
+      var antes = anterioresDe[d.id];
+      if (antes && antes.length){
+        var fv2 = document.createElement('tr');
+        fv2.style.cursor = 'default';
+        var tdA = document.createElement('td');
+        tdA.colSpan = DC_COLUMNAS.length;
+        var caja = el('div', 'dc-antes');
+        var lista = el('div', 'dc-antes-l');
+        lista.hidden = true;
+        var ver = el('button', 'dc-antes-b', '');
+        ver.type = 'button';
+        var rotula = function(){
+          ver.setAttribute('aria-expanded', lista.hidden ? 'false' : 'true');
+          ver.textContent = lista.hidden
+            ? String((antes.length === 1 ? u.dc_ant_ver1 : u.dc_ant_ver) || '')
+                .replace('{n}', antes.length)
+            : (u.dc_ant_ocultar || '');
+        };
+        ver.addEventListener('click', function(e){
+          e.stopPropagation();
+          lista.hidden = !lista.hidden;
+          rotula();
+        });
+        rotula();
+        antes.forEach(function(v){
+          var linea = el('div', 'dc-antes-i');
+          linea.appendChild(el('span', 't-arch', v.nombre_original || ''));
+          linea.appendChild(el('span', 'dc-antes-f', v.creado_en ? fecha(v.creado_en) : ''));
+          if (v.archivo){
+            var ab = el('button', 't-btn', u.co_abrir || '');
+            ab.type = 'button';
+            ab.addEventListener('click', function(e2){
+              e2.stopPropagation();
+              ab.disabled = true;
+              Promise.resolve(sb.storage.from('recaudos').createSignedUrl(v.archivo, 120))
+                .then(function(rs){
+                  ab.disabled = false;
+                  var url = rs && rs.data && rs.data.signedUrl;
+                  if (!url) throw new Error('sin url');
+                  window.open(url, '_blank', 'noopener');
+                })
+                .catch(function(err){
+                  console.warn('[CIIP] ver anterior:', err && (err.message || err));
+                  ab.disabled = false;
+                  ab.textContent = u.co_noabre || '';
+                });
+            });
+            linea.appendChild(ab);
+          }
+          lista.appendChild(linea);
+        });
+        caja.appendChild(ver);
+        caja.appendChild(lista);
+        tdA.appendChild(caja);
+        fv2.appendChild(tdA);
+        dcLista.appendChild(fv2);
       }
     });
   }
