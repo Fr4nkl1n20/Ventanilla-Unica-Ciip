@@ -8374,6 +8374,7 @@ applyLang(idiomaParaMi());
   var TIPOS = null;      /* ref_panel -> {codigo, ente, activo} */
   var usuario = null;
   var enteActual = '';   /* el organismo del trámite abierto, para los textos */
+  var refActual = '';    /* y cuál es, para los nombres de sus pasos */
   /* Los datos de la compañía. Se piden al cargar porque de aquí sale el
      relleno de los formularios, y un formulario se abre sin pasar por la
      vista de Mi empresa. */
@@ -8564,10 +8565,13 @@ applyLang(idiomaParaMi());
     return (D.aqui && (D.aqui[curLang] || D.aqui.en)) || '';
   }
 
-  function estadoTexto(i, ente){
+  /* Con ref, el nombre que ESE trámite le da al paso (CIIP_PASOS.circuito);
+     sin él, o si el trámite no lo tiene, el de todos. */
+  function estadoTexto(i, ente, ref){
     var D = window.CIIP_PASOS || {};
+    var C = ref && D.circuito && D.circuito[curLang] && D.circuito[curLang][ref];
     var l = (D.estados && (D.estados[curLang] || D.estados.en)) || [];
-    return String(l[i] || '').replace('{ente}', ente || '');
+    return String((C && C[i]) || l[i] || '').replace('{ente}', ente || '');
   }
   function fecha(iso){
     if (!iso) return '';
@@ -10820,6 +10824,7 @@ applyLang(idiomaParaMi());
         return;
       }
       enteActual = t.ente || '';
+      refActual = refPanel;
 
       /* quienSoy() y no getUser(), y esto se midio antes de tocarlo.
 
@@ -10963,10 +10968,10 @@ applyLang(idiomaParaMi());
          botones para lo mismo, uno gris y sin poder pulsarse. */
       sin_iniciar:  {clase:'mute', txt:(I18N[curLang] || I18N.en)['st.pending']},
       enviado:      {clase:'info', txt:u.guardado},
-      en_revision:  {clase:'info', txt:estadoTexto(1, enteActual)},
+      en_revision:  {clase:'info', txt:estadoTexto(1, enteActual, refActual)},
       devuelto:     {clase:'warn', txt:u.devuelta},
-      ante_el_ente: {clase:'info', txt:estadoTexto(2, enteActual)},
-      resuelto:     {clase:'good', txt:estadoTexto(3, enteActual)}
+      ante_el_ente: {clase:'info', txt:estadoTexto(2, enteActual, refActual)},
+      resuelto:     {clase:'good', txt:estadoTexto(3, enteActual, refActual)}
     };
     var m = mapa[estado] || mapa.sin_iniciar;
     chip.className = 'chip ' + m.clase;
@@ -13397,8 +13402,12 @@ applyLang(idiomaParaMi());
           var nPaso = (conReserva && est === 'resuelto' ? i + 2 : i + 1) + delante;
           var punto = el('span', 'tr-punto', hecho ? '✓' : String(nPaso));
           var txt = el('div', 'tr-txt');
-          txt.appendChild(el('div', 'tr-paso-n',
-            propios ? propios[i + delante] : estadoTexto(i, tipo.ente)));
+          var nomP = el('div', 'tr-paso-n',
+            propios ? propios[i + delante] : estadoTexto(i, tipo.ente, refTr));
+          /* Su clave, puesta: «Editar textos» cambia así el paso de ESTE
+             trámite. Buscándola por el texto daría con el de todos. */
+          if (!propios && refTr) nomP.setAttribute('data-ui', '_p.circuito.' + refTr + '.' + i);
+          txt.appendChild(nomP);
           if (cuando[est]) txt.appendChild(el('div', 'sd-e', fecha(cuando[est])));
           else if (ahora){
             var eti = el('span', 'tr-aqui', textoAqui());
@@ -14011,9 +14020,9 @@ applyLang(idiomaParaMi());
 
   /* Qué pasó, dicho igual que en la escalera del trámite: dos maneras de
      nombrar el mismo estado en la misma pantalla se contradicen solas. */
-  function textoDeEvento(estado, ente){
+  function textoDeEvento(estado, ente, ref){
     var i = AV_ORDEN.indexOf(estado);
-    if (i >= 0) return estadoTexto(i, ente);
+    if (i >= 0) return estadoTexto(i, ente, ref);
     if (estado === 'devuelto') return T().devuelta || '';
     return '';
   }
@@ -14203,7 +14212,7 @@ applyLang(idiomaParaMi());
     }
     return {
       t: nombreDeTarjeta(ev.ref),
-      q: textoDeEvento(ev.estado, ev.ente),
+      q: textoDeEvento(ev.estado, ev.ente, ev.ref),
       nota: ev.nota || '',
       ir: function(){ avAMisTramites(ev.tramite); }
     };
@@ -17331,7 +17340,7 @@ applyLang(idiomaParaMi());
       var ref = tipoRefDe(t.tipo);
 
       var est = el('span', 'co-estado' + (t.estado === 'en_revision' ? ' mirando' : ''),
-                   textoDeEvento(t.estado, (TIPOS[ref] || {}).ente || ''));
+                   textoDeEvento(t.estado, (TIPOS[ref] || {}).ente || '', ref));
       f.appendChild(est);
 
       f.appendChild(el('div', 'co-quien', t.nombre || u.co_sinnombre || ''));
@@ -18549,7 +18558,7 @@ applyLang(idiomaParaMi());
     var arriba = el('div', 'hoy-card-top');
     arriba.appendChild(el('span', 'hoy-ente', hoyEnte(t)));
     arriba.appendChild(el('span', 'co-estado' + (t.estado === 'en_revision' ? ' mirando' : ''),
-                          textoDeEvento(t.estado, hoyEnte(t))));
+                          textoDeEvento(t.estado, hoyEnte(t), tipoRefDe(t.tipo))));
     c.appendChild(arriba);
 
     var cab = el('div');
@@ -19065,7 +19074,7 @@ applyLang(idiomaParaMi());
     var nivel = hoyNivel(t);
     meta.appendChild(el('span', 'hoy-plazo' + (nivel ? ' ' + nivel : ''), hoyTextoPlazo(t)));
     meta.appendChild(el('span', 'co-estado' + (t.estado === 'en_revision' ? ' mirando' : ''),
-                        textoDeEvento(t.estado, hoyEnte(t))));
+                        textoDeEvento(t.estado, hoyEnte(t), tipoRefDe(t.tipo))));
     var mio = !!YO && t.gestor === YO;
     meta.appendChild(el('span', 'quien-lleva' + (mio ? ' mio' : ''),
       mio ? (u.co_lollevas || '') : t.gestor ? String(u.co_lolleva || '').replace('{quien}', nombreDeGestor(t.gestor)) : (u.co_sinasig || '')));
@@ -20863,13 +20872,13 @@ applyLang(idiomaParaMi());
      mismo y no hay que aprenderse dos reglas. */
   var MT_VIVOS = ['borrador', 'enviado', 'en_revision', 'devuelto', 'ante_el_ente'];
 
-  function chipDeTramite(estado, ente){
+  function chipDeTramite(estado, ente, ref){
     var u = T();
     if (estado === 'devuelto')  return {txt:u.devuelta || '',  clase:'reclama'};
     if (estado === 'borrador')  return {txt:u.iniciar || '',   clase:'reclama'};
-    if (estado === 'resuelto')  return {txt:estadoTexto(3, ente), clase:'listo'};
+    if (estado === 'resuelto')  return {txt:estadoTexto(3, ente, ref), clase:'listo'};
     var i = AV_ORDEN.indexOf(estado);
-    return {txt: i >= 0 ? estadoTexto(i, ente) : estado, clase:''};
+    return {txt: i >= 0 ? estadoTexto(i, ente, ref) : estado, clase:''};
   }
 
   /* 'todas' | 'accion' | 'ciip' | 'ente' | 'listo' | 'tarde'. Vive fuera
@@ -21076,7 +21085,7 @@ applyLang(idiomaParaMi());
       var ref = tipoRefDe(t.tipo);
       return ((TIPOS || {})[ref] || {}).ente || '';
     },
-    mt_c_estado: function(t){ return textoDeEvento(t.estado, '') || ''; },
+    mt_c_estado: function(t){ return textoDeEvento(t.estado, '', tipoRefDe(t.tipo)) || ''; },
     /* La fecha de la fila es la ultima que hubo: se resolvio, o se envio,
        o se creo. Ordenar por «creado» dejaria un resuelto de ayer por
        debajo de un borrador de hace un mes. */
@@ -21530,7 +21539,7 @@ applyLang(idiomaParaMi());
          Sin este paréntesis, TIPOS[null] revienta y la lista se queda vacía
          para toda la sesión. */
       var ente = ((TIPOS || {})[ref] || {}).ente || '';
-      var chip = chipDeTramite(t.estado, ente);
+      var chip = chipDeTramite(t.estado, ente, ref);
       var reclama = (t.estado === 'devuelto' || t.estado === 'borrador');
 
       var tr = document.createElement('tr');
@@ -29026,17 +29035,38 @@ body.editando-textos .tx-sobre{outline:2px solid var(--cyan-deep); outline-offse
        '_p.pasos.c5.2'                CIIP_PASOS.pasos[idioma].c5[2]
        '_p.guia.propio.cedula.0'      CIIP_PASOS.guia[idioma].propio.cedula[0]
      Cabe en la regla de la tabla: letras, números, punto y guion bajo. */
-  var BLOQUES = ['titulo', 'aqui', 'estados', 'sectores', 'guia', 'pasos'];
+  var BLOQUES = ['titulo', 'aqui', 'estados', 'circuito', 'sectores', 'guia', 'pasos'];
   var ORIG_BLOQ = {};    /* {es: {clave: original}} de pasos.js, al pisarlo */
   function trozos(clave){ return String(clave).slice(3).split('.'); }
+  /* Los pasos de un trámite (_p.circuito.c37.2) nacen sin escribir: hasta
+     que alguien los cambia, dicen lo mismo que el de todos. Por eso, si el
+     trámite no tiene el suyo, se lee el general, y al escribir se le hace
+     su lista a partir de él. */
+  function esDeCircuito(t){ return t[0] === 'circuito' && t.length === 3; }
+  /* La escalera la pinta el trámite al abrirse, no applyLang: tras guardar
+     uno de sus pasos se vuelve a abrir el trámite que está a la vista, que
+     es el único donde ese paso se ha podido pulsar. */
+  function repintaTramite(clave){
+    var t = trozos(clave);
+    if (esDeCircuito(t) && window.CIIP_TRAMITE_REAL &&
+        document.body.getAttribute('data-vista') === 'tramite') window.CIIP_TRAMITE_REAL(t[1]);
+  }
   function leeBloque(lang, clave){
     var P = window.CIIP_PASOS, t = trozos(clave);
     var v = P && P[t[0]] && P[t[0]][lang];
     for (var i = 1; i < t.length && v != null; i++) v = v[t[i]];
+    if (typeof v !== 'string' && P && esDeCircuito(t)){
+      v = P.estados && P.estados[lang] && P.estados[lang][t[2]];
+    }
     return typeof v === 'string' ? v : undefined;
   }
   function escribeBloque(lang, clave, texto){
     var P = window.CIIP_PASOS, t = trozos(clave);
+    if (P && esDeCircuito(t) && P.estados && P.estados[lang]){
+      var CI = P.circuito || (P.circuito = {});
+      var CL = CI[lang] || (CI[lang] = {});
+      if (!CL[t[1]]) CL[t[1]] = P.estados[lang].slice();
+    }
     if (!P || !P[t[0]] || P[t[0]][lang] == null) return false;
     if (t.length === 1){ P[t[0]][lang] = texto; return true; }
     var v = P[t[0]][lang];
@@ -29508,6 +29538,7 @@ body.editando-textos .tx-sobre{outline:2px solid var(--cyan-deep); outline-offse
         cierra();
         repinta();
         aMano(nodoVivo, viejo, texto);
+        repintaTramite(clave);
         avisaBanda((dic()['tx.guardado'] || I18N.en['tx.guardado'] || ''));
       }, function(){ ocupado(false); ponMsg((dic()['tx.nopudo'] || I18N.en['tx.nopudo'] || ''), false); });
   }
@@ -29533,6 +29564,7 @@ body.editando-textos .tx-sobre{outline:2px solid var(--cyan-deep); outline-offse
         cierra();
         repinta();
         aMano(nodoVivo, viejo, vuelto);
+        repintaTramite(clave);
         avisaBanda((dic()['tx.restaurado'] || I18N.en['tx.restaurado'] || ''));
       }, function(){ ocupado(false); ponMsg((dic()['tx.nopudo'] || I18N.en['tx.nopudo'] || ''), false); });
   }

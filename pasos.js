@@ -69,6 +69,15 @@ window.CIIP_PASOS = {
     ru: ["Заявка получена CIIP", "Проверка ваших документов", "Подано в {ente}", "Завершено"]
   },
 
+  /* LOS MISMOS CUATRO ESTADOS, CON EL NOMBRE DE CADA TRÁMITE (Franklin,
+     23-9-2026: «cada trámite llevará nombres en los pasos diferentes»).
+     Por idioma y por ref_panel, cuatro textos en el orden de arriba:
+       c37: ["Recaudos recibidos", "Revisión del CIIP", "Inscripción ante los entes", "Inscrito"]
+     Si un trámite no está aquí, o le falta un texto, sale el de «estados».
+     También se cambian con «Editar textos»: pulsando el paso, la clave es
+     _p.circuito.<ref>.<n>, y vale SOLO para ese trámite. */
+  circuito: { es: {}, en: {}, pt: {}, it: {}, zh: {}, ru: {} },
+
 
   /* Los nombres de los sectores, colgados del ref_panel que les da la
      base. El catálogo vive en supabase-sectores.sql y aquí SOLO están las
