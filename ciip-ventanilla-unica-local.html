@@ -628,6 +628,7 @@ svg{display:block;}
 .co-acta .sd-e{margin-bottom:2px;}
 .co-reserva-e{font-size:12px; color:var(--gray);}
 .co-reserva.puesto .co-reserva-e{color:var(--ink); font-weight:600;}
+.co-reserva.espera .co-reserva-e{color:var(--ink); font-weight:600;}
 /* Lo entregado, en el detalle del trámite del inversionista. */
 .tr-entrega{background:var(--good-bg); border:1px solid var(--good);
   border-radius:var(--r); padding:15px 17px; margin-bottom:16px;}
@@ -17699,25 +17700,43 @@ applyLang(idiomaParaMi());
      protocolización. Devuelve null donde no toca dejar nada. */
   function loQueSePaga(t){
     if (!t) return null;
+    /* 'boton' es lo que dice el boton de abajo mientras el papel espera a
+       salir. La constitucion no dice «PUB»: lo que se le deja alli es el
+       documento con el que se paga la reserva, y PUB es el nombre de la
+       planilla del registro y del periodico. */
     if (t.tipo === 'constitucion' && t.estado === 'ante_el_ente'){
-      return {tipo: 'planilla_reserva_nombre', clave: 'd_planilla_reserva'};
+      return {tipo: 'planilla_reserva_nombre', clave: 'd_planilla_reserva',
+              boton: 'co_h_env_pagar'};
     }
     /* La protocolización, en cuanto está en marcha: el arancel se paga al
        principio, antes de consignar, así que no hay que esperar a nada. */
     if (t.tipo === 'protocolizacion_acta' &&
         ['enviado','en_revision','ante_el_ente'].indexOf(t.estado) >= 0){
-      return {tipo: 'planilla_aranceles', clave: 'd_planilla_aranceles'};
+      return {tipo: 'planilla_aranceles', clave: 'd_planilla_aranceles',
+              boton: 'co_h_env_pub'};
     }
     /* Y la publicación igual: el periódico cobra por adelantado, así que
        el PUB se deja en cuanto el tramo está en marcha. */
     if (t.tipo === 'publicacion_acta' &&
         ['enviado','en_revision','ante_el_ente'].indexOf(t.estado) >= 0){
-      return {tipo: 'planilla_publicacion', clave: 'd_planilla_publicacion'};
+      return {tipo: 'planilla_publicacion', clave: 'd_planilla_publicacion',
+              boton: 'co_h_env_pub'};
     }
     return null;
   }
 
-  function casillaDeLaReserva(t, idBase){
+  /* Devuelve {caja, clave, pendiente, envia} y no el nodo suelto: el pie
+     necesita saber si hay un papel elegido sin enviar, porque mientras lo
+     haya SU BOTON es el que lo envia. Ver visorFin().
+
+     ELEGIR EL ARCHIVO YA NO LO ENVIA (Franklin Reyes, 23-9-2026). Hasta
+     hoy subia solo al elegirlo, y el gestor se quedaba con un boton debajo
+     que decia «Preselo ante el SAREN» y parecia mandar otra vez lo mismo:
+     dos gestos a la vista, uno que ya habia pasado sin avisar y otro que
+     solo cambia el estado. Ahora el papel se queda esperando, el boton de
+     abajo dice que lo que toca es enviarlo, y al salir vuelve a ser el de
+     siempre. Se envia UNA vez y se ve cuando. */
+  function casillaDeLaReserva(t, idBase, alElegir){
     var pide = loQueSePaga(t);
     if (!pide) return null;
     var u = T();
@@ -17730,28 +17749,24 @@ applyLang(idiomaParaMi());
     inp.id = idBase + t.id;
     inp.accept = '.pdf,.jpg,.jpeg,.png';
     var est = el('span', 'co-reserva-e', '');
+    var elegido = null;
     var puesto = function(nombre){
+      elegido = null;
+      caja.classList.remove('espera');
       caja.classList.add('puesto');
       inp.hidden = true;
       est.textContent = String.fromCharCode(10003) + ' ' + (nombre || '');
     };
     inp.addEventListener('change', function(){
-      var archivo = inp.files && inp.files[0];
-      if (!archivo) return;
-      inp.disabled = true;
-      est.textContent = u.co_subiendo || '';
-      entrega(t, archivo, pide.tipo)
-        .then(function(){
-          if (typeof PAPELES_DE !== 'undefined') PAPELES_DE[t.id] = null;
-          inp.disabled = false;
-          puesto(archivo.name);
-        })
-        .catch(function(e){
-          console.warn('[CIIP] documento para pagar:', e && (e.message || e));
-          inp.disabled = false;
-          inp.value = '';
-          est.textContent = (e && e.ciip && u[e.ciip]) || u.co_error || '';
-        });
+      elegido = (inp.files && inp.files[0]) || null;
+      if (elegido){
+        caja.classList.add('espera');
+        est.textContent = elegido.name + ' \u00b7 ' + (u.co_h_env_listo || '');
+      } else {
+        caja.classList.remove('espera');
+        est.textContent = '';
+      }
+      if (alElegir) alElegir();
     });
     caja.appendChild(inp);
     caja.appendChild(est);
@@ -17763,7 +17778,32 @@ applyLang(idiomaParaMi());
         if (ya) puesto(ya.documentos.nombre_original);
       })
       .catch(function(){});
-    return caja;
+    return {
+      caja: caja,
+      clave: pide.boton,
+      pendiente: function(){ return !!elegido; },
+      /* Si falla, el archivo se queda elegido: el boton sigue siendo el de
+         enviar y se puede volver a pulsar sin buscarlo otra vez. */
+      envia: function(){
+        var archivo = elegido;
+        if (!archivo) return Promise.resolve(false);
+        inp.disabled = true;
+        est.textContent = u.co_subiendo || '';
+        return entrega(t, archivo, pide.tipo)
+          .then(function(){
+            if (typeof PAPELES_DE !== 'undefined') PAPELES_DE[t.id] = null;
+            inp.disabled = false;
+            puesto(archivo.name);
+            return true;
+          })
+          .catch(function(e){
+            console.warn('[CIIP] documento para pagar:', e && (e.message || e));
+            inp.disabled = false;
+            est.textContent = (e && e.ciip && u[e.ciip]) || u.co_error || '';
+            return false;
+          });
+      }
+    };
   }
 
   /* La tabla de la cola no espera a mueveTramite para nada -pinta sola-, y
@@ -19028,8 +19068,14 @@ applyLang(idiomaParaMi());
       var conEmitido = pideEmitido(t);
       pista.textContent = (conEmitido ? u.co_h_p_emitido : u.co_h_p_reserva) || '';
       fin.appendChild(pista);
-      var reserva = casillaDeLaReserva(t, 'hoy-res-');
-      if (reserva) fin.appendChild(reserva);
+      /* Mientras haya papel elegido sin enviar, el boton de abajo es el
+         que lo envia; en cuanto sale, vuelve a ser «Resolver». */
+      var rotulaRes = function(){
+        if (reserva && reserva.pendiente()) res.textContent = u[reserva.clave] || '';
+        else res.textContent = (conEmitido ? u.co_h_resolver : u.co_h_resolver_c) || '';
+      };
+      var reserva = casillaDeLaReserva(t, 'hoy-res-', function(){ rotulaRes(); });
+      if (reserva) fin.appendChild(reserva.caja);
       var archivo = null;
       if (conEmitido){
         var sube = el('div', 'co-emitir');
@@ -19060,6 +19106,11 @@ applyLang(idiomaParaMi());
       var res = el('button', 'btn navy', (conEmitido ? u.co_h_resolver : u.co_h_resolver_c) || '');
       res.type = 'button';
       res.addEventListener('click', function(){
+        if (reserva && reserva.pendiente()){
+          res.disabled = true;
+          reserva.envia().then(function(){ res.disabled = false; rotulaRes(); });
+          return;
+        }
         hoyResuelve(t, archivo, res, aviso, delActa && delActa.lee());
       });
       botones.appendChild(res);
@@ -19093,8 +19144,21 @@ applyLang(idiomaParaMi());
          protocolización está en marcha, sin esperar a presentarla ante el
          registro: allí se paga antes de consignar (Franklin Reyes,
          17-9-2026). */
-      var pagar = casillaDeLaReserva(t, 'hoy-pag-');
-      if (pagar) fin.appendChild(pagar);
+      /* Igual que arriba: con un PUB elegido sin enviar, el boton lo envia
+         -y no espera a que todos los recaudos esten validados, que el PUB
+         se paga antes-; enviado, vuelve a ser «Preselo ante el ente» con
+         su candado de siempre. */
+      var rotulaPre = function(){
+        if (pagar && pagar.pendiente()){
+          pre.textContent = u[pagar.clave] || '';
+          pre.disabled = false;
+        } else {
+          pre.textContent = String(u.co_h_presentar || '').replace('{ente}', ente);
+          pre.disabled = !!(c && (c.cargado || c.rechazado));
+        }
+      };
+      var pagar = casillaDeLaReserva(t, 'hoy-pag-', function(){ rotulaPre(); });
+      if (pagar) fin.appendChild(pagar.caja);
       var nota = el('textarea');
       nota.id = 'hoy-nota-' + t.id;
       nota.rows = 2;
@@ -19129,10 +19193,17 @@ applyLang(idiomaParaMi());
       botones.appendChild(dev);
       /* No se presenta ante el organismo lo que nadie ha mirado: el botón
          espera a que todos los papeles estén validados, y dice por qué. */
-      var pre = el('button', 'btn navy', String(u.co_h_presentar || '').replace('{ente}', ente));
+      var pre = el('button', 'btn navy', '');
       pre.type = 'button';
-      pre.disabled = !!(c && (c.cargado || c.rechazado));
-      pre.addEventListener('click', function(){ hoyPresenta(t, pre, aviso); });
+      rotulaPre();
+      pre.addEventListener('click', function(){
+        if (pagar && pagar.pendiente()){
+          pre.disabled = true;
+          pagar.envia().then(function(){ rotulaPre(); });
+          return;
+        }
+        hoyPresenta(t, pre, aviso);
+      });
       botones.appendChild(pre);
     }
     if (botones.childNodes.length) fin.appendChild(botones);

@@ -550,6 +550,19 @@ window.CIIP_PASOS = {
       co_h_v_ente:"En manos de {ente}",    co_h_revisar:"Revisar",
       co_h_cerrar:"Cerrar", co_h_respuesta:"Adjuntar la respuesta", co_h_tomado:"Ahora lo llevas tú.", co_h_deshacer:"Deshacer", co_h_devuelto:"Devuelto a {quien} con tu nota. Le llega un aviso.",
       co_h_resuelto:"Resuelto. {quien} ya tiene el documento en su bóveda.", co_h_sindatos:"No rellenó ningún dato.", co_h_vale:"✓ Vale", co_h_novale:"✕ No vale", co_h_validado:"Validado", co_h_pormirar:"Por mirar",
+      /* EL BOTON DE ABAJO ENVIA EL PAPEL PARA PAGAR (Franklin Reyes,
+         23-9-2026). Elegir el archivo ya no lo manda: lo deja listo, y
+         mientras espera el boton dice que lo que toca es enviarlo. En
+         cuanto sale, vuelve a ser «Presentar ante {ente}» o «Resolver».
+
+         Son dos rótulos y no uno porque la constitución no manda un PUB:
+         alli se le deja el documento con el que paga la reserva del
+         nombre, y PUB es como se llaman la planilla del registro y la del
+         periódico. Llamar PUB a las tres sería enseñarle al gestor un
+         nombre que el SAREN no le va a decir. */
+      co_h_env_pub:   "Enviar el PUB al inversionista",
+      co_h_env_pagar: "Enviar el documento para pagar",
+      co_h_env_listo: "Listo para enviar",
       co_h_presentar:"Presentar ante {ente}", co_h_resolver:"Resolver y entregar", co_h_resolver_c:"Resolver", co_h_p_reserva:"Con el comprobante de la reserva ya subido por el inversionista, resuelve la constitución.", co_h_p_emitido:"Adjunta lo que emitió el organismo y resuelve: va a la bóveda del inversionista.", co_h_p_falta1:"Falta 1 recaudo por mirar.", co_h_p_faltan:"Faltan {n} recaudos por mirar.", co_h_p_rechazo:"Hay un recaudo que no vale: devuélvelo y di cuál.",
       co_h_p_listo:"Todo validado.", co_h_recaudo:"Recaudo {i} de {n}", co_h_anterior:"‹ Anterior", co_h_siguiente:"Siguiente ›", co_h_pestana:"Abrir en otra pestaña", co_h_abriendo:"Abriendo el documento…",
       co_h_cotejo:"Compáralo con lo que rellenó", co_h_foto:"Compárala con la foto del pasaporte: tiene que ser la misma persona, de frente.", co_h_sincotejo:"Este papel no respalda ningún dato del formulario: mira que sea el que se pide y que se lea entero.", co_h_este:"Este recaudo", co_h_sololectura:"Se valida con el trámite en revisión y tomado por ti.", co_h_porque:"¿Por qué no vale? Es lo que leerá {quien}: dile qué hacer.",
@@ -1681,6 +1694,9 @@ window.CIIP_PASOS = {
       co_h_v_ente:"With {ente}",    co_h_revisar:"Review",
       co_h_cerrar:"Close", co_h_respuesta:"Attach the response", co_h_tomado:"It's yours now.", co_h_deshacer:"Undo", co_h_devuelto:"Sent back to {quien} with your note. They get a notification.",
       co_h_resuelto:"Resolved. {quien} now has the document in their vault.", co_h_sindatos:"No details were filled in.", co_h_vale:"✓ Fine", co_h_novale:"✕ Not valid", co_h_validado:"Approved", co_h_pormirar:"To check",
+      co_h_env_pub:   "Send the PUB to the investor",
+      co_h_env_pagar: "Send the payment document",
+      co_h_env_listo: "Ready to send",
       co_h_presentar:"File with {ente}", co_h_resolver:"Resolve and deliver", co_h_resolver_c:"Resolve", co_h_p_reserva:"Once the investor has uploaded the name reservation proof, resolve the incorporation.", co_h_p_emitido:"Attach what the agency issued and resolve: it goes to the investor's vault.", co_h_p_falta1:"1 document still to check.", co_h_p_faltan:"{n} documents still to check.", co_h_p_rechazo:"One document isn't valid: send it back and say which.",
       co_h_p_listo:"All approved.", co_h_recaudo:"Document {i} of {n}", co_h_anterior:"‹ Previous", co_h_siguiente:"Next ›", co_h_pestana:"Open in a new tab", co_h_abriendo:"Opening the document…",
       co_h_cotejo:"Compare it with what they filled in", co_h_foto:"Compare it with the passport photo: it must be the same person, facing forward.", co_h_sincotejo:"This document backs no field of the form: check it is the one requested and fully legible.", co_h_este:"This document", co_h_sololectura:"It can be checked while the application is under review and taken by you.", co_h_porque:"Why isn't it valid? {quien} will read this: say what to do.",
@@ -2687,6 +2703,9 @@ window.CIIP_PASOS = {
       co_h_v_ente:"Nas mãos de {ente}",    co_h_revisar:"Rever",
       co_h_cerrar:"Fechar", co_h_respuesta:"Anexar a resposta", co_h_tomado:"Agora é seu.", co_h_deshacer:"Desfazer", co_h_devuelto:"Devolvido a {quien} com a sua nota. Recebe um aviso.",
       co_h_resuelto:"Resolvido. {quien} já tem o documento no seu cofre.", co_h_sindatos:"Não preencheu nenhum dado.", co_h_vale:"✓ Válido", co_h_novale:"✕ Não é válido", co_h_validado:"Validado", co_h_pormirar:"Por ver",
+      co_h_env_pub:   "Enviar o PUB ao investidor",
+      co_h_env_pagar: "Enviar o documento para pagar",
+      co_h_env_listo: "Pronto para enviar",
       co_h_presentar:"Apresentar perante {ente}", co_h_resolver:"Resolver e entregar", co_h_resolver_c:"Resolver", co_h_p_reserva:"Com o comprovativo da reserva do nome já carregado pelo investidor, resolva a constituição.", co_h_p_emitido:"Anexe o que o organismo emitiu e resolva: vai para o cofre do investidor.", co_h_p_falta1:"Falta ver 1 documento.", co_h_p_faltan:"Faltam ver {n} documentos.", co_h_p_rechazo:"Há um documento que não é válido: devolva-o e diga qual.",
       co_h_p_listo:"Tudo validado.", co_h_recaudo:"Documento {i} de {n}", co_h_anterior:"‹ Anterior", co_h_siguiente:"Seguinte ›", co_h_pestana:"Abrir noutro separador", co_h_abriendo:"A abrir o documento…",
       co_h_cotejo:"Compare com o que preencheu", co_h_foto:"Compare com a foto do passaporte: tem de ser a mesma pessoa, de frente.", co_h_sincotejo:"Este documento não sustenta nenhum dado do formulário: veja se é o pedido e se se lê por inteiro.", co_h_este:"Este documento", co_h_sololectura:"Valida-se com o trâmite em revisão e assumido por si.", co_h_porque:"Porque não é válido? É o que {quien} vai ler: diga o que fazer.",
@@ -3676,6 +3695,9 @@ window.CIIP_PASOS = {
       co_h_v_ente:"In mano a {ente}",    co_h_revisar:"Esamina",
       co_h_cerrar:"Chiudi", co_h_respuesta:"Allega la risposta", co_h_tomado:"Ora è tua.", co_h_deshacer:"Annulla", co_h_devuelto:"Restituita a {quien} con la tua nota. Riceve un avviso.",
       co_h_resuelto:"Risolta. {quien} ha già il documento nel suo archivio.", co_h_sindatos:"Non ha compilato nessun dato.", co_h_vale:"✓ Va bene", co_h_novale:"✕ Non va bene", co_h_validado:"Convalidato", co_h_pormirar:"Da vedere",
+      co_h_env_pub:   "Invia il PUB all'investitore",
+      co_h_env_pagar: "Invia il documento per pagare",
+      co_h_env_listo: "Pronto da inviare",
       co_h_presentar:"Presenta a {ente}", co_h_resolver:"Risolvi e consegna", co_h_resolver_c:"Risolvi", co_h_p_reserva:"Quando l'investitore ha caricato la ricevuta della riserva del nome, risolvi la costituzione.", co_h_p_emitido:"Allega ciò che ha emesso l'ente e risolvi: va nell'archivio dell'investitore.", co_h_p_falta1:"Manca 1 documento da vedere.", co_h_p_faltan:"Mancano {n} documenti da vedere.", co_h_p_rechazo:"C'è un documento che non va bene: restituisci la pratica e di' quale.",
       co_h_p_listo:"Tutto convalidato.", co_h_recaudo:"Documento {i} di {n}", co_h_anterior:"‹ Precedente", co_h_siguiente:"Successivo ›", co_h_pestana:"Apri in un'altra scheda", co_h_abriendo:"Apertura del documento…",
       co_h_cotejo:"Confrontalo con ciò che ha compilato", co_h_foto:"Confrontala con la foto del passaporto: deve essere la stessa persona, di fronte.", co_h_sincotejo:"Questo documento non sostiene nessun dato del modulo: verifica che sia quello richiesto e che si legga per intero.", co_h_este:"Questo documento", co_h_sololectura:"Si convalida con la pratica in esame e presa da te.", co_h_porque:"Perché non va bene? È ciò che leggerà {quien}: di' cosa fare.",
@@ -4665,6 +4687,9 @@ window.CIIP_PASOS = {
       co_h_v_ente:"{ente}处理中",    co_h_revisar:"审核",
       co_h_cerrar:"关闭", co_h_respuesta:"附上回复", co_h_tomado:"现在由你负责。", co_h_deshacer:"撤销", co_h_devuelto:"已连同你的说明退回给{quien}，对方会收到通知。",
       co_h_resuelto:"已办结。{quien}的资料库中已有该文件。", co_h_sindatos:"未填写任何信息。", co_h_vale:"✓ 合格", co_h_novale:"✕ 不合格", co_h_validado:"已核验", co_h_pormirar:"待查看",
+      co_h_env_pub:   "把 PUB 发给投资者",
+      co_h_env_pagar: "发送缴费文件",
+      co_h_env_listo: "可以发送了",
       co_h_presentar:"提交给{ente}", co_h_resolver:"办结并交付", co_h_resolver_c:"办结", co_h_p_reserva:"投资人上传名称预留凭证后，即可办结公司设立。", co_h_p_emitido:"附上机构出具的文件并办结：文件会存入投资者的资料库。", co_h_p_falta1:"还有 1 份材料待查看。", co_h_p_faltan:"还有 {n} 份材料待查看。", co_h_p_rechazo:"有一份材料不合格：请退回并说明是哪一份。",
       co_h_p_listo:"全部已核验。", co_h_recaudo:"材料 {i}/{n}", co_h_anterior:"‹ 上一份", co_h_siguiente:"下一份 ›", co_h_pestana:"在新标签页中打开", co_h_abriendo:"正在打开文件…",
       co_h_cotejo:"与所填信息对照", co_h_foto:"与护照照片对照：必须是同一人，正面免冠。", co_h_sincotejo:"此材料不对应表格中的任何信息：请确认是所要求的文件且完整清晰。", co_h_este:"此材料", co_h_sololectura:"办理事项处于审核中且由你负责时才能核验。", co_h_porque:"为什么不合格？{quien}会看到这段说明：请告诉对方该怎么做。",
@@ -5654,6 +5679,9 @@ window.CIIP_PASOS = {
       co_h_v_ente:"В ведомстве: {ente}",    co_h_revisar:"Проверить",
       co_h_cerrar:"Закрыть", co_h_respuesta:"Приложить ответ", co_h_tomado:"Теперь это ваше.", co_h_deshacer:"Отменить", co_h_devuelto:"Возвращено с вашей заметкой: {quien}. Придёт уведомление.",
       co_h_resuelto:"Готово. Документ уже в хранилище: {quien}.", co_h_sindatos:"Данные не заполнены.", co_h_vale:"✓ Подходит", co_h_novale:"✕ Не подходит", co_h_validado:"Проверен", co_h_pormirar:"Не просмотрен",
+      co_h_env_pub:   "Отправить PUB инвестору",
+      co_h_env_pagar: "Отправить документ для оплаты",
+      co_h_env_listo: "Готово к отправке",
       co_h_presentar:"Подать: {ente}", co_h_resolver:"Завершить и передать", co_h_resolver_c:"Завершить", co_h_p_reserva:"Когда инвестор загрузит подтверждение резервирования наименования, завершите учреждение.", co_h_p_emitido:"Приложите документ, выданный ведомством, и завершите: он попадёт в хранилище инвестора.", co_h_p_falta1:"Остался 1 непросмотренный документ.", co_h_p_faltan:"Непросмотренных документов: {n}.", co_h_p_rechazo:"Один документ не подходит: верните заявку и укажите какой.",
       co_h_p_listo:"Всё проверено.", co_h_recaudo:"Документ {i} из {n}", co_h_anterior:"‹ Назад", co_h_siguiente:"Дальше ›", co_h_pestana:"Открыть в новой вкладке", co_h_abriendo:"Открываем документ…",
       co_h_cotejo:"Сверьте с тем, что заполнено", co_h_foto:"Сверьте с фото в паспорте: тот же человек, анфас.", co_h_sincotejo:"Этот документ не подтверждает ни одного поля формы: проверьте, что это нужный документ и он читается целиком.", co_h_este:"Этот документ", co_h_sololectura:"Проверять можно, когда заявка на проверке и её ведёте вы.", co_h_porque:"Почему не подходит? Это прочтёт {quien}: напишите, что сделать.",
