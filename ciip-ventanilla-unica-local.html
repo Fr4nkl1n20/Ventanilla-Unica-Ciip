@@ -14268,6 +14268,20 @@ applyLang(idiomaParaMi());
         ir: function(){ avAMisTramites(ev.tramite); }
       };
     }
+    /* La de otro, contada para quien la atiende: arriba si está sin
+       asignar o es tuya, y de quién; debajo, en qué estado va. Lleva a la
+       cola, que es donde se atiende, y no a Mis trámites, donde no está. */
+    if (ev.ajena){
+      var quien = NOMBRE_DUENO[ev.ajena.dueno] || '';
+      var enQue = textoDeEvento(ev.estado, ev.ente, ev.ref);
+      return {
+        t: nombreDeTarjeta(ev.ref),
+        q: (ev.ajena.asignada ? u.av_asignada : u.av_sinasignar) +
+           (quien ? ' · ' + String(u.av_de || '{nombre}').replace('{nombre}', quien) : ''),
+        nota: enQue + (ev.nota ? ' · ' + ev.nota : ''),
+        ir: function(){ location.hash = 'poratender'; }
+      };
+    }
     return {
       t: nombreDeTarjeta(ev.ref),
       q: textoDeEvento(ev.estado, ev.ente, ev.ref),
@@ -14380,7 +14394,7 @@ applyLang(idiomaParaMi());
           /* De cada solicitud, la tarjeta a la que pertenece. Lo usan tres
              de las fuentes -estados, mensajes y pagos- para poder decir de
              qué trámite hablan sin volver a preguntarlo. */
-          var refDe = {}, mios = [], loPedi = {};
+          var refDe = {}, mios = [], loPedi = {}, ajena = {}, duenos = {};
           (rt.data || []).forEach(function(t){
             if (!t || !t.id) return;
             if (!(t.inversionista === uid || t.gestor === uid || !t.gestor)) return;
@@ -14390,6 +14404,15 @@ applyLang(idiomaParaMi());
                del pago, que enseña el que NO subiste tú: al que la pidió, el
                documento para pagar; al que la lleva, el comprobante. */
             loPedi[t.id] = (t.inversionista === uid);
+            /* Las que no pediste tú se cuentan como lo que son para quien
+               las atiende (Franklin, 24-9-2026): «Nueva solicitud sin
+               asignar» o «Te la asignaron», con el nombre de quien la
+               pidió. Con el texto del inversionista, «Solicitud recibida
+               por el CIIP» parecía una solicitud tuya. */
+            if (t.inversionista !== uid){
+              ajena[t.id] = {asignada: t.gestor === uid, dueno: t.inversionista};
+              if (t.inversionista) duenos[t.inversionista] = true;
+            }
           });
 
           /* Y el .in() no es de adorno, aunque la puerta de arriba ya
@@ -14415,7 +14438,8 @@ applyLang(idiomaParaMi());
                 if (!ref) return;      /* sin tarjeta no hay cómo nombrarlo */
                 avisos.push({
                   estado: ev.a_estado, nota: ev.nota || '', creado_en: ev.creado_en,
-                  tramite: ev.tramite, ref: ref, ente: (TIPOS[ref] || {}).ente || ''
+                  tramite: ev.tramite, ref: ref, ente: (TIPOS[ref] || {}).ente || '',
+                  ajena: ajena[ev.tramite] || null
                 });
               });
               /* Las cinco a la vez y no en fila: son independientes, y
@@ -14427,12 +14451,28 @@ applyLang(idiomaParaMi());
                 sumaMensajes(uid, refDe, mios),
                 sumaConsultas(uid),
                 sumaPagos(uid, refDe),
-                sumaPapelesDePago(refDe, loPedi, mios)
+                sumaPapelesDePago(refDe, loPedi, mios),
+                nombresDeDuenos(Object.keys(duenos))
               ]).then(ordenaYPinta);
             });
         });
       });
     }).catch(function(e){ console.warn('[CIIP] avisos:', e && e.message); });
+  }
+
+  /* Quién pidió cada solicitud que no es tuya, para decirlo en el aviso.
+     Si la consulta falla, el aviso sale sin el nombre: no se cae la campana
+     por un nombre. */
+  var NOMBRE_DUENO = {};
+  function nombresDeDuenos(ids){
+    if (!ids.length) return Promise.resolve();
+    return Promise.resolve().then(function(){
+      return sb.from('perfiles').select('id, nombre_completo').in('id', ids);
+    }).then(function(r){
+      ((r && r.data) || []).forEach(function(p){
+        if (p && p.id) NOMBRE_DUENO[p.id] = (p.nombre_completo || '').trim();
+      });
+    }).catch(function(e){ console.warn('[CIIP] avisos, nombres:', e && (e.message || e)); });
   }
 
   /* Se reordena el buzón entero: una cita confirmada hoy tiene que ir por

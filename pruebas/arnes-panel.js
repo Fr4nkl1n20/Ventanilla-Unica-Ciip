@@ -2371,6 +2371,13 @@
            buzon.indexOf('Recibido. Lo revisamos hoy mismo.') >= 0,
            buzon.slice(0, 140), 'con el mensaje del expediente sin asignar');
 
+        /* Y contado para quien lo atiende, no con las palabras del que lo
+           pidió (Franklin, 24-9-2026): «Solicitud recibida por el CIIP»
+           parecía una solicitud del propio gestor. */
+        ok('buzón: lo que no lleva nadie dice que está sin asignar',
+           buzon.indexOf('Nueva solicitud sin asignar') >= 0,
+           buzon.slice(0, 140), 'Nueva solicitud sin asignar');
+
         /* Las dos fuentes del expediente del compañero, por separado. */
         ok('buzón: y no le entra lo que otro gestor movió',
            buzon.indexOf('Le falta la firma del comisario.') < 0,
