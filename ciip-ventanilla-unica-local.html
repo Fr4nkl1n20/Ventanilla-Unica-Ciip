@@ -2402,6 +2402,11 @@ body[data-vista="citas"] .fase-bar{display:none;}
 /* La bóveda de comprobantes: la misma bandeja, con buscador por nombre. */
 /* Tres columnas: quién, qué subió y el comprobante abierto (23-9-2026). */
 #cb{grid-template-columns:minmax(0,230px) minmax(0,300px) minmax(0,1fr);}
+/* Y Documentos por revisar con la misma forma desde el 24-9-2026. */
+#rv{grid-template-columns:minmax(0,230px) minmax(0,300px) minmax(0,1fr);}
+@media (max-width:1100px){ #rv{grid-template-columns:minmax(0,220px) minmax(0,1fr);} #rv .rv-visor{grid-column:1 / -1;} }
+@media (max-width:900px){ #rv{grid-template-columns:1fr;} }
+#rv .rv-lista{align-content:start;}
 @media (max-width:1100px){ #cb{grid-template-columns:minmax(0,220px) minmax(0,1fr);} #cb .rv-visor{grid-column:1 / -1;} }
 @media (max-width:900px){ #cb{grid-template-columns:1fr;} }
 #cb .rv-lista{align-content:start;}
@@ -19989,7 +19994,8 @@ applyLang(idiomaParaMi());
      Lo único nuevo es revisado_en -la fecha de la revisión-, y si la base
      aún no la tiene se guarda sin ella. */
   var rvDocs = null, rvNombres = {}, rvUsos = {}, rvFiltro = 'cargado',
-      rvElegido = null, rvRechazando = false, rvCargando = null;
+      rvElegido = null, rvRechazando = false, rvCargando = null,
+      rvPersona = null, rvBusca = '';
 
   function rvCarga(){
     if (rvCargando) return rvCargando;
@@ -20108,43 +20114,111 @@ applyLang(idiomaParaMi());
     });
     caja.appendChild(filtros);
 
-    /* Lo pendiente, del más antiguo al más nuevo: el que lleva más tiempo
-       esperando va primero. Lo ya revisado, al revés. */
-    var vistos = docs.filter(function(d){ return d.estado === rvFiltro; });
-    vistos.sort(function(a, b){
-      var da = Date.parse(a.creado_en) || 0, db = Date.parse(b.creado_en) || 0;
-      return rvFiltro === 'cargado' ? da - db : db - da;
-    });
-    if (rvElegido && !vistos.some(function(d){ return d.id === rvElegido; })) rvElegido = null;
-    if (!rvElegido && vistos.length) rvElegido = vistos[0].id;
+    /* CON LA FORMA DE LA BÓVEDA (Franklin Reyes, 24-9-2026: «quiero que el
+       formato de documentos por revisar sea como el de la bóveda de
+       comprobantes»). Tres columnas: quién, qué subió y el papel abierto,
+       con el buscador por nombre encima. El nombre sale una vez y no en
+       cada renglón, y los papeles de una persona -que casi siempre sube
+       tres o cuatro juntos para el mismo trámite- se revisan seguidos.
 
-    var lista = el('div', 'rv-lista');
-    if (!vistos.length){
-      lista.appendChild(el('div', 'rv-vacio', rvFiltro === 'cargado' ? (u.rv_vacio_pend || '') : (u.rv_vacio || '')));
+       Lo que NO cambia es el criterio de la bandeja: lo pendiente, del más
+       antiguo al más nuevo, así que la persona que va primero es la que
+       lleva más tiempo esperando. Lo ya revisado, al revés. */
+    var escribiendo = document.activeElement && document.activeElement.id === 'rvBusca';
+    var busca = el('div', 'cb-busca');
+    var campo = el('input');
+    campo.type = 'search';
+    campo.id = 'rvBusca';
+    campo.autocomplete = 'off';
+    campo.placeholder = u.cb_busca || '';
+    campo.setAttribute('aria-label', u.cb_busca || '');
+    campo.value = rvBusca;
+    campo.addEventListener('input', function(){ rvBusca = campo.value; rvPinta(); });
+    busca.appendChild(campo);
+    caja.appendChild(busca);
+
+    var pend = (rvFiltro === 'cargado');
+    function orden(a, b){
+      var da = Date.parse(a.creado_en) || 0, db = Date.parse(b.creado_en) || 0;
+      return pend ? da - db : db - da;
     }
-    vistos.forEach(function(d){
-      var b = el('button', 'rv-fila');
-      b.type = 'button';
-      b.setAttribute('data-doc', d.id);
-      b.setAttribute('aria-current', d.id === rvElegido ? 'true' : 'false');
-      b.appendChild(el('span', 't', nombreDeTipo_doc(d.tipo) + (d.titular ? ' · ' + d.titular : '')));
-      b.appendChild(el('span', 'h', d.creado_en ? fecha(d.creado_en) : ''));
-      var de = el('span', 'de');
-      de.appendChild(document.createTextNode(rvDueno(d)));
-      var usos = rvUsos[d.id] || [];
-      de.appendChild(usos.length ? el('span', 'rv-chip', usos[0] + (usos.length > 1 ? ' +' + (usos.length - 1) : ''))
-                                 : el('span', 'rv-chip suelto', u.rv_suelto || ''));
-      b.appendChild(de);
-      b.addEventListener('click', function(){ rvElegido = d.id; rvRechazando = false; rvPinta(); });
-      lista.appendChild(b);
+    /* Por la cuenta que lo subió y no por el nombre, como la bóveda: dos
+       personas pueden llamarse igual. */
+    var por = {}, gente = [];
+    docs.filter(function(d){ return d.estado === rvFiltro; }).forEach(function(d){
+      var k = d.inversionista || '';
+      if (!por[k]){ por[k] = {id: k, nombre: rvDueno(d), docs: []}; gente.push(por[k]); }
+      por[k].docs.push(d);
     });
-    caja.appendChild(lista);
+    gente.forEach(function(p){ p.docs.sort(orden); });
+    gente.sort(function(a, b){ return orden(a.docs[0], b.docs[0]); });
+    var q = rvBusca.trim().toLowerCase();
+    if (q) gente = gente.filter(function(p){ return p.nombre.toLowerCase().indexOf(q) >= 0; });
+
+    var yo = gente.filter(function(p){ return p.id === rvPersona; })[0] || gente[0] || null;
+    rvPersona = yo ? yo.id : null;
+    if (!yo || !yo.docs.some(function(d){ return d.id === rvElegido; })) rvElegido = yo ? yo.docs[0].id : null;
+
+    /* Primera columna: quién. */
+    var col1 = el('div', 'rv-lista cb-gente');
+    col1.appendChild(el('div', 'cb-sub', (u.cb_gente || '') + ' · ' + gente.length));
+    if (!gente.length){
+      col1.appendChild(el('div', 'rv-vacio', q ? (u.cb_vacio || '')
+        : pend ? (u.rv_vacio_pend || '') : (u.rv_vacio || '')));
+    }
+    gente.forEach(function(p){
+      var b = el('button', 'cb-persona');
+      b.type = 'button';
+      b.setAttribute('aria-current', p.id === rvPersona ? 'true' : 'false');
+      b.appendChild(el('span', 'cb-ini', cbIniciales(p.nombre)));
+      var tx = el('span', 'cb-quien');
+      tx.appendChild(el('span', 'nom', p.nombre));
+      var f0 = p.docs[0].creado_en ? fecha(p.docs[0].creado_en) : '';
+      tx.appendChild(el('span', 'cu', p.docs.length + ' · '
+        + String((pend ? u.rv_espera : u.cb_ultimo) || '').replace('{fecha}', f0)));
+      b.appendChild(tx);
+      /* El número en ámbar solo en los pendientes: es lo que queda por
+         hacer. En validados o rechazados ya no hay nada que hacer. */
+      if (pend) b.appendChild(el('span', 'cb-pm', String(p.docs.length)));
+      b.addEventListener('click', function(){ rvPersona = p.id; rvElegido = null; rvRechazando = false; rvPinta(); });
+      col1.appendChild(b);
+    });
+    caja.appendChild(col1);
+
+    /* Segunda: qué subió. Cada renglón dice qué papel es, no de quién. */
+    var elegido = null;
+    if (yo){
+      var lista = el('div', 'rv-lista');
+      lista.appendChild(el('div', 'cb-sub', String(u.rv_de || '').replace('{nombre}', yo.nombre)));
+      yo.docs.forEach(function(d){
+        if (d.id === rvElegido) elegido = d;
+        var b = el('button', 'rv-fila');
+        b.type = 'button';
+        b.setAttribute('data-doc', d.id);
+        b.setAttribute('aria-current', d.id === rvElegido ? 'true' : 'false');
+        b.appendChild(el('span', 't', nombreDeTipo_doc(d.tipo) + (d.titular ? ' · ' + d.titular : '')));
+        b.appendChild(el('span', 'h', d.creado_en ? fecha(d.creado_en) : ''));
+        var de = el('span', 'de');
+        var usos = rvUsos[d.id] || [];
+        de.appendChild(usos.length ? el('span', 'rv-chip', usos[0] + (usos.length > 1 ? ' +' + (usos.length - 1) : ''))
+                                   : el('span', 'rv-chip suelto', u.rv_suelto || ''));
+        b.appendChild(de);
+        b.addEventListener('click', function(){ rvElegido = d.id; rvRechazando = false; rvPinta(); });
+        lista.appendChild(b);
+      });
+      caja.appendChild(lista);
+    }
 
     var visor = el('div', 'rv-visor');
     visor.setAttribute('aria-live', 'polite');
     caja.appendChild(visor);
-    rvVisor(visor, vistos.filter(function(d){ return d.id === rvElegido; })[0]);
+    rvVisor(visor, elegido);
     rvCuenta();
+
+    if (escribiendo){
+      campo.focus();
+      campo.setSelectionRange(campo.value.length, campo.value.length);
+    }
   }
 
   function rvVisor(visor, d){

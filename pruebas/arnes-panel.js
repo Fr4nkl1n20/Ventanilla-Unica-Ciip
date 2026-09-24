@@ -10416,6 +10416,11 @@
      los pendientes, el papel abierto con Validar y Rechazar, y que al
      validarlo salga de los pendientes. */
   var RV_ANTES = 0;
+  /* El número del montón de «Pendientes». */
+  function rvPendientesN(){
+    var n = document.querySelector('#rv .rv-filtro[data-f="cargado"] .n');
+    return n ? parseInt(n.textContent, 10) || 0 : -1;
+  }
   function rvAbre(){
     if (CASO !== 'gestor') return;
     location.hash = 'revisar';
@@ -10431,10 +10436,24 @@
       return b.getAttribute('data-forma') + (b.getAttribute('aria-pressed') === 'true' ? '*' : '');
     });
     igual('revisar: arriba, el mando con las dos formas y ésta puesta', formas.join(','), 'revisar*,comprobantes');
+    /* Con la forma de la bóveda desde el 24-9-2026: las personas a la
+       izquierda y, en medio, solo los papeles de la elegida. Lo que queda
+       por revisar lo dice el montón de «Pendientes», no las filas a la
+       vista, que son de una sola persona. */
     var filas = document.querySelectorAll('#rv .rv-fila');
-    RV_ANTES = filas.length;
+    RV_ANTES = rvPendientesN();
     ok('revisar: la bandeja enseña los papeles pendientes',
        filas.length > 0, filas.length + ' filas', 'alguna');
+    var gente = document.querySelectorAll('#rv .cb-persona');
+    ok('revisar: con la forma de la bóveda, las personas en su columna',
+       gente.length > 0, gente.length + ' personas', 'alguna');
+    ok('revisar: y el nombre sale en la columna, no en cada renglón',
+       !document.querySelector('#rv .rv-fila .de') ||
+         [].every.call(document.querySelectorAll('#rv .rv-fila .de'), function(x){
+           return x.firstChild && x.firstChild.nodeType !== 3; }),
+       '', 'sin nombre suelto');
+    ok('revisar: con su buscador por inversionista', !!document.getElementById('rvBusca'),
+       document.getElementById('rvBusca') ? 'está' : 'no está', 'un buscador');
     ok('revisar: el primero se abre con «Validar» y «Rechazar»',
        !!document.querySelector('#rv .rv-btn.ok') && !!document.querySelector('#rv .rv-btn.no'),
        document.querySelector('#rv .rv-visor') ? 'visor abierto' : 'sin visor', 'los dos botones');
@@ -10443,8 +10462,7 @@
   }
   function rvDespues(){
     if (CASO !== 'gestor') return;
-    var filas = document.querySelectorAll('#rv .rv-fila');
-    igual('revisar: al validarlo sale de los pendientes', filas.length, Math.max(RV_ANTES - 1, 0));
+    igual('revisar: al validarlo sale de los pendientes', rvPendientesN(), Math.max(RV_ANTES - 1, 0));
     var aviso = document.querySelector('#rv .rv-msg.bien');
     ok('revisar: y se dice que quedó validado', !!aviso && !!aviso.textContent,
        aviso ? aviso.textContent : '(sin aviso)', 'un aviso');
