@@ -24763,6 +24763,32 @@ applyLang(idiomaParaMi());
     });
   }
 
+  /* Devuelve un bloque de tramo a «por iniciar»: los pasos con su número y
+     sin fecha, y el distintivo en pendiente. Es el reverso exacto de lo que
+     pinta pintaTramosDetalle cuando el tramo no ha empezado, y hace falta
+     porque aquel dibuja copiando el data-st de la TARJETA, que cuenta la
+     solicitud que va más adelante y no la de esta constitución. */
+  function enBlancoElTramo(b){
+    b.setAttribute('data-st', 'pendiente');
+    var dic = I18N[curLang] || I18N.en;
+    var chip = b.querySelector('.tr-bloque-h .chip');
+    if (chip){
+      chip.className = 'chip mute';
+      var tx = chip.querySelector('[data-i18n]');
+      if (tx){
+        tx.setAttribute('data-i18n', 'st.pending');
+        tx.textContent = dic['st.pending'] || I18N.en['st.pending'] || '';
+      }
+    }
+    [].forEach.call(b.querySelectorAll('.tr-paso'), function(li, j){
+      li.className = 'tr-paso porhacer';
+      var punto = li.querySelector('.tr-punto');
+      if (punto) punto.textContent = String(j + 1);
+      var f = li.querySelector('.tr-paso-f');
+      if (f) f.remove();
+    });
+  }
+
   function pintaTramosDeVerdad(){
     var caja = document.getElementById('trSiguen');
     if (!caja || !window.sbCIIP) return;
@@ -24781,11 +24807,24 @@ applyLang(idiomaParaMi());
          enseñando la nota vieja hasta recargar la página. */
       var viejo = b.querySelector('.tr-devuelta');
       if (viejo) viejo.parentNode.removeChild(viejo);
-      /* Sin solicitud el dibujo se queda como estaba, PERO el recuadro del
-         comprobante sale igual: subirlo es lo que pone el tramo en marcha
-         (Franklin Reyes, 16-9-2026). Antes solo salia con una solicitud ya
-         hecha, y como nadie la creaba el recuadro no aparecia nunca. */
+      /* SIN SOLICITUD, EL DIBUJO SE BORRA (Franklin Reyes, 24-9-2026,
+         enseñando la constitución nueva con la protocolización del 21
+         marcada entera en verde debajo).
+
+         Decía «sin solicitud el dibujo se queda como estaba», y eso valía
+         cuando lo que había era un tramo sin empezar: quedarse como estaba
+         era quedarse en «por iniciar». Dejó de valer con dos
+         constituciones, porque el dibujo NO sale de aquí: los vistos y el
+         distintivo los pone pintaTramosDetalle copiando el data-st de la
+         TARJETA del tramo, y esa tarjeta sigue contando la solicitud que
+         va más adelante -la vieja, resuelta-. Así que «como estaba» era
+         «en verde», debajo de una constitución que no ha llegado ahí.
+
+         Se devuelven los pasos a «por iniciar» con su número, se quitan
+         las fechas y el distintivo dice pendiente. Es lo único cierto: los
+         tramos de esta constitución todavía no existen. */
       if (!tr || tr.estado === 'borrador'){
+        if (!tr) enBlancoElTramo(b);
         ponElComprobante(b, ref, tr, b.querySelectorAll('.tr-paso'), -1);
         return;
       }
