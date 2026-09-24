@@ -116,6 +116,34 @@ table.tb-consola{width:100%; border-collapse:collapse; table-layout:fixed; min-w
 .tb-p:hover{background:var(--block); color:var(--navy2); border-color:var(--line);}
 .tb-p.on, .tb-p.on:hover{background:var(--navy); color:#fff; border-color:var(--navy);}
 
+/* ══ 2 · EL PROGRESO PASO A PASO ══
+   Cinco pasos: el primero es del inversionista -enviarla- y los otros
+   cuatro son los estados de pasos.js. Cada circulo dice lo suyo con forma
+   y no solo con color: marca si esta hecho, «!» si se detuvo, el numero
+   si falta. El tramo que llega a un paso toma el color de ese paso. */
+table.tb-consola.con-prog{min-width:880px;}
+.con-prog th.c-tr{width:27%;} .con-prog th.c-ente{width:11%;}
+.con-prog th.c-est{width:24%;} .con-prog th.c-prog{width:23%;} .con-prog th.c-fe{width:15%;}
+.pg-pasos{list-style:none; margin:0; padding:0; display:flex; align-items:center;}
+.pg-p{display:flex; align-items:center; flex:1 1 0;}
+.pg-p:first-child{flex:none;}
+.pg-p::before{content:''; flex:1 1 auto; height:3px; min-width:8px; background:var(--line); border-radius:2px;}
+.pg-p:first-child::before{display:none;}
+.pg-o{flex:none; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:800; background:var(--line-soft); color:var(--gray-soft); border:1.5px solid var(--line);}
+.pg-o svg{width:12px; height:12px;}
+.pg-p.hecho::before, .pg-p.ahora::before{background:#1E7F5C;}
+.pg-p.hecho .pg-o{background:#1E7F5C; border-color:#1E7F5C; color:#fff;}
+.pg-p.ahora .pg-o{background:var(--bg); border:2px solid var(--navy2); color:var(--navy2);
+  box-shadow:0 0 0 3px var(--activa-bg);}
+.pg-p.tuyo .pg-o{background:var(--bg); border:2px solid #B7791F; color:#9A6512; box-shadow:0 0 0 3px #FBF3E2;}
+.pg-p.alto::before{background:var(--rust);}
+.pg-p.alto .pg-o{background:var(--rust); border-color:var(--rust); color:#fff; font-size:12px;}
+.pg-pie{display:flex; justify-content:space-between; gap:8px; margin-top:6px; font-size:11px; color:var(--gray); white-space:nowrap;}
+.pg-pie b{color:var(--ink); font-weight:700;}
+.pg-pc{font-weight:800; font-variant-numeric:tabular-nums; color:var(--navy2);}
+.pg-pc.listo{color:#1E7F5C;} .pg-pc.alto{color:var(--rust);} .pg-pc.tuyo{color:#9A6512;}
+
 /* El recuadro vacio de Atlas: .empty */
 .empty{padding:34px; text-align:center; color:var(--gray-soft); font-size:12px; border:1px dashed var(--line); border-radius:10px;}
 .empty b{display:block; color:var(--ink); font-size:13px; margin-bottom:4px;}
@@ -213,9 +241,36 @@ table.tb-consola{width:100%; border-collapse:collapse; table-layout:fixed; min-w
         </div>
       </section>
 
-      <!-- ══ 2 · VACIA ═════════════════════════════════════════════ -->
+      <!-- ══ 2 · PROGRESO ══════════════════════════════════════════ -->
       <section class="caso">
         <div class="caso-h"><span class="caso-n">2</span>
+          <span class="caso-t">Y cuánto le falta a cada trámite</span>
+          <span class="pruebalo">Pruébalo</span></div>
+        <p class="caso-q">La misma tabla con una columna más: <b>los cinco pasos</b> de cada trámite. El primero es
+          tuyo —enviarla— y los otros cuatro son los del CIIP: <b>recibida, revisión de tus recaudos, ante el
+          organismo y resuelta</b>. Pasa el ratón por un círculo para ver qué paso es. Si te la devolvemos, el
+          trámite se <b>detiene</b> en la revisión con un «!» y no con una cruz: no está rechazado, está
+          esperando que corrijas algo. La columna también ordena.</p>
+        <div class="pantalla">
+          <div class="pantalla-r">Mis trámites · con el progreso</div>
+          <div class="filtros" id="prFiltros"></div>
+          <div class="caja-atlas">
+            <div class="pv-tabla">
+              <div class="tscroll">
+                <table class="tb-consola con-prog">
+                  <thead><tr id="prCab"></tr></thead>
+                  <tbody id="prCuerpo"></tbody>
+                </table>
+              </div>
+              <div class="tb-pie" id="prPie"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 3 · VACIA ═════════════════════════════════════════════ -->
+      <section class="caso">
+        <div class="caso-h"><span class="caso-n">3</span>
           <span class="caso-t">Y cuando todavía no hay ninguno</span></div>
         <p class="caso-q">El marco de la tabla se queda —dice «esto es una lista, y está vacía»— y dentro va el
           recuadro punteado de Atlas. Se aprovecha para decir <b>dónde se empieza</b>, que es lo que busca
@@ -248,6 +303,7 @@ table.tb-consola{width:100%; border-collapse:collapse; table-layout:fixed; min-w
             <li><b>El estado se distingue sin color:</b> cada uno con su icono, útil para quien no separa verde de ámbar.</li>
             <li><b>Una columna menos que leer por fila:</b> el nombre completo del organismo va debajo del trámite, y la columna de al lado queda con la sigla.</li>
             <li><b>Cabecera fija y pie con la cuenta:</b> con veinte trámites se sigue sabiendo qué es cada columna y cuántos hay.</li>
+            <li><b>El progreso responde «¿cuánto me falta?»</b> sin abrir el trámite: el estado dice dónde está, los pasos dicen cuánto queda.</li>
           </ul>
         </section>
         <section class="nota pierde">
@@ -255,6 +311,7 @@ table.tb-consola{width:100%; border-collapse:collapse; table-layout:fixed; min-w
           <ul>
             <li><b>El botón «Abrir» de cada fila.</b> Atlas abre con la fila entera; en la Ventanilla ese botón es el que alcanza quien va con el teclado, así que habría que dejar la fila enfocable.</li>
             <li><b>La paginación con pocos trámites sobra.</b> Un inversionista suele tener menos de diez: el pie se podría esconder hasta que haga falta.</li>
+            <li><b>El porcentaje cuenta pasos, no días.</b> «60 %» ante el SAIME puede ser la parte más larga; si confunde, se puede dejar solo «paso 4 de 5».</li>
             <li><b>Las otras tablas</b> —Documentos, Citas y la cola del equipo— usan la misma <b>.tabla</b>. Cambiar solo una las separa; lo coherente es pasar las cinco.</li>
           </ul>
         </section>
@@ -338,18 +395,73 @@ table.tb-consola{width:100%; border-collapse:collapse; table-layout:fixed; min-w
     });
   }
 
-  /* ── 1 · atlas ── */
-  var AT = {filtro:'todas', orden:'est', desc:false, porPagina:5, pagina:0};
+  /* ── 2 · el progreso ──
+     Cinco pasos: enviarla (del inversionista) y los cuatro estados de
+     pasos.js. «en» es el paso en que esta cada estado, contando desde 0;
+     «hechos», cuantos van cumplidos. */
+  var PASOS = ['Enviada por ti', 'Recibida por el CIIP', 'Revisión de tus recaudos', 'Presentada ante {ente}', 'Resuelta'];
+  var AVANCE = {
+    borrador:     {en:0, hechos:0, modo:'tuyo'},
+    devuelto:     {en:2, hechos:2, modo:'alto'},
+    enviado:      {en:1, hechos:1, modo:'ahora'},
+    en_revision:  {en:2, hechos:2, modo:'ahora'},
+    ante_el_ente: {en:3, hechos:3, modo:'ahora'},
+    resuelto:     {en:5, hechos:5, modo:'listo'}
+  };
+  var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12.5 10 17.5 19 7"/></svg>';
+  function pct(t){ return AVANCE[t.est].hechos * 20; }
+  function progreso(t){
+    var a = AVANCE[t.est], n = PASOS.length;
+    var caja = el('div', 'pg');
+    var ol = el('ol', 'pg-pasos');
+    PASOS.forEach(function(nombre, i){
+      var clase = i < a.hechos ? 'hecho' : i === a.en ? a.modo : '';
+      var li = el('li', 'pg-p' + (clase ? ' ' + clase : ''));
+      li.title = 'Paso ' + (i + 1) + ' · ' + nombre.replace('{ente}', t.ente);
+      var o = el('span', 'pg-o');
+      if (clase === 'hecho') o.innerHTML = CHECK;
+      else o.textContent = clase === 'alto' ? '!' : String(i + 1);
+      li.appendChild(o);
+      ol.appendChild(li);
+    });
+    caja.appendChild(ol);
+
+    var frase, tono = a.modo;
+    if (a.modo === 'listo') frase = 'Completado · <b>' + n + ' de ' + n + '</b>';
+    else if (a.modo === 'alto') frase = 'Detenido en paso <b>' + (a.en + 1) + ' de ' + n + '</b>';
+    else if (a.modo === 'tuyo') frase = 'Te toca enviarla · <b>1 de ' + n + '</b>';
+    else frase = 'En paso <b>' + (a.en + 1) + ' de ' + n + '</b>';
+    var pie = el('div', 'pg-pie');
+    var f = el('span'); f.innerHTML = frase; pie.appendChild(f);
+    pie.appendChild(el('span', 'pg-pc ' + tono, pct(t) + ' %'));
+    caja.appendChild(pie);
+
+    /* Para quien no ve los circulos: una sola frase con todo. */
+    ol.setAttribute('aria-hidden', 'true');
+    caja.setAttribute('aria-label', f.textContent + ', ' + pct(t) + ' %. ' +
+      (a.modo === 'listo' ? '' : 'Paso actual: ' + PASOS[Math.min(a.en, n - 1)].replace('{ente}', t.ente) + '.'));
+    caja.setAttribute('role', 'img');
+    return caja;
+  }
+
+  /* ── 1 y 2 · la tabla de atlas, con o sin progreso ── */
   var COLS = [
     {k:'tr',   cls:'c-tr',   th:'Trámite',   val:function(t){ return t.nm; }},
     {k:'ente', cls:'c-ente', th:'Organismo', val:function(t){ return t.ente; }},
     {k:'est',  cls:'c-est',  th:'Estado',    val:function(t){ return ESTADOS[t.est].orden; }},
+    {k:'prog', cls:'c-prog', th:'Progreso',  val:function(t){ return pct(t); }, soloProg:true},
     {k:'fe',   cls:'c-fe',   th:'Fecha',     val:function(t){ return t.res || t.env || null; }}
   ];
-  function pintaAtlas(){
-    pintaFiltros($('atFiltros'), AT.filtro, function(f){ AT.filtro = f; AT.pagina = 0; pintaAtlas(); });
+  function tablaAtlas(pre, conProg){
+    var AT = {filtro:'todas', orden:'est', desc:false, porPagina:conProg ? 10 : 5, pagina:0};
+    var cols = COLS.filter(function(c){ return conProg || !c.soloProg; });
+    function pinta(){ pintaTabla(pre, AT, cols, pinta); }
+    pinta();
+  }
+  function pintaTabla(pre, AT, COLS, repinta){
+    pintaFiltros($(pre + 'Filtros'), AT.filtro, function(f){ AT.filtro = f; AT.pagina = 0; repinta(); });
 
-    var cab = $('atCab'); cab.textContent = '';
+    var cab = $(pre + 'Cab'); cab.textContent = '';
     COLS.forEach(function(c){
       var act = c.k === AT.orden;
       var th = el('th', c.cls + (act ? ' orden' : ''), c.th);
@@ -359,7 +471,7 @@ table.tb-consola{width:100%; border-collapse:collapse; table-layout:fixed; min-w
       th.appendChild(el('span', 'fl', act ? (AT.desc ? '▾' : '▴') : '⇅'));
       th.addEventListener('click', function(){
         if (AT.orden === c.k) AT.desc = !AT.desc; else { AT.orden = c.k; AT.desc = false; }
-        pintaAtlas();
+        repinta();
       });
       cab.appendChild(th);
     });
@@ -382,7 +494,7 @@ table.tb-consola{width:100%; border-collapse:collapse; table-layout:fixed; min-w
     var pag = Math.min(AT.pagina, paginas - 1);
     var trozo = lista.slice(pag * porPag, pag * porPag + porPag);
 
-    var cuerpo = $('atCuerpo'); cuerpo.textContent = '';
+    var cuerpo = $(pre + 'Cuerpo'); cuerpo.textContent = '';
     trozo.forEach(function(t){
       var tr = el('tr', 'click');
       tr.tabIndex = 0;
@@ -399,11 +511,14 @@ table.tb-consola{width:100%; border-collapse:collapse; table-layout:fixed; min-w
       tdE.appendChild(e);
       if (t.est !== 'resuelto' && t.desde) tdE.appendChild(el('span', 'cs-desde', 'desde ' + t.desde));
       tr.appendChild(tdE);
+      if (COLS.some(function(c){ return c.k === 'prog'; })){
+        var tdP = el('td'); tdP.appendChild(progreso(t)); tr.appendChild(tdP);
+      }
       tr.appendChild(el('td', 'mini', cuando(t)));
       cuerpo.appendChild(tr);
     });
 
-    var pie = $('atPie'); pie.textContent = '';
+    var pie = $(pre + 'Pie'); pie.textContent = '';
     var desde = total ? pag * porPag + 1 : 0, hasta = Math.min(total, (pag + 1) * porPag);
     var cuenta = el('span', 'tb-cuenta');
     cuenta.innerHTML = 'Mostrando <b>' + desde + '</b>–<b>' + hasta + '</b> de <b>' + total + '</b> trámite' + (total === 1 ? '' : 's');
@@ -414,7 +529,7 @@ table.tb-consola{width:100%; border-collapse:collapse; table-layout:fixed; min-w
     [5, 10, 0].forEach(function(n){
       var o = el('option', null, n || 'Todos'); o.value = n; if (n === AT.porPagina) o.selected = true; sel.appendChild(o);
     });
-    sel.addEventListener('change', function(){ AT.porPagina = +sel.value; AT.pagina = 0; pintaAtlas(); });
+    sel.addEventListener('change', function(){ AT.porPagina = +sel.value; AT.pagina = 0; repinta(); });
     ver.appendChild(sel);
     ver.appendChild(document.createTextNode('por página'));
     pie.appendChild(ver);
@@ -424,7 +539,7 @@ table.tb-consola{width:100%; border-collapse:collapse; table-layout:fixed; min-w
         (function(n){
           var b = el('button', 'tb-p' + (n === pag ? ' on' : ''), String(n + 1));
           b.type = 'button';
-          b.addEventListener('click', function(){ AT.pagina = n; pintaAtlas(); });
+          b.addEventListener('click', function(){ AT.pagina = n; repinta(); });
           pags.appendChild(b);
         })(i);
       }
@@ -433,7 +548,8 @@ table.tb-consola{width:100%; border-collapse:collapse; table-layout:fixed; min-w
   }
 
   pintaHoy();
-  pintaAtlas();
+  tablaAtlas('at', false);
+  tablaAtlas('pr', true);
 })();
 </script>
 

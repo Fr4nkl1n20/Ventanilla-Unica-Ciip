@@ -2089,6 +2089,42 @@ body[data-vista="citas"] .fase-bar{display:none;}
 #mtTabla th:nth-child(1){width:32%;} #mtTabla th:nth-child(2){width:12%;}
 #mtTabla th:nth-child(3){width:30%;} #mtTabla th:nth-child(4){width:16%;}
 #mtTabla th:nth-child(5){width:10%;}
+/* ── EL PROGRESO, SOLO AL INVERSIONISTA ──
+   Franklin Reyes, 24-9-2026, sobre la maqueta mis-tramites-atlas. Una
+   columna mas entre el estado y la fecha: los cuatro pasos del circuito
+   -los de la escalera de la ficha- en circulos. Cada uno dice lo suyo con
+   forma y no solo con color: visto si esta hecho, «!» si se detuvo, el
+   numero si falta. El tramo que llega a un paso toma el color de ese paso.
+   Con seis columnas la tabla pide mas ancho: por debajo, rueda dentro de
+   su caja en vez de aplastar los circulos. */
+#mtTabla.mt-con-prog{min-width:860px;}
+#mtTabla.mt-con-prog th:nth-child(1){width:25%;} #mtTabla.mt-con-prog th:nth-child(2){width:10%;}
+#mtTabla.mt-con-prog th:nth-child(3){width:24%;} #mtTabla.mt-con-prog th:nth-child(4){width:20%;}
+#mtTabla.mt-con-prog th:nth-child(5){width:12%;} #mtTabla.mt-con-prog th:nth-child(6){width:9%;}
+.mt-pg-pasos{list-style:none; margin:0; padding:0; display:flex; align-items:center;}
+.mt-pg-p{display:flex; align-items:center; flex:1 1 0;}
+.mt-pg-p:first-child{flex:none;}
+.mt-pg-p::before{content:''; flex:1 1 auto; height:3px; min-width:8px; background:var(--line); border-radius:2px;}
+.mt-pg-p:first-child::before{display:none;}
+.mt-pg-o{flex:none; width:22px; height:22px; border-radius:50%; display:flex; align-items:center;
+  justify-content:center; font-size:10px; font-weight:800; background:var(--line-soft);
+  color:var(--gray-soft); border:1.5px solid var(--line); box-sizing:border-box;}
+.mt-pg-o svg{width:12px; height:12px; fill:none; stroke:currentColor; stroke-width:3.2;
+  stroke-linecap:round; stroke-linejoin:round;}
+.mt-pg-p.hecho::before, .mt-pg-p.ahora::before{background:var(--good);}
+.mt-pg-p.hecho .mt-pg-o{background:var(--good); border-color:var(--good); color:#fff;}
+.mt-pg-p.ahora .mt-pg-o{background:var(--bg); border:2px solid var(--navy2); color:var(--navy2);
+  box-shadow:0 0 0 3px var(--activa-bg);}
+.mt-pg-p.tuyo .mt-pg-o{background:var(--bg); border:2px solid var(--amber); color:var(--amber);
+  box-shadow:0 0 0 3px var(--amber-bg);}
+.mt-pg-p.alto::before{background:var(--rust);}
+.mt-pg-p.alto .mt-pg-o{background:var(--rust); border-color:var(--rust); color:#fff; font-size:12px;}
+.mt-pg-pie{display:flex; justify-content:space-between; gap:8px; margin-top:6px;
+  font-size:var(--fs-nota); color:var(--gray); white-space:nowrap;}
+.mt-pg-pie > span:first-child{overflow:hidden; text-overflow:ellipsis;}
+.mt-pg-pie b{color:var(--ink); font-weight:700;}
+.mt-pg-pc{font-weight:800; font-variant-numeric:tabular-nums; color:var(--navy2);}
+.mt-pg-pc.listo{color:var(--good);} .mt-pg-pc.alto{color:var(--rust);} .mt-pg-pc.tuyo{color:var(--amber);}
 #mtTabla td{padding:11px 14px; overflow:hidden;}
 /* El recorte a dos lineas va en el elemento de dentro y nunca en el <td>:
    sobre la celda, display:-webkit-box la saca de la tabla. */
@@ -21288,7 +21324,90 @@ applyLang(idiomaParaMi());
      mire obliga a buscarla cada vez. */
   var MT_COLUMNAS_ADMIN = ['mt_c_tramite', 'mt_c_ente', 'mt_c_estado',
                            'mt_c_lleva', 'mt_c_espera', 'mt_c_fecha', 'mt_c_abrir'];
-  function mtColumnas(){ return mtEsAdmin() ? MT_COLUMNAS_ADMIN : MT_COLUMNAS; }
+  /* Al inversionista, una mas: el progreso. Solo a el (Franklin Reyes,
+     24-9-2026): es quien mira SUS tramites preguntando «¿cuanto me
+     falta?». Un gestor que ve aqui los suyos no los esta esperando, los
+     esta llevando, y para eso tiene la cola. Va detras del estado y antes
+     de la fecha, que sigue cerrando la fila. */
+  var MT_COLUMNAS_INV = ['mt_c_tramite', 'mt_c_ente', 'mt_c_estado',
+                         'mt_c_progreso', 'mt_c_fecha', 'mt_c_abrir'];
+  function mtConProgreso(){
+    return !mtEsAdmin() && (typeof PERFIL !== 'undefined' && PERFIL.rol) === 'inversionista';
+  }
+  function mtColumnas(){
+    return mtEsAdmin() ? MT_COLUMNAS_ADMIN : mtConProgreso() ? MT_COLUMNAS_INV : MT_COLUMNAS;
+  }
+
+  /* ── CUANTO LLEVA HECHO UNA SOLICITUD ──
+     Los cuatro pasos del circuito, contados COMO LOS CUENTA LA ESCALERA DE
+     LA FICHA (pintaSolicitud): un estado alcanzado es un paso hecho, y el
+     siguiente es el que esta en curso. Si la tabla contara a su manera, la
+     fila diria «paso 3» y la ficha que abre diria otro, y el inversionista
+     no sabria a cual creer.
+     · devuelto: la recibida sigue hecha y se DETIENE en la revision, que es
+       donde la escalera de la ficha la deja -«volvió al principio»-;
+     · borrador: nada hecho, y el primer paso es suyo: enviarla. */
+  var MT_PG_ORDEN = ['enviado', 'en_revision', 'ante_el_ente', 'resuelto'];
+  function mtAvance(t){
+    var n = MT_PG_ORDEN.length;
+    if (t.estado === 'borrador') return {hechos:0, en:0, modo:'tuyo', n:n};
+    if (t.estado === 'devuelto') return {hechos:1, en:1, modo:'alto', n:n};
+    if (t.estado === 'resuelto') return {hechos:n, en:n, modo:'listo', n:n};
+    var i = MT_PG_ORDEN.indexOf(t.estado);
+    if (i < 0) return {hechos:0, en:0, modo:'ahora', n:n};
+    return {hechos:i + 1, en:i + 1, modo:'ahora', n:n};
+  }
+  function mtPct(a){ return Math.round(a.hechos / a.n * 100); }
+
+  /* Pone «{n}» y «{t}» en negrita dentro de la frase, sin innerHTML: la
+     frase sale de los textos editables y no se le da por buena. */
+  function mtPgFrase(caja, plantilla, n, t){
+    String(plantilla || '').split(/(\{n\}|\{t\})/).forEach(function(x){
+      if (!x) return;
+      if (x === '{n}') caja.appendChild(el('b', null, String(n)));
+      else if (x === '{t}') caja.appendChild(el('b', null, String(t)));
+      else caja.appendChild(document.createTextNode(x));
+    });
+    return caja;
+  }
+
+  function celdaProgreso(t, u, ente, ref){
+    var a = mtAvance(t);
+    var td = el('td', 'mt-progreso');
+    var caja = el('div', 'mt-pg');
+    var ol = el('ol', 'mt-pg-pasos');
+    for (var i = 0; i < a.n; i++){
+      var clase = i < a.hechos ? 'hecho' : (i === a.en ? a.modo : '');
+      var li = el('li', 'mt-pg-p' + (clase ? ' ' + clase : ''));
+      li.title = String(u.mt_pg_paso || '').replace('{n}', i + 1)
+        .replace('{nombre}', estadoTexto(i, ente, ref));
+      var o = el('span', 'mt-pg-o');
+      if (clase === 'hecho') o.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="5 12.5 10 17.5 19 7"/></svg>';
+      else o.textContent = clase === 'alto' ? '!' : String(i + 1);
+      li.appendChild(o);
+      ol.appendChild(li);
+    }
+    ol.setAttribute('aria-hidden', 'true');
+    caja.appendChild(ol);
+
+    var plantilla = a.modo === 'listo' ? u.mt_pg_listo : a.modo === 'alto' ? u.mt_pg_alto
+                  : a.modo === 'tuyo' ? u.mt_pg_tuyo : u.mt_pg_en;
+    var nPaso = a.modo === 'listo' ? a.n : a.modo === 'tuyo' ? 0 : a.en + 1;
+    var pie = el('div', 'mt-pg-pie');
+    var frase = mtPgFrase(el('span'), plantilla, nPaso, a.n);
+    pie.appendChild(frase);
+    pie.appendChild(el('span', 'mt-pg-pc ' + a.modo, mtPct(a) + ' %'));
+    caja.appendChild(pie);
+
+    /* Para quien no ve los circulos, una sola frase con todo: donde esta,
+       cuanto lleva y como se llama el paso en que esta. */
+    var dice = frase.textContent + ', ' + mtPct(a) + ' %';
+    if (a.modo !== 'listo') dice += '. ' + estadoTexto(Math.min(a.en, a.n - 1), ente, ref);
+    caja.setAttribute('role', 'img');
+    caja.setAttribute('aria-label', dice);
+    td.appendChild(caja);
+    return td;
+  }
 
   var MT_ORDENA = {
     /* Sin dueño ordena como cadena vacia, o sea el PRIMERO subiendo. No es
@@ -21307,6 +21426,12 @@ applyLang(idiomaParaMi());
       return ((TIPOS || {})[ref] || {}).ente || '';
     },
     mt_c_estado: function(t){ return textoDeEvento(t.estado, '', tipoRefDe(t.tipo)) || ''; },
+    /* Por lo hecho, y lo detenido por delante de lo que va al mismo paso:
+       subiendo, arriba queda lo que te toca mover. */
+    mt_c_progreso: function(t){
+      var a = mtAvance(t);
+      return a.hechos * 10 + (a.modo === 'alto' || a.modo === 'tuyo' ? 0 : 1);
+    },
     /* La fecha de la fila es la ultima que hubo: se resolvio, o se envio,
        o se creo. Ordenar por «creado» dejaria un resuelto de ayer por
        debajo de un borrador de hace un mes. */
@@ -21641,6 +21766,7 @@ applyLang(idiomaParaMi());
 
     cuerpo.textContent = '';
     var tabla = document.getElementById('mtTabla');
+    if (tabla) tabla.classList.toggle('mt-con-prog', mtConProgreso());
 
     /* La caja del borde y el alto tope es la que se ve: escondiendo la
        <table> sola quedaba el marco vacío dibujado. */
@@ -21802,6 +21928,7 @@ applyLang(idiomaParaMi());
         tr.appendChild(celdaLleva(t, u));
         tr.appendChild(celdaEspera(t, u));
       }
+      if (mtConProgreso()) tr.appendChild(celdaProgreso(t, u, ente, ref));
 
       /* La fecha, con su rotulo: sin el, una columna de fechas sueltas no
          dice si es cuando se envio o cuando se resolvio. */

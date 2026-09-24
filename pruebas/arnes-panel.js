@@ -5319,10 +5319,27 @@
        cargar—, que haya una fila por solicitud, y que ninguna se salga por la
        derecha, que es la misma preocupación de antes con otra forma. */
     (function(){
-      igual('mis trámites: la tabla tiene sus cinco columnas',
-            document.querySelectorAll('#mtCab th').length, 5);
+      /* Seis y no cinco: al inversionista le sale el progreso (24-9-2026).
+         El arnés entra como inversionista; si algún día entra con otro rol,
+         son las cinco de siempre. */
+      var conProg = PERFIL.rol === 'inversionista';
+      igual('mis trámites: la tabla tiene sus columnas',
+            document.querySelectorAll('#mtCab th').length, conProg ? 6 : 5);
 
       var filas = document.querySelectorAll('#mtCuerpo tr');
+      /* El progreso: una celda por fila, cuatro círculos en cada una, y la
+         frase para el lector de pantalla. Que cada fila la tenga importa:
+         con una sin ella, la columna se corre y la fecha cae bajo
+         «Progreso». */
+      if (conProg && filas.length){
+        var sinProg = [].filter.call(filas, function(f){
+          return !f.querySelector('.mt-pg') || f.querySelectorAll('.mt-pg-p').length !== 4; });
+        igual('mis trámites: cada fila lleva su progreso de cuatro pasos', sinProg.length, 0);
+        var pg = document.querySelector('#mtCuerpo .mt-pg');
+        ok('mis trámites: y el progreso se lee sin ver los círculos',
+           !!(pg && /\d+ %/.test(pg.getAttribute('aria-label') || '')),
+           pg ? pg.getAttribute('aria-label') : '(no hay)', 'una frase con el porcentaje');
+      }
       ok('mis trámites: y una fila por cada solicitud tuya',
          filas.length >= 3, filas.length + ' filas', 'tres o más');
 
