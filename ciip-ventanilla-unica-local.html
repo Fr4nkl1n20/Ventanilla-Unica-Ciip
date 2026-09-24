@@ -632,30 +632,24 @@ svg{display:block;}
 /* Lo entregado, en el detalle del trámite del inversionista. */
 .tr-entrega{background:var(--good-bg); border:1px solid var(--good);
   border-radius:var(--r); padding:15px 17px; margin-bottom:16px;}
-/* «Ya lo tienes» y la puerta a pedir otro, al pie de la tarjeta y solo
-   cuando está lista. Colgado DEBAJO del pie, con su filo encima: es otra
-   cosa que lo que el pie cuenta -el plazo y «ver detalles»- y metido
-   dentro se leería como una parte más de la ficha.
+/* EL AVISO ANTES DE ENTRAR A UNA FICHA YA RESUELTA (Franklin Reyes,
+   24-9-2026). Se abre sobre la pantalla porque interrumpe a proposito:
+   lo que sigue es pedir OTRO tramite igual, y eso no puede pasar de paso.
 
-   El botón no parece un botón de acción. Lo que ofrece es legítimo pero
-   raro -repetir un trámite que ya está hecho-, y en una rejilla de
-   treinta tarjetas un botón sólido aquí tiraría del ojo más que los
-   trámites que de verdad esperan algo. */
-.t-otra{display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-  margin-top:10px; padding-top:10px; border-top:1px solid var(--line-soft);}
-.t-otra-t{font-size:var(--fs-nota); font-weight:700; color:var(--good);}
-/* Y el recuadro de la ficha, que es donde SÍ se puede pedir otro. En gris
-   y no en verde: el verde de arriba dice «esto está hecho» y esto no
-   celebra nada, solo abre una puerta por si hace falta. */
-.tr-otra{border:1px solid var(--line); border-radius:var(--r);
-  padding:14px 17px; margin-bottom:16px;}
-.tr-otra .to-t{font-size:var(--fs-seccion); font-weight:700; letter-spacing:.01em;}
-.tr-otra .to-p{font-size:12px; color:var(--gray); margin-top:4px; margin-bottom:11px;}
-.tr-otra .to-acc{display:flex; align-items:center; gap:9px; flex-wrap:wrap;}
-/* La advertencia ocupa el renglón entero y empuja los dos botones abajo:
-   leída al lado de «Sí, pedir otro» no se lee, se salta. */
-.tr-otra .to-seg{flex-basis:100%; font-size:12px; font-weight:700; color:var(--rust);
-  margin-bottom:2px;}
+   Fondo que tapa y cuadro centrado, como el resto de lo que pregunta en
+   este panel. Dos salidas y ninguna escondida: entrar a ver lo que ya
+   tienes, que es lo que casi siempre se venia a hacer, o pedir otro. */
+.tr-av{position:fixed; inset:0; z-index:60; display:flex; align-items:center;
+  justify-content:center; padding:20px; background:rgba(11,31,59,.45);}
+.tr-av[hidden]{display:none;}
+.tra-c{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
+  box-shadow:var(--shadow); padding:20px 22px; max-width:440px; width:100%;}
+.tra-t{font-size:var(--fs-seccion); font-weight:700; letter-spacing:.01em;}
+.tra-p{font-size:12px; color:var(--gray); margin-top:6px;}
+/* La advertencia en oxido y en su renglon: al lado de «Solicitar otro
+   igual» no se lee, se salta. */
+.tra-s{font-size:12px; font-weight:700; color:var(--rust); margin-top:10px;}
+.tra-b{display:flex; gap:9px; flex-wrap:wrap; margin-top:16px; justify-content:flex-end;}
 .tr-entrega .te-t{font-size:var(--fs-seccion); font-weight:700; color:var(--good);
   letter-spacing:.01em;}
 .tr-entrega .te-p{font-size:12px; color:var(--gray); margin-top:4px;}
@@ -6180,6 +6174,21 @@ body[data-vista="horario"] .fase-bar{display:none;}
     </div>
   </main>
 
+  <!-- El aviso de entrar a una ficha ya resuelta. Nace escondido y lo
+       llena el guion: los textos van en los seis idiomas de pasos.js y no
+       en el marcado, como todo lo que escribe el panel. -->
+  <div class="tr-av" id="trAv" hidden role="dialog" aria-modal="true" aria-labelledby="trAvT">
+    <div class="tra-c">
+      <div class="tra-t" id="trAvT"></div>
+      <div class="tra-p" id="trAvP"></div>
+      <div class="tra-s" id="trAvS"></div>
+      <div class="tra-b">
+        <button class="btn ghost" id="trAvVer" type="button"></button>
+        <button class="btn navy" id="trAvOtra" type="button"></button>
+      </div>
+    </div>
+  </div>
+
   <!-- Fuera de <main> a proposito: ver .foot-note en el CSS. -->
   <div class="foot-note">
       <img src="data:image/png;base64,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" alt="CIIP">
@@ -8008,9 +8017,76 @@ function applyLang(lang){
      hacia falta. */
   eligeSola();
 
+  /* ── ANTES DE ENTRAR A UNA FICHA YA RESUELTA, SE AVISA ──────────────
+     Franklin Reyes, 24-9-2026: «que al darle click, antes de entrar a la
+     ficha, me salga el anuncio diciendo que ya tengo este trámite, si
+     deseo realizar otro», y «al darle click a cualquier parte de la
+     ficha».
+
+     Esto estuvo primero dentro de la ficha y luego al pie de la tarjeta.
+     Los dos sitios fallaban por lo mismo: se leían DESPUÉS de haber
+     entrado, cuando ya ibas a otra cosa. El momento en que la pregunta
+     sirve es el clic, y por eso interrumpe.
+
+     Se cuelga del clic de la tarjeta entera y no de un botón, porque la
+     tarjeta entera es lo que se pulsa. Y solo en 'listo': en cualquier
+     otro estado no hay nada que avisar y entrar es lo único que se puede
+     hacer.
+
+     Las dos salidas son de verdad. «Ver el trámite» es lo que casi
+     siempre se venía a hacer y va la primera; pedir otro es la rara y va
+     detrás, marcada, para que no se pulse por inercia. */
+  function avisaYaLoTienes(id, entrar){
+    var av = document.getElementById('trAv');
+    if (!av) return false;
+    /* Por el puente y no por T(): esto vive en otro ámbito, el de la
+       portada, y allí T no existe. Es el mismo camino que usa el aviso de
+       versión nueva unas líneas más arriba. */
+    var u = (window.CIIP_T && window.CIIP_T()) || {};
+    if (!u.tr_otra_t) return false;
+    document.getElementById('trAvT').textContent = u.tr_otra_t || '';
+    document.getElementById('trAvP').textContent = u.tr_otra_p || '';
+    document.getElementById('trAvS').textContent = u.tr_otra_seg || '';
+    var ver  = document.getElementById('trAvVer');
+    var otra = document.getElementById('trAvOtra');
+    ver.textContent  = u.tr_otra_ver || '';
+    otra.textContent = u.tr_otra_b || '';
+
+    function cierra(){
+      av.hidden = true;
+      document.removeEventListener('keydown', porEscape);
+    }
+    function porEscape(e){ if (e.key === 'Escape') cierra(); }
+    /* Se reemplazan los botones en vez de añadirles otro oyente: el cuadro
+       es UNO y se reutiliza para todas las tarjetas, así que sumar
+       oyentes acabaría abriendo el trámite de la vez anterior. */
+    var verN = ver.cloneNode(true);
+    var otraN = otra.cloneNode(true);
+    ver.parentNode.replaceChild(verN, ver);
+    otra.parentNode.replaceChild(otraN, otra);
+    ver = verN; otra = otraN;
+    ver.addEventListener('click', function(){ cierra(); entrar(); });
+    otra.addEventListener('click', function(){
+      cierra();
+      window.CIIP_OTRA_IGUAL = id;
+      entrar();
+    });
+    /* Pulsar fuera es lo mismo que no hacer nada, que es la tercera salida
+       de cualquier pregunta: quedarse donde estabas. */
+    av.onclick = function(e){ if (e.target === av) cierra(); };
+    document.addEventListener('keydown', porEscape);
+    av.hidden = false;
+    ver.focus();
+    return true;
+  }
+
   document.querySelectorAll('.tcard[data-tr]').forEach(function(c){
     var id = c.getAttribute('data-tr');
-    function ir(){ ve('tramite-'+id, {tipo:'tramite', id:id}); }
+    function entra(){ ve('tramite-'+id, {tipo:'tramite', id:id}); }
+    function ir(){
+      if (c.getAttribute('data-st') === 'listo' && avisaYaLoTienes(id, entra)) return;
+      entra();
+    }
     c.setAttribute('role', 'button');
     c.setAttribute('tabindex', '0');
     c.addEventListener('click', ir);
@@ -11043,8 +11119,21 @@ applyLang(idiomaParaMi());
             escalera.classList.add('oculto');
             caja.classList.add('puesto');
             caja.textContent = '';
-            if (mio && mio.estado !== 'borrador'){ chipReal(mio.estado); pintaEstado(t, mio); }
+            /* «Solicitar otro igual», elegido en el aviso que sale al
+               pulsar una tarjeta ya resuelta: se entra al formulario EN
+               BLANCO aunque haya una resuelta, que es lo que se acaba de
+               pedir. Ignorando la que hay, no borrándola: sigue en Mis
+               trámites y en la bóveda.
+
+               La bandera se gasta al leerla y solo vale para ESTE trámite:
+               una que no encaje se ignora y se abre lo de siempre, que es
+               peor que acertar y mucho mejor que un formulario en blanco
+               encima de algo terminado. */
+            var otraIgual = window.CIIP_OTRA_IGUAL === refPanel;
+            window.CIIP_OTRA_IGUAL = null;
+            if (!otraIgual && mio && mio.estado !== 'borrador'){ chipReal(mio.estado); pintaEstado(t, mio); }
             else {
+              if (otraIgual) mio = null;
               chipReal('sin_iniciar');
               /* DIRECTO AL FORMULARIO, sin ficha por delante.
               
@@ -13501,57 +13590,6 @@ applyLang(idiomaParaMi());
        escalera—, así que va encima de todo. */
     if (tr.estado === 'resuelto') pintaEntregado(tr, caja);
 
-    /* ── PEDIR OTRO IGUAL, PREGUNTANDO ANTES ────────────────────────────
-       Franklin Reyes, 24-9-2026: «falta una confirmación antes de abrir».
-       El botón abría el formulario en blanco de un clic, y eso son dos
-       cosas que se parecen y no son la misma: CORREGIR lo que tienes y
-       PEDIR OTRO. Quien se confunde acaba con dos constituciones y sin
-       entender de dónde salió la segunda.
-
-       La pregunta va en el sitio del botón y no en una ventana encima: lo
-       que hay que leer son dos renglones, y una ventana modal para dos
-       renglones interrumpe más de lo que informa. Al pulsar, el botón se
-       cambia por la advertencia y sus dos salidas; «Cancelar» lo deja
-       como estaba, sin haber tocado nada.
-
-       Abre el formulario EN BLANCO: se le pasa null y no la solicitud de
-       antes. Pasarle la resuelta la reabriría para editarla, que es
-       reescribir el expediente que el CIIP ya cerró. */
-    if (tr.estado === 'resuelto'){
-      var otra = el('div', 'tr-otra');
-      otra.appendChild(el('div', 'to-t', u.tr_otra_t || ''));
-      otra.appendChild(el('div', 'to-p', u.tr_otra_p || ''));
-      var accion = el('div', 'to-acc');
-      otra.appendChild(accion);
-
-      var abre = function(){
-        caja.textContent = '';
-        caja.classList.add('puesto');
-        chipReal('sin_iniciar');
-        pintaFormulario(tipo, null);
-      };
-      var pinta = function(preguntando){
-        accion.textContent = '';
-        if (!preguntando){
-          var pedir = el('button', 'btn ghost', u.tr_otra_b || '');
-          pedir.type = 'button';
-          pedir.addEventListener('click', function(){ pinta(true); });
-          accion.appendChild(pedir);
-          return;
-        }
-        accion.appendChild(el('div', 'to-seg', u.tr_otra_seg || ''));
-        var no = el('button', 'btn ghost', u['tx.cancelar'] || '');
-        no.type = 'button';
-        no.addEventListener('click', function(){ pinta(false); });
-        var si = el('button', 'btn navy', u.tr_otra_si || '');
-        si.type = 'button';
-        si.addEventListener('click', abre);
-        accion.appendChild(no);
-        accion.appendChild(si);
-      };
-      pinta(false);
-      caja.appendChild(otra);
-    }
 
     var lista = el('ol', 'tr-pasos');
     caja.appendChild(lista);
@@ -24071,42 +24109,6 @@ applyLang(idiomaParaMi());
     return hacenFalta.every(function(r){ return !!MIOS[r.tipo]; });
   }
 
-  /* ── YA LO TIENES, Y PUEDES PEDIR OTRO ──────────────────────────────
-     Franklin Reyes, 24-9-2026: «quiero que el anuncio al terminar la ficha
-     salga es aquí», señalando la tarjeta, «solo al tener la ficha lista».
-
-     Estaba dentro de la ficha abierta, que es un clic más tarde y un sitio
-     peor: cuando llegas ahí ya has ido a buscar algo. En la tarjeta se lee
-     sin entrar, que es donde se mira qué está hecho y qué no.
-
-     Solo en 'listo'. En cualquier otro estado el trámite está en marcha o
-     sin empezar, y ofrecer «otro igual» sería invitar a duplicarlo.
-
-     El botón lleva a la ficha con la bandera puesta, y no abre el
-     formulario aquí: una tarjeta del catálogo no es sitio para empezar a
-     rellenar, y el formulario vive en la pantalla del trámite. */
-  function pintaOtraIgual(tarjeta, tipo, st){
-    var pie = tarjeta.querySelector('.t-foot');
-    var habia = tarjeta.querySelector('.t-otra');
-    if (!pie || st !== 'listo' || !tipo){ if (habia) habia.remove(); return; }
-
-    var u = T();
-    /* Se REESCRIBE si ya estaba, en vez de salirse: al cambiar de idioma
-       las tarjetas se repintan y esto no lleva data-i18n -lo pinta el
-       guion-, así que salirse aquí lo dejaría en el idioma anterior. Es la
-       misma trampa que ya se documentó en pintaListo. */
-    var caja = habia || el('div', 't-otra');
-    caja.textContent = '';
-    caja.appendChild(el('span', 't-otra-t', u.tr_otra_t || ''));
-    /* SIN BOTÓN AQUÍ (Franklin Reyes, 24-9-2026: «quitar el botón de
-       acá»). La tarjeta ANUNCIA que ya lo tienes; pedir otro es una
-       acción, y las acciones de un trámite viven en su ficha, que es donde
-       hay sitio para decir lo que implican antes de hacerlas. Un enlace
-       aquí llevaba a pedir otra constitución desde una rejilla de treinta
-       tarjetas, a un clic de distancia y sin nada que lo pensara. */
-    if (!habia) pie.parentNode.insertBefore(caja, pie.nextSibling);
-  }
-
   function pintaListo(tarjeta, tipo, st){
     var pie = tarjeta.querySelector('.t-foot');
     var habia = tarjeta.querySelector('.t-listo');
@@ -25228,7 +25230,6 @@ applyLang(idiomaParaMi());
       pintaLoHacemos(c, (TIPOS || {})[ref]);
       pintaPlazoLegal(c, (TIPOS || {})[ref]);
       pintaListo(c, (TIPOS || {})[ref], st);
-      pintaOtraIgual(c, (TIPOS || {})[ref], st);
       pintaLogo(c, (TIPOS || {})[ref]);
     });
 
