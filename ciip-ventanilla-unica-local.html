@@ -18461,14 +18461,36 @@ applyLang(idiomaParaMi());
 
   /* Una duracion -no una fecha relativa-, en los seis idiomas y sin una
      sola clave nueva: Intl la escribe. haceCuanto() no sirve aqui, que
-     diria «dentro de 1 dia». */
-  function enDias(ms){
-    var d = ms / 86400000;
+     diria «dentro de 1 dia».
+
+     EN HORAS Y NO EN DIAS (Franklin Reyes, 24-9-2026: «podemos colocarlos
+     en horas, para tener mas control del equipo»). En dias, todo lo del
+     mismo dia salia «0 d», y «0 d · se pasó» no dice nada: lo que separa
+     contestar en dos horas de contestar en siete es justo lo que el
+     administrador viene a mirar. Asi que:
+       · menos de una hora, en minutos:        «35 min»
+       · hasta dos dias, en horas:              «5 h», «1,5 h», «31 h»
+       · desde dos dias, dias y horas:          «3 d 4 h»
+     Lo ultimo no es capricho: «76 h» obliga a dividir de cabeza, y a esa
+     altura ya se pasó de todo; la hora sigue ahi para comparar. */
+  function enUnidad(n, unidad, decimales){
     try {
       return new Intl.NumberFormat(curLang === 'zh' ? 'zh-CN' : curLang,
-        {style:'unit', unit:'day', unitDisplay:'short',
-         maximumFractionDigits: d < 10 ? 1 : 0}).format(d);
-    } catch(e){ return (d < 10 ? d.toFixed(1) : Math.round(d)) + ' d'; }
+        {style:'unit', unit:unidad, unitDisplay:'short',
+         maximumFractionDigits: decimales}).format(n);
+    } catch(e){
+      var corto = {minute:'min', hour:'h', day:'d'}[unidad] || '';
+      return (decimales ? Math.round(n * 10) / 10 : Math.round(n)) + ' ' + corto;
+    }
+  }
+  function enHoras(ms){
+    var min = ms / 60000;
+    if (min < 60) return enUnidad(Math.max(0, Math.round(min)), 'minute', 0);
+    var h = ms / 3600000;
+    if (h < 48) return enUnidad(h, 'hour', h < 10 ? 1 : 0);
+    var d = Math.floor(h / 24), resto = Math.round(h - d * 24);
+    if (resto === 24){ d++; resto = 0; }
+    return enUnidad(d, 'day', 0) + (resto ? ' ' + enUnidad(resto, 'hour', 0) : '');
   }
 
   function ponDesdeCuando(lista){
@@ -21701,7 +21723,7 @@ applyLang(idiomaParaMi());
     txt.appendChild(el('span', 'mt-marca',
       !t.gestor ? (u.mt_sintomar || '')
       : marca === null ? (u.mt_sinmarca || '')
-      : String(u.mt_suele || '').replace('{t}', enDias(marca))));
+      : String(u.mt_suele || '').replace('{t}', enHoras(marca))));
     caja.appendChild(txt);
     td.appendChild(caja);
     return td;
@@ -21723,7 +21745,7 @@ applyLang(idiomaParaMi());
     var marca = t.gestor ? sueleTardar(t.gestor) : null;
     var pasa = !t.gestor || (marca !== null && ms > marca);
     if (pasa) td.className += ' pasa';
-    td.appendChild(el('b', 'mt-espera-v', enDias(ms)));
+    td.appendChild(el('b', 'mt-espera-v', enHoras(ms)));
     if (pasa) td.appendChild(el('span', 'mt-espera-d', u.mt_sepaso || ''));
     return td;
   }
@@ -21778,7 +21800,7 @@ applyLang(idiomaParaMi());
         (partes[1] || '') + ' · ' +
         (!k ? (u.mt_sintomar || '')
             : marca === null ? (u.mt_sinmarca || '')
-            : String(u.mt_suele || '').replace('{t}', enDias(marca)))));
+            : String(u.mt_suele || '').replace('{t}', enHoras(marca)))));
       txt.appendChild(pie);
       b.appendChild(txt);
       b.addEventListener('click', function(){
