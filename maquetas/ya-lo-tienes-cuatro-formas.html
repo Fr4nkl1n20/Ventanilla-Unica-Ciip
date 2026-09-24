@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Cuatro formas de avisar que ya tienes ese trámite</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   YA LO TIENES RESUELTO: CUATRO FORMAS DE DECIRLO
+
+   Cuando el inversionista pulsa una tarjeta de un trámite que ya está
+   resuelto, el panel tiene que decirle dos cosas antes de dejarle seguir:
+   que ya lo tiene, y que puede pedir otro igual si de verdad le hace
+   falta -otra empresa, o el anterior se venció-.
+
+   Lo que NO puede pasar es que pida un segundo trámite creyendo que
+   estaba corrigiendo el primero. Esas dos cosas se parecen y no son la
+   misma, y quien se confunde acaba con dos constituciones sin entender de
+   dónde salió la segunda.
+
+   La forma 1 es la que está puesta hoy en el panel. Las otras tres son
+   alternativas de VERDAD: cambian dónde aparece la pregunta y cuánto
+   interrumpe, no el color del botón.
+
+   NO TOCA EL PANEL: es una página suelta. Los estilos son los del panel
+   de verdad, copiados a mano. Si allí cambia un color, aquí hay que
+   traerlo. Es el precio de que se abra con doble clic.
+   ══════════════════════════════════════════════════════════════════ */
+
+:root{
+  --navy:#004090; --navy2:#0060B0; --navy-deep:#00336d; --cyan:#20B0F0; --cyan-deep:#0E8FD6;
+  --ink:#0E1424; --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6;
+  --block:#F4F7FB; --bg:#FFFFFF; --card-2:#FAFAFA; --activa-bg:#EEF4FB;
+  --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9;
+  --good:#1E7F5C; --good-bg:#E7F4EE;
+  --fs-cifra:24px; --fs-titulo:20px; --fs-tarjeta:14px; --fs-valor:13.5px;
+  --fs-seccion:13px; --fs-parrafo:12.5px; --fs-pestana:12.5px; --fs-fila:12px;
+  --fs-boton:11.5px; --fs-rotulo:11px; --fs-nota:11px; --fs-chip:10px;
+  --r:10px; --r-sm:7px;
+  --shadow:0 1px 2px rgba(14,20,36,.04), 0 6px 18px rgba(14,20,36,.06);
+  --shadow-lg:0 2px 6px rgba(14,20,36,.06), 0 18px 44px rgba(14,20,36,.10);
+}
+*{box-sizing:border-box;}
+[hidden]{display:none !important;}
+body{margin:0; font-family:'Helvetica Neue',Arial,sans-serif; color:var(--ink);
+  background:var(--block); font-size:13px; line-height:1.45; -webkit-font-smoothing:antialiased;}
+svg{display:block;}
+
+.mq-cartel{background:#0E1424; color:#EAEEF6; padding:13px 22px;
+  display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;}
+.mq-cartel b{font-size:13px; letter-spacing:-.01em;}
+.mq-cartel span{font-size:11.5px; color:#A1A1A1; line-height:1.5;}
+
+main{max-width:1280px; padding:28px 26px 90px; margin:0 auto;}
+.intro{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.intro b{color:var(--ink);}
+.indice{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 0;}
+.indice a{font-size:var(--fs-fila); font-weight:700; color:var(--navy2); text-decoration:none;
+  background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:6px 11px;}
+.indice a:hover{border-color:var(--navy2);}
+
+.pedido{margin:18px 0 0; border:1px solid var(--line); border-left:3px solid var(--navy);
+  background:var(--bg); border-radius:var(--r); padding:13px 15px; max-width:94ch;
+  font-size:var(--fs-parrafo); color:var(--gray); line-height:1.6;}
+.pedido b{color:var(--ink);}
+
+.caso{margin-top:54px; scroll-margin-top:16px;}
+.caso-h{display:flex; align-items:center; gap:11px; margin-bottom:6px; flex-wrap:wrap;}
+.caso-n{width:28px; height:28px; border-radius:50%; background:var(--navy); color:#fff;
+  font-size:var(--fs-seccion); font-weight:700; display:flex; align-items:center;
+  justify-content:center; flex:none;}
+.caso-n.hoy{background:var(--good);}
+.caso-t{font-size:var(--fs-titulo); font-weight:700; letter-spacing:-.01em;}
+.caso-eti{font-size:var(--fs-chip); font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+  border-radius:20px; padding:3px 9px; background:var(--good-bg); color:var(--good);}
+.caso-p{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.65; max-width:94ch; margin:0 0 16px;}
+.caso-p b{color:var(--ink);}
+
+/* El juicio de cada una, en dos columnas: a favor y en contra. Sin esto
+   una maqueta es un escaparate y no una decisión. */
+.juicio{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0 0; max-width:94ch;}
+@media (max-width:760px){ .juicio{grid-template-columns:1fr;} }
+.juicio div{border:1px solid var(--line); background:var(--bg); border-radius:var(--r); padding:12px 14px;}
+.juicio .t{font-size:var(--fs-chip); font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+  margin-bottom:6px;}
+.juicio .bien .t{color:var(--good);} .juicio .mal .t{color:var(--rust);}
+.juicio ul{margin:0; padding-left:17px; font-size:var(--fs-fila); color:var(--gray); line-height:1.6;}
+
+/* ── el escenario: un trozo del catálogo con su tarjeta ── */
+.escena{position:relative; background:var(--block); border:1px solid var(--line);
+  border-radius:var(--r); padding:20px; overflow:hidden;}
+.tcard{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); padding:15px 16px;
+  max-width:420px; box-shadow:var(--shadow);}
+.t-top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
+.t-name{font-size:var(--fs-tarjeta); font-weight:700; letter-spacing:-.01em;}
+.t-ente{font-size:var(--fs-fila); font-weight:700; color:var(--gray); margin-top:2px;}
+.t-desc{font-size:var(--fs-parrafo); color:var(--gray); margin-top:8px; line-height:1.55;}
+.chip{font-size:var(--fs-chip); font-weight:700; border-radius:20px; padding:3px 9px; flex:none;
+  background:var(--good-bg); color:var(--good);}
+.t-foot{display:flex; align-items:center; justify-content:space-between; gap:10px;
+  margin-top:12px; padding-top:11px; border-top:1px solid var(--line-soft);}
+.t-cuando{font-size:var(--fs-nota); color:var(--gray-soft); font-weight:600;}
+.go{font-size:var(--fs-fila); font-weight:700; color:var(--navy2);}
+
+.btn{font:inherit; font-size:var(--fs-boton); font-weight:700; border-radius:8px; padding:9px 14px;
+  border:1px solid var(--line); background:var(--bg); color:var(--ink); cursor:pointer;}
+.btn.navy{background:var(--navy); border-color:var(--navy); color:#fff;}
+.btn.ghost{background:var(--bg);}
+
+/* ── 1. el cuadro centrado, lo de hoy ── */
+.velo{position:absolute; inset:0; background:rgba(11,31,59,.45); display:flex;
+  align-items:center; justify-content:center; padding:18px;}
+.cuadro{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
+  box-shadow:var(--shadow-lg); padding:20px 22px; max-width:430px; width:100%;}
+.cuadro .t{font-size:var(--fs-seccion); font-weight:700;}
+.cuadro .p{font-size:12px; color:var(--gray); margin-top:6px; line-height:1.55;}
+.cuadro .s{font-size:12px; font-weight:700; color:var(--rust); margin-top:10px; line-height:1.5;}
+.cuadro .b{display:flex; gap:9px; flex-wrap:wrap; margin-top:16px; justify-content:flex-end;}
+
+/* ── 2. dos caminos, sin párrafo ── */
+.caminos{display:grid; gap:9px; margin-top:14px;}
+.camino{display:flex; align-items:flex-start; gap:11px; text-align:left; width:100%;
+  border:1px solid var(--line); border-radius:var(--r); background:var(--bg);
+  padding:12px 13px; cursor:pointer; font:inherit; color:inherit;}
+.camino:hover{border-color:var(--navy2); background:var(--activa-bg);}
+.camino .ic{width:30px; height:30px; border-radius:8px; flex:none; display:flex;
+  align-items:center; justify-content:center; background:var(--activa-bg); color:var(--navy);
+  font-weight:800; font-size:var(--fs-fila);}
+.camino.ojo .ic{background:var(--good-bg); color:var(--good);}
+.camino.mas .ic{background:var(--rust-bg); color:var(--rust);}
+.camino .tx b{display:block; font-size:var(--fs-valor); font-weight:700;}
+.camino .tx span{display:block; font-size:var(--fs-fila); color:var(--gray); margin-top:2px; line-height:1.5;}
+
+/* ── 3. la tarjeta se despliega ── */
+.despliegue{margin-top:12px; padding-top:12px; border-top:1px solid var(--line-soft);}
+.despliegue .t{font-size:var(--fs-fila); font-weight:700;}
+.despliegue .s{font-size:var(--fs-nota); color:var(--rust); font-weight:700; margin-top:5px; line-height:1.5;}
+.despliegue .b{display:flex; gap:8px; flex-wrap:wrap; margin-top:11px;}
+.despliegue .btn{padding:7px 12px;}
+
+/* ── 4. el cajón de abajo ── */
+.cajon-fondo{position:absolute; inset:0; background:rgba(11,31,59,.35); display:flex;
+  align-items:flex-end; justify-content:center;}
+.cajon{background:var(--bg); border-top:1px solid var(--line); width:100%;
+  border-radius:14px 14px 0 0; box-shadow:var(--shadow-lg); padding:16px 20px 20px;}
+.cajon .asa{width:38px; height:4px; border-radius:4px; background:var(--line);
+  margin:0 auto 13px;}
+.cajon .t{font-size:var(--fs-seccion); font-weight:700;}
+.cajon .p{font-size:12px; color:var(--gray); margin-top:5px; line-height:1.55;}
+.cajon .b{display:flex; gap:9px; flex-wrap:wrap; margin-top:14px;}
+.cajon .b .btn{flex:1 1 150px;}
+
+.nota{font-size:var(--fs-nota); color:var(--gray-soft); margin-top:10px; line-height:1.6; max-width:94ch;}
+</style>
+</head>
+<body>
+
+<div class="mq-cartel">
+  <b>MAQUETA · no es el panel</b>
+  <span>Cuatro formas de avisar que un trámite ya está resuelto antes de dejar pedir otro · 24 de septiembre de 2026</span>
+</div>
+
+<main>
+
+<p class="intro">
+Al pulsar la tarjeta de un trámite <b>ya resuelto</b>, el panel tiene que decir dos cosas
+antes de dejar seguir: que <b>ya lo tienes</b>, y que puedes <b>pedir otro igual</b> si de
+verdad hace falta —otra empresa, o el anterior venció—. Lo que no puede pasar es que
+alguien pida un segundo trámite creyendo que estaba corrigiendo el primero: esas dos cosas
+se parecen y no son la misma.
+</p>
+
+<div class="pedido">
+Las cuatro cambian <b>dónde aparece la pregunta y cuánto interrumpe</b>, no el color del
+botón. La <b>1 es la que está puesta hoy</b>; las otras tres son alternativas de verdad.
+Debajo de cada una va lo que gana y lo que cuesta, para que se elija sabiendo las dos cosas.
+</div>
+
+<div class="indice">
+  <a href="#c1">1 · El cuadro que interrumpe</a>
+  <a href="#c2">2 · Dos caminos, sin párrafo</a>
+  <a href="#c3">3 · La tarjeta se despliega</a>
+  <a href="#c4">4 · El cajón de abajo</a>
+</div>
+
+
+<!-- ══════════ 1 ══════════ -->
+<section class="caso" id="c1">
+  <div class="caso-h">
+    <span class="caso-n hoy">1</span>
+    <span class="caso-t">El cuadro que interrumpe</span>
+    <span class="caso-eti">puesto hoy</span>
+  </div>
+  <p class="caso-p">
+    Un cuadro centrado, con velo detrás. Para y pregunta. El aviso en óxido dice lo que de
+    verdad importa —<b>vas a pedir OTRA</b>— y está separado del párrafo explicativo para
+    que no se lea de corrido y se salte.
+  </p>
+
+  <div class="escena">
+    <div class="tcard">
+      <div class="t-top"><div class="t-name">Constitución de la compañía</div><span class="chip">Completado</span></div>
+      <div class="t-ente">Registro Mercantil</div>
+      <div class="t-desc">Redacción del acta con un despacho jurídico aliado y firma para inscribirla en el Registro Mercantil.</div>
+      <div class="t-foot"><span class="t-cuando">resuelta el 21 sept 2026</span><span class="go">Ver detalles ›</span></div>
+    </div>
+    <div class="velo">
+      <div class="cuadro">
+        <div class="t">Ya lo tienes resuelto</div>
+        <div class="p">El documento se queda en tu expediente. Si necesitas otro igual —para otra empresa, o porque el anterior venció— puedes solicitarlo ahora.</div>
+        <div class="s">Vas a pedir OTRA solicitud, no a cambiar la que ya tienes. La de antes se queda en tu expediente.</div>
+        <div class="b">
+          <button class="btn ghost" type="button">Ver el trámite</button>
+          <button class="btn navy" type="button">Solicitar otro igual</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="juicio">
+    <div class="bien"><div class="t">Lo que gana</div><ul>
+      <li>Nadie pide otro trámite sin haberlo leído: para el paso.</li>
+      <li>Sitio de sobra para la advertencia, que es lo que evita el error caro.</li>
+      <li>Se cierra con Escape o pulsando fuera, y no pasa nada.</li>
+    </ul></div>
+    <div class="mal"><div class="t">Lo que cuesta</div><ul>
+      <li>Interrumpe también a quien solo venía a mirar, que es casi siempre.</li>
+      <li>Tres párrafos para una decisión de dos botones: se leen en diagonal.</li>
+      <li>El velo tapa el catálogo y pierdes de vista dónde estabas.</li>
+    </ul></div>
+  </div>
+</section>
+
+
+<!-- ══════════ 2 ══════════ -->
+<section class="caso" id="c2">
+  <div class="caso-h">
+    <span class="caso-n">2</span>
+    <span class="caso-t">Dos caminos, sin párrafo</span>
+  </div>
+  <p class="caso-p">
+    El mismo cuadro, pero sin prosa. Una pregunta y <b>dos caminos</b>, cada uno con su
+    nombre y una línea que dice a dónde lleva. La advertencia deja de ser un renglón aparte
+    y pasa a estar <b>dentro del camino que la necesita</b>, que es donde se lee.
+  </p>
+
+  <div class="escena">
+    <div class="tcard">
+      <div class="t-top"><div class="t-name">Constitución de la compañía</div><span class="chip">Completado</span></div>
+      <div class="t-ente">Registro Mercantil</div>
+      <div class="t-desc">Redacción del acta con un despacho jurídico aliado y firma para inscribirla en el Registro Mercantil.</div>
+      <div class="t-foot"><span class="t-cuando">resuelta el 21 sept 2026</span><span class="go">Ver detalles ›</span></div>
+    </div>
+    <div class="velo">
+      <div class="cuadro">
+        <div class="t">Ya tienes este trámite resuelto</div>
+        <div class="p">¿Qué quieres hacer?</div>
+        <div class="caminos">
+          <button class="camino ojo" type="button">
+            <span class="ic">✓</span>
+            <span class="tx"><b>Ver el que ya tienes</b><span>Resuelto el 21 sept 2026, con su documento.</span></span>
+          </button>
+          <button class="camino mas" type="button">
+            <span class="ic">+</span>
+            <span class="tx"><b>Solicitar otro igual</b><span>Empieza una solicitud nueva. La de antes no se toca.</span></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="juicio">
+    <div class="bien"><div class="t">Lo que gana</div><ul>
+      <li>Se decide mirando, no leyendo: dos bloques y a elegir.</li>
+      <li>La advertencia va pegada a la opción peligrosa, no en un renglón suelto.</li>
+      <li>Cada camino dice a dónde lleva antes de pulsarlo.</li>
+    </ul></div>
+    <div class="mal"><div class="t">Lo que cuesta</div><ul>
+      <li>Los dos caminos pesan igual, y uno es mucho más raro que el otro.</li>
+      <li>Sigue interrumpiendo a quien solo venía a mirar.</li>
+      <li>Una línea por camino obliga a que el texto sea bueno: no caben matices.</li>
+    </ul></div>
+  </div>
+</section>
+
+
+<!-- ══════════ 3 ══════════ -->
+<section class="caso" id="c3">
+  <div class="caso-h">
+    <span class="caso-n">3</span>
+    <span class="caso-t">La tarjeta se despliega</span>
+  </div>
+  <p class="caso-p">
+    Sin velo y sin cuadro: al pulsar, <b>la propia tarjeta crece</b> y enseña las dos
+    salidas dentro. No tapa nada, no saca al inversionista de donde está, y el catálogo
+    sigue entero alrededor. Es lo más parecido a responder en el sitio en que se preguntó.
+  </p>
+
+  <div class="escena">
+    <div class="tcard">
+      <div class="t-top"><div class="t-name">Constitución de la compañía</div><span class="chip">Completado</span></div>
+      <div class="t-ente">Registro Mercantil</div>
+      <div class="t-desc">Redacción del acta con un despacho jurídico aliado y firma para inscribirla en el Registro Mercantil.</div>
+      <div class="t-foot"><span class="t-cuando">resuelta el 21 sept 2026</span><span class="go">Ver detalles ›</span></div>
+      <div class="despliegue">
+        <div class="t">Ya lo tienes resuelto</div>
+        <div class="s">Pedir otro igual abre una solicitud NUEVA. La de antes se queda.</div>
+        <div class="b">
+          <button class="btn navy" type="button">Ver el trámite</button>
+          <button class="btn ghost" type="button">Solicitar otro igual</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="juicio">
+    <div class="bien"><div class="t">Lo que gana</div><ul>
+      <li>No interrumpe: quien venía a mirar pulsa «Ver el trámite» y sigue.</li>
+      <li>El catálogo no se tapa; no se pierde el sitio.</li>
+      <li>Funciona igual en el móvil, sin cuadros que se salgan de la pantalla.</li>
+    </ul></div>
+    <div class="mal"><div class="t">Lo que cuesta</div><ul>
+      <li>Se puede ignorar: no obliga a leer nada antes de seguir.</li>
+      <li>La tarjeta crece y empuja a las de abajo en una rejilla de treinta.</li>
+      <li>Añade un clic a lo más común, que es entrar a ver.</li>
+    </ul></div>
+  </div>
+</section>
+
+
+<!-- ══════════ 4 ══════════ -->
+<section class="caso" id="c4">
+  <div class="caso-h">
+    <span class="caso-n">4</span>
+    <span class="caso-t">El cajón de abajo</span>
+  </div>
+  <p class="caso-p">
+    El aviso sube desde el borde inferior, ocupando el ancho. Interrumpe como el cuadro
+    —hay que contestar— pero <b>deja ver el catálogo por encima</b>, así que no se pierde
+    el sitio. Y en el móvil cae donde está el pulgar, que es donde deben estar los botones.
+  </p>
+
+  <div class="escena" style="min-height:330px;">
+    <div class="tcard">
+      <div class="t-top"><div class="t-name">Constitución de la compañía</div><span class="chip">Completado</span></div>
+      <div class="t-ente">Registro Mercantil</div>
+      <div class="t-desc">Redacción del acta con un despacho jurídico aliado y firma para inscribirla en el Registro Mercantil.</div>
+      <div class="t-foot"><span class="t-cuando">resuelta el 21 sept 2026</span><span class="go">Ver detalles ›</span></div>
+    </div>
+    <div class="cajon-fondo">
+      <div class="cajon">
+        <div class="asa"></div>
+        <div class="t">Ya lo tienes resuelto</div>
+        <div class="p">Resuelto el 21 sept 2026. Si pides otro igual empiezas una solicitud <b>nueva</b>; la de antes se queda en tu expediente.</div>
+        <div class="b">
+          <button class="btn navy" type="button">Ver el trámite</button>
+          <button class="btn ghost" type="button">Solicitar otro igual</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="juicio">
+    <div class="bien"><div class="t">Lo que gana</div><ul>
+      <li>Interrumpe, pero sin tapar: el catálogo sigue a la vista.</li>
+      <li>En el móvil los botones caen donde llega el pulgar.</li>
+      <li>El asa de arriba dice que se puede cerrar arrastrando, sin explicarlo.</li>
+    </ul></div>
+    <div class="mal"><div class="t">Lo que cuesta</div><ul>
+      <li>En pantalla grande un cajón de lado a lado por dos botones es mucho cajón.</li>
+      <li>Es un gesto de móvil: en el escritorio nadie lo arrastra, hay que poder cerrarlo con un botón.</li>
+      <li>Al subir desde abajo tapa justo lo que hay al pie, que es donde vive «Ver detalles».</li>
+    </ul></div>
+  </div>
+</section>
+
+<p class="nota">
+Las cuatro dicen lo mismo y con las mismas palabras: cambian el <b>envoltorio</b>. Las
+claves de texto ya existen en los seis idiomas —<code>tr_otra_t</code>,
+<code>tr_otra_p</code>, <code>tr_otra_seg</code>, <code>tr_otra_b</code> y
+<code>tr_otra_ver</code>—, así que pasar de una a otra es marcado y CSS, no traducciones.
+La 2 pediría dos líneas nuevas y la 4 ninguna.
+</p>
+
+</main>
+</body>
+</html>
