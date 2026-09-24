@@ -5331,18 +5331,22 @@
       /* El progreso: una celda por fila, sus círculos, y la frase para el
          lector de pantalla. Que cada fila la tenga importa: con una sin
          ella, la columna se corre y la fecha cae bajo «Progreso».
-         Cuatro como poco -el circuito- y a veces más: la constitución
-         lleva la reserva y la protocolización el PUB delante, igual que en
-         su ficha (escaleraDe). */
+         Dos como poco, y a veces más: desde el 24-9-2026 cada trámite
+         enseña SUS pasos y no los cuatro del circuito -la representación
+         legal lleva dos, el RIF tres-, mientras la constitución lleva la
+         reserva y la protocolización el PUB delante. Todos igual que en su
+         ficha, porque sale de la misma cuenta (escaleraDe). */
       if (conProg && filas.length){
         var sinProg = [].filter.call(filas, function(f){
-          return !f.querySelector('.mt-pg') || f.querySelectorAll('.mt-pg-p').length < 4; });
+          return !f.querySelector('.mt-pg') || f.querySelectorAll('.mt-pg-p').length < 2; });
         igual('mis trámites: cada fila lleva su progreso, con sus pasos', sinProg.length, 0);
 
         /* Los dos casos que la tabla no puede contar a su manera. t2 es una
            constitución en borrador: cinco pasos, como su ficha -la reserva
            va antes de «Resuelta»-, y el primero es suyo. t1 es un RIF
-           devuelto: cuatro, y se detiene en el segundo con su «!». */
+           devuelto: TRES desde el 24-9-2026 -«Solicitud recibida», «Firme
+           la planilla», «RIF emitido»-, y se detiene en el segundo con su
+           «!», que es donde la deja volver al principio. */
         var t2 = document.querySelector('#mtCuerpo tr[data-id="t2"]');
         if (t2){
           var p2 = t2.querySelectorAll('.mt-pg-p');
@@ -5356,7 +5360,7 @@
           var alto = [].map.call(p1, function(x, i){ return x.classList.contains('alto') ? i + 1 : 0; })
                        .filter(Boolean).join(',');
           igual('mis trámites: la devuelta se detiene en la revisión',
-                p1.length + ' pasos, detenida en ' + (alto || 'ninguno'), '4 pasos, detenida en 2');
+                p1.length + ' pasos, detenida en ' + (alto || 'ninguno'), '3 pasos, detenida en 2');
         }
         var pg = document.querySelector('#mtCuerpo .mt-pg');
         ok('mis trámites: y el progreso se lee sin ver los círculos',

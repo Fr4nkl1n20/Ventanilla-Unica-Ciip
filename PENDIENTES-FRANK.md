@@ -70,28 +70,31 @@ rótulo. No inventan mecanismos nuevos y se deshacen borrando una línea.
 
 ## Lo que necesito que decidas
 
-### 1. Cuántos pasos tiene cada trámite, y qué significa cada uno **?**
+### 1. Cuántos pasos tiene cada trámite, y qué significa cada uno — **decidido: A**
 
-Casi todas las «casillas» del documento cambian los pasos del proceso: la
-representación legal pasa a dos, el RIF a tres, la visa a seis.
+Franklin, 24-9-2026: los pasos avanzan con los cuatro estados. Y dos
+respuestas suyas del mismo día: en la visa, el paso 2 lo marca el CIIP -el
+gestor avisa y el equipo confirma que el inversionista ya se registró en
+Cancillería- y el 3 es la firma del inversionista.
 
-El panel ya guarda los pasos propios de los 37 trámites, así que ponerlos
-no es el problema. El problema es **qué los marca como hechos**: hoy lo
-decide el estado de la solicitud, y los estados son cuatro —recibida, en
-revisión, ante el organismo, resuelta—. Con cuatro pasos encaja; con dos
-sobra sitio y con seis falta.
+Lo que eso significa en el panel: ningún paso se da por terminado hasta
+que el trámite está resuelto —los de en medio se topan en el penúltimo—,
+así que la escalera puede encender un paso algo antes de tiempo, pero no
+puede decir que algo está listo cuando no lo está.
 
-Concretamente, la visa tiene seis pasos y dos de ellos —«regístrese en
-Cancillería» y «llene la planilla»— **los hace el inversionista**, no el
-CIIP. Hoy no hay forma de que el panel sepa que eso ya se hizo.
-
-Necesito saber una de dos cosas:
-
-- **A.** Los pasos son un dibujo informativo y basta con que avancen a
-  ojo con los cuatro estados. Barato, y algún paso se marcará antes o
-  después de tiempo.
-- **B.** Cada paso se marca de verdad. Eso pide estados nuevos en la base,
-  por trámite, y es un cambio de fondo.
+- [x] Que la escalera use los pasos propios lleve los que lleve, y no solo
+      cuando son cuatro (`escaleraDe`, la misma cuenta que la columna
+      «Progreso» de Mis trámites)
+- [x] Representación legal (c33), dos pasos
+- [x] RIF personal (c3) y RIF de la empresa (c6), tres pasos
+- [x] Cuenta bancaria (c7), dos pasos
+- [x] Sellado de libros (c24), tres pasos
+- [ ] Visa (c1) y visa de inversionista: **me faltan los seis rótulos tal
+      como los quieres**. Sé quién marca el 2 y el 3; no tengo escritos los
+      seis nombres
+- [ ] Traducción (c17): son dos escaleras distintas según la respuesta. Ver
+      el punto 4
+- [ ] Registro de marcas (c8): en tu documento sigue «aún se está diseñando»
 
 ### 2. Los tres mecanismos nuevos de la visa **?**
 

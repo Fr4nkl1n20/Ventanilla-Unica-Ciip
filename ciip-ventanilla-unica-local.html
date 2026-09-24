@@ -13717,6 +13717,54 @@ applyLang(idiomaParaMi());
                    mapaP[ref].length === ORDEN.length + delante)
                   ? mapaP[ref] : null;
 
+    /* ── PASOS PROPIOS CON OTRA CUENTA ──────────────────────────────────
+       Franklin Reyes, 24-9-2026 (Pendientes FRANK.pdf): casi cada trámite
+       pasa a tener SUS pasos, y no cuatro. La representación legal lleva
+       dos, el RIF tres, los libros tres.
+
+       Arriba solo se usaban los propios cuando eran exactamente tantos
+       como estados: cada paso era un estado y la cuenta salía sola. Con
+       otra cantidad no hay esa correspondencia, y el panel sigue
+       conociendo solo cuatro momentos -recibida, en revisión, ante el
+       organismo, resuelta-, que son los que la base guarda.
+
+       LA REGLA, Y LO QUE PROMETE. Los pasos de en medio avanzan con esos
+       cuatro momentos, y NINGUNO llega al final hasta que el trámite está
+       resuelto: se topan en el penúltimo. Así la escalera puede encender
+       un paso intermedio algo antes de tiempo, pero no puede decir que
+       algo está terminado cuando no lo está, que es la única mentira que
+       importa.
+
+       Y LAS FECHAS. En este modo un paso no ES un estado, así que no se
+       le puede colgar la fecha del historial. Se cuelgan las dos que sí
+       se saben: el primero es cuando se envió y el último cuando se
+       resolvió. Los de en medio van sin fecha, que es mejor que ponerles
+       una que no es la suya. */
+    var libres = null;
+    if (!propios && mapaP[ref] && mapaP[ref].length && mapaP[ref].length !== ORDEN.length){
+      var lista = mapaP[ref];
+      /* La devuelta cuenta como recibida y no como borrador, que es lo
+         mismo que hace la escalera de cuatro: «volvió al principio» deja
+         el primer paso hecho y la espera en el segundo. */
+      var HASTA = {borrador:0, devuelto:1, enviado:1, en_revision:2, ante_el_ente:3};
+      var n = lista.length;
+      var hechos = (tr.estado === 'resuelto')
+        ? n
+        : Math.min(HASTA[tr.estado] === undefined ? 0 : HASTA[tr.estado], n - 1);
+      libres = lista.map(function(txt, i){
+        return {
+          est: (i === 0 ? 'enviado' : (i === n - 1 ? 'resuelto' : null)),
+          nombre: txt,
+          hecho: i < hechos,
+          ahora: (i === hechos) && tr.estado !== 'resuelto',
+          n: i + 1
+        };
+      });
+      return {alcanzado: hechos - 1, conReserva: false, ref: ref, delante: 0,
+              propios: lista, libres: libres, pre: [], circ: libres,
+              reserva: null, todos: libres};
+    }
+
     /* Los de delante se dan por hechos cuando la solicitud ya pasó de
        «recibida»: no se llega a revisión sin haber pagado. */
     var pre = [];
@@ -13899,8 +13947,12 @@ applyLang(idiomaParaMi());
           }
         }
 
-        ORDEN.forEach(function(est, i){
-          var paso = esc.circ[i];
+        /* Se recorre esc.circ y NO ORDEN: con los pasos propios de cuenta
+           libre la escalera puede tener dos casillas o seis, y recorriendo
+           los cuatro estados se pedía un esc.circ[2] que no existe. Cada
+           casilla dice de qué estado cuelga -o de ninguno- en paso.est. */
+        esc.circ.forEach(function(paso, i){
+          var est = paso.est;
           var hecho = paso.hecho;
           var ahora = paso.ahora;
 
@@ -13914,7 +13966,7 @@ applyLang(idiomaParaMi());
              trámite. Buscándola por el texto daría con el de todos. */
           if (!propios && refTr) nomP.setAttribute('data-ui', '_p.circuito.' + refTr + '.' + i);
           txt.appendChild(nomP);
-          if (cuando[est]) txt.appendChild(el('div', 'sd-e', fecha(cuando[est])));
+          if (est && cuando[est]) txt.appendChild(el('div', 'sd-e', fecha(cuando[est])));
           else if (ahora){
             var eti = el('span', 'tr-aqui', textoAqui());
             /* Desde cuando estas parado en este punto. Para un devuelto es
@@ -13928,7 +13980,12 @@ applyLang(idiomaParaMi());
                  sin poner, tabla a medio migrar- se cae a la fecha de
                  envio. Peor dato, pero dato: sin esto la etiqueta se
                  quedaba muda justo donde hacia falta. */
-              : ((alcanzado >= 0 && cuando[ORDEN[alcanzado]]) ||
+              /* Con pasos de cuenta libre «alcanzado» cuenta casillas, no
+                 estados, así que ORDEN[alcanzado] apuntaría a cualquier
+                 sitio. Ahí se usa la fecha del estado de verdad. */
+              : ((esc.libres
+                    ? cuando[tr.estado]
+                    : (alcanzado >= 0 && cuando[ORDEN[alcanzado]])) ||
                  tr.enviado_en || tr.creado_en);
             if (desde){
               eti.appendChild(el('span', 'tr-desde',

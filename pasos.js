@@ -7118,11 +7118,11 @@ window.CIIP_PASOS = {
       c1:  ["Solicitud ante el consulado de Venezuela", "Consignación de recaudos y pago del arancel consular", "Evaluación y aprobación", "Visa TR-N estampada en el pasaporte"],
       c38: ["Solicitud ante el consulado de Venezuela", "Consignación de recaudos y pago del arancel consular", "Evaluación y aprobación", "Visa TR-I estampada en el pasaporte"],
       c2:  ["Registro del extranjero con la visa vigente", "Cita para captura biométrica", "Verificación de datos migratorios", "Entrega de la cédula de identidad"],
-      c3:  ["Inscripción en el portal del SENIAT", "Carga de la cédula y del comprobante de domicilio", "Validación por la oficina fiscal", "Certificado de RIF disponible"],
+      c3:  ["Solicitud recibida por el CIIP", "Firme la planilla", "RIF emitido"],
       c4:  ["Traducción certificada de la licencia", "Solicitud de homologación ante el INTT", "Examen médico y de conocimiento", "Emisión de la licencia venezolana"],
       c5:  ["Búsqueda y reserva del nombre", "Redacción del documento por abogado colegiado", "Revisión y firma de los socios", "Documento constitutivo listo para protocolizar"],
-      c6:  ["Inscripción de la compañía en el SENIAT", "Consignación del acta constitutiva", "Asignación del número de RIF", "Certificado y clave del portal fiscal"],
-      c7:  ["Elección del banco aliado", "Expediente de la empresa y de sus socios", "Cita presencial y firma de tarjetas", "Cuenta activa con banca en línea"],
+      c6:  ["Solicitud recibida por el CIIP", "Firme la planilla", "RIF emitido"],
+      c7:  ["Solicitud en revisión", "Cuenta aperturada"],
       c8:  ["Búsqueda de antecedentes registrales", "Solicitud de registro ante el SAPI", "Publicación y plazo de oposición", "Concesión del certificado de marca"],
       c10: ["Solicitud de patente de industria y comercio", "Revisión del expediente por la alcaldía", "Inspección municipal del local", "Licencia de funcionamiento otorgada"],
       c11: ["Registro como operador de comercio exterior", "Clasificación arancelaria de la mercancía", "Permisos sectoriales y certificado de origen", "Autorización de despacho aduanero"],
@@ -7135,7 +7135,7 @@ window.CIIP_PASOS = {
       c30: ["Clasificación del nivel de impacto ambiental", "Consignación del expediente técnico", "Evaluación por la autoridad ambiental", "Autorización ambiental otorgada"],
       c31: ["Expediente de la inversión ante el órgano rector", "Verificación del aporte y de su origen", "Evaluación y registro de la inversión", "Certificado de Inversionista emitido"],
       c32: ["Solicitud en línea en el SISREF", "Cita en la oficina del SAREN", "Verificación de identidad y firma", "Constancia de firma registrada"],
-      c33: ["Carga del poder notariado y apostillado", "Revisión del CIIP", "Verificación de la personería", "Representación acreditada"],
+      c33: ["Revisión de tus recaudos", "Verificado"],
       c34: ["Carta al Comandante de la ZODI con tu expediente", "Apertura del expediente en la sede de la región", "Inspección del sitio, si tu actividad la requiere", "Opinión favorable emitida"],
       c35: ["Usuario en el portal RUPDAE con el RIF y el correo de la empresa", "Carga de datos, establecimientos y representante legal", "Revisión de la SUNDDE", "Certificado RUPDAE emitido"],
       c36: ["Cuenta en el SIGDME 2.0 como empresa conformada", "Carga de cédula, RIF y acta constitutiva", "Verificación del Sistema de Información Minera", "Certificado electrónico RUM, válido tres años"],
@@ -7150,18 +7150,18 @@ window.CIIP_PASOS = {
       c21: ["Elección del centro de salud autorizado", "Cita para la evaluación médica", "Evaluación y firma del médico", "Certificado guardado en tu bóveda"],
       c22: ["Emisión de PUB de constitución de compañía", "Pago de aranceles registrales", "Consignación del documento en el Registro Mercantil", "Revisión del registrador", "Acta protocolizada con personalidad jurídica"],
       c23: ["Emisión de PUB de publicación mercantil", "Elección del periódico mercantil", "Envío del acta protocolizada", "Publicación del extracto", "Consignación de ejemplares en el Registro"],
-      c24: ["Apertura de los libros obligatorios", "Sellado y foliado en el Registro Mercantil", "Elección del sistema de facturación", "Homologación del sistema ante el SENIAT"]
+      c24: ["Consignar libros en el CIIP", "Solicitud introducida ante el SAREN", "Libros sellados. Puede venir a retirar en el CIIP"]
     },
 
     en: {
       c1:  ["Application at the Venezuelan consulate", "Paperwork submitted and consular fee paid", "Assessment and approval", "TR-N visa stamped in your passport"],
       c38: ["Application at the Venezuelan consulate", "Paperwork submitted and consular fee paid", "Assessment and approval", "TR-I visa stamped in your passport"],
       c2:  ["Foreign national registration with a valid visa", "Appointment for biometric capture", "Verification of migration records", "Identity card issued"],
-      c3:  ["Sign-up on the SENIAT portal", "Upload of ID and proof of address", "Validation by the tax office", "RIF certificate available"],
+      c3:  ["Request received by CIIP", "Sign the form", "RIF issued"],
       c4:  ["Certified translation of your licence", "Conversion request to the INTT", "Medical and knowledge tests", "Venezuelan licence issued"],
       c5:  ["Name search and reservation", "Drafting by a registered lawyer", "Review and signature by the shareholders", "Articles ready to be filed"],
-      c6:  ["Company sign-up at SENIAT", "Filing of the articles of incorporation", "RIF number assigned", "Certificate and tax portal credentials"],
-      c7:  ["Choice of partner bank", "File on the company and its shareholders", "In-person appointment and signatures", "Account live with online banking"],
+      c6:  ["Request received by CIIP", "Sign the form", "RIF issued"],
+      c7:  ["Request under review", "Account opened"],
       c8:  ["Search of prior registrations", "Registration request to SAPI", "Publication and opposition period", "Trademark certificate granted"],
       c10: ["Application for the industry and trade licence", "Review of the file by the municipality", "Municipal inspection of the premises", "Operating licence granted"],
       c11: ["Registration as a foreign-trade operator", "Tariff classification of the goods", "Sector permits and certificate of origin", "Customs clearance authorised"],
@@ -7174,7 +7174,7 @@ window.CIIP_PASOS = {
       c30: ["Classification of the environmental impact level", "Submission of the technical file", "Assessment by the environmental authority", "Environmental authorisation granted"],
       c31: ["Investment file submitted to the governing body", "Verification of the contribution and its origin", "Assessment and registration of the investment", "Investor Certificate issued"],
       c32: ["Online request through SISREF", "Appointment at the SAREN office", "Identity check and signature", "Signature registration certificate"],
-      c33: ["Upload the notarised, apostilled power of attorney", "CIIP review", "Verification of legal standing", "Representation accredited"],
+      c33: ["Review of your documents", "Verified"],
       c34: ["Letter to the ZODI Commander with your file", "File opened at the regional headquarters", "Site inspection, if your activity requires one", "Clearance issued"],
       c35: ["RUPDAE portal account with the company’s RIF and email", "Company details, premises and legal representative entered", "SUNDDE review", "RUPDAE certificate issued"],
       c36: ["SIGDME 2.0 account as an incorporated company", "Upload of ID, RIF and articles of incorporation", "Verification by the Mining Information System", "Electronic RUM certificate, valid for three years"],
@@ -7189,18 +7189,18 @@ window.CIIP_PASOS = {
       c21: ["Choice of an authorised health centre", "Appointment for the medical assessment", "Assessment signed by the doctor", "Certificate stored in your vault"],
       c22: ["Issue of the PUB payment form for the incorporation", "Payment of registry fees", "Filing of the document at the Mercantile Registry", "Review by the registrar", "Articles filed, legal personality granted"],
       c23: ["Issue of the PUB payment form for the publication", "Choice of the mercantile newspaper", "Submission of the filed articles", "Publication of the extract", "Copies filed back at the Registry"],
-      c24: ["Opening of the mandatory books", "Books stamped and paginated at the Registry", "Choice of the invoicing system", "System approved by SENIAT"]
+      c24: ["Submit the books to CIIP", "Application filed with SAREN", "Books sealed. You may collect them at CIIP"]
     },
 
     pt: {
       c1:  ["Pedido no consulado da Venezuela", "Entrega de documentos e pagamento da taxa consular", "Avaliação e aprovação", "Visto TR-N carimbado no passaporte"],
       c38: ["Pedido no consulado da Venezuela", "Entrega de documentos e pagamento da taxa consular", "Avaliação e aprovação", "Visto TR-I carimbado no passaporte"],
       c2:  ["Registo de estrangeiro com visto válido", "Marcação para recolha biométrica", "Verificação dos dados migratórios", "Entrega do cartão de identidade"],
-      c3:  ["Inscrição no portal do SENIAT", "Carregamento do documento e do comprovativo de morada", "Validação pela repartição fiscal", "Certificado de RIF disponível"],
+      c3:  ["Solicitação recebida pelo CIIP", "Assine o formulário", "RIF emitido"],
       c4:  ["Tradução certificada da carta de condução", "Pedido de equivalência ao INTT", "Exame médico e de conhecimentos", "Emissão da carta venezuelana"],
       c5:  ["Busca e reserva do nome", "Redação do documento por advogado inscrito", "Revisão e assinatura dos sócios", "Documento constitutivo pronto para protocolizar"],
-      c6:  ["Inscrição da empresa no SENIAT", "Entrega do pacto social", "Atribuição do número de RIF", "Certificado e credenciais do portal fiscal"],
-      c7:  ["Escolha do banco parceiro", "Processo da empresa e dos sócios", "Reunião presencial e assinaturas", "Conta ativa com banca em linha"],
+      c6:  ["Solicitação recebida pelo CIIP", "Assine o formulário", "RIF emitido"],
+      c7:  ["Solicitação em análise", "Conta aberta"],
       c8:  ["Pesquisa de antecedentes registais", "Pedido de registo ao SAPI", "Publicação e prazo de oposição", "Concessão do certificado de marca"],
       c10: ["Pedido de alvará de indústria e comércio", "Análise do processo pela câmara municipal", "Inspeção municipal do local", "Alvará de funcionamento concedido"],
       c11: ["Registo como operador de comércio externo", "Classificação pautal da mercadoria", "Licenças setoriais e certificado de origem", "Autorização de desalfandegamento"],
@@ -7213,7 +7213,7 @@ window.CIIP_PASOS = {
       c30: ["Classificação do nível de impacto ambiental", "Entrega do processo técnico", "Avaliação pela autoridade ambiental", "Autorização ambiental concedida"],
       c31: ["Processo do investimento junto do órgão regulador", "Verificação do aporte e da sua origem", "Avaliação e registo do investimento", "Certificado de Investidor emitido"],
       c32: ["Pedido em linha no SISREF", "Marcação na delegação do SAREN", "Verificação de identidade e assinatura", "Certidão de assinatura registada"],
-      c33: ["Carregamento da procuração notariada e apostilada", "Análise do CIIP", "Verificação da personalidade jurídica", "Representação acreditada"],
+      c33: ["Análise dos seus documentos", "Verificado"],
       c34: ["Carta ao Comandante da ZODI com o seu processo", "Abertura do processo na sede da região", "Inspeção do local, se a sua atividade o exigir", "Parecer favorável emitido"],
       c35: ["Conta no portal RUPDAE com o RIF e o e-mail da empresa", "Carregamento dos dados, estabelecimentos e representante legal", "Análise da SUNDDE", "Certificado RUPDAE emitido"],
       c36: ["Conta no SIGDME 2.0 como empresa constituída", "Carregamento da cédula, RIF e documento constitutivo", "Verificação do Sistema de Informação Mineira", "Certificado eletrónico RUM, válido por três anos"],
@@ -7228,18 +7228,18 @@ window.CIIP_PASOS = {
       c21: ["Escolha do centro de saúde autorizado", "Consulta para a avaliação médica", "Avaliação e assinatura do médico", "Certificado guardado no seu cofre"],
       c22: ["Emissão do PUB de constituição da empresa", "Pagamento das taxas registrais", "Consignação do documento no Registro Mercantil", "Análise do registrador", "Ata protocolizada com personalidade jurídica"],
       c23: ["Emissão do PUB de publicação mercantil", "Escolha do jornal mercantil", "Envio da ata protocolizada", "Publicação do extrato", "Consignação dos exemplares no Registro"],
-      c24: ["Abertura dos livros obrigatórios", "Selagem e numeração no Registro Mercantil", "Escolha do sistema de faturação", "Homologação do sistema no SENIAT"]
+      c24: ["Entregar os livros no CIIP", "Solicitação apresentada ao SAREN", "Livros selados. Pode retirá-los no CIIP"]
     },
 
     it: {
       c1:  ["Domanda al consolato del Venezuela", "Consegna dei documenti e pagamento dei diritti consolari", "Valutazione e approvazione", "Visto TR-N apposto sul passaporto"],
       c38: ["Domanda al consolato del Venezuela", "Consegna dei documenti e pagamento dei diritti consolari", "Valutazione e approvazione", "Visto TR-I apposto sul passaporto"],
       c2:  ["Registrazione dello straniero con visto valido", "Appuntamento per il rilievo biometrico", "Verifica dei dati migratori", "Consegna della carta d’identità"],
-      c3:  ["Iscrizione al portale del SENIAT", "Caricamento del documento e della prova di residenza", "Convalida da parte dell’ufficio fiscale", "Certificato RIF disponibile"],
+      c3:  ["Richiesta ricevuta dal CIIP", "Firma il modulo", "RIF emesso"],
       c4:  ["Traduzione giurata della patente", "Richiesta di conversione all’INTT", "Visita medica e prova teorica", "Rilascio della patente venezuelana"],
       c5:  ["Ricerca e prenotazione del nome", "Redazione dell’atto da un avvocato iscritto", "Revisione e firma dei soci", "Atto costitutivo pronto per il deposito"],
-      c6:  ["Iscrizione della società al SENIAT", "Deposito dell’atto costitutivo", "Assegnazione del numero RIF", "Certificato e credenziali del portale fiscale"],
-      c7:  ["Scelta della banca partner", "Fascicolo della società e dei soci", "Appuntamento in filiale e firme", "Conto attivo con banca online"],
+      c6:  ["Richiesta ricevuta dal CIIP", "Firma il modulo", "RIF emesso"],
+      c7:  ["Richiesta in esame", "Conto aperto"],
       c8:  ["Ricerca di anteriorità", "Domanda di registrazione al SAPI", "Pubblicazione e termine di opposizione", "Rilascio del certificato di marchio"],
       c10: ["Domanda di licenza di industria e commercio", "Esame della pratica da parte del comune", "Sopralluogo comunale del locale", "Licenza di esercizio rilasciata"],
       c11: ["Registrazione come operatore del commercio estero", "Classificazione doganale della merce", "Permessi settoriali e certificato d’origine", "Autorizzazione allo sdoganamento"],
@@ -7252,7 +7252,7 @@ window.CIIP_PASOS = {
       c30: ["Classificazione del livello di impatto ambientale", "Presentazione del fascicolo tecnico", "Valutazione da parte dell'autorità ambientale", "Autorizzazione ambientale rilasciata"],
       c31: ["Fascicolo dell'investimento all'organo competente", "Verifica del conferimento e della sua origine", "Valutazione e registrazione dell'investimento", "Certificato di Investitore rilasciato"],
       c32: ["Domanda online su SISREF", "Appuntamento presso l'ufficio SAREN", "Verifica dell'identità e firma", "Attestazione della firma registrata"],
-      c33: ["Caricamento della procura notarile e apostillata", "Esame del CIIP", "Verifica della legittimazione", "Rappresentanza accreditata"],
+      c33: ["Esame dei tuoi documenti", "Verificato"],
       c34: ["Lettera al Comandante della ZODI con il tuo fascicolo", "Apertura del fascicolo presso la sede regionale", "Ispezione del sito, se la tua attività la richiede", "Parere favorevole rilasciato"],
       c35: ["Account sul portale RUPDAE con RIF ed email della società", "Inserimento di dati, sedi e rappresentante legale", "Esame della SUNDDE", "Certificato RUPDAE rilasciato"],
       c36: ["Account sul SIGDME 2.0 come società costituita", "Caricamento di documento d’identità, RIF e atto costitutivo", "Verifica del Sistema Informativo Minerario", "Certificato elettronico RUM, valido tre anni"],
@@ -7267,18 +7267,18 @@ window.CIIP_PASOS = {
       c21: ["Scelta della struttura sanitaria autorizzata", "Appuntamento per la visita medica", "Visita e firma del medico", "Certificato conservato nel tuo archivio"],
       c22: ["Emissione del PUB per la costituzione della società", "Pagamento dei diritti di registro", "Deposito dell’atto al Registro delle Imprese", "Esame del conservatore", "Atto depositato, personalità giuridica acquisita"],
       c23: ["Emissione del PUB per la pubblicazione", "Scelta del giornale commerciale", "Invio dell’atto depositato", "Pubblicazione dell’estratto", "Consegna delle copie al Registro"],
-      c24: ["Apertura dei libri obbligatori", "Vidimazione e numerazione al Registro", "Scelta del sistema di fatturazione", "Omologazione del sistema presso il SENIAT"]
+      c24: ["Consegna i libri al CIIP", "Domanda presentata al SAREN", "Libri vidimati. Puoi ritirarli al CIIP"]
     },
 
     zh: {
       c1:  ["向委内瑞拉领事馆提交申请", "递交材料并缴纳领事规费", "审核与批准", "TR-N 签证已贴入护照"],
       c38: ["向委内瑞拉领事馆提交申请", "递交材料并缴纳领事规费", "审核与批准", "TR-I 签证已贴入护照"],
       c2:  ["持有效签证办理外国人登记", "预约采集生物特征", "核验出入境记录", "发放身份证"],
-      c3:  ["在 SENIAT 门户注册", "上传身份证件与住址证明", "税务局审核", "RIF 证明可下载"],
+      c3:  ["CIIP 已收到申请", "签署表格", "已签发 RIF"],
       c4:  ["驾照的认证翻译", "向 INTT 提交换发申请", "体检与知识考试", "签发委内瑞拉驾照"],
       c5:  ["名称查询与预留", "由注册律师起草文件", "股东审阅并签署", "章程可提交登记"],
-      c6:  ["公司在 SENIAT 注册", "提交公司章程", "分配 RIF 号码", "证明与税务门户账号"],
-      c7:  ["选择合作银行", "公司及股东资料", "到场预约与签字", "账户启用并开通网银"],
+      c6:  ["CIIP 已收到申请", "签署表格", "已签发 RIF"],
+      c7:  ["申请审核中", "账户已开立"],
       c8:  ["在先商标检索", "向 SAPI 提交注册申请", "公告与异议期", "核发商标证书"],
       c10: ["申请工商营业许可", "市政府审核申请材料", "市政部门现场查勘", "核发营业执照"],
       c11: ["注册为对外贸易经营者", "货物的税则归类", "行业许可与原产地证", "准予海关放行"],
@@ -7291,7 +7291,7 @@ window.CIIP_PASOS = {
       c30: ["确定环境影响等级", "提交技术档案材料", "由环境主管部门评估", "取得环境许可"],
       c31: ["向主管机关提交投资档案", "核验出资及其来源", "评估并登记该项投资", "核发投资者证书"],
       c32: ["通过 SISREF 在线申请", "在 SAREN 办事处预约", "身份核验与签名", "签名登记证明"],
-      c33: ["上传经公证并加注的授权书", "CIIP 审核", "代理资格核验", "代理资格已认证"],
+      c33: ["审核你的材料", "已核验"],
       c34: ["向 ZODI 指挥官递交函件及材料", "在地区总部立卷", "如业务需要，进行现场检查", "出具无异议意见"],
       c35: ["用公司 RIF 和邮箱开通 RUPDAE 账户", "填报公司资料、经营场所和法定代表人", "SUNDDE 审核", "出具 RUPDAE 证书"],
       c36: ["以已成立公司身份开通 SIGDME 2.0 账户", "上传身份证件、RIF 和公司章程", "矿业信息系统核验", "出具 RUM 电子证书，有效期三年"],
@@ -7306,18 +7306,18 @@ window.CIIP_PASOS = {
       c21: ["选择获授权的医疗机构", "预约体检", "医生检查并签字", "证明存入你的档案库"],
       c22: ["签发公司设立的 PUB 缴费单", "缴纳登记规费", "向商事登记处提交文件", "登记官审查", "章程登记完成，取得法人资格"],
       c23: ["签发商事公告的 PUB 缴费单", "选择商事报纸", "提交已登记的章程", "刊登摘要", "将样报交回登记处"],
-      c24: ["开立法定账簿", "在商事登记处盖章编号", "选择开票系统", "系统通过 SENIAT 认证"]
+      c24: ["将账簿交至 CIIP", "已向 SAREN 提交申请", "账簿已盖章，可到 CIIP 领取"]
     },
 
     ru: {
       c1:  ["Заявление в консульство Венесуэлы", "Подача документов и оплата консульского сбора", "Рассмотрение и одобрение", "Виза TR-N вклеена в паспорт"],
       c38: ["Заявление в консульство Венесуэлы", "Подача документов и оплата консульского сбора", "Рассмотрение и одобрение", "Виза TR-I вклеена в паспорт"],
       c2:  ["Регистрация иностранца с действующей визой", "Запись на снятие биометрии", "Проверка миграционных данных", "Выдача удостоверения личности"],
-      c3:  ["Регистрация на портале SENIAT", "Загрузка удостоверения и подтверждения адреса", "Проверка налоговой инспекцией", "Свидетельство RIF доступно"],
+      c3:  ["Заявка получена CIIP", "Подпишите бланк", "RIF выдан"],
       c4:  ["Заверенный перевод водительских прав", "Заявление на обмен в INTT", "Медосмотр и теоретический экзамен", "Выдача венесуэльских прав"],
       c5:  ["Поиск и резервирование названия", "Подготовка документа адвокатом", "Проверка и подпись учредителей", "Устав готов к регистрации"],
-      c6:  ["Регистрация компании в SENIAT", "Подача учредительных документов", "Присвоение номера RIF", "Свидетельство и доступ к налоговому порталу"],
-      c7:  ["Выбор банка-партнёра", "Досье компании и её участников", "Личная встреча и подписи", "Счёт открыт, подключён интернет-банк"],
+      c6:  ["Заявка получена CIIP", "Подпишите бланк", "RIF выдан"],
+      c7:  ["Заявка на рассмотрении", "Счёт открыт"],
       c8:  ["Проверка ранее зарегистрированных знаков", "Заявка на регистрацию в SAPI", "Публикация и срок для возражений", "Выдача свидетельства на знак"],
       c10: ["Заявление на патент промышленности и торговли", "Рассмотрение дела мэрией", "Муниципальный осмотр помещения", "Выдача лицензии на деятельность"],
       c11: ["Регистрация как участника ВЭД", "Тарифная классификация товара", "Отраслевые разрешения и сертификат происхождения", "Разрешение на таможенное оформление"],
@@ -7330,7 +7330,7 @@ window.CIIP_PASOS = {
       c30: ["Определение уровня воздействия на окружающую среду", "Подача технического досье", "Оценка природоохранным органом", "Выдача экологического разрешения"],
       c31: ["Досье об инвестиции в профильный орган", "Проверка вклада и его происхождения", "Оценка и регистрация инвестиции", "Выдача свидетельства инвестора"],
       c32: ["Онлайн-заявка в SISREF", "Приём в отделении SAREN", "Проверка личности и подпись", "Свидетельство о регистрации подписи"],
-      c33: ["Загрузка нотариальной доверенности с апостилем", "Проверка CIIP", "Подтверждение полномочий", "Представительство аккредитовано"],
+      c33: ["Проверка ваших документов", "Проверено"],
       c34: ["Письмо командующему ZODI с вашим досье", "Открытие дела в региональном штабе", "Осмотр объекта, если этого требует деятельность", "Заключение выдано"],
       c35: ["Учётная запись на портале RUPDAE по RIF и почте компании", "Ввод данных, объектов и законного представителя", "Проверка SUNDDE", "Выдача сертификата RUPDAE"],
       c36: ["Учётная запись в SIGDME 2.0 как зарегистрированной компании", "Загрузка удостоверения, RIF и учредительного акта", "Проверка Горной информационной системой", "Электронное свидетельство RUM на три года"],
@@ -7345,7 +7345,7 @@ window.CIIP_PASOS = {
       c21: ["Выбор аккредитованного медцентра", "Запись на медосмотр", "Осмотр и подпись врача", "Справка в вашем хранилище"],
       c22: ["Выдача PUB для регистрации компании", "Оплата регистрационных пошлин", "Подача документа в Торговый реестр", "Проверка регистратором", "Устав зарегистрирован, получена правосубъектность"],
       c23: ["Выдача PUB для публикации", "Выбор коммерческой газеты", "Направление зарегистрированного устава", "Публикация выписки", "Сдача экземпляров в реестр"],
-      c24: ["Заведение обязательных книг", "Прошивка и нумерация в реестре", "Выбор системы выставления счетов", "Согласование системы с SENIAT"]
+      c24: ["Сдать книги в CIIP", "Заявление подано в SAREN", "Книги опечатаны. Можно забрать в CIIP"]
     }
 
   }
