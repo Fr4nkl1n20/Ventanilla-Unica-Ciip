@@ -9568,10 +9568,15 @@ applyLang(idiomaParaMi());
        ya se podia desde el primer dia; lo que faltaba era el sitio donde
        alguien del CIIP lo MIRE, porque un poder sin revisar no legitima
        a nadie frente al organismo. */
+    /* Franklin Reyes, 24-9-2026 (Pendientes FRANK.pdf): fuera la
+       traduccion de la licencia -no pinta nada en un poder- y dentro los
+       papeles del APODERADO, que es de quien el CIIP no tenia nada. El
+       pasaporte que ya estaba es el del poderdante, que es quien firma. */
     poder_representacion: [
-      {tipo:'poder',       clave:'d_poder'},
-      {tipo:'pasaporte',   clave:'d_pasaporte'},
-      {tipo:'traduccion',  clave:'d_traduccion', opcional:true}
+      {tipo:'poder',            clave:'d_poder'},
+      {tipo:'pasaporte',        clave:'d_pasaporte'},
+      {tipo:'cedula_apoderado', clave:'d_cedapo'},
+      {tipo:'rif_apoderado',    clave:'d_rifapo'}
     ],
     /* La visa se pide desde fuera del país, así que el recaudo de identidad
        es el PASAPORTE y no la cédula: quien la solicita todavía no la tiene.
@@ -9581,13 +9586,18 @@ applyLang(idiomaParaMi());
        en https://mppre.gob.ve/descripcion/28, en su orden. El certificado
        médico y el arancel llevan tipo PROPIO, no el del INTT ni el del
        registro: con el mismo tipo, la bóveda daría el uno por el otro. */
+    /* Los siete de Pendientes FRANK.pdf (24-9-2026), que sustituyen a los
+       seis de antes. Se van el arancel consular y la carta del motivo del
+       viaje -el motivo pasa a preguntarse en el formulario- y entran la
+       carta de la empresa, la planilla, la solvencia y los antecedentes. */
     visa_negocios: [
-      {tipo:'pasaporte',                 clave:'d_pasaporte6'},
-      {tipo:'foto',                      clave:'d_dosfotos'},
-      {tipo:'carta_motivo_viaje',        clave:'d_cartaviaje'},
-      {tipo:'registro_comercio',         clave:'d_registrocom'},
-      {tipo:'certificado_medico_origen', clave:'d_medicoorigen'},
-      {tipo:'arancel_consular',          clave:'d_arancelcons'}
+      {tipo:'carta_solicitud_empresa', clave:'d_cartaempresa'},
+      {tipo:'foto',                    clave:'d_foto'},
+      {tipo:'pasaporte',               clave:'d_pasaporte'},
+      {tipo:'planilla_visa',           clave:'d_planillavisa'},
+      {tipo:'registro_comercio',       clave:'d_registrocom'},
+      {tipo:'solvencia_economica',     clave:'d_solvecon'},
+      {tipo:'antecedentes',            clave:'d_antecjur'}
     ],
     /* Los CINCO de la TR-I, los que publica el MPPRE en
        https://mppre.gob.ve/descripcion/27, en su orden. El que la separa de
@@ -9596,12 +9606,17 @@ applyLang(idiomaParaMi());
        el genérico de la constancia de inversión: con el mismo tipo, la
        bóveda daría el uno por el otro. Es el criterio que ya separa el
        certificado médico del país de origen del de aquí. */
+    /* Los mismos siete de la de negocios y el certificado medico, que la
+       de inversionista si pide (Pendientes FRANK.pdf, 24-9-2026). */
     visa_inversionista: [
-      {tipo:'pasaporte',                 clave:'d_pasaporte6'},
-      {tipo:'foto',                      clave:'d_dosfotos'},
-      {tipo:'certificado_inversionista', clave:'d_certinver'},
-      {tipo:'certificado_medico_origen', clave:'d_medicoorigen'},
-      {tipo:'arancel_consular',          clave:'d_arancelcons'}
+      {tipo:'carta_solicitud_empresa',   clave:'d_cartaempresa'},
+      {tipo:'foto',                      clave:'d_foto'},
+      {tipo:'pasaporte',                 clave:'d_pasaporte'},
+      {tipo:'planilla_visa',             clave:'d_planillavisa'},
+      {tipo:'registro_comercio',         clave:'d_registrocom'},
+      {tipo:'solvencia_economica',       clave:'d_solvecon'},
+      {tipo:'antecedentes',              clave:'d_antecjur'},
+      {tipo:'certificado_medico_origen', clave:'d_medicoorigen'}
     ],
     /* La cédula ya NO va después de la c1. La c1 era la visa de
        inversionista (TR-I), que daba la residencia; desde el 15 de
@@ -9627,14 +9642,18 @@ applyLang(idiomaParaMi());
       {tipo:'cedula',              clave:'d_identidad'},
       {tipo:'certificado_medico',  clave:'d_medico'}
     ],
+    /* La carta de residencia y no el comprobante de domicilio: el SENIAT
+       pide que alguien acredite donde vives, no un recibo a tu nombre
+       (Pendientes FRANK.pdf, 24-9-2026). */
     rif_personal: [
-      {tipo:'cedula',    clave:'d_identidad'},
-      {tipo:'domicilio', clave:'d_domicilio'}
+      {tipo:'cedula',          clave:'d_identidad'},
+      {tipo:'carta_residencia', clave:'d_cartaresid'}
     ],
     /* El RIF personal es recaudo del de la empresa: quien lo haya hecho
        antes por aquí no tiene que volver a subirlo, sale de la bóveda. */
     rif_empresa: [
       {tipo:'acta_constitutiva',  clave:'d_acta'},
+      {tipo:'cedula',             clave:'d_identidad'},
       {tipo:'rif_personal',       clave:'d_rifpersonal'},
       {tipo:'domicilio_empresa',  clave:'d_domemp'}
     ],
@@ -9672,11 +9691,14 @@ applyLang(idiomaParaMi());
        vienen del c5 y del c6, así que a quien haya pasado por aquí no se le
        pide NI UN archivo nuevo. Le salen los cuatro con su sello de
        reutilizado y solo tiene que rellenar los datos de la cuenta. */
+    /* La declaracion jurada de origen de fondos, que el banco pide firmada
+       y no es lo mismo que el soporte (Pendientes FRANK.pdf, 24-9-2026). */
     cuenta_bancaria: [
-      {tipo:'acta_constitutiva',  clave:'d_acta'},
-      {tipo:'rif_empresa',        clave:'d_rifempresa'},
-      {tipo:'rif_personal',       clave:'d_rifpersonal'},
-      {tipo:'cedula',             clave:'d_identidad'}
+      {tipo:'acta_constitutiva',   clave:'d_acta'},
+      {tipo:'rif_empresa',         clave:'d_rifempresa'},
+      {tipo:'cedula',              clave:'d_identidad'},
+      {tipo:'rif_personal',        clave:'d_rifpersonal'},
+      {tipo:'declaracion_fondos',  clave:'d_decfondos'}
     ],
     /* Aquí NO van el acta ni el RIF de la empresa, aunque estén en la
        bóveda y aunque el SAPI los pida cuando la titular es la compañía.
@@ -9685,10 +9707,15 @@ applyLang(idiomaParaMi());
        todos los que se enumeren y no sabe mirar el campo `titular`.
        Cuando la titular sea la empresa, el gestor los toma de la bóveda:
        ya los tiene delante, que es justo para lo que existe la bóveda. */
+    /* El acta y el RIF son de la EMPRESA que registra la marca, no de
+       quien rellena: desde hoy el formulario pregunta cual es
+       (Pendientes FRANK.pdf, 24-9-2026). */
     marca: [
-      {tipo:'logo_marca',   clave:'d_logo'},
-      {tipo:'cedula',       clave:'d_identidad'},
-      {tipo:'rif_personal', clave:'d_rifpersonal'}
+      {tipo:'logo_marca',        clave:'d_logo'},
+      {tipo:'acta_constitutiva', clave:'d_acta'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_identidad'},
+      {tipo:'rif_personal',      clave:'d_rifpersonal'}
     ],
     /* El IVSS (c9) SE FUE DEL CATÁLOGO el 22-9-2026: «elimina la casilla
        de IVSS», y fuera de la ventanilla, no dentro del c37.
@@ -10113,10 +10140,17 @@ applyLang(idiomaParaMi());
     /* Los libros sellados y el sistema homologado son lo que SALE de
        aquí, no lo que entra: lo que hace falta para empezar es la
        empresa ya inscrita y con RIF. */
+    /* Los cuatro de Pendientes FRANK.pdf (24-9-2026). El acta
+       PROTOCOLIZADA y no la constitutiva: al SAREN se le llevan los libros
+       de una empresa que ya existe. Y los papeles de la junta y de los
+       accionistas, que el registro pide de cada persona y no de una. */
     libros_contables: [
-      {tipo:'acta_protocolizada',  clave:'d_actaprot'},
-      {tipo:'rif_empresa',         clave:'d_rifempresa'},
-      {tipo:'cedula',              clave:'d_identidad'}
+      {tipo:'acta_protocolizada',     clave:'d_actaprot'},
+      {tipo:'rif_empresa',            clave:'d_rifempresa'},
+      {tipo:'cedulas_junta',          clave:'d_cedulasjunta'},
+      {tipo:'rifs_junta',             clave:'d_rifsjunta'},
+      {tipo:'identidad_accionistas',  clave:'d_idaccionistas'},
+      {tipo:'rif_inversionistas',     clave:'d_rifinversionistas'}
     ]
   };
 

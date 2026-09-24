@@ -101,7 +101,16 @@ insert into public.tipos_documento (codigo, nombre, vence) values
   ('rif_empresa',       'RIF de la empresa',                      true),
   ('poder',             'Poder / carta de representación',        true),
   ('traduccion',        'Traducción certificada',                 false),
-  ('domicilio_empresa', 'Domicilio fiscal de la empresa',         false),
+  ('domicilio_empresa', 'Contrato de servicios o constancia que acredite la dirección fiscal', false),
+  -- Los siete de Pendientes FRANK.pdf (24 de septiembre de 2026). La
+  -- solvencia es una constancia de trabajo y envejece; las demás, no.
+  ('cedula_apoderado',        'Cédula de identidad del apoderado',           false),
+  ('rif_apoderado',           'RIF del apoderado',                           false),
+  ('carta_solicitud_empresa', 'Carta de solicitud de la empresa',            false),
+  ('planilla_visa',           'Planilla de solicitud de la visa',            false),
+  ('solvencia_economica',     'Solvencia económica (constancia de trabajo)', true),
+  ('carta_residencia',        'Carta de residencia',                         false),
+  ('declaracion_fondos',      'Declaración jurada de origen de fondos',      false),
   -- Eran los recaudos de la visa de inversionista (TR-I). Los antecedentes
   -- penales caducan (los consulados suelen pedirlos recientes), la
   -- constancia de inversión no. La c1 pasó a ser la TR-N el 15-9-2026 y

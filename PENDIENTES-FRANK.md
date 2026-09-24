@@ -13,9 +13,9 @@ Son cambios de lista: quitar un campo, añadir un recaudo, cambiar un
 rótulo. No inventan mecanismos nuevos y se deshacen borrando una línea.
 
 ### Validación de representación legal (c33)
-- [ ] Quitar el recaudo «Traducción certificada de la licencia»
-- [ ] Añadir «Pasaporte vigente del poderdante»
-- [ ] Añadir «Cédula de identidad del apoderado» y «RIF del apoderado»
+- [x] Quitar el recaudo «Traducción certificada de la licencia»
+- [x] Añadir «Pasaporte vigente del poderdante» (ya estaba; es el suyo)
+- [x] Añadir «Cédula de identidad del apoderado» y «RIF del apoderado»
 
 ### Visa de negocios (c1) y Visa de inversionista
 - [ ] Añadir teléfono y correo del solicitante
@@ -23,12 +23,12 @@ rótulo. No inventan mecanismos nuevos y se deshacen borrando una línea.
 - [ ] Añadir itinerario: número de vuelo, fecha de entrada, fecha de salida
 - [ ] Añadir «¿Te han otorgado antes la visa?» sí/no, con el campo de fechas
       que sale solo al responder que sí
-- [ ] Sustituir los recaudos por los siete de la lista
-- [ ] En la de inversionista, dejar monto de inversión y actividad económica
+- [x] Sustituir los recaudos por los siete de la lista
+- [x] En la de inversionista, dejar monto de inversión y actividad económica
       y añadir además «Certificado médico» a los recaudos
 
 ### RIF personal (c3)
-- [ ] Recaudos: «Pasaporte o cédula venezolana de extranjero» y
+- [x] Recaudos: «Pasaporte o cédula venezolana de extranjero» y
       «Carta de residencia de la ubicación indicada»
 
 ### Traducción de documentos (c17)
@@ -37,20 +37,20 @@ rótulo. No inventan mecanismos nuevos y se deshacen borrando una línea.
       esconder y pedir recaudos según una casilla)
 
 ### RIF de la empresa (c6)
-- [ ] Recaudos: acta constitutiva; cédula o pasaporte y RIF del
+- [x] Recaudos: acta constitutiva; cédula o pasaporte y RIF del
       representante legal; contrato de servicios o constancia de la
       dirección fiscal
 
 ### Cuenta bancaria empresarial (c7)
 - [x] Quitar el campo «Ciudad donde prefieres la agencia»
-- [ ] Recaudos: acta constitutiva; RIF de la empresa; cédula o pasaporte y
+- [x] Recaudos: acta constitutiva; RIF de la empresa; cédula o pasaporte y
       RIF del representante legal; declaración jurada de origen de fondos
 
 ### Sellado de libros (c24)
 - [x] Quitar «Cómo vas a facturar», «Fecha de inicio de actividades»,
       «Dirección fiscal en Venezuela» y «Actividad económica»
 - [x] Que «Agregar libros» deje de ser opcional
-- [ ] Recaudos: acta constitutiva; RIF de la empresa; cédula o pasaporte y
+- [x] Recaudos: acta constitutiva; RIF de la empresa; cédula o pasaporte y
       RIF de la junta directiva; cédula o pasaporte y RIF de los accionistas
 
 ### Registro de marcas (c8)
@@ -58,7 +58,7 @@ rótulo. No inventan mecanismos nuevos y se deshacen borrando una línea.
       productos o servicios»
 - [x] Quitar «A nombre de quién se registra»
 - [x] Añadir «Empresa que registra la marca», con su casilla de texto
-- [ ] Recaudos: logo; acta constitutiva de la empresa que registra; RIF de
+- [x] Recaudos: logo; acta constitutiva de la empresa que registra; RIF de
       la empresa; cédula o pasaporte y RIF del representante legal
 
 ### Trámites que se van
