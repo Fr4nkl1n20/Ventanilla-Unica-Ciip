@@ -24581,6 +24581,28 @@ applyLang(idiomaParaMi());
     var madreRef = lista[0];
     var por = {}, previo = tramiteDeLaFicha(madreRef);
     por[madreRef] = previo;
+
+    /* CON UNA SOLA SOLICITUD ARRIBA, EL RESPALDO VALE; CON DOS, NO.
+       El respaldo -coger «la que va más adelante» cuando el tramo no lleva
+       vínculo- existe para los tramos nacidos antes del 24-9-2026, que no
+       tienen de dónde sacarlo. Mientras hay una sola constitución no puede
+       equivocarse: el tramo suelto es forzosamente suyo.
+
+       En cuanto hay dos deja de poder acertar, y acierta por casualidad o
+       miente. Se vio en la pantalla de Franklin Reyes el 24-9-2026: con la
+       constitución vieja resuelta y la nueva en revisión, la
+       protocolización del 21 se colgaba de la nueva con sus fechas y sus
+       marcas de hecho, porque era la única que había.
+
+       Así que con dos o más se apaga y no se enseña ninguno. Es el mismo
+       criterio que con el vínculo puesto: antes de enseñar el tramo de
+       otra solicitud, mejor no enseñar ninguno. */
+    var cuantasArriba = 0;
+    (mios || []).forEach(function(t){
+      if (tipoRefDe(t.tipo) === madreRef) cuantasArriba++;
+    });
+    var hayRespaldo = (cuantasArriba <= 1);
+
     for (var i = 1; i < lista.length; i++){
       var ref = lista[i], hallado = null, atados = false;
       (mios || []).forEach(function(t){
@@ -24588,7 +24610,7 @@ applyLang(idiomaParaMi());
         if (t.viene_de) atados = true;
         if (previo && t.viene_de && t.viene_de === previo.id) hallado = t;
       });
-      if (!hallado && !atados) hallado = tramiteDeLaFicha(ref);
+      if (!hallado && !atados && hayRespaldo) hallado = tramiteDeLaFicha(ref);
       por[ref] = hallado;
       previo = hallado;
     }

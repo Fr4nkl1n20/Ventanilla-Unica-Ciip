@@ -1,13 +1,7 @@
 -- SQL Editor de Supabase. Se puede correr mas de una vez.
 
--- 1. Cuantos tramos hay y cuantos saben de donde salen. Antes de correrlo,
---    la segunda columna sale en 0.
-select tipo, count(*) as cuantos, count(viene_de) as con_origen
-  from public.tramites
- where tipo in ('protocolizacion_acta', 'publicacion_acta')
- group by tipo;
-
--- 2. La columna que ata cada tramo a la solicitud que lo abrio.
+-- 1. La columna que ata cada tramo a la solicitud que lo abrio. Va la
+--    primera: la consulta que la mira no puede ir antes de crearla.
 alter table public.tramites
   add column if not exists viene_de uuid references public.tramites(id) on delete set null;
 
@@ -15,6 +9,14 @@ create index if not exists tramites_por_origen on public.tramites (viene_de)
   where viene_de is not null;
 
 comment on column public.tramites.viene_de is 'La solicitud que abrio este tramo. Null = no viene de ninguna';
+
+-- 2. Cuantos tramos hay y cuantos saben ya de donde salen. Recien creada
+--    la columna, con_origen sale en 0.
+select tipo, count(*) as cuantos, count(viene_de) as con_origen
+  from public.tramites
+ where tipo in ('protocolizacion_acta', 'publicacion_acta')
+ group by tipo;
+
 
 -- 3. Y los dos triggers, con la guarda por SOLICITUD y no por inversionista.
 create or replace function public.constitucion_abre_la_protocolizacion()
