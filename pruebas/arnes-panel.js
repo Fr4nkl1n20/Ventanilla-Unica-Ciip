@@ -10423,8 +10423,14 @@
   function rvMira(){
     if (CASO !== 'gestor') return;
     var nav = document.getElementById('navRevisar');
-    ok('revisar: el equipo tiene su renglón «Documentos por revisar»',
+    /* Desde el 24-9-2026 el renglón se llama «Documentos del equipo» y
+       lleva dentro las dos formas: revisar y la bóveda. */
+    ok('revisar: el equipo tiene su renglón «Documentos del equipo»',
        !!nav && !nav.hidden, nav ? (nav.hidden ? 'escondido' : 'a la vista') : 'no está', 'a la vista');
+    var formas = [].map.call(document.querySelectorAll('#rvConmuta .mt-forma'), function(b){
+      return b.getAttribute('data-forma') + (b.getAttribute('aria-pressed') === 'true' ? '*' : '');
+    });
+    igual('revisar: arriba, el mando con las dos formas y ésta puesta', formas.join(','), 'revisar*,comprobantes');
     var filas = document.querySelectorAll('#rv .rv-fila');
     RV_ANTES = filas.length;
     ok('revisar: la bandeja enseña los papeles pendientes',
@@ -10454,9 +10460,18 @@
   }
   function cbMira(){
     if (CASO !== 'gestor') return;
+    /* Sin renglón propio desde el 24-9-2026: se entra por «Documentos del
+       equipo» y se elige con el mando. El botón sigue en el marcado,
+       escondido, y #comprobantes sigue siendo su dirección. */
     var nav = document.getElementById('navComprobantes');
-    ok('comprobantes: el equipo tiene su renglón «Bóveda de comprobantes»',
-       !!nav && !nav.hidden, nav ? (nav.hidden ? 'escondido' : 'a la vista') : 'no está', 'a la vista');
+    ok('comprobantes: ya no tiene renglón propio en el menú',
+       !nav || nav.hidden, nav ? (nav.hidden ? 'escondido' : 'a la vista') : 'no está', 'escondido');
+    var enc = document.querySelector('.sb-item.active');
+    igual('comprobantes: y se enciende el de «Documentos del equipo»', enc ? enc.id : '(ninguno)', 'navRevisar');
+    var formas = [].map.call(document.querySelectorAll('#cbConmuta .mt-forma'), function(b){
+      return b.getAttribute('data-forma') + (b.getAttribute('aria-pressed') === 'true' ? '*' : '');
+    });
+    igual('comprobantes: arriba, el mando con la bóveda puesta', formas.join(','), 'revisar,comprobantes*');
     var filas = [].map.call(document.querySelectorAll('#cb .rv-fila'), function(f){ return f.getAttribute('data-doc'); });
     igual('comprobantes: sale el comprobante, y solo él', filas.join(','), 'doc6');
     /* El nombre sale una vez, en la columna de personas, y el renglón dice
