@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · El equipo, uno por uno</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   EL EQUIPO, UNO POR UNO
+
+   Franklin Reyes, 24-9-2026: «quiero tener un sistema donde pueda ver el
+   personal y pueda seleccionarlo uno por uno para ver sus procesos». Se
+   eligió: una pantalla propia, solo del administrador, con CÓMO VA cada
+   persona y SU HISTORIAL.
+
+   NO TOCA EL PANEL: es una página suelta, con la piel de la capa Atlas
+   del panel copiada a mano, como tramites-una-casilla.html. Los datos
+   son de ejemplo, pero cada cifra dice de qué tabla saldría (ver abajo).
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --navy:#004090; --navy2:#0060B0; --navy-deep:#00336d; --cyan:#20B0F0;
+  --ink:#0E1424; --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6;
+  --block:#F4F7FB; --bg:#FFFFFF; --activa-bg:#EEF4FB;
+  --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9;
+  --good:#1E7F5C; --good-bg:#E7F4EE;
+  --fs-titulo:20px; --fs-seccion:13px; --fs-parrafo:12.5px; --fs-fila:12px;
+  --fs-boton:11.5px; --fs-rotulo:11px; --fs-nota:11px; --fs-chip:10px;
+  --r:10px;
+  --shadow:0 1px 2px rgba(14,20,36,.04), 0 6px 18px rgba(14,20,36,.06);
+  --shadow-lg:0 2px 6px rgba(14,20,36,.06), 0 18px 44px rgba(14,20,36,.10);
+}
+*{box-sizing:border-box;}
+[hidden]{display:none !important;}
+body{margin:0; font-family:'Helvetica Neue',Arial,sans-serif; color:var(--ink);
+  background:var(--block); font-size:13px; line-height:1.45; -webkit-font-smoothing:antialiased;}
+svg{display:block;}
+button{font:inherit; color:inherit;}
+
+.mq-cartel{background:#0E1424; color:#EAEEF6; padding:13px 22px;
+  display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;}
+.mq-cartel b{font-size:13px; letter-spacing:-.01em;}
+.mq-cartel span{font-size:11.5px; color:#A1A1A1; line-height:1.5;}
+
+main{max-width:1320px; padding:26px 24px 90px; margin:0 auto;}
+.intro{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.65; max-width:96ch; margin:0 0 16px;}
+.intro b{color:var(--ink);}
+
+/* ── el panel ── */
+.panel{border:1px solid var(--line); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-lg);
+  display:grid; grid-template-columns:206px minmax(0,1fr); background:var(--bg);}
+.sb{background:linear-gradient(180deg,#003a82 0%, var(--navy-deep) 100%); color:#fff; padding:14px 8px 20px;}
+.sb-marca{font-family:Georgia,serif; font-size:24px; padding:0 9px 12px; border-bottom:1px solid rgba(255,255,255,.1); margin-bottom:10px;}
+.sb-gl{font-size:var(--fs-chip); font-weight:700; color:rgba(255,255,255,.42); padding:10px 9px 6px;}
+.sb-item{display:flex; align-items:center; gap:8px; padding:7px 9px; border-radius:8px;
+  color:rgba(255,255,255,.82); font-size:var(--fs-fila); font-weight:500;}
+.sb-item svg{width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex:none;}
+.sb-item.active{background:rgba(255,255,255,.12); color:#fff; font-weight:700; box-shadow:inset 0 0 0 1.5px var(--cyan);}
+.sb-item .cnt{margin-left:auto; font-size:var(--fs-chip); font-weight:700; background:rgba(255,255,255,.14);
+  border-radius:20px; padding:1px 7px;}
+.marco{min-width:0; background:var(--block);}
+.tb{height:46px; background:var(--navy); display:flex; align-items:center; padding:0 18px; color:rgba(255,255,255,.85); font-size:var(--fs-fila);}
+.tb b{color:#fff; margin-left:4px;}
+.cuerpo{padding:18px;}
+
+.mt-cab{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:0 0 14px;}
+.mt-cab .t{font-size:var(--fs-seccion); font-weight:800; color:var(--navy);}
+.mt-cab .sub{font-size:var(--fs-nota); color:var(--gray); margin-top:3px;}
+.mt-aldia{display:inline-flex; align-items:center; gap:7px; font-size:var(--fs-nota); font-weight:600;
+  background:var(--bg); border:1px solid var(--line); border-radius:20px; padding:5px 11px;}
+.mt-aldia .pt{width:8px; height:8px; border-radius:50%; background:var(--good);}
+
+/* ── dos columnas: la gente y la persona elegida ── */
+.eq-rejilla{display:grid; grid-template-columns:280px minmax(0,1fr); gap:14px; align-items:start;}
+@media(max-width:980px){ .eq-rejilla{grid-template-columns:minmax(0,1fr);} }
+.caja{border:1px solid var(--line); border-radius:var(--r); background:var(--bg); box-shadow:var(--shadow); overflow:hidden;}
+
+/* la lista del personal */
+.gente-cab{padding:11px 12px; border-bottom:1px solid var(--line);}
+.gente-cab .t{font-size:var(--fs-nota); font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--gray);}
+.busca{margin-top:8px; width:100%; border:1px solid var(--line); border-radius:8px; padding:7px 10px;
+  font:inherit; font-size:var(--fs-fila); background:var(--block);}
+.persona{display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:none; border:0;
+  border-bottom:1px solid var(--line-soft); padding:11px 12px; cursor:pointer; position:relative;}
+.persona:last-child{border-bottom:0;}
+.persona:hover{background:var(--block);}
+.persona[aria-current="true"]{background:var(--activa-bg); box-shadow:inset 3px 0 0 var(--navy2);}
+.persona .q{min-width:0; flex:1 1 auto;}
+.persona .nb{font-size:var(--fs-fila); font-weight:700; display:flex; gap:6px; align-items:center;}
+.persona .rol{font-size:9.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--gray);
+  background:var(--line-soft); border-radius:4px; padding:1px 5px;}
+.persona .cf{font-size:var(--fs-chip); color:var(--gray); margin-top:2px;}
+.persona .cf b{color:var(--ink); font-variant-numeric:tabular-nums;}
+/* Debajo de las cifras y no a la derecha: al lado le quitaba sitio al
+   nombre y «Ana Duarte» se partia en dos lineas. */
+.persona .alerta{display:inline-block; margin-top:5px; font-size:var(--fs-chip); font-weight:800; color:var(--rust);
+  background:var(--rust-bg); border-radius:20px; padding:2px 7px; white-space:nowrap;}
+.av{flex:none; width:32px; height:32px; border-radius:50%; font-size:var(--fs-chip); font-weight:800; color:#fff;
+  display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--navy),var(--navy2));}
+.av.nadie{background:none; border:1.5px dashed var(--gray-soft); color:var(--gray-soft);}
+.av.grande{width:46px; height:46px; font-size:14px;}
+
+/* la persona elegida */
+.fic-cab{display:flex; align-items:center; gap:13px; padding:15px 16px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+.fic-cab .nb{font-size:16px; font-weight:800; letter-spacing:-.01em;}
+.fic-cab .d{font-size:var(--fs-nota); color:var(--gray); margin-top:2px;}
+.fic-cab .sp{flex:1 1 auto;}
+.periodo{font-size:var(--fs-nota); color:var(--gray);}
+.periodo b{color:var(--ink);}
+
+.cifras{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px; padding:14px 16px;}
+@media(max-width:1180px){ .cifras{grid-template-columns:repeat(3,minmax(0,1fr));} }
+.cifra{border:1px solid var(--line); border-radius:var(--r); padding:10px 11px; border-bottom-width:3px; border-bottom-color:var(--navy);}
+.cifra .r{font-size:var(--fs-chip); font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--navy);}
+.cifra .n{font-size:22px; font-weight:800; line-height:1.1; margin-top:5px; font-variant-numeric:tabular-nums;}
+.cifra .n small{font-size:12px; font-weight:700; color:var(--gray);}
+.cifra .d{font-size:var(--fs-nota); color:var(--gray); margin-top:3px; line-height:1.3;}
+.cifra.mal{border-bottom-color:var(--rust);} .cifra.mal .r, .cifra.mal .n{color:var(--rust);}
+.cifra.bien{border-bottom-color:var(--good);}
+.cifra.gris{border-bottom-color:var(--line);} .cifra.gris .r{color:var(--gray);}
+
+/* las pestañas */
+.pest{display:flex; gap:2px; border-bottom:1px solid var(--line); padding:0 16px;}
+.pest button{background:none; border:0; border-bottom:2px solid transparent; font-size:12.5px; font-weight:600;
+  color:var(--gray); padding:10px 12px; cursor:pointer; display:inline-flex; gap:7px; align-items:center;}
+.pest button[aria-selected="true"]{color:var(--navy2); border-bottom-color:var(--navy2);}
+.pest .n{font-size:var(--fs-chip); font-weight:700; background:var(--line-soft); border-radius:20px; padding:1px 6px;}
+
+/* sus solicitudes */
+table.t{width:100%; border-collapse:collapse; font-size:var(--fs-fila);}
+table.t th{text-align:left; font-size:var(--fs-chip); font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--gray); padding:10px 16px; border-bottom:1px solid var(--line); white-space:nowrap;}
+table.t td{padding:10px 16px; border-bottom:1px solid var(--line-soft); vertical-align:middle;}
+table.t tr:last-child td{border-bottom:0;}
+.t .nm{font-weight:700;} .t .sub{display:block; font-size:var(--fs-nota); color:var(--gray); margin-top:1px;}
+.est{display:inline-flex; align-items:center; gap:7px; font-weight:600;}
+.est svg{width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round;}
+.est.info{color:var(--navy2);} .est.rust{color:var(--rust);} .est.good{color:var(--good);} .est.mute{color:var(--gray);}
+.espera b{font-variant-numeric:tabular-nums;} .espera .d{display:block; font-size:var(--fs-chip); font-weight:700;}
+.espera.pasa b, .espera.pasa .d{color:var(--rust);} .espera.ok b{color:var(--good);}
+.nada{color:var(--gray-soft);}
+
+/* su historial */
+.hist{padding:6px 16px 16px;}
+.dia{font-size:var(--fs-chip); font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--gray);
+  margin:14px 0 6px; display:flex; gap:8px; align-items:center;}
+.dia::after{content:''; flex:1 1 auto; height:1px; background:var(--line);}
+.ev{display:grid; grid-template-columns:44px 26px minmax(0,1fr); gap:8px; align-items:start; padding:7px 0;}
+.ev .h{font-size:var(--fs-nota); color:var(--gray); font-variant-numeric:tabular-nums; padding-top:4px; text-align:right;}
+.ev .i{width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:var(--activa-bg); color:var(--navy2);}
+.ev .i svg{width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round;}
+.ev.rust .i{background:var(--rust-bg); color:var(--rust);} .ev.good .i{background:var(--good-bg); color:var(--good);}
+.ev .x{font-size:var(--fs-fila); line-height:1.45; padding-top:3px;}
+.ev .x b{font-weight:700;}
+.ev .nota{display:block; margin-top:4px; font-size:var(--fs-nota); color:var(--gray); border-left:2px solid var(--line); padding:1px 0 1px 8px;}
+.ev .tardo{display:inline-block; margin-left:6px; font-size:var(--fs-chip); font-weight:700; border-radius:20px; padding:1px 7px;
+  background:var(--line-soft); color:var(--gray);}
+.ev .tardo.pasa{background:var(--rust-bg); color:var(--rust);}
+.ev .tardo.ok{background:var(--good-bg); color:var(--good);}
+.vacio{padding:26px 16px; text-align:center; color:var(--gray); font-size:var(--fs-fila);}
+.vacio b{display:block; color:var(--ink); margin-bottom:3px;}
+
+/* ── lo de abajo: de dónde sale y qué falta ── */
+.notas{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:26px;}
+@media(max-width:980px){ .notas{grid-template-columns:minmax(0,1fr);} }
+.nota{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:15px 17px;}
+.nota h3{margin:0 0 8px; font-size:13.5px;}
+.nota ul{margin:0; padding-left:18px; font-size:12px; line-height:1.65;}
+.nota code{font-family:ui-monospace,Consolas,monospace; font-size:11px; background:var(--line-soft); border-radius:4px; padding:1px 5px;}
+.nota.gana h3{color:var(--good);} .nota.falta h3{color:var(--rust);} .nota.decide h3{color:var(--amber);}
+
+/* ══ CUATRO FORMAS DE LA MISMA PANTALLA ══
+   Los mismos datos en las cuatro; lo que cambia es como se llega a una
+   persona y cuanto se ve de todas a la vez. */
+.indice{display:flex; gap:8px; flex-wrap:wrap; margin:0 0 6px;}
+.indice a{font-size:var(--fs-fila); font-weight:700; color:var(--navy2); text-decoration:none;
+  background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:6px 11px;}
+.indice a:hover{border-color:var(--navy2);}
+.caso{margin-top:46px; scroll-margin-top:12px;}
+.caso-h{display:flex; align-items:center; gap:11px; margin-bottom:6px; flex-wrap:wrap;}
+.caso-n{width:28px; height:28px; border-radius:50%; background:var(--navy); color:#fff; font-size:13px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; flex:none;}
+.caso-t{font-size:17px; font-weight:700; letter-spacing:-.01em;}
+.caso-q{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.65; max-width:96ch; margin:0 0 12px 39px;}
+.caso-q b{color:var(--ink);}
+.balanza{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 0 16px 39px; max-width:1000px;}
+@media(max-width:900px){ .balanza{grid-template-columns:1fr;} }
+.pro, .contra{font-size:var(--fs-fila); line-height:1.55; border-radius:var(--r); padding:10px 13px;}
+.pro{background:var(--good-bg); color:#16573F;} .contra{background:var(--amber-bg); color:#7A5214;}
+.pro b, .contra b{display:block; font-size:var(--fs-chip); letter-spacing:.05em; text-transform:uppercase; margin-bottom:3px;}
+.caso .panel{margin-left:39px;}
+@media(max-width:760px){ .caso-q, .balanza, .caso .panel{margin-left:0;} .panel{grid-template-columns:minmax(0,1fr);} .sb{display:none;} }
+
+/* ── 2 · la tabla comparativa ── */
+.cmp th .fl{margin-left:5px; font-size:9px; opacity:.4;}
+.cmp th button{background:none; border:0; padding:0; font:inherit; letter-spacing:inherit; text-transform:inherit; color:inherit; cursor:pointer;}
+.cmp th[aria-sort] button{color:var(--navy);} .cmp th[aria-sort] .fl{opacity:1;}
+.cmp td.num, .cmp th.num{text-align:right; font-variant-numeric:tabular-nums;}
+.cmp td.num b{font-size:13px;}
+.cmp .fila{cursor:pointer;}
+.cmp .fila:hover td{background:#F7FAFD;}
+.cmp .fila[aria-expanded="true"] td{background:var(--activa-bg);}
+.cmp .quien{display:flex; align-items:center; gap:9px;}
+.cmp .quien .cv{margin-left:auto; width:14px; height:14px; stroke:var(--gray-soft); fill:none; stroke-width:2; transition:transform .15s;}
+.cmp .fila[aria-expanded="true"] .cv{transform:rotate(90deg); stroke:var(--navy2);}
+.cmp .rojo{color:var(--rust); font-weight:800;} .cmp .verde{color:var(--good); font-weight:800;}
+.cmp tr.abierta > td{padding:0; background:var(--block);}
+.abre{display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:0;}
+@media(max-width:900px){ .abre{grid-template-columns:minmax(0,1fr);} }
+.abre > div{padding:12px 16px 14px;}
+.abre > div + div{border-left:1px solid var(--line);}
+.abre h4{margin:0 0 8px; font-size:var(--fs-chip); font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--gray);}
+.mini{display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px solid var(--line-soft); font-size:var(--fs-fila);}
+.mini:last-child{border-bottom:0;}
+.mini .sub{display:block; font-size:var(--fs-nota); color:var(--gray);}
+.abre .ev{grid-template-columns:40px 22px minmax(0,1fr); padding:4px 0;}
+.abre .ev .i{width:22px; height:22px;}
+
+/* ── 3 · tarjetas y cajón lateral ── */
+.marco.con-cajon{position:relative; overflow:hidden; min-height:680px;}
+.tarjetas{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px;}
+.tj{border:1px solid var(--line); border-radius:12px; background:var(--bg); box-shadow:var(--shadow); padding:14px;
+  display:flex; flex-direction:column; gap:11px; text-align:left; cursor:pointer; border-top:3px solid var(--navy);}
+.tj:hover{border-color:var(--navy2); border-top-color:var(--navy);}
+.tj.mal{border-top-color:var(--rust);} .tj.nadie{border-top-color:var(--gray-soft); border-style:dashed; border-top-style:solid;}
+.tj-h{display:flex; align-items:center; gap:10px;}
+.tj-h .nb{font-size:13px; font-weight:800;} .tj-h .rol{font-size:var(--fs-chip); color:var(--gray); margin-top:1px;}
+.tj-c{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px;}
+.tj-c > span{background:var(--block); border-radius:8px; padding:7px 8px;}
+.tj-c .r{font-size:9px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--gray);}
+.tj-c .n{font-size:16px; font-weight:800; margin-top:2px; font-variant-numeric:tabular-nums;}
+.tj-c .n.rojo{color:var(--rust);} .tj-c .n.verde{color:var(--good);}
+.tj-u{font-size:var(--fs-nota); color:var(--gray); line-height:1.4; border-top:1px solid var(--line-soft); padding-top:9px;}
+.tj-u b{color:var(--ink);}
+.tj-ir{font-size:var(--fs-nota); font-weight:700; color:var(--navy2); margin-top:auto;}
+.velo{position:absolute; inset:46px 0 0 0; background:rgba(14,20,36,.28); opacity:0; pointer-events:none; transition:opacity .2s;}
+.cajon{position:absolute; top:46px; right:0; bottom:0; width:min(640px,92%); background:var(--bg);
+  box-shadow:-12px 0 40px rgba(14,20,36,.18); transform:translateX(102%); transition:transform .22s ease; overflow:auto;}
+.marco.abierto .velo{opacity:1; pointer-events:auto;}
+.marco.abierto .cajon{transform:none;}
+.cajon-cerrar{position:sticky; top:0; float:right; margin:10px 10px 0 0; z-index:2; background:var(--bg); border:1px solid var(--line);
+  border-radius:8px; padding:5px 10px; font-size:var(--fs-nota); font-weight:700; color:var(--gray); cursor:pointer;}
+@media (prefers-reduced-motion: reduce){ .cajon, .velo{transition:none;} }
+
+/* ── 4 · una columna por persona ── */
+.tablero{display:flex; gap:12px; overflow-x:auto; padding-bottom:6px; align-items:flex-start;}
+.col{flex:0 0 250px; background:#EAEFF6; border-radius:12px; padding:8px; display:flex; flex-direction:column; gap:8px;}
+.col.nadie{background:repeating-linear-gradient(135deg,#F1F3F7 0 8px,#EAEEF4 8px 16px);}
+.col-h{display:flex; align-items:center; gap:9px; padding:4px 4px 6px;}
+.col-h .q{min-width:0; flex:1 1 auto;}
+.col-h .nb{font-size:12.5px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.col-h .cf{font-size:var(--fs-chip); color:var(--gray);}
+.col-h .cf b{color:var(--ink);}
+.col-h .cnt{font-size:var(--fs-chip); font-weight:800; background:var(--bg); border-radius:20px; padding:2px 8px;}
+.col-modo{display:flex; background:var(--bg); border-radius:8px; padding:2px; gap:2px;}
+.col-modo button{flex:1 1 0; background:none; border:0; border-radius:6px; padding:4px 6px; font-size:var(--fs-chip);
+  font-weight:700; color:var(--gray); cursor:pointer;}
+.col-modo button[aria-pressed="true"]{background:var(--activa-bg); color:var(--navy2);}
+.kc{background:var(--bg); border-radius:9px; padding:9px 10px; box-shadow:0 1px 2px rgba(14,20,36,.08); border-left:3px solid var(--navy2);}
+.kc.pasa{border-left-color:var(--rust);} .kc.fuera{border-left-color:var(--line);} .kc.rust{border-left-color:var(--rust);}
+.kc .nm{font-size:var(--fs-fila); font-weight:700;}
+.kc .sub{font-size:var(--fs-nota); color:var(--gray); margin-top:1px;}
+.kc .pie{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:7px; font-size:var(--fs-chip);}
+.kc .pie .e{color:var(--gray); font-weight:600;}
+.kc .pie .w{font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.kc.pasa .pie .w{color:var(--rust);}
+.col .ev{grid-template-columns:36px 20px minmax(0,1fr); gap:6px; background:var(--bg); border-radius:9px; padding:7px 8px;}
+.col .ev .i{width:20px; height:20px;} .col .ev .i svg{width:11px; height:11px;}
+.col .ev .x{font-size:var(--fs-nota);} .col .ev .h{padding-top:2px;}
+.col .vacio{padding:14px 8px; font-size:var(--fs-nota);}
+</style>
+</head>
+<body>
+
+<div class="mq-cartel">
+  <b>Maqueta · El equipo, uno por uno</b>
+  <span>Una pantalla nueva, solo para el administrador: el personal a la izquierda y, al elegir a alguien, cómo va y su historial.<br>
+  No es la aplicación: los datos son de ejemplo. Pulsa una persona y las pestañas; eso sí funciona.</span>
+</div>
+
+<main>
+  <p class="intro">
+    Hoy la franja de personas de <b>Trámites</b> filtra la tabla por quien lleva cada solicitud, y nada más.
+    Esta pantalla contesta las dos preguntas que la franja no puede: <b>¿cómo va esta persona?</b> —cuánto
+    lleva, cuánto tarda en contestar <b>en horas</b>, cuántas se le pasaron, qué resolvió y qué devolvió— y
+    <b>¿qué ha hecho?</b> —su historial, hora a hora, con cada nota de devolución—. Las cifras son de los
+    <b>últimos 7 días</b>, salvo «en marcha», que es lo que tiene encima ahora.
+  </p>
+  <p class="intro">
+    Abajo, <b>cuatro formas</b> de la misma pantalla y con los mismos datos. Lo que cambia es cómo se llega a
+    una persona y cuánto se ve de todas a la vez.
+  </p>
+  <div class="indice">
+    <a href="#idea1">1 · Lista y ficha</a>
+    <a href="#idea2">2 · Tabla comparativa</a>
+    <a href="#idea3">3 · Tarjetas y panel lateral</a>
+    <a href="#idea4">4 · Una columna por persona</a>
+  </div>
+
+  <!-- ═══════════════════════════ 1 · LISTA Y FICHA ═══════════════════════════ -->
+  <section class="caso" id="idea1">
+  <div class="caso-h"><div class="caso-n">1</div><div class="caso-t">Lista a la izquierda, ficha a la derecha</div></div>
+  <p class="caso-q">La que ya viste. Se elige a <b>una persona</b> y se ve entera: sus cinco cifras, sus solicitudes
+    y su historial. Como la bóveda de Documentos: quien ya la usa no aprende nada nuevo.</p>
+  <div class="balanza">
+    <div class="pro"><b>A favor</b>La ficha tiene sitio para todo, historial incluido, sin salir de la pantalla. Y la misma forma que la bóveda y que «Documentos por revisar».</div>
+    <div class="contra"><b>En contra</b>Se ve a uno cada vez. Para comparar a Ana con Luis hay que ir y volver, y retener las cifras de cabeza.</div>
+  </div>
+
+  <div class="panel">
+    <aside class="sb">
+      <div class="sb-marca">Ventanilla</div>
+      <div class="sb-gl">Gestión</div>
+      <div class="sb-item"><svg viewBox="0 0 24 24"><path d="M3 12l9-8 9 8M5 10v10h14V10"/></svg>Mi panel</div>
+      <div class="sb-item"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h4"/></svg>Trámites<span class="cnt">12</span></div>
+      <div class="sb-item active"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2A5 5 0 0 1 21.5 19"/></svg>Equipo</div>
+      <div class="sb-item"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="m9 13 2 2 4-4"/></svg>Documentos</div>
+      <div class="sb-item"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Citas y agenda</div>
+      <div class="sb-gl">Administración</div>
+      <div class="sb-item"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Rastro</div>
+    </aside>
+    <div class="marco">
+      <div class="tb">Te damos la bienvenida:<b>Franklin Reyes</b></div>
+      <div class="cuerpo">
+        <div class="mt-cab">
+          <div>
+            <div class="t">Equipo</div>
+            <div class="sub">Quién lleva qué, cuánto tarda en contestar y qué ha hecho</div>
+          </div>
+          <div class="mt-aldia"><span class="pt"></span>Actualizado · 11:48</div>
+        </div>
+
+        <div class="eq-rejilla">
+          <section class="caja" aria-label="El personal">
+            <div class="gente-cab">
+              <div class="t">El personal · <span id="cuantos"></span></div>
+              <input class="busca" id="busca" type="search" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
+            </div>
+            <div id="gente"></div>
+          </section>
+
+          <section class="caja" id="ficha" aria-live="polite"></section>
+        </div>
+      </div>
+    </div>
+  </div>
+  </section>
+
+  <!-- ═══════════════════════════ 2 · TABLA COMPARATIVA ═══════════════════════════ -->
+  <section class="caso" id="idea2">
+    <div class="caso-h"><div class="caso-n">2</div><div class="caso-t">Todo el equipo en una tabla, y se despliega la fila</div></div>
+    <p class="caso-q">Una fila por persona con sus cifras en columnas que <b>ordenan</b>: pulsa «Contesta en» o «Se
+      pasaron» y arriba queda quien hay que mirar. Pulsar una fila la <b>despliega</b> ahí mismo con sus solicitudes
+      vivas y sus últimos movimientos.</p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Es la única que compara a todos de un vistazo, que es lo primero que se pregunta un administrador: ¿quién va cargado?, ¿quién se atasca? Y ordenar es un gesto que el panel ya enseña en todas sus tablas.</div>
+      <div class="contra"><b>En contra</b>Al desplegar cabe poco: el historial se queda en los últimos cinco movimientos. Para ver la semana entera haría falta un «ver todo». Y una tabla de cifras de personas se lee fácil como ranking.</div>
+    </div>
+    <div class="panel">
+      <aside class="sb" data-sb></aside>
+      <div class="marco">
+        <div class="tb">Te damos la bienvenida:<b>Franklin Reyes</b></div>
+        <div class="cuerpo">
+          <div class="mt-cab">
+            <div><div class="t">Equipo</div><div class="sub">Pulsa una cabecera para ordenar y una fila para desplegarla</div></div>
+            <div class="mt-aldia"><span class="pt"></span>Actualizado · 11:48</div>
+          </div>
+          <div class="caja"><table class="t cmp"><thead><tr id="i2Cab"></tr></thead><tbody id="i2Cuerpo"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ 3 · TARJETAS Y CAJÓN ═══════════════════════════ -->
+  <section class="caso" id="idea3">
+    <div class="caso-h"><div class="caso-n">3</div><div class="caso-t">Una tarjeta por persona, y su ficha en un panel lateral</div></div>
+    <p class="caso-q">Cada persona es una <b>tarjeta</b> con lo esencial —en marcha, contesta en, se pasaron— y su
+      último movimiento. Al pulsarla, su ficha entera sale <b>desde la derecha</b>, por encima: la misma ficha de la
+      idea 1. Se cierra con «Cerrar», con Esc o pulsando fuera.</p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Se ve a todos Y se ve a uno entero, sin cambiar de pantalla. El borde rojo de arriba canta quién tiene algo pasado antes de leer ninguna cifra. Y con 3 personas o con 15 la rejilla se acomoda sola.</div>
+      <div class="contra"><b>En contra</b>El panel lateral tapa las tarjetas: para pasar de Ana a Luis hay que cerrar y abrir. Y sería el primer panel lateral de la Ventanilla: un mecanismo nuevo que aprender.</div>
+    </div>
+    <div class="panel">
+      <aside class="sb" data-sb></aside>
+      <div class="marco con-cajon" id="i3Marco">
+        <div class="tb">Te damos la bienvenida:<b>Franklin Reyes</b></div>
+        <div class="cuerpo">
+          <div class="mt-cab">
+            <div><div class="t">Equipo</div><div class="sub">Pulsa una tarjeta para ver a esa persona entera</div></div>
+            <div class="mt-aldia"><span class="pt"></span>Actualizado · 11:48</div>
+          </div>
+          <div class="tarjetas" id="i3Tarjetas"></div>
+        </div>
+        <div class="velo" id="i3Velo"></div>
+        <aside class="cajon" id="i3Cajon" role="dialog" aria-modal="true" aria-label="Ficha de la persona" tabindex="-1">
+          <button type="button" class="cajon-cerrar" id="i3Cerrar">Cerrar ✕</button>
+          <div id="i3Ficha"></div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ 4 · UNA COLUMNA POR PERSONA ═══════════════════════════ -->
+  <section class="caso" id="idea4">
+    <div class="caso-h"><div class="caso-n">4</div><div class="caso-t">Una columna por persona, con sus solicitudes dentro</div></div>
+    <p class="caso-q">Como un tablero: cada persona es una <b>columna</b> y sus solicitudes vivas van dentro como
+      tarjetas, de la que más espera a la que menos, con el borde rojo si se pasó. «Sin dueño» es la primera. Arriba
+      de cada columna, un conmutador cambia entre <b>Solicitudes</b> e <b>Historial</b> de esa persona.</p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Es la que mejor enseña LOS PROCESOS de cada uno: no una cifra, sino cuáles tiene y cuánto lleva cada una. Se ve de golpe quién tiene la columna larga y roja. Y es la forma natural de, más adelante, arrastrar una solicitud de una persona a otra para reasignarla.</div>
+      <div class="contra"><b>En contra</b>Con más de cinco personas hay que desplazarse de lado, y en móvil es una columna tras otra. Las cifras de la semana —resueltas, devueltas— no caben: se quedan en el historial.</div>
+    </div>
+    <div class="panel">
+      <aside class="sb" data-sb></aside>
+      <div class="marco">
+        <div class="tb">Te damos la bienvenida:<b>Franklin Reyes</b></div>
+        <div class="cuerpo">
+          <div class="mt-cab">
+            <div><div class="t">Equipo</div><div class="sub">Lo que lleva cada uno, de lo que más espera a lo que menos</div></div>
+            <div class="mt-aldia"><span class="pt"></span>Actualizado · 11:48</div>
+          </div>
+          <div class="tablero" id="i4Tablero"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="notas">
+    <section class="nota gana">
+      <h3>De dónde sale cada cosa</h3>
+      <ul>
+        <li><b>En marcha y sus solicitudes:</b> <code>tramites.gestor</code>, lo vivo.</li>
+        <li><b>Contesta en</b> y cada «tardó»: <code>tramite_eventos</code>, de «enviado» al siguiente movimiento y apuntado a su <code>autor</code>. Es la misma cuenta de la columna «Esperando», ahora en horas.</li>
+        <li><b>Devolvió, presentó, resolvió:</b> <code>tramite_eventos.a_estado</code> con su <code>nota</code>.</li>
+        <li><b>Validó o rechazó un papel:</b> <code>documentos.revisado_por</code> y <code>revisado_en</code>.</li>
+      </ul>
+    </section>
+    <section class="nota falta">
+      <h3>Qué falta en la base</h3>
+      <ul>
+        <li><b>«Tomó» y «se la reasignaron» no quedan escritos.</b> <code>tramites.gestor</code> guarda al dueño de ahora y pisa al de antes: el mismo problema que arregló la bitácora. Hace falta apuntarlo —un evento más, o una fila en <code>bitacora</code>— para que el historial diga cuándo la cogió.</li>
+        <li>Hasta entonces, el historial empieza en el primer <b>movimiento</b> de cada solicitud, no en el momento de tomarla.</li>
+      </ul>
+    </section>
+    <section class="nota decide">
+      <h3>Qué hay que decidir</h3>
+      <ul>
+        <li><b>Esto pone un reloj sobre personas.</b> Conviene decirlo dentro de la oficina antes de encenderlo.</li>
+        <li><b>El promedio engaña</b>: quien toma los fáciles sale rápido. Por eso el rojo es solo «se pasó de <i>su</i> marca», nunca «tarda más que otro».</li>
+        <li><b>¿Lo ve el gestor?</b> Aquí solo el administrador. Otra opción: que cada gestor vea solo su propia ficha.</li>
+      </ul>
+    </section>
+  </div>
+</main>
+
+<script>
+/* Solo para la maqueta. Nombres y cifras de ejemplo. */
+(function(){
+  var H = 3600000;
+  var MEDIA_EQUIPO = 4.1 * H;
+  var GENTE = [
+    { k:'nadie', nb:'Sin dueño', rol:'', ini:'', vivos:6, marca:null, pasadas:6, resueltas:null, devueltas:null,
+      sols:[
+        {tr:'Registros parafiscales', inv:'Franklin Reyes', est:'enviado', espera:0.6*H},
+        {tr:'Traducción de documentos', inv:'Valeria Ramos', est:'enviado', espera:3.5*H},
+        {tr:'RIF de la empresa', inv:'Valeria Ramos', est:'enviado', espera:5.2*H},
+        {tr:'Visa de inversionista', inv:'Lin Wei', est:'enviado', espera:27*H},
+        {tr:'Reserva de denominación', inv:'Ahmed Nabil', est:'enviado', espera:52*H},
+        {tr:'Apostilla de documentos', inv:'Marta Bianchi', est:'enviado', espera:76*H}
+      ], hist:[] },
+    { k:'ana', nb:'Ana Duarte', rol:'Gestora', ini:'AD', vivos:7, marca:3.2*H, pasadas:2, resueltas:5, devueltas:3,
+      sols:[
+        {tr:'Constitución de la compañía', inv:'Lin Wei · Agroindustrias del Sur', est:'en_revision', espera:26*H},
+        {tr:'RIF personal', inv:'María Fontes', est:'en_revision', espera:5.5*H},
+        {tr:'RIF de la empresa', inv:'María Fontes · Pesquera Delta', est:'enviado', espera:1.8*H},
+        {tr:'Protocolización del acta', inv:'Giorgio Renzi', est:'ante_el_ente', espera:null, ente:'SAREN'},
+        {tr:'Visa de inversionista', inv:'Giorgio Renzi', est:'ante_el_ente', espera:null, ente:'SAIME'},
+        {tr:'Publicación del acta', inv:'Lin Wei', est:'devuelto', espera:null},
+        {tr:'Registro de accionistas', inv:'Ahmed Nabil', est:'devuelto', espera:null}
+      ],
+      hist:[
+        {d:'Hoy · jue 24 sept', h:'11:42', t:'good', i:'res', x:'Resolvió <b>Traducción de documentos</b> de Valeria Ramos', tardo:['2 h 10 min','ok']},
+        {d:'Hoy · jue 24 sept', h:'10:15', t:'info', i:'pres', x:'Presentó <b>Visa de inversionista</b> de Giorgio Renzi ante SAIME'},
+        {d:'Hoy · jue 24 sept', h:'09:03', t:'rust', i:'dev', x:'Devolvió <b>Publicación del acta</b> a Lin Wei', nota:'Falta la firma del presidente en la segunda página del acta.', tardo:['1 h 25 min','ok']},
+        {d:'Ayer · mié 23 sept', h:'17:30', t:'good', i:'val', x:'Validó el <b>pasaporte</b> de María Fontes'},
+        {d:'Ayer · mié 23 sept', h:'16:48', t:'rust', i:'rech', x:'Rechazó el <b>certificado de antecedentes</b> de Ahmed Nabil', nota:'Está vencido: tiene más de seis meses.'},
+        {d:'Ayer · mié 23 sept', h:'15:02', t:'info', i:'rev', x:'Pasó a revisión <b>RIF personal</b> de María Fontes', tardo:['6 h 40 min','pasa']},
+        {d:'Lun 21 sept', h:'12:20', t:'good', i:'res', x:'Resolvió <b>Acreditación de representación legal</b> de Marta Bianchi', tardo:['3 h','ok']},
+        {d:'Lun 21 sept', h:'09:55', t:'rust', i:'dev', x:'Devolvió <b>Registro de accionistas</b> a Ahmed Nabil', nota:'El RIF de uno de los accionistas no coincide con su cédula.'}
+      ] },
+    { k:'luis', nb:'Luis Peña', rol:'Gestor', ini:'LP', vivos:4, marca:9.5*H, pasadas:1, resueltas:2, devueltas:1,
+      sols:[
+        {tr:'Registros parafiscales', inv:'Giorgio Renzi', est:'en_revision', espera:31*H},
+        {tr:'RIF de la empresa', inv:'Ahmed Nabil', est:'en_revision', espera:4*H},
+        {tr:'Reserva de denominación', inv:'Marta Bianchi', est:'ante_el_ente', espera:null, ente:'SAREN'},
+        {tr:'Apostilla de documentos', inv:'Lin Wei', est:'enviado', espera:0.4*H}
+      ],
+      hist:[
+        {d:'Ayer · mié 23 sept', h:'18:10', t:'info', i:'pres', x:'Presentó <b>Reserva de denominación</b> de Marta Bianchi ante SAREN', tardo:['14 h','pasa']},
+        {d:'Mar 22 sept', h:'11:05', t:'good', i:'res', x:'Resolvió <b>RIF personal</b> de Ahmed Nabil', tardo:['8 h 30 min','ok']},
+        {d:'Lun 21 sept', h:'16:40', t:'rust', i:'dev', x:'Devolvió <b>Visa de inversionista</b> a Lin Wei', nota:'La foto no cumple el fondo blanco.'}
+      ] },
+    { k:'carmen', nb:'Carmen Ortiz', rol:'Gestora', ini:'CO', vivos:3, marca:1.4*H, pasadas:0, resueltas:6, devueltas:0,
+      sols:[
+        {tr:'Traducción de documentos', inv:'Ahmed Nabil', est:'en_revision', espera:0.8*H},
+        {tr:'Registro de marca', inv:'María Fontes', est:'ante_el_ente', espera:null, ente:'SAPI'},
+        {tr:'Constitución de la compañía', inv:'Marta Bianchi', est:'resuelto', espera:null}
+      ],
+      hist:[
+        {d:'Hoy · jue 24 sept', h:'11:20', t:'good', i:'val', x:'Validó el <b>acta constitutiva</b> de Marta Bianchi'},
+        {d:'Hoy · jue 24 sept', h:'10:52', t:'good', i:'res', x:'Resolvió <b>Constitución de la compañía</b> de Marta Bianchi', tardo:['50 min','ok']},
+        {d:'Ayer · mié 23 sept', h:'09:30', t:'info', i:'pres', x:'Presentó <b>Registro de marca</b> de María Fontes ante SAPI', tardo:['1 h 10 min','ok']}
+      ] },
+    { k:'franklin', nb:'Franklin Reyes', rol:'Admin', ini:'FR', vivos:0, marca:null, pasadas:0, resueltas:0, devueltas:0,
+      sols:[], hist:[] }
+  ];
+
+  var ICO = {
+    res:'<circle cx="12" cy="12" r="9"/><polyline points="8 12.5 11 15.5 16 9"/>',
+    pres:'<path d="M5 12h13M13 7l5 5-5 5"/>',
+    dev:'<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>',
+    val:'<path d="M6 3h9l4 4v14H6z"/><path d="m9 13 2 2 4-4"/>',
+    rech:'<path d="M6 3h9l4 4v14H6z"/><path d="m10 11 4 4M14 11l-4 4"/>',
+    rev:'<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>',
+    info:'<circle cx="12" cy="12" r="9"/><path d="M9 12h6M13 9l3 3-3 3"/>',
+    rust:'<circle cx="12" cy="12" r="9"/><line x1="12" y1="7.5" x2="12" y2="13"/><line x1="12" y1="16.4" x2="12" y2="16.5"/>',
+    good:'<circle cx="12" cy="12" r="9"/><polyline points="8 12.5 11 15.5 16 9"/>'
+  };
+  var ESTADO = {
+    enviado:['Solicitud recibida por el CIIP','info'], en_revision:['Revisión de los recaudos','info'],
+    ante_el_ente:['Presentada ante {ente}','mute'], devuelto:['Devuelta: espera al inversionista','rust'],
+    resuelto:['Resuelta','good']
+  };
+
+  /* La misma cuenta que enHoras() del panel. */
+  function horas(ms){
+    var min = ms / 60000;
+    if (min < 60) return Math.round(min) + ' min';
+    var h = ms / H;
+    if (h < 48) return (h < 10 ? String(Math.round(h * 10) / 10).replace('.', ',') : Math.round(h)) + ' h';
+    var d = Math.floor(h / 24), r = Math.round(h - d * 24);
+    return d + ' d' + (r ? ' ' + r + ' h' : '');
+  }
+  function $(i){ return document.getElementById(i); }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function av(p, grande){
+    return '<span class="av' + (p.k === 'nadie' ? ' nadie' : '') + (grande ? ' grande' : '') + '" aria-hidden="true">' +
+      (p.k === 'nadie' ? '–' : p.ini) + '</span>';
+  }
+
+  var elegido = 'ana', pestana = 'sols';
+
+  function pintaGente(){
+    var q = ($('busca').value || '').toLowerCase();
+    var lista = GENTE.filter(function(p){ return !q || p.nb.toLowerCase().indexOf(q) >= 0; });
+    $('cuantos').textContent = (GENTE.length - 1) + ' personas';
+    $('gente').innerHTML = lista.map(function(p){
+      var cf = p.k === 'nadie'
+        ? '<b>' + p.vivos + '</b> sin tomar'
+        : '<b>' + p.vivos + '</b> en marcha · ' + (p.marca === null ? 'sin marca todavía' : 'contesta en <b>' + horas(p.marca) + '</b>');
+      var alerta = p.pasadas ? '<span class="alerta" title="Se pasaron de su marca">' + p.pasadas + ' se pasaron</span>' : '';
+      if (p.k === 'nadie' && p.pasadas) alerta = '<span class="alerta">nadie contesta</span>';
+      return '<button type="button" class="persona" data-k="' + p.k + '" aria-current="' + (p.k === elegido) + '">' +
+        av(p) + '<span class="q"><span class="nb">' + esc(p.nb) +
+        (p.rol ? '<span class="rol">' + p.rol + '</span>' : '') + '</span><span class="cf">' + cf + '</span>' +
+        alerta + '</span></button>';
+    }).join('') || '<div class="vacio"><b>Nadie se llama así.</b>Prueba con otro nombre.</div>';
+    [].forEach.call(document.querySelectorAll('.persona'), function(b){
+      b.addEventListener('click', function(){ elegido = b.getAttribute('data-k'); pintaGente(); pintaFicha(); });
+    });
+  }
+
+  function cifra(r, n, d, tono){
+    return '<div class="cifra ' + (tono || '') + '"><div class="r">' + r + '</div><div class="n">' + n + '</div><div class="d">' + d + '</div></div>';
+  }
+
+  function persona(k){ return GENTE.filter(function(x){ return x.k === k; })[0]; }
+
+  /* Las piezas que se repiten en las cuatro ideas. */
+  function htmlEstado(s){
+    var e = ESTADO[s.est];
+    return '<span class="est ' + e[1] + '"><svg viewBox="0 0 24 24">' + ICO[e[1] === 'mute' ? 'info' : e[1]] + '</svg>' +
+      esc(e[0].replace('{ente}', s.ente || '')) + '</span>';
+  }
+  function pasaDe(p, s){ return s.espera !== null && (p.k === 'nadie' || (p.marca !== null && s.espera > p.marca)); }
+  function htmlEspera(p, s){
+    if (s.espera === null) return '<span class="nada" title="No espera al CIIP">–</span>';
+    var pasa = pasaDe(p, s);
+    return '<span class="espera ' + (pasa ? 'pasa' : 'ok') + '"><b>' + horas(s.espera) + '</b>' +
+      (pasa ? '<span class="d">' + (p.k === 'nadie' ? 'sin tomar' : 'se pasó') + '</span>' : '') + '</span>';
+  }
+  function htmlEvento(ev){
+    return '<div class="ev ' + ev.t + '"><span class="h">' + ev.h + '</span><span class="i"><svg viewBox="0 0 24 24">' + ICO[ev.i] + '</svg></span>' +
+      '<span class="x">' + ev.x +
+      (ev.tardo ? '<span class="tardo ' + ev.tardo[1] + '">tardó ' + ev.tardo[0] + (ev.tardo[1] === 'pasa' ? ' · se pasó' : '') + '</span>' : '') +
+      (ev.nota ? '<span class="nota">«' + esc(ev.nota) + '»</span>' : '') + '</span></div>';
+  }
+  function htmlHistorial(hist){
+    var dia = '';
+    return hist.map(function(ev){
+      var cab = ev.d !== dia ? '<div class="dia">' + ev.d + '</div>' : '';
+      dia = ev.d;
+      return cab + htmlEvento(ev);
+    }).join('');
+  }
+  /* Las pestañas se atan dentro de SU caja: con varias fichas en la
+     pagina, un selector global las ataba todas a la misma. */
+  function ataPestanas(caja, alPulsar){
+    [].forEach.call(caja.querySelectorAll('.pest button'), function(b){
+      b.addEventListener('click', function(){ alPulsar(b.getAttribute('data-p')); });
+    });
+  }
+
+  /* La ficha entera de una persona: la de la idea 1 y la del panel
+     lateral de la idea 3. */
+  function htmlFicha(p, pestana){
+    var h = '';
+    h += '<div class="fic-cab">' + av(p, true) + '<div><div class="nb">' + esc(p.nb) + '</div><div class="d">' +
+      (p.k === 'nadie' ? 'Lo que ha entrado y todavía no ha tomado nadie' : p.rol + ' · lleva lo que tiene encima y lo que movió en 7 días') +
+      '</div></div><span class="sp"></span><span class="periodo">Cifras de los <b>últimos 7 días</b></span></div>';
+
+    if (p.k === 'nadie'){
+      var mas = p.sols.reduce(function(m, s){ return Math.max(m, s.espera || 0); }, 0);
+      h += '<div class="cifras">' +
+        cifra('Sin tomar', p.vivos, 'Esperando a que alguien las coja', p.vivos ? 'mal' : '') +
+        cifra('La que más espera', horas(mas), 'Desde que la envió el inversionista', 'mal') +
+        cifra('La media del equipo', horas(MEDIA_EQUIPO), 'Lo que suele tardar el equipo en contestar', 'gris') +
+        '</div>';
+    } else {
+      var comp = p.marca === null ? 'Sin respuestas todavía'
+        : (p.marca > MEDIA_EQUIPO ? 'Más que la media del equipo (' : 'Menos que la media del equipo (') + horas(MEDIA_EQUIPO) + ')';
+      h += '<div class="cifras">' +
+        cifra('En marcha', p.vivos, 'Lo que tiene encima ahora') +
+        cifra('Contesta en', p.marca === null ? '–' : horas(p.marca), comp, p.marca === null ? 'gris' : (p.marca <= MEDIA_EQUIPO ? 'bien' : '')) +
+        cifra('Se pasaron', p.pasadas + (p.vivos ? ' <small>de ' + p.vivos + '</small>' : ''), 'Esperan más que su propia marca', p.pasadas ? 'mal' : 'bien') +
+        cifra('Resueltas', p.resueltas, 'En 7 días', p.resueltas ? 'bien' : 'gris') +
+        cifra('Devueltas', p.devueltas, 'En 7 días, con su nota', 'gris') +
+        '</div>';
+    }
+
+    var nS = p.sols.length, nH = p.hist.length;
+    h += '<div class="pest" role="tablist">' +
+      '<button type="button" role="tab" data-p="sols" aria-selected="' + (pestana === 'sols') + '">' + (p.k === 'nadie' ? 'Sin tomar' : 'Sus solicitudes') + ' <span class="n">' + nS + '</span></button>' +
+      (p.k === 'nadie' ? '' : '<button type="button" role="tab" data-p="hist" aria-selected="' + (pestana === 'hist') + '">Historial <span class="n">' + nH + '</span></button>') +
+      '</div>';
+
+    if (pestana === 'sols' || p.k === 'nadie'){
+      if (!nS){
+        h += '<div class="vacio"><b>No lleva ninguna solicitud.</b>Cuando tome una, sale aquí con lo que lleva esperando.</div>';
+      } else {
+        h += '<table class="t"><thead><tr><th>Trámite</th><th>Estado</th><th>Esperando</th></tr></thead><tbody>' +
+          p.sols.map(function(s){
+            return '<tr><td><span class="nm">' + esc(s.tr) + '</span><span class="sub">' + esc(s.inv) + '</span></td>' +
+              '<td>' + htmlEstado(s) + '</td><td>' + htmlEspera(p, s) + '</td></tr>';
+          }).join('') + '</tbody></table>';
+      }
+    } else {
+      if (!nH){
+        h += '<div class="vacio"><b>No ha movido nada en 7 días.</b>Aquí sale cada cosa que haga, con su hora.</div>';
+      } else {
+        h += '<div class="hist">' + htmlHistorial(p.hist) + '</div>';
+      }
+    }
+    return h;
+  }
+
+  /* ── 1 · lista y ficha ── */
+  function pintaFicha(){
+    var caja = $('ficha');
+    caja.innerHTML = htmlFicha(persona(elegido), pestana);
+    ataPestanas(caja, function(v){ pestana = v; pintaFicha(); });
+  }
+
+  /* ── 2 · la tabla comparativa ── */
+  var CMP = [
+    {k:'nb',   th:'Persona',     num:false, val:function(p){ return p.k === 'nadie' ? '' : p.nb; }},
+    {k:'viv',  th:'En marcha',   num:true,  val:function(p){ return p.vivos; }},
+    {k:'marca',th:'Contesta en', num:true,  val:function(p){ return p.marca; }},
+    {k:'pas',  th:'Se pasaron',  num:true,  val:function(p){ return p.pasadas; }},
+    {k:'res',  th:'Resueltas',   num:true,  val:function(p){ return p.resueltas; }},
+    {k:'dev',  th:'Devueltas',   num:true,  val:function(p){ return p.devueltas; }},
+    {k:'ult',  th:'Último movimiento', num:false, val:null}
+  ];
+  var i2 = {orden:'pas', baja:true, abierta:'ana'};
+  function pintaI2(){
+    var cab = $('i2Cab');
+    cab.innerHTML = CMP.map(function(c){
+      var act = c.k === i2.orden;
+      var dentro = c.val ? '<button type="button" data-o="' + c.k + '">' + c.th + '<span class="fl">' + (act ? (i2.baja ? '▼' : '▲') : '▲') + '</span></button>' : c.th;
+      return '<th class="' + (c.num ? 'num' : '') + '"' + (act ? ' aria-sort="' + (i2.baja ? 'descending' : 'ascending') + '"' : '') + '>' + dentro + '</th>';
+    }).join('');
+    [].forEach.call(cab.querySelectorAll('button'), function(b){
+      b.addEventListener('click', function(){
+        var k = b.getAttribute('data-o');
+        if (i2.orden === k) i2.baja = !i2.baja; else { i2.orden = k; i2.baja = true; }
+        pintaI2();
+      });
+    });
+    var col = CMP.filter(function(c){ return c.k === i2.orden; })[0];
+    /* «Sin dueño» siempre arriba: no es una persona que comparar, es lo
+       que hay que repartir. Lo que no tiene dato va al fondo. */
+    var lista = GENTE.slice().sort(function(a, b){
+      if (a.k === 'nadie') return -1;
+      if (b.k === 'nadie') return 1;
+      var va = col.val(a), vb = col.val(b);
+      if (va === null && vb === null) return 0;
+      if (va === null) return 1;
+      if (vb === null) return -1;
+      var d = typeof va === 'string' ? va.localeCompare(vb) : va - vb;
+      return i2.baja ? -d : d;
+    });
+    $('i2Cuerpo').innerHTML = lista.map(function(p){
+      var abierta = i2.abierta === p.k;
+      var ult = p.hist[0];
+      var fila = '<tr class="fila" data-k="' + p.k + '" tabindex="0" aria-expanded="' + abierta + '">' +
+        '<td><span class="quien">' + av(p) + '<span><span class="nm">' + esc(p.nb) + '</span><span class="sub">' + (p.rol || 'Lo que no ha tomado nadie') + '</span></span>' +
+        '<svg class="cv" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></td>' +
+        '<td class="num"><b>' + p.vivos + '</b></td>' +
+        '<td class="num">' + (p.marca === null ? '<span class="nada">–</span>' : '<b class="' + (p.marca <= MEDIA_EQUIPO ? 'verde' : '') + '">' + horas(p.marca) + '</b>') + '</td>' +
+        '<td class="num">' + (p.k === 'nadie' ? '<span class="rojo">' + p.pasadas + '</span>' : '<span class="' + (p.pasadas ? 'rojo' : '') + '">' + p.pasadas + '</span>') + '</td>' +
+        '<td class="num">' + (p.resueltas === null ? '<span class="nada">–</span>' : p.resueltas) + '</td>' +
+        '<td class="num">' + (p.devueltas === null ? '<span class="nada">–</span>' : p.devueltas) + '</td>' +
+        '<td>' + (ult ? '<span class="sub" style="margin:0">' + ult.d.split(' · ')[0] + ', ' + ult.h + '</span>' : '<span class="nada">–</span>') + '</td></tr>';
+      if (!abierta) return fila;
+      var vivas = p.sols.filter(function(s){ return s.est !== 'resuelto'; });
+      return fila + '<tr class="abierta"><td colspan="' + CMP.length + '"><div class="abre">' +
+        '<div><h4>' + (p.k === 'nadie' ? 'Sin tomar' : 'Lo que lleva ahora') + ' · ' + vivas.length + '</h4>' +
+          (vivas.length ? vivas.map(function(s){
+            return '<div class="mini"><span><b>' + esc(s.tr) + '</b><span class="sub">' + esc(s.inv) + '</span></span>' +
+              '<span style="text-align:right">' + htmlEspera(p, s) + '</span></div>';
+          }).join('') : '<div class="vacio">No lleva ninguna.</div>') + '</div>' +
+        '<div><h4>Últimos movimientos</h4>' +
+          (p.hist.length ? p.hist.slice(0, 5).map(htmlEvento).join('') : '<div class="vacio">Nada en 7 días.</div>') +
+        '</div></div></td></tr>';
+    }).join('');
+    [].forEach.call($('i2Cuerpo').querySelectorAll('.fila'), function(tr){
+      function alterna(){ var k = tr.getAttribute('data-k'); i2.abierta = (i2.abierta === k) ? '' : k; pintaI2(); }
+      tr.addEventListener('click', alterna);
+      tr.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); alterna(); } });
+    });
+  }
+
+  /* ── 3 · tarjetas y panel lateral ── */
+  var i3 = {k:'', pestana:'sols', vuelta:null};
+  function pintaI3(){
+    $('i3Tarjetas').innerHTML = GENTE.map(function(p){
+      var ult = p.hist[0];
+      var mal = p.pasadas > 0;
+      return '<button type="button" class="tj' + (p.k === 'nadie' ? ' nadie' : '') + (mal ? ' mal' : '') + '" data-k="' + p.k + '">' +
+        '<span class="tj-h">' + av(p) + '<span><span class="nb">' + esc(p.nb) + '</span><span class="rol" style="display:block">' + (p.rol || 'Sin tomar por nadie') + '</span></span></span>' +
+        '<span class="tj-c">' +
+          '<span style="display:block"><span class="r">' + (p.k === 'nadie' ? 'Sin tomar' : 'En marcha') + '</span><span class="n" style="display:block">' + p.vivos + '</span></span>' +
+          '<span style="display:block"><span class="r">Contesta</span><span class="n' + (p.marca !== null && p.marca <= MEDIA_EQUIPO ? ' verde' : '') + '" style="display:block">' + (p.marca === null ? '–' : horas(p.marca)) + '</span></span>' +
+          '<span style="display:block"><span class="r">Se pasaron</span><span class="n' + (mal ? ' rojo' : '') + '" style="display:block">' + p.pasadas + '</span></span>' +
+        '</span>' +
+        '<span class="tj-u">' + (ult ? '<b>' + ult.d.split(' · ')[0] + ', ' + ult.h + '</b> · ' + ult.x.replace(/<[^>]+>/g, '') : (p.k === 'nadie' ? 'Nadie las ha tomado todavía.' : 'Sin movimientos en 7 días.')) + '</span>' +
+        '<span class="tj-ir">Ver a ' + (p.k === 'nadie' ? 'lo sin tomar' : esc(p.nb.split(' ')[0])) + ' →</span></button>';
+    }).join('');
+    [].forEach.call($('i3Tarjetas').querySelectorAll('.tj'), function(b){
+      b.addEventListener('click', function(){ i3.vuelta = b; abreI3(b.getAttribute('data-k')); });
+    });
+  }
+  function pintaCajon(){
+    var caja = $('i3Ficha');
+    caja.innerHTML = htmlFicha(persona(i3.k), i3.pestana);
+    ataPestanas(caja, function(v){ i3.pestana = v; pintaCajon(); });
+  }
+  function abreI3(k){
+    i3.k = k; i3.pestana = 'sols';
+    pintaCajon();
+    $('i3Marco').classList.add('abierto');
+    $('i3Cajon').focus();
+  }
+  /* Al cerrar, el foco vuelve a la tarjeta que lo abrió: sin eso, quien va
+     con el teclado se queda al principio de la página. */
+  function cierraI3(){
+    if (!$('i3Marco').classList.contains('abierto')) return;
+    $('i3Marco').classList.remove('abierto');
+    if (i3.vuelta) i3.vuelta.focus();
+  }
+
+  /* ── 4 · una columna por persona ── */
+  var i4 = {};   /* por persona: 'sols' o 'hist' */
+  function pintaI4(){
+    $('i4Tablero').innerHTML = GENTE.map(function(p){
+      var modo = i4[p.k] || 'sols';
+      var vivas = p.sols.filter(function(s){ return s.est !== 'resuelto'; })
+        .sort(function(a, b){ return (b.espera === null ? -1 : b.espera) - (a.espera === null ? -1 : a.espera); });
+      var h = '<div class="col' + (p.k === 'nadie' ? ' nadie' : '') + '">' +
+        '<div class="col-h">' + av(p) + '<span class="q"><span class="nb" style="display:block">' + esc(p.nb) + '</span><span class="cf">' +
+          (p.k === 'nadie' ? 'nadie contesta' : (p.marca === null ? 'sin marca todavía' : 'contesta en <b>' + horas(p.marca) + '</b>')) +
+        '</span></span><span class="cnt">' + vivas.length + '</span></div>';
+      if (p.k !== 'nadie'){
+        h += '<div class="col-modo" data-k="' + p.k + '">' +
+          '<button type="button" data-m="sols" aria-pressed="' + (modo === 'sols') + '">Solicitudes</button>' +
+          '<button type="button" data-m="hist" aria-pressed="' + (modo === 'hist') + '">Historial</button></div>';
+      }
+      if (modo === 'hist' && p.k !== 'nadie'){
+        h += p.hist.length ? p.hist.map(htmlEvento).join('') : '<div class="vacio">Nada en 7 días.</div>';
+      } else {
+        h += vivas.length ? vivas.map(function(s){
+          var pasa = pasaDe(p, s);
+          var cls = pasa ? 'pasa' : s.espera === null ? (s.est === 'devuelto' ? 'rust' : 'fuera') : '';
+          return '<div class="kc ' + cls + '"><div class="nm">' + esc(s.tr) + '</div><div class="sub">' + esc(s.inv) + '</div>' +
+            '<div class="pie"><span class="e">' + esc(ESTADO[s.est][0].replace('{ente}', s.ente || '')) + '</span>' +
+            '<span class="w">' + (s.espera === null ? '<span class="nada">–</span>' : horas(s.espera) + (pasa ? ' · ' + (p.k === 'nadie' ? 'sin tomar' : 'se pasó') : '')) + '</span></div></div>';
+        }).join('') : '<div class="vacio">No lleva ninguna.</div>';
+      }
+      return h + '</div>';
+    }).join('');
+    [].forEach.call($('i4Tablero').querySelectorAll('.col-modo button'), function(b){
+      b.addEventListener('click', function(){ i4[b.parentNode.getAttribute('data-k')] = b.getAttribute('data-m'); pintaI4(); });
+    });
+  }
+
+  /* La barra lateral se escribe una vez y se copia a los cuatro paneles. */
+  var sb = document.querySelector('.sb:not([data-sb])');
+  [].forEach.call(document.querySelectorAll('[data-sb]'), function(a){ a.innerHTML = sb.innerHTML; });
+
+  $('busca').addEventListener('input', pintaGente);
+  $('i3Cerrar').addEventListener('click', cierraI3);
+  $('i3Velo').addEventListener('click', cierraI3);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') cierraI3(); });
+  pintaGente();
+  pintaFicha();
+  pintaI2();
+  pintaI3();
+  pintaI4();
+})();
+</script>
+</body>
+</html>

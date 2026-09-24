@@ -289,6 +289,7 @@
               cuadraAbre, cuadraMira, cuadraMira, cuadraMira,
               nuevaVersionMira, guardaCatalogo,
               rastroAbre, rastroMira,
+              equipoAbre, equipoMira, equipoFichaMira, equipoCierraMira,
               rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
               rastroDesdeTramiteSalta, rastroDesdeTramiteMira,
               alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno,
@@ -10983,6 +10984,69 @@
        !!num && Number(num.textContent) === filas.length,
        (num ? num.textContent : '(sin contador)') + ' contadas, ' + filas.length + ' pintadas',
        'las mismas');
+    location.hash = '';
+  }
+
+  /* ── EL EQUIPO, UNO POR UNO (24-9-2026) ──
+     Una tarjeta por persona del equipo y su ficha en un panel lateral. El
+     doble trae dos gestores -Franklin y Saskia-, y no trae eventos en este
+     pase: se mide la forma, no las cifras. */
+  function equipoAbre(){
+    location.hash = 'equipo';
+  }
+
+  function equipoMira(){
+    /* A quien no es administrador, #equipo escrito a mano no le abre
+       nada: cae a la portada, como el #tramite-c99. */
+    if (!ES_ADMIN){
+      ok('equipo: sin ser administrador, #equipo no abre la pantalla',
+         document.body.getAttribute('data-vista') !== 'equipo',
+         document.body.getAttribute('data-vista'), 'otra vista');
+      location.hash = '';
+      return;
+    }
+    igual('equipo: se abre la vista', document.body.getAttribute('data-vista'), 'equipo');
+    var nav = document.getElementById('navEquipo');
+    ok('equipo: y su renglón se enciende en la barra',
+       !!nav && nav.classList.contains('active'), nav ? nav.className : '(no hay)', 'active');
+    ok('equipo: la pantalla dice cómo se llama',
+       !!(document.getElementById('eqCabT').textContent || '').trim(),
+       document.getElementById('eqCabT').textContent, 'un título');
+    var gente = document.querySelectorAll('#eqTarjetas .eq-tj:not([data-k=""])');
+    ok('equipo: una tarjeta por persona del equipo', gente.length >= 2,
+       gente.length + ' tarjetas', 'dos o más');
+    var sinCifras = [].filter.call(gente, function(b){ return b.querySelectorAll('.eq-tj-c > span').length !== 3; });
+    igual('equipo: y cada una con sus tres cifras', sinCifras.length, 0);
+    if (gente[0]) gente[0].click();
+  }
+
+  function equipoFichaMira(){
+    if (!ES_ADMIN) return;
+    var caj = document.getElementById('eqCajon');
+    ok('equipo: al pulsar una tarjeta sale su ficha', !!caj && !caj.hidden,
+       caj ? (caj.hidden ? 'escondida' : 'a la vista') : '(no hay)', 'a la vista');
+    var nombre = document.querySelector('#eqFicha .eq-f-cab .nb');
+    var tarjeta = document.querySelector('#eqTarjetas .eq-tj:not([data-k=""]) .nb');
+    igual('equipo: y es la de esa persona',
+          nombre ? nombre.textContent : '(sin nombre)', tarjeta ? tarjeta.textContent : '(sin tarjeta)');
+    igual('equipo: con sus cinco cifras', document.querySelectorAll('#eqFicha .eq-cifra').length, 5);
+    var pest = document.querySelectorAll('#eqFicha .eq-pest button');
+    igual('equipo: y dos pestañas, sus solicitudes y su historial', pest.length, 2);
+    if (pest[1]) pest[1].click();
+    ok('equipo: el historial se abre, con movimientos o diciendo que no hay',
+       !!document.querySelector('#eqFicha .eq-hist, #eqFicha .eq-f-vacio'),
+       document.querySelector('#eqFicha .eq-hist') ? 'historial' : '(nada)', 'historial o aviso');
+    document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
+  }
+
+  function equipoCierraMira(){
+    if (!ES_ADMIN) return;
+    var caj = document.getElementById('eqCajon');
+    ok('equipo: Esc cierra la ficha', !!caj && caj.hidden,
+       caj ? (caj.hidden ? 'escondida' : 'a la vista') : '(no hay)', 'escondida');
+    var a = document.activeElement;
+    ok('equipo: y el foco vuelve a la tarjeta que la abrió',
+       !!a && a.classList.contains('eq-tj'), a ? (a.className || a.tagName) : '(nada)', 'eq-tj');
     location.hash = '';
   }
 
