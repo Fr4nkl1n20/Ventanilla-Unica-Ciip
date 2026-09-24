@@ -10574,7 +10574,6 @@ applyLang(idiomaParaMi());
       {n:'rif_empresa',       clave:'f_rifempresa'},
       {n:'tipo_cuenta',       clave:'f_tipocuenta',  opcionesClave:'o_tipocuenta'},
       {n:'moneda',            clave:'f_moneda',      opcionesClave:'o_moneda'},
-      {n:'ciudad_agencia',    clave:'f_ciudad'},
       {n:'movimiento_estimado', clave:'f_movimiento'},
       {n:'firmantes',         clave:'f_firmantes',   ancho:true},
       {n:'origen_fondos',     clave:'f_origenfondos',ancho:true}
@@ -10586,12 +10585,19 @@ applyLang(idiomaParaMi());
        `en_uso` es un desplegable y no una fecha porque quien todavía no la
        usa no tiene fecha que poner, y el formulario exige todos los
        campos: una fecha ahí bloquearía a la mitad de los solicitantes. */
+    /* LA MARCA LA REGISTRA UNA EMPRESA, Y SE DICE CUÁL (Franklin Reyes,
+       24 de septiembre de 2026). «A nombre de quién se registra» era un
+       desplegable de dos opciones -la empresa o la persona- que no decía
+       lo único que hace falta saber: QUÉ empresa. Se va, y en su sitio
+       entra la casilla con su nombre. Y «Productos o servicios que ampara»
+       pasa a pedir una descripción detallada, que es lo que el registro
+       espera y no una lista suelta. */
     marca: [
-      {n:'signo',       clave:'f_signo',     ancho:true},
-      {n:'tipo_signo',  clave:'f_tiposigno', opcionesClave:'o_tiposigno'},
-      {n:'titular',     clave:'f_titular',   opcionesClave:'o_titular'},
-      {n:'en_uso',      clave:'f_enuso',     opcionesClave:'o_enuso'},
-      {n:'productos',   clave:'f_productos', ancho:true}
+      {n:'signo',            clave:'f_signo',     ancho:true},
+      {n:'tipo_signo',       clave:'f_tiposigno', opcionesClave:'o_tiposigno'},
+      {n:'empresa_registra', clave:'f_empresamarca', ancho:true},
+      {n:'en_uso',           clave:'f_enuso',     opcionesClave:'o_enuso'},
+      {n:'productos',        clave:'f_productos', ancho:true}
     ],
     /* La misma razón que en RECAUDOS: el IVSS ya no se ofrece, pero lo
        pedido sigue teniendo que saber leerse.
@@ -10978,10 +10984,14 @@ applyLang(idiomaParaMi());
          el CIIP publica donde toque. */
       {n:'periodico',          clave:'f_periodico', opcional:true}
     ],
+    /* SOLO LO QUE EL SELLADO NECESITA (Franklin Reyes, 24 de septiembre de
+       2026, en Pendientes FRANK.pdf). Se van «Cómo vas a facturar», «Fecha
+       de inicio de actividades», «Dirección fiscal en Venezuela» y
+       «Actividad económica»: ninguna de las cuatro se usa para sellar unos
+       libros, y las cuatro se preguntan ya en otros trámites. */
     libros_contables: [
       {n:'razon_social',        clave:'f_razon',       ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
-      {n:'actividad_economica', clave:'f_actividad'},
       /* LOS LIBROS, aqui y no en el SISREF (22 de septiembre de 2026,
          Franklin). Entraron con el c32 porque el portal del SAREN los
          pregunta, y alli los veia todo el que va a firmar cualquier otra
@@ -10999,15 +11009,16 @@ applyLang(idiomaParaMi());
          DIARIO», igual que la junta directiva del c5: al otro lado hay
          una columna de texto y un PDF, no una tabla.
 
-         Siguen OPCIONALES: el c24 tambien lleva la facturacion, y quien
-         viene solo a homologar su sistema no tiene libros que sellar. */
-      {n:'cantidad_libros',     clave:'f_cantlibros', tipo:'number', opcional:true},
-      {n:'libros',              clave:'f_libros',     tipo:'listaelige', ancho:true, opcional:true,
+         YA NO SON OPCIONALES (Franklin Reyes, 24 de septiembre de 2026:
+         «lo de agregar libros no puede ser opcional»). Lo eran porque este
+         trámite llevaba tambien la facturacion, y quien venia solo a
+         homologar su sistema no tenia libros que sellar. Esa mitad se va
+         hoy con los cuatro campos de arriba, asi que lo que queda es el
+         sellado a secas: una solicitud sin un solo libro no es nada. */
+      {n:'cantidad_libros',     clave:'f_cantlibros', tipo:'number'},
+      {n:'libros',              clave:'f_libros',     tipo:'listaelige', ancho:true,
        elige:['ACCIONISTAS', 'ACTAS', 'DIARIO', 'MAYOR', 'INVENTARIO', 'JUNTAS DIRECTIVAS', 'SOCIOS'],
-       vacia:'f_libros_elige', mas:'f_libros_mas', quita:'f_libros_quita'},
-      {n:'tipo_facturacion',    clave:'f_tipofact',    opcionesClave:'o_tipofact'},
-      {n:'inicio_actividades',  clave:'f_iniciolab',   tipo:'date'},
-      {n:'direccion_fiscal',    clave:'f_direccion',   ancho:true}
+       vacia:'f_libros_elige', mas:'f_libros_mas', quita:'f_libros_quita'}
     ]
   };
 

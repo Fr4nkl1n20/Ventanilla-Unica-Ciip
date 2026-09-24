@@ -42,22 +42,22 @@ rótulo. No inventan mecanismos nuevos y se deshacen borrando una línea.
       dirección fiscal
 
 ### Cuenta bancaria empresarial (c7)
-- [ ] Quitar el campo «Ciudad donde prefieres la agencia»
+- [x] Quitar el campo «Ciudad donde prefieres la agencia»
 - [ ] Recaudos: acta constitutiva; RIF de la empresa; cédula o pasaporte y
       RIF del representante legal; declaración jurada de origen de fondos
 
 ### Sellado de libros (c24)
-- [ ] Quitar «Cómo vas a facturar», «Fecha de inicio de actividades»,
+- [x] Quitar «Cómo vas a facturar», «Fecha de inicio de actividades»,
       «Dirección fiscal en Venezuela» y «Actividad económica»
-- [ ] Que «Agregar libros» deje de ser opcional
+- [x] Que «Agregar libros» deje de ser opcional
 - [ ] Recaudos: acta constitutiva; RIF de la empresa; cédula o pasaporte y
       RIF de la junta directiva; cédula o pasaporte y RIF de los accionistas
 
 ### Registro de marcas (c8)
-- [ ] Cambiar el rótulo del campo por «Descripción detallada de los
+- [x] Cambiar el rótulo del campo por «Descripción detallada de los
       productos o servicios»
-- [ ] Quitar «A nombre de quién se registra»
-- [ ] Añadir «Empresa que registra la marca», con su casilla de texto
+- [x] Quitar «A nombre de quién se registra»
+- [x] Añadir «Empresa que registra la marca», con su casilla de texto
 - [ ] Recaudos: logo; acta constitutiva de la empresa que registra; RIF de
       la empresa; cédula o pasaporte y RIF del representante legal
 
