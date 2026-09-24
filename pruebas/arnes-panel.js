@@ -5327,14 +5327,36 @@
             document.querySelectorAll('#mtCab th').length, conProg ? 6 : 5);
 
       var filas = document.querySelectorAll('#mtCuerpo tr');
-      /* El progreso: una celda por fila, cuatro círculos en cada una, y la
-         frase para el lector de pantalla. Que cada fila la tenga importa:
-         con una sin ella, la columna se corre y la fecha cae bajo
-         «Progreso». */
+      /* El progreso: una celda por fila, sus círculos, y la frase para el
+         lector de pantalla. Que cada fila la tenga importa: con una sin
+         ella, la columna se corre y la fecha cae bajo «Progreso».
+         Cuatro como poco -el circuito- y a veces más: la constitución
+         lleva la reserva y la protocolización el PUB delante, igual que en
+         su ficha (escaleraDe). */
       if (conProg && filas.length){
         var sinProg = [].filter.call(filas, function(f){
-          return !f.querySelector('.mt-pg') || f.querySelectorAll('.mt-pg-p').length !== 4; });
-        igual('mis trámites: cada fila lleva su progreso de cuatro pasos', sinProg.length, 0);
+          return !f.querySelector('.mt-pg') || f.querySelectorAll('.mt-pg-p').length < 4; });
+        igual('mis trámites: cada fila lleva su progreso, con sus pasos', sinProg.length, 0);
+
+        /* Los dos casos que la tabla no puede contar a su manera. t2 es una
+           constitución en borrador: cinco pasos, como su ficha -la reserva
+           va antes de «Resuelta»-, y el primero es suyo. t1 es un RIF
+           devuelto: cuatro, y se detiene en el segundo con su «!». */
+        var t2 = document.querySelector('#mtCuerpo tr[data-id="t2"]');
+        if (t2){
+          var p2 = t2.querySelectorAll('.mt-pg-p');
+          igual('mis trámites: la constitución cuenta sus cinco pasos, como su ficha',
+                p2.length + ' · ' + (p2[0] && p2[0].classList.contains('tuyo') ? 'el primero, suyo' : 'sin el suyo'),
+                '5 · el primero, suyo');
+        }
+        var t1 = document.querySelector('#mtCuerpo tr[data-id="t1"]');
+        if (t1){
+          var p1 = t1.querySelectorAll('.mt-pg-p');
+          var alto = [].map.call(p1, function(x, i){ return x.classList.contains('alto') ? i + 1 : 0; })
+                       .filter(Boolean).join(',');
+          igual('mis trámites: la devuelta se detiene en la revisión',
+                p1.length + ' pasos, detenida en ' + (alto || 'ninguno'), '4 pasos, detenida en 2');
+        }
         var pg = document.querySelector('#mtCuerpo .mt-pg');
         ok('mis trámites: y el progreso se lee sin ver los círculos',
            !!(pg && /\d+ %/.test(pg.getAttribute('aria-label') || '')),
