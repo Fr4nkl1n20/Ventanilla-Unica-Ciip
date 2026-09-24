@@ -644,9 +644,18 @@ svg{display:block;}
 .t-otra{display:flex; align-items:center; gap:10px; flex-wrap:wrap;
   margin-top:10px; padding-top:10px; border-top:1px solid var(--line-soft);}
 .t-otra-t{font-size:var(--fs-nota); font-weight:700; color:var(--good);}
-.t-otra-b{font:inherit; font-size:var(--fs-nota); font-weight:700; color:var(--navy);
-  background:none; border:0; padding:0; margin-left:auto; cursor:pointer;}
-.t-otra-b:hover{text-decoration:underline;}
+/* Y el recuadro de la ficha, que es donde SÍ se puede pedir otro. En gris
+   y no en verde: el verde de arriba dice «esto está hecho» y esto no
+   celebra nada, solo abre una puerta por si hace falta. */
+.tr-otra{border:1px solid var(--line); border-radius:var(--r);
+  padding:14px 17px; margin-bottom:16px;}
+.tr-otra .to-t{font-size:var(--fs-seccion); font-weight:700; letter-spacing:.01em;}
+.tr-otra .to-p{font-size:12px; color:var(--gray); margin-top:4px; margin-bottom:11px;}
+.tr-otra .to-acc{display:flex; align-items:center; gap:9px; flex-wrap:wrap;}
+/* La advertencia ocupa el renglón entero y empuja los dos botones abajo:
+   leída al lado de «Sí, pedir otro» no se lee, se salta. */
+.tr-otra .to-seg{flex-basis:100%; font-size:12px; font-weight:700; color:var(--rust);
+  margin-bottom:2px;}
 .tr-entrega .te-t{font-size:var(--fs-seccion); font-weight:700; color:var(--good);
   letter-spacing:.01em;}
 .tr-entrega .te-p{font-size:12px; color:var(--gray); margin-top:4px;}
@@ -11034,20 +11043,8 @@ applyLang(idiomaParaMi());
             escalera.classList.add('oculto');
             caja.classList.add('puesto');
             caja.textContent = '';
-            /* «Solicitar otro igual», pulsado en la tarjeta: se entra al
-               formulario EN BLANCO aunque haya una resuelta, que es justo
-               lo que el botón promete. Se hace ignorando la que hay -no
-               borrándola-: sigue en Mis trámites y en la bóveda.
-
-               La bandera se gasta al leerla y solo vale para ESTE trámite:
-               una que no encaje se ignora y la pantalla abre lo de siempre,
-               que es peor que acertar y mucho mejor que un formulario en
-               blanco encima de algo terminado. */
-            var otraIgual = window.CIIP_OTRA_IGUAL === refPanel;
-            window.CIIP_OTRA_IGUAL = null;
-            if (!otraIgual && mio && mio.estado !== 'borrador'){ chipReal(mio.estado); pintaEstado(t, mio); }
+            if (mio && mio.estado !== 'borrador'){ chipReal(mio.estado); pintaEstado(t, mio); }
             else {
-              if (otraIgual) mio = null;
               chipReal('sin_iniciar');
               /* DIRECTO AL FORMULARIO, sin ficha por delante.
               
@@ -13503,6 +13500,58 @@ applyLang(idiomaParaMi());
        quien abre un trámite terminado —vino a por el papel, no a por la
        escalera—, así que va encima de todo. */
     if (tr.estado === 'resuelto') pintaEntregado(tr, caja);
+
+    /* ── PEDIR OTRO IGUAL, PREGUNTANDO ANTES ────────────────────────────
+       Franklin Reyes, 24-9-2026: «falta una confirmación antes de abrir».
+       El botón abría el formulario en blanco de un clic, y eso son dos
+       cosas que se parecen y no son la misma: CORREGIR lo que tienes y
+       PEDIR OTRO. Quien se confunde acaba con dos constituciones y sin
+       entender de dónde salió la segunda.
+
+       La pregunta va en el sitio del botón y no en una ventana encima: lo
+       que hay que leer son dos renglones, y una ventana modal para dos
+       renglones interrumpe más de lo que informa. Al pulsar, el botón se
+       cambia por la advertencia y sus dos salidas; «Cancelar» lo deja
+       como estaba, sin haber tocado nada.
+
+       Abre el formulario EN BLANCO: se le pasa null y no la solicitud de
+       antes. Pasarle la resuelta la reabriría para editarla, que es
+       reescribir el expediente que el CIIP ya cerró. */
+    if (tr.estado === 'resuelto'){
+      var otra = el('div', 'tr-otra');
+      otra.appendChild(el('div', 'to-t', u.tr_otra_t || ''));
+      otra.appendChild(el('div', 'to-p', u.tr_otra_p || ''));
+      var accion = el('div', 'to-acc');
+      otra.appendChild(accion);
+
+      var abre = function(){
+        caja.textContent = '';
+        caja.classList.add('puesto');
+        chipReal('sin_iniciar');
+        pintaFormulario(tipo, null);
+      };
+      var pinta = function(preguntando){
+        accion.textContent = '';
+        if (!preguntando){
+          var pedir = el('button', 'btn ghost', u.tr_otra_b || '');
+          pedir.type = 'button';
+          pedir.addEventListener('click', function(){ pinta(true); });
+          accion.appendChild(pedir);
+          return;
+        }
+        accion.appendChild(el('div', 'to-seg', u.tr_otra_seg || ''));
+        var no = el('button', 'btn ghost', u['tx.cancelar'] || '');
+        no.type = 'button';
+        no.addEventListener('click', function(){ pinta(false); });
+        var si = el('button', 'btn navy', u.tr_otra_si || '');
+        si.type = 'button';
+        si.addEventListener('click', abre);
+        accion.appendChild(no);
+        accion.appendChild(si);
+      };
+      pinta(false);
+      caja.appendChild(otra);
+    }
 
     var lista = el('ol', 'tr-pasos');
     caja.appendChild(lista);
@@ -24049,15 +24098,12 @@ applyLang(idiomaParaMi());
     var caja = habia || el('div', 't-otra');
     caja.textContent = '';
     caja.appendChild(el('span', 't-otra-t', u.tr_otra_t || ''));
-    var b = el('button', 't-otra-b', u.tr_otra_b || '');
-    b.type = 'button';
-    b.title = u.tr_otra_p || '';
-    b.addEventListener('click', function(e){
-      e.stopPropagation();
-      window.CIIP_OTRA_IGUAL = tarjeta.getAttribute('data-tr');
-      location.hash = 'tramite-' + tarjeta.getAttribute('data-tr');
-    });
-    caja.appendChild(b);
+    /* SIN BOTÓN AQUÍ (Franklin Reyes, 24-9-2026: «quitar el botón de
+       acá»). La tarjeta ANUNCIA que ya lo tienes; pedir otro es una
+       acción, y las acciones de un trámite viven en su ficha, que es donde
+       hay sitio para decir lo que implican antes de hacerlas. Un enlace
+       aquí llevaba a pedir otra constitución desde una rejilla de treinta
+       tarjetas, a un clic de distancia y sin nada que lo pensara. */
     if (!habia) pie.parentNode.insertBefore(caja, pie.nextSibling);
   }
 
