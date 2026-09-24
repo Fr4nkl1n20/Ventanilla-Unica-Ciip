@@ -632,14 +632,21 @@ svg{display:block;}
 /* Lo entregado, en el detalle del trámite del inversionista. */
 .tr-entrega{background:var(--good-bg); border:1px solid var(--good);
   border-radius:var(--r); padding:15px 17px; margin-bottom:16px;}
-/* Pedir otro igual, debajo del papel entregado. En gris y no en verde: el
-   verde de arriba dice «esto está hecho» y esto no celebra nada, solo
-   abre una puerta por si hace falta. Mismo marco para que se lea como
-   parte del final del trámite y no como un aviso suelto. */
-.tr-otra{border:1px solid var(--line); border-radius:var(--r);
-  padding:14px 17px; margin-bottom:16px;}
-.tr-otra .to-t{font-size:var(--fs-seccion); font-weight:700; letter-spacing:.01em;}
-.tr-otra .to-p{font-size:12px; color:var(--gray); margin-top:4px; margin-bottom:11px;}
+/* «Ya lo tienes» y la puerta a pedir otro, al pie de la tarjeta y solo
+   cuando está lista. Colgado DEBAJO del pie, con su filo encima: es otra
+   cosa que lo que el pie cuenta -el plazo y «ver detalles»- y metido
+   dentro se leería como una parte más de la ficha.
+
+   El botón no parece un botón de acción. Lo que ofrece es legítimo pero
+   raro -repetir un trámite que ya está hecho-, y en una rejilla de
+   treinta tarjetas un botón sólido aquí tiraría del ojo más que los
+   trámites que de verdad esperan algo. */
+.t-otra{display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  margin-top:10px; padding-top:10px; border-top:1px solid var(--line-soft);}
+.t-otra-t{font-size:var(--fs-nota); font-weight:700; color:var(--good);}
+.t-otra-b{font:inherit; font-size:var(--fs-nota); font-weight:700; color:var(--navy);
+  background:none; border:0; padding:0; margin-left:auto; cursor:pointer;}
+.t-otra-b:hover{text-decoration:underline;}
 .tr-entrega .te-t{font-size:var(--fs-seccion); font-weight:700; color:var(--good);
   letter-spacing:.01em;}
 .tr-entrega .te-p{font-size:12px; color:var(--gray); margin-top:4px;}
@@ -10946,8 +10953,20 @@ applyLang(idiomaParaMi());
             escalera.classList.add('oculto');
             caja.classList.add('puesto');
             caja.textContent = '';
-            if (mio && mio.estado !== 'borrador'){ chipReal(mio.estado); pintaEstado(t, mio); }
+            /* «Solicitar otro igual», pulsado en la tarjeta: se entra al
+               formulario EN BLANCO aunque haya una resuelta, que es justo
+               lo que el botón promete. Se hace ignorando la que hay -no
+               borrándola-: sigue en Mis trámites y en la bóveda.
+
+               La bandera se gasta al leerla y solo vale para ESTE trámite:
+               una que no encaje se ignora y la pantalla abre lo de siempre,
+               que es peor que acertar y mucho mejor que un formulario en
+               blanco encima de algo terminado. */
+            var otraIgual = window.CIIP_OTRA_IGUAL === refPanel;
+            window.CIIP_OTRA_IGUAL = null;
+            if (!otraIgual && mio && mio.estado !== 'borrador'){ chipReal(mio.estado); pintaEstado(t, mio); }
             else {
+              if (otraIgual) mio = null;
               chipReal('sin_iniciar');
               /* DIRECTO AL FORMULARIO, sin ficha por delante.
               
@@ -13334,40 +13353,6 @@ applyLang(idiomaParaMi());
        quien abre un trámite terminado —vino a por el papel, no a por la
        escalera—, así que va encima de todo. */
     if (tr.estado === 'resuelto') pintaEntregado(tr, caja);
-
-    /* ── Y SI HACE FALTA OTRO, SE PUEDE PEDIR ───────────────────────────
-       Un trámite resuelto dejaba la pantalla sin salida: el papel, la
-       escalera en verde y nada más. Pero hay motivos de sobra para pedir
-       el mismo otra vez -otra empresa, otro familiar, o el que tenías se
-       venció-, y hasta hoy había que adivinar que se hacía volviendo al
-       catálogo, si es que se le ocurría a alguien.
-
-       El aviso va DELANTE del botón y no detrás, y ese orden es el
-       encargo: lo primero es que ya lo tienes -con su fecha, para que no
-       haya duda de cuál- y solo después la puerta. Al revés sería un
-       botón que invita a repetir un trámite hecho, que es justo lo que no
-       queremos que pase por descuido.
-
-       Abre el formulario EN BLANCO, sin la solicitud de antes: se le pasa
-       null y no `tr`. Pasarle la resuelta la reabriría para editarla, que
-       no es pedir otra, es reescribir el expediente que el CIIP ya cerró.
-       Lo de antes no se toca: se queda en Mis trámites y en la bóveda. */
-    if (tr.estado === 'resuelto'){
-      var otra = el('div', 'tr-otra');
-      otra.appendChild(el('div', 'to-t', u.tr_otra_t || ''));
-      otra.appendChild(el('div', 'to-p', String(u.tr_otra_p || '')
-        .replace('{fecha}', tr.resuelto_en ? fecha(tr.resuelto_en) : '')));
-      var pedir = el('button', 'btn ghost', u.tr_otra_b || '');
-      pedir.type = 'button';
-      pedir.addEventListener('click', function(){
-        caja.textContent = '';
-        caja.classList.add('puesto');
-        chipReal('sin_iniciar');
-        pintaFormulario(tipo, null);
-      });
-      otra.appendChild(pedir);
-      caja.appendChild(otra);
-    }
 
     var lista = el('ol', 'tr-pasos');
     caja.appendChild(lista);
@@ -23713,6 +23698,45 @@ applyLang(idiomaParaMi());
     return hacenFalta.every(function(r){ return !!MIOS[r.tipo]; });
   }
 
+  /* ── YA LO TIENES, Y PUEDES PEDIR OTRO ──────────────────────────────
+     Franklin Reyes, 24-9-2026: «quiero que el anuncio al terminar la ficha
+     salga es aquí», señalando la tarjeta, «solo al tener la ficha lista».
+
+     Estaba dentro de la ficha abierta, que es un clic más tarde y un sitio
+     peor: cuando llegas ahí ya has ido a buscar algo. En la tarjeta se lee
+     sin entrar, que es donde se mira qué está hecho y qué no.
+
+     Solo en 'listo'. En cualquier otro estado el trámite está en marcha o
+     sin empezar, y ofrecer «otro igual» sería invitar a duplicarlo.
+
+     El botón lleva a la ficha con la bandera puesta, y no abre el
+     formulario aquí: una tarjeta del catálogo no es sitio para empezar a
+     rellenar, y el formulario vive en la pantalla del trámite. */
+  function pintaOtraIgual(tarjeta, tipo, st){
+    var pie = tarjeta.querySelector('.t-foot');
+    var habia = tarjeta.querySelector('.t-otra');
+    if (!pie || st !== 'listo' || !tipo){ if (habia) habia.remove(); return; }
+
+    var u = T();
+    /* Se REESCRIBE si ya estaba, en vez de salirse: al cambiar de idioma
+       las tarjetas se repintan y esto no lleva data-i18n -lo pinta el
+       guion-, así que salirse aquí lo dejaría en el idioma anterior. Es la
+       misma trampa que ya se documentó en pintaListo. */
+    var caja = habia || el('div', 't-otra');
+    caja.textContent = '';
+    caja.appendChild(el('span', 't-otra-t', u.tr_otra_t || ''));
+    var b = el('button', 't-otra-b', u.tr_otra_b || '');
+    b.type = 'button';
+    b.title = u.tr_otra_p || '';
+    b.addEventListener('click', function(e){
+      e.stopPropagation();
+      window.CIIP_OTRA_IGUAL = tarjeta.getAttribute('data-tr');
+      location.hash = 'tramite-' + tarjeta.getAttribute('data-tr');
+    });
+    caja.appendChild(b);
+    if (!habia) pie.parentNode.insertBefore(caja, pie.nextSibling);
+  }
+
   function pintaListo(tarjeta, tipo, st){
     var pie = tarjeta.querySelector('.t-foot');
     var habia = tarjeta.querySelector('.t-listo');
@@ -24834,6 +24858,7 @@ applyLang(idiomaParaMi());
       pintaLoHacemos(c, (TIPOS || {})[ref]);
       pintaPlazoLegal(c, (TIPOS || {})[ref]);
       pintaListo(c, (TIPOS || {})[ref], st);
+      pintaOtraIgual(c, (TIPOS || {})[ref], st);
       pintaLogo(c, (TIPOS || {})[ref]);
     });
 
