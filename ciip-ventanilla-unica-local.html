@@ -2399,7 +2399,21 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .rv-fila:last-child{border-bottom:0;}
 .rv-fila:hover{background:var(--card-2);}
 .rv-fila[aria-current="true"]{background:var(--activa-bg); box-shadow:inset 3px 0 0 var(--navy2);}
-.rv-fila .t{font-size:var(--fs-fila); font-weight:700;}
+/* EL NOMBRE, A DOS LINEAS COMO MUCHO (Franklin Reyes, 24-9-2026:
+   «podemos anivelar las filas?»). «RIF de la empresa» ocupaba una linea y
+   «Recibo de pago de servicios publicos donde se compruebe la direccion
+   comercial (luz, telefono u otros)» cuatro, asi que la lista quedaba a
+   dientes y no se podia recorrer con el ojo.
+
+   Dos y no una: con una sola se recorta «Cedula o pasaporte de los
+   accionistas» justo donde empieza a decir algo. Con dos caben todos los
+   nombres del catalogo menos los tres o cuatro mas largos, y esos se
+   entienden por el principio.
+
+   El nombre entero queda en el title, que lo pone rvPinta. */
+.rv-fila .t{font-size:var(--fs-fila); font-weight:700;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden; overflow-wrap:anywhere;}
 .rv-fila .h{font-size:var(--fs-nota); color:var(--gray); white-space:nowrap;}
 .rv-fila .de{grid-column:1 / -1; font-size:var(--fs-nota); color:var(--gray); display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
 .rv-chip{font-size:var(--fs-chip); font-weight:700; border-radius:20px; padding:2px 8px; background:var(--activa-bg); color:var(--navy2);}
@@ -2443,6 +2457,32 @@ body[data-vista="citas"] .fase-bar{display:none;}
 @media (max-width:1100px){ #rv{grid-template-columns:minmax(0,220px) minmax(0,1fr);} #rv .rv-visor{grid-column:1 / -1;} }
 @media (max-width:900px){ #rv{grid-template-columns:1fr;} }
 #rv .rv-lista{align-content:start;}
+/* ── LOS TRES PANELES, A LA MISMA ALTURA ─────────────────────────────
+   Franklin Reyes, 24-9-2026: «podemos anivelar las filas?». La bandeja
+   hereda align-items:start de .rv, que es lo correcto con dos columnas
+   -una ficha corta no tiene por que estirarse-, pero con tres deja la
+   caja de personas acabando a un tercio mientras las otras dos siguen
+   bajando, y las tres cabeceras ya no comparten marco.
+
+   Se igualan con stretch y se les pone techo: asi las tres miden lo
+   mismo y cada una se desplaza por dentro, en vez de que la pagina
+   entera se alargue por la lista mas larga. El techo va con la ventana,
+   que es lo que decide cuanto cabe, y con un suelo para que en una
+   pantalla baja no queden tres cajas de dos dedos.
+
+   Solo para #rv y #cb, que son las de tres columnas. La bandeja de dos
+   se queda como estaba. */
+#rv, #cb{align-items:stretch;}
+#rv .rv-lista, #rv .rv-visor,
+#cb .rv-lista, #cb .rv-visor{min-height:340px; max-height:calc(100vh - 230px); overflow:auto;}
+/* Y la cabecera del visor no se va con el desplazamiento: es la que dice
+   de quien es el papel que se esta mirando. */
+#rv .rv-visor, #cb .rv-visor{align-content:start;}
+@media (max-width:900px){
+  #rv, #cb{align-items:start;}
+  #rv .rv-lista, #rv .rv-visor,
+  #cb .rv-lista, #cb .rv-visor{min-height:0; max-height:none; overflow:hidden;}
+}
 @media (max-width:1100px){ #cb{grid-template-columns:minmax(0,220px) minmax(0,1fr);} #cb .rv-visor{grid-column:1 / -1;} }
 @media (max-width:900px){ #cb{grid-template-columns:1fr;} }
 #cb .rv-lista{align-content:start;}
@@ -20291,7 +20331,12 @@ applyLang(idiomaParaMi());
         b.type = 'button';
         b.setAttribute('data-doc', d.id);
         b.setAttribute('aria-current', d.id === rvElegido ? 'true' : 'false');
-        b.appendChild(el('span', 't', nombreDeTipo_doc(d.tipo) + (d.titular ? ' · ' + d.titular : '')));
+        /* Con el nombre entero en el title: la fila lo recorta a dos lineas
+           para que todas midan igual, y los cuatro mas largos del catalogo
+           se cortan por la mitad. */
+        var nom = el('span', 't', nombreDeTipo_doc(d.tipo) + (d.titular ? ' · ' + d.titular : ''));
+        nom.title = nom.textContent;
+        b.appendChild(nom);
         b.appendChild(el('span', 'h', d.creado_en ? fecha(d.creado_en) : ''));
         var de = el('span', 'de');
         var usos = rvUsos[d.id] || [];
@@ -20610,7 +20655,9 @@ applyLang(idiomaParaMi());
         b.type = 'button';
         b.setAttribute('data-doc', d.id);
         b.setAttribute('aria-current', d.id === cbElegido ? 'true' : 'false');
-        b.appendChild(el('span', 't', nombreDeTipo_doc(d.tipo)));
+        var nom = el('span', 't', nombreDeTipo_doc(d.tipo));
+        nom.title = nom.textContent;
+        b.appendChild(nom);
         b.appendChild(el('span', 'h', d.creado_en ? fecha(d.creado_en) : ''));
         var de = el('span', 'de');
         var usos = rvUsos[d.id] || [];
