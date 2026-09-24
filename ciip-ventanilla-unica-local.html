@@ -646,10 +646,34 @@ svg{display:block;}
   box-shadow:var(--shadow); padding:20px 22px; max-width:440px; width:100%;}
 .tra-t{font-size:var(--fs-seccion); font-weight:700; letter-spacing:.01em;}
 .tra-p{font-size:12px; color:var(--gray); margin-top:6px;}
-/* La advertencia en oxido y en su renglon: al lado de «Solicitar otro
-   igual» no se lee, se salta. */
-.tra-s{font-size:12px; font-weight:700; color:var(--rust); margin-top:10px;}
-.tra-b{display:flex; gap:9px; flex-wrap:wrap; margin-top:16px; justify-content:flex-end;}
+/* ── DOS CAMINOS EN VEZ DE DOS BOTONES ──────────────────────────────
+   De las cuatro formas de la maqueta del 24-9-2026, el CIIP eligió ésta.
+   Antes eran dos párrafos y dos botones al pie: la advertencia iba en su
+   propio renglón y se leía en diagonal, porque un renglón de texto encima
+   de dos botones se salta.
+
+   Ahora cada salida dice su nombre y, debajo, a dónde lleva. Lo que
+   avisaba el renglón suelto -que pedir otro abre una solicitud NUEVA- va
+   dentro del camino que lo necesita, que es el único sitio donde alguien
+   lo va a leer: justo antes de pulsarlo.
+
+   El de pedir otro se marca en óxido y el de mirar en verde. No es
+   decoración: son los dos colores con los que este panel dice «esto está
+   hecho» y «esto hay que mirarlo con cuidado». */
+.tra-caminos{display:grid; gap:9px; margin-top:14px;}
+.tra-cam{display:flex; align-items:flex-start; gap:11px; text-align:left; width:100%;
+  border:1px solid var(--line); border-radius:var(--r); background:var(--bg);
+  padding:12px 13px; cursor:pointer; font:inherit; color:inherit;}
+.tra-cam:hover{border-color:var(--navy2); background:var(--activa-bg);}
+.tra-cam:focus-visible{outline:2px solid var(--navy); outline-offset:2px;}
+.tra-cam .ic{width:30px; height:30px; border-radius:8px; flex:none; display:flex;
+  align-items:center; justify-content:center; font-weight:800; font-size:var(--fs-fila);}
+.tra-cam.ojo .ic{background:var(--good-bg); color:var(--good);}
+.tra-cam.mas .ic{background:var(--rust-bg); color:var(--rust);}
+.tra-cam .tx{min-width:0;}
+.tra-cam .tx b{display:block; font-size:var(--fs-valor); font-weight:700;}
+.tra-cam .tx span{display:block; font-size:var(--fs-fila); color:var(--gray);
+  margin-top:2px; line-height:1.5;}
 .tr-entrega .te-t{font-size:var(--fs-seccion); font-weight:700; color:var(--good);
   letter-spacing:.01em;}
 .tr-entrega .te-p{font-size:12px; color:var(--gray); margin-top:4px;}
@@ -4865,6 +4889,24 @@ body[data-vista="horario"] .fase-bar{display:none;}
 .t-tramos{margin-top:10px; padding-top:10px; border-top:1px solid var(--line-soft); display:flex; flex-direction:column; gap:6px;}
 .t-tramo{display:flex; align-items:center; gap:9px; font-size:var(--fs-nota);}
 .t-tramo .tt-n{width:18px; height:18px; border-radius:50%; border:1.5px solid var(--line); background:var(--bg); color:var(--gray); font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;}
+/* ── LO TERMINADO, EN LA TARJETA, NO VA EN VERDE ─────────────────────
+   Franklin Reyes, 24-9-2026, dos veces: «aquí aún salen en verde».
+
+   El verde es la marca de «hecho» de todo el panel y sigue siéndolo donde
+   de verdad informa: en la escalera de una solicitud abierta, en la
+   bóveda, en la cola del equipo. En el CATÁLOGO no informa, satura: una
+   rejilla de treinta fichas con cuatro verdes por tarjeta grita «todo
+   bien» justo en la pantalla que sirve para encontrar lo que falta.
+
+   Se queda en tinta sobre gris, que es lo que este panel usa para lo que
+   ya no pide nada. El palito con su ✓ sigue diciendo que está hecho; lo
+   que se va es el color, no la información.
+
+   Va limitado a .tcard a propósito. Si mañana se quiere el verde de
+   vuelta, se borran estas tres reglas y no hay nada más que deshacer. */
+.tcard .t-tramo[data-st="listo"] .tt-n{background:var(--line-soft); border-color:var(--line);
+  color:var(--gray);}
+.tcard .chip.good{background:var(--line-soft); color:var(--gray);}
 .t-tramo[data-st="listo"] .tt-n{background:var(--good); border-color:var(--good); color:#fff;}
 .t-tramo[data-st="proceso"] .tt-n, .t-tramo[data-st="accion"] .tt-n{border-color:var(--navy2); color:var(--navy2);}
 .t-tramo .tt-t{flex:1 1 auto; min-width:0; font-weight:600; color:var(--ink);}
@@ -6181,10 +6223,15 @@ body[data-vista="horario"] .fase-bar{display:none;}
     <div class="tra-c">
       <div class="tra-t" id="trAvT"></div>
       <div class="tra-p" id="trAvP"></div>
-      <div class="tra-s" id="trAvS"></div>
-      <div class="tra-b">
-        <button class="btn ghost" id="trAvVer" type="button"></button>
-        <button class="btn navy" id="trAvOtra" type="button"></button>
+      <div class="tra-caminos">
+        <button class="tra-cam ojo" id="trAvVer" type="button">
+          <span class="ic" aria-hidden="true">✓</span>
+          <span class="tx"><b></b><span></span></span>
+        </button>
+        <button class="tra-cam mas" id="trAvOtra" type="button">
+          <span class="ic" aria-hidden="true">+</span>
+          <span class="tx"><b></b><span></span></span>
+        </button>
       </div>
     </div>
   </div>
@@ -8045,12 +8092,18 @@ function applyLang(lang){
     var u = (window.CIIP_T && window.CIIP_T()) || {};
     if (!u.tr_otra_t) return false;
     document.getElementById('trAvT').textContent = u.tr_otra_t || '';
-    document.getElementById('trAvP').textContent = u.tr_otra_p || '';
-    document.getElementById('trAvS').textContent = u.tr_otra_seg || '';
+    document.getElementById('trAvP').textContent = u.tr_otra_q || '';
     var ver  = document.getElementById('trAvVer');
     var otra = document.getElementById('trAvOtra');
-    ver.textContent  = u.tr_otra_ver || '';
-    otra.textContent = u.tr_otra_b || '';
+    /* El rótulo y el debajo de cada camino. Se escriben en los nodos que
+       ya están en el marcado y no se rehace el botón entero: así el icono
+       -que es lo único que no se traduce- se queda donde estaba. */
+    var pon = function(b, titulo, bajo){
+      b.querySelector('.tx b').textContent = titulo || '';
+      b.querySelector('.tx span').textContent = bajo || '';
+    };
+    pon(ver,  u.tr_otra_ver, u.tr_otra_ver_s);
+    pon(otra, u.tr_otra_b,   u.tr_otra_b_s);
 
     function cierra(){
       av.hidden = true;

@@ -969,9 +969,9 @@ window.CIIP_PASOS = {
       co_faltapublicacion: "Falta el comprobante del pago de la publicación: el inversionista lo sube cuando pague con el PUB que le enviaste.",
       co_subiendo:  "Entregando…",
       tr_entregado: "Tu documento",
-      tr_otra_t:"Ya lo tienes resuelto", tr_otra_p:"El documento se queda en tu expediente. Si necesitas otro igual —para otra empresa, o porque el anterior venció— puedes solicitarlo ahora.", tr_otra_b:"Solicitar otro igual",
+      tr_otra_t:"Ya lo tienes resuelto", tr_otra_b:"Solicitar otro igual",
+      tr_otra_q:"¿Qué quieres hacer?", tr_otra_ver_s:"El que ya tienes, con su documento.", tr_otra_b_s:"Empieza una solicitud NUEVA. La de antes no se toca y se queda en tu expediente.",
       tr_otra_ver:"Ver el trámite",
-      tr_otra_seg:"Vas a pedir OTRA solicitud, no a cambiar la que ya tienes. La de antes se queda en tu expediente.", tr_otra_si:"Sí, pedir otro",
       tr_entrega_p: "Lo emitió el organismo y el CIIP lo dejó en tu expediente.",
       /* Usuarios y equipo. Solo lo ve un admin, y la base lo comprueba
          otra vez: esconder el renglón nunca fue la cerradura. */
@@ -2117,9 +2117,9 @@ window.CIIP_PASOS = {
       co_faltapublicacion: "The publication payment receipt is missing: the investor uploads it once they pay with the PUB you sent.",
       co_subiendo:  "Delivering…",
       tr_entregado: "Your document",
-      tr_otra_t:"You already have this one", tr_otra_p:"The document stays in your file. If you need another one — for a different company, or because the old one expired — you can request it now.", tr_otra_b:"Request another one",
+      tr_otra_t:"You already have this one", tr_otra_b:"Request another one",
+      tr_otra_q:"What would you like to do?", tr_otra_ver_s:"The one you already have, with its document.", tr_otra_b_s:"Starts a NEW request. The old one is left untouched, in your file.",
       tr_otra_ver:"View the procedure",
-      tr_otra_seg:"You are requesting ANOTHER one, not changing the one you have. The old one stays in your file.", tr_otra_si:"Yes, request another",
       tr_entrega_p: "The agency issued it and CIIP left it in your file.",
       /* Users and team. Only an admin sees it, and the database checks
          again: hiding the row was never the lock. */
@@ -3166,9 +3166,9 @@ window.CIIP_PASOS = {
       co_faltapublicacion: "Falta o comprovativo do pagamento da publicação: o investidor carrega-o quando pagar com o PUB que lhe enviou.",
       co_subiendo:  "A entregar…",
       tr_entregado: "O seu documento",
-      tr_otra_t:"Já o tem resolvido", tr_otra_p:"O documento fica no seu processo. Se precisar de outro igual — para outra empresa, ou porque o anterior caducou — pode solicitá-lo agora.", tr_otra_b:"Solicitar outro igual",
+      tr_otra_t:"Já o tem resolvido", tr_otra_b:"Solicitar outro igual",
+      tr_otra_q:"O que quer fazer?", tr_otra_ver_s:"O que já tem, com o seu documento.", tr_otra_b_s:"Começa um pedido NOVO. O anterior fica intacto, no seu processo.",
       tr_otra_ver:"Ver o trâmite",
-      tr_otra_seg:"Vai pedir OUTRO pedido, não alterar o que já tem. O anterior fica no seu processo.", tr_otra_si:"Sim, pedir outro",
       tr_entrega_p: "Foi o organismo que o emitiu e o CIIP deixou-o no seu processo.",
       /* Utilizadores e equipa. */
       cg_f_todos:   "Todos",
@@ -4213,9 +4213,9 @@ window.CIIP_PASOS = {
       co_faltapublicacion: "Manca la ricevuta del pagamento della pubblicazione: l’investitore la carica quando paga con il PUB che gli hai inviato.",
       co_subiendo:  "Consegna in corso…",
       tr_entregado: "Il tuo documento",
-      tr_otra_t:"Ce l’hai già risolta", tr_otra_p:"Il documento resta nel tuo fascicolo. Se te ne serve un’altra uguale — per un’altra società, o perché la precedente è scaduta — puoi richiederla ora.", tr_otra_b:"Richiedine un’altra",
+      tr_otra_t:"Ce l’hai già risolta", tr_otra_b:"Richiedine un’altra",
+      tr_otra_q:"Cosa vuoi fare?", tr_otra_ver_s:"Quella che hai già, con il suo documento.", tr_otra_b_s:"Apre una pratica NUOVA. La precedente resta intatta, nel tuo fascicolo.",
       tr_otra_ver:"Vedi la pratica",
-      tr_otra_seg:"Stai chiedendo un’ALTRA pratica, non modificando quella che hai. La precedente resta nel tuo fascicolo.", tr_otra_si:"Sì, chiedine un’altra",
       tr_entrega_p: "L'ha rilasciato l'ente e il CIIP l'ha messo nel tuo fascicolo.",
       /* Utenti e team. */
       cg_f_todos:   "Tutti",
@@ -5260,9 +5260,9 @@ window.CIIP_PASOS = {
       co_faltapublicacion: "缺少公告费缴费凭证：投资人按你发送的 PUB 付款后会上传。",
       co_subiendo:  "交付中…",
       tr_entregado: "您的文件",
-      tr_otra_t:"你已经办好了这一项", tr_otra_p:"文件会留在你的档案里。如果还需要一份同样的——换一家公司，或者上一份已过期——现在就可以申请。", tr_otra_b:"再申请一份",
+      tr_otra_t:"你已经办好了这一项", tr_otra_b:"再申请一份",
+      tr_otra_q:"你想做什么？", tr_otra_ver_s:"查看已有的那一份及其文件。", tr_otra_b_s:"开始一份新的申请。原来那份不会改动，仍留在你的档案里。",
       tr_otra_ver:"查看该事项",
-      tr_otra_seg:"你是要再申请一份，而不是修改已有的那份。之前那份会留在你的档案里。", tr_otra_si:"是的，再申请一份",
       tr_entrega_p: "由主管机关签发，CIIP 已放入您的档案。",
       /* 用户与团队。 */
       cg_f_todos:   "全部",
@@ -6307,9 +6307,9 @@ window.CIIP_PASOS = {
       co_faltapublicacion: "Нет подтверждения оплаты публикации: инвестор загрузит его после оплаты по PUB, который вы отправили.",
       co_subiendo:  "Передаём…",
       tr_entregado: "Ваш документ",
-      tr_otra_t:"Эта заявка уже выполнена", tr_otra_p:"Документ остаётся в вашем деле. Если нужна ещё одна такая же — для другой компании или потому что прежняя истекла — можно подать сейчас.", tr_otra_b:"Подать ещё одну",
+      tr_otra_t:"Эта заявка уже выполнена", tr_otra_b:"Подать ещё одну",
+      tr_otra_q:"Что вы хотите сделать?", tr_otra_ver_s:"Та, что уже есть, вместе с документом.", tr_otra_b_s:"Начинает НОВУЮ заявку. Прежняя остаётся нетронутой, в вашем деле.",
       tr_otra_ver:"Посмотреть заявку",
-      tr_otra_seg:"Вы подаёте ЕЩЁ ОДНУ заявку, а не меняете прежнюю. Прежняя остаётся в вашем деле.", tr_otra_si:"Да, подать ещё одну",
       tr_entrega_p: "Его выдало ведомство, а CIIP положил его в ваше дело.",
       /* Пользователи и команда. */
       cg_f_todos:   "Все",
