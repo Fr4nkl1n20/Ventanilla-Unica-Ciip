@@ -126,9 +126,14 @@ begin
     return new;
   end if;
 
+  --  UNA POR PROTOCOLIZACIÓN, NO UNA POR PERSONA (24-9-2026). Lo mismo
+  --  que en supabase-protocolizacion.sql y por lo mismo: miraba si esa
+  --  persona ya tenía una publicación, de modo que una segunda empresa no
+  --  llegaba a tener la suya. Ahora se mira si ESTA protocolización ya la
+  --  abrió.
   if exists (
     select 1 from public.tramites
-     where inversionista = new.inversionista
+     where viene_de = new.id
        and tipo = 'publicacion_acta'
   ) then
     return new;
@@ -169,8 +174,8 @@ begin
   --  gestor esperaría a que apareciera y el inversionista, a un papel que
   --  nadie le manda. Desde el SQL Editor no hay gestor que copiar: queda
   --  null, sin asignar.
-  insert into public.tramites (inversionista, tipo, estado, datos, enviado_en, gestor)
-  values (new.inversionista, 'publicacion_acta', 'enviado', copia, now(), new.gestor);
+  insert into public.tramites (inversionista, tipo, estado, datos, enviado_en, gestor, viene_de)
+  values (new.inversionista, 'publicacion_acta', 'enviado', copia, now(), new.gestor, new.id);
 
   return new;
 end;

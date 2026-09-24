@@ -8197,39 +8197,6 @@ function applyLang(lang){
      Las dos salidas son de verdad. «Ver el trámite» es lo que casi
      siempre se venía a hacer y va la primera; pedir otro es la rara y va
      detrás, marcada, para que no se pulse por inercia. */
-  /* ── DONDE HAY CADENA NO SE OFRECE OTRO ─────────────────────────────
-     Franklin Reyes, 24-9-2026, al ver la protocolización vieja debajo de
-     una constitución recién enviada: «es un formulario nuevo, debería
-     rehacer el proceso, ¿no?». Debería, y HOY NO PUEDE.
-
-     Los tramos no cuelgan de una solicitud, cuelgan del inversionista:
-     constitucion_abre_la_protocolizacion y su gemela de la publicación se
-     paran en seco si esa persona ya tiene una -«if exists … and tipo =
-     'protocolizacion_acta' then return new»-. Una segunda constitución no
-     abre nunca sus propios tramos: el modelo da por hecho una empresa por
-     inversionista.
-
-     Así que «Solicitar otro igual» prometía algo que la base no cumple, y
-     lo que salía debajo del formulario nuevo eran los tramos de la
-     primera, con sus fechas y sus marcas de hecho.
-
-     Se deja de ofrecer DONDE NO SE PUEDE CUMPLIR, y se sigue ofreciendo en
-     los treinta y pico trámites sueltos, que no arrastran nada: una
-     segunda cédula, otro RIF, otra apostilla. Eso no se rompe.
-
-     ESTO ES UNA RETIRADA, NO UNA SOLUCIÓN. Lo que hace falta para que la
-     constitución se pueda repetir de verdad es un vínculo en la base
-     -tramites.viene_de- que ate cada tramo a la solicitud que lo abrió, y
-     los dos triggers y esta pantalla mirándolo. El día que exista, se
-     borra esta función y su llamada. */
-  function deUnaCadena(ref){
-    if (TRAMOS_DE[ref]) return true;
-    for (var m in TRAMOS_DE){
-      if (TRAMOS_DE[m].indexOf(ref) >= 0) return true;
-    }
-    return false;
-  }
-
   function avisaYaLoTienes(id, entrar){
     var av = document.getElementById('trAv');
     if (!av) return false;
@@ -8284,7 +8251,7 @@ function applyLang(lang){
     var id = c.getAttribute('data-tr');
     function entra(){ ve('tramite-'+id, {tipo:'tramite', id:id}); }
     function ir(){
-      if (c.getAttribute('data-st') === 'listo' && !deUnaCadena(id) &&
+      if (c.getAttribute('data-st') === 'listo' &&
           avisaYaLoTienes(id, entra)) return;
       entra();
     }
@@ -22710,7 +22677,10 @@ applyLang(idiomaParaMi());
        soy en la oficina. */
     return cargaCatalogo().then(quienSoy).then(function(yo){
       return sb.from('tramites')
-      .select('id, tipo, estado, creado_en, enviado_en, resuelto_en')
+      /* viene_de: de qué solicitud salió cada tramo. Sin ella, los tramos
+         de la constitución se elegían por «la que va más adelante» y una
+         segunda constitución se quedaba con los de la primera. */
+      .select('id, tipo, estado, creado_en, enviado_en, resuelto_en, viene_de')
       .eq('inversionista', yo.id)
       .order('creado_en', {ascending:false})
       .then(function(r){
@@ -24590,6 +24560,54 @@ applyLang(idiomaParaMi());
     return manda;
   }
 
+  /* ── LOS TRAMOS DE ESTA SOLICITUD, SIGUIENDO EL VÍNCULO ──────────────
+     La constitución abre la protocolización y ésta la publicación, y desde
+     el 24-9-2026 cada una apunta con viene_de a la que la abrió. Se recorre
+     la cadena en orden: la protocolización de ESTA constitución es la que
+     viene de ella, y la publicación la que viene de esa protocolización.
+
+     Antes se elegía cada tramo por separado con «la que va más adelante»,
+     y con dos constituciones eso daba los tramos de la primera colgando de
+     la segunda (Franklin Reyes, 24-9-2026: «es un formulario nuevo,
+     debería rehacer el proceso, ¿no?»).
+
+     SIN VÍNCULO SE CAE AL CRITERIO DE ANTES, y solo entonces: los tramos
+     que nacieron antes de esa fecha no lo tienen y no hay forma de atarlos
+     hacia atrás, así que para ellos sigue valiendo lo de siempre. Pero en
+     cuanto ALGUNO de ese tipo lo lleve, el vínculo manda y el que no encaja
+     se queda fuera: mezclarlos sería volver a enseñar el de otra. */
+  function tramosDeLaSolicitud(lista){
+    lista = lista || [];
+    var madreRef = lista[0];
+    var por = {}, previo = tramiteDeLaFicha(madreRef);
+    por[madreRef] = previo;
+    for (var i = 1; i < lista.length; i++){
+      var ref = lista[i], hallado = null, atados = false;
+      (mios || []).forEach(function(t){
+        if (tipoRefDe(t.tipo) !== ref) return;
+        if (t.viene_de) atados = true;
+        if (previo && t.viene_de && t.viene_de === previo.id) hallado = t;
+      });
+      if (!hallado && !atados) hallado = tramiteDeLaFicha(ref);
+      por[ref] = hallado;
+      previo = hallado;
+    }
+    return por;
+  }
+
+  /* De qué ficha son estos tramos. Se saca de los propios bloques y no del
+     hash: pintaTramosDeVerdad también corre al repintar las tarjetas, y
+     entonces la dirección puede ser otra. */
+  function cadenaDeLosTramos(refs){
+    for (var k = 0; k < FICHAS_CON_TRAMOS.length; k++){
+      var l = FICHAS_CON_TRAMOS[k].lista;
+      for (var i = 0; i < refs.length; i++){
+        if (l.indexOf(refs[i]) > 0) return l;
+      }
+    }
+    return [];
+  }
+
   /* El historial de un tramite, una vez por solicitud y guardado: los dos
      bloques se repintan cada vez que se abre la constitucion, y sin esto
      serian dos consultas mas en cada vuelta. */
@@ -24726,9 +24744,15 @@ applyLang(idiomaParaMi());
   function pintaTramosDeVerdad(){
     var caja = document.getElementById('trSiguen');
     if (!caja || !window.sbCIIP) return;
-    caja.querySelectorAll('.tr-bloque[data-tramo]').forEach(function(b){
+    var bloques = [].slice.call(caja.querySelectorAll('.tr-bloque[data-tramo]'));
+    var refs = bloques.map(function(b){ return b.getAttribute('data-tramo'); });
+    /* De una vez para todos los bloques y no uno a uno: la cadena se
+       recorre en orden -la publicación depende de qué protocolización
+       salió-, y resolverla por bloque la recorrería entera cada vez. */
+    var deLaCadena = tramosDeLaSolicitud(cadenaDeLosTramos(refs));
+    bloques.forEach(function(b){
       var ref = b.getAttribute('data-tramo');
-      var tr = tramiteDeLaFicha(ref);
+      var tr = deLaCadena[ref] || null;
       /* El aviso de la devolución se quita SIEMPRE antes de nada y se
          vuelve a poner solo si toca. Este bloque se repinta cada vez que
          se abre la constitución, y sin esto un tramo ya corregido seguiría

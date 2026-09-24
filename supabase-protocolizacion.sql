@@ -133,9 +133,20 @@ begin
     return new;
   end if;
 
+  --  UNA POR CONSTITUCIÓN, NO UNA POR PERSONA (24 de septiembre de 2026).
+  --  Esto miraba si el inversionista YA tenía una protocolización, de
+  --  cualquier constitución. Con eso, quien constituía una segunda empresa
+  --  no volvía a tener tramos: la cadena entera daba por hecho una empresa
+  --  por persona, y la segunda constitución quedaba colgando debajo de los
+  --  tramos de la primera, con sus fechas y sus marcas de hecho.
+  --
+  --  Ahora la guarda es por SOLICITUD: se mira si ESTA constitución ya
+  --  abrió la suya. Sigue impidiendo lo que vino a impedir -que un mismo
+  --  trámite abra dos tramos si se resuelve dos veces- y deja de impedir
+  --  lo que nunca quiso.
   if exists (
     select 1 from public.tramites
-     where inversionista = new.inversionista
+     where viene_de = new.id
        and tipo = 'protocolizacion_acta'
   ) then
     return new;
@@ -172,8 +183,8 @@ begin
   --  protocolización le cae en «Míos» y ve la casilla en cuanto la abre.
   --  Si la constitución se resolvió desde el SQL Editor no hay gestor que
   --  copiar: queda null, sin asignar, como antes.
-  insert into public.tramites (inversionista, tipo, estado, datos, enviado_en, gestor)
-  values (new.inversionista, 'protocolizacion_acta', 'enviado', copia, now(), new.gestor);
+  insert into public.tramites (inversionista, tipo, estado, datos, enviado_en, gestor, viene_de)
+  values (new.inversionista, 'protocolizacion_acta', 'enviado', copia, now(), new.gestor, new.id);
 
   return new;
 end;

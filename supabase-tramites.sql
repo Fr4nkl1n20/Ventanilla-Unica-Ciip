@@ -543,9 +543,37 @@ create table if not exists public.tramites (
 alter table public.tramites
   add column if not exists banco text references public.bancos_aliados(codigo);
 
+-- DE QUÉ SOLICITUD SALIÓ ESTE TRAMO (24 de septiembre de 2026)
+-- ───────────────────────────────────────────────────────────────────────
+-- La constitución abre la protocolización y ésta la publicación. Hasta hoy
+-- esos tramos no colgaban de nada: los triggers miraban si el INVERSIONISTA
+-- ya tenía uno, así que la cadena daba por hecho una empresa por persona.
+-- Quien constituía una segunda empresa no volvía a tener tramos, y su
+-- solicitud nueva aparecía debajo de los de la primera, con las fechas y
+-- las marcas de hecho de aquélla (Franklin Reyes: «es un formulario nuevo,
+-- debería rehacer el proceso, ¿no?»).
+--
+-- Con esto cada tramo sabe de dónde salió, y las dos preguntas que antes no
+-- se podían hacer tienen respuesta: cuáles son los tramos DE ESTA
+-- constitución, y si ESTA solicitud ya abrió el suyo.
+--
+-- Null es lo normal: lo tienen los treinta y pico trámites que no vienen de
+-- ninguno, y los tramos creados antes de hoy, que no se pueden atar hacia
+-- atrás porque nadie guardó de dónde venían.
+--
+-- ON DELETE SET NULL y no CASCADE: borrar una constitución no puede
+-- llevarse por delante una protocolización que el registro ya tramitó. Se
+-- queda huérfana, que es la verdad, y no desaparece.
+alter table public.tramites
+  add column if not exists viene_de uuid references public.tramites(id) on delete set null;
+
+create index if not exists tramites_por_origen on public.tramites (viene_de)
+  where viene_de is not null;
+
 comment on table  public.tramites        is 'Una solicitud concreta de un inversionista';
 comment on column public.tramites.banco  is 'Banco aliado asignado (solo cuenta_bancaria). Null = todavía sin asignar';
 comment on column public.tramites.datos  is 'Campos del formulario, distintos por tipo. rif_personal: numero_documento, tipo_documento, fecha_nacimiento, direccion_fiscal, telefono, profesion. visa_negocios (la TR-N): numero_pasaporte, pais_emisor, vence_pasaporte, consulado, motivo_viaje, contacto_venezuela. cedula_residencia: numero_visa, fecha_ingreso, estado_civil, ocupacion, telefono_local, direccion_vzla. licencia_conducir: numero_licencia, pais_licencia, categoria, fecha_emision, vence_licencia, direccion_vzla. rif_empresa: razon_social, numero_registro, fecha_constitucion, capital_social, actividad_economica, direccion_fiscal. constitucion: denominacion, denominacion_alt, estado_solicitud, oficina_registro, capital_social (el suscrito, en bolivares), seccion_actividad, tipo_sociedad (el tipo de empresa del SAREN), objeto_social, domicilio_social, socios. cuenta_bancaria: razon_social, rif_empresa, tipo_cuenta, moneda, ciudad_agencia, movimiento_estimado, firmantes, origen_fondos. marca: signo, tipo_signo, titular, en_uso, productos. registros_laborales: razon_social, rif_empresa, representante, actividad_economica, inicio_actividades, num_trabajadores, telefono, direccion_fiscal. licencia_municipal: razon_social, rif_empresa, municipio, tenencia, actividad_economica, metros, inicio_actividades, direccion_local. comercio_exterior: razon_social, rif_empresa, operacion, rubro, arancel, paises, aduana, mercancia. faov_banavih: razon_social, rif_empresa, representante, num_trabajadores, inicio_actividades, telefono, direccion_fiscal. inces: razon_social, rif_empresa, representante, actividad_economica, num_trabajadores, telefono, direccion_fiscal. rnet: razon_social, rif_empresa, representante, actividad_economica, num_trabajadores, inicio_actividades, direccion_fiscal. conformidad_uso: razon_social, rif_empresa, municipio, tenencia, actividad_economica, metros, direccion_local. permiso_bomberos: razon_social, rif_empresa, municipio, actividad_economica, metros, aforo, direccion_local. permiso_ambiental: razon_social, rif_empresa, impacto, municipio, actividad_economica, direccion_local, proceso. registro_inversion: razon_social, rif_empresa, modalidad, monto_inversion, moneda, pais_origen_fondos, fecha_aporte, financiamiento_interno, actividad_economica, destino_inversion. permiso_sanitario: razon_social, rif_empresa, tipo_establecimiento, rubro_sanitario, municipio, metros, num_trabajadores, direccion_local. rnc: razon_social, rif_empresa, numero_registro, representante, actividad_economica, clasificacion, capital_social, fecha_constitucion. solvencias: razon_social, rif_empresa, numero_patronal, nil_inces, nrc_faov, municipio, representante';
+comment on column public.tramites.viene_de is 'La solicitud que abrio este tramo. Null = no viene de ninguna';
 comment on column public.tramites.gestor is 'Quién del CIIP lo lleva. Null = sin asignar, que es justo lo que la cola debe mostrar primero';
 
 create index if not exists tramites_por_inversionista on public.tramites (inversionista, estado);
