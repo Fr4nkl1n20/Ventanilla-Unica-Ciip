@@ -13883,9 +13883,20 @@ applyLang(idiomaParaMi());
     var mapaP = (DP.pasos && (DP.pasos[curLang] || DP.pasos.en)) || {};
     var delante = ((typeof PASOS_DE_DELANTE !== 'undefined' &&
                     PASOS_DE_DELANTE[ref]) || {}).cuantos || 0;
-    var propios = (delante && mapaP[ref] &&
-                   mapaP[ref].length === ORDEN.length + delante)
-                  ? mapaP[ref] : null;
+
+    /* Qué escalera de las dos, cuando el trámite tiene dos. Lo decide una
+       respuesta del propio formulario, así que se mira en tr.datos y no en
+       el catálogo: hasta que no se contesta, manda la de por defecto. */
+    var claveP = ref;
+    var segun = (typeof ESCALERA_SEGUN !== 'undefined' && ESCALERA_SEGUN[ref]) || null;
+    if (segun){
+      var dicho = (tr.datos || {})[segun.campo];
+      if (dicho && dicho !== 'No' && mapaP[segun.si]) claveP = segun.si;
+    }
+
+    var propios = (delante && mapaP[claveP] &&
+                   mapaP[claveP].length === ORDEN.length + delante)
+                  ? mapaP[claveP] : null;
 
     /* ── PASOS PROPIOS CON OTRA CUENTA ──────────────────────────────────
        Franklin Reyes, 24-9-2026 (Pendientes FRANK.pdf): casi cada trámite
@@ -13911,8 +13922,8 @@ applyLang(idiomaParaMi());
        resolvió. Los de en medio van sin fecha, que es mejor que ponerles
        una que no es la suya. */
     var libres = null;
-    if (!propios && mapaP[ref] && mapaP[ref].length && mapaP[ref].length !== ORDEN.length){
-      var lista = mapaP[ref];
+    if (!propios && mapaP[claveP] && mapaP[claveP].length && mapaP[claveP].length !== ORDEN.length){
+      var lista = mapaP[claveP];
       /* ── LOS PASOS QUE NO MUEVE LA OFICINA ──
          Franklin Reyes, 25-9-2026, sobre la visa: «el 2 se marca cuando el
          usuario confirma que registró el usuario», y «en apenas el usuario
@@ -24906,6 +24917,25 @@ applyLang(idiomaParaMi());
      de Mis trámites y la ficha cuentan lo mismo. */
   var PASOS_QUE_MARCAS_TU = {c1:  {2: 'cancilleria_confirmada'},
                              c38: {2: 'cancilleria_confirmada'}};
+
+  /* ── UN TRÁMITE CON DOS ESCALERAS ──
+     Franklin Reyes, 25-9-2026: «¿podemos trabajar mediante una pregunta de
+     selección? ¿dependiendo de lo que digan sale la escalera con los pasos
+     distintos, así como se divide en el documento?». Sí, y aquí está.
+
+     Hasta hoy un trámite tenía una escalera y solo una. La traducción son
+     dos procesos de verdad: un documento que YA viene apostillado solo hay
+     que traducirlo y legalizarlo -cuatro pasos-; uno que no, hay que
+     apostillarlo antes -cinco-. Enseñarle los cinco a quien trae el papel
+     ya apostillado es prometerle un trámite que no es el suyo.
+
+     La pregunta que lo decide ya existía: es la casilla «apostillado» del
+     formulario, puesta ayer para que cambiaran los RECAUDOS. Ahora cambia
+     también los pasos, que es la otra mitad de la misma respuesta.
+
+     El de por defecto -el de la clave sin sufijo- es el largo: antes de
+     contestar, lo honesto es enseñar el camino completo y no el corto. */
+  var ESCALERA_SEGUN = {c17: {campo: 'apostillado', si: 'c17_yaapostillado'}};
 
   /* Adónde te manda un paso, cuando lo que toca está fuera del panel. El
      enlace de Cancillería va con el paso que se marca solo al volver: son

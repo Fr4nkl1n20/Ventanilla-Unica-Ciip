@@ -192,15 +192,29 @@ Dos cosas decididas por mí, las dos se deshacen con una línea:
       avenida?— y ahí es donde el expediente vuelve con la dirección mal
       puesta.
 
-### 4. Traducción: dos procesos según la respuesta **?**
+### 4. Traducción: dos procesos según la respuesta — **hecho**
 
-El documento pide que el proceso sea de cuatro pasos para un documento
-normal y de cinco si va apostillado. Que los **recaudos** cambien según una
-respuesta ya se puede. Que cambien **los pasos** no: hoy un trámite tiene
-una escalera y solo una.
+Franklin, 25-9-2026: «¿podemos trabajar mediante una pregunta de selección?
+¿dependiendo de lo que digan sale la escalera con los pasos distintos, así
+como se divide en el documento?». Sí, y ya está puesto.
 
-¿Lo hago como dos trámites distintos en el catálogo, o esperamos a la
-decisión del punto 1?
+La pregunta que lo decide es la misma que ya cambiaba los recaudos: «¿El
+documento es apostillado y/o legalizado?». Ahora cambia también los pasos.
+
+- [x] **Si hay que apostillarlo** (por defecto), cinco pasos: solicitud
+      recibida · apostilla en el país que emitió el documento · traducción
+      por intérprete público · legalización ante el MPPRE · documento
+      apostillado y traducido
+- [x] **Si ya viene apostillado**, cuatro: solicitud recibida · traducción
+      por intérprete público · legalización ante el MPPRE · documento
+      traducido y legalizado
+
+Antes de contestar manda la larga: lo honesto es enseñar el camino completo
+y no el corto.
+
+**Los diez rótulos son míos y hay que revisarlos.** Salen de los cuatro que
+la ficha ya tenía y de cómo tu documento divide el proceso, no de una lista
+que tú hayas dictado. Como los de la visa: córrigelos y los cambio.
 
 ### 5. El enlace del RNC **?**
 
