@@ -73,9 +73,9 @@ for (const [nombre, texto] of [['acceso.html', acceso]]) {
   try { red = JSON.parse(vercel).redirects || []; } catch (e) {}
   const va = (desde) => red.some(r => r.source === desde && r.destination === '/acceso.html');
   ok('vercel.json lleva a /acceso.html desde /, /login y /login/...',
-     va('/') && va('/login') && va('/login/:ruta*'),
+     va('/') && va('/login') && va('/login/') && va('/login/:ruta*'),
      'Faltan redirecciones a /acceso.html en vercel.json: ' +
-     ['/', '/login', '/login/:ruta*'].filter(d => !va(d)).join(', '));
+     ['/', '/login', '/login/', '/login/:ruta*'].filter(d => !va(d)).join(', '));
   ok('y no queda una segunda página de acceso en login/',
      !fs.existsSync(path.join(RAIZ, 'login', 'index.html')),
      'Ha vuelto login/index.html: la puerta es acceso.html, y dos copias se separan.');

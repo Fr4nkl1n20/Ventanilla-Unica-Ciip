@@ -4,6 +4,7 @@
   "redirects": [
     { "source": "/", "destination": "/acceso.html", "permanent": false },
     { "source": "/login", "destination": "/acceso.html", "permanent": false },
+    { "source": "/login/", "destination": "/acceso.html", "permanent": false },
     { "source": "/login/:ruta*", "destination": "/acceso.html", "permanent": false }
   ],
 
