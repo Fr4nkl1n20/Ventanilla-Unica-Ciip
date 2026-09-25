@@ -62,3 +62,86 @@ select codigo, ref_panel, nombre, activo
 select routine_name, security_type
   from information_schema.routines
  where routine_schema = 'public' and routine_name = 'confirma_paso';
+
+do $$
+declare c text;
+begin
+  for c in select conname from pg_constraint
+            where conrelid = 'public.tramite_entes'::regclass
+              and contype = 'c'
+              and pg_get_constraintdef(oid) ilike '%estado%'
+  loop
+    execute format('alter table public.tramite_entes drop constraint %I', c);
+  end loop;
+end $$;
+
+alter table public.tramite_entes add constraint tramite_entes_estado_check
+  check (estado in ('pendiente', 'inscrito', 'codigo_enviado', 'listo'));
+
+alter table public.tramite_entes alter column estado set default 'pendiente';
+
+create or replace function public.tramite_entes_nacen()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.tipo = 'registros_parafiscales'
+     and new.estado in ('enviado', 'en_revision', 'ante_el_ente') then
+    insert into public.tramite_entes (tramite, ente, estado)
+    select new.id, e, 'pendiente'
+      from unnest(array['banavih', 'inces', 'mpppst', 'sundde', 'snc']) as e
+    on conflict (tramite, ente) do nothing;
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists tramite_entes_nacen on public.tramites;
+create trigger tramite_entes_nacen
+  after insert or update of estado on public.tramites
+  for each row execute function public.tramite_entes_nacen();
+
+drop policy if exists "entes: el inversionista corrige su codigo" on public.tramite_entes;
+create policy "entes: el inversionista corrige su codigo" on public.tramite_entes
+  for update
+  using (
+    estado in ('inscrito', 'codigo_enviado')
+    and exists (
+      select 1 from public.tramites t
+       where t.id = tramite_entes.tramite and t.inversionista = auth.uid()
+         and t.estado in ('enviado', 'en_revision', 'ante_el_ente')
+    )
+  )
+  with check (
+    estado = 'codigo_enviado'
+    and exists (
+      select 1 from public.tramites t
+       where t.id = tramite_entes.tramite and t.inversionista = auth.uid()
+         and t.estado in ('enviado', 'en_revision', 'ante_el_ente')
+    )
+    and (documento is null or exists (
+      select 1 from public.documentos d
+       where d.id = tramite_entes.documento and d.inversionista = auth.uid()
+    ))
+  );
+
+insert into public.tramite_entes (tramite, ente, estado)
+select t.id, e, 'pendiente'
+  from public.tramites t
+  cross join unnest(array['banavih', 'inces', 'mpppst', 'sundde', 'snc']) as e
+ where t.tipo = 'registros_parafiscales'
+   and t.estado in ('enviado', 'en_revision', 'ante_el_ente')
+on conflict (tramite, ente) do nothing;
+
+select estado, count(*)
+  from public.tramite_entes
+ group by estado
+ order by estado;
+
+select t.id, t.estado, count(e.ente) as entes
+  from public.tramites t
+  left join public.tramite_entes e on e.tramite = t.id
+ where t.tipo = 'registros_parafiscales'
+ group by t.id, t.estado
+ order by t.id;

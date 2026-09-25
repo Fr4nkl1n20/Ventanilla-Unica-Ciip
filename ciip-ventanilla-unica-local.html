@@ -8669,9 +8669,7 @@ var IDX={employees:1,present:2,realestate:3,profits:4,capital:5,time:6,taxes:7};
       }).then(function(r){
         return r.json().catch(function(){ return {}; }).then(function(d){
           if (r.ok && d.respuesta){
-            /* La firma vuelve con la siguiente pregunta: sin ella, el
-               servidor no se cree que esta respuesta la dio él. */
-            conversacion.push({ papel:'asistente', texto:d.respuesta, firma:d.firma });
+            conversacion.push({ papel:'asistente', texto:d.respuesta });
             return d.respuesta;
           }
           /* 'sin-clave' y 'sin-base' son estados del despliegue, no
@@ -25752,15 +25750,38 @@ applyLang(idiomaParaMi());
       var nombre = u['pe_' + ente] || ente;
       var fila = el('div', 'pe-ente');
       fila.setAttribute('data-ente', ente);
-      fila.setAttribute('data-st', 'por_iniciar');
+      fila.setAttribute('data-st', 'pendiente');
       var cab = el('div', 'pe-cab');
       cab.appendChild(el('span', 'pe-n', nombre));
-      var chip = el('span', 'chip mute', u.pe_por_iniciar || '');
+      var chip = el('span', 'chip mute', u.pe_pendiente || '');
       cab.appendChild(chip);
       fila.appendChild(cab);
 
+      /* ── PRIMERO TE INSCRIBEN, LUEGO LLEGA TU CÓDIGO ──
+         Franklin Reyes, 25-9-2026: «esas cinco casillas deberían
+         habilitarse cuando la fase de inscripción ante cada ente esté
+         resuelta», y el porqué: «para que el gestor pueda ver que esas
+         solicitudes están generadas y pueda trabajar en ellas».
+
+         Aquí la escalera empezaba en «Envía el código», y eso pedía un
+         código que todavía no podía existir: el ente no lo manda hasta que
+         el CIIP inscribe a la empresa ante él. El inversionista se quedaba
+         mirando cinco cajas vacías sin saber que le tocaba esperar, no
+         escribir; y el gestor no tenía dónde ver las cinco inscripciones
+         que le quedaban por hacer.
+
+         Así que la inscripción deja de ser invisible y pasa a ser el PRIMER
+         PASO, con su estado propio en la base. Las cinco filas nacen solas
+         al enviarse la solicitud -las crea un disparador, no el panel- y
+         por eso el gestor las ve desde el primer día aunque nadie las haya
+         tocado. Va en la base y no aquí porque una fila que solo existe si
+         alguien abrió una pantalla no es una fila: es una casualidad.
+
+         Uno por uno y no los cinco de golpe, porque no se inscriben el
+         mismo día. Si un día sí, se marcan los cinco seguidos y cuesta lo
+         mismo. */
       var ol = el('ol', 'tr-pasos pe-pasos');
-      var pasos = ['pe_p1', 'pe_p2', 'pe_p3'].map(function(clave, i){
+      var pasos = ['pe_p0', 'pe_p1', 'pe_p2', 'pe_p3'].map(function(clave, i){
         var li = el('li', 'tr-paso porhacer');
         var punto = el('span', 'tr-punto', String(i + 1));
         var txt = el('div', 'tr-txt');
@@ -25773,11 +25794,36 @@ applyLang(idiomaParaMi());
 
       var dice = el('div', 'pe-dice');
       dice.hidden = true;
-      pasos[0].txt.appendChild(dice);
+      pasos[1].txt.appendChild(dice);
 
-      var form = null, listo = null;
-      if (modo === 'inversionista' && abierto){
+      /* Las tres cosas que se pueden hacer sobre un ente. Se montan todas y
+         se enseñan según el estado: así el repintado es enseñar y esconder,
+         y no volver a construir media pantalla. */
+      var form = null, inscribe = null, listo = null;
+
+      /* Manda el cambio y repinta con lo que la BASE devolvió. Con
+         .select(): una política que no deja pasar el UPDATE no da error,
+         devuelve cero filas, y sin mirarlo aquí se diría «hecho» de algo que
+         no cambió. Es la misma trampa de la nota de la devolución. */
+      function manda(cambio, boton, alFallar){
+        return Promise.resolve(sb.from('tramite_entes')
+          .upsert(cambio, {onConflict: 'tramite,ente'}).select(ENTES_SELECT))
+          .then(function(r){
+            if (r && r.error) throw r.error;
+            if (!(r && r.data && r.data.length)) throw new Error('sin permiso');
+            ENTES_DE[tr.id] = null;
+            pon(r.data[0]);
+          })
+          .catch(function(e){
+            console.warn('[CIIP] ente:', e && (e.message || e));
+            if (boton) boton.disabled = false;
+            if (alFallar) alFallar();
+          });
+      }
+
+      if (modo === 'inversionista'){
         form = el('div', 'pe-form');
+        form.hidden = true;
         var cod = document.createElement('input');
         cod.type = 'text';
         cod.maxLength = 200;
@@ -25796,53 +25842,46 @@ applyLang(idiomaParaMi());
           if (!codigo){ msg.textContent = u.pe_falta || ''; cod.focus(); return; }
           env.disabled = true;
           msg.textContent = u.enviando || '';
-          Promise.resolve(sb.from('tramite_entes')
-            .upsert({tramite: tr.id, ente: ente, estado: 'codigo_enviado', codigo: codigo},
-                    {onConflict: 'tramite,ente'}).select(ENTES_SELECT))
-            .then(function(r){
-              if (r && r.error) throw r.error;
-              /* Cero filas sin error es la política diciendo que no. */
-              if (!(r && r.data && r.data.length)) throw new Error('sin permiso');
-              ENTES_DE[tr.id] = null;
-              pon(r.data[0]);
-              cod.value = '';
-              env.disabled = false;
-              msg.textContent = '';
-            })
-            .catch(function(e){
-              console.warn('[CIIP] código del ente:', e && (e.message || e));
-              env.disabled = false;
-              msg.textContent = u.error || '';
-            });
+          manda({tramite: tr.id, ente: ente, estado: 'codigo_enviado', codigo: codigo},
+                env, function(){ msg.textContent = u.error || ''; })
+            .then(function(){ cod.value = ''; env.disabled = false; });
         });
-        pasos[0].txt.appendChild(form);
-      }
-      if (modo === 'equipo' && tr.estado !== 'resuelto'){
-        listo = el('button', 'btn ghost pe-listo', u.pe_marcar || '');
-        listo.type = 'button';
-        listo.addEventListener('click', function(){
-          listo.disabled = true;
-          Promise.resolve(sb.from('tramite_entes')
-            .upsert({tramite: tr.id, ente: ente, estado: 'listo'}, {onConflict: 'tramite,ente'})
-            .select(ENTES_SELECT))
-            .then(function(r){
-              if (r && r.error) throw r.error;
-              if (!(r && r.data && r.data.length)) throw new Error('sin permiso');
-              ENTES_DE[tr.id] = null;
-              pon(r.data[0]);
-            })
-            .catch(function(e){
-              console.warn('[CIIP] ente listo:', e && (e.message || e));
-              listo.disabled = false;
-              listo.textContent = u.error || '';
-            });
-        });
-        pasos[1].txt.appendChild(listo);
+        pasos[1].txt.appendChild(form);
       }
 
-      /* Cuántos pasos van hechos: 0 sin fila, 1 con el código enviado, 3
-         listo. El que sigue al último hecho es el de «vas por aquí», salvo
-         con la solicitud cerrada, que ya no espera nada. */
+      if (modo === 'equipo' && tr.estado !== 'resuelto'){
+        /* «Ya la inscribimos»: abre la caja del código de ESTE ente y de
+           ninguno más. Es el botón que convierte las cinco filas en cinco
+           tareas con principio y final. */
+        inscribe = el('button', 'btn ghost pe-inscribe', u.pe_inscribir || '');
+        inscribe.type = 'button';
+        inscribe.hidden = true;
+        inscribe.addEventListener('click', function(){
+          inscribe.disabled = true;
+          manda({tramite: tr.id, ente: ente, estado: 'inscrito'}, inscribe,
+                function(){ inscribe.textContent = u.error || ''; });
+        });
+        pasos[0].txt.appendChild(inscribe);
+
+        listo = el('button', 'btn ghost pe-listo', u.pe_marcar || '');
+        listo.type = 'button';
+        listo.hidden = true;
+        listo.addEventListener('click', function(){
+          listo.disabled = true;
+          manda({tramite: tr.id, ente: ente, estado: 'listo'}, listo,
+                function(){ listo.textContent = u.error || ''; });
+        });
+        pasos[2].txt.appendChild(listo);
+      }
+
+      /* Cuántos pasos van hechos en cada estado. El que sigue al último
+         hecho es el de «vas por aquí», salvo con la solicitud cerrada, que
+         ya no espera nada. */
+      var HECHOS = {pendiente: 0, inscrito: 1, codigo_enviado: 2, listo: 4};
+      var CHIP = {pendiente:      ['mute', 'pe_pendiente'],
+                  inscrito:       ['info', 'pe_esperando'],
+                  codigo_enviado: ['info', 'pe_enviado'],
+                  listo:          ['good', 'pe_listo']};
       function enciende(hechos){
         pasos.forEach(function(p, i){
           var hecho = i < hechos;
@@ -25852,13 +25891,16 @@ applyLang(idiomaParaMi());
         });
       }
       function pon(d){
-        var st = (d && d.estado === 'listo') ? 'listo' : 'codigo_enviado';
+        /* Sin fila -una solicitud de antes del disparador- cuenta como
+           pendiente: nadie la ha inscrito todavía, que es justo lo que
+           quiere decir no tener fila. */
+        var st = (d && CHIP[d.estado]) ? d.estado : 'pendiente';
         fila.setAttribute('data-st', st);
-        chip.className = 'chip ' + (st === 'listo' ? 'good' : 'info');
-        chip.textContent = (st === 'listo' ? u.pe_listo : u.pe_enviado) || '';
+        chip.className = 'chip ' + CHIP[st][0];
+        chip.textContent = u[CHIP[st][1]] || '';
         dice.textContent = '';
-        if (d.codigo) dice.appendChild(el('span', 'pe-cod', String(u.pe_tucodigo || '{c}').replace('{c}', d.codigo)));
-        var doc = d.documentos;
+        if (d && d.codigo) dice.appendChild(el('span', 'pe-cod', String(u.pe_tucodigo || '{c}').replace('{c}', d.codigo)));
+        var doc = d && d.documentos;
         if (doc && doc.archivo){
           var ver = el('button', 'pe-ver', u.pe_ver || '');
           ver.type = 'button';
@@ -25867,11 +25909,15 @@ applyLang(idiomaParaMi());
           dice.appendChild(ver);
         }
         dice.hidden = !dice.childNodes.length;
-        if (form) form.hidden = (st === 'listo');
-        if (listo) listo.hidden = (st === 'listo');
-        enciende(st === 'listo' ? 3 : 1);
+        /* El inversionista escribe desde que lo inscriben y hasta que el
+           CIIP lo da por bueno: mientras tanto puede corregir un código mal
+           copiado sin pedírselo a nadie. */
+        if (form) form.hidden = !(abierto && (st === 'inscrito' || st === 'codigo_enviado'));
+        if (inscribe) inscribe.hidden = (st !== 'pendiente');
+        if (listo) listo.hidden = (st !== 'codigo_enviado');
+        enciende(HECHOS[st]);
       }
-      enciende(0);
+      pon(null);
       fila.CIIP_PON = pon;
       caja.appendChild(fila);
     });
