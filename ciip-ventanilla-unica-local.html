@@ -15140,9 +15140,14 @@ applyLang(idiomaParaMi());
          expediente solo para saber si vale la pena abrirlo. */
       return {
         t: (u['pe_' + ev.ente] || ev.ente),
-        q: u.av_codigo || '',
+        q: u[ev.quien || 'av_codigo'] || '',
         nota: ev.nota || '',
-        ir: function(){ location.hash = 'codigos'; }
+        /* Cada uno a donde puede hacer algo: el equipo a la lista de
+           códigos, el inversionista a su solicitud, que es donde está la
+           casilla que le acaban de abrir. */
+        ir: (ev.quien && ev.quien !== 'av_codigo')
+          ? function(){ window.CIIP_ABRE_ESTA = ev.tramite; location.hash = 'tramite-' + ev.ref; }
+          : function(){ location.hash = 'codigos'; }
       };
     }
     if (ev.clase === 'mensaje'){
@@ -15511,39 +15516,59 @@ applyLang(idiomaParaMi());
      antes de eso lo tiene en nulo, y sin el `not is null` esos nulos se
      colocarían los primeros -en Postgres «order by … desc» los pone
      delante- y se llevarían por delante el tope de veinte. */
-  /* ── LOS CÓDIGOS QUE MANDAN LOS INVERSIONISTAS ──
-     Franklin Reyes, 25-9-2026: «como gestor necesito leer los códigos
-     enviados por los inversionistas, ese proceso no lo tengo».
+  /* ── LO QUE PASA CON LOS CINCO ENTES ──
+     Franklin Reyes, 25-9-2026, las dos mitades de lo mismo: «como gestor
+     necesito leer los códigos enviados por los inversionistas», y después
+     «¿cómo podemos avisar que una ficha ya está lista?».
 
-     Lo tenía, pero escondido: los códigos solo se veían abriendo cada
-     solicitud de parafiscales en la cola y bajando a los cinco bloques.
-     Para saber si había llegado alguno había que abrir cada expediente y
-     mirar cinco veces, y nada avisaba. Un dato que hay que ir a buscar a
-     cinco sitios es un dato que no llega.
+     La solicitud entera ya sonaba: sus cuatro movimientos van por
+     tramite_eventos. Lo que no sonaba era nada de los CINCO ENTES, que es
+     donde de verdad pasan las cosas en este trámite. Cada uno se inscribe,
+     espera un código, lo revisa y termina, y todo eso ocurría en silencio:
+     el gestor tenía que abrir cada expediente y mirar cinco bloques para
+     ver si había llegado un código, y el inversionista tenía que volver a
+     entrar por si le habían abierto la casilla.
 
-     SOLO AL QUE LA LLEVA, no al que la pidió: loPedi dice de qué lado
-     estás en cada solicitud, y avisar al inversionista de un código que
-     acaba de escribir él mismo sería ruido.
+     Una consulta y tres avisos, según de qué lado estés en esa solicitud
+     -loPedi lo dice-:
 
-     No lleva límite, y es a propósito: son como mucho cinco por solicitud
-     de parafiscales y se apagan solas en cuanto el gestor las da por
-     listas, así que la lista no crece sin fondo. */
+     · al que la LLEVA, el código que acaba de mandar el inversionista;
+     · al que la PIDIÓ, que ya le abrieron la casilla de un ente -que es
+       cuando le toca hacer algo- y que una inscripción quedó lista.
+
+     Nadie recibe lo que hizo él mismo: avisar al inversionista de un
+     código que acaba de escribir sería ruido, y al gestor de una
+     inscripción que acaba de marcar, lo mismo.
+
+     Sin límite, y a propósito: son cinco por solicitud de parafiscales
+     como mucho, y se apagan solas al avanzar de estado. */
+  var AV_ENTE = {inscrito: 'av_ente_abierto', listo: 'av_ente_listo'};
+
   function sumaCodigos(mios, refDe, loPedi){
     if (!mios.length) return Promise.resolve();
     return avPide('codigos', function(){
       return sb.from('tramite_entes')
         .select('tramite, ente, codigo, estado, actualizado_en')
         .in('tramite', mios)
-        .eq('estado', 'codigo_enviado')
         .order('actualizado_en', {ascending:false});
     }, function(filas){
       filas.forEach(function(x){
-        if (!x || loPedi[x.tramite]) return;
+        if (!x) return;
         var ref = refDe[x.tramite];
         if (!ref) return;      /* sin tarjeta no hay cómo nombrarlo */
+        var mia = loPedi[x.tramite];
+        /* Pendiente no es noticia: es el estado en el que nacen las cinco
+           filas, así que sonaría el día que se envía la solicitud y por
+           cinco cosas que nadie ha hecho todavía. */
+        if (mia && !AV_ENTE[x.estado]) return;
+        if (!mia && x.estado !== 'codigo_enviado') return;
         avisos.push({
-          clase: 'codigo', ente: x.ente || '', nota: x.codigo || '',
-          creado_en: x.actualizado_en, tramite: x.tramite, ref: ref
+          clase: 'codigo', ente: x.ente || '', tramite: x.tramite, ref: ref,
+          /* El código solo viaja hacia el equipo. Al inversionista no hace
+             falta repetírselo: lo escribió él. */
+          nota: mia ? '' : (x.codigo || ''),
+          quien: mia ? AV_ENTE[x.estado] : 'av_codigo',
+          creado_en: x.actualizado_en
         });
       });
     });
