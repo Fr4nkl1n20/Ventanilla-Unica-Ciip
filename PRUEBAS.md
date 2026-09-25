@@ -29,7 +29,7 @@ ojo, y abre el navegador.
 ### El panel en verde quiere decir algo
 
 El arnés del panel (`PROBAR-PANEL.bat`) corre 17 expedientes de prueba y
-**tiene que salir entero en verde**: 8.617 de 8.617 el 25-09-2026. Hasta ese
+**tiene que salir entero en verde**: 8.618 de 8.618 el 25-09-2026. Hasta ese
 día arrastraba unos 80 fallos viejos —pruebas que no se habían puesto al día
 tras un rediseño, una medida de píxeles que solo vale en Windows y cuatro que
 fallaban o no según quién ganara una carrera— y con 80 rojos fijos un rojo

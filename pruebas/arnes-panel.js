@@ -11655,6 +11655,17 @@
           (document.getElementById('navConsultasN') || {}).textContent, '4');
 
     document.getElementById('navTramites').click();
+    /* Al administrador el renglón le abre la TABLA: «Trámites» es su
+       registro, y las tarjetas son la otra forma de mirarlo, con el
+       conmutador. Esta prueba pasaba por él solo por casualidad: aterrizaba
+       en la cola, las tarjetas quedaban pintadas debajo y el clic no las
+       miraba. Desde que el administrador vuelve a entrar por «Mi panel»
+       (dba9dd3, 25-9-2026) se vio. Así que se mira que le lleve a la tabla,
+       y a las tarjetas se entra por su dirección, como con el conmutador. */
+    if (ES_ADMIN){
+      igual('cola: al administrador el renglón le abre la tabla', location.hash, '#tramites');
+      location.hash = 'poratender';
+    }
     esperaFilas('#paTandas .hoy-card[data-tr]', 1, function(){
       var filas = document.querySelectorAll('#paTandas .hoy-card[data-tr]');
       ok('cola: las tarjetas traen los que esperan', filas.length > 0,
