@@ -110,6 +110,19 @@ function llano(x){
           .toLowerCase();
 }
 
+/* El idioma de ahora como lo entiende Intl: el chino del panel es «zh» y
+   las fechas y los números lo quieren como «zh-CN». */
+function localeDeAhora(){ return curLang === 'zh' ? 'zh-CN' : curLang; }
+
+/* Un elemento con su clase y su texto. Texto, nunca HTML: lo que venga de
+   la base entra por aquí sin poder colar una etiqueta. */
+function el(tag, cls, txt){
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (txt != null) e.textContent = txt;
+  return e;
+}
+
 function idiomaDePais(cod){
   if (!cod) return '';
   cod = String(cod).toUpperCase();
@@ -512,13 +525,6 @@ function applyLang(lang){
   var ESTADO_CHIP = {listo:['good', 'st.done'], proceso:['info', 'st.progress'],
                      accion:['warn', 'st.action'], pendiente:['mute', 'st.pending']};
 
-  function trEl(tag, cls, txt){
-    var e = document.createElement(tag);
-    if (cls) e.className = cls;
-    if (txt != null) e.textContent = txt;
-    return e;
-  }
-
   /* ── LA GUIA DE LAS VISAS ──
      Franklin Reyes, 22 de septiembre de 2026: las dos visas se presentan
      en UNA casilla y se elige dentro. La casilla es la c1 -que por dentro
@@ -584,47 +590,47 @@ function applyLang(lang){
        pintaTramosDetalle: aqui no hay T(), que vive en otro modulo. */
     var u = (D && D.ui && (D.ui[curLang] || D.ui.en)) || {};
 
-    var h = trEl('div', 'gv-h');
-    h.appendChild(trEl('span', 'gv-ico', '?'));
-    var ht = trEl('div', 'gv-ht');
-    var tit = trEl('span', 'gv-t', u.gv_titulo || '');
+    var h = el('div', 'gv-h');
+    h.appendChild(el('span', 'gv-ico', '?'));
+    var ht = el('div', 'gv-ht');
+    var tit = el('span', 'gv-t', u.gv_titulo || '');
     tit.setAttribute('data-ui', 'gv_titulo');
     ht.appendChild(tit);
     /* El organismo, que es el mismo para las dos: lo dice una vez aqui y
        no dos veces dentro de cada caja. */
-    var sub = trEl('span', 'gv-sub', u.gv_ente || '');
+    var sub = el('span', 'gv-sub', u.gv_ente || '');
     sub.setAttribute('data-ui', 'gv_ente');
     ht.appendChild(sub);
     h.appendChild(ht);
-    var chip = trEl('span', 'gv-chip', u.gv_guia || '');
+    var chip = el('span', 'gv-chip', u.gv_guia || '');
     chip.setAttribute('data-ui', 'gv_guia');
     h.appendChild(chip);
     caja.appendChild(h);
 
-    var intro = trEl('div', 'gv-intro', u.gv_intro || '');
+    var intro = el('div', 'gv-intro', u.gv_intro || '');
     intro.setAttribute('data-ui', 'gv_intro');
     caja.appendChild(intro);
 
-    var cols = trEl('div', 'gv-cols');
+    var cols = el('div', 'gv-cols');
     GUIA_VISAS.forEach(function(v){
       /* «Esta» deja de significar «la de esta ficha» y pasa a significar
          «la que YA elegiste». Mientras no elijas, la de aqui tampoco esta
          elegida: se pulsa igual que la otra, y eso es lo que despliega el
          formulario sin moverte de sitio. */
       var esta = (v.ref === id) && !hayQueElegir;
-      var col = trEl('div', 'gv-col' + (esta ? ' aqui' : ''));
+      var col = el('div', 'gv-col' + (esta ? ' aqui' : ''));
       col.setAttribute('data-visa', v.ref);
-      var et = trEl('span', 'gv-etapa', u[v.etapa] || '');
+      var et = el('span', 'gv-etapa', u[v.etapa] || '');
       et.setAttribute('data-ui', v.etapa);
       col.appendChild(et);
-      var nm = trEl('span', 'gv-nombre', u[v.nombre] || '');
+      var nm = el('span', 'gv-nombre', u[v.nombre] || '');
       nm.setAttribute('data-ui', v.nombre);
       col.appendChild(nm);
-      var de = trEl('div', 'gv-d', u[v.d] || '');
+      var de = el('div', 'gv-d', u[v.d] || '');
       de.setAttribute('data-ui', v.d);
       col.appendChild(de);
       if (esta){
-        var aqui = trEl('span', 'gv-estas', u.gv_aqui || '');
+        var aqui = el('span', 'gv-estas', u.gv_aqui || '');
         aqui.setAttribute('data-ui', 'gv_aqui');
         col.appendChild(aqui);
         /* La que estas mirando no se pulsa, y se dice para el lector de
@@ -632,7 +638,7 @@ function applyLang(lang){
            «esta esta deshabilitada». */
         col.setAttribute('aria-current', 'true');
       } else {
-        var ir = trEl('span', 'gv-ir', (u.gv_ver || '') + ' ›');
+        var ir = el('span', 'gv-ir', (u.gv_ver || '') + ' ›');
         ir.setAttribute('data-ui', 'gv_ver');
         col.appendChild(ir);
 
@@ -685,10 +691,10 @@ function applyLang(lang){
 
     if (madre){
       var pos = TRAMOS_DE[madre].indexOf(id) + 1;
-      var nota = trEl('div', 'tr-tramo-de');
-      nota.appendChild(trEl('span', null, String(U.tm_parte || '')
+      var nota = el('div', 'tr-tramo-de');
+      nota.appendChild(el('span', null, String(U.tm_parte || '')
         .replace('{n}', pos).replace('{t}', TRAMOS_DE[madre].length)));
-      var volver = trEl('button', 't-btn', U.tm_ver || '');
+      var volver = el('button', 't-btn', U.tm_ver || '');
       volver.type = 'button';
       volver.addEventListener('click', function(){ location.hash = 'tramite-' + madre; });
       nota.appendChild(volver);
@@ -697,24 +703,24 @@ function applyLang(lang){
     }
     if (!lista) return;
 
-    abajo.appendChild(trEl('div', 'tr-h', U.tm_titulo || ''));
+    abajo.appendChild(el('div', 'tr-h', U.tm_titulo || ''));
     lista.forEach(function(ref, i){
       if (i === 0) return;   /* el primero es el tramite de arriba */
       var tarjeta = document.querySelector('.tcard[data-tr="' + ref + '"]');
       var st = (tarjeta && tarjeta.getAttribute('data-st')) || 'pendiente';
 
-      var bloque = trEl('div', 'tr-bloque' + (tarjeta ? '' : ' apagado'));
+      var bloque = el('div', 'tr-bloque' + (tarjeta ? '' : ' apagado'));
       bloque.setAttribute('data-tramo', ref);
       bloque.setAttribute('data-st', st);
 
-      var cab = trEl('div', 'tr-bloque-h');
-      cab.appendChild(trEl('span', 'tr-bloque-n', String(i + 1)));
+      var cab = el('div', 'tr-bloque-h');
+      cab.appendChild(el('span', 'tr-bloque-n', String(i + 1)));
       var nombre = tarjeta ? ((tarjeta.querySelector('.t-name') || {}).textContent || ref)
                            : (dic[ref + '.name'] || ref);
-      cab.appendChild(trEl('span', 'tr-bloque-t', nombre));
+      cab.appendChild(el('span', 'tr-bloque-t', nombre));
       var ec = ESTADO_CHIP[st] || ESTADO_CHIP.pendiente;
-      var chip = trEl('span', 'chip ' + ec[0]);
-      var tx = trEl('span', null, dic[ec[1]] || I18N.en[ec[1]] || '');
+      var chip = el('span', 'chip ' + ec[0]);
+      var tx = el('span', null, dic[ec[1]] || I18N.en[ec[1]] || '');
       tx.setAttribute('data-i18n', ec[1]);
       chip.appendChild(tx);
       cab.appendChild(chip);
@@ -722,14 +728,14 @@ function applyLang(lang){
 
       var pasos = (D.pasos && D.pasos[lang] && D.pasos[lang][ref]) || [];
       var hechos = pasosHechos(st, pasos.length);
-      var ol = trEl('ol', 'tr-pasos tr-bloque-pasos');
+      var ol = el('ol', 'tr-pasos tr-bloque-pasos');
       pasos.forEach(function(txt, j){
         var hecho = j < hechos;
         var ahora = (j === hechos) && (hechos > 0) && (hechos < pasos.length);
-        var li = trEl('li', 'tr-paso ' + (hecho ? 'hecho' : (ahora ? 'ahora' : 'porhacer')));
-        li.appendChild(trEl('span', 'tr-punto', hecho ? String.fromCharCode(10003) : String(j + 1)));
-        var caja2 = trEl('div', 'tr-txt');
-        caja2.appendChild(trEl('div', 'tr-paso-n', txt));
+        var li = el('li', 'tr-paso ' + (hecho ? 'hecho' : (ahora ? 'ahora' : 'porhacer')));
+        li.appendChild(el('span', 'tr-punto', hecho ? String.fromCharCode(10003) : String(j + 1)));
+        var caja2 = el('div', 'tr-txt');
+        caja2.appendChild(el('div', 'tr-paso-n', txt));
         li.appendChild(caja2);
         ol.appendChild(li);
       });
@@ -739,8 +745,8 @@ function applyLang(lang){
          tienen ficha a la vista: se llega a ellos desde el tablero y desde
          los avisos. El pie queda solo para decir que un tramo está apagado. */
       if (!tarjeta){
-        var pie = trEl('div', 'tr-bloque-pie');
-        pie.appendChild(trEl('span', 'tr-bloque-nota', U.tm_apagado || ''));
+        var pie = el('div', 'tr-bloque-pie');
+        pie.appendChild(el('span', 'tr-bloque-nota', U.tm_apagado || ''));
         bloque.appendChild(pie);
       }
       abajo.appendChild(bloque);
@@ -2205,7 +2211,7 @@ applyLang(idiomaParaMi());
     function tic(){
       var ahora = new Date(), txt;
       try {
-        txt = new Intl.DateTimeFormat(curLang === 'zh' ? 'zh-CN' : curLang,
+        txt = new Intl.DateTimeFormat(localeDeAhora(),
           {hour:'2-digit', minute:'2-digit', timeZone:'America/Caracas'}).format(ahora);
       } catch(e){ return; }
       var zona = T().ct_hora_ve || '';
@@ -2237,14 +2243,8 @@ applyLang(idiomaParaMi());
   }
   function fecha(iso){
     if (!iso) return '';
-    try { return new Date(iso).toLocaleDateString(curLang === 'zh' ? 'zh-CN' : curLang, {day:'numeric', month:'short', year:'numeric'}); }
+    try { return new Date(iso).toLocaleDateString(localeDeAhora(), {day:'numeric', month:'short', year:'numeric'}); }
     catch(e){ return String(iso).slice(0,10); }
-  }
-  function el(tag, clase, texto){
-    var e = document.createElement(tag);
-    if (clase) e.className = clase;
-    if (texto != null) e.textContent = texto;
-    return e;
   }
 
   /* ── EL ORDEN POR COLUMNA ──────────────────────────────────────────
@@ -6619,7 +6619,7 @@ applyLang(idiomaParaMi());
         if (p){
           try {
             vista = new Date(+p[1], +p[2] - 1, +p[3]).toLocaleDateString(
-              curLang === 'zh' ? 'zh-CN' : curLang,
+              localeDeAhora(),
               {day: 'numeric', month: 'long', year: 'numeric'});
           } catch (err){ /* si el idioma no le gusta, se queda el crudo */ }
         }
@@ -8536,7 +8536,7 @@ applyLang(idiomaParaMi());
     var mismoDia = d.getFullYear() === h.getFullYear() &&
                    d.getMonth() === h.getMonth() && d.getDate() === h.getDate();
     if (!mismoDia) return fecha(iso);
-    try { return d.toLocaleTimeString(curLang === 'zh' ? 'zh-CN' : curLang,
+    try { return d.toLocaleTimeString(localeDeAhora(),
             {hour:'2-digit', minute:'2-digit'}); }
     catch(e){ return fecha(iso); }
   }
@@ -9141,23 +9141,15 @@ applyLang(idiomaParaMi());
     return null;
   }
 
-  /* sin tildes y en minúsculas, para que "peru" encuentre "Perú" */
-  function sinTildes(x){
-    x = String(x || '');
-    if (!x.normalize) return x.toLowerCase();
-    return x.normalize('NFD')
-            .replace(new RegExp('[' + String.fromCharCode(0x300) + '-' + String.fromCharCode(0x36f) + ']', 'g'), '')
-            .toLowerCase();
-  }
 
 
   /* Marca en el renglon el trozo que se ha escrito. La usan los DOS
      buscadores -el de paises y el de listas- y por eso vive aqui fuera,
-     al lado de sinTildes: estaba dentro del de paises, y el segundo
+     y no dentro del de paises: estaba dentro del de paises, y el segundo
      buscador habria sido una copia de siete lineas. */
   function resaltar(texto, q){
     if (!q) return texto;
-    var i = sinTildes(texto).indexOf(q);
+    var i = llano(texto).indexOf(q);
     if (i < 0) return texto;
     return texto.slice(0, i) + '<mark>' + texto.slice(i, i + q.length) + '</mark>' +
            texto.slice(i + q.length);
@@ -9180,7 +9172,7 @@ applyLang(idiomaParaMi());
     PAIS_ISO.forEach(function(c){
       var n = nombrePais(c, idioma) || nombrePais(c, 'es');
       if (!n) return;              /* navegador sin Intl.DisplayNames */
-      PAISES.push({cod:c, nombre:n, es:(nombrePais(c, 'es') || n), busca:sinTildes(n)});
+      PAISES.push({cod:c, nombre:n, es:(nombrePais(c, 'es') || n), busca:llano(n)});
     });
     PAISES.sort(function(a, b){ return a.nombre.localeCompare(b.nombre, idioma); });
   }
@@ -9223,7 +9215,7 @@ applyLang(idiomaParaMi());
       return el('span', 'bandera-cod', cod);
     }
     function pinta(q){
-      var qn = sinTildes(q);
+      var qn = llano(q);
       visibles = qn ? PAISES.filter(function(p){ return p.busca.indexOf(qn) >= 0; })
                     : PAISES.slice();
       /* Los que EMPIEZAN por lo escrito, primero: quien teclea "ven" busca
@@ -9275,7 +9267,7 @@ applyLang(idiomaParaMi());
        eligiera de la lista: pegar el nombre o el autorrelleno del
        navegador. */
     function fija(){
-      var q = sinTildes((entrada.value || '').trim());
+      var q = llano((entrada.value || '').trim());
       if (!q){ oculto.value = ''; if (caja) caja.removeAttribute('data-es'); return false; }
       /* El código guardado solo vale si SIGUE correspondiendo al texto a la
          vista: si no, uno de una elección anterior daría por bueno lo que
@@ -9308,7 +9300,7 @@ applyLang(idiomaParaMi());
         if (caja) caja.removeAttribute('data-es');
         return;
       }
-      var p = PAISES.filter(function(x){ return sinTildes(x.es) === sinTildes(esp); })[0];
+      var p = PAISES.filter(function(x){ return llano(x.es) === llano(esp); })[0];
       if (p){ elige(p); cierra(); }
       /* Un país escrito a mano en la base que no esté en la lista se
          enseña tal cual en vez de borrarlo por las bravas. */
@@ -9419,13 +9411,13 @@ applyLang(idiomaParaMi());
       marcado = -1;
     }
     function pinta(q){
-      var qn = sinTildes(q || '');
-      visibles = qn ? OPS.filter(function(o){ return sinTildes(o).indexOf(qn) >= 0; })
+      var qn = llano(q || '');
+      visibles = qn ? OPS.filter(function(o){ return llano(o).indexOf(qn) >= 0; })
                     : OPS.slice();
       /* Los que EMPIEZAN por lo escrito, primero, igual que en el de
          países: quien teclea "venta" busca «Venta», no «Reventa». */
       if (qn) visibles.sort(function(a, b){
-        return (sinTildes(a).indexOf(qn) === 0 ? 0 : 1) - (sinTildes(b).indexOf(qn) === 0 ? 0 : 1);
+        return (llano(a).indexOf(qn) === 0 ? 0 : 1) - (llano(b).indexOf(qn) === 0 ? 0 : 1);
       });
 
       lista.textContent = '';
@@ -10318,7 +10310,7 @@ applyLang(idiomaParaMi());
   function fechaHora(iso){
     if (!iso) return '';
     try {
-      return new Date(iso).toLocaleString(curLang === 'zh' ? 'zh-CN' : curLang,
+      return new Date(iso).toLocaleString(localeDeAhora(),
         {day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
     } catch(e){ return String(iso).slice(0, 16).replace('T', ' '); }
   }
@@ -10427,7 +10419,6 @@ applyLang(idiomaParaMi());
     return new Date(parseInt(t.slice(0, 4), 10), parseInt(t.slice(5, 7), 10) - 1,
                     parseInt(t.slice(8, 10), 10));
   }
-  function localeDeAhora(){ return curLang === 'zh' ? 'zh-CN' : curLang; }
 
   /* Por qué día empieza la semana. Lo dice el navegador con weekInfo, que
      no está en todos: si falta, lunes, salvo en inglés. Un calendario que
@@ -12656,7 +12647,7 @@ applyLang(idiomaParaMi());
      altura ya se pasó de todo; la hora sigue ahi para comparar. */
   function enUnidad(n, unidad, decimales){
     try {
-      return new Intl.NumberFormat(curLang === 'zh' ? 'zh-CN' : curLang,
+      return new Intl.NumberFormat(localeDeAhora(),
         {style:'unit', unit:unidad, unitDisplay:'short',
          maximumFractionDigits: decimales}).format(n);
     } catch(e){
@@ -17196,7 +17187,7 @@ applyLang(idiomaParaMi());
   function dinero(v, moneda){
     if (v === null || v === undefined || v === '') return '';
     try {
-      return new Intl.NumberFormat(curLang === 'zh' ? 'zh-CN' : curLang,
+      return new Intl.NumberFormat(localeDeAhora(),
         {style:'currency', currency: moneda || 'USD', maximumFractionDigits:0}).format(Number(v));
     } catch(e){ return (moneda || '') + ' ' + v; }
   }
@@ -21706,7 +21697,7 @@ applyLang(idiomaParaMi());
        navegador; no hace falta una tabla nuestra. */
     var orden = ['day', 'month', 'year'];
     try {
-      orden = new Intl.DateTimeFormat(curLang === 'zh' ? 'zh-CN' : curLang)
+      orden = new Intl.DateTimeFormat(localeDeAhora())
         .formatToParts(new Date(2026, 4, 15))
         .filter(function(p){ return p.type === 'day' || p.type === 'month' || p.type === 'year'; })
         .map(function(p){ return p.type; });
@@ -21768,7 +21759,7 @@ applyLang(idiomaParaMi());
     /* Los meses con su nombre y en el idioma de turno: "03" obliga a
        contar con los dedos. */
     var nombreMes = null;
-    try { nombreMes = new Intl.DateTimeFormat(curLang === 'zh' ? 'zh-CN' : curLang,
+    try { nombreMes = new Intl.DateTimeFormat(localeDeAhora(),
                                               {month: 'long'}); } catch(e){}
     for (var m = 1; m <= 12; m++){
       var om = document.createElement('option');
@@ -22354,7 +22345,7 @@ applyLang(idiomaParaMi());
     for (var i = 0; i < tramos.length; i++){
       if (Math.abs(v) < tramos[i][1] || tramos[i][1] === Infinity){
         try {
-          return new Intl.RelativeTimeFormat(curLang === 'zh' ? 'zh-CN' : curLang,
+          return new Intl.RelativeTimeFormat(localeDeAhora(),
             {numeric:'auto'}).format(Math.round(v), tramos[i][0]);
         } catch(e){ return fecha(iso); }
       }
@@ -23841,7 +23832,7 @@ applyLang(idiomaParaMi());
     var dias = Math.round((cero(hoy) - cero(d)) / EQ_DIA);
     if (dias === 0) return u.eq_hoy || '';
     if (dias === 1) return u.eq_ayer || '';
-    try { return d.toLocaleDateString(curLang === 'zh' ? 'zh-CN' : curLang, {weekday:'short', day:'numeric', month:'short'}); }
+    try { return d.toLocaleDateString(localeDeAhora(), {weekday:'short', day:'numeric', month:'short'}); }
     catch(e){ return String(iso).slice(0, 10); }
   }
   function eqHora(iso){
@@ -24055,32 +24046,22 @@ applyLang(idiomaParaMi());
     var TRAMOS = [], CIERRES = [], PROXIMAS = [], QUIEN = {}, FALTA_SQL = false;
     var RAYA = String.fromCharCode(8211), PUNTO = String.fromCharCode(183);
 
-    function mk(tag, cls, txt){
-      var e = document.createElement(tag);
-      if (cls) e.className = cls;
-      if (txt != null) e.textContent = txt;
-      return e;
-    }
-    function loc(){
-      return (typeof localeDeAhora === 'function') ? localeDeAhora()
-           : (document.documentElement.getAttribute('lang') || 'es');
-    }
     function esEquipo(){ return !!(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()); }
     function corta(t){ return String(t || '').slice(0, 5); }
     /* El 1 de febrero de 2026 fue domingo: el 2 es lunes, que es el dia 1. */
     function nombreDia(n){
-      var s = new Intl.DateTimeFormat(loc(), {weekday:'long', timeZone:'UTC'})
+      var s = new Intl.DateTimeFormat(localeDeAhora(), {weekday:'long', timeZone:'UTC'})
                 .format(new Date(Date.UTC(2026, 1, 1 + n)));
       return s.charAt(0).toUpperCase() + s.slice(1);
     }
     function deFecha(iso){
-      return new Intl.DateTimeFormat(loc(), {weekday:'short', day:'numeric', month:'long',
+      return new Intl.DateTimeFormat(localeDeAhora(), {weekday:'short', day:'numeric', month:'long',
         year:'numeric', timeZone:'UTC'}).format(new Date(iso + 'T12:00:00Z'));
     }
     function deCita(iso){
       var d = new Date(iso);
       if (isNaN(d.getTime())) return '';
-      return new Intl.DateTimeFormat(loc(), {weekday:'short', day:'numeric', month:'short',
+      return new Intl.DateTimeFormat(localeDeAhora(), {weekday:'short', day:'numeric', month:'short',
         hour:'2-digit', minute:'2-digit', timeZone:'America/Caracas'}).format(d);
     }
     /* De que va: el mismo nombre que ofrece el desplegable de la ventana de
@@ -24134,8 +24115,8 @@ applyLang(idiomaParaMi());
     }
 
     function campo(caja, rotulo, control){
-      var l = mk('label', 'ho-campo');
-      l.appendChild(mk('span', null, rotulo || ''));
+      var l = el('label', 'ho-campo');
+      l.appendChild(el('span', null, rotulo || ''));
       l.appendChild(control);
       caja.appendChild(l);
     }
@@ -24144,20 +24125,20 @@ applyLang(idiomaParaMi());
       var caja = document.getElementById('hoNuevo');
       if (!caja) return;
       caja.textContent = '';
-      var sDia = mk('select'); sDia.id = 'hoDia';
+      var sDia = el('select'); sDia.id = 'hoDia';
       /* De lunes a viernes. La base no acepta mas -horario_dia_valido- y
          ofrecer aqui un sabado seria ofrecer algo que al guardar da error. */
-      for (var n = 1; n <= 5; n++){ var o = mk('option', null, nombreDia(n)); o.value = String(n); sDia.appendChild(o); }
-      var iDesde = mk('input'); iDesde.type = 'time'; iDesde.id = 'hoDesde'; iDesde.value = '09:00';
-      var iHasta = mk('input'); iHasta.type = 'time'; iHasta.id = 'hoHasta'; iHasta.value = '12:00';
-      var sCada = mk('select'); sCada.id = 'hoCada';
+      for (var n = 1; n <= 5; n++){ var o = el('option', null, nombreDia(n)); o.value = String(n); sDia.appendChild(o); }
+      var iDesde = el('input'); iDesde.type = 'time'; iDesde.id = 'hoDesde'; iDesde.value = '09:00';
+      var iHasta = el('input'); iHasta.type = 'time'; iHasta.id = 'hoHasta'; iHasta.value = '12:00';
+      var sCada = el('select'); sCada.id = 'hoCada';
       [15, 20, 30, 45, 60].forEach(function(m){
-        var o = mk('option', null, String(u.ho_cada || '').replace('{n}', m));
+        var o = el('option', null, String(u.ho_cada || '').replace('{n}', m));
         o.value = String(m);
         if (m === 30) o.selected = true;
         sCada.appendChild(o);
       });
-      var b = mk('button', 'btn navy', u.ho_anadir || '');
+      var b = el('button', 'btn navy', u.ho_anadir || '');
       b.type = 'button'; b.id = 'hoAnadir';
       b.addEventListener('click', function(){
         /* La base tiene el mismo limite (horario_tramo_valido); aqui se dice
@@ -24181,10 +24162,10 @@ applyLang(idiomaParaMi());
       var caja = document.getElementById('hoNuevoCierre');
       if (!caja) return;
       caja.textContent = '';
-      var iF = mk('input'); iF.type = 'date'; iF.id = 'hoFecha';
+      var iF = el('input'); iF.type = 'date'; iF.id = 'hoFecha';
       iF.min = new Date(Date.now() - 4 * 3600000).toISOString().slice(0, 10);
-      var iM = mk('input'); iM.type = 'text'; iM.id = 'hoMotivo'; iM.maxLength = 200;
-      var b = mk('button', 'btn ghost', u.ho_cerrar_dia || '');
+      var iM = el('input'); iM.type = 'text'; iM.id = 'hoMotivo'; iM.maxLength = 200;
+      var b = el('button', 'btn ghost', u.ho_cerrar_dia || '');
       b.type = 'button'; b.id = 'hoCerrar';
       b.addEventListener('click', function(){
         if (!iF.value){ aviso(u.ho_falta_fecha || ''); return; }
@@ -24218,14 +24199,14 @@ applyLang(idiomaParaMi());
 
       /* -- la semana -- */
       hoSemana.textContent = '';
-      if (!TRAMOS.length) hoSemana.appendChild(mk('div', 'ho-vacio', u.ho_sinhorario || ''));
+      if (!TRAMOS.length) hoSemana.appendChild(el('div', 'ho-vacio', u.ho_sinhorario || ''));
       TRAMOS.forEach(function(t){
-        var f = mk('div', 'ho-fila');
+        var f = el('div', 'ho-fila');
         f.setAttribute('data-tramo', t.id);
-        f.appendChild(mk('span', 'ho-dia', nombreDia(+t.dia)));
-        f.appendChild(mk('span', 'ho-horas tnum', corta(t.desde) + ' ' + RAYA + ' ' + corta(t.hasta)));
-        f.appendChild(mk('span', 'ho-cada', String(u.ho_cada || '').replace('{n}', t.cada_min)));
-        var q = mk('button', 't-btn', u.ho_quitar || '');
+        f.appendChild(el('span', 'ho-dia', nombreDia(+t.dia)));
+        f.appendChild(el('span', 'ho-horas tnum', corta(t.desde) + ' ' + RAYA + ' ' + corta(t.hasta)));
+        f.appendChild(el('span', 'ho-cada', String(u.ho_cada || '').replace('{n}', t.cada_min)));
+        var q = el('button', 't-btn', u.ho_quitar || '');
         q.type = 'button';
         q.addEventListener('click', function(){
           q.disabled = true;
@@ -24240,13 +24221,13 @@ applyLang(idiomaParaMi());
       var hoC = document.getElementById('hoCierres');
       if (hoC){
         hoC.textContent = '';
-        if (!CIERRES.length) hoC.appendChild(mk('div', 'ho-vacio', u.ho_sincierres || ''));
+        if (!CIERRES.length) hoC.appendChild(el('div', 'ho-vacio', u.ho_sincierres || ''));
         CIERRES.forEach(function(c){
-          var f = mk('div', 'ho-fila');
+          var f = el('div', 'ho-fila');
           f.setAttribute('data-fecha', c.fecha);
-          f.appendChild(mk('span', 'ho-dia', deFecha(c.fecha)));
-          f.appendChild(mk('span', 'ho-cada', c.motivo || ''));
-          var q = mk('button', 't-btn', u.ho_quitar || '');
+          f.appendChild(el('span', 'ho-dia', deFecha(c.fecha)));
+          f.appendChild(el('span', 'ho-cada', c.motivo || ''));
+          var q = el('button', 't-btn', u.ho_quitar || '');
           q.type = 'button';
           q.addEventListener('click', function(){
             q.disabled = true;
@@ -24262,26 +24243,26 @@ applyLang(idiomaParaMi());
       var hoP = document.getElementById('hoProximas');
       if (hoP){
         hoP.textContent = '';
-        if (!PROXIMAS.length) hoP.appendChild(mk('div', 'ho-vacio', u.ho_sinproximas || ''));
+        if (!PROXIMAS.length) hoP.appendChild(el('div', 'ho-vacio', u.ho_sinproximas || ''));
         PROXIMAS.forEach(function(c){
-          var f = mk('div', 'ho-cita');
+          var f = el('div', 'ho-cita');
           f.setAttribute('data-cita', c.id);
-          var cab = mk('div', 'ho-cita-cab');
-          cab.appendChild(mk('span', 'ho-cuando tnum', deCita(c.cuando)));
-          cab.appendChild(mk('span', 'ho-quien', QUIEN[c.inversionista] || u.co_sinnombre || ''));
-          cab.appendChild(mk('span', 'ho-cada', (u['ct_' + c.modo] || c.modo) + ' ' + PUNTO + ' ' + asunto(c)));
+          var cab = el('div', 'ho-cita-cab');
+          cab.appendChild(el('span', 'ho-cuando tnum', deCita(c.cuando)));
+          cab.appendChild(el('span', 'ho-quien', QUIEN[c.inversionista] || u.co_sinnombre || ''));
+          cab.appendChild(el('span', 'ho-cada', (u['ct_' + c.modo] || c.modo) + ' ' + PUNTO + ' ' + asunto(c)));
           f.appendChild(cab);
-          if (c.nota) f.appendChild(mk('div', 'ho-nota', c.nota));
+          if (c.nota) f.appendChild(el('div', 'ho-nota', c.nota));
           /* Donde: la direccion si es presencial, el enlace si es por video.
              Antes lo ponia quien confirmaba en la cola; ahora la cita llega
              confirmada y el sitio se pone aqui. */
-          var fila = mk('div', 'ho-lugar');
-          var inp = mk('input');
+          var fila = el('div', 'ho-lugar');
+          var inp = el('input');
           inp.type = 'text';
           inp.value = c.lugar || '';
           inp.placeholder = u.ho_lugar || '';
           inp.setAttribute('aria-label', u.ho_lugar || '');
-          var g = mk('button', 'btn ghost sm', u.ho_guardar || '');
+          var g = el('button', 'btn ghost sm', u.ho_guardar || '');
           g.type = 'button';
           g.addEventListener('click', function(){
             g.disabled = true;
