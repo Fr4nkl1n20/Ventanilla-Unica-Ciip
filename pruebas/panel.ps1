@@ -80,6 +80,19 @@ Copy-Item (Join-Path $raiz 'pasos.js') $trabajo -Force
 # desplegables saldrian rojas sin que nadie hubiera roto nada.
 Copy-Item (Join-Path $raiz 'saren-listas.js') $trabajo -Force
 
+# El guion, el diccionario y los estilos del panel, que desde el 25-09-2026
+# viven en sus propios archivos, y assets/ (la fuente y los dos logos del
+# CIIP). Sin ellos la copia temporal seria una pagina sin codigo.
+foreach ($f in @('i18n.js', 'panel.js', 'textos-editables.js', 'panel.css', 'textos-editables.css')) {
+  Copy-Item (Join-Path $raiz $f) $trabajo -Force
+}
+$deAssets = Join-Path $raiz 'assets'
+if (Test-Path $deAssets) {
+  $aAssets = Join-Path $trabajo 'assets'
+  if (-not (Test-Path $aAssets)) { New-Item -ItemType Directory -Path $aAssets -Force | Out-Null }
+  Copy-Item (Join-Path $deAssets '*') $aAssets -Force
+}
+
 # Las banderas del buscador de paises. Sin copiarlas, el panel comprobaria
 # que no hay carpeta y caeria al codigo del pais: la prueba de que se
 # dibujan pasaria a rojo por un falso negativo.
@@ -196,7 +209,10 @@ foreach ($c in $casos) {
   # el camino se pliega a dos columnas y las pruebas de maquetacion medirian
   # una portada que casi nadie ve. 1400 es una pantalla de escritorio normal,
   # que es donde las cuatro etapas van en fila.
-  $args = @('--headless=new','--disable-gpu','--no-sandbox','--dump-dom',
+  # --allow-file-access-from-files: dos pruebas LEEN el codigo del panel, que
+  # desde el 25-09-2026 esta en panel.js; bajo file:// el navegador no deja
+  # pedirlo sin esto. Es un perfil de usar y tirar.
+  $args = @('--headless=new','--disable-gpu','--no-sandbox','--dump-dom','--allow-file-access-from-files',
             # EL PRESUPUESTO DE TIEMPO, Y LA CUENTA ESCRITA
   #
   # Crece con la cadena de pasos del arnes: cada uno espera medio segundo a

@@ -100,7 +100,7 @@ function apunte(b, que) { return b.apuntes.find(function (a) { return a.que === 
      compara. */
   {
     const html = fs.readFileSync(
-      path.join(__dirname, '..', 'ciip-ventanilla-unica-local.html'), 'utf8');
+      path.join(__dirname, '..', 'panel.js'), 'utf8');  /* el guion del panel, desde el 25-09-2026 */
     const i = html.indexOf('var IDIOMA_PAIS = {');
     const trozo = html.slice(i, html.indexOf('};', i));
     let iguales = true, detalle = '';

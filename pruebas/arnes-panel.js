@@ -8975,9 +8975,47 @@
      que vaciaba el doble, y no sirve —la lista está cacheada, así que
      vaciarla no repinta nada— y quedaba una prueba que decía mirar el estado
      vacío sin llegar a verlo nunca. Eso es peor que no tenerla. */
-  function tablasMiran(){
+  /* El codigo del panel, para las pruebas que lo LEEN. Desde el 25-09-2026
+     vive en panel.js y compañia, y el textContent de un <script src> es
+     vacio: se pide cada guion de la casa por su ruta, sin esperar (la prueba
+     es sincrona). Bajo file:// hace falta que el navegador deje leer
+     archivos: panel.ps1 lo arranca con --allow-file-access-from-files. */
+  /* Y lo mismo con los estilos: desde el 25-09-2026 viven en panel.css y
+     textos-editables.css, y el textContent de un <link> es vacio. */
+  function hojaDelPanel(){
     var texto = '';
-    [].forEach.call(document.querySelectorAll('script'), function(h){ texto += h.textContent; });
+    [].forEach.call(document.querySelectorAll('style, link[rel="stylesheet"]'), function(h){
+      if (h.tagName === 'STYLE'){ texto += h.textContent; return; }
+      var href = h.getAttribute('href');
+      if (!href || /^(https?:)?\/\//.test(href)) return;
+      try {
+        var x = new XMLHttpRequest();
+        x.open('GET', href, false);
+        x.send(null);
+        texto += x.responseText || '';
+      } catch (e) {}
+    });
+    return texto;
+  }
+
+  function codigoDelPanel(){
+    var texto = '';
+    [].forEach.call(document.querySelectorAll('script'), function(s){
+      var src = s.getAttribute('src');
+      if (!src){ texto += s.textContent; return; }
+      if (/^(https?:)?\/\//.test(src) || /arnes-panel|supabase-mentira/.test(src)) return;
+      try {
+        var x = new XMLHttpRequest();
+        x.open('GET', src, false);
+        x.send(null);
+        texto += x.responseText || '';
+      } catch (e) {}
+    });
+    return texto;
+  }
+
+  function tablasMiran(){
+    var texto = codigoDelPanel();
     ok('tablas: hay código que mirar', texto.length > 50000,
        texto.length + ' caracteres de script', 'el panel entero');
 
@@ -9128,7 +9166,7 @@
          sin tamaño. */
   function letraMira(){
     var texto = '';
-    [].forEach.call(document.querySelectorAll('style'), function(h){ texto += h.textContent; });
+    texto += hojaDelPanel();
 
     /* Sin expresión regular: se parte por «font:» y se mira lo que hay hasta
        el punto y coma. Una barra invertida de menos en un patrón aquí daría
@@ -9209,8 +9247,7 @@
      Y ese cierre NO se escribe aqui ni de ejemplo, porque cerraria este
      mismo bloque en seco. Acaba de pasar, escribiendo esta linea. */
   function cajasConDueño(){
-    var codigo = '';
-    [].forEach.call(document.querySelectorAll('script'), function(s){ codigo += s.textContent; });
+    var codigo = codigoDelPanel();
     ok('cajas con dueño: hay guion que mirar', codigo.length > 100000,
        codigo.length + ' caracteres de guion', 'el guion entero');
 
@@ -9241,7 +9278,7 @@
 
   function comentariosMiran(){
     var texto = '';
-    [].forEach.call(document.querySelectorAll('style'), function(h){ texto += h.textContent; });
+    texto += hojaDelPanel();
     ok('comentarios: hay hoja que mirar', texto.length > 20000,
        texto.length + ' caracteres de estilos', 'la hoja entera');
 
@@ -11350,10 +11387,18 @@
       /* Un vecino CUALQUIERA no vale: el primero es "Mi panel", que está
          activo y por eso va en blanco puro. Se compara con uno en reposo. */
       var vecino = document.querySelector('.sb-item:not(.active):not(.soon)');
+      /* Sin la transición de .13s mientras se mide. Si el vecino acababa de
+         dejar de estar activo -se cambió de vista un paso antes- seguía a
+         medio camino del blanco al 80%, y la prueba salía roja en un
+         expediente u otro según el momento (25-9-2026). Con la transición
+         anulada cada uno queda en su color final, que es lo que se compara. */
+      var trA = nav.style.transition, trB = vecino.style.transition;
+      nav.style.transition = 'none'; vecino.style.transition = 'none';
       var a = window.getComputedStyle(nav), b = window.getComputedStyle(vecino);
-      ok('agenda: el renglón se ve igual que sus vecinos',
-         a.fontFamily === b.fontFamily && a.fontSize === b.fontSize && a.color === b.color,
-         'letra ' + a.fontSize + ' ' + a.color + ' vs ' + b.fontSize + ' ' + b.color,
+      var igualA = a.fontFamily === b.fontFamily && a.fontSize === b.fontSize && a.color === b.color;
+      var dice = 'letra ' + a.fontSize + ' ' + a.color + ' vs ' + b.fontSize + ' ' + b.color;
+      nav.style.transition = trA; vecino.style.transition = trB;
+      ok('agenda: el renglón se ve igual que sus vecinos', igualA, dice,
          'la misma letra y el mismo color');
       ok('agenda: y ocupa el mismo ancho',
          Math.abs(nav.getBoundingClientRect().width - vecino.getBoundingClientRect().width) < 1,
@@ -12079,7 +12124,7 @@
        una se pierde, var(--x) se queda en nada y lo que dependia de ella
        cae al valor de fabrica, casi siempre transparente. */
     var texto = '';
-    [].forEach.call(document.querySelectorAll('style'), function(h){ texto += h.textContent; });
+    texto += hojaDelPanel();
     /* A mano y sin expresión regular: la hoja es un archivo enorme y una
        barra invertida de menos aquí no da error, da una regla que corre y
        no encuentra nada. Buscando el texto tal cual, eso no puede pasar. */

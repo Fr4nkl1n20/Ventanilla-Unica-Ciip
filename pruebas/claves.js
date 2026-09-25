@@ -22,7 +22,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const RAIZ = path.join(__dirname, '..');
-const PANEL = fs.readFileSync(path.join(RAIZ, 'ciip-ventanilla-unica-local.html'), 'utf8');
+/* El panel es el HTML y lo que carga: desde el 25-09-2026 los estilos viven en
+   panel.css y textos-editables.css, y el código en i18n.js, panel.js y
+   textos-editables.js. Se leen juntos, en el orden
+   en que los carga la página, para que todo lo de abajo siga mirando lo mismo. */
+const PANEL = ['ciip-ventanilla-unica-local.html', 'panel.css', 'i18n.js', 'panel.js',
+               'textos-editables.css', 'textos-editables.js']
+  .map(f => fs.readFileSync(path.join(RAIZ, f), 'utf8')).join('\n');
 const PASOS = fs.readFileSync(path.join(RAIZ, 'pasos.js'), 'utf8');
 
 let pasan = 0, fallan = 0;

@@ -42,7 +42,10 @@ usar esa base o la de pruebas — ver el bloque de comentarios ahí mismo.
 | Archivo | Qué es |
 |---|---|
 | `acceso.html` | Iniciar sesión, y clave nueva (por el enlace del correo de recuperación) |
-| `ciip-ventanilla-unica-local.html` | El panel, una vez dentro |
+| `ciip-ventanilla-unica-local.html` | El panel, una vez dentro: el marcado, el tema y el guardián de la sesión, que tienen que correr antes que nada |
+| `panel.js` · `panel.css` · `i18n.js` | El guion, los estilos y el diccionario de los seis idiomas del panel. Estaban dentro del HTML (1,8 MB en un archivo) hasta el 25-09-2026; se cargan en el mismo sitio y el mismo orden. **No se vuelven a meter dentro**: `pruebas/cerrojos.js` lo vigila, porque cargados dos veces el panel se rompe |
+| `textos-editables.js` · `.css` | El modo «Editar textos» del administrador. Aparte a propósito: se quita entero quitando sus dos etiquetas |
+| `assets/` | La fuente del título (`instrument-serif.ttf`), los dos logos del CIIP del panel y el fondo del acceso |
 | `config.js` | **Lo único que hay que rellenar**: las claves de Supabase |
 | `api/asistente.js` | El intermediario del asistente: lo único que corre en un servidor. Guarda la clave de Anthropic, que el navegador no puede ver. Ver `api/LEEME.md` |
 | `pasos.js` | Los cuatro pasos de cada trámite, en los seis idiomas |

@@ -548,7 +548,7 @@ ok('si el cubo no deja subir, falla sin llamar al servidor ni borrar nada',
    de mentira que no trae listo. Aquí se mira que el panel, cuando el lector
    SÍ lo trae, no pinte el cuadro sin preguntar. */
 
-const PANEL = fs.readFileSync(path.join(__dirname, '..', 'ciip-ventanilla-unica-local.html'), 'utf8');
+const PANEL = fs.readFileSync(path.join(__dirname, '..', 'panel.js'), 'utf8');  /* el guion del panel, desde el 25-09-2026 */
 const trozo = PANEL.slice(PANEL.indexOf('var lector = window.CIIP_LECTOR;'),
                           PANEL.indexOf('/* ── el cuadro cuando todavia no has soltado nada ── */'));
 ok('el panel pregunta lector.listo antes de pintar el cuadro',

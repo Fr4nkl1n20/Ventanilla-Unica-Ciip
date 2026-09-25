@@ -40,6 +40,20 @@ if (-not (Test-Path $destino)) { New-Item -ItemType Directory -Path $destino -Fo
 
 # --- 1. las piezas que la pagina pide por su nombre ---
 Copy-Item (Join-Path $raiz 'pasos.js') $destino -Force
+Copy-Item (Join-Path $raiz 'saren-listas.js') $destino -Force
+
+# El guion, el diccionario y los estilos del panel, que desde el 25-09-2026
+# viven en sus propios archivos, y assets/ (la fuente y los dos logos del
+# CIIP). Sin ellos la copia temporal seria una pagina sin codigo.
+foreach ($f in @('i18n.js', 'panel.js', 'textos-editables.js', 'panel.css', 'textos-editables.css')) {
+  Copy-Item (Join-Path $raiz $f) $destino -Force
+}
+$deAssets = Join-Path $raiz 'assets'
+if (Test-Path $deAssets) {
+  $aAssets = Join-Path $destino 'assets'
+  if (-not (Test-Path $aAssets)) { New-Item -ItemType Directory -Path $aAssets -Force | Out-Null }
+  Copy-Item (Join-Path $deAssets '*') $aAssets -Force
+}
 Copy-Item $mentira $destino -Force
 foreach ($carpeta in @('logos', 'banderas')) {
   $de = Join-Path $raiz $carpeta

@@ -1,0 +1,61 @@
+/* LOS ESTILOS DEL MODO «EDITAR TEXTOS».
+   Separado de ciip-ventanilla-unica-local.html el 25-09-2026 (auditoría de
+   código, fase 5). Se carga en el mismo sitio en que estaba escrito dentro. */
+/* Lo editable, marcado solo mientras se edita. Borde de puntos y no fondo:
+   el texto tiene que seguir leyendose tal cual va a quedar. */
+body.editando-textos :is([data-i18n],[data-texto],[data-ui]):not(.tx-editor *):not(.tx-banda *):not(#langMenu *){
+  outline:1px dashed var(--cyan-deep); outline-offset:2px; border-radius:3px; cursor:text;}
+body.editando-textos :is([data-i18n],[data-texto],[data-ui]):not(.tx-editor *):not(.tx-banda *):not(#langMenu *):hover{
+  outline:2px solid var(--cyan-deep);}
+/* Lo que ya tiene un cambio guardado en este idioma, en ambar: asi se ve de
+   un vistazo que se ha tocado y que se puede devolver. */
+body.editando-textos .tx-cambiado{outline-color:var(--amber) !important;}
+#navTextos[aria-pressed="true"]{background:rgba(32,176,240,.16);}
+
+.tx-banda{position:fixed; z-index:8999; left:50%; bottom:18px; transform:translateX(-50%);
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  max-width:calc(100vw - 32px); padding:10px 12px 10px 16px; border-radius:12px;
+  background:var(--navy); color:#fff; box-shadow:var(--shadow-lg);
+  font-size:var(--fs-parrafo); line-height:1.45;}
+.tx-banda[hidden]{display:none;}
+.tx-banda .tx-banda-msg{font-weight:700;}
+.tx-banda .tx-banda-msg:empty{display:none;}
+
+.tx-editor{position:fixed; z-index:9000; width:min(420px, calc(100vw - 32px));
+  display:flex; flex-direction:column; gap:10px; padding:14px;
+  background:var(--bg); color:var(--ink); border:1px solid var(--line); border-radius:12px;
+  box-shadow:var(--shadow-lg);}
+.tx-editor[hidden]{display:none;}
+.tx-editor .tx-t{font-size:var(--fs-seccion); font-weight:700; letter-spacing:.01em;}
+.tx-editor .tx-clave{font-family:ui-monospace, Consolas, monospace; font-size:9.5px; font-weight:600; color:var(--gray-soft);}
+.tx-editor textarea{font-family:inherit; font-size:var(--fs-campo); line-height:1.5; width:100%; min-height:72px;
+  resize:vertical; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink);}
+.tx-editor textarea:focus{outline:2px solid var(--navy2); outline-offset:1px;}
+.tx-editor .tx-nota{font-size:var(--fs-nota); line-height:1.55; color:var(--gray);}
+.tx-editor .tx-nota:empty{display:none;}
+.tx-editor .tx-orig{font-size:var(--fs-nota); line-height:1.55; color:var(--gray); background:var(--block);
+  border-radius:6px; padding:6px 8px;}
+.tx-editor .tx-orig[hidden]{display:none;}
+.tx-editor .tx-orig b{font-weight:700; color:var(--ink);}
+.tx-editor .tx-msg{font-size:var(--fs-nota); line-height:1.55; color:var(--rust);}
+.tx-editor .tx-msg:empty{display:none;}
+.tx-editor .tx-msg.espera{color:var(--gray);}
+.tx-editor .tx-botones{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+.tx-editor .tx-botones #txVolver{margin-right:auto;}
+.tx-btn{font-family:inherit; font-size:var(--fs-boton); font-weight:700; line-height:1; cursor:pointer;
+  padding:9px 12px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--ink);}
+.tx-btn[hidden]{display:none;}
+.tx-btn:disabled{opacity:.6; cursor:default;}
+.tx-btn.prim{background:var(--navy); border-color:var(--navy); color:#fff;}
+.tx-banda .tx-btn{background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.3); color:#fff;}
+.tx-btn:focus-visible{outline:2px solid var(--navy2); outline-offset:2px;}
+/* Lo que se pinta por código y no lleva marca: se marca al pasar por encima,
+   cuando el editor sabe de qué clave sale. */
+body.editando-textos .tx-sobre{outline:2px solid var(--cyan-deep); outline-offset:2px; border-radius:3px; cursor:text;}
+.tx-editor textarea[hidden], .tx-btn[hidden]{display:none;}
+.tx-editor .tx-lista{display:grid; gap:6px; max-height:260px; overflow:auto;}
+.tx-editor .tx-lista[hidden]{display:none;}
+.tx-opcion{font-family:inherit; font-size:var(--fs-campo); text-align:left; cursor:pointer; display:grid; gap:3px;
+  padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink);}
+.tx-opcion:hover, .tx-opcion:focus-visible{border-color:var(--cyan-deep); outline:none;}
+.tx-opcion small{font-family:ui-monospace, Consolas, monospace; font-size:9.5px; font-weight:600; color:var(--gray-soft);}

@@ -35,7 +35,9 @@ function ok(que, cierto, arreglo) {
 
 console.log('\n  LOS CERROJOS\n');
 
-const panel  = lee('ciip-ventanilla-unica-local.html');
+const html   = lee('ciip-ventanilla-unica-local.html');
+/* El panel es el HTML y su guion (panel.js desde el 25-09-2026). */
+const panel  = html + '\n' + lee('panel.js');
 const acceso = lee('acceso.html');
 const vercel = lee('vercel.json');
 const ignora = lee('.vercelignore');
@@ -80,6 +82,16 @@ for (const [nombre, texto] of [['acceso.html', acceso]]) {
      !fs.existsSync(path.join(RAIZ, 'login', 'index.html')),
      'Ha vuelto login/index.html: la puerta es acceso.html, y dos copias se separan.');
 })();
+
+/* Y el guion y los estilos no vuelven a meterse dentro del HTML. Una copia
+   vieja del panel -de antes del 25-09-2026- los traería dentro, y se
+   cargarían DOS veces: el guion entero corriendo dos veces rompe el panel. */
+const bloque = (re) => [...html.matchAll(re)].reduce((m, x) => Math.max(m, x[1].length), 0);
+ok('el HTML del panel no trae el guion ni los estilos dentro',
+   html.indexOf('const I18N = {') < 0 &&
+   bloque(/<script>([\s\S]*?)<\/script>/g) < 30000 &&
+   bloque(/<style>([\s\S]*?)<\/style>/g) < 20000,
+   'El HTML volvió a traer el guion o los estilos dentro: es una copia de antes de panel.js/panel.css. git pull y rehacer el cambio.');
 
 /* La CSP del sitio. */
 ok('vercel.json lleva la Content-Security-Policy',
