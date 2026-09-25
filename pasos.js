@@ -77,12 +77,12 @@ window.CIIP_PASOS = {
      También se cambian con «Editar textos»: pulsando el paso, la clave es
      _p.circuito.<ref>.<n>, y vale SOLO para ese trámite. */
   circuito: {
-    es: {c37: [null, null, "Inscripción ante cada ente", null]},
-    en: {c37: [null, null, "Registration with each body", null]},
-    pt: {c37: [null, null, "Inscrição em cada entidade", null]},
-    it: {c37: [null, null, "Iscrizione presso ciascun ente", null]},
-    zh: {c37: [null, null, "向各机构分别办理登记", null]},
-    ru: {c37: [null, null, "Регистрация в каждом органе", null]}
+    es: {c37: [null, null, "Inscripción ante cada ente", "Las seis constancias, en tu bóveda"]},
+    en: {c37: [null, null, "Registration with each body", "The six certificates, in your vault"]},
+    pt: {c37: [null, null, "Inscrição em cada entidade", "As seis certidões, no seu cofre"]},
+    it: {c37: [null, null, "Iscrizione presso ciascun ente", "I sei certificati, nel tuo archivio"]},
+    zh: {c37: [null, null, "向各机构分别办理登记", "六份证明已存入你的档案库"]},
+    ru: {c37: [null, null, "Регистрация в каждом органе", "Шесть справок в вашем хранилище"]}
   },
 
 
@@ -7387,7 +7387,7 @@ window.CIIP_PASOS = {
       c36: ["Cuenta en el SIGDME 2.0 como empresa conformada", "Carga de cédula, RIF y acta constitutiva", "Verificación del Sistema de Información Minera", "Certificado electrónico RUM, válido tres años"],
       c39: ["Registro en el SIDCAI con el RIF y el correo de la empresa", "Datos de la empresa, el representante legal y el usuario principal", "Carga del acta, el RIF y las declaraciones del ISLR", "Empresa inscrita en el SIDCAI"],
       c40: ["Planilla de pago generada en el SIDCAI", "Pago del aporte en el banco", "Carga del comprobante en el SIDCAI", "Revisión del FONACIT", "Certificado de solvencia emitido"],
-      c37: ["Un solo envío de recaudos al CIIP", "Inscripción ante el BANAVIH, el INCES y el Ministerio del Trabajo", "Inscripción en el RUPDAE y calificación ante el SNC", "Las cinco constancias, en tu bóveda"],
+      c37: ["Solicitud recibida por el CIIP", "Revisión de tus recaudos", "Inscripción ante cada ente", "Las seis constancias, en tu bóveda"],
       c13: ["Inscripción en el sistema del RNC", "Carga de los estados financieros auditados", "Evaluación de capacidad legal y financiera", "Certificado de inscripción vigente"],
       c14: ["Solvencia laboral del Ministerio del Trabajo", "Solvencias del IVSS y del INCES", "Solvencia municipal de la alcaldía", "Expediente de solvencias al día"],
       c15: ["Perfil de inversión y sectores de interés", "Selección de activos y proyectos", "Acompañamiento del CIIP en la evaluación", "Carta de intención y cierre"],
@@ -7427,7 +7427,7 @@ window.CIIP_PASOS = {
       c36: ["SIGDME 2.0 account as an incorporated company", "Upload of ID, RIF and articles of incorporation", "Verification by the Mining Information System", "Electronic RUM certificate, valid for three years"],
       c39: ["SIDCAI sign-up with the company’s RIF and email", "Company, legal representative and main user details", "Upload of articles, RIF and income tax returns", "Company registered in SIDCAI"],
       c40: ["Payment form generated in SIDCAI", "Payment of the contribution at the bank", "Receipt uploaded to SIDCAI", "FONACIT review", "Compliance certificate issued"],
-      c37: ["One single submission of documents to CIIP", "Registration with BANAVIH, INCES and the Ministry of Labour", "RUPDAE registration and SNC qualification", "All five certificates, in your vault"],
+      c37: ["Application received by CIIP", "Review of your documents", "Registration with each body", "The six certificates, in your vault"],
       c13: ["Sign-up in the RNC system", "Upload of audited financial statements", "Review of legal and financial capacity", "Valid registration certificate"],
       c14: ["Labour clearance from the Ministry of Labour", "IVSS and INCES clearances", "Municipal clearance from the mayor’s office", "Clearance file up to date"],
       c15: ["Investment profile and sectors of interest", "Selection of assets and projects", "CIIP support during due diligence", "Letter of intent and closing"],
@@ -7467,7 +7467,7 @@ window.CIIP_PASOS = {
       c36: ["Conta no SIGDME 2.0 como empresa constituída", "Carregamento da cédula, RIF e documento constitutivo", "Verificação do Sistema de Informação Mineira", "Certificado eletrónico RUM, válido por três anos"],
       c39: ["Inscrição no SIDCAI com o RIF e o e-mail da empresa", "Dados da empresa, do representante legal e do utilizador principal", "Carregamento do documento constitutivo, RIF e declarações de IR", "Empresa inscrita no SIDCAI"],
       c40: ["Guia de pagamento gerada no SIDCAI", "Pagamento da contribuição no banco", "Carregamento do comprovativo no SIDCAI", "Análise do FONACIT", "Certificado de regularidade emitido"],
-      c37: ["Um único envio de documentos ao CIIP", "Inscrição no BANAVIH, no INCES e no Ministério do Trabalho", "Inscrição no RUPDAE e qualificação no SNC", "As cinco certidões, no seu cofre"],
+      c37: ["Solicitação recebida pelo CIIP", "Análise dos seus documentos", "Inscrição em cada entidade", "As seis certidões, no seu cofre"],
       c13: ["Inscrição no sistema do RNC", "Carregamento das demonstrações financeiras auditadas", "Avaliação da capacidade legal e financeira", "Certificado de inscrição válido"],
       c14: ["Certidão laboral do Ministério do Trabalho", "Certidões do IVSS e do INCES", "Certidão municipal da câmara", "Processo de certidões em dia"],
       c15: ["Perfil de investimento e setores de interesse", "Seleção de ativos e projetos", "Acompanhamento do CIIP na avaliação", "Carta de intenções e fecho"],
@@ -7507,7 +7507,7 @@ window.CIIP_PASOS = {
       c36: ["Account sul SIGDME 2.0 come società costituita", "Caricamento di documento d’identità, RIF e atto costitutivo", "Verifica del Sistema Informativo Minerario", "Certificato elettronico RUM, valido tre anni"],
       c39: ["Iscrizione al SIDCAI con RIF ed email della società", "Dati della società, del rappresentante legale e dell’utente principale", "Caricamento di atto costitutivo, RIF e dichiarazioni dei redditi", "Società iscritta al SIDCAI"],
       c40: ["Modulo di pagamento generato nel SIDCAI", "Versamento del contributo in banca", "Caricamento della ricevuta nel SIDCAI", "Esame del FONACIT", "Certificato di regolarità rilasciato"],
-      c37: ["Un solo invio di documenti al CIIP", "Iscrizione a BANAVIH, INCES e Ministero del Lavoro", "Iscrizione al RUPDAE e qualificazione presso l’SNC", "Le cinque attestazioni, nel tuo archivio"],
+      c37: ["Richiesta ricevuta dal CIIP", "Esame dei tuoi documenti", "Iscrizione presso ciascun ente", "I sei certificati, nel tuo archivio"],
       c13: ["Iscrizione al sistema RNC", "Caricamento dei bilanci certificati", "Valutazione della capacità legale e finanziaria", "Certificato d’iscrizione valido"],
       c14: ["Certificazione del Ministero del Lavoro", "Certificazioni IVSS e INCES", "Certificazione comunale", "Fascicolo delle certificazioni aggiornato"],
       c15: ["Profilo d’investimento e settori d’interesse", "Selezione di asset e progetti", "Affiancamento del CIIP nella valutazione", "Lettera d’intenti e closing"],
@@ -7547,7 +7547,7 @@ window.CIIP_PASOS = {
       c36: ["以已成立公司身份开通 SIGDME 2.0 账户", "上传身份证件、RIF 和公司章程", "矿业信息系统核验", "出具 RUM 电子证书，有效期三年"],
       c39: ["用公司 RIF 和邮箱在 SIDCAI 注册", "填报公司、法定代表人和主用户资料", "上传公司章程、RIF 和所得税申报", "公司完成 SIDCAI 登记"],
       c40: ["在 SIDCAI 生成缴款单", "在银行缴纳捐款", "在 SIDCAI 上传回执", "FONACIT 审核", "出具合规证书"],
-      c37: ["向 CIIP 一次性提交全部材料", "在 BANAVIH、INCES 和劳工部办理登记", "办理 RUPDAE 登记与 SNC 承包商资格", "五份证明全部存入您的文件库"],
+      c37: ["CIIP 已收到申请", "审核你的材料", "向各机构分别办理登记", "六份证明已存入你的档案库"],
       c13: ["在 RNC 系统登记", "上传经审计的财务报表", "法律与财务能力评估", "有效的登记证书"],
       c14: ["劳动部劳动清税证明", "IVSS 与 INCES 清税证明", "市政清税证明", "清税档案齐备"],
       c15: ["投资意向与关注行业", "筛选资产与项目", "CIIP 协助尽职调查", "意向书与交割"],
@@ -7587,7 +7587,7 @@ window.CIIP_PASOS = {
       c36: ["Учётная запись в SIGDME 2.0 как зарегистрированной компании", "Загрузка удостоверения, RIF и учредительного акта", "Проверка Горной информационной системой", "Электронное свидетельство RUM на три года"],
       c39: ["Регистрация в SIDCAI по RIF и почте компании", "Данные компании, законного представителя и основного пользователя", "Загрузка учредительного акта, RIF и налоговых деклараций", "Компания зарегистрирована в SIDCAI"],
       c40: ["Платёжная форма сформирована в SIDCAI", "Оплата взноса в банке", "Квитанция загружена в SIDCAI", "Проверка FONACIT", "Выдан сертификат"],
-      c37: ["Один пакет документов в CIIP", "Регистрация в BANAVIH, INCES и Министерстве труда", "Регистрация в RUPDAE и квалификация в SNC", "Все пять свидетельств — в вашем хранилище"],
+      c37: ["Заявка получена CIIP", "Проверка ваших документов", "Регистрация в каждом органе", "Шесть справок в вашем хранилище"],
       c13: ["Регистрация в системе RNC", "Загрузка аудированной отчётности", "Оценка правоспособности и финансов", "Действующее свидетельство о регистрации"],
       c14: ["Справка Министерства труда", "Справки IVSS и INCES", "Муниципальная справка", "Пакет справок в порядке"],
       c15: ["Инвестиционный профиль и интересующие отрасли", "Отбор активов и проектов", "Сопровождение CIIP при оценке", "Письмо о намерениях и закрытие"],
