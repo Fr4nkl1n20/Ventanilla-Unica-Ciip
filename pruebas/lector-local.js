@@ -3,12 +3,12 @@
    Se lanza con:  LECTOR-LOCAL.bat
    ══════════════════════════════════════════════════════════════════════
 
-   Es la MISMA funcion que supabase/functions/leer-documento/index.ts, con
-   el mismo aviso al modelo y la misma tijera al final, pero escuchando en
-   tu ordenador. Sirve para probar el lector de verdad SIN desplegar nada:
+   Es la MISMA funcion que api/leer-documento.js, con el mismo aviso al
+   modelo y la misma tijera al final, pero escuchando en tu ordenador
+   (solo en 127.0.0.1: no la ve nadie mas de la red). Sirve para probar el lector de verdad SIN desplegar nada:
    sin Supabase, sin Docker y sin subir una linea.
 
-   Si algun dia las dos dejan de decir lo mismo, manda la de Supabase: esta
+   Si algun dia las dos dejan de decir lo mismo, manda la de Vercel: esta
    existe para mirar, aquella para funcionar.
 
    ────────────────────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ if (!CLAVE && !DE_MENTIRA) {
   process.exit(1);
 }
 
-/* El mismo aviso que la funcion de Supabase. Si cambia alli, cambia aqui. */
+/* El mismo aviso que api/leer-documento.js. Si cambia alli, cambia aqui. */
 const AVISO = `Eres un lector de documentos oficiales venezolanos para el CIIP.
 
 Te llega un documento y una lista de datos que hay que buscar en él.
@@ -153,16 +153,47 @@ alrededor:
 
 {"doc": "<tipo>", "campos": {"<casilla>": "<lo que dice el documento>"}}`;
 
-const CABECERAS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Content-Type': 'application/json; charset=utf-8'
-};
+/* Solo contesta a paginas servidas desde esta misma maquina. Con '*',
+   cualquier web abierta en el navegador del que lo arranca -o cualquier PC
+   de la oficina, cuando escuchaba en toda la red- mandaba papeles a leer
+   con SU clave de Anthropic. (Revision de seguridad del 25-09-2026.) */
+const ORIGEN_LOCAL = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+
+let origenDeLaPeticion = '';
+
+function cabeceras() {
+  const c = {
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json; charset=utf-8',
+    'Vary': 'Origin'
+  };
+  if (ORIGEN_LOCAL.test(origenDeLaPeticion)) c['Access-Control-Allow-Origin'] = origenDeLaPeticion;
+  return c;
+}
 
 function contesta(res, cuerpo, estado = 200) {
-  res.writeHead(estado, CABECERAS);
+  res.writeHead(estado, cabeceras());
   res.end(JSON.stringify(cuerpo));
+}
+
+/* La misma criba que api/leer-documento.js: un papel es una lista de
+   casillas, y lo que no tenga esa forma no viene del panel. Sin esto,
+   casillas={"x":1} tumbaba el proceso entero en el .join de mas abajo. */
+function casillasLimpias(entrada) {
+  if (!entrada || typeof entrada !== 'object' || Array.isArray(entrada)) return null;
+  const limpio = {};
+  let papeles = 0, total = 0;
+  for (const papel of Object.keys(entrada)) {
+    const lista = entrada[papel];
+    if (!/^[a-z0-9_]{1,60}$/.test(papel) || !Array.isArray(lista)) continue;
+    const buenas = lista.filter((c) => typeof c === 'string' && /^[a-z0-9_]{1,60}$/.test(c));
+    if (!buenas.length) continue;
+    papeles++; total += buenas.length;
+    if (papeles > 12 || total > 60) return null;
+    limpio[papel] = buenas;
+  }
+  return limpio;
 }
 
 function cuerpoEntero(req) {
@@ -171,7 +202,7 @@ function cuerpoEntero(req) {
     let cuanto = 0;
     req.on('data', (t) => {
       cuanto += t.length;
-      /* Diez megas, igual que la funcion de Supabase. Se corta aqui y no
+      /* Diez megas, igual que api/leer-documento.js. Se corta aqui y no
          despues de haberlo leido entero: si alguien manda un archivo de
          cien megas, el corte tiene que llegar antes que la memoria. */
       if (cuanto > 10 * 1024 * 1024) {
@@ -187,7 +218,8 @@ function cuerpoEntero(req) {
 }
 
 const servidor = http.createServer(async (req, res) => {
-  if (req.method === 'OPTIONS') { res.writeHead(204, CABECERAS); return res.end(); }
+  origenDeLaPeticion = String(req.headers.origin || '');
+  if (req.method === 'OPTIONS') { res.writeHead(204, cabeceras()); return res.end(); }
   if (req.method !== 'POST') return contesta(res, { error: 'solo POST' }, 405);
 
   let archivo = null;
@@ -201,7 +233,8 @@ const servidor = http.createServer(async (req, res) => {
       headers: { 'content-type': req.headers['content-type'] || '' }
     }).formData();
     archivo = sobre.get('archivo');
-    casillas = JSON.parse(String(sobre.get('casillas') || '{}'));
+    casillas = casillasLimpias(JSON.parse(String(sobre.get('casillas') || '{}')));
+    if (!casillas) throw new Error('las casillas no tienen la forma que manda el panel');
   } catch (e) {
     console.log('  · peticion que no se entiende: ' + e.message);
     return contesta(res, { error: 'no se entiende la peticion: ' + e.message }, 400);
@@ -301,7 +334,7 @@ const servidor = http.createServer(async (req, res) => {
     return contesta(res, { doc: null, campos: {} });
   }
 
-  /* La tijera, igual que en la funcion de Supabase: fuera el tipo que no
+  /* La tijera, igual que en api/leer-documento.js: fuera el tipo que no
      estaba en la lista y fuera las casillas que este tramite no pide.
      Escribirlas en el formulario seria inventar. */
   const doc = leido.doc && papeles.indexOf(leido.doc) >= 0 ? leido.doc : null;
@@ -323,7 +356,10 @@ const servidor = http.createServer(async (req, res) => {
   contesta(res, { doc, campos });
 });
 
-servidor.listen(PUERTO, () => {
+/* Solo en esta maquina. Sin host, Node escucha en TODAS las interfaces y
+   el lector -con la clave de Anthropic de quien lo arranca- quedaba abierto
+   a toda la red de la oficina. */
+servidor.listen(PUERTO, '127.0.0.1', () => {
   console.log('');
   console.log('  EL LECTOR DE DOCUMENTOS, EN TU MAQUINA');
   console.log('  --------------------------------------');

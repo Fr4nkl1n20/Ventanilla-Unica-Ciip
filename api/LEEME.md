@@ -113,11 +113,11 @@ pregunta suelta sino el volumen, y para eso hay tres frenos ya puestos:
 El tope de la cuenta en la consola de Anthropic es el que de verdad no se
 salta. Los de aquí son cortafuegos, no contabilidad.
 
-> El contador de las 40 no es exacto: Vercel puede tener varias copias de la
-> función a la vez y las apaga cuando no se usan, así que cada copia cuenta lo
-> suyo. Corta lo evidente —una pestaña olvidada, un bucle mal cerrado—, que es
-> para lo que está. Un tope exacto va en una tabla de Supabase, y el día que
-> haga falta se cambia dentro de este archivo sin que el panel se entere.
+> Desde el 25-09-2026 las 40 (y las 20 del lector) las cuenta la base, con
+> `gasta_uso_ia()` de `supabase-tope-ia.sql`: un contador por persona y por
+> hora que no se pierde cuando Vercel recicla la función. Mientras esa función
+> no esté puesta en la base, manda el contador en memoria de antes, que no es
+> exacto —cada copia de la función cuenta lo suyo— pero corta lo evidente.
 
 ---
 

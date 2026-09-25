@@ -8669,7 +8669,9 @@ var IDX={employees:1,present:2,realestate:3,profits:4,capital:5,time:6,taxes:7};
       }).then(function(r){
         return r.json().catch(function(){ return {}; }).then(function(d){
           if (r.ok && d.respuesta){
-            conversacion.push({ papel:'asistente', texto:d.respuesta });
+            /* La firma vuelve con la siguiente pregunta: sin ella, el
+               servidor no se cree que esta respuesta la dio él. */
+            conversacion.push({ papel:'asistente', texto:d.respuesta, firma:d.firma });
             return d.respuesta;
           }
           /* 'sin-clave' y 'sin-base' son estados del despliegue, no

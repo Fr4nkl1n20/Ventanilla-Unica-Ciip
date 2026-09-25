@@ -157,7 +157,9 @@ create trigger documentos_lo_decide_el_equipo
 
 -- Y el que firma la revisión es quien la hace, cuando la hace: el panel
 -- mandaba revisado_por y revisado_en desde el navegador, y un gestor
--- podía firmar a nombre de otro o con otra fecha.
+-- podía firmar a nombre de otro o con otra fecha. También la observación
+-- (25-9-2026): el gestor deja una nota sin tocar el estado, y esa nota
+-- también es una revisión con su autor y su hora.
 create or replace function public.papel_firma_la_revision()
 returns trigger
 language plpgsql
@@ -166,7 +168,8 @@ begin
   if auth.uid() is null then
     return new;
   end if;
-  if new.estado is distinct from old.estado then
+  if new.estado is distinct from old.estado
+     or new.nota_revision is distinct from old.nota_revision then
     new.revisado_por := auth.uid();
     new.revisado_en  := now();
   end if;

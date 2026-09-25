@@ -183,8 +183,17 @@ try {
 
       $cuerpo = $null; $estado = '200 OK'; $tipo = 'text/plain; charset=utf-8'
 
+      # Revision de seguridad del 25-09-2026, tres cerrojos:
+      #  - la carpeta se compara CON la barra final: sin ella, /../Ventanilla-Unica-2-copia/
+      #    empezaba igual que la raiz y se servia la carpeta de al lado;
+      #  - nada que empiece por punto (.git con todo el historial, .env) ni las cuentas
+      #    de prueba (*.local.json): con -Red esto lo ve toda la oficina;
+      #  - la ruta se escapa antes de pintarla en el 404 (abajo).
+      $base = [IO.Path]::GetFullPath($raiz).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+      $oculto = ($rel -split '[\\/]' | Where-Object { $_ -like '.*' }).Count -gt 0 -or $rel -like '*.local.json'
+
       $modificado = $null
-      if ($completa -and $completa.StartsWith([IO.Path]::GetFullPath($raiz)) -and (Test-Path $completa -PathType Leaf)) {
+      if ($completa -and -not $oculto -and $completa.StartsWith($base) -and (Test-Path $completa -PathType Leaf)) {
         $ext = [IO.Path]::GetExtension($completa).ToLower()
         if ($MIME.ContainsKey($ext)) { $tipo = $MIME[$ext] } else { $tipo = 'application/octet-stream' }
         $cuerpo = [IO.File]::ReadAllBytes($completa)
@@ -197,7 +206,8 @@ try {
       } else {
         $estado = '404 Not Found'
         $tipo = 'text/html; charset=utf-8'
-        $cuerpo = [Text.Encoding]::UTF8.GetBytes("<meta charset='utf-8'><h1>404</h1><p>No existe <code>$ruta</code> en la carpeta del proyecto.</p>")
+        $rutaSegura = [Net.WebUtility]::HtmlEncode($ruta)
+        $cuerpo = [Text.Encoding]::UTF8.GetBytes("<meta charset='utf-8'><h1>404</h1><p>No existe <code>$rutaSegura</code> en la carpeta del proyecto.</p>")
         Write-Host ("  404  {0,-15} {1}" -f $quien, $ruta) -ForegroundColor Yellow
       }
 
@@ -206,7 +216,6 @@ try {
              "Content-Length: $($cuerpo.Length)`r`n" +
              "Cache-Control: no-store`r`n" +
              $(if ($modificado) { "Last-Modified: $modificado`r`n" } else { '' }) +
-             "Access-Control-Allow-Origin: *`r`n" +
              "Connection: close`r`n`r`n"
       $bcab = [Text.Encoding]::ASCII.GetBytes($cab)
       $flujo.Write($bcab, 0, $bcab.Length)

@@ -9,9 +9,10 @@
    No decide nada. Devuelve lo que hay escrito; quien confirma es quien
    rellena la solicitud, y quien responde de ella también.
 
-   Es la misma función que supabase/functions/leer-documento/index.ts
-   -mismo aviso al modelo, misma tijera al final-, pero vive en Vercel,
-   junto a api/asistente.js. Así no hace falta la CLI de Supabase ni un
+   Antes había una gemela en supabase/functions/leer-documento/index.ts.
+   Se borró el 25-09-2026: no pedía sesión ni tenía tope, se desplegaba con
+   --no-verify-jwt y bastaba desplegarla para que cualquiera gastara la
+   clave de Anthropic. Ésta vive en Vercel, junto a api/asistente.js. Así no hace falta la CLI de Supabase ni un
    secreto guardado en otro sitio: la clave de Anthropic es UNA, la misma
    variable de entorno que usa el asistente.
 
@@ -98,7 +99,37 @@ var IMAGENES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 var MAX_PAPELES = 12;
 var MAX_CASILLAS = 60;
 
+/* El tope de verdad lo lleva la base, gasta_uso_ia('lector') de
+   supabase-tope-ia.sql. Este contador en memoria solo manda mientras esa
+   función no exista o la base no conteste: cada copia de la función en
+   Vercel tiene el suyo y empieza en cero. */
 var contador = new Map();
+
+async function cabeEnLaBase(token, supabaseUrl, supabaseKey) {
+  try {
+    var r = await fetch(supabaseUrl + '/rest/v1/rpc/gasta_uso_ia', {
+      method: 'POST',
+      headers: { apikey: supabaseKey, Authorization: 'Bearer ' + token,
+                 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_pieza: 'lector' })
+    });
+    if (!r.ok) return null;
+    var cabe = await r.json();
+    return typeof cabe === 'boolean' ? cabe : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function cabeEnLaMemoria(uid) {
+  var ahora = Date.now();
+  var mio = contador.get(uid);
+  if (!mio || ahora - mio.desde > 60 * 60 * 1000) mio = { desde: ahora, cuantas: 0 };
+  if (mio.cuantas >= TOPE_POR_HORA) return false;
+  mio.cuantas++;
+  contador.set(uid, mio);
+  return true;
+}
 
 /* Las fechas en ISO porque el panel las mete en tres listas y necesita los
    tres números por separado. Los importes sin puntos ni símbolo: un «Bs.
@@ -218,9 +249,11 @@ async function borrar(ruta, token, supabaseUrl, supabaseKey) {
       supabaseUrl + '/storage/v1/object/recaudos/' + rutaParaUrl(ruta),
       { method: 'DELETE', headers: { apikey: supabaseKey, Authorization: 'Bearer ' + token } }
     );
-    if (!r.ok) console.warn('[lector] no se pudo borrar ' + ruta + ': ' + r.status);
+    /* Sin la ruta: lleva el uid y el nombre original del archivo, y el
+       registro de Vercel lo lee más gente que la que ve los papeles. */
+    if (!r.ok) console.warn('[lector] no se pudo borrar un papel de {uid}/lector/: ' + r.status);
   } catch (e) {
-    console.warn('[lector] no se pudo borrar ' + ruta + ':', e && e.message);
+    console.warn('[lector] no se pudo borrar un papel de {uid}/lector/:', e && e.message);
   }
 }
 
@@ -234,7 +267,9 @@ function recorta(texto, casillas) {
   try {
     leido = JSON.parse(texto.slice(texto.indexOf('{'), texto.lastIndexOf('}') + 1));
   } catch (e) {
-    console.warn('[lector] no se entiende lo que devolvió:', texto.slice(0, 300));
+    /* Solo el largo: lo que devolvió puede llevar el número de pasaporte o
+       la cédula que acaba de leer, y eso no va al registro de Vercel. */
+    console.warn('[lector] no se entiende lo que devolvió (' + texto.length + ' caracteres)');
     return { doc: null, campos: {} };
   }
   var doc = leido && typeof leido.doc === 'string' &&
@@ -329,14 +364,11 @@ module.exports = async function (req, res) {
 
     /* El tope se cuenta después de validar: un cuerpo mal hecho no gasta
        nada y no debe comerse lecturas. */
-    var ahora = Date.now();
-    var mio = contador.get(usuario.id);
-    if (!mio || ahora - mio.desde > 60 * 60 * 1000) mio = { desde: ahora, cuantas: 0 };
-    if (mio.cuantas >= TOPE_POR_HORA) {
+    var cabe = await cabeEnLaBase(token, supabaseUrl, supabaseKey);
+    if (cabe === null) cabe = cabeEnLaMemoria(usuario.id);
+    if (!cabe) {
       return res.status(429).json({ motivo: 'tope', error: 'Muchas lecturas seguidas. Pruebe dentro de un rato.' });
     }
-    mio.cuantas++;
-    contador.set(usuario.id, mio);
 
     var papel;
     try {

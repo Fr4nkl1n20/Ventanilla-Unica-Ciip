@@ -3686,6 +3686,96 @@ reset role;
 select arnes.nadie();
 
 
+
+-- ══ 33 · EL TOPE DE LA IA, Y LA FIRMA DE LA OBSERVACION ═══════════════
+-- supabase-tope-ia.sql y el retoque de supabase-papeles-sellados.sql.
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $ti$
+declare i int; ult boolean; sigue boolean;
+begin
+  for i in 1 .. 40 loop ult := public.gasta_uso_ia('asistente'); end loop;
+  sigue := public.gasta_uso_ia('asistente');
+  perform arnes.comprueba('tope ia: cuarenta preguntas en una hora SI, la 41 no',
+    ult and not sigue, format('la 40=%s la 41=%s', ult, sigue));
+  for i in 1 .. 20 loop ult := public.gasta_uso_ia('lector'); end loop;
+  sigue := public.gasta_uso_ia('lector');
+  perform arnes.comprueba('tope ia: el lector, veinte papeles y no mas',
+    ult and not sigue, format('el 20=%s el 21=%s', ult, sigue));
+exception when others then
+  perform arnes.comprueba('tope ia: cuarenta preguntas en una hora SI, la 41 no', false, sqlerrm);
+end
+$ti$;
+
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $ti$
+begin
+  perform arnes.comprueba('tope ia: el cupo es de cada uno',
+    public.gasta_uso_ia('asistente'));
+exception when others then
+  perform arnes.comprueba('tope ia: el cupo es de cada uno', false, sqlerrm);
+end
+$ti$;
+
+do $ti$
+begin
+  perform public.gasta_uso_ia('otra-cosa');
+  perform arnes.comprueba('tope ia: una pieza que no existe no se cuenta', false, 'entro');
+exception when others then
+  perform arnes.comprueba('tope ia: una pieza que no existe no se cuenta', true);
+end
+$ti$;
+
+do $ti$
+declare n int;
+begin
+  -- El arnes concede select sobre todo al empezar, asi que aqui el revoke
+  -- no se ve: lo que se prueba es el RLS sin politicas. Hay filas (las de
+  -- arriba) y no tiene que salir ninguna.
+  select count(*) into n from public.uso_ia;
+  perform arnes.comprueba('tope ia: la tabla no se lee desde fuera', n = 0, n || ' filas');
+exception when others then
+  perform arnes.comprueba('tope ia: la tabla no se lee desde fuera', true);
+end
+$ti$;
+
+reset role;
+select arnes.nadie();
+select arnes.comprueba('tope ia: sin entrar no se puede ni llamar',
+  not has_function_privilege('anon', 'public.gasta_uso_ia(text)', 'execute'));
+
+-- La observacion: el gestor deja una nota sin tocar el estado, y la firma
+-- es suya aunque el navegador mande otra.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $ti$
+begin
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original)
+  values (auth.uid(), 'pasaporte', auth.uid()::text || '/ti-obs.pdf', 'obs.pdf');
+end
+$ti$;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $ti$
+declare ana uuid := (select id from arnes.gente where papel = 'A');
+begin
+  update public.documentos
+     set nota_revision = 'la foto sale borrosa', revisado_por = ana, revisado_en = '2020-01-01'
+   where archivo = ana::text || '/ti-obs.pdf';
+  perform arnes.comprueba('observacion: la firma es de quien la deja, con la hora de la base',
+    (select estado = 'cargado' and revisado_por = auth.uid()
+            and revisado_en > now() - interval '1 minute'
+       from public.documentos where archivo = ana::text || '/ti-obs.pdf'),
+    (select format('estado=%s por=%s en=%s', estado, revisado_por, revisado_en)
+       from public.documentos where archivo = ana::text || '/ti-obs.pdf'));
+exception when others then
+  perform arnes.comprueba('observacion: la firma es de quien la deja, con la hora de la base', false, sqlerrm);
+end
+$ti$;
+reset role;
+select arnes.nadie();
+
+
 \o
 \pset tuples_only on
 \pset format unaligned

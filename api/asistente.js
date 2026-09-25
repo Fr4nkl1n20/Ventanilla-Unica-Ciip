@@ -55,6 +55,8 @@
 
 'use strict';
 
+var crypto = require('crypto');
+
 /* El paquete expone la clase de tres maneras según cómo se le cargue. Se
    prueban las tres en vez de apostar por una: equivocarse aquí revienta el
    arranque de la función, y eso solo se ve una vez desplegado. */
@@ -95,9 +97,9 @@ var CATALOGO_VALE_MS = 10 * 60 * 1000;
 /* ── MEMORIA DE LA INSTANCIA ─────────────────────────────────────────
    Vercel puede tener varias copias de esta función a la vez, y las apaga
    cuando no se usan. Así que esto NO es un contador exacto: es una barrera
-   barata que corta lo evidente. Un tope de verdad, a prueba de todo, va en
-   una tabla de la base; el día que haga falta se cambia aquí dentro y el
-   resto del proyecto no se entera. */
+   barata que corta lo evidente. El tope de verdad lo lleva la base,
+   gasta_uso_ia() de supabase-tope-ia.sql; este solo manda mientras esa
+   función no exista o la base no conteste. */
 var contador = new Map();
 var catalogo = { datos: null, cuando: 0 };
 
@@ -112,6 +114,69 @@ async function quienPregunta(token, supabaseUrl, supabaseKey) {
   if (!r.ok) return null;
   var usuario = await r.json();
   return usuario && usuario.id ? usuario : null;
+}
+
+/* ¿Le queda cupo? Lo cuenta la base con el token de quien pregunta: true
+   o false. null si la base no lo sabe decir -la función aún no está
+   puesta, o no contestó-, y entonces decide el contador de la memoria. */
+async function cabeEnLaBase(token, supabaseUrl, supabaseKey) {
+  try {
+    var r = await fetch(supabaseUrl + '/rest/v1/rpc/gasta_uso_ia', {
+      method: 'POST',
+      headers: { apikey: supabaseKey, Authorization: 'Bearer ' + token,
+                 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_pieza: 'asistente' })
+    });
+    if (!r.ok) return null;
+    var cabe = await r.json();
+    return typeof cabe === 'boolean' ? cabe : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function cabeEnLaMemoria(uid) {
+  var ahora = Date.now();
+  var mio = contador.get(uid);
+  if (!mio || ahora - mio.desde > 60 * 60 * 1000) {
+    mio = { desde: ahora, cuantas: 0 };
+  }
+  if (mio.cuantas >= TOPE_POR_HORA) return false;
+  mio.cuantas++;
+  contador.set(uid, mio);
+  return true;
+}
+
+/* ── LAS RESPUESTAS, FIRMADAS ────────────────────────────────────────
+   El panel manda la conversación entera en cada pregunta, y hasta el
+   25-9-2026 un turno con papel:'asistente' se creía tal cual. Desde la
+   consola se podían fabricar respuestas «del asistente» y, con ellas,
+   convencer al modelo de ser otra cosa, pagado por el CIIP.
+
+   Ahora cada respuesta sale con una firma (HMAC de quién pregunta y del
+   texto) y un turno del asistente solo entra si la trae y cuadra. La
+   llave es ASISTENTE_FIRMA si está puesta en Vercel; si no, una derivada
+   de la clave de Anthropic, que ya es un secreto de este servidor. Si la
+   llave cambia, las firmas viejas dejan de valer y la conversación
+   pierde su memoria: no se rompe nada. */
+function llaveDeFirma() {
+  return process.env.ASISTENTE_FIRMA ||
+    crypto.createHash('sha256')
+          .update('ciip-asistente-firma\n' + (process.env.ANTHROPIC_API_KEY || ''))
+          .digest();
+}
+
+function firma(uid, texto) {
+  return crypto.createHmac('sha256', llaveDeFirma())
+               .update(String(uid) + '\n' + String(texto))
+               .digest('base64url');
+}
+
+function firmaValida(uid, texto, dada) {
+  if (typeof dada !== 'string' || !dada) return false;
+  var buena = Buffer.from(firma(uid, texto));
+  var traida = Buffer.from(dada);
+  return buena.length === traida.length && crypto.timingSafeEqual(buena, traida);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -277,19 +342,14 @@ module.exports = async function (req, res) {
   }
 
   /* ── el tope ───────────────────────────────────────────────────── */
-  var ahora = Date.now();
-  var mio = contador.get(usuario.id);
-  if (!mio || ahora - mio.desde > 60 * 60 * 1000) {
-    mio = { desde: ahora, cuantas: 0 };
-  }
-  if (mio.cuantas >= TOPE_POR_HORA) {
+  var cabe = await cabeEnLaBase(token, supabaseUrl, supabaseKey);
+  if (cabe === null) cabe = cabeEnLaMemoria(usuario.id);
+  if (!cabe) {
     return res.status(429).json({
       motivo: 'tope',
       error: 'Ha hecho muchas preguntas seguidas. Pruebe de nuevo dentro de un rato.'
     });
   }
-  mio.cuantas++;
-  contador.set(usuario.id, mio);
 
   /* ── la pregunta ───────────────────────────────────────────────── */
   var cuerpo = req.body;
@@ -305,15 +365,22 @@ module.exports = async function (req, res) {
      últimos turnos y se limita el largo de cada uno. Lo segundo no es
      desconfianza: un pegado accidental de treinta páginas convierte una
      pregunta de céntimos en una de varios dólares. */
-  var mensajes = entrantes
-    .slice(-TURNOS_MAXIMOS)
-    .filter(function (m) { return m && typeof m.texto === 'string' && m.texto.trim(); })
-    .map(function (m) {
-      return {
-        role: m.papel === 'asistente' ? 'assistant' : 'user',
-        content: String(m.texto).slice(0, 4000)
-      };
-    });
+  /* Un turno del asistente sin su firma se cae, y dos del usuario que
+     quedan seguidos se juntan en uno: el modelo espera que se alternen. */
+  var mensajes = [];
+  entrantes.slice(-TURNOS_MAXIMOS).forEach(function (m) {
+    if (!m || typeof m.texto !== 'string' || !m.texto.trim()) return;
+    var rol = 'user';
+    if (m.papel === 'asistente') {
+      if (!firmaValida(usuario.id, m.texto, m.firma)) return;
+      rol = 'assistant';
+    }
+    var contenido = m.texto.slice(0, 4000);
+    var previo = mensajes[mensajes.length - 1];
+    if (previo && previo.role === rol) previo.content += '\n\n' + contenido;
+    else mensajes.push({ role: rol, content: contenido });
+  });
+  while (mensajes.length && mensajes[0].role === 'assistant') mensajes.shift();
 
   if (!mensajes.length || mensajes[mensajes.length - 1].role !== 'user') {
     return res.status(400).json({ error: 'La conversación tiene que terminar en una pregunta.' });
@@ -357,9 +424,8 @@ module.exports = async function (req, res) {
     });
 
     if (salida.stop_reason === 'refusal') {
-      return res.status(200).json({
-        respuesta: 'Esa consulta no la puedo atender. Si es sobre un trámite de la ventanilla, pruebe a formularla de otra manera; si no, escríbale al CIIP.'
-      });
+      var negada = 'Esa consulta no la puedo atender. Si es sobre un trámite de la ventanilla, pruebe a formularla de otra manera; si no, escríbale al CIIP.';
+      return res.status(200).json({ respuesta: negada, firma: firma(usuario.id, negada) });
     }
 
     var texto = salida.content
@@ -372,7 +438,7 @@ module.exports = async function (req, res) {
       return res.status(502).json({ error: 'El asistente no devolvió nada. Inténtelo otra vez.' });
     }
 
-    return res.status(200).json({ respuesta: texto });
+    return res.status(200).json({ respuesta: texto, firma: firma(usuario.id, texto) });
 
   } catch (e) {
 
@@ -406,3 +472,6 @@ module.exports = async function (req, res) {
     return res.status(500).json({ error: 'Algo falló al preparar la respuesta.' });
   }
 };
+
+/* Para las pruebas: firmar un turno como lo haría esta función. */
+module.exports.firma = firma;

@@ -124,7 +124,7 @@
        Vercel falten la clave o LECTOR_ACTIVO=si, contesta que no.
 
      · Cualquier otra  →  un lector que recibe el archivo entero en un
-       formulario: la funcion de Supabase o pruebas/lector-local.js.
+       formulario: pruebas/lector-local.js, en la maquina de quien prueba.
 
      Vacia, no hay lector y el cuadro de «suelta el papel» no se pinta.
 

@@ -90,6 +90,8 @@ let sesionValida = true;
 let papel = { tipo: 'application/pdf', bytes: BYTES_PDF };
 let llamadas = [];
 
+let topeEnLaBase = null;
+
 global.fetch = async function (url, opciones) {
   opciones = opciones || {};
   const u = String(url);
@@ -99,6 +101,11 @@ global.fetch = async function (url, opciones) {
   if (u.indexOf('/auth/v1/user') >= 0) {
     if (!sesionValida) return { ok: false, status: 401, json: async () => ({}) };
     return { ok: true, status: 200, json: async () => ({ id: UID }) };
+  }
+  /* null = la función no está en la base: el tope lo lleva la memoria. */
+  if (u.indexOf('/rest/v1/rpc/gasta_uso_ia') >= 0) {
+    if (topeEnLaBase === null) return { ok: false, status: 404, json: async () => ({}) };
+    return { ok: true, status: 200, json: async () => topeEnLaBase };
   }
   if (metodo === 'GET' && u.indexOf('/storage/v1/object/authenticated/recaudos/') >= 0) {
     if (!papel) return { ok: false, status: 400, json: async () => ({}) };
@@ -150,6 +157,7 @@ function recargar(entorno) {
   sesionValida = true;
   papel = { tipo: 'application/pdf', bytes: BYTES_PDF };
   llamadas = [];
+  topeEnLaBase = null;
   comportamiento = { tipo: 'bien', texto: '{"doc":"poder","campos":{"apoderado_nombre":"María Pérez"}}' };
   ultimaPeticion = null;
   llamadasAnthropic = 0;
@@ -367,6 +375,40 @@ for (let i = 0; i < 21; i++) ultima = await llamar();
 ok('a la lectura 21 en una hora: 429 tope', ultima.codigo === 429 && ultima.datos.motivo === 'tope',
    ultima.codigo + ' ' + JSON.stringify(ultima.datos));
 ok('...y ese papel también se borra', borrados().length === 21, borrados().length + ' borrados');
+
+/* ── 7b · EL TOPE, EN LA BASE ─────────────────────────────────────── */
+
+recargar();
+topeEnLaBase = false;
+r = await llamar();
+ok('si la base dice que no queda cupo: 429 a la primera', r.codigo === 429 && r.datos.motivo === 'tope',
+   r.codigo + ' ' + JSON.stringify(r.datos));
+ok('...y el papel se borra igual', borrados().length === 1, borrados().length + ' borrados');
+
+recargar();
+topeEnLaBase = true;
+let enLaBase;
+for (let i = 0; i < 25; i++) enLaBase = await llamar();
+ok('si la base dice que sí, la memoria no corta por su cuenta', enLaBase.codigo === 200,
+   'contestó ' + enLaBase.codigo);
+
+/* ── 7c · LO QUE LEYÓ NO VA AL REGISTRO ───────────────────────────────
+   El registro de Vercel lo lee más gente que la que ve los papeles. */
+
+recargar();
+{
+  const dichos = [];
+  const antes = console.warn;
+  console.warn = function () { dichos.push(Array.prototype.join.call(arguments, ' ')); };
+  try {
+    lector.recorta('pasaporte YB1234567 de María Pérez, sin llaves', CASILLAS);
+  } finally {
+    console.warn = antes;
+  }
+  ok('si no entiende lo que devolvió, el registro no copia lo leído',
+     dichos.length === 1 && dichos[0].indexOf('YB1234567') < 0 && dichos[0].indexOf('Pérez') < 0,
+     JSON.stringify(dichos));
+}
 
 /* ── 8 · CADA FALLO POR SU PUERTA, Y EL PAPEL SIEMPRE FUERA ────────── */
 

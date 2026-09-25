@@ -119,7 +119,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* Paso 2 de esa revision: las columnas del CIIP en un tramite y el
    bloqueo en todo lo que escribe el inversionista. Redefine las politicas
    del cubo del anterior, asi que va detras. */
-'supabase-tramites-y-bloqueo'];
+'supabase-tramites-y-bloqueo',
+/* El tope del asistente y del lector, contado en la base y no en la
+   memoria de cada copia de la funcion. No depende de nadie. */
+'supabase-tope-ia'];
 
 let mal = 0;
 for (const n of orden) {
