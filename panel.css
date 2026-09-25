@@ -3153,6 +3153,8 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .pe-msg{flex-basis:100%; font-size:var(--fs-nota); color:var(--gray);}
 .pe-msg:empty{display:none;}
 .pe-listo{margin-top:8px;}
+.pe-baja{margin-top:8px;}
+.pe-baja[hidden]{display:none;}
 .co-entes{margin-top:12px;}
 .co-entes-h{font-size:var(--fs-nota); font-weight:700; color:var(--ink);}
 .tr-pagar-p{margin-top:7px;}

@@ -19490,7 +19490,7 @@ applyLang(idiomaParaMi());
      RNC- y el panel llevaba cinco: faltaba la patronal del seguro social.
      Va donde lo nombra ese texto, entre el RUPDAE y el RNC. */
   var ENTES_PARAFISCALES = ['banavih', 'inces', 'mpppst', 'sundde', 'ivss', 'snc'];
-  var ENTES_SELECT = 'ente, codigo, estado, documento, documentos(archivo, nombre_original)';
+  var ENTES_SELECT = 'ente, codigo, estado, documento, documentos(archivo, nombre_original, tipo)';
   /* ── CUÁNDO SE PUEDEN TOCAR LOS CINCO ──
      Franklin Reyes, 25-9-2026: «quiero que las casillas de abajo estén
      desactivadas hasta que la fase del proceso de arriba esté en la etapa
@@ -19607,6 +19607,18 @@ applyLang(idiomaParaMi());
       var dice = el('div', 'pe-dice');
       dice.hidden = true;
       pasos[1].txt.appendChild(dice);
+
+      /* La constancia que emitió el ente, para DESCARGARLA (Franklin
+         Reyes, 25-9-2026: «falta una opción de que el inversionista pueda
+         descargar el documento»). Salía como un «Ver archivo» colgado del
+         paso 2, al lado del código, que no es donde nadie la busca: la
+         constancia es lo que cierra la inscripción, y va en su último
+         paso. Para los dos, inversionista y equipo: el gestor también
+         tiene que poder comprobar qué subió. */
+      var baja = el('button', 'btn navy pe-baja', u.pe_descargar || '');
+      baja.type = 'button';
+      baja.hidden = true;
+      pasos[3].txt.appendChild(baja);
 
       /* Las tres cosas que se pueden hacer sobre un ente. Se montan todas y
          se enseñan según el estado: así el repintado es enseñar y esconder,
@@ -19746,7 +19758,13 @@ applyLang(idiomaParaMi());
             entrega(tr, f, 'constancia_ente')
               .then(function(doc){
                 if (!doc) throw new Error('sin documento');
-                return manda({tramite: tr.id, ente: ente, documento: doc}, null, null);
+                /* Y con la constancia, LISTA (Franklin Reyes, 25-9-2026:
+                   «debería estar lista cuando el CIIP envía el archivo»).
+                   La constancia es la prueba de que esa inscripción
+                   terminó; dejarla en «Código enviado» con el papel ya
+                   entregado obligaba a un segundo clic que no decía nada
+                   nuevo. «Marcar listo» sigue para cerrar una sin papel. */
+                return manda({tramite: tr.id, ente: ente, documento: doc, estado: 'listo'}, null, null);
               })
               .then(function(){ arch.disabled = false; arch.value = ''; msgS.textContent = ''; })
               .catch(function(e){
@@ -19787,7 +19805,15 @@ applyLang(idiomaParaMi());
         dice.textContent = '';
         if (d && d.codigo) dice.appendChild(el('span', 'pe-cod', String(u.pe_tucodigo || '{c}').replace('{c}', d.codigo)));
         var doc = d && d.documentos;
-        if (doc && doc.archivo){
+        var esConstancia = !!(doc && doc.archivo && doc.tipo === 'constancia_ente');
+        baja.hidden = !esConstancia;
+        baja.title = esConstancia ? (doc.nombre_original || '') : '';
+        baja.onclick = esConstancia
+          ? function(){ abreFirmado(doc.archivo, baja, 'constancia del ente'); } : null;
+        /* Y el «Ver archivo» de al lado del código queda para lo que no es
+           una constancia: los adjuntos que llegó a mandar algún
+           inversionista antes de quitarse (23-9-2026). */
+        if (doc && doc.archivo && !esConstancia){
           var ver = el('button', 'pe-ver', u.pe_ver || '');
           ver.type = 'button';
           ver.title = doc.nombre_original || '';
