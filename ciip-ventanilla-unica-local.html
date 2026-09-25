@@ -502,8 +502,12 @@ svg{display:block;}
    asi se ve de un vistazo que falta uno. */
 .topbar .tb-hola{order:2;}
 /* El reloj ocupa el 3 que dejo «Por atender»: va con el trabajo, porque la
-   hora de Venezuela es la de las citas y los plazos. */
-.topbar .tb-reloj{order:3;}
+   hora de Venezuela es la de las citas y los plazos. Se dibuja pegado a la
+   izquierda de Avisos (Franklin Reyes, 25-9-2026), así que el tope del grupo
+   de la derecha pasa a ser él. Sólo mientras se ve: nace oculto, y hasta que
+   el JS lo enciende el tope sigue siendo la campana. */
+.topbar .tb-reloj{order:3; margin-left:auto;}
+.topbar .tb-reloj:not([hidden]) ~ .avisos-sel{margin-left:0;}
 /* El grupo de la derecha empieza aqui, y se va al borde EL SOLO. Antes lo
    empujaba la barra de «pregunta lo que sea», que tenia flex:1; al quitarla
    se fueron todos a la izquierda. Se le pone a la campana y no a la migaja
