@@ -9218,6 +9218,29 @@ select t.id, e, 'pendiente'
    and t.estado in ('enviado', 'en_revision', 'ante_el_ente')
 on conflict (tramite, ente) do nothing;
 
+-- Cada ente con su propia constancia (Franklin Reyes, 25-9-2026; venía en
+-- CORRER-CONSTANCIA-DE-CADA-ENTE.sql). El equipo la deja ya validada y la
+-- cuelga del trámite.
+insert into public.tipos_documento (codigo, nombre, vence) values
+  ('constancia_ente', 'Constancia de inscripción ante el ente', false)
+on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.vence;
+
+drop policy if exists "documentos: el equipo entrega la constancia del ente" on public.documentos;
+create policy "documentos: el equipo entrega la constancia del ente" on public.documentos
+  for insert
+  with check (public.es_gestor() and tipo = 'constancia_ente' and estado = 'validado');
+
+drop policy if exists "adjuntos: el equipo cuelga la constancia del ente" on public.tramite_documentos;
+create policy "adjuntos: el equipo cuelga la constancia del ente" on public.tramite_documentos
+  for insert
+  with check (
+    public.es_gestor()
+    and exists (
+      select 1 from public.documentos d
+       where d.id = documento and d.tipo = 'constancia_ente'
+    )
+  );
+
 -- ───────────────────────────────────────────────────────────────────────
 -- COMPROBACIÓN
 -- ───────────────────────────────────────────────────────────────────────

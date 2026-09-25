@@ -12,9 +12,7 @@
 # nombre de tabla. No abre nada por si solo -lo que protege son las
 # politicas, que siguen puestas- pero es el mapa, y el mapa no se regala.
 supabase-*.sql
-supabase/
 TODO-EN-ORDEN.sql
-comprobar-tramites.sql
 
 # Los arneses. Dicen que se prueba y, sobre todo, que NO se prueba.
 pruebas/
@@ -24,29 +22,23 @@ avisos/
 interoperabilidad/
 pagos/
 
-# Cuadernos, capturas y la maqueta vieja.
+# Cuadernos y lanzadores.
 *.md
 *.bat
 *.ps1
-capturas/
-original/
 
-# La revision de las cerraduras. Es para quien la reciba, no para quien
-# pase por la direccion: cuenta que se encontro abierto y desde cuando.
-# Se manda como archivo, que para eso se abre con doble clic.
-revision-cerraduras.html
+# Lo que ya paso: los SQL aplicados, las capturas, la maqueta de partida,
+# los bocetos y la revision de las cerraduras (esa cuenta que se encontro
+# abierto y desde cuando: es para quien la reciba, no para quien pase).
+historico/
 
 # Cosas de git y del editor.
 .gitattributes
 .gitignore
 .vercelignore
 
-# Los bocetos. Pantallas a medio decidir, opciones descartadas y notas de
-# lo que se penso hacer. Publicarlas seria enseñar el cuaderno junto con
-# el trabajo terminado, y ademas confunde: hay tres versiones de la misma
-# pantalla y solo una es la que vale.
-.diseno/
-# Y las maquetas, por lo mismo: el panel no las pide.
+# Las maquetas. Pantallas a medio decidir: publicarlas seria enseñar el
+# cuaderno junto con el trabajo terminado, y el panel no las pide.
 maquetas/
 
 # Los SQL que se corren a mano en el editor de Supabase. Mismo motivo que

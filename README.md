@@ -70,7 +70,7 @@ usar esa base o la de pruebas — ver el bloque de comentarios ahí mismo.
 | `supabase-publicacion.sql` | Resuelta la protocolización, la **publicación del acta nace sola**, ya enviada y con la razón social que aquélla decía. Añade el **PUB para pagar la publicación mercantil** que el equipo le deja desde la cola —llega al primer paso del tramo, «Emisión de PUB de publicación mercantil»—, y la publicación no se resuelve sin el comprobante de ese pago. Va **después** de `supabase-protocolizacion.sql`; es el 40 de `TODO-EN-ORDEN.sql` |
 | `logos/` | Logos de los organismos, con su procedencia en [FUENTES.md](logos/FUENTES.md) |
 | `banderas/` | 197 banderas SVG para el buscador de países, con su procedencia en [FUENTES.md](banderas/FUENTES.md) |
-| `original/` | La demostración de partida, intacta, como referencia |
+| `historico/` | Lo que ya pasó y no se usa: los SQL de un solo uso ya aplicados en producción, la demostración de partida (`original/`), las capturas, los bocetos de diseño y la revisión de las cerraduras. Ver [historico/LEEME.md](historico/LEEME.md) |
 
 ## Atajos
 

@@ -105,7 +105,6 @@ Write-Host ''
 Write-Host "  Carpeta : $raiz"
 Write-Host "  Acceso  : " -NoNewline; Write-Host "http://localhost:$Puerto/acceso.html" -ForegroundColor Green
 Write-Host "  Panel   : " -NoNewline; Write-Host "http://localhost:$Puerto/ciip-ventanilla-unica-local.html" -ForegroundColor Green
-Write-Host "  Vistas  : " -NoNewline; Write-Host "http://localhost:$Puerto/capturas/ver.html" -ForegroundColor Green
 Write-Host ''
 
 # --- direccion para el resto de la oficina ------------------------------

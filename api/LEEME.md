@@ -65,7 +65,7 @@ entero y cualquiera podría gastar la cuenta desde una terminal.
 
 Este es el paso que se olvida, y falla en silencio.
 
-`login/DESPLEGAR.md` dice que el **Install Command** vaya vacío. Eso era cierto
+El antiguo `login/DESPLEGAR.md` decía que el **Install Command** fuera vacío. Eso era cierto
 cuando el proyecto no tenía ni una dependencia. Desde que existe `package.json`
 ya no: si el Install Command está vacío, Vercel no ejecuta `npm install`, el
 paquete `@anthropic-ai/sdk` no se instala y la función revienta al arrancar con
