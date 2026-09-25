@@ -10477,13 +10477,15 @@
     if (CASO !== 'gestor') return;
     var nav = document.getElementById('navRevisar');
     /* Desde el 24-9-2026 el renglón se llama «Documentos del equipo» y
-       lleva dentro las dos formas: revisar y la bóveda. */
+       lleva dentro las formas del equipo: revisar, la bóveda y -desde el
+       25-9-2026- los códigos que mandan los inversionistas para los cinco
+       entes de las parafiscales. */
     ok('revisar: el equipo tiene su renglón «Documentos del equipo»',
        !!nav && !nav.hidden, nav ? (nav.hidden ? 'escondido' : 'a la vista') : 'no está', 'a la vista');
     var formas = [].map.call(document.querySelectorAll('#rvConmuta .mt-forma'), function(b){
       return b.getAttribute('data-forma') + (b.getAttribute('aria-pressed') === 'true' ? '*' : '');
     });
-    igual('revisar: arriba, el mando con las dos formas y ésta puesta', formas.join(','), 'revisar*,comprobantes');
+    igual('revisar: arriba, el mando con las tres formas y ésta puesta', formas.join(','), 'revisar*,comprobantes,codigos');
     /* Con la forma de la bóveda desde el 24-9-2026: las personas a la
        izquierda y, en medio, solo los papeles de la elegida. Lo que queda
        por revisar lo dice el montón de «Pendientes», no las filas a la
@@ -10537,7 +10539,7 @@
     var formas = [].map.call(document.querySelectorAll('#cbConmuta .mt-forma'), function(b){
       return b.getAttribute('data-forma') + (b.getAttribute('aria-pressed') === 'true' ? '*' : '');
     });
-    igual('comprobantes: arriba, el mando con la bóveda puesta', formas.join(','), 'revisar,comprobantes*');
+    igual('comprobantes: arriba, el mando con la bóveda puesta', formas.join(','), 'revisar,comprobantes*,codigos');
     var filas = [].map.call(document.querySelectorAll('#cb .rv-fila'), function(f){ return f.getAttribute('data-doc'); });
     igual('comprobantes: sale el comprobante, y solo él', filas.join(','), 'doc6');
     /* El nombre sale una vez, en la columna de personas, y el renglón dice
