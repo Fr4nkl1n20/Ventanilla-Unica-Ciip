@@ -3158,7 +3158,10 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-hacer{display:inline-flex; align-items:center; gap:6px; margin-top:8px;
   padding:6px 12px; border-radius:999px; border:1px solid var(--line-soft);
   background:var(--block); color:var(--navy2); text-decoration:none;
-  font-size:var(--fs-nota); font-weight:600; cursor:pointer;}
+  /* font-family heredada: uno de los .tr-hacer es un <button>, y un botón
+     sin esto sale con la tipografía del navegador al lado de un enlace con
+     la del panel. */
+  font-family:inherit; font-size:var(--fs-nota); font-weight:600; cursor:pointer;}
 .tr-hacer:hover{border-color:var(--navy2);}
 .tr-hacer[disabled]{opacity:.55; cursor:default;}
 /* Y lo que hay que SABER: una advertencia corta que cuelga de su paso —el
@@ -3166,6 +3169,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
    peldaño. */
 .tr-nota{font-size:var(--fs-nota); font-weight:400; line-height:1.4;
   color:var(--gray-soft); margin-top:6px;}
+.tr-nota.mal{color:var(--rust);}
 
 /* ============ EL TRAMITE DE VERDAD ============
    Formulario y estado real, contra la base de datos. Convive con la
@@ -14097,6 +14101,48 @@ applyLang(idiomaParaMi());
               enl.textContent = u[haciaP.clave] || haciaP.url;
               txt.appendChild(enl);
             }
+            /* ── «YA ME REGISTRÉ» ──
+               El botón que mueve el paso que ningún estado puede mover.
+               Solo sale mientras el paso está EN CURSO: una vez marcado,
+               volver a ofrecerlo no le sirve a nadie.
+
+               SE CREE A LA BASE Y NO AL CLIC. Este panel ya se llevó dos
+               sustos con lo mismo -la nota de la devolución y el
+               comprobante de la publicación-: cuando falta la política,
+               PostgREST no da error, cambia CERO filas y contesta que
+               todo bien. Por eso va por confirma_paso(), que levanta una
+               excepción si no tocó ninguna fila, y por eso el paso no se
+               pinta hecho hasta que la respuesta ha vuelto. */
+            var mio = ((PASOS_QUE_MARCAS_TU || {})[refTr] || {})[nPaso];
+            if (mio && ahora && !((tr.datos || {})[mio])){
+              var bt = el('button', 'tr-hacer', u.p_yamehice || '');
+              bt.type = 'button';
+              bt.addEventListener('click', function(){
+                bt.disabled = true;
+                sb.rpc('confirma_paso', {p_tramite: tr.id, p_clave: mio})
+                  .then(function(r){
+                    if (r.error || !r.data) throw (r.error || new Error('sin fila'));
+                    /* Se repinta entero con lo que la base devolvió, no con
+                       lo que aquí se supone: así el paso, la fecha y la
+                       fila de Mis trámites salen de la misma verdad. */
+                    tr.datos = (r.data.datos || r.data[0] && r.data[0].datos) || tr.datos;
+                    caja.textContent = '';
+                    pintaEstado(tipo, tr);
+                  })
+                  .catch(function(e){
+                    bt.disabled = false;
+                    /* Y SE DICE. Un botón que se queda igual después de
+                       pulsarlo deja al inversionista sin saber si el CIIP
+                       se enteró o no. */
+                    if (!bt.nextSibling || bt.nextSibling.className !== 'tr-nota mal')
+                      txt.insertBefore(el('div', 'tr-nota mal', u.co_error || ''),
+                                       bt.nextSibling);
+                    console.warn('[CIIP] confirma_paso:', e && e.message);
+                  });
+              });
+              txt.appendChild(bt);
+            }
+
             var bajaP = ((DESCARGA_DEL_PASO || {})[refTr] || {})[nPaso];
             if (bajaP){
               var des = document.createElement('a');
