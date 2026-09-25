@@ -574,7 +574,15 @@ function applyLang(lang){
 })();
 
 /* ---------- navegación entre vistas ---------- */
+/* La vista de clave nueva es solo para quien llega con el enlace del correo
+   de recuperación: lo marca el evento PASSWORD_RECOVERY de Supabase, más
+   abajo. Antes bastaba con escribir #nueva en la dirección, y cualquiera
+   con una sesión abierta -un PC compartido, un token robado- cambiaba la
+   clave sin saber la actual y dejaba fuera al dueño de la cuenta. */
+var VIENE_DEL_CORREO = false;
+
 function irA(vista){
+  if (vista === 'nueva' && !VIENE_DEL_CORREO) vista = 'login';
   var el = document.getElementById('v-' + vista);
   /* Si la vista no existe se vuelve al login. Sin esto, pedir una vista
      desaparecida —un enlace viejo a #registro, por ejemplo— quitaba la clase
@@ -711,6 +719,7 @@ document.getElementById('formLogin').addEventListener('submit', async function(e
 /* ---------- GUARDAR CLAVE NUEVA ---------- */
 document.getElementById('formNueva').addEventListener('submit', async function(e){
   e.preventDefault();
+  if (!VIENE_DEL_CORREO) return irA('login');
   limpiar(['fn-pass','fn-pass2']);
   var p1 = document.getElementById('nv-pass').value;
   var p2 = document.getElementById('nv-pass2').value;
@@ -725,6 +734,7 @@ document.getElementById('formNueva').addEventListener('submit', async function(e
     var r = await sb.auth.updateUser({ password: p1 });
     cargando('btnNueva', false);
     if (r.error) return aviso('msgNueva', claveDeError(r.error));
+    VIENE_DEL_CORREO = false;   /* el enlace sirve para una clave, no para dos */
     aviso('msgNueva','o.new','ok');
     setTimeout(function(){ irA('login'); }, 2200);
   }catch(err){
@@ -764,17 +774,18 @@ function mostrarDentro(usuario){
      para no dejar basura en el navegador de los usuarios. */
   try{ window.localStorage.removeItem('ciip_recordar'); }catch(e){}
 
-  /* vista inicial según el hash (#nueva llega desde el correo) */
+  /* Vista inicial según el hash. #nueva ya no cuenta: la vista de clave
+     nueva la abre el evento de abajo, que es lo que trae el correo. */
   var h = location.hash.slice(1).split('&')[0];
-  if (['login','nueva'].indexOf(h) > -1) irA(h);
+  if (h === 'login') irA(h);
 
   /* si Supabase devuelve un enlace de recuperación, abre la vista de clave nueva */
   if (sb){
     sb.auth.onAuthStateChange(function(evento){
-      if (evento === 'PASSWORD_RECOVERY') irA('nueva');
+      if (evento === 'PASSWORD_RECOVERY'){ VIENE_DEL_CORREO = true; irA('nueva'); }
     });
     /* si ya hay sesión válida y no venimos de un enlace de recuperación, al panel */
-    if (location.hash.indexOf('type=recovery') === -1 && h !== 'nueva'){
+    if (location.hash.indexOf('type=recovery') === -1){
       sb.auth.getSession().then(function(res){
         if (!(res.data && res.data.session)) return;
         if (!RUTA_PANEL){ mostrarDentro(res.data.session.user); return; }

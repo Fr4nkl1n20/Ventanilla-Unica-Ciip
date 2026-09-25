@@ -88,13 +88,37 @@
   caso('login correo inválido', function(){ val('li-email','hola'); val('li-pass','12345678'); }, 'formLogin','msgLogin',CORREO);
   caso('login datos correctos (sin Supabase)', function(){ val('li-email','a@b.com'); val('li-pass','12345678'); }, 'formLogin','msgLogin',SIN_BD);
 
-  /* ---------- CLAVE NUEVA ---------- */
+  /* ---------- CLAVE NUEVA ----------
+     La vista solo existe para quien llega con el enlace del correo de
+     recuperación (evento PASSWORD_RECOVERY). Antes bastaba con escribir
+     #nueva en la dirección: cualquiera con una sesión abierta -un PC
+     compartido, un token robado- cambiaba la clave sin saber la actual.
+     Primero lo que NO debe pasar, luego se simula el correo. */
+  limpiaTodo();
+  VIENE_DEL_CORREO = false;
+  irA('nueva');
+  (function(){
+    var on = document.querySelector('.view.on');
+    R.push({n:'sin el correo de recuperación, #nueva cae en el login',
+            ok:(on && on.id==='v-login'), got:(on?on.id:'ninguna'), exp:'v-login'});
+  })();
+  val('nv-pass',FUERTE); val('nv-pass2',FUERTE); enviar('formNueva');
+  (function(){
+    var on = document.querySelector('.view.on');
+    R.push({n:'sin el correo, guardar una clave nueva no hace nada',
+            ok:(on && on.id==='v-login' && texto('msgNueva')===''),
+            got:(on?on.id:'ninguna')+' msg="'+texto('msgNueva')+'"', exp:'v-login sin mensaje'});
+  })();
+
+  VIENE_DEL_CORREO = true;
+  irA('nueva');
   caso('clave nueva vacía', function(){}, 'formNueva','msgNueva',VACIO);
   caso('clave nueva corta', function(){ val('nv-pass','123'); val('nv-pass2','123'); }, 'formNueva','msgNueva',CORTA);
   caso('clave nueva no coincide', function(){ val('nv-pass',FUERTE); val('nv-pass2','87654321'); }, 'formNueva','msgNueva',DISTIN);
 
   /* ---------- NAVEGACIÓN ---------- */
   limpiaTodo();
+  VIENE_DEL_CORREO = true;
   ['nueva','login'].forEach(function(v){
     irA(v);
     var on = document.querySelector('.view.on');
