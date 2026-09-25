@@ -9986,7 +9986,13 @@ applyLang(idiomaParaMi());
     ],
     apostilla_documentos: [
       {tipo:'documento_original',  clave:'d_original'},
-      {tipo:'pasaporte',           clave:'d_pasaporte'}
+      {tipo:'pasaporte',           clave:'d_pasaporte'},
+      /* Solo si el documento ya viene apostillado o legalizado: entonces
+         la apostilla es un papel más que entregar, y sin ella el MPPRE no
+         sabe qué está traduciendo. Si no lo viene, no se pide nada extra
+         —es justo lo que el trámite va a hacer—. */
+      {tipo:'apostilla_previa',    clave:'d_apostillaprevia',
+       siCasilla:'apostillado'}
     ],
     /* Arrendamiento y recibo van los dos: el contrato dice qué casa
        es y el recibo dice que alguien vive en ella. El registro
@@ -10278,7 +10284,12 @@ applyLang(idiomaParaMi());
        sitio a quien reabre un borrador de hace meses y a quien apunta una
        fecha acordada con el registro, y deja fuera el 1987 tecleado de un
        resbalón en la lista de años. */
-    fecha_solicitud:    {desde:'-1', hasta:'+1'}
+    fecha_solicitud:    {desde:'-1', hasta:'+1'},
+    /* El itinerario de la visa mira hacia delante: se pide para un viaje
+       que no ha pasado. Se deja un año atrás para quien reabre un borrador
+       viejo o tuvo que mover el vuelo. */
+    fecha_entrada:      {desde:'-1', hasta:'+3'},
+    fecha_salida:       {desde:'-1', hasta:'+3'}
   };
 
   /* Las oficinas del Registro Mercantil donde el SAREN deja hacer la
@@ -10376,15 +10387,36 @@ applyLang(idiomaParaMi());
       {n:'poder_fecha',        clave:'f_poderfecha', tipo:'date'},
       {n:'poder_alcance',      clave:'f_alcance',    ancho:true}
     ],
+    /* ── CÓMO LOCALIZARTE, Y CUÁNDO VIENES ──
+       Franklin Reyes, 24-9-2026: el teléfono y el correo del solicitante,
+       los del contacto en Venezuela, el itinerario y si la visa ya se tuvo
+       antes. Van en las DOS visas, porque el consulado los pide en las dos.
+
+       telefono y correo se llaman así y no «telefono_solicitante»: son los
+       mismos nombres que usa el registro de extranjeros, y los campos se
+       heredan por NOMBRE entre trámites. Bautizarlos aparte haría que
+       quien ya los escribió una vez los volviera a escribir. */
     visa_negocios: [
       {n:'numero_pasaporte',  clave:'f_pasaporte'},
       {n:'pais_emisor',       clave:'f_paisemisor', paises:true},
       {n:'vence_pasaporte',   clave:'f_vencepas',  tipo:'date'},
       {n:'consulado',         clave:'f_consulado'},
+      {n:'telefono',          clave:'f_telefono',  tipo:'tel'},
+      {n:'correo',            clave:'f_correo',    tipo:'email'},
+      {n:'vuelo_numero',      clave:'f_vuelo'},
+      {n:'fecha_entrada',     clave:'f_fechaentrada', tipo:'date'},
+      {n:'fecha_salida',      clave:'f_fechasalida',  tipo:'date'},
+      /* Y la de antes, con sus fechas colgando: la pregunta se contesta en
+         un segundo y el hueco solo sale si hace falta. */
+      {n:'visa_anterior',        clave:'f_visaantes', opcionesClave:'o_sino'},
+      {n:'visa_anterior_fechas', clave:'f_visaantesfechas',
+       verSi:'visa_anterior', ancho:true},
       /* La TR-N no pregunta por la inversion: pide el motivo del viaje y a
          quien vienes a ver, que es lo que lleva la carta que exige el MPPRE. */
       {n:'motivo_viaje',       clave:'f_motivoviaje',  ancho:true},
-      {n:'contacto_venezuela', clave:'f_contactovzla', ancho:true}
+      {n:'contacto_venezuela', clave:'f_contactovzla', ancho:true},
+      {n:'contacto_telefono',  clave:'f_contactotel',    tipo:'tel'},
+      {n:'contacto_correo',    clave:'f_contactocorreo', tipo:'email'}
     ],
     /* La TR-I SÍ pregunta por la inversión, que es lo que la distingue de
        la TR-N: el MPPRE la concede a quien ya la tiene aceptada por los
@@ -10397,8 +10429,19 @@ applyLang(idiomaParaMi());
       {n:'pais_emisor',         clave:'f_paisemisor', paises:true},
       {n:'vence_pasaporte',     clave:'f_vencepas',   tipo:'date'},
       {n:'consulado',           clave:'f_consulado'},
+      {n:'telefono',            clave:'f_telefono',   tipo:'tel'},
+      {n:'correo',              clave:'f_correo',     tipo:'email'},
+      {n:'vuelo_numero',        clave:'f_vuelo'},
+      {n:'fecha_entrada',       clave:'f_fechaentrada', tipo:'date'},
+      {n:'fecha_salida',        clave:'f_fechasalida',  tipo:'date'},
+      {n:'visa_anterior',        clave:'f_visaantes', opcionesClave:'o_sino'},
+      {n:'visa_anterior_fechas', clave:'f_visaantesfechas',
+       verSi:'visa_anterior', ancho:true},
       {n:'monto_inversion',     clave:'f_montoinv'},
-      {n:'actividad_economica', clave:'f_actividad',  ancho:true}
+      {n:'actividad_economica', clave:'f_actividad',  ancho:true},
+      {n:'contacto_venezuela',  clave:'f_contactovzla',   ancho:true},
+      {n:'contacto_telefono',   clave:'f_contactotel',    tipo:'tel'},
+      {n:'contacto_correo',     clave:'f_contactocorreo', tipo:'email'}
     ],
     /* ── la firma en el Registro de Extranjeros ──
        Los campos y sus opciones salen del portal del SAREN,
@@ -10952,6 +10995,12 @@ applyLang(idiomaParaMi());
       {n:'documento',        clave:'f_docapost',   opcionesClave:'o_docapost'},
       {n:'idioma',           clave:'f_idioma'},
       {n:'fecha_documento',  clave:'f_fechadoc',   tipo:'date'},
+      /* Franklin Reyes, 24-9-2026: es la pregunta que parte el trámite en
+         dos. Un documento que YA viene apostillado solo hay que
+         traducirlo; uno que no, hay que apostillarlo antes. Aquí decide
+         qué papeles se piden -la apostilla que ya se tiene-; que decida
+         también los PASOS está pendiente de tu respuesta al punto 4. */
+      {n:'apostillado',      clave:'f_apostillado', opcionesClave:'o_sino'},
       {n:'uso_previsto',     clave:'f_uso',        ancho:true}
     ],
     constancia_domicilio: [
@@ -12597,6 +12646,40 @@ applyLang(idiomaParaMi());
       }
       llena(datos[c.n] || (ANTES && ANTES[c.n] && ANTES[c.n].valor) || '');
       quienes.forEach(function(o){ o.addEventListener('change', function(){ llena(''); }); });
+    });
+
+    /* ── UNA CASILLA QUE SOLO SALE SI HACE FALTA ──
+       Franklin Reyes, 24-9-2026: «¿Te han otorgado antes la visa?» y, solo
+       si dice que sí, en qué fechas. Los RECAUDOS ya sabían esconderse
+       según una casilla -siCasilla, los papeles del accionista jurídico-;
+       los CAMPOS no, y era el mismo problema con otra forma: preguntar por
+       las fechas de una visa que nunca se tuvo alarga el formulario para
+       todo el mundo por una respuesta que casi siempre es «no».
+
+       Escondido pasa a ser OPCIONAL, que es lo que de verdad importa: la
+       validación recorre los .sol-campo sin mirar si se ven, así que sin
+       esto el envío se quedaría trabado pidiendo algo que no está en
+       pantalla. Y al esconderse se BORRA lo escrito: quien puso unas
+       fechas y luego cambió a «No» no puede acabar mandándolas igual. */
+    (CAMPOS[tipo.codigo] || []).forEach(function(c){
+      if (!c.verSi) return;
+      var campo = rejilla.querySelector('[data-campo="' + c.n + '"]');
+      var manda = rejilla.querySelector('[name="' + c.verSi + '"]');
+      if (!campo || !manda) return;
+      var suyo = campo.querySelector('input, select');
+      function mira(){
+        var si = (manda.type === 'checkbox') ? manda.checked
+                                             : (manda.value && manda.value !== 'No');
+        campo.hidden = !si;
+        if (si) campo.removeAttribute('data-opcional');
+        else {
+          campo.setAttribute('data-opcional', '1');
+          campo.classList.remove('mal');
+          if (suyo) suyo.value = '';
+        }
+      }
+      mira();
+      manda.addEventListener('change', mira);
     });
     });
     col.appendChild(rejilla);

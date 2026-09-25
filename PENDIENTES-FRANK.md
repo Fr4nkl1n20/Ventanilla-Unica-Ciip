@@ -18,10 +18,10 @@ rótulo. No inventan mecanismos nuevos y se deshacen borrando una línea.
 - [x] Añadir «Cédula de identidad del apoderado» y «RIF del apoderado»
 
 ### Visa de negocios (c1) y Visa de inversionista
-- [ ] Añadir teléfono y correo del solicitante
-- [ ] Añadir teléfono y correo del contacto en Venezuela
-- [ ] Añadir itinerario: número de vuelo, fecha de entrada, fecha de salida
-- [ ] Añadir «¿Te han otorgado antes la visa?» sí/no, con el campo de fechas
+- [x] Añadir teléfono y correo del solicitante
+- [x] Añadir teléfono y correo del contacto en Venezuela
+- [x] Añadir itinerario: número de vuelo, fecha de entrada, fecha de salida
+- [x] Añadir «¿Te han otorgado antes la visa?» sí/no, con el campo de fechas
       que sale solo al responder que sí
 - [x] Sustituir los recaudos por los siete de la lista
 - [x] En la de inversionista, dejar monto de inversión y actividad económica
@@ -32,9 +32,9 @@ rótulo. No inventan mecanismos nuevos y se deshacen borrando una línea.
       «Carta de residencia de la ubicación indicada»
 
 ### Traducción de documentos (c17)
-- [ ] Añadir la pregunta «¿El documento es apostillado y/o legalizado?»
-- [ ] Que los recaudos cambien según la respuesta (el panel ya sabe
-      esconder y pedir recaudos según una casilla)
+- [x] Añadir la pregunta «¿El documento es apostillado y/o legalizado?»
+- [x] Que los recaudos cambien según la respuesta: si ya viene apostillado
+      se pide la apostilla que tiene. **Hace falta correr `CORRER-APOSTILLA-PREVIA.sql`**
 
 ### RIF de la empresa (c6)
 - [x] Recaudos: acta constitutiva; cédula o pasaporte y RIF del
