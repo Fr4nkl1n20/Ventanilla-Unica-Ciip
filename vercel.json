@@ -2,7 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
 
   "redirects": [
-    { "source": "/", "destination": "/login/", "permanent": false }
+    { "source": "/", "destination": "/acceso.html", "permanent": false },
+    { "source": "/login", "destination": "/acceso.html", "permanent": false },
+    { "source": "/login/:ruta*", "destination": "/acceso.html", "permanent": false }
   ],
 
   "functions": {

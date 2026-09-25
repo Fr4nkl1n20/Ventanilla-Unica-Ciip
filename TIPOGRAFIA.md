@@ -155,7 +155,7 @@ peso: 700 contra 500.
 | Iniciales de avatar, banderas | Se dimensionan con su caja: `.avatar` `.gestor .g-av` `.pf-foto-vista` `.sb-langs .flag` |
 | Burbujas de conversación | `.bub` `.hilo-txt` tienen su propia interlínea de chat |
 | `.jname` `.t-name` en 600 | La capa shadcn los baja a 600 y la prueba lo exige. `.jcount` sigue en 500. Los demás pesos de esa capa (`.btn`, `.sec-h .t` `.sol-h` `.ft-rh .t`, `.ftab .n`) los pisa la capa Atlas: 700 |
-| `acceso.html`, `login/index.html` | Ya usan Helvetica e Instrument Serif. Se revisan aparte |
+| `acceso.html` | Ya usan Helvetica e Instrument Serif. Se revisan aparte |
 
 ---
 

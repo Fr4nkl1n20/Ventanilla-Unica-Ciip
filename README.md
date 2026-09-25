@@ -19,7 +19,13 @@ archivo existiera. Cómo se enciende: `api/LEEME.md`.
 
 En producción, en **https://ventanilla-unica-2.vercel.app** (proyecto de
 Vercel `ventanilla-unica-2`, Root Directory en la raíz del repositorio).
-`vercel.json` redirige `/` a `/login/`, que es la puerta de entrada.
+`vercel.json` redirige `/` a `/acceso.html`, que es la puerta de entrada. Hasta
+el 25-09-2026 había dos: `/login/` era una copia de `acceso.html` con su propio
+`config.js`, más viejo, y al cerrar sesión se volvía a la otra. Ahora es una
+sola; `/login` y cualquier `/login/...` redirigen a `/acceso.html` para no
+romper marcadores ni enlaces de correos ya enviados. El correo de recuperación
+no se tocó: vuelve a la *Site URL* de Supabase, que es la raíz, y de ahí la
+redirección lo lleva con su token (el `#…` se conserva al redirigir).
 
 La base de datos real es un proyecto de Supabase aparte del de pruebas
 (`fbxdwryppfctuwlnjjqr`, organización CIIP), creado el 1 de septiembre de

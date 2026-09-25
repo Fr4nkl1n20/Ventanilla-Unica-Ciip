@@ -2,7 +2,7 @@
    LOS CERROJOS QUE VIVEN EN ARCHIVOS COMPARTIDOS
    ═══════════════════════════════════════════════════════════════════════
    La revisión de seguridad del 25-09-2026 dejó varios arreglos dentro de
-   archivos que todo el mundo toca: el panel, las dos páginas de acceso,
+   archivos que todo el mundo toca: el panel, la página de acceso,
    vercel.json, .vercelignore. Ese mismo día se perdieron TRES veces, al
    subir encima una copia vieja de un archivo que no los tenía. Nada falló
    a la vista: el panel seguía funcionando, solo que otra vez abierto.
@@ -37,7 +37,6 @@ console.log('\n  LOS CERROJOS\n');
 
 const panel  = lee('ciip-ventanilla-unica-local.html');
 const acceso = lee('acceso.html');
-const login  = lee('login/index.html');
 const vercel = lee('vercel.json');
 const ignora = lee('.vercelignore');
 
@@ -46,7 +45,7 @@ const ignora = lee('.vercelignore');
 const LIBRERIA = /<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2\.\d+\.\d+\/dist\/umd\/supabase\.js"\s+integrity="sha384-[A-Za-z0-9+\/=]+"\s+crossorigin="anonymous"><\/script>/;
 const SIN_VERSION = /supabase-js@2\/dist/;
 
-for (const [nombre, texto] of [['el panel', panel], ['acceso.html', acceso], ['login/index.html', login]]) {
+for (const [nombre, texto] of [['el panel', panel], ['acceso.html', acceso]]) {
   ok(nombre + ': supabase-js con versión fija y huella (SRI)',
      LIBRERIA.test(texto) && !SIN_VERSION.test(texto),
      'Se subió una copia vieja: la etiqueta volvió a «supabase-js@2». Trae la última (git pull).');
@@ -59,14 +58,28 @@ ok('el panel devuelve la firma de cada respuesta del asistente',
    'Falta «firma:d.firma» en conversacion.push: se subió una copia vieja del panel.');
 
 /* La clave nueva solo con el enlace del correo de recuperación. */
-for (const [nombre, texto] of [['acceso.html', acceso], ['login/index.html', login]]) {
+for (const [nombre, texto] of [['acceso.html', acceso]]) {
   ok(nombre + ': la clave nueva solo llega desde el correo',
      /var VIENE_DEL_CORREO = false;/.test(texto) &&
      /if \(!VIENE_DEL_CORREO\) return irA\('login'\);/.test(texto),
      'Falta VIENE_DEL_CORREO: cualquiera con una sesión abierta cambiaría la clave escribiendo #nueva.');
 }
-ok('login/index.html es la misma página que acceso.html', login === acceso,
-   'Son copias: lo que se cambie en una va también en la otra.');
+/* Una sola puerta desde el 25-09-2026. /login/ era una copia de acceso.html
+   con su propio config.js, y los arreglos había que hacerlos dos veces. Ahora
+   /, /login y /login/... redirigen a /acceso.html: si una redirección se va,
+   un marcador viejo o el enlace de un correo ya enviado dan 404. */
+(function(){
+  let red = [];
+  try { red = JSON.parse(vercel).redirects || []; } catch (e) {}
+  const va = (desde) => red.some(r => r.source === desde && r.destination === '/acceso.html');
+  ok('vercel.json lleva a /acceso.html desde /, /login y /login/...',
+     va('/') && va('/login') && va('/login/:ruta*'),
+     'Faltan redirecciones a /acceso.html en vercel.json: ' +
+     ['/', '/login', '/login/:ruta*'].filter(d => !va(d)).join(', '));
+  ok('y no queda una segunda página de acceso en login/',
+     !fs.existsSync(path.join(RAIZ, 'login', 'index.html')),
+     'Ha vuelto login/index.html: la puerta es acceso.html, y dos copias se separan.');
+})();
 
 /* La CSP del sitio. */
 ok('vercel.json lleva la Content-Security-Policy',
