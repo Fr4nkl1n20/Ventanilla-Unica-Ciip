@@ -501,6 +501,9 @@ svg{display:block;}
    ocupa el mismo sitio. El 3 sigue libre: ese hueco marca lo retirado, y
    asi se ve de un vistazo que falta uno. */
 .topbar .tb-hola{order:2;}
+/* El reloj ocupa el 3 que dejo «Por atender»: va con el trabajo, porque la
+   hora de Venezuela es la de las citas y los plazos. */
+.topbar .tb-reloj{order:3;}
 /* El grupo de la derecha empieza aqui, y se va al borde EL SOLO. Antes lo
    empujaba la barra de «pregunta lo que sea», que tenia flex:1; al quitarla
    se fueron todos a la izquierda. Se le pone a la campana y no a la migaja
@@ -4317,6 +4320,18 @@ body.menu-abierto .menu-fondo{display:block;}
   min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   margin-left:4px;}
 .tb-hola[hidden]{display:none;}
+/* La hora, en cifras de ancho fijo para que no baile al cambiar de minuto,
+   y a su lado de dónde es. En un teléfono sólo cabe la hora: la zona se
+   queda en el title. */
+.tb-reloj{display:inline-flex; align-items:center; gap:6px; flex:none;
+  white-space:nowrap; font-size:12.5px; font-weight:700; color:var(--ink);
+  font-variant-numeric:tabular-nums;}
+.tb-reloj[hidden]{display:none;}
+.tb-reloj svg{width:14px; height:14px; stroke:currentColor; stroke-width:2; fill:none; opacity:.8;}
+.tb-reloj .z{font-weight:600; color:var(--gray);}
+.topbar .tb-reloj{color:#fff;}
+.topbar .tb-reloj .z{color:rgba(255,255,255,.7);}
+@media (max-width:840px){ .tb-reloj .z{display:none;} }
 
 /* Las seis reglas de la barra de «pregunta lo que sea» se fueron con ella:
    CSS que no viste nadie es CSS que alguien leera algun dia creyendo que
@@ -5179,6 +5194,15 @@ body[data-vista="horario"] .fase-bar{display:none;}
        nombre y apellido (antes era el de pila; lo pidio el CIIP el 11 de
        septiembre). Por eso no hay guion. -->
     <div class="tb-hola" id="tbHola" data-i18n="tb.hola" hidden></div>
+    <!-- El reloj, en hora de Venezuela y no en la de la máquina: quien
+         entra desde fuera tiene que saber qué hora es en el CIIP, que es la
+         de las citas y los plazos. Va en la barra para que se vea en todas
+         las pantallas (Franklin Reyes, 25-9-2026). Nace oculto y lo
+         enciende el JS con la primera hora. -->
+    <div class="tb-reloj" id="tbReloj" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <time id="tbRelojH"></time><span class="z" id="tbRelojZ"></span>
+    </div>
     <div class="lang-sel">
       <button class="tb-btn lang-btn" id="langBtn" aria-haspopup="true" aria-expanded="false" data-i18n-title="lang.title" title="Language">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 000 18M12 3a14 14 0 010 18"/></svg>
@@ -8976,6 +9000,30 @@ applyLang(idiomaParaMi());
       SITIO, y la mezcla de arriba se compara por identidad del objeto: no
       se enteraria. Esto la tira para que la proxima llamada la rehaga. */
    window.CIIP_OLVIDA_T = function(){ T_MEZCLA = {}; };
+
+  /* El reloj de la barra. Siempre en hora de Caracas -que no cambia de hora
+     en verano- sea cual sea la zona de la máquina. Mira cada segundo para
+     cambiar de minuto a su hora, pero sólo escribe cuando cambia algo; así
+     también se entera del cambio de idioma sin engancharse a applyLang. */
+  (function(){
+    var caja = document.getElementById('tbReloj'),
+        h = document.getElementById('tbRelojH'),
+        z = document.getElementById('tbRelojZ');
+    if (!caja || !h || !z) return;
+    function tic(){
+      var ahora = new Date(), txt;
+      try {
+        txt = new Intl.DateTimeFormat(curLang === 'zh' ? 'zh-CN' : curLang,
+          {hour:'2-digit', minute:'2-digit', timeZone:'America/Caracas'}).format(ahora);
+      } catch(e){ return; }
+      var zona = T().ct_hora_ve || '';
+      if (h.textContent !== txt) h.textContent = txt;
+      if (z.textContent !== zona){ z.textContent = zona; caja.title = zona; }
+      caja.hidden = false;
+    }
+    tic();
+    setInterval(tic, 1000);
+  })();
   /* "Vas por aquí" vive en CIIP_PASOS.aqui, al lado de los pasos, y NO en
      CIIP_PASOS.ui. La escalera de la maqueta lo lee bien; la de verdad lo
      buscaba dentro de ui, donde nunca estuvo, así que pintaba una etiqueta
