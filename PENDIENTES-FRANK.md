@@ -107,9 +107,37 @@ puede decir que algo está listo cuando no lo está.
       el punto 4
 - [ ] Registro de marcas (c8): en tu documento sigue «aún se está diseñando»
 
-### 2. Los tres mecanismos nuevos de la visa **?**
+### 2. Los tres mecanismos nuevos de la visa — **medio decidido**
 
-El proceso de la visa pide tres cosas que el panel no sabe hacer:
+Franklin, 25-9-2026, el paso 2 y el 3 de la visa:
+
+> «el 2 se marca cuando el usuario confirma que registró el usuario»
+> «en apenas el usuario confirme que se creó el usuario se le habilita la 3
+> con la descarga del pdf»
+
+Así queda el tramo, tal como lo entiendo:
+
+1. **Paso 2** — el panel enseña el enlace a cancilleriadigital.mppre.gob.ve
+   y un botón de «ya me registré». Lo aprieta el inversionista, y eso es
+   lo que marca el paso. Se guarda en `tramites.datos`, sin estado nuevo.
+2. **Paso 3** — nace cerrado y se abre con esa confirmación. Dentro va la
+   descarga del PDF de la planilla, que el inversionista firma y sube.
+
+Lo de subirla ya existe: `planilla_visa` es uno de los siete recaudos de
+la visa. Lo que cambia es DÓNDE se sube —dentro del paso y no en la hoja
+de papeles—, que es el segundo de los tres mecanismos.
+
+**Me faltan dos cosas para montarlo:** los seis rótulos, y el PDF de la
+planilla (el archivo, o el enlace de donde se baja).
+
+Sigue sin decidir el tercer mecanismo: la observación del CIIP sobre ese
+documento. Hoy el gestor puede rechazar un recaudo con su motivo. ¿Vale
+eso, o quieres una conversación por paso?
+
+---
+
+El texto de partida, para no perderlo. El proceso de la visa pide tres
+cosas que el panel no sabía hacer:
 
 - **Un paso que enseña un mensaje y un enlace externo** («regístrese en
   cancilleriadigital.mppre.gob.ve y avísenos»).
