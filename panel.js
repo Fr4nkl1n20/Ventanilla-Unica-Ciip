@@ -2200,7 +2200,7 @@ applyLang(idiomaParaMi());
    window.CIIP_OLVIDA_T = function(){ T_MEZCLA = {}; };
 
   /* El reloj de la barra. Siempre en hora de Caracas -que no cambia de hora
-     en verano- sea cual sea la zona de la máquina. La hora con segundos
+     en verano- sea cual sea la zona de la máquina. La hora, sin segundos,
      y, al lado, la fecha y la ciudad. Siempre en 12 horas con AM/PM,
      en todos los idiomas (Franklin Reyes, 25-9-2026): la hora se pide en 24
      y el AM/PM se pone aquí, porque cada idioma escribe el suyo a su
@@ -2211,14 +2211,14 @@ applyLang(idiomaParaMi());
         h = document.getElementById('tbRelojH'),
         d = document.getElementById('tbRelojD');
     if (!caja || !h || !d) return;
-    var hm = h.querySelector('.hm'), s = h.querySelector('.s'), ap = h.querySelector('.ap');
+    var hm = h.querySelector('.hm'), ap = h.querySelector('.ap');
     var CIUDAD = {zh:'加拉加斯', ru:'Каракас'};
     function pon(n, txt){ if (n.textContent !== txt) n.textContent = txt; }
     function tic(){
       var ahora = new Date(), loc = localeDeAhora(), p = {}, fecha, h24;
       try {
         new Intl.DateTimeFormat('en-US', {hour:'2-digit', minute:'2-digit',
-          second:'2-digit', hourCycle:'h23',
+          hourCycle:'h23',
           timeZone:'America/Caracas'}).formatToParts(ahora)
           .forEach(function(x){ p[x.type] = x.value; });
         fecha = new Intl.DateTimeFormat(loc, {weekday:'short', day:'numeric',
@@ -2226,7 +2226,6 @@ applyLang(idiomaParaMi());
       } catch(e){ return; }
       h24 = parseInt(p.hour, 10) % 24;
       pon(hm, ((h24 % 12) || 12) + ':' + p.minute);
-      pon(s, ':' + p.second);
       pon(ap, h24 < 12 ? 'AM' : 'PM');
       pon(d, fecha.replace(/\./g, '') + ' · ' + (CIUDAD[curLang] || 'Caracas'));
       var zona = T().ct_hora_ve || '';
