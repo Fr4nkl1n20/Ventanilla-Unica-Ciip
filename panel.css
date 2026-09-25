@@ -4039,20 +4039,23 @@ body.menu-abierto .menu-fondo{display:block;}
   min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   margin-left:4px;}
 .tb-hola[hidden]{display:none;}
-/* La hora en dos renglones, pegados a la derecha: arriba la hora con los
-   segundos atenuados, debajo la fecha y la ciudad (la maqueta B que eligió
-   Franklin Reyes, 25-9-2026). Cifras de ancho fijo para que no baile cada
-   segundo. Una raya lo separa de Avisos. En un teléfono sólo cabe la hora:
-   la fecha se esconde y «Hora de Venezuela» queda en el title. */
-.tb-reloj{display:inline-grid; justify-items:end; line-height:1.1; flex:none;
+/* La hora en una nube como la de Avisos, en un solo renglón: la hora con
+   los segundos atenuados y AM/PM, y al lado la fecha y la ciudad (Franklin
+   Reyes, 25-9-2026). Mismo alto y mismo borde redondeado que los botones
+   de la barra, pero sin hover: no se pulsa. Cifras de ancho fijo para que
+   no baile cada segundo. En un teléfono sólo cabe la hora: la fecha se
+   esconde y «Hora de Venezuela» queda en el title. */
+.tb-reloj{display:inline-flex; align-items:baseline; gap:8px; height:34px;
+  box-sizing:border-box; padding:0 12px; border-radius:8px; flex:none;
+  border:1px solid var(--line); background:var(--bg); line-height:32px;
   white-space:nowrap; color:var(--ink); font-variant-numeric:tabular-nums;}
 .tb-reloj[hidden]{display:none;}
-.tb-reloj .h{font-size:17px; font-weight:700; letter-spacing:-.01em;}
-.tb-reloj .h .s{font-size:13px; font-weight:600; color:var(--gray);}
-.tb-reloj .h .ap{font-size:11.5px; font-weight:600; color:var(--gray); margin-left:3px;}
+.tb-reloj .h{font-size:15px; font-weight:700; letter-spacing:-.01em;}
+.tb-reloj .h .s{font-size:12px; font-weight:600; color:var(--gray);}
+.tb-reloj .h .ap{font-size:11.5px; font-weight:700; margin-left:4px;}
 .tb-reloj .d{font-size:11.5px; font-weight:500; color:var(--gray);}
-.topbar .tb-reloj{color:#fff; padding-right:14px; border-right:1px solid rgba(255,255,255,.22);}
-.topbar .tb-reloj .s, .topbar .tb-reloj .ap, .topbar .tb-reloj .d{color:rgba(255,255,255,.72);}
+.topbar .tb-reloj{background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.16); color:#fff;}
+.topbar .tb-reloj .s, .topbar .tb-reloj .d{color:rgba(255,255,255,.72);}
 @media (max-width:840px){ .tb-reloj .d{display:none;} }
 
 /* Las seis reglas de la barra de «pregunta lo que sea» se fueron con ella:
