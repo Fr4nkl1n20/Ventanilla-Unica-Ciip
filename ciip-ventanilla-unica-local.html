@@ -26120,7 +26120,11 @@ applyLang(idiomaParaMi());
      casilla del código; 'equipo', el botón de darlo por listo; cualquier
      otro, solo lectura. */
   var TIPO_PARAFISCALES = 'registros_parafiscales';
-  var ENTES_PARAFISCALES = ['banavih', 'inces', 'mpppst', 'sundde', 'snc'];
+  /* El IVSS entra el 25-9-2026 (Franklin Reyes: «IVSS sí va»). El texto de
+     la ficha prometía seis inscripciones -FAOV, INCES, RNET, RUPDAE, IVSS y
+     RNC- y el panel llevaba cinco: faltaba la patronal del seguro social.
+     Va donde lo nombra ese texto, entre el RUPDAE y el RNC. */
+  var ENTES_PARAFISCALES = ['banavih', 'inces', 'mpppst', 'sundde', 'ivss', 'snc'];
   var ENTES_SELECT = 'ente, codigo, estado, documento, documentos(archivo, nombre_original)';
   /* ── CUÁNDO SE PUEDEN TOCAR LOS CINCO ──
      Franklin Reyes, 25-9-2026: «quiero que las casillas de abajo estén
