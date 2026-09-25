@@ -3150,6 +3150,22 @@ body[data-vista="tramite"] #secTramites{display:none;}
    DEBERIA tardar no lo ha dicho nadie todavia. */
 .tr-desde{font-size:var(--fs-nota); font-weight:400; letter-spacing:0; text-transform:none;
   color:var(--gray-soft);}
+/* Lo que hay QUE HACER dentro de un paso: bajarse la planilla, ir al
+   portal del organismo. Estos SÍ se pulsan, al revés que .tr-aqui, y por
+   eso llevan la forma que el panel usa para lo que se pulsa. Van debajo
+   del nombre y no en una columna aparte: lo que se pide es de ESE paso, y
+   separarlo obligaría a adivinar de cuál. */
+.tr-hacer{display:inline-flex; align-items:center; gap:6px; margin-top:8px;
+  padding:6px 12px; border-radius:999px; border:1px solid var(--line-soft);
+  background:var(--block); color:var(--navy2); text-decoration:none;
+  font-size:var(--fs-nota); font-weight:600; cursor:pointer;}
+.tr-hacer:hover{border-color:var(--navy2);}
+.tr-hacer[disabled]{opacity:.55; cursor:default;}
+/* Y lo que hay que SABER: una advertencia corta que cuelga de su paso —el
+   correo donde llega la visa—. En gris y sin negrita: es un aviso, no otro
+   peldaño. */
+.tr-nota{font-size:var(--fs-nota); font-weight:400; line-height:1.4;
+  color:var(--gray-soft); margin-top:6px;}
 
 /* ============ EL TRAMITE DE VERDAD ============
    Formulario y estado real, contra la base de datos. Convive con la
@@ -14056,6 +14072,45 @@ applyLang(idiomaParaMi());
              trámite. Buscándola por el texto daría con el de todos. */
           if (!propios && refTr) nomP.setAttribute('data-ui', '_p.circuito.' + refTr + '.' + i);
           txt.appendChild(nomP);
+
+          /* ── LO QUE SE HACE DENTRO DE UN PASO ──
+             Franklin Reyes, 25-9-2026: el paso del portal de Cancillería
+             lleva su enlace, y el de la planilla su descarga.
+
+             Solo cuando el paso está EN CURSO o HECHO. Enseñar la descarga
+             de la planilla antes de que el CIIP haya recibido la solicitud
+             sería invitar a rellenar un papel que todavía no toca, y es
+             justo lo que el propio Franklin pidió al revés: «en apenas el
+             usuario confirme que se creó el usuario se le habilita la 3».
+             La cuenta de quién está en curso la lleva escaleraDe(), que ya
+             sabe que el 2 no lo mueve ningún estado. */
+          if (hecho || ahora){
+            var nPaso = i + 1;
+            var haciaP = ((ENLACE_DEL_PASO || {})[refTr] || {})[nPaso];
+            if (haciaP){
+              var enl = document.createElement('a');
+              enl.className = 'tr-hacer';
+              enl.href = haciaP.url;
+              enl.target = '_blank';
+              /* noopener: la pestaña que se abre no puede tocar esta. */
+              enl.rel = 'noopener noreferrer';
+              enl.textContent = u[haciaP.clave] || haciaP.url;
+              txt.appendChild(enl);
+            }
+            var bajaP = ((DESCARGA_DEL_PASO || {})[refTr] || {})[nPaso];
+            if (bajaP){
+              var des = document.createElement('a');
+              des.className = 'tr-hacer';
+              des.href = bajaP.archivo;
+              /* download y no target: es un papel para rellenar, así que
+                 lo que se quiere es tenerlo, no mirarlo en una pestaña. */
+              des.setAttribute('download', '');
+              des.textContent = u[bajaP.clave] || '';
+              txt.appendChild(des);
+            }
+            var avisoP = ((NOTA_DEL_PASO || {})[refTr] || {})[nPaso];
+            if (avisoP) txt.appendChild(el('div', 'tr-nota', u[avisoP] || ''));
+          }
           if (est && cuando[est]) txt.appendChild(el('div', 'sd-e', fecha(cuando[est])));
           else if (ahora){
             var eti = el('span', 'tr-aqui', textoAqui());
@@ -24720,6 +24775,28 @@ applyLang(idiomaParaMi());
      de Mis trámites y la ficha cuentan lo mismo. */
   var PASOS_QUE_MARCAS_TU = {c1:  {2: 'cancilleria_confirmada'},
                              c38: {2: 'cancilleria_confirmada'}};
+
+  /* Adónde te manda un paso, cuando lo que toca está fuera del panel. El
+     enlace de Cancillería va con el paso que se marca solo al volver: son
+     las dos mitades del mismo gesto -ve, y avísanos-. */
+  var ENLACE_DEL_PASO = {c1:  {2: {url: 'https://cancilleriadigital.mppre.gob.ve',
+                                   clave: 'p_ircancilleria'}},
+                         c38: {2: {url: 'https://cancilleriadigital.mppre.gob.ve',
+                                   clave: 'p_ircancilleria'}}};
+
+  /* Qué se baja en qué paso. El archivo vive AQUÍ, junto al panel, y no se
+     enlaza al sitio del ministerio: el día que ellos muevan la página, la
+     descarga seguiría funcionando. Es la misma razón por la que los logos
+     de los organismos están en logos/. */
+  var DESCARGA_DEL_PASO = {c1:  {3: {archivo: 'planillas/visa-solicitud.pdf',
+                                     clave: 'p_bajaplanilla'}},
+                           c38: {3: {archivo: 'planillas/visa-solicitud.pdf',
+                                     clave: 'p_bajaplanilla'}}};
+
+  /* Y lo que hay que saber al llegar a un paso. Sale cuando el paso está
+     en curso o hecho, no antes: «mira tu correo» leído tres semanas antes
+     de que haya nada que mirar es ruido. */
+  var NOTA_DEL_PASO = {c1: {6: 'p_visacorreo'}, c38: {6: 'p_visacorreo'}};
 
   /* Que papel se sube en que paso. La cuenta empieza en cero: el 0 es la
      emision del PUB y el 1 es "Pago de aranceles registrales", que desde el
