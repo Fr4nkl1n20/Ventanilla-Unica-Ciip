@@ -14331,7 +14331,7 @@ applyLang(idiomaParaMi());
                presente: la columna «Progreso» de Mis trámites sigue
                contando este peldaño con el estado, así que en esta ficha
                puede verse azul y en la fila no. */
-            var liEnte = li, puntoEnte = punto, nEnte = paso.n;
+            var liEnte = li, puntoEnte = punto, nEnte = paso.n, iEnte = i;
             entesDe(tr.id).then(function(m){
               if (!m) return;
               var todos = ENTES_PARAFISCALES.every(function(e){
@@ -14342,6 +14342,29 @@ applyLang(idiomaParaMi());
               if (tr.estado === 'resuelto') return;
               liEnte.className = 'tr-paso ' + (todos ? 'hecho' : 'ahora');
               puntoEnte.textContent = todos ? String.fromCharCode(10003) : String(nEnte);
+              if (todos) return;
+
+              /* Y los de arriba, en verde (Franklin Reyes, 25-9-2026:
+                 «aquí debería el paso dos estar en verde, ¿no?»).
+
+                 Al encender este peldaño quedaban DOS azules a la vez -el
+                 de la revisión y éste- y una escalera con dos «vas por
+                 aquí» no se lee como dos cosas a la vez: se lee como un
+                 fallo. Si el expediente ya está en las inscripciones, lo de
+                 antes quedó atrás.
+
+                 La etiqueta de «vas por aquí» se va con ellos. Un peldaño
+                 verde que sigue diciendo que estás ahí es peor que el
+                 problema que se vino a arreglar. */
+              for (var k = 0; k < iEnte; k++){
+                var liP = lista.children[k];
+                if (!liP) continue;
+                liP.className = 'tr-paso hecho';
+                var puntoP = liP.querySelector('.tr-punto');
+                if (puntoP) puntoP.textContent = String.fromCharCode(10003);
+                var aqui = liP.querySelector('.tr-aqui');
+                if (aqui && aqui.parentNode) aqui.parentNode.removeChild(aqui);
+              }
             }).catch(function(){});
           }
           li.appendChild(punto); li.appendChild(txt);
