@@ -3966,6 +3966,23 @@ body[data-vista="tramite"] #secTramites{display:none;}
   padding:11px 13px; margin-bottom:16px;}
 .sol-devuelta .sv-t{font-size:11.5px; font-weight:800; color:var(--amber);}
 .sol-devuelta .sv-d{font-size:12px; color:var(--ink); margin-top:4px;}
+/* La cancelada NO va en ámbar como la devuelta: el ámbar dice «te toca a
+   ti», y aquí no toca nada. Va en gris, que es el color de lo que ya no
+   pide nada. */
+.sol-cancelada{background:var(--block); border:1px solid var(--line-soft);
+  border-radius:9px; padding:11px 13px; margin-bottom:16px;}
+.sol-cancelada .sv-t{font-size:11.5px; font-weight:800; color:var(--gray);}
+/* Y el botón de cancelar, abajo del todo y discreto: existe, pero no es lo
+   que se viene a hacer aquí. Solo al pulsarlo se pone en rojo, que es
+   cuando de verdad está preguntando algo. */
+.sol-cancelar{margin-top:18px; padding-top:14px; border-top:1px solid var(--line-soft);}
+.can-btn{font:inherit; font-size:var(--fs-nota); font-weight:600; color:var(--gray);
+  background:none; border:1px solid var(--line-soft); border-radius:999px;
+  padding:7px 14px; cursor:pointer;}
+.can-btn:hover{border-color:var(--gray); color:var(--ink);}
+.can-btn.confirma{color:var(--rust); border-color:var(--rust); font-weight:700;}
+.can-btn[disabled]{opacity:.55; cursor:default;}
+.can-msg{font-size:var(--fs-nota); color:var(--gray-soft); margin-top:6px; line-height:1.45;}
 /* Mientras se corrige, el mismo aviso se queda arriba del formulario: es
    lo único que dice QUÉ arreglar, y antes se borraba justo al pulsar
    «Corregir». Se pega para que no se pierda al bajar por las tres hojas. */
@@ -11557,7 +11574,14 @@ applyLang(idiomaParaMi());
                ultimo -por eso existia el limit(1), para que un borrador
                viejo no tapara el envio- y esto lo sigue cumpliendo sin
                depender de las fechas. */
-            var todas = (r2.data || []).slice();
+            /* Las canceladas no entran a elegir. Una solicitud cancelada
+               no es un expediente en marcha ni uno terminado: es uno que
+               dejó de existir, y lo que tiene que encontrarse al abrir la
+               ficha es el formulario en blanco, igual que si nunca se
+               hubiera pedido. Sigue en «Mis trámites», que es el
+               historial, y de ahí se puede abrir. */
+            var todas = (r2.data || []).slice()
+              .filter(function(x){ return x.estado !== 'cancelado'; });
             todas.sort(function(a, b){ return mandaSobre(a, b) ? -1 : (mandaSobre(b, a) ? 1 : 0); });
             var mio = todas[0] || null;
             /* SALVO QUE TE HAYAN DICHO CUÁL (Franklin Reyes, 21-9-2026).
@@ -11576,7 +11600,11 @@ applyLang(idiomaParaMi());
             var pedida = window.CIIP_ABRE_ESTA;
             window.CIIP_ABRE_ESTA = null;
             if (pedida){
-              todas.forEach(function(x){ if (x.id === pedida) mio = x; });
+              /* Se busca en TODAS, también en las canceladas: quien pulsa
+                 «Abrir» en la fila de una cancelada viene a ver ésa. El
+                 filtro de arriba decide qué sale sin que nadie lo pida;
+                 aquí alguien lo ha pedido. */
+              (r2.data || []).forEach(function(x){ if (x.id === pedida) mio = x; });
             }
             escalera.classList.add('oculto');
             caja.classList.add('puesto');
@@ -14165,6 +14193,16 @@ applyLang(idiomaParaMi());
        escalera—, así que va encima de todo. */
     if (tr.estado === 'resuelto') pintaEntregado(tr, caja);
 
+    /* ── UNA SOLICITUD CANCELADA ──
+       Se dice y se acaba: ni escalera, ni pasos, ni conversación. Lo que
+       queda por saber de un expediente cancelado es que lo está. */
+    if (tr.estado === 'cancelado'){
+      var cnl = el('div', 'sol-cancelada');
+      cnl.appendChild(el('div', 'sv-t', u.can_titulo || ''));
+      cnl.appendChild(el('div', 'sd-e', u.can_dice || ''));
+      caja.appendChild(cnl);
+      return;
+    }
 
     var lista = el('ol', 'tr-pasos');
     caja.appendChild(lista);
@@ -14470,6 +14508,61 @@ applyLang(idiomaParaMi());
     /* La lista de «Recaudos entregados» ya no sale aquí: eran nombres de
        archivo sueltos, repetidos, que no decían nada que no esté en
        Documentos (Franklin Reyes, 17-9-2026). */
+
+    /* ── CANCELAR, MIENTRAS NO HAYA SALIDO ──
+       Franklin Reyes, 25-9-2026: «necesito que el inversionista pueda
+       cancelar un trámite si el trámite aún no ha pasado al ente».
+
+       Y ese límite es el que manda. Mientras el expediente está en el CIIP
+       -recibido, en revisión, devuelto- cancelarlo no le cuesta nada a
+       nadie. Una vez presentado ante el organismo ya hay un número de
+       entrada fuera, y decir aquí «cancelado» no lo retiraría de allí: la
+       pantalla mentiría sobre un trámite que sigue vivo en una oficina que
+       no es ésta. Lo mismo vale para un borrador, que se descarta con el
+       botón de siempre y ni siquiera llegó a existir para el CIIP.
+
+       DOS PULSACIONES, y no un cuadro de confirmación: la primera cambia
+       el botón por la pregunta y la segunda cancela. Un expediente
+       cancelado no se descancela -la escalera de la base no deja volver-,
+       así que tiene que costar algo más que rozar un botón; y un cuadro
+       modal para esto es un martillo.
+
+       La segunda pulsación se cree a la base y no al clic: cancela_tramite
+       comprueba que el trámite es tuyo y que está donde puede cancelarse, y
+       revienta si no tocó ninguna fila. */
+    if (['enviado', 'en_revision', 'devuelto'].indexOf(tr.estado) >= 0){
+      var zonaC = el('div', 'sol-cancelar');
+      var btnC = el('button', 'can-btn', u.can_pedir || '');
+      btnC.type = 'button';
+      var avisoC = el('div', 'can-msg', '');
+      var seguro = false;
+      btnC.addEventListener('click', function(){
+        if (!seguro){
+          seguro = true;
+          btnC.classList.add('confirma');
+          btnC.textContent = u.can_seguro || '';
+          avisoC.textContent = u.can_porque || '';
+          return;
+        }
+        btnC.disabled = true;
+        avisoC.textContent = u.enviando || '';
+        sb.rpc('cancela_tramite', {p_tramite: tr.id})
+          .then(function(r){
+            if (r.error || !r.data) throw (r.error || new Error('sin fila'));
+            tr.estado = 'cancelado';
+            caja.textContent = '';
+            pintaEstado(tipo, tr);
+          })
+          .catch(function(e){
+            console.warn('[CIIP] cancelar trámite:', e && e.message);
+            btnC.disabled = false;
+            avisoC.textContent = u.co_error || '';
+          });
+      });
+      zonaC.appendChild(btnC);
+      zonaC.appendChild(avisoC);
+      caja.appendChild(zonaC);
+    }
 
     /* AQUÍ NO VA LA CONVERSACIÓN, y es a propósito.
        Estuvo al final de esta pantalla, y se quita el 8 de septiembre de 2026
@@ -22468,6 +22561,9 @@ applyLang(idiomaParaMi());
     var u = T();
     if (estado === 'devuelto')  return {txt:u.devuelta || '',  clase:'reclama'};
     if (estado === 'borrador')  return {txt:u.iniciar || '',   clase:'reclama'};
+    /* Cancelada: sin clase, o sea en gris. No reclama nada -no hay nada
+       que hacer- ni es un logro. Es historia. */
+    if (estado === 'cancelado') return {txt:u.can_chip || '',  clase:''};
     if (estado === 'resuelto')  return {txt:estadoTexto(3, ente, ref), clase:'listo'};
     var i = AV_ORDEN.indexOf(estado);
     return {txt: i >= 0 ? estadoTexto(i, ente, ref) : estado, clase:''};
