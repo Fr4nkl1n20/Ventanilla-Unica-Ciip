@@ -14309,6 +14309,40 @@ applyLang(idiomaParaMi());
             bloqueE.appendChild(listaDeEntes(tr,
               (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) ? 'equipo' : 'inversionista'));
             lista.parentNode.insertBefore(bloqueE, lista.nextSibling);
+
+            /* ── ESTE PELDAÑO LO DECIDEN LOS CINCO, NO EL ESTADO ──
+               Franklin Reyes, 25-9-2026: «aquí debería estar "ante cada
+               ente" en azul hasta que se registre en todos».
+
+               Los otros tres peldaños los mueve el estado de la solicitud,
+               que es uno. Éste no: son cinco inscripciones distintas que
+               acaban en cinco días distintos, y el estado no sabe por
+               cuántas va. Encendiéndolo con los demás, el peldaño se ponía
+               verde con cuatro entes sin inscribir.
+
+               Así que se pinta con lo que dicen los cinco: azul mientras
+               falte alguno, verde cuando estén los cinco. Y puede quedar
+               azul a la vez que el de arriba, que es la verdad: el CIIP
+               revisa los recaudos mientras va inscribiendo.
+
+               Va aquí y no en escaleraDe() a propósito. Los cinco entes se
+               piden a la base aparte -entesDe()- y escaleraDe es
+               sincrónica: no puede esperar. La consecuencia hay que tenerla
+               presente: la columna «Progreso» de Mis trámites sigue
+               contando este peldaño con el estado, así que en esta ficha
+               puede verse azul y en la fila no. */
+            var liEnte = li, puntoEnte = punto, nEnte = paso.n;
+            entesDe(tr.id).then(function(m){
+              if (!m) return;
+              var todos = ENTES_PARAFISCALES.every(function(e){
+                return m[e] && m[e].estado === 'listo'; });
+              /* Con la solicitud resuelta no se toca: si el CIIP la dio por
+                 terminada, terminada está, y discutírselo desde aquí sería
+                 enseñar dos verdades sobre el mismo expediente. */
+              if (tr.estado === 'resuelto') return;
+              liEnte.className = 'tr-paso ' + (todos ? 'hecho' : 'ahora');
+              puntoEnte.textContent = todos ? String.fromCharCode(10003) : String(nEnte);
+            }).catch(function(){});
           }
           li.appendChild(punto); li.appendChild(txt);
           lista.appendChild(li);

@@ -48,21 +48,6 @@ end $$;
 revoke all on function public.confirma_paso(uuid, text) from public;
 grant execute on function public.confirma_paso(uuid, text) to authenticated;
 
-select codigo, nombre, vence
-  from public.tipos_documento
- where codigo in ('cedula_apoderado', 'rif_apoderado', 'carta_solicitud_empresa',
-                  'planilla_visa', 'solvencia_economica', 'carta_residencia',
-                  'declaracion_fondos', 'apostilla_previa', 'domicilio_empresa')
- order by codigo;
-
-select codigo, ref_panel, nombre, activo
-  from public.tipos_tramite
- where codigo in ('licencia_conducir', 'cert_medico');
-
-select routine_name, security_type
-  from information_schema.routines
- where routine_schema = 'public' and routine_name = 'confirma_paso';
-
 do $$
 declare c text;
 begin
@@ -134,10 +119,27 @@ select t.id, e, 'pendiente'
    and t.estado in ('enviado', 'en_revision', 'ante_el_ente')
 on conflict (tramite, ente) do nothing;
 
-select estado, count(*)
-  from public.tramite_entes
- group by estado
- order by estado;
+select codigo, nombre, vence
+  from public.tipos_documento
+ where codigo in ('cedula_apoderado', 'rif_apoderado', 'carta_solicitud_empresa',
+                  'planilla_visa', 'solvencia_economica', 'carta_residencia',
+                  'declaracion_fondos', 'apostilla_previa', 'domicilio_empresa')
+ order by codigo;
+
+select codigo, ref_panel, nombre, activo
+  from public.tipos_tramite
+ where codigo in ('licencia_conducir', 'cert_medico');
+
+select routine_name
+  from information_schema.routines
+ where routine_schema = 'public'
+   and routine_name in ('confirma_paso', 'tramite_entes_nacen')
+ order by routine_name;
+
+select pg_get_constraintdef(oid) as estados_permitidos
+  from pg_constraint
+ where conrelid = 'public.tramite_entes'::regclass
+   and conname = 'tramite_entes_estado_check';
 
 select t.id, t.estado, count(e.ente) as entes
   from public.tramites t
