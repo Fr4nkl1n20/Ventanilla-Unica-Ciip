@@ -51,7 +51,16 @@
      aparte, como config.js: quien no abra el Registro de Extranjeros no
      las mira, pero llegan antes que el formulario que las usa. -->
 <script src="saren-listas.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- supabase-js con la version FIJA y su huella (SRI). Con "@2" a secas el
+     navegador ejecutaba la ultima 2.x que publicaran, fuera la que fuera, con
+     la sesion del admin. Ahora, si jsDelivr sirviera otra cosa, el navegador la
+     rechaza. Para subir de version: cambiar el numero y rehacer la huella con
+       curl -s <url> | openssl dgst -sha384 -binary | openssl base64 -A
+     Revision de seguridad del 25-09-2026. NO volver a "@2": ya se perdio una
+     vez al subir encima una copia vieja del panel. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"
+        integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok"
+        crossorigin="anonymous"></script>
 <style>
 /* Mientras se comprueba la sesión no se enseña el panel: si no, quien no ha
    entrado alcanza a ver los datos durante el instante previo al redirect. */
@@ -8682,7 +8691,10 @@ var IDX={employees:1,present:2,realestate:3,profits:4,capital:5,time:6,taxes:7};
       }).then(function(r){
         return r.json().catch(function(){ return {}; }).then(function(d){
           if (r.ok && d.respuesta){
-            conversacion.push({ papel:'asistente', texto:d.respuesta });
+            /* La firma vuelve con la siguiente pregunta: sin ella, el
+               servidor no se cree que esta respuesta la dio él y el
+               asistente pierde la memoria de la conversación. */
+            conversacion.push({ papel:'asistente', texto:d.respuesta, firma:d.firma });
             return d.respuesta;
           }
           /* 'sin-clave' y 'sin-base' son estados del despliegue, no
