@@ -92,6 +92,17 @@ puede decir que algo está listo cuando no lo está.
 - [ ] Visa (c1) y visa de inversionista: **me faltan los seis rótulos tal
       como los quieres**. Sé quién marca el 2 y el 3; no tengo escritos los
       seis nombres
+
+      Franklin, 25-9-2026, sobre el paso 2: «se marca cuando el usuario
+      confirma que registró el usuario». Eso afina lo de ayer —«el gestor
+      avisa y el equipo CIIP confirma»— y cambia una cosa de fondo: ese
+      paso NO lo mueven los cuatro estados, lo mueve un botón que aprieta
+      el inversionista. Es el primero de los tres mecanismos del punto 2.
+
+      Dónde se guardaría, sin tocar la base: en `tramites.datos`, una
+      casilla del estilo `paso2_confirmado`. No hace falta un estado nuevo
+      ni tocar la escalera de la base, y por tanto no puede romper el
+      orden de los estados que el disparador vigila.
 - [ ] Traducción (c17): son dos escaleras distintas según la respuesta. Ver
       el punto 4
 - [ ] Registro de marcas (c8): en tu documento sigue «aún se está diseñando»
