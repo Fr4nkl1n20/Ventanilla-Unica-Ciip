@@ -9190,7 +9190,27 @@ applyLang(idiomaParaMi());
      ESPAÑOL en data-es. Así cambiar de idioma no cambia el dato que ya
      está en la base, y el día que un ente pregunte por la nacionalidad
      hay un código que darle en vez de un nombre escrito a mano. ────── */
-  function nuevoBuscadorPais(caja, entrada, oculto, lista){
+  /* ── LO QUE TIENEN EN COMÚN LOS BUSCADORES ──────────────────────────
+     Se escribe y la lista se filtra, sin tildes; primero lo que EMPIEZA
+     por lo escrito (quien teclea "ven" busca Venezuela, no Eslovenia);
+     ochenta renglones como mucho -pintar doscientos en cada tecla se nota,
+     y nadie baja hasta el ochenta sin escribir algo más-; flechas, Enter y
+     Escape. Lo usan el de países y el de listas, que antes lo llevaban
+     copiado cada uno.
+
+     Lo de cada uno va en op: items() da la lista del momento, texto(x) lo
+     que se ve, busca(x) contra qué se filtra ya en llano, marca(x) lo que
+     va delante del nombre (la bandera) y elige(x) qué hacer al elegir. */
+  function ariaCombo(entrada, lista, id){
+    lista.setAttribute('role', 'listbox');
+    lista.id = id;
+    entrada.setAttribute('autocomplete', 'off');
+    entrada.setAttribute('role', 'combobox');
+    entrada.setAttribute('aria-autocomplete', 'list');
+    entrada.setAttribute('aria-expanded', 'false');
+    entrada.setAttribute('aria-controls', id);
+  }
+  function comboBusca(entrada, lista, op){
     var marcado = -1, visibles = [];
 
     function cierra(){
@@ -9198,48 +9218,32 @@ applyLang(idiomaParaMi());
       entrada.setAttribute('aria-expanded', 'false');
       marcado = -1;
     }
-    function marcaPais(cod){
-      if (HAY_BANDERAS){
-        var img = document.createElement('img');
-        img.className = 'bandera';
-        img.src = 'banderas/' + cod.toLowerCase() + '.svg';
-        img.alt = '';
-        /* Si falta justo esa, cae al código en vez de dejar el hueco roto. */
-        img.onerror = function(){
-          var c = el('span', 'bandera-cod', cod);
-          if (img.parentNode) img.parentNode.replaceChild(c, img);
-        };
-        return img;
-      }
-      return el('span', 'bandera-cod', cod);
-    }
     function pinta(q){
       var qn = llano(q);
-      visibles = qn ? PAISES.filter(function(p){ return p.busca.indexOf(qn) >= 0; })
-                    : PAISES.slice();
-      /* Los que EMPIEZAN por lo escrito, primero: quien teclea "ven" busca
-         Venezuela, no Eslovenia. */
+      var todos = op.items();
+      visibles = qn ? todos.filter(function(x){ return op.busca(x).indexOf(qn) >= 0; })
+                    : todos.slice();
       if (qn) visibles.sort(function(a, b){
-        return (a.busca.indexOf(qn) === 0 ? 0 : 1) - (b.busca.indexOf(qn) === 0 ? 0 : 1);
+        return (op.busca(a).indexOf(qn) === 0 ? 0 : 1) - (op.busca(b).indexOf(qn) === 0 ? 0 : 1);
       });
 
       lista.textContent = '';
       if (!visibles.length){
-        var v = el('li', 'combo-vacio', '\u2014');
+        var v = el('li', 'combo-vacio', '—');
         v.setAttribute('role', 'presentation');
         lista.appendChild(v);
       }
-      visibles.slice(0, 80).forEach(function(p, idx){
+      visibles.slice(0, 80).forEach(function(x, idx){
         var li = el('li');
         li.setAttribute('role', 'option');
         li.dataset.i = idx;
-        li.appendChild(marcaPais(p.cod));
+        if (op.marca) li.appendChild(op.marca(x));
         var t = el('span');
-        t.innerHTML = resaltar(p.nombre, qn);
+        t.innerHTML = resaltar(op.texto(x), qn);
         li.appendChild(t);
         /* mousedown y no click: el blur del campo cierra la lista antes de
            que llegue el click, y la elección se perdería. */
-        li.addEventListener('mousedown', function(e){ e.preventDefault(); elige(p); });
+        li.addEventListener('mousedown', function(e){ e.preventDefault(); op.elige(x); });
         lista.appendChild(li);
       });
       marcado = -1;
@@ -9254,13 +9258,73 @@ applyLang(idiomaParaMi());
       filas[marcado].classList.add('sel');
       filas[marcado].scrollIntoView({block:'nearest'});
     }
+
+    entrada.addEventListener('focus', function(){ pinta(entrada.value); });
+    entrada.addEventListener('input', function(){
+      if (op.alEscribir) op.alEscribir();
+      pinta(entrada.value);
+    });
+    entrada.addEventListener('blur', function(){
+      setTimeout(function(){ if (op.alSalir) op.alSalir(); cierra(); }, 120);
+    });
+    entrada.addEventListener('keydown', function(e){
+      if (e.key === 'ArrowDown'){
+        e.preventDefault();
+        if (!lista.classList.contains('open')) pinta(entrada.value);
+        marcaFila(marcado + 1);
+      } else if (e.key === 'ArrowUp'){
+        e.preventDefault(); marcaFila(marcado - 1);
+      } else if (e.key === 'Enter'){
+        if (lista.classList.contains('open') && marcado >= 0){
+          e.preventDefault(); op.elige(visibles[marcado]);
+        }
+      } else if (e.key === 'Escape'){
+        /* Escape cierra la lista, no la ventana: quien está buscando no
+           quiere perder también lo que ya escribió. */
+        if (lista.classList.contains('open')){ e.stopPropagation(); cierra(); }
+      }
+    });
+
+    return {pinta: pinta, cierra: cierra,
+            abierta: function(){ return lista.classList.contains('open'); }};
+  }
+
+  function nuevoBuscadorPais(caja, entrada, oculto, lista){
+    function marcaPais(p){
+      var cod = p.cod;
+      if (HAY_BANDERAS){
+        var img = document.createElement('img');
+        img.className = 'bandera';
+        img.src = 'banderas/' + cod.toLowerCase() + '.svg';
+        img.alt = '';
+        /* Si falta justo esa, cae al código en vez de dejar el hueco roto. */
+        img.onerror = function(){
+          var c = el('span', 'bandera-cod', cod);
+          if (img.parentNode) img.parentNode.replaceChild(c, img);
+        };
+        return img;
+      }
+      return el('span', 'bandera-cod', cod);
+    }
     function elige(p){
       entrada.value = p.nombre;
       oculto.value = p.cod;
       if (caja) caja.setAttribute('data-es', p.es);
-      cierra();
+      combo.cierra();
       if (caja) caja.classList.remove('mal');
     }
+    var combo = comboBusca(entrada, lista, {
+      items: function(){ return PAISES; },
+      texto: function(p){ return p.nombre; },
+      busca: function(p){ return p.busca; },
+      marca: marcaPais,
+      elige: elige,
+      alEscribir: function(){
+        oculto.value = '';
+        if (caja) caja.removeAttribute('data-es');
+      },
+      alSalir: function(){ fija(); }
+    });
 
     /* Da por bueno lo escrito si coincide EXACTO con un país, aunque no se
        eligiera de la lista: pegar el nombre o el autorrelleno del
@@ -9300,7 +9364,7 @@ applyLang(idiomaParaMi());
         return;
       }
       var p = PAISES.filter(function(x){ return llano(x.es) === llano(esp); })[0];
-      if (p){ elige(p); cierra(); }
+      if (p){ elige(p); combo.cierra(); }
       /* Un país escrito a mano en la base que no esté en la lista se
          enseña tal cual en vez de borrarlo por las bravas. */
       else {
@@ -9309,33 +9373,8 @@ applyLang(idiomaParaMi());
       }
     }
 
-    entrada.addEventListener('focus', function(){ pinta(entrada.value); });
-    entrada.addEventListener('input', function(){
-      oculto.value = '';
-      if (caja) caja.removeAttribute('data-es');
-      pinta(entrada.value);
-    });
-    entrada.addEventListener('blur',  function(){ setTimeout(function(){ fija(); cierra(); }, 120); });
-    entrada.addEventListener('keydown', function(e){
-      if (e.key === 'ArrowDown'){
-        e.preventDefault();
-        if (!lista.classList.contains('open')) pinta(entrada.value);
-        marcaFila(marcado + 1);
-      } else if (e.key === 'ArrowUp'){
-        e.preventDefault(); marcaFila(marcado - 1);
-      } else if (e.key === 'Enter'){
-        if (lista.classList.contains('open') && marcado >= 0){
-          e.preventDefault(); elige(visibles[marcado]);
-        }
-      } else if (e.key === 'Escape'){
-        /* Escape cierra la lista, no la ventana: quien está buscando un
-           país no quiere perder también el nombre que ya escribió. */
-        if (lista.classList.contains('open')){ e.stopPropagation(); cierra(); }
-      }
-    });
-
     return {pon: pon, paraGuardar: paraGuardar, fija: fija, elige: elige,
-            pinta: pinta, cierra: cierra};
+            pinta: combo.pinta, cierra: combo.cierra};
   }
 
   /* Monta uno nuevo dentro de un campo: crea la caja, el escondido y la
@@ -9347,14 +9386,7 @@ applyLang(idiomaParaMi());
     var oculto = document.createElement('input');
     oculto.type = 'hidden';
     var lista = el('ul', 'combo-list');
-    lista.setAttribute('role', 'listbox');
-    lista.id = 'combo-paises-' + (++nBuscador);
-
-    entrada.setAttribute('autocomplete', 'off');
-    entrada.setAttribute('role', 'combobox');
-    entrada.setAttribute('aria-autocomplete', 'list');
-    entrada.setAttribute('aria-expanded', 'false');
-    entrada.setAttribute('aria-controls', lista.id);
+    ariaCombo(entrada, lista, 'combo-paises-' + (++nBuscador));
 
     combo.appendChild(entrada);
     combo.appendChild(oculto);
@@ -9387,104 +9419,35 @@ applyLang(idiomaParaMi());
      oficina, y al cambiarlo la de antes ya no vale. ──────────────────── */
   var nBuscaLista = 0;
   function montaBuscadorLista(campo, entrada){
-    var combo = el('div', 'combo');
+    var caja = el('div', 'combo');
     var lista = el('ul', 'combo-list');
-    lista.setAttribute('role', 'listbox');
-    lista.id = 'combo-lista-' + (++nBuscaLista);
+    ariaCombo(entrada, lista, 'combo-lista-' + (++nBuscaLista));
 
-    entrada.setAttribute('autocomplete', 'off');
-    entrada.setAttribute('role', 'combobox');
-    entrada.setAttribute('aria-autocomplete', 'list');
-    entrada.setAttribute('aria-expanded', 'false');
-    entrada.setAttribute('aria-controls', lista.id);
+    caja.appendChild(entrada);
+    caja.appendChild(lista);
+    campo.appendChild(caja);
 
-    combo.appendChild(entrada);
-    combo.appendChild(lista);
-    campo.appendChild(combo);
-
-    var OPS = [], visibles = [], marcado = -1;
-
-    function cierra(){
-      lista.classList.remove('open');
-      entrada.setAttribute('aria-expanded', 'false');
-      marcado = -1;
-    }
-    function pinta(q){
-      var qn = llano(q || '');
-      visibles = qn ? OPS.filter(function(o){ return llano(o).indexOf(qn) >= 0; })
-                    : OPS.slice();
-      /* Los que EMPIEZAN por lo escrito, primero, igual que en el de
-         países: quien teclea "venta" busca «Venta», no «Reventa». */
-      if (qn) visibles.sort(function(a, b){
-        return (llano(a).indexOf(qn) === 0 ? 0 : 1) - (llano(b).indexOf(qn) === 0 ? 0 : 1);
-      });
-
-      lista.textContent = '';
-      if (!visibles.length){
-        var v = el('li', 'combo-vacio', '—');
-        v.setAttribute('role', 'presentation');
-        lista.appendChild(v);
-      }
-      /* Ochenta y no todos: pintar doscientos renglones en cada tecla se
-         nota, y nadie baja hasta el ochenta sin escribir algo más. */
-      visibles.slice(0, 80).forEach(function(o, idx){
-        var li = el('li');
-        li.setAttribute('role', 'option');
-        li.dataset.i = idx;
-        var t = el('span');
-        t.innerHTML = resaltar(o, qn);
-        li.appendChild(t);
-        /* mousedown y no click: el blur del campo cierra la lista antes de
-           que llegue el click, y la elección se perdería. */
-        li.addEventListener('mousedown', function(e){ e.preventDefault(); elige(o); });
-        lista.appendChild(li);
-      });
-      marcado = -1;
-      lista.classList.add('open');
-      entrada.setAttribute('aria-expanded', 'true');
-    }
-    function marcaFila(n){
-      var filas = lista.querySelectorAll('li[role="option"]');
-      if (!filas.length) return;
-      if (marcado >= 0 && filas[marcado]) filas[marcado].classList.remove('sel');
-      marcado = (n + filas.length) % filas.length;
-      filas[marcado].classList.add('sel');
-      filas[marcado].scrollIntoView({block:'nearest'});
-    }
+    var OPS = [];
     function elige(o){
       entrada.value = o;
-      cierra();
+      combo.cierra();
       if (campo) campo.classList.remove('mal');
     }
+    var combo = comboBusca(entrada, lista, {
+      items: function(){ return OPS; },
+      texto: function(o){ return o; },
+      busca: function(o){ return llano(o); },
+      elige: elige
+    });
 
     /* Cambia la lista entera. Lo ya escrito se queda: si el acto que había
        sigue estando en la lista nueva, sigue valiendo; y si no está, sigue
        siendo lo que esa persona escribió, no algo que borramos por su
        cuenta. Quien cambie el tipo de oficina y quiera otro acto, escribe
        encima —y ahí sí verá la lista nueva—. */
-    function pon(ops){ OPS = ops || []; if (lista.classList.contains('open')) pinta(entrada.value); }
+    function pon(ops){ OPS = ops || []; if (combo.abierta()) combo.pinta(entrada.value); }
 
-    entrada.addEventListener('focus', function(){ pinta(entrada.value); });
-    entrada.addEventListener('input', function(){ pinta(entrada.value); });
-    entrada.addEventListener('blur',  function(){ setTimeout(cierra, 120); });
-    entrada.addEventListener('keydown', function(e){
-      if (e.key === 'ArrowDown'){
-        e.preventDefault();
-        if (!lista.classList.contains('open')) pinta(entrada.value);
-        marcaFila(marcado + 1);
-      } else if (e.key === 'ArrowUp'){
-        e.preventDefault(); marcaFila(marcado - 1);
-      } else if (e.key === 'Enter'){
-        if (lista.classList.contains('open') && marcado >= 0){
-          e.preventDefault(); elige(visibles[marcado]);
-        }
-      } else if (e.key === 'Escape'){
-        /* Escape cierra la lista, no la ventana, ni borra lo escrito. */
-        if (lista.classList.contains('open')){ e.stopPropagation(); cierra(); }
-      }
-    });
-
-    return {pon: pon, pinta: pinta, cierra: cierra, elige: elige};
+    return {pon: pon, pinta: combo.pinta, cierra: combo.cierra, elige: elige};
   }
 
   /* El del perfil, que es el único que ya viene en el marcado. */
