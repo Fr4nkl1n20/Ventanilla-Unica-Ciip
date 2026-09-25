@@ -32,6 +32,23 @@ Write-Host '  PRUEBAS DEL PANEL' -ForegroundColor Cyan
 Write-Host '  -----------------' -ForegroundColor Cyan
 Write-Host ''
 
+# ---- 0. los cerrojos de seguridad ----
+# Antes que nada, que los arreglos de la revision del 25-09-2026 sigan en
+# el panel y en las paginas de acceso: ese dia se perdieron tres veces al
+# subir encima una copia vieja. Si falta alguno no se prueba nada: hay que
+# traer la ultima version (git pull) y rehacer encima el cambio propio.
+$nodeCmd = Get-Command node -ErrorAction SilentlyContinue
+if ($nodeCmd) {
+  & $nodeCmd.Source (Join-Path $PSScriptRoot 'cerrojos.js')
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host '  Falta un cerrojo de seguridad (arriba dice cual). No se sigue.' -ForegroundColor Red
+    Write-Host '  Casi siempre es una copia vieja del archivo: git pull, y rehacer el cambio.' -ForegroundColor DarkGray
+    exit 1
+  }
+} else {
+  Write-Host '  (sin Node no se comprueban los cerrojos: pruebas/cerrojos.js)' -ForegroundColor DarkGray
+}
+
 # ---- 1. navegador ----
 $candidatos = @(
   "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
