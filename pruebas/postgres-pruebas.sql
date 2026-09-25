@@ -945,13 +945,18 @@ do $p$
 declare
   quien uuid; tipoDoc text; hex text;
 begin
+  /* Por la puerta de servicio de verdad: reset role no borra la sesion
+     de la prueba anterior, y un papel validado no lo da de alta un
+     inversionista (supabase-papeles-sellados.sql). En emitidos/ porque
+     es lo unico que verificar_documento() respalda. */
+  perform arnes.nadie();
   select id into quien from arnes.gente where papel = 'A';
   select codigo into tipoDoc from public.tipos_documento limit 1;
   hex := repeat('ab', 32);   -- 64 hexadecimales
 
   insert into public.documentos (inversionista, tipo, archivo, nombre_original,
                                  estado, huella)
-  values (quien, tipoDoc, quien || '/con-huella.pdf', 'con-huella.pdf',
+  values (quien, tipoDoc, quien || '/emitidos/con-huella.pdf', 'con-huella.pdf',
           'validado', hex);
   insert into arnes.escenario values ('huella', null);
 end
@@ -3300,6 +3305,194 @@ select arnes.comprueba(
   and (select count(*) = 1 from public.tipos_tramite t
          join public.tipos_documento d on d.codigo = t.emite
         where t.codigo = 'aporte_locti_pago' and d.codigo = 'certificado_locti' and d.vence));
+
+
+-- ══ 31 · LOS PAPELES, SELLADOS (revision del 25 de septiembre) ════════
+-- supabase-papeles-sellados.sql. Cada intento es lo que se podia hacer
+-- desde la consola del navegador con una cuenta de inversionista.
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+do $ps$
+declare
+  yo  uuid := auth.uid();
+  otro uuid := (select id from arnes.gente where papel = 'B');
+  intentos text[][] := array[
+    ['sellados: el inversionista no se da de alta un papel validado',
+     'validado', 'pasaporte', '%s/ps-1.pdf'],
+    ['sellados: ni una resolucion, aunque entre como cargada',
+     'cargado', 'resolucion', '%s/ps-2.pdf'],
+    ['sellados: ni en la carpeta emitidos/, que es del equipo',
+     'cargado', 'pasaporte', '%s/emitidos/ps-3.pdf'],
+    ['sellados: ni con una ruta que sube de nivel',
+     'cargado', 'pasaporte', '%s/../x/ps-4.pdf']];
+  i int;
+begin
+  for i in 1 .. array_length(intentos, 1) loop
+    begin
+      insert into public.documentos (inversionista, tipo, archivo, nombre_original, estado)
+      values (yo, intentos[i][3], format(intentos[i][4], yo), 'x.pdf', intentos[i][2]);
+      perform arnes.comprueba(intentos[i][1], false, 'entro');
+    exception when others then
+      perform arnes.comprueba(intentos[i][1], true);
+    end;
+  end loop;
+
+  begin
+    insert into public.documentos (inversionista, tipo, archivo, nombre_original)
+    values (yo, 'pasaporte', otro::text || '/ps-5.pdf', 'x.pdf');
+    perform arnes.comprueba('sellados: ni apuntando a la carpeta de otro', false, 'entro');
+  exception when others then
+    perform arnes.comprueba('sellados: ni apuntando a la carpeta de otro', true);
+  end;
+
+  begin
+    insert into public.documentos (inversionista, tipo, archivo, nombre_original, huella)
+    values (yo, 'pasaporte', yo::text || '/ps-bueno.pdf', 'bueno.pdf', repeat('ef', 32));
+    perform arnes.comprueba('sellados: el recaudo de siempre SI entra', true);
+  exception when others then
+    perform arnes.comprueba('sellados: el recaudo de siempre SI entra', false, sqlerrm);
+  end;
+
+  begin
+    update public.documentos set estado = 'validado' where archivo = yo::text || '/ps-bueno.pdf';
+    perform arnes.comprueba('sellados: ni se lo valida despues', false, 'entro');
+  exception when others then
+    perform arnes.comprueba('sellados: ni se lo valida despues', true);
+  end;
+
+  begin
+    update public.documentos set revisado_por = (select id from arnes.gente where papel = 'G'),
+                                 nota_revision = 'visto'
+     where archivo = yo::text || '/ps-bueno.pdf';
+    perform arnes.comprueba('sellados: ni se firma la revision', false, 'entro');
+  exception when others then
+    perform arnes.comprueba('sellados: ni se firma la revision', true);
+  end;
+
+  begin
+    update public.documentos set vence_el = current_date + 365
+     where archivo = yo::text || '/ps-bueno.pdf';
+    perform arnes.comprueba('sellados: corregir la fecha de su papel SI se puede', true);
+  exception when others then
+    perform arnes.comprueba('sellados: corregir la fecha de su papel SI se puede', false, sqlerrm);
+  end;
+end
+$ps$;
+
+-- El equipo: valida el recaudo, firmando con otro nombre a proposito, y
+-- entrega una resolucion en emitidos/.
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+
+do $ps$
+declare
+  ana uuid := (select id from arnes.gente where papel = 'A');
+begin
+  update public.documentos
+     set estado = 'validado', revisado_por = ana, revisado_en = '2020-01-01'
+   where archivo = ana::text || '/ps-bueno.pdf';
+  perform arnes.comprueba('sellados: el equipo SI valida, y firma el que valida',
+    (select revisado_por = auth.uid() and revisado_en > now() - interval '1 minute'
+       from public.documentos where archivo = ana::text || '/ps-bueno.pdf'),
+    (select coalesce(revisado_por::text, 'nadie') from public.documentos
+      where archivo = ana::text || '/ps-bueno.pdf'));
+
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original, estado, huella)
+  values (ana, 'resolucion', ana::text || '/emitidos/ps-res.pdf', 'res.pdf', 'validado', repeat('cd', 32));
+  perform arnes.comprueba('sellados: el equipo SI entrega en emitidos/', true);
+
+  insert into storage.objects (bucket_id, name) values ('recaudos', ana::text || '/emitidos/ps-res.pdf');
+exception when others then
+  perform arnes.comprueba('sellados: el equipo SI entrega en emitidos/', false, sqlerrm);
+end
+$ps$;
+
+reset role;
+select arnes.nadie();
+set role anon;
+select arnes.comprueba('sellados: lo que emitio el CIIP SI consta',
+  (select count(*) = 1 from public.verificar_documento(repeat('cd', 32))));
+select arnes.comprueba('sellados: un recaudo validado no se verifica: su huella la puso el navegador',
+  (select count(*) = 0 from public.verificar_documento(repeat('ef', 32))));
+reset role;
+
+-- El cubo.
+insert into storage.objects (bucket_id, name)
+select 'recaudos', id::text || '/ps-suelto.pdf' from arnes.gente where papel = 'A';
+insert into storage.objects (bucket_id, name)
+select 'recaudos', id::text || '/ps-bueno.pdf' from arnes.gente where papel = 'A';
+insert into storage.objects (bucket_id, name)
+select 'recaudos', id::text || '/perfil/foto' from arnes.gente where papel = 'A';
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+do $ps$
+declare
+  yo text := auth.uid()::text;
+  n  int;
+begin
+  begin
+    insert into storage.objects (bucket_id, name) values ('recaudos', yo || '/emitidos/falsa.pdf');
+    perform arnes.comprueba('cubo: el inversionista no escribe en emitidos/', false, 'entro');
+  exception when others then
+    perform arnes.comprueba('cubo: el inversionista no escribe en emitidos/', true);
+  end;
+
+  begin
+    insert into storage.objects (bucket_id, name) values ('recaudos', yo || '/pasaporte-nuevo.pdf');
+    perform arnes.comprueba('cubo: subir a su carpeta SI se puede', true);
+  exception when others then
+    perform arnes.comprueba('cubo: subir a su carpeta SI se puede', false, sqlerrm);
+  end;
+
+  update storage.objects set creado_en = now() where name = yo || '/emitidos/ps-res.pdf';
+  get diagnostics n = row_count;
+  perform arnes.comprueba('cubo: lo emitido no se reemplaza', n = 0, n || ' filas');
+
+  update storage.objects set creado_en = now() where name = yo || '/ps-suelto.pdf';
+  get diagnostics n = row_count;
+  perform arnes.comprueba('cubo: ni ningun otro archivo, fuera de la foto', n = 0, n || ' filas');
+
+  update storage.objects set creado_en = now() where name = yo || '/perfil/foto';
+  get diagnostics n = row_count;
+  perform arnes.comprueba('cubo: la foto de perfil SI se reemplaza', n = 1, n || ' filas');
+
+  delete from storage.objects where name = yo || '/emitidos/ps-res.pdf';
+  get diagnostics n = row_count;
+  perform arnes.comprueba('cubo: lo emitido no se borra', n = 0, n || ' filas');
+
+  delete from storage.objects where name = yo || '/ps-bueno.pdf';
+  get diagnostics n = row_count;
+  perform arnes.comprueba('cubo: lo validado no se borra', n = 0, n || ' filas');
+
+  delete from storage.objects where name = yo || '/ps-suelto.pdf';
+  get diagnostics n = row_count;
+  perform arnes.comprueba('cubo: lo suyo sin validar SI se borra', n = 1, n || ' filas');
+end
+$ps$;
+
+reset role;
+select arnes.nadie();
+
+-- Una ficha vieja, de antes de la comprobacion, que apunta a la carpeta
+-- de otro: al borrarla no se le manda el archivo ajeno al barrendero.
+do $ps$
+declare
+  ana uuid := (select id from arnes.gente where papel = 'A');
+  bru uuid := (select id from arnes.gente where papel = 'B');
+  ficha uuid;
+begin
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original)
+  values (ana, 'pasaporte', bru::text || '/ps-ajeno.pdf', 'x.pdf')
+  returning id into ficha;
+  delete from public.documentos where id = ficha;
+  perform arnes.comprueba('huerfanos: el barrendero no recibe rutas de otra carpeta',
+    not exists (select 1 from public.archivos_huerfanos where ruta = bru::text || '/ps-ajeno.pdf'));
+end
+$ps$;
+
 
 \o
 \pset tuples_only on

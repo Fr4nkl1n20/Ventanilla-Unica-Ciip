@@ -110,7 +110,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-visa-tri',
 /* La inscripcion en el SIDCAI (c39). Solo necesita el catalogo con
    `nivel` y `emite`; va al final para no mover el numero de nadie. */
-'supabase-locti'];
+'supabase-locti',
+/* La revision de seguridad del 25 de septiembre: el estado de un papel lo
+   pone el equipo, emitidos/ no se toca y la verificacion solo responde
+   por lo emitido. Redefine verificar_documento() y apuntar_el_huerfano(),
+   asi que va detras de todo lo que las define. */
+'supabase-papeles-sellados'];
 
 let mal = 0;
 for (const n of orden) {
