@@ -13808,6 +13808,25 @@ applyLang(idiomaParaMi());
     var libres = null;
     if (!propios && mapaP[ref] && mapaP[ref].length && mapaP[ref].length !== ORDEN.length){
       var lista = mapaP[ref];
+      /* ── LOS PASOS QUE NO MUEVE LA OFICINA ──
+         Franklin Reyes, 25-9-2026, sobre la visa: «el 2 se marca cuando el
+         usuario confirma que registró el usuario», y «en apenas el usuario
+         confirme se le habilita la 3».
+
+         Son pasos que ocurren FUERA del panel -registrarse en el portal de
+         Cancillería- y que ningún estado de la base puede saber. Dejar que
+         los marque el estado sería la mentira que esta escalera existe para
+         no contar: «hecho» donde nadie ha hecho nada.
+
+         Así que la cuenta se TOPA ahí hasta que llegue su confirmación, que
+         es una marca en tramites.datos. La escalera puede quedarse quieta
+         en el 2 -y eso es verdad, está esperando por ti-, pero no puede
+         adelantarlo.
+
+         Salvo resuelta: si el CIIP la resolvió, todo lo de en medio pasó,
+         se apuntara o no. */
+      var MIOS = (typeof PASOS_QUE_MARCAS_TU !== 'undefined' &&
+                  PASOS_QUE_MARCAS_TU[ref]) || null;
       /* La devuelta cuenta como recibida y no como borrador, que es lo
          mismo que hace la escalera de cuatro: «volvió al principio» deja
          el primer paso hecho y la espera en el segundo. */
@@ -13816,6 +13835,12 @@ applyLang(idiomaParaMi());
       var hechos = (tr.estado === 'resuelto')
         ? n
         : Math.min(HASTA[tr.estado] === undefined ? 0 : HASTA[tr.estado], n - 1);
+      if (MIOS && tr.estado !== 'resuelto'){
+        var datosTr = tr.datos || {};
+        for (var np = 1; np <= n; np++){
+          if (MIOS[np] && !datosTr[MIOS[np]]){ hechos = Math.min(hechos, np - 1); break; }
+        }
+      }
       libres = lista.map(function(txt, i){
         return {
           est: (i === 0 ? 'enviado' : (i === n - 1 ? 'resuelto' : null)),
@@ -22847,7 +22872,10 @@ applyLang(idiomaParaMi());
       /* viene_de: de qué solicitud salió cada tramo. Sin ella, los tramos
          de la constitución se elegían por «la que va más adelante» y una
          segunda constitución se quedaba con los de la primera. */
-      .select('id, tipo, estado, creado_en, enviado_en, resuelto_en, viene_de')
+      /* datos: de ahí sale la confirmación de los pasos que marcas tú -el
+         del portal de Cancillería-. Sin ella la fila contaría un paso menos
+         que la ficha, que es justo lo que escaleraDe() viene a evitar. */
+      .select('id, tipo, estado, datos, creado_en, enviado_en, resuelto_en, viene_de')
       .eq('inversionista', yo.id)
       .order('creado_en', {ascending:false})
       .then(function(r){
@@ -24680,6 +24708,18 @@ applyLang(idiomaParaMi());
   var PASOS_DE_DELANTE = {c22: {cuantos: 1, papel: 'planilla_aranceles'},
                           c23: {cuantos: 1, papel: 'planilla_publicacion'},
                           c40: {cuantos: 1, papel: 'planilla_locti'}};
+
+  /* ── LOS PASOS QUE MARCAS TÚ ──
+     Qué paso de qué trámite no lo mueve el estado de la solicitud sino un
+     gesto del inversionista, y con qué llave se apunta en tramites.datos.
+     La cuenta es la del rótulo: el 2 es el segundo círculo.
+
+     Las dos visas comparten el mismo: registrarse en el portal de
+     Cancillería pasa fuera del panel, y hasta que no lo confirmes la
+     escalera se queda esperando ahí. Lo lee escaleraDe(), así que la fila
+     de Mis trámites y la ficha cuentan lo mismo. */
+  var PASOS_QUE_MARCAS_TU = {c1:  {2: 'cancilleria_confirmada'},
+                             c38: {2: 'cancilleria_confirmada'}};
 
   /* Que papel se sube en que paso. La cuenta empieza en cero: el 0 es la
      emision del PUB y el 1 es "Pago de aranceles registrales", que desde el

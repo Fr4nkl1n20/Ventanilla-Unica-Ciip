@@ -7175,8 +7175,8 @@ window.CIIP_PASOS = {
   pasos: {
 
     es: {
-      c1:  ["Solicitud ante el consulado de Venezuela", "Consignación de recaudos y pago del arancel consular", "Evaluación y aprobación", "Visa TR-N estampada en el pasaporte"],
-      c38: ["Solicitud ante el consulado de Venezuela", "Consignación de recaudos y pago del arancel consular", "Evaluación y aprobación", "Visa TR-I estampada en el pasaporte"],
+      c1:  ["Solicitud recibida por el CIIP", "Regístrate en el portal de Cancillería", "Descarga aquí el documento", "Recibo de planilla de solicitud por el CIIP", "Solicitud recibida por Cancillería", "Visa otorgada"],
+      c38: ["Solicitud recibida por el CIIP", "Regístrate en el portal de Cancillería", "Descarga aquí el documento", "Recibo de planilla de solicitud por el CIIP", "Solicitud recibida por Cancillería", "Visa otorgada"],
       c2:  ["Registro del extranjero con la visa vigente", "Cita para captura biométrica", "Verificación de datos migratorios", "Entrega de la cédula de identidad"],
       c3:  ["Solicitud recibida por el CIIP", "Firme la planilla", "RIF emitido"],
       c4:  ["Traducción certificada de la licencia", "Solicitud de homologación ante el INTT", "Examen médico y de conocimiento", "Emisión de la licencia venezolana"],
@@ -7214,8 +7214,8 @@ window.CIIP_PASOS = {
     },
 
     en: {
-      c1:  ["Application at the Venezuelan consulate", "Paperwork submitted and consular fee paid", "Assessment and approval", "TR-N visa stamped in your passport"],
-      c38: ["Application at the Venezuelan consulate", "Paperwork submitted and consular fee paid", "Assessment and approval", "TR-I visa stamped in your passport"],
+      c1:  ["Application received by CIIP", "Register on the Foreign Ministry portal", "Download the form here", "Application form received by CIIP", "Application received by the Foreign Ministry", "Visa granted"],
+      c38: ["Application received by CIIP", "Register on the Foreign Ministry portal", "Download the form here", "Application form received by CIIP", "Application received by the Foreign Ministry", "Visa granted"],
       c2:  ["Foreign national registration with a valid visa", "Appointment for biometric capture", "Verification of migration records", "Identity card issued"],
       c3:  ["Request received by CIIP", "Sign the form", "RIF issued"],
       c4:  ["Certified translation of your licence", "Conversion request to the INTT", "Medical and knowledge tests", "Venezuelan licence issued"],
@@ -7253,8 +7253,8 @@ window.CIIP_PASOS = {
     },
 
     pt: {
-      c1:  ["Pedido no consulado da Venezuela", "Entrega de documentos e pagamento da taxa consular", "Avaliação e aprovação", "Visto TR-N carimbado no passaporte"],
-      c38: ["Pedido no consulado da Venezuela", "Entrega de documentos e pagamento da taxa consular", "Avaliação e aprovação", "Visto TR-I carimbado no passaporte"],
+      c1:  ["Solicitação recebida pelo CIIP", "Regista-te no portal da Chancelaria", "Descarrega aqui o documento", "Formulário de solicitação recebido pelo CIIP", "Solicitação recebida pela Chancelaria", "Visto concedido"],
+      c38: ["Solicitação recebida pelo CIIP", "Regista-te no portal da Chancelaria", "Descarrega aqui o documento", "Formulário de solicitação recebido pelo CIIP", "Solicitação recebida pela Chancelaria", "Visto concedido"],
       c2:  ["Registo de estrangeiro com visto válido", "Marcação para recolha biométrica", "Verificação dos dados migratórios", "Entrega do cartão de identidade"],
       c3:  ["Solicitação recebida pelo CIIP", "Assine o formulário", "RIF emitido"],
       c4:  ["Tradução certificada da carta de condução", "Pedido de equivalência ao INTT", "Exame médico e de conhecimentos", "Emissão da carta venezuelana"],
@@ -7292,8 +7292,8 @@ window.CIIP_PASOS = {
     },
 
     it: {
-      c1:  ["Domanda al consolato del Venezuela", "Consegna dei documenti e pagamento dei diritti consolari", "Valutazione e approvazione", "Visto TR-N apposto sul passaporto"],
-      c38: ["Domanda al consolato del Venezuela", "Consegna dei documenti e pagamento dei diritti consolari", "Valutazione e approvazione", "Visto TR-I apposto sul passaporto"],
+      c1:  ["Richiesta ricevuta dal CIIP", "Registrati sul portale della Cancelleria", "Scarica qui il documento", "Modulo di richiesta ricevuto dal CIIP", "Richiesta ricevuta dalla Cancelleria", "Visto concesso"],
+      c38: ["Richiesta ricevuta dal CIIP", "Registrati sul portale della Cancelleria", "Scarica qui il documento", "Modulo di richiesta ricevuto dal CIIP", "Richiesta ricevuta dalla Cancelleria", "Visto concesso"],
       c2:  ["Registrazione dello straniero con visto valido", "Appuntamento per il rilievo biometrico", "Verifica dei dati migratori", "Consegna della carta d’identità"],
       c3:  ["Richiesta ricevuta dal CIIP", "Firma il modulo", "RIF emesso"],
       c4:  ["Traduzione giurata della patente", "Richiesta di conversione all’INTT", "Visita medica e prova teorica", "Rilascio della patente venezuelana"],
@@ -7331,8 +7331,8 @@ window.CIIP_PASOS = {
     },
 
     zh: {
-      c1:  ["向委内瑞拉领事馆提交申请", "递交材料并缴纳领事规费", "审核与批准", "TR-N 签证已贴入护照"],
-      c38: ["向委内瑞拉领事馆提交申请", "递交材料并缴纳领事规费", "审核与批准", "TR-I 签证已贴入护照"],
+      c1:  ["CIIP 已收到申请", "在外交部门户网站注册", "在此下载文件", "CIIP 已收到申请表", "外交部已收到申请", "签证已签发"],
+      c38: ["CIIP 已收到申请", "在外交部门户网站注册", "在此下载文件", "CIIP 已收到申请表", "外交部已收到申请", "签证已签发"],
       c2:  ["持有效签证办理外国人登记", "预约采集生物特征", "核验出入境记录", "发放身份证"],
       c3:  ["CIIP 已收到申请", "签署表格", "已签发 RIF"],
       c4:  ["驾照的认证翻译", "向 INTT 提交换发申请", "体检与知识考试", "签发委内瑞拉驾照"],
@@ -7370,8 +7370,8 @@ window.CIIP_PASOS = {
     },
 
     ru: {
-      c1:  ["Заявление в консульство Венесуэлы", "Подача документов и оплата консульского сбора", "Рассмотрение и одобрение", "Виза TR-N вклеена в паспорт"],
-      c38: ["Заявление в консульство Венесуэлы", "Подача документов и оплата консульского сбора", "Рассмотрение и одобрение", "Виза TR-I вклеена в паспорт"],
+      c1:  ["Заявка получена CIIP", "Зарегистрируйтесь на портале МИД", "Скачайте документ здесь", "Анкета получена CIIP", "Заявка получена МИД", "Виза выдана"],
+      c38: ["Заявка получена CIIP", "Зарегистрируйтесь на портале МИД", "Скачайте документ здесь", "Анкета получена CIIP", "Заявка получена МИД", "Виза выдана"],
       c2:  ["Регистрация иностранца с действующей визой", "Запись на снятие биометрии", "Проверка миграционных данных", "Выдача удостоверения личности"],
       c3:  ["Заявка получена CIIP", "Подпишите бланк", "RIF выдан"],
       c4:  ["Заверенный перевод водительских прав", "Заявление на обмен в INTT", "Медосмотр и теоретический экзамен", "Выдача венесуэльских прав"],
