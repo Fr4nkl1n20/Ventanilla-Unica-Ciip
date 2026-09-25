@@ -10570,41 +10570,65 @@ applyLang(idiomaParaMi());
        los campos se heredan por NOMBRE, así que quien ya los escribió una
        vez los ve puestos, con su sello y editables.
 
-       LO QUE NO SE PREGUNTA, y es deliberado: «tipo de persona». Este
-       trámite ES el RIF personal, así que la respuesta es siempre
-       «Natural». Un desplegable con una sola respuesta válida no pregunta
-       nada; solo hace el formulario más largo.
+       SALEN DEL FORMULARIO DE VERDAD, no de lo que pareciera razonable.
+       El SENIAT publica su propio instructivo de inscripción de persona
+       natural y ahí están las pantallas una por una:
+       declaraciones.seniat.gob.ve/portal/.../InscRifPN.pdf, leído el 25 de
+       septiembre de 2026. Son tres:
 
-       Y TRES VAN OPCIONALES -el RIF de la empresa, la razón social y el
+       · IDENTIFICACIÓN: tipo de persona, documento y fecha de nacimiento.
+       · DATOS BÁSICOS: apellidos, nombres, sexo, estado civil, domiciliado
+         en el país, firmas personales, tipo de actividad, profesión, RIF de
+         la empresa, cargo y correo.
+       · DOMICILIO FISCAL: dirección y teléfonos.
+
+       «TIPO DE PERSONA» SÍ SE PREGUNTA, y esto es una corrección. Se dejó
+       fuera unas horas dando por hecho que quería decir «natural o
+       jurídica» -que en el RIF personal es siempre natural y no preguntaría
+       nada-. En el portal quiere decir otra cosa: venezolano, extranjero o
+       pasaporte, y es lo que decide qué documento se escribe debajo. Ocupa
+       el sitio del viejo «tipo de documento», que preguntaba lo mismo con
+       otras palabras y no con las del portal.
+
+       Y SE VA LA NACIONALIDAD: el formulario del SENIAT no la pregunta —el
+       tipo de persona ya la dice—, y aquí se pedía de más.
+
+       TRES VAN OPCIONALES -el RIF de la empresa, la razón social y el
        cargo-: son el bloque de dónde trabajas, y quien no trabaja bajo
        relación de dependencia no puede rellenarlos. Exigirlos dejaría
-       fuera a quien viene justo a sacarse su primer RIF. */
+       fuera a quien viene justo a sacarse su primer RIF. El instructivo
+       los marca opcionales también, y el correo con ellos. */
     rif_personal: [
+      {n:'tipo_persona',     clave:'f_tipopersona', opcionesClave:'o_tipopersona'},
+      {n:'numero_documento', clave:'f_numero'},
+      {n:'fecha_nacimiento', clave:'f_nacimiento', tipo:'date'},
       {n:'apellidos',        clave:'f_apellidos'},
       {n:'nombres',          clave:'f_nombres'},
-      {n:'tipo_documento',   clave:'f_tipodoc',    opciones:['Cédula','Pasaporte']},
-      {n:'numero_documento', clave:'f_numero'},
-      {n:'nacionalidad',     clave:'f_nacionalidad', paises:true},
-      {n:'fecha_nacimiento', clave:'f_nacimiento', tipo:'date'},
+      {n:'sexo',             clave:'f_sexo',       opcionesClave:'o_sexo'},
       {n:'estado_civil',     clave:'f_civil',      opcionesClave:'o_civil'},
+      {n:'domiciliado_pais', clave:'f_domiciliado', opcionesClave:'o_sino'},
       /* La firma personal manda sobre el cierre fiscal: sin firma no hay
          ejercicio que cerrar, y preguntar la fecha sería pedir un dato que
          no existe. Sale sola al responder que sí. */
       {n:'firma_personal',   clave:'f_firmapersonal', opcionesClave:'o_sino'},
       {n:'cierre_fiscal',    clave:'f_lccierre',   verSi:'firma_personal'},
       {n:'actividad_economica', clave:'f_actividad'},
+      {n:'profesion',        clave:'f_profesion'},
       {n:'rif_empresa',      clave:'f_rifempresa', opcional:true},
       {n:'razon_social',     clave:'f_razon',      opcional:true},
       {n:'cargo',            clave:'f_cargo',      opcional:true},
-      {n:'telefono',         clave:'f_telefono',   tipo:'tel'},
-      /* El correo lo pide el SENIAT al inscribir el RIF, y es por donde
-         contesta la oficina fiscal. Se llama 'correo' -el mismo nombre que
-         en la firma electrónica- a propósito: los campos se heredan por
-         NOMBRE entre trámites, así que el que escribiste en uno se ofrece
-         en el otro, con su sello y editable. */
-      {n:'correo',           clave:'f_correo',     tipo:'email'},
+      /* El correo se llama 'correo' -el mismo nombre que en la firma
+         electrónica- a propósito: los campos se heredan por NOMBRE entre
+         trámites, así que el que escribiste en uno se ofrece en el otro,
+         con su sello y editable. */
+      {n:'correo',           clave:'f_correo',     tipo:'email', opcional:true},
+      /* Las dos del domicilio fiscal. El portal lo parte en once casillas
+         -estado, municipio, parroquia, avenida, casa, piso...-; aquí va en
+         una, como en los otros trámites de este panel. Partirlo sería
+         acoplarse más al portal, pero también hacer once preguntas donde
+         hoy hay una, así que eso se pregunta antes de hacerlo. */
       {n:'direccion_fiscal', clave:'f_direccion',  ancho:true},
-      {n:'profesion',        clave:'f_profesion',  ancho:true}
+      {n:'telefono',         clave:'f_telefono',   tipo:'tel'}
     ],
     rif_empresa: [
       {n:'razon_social',        clave:'f_razon',        ancho:true},

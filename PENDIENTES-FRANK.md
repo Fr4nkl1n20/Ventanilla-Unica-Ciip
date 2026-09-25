@@ -155,22 +155,37 @@ Cada uno es un trabajo aparte. Dime si van los tres, o cuáles.
 Franklin, 25-9-2026: «coloca los que salen en la casilla del RIF». Puestos
 los catorce del portal, en el orden del portal.
 
-- [x] apellidos, nombres, documento, nacionalidad, fecha de nacimiento,
-      estado civil, firma personal, cierre fiscal, actividad económica,
-      RIF de la empresa, razón social, cargo, teléfono, correo, dirección
-      fiscal y profesión
+- [x] tipo de persona, documento, fecha de nacimiento, apellidos, nombres,
+      sexo, estado civil, domiciliado en el país, firma personal, cierre
+      fiscal, tipo de actividad, profesión, RIF de la empresa, razón social,
+      cargo, correo, dirección fiscal y teléfono
 
-Tres cosas que decidí yo y puedes deshacer con una palabra:
+Y después: «acopla todo a lo que dice la página del RIF». Las casillas salen
+ahora del instructivo que publica el propio SENIAT
+(declaraciones.seniat.gob.ve/portal/.../InscRifPN.pdf, leído el 25-9-2026),
+con sus tres pantallas: identificación, datos básicos y domicilio fiscal.
 
-- **«Tipo de persona» no se pregunta.** Este trámite ES el RIF personal,
-  así que la respuesta es siempre «Natural»: un desplegable con una sola
-  respuesta válida no pregunta nada, solo alarga el formulario.
+- [x] Entran **sexo**, **domiciliado en el país** y **tipo de persona**
+      (venezolano / extranjero / pasaporte), que es lo que el portal
+      pregunta de verdad
+- [x] Sale la **nacionalidad**: el formulario del SENIAT no la pide, el tipo
+      de persona ya la dice
+- [x] El viejo «tipo de documento» deja su sitio al «tipo de persona»:
+      preguntaban lo mismo, y ahora se pregunta con las palabras del portal
+
+Dos cosas decididas por mí, las dos se deshacen con una línea:
+
 - **El cierre fiscal sale sólo si tienes firma personal.** Sin firma no hay
   ejercicio que cerrar.
-- **RIF de la empresa, razón social y cargo van opcionales.** Son el bloque
-  de dónde trabajas, y quien no trabaja bajo relación de dependencia no
-  puede rellenarlos. Exigirlos dejaría fuera justo a quien viene a sacarse
-  su primer RIF.
+- **RIF de la empresa, razón social, cargo y correo van opcionales**, como
+  los marca el instructivo: son el bloque de dónde trabajas, y exigirlos
+  dejaría fuera a quien viene a sacarse su primer RIF.
+
+Y una que **no** hice y quiero preguntarte: el portal parte el domicilio
+fiscal en once casillas —estado, municipio, parroquia, avenida, casa, piso,
+apartamento, punto de referencia, código postal…—. Aquí va en una sola, como
+en el resto del panel. Acoplarlo del todo sería hacer once preguntas donde
+hoy hay una. ¿Lo parto?
 
 ### 4. Traducción: dos procesos según la respuesta **?**
 
