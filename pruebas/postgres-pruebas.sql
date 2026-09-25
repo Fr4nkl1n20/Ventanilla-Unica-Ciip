@@ -3835,6 +3835,132 @@ reset role;
 select arnes.nadie();
 
 
+
+-- ══ 35 · CANCELAR UNA SOLICITUD, MIENTRAS NO HAYA SALIDO DEL CIIP ══════
+-- supabase-cancelar.sql (Franklin Reyes, 25-9-2026, 9f3386b).
+
+reset role;
+select arnes.nadie();
+select arnes.comprueba('cancelar: sin entrar no se puede ni llamar',
+  not has_function_privilege('anon', 'public.cancela_tramite(uuid)', 'execute')
+  and has_function_privilege('authenticated', 'public.cancela_tramite(uuid)', 'execute'));
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $ca$
+declare
+  t uuid; t2 uuid; t3 uuid;
+  tipoAct text := (select codigo from public.tipos_tramite where activo and codigo <> 'registros_parafiscales' order by codigo desc limit 1);
+begin
+  insert into public.tramites (inversionista, tipo, estado) values (auth.uid(), tipoAct, 'borrador') returning id into t;
+  update public.tramites set estado = 'enviado' where id = t;
+  insert into arnes.escenario values ('ca-t', t);
+
+  -- Saltarse la función: la política del inversionista no deja escribir 'cancelado'.
+  begin
+    update public.tramites set estado = 'cancelado' where id = t;
+    perform arnes.comprueba('cancelar: a mano, sin la función, no se cancela',
+      (select estado = 'enviado' from public.tramites where id = t),
+      (select estado from public.tramites where id = t));
+  exception when others then
+    perform arnes.comprueba('cancelar: a mano, sin la función, no se cancela', true);
+  end;
+
+  perform public.cancela_tramite(t);
+  perform arnes.comprueba('cancelar: la suya, recién enviada, SI se cancela',
+    (select estado = 'cancelado' from public.tramites where id = t),
+    (select estado from public.tramites where id = t));
+
+  begin
+    perform public.cancela_tramite(t);
+    perform arnes.comprueba('cancelar: y cancelada no se vuelve a tocar', false, 'entro');
+  exception when others then
+    perform arnes.comprueba('cancelar: y cancelada no se vuelve a tocar', true);
+  end;
+
+  -- La una-viva no cuenta la cancelada: se puede pedir otra vez.
+  begin
+    insert into public.tramites (inversionista, tipo, estado) values (auth.uid(), tipoAct, 'borrador') returning id into t2;
+    update public.tramites set estado = 'enviado' where id = t2;
+    perform arnes.comprueba('cancelar: y después se puede volver a pedir el mismo trámite', true);
+    insert into arnes.escenario values ('ca-t2', t2);
+  exception when others then
+    perform arnes.comprueba('cancelar: y después se puede volver a pedir el mismo trámite', false, sqlerrm);
+  end;
+end
+$ca$;
+
+-- Lo que ya está ante el ente no se cancela: tiene un número fuera.
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+update public.tramites set estado = 'en_revision' where id = (select id from arnes.escenario where clave = 'ca-t2');
+update public.tramites set estado = 'ante_el_ente' where id = (select id from arnes.escenario where clave = 'ca-t2');
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $ca$
+begin
+  perform public.cancela_tramite((select id from arnes.escenario where clave = 'ca-t2'));
+  perform arnes.comprueba('cancelar: ante el ente, no', false, 'se cancelo');
+exception when others then
+  perform arnes.comprueba('cancelar: ante el ente, no', true);
+end
+$ca$;
+
+-- Lo de otro, tampoco.
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $ca$
+declare t uuid;
+  -- Uno que G no tenga ya en marcha: si no, choca con la una-viva.
+  tipoAct text := (select t.codigo from public.tipos_tramite t where t.activo and t.codigo <> 'registros_parafiscales'
+      and not exists (select 1 from public.tramites x where x.inversionista = (select id from arnes.gente where papel = 'G')
+                        and x.tipo = t.codigo and x.estado in ('enviado','en_revision','ante_el_ente'))
+      order by t.codigo limit 1);
+begin
+  reset role; perform arnes.nadie();
+  insert into public.tramites (inversionista, tipo, estado) values ((select id from arnes.gente where papel = 'G'), tipoAct, 'enviado') returning id into t;
+  insert into arnes.escenario values ('ca-ajeno', t);
+end
+$ca$;
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $ca$
+begin
+  perform public.cancela_tramite((select id from arnes.escenario where clave = 'ca-ajeno'));
+  perform arnes.comprueba('cancelar: lo de otro, no', false, 'se cancelo');
+exception when others then
+  perform arnes.comprueba('cancelar: lo de otro, no', true);
+end
+$ca$;
+
+-- Y con la cuenta bloqueada, tampoco.
+reset role;
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+update public.perfiles set bloqueado = true where id = (select id from arnes.gente where papel = 'A');
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $ca$
+declare t uuid;
+  tipoAct text := (select t.codigo from public.tipos_tramite t where t.activo and t.codigo <> 'registros_parafiscales'
+      and not exists (select 1 from public.tramites x where x.inversionista = (select id from arnes.gente where papel = 'A')
+                        and x.tipo = t.codigo and x.estado in ('enviado','en_revision','ante_el_ente'))
+      order by t.codigo limit 1);
+begin
+  reset role; perform arnes.nadie();
+  insert into public.tramites (inversionista, tipo, estado) values ((select id from arnes.gente where papel = 'A'), tipoAct, 'enviado') returning id into t;
+  set role authenticated;
+  perform arnes.soy((select id from arnes.gente where papel = 'A'));
+  begin
+    perform public.cancela_tramite(t);
+    perform arnes.comprueba('cancelar: con la cuenta bloqueada, no', false, 'se cancelo');
+  exception when others then
+    perform arnes.comprueba('cancelar: con la cuenta bloqueada, no', true);
+  end;
+end
+$ca$;
+reset role;
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+update public.perfiles set bloqueado = false where id = (select id from arnes.gente where papel = 'A');
+select arnes.nadie();
+
+
 \o
 \pset tuples_only on
 \pset format unaligned

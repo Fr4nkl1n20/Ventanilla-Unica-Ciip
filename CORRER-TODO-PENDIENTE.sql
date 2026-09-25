@@ -118,6 +118,9 @@ begin
 end $$;
 
 revoke all on function public.cancela_tramite(uuid) from public;
+-- Supabase le da EXECUTE a anon a cada función nueva: el revoke de PUBLIC
+-- no lo quita (añadido en la auditoría del 25-09-2026).
+revoke execute on function public.cancela_tramite(uuid) from anon;
 grant execute on function public.cancela_tramite(uuid) to authenticated;
 
 select codigo, nombre from public.tipos_documento where codigo = 'constancia_ente';
@@ -138,3 +141,5 @@ select t.id, t.estado, count(e.ente) as entes
  where t.tipo = 'registros_parafiscales'
  group by t.id, t.estado
  order by t.id;
+
+select has_function_privilege('anon', 'public.cancela_tramite(uuid)', 'execute') as anon_puede;

@@ -130,7 +130,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-tope-ia',
 /* El «ya me registré»: confirma_paso(). Vivia solo en
    CORRER-HOY-2026-09-25.sql. Solo necesita tramites. */
-'supabase-confirma-paso'];
+'supabase-confirma-paso',
+/* Cancelar una solicitud mientras siga en el CIIP. Redefine la escalera
+   de supabase-tramites.sql, asi que va detras de todo. */
+'supabase-cancelar'];
 
 let mal = 0;
 for (const n of orden) {
