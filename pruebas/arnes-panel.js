@@ -567,7 +567,7 @@
        mismo catálogo de once trámites cuenta distinto según quién mira, que
        es justo lo que un marcador escrito a mano no podía hacer. */
     igual('camino: la fase 01 cuenta lo que tú llevas hecho', deEtapa(0, '.jcount'),
-          (CASO === 'lleno') ? '1 de 8 listos' : '0 de 8 listos');
+          (CASO === 'lleno') ? '1 de 6 listos' : '0 de 6 listos');
     /* SIETE, y antes eran ocho. No se ha perdido ninguna: el registro de
        marca está APAGADO en el catálogo, y desde que el interruptor gobierna
        la portada, lo apagado no se enseña ni se cuenta.
@@ -608,8 +608,8 @@
     (function(){
       var barra = etapas()[0].querySelector('.jbar > span');
       igual('camino: la barra de la fase 01 mide lo hecho', barra.style.width,
-            /* 1 de 11, no 1 de 10: la fase 1 gano el c33. */
-            (CASO === 'lleno') ? '13%' : '0%');
+            /* 1 de 6: la fase 01 pierde la c4 y la c21 el 24-9-2026. */
+            (CASO === 'lleno') ? '17%' : '0%');
     })();
 
     /* La palomita estaba escrita en el marcado y se quedaba en verde con
@@ -922,13 +922,15 @@
              lleva data-tramo-de y no se ve en la cuadricula, pero cuenta
              igual que el FAOV o el INCES. Esconderla no es sacarla.
              Y 32 desde el 23-9-2026: el SIDCAI (c39) y su segundo tramo
-             (c40), que se esconde pero cuenta, por lo mismo. */
-             pendS === 32, pendS + ' por iniciar de 33 ofrecidas', '32');
+             (c40), que se esconde pero cuenta, por lo mismo.
+             Y 30 desde el 24-9-2026, que el CIIP retira la homologacion de
+             licencia (c4) y el certificado medico (c21). */
+             pendS === 30, pendS + ' por iniciar de 31 ofrecidas', '30');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
       if (CASO === 'gestor'){
-        /* Las 33: las 32 solicitables más la del banco de activos, que ya
+        /* Las 31: las 30 solicitables más la del banco de activos, que ya
            nacía 'pendiente' en el marcado -lo suyo es el distintivo, que
            sigue diciendo Disponible-. */
         var pend = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
@@ -936,9 +938,10 @@
              que el c13 y el c35 se apagan y entra el c37, y 33 desde que
              se va la del IVSS, y 34 con la visa de inversionista (c38),
              que se esconde pero se cuenta. Y 33 con el SIDCAI (c39) y su
-             segundo tramo (c40), por lo mismo. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 33,
-             pend + ' por iniciar de 33 ofrecidas', '33');
+             segundo tramo (c40), por lo mismo. Y 31 desde el 24-9-2026,
+             que se van la c4 y la c21. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 31,
+             pend + ' por iniciar de 31 ofrecidas', '31');
       }
 
       /* ── la cadena entre trámites ──
@@ -1083,7 +1086,7 @@
 
       /* AQUI SE MEDIA el renglon de «Te quedan N de T por hacer», que
          contaba solo los obligatorios de cada etapa. El CIIP lo quito de la
-         tarjeta: ya lleva su cuenta -«0 de 8 listos»- y dos numeros seguidos
+         tarjeta: ya lleva su cuenta -«0 de 6 listos»- y dos numeros seguidos
          que cuentan cosas distintas se leen como uno mal puesto.
 
          Se van con el sus seis comprobaciones. No se dejan «por si acaso»:
@@ -1128,9 +1131,9 @@
            el inversionista tiene ocho trámites en la fase 01, estén donde
            estén en la pantalla. */
         /* Sólo el total: cuántos lleva hechos cambia según por dónde vaya
-           la tanda, y ese no es el punto. El punto es el ocho. */
+           la tanda, y ese no es el punto. El punto es el seis. */
         igual('opcionales: la etapa los sigue contando',
-          (deEtapa(0, '.jcount') || '').split(' de ')[1], '8 listos');
+          (deEtapa(0, '.jcount') || '').split(' de ')[1], '6 listos');
 
         /* El clic, que es la otra mitad de «que cuando se dé clic salga la
            información». */
@@ -1595,9 +1598,9 @@
       var es = deEtapa(0, '.jcount');
       var n = (CASO === 'lleno') ? '1' : '0';
       ok('camino: el renglón se traduce',
-         en === n + ' of 8 done' && es === n + ' de 8 listos',
+         en === n + ' of 6 done' && es === n + ' de 6 listos',
          'en="' + en + '" es="' + es + '"',
-         'en="' + n + ' of 8 done" es="' + n + ' de 8 listos"');
+         'en="' + n + ' of 6 done" es="' + n + ' de 6 listos"');
     })();
 
     /* ═══════════ EL CAMINO: CÓMO SE LLAMAN LAS ETAPAS ═══════════
@@ -3432,28 +3435,29 @@
 
   /* ═══════════ NO PEDIR DOS VECES LO MISMO ═══════════
      El dato esta guardado desde la primera vez y hasta hace poco nadie iba
-     a buscarlo. El certificado medico (c21) pregunta la fecha de
-     nacimiento, que la visa de negocios ya contesto.
+     a buscarlo. La apostilla y traduccion de documentos (c17) pregunta la
+     fecha del documento, que la visa de negocios ya contesto.
 
-     SE MEDIA SOBRE EL PASAPORTE Y LA c20, y se cambia el 21 de septiembre
+     SE MEDIA SOBRE EL PASAPORTE Y LA c20, y se cambio el 21 de septiembre
      de 2026 porque el CIIP quito tres fichas -c16, c18 y c20- y las dos
-     unicas que repetian el pasaporte eran dos de esas tres. Sin trarmite
-     que lo pida dos veces, esa mitad de la prueba no medía nada: no es que
-     se haya relajado, es que ya no existe el caso. El mecanismo es el
-     mismo y la fecha de nacimiento lo recorre entero. */
+     unicas que repetian el pasaporte eran dos de esas tres. Paso entonces
+     al certificado medico (c21) y de ahi a la c17 el 24 de septiembre,
+     cuando el CIIP retiro tambien la c4 y la c21. El mecanismo es el
+     mismo y una fecha heredada lo recorre entero; lo que cambia es sobre
+     que ficha se mira, que es lo unico que el catalogo puede quitarnos. */
   function antesAbre(){
     if (CASO !== 'lleno') return;
-    location.hash = 'tramite-c21';
+    location.hash = 'tramite-c17';
   }
 
   function antesMira(){
     if (CASO !== 'lleno') return;
-    var nac = document.querySelector('#trReal [name="fecha_nacimiento"]');
+    var nac = document.querySelector('#trReal [name="fecha_documento"]');
     ok('antes: el formulario sale', !!nac,
        nac ? 'con su campo' : 'sin campo de fecha', 'con su campo');
     if (!nac) return;
 
-    igual('antes: la fecha de nacimiento viene de la visa', nac.value, '1979-04-11');
+    igual("antes: la fecha del documento viene de la visa", nac.value, "1979-04-11");
 
     /* Y se DICE de donde salio. Un campo que aparece relleno sin explicar
        por que parece que el panel se invento el dato. */
@@ -3465,10 +3469,10 @@
        (sello && sello.title) || 'sin titulo', 'nombra el tramite');
 
     /* Lo que NO se ha escrito nunca sigue vacio: si saliera con algo, el
-       panel estaria inventando. Se mira 'centro_salud', que es una caja
+       panel estaria inventando. Se mira 'uso_previsto', que es una caja
        de texto: un desplegable nunca vale cadena vacia -vale su primera
        opcion- y la prueba daria roja sin que hubiera nada mal. */
-    var con = document.querySelector('#trReal [name="centro_salud"]');
+    var con = document.querySelector("#trReal [name=\"uso_previsto\"]");
     ok('antes: y lo que nunca escribiste sigue vacio',
        !!con && con.value === '', con ? ('"' + con.value + '"') : 'no hay campo', 'vacio');
   }
@@ -3476,13 +3480,13 @@
   /* ═══════════ LA FECHA, EN TRES LISTAS ═══════════
      El calendario del navegador se fue de la ficha de empresa hace tres
      semanas y se quedó en los formularios de trámite, que son 21 fechas.
-     Se mide sobre el c21, que sigue abierto del paso de antes y trae la
-     fecha de nacimiento ya rellena: así se comprueba de paso que un dato
+     Se mide sobre el c17, que sigue abierto del paso de antes y trae la
+     fecha del documento ya rellena: así se comprueba de paso que un dato
      que viene de otro sitio LLEGA a las tres listas y no solo al campo
      escondido. */
   function fecha3Mira(){
     if (CASO !== 'lleno') return;
-    var nac = document.querySelector('#trReal [name="fecha_nacimiento"]');
+    var nac = document.querySelector("#trReal [name=\"fecha_documento\"]");
     ok('fecha3: el formulario sigue abierto', !!nac,
        nac ? 'con la fecha' : 'sin campo de fecha', 'con la fecha');
     if (!nac) return;
@@ -3511,7 +3515,7 @@
     igual('fecha3: y el mes tambien',            m ? m.value : 'sin lista', '04');
     igual('fecha3: y el dia tambien',            d ? d.value : 'sin lista', '11');
 
-    /* Una fecha de nacimiento no tiene años por delante: el tope de quien
+    /* Una fecha de documento no tiene años por delante: el tope de quien
        no está en la tabla es "hoy". */
     var futuro = false, ahora = new Date().getFullYear();
     [].forEach.call(a ? a.options : [], function(o){
@@ -3531,7 +3535,7 @@
      se guarda. Sin esto las tres listas serian un adorno. */
   function fecha3Cambia(){
     if (CASO !== 'lleno') return;
-    var nac = document.querySelector('#trReal [name="fecha_nacimiento"]');
+    var nac = document.querySelector("#trReal [name=\"fecha_documento\"]");
     if (!nac) return;
     var casilla = nac.closest('.sol-campo');
     var d = casilla.querySelector('.fecha3 select.d');
@@ -5484,7 +5488,7 @@
     /* Su panel no cuenta lo de los demas: de esa misma consulta salen los
        estados de las 31 tarjetas y las cuentas de las cinco fases. */
     igual('barra: y su panel no cuenta los tramites de otros',
-          deEtapa(0, '.jcount'), '0 de 8 listos');
+          deEtapa(0, '.jcount'), '0 de 6 listos');
     fila.click();
   }
 

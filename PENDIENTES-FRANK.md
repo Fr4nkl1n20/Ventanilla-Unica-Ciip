@@ -62,9 +62,9 @@ rótulo. No inventan mecanismos nuevos y se deshacen borrando una línea.
       la empresa; cédula o pasaporte y RIF del representante legal
 
 ### Trámites que se van
-- [ ] Eliminar «Homologación de licencia de conducir» (c4)
-- [ ] Eliminar «Certificado médico» (c21) — **ojo**: una prueba del arnés lo
-      usa desde el lunes; hay que repuntarla, y lo hago yo
+- [x] Eliminar «Homologación de licencia de conducir» (c4)
+- [x] Eliminar «Certificado médico» (c21). La prueba del arnés que lo usaba
+      pasa a medirse sobre la c17. **Hace falta correr `CORRER-QUITAR-C4-Y-C21.sql`**
 
 ---
 

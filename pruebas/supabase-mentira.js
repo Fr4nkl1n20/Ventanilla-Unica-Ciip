@@ -395,12 +395,7 @@
        como cualquier otro: se pide desde la guia de la casilla de la
        visa, y por eso tiene que estar aqui. */
     {codigo:'visa_inversionista', ref_panel:'c38', ente:'MPPRE', activo:true, plazo_dias:30,
-     nombre:'Visa de inversionista (TR-I)', fase:1, nivel:'obligatorio'},
-    /* La visa de dependientes pregunta pasaporte, pais emisor y fecha de
-       nacimiento, que la de inversionista ya contesto. Es donde se
-       mide que no se pide dos veces lo mismo. */
-    {codigo:'cert_medico', ref_panel:'c21', ente:'Centro de salud', activo:true, plazo_dias:7,
-     nombre:'Certificado médico', fase:1, nivel:'obligatorio'}
+     nombre:'Visa de inversionista (TR-I)', fase:1, nivel:'obligatorio'}
   ];
   /* Solo en 'tramos', y por eso va aparte del catálogo de arriba: en la base
      de verdad este tipo está encendido desde el 15 de septiembre, pero
@@ -438,9 +433,14 @@
       /* Con sus datos dentro: son los que el panel tiene que ofrecer
          cuando otro formulario pregunte lo mismo. Sin ellos, la prueba de
          que no se pide dos veces el pasaporte no mide nada. */
+      /* fecha_documento la guarda la visa aunque su formulario no la
+         pregunte, igual que ya hacía con fecha_nacimiento: la herencia va
+         por el NOMBRE del campo y lee tramites.datos, no el formulario de
+         origen. Es lo que deja medir que una fecha heredada llega a las
+         tres listas de otra ficha -hoy la c17-. */
       {id:'t4', tipo:'visa_negocios', estado:'resuelto',
        datos:{numero_pasaporte:'YB1234567', pais_emisor:'Italia',
-              fecha_nacimiento:'1979-04-11'},
+              fecha_nacimiento:'1979-04-11', fecha_documento:'1979-04-11'},
        creado_en:'2026-06-01T10:00:00Z', enviado_en:'2026-06-02T10:00:00Z',
        resuelto_en:'2026-06-18T10:00:00Z', actualizado_en:'2026-06-18T10:00:00Z'},
       /* Una SEGUNDA visa, mas NUEVA y en borrador. Con "la ultima creada"
@@ -669,8 +669,8 @@
      datos:{numero_pasaporte:'TR8842019', pais_emisor:'Japón',
             consulado:'Consulado de Venezuela en Tokio'},
      creado_en: haceDias(4), enviado_en: haceDias(4), gestor:'u1'},
-    {id:'d5', inversionista:'u9', tipo:'cert_medico', estado:'enviado',
-     datos:{centro_salud:'Centro Médico Docente La Trinidad', ciudad:'Caracas'},
+    {id:'d5', inversionista:'u9', tipo:'apostilla_documentos', estado:'enviado',
+     datos:{documento:'Partida de nacimiento', idioma:'Italiano'},
      creado_en: haceDias(6), enviado_en: haceDias(6)},
     /* El mismo inversionista con dos cosas a la vez: pasa, y la cola no
        puede juntarlas ni esconder una. */
