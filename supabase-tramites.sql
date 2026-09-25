@@ -111,6 +111,9 @@ insert into public.tipos_documento (codigo, nombre, vence) values
   ('solvencia_economica',     'Solvencia económica (constancia de trabajo)', true),
   ('carta_residencia',        'Carta de residencia',                         false),
   ('declaracion_fondos',      'Declaración jurada de origen de fondos',      false),
+  -- La apostilla o legalización que el papel YA trae (25-9-2026, venía en
+  -- CORRER-HOY-2026-09-25.sql). No caduca: es un sello sobre otro papel.
+  ('apostilla_previa',        'Apostilla o legalización que ya tiene el documento', false),
   -- Eran los recaudos de la visa de inversionista (TR-I). Los antecedentes
   -- penales caducan (los consulados suelen pedirlos recientes), la
   -- constancia de inversión no. La c1 pasó a ser la TR-N el 15-9-2026 y
@@ -410,10 +413,12 @@ on conflict (codigo) do nothing;
 -- activar un trámite nuevo no surtiría efecto por más veces que se corra.
 -- Aquí se dice en positivo y en negativo, para que la lista de activos sea
 -- exactamente esta y no se quede uno encendido de una prueba anterior.
+-- Sin licencia_conducir (c4) ni cert_medico (c21): se quitaron del panel
+-- el 25-9-2026 (CORRER-HOY-2026-09-25.sql) y la segunda lista los apaga.
 update public.tipos_tramite set activo = true
-  where codigo in ('rif_personal', 'rif_empresa', 'visa_negocios', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
+  where codigo in ('rif_personal', 'rif_empresa', 'visa_negocios', 'cedula_residencia', 'constitucion', 'cuenta_bancaria', 'marca', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
 update public.tipos_tramite set activo = false
-  where codigo not in ('rif_personal', 'rif_empresa', 'visa_negocios', 'cedula_residencia', 'licencia_conducir', 'constitucion', 'cuenta_bancaria', 'marca', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'cert_medico', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
+  where codigo not in ('rif_personal', 'rif_empresa', 'visa_negocios', 'cedula_residencia', 'constitucion', 'cuenta_bancaria', 'marca', 'licencia_municipal', 'apostilla_documentos', 'firma_electronica', 'protocolizacion_acta', 'publicacion_acta', 'libros_contables', 'comercio_exterior', 'faov_banavih', 'inces', 'rnet', 'conformidad_uso', 'permiso_bomberos', 'permiso_ambiental', 'registro_inversion', 'permiso_sanitario', 'rnc', 'solvencias');
 
 
 -- La c1 era la visa de inversionista (TR-I), ante el SAIME. Desde el 15 de

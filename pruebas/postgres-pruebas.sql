@@ -3776,6 +3776,57 @@ reset role;
 select arnes.nadie();
 
 
+
+-- ══ 34 · LO QUE VIVIA SOLO EN CORRER-HOY-2026-09-25.sql ═══════════════
+-- Paso a las fuentes el 25-09: supabase-entes-parafiscales.sql,
+-- supabase-confirma-paso.sql y supabase-tramites.sql.
+
+reset role;
+select arnes.nadie();
+select arnes.comprueba('hoy: apostilla_previa esta en el catalogo de papeles',
+  exists (select 1 from public.tipos_documento where codigo = 'apostilla_previa'));
+select arnes.comprueba('hoy: c4 y c21 quedan apagados',
+  (select count(*) = 2 and bool_and(not activo) from public.tipos_tramite
+    where codigo in ('licencia_conducir', 'cert_medico')),
+  (select string_agg(codigo || '=' || activo, ' ') from public.tipos_tramite
+    where codigo in ('licencia_conducir', 'cert_medico')));
+select arnes.comprueba('hoy: confirma_paso, para quien entro y no para anon',
+  has_function_privilege('authenticated', 'public.confirma_paso(uuid,text)', 'execute')
+  and not has_function_privilege('anon', 'public.confirma_paso(uuid,text)', 'execute'));
+
+-- Las cinco inscripciones nacen al enviar la solicitud de parafiscales.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $hoy$
+declare nuevo uuid; n int;
+begin
+  insert into public.tramites (inversionista, tipo, estado)
+  values (auth.uid(), 'registros_parafiscales', 'borrador') returning id into nuevo;
+  update public.tramites set estado = 'enviado' where id = nuevo;
+  select count(*) into n from public.tramite_entes where tramite = nuevo and estado = 'pendiente';
+  perform arnes.comprueba('hoy: al enviar los parafiscales nacen los cinco entes, pendientes',
+    n = 5, n || ' filas');
+  insert into arnes.escenario values ('hoy-parafiscales', nuevo);
+exception when others then
+  perform arnes.comprueba('hoy: al enviar los parafiscales nacen los cinco entes, pendientes', false, sqlerrm);
+end
+$hoy$;
+
+-- Y el «ya me registre» marca el paso en un tramite propio en marcha.
+do $hoy$
+declare t uuid := (select id from arnes.escenario where clave = 'hoy-parafiscales');
+begin
+  perform public.confirma_paso(t, 'cancilleria_confirmada');
+  perform arnes.comprueba('hoy: confirma_paso marca el paso en un tramite propio en marcha',
+    (select datos ? 'cancilleria_confirmada' from public.tramites where id = t));
+exception when others then
+  perform arnes.comprueba('hoy: confirma_paso marca el paso en un tramite propio en marcha', false, sqlerrm);
+end
+$hoy$;
+reset role;
+select arnes.nadie();
+
+
 \o
 \pset tuples_only on
 \pset format unaligned

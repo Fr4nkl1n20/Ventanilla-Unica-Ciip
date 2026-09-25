@@ -120,38 +120,9 @@ if (!CLAVE && !DE_MENTIRA) {
   process.exit(1);
 }
 
-/* El mismo aviso que api/leer-documento.js. Si cambia alli, cambia aqui. */
-const AVISO = `Eres un lector de documentos oficiales venezolanos para el CIIP.
-
-Te llega un documento y una lista de datos que hay que buscar en él.
-
-REGLAS, por orden de importancia:
-
-1. Devuelve SOLO lo que esté literalmente escrito en el documento. No
-   deduzcas, no completes, no corrijas. Si un dato no está, o no se lee
-   con seguridad, NO lo incluyas en la respuesta.
-
-   Una casilla vacía se rellena a mano en diez segundos. Una casilla con
-   un dígito inventado viaja a un organismo del Estado, vuelve devuelta
-   semanas después, y nadie sabe por qué. No se parecen en nada.
-
-2. Di qué tipo de documento es, eligiendo SOLO de la lista que te dan.
-   Si no es ninguno de ellos, devuelve doc: null y campos vacíos. Es
-   mejor decir «no sé qué es esto» que acertar a medias.
-
-3. Las fechas, en formato AAAA-MM-DD.
-
-4. Los importes, sólo el número, sin símbolo de moneda ni separadores de
-   miles: 500000, no «Bs. 500.000,00».
-
-5. Los nombres y razones sociales, EXACTAMENTE como están escritos,
-   incluidas las abreviaturas: «Inversiones Montebello, C.A.» no se
-   convierte en «Inversiones Montebello Compañía Anónima».
-
-Contesta únicamente con un objeto JSON, sin explicaciones ni texto
-alrededor:
-
-{"doc": "<tipo>", "campos": {"<casilla>": "<lo que dice el documento>"}}`;
+/* El mismo modelo y el mismo aviso que api/leer-documento.js: salen del
+   mismo archivo, no de una copia. */
+const { MODELO, AVISO } = require('../api/_lector-aviso.js');
 
 /* Solo contesta a paginas servidas desde esta misma maquina. Con '*',
    cualquier web abierta en el navegador del que lo arranca -o cualquier PC
@@ -287,7 +258,7 @@ const servidor = http.createServer(async (req, res) => {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-5',
+        model: MODELO,
         max_tokens: 1024,
         system: AVISO,
         messages: [{

@@ -1832,16 +1832,6 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .ci-nota{font-size:var(--fs-nota); color:var(--ink); margin-top:6px;}
 /* El historial se lee, no se toca: en gris y sin borde azul. */
 .ci-ficha.pasada .ci-linea{color:var(--gray); font-weight:600;}
-/* La agenda repartida en tres. Antes era una sola pila ordenada por
-   fecha de peticion, y como una cita no se puede borrar -solo cancelar,
-   y a proposito- una cuenta con unas cuantas pruebas encima enterraba la
-   cita de verdad debajo de diez fichas identicas que ya no importan. */
-  font-variant-numeric:tabular-nums;}
-/* Lo cancelado no gasta una ficha entera: gasta un renglon. */
-  padding:9px 12px; border:1px solid var(--line-soft); border-radius:var(--r-sm);
-  background:var(--block); margin-bottom:6px; font-size:12.5px; color:var(--gray);}
-  background:none; border:0; padding:6px 0; cursor:pointer; text-align:left;}
-@media(max-width:560px){ .ag-fila .pe{margin-left:0; width:100%;} }
 
 .ci-vacia{background:var(--bg); border:1px dashed var(--line); border-radius:var(--r);
   padding:26px 18px; text-align:center; font-size:var(--fs-parrafo); color:var(--gray);}

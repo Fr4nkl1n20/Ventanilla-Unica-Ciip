@@ -67,8 +67,12 @@ Write-Host ''
 # escrita a mano envejece en cuanto alguien añade un .bat y se olvida de
 # esto, y entonces la puerta nueva no la corre nadie y aqui sale que todo
 # fue bien. Se comprueba contra lo que hay en el disco.
+# PROBAR-A-MANO no es una prueba: es la revision a ojo, abre el navegador
+# y no dice ni bien ni mal. Colandose como 'suelta', PROBAR-TODO la corria
+# al final y se quedaba una ventana abierta en medio de la tanda.
+$NO_SON_PRUEBAS = @('PROBAR-TODO', 'PROBAR-A-MANO')
 $enDisco = Get-ChildItem -Path $RAIZ -Filter 'PROBAR*.bat' -File |
-           Where-Object { $_.BaseName -ne 'PROBAR-TODO' } |
+           Where-Object { $NO_SON_PRUEBAS -notcontains $_.BaseName } |
            ForEach-Object { $_.BaseName }
 $sueltas = $enDisco | Where-Object { $ORDEN -notcontains $_ }
 if ($sueltas) {

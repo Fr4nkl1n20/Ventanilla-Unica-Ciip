@@ -7,7 +7,7 @@
 #  Las otras tres tandas no tocan Postgres. El panel corre contra
 #  supabase-mentira.js, que concede o niega segun lo que se escribio que
 #  deberia pasar; que salga en verde no dice si un trigger existe o si una
-#  politica cierra. Esto ejecuta los veinticinco archivos y luego intenta hacer
+#  politica cierra. Esto ejecuta todos los archivos y luego intenta hacer
 #  lo que no se debe.
 #
 #  NO HACE FALTA NINGUNA CLAVE, Y NO SE TOCA NINGUN SERVIDOR
@@ -106,85 +106,19 @@ try {
   # El orden sale de las dependencias, no de la fecha: cada archivo lo
   # declara en su cabecera y aqui se comprueba EJECUTANDOLO. Si uno usa
   # algo que otro define despues, esta tanda se cae y dice cual.
-  $once = @(
-    'supabase-setup.sql',            #  1  define tocar_actualizado_en()
-    'supabase-tramites.sql',         #  2  define es_gestor()
-    'supabase-admin.sql',            #  3  define es_admin()
-    'supabase-citas.sql',            #  4  del 4 al 8, usan es_gestor()
-    'supabase-empresa.sql',          #  5  y entre ellos el orden da igual
-    'supabase-activos.sql',          #  6
-    'supabase-identidad.sql',        #  7
-    'supabase-emision.sql',          #  8
-    'supabase-presencia.sql',        #  9  no depende de nadie
-    'supabase-sectores.sql',         # 10  usa es_admin(), del 3
-    'supabase-catalogos.sql',        # 11  despues del 2, del 3 y del 10
-    'supabase-bitacora.sql',         # 12  despues del 11; se engancha a citas
-    'supabase-bloqueo.sql',          # 13  se engancha a tramites, documentos y citas
-    'supabase-acompanamiento.sql',   # 14  usa es_admin()
-    'supabase-gestor.sql',           # 15  las politicas del equipo
-    'supabase-cola.sql',             # 16  necesita tramites y es_gestor()
-    'supabase-avisos.sql',           # 17  cuelga del historial de tramites
-    'supabase-aranceles.sql',        # 18  envuelve el encolado del 16
-    'supabase-huellas.sql',          # 19  solo necesita documentos
-    'supabase-encadenado.sql',       # 20  solo necesita el catalogo
-    'supabase-plazos.sql',           # 21  idem
-    'supabase-una-viva.sql',         # 22  solo necesita tramites
-    'supabase-hilo.sql',             # 23  necesita tramites y documentos
-    'supabase-hilo-citas.sql',       # 24  necesita citas y documentos
-    # 25  reusa dos funciones del hilo, asi que va detras. Este archivo no
-    #     existia: su SQL estaba escrito a mano al final de TODO-EN-ORDEN,
-    #     asi que esta tanda no lo probaba y regenerar el archivo unico lo
-    #     habria borrado. Ahora es uno mas.
-    'supabase-consultas.sql',
-    'supabase-informe-victor.sql',   # 26  el catalogo, tras encadenado y plazos
-    'supabase-pliego.sql',           # 27  solo necesita es_admin y es_gestor
-    # 28  el horario y los cierres de las citas. Estaba en TODO-EN-ORDEN.sql
-    #     pero no aqui, asi que nunca se habia pasado por un Postgres: sus
-    #     reglas -y la de los fines de semana- no las comprobaba nadie.
-    'supabase-disponibilidad.sql',
-    # 29  los textos que cambia el admin. Solo necesita es_admin(), del 3
-    'supabase-textos.sql',
-    # 30  lo que la bitacora no apuntaba. Se engancha a tablas del 13, 14,
-    #     21, 28 y 29, asi que va el ultimo
-    'supabase-bitacora-ajustes.sql',
-    # 31  la opinion favorable de la ZODI (c34). Solo necesita el catalogo
-    #     con nivel y emite; va al final para no mover el numero de nadie
-    'supabase-zodi.sql',
-    # 32  el RUPDAE (c35) y el Registro Unico Minero (c36). Como la ZODI:
-    #     solo necesita el catalogo con nivel y emite
-    'supabase-rupdae-rum.sql',
-    # 33  los papeles de la junta directiva (c5): la columna titular de
-    #     documentos y dos tipos. Solo necesita el 2; va al final
-    'supabase-junta.sql',
-    # 34  quien cambio que texto y que decia antes: textos_panel.original
-    #     y el apunte con la clave. Necesita el 12 y el 29; va al final
-    'supabase-textos-rastro.sql',
-    # 35  la revision de los documentos: documentos.revisado_en y el apunte
-    #     de quien valido o rechazo. Necesita el 2 y el 12; va al final
-    'supabase-revision-papeles.sql',
-    # 36  la accionista juridica (c5): dos tipos de documento. Solo
-    #     necesita el 2; va al final
-    'supabase-accionista-juridica.sql',
-    # 37  el logo de cada ficha: tipos_tramite.logo, el cubo logos-fichas y
-    #     su apunte. Necesita el 11 y el 12; va al final
-    'supabase-logos-fichas.sql',
-    # 38  la protocolizacion que nace al resolverse la constitucion, el
-    #     documento para pagar los aranceles y la guarda de su comprobante.
-    #     Necesita el 2 -tramites, documentos, tipos_documento- y es_gestor
-    'supabase-protocolizacion.sql',
-    # 39  la publicacion que nace al resolverse la protocolizacion, el PUB
-    #     para pagar el periodico y la guarda de su comprobante. Va DETRAS
-    #     del 38, que es de quien cuelga
-    'supabase-publicacion.sql',
-    # 40  las cinco inscripciones en una casilla (c37): BANAVIH, INCES,
-    #     RNET, RNC y RUPDAE. Va DETRAS del 32, que enciende el c35 que
-    #     este apaga; delante, aquel lo volveria a encender
-    'supabase-parafiscales.sql',
-    'supabase-visa-tri.sql',
-    # 43  la inscripcion en el SIDCAI (c39). Solo necesita el catalogo con
-    #     nivel y emite; va al final
-    'supabase-locti.sql'
-  )
+  # ---- LA LISTA ----
+  # Sale de pruebas/juntar-sql.js, el mismo que genera TODO-EN-ORDEN.sql.
+  # Aqui habia una copia a mano que se quedo atras: el 25-09-2026 le faltaban
+  # cinco archivos, y esta tanda probaba una base que no era la de verdad.
+  # Con una sola lista no pueden volver a separarse.
+  # >>> lista
+  $juntar = Get-Content -Raw -Encoding UTF8 (Join-Path $PSScriptRoot 'juntar-sql.js')
+  $m = [regex]::Match($juntar, 'const orden = \[(.*?)\];', 'Singleline')
+  if (-not $m.Success) { throw 'No encuentro la lista const orden = [...] en juntar-sql.js' }
+  $lista = [regex]::Replace($m.Groups[1].Value, '/\*.*?\*/', '', 'Singleline')
+  $once = @([regex]::Matches($lista, "'(supabase-[a-z0-9-]+)'") | ForEach-Object { $_.Groups[1].Value + '.sql' })
+  if ($once.Count -lt 10) { throw ('La lista de juntar-sql.js salio con ' + $once.Count + ' archivos') }
+  # <<< lista
   $n = 0
   foreach ($f in $once) {
     $n++
@@ -195,7 +129,7 @@ try {
     Write-Output ('  ' + $n.ToString().PadLeft(2) + ' - ' + $f)
   }
   Write-Output ''
-  Write-Output '  Los veinticinco entraron, en el orden del README.'
+  Write-Output ('  Los ' + $once.Count + ' entraron, en el orden de juntar-sql.js.')
   Write-Output ''
 
   Correr (Join-Path $PSScriptRoot 'postgres-pruebas.sql')
@@ -230,7 +164,7 @@ finally {
 
 Write-Output ''
 if ($salida -eq 0) {
-  Write-Output '  Esto prueba lo que hay DENTRO de la base: que los veinticinco entran en'
+  Write-Output '  Esto prueba lo que hay DENTRO de la base: que todos entran en'
   Write-Output '  ese orden, que los triggers saltan y que las politicas cierran.'
   Write-Output '  El tope del cubo lo aplica storage-api, que es otro servicio: eso'
   Write-Output '  solo lo dice PROBAR-CERRADURAS.bat contra un Supabase de verdad.'

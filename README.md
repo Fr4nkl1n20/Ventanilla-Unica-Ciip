@@ -76,7 +76,6 @@ usar esa base o la de pruebas — ver el bloque de comentarios ahí mismo.
 
 | Doble clic en | Para |
 |---|---|
-| `CONFIGURAR.bat` | Pegar las claves de Supabase sin editar archivos |
 | `ABRIR-LOCAL.bat` | Levantar el proyecto en `http://localhost:8080`, solo para ti |
 | `ABRIR-EN-RED.bat` | Igual, pero abierto a la red: otros PC de la oficina pueden entrar |
 | `PROBAR-TODO.bat` | **Las diez de una vez**, con un cuadro al final: cuántas fueron bien, cuáles fallaron y cuáles **no se pudieron probar y por qué**. Es lo que hay que mirar antes de subir a `main` |
@@ -137,7 +136,10 @@ usar esa base o la de pruebas — ver el bloque de comentarios ahí mismo.
    Saltarse alguno del 4 al 14 no rompe el panel —abre igual, y así lo prueban
    los expedientes `sinsql`, `sinsector`, `sinsectorsql` y `sincatalogo`—,
    pero la pantalla que dependa de él se queda muda
-3. `CONFIGURAR.bat` con la *Project URL* y la *anon key*
+3. Las claves van en `config.js`, en el bloque del proyecto que toque (`real`
+   o `pruebas`): *Project URL* y *anon key*. Se editan a mano; el antiguo
+   `CONFIGURAR.bat` escribía la misma clave en los dos bloques y se retiró
+   el 25-09-2026
 4. En Supabase, *Authentication → URL Configuration*, autorizar la dirección
    desde la que se abra el proyecto
 5. `ABRIR-LOCAL.bat`

@@ -103,6 +103,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    y RUPDAE. Va DETRAS de supabase-rupdae-rum, que es quien enciende el
    c35 que este apaga; si fuera delante, aquel lo volveria a encender. */
 'supabase-parafiscales',
+/* Los cinco entes de los registros parafiscales: tramite_entes, sus
+   politicas y el disparador que crea las cinco filas al enviar la
+   solicitud. Estuvo fuera de la lista hasta el 25-09-2026, y una base
+   montada desde TODO-EN-ORDEN.sql salia sin la tabla. */
+'supabase-entes-parafiscales',
 /* La visa se parte en dos (c1 y c38): libera el codigo 'visa_inversionista'
    -que se habia quedado en la ficha de la TR-N- y da de alta la TR-I. Va el
    ULTIMO a proposito: toca una fila del catalogo y lo que cuelga de ella en
@@ -122,7 +127,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-tramites-y-bloqueo',
 /* El tope del asistente y del lector, contado en la base y no en la
    memoria de cada copia de la funcion. No depende de nadie. */
-'supabase-tope-ia'];
+'supabase-tope-ia',
+/* El «ya me registré»: confirma_paso(). Vivia solo en
+   CORRER-HOY-2026-09-25.sql. Solo necesita tramites. */
+'supabase-confirma-paso'];
 
 let mal = 0;
 for (const n of orden) {
