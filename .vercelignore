@@ -46,6 +46,8 @@ revision-cerraduras.html
 # el trabajo terminado, y ademas confunde: hay tres versiones de la misma
 # pantalla y solo una es la que vale.
 .diseno/
+# Y las maquetas, por lo mismo: el panel no las pide.
+maquetas/
 
 # Los SQL que se corren a mano en el editor de Supabase. Mismo motivo que
 # los de arriba: llevan escritas las politicas, los disparadores y los
