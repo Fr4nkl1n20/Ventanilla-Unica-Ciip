@@ -18582,6 +18582,26 @@ applyLang(idiomaParaMi());
             if (archivo) archivo.focus();
             return;
           }
+          /* Y una parafiscal no se resuelve con inscripciones a medias:
+             «la debo poder resolver al estar las otras 6 listas» (Franklin
+             Reyes, 25-9-2026). Resolverla antes le diría al inversionista
+             que ya está inscrito en seis organismos cuando le faltan
+             cuatro, y eso lo descubriría en la ventanilla del que falta.
+
+             Se mira lo que hay CARGADO, sin pedirlo otra vez: si todavía no
+             ha llegado, no se frena. Es la elección prudente al revés de lo
+             habitual -dejar pasar en vez de bloquear- porque el gestor
+             tiene los seis bloques delante en esta misma pantalla: si
+             resuelve sin mirarlos, no es que no se lo dijéramos. */
+          if (p.a === 'resuelto' && t.tipo === TIPO_PARAFISCALES){
+            var yaE = ENTES_YA[t.id];
+            if (yaE && !ENTES_PARAFISCALES.every(function(e){
+                  return yaE[e] && yaE[e].estado === 'listo'; })){
+              f.classList.add('mal');
+              aviso.textContent = u.co_faltanentes || '';
+              return;
+            }
+          }
           /* Y un tramite sin el comprobante que la base le exige: no lo
              deja resolver, y entregar antes el acta para que luego rebote
              dejaria un papel entregado en un tramite sin resolver. Se
@@ -18997,8 +19017,22 @@ applyLang(idiomaParaMi());
      constitución no: lo que el inversionista tenía que tener en la mano ya
      pasó por su paso de la reserva, y Franklin Reyes lo quitó (17-9-2026).
      Los demás trámites lo siguen pidiendo: es su «Tu documento». */
+  /* Los registros parafiscales tampoco, desde el 25-9-2026 (Franklin
+     Reyes): «aquí no debo enviar ningún archivo, la debo poder resolver al
+     estar las otras 6 listas; cada una de ellas lleva su documento que nos
+     da el ente».
+
+     Y es que aquí no hay UN documento emitido: hay seis, uno por
+     inscripción, y cada uno se sube en la casilla de su ente. Pedir además
+     un séptimo al resolver obligaba a inventarse un papel —o a subir el
+     mismo dos veces— para poder cerrar el expediente.
+
+     La constitución está fuera por otra razón, la suya: lo que el
+     inversionista tenía que tener en la mano ya pasó por su paso de la
+     reserva (17-9-2026). Son dos motivos distintos que llevan al mismo
+     sitio, y por eso se leen los dos en la misma línea. */
   function pideEmitido(t){
-    return !t || t.tipo !== 'constitucion';
+    return !t || (t.tipo !== 'constitucion' && t.tipo !== TIPO_PARAFISCALES);
   }
 
   /* QUÉ documento para pagar deja el equipo, y en qué trámite. Son tres, el
@@ -19966,6 +20000,18 @@ applyLang(idiomaParaMi());
       aviso.textContent = u.co_faltadoc || '';
       if (archivo) archivo.focus();
       return;
+    }
+    /* La misma regla que la ficha de la cola: una parafiscal no se cierra
+       con inscripciones a medias. Va aquí también porque esta ventana
+       resuelve por su cuenta, y una regla que solo vive en uno de los dos
+       caminos es una regla que se salta quien entra por el otro. */
+    if (t.tipo === TIPO_PARAFISCALES){
+      var yaP = ENTES_YA[t.id];
+      if (yaP && !ENTES_PARAFISCALES.every(function(e){
+            return yaP[e] && yaP[e].estado === 'listo'; })){
+        aviso.textContent = u.co_faltanentes || '';
+        return;
+      }
     }
     /* Lo mismo que la ventana de la cola: sin el comprobante que pide la
        base, ni se entrega el papel ni se intenta resolver. */
@@ -21601,7 +21647,7 @@ applyLang(idiomaParaMi());
           .then(function(r){
             if (r && r.error) throw r.error;
             if (!(r && r.data && r.data.length)) throw new Error('sin permiso');
-            ENTES_DE[x.tramite] = null;
+            ENTES_DE[x.tramite] = null; ENTES_YA[x.tramite] = null;
             cdFilas = cdFilas.filter(function(y){
               return !(y.tramite === x.tramite && y.ente === x.ente); });
             cdPinta();
@@ -26087,6 +26133,7 @@ applyLang(idiomaParaMi());
   var ENTES_ABIERTOS = ['ante_el_ente'];
 
   var ENTES_DE = {};
+  var ENTES_YA = {};
   function entesDe(id){
     if (ENTES_DE[id]) return ENTES_DE[id];
     return (ENTES_DE[id] = Promise.resolve(
@@ -26095,6 +26142,11 @@ applyLang(idiomaParaMi());
         if (r && r.error) throw r.error;
         var m = {};
         ((r && r.data) || []).forEach(function(f){ m[f.ente] = f; });
+        /* Y una copia LISTA DE LEER, sin promesa por delante: quien tiene
+           que decidir en el mismo tick -si esta solicitud se puede resolver
+           ya- no puede esperar. Vale null mientras no haya contestado la
+           base, y quien la mire tiene que contar con eso. */
+        ENTES_YA[id] = m;
         return m;
       }).catch(function(e){
         /* Sin la tabla -el SQL sin correr- los cinco se quedan por iniciar
@@ -26214,7 +26266,7 @@ applyLang(idiomaParaMi());
           .then(function(r){
             if (r && r.error) throw r.error;
             if (!(r && r.data && r.data.length)) throw new Error('sin permiso');
-            ENTES_DE[tr.id] = null;
+            ENTES_DE[tr.id] = null; ENTES_YA[tr.id] = null;
             pon(r.data[0]);
           })
           .catch(function(e){

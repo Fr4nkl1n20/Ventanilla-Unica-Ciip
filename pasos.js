@@ -964,6 +964,7 @@ window.CIIP_PASOS = {
          cambiaba a "Resuelta" y el documento se mandaba por fuera. */
       co_emitido:   "Documento emitido por el organismo",
       co_faltadoc:  "Adjunta el documento que emitió el organismo: es lo que el inversionista vino a buscar.",
+      co_faltanentes: "Todavía hay inscripciones sin terminar. Míralas abajo: resolver ahora diría que ya está inscrito en todas.",
       co_faltareserva: "Falta el comprobante de la reserva del nombre: el inversionista lo sube cuando pague con el documento que le enviaste.",
       co_faltaaranceles: "Falta el comprobante del pago de los aranceles: el inversionista lo sube cuando pague con el documento que le enviaste.",
       co_faltapublicacion: "Falta el comprobante del pago de la publicación: el inversionista lo sube cuando pague con el PUB que le enviaste.",
@@ -2193,6 +2194,7 @@ window.CIIP_PASOS = {
          means. */
       co_emitido:   "Document issued by the agency",
       co_faltadoc:  "Attach the document the agency issued: it is what the investor came for.",
+      co_faltanentes: "Some registrations are still open. Check them below: resolving now would say all of them are done.",
       co_faltareserva: "The name reservation proof is missing: the investor uploads it once they pay with the document you sent.",
       co_faltaaranceles: "The registry fee receipt is missing: the investor uploads it once they pay with the document you sent.",
       co_faltapublicacion: "The publication payment receipt is missing: the investor uploads it once they pay with the PUB you sent.",
@@ -3321,6 +3323,7 @@ window.CIIP_PASOS = {
       /* Entregar o que foi emitido. */
       co_emitido:   "Documento emitido pelo organismo",
       co_faltadoc:  "Anexe o documento que o organismo emitiu: é o que o investidor veio buscar.",
+      co_faltanentes: "Ainda há inscrições por terminar. Vê-as abaixo: resolver agora diria que já está inscrito em todas.",
       co_faltareserva: "Falta o comprovativo da reserva do nome: o investidor carrega-o quando pagar com o documento que lhe enviou.",
       co_faltaaranceles: "Falta o comprovativo do pagamento das taxas: o investidor carrega-o quando pagar com o documento que lhe enviou.",
       co_faltapublicacion: "Falta o comprovativo do pagamento da publicação: o investidor carrega-o quando pagar com o PUB que lhe enviou.",
@@ -4447,6 +4450,7 @@ window.CIIP_PASOS = {
       /* Consegnare quello che è stato rilasciato. */
       co_emitido:   "Documento rilasciato dall'ente",
       co_faltadoc:  "Allega il documento che ha rilasciato l'ente: è quello per cui l'investitore è venuto.",
+      co_faltanentes: "Ci sono ancora iscrizioni aperte. Guardale qui sotto: risolvere ora direbbe che sono tutte fatte.",
       co_faltareserva: "Manca la ricevuta della riserva del nome: l'investitore la carica quando paga con il documento che gli hai inviato.",
       co_faltaaranceles: "Manca la ricevuta del pagamento dei diritti: l'investitore la carica quando paga con il documento che gli hai inviato.",
       co_faltapublicacion: "Manca la ricevuta del pagamento della pubblicazione: l’investitore la carica quando paga con il PUB che gli hai inviato.",
@@ -5573,6 +5577,7 @@ window.CIIP_PASOS = {
       /* 交付已签发的文件。 */
       co_emitido:   "主管机关签发的文件",
       co_faltadoc:  "请附上主管机关签发的文件：那才是投资人要的东西。",
+      co_faltanentes: "还有登记尚未完成。请看下方：现在结案等于说六项都已办妥。",
       co_faltareserva: "缺少名称预留凭证：投资人按你发送的文件付款后会上传。",
       co_faltaaranceles: "缺少规费缴费凭证：投资人按你发送的文件付款后会上传。",
       co_faltapublicacion: "缺少公告费缴费凭证：投资人按你发送的 PUB 付款后会上传。",
@@ -6699,6 +6704,7 @@ window.CIIP_PASOS = {
       /* Выдача выпущенного документа. */
       co_emitido:   "Документ, выданный ведомством",
       co_faltadoc:  "Приложите документ, выданный ведомством: именно за ним пришёл инвестор.",
+      co_faltanentes: "Ещё не все регистрации завершены. Посмотрите ниже: закрыть сейчас значило бы сказать, что готовы все.",
       co_faltareserva: "Нет подтверждения резервирования наименования: инвестор загрузит его после оплаты по документу, который вы отправили.",
       co_faltaaranceles: "Нет подтверждения оплаты пошлин: инвестор загрузит его после оплаты по документу, который вы отправили.",
       co_faltapublicacion: "Нет подтверждения оплаты публикации: инвестор загрузит его после оплаты по PUB, который вы отправили.",
