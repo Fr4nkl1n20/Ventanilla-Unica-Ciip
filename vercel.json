@@ -16,7 +16,8 @@
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://fbxdwryppfctuwlnjjqr.supabase.co; font-src 'self' data:; connect-src 'self' https://fbxdwryppfctuwlnjjqr.supabase.co wss://fbxdwryppfctuwlnjjqr.supabase.co; frame-src 'self' https://fbxdwryppfctuwlnjjqr.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" }
       ]
     },
     {

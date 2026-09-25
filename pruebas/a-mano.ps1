@@ -63,7 +63,11 @@ window.CIIP_CONFIG = {
 
 # --- 3. el panel, con la biblioteca cambiada ---
 $html = [IO.File]::ReadAllText($pagina, $utf8)
-$cdn = '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>'
+$cdn = @'
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"
+        integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok"
+        crossorigin="anonymous"></script>
+'@
 if ($html.IndexOf($cdn) -lt 0) {
   Write-Host '  No encontre la etiqueta de Supabase en el panel.' -ForegroundColor Red
   Write-Host '  Si cambio la direccion de la CDN, hay que actualizarla aqui.' -ForegroundColor DarkGray
