@@ -10552,10 +10552,50 @@ applyLang(idiomaParaMi());
       {n:'telefono_local',   clave:'f_telvzla',   tipo:'tel'},
       {n:'direccion_vzla',   clave:'f_dirvzla',   ancho:true}
     ],
+    /* ── LAS CASILLAS DEL SENIAT ──
+       Franklin Reyes, 25-9-2026: «coloca los que salen en la casilla del
+       RIF», señalando la captura del portal del SENIAT que trae Pendientes
+       FRANK.pdf. Aquí estaban siete; el portal pide catorce, y las siete
+       que faltaban las tenía que ir a buscar a mano quien transcribe. Es
+       el mismo caso del registro de extranjeros y se resuelve igual:
+       preguntarlas.
+
+       EL ORDEN ES EL DEL PORTAL y no el que quedó bonito, por lo mismo que
+       allí: quien transcribe tiene las dos pantallas al lado, y leer en
+       zigzag es donde se cuelan los errores.
+
+       NOMBRES QUE YA EXISTÍAN. apellidos, nombres, nacionalidad,
+       estado_civil, cierre_fiscal, razon_social y rif_empresa se llaman
+       como en los trámites que ya los preguntan, no como sonarían mejor:
+       los campos se heredan por NOMBRE, así que quien ya los escribió una
+       vez los ve puestos, con su sello y editables.
+
+       LO QUE NO SE PREGUNTA, y es deliberado: «tipo de persona». Este
+       trámite ES el RIF personal, así que la respuesta es siempre
+       «Natural». Un desplegable con una sola respuesta válida no pregunta
+       nada; solo hace el formulario más largo.
+
+       Y TRES VAN OPCIONALES -el RIF de la empresa, la razón social y el
+       cargo-: son el bloque de dónde trabajas, y quien no trabaja bajo
+       relación de dependencia no puede rellenarlos. Exigirlos dejaría
+       fuera a quien viene justo a sacarse su primer RIF. */
     rif_personal: [
+      {n:'apellidos',        clave:'f_apellidos'},
+      {n:'nombres',          clave:'f_nombres'},
       {n:'tipo_documento',   clave:'f_tipodoc',    opciones:['Cédula','Pasaporte']},
       {n:'numero_documento', clave:'f_numero'},
+      {n:'nacionalidad',     clave:'f_nacionalidad', paises:true},
       {n:'fecha_nacimiento', clave:'f_nacimiento', tipo:'date'},
+      {n:'estado_civil',     clave:'f_civil',      opcionesClave:'o_civil'},
+      /* La firma personal manda sobre el cierre fiscal: sin firma no hay
+         ejercicio que cerrar, y preguntar la fecha sería pedir un dato que
+         no existe. Sale sola al responder que sí. */
+      {n:'firma_personal',   clave:'f_firmapersonal', opcionesClave:'o_sino'},
+      {n:'cierre_fiscal',    clave:'f_lccierre',   verSi:'firma_personal'},
+      {n:'actividad_economica', clave:'f_actividad'},
+      {n:'rif_empresa',      clave:'f_rifempresa', opcional:true},
+      {n:'razon_social',     clave:'f_razon',      opcional:true},
+      {n:'cargo',            clave:'f_cargo',      opcional:true},
       {n:'telefono',         clave:'f_telefono',   tipo:'tel'},
       /* El correo lo pide el SENIAT al inscribir el RIF, y es por donde
          contesta la oficina fiscal. Se llama 'correo' -el mismo nombre que

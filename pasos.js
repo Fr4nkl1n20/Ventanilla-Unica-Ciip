@@ -1312,6 +1312,8 @@ window.CIIP_PASOS = {
          que los dos trámites se ofrezcan el que ya escribiste. */
       f_correo:     "Correo electrónico",
       f_profesion:  "Profesión u oficio",
+      f_firmapersonal:"¿Tienes firma personal?",
+      f_cargo:      "Cargo en la empresa",
       d_identidad:  "Cédula o pasaporte",
       d_domicilio:  "Comprobante de domicilio",
       /* --- RIF de la empresa --- */
@@ -2459,6 +2461,8 @@ window.CIIP_PASOS = {
       f_telefono:   "Phone",
       f_correo:     "Email",
       f_profesion:  "Occupation",
+      f_firmapersonal:"Do you have a sole proprietorship?",
+      f_cargo:      "Position in the company",
       d_identidad:  "ID card or passport",
       d_domicilio:  "Proof of address",
       /* --- RIF de la empresa --- */
@@ -3565,6 +3569,8 @@ window.CIIP_PASOS = {
       f_telefono:   "Telefone",
       f_correo:     "E-mail",
       f_profesion:  "Profissão",
+      f_firmapersonal:"Tens firma pessoal?",
+      f_cargo:      "Cargo na empresa",
       d_identidad:  "Cartão de cidadão ou passaporte",
       d_domicilio:  "Comprovativo de morada",
       /* --- RIF de la empresa --- */
@@ -4671,6 +4677,8 @@ window.CIIP_PASOS = {
       f_telefono:   "Telefono",
       f_correo:     "Email",
       f_profesion:  "Professione",
+      f_firmapersonal:"Hai una ditta individuale?",
+      f_cargo:      "Ruolo in azienda",
       d_identidad:  "Carta d'identità o passaporto",
       d_domicilio:  "Prova di residenza",
       /* --- RIF de la empresa --- */
@@ -5777,6 +5785,8 @@ window.CIIP_PASOS = {
       f_telefono:   "电话",
       f_correo:     "电子邮箱",
       f_profesion:  "职业",
+      f_firmapersonal:"你有个体工商登记吗？",
+      f_cargo:      "公司职务",
       d_identidad:  "身份证或护照",
       d_domicilio:  "住址证明",
       /* --- RIF de la empresa --- */
@@ -6883,6 +6893,8 @@ window.CIIP_PASOS = {
       f_telefono:   "Телефон",
       f_correo:     "Электронная почта",
       f_profesion:  "Профессия",
+      f_firmapersonal:"У вас есть ИП?",
+      f_cargo:      "Должность в компании",
       d_identidad:  "Удостоверение личности или паспорт",
       d_domicilio:  "Подтверждение адреса",
       /* --- RIF de la empresa --- */

@@ -150,15 +150,27 @@ cosas que el panel no sabía hacer:
 
 Cada uno es un trabajo aparte. Dime si van los tres, o cuáles.
 
-### 3. El RIF personal: qué campos exactamente **?**
+### 3. El RIF personal: qué campos — **decidido**
 
-El documento dice «colocar estos campos en el primer paso» con una captura
-del SENIAT al lado. En esa pantalla hay más de quince casillas —apellidos,
-nombres, pasaporte, tipo de persona, nacionalidad, estado civil, tiene
-firma personal, tipo de actividad, RIF de la empresa, razón social, cargo,
-profesión, fecha de cierre fiscal, correo—.
+Franklin, 25-9-2026: «coloca los que salen en la casilla del RIF». Puestos
+los catorce del portal, en el orden del portal.
 
-No sé cuáles quieres. Dime la lista o márcamela sobre la captura.
+- [x] apellidos, nombres, documento, nacionalidad, fecha de nacimiento,
+      estado civil, firma personal, cierre fiscal, actividad económica,
+      RIF de la empresa, razón social, cargo, teléfono, correo, dirección
+      fiscal y profesión
+
+Tres cosas que decidí yo y puedes deshacer con una palabra:
+
+- **«Tipo de persona» no se pregunta.** Este trámite ES el RIF personal,
+  así que la respuesta es siempre «Natural»: un desplegable con una sola
+  respuesta válida no pregunta nada, solo alarga el formulario.
+- **El cierre fiscal sale sólo si tienes firma personal.** Sin firma no hay
+  ejercicio que cerrar.
+- **RIF de la empresa, razón social y cargo van opcionales.** Son el bloque
+  de dónde trabajas, y quien no trabaja bajo relación de dependencia no
+  puede rellenarlos. Exigirlos dejaría fuera justo a quien viene a sacarse
+  su primer RIF.
 
 ### 4. Traducción: dos procesos según la respuesta **?**
 
