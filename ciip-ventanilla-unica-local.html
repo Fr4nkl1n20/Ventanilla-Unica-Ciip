@@ -18558,7 +18558,29 @@ applyLang(idiomaParaMi());
       return;
     }
 
+    /* ── LAS TUYAS PRIMERO ──
+       Franklin Reyes, 25-9-2026: «como gestor, si tengo solicitudes, que se
+       vean primero las mías».
+
+       La cola venía de la más vieja a la más nueva y nada más, que es el
+       orden justo para repartir trabajo sin dueño. Pero quien ya tiene
+       expedientes asignados entra a mirar los SUYOS, y los tenía
+       repartidos entre los de todos: había que buscarlos, o pasar por el
+       filtro «Míos» cada vez que se abre la pantalla.
+
+       Ahora suben arriba y lo de nadie queda debajo, sin tocar el orden
+       DENTRO de cada grupo: entre las tuyas sigue mandando la más vieja, y
+       entre las libres también. Es un corte, no una reordenación.
+
+       Solo cambia de sitio, no esconde: las que no llevas siguen todas ahí
+       y el filtro «Todos» sigue enseñándolas. Quien reparte trabajo no
+       pierde nada; quien lo hace, deja de buscar. */
     var vistos = enRevision.filter(coCuadra);
+    if (YO){
+      var mias = [], otras = [];
+      vistos.forEach(function(t){ (t.gestor === YO ? mias : otras).push(t); });
+      vistos = mias.concat(otras);
+    }
     /* Un filtro que deja la lista vacia tiene que decirlo. Si no, "Mios"
        sin ninguno tuyo se lee como "la cola esta vacia" y alguien se va a
        casa pensando que no hay nada que hacer. */
