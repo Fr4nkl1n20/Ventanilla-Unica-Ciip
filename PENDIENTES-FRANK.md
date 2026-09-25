@@ -181,11 +181,16 @@ Dos cosas decididas por mí, las dos se deshacen con una línea:
   los marca el instructivo: son el bloque de dónde trabajas, y exigirlos
   dejaría fuera a quien viene a sacarse su primer RIF.
 
-Y una que **no** hice y quiero preguntarte: el portal parte el domicilio
-fiscal en once casillas —estado, municipio, parroquia, avenida, casa, piso,
-apartamento, punto de referencia, código postal…—. Aquí va en una sola, como
-en el resto del panel. Acoplarlo del todo sería hacer once preguntas donde
-hoy hay una. ¿Lo parto?
+- [x] **El domicilio fiscal, partido** (Franklin: «sí, pártelo»). Estado,
+      municipio, parroquia, ciudad, urbanización, avenida o calle, casa o
+      edificio, piso, apartamento, código postal y punto de referencia. El
+      piso y el apartamento van opcionales: una casa no tiene ninguno de los
+      dos, y exigirlos obligaría a inventárselos.
+
+      Lo que se gana es de quien transcribe: una dirección escrita de
+      corrido hay que despiezarla a ojo —¿esto es la urbanización o la
+      avenida?— y ahí es donde el expediente vuelve con la dirección mal
+      puesta.
 
 ### 4. Traducción: dos procesos según la respuesta **?**
 

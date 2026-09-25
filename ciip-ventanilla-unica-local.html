@@ -10622,12 +10622,33 @@ applyLang(idiomaParaMi());
          trámites, así que el que escribiste en uno se ofrece en el otro,
          con su sello y editable. */
       {n:'correo',           clave:'f_correo',     tipo:'email', opcional:true},
-      /* Las dos del domicilio fiscal. El portal lo parte en once casillas
-         -estado, municipio, parroquia, avenida, casa, piso...-; aquí va en
-         una, como en los otros trámites de este panel. Partirlo sería
-         acoplarse más al portal, pero también hacer once preguntas donde
-         hoy hay una, así que eso se pregunta antes de hacerlo. */
-      {n:'direccion_fiscal', clave:'f_direccion',  ancho:true},
+      /* ── EL DOMICILIO FISCAL, PARTIDO ──
+         Franklin Reyes, 25-9-2026: «sí, pártelo». Aquí era una caja de
+         dirección, como en el resto del panel; el portal del SENIAT lo
+         pide en casillas sueltas, y en una casilla suelta no cabe la
+         ambigüedad de un renglón escrito a mano.
+
+         Lo que se gana es de quien transcribe: la dirección de una caja
+         libre hay que despiezarla a ojo -¿esto es la urbanización o la
+         avenida?- y ahí es donde el expediente vuelve con la dirección
+         mal puesta. Lo que se paga son once preguntas donde había una, y
+         por eso el piso y el apartamento van opcionales: una casa no
+         tiene ninguno de los dos, y exigirlos obligaría a inventárselos.
+
+         direccion_fiscal se queda FUERA de este trámite y sigue viva en
+         los demás. No se borra: el nombre lo usan una docena de
+         formularios y lo escrito se hereda entre ellos. */
+      {n:'estado',           clave:'f_estadovzla', opciones:ESTADOS_VE},
+      {n:'municipio',        clave:'f_municipiovzla'},
+      {n:'parroquia',        clave:'f_parroquia'},
+      {n:'ciudad',           clave:'f_ciudadvzla'},
+      {n:'urbanizacion',     clave:'f_urbanizacion'},
+      {n:'calle',            clave:'f_calle'},
+      {n:'edificio',         clave:'f_edificio'},
+      {n:'piso',             clave:'f_piso',       opcional:true},
+      {n:'apartamento',      clave:'f_apartamento', opcional:true},
+      {n:'codigo_postal',    clave:'f_codpostal'},
+      {n:'punto_referencia', clave:'f_puntoref',   ancho:true},
       {n:'telefono',         clave:'f_telefono',   tipo:'tel'}
     ],
     rif_empresa: [
