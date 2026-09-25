@@ -11408,6 +11408,29 @@ applyLang(idiomaParaMi());
        organismo, su plazo y su descripcion se pinta al instante-. */
     chipReal(null);
 
+    /* ── LAS DOS QUE NO DEPENDEN DE NADA, YA ──
+       Franklin Reyes, 25-9-2026: «¿por qué tengo ese tiempo de tardanza al
+       iniciar esa solicitud?», con la cabecera puesta y el resto en blanco.
+
+       Abrir un trámite costaba TRES viajes ENCADENADOS antes de pintar el
+       formulario: el catálogo, las solicitudes que ya tienes de ese tipo, y
+       -solo entonces- lo que hay en tu bóveda y lo que escribiste en otros
+       trámites. El tercero esperaba detrás de los dos primeros sin
+       necesitarlos para nada: ni la bóveda ni lo que escribiste antes
+       dependen de qué trámite abriste.
+
+       Así que se piden aquí, a la vez que el catálogo. Los dos guardan su
+       promesa -miosPide, antesPide-, así que pedirlos antes no los pide dos
+       veces: cuando abajo se haga el Promise.all, o ya están o falta menos.
+       De tres viajes en fila se pasa a dos.
+
+       Queda uno que no se ha tocado y conviene saberlo: cada recaudo mira
+       la bóveda por su cuenta, así que un trámite con cinco papeles lanza
+       cinco consultas. Van en paralelo -no se suman en el reloj- pero son
+       cinco, y se podrían pedir de una sola vez. */
+    misPapeles();
+    anteriores();
+
     cargaCatalogo().then(function(tipos){
       if (miTurno !== turno) return;
       var t = tipos[refPanel];
