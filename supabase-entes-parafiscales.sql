@@ -31,7 +31,7 @@ on conflict (codigo) do update set nombre = excluded.nombre;
 
 create table if not exists public.tramite_entes (
   tramite        uuid not null references public.tramites(id) on delete cascade,
-  ente           text not null check (ente in ('banavih', 'inces', 'mpppst', 'sundde', 'snc')),
+  ente           text not null check (ente in ('banavih', 'inces', 'mpppst', 'sundde', 'ivss', 'snc')),
   codigo         text check (codigo is null or length(codigo) <= 200),
   documento      uuid references public.documentos(id) on delete set null,
   estado         text not null default 'pendiente'
@@ -58,6 +58,24 @@ end $entes$;
 alter table public.tramite_entes add constraint tramite_entes_estado_check
   check (estado in ('pendiente', 'inscrito', 'codigo_enviado', 'listo'));
 alter table public.tramite_entes alter column estado set default 'pendiente';
+
+-- El IVSS, la sexta inscripción (Franklin Reyes, 25-9-2026; venía en
+-- CORRER-PARAFISCALES-2026-09-25.sql). Igual que arriba: en una base con la
+-- tabla ya creada con cinco entes, se cambia la regla.
+do $entes$
+declare c text;
+begin
+  for c in select conname from pg_constraint
+            where conrelid = 'public.tramite_entes'::regclass
+              and contype = 'c'
+              and pg_get_constraintdef(oid) ilike '%ente%'
+              and pg_get_constraintdef(oid) not ilike '%estado%'
+  loop
+    execute format('alter table public.tramite_entes drop constraint %I', c);
+  end loop;
+end $entes$;
+alter table public.tramite_entes add constraint tramite_entes_ente_check
+  check (ente in ('banavih', 'inces', 'mpppst', 'sundde', 'ivss', 'snc'));
 
 alter table public.tramite_entes enable row level security;
 grant select, insert, update, delete on public.tramite_entes to authenticated;
@@ -131,7 +149,7 @@ create trigger tramite_entes_marca_tiempo
   before update on public.tramite_entes
   for each row execute function public.tramite_entes_marca_tiempo();
 
--- Las cinco nacen solas al enviarse la solicitud de parafiscales.
+-- Las seis nacen solas al enviarse la solicitud de parafiscales.
 create or replace function public.tramite_entes_nacen()
 returns trigger
 language plpgsql
@@ -143,7 +161,7 @@ begin
      and new.estado in ('enviado', 'en_revision', 'ante_el_ente') then
     insert into public.tramite_entes (tramite, ente, estado)
     select new.id, e, 'pendiente'
-      from unnest(array['banavih', 'inces', 'mpppst', 'sundde', 'snc']) as e
+      from unnest(array['banavih', 'inces', 'mpppst', 'sundde', 'ivss', 'snc']) as e
     on conflict (tramite, ente) do nothing;
   end if;
   return new;
@@ -159,7 +177,7 @@ create trigger tramite_entes_nacen
 insert into public.tramite_entes (tramite, ente, estado)
 select t.id, e, 'pendiente'
   from public.tramites t
-  cross join unnest(array['banavih', 'inces', 'mpppst', 'sundde', 'snc']) as e
+  cross join unnest(array['banavih', 'inces', 'mpppst', 'sundde', 'ivss', 'snc']) as e
  where t.tipo = 'registros_parafiscales'
    and t.estado in ('enviado', 'en_revision', 'ante_el_ente')
 on conflict (tramite, ente) do nothing;

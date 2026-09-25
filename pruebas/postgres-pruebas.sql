@@ -3804,11 +3804,11 @@ begin
   values (auth.uid(), 'registros_parafiscales', 'borrador') returning id into nuevo;
   update public.tramites set estado = 'enviado' where id = nuevo;
   select count(*) into n from public.tramite_entes where tramite = nuevo and estado = 'pendiente';
-  perform arnes.comprueba('hoy: al enviar los parafiscales nacen los cinco entes, pendientes',
-    n = 5, n || ' filas');
+  perform arnes.comprueba('hoy: al enviar los parafiscales nacen los seis entes, pendientes',
+    n = 6, n || ' filas');
   insert into arnes.escenario values ('hoy-parafiscales', nuevo);
 exception when others then
-  perform arnes.comprueba('hoy: al enviar los parafiscales nacen los cinco entes, pendientes', false, sqlerrm);
+  perform arnes.comprueba('hoy: al enviar los parafiscales nacen los seis entes, pendientes', false, sqlerrm);
 end
 $hoy$;
 
