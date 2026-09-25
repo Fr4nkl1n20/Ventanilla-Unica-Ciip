@@ -14987,10 +14987,17 @@ applyLang(idiomaParaMi());
     if (ev.clase === 'papel'){
       /* El motivo del rechazo tal cual lo escribió el gestor: es lo único
          que dice qué corregir. En un papel dado por bueno no hay nota que
-         enseñar -no la pide el panel al validar- y tampoco hace falta. */
+         enseñar -no la pide el panel al validar- y tampoco hace falta.
+
+         Y desde el 25-9-2026 un tercer caso: la observación, que trae nota
+         pero no veredicto. Se dice distinto a propósito -«ha dejado una
+         observación» y no «no sirve»- porque el papel no está rechazado y
+         confundirlos mandaría a corregir lo que nadie ha tumbado. */
       return {
         t: nombreDeTipo_doc(ev.tipo),
-        q: ev.estado === 'rechazado' ? (u.av_papel_mal || '') : (u.av_papel_ok || ''),
+        q: (ev.estado === 'rechazado' ? u.av_papel_mal
+            : ev.estado === 'observado' ? u.av_papel_nota
+            : u.av_papel_ok) || '',
         nota: ev.nota || '',
         ir: function(){ location.hash = 'documentos'; }
       };
@@ -15365,7 +15372,11 @@ applyLang(idiomaParaMi());
       return sb.from('documentos')
         .select('id, tipo, estado, nota_revision, revisado_en')
         .eq('inversionista', uid)
-        .in('estado', ['validado', 'rechazado'])
+        /* Sin filtrar por estado: desde el 25-9-2026 el gestor puede dejar
+           una OBSERVACIÓN, que escribe la nota y no toca el estado. Un
+           papel así se queda en 'cargado' y con el filtro puesto no sonaba
+           la campana, que es justo para lo que sirve una observación.
+           Quién es noticia y quién no lo decide el filtro de abajo. */
         .not('revisado_en', 'is', null)
         .order('revisado_en', {ascending:false}).limit(20);
     }, function(filas){
@@ -15373,11 +15384,14 @@ applyLang(idiomaParaMi());
         /* Los dos filtros, otra vez: un papel recién subido está en
            'cargado' y no lo ha mirado nadie, y uno sin fecha se revisó antes
            de que la base guardara cuándo. Ni el uno ni el otro son noticia. */
-        if (d.estado !== 'validado' && d.estado !== 'rechazado') return;
+        var juzgado = (d.estado === 'validado' || d.estado === 'rechazado');
+        /* Una observación es noticia aunque el papel siga sin veredicto:
+           alguien del CIIP lo miró y escribió algo sobre él. */
+        if (!juzgado && !d.nota_revision) return;
         if (!d.revisado_en) return;
         avisos.push({
-          clase: 'papel', tipo: d.tipo || '', estado: d.estado,
-          nota: d.estado === 'rechazado' ? avRecorta(d.nota_revision) : '',
+          clase: 'papel', tipo: d.tipo || '', estado: juzgado ? d.estado : 'observado',
+          nota: (d.estado !== 'validado') ? avRecorta(d.nota_revision) : '',
           creado_en: d.revisado_en, ref: '', ente: ''
         });
       });
@@ -21121,28 +21135,56 @@ applyLang(idiomaParaMi());
       hecho.appendChild(el('span', null,
         String((d.estado === 'validado' ? u.rv_hecho_ok : u.rv_hecho_no) || '')
           .replace('{quien}', quien || '—').replace('{fecha}', cuando ? fecha(cuando) : '—')));
-      if (d.estado === 'rechazado' && d.nota_revision) hecho.appendChild(el('span', 'rv-motivo', '«' + d.nota_revision + '»'));
+      /* La nota, venga de un rechazo o de una observación: en los dos casos
+         es lo que el gestor escribió sobre este papel, y esconderla cuando
+         el papel no está rechazado era perder justo lo que se acaba de
+         añadir. */
+      if (d.nota_revision) hecho.appendChild(el('span', 'rv-motivo', '«' + d.nota_revision + '»'));
       pie.appendChild(hecho);
     } else if (!rvRechazando){
+      /* La observación que ya lleva puesta, si la lleva. Sigue en
+         'cargado' -no bloquea nada- pero el gestor tiene que ver lo que ya
+         dijo antes de decir otra cosa. */
+      if (d.nota_revision){
+        var yaObs = el('div', 'rv-hecho');
+        yaObs.appendChild(el('span', 'ct-chip', u.rv_observacion || ''));
+        yaObs.appendChild(el('span', 'rv-motivo', '«' + d.nota_revision + '»'));
+        pie.appendChild(yaObs);
+      }
       var acc = el('div', 'rv-acc');
       var no = el('button', 'rv-btn no', u.rv_rechazar || '');
       no.type = 'button';
-      no.addEventListener('click', function(){ rvRechazando = true; rvPinta(); });
+      no.addEventListener('click', function(){ rvRechazando = 'rechazar'; rvPinta(); });
+      /* ── DECIR ALGO SIN TUMBAR EL PAPEL ──
+         Franklin Reyes, 25-9-2026. Hasta aquí el gestor tenía dos botones:
+         darlo por bueno o rechazarlo. Para avisar de algo pequeño -«la
+         casilla 4 quedó en blanco, por lo demás va bien»- había que elegir
+         entre callarse o tumbar la planilla y bloquear el trámite. Ahora
+         hay un tercero: la observación deja la nota y no toca el estado,
+         así que el papel sigue su camino y el inversionista se entera. */
+      var obs = el('button', 'rv-btn', u.rv_observar || '');
+      obs.type = 'button';
+      obs.addEventListener('click', function(){ rvRechazando = 'observar'; rvPinta(); });
       var si = el('button', 'rv-btn ok', '✓ ' + (u.rv_validar || ''));
       si.type = 'button';
       si.addEventListener('click', function(){ si.disabled = true; no.disabled = true; rvDecide(d, 'validado', '', msg); });
       acc.appendChild(no);
+      acc.appendChild(obs);
       acc.appendChild(si);
       pie.appendChild(acc);
     } else {
-      pie.appendChild(el('div', 'rv-porque', u.rv_porque || ''));
+      var observando = (rvRechazando === 'observar');
+      pie.appendChild(el('div', 'rv-porque',
+        (observando ? u.rv_que_observa : u.rv_porque) || ''));
       var motivos = el('div', 'rv-motivos');
       var nota = document.createElement('textarea');
       nota.id = 'rvNota';
       nota.placeholder = u.rv_nota_ph || '';
       /* Los mismos motivos rápidos que el visor de la cola: el inversionista
-         lee lo mismo venga de donde venga el rechazo. */
-      (typeof VISOR_MOTIVOS !== 'undefined' ? VISOR_MOTIVOS : []).forEach(function(m){
+         lee lo mismo venga de donde venga el rechazo. En una observación no
+         salen: son motivos para tumbar un papel -«ilegible», «vencido»- y
+         aquí justamente no se tumba nada. */
+      (observando ? [] : (typeof VISOR_MOTIVOS !== 'undefined' ? VISOR_MOTIVOS : [])).forEach(function(m){
         var b = el('button', 'rv-filtro', u[m[0]] || '');
         b.type = 'button';
         b.addEventListener('click', function(){
@@ -21163,7 +21205,10 @@ applyLang(idiomaParaMi());
         var texto = (nota.value || '').trim();
         if (!texto){ nota.focus(); return; }
         confirma.disabled = true;
-        rvDecide(d, 'rechazado', texto, msg);
+        /* null y no 'cargado': se manda la nota Y NADA MÁS. Escribir el
+           estado que ya tiene sería pisar el que otro gestor acabe de
+           poner entre que se abrió este visor y se pulsó el botón. */
+        rvDecide(d, observando ? null : 'rechazado', texto, msg);
       });
       acc2.appendChild(cancela);
       acc2.appendChild(confirma);
@@ -21176,10 +21221,15 @@ applyLang(idiomaParaMi());
   /* Validar o rechazar. Con .select(): una política que no deja pasar un
      UPDATE no da error, devuelve cero filas, y sin mirarlo aquí se diría
      «validado» de algo que no cambió. */
+  /* estado en null es una OBSERVACIÓN: la nota se escribe y el papel se
+     queda como está. Sí lleva revisado_por y revisado_en, porque alguien lo
+     miró de verdad y esa es la fecha que ordena los avisos; lo que no lleva
+     es veredicto. */
   function rvDecide(d, estado, nota, msg){
     var u = T();
     var ahora = new Date().toISOString();
-    var cambio = {estado: estado, nota_revision: nota || '', revisado_por: YO, revisado_en: ahora};
+    var cambio = {nota_revision: nota || '', revisado_por: YO, revisado_en: ahora};
+    if (estado) cambio.estado = estado;
     function manda(c){
       return Promise.resolve(sb.from('documentos').update(c).eq('id', d.id).select());
     }
@@ -21192,7 +21242,7 @@ applyLang(idiomaParaMi());
     }).then(function(r){
       if (r && r.error) throw r.error;
       if (r && Array.isArray(r.data) && !r.data.length) throw new Error('la base no lo dejó cambiar');
-      d.estado = estado;
+      if (estado) d.estado = estado;
       d.nota_revision = nota || '';
       d.revisado_por = YO;
       d.revisado_en = ahora;
@@ -21202,7 +21252,9 @@ applyLang(idiomaParaMi());
       var aviso = document.querySelector('#rv .rv-visor .rv-msg');
       if (aviso){
         aviso.classList.add('bien');
-        aviso.textContent = (estado === 'validado' ? u.rv_validado : u.rv_rechazado) || '';
+        aviso.textContent = (!estado ? u.rv_observado
+                             : estado === 'validado' ? u.rv_validado
+                             : u.rv_rechazado) || '';
       }
     }).catch(function(e){
       console.warn('[CIIP] revisar documento:', e && (e.message || e));

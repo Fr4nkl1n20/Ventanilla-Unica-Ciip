@@ -125,9 +125,15 @@ Franklin, 25-9-2026, el paso 2 y el 3 de la visa:
       planilla, y solo aparece cuando el 2 está confirmado. El PDF vive en
       `planillas/visa-solicitud.pdf`, junto al panel, para que no dependa de
       la página del ministerio.
-- [ ] **La observación del CIIP sobre esa planilla.** Hoy el gestor ya puede
-      rechazar un recaudo escribiendo el motivo, y el inversionista lo lee y
-      lo corrige. ¿Te vale eso, o quieres una conversación colgando del paso?
+- [x] **La observación del CIIP sobre esa planilla.** Franklin, 25-9-2026:
+      una nota que no tumba el papel. El gestor tiene ahora un tercer botón
+      -«Dejar una observación»- que escribe la nota y NO toca el estado: el
+      papel sigue su camino, le suena la campana al inversionista y la ve
+      junto al papel en Documentos y en el recaudo del trámite.
+
+      Sin migración: la nota va donde ya iba el motivo del rechazo
+      (`documentos.nota_revision`), y lo que separa una cosa de la otra es
+      el estado. La política que deja al equipo escribirla ya existía.
 
 Queda una cosa a medias y conviene tenerla escrita: la planilla firmada se
 sube en la hoja de recaudos, como los demás papeles, y no DENTRO del paso 3.
