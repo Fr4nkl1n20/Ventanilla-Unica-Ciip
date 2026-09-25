@@ -2200,23 +2200,35 @@ applyLang(idiomaParaMi());
    window.CIIP_OLVIDA_T = function(){ T_MEZCLA = {}; };
 
   /* El reloj de la barra. Siempre en hora de Caracas -que no cambia de hora
-     en verano- sea cual sea la zona de la máquina. Mira cada segundo para
-     cambiar de minuto a su hora, pero sólo escribe cuando cambia algo; así
-     también se entera del cambio de idioma sin engancharse a applyLang. */
+     en verano- sea cual sea la zona de la máquina. Arriba la hora con
+     segundos, debajo la fecha y la ciudad. En 12 horas donde es lo normal
+     (aquí «p. m.»); en chino y en ruso, 24. Lee el idioma en cada tic, así
+     se entera del cambio sin engancharse a applyLang. */
   (function(){
     var caja = document.getElementById('tbReloj'),
         h = document.getElementById('tbRelojH'),
-        z = document.getElementById('tbRelojZ');
-    if (!caja || !h || !z) return;
+        d = document.getElementById('tbRelojD');
+    if (!caja || !h || !d) return;
+    var hm = h.querySelector('.hm'), s = h.querySelector('.s'), ap = h.querySelector('.ap');
+    var CIUDAD = {zh:'加拉加斯', ru:'Каракас'};
+    function pon(n, txt){ if (n.textContent !== txt) n.textContent = txt; }
     function tic(){
-      var ahora = new Date(), txt;
+      var ahora = new Date(), loc = localeDeAhora(),
+          doce = curLang !== 'zh' && curLang !== 'ru', p = {}, fecha;
       try {
-        txt = new Intl.DateTimeFormat(localeDeAhora(),
-          {hour:'2-digit', minute:'2-digit', timeZone:'America/Caracas'}).format(ahora);
+        new Intl.DateTimeFormat(loc, {hour: doce ? 'numeric' : '2-digit',
+          minute:'2-digit', second:'2-digit', hour12: doce,
+          timeZone:'America/Caracas'}).formatToParts(ahora)
+          .forEach(function(x){ p[x.type] = x.value; });
+        fecha = new Intl.DateTimeFormat(loc, {weekday:'short', day:'numeric',
+          month:'short', timeZone:'America/Caracas'}).format(ahora);
       } catch(e){ return; }
+      pon(hm, p.hour + ':' + p.minute);
+      pon(s, ':' + p.second);
+      pon(ap, p.dayPeriod || '');
+      pon(d, fecha.replace(/\./g, '') + ' · ' + (CIUDAD[curLang] || 'Caracas'));
       var zona = T().ct_hora_ve || '';
-      if (h.textContent !== txt) h.textContent = txt;
-      if (z.textContent !== zona){ z.textContent = zona; caja.title = zona; }
+      if (caja.title !== zona) caja.title = zona;
       caja.hidden = false;
     }
     tic();
