@@ -4912,14 +4912,16 @@ applyLang(idiomaParaMi());
      La caja aparece SOLO si hay documento. Un "Tu documento" vacío sobre
      un trámite resuelto sería peor que no ponerlo: diría que existe algo
      que no se puede abrir. */
-  /* Abrir lo que emitio el organismo: un enlace firmado de dos minutos, en
-     otra pestaña. Vivia dentro de pintaEntregado; salio de ahi cuando la
-     columna «Listo» de la portada empezo a ofrecer la misma descarga, para
-     que un arreglo en una no se quede sin llegar a la otra. */
-  function abreEmitido(d, boton){
+  /* Abrir un papel del cubo al pulsar un botón. El cubo es privado: no hay
+     URL fija que enseñar, así que se pide una firmada que caduca -dos
+     minutos, lo que tarda en mirarse un documento- y se abre en otra
+     pestaña. Mientras llega, el botón se apaga; si no llega, lo dice en el
+     propio botón. Estaba copiada en nueve sitios, cada uno con su arreglo
+     o sin él; ahora un arreglo aquí llega a todos. */
+  function abreFirmado(ruta, boton, que, segundos){
     var u = T();
     boton.disabled = true;
-    sb.storage.from('recaudos').createSignedUrl(d.archivo, 120)
+    Promise.resolve(sb.storage.from('recaudos').createSignedUrl(ruta, segundos || 120))
       .then(function(rs){
         boton.disabled = false;
         var url = rs && rs.data && rs.data.signedUrl;
@@ -4927,11 +4929,14 @@ applyLang(idiomaParaMi());
         window.open(url, '_blank', 'noopener');
       })
       .catch(function(e){
-        console.warn('[CIIP] abrir lo emitido:', e && (e.message || e));
+        console.warn('[CIIP] ' + (que || 'abrir') + ':', e && (e.message || e));
         boton.disabled = false;
         boton.textContent = u.co_noabre || '';
       });
   }
+  /* Lo que emitió el organismo. La columna «Listo» de la portada y la ficha
+     del trámite ofrecen la misma descarga. */
+  function abreEmitido(d, boton){ abreFirmado(d.archivo, boton, 'abrir lo emitido'); }
 
   function pintaEntregado(tr, caja){
     var u = T();
@@ -6317,21 +6322,7 @@ applyLang(idiomaParaMi());
              El cubo es privado: se pide una URL firmada, que caduca. */
           var mirar = el('button', 'sd-ver', u.co_abrir || '');
           mirar.type = 'button';
-          mirar.addEventListener('click', function(){
-            mirar.disabled = true;
-            sb.storage.from('recaudos').createSignedUrl(ya.archivo, 120)
-              .then(function(rs){
-                mirar.disabled = false;
-                var url = rs && rs.data && rs.data.signedUrl;
-                if (!url) throw new Error('sin url');
-                window.open(url, '_blank', 'noopener');
-              })
-              .catch(function(e){
-                console.warn('[CIIP] ver recaudo:', e && (e.message || e));
-                mirar.disabled = false;
-                mirar.textContent = u.co_noabre || '';
-              });
-          });
+          mirar.addEventListener('click', function(){ abreFirmado(ya.archivo, mirar, 'ver recaudo'); });
           fila.insertBefore(mirar, btn);
           cuentaPapeles();
         }).catch(function(){});
@@ -7932,12 +7923,7 @@ applyLang(idiomaParaMi());
           var d = m.documentos;
           var b = el('button', 'hm-arch', d.nombre_original || d.tipo || '—');
           b.type = 'button';
-          b.addEventListener('click', function(){
-            sb.storage.from('recaudos').createSignedUrl(d.archivo, 120)
-              .then(function(r){
-                if (r && r.data && r.data.signedUrl) window.open(r.data.signedUrl, '_blank');
-              }).catch(function(){});
-          });
+          b.addEventListener('click', function(){ abreFirmado(d.archivo, b, 'adjunto del hilo'); });
           f.appendChild(b);
         }
         lista.appendChild(f);
@@ -12250,24 +12236,7 @@ applyLang(idiomaParaMi());
 
           var b = el('button', null, u.co_abrir || '');
           b.type = 'button';
-          b.addEventListener('click', function(){
-            /* El cubo es privado: no hay URL fija que enseñar. Se pide una
-               firmada y caduca en dos minutos, que es lo que tarda en
-               mirarse un documento. */
-            b.disabled = true;
-            sb.storage.from('recaudos').createSignedUrl(d.archivo, 120)
-              .then(function(rs){
-                b.disabled = false;
-                var url = rs && rs.data && rs.data.signedUrl;
-                if (!url) throw new Error('sin url');
-                window.open(url, '_blank', 'noopener');
-              })
-              .catch(function(e){
-                console.warn('[CIIP] abrir recaudo:', e && (e.message || e));
-                b.disabled = false;
-                b.textContent = u.co_noabre || '';
-              });
-          });
+          b.addEventListener('click', function(){ abreFirmado(d.archivo, b, 'abrir recaudo'); });
           fila.appendChild(b);
           lista.appendChild(fila);
         });
@@ -14701,18 +14670,7 @@ applyLang(idiomaParaMi());
       return Promise.resolve(sb.storage.from('recaudos').createSignedUrl(d.archivo, 300))
         .then(function(r){ return r && r.data && r.data.signedUrl; });
     }
-    abrir.addEventListener('click', function(){
-      abrir.disabled = true;
-      firmada().then(function(url){
-        abrir.disabled = false;
-        if (!url) throw new Error('sin url');
-        window.open(url, '_blank', 'noopener');
-      }).catch(function(e){
-        console.warn('[CIIP] revisar, abrir:', e && (e.message || e));
-        abrir.disabled = false;
-        abrir.textContent = u.co_noabre || '';
-      });
-    });
+    abrir.addEventListener('click', function(){ abreFirmado(d.archivo, abrir, 'revisar, abrir', 300); });
     if (esImagen && d.archivo){
       var img = document.createElement('img');
       img.alt = d.nombre_original || nombreDeTipo_doc(d.tipo);
@@ -15215,18 +15173,7 @@ applyLang(idiomaParaMi());
       return Promise.resolve(sb.storage.from('recaudos').createSignedUrl(d.archivo, 300, op))
         .then(function(r){ return r && r.data && r.data.signedUrl; });
     }
-    abrir.addEventListener('click', function(){
-      abrir.disabled = true;
-      firmada().then(function(url){
-        abrir.disabled = false;
-        if (!url) throw new Error('sin url');
-        window.open(url, '_blank', 'noopener');
-      }).catch(function(e){
-        console.warn('[CIIP] comprobantes, abrir:', e && (e.message || e));
-        abrir.disabled = false;
-        abrir.textContent = u.co_noabre || '';
-      });
-    });
+    abrir.addEventListener('click', function(){ abreFirmado(d.archivo, abrir, 'comprobantes, abrir', 300); });
     bajar.addEventListener('click', function(){
       bajar.disabled = true;
       firmada(true).then(function(url){
@@ -19518,23 +19465,6 @@ applyLang(idiomaParaMi());
     if (olvidaAntesDeLosEntes) olvidaAntesDeLosEntes();
   };
 
-  function abreArchivoDeEnte(ruta, b){
-    var u = T();
-    b.disabled = true;
-    Promise.resolve(sb.storage.from('recaudos').createSignedUrl(ruta, 120))
-      .then(function(rs){
-        b.disabled = false;
-        var url = rs && rs.data && rs.data.signedUrl;
-        if (!url) throw new Error('sin url');
-        window.open(url, '_blank', 'noopener');
-      })
-      .catch(function(e){
-        console.warn('[CIIP] archivo del ente:', e && (e.message || e));
-        b.disabled = false;
-        b.textContent = u.co_noabre || '';
-      });
-  }
-
   /* Cada ente con SU escalera, como los tramos de la constitución
      (Franklin, 23-9-2026): tres pasos que se encienden con lo que hay en
      tramite_entes. Sin fila, toca el primero -mandar el código-; con el
@@ -19788,7 +19718,7 @@ applyLang(idiomaParaMi());
           var ver = el('button', 'pe-ver', u.pe_ver || '');
           ver.type = 'button';
           ver.title = doc.nombre_original || '';
-          ver.addEventListener('click', function(){ abreArchivoDeEnte(doc.archivo, ver); });
+          ver.addEventListener('click', function(){ abreFirmado(doc.archivo, ver, 'archivo del ente'); });
           dice.appendChild(ver);
         }
         dice.hidden = !dice.childNodes.length;
@@ -20613,21 +20543,7 @@ applyLang(idiomaParaMi());
          es privado, así que se pide una URL firmada, que caduca. */
       var abrir = el('button', 't-btn', u.co_abrir || '');
       abrir.type = 'button';
-      function verlo(){
-        abrir.disabled = true;
-        Promise.resolve(sb.storage.from('recaudos').createSignedUrl(d.archivo, 120))
-          .then(function(rs){
-            abrir.disabled = false;
-            var url = rs && rs.data && rs.data.signedUrl;
-            if (!url) throw new Error('sin url');
-            window.open(url, '_blank', 'noopener');
-          })
-          .catch(function(e){
-            console.warn('[CIIP] ver documento:', e && (e.message || e));
-            abrir.disabled = false;
-            abrir.textContent = u.co_noabre || '';
-          });
-      }
+      function verlo(){ abreFirmado(d.archivo, abrir, 'ver documento'); }
       abrir.addEventListener('click', function(e){ e.stopPropagation(); verlo(); });
       fila.addEventListener('click', verlo);
 
@@ -20762,19 +20678,7 @@ applyLang(idiomaParaMi());
             ab.type = 'button';
             ab.addEventListener('click', function(e2){
               e2.stopPropagation();
-              ab.disabled = true;
-              Promise.resolve(sb.storage.from('recaudos').createSignedUrl(v.archivo, 120))
-                .then(function(rs){
-                  ab.disabled = false;
-                  var url = rs && rs.data && rs.data.signedUrl;
-                  if (!url) throw new Error('sin url');
-                  window.open(url, '_blank', 'noopener');
-                })
-                .catch(function(err){
-                  console.warn('[CIIP] ver anterior:', err && (err.message || err));
-                  ab.disabled = false;
-                  ab.textContent = u.co_noabre || '';
-                });
+              abreFirmado(v.archivo, ab, 'ver anterior');
             });
             linea.appendChild(ab);
           }
