@@ -8380,6 +8380,9 @@ function applyLang(lang){
              /* La bóveda enciende el renglón de «Documentos del equipo»:
                 desde el 24-9-2026 son una sola casilla con dos formas. */
              : (vista === 'comprobantes') ? document.getElementById('navRevisar')
+             /* Y los códigos de los entes, por lo mismo: son la tercera
+                forma de la misma casilla. */
+             : (vista === 'codigos') ? document.getElementById('navRevisar')
              : (vista === 'empresa') ? document.getElementById('navEmpresa')
              : (vista === 'usuarios') ? document.getElementById('navUsuarios')
              : (vista === 'catalogo') ? document.getElementById('navCatalogo')
@@ -21924,6 +21927,24 @@ applyLang(idiomaParaMi());
      abajo los saca de todas formas. */
   function menuPorRol(){
     renglonDeCola();
+    /* ── EL EQUIPO NO TIENE «MI PANEL» ──
+       Franklin Reyes, 25-9-2026: «el gestor no tendrá el apartado de mi
+       panel», y el porqué que dio antes: «él no realizará solicitudes».
+
+       Ese panel es el del inversionista: el catálogo de fichas, las cuatro
+       etapas de su camino y la cuenta de lo que lleva hecho. A quien no
+       pide trámites no le dice nada, y encima le miente un poco -las
+       etapas le salen a cero, como si no hubiera empezado su camino, que
+       es que no tiene ninguno-.
+
+       Se esconde el renglón y, si entra sin dirección, se le lleva a la
+       cola, que es su mesa de trabajo. No se BORRA la vista: los enlaces
+       viejos siguen resolviendo y un administrador que quiera mirarla la
+       tiene escribiendo la dirección. Lo que se quita es la puerta, no la
+       habitación. */
+    var pn = document.getElementById('navPanel');
+    if (pn) pn.hidden = esDelEquipo();
+    if (esDelEquipo() && !location.hash) location.hash = 'poratender';
     var mt = document.getElementById('navTramites');
     if (mt) mt.hidden = false;
     var dc = document.getElementById('navDocs');
