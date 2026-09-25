@@ -1081,7 +1081,7 @@ function applyLang(lang){
     if (tipo === 'activos') traeAlEntrar('CIIP_PINTA_ACTIVOS');
     if (tipo === 'ayuda' && window.CIIP_REPINTA_AYUDA) window.CIIP_REPINTA_AYUDA();
     if (tipo === 'documentos') traeAlEntrar('CIIP_PINTA_DOCS');
-    if (tipo === 'poratender') traeAlEntrar('CIIP_PINTA_PORATENDER');
+    if (tipo === 'poratender') traeAlEntrar('CIIP_ENTRA_PORATENDER');
     if (tipo === 'consultas') traeAlEntrar('CIIP_PINTA_CONSULTAS');
     if (tipo === 'revisar') traeAlEntrar('CIIP_PINTA_REVISAR');
     if (tipo === 'codigos') traeAlEntrar('CIIP_PINTA_CODIGOS');
@@ -14017,10 +14017,25 @@ applyLang(idiomaParaMi());
       if (location.hash === '#poratender') location.hash = '';
       return Promise.resolve();
     }
-    return cargaCola().then(cargaRecaudosHoy).then(pintaHoy).catch(function(e){
+    return cargaCola().then(function(){
+      /* Al entrar, lo tuyo primero (Franklin Reyes, 25-9-2026): si llevas
+         alguno, se abre en «Míos»; si no, en «Todos». Solo al ENTRAR: el
+         repintado de cada medio minuto también pasa por aquí, y devolverte
+         a «Míos» mientras miras «Sin asignar» sería quitarte la pantalla. */
+      if (!coAlEntrar) return;
+      coAlEntrar = false;
+      coFiltro = 'mios';
+      coFiltro = enRevision.some(coCuadra) ? 'mios' : 'todos';
+    }).then(cargaRecaudosHoy).then(pintaHoy).catch(function(e){
       console.warn('[CIIP] lo que toca hoy:', e && e.message);
       pintaHoy();
     });
+  };
+  /* La puerta del enrutador: la misma pintura, avisando de que se entra. */
+  var coAlEntrar = false;
+  window.CIIP_ENTRA_PORATENDER = function(){
+    coAlEntrar = true;
+    return window.CIIP_PINTA_PORATENDER();
   };
   window.CIIP_REPINTA_PORATENDER = pintaHoy;
 

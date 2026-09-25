@@ -5760,9 +5760,26 @@
     }
     HOY_ANTES = D.cola();
     D.siembraHoy();
+    /* Se ENTRA, aunque ya se esté en la cola: lo que se mira primero es lo
+       que ve el gestor al llegar. h2 y h3 son suyos (u1), así que tiene que
+       abrirse en «Míos» (Franklin Reyes, 25-9-2026). Luego se pulsa «Todos»,
+       que es con lo que cuentan los pasos de después. */
     if (document.body.getAttribute('data-vista') !== 'poratender') location.hash = 'poratender';
-    window.CIIP_PINTA_PORATENDER();
-    esperaFilas('#paTandas .hoy-card[data-tr]', 3, sigue);
+    else window.CIIP_ENTRA_PORATENDER();
+    var n = 0;
+    (function mira(){
+      var b = document.querySelector('#paCifras button[data-monton="mios"]');
+      if (!(b && b.getAttribute('aria-pressed') === 'true') && ++n <= 80) return setTimeout(mira, 40);
+      ok('hoy: al entrar, si llevas alguno, se abre en «Míos»',
+         !!b && b.getAttribute('aria-pressed') === 'true',
+         b ? ('aria-pressed=' + b.getAttribute('aria-pressed')) : 'no esta', 'aria-pressed=true');
+      igual('hoy: y enseña solo los tuyos',
+            [].map.call(document.querySelectorAll('#paTandas .hoy-card[data-tr]'),
+                        function(t){ return t.getAttribute('data-tr'); }).join(' '), 'h2 h3');
+      var todos = document.querySelector('#paCifras button[data-monton="todos"]');
+      if (todos) todos.click();
+      esperaFilas('#paTandas .hoy-card[data-tr]', 3, sigue);
+    })();
   }
 
   function hoyMira(){
