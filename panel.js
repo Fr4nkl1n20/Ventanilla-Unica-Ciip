@@ -16638,6 +16638,23 @@ applyLang(idiomaParaMi());
       tr.appendChild(tdIr);
 
       cuerpo.appendChild(tr);
+
+      /* Los seis entes de los registros parafiscales, en un renglón propio
+         debajo de su solicitud (Franklin Reyes, 25-9-2026: «deberían salir
+         en Mis trámites en conjunto con la solicitud»). Es el mismo bloque
+         de la cola y del visor, con «Inscripción hecha» y «Marcar listo»:
+         desde esta tabla se inscribe sin ir a buscar la solicitud a otro
+         sitio. */
+      if (t.tipo === TIPO_PARAFISCALES && t.estado !== 'borrador' && t.estado !== 'cancelado'){
+        var trE = document.createElement('tr');
+        trE.className = 'mt-entes';
+        var tdE = el('td');
+        tdE.colSpan = mtColumnas().length;
+        tdE.appendChild(el('div', 'mt-entes-h', u.pe_titulo || ''));
+        tdE.appendChild(listaDeEntes(t, (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) ? 'equipo' : 'inversionista'));
+        trE.appendChild(tdE);
+        cuerpo.appendChild(trE);
+      }
     });
     pintaPieMt(total, mtPagina, porPag, paginas);
     if (mtSenala) senalaFila(cuerpo, mtSenala);

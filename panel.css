@@ -1888,6 +1888,15 @@ body[data-vista="citas"] .fase-bar{display:none;}
   margin-top:4px;}
 #mtTabla td:last-child{text-align:right;}
 .mt-ir{padding:5px 12px; font-size:11px;}
+/* Los seis entes de los registros parafiscales, en el renglón de debajo de
+   su solicitud y sin raya entre los dos: se leen como una sola cosa. En
+   rejilla y no en columna, que a lo ancho de la tabla caben tres o cuatro
+   por fila y la tabla no se alarga seis bloques. */
+#mtTabla tbody tr.mt-entes td{text-align:left; padding-top:0;}
+#mtTabla tbody tr:has(+ tr.mt-entes) td{border-bottom:0;}
+.mt-entes-h{font-size:var(--fs-nota); font-weight:700; color:var(--ink);}
+.mt-entes .pe-lista{display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+  width:auto;}
 /* ── «MIS TRÁMITES» CON LA TABLA DE ATLAS ──
    El formato de la tabla de contratos suscritos de Atlas (ciip-app,
    .pv-tabla .tb-consola), para que quien usa los dos sistemas del CIIP lea
