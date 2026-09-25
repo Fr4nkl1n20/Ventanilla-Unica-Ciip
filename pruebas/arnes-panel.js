@@ -126,18 +126,51 @@
      ha terminado. Es el mismo criterio de cuandoConteste, que ya está
      unas líneas más arriba: esperar a que algo ocurra, no a que pase un
      rato. */
+  /* Y LOS DEMÁS, SIN TENER QUE ACORDARSE (25-9-2026). Lo de arriba obliga a
+     cada paso que sube un papel a declararse asíncrono, y los que no lo
+     hacían salían rojos de vez en cuando -«envío», «subir», «empresa»,
+     «cache»-, en un expediente u otro, según quién ganara la carrera. Así
+     que la cadena vigila ella misma lo que corre en tiempo de verdad -la
+     lectura de un archivo y su SHA-256- y no pasa al paso siguiente
+     mientras quede algo a medias. El tope se cuenta en vueltas y no en
+     milisegundos, porque aquí los milisegundos son del reloj virtual y se
+     gastarían sin esperar a nada. */
+  var A_MEDIAS = 0;
+  (function(){
+    function vigila(obj, nombre){
+      var orig = obj && obj[nombre];
+      if (typeof orig !== 'function') return;
+      obj[nombre] = function(){
+        var p = orig.apply(this, arguments);
+        A_MEDIAS++;
+        var fin = function(){ A_MEDIAS--; };
+        Promise.resolve(p).then(fin, fin);
+        return p;
+      };
+    }
+    if (window.crypto && window.crypto.subtle) vigila(window.crypto.subtle, 'digest');
+    if (window.Blob) vigila(Blob.prototype, 'arrayBuffer');
+  })();
+  function cuandoQuieto(sigue){
+    var vueltas = 0;
+    (function mira(){
+      if (A_MEDIAS <= 0 || ++vueltas > 1000) return setTimeout(sigue, 60);
+      setTimeout(mira, 10);
+    })();
+  }
+
   function enCadena(pasos, alFinal){
     var i = 0;
     (function siguiente(){
       if (i >= pasos.length) return alFinal();
       var paso = pasos[i++];
       try {
-        if (paso.length === 1){ paso(function(){ setTimeout(siguiente, 60); }); return; }
+        if (paso.length === 1){ paso(function(){ cuandoQuieto(siguiente); }); return; }
         paso();
       } catch(e){
         ok('el arnés llegó al final', false, 'EXCEPCION en el paso ' + i + ': ' + e.message, 'sin excepciones');
       }
-      setTimeout(siguiente, 500);
+      setTimeout(function(){ cuandoQuieto(siguiente); }, 500);
     })();
   }
 
@@ -1503,7 +1536,8 @@
          haya pedido para sí —normalmente ninguno—. Se mira el rótulo, que es
          como lo distingue una persona. */
       var rot = document.querySelector('#navTramites [data-i18n]');
-      if (rot && rot.getAttribute('data-i18n') === 'nav.queue') return;
+      if (rot && (rot.getAttribute('data-i18n') === 'nav.queue' ||
+                  rot.getAttribute('data-i18n') === 'nav.tramites')) return;
       /* Se cuenta contra lo que la propia lista dibuja, no contra un número
          escrito: cada expediente de prueba trae los suyos, y el expediente
          "vacío" no es "sin filas" sino "sin nada que anunciar". Una cifra a
@@ -1555,7 +1589,8 @@
       var t = document.title;
       var chapa = document.getElementById('navTramitesN');
       var rot = document.querySelector('#navTramites [data-i18n]');
-      var esCola = !!rot && rot.getAttribute('data-i18n') === 'nav.queue';
+      var esCola = !!rot && (rot.getAttribute('data-i18n') === 'nav.queue' ||
+                             rot.getAttribute('data-i18n') === 'nav.tramites');
       /* El título suma las dos colas del equipo aunque cada renglón de la
          barra cuente lo suyo: trámites por un lado, consultas y citas por
          otro. Una chapa oculta cuenta cero. */
@@ -1723,6 +1758,19 @@
           var base = linea.top + medioHueco + m.fontBoundingBoxAscent;
           var centroTinta = ((base - m.actualBoundingBoxAscent) + (base + m.actualBoundingBoxDescent)) / 2;
           return centroTinta - (caja.top + caja.height / 2);
+        }
+        /* Solo se mide en Windows, que es donde el CIIP mira el panel. El
+           panel pide 'Helvetica Neue', Arial; un Linux no tiene ninguna de
+           las dos y pone Arimo o Noto Sans en su lugar. Son otra letra con
+           otras colas, y la cifra se desviaba justo un píxel en los
+           diecisiete expedientes sin que el panel tuviera nada que ver.
+           Tampoco se puede preguntar al navegador si Arial está: Linux
+           hace pasar Arimo por Arial a propósito (mismo ancho), y una
+           prueba de anchos dice que sí está. (25-9-2026) */
+        if (!/Windows/.test(navigator.userAgent)){
+          ok('números: el trazo va centrado en su punto, no solo la caja', true,
+             'no se mide fuera de Windows: la letra del sistema es otra', 'medio píxel o menos');
+          return;
         }
         var peor = 0, donde = '';
         document.querySelectorAll('.jp .num, .phase-h .pn, .faq-item .qi').forEach(function(e){
@@ -4285,13 +4333,17 @@
          fila.querySelector('.sd-ver') ? 'sigue el boton' : 'se fue', 'se fue');
     })();
 
-    /* La nómina del RNC NO es la del RNET, y en una lista única eso pasa de
-       matiz a trampa: son dos recaudos distintos -la de trabajadores y la
-       de personal TÉCNICO con sus títulos- y juntarlos en uno dejaría al
-       RNC midiendo tamaño de plantilla en vez de capacidad técnica. */
-    ok('parafiscales: la nómina de trabajadores y la técnica son dos, no una',
-       /personal técnico/i.test(caja.textContent) && /Nómina de trabajadores/.test(caja.textContent),
-       'busca las dos', 'las dos, cada una por su lado');
+    /* Lo que es del RNC se pide en el RNC. El 23-9-2026 (53e20b7) salieron
+       de esta casilla la nómina de personal TÉCNICO, la relación de
+       experiencia, la de equipos y la solvencia del IVSS: «el RNC (c13) los
+       sigue pidiendo». Aquí se queda la nómina de trabajadores, y la
+       técnica no puede volver a colarse: juntarlas dejaría al RNC midiendo
+       tamaño de plantilla en vez de capacidad técnica. */
+    ok('parafiscales: la nómina de trabajadores sí, la técnica es del RNC',
+       /Nómina de trabajadores/.test(caja.textContent) && !/personal técnico/i.test(caja.textContent),
+       (/Nómina de trabajadores/.test(caja.textContent) ? 'trabajadores: sí' : 'trabajadores: no') + ' · ' +
+       (/personal técnico/i.test(caja.textContent) ? 'técnica: sí' : 'técnica: no'),
+       'trabajadores: sí · técnica: no');
 
     /* El relleno: la razón social ya viene escrita desde Mi empresa, y el
        campo dice de dónde salió. Sin decirlo, parecería que el panel se
@@ -4307,9 +4359,13 @@
       igual('empresa: y el RIF también', rif ? rif.value : '(no hay campo)', 'J-40123456-7');
     })();
 
+    /* Con su nombre y no con su código: se buscaba «Estados financieros
+       auditados», que salió el 23-9-2026 (e3f82a2). Ahora, uno de los tres
+       que entraron ese día en su lugar, y que el código no asome. */
     ok('parafiscales: los recaudos salen con su nombre, no con su código',
-       /Estados financieros auditados/.test(caja.textContent),
-       'busca "Estados financieros auditados"', 'aparece');
+       /Cédula de los miembros de la junta directiva/.test(caja.textContent) &&
+         !/cedulas_junta|d_cedulasjunta/.test(caja.textContent),
+       'busca "Cédula de los miembros de la junta directiva"', 'aparece, y sin el código');
 
     /* La escalera del trámite en curso marca dónde vas. El texto vive en
        CIIP_PASOS.aqui, no dentro de ui: buscarlo en el sitio equivocado
@@ -5080,6 +5136,13 @@
     ok('F5: sin sesión todavía, no declara que no hay nadie',
        t.indexOf('No hay ninguna cuenta') < 0, t.slice(0, 60) || '(vacía)', 'sin ese mensaje');
     PERFIL.rolReal = f5Antes;
+    /* Y se hace lo que hace la página cuando el perfil llega de verdad:
+       repintar el menú según el rol. Sin esto, si el refresco de cada
+       minuto caía dentro de esta ventana -rolReal apagado a mano-, el menú
+       se quedaba pintado como de alguien sin rol (con la bóveda a la vista
+       del administrador) y nadie lo corregía: la prueba de la bóveda salía
+       roja por culpa del arnés, no del panel (25-9-2026). */
+    if (window.CIIP_REPINTA_COLA) window.CIIP_REPINTA_COLA();
   }
 
   function f5Llega(){
@@ -5267,9 +5330,11 @@
        filtrar en la portada no tiene que aprender otra cosa aquí. */
     (function(){
       var fil = document.querySelectorAll('#mtFiltros button');
-      igual('mis trámites: seis montones, uno por sitio donde puede estar',
+      /* Y el séptimo, «devuelta», desde el 21-9-2026 (b447cfb): lo que el
+         CIIP te devolvió para corregir no es «en proceso», es tuyo. */
+      igual('mis trámites: siete montones, uno por sitio donde puede estar',
             [].map.call(fil, function(b){ return b.getAttribute('data-monton'); }).join(','),
-            'todas,accion,ciip,ente,listo,tarde');
+            'todas,devuelta,accion,ciip,ente,listo,tarde');
       igual('mis trámites: el primero, con la palabra de la portada',
             (fil[0].querySelector('.mtc-t') || {}).textContent, 'Todos');
       ok('mis trámites: cada uno con su cifra y lo que quiere decir',
@@ -5466,10 +5531,14 @@
       fila.click();
       return;
     }
+    /* Tres rótulos desde el 21-9-2026 (93a84d8): al gestor «Trámites por
+       atender», que abre la cola; al administrador «Trámites», una casilla
+       con dos formas de mirarla (tarjetas y tabla) que no puede llamarse
+       por ninguna de las dos. */
     igual('barra: al equipo del CIIP el renglon pasa a ser la cola',
-          et ? et.getAttribute('data-i18n') : 'sin etiqueta', 'nav.queue');
+          et ? et.getAttribute('data-i18n') : 'sin etiqueta', ES_ADMIN ? 'nav.tramites' : 'nav.queue');
     igual('barra: y lo dice con todas las letras',
-          et ? et.textContent.trim() : '', 'Trámites por atender');
+          et ? et.textContent.trim() : '', ES_ADMIN ? 'Trámites' : 'Trámites por atender');
     /* Y el numero es el de la COLA, no el de sus tramites. Antes esto se
        comprobaba contra la chapa del boton «Por atender» de arriba -que los
        dos dijeran lo mismo-; el boton se retiro y esta chapa se quedo sola,
@@ -5506,8 +5575,11 @@
       location.hash = 'poratender';
       return;
     }
+    /* Al gestor, las tarjetas de lo que toca hoy; al administrador, la
+       tabla, que es el registro (93a84d8: «al gestor le sale en tarjetas
+       -viene a trabajar- y al administrador en tabla»). */
     igual('barra: y al equipo le abre lo que toca hoy',
-          document.body.getAttribute('data-vista'), 'poratender');
+          document.body.getAttribute('data-vista'), ES_ADMIN ? 'mistramites' : 'poratender');
 
     /* Y el renglón de «Consultas y citas», que es del equipo. A dónde lleva
        lo miran los pasos cm* de más abajo. */
@@ -5636,6 +5708,11 @@
           document.body.getAttribute('data-vista'), 'consultas');
     PERFIL.rol = cmF5.rol;
     PERFIL.rolReal = cmF5.real;
+    /* Y se hace lo que hace la página cuando el perfil llega de verdad:
+       repintar el menú según el rol. Sin esto, si el refresco de cada
+       minuto caía dentro de esta ventana -rolReal apagado a mano-, el menú
+       se quedaba pintado como de alguien sin rol y nadie lo corregía: igual que en el F5 de #usuarios (25-9-2026). */
+    if (window.CIIP_REPINTA_COLA) window.CIIP_REPINTA_COLA();
     cmF5 = null;
     location.hash = '';
   }
@@ -6924,19 +7001,32 @@
     location.hash = 'documentos';
   }
 
-  function cacheSube2(){
-    if (CASO !== 'vacio' || !window.PRUEBA_CACHE) return;
+  /* Espera a que la subida TERMINE antes de volver al trámite. Subir es una
+     cadena -la huella, el cubo, la ficha- y el arnés avanzaba a medio
+     segundo fijo: unas veces volvía con el papel ya guardado y otras antes,
+     y esta prueba salía roja de vez en cuando, en un expediente u otro, sin
+     que el panel cambiara (25-9-2026). Lo que se mide es que el trámite se
+     entere SIN RECARGAR, no quién gana esa carrera. Tope de tres segundos:
+     si no llega, la prueba de después dice que no está. */
+  function cacheSube2(listo){
+    if (CASO !== 'vacio' || !window.PRUEBA_CACHE) return listo();
     var bt = document.getElementById('dcSubir');
     if (bt) bt.click();
     var sel = document.getElementById('dcTipo');
     var arc = document.getElementById('dcArchivo');
-    if (!sel || !arc) return;
+    if (!sel || !arc) return listo();
     sel.value = 'solvencia_seniat';
     var dt = new DataTransfer();
     dt.items.add(new File([new Uint8Array(8)], 'solvencia-seniat.pdf', {type:'application/pdf'}));
     arc.files = dt.files;
     arc.dispatchEvent(new Event('change'));
     document.getElementById('dcGuarda').click();
+    var n = 0;
+    (function mira(){
+      var boveda = document.querySelector('.docs-vista');
+      if ((boveda && boveda.textContent.indexOf('solvencia-seniat.pdf') >= 0) || ++n > 75) return listo();
+      setTimeout(mira, 40);
+    })();
   }
 
   function cacheVuelve(){
@@ -8897,17 +8987,31 @@
        Se busca el texto tal cual, sin expresión regular: una barra
        invertida de menos aquí daría una prueba que corre y no encuentra
        nada. */
-    var sinLaExcepcion = texto.split('cajaTabla.hidden = true').join('');
+    /* LO QUE CAMBIÓ OTRA VEZ (Franklin Reyes, 21-9-2026, 93a84d8): «el
+       cuadro de abajo ya no desaparece». Con cero solicitudes, la caja de
+       «Mis trámites» se QUEDA -marco, cabecera, pie- y dentro sale su
+       aviso de vacío (pintaVaciaMt). Lo que se esconde es solo el <table>,
+       y siempre para dejar sitio a ese aviso dentro del marco.
+
+       Así que la excepción ya no es la caja, es esa pareja: esconder la
+       tabla y, acto seguido, pintar el vacío en su sitio. Todo lo demás
+       sigue prohibido, y la caja ya no se esconde nunca. Puesto al día el
+       25-9-2026: la regla vieja fallaba en los 17 expedientes y un rojo
+       que siempre está no avisa de nada. */
+    var PAREJA = /tabla\.hidden = true;\s*pintaVaciaMt\(/g;
+    var parejas = (texto.match(PAREJA) || []).length;
+    var sinLaExcepcion = texto.replace(PAREJA, '');
     var malo = sinLaExcepcion.indexOf('tabla.hidden = true') >= 0 ||
                sinLaExcepcion.indexOf('Tabla.hidden = true') >= 0;
     ok('tablas: ninguna esconde su tabla por quedarse vacía',
        !malo, malo ? 'alguna se esconde' : 'ninguna', 'ninguna');
 
-    /* Y la excepción es UNA: la caja de «Mis trámites», una sola vez. Dos
-       apariciones querrían decir que la regla se está usando de coladero. */
-    var cuantas = texto.split('cajaTabla.hidden = true').length - 1;
-    ok('tablas: y la única excepción es la caja de «Mis trámites»',
-       cuantas === 1, cuantas + ' veces', 'una');
+    /* Y la de «Mis trámites» esconde solo la tabla, nunca el marco, y
+       siempre con el aviso de vacío detrás. */
+    ok('tablas: «Mis trámites» deja el marco y pone dentro su aviso de vacío',
+       parejas >= 1 && texto.indexOf('cajaTabla.hidden = true') < 0,
+       parejas + ' parejas tabla/aviso, caja escondida: ' + (texto.indexOf('cajaTabla.hidden = true') >= 0),
+       'al menos una pareja y la caja nunca escondida');
   }
 
   function iFasesMira(){
@@ -9553,9 +9657,16 @@
        las treinta y dos: el cuadro sale si y solo si algun papel de la ficha
        rellena alguna casilla suya, y eso es justo lo que la tabla dice. Si
        mañana una ficha nueva llega sin su linea, esto lo canta. */
-    igual('lector: el cuadro sale en todas las fichas menos la firma electrónica',
+    /* Y desde el 15-9-2026, la opinión de la ZODI (c34): va ANTES del
+       Registro Mercantil, así que pide el PROYECTO de acta (proyecto_acta)
+       y no el acta registrada, y el lector solo lee la registrada. Anotado
+       el 25-9-2026 como excepción conocida, no como olvido: que el lector
+       lea también el proyecto -de ahí saldrían la denominación y el objeto
+       social- es una decisión pendiente. Si se toma, basta con añadir
+       'proyecto_acta' a esas casillas en LEE_DE y quitarla de aquí. */
+    igual('lector: el cuadro sale en todas las fichas menos la firma y la opinión de la ZODI',
           window.CIIP_SIN_LECTOR ? window.CIIP_SIN_LECTOR().join(', ') : '(no está la función)',
-          'firma_electronica');
+          'opinion_zodi, firma_electronica');
   }
 
   /* La situacion que se quiere medir: alguien que TODAVIA no tiene empresa
@@ -10590,8 +10701,12 @@
   function tdMira(){
     if (ES_ADMIN){
       var nav = document.getElementById('navTodosTram');
-      ok('todos: el administrador tiene su renglón «Todos los trámites»',
-         !!nav && !nav.hidden, nav ? (nav.hidden ? 'escondido' : 'a la vista') : 'no está', 'a la vista');
+      /* El renglón «Todos los trámites» se retiró el 21-9-2026 (93a84d8):
+         su tabla es una de las dos formas de la casilla «Trámites». Queda
+         en el marcado, escondido, porque su dirección sigue viva y los
+         avisos que llevan a una fila la usan. */
+      ok('todos: el renglón «Todos los trámites» se retiró: su tabla está en «Trámites»',
+         !!nav && nav.hidden, nav ? (nav.hidden ? 'escondido' : 'a la vista') : 'no está', 'escondido');
       igual('todos: y la tabla se abre', document.body.getAttribute('data-vista'), 'mistramites');
       var filas = document.querySelectorAll('#mtCuerpo tr:not(.sin-nada)');
       ok('todos: con las solicitudes de la oficina', filas.length > 0,
@@ -11797,12 +11912,14 @@
        /Saskia Calderon/.test(fichas[1].textContent),
        fichas[1].querySelector('.co-duenio').textContent.trim(), 'Lo lleva Saskia Calderon');
 
-    /* Los tres montones, con su cuenta. */
+    /* Los montones, con su cuenta. Eran tres; el 21-9-2026 (c791b4f) llegó
+       el cuarto, «Devueltos», al final, para que lo que espera al
+       inversionista no se mezcle con lo que espera al equipo. */
     var fil = document.querySelectorAll('#colaFiltros button');
-    igual('reparto: hay tres montones', fil.length, 3);
+    igual('reparto: hay cuatro montones', fil.length, 4);
     igual('reparto: y cada uno dice cuántos tiene',
           [].map.call(fil, function(b){ return b.textContent.trim(); }).join(' | '),
-          'Todos2 | Sin asignar1 | Míos0');
+          'Todos2 | Sin asignar1 | Míos0 | Devueltos0');
 
     /* Tomar uno. NO es un cerrojo: lo único que cambia es el nombre. */
     fichas[0].querySelector('.co-duenio button').click();
@@ -11824,7 +11941,7 @@
     var fil = document.querySelectorAll('#colaFiltros button');
     igual('reparto: y las cuentas se mueven con él',
           [].map.call(fil, function(b){ return b.textContent.trim(); }).join(' | '),
-          'Todos2 | Sin asignar0 | Míos1');
+          'Todos2 | Sin asignar0 | Míos1 | Devueltos0');
 
     /* Filtrar por "Míos" deja solo el tuyo. */
     fil[2].click();

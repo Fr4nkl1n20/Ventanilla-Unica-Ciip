@@ -1960,25 +1960,29 @@ select arnes.comprueba(
   (select coalesce(string_agg(ref_panel, ' ' order by ref_panel), 'ninguno')
      from public.tipos_tramite where nivel = 'obligatorio' and fase = 1));
 
--- Los otros seis de la fase 1. La suma tiene que dar once: si un tramite
--- de esa fase se quedara sin marcar, volveria a verse igual que los
--- obligatorios y la primera pantalla seguiria pareciendo un muro, que es
--- justo lo que se venia a arreglar.
+-- Los opcionales de la fase 1. Eran seis y la fase once el 2-9-2026; el
+-- catalogo cambio despues por decision del CIIP: se quitaron tres fichas
+-- (antecedentes, constancia de domicilio, visa de dependientes), la
+-- licencia (c4) y el certificado medico (c21) se apagaron el 25-9, y entro
+-- la visa de inversionista (c38) como 'esencial'. Puesto al dia el
+-- 25-9-2026 con lo que hay en produccion, que coincide con esto pieza a
+-- pieza. Lo que se sigue exigiendo es lo que importaba: que ninguno de la
+-- fase 1 se quede sin marcar y parezca obligatorio sin serlo.
 select arnes.comprueba(
-  'informe: y los otros seis de la fase 1 son opcionales',
-  (select count(*) = 6 from public.tipos_tramite
-    where nivel = 'opcional' and fase = 1),
+  'informe: los opcionales de la fase 1 son la firma y los dos apagados',
+  (select coalesce(string_agg(ref_panel, ' ' order by ref_panel), '') = 'c19 c21 c4'
+     from public.tipos_tramite where nivel = 'opcional' and fase = 1),
   (select coalesce(string_agg(ref_panel, ' ' order by ref_panel), 'ninguno')
      from public.tipos_tramite where nivel = 'opcional' and fase = 1));
 
--- Y que no quede ninguno de la fase 1 en otro nivel: cinco mas seis, once.
+-- Y que no quede ninguno de la fase 1 sin nivel.
 select arnes.comprueba(
-  'informe: la fase 1 son once, y todos marcados',
-  (select count(*) = 11 from public.tipos_tramite
-    where fase = 1 and nivel in ('obligatorio','opcional')),
-  (select coalesce(string_agg(ref_panel || '=' || nivel, ' ' order by ref_panel), '-')
+  'informe: la fase 1, toda marcada',
+  (select count(*) = 0 from public.tipos_tramite
+    where fase = 1 and coalesce(nivel, '') not in ('obligatorio','opcional','esencial')),
+  (select coalesce(string_agg(ref_panel || '=' || coalesce(nivel, 'nulo'), ' ' order by ref_panel), '-')
      from public.tipos_tramite
-    where fase = 1 and nivel not in ('obligatorio','opcional')));
+    where fase = 1 and coalesce(nivel, '') not in ('obligatorio','opcional','esencial')));
 
 select arnes.comprueba(
   'informe: y los cinco de la fase 2',
@@ -2547,7 +2551,11 @@ declare
   vistos text;
 begin
   select coalesce(max(id), 0) into antes from public.bitacora;
-  select codigo into tipo from public.tipos_tramite order by codigo limit 1;
+  -- Uno CONCRETO, y uno que ya tiene plazo. Era «el primero por orden
+  -- alfabetico», y desde el 23-9-2026 ese es aporte_locti: esta seccion le
+  -- sumaba siete dias y la del LOCTI, mas abajo, fallaba al encontrarle un
+  -- plazo que no tiene. Ninguna otra prueba mira el plazo de la firma. (25-9)
+  tipo := 'firma_electronica';
 
   update public.tipos_tramite set plazo_dias = coalesce(plazo_dias, 0) + 7 where codigo = tipo;
   update public.tipos_tramite set nombre = nombre where codigo = tipo;

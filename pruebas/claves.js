@@ -243,6 +243,10 @@ const PROPIOS = new Set((
      rótulo llevaba detrás «· Demonstração de conceito», porque con eso
      pasaba de cinco palabras y la regla ni lo miraba. */
   'Balcão Investidor ' +
+  /* Nombres de organismos que llegaron con las inscripciones parafiscales
+     y la visa (25-9-2026): «IVSS · Seguro Social», «Ministry of Labour ·
+     RNET», «Ir al portal de Cancillería», en sus idiomas. */
+  'Seguro Social Security Segurança Previdenza Labour Cancillería Chancelaria Cancelleria ' +
   /* El Registro de Extranjeros del SAREN, por su nombre, en los cuatro
      idiomas latinos. Es el mismo caso que «Registro Mercantil»: se llama
      asi, no es una palabra suelta en mayuscula por descuido. El español
@@ -307,7 +311,31 @@ const SALTOS = new Set([
   'pa_lee_elegir',
   /* La misma segunda linea en la caja del acta de Mi empresa: «Suelta
      aqui el acta / o pulsa para elegirla». */
-  'em_acta_elegir'
+  'em_acta_elegir',
+  /* Cinco finales que se pintan DETRAS de otro texto, casi siempre tras un
+     « · », y por eso empiezan en minuscula (25-9-2026):
+       · av_de       «Papel subido · de Ana Pérez», en la campana
+       · rv_espera   «3 · espera desde el 12 sep.», en la cola de revisar
+       · cb_ultimo   «3 · último el 12 sep.», en la de comprobantes
+       · sol_novale  «pasaporte.pdf · no valió · súbelo de nuevo»
+       · eq_tardo    «tardó 3 h», la etiqueta dentro de la linea de un
+                     evento del historial, detras del cambio de estado */
+  'av_de', 'rv_espera', 'cb_ultimo', 'sol_novale', 'eq_tardo',
+  /* Y las etiquetas de «Mis trámites» y del tablero del equipo, escritas en
+     minúscula en LOS SEIS idiomas, que es la señal de que es a propósito:
+     «contesta en {t}», «se pasó», «sin marca todavía», «sin tomar», «cifras
+     de los últimos 7 días», «de {n}». Van dentro de una línea, al lado de
+     la cifra o del plazo que acompañan. */
+  'mt_suele', 'mt_sepaso', 'mt_sinmarca', 'mt_sintomar', 'eq_periodo', 'eq_de',
+  /* «{n} trámites» empieza por la cifra en cinco idiomas; en ruso va al
+     revés, «процедур: {n}», porque detrás de un número la palabra cambia
+     de caso según la cifra (1, 2-4, 5+) y así no hay que declinarla. */
+  'mt_equipo_n',
+  /* El nombre de la casilla c37 lo escribio el CIIP con mayusculas, como
+     nombre propio: «Registros Parafiscales y Regulatorios». Su version
+     editada vive en textos_panel y manda sobre la de aqui; la norma de
+     «sin mayusculas en medio» no es para un nombre que el CIIP decidio. */
+  'c37.name'
 ]);
 
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\s*/gu;

@@ -1518,6 +1518,20 @@
       op.in.tramite.forEach(function(id){
         (HOY_DOCS[id] || []).forEach(function(d){ deHoy.push({tramite:id, documento:d.id, documentos:d}); });
       });
+      /* El documento para pagar la reserva, para la campana. Desde el
+         21-9-2026 el buzon pide los enganches CON su papel filtrando por
+         sus tramites -.in('tramite', mios)-, y este falso solo lo daba a la
+         consulta sin filtro de mas abajo: la campana del pase 'tramos' se
+         quedaba muda y la prueba de la reserva fallaba en los tres pases
+         sin que el panel tuviera nada que ver. Se da aqui igual que alli,
+         y solo si 'p2' esta entre los pedidos, que es lo que haria la base. */
+      if (conTramos && op.in.tramite.indexOf('p2') >= 0 &&
+          /documentos\(/.test(op.cols || '')){
+        deHoy.push({tramite:'p2', documento:'dp1', documentos:{
+          id:'dp1', tipo:'planilla_reserva_nombre',
+          nombre_original:'planilla-reserva-saren.pdf',
+          creado_en:new Date(Date.now() - 3600000).toISOString()}});
+      }
       if (deHoy.length) return {data:deHoy, error:null};
       return {data: op.in.tramite.indexOf('t4') >= 0
         ? [{tramite:'t4', documento:'dr1', documentos:{tipo:'resolucion',

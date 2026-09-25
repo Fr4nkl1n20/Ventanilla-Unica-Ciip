@@ -1,65 +1,86 @@
-# Guía de pruebas del acceso
+# Guía de pruebas
 
-Cómo comprobar que el registro, el inicio de sesión y la recuperación de clave
-funcionan de verdad.
+Cómo comprobar que el proyecto funciona: primero lo automático, después el
+acceso a mano contra un Supabase de verdad.
+
+> Puesta al día el 25-09-2026. El acceso ya no tiene registro, ni «¿olvidaste
+> tu clave?», ni la casilla de «mantener la sesión abierta»: las cuentas las
+> crea el CIIP y la clave nueva solo llega por el correo de recuperación. Lo
+> que esta guía decía de esas pantallas se ha quitado.
 
 ---
 
 ## Parte 0 · La forma rápida: doble clic en `PROBAR-TODO.bat`
 
-**Haz doble clic en `PROBAR-TODO.bat`.** Corre las diez tandas —el acceso,
-el panel, los conectores, el trabajador, los avisos, el barrendero, el
-cobrador, el SQL y las cerraduras— y termina con un cuadro: cuántas fueron
-bien, cuáles fallaron y **cuáles no se pudieron probar y por qué**.
+**Haz doble clic en `PROBAR-TODO.bat`.** Corre las doce tandas —los
+conectores, el SAREN, el trabajador, los pagos, los avisos, el barrendero, el
+asistente, el lector, el acceso, el panel, el SQL y las cerraduras— y termina
+con un cuadro: cuántas fueron bien, cuáles fallaron y **cuáles no se pudieron
+probar y por qué**.
 
 Esa tercera columna es la razón de que exista. Una tanda que no corre por
-falta de una clave local no es un fallo, pero tampoco es un verde, y
-contarla como verde es exactamente lo que pasó: el arnés del acceso estuvo
-días sin ejecutarse mientras su `.bat` contestaba que todo bien.
+falta de una clave local no es un fallo, pero tampoco es un verde, y contarla
+como verde es exactamente lo que pasó: el arnés del acceso estuvo días sin
+ejecutarse mientras su `.bat` contestaba que todo bien.
 
-Si solo quieres el acceso, `PROBAR.bat` sigue ahí: **31 pruebas** que
-cubren lo mismo que la parte 1 de esta guía, más comprobaciones que a mano
-son tediosas —que ningún texto se quede sin traducir en los seis idiomas,
-que la ilustración cargue, que el ojo de la clave la muestre y la esconda—.
+`PROBAR-A-MANO.bat` no entra en la tanda: no es una prueba, es la revisión a
+ojo, y abre el navegador.
 
-No hace falta instalar nada: usa el Chrome o el Edge que ya tienes. **No modifica
-`acceso.html`**; trabaja sobre una copia temporal en `%TEMP%\ciip-pruebas`.
+### El panel en verde quiere decir algo
 
-Si sale `FALLA`, debajo aparece qué esperaba y qué obtuvo.
+El arnés del panel (`PROBAR-PANEL.bat`) corre 17 expedientes de prueba y
+**tiene que salir entero en verde**: 8.617 de 8.617 el 25-09-2026. Hasta ese
+día arrastraba unos 80 fallos viejos —pruebas que no se habían puesto al día
+tras un rediseño, una medida de píxeles que solo vale en Windows y cuatro que
+fallaban o no según quién ganara una carrera— y con 80 rojos fijos un rojo
+nuevo no se ve. Si hoy sale uno, es de verdad.
 
-> Estas pruebas están comprobadas: al romper el código a propósito en tres
-> sitios, fallaron ocho de ellas señalando exactamente lo roto. No son de las
-> que pasan pase lo que pase.
+Antes de nada, `PROBAR-PANEL` corre `pruebas/cerrojos.js`: comprueba que
+siguen en su sitio los arreglos de seguridad que viven en archivos
+compartidos (la versión fija de supabase-js, la firma del asistente, la clave
+nueva solo desde el correo, la CSP…). Si falta alguno **se para**: casi
+siempre es que se editó una copia vieja del archivo. Trae la última
+(`git pull`) y rehaz encima tu cambio.
 
-Los archivos están en `pruebas\`: `arnes.js` son las pruebas en sí (añadir una
-es copiar una línea `caso(...)`) y `ejecutar.ps1` es el lanzador.
+### Solo el acceso
 
-**Lo que estas pruebas NO cubren:** nada que hable con Supabase. Para eso, las
-partes 2 a 4.
+`PROBAR.bat`: **33 pruebas** que cubren la parte 1 de esta guía y cosas que a
+mano son tediosas —que ningún texto se quede sin traducir en los seis
+idiomas, que la ilustración cargue, que el ojo de la clave la muestre y la
+esconda, que `#nueva` escrito a mano no abra la vista de clave nueva—.
+
+No hace falta instalar nada: usa el Chrome o el Edge que ya tienes. **No
+modifica `acceso.html`**; trabaja sobre una copia temporal en
+`%TEMP%\ciip-pruebas`. Si sale `FALLA`, debajo aparece qué esperaba y qué
+obtuvo.
+
+Los archivos están en `pruebas\`: `arnes.js` son las pruebas del acceso
+(añadir una es copiar una línea `caso(...)`) y `ejecutar.ps1` el lanzador;
+`arnes-panel.js` y `panel.ps1`, los del panel.
+
+**Lo que estas pruebas NO cubren:** nada que hable con un Supabase de verdad.
+Para eso, las partes 2 a 4, y `PROBAR-CERRADURAS.bat`.
 
 ---
 
 ## Parte 1 · Lo que puedes probar AHORA, sin Supabase
 
-Toda la validación del formulario corre **antes** de tocar la base de datos, así
-que funciona aunque `SUPABASE_URL` siga con el valor de ejemplo. Abre
-`acceso.html` y recorre esta lista.
+La validación del formulario corre **antes** de tocar la base de datos, así
+que funciona aunque `config.js` no tenga claves. Abre `acceso.html` y recorre
+esta lista.
 
 | # | Qué hacer | Qué debe pasar |
 |---|---|---|
-| 1 | Entrar con los dos campos vacíos | "Completa todos los campos." y el campo del correo en rojo |
-| 2 | Correo `hola` + cualquier clave | "Introduce un correo válido." |
-| 3 | En Crear cuenta, clave de 5 caracteres | "La clave debe tener al menos 8 caracteres." |
-| 4 | Claves que no coinciden | "Las claves no coinciden." y los dos campos en rojo |
-| 5 | Todo bien pero sin marcar la casilla de datos | "Debes aceptar el tratamiento de datos para continuar." |
-| 6 | Todo correcto | "El acceso no está conectado a la base de datos todavía." |
-| 7 | Botón del ojo en cada campo de clave | Alterna entre puntos y texto, y el icono se pone azul |
-| 8 | Enlaces Crear cuenta / ¿Olvidaste tu clave? / Volver | Cambian de vista y limpian los mensajes anteriores |
-| 9 | Cambiar de idioma con un mensaje de error en pantalla | El mensaje **también** se traduce |
-| 10 | Cambiar el tema y recargar | Se mantiene el tema elegido |
-| 11 | Estirar y encoger la ventana | El formulario queda centrado; la página no se desplaza |
+| 1 | Entrar con los dos campos vacíos | «Completa todos los campos.» y el campo del correo en rojo |
+| 2 | Correo `hola` + cualquier clave | «Introduce un correo válido.» |
+| 3 | Todo correcto, sin claves en `config.js` | «El acceso no está conectado a la base de datos todavía.» |
+| 4 | Botón del ojo en el campo de la clave | Alterna entre puntos y texto |
+| 5 | Escribir `#nueva` al final de la dirección | **No** abre «Crea una clave nueva»: se queda en el login |
+| 6 | Cambiar de idioma con un mensaje de error en pantalla | El mensaje **también** se traduce |
+| 7 | Cambiar el tema y recargar | Se mantiene el tema elegido |
+| 8 | Estirar y encoger la ventana | El formulario queda centrado; la página no se desplaza |
 
-Si el paso 6 muestra un mensaje distinto a "no está conectado", algo va mal
+Si el paso 3 muestra un mensaje distinto a «no está conectado», algo va mal
 antes de tiempo.
 
 ---
@@ -78,11 +99,18 @@ antes de tiempo.
 
 ### 2.2 Crear las tablas
 
-**SQL Editor → New query**, pega el contenido íntegro de `supabase-setup.sql`
-y pulsa **Run**. Se puede ejecutar varias veces sin romper nada, con una
-salvedad: si ya corriste `supabase-admin.sql`, vuelve a correrlo detrás. El
-de admin redefine `bloquear_cambio_de_rol()`, que nace aquí, y este archivo
-la devuelve a la versión que no deja repartir roles.
+**SQL Editor → New query**, pega **entero** `TODO-EN-ORDEN.sql` y pulsa
+**Run**. Es la unión de todos los `supabase-*.sql` en el orden correcto (la
+lista está en `pruebas/juntar-sql.js`) y se puede ejecutar varias veces sin
+romper nada.
+
+> **Cópialo desde VS Code o desde GitHub, nunca desde una consola de
+> Windows.** La consola enseña el UTF-8 como si fuera otra codificación, y lo
+> que se pega se guarda con los acentos rotos («C├®dula»). Pasó el 25-09-2026
+> con doce nombres del catálogo.
+
+Si cambias un `supabase-*.sql`, regenera el archivo único:
+`node pruebas/juntar-sql.js`. `TODO-EN-ORDEN.sql` no se edita a mano.
 
 Comprueba que el RLS quedó activo:
 
@@ -94,134 +122,87 @@ Debe devolver `true`.
 
 ### 2.3 Rellenar `config.js`
 
-**Un solo archivo: `config.js`.** Abre y pega los dos valores:
+`config.js` tiene **dos** proyectos, `real` y `pruebas`, y elige solo por
+dónde se abre la página: `localhost`, `file://` o una IP de la oficina →
+pruebas; cualquier otra dirección → real. Pega la *Project URL* y la *anon
+key* en el bloque que toque. La consola del navegador dice al cargar contra
+cuál estás.
 
-```js
-SUPABASE_URL:      'https://loquesea.supabase.co',
-SUPABASE_ANON_KEY: 'eyJhbGciOi...',
-```
-
-Ya está. Lo leen tanto `acceso.html` como el panel, así que no hay forma de
-configurar uno y dejarse el otro.
-
-> `config.js` tiene que viajar **siempre** junto a los dos `.html`. Si lo
-> mueves o lo borras, las páginas vuelven a comportarse como "sin configurar":
-> el acceso enseña el aviso ámbar y el panel avisa de que no está protegido.
-> No se rompen, pero tampoco funcionan.
+Lo leen `acceso.html` y el panel, así que no hay forma de configurar uno y
+dejarse el otro.
 
 ---
 
 ## Parte 3 · Servirlo por HTTP
 
-**Con `file://` no se puede probar el circuito completo.** Los enlaces de
-confirmación y de recuperación que llegan por correo no pueden volver a un
-archivo local, y `location.origin` vale `null`.
+**Con `file://` no se puede probar el circuito completo**: el enlace del
+correo de recuperación no puede volver a un archivo local.
 
-En esta máquina no hay Node ni un Python real (el `python` que responde es el
-marcador de posición de la Microsoft Store). Opciones, de menos a más trabajo:
-
-- **Extensión Live Server de VS Code** — la más rápida, ya usas VS Code.
-  Instálala, clic derecho sobre `acceso.html` → *Open with Live Server*.
-  Sirve en `http://127.0.0.1:5500`.
-- **Instalar Node** desde <https://nodejs.org> y luego `npx serve` en la carpeta.
-- **Instalar Python** desde la Microsoft Store y luego
-  `python -m http.server 8080` en la carpeta.
-
-Anota la URL que te quede; hace falta en el paso siguiente.
+Doble clic en **`ABRIR-LOCAL.bat`**: levanta `http://localhost:8080` solo para
+ti. **`ABRIR-EN-RED.bat`** hace lo mismo abierto a la red de la oficina. Los
+dos sirven la carpeta sin `.git`, sin archivos ocultos y sin las cuentas de
+prueba (`*.local.json`).
 
 ### 3.1 Autorizar las URLs en Supabase
 
 **Authentication → URL Configuration**:
 
-- **Site URL**: `http://127.0.0.1:5500/acceso.html` (ajusta el puerto)
-- **Redirect URLs**: añade `http://127.0.0.1:5500/**`
+- **Site URL**: `http://localhost:8080/acceso.html`
+- **Redirect URLs**: añade `http://localhost:8080/**`
 
-Sin esto, los enlaces del correo caducan o rebotan, y `resetPasswordForEmail`
-devuelve un error de redirección no autorizada.
+Sin esto, el enlace del correo de recuperación rebota.
 
 ---
 
 ## Parte 4 · Probar los flujos reales
 
-### 4.1 Crear cuenta
+### 4.1 Las cuentas las crea el CIIP
 
-1. Ve a *Crear cuenta*, rellena todo con un correo tuyo real, marca la casilla.
-2. Debe salir: *"Cuenta creada. Te enviamos un correo para confirmarla…"*
-3. **Comprueba en Supabase** → *Authentication → Users*: el usuario aparece con
-   `Waiting for verification`.
-4. **Comprueba la tabla** → *Table Editor → perfiles*: debe existir una fila con
-   tu `nombre_completo` y tu `pais`. Si la fila **no** está, el trigger
-   `al_crear_usuario` falló — vuelve a ejecutar `supabase-setup.sql`, y
-   `supabase-admin.sql` detrás si ya lo habías corrido (ver 2.2).
-5. Abre el correo y pulsa el enlace de confirmación.
-
-> **Registrar dos veces el mismo correo no da error a propósito.** Supabase
-> responde igual que con uno nuevo para no revelar quién está registrado.
+No hay registro: `/auth/v1/signup` contesta `signup_disabled`. Una cuenta nueva
+se da de alta en Supabase, **Authentication → Users → Add user**. El
+disparador `al_crear_usuario` le crea su fila en `perfiles`: compruébalo en
+*Table Editor → perfiles*.
 
 ### 4.2 Iniciar sesión
 
 | Prueba | Resultado esperado |
 |---|---|
-| Clave incorrecta | "Correo o clave incorrectos." |
-| Correo sin confirmar | "Tu correo aún no está confirmado…" |
-| Credenciales correctas | "Sesión iniciada…" y salta al panel |
+| Clave incorrecta | «Correo o clave incorrectos.» |
+| Credenciales correctas | «Sesión iniciada…» y salta al panel |
 
-### 4.3 La casilla "mantener la sesión abierta"
+### 4.3 Clave nueva, por el correo de recuperación
 
-Este es el que más fácil se rompe. Pruébalo así:
+1. Un administrador envía el correo desde Supabase: **Authentication → Users →
+   (el usuario) → Send password recovery**.
+2. Abre el enlace del correo: debe llegar al acceso y **abrir sola** la vista
+   «Crea una clave nueva».
+3. Pon la clave dos veces → «Clave actualizada.» → vuelve al login solo.
+4. Entra con la clave nueva.
+5. Reutiliza el enlace del correo → «El enlace caducó o ya se usó.»
 
-1. **Desmarca** la casilla e inicia sesión. Entras al panel.
-2. Cierra **toda** la ventana del navegador y vuelve a abrir el panel.
-   → Debe echarte a `acceso.html`.
-3. Repite **marcando** la casilla.
-   → Debe dejarte entrar directamente.
+Y lo que **no** tiene que pasar: con la sesión abierta, escribir `#nueva` en
+la dirección no abre esa vista. Antes sí la abría, y cualquiera con una
+sesión ajena delante cambiaba la clave sin saber la actual.
 
-Si en el paso 2 te deja pasar, la sesión se está guardando donde no debe.
-
-### 4.4 Recuperar clave
-
-1. *¿Olvidaste tu clave?* → tu correo → *Enviar enlace*.
-2. Mensaje verde de confirmación.
-3. Abre el enlace del correo: debe llegar a `acceso.html#nueva` y **abrir sola**
-   la vista de clave nueva.
-4. Pon una clave nueva dos veces → "Clave actualizada." → vuelve al login solo.
-5. Entra con la clave nueva.
-6. Reutiliza el enlace del correo → "El enlace caducó o ya se usó."
-
-> Un correo que no existe da el **mismo** mensaje verde, a propósito. Pero un
-> fallo real (límite de peticiones, SMTP mal configurado) ahora sí se muestra
-> como error, ya no se disfraza de éxito.
-
-### 4.5 El guardián del panel
+### 4.4 El guardián del panel
 
 | Prueba | Resultado esperado |
 |---|---|
-| Abrir el panel sin haber entrado | Rebota a `acceso.html` sin llegar a enseñar datos |
+| Abrir el panel sin haber entrado | Rebota al acceso sin llegar a enseñar datos |
 | Abrirlo con sesión | Entra normal, sin franja ámbar |
-| Con sesión abierta, ejecutar `ciipSalir()` en la consola | Cierra sesión y sale al acceso |
-| Franja ámbar visible | Faltan las claves en el bloque del guardián: **el panel no está protegido** |
+| Botón de cerrar sesión de la barra | Cierra sesión y sale al acceso |
+| Franja ámbar visible | No cargó Supabase o faltan las claves: **el panel no está protegido** |
 
 ---
 
 ## Si algo falla
 
 Abre la consola del navegador (**F12**). Los errores que no encajan en ningún
-mensaje conocido se imprimen ahí con el prefijo `[CIIP] Error de Supabase:`.
+mensaje conocido se imprimen con el prefijo `[CIIP]`.
 
 | Mensaje en consola | Causa habitual |
 |---|---|
-| `Database error saving new user` | El trigger `al_crear_usuario` falla. Reejecuta `supabase-setup.sql`, y `supabase-admin.sql` detrás (ver 2.2) |
 | `redirect_to is not allowed` | Falta la URL en *Redirect URLs* (paso 3.1) |
 | `Email rate limit exceeded` | El SMTP de prueba de Supabase permite pocos correos por hora. Configura un SMTP propio |
 | `Failed to fetch` | URL de Supabase mal escrita, o sin conexión |
-
----
-
-## Lo que sigue pendiente
-
-- **El panel muestra datos de demostración fijos** ("Marco", "Bianchi
-  Agroindustrias"). El guardián comprueba quién entra, pero el contenido no
-  cambia según el usuario. Para eso hay que leer `public.perfiles` con
-  `window.sbCIIP` y sustituir los textos fijos.
-- **No hay botón visible de cerrar sesión** en el panel. De momento solo existe
-  la función `ciipSalir()`.
+| El navegador rechaza `supabase.js` por su *integrity* | Alguien cambió la versión de supabase-js sin rehacer la huella: ver el comentario junto a la etiqueta |

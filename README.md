@@ -23,7 +23,7 @@ Vercel `ventanilla-unica-2`, Root Directory en la raíz del repositorio).
 
 La base de datos real es un proyecto de Supabase aparte del de pruebas
 (`fbxdwryppfctuwlnjjqr`, organización CIIP), creado el 1 de septiembre de
-2026 con `TODO-EN-ORDEN.sql` ya aplicado (las 21 tablas). El registro de
+2026 y al día con `TODO-EN-ORDEN.sql` (comprobado pieza a pieza el 25-09-2026). El registro de
 cuentas nuevas está cerrado ahí (*Allow new users to sign up* apagado):
 las cuentas las crea el equipo del CIIP desde Supabase, no hay
 autorregistro. `config.js` decide solo, por dónde se abre la página, si
@@ -40,34 +40,8 @@ usar esa base o la de pruebas — ver el bloque de comentarios ahí mismo.
 | `config.js` | **Lo único que hay que rellenar**: las claves de Supabase |
 | `api/asistente.js` | El intermediario del asistente: lo único que corre en un servidor. Guarda la clave de Anthropic, que el navegador no puede ver. Ver `api/LEEME.md` |
 | `pasos.js` | Los cuatro pasos de cada trámite, en los seis idiomas |
-| `supabase-setup.sql` | Esquema del acceso y políticas RLS. Se ejecuta una vez |
-| `supabase-tramites.sql` | Esquema de trámites y bóveda de documentos. Se ejecuta una vez |
-| `supabase-citas.sql` | Esquema de las citas. Va **después** de los dos anteriores |
-| `supabase-admin.sql` | Permite que un admin reparta roles desde el panel, sin entrar a Supabase |
-| `supabase-emision.sql` | Permisos para que el equipo entregue por el panel el documento que emitió el ente |
-| `supabase-empresa.sql` | Los datos de la compañía del inversionista, para no reescribirlos en cada formulario |
-| `supabase-activos.sql` | Esquema del banco de activos. La tabla nace vacía: la llena el equipo desde el propio panel |
-| `supabase-identidad.sql` | El registro de las comprobaciones de identidad que hace el equipo |
-| `supabase-presencia.sql` | `tocar_visto()`: apunta con la hora del servidor cuándo estuviste por última vez |
-| `supabase-sectores.sql` | El catálogo de sectores y el que eliges tú. Usa `es_admin()`, así que va **después** de `supabase-admin.sql` |
-| `supabase-gestor.sql` | Lo que necesita el equipo del CIIP: leer los perfiles, anotar una devolución, y cómo nombrar un gestor |
-| `supabase-catalogos.sql` | Encender y apagar un trámite del catálogo desde el panel, dejando rastro de quién lo movió |
-| `supabase-bitacora.sql` | El registro de lo que hace el equipo: quién tocó el catálogo, los roles, los papeles y las citas |
-| `supabase-bitacora-ajustes.sql` | Lo que la bitácora no apuntaba: el plazo de las fichas, bloquear cuentas, los activos, el horario de citas, el acompañamiento y los textos. Va **el último**; es el 30 de `TODO-EN-ORDEN.sql` |
-| `supabase-bloqueo.sql` | Bloquear una cuenta: deja de poder escribir en trámites, documentos y citas |
-| `supabase-acompanamiento.sql` | Los ajustes de la burbuja y la nube de soporte, para que los mande el admin y no el código |
-| `supabase-cola.sql` | La lista de lo que hay que hacer con los organismos **cuando nadie mira**. La llena un trigger y la vacía el trabajador |
-| `supabase-avisos.sql` | El buzón de salida: qué hay que decirle a quién. Se escribe solo al cambiar un estado, y lo vacía el mensajero |
-| `supabase-aranceles.sql` | Las tasas y lo que se debe por cada trámite. La tabla nace vacía: aquí no se inventan cifras oficiales |
-| `supabase-huellas.sql` | La huella SHA-256 de cada documento, y cómo un tercero verifica uno emitido sin saber de quién es |
-| `supabase-encadenado.sql` | Qué papel emite cada trámite. Con eso el panel deduce solo qué trámite espera a cuál |
-| `supabase-plazos.sql` | Cuánto debería tardar cada trámite, para poder decir cuándo va más lento de lo prometido |
-| `supabase-una-viva.sql` | Una sola solicitud viva por persona y trámite. Las resueltas y las devueltas no cuentan |
-| `supabase-hilo.sql` | La conversación sobre una solicitud, en los dos sentidos y con adjuntos que van a la bóveda |
-| `supabase-disponibilidad.sql` | El horario de citas del CIIP: el horario semanal, los días cerrados y la reserva de un hueco, que nace confirmada. Va **después** de `supabase-citas.sql`; es el 28 de `TODO-EN-ORDEN.sql` |
-| `supabase-reserva-nombre.sql` | La constitución no se resuelve sin el **comprobante de la reserva del nombre**, que sube el inversionista desde su paso, después de pagar con el documento que el equipo le deja desde la cola. Añade ese tipo de papel, deja adjuntarlo con el trámite en marcha (y el pago de aranceles de la protocolización) y pone el bloqueo en la base. Va **después** de `supabase-tramites.sql`; es el 37 de `TODO-EN-ORDEN.sql` |
-| `supabase-protocolizacion.sql` | Resuelta la constitución, la **protocolización del acta nace sola**, ya enviada y con lo que aquélla decía (razón social, capital, registro, representante). Añade el **PUB para pagar los aranceles** que el equipo le deja desde la cola —llega al primer paso del tramo, «Emisión de PUB de constitución de compañía»—, y la protocolización no se resuelve sin el comprobante de ese pago. Va **después** de `supabase-reserva-nombre.sql`; es el 39 de `TODO-EN-ORDEN.sql` |
-| `supabase-publicacion.sql` | Resuelta la protocolización, la **publicación del acta nace sola**, ya enviada y con la razón social que aquélla decía. Añade el **PUB para pagar la publicación mercantil** que el equipo le deja desde la cola —llega al primer paso del tramo, «Emisión de PUB de publicación mercantil»—, y la publicación no se resuelve sin el comprobante de ese pago. Va **después** de `supabase-protocolizacion.sql`; es el 40 de `TODO-EN-ORDEN.sql` |
+| `supabase-*.sql` | **Las fuentes del esquema de la base**, un archivo por tema. Cada uno dice en su cabecera qué hace y detrás de cuál va. La lista y el orden están en **un solo sitio**, `pruebas/juntar-sql.js`: de ahí salen `TODO-EN-ORDEN.sql` y la tanda de `PROBAR-SQL.bat`. Un cambio en la base se hace aquí, no en un `CORRER-*.sql` suelto |
+| `TODO-EN-ORDEN.sql` | Todos los `supabase-*.sql` unidos en su orden. **Generado**: `node pruebas/juntar-sql.js`, nunca a mano. Es lo que se pega entero en el SQL Editor para montar una base desde cero |
 | `logos/` | Logos de los organismos, con su procedencia en [FUENTES.md](logos/FUENTES.md) |
 | `banderas/` | 197 banderas SVG para el buscador de países, con su procedencia en [FUENTES.md](banderas/FUENTES.md) |
 | `historico/` | Lo que ya pasó y no se usa: los SQL de un solo uso ya aplicados en producción, la demostración de partida (`original/`), las capturas, los bocetos de diseño y la revisión de las cerraduras. Ver [historico/LEEME.md](historico/LEEME.md) |
@@ -78,64 +52,33 @@ usar esa base o la de pruebas — ver el bloque de comentarios ahí mismo.
 |---|---|
 | `ABRIR-LOCAL.bat` | Levantar el proyecto en `http://localhost:8080`, solo para ti |
 | `ABRIR-EN-RED.bat` | Igual, pero abierto a la red: otros PC de la oficina pueden entrar |
-| `PROBAR-TODO.bat` | **Las diez de una vez**, con un cuadro al final: cuántas fueron bien, cuáles fallaron y cuáles **no se pudieron probar y por qué**. Es lo que hay que mirar antes de subir a `main` |
-| `PROBAR.bat` | Lanzar las 31 pruebas del acceso |
-| `PROBAR-PANEL.bat` | Lanzar las 4569 pruebas del panel y las 10 comprobaciones de las claves de traducción |
-| `PROBAR-A-MANO.bat` | Abrir el panel **para mirarlo y pulsarlo**, contra la misma base de mentira de las pruebas: catorce expedientes —vacío, con trabajo, gestor, administrador, sin los SQL nuevos— con un índice para elegir. Sin clave y sin tocar la base real |
+| `PROBAR-TODO.bat` | **Las doce de una vez**, con un cuadro al final: cuántas fueron bien, cuáles fallaron y cuáles **no se pudieron probar y por qué**. Es lo que hay que mirar antes de subir a `main` |
+| `PROBAR.bat` | Lanzar las 33 pruebas del acceso |
+| `PROBAR-PANEL.bat` | Primero los cerrojos de seguridad (`pruebas/cerrojos.js`, se para si falta alguno); luego las pruebas del panel en sus 17 expedientes —**tienen que salir todas en verde**, 8.617 el 25-09-2026— y las de las claves de traducción |
+| `PROBAR-A-MANO.bat` | Abrir el panel **para mirarlo y pulsarlo**, contra la misma base de mentira de las pruebas: sus expedientes —vacío, con trabajo, gestor, administrador, sin los SQL nuevos— con un índice para elegir. Sin clave y sin tocar la base real |
 | `PROBAR-CONECTOR.bat` | Lanzar las 28 pruebas del conector del RIF |
 | `PROBAR-SAREN.bat` | Lanzar las 42 pruebas del conector de la constitución de compañía |
 | `PROBAR-TRABAJADOR.bat` | Lanzar las 44 pruebas del trabajador, que es quien ejecuta lo que el conector decide |
 | `PROBAR-AVISOS.bat` | Lanzar las 38 pruebas de los avisos: que cada quien los reciba en su idioma y que ninguno se pierda |
 | `PROBAR-BARRENDERO.bat` | Lanzar las 20 pruebas del barrendero, que se lleva del cubo los archivos que se quedaron sin ficha. Sobre todo la de no dar por borrado lo que el cubo no acepto |
 | `PROBAR-PAGOS.bat` | Lanzar las 32 pruebas del cobrador, sobre todo las de no cobrar dos veces |
-| `PROBAR-SQL.bat` | Ejecutar los veinticuatro archivos SQL en un Postgres de esta máquina y comprobar que los triggers saltan. No pide claves ni toca ningún servidor tuyo |
+| `PROBAR-SQL.bat` | Ejecutar todos los `supabase-*.sql`, en el orden de `juntar-sql.js`, en un Postgres de esta máquina y comprobar que los triggers saltan. No pide claves ni toca ningún servidor tuyo |
 | `PROBAR-CERRADURAS.bat` | Comprobar las políticas RLS **entrando de verdad** en el Supabase de pruebas. Se niega a correr contra el real |
 
 ## Puesta en marcha
 
 1. Crear un proyecto en [supabase.com](https://supabase.com)
-2. *SQL Editor* → pegar cada archivo SQL y pulsar **Run**, **en este orden**.
-   Son veinticuatro, no cuatro: cada uno que falte apaga su pantalla del panel.
-   Este orden no está deducido de las cabeceras: lo ejecuta `PROBAR-SQL.bat`
-   en un PostgreSQL de usar y tirar, y si uno usara algo que otro define
-   después, esa tanda se caería diciendo cuál
+2. *SQL Editor* → pegar **entero** `TODO-EN-ORDEN.sql` y pulsar **Run**. Lleva
+   todos los `supabase-*.sql` en el orden bueno —el de `pruebas/juntar-sql.js`,
+   el mismo que ejecuta `PROBAR-SQL.bat`— y se puede correr más de una vez.
 
-   | # | Archivo | Por qué va ahí |
-   |---|---|---|
-   | 1 | `supabase-setup.sql` | Define `tocar_actualizado_en()`, que usan casi todos |
-   | 2 | `supabase-tramites.sql` | Define `es_gestor()` |
-   | 3 | `supabase-admin.sql` | Define `es_admin()` |
-   | 4 | `supabase-citas.sql` | Usa `es_gestor()` |
-   | 5 | `supabase-empresa.sql` | Usa `es_gestor()` |
-   | 6 | `supabase-activos.sql` | Usa `es_gestor()` |
-   | 7 | `supabase-identidad.sql` | Usa `es_gestor()` |
-   | 8 | `supabase-emision.sql` | Usa `es_gestor()` |
-   | 9 | `supabase-presencia.sql` | No depende de nadie |
-   | 10 | `supabase-sectores.sql` | Usa `es_admin()`, del 3 |
-   | 11 | `supabase-catalogos.sql` | Después del 2, del 3 y del 10 |
-   | 12 | `supabase-bitacora.sql` | Después del 11, y se engancha a `citas` |
-   | 13 | `supabase-bloqueo.sql` | Se engancha a `tramites`, `documentos` y `citas` |
-   | 14 | `supabase-acompanamiento.sql` | Usa `es_admin()` |
-   | 15 | `supabase-gestor.sql` | Las políticas del equipo |
-   | 16 | `supabase-cola.sql` | Necesita los trámites y `es_gestor()` |
-   | 17 | `supabase-avisos.sql` | Cuelga del historial de trámites |
-   | 18 | `supabase-aranceles.sql` | Envuelve el encolado del 16 |
-   | 19 | `supabase-huellas.sql` | Sólo necesita `documentos` |
-   | 20 | `supabase-encadenado.sql` | Sólo necesita el catálogo |
-   | 21 | `supabase-plazos.sql` | Sólo necesita el catálogo |
-   | 22 | `supabase-una-viva.sql` | Sólo necesita `tramites` |
-   | 23 | `supabase-hilo.sql` | El último. Necesita `tramites` y `documentos` |
+   **Cópialo desde VS Code o desde GitHub, nunca desde una consola de
+   Windows**: la consola enseña el UTF-8 con otra codificación y lo pegado
+   se guarda con los acentos rotos («C├®dula»). Pasó el 25-09-2026.
 
-   Del 4 al 9 el orden entre ellos da igual: solo piden que el 2 esté hecho.
-
-   **Cuidado con volver a ejecutar `supabase-setup.sql`.** El 3 redefine
-   `bloquear_cambio_de_rol()`, que nace en el 1. Correr el 1 otra vez la deja
-   como estaba y el admin se queda sin repartir roles, sin decir nada. Si lo
-   haces, corre el 3 detrás.
-
-   Saltarse alguno del 4 al 14 no rompe el panel —abre igual, y así lo prueban
-   los expedientes `sinsql`, `sinsector`, `sinsectorsql` y `sincatalogo`—,
-   pero la pantalla que dependa de él se queda muda
+   Saltarse alguno no rompe el panel —abre igual, y así lo prueban los
+   expedientes `sinsql`, `sinsector`, `sinsectorsql` y `sincatalogo`—, pero
+   la pantalla que dependa de él se queda muda
 3. Las claves van en `config.js`, en el bloque del proyecto que toque (`real`
    o `pruebas`): *Project URL* y *anon key*. Se editan a mano; el antiguo
    `CONFIGURAR.bat` escribía la misma clave en los dos bloques y se retiró
@@ -173,7 +116,7 @@ en vez de dejar la pantalla en blanco.
 Las dos tandas ejecutan la página de verdad en un navegador sin ventana; no
 leen el código, lo corren.
 
-**El acceso** (31 pruebas, `PROBAR.bat`). Estuvieron rotas: se escribieron
+**El acceso** (33 pruebas, `PROBAR.bat`). Estuvieron rotas: se escribieron
 para cuatro formularios y `acceso.html` hoy solo tiene dos —iniciar sesión
 y clave nueva—, porque las cuentas las crea el equipo del CIIP desde
 Supabase, sin autorregistro. El arnés buscaba campos que ya no existen y se
@@ -195,23 +138,29 @@ empieza comprobando que la página tiene las piezas que va a usar, así que
 si mañana desaparece otra sale una prueba roja con su nombre en vez de
 morirse la tanda entera en silencio.
 
-**El panel** (4569 pruebas, `PROBAR-PANEL.bat`): los contadores del camino y de
+**El panel** (8.617 comprobaciones en 17 expedientes, `PROBAR-PANEL.bat`): los contadores del camino y de
 los filtros, que las cuatro etapas son cuatro cajas parejas, la franja de "te
 toca a ti", el buzón de avisos, la ventana de tu perfil, las citas, el banco de
 activos —mirarlo, y publicarlo, corregirlo y borrarlo si eres del equipo—, que el panel
 abre en el idioma de tu país y que te llama por TU nombre. Todo eso
 necesita datos para decir algo, así que se corre con un Supabase de mentira
-([pruebas/supabase-mentira.js](pruebas/supabase-mentira.js)) y con TRES
-expedientes: uno con una solicitud devuelta y otra en borrador, otro vacío,
-otro de una cuenta cuyo perfil no trae nombre, y otro del equipo del CIIP con
-dos citas ajenas esperando en la cola. Buena parte de lo que hay que
+([pruebas/supabase-mentira.js](pruebas/supabase-mentira.js)) y con diecisiete
+expedientes: con trabajo, vacío, sin nombre, del gestor, del administrador, sin
+los SQL nuevos, con los tramos de la constitución… Buena parte de lo que hay que
 comprobar es que el panel se calla cuando no hay nada que decir, y eso no se ve
 en la misma pasada que comprueba que habla.
 
-**El SQL** (21 comprobaciones, `PROBAR-SQL.bat`): levanta un PostgreSQL vacío
+**Tiene que salir entero en verde**, y desde el 25-09-2026 sale: tres pasadas
+seguidas de 8.617/8.617. Hasta entonces arrastraba unos 80 rojos fijos —pruebas
+que describían pantallas de antes de un rediseño, una medida de píxeles que en
+un Linux mide otra letra, un simulador que se había quedado atrás del panel y
+pruebas que ganaban o perdían una carrera con la subida de un archivo— y con
+80 rojos fijos el rojo nuevo no se ve. Si hoy sale uno, es de verdad.
+
+**El SQL** (`PROBAR-SQL.bat`): levanta un PostgreSQL vacío
 en una carpeta temporal —sin claves, sin tocar ningún servidor de la máquina—,
-ejecuta los veintitrés archivos **en el orden de más arriba**, que ya es la primera
-prueba, y luego intenta lo que no se debe: saltarse la escalera de estados,
+ejecuta todos los `supabase-*.sql` **en el orden de `pruebas/juntar-sql.js`**,
+que ya es la primera prueba, y luego intenta lo que no se debe: saltarse la escalera de estados,
 ascender a otro a admin, escribir en un catálogo. Se entra como entra Supabase,
 con `set role authenticated` y el `sub` en `request.jwt.claims`, porque
 dejando el rol de dueño el RLS no se aplica —un dueño se salta sus propias
@@ -238,19 +187,26 @@ Supabase y se hace a mano.
 
 ## Límites conocidos
 
-- **El panel muestra datos de ejemplo.** Nombre, iniciales, rol y país sí
-  salen de `public.perfiles`, pero los quince trámites, la empresa y las
-  cifras están escritos a mano. Con sesión activa se avisa de ello en pantalla.
 - **El guardián del panel es del lado del cliente.** Impide el paso en el
   navegador, pero cualquiera puede pedir el HTML directamente. La protección
   real de los datos son las políticas RLS.
-- **Hay CSS y traducciones muertas**: existe el diseño completo de una
-  cabecera `.hero` con doce claves de traducción, pero ningún elemento del
-  marcado las usa.
+- **La ficha antigua del trámite sigue en el código sin pintarse** (`FICHA`,
+  `pintaFichaTramite`, las clases `.ft-*` y las claves `ft_*`). Se dejó a
+  propósito, con los plazos legales de dieciséis trámites; borrarla o volver
+  a enseñarla es una decisión pendiente.
 
 ## Seguridad
 
 La clave `anon` de `config.js` es pública por diseño y viaja al navegador.
-Lo que protege los datos es el RLS de `supabase-setup.sql`.
+Lo que protege los datos son las políticas RLS y los disparadores de los
+`supabase-*.sql`, revisados el 25-09-2026 (el estado de un papel lo pone el
+equipo, lo del CIIP en un trámite no lo toca el inversionista, el bloqueo es
+entero, el tope del asistente se cuenta en la base).
+
+Varios arreglos de esa revisión viven en archivos que todo el mundo toca
+—la versión fija de supabase-js con su huella, la firma de las respuestas del
+asistente, la clave nueva solo desde el correo, la CSP de `vercel.json`— y se
+perdieron más de una vez al subir encima una copia vieja. `pruebas/cerrojos.js`
+los vigila y `PROBAR-PANEL.bat` se para si falta alguno.
 
 **Nunca** poner ahí la clave `service_role`: esa se salta el RLS por completo.
