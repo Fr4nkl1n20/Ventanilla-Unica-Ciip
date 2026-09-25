@@ -15321,12 +15321,20 @@ applyLang(idiomaParaMi());
 
        Se esconde el renglón y, si entra sin dirección, se le lleva a la
        cola, que es su mesa de trabajo. No se BORRA la vista: los enlaces
-       viejos siguen resolviendo y un administrador que quiera mirarla la
-       tiene escribiendo la dirección. Lo que se quita es la puerta, no la
-       habitación. */
+       viejos siguen resolviendo. Lo que se quita es la puerta, no la
+       habitación.
+
+       AL ADMINISTRADOR SÍ (Franklin Reyes, 25-9-2026: «quiero que el
+       administrador sí tenga el apartado de mi panel»). Y la diferencia
+       tiene sentido: el gestor atiende expedientes y esa es toda su
+       jornada; el administrador mira la casa entera -el catálogo, las
+       etapas, cómo va el camino de los inversionistas- y el panel es justo
+       eso. Así que la puerta se cierra por ROL y no por «ser del equipo»,
+       que era meter a los dos en el mismo saco. */
+    var soloGestor = (typeof PERFIL !== 'undefined' && PERFIL.rol) === 'gestor';
     var pn = document.getElementById('navPanel');
-    if (pn) pn.hidden = esDelEquipo();
-    if (esDelEquipo() && !location.hash) location.hash = 'poratender';
+    if (pn) pn.hidden = soloGestor;
+    if (soloGestor && !location.hash) location.hash = 'poratender';
     var mt = document.getElementById('navTramites');
     if (mt) mt.hidden = false;
     var dc = document.getElementById('navDocs');
