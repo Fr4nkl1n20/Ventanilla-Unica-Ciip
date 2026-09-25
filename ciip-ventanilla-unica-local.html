@@ -3386,6 +3386,11 @@ body[data-vista="tramite"] #secTramites{display:none;}
    con su avance: van por separado aunque la solicitud sea una. */
 .pe-bloque{margin-top:22px;}
 .pe-titulo{font-size:var(--fs-seccion); font-weight:700; color:var(--ink);}
+/* Por qué los cinco están quietos. Va arriba del todo y en gris: no es un
+   aviso de que algo vaya mal, es la respuesta a «¿y esto por qué no se
+   puede tocar?», que es lo primero que se piensa al verlos apagados. */
+.pe-aun{font-size:var(--fs-nota); color:var(--gray-soft); line-height:1.45;
+  margin:2px 0 8px;}
 /* Uno debajo del otro (Franklin, 23-9-2026): se probó en fila y se
    prefirió así, cada ente a lo ancho y con espacio para leerlo. */
 /* Del ancho de lo que llevan dentro, no del de la página: la tarjeta
@@ -11428,9 +11433,6 @@ applyLang(idiomaParaMi());
        la bóveda por su cuenta, así que un trámite con cinco papeles lanza
        cinco consultas. Van en paralelo -no se suman en el reloj- pero son
        cinco, y se podrían pedir de una sola vez. */
-    misPapeles();
-    anteriores();
-
     cargaCatalogo().then(function(tipos){
       if (miTurno !== turno) return;
       var t = tipos[refPanel];
@@ -11440,6 +11442,14 @@ applyLang(idiomaParaMi());
       }
       enteActual = t.ente || '';
       refActual = refPanel;
+
+      /* Aquí, y no antes de saber si el trámite está encendido. Se probó
+         arriba del todo -para adelantarlas un viaje más- y el arnés lo
+         paró con razón: una ficha apagada no pide nunca estas dos, y
+         lanzarlas igual añadía consultas que nadie usa. «velocidad: y no
+         pide más de una consulta por recaudo» está justo para eso. */
+      misPapeles();
+      anteriores();
 
       /* quienSoy() y no getUser(), y esto se midio antes de tocarlo.
 
@@ -14333,62 +14343,56 @@ applyLang(idiomaParaMi());
               (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) ? 'equipo' : 'inversionista'));
             lista.parentNode.insertBefore(bloqueE, lista.nextSibling);
 
-            /* ── ESTE PELDAÑO LO DECIDEN LOS CINCO, NO EL ESTADO ──
-               Franklin Reyes, 25-9-2026: «aquí debería estar "ante cada
-               ente" en azul hasta que se registre en todos».
+            /* ── ESTE PELDAÑO NO TERMINA HASTA QUE ESTÉN LOS CINCO ──
+               Franklin Reyes, 25-9-2026: «el proceso falla, necesito una
+               buena estructuración de este proceso».
 
-               Los otros tres peldaños los mueve el estado de la solicitud,
-               que es uno. Éste no: son cinco inscripciones distintas que
-               acaban en cinco días distintos, y el estado no sabe por
-               cuántas va. Encendiéndolo con los demás, el peldaño se ponía
-               verde con cuatro entes sin inscribir.
+               Aquí estaba el fallo. Los cuatro peldaños los movía el estado
+               de la solicitud, y «ante el ente» es UN estado: al llegar a
+               él, la escalera daba ese peldaño por HECHO y encendía
+               «Resuelta» como el siguiente. O sea que las cinco
+               inscripciones salían terminadas justo cuando empezaban, y
+               debajo los cinco bloques decían «Inscribiéndote».
 
-               Así que se pinta con lo que dicen los cinco: azul mientras
-               falte alguno, verde cuando estén los cinco. Y puede quedar
-               azul a la vez que el de arriba, que es la verdad: el CIIP
-               revisa los recaudos mientras va inscribiendo.
+               Son cinco tareas que acaban en cinco días distintos, y el
+               estado de la solicitud no sabe por cuántas va. Así que este
+               peldaño lo deciden los cinco: sigue en curso mientras falte
+               alguno, y solo se cierra cuando están todos.
 
-               Va aquí y no en escaleraDe() a propósito. Los cinco entes se
-               piden a la base aparte -entesDe()- y escaleraDe es
-               sincrónica: no puede esperar. La consecuencia hay que tenerla
-               presente: la columna «Progreso» de Mis trámites sigue
-               contando este peldaño con el estado, así que en esta ficha
-               puede verse azul y en la fila no. */
+               «Resuelta» se apaga con él. Un peldaño en curso seguido de
+               otro en curso es la escalera diciendo que vas por dos sitios
+               a la vez, y la etiqueta de «vas por aquí» se MUEVE en vez de
+               duplicarse: la fecha que lleva dentro es la de esta etapa, y
+               es la que toca.
+
+               Va en pintaEstado y no en escaleraDe() porque los cinco entes
+               se piden a la base aparte y escaleraDe es sincrónica, no
+               puede esperarlos. La consecuencia, escrita para que no
+               sorprenda: la columna «Progreso» de Mis trámites sigue
+               contando este peldaño con el estado. */
             var liEnte = li, puntoEnte = punto, nEnte = paso.n, iEnte = i;
-            entesDe(tr.id).then(function(m){
-              if (!m) return;
-              var todos = ENTES_PARAFISCALES.every(function(e){
-                return m[e] && m[e].estado === 'listo'; });
-              /* Con la solicitud resuelta no se toca: si el CIIP la dio por
-                 terminada, terminada está, y discutírselo desde aquí sería
-                 enseñar dos verdades sobre el mismo expediente. */
-              if (tr.estado === 'resuelto') return;
-              liEnte.className = 'tr-paso ' + (todos ? 'hecho' : 'ahora');
-              puntoEnte.textContent = todos ? String.fromCharCode(10003) : String(nEnte);
-              if (todos) return;
+            if (tr.estado === 'ante_el_ente'){
+              entesDe(tr.id).then(function(m){
+                if (!m) return;
+                var todos = ENTES_PARAFISCALES.every(function(e){
+                  return m[e] && m[e].estado === 'listo'; });
+                if (todos) return;      /* la escalera de siempre ya acierta */
 
-              /* Y los de arriba, en verde (Franklin Reyes, 25-9-2026:
-                 «aquí debería el paso dos estar en verde, ¿no?»).
+                liEnte.className = 'tr-paso ahora';
+                puntoEnte.textContent = String(nEnte);
 
-                 Al encender este peldaño quedaban DOS azules a la vez -el
-                 de la revisión y éste- y una escalera con dos «vas por
-                 aquí» no se lee como dos cosas a la vez: se lee como un
-                 fallo. Si el expediente ya está en las inscripciones, lo de
-                 antes quedó atrás.
-
-                 La etiqueta de «vas por aquí» se va con ellos. Un peldaño
-                 verde que sigue diciendo que estás ahí es peor que el
-                 problema que se vino a arreglar. */
-              for (var k = 0; k < iEnte; k++){
-                var liP = lista.children[k];
-                if (!liP) continue;
-                liP.className = 'tr-paso hecho';
-                var puntoP = liP.querySelector('.tr-punto');
-                if (puntoP) puntoP.textContent = String.fromCharCode(10003);
-                var aqui = liP.querySelector('.tr-aqui');
-                if (aqui && aqui.parentNode) aqui.parentNode.removeChild(aqui);
-              }
-            }).catch(function(){});
+                var liSig = lista.children[iEnte + 1];
+                if (!liSig) return;
+                liSig.className = 'tr-paso porhacer';
+                var puntoSig = liSig.querySelector('.tr-punto');
+                if (puntoSig) puntoSig.textContent = String(nEnte + 1);
+                /* La etiqueta se muda entera, con su «desde hace»: se pintó
+                   para la etapa de ahora, que es ésta. */
+                var aqui = liSig.querySelector('.tr-aqui');
+                var hueco = liEnte.querySelector('.tr-txt');
+                if (aqui && hueco) hueco.appendChild(aqui);
+              }).catch(function(){});
+            }
           }
           li.appendChild(punto); li.appendChild(txt);
           lista.appendChild(li);
@@ -25779,7 +25783,20 @@ applyLang(idiomaParaMi());
   var TIPO_PARAFISCALES = 'registros_parafiscales';
   var ENTES_PARAFISCALES = ['banavih', 'inces', 'mpppst', 'sundde', 'snc'];
   var ENTES_SELECT = 'ente, codigo, estado, documento, documentos(archivo, nombre_original)';
-  var ENTES_ABIERTOS = ['enviado', 'en_revision', 'ante_el_ente'];
+  /* ── CUÁNDO SE PUEDEN TOCAR LOS CINCO ──
+     Franklin Reyes, 25-9-2026: «quiero que las casillas de abajo estén
+     desactivadas hasta que la fase del proceso de arriba esté en la etapa
+     de ante cada ente».
+
+     Estaban abiertas desde que se enviaba la solicitud, o sea desde antes
+     de que el CIIP hubiera presentado nada. Eso ponía a los cinco entes a
+     pedir códigos mientras arriba la escalera decía que aún se estaban
+     revisando los recaudos: dos pantallas del mismo expediente contando
+     cosas distintas, que es el fallo que se repite en esta ficha.
+
+     Ahora es una sola cosa la que manda -la etapa de arriba- y las cinco
+     casillas cuelgan de ella. */
+  var ENTES_ABIERTOS = ['ante_el_ente'];
 
   var ENTES_DE = {};
   function entesDe(id){
@@ -25834,6 +25851,11 @@ applyLang(idiomaParaMi());
     var u = T();
     var caja = el('div', 'pe-lista');
     var abierto = ENTES_ABIERTOS.indexOf(tr.estado) >= 0;
+    /* Y se DICE por qué están quietas. Cinco bloques grises sin una línea
+       que lo explique se leen como una pantalla rota, no como una espera.
+       Solo al inversionista: al equipo no se le cierran. */
+    if (!abierto && modo === 'inversionista' && tr.estado !== 'resuelto')
+      caja.appendChild(el('div', 'pe-aun', u.pe_aun_no || ''));
     ENTES_PARAFISCALES.forEach(function(ente){
       var nombre = u['pe_' + ente] || ente;
       var fila = el('div', 'pe-ente');
@@ -25957,6 +25979,12 @@ applyLang(idiomaParaMi());
         pasos[1].txt.appendChild(otro);
       }
 
+      /* AL EQUIPO NO SE LE CIERRA NADA, y es a propósito (Franklin Reyes,
+         25-9-2026): «como gestor necesito que las solicitudes de abajo
+         estén activas, porque necesito leer los códigos enviados por los
+         inversionistas». La espera es del inversionista -no puede mandar un
+         código antes de que el CIIP presente la solicitud-, no de quien la
+         está llevando. */
       if (modo === 'equipo' && tr.estado !== 'resuelto'){
         /* «Ya la inscribimos»: abre la caja del código de ESTE ente y de
            ninguno más. Es el botón que convierte las cinco filas en cinco
