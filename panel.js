@@ -11634,10 +11634,62 @@ applyLang(idiomaParaMi());
      de verdad en una oficina de tres personas da mas problemas de los que
      evita -el que se va de vacaciones deja media cola bloqueada- y para
      coordinarse basta con ver quien lo tiene. */
+  /* ── ¿SIGUE DONDE CREES QUE ESTÁ? ──
+     Franklin Reyes, 25-9-2026: canceló un trámite desde el lado del
+     inversionista y la tarjeta seguía en su cola.
+
+     La cola se repasa cada minuto, así que entre que algo cambia y la
+     pantalla se entera pasa hasta eso. Bajar el minuto no arregla nada:
+     por corto que sea, siempre se puede estar mirando una tarjeta que
+     acaba de dejar de existir. Lo que importa no es el retraso, es que
+     ACTUAR sobre una tarjeta vieja no haga daño.
+
+     Y hacía daño en silencio: «Tomarlo» sobre una cancelada funcionaba
+     -tomar no cambia el estado, así que el disparador de la base ni se
+     entera- y el gestor se quedaba con un expediente cancelado asignado
+     sin que nadie se lo dijera. Lo mismo con dos gestores mirando la misma
+     tarjeta sin dueño y pulsando los dos.
+
+     Así que antes de tocar nada se pregunta a la base cómo está de verdad.
+     Devuelve la clave de lo que hay que decir, o null si todo cuadra.
+
+     SOLO MIRA SI ESTÁ CANCELADA, y eso es una poda a conciencia. El primer
+     intento comparaba además el estado y el dueño con lo que la tarjeta
+     creía, para avisar de «te la movieron» y «te la tomaron». El arnés lo
+     tumbó -de 3 fallas a 54- y tenía razón: el propio panel cambia el
+     estado por su cuenta -abrir una tarjeta la pone en revisión- sin
+     actualizar la copia que llevan todas las tarjetas, así que la
+     comparación daba que NO cuadra en movimientos perfectamente normales.
+     Un guardián que frena lo legítimo es peor que no tenerlo.
+
+     Cancelada no tiene esa ambigüedad: es un estado del que no se sale, y
+     si la base lo dice, la tarjeta sobra. Lo otro se puede hacer bien el
+     día que el estado de una tarjeta se actualice en un solo sitio; hoy no
+     es verdad y por eso no se promete. */
+  function yaNoEsAsi(t){
+    return Promise.resolve(sb.from('tramites').select('estado').eq('id', t.id).single())
+      .then(function(r){
+        /* Si la consulta falla no se frena: dejar sin trabajar a quien
+           tiene la cola delante por una red que parpadea es peor que el
+           problema que se viene a evitar. La base sigue teniendo la última
+           palabra sobre lo que se puede cambiar. */
+        if (!r || r.error || !r.data) return null;
+        return (r.data.estado === 'cancelado') ? 'co_ya_cancelada' : null;
+      })
+      .catch(function(){ return null; });
+  }
+
   function ponDuenio(t, quien, boton){
     var u = T();
     if (boton) boton.disabled = true;
-    return sb.from('tramites').update({gestor: quien}).eq('id', t.id).select().single()
+    return yaNoEsAsi(t).then(function(mal){
+      if (mal){
+        if (boton){ boton.disabled = false; boton.textContent = u[mal] || ''; }
+        /* Y se repinta: lo que se acaba de descubrir vale para toda la
+           cola, no solo para esta tarjeta. */
+        return cargaCola().then(pintaTramites);
+      }
+      return sb.from('tramites').update({gestor: quien}).eq('id', t.id).select().single()
       .then(function(r){
         if (r && r.error) throw r.error;
         t.gestor = quien;
@@ -11649,6 +11701,7 @@ applyLang(idiomaParaMi());
         boton.disabled = false;
         boton.textContent = u.co_error || '';
       });
+    });
   }
 
   function duenioDe(t){
@@ -12447,7 +12500,18 @@ applyLang(idiomaParaMi());
   }
 
   function mueveTramite(tr, aEstado, nota, boton, aviso, textoBoton){
-    return sb.from('tramites').update({estado: aEstado}).eq('id', tr.id).select().single()
+    /* Lo mismo que al tomarla, y aquí importa más: mover una solicitud
+       escribe en el expediente del inversionista. Si dejó de estar donde
+       creíamos -la canceló, o la movió otro gestor mientras esta pantalla
+       esperaba su minuto- se dice y se repinta, en vez de mandar un cambio
+       que la base va a rechazar con un mensaje que no explica nada. */
+    return yaNoEsAsi(tr).then(function(mal){
+      if (mal){
+        if (boton){ boton.disabled = false; if (textoBoton) boton.textContent = textoBoton; }
+        if (aviso){ aviso.textContent = T()[mal] || ''; aviso.className = 'sol-aviso err'; }
+        return cargaCola().then(pintaTramites).then(function(){ return 'ya-no'; });
+      }
+      return sb.from('tramites').update({estado: aEstado}).eq('id', tr.id).select().single()
       .then(function(r){
         if (r && r.error) throw r.error;
         if (!nota) return null;
@@ -12499,6 +12563,7 @@ applyLang(idiomaParaMi());
           T().co_error || '';
         return false;
       });
+    });
   }
 
   /* Cuando entro cada tramite en el estado en el que esta. No vale
