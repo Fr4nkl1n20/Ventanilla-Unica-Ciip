@@ -11506,7 +11506,10 @@ applyLang(idiomaParaMi());
            consulta del pie, que abría el hilo sin saber de qué expediente
            hablaba. Filtrar por una columna no la trae. */
         return sb.from('tramites')
-          .select('id, tipo, estado, datos, creado_en, enviado_en')
+          /* inversionista: hace falta para que un gestor pueda dejar la
+             constancia de un ente desde esta pantalla —el archivo va a la
+             carpeta de su dueño— y no cuesta nada traerla. */
+          .select('id, tipo, estado, datos, inversionista, creado_en, enviado_en')
           .eq('tipo', t.codigo).order('creado_en', {ascending:false})
           .then(function(r2){
             if (miTurno !== turno) return;
@@ -18966,13 +18969,17 @@ applyLang(idiomaParaMi());
       })
       .then(function(r){
         if (r && r.error) throw r.error;
+        var doc = r.data.id;
         return sb.from('tramite_documentos').insert({
-          tramite: tr.id, documento: r.data.id
+          tramite: tr.id, documento: doc
+        }).then(function(r2){
+          if (r2 && r2.error) throw r2.error;
+          /* Se devuelve el ID y no un true (25-9-2026): la constancia de
+             cada ente hay que colgarla ADEMÁS de su fila en tramite_entes,
+             y para eso hace falta saber cuál es. Quien solo miraba que
+             hubiera salido bien sigue igual: un uuid también es verdadero. */
+          return doc;
         });
-      })
-      .then(function(r){
-        if (r && r.error) throw r.error;
-        return true;
       });
     });
   }
@@ -26269,6 +26276,54 @@ applyLang(idiomaParaMi());
                 function(){ listo.textContent = u.error || ''; });
         });
         pasos[2].txt.appendChild(listo);
+
+        /* ── LA CONSTANCIA DE CADA ENTE, POR SEPARADO ──
+           Franklin Reyes, 25-9-2026: «necesito que sean separados, porque
+           tengo que subirle un documento a cada uno de esos entes».
+
+           Cada inscripción termina con su propio papel -la constancia del
+           BANAVIH no es la del INCES- y hasta hoy no había dónde dejarlo:
+           el trámite entero tenía UN «documento emitido» y los cinco entes
+           ninguno. La columna para colgarlo existía en tramite_entes desde
+           el principio; lo que faltaba era la casilla para subirlo.
+
+           Va en el último paso, que es donde acaba esa inscripción, y solo
+           para el equipo: lo emite el organismo y lo entrega el CIIP. Entra
+           como 'validado' por lo mismo que la resolución -no hay nada que
+           revisar en un papel que emitió el ente- y así el inversionista
+           tampoco puede borrarlo sin querer.
+
+           Se sube al elegirlo, sin botón aparte: quien abre el explorador
+           de archivos y elige uno ya ha decidido. */
+        if (tr.inversionista){
+          var sube = el('div', 'co-emitir');
+          var etiq = el('label', null, u.pe_constancia || '');
+          etiq.setAttribute('for', 'pe-doc-' + tr.id + '-' + ente);
+          var arch = document.createElement('input');
+          arch.type = 'file';
+          arch.id = 'pe-doc-' + tr.id + '-' + ente;
+          arch.accept = '.pdf,.jpg,.jpeg,.png';
+          var msgS = el('div', 'pe-msg', '');
+          arch.addEventListener('change', function(){
+            var f = arch.files && arch.files[0];
+            if (!f) return;
+            arch.disabled = true;
+            msgS.textContent = u.enviando || '';
+            entrega(tr, f, 'constancia_ente')
+              .then(function(doc){
+                if (!doc) throw new Error('sin documento');
+                return manda({tramite: tr.id, ente: ente, documento: doc}, null, null);
+              })
+              .then(function(){ arch.disabled = false; arch.value = ''; msgS.textContent = ''; })
+              .catch(function(e){
+                console.warn('[CIIP] constancia del ente:', e && (e.message || e));
+                arch.disabled = false;
+                msgS.textContent = (e && e.ciip && u[e.ciip]) || u.co_error || '';
+              });
+          });
+          sube.appendChild(etiq); sube.appendChild(arch); sube.appendChild(msgS);
+          pasos[3].txt.appendChild(sube);
+        }
       }
 
       /* Cuántos pasos van hechos en cada estado. El que sigue al último
