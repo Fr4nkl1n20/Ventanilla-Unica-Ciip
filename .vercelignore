@@ -11,10 +11,13 @@
 # El esquema entero de la base. Cada politica RLS, cada trigger y cada
 # nombre de tabla. No abre nada por si solo -lo que protege son las
 # politicas, que siguen puestas- pero es el mapa, y el mapa no se regala.
-supabase-*.sql
+#
+# Todos los .sql, no solo los supabase-*: los CORRER-*, PARA-LA-BASE-REAL
+# y compañía estaban saliendo publicados porque la lista los nombraba uno
+# a uno y los nuevos no entraban. Y un CORRER de seguridad cuenta QUÉ
+# estaba abierto antes de que se cierre en la base real.
+*.sql
 supabase/
-TODO-EN-ORDEN.sql
-comprobar-tramites.sql
 
 # Los arneses. Dicen que se prueba y, sobre todo, que NO se prueba.
 pruebas/
@@ -46,3 +49,4 @@ revision-cerraduras.html
 # el trabajo terminado, y ademas confunde: hay tres versiones de la misma
 # pantalla y solo una es la que vale.
 .diseno/
+maquetas/
