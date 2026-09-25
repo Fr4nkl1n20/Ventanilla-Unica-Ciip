@@ -51,17 +51,7 @@
      aparte, como config.js: quien no abra el Registro de Extranjeros no
      las mira, pero llegan antes que el formulario que las usa. -->
 <script src="saren-listas.js"></script>
-<!-- supabase-js con la version FIJA y su huella (SRI). Con "@2" a secas el
-     navegador ejecutaba la ultima 2.x que publicaran, fuera la que fuera, con
-     la sesion del admin. Ahora, si jsDelivr sirviera otra cosa, el navegador la
-     rechaza. Para subir de version: cambiar el numero y rehacer la huella con
-       curl -s <url> | openssl dgst -sha384 -binary | openssl base64 -A
-     Revision de seguridad del 25-09-2026. NO volver a "@2": ya se perdio tres
-     veces al subir encima una copia vieja del panel. pruebas/cerrojos.js lo
-     vigila y PROBAR-PANEL se para si falta. -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"
-        integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok"
-        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 /* Mientras se comprueba la sesión no se enseña el panel: si no, quien no ha
    entrado alcanza a ver los datos durante el instante previo al redirect. */
@@ -8724,10 +8714,7 @@ var IDX={employees:1,present:2,realestate:3,profits:4,capital:5,time:6,taxes:7};
       }).then(function(r){
         return r.json().catch(function(){ return {}; }).then(function(d){
           if (r.ok && d.respuesta){
-            /* La firma vuelve con la siguiente pregunta: sin ella, el
-               servidor no se cree que esta respuesta la dio él y el
-               asistente pierde la memoria de la conversación. */
-            conversacion.push({ papel:'asistente', texto:d.respuesta, firma:d.firma });
+            conversacion.push({ papel:'asistente', texto:d.respuesta });
             return d.respuesta;
           }
           /* 'sin-clave' y 'sin-base' son estados del despliegue, no
@@ -18152,7 +18139,20 @@ applyLang(idiomaParaMi());
          espera al inversionista. Contarlos aquí es exactamente el fallo
          que dice el párrafo de abajo -el menú diciendo 3 y la pantalla
          «No hay ningún trámite esperando»-, solo que por la otra puerta. */
-      var porAtender = enRevision.filter(function(t){ return t.estado !== 'devuelto'; }).length;
+      /* Una parafiscal ante los organismos cuenta CINCO, porque son cinco
+         fichas: desde el 25-9-2026 la cola la parte por ente. El número del
+         renglón y lo que hay en la pantalla tienen que decir lo mismo, que
+         es el fallo que ya se arregló una vez -el menú decía 1 y la
+         pantalla «no hay ningún trámite»-.
+
+         Cinco y no «las que falten»: cuántas quedan lo dice tramite_entes,
+         que se pide aparte y llega después, y un número que aparece tarde
+         es peor que uno que se pasa de largo. */
+      var porAtender = enRevision.filter(function(t){ return t.estado !== 'devuelto'; })
+        .reduce(function(n, t){
+          return n + ((t.tipo === TIPO_PARAFISCALES && t.estado === 'ante_el_ente')
+                      ? ENTES_PARAFISCALES.length : 1);
+        }, 0);
       var total = enCola.length + porAtender + consultas.length;
       /* Cada renglón de la barra cuenta lo que enseña su pantalla: el de
          «Trámites por atender», los trámites, y el de «Consultas y citas»,
@@ -18475,6 +18475,40 @@ applyLang(idiomaParaMi());
     }
 
     vistos.forEach(function(t){
+      /* ── UNA FICHA POR ENTE ──
+         Franklin Reyes, 25-9-2026: «en trámites por atender debería ser una
+         por ente, y ahí colocamos la opción de poder subir el documento
+         emitido para el inversionista».
+
+         Mientras la solicitud está ante los organismos, el trabajo ya no es
+         uno sino cinco: cinco inscripciones que empiezan y acaban en días
+         distintos y cada una con su constancia. Una sola ficha las escondía
+         a las cinco dentro y obligaba a abrirla para saber por cuál iba.
+
+         Antes de esa etapa sigue siendo UNA: lo que hay que hacer es
+         revisar los recaudos y moverla, y eso es de la solicitud entera.
+         La ficha se parte justo cuando el trabajo se parte.
+
+         El bloque de cada ente es el MISMO que ve el inversionista, pedido
+         de uno en uno: mismos pasos, mismos botones y la casilla de la
+         constancia. Dos sitios dibujando un ente acabarían dibujándolo
+         distinto. */
+      if (t.tipo === TIPO_PARAFISCALES && t.estado === 'ante_el_ente'){
+        ENTES_PARAFISCALES.forEach(function(ente){
+          var fe = el('div', 'co-ficha');
+          fe.setAttribute('data-tr', t.id);
+          fe.setAttribute('data-ente', ente);
+          var refE = tipoRefDe(t.tipo);
+          fe.appendChild(el('div', 'co-quien', t.nombre || u.co_sinnombre || ''));
+          fe.appendChild(el('div', 'co-que',
+            (refE ? nombreDeTarjeta(refE) : t.tipo) + ' · ' + (u['pe_' + ente] || ente)));
+          fe.appendChild(duenioDe(t));
+          fe.appendChild(listaDeEntes(t, 'equipo', ente));
+          caja.appendChild(fe);
+        });
+        return;
+      }
+
       var f = el('div', 'co-ficha');
       /* Para que la tabla pueda traer a alguien hasta AQUÍ. */
       f.setAttribute('data-tr', t.id);
@@ -26149,7 +26183,12 @@ applyLang(idiomaParaMi());
      código enviado, el segundo -lo revisa el CIIP-; listo, los tres.
      La casilla del código vive en el primer paso y el botón del equipo en
      el segundo, que es donde se hace cada cosa. */
-  function listaDeEntes(tr, modo){
+  /* soloEste: uno de los cinco en vez de los cinco. Lo pide la cola, que
+     desde el 25-9-2026 enseña una ficha POR ENTE en vez de una por
+     solicitud. El bloque es el mismo -mismos pasos, mismos botones, misma
+     casilla para la constancia- y así no hay dos sitios que dibujen un
+     ente y puedan acabar dibujándolo distinto. */
+  function listaDeEntes(tr, modo, soloEste){
     var u = T();
     var caja = el('div', 'pe-lista');
     var abierto = ENTES_ABIERTOS.indexOf(tr.estado) >= 0;
@@ -26158,7 +26197,7 @@ applyLang(idiomaParaMi());
        Solo al inversionista: al equipo no se le cierran. */
     if (!abierto && modo === 'inversionista' && tr.estado !== 'resuelto')
       caja.appendChild(el('div', 'pe-aun', u.pe_aun_no || ''));
-    ENTES_PARAFISCALES.forEach(function(ente){
+    (soloEste ? [soloEste] : ENTES_PARAFISCALES).forEach(function(ente){
       var nombre = u['pe_' + ente] || ente;
       var fila = el('div', 'pe-ente');
       fila.setAttribute('data-ente', ente);
