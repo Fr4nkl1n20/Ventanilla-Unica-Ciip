@@ -3670,15 +3670,15 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .sol-cancelada{background:var(--block); border:1px solid var(--line-soft);
   border-radius:9px; padding:11px 13px; margin-bottom:16px;}
 .sol-cancelada .sv-t{font-size:11.5px; font-weight:800; color:var(--gray);}
-/* Y el botón de cancelar, abajo del todo y discreto: existe, pero no es lo
-   que se viene a hacer aquí. Solo al pulsarlo se pone en rojo, que es
-   cuando de verdad está preguntando algo. */
+/* Y el botón de cancelar, abajo del todo: en rojo de contorno para que se
+   encuentre, y relleno al pulsarlo, que es cuando de verdad está
+   preguntando algo. */
 .sol-cancelar{margin-top:18px; padding-top:14px; border-top:1px solid var(--line-soft);}
-.can-btn{font:inherit; font-size:var(--fs-nota); font-weight:600; color:var(--gray);
-  background:none; border:1px solid var(--line-soft); border-radius:999px;
-  padding:7px 14px; cursor:pointer;}
-.can-btn:hover{border-color:var(--gray); color:var(--ink);}
-.can-btn.confirma{color:var(--rust); border-color:var(--rust); font-weight:700;}
+.can-btn{font:inherit; font-size:var(--fs-nota); font-weight:700; color:var(--rust);
+  background:var(--rust-bg); border:1.5px solid var(--rust); border-radius:999px;
+  padding:8px 16px; cursor:pointer;}
+.can-btn:hover{background:var(--rust); color:var(--rust-bg);}
+.can-btn.confirma{background:var(--rust); color:var(--rust-bg); border-color:var(--rust);}
 .can-btn[disabled]{opacity:.55; cursor:default;}
 .can-msg{font-size:var(--fs-nota); color:var(--gray-soft); margin-top:6px; line-height:1.45;}
 /* Mientras se corrige, el mismo aviso se queda arriba del formulario: es
