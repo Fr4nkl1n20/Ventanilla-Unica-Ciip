@@ -4638,6 +4638,10 @@ html.visor-abierto{overflow:hidden;}
 .visor-izq h4 .ct-chip{margin-left:auto; text-transform:none; letter-spacing:0; white-space:nowrap;}
 .visor-izq .co-dato{flex-direction:column; gap:1px; padding:5px 0; border-top:1px solid var(--line-soft);}
 .visor-izq .co-dato .k{flex:none;}
+/* Los entes en el lado del visor ocupan todo su ancho: con max-content,
+   que es lo suyo en el expediente, cada bloque medía lo que su texto y la
+   casilla de la constancia se quedaba en «N…o». */
+.visor-entes .pe-lista{width:auto; margin-top:0;}
 .visor-meta{display:flex; flex-direction:column; align-items:flex-start; gap:6px;}
 .visor-chk{display:flex; flex-direction:column; gap:2px;}
 .visor-chk button{display:grid; grid-template-columns:22px minmax(0,1fr); gap:8px; align-items:center; text-align:left;

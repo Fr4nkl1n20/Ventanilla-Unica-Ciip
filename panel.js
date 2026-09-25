@@ -13650,18 +13650,6 @@ applyLang(idiomaParaMi());
     s1.appendChild(lista);
     izq.appendChild(s1);
 
-    /* Los entes de los registros parafiscales, con «Inscripción hecha» y
-       «Marcar listo». Estaban en el expediente de «Mi panel», y el gestor
-       ya no lo tiene (dba9dd3): desde la tarjeta no había por dónde
-       inscribir a nadie (Franklin Reyes, 25-9-2026). Es el mismo bloque de
-       la ventana de la cola, con los mismos botones. */
-    if (t.tipo === TIPO_PARAFISCALES && t.estado !== 'borrador'){
-      var sE = el('section', 'visor-entes');
-      sE.appendChild(el('h4', null, u.pe_titulo || ''));
-      sE.appendChild(listaDeEntes(t, 'equipo'));
-      izq.appendChild(sE);
-    }
-
     var s2 = el('section');
     s2.appendChild(el('h4', null, u.co_datos || ''));
     var campos = visorCampos(t, null);
@@ -13778,6 +13766,20 @@ applyLang(idiomaParaMi());
         s2.appendChild(el('p', 'visor-d', u.co_h_sololectura || ''));
       }
       lado.appendChild(s2);
+    }
+
+    /* Los entes de los registros parafiscales, con «Inscripción hecha» y
+       «Marcar listo». Estaban en el expediente de «Mi panel», y el gestor
+       ya no lo tiene (dba9dd3): desde la tarjeta no había por dónde
+       inscribir a nadie (Franklin Reyes, 25-9-2026). Es el mismo bloque de
+       la ventana de la cola, con los mismos botones. Van en este lado y no
+       en el izquierdo (Franklin, el mismo día): allí se apretujaban debajo
+       de los archivos y aquí sobraba el sitio. */
+    if (t.tipo === TIPO_PARAFISCALES && t.estado !== 'borrador'){
+      var sE = el('section', 'visor-entes');
+      sE.appendChild(el('h4', null, u.pe_titulo || ''));
+      sE.appendChild(listaDeEntes(t, 'equipo'));
+      lado.appendChild(sE);
     }
 
     lado.appendChild(visorFin(t));
