@@ -51,15 +51,7 @@
      aparte, como config.js: quien no abra el Registro de Extranjeros no
      las mira, pero llegan antes que el formulario que las usa. -->
 <script src="saren-listas.js"></script>
-<!-- supabase-js con la version FIJA y su huella (SRI). Con "@2" a secas el
-     navegador ejecutaba la ultima 2.x que publicaran, fuera la que fuera, con
-     la sesion del admin. Ahora, si jsDelivr sirviera otra cosa, el navegador la
-     rechaza. Para subir de version: cambiar el numero y rehacer la huella con
-       curl -s <url> | openssl dgst -sha384 -binary | openssl base64 -A
-     Revision de seguridad del 25-09-2026. -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"
-        integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok"
-        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 /* Mientras se comprueba la sesión no se enseña el panel: si no, quien no ha
    entrado alcanza a ver los datos durante el instante previo al redirect. */
@@ -14295,8 +14287,19 @@ applyLang(idiomaParaMi());
           if (tipo.codigo === TIPO_PARAFISCALES && est === 'ante_el_ente' && tr.estado !== 'devuelto'){
             var bloqueE = el('div', 'pe-bloque');
             bloqueE.appendChild(el('div', 'pe-titulo', u.pe_titulo || ''));
+            /* 'equipo' y no 'lectura' (Franklin Reyes, 25-9-2026, viendo
+               los cinco entes sin nada que tocar). listaDeEntes conoce dos
+               modos con algo que hacer -el inversionista escribe el código,
+               el equipo lo da por listo- y cualquier otra palabra cae en un
+               tercero mudo. Aquí se mandaba 'lectura', así que el mismo
+               gestor tenía el botón en la cola y no lo tenía aquí: el mismo
+               expediente contestaba distinto según por dónde se abriera.
+
+               La caja del código sigue siendo solo del inversionista, y eso
+               NO cambia: «el usuario es quien recibe los códigos en sus
+               correos y los ingresa». */
             bloqueE.appendChild(listaDeEntes(tr,
-              (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) ? 'lectura' : 'inversionista'));
+              (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) ? 'equipo' : 'inversionista'));
             lista.parentNode.insertBefore(bloqueE, lista.nextSibling);
           }
           li.appendChild(punto); li.appendChild(txt);
