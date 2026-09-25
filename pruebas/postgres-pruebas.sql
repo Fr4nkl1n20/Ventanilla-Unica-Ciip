@@ -3494,6 +3494,198 @@ end
 $ps$;
 
 
+
+-- ══ 32 · LO DEL CIIP EN UN TRAMITE, Y EL BLOQUEO ENTERO ═══════════════
+-- supabase-tramites-y-bloqueo.sql. Revision del 25 de septiembre, paso 2.
+
+reset role;
+select arnes.nadie();
+insert into public.bancos_aliados (codigo, nombre) values ('ps-banco', 'Banco de prueba')
+on conflict (codigo) do nothing;
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+-- Un borrador que nace con todo lo que es del CIIP ya puesto.
+do $tb$
+declare
+  g    uuid := (select id from arnes.gente where papel = 'G');
+  tipoAct text := (select codigo from public.tipos_tramite where activo order by codigo limit 1);
+  nuevo uuid;
+begin
+  insert into public.tramites (inversionista, tipo, estado, gestor, banco, expediente_ente,
+                               creado_en, enviado_en, resuelto_en)
+  values (auth.uid(), tipoAct, 'borrador', g, 'ps-banco', 'EXP-FALSO',
+          '2020-01-01', '2020-01-02', '2020-01-03')
+  returning id into nuevo;
+  insert into arnes.escenario values ('tb-tramite', nuevo);
+  perform arnes.comprueba('tramites: al crearlo, lo del CIIP no se lo pone el inversionista',
+    (select gestor is null and banco is null and expediente_ente is null
+            and enviado_en is null and resuelto_en is null
+            and creado_en > now() - interval '1 minute'
+       from public.tramites where id = nuevo),
+    (select format('gestor=%s banco=%s exp=%s creado=%s', gestor, banco, expediente_ente, creado_en)
+       from public.tramites where id = nuevo));
+exception when others then
+  perform arnes.comprueba('tramites: al crearlo, lo del CIIP no se lo pone el inversionista', false, sqlerrm);
+end
+$tb$;
+
+-- Y con el borrador en la mano, tampoco despues.
+do $tb$
+declare
+  g  uuid := (select id from arnes.gente where papel = 'G');
+  id_ uuid := (select id from arnes.escenario where clave = 'tb-tramite');
+  otroTipo text := (select codigo from public.tipos_tramite t
+                     where t.codigo <> (select tipo from public.tramites where id = id_)
+                     order by codigo limit 1);
+begin
+  update public.tramites
+     set gestor = g, banco = 'ps-banco', expediente_ente = 'EXP-FALSO',
+         creado_en = '2020-01-01', enviado_en = '2020-01-02', resuelto_en = '2020-01-03',
+         tipo = otroTipo, datos = '{"nota":"mia"}'
+   where id = id_;
+  perform arnes.comprueba('tramites: ni se asigna gestor, banco, expediente ni fechas en el borrador',
+    (select gestor is null and banco is null and expediente_ente is null
+            and enviado_en is null and resuelto_en is null
+            and creado_en > now() - interval '1 minute'
+            and tipo <> otroTipo
+       from public.tramites where id = id_),
+    (select format('gestor=%s banco=%s creado=%s tipo=%s', gestor, banco, creado_en, tipo)
+       from public.tramites where id = id_));
+  perform arnes.comprueba('tramites: pero sus datos SI los cambia',
+    (select datos ->> 'nota' = 'mia' from public.tramites where id = id_));
+exception when others then
+  perform arnes.comprueba('tramites: ni se asigna gestor, banco, expediente ni fechas en el borrador', false, sqlerrm);
+end
+$tb$;
+
+-- Enviarlo sigue sellando la fecha de envio, con la hora de la base.
+do $tb$
+declare id_ uuid := (select id from arnes.escenario where clave = 'tb-tramite');
+begin
+  update public.tramites set estado = 'enviado', enviado_en = '2020-01-02' where id = id_;
+  perform arnes.comprueba('tramites: enviarlo SI se puede, y la fecha la pone la base',
+    (select estado = 'enviado' and enviado_en > now() - interval '1 minute'
+       from public.tramites where id = id_),
+    (select format('estado=%s enviado=%s', estado, enviado_en) from public.tramites where id = id_));
+exception when others then
+  perform arnes.comprueba('tramites: enviarlo SI se puede, y la fecha la pone la base', false, sqlerrm);
+end
+$tb$;
+
+-- Colgarse de la constitucion de otro para cortarle los tramos.
+do $tb$
+declare
+  ajeno uuid;
+  nuevo uuid;
+  tipoAct text := (select codigo from public.tipos_tramite where activo order by codigo limit 1);
+begin
+  reset role;
+  perform arnes.nadie();
+  insert into public.tramites (inversionista, tipo, estado)
+  values ((select id from arnes.gente where papel = 'G'), tipoAct, 'borrador')
+  returning id into ajeno;
+  set role authenticated;
+  perform arnes.soy((select id from arnes.gente where papel = 'A'));
+  begin
+    insert into public.tramites (inversionista, tipo, estado, viene_de)
+    values (auth.uid(), tipoAct, 'borrador', ajeno)
+    returning id into nuevo;
+    perform arnes.comprueba('tramites: no se cuelga de un tramite ajeno',
+      (select viene_de is null from public.tramites where id = nuevo), 'quedo colgado');
+  exception when others then
+    perform arnes.comprueba('tramites: no se cuelga de un tramite ajeno', true, sqlerrm);
+  end;
+end
+$tb$;
+
+-- El equipo SI asigna.
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $tb$
+declare id_ uuid := (select id from arnes.escenario where clave = 'tb-tramite');
+begin
+  update public.tramites set gestor = auth.uid(), banco = 'ps-banco', expediente_ente = 'EXP-1'
+   where id = id_;
+  perform arnes.comprueba('tramites: el equipo SI asigna gestor, banco y expediente',
+    (select gestor = auth.uid() and banco = 'ps-banco' and expediente_ente = 'EXP-1'
+       from public.tramites where id = id_));
+exception when others then
+  perform arnes.comprueba('tramites: el equipo SI asigna gestor, banco y expediente', false, sqlerrm);
+end
+$tb$;
+
+-- EL BLOQUEO. Lo bloquea el admin (X), como en la seccion 30, y se prueba
+-- todo lo que antes seguia pudiendo escribir.
+reset role;
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+update public.perfiles set bloqueado = true where id = (select id from arnes.gente where papel = 'A');
+select arnes.nadie();
+
+-- Las que existan: tramite_entes la pone supabase-entes-parafiscales.sql,
+-- que no esta en la tanda.
+select arnes.comprueba('bloqueo: el corte esta en las ocho tablas que faltaban',
+  (select count(distinct tgrelid) = (select count(*) from unnest(array['tramite_mensajes','cita_mensajes',
+            'consultas','consulta_mensajes','tramite_documentos','tramite_entes','empresas',
+            'pliego_aceptaciones']) t where to_regclass('public.' || t) is not null)
+     from pg_trigger
+    where not tgisinternal and tgname like '%\_bloqueo'
+      and tgrelid::regclass::text in ('tramite_mensajes','cita_mensajes','consultas','consulta_mensajes',
+                                      'tramite_documentos','tramite_entes','empresas','pliego_aceptaciones')),
+  (select string_agg(distinct tgrelid::regclass::text, ', ') from pg_trigger
+    where not tgisinternal and tgname like '%\_bloqueo'));
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+do $tb$
+declare
+  id_ uuid := (select id from arnes.escenario where clave = 'tb-tramite');
+  yo text := auth.uid()::text;
+begin
+  begin
+    insert into public.tramite_mensajes (tramite, texto) values (id_, 'sigo aqui');
+    perform arnes.comprueba('bloqueo: no escribe en el hilo', false, 'entro');
+  exception when others then
+    perform arnes.comprueba('bloqueo: no escribe en el hilo', true);
+  end;
+
+  begin
+    insert into public.empresas (inversionista, razon_social) values (auth.uid(), 'Bloqueada C.A.')
+    on conflict (inversionista) do update set razon_social = excluded.razon_social;
+    perform arnes.comprueba('bloqueo: no toca su empresa', false, 'entro');
+  exception when others then
+    perform arnes.comprueba('bloqueo: no toca su empresa', true);
+  end;
+
+  begin
+    insert into storage.objects (bucket_id, name) values ('recaudos', yo || '/bloqueada.pdf');
+    perform arnes.comprueba('bloqueo: no sube archivos', false, 'entro');
+  exception when others then
+    perform arnes.comprueba('bloqueo: no sube archivos', true);
+  end;
+end
+$tb$;
+
+-- Y desbloqueada, vuelve a poder.
+reset role;
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+update public.perfiles set bloqueado = false where id = (select id from arnes.gente where papel = 'A');
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $tb$
+begin
+  insert into public.tramite_mensajes (tramite, texto)
+  values ((select id from arnes.escenario where clave = 'tb-tramite'), 'ya puedo');
+  perform arnes.comprueba('bloqueo: desbloqueada SI escribe en el hilo', true);
+exception when others then
+  perform arnes.comprueba('bloqueo: desbloqueada SI escribe en el hilo', false, sqlerrm);
+end
+$tb$;
+reset role;
+select arnes.nadie();
+
+
 \o
 \pset tuples_only on
 \pset format unaligned

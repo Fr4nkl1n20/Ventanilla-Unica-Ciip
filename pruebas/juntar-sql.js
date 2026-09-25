@@ -115,7 +115,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    pone el equipo, emitidos/ no se toca y la verificacion solo responde
    por lo emitido. Redefine verificar_documento() y apuntar_el_huerfano(),
    asi que va detras de todo lo que las define. */
-'supabase-papeles-sellados'];
+'supabase-papeles-sellados',
+/* Paso 2 de esa revision: las columnas del CIIP en un tramite y el
+   bloqueo en todo lo que escribe el inversionista. Redefine las politicas
+   del cubo del anterior, asi que va detras. */
+'supabase-tramites-y-bloqueo'];
 
 let mal = 0;
 for (const n of orden) {
