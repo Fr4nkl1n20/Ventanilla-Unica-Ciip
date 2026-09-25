@@ -89,25 +89,25 @@ puede decir que algo está listo cuando no lo está.
 - [x] RIF personal (c3) y RIF de la empresa (c6), tres pasos
 - [x] Cuenta bancaria (c7), dos pasos
 - [x] Sellado de libros (c24), tres pasos
-- [ ] Visa (c1) y visa de inversionista: **me faltan los seis rótulos tal
-      como los quieres**. Sé quién marca el 2 y el 3; no tengo escritos los
-      seis nombres
+- [x] Visa (c1) y visa de inversionista, seis pasos. Franklin los dictó uno
+      a uno el 25-9-2026:
 
-      Franklin, 25-9-2026, sobre el paso 2: «se marca cuando el usuario
-      confirma que registró el usuario». Eso afina lo de ayer —«el gestor
-      avisa y el equipo CIIP confirma»— y cambia una cosa de fondo: ese
-      paso NO lo mueven los cuatro estados, lo mueve un botón que aprieta
-      el inversionista. Es el primero de los tres mecanismos del punto 2.
+      1. Solicitud recibida por el CIIP
+      2. Regístrate en el portal de Cancillería
+      3. Descarga aquí el documento
+      4. Recibo de planilla de solicitud por el CIIP
+      5. Solicitud recibida por Cancillería
+      6. Visa otorgada
 
-      Dónde se guardaría, sin tocar la base: en `tramites.datos`, una
-      casilla del estilo `paso2_confirmado`. No hace falta un estado nuevo
-      ni tocar la escalera de la base, y por tanto no puede romper el
-      orden de los estados que el disparador vigila.
+      El 2 no lo mueve ningún estado: lo marca el inversionista con un
+      botón, y hasta entonces la escalera se queda ahí. Se guarda en
+      `tramites.datos` a través de `confirma_paso()`. **Hace falta correr
+      `CORRER-CONFIRMA-UN-PASO.sql`.**
 - [ ] Traducción (c17): son dos escaleras distintas según la respuesta. Ver
       el punto 4
 - [ ] Registro de marcas (c8): en tu documento sigue «aún se está diseñando»
 
-### 2. Los tres mecanismos nuevos de la visa — **medio decidido**
+### 2. Los tres mecanismos nuevos de la visa — **dos hechos, falta uno**
 
 Franklin, 25-9-2026, el paso 2 y el 3 de la visa:
 
@@ -115,24 +115,24 @@ Franklin, 25-9-2026, el paso 2 y el 3 de la visa:
 > «en apenas el usuario confirme que se creó el usuario se le habilita la 3
 > con la descarga del pdf»
 
-Así queda el tramo, tal como lo entiendo:
+- [x] **El paso con enlace externo.** El 2 enseña el enlace a
+      cancilleriadigital.mppre.gob.ve y el botón «Ya me registré». Va por
+      `confirma_paso()`, que comprueba que el trámite es tuyo y revienta si
+      no tocó ninguna fila: un update a secas habría cambiado cero filas en
+      silencio, que es como se perdieron la nota de la devolución y el
+      comprobante de la publicación.
+- [x] **El paso que entrega un documento.** El 3 trae la descarga de la
+      planilla, y solo aparece cuando el 2 está confirmado. El PDF vive en
+      `planillas/visa-solicitud.pdf`, junto al panel, para que no dependa de
+      la página del ministerio.
+- [ ] **La observación del CIIP sobre esa planilla.** Hoy el gestor ya puede
+      rechazar un recaudo escribiendo el motivo, y el inversionista lo lee y
+      lo corrige. ¿Te vale eso, o quieres una conversación colgando del paso?
 
-1. **Paso 2** — el panel enseña el enlace a cancilleriadigital.mppre.gob.ve
-   y un botón de «ya me registré». Lo aprieta el inversionista, y eso es
-   lo que marca el paso. Se guarda en `tramites.datos`, sin estado nuevo.
-2. **Paso 3** — nace cerrado y se abre con esa confirmación. Dentro va la
-   descarga del PDF de la planilla, que el inversionista firma y sube.
-
-Lo de subirla ya existe: `planilla_visa` es uno de los siete recaudos de
-la visa. Lo que cambia es DÓNDE se sube —dentro del paso y no en la hoja
-de papeles—, que es el segundo de los tres mecanismos.
-
-**Me faltan dos cosas para montarlo:** los seis rótulos, y el PDF de la
-planilla (el archivo, o el enlace de donde se baja).
-
-Sigue sin decidir el tercer mecanismo: la observación del CIIP sobre ese
-documento. Hoy el gestor puede rechazar un recaudo con su motivo. ¿Vale
-eso, o quieres una conversación por paso?
+Queda una cosa a medias y conviene tenerla escrita: la planilla firmada se
+sube en la hoja de recaudos, como los demás papeles, y no DENTRO del paso 3.
+Subirla funciona —`planilla_visa` es uno de los siete recaudos de la visa—,
+pero el paso solo la da, no la recoge. Moverlo ahí es otro trabajo.
 
 ---
 
