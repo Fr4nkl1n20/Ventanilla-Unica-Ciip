@@ -3415,6 +3415,14 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .pe-dice[hidden], .pe-form[hidden], .pe-listo[hidden]{display:none;}
 .pe-ver{font:inherit; font-size:var(--fs-nota); font-weight:700; color:var(--navy2);
   background:none; border:0; padding:0; cursor:pointer; text-decoration:underline;}
+/* Reabrir la caja del código: la misma forma que «Ver archivo», que es su
+   hermano -los dos son un enlace dentro de la fila del ente, no un botón
+   con el que se decide nada-. Va en gris y no en azul a propósito: lo
+   normal es no tocarlo, porque el código ya está mandado. */
+.pe-otro{font:inherit; font-size:var(--fs-nota); font-weight:600; color:var(--gray);
+  background:none; border:0; padding:0; margin-top:4px; cursor:pointer;
+  text-decoration:underline; display:block;}
+.pe-otro:hover{color:var(--navy2);}
 /* La casilla del código y enviar, en una línea. En un móvil la casilla
    se queda sola arriba. */
 .pe-form{display:flex; align-items:stretch; gap:6px; flex-wrap:wrap; margin-top:6px;}
@@ -25799,7 +25807,7 @@ applyLang(idiomaParaMi());
       /* Las tres cosas que se pueden hacer sobre un ente. Se montan todas y
          se enseñan según el estado: así el repintado es enseñar y esconder,
          y no volver a construir media pantalla. */
-      var form = null, inscribe = null, listo = null;
+      var form = null, inscribe = null, listo = null, otro = null;
 
       /* Manda el cambio y repinta con lo que la BASE devolvió. Con
          .select(): una política que no deja pasar el UPDATE no da error,
@@ -25847,6 +25855,26 @@ applyLang(idiomaParaMi());
             .then(function(){ cod.value = ''; env.disabled = false; });
         });
         pasos[1].txt.appendChild(form);
+
+        /* ── LA CAJA SE CIERRA AL MANDARLO ──
+           Franklin Reyes, 25-9-2026. Después de enviar, la caja se quedaba
+           abierta y vacía: exactamente igual que antes de escribir nada, y
+           quien lo acababa de mandar no tenía forma de saber si había
+           entrado. Ahora se cierra y queda escrito el código que mandaste
+           -eso ya lo enseña «Código: X» aquí al lado-, con este botón para
+           reabrirla si te equivocaste al copiarlo.
+
+           Se puede hasta que el CIIP lo da por bueno; después ya no hay
+           nada que corregir. */
+        otro = el('button', 'pe-otro', u.pe_otro || '');
+        otro.type = 'button';
+        otro.hidden = true;
+        otro.addEventListener('click', function(){
+          otro.hidden = true;
+          form.hidden = false;
+          cod.focus();
+        });
+        pasos[1].txt.appendChild(otro);
       }
 
       if (modo === 'equipo' && tr.estado !== 'resuelto'){
@@ -25909,10 +25937,12 @@ applyLang(idiomaParaMi());
           dice.appendChild(ver);
         }
         dice.hidden = !dice.childNodes.length;
-        /* El inversionista escribe desde que lo inscriben y hasta que el
-           CIIP lo da por bueno: mientras tanto puede corregir un código mal
-           copiado sin pedírselo a nadie. */
-        if (form) form.hidden = !(abierto && (st === 'inscrito' || st === 'codigo_enviado'));
+        /* La caja sale cuando toca escribir -te acaban de inscribir- y se
+           cierra en cuanto mandas el código. Reabrirla es cosa del botón de
+           al lado, que solo sale mientras el CIIP no lo haya dado por
+           bueno: después ya no hay nada que corregir. */
+        if (form) form.hidden = !(abierto && st === 'inscrito');
+        if (otro) otro.hidden = !(abierto && st === 'codigo_enviado');
         if (inscribe) inscribe.hidden = (st !== 'pendiente');
         if (listo) listo.hidden = (st !== 'codigo_enviado');
         enciende(HECHOS[st]);
