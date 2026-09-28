@@ -1080,6 +1080,24 @@ function applyLang(lang){
   })();
 
   /* --- el router --------------------------------------------------------- */
+  /* Las pantallas del grupo del administrador. #equipo tiene su propia
+     línea en pinta(), que es anterior y se deja como estaba. */
+  var SOLO_ADMIN = {usuarios:1, catalogo:1, pulso:1, rastro:1, acomp:1};
+  var vigilando = false;
+  function vigilaSoloAdmin(){
+    if (vigilando) return;
+    vigilando = true;
+    var n = 0;
+    (function mira(){
+      var sabido = typeof PERFIL !== 'undefined' && PERFIL.rolReal;
+      if (!sabido && n++ < 100) return setTimeout(mira, 100);
+      vigilando = false;
+      if (!sabido) return;
+      var d = deHash();
+      if (d && SOLO_ADMIN[d.tipo] && PERFIL.rol !== 'admin') pinta(d);
+    })();
+  }
+
   function pinta(destino){
     var tipo = destino ? destino.tipo : null;
     var previa = cuerpo.getAttribute('data-vista');
@@ -1119,6 +1137,16 @@ function applyLang(lang){
        cada persona de la oficina. Con el rol sabido, como la cola: al
        recargar sobre #equipo el rol todavia no ha llegado. */
     if (tipo === 'equipo' && rolSabido && !soyAdmin) tipo = null;
+    /* Y lo mismo con el resto del grupo del administrador (QA-41). Solo
+       #equipo tenía guardia: un gestor que escribiera #usuarios, #catalogo,
+       #pulso, #rastro o #acompanamiento entraba en la pantalla. La base no
+       le dejaba cambiar nada, pero la veía entera -y en #usuarios, la lista
+       de todas las cuentas-. Con el rol aún sin llegar (F5) se entra, y
+       cuando llega se vuelve a mirar: si no es admin, a la portada. */
+    if (SOLO_ADMIN[tipo]){
+      if (rolSabido && !soyAdmin) tipo = null;
+      else if (!rolSabido) vigilaSoloAdmin();
+    }
     /* La agenda se rellena al entrar, no al cargar la página: la mayoría de
        las visitas no pasan por ella y no hay que gastarles una consulta. */
     if (tipo === 'citas') traeAlEntrar('CIIP_PINTA_AGENDA');
