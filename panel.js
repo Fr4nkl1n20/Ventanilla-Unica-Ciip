@@ -20853,9 +20853,25 @@ applyLang(idiomaParaMi());
          mismo. */
       /* El IVSS y el INCES: usuario y contraseña en vez de código. */
       var conClave = ENTES_CON_CLAVE.indexOf(ente) >= 0;
+      /* ── LOS OTROS CUATRO, SIN CÓDIGO ──
+         Pedido del CIIP (28-9-2026): «Referente a las otras inscripciones,
+         eliminar "Coloque el código enviado", solamente quedará: El CIIP te
+         inscribe ante el ente → Inscripción lista».
+
+         Así que el BANAVIH, el Ministerio del Trabajo, la SUNDDE y el SNC
+         se quedan en DOS pasos: el CIIP los inscribe y, con la constancia
+         subida -o con «Marcar listo»-, la inscripción queda lista. Ni caja
+         del código para el inversionista ni revisión del código para el
+         gestor. El IVSS y el INCES siguen con sus cuatro, porque ellos sí
+         mandan usuario y contraseña.
+
+         Una fila vieja de uno de esos cuatro en 'inscrito' o en
+         'codigo_enviado' no se pierde: se lee como en marcha, el código que
+         hubiera mandado alguien se sigue viendo en el primer paso, y el
+         gestor la cierra con el mismo botón. */
       var ol = el('ol', 'tr-pasos pe-pasos');
       var pasos = (conClave ? ['pe_p0', 'pe_p1c', 'pe_p2c', 'pe_p3']
-                            : ['pe_p0', 'pe_p1', 'pe_p2', 'pe_p3']).map(function(clave, i){
+                            : ['pe_p0', 'pe_p3']).map(function(clave, i){
         var li = el('li', 'tr-paso porhacer');
         var punto = el('span', 'tr-punto', String(i + 1));
         var txt = el('div', 'tr-txt');
@@ -20868,7 +20884,8 @@ applyLang(idiomaParaMi());
 
       var dice = el('div', 'pe-dice');
       dice.hidden = true;
-      pasos[1].txt.appendChild(dice);
+      var ultimo = pasos[pasos.length - 1];
+      (conClave ? pasos[1] : pasos[0]).txt.appendChild(dice);
 
       /* La constancia que emitió el ente, para DESCARGARLA (Franklin
          Reyes, 25-9-2026: «falta una opción de que el inversionista pueda
@@ -20880,7 +20897,7 @@ applyLang(idiomaParaMi());
       var baja = el('button', 'btn navy pe-baja', u.pe_descargar || '');
       baja.type = 'button';
       baja.hidden = true;
-      pasos[3].txt.appendChild(baja);
+      ultimo.txt.appendChild(baja);
 
       /* Las tres cosas que se pueden hacer sobre un ente. Se montan todas y
          se enseñan según el estado: así el repintado es enseñar y esconder,
@@ -20918,7 +20935,7 @@ applyLang(idiomaParaMi());
           });
       }
 
-      if (modo === 'inversionista'){
+      if (modo === 'inversionista' && conClave){
         form = el('div', 'pe-form');
         form.hidden = true;
         var cod = document.createElement('input');
@@ -21017,15 +21034,19 @@ applyLang(idiomaParaMi());
         /* «Ya la inscribimos»: abre la caja del código de ESTE ente y de
            ninguno más. Es el botón que convierte las cinco filas en cinco
            tareas con principio y final. */
-        inscribe = el('button', 'btn ghost pe-inscribe', u.pe_inscribir || '');
-        inscribe.type = 'button';
-        inscribe.hidden = true;
-        inscribe.addEventListener('click', function(){
-          inscribe.disabled = true;
-          manda({tramite: tr.id, ente: ente, estado: 'inscrito'}, inscribe,
-                function(){ inscribe.textContent = u.error || ''; });
-        });
-        pasos[0].txt.appendChild(inscribe);
+        /* Solo el IVSS y el INCES: los otros cuatro no esperan nada del
+           inversionista, así que del primer paso se pasa a «lista». */
+        if (conClave){
+          inscribe = el('button', 'btn ghost pe-inscribe', u.pe_inscribir || '');
+          inscribe.type = 'button';
+          inscribe.hidden = true;
+          inscribe.addEventListener('click', function(){
+            inscribe.disabled = true;
+            manda({tramite: tr.id, ente: ente, estado: 'inscrito'}, inscribe,
+                  function(){ inscribe.textContent = u.error || ''; });
+          });
+          pasos[0].txt.appendChild(inscribe);
+        }
 
         listo = el('button', 'btn ghost pe-listo', u.pe_marcar || '');
         listo.type = 'button';
@@ -21035,7 +21056,7 @@ applyLang(idiomaParaMi());
           manda({tramite: tr.id, ente: ente, estado: 'listo'}, listo,
                 function(){ listo.textContent = u.error || ''; });
         });
-        pasos[2].txt.appendChild(listo);
+        (conClave ? pasos[2] : pasos[0]).txt.appendChild(listo);
 
         /* ── LA CONSTANCIA DE CADA ENTE, POR SEPARADO ──
            Franklin Reyes, 25-9-2026: «necesito que sean separados, porque
@@ -21088,18 +21109,27 @@ applyLang(idiomaParaMi());
               });
           });
           sube.appendChild(etiq); sube.appendChild(arch); sube.appendChild(msgS);
-          pasos[3].txt.appendChild(sube);
+          ultimo.txt.appendChild(sube);
         }
       }
 
       /* Cuántos pasos van hechos en cada estado. El que sigue al último
          hecho es el de «vas por aquí», salvo con la solicitud cerrada, que
          ya no espera nada. */
-      var HECHOS = {pendiente: 0, inscrito: 1, codigo_enviado: 2, listo: 4};
-      var CHIP = {pendiente:      ['mute', 'pe_pendiente'],
-                  inscrito:       ['info', conClave ? 'pe_esperandoc' : 'pe_esperando'],
-                  codigo_enviado: ['info', conClave ? 'pe_enviadoc' : 'pe_enviado'],
-                  listo:          ['good', 'pe_listo']};
+      /* Sin código, 'inscrito' y 'codigo_enviado' -filas de antes del
+         28-9-2026- cuentan como lo que son para el inversionista: la
+         inscripción sigue en marcha hasta que el CIIP la da por lista. */
+      var HECHOS = conClave ? {pendiente: 0, inscrito: 1, codigo_enviado: 2, listo: 4}
+                            : {pendiente: 0, inscrito: 0, codigo_enviado: 0, listo: 2};
+      var CHIP = conClave
+        ? {pendiente:      ['mute', 'pe_pendiente'],
+           inscrito:       ['info', 'pe_esperandoc'],
+           codigo_enviado: ['info', 'pe_enviadoc'],
+           listo:          ['good', 'pe_listo']}
+        : {pendiente:      ['mute', 'pe_pendiente'],
+           inscrito:       ['mute', 'pe_pendiente'],
+           codigo_enviado: ['mute', 'pe_pendiente'],
+           listo:          ['good', 'pe_listo']};
       function enciende(hechos){
         pasos.forEach(function(p, i){
           var hecho = i < hechos;
@@ -21144,7 +21174,7 @@ applyLang(idiomaParaMi());
         if (form) form.hidden = !(abierto && st === 'inscrito');
         if (otro) otro.hidden = !(abierto && st === 'codigo_enviado');
         if (inscribe) inscribe.hidden = (st !== 'pendiente');
-        if (listo) listo.hidden = (st !== 'codigo_enviado');
+        if (listo) listo.hidden = conClave ? (st !== 'codigo_enviado') : (st === 'listo');
         enciende(HECHOS[st]);
       }
       pon(null);

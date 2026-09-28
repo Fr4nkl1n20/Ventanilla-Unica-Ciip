@@ -10932,8 +10932,11 @@
     var ivss = fila('ivss'), inces = fila('inces'), banavih = fila('banavih');
     igual('entes: el IVSS pide usuario y contraseña, no un código',
           (ivss.querySelectorAll('.pe-pasos .tr-paso-n')[1] || {}).textContent, u.pe_p1c);
-    igual('entes: y los demás siguen con su código',
-          (banavih.querySelectorAll('.pe-pasos .tr-paso-n')[1] || {}).textContent, u.pe_p1);
+    /* Los otros cuatro, sin código (pedido del CIIP, 28-9-2026): «El CIIP
+       te inscribe ante el ente → Inscripción lista», y nada más. */
+    igual('entes: los demás, sin código: el CIIP te inscribe y la inscripción queda lista',
+          [].map.call(banavih.querySelectorAll('.pe-pasos .tr-paso-n'), function(x){ return x.textContent; }).join(' → '),
+          u.pe_p0 + ' → ' + u.pe_p3);
     var dice = ivss.querySelector('.pe-dice');
     ok('entes: lo enviado sale con el usuario, y la contraseña tapada',
        !!dice && dice.textContent.indexOf(String(u.pe_tuusuario).replace('{c}', 'empresa.ivss')) >= 0 &&
@@ -10952,10 +10955,22 @@
          !!formI.querySelector('input[type=password]'),
        formI ? (formI.hidden ? 'escondida' : formI.querySelectorAll('input').length + ' casillas') : '(sin caja)',
        'una de texto y una de contraseña');
-    ok('entes: el BANAVIH, una sola',
-       !!formB && !formB.hidden && formB.querySelectorAll('input').length === 1 &&
-         !formB.querySelector('input[type=password]'),
-       formB ? formB.querySelectorAll('input').length + ' casillas' : '(sin caja)', 'una');
+    ok('entes: el BANAVIH, ninguna: no hay código que mandar',
+       !formB, formB ? formB.querySelectorAll('input').length + ' casillas' : '(sin caja)', 'sin caja');
+    igual('entes: y aunque venga de antes en «inscrito», se lee en marcha y no esperando tu código',
+          (banavih.querySelector('.pe-cab .chip') || {}).textContent, u.pe_pendiente);
+
+    /* Y el gestor, en uno sin código: ni «Inscripción hecha» ni revisar un
+       código; de pendiente se pasa a lista con un botón en el primer paso. */
+    var eq = window.CIIP_LISTA_ENTES({id:'r9', estado:'ante_el_ente', inversionista:'u1'}, 'equipo', 'sundde');
+    var fS = eq.querySelector('.pe-ente[data-ente="sundde"]');
+    var pasosS = fS ? fS.querySelectorAll('.pe-pasos .tr-paso') : [];
+    ok('entes: gestor, la SUNDDE no ofrece «Inscripción hecha»',
+       !!fS && !fS.querySelector('.pe-inscribe'), fS && fS.querySelector('.pe-inscribe') ? 'lo ofrece' : 'no', 'no');
+    var listoS = pasosS[0] && pasosS[0].querySelector('.pe-listo');
+    ok('entes: gestor, pendiente, y «Marcar listo» ya está en el primer paso',
+       !!listoS && !listoS.hidden, listoS ? (listoS.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'a la vista');
+    if (listoS) listoS.click();
     if (!formI) return;
     formI.querySelector('input[type=text]').value = 'empresa.inces';
     formI.querySelector('.pe-env').click();
@@ -10971,7 +10986,9 @@
           [d.estado, d.codigo, d.clave].join(' · '), 'codigo_enviado · empresa.inces · Cl4ve INCES');
     var b = (window.__ENTES || {})['r9|banavih'] || {};
     igual('entes: y el BANAVIH no lleva contraseña', 'clave' in b, false);
-    ['r9|ivss', 'r9|inces', 'r9|banavih'].forEach(function(k){ delete window.__ENTES[k]; });
+    igual('entes: gestor, la SUNDDE pasa de pendiente a lista sin código',
+          ((window.__ENTES || {})['r9|sundde'] || {}).estado, 'listo');
+    ['r9|ivss', 'r9|inces', 'r9|banavih', 'r9|sundde'].forEach(function(k){ delete window.__ENTES[k]; });
     ENTES_PRUEBA = null;
   }
 

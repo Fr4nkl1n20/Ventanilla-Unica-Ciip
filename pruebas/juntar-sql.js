@@ -154,7 +154,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    pasos apuntados en tramites.datos, la contestación con su anuncio y el
    certificado antes de resolver. Va DETRÁS del importe del día, cuyos
    importes con nombre usa, y de los avisos y el hilo, donde escribe. */
-'supabase-marca'];
+'supabase-marca',
+/* Los registros parafiscales sin código: el inversionista solo escribe en
+   las filas del IVSS y del INCES. Redefine dos políticas de
+   supabase-entes-parafiscales, así que va detrás. */
+'supabase-entes-sin-codigo'];
 
 let mal = 0;
 for (const n of orden) {
