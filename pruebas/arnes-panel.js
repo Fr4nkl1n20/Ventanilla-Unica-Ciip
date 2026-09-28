@@ -243,7 +243,10 @@
               activosAbre, activosMira, opacidadActivos, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
               devueltoAbre, devueltoMira, escaleraAbre, escaleraMira, variasAbre, variasMira,
-              usuariosMira, usuariosCambia, usuariosTrasCambiar, usuariosSeMueve,
+              usuariosMira, usuariosCambia, usuariosConfirma, usuariosTrasCambiar, usuariosSeMueve,
+              usBloqPide, usBloqMira, usBajaPide, usBajaSi, usBajaMira,
+              guardiaEntra, guardiaMira, guardiaMiraOtra,
+              cuentaBloqMira,
               sinSqlAbre, sinSqlMira,
               adminMira, adminAbre, adminDentro,
               f5Entra, f5Espera, f5Llega,
@@ -326,7 +329,7 @@
               migajaAbre, migajaMira, migajaVuelve,
               cuadraAbre, cuadraMira, cuadraMira, cuadraMira,
               nuevaVersionMira, guardaCatalogo,
-              rastroAbre, rastroMira,
+              rastroAbre, rastroMira, rastroQaMira,
               equipoAbre, equipoMira, equipoFichaMira, equipoCierraMira,
               rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
               rastroDesdeTramiteSalta, rastroDesdeTramiteMira,
@@ -4911,7 +4914,12 @@
      escribir un update: el CIIP dependía de una persona con la llave de la
      base de datos. */
   function usuariosMira(){
-    if (SIN_SQL || ES_ADMIN) return;
+    if (SIN_SQL) return;
+    /* El administrador entra por la dirección y es quien reparte roles:
+       las pruebas de cambiar un rol corren con él. Hasta la auditoría QA
+       corrían con un gestor, porque la pantalla no tenía guardia y la base
+       era la única cerradura (QA-41). */
+    if (ES_ADMIN){ location.hash = 'usuarios'; return; }
     var grupo = document.getElementById('grupoAdmin');
     /* Grupo propio, no colgado del de al lado: el aire entre grupos lo pone
        ese contenedor, y metido dentro del vecino dejaba "ACOMPAÑAMIENTO"
@@ -4936,9 +4944,27 @@
   }
 
   function usuariosCambia(){
-    if (CASO !== 'gestor' || SIN_SQL || ES_ADMIN) return;
+    if (SIN_SQL) return;
+    if (!ES_ADMIN){
+      if (CASO !== 'gestor') return;
+      /* QA-41: la pantalla era del administrador solo en la barra. Un
+         gestor que escribía #usuarios veía la lista de todas las cuentas. */
+      ok('usuarios: a un gestor, #usuarios escrito a mano no le abre la pantalla',
+         document.body.getAttribute('data-vista') !== 'usuarios',
+         document.body.getAttribute('data-vista'), 'otra vista');
+      location.hash = '';
+      return;
+    }
     igual('usuarios: la vista se abre por su dirección',
           document.body.getAttribute('data-vista'), 'usuarios');
+    /* QA-07: el admin ve el correo de cada cuenta, que perfiles no guarda.
+       Sobre todo el de la que no tiene nombre: sin él no sabe a quién le
+       está dando permisos. */
+    igual('usuarios: el admin ve el correo de cada cuenta',
+          document.querySelectorAll('#usLista .us-correo').length, 4);
+    ok('usuarios: también el de la cuenta sin nombre',
+       /sin\.nombre@correo\.test/.test(document.getElementById('usLista').textContent),
+       'busca sin.nombre@correo.test', 'aparece');
 
     var m = document.querySelectorAll('#usMetricas .us-m');
     igual('usuarios: con los cinco números de arriba', m.length, 5);
@@ -5033,8 +5059,38 @@
     sel.dispatchEvent(new Event('change'));
   }
 
+  /* Una ficha de la lista de usuarios por el nombre de quien es. */
+  function fichaUs(nombre){
+    return [].slice.call(document.querySelectorAll('#usLista .ci-ficha')).filter(function(f){
+      return f.querySelector('.ci-linea') && f.querySelector('.ci-linea').textContent === nombre; })[0];
+  }
+  function botonUs(caja, texto){
+    return caja && [].filter.call(caja.querySelectorAll('button'), function(b){
+      return b.textContent === texto; })[0];
+  }
+
+  /* QA-07 y QA-23: el cambio de rol se aplicaba en el mismo «change» del
+     desplegable. Ahora pregunta en la ficha, dice a quién y a qué, y hasta
+     el «Sí» no escribe nada. */
+  function usuariosConfirma(){
+    if (!ES_ADMIN) return;
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var marta = fichaUs('Marta Bianchi');
+    var pre = marta && marta.querySelector('.us-confirma');
+    ok('usuarios: cambiar el rol pregunta antes de hacerlo', !!pre,
+       pre ? 'pregunta' : 'no pregunta', 'pregunta');
+    ok('usuarios: y dice a quién y a qué rol',
+       !!pre && /Marta Bianchi/.test(pre.textContent) && /Equipo CIIP/.test(pre.textContent),
+       pre ? pre.textContent : '(nada)', 'Marta Bianchi ... Equipo CIIP');
+    var chip = marta && marta.querySelector('.ct-chip');
+    igual('usuarios: y mientras no se confirma no cambia nada',
+          chip ? chip.textContent.trim() : '(sin ficha)', 'Inversionista');
+    var si = botonUs(pre, U.us_conf_si);
+    if (si) si.click();
+  }
+
   function usuariosTrasCambiar(){
-    if (CASO !== 'gestor' || SIN_SQL || ES_ADMIN) return;
+    if (!ES_ADMIN) return;
     var t = document.getElementById('usLista').textContent;
     ok('usuarios: el cambio se guarda y se dice', /Rol cambiado|Rol puesto/.test(t),
        'busca "Rol cambiado"', 'lo dice');
@@ -5201,6 +5257,11 @@
      Una función nueva no puede apagar lo que ya servía. */
   function sinSqlAbre(){
     if (!SIN_SQL) return;
+    /* Este pase es de un gestor, y desde la auditoría QA (QA-41) la
+       pantalla es solo del administrador. Lo que se prueba aquí es que la
+       lista aguanta una base sin las columnas nuevas, no quién entra: se
+       hace pasar por admin mientras mira, y se le devuelve el rol al salir. */
+    PERFIL.rol = 'admin';
     location.hash = 'usuarios';
   }
 
@@ -5222,7 +5283,12 @@
        ninguna de las dos columnas. */
     ok('sin sql: y los roles se siguen pudiendo cambiar',
        !!fichas[0].querySelector('select'), 'hay desplegable', 'lo hay');
+    /* Sin supabase-qa-admin.sql no hay correo ni baja, y no se inventan. */
+    igual('sin sql: sin la función del correo, no sale ninguno',
+          document.querySelectorAll('#usLista .us-correo').length, 0);
     location.hash = '';
+    PERFIL.rol = 'gestor';
+    if (window.CIIP_REPINTA_USUARIOS) window.CIIP_REPINTA_USUARIOS();
   }
 
   /* Guardar no es enseñar. El aviso de "rol cambiado" salía enseguida,
@@ -5231,7 +5297,7 @@
      repintase—. Quien lo hacía veía "hecho" y una pantalla que decía lo
      contrario, y acababa recargando a ver si esta vez sí. */
   function usuariosSeMueve(){
-    if (CASO !== 'gestor' || SIN_SQL || ES_ADMIN) return;
+    if (!ES_ADMIN) return;
     var lista = document.getElementById('usLista');
     var marta = [].slice.call(lista.querySelectorAll('.ci-ficha')).filter(function(f){
       return /Marta Bianchi/.test(f.textContent); })[0];
@@ -5254,6 +5320,113 @@
     igual('usuarios: las cuentas siguen siendo las mismas cuatro',
           m[0].querySelector('.n').textContent, '4');
     location.hash = '';
+  }
+
+  /* Bloquear también pregunta, y «Cancelar» lo deja todo como estaba. */
+  function usBloqPide(){
+    if (!ES_ADMIN) return;
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var b = botonUs(fichaUs('Saskia Calderon'), U.us_bloquear);
+    ok('bloquear: la ficha lo ofrece', !!b, b ? 'está' : 'no está', 'el botón');
+    if (b) b.click();
+  }
+
+  function usBloqMira(){
+    if (!ES_ADMIN) return;
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var s = fichaUs('Saskia Calderon');
+    var pre = s && s.querySelector('.us-confirma');
+    ok('bloquear: pregunta antes, y dice a quién',
+       !!pre && /Saskia Calderon/.test(pre.textContent),
+       pre ? pre.textContent : '(no pregunta)', 'la pregunta con su nombre');
+    ok('bloquear: y no bloquea hasta que se confirma',
+       !!s && s.querySelector('.ci-cab').textContent.indexOf(U.us_bloq) < 0,
+       s ? s.querySelector('.ci-cab').textContent : '(sin ficha)', 'sin «' + U.us_bloq + '»');
+    var no = botonUs(pre, U.us_conf_no);
+    if (no) no.click();
+    ok('bloquear: y «Cancelar» lo deja como estaba',
+       !!s && !s.querySelector('.us-confirma') && !s.querySelector('select').disabled,
+       s && s.querySelector('.us-confirma') ? 'sigue preguntando' : 'limpio', 'limpio');
+  }
+
+  /* QA-06: la baja en vez del borrado. Marca, bloquea y lo dice. */
+  function usBajaPide(){
+    if (!ES_ADMIN) return;
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var b = botonUs(fichaUs('Marta Bianchi'), U.us_baja);
+    ok('baja: la ficha ofrece dar de baja', !!b, b ? 'está' : 'no está', 'el botón');
+    if (b) b.click();
+  }
+
+  function usBajaSi(){
+    if (!ES_ADMIN) return;
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var pre = fichaUs('Marta Bianchi') && fichaUs('Marta Bianchi').querySelector('.us-confirma');
+    ok('baja: pregunta antes, y dice que la historia se conserva',
+       !!pre && /Marta Bianchi/.test(pre.textContent),
+       pre ? pre.textContent : '(no pregunta)', 'la pregunta');
+    var si = botonUs(pre, U.us_conf_si);
+    if (si) si.click();
+  }
+
+  function usBajaMira(){
+    if (!ES_ADMIN) return;
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var f = fichaUs('Marta Bianchi');
+    ok('baja: la ficha dice que está de baja',
+       !!f && f.querySelector('.ci-cab').textContent.indexOf(U.us_de_baja) >= 0,
+       f ? f.querySelector('.ci-cab').textContent : '(sin ficha)', U.us_de_baja);
+    ok('baja: ofrece deshacerla, y no desbloquearla a secas',
+       !!botonUs(f, U.us_alta) && !botonUs(f, U.us_desbloq) && !botonUs(f, U.us_bloquear),
+       f ? [].map.call(f.querySelectorAll('button'), function(b){ return b.textContent; }).join(' | ') : '(sin ficha)',
+       U.us_alta);
+  }
+
+  /* QA-41: las demás pantallas del administrador, escritas a mano por un
+     gestor. Solo #equipo tenía guardia. */
+  function guardiaEntra(){
+    if (CASO !== 'gestor' || SIN_SQL || ES_ADMIN) return;
+    location.hash = 'rastro';
+  }
+  function guardiaMira(){
+    if (CASO !== 'gestor' || SIN_SQL || ES_ADMIN) return;
+    ok('guardia: a un gestor, #rastro no le abre la trazabilidad',
+       document.body.getAttribute('data-vista') !== 'rastro',
+       document.body.getAttribute('data-vista'), 'otra vista');
+    location.hash = 'acompanamiento';
+  }
+  function guardiaMiraOtra(){
+    if (CASO !== 'gestor' || SIN_SQL || ES_ADMIN) return;
+    ok('guardia: ni #acompanamiento la del acompañamiento',
+       document.body.getAttribute('data-vista') !== 'acomp',
+       document.body.getAttribute('data-vista'), 'otra vista');
+    location.hash = '';
+  }
+
+  /* QA-28: una cuenta bloqueada entraba normal y todo le fallaba sin
+     decirle por qué. Una cuenta normal no ve el aviso; una bloqueada, sí,
+     con una sola salida. */
+  function cuentaBloqMira(){
+    if (CASO !== 'lleno') return;
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    ok('cuenta bloqueada: una cuenta sin bloquear entra normal',
+       !document.getElementById('cuentaBloqueada'),
+       document.getElementById('cuentaBloqueada') ? 'sale el aviso' : 'sin aviso', 'sin aviso');
+    ok('cuenta bloqueada: el panel pregunta por el bloqueo al leer el perfil',
+       typeof window.CIIP_CUENTA_BLOQUEADA === 'function',
+       typeof window.CIIP_CUENTA_BLOQUEADA, 'function');
+    if (typeof window.CIIP_CUENTA_BLOQUEADA !== 'function') return;
+    window.CIIP_CUENTA_BLOQUEADA();
+    var c = document.getElementById('cuentaBloqueada');
+    ok('cuenta bloqueada: bloqueada, lo dice y tapa el panel',
+       !!c && c.getAttribute('role') === 'alertdialog' &&
+       c.textContent.indexOf(U.cb_titulo) >= 0 && getComputedStyle(c).position === 'fixed',
+       c ? c.textContent.slice(0, 60) : '(sin aviso)', U.cb_titulo);
+    var b = c && c.querySelector('button');
+    igual('cuenta bloqueada: con una sola salida, cerrar la sesión',
+          b ? b.textContent : '(sin botón)', U.cb_salir);
+    if (c) c.remove();
+    document.documentElement.classList.remove('ciip-cuenta-bloqueada');
   }
 
   /* ═══════════ MI EMPRESA ═══════════
@@ -11949,6 +12122,32 @@
          !!n && Number(n.textContent) >= 1,
          n ? n.textContent : '(no está la ficha)', 'uno o más');
     });
+  }
+
+  /* QA-27: el rol de antes, la baja, las fechas y el CSV. */
+  function rastroQaMira(){
+    if (!ES_ADMIN) return;
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var D = I18N[curLang] || I18N.en;
+    var filas = document.querySelectorAll('#raLista tr');
+    var acciones = [].map.call(filas, function(f){
+      return f.children[3] ? f.children[3].textContent : '';
+    });
+    var deA = String(U.ra_v_rol_de || '').replace('{antes}', D['rol.inversionista'])
+                                         .replace('{rol}', D['rol.gestor']);
+    ok('trazabilidad: un cambio de rol dice de cuál a cuál',
+       !!U.ra_v_rol_de && acciones.indexOf(deA) >= 0, acciones.join(' | '), deA);
+    ok('trazabilidad: y una baja se lee como baja',
+       !!U.ra_v_baja && acciones.indexOf(U.ra_v_baja) >= 0, acciones.join(' | '), U.ra_v_baja);
+    igual('trazabilidad: las fechas llevan su rótulo',
+          document.getElementById('raDesdeR').textContent + ' / ' + document.getElementById('raHastaR').textContent,
+          U.ra_desde + ' / ' + U.ra_hasta);
+    var csv = window.CIIP_CSV_RASTRO ? window.CIIP_CSV_RASTRO() : '';
+    igual('trazabilidad: el CSV trae una línea por fila, más la cabecera',
+          csv ? csv.split('\r\n').length : 0, filas.length + 1);
+    ok('trazabilidad: «Cargar más» no sale cuando ya está todo',
+       document.getElementById('raMas').hidden,
+       document.getElementById('raMas').hidden ? 'escondido' : 'a la vista', 'escondido');
   }
 
   /* La placa dejo de ser una columna con la sigla debajo: es el mismo

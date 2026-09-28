@@ -1190,6 +1190,15 @@
       /* Bloquear. Se apunta de verdad para que la ficha cambie: un falso
          que dice "hecho" sin cambiar nada da verde a una prueba que no
          comprueba nada. */
+      /* Dar de baja: la base la marca y además bloquea (QA-06). */
+      if (op && op.update && 'dado_de_baja_en' in op.update && op.eq && op.eq.id){
+        var deBaja = OTROS_PERFILES.filter(function(g){ return g.id === op.eq.id; })[0];
+        if (deBaja){
+          deBaja.dado_de_baja_en = op.update.dado_de_baja_en ? new Date().toISOString() : null;
+          if (op.update.dado_de_baja_en) deBaja.bloqueado = true;
+        }
+        return {data: deBaja || null, error:null};
+      }
       if (op && op.update && 'bloqueado' in op.update && op.eq && op.eq.id){
         var quien = OTROS_PERFILES.filter(function(g){ return g.id === op.eq.id; })[0];
         if (quien) quien.bloqueado = !!op.update.bloqueado;
@@ -1645,7 +1654,13 @@
         {id:1, cuando:haceHoras(30),  quien:'u5', fuente:'citas',
          accion:'pidio',    sobre:'', detalle:'solicitada'},
         {id:0, cuando:haceHoras(50),  quien:'u4', fuente:'roles',
-         accion:'rol',      sobre:'Saskia Calderon', detalle:'gestor'}
+         accion:'rol',      sobre:'Saskia Calderon', detalle:'gestor'},
+        /* Lo que apunta supabase-qa-admin.sql: el cambio de rol con el de
+           antes, y una baja. */
+        {id:15, cuando:haceHoras(52), quien:'u4', fuente:'roles',
+         accion:'rol',      sobre:'Franklin Reyes', detalle:'{"rol":"gestor","antes":"inversionista"}'},
+        {id:16, cuando:haceHoras(54), quien:'u4', fuente:'roles',
+         accion:'baja',     sobre:'Bruno Pereira', detalle:''}
       ], error:null};
     }
     if (tabla === 'tipos_documento'){
@@ -2311,6 +2326,18 @@
             var pend = PLIEGOS.filter(function(p){ return p.vigente; })[0];
             var r0 = {data: (pend && !pliegoAceptado) ? pend.version : null, error:null};
             return {then:function(bien, mal){ return Promise.resolve(r0).then(bien, mal); }};
+          }
+
+          /* El correo de cada cuenta: solo a un admin, como la de verdad
+             (QA-07). A los demás, el error de permiso. */
+          if (nombre === 'correos_de_las_cuentas'){
+            var rC = (esAdmin && !sinSql)
+              ? {data: OTROS_PERFILES.map(function(g){
+                  return {id: g.id, correo: (g.nombre_completo
+                    ? g.nombre_completo.toLowerCase().replace(/[^a-z]+/g, '.') : 'sin.nombre') + '@correo.test'};
+                }), error:null}
+              : {data:null, error:{message:'Solo un administrador ve los correos', code:'42501'}};
+            return {then:function(bien, mal){ return Promise.resolve(rC).then(bien, mal); }};
           }
 
           /* Las horas ya tomadas: en 'huecos', las 09:00 del segundo dia
