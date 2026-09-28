@@ -6426,6 +6426,57 @@ applyLang(idiomaParaMi());
       (acompana || caja).appendChild(bloque);
     })();
 
+    /* ── DESCARTAR EL BORRADOR (QA-11) ──
+       La base deja borrar un borrador propio desde siempre -«tramites:
+       descartar el borrador propio»-, y un comentario de la cancelación
+       hablaba del «botón de siempre» para hacerlo, pero el botón no
+       existía: un borrador empezado sin querer se quedaba en «Mis trámites»
+       para siempre.
+
+       Solo mientras sea borrador: un devuelto ya lo recibió el CIIP y se
+       cancela, no se descarta. Dos pulsaciones, como cancelar: la primera
+       cambia el botón por la pregunta. Los papeles que subió se quedan en
+       su bóveda: se borra la solicitud, no los documentos.
+
+       Se enseña también si el borrador nace aquí mismo, en un envío que
+       falló a medias (QA-13): ese es justo el que uno puede querer tirar. */
+    var zonaD = el('div', 'sol-cancelar sol-descartar');
+    var btnD = el('button', 'can-btn', u.bo_descartar || '');
+    btnD.type = 'button';
+    var avisoD = el('div', 'can-msg', '');
+    zonaD.appendChild(btnD);
+    zonaD.appendChild(avisoD);
+    zonaD.hidden = !(borrador && borrador.estado === 'borrador');
+    caja.appendChild(zonaD);
+    var seguroD = false;
+    btnD.addEventListener('click', function(){
+      if (!borrador) return;
+      if (!seguroD){
+        seguroD = true;
+        btnD.classList.add('confirma');
+        btnD.textContent = u.bo_seguro || '';
+        avisoD.textContent = u.bo_porque || '';
+        return;
+      }
+      btnD.disabled = true;
+      avisoD.textContent = '';
+      Promise.resolve().then(function(){
+        return sb.from('tramites').delete().eq('id', borrador.id).eq('estado', 'borrador').select();
+      }).then(function(r){
+        /* Cero filas no es «hecho»: es una política que no dejó, o un
+           borrador que ya no lo era. */
+        if (!r || r.error || (Array.isArray(r.data) && !r.data.length)){
+          throw ((r && r.error) || new Error('no se borró ninguna fila'));
+        }
+        cargaAvisos();
+        window.CIIP_TRAMITE_REAL(tipoRefDe(tipo.codigo));
+      }).catch(function(e){
+        console.warn('[CIIP] descartar borrador:', e && (e.message || e));
+        btnD.disabled = false;
+        avisoD.textContent = u.co_error || '';
+      });
+    });
+
     /* ── EL ANDAMIO: que hoja se ve, y como se pasa de una a otra ──
        Va al final a proposito: para entonces ya existen las hojas, los
        campos, los recaudos y el boton de enviar, y esto solo los coloca. */
@@ -6760,7 +6811,7 @@ applyLang(idiomaParaMi());
     }
 
     enviar.addEventListener('click', function(){
-      envia(tipo, borrador, enviar, aviso, function(tr){ borrador = tr; });
+      envia(tipo, borrador, enviar, aviso, function(tr){ borrador = tr; zonaD.hidden = false; });
     });
   }
 

@@ -359,7 +359,10 @@
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
                  cuentas a todo lo que cuenta tarjetas. */
               envioAbre, empiezaSolicitud, envioRellena, envioPasa,
-              envioRepaso, envioManda, envioMira], volcar);
+              envioRepaso, envioManda, envioMira,
+              /* QA-11: descartar un borrador. Solo en 'sinnombre' y al final: borra
+                 una solicitud de la tabla, y antes le cambiaría las cuentas a otras. */
+              descartaAbre, descartaMira, descartaPide, descartaTras], volcar);
   });
 
   /* ═══════════════ LA PUERTA DEL SECTOR ═══════════════
@@ -3439,6 +3442,45 @@
     ok('envio: y el repaso enseña lo que se va a mandar',
        !!lista && lista.querySelectorAll('.pa-fila').length > 0,
        lista ? lista.querySelectorAll('.pa-fila').length + ' líneas' : '0', 'más de 0');
+  }
+
+  /* ═══════════ DESCARTAR UN BORRADOR (QA-11) ═══════════
+     La base lo dejaba y el panel no lo ofrecía. 'sinnombre' trae una visa
+     en borrador -s1- con dos papeles ya subidos. */
+  function descartaAbre(sigue){
+    if (CASO !== 'sinnombre') return sigue();
+    location.hash = '';
+    setTimeout(function(){
+      location.hash = 'tramite-c1';
+      esperaFilas('#trReal .sol-descartar', 1, sigue);
+    }, 100);
+  }
+
+  function descartaMira(){
+    if (CASO !== 'sinnombre') return;
+    var z = document.querySelector('#trReal .sol-descartar');
+    ok('descartar: un borrador se puede descartar', !!z && !z.hidden,
+       z ? (z.hidden ? 'escondido' : 'a la vista') : 'no está', 'a la vista');
+  }
+
+  function descartaPide(){
+    if (CASO !== 'sinnombre') return;
+    var b = document.querySelector('#trReal .sol-descartar .can-btn');
+    if (!b) return;
+    b.click();
+    igual('descartar: la primera pulsación pregunta', b.textContent.trim(), 'Sí, descartarlo');
+    igual('descartar: y avisa de que los papeles se quedan en la bóveda',
+          (document.querySelector('#trReal .sol-descartar .can-msg') || {}).textContent,
+          'No se puede deshacer. Se borra la solicitud a medias; los recaudos que subiste se quedan en tu bóveda.');
+    b.click();
+  }
+
+  function descartaTras(){
+    if (CASO !== 'sinnombre') return;
+    var quedan = (window.PRUEBA_TRAMITES ? window.PRUEBA_TRAMITES() : [])
+      .filter(function(t){ return t.id === 's1'; });
+    igual('descartar: la segunda lo borra de la base', quedan.length, 0);
+    location.hash = '';
   }
 
   function envioManda(sigue){
