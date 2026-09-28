@@ -3630,6 +3630,11 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .hm-arch{margin-top:6px; font:inherit; font-size:11.5px; font-weight:600;
   background:none; border:0; padding:0; cursor:pointer; text-align:left;
   color:var(--navy); text-decoration:underline;}
+/* «Traducido automáticamente · Ver original», debajo del mensaje del otro
+   lado: discreto, que lo que se lee es el mensaje. */
+.hm-tr{margin-top:5px; font-size:11px; color:var(--gray-soft);}
+.hm-tr-b{font:inherit; font-weight:600; background:none; border:0; padding:0;
+  cursor:pointer; color:var(--navy); text-decoration:underline;}
 .hilo-pie{display:grid; gap:7px;}
 .hilo-txt{font:inherit; font-size:12.5px; line-height:1.45; resize:vertical;
   padding:8px 10px; border-radius:9px; border:1px solid var(--line);

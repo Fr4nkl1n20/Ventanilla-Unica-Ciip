@@ -9355,6 +9355,11 @@ applyLang(idiomaParaMi());
     if (!de.soloLeer) bloque.appendChild(pie);
     caja.appendChild(bloque);
 
+    /* La traducción automática (supabase-traduccion-chat.sql). trad lleva
+       la de cada mensaje del otro lado que la tenga, y original los que
+       se están leyendo en su idioma porque se pulsó «Ver original». */
+    var trad = {}, original = {};
+
     function pinta(filas){
       lista.textContent = '';
       if (!filas.length){
@@ -9370,7 +9375,26 @@ applyLang(idiomaParaMi());
           (equipo ? (m.del_equipo ? (u['hilo.tu'] || '') : quien)
                   : (m.del_equipo ? (u['hilo.ciip'] || '') : (u['hilo.tu'] || ''))) +
           ' · ' + fecha(m.creado_en)));
-        if (m.texto) f.appendChild(el('div', 'hm-t', m.texto));
+        /* Lo del otro lado, en tu idioma si hay traducción, y a un clic
+           del original, que es lo que vale. Lo tuyo, como lo escribiste. */
+        var tr = delOtro && m.texto && trad[m.id];
+        if (tr){
+          var enOriginal = !!original[m.id];
+          f.appendChild(el('div', 'hm-t', enOriginal ? m.texto : tr));
+          var nota = el('div', 'hm-tr');
+          nota.appendChild(el('span', null, (u.hilo_tr || '') + ' · '));
+          var bTr = el('button', 'hm-tr-b', enOriginal ? (u.hilo_tr_trad || '') : (u.hilo_tr_orig || ''));
+          bTr.type = 'button';
+          bTr.addEventListener('click', (function(id){ return function(){
+            original[id] = !original[id];
+            /* Sin bajar al final: se está leyendo este, no el último. */
+            var y = lista.scrollTop;
+            pinta(filas);
+            lista.scrollTop = y;
+          }; })(m.id));
+          nota.appendChild(bTr);
+          f.appendChild(nota);
+        } else if (m.texto) f.appendChild(el('div', 'hm-t', m.texto));
         /* El adjunto, por su nombre. La URL firmada se pide al pulsar y
            no al pintar: firmar de golpe un hilo entero son diez
            peticiones que casi nadie va a usar, y caducan mientras se lee. */
@@ -9387,13 +9411,48 @@ applyLang(idiomaParaMi());
       if (equipo) lista.scrollTop = lista.scrollHeight;
     }
 
+    /* Las traducciones de lo que escribió el otro lado. Si la tabla aún
+       no está en la base, o falla, el hilo se pinta igual, en original:
+       la traducción es un añadido, nunca lo que deja ver o no la
+       conversación. */
+    function traducciones(filas){
+      var ids = filas.filter(function(m){
+        return m.texto && (equipo ? !m.del_equipo : m.del_equipo);
+      }).map(function(m){ return m.id; });
+      if (!ids.length) return Promise.resolve();
+      return Promise.resolve(sb.from('mensaje_traducciones')
+        .select('mensaje, texto').eq('tabla', de.tabla).in('mensaje', ids))
+        .then(function(r){
+          if (r && r.error) throw r.error;
+          ((r && r.data) || []).forEach(function(t){ if (t.texto) trad[t.mensaje] = t.texto; });
+        })
+        .catch(function(e){ console.warn('[CIIP] traducciones del hilo:', e && e.message); });
+    }
+
+    /* Al enviar, se pide la traducción de lo que se acaba de escribir
+       (api/traducir.js). No se espera: el mensaje ya está en la base, y
+       el otro lado lo verá traducido cuando lo lea. */
+    function pideTraduccion(id){
+      if (!id || !window.sbCIIP) return;
+      Promise.resolve(window.sbCIIP.auth.getSession()).then(function(r){
+        var token = r && r.data && r.data.session && r.data.session.access_token;
+        if (!token) return;
+        return fetch('/api/traducir', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json', 'Authorization':'Bearer ' + token},
+          body: JSON.stringify({tabla: de.tabla, id: id})
+        });
+      }).catch(function(e){ console.warn('[CIIP] traducir:', e && e.message); });
+    }
+
     function lee(){
       return Promise.resolve(sb.from(de.tabla)
         .select('id, texto, del_equipo, creado_en, documento, documentos(nombre_original, tipo, archivo)')
         .eq(de.col, de.id).order('creado_en', {ascending:true}))
         .then(function(r){
           if (r && r.error) throw r.error;
-          pinta((r && r.data) || []);
+          var filas = (r && r.data) || [];
+          return traducciones(filas).then(function(){ pinta(filas); });
         })
         .catch(function(e){
           /* Sin el SQL puesto, esta tabla no existe y la consulta falla.
@@ -9435,8 +9494,12 @@ applyLang(idiomaParaMi());
            de citas mañana, y de lo que venga después. */
         var fila = {texto: dice, documento: docId};
         fila[de.col] = de.id;
-        return Promise.resolve(sb.from(de.tabla).insert(fila))
-          .then(function(r){ if (r && r.error) throw r.error; });
+        return Promise.resolve(sb.from(de.tabla).insert(fila).select('id'))
+          .then(function(r){
+            if (r && r.error) throw r.error;
+            var d = r && r.data;
+            if (dice) pideTraduccion(Array.isArray(d) ? (d[0] && d[0].id) : (d && d.id));
+          });
       }).then(function(){
         texto.value = '';
         arch.value = ''; nomb.textContent = '';
@@ -16294,7 +16357,7 @@ applyLang(idiomaParaMi());
     var ids = consultas.map(function(c){ return c.id; });
     if (!ids.length){ cmUltimos = {}; return Promise.resolve(); }
     return Promise.resolve(sb.from('consulta_mensajes')
-      .select('consulta, texto, del_equipo, documento, creado_en')
+      .select('id, consulta, texto, del_equipo, documento, creado_en')
       .in('consulta', ids)
       .order('creado_en', {ascending:false}))
       .then(function(r){
@@ -16306,6 +16369,21 @@ applyLang(idiomaParaMi());
           if (!ya || Date.parse(m.creado_en) > Date.parse(ya.creado_en)) de[m.consulta] = m;
         });
         cmUltimos = de;
+        /* Lo del inversionista, en español si tiene traducción, como en
+           el hilo. Sin ella -o sin la tabla-, el original. */
+        var suyos = Object.keys(de).map(function(k){ return de[k]; })
+          .filter(function(m){ return m.id && m.texto && !m.del_equipo; });
+        if (!suyos.length) return;
+        return Promise.resolve(sb.from('mensaje_traducciones')
+          .select('mensaje, texto').eq('tabla', 'consulta_mensajes')
+          .in('mensaje', suyos.map(function(m){ return m.id; })))
+          .then(function(t){
+            if (t && t.error) throw t.error;
+            var en = {};
+            ((t && t.data) || []).forEach(function(x){ if (x.texto) en[x.mensaje] = x.texto; });
+            suyos.forEach(function(m){ if (en[m.id]) m.texto = en[m.id]; });
+          })
+          .catch(function(e){ console.warn('[CIIP] traducción de los últimos:', e && e.message); });
       })
       .catch(function(e){
         /* Sin últimos mensajes la lista sale igual, con el asunto: mejor eso

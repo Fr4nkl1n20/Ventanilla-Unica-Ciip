@@ -9993,6 +9993,32 @@
     ok('consulta: y se ve quien dijo cada cosa',
        !!mio && !!suyo,
        (mio ? 'tuyo ' : '') + (suyo ? 'del CIIP' : ''), 'los dos');
+
+    /* La traducción automática (28-9-2026). El doble trae la respuesta del
+       CIIP traducida: sale traducida, con la nota y «Ver original», que
+       enseña lo que se escribió y se puede deshacer. Lo propio, tal cual. */
+    if (!suyo) return;
+    var tTxt = function(){ var s = hilo.querySelector('.hilo-m.suyo .hm-t'); return s ? s.textContent : ''; };
+    var tBtn = function(){ return hilo.querySelector('.hilo-m.suyo .hm-tr-b'); };
+    ok('traducción: lo del otro lado sale traducido',
+       /Gladly/.test(tTxt()), '"' + tTxt() + '"', 'la traducción');
+    var b = tBtn();
+    ok('traducción: con su nota y el botón de ver el original',
+       !!b && /\S/.test(b.textContent) && /\S/.test(b.parentNode.textContent.replace(b.textContent, '')),
+       b ? '"' + b.parentNode.textContent + '"' : '(no está)', 'nota y botón con letra');
+    if (b){
+      var antes = b.textContent;
+      b.click();
+      ok('traducción: «Ver original» enseña lo que se escribió',
+         /Con gusto/.test(tTxt()), '"' + tTxt() + '"', 'el original');
+      ok('traducción: y el botón cambia a volver a la traducción',
+         !!tBtn() && tBtn().textContent !== antes, tBtn() ? '"' + tBtn().textContent + '"' : '(no está)', 'otro rótulo');
+      if (tBtn()) tBtn().click();
+      ok('traducción: y se vuelve a la traducción',
+         /Gladly/.test(tTxt()), '"' + tTxt() + '"', 'la traducción');
+    }
+    ok('traducción: lo propio sale como se escribió, sin nota',
+       !hilo.querySelector('.hilo-m.mio .hm-tr'), 'sin nota', 'sin nota');
   }
 
   /* ── LOS ROTULOS TIENEN LETRA ─────────────────────────────────────────────

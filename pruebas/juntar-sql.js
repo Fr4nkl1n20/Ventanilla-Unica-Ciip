@@ -190,7 +190,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    admin y lo que cada cual puede cambiar de un perfil. Redefine
    funciones de supabase-tramites, -admin, -bitacora y -tope-ia, así que
    va detrás de todo. */
-'supabase-qa-admin'];
+'supabase-qa-admin',
+/* La traducción automática del chat (28-9-2026): lee los tres hilos y
+   redefine gasta_uso_ia() de supabase-qa-admin con la pieza 'traductor',
+   así que va la última. */
+'supabase-traduccion-chat'];
 
 let mal = 0;
 for (const n of orden) {

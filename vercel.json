@@ -10,7 +10,8 @@
 
   "functions": {
     "api/asistente.js": { "maxDuration": 30 },
-    "api/leer-documento.js": { "maxDuration": 90 }
+    "api/leer-documento.js": { "maxDuration": 90 },
+    "api/traducir.js": { "maxDuration": 30 }
   },
 
   "headers": [

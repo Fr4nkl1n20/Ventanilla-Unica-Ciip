@@ -2159,6 +2159,22 @@
       return {data: mias.slice(), error:null};
     }
 
+    /* La traducción automática del chat (supabase-traduccion-chat.sql).
+       Solo la respuesta del CIIP de la consulta cs1, que es la que lee el
+       inversionista: con eso se prueba que sale traducida y que «Ver
+       original» enseña lo que se escribió. Lo que lee el equipo sigue en
+       original, que es lo que miran las pruebas de la cola. */
+    if (tabla === 'mensaje_traducciones'){
+      var traducidas = [
+        {tabla:'consulta_mensajes', mensaje:'cmsj-b', idioma_original:'es', idioma:'en',
+         texto:'Gladly. We need the notarized power of attorney and your passport.'}
+      ].filter(function(t){
+        return (!op || !op.eq || !op.eq.tabla || t.tabla === op.eq.tabla) &&
+               (!op || !op.in || !op.in.mensaje || op.in.mensaje.indexOf(t.mensaje) >= 0);
+      });
+      return {data:soloLoPedido(traducidas, op && op.cols), error:null};
+    }
+
     if (tabla === 'consulta_mensajes'){
       if (op && op.insert){
         /* NOT NULL, igual que en las otras dos conversaciones. */
