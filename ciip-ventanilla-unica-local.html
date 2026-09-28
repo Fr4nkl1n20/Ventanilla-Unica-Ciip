@@ -1079,15 +1079,22 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
          data-i18n puesto, para que el cambio de idioma los alcance sin
          tener que volver a dibujar nada. -->
     <section class="tr-detalle" id="trDetalle">
-      <div class="tr-cab">
-        <div id="trMarca"></div>
-        <div class="tr-cab-txt">
-          <div class="tr-nombre" id="trNombre"></div>
-          <div class="tr-ente" id="trEnte"></div>
+      <!-- El nombre, el organismo y la descripcion, dentro de un recuadro
+           con borde azul y una linea azul que separa la cabecera de la
+           descripcion (Franklin Reyes, 28-9-2026: la 2b de las maquetas,
+           «solo quiero separar los textos»). -->
+      <div class="tr-caja">
+        <div class="tr-cab">
+          <div id="trMarca"></div>
+          <div class="tr-cab-txt">
+            <div class="tr-nombre" id="trNombre"></div>
+            <div class="tr-ente" id="trEnte"></div>
+          </div>
+          <div id="trChip"></div>
         </div>
-        <div id="trChip"></div>
+        <hr class="tr-raya">
+        <div class="tr-desc" id="trDesc"></div>
       </div>
-      <div class="tr-desc" id="trDesc"></div>
       <!-- El plazo, DEBAJO DE LA DESCRIPCION y encima de lo que venga: la
            tira de pasos de la solicitud, o la escalera del proceso cuando el
            tramite todavia no esta encendido.

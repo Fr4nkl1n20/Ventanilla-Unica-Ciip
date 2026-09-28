@@ -2800,7 +2800,21 @@ body[data-vista="tramite"] #trVolver{display:inline-flex;}
 body[data-vista="tramite"] .solo-inicio,
 body[data-vista="tramite"] #secTramites{display:none;}
 
-.tr-cab{display:flex; align-items:flex-start; gap:14px; margin-bottom:13px;}
+/* EL RECUADRO. Nombre, organismo y descripcion juntos, con borde azul CIIP
+   y una raya del mismo azul entre la cabecera y la descripcion: antes los
+   tres textos iban sueltos sobre el fondo y no se distinguia donde acababa
+   uno y empezaba otro (Franklin Reyes, 28-9-2026, la 2b de las maquetas).
+   En oscuro, el azul claro del panel: el #004090 no se ve sobre ese fondo. */
+.tr-caja{background:var(--bg); border:1.5px solid var(--navy); border-radius:var(--r);
+  padding:18px 20px; max-width:760px; box-sizing:border-box; margin-bottom:12px;}
+.tr-raya{border:0; border-top:2px solid var(--navy); margin:16px 0 14px;}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .tr-caja,
+  :root:not([data-theme="light"]) .tr-raya{border-color:var(--navy2);}
+}
+:root[data-theme="dark"] .tr-caja,
+:root[data-theme="dark"] .tr-raya{border-color:var(--navy2);}
+.tr-cab{display:flex; align-items:center; gap:14px;}
 /* El hueco del distintivo desaparece cuando no lleva nada dentro. Un div
    vacio en una fila flex no se ve, pero su separacion si: catorce pixeles
    de nada al final de la cabecera. */
@@ -2812,7 +2826,14 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-cab-txt{flex:1 1 auto; min-width:0;}
 .tr-nombre{font-size:var(--fs-titulo); font-weight:700; line-height:1.22;letter-spacing:-.02em;}
 .tr-ente{font-size:11.5px; font-weight:700; color:var(--gray); margin-top:6px;}
-.tr-desc{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.6; max-width:68ch;}
+/* El organismo, en gris y un punto mas grande que en la tarjeta: debajo
+   del nombre tiene que leerse como segunda linea, no como nota. */
+.tr-ente .t-ente{font-size:13px; color:var(--gray); margin-top:0;}
+/* Lo que se clona de la tarjeta trae el tamaño de la tarjeta -14 px el
+   nombre, 11 la descripcion-. Dentro del recuadro manda el de la ficha. */
+.tr-nombre .t-name{font-size:var(--fs-titulo);}
+.tr-desc .t-desc{font-size:14px; color:var(--ink); margin-top:0;}
+.tr-desc{font-size:var(--fs-parrafo); color:var(--ink); line-height:1.6; max-width:68ch;}
 .tr-plazo{display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-nota);
   color:var(--gray); margin-top:11px;}
 .tr-plazo svg{width:13px; height:13px; stroke:currentColor; stroke-width:1.8; fill:none;}
