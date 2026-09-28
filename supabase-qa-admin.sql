@@ -160,6 +160,83 @@ create trigger no_borrar_con_historia
   for each row execute function public.no_borrar_con_historia();
 
 
+-- ── QA-26 y QA-40 · Lo que cada cual puede cambiar de un perfil ────────
+-- Corre ANTES que los demás disparadores de perfiles (van por orden
+-- alfabético y este empieza por «aa»), así que ve solo lo que manda el
+-- navegador:
+--   · las columnas de rastro vuelven a su valor; las rellenan después los
+--     disparadores de siempre (proteger_rol, perfiles_bloqueo,
+--     sellar_sector). visto_en solo puede ser la hora del servidor.
+--   · en un perfil AJENO solo se mueven el rol, el bloqueo y la baja.
+--   · la baja la da un admin, nunca sobre sí mismo, y bloquea.
+-- Se trabaja con jsonb para no nombrar columnas que a lo mejor aún no
+-- existen (sector_elegido_en, visto_en...).
+create or replace function public.perfiles_guarda_columnas()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  yo      uuid := auth.uid();
+  viejo   jsonb := to_jsonb(old);
+  nuevo   jsonb := to_jsonb(new);
+  vuelve  jsonb := '{}'::jsonb;
+  c       text;
+  rastro  text[] := array['rol_cambiado_por', 'rol_cambiado_en', 'bloqueado_por',
+                          'bloqueado_en', 'sector_elegido_en', 'dado_de_baja_por'];
+  ajenas  text[] := array['rol', 'bloqueado', 'dado_de_baja_en', 'dado_de_baja_por',
+                          'rol_cambiado_por', 'rol_cambiado_en', 'bloqueado_por',
+                          'bloqueado_en', 'actualizado_en', 'visto_en', 'sector_elegido_en'];
+begin
+  if yo is not null then
+    foreach c in array rastro loop
+      if viejo ? c and (nuevo -> c) is distinct from (viejo -> c) then
+        vuelve := vuelve || jsonb_build_object(c, viejo -> c);
+      end if;
+    end loop;
+    if viejo ? 'visto_en' and (nuevo -> 'visto_en') is distinct from (viejo -> 'visto_en') then
+      vuelve := vuelve || jsonb_build_object('visto_en', to_jsonb(now()));
+    end if;
+    if vuelve <> '{}'::jsonb then
+      new := jsonb_populate_record(new, vuelve);
+    end if;
+
+    if new.id <> yo and (to_jsonb(new) - ajenas) is distinct from (viejo - ajenas) then
+      raise exception 'De una cuenta ajena solo se cambian el rol, el bloqueo y la baja'
+        using errcode = '42501';
+    end if;
+  end if;
+
+  if new.dado_de_baja_en is distinct from old.dado_de_baja_en then
+    if yo is not null then
+      if not public.es_admin() then
+        raise exception 'Solo un administrador da de baja una cuenta' using errcode = '42501';
+      end if;
+      if new.id = yo then
+        raise exception 'Nadie se da de baja a sí mismo';
+      end if;
+    end if;
+    if new.dado_de_baja_en is not null then
+      new.dado_de_baja_en  := now();
+      new.dado_de_baja_por := yo;
+      new.bloqueado        := true;
+    else
+      new.dado_de_baja_por := null;
+    end if;
+  elsif old.dado_de_baja_en is not null and not new.bloqueado then
+    raise exception 'La cuenta está dada de baja: deshaz la baja antes de desbloquearla';
+  end if;
+
+  return new;
+end $$;
+
+drop trigger if exists aa_perfiles_guarda_columnas on public.perfiles;
+create trigger aa_perfiles_guarda_columnas
+  before update on public.perfiles
+  for each row execute function public.perfiles_guarda_columnas();
+
+
 -- ── Comprobación ───────────────────────────────────────────────────────
 -- Que es_gestor() y es_admin() sigan dejando entrar a quien debe. Si no
 -- queda ningún admin sin bloquear, se para aquí y no se aplica nada.
