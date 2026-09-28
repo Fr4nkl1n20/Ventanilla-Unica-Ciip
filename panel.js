@@ -13718,9 +13718,28 @@ applyLang(idiomaParaMi());
         if (aviso){ aviso.textContent = T()[mal] || ''; aviso.className = 'sol-aviso err'; }
         return cargaCola().then(pintaTramites).then(function(){ return 'ya-no'; });
       }
-      return sb.from('tramites').update({estado: aEstado}).eq('id', tr.id).select().single()
+      /* ── Y SOLO DESDE DONDE LO VISTE (QA-36) ──
+         La escalera de la base dice qué saltos existen, no desde dónde
+         creías tú que saltabas: con dos gestores mirando la misma tarjeta,
+         uno la presentaba ante el ente y el otro, que la veía en revisión,
+         la devolvía -de ante el ente a devuelto también es un escalón- sin
+         saber que ya estaba fuera. El update lleva ahora el estado que la
+         tarjeta enseñaba, y si la base ya no lo tiene no cambia nada.
+
+         Para que eso no frene lo legítimo, la copia se pone al día aquí al
+         moverla: «Presentar» sube dos escalones seguidos con la misma
+         tarjeta, y el segundo tiene que salir del estado que dejó el
+         primero. yaNoEsAsi tropezó justo con eso (ver arriba). */
+      var desde = tr.estado;
+      var cambio = sb.from('tramites').update({estado: aEstado}).eq('id', tr.id);
+      if (desde) cambio = cambio.eq('estado', desde);
+      return cambio.select().single()
       .then(function(r){
-        if (r && r.error) throw r.error;
+        if (r && r.error) return seMovioSinMi(tr, desde, r.error);
+        return r;
+      })
+      .then(function(){
+        tr.estado = aEstado;
         if (!nota) return null;
         /* El evento lo escribe un trigger de la base, siempre con la nota
            vacía. Se busca el que acaba de nacer y se le pone encima: por eso
@@ -13752,6 +13771,14 @@ applyLang(idiomaParaMi());
       .catch(function(e){
         console.warn('[CIIP] mover trámite:', e && (e.message || e));
         if (boton){ boton.disabled = false; boton.textContent = textoBoton || ''; }
+        if (e && e.seMovio){
+          if (aviso){ aviso.textContent = T().co_ya_movida || ''; aviso.className = 'sol-aviso err'; }
+          /* Y en el aviso de abajo también: la cola se repinta al momento
+             y el hueco de la tarjeta puede irse con ella. */
+          hoyAvisa(T().co_ya_movida || '');
+          cargaCola().then(pintaTramites);
+          return false;
+        }
         /* Si es la base la que dice que no por un papel que falta, se dice
            ESO y no un error cualquiera.
 
@@ -13767,10 +13794,31 @@ applyLang(idiomaParaMi());
         if (aviso) aviso.textContent =
           (/reserva del nombre/.test(msg) && T().co_faltareserva) ||
           (/comprobante del pago/i.test(msg) && pide && T()[pide.aviso]) ||
+          /* La misma regla que mira el panel antes de resolver una
+             parafiscal, dicha ahora también por la base (QA-18). */
+          (/inscripciones sin terminar/i.test(msg) && T().co_faltanentes) ||
           T().co_error || '';
         return false;
       });
     });
+  }
+
+  /* El update filtrado por el estado de antes no tocó ninguna fila: con
+     .single() eso llega como error. Puede ser que alguien lo movió o que
+     una política no deja; se pregunta a la base cuál de las dos, y solo
+     la primera se cuenta como «te lo movieron». Siempre rechaza: con
+     {seMovio:true} o con el error de antes, tal cual. */
+  function seMovioSinMi(tr, desde, err){
+    if (!desde) return Promise.reject(err);
+    return Promise.resolve(sb.from('tramites').select('estado').eq('id', tr.id).single())
+      .then(function(r){
+        var ahora = r && !r.error && r.data && r.data.estado;
+        if (ahora && ahora !== desde){
+          tr.estado = ahora;
+          throw {seMovio: true, message: 'estaba en ' + desde + ' y ya está en ' + ahora};
+        }
+        throw err;
+      }, function(){ throw err; });
   }
 
   /* Cuando entro cada tramite en el estado en el que esta. No vale
