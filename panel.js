@@ -7556,6 +7556,21 @@ applyLang(idiomaParaMi());
        ante el ente lo que toca es subir ese papel, no la resolucion. */
     var conReserva = (codigo === 'constitucion');
 
+    /* ── Y ANTES, IR AL CIIP A ENTREGAR Y FIRMAR ──
+       Franklin Reyes, 27-9-2026: «luego de revisión de tus recaudos se
+       debe añadir paso que indique: Debe dirigirse al CIIP a entregar
+       documentación y firmar». Va entre la revisión y la reserva del
+       nombre, y ningún estado de la base lo sabe: lo marca el equipo
+       cuando la persona vino y firmó, en tramites.datos (CLAVE_FIRMA).
+
+       Con la solicitud ya presentada ante el SAREN se da por hecho aunque
+       no esté la marca: no se presenta sin haber firmado, y las que ya
+       iban por ahí el día que nació el paso firmaron sin que nadie lo
+       apuntara. Devuelta, vuelve al principio como todo lo demás. */
+    var conFirma = (codigo === 'constitucion');
+    var firmada = conFirma && (alcanzado >= 2 ||
+                  (alcanzado >= 1 && !!(tr.datos || {})[CLAVE_FIRMA]));
+
     /* Los pasos propios -los de pasos.js- solo si la cuenta CUADRA:
        tantos como estados mas los de delante. Ver pintaEstado. */
     var DP = window.CIIP_PASOS || {};
@@ -7667,26 +7682,76 @@ applyLang(idiomaParaMi());
         nombre: propios ? propios[i + delante] : estadoTexto(i, ente, ref),
         hecho: i <= alcanzado,
         ahora: (i === alcanzado + 1) && tr.estado !== 'resuelto' &&
-               !(conReserva && est === 'resuelto'),
+               !(conReserva && est === 'resuelto') &&
+               !(conFirma && est === 'ante_el_ente' && !firmada),
         /* La numeración corre detrás de los pasos de delante: con el PUB
-           arriba, «revisión» es el 2 y no el 1. */
-        n: (conReserva && est === 'resuelto' ? i + 2 : i + 1) + delante
+           arriba, «revisión» es el 2 y no el 1. Y detrás de la firma y de
+           la reserva, que son pasos sin estado propio. */
+        n: i + 1 + delante + (conFirma && i >= 2 ? 1 : 0) +
+           (conReserva && est === 'resuelto' ? 1 : 0)
       };
     });
+    /* En curso mientras la solicitud está en revisión: ya se miraron los
+       papeles y lo que falta es que la persona venga. */
+    var firma = conFirma ? {nombre: u.tr_firmaciip || '', hecho: firmada,
+                            ahora: !firmada && tr.estado === 'en_revision',
+                            cuando: (tr.datos || {})[CLAVE_FIRMA] || null,
+                            n: 3 + delante, firma: true} : null;
     /* La misma regla que pasoDeLaReserva: hecho al resolverse, en curso
        mientras está ante el ente. */
     var reserva = conReserva ? {nombre: u.d_reserva || '', hecho: tr.estado === 'resuelto',
-                                ahora: tr.estado === 'ante_el_ente', n: 4 + delante, reserva: true} : null;
+                                ahora: tr.estado === 'ante_el_ente',
+                                n: 4 + delante + (conFirma ? 1 : 0), reserva: true} : null;
 
     var todos = pre.slice();
     circ.forEach(function(c){
+      if (firma && c.est === 'ante_el_ente') todos.push(firma);
       if (reserva && c.est === 'resuelto') todos.push(reserva);
       todos.push(c);
     });
     return {alcanzado: alcanzado, conReserva: conReserva, ref: ref, delante: delante,
-            propios: propios, pre: pre, circ: circ, reserva: reserva, todos: todos};
+            propios: propios, pre: pre, circ: circ, firma: firma, reserva: reserva, todos: todos};
   }
-  /* Para las pruebas: la escalera de una solicitud, sin pintarla. */
+
+  /* La marca de la firma en el CIIP, en tramites.datos. La pone el equipo
+     con marca_firma_ciip() (supabase-firma-ciip.sql). */
+  var CLAVE_FIRMA = 'firma_ciip';
+
+  /* El paso de la firma en la escalera de «Tu solicitud». Mientras toca,
+     lleva el aviso de lo que hay que traer, destacado: es lo único de toda
+     la constitución que no se hace desde el panel, y si se lee de pasada
+     la persona llega al CIIP sin la carta del comisario. */
+  function pasoDeLaFirma(f, desde){
+    var u = T();
+    var li = el('li', 'tr-paso ' + (f.hecho ? 'hecho' : (f.ahora ? 'ahora' : 'porhacer')));
+    li.setAttribute('data-paso', CLAVE_FIRMA);
+    li.appendChild(el('span', 'tr-punto', f.hecho ? String.fromCharCode(10003) : String(f.n)));
+    var txt = el('div', 'tr-txt');
+    txt.appendChild(el('div', 'tr-paso-n', f.nombre));
+    if (f.ahora){
+      var av = el('div', 'tr-firma');
+      av.appendChild(el('div', 'tr-firma-t', u.tr_firmaciip_t || ''));
+      var docs = el('ul', 'tr-firma-l');
+      ['tr_firmaciip_d1', 'tr_firmaciip_d2', 'tr_firmaciip_d3'].forEach(function(k){
+        docs.appendChild(el('li', null, u[k] || ''));
+      });
+      av.appendChild(docs);
+      av.appendChild(el('div', 'tr-firma-p', u.tr_firmaciip_p || ''));
+      txt.appendChild(av);
+      var eti = el('span', 'tr-aqui', textoAqui());
+      if (desde){
+        eti.appendChild(el('span', 'tr-desde',
+          String(u.ns_desde_paso || '').replace('{cuando}', haceCuanto(desde))));
+      }
+      txt.appendChild(eti);
+    } else if (f.hecho && f.cuando){
+      txt.appendChild(el('div', 'sd-e', fecha(f.cuando)));
+    }
+    li.appendChild(txt);
+    return li;
+  }
+  /* Para las pruebas: qué pasos le salen a un trámite sin tener que
+     montar su ficha entera. */
   window.CIIP_ESCALERA = escaleraDe;
 
   function pintaEstado(tipo, tr){
@@ -7853,6 +7918,12 @@ applyLang(idiomaParaMi());
           var est = paso.est;
           var hecho = paso.hecho;
           var ahora = paso.ahora;
+          /* La firma en el CIIP, entre la revisión y la reserva. Su «desde
+             hace» es el de la revisión, que es cuando empezó a tocar. */
+          if (esc.firma && est === 'ante_el_ente'){
+            lista.appendChild(pasoDeLaFirma(esc.firma,
+              cuando.en_revision || tr.enviado_en || tr.creado_en));
+          }
 
           var li = el('li', 'tr-paso ' + (hecho ? 'hecho' : (ahora ? 'ahora' : 'porhacer')));
           /* La numeración corre detrás de los pasos de delante: con el PUB
@@ -8053,7 +8124,7 @@ applyLang(idiomaParaMi());
           }
           li.appendChild(punto); li.appendChild(txt);
           lista.appendChild(li);
-          if (conReserva && est === 'ante_el_ente') lista.appendChild(pasoDeLaReserva(tr));
+          if (conReserva && est === 'ante_el_ente') lista.appendChild(pasoDeLaReserva(tr, esc.reserva.n));
         });
       }).catch(function(){});
 
@@ -12287,6 +12358,12 @@ applyLang(idiomaParaMi());
          que se sube cada día y no mueve la solicitud. */
       var importeCo = casillaDelImporte(t, 'co-imp-');
       if (importeCo) f.appendChild(importeCo);
+      /* La firma en el CIIP, en una constitución por presentar. */
+      var firmaCo = casillaDeLaFirma(t, function(){
+        f.classList.remove('mal');
+        aviso.textContent = '';
+      });
+      if (firmaCo) f.appendChild(firmaCo.caja);
       /* Los cinco entes de los registros parafiscales, con el código que
          mandó el inversionista y el botón de darlo por listo. */
       if (t.tipo === TIPO_PARAFISCALES && t.estado !== 'borrador'){
@@ -12319,6 +12396,13 @@ applyLang(idiomaParaMi());
           if (b === principal && reserva && reserva.pendiente()){
             b.disabled = true;
             reserva.envia().then(function(){ b.disabled = false; rotulaCo(); });
+            return;
+          }
+          /* Y la constitución no se presenta ante el SAREN sin que la
+             persona haya venido a entregar y firmar: es lo que se presenta. */
+          if (p.a === 'ante_el_ente' && firmaCo && !firmaCo.firmada()){
+            f.classList.add('mal');
+            aviso.textContent = u.co_firma_falta || '';
             return;
           }
           /* Devolver SIN decir por qué deja al inversionista con un aviso que
@@ -12898,6 +12982,69 @@ applyLang(idiomaParaMi());
           });
       }
     };
+  }
+
+  /* ── LA FIRMA EN EL CIIP, DEL LADO DEL EQUIPO ──
+     Franklin Reyes, 27-9-2026: tras la revisión, el inversionista viene al
+     CIIP a entregar la carta del comisario, la certificación del inventario
+     o del capital y el inventario, y firma. El paso lo da por hecho el
+     gestor que lo atendió, con este botón, y hasta entonces la constitución
+     no se presenta ante el SAREN: ahí va lo que se acaba de firmar.
+
+     Por marca_firma_ciip() y no con un update a secas: la marca vive dentro
+     de datos junto a todo el formulario, y la función la pone o la quita
+     sin tocar lo demás, y levanta una excepción si no cambió ninguna fila
+     -la trampa de siempre de una política que falta-. Devuelve null donde
+     no toca: otro trámite, o una constitución ya presentada. */
+  function firmadaEnElCiip(t){ return !!(t && (t.datos || {})[CLAVE_FIRMA]); }
+  function casillaDeLaFirma(t, alCambiar){
+    if (!t || t.tipo !== 'constitucion' ||
+        ['enviado', 'en_revision'].indexOf(t.estado) < 0) return null;
+    var u = T();
+    var caja = el('div', 'co-firma');
+    caja.setAttribute('data-firma', t.id);
+    caja.appendChild(el('div', 'co-firma-t', u.co_firma_t || ''));
+    var docs = el('ul', 'co-firma-l');
+    ['tr_firmaciip_d1', 'tr_firmaciip_d2', 'tr_firmaciip_d3'].forEach(function(k){
+      docs.appendChild(el('li', null, u[k] || ''));
+    });
+    caja.appendChild(docs);
+    var est = el('div', 'co-firma-e', '');
+    caja.appendChild(est);
+    var b = el('button', 'btn ghost', '');
+    b.type = 'button';
+    caja.appendChild(b);
+    var msg = el('div', 'co-aviso', '');
+    caja.appendChild(msg);
+    function pinta(){
+      var hecha = firmadaEnElCiip(t);
+      caja.classList.toggle('puesto', hecha);
+      est.hidden = !hecha;
+      est.textContent = hecha
+        ? String(u.co_firma_hecha || '').replace('{fecha}', fecha(t.datos[CLAVE_FIRMA])) : '';
+      b.textContent = hecha ? (u.co_firma_deshacer || '') : (u.co_firma_marca || '');
+    }
+    b.addEventListener('click', function(){
+      var poner = !firmadaEnElCiip(t);
+      b.disabled = true;
+      msg.textContent = '';
+      Promise.resolve(sb.rpc('marca_firma_ciip', {p_tramite: t.id, p_hecha: poner}))
+        .then(function(r){
+          var fila = r && (Array.isArray(r.data) ? r.data[0] : r.data);
+          if (!r || r.error || !fila) throw ((r && r.error) || new Error('sin fila'));
+          t.datos = fila.datos || {};
+          b.disabled = false;
+          pinta();
+          if (alCambiar) alCambiar();
+        })
+        .catch(function(e){
+          console.warn('[CIIP] firma en el CIIP:', e && (e.message || e));
+          b.disabled = false;
+          msg.textContent = u.co_error || '';
+        });
+    });
+    pinta();
+    return {caja: caja, firmada: function(){ return firmadaEnElCiip(t); }};
   }
 
   /* La tabla de la cola no espera a mueveTramite para nada -pinta sola-, y
@@ -14312,13 +14459,19 @@ applyLang(idiomaParaMi());
         if (pagar && pagar.pendiente()){
           pre.textContent = u[pagar.clave] || '';
           pre.disabled = false;
+          pre.title = '';
         } else {
           pre.textContent = String(u.co_h_presentar || '').replace('{ente}', ente);
-          pre.disabled = !!(c && (c.cargado || c.rechazado));
+          /* Y la constitución, además, espera a la firma en el CIIP. */
+          var sinFirma = !!(firma && !firma.firmada());
+          pre.disabled = !!(c && (c.cargado || c.rechazado)) || sinFirma;
+          pre.title = sinFirma ? (u.co_firma_falta || '') : '';
         }
       };
       var pagar = casillaDeLaReserva(t, 'hoy-pag-', function(){ rotulaPre(); });
       if (pagar) fin.appendChild(pagar.caja);
+      var firma = casillaDeLaFirma(t, function(){ rotulaPre(); });
+      if (firma) fin.appendChild(firma.caja);
       var nota = el('textarea');
       nota.id = 'hoy-nota-' + t.id;
       nota.rows = 2;
@@ -15340,10 +15493,22 @@ applyLang(idiomaParaMi());
   var cdFilas = null, cdNombres = {};
 
   function cdCarga(){
-    return Promise.resolve(sb.from('tramite_entes')
-      .select('tramite, ente, codigo, estado, actualizado_en')
-      .eq('estado', 'codigo_enviado')
-      .order('actualizado_en', {ascending:false}))
+    /* Con la contraseña del IVSS y del INCES, si la base ya tiene dónde
+       guardarla; si no, como antes (ver sinColumnaClave). */
+    function pide(){
+      var cols = 'tramite, ente, codigo, estado, actualizado_en' +
+                 (ENTES_SELECT === ENTES_SELECT_BASE ? '' : ', clave');
+      return Promise.resolve(sb.from('tramite_entes')
+        .select(cols)
+        .eq('estado', 'codigo_enviado')
+        .order('actualizado_en', {ascending:false}));
+    }
+    return pide()
+      .then(function(r){
+        if (!sinColumnaClave(r)) return r;
+        ENTES_SELECT = ENTES_SELECT_BASE;
+        return pide();
+      })
       .then(function(r){
         if (r && r.error) throw r.error;
         cdFilas = (r && r.data) || [];
@@ -15395,7 +15560,8 @@ applyLang(idiomaParaMi());
 
       var cab = el('div', 'pe-cab');
       cab.appendChild(el('span', 'pe-n', u['pe_' + x.ente] || x.ente));
-      cab.appendChild(el('span', 'chip info', u.pe_enviado || ''));
+      cab.appendChild(el('span', 'chip info',
+        (ENTES_CON_CLAVE.indexOf(x.ente) >= 0 ? u.pe_enviadoc : u.pe_enviado) || ''));
       fila.appendChild(cab);
 
       /* Quién y cuándo, en una línea. El nombre primero: es por quien se
@@ -15407,8 +15573,12 @@ applyLang(idiomaParaMi());
 
       /* El código, grande y a secas: es lo único que hay que leer aquí, y
          se transcribe al portal del ente a mano. */
+      var conClave = ENTES_CON_CLAVE.indexOf(x.ente) >= 0;
       var cod = el('div', 'pe-dice');
-      cod.appendChild(el('span', 'pe-cod', String(u.pe_tucodigo || '{c}').replace('{c}', x.codigo || '')));
+      cod.appendChild(el('span', 'pe-cod',
+        String((conClave ? u.pe_tuusuario : u.pe_tucodigo) || '{c}').replace('{c}', x.codigo || '')));
+      /* El IVSS y el INCES, con la contraseña al lado, tapada. */
+      if (conClave && x.clave) cod.appendChild(claveTapada(x.clave));
       fila.appendChild(cod);
 
       var acc = el('div', 'rv-acc');
@@ -19897,13 +20067,16 @@ applyLang(idiomaParaMi());
   var TIPO_RESERVA = 'reserva_nombre';
   var TIPO_PLANILLA = 'planilla_reserva_nombre';
 
-  function pasoDeLaReserva(tr){
+  /* n: su número en la escalera. Era un '4' escrito a mano, y desde que la
+     firma en el CIIP va delante (27-9-2026) es el quinto; lo cuenta
+     escaleraDe(). */
+  function pasoDeLaReserva(tr, n){
     var u = T();
     var resuelta = (tr.estado === 'resuelto');
     var toca = (tr.estado === 'ante_el_ente');
     var li = el('li', 'tr-paso ' + (resuelta ? 'hecho' : (toca ? 'ahora' : 'porhacer')));
     li.setAttribute('data-paso', TIPO_RESERVA);
-    var punto = el('span', 'tr-punto', resuelta ? String.fromCharCode(10003) : '4');
+    var punto = el('span', 'tr-punto', resuelta ? String.fromCharCode(10003) : String(n || 4));
     var txt = el('div', 'tr-txt');
     txt.appendChild(el('div', 'tr-paso-n', u.d_reserva || ''));
     li.appendChild(punto);
@@ -19934,7 +20107,49 @@ applyLang(idiomaParaMi());
      RNC- y el panel llevaba cinco: faltaba la patronal del seguro social.
      Va donde lo nombra ese texto, entre el RUPDAE y el RNC. */
   var ENTES_PARAFISCALES = ['banavih', 'inces', 'mpppst', 'sundde', 'ivss', 'snc'];
-  var ENTES_SELECT = 'ente, codigo, estado, documento, documentos(archivo, nombre_original, tipo)';
+  var ENTES_SELECT_BASE = 'ente, codigo, estado, documento, documentos(archivo, nombre_original, tipo)';
+  var ENTES_SELECT = ENTES_SELECT_BASE + ', clave';
+
+  /* ── EL IVSS Y EL INCES MANDAN USUARIO Y CONTRASEÑA ──
+     Franklin Reyes, 27-9-2026: «para IVSS e INCES se debe colocar 2
+     espacios, en virtud de que estas instituciones envían tanto el usuario
+     como la contraseña». Los otros cuatro siguen con su código.
+
+     El usuario va en la columna del código -es lo que se lee y se copia al
+     portal del ente, igual que un código- y la contraseña en la suya,
+     tramite_entes.clave (supabase-entes-clave.sql). Las dos las ven solo el
+     dueño de la solicitud y el equipo, que es lo que ya dicen las políticas
+     de la fila; en pantalla la contraseña sale tapada, con «Ver».
+
+     Sin ese SQL corrido la columna no existe y pedirla tumbaba la consulta
+     entera: los seis entes salían por iniciar. Así que si la base dice que
+     no la conoce, se vuelve a pedir sin ella y se sigue como antes. */
+  var ENTES_CON_CLAVE = ['ivss', 'inces'];
+  function sinColumnaClave(r){
+    return !!(r && r.error && ENTES_SELECT !== ENTES_SELECT_BASE &&
+              /clave/.test(r.error.message || ''));
+  }
+  /* La contraseña tapada, con su botón de verla. El mismo número de puntos
+     sea cual sea: contarlos ya diría cuánto mide. */
+  function claveTapada(clave){
+    var u = T();
+    var caja = el('span', 'pe-cod pe-clave');
+    caja.appendChild(document.createTextNode((u.pe_tuclave || '') + ' '));
+    var valor = el('span', 'pe-clave-v', '••••••••');
+    caja.appendChild(valor);
+    var ver = el('button', 'pe-ver', u.pe_verclave || '');
+    ver.type = 'button';
+    ver.setAttribute('aria-pressed', 'false');
+    ver.addEventListener('click', function(){
+      var abierta = ver.getAttribute('aria-pressed') !== 'true';
+      ver.setAttribute('aria-pressed', abierta ? 'true' : 'false');
+      valor.textContent = abierta ? clave : '••••••••';
+      ver.textContent = abierta ? (u.pe_ocultaclave || '') : (u.pe_verclave || '');
+    });
+    caja.appendChild(document.createTextNode(' '));
+    caja.appendChild(ver);
+    return caja;
+  }
   /* ── CUÁNDO SE PUEDEN TOCAR LOS CINCO ──
      Franklin Reyes, 25-9-2026: «quiero que las casillas de abajo estén
      desactivadas hasta que la fase del proceso de arriba esté en la etapa
@@ -19954,8 +20169,15 @@ applyLang(idiomaParaMi());
   var ENTES_YA = {};
   function entesDe(id){
     if (ENTES_DE[id]) return ENTES_DE[id];
-    return (ENTES_DE[id] = Promise.resolve(
-      sb.from('tramite_entes').select(ENTES_SELECT).eq('tramite', id))
+    function pide(){
+      return Promise.resolve(sb.from('tramite_entes').select(ENTES_SELECT).eq('tramite', id));
+    }
+    return (ENTES_DE[id] = pide()
+      .then(function(r){
+        if (!sinColumnaClave(r)) return r;
+        ENTES_SELECT = ENTES_SELECT_BASE;
+        return pide();
+      })
       .then(function(r){
         if (r && r.error) throw r.error;
         var m = {};
@@ -20036,8 +20258,11 @@ applyLang(idiomaParaMi());
          Uno por uno y no los cinco de golpe, porque no se inscriben el
          mismo día. Si un día sí, se marcan los cinco seguidos y cuesta lo
          mismo. */
+      /* El IVSS y el INCES: usuario y contraseña en vez de código. */
+      var conClave = ENTES_CON_CLAVE.indexOf(ente) >= 0;
       var ol = el('ol', 'tr-pasos pe-pasos');
-      var pasos = ['pe_p0', 'pe_p1', 'pe_p2', 'pe_p3'].map(function(clave, i){
+      var pasos = (conClave ? ['pe_p0', 'pe_p1c', 'pe_p2c', 'pe_p3']
+                            : ['pe_p0', 'pe_p1', 'pe_p2', 'pe_p3']).map(function(clave, i){
         var li = el('li', 'tr-paso porhacer');
         var punto = el('span', 'tr-punto', String(i + 1));
         var txt = el('div', 'tr-txt');
@@ -20074,8 +20299,19 @@ applyLang(idiomaParaMi());
          devuelve cero filas, y sin mirarlo aquí se diría «hecho» de algo que
          no cambió. Es la misma trampa de la nota de la devolución. */
       function manda(cambio, boton, alFallar){
-        return Promise.resolve(sb.from('tramite_entes')
-          .upsert(cambio, {onConflict: 'tramite,ente'}).select(ENTES_SELECT))
+        function sube(){
+          return Promise.resolve(sb.from('tramite_entes')
+            .upsert(cambio, {onConflict: 'tramite,ente'}).select(ENTES_SELECT));
+        }
+        return sube()
+          /* Sin la columna de la contraseña en la base, lo que no la lleva
+             se vuelve a mandar pidiendo lo de siempre. Lo que sí la lleva no
+             tiene dónde guardarla, y falla como tiene que fallar. */
+          .then(function(r){
+            if (!sinColumnaClave(r) || ('clave' in cambio)) return r;
+            ENTES_SELECT = ENTES_SELECT_BASE;
+            return sube();
+          })
           .then(function(r){
             if (r && r.error) throw r.error;
             if (!(r && r.data && r.data.length)) throw new Error('sin permiso');
@@ -20095,24 +20331,65 @@ applyLang(idiomaParaMi());
         var cod = document.createElement('input');
         cod.type = 'text';
         cod.maxLength = 200;
-        cod.placeholder = u.pe_codigo || '';
-        cod.setAttribute('aria-label', nombre + ': ' + (u.pe_codigo || ''));
+        var rotuloCod = (conClave ? u.pe_usuario : u.pe_codigo) || '';
+        cod.placeholder = rotuloCod;
+        cod.setAttribute('aria-label', nombre + ': ' + rotuloCod);
+        /* La contraseña, con los ojos cerrados y su botón de verla: se
+           copia de un correo y conviene poder comprobarla antes de mandar.
+           new-password para que el navegador no la guarde como la de este
+           panel, que no lo es. */
+        var cla = null, verCla = null;
+        if (conClave){
+          cod.autocomplete = 'off';
+          cla = document.createElement('input');
+          cla.type = 'password';
+          cla.maxLength = 200;
+          cla.autocomplete = 'new-password';
+          cla.className = 'pe-clave-in';
+          cla.placeholder = u.pe_clave || '';
+          cla.setAttribute('aria-label', nombre + ': ' + (u.pe_clave || ''));
+          verCla = el('button', 'pe-ver', u.pe_verclave || '');
+          verCla.type = 'button';
+          verCla.setAttribute('aria-pressed', 'false');
+          verCla.addEventListener('click', function(){
+            var abierta = cla.type === 'password';
+            cla.type = abierta ? 'text' : 'password';
+            verCla.setAttribute('aria-pressed', abierta ? 'true' : 'false');
+            verCla.textContent = abierta ? (u.pe_ocultaclave || '') : (u.pe_verclave || '');
+          });
+        }
         /* Solo el código, escrito (Franklin, 23-9-2026): el archivo
            adjunto se quitó. La columna documento sigue en la tabla, y si
            alguno llegó a subirse se sigue viendo arriba con «Ver archivo». */
         var env = el('button', 'btn navy pe-env', u.pe_enviar || '');
         env.type = 'button';
         var msg = el('div', 'pe-msg', '');
-        form.appendChild(cod); form.appendChild(env); form.appendChild(msg);
+        form.appendChild(cod);
+        if (cla){ form.appendChild(cla); form.appendChild(verCla); }
+        form.appendChild(env); form.appendChild(msg);
         cod.addEventListener('keydown', function(e){ if (e.key === 'Enter') env.click(); });
+        if (cla) cla.addEventListener('keydown', function(e){ if (e.key === 'Enter') env.click(); });
         env.addEventListener('click', function(){
           var codigo = (cod.value || '').trim();
-          if (!codigo){ msg.textContent = u.pe_falta || ''; cod.focus(); return; }
+          /* La contraseña tal cual, sin recortar: un espacio puede ser suyo. */
+          var clave = cla ? (cla.value || '') : null;
+          if (!codigo){ msg.textContent = (conClave ? u.pe_faltaclave : u.pe_falta) || ''; cod.focus(); return; }
+          if (cla && !clave.trim()){ msg.textContent = u.pe_faltaclave || ''; cla.focus(); return; }
           env.disabled = true;
           msg.textContent = u.enviando || '';
-          manda({tramite: tr.id, ente: ente, estado: 'codigo_enviado', codigo: codigo},
-                env, function(){ msg.textContent = u.error || ''; })
-            .then(function(){ cod.value = ''; env.disabled = false; });
+          var cambio = {tramite: tr.id, ente: ente, estado: 'codigo_enviado', codigo: codigo};
+          if (cla) cambio.clave = clave;
+          manda(cambio, env, function(){ msg.textContent = u.error || ''; })
+            .then(function(){
+              cod.value = '';
+              if (cla){
+                cla.value = '';
+                cla.type = 'password';
+                verCla.setAttribute('aria-pressed', 'false');
+                verCla.textContent = u.pe_verclave || '';
+              }
+              env.disabled = false;
+            });
         });
         pasos[1].txt.appendChild(form);
 
@@ -20126,7 +20403,7 @@ applyLang(idiomaParaMi());
 
            Se puede hasta que el CIIP lo da por bueno; después ya no hay
            nada que corregir. */
-        otro = el('button', 'pe-otro', u.pe_otro || '');
+        otro = el('button', 'pe-otro', (conClave ? u.pe_otroc : u.pe_otro) || '');
         otro.type = 'button';
         otro.hidden = true;
         otro.addEventListener('click', function(){
@@ -20227,8 +20504,8 @@ applyLang(idiomaParaMi());
          ya no espera nada. */
       var HECHOS = {pendiente: 0, inscrito: 1, codigo_enviado: 2, listo: 4};
       var CHIP = {pendiente:      ['mute', 'pe_pendiente'],
-                  inscrito:       ['info', 'pe_esperando'],
-                  codigo_enviado: ['info', 'pe_enviado'],
+                  inscrito:       ['info', conClave ? 'pe_esperandoc' : 'pe_esperando'],
+                  codigo_enviado: ['info', conClave ? 'pe_enviadoc' : 'pe_enviado'],
                   listo:          ['good', 'pe_listo']};
       function enciende(hechos){
         pasos.forEach(function(p, i){
@@ -20247,7 +20524,9 @@ applyLang(idiomaParaMi());
         chip.className = 'chip ' + CHIP[st][0];
         chip.textContent = u[CHIP[st][1]] || '';
         dice.textContent = '';
-        if (d && d.codigo) dice.appendChild(el('span', 'pe-cod', String(u.pe_tucodigo || '{c}').replace('{c}', d.codigo)));
+        if (d && d.codigo) dice.appendChild(el('span', 'pe-cod',
+          String((conClave ? u.pe_tuusuario : u.pe_tucodigo) || '{c}').replace('{c}', d.codigo)));
+        if (conClave && d && d.clave) dice.appendChild(claveTapada(d.clave));
         var doc = d && d.documentos;
         var esConstancia = !!(doc && doc.archivo && doc.tipo === 'constancia_ente');
         baja.hidden = !esConstancia;
@@ -20288,6 +20567,9 @@ applyLang(idiomaParaMi());
     });
     return caja;
   }
+  /* Para las pruebas: ninguna pasada de la tanda trae una solicitud de
+     parafiscales ante los entes, y así se monta el bloque sin ella. */
+  window.CIIP_LISTA_ENTES = listaDeEntes;
 
   /* El documento que dejo el equipo para pagar: escondido hasta saber que
      existe, para no ofrecer abrir algo que no esta.

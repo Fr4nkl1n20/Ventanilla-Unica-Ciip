@@ -214,6 +214,8 @@
                  los pasos de abajo necesitan abierto. */
               colaReparto, colaTrasTomar,
               colaTramites, colaLleva,
+              /* La firma en el CIIP de la constitución en revisión. */
+              firmaCola, firmaTrasMarcar,
               colaHiloEspera, colaHiloMira,
               /* La identidad se mira con el expediente ya desplegado y
                  ANTES de colaExpediente, que termina devolviendo el
@@ -308,7 +310,10 @@
               oficinaAbre, oficinaMira,
               juntaAbre, juntaMira,
               tramoVerdadAbre, reservaMira, reservaAviso, tramoVerdadMira,
-              textosMira, alDiaMira,
+              firmaVerdadSale, firmaVerdadAbre, firmaVerdadMira,
+              textosMira, firmaEscalera,
+              entesClaveMonta, entesClaveMira, entesClaveTrasEnviar,
+              alDiaMira,
               rvAbre, rvMira, rvDespues,
               cbAbre, cbMira,
               tdAbre, tdMira,
@@ -5420,9 +5425,9 @@
         var t2 = document.querySelector('#mtCuerpo tr[data-id="t2"]');
         if (t2){
           var p2 = t2.querySelectorAll('.mt-pg-p');
-          igual('mis trámites: la constitución cuenta sus cinco pasos, como su ficha',
+          igual('mis trámites: la constitución cuenta sus seis pasos, como su ficha',
                 p2.length + ' · ' + (p2[0] && p2[0].classList.contains('tuyo') ? 'el primero, suyo' : 'sin el suyo'),
-                '5 · el primero, suyo');
+                '6 · el primero, suyo');
         }
         var t1 = document.querySelector('#mtCuerpo tr[data-id="t1"]');
         if (t1){
@@ -10529,7 +10534,9 @@
      En «Tu solicitud» tiene que salir un paso más entre la reserva y
      «Resuelta» -el comprobante de la reserva, con su sitio para subirlo-, y
      «Resuelta» pasa a ser el quinto. Mientras falte el papel, lo que toca
-     es subirlo: «Resuelta» no puede decir que va por ahí. */
+     es subirlo: «Resuelta» no puede decir que va por ahí.
+     Desde el 27-9-2026 la firma en el CIIP va detrás de la revisión, así
+     que la reserva es el quinto y «Resuelta» el sexto. */
   /* Y que el inversionista SE ENTERE sin entrar a mirar: el documento para
      pagar que le dejó el CIIP suena en la campana (Franklin Reyes,
      18-9-2026). */
@@ -10555,13 +10562,13 @@
   function reservaMira(){
     if (CASO !== 'tramos') return;
     var pasos = document.querySelectorAll('#trReal .tr-pasos .tr-paso');
-    igual('reserva: la constitución lleva cinco pasos', pasos.length, 5);
+    igual('reserva: la constitución lleva seis pasos, con la firma en el CIIP', pasos.length, 6);
     var paso = document.querySelector('#trReal .tr-paso[data-paso="reserva_nombre"]');
-    ok('reserva: el cuarto es el comprobante de la reserva del nombre',
-       !!paso && pasos[3] === paso &&
+    ok('reserva: el quinto es el comprobante de la reserva del nombre',
+       !!paso && pasos[4] === paso &&
          /reserva del nombre/.test((paso.querySelector('.tr-paso-n') || {}).textContent || ''),
        paso ? ((paso.querySelector('.tr-paso-n') || {}).textContent || '(sin nombre)') : '(no está)',
-       'el cuarto, con su nombre');
+       'el quinto, con su nombre');
     ok('reserva: y es el que toca ahora',
        !!paso && paso.classList.contains('ahora'),
        paso ? paso.className : '(no está)', 'tr-paso ahora');
@@ -10581,11 +10588,188 @@
        planilla ? planilla.textContent : (pagar ? (pagar.hidden ? 'escondido' : 'sin fila') : '(no está)'),
        'a la vista, con el archivo y «Abrir», antes de subir');
     var ultimo = pasos.length ? pasos[pasos.length - 1] : null;
-    igual('reserva: «Resuelta» pasa a ser el quinto',
-          ultimo ? (ultimo.querySelector('.tr-punto') || {}).textContent : '(sin pasos)', '5');
+    igual('reserva: «Resuelta» pasa a ser el sexto',
+          ultimo ? (ultimo.querySelector('.tr-punto') || {}).textContent : '(sin pasos)', '6');
     ok('reserva: y no dice que va por ahí mientras falte el papel',
        !!ultimo && !ultimo.classList.contains('ahora'),
        ultimo ? ultimo.className : '(sin pasos)', 'no ahora');
+  }
+
+  /* ── LA FIRMA EN EL CIIP ──
+     Franklin Reyes, 27-9-2026: tras la revisión, la constitución pide ir al
+     CIIP a entregar tres papeles y firmar. Lo marca el equipo. Mientras
+     toca, el inversionista ve el aviso con los tres papeles; marcada, la
+     escalera sigue a la reserva del nombre. */
+  function firmaEscalera(){
+    if (CASO !== 'vacio') return;
+    var ESC = window.CIIP_ESCALERA, u = window.CIIP_T();
+    if (!ESC) return;
+    var c5 = function(estado, datos){
+      return ESC({estado: estado, datos: datos || {}}, 'constitucion', 'SAREN');
+    };
+    var e1 = c5('en_revision');
+    igual('firma: la constitución lleva seis pasos, y el tercero es ir al CIIP a firmar',
+          e1.todos.length + ' · ' + ((e1.todos[2] || {}).nombre || ''), '6 · ' + u.tr_firmaciip);
+    ok('firma: en revisión, lo que toca es venir a firmar, no la reserva',
+       !!e1.firma && e1.firma.ahora && !e1.todos[3].ahora,
+       'firma ' + (e1.firma && e1.firma.ahora) + ', reserva ' + (e1.todos[3] && e1.todos[3].ahora),
+       'firma sí, reserva no');
+    var e2 = c5('en_revision', {firma_ciip: '2026-09-27T10:00:00Z'});
+    ok('firma: marcada por el CIIP, pasa a la reserva del nombre',
+       !!e2.firma && e2.firma.hecho && e2.todos[3].ahora,
+       'firma ' + (e2.firma && e2.firma.hecho) + ', reserva ' + (e2.todos[3] && e2.todos[3].ahora),
+       'firma hecha, reserva ahora');
+    var e3 = c5('ante_el_ente');
+    ok('firma: presentada ante el SAREN se da por hecha, aunque no esté marcada',
+       !!e3.firma && e3.firma.hecho && !e3.firma.ahora, JSON.stringify(e3.firma), 'hecha');
+    var e4 = c5('devuelto', {firma_ciip: '2026-09-27T10:00:00Z'});
+    ok('firma: y devuelta vuelve al principio, con marca o sin ella',
+       !!e4.firma && !e4.firma.hecho && !e4.firma.ahora, JSON.stringify(e4.firma), 'ni hecha ni ahora');
+    var otro = ESC({estado: 'en_revision', datos: {}}, 'registro_extranjeros_saren', 'SAREN');
+    igual('firma: y ningún otro trámite la lleva', !!otro.firma, false);
+  }
+
+  function firmaVerdadSale(){
+    if (CASO !== 'tramos') return;
+    location.hash = '';
+    ok('firma: la constitución de la prueba se pone en revisión',
+       !!(window.PRUEBA_CAMBIA_TRAMITE && window.PRUEBA_CAMBIA_TRAMITE('p2', {estado: 'en_revision'})),
+       'PRUEBA_CAMBIA_TRAMITE', 'la mueve');
+  }
+  function firmaVerdadAbre(){
+    if (CASO !== 'tramos') return;
+    location.hash = 'tramite-c5';
+  }
+  function firmaVerdadMira(){
+    if (CASO !== 'tramos') return;
+    var u = window.CIIP_T();
+    var pasos = document.querySelectorAll('#trReal .tr-pasos .tr-paso');
+    var paso = document.querySelector('#trReal .tr-paso[data-paso="firma_ciip"]');
+    ok('firma: el tercero es ir al CIIP a entregar y firmar, y es el que toca',
+       !!paso && pasos[2] === paso && paso.classList.contains('ahora') &&
+         (paso.querySelector('.tr-paso-n') || {}).textContent === u.tr_firmaciip,
+       paso ? paso.className + ' · ' + (paso.querySelector('.tr-paso-n') || {}).textContent : '(no está)',
+       'tr-paso ahora · ' + u.tr_firmaciip);
+    var aviso = paso && paso.querySelector('.tr-firma');
+    var docs = aviso ? [].map.call(aviso.querySelectorAll('li'), function(li){ return li.textContent; }) : [];
+    igual('firma: con el aviso de los tres papeles que hay que llevar',
+          docs.join(' | '), [u.tr_firmaciip_d1, u.tr_firmaciip_d2, u.tr_firmaciip_d3].join(' | '));
+    var reserva = document.querySelector('#trReal .tr-paso[data-paso="reserva_nombre"]');
+    ok('firma: y la reserva del nombre espera a que firme',
+       !!reserva && !reserva.classList.contains('ahora') && !reserva.querySelector('.tr-pagar'),
+       reserva ? reserva.className : '(no está)', 'tr-paso porhacer');
+    if (window.PRUEBA_CAMBIA_TRAMITE) window.PRUEBA_CAMBIA_TRAMITE('p2', {estado: 'ante_el_ente'});
+    location.hash = '';
+  }
+
+  /* Del lado del equipo, en la cola: la constitución en revisión lleva la
+     casilla de «vino y firmó» con los tres papeles, y no se presenta ante
+     el SAREN sin ella. */
+  function firmaFicha(){
+    return [].filter.call(document.querySelectorAll('#colaTram .co-ficha'), function(f){
+      return !!f.querySelector('.co-firma');
+    })[0];
+  }
+  function firmaCola(){
+    if (CASO !== 'gestor') return;
+    var u = window.CIIP_T();
+    var f = firmaFicha();
+    ok('firma: la constitución en revisión pide la firma en el CIIP', !!f,
+       f ? 'está' : 'no está', 'la casilla de la firma');
+    if (!f) return;
+    var caja = f.querySelector('.co-firma');
+    igual('firma: con los tres papeles que hay que traer', caja.querySelectorAll('li').length, 3);
+    var pres = [].filter.call(f.querySelectorAll('.co-botones .btn'), function(b){
+      return b.textContent.trim() === u.co_presentar;
+    })[0];
+    ok('firma: y el botón de presentarla está', !!pres, pres ? 'está' : 'no está', u.co_presentar);
+    if (pres) pres.click();
+    igual('firma: pero sin la firma no se presenta, y lo dice',
+          (f.querySelector(':scope > .co-aviso') || {}).textContent, u.co_firma_falta);
+    var marca = caja.querySelector('.btn');
+    if (marca) marca.click();
+  }
+  function firmaTrasMarcar(){
+    if (CASO !== 'gestor') return;
+    var u = window.CIIP_T();
+    var f = firmaFicha();
+    var caja = f && f.querySelector('.co-firma');
+    ok('firma: el gestor la marca con marca_firma_ciip()',
+       !!window.CIIP_PRUEBA_FIRMA && window.CIIP_PRUEBA_FIRMA.p_hecha === true,
+       JSON.stringify(window.CIIP_PRUEBA_FIRMA || null), 'p_hecha: true');
+    ok('firma: y queda marcada, con su fecha',
+       !!caja && caja.classList.contains('puesto') &&
+         !(caja.querySelector('.co-firma-e') || {}).hidden,
+       caja ? caja.className : '(sin casilla)', 'co-firma puesto');
+    igual('firma: el botón pasa a deshacerla',
+          caja ? (caja.querySelector('.btn') || {}).textContent : '(sin casilla)', u.co_firma_deshacer);
+  }
+
+  /* ── EL IVSS Y EL INCES: USUARIO Y CONTRASEÑA ──
+     Franklin Reyes, 27-9-2026: esos dos entes mandan usuario y contraseña,
+     y el inversionista escribe los dos. La contraseña se enseña tapada, con
+     «Ver». Los otros cuatro siguen con un código. Se monta el bloque de una
+     solicitud de mentira (r9) con tres entes sembrados en el doble: el IVSS
+     ya enviado, el INCES y el BANAVIH recién inscritos. */
+  var ENTES_PRUEBA = null;
+  function entesClaveMonta(){
+    if (CASO !== 'vacio' || !window.CIIP_LISTA_ENTES) return;
+    var E = window.__ENTES = window.__ENTES || {};
+    E['r9|ivss']    = {tramite:'r9', ente:'ivss', estado:'codigo_enviado', codigo:'empresa.ivss', clave:'S3creta!'};
+    E['r9|inces']   = {tramite:'r9', ente:'inces', estado:'inscrito'};
+    E['r9|banavih'] = {tramite:'r9', ente:'banavih', estado:'inscrito'};
+    ENTES_PRUEBA = window.CIIP_LISTA_ENTES({id:'r9', estado:'ante_el_ente', inversionista:'u1'}, 'inversionista');
+  }
+  function entesClaveMira(){
+    if (CASO !== 'vacio') return;
+    var u = window.CIIP_T();
+    ok('entes: el bloque de prueba se monta', !!ENTES_PRUEBA, ENTES_PRUEBA ? 'está' : 'no está', 'el bloque');
+    if (!ENTES_PRUEBA) return;
+    var fila = function(e){ return ENTES_PRUEBA.querySelector('.pe-ente[data-ente="' + e + '"]'); };
+    var ivss = fila('ivss'), inces = fila('inces'), banavih = fila('banavih');
+    igual('entes: el IVSS pide usuario y contraseña, no un código',
+          (ivss.querySelectorAll('.pe-pasos .tr-paso-n')[1] || {}).textContent, u.pe_p1c);
+    igual('entes: y los demás siguen con su código',
+          (banavih.querySelectorAll('.pe-pasos .tr-paso-n')[1] || {}).textContent, u.pe_p1);
+    var dice = ivss.querySelector('.pe-dice');
+    ok('entes: lo enviado sale con el usuario, y la contraseña tapada',
+       !!dice && dice.textContent.indexOf(String(u.pe_tuusuario).replace('{c}', 'empresa.ivss')) >= 0 &&
+         dice.textContent.indexOf('S3creta!') < 0 && !!dice.querySelector('.pe-clave'),
+       dice ? dice.textContent : '(sin nada)', 'usuario a la vista, contraseña no');
+    var ver = dice && dice.querySelector('.pe-clave .pe-ver');
+    if (ver) ver.click();
+    ok('entes: y «Ver» la enseña',
+       !!dice && dice.textContent.indexOf('S3creta!') >= 0 && ver.textContent === u.pe_ocultaclave,
+       dice ? dice.textContent : '(sin nada)', 'S3creta!');
+    if (ver) ver.click();
+
+    var formI = inces.querySelector('.pe-form'), formB = banavih.querySelector('.pe-form');
+    ok('entes: el INCES, recién inscrito, tiene dos casillas: usuario y contraseña',
+       !!formI && !formI.hidden && !!formI.querySelector('input[type=text]') &&
+         !!formI.querySelector('input[type=password]'),
+       formI ? (formI.hidden ? 'escondida' : formI.querySelectorAll('input').length + ' casillas') : '(sin caja)',
+       'una de texto y una de contraseña');
+    ok('entes: el BANAVIH, una sola',
+       !!formB && !formB.hidden && formB.querySelectorAll('input').length === 1 &&
+         !formB.querySelector('input[type=password]'),
+       formB ? formB.querySelectorAll('input').length + ' casillas' : '(sin caja)', 'una');
+    if (!formI) return;
+    formI.querySelector('input[type=text]').value = 'empresa.inces';
+    formI.querySelector('.pe-env').click();
+    igual('entes: sin contraseña no se manda, y lo dice',
+          (formI.querySelector('.pe-msg') || {}).textContent, u.pe_faltaclave);
+    formI.querySelector('input[type=password]').value = 'Cl4ve INCES';
+    formI.querySelector('.pe-env').click();
+  }
+  function entesClaveTrasEnviar(){
+    if (CASO !== 'vacio' || !ENTES_PRUEBA) return;
+    var d = (window.__ENTES || {})['r9|inces'] || {};
+    igual('entes: el INCES llega a la base con usuario y contraseña, sin recortar',
+          [d.estado, d.codigo, d.clave].join(' · '), 'codigo_enviado · empresa.inces · Cl4ve INCES');
+    var b = (window.__ENTES || {})['r9|banavih'] || {};
+    igual('entes: y el BANAVIH no lleva contraseña', 'clave' in b, false);
+    ['r9|ivss', 'r9|inces', 'r9|banavih'].forEach(function(k){ delete window.__ENTES[k]; });
+    ENTES_PRUEBA = null;
   }
 
   function tramoVerdadMira(){
@@ -10809,6 +10993,29 @@
        claves(TX.busca('Paso cambiado en la prueba')), '_p.pasos.c1.0');
     TX.pon(lang, '_p.pasos.c1.0', null);
     igual('textos: y vuelve al original', P.pasos[lang].c1[0], paso);
+
+    /* «Emisión de PUB para reserva de nombre» se escribió sobre el tercer
+       estado DE TODOS y salió en el Registro de Extranjeros (27-9-2026).
+       Con el cambio de la base puesto otra vez, el Registro de Extranjeros
+       tiene que seguir con los suyos y la constitución con el suyo. */
+    var ESC = window.CIIP_ESCALERA;
+    var C = P && P.circuito && P.circuito[lang];
+    ok('pasos: la constitución y el Registro de Extranjeros llevan su circuito',
+       !!(ESC && C && C.c5 && C.c32), (ESC ? 'hay escalera' : 'sin escalera') + ', ' +
+       (C ? Object.keys(C).join(',') : 'sin circuito'), 'c5 y c32');
+    if (!ESC || !C || !C.c5 || !C.c32) return;
+    TX.pon(lang, '_p.estados.2', 'Paso de todos cambiado en la prueba');
+    var nombres = function(codigo, ente){
+      return ESC({estado: 'ante_el_ente', datos: {}}, codigo, ente).todos
+        .map(function(p){ return p.nombre; });
+    };
+    var ext = nombres('registro_extranjeros_saren', 'SAREN · SISREF');
+    igual('pasos: el Registro de Extranjeros no hereda el paso de todos',
+          ext.slice(2).join(' | '), C.c32[2] + ' | ' + C.c32[3]);
+    ok('pasos: y la constitución dice el suyo, el del PUB de la reserva',
+       nombres('constitucion', 'SAREN').indexOf(C.c5[2]) >= 0,
+       nombres('constitucion', 'SAREN').join(' | '), C.c5[2]);
+    TX.pon(lang, '_p.estados.2', null);
   }
 
   /* EL REPASO QUE PONE AL DÍA LAS PANTALLAS, Y LO QUE NO DEBE TOCAR.

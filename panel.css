@@ -2871,6 +2871,24 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-nota{font-size:var(--fs-nota); font-weight:400; line-height:1.4;
   color:var(--gray-soft); margin-top:6px;}
 .tr-nota.mal{color:var(--rust);}
+/* Lo que hay que llevar al CIIP para firmar la constitución. Destacado y
+   no en gris como .tr-nota: es lo único del trámite que se hace fuera del
+   panel, y si se lee de pasada se llega sin un papel. */
+.tr-firma{margin-top:8px; padding:10px 12px; border-radius:var(--r-sm);
+  background:var(--amber-bg); border-left:3px solid var(--amber); color:var(--ink);
+  font-size:var(--fs-nota); line-height:1.45;}
+.tr-firma-t{font-weight:700;}
+.tr-firma-l{margin:4px 0 0; padding-left:18px;}
+.tr-firma-p{margin-top:6px; color:var(--gray);}
+/* La misma lista, del lado del equipo, con el botón de «vino y firmó». */
+.co-firma{display:flex; flex-direction:column; align-items:flex-start; gap:5px; margin-top:11px;
+  padding:9px 11px; border-radius:var(--r-sm); background:var(--amber-bg);
+  border-left:3px solid var(--amber); font-size:12px; color:var(--ink);}
+.co-firma.puesto{background:var(--good-bg); border-left-color:var(--good);}
+.co-firma-t{font-size:var(--fs-rotulo-form); font-weight:700;}
+.co-firma-l{margin:0; padding-left:18px;}
+.co-firma-e{font-weight:600;}
+.co-firma-e[hidden]{display:none;}
 
 /* ============ EL TRAMITE DE VERDAD ============
    Formulario y estado real, contra la base de datos. Convive con la
@@ -3132,9 +3150,13 @@ body[data-vista="tramite"] #secTramites{display:none;}
 /* La casilla del código y enviar, en una línea. En un móvil la casilla
    se queda sola arriba. */
 .pe-form{display:flex; align-items:stretch; gap:6px; flex-wrap:wrap; margin-top:6px;}
-.pe-form input[type=text]{flex:0 1 240px; width:240px; max-width:100%; min-width:0; box-sizing:border-box; padding:5px 8px; font:inherit;
+.pe-form input[type=text], .pe-form input[type=password]{flex:0 1 240px; width:240px; max-width:100%; min-width:0; box-sizing:border-box; padding:5px 8px; font:inherit;
   font-size:var(--fs-nota); border:1px solid var(--line); border-radius:var(--r-sm); background:var(--bg); color:var(--ink);}
-.pe-form input[type=text]:focus{outline:none; border-color:var(--cyan-deep);}
+.pe-form input[type=text]:focus, .pe-form input[type=password]:focus{outline:none; border-color:var(--cyan-deep);}
+/* El IVSS y el INCES: usuario y contraseña, dos casillas en vez de una, y
+   el «Ver» de la contraseña pegado a ella. */
+.pe-form .pe-ver{align-self:center;}
+.pe-clave-v{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing:.04em;}
 .pe-form input[type=file]{display:none;}
 .pe-form .pe-env{flex:none; padding:5px 12px; font-size:var(--fs-nota); min-height:0; justify-content:center; text-align:center;}
 .pe-cab .chip{white-space:normal; max-width:100%;}

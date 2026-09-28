@@ -435,6 +435,14 @@
     campo.value = vigente(clave, el);
     var nota = (dic()['tx.solo'] || I18N.en['tx.solo'] || '').replace('{idioma}', nombreIdioma());
     if (/\{[a-z]+\}/.test(orig)) nota += ' ' + (dic()['tx.llaves'] || I18N.en['tx.llaves'] || '');
+    /* Un estado de los de todos (_p.estados.2) se encuentra buscando por el
+       texto: lo pinta la cola, el chip de Mis trámites o la campana, que no
+       saben su clave propia. Guardarlo ahí cambia ese paso en TODOS los
+       trámites que no tienen el suyo, y así acabó «Emisión de PUB para
+       reserva de nombre» en el Registro de Extranjeros y en la marca
+       (27-9-2026). Se deja hacer -a veces es lo que se quiere- pero se dice. */
+    if (String(clave).indexOf('_p.estados.') === 0)
+      nota += ' ' + (dic()['tx.todos'] || I18N.en['tx.todos'] || '');
     editor.querySelector('#txNota').textContent = nota;
     var caja = editor.querySelector('#txOrig');
     caja.hidden = !cambiado;

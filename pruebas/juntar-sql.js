@@ -142,7 +142,14 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* La traducción de documentos (c17): su fila en importe_del_dia_pasos y
    el trigger que no la deja resolver sin el comprobante. Necesita la
    tabla del anterior, así que va detrás. */
-'supabase-traduccion'];
+'supabase-traduccion',
+/* La firma en el CIIP de la constitución: marca_firma_ciip() y la guarda de
+   su marca en datos. Solo necesita tramites y es_gestor(); va al final
+   para no mover el número de nadie. */
+'supabase-firma-ciip',
+/* La contraseña del IVSS y del INCES en tramite_entes. Va detrás de
+   supabase-entes-parafiscales, que crea la tabla. */
+'supabase-entes-clave'];
 
 let mal = 0;
 for (const n of orden) {
