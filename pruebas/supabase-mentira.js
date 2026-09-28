@@ -559,6 +559,9 @@
      expediente de partida es el de siempre, y lo que aparezca aqui lo ha
      subido la propia prueba. */
   var subidos = [];
+  /* Para contar las fichas que deja una prueba -QA-14: una resolución
+     reintentada no puede dejar dos-. Copias: la lista es del doble. */
+  window.PRUEBA_SUBIDOS = function(){ return subidos.slice(); };
   /* Lo que se escribe en el hilo durante la pasada. Sin esto, mandar un
      mensaje y volver a leer devolvia lo mismo de antes y no habia forma
      de medir que aparece. */
@@ -1777,6 +1780,12 @@
          Los dos son un update sobre la misma tabla, y como en perfiles se
          distinguen por lo que traen. */
       if (op && op.update && 'estado' in op.update && op.eq && op.eq.id){
+        /* Una vez, cuando la prueba lo pide: mover falla después de haber
+           entregado el documento (QA-14). */
+        if (window.__FALLA_MOVER){
+          window.__FALLA_MOVER = false;
+          return {data:null, error:{message:'la red se cayó a medias', code:'08006'}};
+        }
         var sembrado = colaTram.filter(function(t){ return t.id === op.eq.id && t.sembrado; })[0];
         if (sembrado){
           if (['enviado', 'en_revision', 'ante_el_ente'].indexOf(op.update.estado) >= 0){

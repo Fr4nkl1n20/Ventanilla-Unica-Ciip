@@ -13208,7 +13208,7 @@ applyLang(idiomaParaMi());
           var elArchivo = (p.a === 'resuelto' && archivo && archivo.files && archivo.files[0]) || null;
           if (elArchivo){
             b.textContent = u.co_subiendo || '';
-            entrega(t, elArchivo)
+            entregaUnaVez(t, elArchivo)
               .then(function(){
                 return mueveTramite(t, p.a, (nota.value || '').trim(), b, aviso, u[p.k])
                   .then(laNotaFalto(t, p.a));
@@ -13570,6 +13570,45 @@ applyLang(idiomaParaMi());
           return doc;
         });
       });
+    });
+  }
+
+  /* ── ENTREGAR Y RESOLVER, SIN DOS COPIAS (QA-14) ──
+     Resolver son dos pasos: entregar el documento emitido y mover el
+     trámite. Si el segundo falla -una política, la red, un comprobante que
+     falta-, el documento ya está en la bóveda, validado y colgado, y el
+     gestor vuelve a pulsar: se subía otra copia, y otra más en cada
+     intento. El inversionista acababa con tres resoluciones iguales.
+
+     Así que antes de entregar se mira si ESE archivo ya está colgado de
+     este trámite como resolución, por su huella -la misma SHA-256 que
+     entrega() guarda-, y si está se reutiliza. Se mira en la base y no
+     solo en memoria: el reintento puede venir después de recargar.
+
+     Una función de la base que hiciera las dos cosas en una transacción
+     no arreglaría esto: el archivo va a Storage, que queda fuera de
+     cualquier transacción de Postgres. Esto es lo más seguro que se
+     puede hacer desde aquí. */
+  var ENTREGADAS = {};
+  function entregaUnaVez(tr, archivo){
+    var llave = tr.id + '|' + archivo.name + '|' + archivo.size + '|' + (archivo.lastModified || '');
+    if (ENTREGADAS[llave]) return Promise.resolve(ENTREGADAS[llave]);
+    return huellaDe(archivo).then(function(huella){
+      if (!huella) return null;
+      return Promise.resolve().then(function(){
+        return sb.from('tramite_documentos').select('documento, documentos(*)').eq('tramite', tr.id);
+      }).then(function(r){
+        var ya = ((r && !r.error && r.data) || []).filter(function(f){
+          var d = f && f.documentos;
+          return d && d.tipo === 'resolucion' && d.huella === huella;
+        })[0];
+        return ya ? ya.documento : null;
+      }, function(){ return null; });
+    }).then(function(ya){
+      return ya || entrega(tr, archivo);
+    }).then(function(doc){
+      ENTREGADAS[llave] = doc;
+      return doc;
     });
   }
 
@@ -14827,7 +14866,7 @@ applyLang(idiomaParaMi());
           .catch(function(e){ console.warn('[CIIP] datos del acta:', e && e.message); })
       : Promise.resolve();
     guarda
-      .then(function(){ return papel ? entrega(t, papel) : true; })
+      .then(function(){ return papel ? entregaUnaVez(t, papel) : true; })
       .then(function(){ return mueveTramite(t, 'resuelto', '', boton, aviso, rotulo); })
       .then(function(bien){
         if (!bien) return;

@@ -271,9 +271,11 @@
               hoyEspacioEspera, hoyEspacioMira, hoyTrasVale, hoyNoValeAbre,
               hoyNoValeMira, hoyNoValeGuarda, hoyTrasNoVale, hoyTrasDevolver,
               hoyRespuestaMira, hoyTrasCerrar,
-              /* QA-08: el papel rechazado y sustituido no deja atascado el trámite. */
+              /* QA-14: resolver, fallar al mover y reintentar deja UNA resolución. */
+              hoyEntregaAbre, hoyEntregaFalla, hoyEntregaReintenta, hoyEntregaMira,
               /* QA-12: un devuelto que no vuelve, lo cancela el equipo con su motivo. */
               hoyCancelaSiembra, hoyCancelaAbre, hoyCancelaPide, hoyCancelaMira,
+              /* QA-08: el papel rechazado y sustituido no deja atascado el trámite. */
               hoyReenvia, hoyReenviaAbre, hoyReenviaMira,
               hoyRestaura,
               empresaAbre, empresaMira, empresaNueva, empresaFichaAbre, empresaOfreceGuardada,
@@ -6057,6 +6059,70 @@
     ok('hoy: Escape cierra el espacio', document.getElementById('paVisor').hidden, 'mira hidden', 'escondido');
     igual('hoy: y el foco vuelve a la tarjeta',
           document.activeElement && document.activeElement.getAttribute('data-tr'), 'h3');
+  }
+
+  /* ── ENTREGAR, FALLAR AL MOVER Y REINTENTAR (QA-14) ──
+     Resolver entrega el documento y después mueve el trámite. Si lo
+     segundo fallaba, el documento ya estaba en la bóveda, y el reintento
+     subía otra copia. */
+  var HOY_SUBIDAS = 0;
+  function hoyResolucionesNuevas(){
+    return (window.PRUEBA_SUBIDOS ? window.PRUEBA_SUBIDOS() : []).slice(HOY_SUBIDAS)
+      .filter(function(d){ return d.tipo === 'resolucion'; }).length;
+  }
+  function hoyEsperaBoton(b, sigue){
+    var n = 0;
+    (function mira(){
+      var v = document.getElementById('paVisor');
+      if ((v && v.hidden) || (!b.disabled && b.textContent.trim() === 'Resolver y entregar') || ++n > 120) return sigue();
+      setTimeout(mira, 50);
+    })();
+  }
+
+  function hoyEntregaAbre(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    var t = hoyTarjeta('h3');
+    ok('hoy: el de ante el ente sigue ahí para resolverlo', !!t, t ? 'está' : 'no está', 'está');
+    if (!t) return sigue();
+    t.click();
+    esperaFilas('#hoy-doc-h3', 1, sigue);
+  }
+
+  function hoyEntregaFalla(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    var inp = document.getElementById('hoy-doc-h3');
+    var res = hoyBotonQueDice(document.getElementById('paVisor'), 'Resolver y entregar');
+    if (!inp || !res) return sigue();
+    try {
+      var dt = new DataTransfer();
+      dt.items.add(new File(['%PDF-1.4 resolucion'], 'resolucion-tanaka.pdf', {type: 'application/pdf'}));
+      inp.files = dt.files;
+    } catch (e){
+      ok('hoy: se puede elegir la resolución', false, e.message, 'un archivo elegido');
+      return sigue();
+    }
+    HOY_SUBIDAS = (window.PRUEBA_SUBIDOS ? window.PRUEBA_SUBIDOS() : []).length;
+    window.__FALLA_MOVER = true;
+    res.click();
+    hoyEsperaBoton(res, sigue);
+  }
+
+  function hoyEntregaReintenta(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    var v = document.getElementById('paVisor');
+    igual('hoy: si mover falla, la resolución ya se entregó una vez', hoyResolucionesNuevas(), 1);
+    ok('hoy: y el trámite sigue abierto para reintentar', !v.hidden, v.hidden ? 'cerrado' : 'abierto', 'abierto');
+    var res = hoyBotonQueDice(v, 'Resolver y entregar');
+    if (!res) return sigue();
+    res.click();
+    hoyEsperaBoton(res, sigue);
+  }
+
+  function hoyEntregaMira(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    ok('hoy: el reintento resuelve', document.getElementById('paVisor').hidden,
+       document.getElementById('paVisor').hidden ? 'cerrado' : 'sigue abierto', 'cerrado');
+    igual('hoy: y no sube otra copia de la resolución', hoyResolucionesNuevas(), 1);
   }
 
   /* ── EL DEVUELTO QUE NO VUELVE (QA-12) ──
