@@ -22394,9 +22394,10 @@ applyLang(idiomaParaMi());
          Dos razones para no dejar: que el CIIP ya lo diera por bueno -lo
          dice tambien la politica de la base, asi que el boton solo se
          adelanta a un rechazo seguro- y que vaya adjunto a un tramite
-         enviado. Esa segunda no la impide la base: 'tramite_documentos'
-         va con 'on delete cascade', asi que borrarlo lo quitaria del
-         expediente que el CIIP ya recibio, en silencio. */
+         enviado. Esa segunda la impide tambien la base desde el 28-9-2026
+         (QA-16, supabase-qa-tramites.sql): 'tramite_documentos' va con
+         'on delete cascade', y hasta entonces borrarlo por la API lo quitaba
+         del expediente que el CIIP ya recibio, en silencio. */
       if (laBovedaEsMia()){
         var usado = (usosPorDoc[d.id] || []).length > 0;
         var validado = (d.estado === 'validado');
@@ -22601,11 +22602,9 @@ applyLang(idiomaParaMi());
   }
 
   /* ── BORRAR UN PAPEL ─────────────────────────────────────────────────
-     Se va el archivo del almacen y luego la fila. En ese orden, y no al
-     reves: si primero cayera la fila y luego fallara el archivo, quedaria
-     un huerfano en el bucket que ya nadie sabe de quien era ni como se
-     llamaba. Al reves lo peor que pasa es que el archivo se vaya y la
-     fila se quede, y esa si se ve y se puede volver a intentar.
+     Primero la fila y luego el archivo, desde el 28-9-2026: el porqué
+     está en borraDeVerdad. Hasta entonces era al revés, por miedo a dejar
+     un archivo huérfano; la base ya los apunta sola al borrar la fila.
      ─────────────────────────────────────────────────────────────────── */
   var dcPorBorrar = null;
 
@@ -22650,15 +22649,27 @@ applyLang(idiomaParaMi());
     if (si){ si.disabled = true; si.textContent = u.dc_borrando || ''; }
     if (av){ av.textContent = ''; av.className = 'pf-aviso'; }
 
-    sb.storage.from('recaudos').remove([d.archivo])
-      .then(function(){
-        /* No se mira el error del almacen a proposito: si el archivo ya no
-           estaba, el borrado sigue siendo lo que quieres. Lo que no puede
-           fallar en silencio es la fila. */
-        return sb.from('documentos').delete().eq('id', d.id);
-      })
+    /* LA FILA PRIMERO, desde el 28-9-2026 (QA-16). La base no deja ya
+       borrar un papel que va en una solicitud en marcha, y con el archivo
+       primero ese «no» llegaba tarde: la ficha se quedaba y su archivo ya
+       no estaba, y el CIIP tenía en el expediente un papel que no se abre.
+       El huérfano que temía el orden de antes ya no se pierde: al borrar
+       la fila, la base lo apunta en archivos_huerfanos y el barrendero lo
+       recoge si esto de abajo no llega a quitarlo. */
+    Promise.resolve().then(function(){
+      return sb.from('documentos').delete().eq('id', d.id).select();
+    })
       .then(function(r){
         if (r && r.error) throw r.error;
+        /* Cero filas no es «borrado»: la política no dejó. */
+        if (r && Array.isArray(r.data) && !r.data.length) throw new Error('no se borró ninguna fila');
+        /* No se mira el error del almacen a proposito: si el archivo ya no
+           estaba, el borrado sigue siendo lo que quieres, y si no se pudo
+           quitar lo quita el barrendero. */
+        return Promise.resolve(sb.storage.from('recaudos').remove([d.archivo]))
+          .then(function(){}, function(){});
+      })
+      .then(function(){
         /* Se olvida lo que se sabia de la boveda: las fichas de los
            tramites guardan que recaudos tienes, y sin esto el papel
            borrado seguiria saliendo como que lo tienes. */
@@ -22674,7 +22685,10 @@ applyLang(idiomaParaMi());
       .catch(function(e){
         console.warn('[CIIP] borrar documento:', e && (e.message || e));
         if (si){ si.disabled = false; si.textContent = u.dc_borrar_si || ''; }
-        if (av){ av.textContent = u.pf_fotoerror || ''; av.className = 'pf-aviso'; }
+        /* Si es la base la que no deja -va en una solicitud en marcha-, se
+           dice eso, que es lo que el botón ya explica al pasar por encima. */
+        var enMarcha = /solicitud en marcha/.test((e && e.message) || '');
+        if (av){ av.textContent = (enMarcha ? u.dc_nb_uso : u.pf_fotoerror) || ''; av.className = 'pf-aviso'; }
       });
   }
 
