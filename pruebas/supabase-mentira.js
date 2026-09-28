@@ -2171,7 +2171,12 @@
     if (tabla === 'tramite_eventos'){
       if (op && op.update){
         if (op.update.nota) notaPuesta = op.update.nota;
-        return {data:{}, error:null};
+        /* Con la fila de vuelta, en una lista, que es lo que da un
+           update().select() de verdad. Con {} el panel leía «cero filas» y
+           decía siempre que la nota no se había guardado: la prueba de
+           devolver pasaba igual porque las dos frases nombran a quién, y la
+           de cancelar (QA-12) lo destapó. */
+        return {data:[{id: (op.eq && op.eq.id) || 'ev9', nota: op.update.nota || ''}], error:null};
       }
       /* Al devolver, el panel busca el evento que el trigger acaba de
          escribir para ponerle la nota encima. Si el expediente ya tiene
