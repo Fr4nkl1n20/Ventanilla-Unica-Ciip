@@ -1162,7 +1162,8 @@ function applyLang(lang){
     if (tipo === 'empresa') traeAlEntrar('CIIP_PINTA_EMPRESA');
     if (tipo === 'usuarios') traeAlEntrar('CIIP_PINTA_USUARIOS');
     if (tipo === 'catalogo') traeAlEntrar('CIIP_PINTA_CATALOGO');
-    if (tipo === 'pulso') traeAlEntrar('CIIP_PINTA_PULSO');
+    /* El pulso va dentro de la vista del equipo: se trae con ella. */
+    if (tipo === 'equipo') traeAlEntrar('CIIP_PINTA_PULSO');
     if (tipo === 'equipo') traeAlEntrar('CIIP_PINTA_EQUIPO');
     if (tipo === 'horario') traeAlEntrar('CIIP_PINTA_HORARIO');
     if (tipo === 'rastro') traeAlEntrar('CIIP_PINTA_RASTRO');
@@ -1260,7 +1261,9 @@ function applyLang(lang){
     if (h === '#empresa') return {tipo:'empresa'};
     if (h === '#usuarios') return {tipo:'usuarios'};
     if (h === '#catalogo') return {tipo:'catalogo'};
-    if (h === '#pulso') return {tipo:'pulso'};
+    /* #pulso fue una vista propia hasta el 28-9-2026; un enlace guardado
+       lleva ahora al equipo, que es donde vive. */
+    if (h === '#pulso') return {tipo:'equipo'};
     if (h === '#equipo') return {tipo:'equipo'};
     if (h === '#horario') return {tipo:'horario'};
     if (h === '#rastro') return {tipo:'rastro'};
@@ -1656,7 +1659,6 @@ function applyLang(lang){
              : (vista === 'empresa') ? document.getElementById('navEmpresa')
              : (vista === 'usuarios') ? document.getElementById('navUsuarios')
              : (vista === 'catalogo') ? document.getElementById('navCatalogo')
-             : (vista === 'pulso') ? document.getElementById('navPulso')
              : (vista === 'equipo') ? document.getElementById('navEquipo')
              : (vista === 'horario') ? document.getElementById('navHorario')
              : (vista === 'rastro') ? document.getElementById('navRastro')
@@ -19365,7 +19367,6 @@ applyLang(idiomaParaMi());
       documentos:   'CIIP_PINTA_DOCS',
       mistramites:  'CIIP_PINTA_MISTRAM',
       activos:      'CIIP_PINTA_ACTIVOS',
-      pulso:        'CIIP_PINTA_PULSO',
       equipo:       'CIIP_PINTA_EQUIPO',
       rastro:       'CIIP_PINTA_RASTRO'
     };
@@ -19459,6 +19460,12 @@ applyLang(idiomaParaMi());
       if (pintor && typeof window[pintor] === 'function' && !escribiendoAhora()){
         try { window[pintor](); }
         catch(e){ console.warn('[CIIP] al día, ' + pintor + ':', e && (e.message || e)); }
+      }
+      /* El pulso vive dentro de la vista del equipo: se pone al día con ella. */
+      if (document.body.getAttribute('data-vista') === 'equipo'
+          && typeof window.CIIP_PINTA_PULSO === 'function' && !escribiendoAhora()){
+        try { window.CIIP_PINTA_PULSO(); }
+        catch(e){ console.warn('[CIIP] al día, CIIP_PINTA_PULSO:', e && (e.message || e)); }
       }
       Promise.resolve(cargaMisTramites()).then(function(){
         /* La escalera del trámite abierto se dibuja al abrirlo y no la
@@ -26265,7 +26272,6 @@ applyLang(idiomaParaMi());
      queda donde ya vivia, en el distintivo.
      ─────────────────────────────────────────────────────────────────── */
   var puNums = document.getElementById('puNums');
-  var puNav  = document.getElementById('navPulso');
   var pulso  = null;
 
   /* El orden del expediente, no el alfabetico: es el camino que recorre
@@ -26431,7 +26437,6 @@ applyLang(idiomaParaMi());
   }
 
   if (puNums){
-    if (puNav) puNav.addEventListener('click', function(){ location.hash = 'pulso'; });
     var puVolver = document.getElementById('puVolver');
     if (puVolver) puVolver.addEventListener('click', function(){
       if (location.hash) location.hash = '';

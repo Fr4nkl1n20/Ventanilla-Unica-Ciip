@@ -400,7 +400,6 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
       <div class="sb-gl" data-i18n="nav.g.admin">Administration</div>
       <button class="sb-item" id="navUsuarios" type="button"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></svg></span><span data-i18n="nav.users">Users &amp; team</span></button>
       <button class="sb-item" id="navCatalogo" type="button"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M8 7h7M8 11h7"/></svg></span><span data-i18n="nav.catalogo">Catalogue</span></button>
-      <button class="sb-item" id="navPulso" type="button"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="2 12 6.5 12 9.5 21 14.5 3 17.5 12 22 12"/></svg></span><span data-i18n="nav.pulso">Pulse</span></button>
       <button class="sb-item" id="navEquipo" type="button"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2A5 5 0 0 1 21.5 19"/></svg></span><span data-i18n="nav.equipo">Team</span></button>
       <button class="sb-item" id="navRastro" type="button"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5"/></svg></span><span data-i18n="nav.rastro">Trail</span></button>
       <button class="sb-item" id="navAcomp" type="button"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></span><span data-i18n="nav.acomp">Support widget</span></button>
@@ -1214,23 +1213,6 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
       </div>
     </div>
 
-    <!-- El pulso de la oficina. Los numeros que no hablan de personas se
-         vinieron aqui desde la pantalla de usuarios: tenerlos en las dos
-         era tener dos cifras esperando a no coincidir. -->
-    <div class="pulso-vista">
-      <div class="sec-h">
-      </div>
-      <div class="pu-nums" id="puNums"></div>
-      <div class="pu-caja">
-        <div class="pu-t" id="puTestados"></div>
-        <div id="puEstados"></div>
-      </div>
-      <div class="pu-caja">
-        <div class="pu-t" id="puTcola"></div>
-        <div id="puCola"></div>
-      </div>
-    </div>
-
     <!-- El equipo, uno por uno. Una tarjeta por persona -y «Sin dueño»
          delante- y, al pulsarla, su ficha en un panel lateral: cómo va y
          qué ha hecho. Lo pinta pintaEquipo(); solo lo ve el administrador. -->
@@ -1241,6 +1223,21 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
           <div class="sub" id="eqCabS"></div>
         </div>
         <div class="mt-aldia" id="eqAlDia" hidden><span class="pt" aria-hidden="true"></span><span id="eqAlDiaT"></span></div>
+      </div>
+      <!-- El pulso de la oficina, arriba de las tarjetas. Fue una vista
+           aparte hasta el 28-9-2026 (Franklin Reyes: «que pulso pase a ser
+           parte de equipo, que sea una sola»): las cifras de la oficina y
+           las de cada persona se miran juntas. Lo pinta pintaPulso(). -->
+      <div class="pulso-vista">
+        <div class="pu-nums" id="puNums"></div>
+        <div class="pu-caja">
+          <div class="pu-t" id="puTestados"></div>
+          <div id="puEstados"></div>
+        </div>
+        <div class="pu-caja">
+          <div class="pu-t" id="puTcola"></div>
+          <div id="puCola"></div>
+        </div>
       </div>
       <div class="eq-tarjetas" id="eqTarjetas"></div>
       <div class="eq-velo" id="eqVelo" hidden></div>

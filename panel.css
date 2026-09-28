@@ -544,25 +544,9 @@ body[data-vista="rastro"] .fase-bar{display:none;}
 .ra-punto.aju{background:var(--cyan);}
 .ra-vacio{font-size:var(--fs-parrafo); color:var(--gray-soft); padding:18px 12px;}
 
-/* El pulso. Misma mecanica que las otras dos vistas de administracion. */
-.pulso-vista{display:none;}
-body[data-vista="pulso"] .pulso-vista{display:block;}
-body[data-vista="pulso"] .solo-inicio,
-body[data-vista="pulso"] #secTramites,
-body[data-vista="pulso"] .faq-sec{display:none;}
-body[data-vista="pulso"] .fase-bar{display:flex;}
-body[data-vista="pulso"] #faseVolver,
-body[data-vista="pulso"] #trVolver,
-body[data-vista="pulso"] #ciVolver,
-body[data-vista="pulso"] #mtVolver,
-body[data-vista="pulso"] #acVolver,
-body[data-vista="pulso"] #ayVolver,
-body[data-vista="pulso"] #dcVolver,
-body[data-vista="pulso"] #usVolver,
-body[data-vista="pulso"] #cgVolver,
-body[data-vista="pulso"] #emVolver{display:none;}
-body[data-vista="pulso"] #puVolver{display:none;}
-body[data-vista="pulso"] .fase-bar{display:none;}
+/* El pulso ya no es una vista: vive dentro de la del equipo, encima de las
+   tarjetas, y se ve y se esconde con ella. */
+.equipo-vista .pulso-vista{margin-bottom:18px;}
 #puVolver{display:none;}
 
 /* ══ EL EQUIPO, UNO POR UNO ══
