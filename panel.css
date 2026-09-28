@@ -55,7 +55,7 @@
    que tenia este panel desde el principio. ────────────────────────────── */
   --navy:#004090; --navy2:#0060B0; --navy-deep:#00336d; --cyan:#20B0F0; --cyan-deep:#0E8FD6;
   --ink:#0E1424; --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6;
-  --block:#F4F7FB; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--tr-velo:rgba(255,255,255,.35);--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#5B6478;
+  --block:#F4F7FB; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--tr-velo:rgba(255,255,255,.40);--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#5B6478;
   --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9; --good:#1E7F5C; --good-bg:#E7F4EE;
   --r:10px; --r-sm:7px;
   /* Escala tipografica de Atlas: un escalon por trabajo. Esta entera en
@@ -80,7 +80,7 @@
 }
 :root[data-theme="light"]{
   --ink:#0E1424; --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6;
-  --block:#F4F7FB; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--tr-velo:rgba(255,255,255,.35);--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#5B6478;
+  --block:#F4F7FB; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--tr-velo:rgba(255,255,255,.40);--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#5B6478;
   --navy2:#0060B0; --cyan-deep:#0E8FD6;
   --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9; --good:#1E7F5C; --good-bg:#E7F4EE;
   --shadow:0 1px 2px rgba(14,20,36,.04), 0 6px 18px rgba(14,20,36,.06);
@@ -2814,8 +2814,8 @@ body[data-vista="tramite"] #secTramites{display:none;}
    gris. El borde azul grueso chocaba con el cuadro azul de subir el
    documento, que va justo debajo (Franklin Reyes, 28-9-2026). La
    descripcion corta a 62ch para que el recuadro no se estire. */
-/* El velo (--tr-velo) va con los demas colores, arriba: blanco al 35 % en
-   claro y al 4 % en oscuro, donde el 35 % seria un parche claro. */
+/* El velo (--tr-velo) va con los demas colores, arriba: blanco al 40 % en
+   claro y al 4 % en oscuro, donde el 40 % seria un parche claro. */
 .tr-caja{background:var(--tr-velo); border-radius:12px; padding:12px 16px; box-sizing:border-box;
   width:fit-content; max-width:min(100%, 880px); margin-bottom:12px;}
 .tr-raya{border:0; border-top:1px solid var(--line); margin:12px 0 10px;}
