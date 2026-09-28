@@ -6905,21 +6905,31 @@ applyLang(idiomaParaMi());
 
     conBorrador.then(function(tr){
       /* 3. subir lo que sea nuevo y engancharlo */
-      var tareas = [];
+      var tareas = [], vanAhora = [];
       caja.querySelectorAll('.sol-doc').forEach(function(f){
         /* Escondido es que no se pide: un recaudo de la bóveda colgado de
            una casilla sin marcar sería un papel enganchado sin pedirlo. */
         if (!seVe(f)) return;
         var archivo = f.querySelector('input[type=file]').files[0];
         var yaHecho = f.getAttribute('data-ya');
-        if (!archivo && yaHecho){ tareas.push(engancha(tr.id, yaHecho)); return; }
+        var cual = {tipo: f.getAttribute('data-doc'), titular: f.getAttribute('data-titular') || ''};
+        if (!archivo && yaHecho){
+          cual.id = yaHecho; vanAhora.push(cual);
+          tareas.push(engancha(tr.id, yaHecho)); return;
+        }
         if (!archivo) return;
         tareas.push(sube(f.getAttribute('data-doc'), archivo, null, null,
                          f.getAttribute('data-titular') || null).then(function(docId){
+          cual.id = docId; vanAhora.push(cual);
           return engancha(tr.id, docId);
         }));
       });
       return Promise.all(tareas).then(function(){
+        /* El que no valió y ya se cambió, fuera del expediente (QA-08).
+           Antes de pasar a 'enviado': la base solo deja desenganchar en
+           borrador o devuelto. */
+        return desenganchaLosSustituidos(tr.id, vanAhora);
+      }).then(function(){
         /* 4. datos al día y a enviar */
         return sb.from('tramites').update({datos: datos, estado: 'enviado'})
           .eq('id', tr.id).select().single();
@@ -7146,6 +7156,38 @@ applyLang(idiomaParaMi());
       .upsert({tramite: tramiteId, documento: documentoId},
               {onConflict:'tramite,documento', ignoreDuplicates:true})
       .then(function(r){ if (r.error) throw r.error; });
+  }
+
+  /* Y lo contrario, solo para lo que el CIIP rechazó y el inversionista ya
+     ha cambiado (QA-08). vanAhora son los papeles que este envío deja
+     colgados, con su tipo y su titular; se sueltan los RECHAZADOS del
+     mismo tipo y titular que no sean uno de ellos. Los demás no se tocan:
+     un papel de más no estorba a nadie, y quitar uno que no toca sí.
+
+     No revienta nunca: si la base no deja -o la consulta falla- el envío
+     sigue, y la cuenta del gestor ya no cuenta un rechazado sustituido
+     (sinLosSustituidos). Esto limpia el expediente; aquello es lo que
+     desatasca el botón. */
+  function desenganchaLosSustituidos(tramiteId, vanAhora){
+    if (!vanAhora || !vanAhora.length) return Promise.resolve();
+    var clave = function(tipo, titular){ return tipo + '|' + (titular || ''); };
+    var tapa = {}, ids = {};
+    vanAhora.forEach(function(v){ tapa[clave(v.tipo, v.titular)] = true; ids[v.id] = true; });
+    return Promise.resolve().then(function(){
+      return sb.from('tramite_documentos').select('documento, documentos(*)').eq('tramite', tramiteId);
+    }).then(function(r){
+      if (r && r.error) throw r.error;
+      var fuera = ((r && r.data) || []).filter(function(f){
+        var d = f && f.documentos;
+        return d && d.estado === 'rechazado' && !ids[f.documento] &&
+               tapa[clave(d.tipo, d.titular)];
+      }).map(function(f){ return f.documento; });
+      if (!fuera.length) return;
+      return sb.from('tramite_documentos').delete().eq('tramite', tramiteId).in('documento', fuera)
+        .then(function(r2){ if (r2 && r2.error) throw r2.error; });
+    }).catch(function(e){
+      console.warn('[CIIP] soltar el papel sustituido:', e && (e.message || e));
+    });
   }
 
   /* ── EL IMPORTE DEL DÍA ──────────────────────────────────────────────
@@ -13981,8 +14023,10 @@ applyLang(idiomaParaMi());
               d.tipo === 'busqueda_antecedentes' || d.tipo === 'certificado_marca') return;
           de[f.tramite].push({id: d.id || f.documento, tipo: d.tipo, archivo: d.archivo,
             nombre_original: d.nombre_original || '', estado: d.estado || 'cargado',
-            nota_revision: d.nota_revision || '', titular: d.titular || ''});
+            nota_revision: d.nota_revision || '', titular: d.titular || '',
+            creado_en: d.creado_en || ''});
         });
+        Object.keys(de).forEach(function(id){ de[id] = sinLosSustituidos(de[id]); });
         hoyDocs = de;
       })
       .catch(function(e){
@@ -13991,6 +14035,28 @@ applyLang(idiomaParaMi());
         console.warn('[CIIP] recaudos de la cola:', e && e.message);
         hoyDocs = {};
       });
+  }
+
+  /* ── EL PAPEL QUE NO VALIÓ Y YA SE CAMBIÓ (QA-08) ──
+     El panel no desenganchaba nunca un papel de un trámite: el rechazado
+     se quedaba colgado al lado del que el inversionista subió en su lugar.
+     Cuando el gestor validaba el nuevo, la cuenta seguía viendo un
+     rechazado y «Presentar ante el ente» no se encendía: el trámite se
+     quedaba atascado sin nada que el gestor pudiera hacer.
+
+     Al reenviar, el envío quita ya el rechazado que sustituye
+     (desenganchaLosSustituidos). Esto es la otra mitad, y la que arregla
+     los que ya están así: un rechazado no cuenta si en el mismo trámite
+     hay otro papel del mismo tipo -y del mismo titular- más nuevo. Sin
+     fechas, manda el que no está rechazado. */
+  function sinLosSustituidos(docs){
+    return docs.filter(function(d){
+      if (d.estado !== 'rechazado') return true;
+      return !docs.some(function(o){
+        if (o === d || o.tipo !== d.tipo || (o.titular || '') !== (d.titular || '')) return false;
+        return (d.creado_en && o.creado_en) ? o.creado_en > d.creado_en : o.estado !== 'rechazado';
+      });
+    });
   }
 
   /* La misma cuenta que diasDeMas, que vive en otro bloque y desde aquí no

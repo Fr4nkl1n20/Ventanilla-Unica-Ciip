@@ -731,9 +731,9 @@
     ];
     HOY_DOCS = {
       h1: [{id:'hd1', tipo:'pasaporte', nombre_original:'pasaporte-bianchi.pdf', archivo:'u2/pasaporte-bianchi.pdf',
-            estado:'cargado', nota_revision:''},
+            estado:'cargado', nota_revision:'', creado_en: hace(2)},
            {id:'hd2', tipo:'domicilio', nombre_original:'recibo-bianchi.jpg', archivo:'u2/recibo-bianchi.jpg',
-            estado:'validado', nota_revision:''}],
+            estado:'validado', nota_revision:'', creado_en: hace(2)}],
       h2: [{id:'hd3', tipo:'comprobante_capital', nombre_original:'deposito.pdf', archivo:'u7/deposito.pdf',
             estado:'cargado', nota_revision:''}],
       h3: [{id:'hd4', tipo:'acta_constitutiva', nombre_original:'acta-tanaka.pdf', archivo:'u5/acta-tanaka.pdf',
@@ -746,7 +746,25 @@
     cola: function(){ return colaTram.slice(); },
     ponCola: function(lista){ colaTram = lista; HOY_DOCS = {}; HOY_DOC = {}; },
     siembraHoy: siembraHoy,
-    doc: function(id){ return HOY_DOC[id]; }
+    doc: function(id){ return HOY_DOC[id]; },
+    /* QA-08: la inversionista corrige lo que se le devolvió y lo reenvía.
+       Sube un recibo NUEVO en lugar del rechazado, el gestor se lo valida
+       y el trámite vuelve a estar en revisión, suyo. El rechazado sigue
+       enganchado, como en la base de antes del arreglo: es justo lo que
+       dejaba «Presentar» apagado para siempre. */
+    reenviaH1: function(){
+      colaTram = colaTram.filter(function(t){ return t.id !== 'h1'; });
+      colaTram.push({id:'h1', inversionista:'u2', tipo:'rif_personal', estado:'en_revision', gestor:'u1',
+        sembrado:true, datos:{tipo_documento:'Pasaporte', numero_documento:'YA8812345',
+        telefono:'+58 412 555 0132', direccion_fiscal:'Av. Francisco de Miranda, Chacao'},
+        creado_en: new Date(Date.now() - 2 * 86400000).toISOString(),
+        enviado_en: new Date(Date.now() - 2 * 86400000).toISOString()});
+      var nuevo = {id:'hd5', tipo:'domicilio', nombre_original:'recibo-bianchi-nuevo.jpg',
+        archivo:'u2/recibo-bianchi-nuevo.jpg', estado:'validado', nota_revision:'',
+        creado_en: new Date().toISOString()};
+      HOY_DOCS.h1 = (HOY_DOCS.h1 || []).concat([nuevo]);
+      HOY_DOC.hd5 = nuevo;
+    }
   };
 
   /* La nota de una devolucion viaja en un UPDATE aparte, sobre el evento que

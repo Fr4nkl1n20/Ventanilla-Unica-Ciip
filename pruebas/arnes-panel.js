@@ -253,7 +253,10 @@
               hoySiembra, hoyMira, hoyTrasTomar, hoyTrasDeshacer, hoyRevisa,
               hoyEspacioEspera, hoyEspacioMira, hoyTrasVale, hoyNoValeAbre,
               hoyNoValeMira, hoyNoValeGuarda, hoyTrasNoVale, hoyTrasDevolver,
-              hoyRespuestaMira, hoyTrasCerrar, hoyRestaura,
+              hoyRespuestaMira, hoyTrasCerrar,
+              /* QA-08: el papel rechazado y sustituido no deja atascado el trámite. */
+              hoyReenvia, hoyReenviaAbre, hoyReenviaMira,
+              hoyRestaura,
               empresaAbre, empresaMira, empresaNueva, empresaFichaAbre, empresaOfreceGuardada,
               empresaGuarda, empresaActaLeida,
               empresaTrasGuardar,
@@ -5990,6 +5993,45 @@
     ok('hoy: Escape cierra el espacio', document.getElementById('paVisor').hidden, 'mira hidden', 'escondido');
     igual('hoy: y el foco vuelve a la tarjeta',
           document.activeElement && document.activeElement.getAttribute('data-tr'), 'h3');
+  }
+
+  /* ── EL RECHAZADO QUE YA SE CAMBIÓ (QA-08) ──
+     La cadena de arriba acaba de rechazar el recibo de h1 y devolverlo.
+     Ahora la inversionista sube otro, lo reenvía, y el gestor valida el
+     nuevo: el rechazado sigue enganchado -el panel no lo soltaba nunca- y
+     «Presentar» se quedaba apagado para siempre. */
+  function hoyReenvia(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    if (!window.CIIP_DOBLE.reenviaH1){
+      ok('hoy: el doble deja reenviar h1', false, 'sin reenviaH1', 'con él');
+      return;
+    }
+    window.CIIP_DOBLE.reenviaH1();
+    window.CIIP_PINTA_PORATENDER();
+  }
+
+  function hoyReenviaAbre(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    esperaFilas('#paTandas .hoy-card[data-tr="h1"]', 1, function(){
+      var t = hoyTarjeta('h1');
+      ok('hoy: el reenviado vuelve a la cola', !!t, t ? 'está' : 'no está', 'está');
+      if (!t) return sigue();
+      t.click();
+      esperaFilas('#paVisor .visor-chk button', 1, sigue);
+    });
+  }
+
+  function hoyReenviaMira(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    var v = document.getElementById('paVisor');
+    igual('hoy: el rechazado que ya se cambió no sale entre sus papeles',
+          [].map.call(v.querySelectorAll('.visor-chk button'), function(b){
+            return /recibo-bianchi\.jpg/.test(b.textContent) ? 'el viejo' : 'otro';
+          }).join(' '), 'otro otro');
+    var pre = hoyBotonQueDice(v, 'Presentar ante SENIAT');
+    ok('hoy: y con el nuevo validado, ya deja presentar', !!pre && !pre.disabled,
+       pre ? (pre.disabled ? 'apagado' : 'encendido') : 'no hay botón', 'encendido');
+    hoyEscape();
   }
 
   function hoyRestaura(){
