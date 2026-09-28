@@ -3834,6 +3834,22 @@ $hoy$;
 reset role;
 select arnes.nadie();
 
+-- La contraseña del IVSS se guarda mientras hace falta y se borra al quedar lista.
+do $hoy$
+declare t uuid := (select id from arnes.escenario where clave = 'hoy-parafiscales');
+begin
+  update public.tramite_entes set estado = 'codigo_enviado', codigo = 'usuario1', clave = 'secreta'
+   where tramite = t and ente = 'ivss';
+  perform arnes.comprueba('hoy: la contraseña del IVSS se guarda con el código enviado',
+    (select clave = 'secreta' from public.tramite_entes where tramite = t and ente = 'ivss'));
+  update public.tramite_entes set estado = 'listo' where tramite = t and ente = 'ivss';
+  perform arnes.comprueba('hoy: al quedar lista, la contraseña del IVSS se borra y el usuario se queda',
+    (select clave is null and codigo = 'usuario1' from public.tramite_entes where tramite = t and ente = 'ivss'));
+exception when others then
+  perform arnes.comprueba('hoy: al quedar lista, la contraseña del IVSS se borra y el usuario se queda', false, sqlerrm);
+end
+$hoy$;
+
 
 
 -- ══ 35 · CANCELAR UNA SOLICITUD, MIENTRAS NO HAYA SALIDO DEL CIIP ══════

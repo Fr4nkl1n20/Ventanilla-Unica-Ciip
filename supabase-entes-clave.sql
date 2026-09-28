@@ -15,6 +15,26 @@ alter table public.tramite_entes drop constraint if exists tramite_entes_clave_s
 alter table public.tramite_entes add constraint tramite_entes_clave_solo_ivss_inces
   check (clave is null or ente in ('ivss', 'inces'));
 
+-- La contraseña solo hace falta hasta que la inscripción queda lista: en
+-- cuanto el equipo la da por lista, se borra sola (Franklin, 28-9-2026).
+-- Lo hace la base y no el panel, para que ningún camino se la salte.
+create or replace function public.tramite_entes_borra_clave()
+returns trigger language plpgsql as $$
+begin
+  if new.estado = 'listo' then
+    new.clave := null;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists tramite_entes_borra_clave on public.tramite_entes;
+create trigger tramite_entes_borra_clave
+  before insert or update on public.tramite_entes
+  for each row execute function public.tramite_entes_borra_clave();
+
+update public.tramite_entes set clave = null where estado = 'listo' and clave is not null;
+
 -- Sin sesión no hay fila que leer (las políticas son por dueño o equipo),
 -- pero la columna tampoco tiene por qué estar a su alcance.
 revoke all on public.tramite_entes from anon;
