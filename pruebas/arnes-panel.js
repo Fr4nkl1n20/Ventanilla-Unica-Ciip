@@ -207,7 +207,7 @@
               /* El hilo ANTES de anular: al cancelar la cita, el hilo se
                  va con ella y no habría nada que mirar. */
               hiloCitaMira,
-              citasAnula, citasTrasAnular, hiloCitaTrasAnular,
+              citasAnula, citasAnulaOtra, citasTrasAnular, hiloCitaTrasAnular, vivaMira,
               colaAbre,
               /* El reparto ANTES de desplegar nada: tomar un tramite
                  repinta la cola entera, y eso pliega el expediente que
@@ -226,6 +226,7 @@
               agendaMira, agendaTrasEntrar, agendaHilo, agendaHiloMira, agendaTrasSalir,
               /* El horario del equipo: se entra, se toca y se sale a la portada. */
               horarioBarra, horarioAbre, horarioMira, horarioTrasAnadir,
+              horarioCitasMira, horarioCitasTras,
               horarioQuita, horarioTrasQuitar, horarioTrasCerrar,
               paisesMira, empiezaSolicitud, paisesTrasAbrir,
               dupeAbre, empiezaSolicitud, dupeMira, dupeTrasEnviar,
@@ -252,7 +253,9 @@
               f5Entra, f5Espera, f5Llega,
               f5TardeEntra, f5TardeEspera, f5TardeLlega,
               mtLleva, mtLlevaMira, colaRenglon, colaRenglonAbre,
-              cmAbre, cmMira, cmEscribe, cmTrasEscribir, cmCitaMira, cmSale, cmF5Entra, cmF5Mira,
+              cmAbre, cmMira, cmEscribe, cmTrasEscribir, cmCitaMira, cmHablaTras,
+              cmResueltas, cmTrasReabrir, cmTrasReresolver, cmTomaAjena, cmTrasTomaAjena,
+              cmSale, cmF5Entra, cmF5Mira,
               hoySiembra, hoyMira, hoyTrasTomar, hoyTrasDeshacer, hoyRevisa,
               hoyEspacioEspera, hoyEspacioMira, hoyTrasVale, hoyNoValeAbre,
               hoyNoValeMira, hoyNoValeGuarda, hoyTrasNoVale, hoyTrasDevolver,
@@ -294,7 +297,7 @@
               consultaAbre, consultaMira, consultaEntra, consultaDentro,
               rotulosMiran, consultaNueva, consultaNuevaMira, consultaTrasCrear,
               consultaCola, consultaToma, consultaTrasTomar,
-              consultaResuelve, consultaTrasResolver,
+              consultaResuelve, consultaResuelveOtra, consultaTrasResolver,
               velocidadArranque, velocidadAbre, velocidadMira,
               velocidadRepite, velocidadTrasRepetir,
               pliegaAbre, pliegaMira, pliegaVuelve, pliegaTrasVolver,
@@ -2321,12 +2324,15 @@
            corra la tanda no pinta nada. */
         (function(){
           var q = cita.querySelector('.av-q').textContent;
-          var d = new Date(Date.parse('2026-08-26T10:00:00Z') +
+          /* La de k1, que desde la auditoría QA-02 está por delante, y dicha
+             en hora de Caracas (QA-21): de ahí el menos cuatro horas. */
+          var d = new Date(Date.parse('2026-09-09T14:00:00Z') - 4 * 3600000 +
                            (window.CIIP_MENTIRA_DESLIZ || 0));
           ok('buzón: y dice para cuándo quedó, con su hora',
              /Confirmada para el/.test(q) &&
-             q.indexOf(String(d.getDate())) >= 0 &&
-             q.indexOf(String(d.getFullYear())) >= 0 &&
+             q.indexOf(String(d.getUTCDate())) >= 0 &&
+             q.indexOf(String(d.getUTCFullYear())) >= 0 &&
+             q.indexOf('10:00') >= 0 &&
              q.indexOf('{') < 0,
              q, 'la fecha de la cita, sin llaves');
         })();
@@ -2967,6 +2973,61 @@
     });
   }
 
+  /* ═══ LAS CITAS DEL HORARIO: CERRAR, MOVER Y CANCELAR ═══
+     QA-02: la que ya pasó sale para cerrarla. QA-19: la de delante se
+     mueve o se cancela desde el equipo, con motivo; y cerrar su día avisa. */
+  function horarioCitasMira(){
+    if (CASO !== 'gestor') return;
+    var sec = document.getElementById('hoSecPendientes');
+    ok('horario: las citas que ya pasaron salen para cerrarlas',
+       !!sec && !sec.hidden && !!document.querySelector('#hoPendientes .ho-cita[data-cita="e2"]'),
+       sec ? (sec.hidden ? 'escondida' : 'a la vista') : 'no existe', 'a la vista, con la e2');
+    var no = document.querySelector('#hoPendientes .ho-cita[data-cita="e2"] button[data-cierra="no_asistio"]');
+    ok('horario: con «Hecha» y «No asistió»',
+       !!no && !!document.querySelector('#hoPendientes button[data-cierra="hecha"]'),
+       no ? no.textContent : '(no hay)', 'los dos botones');
+    if (no) no.click();
+
+    var e1 = document.querySelector('#hoProximas .ho-cita[data-cita="e1"]');
+    ok('horario: la cita de delante se puede mover o cancelar',
+       !!e1 && !!e1.querySelector('button[data-accion="mover"]') && !!e1.querySelector('button[data-accion="cancelar"]'),
+       e1 ? 'está' : 'no está', 'con sus dos botones');
+    if (!e1) return;
+    e1.querySelector('button[data-accion="cancelar"]').click();
+    igual('horario: cancelar sin motivo no se puede, y lo dice',
+          e1.querySelector('.co-aviso').textContent, 'Escribe el motivo: es lo que leerá el inversionista.');
+    var P = window.CIIP_PRUEBA_EQUIPO_CITAS || {};
+    window.PRUEBA_MUEVE_VALOR = P.proxima + 'T11:00';
+    e1.querySelector('input[type="datetime-local"]').value = window.PRUEBA_MUEVE_VALOR;
+    e1.querySelector('.co-motivo').value = 'Se nos cruzó una reunión';
+    e1.querySelector('button[data-accion="mover"]').click();
+  }
+
+  function horarioCitasTras(){
+    if (CASO !== 'gestor') return;
+    var upd = (window.CIIP_PRUEBA_CITAS_UPD || []).filter(function(x){ return x.id === 'e2'; })[0];
+    igual('horario: «No asistió» cierra la cita', upd ? upd.campos.estado : '(no se pidió)', 'no_asistio');
+    ok('horario: y sin pendientes la sección se va',
+       !!document.getElementById('hoSecPendientes') && document.getElementById('hoSecPendientes').hidden,
+       'hidden=' + (document.getElementById('hoSecPendientes') || {}).hidden, 'hidden=true');
+    var cf = (window.CIIP_PRUEBA_CONFIRMA || []).slice(-1)[0] || {};
+    igual('horario: moverla pasa por la base con su motivo', cf.p_motivo, 'Se nos cruzó una reunión');
+    igual('horario: y a la hora de Caracas',
+          cf.p_cuando, new Date(window.PRUEBA_MUEVE_VALOR + ':00-04:00').toISOString());
+
+    /* Cerrar el día de esa cita avisa antes, y no cierra a la primera. */
+    var P = window.CIIP_PRUEBA_EQUIPO_CITAS || {};
+    document.getElementById('hoFecha').value = P.proxima;
+    document.getElementById('hoCerrar').click();
+    ok('horario: cerrar un día con citas avisa de cuáles',
+       /Ese día hay 1 cita/.test((document.getElementById('hoAviso') || {}).textContent) &&
+       /Marta Bianchi/.test((document.getElementById('hoAviso') || {}).textContent),
+       (document.getElementById('hoAviso') || {}).textContent, 'Ese día hay 1 cita… Marta Bianchi');
+    ok('horario: y no lo cierra a la primera',
+       !document.querySelector('#hoCierres .ho-fila[data-fecha="' + P.proxima + '"]'),
+       'mira los cierres', 'sin ese día');
+  }
+
   function horarioQuita(){
     if (CASO !== 'gestor') return;
     var q = document.querySelector('#hoSemana .ho-fila .t-btn');
@@ -3135,7 +3196,36 @@
 
   function citasAnula(){
     if (CASO === 'gestor') return;
+    var b = document.getElementById('ctCancelar');
+    b.click();
+    /* QA-23: un roce no cancela. La primera pulsación pregunta y dice que
+       no se puede deshacer; la cita sigue ahí. */
+    igual('citas: cancelar pide una segunda pulsación', ctTexto('ctCancelar'), 'Sí, cancelar la cita');
+    ok('citas: y dice que no se puede deshacer',
+       /No se puede deshacer/.test(ctTexto('ctAviso2')), ctTexto('ctAviso2'), 'No se puede deshacer…');
+    ok('citas: y con una sola pulsación la cita sigue',
+       ctEstado().classList.contains('puesto'),
+       'estado puesto=' + ctEstado().classList.contains('puesto'), 'puesto');
+  }
+  function citasAnulaOtra(){
+    if (CASO === 'gestor') return;
     document.getElementById('ctCancelar').click();
+  }
+
+  /* ¿Qué cita está viva? QA-02: una confirmada que ya pasó no lo está, y
+     era la que bloqueaba para siempre la siguiente reserva. */
+  function vivaMira(){
+    if (CASO !== 'vacio' || CON_HUECOS || CON_LECTOR) return;
+    var viva = window.CIIP_CITA_VIVA;
+    ok('citas: hay con qué preguntar si una cita está viva', typeof viva === 'function',
+       typeof viva, 'function');
+    if (typeof viva !== 'function') return;
+    var ayer = new Date(Date.now() - 86400000).toISOString();
+    var manana = new Date(Date.now() + 86400000).toISOString();
+    igual('citas: la confirmada que ya pasó no está viva', viva({estado:'confirmada', cuando:ayer}), false);
+    igual('citas: la confirmada por delante sí', viva({estado:'confirmada', cuando:manana}), true);
+    igual('citas: la pedida sí, aunque no tenga hora', viva({estado:'solicitada', cuando:null}), true);
+    igual('citas: la que no asistió, no', viva({estado:'no_asistio', cuando:ayer}), false);
   }
 
   /* ═══════════ EL RNC, RECIEN ACTIVADO ═══════════
@@ -5802,7 +5892,8 @@
     var filas = document.querySelectorAll('#cmLista .cm-fila');
     igual('mensajería: una fila por cada consulta y cita que espera',
           String(filas.length), (document.getElementById('navConsultasN') || {}).textContent);
-    igual('mensajería: con sus cuatro filtros', document.querySelectorAll('#cmFiltros button').length, 4);
+    /* Cinco desde la auditoría QA-03: las resueltas tienen el suyo. */
+    igual('mensajería: con sus cinco filtros', document.querySelectorAll('#cmFiltros button').length, 5);
     ok('mensajería: la primera ya está abierta',
        !!filas[0] && filas[0].getAttribute('aria-current') === 'true',
        filas[0] ? filas[0].getAttribute('aria-current') : '(sin filas)', 'true');
@@ -5863,8 +5954,107 @@
     if (conf) conf.click();
     igual('mensajería: y no se confirma sin fecha',
           (document.querySelector('#cmConv .cm-cita .co-aviso') || {}).textContent, 'Pon la fecha y la hora.');
+
+    /* QA-04: lo que el equipo escribía en el hilo de una cita no le llegaba
+       a nadie. Ya no hay caja; hay un botón que lleva a una consulta. */
+    ok('mensajería: en una cita el equipo ya no tiene dónde escribir en balde',
+       !document.querySelector('#cmConv .hilo-txt'),
+       document.querySelector('#cmConv .hilo-txt') ? 'hay caja' : 'sin caja', 'sin caja');
+    var hablar = document.getElementById('cmHablar');
+    ok('mensajería: y en su lugar, escribirle por una consulta', !!hablar,
+       hablar ? hablar.textContent : '(no hay botón)', 'Escribirle por una consulta');
+    window.PRUEBA_CITA_HABLA = (document.querySelector('#cmLista .cm-fila[aria-current="true"]') || {getAttribute:function(){ return ''; }}).getAttribute('data-cm');
+    if (hablar) hablar.click();
+  }
+
+  function cmHablaTras(){
+    if (CASO !== 'gestor') return;
+    var a = window.CIIP_PRUEBA_ABRE_PARA || {};
+    ok('mensajería: la consulta se abre a nombre de quien pidió la cita',
+       !!a.p_inversionista && /^(u2|u3)$/.test(a.p_inversionista),
+       a.p_inversionista || '(no se pidió)', 'u2 o u3');
+    var sel = document.querySelector('#cmLista .cm-fila[aria-current="true"]');
+    ok('mensajería: y se entra en ella, con su caja para escribir',
+       !!sel && /^cons:/.test(sel.getAttribute('data-cm')) && !!document.querySelector('#cmConv .hilo-txt'),
+       sel ? sel.getAttribute('data-cm') : '(ninguna)', 'cons:…');
+    /* Se deja la mesa como estaba: los pasos de después cuentan las
+       consultas vivas, y esta no la esperan. */
+    if (sel && window.CIIP_MENTIRA_OLVIDA_CONSULTA){
+      window.CIIP_MENTIRA_OLVIDA_CONSULTA(sel.getAttribute('data-cm').slice(5));
+    }
     var todas = document.querySelector('#cmFiltros button[data-filtro="todas"]');
     if (todas) todas.click();
+    if (window.CIIP_PINTA_CONSULTAS) window.CIIP_PINTA_CONSULTAS();
+  }
+
+  /* QA-03: las resueltas tienen su filtro, y desde ahí se reabren. */
+  function cmResueltas(){
+    if (CASO !== 'gestor') return;
+    var f = document.querySelector('#cmFiltros button[data-filtro="resueltas"]');
+    ok('mensajería: hay filtro de resueltas', !!f, f ? f.textContent : '(no hay)', 'Resueltas');
+    if (!f) return;
+    f.click();
+    var filas = document.querySelectorAll('#cmLista .cm-fila');
+    ok('mensajería: las resueltas salen en su filtro',
+       [].some.call(filas, function(x){ return x.getAttribute('data-cm') === 'cons:cs3'; }),
+       [].map.call(filas, function(x){ return x.getAttribute('data-cm'); }).join(' ') || '(ninguna)', 'cons:cs3');
+    var todas = document.querySelector('#cmFiltros button[data-filtro="todas"]');
+    ok('mensajería: y no cuentan en «Todas»',
+       !!todas && todas.querySelector('.n').textContent ===
+         (document.getElementById('navConsultasN') || {}).textContent,
+       todas ? todas.querySelector('.n').textContent : '(no hay)', (document.getElementById('navConsultasN') || {}).textContent);
+    var fila = document.querySelector('#cmLista .cm-fila[data-cm="cons:cs3"]');
+    if (fila) fila.click();
+    var re = document.getElementById('cmReabrir');
+    ok('mensajería: una resuelta se puede reabrir', !!re, re ? re.textContent : '(no hay botón)', 'Reabrir');
+    if (re) re.click();
+  }
+
+  function cmTrasReabrir(){
+    if (CASO !== 'gestor') return;
+    var fila = document.querySelector('#cmLista .cm-fila[data-cm="cons:cs3"]');
+    ok('mensajería: reabierta, vuelve a la lista de todas', !!fila,
+       fila ? 'está' : 'no está', 'cons:cs3 en la lista');
+    if (fila) fila.click();
+    var chip = document.querySelector('#cmConv .cm-cab .cons-est');
+    ok('mensajería: y en curso, que alguien la llevaba',
+       !!chip && chip.classList.contains('en_curso'), chip ? chip.className : '(sin chip)', 'en_curso');
+    /* Y se vuelve a resolver, en dos pulsaciones, para dejarla como estaba. */
+    var bs = document.querySelectorAll('#cmConv .cm-cab .acc .btn');
+    var r = bs[bs.length - 1];
+    if (r){ r.click(); r.click(); }
+  }
+
+  function cmTrasReresolver(){
+    if (CASO !== 'gestor') return;
+    igual('mensajería: y resuelta otra vez, sale de todas',
+          !!document.querySelector('#cmLista .cm-fila[data-cm="cons:cs3"]'), false);
+  }
+
+  /* QA-22: tomar una consulta que otro acaba de tomar no la pisa. El doble
+     de la base se la da a otro gestor justo antes de pulsar. */
+  function cmTomaAjena(){
+    if (CASO !== 'gestor') return;
+    var fila = document.querySelector('#cmLista .cm-fila[data-cm="cons:cs2"]');
+    if (fila) fila.click();
+    var bT = [].filter.call(document.querySelectorAll('#cmConv .cm-cab .acc .btn'),
+      function(b){ return /Tomar/.test(b.textContent); })[0];
+    ok('mensajería: la consulta sin nadie ofrece tomarla', !!bT, bT ? bT.textContent : '(no hay)', 'Tomarla');
+    var cs2 = window.CIIP_MENTIRA_CONSULTA && window.CIIP_MENTIRA_CONSULTA('cs2');
+    if (!bT || !cs2) return;
+    cs2.gestor = 'g9';
+    bT.click();
+  }
+
+  function cmTrasTomaAjena(){
+    if (CASO !== 'gestor') return;
+    var av = document.querySelector('#cmConv .cm-cab .co-aviso');
+    igual('mensajería: si otro la tomó antes, lo dice y no la pisa',
+          av ? av.textContent : '(sin aviso)', 'Otra persona del equipo acaba de tomarla.');
+    var cs2 = window.CIIP_MENTIRA_CONSULTA && window.CIIP_MENTIRA_CONSULTA('cs2');
+    igual('mensajería: y el que la tenía la sigue teniendo', cs2 ? cs2.gestor : '(no hay)', 'g9');
+    if (cs2){ cs2.gestor = null; cs2.estado = 'abierta'; }
+    if (window.CIIP_PINTA_CONSULTAS) window.CIIP_PINTA_CONSULTAS();
   }
 
   function cmSale(){
@@ -9495,6 +9685,18 @@
     if (bs.length) bs[bs.length - 1].click();
   }
 
+  /* QA-23: la primera pulsación solo pregunta. */
+  function consultaResuelveOtra(){
+    if (CASO !== 'gestor') return;
+    var fichas = document.querySelectorAll('#colaCons .co-ficha');
+    igual('consulta: resolver pide una segunda pulsación', fichas.length, 2);
+    if (fichas.length < 2) return;
+    var bs = fichas[1].querySelectorAll('.co-botones .btn');
+    var b = bs[bs.length - 1];
+    igual('consulta: y lo pregunta con palabras', b ? b.textContent : '', 'Sí, darla por resuelta');
+    if (b) b.click();
+  }
+
   function consultaTrasResolver(){
     if (CASO !== 'gestor') return;
     /* Resuelta SALE de la cola: dejarla puesta hace que el numero de arriba
@@ -12621,7 +12823,20 @@
     igual('cola: sin fecha no confirma, y lo dice',
           fichas[0].querySelector('.co-aviso').textContent, 'Pon la fecha y la hora.');
 
+    /* Una fecha pasada no se confirma, y lo dice (QA-20). */
     fichas[0].querySelector('input[type="datetime-local"]').value = '2026-08-26T10:00';
+    fichas[0].querySelectorAll('.btn')[1].click();
+    igual('cola: una hora que ya pasó no se confirma, y lo dice',
+          fichas[0].querySelector('.co-aviso').textContent, 'Esa hora ya pasó. Elige una que esté por venir.');
+
+    /* Rechazar sin motivo no se puede: es lo que leerá el inversionista. */
+    fichas[0].querySelectorAll('.btn')[0].click();
+    igual('cola: rechazar sin motivo no se puede, y lo dice',
+          fichas[0].querySelector('.co-aviso').textContent, 'Escribe el motivo: es lo que leerá el inversionista.');
+
+    var dentro = new Date(Date.now() + 10 * 86400000 - 4 * 3600000).toISOString().slice(0, 10) + 'T10:00';
+    window.PRUEBA_CONFIRMA_VALOR = dentro;
+    fichas[0].querySelector('input[type="datetime-local"]').value = dentro;
     fichas[0].querySelector('input[type="text"]').value = 'Torre CIIP, piso 4';
     fichas[0].querySelectorAll('.btn')[1].click();
   }
@@ -13078,6 +13293,12 @@
   }
   function colaTrasConfirmar(){
     if (CASO !== 'gestor') return;
+    /* La hora que escribió el gestor es la de Caracas, se escriba desde
+       donde se escriba, y confirmar pasa por la base (confirma_cita). */
+    var cf = (window.CIIP_PRUEBA_CONFIRMA || []).slice(-1)[0] || {};
+    igual('cola: confirmar pasa por la base, que comprueba la hora', cf.p_cita, 'q1');
+    igual('cola: y la hora va en hora de Caracas',
+          cf.p_cuando, new Date(window.PRUEBA_CONFIRMA_VALOR + ':00-04:00').toISOString());
     igual('cola: confirmada, sale de la cola', document.querySelectorAll('#colaLista .co-ficha').length, 1);
     /* Quedan una cita, dos consultas y un trámite: se devolvió uno antes y
        ahora se confirmó una. La cita cuenta en «Consultas y citas». */

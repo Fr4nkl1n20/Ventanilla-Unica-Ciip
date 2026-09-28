@@ -155,6 +155,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    certificado antes de resolver. Va DETRÁS del importe del día, cuyos
    importes con nombre usa, y de los avisos y el hilo, donde escribe. */
 'supabase-marca',
+/* Citas y consultas tras la auditoría QA del 28-9-2026: estados de la cita,
+   motivo, una viva por persona, confirmar desde el equipo y la consulta que
+   se reabre. Redefine reserva_cita() y consulta_la_firma_la_base(), así que
+   va detrás de supabase-disponibilidad y supabase-consultas. */
+'supabase-qa-atencion',
 /* La auditoría QA de administración y cuentas: el bloqueo dentro de
    es_gestor() y es_admin(), la baja en vez del borrado, el correo para el
    admin y lo que cada cual puede cambiar de un perfil. Redefine

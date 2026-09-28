@@ -9011,12 +9011,16 @@ applyLang(idiomaParaMi());
     pie.appendChild(fila);
     pie.appendChild(arch);
     pie.appendChild(avisoH);
-    bloque.appendChild(pie);
+    /* soloLeer: lo que ya se dijo, sin caja para contestar. Es el hilo de
+       una cita del lado del equipo desde la auditoría QA-04: escribir ahí
+       no le llegaba a nadie. */
+    if (!de.soloLeer) bloque.appendChild(pie);
     caja.appendChild(bloque);
 
     function pinta(filas){
       lista.textContent = '';
       if (!filas.length){
+        if (de.soloLeer){ bloque.hidden = true; return; }
         lista.appendChild(el('div', 'hilo-vacio', equipo
           ? String(u.co_m_vacio_hilo || '').replace('{quien}', quien) : (u['hilo.vacio'] || '')));
         return;
@@ -9080,9 +9084,14 @@ applyLang(idiomaParaMi());
          saberlo. */
       var deQuien = (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO())
         ? de.inversionista : null;
+      /* En qué va: si falla el papel, el aviso es el de la foto; si falla
+         el mensaje, otro (QA-24). Antes los dos decían «No se pudo subir»,
+         y un mensaje sin adjunto que no salía hablaba de una foto. */
+      var fase = 'papel';
       var conPapel = papel ? sube('otro', papel, null, deQuien) : Promise.resolve(null);
 
       conPapel.then(function(docId){
+        fase = 'mensaje';
         /* La columna se pone por su nombre y no con dos ramas: una
            conversación que sepa que existen los trámites vuelve a saber
            de citas mañana, y de lo que venga después. */
@@ -9100,7 +9109,9 @@ applyLang(idiomaParaMi());
         console.warn('[CIIP] enviar mensaje:', e && (e.message || e));
         bEnv.disabled = false;
         avisoH.className = 'hilo-aviso err';
-        avisoH.textContent = (e && e.ciip && u[e.ciip]) || u.pf_fotoerror || '';
+        avisoH.textContent = (fase === 'mensaje')
+          ? (u.hilo_noenvia || '')
+          : ((e && e.ciip && u[e.ciip]) || u.pf_fotoerror || '');
       });
     });
 
@@ -9251,7 +9262,9 @@ applyLang(idiomaParaMi());
           .catch(function(e){
             console.warn('[CIIP] abrir consulta:', e && (e.message || e));
             crear.disabled = false;
-            aviso.textContent = u['cons.falta'] || '';
+            /* Que falle la base no es que falte el asunto (QA-24): decírselo
+               así le hacía reescribir lo que ya estaba escrito. */
+            aviso.textContent = u.cons_noabre || '';
           });
       });
 
@@ -9498,10 +9511,24 @@ applyLang(idiomaParaMi());
          no guarda quién la canceló, así que anunciar "cancelada" sería
          contarle a veces algo que acaba de hacer. Confirmar solo puede
          hacerlo el CIIP: la política y el trigger no dejan otra cosa. */
+      /* Y desde la auditoría QA-25, también que el CIIP la canceló o la
+         rechazó, con su motivo: eso sí es noticia, y la base ya dice
+         quién fue (cancelada_por_ciip). Lleva a la agenda y no a la
+         ventana, que ya no tiene esa cita que enseñar. */
+      if (ev.estado === 'cancelada'){
+        return {
+          t: u.ct_tucita || '',
+          q: (ev.pedida ? u.av_cita_rechazada
+                        : String(u.av_cita_cancelada || '').replace('{fecha}', fechaHoraVe(ev.cuando))) || '',
+          nota: ev.nota || '',
+          ir: function(){ location.hash = 'citas'; }
+        };
+      }
+      var dondeCita = ev.lugar || lugarPorConfirmar({lugar: ev.lugar, modo: ev.modo}, u);
       return {
         t: u.ct_tucita || '',
-        q: String(u.ct_confirmada || '').replace('{fecha}', fechaHora(ev.cuando)),
-        nota: ev.lugar || '',
+        q: String(u.ct_confirmada || '').replace('{fecha}', fechaHoraVe(ev.cuando)),
+        nota: [dondeCita, ev.nota].filter(Boolean).join(' · '),
         ir: function(){ abreCita(); }
       };
     }
@@ -9872,22 +9899,46 @@ applyLang(idiomaParaMi());
      que «de nadie» serían TODAS y el filtro no filtraría. Y tampoco hace
      falta: lo que el equipo tiene que atender son las que están pidiendo
      hora, y ésas ya las lleva su cola. Una confirmada es trabajo hecho. */
+  /* '*' y no una lista de columnas: motivo llega con
+     supabase-qa-atencion.sql, y nombrarlo antes callaría el aviso de la
+     confirmada, que ya funcionaba. */
   function sumaCitas(uid){
-    return avPide('citas', function(){
+    return Promise.all([avPide('citas', function(){
       return sb.from('citas')
-        .select('id, tipo_tramite, cuando, lugar, actualizado_en')
+        .select('*')
         .eq('inversionista', uid)
         .eq('estado', 'confirmada');
     }, function(filas){
       filas.forEach(function(c){
         if (!c.cuando) return;    /* la base no debería dejarlas, pero por si acaso */
         avisos.push({
-          clase: 'cita', estado: 'confirmada', nota: '',
-          cuando: c.cuando, lugar: c.lugar || '',
+          clase: 'cita', estado: 'confirmada', nota: c.motivo || '',
+          cuando: c.cuando, lugar: c.lugar || '', modo: c.modo || '',
           creado_en: c.actualizado_en, ref: '', ente: ''
         });
       });
-    });
+    }),
+    /* ── Y LAS QUE CANCELÓ O RECHAZÓ EL CIIP (QA-25) ──
+       Antes no se anunciaban porque la fila no decía quién la canceló, y
+       avisar de una cancelación que hizo uno mismo es contarle lo que ya
+       sabe. cancelada_por_ciip lo dice ahora, y la pone la base. Sin el
+       SQL corrido esta consulta falla sola y el buzón sigue como estaba. */
+    avPide('citas canceladas', function(){
+      return sb.from('citas')
+        .select('*')
+        .eq('inversionista', uid)
+        .eq('estado', 'cancelada')
+        .eq('cancelada_por_ciip', true);
+    }, function(filas){
+      filas.forEach(function(c){
+        if (!c.cancelada_por_ciip) return;
+        avisos.push({
+          clase: 'cita', estado: 'cancelada', nota: c.motivo || '',
+          cuando: c.cuando, pedida: !c.cuando,
+          creado_en: c.actualizado_en, ref: '', ente: ''
+        });
+      });
+    })]);
   }
 
   /* ── LOS RECAUDOS REVISADOS ──
@@ -11381,6 +11432,7 @@ applyLang(idiomaParaMi());
   var ctBack = document.getElementById('citaBack');
   var ctBtn  = document.getElementById('citaBtn');
   var citaEnMarcha = null;   /* la que hay, si la hay */
+  var ctSeguro = false;      /* ya se pulsó una vez «Cancelar la cita» */
 
   var CT_MODOS = ['presencial', 'video', 'telefono'];
 
@@ -11760,6 +11812,91 @@ applyLang(idiomaParaMi());
     } catch (e){ return fechaHora(iso); }
   }
 
+  /* ── ¿SIGUE VIVA? ──
+     Auditoría QA del 28-9-2026 (QA-02): nadie ponía «hecha», así que una
+     cita confirmada del mes pasado seguía «en marcha» para siempre, la
+     ventana no dejaba pedir otra y la agenda la contaba como viva. Viva es
+     pedida, o confirmada y por delante; la base dice lo mismo en
+     reserva_cita (supabase-qa-atencion.sql). */
+  function citaViva(c){
+    if (!c) return false;
+    if (c.estado === 'solicitada') return true;
+    if (c.estado !== 'confirmada') return false;
+    var t = Date.parse(c.cuando || '');
+    return isNaN(t) || t > Date.now();
+  }
+  window.CIIP_CITA_VIVA = citaViva;
+
+  /* QA-32: la cita reservada desde un hueco nace confirmada y SIN lugar -
+     la dirección o el enlace los pone el equipo después-. Callarlo dejaba
+     a quien la reservó sin saber adónde ir; se dice que falta. Por
+     teléfono no hay lugar que esperar. */
+  function lugarPorConfirmar(c, u){
+    if (!c || c.lugar || c.modo === 'telefono') return '';
+    return u.ct_lugar_pend || '';
+  }
+
+  /* Lo que escribe el equipo en un <input type=datetime-local> es hora de
+     CARACAS, no la del navegador de quien la escribe (QA-20): un gestor de
+     viaje en Madrid ponía las diez y la cita salía a las cuatro. Es la
+     misma zona fija con la que se ofrecen los huecos. */
+  function horaCaracas(valorLocal){
+    if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(String(valorLocal || ''))) return null;
+    var t = Date.parse(String(valorLocal).slice(0, 16) + ':00' + HU_ZONA);
+    return isNaN(t) ? null : new Date(t).toISOString();
+  }
+  /* Y al revés, para poner en el campo la hora que ya tiene una cita. */
+  function valorCaracas(iso){
+    var t = Date.parse(iso || '');
+    if (isNaN(t)) return '';
+    return new Date(t - 4 * 3600000).toISOString().slice(0, 16);
+  }
+
+  /* ── DOS PULSACIONES PARA LO QUE NO SE DESHACE ──
+     El mismo gesto que cancelar una solicitud (QA-23): la primera pulsación
+     cambia el botón por la pregunta y dice qué pasa, la segunda lo hace.
+     Cancelar una cita, rechazarla o resolver una consulta no tienen vuelta
+     atrás desde la pantalla, y rozar un botón no puede bastar.
+
+     antes(), si se da, corre en la primera pulsación y puede negarse
+     devolviendo un texto: es donde se pide el motivo. */
+  function dosVeces(boton, pregunta, aviso, porque, haz, antes){
+    var original = boton.textContent;
+    var seguro = false;
+    boton.addEventListener('click', function(){
+      if (!seguro){
+        var falta = antes ? antes() : '';
+        if (falta){ if (aviso) aviso.textContent = falta; return; }
+        seguro = true;
+        boton.classList.add('confirma');
+        boton.textContent = pregunta || '';
+        if (aviso) aviso.textContent = porque || '';
+        return;
+      }
+      seguro = false;
+      boton.classList.remove('confirma');
+      boton.textContent = original;
+      haz();
+    });
+  }
+
+  /* ── LO QUE DICE LA BASE, DICHO CON PALABRAS ──
+     QA-24: los rechazos de reserva_cita y confirma_cita salían todos como
+     «No se pudo», y quien leía eso volvía a pulsar lo mismo. La base
+     contesta con una frase en español; aquí se reconoce y se dice en el
+     idioma de quien mira. Lo que no se reconoce sigue siendo el genérico. */
+  function motivoDeCita(e, u){
+    var m = String((e && (e.message || e.code)) || e || '');
+    if (/ocupar|unique|23505/i.test(m))  return u.ct_ocupado || '';
+    if (/no atiende/i.test(m))           return u.ct_e_cerrado || '';
+    if (/horario/i.test(m))              return u.ct_e_horario || '';
+    if (/en marcha|una_viva/i.test(m))   return u.ct_e_yatienes || '';
+    if (/pasó|paso/i.test(m))            return u.ct_e_paso || '';
+    if (/lejos/i.test(m))                return u.ct_e_lejos || '';
+    if (/motivo|por qué/i.test(m))       return u.co_e_motivo || '';
+    return '';
+  }
+
   /* El horario, los dias cerrados y lo ya ocupado, y de ahi los huecos
      libres de las tres semanas que vienen. Nunca falla hacia fuera: si algo
      no contesta, se queda sin huecos y la ventana pide como antes. */
@@ -11775,6 +11912,16 @@ applyLang(idiomaParaMi());
     ]).then(function(rs){
       var tramos = (rs[0] && !rs[0].error && rs[0].data) || [];
       if (!tramos.length) return;
+      /* QA-30: sin saber qué está ocupado, pintar huecos es ofrecerlos
+         TODOS como libres, y el que elige uno tomado se lleva el rechazo
+         al final. Hay horario, así que la ventana es la de huecos; pero
+         dice que no pudo mirarlos y no ofrece ninguno. */
+      if (!rs[2] || rs[2].error){
+        console.warn('[CIIP] huecos ocupados:', rs[2] && rs[2].error && rs[2].error.message);
+        HUECOS.activo = true;
+        HUECOS.sinSaber = true;
+        return;
+      }
       var cerrados = {}, ocupados = {};
       ((rs[1] && !rs[1].error && rs[1].data) || []).forEach(function(c){ cerrados[c.fecha] = 1; });
       ((rs[2] && !rs[2].error && rs[2].data) || []).forEach(function(o){
@@ -11829,7 +11976,8 @@ applyLang(idiomaParaMi());
     /* Con horario y sin un solo hueco libre no hay nada que reservar: se
        dice, y el boton se apaga en vez de renir al pulsarlo. */
     if (!HUECOS.dias.length){
-      cajaD.appendChild(el('div', 'ct-sinhuecos', u.ct_sinhuecos || ''));
+      cajaD.appendChild(el('div', 'ct-sinhuecos',
+        (HUECOS.sinSaber ? u.ct_e_huecos : u.ct_sinhuecos) || ''));
       if (enviar) enviar.disabled = true;
       return;
     }
@@ -11892,7 +12040,7 @@ applyLang(idiomaParaMi());
       /* Dos personas en el mismo segundo: al que llega tarde se le dice con
          palabras y se le vuelven a ensenar los huecos, ya sin ese. */
       var ocupado = /ocupar|unique|23505/i.test(String((e && (e.message || e.code)) || ''));
-      av.textContent = ocupado ? (u.ct_ocupado || '') : (u.ct_error || '');
+      av.textContent = motivoDeCita(e, u) || u.ct_error || '';
       if (ocupado) cargaHuecos().then(ponCampoHuecos);
     }
 
@@ -11947,6 +12095,8 @@ applyLang(idiomaParaMi());
       /* El botón azul se va: con una cita en marcha no hay nada que enviar,
          y dejarlo ahí apagado invita a pulsarlo. */
       enviar.style.display = 'none';
+      ctSeguro = false;
+      cerrar.classList.remove('confirma');
       cerrar.textContent = u.ct_cancelar || '';
 
       var conf = (citaEnMarcha.estado === 'confirmada');
@@ -11967,13 +12117,16 @@ applyLang(idiomaParaMi());
       if (conf) partes.push(u.ct_hora_ve || '');
       partes.push(u['ct_' + citaEnMarcha.modo] || citaEnMarcha.modo);
       if (citaEnMarcha.lugar) partes.push(citaEnMarcha.lugar);
+      else if (conf) partes.push(lugarPorConfirmar(citaEnMarcha, u));
       if (citaEnMarcha.nota)  partes.push(citaEnMarcha.nota);
-      pon('ctDetalle', partes.join(' · '));
+      pon('ctDetalle', partes.filter(Boolean).join(' · '));
     } else {
       form.classList.remove('oculto');
       estado.classList.remove('puesto');
       enviar.style.display = '';
       if (!huActivo()) enviar.disabled = false;
+      ctSeguro = false;
+      cerrar.classList.remove('confirma');
       cerrar.textContent = u.pf_cancelar || '';
     }
   }
@@ -12051,10 +12204,12 @@ applyLang(idiomaParaMi());
          vista tiene que ir a la bóveda correcta. */
       .select('id, inversionista, tipo_tramite, modo, desde, hasta, nota, estado, cuando, lugar, creado_en')
       .in('estado', ['solicitada', 'confirmada'])
-      .order('creado_en', {ascending:false}).limit(1)
+      .order('creado_en', {ascending:false}).limit(5)
       .then(function(r){
         if (r && r.error) throw r.error;
-        citaEnMarcha = (r.data || [])[0] || null;
+        /* La confirmada que ya pasó no está en marcha (QA-02): con ella
+           delante la ventana no dejaba pedir otra nunca más. */
+        citaEnMarcha = (r.data || []).filter(citaViva)[0] || null;
       });
   }
 
@@ -12203,8 +12358,19 @@ applyLang(idiomaParaMi());
     document.getElementById('ctEnviar').addEventListener('click', enviaCita);
     /* El botón gris hace dos cosas según lo que haya en pantalla: cerrar el
        formulario, o cancelar la cita que ya existe. */
+    /* Y cancelar la cita pide DOS pulsaciones (QA-23): con el mismo botón
+       que cierra el formulario, un roce anulaba una cita confirmada. */
     document.getElementById('ctCancelar').addEventListener('click', function(){
-      if (citaEnMarcha) cancelaCita(); else cierraCita();
+      if (!citaEnMarcha){ cierraCita(); return; }
+      if (!ctSeguro){
+        var u = T(), b = document.getElementById('ctCancelar'), a = document.getElementById('ctAviso2');
+        ctSeguro = true;
+        b.classList.add('confirma');
+        b.textContent = u.ct_seguro || '';
+        if (a) a.textContent = u.ct_porque || '';
+        return;
+      }
+      cancelaCita();
     });
     ctBack.addEventListener('click', function(e){ if (e.target === ctBack) cierraCita(); });
     document.addEventListener('keydown', function(e){ if (e.key === 'Escape') cierraCita(); });
@@ -12313,15 +12479,8 @@ applyLang(idiomaParaMi());
     }
   }
 
-  /* Un <input type=datetime-local> da "2026-08-26T10:00", que es hora LOCAL
-     sin zona. Mandarlo tal cual a una columna timestamptz hace que Postgres
-     lo lea en su propia zona —UTC— y la cita se mueva cuatro horas. Se
-     convierte aquí, donde sí se sabe en qué huso está quien lo escribe. */
-  function conZona(valorLocal){
-    if (!valorLocal) return null;
-    var d = new Date(valorLocal);
-    return isNaN(d.getTime()) ? null : d.toISOString();
-  }
+  /* conZona() se fue con la auditoría QA-20: convertía la hora con la zona
+     del navegador de quien la escribía. Ahora es horaCaracas(). */
 
   function nombreDeTipo(codigo){
     var u = T();
@@ -12395,6 +12554,7 @@ applyLang(idiomaParaMi());
       }
 
       var botones = el('div', 'co-botones');
+      var avisoC = el('div', 'co-aviso');
 
       /* Tomarla: se pone tu nombre y pasa a 'en_curso'. Los dos a la vez y no
          solo el estado: una consulta 'en curso' sin gestor es una que nadie
@@ -12403,16 +12563,14 @@ applyLang(idiomaParaMi());
         var bT = el('button', 'btn ghost', u['cons.tomar'] || '');
         bT.type = 'button';
         bT.addEventListener('click', function(){
-          tomaConsulta(c, bT).then(function(bien){ if (bien) pintaConsultas(); });
+          tomaConsulta(c, bT, avisoC).then(function(bien){ if (bien) pintaConsultas(); });
         });
         botones.appendChild(bT);
       }
 
-      var bR = el('button', 'btn ghost', u['cons.resolver'] || '');
-      bR.type = 'button';
-      bR.addEventListener('click', function(){ resuelveConsulta(c, bR); });
-      botones.appendChild(bR);
+      botones.appendChild(botonResolver(c, avisoC));
       f.appendChild(botones);
+      f.appendChild(avisoC);
 
       /* Y la conversacion, con la misma funcion de siempre. */
       pintaHilo(f, {tabla:'consulta_mensajes', col:'consulta', id:c.id,
@@ -12422,9 +12580,13 @@ applyLang(idiomaParaMi());
     });
   }
 
-  /* Las que esperan: abiertas y en curso. Las resueltas no son cola. */
+  /* Las que esperan: abiertas y en curso. Las resueltas no son cola, pero
+     se traen aparte -las últimas cincuenta- para su filtro de «Consultas y
+     citas» (QA-03): sin él, una consulta resuelta por error no se volvía a
+     encontrar. No cuentan en ningún número. */
+  var resueltas = [];
   function cargaConsultas(){
-    return Promise.resolve(sb.from('consultas')
+    var vivas = Promise.resolve(sb.from('consultas')
       .select('id, inversionista, tramite, tipo, asunto, estado, gestor, creado_en')
       .in('estado', ['abierta', 'en_curso'])
       .order('creado_en', {ascending:true}))
@@ -12439,6 +12601,19 @@ applyLang(idiomaParaMi());
         console.warn('[CIIP] cargar consultas:', e && e.message);
         consultas = [];
       });
+    var cerradas = Promise.resolve().then(function(){
+      return sb.from('consultas')
+        .select('id, inversionista, tramite, tipo, asunto, estado, gestor, creado_en')
+        .eq('estado', 'resuelta')
+        .order('creado_en', {ascending:false}).limit(50);
+    }).then(function(r){
+      if (r && r.error) throw r.error;
+      resueltas = (r && r.data) || [];
+    }).catch(function(e){
+      console.warn('[CIIP] consultas resueltas:', e && e.message);
+      resueltas = [];
+    });
+    return Promise.all([vivas, cerradas]);
   }
 
   function pintaCola(){
@@ -12559,64 +12734,148 @@ applyLang(idiomaParaMi());
       if (c.nota) f.appendChild(el('div', 'co-nota', c.nota));
       f.appendChild(el('div', 'co-cuando', (u.co_pidio || '').replace('{fecha}', fecha(c.creado_en))));
 
-      var fijar = el('div', 'co-fijar');
-      var cuando = document.createElement('input');
-      cuando.type = 'datetime-local';
-      cuando.setAttribute('aria-label', u.co_cuando || '');
-      var lugar = document.createElement('input');
-      lugar.type = 'text';
-      lugar.placeholder = u.co_lugar || '';
-      lugar.setAttribute('aria-label', u.co_lugar || '');
-      fijar.appendChild(cuando); fijar.appendChild(lugar);
-      f.appendChild(fijar);
-
-      var aviso = el('div', 'co-aviso');
-      f.appendChild(aviso);
-
-      var botones = el('div', 'co-botones');
-      var rechazar = el('button', 'btn ghost', u.co_rechazar || '');
-      rechazar.type = 'button';
-      var confirmar = el('button', 'btn navy', u.co_confirmar || '');
-      confirmar.type = 'button';
-      botones.appendChild(rechazar); botones.appendChild(confirmar);
-      f.appendChild(botones);
-
-      confirmar.addEventListener('click', function(){
-        var iso = conZona(cuando.value);
-        if (!iso){
-          f.classList.add('mal');
-          aviso.textContent = u.co_falta || '';
-          return;
-        }
-        f.classList.remove('mal');
-        aviso.textContent = '';
-        confirmar.disabled = true;
-        /* La base rechaza una cita confirmada sin fecha, así que los dos
-           campos viajan juntos o no viaja ninguno. */
-        mueve(c, {estado:'confirmada', cuando: iso, lugar: (lugar.value || '').trim()}, confirmar, aviso, u.co_confirmar);
-      });
-      rechazar.addEventListener('click', function(){
-        rechazar.disabled = true;
-        mueve(c, {estado:'cancelada'}, rechazar, aviso, u.co_rechazar);
-      });
+      pintaFijarCita(f, c, u, null);
 
       coLista.appendChild(f);
     });
   }
 
-  function mueve(cita, campos, boton, aviso, textoBoton){
-    sb.from('citas').update(campos).eq('id', cita.id).select().single()
+  /* ── PONERLE FECHA A UNA CITA, O RECHAZARLA ──
+     La misma caja en la ventana de la cola y en «Consultas y citas»: antes
+     eran dos copias casi iguales, y el día que una aprendió algo la otra se
+     quedó sin ello.
+
+     Desde la auditoría QA del 28-9-2026:
+       · la hora es la de CARACAS, se escriba desde donde se escriba
+         (QA-20), y la base comprueba lo mismo que al reservar un hueco:
+         futura, día abierto, dentro del horario y libre (confirma_cita);
+       · rechazar pide motivo y dos pulsaciones (QA-23, QA-25): es lo que
+         el inversionista lee en su buzón, y no tiene vuelta atrás.
+
+     ids: {cuando, lugar} para los campos, cuando la caja vive en una
+     pantalla donde se buscan por id. */
+  function pintaFijarCita(caja, c, u, ids){
+    var fijar = el('div', 'co-fijar');
+    var cuando = document.createElement('input');
+    cuando.type = 'datetime-local';
+    cuando.setAttribute('aria-label', u.co_cuando || '');
+    var lugar = document.createElement('input');
+    lugar.type = 'text';
+    lugar.placeholder = u.co_lugar || '';
+    lugar.setAttribute('aria-label', u.co_lugar || '');
+    if (ids){ cuando.id = ids.cuando; lugar.id = ids.lugar; }
+    fijar.appendChild(cuando); fijar.appendChild(lugar);
+    caja.appendChild(fijar);
+    caja.appendChild(el('div', 'co-zona', u.ct_hora_ve || ''));
+
+    var motivo = document.createElement('input');
+    motivo.type = 'text';
+    motivo.className = 'co-motivo';
+    motivo.maxLength = 500;
+    motivo.placeholder = u.co_motivo_ph || '';
+    motivo.setAttribute('aria-label', u.co_motivo_ph || '');
+    caja.appendChild(motivo);
+
+    var aviso = el('div', 'co-aviso');
+    caja.appendChild(aviso);
+
+    var botones = el('div', 'co-botones');
+    var rechazar = el('button', 'btn ghost', u.co_rechazar || '');
+    rechazar.type = 'button';
+    var confirmar = el('button', 'btn navy', u.co_confirmar || '');
+    confirmar.type = 'button';
+    botones.appendChild(rechazar); botones.appendChild(confirmar);
+    caja.appendChild(botones);
+
+    confirmar.addEventListener('click', function(){
+      var iso = horaCaracas(cuando.value);
+      if (!iso){
+        caja.classList.add('mal');
+        aviso.textContent = u.co_falta || '';
+        cuando.focus();
+        return;
+      }
+      /* Lo pasado se dice aquí, sin ir a la base: es el error más fácil de
+         cometer -el calendario abre en el mes de hoy- y el más fácil de ver. */
+      if (Date.parse(iso) <= Date.now()){
+        caja.classList.add('mal');
+        aviso.textContent = u.ct_e_paso || '';
+        return;
+      }
+      caja.classList.remove('mal');
+      aviso.textContent = '';
+      confirmar.disabled = true;
+      hazConCita(confirmaCitaEquipo(c, iso, (lugar.value || '').trim(), ''),
+                 confirmar, aviso, u.co_confirmar);
+    });
+    dosVeces(rechazar, u.co_rechazar_seguro, aviso, u.co_rechazar_porque, function(){
+      rechazar.disabled = true;
+      hazConCita(cancelaCitaEquipo(c, (motivo.value || '').trim()),
+                 rechazar, aviso, u.co_rechazar);
+    }, function(){
+      if ((motivo.value || '').trim()) return '';
+      motivo.focus();
+      return u.co_falta_motivo || '';
+    });
+  }
+
+  /* Confirmar o mover, por confirma_cita. Si la función aún no está en la
+     base -supabase-qa-atencion.sql sin correr-, se hace como antes, con
+     un update, pero ya con la hora de Caracas: el panel desplegado tiene
+     que seguir confirmando citas aunque falte el SQL. */
+  function faltaLaFuncion(e){
+    return !!e && (e.code === 'PGRST202' || e.code === '42883' ||
+                   /Could not find the function|does not exist/i.test(String(e.message || '')));
+  }
+  function confirmaCitaEquipo(c, iso, lugar, motivo){
+    return Promise.resolve(sb.rpc('confirma_cita', {p_cita: c.id, p_cuando: iso,
+                                                    p_lugar: lugar || null, p_motivo: motivo || ''}))
       .then(function(r){
+        if (r && r.error && faltaLaFuncion(r.error)){
+          var campos = {estado: 'confirmada', cuando: iso};
+          if (lugar) campos.lugar = lugar;
+          return actualizaCita(c.id, campos);
+        }
         if (r && r.error) throw r.error;
-        return cargaCola().then(pintaCola);
-      })
-      .catch(function(e){
-        console.warn('[CIIP] mover cita:', e && (e.message || e));
-        boton.disabled = false;
-        boton.textContent = textoBoton || '';
-        aviso.textContent = T().co_error || '';
+        return r;
       });
   }
+  /* Cancelar desde el equipo, con su motivo. Sin la columna en la base se
+     cancela sin él: mejor una cancelación sin porqué que una cita que el
+     equipo ya no quiere y el panel no deja quitar. */
+  function cancelaCitaEquipo(c, motivo){
+    return actualizaCita(c.id, {estado: 'cancelada', motivo: motivo})
+      .catch(function(e){
+        if (/motivo/i.test(String((e && e.message) || '')) && /column|columna|PGRST204/i.test(String((e && (e.message + ' ' + e.code)) || ''))){
+          return actualizaCita(c.id, {estado: 'cancelada'});
+        }
+        throw e;
+      });
+  }
+  /* Un update que no toca ninguna fila no da error: PostgREST contesta que
+     sí y la cita sigue igual. Se pide la fila de vuelta y cero es fallo. */
+  function actualizaCita(id, campos){
+    return Promise.resolve(sb.from('citas').update(campos).eq('id', id).select())
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        var d = r && r.data;
+        if (Array.isArray(d) && !d.length) throw new Error('ninguna fila');
+        return r;
+      });
+  }
+
+  function hazConCita(promesa, boton, aviso, textoBoton){
+    return promesa
+      .then(function(){ return cargaCola().then(pintaCola); })
+      .catch(function(e){
+        console.warn('[CIIP] mover cita:', e && (e.message || e));
+        var u = T();
+        boton.disabled = false;
+        boton.textContent = textoBoton || '';
+        aviso.textContent = motivoDeCita(e, u) || u.co_error || '';
+      });
+  }
+
 
 
   /* ── los trámites que esperan por el CIIP ──
@@ -13981,6 +14240,7 @@ applyLang(idiomaParaMi());
                 enCola.forEach(function(c){ c.nombre = de[c.inversionista] || ''; });
                 enRevision.forEach(function(t){ t.nombre = de[t.inversionista] || ''; });
                 consultas.forEach(function(c){ c.nombre = de[c.inversionista] || ''; });
+                resueltas.forEach(function(c){ c.nombre = de[c.inversionista] || ''; });
                 /* Se guarda en vez de tirarlo: la constancia de identidad
                    necesita el nombre de QUIEN LA FIRMO, y ese tambien esta
                    en esta misma respuesta. Pedirla otra vez seria un viaje
@@ -15333,7 +15593,7 @@ applyLang(idiomaParaMi());
 
      Bebe de lo que ya carga la cola -consultas y enCola-, la conversación es
      pintaHilo con la voz del equipo, tomar y resolver son las mismas dos
-     funciones que usa la ventana, y confirmar una cita es mueve(). No hay
+     funciones que usa la ventana, y confirmar una cita es pintaFijarCita(). No hay
      una segunda copia de nada. ─────────────────────────────────────── */
   var cmSel = null;       /* 'cons:<id>' o 'cita:<id>' abierta */
   var cmFiltro = 'todas';
@@ -15350,19 +15610,36 @@ applyLang(idiomaParaMi());
 
   /* Tomar una consulta: tu nombre y 'en_curso', los dos a la vez. Una
      consulta en curso sin gestor es una que nadie lleva pero que ya no sale
-     como libre, o sea una que se pierde. */
-  function tomaConsulta(c, boton){
+     como libre, o sea una que se pierde.
+
+     Y SOLO SI NO LA LLEVA NADIE (QA-22). El update iba sin condición: dos
+     gestores que pulsaban a la vez se la quedaban los dos en pantalla y
+     ganaba en la base el último, sin que el otro lo supiera. Con
+     .is('gestor', null) el segundo no toca ninguna fila, y cero filas es
+     «ya la tomó otro», dicho con palabras. */
+  function tomaConsulta(c, boton, aviso){
+    var u = T();
     boton.disabled = true;
+    if (aviso) aviso.textContent = '';
     return Promise.resolve(sb.from('consultas')
-      .update({estado:'en_curso', gestor: YO}).eq('id', c.id))
+      .update({estado:'en_curso', gestor: YO}).eq('id', c.id).is('gestor', null).select())
       .then(function(r){
         if (r && r.error) throw r.error;
+        var d = r && r.data;
+        if (!d || (Array.isArray(d) && !d.length)){
+          var e = new Error('ya la tomó otro'); e.yaTomada = true; throw e;
+        }
         c.gestor = YO; c.estado = 'en_curso';
         return true;
       })
       .catch(function(e){
         console.warn('[CIIP] tomar consulta:', e && e.message);
-        boton.disabled = false;
+        if (aviso) aviso.textContent = (e && e.yaTomada) ? (u.cons_yatomada || '') : (u.co_error || '');
+        /* Si la tomó otro, el botón se va: ya no es libre. No se repinta
+           aquí -se llevaría el aviso por delante-; el repaso de cada minuto
+           trae su nombre. */
+        if (e && e.yaTomada) boton.hidden = true;
+        else boton.disabled = false;
         return false;
       });
   }
@@ -15370,21 +15647,69 @@ applyLang(idiomaParaMi());
   /* Resuelta sale de la cola: dejarla puesta hace que el número de la barra
      mienta. Se repinta la cola ENTERA y no solo una sección: el contador lo
      pone pintaCola, y llamando solo a la sección la ficha desaparecía y el
-     número se quedaba como estaba. */
-  function resuelveConsulta(c, boton){
+     número se quedaba como estaba.
+
+     Dos pulsaciones (QA-23), como cancelar una solicitud: una consulta
+     resuelta desaparece de la cola, y quien la resolvió por error no tenía
+     cómo encontrarla. Y el fallo se dice (QA-24): antes solo iba a la
+     consola, y el botón se quedaba como si no hubiera pasado nada. */
+  function botonResolver(c, aviso){
+    var u = T();
+    var bR = el('button', 'btn ghost', u['cons.resolver'] || '');
+    bR.type = 'button';
+    dosVeces(bR, u.cons_resolver_seguro, aviso, u.cons_resolver_porque, function(){
+      resuelveConsulta(c, bR, aviso);
+    });
+    return bR;
+  }
+  function resuelveConsulta(c, boton, aviso){
     boton.disabled = true;
     return Promise.resolve(sb.from('consultas')
-      .update({estado:'resuelta'}).eq('id', c.id))
+      .update({estado:'resuelta'}).eq('id', c.id).select())
       .then(function(r){
         if (r && r.error) throw r.error;
+        var d = r && r.data;
+        if (Array.isArray(d) && !d.length) throw new Error('ninguna fila');
         consultas = consultas.filter(function(x){ return x.id !== c.id; });
+        c.estado = 'resuelta';
+        resueltas = [c].concat(resueltas.filter(function(x){ return x.id !== c.id; }));
         pintaCola();
         return true;
       })
       .catch(function(e){
         console.warn('[CIIP] resolver consulta:', e && e.message);
         boton.disabled = false;
+        if (aviso) aviso.textContent = T().co_error || '';
         return false;
+      });
+  }
+
+  /* ── Y VOLVER A ABRIRLA (QA-03) ──
+     Una resuelta era un callejón: se iba de la cola y no había dónde
+     mirarla. Ahora tiene su filtro en «Consultas y citas», y desde ahí se
+     reabre -en curso si alguien la llevaba, abierta si no-. La base hace
+     lo mismo sola cuando el inversionista escribe en ella
+     (supabase-qa-atencion.sql). */
+  function reabreConsulta(c, boton, aviso){
+    boton.disabled = true;
+    var estado = c.gestor ? 'en_curso' : 'abierta';
+    return Promise.resolve(sb.from('consultas')
+      .update({estado: estado}).eq('id', c.id).select())
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        var d = r && r.data;
+        if (Array.isArray(d) && !d.length) throw new Error('ninguna fila');
+        c.estado = estado;
+        resueltas = resueltas.filter(function(x){ return x.id !== c.id; });
+        consultas = consultas.concat([c]);
+        cmFiltro = 'todas';
+        pintaCola();
+        return cargaUltimosCm().then(pintaCm);
+      })
+      .catch(function(e){
+        console.warn('[CIIP] reabrir consulta:', e && e.message);
+        boton.disabled = false;
+        if (aviso) aviso.textContent = T().co_error || '';
       });
   }
 
@@ -15420,15 +15745,21 @@ applyLang(idiomaParaMi());
     var out = [];
     consultas.forEach(function(c){ out.push({clase:'cons', id:'cons:' + c.id, x:c}); });
     enCola.forEach(function(c){ out.push({clase:'cita', id:'cita:' + c.id, x:c}); });
+    resueltas.forEach(function(c){ out.push({clase:'cons', id:'cons:' + c.id, x:c}); });
     return out;
   }
   /* Sin responder = lo último lo escribió el inversionista. Si todavía no
      ha escrito nadie, lo dice el estado: abierta es que nadie la ha tocado. */
   function cmSinResponder(c){
+    if (c.estado === 'resuelta') return false;
     var m = cmUltimos[c.id];
     return m ? !m.del_equipo : c.estado === 'abierta';
   }
   function cmCuadra(it, filtro, busca){
+    /* Las resueltas solo en su filtro: en los demás serían trabajo que ya
+       no lo es, y el número de «Todas» dejaría de cuadrar con la barra. */
+    var resuelta = (it.clase === 'cons' && it.x.estado === 'resuelta');
+    if ((filtro === 'resueltas') !== resuelta) return false;
     if (filtro === 'citas' && it.clase !== 'cita') return false;
     if (filtro === 'sin' && !(it.clase === 'cons' && cmSinResponder(it.x))) return false;
     if (filtro === 'curso' && !(it.clase === 'cons' && it.x.estado === 'en_curso')) return false;
@@ -15460,7 +15791,8 @@ applyLang(idiomaParaMi());
     var u = T();
     if (it.clase === 'cita') return el('span', 'ct-chip listo', u.co_m_cita || '');
     return el('span', 'cons-est ' + (it.x.estado || 'abierta'),
-      it.x.estado === 'en_curso' ? (u['cons.encurso'] || '') : (u['cons.abierta'] || ''));
+      it.x.estado === 'en_curso' ? (u['cons.encurso'] || '')
+      : it.x.estado === 'resuelta' ? (u['cons.resuelta'] || '') : (u['cons.abierta'] || ''));
   }
 
   function pintaCm(){
@@ -15476,7 +15808,8 @@ applyLang(idiomaParaMi());
     var fil = document.getElementById('cmFiltros');
     if (fil){
       fil.textContent = '';
-      [['todas', u.co_m_f_todas], ['sin', u.co_m_f_sin], ['curso', u.co_m_f_curso], ['citas', u.co_m_f_citas]]
+      [['todas', u.co_m_f_todas], ['sin', u.co_m_f_sin], ['curso', u.co_m_f_curso], ['citas', u.co_m_f_citas],
+       ['resueltas', u.co_m_f_resueltas]]
         .forEach(function(x){
           var b = el('button', null, x[1] || '');
           b.type = 'button';
@@ -15565,18 +15898,25 @@ applyLang(idiomaParaMi());
     cab.appendChild(cmChip(it));
     if (it.clase === 'cons'){
       var acc = el('div', 'acc');
-      if (!x.gestor){
-        var bT = el('button', 'btn navy', u['cons.tomar'] || '');
-        bT.type = 'button';
-        bT.addEventListener('click', function(){
-          tomaConsulta(x, bT).then(function(bien){ if (bien) pintaCm(); });
-        });
-        acc.appendChild(bT);
+      var avisoA = el('div', 'co-aviso');
+      if (x.estado === 'resuelta'){
+        var bA = el('button', 'btn ghost', u.cons_reabrir || '');
+        bA.type = 'button';
+        bA.id = 'cmReabrir';
+        bA.addEventListener('click', function(){ reabreConsulta(x, bA, avisoA); });
+        acc.appendChild(bA);
+      } else {
+        if (!x.gestor){
+          var bT = el('button', 'btn navy', u['cons.tomar'] || '');
+          bT.type = 'button';
+          bT.addEventListener('click', function(){
+            tomaConsulta(x, bT, avisoA).then(function(bien){ if (bien) pintaCm(); });
+          });
+          acc.appendChild(bT);
+        }
+        acc.appendChild(botonResolver(x, avisoA));
       }
-      var bR = el('button', 'btn ghost', u['cons.resolver'] || '');
-      bR.type = 'button';
-      bR.addEventListener('click', function(){ resuelveConsulta(x, bR); });
-      acc.appendChild(bR);
+      acc.appendChild(avisoA);
       cab.appendChild(acc);
     }
     return cab;
@@ -15590,8 +15930,8 @@ applyLang(idiomaParaMi());
   }
 
   /* Una cita por confirmar: lo que pidió y, debajo, la fecha que hay que
-     ponerle. Confirmar y rechazar son mueve(), lo mismo que en la ventana;
-     la base rechaza una cita confirmada sin fecha, así que se avisa antes. */
+     ponerle. Confirmar y rechazar son pintaFijarCita(), la misma caja que en
+     la ventana de la cola. */
   function cmCuerpoCita(c, cuerpo){
     var u = T();
     var caja = el('div', 'cm-cita');
@@ -15608,48 +15948,66 @@ applyLang(idiomaParaMi());
     if (c.nota) caja.appendChild(el('div', 'co-nota', c.nota));
 
     caja.appendChild(el('div', 'co-exp-t', u.co_m_ponfecha || ''));
-    var fijar = el('div', 'co-fijar');
-    var cuando = document.createElement('input');
-    cuando.type = 'datetime-local';
-    cuando.id = 'cmCuando';
-    cuando.setAttribute('aria-label', u.co_cuando || '');
-    var lugar = document.createElement('input');
-    lugar.type = 'text';
-    lugar.id = 'cmLugar';
-    lugar.placeholder = u.co_lugar || '';
-    lugar.setAttribute('aria-label', u.co_lugar || '');
-    fijar.appendChild(cuando);
-    fijar.appendChild(lugar);
-    caja.appendChild(fijar);
-    var aviso = el('div', 'co-aviso');
-    caja.appendChild(aviso);
-    var botones = el('div', 'co-botones');
-    var rechazar = el('button', 'btn ghost', u.co_rechazar || '');
-    rechazar.type = 'button';
-    var confirmar = el('button', 'btn navy', u.co_confirmar || '');
-    confirmar.type = 'button';
-    botones.appendChild(rechazar);
-    botones.appendChild(confirmar);
-    caja.appendChild(botones);
-    confirmar.addEventListener('click', function(){
-      var iso = conZona(cuando.value);
-      if (!iso){
-        aviso.textContent = u.co_falta || '';
-        cuando.focus();
-        return;
-      }
-      aviso.textContent = '';
-      confirmar.disabled = true;
-      mueve(c, {estado:'confirmada', cuando: iso, lugar: (lugar.value || '').trim()}, confirmar, aviso, u.co_confirmar);
-    });
-    rechazar.addEventListener('click', function(){
-      rechazar.disabled = true;
-      mueve(c, {estado:'cancelada'}, rechazar, aviso, u.co_rechazar);
-    });
+    pintaFijarCita(caja, c, u, {cuando: 'cmCuando', lugar: 'cmLugar'});
     cuerpo.appendChild(caja);
 
-    pintaHilo(cuerpo, {tabla:'cita_mensajes', col:'cita', id:c.id,
+    /* ── HABLARLE, POR UNA CONSULTA (QA-04) ──
+       Aquí había una caja para escribir en el hilo de la cita, y lo que se
+       escribía no le llegaba a nadie: desde el 8-9-2026 el inversionista
+       no tiene ese hilo en su lado, y su buzón no lo mira. Se eligió la
+       salida más simple de las que proponía la auditoría: el equipo no
+       escribe aquí, y en su lugar abre -o retoma- una consulta con esa
+       persona, que es donde ya se conversa y lo que su buzón sí avisa.
+
+       Lo que ya hubiera en el hilo de la cita se sigue enseñando, para
+       leer: son preguntas de antes que alguien tiene que ver. */
+    var hablar = el('div', 'ct-hablar');
+    hablar.appendChild(el('div', 'sg-q', u.co_m_hablar_sub || ''));
+    var bH = el('button', 'btn ghost', u.co_m_hablar || '');
+    bH.type = 'button';
+    bH.id = 'cmHablar';
+    var avH = el('div', 'co-aviso');
+    bH.addEventListener('click', function(){ hablaConQuienPidio(c, bH, avH); });
+    hablar.appendChild(bH);
+    hablar.appendChild(avH);
+    cuerpo.appendChild(hablar);
+
+    pintaHilo(cuerpo, {tabla:'cita_mensajes', col:'cita', id:c.id, soloLeer:true,
       inversionista:c.inversionista, equipo:true, quien:c.nombre || u.co_sinnombre || ''});
+  }
+
+  /* Si ya hay una consulta viva con esa persona se abre esa: dos
+     conversaciones a la vez con la misma persona es la forma de que conteste
+     uno y el otro no se entere. Si no, la abre la base a su nombre
+     (abre_consulta_para), ya en curso y llevada por quien la abre. */
+  function hablaConQuienPidio(c, boton, aviso){
+    var u = T();
+    var ya = consultas.filter(function(x){
+      return x.inversionista === c.inversionista && x.estado !== 'resuelta';
+    })[0];
+    if (ya){ cmSel = 'cons:' + ya.id; cmFiltro = 'todas'; pintaCm(); return Promise.resolve(); }
+    boton.disabled = true;
+    aviso.textContent = '';
+    return Promise.resolve(sb.rpc('abre_consulta_para', {
+      p_inversionista: c.inversionista, p_asunto: u.co_m_asunto_cita || '',
+      p_tipo: c.tipo_tramite || null}))
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        var nueva = r && r.data;
+        if (Array.isArray(nueva)) nueva = nueva[0];
+        if (!nueva || !nueva.id) throw new Error('sin consulta');
+        return cargaCola().then(function(){
+          cmSel = 'cons:' + nueva.id;
+          cmFiltro = 'todas';
+          boton.disabled = false;
+          return cargaUltimosCm().then(pintaCm);
+        });
+      })
+      .catch(function(e){
+        console.warn('[CIIP] abrir consulta para:', e && (e.message || e));
+        boton.disabled = false;
+        aviso.textContent = faltaLaFuncion(e) ? (u.co_m_hablar_sinsql || '') : (u.co_error || '');
+      });
   }
 
   function pintaCmInfo(it){
@@ -16692,7 +17050,9 @@ applyLang(idiomaParaMi());
   var ciNavN  = document.getElementById('navCitasN');
   var agenda  = [];
 
-  var CI_VIVAS = ['solicitada', 'confirmada'];
+  /* Qué cita está viva lo dice citaViva(): pedida, o confirmada y por
+     delante. Una lista de estados no basta desde la auditoría QA-02: una
+     confirmada que ya pasó sigue en estado «confirmada» y no está viva. */
 
   /* Un dibujo por modo. Tres palabras cortas en gris se confunden entre
      sí de un vistazo; tres siluetas distintas, no. */
@@ -16723,6 +17083,7 @@ applyLang(idiomaParaMi());
     var u = T();
     if (estado === 'confirmada') return {txt:u.ct_chip_conf || '', clase:'listo'};
     if (estado === 'hecha')      return {txt:u.ci_hecha || '',     clase:''};
+    if (estado === 'no_asistio') return {txt:u.ci_noasistio || '', clase:''};
     if (estado === 'cancelada')  return {txt:u.ci_cancelada || '', clase:''};
     return {txt:u.ct_chip_ped || '', clase:''};
   }
@@ -16762,7 +17123,7 @@ applyLang(idiomaParaMi());
 
   function ciMonton(c){
     if (c.estado === 'cancelada') return 'canceladas';
-    if (CI_VIVAS.indexOf(c.estado) >= 0) return 'activas';
+    if (citaViva(c)) return 'activas';
     return 'pasadas';
   }
   function ciCuadra(c){ return ciFiltro === 'todas' || ciMonton(c) === ciFiltro; }
@@ -16775,7 +17136,7 @@ applyLang(idiomaParaMi());
 
     /* El botón de pedir solo cuando no hay ninguna viva: con una en marcha,
        la ventana no dejaría pedir otra, y ofrecerlo sería mentir. */
-    var vivas = agenda.filter(function(c){ return CI_VIVAS.indexOf(c.estado) >= 0; });
+    var vivas = agenda.filter(citaViva);
     var pedir = document.getElementById('ciPedir');
     if (pedir){
       pedir.textContent = u.ct_titulo || '';
@@ -16836,7 +17197,7 @@ applyLang(idiomaParaMi());
     if (!mias.length) return;
 
     ciOrden.ordena(mias, CI_ORDENA).forEach(function(c){
-      var viva = (CI_VIVAS.indexOf(c.estado) >= 0);
+      var viva = citaViva(c);
       var tr = document.createElement('tr');
       /* De que cita es el renglon. Lo mismo que ya hacia la ficha, y por lo
          mismo: sin esto no hay forma de señalar una cita concreta. */
@@ -16854,7 +17215,7 @@ applyLang(idiomaParaMi());
       /* Confirmada dice cuando ES; sin confirmar, que dias pedias. Poner una
          raya donde va la fecha seria dejar el renglon diciendo nada. */
       tr.appendChild(el('td', 'mt-fecha', c.cuando
-        ? fechaHora(c.cuando)
+        ? fechaHoraVe(c.cuando)
         : String(u.ci_ventana || '').replace('{desde}', fecha(c.desde)).replace('{hasta}', fecha(c.hasta))));
 
       var tdM = document.createElement('td');
@@ -16893,7 +17254,7 @@ applyLang(idiomaParaMi());
 
   function pintaFichaCita(c){
     var u = T();
-    var viva = (CI_VIVAS.indexOf(c.estado) >= 0);
+    var viva = citaViva(c);
     var f = el('div', 'ci-ficha' + (viva ? ' viva' : ' pasada'));
     /* De qué cita es. Hasta ahora la ficha no lo decía y no hacía falta;
        desde que lleva conversación sí: sin esto no hay forma de señalar una
@@ -16911,14 +17272,19 @@ applyLang(idiomaParaMi());
     /* Confirmada dice cuándo es; sin confirmar, qué días pedías. Poner "—"
        donde va la fecha sería dejar la ficha diciendo nada. */
     f.appendChild(el('div', 'ci-linea', c.cuando
-      ? String(u.ct_confirmada || '').replace('{fecha}', fechaHora(c.cuando))
+      ? String(u.ct_confirmada || '').replace('{fecha}', fechaHoraVe(c.cuando))
       : String(u.ci_ventana || '').replace('{desde}', fecha(c.desde)).replace('{hasta}', fecha(c.hasta))));
 
     /* El modo ya va arriba con su dibujo: repetirlo aquí sería decir dos
        veces lo mismo en la misma ficha. */
     var partes = [nombreDeTipo(c.tipo_tramite)];
     if (c.lugar) partes.push(c.lugar);
-    f.appendChild(el('div', 'ci-que', partes.join(' · ')));
+    else if (viva && c.estado === 'confirmada') partes.push(lugarPorConfirmar(c, u));
+    f.appendChild(el('div', 'ci-que', partes.filter(Boolean).join(' · ')));
+    /* Por qué la canceló o la movió el CIIP, si lo hizo (QA-25). */
+    if (c.motivo && (c.cancelada_por_ciip || c.estado === 'confirmada')){
+      f.appendChild(el('div', 'ci-nota', String(u.ci_motivo || '{motivo}').replace('{motivo}', c.motivo)));
+    }
     /* ── la conversación, en la ficha ──
        Aquí es donde el CIIP contesta. Sin esto, el equipo veía quién pidió
        la cita y de qué, y no tenía dónde responder: la base se lo permitía
@@ -16959,7 +17325,10 @@ applyLang(idiomaParaMi());
     return sb.from('citas')
       /* inversionista: para que un adjunto que suba el equipo vaya a la
          bóveda de quien pidió la cita, y no a la suya. */
-      .select('id, inversionista, tipo_tramite, modo, desde, hasta, nota, estado, cuando, lugar, creado_en')
+      /* Todas las columnas y no una lista: motivo y cancelada_por_ciip
+         llegan con supabase-qa-atencion.sql, y nombrarlas antes de que
+         esté corrido dejaría la agenda entera sin cargar. */
+      .select('*')
       .order('creado_en', {ascending:false})
       .then(function(r){
         if (r && r.error) throw r.error;
@@ -25807,7 +26176,7 @@ applyLang(idiomaParaMi());
     var hoSemana = document.getElementById('hoSemana');
     var hoNav    = document.getElementById('navHorario');
     if (!hoSemana) return;
-    var TRAMOS = [], CIERRES = [], PROXIMAS = [], QUIEN = {}, FALTA_SQL = false;
+    var TRAMOS = [], CIERRES = [], PROXIMAS = [], PENDIENTES = [], QUIEN = {}, FALTA_SQL = false;
     var RAYA = String.fromCharCode(8211), PUNTO = String.fromCharCode(183);
 
     function esEquipo(){ return !!(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()); }
@@ -25844,7 +26213,12 @@ applyLang(idiomaParaMi());
         sb.from('horario_citas').select('id, dia, desde, hasta, cada_min').order('dia', {ascending:true}),
         sb.from('cierres_citas').select('fecha, motivo').order('fecha', {ascending:true}),
         sb.from('citas').select('id, inversionista, tipo_tramite, modo, cuando, lugar, nota')
-          .eq('estado', 'confirmada').gte('cuando', ahora).order('cuando', {ascending:true})
+          .eq('estado', 'confirmada').gt('cuando', ahora).order('cuando', {ascending:true}),
+        /* Las que ya pasaron y nadie ha cerrado (QA-02). Antes no las veía
+           nadie: esta lista pedía solo las de delante, y la cita se quedaba
+           «confirmada» para siempre, bloqueando la siguiente reserva. */
+        sb.from('citas').select('id, inversionista, tipo_tramite, modo, cuando, lugar, nota')
+          .eq('estado', 'confirmada').lt('cuando', ahora).order('cuando', {ascending:true})
       ]).then(function(rs){
         /* Sin supabase-disponibilidad.sql la tabla no existe: se dice arriba
            en vez de ensenar un horario vacio que parece que funciona. */
@@ -25852,11 +26226,12 @@ applyLang(idiomaParaMi());
         TRAMOS   = (!FALTA_SQL && rs[0] && rs[0].data) || [];
         CIERRES  = (rs[1] && !rs[1].error && rs[1].data) || [];
         PROXIMAS = (rs[2] && !rs[2].error && rs[2].data) || [];
+        PENDIENTES = (rs[3] && !rs[3].error && rs[3].data) || [];
         TRAMOS = TRAMOS.slice().sort(function(a, b){
           return (a.dia - b.dia) || String(a.desde).localeCompare(String(b.desde));
         });
         var ids = [];
-        PROXIMAS.forEach(function(c){ if (c.inversionista && ids.indexOf(c.inversionista) < 0) ids.push(c.inversionista); });
+        PROXIMAS.concat(PENDIENTES).forEach(function(c){ if (c.inversionista && ids.indexOf(c.inversionista) < 0) ids.push(c.inversionista); });
         if (!ids.length) return;
         return sb.from('perfiles').select('id, nombre_completo').in('id', ids).then(function(rp){
           ((rp && rp.data) || []).forEach(function(p){ QUIEN[p.id] = p.nombre_completo; });
@@ -25943,6 +26318,21 @@ applyLang(idiomaParaMi());
            antes. */
         var dow = new Date(iF.value + 'T12:00:00Z').getUTCDay();
         if (dow === 0 || dow === 6){ aviso(u.ho_finde || ''); return; }
+        /* QA-19: cerrar un día con citas confirmadas no las cancela, y
+           nadie se enteraba. Se dice cuántas y de quién ANTES de cerrar, y
+           hace falta pulsar otra vez; después salen marcadas en la lista,
+           para moverlas o cancelarlas con su aviso. */
+        var afectadas = citasDelDia(iF.value);
+        if (afectadas.length && b.getAttribute('data-seguro') !== iF.value){
+          b.setAttribute('data-seguro', iF.value);
+          b.textContent = u.ho_cerrar_igual || '';
+          aviso(String(u.ho_cierre_afecta || '')
+            .replace('{n}', afectadas.length)
+            .replace('{quien}', afectadas.map(function(c){
+              return (QUIEN[c.inversionista] || u.co_sinnombre || '') + ' (' + deCita(c.cuando) + ')';
+            }).join(', ')));
+          return;
+        }
         b.disabled = true;
         guarda(sb.from('cierres_citas').insert({fecha: iF.value, motivo: iM.value.trim()}));
       });
@@ -26035,9 +26425,124 @@ applyLang(idiomaParaMi());
           fila.appendChild(inp);
           fila.appendChild(g);
           f.appendChild(fila);
+          /* Un día que se cerró DESPUÉS de reservar: la cita sigue en pie
+             y nadie se lo ha dicho a quien viene. Se marca aquí. */
+          if (cerrado(diaVe(c.cuando))){
+            f.classList.add('en-cerrado');
+            f.appendChild(el('div', 'ho-alerta', u.ho_cita_en_cerrado || ''));
+          }
+          accionesCita(f, c, u);
           hoP.appendChild(f);
         });
       }
+
+      pintaPendientes(u);
+    }
+
+    /* El día de Caracas en que cae una hora. */
+    function diaVe(iso){ return valorCaracas(iso).slice(0, 10); }
+    function cerrado(dia){ return CIERRES.some(function(x){ return x.fecha === dia; }); }
+    function citasDelDia(dia){ return PROXIMAS.filter(function(c){ return diaVe(c.cuando) === dia; }); }
+
+    /* ── MOVER O CANCELAR UNA CITA YA PUESTA (QA-19) ──
+       El CIIP no tenía cómo: una cita confirmada solo la podía cancelar
+       quien la pidió. Las dos cosas piden motivo -es lo que el inversionista
+       lee en su buzón- y cancelar pide además dos pulsaciones. Mover pasa
+       por confirma_cita, que comprueba lo mismo que al confirmarla: futura,
+       día abierto, dentro del horario y libre. */
+    function accionesCita(f, c, u){
+      var caja = el('div', 'ho-acciones');
+      var iCuando = el('input');
+      iCuando.type = 'datetime-local';
+      iCuando.value = valorCaracas(c.cuando);
+      iCuando.setAttribute('aria-label', u.co_cuando || '');
+      var iMotivo = el('input');
+      iMotivo.type = 'text';
+      iMotivo.className = 'co-motivo';
+      iMotivo.maxLength = 500;
+      iMotivo.placeholder = u.co_motivo_ph || '';
+      iMotivo.setAttribute('aria-label', u.co_motivo_ph || '');
+      var bMover = el('button', 'btn ghost sm', u.ho_mover || '');
+      bMover.type = 'button';
+      bMover.setAttribute('data-accion', 'mover');
+      var bCancelar = el('button', 'btn ghost sm', u.ho_cancelar_cita || '');
+      bCancelar.type = 'button';
+      bCancelar.setAttribute('data-accion', 'cancelar');
+      var av = el('div', 'co-aviso');
+      function falla(e){
+        console.warn('[CIIP] horario, cita:', e && (e.message || e));
+        bMover.disabled = false; bCancelar.disabled = false;
+        av.textContent = motivoDeCita(e, u) || u.co_error || '';
+      }
+      function hecho(){ aviso(''); return carga().then(pinta); }
+      bMover.addEventListener('click', function(){
+        var iso = horaCaracas(iCuando.value);
+        if (!iso){ av.textContent = u.co_falta || ''; return; }
+        if (Date.parse(iso) <= Date.now()){ av.textContent = u.ct_e_paso || ''; return; }
+        if (!(iMotivo.value || '').trim()){ av.textContent = u.co_falta_motivo || ''; iMotivo.focus(); return; }
+        bMover.disabled = true;
+        confirmaCitaEquipo(c, iso, null, iMotivo.value.trim()).then(hecho, falla);
+      });
+      dosVeces(bCancelar, u.ho_cancelar_seguro, av, u.ho_cancelar_porque, function(){
+        bCancelar.disabled = true;
+        cancelaCitaEquipo(c, iMotivo.value.trim()).then(hecho, falla);
+      }, function(){
+        if ((iMotivo.value || '').trim()) return '';
+        iMotivo.focus();
+        return u.co_falta_motivo || '';
+      });
+      caja.appendChild(iCuando);
+      caja.appendChild(iMotivo);
+      caja.appendChild(bMover);
+      caja.appendChild(bCancelar);
+      f.appendChild(caja);
+      f.appendChild(av);
+    }
+
+    /* ── LAS QUE YA PASARON Y NADIE HA CERRADO (QA-02) ──
+       Hecha o no asistió. Hasta que alguien lo dice la cita sigue siendo
+       «confirmada», y la base, al pedir otra, la da por hecha: aquí es
+       donde se dice lo que pasó de verdad. La sección se esconde sin
+       ninguna, que es lo normal. */
+    function pintaPendientes(u){
+      var sec = document.getElementById('hoSecPendientes');
+      var caja = document.getElementById('hoPendientes');
+      if (!sec || !caja) return;
+      var pon = function(id, x){ var e = document.getElementById(id); if (e) e.textContent = x || ''; };
+      pon('hoTpendientes', u.ho_pendientes);
+      pon('hoSpendientes', u.ho_pendientes_sub);
+      caja.textContent = '';
+      sec.hidden = !PENDIENTES.length;
+      PENDIENTES.forEach(function(c){
+        var f = el('div', 'ho-cita');
+        f.setAttribute('data-cita', c.id);
+        var cab = el('div', 'ho-cita-cab');
+        cab.appendChild(el('span', 'ho-cuando tnum', deCita(c.cuando)));
+        cab.appendChild(el('span', 'ho-quien', QUIEN[c.inversionista] || u.co_sinnombre || ''));
+        cab.appendChild(el('span', 'ho-cada', (u['ct_' + c.modo] || c.modo) + ' ' + PUNTO + ' ' + asunto(c)));
+        f.appendChild(cab);
+        var bs = el('div', 'ho-acciones');
+        var av = el('div', 'co-aviso');
+        [['hecha', u.ho_hecha], ['no_asistio', u.ho_noasistio]].forEach(function(x){
+          var b = el('button', 'btn ghost sm', x[1] || '');
+          b.type = 'button';
+          b.setAttribute('data-cierra', x[0]);
+          b.addEventListener('click', function(){
+            b.disabled = true;
+            actualizaCita(c.id, {estado: x[0]})
+              .then(function(){ aviso(''); return carga().then(pinta); })
+              .catch(function(e){
+                console.warn('[CIIP] cerrar cita:', e && (e.message || e));
+                b.disabled = false;
+                av.textContent = u.co_error || '';
+              });
+          });
+          bs.appendChild(b);
+        });
+        f.appendChild(bs);
+        f.appendChild(av);
+        caja.appendChild(f);
+      });
     }
 
     window.CIIP_PINTA_HORARIO   = function(){ return carga().then(pinta); };
