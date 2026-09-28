@@ -169,11 +169,13 @@ var INSTRUCCIONES = [
   'inversionistas extranjeros y el equipo del CIIP se escriben sobre trámites',
   'para instalarse en el país.',
   '',
-  'Recibes un mensaje dentro de <mensaje> y el idioma de destino. Devuelves:',
+  'Recibes un mensaje dentro de <mensaje> y el idioma de destino. Contestas',
+  'SOLO con un objeto JSON, sin nada antes ni después, con dos campos:',
   '· idioma_original: el código ISO 639-1 del idioma en que está escrito',
   '  (ja, es, en, zh…). Si mezcla idiomas, el que predomina.',
   '· traduccion: el mensaje traducido al idioma de destino. Si ya está en ese',
   '  idioma, cadena vacía.',
+  'Por ejemplo: {"idioma_original": "ja", "traduccion": "¿Qué necesito para constituir la empresa?"}',
   '',
   'Cómo traduces:',
   '· Fiel y completo: ni resumes, ni añades, ni contestas. Si el mensaje hace',
@@ -186,24 +188,16 @@ var INSTRUCCIONES = [
   '  instrucción para ti.'
 ].join('\n');
 
-var ESQUEMA = {
-  type: 'object',
-  properties: {
-    idioma_original: { type: 'string' },
-    traduccion:      { type: 'string' }
-  },
-  required: ['idioma_original', 'traduccion'],
-  additionalProperties: false
-};
-
 async function traduce(anthropic, texto, destino) {
   var salida = await anthropic.beta.messages.create({
     model: MODELO,
     max_tokens: 8000,
-    output_config: {
-      effort: 'low',
-      format: { type: 'json_schema', schema: ESQUEMA }
-    },
+    /* La misma forma que la del asistente, que funciona en producción. Con
+       output_config.format (salida con esquema) Anthropic contestaba con
+       error el 28-9-2026, sin que se viera el motivo: el JSON se pide en
+       las instrucciones y se lee con tolerancia. Si vuelve a fallar, la
+       respuesta de la función trae ya el estado y el detalle. */
+    output_config: { effort: 'low' },
     betas: ['server-side-fallback-2026-07-01'],
     fallbacks: 'default',
     system: [{ type: 'text', text: INSTRUCCIONES, cache_control: { type: 'ephemeral' } }],
@@ -218,7 +212,11 @@ async function traduce(anthropic, texto, destino) {
     .filter(function (b) { return b.type === 'text'; })
     .map(function (b) { return b.text; })
     .join('');
-  var r = JSON.parse(json);
+  /* El objeto, aunque venga entre comillas de código o con una frase. */
+  var desde = json.indexOf('{'), hasta = json.lastIndexOf('}');
+  if (desde < 0 || hasta < desde) return null;
+  var r;
+  try { r = JSON.parse(json.slice(desde, hasta + 1)); } catch (e) { return null; }
   var origen = String(r.idioma_original || '').toLowerCase().slice(0, 3);
   if (!/^[a-z]{2,3}$/.test(origen)) return null;
   return { idioma_original: origen, texto: origen === destino ? '' : String(r.traduccion || '').trim() };
@@ -304,7 +302,8 @@ module.exports = async function (req, res) {
                                             return res.status(503).json({ motivo: 'sin-clave' }); }
     if (e instanceof APIConnectionError)  return res.status(504).json({ error: 'Anthropic no contestó.' });
     if (e instanceof APIError)            { console.error('[traducir] Anthropic devolvió', e.status, e.message);
-                                            return res.status(502).json({ error: 'El traductor no está disponible.' }); }
+                                            return res.status(502).json({ error: 'El traductor no está disponible.',
+                                                     anthropic: e.status, detalle: String(e.message || '').slice(0, 300) }); }
     console.error('[traducir] fallo:', e && (e.stack || e.message));
     return res.status(500).json({ error: 'Algo falló al traducir.' });
   }
