@@ -3977,6 +3977,253 @@ update public.perfiles set bloqueado = false where id = (select id from arnes.ge
 select arnes.nadie();
 
 
+-- ══ 37 · AUDITORIA QA: CUENTAS Y ADMINISTRACION ═══════════════════════
+-- supabase-qa-admin.sql. Bloquear a alguien del equipo le quita los
+-- permisos, la baja no borra, el admin no reescribe perfiles ajenos y las
+-- columnas de rastro no las pone el navegador.
+
+-- Un segundo admin, Z, para poder bloquear a un admin: desde el editor no
+-- se bloquea a nadie (guarda_el_bloqueo pide un admin con sesion).
+reset role;
+select arnes.nadie();
+insert into auth.users (email, raw_user_meta_data)
+values ('z@prueba.local', '{"nombre_completo":"Zoe Admin","pais":"Chile"}');
+insert into arnes.gente (papel, id) select 'Z', id from auth.users where email = 'z@prueba.local';
+update public.perfiles set rol = 'admin' where id = (select id from arnes.gente where papel = 'Z');
+
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+update public.perfiles set bloqueado = true
+ where id in (select id from arnes.gente where papel in ('G', 'Z'));
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $qa$
+begin
+  perform arnes.comprueba('qa-05: un gestor bloqueado deja de ser del equipo', not public.es_gestor());
+  perform arnes.comprueba('qa-05: y deja de ver los tramites de los demas',
+    (select count(*) = 0 from public.tramites where inversionista <> auth.uid()));
+  perform arnes.comprueba('qa-05: y no gasta IA', not public.gasta_uso_ia('asistente'));
+  begin
+    insert into public.horario_citas (dia, desde, hasta) values (4, '15:00', '16:00');
+    perform arnes.comprueba('qa-05: ni toca el horario de citas', false, 'entro');
+  exception when others then
+    perform arnes.comprueba('qa-05: ni toca el horario de citas', true);
+  end;
+exception when others then
+  perform arnes.comprueba('qa-05: un gestor bloqueado deja de ser del equipo', false, sqlerrm);
+end
+$qa$;
+
+select arnes.soy((select id from arnes.gente where papel = 'Z'));
+do $qa$
+declare antes text := (select rol from public.perfiles where id = (select id from arnes.gente where papel = 'A'));
+begin
+  perform arnes.comprueba('qa-05: un admin bloqueado deja de ser admin', not public.es_admin());
+  begin
+    update public.perfiles set rol = case when antes = 'gestor' then 'inversionista' else 'gestor' end
+     where id = (select id from arnes.gente where papel = 'A');
+    perform arnes.comprueba('qa-05: y no reparte roles',
+      (select rol = antes from public.perfiles where id = (select id from arnes.gente where papel = 'A')),
+      'lo cambio');
+  exception when others then
+    perform arnes.comprueba('qa-05: y no reparte roles', true);
+  end;
+end
+$qa$;
+
+reset role;
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+update public.perfiles set bloqueado = false
+ where id in (select id from arnes.gente where papel in ('G', 'Z'));
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+select arnes.comprueba('qa-05: desbloqueado, vuelve a ser del equipo', public.es_gestor());
+select arnes.comprueba('qa-05: y vuelve a tener IA', public.gasta_uso_ia('asistente'));
+
+-- QA-26: el admin no reescribe el perfil de otro.
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+do $qa$
+begin
+  update public.perfiles set nombre_completo = 'Otra Persona', pais = 'Marte'
+   where id = (select id from arnes.gente where papel = 'A');
+  perform arnes.comprueba('qa-26: el admin no cambia el nombre de otro', false, 'lo cambio');
+exception when others then
+  perform arnes.comprueba('qa-26: el admin no cambia el nombre de otro', true);
+end
+$qa$;
+select arnes.comprueba('qa-26: y el nombre sigue siendo el suyo',
+  (select nombre_completo = 'Ana Inversionista' from public.perfiles
+    where id = (select id from arnes.gente where papel = 'A')),
+  (select nombre_completo from public.perfiles where id = (select id from arnes.gente where papel = 'A')));
+
+-- QA-40: las columnas de rastro del propio perfil no las pone uno mismo.
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $qa$
+declare antes timestamptz;
+begin
+  select rol_cambiado_en into antes from public.perfiles where id = auth.uid();
+  update public.perfiles
+     set rol_cambiado_en = '2000-01-01', rol_cambiado_por = auth.uid(),
+         bloqueado_en = '2000-01-01', visto_en = '2000-01-01',
+         nombre_completo = 'Ana I.'
+   where id = auth.uid();
+  perform arnes.comprueba('qa-40: rol_cambiado_en no se falsea',
+    (select rol_cambiado_en is not distinct from antes and rol_cambiado_por is distinct from auth.uid()
+       from public.perfiles where id = auth.uid()));
+  perform arnes.comprueba('qa-40: bloqueado_en tampoco',
+    (select bloqueado_en is distinct from '2000-01-01'::timestamptz from public.perfiles where id = auth.uid()));
+  perform arnes.comprueba('qa-40: y visto_en solo puede ser ahora',
+    (select visto_en > now() - interval '1 minute' from public.perfiles where id = auth.uid()));
+  perform arnes.comprueba('qa-40: pero su nombre SI lo cambia',
+    (select nombre_completo = 'Ana I.' from public.perfiles where id = auth.uid()));
+  update public.perfiles set nombre_completo = 'Ana Inversionista' where id = auth.uid();
+exception when others then
+  perform arnes.comprueba('qa-40: rol_cambiado_en no se falsea', false, sqlerrm);
+end
+$qa$;
+
+-- QA-06: la baja. Nadie se la da a si mismo.
+do $qa$
+begin
+  update public.perfiles set dado_de_baja_en = now() where id = auth.uid();
+  perform arnes.comprueba('qa-06: nadie se da de baja a si mismo',
+    (select dado_de_baja_en is null from public.perfiles where id = auth.uid()), 'se dio de baja');
+exception when others then
+  perform arnes.comprueba('qa-06: nadie se da de baja a si mismo', true);
+end
+$qa$;
+
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+do $qa$
+declare
+  a  uuid := (select id from arnes.gente where papel = 'A');
+  x  uuid := (select id from arnes.gente where papel = 'X');
+  n0 bigint := (select coalesce(max(id), 0) from public.bitacora);
+begin
+  update public.perfiles set dado_de_baja_en = now() where id = a;
+  perform arnes.comprueba('qa-06: el admin da de baja, y la cuenta queda bloqueada',
+    (select bloqueado and dado_de_baja_en is not null and dado_de_baja_por = x
+       from public.perfiles where id = a));
+  perform arnes.comprueba('qa-06: y su historia sigue ahi',
+    (select count(*) > 0 from public.tramites where inversionista = a));
+  perform arnes.comprueba('qa-06: y la baja queda en la bitacora',
+    exists (select 1 from public.bitacora where id > n0 and fuente = 'roles' and accion = 'baja'));
+  begin
+    update public.perfiles set bloqueado = false where id = a;
+    perform arnes.comprueba('qa-06: dada de baja no se desbloquea sin deshacer la baja',
+      (select bloqueado from public.perfiles where id = a), 'se desbloqueo');
+  exception when others then
+    perform arnes.comprueba('qa-06: dada de baja no se desbloquea sin deshacer la baja', true);
+  end;
+  update public.perfiles set dado_de_baja_en = null where id = a;
+  update public.perfiles set bloqueado = false where id = a;
+  perform arnes.comprueba('qa-06: y deshecha la baja, se desbloquea',
+    (select not bloqueado and dado_de_baja_en is null from public.perfiles where id = a));
+exception when others then
+  perform arnes.comprueba('qa-06: el admin da de baja, y la cuenta queda bloqueada', false, sqlerrm);
+end
+$qa$;
+
+-- QA-27: el cambio de rol guarda el de antes.
+do $qa$
+declare n0 bigint := (select coalesce(max(id), 0) from public.bitacora);
+begin
+  update public.perfiles set rol = 'gestor' where id = (select id from arnes.gente where papel = 'Z');
+  perform arnes.comprueba('qa-27: la bitacora guarda el rol de antes',
+    exists (select 1 from public.bitacora where id > n0 and fuente = 'roles' and accion = 'rol'
+             and detalle::json ->> 'rol' = 'gestor' and detalle::json ->> 'antes' = 'admin'),
+    (select string_agg(detalle, ' | ') from public.bitacora where id > n0));
+exception when others then
+  perform arnes.comprueba('qa-27: la bitacora guarda el rol de antes', false, sqlerrm);
+end
+$qa$;
+
+-- QA-07: el correo, solo para el admin.
+do $qa$
+begin
+  perform arnes.comprueba('qa-07: el admin ve el correo de cada cuenta',
+    exists (select 1 from public.correos_de_las_cuentas() c
+             where c.id = (select id from arnes.gente where papel = 'A') and c.correo = 'a@prueba.local'));
+exception when others then
+  perform arnes.comprueba('qa-07: el admin ve el correo de cada cuenta', false, sqlerrm);
+end
+$qa$;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $qa$
+begin
+  perform count(*) from public.correos_de_las_cuentas();
+  perform arnes.comprueba('qa-07: un gestor no', false, 'los vio');
+exception when others then
+  perform arnes.comprueba('qa-07: un gestor no', true);
+end
+$qa$;
+reset role;
+select arnes.nadie();
+select arnes.comprueba('qa-07: ni quien no ha entrado',
+  not has_function_privilege('anon', 'public.correos_de_las_cuentas()', 'execute'));
+
+-- QA-43: sin sesion no se miran huecos ni se reserva.
+select arnes.comprueba('qa-43: huecos_ocupados cerrada a anon',
+  not has_function_privilege('anon', 'public.huecos_ocupados(date, date)', 'execute'));
+select arnes.comprueba('qa-43: reserva_cita cerrada a anon',
+  not has_function_privilege('anon', 'public.reserva_cita(timestamptz, text, text, text)', 'execute'));
+
+-- QA-43: el original de un texto no se reescribe al volver a guardar.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+do $qa$
+begin
+  insert into public.textos_panel (clave, idioma, texto, original)
+  values ('qa.prueba', 'es', 'uno', 'el de fabrica');
+  insert into public.textos_panel (clave, idioma, texto, original)
+  values ('qa.prueba', 'es', 'dos', 'inventado')
+  on conflict (clave, idioma) do update set texto = excluded.texto, original = excluded.original;
+  perform arnes.comprueba('qa-43: el original del texto no lo reescribe un guardado',
+    (select original = 'el de fabrica' and texto = 'dos' from public.textos_panel
+      where clave = 'qa.prueba' and idioma = 'es'),
+    (select original from public.textos_panel where clave = 'qa.prueba' and idioma = 'es'));
+  delete from public.textos_panel where clave = 'qa.prueba';
+exception when others then
+  perform arnes.comprueba('qa-43: el original del texto no lo reescribe un guardado', false, sqlerrm);
+end
+$qa$;
+
+-- QA-06: una cuenta que acepto el pliego no se borra por descuido; con
+-- la marca puesta a sabiendas, si.
+reset role;
+select arnes.nadie();
+do $qa$
+declare
+  quien uuid;
+  v     int := 91;
+begin
+  -- Uno sin publicar: la tabla se dejo vacia mas arriba, y uno vigente
+  -- cerraria la puerta a todos en lo que queda de tanda.
+  insert into public.pliegos (version, titulo, texto, vigente, publicado_en)
+  values (v, 'QA', jsonb_build_object('es', 'Prueba.'), false, now());
+  insert into auth.users (email, raw_user_meta_data)
+  values ('borra@prueba.local', '{"nombre_completo":"Borja Borrable","pais":"Peru"}')
+  returning id into quien;
+  insert into public.pliego_aceptaciones (persona, version) values (quien, v);
+  begin
+    delete from auth.users where id = quien;
+    perform arnes.comprueba('qa-06: no se borra quien acepto el pliego', false, 'se borro');
+  exception when others then
+    perform arnes.comprueba('qa-06: no se borra quien acepto el pliego',
+      exists (select 1 from public.pliego_aceptaciones where persona = quien), sqlerrm);
+  end;
+  perform set_config('ciip.borrado_fisico', 'si', true);
+  delete from auth.users where id = quien;
+  perform arnes.comprueba('qa-06: y a sabiendas, desde el editor, si',
+    not exists (select 1 from auth.users where id = quien));
+  delete from public.pliegos where version = v;
+exception when others then
+  perform arnes.comprueba('qa-06: y a sabiendas, desde el editor, si', false, sqlerrm);
+end
+$qa$;
+select arnes.nadie();
+
+
 \o
 \pset tuples_only on
 \pset format unaligned

@@ -303,6 +303,49 @@ end
 $qa$;
 
 
+-- ── QA-43 · Lo que no debe llamarse sin sesión, y el original del texto ─
+-- «revoke from public» no basta en Supabase: anon tiene su propio grant.
+do $qa$
+begin
+  if to_regprocedure('public.huecos_ocupados(date, date)') is not null then
+    revoke execute on function public.huecos_ocupados(date, date) from anon;
+  end if;
+  if to_regprocedure('public.reserva_cita(timestamptz, text, text, text)') is not null then
+    revoke execute on function public.reserva_cita(timestamptz, text, text, text) from anon;
+  end if;
+end
+$qa$;
+
+-- El «original» de un texto lo manda el panel al guardarlo por primera
+-- vez: el diccionario vive en el panel, no aquí, y de eso no hay otra
+-- fuente. Lo que sí se evita es que un guardado posterior lo reescriba:
+-- una vez en la base, el original es el de la base.
+do $qa$
+begin
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = 'public' and table_name = 'textos_panel'
+                    and column_name = 'original') then
+    raise notice 'Sin textos_panel.original: se salta. Corre supabase-textos-rastro.sql y vuelve a pasar este.';
+    return;
+  end if;
+
+  execute $f$
+create or replace function public.textos_original_fijo()
+returns trigger language plpgsql as $b$
+begin
+  new.original := old.original;
+  return new;
+end $b$
+  $f$;
+
+  drop trigger if exists textos_original_fijo on public.textos_panel;
+  create trigger textos_original_fijo
+    before update on public.textos_panel
+    for each row execute function public.textos_original_fijo();
+end
+$qa$;
+
+
 -- ── Comprobación ───────────────────────────────────────────────────────
 -- Que es_gestor() y es_admin() sigan dejando entrar a quien debe. Si no
 -- queda ningún admin sin bloquear, se para aquí y no se aplica nada.
