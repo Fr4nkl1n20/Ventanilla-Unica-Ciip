@@ -133,7 +133,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-confirma-paso',
 /* Cancelar una solicitud mientras siga en el CIIP. Redefine la escalera
    de supabase-tramites.sql, asi que va detras de todo. */
-'supabase-cancelar'];
+'supabase-cancelar',
+/* La firma en el CIIP de la constitución: marca_firma_ciip() y la guarda de
+   su marca en datos. Solo necesita tramites y es_gestor(); va al final
+   para no mover el número de nadie. */
+'supabase-firma-ciip'];
 
 let mal = 0;
 for (const n of orden) {

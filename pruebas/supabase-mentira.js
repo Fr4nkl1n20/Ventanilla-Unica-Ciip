@@ -767,6 +767,16 @@
     return true;
   };
 
+  /* Mover una solicitud de sitio por un rato: la constitución de 'tramos'
+     está ante el ente, y la firma en el CIIP solo se ve un escalón antes.
+     Quien la mueve la devuelve a su sitio al acabar. */
+  window.PRUEBA_CAMBIA_TRAMITE = function(id, cambios){
+    var t = (TRAMITES[caso] || []).filter(function(x){ return x.id === id; })[0];
+    if (!t) return false;
+    Object.keys(cambios).forEach(function(k){ t[k] = cambios[k]; });
+    return true;
+  };
+
   /* Lo que hay en la tabla de tramites AHORA MISMO. Lo mira la prueba del
      envio: que la pantalla cambie esta bien, pero lo que hay que comprobar
      es que la solicitud llego, y eso no se ve en pantalla. Devuelve copias
@@ -2319,6 +2329,16 @@
               rR = {data:res, error:null};
             }
             return {then:function(bien, mal){ return Promise.resolve(rR).then(bien, mal); }};
+          }
+
+          /* La firma en el CIIP de una constitución: la marca el equipo y
+             la base devuelve la fila con datos al día, como la de verdad. */
+          if (nombre === 'marca_firma_ciip'){
+            window.CIIP_PRUEBA_FIRMA = args;
+            var rF = {data: {id: args && args.p_tramite,
+                             datos: (args && args.p_hecha) ? {firma_ciip: '2026-09-27T10:00:00Z'} : {}},
+                      error: null};
+            return {then:function(bien, mal){ return Promise.resolve(rF).then(bien, mal); }};
           }
 
           var r = sinSql
