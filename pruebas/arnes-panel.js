@@ -326,6 +326,7 @@
               rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
               rastroDesdeTramiteSalta, rastroDesdeTramiteMira,
               alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno,
+              importeSiembra, importeMira,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
                  cuentas a todo lo que cuenta tarjetas. */
@@ -7602,6 +7603,173 @@
          protocolización y la publicación son tramos de la constitución. */
       igual('al día: y la fase 02 vuelve a contar sus siete',
             deEtapa(1, '.jcount'), '0 de 7 listos');
+  }
+
+  /* ═══════════════ EL IMPORTE DEL DÍA ═══════════════
+     Vale el día en que se sube, en Caracas; el comprobante cargado contra
+     él no caduca. La cuenta se prueba con fechas puestas a mano -la
+     medianoche de Caracas cae a las 04:00 UTC, y ahí es donde un reloj en
+     UTC se equivoca- y las cajas con un importe de hoy y otro de ayer que
+     el Supabase de mentira da por window.__IMPORTE_DOCS.
+
+     El registro de trámites empieza vacío: la prueba engancha uno
+     inventado, 'prueba_importe', y lo quita al terminar. */
+  var IMP_CAJAS = null;
+  function importeSiembra(){
+    var I = window.CIIP_IMPORTE;
+    if (PASE !== 'vacio' && PASE !== 'gestor') return;
+    ok('importe: la pieza está a mano', !!I, I ? 'está' : 'no está', 'window.CIIP_IMPORTE');
+    if (!I) return;
+    I.registro.prueba_importe = {paso: 2, estados: ['en_revision', 'ante_el_ente']};
+    var hora = function(iso){ return new Date(iso); };
+    var imp = function(id, iso, extra){
+      var d = {id: id, tipo: 'importe_dia', creado_en: iso, estado: 'validado',
+               nombre_original: id + '.pdf', archivo: 'u1/emitidos/' + id + '.pdf'};
+      Object.keys(extra || {}).forEach(function(k){ d[k] = extra[k]; });
+      return d;
+    };
+    var pago = function(id, iso, estado){
+      return {id: id, tipo: 'pago_importe_dia', creado_en: iso, estado: estado || 'cargado',
+              nombre_original: id + '.pdf'};
+    };
+    var hoyIso = new Date().toISOString();
+    var ayerIso = new Date(Date.now() - 26 * 3600000).toISOString();
+
+    if (PASE === 'vacio'){
+      /* 00:30 del 27 en Caracas, que en UTC ya son las 04:30 del 27. */
+      var ahora = hora('2026-09-27T04:30:00Z');
+      igual('importe: las 23:30 de Caracas todavía son de ayer, aunque en UTC ya sea mañana',
+            I.fechaEnCaracas('2026-09-27T03:30:00Z'), '2026-09-26');
+      igual('importe: uno subido anoche, pasada la medianoche de Caracas, está vencido',
+            I.estado([imp('a', '2026-09-27T03:30:00Z')], ahora).fase, 'vencido');
+      igual('importe: uno subido hoy en Caracas está vigente',
+            I.estado([imp('b', '2026-09-27T04:10:00Z')], ahora).fase, 'vigente');
+      igual('importe: sin ninguno, se espera el de hoy', I.estado([], ahora).fase, 'espera');
+      igual('importe: con dos, manda el más reciente',
+            I.estado([imp('viejo', '2026-09-26T15:00:00Z'), imp('nuevo', '2026-09-27T04:20:00Z')], ahora).importe.id,
+            'nuevo');
+      igual('importe: el comprobante cargado es firme aunque el importe ya sea de ayer',
+            I.estado([imp('c', '2026-09-26T15:00:00Z'), pago('pc', '2026-09-26T16:00:00Z')], ahora).fase, 'pagado');
+      igual('importe: un comprobante rechazado no cuenta como pago',
+            I.estado([imp('d', '2026-09-27T04:10:00Z'), pago('pd', '2026-09-27T04:15:00Z', 'rechazado')], ahora).fase,
+            'vigente');
+
+      ok('importe: el trámite enganchado lo pide en su paso, y en ningún otro',
+         !!I.delPaso('prueba_importe', 2) && !I.delPaso('prueba_importe', 3) && !I.delPaso('otro', 2),
+         [!!I.delPaso('prueba_importe', 2), !!I.delPaso('prueba_importe', 3), !!I.delPaso('otro', 2)].join('/'),
+         'true/false/false');
+      ok('importe: el gestor lo sube en los estados del trámite, y no en borrador',
+         I.abierto({tipo: 'prueba_importe', estado: 'en_revision'}) &&
+         !I.abierto({tipo: 'prueba_importe', estado: 'borrador'}) &&
+         !I.abierto({tipo: 'constitucion', estado: 'en_revision'}),
+         'en_revision ' + I.abierto({tipo: 'prueba_importe', estado: 'en_revision'}) +
+         ', borrador ' + I.abierto({tipo: 'prueba_importe', estado: 'borrador'}),
+         'en_revision true, borrador false');
+      var cola = [{id: 'a', tipo: 'prueba_importe', estado: 'en_revision', gestor: 'yo'},
+                  {id: 'b', tipo: 'prueba_importe', estado: 'en_revision', gestor: 'yo'},
+                  {id: 'c', tipo: 'prueba_importe', estado: 'en_revision', gestor: 'otro'},
+                  {id: 'd', tipo: 'prueba_importe', estado: 'ante_el_ente', gestor: 'yo'},
+                  {id: 'e', tipo: 'prueba_importe', estado: 'ante_el_ente', gestor: 'yo'},
+                  {id: 'f', tipo: 'constitucion', estado: 'en_revision', gestor: 'yo'}];
+      igual('importe: la cola cuenta los tuyos sin el de hoy, vencidos o por llegar',
+            I.porSubir(cola, {a: 'vencido', b: 'vigente', c: 'espera', d: 'pagado', e: 'espera', f: 'espera'}, 'yo')
+              .map(function(t){ return t.id; }).join(','), 'a,e');
+
+      /* Lo que ve el inversionista, pintado de un estado a mano. */
+      var tr = {id: 'imp-t', estado: 'en_revision'};
+      var vig = document.createElement('div');
+      I.pinta(vig, I.estado([imp('hoy', '2026-09-27T04:10:00Z', {monto: 'Bs. 1.234,00'})], ahora), tr);
+      var aviso = vig.querySelector('.imp-aviso');
+      ok('importe: vigente, el aviso dice que es de hoy y con su fecha',
+         !!aviso && aviso.textContent.indexOf('Este monto corresponde al día de hoy (27 de septiembre de 2026)') === 0 &&
+         aviso.textContent.indexOf('mañana recibirás un importe nuevo') > 0,
+         aviso ? aviso.textContent : '(sin aviso)', 'Este monto corresponde al día de hoy (27 de septiembre de 2026)…');
+      ok('importe: vigente, con el monto y el botón del comprobante',
+         !!vig.querySelector('.imp-cargar') && (vig.querySelector('.imp-monto') || {}).textContent === 'Monto: Bs. 1.234,00',
+         (vig.querySelector('.imp-cargar') ? 'botón' : 'sin botón') + ' · ' +
+         ((vig.querySelector('.imp-monto') || {}).textContent || 'sin monto'),
+         'botón · Monto: Bs. 1.234,00');
+      var ven = document.createElement('div');
+      I.pinta(ven, I.estado([imp('ayer', '2026-09-26T15:00:00Z')], ahora), tr);
+      var espera = ven.querySelector('.imp-espera');
+      ok('importe: vencido, espera el de hoy y no deja cargar comprobante',
+         !!espera && espera.textContent.indexOf('Esperando el importe de hoy') === 0 && !ven.querySelector('.imp-cargar'),
+         (espera ? espera.textContent.slice(0, 40) : '(sin espera)') + (ven.querySelector('.imp-cargar') ? ' + botón' : ''),
+         'Esperando el importe de hoy…, sin botón');
+      var pag = document.createElement('div');
+      I.pinta(pag, I.estado([imp('ayer2', '2026-09-26T15:00:00Z'), pago('p', '2026-09-26T16:00:00Z')], ahora), tr);
+      ok('importe: pagado, lo dice y no pide nada más',
+         !!pag.querySelector('.imp-bien') && !pag.querySelector('.imp-cargar') && !pag.querySelector('.imp-espera'),
+         pag.textContent.slice(0, 60), 'Comprobante de pago cargado…');
+      var cerr = document.createElement('div');
+      I.pinta(cerr, I.estado([], ahora), {id: 'imp-r', estado: 'resuelto'});
+      igual('importe: resuelta sin pago, la caja no promete nada', cerr.textContent, '');
+
+      /* Y con la fecha de verdad, por la base: uno de hoy y uno de ayer. */
+      window.__IMPORTE_DOCS = {'imp-hoy': [imp('ih', hoyIso)], 'imp-ayer': [imp('ia', ayerIso)]};
+      IMP_CAJAS = document.createElement('div');
+      IMP_CAJAS.hidden = true;
+      IMP_CAJAS.appendChild(I.caja({id: 'imp-hoy', estado: 'en_revision'}));
+      IMP_CAJAS.appendChild(I.caja({id: 'imp-ayer', estado: 'en_revision'}));
+      document.body.appendChild(IMP_CAJAS);
+    }
+
+    if (PASE === 'gestor'){
+      igual('importe: sin importe en su trámite, el gestor no ve casilla',
+            I.casilla({id: 'imp-no', tipo: 'constitucion', estado: 'en_revision', inversionista: 'u2'}, 'prb-'), null);
+      window.__IMPORTE_DOCS = {'imp-g1': [imp('g1', ayerIso)], 'imp-g2': [imp('g2', hoyIso)],
+                               'imp-g3': [imp('g3', ayerIso), pago('g3p', ayerIso)]};
+      IMP_CAJAS = document.createElement('div');
+      IMP_CAJAS.hidden = true;
+      ['imp-g1', 'imp-g2', 'imp-g3'].forEach(function(id){
+        var c = I.casilla({id: id, tipo: 'prueba_importe', estado: 'en_revision', inversionista: 'u2'}, 'prb-');
+        if (c) IMP_CAJAS.appendChild(c);
+      });
+      document.body.appendChild(IMP_CAJAS);
+      var primera = IMP_CAJAS.querySelector('[data-importe="imp-g1"]');
+      ok('importe: la casilla del gestor lleva archivo, monto y su botón',
+         !!primera && !!primera.querySelector('input[type=file]') && !!primera.querySelector('.imp-g-monto') &&
+         !!primera.querySelector('.imp-g-subir'),
+         primera ? 'casilla' : 'sin casilla', 'archivo, monto y botón');
+      if (primera){
+        primera.querySelector('.imp-g-subir').click();
+        igual('importe: sin archivo elegido, lo pide en vez de subir nada',
+              primera.querySelector('.imp-g-e').textContent, 'Elige primero el archivo del importe.');
+      }
+    }
+  }
+
+  function importeMira(){
+    var I = window.CIIP_IMPORTE;
+    if (!I || !IMP_CAJAS || (PASE !== 'vacio' && PASE !== 'gestor')) return;
+    var fase = function(id){
+      var c = IMP_CAJAS.querySelector('[data-importe="' + id + '"]');
+      var f = c && (c.getAttribute('data-fase') ||
+                    (c.querySelector('[data-fase]') || {getAttribute: function(){ return ''; }}).getAttribute('data-fase'));
+      return f || '(sin pintar)';
+    };
+    if (PASE === 'vacio'){
+      igual('importe: el de hoy, leído de la base con la hora de ahora, está vigente', fase('imp-hoy'), 'vigente');
+      igual('importe: el de ayer, leído de la base, está vencido', fase('imp-ayer'), 'vencido');
+      var hoy = IMP_CAJAS.querySelector('[data-importe="imp-hoy"]');
+      ok('importe: y el de hoy ofrece cargar el comprobante',
+         !!(hoy && hoy.querySelector('.imp-cargar')), hoy && hoy.querySelector('.imp-cargar') ? 'sí' : 'no', 'sí');
+    }
+    if (PASE === 'gestor'){
+      igual('importe: gestor, con el de ayer le toca subir el de hoy', fase('imp-g1'), 'vencido');
+      igual('importe: gestor, con el de hoy puesto', fase('imp-g2'), 'vigente');
+      var g2 = IMP_CAJAS.querySelector('[data-importe="imp-g2"] .imp-g-subir');
+      igual('importe: gestor, y el botón pasa a reemplazarlo', g2 ? g2.textContent : '(sin botón)',
+            'Reemplazar el importe de hoy');
+      igual('importe: gestor, pagado aunque el importe sea de ayer', fase('imp-g3'), 'pagado');
+      var g3 = IMP_CAJAS.querySelector('[data-importe="imp-g3"] .imp-g-mando');
+      ok('importe: gestor, y con el pago hecho ya no ofrece subir otro', !!(g3 && g3.hidden),
+         g3 ? (g3.hidden ? 'escondido' : 'a la vista') : '(sin mando)', 'escondido');
+    }
+    IMP_CAJAS.remove();
+    IMP_CAJAS = null;
+    window.__IMPORTE_DOCS = null;
+    delete I.registro.prueba_importe;
   }
 
   /* EL FRENO. Cambiar de pestaña y volver es lo que más se hace en una

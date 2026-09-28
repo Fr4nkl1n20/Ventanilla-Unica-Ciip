@@ -7132,6 +7132,388 @@ applyLang(idiomaParaMi());
       .then(function(r){ if (r.error) throw r.error; });
   }
 
+  /* ── EL IMPORTE DEL DÍA ──────────────────────────────────────────────
+     Pedido del CIIP (27-9-2026), para la traducción de documentos y el
+     registro de marca: el equipo le manda al inversionista el importe con
+     el monto a pagar, y ese monto cambia cada día. El importe vale el día
+     en que se sube; pasadas las 12:00 a. m. de Caracas ya no sirve, y el
+     equipo sube otro con el monto nuevo. Después el inversionista carga el
+     comprobante de pago.
+
+     Es el mismo gesto del documento para pagar la reserva del nombre -el
+     equipo deja el papel, el inversionista paga y sube el comprobante-
+     con una fecha de caducidad encima. Y es UNA pieza para cualquier
+     trámite: de uno a otro solo cambia en qué paso sale.
+
+     A MEDIANOCHE NO SE BORRA NADA. El importe lleva su fecha -creado_en,
+     que la pone la base- y lo que caduca es la lectura: si es de otro día
+     en Caracas, está vencido. La base dice lo mismo al enganchar el
+     comprobante (importe_del_dia_vigente, supabase-importe-del-dia.sql),
+     así que no se paga contra el de ayer ni con la página abierta desde
+     anoche. El comprobante ya enganchado no caduca: se pagó el día que
+     tocaba, y eso no lo cambia el reloj.
+
+     CÓMO SE ENGANCHA A UN PASO DE UN TRÁMITE:
+
+       1. Aquí, una entrada en IMPORTE_DEL_DIA con el código del trámite
+          -el de tipos_tramite, no la ref cNN-:
+
+            marca: {paso: 3, estados: ['en_revision', 'ante_el_ente']}
+
+          'paso' es el círculo de la escalera del inversionista donde sale
+          el importe con su botón de comprobante, contado como lo cuenta el
+          rótulo (el primero es el 1). 'estados' son los de la solicitud en
+          que el gestor puede subirlo, y los que cuenta la cola.
+
+       2. En la base, la misma pareja en importe_del_dia_pasos, dentro del
+          SQL del trámite:
+
+            insert into public.importe_del_dia_pasos (tipo_tramite, estados)
+            values ('marca', array['en_revision','ante_el_ente'])
+            on conflict (tipo_tramite) do update set estados = excluded.estados;
+
+          Sin esa fila la base no deja enganchar el importe ni el
+          comprobante, y no lo dice: cambia cero filas.
+
+       3. Nada más. La casilla del gestor sale sola en su cola y en la
+          ventana del trámite, la cola cuenta los importes que faltan hoy y
+          el paso del inversionista pinta el aviso y el botón. Los papeles
+          son siempre 'importe_dia' y 'pago_importe_dia'. Si el trámite no
+          debe resolverse sin el pago, eso lo sujeta un trigger suyo, como
+          tramites_sidcai_con_pago en supabase-locti.sql. */
+  var IMPORTE_DEL_DIA = {};
+  var TIPO_IMPORTE = 'importe_dia', TIPO_PAGO_IMPORTE = 'pago_importe_dia';
+
+  /* La fecha en Caracas, AAAA-MM-DD, que se compara como texto. Caracas va
+     a UTC-4 todo el año; la cuenta a mano es para el navegador que no
+     traiga la zona. */
+  function fechaEnCaracas(cuando){
+    var d = (cuando instanceof Date) ? cuando : new Date(cuando);
+    if (!cuando || isNaN(d.getTime())) return '';
+    try {
+      var p = {};
+      new Intl.DateTimeFormat('en-US', {timeZone: 'America/Caracas', year: 'numeric',
+        month: '2-digit', day: '2-digit'}).formatToParts(d).forEach(function(x){ p[x.type] = x.value; });
+      if (p.year && p.month && p.day) return p.year + '-' + p.month + '-' + p.day;
+    } catch(e){ /* sin zonas: la cuenta de abajo */ }
+    return new Date(d.getTime() - 4 * 3600000).toISOString().slice(0, 10);
+  }
+
+  /* «27 de septiembre de 2026», en el idioma del panel, de una fecha
+     AAAA-MM-DD. Al mediodía UTC para que ninguna zona la mueva de día. */
+  function diaDelImporte(aaaammdd){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(aaaammdd || '');
+    if (!m) return aaaammdd || '';
+    var d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], 12));
+    try {
+      return d.toLocaleDateString(localeDeAhora(), {day: 'numeric', month: 'long',
+                                                    year: 'numeric', timeZone: 'UTC'});
+    } catch(e){ return aaaammdd; }
+  }
+
+  /* Si este trámite, en el estado en que está, lleva importe del día. */
+  function importeAbierto(t){
+    var cfg = t && IMPORTE_DEL_DIA && IMPORTE_DEL_DIA[t.tipo];
+    return !!(cfg && (cfg.estados || []).indexOf(t.estado) >= 0);
+  }
+  /* Y si el paso n de su escalera es el del importe. */
+  function importeDelPaso(codigo, n){
+    var cfg = IMPORTE_DEL_DIA && IMPORTE_DEL_DIA[codigo];
+    return (cfg && cfg.paso === n) ? cfg : null;
+  }
+
+  /* EN QUÉ PUNTO ESTÁ, de los papeles colgados de la solicitud:
+
+       pagado    hay comprobante (y no rechazado): es firme, aunque el
+                 importe contra el que se pagó ya sea de ayer
+       vigente   el último importe es de hoy en Caracas
+       vencido   el último importe es de otro día
+       espera    no ha llegado ninguno
+
+     'ahora' se puede pasar para probarlo con otra fecha. */
+  function estadoDelImporte(filas, ahora){
+    var hoy = fechaEnCaracas(ahora || new Date());
+    var importes = [], pagos = [];
+    (filas || []).forEach(function(d){
+      if (!d) return;
+      if (d.tipo === TIPO_IMPORTE) importes.push(d);
+      else if (d.tipo === TIPO_PAGO_IMPORTE && d.estado !== 'rechazado') pagos.push(d);
+    });
+    var masNuevo = function(a, b){
+      return (new Date(b.creado_en).getTime() || 0) - (new Date(a.creado_en).getTime() || 0);
+    };
+    importes.sort(masNuevo);
+    pagos.sort(masNuevo);
+    var importe = importes[0] || null, pago = pagos[0] || null;
+    var delImporte = importe ? fechaEnCaracas(importe.creado_en) : '';
+    return {
+      fase: pago ? 'pagado' : !importe ? 'espera' : (delImporte === hoy ? 'vigente' : 'vencido'),
+      hoy: hoy, importe: importe, pago: pago, fechaImporte: delImporte
+    };
+  }
+
+  /* Los papeles del importe de una solicitud. documentos(*) y no una lista
+     de columnas: sin supabase-importe-del-dia.sql no hay 'monto', y pedirla
+     por su nombre tumbaría la consulta entera. */
+  function importesDe(trId){
+    return Promise.resolve(sb.from('tramite_documentos').select('documentos(*)').eq('tramite', trId))
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        return ((r && r.data) || []).map(function(f){ return f.documentos; })
+          .filter(function(d){ return d && (d.tipo === TIPO_IMPORTE || d.tipo === TIPO_PAGO_IMPORTE); });
+      });
+  }
+
+  /* ── LO QUE VE EL INVERSIONISTA, EN SU PASO ──
+     La caja se pide una vez y se pinta cuando contesta la base. pintaImporte
+     no pregunta nada: pinta un estado, y por eso se puede probar sin base. */
+  function cajaDelImporte(tr){
+    var caja = el('div', 'imp-caja');
+    caja.setAttribute('data-importe', tr.id);
+    var cuerpo = el('div', 'imp-cuerpo');
+    caja.appendChild(cuerpo);
+    var mira = function(){
+      importesDe(tr.id)
+        .then(function(filas){ pintaImporte(cuerpo, estadoDelImporte(filas), tr, mira); })
+        .catch(function(e){ console.warn('[CIIP] importe del día:', e && (e.message || e)); });
+    };
+    mira();
+    return caja;
+  }
+
+  function pintaImporte(cuerpo, est, tr, mira){
+    var u = T();
+    var cerrado = !!tr && tr.estado === 'resuelto';
+    cuerpo.textContent = '';
+    cuerpo.setAttribute('data-fase', est.fase);
+    cuerpo.appendChild(el('div', 'imp-t', u.imp_titulo || ''));
+
+    if (est.fase === 'pagado'){
+      cuerpo.appendChild(el('div', 'imp-bien',
+        String(u.imp_pagado || '').replace('{fecha}', fecha(est.pago.creado_en))));
+      if (est.pago.nombre_original) cuerpo.appendChild(el('div', 'imp-n', est.pago.nombre_original));
+      return;
+    }
+    /* Una solicitud resuelta sin pago -se pagó por otra vía- no espera
+       nada: el aviso sería una promesa vencida. */
+    if (est.fase !== 'vigente'){
+      if (cerrado){ cuerpo.textContent = ''; return; }
+      cuerpo.appendChild(el('div', 'imp-espera', est.fase === 'vencido'
+        ? String(u.imp_vencido || '').replace('{fecha}', diaDelImporte(est.fechaImporte))
+        : (u.imp_espera || '')));
+      return;
+    }
+
+    var d = est.importe;
+    var fila = el('div', 'imp-fila');
+    fila.appendChild(el('span', 'imp-n', d.nombre_original || u.d_importe_dia || ''));
+    if (d.monto) fila.appendChild(el('span', 'imp-monto', String(u.imp_monto || '').replace('{monto}', d.monto)));
+    if (d.archivo){
+      var ver = el('button', 'sd-btn', u.imp_ver || '');
+      ver.type = 'button';
+      ver.addEventListener('click', function(){ abreFirmado(d.archivo, ver, 'abrir el importe'); });
+      fila.appendChild(ver);
+    }
+    cuerpo.appendChild(fila);
+    if (cerrado) return;
+
+    /* El aviso va destacado y con la fecha escrita: «hoy» a secas no dice
+       nada a quien abrió la pantalla anoche y la mira esta mañana. */
+    var aviso = el('div', 'imp-aviso', String(u.imp_aviso || '').replace('{fecha}', diaDelImporte(est.hoy)));
+    aviso.setAttribute('role', 'status');
+    cuerpo.appendChild(aviso);
+
+    var carga = el('div', 'imp-carga');
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'image/*,application/pdf';
+    inp.hidden = true;
+    var btn = el('button', 'btn navy imp-cargar', u.imp_cargar || '');
+    btn.type = 'button';
+    var dice = el('span', 'imp-e', '');
+    btn.addEventListener('click', function(){ inp.click(); });
+    inp.addEventListener('change', function(){
+      var archivo = inp.files && inp.files[0];
+      if (!archivo) return;
+      /* Si la página lleva abierta desde ayer, el importe que enseña ya
+         venció: se vuelve a mirar en vez de subir contra él. La base lo
+         rechazaría igual, pero dejando un papel suelto en la bóveda. */
+      if (fechaEnCaracas(new Date()) !== est.hoy){ if (mira) mira(); return; }
+      btn.disabled = true;
+      dice.textContent = u.enviando || '';
+      sube(TIPO_PAGO_IMPORTE, archivo)
+        .then(function(docId){ return engancha(tr.id, docId); })
+        .then(function(){
+          if (typeof PAPELES_DE !== 'undefined') PAPELES_DE[tr.id] = null;
+          /* Se cree a la base y no al clic: se vuelve a pedir, y el paso
+             sale pagado solo si el comprobante quedó de verdad colgado. */
+          if (mira) mira(); else { btn.disabled = false; dice.textContent = archivo.name; }
+        })
+        .catch(function(e){
+          console.warn('[CIIP] comprobante del importe:', e && (e.message || e));
+          btn.disabled = false;
+          dice.textContent = u.error || '';
+        });
+    });
+    carga.appendChild(inp);
+    carga.appendChild(btn);
+    carga.appendChild(dice);
+    cuerpo.appendChild(carga);
+  }
+
+  /* ── LA CASILLA DEL GESTOR ──
+     Sube el importe de hoy, con el monto si lo quiere escribir, y dice qué
+     hay: el de hoy, uno vencido, ninguno, o que ya se pagó. Sube con su
+     propio botón y no con el del pie: es un gesto de todos los días que no
+     mueve la solicitud. Cada subida es un papel nuevo; el viejo se queda
+     en la bóveda como constancia, y manda el más reciente. */
+  function casillaDelImporte(t, idBase){
+    if (!importeAbierto(t)) return null;
+    var u = T();
+    var caja = el('div', 'co-emitir imp-g');
+    caja.setAttribute('data-importe', t.id);
+    caja.appendChild(el('div', 'imp-g-t', u.imp_g_titulo || ''));
+    var dice = el('div', 'imp-g-e', '');
+    caja.appendChild(dice);
+
+    var monto = document.createElement('input');
+    monto.type = 'text';
+    monto.className = 'imp-g-monto';
+    monto.id = idBase + 'm-' + t.id;
+    monto.maxLength = 60;
+    monto.placeholder = u.imp_g_monto || '';
+    monto.setAttribute('aria-label', u.imp_g_monto || '');
+    var etiq = el('label', null, u.imp_g_archivo || '');
+    etiq.setAttribute('for', idBase + t.id);
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.id = idBase + t.id;
+    inp.accept = '.pdf,.jpg,.jpeg,.png';
+    var btn = el('button', 'btn navy imp-g-subir', u.imp_g_subir || '');
+    btn.type = 'button';
+    var mando = el('div', 'imp-g-mando');
+    mando.appendChild(etiq);
+    mando.appendChild(inp);
+    mando.appendChild(monto);
+    mando.appendChild(btn);
+    caja.appendChild(mando);
+
+    var mira = function(){
+      importesDe(t.id).then(function(filas){
+        var e = estadoDelImporte(filas);
+        IMPORTE_HOY[t.id] = e.fase;
+        caja.setAttribute('data-fase', e.fase);
+        dice.className = 'imp-g-e' + (e.fase === 'vencido' || e.fase === 'espera' ? ' falta' : ' bien');
+        dice.textContent =
+            e.fase === 'pagado'  ? String(u.imp_g_pagado || '').replace('{fecha}', fecha(e.pago.creado_en))
+          : e.fase === 'vigente' ? String(u.imp_g_hoy || '').replace('{nombre}', e.importe.nombre_original || '') +
+                                   (e.importe.monto ? ' · ' + e.importe.monto : '')
+          : e.fase === 'vencido' ? String(u.imp_g_vencido || '').replace('{fecha}', diaDelImporte(e.fechaImporte))
+          : (u.imp_g_falta || '');
+        /* Pagado no pide más importes: el pago ya es firme. */
+        mando.hidden = (e.fase === 'pagado');
+        btn.textContent = (e.fase === 'vigente') ? (u.imp_g_reemplazar || '') : (u.imp_g_subir || '');
+      }).catch(function(){});
+    };
+    btn.addEventListener('click', function(){
+      var archivo = inp.files && inp.files[0];
+      if (!archivo){
+        dice.className = 'imp-g-e falta';
+        dice.textContent = u.imp_g_elige || '';
+        inp.focus();
+        return;
+      }
+      var m = (monto.value || '').trim();
+      btn.disabled = true;
+      dice.textContent = u.co_subiendo || '';
+      entrega(t, archivo, TIPO_IMPORTE, m ? {monto: m} : null)
+        .then(function(){
+          if (typeof PAPELES_DE !== 'undefined') PAPELES_DE[t.id] = null;
+          btn.disabled = false;
+          inp.value = '';
+          monto.value = '';
+          mira();
+          pintaAvisoDeImportes();
+        })
+        .catch(function(e){
+          console.warn('[CIIP] importe del día:', e && (e.message || e));
+          btn.disabled = false;
+          dice.className = 'imp-g-e falta';
+          dice.textContent = (e && e.ciip && u[e.ciip]) || u.co_error || '';
+        });
+    });
+    mira();
+    return caja;
+  }
+
+  /* ── LA COLA CUENTA LOS QUE FALTAN HOY ──
+     IMPORTE_HOY guarda la fase de cada solicitud de la cola que lleva
+     importe. Se pide una sola vez por carga de la cola, y solo si hay
+     alguna: con IMPORTE_DEL_DIA vacío no sale ningún viaje de más. */
+  var IMPORTE_HOY = {};
+  function cargaImportesDeLaCola(lista){
+    var ids = (lista || []).filter(importeAbierto).map(function(t){ return t.id; });
+    if (!ids.length){ IMPORTE_HOY = {}; return Promise.resolve(); }
+    return Promise.resolve(sb.from('tramite_documentos').select('tramite, documentos(*)').in('tramite', ids))
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        var por = {};
+        ids.forEach(function(id){ por[id] = []; });
+        ((r && r.data) || []).forEach(function(f){
+          if (f.documentos && por[f.tramite]) por[f.tramite].push(f.documentos);
+        });
+        var nuevo = {};
+        ids.forEach(function(id){ nuevo[id] = estadoDelImporte(por[id]).fase; });
+        IMPORTE_HOY = nuevo;
+      })
+      .catch(function(e){ console.warn('[CIIP] importes de la cola:', e && (e.message || e)); });
+  }
+  /* Los que le toca subir HOY a quien mira: suyos, con importe, y sin uno
+     de hoy ni pago hecho. Las fases y quién mira se pueden pasar para
+     probarlo sin cola. */
+  function importesPorSubir(lista, fases, yo){
+    fases = fases || IMPORTE_HOY;
+    yo = (yo === undefined) ? YO : yo;
+    return (lista || []).filter(function(t){
+      return importeAbierto(t) && (!yo || t.gestor === yo) &&
+             (fases[t.id] === 'espera' || fases[t.id] === 'vencido');
+    });
+  }
+  function faltaImporteHoy(t){
+    return importeAbierto(t) && (IMPORTE_HOY[t.id] === 'espera' || IMPORTE_HOY[t.id] === 'vencido');
+  }
+  /* El renglón de arriba de la cola. Null si no falta ninguno: un «0
+     importes» en ámbar alarma de nada. */
+  function avisoDeImportes(){
+    var n = importesPorSubir(typeof enRevision !== 'undefined' ? enRevision : []).length;
+    if (!n) return null;
+    var u = T();
+    var a = el('div', 'imp-cola', n === 1 ? (u.imp_g_cola1 || '')
+                                          : String(u.imp_g_colan || '').replace('{n}', n));
+    a.setAttribute('role', 'status');
+    return a;
+  }
+  /* Tras subir uno, el renglón se rehace en su sitio sin repintar la cola
+     entera, que plegaría la ficha que el gestor tiene abierta. */
+  function pintaAvisoDeImportes(){
+    ['colaTram', 'paTandas'].forEach(function(id){
+      var caja = document.getElementById(id);
+      if (!caja) return;
+      var viejo = caja.querySelector(':scope > .imp-cola');
+      var nuevo = avisoDeImportes();
+      if (viejo && nuevo) caja.replaceChild(nuevo, viejo);
+      else if (viejo) viejo.remove();
+      else if (nuevo) caja.insertBefore(nuevo, caja.firstChild);
+    });
+  }
+
+  /* Para las pruebas: la cuenta y el dibujo, sin base. */
+  window.CIIP_IMPORTE = {
+    registro: IMPORTE_DEL_DIA, fechaEnCaracas: fechaEnCaracas, estado: estadoDelImporte,
+    pinta: pintaImporte, caja: cajaDelImporte, casilla: casillaDelImporte, delPaso: importeDelPaso,
+    porSubir: importesPorSubir, abierto: importeAbierto
+  };
+
   /* ─────────────────────────────────────────────────────────────────
      EL ESTADO REAL, una vez enviada
      Los pasos salen del historial de la base, con sus fechas. Esto es lo
@@ -7547,6 +7929,12 @@ applyLang(idiomaParaMi());
             }
             var avisoP = ((NOTA_DEL_PASO || {})[refTr] || {})[nPaso];
             if (avisoP) txt.appendChild(el('div', 'tr-nota', u[avisoP] || ''));
+            /* El importe del día, en el paso que su trámite diga
+               (IMPORTE_DEL_DIA). El equipo lo sube desde su cola, y aquí no
+               se le pone nada, igual que con los demás comprobantes. */
+            if (importeDelPaso(tipo.codigo, nPaso) &&
+                !(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()))
+              txt.appendChild(cajaDelImporte(tr));
           }
           if (est && cuando[est]) txt.appendChild(el('div', 'sd-e', fecha(cuando[est])));
           else if (ahora){
@@ -9006,8 +9394,9 @@ applyLang(idiomaParaMi());
      papel. La fecha es la de cuando se subió el papel, que es cuando la
      noticia ocurrió. */
   var AV_PARA_PAGAR = ['planilla_reserva_nombre', 'planilla_aranceles', 'planilla_publicacion',
-                       'planilla_locti'];
-  var AV_COMPROBANTES = ['reserva_nombre', 'pago_aranceles', 'pago_publicacion', 'pago_locti'];
+                       'planilla_locti', 'importe_dia'];
+  var AV_COMPROBANTES = ['reserva_nombre', 'pago_aranceles', 'pago_publicacion', 'pago_locti',
+                         'pago_importe_dia'];
 
   function sumaPapelesDePago(refDe, loPedi, mios){
     return avPide('papeles del pago', function(){
@@ -11726,6 +12115,9 @@ applyLang(idiomaParaMi());
     var u = T();
     caja.textContent = '';
     pintaFiltrosCola();
+    /* Los importes del día que faltan, lo primero: caducan a medianoche. */
+    var impCola = avisoDeImportes();
+    if (impCola) caja.appendChild(impCola);
     /* «Lo que toca hoy» bebe del mismo montón: si la ventana cambia algo
        -tomar, devolver, filtrar-, la pantalla de detrás se pone al día. */
     if (document.body.getAttribute('data-vista') === 'poratender') pintaHoy();
@@ -11876,6 +12268,10 @@ applyLang(idiomaParaMi());
       };
       var reserva = casillaDeLaReserva(t, 'co-res-', function(){ rotulaCo(); });
       if (reserva) f.appendChild(reserva.caja);
+      /* Y el importe del día, si su trámite lo lleva: con su propio botón,
+         que se sube cada día y no mueve la solicitud. */
+      var importeCo = casillaDelImporte(t, 'co-imp-');
+      if (importeCo) f.appendChild(importeCo);
       /* Los cinco entes de los registros parafiscales, con el código que
          mandó el inversionista y el botón de darlo por listo. */
       if (t.tipo === TIPO_PARAFISCALES && t.estado !== 'borrador'){
@@ -12284,8 +12680,12 @@ applyLang(idiomaParaMi());
 
      tipo es 'resolucion' salvo para el documento con el que el
      inversionista paga la reserva del nombre, que también lo deja el
-     equipo: la base solo admite esos dos. */
-  function entrega(tr, archivo, tipo){
+     equipo: la base solo admite esos dos.
+
+     extra son columnas de más para la ficha del papel -el monto del
+     importe del día-. Solo si viene: una base sin la columna rechazaría la
+     fila entera. */
+  function entrega(tr, archivo, tipo, extra){
     var mal = papelMal(archivo);
     if (mal) return Promise.reject(papelNo(mal));
     var limpio = archivo.name.replace(/[^\w.\-]+/g, '_').slice(-60);
@@ -12303,14 +12703,16 @@ applyLang(idiomaParaMi());
         if (r && r.error) throw r.error;
         /* 'validado' porque lo emitió el ente: no hay nada que revisar, y
            de paso el inversionista no puede borrarlo sin querer. */
-        return sb.from('documentos').insert({
+        var ficha = {
           inversionista: tr.inversionista,
           tipo: tipo || 'resolucion',
           archivo: ruta,
           nombre_original: archivo.name,
           estado: 'validado',
           huella: huella
-        }).select().single();
+        };
+        if (extra) Object.keys(extra).forEach(function(k){ ficha[k] = extra[k]; });
+        return sb.from('documentos').insert(ficha).select().single();
       })
       .then(function(r){
         if (r && r.error) throw r.error;
@@ -12740,7 +13142,8 @@ applyLang(idiomaParaMi());
           .then(function(rt){
             if (rt && rt.error) throw rt.error;
             enRevision = (rt.data || []).map(function(t){ t.nombre = ''; return t; });
-            return ponDesdeCuando(enRevision).then(function(){ return ponNotasDevueltas(enRevision); });
+            return ponDesdeCuando(enRevision).then(function(){ return ponNotasDevueltas(enRevision); })
+              .then(function(){ return cargaImportesDeLaCola(enRevision); });
           })
           .catch(function(e){ console.warn('[CIIP] cola de trámites:', e && e.message); enRevision = []; })
           .then(function(){
@@ -12828,7 +13231,8 @@ applyLang(idiomaParaMi());
         (r.data || []).forEach(function(f){
           var d = f.documentos;
           if (!d || !de[f.tramite] || d.tipo === 'resolucion' ||
-              d.tipo === 'planilla_reserva_nombre') return;
+              d.tipo === 'planilla_reserva_nombre' ||
+              d.tipo === 'importe_dia') return;
           de[f.tramite].push({id: d.id || f.documento, tipo: d.tipo, archivo: d.archivo,
             nombre_original: d.nombre_original || '', estado: d.estado || 'cargado',
             nota_revision: d.nota_revision || '', titular: d.titular || ''});
@@ -12927,6 +13331,8 @@ applyLang(idiomaParaMi());
     pintaCifrasHoy();
 
     caja.textContent = '';
+    var impHoy = avisoDeImportes();
+    if (impHoy) caja.appendChild(impHoy);
     var vistos = enRevision.filter(coCuadra).sort(hoyUrgencia);
     vistos.forEach(function(t){ caja.appendChild(hoyTarjeta(t)); });
 
@@ -13034,6 +13440,8 @@ applyLang(idiomaParaMi());
        tarjeta le pedía al gestor que hiciera algo que ya hizo. */
     if (t.estado === 'devuelto') return u.co_h_v_devuelto || '';
     if (!t.gestor) return u.co_h_v_tomar || '';
+    /* El importe de hoy va antes que lo demás: mañana ya no vale. */
+    if (YO && t.gestor === YO && faltaImporteHoy(t)) return u.imp_g_verbo || '';
     if (t.estado === 'ante_el_ente') return String(u.co_h_v_ente || '').replace('{ente}', ente);
     if (!YO || t.gestor !== YO) return String(u.co_lolleva || '').replace('{quien}', nombreDeGestor(t.gestor));
     if (t.estado === 'enviado' || !c) return u.co_h_v_revisar || '';
@@ -13943,6 +14351,12 @@ applyLang(idiomaParaMi());
       });
       botones.appendChild(pre);
     }
+    /* El importe del día, en cualquier estado en que su trámite lo pida:
+       es un gesto diario que no depende de por dónde vaya la solicitud. */
+    if (mio){
+      var importeV = casillaDelImporte(t, 'hoy-imp-');
+      if (importeV) fin.appendChild(importeV);
+    }
     if (botones.childNodes.length) fin.appendChild(botones);
     fin.appendChild(aviso);
     return fin;
@@ -14476,7 +14890,8 @@ applyLang(idiomaParaMi());
       /* Lo que emitió el organismo no se revisa: se entrega. Y el documento
          para pagar la reserva tampoco: lo deja el propio equipo. */
       rvDocs = ((rs[0] && rs[0].data) || []).filter(function(d){
-        return d && d.tipo !== 'resolucion' && d.tipo !== 'planilla_reserva_nombre';
+        return d && d.tipo !== 'resolucion' && d.tipo !== 'planilla_reserva_nombre' &&
+               d.tipo !== 'importe_dia';
       });
       rvNombres = {};
       ((rs[1] && rs[1].data) || []).forEach(function(p){ if (p && p.id) rvNombres[p.id] = p.nombre_completo || ''; });
@@ -15069,7 +15484,7 @@ applyLang(idiomaParaMi());
      nombres, mismos trámites. Dos consultas distintas acabarían diciendo
      cosas distintas del mismo papel. */
   var CB_TIPOS = ['reserva_nombre', 'pago_aranceles', 'comprobante_capital', 'comprobante_aporte',
-                  'pago_locti'];
+                  'pago_locti', 'pago_importe_dia'];
   var cbBusca = '', cbPersona = null, cbElegido = null;
 
   function cbTodos(){
@@ -20236,6 +20651,8 @@ applyLang(idiomaParaMi());
       CLAVE_DE_TIPO.planilla_aranceles   = 'd_planilla_aranceles';
       CLAVE_DE_TIPO.planilla_publicacion = 'd_planilla_publicacion';
       CLAVE_DE_TIPO.planilla_locti       = 'd_planilla_locti';
+      CLAVE_DE_TIPO.importe_dia          = 'd_importe_dia';
+      CLAVE_DE_TIPO.pago_importe_dia     = 'd_pago_importe_dia';
       CLAVE_DE_TIPO.resolucion           = 'co_emitido';
       CLAVE_DE_TIPO.codigo_ente          = 'd_codigoente';
     }

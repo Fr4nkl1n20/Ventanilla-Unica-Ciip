@@ -133,7 +133,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-confirma-paso',
 /* Cancelar una solicitud mientras siga en el CIIP. Redefine la escalera
    de supabase-tramites.sql, asi que va detras de todo. */
-'supabase-cancelar'];
+'supabase-cancelar',
+/* El importe del día: el papel del CIIP que caduca a medianoche en
+   Caracas y el comprobante que se paga contra él. Su trigger va aparte
+   del de supabase-papeles-sellados, y necesita es_gestor() y es_admin();
+   va al final para no mover el número de nadie. */
+'supabase-importe-del-dia'];
 
 let mal = 0;
 for (const n of orden) {

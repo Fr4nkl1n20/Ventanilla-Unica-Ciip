@@ -2111,6 +2111,14 @@
           archivo:'u1/pago-aranceles.pdf'}});
         return {data:delPago, error:null};
       }
+      /* Los papeles del importe del día, los que ponga la prueba en
+         window.__IMPORTE_DOCS por solicitud. La fecha la pone ella, que
+         es lo que se prueba: un importe de hoy y uno de ayer. */
+      if (op && op.eq && window.__IMPORTE_DOCS && window.__IMPORTE_DOCS[op.eq.tramite]){
+        return {data: window.__IMPORTE_DOCS[op.eq.tramite].map(function(d){
+          return {documento: d.id, documentos: d};
+        }), error:null};
+      }
       if (op && op.eq && op.eq.tramite === 't4'){
         return {data:[{documento:'dr1', documentos:{tipo:'resolucion',
           nombre_original:'visa-trn-estampada.pdf',
