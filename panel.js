@@ -4090,15 +4090,16 @@ applyLang(idiomaParaMi());
        pidiendo el expediente. Va como texto libre y no como lista: son 335
        municipios, la lista envejecería en el código y el CIIP solo opera
        de hecho en unos pocos.
-       Los metros cuadrados no son curiosidad: varias alcaldías calculan la
-       tasa de la licencia con la superficie del local. */
+       Los metros cuadrados se fueron el 28-9-2026, a pedido del CIIP
+       («Quitar el campo de Metros cuadrados»): la tasa ya no se calcula
+       aquí, llega como importe del día. Las solicitudes viejas que los
+       traigan los conservan en tramites.datos. */
     licencia_municipal: [
       {n:'razon_social',        clave:'f_razon',       ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
       {n:'municipio',           clave:'f_municipio'},
       {n:'tenencia',            clave:'f_tenencia',    opcionesClave:'o_tenencia'},
       {n:'actividad_economica', clave:'f_actividad'},
-      {n:'metros',              clave:'f_metros',      tipo:'number'},
       {n:'inicio_actividades',  clave:'f_iniciolab',   tipo:'date'},
       {n:'direccion_local',     clave:'f_dirlocal',    ancho:true}
     ],
@@ -7089,7 +7090,8 @@ applyLang(idiomaParaMi());
     return (RECAUDOS[codigo] || []).filter(function(r){ return recaudoVale(r); });
   }
   /* Para las pruebas: la lista que se pide, y la regla con otra base. */
-  window.CIIP_RECAUDOS = {de: recaudosDe, vale: recaudoVale};
+  window.CIIP_RECAUDOS = {de: recaudosDe, vale: recaudoVale,
+                          campos: function(c){ return (CAMPOS[c] || []).slice(); }};
 
   /* ── la huella del archivo ──
      El SHA-256 de lo que se sube. Sirve para dos cosas: el conector se lo
@@ -7499,8 +7501,12 @@ applyLang(idiomaParaMi());
      propio botón y no con el del pie: es un gesto de todos los días que no
      mueve la solicitud. Cada subida es un papel nuevo; el viejo se queda
      en la bóveda como constancia, y manda el más reciente. */
-  function casillaDelImporte(t, idBase){
-    var ent = importeActivo(t);
+  /* entFija: una entrada concreta de IMPORTE_DEL_DIA en vez de la que toca
+     ahora -la licencia enseña las dos a la vez-; solo si el estado de la
+     solicitud es uno de los suyos. */
+  function casillaDelImporte(t, idBase, entFija){
+    var ent = entFija ? (((entFija.estados || []).indexOf(t.estado) >= 0) ? entFija : null)
+                      : importeActivo(t);
     if (!ent) return null;
     var nombre = nombreDelImporte(ent);
     var u = T();
@@ -7716,6 +7722,10 @@ applyLang(idiomaParaMi());
       /* Lo que dicen de la solicitud la campana y la cola, en vez de los
          cuatro rótulos de todos. */
       estados: ['mc_ev_enviado', 'mc_ev_en_revision', 'mc_ev_ante_el_ente', 'mc_ev_resuelto'],
+      /* No se resuelve sin el certificado enviado, y al resolver no se
+         pide otro papel: el certificado ya se mandó en su paso. */
+      exige: {paso: 'certificado', aviso: 'mc_g_faltacert'},
+      sinEmitido: true,
       etapas: [
         {clave: 'antecedentes', rotulo: 'mc_e1', pasos: [
           {clave: 'revision',              tipo: 'revision', rotulo: 'mc_p_revision'},
@@ -7740,8 +7750,66 @@ applyLang(idiomaParaMi());
           {clave: 'retiro',                tipo: 'retiro',   rotulo: 'mc_p_retiro',           espera: 'mc_n_retiro', listo: 'mc_n_retiro'}
         ]}
       ]
+    },
+
+    /* ── LA LICENCIA DE ACTIVIDADES ECONÓMICAS (c10) ──
+       Pedido del CIIP (28-9-2026): «Revisión de recaudos por el CIIP →
+       Firme la planilla de solicitud de trámite → Importe de tasa
+       administrativa → Importe de timbre fiscal otorgamiento de
+       documentos: licencia de actividades económicas → Comprobante del
+       pago», con dos casillas en ese último para los dos comprobantes.
+
+       Una sola etapa, sin encabezado: el CIIP la cuenta como una fila de
+       pasos, no como fases.
+
+       Los dos primeros los cierra el ESTADO, como en el RIF (c3 y c6),
+       donde «Firme la planilla» es el paso que sigue a la recepción: la
+       revisión, al pasar la solicitud a revisión; la firma, al presentarla
+       ante la alcaldía, que no se hace sin la planilla firmada.
+
+       Los dos importes son importes del día CON NOMBRE -'tasa' y
+       'timbre'-, cada uno con su comprobante (IMPORTE_DEL_DIA más abajo).
+       La tasa administrativa también cambia con el día: se trata igual que
+       el timbre, que es lo que dice el pedido del timbre y lo que menos
+       sorprende a quien paga los dos juntos. La base apunta cada importe
+       y cada comprobante al colgarse (supabase-licencia.sql).
+
+       Y un paso más al final que el pedido no escribe: «Licencia
+       otorgada». Sin él, con los dos comprobantes cargados la escalera
+       saldría toda en verde mientras la licencia todavía no existe, que es
+       justo la mentira que esta escalera no cuenta. Lo cierra la
+       resolución, y la licencia llega como el documento emitido de
+       cualquier trámite. */
+    licencia_municipal: {
+      ref: 'c10',
+      estados: ['lc_ev_enviado', 'lc_ev_en_revision', 'lc_ev_ante_el_ente', 'lc_ev_resuelto'],
+      /* Los rótulos de la casilla del gestor, que en la marca son otros. */
+      textos: {titulo: 'lc_g_titulo', importe: 'lc_g_importe', retiro: 'lc_g_retiro'},
+      /* El gestor ve las dos casillas de importe a la vez: los dos vencen
+         a medianoche y lo normal es subirlos el mismo día. */
+      importesJuntos: true,
+      etapas: [
+        {clave: 'licencia', pasos: [
+          {clave: 'revision',        tipo: 'estado',  rotulo: 'lc_p_revision',   hechoEn: ['en_revision', 'ante_el_ente']},
+          {clave: 'firma',           tipo: 'estado',  rotulo: 'lc_p_firma',      hechoEn: ['ante_el_ente'],
+           espera: 'lc_n_firma'},
+          {clave: 'importe_tasa',    tipo: 'importe', rotulo: 'lc_p_imp_tasa',   importe: 'tasa'},
+          {clave: 'importe_timbre',  tipo: 'importe', rotulo: 'lc_p_imp_timbre', importe: 'timbre'},
+          {clave: 'pagos',           tipo: 'pagos',   rotulo: 'lc_p_pagos',      importes: ['tasa', 'timbre'],
+           espera: 'lc_n_pagos'},
+          {clave: 'licencia',        tipo: 'retiro',  rotulo: 'lc_p_licencia',
+           espera: 'lc_n_licencia_espera', listo: 'lc_n_licencia_lista'}
+        ]}
+      ]
     }
   };
+
+  /* Los dos importes de la licencia, con la solicitud ante la alcaldía.
+     La fila de la base es una, la de siempre (supabase-licencia.sql). */
+  IMPORTE_DEL_DIA.licencia_municipal = [
+    {paso: 'tasa',   estados: ['ante_el_ente'], rotulo: 'lc_p_imp_tasa'},
+    {paso: 'timbre', estados: ['ante_el_ente'], rotulo: 'lc_p_imp_timbre'}
+  ];
 
   /* Los cuatro importes de la marca. Todos con la solicitud ante el ente:
      cuál toca lo dice la escalera, no el estado. La fila de la base es una,
@@ -7778,11 +7846,24 @@ applyLang(idiomaParaMi());
       et.pasos.forEach(function(p){
         if (p.solo && !P[p.solo]) return;
         var paso = {clave: p.clave, tipo: p.tipo, nombre: u[p.rotulo] || '', importe: p.importe || null,
+                    importes: p.importes || null, hechoEn: p.hechoEn || null,
                     papel: p.papel || null, espera: p.espera || null, listo: p.listo || null,
                     etapa: et.clave, cuando: P[p.clave] || null};
+        /* 'pagos': los comprobantes de varios importes en un solo paso -la
+           licencia, «Comprobante del pago» con sus dos casillas-. Hecho
+           cuando están todos; su fecha, la del último que llegó. */
+        if (p.tipo === 'pagos'){
+          var fechas = (p.importes || []).map(function(x){ return P['pago_' + x] || null; });
+          paso.cuando = fechas.every(Boolean) ? fechas.sort().slice(-1)[0] : null;
+        }
         paso.apuntado =
             p.tipo === 'revision' ? (tr.estado === 'ante_el_ente' || resuelta || algoApuntado)
+          /* 'estado': lo cierra el estado de la solicitud, en los que diga
+             hechoEn. Como la revisión, no vuelve atrás si ya hay algo
+             apuntado. */
+          : p.tipo === 'estado'   ? ((p.hechoEn || []).indexOf(tr.estado) >= 0 || resuelta || algoApuntado)
           : p.tipo === 'retiro'   ? resuelta
+          : p.tipo === 'pagos'    ? !!paso.cuando
           : !!P[p.clave];
         e.pasos.push(paso);
         todos.push(paso);
@@ -7803,7 +7884,11 @@ applyLang(idiomaParaMi());
       codigo: codigo, etapas: etapas, todos: todos, hechos: hechos, ahora: ahora,
       /* El importe que toca: el de la etapa cuyo importe o comprobante está
          en curso. Es lo que decide qué casilla ve el gestor. */
-      importeEnCurso: (ahora && (ahora.tipo === 'importe' || ahora.tipo === 'pago')) ? ahora.importe : null,
+      /* En un paso de varios comprobantes, el primero que falte. */
+      importeEnCurso: (ahora && (ahora.tipo === 'importe' || ahora.tipo === 'pago')) ? ahora.importe
+                    : (ahora && ahora.tipo === 'pagos')
+                      ? ((ahora.importes || []).filter(function(x){ return !P['pago_' + x]; })[0] || null)
+                    : null,
       contestacion: contestacion,
       anuncio: contestacion ? String((tr.datos || {}).anuncio || '') : '',
       anuncioEn: (tr.datos || {}).anuncio_en || P.contestacion || null,
@@ -7883,11 +7968,15 @@ applyLang(idiomaParaMi());
 
     E.etapas.forEach(function(et){
       if (!et.pasos.length) return;
-      var cab = el('li', 'tr-etapa');
-      cab.setAttribute('data-etapa', et.clave);
-      cab.appendChild(el('span', 'tr-etapa-n', String(u.mc_etapa || '').replace('{n}', et.n)));
-      cab.appendChild(el('span', 'tr-etapa-t', et.nombre));
-      lista.appendChild(cab);
+      /* Una etapa sin nombre -la licencia, que es una sola- no lleva
+         encabezado: «Etapa 1» encima de todo no diría nada. */
+      if (et.nombre){
+        var cab = el('li', 'tr-etapa');
+        cab.setAttribute('data-etapa', et.clave);
+        cab.appendChild(el('span', 'tr-etapa-n', String(u.mc_etapa || '').replace('{n}', et.n)));
+        cab.appendChild(el('span', 'tr-etapa-t', et.nombre));
+        lista.appendChild(cab);
+      }
 
       et.pasos.forEach(function(paso){
         var li = el('li', 'tr-paso ' + (paso.hecho ? 'hecho' : (paso.ahora ? 'ahora' : 'porhacer')));
@@ -7902,10 +7991,11 @@ applyLang(idiomaParaMi());
               if (paso.listo) txt.appendChild(el('div', 'tr-nota', u[paso.listo] || ''));
               abrePapel(paso, txt);
             } else if (paso.espera) txt.appendChild(el('div', 'tr-nota', u[paso.espera] || ''));
-          } else if (paso.tipo === 'ciip' && paso.ahora && paso.espera){
+          } else if ((paso.tipo === 'ciip' || paso.tipo === 'estado' || paso.tipo === 'pagos') &&
+                     paso.ahora && paso.espera){
             txt.appendChild(el('div', 'tr-nota', u[paso.espera] || ''));
           } else if (paso.tipo === 'retiro'){
-            txt.appendChild(el('div', 'tr-nota mc-retiro', u[paso.espera] || ''));
+            txt.appendChild(el('div', 'tr-nota mc-retiro', u[(paso.hecho && paso.listo) || paso.espera] || ''));
           }
           /* El importe y su comprobante, en el paso que está en curso de
              los dos. Al equipo no: lo sube desde su cola. */
@@ -7917,9 +8007,23 @@ applyLang(idiomaParaMi());
               if (repinta) repinta();
             }));
           }
+          /* Varios comprobantes en un paso: una caja por importe, cada una
+             con su nombre encima, que es lo que distingue el pago de la tasa
+             del pago del timbre. */
+          if (paso.tipo === 'pagos' && paso.ahora && !esEquipo){
+            (paso.importes || []).forEach(function(x){
+              var ent = importeDelPaso(E.codigo, x) || {paso: x};
+              var de = el('div', 'imp-de');
+              de.setAttribute('data-paso-importe', x);
+              de.appendChild(el('div', 'imp-de-t', (ent.rotulo && u[ent.rotulo]) || ''));
+              de.appendChild(cajaDelImporte(tr, ent, function(){ if (repinta) repinta(); }));
+              txt.appendChild(de);
+            });
+          }
         }
 
         var fechaP = paso.tipo === 'revision' ? cuando.ante_el_ente
+                   : paso.tipo === 'estado'   ? cuando[(paso.hechoEn || [])[0]]
                    : paso.tipo === 'retiro'   ? cuando.resuelto
                    : paso.cuando;
         if (paso.hecho && fechaP) txt.appendChild(el('div', 'sd-e', fecha(fechaP)));
@@ -7928,7 +8032,9 @@ applyLang(idiomaParaMi());
           /* Desde que se cerró el anterior. */
           var antes = E.todos[paso.n - 2];
           var desde = (tr.estado === 'devuelto') ? (cuando.devuelto || tr.actualizado_en)
-            : antes ? (antes.tipo === 'revision' ? cuando.ante_el_ente : antes.cuando)
+            : antes ? (antes.tipo === 'revision' ? cuando.ante_el_ente
+                     : antes.tipo === 'estado'   ? cuando[(antes.hechoEn || [])[0]]
+                     : antes.cuando)
             : (tr.enviado_en || tr.creado_en);
           if (desde) eti.appendChild(el('span', 'tr-desde',
             String(u.ns_desde_paso || '').replace('{cuando}', haceCuanto(desde))));
@@ -7975,14 +8081,16 @@ applyLang(idiomaParaMi());
       caja.textContent = '';
       var E = escaleraPorEtapas(t, t.tipo);
       var P = E.apuntados;
-      caja.appendChild(el('div', 'imp-g-t', u.mc_g_titulo || ''));
+      /* Los rótulos de cada escalera: la licencia no es la marca. */
+      var tx = def.textos || {};
+      caja.appendChild(el('div', 'imp-g-t', u[tx.titulo || 'mc_g_titulo'] || ''));
       var cur = E.ahora;
       var dice = el('div', 'imp-g-e', '');
       if (cur){
         var et = E.etapas.filter(function(x){ return x.clave === cur.etapa; })[0];
         caja.appendChild(el('div', 'mc-g-paso',
-          String(u.mc_etapa || '').replace('{n}', et ? et.n : '') + ' · ' + (et ? et.nombre : '') +
-          ' — ' + cur.n + '. ' + cur.nombre));
+          ((et && et.nombre) ? String(u.mc_etapa || '').replace('{n}', et.n) + ' · ' + et.nombre + ' — ' : '') +
+          cur.n + '. ' + cur.nombre));
         caja.setAttribute('data-paso', cur.clave);
       }
       caja.appendChild(dice);
@@ -8030,12 +8138,22 @@ applyLang(idiomaParaMi());
         mando.appendChild(inp);
         mando.appendChild(manda);
         caja.appendChild(mando);
-      } else if (cur && (cur.tipo === 'importe' || cur.tipo === 'pago')){
-        caja.appendChild(el('div', 'tr-nota', u.mc_g_importe || ''));
-        var imp = casillaDelImporte(t, idBase + 'imp-');
-        if (imp) caja.appendChild(imp);
+      } else if (cur && (cur.tipo === 'importe' || cur.tipo === 'pago' || cur.tipo === 'pagos')){
+        caja.appendChild(el('div', 'tr-nota', u[tx.importe || 'mc_g_importe'] || ''));
+        /* Con importesJuntos, una casilla por importe, todas a la vista: el
+           gestor sube la tasa y el timbre el mismo día sin esperar a que la
+           escalera pase del uno al otro. Sin él, la del importe que toca. */
+        if (def.importesJuntos){
+          entradasDelImporte(t.tipo).forEach(function(ent){
+            var impJ = casillaDelImporte(t, idBase + 'imp-' + ent.paso + '-', ent);
+            if (impJ) caja.appendChild(impJ);
+          });
+        } else {
+          var imp = casillaDelImporte(t, idBase + 'imp-');
+          if (imp) caja.appendChild(imp);
+        }
       } else if (cur && cur.tipo === 'retiro'){
-        caja.appendChild(el('div', 'tr-nota', u.mc_g_retiro || ''));
+        caja.appendChild(el('div', 'tr-nota', u[tx.retiro || 'mc_g_retiro'] || ''));
       }
 
       /* ── LA CONTESTACIÓN ──
@@ -8100,10 +8218,20 @@ applyLang(idiomaParaMi());
   function marcaCertificada(t){
     return !!pasosApuntados(t).certificado;
   }
+  /* Lo que le falta a una solicitud con escalera propia para poder
+     resolverse: la clave del aviso, o null si nada. Lo dice su 'exige' -la
+     marca, el certificado-; la licencia no exige ningún paso apuntado, lo
+     suyo son los dos comprobantes (comprobanteParaResolver). */
+  function faltaParaResolverEtapas(t){
+    var def = t && ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo];
+    if (!def || !def.exige) return null;
+    return pasosApuntados(t)[def.exige.paso] ? null : def.exige.aviso;
+  }
 
   window.CIIP_MARCA = {
     registro: ESCALERA_POR_ETAPAS, escalera: escaleraPorEtapas, pinta: pintaPorEtapas,
-    casilla: casillaDeLaMarca, certificada: marcaCertificada
+    casilla: casillaDeLaMarca, certificada: marcaCertificada, falta: faltaParaResolverEtapas,
+    comprobante: comprobanteParaResolver, faltaPago: faltaLaReserva
   };
 
   /* ─────────────────────────────────────────────────────────────────
@@ -13054,9 +13182,9 @@ applyLang(idiomaParaMi());
              retirar los originales, y eso no se le dice a nadie que todavía
              no tiene el certificado en la bóveda. La base dice lo mismo
              (tramites_marca_con_certificado, supabase-marca.sql). */
-          if (p.a === 'resuelto' && ESCALERA_POR_ETAPAS[t.tipo] && !marcaCertificada(t)){
+          if (p.a === 'resuelto' && faltaParaResolverEtapas(t)){
             f.classList.add('mal');
-            aviso.textContent = u.mc_g_faltacert || '';
+            aviso.textContent = u[faltaParaResolverEtapas(t)] || '';
             return;
           }
           /* Y un tramite sin el comprobante que la base le exige: no lo
@@ -13482,8 +13610,11 @@ applyLang(idiomaParaMi());
      inversionista lo espera. Pedirlo otra vez al resolver sería subirlo
      dos veces. */
   function pideEmitido(t){
+    /* La licencia (c10) sí lo pide: la licencia de actividades económicas
+       es su documento emitido, y llega al resolver como el de cualquiera. */
     return !t || (t.tipo !== 'constitucion' && t.tipo !== TIPO_PARAFISCALES &&
-                  !(ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo]));
+                  !(ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo] &&
+                    ESCALERA_POR_ETAPAS[t.tipo].sinEmitido));
   }
 
   /* QUÉ documento para pagar deja el equipo, y en qué trámite. Son tres, el
@@ -14548,8 +14679,8 @@ applyLang(idiomaParaMi());
     }
     /* Y la marca, sin su certificado enviado, tampoco: la misma regla que
        la ficha de la cola. */
-    if (ESCALERA_POR_ETAPAS[t.tipo] && !marcaCertificada(t)){
-      aviso.textContent = u.mc_g_faltacert || '';
+    if (faltaParaResolverEtapas(t)){
+      aviso.textContent = u[faltaParaResolverEtapas(t)] || '';
       return;
     }
     /* Lo mismo que la ventana de la cola: sin el comprobante que pide la
@@ -21325,6 +21456,12 @@ applyLang(idiomaParaMi());
        «Comprobante de pago», y la base no la deja resolver sin él
        (supabase-traduccion.sql). */
     if (t.tipo === 'apostilla_documentos') return {tipo: 'pago_importe_dia', aviso: 'co_faltatraduccion'};
+    /* La licencia de actividades económicas (28-9-2026): DOS comprobantes,
+       el de la tasa administrativa y el del timbre fiscal, cada uno atado a
+       su importe por su nombre. La base tampoco la deja resolver sin los
+       dos (supabase-licencia.sql). */
+    if (t.tipo === 'licencia_municipal')
+      return {tipo: 'pago_importe_dia', pasos: ['tasa', 'timbre'], aviso: 'co_faltalicencia'};
     return null;
   }
 
@@ -21335,13 +21472,23 @@ applyLang(idiomaParaMi());
   function faltaLaReserva(t){
     var pide = comprobanteParaResolver(t);
     if (!pide) return Promise.resolve(false);
+    /* Con 'pasos', uno de cada nombre y no rechazado. documentos(*): sin
+       supabase-importe-del-dia.sql no hay paso_importe, y pedirlo por su
+       nombre tumbaría la consulta; así solo no se encuentra, y se deja
+       pasar -la base decide-. */
     return Promise.resolve(
-      sb.from('tramite_documentos').select('documentos(tipo)').eq('tramite', t.id))
+      sb.from('tramite_documentos').select(pide.pasos ? 'documentos(*)' : 'documentos(tipo)').eq('tramite', t.id))
       .then(function(r){
         if (r && r.error) return false;
-        return !((r && r.data) || []).some(function(f){
-          return f.documentos && f.documentos.tipo === pide.tipo;
-        });
+        var docs = ((r && r.data) || []).map(function(f){ return f.documentos; })
+          .filter(function(d){ return d && d.tipo === pide.tipo; });
+        if (pide.pasos){
+          if (docs.length && !docs.some(function(d){ return 'paso_importe' in d; })) return false;
+          return !pide.pasos.every(function(x){
+            return docs.some(function(d){ return d.paso_importe === x && d.estado !== 'rechazado'; });
+          });
+        }
+        return !docs.length;
       })
       .catch(function(){ return false; });
   }

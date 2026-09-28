@@ -334,6 +334,7 @@
               importeSiembra, importeMira, traduccionMira,
               marcaSiembra, marcaMira,
               conformidadMira,
+              licenciaSiembra, licenciaMira,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
                  cuentas a todo lo que cuenta tarjetas. */
@@ -8100,6 +8101,136 @@
     igual('conformidad: ante la alcaldía, la inscripción', dibujo('ante_el_ente'), 'hecho,ahora,porhacer');
     igual('conformidad: resuelta, todo hecho', dibujo('resuelto'), 'hecho,hecho,hecho');
     if (puesto) delete cat.c28;
+  }
+
+  /* ═══════════ LA LICENCIA DE ACTIVIDADES ECONÓMICAS (c10) ═══════════
+     Pedido del CIIP (28-9-2026): sin metros cuadrados, y la escalera
+     «Revisión → Firme la planilla → Importe de tasa → Importe de timbre →
+     Comprobante del pago» con dos casillas en el último, más «Licencia
+     otorgada». Dos importes del día con nombre; no se resuelve sin los
+     dos comprobantes. */
+  var LC_CAJAS = null, LC_FALTA = {};
+  function licenciaSiembra(){
+    var M = window.CIIP_MARCA, I = window.CIIP_IMPORTE, R = window.CIIP_RECAUDOS;
+    if (PASE !== 'vacio' && PASE !== 'gestor') return;
+    if (!M || !I || !R) return ok('licencia: las piezas están a mano', false, 'falta alguna', 'CIIP_MARCA, CIIP_IMPORTE, CIIP_RECAUDOS');
+    var hace = function(h){ return new Date(Date.now() - h * 3600000).toISOString(); };
+    var tr = function(id, estado, pasos){
+      return {id: id, tipo: 'licencia_municipal', estado: estado, datos: {pasos_ciip: pasos || {}},
+              inversionista: 'u2', gestor: 'u1', enviado_en: hace(200), creado_en: hace(200)};
+    };
+    var pago = function(id, paso, estado){
+      return {id: id, tipo: 'pago_importe_dia', creado_en: hace(3), estado: estado || 'cargado',
+              paso_importe: paso, nombre_original: id + '.pdf'};
+    };
+    var imp = function(id, paso){
+      return {id: id, tipo: 'importe_dia', creado_en: new Date().toISOString(), estado: 'validado',
+              paso_importe: paso, nombre_original: id + '.pdf', archivo: 'u2/emitidos/' + id + '.pdf'};
+    };
+
+    if (PASE === 'vacio'){
+      ok('licencia: el formulario ya no pregunta los metros cuadrados',
+         !R.campos('licencia_municipal').some(function(c){ return c.n === 'metros'; }),
+         R.campos('licencia_municipal').map(function(c){ return c.n; }).join(', '), 'sin metros');
+      var E0 = M.escalera(tr('lc-a', 'enviado'), 'licencia_municipal');
+      igual('licencia: seis pasos, en el orden del CIIP',
+            E0.todos.map(function(p){ return p.clave; }).join(','),
+            'revision,firma,importe_tasa,importe_timbre,pagos,licencia');
+      igual('licencia: con los nombres del pedido',
+            E0.todos.slice(0, 5).map(function(p){ return p.nombre; }).join(' → '),
+            'Revisión de recaudos por el CIIP → Firme la planilla de solicitud de trámite → ' +
+            'Importe de tasa administrativa → Importe de timbre fiscal otorgamiento de documentos: ' +
+            'licencia de actividades económicas → Comprobante del pago');
+      igual('licencia: recibida, va por la revisión', E0.ahora && E0.ahora.clave, 'revision');
+      var E1 = M.escalera(tr('lc-b', 'en_revision'), 'licencia_municipal');
+      igual('licencia: en revisión, toca firmar la planilla', E1.ahora && E1.ahora.clave, 'firma');
+      var E2 = M.escalera(tr('lc-c', 'ante_el_ente'), 'licencia_municipal');
+      igual('licencia: ante la alcaldía, espera el importe de la tasa', E2.ahora && E2.ahora.clave, 'importe_tasa');
+      var dos = {importe_tasa: hace(5), importe_timbre: hace(4)};
+      var E3 = M.escalera(tr('lc-d', 'ante_el_ente', dos), 'licencia_municipal');
+      igual('licencia: con los dos importes, toca el comprobante del pago', E3.ahora && E3.ahora.clave, 'pagos');
+      var unPago = {importe_tasa: hace(5), importe_timbre: hace(4), pago_tasa: hace(2)};
+      var E4 = M.escalera(tr('lc-e', 'ante_el_ente', unPago), 'licencia_municipal');
+      ok('licencia: con un solo comprobante el paso sigue en curso, esperando el del timbre',
+         !!E4.ahora && E4.ahora.clave === 'pagos' && E4.importeEnCurso === 'timbre',
+         (E4.ahora && E4.ahora.clave) + ' · ' + E4.importeEnCurso, 'pagos · timbre');
+      var todo = {importe_tasa: hace(5), importe_timbre: hace(4), pago_tasa: hace(2), pago_timbre: hace(1)};
+      var E5 = M.escalera(tr('lc-f', 'ante_el_ente', todo), 'licencia_municipal');
+      igual('licencia: con los dos, espera la licencia', E5.ahora && E5.ahora.clave, 'licencia');
+      var E6 = M.escalera(tr('lc-g', 'resuelto', todo), 'licencia_municipal');
+      ok('licencia: resuelta, todo hecho', E6.hechos === E6.todos.length && !E6.ahora,
+         E6.hechos + ' de ' + E6.todos.length, 'todo hecho');
+      igual('licencia: no exige un paso apuntado para resolver, como la marca', M.falta(tr('lc-h', 'ante_el_ente', todo)), null);
+      igual('licencia: la marca sigue exigiendo su certificado',
+            M.falta({id: 'mc-x', tipo: 'marca', estado: 'ante_el_ente', datos: {pasos_ciip: {}}}), 'mc_g_faltacert');
+      var pide = M.comprobante(tr('lc-i', 'ante_el_ente'));
+      igual('licencia: para resolver pide los dos comprobantes',
+            pide ? pide.tipo + ' · ' + (pide.pasos || []).join('+') : '(nada)', 'pago_importe_dia · tasa+timbre');
+
+      /* Pintada en el paso del comprobante: sin encabezado de etapa y con
+         una caja por importe. */
+      var hueco = document.createElement('div');
+      var ol = document.createElement('ol');
+      ol.className = 'tr-pasos';
+      hueco.appendChild(ol);
+      window.__IMPORTE_DOCS = {'lc-caja': [imp('it', 'tasa'), imp('ib', 'timbre'), pago('pt', 'tasa')],
+                               'lc-sin': [pago('pt2', 'tasa')],
+                               'lc-con': [pago('pt3', 'tasa'), pago('pb3', 'timbre')],
+                               'lc-rech': [pago('pt4', 'tasa'), pago('pb4', 'timbre', 'rechazado')]};
+      var tCaja = tr('lc-caja', 'ante_el_ente', unPago);
+      M.pinta(ol, M.escalera(tCaja, 'licencia_municipal'), tCaja, {}, false);
+      igual('licencia: una sola etapa, sin encabezado', hueco.querySelectorAll('li.tr-etapa').length, 0);
+      var cajas = hueco.querySelectorAll('li.tr-paso.ahora[data-paso="pagos"] .imp-de');
+      igual('licencia: el comprobante del pago lleva dos casillas, tasa y timbre',
+            [].map.call(cajas, function(c){ return c.getAttribute('data-paso-importe'); }).join(','), 'tasa,timbre');
+      ok('licencia: cada una con el nombre de su importe',
+         cajas.length === 2 && cajas[1].querySelector('.imp-de-t').textContent.indexOf('timbre fiscal') > 0,
+         cajas.length ? cajas[cajas.length - 1].querySelector('.imp-de-t').textContent : '(sin cajas)', 'Importe de timbre fiscal…');
+      LC_CAJAS = hueco;
+      LC_CAJAS.hidden = true;
+      document.body.appendChild(LC_CAJAS);
+
+      /* Y la cuenta de los comprobantes para resolver, con la base de
+         mentira: uno solo no basta, uno rechazado tampoco. */
+      M.faltaPago(tr('lc-sin', 'ante_el_ente')).then(function(f){ LC_FALTA.sin = f; });
+      M.faltaPago(tr('lc-con', 'ante_el_ente')).then(function(f){ LC_FALTA.con = f; });
+      M.faltaPago(tr('lc-rech', 'ante_el_ente')).then(function(f){ LC_FALTA.rech = f; });
+    }
+
+    if (PASE === 'gestor'){
+      igual('licencia: gestor, en revisión no hay casilla de importes',
+            M.casilla(tr('lc-g0', 'en_revision'), 'prb-lc-'), null);
+      LC_CAJAS = document.createElement('div');
+      LC_CAJAS.hidden = true;
+      document.body.appendChild(LC_CAJAS);
+      var c = M.casilla(tr('lc-g1', 'ante_el_ente'), 'prb-lc-');
+      if (c) LC_CAJAS.appendChild(c);
+      var g = c ? c.querySelectorAll('.imp-g') : [];
+      igual('licencia: gestor, ante la alcaldía ve las dos casillas del importe a la vez',
+            [].map.call(g, function(x){ return x.getAttribute('data-paso-importe'); }).join(','), 'tasa,timbre');
+      ok('licencia: gestor, con el título de la licencia y no el de la marca',
+         !!c && c.querySelector('.imp-g-t').textContent.indexOf('Licencia de actividades') === 0,
+         c ? c.querySelector('.imp-g-t').textContent : '(sin casilla)', 'Licencia de actividades económicas · paso en curso');
+      ok('licencia: gestor, y sin «Etapa 1» delante del paso',
+         !!c && !/Etapa/.test((c.querySelector('.mc-g-paso') || {}).textContent || ''),
+         c ? (c.querySelector('.mc-g-paso') || {}).textContent : '(sin casilla)', '3. Importe de tasa administrativa');
+    }
+  }
+  function licenciaMira(){
+    if (!LC_CAJAS || (PASE !== 'vacio' && PASE !== 'gestor')) return;
+    if (PASE === 'vacio'){
+      var tasa = LC_CAJAS.querySelector('.imp-de[data-paso-importe="tasa"] [data-fase]');
+      var timbre = LC_CAJAS.querySelector('.imp-de[data-paso-importe="timbre"] [data-fase]');
+      igual('licencia: la tasa sale pagada y el timbre por pagar, cada uno con lo suyo',
+            (tasa ? tasa.getAttribute('data-fase') : '?') + ' · ' + (timbre ? timbre.getAttribute('data-fase') : '?'),
+            'pagado · vigente');
+      igual('licencia: con un solo comprobante falta el otro para resolver', LC_FALTA.sin, true);
+      igual('licencia: con los dos, ya se puede resolver', LC_FALTA.con, false);
+      igual('licencia: un comprobante rechazado no cuenta', LC_FALTA.rech, true);
+    }
+    LC_CAJAS.remove();
+    LC_CAJAS = null;
+    window.__IMPORTE_DOCS = null;
   }
 
   function alDiaFreno(){

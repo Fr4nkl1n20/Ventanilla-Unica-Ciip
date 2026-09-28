@@ -162,7 +162,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* La conformidad de uso (c28): los tres tipos de documento que pide el
    SIGAT y el borrado de sus pasos viejos. Solo necesita el catálogo de
    documentos y textos_panel. */
-'supabase-conformidad-uso'];
+'supabase-conformidad-uso',
+/* La licencia de actividades económicas (c10): sus dos importes del día con
+   nombre, los pasos que apunta la base y el freno para resolver sin los dos
+   comprobantes. Va DETRÁS del importe del día y de la marca, de quien usa
+   la guarda de los pasos apuntados. */
+'supabase-licencia'];
 
 let mal = 0;
 for (const n of orden) {
