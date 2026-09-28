@@ -7169,6 +7169,32 @@ applyLang(idiomaParaMi());
      sin tener que consultar nada. */
   /* `extra`, columnas de más para la ficha -el nombre del importe al que
      paga un comprobante-. Solo si viene, como el titular. */
+  /* ── UN ARCHIVO SIN FICHA NO SE QUEDA EN EL CUBO (QA-39) ──
+     Subir un papel son dos pasos: el archivo a Storage y su ficha en
+     'documentos'. Si la ficha no entraba -una política, un tipo que la
+     base no admite, la red-, el archivo se quedaba en el cubo sin nadie
+     que supiera de él: el barrendero solo recoge lo que la base apunta al
+     BORRAR una ficha, y aquí no hubo ficha que borrar.
+
+     Así que si la ficha falla, se quita el archivo recién subido, y
+     después se deja pasar el error tal cual para que quien sube diga lo
+     que tenga que decir. Si quitarlo también falla -el equipo no puede
+     borrar en emitidos/-, se dice en la consola y el archivo se queda:
+     es lo mismo que pasaba antes, no algo peor. Recibe la consulta ya
+     armada y devuelve su respuesta. */
+  function sinFichaFuera(ruta, consulta){
+    return Promise.resolve(consulta).then(function(r){
+      if (!r || !r.error) return r;
+      return Promise.resolve().then(function(){
+        return sb.storage.from('recaudos').remove([ruta]);
+      }).then(function(rq){
+        if (rq && rq.error) console.warn('[CIIP] archivo sin ficha, sin quitar:', ruta, rq.error.message || rq.error);
+      }, function(e){
+        console.warn('[CIIP] archivo sin ficha, sin quitar:', ruta, e && (e.message || e));
+      }).then(function(){ return r; });
+    });
+  }
+
   function sube(tipoDoc, archivo, venceEl, duenio, titular, extra){
     return quienSoy().then(function(yo){
       var deQuien = duenio || yo.id;
@@ -7195,7 +7221,7 @@ applyLang(idiomaParaMi());
              de la junta no pide una columna que la base puede no tener. */
           if (titular) fila.titular = titular;
           if (extra) Object.keys(extra).forEach(function(k){ fila[k] = extra[k]; });
-          return sb.from('documentos').insert(fila).select().single();
+          return sinFichaFuera(ruta, sb.from('documentos').insert(fila).select().single());
         })
         .then(function(r){
           if (r.error) throw r.error;
@@ -13554,7 +13580,7 @@ applyLang(idiomaParaMi());
           huella: huella
         };
         if (extra) Object.keys(extra).forEach(function(k){ ficha[k] = extra[k]; });
-        return sb.from('documentos').insert(ficha).select().single();
+        return sinFichaFuera(ruta, sb.from('documentos').insert(ficha).select().single());
       })
       .then(function(r){
         if (r && r.error) throw r.error;
