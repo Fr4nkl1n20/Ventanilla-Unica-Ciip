@@ -2805,9 +2805,13 @@ body[data-vista="tramite"] #secTramites{display:none;}
    tres textos iban sueltos sobre el fondo y no se distinguia donde acababa
    uno y empezaba otro (Franklin Reyes, 28-9-2026, la 2b de las maquetas).
    En oscuro, el azul claro del panel: el #004090 no se ve sobre ese fondo. */
+/* Ceñido a las letras: el ancho lo pone lo mas largo de dentro -el nombre
+   o las lineas de la descripcion, que cortan a 68ch- y no un ancho fijo,
+   que dejaba un blanco grande a la derecha (Franklin Reyes, 28-9-2026:
+   «podemos cerrar mas, casi pegado a las letras»). */
 .tr-caja{background:var(--bg); border:1.5px solid var(--navy); border-radius:var(--r);
-  padding:18px 20px; max-width:760px; box-sizing:border-box; margin-bottom:12px;}
-.tr-raya{border:0; border-top:2px solid var(--navy); margin:16px 0 14px;}
+  padding:14px 18px; width:fit-content; max-width:100%; box-sizing:border-box; margin-bottom:12px;}
+.tr-raya{border:0; border-top:2px solid var(--navy); margin:12px 0 10px;}
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]) .tr-caja,
   :root:not([data-theme="light"]) .tr-raya{border-color:var(--navy2);}
@@ -2828,11 +2832,13 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-ente{font-size:var(--fs-rotulo); font-weight:700; color:var(--gray); margin-top:6px;}
 /* Lo que se clona de la tarjeta trae la letra de la tarjeta. Dentro del
    recuadro manda la escala de Atlas (TIPOGRAFIA.md) con el papel de cada
-   texto en la ficha: el nombre es titulo de pagina (20 / 700), el
+   texto en la ficha: el nombre es titulo de tarjeta (14 / 700), el
    organismo rotulo de un dato (11 / 700, gris) y la descripcion parrafo
    (12.5 / 1.6). Estuvieron a 13 y 14 px, fuera de la escala, y la
-   descripcion se veia grande (Franklin Reyes, 28-9-2026). */
-.tr-nombre .t-name{font-size:var(--fs-titulo); font-weight:700; letter-spacing:-.02em; line-height:1.2;}
+   descripcion se veia grande; y a 20 el nombre tambien (Franklin Reyes,
+   28-9-2026: «la letra del titulo esta muy grande aun»). La jerarquia
+   la hace el peso, no el tamaño. */
+.tr-nombre .t-name{font-size:var(--fs-tarjeta); font-weight:700; letter-spacing:-.01em; line-height:1.3;}
 .tr-ente .t-ente{font-size:var(--fs-rotulo); color:var(--gray); margin-top:0;}
 .tr-desc .t-desc{font-size:var(--fs-parrafo); line-height:1.6; color:var(--ink); margin-top:0;}
 .tr-desc{font-size:var(--fs-parrafo); color:var(--ink); line-height:1.6; max-width:68ch;}
