@@ -122,6 +122,44 @@ end
 $qa$;
 
 
+-- ── QA-06 · Dar de baja en vez de borrar ───────────────────────────────
+-- La baja deja la cuenta bloqueada y con fecha; los trámites, papeles,
+-- citas y aceptaciones del pliego siguen donde estaban.
+alter table public.perfiles
+  add column if not exists dado_de_baja_en  timestamptz,
+  add column if not exists dado_de_baja_por uuid references auth.users(id) on delete set null;
+
+comment on column public.perfiles.dado_de_baja_en is
+  'Baja lógica: la cuenta queda bloqueada y su historia se conserva. La pone un admin';
+
+-- Borrar la cuenta en auth.users arrastra en cascada todo lo suyo, y con
+-- ello la prueba de que aceptó el pliego. Mientras haya aceptaciones no se
+-- borra; si de verdad hay que hacerlo (una cuenta de pruebas), desde el
+-- editor de SQL y a sabiendas:
+--   begin; set local ciip.borrado_fisico = 'si'; delete from auth.users where ...; commit;
+create or replace function public.no_borrar_con_historia()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if coalesce(current_setting('ciip.borrado_fisico', true), '') = 'si' then
+    return old;
+  end if;
+  if to_regclass('public.pliego_aceptaciones') is not null
+     and exists (select 1 from public.pliego_aceptaciones a where a.persona = old.id) then
+    raise exception 'Esta cuenta aceptó el pliego: no se borra, se da de baja desde el panel (Usuarios)';
+  end if;
+  return old;
+end $$;
+
+drop trigger if exists no_borrar_con_historia on auth.users;
+create trigger no_borrar_con_historia
+  before delete on auth.users
+  for each row execute function public.no_borrar_con_historia();
+
+
 -- ── Comprobación ───────────────────────────────────────────────────────
 -- Que es_gestor() y es_admin() sigan dejando entrar a quien debe. Si no
 -- queda ningún admin sin bloquear, se para aquí y no se aplica nada.
