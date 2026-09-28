@@ -154,7 +154,13 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    pasos apuntados en tramites.datos, la contestación con su anuncio y el
    certificado antes de resolver. Va DETRÁS del importe del día, cuyos
    importes con nombre usa, y de los avisos y el hilo, donde escribe. */
-'supabase-marca'];
+'supabase-marca',
+/* La auditoría QA de administración y cuentas: el bloqueo dentro de
+   es_gestor() y es_admin(), la baja en vez del borrado, el correo para el
+   admin y lo que cada cual puede cambiar de un perfil. Redefine
+   funciones de supabase-tramites, -admin, -bitacora y -tope-ia, así que
+   va detrás de todo. */
+'supabase-qa-admin'];
 
 let mal = 0;
 for (const n of orden) {
