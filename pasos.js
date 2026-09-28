@@ -75,14 +75,38 @@ window.CIIP_PASOS = {
        c37: [null, null, "Inscripción ante cada ente", null]   (null = el de todos)
      Si un trámite no está aquí, o le falta un texto, sale el de «estados».
      También se cambian con «Editar textos»: pulsando el paso, la clave es
-     _p.circuito.<ref>.<n>, y vale SOLO para ese trámite. */
+     _p.circuito.<ref>.<n>, y vale SOLO para ese trámite.
+
+     LA CONSTITUCIÓN (c5) Y EL REGISTRO DE EXTRANJEROS (c32), 27-9-2026.
+     «Emisión de PUB para reserva de nombre» es el tercer paso de la
+     constitución y de nadie más, pero salía también en el Registro de
+     Extranjeros y en el registro de marca. Se había escrito con «Editar
+     textos» encima del tercer estado DE TODOS («Presentada ante {ente}»),
+     porque la constitución no tenía el suyo aquí, y lo heredaba cualquier
+     trámite que usara los cuatro de siempre. Ahora la constitución lo
+     lleva en su propia fila, y el Registro de Extranjeros los suyos
+     (Franklin Reyes: «Solicitud recibida por SAREN» y «Autorización para
+     la firma otorgada»). El texto que quedó en la base se borra con
+     supabase-pasos-propios.sql. */
   circuito: {
-    es: {c37: [null, null, "Inscripción ante cada ente", "Las seis constancias, en tu bóveda"]},
-    en: {c37: [null, null, "Registration with each body", "The six certificates, in your vault"]},
-    pt: {c37: [null, null, "Inscrição em cada entidade", "As seis certidões, no seu cofre"]},
-    it: {c37: [null, null, "Iscrizione presso ciascun ente", "I sei certificati, nel tuo archivio"]},
-    zh: {c37: [null, null, "向各机构分别办理登记", "六份证明已存入你的档案库"]},
-    ru: {c37: [null, null, "Регистрация в каждом органе", "Шесть справок в вашем хранилище"]}
+    es: {c37: [null, null, "Inscripción ante cada ente", "Las seis constancias, en tu bóveda"],
+         c5:  [null, null, "Emisión de PUB para reserva de nombre", null],
+         c32: [null, null, "Solicitud recibida por SAREN", "Autorización para la firma otorgada"]},
+    en: {c37: [null, null, "Registration with each body", "The six certificates, in your vault"],
+         c5:  [null, null, "PUB issued for the name reservation", null],
+         c32: [null, null, "Application received by SAREN", "Signature authorization granted"]},
+    pt: {c37: [null, null, "Inscrição em cada entidade", "As seis certidões, no seu cofre"],
+         c5:  [null, null, "Emissão do PUB para a reserva do nome", null],
+         c32: [null, null, "Pedido recebido pelo SAREN", "Autorização para a assinatura concedida"]},
+    it: {c37: [null, null, "Iscrizione presso ciascun ente", "I sei certificati, nel tuo archivio"],
+         c5:  [null, null, "Emissione del PUB per la riserva del nome", null],
+         c32: [null, null, "Richiesta ricevuta dal SAREN", "Autorizzazione alla firma concessa"]},
+    zh: {c37: [null, null, "向各机构分别办理登记", "六份证明已存入你的档案库"],
+         c5:  [null, null, "为名称预留开具 PUB", null],
+         c32: [null, null, "SAREN 已收到申请", "签名授权已批准"]},
+    ru: {c37: [null, null, "Регистрация в каждом органе", "Шесть справок в вашем хранилище"],
+         c5:  [null, null, "Выдача PUB для резервирования названия", null],
+         c32: [null, null, "Заявка получена SAREN", "Разрешение на подпись выдано"]}
   },
 
 
@@ -7392,7 +7416,7 @@ window.CIIP_PASOS = {
       c29: ["Solicitud de inspección al cuerpo de bomberos", "Revisión de los sistemas contra incendios", "Inspección del local", "Certificado de prevención emitido"],
       c30: ["Clasificación del nivel de impacto ambiental", "Consignación del expediente técnico", "Evaluación por la autoridad ambiental", "Autorización ambiental otorgada"],
       c31: ["Expediente de la inversión ante el órgano rector", "Verificación del aporte y de su origen", "Evaluación y registro de la inversión", "Certificado de Inversionista emitido"],
-      c32: ["Solicitud en línea en el SISREF", "Cita en la oficina del SAREN", "Verificación de identidad y firma", "Constancia de firma registrada"],
+      c32: ["Solicitud recibida por el CIIP", "Revisión de tus recaudos", "Solicitud recibida por SAREN", "Autorización para la firma otorgada"],
       c33: ["Revisión de tus recaudos", "Verificado"],
       c34: ["Carta al Comandante de la ZODI con tu expediente", "Apertura del expediente en la sede de la región", "Inspección del sitio, si tu actividad la requiere", "Opinión favorable emitida"],
       c35: ["Usuario en el portal RUPDAE con el RIF y el correo de la empresa", "Carga de datos, establecimientos y representante legal", "Revisión de la SUNDDE", "Certificado RUPDAE emitido"],
@@ -7432,7 +7456,7 @@ window.CIIP_PASOS = {
       c29: ["Inspection requested from the fire department", "Review of the fire-protection systems", "Inspection of the premises", "Fire-safety certificate issued"],
       c30: ["Classification of the environmental impact level", "Submission of the technical file", "Assessment by the environmental authority", "Environmental authorisation granted"],
       c31: ["Investment file submitted to the governing body", "Verification of the contribution and its origin", "Assessment and registration of the investment", "Investor Certificate issued"],
-      c32: ["Online request through SISREF", "Appointment at the SAREN office", "Identity check and signature", "Signature registration certificate"],
+      c32: ["Application received by CIIP", "Review of your documents", "Application received by SAREN", "Signature authorization granted"],
       c33: ["Review of your documents", "Verified"],
       c34: ["Letter to the ZODI Commander with your file", "File opened at the regional headquarters", "Site inspection, if your activity requires one", "Clearance issued"],
       c35: ["RUPDAE portal account with the company’s RIF and email", "Company details, premises and legal representative entered", "SUNDDE review", "RUPDAE certificate issued"],
@@ -7472,7 +7496,7 @@ window.CIIP_PASOS = {
       c29: ["Pedido de inspeção ao corpo de bombeiros", "Análise dos sistemas contra incêndios", "Inspeção do local", "Certificado de prevenção emitido"],
       c30: ["Classificação do nível de impacto ambiental", "Entrega do processo técnico", "Avaliação pela autoridade ambiental", "Autorização ambiental concedida"],
       c31: ["Processo do investimento junto do órgão regulador", "Verificação do aporte e da sua origem", "Avaliação e registo do investimento", "Certificado de Investidor emitido"],
-      c32: ["Pedido em linha no SISREF", "Marcação na delegação do SAREN", "Verificação de identidade e assinatura", "Certidão de assinatura registada"],
+      c32: ["Solicitação recebida pelo CIIP", "Análise dos seus documentos", "Pedido recebido pelo SAREN", "Autorização para a assinatura concedida"],
       c33: ["Análise dos seus documentos", "Verificado"],
       c34: ["Carta ao Comandante da ZODI com o seu processo", "Abertura do processo na sede da região", "Inspeção do local, se a sua atividade o exigir", "Parecer favorável emitido"],
       c35: ["Conta no portal RUPDAE com o RIF e o e-mail da empresa", "Carregamento dos dados, estabelecimentos e representante legal", "Análise da SUNDDE", "Certificado RUPDAE emitido"],
@@ -7512,7 +7536,7 @@ window.CIIP_PASOS = {
       c29: ["Richiesta di sopralluogo ai vigili del fuoco", "Verifica degli impianti antincendio", "Sopralluogo del locale", "Certificato di prevenzione rilasciato"],
       c30: ["Classificazione del livello di impatto ambientale", "Presentazione del fascicolo tecnico", "Valutazione da parte dell'autorità ambientale", "Autorizzazione ambientale rilasciata"],
       c31: ["Fascicolo dell'investimento all'organo competente", "Verifica del conferimento e della sua origine", "Valutazione e registrazione dell'investimento", "Certificato di Investitore rilasciato"],
-      c32: ["Domanda online su SISREF", "Appuntamento presso l'ufficio SAREN", "Verifica dell'identità e firma", "Attestazione della firma registrata"],
+      c32: ["Richiesta ricevuta dal CIIP", "Esame dei tuoi documenti", "Richiesta ricevuta dal SAREN", "Autorizzazione alla firma concessa"],
       c33: ["Esame dei tuoi documenti", "Verificato"],
       c34: ["Lettera al Comandante della ZODI con il tuo fascicolo", "Apertura del fascicolo presso la sede regionale", "Ispezione del sito, se la tua attività la richiede", "Parere favorevole rilasciato"],
       c35: ["Account sul portale RUPDAE con RIF ed email della società", "Inserimento di dati, sedi e rappresentante legale", "Esame della SUNDDE", "Certificato RUPDAE rilasciato"],
@@ -7552,7 +7576,7 @@ window.CIIP_PASOS = {
       c29: ["向消防部门申请检查", "审查消防系统", "现场查勘", "核发消防安全证书"],
       c30: ["确定环境影响等级", "提交技术档案材料", "由环境主管部门评估", "取得环境许可"],
       c31: ["向主管机关提交投资档案", "核验出资及其来源", "评估并登记该项投资", "核发投资者证书"],
-      c32: ["通过 SISREF 在线申请", "在 SAREN 办事处预约", "身份核验与签名", "签名登记证明"],
+      c32: ["CIIP 已收到申请", "审核你的材料", "SAREN 已收到申请", "签名授权已批准"],
       c33: ["审核你的材料", "已核验"],
       c34: ["向 ZODI 指挥官递交函件及材料", "在地区总部立卷", "如业务需要，进行现场检查", "出具无异议意见"],
       c35: ["用公司 RIF 和邮箱开通 RUPDAE 账户", "填报公司资料、经营场所和法定代表人", "SUNDDE 审核", "出具 RUPDAE 证书"],
@@ -7592,7 +7616,7 @@ window.CIIP_PASOS = {
       c29: ["Заявка на проверку в пожарную службу", "Проверка систем противопожарной защиты", "Осмотр помещения", "Выдача свидетельства о пожарной безопасности"],
       c30: ["Определение уровня воздействия на окружающую среду", "Подача технического досье", "Оценка природоохранным органом", "Выдача экологического разрешения"],
       c31: ["Досье об инвестиции в профильный орган", "Проверка вклада и его происхождения", "Оценка и регистрация инвестиции", "Выдача свидетельства инвестора"],
-      c32: ["Онлайн-заявка в SISREF", "Приём в отделении SAREN", "Проверка личности и подпись", "Свидетельство о регистрации подписи"],
+      c32: ["Заявка получена CIIP", "Проверка ваших документов", "Заявка получена SAREN", "Разрешение на подпись выдано"],
       c33: ["Проверка ваших документов", "Проверено"],
       c34: ["Письмо командующему ZODI с вашим досье", "Открытие дела в региональном штабе", "Осмотр объекта, если этого требует деятельность", "Заключение выдано"],
       c35: ["Учётная запись на портале RUPDAE по RIF и почте компании", "Ввод данных, объектов и законного представителя", "Проверка SUNDDE", "Выдача сертификата RUPDAE"],

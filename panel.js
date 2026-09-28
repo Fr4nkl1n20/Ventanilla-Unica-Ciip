@@ -7291,6 +7291,9 @@ applyLang(idiomaParaMi());
     return {alcanzado: alcanzado, conReserva: conReserva, ref: ref, delante: delante,
             propios: propios, pre: pre, circ: circ, reserva: reserva, todos: todos};
   }
+  /* Para las pruebas: qué pasos le salen a un trámite sin tener que
+     montar su ficha entera. */
+  window.CIIP_ESCALERA = escaleraDe;
 
   function pintaEstado(tipo, tr){
     var u = T();

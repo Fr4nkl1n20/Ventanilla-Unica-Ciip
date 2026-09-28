@@ -10562,6 +10562,29 @@
        claves(TX.busca('Paso cambiado en la prueba')), '_p.pasos.c1.0');
     TX.pon(lang, '_p.pasos.c1.0', null);
     igual('textos: y vuelve al original', P.pasos[lang].c1[0], paso);
+
+    /* «Emisión de PUB para reserva de nombre» se escribió sobre el tercer
+       estado DE TODOS y salió en el Registro de Extranjeros (27-9-2026).
+       Con el cambio de la base puesto otra vez, el Registro de Extranjeros
+       tiene que seguir con los suyos y la constitución con el suyo. */
+    var ESC = window.CIIP_ESCALERA;
+    var C = P && P.circuito && P.circuito[lang];
+    ok('pasos: la constitución y el Registro de Extranjeros llevan su circuito',
+       !!(ESC && C && C.c5 && C.c32), (ESC ? 'hay escalera' : 'sin escalera') + ', ' +
+       (C ? Object.keys(C).join(',') : 'sin circuito'), 'c5 y c32');
+    if (!ESC || !C || !C.c5 || !C.c32) return;
+    TX.pon(lang, '_p.estados.2', 'Paso de todos cambiado en la prueba');
+    var nombres = function(codigo, ente){
+      return ESC({estado: 'ante_el_ente', datos: {}}, codigo, ente).todos
+        .map(function(p){ return p.nombre; });
+    };
+    var ext = nombres('registro_extranjeros_saren', 'SAREN · SISREF');
+    igual('pasos: el Registro de Extranjeros no hereda el paso de todos',
+          ext.slice(2).join(' | '), C.c32[2] + ' | ' + C.c32[3]);
+    ok('pasos: y la constitución dice el suyo, el del PUB de la reserva',
+       nombres('constitucion', 'SAREN').indexOf(C.c5[2]) >= 0,
+       nombres('constitucion', 'SAREN').join(' | '), C.c5[2]);
+    TX.pon(lang, '_p.estados.2', null);
   }
 
   /* EL REPASO QUE PONE AL DÍA LAS PANTALLAS, Y LO QUE NO DEBE TOCAR.
