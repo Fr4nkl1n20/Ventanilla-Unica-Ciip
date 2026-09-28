@@ -55,7 +55,7 @@
    que tenia este panel desde el principio. ────────────────────────────── */
   --navy:#004090; --navy2:#0060B0; --navy-deep:#00336d; --cyan:#20B0F0; --cyan-deep:#0E8FD6;
   --ink:#0E1424; --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6;
-  --block:#F4F7FB; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#5B6478;
+  --block:#F4F7FB; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--tr-velo:rgba(255,255,255,.35);--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#5B6478;
   --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9; --good:#1E7F5C; --good-bg:#E7F4EE;
   --r:10px; --r-sm:7px;
   /* Escala tipografica de Atlas: un escalon por trabajo. Esta entera en
@@ -71,7 +71,7 @@
 @media (prefers-color-scheme:dark){
   :root{
     --ink:#EAEEF6; --gray:#9AA6BC; --gray-soft:#6E7B93; --line:rgba(255,255,255,.10); --line-soft:rgba(255,255,255,.06);
-    --block:#0A1120; --bg:#0F1A2E; --card-2:#12203A;--hoja:#0A1120;--activa-bg:#132745; --dormida-bg:#0C1526; --mudo:#9AA6BC;
+    --block:#0A1120; --bg:#0F1A2E; --card-2:#12203A;--hoja:#0A1120;--tr-velo:rgba(255,255,255,.04);--activa-bg:#132745; --dormida-bg:#0C1526; --mudo:#9AA6BC;
     --navy2:#4C97E8; --cyan-deep:#5CC6FF;
     --amber:#DBA94C; --amber-bg:#33280F; --rust:#E28A67; --rust-bg:#33201A; --good:#43B48C; --good-bg:#11291F;
     --shadow:0 1px 2px 0 rgba(0,0,0,.25);
@@ -80,7 +80,7 @@
 }
 :root[data-theme="light"]{
   --ink:#0E1424; --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6;
-  --block:#F4F7FB; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#5B6478;
+  --block:#F4F7FB; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--tr-velo:rgba(255,255,255,.35);--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#5B6478;
   --navy2:#0060B0; --cyan-deep:#0E8FD6;
   --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9; --good:#1E7F5C; --good-bg:#E7F4EE;
   --shadow:0 1px 2px rgba(14,20,36,.04), 0 6px 18px rgba(14,20,36,.06);
@@ -88,7 +88,7 @@
 }
 :root[data-theme="dark"]{
   --ink:#EAEEF6; --gray:#9AA6BC; --gray-soft:#6E7B93; --line:rgba(255,255,255,.10); --line-soft:rgba(255,255,255,.06);
-  --block:#0A1120; --bg:#0F1A2E; --card-2:#12203A;--hoja:#0A1120;--activa-bg:#132745; --dormida-bg:#0C1526; --mudo:#9AA6BC;
+  --block:#0A1120; --bg:#0F1A2E; --card-2:#12203A;--hoja:#0A1120;--tr-velo:rgba(255,255,255,.04);--activa-bg:#132745; --dormida-bg:#0C1526; --mudo:#9AA6BC;
   --navy2:#4C97E8; --cyan-deep:#5CC6FF;
   --amber:#DBA94C; --amber-bg:#33280F; --rust:#E28A67; --rust-bg:#33201A; --good:#43B48C; --good-bg:#11291F;
   --shadow:0 1px 2px 0 rgba(0,0,0,.25);
@@ -2805,26 +2805,20 @@ body[data-vista="tramite"] #trVolver{display:inline-flex;}
 body[data-vista="tramite"] .solo-inicio,
 body[data-vista="tramite"] #secTramites{display:none;}
 
-/* EL RECUADRO. Nombre, organismo y descripcion juntos, con borde azul CIIP
-   y una raya del mismo azul entre la cabecera y la descripcion: antes los
-   tres textos iban sueltos sobre el fondo y no se distinguia donde acababa
-   uno y empezaba otro (Franklin Reyes, 28-9-2026, la 2b de las maquetas).
-   En oscuro, el azul claro del panel: el #004090 no se ve sobre ese fondo. */
-/* Del mismo ancho que la tira de pasos y la hoja del formulario: los 880
-   de .pa. Estuvo ceñido a las letras y quedaba corto; luego, a todo el
-   ancho del contenido, y se pasaba por la derecha (Franklin Reyes,
-   28-9-2026: «ajustar el ancho de la ficha de arriba con la del cuadro de
-   abajo»). Si cambia el ancho de .pa, cambia este con el. La descripcion
-   sigue cortando a 68ch para que se lea bien. */
-.tr-caja{background:var(--bg); border:1.5px solid var(--navy); border-radius:var(--r);
-  padding:14px 18px; box-sizing:border-box; max-width:880px; margin-bottom:12px;}
-.tr-raya{border:0; border-top:2px solid var(--navy); margin:12px 0 10px;}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]) .tr-caja,
-  :root:not([data-theme="light"]) .tr-raya{border-color:var(--navy2);}
-}
-:root[data-theme="dark"] .tr-caja,
-:root[data-theme="dark"] .tr-raya{border-color:var(--navy2);}
+/* EL RECUADRO. Nombre, organismo y descripcion juntos, separados por una
+   raya entre la cabecera y la descripcion: antes los tres textos iban
+   sueltos sobre el fondo y no se distinguia donde acababa uno y empezaba
+   otro (Franklin Reyes, 28-9-2026, la 2b de las maquetas).
+   Ahora es la 3 de las maquetas del recuadro: un velo blanco medio
+   transparente, sin borde, cerrado casi pegado a las letras, y la raya en
+   gris. El borde azul grueso chocaba con el cuadro azul de subir el
+   documento, que va justo debajo (Franklin Reyes, 28-9-2026). La
+   descripcion corta a 62ch para que el recuadro no se estire. */
+/* El velo (--tr-velo) va con los demas colores, arriba: blanco al 35 % en
+   claro y al 4 % en oscuro, donde el 35 % seria un parche claro. */
+.tr-caja{background:var(--tr-velo); border-radius:12px; padding:12px 16px; box-sizing:border-box;
+  width:fit-content; max-width:min(100%, 880px); margin-bottom:12px;}
+.tr-raya{border:0; border-top:1px solid var(--line); margin:12px 0 10px;}
 .tr-cab{display:flex; align-items:center; gap:14px;}
 /* El hueco del distintivo desaparece cuando no lleva nada dentro. Un div
    vacio en una fila flex no se ve, pero su separacion si: catorce pixeles
@@ -2848,7 +2842,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-nombre .t-name{font-size:var(--fs-tarjeta); font-weight:700; letter-spacing:-.01em; line-height:1.3;}
 .tr-ente .t-ente{font-size:var(--fs-rotulo); color:var(--gray); margin-top:0;}
 .tr-desc .t-desc{font-size:var(--fs-parrafo); line-height:1.6; color:var(--ink); margin-top:0;}
-.tr-desc{font-size:var(--fs-parrafo); color:var(--ink); line-height:1.6; max-width:68ch;}
+.tr-desc{font-size:var(--fs-parrafo); color:var(--ink); line-height:1.6; max-width:62ch;}
 .tr-plazo{display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-nota);
   color:var(--gray); margin-top:11px;}
 .tr-plazo svg{width:13px; height:13px; stroke:currentColor; stroke-width:1.8; fill:none;}
