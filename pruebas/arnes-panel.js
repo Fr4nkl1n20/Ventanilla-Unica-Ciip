@@ -7742,25 +7742,40 @@
     }
 
     /* Debajo, los dos desplegables. Vacíos dicen que pronto habrá lista;
-       con lista, un lugar por renglón. */
+       con lista, un lugar por renglón. La de firma ya trae los proveedores
+       de SUSCERTE, y cada uno lleva a su página. */
     var desp = document.querySelectorAll('#ayLista .ay-dil details');
     igual('ayuda: dos desplegables de diligencias', desp.length, 2);
     igual('ayuda: el primero es la firma electrónica',
           desp[0] ? desp[0].querySelector('.qt').textContent.trim() : '', 'Firma electrónica');
     igual('ayuda: y el segundo los certificados médicos',
           desp[1] ? desp[1].querySelector('.qt').textContent.trim() : '', 'Certificados médicos');
-    igual('ayuda: sin lista, los dos dicen que pronto la habrá',
-          document.querySelectorAll('#ayLista .ay-pronto').length, 2);
+    igual('ayuda: la de médicos, sin lista, dice que pronto la habrá',
+          document.querySelectorAll('#ayLista [data-ui="ay_medicos_lista"] .ay-pronto').length, 1);
+    var prov = document.querySelectorAll('#ayLista [data-ui="ay_firma_lista"] li');
+    igual('ayuda: la de firma trae los seis proveedores de SUSCERTE', prov.length, 6);
+    var authe = [].filter.call(prov, function(x){ return /Authenology/.test(x.textContent); })[0];
+    var aA = authe && authe.querySelector('a.ay-enlace');
+    igual('ayuda: Authenology lleva directo a su página',
+          aA ? aA.getAttribute('href') : '', 'https://app.authenology.com.ve');
+    igual('ayuda: y se abre en otra pestaña, sin tocar esta',
+          aA ? aA.target + ' ' + aA.rel : '', '_blank noopener noreferrer');
+    igual('ayuda: el enlace dice el nombre y al lado la dirección',
+          aA ? aA.textContent + ' / ' + authe.querySelector('.ay-host').textContent : '',
+          'Authenology / app.authenology.com.ve');
     if (TX && TX.pon && window.CIIP_REPINTA_AYUDA){
-      TX.pon(lang, 'ay_firma_lista', 'Lugar uno\n\n  Lugar dos  \nLugar tres');
+      TX.pon(lang, 'ay_firma_lista', 'Lugar uno\n\n  Lugar dos  \nLugar tres | javascript:alert(1)');
       repinta();
       var li = document.querySelectorAll('#ayLista [data-ui="ay_firma_lista"] li');
       igual('ayuda: con lista, un lugar por renglón y sin renglones vacíos', li.length, 3);
       igual('ayuda: y cada lugar sin espacios de más', li[1] ? li[1].textContent : '', 'Lugar dos');
+      igual('ayuda: sin dirección http no hay enlace, y el texto queda entero',
+            li[2] ? li[2].querySelectorAll('a').length + ' ' + li[2].textContent : '',
+            '0 Lugar tres | javascript:alert(1)');
       TX.pon(lang, 'ay_firma_lista', null);
       repinta();
-      igual('ayuda: y al vaciarla vuelve el aviso',
-            document.querySelectorAll('#ayLista .ay-pronto').length, 2);
+      igual('ayuda: y al quitar lo escrito vuelven los seis proveedores',
+            document.querySelectorAll('#ayLista [data-ui="ay_firma_lista"] li').length, 6);
     }
 
     ok('ayuda: sin huecos del marcado a la vista',

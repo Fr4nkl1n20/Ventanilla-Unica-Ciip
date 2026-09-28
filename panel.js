@@ -22639,6 +22639,31 @@ applyLang(idiomaParaMi());
                               .filter(Boolean);
   }
 
+  /* Un renglón «Nombre | https://…» sale como enlace con el nombre, y la
+     dirección suelta al lado para que se vea adónde lleva. Sin dirección, o
+     con algo que no empieza por http, se queda en texto: lo que escribió el
+     CIIP nunca se pierde. En «Editar textos» el clic no sale de la página:
+     textos-editables.js lo detiene antes, en la captura. */
+  function aySitio(renglon){
+    var li = el('li');
+    var corte = renglon.lastIndexOf('|');
+    var nombre = corte < 0 ? renglon : renglon.slice(0, corte).trim();
+    var url = corte < 0 ? renglon : renglon.slice(corte + 1).trim();
+    if (!/^https?:\/\/[^\s"'<>]+$/i.test(url)){
+      li.textContent = renglon;
+      return li;
+    }
+    var host = url.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+    var a = el('a', 'ay-enlace', nombre && nombre !== url ? nombre : host);
+    a.href = url;
+    a.target = '_blank';
+    /* noopener: la pestaña que se abre no puede tocar esta. */
+    a.rel = 'noopener noreferrer';
+    li.appendChild(a);
+    if (nombre && nombre !== url) li.appendChild(el('span', 'ay-host', host));
+    return li;
+  }
+
   function pintaAyuda(){
     if (!ayLista) return;
     var u = T();
@@ -22739,7 +22764,7 @@ applyLang(idiomaParaMi());
       var sitios = ayRenglones(g.l);
       if (sitios.length){
         var ul = el('ul', 'ay-sitios');
-        sitios.forEach(function(x){ ul.appendChild(el('li', null, x)); });
+        sitios.forEach(function(x){ ul.appendChild(aySitio(x)); });
         cuerpo.appendChild(ul);
       } else {
         cuerpo.appendChild(el('div', 'ay-pronto', u.ay_pronto || ''));

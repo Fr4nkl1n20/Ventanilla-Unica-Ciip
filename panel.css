@@ -1412,6 +1412,11 @@ body.editando-textos .faq-item.ay-sin{display:block;}
 .ay-dil .faq-a{padding-left:16px;}
 .ay-sitios{margin:0; padding:0 0 0 18px; display:grid; gap:5px;}
 .ay-sitios li{line-height:1.5;}
+/* El nombre lleva a la página del lugar; la dirección, al lado y más
+   apagada, dice adónde antes de pulsar. */
+.ay-enlace{color:var(--navy2); font-weight:700; text-decoration:none;}
+.ay-enlace:hover{text-decoration:underline;}
+.ay-host{margin-left:8px; font-size:var(--fs-nota); color:var(--gray-soft); overflow-wrap:anywhere;}
 .ay-pronto{color:var(--gray-soft);}
 /* El horario de atencion: una tarjeta como las preguntas, que no se pliega,
    con el reloj donde las preguntas llevan el numero (con su propia clase:

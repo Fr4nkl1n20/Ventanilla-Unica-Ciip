@@ -813,11 +813,15 @@ window.CIIP_PASOS = {
       ac_rango:     "El monto de hasta no puede ser menor que el de desde.",
       ac_error:     "No se pudo guardar. {e}",
       /* Ayuda y guía: arriba las preguntas y respuestas, abajo dónde hacer
-         dos diligencias. Las respuestas de las dos preguntas nuevas y las
-         dos listas nacen vacías y las escribe el CIIP con «Editar textos».
-         Mientras una respuesta esté vacía, su pregunta no se le enseña al
-         inversionista; una lista vacía dice que se publicará pronto. En las
-         listas va un lugar por renglón. */
+         dos diligencias. Las respuestas de las dos preguntas nuevas y la
+         lista de médicos nacen vacías y las escribe el CIIP con «Editar
+         textos». Mientras una respuesta esté vacía, su pregunta no se le
+         enseña al inversionista; una lista vacía dice que se publicará
+         pronto. En las listas va un lugar por renglón, y «Nombre | dirección»
+         lo vuelve un enlace. La de firma trae los seis proveedores que
+         SUSCERTE da por acreditados (suscerte.gob.ve, septiembre de 2026);
+         los otros idiomas la toman de aquí, porque los nombres no se
+         traducen. */
       ay_q_licencia: "¿Se pueden homologar licencias de conducir en Venezuela?",
       ay_r_licencia: "",
       ay_q_zonas:    "¿Cuáles son las zonas económicas especiales y estratégicas de Venezuela?",
@@ -825,7 +829,12 @@ window.CIIP_PASOS = {
       ay_sinresp:    "Sin respuesta todavía. Pulsa aquí para escribirla: hasta entonces el inversionista no ve esta pregunta.",
       ay_dil_t:      "Dónde puedes realizar las siguientes diligencias",
       ay_firma:      "Firma electrónica",
-      ay_firma_lista: "",
+      ay_firma_lista: "Apacuana (Soluciones Tecnológicas Apacuana) | https://www.apacuana.com\n" +
+                      "Authenology | https://app.authenology.com.ve\n" +
+                      "FirmeDigital | https://firmedigital.com\n" +
+                      "Fundación Instituto de Ingeniería (FIIIDT) | http://www.fii.gob.ve\n" +
+                      "PROCERT | https://www.procert.net.ve\n" +
+                      "Soluciones Financieras Chinchin | https://www.pagochinchin.com",
       ay_medicos:    "Certificados médicos",
       ay_medicos_lista: "",
       ay_pronto:     "Pronto publicaremos la lista.",
