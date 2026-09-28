@@ -138,7 +138,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    Caracas y el comprobante que se paga contra él. Su trigger va aparte
    del de supabase-papeles-sellados, y necesita es_gestor() y es_admin();
    va al final para no mover el número de nadie. */
-'supabase-importe-del-dia'];
+'supabase-importe-del-dia',
+/* El registro de marca por etapas (c8): sus dos papeles del CIIP, los
+   pasos apuntados en tramites.datos, la contestación con su anuncio y el
+   certificado antes de resolver. Va DETRÁS del importe del día, cuyos
+   importes con nombre usa, y de los avisos y el hilo, donde escribe. */
+'supabase-marca'];
 
 let mal = 0;
 for (const n of orden) {

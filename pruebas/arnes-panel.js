@@ -327,6 +327,7 @@
               rastroDesdeTramiteSalta, rastroDesdeTramiteMira,
               alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno,
               importeSiembra, importeMira,
+              marcaSiembra, marcaMira,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
                  cuentas a todo lo que cuenta tarjetas. */
@@ -7770,6 +7771,208 @@
     IMP_CAJAS = null;
     window.__IMPORTE_DOCS = null;
     delete I.registro.prueba_importe;
+  }
+
+  /* ═══════════════ EL REGISTRO DE MARCA, POR ETAPAS ═══════════════
+     Pedido del CIIP (28-9-2026): tres etapas con su encabezado, un importe
+     del día en cada una con SU comprobante, la contestación escondida hasta
+     que el gestor la habilita con un anuncio, y el certificado antes de
+     resolver. La escalera se cuenta de tr.datos.pasos_ciip, sin base; las
+     cajas y la casilla del gestor, con el Supabase de mentira. */
+  var MC_CAJAS = null;
+  function marcaSiembra(){
+    var M = window.CIIP_MARCA, I = window.CIIP_IMPORTE;
+    if (PASE !== 'vacio' && PASE !== 'gestor') return;
+    ok('marca: la escalera por etapas está a mano', !!(M && I), M ? 'está' : 'no está', 'window.CIIP_MARCA');
+    if (!M || !I) return;
+    var hace = function(h){ return new Date(Date.now() - h * 3600000).toISOString(); };
+    var tr = function(id, estado, pasos, extra){
+      var d = {pasos_ciip: pasos || {}};
+      Object.keys(extra || {}).forEach(function(k){ d[k] = extra[k]; });
+      return {id: id, tipo: 'marca', estado: estado, datos: d, inversionista: 'u2', gestor: 'u1',
+              enviado_en: hace(200), creado_en: hace(200)};
+    };
+    var hasta = function(ultimo){
+      var orden = ['importe_antecedentes', 'pago_antecedentes', 'busqueda', 'importe_fm02', 'pago_fm02',
+                   'sapi', 'en_registro', 'importe_derecho', 'pago_derecho', 'certificado'];
+      var p = {};
+      for (var i = 0; i < orden.length; i++){ p[orden[i]] = hace(100 - i); if (orden[i] === ultimo) break; }
+      return p;
+    };
+    var claves = function(E){ return E.todos.map(function(p){ return p.clave; }).join(','); };
+    var imp = function(id, paso, iso){
+      return {id: id, tipo: 'importe_dia', creado_en: iso, estado: 'validado', paso_importe: paso,
+              nombre_original: id + '.pdf', archivo: 'u2/emitidos/' + id + '.pdf'};
+    };
+    var pago = function(id, paso, iso){
+      return {id: id, tipo: 'pago_importe_dia', creado_en: iso, estado: 'cargado', paso_importe: paso,
+              nombre_original: id + '.pdf'};
+    };
+
+    if (PASE === 'vacio'){
+      var E0 = M.escalera(tr('mc-a', 'enviado', {}), 'marca');
+      igual('marca: tres etapas, cada una con su nombre',
+            E0.etapas.map(function(e){ return e.nombre; }).join(' / '),
+            'Búsqueda de antecedentes / Solicitud de registro de marca / Marca registrada');
+      igual('marca: sin contestación, doce pasos y ninguno de la contestación',
+            claves(E0), 'revision,importe_antecedentes,pago_antecedentes,busqueda,importe_fm02,pago_fm02,' +
+                        'sapi,en_registro,importe_derecho,pago_derecho,certificado,retiro');
+      igual('marca: recién recibida, va por la revisión de recaudos', E0.ahora && E0.ahora.clave, 'revision');
+
+      var E1 = M.escalera(tr('mc-b', 'ante_el_ente', hasta('pago_antecedentes')), 'marca');
+      igual('marca: pagada la búsqueda, espera el papel de la búsqueda', E1.ahora && E1.ahora.clave, 'busqueda');
+      igual('marca: y lleva tres hechos, la revisión incluida', E1.hechos, 3);
+
+      var p2 = hasta('importe_fm02');
+      var E2 = M.escalera(tr('mc-c', 'ante_el_ente', p2), 'marca');
+      igual('marca: con el importe de la FM-02 puesto, toca su comprobante', E2.ahora && E2.ahora.clave, 'pago_fm02');
+      var act = I.activo(tr('mc-c', 'ante_el_ente', p2));
+      igual('marca: y el importe que toca es el de la FM-02, no el de la búsqueda', act && act.paso, 'fm02');
+
+      var p3 = hasta('pago_fm02'); p3.contestacion = hace(5); p3.sapi = hace(5);
+      var E3 = M.escalera(tr('mc-d', 'ante_el_ente', p3, {anuncio: 'Una empresa se opuso al registro.'}), 'marca');
+      igual('marca: habilitada la contestación, sus dos pasos entran entre el SAPI y el registro',
+            claves(E3).split(',').slice(5, 10).join(','),
+            'pago_fm02,sapi,importe_contestacion,pago_contestacion,en_registro');
+      igual('marca: y el importe que toca es el de la contestación', E3.importeEnCurso, 'contestacion');
+
+      var E4 = M.escalera(tr('mc-e', 'ante_el_ente', hasta('certificado')), 'marca');
+      igual('marca: con el certificado enviado, toca retirar los originales', E4.ahora && E4.ahora.clave, 'retiro');
+      var E5 = M.escalera(tr('mc-f', 'resuelto', hasta('certificado')), 'marca');
+      ok('marca: resuelta, todo hecho y nada en curso', E5.hechos === E5.todos.length && !E5.ahora,
+         E5.hechos + ' de ' + E5.todos.length, 'todo hecho');
+
+      /* Cada importe con su pago: el comprobante de la búsqueda no paga el
+         derecho de marca. */
+      var papeles = [imp('ia', 'antecedentes', hace(50)), pago('pa', 'antecedentes', hace(49)),
+                     imp('id', 'derecho', new Date().toISOString())];
+      igual('marca: la búsqueda, pagada con su comprobante',
+            I.estado(I.delImporte(papeles, 'antecedentes')).fase, 'pagado');
+      igual('marca: el derecho de marca sigue por pagar aunque la búsqueda esté pagada',
+            I.estado(I.delImporte(papeles, 'derecho')).fase, 'vigente');
+      igual('marca: la FM-02, sin importe todavía, espera el suyo',
+            I.estado(I.delImporte(papeles, 'fm02')).fase, 'espera');
+
+      /* Pintada: encabezados, anuncio y lo que no debe salir. */
+      var pintaEn = function(t){
+        var hueco = document.createElement('div');
+        var ol = document.createElement('ol');
+        ol.className = 'tr-pasos';
+        hueco.appendChild(ol);
+        M.pinta(ol, M.escalera(t, 'marca'), t, {}, false);
+        return hueco;
+      };
+      var sin = pintaEn(tr('mc-g', 'ante_el_ente', hasta('pago_fm02')));
+      igual('marca: la escalera pinta un encabezado por etapa', sin.querySelectorAll('li.tr-etapa').length, 3);
+      ok('marca: sin habilitar, ni el paso de la contestación ni anuncio',
+         !sin.querySelector('[data-paso="importe_contestacion"]') && !sin.querySelector('.mc-anuncio'),
+         sin.querySelector('[data-paso="importe_contestacion"]') ? 'sale el paso' : 'no sale', 'no sale');
+      ok('marca: y no dice nada de un PUB ni de la reserva del nombre',
+         !/PUB|reserva/i.test(sin.textContent), sin.textContent.slice(0, 60), 'sin PUB');
+      var con = pintaEn(tr('mc-h', 'ante_el_ente', p3, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
+      var an = con.querySelector('.mc-anuncio');
+      ok('marca: habilitada, el anuncio sale destacado encima de la escalera',
+         !!an && an.nextSibling && an.nextSibling.tagName === 'OL' &&
+         an.textContent.indexOf('Una empresa se opuso al registro.') > 0,
+         an ? an.textContent.slice(0, 70) : '(sin anuncio)', 'Aviso del CIIP… Una empresa se opuso…');
+      ok('marca: y el paso del importe de la contestación está en curso',
+         !!con.querySelector('li.tr-paso.ahora[data-paso="importe_contestacion"]'),
+         (con.querySelector('li.tr-paso.ahora') || {getAttribute: function(){ return '(ninguno)'; }}).getAttribute('data-paso'),
+         'importe_contestacion');
+      var ret = pintaEn(tr('mc-i', 'ante_el_ente', hasta('certificado')));
+      var nota = ret.querySelector('[data-paso="retiro"] .mc-retiro');
+      ok('marca: el último paso dice que retire los originales en el CIIP',
+         !!nota && nota.textContent.indexOf('retirar la documentación original') > 0,
+         nota ? nota.textContent : '(sin nota)', 'Debes dirigirte a la sede del CIIP a retirar…');
+
+      /* Y la caja del inversionista, por la base de mentira: en la etapa 2
+         el comprobante de la etapa 1 no la da por pagada. */
+      window.__IMPORTE_DOCS = {'mc-caja': [pago('pa2', 'antecedentes', hace(40)),
+                                           imp('if2', 'fm02', new Date().toISOString())]};
+      MC_CAJAS = document.createElement('div');
+      MC_CAJAS.hidden = true;
+      MC_CAJAS.appendChild(I.caja({id: 'mc-caja', estado: 'ante_el_ente', tipo: 'marca'}, I.delPaso('marca', 'fm02')));
+      document.body.appendChild(MC_CAJAS);
+    }
+
+    if (PASE === 'gestor'){
+      igual('marca: gestor, en revisión no hay casilla de la escalera',
+            M.casilla(tr('mc-g0', 'en_revision', {}), 'prb-mc-'), null);
+      MC_CAJAS = document.createElement('div');
+      MC_CAJAS.hidden = true;
+      document.body.appendChild(MC_CAJAS);
+
+      var cPago = M.casilla(tr('mc-g1', 'ante_el_ente', hasta('importe_antecedentes')), 'prb-mc-');
+      MC_CAJAS.appendChild(cPago);
+      var impG = cPago.querySelector('.imp-g');
+      ok('marca: gestor, en el comprobante de la búsqueda lleva la casilla del importe DE ESA etapa',
+         !!impG && impG.getAttribute('data-paso-importe') === 'antecedentes' &&
+         impG.querySelector('.imp-g-t').textContent.indexOf('Importe por búsqueda de antecedentes') > 0,
+         impG ? impG.getAttribute('data-paso-importe') + ' · ' + impG.querySelector('.imp-g-t').textContent : '(sin casilla)',
+         'antecedentes · Importe del día · Importe por búsqueda de antecedentes');
+      ok('marca: gestor, ahí no se ofrece la contestación todavía', !cPago.querySelector('.mc-g-abre'),
+         cPago.querySelector('.mc-g-abre') ? 'la ofrece' : 'no', 'no');
+
+      var tSapi = tr('mc-g2', 'ante_el_ente', hasta('pago_fm02'));
+      var cSapi = M.casilla(tSapi, 'prb-mc-');
+      MC_CAJAS.appendChild(cSapi);
+      ok('marca: gestor, con la FM-02 pagada marca «Solicitud en proceso» y ofrece la contestación',
+         !!cSapi.querySelector('.mc-g-marcar') && !!cSapi.querySelector('.mc-g-abre') &&
+         cSapi.querySelector('.mc-g-form').hidden,
+         [!!cSapi.querySelector('.mc-g-marcar'), !!cSapi.querySelector('.mc-g-abre')].join('/'), 'true/true, formulario plegado');
+      cSapi.querySelector('.mc-g-abre').click();
+      cSapi.querySelector('.mc-g-habilita').click();
+      igual('marca: gestor, sin anuncio no se habilita',
+            cSapi.querySelector('.mc-g-form .imp-g-e').textContent,
+            'Escribe el anuncio: el inversionista tiene que saber qué pasó.');
+      window.__MARCA_RPC = function(nombre, args){
+        var d = JSON.parse(JSON.stringify(tSapi.datos));
+        if (nombre === 'habilita_contestacion'){
+          d.pasos_ciip.contestacion = new Date().toISOString();
+          d.pasos_ciip.sapi = d.pasos_ciip.sapi || new Date().toISOString();
+          d.anuncio = args.p_anuncio;
+          d.anuncio_en = new Date().toISOString();
+        }
+        return {id: args.p_tramite, tipo: 'marca', estado: 'ante_el_ente', datos: d};
+      };
+      window.CIIP_PRUEBA_MARCA = [];
+      cSapi.querySelector('.mc-g-anuncio').value = 'El SAPI devolvió la marca por un defecto de forma.';
+      cSapi.querySelector('.mc-g-habilita').click();
+
+      igual('marca: gestor, sin certificado la marca no se resuelve',
+            M.certificada(tr('mc-g3', 'ante_el_ente', hasta('pago_derecho'))), false);
+      igual('marca: gestor, con el certificado enviado sí',
+            M.certificada(tr('mc-g4', 'ante_el_ente', hasta('certificado'))), true);
+    }
+  }
+
+  function marcaMira(){
+    if (!MC_CAJAS || (PASE !== 'vacio' && PASE !== 'gestor')) return;
+    if (PASE === 'vacio'){
+      var caja = MC_CAJAS.querySelector('[data-importe="mc-caja"]');
+      var fase = caja && caja.querySelector('[data-fase]');
+      igual('marca: la caja de la FM-02 no se da por pagada con el comprobante de la búsqueda',
+            fase ? fase.getAttribute('data-fase') : '(sin pintar)', 'vigente');
+      igual('marca: y el comprobante que se cargue ahí lleva el nombre de su importe',
+            caja ? caja.getAttribute('data-paso-importe') : '(sin caja)', 'fm02');
+    }
+    if (PASE === 'gestor'){
+      var pedido = (window.CIIP_PRUEBA_MARCA || [])[0];
+      igual('marca: gestor, habilitar pide la contestación a la base con el anuncio',
+            pedido ? pedido.nombre + ' · ' + pedido.args.p_anuncio : '(nada)',
+            'habilita_contestacion · El SAPI devolvió la marca por un defecto de forma.');
+      var c = MC_CAJAS.querySelector('[data-marca="mc-g2"]');
+      var ya = c && c.querySelector('.mc-g-contestada');
+      ok('marca: gestor, y la casilla queda diciendo que está habilitada, con el anuncio',
+         !!ya && ya.textContent.indexOf('El SAPI devolvió la marca') > 0 && !c.querySelector('.mc-g-abre'),
+         ya ? ya.textContent.slice(0, 70) : '(sin rehacer)', 'Contestación habilitada el…');
+      igual('marca: gestor, y el paso en curso pasa a ser el importe de la contestación',
+            c ? c.getAttribute('data-paso') : '(sin casilla)', 'importe_contestacion');
+    }
+    MC_CAJAS.remove();
+    MC_CAJAS = null;
+    window.__IMPORTE_DOCS = null;
+    window.__MARCA_RPC = null;
   }
 
   /* EL FRENO. Cambiar de pestaña y volver es lo que más se hace en una

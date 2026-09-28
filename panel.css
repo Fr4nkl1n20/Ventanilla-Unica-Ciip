@@ -4821,3 +4821,33 @@ body[data-vista="horario"] .fase-bar{display:none;}
 .tr-bloque-pie{margin-top:8px; display:flex; justify-content:flex-end;}
 .tr-bloque-nota{font-size:var(--fs-nota); color:var(--gray);}
 .tr-tramo-de{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:12px 0 4px; padding:10px 14px; border-radius:var(--r); background:var(--activa-bg); font-size:var(--fs-parrafo); color:var(--ink);}
+
+/* La escalera por etapas del registro de marca (28-9-2026). El encabezado
+   de cada etapa va dentro de la misma lista, entre los pasos: la línea que
+   une los puntos no lo cruza, así se lee dónde empieza cada etapa. */
+.tr-etapa{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin:6px 0 12px;
+  padding-top:10px; border-top:1px solid var(--line-soft);}
+.tr-etapa:first-child{margin-top:0; padding-top:0; border-top:0;}
+.tr-etapa-n{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--mudo);}
+.tr-etapa-t{font-size:var(--fs-parrafo); font-weight:700; color:var(--ink);}
+.tr-paso:has(+ .tr-etapa)::before{display:none;}
+.tr-paso:has(+ .tr-etapa){padding-bottom:6px;}
+.mc-retiro{font-weight:600; color:var(--ink);}
+.mc-papel{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;}
+/* El anuncio del gestor: lo primero que se lee del trámite, en ámbar como
+   el del importe, porque cambia lo que el inversionista tiene que hacer. */
+.mc-anuncio{background:var(--amber-bg); border:1px solid var(--amber); border-left-width:4px;
+  border-radius:var(--r-sm); padding:10px 12px; margin:0 0 14px;}
+.mc-anuncio-t{font-size:var(--fs-rotulo); font-weight:800; letter-spacing:.04em; text-transform:uppercase;
+  color:var(--amber);}
+.mc-anuncio-d{font-size:var(--fs-parrafo); line-height:1.45; color:var(--ink); margin-top:4px;
+  white-space:pre-wrap; overflow-wrap:anywhere;}
+.mc-g{display:flex; flex-direction:column; gap:7px;}
+.mc-g-paso{font-size:var(--fs-nota); font-weight:600; color:var(--ink);}
+.mc-g-marcar, .mc-g-enviar, .mc-g-abre, .mc-g-habilita{align-self:flex-start;}
+.mc-g-form{display:flex; flex-direction:column; gap:6px;}
+.mc-g-form[hidden]{display:none;}
+.mc-g-anuncio{font:inherit; font-size:12px; color:var(--ink); padding:6px 8px; resize:vertical;
+  border:1px solid var(--line); border-radius:7px; background:var(--hoja); width:100%; box-sizing:border-box;}
+.mc-g-contestada .mc-anuncio-d{font-size:12px;}

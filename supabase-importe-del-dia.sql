@@ -84,10 +84,48 @@ as $$
   )
 $$;
 
+-- VARIOS IMPORTES EN UN TRÁMITE (28-9-2026). El registro de marca paga
+-- tres o cuatro, uno por etapa. Cada importe y cada comprobante llevan el
+-- nombre de su etapa en paso_importe, y el comprobante solo se engancha
+-- contra un importe de hoy DEL MISMO nombre: el pago de la búsqueda de
+-- antecedentes no sirve para el derecho de marca. Sin nombre (nulo en los
+-- dos) es el caso de siempre, un importe por trámite.
+alter table public.documentos add column if not exists paso_importe text;
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'documentos_paso_importe_corto') then
+    alter table public.documentos add constraint documentos_paso_importe_corto
+      check (paso_importe is null or char_length(paso_importe) <= 40);
+  end if;
+end $$;
+
+create or replace function public.importe_del_dia_vigente(p_tramite uuid, p_paso text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+      from public.tramite_documentos td
+      join public.documentos d on d.id = td.documento
+      join public.tramites t   on t.id = td.tramite
+     where td.tramite = p_tramite
+       and d.tipo = 'importe_dia'
+       and d.estado = 'validado'
+       and d.inversionista = t.inversionista
+       and d.paso_importe is not distinct from p_paso
+       and (d.creado_en at time zone 'America/Caracas')::date = public.hoy_en_caracas()
+  )
+$$;
+
 revoke all on function public.importe_del_dia_abierto(text, text) from public, anon;
 revoke all on function public.importe_del_dia_vigente(uuid) from public, anon;
+revoke all on function public.importe_del_dia_vigente(uuid, text) from public, anon;
 grant execute on function public.importe_del_dia_abierto(text, text) to authenticated;
 grant execute on function public.importe_del_dia_vigente(uuid) to authenticated;
+grant execute on function public.importe_del_dia_vigente(uuid, text) to authenticated;
 
 -- El importe lo sube el equipo, entra 'validado' y va a 'emitidos', como el
 -- documento para pagar la reserva del nombre.
@@ -113,8 +151,9 @@ create policy "adjuntos: el equipo engancha el importe del dia" on public.tramit
   );
 
 -- El comprobante: solo en su trámite, en los estados del paso y con un
--- importe de hoy colgado. Una vez enganchado se queda: la medianoche
--- caduca el importe, no el pago hecho contra él.
+-- importe de hoy colgado, del mismo nombre que el comprobante. Una vez
+-- enganchado se queda: la medianoche caduca el importe, no el pago hecho
+-- contra él.
 drop policy if exists "adjuntos: el pago del importe del dia, con importe de hoy" on public.tramite_documentos;
 create policy "adjuntos: el pago del importe del dia, con importe de hoy" on public.tramite_documentos
   for insert
@@ -128,7 +167,7 @@ create policy "adjuntos: el pago del importe del dia, con importe de hoy" on pub
          and d.inversionista = auth.uid()
          and d.tipo = 'pago_importe_dia'
          and public.importe_del_dia_abierto(t.tipo, t.estado)
-         and public.importe_del_dia_vigente(t.id)
+         and public.importe_del_dia_vigente(t.id, d.paso_importe)
     )
   );
 

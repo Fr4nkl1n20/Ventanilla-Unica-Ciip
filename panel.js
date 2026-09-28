@@ -2249,6 +2249,11 @@ applyLang(idiomaParaMi());
   /* Con ref, el nombre que ESE trámite le da al paso (CIIP_PASOS.circuito);
      sin él, o si el trámite no lo tiene, el de todos. */
   function estadoTexto(i, ente, ref){
+    /* Un trámite con escalera por etapas dice sus propios estados, y no
+       los del circuito: así un rótulo editado a mano para otro trámite no
+       se le cuela (ESCALERA_POR_ETAPAS). */
+    var propio = (typeof estadoDeLaEscalera === 'function') && estadoDeLaEscalera(i, ref);
+    if (propio) return String(propio).replace('{ente}', ente || '');
     var D = window.CIIP_PASOS || {};
     var C = ref && D.circuito && D.circuito[curLang] && D.circuito[curLang][ref];
     var l = (D.estados && (D.estados[curLang] || D.estados.en)) || [];
@@ -2988,12 +2993,18 @@ applyLang(idiomaParaMi());
     /* El acta y el RIF son de la EMPRESA que registra la marca, no de
        quien rellena: desde hoy el formulario pregunta cual es
        (Pendientes FRANK.pdf, 24-9-2026). */
+    /* Y los rótulos, los del CIIP (28-9-2026): «Logo; Acta constitutiva de
+       la empresa; RIF de la empresa; Cédula o Pasaporte del representante
+       legal; RIF del representante legal». La cédula y el RIF son del
+       representante legal y no de «los accionistas» ni «tuyos»: quien firma
+       ante el SAPI por la empresa. Los tipos no cambian -una cédula es una
+       cédula-, solo cómo se piden. */
     marca: [
       {tipo:'logo_marca',        clave:'d_logo'},
-      {tipo:'acta_constitutiva', clave:'d_acta'},
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
-      {tipo:'cedula',            clave:'d_identidad'},
-      {tipo:'rif_personal',      clave:'d_rifpersonal'}
+      {tipo:'cedula',            clave:'d_cedpasrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
     ],
     /* El IVSS (c9) SE FUE DEL CATÁLOGO el 22-9-2026: «elimina la casilla
        de IVSS», y fuera de la ventanilla, no dentro del c37.
@@ -7075,7 +7086,9 @@ applyLang(idiomaParaMi());
      políticas del cubo dejan escribir al equipo dentro de la carpeta de
      otro, y porque separa lo que dejó el CIIP de lo que subió la persona
      sin tener que consultar nada. */
-  function sube(tipoDoc, archivo, venceEl, duenio, titular){
+  /* `extra`, columnas de más para la ficha -el nombre del importe al que
+     paga un comprobante-. Solo si viene, como el titular. */
+  function sube(tipoDoc, archivo, venceEl, duenio, titular, extra){
     return quienSoy().then(function(yo){
       var deQuien = duenio || yo.id;
       var limpio = archivo.name.replace(/[^\w.\-]+/g, '_').slice(-60);
@@ -7100,6 +7113,7 @@ applyLang(idiomaParaMi());
              quien lo sube, que es lo que ha sido siempre. Así lo que no es
              de la junta no pide una columna que la base puede no tener. */
           if (titular) fila.titular = titular;
+          if (extra) Object.keys(extra).forEach(function(k){ fila[k] = extra[k]; });
           return sb.from('documentos').insert(fila).select().single();
         })
         .then(function(r){
@@ -7180,7 +7194,32 @@ applyLang(idiomaParaMi());
           el paso del inversionista pinta el aviso y el botón. Los papeles
           son siempre 'importe_dia' y 'pago_importe_dia'. Si el trámite no
           debe resolverse sin el pago, eso lo sujeta un trigger suyo, como
-          tramites_sidcai_con_pago en supabase-locti.sql. */
+          tramites_sidcai_con_pago en supabase-locti.sql.
+
+     VARIOS IMPORTES EN UN MISMO TRÁMITE (28-9-2026). El registro de marca
+     paga tres -la búsqueda de antecedentes, la planilla FM-02 y el derecho
+     de marca- y a veces un cuarto, la contestación. Con una sola pareja
+     {paso, estados} el comprobante de la primera etapa habría contado como
+     pago de la tercera. Así que la entrada puede ser también una LISTA:
+
+            marca: [{paso: 'antecedentes', estados: ['ante_el_ente'], rotulo: 'mc_p_imp_antecedentes'},
+                    {paso: 'fm02',         estados: ['ante_el_ente'], rotulo: 'mc_p_imp_fm02'}, …]
+
+     Con 'paso' en TEXTO el importe lleva nombre propio, y ese nombre viaja
+     en documentos.paso_importe, en el importe que sube el gestor y en el
+     comprobante que carga el inversionista. Cada caja lee solo los papeles
+     de su nombre: un pago de la etapa 1 no dice nada de la 3. Con 'paso' en
+     NÚMERO todo sigue como antes, sin nombre en los papeles.
+
+     Cuál de la lista toca ahora lo dice la escalera del trámite
+     (ESCALERA_POR_ETAPAS): el importe cuyo paso, o cuyo comprobante, está
+     en curso. Sin escalera propia, el primero de la lista cuyo estado
+     cuadre. 'rotulo' es la clave del texto con que el gestor ve cuál es.
+
+     En la base basta la fila de siempre en importe_del_dia_pasos, con los
+     estados de todos: el nombre lo cuadra importe_del_dia_vigente(tramite,
+     paso), que solo deja enganchar un comprobante contra un importe de hoy
+     DEL MISMO nombre. */
   var IMPORTE_DEL_DIA = {};
   var TIPO_IMPORTE = 'importe_dia', TIPO_PAGO_IMPORTE = 'pago_importe_dia';
 
@@ -7211,15 +7250,44 @@ applyLang(idiomaParaMi());
     } catch(e){ return aaaammdd; }
   }
 
+  /* Las entradas de un trámite, siempre en lista: la de uno solo, {paso,
+     estados}, es una lista de uno. */
+  function entradasDelImporte(codigo){
+    var cfg = IMPORTE_DEL_DIA && IMPORTE_DEL_DIA[codigo];
+    if (!cfg) return [];
+    return (Object.prototype.toString.call(cfg) === '[object Array]') ? cfg : [cfg];
+  }
+  /* El nombre que llevan sus papeles: solo los importes con nombre propio. */
+  function nombreDelImporte(ent){
+    return (ent && typeof ent.paso === 'string') ? ent.paso : null;
+  }
+  /* El importe que toca ahora en este trámite, o null si ninguno. */
+  function importeActivo(t){
+    if (!t) return null;
+    var abiertas = entradasDelImporte(t.tipo).filter(function(e){
+      return (e.estados || []).indexOf(t.estado) >= 0;
+    });
+    if (!abiertas.length) return null;
+    var propia = (typeof ESCALERA_POR_ETAPAS !== 'undefined') && ESCALERA_POR_ETAPAS[t.tipo];
+    if (propia){
+      var enCurso = escaleraPorEtapas(t, t.tipo).importeEnCurso;
+      return abiertas.filter(function(e){ return e.paso === enCurso; })[0] || null;
+    }
+    return abiertas[0];
+  }
   /* Si este trámite, en el estado en que está, lleva importe del día. */
   function importeAbierto(t){
-    var cfg = t && IMPORTE_DEL_DIA && IMPORTE_DEL_DIA[t.tipo];
-    return !!(cfg && (cfg.estados || []).indexOf(t.estado) >= 0);
+    return !!importeActivo(t);
   }
-  /* Y si el paso n de su escalera es el del importe. */
+  /* Y si el paso n de su escalera es el del importe. n puede ser el número
+     del círculo o el nombre del importe. */
   function importeDelPaso(codigo, n){
-    var cfg = IMPORTE_DEL_DIA && IMPORTE_DEL_DIA[codigo];
-    return (cfg && cfg.paso === n) ? cfg : null;
+    return entradasDelImporte(codigo).filter(function(e){ return e.paso === n; })[0] || null;
+  }
+  /* Los papeles de ESE importe. Sin nombre, todos, como siempre. */
+  function papelesDelImporte(filas, nombre){
+    if (!nombre) return filas || [];
+    return (filas || []).filter(function(d){ return d && d.paso_importe === nombre; });
   }
 
   /* EN QUÉ PUNTO ESTÁ, de los papeles colgados de la solicitud:
@@ -7267,21 +7335,28 @@ applyLang(idiomaParaMi());
   /* ── LO QUE VE EL INVERSIONISTA, EN SU PASO ──
      La caja se pide una vez y se pinta cuando contesta la base. pintaImporte
      no pregunta nada: pinta un estado, y por eso se puede probar sin base. */
-  function cajaDelImporte(tr){
+  /* ent: la entrada de IMPORTE_DEL_DIA de este paso. Solo hace falta
+     cuando el importe tiene nombre propio; sin ella, todos los papeles.
+     trasPagar: a quién avisar cuando el comprobante queda colgado. */
+  function cajaDelImporte(tr, ent, trasPagar){
+    var nombre = nombreDelImporte(ent);
     var caja = el('div', 'imp-caja');
     caja.setAttribute('data-importe', tr.id);
+    if (nombre) caja.setAttribute('data-paso-importe', nombre);
     var cuerpo = el('div', 'imp-cuerpo');
     caja.appendChild(cuerpo);
     var mira = function(){
       importesDe(tr.id)
-        .then(function(filas){ pintaImporte(cuerpo, estadoDelImporte(filas), tr, mira); })
+        .then(function(filas){
+          pintaImporte(cuerpo, estadoDelImporte(papelesDelImporte(filas, nombre)), tr, mira, nombre, trasPagar);
+        })
         .catch(function(e){ console.warn('[CIIP] importe del día:', e && (e.message || e)); });
     };
     mira();
     return caja;
   }
 
-  function pintaImporte(cuerpo, est, tr, mira){
+  function pintaImporte(cuerpo, est, tr, mira, nombre, trasPagar){
     var u = T();
     var cerrado = !!tr && tr.estado === 'resuelto';
     cuerpo.textContent = '';
@@ -7341,10 +7416,15 @@ applyLang(idiomaParaMi());
       if (fechaEnCaracas(new Date()) !== est.hoy){ if (mira) mira(); return; }
       btn.disabled = true;
       dice.textContent = u.enviando || '';
-      sube(TIPO_PAGO_IMPORTE, archivo)
+      /* Con nombre, el comprobante lo lleva: es lo que lo ata a SU importe
+         y no al de otra etapa. */
+      sube(TIPO_PAGO_IMPORTE, archivo, null, null, null, nombre ? {paso_importe: nombre} : null)
         .then(function(docId){ return engancha(tr.id, docId); })
         .then(function(){
           if (typeof PAPELES_DE !== 'undefined') PAPELES_DE[tr.id] = null;
+          /* Y quien pinta la escalera se entera: el comprobante cierra un
+             paso, y ese paso lo apunta la base. */
+          if (trasPagar) trasPagar();
           /* Se cree a la base y no al clic: se vuelve a pedir, y el paso
              sale pagado solo si el comprobante quedó de verdad colgado. */
           if (mira) mira(); else { btn.disabled = false; dice.textContent = archivo.name; }
@@ -7368,11 +7448,18 @@ applyLang(idiomaParaMi());
      mueve la solicitud. Cada subida es un papel nuevo; el viejo se queda
      en la bóveda como constancia, y manda el más reciente. */
   function casillaDelImporte(t, idBase){
-    if (!importeAbierto(t)) return null;
+    var ent = importeActivo(t);
+    if (!ent) return null;
+    var nombre = nombreDelImporte(ent);
     var u = T();
     var caja = el('div', 'co-emitir imp-g');
     caja.setAttribute('data-importe', t.id);
-    caja.appendChild(el('div', 'imp-g-t', u.imp_g_titulo || ''));
+    if (nombre) caja.setAttribute('data-paso-importe', nombre);
+    /* Con varios importes, el título dice cuál: «Importe del día · Búsqueda
+       de antecedentes». Subir el de la etapa equivocada sería cobrar dos
+       veces lo mismo. */
+    caja.appendChild(el('div', 'imp-g-t', (u.imp_g_titulo || '') +
+      (ent.rotulo && u[ent.rotulo] ? ' · ' + u[ent.rotulo] : '')));
     var dice = el('div', 'imp-g-e', '');
     caja.appendChild(dice);
 
@@ -7400,7 +7487,7 @@ applyLang(idiomaParaMi());
 
     var mira = function(){
       importesDe(t.id).then(function(filas){
-        var e = estadoDelImporte(filas);
+        var e = estadoDelImporte(papelesDelImporte(filas, nombre));
         IMPORTE_HOY[t.id] = e.fase;
         caja.setAttribute('data-fase', e.fase);
         dice.className = 'imp-g-e' + (e.fase === 'vencido' || e.fase === 'espera' ? ' falta' : ' bien');
@@ -7426,7 +7513,10 @@ applyLang(idiomaParaMi());
       var m = (monto.value || '').trim();
       btn.disabled = true;
       dice.textContent = u.co_subiendo || '';
-      entrega(t, archivo, TIPO_IMPORTE, m ? {monto: m} : null)
+      var extra = null;
+      if (m) extra = {monto: m};
+      if (nombre){ extra = extra || {}; extra.paso_importe = nombre; }
+      entrega(t, archivo, TIPO_IMPORTE, extra)
         .then(function(){
           if (typeof PAPELES_DE !== 'undefined') PAPELES_DE[t.id] = null;
           btn.disabled = false;
@@ -7452,7 +7542,12 @@ applyLang(idiomaParaMi());
      alguna: con IMPORTE_DEL_DIA vacío no sale ningún viaje de más. */
   var IMPORTE_HOY = {};
   function cargaImportesDeLaCola(lista){
-    var ids = (lista || []).filter(importeAbierto).map(function(t){ return t.id; });
+    var conImporte = (lista || []).filter(importeAbierto);
+    var ids = conImporte.map(function(t){ return t.id; });
+    /* El nombre del importe que toca en cada una: se cuenta ése, no los
+       de las otras etapas. */
+    var nombreDe = {};
+    conImporte.forEach(function(t){ nombreDe[t.id] = nombreDelImporte(importeActivo(t)); });
     if (!ids.length){ IMPORTE_HOY = {}; return Promise.resolve(); }
     return Promise.resolve(sb.from('tramite_documentos').select('tramite, documentos(*)').in('tramite', ids))
       .then(function(r){
@@ -7463,7 +7558,7 @@ applyLang(idiomaParaMi());
           if (f.documentos && por[f.tramite]) por[f.tramite].push(f.documentos);
         });
         var nuevo = {};
-        ids.forEach(function(id){ nuevo[id] = estadoDelImporte(por[id]).fase; });
+        ids.forEach(function(id){ nuevo[id] = estadoDelImporte(papelesDelImporte(por[id], nombreDe[id])).fase; });
         IMPORTE_HOY = nuevo;
       })
       .catch(function(e){ console.warn('[CIIP] importes de la cola:', e && (e.message || e)); });
@@ -7511,7 +7606,452 @@ applyLang(idiomaParaMi());
   window.CIIP_IMPORTE = {
     registro: IMPORTE_DEL_DIA, fechaEnCaracas: fechaEnCaracas, estado: estadoDelImporte,
     pinta: pintaImporte, caja: cajaDelImporte, casilla: casillaDelImporte, delPaso: importeDelPaso,
-    porSubir: importesPorSubir, abierto: importeAbierto
+    porSubir: importesPorSubir, abierto: importeAbierto, activo: importeActivo,
+    delImporte: papelesDelImporte
+  };
+
+  /* ── UNA ESCALERA POR ETAPAS: EL REGISTRO DE MARCA ────────────────────
+     Pedido del CIIP (28-9-2026). La marca no cabe en los cuatro estados de
+     la base: son tres etapas -la búsqueda de antecedentes, la solicitud
+     ante el SAPI y la marca registrada-, cada una con su importe del día y
+     su comprobante, y dos papeles que el CIIP le manda al inversionista por
+     el camino. La escalera de la ficha iba diciendo «Presentada ante el
+     SAPI» mientras pasaban seis cosas, y un texto editado a mano la llegó a
+     llamar «Emisión de PUB para reserva de nombre», que es de otro trámite.
+
+     LOS PASOS SE APUNTAN, NO SE ADIVINAN. Cada paso cerrado es una fecha en
+     tramites.datos.pasos_ciip, con el nombre del paso:
+
+       importe_<etapa>, pago_<etapa>   los pone la base al colgarse el
+                                       importe o el comprobante con su nombre
+       busqueda, certificado           los pone la base al colgarse el papel
+                                       que manda el CIIP
+       sapi, en_registro               los marca el gestor desde su cola
+       contestacion                    el gestor la habilita, con su anuncio
+
+     La revisión la cierra el estado -la solicitud pasa ante el ente- y el
+     retiro de los originales lo cierra la resolución. En datos y no en
+     columnas nuevas porque datos ya viaja en todas las consultas: sin
+     supabase-marca.sql la escalera se queda quieta, pero no se cae nada.
+     Y lo que se apunta ahí no lo toca el inversionista aunque reenvíe el
+     formulario: lo guarda un trigger de supabase-marca.sql.
+
+     LA CUENTA. Se recorren los pasos en orden y el primero sin fecha es el
+     de ahora; todo lo de antes, hecho. Resuelta, todo hecho.
+
+     LA CONTESTACIÓN no sale hasta que el gestor la habilita. Nadie puede
+     saber de antemano si el SAPI devolverá la marca o si alguien se
+     opondrá; cuando pasa, el gestor escribe un anuncio -qué pasó y qué
+     sigue-, el inversionista lo ve destacado en su trámite y le llega por
+     la campana y por correo, y aparecen los dos pasos del importe de la
+     contestación entre «Solicitud en proceso» y «Marca en proceso de
+     registro». Habilitarla da por cerrado «Solicitud en proceso ante el
+     SAPI»: el SAPI ya contestó, con una oposición o una devolución.
+
+     tipo de cada paso:
+       revision  lo cierra el estado
+       importe   el importe del día de su etapa ('importe' = su nombre)
+       pago      el comprobante de ese importe
+       papel     el documento que manda el CIIP ('papel' = tipo_documento)
+       ciip      lo marca el gestor
+       retiro    lo cierra la resolución
+
+     Enganchar otro trámite a esta escalera es otra entrada aquí, sus
+     textos en pasos.js y, si lleva importes, su lista en IMPORTE_DEL_DIA. */
+  var ESCALERA_POR_ETAPAS = {
+    marca: {
+      ref: 'c8',
+      /* Lo que dicen de la solicitud la campana y la cola, en vez de los
+         cuatro rótulos de todos. */
+      estados: ['mc_ev_enviado', 'mc_ev_en_revision', 'mc_ev_ante_el_ente', 'mc_ev_resuelto'],
+      etapas: [
+        {clave: 'antecedentes', rotulo: 'mc_e1', pasos: [
+          {clave: 'revision',              tipo: 'revision', rotulo: 'mc_p_revision'},
+          {clave: 'importe_antecedentes',  tipo: 'importe',  rotulo: 'mc_p_imp_antecedentes', importe: 'antecedentes'},
+          {clave: 'pago_antecedentes',     tipo: 'pago',     rotulo: 'mc_p_pago',             importe: 'antecedentes'},
+          {clave: 'busqueda',              tipo: 'papel',    rotulo: 'mc_p_busqueda',         papel: 'busqueda_antecedentes',
+           espera: 'mc_n_busqueda_espera', listo: 'mc_n_busqueda_lista'}
+        ]},
+        {clave: 'solicitud', rotulo: 'mc_e2', pasos: [
+          {clave: 'importe_fm02',          tipo: 'importe',  rotulo: 'mc_p_imp_fm02',         importe: 'fm02'},
+          {clave: 'pago_fm02',             tipo: 'pago',     rotulo: 'mc_p_pago',             importe: 'fm02'},
+          {clave: 'sapi',                  tipo: 'ciip',     rotulo: 'mc_p_sapi',             espera: 'mc_n_sapi'},
+          {clave: 'importe_contestacion',  tipo: 'importe',  rotulo: 'mc_p_imp_contestacion', importe: 'contestacion', solo: 'contestacion'},
+          {clave: 'pago_contestacion',     tipo: 'pago',     rotulo: 'mc_p_pago',             importe: 'contestacion', solo: 'contestacion'},
+          {clave: 'en_registro',           tipo: 'ciip',     rotulo: 'mc_p_en_registro',      espera: 'mc_n_en_registro'}
+        ]},
+        {clave: 'registrada', rotulo: 'mc_e3', pasos: [
+          {clave: 'importe_derecho',       tipo: 'importe',  rotulo: 'mc_p_imp_derecho',      importe: 'derecho'},
+          {clave: 'pago_derecho',          tipo: 'pago',     rotulo: 'mc_p_pago',             importe: 'derecho'},
+          {clave: 'certificado',           tipo: 'papel',    rotulo: 'mc_p_certificado',      papel: 'certificado_marca',
+           espera: 'mc_n_cert_espera', listo: 'mc_n_cert_listo'},
+          {clave: 'retiro',                tipo: 'retiro',   rotulo: 'mc_p_retiro',           espera: 'mc_n_retiro', listo: 'mc_n_retiro'}
+        ]}
+      ]
+    }
+  };
+
+  /* Los cuatro importes de la marca. Todos con la solicitud ante el ente:
+     cuál toca lo dice la escalera, no el estado. La fila de la base es una,
+     la de siempre (supabase-marca.sql). */
+  IMPORTE_DEL_DIA.marca = [
+    {paso: 'antecedentes', estados: ['ante_el_ente'], rotulo: 'mc_p_imp_antecedentes'},
+    {paso: 'fm02',         estados: ['ante_el_ente'], rotulo: 'mc_p_imp_fm02'},
+    {paso: 'contestacion', estados: ['ante_el_ente'], rotulo: 'mc_p_imp_contestacion'},
+    {paso: 'derecho',      estados: ['ante_el_ente'], rotulo: 'mc_p_imp_derecho'}
+  ];
+
+  /* Los pasos apuntados de una solicitud: {nombre: fecha}. */
+  function pasosApuntados(tr){
+    var p = tr && tr.datos && tr.datos.pasos_ciip;
+    return (p && typeof p === 'object') ? p : {};
+  }
+
+  /* La escalera, contada. Sin base: lee tr.estado y tr.datos y nada más,
+     y por eso la usan igual la ficha, la fila de Mis trámites, la cola del
+     gestor y las pruebas. */
+  function escaleraPorEtapas(tr, codigo){
+    var def = ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[codigo];
+    if (!def) return null;
+    var u = T();
+    var P = pasosApuntados(tr);
+    var contestacion = !!P.contestacion;
+    var resuelta = tr.estado === 'resuelto';
+    /* Si ya hay algo apuntado, la revisión quedó atrás aunque ahora esté
+       devuelta: la escalera no vuelve a la casilla uno por eso. */
+    var algoApuntado = Object.keys(P).some(function(k){ return k !== 'contestacion' && P[k]; });
+    var todos = [], etapas = [];
+    def.etapas.forEach(function(et, ie){
+      var e = {clave: et.clave, nombre: u[et.rotulo] || '', n: ie + 1, pasos: []};
+      et.pasos.forEach(function(p){
+        if (p.solo && !P[p.solo]) return;
+        var paso = {clave: p.clave, tipo: p.tipo, nombre: u[p.rotulo] || '', importe: p.importe || null,
+                    papel: p.papel || null, espera: p.espera || null, listo: p.listo || null,
+                    etapa: et.clave, cuando: P[p.clave] || null};
+        paso.apuntado =
+            p.tipo === 'revision' ? (tr.estado === 'ante_el_ente' || resuelta || algoApuntado)
+          : p.tipo === 'retiro'   ? resuelta
+          : !!P[p.clave];
+        e.pasos.push(paso);
+        todos.push(paso);
+      });
+      etapas.push(e);
+    });
+    var hechos = 0;
+    if (resuelta) hechos = todos.length;
+    else while (hechos < todos.length && todos[hechos].apuntado) hechos++;
+    var vivo = ['borrador', 'cancelado'].indexOf(tr.estado) < 0;
+    todos.forEach(function(p, i){
+      p.n = i + 1;
+      p.hecho = i < hechos;
+      p.ahora = vivo && !resuelta && i === hechos;
+    });
+    var ahora = todos.filter(function(p){ return p.ahora; })[0] || null;
+    return {
+      codigo: codigo, etapas: etapas, todos: todos, hechos: hechos, ahora: ahora,
+      /* El importe que toca: el de la etapa cuyo importe o comprobante está
+         en curso. Es lo que decide qué casilla ve el gestor. */
+      importeEnCurso: (ahora && (ahora.tipo === 'importe' || ahora.tipo === 'pago')) ? ahora.importe : null,
+      contestacion: contestacion,
+      anuncio: contestacion ? String((tr.datos || {}).anuncio || '') : '',
+      anuncioEn: (tr.datos || {}).anuncio_en || P.contestacion || null,
+      apuntados: P
+    };
+  }
+
+  /* El rótulo de un estado para las solicitudes con escalera propia. Null
+     si el trámite no la tiene: entonces manda el de siempre. */
+  function estadoDeLaEscalera(i, ref){
+    var u = T();
+    if (!ESCALERA_POR_ETAPAS || !ref) return null;
+    var cods = Object.keys(ESCALERA_POR_ETAPAS);
+    for (var k = 0; k < cods.length; k++){
+      var def = ESCALERA_POR_ETAPAS[cods[k]];
+      if (ref && def.ref === ref && def.estados && u[def.estados[i]]) return u[def.estados[i]];
+    }
+    return null;
+  }
+
+  /* Los papeles que el CIIP ya mandó por la escalera, para abrirlos desde
+     su paso. Una consulta, y el más reciente de cada tipo. */
+  function papelesDeLaMarca(trId){
+    return Promise.resolve(sb.from('tramite_documentos').select('documentos(*)').eq('tramite', trId))
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        var de = {};
+        ((r && r.data) || []).forEach(function(f){
+          var d = f.documentos;
+          if (!d || !d.tipo) return;
+          var ya = de[d.tipo];
+          if (!ya || (new Date(d.creado_en).getTime() || 0) > (new Date(ya.creado_en).getTime() || 0)) de[d.tipo] = d;
+        });
+        return de;
+      });
+  }
+
+  /* ── LO QUE VE EL INVERSIONISTA ──
+     La escalera con un encabezado por etapa, dentro de la misma lista que
+     pinta la ficha. cuando: las fechas del historial por estado -la de la
+     revisión es la de «ante el ente», la del retiro la de «resuelto»-.
+     Lo de cada paso sale solo si el paso está en curso o hecho, como en la
+     escalera de siempre: el importe, el aviso de lo que se espera, el
+     papel que ya llegó. */
+  function pintaPorEtapas(lista, E, tr, cuando, esEquipo, repinta){
+    var u = T();
+    cuando = cuando || {};
+    var cajaTr = lista.parentNode;
+
+    /* El anuncio del gestor, ANTES de la escalera y destacado: es lo que
+       cambió en su trámite y lo que tiene que leer primero. */
+    if (E.contestacion && E.anuncio && cajaTr){
+      var an = el('div', 'mc-anuncio');
+      an.setAttribute('role', 'status');
+      an.appendChild(el('div', 'mc-anuncio-t', u.mc_anuncio_t || ''));
+      an.appendChild(el('div', 'mc-anuncio-d', E.anuncio));
+      if (E.anuncioEn) an.appendChild(el('div', 'sd-e',
+        String(u.mc_anuncio_f || '').replace('{fecha}', fecha(E.anuncioEn))));
+      cajaTr.insertBefore(an, lista);
+    }
+
+    var papelesPide = null;
+    var abrePapel = function(paso, txt){
+      if (!papelesPide) papelesPide = papelesDeLaMarca(tr.id);
+      papelesPide.then(function(de){
+        var d = de[paso.papel];
+        if (!d || !d.archivo) return;
+        var fila = el('div', 'mc-papel');
+        fila.appendChild(el('span', 'te-n', d.nombre_original || u['d_' + paso.papel] || ''));
+        var b = el('button', 'sd-btn', u.co_abrir || '');
+        b.type = 'button';
+        b.addEventListener('click', function(){ abreFirmado(d.archivo, b, 'abrir ' + paso.papel); });
+        fila.appendChild(b);
+        txt.appendChild(fila);
+      }).catch(function(e){ console.warn('[CIIP] papeles de la marca:', e && (e.message || e)); });
+    };
+
+    E.etapas.forEach(function(et){
+      if (!et.pasos.length) return;
+      var cab = el('li', 'tr-etapa');
+      cab.setAttribute('data-etapa', et.clave);
+      cab.appendChild(el('span', 'tr-etapa-n', String(u.mc_etapa || '').replace('{n}', et.n)));
+      cab.appendChild(el('span', 'tr-etapa-t', et.nombre));
+      lista.appendChild(cab);
+
+      et.pasos.forEach(function(paso){
+        var li = el('li', 'tr-paso ' + (paso.hecho ? 'hecho' : (paso.ahora ? 'ahora' : 'porhacer')));
+        li.setAttribute('data-paso', paso.clave);
+        var punto = el('span', 'tr-punto', paso.hecho ? '✓' : String(paso.n));
+        var txt = el('div', 'tr-txt');
+        txt.appendChild(el('div', 'tr-paso-n', paso.nombre));
+
+        if (paso.hecho || paso.ahora){
+          if (paso.tipo === 'papel'){
+            if (paso.hecho){
+              if (paso.listo) txt.appendChild(el('div', 'tr-nota', u[paso.listo] || ''));
+              abrePapel(paso, txt);
+            } else if (paso.espera) txt.appendChild(el('div', 'tr-nota', u[paso.espera] || ''));
+          } else if (paso.tipo === 'ciip' && paso.ahora && paso.espera){
+            txt.appendChild(el('div', 'tr-nota', u[paso.espera] || ''));
+          } else if (paso.tipo === 'retiro'){
+            txt.appendChild(el('div', 'tr-nota mc-retiro', u[paso.espera] || ''));
+          }
+          /* El importe y su comprobante, en el paso que está en curso de
+             los dos. Al equipo no: lo sube desde su cola. */
+          if ((paso.tipo === 'importe' || paso.tipo === 'pago') && paso.ahora && !esEquipo){
+            txt.appendChild(cajaDelImporte(tr, importeDelPaso(E.codigo, paso.importe) ||
+                                               {paso: paso.importe}, function(){
+              /* La base apunta el pago; se vuelve a pedir la solicitud para
+                 que la escalera avance con lo que la base dice. */
+              if (repinta) repinta();
+            }));
+          }
+        }
+
+        var fechaP = paso.tipo === 'revision' ? cuando.ante_el_ente
+                   : paso.tipo === 'retiro'   ? cuando.resuelto
+                   : paso.cuando;
+        if (paso.hecho && fechaP) txt.appendChild(el('div', 'sd-e', fecha(fechaP)));
+        else if (paso.ahora){
+          var eti = el('span', 'tr-aqui', textoAqui());
+          /* Desde que se cerró el anterior. */
+          var antes = E.todos[paso.n - 2];
+          var desde = (tr.estado === 'devuelto') ? (cuando.devuelto || tr.actualizado_en)
+            : antes ? (antes.tipo === 'revision' ? cuando.ante_el_ente : antes.cuando)
+            : (tr.enviado_en || tr.creado_en);
+          if (desde) eti.appendChild(el('span', 'tr-desde',
+            String(u.ns_desde_paso || '').replace('{cuando}', haceCuanto(desde))));
+          txt.appendChild(eti);
+        }
+        li.appendChild(punto); li.appendChild(txt);
+        lista.appendChild(li);
+      });
+    });
+  }
+
+  /* ── LA CASILLA DEL GESTOR ──
+     En su cola, con la solicitud ante el ente: en qué paso va y el botón
+     de ese paso. Marcar un paso del CIIP, mandar el papel de la búsqueda o
+     del certificado, o -si el paso es de un importe- la casilla del
+     importe del día de ESA etapa, que va aquí dentro para que se rehaga
+     con la escalera. Y la contestación, mientras la marca está ante el
+     SAPI: se habilita con el anuncio escrito, nunca sin él. */
+  function casillaDeLaMarca(t, idBase){
+    var def = t && ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo];
+    if (!def || t.estado !== 'ante_el_ente') return null;
+    var u = T();
+    var caja = el('div', 'co-emitir mc-g');
+    caja.setAttribute('data-marca', t.id);
+
+    /* La base contesta con la solicitud entera; con ella se repinta. */
+    var conDatos = function(r){
+      if (r && r.error) throw r.error;
+      var fila = r && (r.data && r.data.datos ? r.data : (r.data && r.data[0]));
+      if (!fila || !fila.datos) throw new Error('sin fila');
+      t.datos = fila.datos;
+      pinta();
+    };
+    var falla = function(boton, dice){
+      return function(e){
+        console.warn('[CIIP] registro de marca:', e && (e.message || e));
+        if (boton) boton.disabled = false;
+        dice.className = 'imp-g-e falta';
+        dice.textContent = (e && e.ciip && u[e.ciip]) || u.co_error || '';
+      };
+    };
+
+    function pinta(){
+      caja.textContent = '';
+      var E = escaleraPorEtapas(t, t.tipo);
+      var P = E.apuntados;
+      caja.appendChild(el('div', 'imp-g-t', u.mc_g_titulo || ''));
+      var cur = E.ahora;
+      var dice = el('div', 'imp-g-e', '');
+      if (cur){
+        var et = E.etapas.filter(function(x){ return x.clave === cur.etapa; })[0];
+        caja.appendChild(el('div', 'mc-g-paso',
+          String(u.mc_etapa || '').replace('{n}', et ? et.n : '') + ' · ' + (et ? et.nombre : '') +
+          ' — ' + cur.n + '. ' + cur.nombre));
+        caja.setAttribute('data-paso', cur.clave);
+      }
+      caja.appendChild(dice);
+
+      if (cur && cur.tipo === 'ciip'){
+        var marcar = el('button', 'btn navy mc-g-marcar', u.mc_g_marcar || '');
+        marcar.type = 'button';
+        marcar.addEventListener('click', function(){
+          marcar.disabled = true;
+          dice.textContent = u.enviando || '';
+          Promise.resolve(sb.rpc('marca_paso_ciip', {p_tramite: t.id, p_clave: cur.clave}))
+            .then(conDatos).catch(falla(marcar, dice));
+        });
+        caja.appendChild(marcar);
+      } else if (cur && cur.tipo === 'papel'){
+        var mando = el('div', 'imp-g-mando');
+        var etiq = el('label', null, u['d_' + cur.papel] || '');
+        etiq.setAttribute('for', idBase + t.id);
+        var inp = document.createElement('input');
+        inp.type = 'file';
+        inp.id = idBase + t.id;
+        inp.accept = '.pdf,.jpg,.jpeg,.png';
+        var manda = el('button', 'btn navy mc-g-enviar', u.mc_g_enviar || '');
+        manda.type = 'button';
+        manda.addEventListener('click', function(){
+          var archivo = inp.files && inp.files[0];
+          if (!archivo){
+            dice.className = 'imp-g-e falta';
+            dice.textContent = u.mc_g_elige || '';
+            inp.focus();
+            return;
+          }
+          manda.disabled = true;
+          dice.textContent = u.co_subiendo || '';
+          /* A la bóveda del inversionista, colgado de su solicitud. El paso
+             lo apunta la base al colgarlo; aquí se vuelve a leer. */
+          entrega(t, archivo, cur.papel)
+            .then(function(){
+              if (typeof PAPELES_DE !== 'undefined') PAPELES_DE[t.id] = null;
+              return sb.from('tramites').select('id, datos').eq('id', t.id).single();
+            })
+            .then(conDatos).catch(falla(manda, dice));
+        });
+        mando.appendChild(etiq);
+        mando.appendChild(inp);
+        mando.appendChild(manda);
+        caja.appendChild(mando);
+      } else if (cur && (cur.tipo === 'importe' || cur.tipo === 'pago')){
+        caja.appendChild(el('div', 'tr-nota', u.mc_g_importe || ''));
+        var imp = casillaDelImporte(t, idBase + 'imp-');
+        if (imp) caja.appendChild(imp);
+      } else if (cur && cur.tipo === 'retiro'){
+        caja.appendChild(el('div', 'tr-nota', u.mc_g_retiro || ''));
+      }
+
+      /* ── LA CONTESTACIÓN ──
+         Solo con la solicitud ante el SAPI -pagada la FM-02 y sin la marca
+         en registro todavía-, que es cuando el SAPI puede devolverla o
+         alguien oponerse. */
+      if (E.contestacion){
+        var ya = el('div', 'mc-g-contestada');
+        ya.appendChild(el('div', 'imp-g-e bien',
+          String(u.mc_g_contestada || '').replace('{fecha}', fecha(E.anuncioEn))));
+        if (E.anuncio) ya.appendChild(el('div', 'mc-anuncio-d', E.anuncio));
+        caja.appendChild(ya);
+      } else if (P.pago_fm02 && !P.en_registro){
+        var zona = el('div', 'mc-g-contestar');
+        var abre = el('button', 'btn ghost mc-g-abre', u.mc_g_contestar || '');
+        abre.type = 'button';
+        var form = el('div', 'mc-g-form');
+        form.hidden = true;
+        form.appendChild(el('div', 'tr-nota', u.mc_g_contestar_ayuda || ''));
+        var texto = document.createElement('textarea');
+        texto.className = 'mc-g-anuncio';
+        texto.rows = 3;
+        texto.maxLength = 2000;
+        texto.placeholder = u.mc_g_anuncio_ph || '';
+        texto.setAttribute('aria-label', u.mc_g_anuncio_ph || '');
+        form.appendChild(texto);
+        var si = el('button', 'btn navy mc-g-habilita', u.mc_g_contestar_si || '');
+        si.type = 'button';
+        var diceC = el('div', 'imp-g-e', '');
+        form.appendChild(si);
+        form.appendChild(diceC);
+        abre.addEventListener('click', function(){
+          form.hidden = false;
+          abre.hidden = true;
+          texto.focus();
+        });
+        si.addEventListener('click', function(){
+          var escrito = (texto.value || '').trim();
+          /* Sin anuncio no: el inversionista vería aparecer un pago más sin
+             saber por qué. */
+          if (!escrito){
+            diceC.className = 'imp-g-e falta';
+            diceC.textContent = u.mc_g_anuncio_falta || '';
+            texto.focus();
+            return;
+          }
+          si.disabled = true;
+          diceC.textContent = u.enviando || '';
+          Promise.resolve(sb.rpc('habilita_contestacion', {p_tramite: t.id, p_anuncio: escrito}))
+            .then(conDatos).catch(falla(si, diceC));
+        });
+        zona.appendChild(abre);
+        zona.appendChild(form);
+        caja.appendChild(zona);
+      }
+    }
+    pinta();
+    return caja;
+  }
+
+  /* Si ya se le mandó el certificado: sin él la marca no se resuelve. */
+  function marcaCertificada(t){
+    return !!pasosApuntados(t).certificado;
+  }
+
+  window.CIIP_MARCA = {
+    registro: ESCALERA_POR_ETAPAS, escalera: escaleraPorEtapas, pinta: pintaPorEtapas,
+    casilla: casillaDeLaMarca, certificada: marcaCertificada
   };
 
   /* ─────────────────────────────────────────────────────────────────
@@ -7534,6 +8074,16 @@ applyLang(idiomaParaMi());
      orden, la tiene en .todos. */
   function escaleraDe(tr, codigo, ente){
     var u = T();
+    /* Con escalera por etapas -la marca-, la suya y ninguna otra cuenta.
+       Se devuelve con la misma forma que las demás, para que la fila de
+       Mis trámites la cuente igual; .porEtapas lleva las etapas. */
+    var porEtapas = escaleraPorEtapas(tr, codigo);
+    if (porEtapas){
+      return {alcanzado: porEtapas.hechos - 1, conReserva: false, ref: tipoRefDe(codigo), delante: 0,
+              propios: porEtapas.todos.map(function(p){ return p.nombre; }),
+              libres: porEtapas.todos, pre: [], circ: porEtapas.todos, reserva: null,
+              todos: porEtapas.todos, porEtapas: porEtapas};
+    }
     var alcanzado = ORDEN.indexOf(tr.estado);
     if (tr.estado === 'devuelto') alcanzado = 0;    /* volvió al principio */
 
@@ -7783,6 +8333,23 @@ applyLang(idiomaParaMi());
            la misma cuenta que usa la columna «Progreso» de Mis trámites.
            Aquí solo se pinta. */
         var esc = escaleraDe(tr, tipo.codigo, tipo.ente);
+        /* La escalera por etapas -la marca- se pinta entera aparte. Tras
+           cargar un comprobante se vuelve a pedir la solicitud: el paso lo
+           apunta la base, y la escalera avanza con lo que ella diga. */
+        if (esc.porEtapas){
+          pintaPorEtapas(lista, esc.porEtapas, tr, cuando,
+            !!(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()),
+            function(){
+              Promise.resolve(sb.from('tramites').select('id, estado, datos').eq('id', tr.id).single())
+                .then(function(r2){
+                  if (!r2 || r2.error || !r2.data || !r2.data.datos) return;
+                  tr.datos = r2.data.datos;
+                  caja.textContent = '';
+                  pintaEstado(tipo, tr);
+                }).catch(function(){});
+            });
+          return;
+        }
         var alcanzado = esc.alcanzado;
         var conReserva = esc.conReserva;
 
@@ -12270,7 +12837,9 @@ applyLang(idiomaParaMi());
       if (reserva) f.appendChild(reserva.caja);
       /* Y el importe del día, si su trámite lo lleva: con su propio botón,
          que se sube cada día y no mueve la solicitud. */
-      var importeCo = casillaDelImporte(t, 'co-imp-');
+      /* La marca lleva su propia casilla -en qué paso va y su botón- con
+         el importe de la etapa dentro; los demás, el importe a secas. */
+      var importeCo = casillaDeLaMarca(t, 'co-mc-') || casillaDelImporte(t, 'co-imp-');
       if (importeCo) f.appendChild(importeCo);
       /* Los cinco entes de los registros parafiscales, con el código que
          mandó el inversionista y el botón de darlo por listo. */
@@ -12341,6 +12910,15 @@ applyLang(idiomaParaMi());
               aviso.textContent = u.co_faltanentes || '';
               return;
             }
+          }
+          /* Y una marca sin el certificado enviado: su último paso es ir a
+             retirar los originales, y eso no se le dice a nadie que todavía
+             no tiene el certificado en la bóveda. La base dice lo mismo
+             (tramites_marca_con_certificado, supabase-marca.sql). */
+          if (p.a === 'resuelto' && ESCALERA_POR_ETAPAS[t.tipo] && !marcaCertificada(t)){
+            f.classList.add('mal');
+            aviso.textContent = u.mc_g_faltacert || '';
+            return;
           }
           /* Y un tramite sin el comprobante que la base le exige: no lo
              deja resolver, y entregar antes el acta para que luego rebote
@@ -12760,8 +13338,13 @@ applyLang(idiomaParaMi());
      inversionista tenía que tener en la mano ya pasó por su paso de la
      reserva (17-9-2026). Son dos motivos distintos que llevan al mismo
      sitio, y por eso se leen los dos en la misma línea. */
+  /* Y la marca (28-9-2026): lo que emite el SAPI -el certificado de
+     registro- se manda en su paso de la escalera, que es donde el
+     inversionista lo espera. Pedirlo otra vez al resolver sería subirlo
+     dos veces. */
   function pideEmitido(t){
-    return !t || (t.tipo !== 'constitucion' && t.tipo !== TIPO_PARAFISCALES);
+    return !t || (t.tipo !== 'constitucion' && t.tipo !== TIPO_PARAFISCALES &&
+                  !(ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo]));
   }
 
   /* QUÉ documento para pagar deja el equipo, y en qué trámite. Son tres, el
@@ -13232,7 +13815,8 @@ applyLang(idiomaParaMi());
           var d = f.documentos;
           if (!d || !de[f.tramite] || d.tipo === 'resolucion' ||
               d.tipo === 'planilla_reserva_nombre' ||
-              d.tipo === 'importe_dia') return;
+              d.tipo === 'importe_dia' ||
+              d.tipo === 'busqueda_antecedentes' || d.tipo === 'certificado_marca') return;
           de[f.tramite].push({id: d.id || f.documento, tipo: d.tipo, archivo: d.archivo,
             nombre_original: d.nombre_original || '', estado: d.estado || 'cargado',
             nota_revision: d.nota_revision || '', titular: d.titular || ''});
@@ -13759,6 +14343,12 @@ applyLang(idiomaParaMi());
         aviso.textContent = u.co_faltanentes || '';
         return;
       }
+    }
+    /* Y la marca, sin su certificado enviado, tampoco: la misma regla que
+       la ficha de la cola. */
+    if (ESCALERA_POR_ETAPAS[t.tipo] && !marcaCertificada(t)){
+      aviso.textContent = u.mc_g_faltacert || '';
+      return;
     }
     /* Lo mismo que la ventana de la cola: sin el comprobante que pide la
        base, ni se entrega el papel ni se intenta resolver. */
@@ -14354,7 +14944,8 @@ applyLang(idiomaParaMi());
     /* El importe del día, en cualquier estado en que su trámite lo pida:
        es un gesto diario que no depende de por dónde vaya la solicitud. */
     if (mio){
-      var importeV = casillaDelImporte(t, 'hoy-imp-');
+      /* La marca lleva su casilla, con el importe de la etapa dentro. */
+      var importeV = casillaDeLaMarca(t, 'hoy-mc-') || casillaDelImporte(t, 'hoy-imp-');
       if (importeV) fin.appendChild(importeV);
     }
     if (botones.childNodes.length) fin.appendChild(botones);
@@ -14891,7 +15482,9 @@ applyLang(idiomaParaMi());
          para pagar la reserva tampoco: lo deja el propio equipo. */
       rvDocs = ((rs[0] && rs[0].data) || []).filter(function(d){
         return d && d.tipo !== 'resolucion' && d.tipo !== 'planilla_reserva_nombre' &&
-               d.tipo !== 'importe_dia';
+               d.tipo !== 'importe_dia' &&
+               /* Ni lo que el CIIP manda por la escalera de la marca. */
+               d.tipo !== 'busqueda_antecedentes' && d.tipo !== 'certificado_marca';
       });
       rvNombres = {};
       ((rs[1] && rs[1].data) || []).forEach(function(p){ if (p && p.id) rvNombres[p.id] = p.nombre_completo || ''; });
@@ -20653,6 +21246,9 @@ applyLang(idiomaParaMi());
       CLAVE_DE_TIPO.planilla_locti       = 'd_planilla_locti';
       CLAVE_DE_TIPO.importe_dia          = 'd_importe_dia';
       CLAVE_DE_TIPO.pago_importe_dia     = 'd_pago_importe_dia';
+      /* Los dos que el CIIP manda por la escalera de la marca. */
+      CLAVE_DE_TIPO.busqueda_antecedentes = 'd_busqueda_antecedentes';
+      CLAVE_DE_TIPO.certificado_marca     = 'd_certificado_marca';
       CLAVE_DE_TIPO.resolucion           = 'co_emitido';
       CLAVE_DE_TIPO.codigo_ente          = 'd_codigoente';
     }
