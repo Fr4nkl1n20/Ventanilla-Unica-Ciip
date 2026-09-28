@@ -2348,6 +2348,14 @@
                       error: null};
             return {then:function(bien, mal){ return Promise.resolve(rF).then(bien, mal); }};
           }
+          /* Los dos pasos del gestor en el registro de marca. Contesta lo que
+             diga la prueba en window.__MARCA_RPC -la solicitud tal como la
+             dejaría la base- y apunta lo que se pidió. */
+          if ((nombre === 'marca_paso_ciip' || nombre === 'habilita_contestacion') && window.__MARCA_RPC){
+            window.CIIP_PRUEBA_MARCA = (window.CIIP_PRUEBA_MARCA || []).concat([{nombre: nombre, args: args}]);
+            var rM = {data: window.__MARCA_RPC(nombre, args), error:null};
+            return {then:function(bien, mal){ return Promise.resolve(rM).then(bien, mal); }};
+          }
 
           var r = sinSql
             ? {data:null, error:{message:'function public.tocar_visto() does not exist',

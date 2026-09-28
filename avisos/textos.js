@@ -17,6 +17,10 @@
    texto que hay que traducir seis veces y mantener seis veces, y un
    buzon que avisa de todo se ignora entero: entonces el aviso de
    'devuelto' -el unico que pide una accion- se pierde con los demas.
+
+   El quinto, 'anuncio' (28-9-2026), es el otro que cuenta algo que
+   cambia lo que hay que hacer: lo escribe el gestor cuando el SAPI
+   devuelve una marca o alguien se opone al registro.
    ═══════════════════════════════════════════════════════════════════════ */
 'use strict';
 
@@ -60,6 +64,13 @@ const TEXTOS = {
       asunto: 'Un documento tuyo está por vencer',
       cuerpo: 'Tu {dato} vence el {tramite}. Los organismos no aceptan documentos vencidos.',
       pie:    'Renuévalo y súbelo a tu bóveda antes de esa fecha.'
+    },
+    /* El anuncio que escribe el gestor -la contestacion de una marca-.
+       Va entrecomillado debajo del cuerpo, como la nota de una devuelta. */
+    anuncio: {
+      asunto: 'Hay una novedad en tu trámite',
+      cuerpo: 'El CIIP tiene algo que contarte sobre tu solicitud:',
+      pie:    'Entra en la Ventanilla Única para ver qué sigue.'
     }
   },
   en: {
@@ -83,6 +94,13 @@ const TEXTOS = {
       asunto: 'A document of yours is about to expire',
       cuerpo: 'Your {dato} expires on {tramite}. Agencies do not accept expired documents.',
       pie:    'Renew it and upload it to your vault before that date.'
+    },
+    /* El anuncio que escribe el gestor -la contestacion de una marca-.
+       Va entrecomillado debajo del cuerpo, como la nota de una devuelta. */
+    anuncio: {
+      asunto: 'There is news about your application',
+      cuerpo: 'CIIP has something to tell you about your application:',
+      pie:    'Sign in to the One-Stop Window to see what comes next.'
     }
   },
   pt: {
@@ -106,6 +124,13 @@ const TEXTOS = {
       asunto: 'Um documento seu está prestes a caducar',
       cuerpo: 'O seu {dato} caduca a {tramite}. Os organismos não aceitam documentos caducados.',
       pie:    'Renove-o e carregue-o no seu cofre antes dessa data.'
+    },
+    /* El anuncio que escribe el gestor -la contestacion de una marca-.
+       Va entrecomillado debajo del cuerpo, como la nota de una devuelta. */
+    anuncio: {
+      asunto: 'Há uma novidade no seu pedido',
+      cuerpo: 'O CIIP tem algo a dizer-lhe sobre o seu pedido:',
+      pie:    'Entre no Balcão Único para ver o que se segue.'
     }
   },
   it: {
@@ -129,6 +154,13 @@ const TEXTOS = {
       asunto: 'Un tuo documento sta per scadere',
       cuerpo: 'Il tuo {dato} scade il {tramite}. Gli enti non accettano documenti scaduti.',
       pie:    'Rinnovalo e caricalo nel tuo archivio prima di quella data.'
+    },
+    /* El anuncio que escribe el gestor -la contestacion de una marca-.
+       Va entrecomillado debajo del cuerpo, como la nota de una devuelta. */
+    anuncio: {
+      asunto: 'C’è una novità sulla tua pratica',
+      cuerpo: 'Il CIIP ha qualcosa da dirti sulla tua richiesta:',
+      pie:    'Accedi allo Sportello Unico per vedere cosa segue.'
     }
   },
   zh: {
@@ -152,6 +184,13 @@ const TEXTOS = {
       asunto: '您有一份文件即将到期',
       cuerpo: '您的{dato}将于{tramite}到期。主管机关不接受过期文件。',
       pie:    '请在该日期前更新并上传至您的文件库。'
+    },
+    /* El anuncio que escribe el gestor -la contestacion de una marca-.
+       Va entrecomillado debajo del cuerpo, como la nota de una devuelta. */
+    anuncio: {
+      asunto: '您的申请有新进展',
+      cuerpo: 'CIIP 有关于您申请的消息：',
+      pie:    '请登录一站式窗口查看后续步骤。'
     }
   },
   ru: {
@@ -175,6 +214,13 @@ const TEXTOS = {
       asunto: 'Срок действия вашего документа истекает',
       cuerpo: 'Ваш документ «{dato}» истекает {tramite}. Органы не принимают просроченные документы.',
       pie:    'Обновите его и загрузите в хранилище до этой даты.'
+    },
+    /* El anuncio que escribe el gestor -la contestacion de una marca-.
+       Va entrecomillado debajo del cuerpo, como la nota de una devuelta. */
+    anuncio: {
+      asunto: 'Новости по вашей заявке',
+      cuerpo: 'CIIP сообщает о вашей заявке:',
+      pie:    'Войдите в Единое окно, чтобы узнать, что дальше.'
     }
   }
 };

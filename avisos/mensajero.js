@@ -104,7 +104,11 @@ function redacta(aviso) {
      Mezclarla con la frase nuestra da un parrafo mitad en un idioma y
      mitad en otro que no se entiende en ninguno de los dos. */
   const partes = [con(t.cuerpo)];
-  if (aviso.motivo === 'cambio_estado' && aviso.a_estado === 'devuelto' && aviso.nota) {
+  /* Y el anuncio que escribe el gestor -la contestacion de una marca,
+     supabase-marca.sql-, por lo mismo: es suyo, y va tal cual lo escribio. */
+  const conNota = (aviso.motivo === 'cambio_estado' && aviso.a_estado === 'devuelto') ||
+                  aviso.motivo === 'anuncio';
+  if (conNota && aviso.nota) {
     partes.push('');
     partes.push('  «' + aviso.nota + '»');
   }

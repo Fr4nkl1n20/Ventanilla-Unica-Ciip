@@ -149,7 +149,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-firma-ciip',
 /* La contraseña del IVSS y del INCES en tramite_entes. Va detrás de
    supabase-entes-parafiscales, que crea la tabla. */
-'supabase-entes-clave'];
+'supabase-entes-clave',
+/* El registro de marca por etapas (c8): sus dos papeles del CIIP, los
+   pasos apuntados en tramites.datos, la contestación con su anuncio y el
+   certificado antes de resolver. Va DETRÁS del importe del día, cuyos
+   importes con nombre usa, y de los avisos y el hilo, donde escribe. */
+'supabase-marca'];
 
 let mal = 0;
 for (const n of orden) {
