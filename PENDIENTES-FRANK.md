@@ -244,3 +244,33 @@ junto con el primer bloque de cambios.
 ## Lo que ya está hecho
 
 _(vacío por ahora)_
+
+---
+
+## Auditoría QA · administración y cuentas: lo que queda fuera
+
+Lo hecho está en `supabase-qa-admin.sql` (hay que correrlo a mano) y en el
+panel. Esto es lo que se dejó a propósito, y por qué:
+
+- [ ] **Bloquear también en Supabase Auth** (`banned_until`). Necesita la
+      clave de servicio, que no puede vivir en una página. Hasta entonces
+      una cuenta bloqueada o dada de baja puede iniciar sesión, pero la base
+      le cierra toda escritura, le quita los permisos del equipo y el panel
+      le enseña «Tu cuenta está bloqueada». Se haría con una función en
+      `api/` que compruebe que quien llama es admin.
+- [ ] **Crear o invitar usuarios desde el panel.** Lo mismo: clave de
+      servicio y una función en `api/`. Mientras, se crean en Supabase.
+- **?** **«Olvidé mi clave»** en la entrada: es decisión de producto (qué
+      correo sale, con qué texto y a dónde vuelve).
+- [ ] **Pantallas para editar los catálogos** (sectores, bancos, aranceles,
+      tipos de documento). Siguiente paso; hoy se editan en Supabase.
+- [ ] **Más fuentes en la bitácora** (sectores, bancos, aranceles, tipos de
+      documento y los cambios de nombre o país de un perfil). No es solo un
+      disparador por tabla: hay que ampliar la regla `bitacora_fuente_valida`
+      y darle a Trazabilidad un rótulo y un verbo por fuente en los seis
+      idiomas. Va junto con las pantallas de los catálogos, que es cuando
+      esas tablas empiezan a cambiarse desde el panel.
+- Borrar una cuenta de verdad: la base ya no deja si aceptó el pliego (se
+      da de baja desde Usuarios). Para una cuenta de pruebas, en el editor
+      de SQL y en una sola transacción:
+      `begin; set local ciip.borrado_fisico = 'si'; delete from auth.users where ...; commit;`
