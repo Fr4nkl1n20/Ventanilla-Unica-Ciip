@@ -8861,7 +8861,9 @@ applyLang(idiomaParaMi());
        entrada fuera, y decir aquí «cancelado» no lo retiraría de allí: la
        pantalla mentiría sobre un trámite que sigue vivo en una oficina que
        no es ésta. Lo mismo vale para un borrador, que se descarta con el
-       botón de siempre y ni siquiera llegó a existir para el CIIP.
+       «Descartar este borrador», al pie de su formulario (QA-11: hasta el
+       28-9-2026 este comentario lo daba por hecho y el botón no existía),
+       y ni siquiera llegó a existir para el CIIP.
 
        DOS PULSACIONES, y no un cuadro de confirmación: la primera cambia
        el botón por la pregunta y la segunda cancela. Un expediente
