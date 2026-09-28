@@ -2810,12 +2810,13 @@ body[data-vista="tramite"] #secTramites{display:none;}
    tres textos iban sueltos sobre el fondo y no se distinguia donde acababa
    uno y empezaba otro (Franklin Reyes, 28-9-2026, la 2b de las maquetas).
    En oscuro, el azul claro del panel: el #004090 no se ve sobre ese fondo. */
-/* Ceñido a las letras: el ancho lo pone lo mas largo de dentro -el nombre
-   o las lineas de la descripcion, que cortan a 68ch- y no un ancho fijo,
-   que dejaba un blanco grande a la derecha (Franklin Reyes, 28-9-2026:
-   «podemos cerrar mas, casi pegado a las letras»). */
+/* Del mismo ancho que la tira de pasos y el formulario de debajo. Estuvo
+   ceñido a las letras (width:fit-content) y cada bloque acababa en un
+   sitio distinto: el recuadro a media pantalla y el formulario hasta el
+   borde (Franklin Reyes, 28-9-2026: «las medidas se ven raras»). La
+   descripcion sigue cortando a 68ch para que se lea bien. */
 .tr-caja{background:var(--bg); border:1.5px solid var(--navy); border-radius:var(--r);
-  padding:14px 18px; width:fit-content; max-width:100%; box-sizing:border-box; margin-bottom:12px;}
+  padding:14px 18px; box-sizing:border-box; margin-bottom:12px;}
 .tr-raya{border:0; border-top:2px solid var(--navy); margin:12px 0 10px;}
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]) .tr-caja,
