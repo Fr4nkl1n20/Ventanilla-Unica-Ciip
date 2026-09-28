@@ -26415,6 +26415,20 @@ applyLang(idiomaParaMi());
       })
       .then(function(r){
         pulso.caducados = ((r && r.data) || []).length;
+        /* Los nombres de los gestores. NOMBRES lo llena la cola de «Por
+           atender», y entrando directo a «Equipo» estaba vacio: la tabla
+           salia con los ocho primeros caracteres del id (Franklin Reyes,
+           28-9-2026: «por que en gestor solo salen codigos»). Solo los ids
+           que salen en la tabla, no la tabla de perfiles entera. */
+        var ids = Object.keys(pulso.llevaGestor).filter(function(k){ return k; });
+        if (!ids.length) return null;
+        return sb.from('perfiles').select('id, nombre_completo').in('id', ids);
+      })
+      .then(function(r){
+        pulso.nombres = {};
+        ((r && r.data) || []).forEach(function(p){
+          if (p.nombre_completo) pulso.nombres[p.id] = p.nombre_completo;
+        });
         pintaPulso();
       })
       .catch(function(e){
@@ -26558,7 +26572,8 @@ applyLang(idiomaParaMi());
       if (!b) return -1;
       return lleva[b] - lleva[a];
     }).forEach(function(k){
-      var rot = k ? ((typeof nombreDeGestor === 'function' ? nombreDeGestor(k) : '') || k)
+      var rot = k ? ((pulso.nombres && pulso.nombres[k])
+                     || (typeof nombreDeGestor === 'function' ? nombreDeGestor(k) : '') || k)
                   : (u.pu_sinasig || '');
       var espera = pulso.porGestor[k] || 0;
       var tr = el('tr');
