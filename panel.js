@@ -18043,7 +18043,9 @@ applyLang(idiomaParaMi());
      salen también el estado de las 31 tarjetas de la portada y las cuentas
      de las cinco fases. Metiendo ahí lo de todos, su portada diría que
      tiene hecho lo que hizo otro. */
-  var todasMt = [], nombresMt = {};
+  /* equipoMt: a quién se le puede asignar una solicitud -gestores y
+     administradores activos-, por nombre. Lo llena cargaTodosMt. */
+  var todasMt = [], nombresMt = {}, equipoMt = [];
   function mtEsAdmin(){
     return (typeof PERFIL !== 'undefined' && PERFIL.rol) === 'admin';
   }
@@ -18440,7 +18442,61 @@ applyLang(idiomaParaMi());
       : String(u.mt_suele || '').replace('{t}', enHoras(marca))));
     caja.appendChild(txt);
     td.appendChild(caja);
+    if (equipoMt.length) td.appendChild(asignaMt(t, u));
     return td;
+  }
+
+  /* ASIGNAR. Pedido del CIIP (28-9-2026): «no me sale una opción para
+     asignarlo». Hasta aquí solo se podía TOMAR -quedárselo uno mismo- en
+     la cola y en «Por atender»; el administrador, que es quien reparte,
+     veía la lista de las que no tiene nadie y no podía dárselas a nadie.
+
+     Un desplegable con «Sin dueño» y el equipo activo. La base ya lo
+     permite (la política de tramites deja al equipo cambiar gestor), así
+     que no hace falta SQL. Se pide la fila de vuelta: cero filas es que no
+     se guardó, aunque la base no diga error. */
+  function asignaMt(t, u){
+    var sel = el('select', 'mt-asigna');
+    sel.setAttribute('aria-label', u.mt_asignar || '');
+    var opcion = function(valor, texto){
+      var o = el('option', null, texto);
+      o.value = valor;
+      if ((t.gestor || '') === valor) o.selected = true;
+      sel.appendChild(o);
+    };
+    opcion('', u.mt_sindueno || '');
+    equipoMt.forEach(function(p){ opcion(p.id, p.nombre || (u.co_sinnombre || '')); });
+    /* Quien la lleva y ya no está en el equipo -bloqueado, dado de baja-
+       sigue saliendo como elegido: si no, el desplegable diría «Sin dueño»
+       de una que sí tiene. */
+    if (t.gestor && !equipoMt.some(function(p){ return p.id === t.gestor; })){
+      opcion(t.gestor, nombresMt[t.gestor] || (u.co_sinnombre || ''));
+    }
+    var aviso = el('span', 'mt-asigna-aviso', '');
+    sel.addEventListener('change', function(){
+      var quien = sel.value || null;
+      var antes = t.gestor || null;
+      sel.disabled = true;
+      aviso.textContent = u.mt_asignando || '';
+      Promise.resolve(sb.from('tramites').update({gestor: quien}).eq('id', t.id).select())
+        .then(function(r){
+          if (r && r.error) throw r.error;
+          var d = r && r.data;
+          if (!d || (Array.isArray(d) && !d.length)) throw new Error('ninguna fila');
+          t.gestor = quien;
+          pintaMisTramites();
+        })
+        .catch(function(e){
+          console.warn('[CIIP] asignar desde la tabla:', e && e.message);
+          sel.value = antes || '';
+          sel.disabled = false;
+          aviso.textContent = u.mt_asigna_error || '';
+        });
+    });
+    var caja = el('span', 'mt-asigna-caja');
+    caja.appendChild(sel);
+    caja.appendChild(aviso);
+    return caja;
   }
 
   /* ESPERANDO. Lo que lleva esperando ESTE tramite, y en rojo solo cuando
@@ -19151,16 +19207,26 @@ applyLang(idiomaParaMi());
              segunda consulta. */
           .select('id, tipo, estado, inversionista, gestor, creado_en, enviado_en, resuelto_en')
           .order('creado_en', {ascending:false})),
-        Promise.resolve(sb.from('perfiles').select('id, nombre_completo'))
+        /* Con '*' y no con la lista de columnas: de aquí sale también a
+           quién se le puede asignar -rol, bloqueado, dado_de_baja_en-, y
+           una columna nombrada que la base aún no tuviera tumbaría la
+           consulta y, con ella, todos los nombres de la tabla. */
+        Promise.resolve(sb.from('perfiles').select('*'))
           .catch(function(){ return {data: []}; })
       ]);
     }).then(function(rs){
       if (rs[0] && rs[0].error) throw rs[0].error;
       todasMt = (rs[0] && rs[0].data) || [];
       nombresMt = {};
+      equipoMt = [];
       (((rs[1] || {}).data) || []).forEach(function(p){
-        if (p && p.id) nombresMt[p.id] = p.nombre_completo || '';
+        if (!p || !p.id) return;
+        nombresMt[p.id] = p.nombre_completo || '';
+        if ((p.rol === 'gestor' || p.rol === 'admin') && !p.bloqueado && !p.dado_de_baja_en){
+          equipoMt.push({id: p.id, nombre: p.nombre_completo || ''});
+        }
       });
+      equipoMt.sort(function(a, b){ return a.nombre.localeCompare(b.nombre, 'es'); });
       /* Lo que reclama algo arriba, igual que en la lista personal y en la
          cola: el criterio es el mismo en las tres pantallas. */
       todasMt.sort(function(a, b){

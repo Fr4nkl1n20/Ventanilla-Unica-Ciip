@@ -346,7 +346,7 @@
               alDiaMira,
               rvAbre, rvMira, rvDespues,
               cbAbre, cbMira,
-              tdAbre, tdMira,
+              tdAbre, tdMira, tdAsignaMira,
               ajAbre, ajMira,
               plazoF5Abre, plazoF5Rompe, plazoF5Repinta, plazoF5Mira,
               opacidadMira, opacidadSenal,
@@ -12312,6 +12312,31 @@
       var duenio = document.querySelector('#mtCuerpo .mt-duenio');
       ok('todos: y cada una dice de quién es', !!duenio && /\S/.test(duenio.textContent),
          duenio ? duenio.textContent : '(sin nombre)', 'el nombre del inversionista');
+      /* ASIGNAR (28-9-2026): «no me sale una opción para asignarlo». Cada
+         fila trae un desplegable con «Sin dueño» y el equipo; se elige
+         alguien para una que no tiene dueño y el paso siguiente mira que
+         quedó asignada. */
+      var sels = document.querySelectorAll('#mtCuerpo tr:not(.sin-nada) .mt-lleva select.mt-asigna');
+      igual('asignar: cada solicitud trae a quién asignarla', sels.length, filas.length);
+      /* La primera fila, sea de quien sea: la tabla va por páginas y la
+         que no tiene dueño puede no caer en la primera. Se le da a alguien
+         distinto de quien la lleva. */
+      var libre = sels[0];
+      var U = window.CIIP_PASOS.ui[curLang] || {};
+      ok('asignar: con «Sin dueño» y al menos una persona del equipo',
+         !!libre && libre.options[0].value === '' && libre.options[0].textContent === U.mt_sindueno &&
+         libre.options.length >= 2,
+         libre ? libre.options.length + ' opciones, la primera «' + libre.options[0].textContent + '»' : '(sin desplegable)',
+         '«Sin dueño» y el equipo');
+      var otro = libre && [].filter.call(libre.options, function(o){
+        return o.value && o.value !== libre.value; })[0];
+      if (otro){
+        window.CIIP_ASIGNA_PRUEBA = {fila: libre.closest('tr').getAttribute('data-id'), a: otro.value};
+        libre.value = otro.value;
+        libre.dispatchEvent(new Event('change'));
+      }
+      /* La vista se queda abierta: la cierra tdAsignaMira. */
+      return;
     } else if (CASO === 'gestor'){
       var nav2 = document.getElementById('navTodosTram');
       ok('todos: al gestor no se le ofrece ese renglón',
@@ -12320,6 +12345,16 @@
          document.body.getAttribute('data-vista') !== 'mistramites',
          document.body.getAttribute('data-vista'), 'cualquiera menos mistramites');
     }
+    location.hash = '';
+  }
+
+  function tdAsignaMira(){
+    if (!ES_ADMIN) return;
+    var p = window.CIIP_ASIGNA_PRUEBA;
+    var s = p && document.querySelector('#mtCuerpo tr[data-id="' + p.fila + '"] select.mt-asigna');
+    ok('asignar: la solicitud queda a nombre de quien se eligió',
+       !!s && s.value === p.a && !s.disabled,
+       s ? (s.value || 'sin dueño') + (s.disabled ? ', bloqueado' : '') : '(no está la fila)', p ? p.a : 'alguien');
     location.hash = '';
   }
 
