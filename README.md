@@ -114,7 +114,7 @@ enlace:
 | Usuarios | `#usuarios` | Solo admin: quién entra, con qué rol, y cuánto trabajo hay encima de la mesa |
 | Mi empresa | `#empresa` | Los datos de la compañía, escritos una vez, que rellenan los formularios |
 | Documentos | `#documentos` | La bóveda: todo lo que has subido, con lo vencido primero |
-| Ayuda | `#ayuda` | Cómo funciona el panel: los pasos, los distintivos y cómo hablar con el equipo |
+| Ayuda | `#ayuda` | Preguntas y respuestas, y dónde hacer la firma electrónica y los certificados médicos |
 | Activos | `#activos` | El banco de oportunidades del CIIP. El equipo publica y corrige desde aquí |
 
 Una dirección que no exista (`#fase-9`, `#tramite-c99`) devuelve a la portada

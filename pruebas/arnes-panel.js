@@ -6650,9 +6650,10 @@
   }
 
   /* ═══════════ AYUDA Y GUÍA ═══════════
-     El renglón se iluminaba y no llevaba a ninguna parte. Lo que faltaba no
-     eran más preguntas sobre invertir en Venezuela —esas ya están en la
-     portada— sino quién explica cómo funciona el panel. */
+     Preguntas y respuestas arriba y, debajo, dónde hacer la firma
+     electrónica y los certificados médicos. Lo que explicaba el panel -los
+     pasos, los distintivos, la bóveda y la cita- se quitó a pedido del
+     CIIP. */
   /* ═══════ CAMBIAR UN PAPEL DE LA BOVEDA ═══════
      Abrirlo servia para comprobar que el que hay no es el que vale
      -"pasaporte.pdf" puede ser el vencido- y hasta ahi llegaba: mirabas,
@@ -7071,70 +7072,87 @@
 
   function ayudaMira(){
     igual('ayuda: el renglón abre su vista', document.body.getAttribute('data-vista'), 'ayuda');
-    var bloques = document.querySelectorAll('#ayLista .ay-bloque');
-    /* Eran cinco. El quinto no explicaba nada: decia que las preguntas
-       estaban al final de la portada y traia un boton para ir. Desde que las
-       preguntas viven en esta misma pantalla, ese apartado era un cartel
-       señalando lo que hay dos dedos mas abajo. */
-    igual('ayuda: con sus cuatro apartados', bloques.length, 4);
 
-    /* Los cuatro pasos NO se escriben en la ayuda: salen de donde ya
-       estaban, para que no puedan contradecir a la pantalla que describen. */
-    var pasos = document.querySelectorAll('#ayLista .ay-paso');
-    igual('ayuda: los cuatro pasos de una solicitud', pasos.length, 4);
-    igual('ayuda: y son los mismos que enseña el trámite',
-          pasos[0].querySelector('.ay-paso-q').textContent.trim(),
-          'Solicitud recibida por el CIIP');
+    /* «Eliminar toda esa información. Dejar preguntas y respuestas» (CIIP).
+       Si alguien resucita los pasos, los distintivos, la bóveda o la cita,
+       esto se entera. */
+    igual('ayuda: sin los apartados que explicaban el panel',
+          document.querySelectorAll('.ayuda-vista .ay-bloque, .ayuda-vista .ay-paso, .ayuda-vista .ay-chip').length, 0);
+    var U = (window.CIIP_PASOS && window.CIIP_PASOS.ui) || {};
+    ok('ayuda: y sin sus textos',
+       !('ay_h1' in (U.es || {})) && !('ay_d1' in (U.es || {})) && !('ay_cita' in (U.es || {})),
+       Object.keys(U.es || {}).filter(function(k){ return /^ay_(h|e|d)\d|^ay_cita|^ay_boveda/.test(k); }).join(', ') || 'ninguno',
+       'ninguno');
 
-    /* Y cada uno dice QUE PASA en el. Enumerarlos sin explicarlos dejaba
-       sin contestar la unica pregunta que se viene a hacer aqui: quien
-       tiene ahora la pelota. */
-    var expl = document.querySelectorAll('#ayLista .ay-paso-e');
-    igual('ayuda: los cuatro con su explicaci\u00f3n', expl.length, 4);
-    var vacias = [].filter.call(expl, function(e){
-      return e.textContent.trim().length < 40;
-    });
-    igual('ayuda: y ninguna se queda en una frase suelta', vacias.length, 0);
-    /* Cuatro distintas: si dos dijeran lo mismo, una de las dos sobra. */
-    var distintas = {};
-    [].forEach.call(expl, function(e){ distintas[e.textContent.trim()] = 1; });
-    igual('ayuda: y las cuatro dicen cosas distintas',
-          Object.keys(distintas).length, 4);
-    /* Las dos que hay que decir con cuidado: entregar no es decidir, y
-       resuelta no es aprobada. Si alguien las suaviza, esto se entera. */
-    ok('ayuda: el paso 3 dice que el CIIP no decide',
-       /no decide/i.test(expl[2].textContent),
-       expl[2].textContent.trim().slice(0, 60), 'lo dice');
-    ok('ayuda: y el 4 que resuelta no es aprobada',
-       /no quiere decir aprobada/i.test(expl[3].textContent),
-       expl[3].textContent.trim().slice(0, 60), 'lo dice');
+    /* Arriba las preguntas y debajo las diligencias. */
+    var faq = document.querySelector('.ayuda-vista .faq-sec');
+    var dil = document.getElementById('ayLista');
+    ok('ayuda: las preguntas arriba y las diligencias debajo',
+       !!faq && !!dil && !!(faq.compareDocumentPosition(dil) & Node.DOCUMENT_POSITION_FOLLOWING),
+       faq && dil ? 'en otro orden' : 'falta una', 'preguntas y luego diligencias');
+
+    /* Las dos preguntas nuevas están, y sin respuesta no se ven. */
+    var nuevas = document.querySelectorAll('#faqLista .ay-nueva');
+    igual('ayuda: las dos preguntas nuevas están', nuevas.length, 2);
+    var vistas = [].filter.call(nuevas, function(d){ return d.offsetHeight > 0; });
+    igual('ayuda: y sin respuesta el inversionista no las ve', vistas.length, 0);
+
+    /* En el modo de edición sí, abiertas, para poder escribirles la
+       respuesta. Se pone la clase a mano: el interruptor es solo del admin. */
+    document.body.classList.add('editando-textos');
+    var enEdicion = [].filter.call(nuevas, function(d){ return d.offsetHeight > 0 && d.open; });
+    document.body.classList.remove('editando-textos');
+    igual('ayuda: quien edita textos sí las ve, abiertas', enEdicion.length, 2);
+    var hueco = document.querySelector('#faqLista .ay-nueva .faq-a[data-ui="ay_r_licencia"]');
+    ok('ayuda: y la respuesta se edita con su clave', !!hueco,
+       hueco ? 'está' : 'no está', 'data-ui="ay_r_licencia"');
+
+    /* Con respuesta aparece, con el número que sigue a las siete. */
+    var lang = document.documentElement.getAttribute('lang') || 'es';
+    var TX = window.CIIP_TEXTOS;
+    function repinta(){
+      if (window.CIIP_OLVIDA_T) window.CIIP_OLVIDA_T();
+      window.CIIP_REPINTA_AYUDA();
+    }
+    if (TX && TX.pon && window.CIIP_REPINTA_AYUDA){
+      TX.pon(lang, 'ay_r_zonas', 'Respuesta de la prueba.');
+      repinta();
+      var zonas = document.querySelector('#faqLista .ay-nueva[data-clave="ay_q_zonas"]');
+      ok('ayuda: con respuesta, la pregunta se ve',
+         !!zonas && zonas.offsetHeight > 0, zonas ? 'alto ' + zonas.offsetHeight : 'no está', 'a la vista');
+      igual('ayuda: y lleva el número que sigue a las siete',
+            zonas ? zonas.querySelector('.qi').textContent : '', '8');
+      TX.pon(lang, 'ay_r_zonas', null);
+      repinta();
+      zonas = document.querySelector('#faqLista .ay-nueva[data-clave="ay_q_zonas"]');
+      igual('ayuda: y al vaciarla se vuelve a esconder', zonas ? zonas.offsetHeight : -1, 0);
+    }
+
+    /* Debajo, los dos desplegables. Vacíos dicen que pronto habrá lista;
+       con lista, un lugar por renglón. */
+    var desp = document.querySelectorAll('#ayLista .ay-dil details');
+    igual('ayuda: dos desplegables de diligencias', desp.length, 2);
+    igual('ayuda: el primero es la firma electrónica',
+          desp[0] ? desp[0].querySelector('.qt').textContent.trim() : '', 'Firma electrónica');
+    igual('ayuda: y el segundo los certificados médicos',
+          desp[1] ? desp[1].querySelector('.qt').textContent.trim() : '', 'Certificados médicos');
+    igual('ayuda: sin lista, los dos dicen que pronto la habrá',
+          document.querySelectorAll('#ayLista .ay-pronto').length, 2);
+    if (TX && TX.pon && window.CIIP_REPINTA_AYUDA){
+      TX.pon(lang, 'ay_firma_lista', 'Lugar uno\n\n  Lugar dos  \nLugar tres');
+      repinta();
+      var li = document.querySelectorAll('#ayLista [data-ui="ay_firma_lista"] li');
+      igual('ayuda: con lista, un lugar por renglón y sin renglones vacíos', li.length, 3);
+      igual('ayuda: y cada lugar sin espacios de más', li[1] ? li[1].textContent : '', 'Lugar dos');
+      TX.pon(lang, 'ay_firma_lista', null);
+      repinta();
+      igual('ayuda: y al vaciarla vuelve el aviso',
+            document.querySelectorAll('#ayLista .ay-pronto').length, 2);
+    }
 
     ok('ayuda: sin huecos del marcado a la vista',
-       document.getElementById('ayLista').textContent.indexOf('{') < 0,
+       document.querySelector('.ayuda-vista').textContent.indexOf('{') < 0,
        'busca "{"', 'ninguna llave suelta');
-
-    /* Los cuatro distintivos, con el distintivo de verdad al lado: si
-       cambia el de la tarjeta, cambia el de la ayuda. */
-    var chips = document.querySelectorAll('#ayLista .ay-chip .chip');
-    igual('ayuda: los cuatro distintivos, con su color', chips.length, 4);
-    igual('ayuda: el de por iniciar', chips[0].textContent.trim(), 'Por iniciar');
-    ok('ayuda: y el de completado va en verde',
-       chips[3].classList.contains('good'), chips[3].className, 'con la clase good');
-    /* Los cuatro con su color, y los cuatro distintos: si salieran todos
-       del mismo, el color no diría nada y sobraría. */
-    var colores = {};
-    [].forEach.call(chips, function(c){
-      colores[window.getComputedStyle(c).backgroundColor] = 1;
-    });
-    igual('ayuda: y cada uno de su color', Object.keys(colores).length, 4);
-
-    /* Pedir una cita desde aquí abre la MISMA ventana: no hay una segunda
-       forma de pedirla. */
-    document.querySelector('#ayLista .btn.navy').click();
-    ok('ayuda: pedir cita abre la ventana de siempre',
-       document.getElementById('citaBack').classList.contains('open'),
-       document.getElementById('citaBack').className, 'con la clase open');
-    document.getElementById('ctCerrar').click();
 
     /* Las ocho claves que se escribieron para esta pantalla y no usó
        ninguna. Repetían dos preguntas de la portada con respuestas más
@@ -7163,7 +7181,7 @@
     if (!sec) return;
     ok('ayuda: y se llega a ellas abiertas', !sec.classList.contains('plegada'),
        sec.className, 'sin la clase plegada');
-    igual('ayuda: con sus siete', sec.querySelectorAll('details').length, 7);
+    igual('ayuda: con sus siete de siempre', sec.querySelectorAll('details:not(.ay-nueva)').length, 7);
   }
 
   /* ═══════════ LOS LOGOS DE LOS ORGANISMOS ═══════════
@@ -9569,9 +9587,10 @@
          la pantalla repetido -esa se llama «Ayuda y guia»- sino la cabecera
          de una seccion de dentro, y ademas es el boton que la pliega. Lo que
          esta comprobacion persigue es que una pantalla no repita su propio
-         nombre nada mas entrar. */
+         nombre nada mas entrar. Lo mismo la de las diligencias, debajo de
+         las preguntas: es otra seccion de dentro. */
       var h = [].filter.call(v.querySelectorAll('.sec-h .t'), function(t){
-        return !t.closest('.faq-sec');
+        return !t.closest('.faq-sec, #ayLista');
       })[0];
       if (h) conTitulo.push(v.className);
     });
@@ -9802,7 +9821,7 @@
           cabF.getAttribute('aria-expanded'), 'false');
 
     cabF.click();
-    igual('preguntas: hay siete', lisF.querySelectorAll('details').length, 7);
+    igual('preguntas: hay siete, y las nuevas van aparte', lisF.querySelectorAll('details:not(.ay-nueva)').length, 7);
 
     /* Al cerrar se cierran tambien las respuestas abiertas: si no, al volver
        a desplegar apareceria una suelta sin que nadie la pidiera. */

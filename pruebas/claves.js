@@ -280,11 +280,11 @@ const PROPIOS = new Set((
                 en los seis idiomas: es una decisión, no un descuido. */
 const SALTOS = new Set([
   'tag.soon', 'asst.greet',
-  /* Y estos tres no son rótulos: son TROZOS que se pegan detrás de otra
+  /* Y estos dos no son rótulos: son TROZOS que se pegan detrás de otra
      cosa —«pasaporte.pdf · ya estaba en tu expediente», «resuelta el 4 de
      agosto»—. Empezar en minúscula ahí no es un descuido, es lo correcto:
      van en mitad de una frase. */
-  'reutilizado', 'mt_resuelta', 'ay_ente',
+  'reutilizado', 'mt_resuelta',
   /* Y los cuatro estados de una cita, que se meten DENTRO de otra frase:
      la bitacora escribe «Cita confirmada», no «confirmada» a secas. En
      mayuscula quedaria «Cita Confirmada», que es peor que el aviso. */
