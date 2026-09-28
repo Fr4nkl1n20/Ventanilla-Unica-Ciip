@@ -335,7 +335,7 @@
               marcaSiembra, marcaMira,
               conformidadMira,
               licenciaSiembra, licenciaMira,
-              importadorMira,
+              importadorMira, bomberosMira,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
                  cuentas a todo lo que cuenta tarjetas. */
@@ -8256,6 +8256,37 @@
     var n = window.CIIP_NOMBRE_TRAMITE ? window.CIIP_NOMBRE_TRAMITE('c11') : '';
     ok('importador: una solicitud vieja se sigue llamando por su nombre, no «c11»',
        !!n && n !== 'c11', n || '(nada)', 'el nombre del diccionario');
+  }
+
+  /* ═══════════ EL PERMISO DE BOMBEROS (c29) ═══════════
+     Pedido del CIIP (28-9-2026): tres recaudos más -cédula o pasaporte y
+     RIF del representante legal, documento constitutivo- con los tipos de
+     la marca, y la escalera «Revisión de recaudos → Permiso otorgado». */
+  function bomberosMira(){
+    if (PASE !== 'vacio') return;
+    var R = window.CIIP_RECAUDOS;
+    if (!R) return ok('bomberos: la lista de recaudos está a mano', false, 'no está', 'window.CIIP_RECAUDOS');
+    var recs = R.de('permiso_bomberos');
+    var de = function(t){ return recs.filter(function(r){ return r.tipo === t; })[0] || {}; };
+    igual('bomberos: pide la cédula o el pasaporte del representante legal', de('cedula').clave, 'd_cedpasrep');
+    igual('bomberos: y su RIF', de('rif_personal').clave, 'd_rifrep');
+    igual('bomberos: y el documento constitutivo de la empresa', de('acta_constitutiva').clave, 'd_docconst');
+    ok('bomberos: sin perder los de antes',
+       ['conformidad_uso', 'plano_local', 'rif_empresa'].every(function(t){ return !!de(t).tipo; }) &&
+         de('mantenimiento_extintores').opcional === true,
+       recs.map(function(r){ return r.tipo; }).join(', '), 'conformidad, plano, RIF y extintores opcional');
+    igual('bomberos: con los rótulos del CIIP', window.CIIP_T().d_docconst, 'Documento constitutivo de la empresa');
+
+    var cat = window.CIIP_TIPOS_POR_REF, puesto = false;
+    if (cat && !cat.c29){ cat.c29 = {codigo: 'permiso_bomberos', ref_panel: 'c29', ente: 'Cuerpo de Bomberos', activo: true}; puesto = true; }
+    var esc = function(estado){ return window.CIIP_ESCALERA({estado: estado, datos: {}}, 'permiso_bomberos', 'Cuerpo de Bomberos'); };
+    var dibujo = function(E){ return E.todos.map(function(p){ return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(','); };
+    igual('bomberos: dos pasos', esc('enviado').todos.map(function(p){ return p.nombre; }).join(' → '),
+          'Revisión de recaudos → Permiso otorgado');
+    igual('bomberos: en revisión, la revisión en curso', dibujo(esc('en_revision')), 'ahora,porhacer');
+    igual('bomberos: ante los bomberos, el permiso en curso', dibujo(esc('ante_el_ente')), 'hecho,ahora');
+    igual('bomberos: resuelto, otorgado', dibujo(esc('resuelto')), 'hecho,hecho');
+    if (puesto) delete cat.c29;
   }
 
   function alDiaFreno(){

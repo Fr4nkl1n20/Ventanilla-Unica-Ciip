@@ -3211,10 +3211,18 @@ applyLang(idiomaParaMi());
        se hace sobre un local del que ya se sabe qué actividad va a
        albergar. El contrato de mantenimiento de extintores va opcional
        porque la hoja dice "según municipio", y no todos lo exigen. */
+    /* Y desde el 28-9-2026 (pedido del CIIP): «Agregar Cédula o pasaporte
+       y RIF del representante legal, Documento constitutivo de la
+       empresa». Los tipos son los que ya usa la marca para lo mismo -una
+       cédula es una cédula, un acta es un acta-, así que quien los tenga
+       en la bóveda no los vuelve a subir. */
     permiso_bomberos: [
       {tipo:'conformidad_uso',   clave:'d_conformidad'},
       {tipo:'plano_local',       clave:'d_plano'},
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedpasrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'},
+      {tipo:'acta_constitutiva', clave:'d_docconst'},
       {tipo:'mantenimiento_extintores', clave:'d_extintores', opcional:true}
     ],
     /* El estudio de impacto va opcional a propósito. La hoja avisa de que
@@ -20161,7 +20169,11 @@ applyLang(idiomaParaMi());
      conformidad de uso». Revisión mientras está en el CIIP, inscripción
      mientras está ante la alcaldía, y la certificación al resolverse. */
   var PASOS_SEGUN_ESTADO = {
-    c28: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1}
+    c28: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    /* El permiso de bomberos (c29), el mismo día: «Revisión de recaudos →
+       Permiso otorgado». Ante los bomberos, el permiso es lo que está en
+       curso; resuelto, otorgado. */
+    c29: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1}
   };
 
   /* ── UN TRÁMITE CON DOS ESCALERAS ──

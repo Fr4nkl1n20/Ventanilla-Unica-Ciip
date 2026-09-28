@@ -170,7 +170,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-licencia',
 /* El registro de importador y exportador (c11) se apaga en el catálogo.
    Va detrás de supabase-tramites, cuyas listas ya no lo encienden. */
-'supabase-quitar-importador'];
+'supabase-quitar-importador',
+/* El permiso de bomberos (c29): el borrado de sus pasos viejos. Solo
+   necesita textos_panel. */
+'supabase-bomberos'];
 
 let mal = 0;
 for (const n of orden) {
