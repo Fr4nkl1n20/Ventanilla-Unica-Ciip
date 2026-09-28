@@ -26369,10 +26369,15 @@ applyLang(idiomaParaMi());
         });
         var porEstado = {};
         tr.forEach(function(x){ porEstado[x.estado] = (porEstado[x.estado] || 0) + 1; });
-        var porGestor = {};
+        /* Por gestor, cuantos lleva y desde cuando espera el mas viejo de
+           los suyos: la misma cuenta que «lo que lleva mas esperando», pero
+           repartida. Es lo que dice a quien hay que quitarle carga. */
+        var porGestor = {}, viejoGestor = {};
         esperando.forEach(function(x){
           var k = x.gestor || '';
           porGestor[k] = (porGestor[k] || 0) + 1;
+          var d = Date.parse(x.enviado_en || x.creado_en);
+          if (!isNaN(d) && (viejoGestor[k] === undefined || d < viejoGestor[k])) viejoGestor[k] = d;
         });
         pulso = {
           total: tr.length,
@@ -26381,6 +26386,7 @@ applyLang(idiomaParaMi());
           masViejo: masViejo,
           porEstado: porEstado,
           porGestor: porGestor,
+          viejoGestor: viejoGestor,
           citas: 0,
           caducados: 0
         };
@@ -26410,28 +26416,47 @@ applyLang(idiomaParaMi());
     return Math.max(0, Math.floor((Date.now() - ms) / 86400000));
   }
 
+  /* Rotulo arriba y cifra debajo: en la tira se lee de izquierda a derecha
+     como una frase -«En marcha 14, Esperando 7…»-. */
   function unNumero(caja, valor, rotulo, tono){
     var n = el('div', 'pu-n' + (tono ? ' ' + tono : ''));
-    n.appendChild(el('div', 'v', valor));
     n.appendChild(el('div', 'l', rotulo || ''));
+    n.appendChild(el('div', 'v', valor));
     caja.appendChild(n);
   }
 
-  /* Una barra. El ancho se mide contra el MAYOR de la tanda y no contra el
+  /* Una tabla de verdad, con su cabecera: se lee por columnas, y un lector
+     de pantalla la recorre como tal. */
+  function unaTabla(caja, cabeceras){
+    var t = el('table', 'pu-tabla');
+    var fila = el('tr');
+    cabeceras.forEach(function(c){
+      var th = el('th', c.num ? 'num' : null, c.t || '');
+      th.scope = 'col';
+      if (!c.t) th.setAttribute('aria-hidden', 'true');
+      fila.appendChild(th);
+    });
+    var cab = el('thead'); cab.appendChild(fila); t.appendChild(cab);
+    var cuerpo = el('tbody'); t.appendChild(cuerpo);
+    caja.appendChild(t);
+    return cuerpo;
+  }
+
+  /* La barra. El ancho se mide contra el MAYOR de la tanda y no contra el
      total: si se midiera contra el total, con un reparto parejo salen seis
-     barritas cortas iguales y no se ve quien lleva mas. */
-  function unaBarra(caja, rotulo, n, tope){
-    var b = el('div', 'pu-barra');
-    var q = el('div', 'q', rotulo);
-    q.title = rotulo;
-    b.appendChild(q);
-    var pista = el('div', 'pu-pista');
-    var relleno = el('div', 'pu-relleno');
-    relleno.style.width = (tope > 0 ? Math.round((n / tope) * 100) : 0) + '%';
-    pista.appendChild(relleno);
-    b.appendChild(pista);
-    b.appendChild(el('div', 'v', String(n)));
-    caja.appendChild(b);
+     barritas cortas iguales y no se ve quien lleva mas. Es adorno de la
+     cifra de al lado, asi que el lector de pantalla se la salta. */
+  function celdaBarra(n, tope){
+    var td = el('td', 'barra');
+    td.setAttribute('aria-hidden', 'true');
+    if (n > 0){
+      var pista = el('div', 'pu-pista');
+      var relleno = el('div', 'pu-relleno');
+      relleno.style.width = (tope > 0 ? Math.round((n / tope) * 100) : 0) + '%';
+      pista.appendChild(relleno);
+      td.appendChild(pista);
+    }
+    return td;
   }
 
   function pintaPulso(){
@@ -26444,7 +26469,12 @@ applyLang(idiomaParaMi());
 
     var cEst = document.getElementById('puEstados');
     var cCol = document.getElementById('puCola');
+    var asignar = document.getElementById('puAsignar');
     puNums.textContent = ''; cEst.textContent = ''; cCol.textContent = '';
+    if (asignar){
+      asignar.textContent = (u.pu_asignar || '') + ' →';
+      asignar.hidden = true;
+    }
 
     if (!pulso){
       cEst.appendChild(el('div', 'pu-vacio', u.pu_vacio || ''));
@@ -26473,13 +26503,29 @@ applyLang(idiomaParaMi());
       return;
     }
 
-    var topeE = 0;
-    PU_ESTADOS.forEach(function(e){ topeE = Math.max(topeE, pulso.porEstado[e] || 0); });
+    /* El porcentaje, sobre los seis estados que se enseñan y no sobre el
+       total de la base: asi la columna suma cien con lo que se ve. */
+    var topeE = 0, sumaE = 0;
+    PU_ESTADOS.forEach(function(e){
+      var n = pulso.porEstado[e] || 0;
+      topeE = Math.max(topeE, n); sumaE += n;
+    });
+    var filasE = unaTabla(cEst, [{t:u.pu_c_estado}, {}, {t:u.pu_c_n, num:true}, {t:'%', num:true}]);
+    var resaltado = false;
     PU_ESTADOS.forEach(function(e){
       var n = pulso.porEstado[e] || 0;
       /* Un estado con cero tambien se pinta: saber que no hay ninguno
-         devuelto es justo la mitad de la respuesta. */
-      unaBarra(cEst, u[PU_ROTULO[e]] || e, n, topeE);
+         devuelto es justo la mitad de la respuesta. El que mas tiene va
+         resaltado -uno solo, el primero en el orden del expediente-. */
+      var tope = !resaltado && n > 0 && n === topeE;
+      if (tope) resaltado = true;
+      var tr = el('tr', n === 0 ? 'cero' : (tope ? 'tope' : null));
+      tr.appendChild(el('td', 'nombre', u[PU_ROTULO[e]] || e));
+      tr.appendChild(celdaBarra(n, topeE));
+      tr.appendChild(el('td', 'num', String(n)));
+      tr.appendChild(el('td', 'num pct',
+        n === 0 || !sumaE ? '—' : String(Math.round((n / sumaE) * 100))));
+      filasE.appendChild(tr);
     });
 
     var claves = Object.keys(pulso.porGestor);
@@ -26487,8 +26533,11 @@ applyLang(idiomaParaMi());
       cCol.appendChild(el('div', 'pu-vacio', u.pu_ninguno || ''));
       return;
     }
-    var topeG = 0;
-    claves.forEach(function(k){ topeG = Math.max(topeG, pulso.porGestor[k]); });
+    /* Lo que no tiene dueño se reparte en «Tus solicitudes», que es donde
+       esta el desplegable de asignar. */
+    if (asignar && pulso.porGestor['']) asignar.hidden = false;
+    var filasG = unaTabla(cCol, [{t:u.pu_c_gestor}, {t:u.pu_c_encola, num:true},
+                                 {t:u.pu_c_espera, num:true}]);
     /* De mas cargado a menos, y «sin asignar» al final: es un monton, no
        una persona, y encabezar la lista de gestores con el confunde. */
     claves.sort(function(a, b){
@@ -26498,8 +26547,26 @@ applyLang(idiomaParaMi());
     }).forEach(function(k){
       var rot = k ? ((typeof nombreDeGestor === 'function' ? nombreDeGestor(k) : '') || k)
                   : (u.pu_sinasig || '');
-      unaBarra(cCol, rot, pulso.porGestor[k], topeG);
+      var tr = el('tr');
+      var nom = el('td', 'nombre');
+      nom.title = rot;
+      if (!k) nom.appendChild(el('span', 'pt'));
+      nom.appendChild(document.createTextNode(rot));
+      tr.appendChild(nom);
+      tr.appendChild(el('td', 'num', String(pulso.porGestor[k])));
+      /* La espera, en horas como la tira de arriba, y en oxido a la semana:
+         el mismo umbral que «lo que lleva mas esperando». */
+      var viejo = pulso.viejoGestor ? pulso.viejoGestor[k] : undefined;
+      var dG = viejo === undefined ? null : diasDesde(viejo);
+      tr.appendChild(el('td', 'num' + (dG !== null && dG >= 7 ? ' mal' : ''),
+        dG === null ? '—' : enHoras(Math.max(0, Date.now() - viejo))));
+      filasG.appendChild(tr);
     });
+    /* Si solo esta el monton sin dueño, decirlo: una tabla de gestores con
+       una unica fila que no es ningun gestor se lee como un fallo. */
+    if (claves.length === 1 && !claves[0]){
+      cCol.appendChild(el('div', 'pu-vacio pie', u.pu_solo_sin || ''));
+    }
   }
 
   if (puNums){

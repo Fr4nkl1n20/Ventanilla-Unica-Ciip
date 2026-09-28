@@ -636,49 +636,70 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .eq-tardo.pasa{background:var(--rust-bg); color:var(--rust);} .eq-tardo.ok{background:var(--good-bg); color:var(--good);}
 .eq-f-vacio{padding:26px 18px; text-align:center; color:var(--gray); font-size:var(--fs-fila);}
 
-/* Los numeros de arriba. Cinco columnas fijas y no auto-fit, por lo mismo
-   que en la pantalla de usuarios: el reparto tiene que ser predecible.
-   Los dos que avisan -lo que lleva mas esperando y los papeles caducados-
-   se tiñen SOLO cuando hay algo, y llevan su rotulo al lado: el color no
-   puede ser lo unico que lo diga. */
+/* Los numeros de arriba, en UNA tira partida en cinco (idea C de las
+   maquetas, 28-9-2026): se leen como una sola linea de estado y no como
+   cinco tarjetas sueltas. Cada cifra dibuja su linea derecha y la de abajo
+   con una sombra de 1px; las del borde caen fuera y el overflow las
+   recorta. Con un gap de 1px sobre fondo gris, al partirse la tira en dos
+   filas el hueco que sobra salia como un bloque gris. */
 .pu-nums{display:grid; grid-template-columns:repeat(5, minmax(0, 1fr));
-  gap:12px; margin-bottom:22px; max-width:1000px;}
+  margin-bottom:18px; background:var(--bg);
+  border:1px solid var(--line); border-radius:var(--r); overflow:hidden;
+  box-shadow:var(--shadow);}
 @media(max-width:1180px){ .pu-nums{grid-template-columns:repeat(3, minmax(0, 1fr));} }
 @media(max-width:700px){  .pu-nums{grid-template-columns:repeat(2, minmax(0, 1fr));} }
-.pu-n{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
-  padding:14px 16px; box-shadow:var(--shadow);}
-.pu-n .v{font-size:var(--fs-cifra); font-weight:700; line-height:1.05;
+/* Los que avisan se tiñen SOLO cuando hay algo, y llevan su rotulo al
+   lado: el color no puede ser lo unico que lo diga. */
+.pu-n{background:var(--bg); padding:14px 18px;
+  box-shadow:1px 0 0 var(--line), 0 1px 0 var(--line);}
+.pu-n .l{font-size:var(--fs-rotulo); color:var(--gray); font-weight:700;letter-spacing:.01em;}
+.pu-n .v{font-size:var(--fs-cifra); font-weight:700; line-height:1.1; margin-top:4px;
   font-variant-numeric:tabular-nums; color:var(--ink);letter-spacing:-.02em;}
-.pu-n .l{font-size:var(--fs-rotulo); color:var(--gray); margin-top:5px;font-weight:700;letter-spacing:.01em;}
-.pu-n.ojo{border-color:var(--amber);}
+.pu-n.ojo{background:var(--amber-bg);}
 .pu-n.ojo .v{color:var(--amber);}
-.pu-n.mal{border-color:var(--rust);}
+.pu-n.mal{background:var(--rust-bg);}
 .pu-n.mal .v{color:var(--rust);}
 
-/* Las barras. Un solo tono para todas, y a proposito: lo que se compara
-   aqui es CUANTO, no quien es quien. Pintar cada barra de un color la
-   convertiria en una paleta categorica de las que hay que validar, y el
-   ambar y el oxido del panel estan a un delta de 10 en vision normal: dos
-   barras contiguas con esos dos colores no se distinguen. El nombre va
-   escrito al lado de cada una, que es identidad de sobra. */
+/* Las dos tablas, lado a lado; en pantallas estrechas, una debajo de otra. */
+.pu-dos{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px;
+  align-items:start;}
+@media(max-width:980px){ .pu-dos{grid-template-columns:minmax(0, 1fr);} }
 .pu-caja{background:var(--bg); border:1px solid var(--line);
-  border-radius:var(--r); padding:18px 20px; margin-bottom:16px;
-  box-shadow:var(--shadow); max-width:1000px;}
-.pu-t{font-size:12px; font-weight:700; letter-spacing:.01em; color:var(--gray-soft); margin-bottom:14px;}
-.pu-barra{display:grid; grid-template-columns:minmax(120px,190px) 1fr auto;
-  align-items:center; gap:12px; margin-bottom:9px;}
-.pu-barra:last-child{margin-bottom:0;}
-.pu-barra .q{font-size:12.5px; color:var(--ink); overflow:hidden;
-  text-overflow:ellipsis; white-space:nowrap;}
-.pu-pista{height:9px; background:var(--block); border-radius:5px;
-  overflow:hidden;}
+  border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden;}
+.pu-t{display:flex; align-items:center; justify-content:space-between; gap:12px;
+  font-size:12.5px; font-weight:700; letter-spacing:.01em; color:var(--ink);
+  padding:0 18px; min-height:46px; border-bottom:1px solid var(--line);}
+.pu-asignar{font-size:12.5px; font-weight:700; color:var(--navy2); text-decoration:none;}
+.pu-asignar:hover{text-decoration:underline;}
+.pu-asignar:focus-visible{outline:2px solid var(--navy2); outline-offset:2px; border-radius:3px;}
+
+.pu-tabla{width:100%; border-collapse:collapse; font-size:13px;}
+.pu-tabla th{font-size:var(--fs-rotulo); font-weight:700; color:var(--gray);
+  text-align:left; padding:9px 18px; border-bottom:1px solid var(--line-soft);}
+.pu-tabla td{padding:9px 18px; color:var(--ink); border-bottom:1px solid var(--line-soft);
+  white-space:nowrap;}
+.pu-tabla tr:last-child td{border-bottom:0;}
+.pu-tabla .num{text-align:right; font-variant-numeric:tabular-nums;}
+.pu-tabla td.nombre{overflow:hidden; text-overflow:ellipsis; max-width:220px;}
+/* La barra va en su propia columna y mide contra el MAYOR de la tanda.
+   Un solo tono para todas, y a proposito: lo que se compara es CUANTO, no
+   quien es quien. */
+.pu-tabla td.barra{width:34%; padding-left:0;}
+.pu-pista{height:6px; border-radius:3px; overflow:hidden;}
 /* El extremo redondeado y anclado a la linea de salida: una barra con las
    dos puntas redondas miente sobre donde empieza. */
-.pu-relleno{height:100%; background:var(--navy2); border-radius:0 5px 5px 0;
-  min-width:2px;}
-.pu-barra .v{font-size:12.5px; font-weight:700; color:var(--ink);
-  font-variant-numeric:tabular-nums; min-width:26px; text-align:right;}
-.pu-vacio{font-size:var(--fs-parrafo); color:var(--gray-soft); padding:6px 0;}
+.pu-relleno{height:100%; background:var(--navy2); border-radius:0 3px 3px 0;}
+/* Un estado a cero se escribe, pero apagado: saber que no hay ninguno
+   devuelto es la mitad de la respuesta, pero no debe competir con los
+   que tienen algo. El que mas tiene, resaltado: ahi esta el atasco. */
+.pu-tabla tr.cero td{color:var(--gray);}
+.pu-tabla tr.tope td{background:var(--activa-bg); font-weight:700;}
+.pu-tabla .pct{color:var(--gray);}
+.pu-tabla .pt{display:inline-block; width:8px; height:8px; border-radius:50%;
+  background:var(--amber); margin-right:9px; vertical-align:1px;}
+.pu-tabla .mal{color:var(--rust); font-weight:700;}
+.pu-vacio{font-size:var(--fs-parrafo); color:var(--gray); padding:16px 18px;}
+.pu-caja .pu-vacio.pie{text-align:center; border-top:1px solid var(--line-soft); padding:22px 18px;}
 /* El catalogo. Misma mecanica que la vista de usuarios: se enseña sola
    cuando data-vista lo dice, y se lleva por delante la portada. */
 .catalogo-vista{display:none;}

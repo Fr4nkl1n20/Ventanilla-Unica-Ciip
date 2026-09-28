@@ -1227,16 +1227,24 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
       <!-- El pulso de la oficina, arriba de las tarjetas. Fue una vista
            aparte hasta el 28-9-2026 (Franklin Reyes: «que pulso pase a ser
            parte de equipo, que sea una sola»): las cifras de la oficina y
-           las de cada persona se miran juntas. Lo pinta pintaPulso(). -->
+           las de cada persona se miran juntas. Lo pinta pintaPulso().
+           Desde el mismo día, con la forma de la idea C de las maquetas
+           (Franklin Reyes: «aplica la opción C a la ventanilla»): las cifras
+           en una sola tira y, debajo, las dos tablas lado a lado. -->
       <div class="pulso-vista">
         <div class="pu-nums" id="puNums"></div>
-        <div class="pu-caja">
-          <div class="pu-t" id="puTestados"></div>
-          <div id="puEstados"></div>
-        </div>
-        <div class="pu-caja">
-          <div class="pu-t" id="puTcola"></div>
-          <div id="puCola"></div>
+        <div class="pu-dos">
+          <section class="pu-caja">
+            <div class="pu-t" id="puTestados"></div>
+            <div id="puEstados"></div>
+          </section>
+          <section class="pu-caja">
+            <div class="pu-t">
+              <span id="puTcola"></span>
+              <a class="pu-asignar" id="puAsignar" href="#tramites" hidden></a>
+            </div>
+            <div id="puCola"></div>
+          </section>
         </div>
       </div>
       <div class="eq-tarjetas" id="eqTarjetas"></div>
