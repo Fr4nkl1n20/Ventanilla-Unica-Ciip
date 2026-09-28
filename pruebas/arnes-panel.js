@@ -311,7 +311,9 @@
               juntaAbre, juntaMira,
               tramoVerdadAbre, reservaMira, reservaAviso, tramoVerdadMira,
               firmaVerdadSale, firmaVerdadAbre, firmaVerdadMira,
-              textosMira, firmaEscalera, alDiaMira,
+              textosMira, firmaEscalera,
+              entesClaveMonta, entesClaveMira, entesClaveTrasEnviar,
+              alDiaMira,
               rvAbre, rvMira, rvDespues,
               cbAbre, cbMira,
               tdAbre, tdMira,
@@ -10454,6 +10456,73 @@
        caja ? caja.className : '(sin casilla)', 'co-firma puesto');
     igual('firma: el botón pasa a deshacerla',
           caja ? (caja.querySelector('.btn') || {}).textContent : '(sin casilla)', u.co_firma_deshacer);
+  }
+
+  /* ── EL IVSS Y EL INCES: USUARIO Y CONTRASEÑA ──
+     Franklin Reyes, 27-9-2026: esos dos entes mandan usuario y contraseña,
+     y el inversionista escribe los dos. La contraseña se enseña tapada, con
+     «Ver». Los otros cuatro siguen con un código. Se monta el bloque de una
+     solicitud de mentira (r9) con tres entes sembrados en el doble: el IVSS
+     ya enviado, el INCES y el BANAVIH recién inscritos. */
+  var ENTES_PRUEBA = null;
+  function entesClaveMonta(){
+    if (CASO !== 'vacio' || !window.CIIP_LISTA_ENTES) return;
+    var E = window.__ENTES = window.__ENTES || {};
+    E['r9|ivss']    = {tramite:'r9', ente:'ivss', estado:'codigo_enviado', codigo:'empresa.ivss', clave:'S3creta!'};
+    E['r9|inces']   = {tramite:'r9', ente:'inces', estado:'inscrito'};
+    E['r9|banavih'] = {tramite:'r9', ente:'banavih', estado:'inscrito'};
+    ENTES_PRUEBA = window.CIIP_LISTA_ENTES({id:'r9', estado:'ante_el_ente', inversionista:'u1'}, 'inversionista');
+  }
+  function entesClaveMira(){
+    if (CASO !== 'vacio') return;
+    var u = window.CIIP_T();
+    ok('entes: el bloque de prueba se monta', !!ENTES_PRUEBA, ENTES_PRUEBA ? 'está' : 'no está', 'el bloque');
+    if (!ENTES_PRUEBA) return;
+    var fila = function(e){ return ENTES_PRUEBA.querySelector('.pe-ente[data-ente="' + e + '"]'); };
+    var ivss = fila('ivss'), inces = fila('inces'), banavih = fila('banavih');
+    igual('entes: el IVSS pide usuario y contraseña, no un código',
+          (ivss.querySelectorAll('.pe-pasos .tr-paso-n')[1] || {}).textContent, u.pe_p1c);
+    igual('entes: y los demás siguen con su código',
+          (banavih.querySelectorAll('.pe-pasos .tr-paso-n')[1] || {}).textContent, u.pe_p1);
+    var dice = ivss.querySelector('.pe-dice');
+    ok('entes: lo enviado sale con el usuario, y la contraseña tapada',
+       !!dice && dice.textContent.indexOf(String(u.pe_tuusuario).replace('{c}', 'empresa.ivss')) >= 0 &&
+         dice.textContent.indexOf('S3creta!') < 0 && !!dice.querySelector('.pe-clave'),
+       dice ? dice.textContent : '(sin nada)', 'usuario a la vista, contraseña no');
+    var ver = dice && dice.querySelector('.pe-clave .pe-ver');
+    if (ver) ver.click();
+    ok('entes: y «Ver» la enseña',
+       !!dice && dice.textContent.indexOf('S3creta!') >= 0 && ver.textContent === u.pe_ocultaclave,
+       dice ? dice.textContent : '(sin nada)', 'S3creta!');
+    if (ver) ver.click();
+
+    var formI = inces.querySelector('.pe-form'), formB = banavih.querySelector('.pe-form');
+    ok('entes: el INCES, recién inscrito, tiene dos casillas: usuario y contraseña',
+       !!formI && !formI.hidden && !!formI.querySelector('input[type=text]') &&
+         !!formI.querySelector('input[type=password]'),
+       formI ? (formI.hidden ? 'escondida' : formI.querySelectorAll('input').length + ' casillas') : '(sin caja)',
+       'una de texto y una de contraseña');
+    ok('entes: el BANAVIH, una sola',
+       !!formB && !formB.hidden && formB.querySelectorAll('input').length === 1 &&
+         !formB.querySelector('input[type=password]'),
+       formB ? formB.querySelectorAll('input').length + ' casillas' : '(sin caja)', 'una');
+    if (!formI) return;
+    formI.querySelector('input[type=text]').value = 'empresa.inces';
+    formI.querySelector('.pe-env').click();
+    igual('entes: sin contraseña no se manda, y lo dice',
+          (formI.querySelector('.pe-msg') || {}).textContent, u.pe_faltaclave);
+    formI.querySelector('input[type=password]').value = 'Cl4ve INCES';
+    formI.querySelector('.pe-env').click();
+  }
+  function entesClaveTrasEnviar(){
+    if (CASO !== 'vacio' || !ENTES_PRUEBA) return;
+    var d = (window.__ENTES || {})['r9|inces'] || {};
+    igual('entes: el INCES llega a la base con usuario y contraseña, sin recortar',
+          [d.estado, d.codigo, d.clave].join(' · '), 'codigo_enviado · empresa.inces · Cl4ve INCES');
+    var b = (window.__ENTES || {})['r9|banavih'] || {};
+    igual('entes: y el BANAVIH no lleva contraseña', 'clave' in b, false);
+    ['r9|ivss', 'r9|inces', 'r9|banavih'].forEach(function(k){ delete window.__ENTES[k]; });
+    ENTES_PRUEBA = null;
   }
 
   function tramoVerdadMira(){

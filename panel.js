@@ -15065,10 +15065,22 @@ applyLang(idiomaParaMi());
   var cdFilas = null, cdNombres = {};
 
   function cdCarga(){
-    return Promise.resolve(sb.from('tramite_entes')
-      .select('tramite, ente, codigo, estado, actualizado_en')
-      .eq('estado', 'codigo_enviado')
-      .order('actualizado_en', {ascending:false}))
+    /* Con la contraseña del IVSS y del INCES, si la base ya tiene dónde
+       guardarla; si no, como antes (ver sinColumnaClave). */
+    function pide(){
+      var cols = 'tramite, ente, codigo, estado, actualizado_en' +
+                 (ENTES_SELECT === ENTES_SELECT_BASE ? '' : ', clave');
+      return Promise.resolve(sb.from('tramite_entes')
+        .select(cols)
+        .eq('estado', 'codigo_enviado')
+        .order('actualizado_en', {ascending:false}));
+    }
+    return pide()
+      .then(function(r){
+        if (!sinColumnaClave(r)) return r;
+        ENTES_SELECT = ENTES_SELECT_BASE;
+        return pide();
+      })
       .then(function(r){
         if (r && r.error) throw r.error;
         cdFilas = (r && r.data) || [];
@@ -15120,7 +15132,8 @@ applyLang(idiomaParaMi());
 
       var cab = el('div', 'pe-cab');
       cab.appendChild(el('span', 'pe-n', u['pe_' + x.ente] || x.ente));
-      cab.appendChild(el('span', 'chip info', u.pe_enviado || ''));
+      cab.appendChild(el('span', 'chip info',
+        (ENTES_CON_CLAVE.indexOf(x.ente) >= 0 ? u.pe_enviadoc : u.pe_enviado) || ''));
       fila.appendChild(cab);
 
       /* Quién y cuándo, en una línea. El nombre primero: es por quien se
@@ -15132,8 +15145,12 @@ applyLang(idiomaParaMi());
 
       /* El código, grande y a secas: es lo único que hay que leer aquí, y
          se transcribe al portal del ente a mano. */
+      var conClave = ENTES_CON_CLAVE.indexOf(x.ente) >= 0;
       var cod = el('div', 'pe-dice');
-      cod.appendChild(el('span', 'pe-cod', String(u.pe_tucodigo || '{c}').replace('{c}', x.codigo || '')));
+      cod.appendChild(el('span', 'pe-cod',
+        String((conClave ? u.pe_tuusuario : u.pe_tucodigo) || '{c}').replace('{c}', x.codigo || '')));
+      /* El IVSS y el INCES, con la contraseña al lado, tapada. */
+      if (conClave && x.clave) cod.appendChild(claveTapada(x.clave));
       fila.appendChild(cod);
 
       var acc = el('div', 'rv-acc');
@@ -19648,7 +19665,49 @@ applyLang(idiomaParaMi());
      RNC- y el panel llevaba cinco: faltaba la patronal del seguro social.
      Va donde lo nombra ese texto, entre el RUPDAE y el RNC. */
   var ENTES_PARAFISCALES = ['banavih', 'inces', 'mpppst', 'sundde', 'ivss', 'snc'];
-  var ENTES_SELECT = 'ente, codigo, estado, documento, documentos(archivo, nombre_original, tipo)';
+  var ENTES_SELECT_BASE = 'ente, codigo, estado, documento, documentos(archivo, nombre_original, tipo)';
+  var ENTES_SELECT = ENTES_SELECT_BASE + ', clave';
+
+  /* ── EL IVSS Y EL INCES MANDAN USUARIO Y CONTRASEÑA ──
+     Franklin Reyes, 27-9-2026: «para IVSS e INCES se debe colocar 2
+     espacios, en virtud de que estas instituciones envían tanto el usuario
+     como la contraseña». Los otros cuatro siguen con su código.
+
+     El usuario va en la columna del código -es lo que se lee y se copia al
+     portal del ente, igual que un código- y la contraseña en la suya,
+     tramite_entes.clave (supabase-entes-clave.sql). Las dos las ven solo el
+     dueño de la solicitud y el equipo, que es lo que ya dicen las políticas
+     de la fila; en pantalla la contraseña sale tapada, con «Ver».
+
+     Sin ese SQL corrido la columna no existe y pedirla tumbaba la consulta
+     entera: los seis entes salían por iniciar. Así que si la base dice que
+     no la conoce, se vuelve a pedir sin ella y se sigue como antes. */
+  var ENTES_CON_CLAVE = ['ivss', 'inces'];
+  function sinColumnaClave(r){
+    return !!(r && r.error && ENTES_SELECT !== ENTES_SELECT_BASE &&
+              /clave/.test(r.error.message || ''));
+  }
+  /* La contraseña tapada, con su botón de verla. El mismo número de puntos
+     sea cual sea: contarlos ya diría cuánto mide. */
+  function claveTapada(clave){
+    var u = T();
+    var caja = el('span', 'pe-cod pe-clave');
+    caja.appendChild(document.createTextNode((u.pe_tuclave || '') + ' '));
+    var valor = el('span', 'pe-clave-v', '••••••••');
+    caja.appendChild(valor);
+    var ver = el('button', 'pe-ver', u.pe_verclave || '');
+    ver.type = 'button';
+    ver.setAttribute('aria-pressed', 'false');
+    ver.addEventListener('click', function(){
+      var abierta = ver.getAttribute('aria-pressed') !== 'true';
+      ver.setAttribute('aria-pressed', abierta ? 'true' : 'false');
+      valor.textContent = abierta ? clave : '••••••••';
+      ver.textContent = abierta ? (u.pe_ocultaclave || '') : (u.pe_verclave || '');
+    });
+    caja.appendChild(document.createTextNode(' '));
+    caja.appendChild(ver);
+    return caja;
+  }
   /* ── CUÁNDO SE PUEDEN TOCAR LOS CINCO ──
      Franklin Reyes, 25-9-2026: «quiero que las casillas de abajo estén
      desactivadas hasta que la fase del proceso de arriba esté en la etapa
@@ -19668,8 +19727,15 @@ applyLang(idiomaParaMi());
   var ENTES_YA = {};
   function entesDe(id){
     if (ENTES_DE[id]) return ENTES_DE[id];
-    return (ENTES_DE[id] = Promise.resolve(
-      sb.from('tramite_entes').select(ENTES_SELECT).eq('tramite', id))
+    function pide(){
+      return Promise.resolve(sb.from('tramite_entes').select(ENTES_SELECT).eq('tramite', id));
+    }
+    return (ENTES_DE[id] = pide()
+      .then(function(r){
+        if (!sinColumnaClave(r)) return r;
+        ENTES_SELECT = ENTES_SELECT_BASE;
+        return pide();
+      })
       .then(function(r){
         if (r && r.error) throw r.error;
         var m = {};
@@ -19750,8 +19816,11 @@ applyLang(idiomaParaMi());
          Uno por uno y no los cinco de golpe, porque no se inscriben el
          mismo día. Si un día sí, se marcan los cinco seguidos y cuesta lo
          mismo. */
+      /* El IVSS y el INCES: usuario y contraseña en vez de código. */
+      var conClave = ENTES_CON_CLAVE.indexOf(ente) >= 0;
       var ol = el('ol', 'tr-pasos pe-pasos');
-      var pasos = ['pe_p0', 'pe_p1', 'pe_p2', 'pe_p3'].map(function(clave, i){
+      var pasos = (conClave ? ['pe_p0', 'pe_p1c', 'pe_p2c', 'pe_p3']
+                            : ['pe_p0', 'pe_p1', 'pe_p2', 'pe_p3']).map(function(clave, i){
         var li = el('li', 'tr-paso porhacer');
         var punto = el('span', 'tr-punto', String(i + 1));
         var txt = el('div', 'tr-txt');
@@ -19788,8 +19857,19 @@ applyLang(idiomaParaMi());
          devuelve cero filas, y sin mirarlo aquí se diría «hecho» de algo que
          no cambió. Es la misma trampa de la nota de la devolución. */
       function manda(cambio, boton, alFallar){
-        return Promise.resolve(sb.from('tramite_entes')
-          .upsert(cambio, {onConflict: 'tramite,ente'}).select(ENTES_SELECT))
+        function sube(){
+          return Promise.resolve(sb.from('tramite_entes')
+            .upsert(cambio, {onConflict: 'tramite,ente'}).select(ENTES_SELECT));
+        }
+        return sube()
+          /* Sin la columna de la contraseña en la base, lo que no la lleva
+             se vuelve a mandar pidiendo lo de siempre. Lo que sí la lleva no
+             tiene dónde guardarla, y falla como tiene que fallar. */
+          .then(function(r){
+            if (!sinColumnaClave(r) || ('clave' in cambio)) return r;
+            ENTES_SELECT = ENTES_SELECT_BASE;
+            return sube();
+          })
           .then(function(r){
             if (r && r.error) throw r.error;
             if (!(r && r.data && r.data.length)) throw new Error('sin permiso');
@@ -19809,24 +19889,65 @@ applyLang(idiomaParaMi());
         var cod = document.createElement('input');
         cod.type = 'text';
         cod.maxLength = 200;
-        cod.placeholder = u.pe_codigo || '';
-        cod.setAttribute('aria-label', nombre + ': ' + (u.pe_codigo || ''));
+        var rotuloCod = (conClave ? u.pe_usuario : u.pe_codigo) || '';
+        cod.placeholder = rotuloCod;
+        cod.setAttribute('aria-label', nombre + ': ' + rotuloCod);
+        /* La contraseña, con los ojos cerrados y su botón de verla: se
+           copia de un correo y conviene poder comprobarla antes de mandar.
+           new-password para que el navegador no la guarde como la de este
+           panel, que no lo es. */
+        var cla = null, verCla = null;
+        if (conClave){
+          cod.autocomplete = 'off';
+          cla = document.createElement('input');
+          cla.type = 'password';
+          cla.maxLength = 200;
+          cla.autocomplete = 'new-password';
+          cla.className = 'pe-clave-in';
+          cla.placeholder = u.pe_clave || '';
+          cla.setAttribute('aria-label', nombre + ': ' + (u.pe_clave || ''));
+          verCla = el('button', 'pe-ver', u.pe_verclave || '');
+          verCla.type = 'button';
+          verCla.setAttribute('aria-pressed', 'false');
+          verCla.addEventListener('click', function(){
+            var abierta = cla.type === 'password';
+            cla.type = abierta ? 'text' : 'password';
+            verCla.setAttribute('aria-pressed', abierta ? 'true' : 'false');
+            verCla.textContent = abierta ? (u.pe_ocultaclave || '') : (u.pe_verclave || '');
+          });
+        }
         /* Solo el código, escrito (Franklin, 23-9-2026): el archivo
            adjunto se quitó. La columna documento sigue en la tabla, y si
            alguno llegó a subirse se sigue viendo arriba con «Ver archivo». */
         var env = el('button', 'btn navy pe-env', u.pe_enviar || '');
         env.type = 'button';
         var msg = el('div', 'pe-msg', '');
-        form.appendChild(cod); form.appendChild(env); form.appendChild(msg);
+        form.appendChild(cod);
+        if (cla){ form.appendChild(cla); form.appendChild(verCla); }
+        form.appendChild(env); form.appendChild(msg);
         cod.addEventListener('keydown', function(e){ if (e.key === 'Enter') env.click(); });
+        if (cla) cla.addEventListener('keydown', function(e){ if (e.key === 'Enter') env.click(); });
         env.addEventListener('click', function(){
           var codigo = (cod.value || '').trim();
-          if (!codigo){ msg.textContent = u.pe_falta || ''; cod.focus(); return; }
+          /* La contraseña tal cual, sin recortar: un espacio puede ser suyo. */
+          var clave = cla ? (cla.value || '') : null;
+          if (!codigo){ msg.textContent = (conClave ? u.pe_faltaclave : u.pe_falta) || ''; cod.focus(); return; }
+          if (cla && !clave.trim()){ msg.textContent = u.pe_faltaclave || ''; cla.focus(); return; }
           env.disabled = true;
           msg.textContent = u.enviando || '';
-          manda({tramite: tr.id, ente: ente, estado: 'codigo_enviado', codigo: codigo},
-                env, function(){ msg.textContent = u.error || ''; })
-            .then(function(){ cod.value = ''; env.disabled = false; });
+          var cambio = {tramite: tr.id, ente: ente, estado: 'codigo_enviado', codigo: codigo};
+          if (cla) cambio.clave = clave;
+          manda(cambio, env, function(){ msg.textContent = u.error || ''; })
+            .then(function(){
+              cod.value = '';
+              if (cla){
+                cla.value = '';
+                cla.type = 'password';
+                verCla.setAttribute('aria-pressed', 'false');
+                verCla.textContent = u.pe_verclave || '';
+              }
+              env.disabled = false;
+            });
         });
         pasos[1].txt.appendChild(form);
 
@@ -19840,7 +19961,7 @@ applyLang(idiomaParaMi());
 
            Se puede hasta que el CIIP lo da por bueno; después ya no hay
            nada que corregir. */
-        otro = el('button', 'pe-otro', u.pe_otro || '');
+        otro = el('button', 'pe-otro', (conClave ? u.pe_otroc : u.pe_otro) || '');
         otro.type = 'button';
         otro.hidden = true;
         otro.addEventListener('click', function(){
@@ -19941,8 +20062,8 @@ applyLang(idiomaParaMi());
          ya no espera nada. */
       var HECHOS = {pendiente: 0, inscrito: 1, codigo_enviado: 2, listo: 4};
       var CHIP = {pendiente:      ['mute', 'pe_pendiente'],
-                  inscrito:       ['info', 'pe_esperando'],
-                  codigo_enviado: ['info', 'pe_enviado'],
+                  inscrito:       ['info', conClave ? 'pe_esperandoc' : 'pe_esperando'],
+                  codigo_enviado: ['info', conClave ? 'pe_enviadoc' : 'pe_enviado'],
                   listo:          ['good', 'pe_listo']};
       function enciende(hechos){
         pasos.forEach(function(p, i){
@@ -19961,7 +20082,9 @@ applyLang(idiomaParaMi());
         chip.className = 'chip ' + CHIP[st][0];
         chip.textContent = u[CHIP[st][1]] || '';
         dice.textContent = '';
-        if (d && d.codigo) dice.appendChild(el('span', 'pe-cod', String(u.pe_tucodigo || '{c}').replace('{c}', d.codigo)));
+        if (d && d.codigo) dice.appendChild(el('span', 'pe-cod',
+          String((conClave ? u.pe_tuusuario : u.pe_tucodigo) || '{c}').replace('{c}', d.codigo)));
+        if (conClave && d && d.clave) dice.appendChild(claveTapada(d.clave));
         var doc = d && d.documentos;
         var esConstancia = !!(doc && doc.archivo && doc.tipo === 'constancia_ente');
         baja.hidden = !esConstancia;
@@ -20002,6 +20125,9 @@ applyLang(idiomaParaMi());
     });
     return caja;
   }
+  /* Para las pruebas: ninguna pasada de la tanda trae una solicitud de
+     parafiscales ante los entes, y así se monta el bloque sin ella. */
+  window.CIIP_LISTA_ENTES = listaDeEntes;
 
   /* El documento que dejo el equipo para pagar: escondido hasta saber que
      existe, para no ofrecer abrir algo que no esta.

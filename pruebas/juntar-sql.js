@@ -137,7 +137,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* La firma en el CIIP de la constitución: marca_firma_ciip() y la guarda de
    su marca en datos. Solo necesita tramites y es_gestor(); va al final
    para no mover el número de nadie. */
-'supabase-firma-ciip'];
+'supabase-firma-ciip',
+/* La contraseña del IVSS y del INCES en tramite_entes. Va detrás de
+   supabase-entes-parafiscales, que crea la tabla. */
+'supabase-entes-clave'];
 
 let mal = 0;
 for (const n of orden) {
