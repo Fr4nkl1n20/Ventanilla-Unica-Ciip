@@ -1395,31 +1395,19 @@ body[data-vista="ayuda"] #ayVolver{display:none;}
 body[data-vista="ayuda"] .fase-bar{display:none;}
 #ayVolver{display:none;}
 
-.ay-lista{display:flex; flex-direction:column; gap:14px; max-width:760px;}
-.ay-bloque{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
-  padding:17px 19px; box-shadow:var(--shadow);}
-.ay-t{font-size:var(--fs-tarjeta); font-weight:700; margin-bottom:11px;letter-spacing:-.01em;}
-.ay-p{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.6;}
-.ay-p + .ay-p{margin-top:9px;}
-/* Los cuatro pasos, numerados: el orden es la informacion. */
-.ay-paso{display:flex; align-items:baseline; gap:11px; padding:11px 0;
-  border-top:1px solid var(--line-soft);}
-.ay-paso:first-of-type{border-top:0; padding-top:0;}
-.ay-n{font-size:var(--fs-rotulo); font-weight:700; color:var(--navy2); flex:none;
-  width:18px; font-variant-numeric:tabular-nums;letter-spacing:.01em;}
-.ay-paso-txt{min-width:0;}
-.ay-paso-q{font-size:12.5px; color:var(--ink); font-weight:600;}
-/* La explicacion, en gris y debajo: se lee el nombre del paso primero, y
-   el detalle solo si hace falta. Al mismo tamano competirian. */
-.ay-paso-e{font-size:var(--fs-nota); color:var(--gray); line-height:1.55;
-  margin-top:4px; max-width:64ch;}
-/* Cada distintivo con el suyo al lado, para reconocerlo de un vistazo. */
-.ay-chip{display:flex; align-items:flex-start; gap:11px; padding:8px 0;
-  border-top:1px solid var(--line-soft);}
-.ay-chip:first-of-type{border-top:0; padding-top:0;}
-.ay-chip .chip{flex:none; margin-top:2px; min-width:112px; justify-content:center;}
-.ay-chip .ay-q{font-size:12.5px; color:var(--gray); line-height:1.5;}
-.ay-pie{display:flex; gap:9px; align-items:center; margin-top:13px; flex-wrap:wrap;}
+/* Las preguntas cuya respuesta escribe el CIIP. Sin respuesta no se le
+   enseñan al inversionista; mientras se editan textos, sí, para poder
+   escribírsela. La respuesta respeta los renglones que se le pongan. */
+.faq-item.ay-sin{display:none;}
+body.editando-textos .faq-item.ay-sin{display:block;}
+.faq-item.ay-nueva .faq-a{white-space:pre-line;}
+.faq-a.ay-vacia{font-style:italic; color:var(--gray-soft);}
+/* Donde hacer cada diligencia: el mismo desplegable que las preguntas, sin
+   el numero delante, y dentro un lugar por renglon. */
+.ay-dil .faq-a{padding-left:16px;}
+.ay-sitios{margin:0; padding:0 0 0 18px; display:grid; gap:5px;}
+.ay-sitios li{line-height:1.5;}
+.ay-pronto{color:var(--gray-soft);}
 
 /* --- el banco de activos --- */
 .activos-vista{display:none;}

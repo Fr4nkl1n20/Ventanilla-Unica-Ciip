@@ -20057,91 +20057,122 @@ applyLang(idiomaParaMi());
 
 
   /* ── AYUDA Y GUÍA ─────────────────────────────────────────
-     El renglón se iluminaba y no llevaba a ninguna parte. Y había ocho
-     textos escritos para él —help.q1, q2, q3— que no los usaba ninguna
-     pantalla y que, mirados de cerca, repetían dos preguntas de la portada
-     con respuestas más cortas. Se van; lo que falta no son más preguntas
-     sobre invertir en Venezuela, sino quién explica cómo funciona ESTO.
+     Preguntas y respuestas arriba y, debajo, dónde hacer dos diligencias.
+     «Eliminar toda esa información. Dejar preguntas y respuestas» (CIIP,
+     27 de septiembre de 2026): se fueron los cuatro pasos de una
+     solicitud, los cuatro distintivos, la bóveda y la cita, con sus textos.
 
-     Los cuatro pasos y los cuatro distintivos no se escriben aquí: salen de
-     donde ya estaban —CIIP_PASOS.estados y las claves st.*—, para que la
-     ayuda no pueda contradecir a la pantalla que describe.
+     Las siete preguntas de siempre están escritas en el marcado. Las que el
+     CIIP pidió después llegan sin respuesta, y la respuesta la escribe el
+     equipo con «Editar textos»: cada texto lleva su clave en data-ui. Una
+     pregunta sin respuesta no se le enseña al inversionista, que la abriría
+     para no leer nada; en el modo de edición sí se ve, abierta y con un
+     aviso en el hueco, para poder escribírsela.
+
+     Las dos listas de lugares, igual: un lugar por renglón, y mientras esté
+     vacía dice que se publicará pronto.
+
+     Si el idioma de turno no tiene su respuesta o su lista, se usa la del
+     español. El CIIP las escribe en español primero, y el nombre de un
+     lugar no se traduce: mejor leerla en español que no verla.
      ────────────────────────────────────────────────────── */
   var ayLista = document.getElementById('ayLista');
   var ayNav   = document.getElementById('navAyuda');
 
-  function ayBloque(titulo){
-    var b = el('div', 'ay-bloque');
-    b.appendChild(el('div', 'ay-t', titulo || ''));
-    return b;
+  function ayRenglones(texto){
+    return String(texto || '').split(/\r?\n/).map(function(s){ return s.trim(); })
+                              .filter(Boolean);
   }
 
   function pintaAyuda(){
     if (!ayLista) return;
     var u = T();
-    var dic = I18N[curLang] || I18N.en;
-    var sub = document.getElementById('aySub');
-    if (sub) sub.textContent = '';
-
-    ayLista.textContent = '';
-
-    /* 1 · los cuatro pasos, los mismos que enseña la escalera de cada
-       trámite. El {ente} se queda sin rellenar: aquí se habla en general. */
     var D = window.CIIP_PASOS || {};
-    var pasos = (D.estados && (D.estados[curLang] || D.estados.en)) || [];
-    var b1 = ayBloque(u.ay_h1);
-    var ente = u.ay_ente || 'el organismo';
-    pasos.forEach(function(p, i){
-      var f = el('div', 'ay-paso');
-      f.appendChild(el('span', 'ay-n', String(i + 1)));
-      var txt = el('div', 'ay-paso-txt');
-      txt.appendChild(el('div', 'ay-paso-q', String(p).replace('{ente}', ente)));
-      /* Y que pasa en ese paso. Enumerarlos sin explicarlos deja sin
-         contestar la unica pregunta que se viene a hacer aqui: quien
-         tiene ahora la pelota, y que se espera de mi. */
-      var expl = u['ay_e' + (i + 1)];
-      if (expl) txt.appendChild(el('div', 'ay-paso-e',
-                                   String(expl).replace('{ente}', ente)));
-      f.appendChild(txt);
-      b1.appendChild(f);
+    var es = (D.ui && D.ui.es) || {};
+
+    /* 1 · las preguntas nuevas, detrás de las siete. Las que ya tienen
+       respuesta van primero y siguen la numeración; así el inversionista
+       nunca ve un número saltado. Lo abierto sigue abierto al repintar. */
+    var faq = document.getElementById('faqLista');
+    if (faq){
+      var abiertas = {};
+      faq.querySelectorAll('.ay-nueva').forEach(function(d){
+        if (d.open) abiertas[d.getAttribute('data-clave')] = true;
+        d.parentNode.removeChild(d);
+      });
+      var n = faq.querySelectorAll('details.faq-item').length;
+      var nuevas = [
+        {kq: 'ay_q_licencia', kr: 'ay_r_licencia', q: u.ay_q_licencia,
+         r: u.ay_r_licencia || es.ay_r_licencia},
+        {kq: 'ay_q_zonas',    kr: 'ay_r_zonas',    q: u.ay_q_zonas,
+         r: u.ay_r_zonas || es.ay_r_zonas}
+      ];
+      nuevas.forEach(function(p){ p.r = String(p.r || '').trim(); });
+      nuevas.filter(function(p){ return p.r; })
+            .concat(nuevas.filter(function(p){ return !p.r; }))
+            .forEach(function(p){
+        var d = el('details', 'faq-item ay-nueva' + (p.r ? '' : ' ay-sin'));
+        d.setAttribute('data-clave', p.kq);
+        var s = el('summary');
+        s.appendChild(el('span', 'qi', String(++n)));
+        var qt = el('span', 'qt', p.q || '');
+        qt.setAttribute('data-ui', p.kq);
+        s.appendChild(qt);
+        s.appendChild(el('span', 'chev', '›'));
+        d.appendChild(s);
+        var a = el('div', 'faq-a' + (p.r ? '' : ' ay-vacia'), p.r || u.ay_sinresp || '');
+        a.setAttribute('data-ui', p.kr);
+        d.appendChild(a);
+        /* Sin respuesta solo la ve quien edita, y la ve abierta: el hueco
+           donde se escribe tiene que estar a mano. */
+        if (!p.r || abiertas[p.kq]) d.open = true;
+        faq.appendChild(d);
+      });
+    }
+
+    /* 2 · dónde hacer cada diligencia. */
+    var yaAbiertos = {};
+    ayLista.querySelectorAll('details[open]').forEach(function(d){
+      yaAbiertos[d.getAttribute('data-clave')] = true;
     });
-    if (u.ay_devuelta) b1.appendChild(el('div', 'ay-p', u.ay_devuelta));
-    ayLista.appendChild(b1);
+    ayLista.textContent = '';
+    var cab = el('div', 'sec-h');
+    var tit = el('span', 't', u.ay_dil_t || '');
+    tit.setAttribute('data-ui', 'ay_dil_t');
+    cab.appendChild(tit);
+    ayLista.appendChild(cab);
 
-    /* 2 · los cuatro distintivos, con el distintivo de verdad al lado. */
-    var b2 = ayBloque(u.ay_h2);
-    [['pendiente','st.pending','ay_d1'],
-     ['accion',   'st.action', 'ay_d2'],
-     ['proceso',  'st.progress','ay_d3'],
-     ['listo',    'st.done',   'ay_d4']].forEach(function(t){
-      var f = el('div', 'ay-chip');
-      var c = CHIP_DE[t[0]];
-      var chip = el('span', 'chip ' + c.clase);
-      if (c.punto) chip.appendChild(el('span', 'cd'));
-      chip.appendChild(el('span', null, dic[t[1]] || I18N.en[t[1]] || ''));
-      f.appendChild(chip);
-      f.appendChild(el('div', 'ay-q', u[t[2]] || ''));
-      b2.appendChild(f);
+    var caja = el('div', 'faq ay-dil');
+    [{kt: 'ay_firma',   t: u.ay_firma,   kl: 'ay_firma_lista',
+      l: u.ay_firma_lista || es.ay_firma_lista},
+     {kt: 'ay_medicos', t: u.ay_medicos, kl: 'ay_medicos_lista',
+      l: u.ay_medicos_lista || es.ay_medicos_lista}].forEach(function(g){
+      var d = el('details', 'faq-item');
+      d.setAttribute('data-clave', g.kt);
+      var s = el('summary');
+      var qt = el('span', 'qt', g.t || '');
+      qt.setAttribute('data-ui', g.kt);
+      s.appendChild(qt);
+      s.appendChild(el('span', 'chev', '›'));
+      d.appendChild(s);
+      /* La clave de la lista va en la caja entera: en el modo de edición,
+         pulsar cualquier renglón abre la lista completa, que es como se
+         escribe. */
+      var cuerpo = el('div', 'faq-a');
+      cuerpo.setAttribute('data-ui', g.kl);
+      var sitios = ayRenglones(g.l);
+      if (sitios.length){
+        var ul = el('ul', 'ay-sitios');
+        sitios.forEach(function(x){ ul.appendChild(el('li', null, x)); });
+        cuerpo.appendChild(ul);
+      } else {
+        cuerpo.appendChild(el('div', 'ay-pronto', u.ay_pronto || ''));
+      }
+      d.appendChild(cuerpo);
+      if (yaAbiertos[g.kt]) d.open = true;
+      caja.appendChild(d);
     });
-    ayLista.appendChild(b2);
-
-    /* 3 · la bóveda */
-    var b3 = ayBloque(u.ay_h3);
-    b3.appendChild(el('div', 'ay-p', u.ay_boveda || ''));
-    ayLista.appendChild(b3);
-
-    /* 4 · hablar con alguien. El botón abre la misma ventana de citas: no
-       hay una segunda forma de pedirla. */
-    var b4 = ayBloque(u.ay_h4);
-    b4.appendChild(el('div', 'ay-p', u.ay_cita || ''));
-    var pie = el('div', 'ay-pie');
-    var pedir = el('button', 'btn navy', u.ct_titulo || '');
-    pedir.type = 'button';
-    pedir.addEventListener('click', function(){ abreCita(); });
-    pie.appendChild(pedir);
-    b4.appendChild(pie);
-    ayLista.appendChild(b4);
-
+    ayLista.appendChild(caja);
   }
 
   if (ayLista){
