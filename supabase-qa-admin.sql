@@ -260,6 +260,49 @@ revoke all on function public.correos_de_las_cuentas() from anon;
 grant execute on function public.correos_de_las_cuentas() to authenticated;
 
 
+-- ── QA-27 · La bitácora guarda el rol de antes, y la baja ──────────────
+do $qa$
+begin
+  if to_regprocedure('public.apunta(text, text, text, text)') is null then
+    raise notice 'Sin bitácora: el rol anterior y la baja no se apuntan. Corre supabase-bitacora.sql y vuelve a pasar este.';
+    return;
+  end if;
+
+  -- El detalle pasa a ser {"rol": nuevo, "antes": viejo}. El panel lee
+  -- los dos formatos: los apuntes viejos traen solo el rol nuevo.
+  execute $f$
+create or replace function public.bit_roles()
+returns trigger language plpgsql security definer set search_path = public as $b$
+begin
+  if new.rol is distinct from old.rol then
+    perform public.apunta('roles', 'rol', new.nombre_completo,
+      json_build_object('rol', new.rol, 'antes', old.rol)::text);
+  end if;
+  return null;
+end $b$
+  $f$;
+
+  execute $f$
+create or replace function public.bit_baja()
+returns trigger language plpgsql security definer set search_path = public as $b$
+begin
+  if new.dado_de_baja_en is distinct from old.dado_de_baja_en then
+    perform public.apunta('roles',
+      case when new.dado_de_baja_en is null then 'alta' else 'baja' end,
+      new.nombre_completo);
+  end if;
+  return null;
+end $b$
+  $f$;
+
+  drop trigger if exists bitacora_baja on public.perfiles;
+  create trigger bitacora_baja
+    after update of dado_de_baja_en on public.perfiles
+    for each row execute function public.bit_baja();
+end
+$qa$;
+
+
 -- ── Comprobación ───────────────────────────────────────────────────────
 -- Que es_gestor() y es_admin() sigan dejando entrar a quien debe. Si no
 -- queda ningún admin sin bloquear, se para aquí y no se aplica nada.

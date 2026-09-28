@@ -1165,6 +1165,15 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
       <div class="sec-h">
       </div>
       <div class="ra-nota" id="raNota"></div>
+      <!-- Entre dos fechas, y lo cargado a un CSV (auditoría QA-27). Las
+           fechas se piden a la base, no se filtran en la pantalla: con
+           paginación, filtrar lo cargado dejaría fuera lo que aún no ha
+           llegado. Los rótulos los pone el panel en cada idioma. -->
+      <div class="ra-fechas" id="raFechas">
+        <label><span id="raDesdeR"></span> <input type="date" id="raDesde"></label>
+        <label><span id="raHastaR"></span> <input type="date" id="raHasta"></label>
+        <button class="t-btn" id="raCsv" type="button"></button>
+      </div>
       <div class="ra-mandos" id="raMandos" hidden>
         <div class="co-filtros" id="raFiltros"></div>
         <label class="ra-busca">
@@ -1179,6 +1188,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
             <tbody id="raLista"></tbody>
           </table>
         </div>
+        <button class="t-btn ra-mas" id="raMas" type="button" hidden></button>
       </div>
     </div>
 

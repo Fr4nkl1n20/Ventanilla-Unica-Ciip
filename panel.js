@@ -24556,7 +24556,84 @@ applyLang(idiomaParaMi());
      la consola como el error que es, con su linea. */
   function pintaFueraDeLaCadena(){ setTimeout(pintaRastro, 0); }
 
+  /* ── DE CIEN EN CIEN, Y ENTRE DOS FECHAS (QA-27) ──
+     Se traían los 50 últimos cambios de estado y los 100 últimos apuntes,
+     y lo de antes no había forma de verlo. Ahora cada fuente va por
+     páginas -«Cargar más» pide la siguiente de las dos- y las fechas se le
+     piden a la base: filtrar solo lo cargado dejaría fuera lo que aún no
+     ha llegado y parecería que no pasó.
+
+     Las dos fuentes se paginan cada una por su lado, así que en la frontera
+     de una página puede faltar algo de la otra que aún no se ha pedido: se
+     completa al pulsar «Cargar más», y el orden por fecha lo rehace. */
+  var RA_PAG_EV = 50, RA_PAG_BIT = 100;
+  var raPag = {ev:0, bit:0, evFin:false, bitFin:true};
+  var raDesde = '', raHasta = '';
+
+  function raConFechas(q, col){
+    if (raDesde){
+      var d = new Date(raDesde + 'T00:00:00');
+      if (!isNaN(d.getTime())) q = q.gte(col, d.toISOString());
+    }
+    if (raHasta){
+      var h = new Date(raHasta + 'T00:00:00');
+      if (!isNaN(h.getTime())){
+        h.setDate(h.getDate() + 1);   /* el día de «hasta», entero */
+        q = q.lt(col, h.toISOString());
+      }
+    }
+    return q;
+  }
+  function pideEventos(){
+    var q = sb.from('tramite_eventos')
+      .select('id, tramite, a_estado, autor, creado_en')
+      .order('creado_en', {ascending: false});
+    return raConFechas(q, 'creado_en').range(raPag.ev, raPag.ev + RA_PAG_EV - 1);
+  }
+  function pideBitacora(){
+    var q = sb.from('bitacora')
+      .select('id, cuando, quien, fuente, accion, sobre, detalle')
+      .order('cuando', {ascending: false});
+    return raConFechas(q, 'cuando').range(raPag.bit, raPag.bit + RA_PAG_BIT - 1);
+  }
+  function eventosDe(r){
+    var d = (r && !r.error && r.data) || [];
+    raPag.ev += d.length;
+    raPag.evFin = d.length < RA_PAG_EV;
+    return d.map(function(x){
+      return {que:'tramite', quien:x.autor, estado:x.a_estado, cuando:x.creado_en};
+    });
+  }
+
+  /* La página siguiente de las dos fuentes, pegada a lo que ya hay. */
+  function cargaMasRastro(){
+    var b = document.getElementById('raMas');
+    if (b) b.disabled = true;
+    return Promise.resolve()
+      .then(function(){ return raPag.evFin ? null : pideEventos(); })
+      .then(function(r){
+        if (r) rastro = (rastro || []).concat(eventosDe(r));
+        if (bitacora === null || raPag.bitFin) return null;
+        return pideBitacora();
+      })
+      .then(function(rb){
+        if (rb && !rb.error){
+          var d = rb.data || [];
+          bitacora = bitacora.concat(d);
+          raPag.bit += d.length;
+          raPag.bitFin = d.length < RA_PAG_BIT;
+        }
+        if (b) b.disabled = false;
+        pintaFueraDeLaCadena();
+      })
+      .catch(function(e){
+        console.error('[CIIP] rastro, al cargar más:', e && (e.message || e));
+        if (b) b.disabled = false;
+      });
+  }
+
   function cargaRastro(){
+    raPag = {ev:0, bit:0, evFin:false, bitFin:true};
     /* Los perfiles primero: sin ellos el rastro sale lleno de uuids, que
        es peor que no tenerlo. Se reusan si la otra pantalla ya los trajo. */
     var perfiles = gente.length ? Promise.resolve({data: gente})
@@ -24582,30 +24659,25 @@ applyLang(idiomaParaMi());
            tramite_eventos ya era un historial de verdad, y duplicarlo
            serian dos registros de lo mismo esperando a no coincidir. Se
            piden siempre y se mezclan con lo que haya. */
-        return sb.from('tramite_eventos')
-          .select('id, tramite, a_estado, autor, creado_en')
-          .order('creado_en', {ascending: false})
-          .limit(50);
+        return pideEventos();
       })
       .then(function(r){
-        var ev = ((r && r.data) || []).map(function(x){
-          return {que:'tramite', quien:x.autor, estado:x.a_estado, cuando:x.creado_en};
-        });
+        var ev = eventosDe(r);
         /* Y ahora la bitacora. Si contesta, manda ella para todo lo demas:
            las dos columnas viejas -rol_cambiado_* y activo_*- cuentan lo
            mismo peor, guardando solo el ultimo movimiento, y mezclarlas
            duplicaria cada apunte reciente. */
-        return sb.from('bitacora')
-          .select('id, cuando, quien, fuente, accion, sobre, detalle')
-          .order('cuando', {ascending: false})
-          .limit(100)
+        return pideBitacora()
           .then(function(rb){
             if (rb && rb.error){
               console.warn('[CIIP] rastro: sin bitacora (' +
                 (rb.error.message || '') + '); sigo con las fuentes viejas');
               return {ev: ev, bit: null};
             }
-            return {ev: ev, bit: (rb && rb.data) || []};
+            var b = (rb && rb.data) || [];
+            raPag.bit = b.length;
+            raPag.bitFin = b.length < RA_PAG_BIT;
+            return {ev: ev, bit: b};
           });
       })
       .then(function(x){
@@ -24742,7 +24814,26 @@ applyLang(idiomaParaMi());
     } else if (b.fuente === 'roles'){
       if (b.accion === 'bloqueo')         accion = u.ra_v_bloq || '';
       else if (b.accion === 'desbloqueo') accion = u.ra_v_desbloq || '';
-      else accion = String(u.ra_v_rol || '').replace('{rol}', d['rol.' + b.detalle] || b.detalle || '');
+      else if (b.accion === 'baja')       accion = u.ra_v_baja || '';
+      else if (b.accion === 'alta')       accion = u.ra_v_alta || '';
+      else {
+        /* Desde supabase-qa-admin.sql el detalle de un cambio de rol es
+           {"rol": nuevo, "antes": viejo}; los apuntes de antes traen solo
+           el rol nuevo, y se siguen leyendo igual (QA-27). */
+        var rolNuevo = b.detalle, rolAntes = '';
+        if (String(b.detalle || '').charAt(0) === '{'){
+          try {
+            var jr = JSON.parse(b.detalle);
+            rolNuevo = jr.rol || '';
+            rolAntes = jr.antes || '';
+          } catch (e){}
+        }
+        var nomNuevo = d['rol.' + rolNuevo] || rolNuevo || '';
+        accion = rolAntes
+          ? String(u.ra_v_rol_de || '').replace('{antes}', d['rol.' + rolAntes] || rolAntes)
+                                        .replace('{rol}', nomNuevo)
+          : String(u.ra_v_rol || '').replace('{rol}', nomNuevo);
+      }
       if (!sobre) sobre = u.ra_sinnombre || '';
     } else if (b.fuente === 'papeles'){
       if (b.accion === 'valido' || b.accion === 'rechazo'){
@@ -24836,10 +24927,57 @@ applyLang(idiomaParaMi());
   var RA_COLUMNAS = ['ra_c_cuando', 'ra_c_quien', 'ra_c_que', 'ra_c_accion', 'ra_c_sobre'];
   var raOrden = ordenDeTabla(function(){ pintaRastro(); });
 
+  /* Lo que se ve, tal cual, para el CSV: lo cargado que pasa la ficha y
+     la búsqueda de arriba. Se guarda al pintar para que el archivo diga
+     exactamente lo que dice la tabla. */
+  var raVistas = [];
+
+  /* El rastro cargado, a un CSV (QA-27). Una celda que empiece por =, +, -
+     o @ la abriría una hoja de cálculo como fórmula: se le antepone un
+     apóstrofo. Y la marca de orden de bytes delante, para que Excel lea
+     bien los acentos. */
+  function csvCelda(v){
+    var s = String(v == null ? '' : v);
+    if (/^[=+\-@]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  function csvDelRastro(){
+    var u = T();
+    var filas = [RA_COLUMNAS.map(function(k){ return csvCelda(u[k] || k); }).join(',')];
+    raVistas.forEach(function(c){
+      filas.push([c.cuando, c.quien, c.que, c.accion, c.sobre].map(csvCelda).join(','));
+    });
+    return String.fromCharCode(0xFEFF) + filas.join('\r\n');
+  }
+  function exportaRastro(){
+    var texto = csvDelRastro();
+    try {
+      var blob = new Blob([texto], {type: 'text/csv;charset=utf-8'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'trazabilidad-' + new Date().toISOString().slice(0, 10) + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    } catch (e){
+      console.warn('[CIIP] rastro, exportar:', e && e.message);
+    }
+    return texto;
+  }
+
   function pintaRastro(){
     if (!raLista) return;
     var u = T();
     var d = I18N[curLang] || I18N.en;
+    /* Las fechas, el CSV y «Cargar más»: rótulos en el idioma de turno, y
+       el botón de más solo mientras quede algo por pedir. */
+    [['raDesdeR', 'ra_desde'], ['raHastaR', 'ra_hasta'], ['raCsv', 'ra_csv'], ['raMas', 'ra_mas']]
+      .forEach(function(x){
+        var n = document.getElementById(x[0]);
+        if (n) n.textContent = u[x[1]] || '';
+      });
+    var mas = document.getElementById('raMas');
+    if (mas) mas.hidden = raPag.evFin && (bitacora === null || raPag.bitFin);
     var sub = document.getElementById('raSub');
     if (sub) sub.textContent = '';
     /* Y la nota dice lo que falta HOY, que no es lo mismo con bitacora
@@ -24880,6 +25018,7 @@ applyLang(idiomaParaMi());
     }
 
     var vistas = celdas.filter(raCuadra);
+    raVistas = vistas;
     if (!vistas.length){
       raLista.appendChild(filaSuelta(u.ra_nada || ''));
       return;
@@ -24969,6 +25108,21 @@ applyLang(idiomaParaMi());
     });
     window.CIIP_PINTA_RASTRO   = cargaRastro;
     window.CIIP_REPINTA_RASTRO = pintaRastro;
+    window.CIIP_CSV_RASTRO     = csvDelRastro;
+    var raMasB = document.getElementById('raMas');
+    if (raMasB) raMasB.addEventListener('click', cargaMasRastro);
+    var raCsvB = document.getElementById('raCsv');
+    if (raCsvB) raCsvB.addEventListener('click', exportaRastro);
+    /* Cambiar una fecha vuelve a pedir desde el principio: lo cargado
+       era de otro intervalo. */
+    ['raDesde', 'raHasta'].forEach(function(id){
+      var n = document.getElementById(id);
+      if (n) n.addEventListener('change', function(){
+        raDesde = (document.getElementById('raDesde') || {}).value || '';
+        raHasta = (document.getElementById('raHasta') || {}).value || '';
+        cargaRastro();
+      });
+    });
   }
 
   /* ══ EL PULSO DE LA OFICINA ══════════════════════════════════════════
