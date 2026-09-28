@@ -83,6 +83,27 @@ async function atiende(trabajo, deposito, cfg, reloj) {
       return { hizo: 'sin_tramite' };
     }
 
+    /* Y si ya no esta donde estaba al encolarse, tampoco (QA-09). Un
+       'presentar' se encola al pasar a revision; si entretanto lo
+       cancelaron o lo devolvieron, presentarlo seria abrir en el
+       organismo un expediente que el CIIP ya no lleva. El trigger de
+       supabase-qa-tramites.sql anula los pendientes al cancelar o
+       devolver, pero un trabajo ya tomado se le escapa, y la base puede
+       no tener ese archivo corrido: se mira aqui otra vez, que es lo que
+       cuesta una lectura.
+
+       Presentar, solo desde 'en_revision'. Si ya esta ante el ente es que
+       el proceso se cayo entre mover y cerrar: el organismo lo tiene, y
+       la consulta ya esta encolada. Consultar deja de tener sentido en un
+       tramite cancelado, devuelto o resuelto. */
+    const fuera = trabajo.tarea === 'presentar'
+      ? tramite.estado !== 'en_revision'
+      : ['cancelado', 'devuelto', 'resuelto', 'borrador'].indexOf(tramite.estado) >= 0;
+    if (fuera && (trabajo.tarea === 'presentar' || trabajo.tarea === 'consultar')) {
+      await deposito.cierra(trabajo.id);
+      return { hizo: 'fuera_de_estado', estado: tramite.estado };
+    }
+
     /* Cual conector le toca lo dice el catalogo -tipos_tramite.conector-,
        y lo trae el deposito ya unido a la fila del tramite. cfg.conectorDe
        existe solo para las pruebas, que no tienen catalogo. */

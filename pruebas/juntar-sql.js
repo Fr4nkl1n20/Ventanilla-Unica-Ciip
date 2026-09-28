@@ -179,6 +179,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    se reabre. Redefine reserva_cita() y consulta_la_firma_la_base(), así que
    va detrás de supabase-disponibilidad y supabase-consultas. */
 'supabase-qa-atencion',
+/* Lo que encontró la revisión de trámites y papeles (QA, 28-9-2026): lo
+   pendiente de un trámite cancelado, los papeles de una solicitud en
+   marcha, los seis entes de las parafiscales, la nota de un evento y la
+   mezcla de datos. Toca trabajos, ordenes_pago y tramite_entes y redefine
+   confirma_paso(), así que va detrás de todo. */
+'supabase-qa-tramites',
 /* La auditoría QA de administración y cuentas: el bloqueo dentro de
    es_gestor() y es_admin(), la baja en vez del borrado, el correo para el
    admin y lo que cada cual puede cambiar de un perfil. Redefine

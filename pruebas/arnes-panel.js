@@ -191,6 +191,23 @@
      rojo por pasos que no tenian nada que ver. */
   var VIAJES_ARRANQUE = null;
 
+  /* Cuándo se puso al día el panel por última vez, sea por lo que sea. Lo
+     necesita alDiaVuelve: el panel se pone al día solo cada minuto, y si
+     ese minuto cae justo antes de la prueba, la guarda de veinte segundos
+     frena el «volver a la pestaña» y la prueba sale roja sin que nada esté
+     mal. Pasaba de verdad: añadir tres pasos a otra parte de la cadena
+     (QA-08) la movió segundo y medio y la dejó justo detrás del minuto.
+     Se sabe mirando la única función que el repaso llama siempre. */
+  var AL_DIA_ULTIMO = 0;
+  (function(){
+    var olvida = window.CIIP_OLVIDA_CATALOGO;
+    if (typeof olvida !== 'function') return;
+    window.CIIP_OLVIDA_CATALOGO = function(){
+      AL_DIA_ULTIMO = Date.now();
+      return olvida.apply(this, arguments);
+    };
+  })();
+
   cuandoConteste(function(){
     if (window.CIIP_VIAJES) VIAJES_ARRANQUE = window.CIIP_VIAJES.getUser;
     /* El pliego PRIMERO, y no es capricho de orden: mientras su puerta
@@ -259,7 +276,14 @@
               hoySiembra, hoyMira, hoyTrasTomar, hoyTrasDeshacer, hoyRevisa,
               hoyEspacioEspera, hoyEspacioMira, hoyTrasVale, hoyNoValeAbre,
               hoyNoValeMira, hoyNoValeGuarda, hoyTrasNoVale, hoyTrasDevolver,
-              hoyRespuestaMira, hoyTrasCerrar, hoyRestaura,
+              hoyRespuestaMira, hoyTrasCerrar,
+              /* QA-14: resolver, fallar al mover y reintentar deja UNA resolución. */
+              hoyEntregaAbre, hoyEntregaFalla, hoyEntregaReintenta, hoyEntregaMira,
+              /* QA-12: un devuelto que no vuelve, lo cancela el equipo con su motivo. */
+              hoyCancelaSiembra, hoyCancelaAbre, hoyCancelaPide, hoyCancelaMira,
+              /* QA-08: el papel rechazado y sustituido no deja atascado el trámite. */
+              hoyReenvia, hoyReenviaAbre, hoyReenviaMira,
+              hoyRestaura,
               empresaAbre, empresaMira, empresaNueva, empresaFichaAbre, empresaOfreceGuardada,
               empresaGuarda, empresaActaLeida,
               empresaTrasGuardar,
@@ -346,7 +370,10 @@
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
                  cuentas a todo lo que cuenta tarjetas. */
               envioAbre, empiezaSolicitud, envioRellena, envioPasa,
-              envioRepaso, envioManda, envioMira], volcar);
+              envioRepaso, envioManda, envioMira,
+              /* QA-11: descartar un borrador. Solo en 'sinnombre' y al final: borra
+                 una solicitud de la tabla, y antes le cambiaría las cuentas a otras. */
+              descartaAbre, descartaMira, descartaPide, descartaTras], volcar);
   });
 
   /* ═══════════════ LA PUERTA DEL SECTOR ═══════════════
@@ -3523,6 +3550,45 @@
        lista ? lista.querySelectorAll('.pa-fila').length + ' líneas' : '0', 'más de 0');
   }
 
+  /* ═══════════ DESCARTAR UN BORRADOR (QA-11) ═══════════
+     La base lo dejaba y el panel no lo ofrecía. 'sinnombre' trae una visa
+     en borrador -s1- con dos papeles ya subidos. */
+  function descartaAbre(sigue){
+    if (CASO !== 'sinnombre') return sigue();
+    location.hash = '';
+    setTimeout(function(){
+      location.hash = 'tramite-c1';
+      esperaFilas('#trReal .sol-descartar', 1, sigue);
+    }, 100);
+  }
+
+  function descartaMira(){
+    if (CASO !== 'sinnombre') return;
+    var z = document.querySelector('#trReal .sol-descartar');
+    ok('descartar: un borrador se puede descartar', !!z && !z.hidden,
+       z ? (z.hidden ? 'escondido' : 'a la vista') : 'no está', 'a la vista');
+  }
+
+  function descartaPide(){
+    if (CASO !== 'sinnombre') return;
+    var b = document.querySelector('#trReal .sol-descartar .can-btn');
+    if (!b) return;
+    b.click();
+    igual('descartar: la primera pulsación pregunta', b.textContent.trim(), 'Sí, descartarlo');
+    igual('descartar: y avisa de que los papeles se quedan en la bóveda',
+          (document.querySelector('#trReal .sol-descartar .can-msg') || {}).textContent,
+          'No se puede deshacer. Se borra la solicitud a medias; los recaudos que subiste se quedan en tu bóveda.');
+    b.click();
+  }
+
+  function descartaTras(){
+    if (CASO !== 'sinnombre') return;
+    var quedan = (window.PRUEBA_TRAMITES ? window.PRUEBA_TRAMITES() : [])
+      .filter(function(t){ return t.id === 's1'; });
+    igual('descartar: la segunda lo borra de la base', quedan.length, 0);
+    location.hash = '';
+  }
+
   function envioManda(sigue){
     if (CASO !== 'vacio') return sigue();
     var caja = document.getElementById('trReal');
@@ -6351,6 +6417,9 @@
     var v = document.getElementById('paVisor');
     ok('hoy: lo que está ante el organismo pide lo que emitió',
        !v.hidden && !!document.getElementById('hoy-doc-h3'), v.hidden ? 'no se abrió' : 'abierto', 'con el archivo');
+    /* QA-10: ante el ente también se devuelve, que la escalera lo deja. */
+    ok('hoy: ante el ente también se puede devolver',
+       !!hoyBotonQueDice(v, 'Devolver'), hoyBotonQueDice(v, 'Devolver') ? 'con botón' : 'sin botón', 'Devolver');
     var res = hoyBotonQueDice(v, 'Resolver y entregar');
     if (res) res.click();
     igual('hoy: y no resuelve sin el documento',
@@ -6364,6 +6433,170 @@
     ok('hoy: Escape cierra el espacio', document.getElementById('paVisor').hidden, 'mira hidden', 'escondido');
     igual('hoy: y el foco vuelve a la tarjeta',
           document.activeElement && document.activeElement.getAttribute('data-tr'), 'h3');
+  }
+
+  /* ── ENTREGAR, FALLAR AL MOVER Y REINTENTAR (QA-14) ──
+     Resolver entrega el documento y después mueve el trámite. Si lo
+     segundo fallaba, el documento ya estaba en la bóveda, y el reintento
+     subía otra copia. */
+  var HOY_SUBIDAS = 0;
+  function hoyResolucionesNuevas(){
+    return (window.PRUEBA_SUBIDOS ? window.PRUEBA_SUBIDOS() : []).slice(HOY_SUBIDAS)
+      .filter(function(d){ return d.tipo === 'resolucion'; }).length;
+  }
+  function hoyEsperaBoton(b, sigue){
+    var n = 0;
+    (function mira(){
+      var v = document.getElementById('paVisor');
+      if ((v && v.hidden) || (!b.disabled && b.textContent.trim() === 'Resolver y entregar') || ++n > 120) return sigue();
+      setTimeout(mira, 50);
+    })();
+  }
+
+  function hoyEntregaAbre(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    var t = hoyTarjeta('h3');
+    ok('hoy: el de ante el ente sigue ahí para resolverlo', !!t, t ? 'está' : 'no está', 'está');
+    if (!t) return sigue();
+    t.click();
+    esperaFilas('#hoy-doc-h3', 1, sigue);
+  }
+
+  function hoyEntregaFalla(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    var inp = document.getElementById('hoy-doc-h3');
+    var res = hoyBotonQueDice(document.getElementById('paVisor'), 'Resolver y entregar');
+    if (!inp || !res) return sigue();
+    try {
+      var dt = new DataTransfer();
+      dt.items.add(new File(['%PDF-1.4 resolucion'], 'resolucion-tanaka.pdf', {type: 'application/pdf'}));
+      inp.files = dt.files;
+    } catch (e){
+      ok('hoy: se puede elegir la resolución', false, e.message, 'un archivo elegido');
+      return sigue();
+    }
+    HOY_SUBIDAS = (window.PRUEBA_SUBIDOS ? window.PRUEBA_SUBIDOS() : []).length;
+    window.__FALLA_MOVER = true;
+    res.click();
+    hoyEsperaBoton(res, sigue);
+  }
+
+  function hoyEntregaReintenta(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    var v = document.getElementById('paVisor');
+    igual('hoy: si mover falla, la resolución ya se entregó una vez', hoyResolucionesNuevas(), 1);
+    ok('hoy: y el trámite sigue abierto para reintentar', !v.hidden, v.hidden ? 'cerrado' : 'abierto', 'abierto');
+    var res = hoyBotonQueDice(v, 'Resolver y entregar');
+    if (!res) return sigue();
+    res.click();
+    hoyEsperaBoton(res, sigue);
+  }
+
+  function hoyEntregaMira(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    ok('hoy: el reintento resuelve', document.getElementById('paVisor').hidden,
+       document.getElementById('paVisor').hidden ? 'cerrado' : 'sigue abierto', 'cerrado');
+    igual('hoy: y no sube otra copia de la resolución', hoyResolucionesNuevas(), 1);
+  }
+
+  /* ── EL DEVUELTO QUE NO VUELVE (QA-12) ──
+     Se quedaba en «Devueltos» para siempre: el equipo no podía cerrarlo
+     aunque la base lo deja. Ahora se cancela con un motivo, que viaja en
+     el evento como la nota de devolver, y con dos pulsaciones. */
+  function hoyCancelaSiembra(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    if (!window.CIIP_DOBLE.devuelveH1){
+      ok('hoy: el doble deja devolver h1', false, 'sin devuelveH1', 'con él');
+      return;
+    }
+    window.CIIP_DOBLE.devuelveH1();
+    window.CIIP_PINTA_PORATENDER();
+  }
+
+  function hoyCancelaAbre(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    esperaFilas('#paCifras button[data-monton="devueltos"]', 1, function(){
+      var m = document.querySelector('#paCifras button[data-monton="devueltos"]');
+      if (m) m.click();
+      esperaFilas('#paTandas .hoy-card[data-tr="h1"]', 1, function(){
+        var t = hoyTarjeta('h1');
+        ok('hoy: el devuelto sale en su montón', !!t, t ? 'está' : 'no está', 'está');
+        if (!t) return sigue();
+        t.click();
+        esperaFilas('#paVisor .visor-bs button', 1, sigue);
+      });
+    });
+  }
+
+  function hoyCancelaPide(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    var v = document.getElementById('paVisor');
+    var can = hoyBotonQueDice(v, 'Cancelar la solicitud');
+    ok('hoy: un devuelto suyo se puede cancelar', !!can, can ? 'con botón' : 'sin botón', 'Cancelar la solicitud');
+    if (!can) return;
+    /* Sin motivo, no. */
+    can.click();
+    igual('hoy: cancelar sin motivo no pasa, y lo dice',
+          (v.querySelector('.visor-fin .co-aviso') || {}).textContent, 'Escribe por qué la cancelas.');
+    var nota = document.getElementById('hoy-nota-h1');
+    if (nota){
+      nota.value = 'Lleva cuarenta días sin contestar.';
+      nota.dispatchEvent(new Event('input'));
+    }
+    can.click();
+    igual('hoy: y la primera pulsación pregunta', can.textContent.trim(), 'Sí, cancelarla: no se deshace');
+    can.click();
+  }
+
+  function hoyCancelaMira(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    igual('hoy: la segunda la cancela, con el motivo en su evento',
+          window.PRUEBA_NOTA ? window.PRUEBA_NOTA() : '(sin doble)', 'Lleva cuarenta días sin contestar.');
+    ok('hoy: y el aviso dice que le llega con el motivo',
+       /Cancelada\. .+ lo verá con tu motivo\./.test((document.getElementById('paToast') || {}).textContent || ''),
+       (document.getElementById('paToast') || {}).textContent, 'Cancelada. … lo verá con tu motivo.');
+    ok('hoy: y sale de la cola', !hoyTarjeta('h1'), hoyTarjeta('h1') ? 'sigue' : 'fuera', 'fuera');
+    var todos = document.querySelector('#paCifras button[data-monton="todos"]');
+    if (todos) todos.click();
+  }
+
+  /* ── EL RECHAZADO QUE YA SE CAMBIÓ (QA-08) ──
+     La cadena de arriba acaba de rechazar el recibo de h1 y devolverlo.
+     Ahora la inversionista sube otro, lo reenvía, y el gestor valida el
+     nuevo: el rechazado sigue enganchado -el panel no lo soltaba nunca- y
+     «Presentar» se quedaba apagado para siempre. */
+  function hoyReenvia(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    if (!window.CIIP_DOBLE.reenviaH1){
+      ok('hoy: el doble deja reenviar h1', false, 'sin reenviaH1', 'con él');
+      return;
+    }
+    window.CIIP_DOBLE.reenviaH1();
+    window.CIIP_PINTA_PORATENDER();
+  }
+
+  function hoyReenviaAbre(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    esperaFilas('#paTandas .hoy-card[data-tr="h1"]', 1, function(){
+      var t = hoyTarjeta('h1');
+      ok('hoy: el reenviado vuelve a la cola', !!t, t ? 'está' : 'no está', 'está');
+      if (!t) return sigue();
+      t.click();
+      esperaFilas('#paVisor .visor-chk button', 1, sigue);
+    });
+  }
+
+  function hoyReenviaMira(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    var v = document.getElementById('paVisor');
+    igual('hoy: el rechazado que ya se cambió no sale entre sus papeles',
+          [].map.call(v.querySelectorAll('.visor-chk button'), function(b){
+            return /recibo-bianchi\.jpg/.test(b.textContent) ? 'el viejo' : 'otro';
+          }).join(' '), 'otro otro');
+    var pre = hoyBotonQueDice(v, 'Presentar ante SENIAT');
+    ok('hoy: y con el nuevo validado, ya deja presentar', !!pre && !pre.disabled,
+       pre ? (pre.disabled ? 'apagado' : 'encendido') : 'no hay botón', 'encendido');
+    hoyEscape();
   }
 
   function hoyRestaura(){
@@ -7950,8 +8183,8 @@
           !!(cat0.c8 && cat0.c8.activo), false);
   }
 
-  function alDiaVuelve(){
-    if (CASO !== 'vacio') return;
+  function alDiaVuelve(sigue){
+    if (CASO !== 'vacio') return sigue();
     /* Ahora sí hay algo nuevo que traer: el doble lo estrena cuando se le
        pide, y no por su cuenta. */
     window.CIIP_MENTIRA_TARDIO = true;
@@ -7959,8 +8192,16 @@
        17-9-2026 esta vista se quedaba fuera y había que recargar la página
        para ver el paso que acababa de mover el CIIP. */
     document.body.setAttribute('data-vista', 'tramite');
-    /* Como cuando vuelves a la pestaña después de un rato. */
-    document.dispatchEvent(new Event('visibilitychange'));
+    /* «Después de un rato» de verdad: si el repaso de cada minuto acaba de
+       pasar, se espera a que la guarda de veinte segundos lo deje, como le
+       pasaría a quien vuelve a la pestaña. El siguiente minuto queda a
+       cuarenta segundos por lo menos. */
+    var espera = AL_DIA_ULTIMO ? Math.max(0, 20100 - (Date.now() - AL_DIA_ULTIMO)) : 0;
+    setTimeout(function(){
+      /* Como cuando vuelves a la pestaña después de un rato. */
+      document.dispatchEvent(new Event('visibilitychange'));
+      setTimeout(sigue, 500);
+    }, espera);
   }
 
   function alDiaDespues(){

@@ -239,6 +239,27 @@ function hubo(dep, que) { return apunte(dep, que) !== null; }
        !hubo(dep, 'cierra'), 'lo cerro', 'esperando a una persona');
   }
 
+  /* ── 5b · lo cancelaron antes de que le tocara ─────────────────── */
+  /* QA-09: el trabajo estaba encolado y el tramite se cancelo -o se
+     devolvio- mientras esperaba. No se presenta ni se toca el tramite: se
+     cierra el trabajo y ya. */
+  for (const estado of ['cancelado', 'devuelto']) {
+    const tr = unTramite({ estado: estado });
+    const dep = depositoDeMentira(tr);
+    const r = await T.atiende(unTrabajo(tr), dep, cfg);
+
+    igual('presentar ' + estado + ': no se presenta', r.hizo, 'fuera_de_estado');
+    ok('presentar ' + estado + ': ni se toca el tramite',
+       !hubo(dep, 'mueve') && !hubo(dep, 'expediente'), 'lo movio', 'sin tocar');
+    ok('presentar ' + estado + ': y el trabajo se cierra', hubo(dep, 'cierra'), 'no', 'si');
+  }
+  {
+    const tr = unTramite({ estado: 'cancelado', expediente_ente: 'RIF-2026-000001' });
+    const dep = depositoDeMentira(tr);
+    const r = await T.atiende(unTrabajo(tr, { tarea: 'consultar' }), dep, cfg);
+    igual('consultar cancelado: no se pregunta al organismo', r.hizo, 'fuera_de_estado');
+  }
+
   /* ── 6 · preguntar en que quedo ────────────────────────────────── */
   {
     /* Primero se presenta, para tener numero de expediente. */

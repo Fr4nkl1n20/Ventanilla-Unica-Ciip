@@ -559,6 +559,9 @@
      expediente de partida es el de siempre, y lo que aparezca aqui lo ha
      subido la propia prueba. */
   var subidos = [];
+  /* Para contar las fichas que deja una prueba -QA-14: una resolución
+     reintentada no puede dejar dos-. Copias: la lista es del doble. */
+  window.PRUEBA_SUBIDOS = function(){ return subidos.slice(); };
   /* Lo que se escribe en el hilo durante la pasada. Sin esto, mandar un
      mensaje y volver a leer devolvia lo mismo de antes y no habia forma
      de medir que aparece. */
@@ -740,9 +743,9 @@
     ];
     HOY_DOCS = {
       h1: [{id:'hd1', tipo:'pasaporte', nombre_original:'pasaporte-bianchi.pdf', archivo:'u2/pasaporte-bianchi.pdf',
-            estado:'cargado', nota_revision:''},
+            estado:'cargado', nota_revision:'', creado_en: hace(2)},
            {id:'hd2', tipo:'domicilio', nombre_original:'recibo-bianchi.jpg', archivo:'u2/recibo-bianchi.jpg',
-            estado:'validado', nota_revision:''}],
+            estado:'validado', nota_revision:'', creado_en: hace(2)}],
       h2: [{id:'hd3', tipo:'comprobante_capital', nombre_original:'deposito.pdf', archivo:'u7/deposito.pdf',
             estado:'cargado', nota_revision:''}],
       h3: [{id:'hd4', tipo:'acta_constitutiva', nombre_original:'acta-tanaka.pdf', archivo:'u5/acta-tanaka.pdf',
@@ -755,7 +758,35 @@
     cola: function(){ return colaTram.slice(); },
     ponCola: function(lista){ colaTram = lista; HOY_DOCS = {}; HOY_DOC = {}; },
     siembraHoy: siembraHoy,
-    doc: function(id){ return HOY_DOC[id]; }
+    doc: function(id){ return HOY_DOC[id]; },
+    /* QA-08: la inversionista corrige lo que se le devolvió y lo reenvía.
+       Sube un recibo NUEVO en lugar del rechazado, el gestor se lo valida
+       y el trámite vuelve a estar en revisión, suyo. El rechazado sigue
+       enganchado, como en la base de antes del arreglo: es justo lo que
+       dejaba «Presentar» apagado para siempre. */
+    /* QA-12: h1 devuelta y suya, en el montón de devueltos, para que el
+       gestor la cancele. Cancelarla la saca de la cola, como a los demás
+       sembrados que salen del CIIP. */
+    devuelveH1: function(){
+      colaTram = colaTram.filter(function(t){ return t.id !== 'h1'; });
+      colaTram.push({id:'h1', inversionista:'u2', tipo:'rif_personal', estado:'devuelto', gestor:'u1',
+        sembrado:true, datos:{tipo_documento:'Pasaporte', numero_documento:'YA8812345'},
+        creado_en: new Date(Date.now() - 40 * 86400000).toISOString(),
+        enviado_en: new Date(Date.now() - 40 * 86400000).toISOString()});
+    },
+    reenviaH1: function(){
+      colaTram = colaTram.filter(function(t){ return t.id !== 'h1'; });
+      colaTram.push({id:'h1', inversionista:'u2', tipo:'rif_personal', estado:'en_revision', gestor:'u1',
+        sembrado:true, datos:{tipo_documento:'Pasaporte', numero_documento:'YA8812345',
+        telefono:'+58 412 555 0132', direccion_fiscal:'Av. Francisco de Miranda, Chacao'},
+        creado_en: new Date(Date.now() - 2 * 86400000).toISOString(),
+        enviado_en: new Date(Date.now() - 2 * 86400000).toISOString()});
+      var nuevo = {id:'hd5', tipo:'domicilio', nombre_original:'recibo-bianchi-nuevo.jpg',
+        archivo:'u2/recibo-bianchi-nuevo.jpg', estado:'validado', nota_revision:'',
+        creado_en: new Date().toISOString()};
+      HOY_DOCS.h1 = (HOY_DOCS.h1 || []).concat([nuevo]);
+      HOY_DOC.hd5 = nuevo;
+    }
   };
 
   /* La nota de una devolucion viaja en un UPDATE aparte, sobre el evento que
@@ -1827,6 +1858,12 @@
          Los dos son un update sobre la misma tabla, y como en perfiles se
          distinguen por lo que traen. */
       if (op && op.update && 'estado' in op.update && op.eq && op.eq.id){
+        /* Una vez, cuando la prueba lo pide: mover falla después de haber
+           entregado el documento (QA-14). */
+        if (window.__FALLA_MOVER){
+          window.__FALLA_MOVER = false;
+          return {data:null, error:{message:'la red se cayó a medias', code:'08006'}};
+        }
         var sembrado = colaTram.filter(function(t){ return t.id === op.eq.id && t.sembrado; })[0];
         if (sembrado){
           if (['enviado', 'en_revision', 'ante_el_ente'].indexOf(op.update.estado) >= 0){
@@ -2226,7 +2263,12 @@
     if (tabla === 'tramite_eventos'){
       if (op && op.update){
         if (op.update.nota) notaPuesta = op.update.nota;
-        return {data:{}, error:null};
+        /* Con la fila de vuelta, en una lista, que es lo que da un
+           update().select() de verdad. Con {} el panel leía «cero filas» y
+           decía siempre que la nota no se había guardado: la prueba de
+           devolver pasaba igual porque las dos frases nombran a quién, y la
+           de cancelar (QA-12) lo destapó. */
+        return {data:[{id: (op.eq && op.eq.id) || 'ev9', nota: op.update.nota || ''}], error:null};
       }
       /* Al devolver, el panel busca el evento que el trigger acaba de
          escribir para ponerle la nota encima. Si el expediente ya tiene

@@ -3976,9 +3976,225 @@ select arnes.soy((select id from arnes.gente where papel = 'X'));
 update public.perfiles set bloqueado = false where id = (select id from arnes.gente where papel = 'A');
 select arnes.nadie();
 
+-- ══ 36 · LA REVISIÓN DE TRÁMITES Y PAPELES (QA, 28-9-2026) ═══════════
+-- supabase-qa-tramites.sql. Cada bloque recoge su propio error: uno que
+-- revienta apunta su FALLA y deja correr a los demás.
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $qa$
+declare
+  t uuid; d uuid;
+  tipoAct text := (select x.codigo from public.tipos_tramite x where x.activo and x.codigo <> 'registros_parafiscales'
+      and not exists (select 1 from public.tramites o where o.inversionista = auth.uid()
+                        and o.tipo = x.codigo and o.estado in ('enviado','en_revision','ante_el_ente'))
+      order by x.codigo limit 1);
+begin
+  insert into public.tramites (inversionista, tipo, estado) values (auth.uid(), tipoAct, 'borrador') returning id into t;
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original)
+  values (auth.uid(), 'pasaporte', auth.uid()::text || '/qa-papel.pdf', 'qa.pdf') returning id into d;
+  insert into public.tramite_documentos (tramite, documento) values (t, d);
+  insert into arnes.escenario values ('qa-t', t), ('qa-d', d);
+
+  -- En borrador el papel es de quien lo rellena.
+  begin
+    update public.documentos set archivo = auth.uid()::text || '/qa-papel-2.pdf' where id = d;
+    perform arnes.comprueba('qa: en borrador, el archivo de un papel enganchado se cambia',
+      (select archivo like '%/qa-papel-2.pdf' from public.documentos where id = d));
+  exception when others then
+    perform arnes.comprueba('qa: en borrador, el archivo de un papel enganchado se cambia', false, sqlerrm);
+  end;
+
+  update public.tramites set estado = 'enviado' where id = t;
+
+  begin
+    update public.documentos set archivo = auth.uid()::text || '/qa-otro.pdf' where id = d;
+    perform arnes.comprueba('qa: enviada, el archivo del papel ya no se cambia',
+      (select archivo like '%/qa-papel-2.pdf' from public.documentos where id = d), 'se cambio');
+  exception when others then
+    perform arnes.comprueba('qa: enviada, el archivo del papel ya no se cambia', true);
+  end;
+
+  begin
+    update public.documentos set tipo = 'domicilio' where id = d;
+    perform arnes.comprueba('qa: ni su tipo',
+      (select tipo = 'pasaporte' from public.documentos where id = d), 'se cambio');
+  exception when others then
+    perform arnes.comprueba('qa: ni su tipo', true);
+  end;
+
+  -- Lo que no es archivo ni tipo sigue siendo suyo.
+  begin
+    update public.documentos set vence_el = current_date + 400 where id = d;
+    perform arnes.comprueba('qa: la fecha de vencimiento sí se corrige',
+      (select vence_el = current_date + 400 from public.documentos where id = d));
+  exception when others then
+    perform arnes.comprueba('qa: la fecha de vencimiento sí se corrige', false, sqlerrm);
+  end;
+
+  begin
+    delete from public.documentos where id = d;
+    perform arnes.comprueba('qa: y no se borra mientras la solicitud está en marcha',
+      exists (select 1 from public.documentos where id = d), 'se borro');
+  exception when others then
+    perform arnes.comprueba('qa: y no se borra mientras la solicitud está en marcha', true);
+  end;
+exception when others then
+  perform arnes.comprueba('qa: el escenario del inversionista se monta', false, sqlerrm);
+end
+$qa$;
+
+-- Lo que la base deja pendiente de esa solicitud: un trabajo y una orden.
+reset role;
+select arnes.nadie();
+do $qa$
+declare t uuid := (select id from arnes.escenario where clave = 'qa-t');
+begin
+  insert into public.trabajos (tramite, tarea, llave) values (t, 'presentar', t::text)
+  on conflict do nothing;
+  insert into public.ordenes_pago (tramite, inversionista, concepto, monto)
+  values (t, (select id from arnes.gente where papel = 'A'), 'Tasa de prueba', 10)
+  on conflict do nothing;
+exception when others then
+  perform arnes.comprueba('qa: el trabajo y la orden se siembran', false, sqlerrm);
+end
+$qa$;
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $qa$
+declare t uuid := (select id from arnes.escenario where clave = 'qa-t');
+begin
+  -- La nota del envío es de A: el gestor no la reescribe.
+  update public.tramite_eventos set nota = 'reescrita' where tramite = t and a_estado = 'enviado';
+  perform arnes.comprueba('qa: un gestor no reescribe la nota de un evento que no es suyo',
+    not exists (select 1 from public.tramite_eventos where tramite = t and nota = 'reescrita'));
+
+  update public.tramites set estado = 'cancelado' where id = t;
+  perform arnes.comprueba('qa: el equipo cancela una solicitud que sigue en el CIIP',
+    (select estado = 'cancelado' from public.tramites where id = t),
+    (select estado from public.tramites where id = t));
+
+  update public.tramite_eventos set nota = 'Lleva un mes sin contestar.'
+   where tramite = t and a_estado = 'cancelado';
+  perform arnes.comprueba('qa: y el motivo va en su propio evento, recién hecho',
+    exists (select 1 from public.tramite_eventos
+             where tramite = t and a_estado = 'cancelado' and nota like 'Lleva un mes%'));
+exception when others then
+  perform arnes.comprueba('qa: el equipo cancela una solicitud que sigue en el CIIP', false, sqlerrm);
+end
+$qa$;
+
+reset role;
+select arnes.nadie();
+select arnes.comprueba('qa: al cancelar, el trabajo de presentarla se anula',
+  (select coalesce(bool_and(estado = 'anulado'), false) from public.trabajos
+    where tramite = (select id from arnes.escenario where clave = 'qa-t')),
+  (select coalesce(string_agg(estado, ', '), 'ninguno') from public.trabajos
+    where tramite = (select id from arnes.escenario where clave = 'qa-t')));
+select arnes.comprueba('qa: y la orden de pago pendiente también',
+  (select coalesce(bool_and(estado = 'anulada'), false) from public.ordenes_pago
+    where tramite = (select id from arnes.escenario where clave = 'qa-t')),
+  (select coalesce(string_agg(estado, ', '), 'ninguna') from public.ordenes_pago
+    where tramite = (select id from arnes.escenario where clave = 'qa-t')));
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $qa$
+declare
+  t uuid := (select id from arnes.escenario where clave = 'qa-t');
+  d uuid := (select id from arnes.escenario where clave = 'qa-d');
+begin
+  begin
+    perform public.confirma_paso(t, 'cancilleria_confirmada');
+    perform arnes.comprueba('qa: confirma_paso no toca una cancelada', false, 'la marco');
+  exception when others then
+    perform arnes.comprueba('qa: confirma_paso no toca una cancelada', true);
+  end;
+
+  begin
+    delete from public.documentos where id = d;
+    perform arnes.comprueba('qa: cancelada, el papel ya se puede borrar',
+      not exists (select 1 from public.documentos where id = d), 'sigue');
+  exception when others then
+    perform arnes.comprueba('qa: cancelada, el papel ya se puede borrar', false, sqlerrm);
+  end;
+end
+$qa$;
+
+-- Los registros parafiscales: resolver pide los seis entes listos.
+reset role;
+select arnes.nadie();
+do $qa$
+declare
+  t uuid;
+  quien uuid := (select g.id from arnes.gente g where g.papel in ('A', 'B', 'G')
+      and not exists (select 1 from public.tramites o where o.inversionista = g.id
+                        and o.tipo = 'registros_parafiscales'
+                        and o.estado in ('enviado','en_revision','ante_el_ente'))
+      order by g.papel limit 1);
+begin
+  insert into public.tramites (inversionista, tipo, estado, datos)
+  values (quien, 'registros_parafiscales', 'ante_el_ente', '{"razon_social":"Bruno Frutas, C.A."}')
+  returning id into t;
+  insert into arnes.escenario values ('qa-pf', t);
+exception when others then
+  perform arnes.comprueba('qa: la parafiscal de prueba se monta', false, sqlerrm);
+end
+$qa$;
+
+select arnes.comprueba('qa: mezclar datos no se ofrece sin entrar',
+  not has_function_privilege('anon', 'public.mezcla_datos_tramite(uuid, jsonb)', 'execute')
+  and has_function_privilege('authenticated', 'public.mezcla_datos_tramite(uuid, jsonb)', 'execute'));
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $qa$
+declare t uuid := (select id from arnes.escenario where clave = 'qa-pf');
+begin
+  begin
+    update public.tramites set estado = 'resuelto' where id = t;
+    perform arnes.comprueba('qa: una parafiscal no se resuelve con entes sin terminar',
+      (select estado = 'ante_el_ente' from public.tramites where id = t), 'se resolvio');
+  exception when others then
+    perform arnes.comprueba('qa: una parafiscal no se resuelve con entes sin terminar', true);
+  end;
+
+  perform public.mezcla_datos_tramite(t, '{"numero_registro":"77"}'::jsonb);
+  perform arnes.comprueba('qa: mezclar datos añade la clave sin pisar las demás',
+    (select datos->>'razon_social' = 'Bruno Frutas, C.A.' and datos->>'numero_registro' = '77'
+       from public.tramites where id = t),
+    (select datos::text from public.tramites where id = t));
+exception when others then
+  perform arnes.comprueba('qa: mezclar datos añade la clave sin pisar las demás', false, sqlerrm);
+end
+$qa$;
+
+reset role;
+select arnes.nadie();
+update public.tramite_entes set estado = 'listo'
+ where tramite = (select id from arnes.escenario where clave = 'qa-pf');
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $qa$
+declare t uuid := (select id from arnes.escenario where clave = 'qa-pf');
+begin
+  update public.tramites set estado = 'resuelto' where id = t;
+  perform arnes.comprueba('qa: con los seis listos, sí se resuelve',
+    (select estado = 'resuelto' from public.tramites where id = t),
+    (select estado from public.tramites where id = t));
+exception when others then
+  perform arnes.comprueba('qa: con los seis listos, sí se resuelve', false, sqlerrm);
+end
+$qa$;
+reset role;
+select arnes.nadie();
 
 
--- ══ 36 · CITAS Y CONSULTAS: LO QUE ENCONTRÓ LA AUDITORÍA QA ═══════════
+
+
+-- ══ 37 · CITAS Y CONSULTAS: LO QUE ENCONTRÓ LA AUDITORÍA QA ═══════════
 -- supabase-qa-atencion.sql. Una cuenta propia, Q, para no pisar las citas
 -- que las secciones de arriba le dejaron a A.
 
@@ -4182,7 +4398,7 @@ reset role;
 select arnes.nadie();
 
 
--- ══ 37 · AUDITORIA QA: CUENTAS Y ADMINISTRACION ═══════════════════════
+-- ══ 38 · AUDITORIA QA: CUENTAS Y ADMINISTRACION ═══════════════════════
 -- supabase-qa-admin.sql. Bloquear a alguien del equipo le quita los
 -- permisos, la baja no borra, el admin no reescribe perfiles ajenos y las
 -- columnas de rastro no las pone el navegador.

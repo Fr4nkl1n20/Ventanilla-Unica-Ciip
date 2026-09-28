@@ -239,6 +239,25 @@ Los añado yo, pero **hace falta correr un SQL en la base real** y sin eso
 el panel los pedirá y la base los rechazará al subirlos. Te lo prepararé
 junto con el primer bloque de cambios.
 
+### 7. Lo que dejó abierto la revisión de trámites (QA, 28-9-2026) **?**
+
+Lo arreglado va en la rama `noche-qa-tramites`, con
+`supabase-qa-tramites.sql` para correr en la base real. Quedan cuatro
+cosas que no me toca decidir:
+
+- **¿Hace falta un estado «denegado»?** Si el organismo dice que no, hoy
+  se devuelve con una nota que lo explica (ya se puede devolver desde
+  «ante el ente»). Un estado propio necesita su chip, su aviso y su sitio
+  en la escalera.
+- **¿Qué pasa con lo pagado de una solicitud cancelada?** Al cancelar, la
+  orden de pago pendiente se anula sola. Una ya pagada no se toca:
+  devolver el dinero o guardarlo para otra solicitud es decisión del CIIP.
+- **¿El equipo cancela también lo recién enviado o en revisión?** La base
+  lo deja; el panel solo lo ofrece en un devuelto que no vuelve. En los
+  otros dos lo que hay hoy es devolver.
+- **¿La cancelación del CIIP va también por correo?** Llega a la campana y
+  al trámite con su motivo; el correo de avisos no la cuenta todavía.
+
 ---
 
 ## Lo que ya está hecho

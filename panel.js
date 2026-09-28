@@ -6527,6 +6527,57 @@ applyLang(idiomaParaMi());
       (acompana || caja).appendChild(bloque);
     })();
 
+    /* ── DESCARTAR EL BORRADOR (QA-11) ──
+       La base deja borrar un borrador propio desde siempre -«tramites:
+       descartar el borrador propio»-, y un comentario de la cancelación
+       hablaba del «botón de siempre» para hacerlo, pero el botón no
+       existía: un borrador empezado sin querer se quedaba en «Mis trámites»
+       para siempre.
+
+       Solo mientras sea borrador: un devuelto ya lo recibió el CIIP y se
+       cancela, no se descarta. Dos pulsaciones, como cancelar: la primera
+       cambia el botón por la pregunta. Los papeles que subió se quedan en
+       su bóveda: se borra la solicitud, no los documentos.
+
+       Se enseña también si el borrador nace aquí mismo, en un envío que
+       falló a medias (QA-13): ese es justo el que uno puede querer tirar. */
+    var zonaD = el('div', 'sol-cancelar sol-descartar');
+    var btnD = el('button', 'can-btn', u.bo_descartar || '');
+    btnD.type = 'button';
+    var avisoD = el('div', 'can-msg', '');
+    zonaD.appendChild(btnD);
+    zonaD.appendChild(avisoD);
+    zonaD.hidden = !(borrador && borrador.estado === 'borrador');
+    caja.appendChild(zonaD);
+    var seguroD = false;
+    btnD.addEventListener('click', function(){
+      if (!borrador) return;
+      if (!seguroD){
+        seguroD = true;
+        btnD.classList.add('confirma');
+        btnD.textContent = u.bo_seguro || '';
+        avisoD.textContent = u.bo_porque || '';
+        return;
+      }
+      btnD.disabled = true;
+      avisoD.textContent = '';
+      Promise.resolve().then(function(){
+        return sb.from('tramites').delete().eq('id', borrador.id).eq('estado', 'borrador').select();
+      }).then(function(r){
+        /* Cero filas no es «hecho»: es una política que no dejó, o un
+           borrador que ya no lo era. */
+        if (!r || r.error || (Array.isArray(r.data) && !r.data.length)){
+          throw ((r && r.error) || new Error('no se borró ninguna fila'));
+        }
+        cargaAvisos();
+        window.CIIP_TRAMITE_REAL(tipoRefDe(tipo.codigo));
+      }).catch(function(e){
+        console.warn('[CIIP] descartar borrador:', e && (e.message || e));
+        btnD.disabled = false;
+        avisoD.textContent = u.co_error || '';
+      });
+    });
+
     /* ── EL ANDAMIO: que hoja se ve, y como se pasa de una a otra ──
        Va al final a proposito: para entonces ya existen las hojas, los
        campos, los recaudos y el boton de enviar, y esto solo los coloca. */
@@ -6861,7 +6912,7 @@ applyLang(idiomaParaMi());
     }
 
     enviar.addEventListener('click', function(){
-      envia(tipo, borrador, enviar, aviso);
+      envia(tipo, borrador, enviar, aviso, function(tr){ borrador = tr; zonaD.hidden = false; });
     });
   }
 
@@ -6895,7 +6946,7 @@ applyLang(idiomaParaMi());
      entró. Para eso existe el estado 'borrador': volver a intentarlo no
      empieza de cero.
      ───────────────────────────────────────────────────────────────── */
-  function envia(tipo, borrador, boton, aviso){
+  function envia(tipo, borrador, boton, aviso, alCrear){
     var u = T();
     aviso.textContent = ''; aviso.className = 'sol-aviso';
 
@@ -6916,10 +6967,13 @@ applyLang(idiomaParaMi());
        'devuelto' NO cuenta: una devuelta hay que volver a mandarla, que
        es justo lo que se le pide al inversionista.
 
-       Es una comprobación del panel, no una cerradura. La de verdad
-       sería un índice único en la base, y esa es otra decisión —hay
-       trámites que SÍ se piden dos veces, como una solvencia al año
-       siguiente—. Lo que esto quita es el duplicado por accidente. */
+       Es una comprobación del panel, no la cerradura. La cerradura
+       existe: el índice único tramites_una_viva (supabase-una-viva.sql),
+       una sola solicitud viva -enviada, en revisión o ante el ente- por
+       persona y trámite. Lo que se pide dos veces, como una solvencia al
+       año siguiente, cabe: la primera ya estará resuelta. Esto se adelanta
+       para decirlo con la fecha; si aun así la base salta -dos pestañas a
+       la vez-, el error se traduce abajo en vez de enseñarlo crudo (QA-37). */
     var VIVOS_YA = ['enviado', 'en_revision', 'ante_el_ente'];
 
     boton.disabled = true;
@@ -7002,25 +7056,44 @@ applyLang(idiomaParaMi());
     var conBorrador = borrador
       ? Promise.resolve(borrador)
       : sb.from('tramites').insert({inversionista: usuario.id, tipo: tipo.codigo, datos: datos})
-          .select().single().then(function(r){ if (r.error) throw r.error; return r.data; });
+          .select().single().then(function(r){
+            if (r.error) throw r.error;
+            /* Y se APUNTA en cuanto existe (QA-13). Si luego falla un papel,
+               el siguiente «Enviar» sigue con ESTE borrador en vez de crear
+               otro: cada reintento dejaba una solicitud a medias más en la
+               lista del inversionista. */
+            borrador = r.data;
+            if (alCrear) alCrear(r.data);
+            return r.data;
+          });
 
     conBorrador.then(function(tr){
       /* 3. subir lo que sea nuevo y engancharlo */
-      var tareas = [];
+      var tareas = [], vanAhora = [];
       caja.querySelectorAll('.sol-doc').forEach(function(f){
         /* Escondido es que no se pide: un recaudo de la bóveda colgado de
            una casilla sin marcar sería un papel enganchado sin pedirlo. */
         if (!seVe(f)) return;
         var archivo = f.querySelector('input[type=file]').files[0];
         var yaHecho = f.getAttribute('data-ya');
-        if (!archivo && yaHecho){ tareas.push(engancha(tr.id, yaHecho)); return; }
+        var cual = {tipo: f.getAttribute('data-doc'), titular: f.getAttribute('data-titular') || ''};
+        if (!archivo && yaHecho){
+          cual.id = yaHecho; vanAhora.push(cual);
+          tareas.push(engancha(tr.id, yaHecho)); return;
+        }
         if (!archivo) return;
         tareas.push(sube(f.getAttribute('data-doc'), archivo, null, null,
                          f.getAttribute('data-titular') || null).then(function(docId){
+          cual.id = docId; vanAhora.push(cual);
           return engancha(tr.id, docId);
         }));
       });
       return Promise.all(tareas).then(function(){
+        /* El que no valió y ya se cambió, fuera del expediente (QA-08).
+           Antes de pasar a 'enviado': la base solo deja desenganchar en
+           borrador o devuelto. */
+        return desenganchaLosSustituidos(tr.id, vanAhora);
+      }).then(function(){
         /* 4. datos al día y a enviar */
         return sb.from('tramites').update({datos: datos, estado: 'enviado'})
           .eq('id', tr.id).select().single();
@@ -7038,7 +7111,13 @@ applyLang(idiomaParaMi());
       console.warn('[CIIP] enviar:', e && (e.message || e));
       boton.disabled = false;
       boton.textContent = u.enviar;
-      aviso.textContent = (e && e.ciip && u[e.ciip]) ? u[e.ciip]
+      /* La cerradura de la una-viva, con sus palabras y no las de
+         Postgres: «duplicate key value violates unique constraint» no le
+         dice a nadie que ya tiene esa solicitud en marcha. */
+      var yaViva = !!e && (e.code === '23505' ||
+                           /tramites_una_viva|duplicate key/i.test(e.message || ''));
+      aviso.textContent = yaViva ? (u.sol_ya_viva || u.error)
+                        : (e && e.ciip && u[e.ciip]) ? u[e.ciip]
                         : (e && e.message) ? (u.error + ' (' + e.message + ')') : u.error;
       aviso.className = 'sol-aviso err';
     });
@@ -7220,6 +7299,32 @@ applyLang(idiomaParaMi());
      sin tener que consultar nada. */
   /* `extra`, columnas de más para la ficha -el nombre del importe al que
      paga un comprobante-. Solo si viene, como el titular. */
+  /* ── UN ARCHIVO SIN FICHA NO SE QUEDA EN EL CUBO (QA-39) ──
+     Subir un papel son dos pasos: el archivo a Storage y su ficha en
+     'documentos'. Si la ficha no entraba -una política, un tipo que la
+     base no admite, la red-, el archivo se quedaba en el cubo sin nadie
+     que supiera de él: el barrendero solo recoge lo que la base apunta al
+     BORRAR una ficha, y aquí no hubo ficha que borrar.
+
+     Así que si la ficha falla, se quita el archivo recién subido, y
+     después se deja pasar el error tal cual para que quien sube diga lo
+     que tenga que decir. Si quitarlo también falla -el equipo no puede
+     borrar en emitidos/-, se dice en la consola y el archivo se queda:
+     es lo mismo que pasaba antes, no algo peor. Recibe la consulta ya
+     armada y devuelve su respuesta. */
+  function sinFichaFuera(ruta, consulta){
+    return Promise.resolve(consulta).then(function(r){
+      if (!r || !r.error) return r;
+      return Promise.resolve().then(function(){
+        return sb.storage.from('recaudos').remove([ruta]);
+      }).then(function(rq){
+        if (rq && rq.error) console.warn('[CIIP] archivo sin ficha, sin quitar:', ruta, rq.error.message || rq.error);
+      }, function(e){
+        console.warn('[CIIP] archivo sin ficha, sin quitar:', ruta, e && (e.message || e));
+      }).then(function(){ return r; });
+    });
+  }
+
   function sube(tipoDoc, archivo, venceEl, duenio, titular, extra){
     return quienSoy().then(function(yo){
       var deQuien = duenio || yo.id;
@@ -7246,7 +7351,7 @@ applyLang(idiomaParaMi());
              de la junta no pide una columna que la base puede no tener. */
           if (titular) fila.titular = titular;
           if (extra) Object.keys(extra).forEach(function(k){ fila[k] = extra[k]; });
-          return sb.from('documentos').insert(fila).select().single();
+          return sinFichaFuera(ruta, sb.from('documentos').insert(fila).select().single());
         })
         .then(function(r){
           if (r.error) throw r.error;
@@ -7276,6 +7381,38 @@ applyLang(idiomaParaMi());
       .upsert({tramite: tramiteId, documento: documentoId},
               {onConflict:'tramite,documento', ignoreDuplicates:true})
       .then(function(r){ if (r.error) throw r.error; });
+  }
+
+  /* Y lo contrario, solo para lo que el CIIP rechazó y el inversionista ya
+     ha cambiado (QA-08). vanAhora son los papeles que este envío deja
+     colgados, con su tipo y su titular; se sueltan los RECHAZADOS del
+     mismo tipo y titular que no sean uno de ellos. Los demás no se tocan:
+     un papel de más no estorba a nadie, y quitar uno que no toca sí.
+
+     No revienta nunca: si la base no deja -o la consulta falla- el envío
+     sigue, y la cuenta del gestor ya no cuenta un rechazado sustituido
+     (sinLosSustituidos). Esto limpia el expediente; aquello es lo que
+     desatasca el botón. */
+  function desenganchaLosSustituidos(tramiteId, vanAhora){
+    if (!vanAhora || !vanAhora.length) return Promise.resolve();
+    var clave = function(tipo, titular){ return tipo + '|' + (titular || ''); };
+    var tapa = {}, ids = {};
+    vanAhora.forEach(function(v){ tapa[clave(v.tipo, v.titular)] = true; ids[v.id] = true; });
+    return Promise.resolve().then(function(){
+      return sb.from('tramite_documentos').select('documento, documentos(*)').eq('tramite', tramiteId);
+    }).then(function(r){
+      if (r && r.error) throw r.error;
+      var fuera = ((r && r.data) || []).filter(function(f){
+        var d = f && f.documentos;
+        return d && d.estado === 'rechazado' && !ids[f.documento] &&
+               tapa[clave(d.tipo, d.titular)];
+      }).map(function(f){ return f.documento; });
+      if (!fuera.length) return;
+      return sb.from('tramite_documentos').delete().eq('tramite', tramiteId).in('documento', fuera)
+        .then(function(r2){ if (r2 && r2.error) throw r2.error; });
+    }).catch(function(e){
+      console.warn('[CIIP] soltar el papel sustituido:', e && (e.message || e));
+    });
   }
 
   /* ── EL IMPORTE DEL DÍA ──────────────────────────────────────────────
@@ -8643,8 +8780,23 @@ applyLang(idiomaParaMi());
     if (tr.estado === 'cancelado'){
       var cnl = el('div', 'sol-cancelada');
       cnl.appendChild(el('div', 'sv-t', u.can_titulo || ''));
-      cnl.appendChild(el('div', 'sd-e', u.can_dice || ''));
+      var dice = el('div', 'sd-e', u.can_dice || '');
+      cnl.appendChild(dice);
       caja.appendChild(cnl);
+      /* Y si la canceló el CIIP, se dice y se dice por qué (QA-12). La del
+         inversionista no lleva nota -cancela_tramite no la pide-, así que
+         una nota en el evento es la marca de que fue el equipo. Si la
+         consulta falla, se queda lo de siempre. */
+      Promise.resolve().then(function(){
+        return sb.from('tramite_eventos').select('nota, creado_en')
+          .eq('tramite', tr.id).eq('a_estado', 'cancelado')
+          .order('creado_en', {ascending:false}).limit(1);
+      }).then(function(r){
+        var ev = ((r && r.data) || [])[0];
+        if (!ev || !ev.nota) return;
+        dice.textContent = u.can_dice_ciip || '';
+        cnl.appendChild(el('div', 'sv-d', ev.nota));
+      }).catch(function(){});
       return;
     }
 
@@ -8992,7 +9144,9 @@ applyLang(idiomaParaMi());
        entrada fuera, y decir aquí «cancelado» no lo retiraría de allí: la
        pantalla mentiría sobre un trámite que sigue vivo en una oficina que
        no es ésta. Lo mismo vale para un borrador, que se descarta con el
-       botón de siempre y ni siquiera llegó a existir para el CIIP.
+       «Descartar este borrador», al pie de su formulario (QA-11: hasta el
+       28-9-2026 este comentario lo daba por hecho y el botón no existía),
+       y ni siquiera llegó a existir para el CIIP.
 
        DOS PULSACIONES, y no un cuadro de confirmación: la primera cambia
        el botón por la pregunta y la segunda cancela. Un expediente
@@ -9842,7 +9996,7 @@ applyLang(idiomaParaMi());
     }
     return {
       t: nombreDeTarjeta(ev.ref),
-      q: textoDeEvento(ev.estado, ev.ente, ev.ref),
+      q: ev.estado === 'cancelado' ? (u.can_titulo || '') : textoDeEvento(ev.estado, ev.ente, ev.ref),
       nota: ev.nota || '',
       ir: function(){ avAMisTramites(ev.tramite); }
     };
@@ -9991,7 +10145,11 @@ applyLang(idiomaParaMi());
             .then(function(re){
               avisos = [];
               (re.data || []).forEach(function(ev){
-                if (AV_ORDEN.indexOf(ev.a_estado) < 0 && ev.a_estado !== 'devuelto') return;
+                /* Y la cancelación que hizo el CIIP, que es la única que lleva nota
+                   (QA-12): la persona tiene que enterarse de que su solicitud
+                   se cerró, y por qué. Solo a quien la pidió. */
+                var cancelada = ev.a_estado === 'cancelado' && !!ev.nota && !!loPedi[ev.tramite];
+                if (AV_ORDEN.indexOf(ev.a_estado) < 0 && ev.a_estado !== 'devuelto' && !cancelada) return;
                 var ref = refDe[ev.tramite];
                 if (!ref) return;      /* sin tarjeta no hay cómo nombrarlo */
                 avisos.push({
@@ -13120,10 +13278,28 @@ applyLang(idiomaParaMi());
   /* Qué se puede hacer desde cada estado. Enseñar los cuatro botones
      siempre invitaría a saltarse pasos: no se presenta ante el ente algo
      que nadie ha revisado. */
+  /* Ante el ente también se devuelve (QA-10): la escalera de la base lo
+     deja desde siempre -el organismo pide algo que falta- y el panel solo
+     ofrecía resolver, así que lo que el ente devolvía se quedaba ante el
+     ente sin salida. Con nota, como las otras dos devoluciones.
+
+     Lo que NO hay es un «denegado»: si el organismo dice que no, hoy se
+     devuelve con la nota que lo explica. Un estado propio para eso -con
+     su chip, su aviso y su sitio en la escalera- lo tiene que decidir el
+     CIIP, y no se inventa aquí.
+
+     Y un devuelto se cancela (QA-12): el que el inversionista abandona se
+     quedaba en el montón de devueltos para siempre, aunque la base deja
+     cancelarlo. Con motivo, que le llega al inversionista, y con dos
+     pulsaciones, que no se deshace. En enviado y en revisión la base
+     también lo deja, pero ahí lo que toca es devolver: cancelar lo que
+     alguien acaba de mandar sin preguntarle lo decide el CIIP, no un
+     botón. */
   var CO_PASOS = {
     enviado:      [{a:'devuelto', k:'co_devolver', nota:true}, {a:'en_revision', k:'co_revisar'}],
     en_revision:  [{a:'devuelto', k:'co_devolver', nota:true}, {a:'ante_el_ente', k:'co_presentar'}],
-    ante_el_ente: [{a:'resuelto', k:'co_resuelta'}]
+    ante_el_ente: [{a:'devuelto', k:'co_devolver', nota:true}, {a:'resuelto', k:'co_resuelta'}],
+    devuelto:     [{a:'cancelado', k:'co_cancelar', nota:true, seguro:'co_cancelar_seguro'}]
   };
 
   /* Los tres montones. 'sin' y 'mios' son los que hacen falta de verdad
@@ -13410,8 +13586,11 @@ applyLang(idiomaParaMi());
          la primera del arbol, que ya no es esta. */
       nota.className = 'co-nota-in';
       nota.rows = 2;
-      nota.placeholder = u.co_nota || '';
-      nota.setAttribute('aria-label', u.co_nota || '');
+      /* En un devuelto la nota es el motivo de cancelarlo: es lo único que se
+         hace desde ahí. */
+      var notaDe = (t.estado === 'devuelto') ? 'co_nota_cancelar' : 'co_nota';
+      nota.placeholder = u[notaDe] || '';
+      nota.setAttribute('aria-label', u[notaDe] || '');
       f.appendChild(nota);
 
       var aviso = el('div', 'co-aviso');
@@ -13494,8 +13673,17 @@ applyLang(idiomaParaMi());
              no explica nada: es el único paso que exige la nota. */
           if (p.nota && !(nota.value || '').trim()){
             f.classList.add('mal');
-            aviso.textContent = u.co_nota_falta || '';
+            aviso.textContent = (p.a === 'cancelado' ? u.co_nota_cancelar_falta : u.co_nota_falta) || '';
             nota.focus();
+            return;
+          }
+          /* Lo que no se deshace pide dos pulsaciones, como la cancelación
+             del inversionista: la primera cambia el botón por la pregunta. */
+          if (p.seguro && !b.getAttribute('data-seguro')){
+            b.setAttribute('data-seguro', '1');
+            b.textContent = u[p.seguro] || '';
+            f.classList.remove('mal');
+            aviso.textContent = '';
             return;
           }
           /* Y resolver SIN el documento deja al inversionista con un
@@ -13556,10 +13744,13 @@ applyLang(idiomaParaMi());
           f.classList.remove('mal');
           aviso.textContent = '';
           b.disabled = true;
-          var elArchivo = (archivo && archivo.files && archivo.files[0]) || null;
+          /* El documento emitido va SOLO con resolver: ante el ente también
+             se puede devolver (QA-10), y devolver con un archivo elegido lo
+             habría entregado como si el ente lo hubiera concedido. */
+          var elArchivo = (p.a === 'resuelto' && archivo && archivo.files && archivo.files[0]) || null;
           if (elArchivo){
             b.textContent = u.co_subiendo || '';
-            entrega(t, elArchivo)
+            entregaUnaVez(t, elArchivo)
               .then(function(){
                 return mueveTramite(t, p.a, (nota.value || '').trim(), b, aviso, u[p.k])
                   .then(laNotaFalto(t, p.a));
@@ -13905,7 +14096,7 @@ applyLang(idiomaParaMi());
           huella: huella
         };
         if (extra) Object.keys(extra).forEach(function(k){ ficha[k] = extra[k]; });
-        return sb.from('documentos').insert(ficha).select().single();
+        return sinFichaFuera(ruta, sb.from('documentos').insert(ficha).select().single());
       })
       .then(function(r){
         if (r && r.error) throw r.error;
@@ -13921,6 +14112,45 @@ applyLang(idiomaParaMi());
           return doc;
         });
       });
+    });
+  }
+
+  /* ── ENTREGAR Y RESOLVER, SIN DOS COPIAS (QA-14) ──
+     Resolver son dos pasos: entregar el documento emitido y mover el
+     trámite. Si el segundo falla -una política, la red, un comprobante que
+     falta-, el documento ya está en la bóveda, validado y colgado, y el
+     gestor vuelve a pulsar: se subía otra copia, y otra más en cada
+     intento. El inversionista acababa con tres resoluciones iguales.
+
+     Así que antes de entregar se mira si ESE archivo ya está colgado de
+     este trámite como resolución, por su huella -la misma SHA-256 que
+     entrega() guarda-, y si está se reutiliza. Se mira en la base y no
+     solo en memoria: el reintento puede venir después de recargar.
+
+     Una función de la base que hiciera las dos cosas en una transacción
+     no arreglaría esto: el archivo va a Storage, que queda fuera de
+     cualquier transacción de Postgres. Esto es lo más seguro que se
+     puede hacer desde aquí. */
+  var ENTREGADAS = {};
+  function entregaUnaVez(tr, archivo){
+    var llave = tr.id + '|' + archivo.name + '|' + archivo.size + '|' + (archivo.lastModified || '');
+    if (ENTREGADAS[llave]) return Promise.resolve(ENTREGADAS[llave]);
+    return huellaDe(archivo).then(function(huella){
+      if (!huella) return null;
+      return Promise.resolve().then(function(){
+        return sb.from('tramite_documentos').select('documento, documentos(*)').eq('tramite', tr.id);
+      }).then(function(r){
+        var ya = ((r && !r.error && r.data) || []).filter(function(f){
+          var d = f && f.documentos;
+          return d && d.tipo === 'resolucion' && d.huella === huella;
+        })[0];
+        return ya ? ya.documento : null;
+      }, function(){ return null; });
+    }).then(function(ya){
+      return ya || entrega(tr, archivo);
+    }).then(function(doc){
+      ENTREGADAS[llave] = doc;
+      return doc;
     });
   }
 
@@ -14158,9 +14388,9 @@ applyLang(idiomaParaMi());
      revisión», y ahí no hay ninguna promesa que romperle a nadie. */
   function laNotaFalto(t, aEstado){
     return function(bien){
-      if (bien !== 'sin-nota' || aEstado !== 'devuelto') return;
+      if (bien !== 'sin-nota' || (aEstado !== 'devuelto' && aEstado !== 'cancelado')) return;
       var u = T();
-      hoyAvisa(String(u.co_h_devuelto_sinnota || '')
+      hoyAvisa(String((aEstado === 'cancelado' ? u.co_h_cancelada_sinnota : u.co_h_devuelto_sinnota) || '')
         .replace('{quien}', t.nombre || u.co_sinnombre || ''));
     };
   }
@@ -14177,9 +14407,28 @@ applyLang(idiomaParaMi());
         if (aviso){ aviso.textContent = T()[mal] || ''; aviso.className = 'sol-aviso err'; }
         return cargaCola().then(pintaTramites).then(function(){ return 'ya-no'; });
       }
-      return sb.from('tramites').update({estado: aEstado}).eq('id', tr.id).select().single()
+      /* ── Y SOLO DESDE DONDE LO VISTE (QA-36) ──
+         La escalera de la base dice qué saltos existen, no desde dónde
+         creías tú que saltabas: con dos gestores mirando la misma tarjeta,
+         uno la presentaba ante el ente y el otro, que la veía en revisión,
+         la devolvía -de ante el ente a devuelto también es un escalón- sin
+         saber que ya estaba fuera. El update lleva ahora el estado que la
+         tarjeta enseñaba, y si la base ya no lo tiene no cambia nada.
+
+         Para que eso no frene lo legítimo, la copia se pone al día aquí al
+         moverla: «Presentar» sube dos escalones seguidos con la misma
+         tarjeta, y el segundo tiene que salir del estado que dejó el
+         primero. yaNoEsAsi tropezó justo con eso (ver arriba). */
+      var desde = tr.estado;
+      var cambio = sb.from('tramites').update({estado: aEstado}).eq('id', tr.id);
+      if (desde) cambio = cambio.eq('estado', desde);
+      return cambio.select().single()
       .then(function(r){
-        if (r && r.error) throw r.error;
+        if (r && r.error) return seMovioSinMi(tr, desde, r.error);
+        return r;
+      })
+      .then(function(){
+        tr.estado = aEstado;
         if (!nota) return null;
         /* El evento lo escribe un trigger de la base, siempre con la nota
            vacía. Se busca el que acaba de nacer y se le pone encima: por eso
@@ -14211,6 +14460,14 @@ applyLang(idiomaParaMi());
       .catch(function(e){
         console.warn('[CIIP] mover trámite:', e && (e.message || e));
         if (boton){ boton.disabled = false; boton.textContent = textoBoton || ''; }
+        if (e && e.seMovio){
+          if (aviso){ aviso.textContent = T().co_ya_movida || ''; aviso.className = 'sol-aviso err'; }
+          /* Y en el aviso de abajo también: la cola se repinta al momento
+             y el hueco de la tarjeta puede irse con ella. */
+          hoyAvisa(T().co_ya_movida || '');
+          cargaCola().then(pintaTramites);
+          return false;
+        }
         /* Si es la base la que dice que no por un papel que falta, se dice
            ESO y no un error cualquiera.
 
@@ -14226,10 +14483,31 @@ applyLang(idiomaParaMi());
         if (aviso) aviso.textContent =
           (/reserva del nombre/.test(msg) && T().co_faltareserva) ||
           (/comprobante del pago/i.test(msg) && pide && T()[pide.aviso]) ||
+          /* La misma regla que mira el panel antes de resolver una
+             parafiscal, dicha ahora también por la base (QA-18). */
+          (/inscripciones sin terminar/i.test(msg) && T().co_faltanentes) ||
           T().co_error || '';
         return false;
       });
     });
+  }
+
+  /* El update filtrado por el estado de antes no tocó ninguna fila: con
+     .single() eso llega como error. Puede ser que alguien lo movió o que
+     una política no deja; se pregunta a la base cuál de las dos, y solo
+     la primera se cuenta como «te lo movieron». Siempre rechaza: con
+     {seMovio:true} o con el error de antes, tal cual. */
+  function seMovioSinMi(tr, desde, err){
+    if (!desde) return Promise.reject(err);
+    return Promise.resolve(sb.from('tramites').select('estado').eq('id', tr.id).single())
+      .then(function(r){
+        var ahora = r && !r.error && r.data && r.data.estado;
+        if (ahora && ahora !== desde){
+          tr.estado = ahora;
+          throw {seMovio: true, message: 'estaba en ' + desde + ' y ya está en ' + ahora};
+        }
+        throw err;
+      }, function(){ throw err; });
   }
 
   /* Cuando entro cada tramite en el estado en el que esta. No vale
@@ -14501,8 +14779,10 @@ applyLang(idiomaParaMi());
               d.tipo === 'busqueda_antecedentes' || d.tipo === 'certificado_marca') return;
           de[f.tramite].push({id: d.id || f.documento, tipo: d.tipo, archivo: d.archivo,
             nombre_original: d.nombre_original || '', estado: d.estado || 'cargado',
-            nota_revision: d.nota_revision || '', titular: d.titular || ''});
+            nota_revision: d.nota_revision || '', titular: d.titular || '',
+            creado_en: d.creado_en || ''});
         });
+        Object.keys(de).forEach(function(id){ de[id] = sinLosSustituidos(de[id]); });
         hoyDocs = de;
       })
       .catch(function(e){
@@ -14511,6 +14791,28 @@ applyLang(idiomaParaMi());
         console.warn('[CIIP] recaudos de la cola:', e && e.message);
         hoyDocs = {};
       });
+  }
+
+  /* ── EL PAPEL QUE NO VALIÓ Y YA SE CAMBIÓ (QA-08) ──
+     El panel no desenganchaba nunca un papel de un trámite: el rechazado
+     se quedaba colgado al lado del que el inversionista subió en su lugar.
+     Cuando el gestor validaba el nuevo, la cuenta seguía viendo un
+     rechazado y «Presentar ante el ente» no se encendía: el trámite se
+     quedaba atascado sin nada que el gestor pudiera hacer.
+
+     Al reenviar, el envío quita ya el rechazado que sustituye
+     (desenganchaLosSustituidos). Esto es la otra mitad, y la que arregla
+     los que ya están así: un rechazado no cuenta si en el mismo trámite
+     hay otro papel del mismo tipo -y del mismo titular- más nuevo. Sin
+     fechas, manda el que no está rechazado. */
+  function sinLosSustituidos(docs){
+    return docs.filter(function(d){
+      if (d.estado !== 'rechazado') return true;
+      return !docs.some(function(o){
+        if (o === d || o.tipo !== d.tipo || (o.titular || '') !== (d.titular || '')) return false;
+        return (d.creado_en && o.creado_en) ? o.creado_en > d.creado_en : o.estado !== 'rechazado';
+      });
+    });
   }
 
   /* La misma cuenta que diasDeMas, que vive en otro bloque y desde aquí no
@@ -14918,6 +15220,48 @@ applyLang(idiomaParaMi());
       });
   }
 
+  /* La caja de la nota del pie, la misma para devolver y para cancelar:
+     guarda lo escrito en hoyNotas y sobrevive a los repintados. */
+  function hoyNotaDe(t, clave){
+    var u = T();
+    var nota = el('textarea');
+    nota.id = 'hoy-nota-' + t.id;
+    nota.rows = 2;
+    nota.placeholder = u[clave] || '';
+    nota.setAttribute('aria-label', u[clave] || '');
+    nota.value = hoyNotas[t.id] || '';
+    nota.addEventListener('input', function(){ hoyNotas[t.id] = nota.value; });
+    return nota;
+  }
+
+  /* Cancelar un devuelto que no vuelve (QA-12). La nota va en el evento,
+     como la de devolver, y es lo que lee el inversionista en su trámite y
+     en la campana. Dos pulsaciones: un cancelado no se descancela. */
+  function hoyCancela(t, nota, boton, aviso){
+    var u = T(), texto = (nota.value || '').trim();
+    if (!texto){
+      aviso.textContent = u.co_nota_cancelar_falta || '';
+      nota.focus();
+      return;
+    }
+    if (!boton.getAttribute('data-seguro')){
+      boton.setAttribute('data-seguro', '1');
+      boton.textContent = u.co_cancelar_seguro || '';
+      aviso.textContent = '';
+      return;
+    }
+    var quien = t.nombre || u.co_sinnombre || '';
+    boton.disabled = true;
+    mueveTramite(t, 'cancelado', texto, boton, aviso, u.co_cancelar).then(function(bien){
+      if (!bien) return;
+      delete hoyNotas[t.id];
+      cierraVisor();
+      pintaHoy();
+      hoyAvisa(String((bien === 'sin-nota' ? u.co_h_cancelada_sinnota : u.co_h_cancelada) || '')
+        .replace('{quien}', quien));
+    });
+  }
+
   function hoyDevuelve(t, nota, boton, aviso){
     var u = T(), texto = (nota.value || '').trim();
     if (!texto){
@@ -15006,6 +15350,37 @@ applyLang(idiomaParaMi());
     };
   }
 
+  /* ── ESCRIBIR UNAS CLAVES DE DATOS SIN PISAR LAS DEMÁS (QA-38) ──
+     El gestor mandaba datos ENTEROS: la copia que tenía la tarjeta, con
+     sus claves encima. Lo que el inversionista hubiera marcado entretanto
+     -el «ya me registré» de confirma_paso, por ejemplo- se perdía, porque
+     la copia era de antes.
+
+     Lo mezcla la base, con mezcla_datos_tramite() (supabase-qa-tramites
+     .sql), que lee y escribe en la misma sentencia. Sin esa función -una
+     base que aún no tiene el archivo corrido- se lee la fila justo antes
+     de escribirla: queda una ventana de milisegundos en vez de la de
+     toda la vida de la tarjeta. Devuelve los datos como quedaron. */
+  function mezclaDatos(t, cambios){
+    return Promise.resolve().then(function(){
+      return sb.rpc('mezcla_datos_tramite', {p_tramite: t.id, p_datos: cambios});
+    }).then(function(r){
+      var fila = r && (Array.isArray(r.data) ? r.data[0] : r.data);
+      if (r && !r.error && fila && fila.datos) return fila.datos;
+      return Promise.resolve(sb.from('tramites').select('datos').eq('id', t.id).single())
+        .then(function(rl){
+          if (rl && rl.error) throw rl.error;
+          var leidos = (rl && rl.data && !Array.isArray(rl.data) && rl.data.datos) || t.datos || {};
+          var juntos = Object.assign({}, leidos, cambios);
+          return Promise.resolve(sb.from('tramites').update({datos: juntos}).eq('id', t.id))
+            .then(function(ru){
+              if (ru && ru.error) throw ru.error;
+              return juntos;
+            });
+        });
+    });
+  }
+
   function hoyResuelve(t, archivo, boton, aviso, delActa){
     var u = T();
     var papel = archivo && archivo.files && archivo.files[0];
@@ -15058,17 +15433,12 @@ applyLang(idiomaParaMi());
        el tramo tiene que abrirse. Lo único que se pierde es que la
        publicación nazca rellena, que es una comodidad y no el trámite. */
     var guarda = (delActa && Object.keys(delActa).length)
-      ? Promise.resolve(sb.from('tramites')
-          .update({datos: Object.assign({}, t.datos || {}, delActa)})
-          .eq('id', t.id))
-          .then(function(r){
-            if (r && r.error) throw r.error;
-            t.datos = Object.assign({}, t.datos || {}, delActa);
-          })
+      ? mezclaDatos(t, delActa)
+          .then(function(datos){ t.datos = datos; })
           .catch(function(e){ console.warn('[CIIP] datos del acta:', e && e.message); })
       : Promise.resolve();
     guarda
-      .then(function(){ return papel ? entrega(t, papel) : true; })
+      .then(function(){ return papel ? entregaUnaVez(t, papel) : true; })
       .then(function(){ return mueveTramite(t, 'resuelto', '', boton, aviso, rotulo); })
       .then(function(bien){
         if (!bien) return;
@@ -15530,6 +15900,15 @@ applyLang(idiomaParaMi());
         }
         hoyResuelve(t, archivo, res, aviso, delActa && delActa.lee());
       });
+      /* Y devolver, que ante el ente también existe (QA-10): el organismo
+         pide algo que falta y el trámite vuelve al inversionista con la
+         nota. Va a la izquierda de resolver, como en revisión. */
+      var notaEnte = hoyNotaDe(t, 'co_nota');
+      fin.appendChild(notaEnte);
+      var devEnte = el('button', 'btn ghost', u.co_devolver || '');
+      devEnte.type = 'button';
+      devEnte.addEventListener('click', function(){ hoyDevuelve(t, notaEnte, devEnte, aviso); });
+      botones.appendChild(devEnte);
       botones.appendChild(res);
     } else if (mio && t.estado === 'devuelto'){
       /* Un devuelto ya no espera al CIIP: la pelota es del inversionista.
@@ -15546,6 +15925,14 @@ applyLang(idiomaParaMi());
       pista.textContent = String(u.co_h_p_devuelto || '')
         .replace('{quien}', t.nombre || u.co_sinnombre || '');
       fin.appendChild(pista);
+      /* Y si no vuelve, se cancela (QA-12), con el motivo que le llega al
+         inversionista y dos pulsaciones: la primera pregunta. */
+      var notaCan = hoyNotaDe(t, 'co_nota_cancelar');
+      fin.appendChild(notaCan);
+      var can = el('button', 'btn ghost', u.co_cancelar || '');
+      can.type = 'button';
+      can.addEventListener('click', function(){ hoyCancela(t, notaCan, can, aviso); });
+      botones.appendChild(can);
     } else if (mio && (t.estado === 'enviado' || t.estado === 'en_revision')){
       if (c && c.cargado){
         pista.textContent = String(c.cargado === 1 ? u.co_h_p_falta1 : u.co_h_p_faltan).replace('{n}', c.cargado);
@@ -22757,9 +23144,10 @@ applyLang(idiomaParaMi());
          Dos razones para no dejar: que el CIIP ya lo diera por bueno -lo
          dice tambien la politica de la base, asi que el boton solo se
          adelanta a un rechazo seguro- y que vaya adjunto a un tramite
-         enviado. Esa segunda no la impide la base: 'tramite_documentos'
-         va con 'on delete cascade', asi que borrarlo lo quitaria del
-         expediente que el CIIP ya recibio, en silencio. */
+         enviado. Esa segunda la impide tambien la base desde el 28-9-2026
+         (QA-16, supabase-qa-tramites.sql): 'tramite_documentos' va con
+         'on delete cascade', y hasta entonces borrarlo por la API lo quitaba
+         del expediente que el CIIP ya recibio, en silencio. */
       if (laBovedaEsMia()){
         var usado = (usosPorDoc[d.id] || []).length > 0;
         var validado = (d.estado === 'validado');
@@ -22964,11 +23352,9 @@ applyLang(idiomaParaMi());
   }
 
   /* ── BORRAR UN PAPEL ─────────────────────────────────────────────────
-     Se va el archivo del almacen y luego la fila. En ese orden, y no al
-     reves: si primero cayera la fila y luego fallara el archivo, quedaria
-     un huerfano en el bucket que ya nadie sabe de quien era ni como se
-     llamaba. Al reves lo peor que pasa es que el archivo se vaya y la
-     fila se quede, y esa si se ve y se puede volver a intentar.
+     Primero la fila y luego el archivo, desde el 28-9-2026: el porqué
+     está en borraDeVerdad. Hasta entonces era al revés, por miedo a dejar
+     un archivo huérfano; la base ya los apunta sola al borrar la fila.
      ─────────────────────────────────────────────────────────────────── */
   var dcPorBorrar = null;
 
@@ -23013,15 +23399,27 @@ applyLang(idiomaParaMi());
     if (si){ si.disabled = true; si.textContent = u.dc_borrando || ''; }
     if (av){ av.textContent = ''; av.className = 'pf-aviso'; }
 
-    sb.storage.from('recaudos').remove([d.archivo])
-      .then(function(){
-        /* No se mira el error del almacen a proposito: si el archivo ya no
-           estaba, el borrado sigue siendo lo que quieres. Lo que no puede
-           fallar en silencio es la fila. */
-        return sb.from('documentos').delete().eq('id', d.id);
-      })
+    /* LA FILA PRIMERO, desde el 28-9-2026 (QA-16). La base no deja ya
+       borrar un papel que va en una solicitud en marcha, y con el archivo
+       primero ese «no» llegaba tarde: la ficha se quedaba y su archivo ya
+       no estaba, y el CIIP tenía en el expediente un papel que no se abre.
+       El huérfano que temía el orden de antes ya no se pierde: al borrar
+       la fila, la base lo apunta en archivos_huerfanos y el barrendero lo
+       recoge si esto de abajo no llega a quitarlo. */
+    Promise.resolve().then(function(){
+      return sb.from('documentos').delete().eq('id', d.id).select();
+    })
       .then(function(r){
         if (r && r.error) throw r.error;
+        /* Cero filas no es «borrado»: la política no dejó. */
+        if (r && Array.isArray(r.data) && !r.data.length) throw new Error('no se borró ninguna fila');
+        /* No se mira el error del almacen a proposito: si el archivo ya no
+           estaba, el borrado sigue siendo lo que quieres, y si no se pudo
+           quitar lo quita el barrendero. */
+        return Promise.resolve(sb.storage.from('recaudos').remove([d.archivo]))
+          .then(function(){}, function(){});
+      })
+      .then(function(){
         /* Se olvida lo que se sabia de la boveda: las fichas de los
            tramites guardan que recaudos tienes, y sin esto el papel
            borrado seguiria saliendo como que lo tienes. */
@@ -23037,7 +23435,10 @@ applyLang(idiomaParaMi());
       .catch(function(e){
         console.warn('[CIIP] borrar documento:', e && (e.message || e));
         if (si){ si.disabled = false; si.textContent = u.dc_borrar_si || ''; }
-        if (av){ av.textContent = u.pf_fotoerror || ''; av.className = 'pf-aviso'; }
+        /* Si es la base la que no deja -va en una solicitud en marcha-, se
+           dice eso, que es lo que el botón ya explica al pasar por encima. */
+        var enMarcha = /solicitud en marcha/.test((e && e.message) || '');
+        if (av){ av.textContent = (enMarcha ? u.dc_nb_uso : u.pf_fotoerror) || ''; av.className = 'pf-aviso'; }
       });
   }
 
