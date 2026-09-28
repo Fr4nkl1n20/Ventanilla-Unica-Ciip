@@ -154,7 +154,13 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    pasos apuntados en tramites.datos, la contestación con su anuncio y el
    certificado antes de resolver. Va DETRÁS del importe del día, cuyos
    importes con nombre usa, y de los avisos y el hilo, donde escribe. */
-'supabase-marca'];
+'supabase-marca',
+/* Lo que encontró la revisión de trámites y papeles (QA, 28-9-2026): lo
+   pendiente de un trámite cancelado, los papeles de una solicitud en
+   marcha, los seis entes de las parafiscales, la nota de un evento y la
+   mezcla de datos. Toca trabajos, ordenes_pago y tramite_entes y redefine
+   confirma_paso(), así que va detrás de todo. */
+'supabase-qa-tramites'];
 
 let mal = 0;
 for (const n of orden) {
