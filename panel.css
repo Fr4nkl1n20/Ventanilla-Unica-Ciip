@@ -2810,13 +2810,14 @@ body[data-vista="tramite"] #secTramites{display:none;}
    tres textos iban sueltos sobre el fondo y no se distinguia donde acababa
    uno y empezaba otro (Franklin Reyes, 28-9-2026, la 2b de las maquetas).
    En oscuro, el azul claro del panel: el #004090 no se ve sobre ese fondo. */
-/* Del mismo ancho que la tira de pasos y el formulario de debajo. Estuvo
-   ceñido a las letras (width:fit-content) y cada bloque acababa en un
-   sitio distinto: el recuadro a media pantalla y el formulario hasta el
-   borde (Franklin Reyes, 28-9-2026: «las medidas se ven raras»). La
-   descripcion sigue cortando a 68ch para que se lea bien. */
+/* Del mismo ancho que la tira de pasos y la hoja del formulario: los 880
+   de .pa. Estuvo ceñido a las letras y quedaba corto; luego, a todo el
+   ancho del contenido, y se pasaba por la derecha (Franklin Reyes,
+   28-9-2026: «ajustar el ancho de la ficha de arriba con la del cuadro de
+   abajo»). Si cambia el ancho de .pa, cambia este con el. La descripcion
+   sigue cortando a 68ch para que se lea bien. */
 .tr-caja{background:var(--bg); border:1.5px solid var(--navy); border-radius:var(--r);
-  padding:14px 18px; box-sizing:border-box; margin-bottom:12px;}
+  padding:14px 18px; box-sizing:border-box; max-width:880px; margin-bottom:12px;}
 .tr-raya{border:0; border-top:2px solid var(--navy); margin:12px 0 10px;}
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]) .tr-caja,
