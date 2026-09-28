@@ -594,6 +594,15 @@
   ];
   /* Lo que se escriba en el hilo de una consulta durante la tanda. */
   var dichosConsulta = [];
+  /* Dos ganchos para las pruebas de la auditoría QA: mirar o tocar una
+     consulta como lo haría otro gestor desde otra pestaña (QA-22), y quitar
+     la que abre una prueba para dejar la mesa como estaba (QA-04). */
+  window.CIIP_MENTIRA_CONSULTA = function(id){
+    return consultas.filter(function(c){ return c.id === id; })[0] || null;
+  };
+  window.CIIP_MENTIRA_OLVIDA_CONSULTA = function(id){
+    consultas = consultas.filter(function(c){ return c.id !== id; });
+  };
   /* Lo que se borro en esta pasada, para que la lista lo respete. */
   var borrados = {};
   /* La configuracion del acompañamiento, con sus valores de fabrica. */
@@ -797,9 +806,13 @@
      eventos de tramites a proposito: asi se comprueba que el buzon la mete
      en su sitio por fecha y no simplemente al final o al principio. */
   var CONFIRMADAS = {
+    /* POR DELANTE del ancla, y es a proposito: desde la auditoria QA-02 una
+       confirmada que ya paso no esta viva. Estuvo el 26 de agosto -una
+       semana ANTES del ancla- y la agenda la contaba como «en marcha», que
+       era justo el fallo. */
     lleno: [{id:'k1', inversionista:'u1', tipo_tramite:'constitucion', modo:'presencial',
-             estado:'confirmada', desde:'2026-08-24', hasta:'2026-08-28', nota:'',
-             cuando:'2026-08-26T14:00:00Z', lugar:'Torre CIIP, piso 4',
+             estado:'confirmada', desde:'2026-09-07', hasta:'2026-09-11', nota:'',
+             cuando:'2026-09-09T14:00:00Z', lugar:'Torre CIIP, piso 4',
              creado_en:'2026-06-30T09:00:00Z',
              actualizado_en:'2026-07-01T09:00:00Z'}],
     vacio: [], sinnombre: [],
@@ -985,6 +998,28 @@
     window.CIIP_PRUEBA_HUECOS = {cerrado: huCerrado, ocupado: huOcupado};
   }
   var cierresCitas = huCerrado ? [{fecha: huCerrado, motivo: 'Feriado'}] : [];
+
+  /* ── LAS CITAS QUE VE EL HORARIO DEL EQUIPO ──
+     Solo en 'gestor', y aparte de CONFIRMADAS a proposito (la agenda del
+     gestor no pregunta por el dueño; ver alli). Una por delante -para
+     moverla o cancelarla- y una que ya paso y nadie ha cerrado. Se piden
+     con .gt / .lt sobre cuando, y asi se distinguen. Contadas desde hoy
+     para que la prueba no caduque; la de delante, un martes a las diez. */
+  var equipoCitas = [];
+  if (caso === 'gestor'){
+    var eqF = huMas(huHoy(), 7);
+    while (huSem(eqF) !== 2) eqF = huMas(eqF, 1);
+    equipoCitas = [
+      {id:'e1', inversionista:'u2', tipo_tramite:'rif_empresa', modo:'presencial',
+       estado:'confirmada', cuando:new Date(eqF + 'T10:00:00-04:00').toISOString(),
+       lugar:'', nota:''},
+      {id:'e2', inversionista:'u2', tipo_tramite:null, modo:'video',
+       estado:'confirmada', cuando:new Date(Date.now() - 3 * 86400000).toISOString(),
+       lugar:'', nota:''}
+    ];
+    window.CIIP_PRUEBA_EQUIPO_CITAS = {proxima: eqF};
+  }
+  window.CIIP_PRUEBA_CITAS_UPD = [];
 
   /* ── un tramite que aparece DESPUES ──
      Para poder comprobar que el panel se pone al dia sin recargar. La
@@ -1252,6 +1287,20 @@
          "tu cita esta confirmada" de la agenda de la oficina entera. Se
          filtra de verdad: un doble que se saltara ese .eq contestaria lo
          mismo con el filtro y sin el. */
+      /* El horario del equipo: por delante (.gt) o ya pasadas (.lt). */
+      if (op && op.eq && op.eq.estado === 'confirmada' && ((op.gt && op.gt.cuando) || (op.lt && op.lt.cuando))){
+        var ahoraEq = Date.now();
+        return {data: equipoCitas.filter(function(c){
+          return c.estado === 'confirmada' &&
+                 (op.gt ? Date.parse(c.cuando) > ahoraEq : Date.parse(c.cuando) < ahoraEq);
+        }), error:null};
+      }
+      /* Las que canceló el CIIP, para el buzón (QA-25). Ninguna en los
+         expedientes de partida: lo que se mide es que la consulta no
+         reviente y que no se cuelen las que canceló uno mismo. */
+      if (op && op.eq && op.eq.estado === 'cancelada'){
+        return {data: [], error:null};
+      }
       if (op && op.eq && op.eq.estado === 'confirmada'){
         var confs = CONFIRMADAS[caso] || [];
         if (op.eq.inversionista){
@@ -1266,7 +1315,17 @@
         }
         return {data:colaViva, error:null};
       }
+      /* Cerrar, mover o cancelar una del horario del equipo: se apunta lo
+         que se pidió y la fila cambia de verdad, para que la lista cambie. */
+      if (op && op.update && op.eq && op.eq.id &&
+          equipoCitas.some(function(c){ return c.id === op.eq.id; })){
+        window.CIIP_PRUEBA_CITAS_UPD.push({id: op.eq.id, campos: op.update});
+        var eqc = equipoCitas.filter(function(c){ return c.id === op.eq.id; })[0];
+        Object.keys(op.update).forEach(function(k){ eqc[k] = op.update[k]; });
+        return {data:[eqc], error:null};
+      }
       if (op && op.update && op.eq && op.eq.id){
+        window.CIIP_PRUEBA_CITAS_UPD.push({id: op.eq.id, campos: op.update});
         colaViva = colaViva.filter(function(c){ return c.id !== op.eq.id; });
         citasVivas = [];
         return {data:{}, error:null};
@@ -2000,6 +2059,11 @@
       /* TOMARLA o CERRARLA, que es del equipo. */
       if (op && op.update && op.eq && op.eq.id){
         var cual = consultas.filter(function(c){ return c.id === op.eq.id; })[0];
+        /* .is('gestor', null): si ya la lleva alguien, no se toca ninguna
+           fila, que es lo que hace PostgREST (QA-22). */
+        if (cual && op.is && 'gestor' in op.is && op.is.gestor === null && cual.gestor != null){
+          return {data: [], error:null};
+        }
         if (cual){
           if ('estado' in op.update) cual.estado = op.update.estado;
           if ('gestor' in op.update) cual.gestor = op.update.gestor;
@@ -2337,6 +2401,28 @@
               rR = {data:res, error:null};
             }
             return {then:function(bien, mal){ return Promise.resolve(rR).then(bien, mal); }};
+          }
+
+          /* Confirmar o mover una cita desde el equipo (QA-20, QA-19). */
+          if (nombre === 'confirma_cita'){
+            window.CIIP_PRUEBA_CONFIRMA = (window.CIIP_PRUEBA_CONFIRMA || []).concat([args]);
+            colaViva = colaViva.filter(function(c){ return c.id !== (args && args.p_cita); });
+            var eqM = equipoCitas.filter(function(c){ return c.id === (args && args.p_cita); })[0];
+            if (eqM){ eqM.cuando = args.p_cuando; eqM.motivo = args.p_motivo || ''; }
+            var rC = {data: {id: args && args.p_cita, estado: 'confirmada', cuando: args && args.p_cuando}, error:null};
+            return {then:function(bien, mal){ return Promise.resolve(rC).then(bien, mal); }};
+          }
+          /* El equipo abre una consulta a nombre de otro (QA-04). */
+          if (nombre === 'abre_consulta_para'){
+            window.CIIP_PRUEBA_ABRE_PARA = args;
+            var nuevaP = {id: 'cs' + (consultas.length + 1), inversionista: args && args.p_inversionista,
+                          tramite: null, tipo: (args && args.p_tipo) || null, asunto: (args && args.p_asunto) || '',
+                          estado: 'en_curso', gestor: USUARIO.id,
+                          creado_en: new Date().toISOString(), actualizado_en: new Date().toISOString(),
+                          resuelto_en: null};
+            consultas.push(nuevaP);
+            var rP = {data: nuevaP, error:null};
+            return {then:function(bien, mal){ return Promise.resolve(rP).then(bien, mal); }};
           }
 
           /* La firma en el CIIP de una constitución: la marca el equipo y
