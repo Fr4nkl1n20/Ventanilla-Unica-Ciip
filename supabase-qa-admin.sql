@@ -237,6 +237,29 @@ create trigger aa_perfiles_guarda_columnas
   for each row execute function public.perfiles_guarda_columnas();
 
 
+-- ── QA-07 · El correo de cada cuenta, solo para el admin ───────────────
+-- perfiles no guarda el correo y una cuenta nueva llega «Sin nombre». El
+-- correo vive en auth.users, que el navegador no lee: esto lo da, y solo
+-- a un admin.
+create or replace function public.correos_de_las_cuentas()
+returns table (id uuid, correo text)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not public.es_admin() then
+    raise exception 'Solo un administrador ve los correos' using errcode = '42501';
+  end if;
+  return query select u.id, u.email::text from auth.users u order by u.id;
+end $$;
+
+revoke all on function public.correos_de_las_cuentas() from public;
+revoke all on function public.correos_de_las_cuentas() from anon;
+grant execute on function public.correos_de_las_cuentas() to authenticated;
+
+
 -- ── Comprobación ───────────────────────────────────────────────────────
 -- Que es_gestor() y es_admin() sigan dejando entrar a quien debe. Si no
 -- queda ningún admin sin bloquear, se para aquí y no se aplica nada.

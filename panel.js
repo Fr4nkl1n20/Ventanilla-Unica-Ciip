@@ -23718,7 +23718,10 @@ applyLang(idiomaParaMi());
     if (!usBusca) return true;
     /* Por nombre y por pais: con dos personas llamadas igual, el pais es
        lo unico que las separa a simple vista. */
-    var donde = ((p.nombre_completo || '') + ' ' + (p.pais || '')).toLowerCase();
+    /* Y por correo, cuando la base lo da (solo al admin): una cuenta nueva
+       llega sin nombre y el correo es lo único que la distingue. */
+    var donde = ((p.nombre_completo || '') + ' ' + (p.pais || '') + ' ' +
+                 (p.correo || '')).toLowerCase();
     return donde.indexOf(usBusca.toLowerCase()) >= 0;
   }
 
@@ -23957,6 +23960,13 @@ applyLang(idiomaParaMi());
     }
   }
 
+  /* A quién se refiere una pregunta de confirmar: el nombre, y si no hay,
+     el correo. «¿Hacer gestor a (sin nombre)?» no deja saber a quién se le
+     están dando permisos, que es justo lo que señaló la auditoría (QA-07). */
+  function quienEsLaCuenta(p, u){
+    return p.nombre_completo || p.correo || u.co_sinnombre || '';
+  }
+
   function fichaDe(p){
     var u = T();
     var yo = (yoSoy && yoSoy === p.id);
@@ -23967,12 +23977,16 @@ applyLang(idiomaParaMi());
                        nombreRol(p.rol)));
     if (yo) cab.appendChild(el('span', 'dc-usos', u.us_tuya || ''));
     /* Bloqueada se dice en la cabecera y con palabra, no solo con un
-       color: es el dato mas importante de la ficha. */
-    if (p.bloqueado) cab.appendChild(el('span', 'ct-chip mal', u.us_bloq || ''));
+       color: es el dato mas importante de la ficha. Dada de baja, igual. */
+    if (p.dado_de_baja_en) cab.appendChild(el('span', 'ct-chip mal', u.us_de_baja || ''));
+    else if (p.bloqueado) cab.appendChild(el('span', 'ct-chip mal', u.us_bloq || ''));
     cab.appendChild(pintaPresencia(p));
     f.appendChild(cab);
 
     f.appendChild(el('div', 'ci-linea', p.nombre_completo || u.co_sinnombre || ''));
+    /* El correo, que perfiles no guarda: lo da correos_de_las_cuentas(),
+       solo a un admin. Sin esa función corrida, la línea no sale. */
+    if (p.correo) f.appendChild(el('div', 'us-correo', p.correo));
     if (p.pais) f.appendChild(el('div', 'ci-que', p.pais));
 
     var pie = el('div', 'us-pie');
@@ -23992,6 +24006,56 @@ applyLang(idiomaParaMi());
       nota.textContent = String(u.us_cambiado || '').replace('{fecha}', fecha(p.rol_cambiado_en));
     pie.appendChild(nota);
 
+    /* ── CONFIRMAR ANTES DE CAMBIAR (QA-07 y QA-23) ──
+       El rol y el bloqueo se aplicaban en el mismo cambio del desplegable o
+       en la primera pulsación: un roce de la rueda del ratón sobre el
+       desplegable hacía admin a alguien. Ahora se pregunta en la propia
+       ficha, como al cancelar una solicitud: la primera acción pregunta y
+       dice a quién, y solo el «Sí» escribe. */
+    var confirma = null;
+    var botones = [];
+    function apaga(si){
+      sel.disabled = si || yo;
+      botones.forEach(function(b){ b.disabled = si; });
+    }
+    function pregunta(texto, hacer, deshacer){
+      if (confirma && confirma.parentNode) confirma.parentNode.removeChild(confirma);
+      confirma = el('div', 'us-confirma');
+      confirma.appendChild(el('div', 'us-nota', texto));
+      var si = el('button', 'can-btn confirma', u.us_conf_si || '');
+      si.type = 'button';
+      var no = el('button', 't-btn', u.us_conf_no || '');
+      no.type = 'button';
+      function cierra(){
+        if (confirma && confirma.parentNode) confirma.parentNode.removeChild(confirma);
+        confirma = null;
+      }
+      si.addEventListener('click', function(){ cierra(); hacer(); });
+      no.addEventListener('click', function(){ cierra(); apaga(false); if (deshacer) deshacer(); });
+      confirma.appendChild(si);
+      confirma.appendChild(no);
+      apaga(true);
+      f.insertBefore(confirma, pie.nextSibling);
+      try { si.focus(); } catch(e){}
+    }
+    function falla(que, e){
+      console.warn('[CIIP] ' + que + ':', e && (e.message || e));
+      apaga(false);
+      nota.className = 'us-nota mal';
+      nota.textContent = String(u.us_error || '').replace('{e}', (e && e.message) || '');
+    }
+    /* Con .select(): RLS y el disparador no dan error al rechazar una
+       escritura -contestan que todo fue bien y no cambian nada-, asi que
+       se comprueba que la fila vuelva. */
+    function escribe(campos){
+      return sb.from('perfiles').update(campos).eq('id', p.id).select().single()
+        .then(function(r){
+          if (r && r.error) throw r.error;
+          if (!r || !r.data) throw new Error('sin fila de vuelta');
+          return r.data;
+        });
+    }
+
     var sel = document.createElement('select');
     ROLES.forEach(function(r){
       var o = el('option', null, nombreRol(r));
@@ -24003,73 +24067,95 @@ applyLang(idiomaParaMi());
     sel.setAttribute('aria-label', u.us_sub || 'rol');
     sel.addEventListener('change', function(){
       var nuevo = sel.value;
-      sel.disabled = true;
-      nota.className = 'us-nota';
-      nota.textContent = u.us_guardando || '';
-      sb.from('perfiles').update({rol: nuevo}).eq('id', p.id).select().single()
-        .then(function(r){
-          if (r && r.error) throw r.error;
-          p.rol = nuevo;
-          p.rol_cambiado_en = new Date().toISOString();
-          AVISOS_ROL[p.id] = u.us_hecho || '';
-          /* Se repinta YA, no dentro de novecientos milisegundos. Durante
-             esa espera la pantalla se contradecia a si misma: el aviso
-             decia "rol cambiado" y el distintivo de la misma tarjeta
-             seguia diciendo INVERSIONISTA. Quien lo hacia acababa
-             recargando a ver si esta vez si. */
-          pintaUsuarios();
-        })
-        .catch(function(e){
-          console.warn('[CIIP] cambiar rol:', e && (e.message || e));
-          sel.value = p.rol;
-          sel.disabled = false;
-          nota.className = 'us-nota mal';
-          nota.textContent = String(u.us_error || '').replace('{e}', (e && e.message) || '');
-        });
+      if (nuevo === p.rol) return;
+      pregunta(String(u.us_conf_rol || '')
+                 .replace('{quien}', quienEsLaCuenta(p, u))
+                 .replace('{antes}', nombreRol(p.rol))
+                 .replace('{rol}', nombreRol(nuevo)),
+        function(){
+          nota.className = 'us-nota';
+          nota.textContent = u.us_guardando || '';
+          escribe({rol: nuevo})
+            .then(function(){
+              p.rol = nuevo;
+              p.rol_cambiado_en = new Date().toISOString();
+              AVISOS_ROL[p.id] = u.us_hecho || '';
+              /* Se repinta YA, no dentro de novecientos milisegundos.
+                 Durante esa espera la pantalla se contradecia a si misma:
+                 el aviso decia "rol cambiado" y el distintivo de la misma
+                 tarjeta seguia diciendo INVERSIONISTA. */
+              pintaUsuarios();
+            })
+            .catch(function(e){ sel.value = p.rol; falla('cambiar rol', e); });
+        },
+        function(){ sel.value = p.rol; });
     });
     pie.appendChild(sel);
 
-    /* Bloquear. Solo lo ve un admin, y nunca sobre su propia cuenta: un
-       admin que se bloquea deja al CIIP sin quien desbloquee. La base lo
-       rechaza igual -esconder el boton nunca fue la cerradura- pero
-       ofrecerlo para que rebote es ofrecer un error. */
+    /* Bloquear y dar de baja. Solo lo ve un admin, y nunca sobre su propia
+       cuenta: un admin que se bloquea deja al CIIP sin quien desbloquee.
+       La base lo rechaza igual -esconder el boton nunca fue la cerradura-
+       pero ofrecerlo para que rebote es ofrecer un error. */
     if (esAdmin() && !yo && !faltaSql){
-      var bl = el('button', 't-btn peligro',
-                  (p.bloqueado ? u.us_desbloq : u.us_bloquear) || '');
-      bl.type = 'button';
-      bl.addEventListener('click', function(){
-        bl.disabled = true;
-        sel.disabled = true;
-        nota.className = 'us-nota';
-        nota.textContent = u.us_guardando || '';
-        var quiero = !p.bloqueado;
-        /* Con .select(): RLS y el disparador no dan error al bloquear una
-           escritura -contestan que todo fue bien y no cambian nada-, asi
-           que se comprueba que la fila vuelva. */
-        sb.from('perfiles').update({bloqueado: quiero}).eq('id', p.id).select().single()
-          .then(function(r){
-            if (r && r.error) throw r.error;
-            if (!r.data) throw new Error('sin fila de vuelta');
-            p.bloqueado = quiero;
-            AVISOS_ROL[p.id] = (quiero ? u.us_bloq_hecho : u.us_desbl_hecho) || '';
-            pintaUsuarios();
-          })
-          .catch(function(e){
-            console.warn('[CIIP] bloquear cuenta:', e && (e.message || e));
-            bl.disabled = false;
-            sel.disabled = yo;
-            nota.className = 'us-nota mal';
-            nota.textContent = String(u.us_error || '').replace('{e}', (e && e.message) || '');
-          });
-      });
-      pie.appendChild(bl);
+      if (!p.dado_de_baja_en){
+        var bl = el('button', 't-btn peligro',
+                    (p.bloqueado ? u.us_desbloq : u.us_bloquear) || '');
+        bl.type = 'button';
+        botones.push(bl);
+        bl.addEventListener('click', function(){
+          var quiero = !p.bloqueado;
+          pregunta(String((quiero ? u.us_conf_bloq : u.us_conf_desbl) || '')
+                     .replace('{quien}', quienEsLaCuenta(p, u)),
+            function(){
+              nota.className = 'us-nota';
+              nota.textContent = u.us_guardando || '';
+              escribe({bloqueado: quiero})
+                .then(function(){
+                  p.bloqueado = quiero;
+                  AVISOS_ROL[p.id] = (quiero ? u.us_bloq_hecho : u.us_desbl_hecho) || '';
+                  pintaUsuarios();
+                })
+                .catch(function(e){ falla('bloquear cuenta', e); });
+            });
+        });
+        pie.appendChild(bl);
+      }
+
+      /* La baja (QA-06): en vez de borrar la cuenta -que se lleva en
+         cascada sus trámites, sus papeles y la prueba de que aceptó el
+         pliego-, se marca y se bloquea. Solo si la base sabe guardarla. */
+      if (!faltaBaja){
+        var baja = !p.dado_de_baja_en;
+        var bb = el('button', 't-btn peligro', (baja ? u.us_baja : u.us_alta) || '');
+        bb.type = 'button';
+        botones.push(bb);
+        bb.addEventListener('click', function(){
+          pregunta(String((baja ? u.us_conf_baja : u.us_conf_alta) || '')
+                     .replace('{quien}', quienEsLaCuenta(p, u)),
+            function(){
+              nota.className = 'us-nota';
+              nota.textContent = u.us_guardando || '';
+              escribe({dado_de_baja_en: baja ? new Date().toISOString() : null})
+                .then(function(fila){
+                  p.dado_de_baja_en = baja ? (fila.dado_de_baja_en || new Date().toISOString()) : null;
+                  if (baja) p.bloqueado = true;
+                  AVISOS_ROL[p.id] = (baja ? u.us_baja_hecho : u.us_alta_hecho) || '';
+                  pintaUsuarios();
+                })
+                .catch(function(e){ falla('dar de baja', e); });
+            });
+        });
+        pie.appendChild(bb);
+      }
     }
 
     f.appendChild(pie);
     /* Qué significa estar bloqueada, dicho en la propia ficha: «no puede
        escribir nada» no es lo mismo que «no puede entrar», y confundirlo
        lleva a bloquear a alguien creyendo que se le echa. */
-    if (p.bloqueado) f.appendChild(el('div', 'us-nota', u.us_bloq_d || ''));
+    if (p.dado_de_baja_en)
+      f.appendChild(el('div', 'us-nota', String(u.us_baja_d || '').replace('{fecha}', fecha(p.dado_de_baja_en))));
+    else if (p.bloqueado) f.appendChild(el('div', 'us-nota', u.us_bloq_d || ''));
     return f;
   }
 
@@ -24079,21 +24165,84 @@ applyLang(idiomaParaMi());
      vista se quedaba en blanco: ni el equipo, ni los inversionistas, ni el
      renglón en la barra. Una función nueva no puede apagar lo que ya
      servía, así que si sobran columnas se vuelve a preguntar por las de
-     siempre y lo nuevo se calla en vez de inventarse. */
+     siempre y lo nuevo se calla en vez de inventarse.
+
+     dado_de_baja_en es de supabase-qa-admin.sql y va en un escalón aparte:
+     sin ese archivo se pierde solo el botón de la baja, no la presencia. */
   var COLS = 'id, nombre_completo, pais, rol, rol_cambiado_en, visto_en, bloqueado';
+  var COLS_BAJA = COLS + ', dado_de_baja_en';
   var COLS_VIEJAS = 'id, nombre_completo, pais, rol';
-  var faltaSql = false;
+  var faltaSql = false, faltaBaja = false;
+
+  /* TODAS las filas, de mil en mil (QA-42). Supabase devuelve como mucho
+     mil por consulta y no avisa de que se ha cortado: la lista de cuentas y
+     los números de arriba se habrían quedado en mil sin decir nada. Se pide
+     por tramos hasta que uno llega corto. hazConsulta() tiene que devolver
+     una consulta NUEVA cada vez y con orden fijo, o los tramos se pisan. */
+  var TRAMO = 1000;
+  function todasLasFilas(hazConsulta){
+    var filas = [];
+    function tramo(desde){
+      var q = hazConsulta();
+      var porTramos = (typeof q.range === 'function');
+      if (porTramos) q = q.range(desde, desde + TRAMO - 1);
+      return q.then(function(r){
+        if (r && r.error) return r;
+        var d = (r && r.data) || [];
+        filas = filas.concat(d);
+        if (!porTramos || d.length < TRAMO)
+          return {data: filas, error: null};
+        return tramo(desde + TRAMO);
+      });
+    }
+    return tramo(0);
+  }
 
   function pideLosPerfiles(){
-    return sb.from('perfiles').select(COLS).then(function(r){
-      var m = (r && r.error && r.error.message) || '';
-      if (!/column|columna/i.test(m)) return r;
-      console.warn('[CIIP] usuarios: falta correr supabase-admin.sql, ' +
-                   'supabase-presencia.sql o supabase-bloqueo.sql; ' +
-                   'sigo sin esas columnas');
-      faltaSql = true;
-      return sb.from('perfiles').select(COLS_VIEJAS);
-    });
+    function con(cols){
+      return todasLasFilas(function(){
+        return sb.from('perfiles').select(cols).order('id');
+      });
+    }
+    function esDeColumna(r){
+      return /column|columna/i.test((r && r.error && r.error.message) || '');
+    }
+    faltaSql = false; faltaBaja = false;
+    return con(COLS_BAJA)
+      .then(function(r){
+        if (!esDeColumna(r)) return r;
+        faltaBaja = true;
+        return con(COLS);
+      })
+      .then(function(r){
+        if (!esDeColumna(r)) return r;
+        console.warn('[CIIP] usuarios: falta correr supabase-admin.sql, ' +
+                     'supabase-presencia.sql o supabase-bloqueo.sql; ' +
+                     'sigo sin esas columnas');
+        faltaSql = true;
+        return con(COLS_VIEJAS);
+      })
+      .then(function(r){
+        if (r && r.error) return r;
+        return ponLosCorreos((r && r.data) || []).then(function(){ return r; });
+      });
+  }
+
+  /* El correo de cada cuenta, solo para el admin (QA-07). Si la función no
+     está -supabase-qa-admin.sql sin correr- o no eres admin, la base dice
+     que no y la lista sale como antes, sin correos. */
+  function ponLosCorreos(lista){
+    if (!esAdmin() || !lista.length) return Promise.resolve();
+    var q;
+    try {
+      q = todasLasFilas(function(){ return sb.rpc('correos_de_las_cuentas'); });
+    } catch(e){ return Promise.resolve(); }
+    return Promise.resolve(q).then(function(r){
+      if (!r || r.error || !Array.isArray(r.data)) return;
+      var de = {};
+      r.data.forEach(function(c){ if (c && c.id) de[c.id] = c.correo || ''; });
+      lista.forEach(function(p){ if (de[p.id]) p.correo = de[p.id]; });
+    }, function(){});
   }
 
   function cargaUsuarios(){
@@ -24112,7 +24261,9 @@ applyLang(idiomaParaMi());
           var ra = ROLES.indexOf(b.rol) - ROLES.indexOf(a.rol);
           return ra || String(a.nombre_completo || '\uffff').localeCompare(b.nombre_completo || '\uffff');
         });
-        return sb.from('tramites').select('id, estado');
+        return todasLasFilas(function(){
+          return sb.from('tramites').select('id, estado').order('id');
+        });
       })
       .then(function(r){
         var t = (r && r.data) || [];
@@ -24123,7 +24274,9 @@ applyLang(idiomaParaMi());
           esperando: t.filter(function(x){ return x.estado === 'enviado' || x.estado === 'en_revision'; }).length,
           citas: 0
         };
-        return sb.from('citas').select('id').eq('estado', 'solicitada');
+        return todasLasFilas(function(){
+          return sb.from('citas').select('id').eq('estado', 'solicitada').order('id');
+        });
       })
       .then(function(r){
         conteos.citas = ((r && r.data) || []).length;
