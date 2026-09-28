@@ -3977,6 +3977,210 @@ update public.perfiles set bloqueado = false where id = (select id from arnes.ge
 select arnes.nadie();
 
 
+
+-- ══ 36 · CITAS Y CONSULTAS: LO QUE ENCONTRÓ LA AUDITORÍA QA ═══════════
+-- supabase-qa-atencion.sql. Una cuenta propia, Q, para no pisar las citas
+-- que las secciones de arriba le dejaron a A.
+
+reset role;
+select arnes.nadie();
+insert into auth.users (email, raw_user_meta_data) values
+  ('q@prueba.local', '{"nombre_completo":"Quique Citas","pais":"Italia"}');
+insert into arnes.gente (papel, id)
+select 'Q', id from auth.users where email = 'q@prueba.local';
+
+-- Un viernes de 9 a 12 que seguro existe, y una cita de Q confirmada que
+-- ya pasó: la que antes le bloqueaba para siempre.
+insert into public.horario_citas (dia, desde, hasta, cada_min) values (5, '09:00', '12:00', 30);
+do $qa$
+declare c uuid;
+begin
+  insert into public.citas (inversionista, modo, desde, hasta, estado, cuando)
+  values ((select id from arnes.gente where papel = 'Q'), 'video',
+          current_date - 10, current_date - 10, 'confirmada', now() - interval '10 days')
+  returning id into c;
+  insert into arnes.escenario values ('qa-pasada', c);
+end
+$qa$;
+
+-- QA-02: con la pasada sin cerrar, reservar ya no dice «en marcha».
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'Q'));
+do $qa$
+declare
+  viernes date := (date_trunc('week', (now() at time zone 'America/Caracas'))::date + 11);
+  fila public.citas;
+begin
+  fila := public.reserva_cita(((viernes + time '10:00') at time zone 'America/Caracas'), 'video');
+  insert into arnes.escenario values ('qa-nueva', fila.id);
+  perform arnes.comprueba('qa citas: una cita que ya pasó no bloquea la siguiente', true);
+exception when others then
+  perform arnes.comprueba('qa citas: una cita que ya pasó no bloquea la siguiente', false, sqlerrm);
+end
+$qa$;
+
+select arnes.comprueba('qa citas: y la pasada queda dada por hecha',
+  coalesce((select estado = 'hecha' from public.citas
+             where id = (select id from arnes.escenario where clave = 'qa-pasada')), false),
+  (select estado from public.citas where id = (select id from arnes.escenario where clave = 'qa-pasada')));
+
+-- QA-29: con una viva, una segunda por la API no entra.
+do $qa$
+begin
+  insert into public.citas (inversionista, modo, desde, hasta)
+  values (auth.uid(), 'telefono', current_date + 1, current_date + 5);
+  perform arnes.comprueba('qa citas: una segunda viva por la API no entra', false, 'entro');
+exception when others then
+  perform arnes.comprueba('qa citas: una segunda viva por la API no entra', true, sqlerrm);
+end
+$qa$;
+
+-- QA-31: la confirmada no se cambia de modo ni de nota; cancelarla, sí.
+do $qa$
+declare c uuid := (select id from arnes.escenario where clave = 'qa-nueva');
+begin
+  update public.citas set modo = 'presencial' where id = c;
+  perform arnes.comprueba('qa citas: el inversionista no cambia el modo', false, 'lo cambio');
+exception when others then
+  perform arnes.comprueba('qa citas: el inversionista no cambia el modo', true, sqlerrm);
+end
+$qa$;
+do $qa$
+declare c uuid := (select id from arnes.escenario where clave = 'qa-nueva');
+begin
+  update public.citas set nota = 'otra cosa' where id = c;
+  perform arnes.comprueba('qa citas: ni la nota', false, 'la cambio');
+exception when others then
+  perform arnes.comprueba('qa citas: ni la nota', true, sqlerrm);
+end
+$qa$;
+
+-- QA-20: confirmar es del equipo, no de quien pide.
+do $qa$
+begin
+  perform public.confirma_cita((select id from arnes.escenario where clave = 'qa-nueva'),
+                               now() + interval '3 days', '', 'por probar');
+  perform arnes.comprueba('qa citas: el inversionista no se confirma una cita', false, 'la confirmo');
+exception when others then
+  perform arnes.comprueba('qa citas: el inversionista no se confirma una cita', true, sqlerrm);
+end
+$qa$;
+
+-- Del lado del equipo.
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+
+do $qa$
+begin
+  perform public.confirma_cita((select id from arnes.escenario where clave = 'qa-nueva'),
+                               now() - interval '1 hour', '', 'por probar');
+  perform arnes.comprueba('qa citas: no se confirma para una hora pasada', false, 'la confirmo');
+exception when others then
+  perform arnes.comprueba('qa citas: no se confirma para una hora pasada', true, sqlerrm);
+end
+$qa$;
+
+do $qa$
+declare
+  viernes date := (date_trunc('week', (now() at time zone 'America/Caracas'))::date + 11);
+begin
+  perform public.confirma_cita((select id from arnes.escenario where clave = 'qa-nueva'),
+                               ((viernes + time '11:00') at time zone 'America/Caracas'), '', '');
+  perform arnes.comprueba('qa citas: moverla sin decir por qué no se puede', false, 'la movio');
+exception when others then
+  perform arnes.comprueba('qa citas: moverla sin decir por qué no se puede', true, sqlerrm);
+end
+$qa$;
+
+do $qa$
+declare
+  viernes date := (date_trunc('week', (now() at time zone 'America/Caracas'))::date + 11);
+  fila public.citas;
+begin
+  fila := public.confirma_cita((select id from arnes.escenario where clave = 'qa-nueva'),
+                               ((viernes + time '11:00') at time zone 'America/Caracas'),
+                               '', 'Se nos cruzó una reunión');
+  perform arnes.comprueba('qa citas: con motivo, el equipo la mueve',
+    fila.cuando = ((viernes + time '11:00') at time zone 'America/Caracas')
+    and fila.motivo = 'Se nos cruzó una reunión', fila.motivo);
+exception when others then
+  perform arnes.comprueba('qa citas: con motivo, el equipo la mueve', false, sqlerrm);
+end
+$qa$;
+
+do $qa$
+begin
+  update public.citas set estado = 'no_asistio'
+   where id = (select id from arnes.escenario where clave = 'qa-nueva');
+  perform arnes.comprueba('qa citas: una cita futura no se cierra', false, 'la cerro');
+exception when others then
+  perform arnes.comprueba('qa citas: una cita futura no se cierra', true, sqlerrm);
+end
+$qa$;
+
+do $qa$
+begin
+  update public.citas set estado = 'cancelada', motivo = ''
+   where id = (select id from arnes.escenario where clave = 'qa-nueva');
+  perform arnes.comprueba('qa citas: el CIIP no cancela sin motivo', false, 'la cancelo');
+exception when others then
+  perform arnes.comprueba('qa citas: el CIIP no cancela sin motivo', true, sqlerrm);
+end
+$qa$;
+
+update public.citas set estado = 'cancelada', motivo = 'El gestor está enfermo'
+ where id = (select id from arnes.escenario where clave = 'qa-nueva');
+select arnes.comprueba('qa citas: con motivo sí, y queda dicho que fue el CIIP',
+  coalesce((select estado = 'cancelada' and cancelada_por_ciip from public.citas
+             where id = (select id from arnes.escenario where clave = 'qa-nueva')), false),
+  'cero filas: ¿falta la política de update del equipo?');
+
+-- QA-02: la pasada se puede cerrar como «no asistió».
+update public.citas set estado = 'no_asistio'
+ where id = (select id from arnes.escenario where clave = 'qa-pasada');
+select arnes.comprueba('qa citas: la que ya pasó se cierra como no asistió',
+  coalesce((select estado = 'no_asistio' from public.citas
+             where id = (select id from arnes.escenario where clave = 'qa-pasada')), false));
+
+-- QA-03: una consulta resuelta vuelve a la cola si el inversionista escribe.
+-- QA-04: y el equipo puede abrirle una a nombre suyo.
+do $qa$
+declare fila public.consultas;
+begin
+  fila := public.abre_consulta_para((select id from arnes.gente where papel = 'Q'), 'Sobre tu cita');
+  insert into arnes.escenario values ('qa-consulta', fila.id);
+  perform arnes.comprueba('qa consultas: el equipo abre una consulta a nombre de otro',
+    fila.inversionista = (select id from arnes.gente where papel = 'Q')
+    and fila.gestor = auth.uid() and fila.estado = 'en_curso',
+    fila.inversionista::text || ' ' || fila.estado);
+exception when others then
+  perform arnes.comprueba('qa consultas: el equipo abre una consulta a nombre de otro', false, sqlerrm);
+end
+$qa$;
+
+update public.consultas set estado = 'resuelta'
+ where id = (select id from arnes.escenario where clave = 'qa-consulta');
+
+select arnes.soy((select id from arnes.gente where papel = 'Q'));
+do $qa$
+begin
+  perform public.abre_consulta_para((select id from arnes.gente where papel = 'A'), 'a nombre de otro');
+  perform arnes.comprueba('qa consultas: el inversionista no abre consultas a nombre de otro', false, 'la abrio');
+exception when others then
+  perform arnes.comprueba('qa consultas: el inversionista no abre consultas a nombre de otro', true, sqlerrm);
+end
+$qa$;
+
+insert into public.consulta_mensajes (consulta, texto)
+values ((select id from arnes.escenario where clave = 'qa-consulta'), 'Una cosa más');
+
+select arnes.comprueba('qa consultas: si el inversionista escribe en una resuelta, se reabre',
+  coalesce((select estado = 'en_curso' and resuelto_en is null from public.consultas
+             where id = (select id from arnes.escenario where clave = 'qa-consulta')), false),
+  (select estado from public.consultas where id = (select id from arnes.escenario where clave = 'qa-consulta')));
+
+reset role;
+select arnes.nadie();
+
 \o
 \pset tuples_only on
 \pset format unaligned
