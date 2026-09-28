@@ -35,8 +35,41 @@ var RateLimitError      = paquete.RateLimitError;
 var AuthenticationError = paquete.AuthenticationError;
 var APIConnectionError  = paquete.APIConnectionError;
 
-/* El idioma de un país, el mismo criterio que los correos de avisos. */
-var idiomaDe = require('../avisos/mensajero.js').idiomaDe;
+/* El idioma de un país, para el inversionista que todavía no ha escrito.
+   perfiles.pais guarda el nombre en español. Aquí y no con idiomaDe() de
+   avisos/mensajero.js: .vercelignore deja avisos/ fuera del despliegue, y
+   el require tumbaba la función al cargar (28-9-2026). Y aquí caben más
+   idiomas que los seis del panel: la traducción no depende de ellos. */
+var IDIOMA_DEL_PAIS = {
+  es: ['venezuela', 'espana', 'mexico', 'colombia', 'argentina', 'chile', 'peru', 'ecuador',
+       'bolivia', 'paraguay', 'uruguay', 'panama', 'costa rica', 'nicaragua', 'honduras',
+       'el salvador', 'guatemala', 'cuba', 'republica dominicana', 'puerto rico', 'guinea ecuatorial'],
+  en: ['estados unidos', 'reino unido', 'canada', 'australia', 'nueva zelanda', 'irlanda',
+       'india', 'sudafrica', 'nigeria', 'singapur', 'trinidad y tobago', 'jamaica'],
+  pt: ['brasil', 'portugal', 'angola', 'mozambique', 'cabo verde'],
+  it: ['italia', 'san marino'],
+  fr: ['francia', 'belgica', 'suiza', 'luxemburgo', 'monaco', 'senegal', 'costa de marfil', 'haiti'],
+  de: ['alemania', 'austria', 'liechtenstein'],
+  nl: ['paises bajos', 'holanda', 'surinam', 'curazao', 'aruba'],
+  zh: ['china', 'taiwan', 'hong kong', 'macao'],
+  ja: ['japon'],
+  ko: ['corea del sur', 'corea del norte', 'corea'],
+  ru: ['rusia', 'bielorrusia', 'kazajistan'],
+  uk: ['ucrania'],
+  pl: ['polonia'],
+  tr: ['turquia'],
+  fa: ['iran'],
+  ar: ['arabia saudita', 'emiratos arabes unidos', 'egipto', 'catar', 'qatar', 'kuwait',
+       'libano', 'siria', 'jordania', 'marruecos', 'argelia', 'irak', 'libia', 'tunez']
+};
+
+function idiomaDe(pais) {
+  var p = String(pais || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  for (var l in IDIOMA_DEL_PAIS) {
+    if (IDIOMA_DEL_PAIS[l].indexOf(p) >= 0) return l;
+  }
+  return 'en';
+}
 
 var MODELO = 'claude-opus-5';
 
