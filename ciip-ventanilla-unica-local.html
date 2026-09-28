@@ -177,7 +177,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
        este apano quien no haya corrido supabase-sectores.sql se quedaria
        sin perfil: sin nombre, sin pais y sin rol. Ya paso una vez con
        visto_en y dejo la pantalla de usuarios en blanco. */
-    function pideMiPerfil(){
+    function pideSinBloqueo(){
       return sb.from('perfiles')
         .select('nombre_completo, pais, rol, sector').eq('id', usuario.id).single()
         .then(function(r){
@@ -188,10 +188,23 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
             .then(function(r0){ if (r0) r0.sinColumnaSector = true; return r0; });
         });
     }
+    /* Y con 'bloqueado' delante (auditoría QA-28): una cuenta bloqueada
+       entraba normal y todo le fallaba sin decirle por qué. Sin
+       supabase-bloqueo.sql corrido la columna no existe, y se vuelve a
+       preguntar como antes: por esto no se queda nadie sin perfil. */
+    function pideMiPerfil(){
+      return sb.from('perfiles')
+        .select('nombre_completo, pais, rol, sector, bloqueado').eq('id', usuario.id).single()
+        .then(function(r){
+          var m = (r && r.error && r.error.message) || '';
+          if (!/column|columna/i.test(m)) return r;
+          return pideSinBloqueo();
+        });
+    }
     pideMiPerfil()
       .then(function(r){
         if (r && r.data) aplicarPerfil(r.data.nombre_completo, r.data.pais, r.data.rol,
-                                       r.data.sector, !r.sinColumnaSector);
+                                       r.data.sector, !r.sinColumnaSector, r.data.bloqueado === true);
         else if (r && r.error){
           console.warn('[CIIP] No se pudo leer el perfil:', r.error.message);
           /* Sin fila no hay rol que esperar. Sin esto, los tres relojes se
@@ -203,13 +216,13 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
   }
 
   var reintentos = 0;
-  function aplicarPerfil(nombre, pais, rol, sector, sectorReal){
+  function aplicarPerfil(nombre, pais, rol, sector, sectorReal, bloqueada){
     /* Este bloque va en el <head>, pero PERFIL y applyLang se definen en el
        script del final del <body>. Si la sesión se resuelve antes de que el
        navegador llegue allí, se espera en vez de reventar. */
     if (typeof PERFIL === 'undefined' || typeof applyLang !== 'function'){
       if (reintentos++ < 100){ setTimeout(function(){
-        aplicarPerfil(nombre, pais, rol, sector, sectorReal); }, 40); }
+        aplicarPerfil(nombre, pais, rol, sector, sectorReal, bloqueada); }, 40); }
       return;
     }
     /* nombre_completo es 'not null default \'\'' en la base, así que una
@@ -281,6 +294,14 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
     /* El punto sobre el avatar mientras el expediente esté a medias. */
     var u = document.querySelector('.user');
     if (u) u.classList.toggle('incompleto', !(PERFIL.nombreReal && PERFIL.pais));
+
+    /* Y si la base dice que está bloqueada, se le dice a la cara en vez
+       de dejarla entrar a que cada cosa le falle. Va después de applyLang
+       para salir ya en su idioma. */
+    if (bloqueada){
+      PERFIL.bloqueada = true;
+      if (typeof window.CIIP_CUENTA_BLOQUEADA === 'function') window.CIIP_CUENTA_BLOQUEADA();
+    }
   }
 
   /* Queda expuesto para que la ventana del perfil pueda volcar en la

@@ -51,6 +51,51 @@ function iniciales(n){
   return (p[0].charAt(0) + (p.length>1 ? p[p.length-1].charAt(0) : '')).toUpperCase();
 }
 
+/* LA CUENTA BLOQUEADA (auditoría QA-28). La base ya le cierra toda
+   escritura, pero el panel no lo sabía: entraba normal y cada cosa que
+   tocaba le fallaba con un error genérico, sin decirle por qué. Ahora, si
+   el perfil llega con bloqueado, se tapa el panel con un aviso que lo dice
+   y una sola salida: cerrar la sesión. Una cuenta dada de baja también
+   llega bloqueada, así que cae aquí igual.
+
+   Es cortesía, no la cerradura: quitar el aviso desde la consola no abre
+   nada, porque lo que corta está en la base. Se lee de CIIP_PASOS y no de
+   T(), que vive dentro de otro bloque y quizá no existe todavía. */
+function cuentaBloqueada(){
+  if (document.getElementById('cuentaBloqueada')) return;
+  var D = window.CIIP_PASOS || {};
+  var lang = (typeof curLang !== 'undefined') ? curLang : 'es';
+  var u = (D.ui && (D.ui[lang] || D.ui.es)) || {};
+  var caja = document.createElement('div');
+  caja.id = 'cuentaBloqueada';
+  caja.className = 'cuenta-bloq';
+  caja.setAttribute('role', 'alertdialog');
+  caja.setAttribute('aria-modal', 'true');
+  caja.setAttribute('aria-labelledby', 'cuentaBloqueadaT');
+  var hoja = document.createElement('div');
+  hoja.className = 'cb-hoja';
+  var t = document.createElement('h2');
+  t.id = 'cuentaBloqueadaT';
+  t.textContent = u.cb_titulo || 'Tu cuenta está bloqueada';
+  var p = document.createElement('p');
+  p.textContent = u.cb_texto || '';
+  var b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'cb-salir';
+  b.textContent = u.cb_salir || 'Cerrar sesión';
+  b.addEventListener('click', function(){
+    if (typeof window.ciipSalir === 'function') window.ciipSalir();
+  });
+  hoja.appendChild(t);
+  hoja.appendChild(p);
+  hoja.appendChild(b);
+  caja.appendChild(hoja);
+  document.body.appendChild(caja);
+  document.documentElement.classList.add('ciip-cuenta-bloqueada');
+  try { b.focus(); } catch(e){}
+}
+window.CIIP_CUENTA_BLOQUEADA = cuentaBloqueada;
+
 /* sustituye {nombre}, {rol} y {pais} en un texto ya traducido */
 function conDatos(txt, dict){
   if (txt.indexOf('{') < 0) return txt;
