@@ -138,7 +138,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    Caracas y el comprobante que se paga contra él. Su trigger va aparte
    del de supabase-papeles-sellados, y necesita es_gestor() y es_admin();
    va al final para no mover el número de nadie. */
-'supabase-importe-del-dia'];
+'supabase-importe-del-dia',
+/* La traducción de documentos (c17): su fila en importe_del_dia_pasos y
+   el trigger que no la deja resolver sin el comprobante. Necesita la
+   tabla del anterior, así que va detrás. */
+'supabase-traduccion'];
 
 let mal = 0;
 for (const n of orden) {

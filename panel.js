@@ -4361,8 +4361,10 @@ applyLang(idiomaParaMi());
       /* Franklin Reyes, 24-9-2026: es la pregunta que parte el trámite en
          dos. Un documento que YA viene apostillado solo hay que
          traducirlo; uno que no, hay que apostillarlo antes. Aquí decide
-         qué papeles se piden -la apostilla que ya se tiene-; que decida
-         también los PASOS está pendiente de tu respuesta al punto 4. */
+         qué papeles se piden -la apostilla que ya se tiene-, y desde el
+         25-9-2026 también los PASOS (ESCALERA_SEGUN). Desde el 28-9-2026
+         la respuesta elige entre traducción por intérprete público
+         -apostillado o legalizado- y traducción simple. */
       {n:'apostillado',      clave:'f_apostillado', opcionesClave:'o_sino'},
       {n:'uso_previsto',     clave:'f_uso',        ancho:true}
     ],
@@ -7182,6 +7184,17 @@ applyLang(idiomaParaMi());
           debe resolverse sin el pago, eso lo sujeta un trigger suyo, como
           tramites_sidcai_con_pago en supabase-locti.sql. */
   var IMPORTE_DEL_DIA = {};
+  /* La traducción de documentos (c17), pedido del CIIP del 28-9-2026: sus
+     dos escaleras -documento simple y documento apostillado o legalizado-
+     empiezan igual, «Solicitud de traducción recibida → Importe de
+     traducción → Comprobante de pago», y el importe sale en el 2.
+
+     Los estados son los dos de ese tramo. Recibida, el 2 está en curso y
+     el equipo sube el importe; al pasarla a revisión el importe ya salió y
+     lo que se espera es el pago -el 3-, pero el importe puede vencer
+     mientras tanto, así que la casilla sigue ahí para subir el de hoy. Ante
+     el ente ya es «En proceso de traducción»: ahí no se cobra nada. */
+  IMPORTE_DEL_DIA.apostilla_documentos = {paso: 2, estados: ['enviado', 'en_revision']};
   var TIPO_IMPORTE = 'importe_dia', TIPO_PAGO_IMPORTE = 'pago_importe_dia';
 
   /* La fecha en Caracas, AAAA-MM-DD, que se compara como texto. Caracas va
@@ -7673,6 +7686,8 @@ applyLang(idiomaParaMi());
     return {alcanzado: alcanzado, conReserva: conReserva, ref: ref, delante: delante,
             propios: propios, pre: pre, circ: circ, reserva: reserva, todos: todos};
   }
+  /* Para las pruebas: la escalera de una solicitud, sin pintarla. */
+  window.CIIP_ESCALERA = escaleraDe;
 
   function pintaEstado(tipo, tr){
     var u = T();
@@ -19208,7 +19223,21 @@ applyLang(idiomaParaMi());
      también los pasos, que es la otra mitad de la misma respuesta.
 
      El de por defecto -el de la clave sin sufijo- es el largo: antes de
-     contestar, lo honesto es enseñar el camino completo y no el corto. */
+     contestar, lo honesto es enseñar el camino completo y no el corto.
+
+     CAMBIÓ EL 28-9-2026. El CIIP rehízo los dos procesos: el CIIP ya no
+     apostilla ni legaliza, traduce. Las dos escaleras tienen ahora cinco
+     pasos y se diferencian en uno, el cuarto: un documento apostillado o
+     legalizado lo traduce un intérprete público; uno simple, no.
+
+       c17                 documento simple (y el de antes de contestar)
+       c17_yaapostillado   documento apostillado y/o legalizado
+
+     Ninguna es ya «la larga», así que la de por defecto es la simple: es
+     la que no promete un intérprete que quizá no haga falta. El 2 es el
+     importe del día (IMPORTE_DEL_DIA.apostilla_documentos) y el 5, el
+     documento traducido que el equipo deja al resolver, que es el «Tu
+     documento» de cualquier trámite. */
   var ESCALERA_SEGUN = {c17: {campo: 'apostillado', si: 'c17_yaapostillado'}};
 
   /* Adónde te manda un paso, cuando lo que toca está fuera del panel. El
@@ -20332,6 +20361,10 @@ applyLang(idiomaParaMi());
        supabase-publicacion.sql; esto es para avisar antes de intentarlo. */
     if (t.tipo === 'publicacion_acta') return {tipo: 'pago_publicacion', aviso: 'co_faltapublicacion'};
     if (t.tipo === 'aporte_locti_pago') return {tipo: 'pago_locti', aviso: 'co_faltalocti'};
+    /* La traducción (28-9-2026): «Documento traducido» va detrás de
+       «Comprobante de pago», y la base no la deja resolver sin él
+       (supabase-traduccion.sql). */
+    if (t.tipo === 'apostilla_documentos') return {tipo: 'pago_importe_dia', aviso: 'co_faltatraduccion'};
     return null;
   }
 

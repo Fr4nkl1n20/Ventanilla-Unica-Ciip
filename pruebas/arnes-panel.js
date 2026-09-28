@@ -326,7 +326,7 @@
               rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
               rastroDesdeTramiteSalta, rastroDesdeTramiteMira,
               alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno,
-              importeSiembra, importeMira,
+              importeSiembra, importeMira, traduccionMira,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
                  cuentas a todo lo que cuenta tarjetas. */
@@ -7770,6 +7770,66 @@
     IMP_CAJAS = null;
     window.__IMPORTE_DOCS = null;
     delete I.registro.prueba_importe;
+  }
+
+  /* ═══════════════ LA TRADUCCIÓN, CON SUS DOS ESCALERAS ═══════════════
+     Pedido del CIIP (28-9-2026): documento simple o apostillado y/o
+     legalizado, cinco pasos cada una, distintas solo en el cuarto. La
+     elige la casilla «apostillado» del formulario; el importe del día va
+     en el 2. Se mide la escalera sin pintarla (window.CIIP_ESCALERA). */
+  function traduccionMira(){
+    if (PASE !== 'vacio') return;
+    var E = window.CIIP_ESCALERA, I = window.CIIP_IMPORTE;
+    var P = (window.CIIP_PASOS || {}).pasos || {};
+    ok('traducción: la escalera está a mano', !!E, E ? 'está' : 'no está', 'window.CIIP_ESCALERA');
+    if (!E) return;
+    var esc = function(estado, dicho){
+      var datos = (dicho === undefined) ? {} : {apostillado: dicho};
+      return E({id: 'trad', estado: estado, datos: datos}, 'apostilla_documentos', 'MPPRE').todos;
+    };
+    var nombres = function(t){ return t.map(function(p){ return p.nombre; }).join(' | '); };
+    /* El idioma en que la pinta, sacado de su primer paso. */
+    var simple = esc('enviado', 'No');
+    var L = Object.keys(P).filter(function(l){
+      return P[l].c17 && P[l].c17[0] === (simple[0] || {}).nombre;
+    })[0] || 'es';
+
+    igual('traducción: documento simple, sus cinco pasos', nombres(simple), P[L].c17.join(' | '));
+    igual('traducción: apostillado o legalizado, los suyos',
+          nombres(esc('enviado', 'Sí')), P[L].c17_yaapostillado.join(' | '));
+    igual('traducción: sin contestar, la del documento simple', nombres(esc('enviado')), P[L].c17.join(' | '));
+    ok('traducción: las dos se separan solo en el cuarto paso, en los seis idiomas',
+       Object.keys(P).every(function(l){
+         var a = P[l].c17 || [], b = P[l].c17_yaapostillado || [];
+         return a.length === 5 && b.length === 5 && a[3] !== b[3] &&
+                [0, 1, 2, 4].every(function(i){ return a[i] === b[i]; });
+       }), Object.keys(P).join(','), 'cinco pasos, distintos en el cuarto');
+    if (L === 'es'){
+      igual('traducción: el cuarto del apostillado lo hace un intérprete público',
+            esc('enviado', 'Sí')[3].nombre, 'En proceso de traducción por intérprete público');
+      igual('traducción: y el del simple no', simple[3].nombre, 'En proceso de traducción');
+    }
+
+    /* Dónde está cada estado: recibida espera el importe, en revisión el
+       pago, ante el ente se traduce y resuelta ya está el documento. */
+    var enCurso = function(t){
+      var a = t.filter(function(p){ return p.ahora; })[0];
+      return a ? a.n : (t.every(function(p){ return p.hecho; }) ? 'todos hechos' : 'ninguno');
+    };
+    igual('traducción: recibida, en curso el importe (2)', enCurso(esc('enviado', 'No')), 2);
+    igual('traducción: en revisión, en curso el comprobante (3)', enCurso(esc('en_revision', 'Sí')), 3);
+    igual('traducción: ante el ente, en curso la traducción (4)', enCurso(esc('ante_el_ente', 'Sí')), 4);
+    igual('traducción: resuelta, los cinco hechos', enCurso(esc('resuelto', 'No')), 'todos hechos');
+
+    if (!I) return;
+    ok('traducción: el importe del día sale en el paso 2 y en ningún otro',
+       !!I.delPaso('apostilla_documentos', 2) && !I.delPaso('apostilla_documentos', 3),
+       [!!I.delPaso('apostilla_documentos', 2), !!I.delPaso('apostilla_documentos', 3)].join('/'), 'true/false');
+    igual('traducción: el equipo lo sube recibida y en revisión, no ante el ente',
+          ['enviado', 'en_revision', 'ante_el_ente', 'resuelto'].map(function(e){
+            return e + ' ' + I.abierto({tipo: 'apostilla_documentos', estado: e});
+          }).join(', '),
+          'enviado true, en_revision true, ante_el_ente false, resuelto false');
   }
 
   /* EL FRENO. Cambiar de pestaña y volver es lo que más se hace en una
