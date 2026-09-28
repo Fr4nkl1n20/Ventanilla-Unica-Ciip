@@ -155,6 +155,25 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    certificado antes de resolver. Va DETRÁS del importe del día, cuyos
    importes con nombre usa, y de los avisos y el hilo, donde escribe. */
 'supabase-marca',
+/* Los registros parafiscales sin código: el inversionista solo escribe en
+   las filas del IVSS y del INCES. Redefine dos políticas de
+   supabase-entes-parafiscales, así que va detrás. */
+'supabase-entes-sin-codigo',
+/* La conformidad de uso (c28): los tres tipos de documento que pide el
+   SIGAT y el borrado de sus pasos viejos. Solo necesita el catálogo de
+   documentos y textos_panel. */
+'supabase-conformidad-uso',
+/* La licencia de actividades económicas (c10): sus dos importes del día con
+   nombre, los pasos que apunta la base y el freno para resolver sin los dos
+   comprobantes. Va DETRÁS del importe del día y de la marca, de quien usa
+   la guarda de los pasos apuntados. */
+'supabase-licencia',
+/* El registro de importador y exportador (c11) se apaga en el catálogo.
+   Va detrás de supabase-tramites, cuyas listas ya no lo encienden. */
+'supabase-quitar-importador',
+/* El permiso de bomberos (c29): el borrado de sus pasos viejos. Solo
+   necesita textos_panel. */
+'supabase-bomberos',
 /* Citas y consultas tras la auditoría QA del 28-9-2026: estados de la cita,
    motivo, una viva por persona, confirmar desde el equipo y la consulta que
    se reabre. Redefine reserva_cita() y consulta_la_firma_la_base(), así que

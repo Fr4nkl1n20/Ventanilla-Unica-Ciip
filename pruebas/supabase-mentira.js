@@ -1743,7 +1743,11 @@
         {codigo:'rifs_junta', vence:false}, {codigo:'codigo_ente', vence:false},
         {codigo:'certificado_rupdae', vence:false}, {codigo:'certificado_rum', vence:true},
         {codigo:'certificado_locti', vence:true}, {codigo:'planilla_locti', vence:false},
-        {codigo:'pago_locti', vence:false}
+        {codigo:'pago_locti', vence:false},
+        /* Los tres de la conformidad de uso (28-9-2026), como si su SQL
+           estuviera corrido. */
+        {codigo:'cedula_catastral', vence:false}, {codigo:'permiso_construccion', vence:false},
+        {codigo:'fotos_local', vence:false}
       ], error:null};
     }
 

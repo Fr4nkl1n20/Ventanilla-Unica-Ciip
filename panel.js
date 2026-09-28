@@ -3258,20 +3258,44 @@ applyLang(idiomaParaMi());
        local. Es UNO solo aunque el título de propiedad y el contrato de
        arrendamiento sean papeles distintos —son alternativas, y cuál de
        las dos lo dice el campo `tenencia` del formulario. */
+    /* Y desde el 28-9-2026, lo que pide el SIGAT de la alcaldía (pedido del
+       CIIP, con la captura de su pantalla): la cédula catastral del
+       inmueble donde se realiza la actividad, el título o el documento de
+       arrendamiento -el de arriba, que ya estaba-, el permiso de
+       construcción o la conformidad ocupacional, el plano interno del
+       local y las fotografías internas y externas. Todos en PDF.
+
+       El plano es el mismo tipo que el de bomberos -plano_local-: es el
+       mismo papel del mismo local, y así el que ya lo subió para uno no lo
+       sube dos veces. Los otros tres son tipos nuevos (supabase-conformidad-
+       uso.sql), y por eso llevan siExiste: hasta que la base los conozca no
+       se piden. */
     conformidad_uso: [
       {tipo:'titulo_inmueble',   clave:'d_inmueble'},
       {tipo:'acta_constitutiva', clave:'d_acta'},
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
-      {tipo:'cedula',            clave:'d_identidad'}
+      {tipo:'cedula',            clave:'d_identidad'},
+      {tipo:'cedula_catastral',  clave:'d_catastral',    siExiste:true},
+      {tipo:'permiso_construccion', clave:'d_permconst', siExiste:true},
+      {tipo:'plano_local',       clave:'d_planointerno'},
+      {tipo:'fotos_local',       clave:'d_fotoslocal',   siExiste:true}
     ],
     /* Bomberos sí pide la conformidad de uso, y obligatoria: la inspección
        se hace sobre un local del que ya se sabe qué actividad va a
        albergar. El contrato de mantenimiento de extintores va opcional
        porque la hoja dice "según municipio", y no todos lo exigen. */
+    /* Y desde el 28-9-2026 (pedido del CIIP): «Agregar Cédula o pasaporte
+       y RIF del representante legal, Documento constitutivo de la
+       empresa». Los tipos son los que ya usa la marca para lo mismo -una
+       cédula es una cédula, un acta es un acta-, así que quien los tenga
+       en la bóveda no los vuelve a subir. */
     permiso_bomberos: [
       {tipo:'conformidad_uso',   clave:'d_conformidad'},
       {tipo:'plano_local',       clave:'d_plano'},
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedpasrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'},
+      {tipo:'acta_constitutiva', clave:'d_docconst'},
       {tipo:'mantenimiento_extintores', clave:'d_extintores', opcional:true}
     ],
     /* El estudio de impacto va opcional a propósito. La hoja avisa de que
@@ -4147,15 +4171,16 @@ applyLang(idiomaParaMi());
        pidiendo el expediente. Va como texto libre y no como lista: son 335
        municipios, la lista envejecería en el código y el CIIP solo opera
        de hecho en unos pocos.
-       Los metros cuadrados no son curiosidad: varias alcaldías calculan la
-       tasa de la licencia con la superficie del local. */
+       Los metros cuadrados se fueron el 28-9-2026, a pedido del CIIP
+       («Quitar el campo de Metros cuadrados»): la tasa ya no se calcula
+       aquí, llega como importe del día. Las solicitudes viejas que los
+       traigan los conservan en tramites.datos. */
     licencia_municipal: [
       {n:'razon_social',        clave:'f_razon',       ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
       {n:'municipio',           clave:'f_municipio'},
       {n:'tenencia',            clave:'f_tenencia',    opcionesClave:'o_tenencia'},
       {n:'actividad_economica', clave:'f_actividad'},
-      {n:'metros',              clave:'f_metros',      tipo:'number'},
       {n:'inicio_actividades',  clave:'f_iniciolab',   tipo:'date'},
       {n:'direccion_local',     clave:'f_dirlocal',    ancho:true}
     ],
@@ -4677,7 +4702,7 @@ applyLang(idiomaParaMi());
      pinta. */
   function papelesQueRellenan(codigo){
     var claveDe = {};
-    (RECAUDOS[codigo] || []).forEach(function(r){ claveDe[r.tipo] = r.clave; });
+    recaudosDe(codigo).forEach(function(r){ claveDe[r.tipo] = r.clave; });
     var porDoc = {};
     (CAMPOS[codigo] || []).forEach(function(c){
       var de = LEE_DE[c.n];
@@ -5072,6 +5097,9 @@ applyLang(idiomaParaMi());
     var q;
     try { q = sb.from('documentos').select('tipo'); }
     catch(e){ MIOS = {}; return (miosPide = Promise.resolve()); }
+    /* Y de camino, qué tipos conoce la base: con eso se sabe si un
+       recaudo nuevo ya se puede pedir (recaudosDe). Se pide una vez. */
+    try { cargaVencen(); } catch(e){ /* sin lista, se pide todo */ }
     miosPide = Promise.resolve(q).then(function(r){
       var v = {};
       (((r && r.data) || [])).forEach(function(d){ v[d.tipo] = true; });
@@ -5194,7 +5222,7 @@ applyLang(idiomaParaMi());
     /* Los que dependen de una casilla del formulario no se enumeran en la
        ficha: la lee todo el mundo, y contarlos sería pedirle dos papeles de
        más a quien no tiene ningún accionista que sea una empresa. */
-    var recs = (RECAUDOS[tipo.codigo] || []).filter(function(r){ return !r.siCasilla; });
+    var recs = recaudosDe(tipo.codigo).filter(function(r){ return !r.siCasilla; });
     if (recs.length){
       var pedidos = recs.filter(function(r){ return !r.opcional; });
       var tengo = pedidos.filter(function(r){ return MIOS && MIOS[r.tipo]; }).length;
@@ -5258,7 +5286,7 @@ applyLang(idiomaParaMi());
 
        Sin recaudos son dos: una hoja vacia de papeles seria peor que no
        tenerla, igual que lo era la columna vacia de antes. */
-    var hayPapeles = (RECAUDOS[tipo.codigo] || []).length > 0;
+    var hayPapeles = recaudosDe(tipo.codigo).length > 0;
 
     var pa = el('div', 'pa');
     var barra = document.createElement('ol');
@@ -6414,7 +6442,7 @@ applyLang(idiomaParaMi());
       return fila;
     }
 
-    (RECAUDOS[tipo.codigo] || []).forEach(function(r){ montaDoc(r, lista); });
+    recaudosDe(tipo.codigo).forEach(function(r){ montaDoc(r, lista); });
     /* Y detras de ellos los de la junta, si los hay. */
     if (cajaJunta) lista.appendChild(cajaJunta);
     lado.appendChild(lista);
@@ -7041,8 +7069,16 @@ applyLang(idiomaParaMi());
      código a ref, la otra ref a nombre. */
   function nombreDeTarjeta(ref){
     var n = document.querySelector('.tcard[data-tr="' + ref + '"] .t-name');
-    return n ? n.textContent.trim() : ref;
+    if (n) return n.textContent.trim();
+    /* Sin tarjeta -un trámite que se fue del catálogo, como el registro de
+       importador y exportador (c11) el 28-9-2026- la solicitud vieja se
+       sigue llamando por su nombre, que sigue en el diccionario, y no
+       «c11». */
+    var D = (typeof I18N !== 'undefined') ? I18N : null;
+    var k = ref + '.name';
+    return (D && ((D[curLang] && D[curLang][k]) || (D.en && D.en[k]))) || ref;
   }
+  window.CIIP_NOMBRE_TRAMITE = nombreDeTarjeta;
 
   /* Quién está dentro. `usuario` lo pone la tarjeta de un trámite al
      abrirse, y hasta ahora eso bastaba porque solo se subía desde ahí. La
@@ -7124,6 +7160,27 @@ applyLang(idiomaParaMi());
     return vencenPide;
   }
   function caduca(tipo){ return !!(VENCEN && VENCEN[tipo]); }
+
+  /* ── UN RECAUDO NUEVO NO SE PIDE ANTES DE QUE LA BASE LO CONOZCA ──
+     Los recaudos con siExiste llevan un tipo de documento que nace con un
+     SQL propio (la conformidad de uso, 28-9-2026: cédula catastral,
+     permiso de construcción, fotografías del local). Hasta que ese SQL se
+     corra la base rechaza el papel -tipos_documento no lo tiene- y el
+     inversionista se quedaría sin poder enviar la solicitud entera por
+     uno que ni siquiera se puede subir. Así que, si la lista de tipos ya
+     llegó y no lo trae, no se pide. Sin la lista -todavía no contestó o
+     falló- se pide como siempre: la base es la que decide. */
+  function recaudoVale(r, conocidos){
+    var m = (conocidos === undefined) ? VENCEN : conocidos;
+    if (!r || !r.siExiste || !m) return true;
+    return !Object.keys(m).length || (r.tipo in m);
+  }
+  function recaudosDe(codigo){
+    return (RECAUDOS[codigo] || []).filter(function(r){ return recaudoVale(r); });
+  }
+  /* Para las pruebas: la lista que se pide, y la regla con otra base. */
+  window.CIIP_RECAUDOS = {de: recaudosDe, vale: recaudoVale,
+                          campos: function(c){ return (CAMPOS[c] || []).slice(); }};
 
   /* ── la huella del archivo ──
      El SHA-256 de lo que se sube. Sirve para dos cosas: el conector se lo
@@ -7533,8 +7590,12 @@ applyLang(idiomaParaMi());
      propio botón y no con el del pie: es un gesto de todos los días que no
      mueve la solicitud. Cada subida es un papel nuevo; el viejo se queda
      en la bóveda como constancia, y manda el más reciente. */
-  function casillaDelImporte(t, idBase){
-    var ent = importeActivo(t);
+  /* entFija: una entrada concreta de IMPORTE_DEL_DIA en vez de la que toca
+     ahora -la licencia enseña las dos a la vez-; solo si el estado de la
+     solicitud es uno de los suyos. */
+  function casillaDelImporte(t, idBase, entFija){
+    var ent = entFija ? (((entFija.estados || []).indexOf(t.estado) >= 0) ? entFija : null)
+                      : importeActivo(t);
     if (!ent) return null;
     var nombre = nombreDelImporte(ent);
     var u = T();
@@ -7750,6 +7811,10 @@ applyLang(idiomaParaMi());
       /* Lo que dicen de la solicitud la campana y la cola, en vez de los
          cuatro rótulos de todos. */
       estados: ['mc_ev_enviado', 'mc_ev_en_revision', 'mc_ev_ante_el_ente', 'mc_ev_resuelto'],
+      /* No se resuelve sin el certificado enviado, y al resolver no se
+         pide otro papel: el certificado ya se mandó en su paso. */
+      exige: {paso: 'certificado', aviso: 'mc_g_faltacert'},
+      sinEmitido: true,
       etapas: [
         {clave: 'antecedentes', rotulo: 'mc_e1', pasos: [
           {clave: 'revision',              tipo: 'revision', rotulo: 'mc_p_revision'},
@@ -7774,8 +7839,66 @@ applyLang(idiomaParaMi());
           {clave: 'retiro',                tipo: 'retiro',   rotulo: 'mc_p_retiro',           espera: 'mc_n_retiro', listo: 'mc_n_retiro'}
         ]}
       ]
+    },
+
+    /* ── LA LICENCIA DE ACTIVIDADES ECONÓMICAS (c10) ──
+       Pedido del CIIP (28-9-2026): «Revisión de recaudos por el CIIP →
+       Firme la planilla de solicitud de trámite → Importe de tasa
+       administrativa → Importe de timbre fiscal otorgamiento de
+       documentos: licencia de actividades económicas → Comprobante del
+       pago», con dos casillas en ese último para los dos comprobantes.
+
+       Una sola etapa, sin encabezado: el CIIP la cuenta como una fila de
+       pasos, no como fases.
+
+       Los dos primeros los cierra el ESTADO, como en el RIF (c3 y c6),
+       donde «Firme la planilla» es el paso que sigue a la recepción: la
+       revisión, al pasar la solicitud a revisión; la firma, al presentarla
+       ante la alcaldía, que no se hace sin la planilla firmada.
+
+       Los dos importes son importes del día CON NOMBRE -'tasa' y
+       'timbre'-, cada uno con su comprobante (IMPORTE_DEL_DIA más abajo).
+       La tasa administrativa también cambia con el día: se trata igual que
+       el timbre, que es lo que dice el pedido del timbre y lo que menos
+       sorprende a quien paga los dos juntos. La base apunta cada importe
+       y cada comprobante al colgarse (supabase-licencia.sql).
+
+       Y un paso más al final que el pedido no escribe: «Licencia
+       otorgada». Sin él, con los dos comprobantes cargados la escalera
+       saldría toda en verde mientras la licencia todavía no existe, que es
+       justo la mentira que esta escalera no cuenta. Lo cierra la
+       resolución, y la licencia llega como el documento emitido de
+       cualquier trámite. */
+    licencia_municipal: {
+      ref: 'c10',
+      estados: ['lc_ev_enviado', 'lc_ev_en_revision', 'lc_ev_ante_el_ente', 'lc_ev_resuelto'],
+      /* Los rótulos de la casilla del gestor, que en la marca son otros. */
+      textos: {titulo: 'lc_g_titulo', importe: 'lc_g_importe', retiro: 'lc_g_retiro'},
+      /* El gestor ve las dos casillas de importe a la vez: los dos vencen
+         a medianoche y lo normal es subirlos el mismo día. */
+      importesJuntos: true,
+      etapas: [
+        {clave: 'licencia', pasos: [
+          {clave: 'revision',        tipo: 'estado',  rotulo: 'lc_p_revision',   hechoEn: ['en_revision', 'ante_el_ente']},
+          {clave: 'firma',           tipo: 'estado',  rotulo: 'lc_p_firma',      hechoEn: ['ante_el_ente'],
+           espera: 'lc_n_firma'},
+          {clave: 'importe_tasa',    tipo: 'importe', rotulo: 'lc_p_imp_tasa',   importe: 'tasa'},
+          {clave: 'importe_timbre',  tipo: 'importe', rotulo: 'lc_p_imp_timbre', importe: 'timbre'},
+          {clave: 'pagos',           tipo: 'pagos',   rotulo: 'lc_p_pagos',      importes: ['tasa', 'timbre'],
+           espera: 'lc_n_pagos'},
+          {clave: 'licencia',        tipo: 'retiro',  rotulo: 'lc_p_licencia',
+           espera: 'lc_n_licencia_espera', listo: 'lc_n_licencia_lista'}
+        ]}
+      ]
     }
   };
+
+  /* Los dos importes de la licencia, con la solicitud ante la alcaldía.
+     La fila de la base es una, la de siempre (supabase-licencia.sql). */
+  IMPORTE_DEL_DIA.licencia_municipal = [
+    {paso: 'tasa',   estados: ['ante_el_ente'], rotulo: 'lc_p_imp_tasa'},
+    {paso: 'timbre', estados: ['ante_el_ente'], rotulo: 'lc_p_imp_timbre'}
+  ];
 
   /* Los cuatro importes de la marca. Todos con la solicitud ante el ente:
      cuál toca lo dice la escalera, no el estado. La fila de la base es una,
@@ -7812,11 +7935,24 @@ applyLang(idiomaParaMi());
       et.pasos.forEach(function(p){
         if (p.solo && !P[p.solo]) return;
         var paso = {clave: p.clave, tipo: p.tipo, nombre: u[p.rotulo] || '', importe: p.importe || null,
+                    importes: p.importes || null, hechoEn: p.hechoEn || null,
                     papel: p.papel || null, espera: p.espera || null, listo: p.listo || null,
                     etapa: et.clave, cuando: P[p.clave] || null};
+        /* 'pagos': los comprobantes de varios importes en un solo paso -la
+           licencia, «Comprobante del pago» con sus dos casillas-. Hecho
+           cuando están todos; su fecha, la del último que llegó. */
+        if (p.tipo === 'pagos'){
+          var fechas = (p.importes || []).map(function(x){ return P['pago_' + x] || null; });
+          paso.cuando = fechas.every(Boolean) ? fechas.sort().slice(-1)[0] : null;
+        }
         paso.apuntado =
             p.tipo === 'revision' ? (tr.estado === 'ante_el_ente' || resuelta || algoApuntado)
+          /* 'estado': lo cierra el estado de la solicitud, en los que diga
+             hechoEn. Como la revisión, no vuelve atrás si ya hay algo
+             apuntado. */
+          : p.tipo === 'estado'   ? ((p.hechoEn || []).indexOf(tr.estado) >= 0 || resuelta || algoApuntado)
           : p.tipo === 'retiro'   ? resuelta
+          : p.tipo === 'pagos'    ? !!paso.cuando
           : !!P[p.clave];
         e.pasos.push(paso);
         todos.push(paso);
@@ -7837,7 +7973,11 @@ applyLang(idiomaParaMi());
       codigo: codigo, etapas: etapas, todos: todos, hechos: hechos, ahora: ahora,
       /* El importe que toca: el de la etapa cuyo importe o comprobante está
          en curso. Es lo que decide qué casilla ve el gestor. */
-      importeEnCurso: (ahora && (ahora.tipo === 'importe' || ahora.tipo === 'pago')) ? ahora.importe : null,
+      /* En un paso de varios comprobantes, el primero que falte. */
+      importeEnCurso: (ahora && (ahora.tipo === 'importe' || ahora.tipo === 'pago')) ? ahora.importe
+                    : (ahora && ahora.tipo === 'pagos')
+                      ? ((ahora.importes || []).filter(function(x){ return !P['pago_' + x]; })[0] || null)
+                    : null,
       contestacion: contestacion,
       anuncio: contestacion ? String((tr.datos || {}).anuncio || '') : '',
       anuncioEn: (tr.datos || {}).anuncio_en || P.contestacion || null,
@@ -7917,11 +8057,15 @@ applyLang(idiomaParaMi());
 
     E.etapas.forEach(function(et){
       if (!et.pasos.length) return;
-      var cab = el('li', 'tr-etapa');
-      cab.setAttribute('data-etapa', et.clave);
-      cab.appendChild(el('span', 'tr-etapa-n', String(u.mc_etapa || '').replace('{n}', et.n)));
-      cab.appendChild(el('span', 'tr-etapa-t', et.nombre));
-      lista.appendChild(cab);
+      /* Una etapa sin nombre -la licencia, que es una sola- no lleva
+         encabezado: «Etapa 1» encima de todo no diría nada. */
+      if (et.nombre){
+        var cab = el('li', 'tr-etapa');
+        cab.setAttribute('data-etapa', et.clave);
+        cab.appendChild(el('span', 'tr-etapa-n', String(u.mc_etapa || '').replace('{n}', et.n)));
+        cab.appendChild(el('span', 'tr-etapa-t', et.nombre));
+        lista.appendChild(cab);
+      }
 
       et.pasos.forEach(function(paso){
         var li = el('li', 'tr-paso ' + (paso.hecho ? 'hecho' : (paso.ahora ? 'ahora' : 'porhacer')));
@@ -7936,10 +8080,11 @@ applyLang(idiomaParaMi());
               if (paso.listo) txt.appendChild(el('div', 'tr-nota', u[paso.listo] || ''));
               abrePapel(paso, txt);
             } else if (paso.espera) txt.appendChild(el('div', 'tr-nota', u[paso.espera] || ''));
-          } else if (paso.tipo === 'ciip' && paso.ahora && paso.espera){
+          } else if ((paso.tipo === 'ciip' || paso.tipo === 'estado' || paso.tipo === 'pagos') &&
+                     paso.ahora && paso.espera){
             txt.appendChild(el('div', 'tr-nota', u[paso.espera] || ''));
           } else if (paso.tipo === 'retiro'){
-            txt.appendChild(el('div', 'tr-nota mc-retiro', u[paso.espera] || ''));
+            txt.appendChild(el('div', 'tr-nota mc-retiro', u[(paso.hecho && paso.listo) || paso.espera] || ''));
           }
           /* El importe y su comprobante, en el paso que está en curso de
              los dos. Al equipo no: lo sube desde su cola. */
@@ -7951,9 +8096,23 @@ applyLang(idiomaParaMi());
               if (repinta) repinta();
             }));
           }
+          /* Varios comprobantes en un paso: una caja por importe, cada una
+             con su nombre encima, que es lo que distingue el pago de la tasa
+             del pago del timbre. */
+          if (paso.tipo === 'pagos' && paso.ahora && !esEquipo){
+            (paso.importes || []).forEach(function(x){
+              var ent = importeDelPaso(E.codigo, x) || {paso: x};
+              var de = el('div', 'imp-de');
+              de.setAttribute('data-paso-importe', x);
+              de.appendChild(el('div', 'imp-de-t', (ent.rotulo && u[ent.rotulo]) || ''));
+              de.appendChild(cajaDelImporte(tr, ent, function(){ if (repinta) repinta(); }));
+              txt.appendChild(de);
+            });
+          }
         }
 
         var fechaP = paso.tipo === 'revision' ? cuando.ante_el_ente
+                   : paso.tipo === 'estado'   ? cuando[(paso.hechoEn || [])[0]]
                    : paso.tipo === 'retiro'   ? cuando.resuelto
                    : paso.cuando;
         if (paso.hecho && fechaP) txt.appendChild(el('div', 'sd-e', fecha(fechaP)));
@@ -7962,7 +8121,9 @@ applyLang(idiomaParaMi());
           /* Desde que se cerró el anterior. */
           var antes = E.todos[paso.n - 2];
           var desde = (tr.estado === 'devuelto') ? (cuando.devuelto || tr.actualizado_en)
-            : antes ? (antes.tipo === 'revision' ? cuando.ante_el_ente : antes.cuando)
+            : antes ? (antes.tipo === 'revision' ? cuando.ante_el_ente
+                     : antes.tipo === 'estado'   ? cuando[(antes.hechoEn || [])[0]]
+                     : antes.cuando)
             : (tr.enviado_en || tr.creado_en);
           if (desde) eti.appendChild(el('span', 'tr-desde',
             String(u.ns_desde_paso || '').replace('{cuando}', haceCuanto(desde))));
@@ -8009,14 +8170,16 @@ applyLang(idiomaParaMi());
       caja.textContent = '';
       var E = escaleraPorEtapas(t, t.tipo);
       var P = E.apuntados;
-      caja.appendChild(el('div', 'imp-g-t', u.mc_g_titulo || ''));
+      /* Los rótulos de cada escalera: la licencia no es la marca. */
+      var tx = def.textos || {};
+      caja.appendChild(el('div', 'imp-g-t', u[tx.titulo || 'mc_g_titulo'] || ''));
       var cur = E.ahora;
       var dice = el('div', 'imp-g-e', '');
       if (cur){
         var et = E.etapas.filter(function(x){ return x.clave === cur.etapa; })[0];
         caja.appendChild(el('div', 'mc-g-paso',
-          String(u.mc_etapa || '').replace('{n}', et ? et.n : '') + ' · ' + (et ? et.nombre : '') +
-          ' — ' + cur.n + '. ' + cur.nombre));
+          ((et && et.nombre) ? String(u.mc_etapa || '').replace('{n}', et.n) + ' · ' + et.nombre + ' — ' : '') +
+          cur.n + '. ' + cur.nombre));
         caja.setAttribute('data-paso', cur.clave);
       }
       caja.appendChild(dice);
@@ -8064,12 +8227,22 @@ applyLang(idiomaParaMi());
         mando.appendChild(inp);
         mando.appendChild(manda);
         caja.appendChild(mando);
-      } else if (cur && (cur.tipo === 'importe' || cur.tipo === 'pago')){
-        caja.appendChild(el('div', 'tr-nota', u.mc_g_importe || ''));
-        var imp = casillaDelImporte(t, idBase + 'imp-');
-        if (imp) caja.appendChild(imp);
+      } else if (cur && (cur.tipo === 'importe' || cur.tipo === 'pago' || cur.tipo === 'pagos')){
+        caja.appendChild(el('div', 'tr-nota', u[tx.importe || 'mc_g_importe'] || ''));
+        /* Con importesJuntos, una casilla por importe, todas a la vista: el
+           gestor sube la tasa y el timbre el mismo día sin esperar a que la
+           escalera pase del uno al otro. Sin él, la del importe que toca. */
+        if (def.importesJuntos){
+          entradasDelImporte(t.tipo).forEach(function(ent){
+            var impJ = casillaDelImporte(t, idBase + 'imp-' + ent.paso + '-', ent);
+            if (impJ) caja.appendChild(impJ);
+          });
+        } else {
+          var imp = casillaDelImporte(t, idBase + 'imp-');
+          if (imp) caja.appendChild(imp);
+        }
       } else if (cur && cur.tipo === 'retiro'){
-        caja.appendChild(el('div', 'tr-nota', u.mc_g_retiro || ''));
+        caja.appendChild(el('div', 'tr-nota', u[tx.retiro || 'mc_g_retiro'] || ''));
       }
 
       /* ── LA CONTESTACIÓN ──
@@ -8134,10 +8307,20 @@ applyLang(idiomaParaMi());
   function marcaCertificada(t){
     return !!pasosApuntados(t).certificado;
   }
+  /* Lo que le falta a una solicitud con escalera propia para poder
+     resolverse: la clave del aviso, o null si nada. Lo dice su 'exige' -la
+     marca, el certificado-; la licencia no exige ningún paso apuntado, lo
+     suyo son los dos comprobantes (comprobanteParaResolver). */
+  function faltaParaResolverEtapas(t){
+    var def = t && ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo];
+    if (!def || !def.exige) return null;
+    return pasosApuntados(t)[def.exige.paso] ? null : def.exige.aviso;
+  }
 
   window.CIIP_MARCA = {
     registro: ESCALERA_POR_ETAPAS, escalera: escaleraPorEtapas, pinta: pintaPorEtapas,
-    casilla: casillaDeLaMarca, certificada: marcaCertificada
+    casilla: casillaDeLaMarca, certificada: marcaCertificada, falta: faltaParaResolverEtapas,
+    comprobante: comprobanteParaResolver, faltaPago: faltaLaReserva
   };
 
   /* ─────────────────────────────────────────────────────────────────
@@ -8264,7 +8447,8 @@ applyLang(idiomaParaMi());
       /* La devuelta cuenta como recibida y no como borrador, que es lo
          mismo que hace la escalera de cuatro: «volvió al principio» deja
          el primer paso hecho y la espera en el segundo. */
-      var HASTA = {borrador:0, devuelto:1, enviado:1, en_revision:2, ante_el_ente:3};
+      var HASTA = (typeof PASOS_SEGUN_ESTADO !== 'undefined' && PASOS_SEGUN_ESTADO[ref]) ||
+                  {borrador:0, devuelto:1, enviado:1, en_revision:2, ante_el_ente:3};
       var n = lista.length;
       var hechos = (tr.estado === 'resuelto')
         ? n
@@ -13346,9 +13530,9 @@ applyLang(idiomaParaMi());
              retirar los originales, y eso no se le dice a nadie que todavía
              no tiene el certificado en la bóveda. La base dice lo mismo
              (tramites_marca_con_certificado, supabase-marca.sql). */
-          if (p.a === 'resuelto' && ESCALERA_POR_ETAPAS[t.tipo] && !marcaCertificada(t)){
+          if (p.a === 'resuelto' && faltaParaResolverEtapas(t)){
             f.classList.add('mal');
-            aviso.textContent = u.mc_g_faltacert || '';
+            aviso.textContent = u[faltaParaResolverEtapas(t)] || '';
             return;
           }
           /* Y un tramite sin el comprobante que la base le exige: no lo
@@ -13774,8 +13958,11 @@ applyLang(idiomaParaMi());
      inversionista lo espera. Pedirlo otra vez al resolver sería subirlo
      dos veces. */
   function pideEmitido(t){
+    /* La licencia (c10) sí lo pide: la licencia de actividades económicas
+       es su documento emitido, y llega al resolver como el de cualquiera. */
     return !t || (t.tipo !== 'constitucion' && t.tipo !== TIPO_PARAFISCALES &&
-                  !(ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo]));
+                  !(ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo] &&
+                    ESCALERA_POR_ETAPAS[t.tipo].sinEmitido));
   }
 
   /* QUÉ documento para pagar deja el equipo, y en qué trámite. Son tres, el
@@ -14841,8 +15028,8 @@ applyLang(idiomaParaMi());
     }
     /* Y la marca, sin su certificado enviado, tampoco: la misma regla que
        la ficha de la cola. */
-    if (ESCALERA_POR_ETAPAS[t.tipo] && !marcaCertificada(t)){
-      aviso.textContent = u.mc_g_faltacert || '';
+    if (faltaParaResolverEtapas(t)){
+      aviso.textContent = u[faltaParaResolverEtapas(t)] || '';
       return;
     }
     /* Lo mismo que la ventana de la cola: sin el comprobante que pide la
@@ -19512,7 +19699,7 @@ applyLang(idiomaParaMi());
   function esperaPor(ref){
     var t = (TIPOS || {})[ref];
     if (!t || !t.codigo) return null;
-    var pide = RECAUDOS[t.codigo] || [];
+    var pide = recaudosDe(t.codigo);
 
     for (var i = 0; i < pide.length; i++){
       var r = pide[i];
@@ -20207,7 +20394,7 @@ applyLang(idiomaParaMi());
      Y solo en las que no has empezado. En una solicitud ya enviada,
      «tienes los papeles» no informa de nada: los mandaste hace un mes. */
   function tieneLosPapeles(codigo){
-    var pide = RECAUDOS[codigo] || [];
+    var pide = recaudosDe(codigo);
     var hacenFalta = pide.filter(function(r){ return !r.opcional && !r.siCasilla; });
     /* Sin recaudos no hay nada que celebrar: la tarjeta no diria «los
        tienes», diria «no hacen falta», que es otra cosa y no se ha pedido. */
@@ -20411,6 +20598,25 @@ applyLang(idiomaParaMi());
      de Mis trámites y la ficha cuentan lo mismo. */
   var PASOS_QUE_MARCAS_TU = {c1:  {2: 'cancilleria_confirmada'},
                              c38: {2: 'cancilleria_confirmada'}};
+
+  /* ── CUÁNTOS PASOS VAN HECHOS EN CADA ESTADO, CUANDO NO EMPIEZAN POR
+     «RECIBIDA» ──
+     La cuenta de siempre de los pasos propios da el primero por hecho en
+     cuanto se envía, porque casi todos empiezan por «Solicitud recibida».
+     Los que empiezan por la REVISIÓN no: recibida o en revisión, la
+     revisión es lo que está en curso, no lo que ya pasó.
+
+     La conformidad de uso (c28), pedido del CIIP del 28-9-2026: «Revisión
+     de recaudos → Inscripción ante el ente → Emitida certificación de
+     conformidad de uso». Revisión mientras está en el CIIP, inscripción
+     mientras está ante la alcaldía, y la certificación al resolverse. */
+  var PASOS_SEGUN_ESTADO = {
+    c28: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    /* El permiso de bomberos (c29), el mismo día: «Revisión de recaudos →
+       Permiso otorgado». Ante los bomberos, el permiso es lo que está en
+       curso; resuelto, otorgado. */
+    c29: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1}
+  };
 
   /* ── UN TRÁMITE CON DOS ESCALERAS ──
      Franklin Reyes, 25-9-2026: «¿podemos trabajar mediante una pregunta de
@@ -21295,9 +21501,25 @@ applyLang(idiomaParaMi());
          mismo. */
       /* El IVSS y el INCES: usuario y contraseña en vez de código. */
       var conClave = ENTES_CON_CLAVE.indexOf(ente) >= 0;
+      /* ── LOS OTROS CUATRO, SIN CÓDIGO ──
+         Pedido del CIIP (28-9-2026): «Referente a las otras inscripciones,
+         eliminar "Coloque el código enviado", solamente quedará: El CIIP te
+         inscribe ante el ente → Inscripción lista».
+
+         Así que el BANAVIH, el Ministerio del Trabajo, la SUNDDE y el SNC
+         se quedan en DOS pasos: el CIIP los inscribe y, con la constancia
+         subida -o con «Marcar listo»-, la inscripción queda lista. Ni caja
+         del código para el inversionista ni revisión del código para el
+         gestor. El IVSS y el INCES siguen con sus cuatro, porque ellos sí
+         mandan usuario y contraseña.
+
+         Una fila vieja de uno de esos cuatro en 'inscrito' o en
+         'codigo_enviado' no se pierde: se lee como en marcha, el código que
+         hubiera mandado alguien se sigue viendo en el primer paso, y el
+         gestor la cierra con el mismo botón. */
       var ol = el('ol', 'tr-pasos pe-pasos');
       var pasos = (conClave ? ['pe_p0', 'pe_p1c', 'pe_p2c', 'pe_p3']
-                            : ['pe_p0', 'pe_p1', 'pe_p2', 'pe_p3']).map(function(clave, i){
+                            : ['pe_p0', 'pe_p3']).map(function(clave, i){
         var li = el('li', 'tr-paso porhacer');
         var punto = el('span', 'tr-punto', String(i + 1));
         var txt = el('div', 'tr-txt');
@@ -21310,7 +21532,8 @@ applyLang(idiomaParaMi());
 
       var dice = el('div', 'pe-dice');
       dice.hidden = true;
-      pasos[1].txt.appendChild(dice);
+      var ultimo = pasos[pasos.length - 1];
+      (conClave ? pasos[1] : pasos[0]).txt.appendChild(dice);
 
       /* La constancia que emitió el ente, para DESCARGARLA (Franklin
          Reyes, 25-9-2026: «falta una opción de que el inversionista pueda
@@ -21322,7 +21545,7 @@ applyLang(idiomaParaMi());
       var baja = el('button', 'btn navy pe-baja', u.pe_descargar || '');
       baja.type = 'button';
       baja.hidden = true;
-      pasos[3].txt.appendChild(baja);
+      ultimo.txt.appendChild(baja);
 
       /* Las tres cosas que se pueden hacer sobre un ente. Se montan todas y
          se enseñan según el estado: así el repintado es enseñar y esconder,
@@ -21360,7 +21583,7 @@ applyLang(idiomaParaMi());
           });
       }
 
-      if (modo === 'inversionista'){
+      if (modo === 'inversionista' && conClave){
         form = el('div', 'pe-form');
         form.hidden = true;
         var cod = document.createElement('input');
@@ -21459,15 +21682,19 @@ applyLang(idiomaParaMi());
         /* «Ya la inscribimos»: abre la caja del código de ESTE ente y de
            ninguno más. Es el botón que convierte las cinco filas en cinco
            tareas con principio y final. */
-        inscribe = el('button', 'btn ghost pe-inscribe', u.pe_inscribir || '');
-        inscribe.type = 'button';
-        inscribe.hidden = true;
-        inscribe.addEventListener('click', function(){
-          inscribe.disabled = true;
-          manda({tramite: tr.id, ente: ente, estado: 'inscrito'}, inscribe,
-                function(){ inscribe.textContent = u.error || ''; });
-        });
-        pasos[0].txt.appendChild(inscribe);
+        /* Solo el IVSS y el INCES: los otros cuatro no esperan nada del
+           inversionista, así que del primer paso se pasa a «lista». */
+        if (conClave){
+          inscribe = el('button', 'btn ghost pe-inscribe', u.pe_inscribir || '');
+          inscribe.type = 'button';
+          inscribe.hidden = true;
+          inscribe.addEventListener('click', function(){
+            inscribe.disabled = true;
+            manda({tramite: tr.id, ente: ente, estado: 'inscrito'}, inscribe,
+                  function(){ inscribe.textContent = u.error || ''; });
+          });
+          pasos[0].txt.appendChild(inscribe);
+        }
 
         listo = el('button', 'btn ghost pe-listo', u.pe_marcar || '');
         listo.type = 'button';
@@ -21477,7 +21704,7 @@ applyLang(idiomaParaMi());
           manda({tramite: tr.id, ente: ente, estado: 'listo'}, listo,
                 function(){ listo.textContent = u.error || ''; });
         });
-        pasos[2].txt.appendChild(listo);
+        (conClave ? pasos[2] : pasos[0]).txt.appendChild(listo);
 
         /* ── LA CONSTANCIA DE CADA ENTE, POR SEPARADO ──
            Franklin Reyes, 25-9-2026: «necesito que sean separados, porque
@@ -21530,18 +21757,27 @@ applyLang(idiomaParaMi());
               });
           });
           sube.appendChild(etiq); sube.appendChild(arch); sube.appendChild(msgS);
-          pasos[3].txt.appendChild(sube);
+          ultimo.txt.appendChild(sube);
         }
       }
 
       /* Cuántos pasos van hechos en cada estado. El que sigue al último
          hecho es el de «vas por aquí», salvo con la solicitud cerrada, que
          ya no espera nada. */
-      var HECHOS = {pendiente: 0, inscrito: 1, codigo_enviado: 2, listo: 4};
-      var CHIP = {pendiente:      ['mute', 'pe_pendiente'],
-                  inscrito:       ['info', conClave ? 'pe_esperandoc' : 'pe_esperando'],
-                  codigo_enviado: ['info', conClave ? 'pe_enviadoc' : 'pe_enviado'],
-                  listo:          ['good', 'pe_listo']};
+      /* Sin código, 'inscrito' y 'codigo_enviado' -filas de antes del
+         28-9-2026- cuentan como lo que son para el inversionista: la
+         inscripción sigue en marcha hasta que el CIIP la da por lista. */
+      var HECHOS = conClave ? {pendiente: 0, inscrito: 1, codigo_enviado: 2, listo: 4}
+                            : {pendiente: 0, inscrito: 0, codigo_enviado: 0, listo: 2};
+      var CHIP = conClave
+        ? {pendiente:      ['mute', 'pe_pendiente'],
+           inscrito:       ['info', 'pe_esperandoc'],
+           codigo_enviado: ['info', 'pe_enviadoc'],
+           listo:          ['good', 'pe_listo']}
+        : {pendiente:      ['mute', 'pe_pendiente'],
+           inscrito:       ['mute', 'pe_pendiente'],
+           codigo_enviado: ['mute', 'pe_pendiente'],
+           listo:          ['good', 'pe_listo']};
       function enciende(hechos){
         pasos.forEach(function(p, i){
           var hecho = i < hechos;
@@ -21586,7 +21822,7 @@ applyLang(idiomaParaMi());
         if (form) form.hidden = !(abierto && st === 'inscrito');
         if (otro) otro.hidden = !(abierto && st === 'codigo_enviado');
         if (inscribe) inscribe.hidden = (st !== 'pendiente');
-        if (listo) listo.hidden = (st !== 'codigo_enviado');
+        if (listo) listo.hidden = conClave ? (st !== 'codigo_enviado') : (st === 'listo');
         enciende(HECHOS[st]);
       }
       pon(null);
@@ -21682,6 +21918,12 @@ applyLang(idiomaParaMi());
        «Comprobante de pago», y la base no la deja resolver sin él
        (supabase-traduccion.sql). */
     if (t.tipo === 'apostilla_documentos') return {tipo: 'pago_importe_dia', aviso: 'co_faltatraduccion'};
+    /* La licencia de actividades económicas (28-9-2026): DOS comprobantes,
+       el de la tasa administrativa y el del timbre fiscal, cada uno atado a
+       su importe por su nombre. La base tampoco la deja resolver sin los
+       dos (supabase-licencia.sql). */
+    if (t.tipo === 'licencia_municipal')
+      return {tipo: 'pago_importe_dia', pasos: ['tasa', 'timbre'], aviso: 'co_faltalicencia'};
     return null;
   }
 
@@ -21692,13 +21934,23 @@ applyLang(idiomaParaMi());
   function faltaLaReserva(t){
     var pide = comprobanteParaResolver(t);
     if (!pide) return Promise.resolve(false);
+    /* Con 'pasos', uno de cada nombre y no rechazado. documentos(*): sin
+       supabase-importe-del-dia.sql no hay paso_importe, y pedirlo por su
+       nombre tumbaría la consulta; así solo no se encuentra, y se deja
+       pasar -la base decide-. */
     return Promise.resolve(
-      sb.from('tramite_documentos').select('documentos(tipo)').eq('tramite', t.id))
+      sb.from('tramite_documentos').select(pide.pasos ? 'documentos(*)' : 'documentos(tipo)').eq('tramite', t.id))
       .then(function(r){
         if (r && r.error) return false;
-        return !((r && r.data) || []).some(function(f){
-          return f.documentos && f.documentos.tipo === pide.tipo;
-        });
+        var docs = ((r && r.data) || []).map(function(f){ return f.documentos; })
+          .filter(function(d){ return d && d.tipo === pide.tipo; });
+        if (pide.pasos){
+          if (docs.length && !docs.some(function(d){ return 'paso_importe' in d; })) return false;
+          return !pide.pasos.every(function(x){
+            return docs.some(function(d){ return d.paso_importe === x && d.estado !== 'rechazado'; });
+          });
+        }
+        return !docs.length;
       })
       .catch(function(){ return false; });
   }
@@ -21986,6 +22238,10 @@ applyLang(idiomaParaMi());
          y ofrecía el cajón en «Subir documento» bajo ese nombre. Un cajón
          se llama cajón; lo que pide el SAREN tiene su propio tipo. */
       CLAVE_DE_TIPO.otro = 'd_otro';
+      /* El plano es el mismo papel en la conformidad de uso -«Plano interno
+         del local», como lo pide el SIGAT- y en bomberos y sanidad: en la
+         bóveda se llama con el nombre de todos, no con el de uno. */
+      CLAVE_DE_TIPO.plano_local = 'd_plano';
       Object.keys(RECAUDOS).forEach(function(t){
         (RECAUDOS[t] || []).forEach(function(r){
           if (r.tipo && r.clave && !CLAVE_DE_TIPO[r.tipo]) CLAVE_DE_TIPO[r.tipo] = r.clave;
