@@ -272,6 +272,8 @@
               hoyNoValeMira, hoyNoValeGuarda, hoyTrasNoVale, hoyTrasDevolver,
               hoyRespuestaMira, hoyTrasCerrar,
               /* QA-08: el papel rechazado y sustituido no deja atascado el trámite. */
+              /* QA-12: un devuelto que no vuelve, lo cancela el equipo con su motivo. */
+              hoyCancelaSiembra, hoyCancelaAbre, hoyCancelaPide, hoyCancelaMira,
               hoyReenvia, hoyReenviaAbre, hoyReenviaMira,
               hoyRestaura,
               empresaAbre, empresaMira, empresaNueva, empresaFichaAbre, empresaOfreceGuardada,
@@ -5997,6 +5999,9 @@
     var v = document.getElementById('paVisor');
     ok('hoy: lo que está ante el organismo pide lo que emitió',
        !v.hidden && !!document.getElementById('hoy-doc-h3'), v.hidden ? 'no se abrió' : 'abierto', 'con el archivo');
+    /* QA-10: ante el ente también se devuelve, que la escalera lo deja. */
+    ok('hoy: ante el ente también se puede devolver',
+       !!hoyBotonQueDice(v, 'Devolver'), hoyBotonQueDice(v, 'Devolver') ? 'con botón' : 'sin botón', 'Devolver');
     var res = hoyBotonQueDice(v, 'Resolver y entregar');
     if (res) res.click();
     igual('hoy: y no resuelve sin el documento',
@@ -6010,6 +6015,67 @@
     ok('hoy: Escape cierra el espacio', document.getElementById('paVisor').hidden, 'mira hidden', 'escondido');
     igual('hoy: y el foco vuelve a la tarjeta',
           document.activeElement && document.activeElement.getAttribute('data-tr'), 'h3');
+  }
+
+  /* ── EL DEVUELTO QUE NO VUELVE (QA-12) ──
+     Se quedaba en «Devueltos» para siempre: el equipo no podía cerrarlo
+     aunque la base lo deja. Ahora se cancela con un motivo, que viaja en
+     el evento como la nota de devolver, y con dos pulsaciones. */
+  function hoyCancelaSiembra(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    if (!window.CIIP_DOBLE.devuelveH1){
+      ok('hoy: el doble deja devolver h1', false, 'sin devuelveH1', 'con él');
+      return;
+    }
+    window.CIIP_DOBLE.devuelveH1();
+    window.CIIP_PINTA_PORATENDER();
+  }
+
+  function hoyCancelaAbre(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    esperaFilas('#paCifras button[data-monton="devueltos"]', 1, function(){
+      var m = document.querySelector('#paCifras button[data-monton="devueltos"]');
+      if (m) m.click();
+      esperaFilas('#paTandas .hoy-card[data-tr="h1"]', 1, function(){
+        var t = hoyTarjeta('h1');
+        ok('hoy: el devuelto sale en su montón', !!t, t ? 'está' : 'no está', 'está');
+        if (!t) return sigue();
+        t.click();
+        esperaFilas('#paVisor .visor-bs button', 1, sigue);
+      });
+    });
+  }
+
+  function hoyCancelaPide(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    var v = document.getElementById('paVisor');
+    var can = hoyBotonQueDice(v, 'Cancelar la solicitud');
+    ok('hoy: un devuelto suyo se puede cancelar', !!can, can ? 'con botón' : 'sin botón', 'Cancelar la solicitud');
+    if (!can) return;
+    /* Sin motivo, no. */
+    can.click();
+    igual('hoy: cancelar sin motivo no pasa, y lo dice',
+          (v.querySelector('.visor-fin .co-aviso') || {}).textContent, 'Escribe por qué la cancelas.');
+    var nota = document.getElementById('hoy-nota-h1');
+    if (nota){
+      nota.value = 'Lleva cuarenta días sin contestar.';
+      nota.dispatchEvent(new Event('input'));
+    }
+    can.click();
+    igual('hoy: y la primera pulsación pregunta', can.textContent.trim(), 'Sí, cancelarla: no se deshace');
+    can.click();
+  }
+
+  function hoyCancelaMira(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    igual('hoy: la segunda la cancela, con el motivo en su evento',
+          window.PRUEBA_NOTA ? window.PRUEBA_NOTA() : '(sin doble)', 'Lleva cuarenta días sin contestar.');
+    ok('hoy: y el aviso dice que le llega con el motivo',
+       /Cancelada\. .+ lo verá con tu motivo\./.test((document.getElementById('paToast') || {}).textContent || ''),
+       (document.getElementById('paToast') || {}).textContent, 'Cancelada. … lo verá con tu motivo.');
+    ok('hoy: y sale de la cola', !hoyTarjeta('h1'), hoyTarjeta('h1') ? 'sigue' : 'fuera', 'fuera');
+    var todos = document.querySelector('#paCifras button[data-monton="todos"]');
+    if (todos) todos.click();
   }
 
   /* ── EL RECHAZADO QUE YA SE CAMBIÓ (QA-08) ──

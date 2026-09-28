@@ -8446,8 +8446,23 @@ applyLang(idiomaParaMi());
     if (tr.estado === 'cancelado'){
       var cnl = el('div', 'sol-cancelada');
       cnl.appendChild(el('div', 'sv-t', u.can_titulo || ''));
-      cnl.appendChild(el('div', 'sd-e', u.can_dice || ''));
+      var dice = el('div', 'sd-e', u.can_dice || '');
+      cnl.appendChild(dice);
       caja.appendChild(cnl);
+      /* Y si la canceló el CIIP, se dice y se dice por qué (QA-12). La del
+         inversionista no lleva nota -cancela_tramite no la pide-, así que
+         una nota en el evento es la marca de que fue el equipo. Si la
+         consulta falla, se queda lo de siempre. */
+      Promise.resolve().then(function(){
+        return sb.from('tramite_eventos').select('nota, creado_en')
+          .eq('tramite', tr.id).eq('a_estado', 'cancelado')
+          .order('creado_en', {ascending:false}).limit(1);
+      }).then(function(r){
+        var ev = ((r && r.data) || [])[0];
+        if (!ev || !ev.nota) return;
+        dice.textContent = u.can_dice_ciip || '';
+        cnl.appendChild(el('div', 'sv-d', ev.nota));
+      }).catch(function(){});
       return;
     }
 
@@ -9618,7 +9633,7 @@ applyLang(idiomaParaMi());
     }
     return {
       t: nombreDeTarjeta(ev.ref),
-      q: textoDeEvento(ev.estado, ev.ente, ev.ref),
+      q: ev.estado === 'cancelado' ? (u.can_titulo || '') : textoDeEvento(ev.estado, ev.ente, ev.ref),
       nota: ev.nota || '',
       ir: function(){ avAMisTramites(ev.tramite); }
     };
@@ -9767,7 +9782,11 @@ applyLang(idiomaParaMi());
             .then(function(re){
               avisos = [];
               (re.data || []).forEach(function(ev){
-                if (AV_ORDEN.indexOf(ev.a_estado) < 0 && ev.a_estado !== 'devuelto') return;
+                /* Y la cancelación que hizo el CIIP, que es la única que lleva nota
+                   (QA-12): la persona tiene que enterarse de que su solicitud
+                   se cerró, y por qué. Solo a quien la pidió. */
+                var cancelada = ev.a_estado === 'cancelado' && !!ev.nota && !!loPedi[ev.tramite];
+                if (AV_ORDEN.indexOf(ev.a_estado) < 0 && ev.a_estado !== 'devuelto' && !cancelada) return;
                 var ref = refDe[ev.tramite];
                 if (!ref) return;      /* sin tarjeta no hay cómo nombrarlo */
                 avisos.push({
@@ -12664,10 +12683,28 @@ applyLang(idiomaParaMi());
   /* Qué se puede hacer desde cada estado. Enseñar los cuatro botones
      siempre invitaría a saltarse pasos: no se presenta ante el ente algo
      que nadie ha revisado. */
+  /* Ante el ente también se devuelve (QA-10): la escalera de la base lo
+     deja desde siempre -el organismo pide algo que falta- y el panel solo
+     ofrecía resolver, así que lo que el ente devolvía se quedaba ante el
+     ente sin salida. Con nota, como las otras dos devoluciones.
+
+     Lo que NO hay es un «denegado»: si el organismo dice que no, hoy se
+     devuelve con la nota que lo explica. Un estado propio para eso -con
+     su chip, su aviso y su sitio en la escalera- lo tiene que decidir el
+     CIIP, y no se inventa aquí.
+
+     Y un devuelto se cancela (QA-12): el que el inversionista abandona se
+     quedaba en el montón de devueltos para siempre, aunque la base deja
+     cancelarlo. Con motivo, que le llega al inversionista, y con dos
+     pulsaciones, que no se deshace. En enviado y en revisión la base
+     también lo deja, pero ahí lo que toca es devolver: cancelar lo que
+     alguien acaba de mandar sin preguntarle lo decide el CIIP, no un
+     botón. */
   var CO_PASOS = {
     enviado:      [{a:'devuelto', k:'co_devolver', nota:true}, {a:'en_revision', k:'co_revisar'}],
     en_revision:  [{a:'devuelto', k:'co_devolver', nota:true}, {a:'ante_el_ente', k:'co_presentar'}],
-    ante_el_ente: [{a:'resuelto', k:'co_resuelta'}]
+    ante_el_ente: [{a:'devuelto', k:'co_devolver', nota:true}, {a:'resuelto', k:'co_resuelta'}],
+    devuelto:     [{a:'cancelado', k:'co_cancelar', nota:true, seguro:'co_cancelar_seguro'}]
   };
 
   /* Los tres montones. 'sin' y 'mios' son los que hacen falta de verdad
@@ -12954,8 +12991,11 @@ applyLang(idiomaParaMi());
          la primera del arbol, que ya no es esta. */
       nota.className = 'co-nota-in';
       nota.rows = 2;
-      nota.placeholder = u.co_nota || '';
-      nota.setAttribute('aria-label', u.co_nota || '');
+      /* En un devuelto la nota es el motivo de cancelarlo: es lo único que se
+         hace desde ahí. */
+      var notaDe = (t.estado === 'devuelto') ? 'co_nota_cancelar' : 'co_nota';
+      nota.placeholder = u[notaDe] || '';
+      nota.setAttribute('aria-label', u[notaDe] || '');
       f.appendChild(nota);
 
       var aviso = el('div', 'co-aviso');
@@ -13038,8 +13078,17 @@ applyLang(idiomaParaMi());
              no explica nada: es el único paso que exige la nota. */
           if (p.nota && !(nota.value || '').trim()){
             f.classList.add('mal');
-            aviso.textContent = u.co_nota_falta || '';
+            aviso.textContent = (p.a === 'cancelado' ? u.co_nota_cancelar_falta : u.co_nota_falta) || '';
             nota.focus();
+            return;
+          }
+          /* Lo que no se deshace pide dos pulsaciones, como la cancelación
+             del inversionista: la primera cambia el botón por la pregunta. */
+          if (p.seguro && !b.getAttribute('data-seguro')){
+            b.setAttribute('data-seguro', '1');
+            b.textContent = u[p.seguro] || '';
+            f.classList.remove('mal');
+            aviso.textContent = '';
             return;
           }
           /* Y resolver SIN el documento deja al inversionista con un
@@ -13100,7 +13149,10 @@ applyLang(idiomaParaMi());
           f.classList.remove('mal');
           aviso.textContent = '';
           b.disabled = true;
-          var elArchivo = (archivo && archivo.files && archivo.files[0]) || null;
+          /* El documento emitido va SOLO con resolver: ante el ente también
+             se puede devolver (QA-10), y devolver con un archivo elegido lo
+             habría entregado como si el ente lo hubiera concedido. */
+          var elArchivo = (p.a === 'resuelto' && archivo && archivo.files && archivo.files[0]) || null;
           if (elArchivo){
             b.textContent = u.co_subiendo || '';
             entrega(t, elArchivo)
@@ -13699,9 +13751,9 @@ applyLang(idiomaParaMi());
      revisión», y ahí no hay ninguna promesa que romperle a nadie. */
   function laNotaFalto(t, aEstado){
     return function(bien){
-      if (bien !== 'sin-nota' || aEstado !== 'devuelto') return;
+      if (bien !== 'sin-nota' || (aEstado !== 'devuelto' && aEstado !== 'cancelado')) return;
       var u = T();
-      hoyAvisa(String(u.co_h_devuelto_sinnota || '')
+      hoyAvisa(String((aEstado === 'cancelado' ? u.co_h_cancelada_sinnota : u.co_h_devuelto_sinnota) || '')
         .replace('{quien}', t.nombre || u.co_sinnombre || ''));
     };
   }
@@ -14530,6 +14582,48 @@ applyLang(idiomaParaMi());
       });
   }
 
+  /* La caja de la nota del pie, la misma para devolver y para cancelar:
+     guarda lo escrito en hoyNotas y sobrevive a los repintados. */
+  function hoyNotaDe(t, clave){
+    var u = T();
+    var nota = el('textarea');
+    nota.id = 'hoy-nota-' + t.id;
+    nota.rows = 2;
+    nota.placeholder = u[clave] || '';
+    nota.setAttribute('aria-label', u[clave] || '');
+    nota.value = hoyNotas[t.id] || '';
+    nota.addEventListener('input', function(){ hoyNotas[t.id] = nota.value; });
+    return nota;
+  }
+
+  /* Cancelar un devuelto que no vuelve (QA-12). La nota va en el evento,
+     como la de devolver, y es lo que lee el inversionista en su trámite y
+     en la campana. Dos pulsaciones: un cancelado no se descancela. */
+  function hoyCancela(t, nota, boton, aviso){
+    var u = T(), texto = (nota.value || '').trim();
+    if (!texto){
+      aviso.textContent = u.co_nota_cancelar_falta || '';
+      nota.focus();
+      return;
+    }
+    if (!boton.getAttribute('data-seguro')){
+      boton.setAttribute('data-seguro', '1');
+      boton.textContent = u.co_cancelar_seguro || '';
+      aviso.textContent = '';
+      return;
+    }
+    var quien = t.nombre || u.co_sinnombre || '';
+    boton.disabled = true;
+    mueveTramite(t, 'cancelado', texto, boton, aviso, u.co_cancelar).then(function(bien){
+      if (!bien) return;
+      delete hoyNotas[t.id];
+      cierraVisor();
+      pintaHoy();
+      hoyAvisa(String((bien === 'sin-nota' ? u.co_h_cancelada_sinnota : u.co_h_cancelada) || '')
+        .replace('{quien}', quien));
+    });
+  }
+
   function hoyDevuelve(t, nota, boton, aviso){
     var u = T(), texto = (nota.value || '').trim();
     if (!texto){
@@ -15142,6 +15236,15 @@ applyLang(idiomaParaMi());
         }
         hoyResuelve(t, archivo, res, aviso, delActa && delActa.lee());
       });
+      /* Y devolver, que ante el ente también existe (QA-10): el organismo
+         pide algo que falta y el trámite vuelve al inversionista con la
+         nota. Va a la izquierda de resolver, como en revisión. */
+      var notaEnte = hoyNotaDe(t, 'co_nota');
+      fin.appendChild(notaEnte);
+      var devEnte = el('button', 'btn ghost', u.co_devolver || '');
+      devEnte.type = 'button';
+      devEnte.addEventListener('click', function(){ hoyDevuelve(t, notaEnte, devEnte, aviso); });
+      botones.appendChild(devEnte);
       botones.appendChild(res);
     } else if (mio && t.estado === 'devuelto'){
       /* Un devuelto ya no espera al CIIP: la pelota es del inversionista.
@@ -15158,6 +15261,14 @@ applyLang(idiomaParaMi());
       pista.textContent = String(u.co_h_p_devuelto || '')
         .replace('{quien}', t.nombre || u.co_sinnombre || '');
       fin.appendChild(pista);
+      /* Y si no vuelve, se cancela (QA-12), con el motivo que le llega al
+         inversionista y dos pulsaciones: la primera pregunta. */
+      var notaCan = hoyNotaDe(t, 'co_nota_cancelar');
+      fin.appendChild(notaCan);
+      var can = el('button', 'btn ghost', u.co_cancelar || '');
+      can.type = 'button';
+      can.addEventListener('click', function(){ hoyCancela(t, notaCan, can, aviso); });
+      botones.appendChild(can);
     } else if (mio && (t.estado === 'enviado' || t.estado === 'en_revision')){
       if (c && c.cargado){
         pista.textContent = String(c.cargado === 1 ? u.co_h_p_falta1 : u.co_h_p_faltan).replace('{n}', c.cargado);

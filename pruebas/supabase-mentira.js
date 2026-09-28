@@ -752,6 +752,16 @@
        y el trámite vuelve a estar en revisión, suyo. El rechazado sigue
        enganchado, como en la base de antes del arreglo: es justo lo que
        dejaba «Presentar» apagado para siempre. */
+    /* QA-12: h1 devuelta y suya, en el montón de devueltos, para que el
+       gestor la cancele. Cancelarla la saca de la cola, como a los demás
+       sembrados que salen del CIIP. */
+    devuelveH1: function(){
+      colaTram = colaTram.filter(function(t){ return t.id !== 'h1'; });
+      colaTram.push({id:'h1', inversionista:'u2', tipo:'rif_personal', estado:'devuelto', gestor:'u1',
+        sembrado:true, datos:{tipo_documento:'Pasaporte', numero_documento:'YA8812345'},
+        creado_en: new Date(Date.now() - 40 * 86400000).toISOString(),
+        enviado_en: new Date(Date.now() - 40 * 86400000).toISOString()});
+    },
     reenviaH1: function(){
       colaTram = colaTram.filter(function(t){ return t.id !== 'h1'; });
       colaTram.push({id:'h1', inversionista:'u2', tipo:'rif_personal', estado:'en_revision', gestor:'u1',
