@@ -26369,10 +26369,21 @@ applyLang(idiomaParaMi());
         });
         var porEstado = {};
         tr.forEach(function(x){ porEstado[x.estado] = (porEstado[x.estado] || 0) + 1; });
-        /* Por gestor, cuantos lleva y desde cuando espera el mas viejo de
-           los suyos: la misma cuenta que «lo que lleva mas esperando», pero
-           repartida. Es lo que dice a quien hay que quitarle carga. */
-        var porGestor = {}, viejoGestor = {};
+        /* Por gestor, TODO lo que lleva y, aparte, lo que espera respuesta
+           suya y desde cuando espera el mas viejo. Antes solo se contaba lo
+           que espera, y un tramite asignado que estaba ante el ente no salia
+           en ninguna parte (Franklin Reyes, 28-9-2026: «asigne un tramite a
+           milagros y no salio aqui»). Lo resuelto ya no se lleva.
+
+           «Sin asignar» cuenta solo lo que espera al CIIP: un borrador sin
+           dueño es del inversionista, y nadie tiene que tomarlo. */
+        var porGestor = {}, llevaGestor = {}, viejoGestor = {};
+        tr.forEach(function(x){
+          if (x.estado === 'resuelto') return;
+          var k = x.gestor || '';
+          if (!k && x.estado !== 'enviado' && x.estado !== 'en_revision') return;
+          llevaGestor[k] = (llevaGestor[k] || 0) + 1;
+        });
         esperando.forEach(function(x){
           var k = x.gestor || '';
           porGestor[k] = (porGestor[k] || 0) + 1;
@@ -26386,6 +26397,7 @@ applyLang(idiomaParaMi());
           masViejo: masViejo,
           porEstado: porEstado,
           porGestor: porGestor,
+          llevaGestor: llevaGestor,
           viejoGestor: viejoGestor,
           citas: 0,
           caducados: 0
@@ -26528,7 +26540,8 @@ applyLang(idiomaParaMi());
       filasE.appendChild(tr);
     });
 
-    var claves = Object.keys(pulso.porGestor);
+    var lleva = pulso.llevaGestor || pulso.porGestor;
+    var claves = Object.keys(lleva);
     if (!claves.length){
       cCol.appendChild(el('div', 'pu-vacio', u.pu_ninguno || ''));
       return;
@@ -26536,24 +26549,26 @@ applyLang(idiomaParaMi());
     /* Lo que no tiene dueño se reparte en «Tus solicitudes», que es donde
        esta el desplegable de asignar. */
     if (asignar && pulso.porGestor['']) asignar.hidden = false;
-    var filasG = unaTabla(cCol, [{t:u.pu_c_gestor}, {t:u.pu_c_encola, num:true},
-                                 {t:u.pu_c_espera, num:true}]);
+    var filasG = unaTabla(cCol, [{t:u.pu_c_gestor}, {t:u.pu_c_lleva, num:true},
+                                 {t:u.pu_c_encola, num:true}, {t:u.pu_c_espera, num:true}]);
     /* De mas cargado a menos, y «sin asignar» al final: es un monton, no
        una persona, y encabezar la lista de gestores con el confunde. */
     claves.sort(function(a, b){
       if (!a) return 1;
       if (!b) return -1;
-      return pulso.porGestor[b] - pulso.porGestor[a];
+      return lleva[b] - lleva[a];
     }).forEach(function(k){
       var rot = k ? ((typeof nombreDeGestor === 'function' ? nombreDeGestor(k) : '') || k)
                   : (u.pu_sinasig || '');
+      var espera = pulso.porGestor[k] || 0;
       var tr = el('tr');
       var nom = el('td', 'nombre');
       nom.title = rot;
       if (!k) nom.appendChild(el('span', 'pt'));
       nom.appendChild(document.createTextNode(rot));
       tr.appendChild(nom);
-      tr.appendChild(el('td', 'num', String(pulso.porGestor[k])));
+      tr.appendChild(el('td', 'num', String(lleva[k])));
+      tr.appendChild(el('td', 'num' + (espera ? '' : ' pct'), String(espera)));
       /* La espera, en horas como la tira de arriba, y en oxido a la semana:
          el mismo umbral que «lo que lleva mas esperando». */
       var viejo = pulso.viejoGestor ? pulso.viejoGestor[k] : undefined;
