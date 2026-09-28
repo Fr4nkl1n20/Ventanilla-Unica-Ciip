@@ -335,6 +335,7 @@
               marcaSiembra, marcaMira,
               conformidadMira,
               licenciaSiembra, licenciaMira,
+              importadorMira,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
                  cuentas a todo lo que cuenta tarjetas. */
@@ -639,8 +640,11 @@
        hay: ocho casillas y ocho que se pueden terminar.
 
        Y NUEVE desde el 23-9-2026: entra el SIDCAI (c39). Su segundo tramo
-       (c40) lleva data-tramo-de y no se cuenta, como la protocolización. */
-    igual('camino: la fase 03 cuenta sus 9',          deEtapa(2, '.jcount'), '0 de 9 listos');
+       (c40) lleva data-tramo-de y no se cuenta, como la protocolización.
+
+       Y OCHO desde el 28-9-2026: el CIIP quita el registro de importador y
+       exportador (c11), y su tarjeta deja el documento. */
+    igual('camino: la fase 03 cuenta sus 8',          deEtapa(2, '.jcount'), '0 de 8 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
        inversión extranjera tenía una etapa para él solo —y una etapa con una
        sola tarjeta dentro— y ahora comparte la 4 con el banco de activos y
@@ -966,8 +970,10 @@
              Y 32 desde el 23-9-2026: el SIDCAI (c39) y su segundo tramo
              (c40), que se esconde pero cuenta, por lo mismo.
              Y 30 desde el 24-9-2026, que el CIIP retira la homologacion de
-             licencia (c4) y el certificado medico (c21). */
-             pendS === 30, pendS + ' por iniciar de 31 ofrecidas', '30');
+             licencia (c4) y el certificado medico (c21).
+             Y 29 desde el 28-9-2026, que se va el registro de importador y
+             exportador (c11). */
+             pendS === 29, pendS + ' por iniciar de 30 ofrecidas', '29');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -981,9 +987,10 @@
              se va la del IVSS, y 34 con la visa de inversionista (c38),
              que se esconde pero se cuenta. Y 33 con el SIDCAI (c39) y su
              segundo tramo (c40), por lo mismo. Y 31 desde el 24-9-2026,
-             que se van la c4 y la c21. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 31,
-             pend + ' por iniciar de 31 ofrecidas', '31');
+             que se van la c4 y la c21. Y 30 desde el 28-9-2026, que se va
+             el c11. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 30,
+             pend + ' por iniciar de 30 ofrecidas', '30');
       }
 
       /* ── la cadena entre trámites ──
@@ -1392,8 +1399,10 @@
            El IVSS no: de ése se fue la tarjeta del documento. */
         /* Y TRECE desde el 23-9-2026: el SIDCAI (c39) y su segundo tramo
            (c40), que como el FAOV se esconde pero está. */
-        igual('grupo: la fase 03 se queda con trece tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 13);
+        /* Y DOCE desde el 28-9-2026: se va el registro de importador y
+           exportador (c11), y de verdad -la tarjeta deja el documento-. */
+        igual('grupo: la fase 03 se queda con doce tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 12);
         ok('grupo: y el título no es una tarjeta',
            !t.classList.contains('tcard') && !t.hasAttribute('data-tr'),
            t.className, 'sin ser tarjeta');
@@ -8231,6 +8240,22 @@
     LC_CAJAS.remove();
     LC_CAJAS = null;
     window.__IMPORTE_DOCS = null;
+  }
+
+  /* ═══════════ EL REGISTRO DE IMPORTADOR Y EXPORTADOR, FUERA ═══════════
+     Pedido del CIIP (28-9-2026): «Eliminar». Se va la tarjeta del c11;
+     una solicitud vieja de ese tipo se sigue llamando por su nombre. */
+  function importadorMira(){
+    if (PASE !== 'vacio' && PASE !== 'lleno') return;
+    ok('importador: el c11 ya no tiene tarjeta en el catálogo',
+       !document.querySelector('.tcard[data-tr="c11"]'),
+       document.querySelector('.tcard[data-tr="c11"]') ? 'está' : 'no está', 'no está');
+    ok('importador: ni sale en ninguna etapa',
+       ![].some.call(document.querySelectorAll('[data-tr]'), function(x){ return x.getAttribute('data-tr') === 'c11'; }),
+       'buscado en toda la página', 'ninguna');
+    var n = window.CIIP_NOMBRE_TRAMITE ? window.CIIP_NOMBRE_TRAMITE('c11') : '';
+    ok('importador: una solicitud vieja se sigue llamando por su nombre, no «c11»',
+       !!n && n !== 'c11', n || '(nada)', 'el nombre del diccionario');
   }
 
   function alDiaFreno(){

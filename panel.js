@@ -6988,8 +6988,16 @@ applyLang(idiomaParaMi());
      código a ref, la otra ref a nombre. */
   function nombreDeTarjeta(ref){
     var n = document.querySelector('.tcard[data-tr="' + ref + '"] .t-name');
-    return n ? n.textContent.trim() : ref;
+    if (n) return n.textContent.trim();
+    /* Sin tarjeta -un trámite que se fue del catálogo, como el registro de
+       importador y exportador (c11) el 28-9-2026- la solicitud vieja se
+       sigue llamando por su nombre, que sigue en el diccionario, y no
+       «c11». */
+    var D = (typeof I18N !== 'undefined') ? I18N : null;
+    var k = ref + '.name';
+    return (D && ((D[curLang] && D[curLang][k]) || (D.en && D.en[k]))) || ref;
   }
+  window.CIIP_NOMBRE_TRAMITE = nombreDeTarjeta;
 
   /* Quién está dentro. `usuario` lo pone la tarjeta de un trámite al
      abrirse, y hasta ahora eso bastaba porque solo se subía desde ahí. La

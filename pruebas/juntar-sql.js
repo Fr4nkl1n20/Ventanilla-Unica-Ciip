@@ -167,7 +167,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    nombre, los pasos que apunta la base y el freno para resolver sin los dos
    comprobantes. Va DETRÁS del importe del día y de la marca, de quien usa
    la guarda de los pasos apuntados. */
-'supabase-licencia'];
+'supabase-licencia',
+/* El registro de importador y exportador (c11) se apaga en el catálogo.
+   Va detrás de supabase-tramites, cuyas listas ya no lo encienden. */
+'supabase-quitar-importador'];
 
 let mal = 0;
 for (const n of orden) {
