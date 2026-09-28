@@ -6760,7 +6760,7 @@ applyLang(idiomaParaMi());
     }
 
     enviar.addEventListener('click', function(){
-      envia(tipo, borrador, enviar, aviso);
+      envia(tipo, borrador, enviar, aviso, function(tr){ borrador = tr; });
     });
   }
 
@@ -6794,7 +6794,7 @@ applyLang(idiomaParaMi());
      entró. Para eso existe el estado 'borrador': volver a intentarlo no
      empieza de cero.
      ───────────────────────────────────────────────────────────────── */
-  function envia(tipo, borrador, boton, aviso){
+  function envia(tipo, borrador, boton, aviso, alCrear){
     var u = T();
     aviso.textContent = ''; aviso.className = 'sol-aviso';
 
@@ -6901,7 +6901,16 @@ applyLang(idiomaParaMi());
     var conBorrador = borrador
       ? Promise.resolve(borrador)
       : sb.from('tramites').insert({inversionista: usuario.id, tipo: tipo.codigo, datos: datos})
-          .select().single().then(function(r){ if (r.error) throw r.error; return r.data; });
+          .select().single().then(function(r){
+            if (r.error) throw r.error;
+            /* Y se APUNTA en cuanto existe (QA-13). Si luego falla un papel,
+               el siguiente «Enviar» sigue con ESTE borrador en vez de crear
+               otro: cada reintento dejaba una solicitud a medias más en la
+               lista del inversionista. */
+            borrador = r.data;
+            if (alCrear) alCrear(r.data);
+            return r.data;
+          });
 
     conBorrador.then(function(tr){
       /* 3. subir lo que sea nuevo y engancharlo */
