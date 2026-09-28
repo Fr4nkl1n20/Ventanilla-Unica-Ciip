@@ -1408,6 +1408,16 @@ body.editando-textos .faq-item.ay-sin{display:block;}
 .ay-sitios{margin:0; padding:0 0 0 18px; display:grid; gap:5px;}
 .ay-sitios li{line-height:1.5;}
 .ay-pronto{color:var(--gray-soft);}
+/* El horario de atencion: una tarjeta como las preguntas, que no se pliega,
+   con el reloj donde las preguntas llevan el numero (con su propia clase:
+   la prueba de las cifras mide el texto de cada .qi, y el reloj no tiene). */
+.faq-item.ay-hor{display:flex; align-items:center; gap:11px; padding:14px 16px; margin-bottom:18px;}
+.ay-hor-ic{width:26px; height:26px; border-radius:7px; background:var(--block); color:var(--navy2);
+  display:flex; align-items:center; justify-content:center; flex:none;}
+.ay-hor-ic svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2;
+  stroke-linecap:round; stroke-linejoin:round;}
+.ay-hor-t{font-size:var(--fs-seccion); font-weight:700; color:var(--ink);}
+.ay-hor-h{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.5;}
 
 /* --- el banco de activos --- */
 .activos-vista{display:none;}

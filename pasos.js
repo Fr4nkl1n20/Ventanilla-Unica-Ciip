@@ -826,6 +826,8 @@ window.CIIP_PASOS = {
       ay_medicos:    "Certificados médicos",
       ay_medicos_lista: "",
       ay_pronto:     "Pronto publicaremos la lista.",
+      ay_hor_t:      "Horario de atención",
+      ay_hor:        "De 8:00 a. m. a 5:00 p. m., hora de Venezuela.",
       /* El pliego de tratamiento de datos. Se pide UNA vez por version, y
          la version vieja se puede releer despues: por eso hay textos de
          puerta y textos de vista.
@@ -2279,6 +2281,8 @@ window.CIIP_PASOS = {
       ay_medicos:    "Medical certificates",
       ay_medicos_lista: "",
       ay_pronto:     "We will publish the list soon.",
+      ay_hor_t:      "Opening hours",
+      ay_hor:        "From 8:00 a.m. to 5:00 p.m., Venezuela time.",
       /* The data processing terms. Asked ONCE per version; older versions
          stay readable afterwards, hence one set of texts for the gate and
          another for the view.
@@ -3617,6 +3621,8 @@ window.CIIP_PASOS = {
       ay_medicos:    "Certificados médicos",
       ay_medicos_lista: "",
       ay_pronto:     "Em breve publicaremos a lista.",
+      ay_hor_t:      "Horário de atendimento",
+      ay_hor:        "Das 8h00 às 17h00, hora da Venezuela.",
       pl_nav:      "Tratamento de dados",
       pl_titulo:   "Tratamento dos seus dados",
       pl_sub:      "Versão {n} · antes de entrar",
@@ -4940,6 +4946,8 @@ window.CIIP_PASOS = {
       ay_medicos:    "Certificati medici",
       ay_medicos_lista: "",
       ay_pronto:     "Pubblicheremo presto l'elenco.",
+      ay_hor_t:      "Orario di apertura",
+      ay_hor:        "Dalle 8:00 alle 17:00, ora del Venezuela.",
       pl_nav:      "Trattamento dei dati",
       pl_titulo:   "Trattamento dei tuoi dati",
       pl_sub:      "Versione {n} · prima di entrare",
@@ -6263,6 +6271,8 @@ window.CIIP_PASOS = {
       ay_medicos:    "医疗证明",
       ay_medicos_lista: "",
       ay_pronto:     "我们将很快公布名单。",
+      ay_hor_t:      "办公时间",
+      ay_hor:        "委内瑞拉时间上午 8:00 至下午 5:00。",
       pl_nav:      "数据处理",
       pl_titulo:   "您的数据处理方式",
       pl_sub:      "第 {n} 版 · 进入前请阅读",
@@ -7586,6 +7596,8 @@ window.CIIP_PASOS = {
       ay_medicos:    "Медицинские справки",
       ay_medicos_lista: "",
       ay_pronto:     "Скоро мы опубликуем список.",
+      ay_hor_t:      "Часы работы",
+      ay_hor:        "С 8:00 до 17:00 по времени Венесуэлы.",
       pl_nav:      "Обработка данных",
       pl_titulo:   "Обработка ваших данных",
       pl_sub:      "Версия {n} · перед входом",

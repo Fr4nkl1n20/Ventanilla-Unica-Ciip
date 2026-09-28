@@ -22494,6 +22494,27 @@ applyLang(idiomaParaMi());
     var D = window.CIIP_PASOS || {};
     var es = (D.ui && D.ui.es) || {};
 
+    /* 0 · el horario de atención, arriba del todo. Se cambia desde «Editar
+       textos», como el resto de la pantalla. */
+    var ayHor = document.getElementById('ayHorario');
+    if (ayHor){
+      ayHor.textContent = '';
+      var hor = el('div', 'faq-item ay-hor');
+      var ic = el('span', 'ay-hor-ic');
+      ic.setAttribute('aria-hidden', 'true');
+      ic.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+      hor.appendChild(ic);
+      var horTxt = el('div', 'ay-hor-txt');
+      var horT = el('div', 'ay-hor-t', u.ay_hor_t || es.ay_hor_t || '');
+      horT.setAttribute('data-ui', 'ay_hor_t');
+      var horH = el('div', 'ay-hor-h', u.ay_hor || es.ay_hor || '');
+      horH.setAttribute('data-ui', 'ay_hor');
+      horTxt.appendChild(horT);
+      horTxt.appendChild(horH);
+      hor.appendChild(horTxt);
+      ayHor.appendChild(hor);
+    }
+
     /* 1 · las preguntas nuevas, detrás de las siete. Las que ya tienen
        respuesta van primero y siguen la numeración; así el inversionista
        nunca ve un número saltado. Lo abierto sigue abierto al repintar. */
