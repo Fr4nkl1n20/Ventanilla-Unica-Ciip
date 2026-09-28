@@ -333,6 +333,7 @@
               alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno,
               importeSiembra, importeMira, traduccionMira,
               marcaSiembra, marcaMira,
+              conformidadMira,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
                  cuentas a todo lo que cuenta tarjetas. */
@@ -8061,6 +8062,46 @@
   /* EL FRENO. Cambiar de pestaña y volver es lo que más se hace en una
      oficina; sin esto, cada ida y vuelta son dos consultas. Se mide justo
      después de una puesta al día, que es cuando tiene que decir que no. */
+  /* ═══════════ LA CONFORMIDAD DE USO (c28) ═══════════
+     Pedido del CIIP (28-9-2026): los recaudos del SIGAT y la escalera
+     «Revisión de recaudos → Inscripción ante el ente → Emitida
+     certificación de conformidad de uso». La escalera se cuenta sin base;
+     el catálogo del doble no trae la c28 y se le pone solo para esto. */
+  function conformidadMira(){
+    if (PASE !== 'vacio') return;
+    var R = window.CIIP_RECAUDOS;
+    ok('conformidad: la lista de recaudos está a mano', !!R, R ? 'está' : 'no está', 'window.CIIP_RECAUDOS');
+    if (!R) return;
+    var tipos = R.de('conformidad_uso').map(function(r){ return r.tipo; });
+    ok('conformidad: pide lo del SIGAT además de lo de antes',
+       ['titulo_inmueble', 'acta_constitutiva', 'rif_empresa', 'cedula', 'cedula_catastral',
+        'permiso_construccion', 'plano_local', 'fotos_local'].every(function(t){ return tipos.indexOf(t) >= 0; }),
+       tipos.join(', '), 'título, acta, RIF, cédula, catastral, permiso de construcción, plano y fotos');
+    var nuevo = {tipo: 'fotos_local', siExiste: true};
+    igual('conformidad: un recaudo nuevo que la base aún no conoce no se pide',
+          R.vale(nuevo, {cedula: true, plano_local: false}), false);
+    igual('conformidad: y en cuanto la base lo conoce, sí', R.vale(nuevo, {fotos_local: false}), true);
+    igual('conformidad: sin la lista de la base, se pide como siempre', R.vale(nuevo, {}), true);
+
+    var cat = window.CIIP_TIPOS_POR_REF, puesto = false;
+    if (cat && !cat.c28){ cat.c28 = {codigo: 'conformidad_uso', ref_panel: 'c28', ente: 'Alcaldía', activo: true}; puesto = true; }
+    var dibujo = function(estado){
+      var E = window.CIIP_ESCALERA({estado: estado, datos: {}}, 'conformidad_uso', 'Alcaldía');
+      return E.todos.map(function(p){ return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(',');
+    };
+    var E0 = window.CIIP_ESCALERA({estado: 'enviado', datos: {}}, 'conformidad_uso', 'Alcaldía');
+    igual('conformidad: tres pasos, los del CIIP',
+          E0.todos.map(function(p){ return p.nombre; }).join(' → '),
+          'Revisión de recaudos → Inscripción ante el ente → Emitida certificación de conformidad de uso');
+    ok('conformidad: y ninguno habla de un PUB ni de la reserva del nombre',
+       !/PUB|reserva/i.test(E0.todos.map(function(p){ return p.nombre; }).join(' ')), 'sin PUB', 'sin PUB');
+    igual('conformidad: recibida, la revisión es la que está en curso', dibujo('enviado'), 'ahora,porhacer,porhacer');
+    igual('conformidad: en revisión, también', dibujo('en_revision'), 'ahora,porhacer,porhacer');
+    igual('conformidad: ante la alcaldía, la inscripción', dibujo('ante_el_ente'), 'hecho,ahora,porhacer');
+    igual('conformidad: resuelta, todo hecho', dibujo('resuelto'), 'hecho,hecho,hecho');
+    if (puesto) delete cat.c28;
+  }
+
   function alDiaFreno(){
     if (CASO !== 'vacio' || !window.CIIP_AL_DIA) return;
     igual('al día: y no se repite a cada ida y vuelta',

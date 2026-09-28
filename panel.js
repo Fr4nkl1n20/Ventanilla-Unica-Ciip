@@ -3185,11 +3185,27 @@ applyLang(idiomaParaMi());
        local. Es UNO solo aunque el título de propiedad y el contrato de
        arrendamiento sean papeles distintos —son alternativas, y cuál de
        las dos lo dice el campo `tenencia` del formulario. */
+    /* Y desde el 28-9-2026, lo que pide el SIGAT de la alcaldía (pedido del
+       CIIP, con la captura de su pantalla): la cédula catastral del
+       inmueble donde se realiza la actividad, el título o el documento de
+       arrendamiento -el de arriba, que ya estaba-, el permiso de
+       construcción o la conformidad ocupacional, el plano interno del
+       local y las fotografías internas y externas. Todos en PDF.
+
+       El plano es el mismo tipo que el de bomberos -plano_local-: es el
+       mismo papel del mismo local, y así el que ya lo subió para uno no lo
+       sube dos veces. Los otros tres son tipos nuevos (supabase-conformidad-
+       uso.sql), y por eso llevan siExiste: hasta que la base los conozca no
+       se piden. */
     conformidad_uso: [
       {tipo:'titulo_inmueble',   clave:'d_inmueble'},
       {tipo:'acta_constitutiva', clave:'d_acta'},
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
-      {tipo:'cedula',            clave:'d_identidad'}
+      {tipo:'cedula',            clave:'d_identidad'},
+      {tipo:'cedula_catastral',  clave:'d_catastral',    siExiste:true},
+      {tipo:'permiso_construccion', clave:'d_permconst', siExiste:true},
+      {tipo:'plano_local',       clave:'d_planointerno'},
+      {tipo:'fotos_local',       clave:'d_fotoslocal',   siExiste:true}
     ],
     /* Bomberos sí pide la conformidad de uso, y obligatoria: la inspección
        se hace sobre un local del que ya se sabe qué actividad va a
@@ -4604,7 +4620,7 @@ applyLang(idiomaParaMi());
      pinta. */
   function papelesQueRellenan(codigo){
     var claveDe = {};
-    (RECAUDOS[codigo] || []).forEach(function(r){ claveDe[r.tipo] = r.clave; });
+    recaudosDe(codigo).forEach(function(r){ claveDe[r.tipo] = r.clave; });
     var porDoc = {};
     (CAMPOS[codigo] || []).forEach(function(c){
       var de = LEE_DE[c.n];
@@ -4999,6 +5015,9 @@ applyLang(idiomaParaMi());
     var q;
     try { q = sb.from('documentos').select('tipo'); }
     catch(e){ MIOS = {}; return (miosPide = Promise.resolve()); }
+    /* Y de camino, qué tipos conoce la base: con eso se sabe si un
+       recaudo nuevo ya se puede pedir (recaudosDe). Se pide una vez. */
+    try { cargaVencen(); } catch(e){ /* sin lista, se pide todo */ }
     miosPide = Promise.resolve(q).then(function(r){
       var v = {};
       (((r && r.data) || [])).forEach(function(d){ v[d.tipo] = true; });
@@ -5121,7 +5140,7 @@ applyLang(idiomaParaMi());
     /* Los que dependen de una casilla del formulario no se enumeran en la
        ficha: la lee todo el mundo, y contarlos sería pedirle dos papeles de
        más a quien no tiene ningún accionista que sea una empresa. */
-    var recs = (RECAUDOS[tipo.codigo] || []).filter(function(r){ return !r.siCasilla; });
+    var recs = recaudosDe(tipo.codigo).filter(function(r){ return !r.siCasilla; });
     if (recs.length){
       var pedidos = recs.filter(function(r){ return !r.opcional; });
       var tengo = pedidos.filter(function(r){ return MIOS && MIOS[r.tipo]; }).length;
@@ -5185,7 +5204,7 @@ applyLang(idiomaParaMi());
 
        Sin recaudos son dos: una hoja vacia de papeles seria peor que no
        tenerla, igual que lo era la columna vacia de antes. */
-    var hayPapeles = (RECAUDOS[tipo.codigo] || []).length > 0;
+    var hayPapeles = recaudosDe(tipo.codigo).length > 0;
 
     var pa = el('div', 'pa');
     var barra = document.createElement('ol');
@@ -6341,7 +6360,7 @@ applyLang(idiomaParaMi());
       return fila;
     }
 
-    (RECAUDOS[tipo.codigo] || []).forEach(function(r){ montaDoc(r, lista); });
+    recaudosDe(tipo.codigo).forEach(function(r){ montaDoc(r, lista); });
     /* Y detras de ellos los de la junta, si los hay. */
     if (cajaJunta) lista.appendChild(cajaJunta);
     lado.appendChild(lista);
@@ -7051,6 +7070,26 @@ applyLang(idiomaParaMi());
     return vencenPide;
   }
   function caduca(tipo){ return !!(VENCEN && VENCEN[tipo]); }
+
+  /* ── UN RECAUDO NUEVO NO SE PIDE ANTES DE QUE LA BASE LO CONOZCA ──
+     Los recaudos con siExiste llevan un tipo de documento que nace con un
+     SQL propio (la conformidad de uso, 28-9-2026: cédula catastral,
+     permiso de construcción, fotografías del local). Hasta que ese SQL se
+     corra la base rechaza el papel -tipos_documento no lo tiene- y el
+     inversionista se quedaría sin poder enviar la solicitud entera por
+     uno que ni siquiera se puede subir. Así que, si la lista de tipos ya
+     llegó y no lo trae, no se pide. Sin la lista -todavía no contestó o
+     falló- se pide como siempre: la base es la que decide. */
+  function recaudoVale(r, conocidos){
+    var m = (conocidos === undefined) ? VENCEN : conocidos;
+    if (!r || !r.siExiste || !m) return true;
+    return !Object.keys(m).length || (r.tipo in m);
+  }
+  function recaudosDe(codigo){
+    return (RECAUDOS[codigo] || []).filter(function(r){ return recaudoVale(r); });
+  }
+  /* Para las pruebas: la lista que se pide, y la regla con otra base. */
+  window.CIIP_RECAUDOS = {de: recaudosDe, vale: recaudoVale};
 
   /* ── la huella del archivo ──
      El SHA-256 de lo que se sube. Sirve para dos cosas: el conector se lo
@@ -8191,7 +8230,8 @@ applyLang(idiomaParaMi());
       /* La devuelta cuenta como recibida y no como borrador, que es lo
          mismo que hace la escalera de cuatro: «volvió al principio» deja
          el primer paso hecho y la espera en el segundo. */
-      var HASTA = {borrador:0, devuelto:1, enviado:1, en_revision:2, ante_el_ente:3};
+      var HASTA = (typeof PASOS_SEGUN_ESTADO !== 'undefined' && PASOS_SEGUN_ESTADO[ref]) ||
+                  {borrador:0, devuelto:1, enviado:1, en_revision:2, ante_el_ente:3};
       var n = lista.length;
       var hechos = (tr.estado === 'resuelto')
         ? n
@@ -19070,7 +19110,7 @@ applyLang(idiomaParaMi());
   function esperaPor(ref){
     var t = (TIPOS || {})[ref];
     if (!t || !t.codigo) return null;
-    var pide = RECAUDOS[t.codigo] || [];
+    var pide = recaudosDe(t.codigo);
 
     for (var i = 0; i < pide.length; i++){
       var r = pide[i];
@@ -19765,7 +19805,7 @@ applyLang(idiomaParaMi());
      Y solo en las que no has empezado. En una solicitud ya enviada,
      «tienes los papeles» no informa de nada: los mandaste hace un mes. */
   function tieneLosPapeles(codigo){
-    var pide = RECAUDOS[codigo] || [];
+    var pide = recaudosDe(codigo);
     var hacenFalta = pide.filter(function(r){ return !r.opcional && !r.siCasilla; });
     /* Sin recaudos no hay nada que celebrar: la tarjeta no diria «los
        tienes», diria «no hacen falta», que es otra cosa y no se ha pedido. */
@@ -19969,6 +20009,21 @@ applyLang(idiomaParaMi());
      de Mis trámites y la ficha cuentan lo mismo. */
   var PASOS_QUE_MARCAS_TU = {c1:  {2: 'cancilleria_confirmada'},
                              c38: {2: 'cancilleria_confirmada'}};
+
+  /* ── CUÁNTOS PASOS VAN HECHOS EN CADA ESTADO, CUANDO NO EMPIEZAN POR
+     «RECIBIDA» ──
+     La cuenta de siempre de los pasos propios da el primero por hecho en
+     cuanto se envía, porque casi todos empiezan por «Solicitud recibida».
+     Los que empiezan por la REVISIÓN no: recibida o en revisión, la
+     revisión es lo que está en curso, no lo que ya pasó.
+
+     La conformidad de uso (c28), pedido del CIIP del 28-9-2026: «Revisión
+     de recaudos → Inscripción ante el ente → Emitida certificación de
+     conformidad de uso». Revisión mientras está en el CIIP, inscripción
+     mientras está ante la alcaldía, y la certificación al resolverse. */
+  var PASOS_SEGUN_ESTADO = {
+    c28: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1}
+  };
 
   /* ── UN TRÁMITE CON DOS ESCALERAS ──
      Franklin Reyes, 25-9-2026: «¿podemos trabajar mediante una pregunta de
@@ -21574,6 +21629,10 @@ applyLang(idiomaParaMi());
          y ofrecía el cajón en «Subir documento» bajo ese nombre. Un cajón
          se llama cajón; lo que pide el SAREN tiene su propio tipo. */
       CLAVE_DE_TIPO.otro = 'd_otro';
+      /* El plano es el mismo papel en la conformidad de uso -«Plano interno
+         del local», como lo pide el SIGAT- y en bomberos y sanidad: en la
+         bóveda se llama con el nombre de todos, no con el de uno. */
+      CLAVE_DE_TIPO.plano_local = 'd_plano';
       Object.keys(RECAUDOS).forEach(function(t){
         (RECAUDOS[t] || []).forEach(function(r){
           if (r.tipo && r.clave && !CLAVE_DE_TIPO[r.tipo]) CLAVE_DE_TIPO[r.tipo] = r.clave;

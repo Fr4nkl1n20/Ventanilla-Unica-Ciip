@@ -158,7 +158,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* Los registros parafiscales sin código: el inversionista solo escribe en
    las filas del IVSS y del INCES. Redefine dos políticas de
    supabase-entes-parafiscales, así que va detrás. */
-'supabase-entes-sin-codigo'];
+'supabase-entes-sin-codigo',
+/* La conformidad de uso (c28): los tres tipos de documento que pide el
+   SIGAT y el borrado de sus pasos viejos. Solo necesita el catálogo de
+   documentos y textos_panel. */
+'supabase-conformidad-uso'];
 
 let mal = 0;
 for (const n of orden) {
