@@ -191,6 +191,23 @@
      rojo por pasos que no tenian nada que ver. */
   var VIAJES_ARRANQUE = null;
 
+  /* Cuándo se puso al día el panel por última vez, sea por lo que sea. Lo
+     necesita alDiaVuelve: el panel se pone al día solo cada minuto, y si
+     ese minuto cae justo antes de la prueba, la guarda de veinte segundos
+     frena el «volver a la pestaña» y la prueba sale roja sin que nada esté
+     mal. Pasaba de verdad: añadir tres pasos a otra parte de la cadena
+     (QA-08) la movió segundo y medio y la dejó justo detrás del minuto.
+     Se sabe mirando la única función que el repaso llama siempre. */
+  var AL_DIA_ULTIMO = 0;
+  (function(){
+    var olvida = window.CIIP_OLVIDA_CATALOGO;
+    if (typeof olvida !== 'function') return;
+    window.CIIP_OLVIDA_CATALOGO = function(){
+      AL_DIA_ULTIMO = Date.now();
+      return olvida.apply(this, arguments);
+    };
+  })();
+
   cuandoConteste(function(){
     if (window.CIIP_VIAJES) VIAJES_ARRANQUE = window.CIIP_VIAJES.getUser;
     /* El pliego PRIMERO, y no es capricho de orden: mientras su puerta
@@ -7618,8 +7635,8 @@
           !!(cat0.c8 && cat0.c8.activo), false);
   }
 
-  function alDiaVuelve(){
-    if (CASO !== 'vacio') return;
+  function alDiaVuelve(sigue){
+    if (CASO !== 'vacio') return sigue();
     /* Ahora sí hay algo nuevo que traer: el doble lo estrena cuando se le
        pide, y no por su cuenta. */
     window.CIIP_MENTIRA_TARDIO = true;
@@ -7627,8 +7644,16 @@
        17-9-2026 esta vista se quedaba fuera y había que recargar la página
        para ver el paso que acababa de mover el CIIP. */
     document.body.setAttribute('data-vista', 'tramite');
-    /* Como cuando vuelves a la pestaña después de un rato. */
-    document.dispatchEvent(new Event('visibilitychange'));
+    /* «Después de un rato» de verdad: si el repaso de cada minuto acaba de
+       pasar, se espera a que la guarda de veinte segundos lo deje, como le
+       pasaría a quien vuelve a la pestaña. El siguiente minuto queda a
+       cuarenta segundos por lo menos. */
+    var espera = AL_DIA_ULTIMO ? Math.max(0, 20100 - (Date.now() - AL_DIA_ULTIMO)) : 0;
+    setTimeout(function(){
+      /* Como cuando vuelves a la pestaña después de un rato. */
+      document.dispatchEvent(new Event('visibilitychange'));
+      setTimeout(sigue, 500);
+    }, espera);
   }
 
   function alDiaDespues(){
