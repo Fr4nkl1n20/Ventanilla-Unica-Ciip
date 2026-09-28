@@ -463,6 +463,9 @@ window.CIIP_PASOS = {
          leer y escribir cabe otra pestana, una recarga o un doble clic.
          La comprobacion de verdad va justo antes de escribir. */
       sol_ya: "Ya tienes una solicitud de este trámite en marcha desde el {fecha}. No hace falta pedirla otra vez.",
+      /* QA-37: la base tiene su cerradura -tramites_una_viva- y cuando
+         salta, esto es lo que se lee en vez del error crudo. */
+      sol_ya_viva: "Ya tienes una solicitud de este trámite en marcha. Mírala en «Mis trámites»: no hace falta pedirla otra vez.",
       /* Cuando hay varias del mismo tramite. La tarjeta ensena UNA, y sin
          decir que hay mas, quien mueve otra en la cola cree que el panel
          no se actualizo. */
@@ -1850,6 +1853,7 @@ window.CIIP_PASOS = {
       nv_recarga: "Reload",
       nv_luego:   "Not now",
       sol_ya: "You already have a request for this procedure under way since {fecha}. There is no need to ask again.",
+      sol_ya_viva: "You already have a request for this procedure under way. See it in “My procedures”: there is no need to ask again.",
       /* --- The alerts tray, in the top bar --- */
       av_titulo:    "Your alerts",
       av_vacio:     "Nothing to tell you yet.",
@@ -3089,6 +3093,7 @@ window.CIIP_PASOS = {
       nv_recarga: "Recarregar",
       nv_luego:   "Agora não",
       sol_ya: "Já tem um pedido deste trâmite em curso desde {fecha}. Não é preciso pedi-lo outra vez.",
+      sol_ya_viva: "Já tem um pedido deste trâmite em curso. Veja-o em «Meus trâmites»: não é preciso pedi-lo outra vez.",
       /* --- A caixa de avisos, na barra de cima --- */
       av_titulo:    "Os seus avisos",
       av_vacio:     "Ainda não há nada para lhe contar.",
@@ -4313,6 +4318,7 @@ window.CIIP_PASOS = {
       nv_recarga: "Ricarica",
       nv_luego:   "Non ora",
       sol_ya: "Hai già una richiesta di questa pratica in corso dal {fecha}. Non serve richiederla.",
+      sol_ya_viva: "Hai già una richiesta di questa pratica in corso. La trovi in «Le mie pratiche»: non serve richiederla.",
       /* --- La casella degli avvisi, nella barra in alto --- */
       av_titulo:    "I tuoi avvisi",
       av_vacio:     "Non c'è ancora nulla da dirti.",
@@ -5537,6 +5543,7 @@ window.CIIP_PASOS = {
       nv_recarga: "重新载入",
       nv_luego:   "暂不",
       sol_ya: "自 {fecha} 起，您已有一份该业务的申请在办理中，无需重复提交。",
+      sol_ya_viva: "您已有一份该业务的申请在办理中，可在“我的手续”中查看，无需重复提交。",
       /* --- 顶部导航栏的提醒栏 --- */
       av_titulo:    "您的提醒",
       av_vacio:     "暂时没有新消息。",
@@ -6761,6 +6768,7 @@ window.CIIP_PASOS = {
       nv_recarga: "Обновить",
       nv_luego:   "Не сейчас",
       sol_ya: "У вас уже есть заявка по этой процедуре с {fecha}. Подавать её снова не нужно.",
+      sol_ya_viva: "У вас уже есть заявка по этой процедуре. Она в разделе «Мои процедуры»: подавать её снова не нужно.",
       /* --- Лента уведомлений в верхней панели --- */
       av_titulo:    "Ваши уведомления",
       av_vacio:     "Пока нечего сообщить.",

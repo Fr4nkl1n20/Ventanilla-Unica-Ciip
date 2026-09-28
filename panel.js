@@ -6815,10 +6815,13 @@ applyLang(idiomaParaMi());
        'devuelto' NO cuenta: una devuelta hay que volver a mandarla, que
        es justo lo que se le pide al inversionista.
 
-       Es una comprobación del panel, no una cerradura. La de verdad
-       sería un índice único en la base, y esa es otra decisión —hay
-       trámites que SÍ se piden dos veces, como una solvencia al año
-       siguiente—. Lo que esto quita es el duplicado por accidente. */
+       Es una comprobación del panel, no la cerradura. La cerradura
+       existe: el índice único tramites_una_viva (supabase-una-viva.sql),
+       una sola solicitud viva -enviada, en revisión o ante el ente- por
+       persona y trámite. Lo que se pide dos veces, como una solvencia al
+       año siguiente, cabe: la primera ya estará resuelta. Esto se adelanta
+       para decirlo con la fecha; si aun así la base salta -dos pestañas a
+       la vez-, el error se traduce abajo en vez de enseñarlo crudo (QA-37). */
     var VIVOS_YA = ['enviado', 'en_revision', 'ante_el_ente'];
 
     boton.disabled = true;
@@ -6956,7 +6959,13 @@ applyLang(idiomaParaMi());
       console.warn('[CIIP] enviar:', e && (e.message || e));
       boton.disabled = false;
       boton.textContent = u.enviar;
-      aviso.textContent = (e && e.ciip && u[e.ciip]) ? u[e.ciip]
+      /* La cerradura de la una-viva, con sus palabras y no las de
+         Postgres: «duplicate key value violates unique constraint» no le
+         dice a nadie que ya tiene esa solicitud en marcha. */
+      var yaViva = !!e && (e.code === '23505' ||
+                           /tramites_una_viva|duplicate key/i.test(e.message || ''));
+      aviso.textContent = yaViva ? (u.sol_ya_viva || u.error)
+                        : (e && e.ciip && u[e.ciip]) ? u[e.ciip]
                         : (e && e.message) ? (u.error + ' (' + e.message + ')') : u.error;
       aviso.className = 'sol-aviso err';
     });
