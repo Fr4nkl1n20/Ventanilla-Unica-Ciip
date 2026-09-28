@@ -2825,14 +2825,16 @@ body[data-vista="tramite"] #secTramites{display:none;}
    flex, asi que la regla sobraba. */
 .tr-cab-txt{flex:1 1 auto; min-width:0;}
 .tr-nombre{font-size:var(--fs-titulo); font-weight:700; line-height:1.22;letter-spacing:-.02em;}
-.tr-ente{font-size:11.5px; font-weight:700; color:var(--gray); margin-top:6px;}
-/* El organismo, en gris y un punto mas grande que en la tarjeta: debajo
-   del nombre tiene que leerse como segunda linea, no como nota. */
-.tr-ente .t-ente{font-size:13px; color:var(--gray); margin-top:0;}
-/* Lo que se clona de la tarjeta trae el tamaño de la tarjeta -14 px el
-   nombre, 11 la descripcion-. Dentro del recuadro manda el de la ficha. */
-.tr-nombre .t-name{font-size:var(--fs-titulo);}
-.tr-desc .t-desc{font-size:14px; color:var(--ink); margin-top:0;}
+.tr-ente{font-size:var(--fs-rotulo); font-weight:700; color:var(--gray); margin-top:6px;}
+/* Lo que se clona de la tarjeta trae la letra de la tarjeta. Dentro del
+   recuadro manda la escala de Atlas (TIPOGRAFIA.md) con el papel de cada
+   texto en la ficha: el nombre es titulo de pagina (20 / 700), el
+   organismo rotulo de un dato (11 / 700, gris) y la descripcion parrafo
+   (12.5 / 1.6). Estuvieron a 13 y 14 px, fuera de la escala, y la
+   descripcion se veia grande (Franklin Reyes, 28-9-2026). */
+.tr-nombre .t-name{font-size:var(--fs-titulo); font-weight:700; letter-spacing:-.02em; line-height:1.2;}
+.tr-ente .t-ente{font-size:var(--fs-rotulo); color:var(--gray); margin-top:0;}
+.tr-desc .t-desc{font-size:var(--fs-parrafo); line-height:1.6; color:var(--ink); margin-top:0;}
 .tr-desc{font-size:var(--fs-parrafo); color:var(--ink); line-height:1.6; max-width:68ch;}
 .tr-plazo{display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-nota);
   color:var(--gray); margin-top:11px;}
