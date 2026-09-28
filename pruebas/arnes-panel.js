@@ -7753,7 +7753,9 @@
     igual('ayuda: la de médicos, sin lista, dice que pronto la habrá',
           document.querySelectorAll('#ayLista [data-ui="ay_medicos_lista"] .ay-pronto').length, 1);
     var prov = document.querySelectorAll('#ayLista [data-ui="ay_firma_lista"] li');
-    igual('ayuda: la de firma trae los seis proveedores de SUSCERTE', prov.length, 6);
+    igual('ayuda: la de firma trae los tres proveedores elegidos',
+          [].map.call(prov, function(x){ return (x.querySelector('a') || x).textContent; }).join(' / '),
+          'Authenology / Soluciones Tecnológicas Apacuana, C.A. / PROCERT C.A.');
     var authe = [].filter.call(prov, function(x){ return /Authenology/.test(x.textContent); })[0];
     var aA = authe && authe.querySelector('a.ay-enlace');
     igual('ayuda: Authenology lleva directo a su página',
@@ -7774,8 +7776,8 @@
             '0 Lugar tres | javascript:alert(1)');
       TX.pon(lang, 'ay_firma_lista', null);
       repinta();
-      igual('ayuda: y al quitar lo escrito vuelven los seis proveedores',
-            document.querySelectorAll('#ayLista [data-ui="ay_firma_lista"] li').length, 6);
+      igual('ayuda: y al quitar lo escrito vuelven los tres proveedores',
+            document.querySelectorAll('#ayLista [data-ui="ay_firma_lista"] li').length, 3);
     }
 
     ok('ayuda: sin huecos del marcado a la vista',

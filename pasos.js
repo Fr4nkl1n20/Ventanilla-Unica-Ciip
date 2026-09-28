@@ -818,8 +818,8 @@ window.CIIP_PASOS = {
          textos». Mientras una respuesta esté vacía, su pregunta no se le
          enseña al inversionista; una lista vacía dice que se publicará
          pronto. En las listas va un lugar por renglón, y «Nombre | dirección»
-         lo vuelve un enlace. La de firma trae los seis proveedores que
-         SUSCERTE da por acreditados (suscerte.gob.ve, septiembre de 2026);
+         lo vuelve un enlace. La de firma trae los tres proveedores
+         acreditados por SUSCERTE que eligió el CIIP;
          los otros idiomas la toman de aquí, porque los nombres no se
          traducen. */
       ay_q_licencia: "¿Se pueden homologar licencias de conducir en Venezuela?",
@@ -829,12 +829,9 @@ window.CIIP_PASOS = {
       ay_sinresp:    "Sin respuesta todavía. Pulsa aquí para escribirla: hasta entonces el inversionista no ve esta pregunta.",
       ay_dil_t:      "Dónde puedes realizar las siguientes diligencias",
       ay_firma:      "Firma electrónica",
-      ay_firma_lista: "Apacuana (Soluciones Tecnológicas Apacuana) | https://www.apacuana.com\n" +
-                      "Authenology | https://app.authenology.com.ve\n" +
-                      "FirmeDigital | https://firmedigital.com\n" +
-                      "Fundación Instituto de Ingeniería (FIIIDT) | http://www.fii.gob.ve\n" +
-                      "PROCERT | https://www.procert.net.ve\n" +
-                      "Soluciones Financieras Chinchin | https://www.pagochinchin.com",
+      ay_firma_lista: "Authenology | https://app.authenology.com.ve\n" +
+                      "Soluciones Tecnológicas Apacuana, C.A. | https://www.apacuana.com\n" +
+                      "PROCERT C.A. | https://www.procert.net.ve",
       ay_medicos:    "Certificados médicos",
       ay_medicos_lista: "",
       ay_pronto:     "Pronto publicaremos la lista.",
