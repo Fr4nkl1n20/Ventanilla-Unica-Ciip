@@ -14804,6 +14804,37 @@ applyLang(idiomaParaMi());
     };
   }
 
+  /* ── ESCRIBIR UNAS CLAVES DE DATOS SIN PISAR LAS DEMÁS (QA-38) ──
+     El gestor mandaba datos ENTEROS: la copia que tenía la tarjeta, con
+     sus claves encima. Lo que el inversionista hubiera marcado entretanto
+     -el «ya me registré» de confirma_paso, por ejemplo- se perdía, porque
+     la copia era de antes.
+
+     Lo mezcla la base, con mezcla_datos_tramite() (supabase-qa-tramites
+     .sql), que lee y escribe en la misma sentencia. Sin esa función -una
+     base que aún no tiene el archivo corrido- se lee la fila justo antes
+     de escribirla: queda una ventana de milisegundos en vez de la de
+     toda la vida de la tarjeta. Devuelve los datos como quedaron. */
+  function mezclaDatos(t, cambios){
+    return Promise.resolve().then(function(){
+      return sb.rpc('mezcla_datos_tramite', {p_tramite: t.id, p_datos: cambios});
+    }).then(function(r){
+      var fila = r && (Array.isArray(r.data) ? r.data[0] : r.data);
+      if (r && !r.error && fila && fila.datos) return fila.datos;
+      return Promise.resolve(sb.from('tramites').select('datos').eq('id', t.id).single())
+        .then(function(rl){
+          if (rl && rl.error) throw rl.error;
+          var leidos = (rl && rl.data && !Array.isArray(rl.data) && rl.data.datos) || t.datos || {};
+          var juntos = Object.assign({}, leidos, cambios);
+          return Promise.resolve(sb.from('tramites').update({datos: juntos}).eq('id', t.id))
+            .then(function(ru){
+              if (ru && ru.error) throw ru.error;
+              return juntos;
+            });
+        });
+    });
+  }
+
   function hoyResuelve(t, archivo, boton, aviso, delActa){
     var u = T();
     var papel = archivo && archivo.files && archivo.files[0];
@@ -14856,13 +14887,8 @@ applyLang(idiomaParaMi());
        el tramo tiene que abrirse. Lo único que se pierde es que la
        publicación nazca rellena, que es una comodidad y no el trámite. */
     var guarda = (delActa && Object.keys(delActa).length)
-      ? Promise.resolve(sb.from('tramites')
-          .update({datos: Object.assign({}, t.datos || {}, delActa)})
-          .eq('id', t.id))
-          .then(function(r){
-            if (r && r.error) throw r.error;
-            t.datos = Object.assign({}, t.datos || {}, delActa);
-          })
+      ? mezclaDatos(t, delActa)
+          .then(function(datos){ t.datos = datos; })
           .catch(function(e){ console.warn('[CIIP] datos del acta:', e && e.message); })
       : Promise.resolve();
     guarda
