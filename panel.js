@@ -14987,6 +14987,19 @@ applyLang(idiomaParaMi());
       vacia.hidden = !nada;
       vacia.textContent = nada ? (u.co_tram_vacio || '') : '';
     }
+    /* Se llegó desde «Ver trámite» de un ente en Mis trámites: se abre la
+       ficha de esa solicitud en cuanto la cola la tiene, con sus papeles.
+       Si no está en la cola -ya resuelta, o fuera de lo que ve quien
+       entra-, se queda en «Por atender» sin abrir nada. */
+    var pideVisor = window.CIIP_VISOR_DE;
+    if (pideVisor && hoyDocs[pideVisor]){
+      window.CIIP_VISOR_DE = null;
+      abreVisor(pideVisor, visorSiguiente(pideVisor, -1));
+      return;
+    }
+    /* Con la cola ya cargada y sin ella dentro, la petición se olvida: si
+       no, abriría el visor de golpe el día que esa solicitud volviera. */
+    if (pideVisor && Object.keys(hoyDocs).length) window.CIIP_VISOR_DE = null;
     if (visor) pintaVisor();
   }
 
@@ -19010,10 +19023,10 @@ applyLang(idiomaParaMi());
         tdE.colSpan = mtColumnas().length;
         tdE.appendChild(el('div', 'mt-entes-h', u.pe_titulo || ''));
         var esEq = !!(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO());
-        /* Al inversionista, recogida: aquí solo el estado, la constancia y
-           el camino a la solicitud. El equipo inscribe desde esta tabla, y
-           a él se le deja entera. */
-        tdE.appendChild(listaDeEntes(t, esEq ? 'equipo' : 'inversionista', null, !esEq));
+        /* Recogida para todos: aquí solo el nombre, el estado y el camino
+           a la solicitud -la del inversionista, o su ficha en la cola para
+           el equipo-. Se trabaja allí, no en esta tabla. */
+        tdE.appendChild(listaDeEntes(t, esEq ? 'equipo' : 'inversionista', null, true));
         trE.appendChild(tdE);
         cuerpo.appendChild(trE);
       }
@@ -22115,13 +22128,25 @@ applyLang(idiomaParaMi());
          los pasos se esconden, la descarga sube bajo el nombre y «Ver
          trámite» abre la solicitud de parafiscales en la tarjeta de ESTE
          ente, con sus pasos a la vista. Es también donde se escribe el
-         usuario y la contraseña cuando toca. */
+         usuario y la contraseña cuando toca.
+
+         Al EQUIPO, igual en la tabla (Franklin Reyes, 29-9-2026, por
+         ciipven-60: «ocupan mucho espacio dentro del cuadro», para el
+         administrador y el gestor). Su «Ver trámite» abre la ficha de la
+         solicitud en la cola -el visor-, que es donde se inscribe, se marca
+         listo y se sube la constancia. */
       if (recogida){
         var pie = el('div', 'pe-pie');
         var verTr = el('button', 'pe-vertr', u.pe_vertramite || '');
         verTr.type = 'button';
         ol.hidden = true;
         verTr.addEventListener('click', function(){
+          if (modo === 'equipo'){
+            /* Lo recoge pintaHoy cuando la cola ya tiene sus papeles. */
+            window.CIIP_VISOR_DE = tr.id;
+            location.hash = 'poratender';
+            return;
+          }
           var ref = tipoRefDe(tr.tipo);
           if (!ref) return;
           /* La solicitud de la fila y no otra del mismo tipo, y el ente al
