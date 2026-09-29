@@ -3416,6 +3416,11 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .imp-g-e.bien{color:var(--good); font-weight:600;}
 .imp-g-mando{display:flex; flex-direction:column; gap:5px;}
 .imp-g-mando[hidden]{display:none;}
+/* El archivo se elige con un enlace (.pe-subir), no con el botón gris del
+   navegador, y el nombre elegido sale debajo (Franklin Reyes, 29-9-2026). */
+.imp-g-mando .imp-g-elige{align-self:flex-start;}
+.imp-g-nombre{font-size:var(--fs-nota); color:var(--gray); overflow-wrap:anywhere;}
+.imp-g-nombre:empty{display:none;}
 .imp-g-monto{font:inherit; font-size:var(--fs-campo); color:var(--ink); padding:6px 8px;
   border:1px solid var(--line); border-radius:7px; background:var(--hoja); max-width:220px;}
 .imp-g-subir{align-self:flex-start;}

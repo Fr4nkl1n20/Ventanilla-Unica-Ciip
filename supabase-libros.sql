@@ -141,3 +141,63 @@ create trigger tramites_libros_pago
 --   select tgname from pg_trigger
 --    where tgname in ('tramite_documentos_libros_apunta', 'documentos_libros_pago_rechazado',
 --                     'tramites_libros_pago');                              -- tres filas
+
+-- ── El PUB no caduca (29-9-2026) ──
+-- «Nosotros somos los que enviamos el PUB y él nos reenvía el comprobante,
+-- como en constitución de empresa»: el PUB del SAREN no vence a medianoche
+-- como el importe del día. Una columna en importe_del_dia_pasos lo dice por
+-- trámite, y importe_del_dia_vigente la mira: con ella, vale el último
+-- importe colgado aunque sea de otro día. Los demás trámites, igual.
+alter table public.importe_del_dia_pasos
+  add column if not exists sin_caducidad boolean not null default false;
+
+update public.importe_del_dia_pasos set sin_caducidad = true
+ where tipo_tramite = 'libros_contables';
+
+create or replace function public.importe_del_dia_vigente(p_tramite uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+      from public.tramite_documentos td
+      join public.documentos d on d.id = td.documento
+      join public.tramites t   on t.id = td.tramite
+     where td.tramite = p_tramite
+       and d.tipo = 'importe_dia'
+       and d.estado = 'validado'
+       and d.inversionista = t.inversionista
+       and ((d.creado_en at time zone 'America/Caracas')::date = public.hoy_en_caracas()
+            or exists (select 1 from public.importe_del_dia_pasos p
+                        where p.tipo_tramite = t.tipo and p.sin_caducidad))
+  )
+$$;
+
+create or replace function public.importe_del_dia_vigente(p_tramite uuid, p_paso text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+      from public.tramite_documentos td
+      join public.documentos d on d.id = td.documento
+      join public.tramites t   on t.id = td.tramite
+     where td.tramite = p_tramite
+       and d.tipo = 'importe_dia'
+       and d.estado = 'validado'
+       and d.inversionista = t.inversionista
+       and d.paso_importe is not distinct from p_paso
+       and ((d.creado_en at time zone 'America/Caracas')::date = public.hoy_en_caracas()
+            or exists (select 1 from public.importe_del_dia_pasos p
+                        where p.tipo_tramite = t.tipo and p.sin_caducidad))
+  )
+$$;
+
+-- COMPROBACIÓN
+--   select tipo_tramite, sin_caducidad from public.importe_del_dia_pasos;   -- libros_contables: true

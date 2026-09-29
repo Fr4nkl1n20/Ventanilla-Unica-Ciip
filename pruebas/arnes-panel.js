@@ -9124,6 +9124,18 @@
           dibujo(escL('ante_el_ente', {importe_pub: yaL, pago_pub: yaL})), 'hecho,hecho,hecho,hecho,hecho,ahora');
     igual('libros: resuelta, sellados', dibujo(escL('resuelto')), 'hecho,hecho,hecho,hecho,hecho,hecho');
     var pideL = window.CIIP_MARCA && window.CIIP_MARCA.comprobante({id: 'sl-y', tipo: 'libros_contables', estado: 'ante_el_ente', datos: {}});
+    /* El PUB no caduca (29-9-2026): uno de ayer sigue valiendo, y se dice
+       como PUB y no como «importe de hoy». */
+    var I = window.CIIP_IMPORTE;
+    if (I){
+      var ayer = new Date(Date.now() - 30 * 3600000).toISOString();
+      var impAyer = [{tipo: 'importe_dia', creado_en: ayer, estado: 'validado', paso_importe: 'pub'}];
+      igual('libros: un PUB de ayer sigue valiendo', I.estado(impAyer, null, true).fase, 'vigente');
+      igual('libros: y un importe normal de ayer, vencido', I.estado(impAyer).fase, 'vencido');
+      var entL = (I.registro.libros_contables || [])[0] || {};
+      igual('libros: la casilla del equipo dice «Enviar el PUB al inversionista»',
+            window.CIIP_T()[(entL.textos || {}).imp_g_subir], 'Enviar el PUB al inversionista');
+    }
     igual('libros: para resolver pide el comprobante del PUB',
           pideL ? pideL.tipo + ' · ' + (pideL.pasos || []).join('+') : '(nada)', 'pago_importe_dia · pub');
     var MM = window.CIIP_MARCA;

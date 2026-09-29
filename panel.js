@@ -7677,7 +7677,9 @@ applyLang(idiomaParaMi());
        espera    no ha llegado ninguno
 
      'ahora' se puede pasar para probarlo con otra fecha. */
-  function estadoDelImporte(filas, ahora){
+  /* sinVencer: el importe no caduca a medianoche -el PUB del sellado de
+     libros, 29-9-2026-; colgado, vale hasta que se paga. */
+  function estadoDelImporte(filas, ahora, sinVencer){
     var hoy = fechaEnCaracas(ahora || new Date());
     var importes = [], pagos = [];
     (filas || []).forEach(function(d){
@@ -7693,9 +7695,19 @@ applyLang(idiomaParaMi());
     var importe = importes[0] || null, pago = pagos[0] || null;
     var delImporte = importe ? fechaEnCaracas(importe.creado_en) : '';
     return {
-      fase: pago ? 'pagado' : !importe ? 'espera' : (delImporte === hoy ? 'vigente' : 'vencido'),
+      fase: pago ? 'pagado' : !importe ? 'espera'
+          : (sinVencer || delImporte === hoy) ? 'vigente' : 'vencido',
       hoy: hoy, importe: importe, pago: pago, fechaImporte: delImporte
     };
+  }
+
+  /* El texto de un importe: el que traiga su entrada en IMPORTE_DEL_DIA
+     (textos: {imp_titulo: 'sl_i_titulo', …}) o el de siempre. El PUB del
+     sellado de libros no es «el importe de hoy» (29-9-2026). */
+  function textoDelImporte(ent, clave){
+    var u = T();
+    var suya = ent && ent.textos && ent.textos[clave];
+    return (suya && u[suya]) || u[clave] || '';
   }
 
   /* Los papeles del importe de una solicitud. documentos(*) y no una lista
@@ -7726,7 +7738,8 @@ applyLang(idiomaParaMi());
     var mira = function(){
       importesDe(tr.id)
         .then(function(filas){
-          pintaImporte(cuerpo, estadoDelImporte(papelesDelImporte(filas, nombre)), tr, mira, nombre, trasPagar);
+          pintaImporte(cuerpo, estadoDelImporte(papelesDelImporte(filas, nombre), null, !!(ent && ent.sinVencer)),
+                       tr, mira, nombre, trasPagar, ent);
         })
         .catch(function(e){ console.warn('[CIIP] importe del día:', e && (e.message || e)); });
     };
@@ -7734,16 +7747,17 @@ applyLang(idiomaParaMi());
     return caja;
   }
 
-  function pintaImporte(cuerpo, est, tr, mira, nombre, trasPagar){
+  function pintaImporte(cuerpo, est, tr, mira, nombre, trasPagar, ent){
     var u = T();
+    var tx = function(k){ return textoDelImporte(ent, k); };
     var cerrado = !!tr && tr.estado === 'resuelto';
     cuerpo.textContent = '';
     cuerpo.setAttribute('data-fase', est.fase);
-    cuerpo.appendChild(el('div', 'imp-t', u.imp_titulo || ''));
+    cuerpo.appendChild(el('div', 'imp-t', tx('imp_titulo')));
 
     if (est.fase === 'pagado'){
       cuerpo.appendChild(el('div', 'imp-bien',
-        String(u.imp_pagado || '').replace('{fecha}', fecha(est.pago.creado_en))));
+        String(tx('imp_pagado')).replace('{fecha}', fecha(est.pago.creado_en))));
       if (est.pago.nombre_original) cuerpo.appendChild(el('div', 'imp-n', est.pago.nombre_original));
       return;
     }
@@ -7753,7 +7767,7 @@ applyLang(idiomaParaMi());
       if (cerrado){ cuerpo.textContent = ''; return; }
       cuerpo.appendChild(el('div', 'imp-espera', est.fase === 'vencido'
         ? String(u.imp_vencido || '').replace('{fecha}', diaDelImporte(est.fechaImporte))
-        : (u.imp_espera || '')));
+        : tx('imp_espera')));
       return;
     }
 
@@ -7772,7 +7786,7 @@ applyLang(idiomaParaMi());
 
     /* El aviso va destacado y con la fecha escrita: «hoy» a secas no dice
        nada a quien abrió la pantalla anoche y la mira esta mañana. */
-    var aviso = el('div', 'imp-aviso', String(u.imp_aviso || '').replace('{fecha}', diaDelImporte(est.hoy)));
+    var aviso = el('div', 'imp-aviso', String(tx('imp_aviso')).replace('{fecha}', diaDelImporte(est.hoy)));
     aviso.setAttribute('role', 'status');
     cuerpo.appendChild(aviso);
 
@@ -7781,7 +7795,7 @@ applyLang(idiomaParaMi());
     inp.type = 'file';
     inp.accept = 'image/*,application/pdf';
     inp.hidden = true;
-    var btn = el('button', 'btn navy imp-cargar', u.imp_cargar || '');
+    var btn = el('button', 'btn navy imp-cargar', tx('imp_cargar'));
     btn.type = 'button';
     var dice = el('span', 'imp-e', '');
     btn.addEventListener('click', function(){ inp.click(); });
@@ -7791,7 +7805,7 @@ applyLang(idiomaParaMi());
       /* Si la página lleva abierta desde ayer, el importe que enseña ya
          venció: se vuelve a mirar en vez de subir contra él. La base lo
          rechazaría igual, pero dejando un papel suelto en la bóveda. */
-      if (fechaEnCaracas(new Date()) !== est.hoy){ if (mira) mira(); return; }
+      if (!(ent && ent.sinVencer) && fechaEnCaracas(new Date()) !== est.hoy){ if (mira) mira(); return; }
       btn.disabled = true;
       dice.textContent = u.enviando || '';
       /* Con nombre, el comprobante lo lleva: es lo que lo ata a SU importe
@@ -7834,13 +7848,14 @@ applyLang(idiomaParaMi());
     if (!ent) return null;
     var nombre = nombreDelImporte(ent);
     var u = T();
+    var tx = function(k){ return textoDelImporte(ent, k); };
     var caja = el('div', 'co-emitir imp-g');
     caja.setAttribute('data-importe', t.id);
     if (nombre) caja.setAttribute('data-paso-importe', nombre);
     /* Con varios importes, el título dice cuál: «Importe del día · Búsqueda
        de antecedentes». Subir el de la etapa equivocada sería cobrar dos
        veces lo mismo. */
-    caja.appendChild(el('div', 'imp-g-t', (u.imp_g_titulo || '') +
+    caja.appendChild(el('div', 'imp-g-t', tx('imp_g_titulo') +
       (ent.rotulo && u[ent.rotulo] ? ' · ' + u[ent.rotulo] : '')));
     var dice = el('div', 'imp-g-e', '');
     caja.appendChild(dice);
@@ -7850,18 +7865,31 @@ applyLang(idiomaParaMi());
     monto.className = 'imp-g-monto';
     monto.id = idBase + 'm-' + t.id;
     monto.maxLength = 60;
-    monto.placeholder = u.imp_g_monto || '';
-    monto.setAttribute('aria-label', u.imp_g_monto || '');
-    var etiq = el('label', null, u.imp_g_archivo || '');
-    etiq.setAttribute('for', idBase + t.id);
+    monto.placeholder = tx('imp_g_monto');
+    monto.setAttribute('aria-label', tx('imp_g_monto'));
+    /* El archivo, con un enlace y no con el botón gris del navegador
+       (Franklin Reyes, 29-9-2026: en Safari salía con otra letra), como
+       la constancia de los entes. El nombre elegido sale al lado. */
     var inp = document.createElement('input');
     inp.type = 'file';
     inp.id = idBase + t.id;
     inp.accept = '.pdf,.jpg,.jpeg,.png';
-    var btn = el('button', 'btn navy imp-g-subir', u.imp_g_subir || '');
+    inp.hidden = true;
+    inp.setAttribute('aria-label', tx('imp_g_archivo'));
+    var elige = el('button', 'pe-subir imp-g-elige');
+    elige.type = 'button';
+    elige.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>';
+    elige.appendChild(el('span', null, tx('imp_g_archivo')));
+    elige.addEventListener('click', function(){ inp.click(); });
+    var elegido = el('span', 'imp-g-nombre', '');
+    inp.addEventListener('change', function(){
+      elegido.textContent = (inp.files && inp.files[0]) ? inp.files[0].name : '';
+    });
+    var btn = el('button', 'btn navy imp-g-subir', tx('imp_g_subir'));
     btn.type = 'button';
     var mando = el('div', 'imp-g-mando');
-    mando.appendChild(etiq);
+    mando.appendChild(elige);
+    mando.appendChild(elegido);
     mando.appendChild(inp);
     mando.appendChild(monto);
     mando.appendChild(btn);
@@ -7869,27 +7897,27 @@ applyLang(idiomaParaMi());
 
     var mira = function(){
       importesDe(t.id).then(function(filas){
-        var e = estadoDelImporte(papelesDelImporte(filas, nombre));
+        var e = estadoDelImporte(papelesDelImporte(filas, nombre), null, !!ent.sinVencer);
         IMPORTE_HOY[t.id] = e.fase;
         caja.setAttribute('data-fase', e.fase);
         dice.className = 'imp-g-e' + (e.fase === 'vencido' || e.fase === 'espera' ? ' falta' : ' bien');
         dice.textContent =
-            e.fase === 'pagado'  ? String(u.imp_g_pagado || '').replace('{fecha}', fecha(e.pago.creado_en))
-          : e.fase === 'vigente' ? String(u.imp_g_hoy || '').replace('{nombre}', e.importe.nombre_original || '') +
+            e.fase === 'pagado'  ? String(tx('imp_g_pagado')).replace('{fecha}', fecha(e.pago.creado_en))
+          : e.fase === 'vigente' ? String(tx('imp_g_hoy')).replace('{nombre}', e.importe.nombre_original || '') +
                                    (e.importe.monto ? ' · ' + e.importe.monto : '')
           : e.fase === 'vencido' ? String(u.imp_g_vencido || '').replace('{fecha}', diaDelImporte(e.fechaImporte))
-          : (u.imp_g_falta || '');
+          : tx('imp_g_falta');
         /* Pagado no pide más importes: el pago ya es firme. */
         mando.hidden = (e.fase === 'pagado');
-        btn.textContent = (e.fase === 'vigente') ? (u.imp_g_reemplazar || '') : (u.imp_g_subir || '');
+        btn.textContent = (e.fase === 'vigente') ? tx('imp_g_reemplazar') : tx('imp_g_subir');
       }).catch(function(){});
     };
     btn.addEventListener('click', function(){
       var archivo = inp.files && inp.files[0];
       if (!archivo){
         dice.className = 'imp-g-e falta';
-        dice.textContent = u.imp_g_elige || '';
-        inp.focus();
+        dice.textContent = tx('imp_g_elige');
+        elige.focus();
         return;
       }
       var m = (monto.value || '').trim();
@@ -7903,6 +7931,7 @@ applyLang(idiomaParaMi());
           if (typeof PAPELES_DE !== 'undefined') PAPELES_DE[t.id] = null;
           btn.disabled = false;
           inp.value = '';
+          elegido.textContent = '';
           monto.value = '';
           mira();
           pintaAvisoDeImportes();
@@ -7929,7 +7958,12 @@ applyLang(idiomaParaMi());
     /* El nombre del importe que toca en cada una: se cuenta ése, no los
        de las otras etapas. */
     var nombreDe = {};
-    conImporte.forEach(function(t){ nombreDe[t.id] = nombreDelImporte(importeActivo(t)); });
+    var sinVencerDe = {};
+    conImporte.forEach(function(t){
+      var ent = importeActivo(t);
+      nombreDe[t.id] = nombreDelImporte(ent);
+      sinVencerDe[t.id] = !!(ent && ent.sinVencer);
+    });
     if (!ids.length){ IMPORTE_HOY = {}; return Promise.resolve(); }
     return Promise.resolve(sb.from('tramite_documentos').select('tramite, documentos(*)').in('tramite', ids))
       .then(function(r){
@@ -7940,7 +7974,7 @@ applyLang(idiomaParaMi());
           if (f.documentos && por[f.tramite]) por[f.tramite].push(f.documentos);
         });
         var nuevo = {};
-        ids.forEach(function(id){ nuevo[id] = estadoDelImporte(papelesDelImporte(por[id], nombreDe[id])).fase; });
+        ids.forEach(function(id){ nuevo[id] = estadoDelImporte(papelesDelImporte(por[id], nombreDe[id]), null, sinVencerDe[id]).fase; });
         IMPORTE_HOY = nuevo;
       })
       .catch(function(e){ console.warn('[CIIP] importes de la cola:', e && (e.message || e)); });
@@ -8208,8 +8242,18 @@ applyLang(idiomaParaMi());
 
   /* El PUB del sellado de libros, con la solicitud ante el SAREN. La fila
      de la base es una, la de siempre (supabase-libros.sql). */
+  /* Y el mismo día, a pedido de Franklin: «nosotros somos los que enviamos el
+     PUB y él nos reenvía el comprobante, como en constitución de empresa».
+     El PUB no caduca a medianoche (sinVencer; la base lo sabe por
+     importe_del_dia_pasos.sin_caducidad, supabase-libros.sql) y se dice
+     como lo que es: enviar el PUB, no «el importe de hoy». */
   IMPORTE_DEL_DIA.libros_contables = [
-    {paso: 'pub', estados: ['ante_el_ente'], rotulo: 'sl_p_pub'}
+    {paso: 'pub', estados: ['ante_el_ente'], rotulo: 'sl_p_pub', sinVencer: true,
+     textos: {imp_titulo: 'sl_i_titulo', imp_aviso: 'sl_i_aviso', imp_espera: 'sl_i_espera',
+              imp_pagado: 'sl_i_pagado', imp_cargar: 'imp_cargar',
+              imp_g_titulo: 'sl_ig_titulo', imp_g_archivo: 'sl_ig_archivo', imp_g_subir: 'sl_ig_subir',
+              imp_g_reemplazar: 'sl_ig_reemplazar', imp_g_elige: 'sl_ig_elige', imp_g_hoy: 'sl_ig_hoy',
+              imp_g_falta: 'sl_ig_falta', imp_g_pagado: 'imp_g_pagado'}}
   ];
 
   /* Los dos importes de la licencia, con la solicitud ante la alcaldía.
