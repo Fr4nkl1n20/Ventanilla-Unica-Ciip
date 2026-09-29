@@ -1012,13 +1012,52 @@ function applyLang(lang){
       return Promise.all(propios().map(function(ruta){
         return fetch(ruta, {method: 'HEAD', cache: 'no-store'})
           .then(function(r){
-            return r.headers.get('Last-Modified') || r.headers.get('ETag') || null;
+            /* EL ETAG PRIMERO, y la fecha solo si no hay (29-9-2026). En
+               Vercel el Last-Modified es la hora del DESPLIEGUE, igual para
+               todos los archivos: cualquier subida -un cambio en api/, un
+               SQL- lo movía y el aviso salía sin que el panel hubiera
+               cambiado. El ETag es la huella del contenido (el md5 del
+               archivo), así que solo cambia si cambia el archivo. El W/ se
+               quita porque comprimido llega débil y sin comprimir fuerte, y
+               es la misma huella. */
+            if (!r.ok) return null;
+            var e = r.headers.get('ETag');
+            if (e) return e.replace(/^W\//, '');
+            return r.headers.get('Last-Modified') || null;
           })
           .catch(function(){ return null; });
       })).then(function(sellos){
-        /* Si ninguno contesta con fecha, no hay nada que comparar. */
-        return sellos.some(function(x){ return !!x; }) ? sellos.join('|') : null;
+        /* Con UNO que no conteste no se compara nada. Antes se juntaban
+           igual, con un hueco donde faltaba, y un HEAD perdido por la red
+           -un corte de medio segundo en la oficina- daba una cadena
+           distinta: «hay una versión nueva» sin haberla. Se vuelve a mirar
+           en la vuelta siguiente. */
+        return sellos.every(function(x){ return !!x; }) ? sellos : null;
       });
+    }
+
+    /* LA VERSIÓN QUE CORRE, Y NO LA QUE HABÍA EN EL SERVIDOR AL ARRANCAR
+       (29-9-2026). La primera medida se tomaba preguntando al servidor, y
+       eso da por hecho que lo que se ejecuta es lo que hay allí. No siempre:
+       al volver con «atrás», al restaurar las pestañas al abrir Chrome, o si
+       un despliegue cae entre el HTML y panel.js, el navegador ejecuta la
+       copia que tenía guardada sin preguntar. El panel arrancaba viejo, se
+       apuntaba la huella NUEVA como suya y el aviso no salía nunca: la única
+       salida era Ctrl+F5, y sin saber que hacía falta.
+
+       Ahora la huella de partida es la de la copia guardada, que es la que
+       se ejecutó: only-if-cached no sale a la red. Archivo por archivo, y el
+       que no esté guardado toma la del servidor, que es lo de antes. */
+    function selloGuardado(){
+      return Promise.all(propios().map(function(ruta){
+        return fetch(ruta, {cache: 'only-if-cached', mode: 'same-origin'})
+          .then(function(r){
+            try { if (r.body && r.body.cancel) r.body.cancel(); } catch (x){}
+            var e = r.ok ? r.headers.get('ETag') : null;
+            return e ? e.replace(/^W\//, '') : null;
+          })
+          .catch(function(){ return null; });
+      }));
     }
 
     function avisa(){
@@ -1055,17 +1094,30 @@ function applyLang(lang){
       if (avisado || document.hidden) return;
       sello().then(function(ahora){
         if (!ahora || !mia) return;
-        if (ahora !== mia){ avisado = true; avisa(); }
+        if (ahora.join('|') !== mia){ avisado = true; avisa(); }
       });
     }
 
     /* La primera medida, con la pagina ya entera (ver LISTA arriba). */
+    var intentosEmpieza = 0;
     function empieza(){
-      sello().then(function(v){
+      Promise.all([sello(), selloGuardado()]).then(function(rs){
+        var v = rs[0], guardado = rs[1];
         /* Sin fecha del servidor no se puede comparar nada: se calla en vez
-           de avisar de cambios que no sabe si existen. */
-        if (!v) return;
-        mia = v;
+           de avisar de cambios que no sabe si existen. Pero un HEAD perdido
+           al arrancar no puede apagar el aviso para toda la sesión, que es
+           lo que pasaría ahora que basta uno: se prueba otra vez, pocas. */
+        if (!v){
+          if (intentosEmpieza++ < 3) setTimeout(empieza, 30000);
+          return;
+        }
+        /* La guardada solo vale si el servidor también da ETag: comparar la
+           huella de una con la fecha del otro diría siempre que cambió. */
+        mia = v.map(function(s, i){
+          var g = guardado[i];
+          return (g && s.charAt(0) === '"') ? g : s;
+        }).join('|');
+        if (mia !== v.join('|')){ avisado = true; avisa(); return; }
         reloj = setInterval(mira, 90000);
         document.addEventListener('visibilitychange', function(){
           if (!document.hidden) mira();
@@ -9503,16 +9555,35 @@ applyLang(idiomaParaMi());
       }).catch(function(e){ console.warn('[CIIP] traducir:', e && e.message); });
     }
 
-    function lee(){
+    /* Qué hay pintado: los mensajes y cuáles llevan traducción. Sirve para
+       que la vuelta silenciosa de abajo no repinte si no llegó nada. */
+    var firmaPintada = null;
+    function firmaDe(filas){
+      return filas.map(function(m){ return m.id + (trad[m.id] ? '*' : ''); }).join(',');
+    }
+
+    /* silencioso: la vuelta del reloj de abajo. No repinta si nada cambió,
+       no mueve la lectura de quien subió a mirar algo, y si falla no
+       esconde la conversación, que ya estaba bien pintada. */
+    function lee(silencioso){
       return Promise.resolve(sb.from(de.tabla)
         .select('id, texto, del_equipo, creado_en, documento, documentos(nombre_original, tipo, archivo)')
         .eq(de.col, de.id).order('creado_en', {ascending:true}))
         .then(function(r){
           if (r && r.error) throw r.error;
           var filas = (r && r.data) || [];
-          return traducciones(filas).then(function(){ pinta(filas); });
+          return traducciones(filas).then(function(){
+            var firma = firmaDe(filas);
+            if (silencioso && firma === firmaPintada) return;
+            var y = lista.scrollTop;
+            var abajo = y + lista.clientHeight >= lista.scrollHeight - 4;
+            firmaPintada = firma;
+            pinta(filas);
+            if (silencioso) lista.scrollTop = abajo ? lista.scrollHeight : y;
+          });
         })
         .catch(function(e){
+          if (silencioso){ console.warn('[CIIP] hilo, al día:', e && e.message); return; }
           /* Sin el SQL puesto, esta tabla no existe y la consulta falla.
              El resto del trámite tiene que seguir viéndose: un expediente
              que desaparece porque falta un archivo de la base es peor que
@@ -9575,6 +9646,25 @@ applyLang(idiomaParaMi());
     });
 
     lee();
+
+    /* ── LO QUE CONTESTA EL OTRO LADO, SIN F5 (29-9-2026) ──
+       La conversación se leía al abrirla y al enviar, y nada más. Quien
+       esperaba la respuesta con la ventana abierta no la veía llegar: el
+       inversionista en la burbuja no tiene repaso de ninguna clase, y el
+       gestor en «Consultas y citas» sí, pero ese repaso se aparta en cuanto
+       hay un cursor en un campo, que en un chat es casi siempre.
+
+       Por eso se vuelve a leer aquí, cada veinte segundos, y SOLO la
+       lista: la caja donde se escribe no se toca, así que lo que alguien
+       esté tecleando sigue ahí. Con la pestaña escondida o la conversación
+       fuera de la vista (la burbuja cerrada) no se pide nada, y cuando el
+       bloque deja de estar en la página -se repintó la pantalla, se abrió
+       otra consulta- el reloj se para solo: no se acumulan. */
+    var relojHilo = setInterval(function(){
+      if (!bloque.isConnected){ clearInterval(relojHilo); return; }
+      if (document.hidden || bloque.hidden || !bloque.getClientRects().length) return;
+      lee(true);
+    }, 20000);
   }
 
 
@@ -17507,6 +17597,19 @@ applyLang(idiomaParaMi());
     cdFilas = null;
     cdPinta();
   };
+  /* Y la misma bandeja puesta al día por el repaso de cada minuto
+     (CIIP_AL_DIA), sin pasar por «Cargando…»: los códigos que manda el
+     inversionista entraban solo al salir y volver, o con F5 (29-9-2026).
+     Se pide primero y se repinta después, así que la lista no parpadea; y
+     solo si algo cambió, para no volver a tapar la contraseña que alguien
+     acaba de destapar para copiarla. */
+  window.CIIP_AL_DIA_CODIGOS = function(){
+    if (!esDelEquipo() || cdFilas === null) return;
+    var antes = JSON.stringify(cdFilas);
+    return cdCarga().then(function(){
+      if (JSON.stringify(cdFilas) !== antes) cdPinta();
+    });
+  };
 
   window.CIIP_PINTA_REVISAR = function(){
     if (!esDelEquipo()){
@@ -19627,6 +19730,7 @@ applyLang(idiomaParaMi());
     var AL_DIA_DE_LA_VISTA = {
       revisar:      'CIIP_PINTA_REVISAR',
       comprobantes: 'CIIP_PINTA_COMPROBANTES',
+      codigos:      'CIIP_AL_DIA_CODIGOS',
       consultas:    'CIIP_PINTA_CONSULTAS',
       citas:        'CIIP_PINTA_AGENDA',
       documentos:   'CIIP_PINTA_DOCS',
