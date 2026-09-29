@@ -330,6 +330,20 @@ svg{display:block;}
 .co-emitir{display:flex; flex-direction:column; gap:5px; margin-top:11px;}
 .co-emitir label{font-size:var(--fs-rotulo-form); font-weight:700; color:var(--gray);}
 .co-emitir input[type="file"]{font:inherit; font-size:12px; color:var(--ink);}
+/* La constancia de cada ente, como un enlace (el modelo 3 de las maquetas,
+   29-9-2026): sin caja ni boton gris del navegador. Con la constancia
+   subida, su nombre y «Cambiar». */
+.pe-sube{display:flex; flex-direction:column; gap:5px; margin-top:11px; min-width:0;}
+.pe-subir{display:inline-flex; align-items:center; gap:6px; align-self:flex-start; cursor:pointer;
+  font:inherit; font-size:var(--fs-fila); font-weight:700; color:var(--azul-panel);
+  background:none; border:0; padding:0;}
+.pe-subir:hover span, .pe-cambia:hover{text-decoration:underline;}
+.pe-subir[hidden], .pe-subido[hidden]{display:none;}
+.pe-subir svg, .pe-subido svg{width:14px; height:14px; flex:none; fill:none; stroke:currentColor;
+  stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+.pe-subido{display:flex; align-items:center; gap:8px; min-width:0; font-size:var(--fs-fila); color:var(--ink);}
+.pe-subido-n{font-weight:700; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.pe-cambia{flex:none; font-size:var(--fs-nota);}
 .co-ficha.mal .co-emitir label{color:var(--rust);}
 /* Lo que el gestor copia del acta protocolizada para que la publicación
    nazca rellena. Mismo aire que «co-emitir», que está justo encima y es el

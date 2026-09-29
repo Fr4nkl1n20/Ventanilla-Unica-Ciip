@@ -11861,6 +11861,15 @@
     ok('entes: el gestor y el administrador no la descargan',
        !!fSnc && (!bajaEq || bajaEq.hidden),
        !fSnc ? '(sin tarjeta)' : (bajaEq && !bajaEq.hidden ? 'a la vista' : 'escondido'), 'escondido');
+    /* La casilla de la constancia es un enlace (modelo 3, 29-9-2026). Con
+       la constancia subida: su nombre y «Cambiar», sin el enlace. */
+    var yaS = fSnc && fSnc.querySelector('.pe-subido');
+    igual('entes: equipo, con la constancia subida sale su nombre y «Cambiar»',
+          yaS && !yaS.hidden ? yaS.textContent : '(escondido)', 'snc.pdf' + u.pa_cambiar);
+    var enlS = fSnc && fSnc.querySelector('.pe-sube > .pe-subir');
+    ok('entes: y el enlace de subir se esconde',
+       !!enlS && enlS.hidden, enlS ? (enlS.hidden ? 'escondido' : 'a la vista') : '(sin enlace)', 'escondido');
+
 
     /* Y el gestor, en uno sin código: ni «Inscripción hecha» ni revisar un
        código; de pendiente se pasa a lista con un botón en el primer paso. */
@@ -11872,6 +11881,12 @@
     var listoS = pasosS[0] && pasosS[0].querySelector('.pe-listo');
     ok('entes: gestor, pendiente, y «Marcar listo» ya está en el primer paso',
        !!listoS && !listoS.hidden, listoS ? (listoS.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'a la vista');
+    var enlSu = fS && fS.querySelector('.pe-sube > .pe-subir');
+    var natSu = fS && fS.querySelector('.pe-sube input[type=file]');
+    ok('entes: gestor, sin constancia, un enlace «Subir la constancia» y no el botón gris del navegador',
+       !!enlSu && !enlSu.hidden && enlSu.textContent === u.pe_subirconst && !!natSu && natSu.hidden,
+       enlSu ? (enlSu.hidden ? 'enlace escondido' : enlSu.textContent) + (natSu && !natSu.hidden ? ' + botón gris' : '') : '(sin enlace)',
+       u.pe_subirconst);
     if (listoS) listoS.click();
     if (!formI) return;
     formI.querySelector('input[type=text]').value = 'empresa.inces';

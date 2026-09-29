@@ -22336,15 +22336,37 @@ applyLang(idiomaParaMi());
            tampoco puede borrarlo sin querer.
 
            Se sube al elegirlo, sin botón aparte: quien abre el explorador
-           de archivos y elige uno ya ha decidido. */
+           de archivos y elige uno ya ha decidido.
+
+           SOLO UN ENLACE (Franklin Reyes, 29-9-2026, el modelo 3 de las
+           maquetas de la constancia): el botón gris del navegador -con su
+           «Ningún …cionado» cortado- se esconde, y lo abre un enlace
+           «Subir la constancia» con su icono. Con la constancia ya subida,
+           el enlace se cambia por el nombre del archivo y «Cambiar» (lo
+           pone pon(), que es quien sabe si hay constancia). */
         if (tr.inversionista){
-          var sube = el('div', 'co-emitir');
-          var etiq = el('label', null, u.pe_constancia || '');
-          etiq.setAttribute('for', 'pe-doc-' + tr.id + '-' + ente);
+          var sube = el('div', 'pe-sube');
           var arch = document.createElement('input');
           arch.type = 'file';
           arch.id = 'pe-doc-' + tr.id + '-' + ente;
           arch.accept = '.pdf,.jpg,.jpeg,.png';
+          arch.hidden = true;
+          arch.setAttribute('aria-label', u.pe_constancia || '');
+          var ICO_SUBE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>';
+          var ICO_PAPEL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg>';
+          var subeEnl = el('button', 'pe-subir');
+          subeEnl.type = 'button';
+          subeEnl.innerHTML = ICO_SUBE;
+          subeEnl.appendChild(el('span', null, u.pe_subirconst || ''));
+          subeEnl.addEventListener('click', function(){ arch.click(); });
+          var subeYa = el('div', 'pe-subido');
+          subeYa.hidden = true;
+          subeYa.innerHTML = ICO_PAPEL;
+          var subeNom = el('span', 'pe-subido-n', '');
+          var subeOtra = el('button', 'pe-subir pe-cambia', u.pa_cambiar || '');
+          subeOtra.type = 'button';
+          subeOtra.addEventListener('click', function(){ arch.click(); });
+          subeYa.appendChild(subeNom); subeYa.appendChild(subeOtra);
           var msgS = el('div', 'pe-msg', '');
           arch.addEventListener('change', function(){
             var f = arch.files && arch.files[0];
@@ -22369,7 +22391,8 @@ applyLang(idiomaParaMi());
                 msgS.textContent = (e && e.ciip && u[e.ciip]) || u.co_error || '';
               });
           });
-          sube.appendChild(etiq); sube.appendChild(arch); sube.appendChild(msgS);
+          sube.appendChild(subeEnl); sube.appendChild(subeYa);
+          sube.appendChild(arch); sube.appendChild(msgS);
           ultimo.txt.appendChild(sube);
         }
       }
@@ -22418,6 +22441,13 @@ applyLang(idiomaParaMi());
         baja.title = suDescarga ? (doc.nombre_original || '') : '';
         baja.onclick = suDescarga
           ? function(){ abreFirmado(doc.archivo, baja, 'constancia del ente'); } : null;
+        /* La casilla del equipo: el enlace, o el nombre y «Cambiar». */
+        if (sube){
+          subeEnl.hidden = esConstancia;
+          subeYa.hidden = !esConstancia;
+          subeNom.textContent = esConstancia ? (doc.nombre_original || u.pe_constancia || '') : '';
+          subeNom.title = subeNom.textContent;
+        }
         /* Y el «Ver archivo» de al lado del código queda para lo que no es
            una constancia: los adjuntos que llegó a mandar algún
            inversionista antes de quitarse (23-9-2026). */
