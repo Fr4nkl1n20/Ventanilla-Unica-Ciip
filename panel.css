@@ -2926,8 +2926,13 @@ body[data-vista="tramite"] #secTramites{display:none;}
    pegado a la izquierda, el hilo se cortaba antes del siguiente y el
    texto no quedaba debajo de nada. La fecha iba sin regla -.sd-e solo
    tiene tamaño dentro de .sol-doc- y salia mas grande que el nombre del
-   paso. «Vas por aqui» pasa a etiqueta, con los dias dentro, y el paso en
-   curso deja de repetir la fecha: la etiqueta ya dice desde cuando.
+   paso. El paso en curso deja de repetir la fecha: «Vas por aqui» ya dice
+   desde cuando.
+
+   «Vas por aqui» sigue siendo un rotulo, sin fondo ni pildora: la maqueta
+   lo pintaba como etiqueta, pero es la forma de lo que se pulsa (la prueba
+   «no finge ser un boton») y Franklin pidio ese mismo dia que no haya
+   insignias. Solo cambia la barrita por un punto y los dias van en azul.
 
    Solo esta lista (.tr-escalera): las de los entes y la del tramo tienen
    sus propios hilos medidos desde la izquierda. */
@@ -2942,8 +2947,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-escalera .tr-txt > .sd-e{font-size:var(--fs-nota); font-weight:400; color:var(--gray-soft);
   margin-top:3px; font-variant-numeric:tabular-nums;}
 .tr-escalera .tr-paso.ahora:has(.tr-aqui) > .tr-txt > .sd-e{display:none;}
-.tr-escalera .tr-aqui{gap:5px; margin-top:7px; padding:4px 9px; border-radius:20px;
-  background:var(--activa-bg); line-height:1.2;}
+.tr-escalera .tr-aqui{gap:5px; margin-top:5px; line-height:1.2;}
 .tr-escalera .tr-aqui::before{width:6px; height:6px; border-radius:50%;}
 .tr-escalera .tr-desde{font-size:var(--fs-chip); font-weight:700; color:inherit;}
 @media(max-width:640px){
