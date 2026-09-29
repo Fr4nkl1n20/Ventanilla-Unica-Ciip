@@ -3330,6 +3330,15 @@ body[data-vista="tramite"] #secTramites{display:none;}
   .pe-bloque .pe-pasos .tr-txt button{text-align:center;}
   .pe-bloque .pe-pasos .pe-dice{justify-content:center;}
   .pe-bloque .pe-pasos .tr-paso-n{max-width:24ch; text-wrap:balance;}
+  /* El primero, pegado al borde (Franklin Reyes, 29-9-2026: «quiero que
+     el primer paso esté pegado al borde», «así se ve como descuadrado»):
+     centrado, dejaba un hueco bajo el nombre del ente, que va a la
+     izquierda. Su hilo sale de su punto, a 28 del borde. */
+  .pe-bloque .pe-pasos .tr-paso:first-child{align-items:flex-start; text-align:left; padding-left:0;}
+  .pe-bloque .pe-pasos .tr-paso:first-child:not(:last-child)::before{left:28px;}
+  .pe-bloque .pe-pasos .tr-paso:first-child .tr-txt{align-items:flex-start;}
+  .pe-bloque .pe-pasos .tr-paso:first-child .tr-txt button{text-align:left;}
+  .pe-bloque .pe-pasos .tr-paso:first-child .pe-dice{justify-content:flex-start;}
 }
 .pe-dice{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;
   font-size:var(--fs-nota); color:var(--gray); overflow-wrap:anywhere;}
