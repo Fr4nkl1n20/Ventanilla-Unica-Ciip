@@ -3570,8 +3570,11 @@ body[data-vista="tramite"] #secTramites{display:none;}
    copiarlo a mano, que es justo lo que viene a evitar.
    Borde, punteado y «Suelta aqui» en el azul del panel (--azul-panel: el
    #004090 de la barra lateral; en oscuro, el azul claro, porque el otro no
-   se ve). Estaban en --navy2 y en cian (Franklin Reyes, 29-9-2026). */
-.pa-lee{border:1px solid var(--azul-panel); background:var(--activa-bg); border-radius:11px;
+   se ve). Estaban en --navy2 y en cian (Franklin Reyes, 29-9-2026).
+   Sin fondo celeste: el cuadro lleva el mismo velo blanco que las demas
+   cajas, y al pasar por encima o soltar, el gris azulado del fondo del
+   panel. El celeste se leia como un azul fosforescente (el mismo dia). */
+.pa-lee{border:1px solid var(--azul-panel); background:var(--tr-velo); border-radius:11px;
   padding:14px 16px; margin-bottom:16px;}
 .pa-lee-t{font-size:13px; font-weight:700; margin-bottom:3px;}
 .pa-lee-q{font-size:12px; color:var(--gray); line-height:1.5; margin-bottom:11px;}
@@ -3580,8 +3583,8 @@ body[data-vista="tramite"] #secTramites{display:none;}
   padding:16px; color:var(--azul-panel);}
 .pa-lee-z b{display:block; font-size:12px; font-weight:700;}
 .pa-lee-z span{display:block; font-size:11px; color:var(--mudo); margin-top:3px;}
-.pa-lee-z:hover{background:var(--activa-bg);}
-.pa-lee-z.encima{background:var(--activa-bg); border-style:solid;}
+.pa-lee-z:hover{background:var(--block);}
+.pa-lee-z.encima{background:var(--block); border-style:solid;}
 .pa-lee-z.leyendo{cursor:default; border-style:solid; opacity:.75;}
 .pa-lee.hecho{border-color:#C4B5FD; background:#FBF9FF;}
 .pa-lee.falla{border-color:var(--amber); background:var(--amber-bg);}
