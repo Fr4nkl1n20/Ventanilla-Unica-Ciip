@@ -15863,7 +15863,13 @@ applyLang(idiomaParaMi());
     tt.appendChild(tit);
     bar.appendChild(tt);
 
-    if (d){
+    /* En el paso 3 de los parafiscales no se mira ningún papel: el
+       «Recaudo X de N», anterior, siguiente, abrir en otra pestaña y ver el
+       expediente son de los recaudos (Franklin Reyes, 29-9-2026: «esto solo
+       quiero que salga cuando estamos en el apartado de recaudos»). Solo
+       queda cerrar. */
+    var enEntes = visorVista(t) === 'entes';
+    if (d && !enEntes){
       var cual = el('span', 'visor-cual');
       cual.appendChild(document.createTextNode(String(u.co_h_recaudo || '')
         .replace('{i}', visor.i + 1).replace('{n}', docs.length) + ' · '));
@@ -15878,6 +15884,7 @@ applyLang(idiomaParaMi());
      ['paVisorPest', u.co_h_pestana, function(){ if (url) window.open(url, '_blank', 'noopener'); }, !url],
      ['paVisorCola', u.co_ver, function(){ var id = t.id; cierraVisor(); abreCola(id); }, false],
      ['paVisorCerrar', u.co_h_cerrar, cierraVisor, false]].forEach(function(x){
+      if (enEntes && x[0] !== 'paVisorCerrar') return;
       var b = el('button', 't-btn', x[1] || '');
       b.type = 'button';
       b.id = x[0];
@@ -16350,6 +16357,9 @@ applyLang(idiomaParaMi());
     var etiqueta = (e.target && e.target.tagName) || '';
     if (etiqueta === 'TEXTAREA' || etiqueta === 'INPUT' || etiqueta === 'SELECT') return;
     var docs = hoyDocs[visor.id] || [];
+    /* En el paso 3 de los parafiscales no hay papel que pasar. */
+    var tv = enRevision.filter(function(x){ return x.id === visor.id; })[0];
+    if (tv && visorVista(tv) === 'entes') return;
     if (e.key === 'ArrowRight' && visor.i < docs.length - 1) visorVe(visor.i + 1);
     if (e.key === 'ArrowLeft' && visor.i > 0) visorVe(visor.i - 1);
   });
