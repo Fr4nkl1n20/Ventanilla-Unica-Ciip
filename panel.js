@@ -16020,6 +16020,22 @@ applyLang(idiomaParaMi());
       lado.appendChild(el('p', 'visor-bloq', u.vs_p3_bloq || ''));
     }
 
+    /* Con los entes abiertos, resolver y devolver son del paso 3, al lado
+       de los entes: aquí, en los recaudos ya revisados, «Resolver» se leía
+       como si se pudiera cerrar la solicitud desde un papel (Franklin
+       Reyes, 29-9-2026: «en esta etapa, en esta ficha, no debería aparecer
+       el resolver»). En su sitio, el camino al paso 3. */
+    if (visorConEntes(t) && visorEntesAbiertos(t)){
+      var va = el('div', 'visor-fin visor-a3');
+      va.appendChild(el('p', 'visor-bloq', u.vs_en3 || ''));
+      var ir3 = el('button', 'btn navy', u.vs_ir3 || '');
+      ir3.type = 'button';
+      ir3.addEventListener('click', function(){ visor.vista = 'entes'; pintaVisor(true); });
+      va.appendChild(ir3);
+      lado.appendChild(va);
+      return lado;
+    }
+
     lado.appendChild(visorFin(t));
     return lado;
   }
@@ -16041,7 +16057,11 @@ applyLang(idiomaParaMi());
       botones.appendChild(toma);
     } else if (mio && t.estado === 'ante_el_ente'){
       var conEmitido = pideEmitido(t);
-      pista.textContent = (conEmitido ? u.co_h_p_emitido : u.co_h_p_reserva) || '';
+      /* Los parafiscales no tienen reserva ni un único papel emitido: se
+         resuelven con los seis entes listos. Decía «…resuelve la
+         constitución», que es de otro trámite (29-9-2026). */
+      pista.textContent = (t.tipo === TIPO_PARAFISCALES ? u.vs_pista
+        : conEmitido ? u.co_h_p_emitido : u.co_h_p_reserva) || '';
       fin.appendChild(pista);
       /* Mientras haya papel elegido sin enviar, el boton de abajo es el
          que lo envia; en cuanto sale, vuelve a ser «Resolver». */

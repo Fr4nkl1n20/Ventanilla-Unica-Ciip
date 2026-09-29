@@ -4856,8 +4856,10 @@ html.visor-abierto{overflow:hidden;}
    Una barra de pestañas bajo la cabecera del visor, y el paso 3 como vista
    propia a lo ancho: las seis tarjetas de tres en tres, cada una con lo
    que llegó y lo que se manda. */
+/* flex:none: el visor es una columna de alto fijo, y sin esto la barra se
+   encogía hasta quedar cortada cuando el cuerpo pedía más alto. */
 .visor-pasos{display:flex; gap:4px; padding:0 14px; border-bottom:1px solid var(--line);
-  background:var(--bg); overflow-x:auto;}
+  background:var(--bg); overflow-x:auto; flex:none;}
 .visor-pasos .vp{display:inline-flex; align-items:center; gap:8px; padding:11px 14px; border:0;
   border-bottom:3px solid transparent; background:none; font-family:inherit; font-size:var(--fs-pestana);
   font-weight:700; color:var(--gray); cursor:pointer; white-space:nowrap;}
@@ -4886,6 +4888,16 @@ html.visor-abierto{overflow:hidden;}
   padding:10px 12px; border-radius:var(--r-sm); background:var(--block); border:1px solid var(--line-soft);
   font-size:var(--fs-nota);}
 .pe-caja-t{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--gray);}
+/* Nada se sale de la casilla: con align-items:flex-start cada hijo medía
+   lo que su texto, y el nombre de una constancia larga -«Captura de
+   pantalla 2026-08-18 131004.png»- asomaba por la derecha. La casilla de
+   la constancia ocupa el ancho y el nombre se parte en dos líneas. */
+.pe-caja > *{max-width:100%;}
+.pe-caja .pe-sube{align-self:stretch; margin-top:0;}
+.pe-caja .pe-subido{align-items:flex-start;}
+.pe-caja .pe-subido-n{white-space:normal; overflow-wrap:anywhere;}
+.pe-caja .pe-dice, .pe-caja .pe-cod{overflow-wrap:anywhere; min-width:0;}
+.visor-a3{align-items:flex-start;}
 .pe-caja .pe-dice{margin-top:0;}
 .pe-nada{color:var(--gray-soft);}
 .pe-nada[hidden]{display:none;}
