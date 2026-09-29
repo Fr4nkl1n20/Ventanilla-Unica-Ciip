@@ -4898,6 +4898,10 @@ html.visor-abierto{overflow:hidden;}
 .pe-caja .pe-subido-n{white-space:normal; overflow-wrap:anywhere;}
 .pe-caja .pe-dice, .pe-caja .pe-cod{overflow-wrap:anywhere; min-width:0;}
 .visor-a3{align-items:flex-start;}
+/* La constancia ya subida: una marca de aprobado y «Constancia enviada»,
+   en verde, en vez del nombre del archivo (29-9-2026). */
+.pe-subido svg{stroke:var(--good); stroke-width:2.6;}
+.pe-subido .pe-subido-n{color:var(--good);}
 .pe-caja .pe-dice{margin-top:0;}
 .pe-nada{color:var(--gray-soft);}
 .pe-nada[hidden]{display:none;}

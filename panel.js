@@ -22483,7 +22483,11 @@ applyLang(idiomaParaMi());
           arch.hidden = true;
           arch.setAttribute('aria-label', u.pe_constancia || '');
           var ICO_SUBE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>';
-          var ICO_PAPEL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg>';
+          /* Subida, una marca de aprobado y no el nombre del archivo
+             (Franklin Reyes, 29-9-2026): lo que se busca aquí es SI está,
+             y un nombre como «Captura de pantalla 2026-08-18 131004.png»
+             ocupaba tres líneas sin decirlo. El nombre queda en el title. */
+          var ICO_PAPEL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
           var subeEnl = el('button', 'pe-subir');
           subeEnl.type = 'button';
           subeEnl.innerHTML = ICO_SUBE;
@@ -22575,8 +22579,8 @@ applyLang(idiomaParaMi());
         if (sube){
           subeEnl.hidden = esConstancia;
           subeYa.hidden = !esConstancia;
-          subeNom.textContent = esConstancia ? (doc.nombre_original || u.pe_constancia || '') : '';
-          subeNom.title = subeNom.textContent;
+          subeNom.textContent = esConstancia ? (u.pe_enviadaok || '') : '';
+          subeNom.title = esConstancia ? (doc.nombre_original || '') : '';
         }
         /* Y el «Ver archivo» de al lado del código queda para lo que no es
            una constancia: los adjuntos que llegó a mandar algún

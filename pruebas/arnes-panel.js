@@ -11862,10 +11862,15 @@
        !!fSnc && (!bajaEq || bajaEq.hidden),
        !fSnc ? '(sin tarjeta)' : (bajaEq && !bajaEq.hidden ? 'a la vista' : 'escondido'), 'escondido');
     /* La casilla de la constancia es un enlace (modelo 3, 29-9-2026). Con
-       la constancia subida: su nombre y «Cambiar», sin el enlace. */
+       la constancia subida: «Constancia enviada» con su marca y «Cambiar»,
+       sin el enlace. El nombre del archivo ya no se escribe -Franklin
+       pidió una marca de aprobado en su lugar- pero se queda en el title. */
     var yaS = fSnc && fSnc.querySelector('.pe-subido');
-    igual('entes: equipo, con la constancia subida sale su nombre y «Cambiar»',
-          yaS && !yaS.hidden ? yaS.textContent : '(escondido)', 'snc.pdf' + u.pa_cambiar);
+    igual('entes: equipo, con la constancia subida sale «Constancia enviada» y «Cambiar»',
+          yaS && !yaS.hidden ? yaS.textContent : '(escondido)', u.pe_enviadaok + u.pa_cambiar);
+    var nomS = yaS && yaS.querySelector('.pe-subido-n');
+    igual('entes: y el nombre del archivo queda en el title',
+          nomS ? nomS.title : '(sin nombre)', 'snc.pdf');
     var enlS = fSnc && fSnc.querySelector('.pe-sube > .pe-subir');
     ok('entes: y el enlace de subir se esconde',
        !!enlS && enlS.hidden, enlS ? (enlS.hidden ? 'escondido' : 'a la vista') : '(sin enlace)', 'escondido');
