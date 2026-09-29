@@ -3339,6 +3339,11 @@ body[data-vista="tramite"] #secTramites{display:none;}
   .pe-bloque .pe-pasos .tr-paso:first-child .tr-txt{align-items:flex-start;}
   .pe-bloque .pe-pasos .tr-paso:first-child .tr-txt button{text-align:left;}
   .pe-bloque .pe-pasos .tr-paso:first-child .pe-dice{justify-content:flex-start;}
+  /* Con DOS pasos -todos menos el IVSS y el INCES- la fila a lo ancho de
+     la caja dejaba un hilo de casi 800 px entre dos puntos (Franklin
+     Reyes, 29-9-2026: «no quiero que el paso se vea tan largo en las que
+     tengan 2»). Se queda en lo que ocupan dos pasos; los de cuatro, igual. */
+  .pe-bloque .pe-pasos:not(:has(> .tr-paso:nth-child(3))){max-width:460px;}
 }
 .pe-dice{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;
   font-size:var(--fs-nota); color:var(--gray); overflow-wrap:anywhere;}
