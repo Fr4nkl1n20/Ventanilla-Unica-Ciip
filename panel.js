@@ -6632,6 +6632,14 @@ applyLang(idiomaParaMi());
         if (!r || r.error || (Array.isArray(r.data) && !r.data.length)){
           throw ((r && r.error) || new Error('no se borró ninguna fila'));
         }
+        /* Lo que escribiste en otros trámites se volvía a leer de lo que
+           anteriores() guardó al entrar, y ahí iba el propio borrador que
+           se acaba de borrar: el formulario nuevo salía con sus mismos
+           datos, cada uno con «Ya lo escribiste», y parecía que descartar
+           no había hecho nada (Franklin Reyes, 29-9-2026). Se vacía para
+           que CIIP_TRAMITE_REAL lo pida otra vez, ya sin él. */
+        ANTES = null;
+        antesPide = null;
         cargaAvisos();
         window.CIIP_TRAMITE_REAL(tipoRefDe(tipo.codigo));
       }).catch(function(e){
