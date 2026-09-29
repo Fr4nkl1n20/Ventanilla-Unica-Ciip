@@ -4955,6 +4955,30 @@ html.visor-abierto{overflow:hidden;}
    casilla de la constancia se quedaba en «N…o». */
 .visor-entes .pe-lista{width:auto; margin-top:0;}
 
+/* ── EL LADO CON ESCALERA POR ETAPAS (29-9-2026, la maqueta 3) ──
+   Arriba, la escalera en pequeño, con el paso de ahora en azul; debajo,
+   tres pestañas -paso en curso, este recaudo, cerrar- y una sola a la
+   vista. Ver visorPorEtapas en panel.js. */
+.vs-etapas{gap:12px;}
+.vs-esc{list-style:none; margin:0; padding:0; display:grid; gap:6px;}
+.vs-esc li{display:flex; align-items:center; gap:8px; font-size:var(--fs-fila); color:var(--gray-soft); min-width:0;}
+.vs-esc li.hecho{color:var(--ink);}
+.vs-esc li.ahora{color:var(--navy2); font-weight:700;}
+.vs-esc-p{flex:none; display:inline-grid; place-items:center; width:18px; height:18px; border-radius:50%;
+  border:1px solid var(--line); font-size:var(--fs-chip); font-weight:700; color:var(--gray);}
+.vs-esc li.hecho .vs-esc-p{background:var(--good); border-color:var(--good); color:#fff;}
+.vs-esc li.ahora .vs-esc-p{background:var(--navy2); border-color:var(--navy2); color:#fff;}
+.vs-esc-n{min-width:0; overflow-wrap:anywhere;}
+.vs-pest{display:flex; gap:2px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+.vs-pest-b{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--gray); background:none; border:0;
+  border-bottom:2px solid transparent; margin-bottom:-1px; padding:8px 10px; cursor:pointer;}
+.vs-pest-b[aria-selected="true"]{color:var(--navy2); border-bottom-color:var(--navy2);}
+.vs-pest-b:focus-visible{outline:2px solid var(--navy2); outline-offset:2px;}
+.vs-panel{display:flex; flex-direction:column; gap:16px; min-width:0;}
+.vs-panel[hidden]{display:none;}
+.vs-panel .visor-fin{margin-top:0; border-top:0; padding-top:0;}
+.vs-paso-t{font-size:var(--fs-tarjeta); font-weight:700;}
+
 /* ── LOS TRES PASOS DE LOS PARAFISCALES (29-9-2026, la idea A) ──
    Una barra de pestañas bajo la cabecera del visor, y el paso 3 como vista
    propia a lo ancho: las seis tarjetas de tres en tres, cada una con lo

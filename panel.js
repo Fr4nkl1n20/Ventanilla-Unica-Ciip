@@ -16452,13 +16452,103 @@ applyLang(idiomaParaMi());
       return lado;
     }
 
+    /* Con escalera por etapas -la marca, la licencia, el bomberos, los
+       libros-, ordenado en pestañas: ver visorPorEtapas. */
+    if (ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo]) return visorPorEtapas(t, lado);
+
     lado.appendChild(visorFin(t));
     return lado;
   }
 
+  /* ── EL LADO DE UN TRÁMITE CON ESCALERA POR ETAPAS ──
+     Franklin Reyes, 29-9-2026, con el sellado de libros delante: «¿cómo
+     podemos trabajar con más orden aquí?», «está muy confuso». El lado
+     apilaba el recaudo, la casilla de resolver -que aún no se podía usar-,
+     la del paso en curso con su importe y los botones sueltos; lo que
+     tocaba hacer quedaba enterrado en medio. Eligió la maqueta 3:
+
+       · arriba, la escalera en pequeño, con el paso de ahora en azul;
+       · debajo, tres pestañas: «Paso en curso» (lo que pide la escalera:
+         el importe, el papel o el paso que marca el CIIP), «Este recaudo»
+         (el cotejo y validar o no el papel) y «Cerrar» (tomar, presentar,
+         devolver, resolver).
+
+     Se ve una a la vez. La que abre sola es la del paso en curso cuando
+     hay algo que hacer en ella -ante el ente-; antes, en la revisión, la
+     del recaudo, que es lo que se trabaja entonces. La elegida vive en
+     visor.pestana y no en la página: el lado se repinta entero al validar
+     un papel o con el «al día», y volvería a la primera. abreVisor la
+     olvida al abrir otra solicitud. */
+  function visorPorEtapas(t, lado){
+    var u = T();
+    var mio = !!YO && t.gestor === YO;
+    var E = escaleraPorEtapas(t, t.tipo);
+
+    var esc = el('ol', 'vs-esc');
+    (E ? E.todos : []).forEach(function(p){
+      var li = el('li', p.hecho ? 'hecho' : (p.ahora ? 'ahora' : ''));
+      li.appendChild(el('span', 'vs-esc-p', p.hecho ? '✓' : String(p.n)));
+      li.appendChild(el('span', 'vs-esc-n', p.nombre));
+      esc.appendChild(li);
+    });
+
+    var paneles = {};
+    var recaudo = el('div', 'vs-panel');
+    while (lado.firstChild) recaudo.appendChild(lado.firstChild);
+    var casilla = mio ? casillaDeLaMarca(t, 'hoy-mc-') : null;
+    var paso = el('div', 'vs-panel');
+    if (casilla){
+      paso.appendChild(casilla);
+    } else {
+      var ahora = E && E.ahora;
+      if (ahora){
+        paso.appendChild(el('div', 'vs-paso-t', String(u.vs_paso_n || '{n}. {paso}')
+          .replace('{n}', ahora.n).replace('{paso}', ahora.nombre)));
+      }
+      paso.appendChild(el('p', 'visor-d', u.vs_paso_nada || ''));
+    }
+    var cerrar = el('div', 'vs-panel');
+    cerrar.appendChild(visorFin(t, true));
+    paneles.paso = paso; paneles.recaudo = recaudo; paneles.cerrar = cerrar;
+
+    var cual = visor && visor.pestana;
+    if (!paneles[cual]) cual = casilla ? 'paso' : (recaudo.childNodes.length ? 'recaudo' : 'paso');
+
+    var pest = el('div', 'vs-pest');
+    pest.setAttribute('role', 'tablist');
+    [['paso', 'vs_pest_paso'], ['recaudo', 'vs_pest_recaudo'], ['cerrar', 'vs_pest_cerrar']].forEach(function(p){
+      if (p[0] === 'recaudo' && !recaudo.childNodes.length) return;
+      var b = el('button', 'vs-pest-b', u[p[1]] || '');
+      b.type = 'button';
+      b.setAttribute('role', 'tab');
+      b.setAttribute('data-pest', p[0]);
+      b.setAttribute('aria-selected', p[0] === cual ? 'true' : 'false');
+      b.addEventListener('click', function(){
+        if (visor) visor.pestana = p[0];
+        pest.querySelectorAll('.vs-pest-b').forEach(function(x){
+          x.setAttribute('aria-selected', x === b ? 'true' : 'false');
+        });
+        Object.keys(paneles).forEach(function(k){ paneles[k].hidden = k !== p[0]; });
+      });
+      pest.appendChild(b);
+    });
+    Object.keys(paneles).forEach(function(k){ paneles[k].hidden = k !== cual; });
+
+    lado.classList.add('vs-etapas');
+    lado.appendChild(esc);
+    lado.appendChild(pest);
+    lado.appendChild(paso);
+    lado.appendChild(recaudo);
+    lado.appendChild(cerrar);
+    return lado;
+  }
+  /* Para las pruebas: el lado de un trámite sin abrir el visor entero. */
+  window.CIIP_VISOR_LADO = function(t, d){ return visorLado(t, d || null, []); };
+
   /* El pie del lado: lo que se puede hacer con el trámite entero, según
-     quién lo lleva y dónde está. */
-  function visorFin(t){
+     quién lo lleva y dónde está. sinEscalera: la casilla de la escalera
+     por etapas va en su propia pestaña (visorPorEtapas), no aquí. */
+  function visorFin(t, sinEscalera){
     var u = T(), ente = hoyEnte(t), c = hoyCuenta(t);
     var mio = !!YO && t.gestor === YO;
     var fin = el('div', 'visor-fin');
@@ -16642,7 +16732,7 @@ applyLang(idiomaParaMi());
     }
     /* El importe del día, en cualquier estado en que su trámite lo pida:
        es un gesto diario que no depende de por dónde vaya la solicitud. */
-    if (mio){
+    if (mio && !sinEscalera){
       /* La marca lleva su casilla, con el importe de la etapa dentro. */
       var importeV = casillaDeLaMarca(t, 'hoy-mc-') || casillaDelImporte(t, 'hoy-imp-');
       if (importeV) fin.appendChild(importeV);

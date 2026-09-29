@@ -9137,6 +9137,25 @@
       igual('libros: y el inversionista ve el aviso de traerlos al CIIP',
             avisoL ? avisoL.textContent : '(sin aviso)', window.CIIP_T().sl_n_consigna);
     }
+    /* El lado del visor del equipo, con escalera por etapas (maqueta 3,
+       29-9-2026): la escalera en pequeño arriba y pestañas debajo. */
+    if (window.CIIP_VISOR_LADO){
+      var lado = window.CIIP_VISOR_LADO({id: 'sl-v', tipo: 'libros_contables', estado: 'ante_el_ente',
+                                          gestor: 'otro-gestor', datos: {}});
+      var lis = lado.querySelectorAll('.vs-esc li');
+      igual('visor por etapas: la escalera en pequeño, con los seis pasos', lis.length, 6);
+      igual('visor por etapas: y el de ahora es el PUB',
+            (lado.querySelector('.vs-esc li.ahora .vs-esc-n') || {}).textContent, 'Emisión de PUB por SAREN');
+      var pestB = lado.querySelectorAll('.vs-pest-b');
+      igual('visor por etapas: sin papel a la vista, dos pestañas: paso en curso y cerrar',
+            [].map.call(pestB, function(b){ return b.getAttribute('data-pest'); }).join(','), 'paso,cerrar');
+      var visibles = function(){ return [].filter.call(lado.querySelectorAll('.vs-panel'), function(p){ return !p.hidden; }).length; };
+      igual('visor por etapas: una sola pestaña a la vista', visibles(), 1);
+      if (pestB[1]) pestB[1].click();
+      ok('visor por etapas: al pulsar «Cerrar» se ve su pie, con el paso en curso escondido',
+         visibles() === 1 && !!lado.querySelector('.vs-panel:not([hidden]) .visor-fin'),
+         visibles() + ' a la vista', 'solo el pie');
+    }
     if (puestoL) delete cat.c24;
   }
 
