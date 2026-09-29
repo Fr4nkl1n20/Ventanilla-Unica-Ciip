@@ -2864,13 +2864,24 @@ body[data-vista="tramite"] #secTramites{display:none;}
 
 .tr-proceso{margin-top:28px;}
 .tr-h{font-size:var(--fs-seccion); font-weight:700; margin-bottom:15px;letter-spacing:.01em;}
-.tr-pasos{list-style:none; margin:0; padding:0;}
-.tr-paso{display:flex; gap:13px; padding-bottom:20px; position:relative;}
-.tr-paso:last-child{padding-bottom:0;}
+/* LOS PASOS, EN HORIZONTAL. Franklin Reyes, 29-9-2026: «todos los
+   procesos se van a poner en horizontal, no en vertical». Cada paso es una
+   columna -el punto arriba y debajo su nombre, lo que hay que hacer y sus
+   notas- y el hilo corre de un punto al siguiente por la derecha.
+
+   Se envuelven en vez de salirse: con seis pasos en una tarjeta estrecha,
+   los que no caben bajan a otra fila. Por debajo de 640px vuelven a ir
+   uno debajo de otro (al final de este bloque): en un movil, seis
+   columnas de 60px no dejan leer ningun nombre. */
+.tr-pasos{list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap;
+  align-items:flex-start; row-gap:18px;}
+.tr-paso{flex:1 1 0; min-width:132px; display:flex; flex-direction:column;
+  align-items:flex-start; gap:9px; padding:0 16px 0 0; position:relative; box-sizing:border-box;}
+.tr-paso:last-child{padding-right:0;}
 /* El hilo que une los puntos. Va de un punto al siguiente, por eso no se
    dibuja en el ultimo paso. */
-.tr-paso:not(:last-child)::before{content:""; position:absolute; left:11px; top:26px;
-  bottom:2px; width:2px; background:var(--line); border-radius:2px;}
+.tr-paso:not(:last-child)::before{content:""; position:absolute; top:11px; left:32px;
+  right:8px; height:2px; background:var(--line); border-radius:2px;}
 .tr-paso.hecho:not(:last-child)::before{background:var(--good);}
 .tr-punto{width:24px; height:24px; border-radius:50%; flex:none; font-size:var(--fs-chip); font-weight:700;
   display:flex; align-items:center; justify-content:center;
@@ -2878,8 +2889,19 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-paso.hecho .tr-punto{background:var(--good); border-color:transparent; color:#fff;}
 .tr-paso.ahora .tr-punto{background:var(--navy); border-color:transparent; color:#fff;
   box-shadow:0 0 0 4px rgba(0,64,144,.12);}
-.tr-txt{padding-top:3px;}
+.tr-txt{padding-top:0; min-width:0; max-width:100%;}
+/* En columna estrecha, un boton de texto que se parte en dos lineas salia
+   centrado, suelto del nombre del paso. */
+.tr-txt button{text-align:left;}
 .tr-paso-n{font-size:var(--fs-fila); font-weight:600; line-height:1.35;}
+@media(max-width:640px){
+  .tr-pasos{display:block;}
+  .tr-paso{flex-direction:row; gap:13px; padding:0 0 20px; min-width:0;}
+  .tr-paso:last-child{padding-bottom:0;}
+  .tr-paso:not(:last-child)::before{left:11px; right:auto; top:26px; bottom:2px;
+    width:2px; height:auto;}
+  .tr-txt{padding-top:3px;}
+}
 .tr-paso.porhacer .tr-paso-n{color:var(--gray);}
 /* Es un distintivo, y el panel ya tiene una familia de distintivos: .chip,
    .ct-chip y .co-estado, todos en versalitas, esquina redonda y 4-5px de
@@ -3181,11 +3203,18 @@ body[data-vista="tramite"] #secTramites{display:none;}
   padding-bottom:8px; border-bottom:1px solid var(--line);}
 .pe-n{font-size:var(--fs-nota); font-weight:700; color:var(--ink); line-height:1.3;}
 .pe-pasos{margin-top:8px;}
-.pe-pasos .tr-paso{padding-bottom:8px; gap:10px;}
+/* En la tarjeta de cada ente, los pasos en horizontal y mas apretados: el
+   punto de 20 y el hilo a su altura. */
+.pe-pasos .tr-paso{gap:7px; min-width:120px; padding-right:12px;}
+.pe-pasos .tr-paso:last-child{padding-right:0;}
 .pe-pasos .tr-punto{width:20px; height:20px; font-size:10px;}
-.pe-pasos .tr-paso:not(:last-child)::before{left:9px; top:22px;}
-.pe-pasos .tr-txt{padding-top:2px;}
-.pe-pasos .tr-paso:last-child{padding-bottom:0;}
+.pe-pasos .tr-paso:not(:last-child)::before{top:9px; left:28px; right:6px;}
+@media(max-width:640px){
+  .pe-pasos .tr-paso{padding:0 0 8px; gap:10px;}
+  .pe-pasos .tr-paso:last-child{padding-bottom:0;}
+  .pe-pasos .tr-paso:not(:last-child)::before{left:9px; top:22px; right:auto;}
+  .pe-pasos .tr-txt{padding-top:2px;}
+}
 /* Sin esto el texto del paso no se encoge y la casilla y el botón se
    salían por la derecha de la tarjeta. */
 .pe-pasos .tr-txt{flex:1 1 auto; min-width:0;}
@@ -4903,14 +4932,16 @@ body[data-vista="horario"] .fase-bar{display:none;}
 /* La escalera por etapas del registro de marca (28-9-2026). El encabezado
    de cada etapa va dentro de la misma lista, entre los pasos: la línea que
    une los puntos no lo cruza, así se lee dónde empieza cada etapa. */
+/* Con los pasos en horizontal (29-9-2026), el encabezado ocupa la fila
+   entera: cada etapa es un renglon de pasos. */
 .tr-etapa{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin:6px 0 12px;
-  padding-top:10px; border-top:1px solid var(--line-soft);}
+  padding-top:10px; border-top:1px solid var(--line-soft); flex:0 0 100%; box-sizing:border-box;}
 .tr-etapa:first-child{margin-top:0; padding-top:0; border-top:0;}
 .tr-etapa-n{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em; text-transform:uppercase;
   color:var(--mudo);}
 .tr-etapa-t{font-size:var(--fs-parrafo); font-weight:700; color:var(--ink);}
 .tr-paso:has(+ .tr-etapa)::before{display:none;}
-.tr-paso:has(+ .tr-etapa){padding-bottom:6px;}
+@media(max-width:640px){ .tr-paso:has(+ .tr-etapa){padding-bottom:6px;} }
 .mc-retiro{font-weight:600; color:var(--ink);}
 .mc-papel{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;}
 /* El anuncio del gestor: lo primero que se lee del trámite, en ámbar como
