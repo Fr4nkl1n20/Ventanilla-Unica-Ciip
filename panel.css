@@ -3919,11 +3919,16 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .sol-cancelada .sv-t{font-size:var(--fs-rotulo); font-weight:700; color:var(--gray);}
 /* Y el botón de cancelar, abajo del todo: en rojo de contorno para que se
    encuentre, y relleno al pulsarlo, que es cuando de verdad está
-   preguntando algo. */
+   preguntando algo.
+
+   Con la forma de .btn -8px, --fs-boton- y sin fondo (Franklin Reyes,
+   29-9-2026, «¿esto contaría como una insignia?»): la pildora rosa
+   rellena era la forma que la capa sin insignias quito a las etiquetas,
+   y era lo unico del panel que aun la llevaba. */
 .sol-cancelar{margin-top:18px; padding-top:14px; border-top:1px solid var(--line-soft); max-width:880px;}
-.can-btn{font:inherit; font-size:var(--fs-nota); font-weight:700; color:var(--rust);
-  background:var(--rust-bg); border:1.5px solid var(--rust); border-radius:999px;
-  padding:8px 16px; cursor:pointer;}
+.can-btn{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--rust);
+  background:transparent; border:1px solid var(--rust); border-radius:8px;
+  padding:9px 15px; cursor:pointer;}
 .can-btn:hover{background:var(--rust); color:var(--rust-bg);}
 .can-btn.confirma{background:var(--rust); color:var(--rust-bg); border-color:var(--rust);}
 .can-btn[disabled]{opacity:.55; cursor:default;}
