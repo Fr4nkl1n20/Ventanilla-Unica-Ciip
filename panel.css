@@ -2956,6 +2956,10 @@ body[data-vista="tramite"] #secTramites{display:none;}
 
    Solo esta lista (.tr-escalera): las de los entes y la del tramo tienen
    sus propios hilos medidos desde la izquierda. */
+/* Del ancho de las cajas de la ficha -el recuadro de arriba y «Los
+   siguientes tramos»-, 880 como .pa: a todo el ancho de .content los seis
+   pasos se salian por la derecha (Franklin Reyes, 29-9-2026). */
+.tr-escalera{max-width:880px;}
 .tr-escalera .tr-paso{align-items:center; text-align:center; padding:0 8px;}
 .tr-escalera .tr-paso:last-child{padding-right:8px;}
 .tr-escalera .tr-paso:not(:last-child)::before{left:calc(50% + 18px); right:calc(-50% + 18px);}
@@ -3916,7 +3920,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 /* Y el botón de cancelar, abajo del todo: en rojo de contorno para que se
    encuentre, y relleno al pulsarlo, que es cuando de verdad está
    preguntando algo. */
-.sol-cancelar{margin-top:18px; padding-top:14px; border-top:1px solid var(--line-soft);}
+.sol-cancelar{margin-top:18px; padding-top:14px; border-top:1px solid var(--line-soft); max-width:880px;}
 .can-btn{font:inherit; font-size:var(--fs-nota); font-weight:700; color:var(--rust);
   background:var(--rust-bg); border:1.5px solid var(--rust); border-radius:999px;
   padding:8px 16px; cursor:pointer;}
