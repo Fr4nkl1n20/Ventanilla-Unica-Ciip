@@ -6373,7 +6373,10 @@ applyLang(idiomaParaMi());
       inp.addEventListener('change', function(){
         est.textContent = inp.files[0] ? inp.files[0].name : '';
         fila.classList.remove('mal');
-        if (!inp.files[0]) return;
+        if (!inp.files[0]){
+          var subeNo = fila.querySelector('.sd-sube'); if (subeNo) subeNo.remove();
+          return;
+        }
         /* Al elegir otro archivo, el de la bóveda deja de contar: se le
            quita la marca de «ya estaba en tu expediente» y el botón de
            abrirlo, que abría el VIEJO. Sin esto la fila enseñaba el
@@ -6383,6 +6386,11 @@ applyLang(idiomaParaMi());
         fila.removeAttribute('data-ya');
         var selloYa = fila.querySelector('.sd-ya'); if (selloYa) selloYa.remove();
         var verYa   = fila.querySelector('.sd-ver'); if (verYa) verYa.remove();
+        /* Y el visto de «este ya está» (Franklin Reyes, 29-9-2026: «al
+           subir un documento quiero que le salga el signo de aprobado»).
+           Con su clase y no con .sd-ya: esa dice que venía de la bóveda,
+           y este papel es nuevo. */
+        if (!fila.querySelector('.sd-sube')) fila.insertBefore(el('span', 'sd-sube', '✓'), btn);
         cuentaPapeles();
       });
       fila.appendChild(btn);

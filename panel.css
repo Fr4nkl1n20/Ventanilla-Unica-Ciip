@@ -3563,6 +3563,18 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .sd-ver:disabled{opacity:.5; cursor:default;}
 .sol-doc .sd-ya{font-size:var(--fs-chip); font-weight:700; letter-spacing:.03em; color:var(--good);
   background:var(--good-bg); border-radius:5px; padding:2px 7px; flex:none;}
+/* El visto de un archivo recién elegido: el mismo verde que el de la
+   bóveda, sin forma de insignia. */
+.sol-doc .sd-sube{font-size:var(--fs-seccion); font-weight:700; color:var(--good); flex:none;}
+/* EL RECAUDO QUE FALTA, EN ROJO DE VERDAD (Franklin Reyes, 29-9-2026:
+   «cuando falta un requisito obligatorio que marque el requisito en
+   rojo»). .sol-doc.mal solo cambiaba el color del borde, y en la hoja de
+   los recaudos y en la columna de subir hay reglas mas fuertes que ponen
+   el borde gris o lo quitan: el rojo no se veia nunca. Aqui gana en las
+   tres, y ademas el nombre del papel se pone en rojo. */
+.sol-doc.mal, .pa-hoja[data-paso="2"] .sol-doc.mal, .sol-lado .sol-doc.mal{
+  border-color:var(--rust); box-shadow:0 0 0 1px var(--rust) inset; background:var(--rust-bg);}
+.sol-doc.mal .sd-n{color:var(--rust);}
 
 /* --- pie del formulario --- */
 .sol-pie{margin-top:22px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
