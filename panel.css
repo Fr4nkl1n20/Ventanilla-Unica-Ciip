@@ -5008,3 +5008,28 @@ body[data-vista="horario"] .fase-bar{display:none;}
 .ho-acciones .co-motivo{margin-top:0; flex:1 1 200px; width:auto;}
 .ho-alerta{margin-top:8px; font-size:12.5px; color:var(--rust);}
 .ho-cita.en-cerrado{background:var(--rust-bg);}
+
+/* ══ CAPA SIN INSIGNIAS ══════════════════════════════════════════════════
+   Franklin Reyes, 29-9-2026: «no se puede utilizar insignias». Las
+   pastillas de color con texto -el estado de una ficha, de un ente, de una
+   cita o una consulta, «Guía», «Pronto», el sello de dónde vino un dato-
+   pasan a texto: se queda lo que dicen, su color y su punto, y se va la
+   forma -fondo, borde, esquina redonda y relleno lateral-.
+
+   Va al final y con !important a proposito: cada pastilla tiene tres o
+   cuatro variantes de color repartidas por el archivo, y dos capas
+   -shadcn y Atlas- que vuelven a redondearlas. Ganarles una a una
+   dejaria media docena sueltas. Si un dia vuelven, se quita este bloque.
+
+   Fuera, a proposito: los NUMEROS -la campana de avisos, los contadores
+   de filtros y pestañas- y las etiquetas de archivo adjunto, que llevan su
+   boton de quitar. No son insignias sino controles y cuentas. */
+.chip, .ct-chip, .co-estado, .cons-est, .cg-chip, .rv-chip, .gv-chip,
+.eq-tardo, .hoy-ente, .mt-aldia, .sb-item .soon-tag, .sol-doc .sd-ya,
+.sol-campo .de-empresa, .sol-campo .de-perfil, .sol-campo .de-antes,
+.sol-campo .de-papel, .pf-campo .de-papel{
+  background:none !important; border:0 !important; border-radius:0 !important;
+  box-shadow:none !important; padding-left:0 !important; padding-right:0 !important;}
+/* El azul de «en curso» era el cian del logo, el azul que no gusta: pasa
+   al azul del panel. */
+.chip.info{color:var(--navy2) !important;}
