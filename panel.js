@@ -3291,9 +3291,18 @@ applyLang(idiomaParaMi());
        empresa». Los tipos son los que ya usa la marca para lo mismo -una
        cédula es una cédula, un acta es un acta-, así que quien los tenga
        en la bóveda no los vuelve a subir. */
+    /* Y el 29-9-2026 (pedido del CIIP): «Contrato de arrendamiento o
+       título de propiedad» y «Plano escala 1:50 demarcando los sistemas de
+       seguridad». El contrato o título es titulo_inmueble, el mismo papel
+       que pide la conformidad de uso. El plano de seguridad es un tipo
+       nuevo, plano_seguridad (supabase-bomberos.sql): no es el croquis del
+       local, y si fuera plano_local la bóveda ofrecería el croquis como si
+       valiera. Lleva siExiste: hasta que la base lo conozca no se pide. */
     permiso_bomberos: [
       {tipo:'conformidad_uso',   clave:'d_conformidad'},
+      {tipo:'titulo_inmueble',   clave:'d_inmueble'},
       {tipo:'plano_local',       clave:'d_plano'},
+      {tipo:'plano_seguridad',   clave:'d_planoseg',    siExiste:true},
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
       {tipo:'cedula',            clave:'d_cedpasrep'},
       {tipo:'rif_personal',      clave:'d_rifrep'},
@@ -8029,8 +8038,41 @@ applyLang(idiomaParaMi());
            espera: 'lc_n_licencia_espera', listo: 'lc_n_licencia_lista'}
         ]}
       ]
+    },
+
+    /* ── EL PERMISO DE BOMBEROS (c29) ──
+       Pedido del CIIP (29-9-2026): «En proceso vamos a añadir estos dos
+       pasos: Importe por aranceles correspondientes, Comprobante de pago
+       de aranceles». La escalera era «Revisión de recaudos → Permiso
+       otorgado» (PASOS_SEGUN_ESTADO, 28-9-2026) y los dos van en medio.
+
+       La revisión la cierra el estado, al presentarla ante los bomberos,
+       como antes. El importe es un importe del día CON NOMBRE,
+       'aranceles', con su comprobante: el mismo mecanismo que la licencia
+       (IMPORTE_DEL_DIA más abajo). La base apunta el importe y el
+       comprobante al colgarse, y no deja resolver sin el comprobante
+       (supabase-bomberos.sql). El permiso lo cierra la resolución, y llega
+       como el documento emitido de cualquier trámite. */
+    permiso_bomberos: {
+      ref: 'c29',
+      textos: {titulo: 'bo_g_titulo', importe: 'bo_g_importe', retiro: 'bo_g_retiro'},
+      etapas: [
+        {clave: 'permiso', pasos: [
+          {clave: 'revision',           tipo: 'revision', rotulo: 'bo_p_revision'},
+          {clave: 'importe_aranceles',  tipo: 'importe',  rotulo: 'bo_p_imp_aranceles', importe: 'aranceles'},
+          {clave: 'pago_aranceles',     tipo: 'pago',     rotulo: 'bo_p_pago',          importe: 'aranceles'},
+          {clave: 'permiso',            tipo: 'retiro',   rotulo: 'bo_p_permiso',
+           espera: 'bo_n_permiso_espera', listo: 'bo_n_permiso_listo'}
+        ]}
+      ]
     }
   };
+
+  /* El importe de los aranceles de bomberos, con la solicitud ante los
+     bomberos. La fila de la base es una, la de siempre (supabase-bomberos.sql). */
+  IMPORTE_DEL_DIA.permiso_bomberos = [
+    {paso: 'aranceles', estados: ['ante_el_ente'], rotulo: 'bo_p_imp_aranceles'}
+  ];
 
   /* Los dos importes de la licencia, con la solicitud ante la alcaldía.
      La fila de la base es una, la de siempre (supabase-licencia.sql). */
@@ -21296,11 +21338,10 @@ applyLang(idiomaParaMi());
      conformidad de uso». Revisión mientras está en el CIIP, inscripción
      mientras está ante la alcaldía, y la certificación al resolverse. */
   var PASOS_SEGUN_ESTADO = {
-    c28: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
-    /* El permiso de bomberos (c29), el mismo día: «Revisión de recaudos →
-       Permiso otorgado». Ante los bomberos, el permiso es lo que está en
-       curso; resuelto, otorgado. */
-    c29: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1}
+    c28: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1}
+    /* El permiso de bomberos (c29) estuvo aquí el 28-9-2026, con dos pasos.
+       Desde el 29, con el importe de aranceles y su comprobante en medio,
+       lo cuenta su escalera por etapas (ESCALERA_POR_ETAPAS). */
   };
 
   /* ── UN TRÁMITE CON DOS ESCALERAS ──
@@ -22723,6 +22764,11 @@ applyLang(idiomaParaMi());
        dos (supabase-licencia.sql). */
     if (t.tipo === 'licencia_municipal')
       return {tipo: 'pago_importe_dia', pasos: ['tasa', 'timbre'], aviso: 'co_faltalicencia'};
+    /* El permiso de bomberos (29-9-2026): «Permiso otorgado» va detrás del
+       comprobante de pago de aranceles, y la base tampoco lo deja resolver
+       sin él (supabase-bomberos.sql). */
+    if (t.tipo === 'permiso_bomberos')
+      return {tipo: 'pago_importe_dia', pasos: ['aranceles'], aviso: 'co_faltabomberos'};
     return null;
   }
 

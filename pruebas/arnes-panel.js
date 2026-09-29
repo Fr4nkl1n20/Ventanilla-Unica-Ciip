@@ -8897,16 +8897,41 @@
          de('mantenimiento_extintores').opcional === true,
        recs.map(function(r){ return r.tipo; }).join(', '), 'conformidad, plano, RIF y extintores opcional');
     igual('bomberos: con los rótulos del CIIP', window.CIIP_T().d_docconst, 'Documento constitutivo de la empresa');
+    /* Y el 29-9-2026: el contrato o título y el plano de seguridad. */
+    igual('bomberos: pide el contrato de arrendamiento o título de propiedad', de('titulo_inmueble').clave, 'd_inmueble');
+    ok('bomberos: y el plano 1:50 de los sistemas de seguridad, un tipo propio que espera a la base',
+       de('plano_seguridad').clave === 'd_planoseg' && de('plano_seguridad').siExiste === true,
+       de('plano_seguridad').clave + ' · siExiste ' + de('plano_seguridad').siExiste, 'd_planoseg · siExiste true');
+    igual('bomberos: sin el SQL corrido, el plano de seguridad no se pide',
+          R.vale({tipo: 'plano_seguridad', siExiste: true}, {cedula: true}), false);
+    igual('bomberos: con el rótulo del pedido', window.CIIP_T().d_planoseg,
+          'Plano a escala 1:50 demarcando los sistemas de seguridad');
 
     var cat = window.CIIP_TIPOS_POR_REF, puesto = false;
     if (cat && !cat.c29){ cat.c29 = {codigo: 'permiso_bomberos', ref_panel: 'c29', ente: 'Cuerpo de Bomberos', activo: true}; puesto = true; }
-    var esc = function(estado){ return window.CIIP_ESCALERA({estado: estado, datos: {}}, 'permiso_bomberos', 'Cuerpo de Bomberos'); };
+    var esc = function(estado, pasos){
+      return window.CIIP_ESCALERA({estado: estado, datos: {pasos_ciip: pasos || {}}}, 'permiso_bomberos', 'Cuerpo de Bomberos');
+    };
     var dibujo = function(E){ return E.todos.map(function(p){ return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(','); };
-    igual('bomberos: dos pasos', esc('enviado').todos.map(function(p){ return p.nombre; }).join(' → '),
-          'Revisión de recaudos → Permiso otorgado');
-    igual('bomberos: en revisión, la revisión en curso', dibujo(esc('en_revision')), 'ahora,porhacer');
-    igual('bomberos: ante los bomberos, el permiso en curso', dibujo(esc('ante_el_ente')), 'hecho,ahora');
-    igual('bomberos: resuelto, otorgado', dibujo(esc('resuelto')), 'hecho,hecho');
+    igual('bomberos: cuatro pasos, con el importe de aranceles y su comprobante en medio',
+          esc('enviado').todos.map(function(p){ return p.nombre; }).join(' → '),
+          'Revisión de recaudos → Importe por aranceles correspondientes → Comprobante de pago de aranceles → Permiso otorgado');
+    igual('bomberos: en revisión, la revisión en curso', dibujo(esc('en_revision')), 'ahora,porhacer,porhacer,porhacer');
+    igual('bomberos: ante los bomberos, espera el importe', dibujo(esc('ante_el_ente')), 'hecho,ahora,porhacer,porhacer');
+    var ya = new Date().toISOString();
+    igual('bomberos: con el importe, espera el comprobante',
+          dibujo(esc('ante_el_ente', {importe_aranceles: ya})), 'hecho,hecho,ahora,porhacer');
+    igual('bomberos: con el comprobante, espera el permiso',
+          dibujo(esc('ante_el_ente', {importe_aranceles: ya, pago_aranceles: ya})), 'hecho,hecho,hecho,ahora');
+    igual('bomberos: resuelto, otorgado', dibujo(esc('resuelto')), 'hecho,hecho,hecho,hecho');
+    var M = window.CIIP_MARCA;
+    var pide = M && M.comprobante({id: 'bo-x', tipo: 'permiso_bomberos', estado: 'ante_el_ente', datos: {}});
+    igual('bomberos: para resolver pide el comprobante de los aranceles',
+          pide ? pide.tipo + ' · ' + (pide.pasos || []).join('+') : '(nada)', 'pago_importe_dia · aranceles');
+    var reg = window.CIIP_IMPORTE && window.CIIP_IMPORTE.registro.permiso_bomberos;
+    igual('bomberos: el importe del día, con nombre y ante los bomberos',
+          reg ? reg.map(function(x){ return x.paso + ' · ' + x.estados.join('+'); }).join(', ') : '(sin registro)',
+          'aranceles · ante_el_ente');
     if (puesto) delete cat.c29;
   }
 

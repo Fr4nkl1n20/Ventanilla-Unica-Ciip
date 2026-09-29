@@ -171,8 +171,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* El registro de importador y exportador (c11) se apaga en el catálogo.
    Va detrás de supabase-tramites, cuyas listas ya no lo encienden. */
 'supabase-quitar-importador',
-/* El permiso de bomberos (c29): el borrado de sus pasos viejos. Solo
-   necesita textos_panel. */
+/* El permiso de bomberos (c29): el borrado de sus pasos viejos, y desde el
+   29-9-2026 el plano de seguridad y el importe de aranceles con su
+   comprobante. Va DETRÁS del importe del día y de la marca, como la
+   licencia. */
 'supabase-bomberos',
 /* Citas y consultas tras la auditoría QA del 28-9-2026: estados de la cita,
    motivo, una viva por persona, confirmar desde el equipo y la consulta que

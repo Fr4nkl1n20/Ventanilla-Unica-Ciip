@@ -1778,7 +1778,10 @@
         /* Los tres de la conformidad de uso (28-9-2026), como si su SQL
            estuviera corrido. */
         {codigo:'cedula_catastral', vence:false}, {codigo:'permiso_construccion', vence:false},
-        {codigo:'fotos_local', vence:false}
+        {codigo:'fotos_local', vence:false},
+        /* El plano de seguridad del permiso de bomberos (29-9-2026), como
+           si supabase-bomberos.sql estuviera corrido. */
+        {codigo:'plano_seguridad', vence:false}
       ], error:null};
     }
 
