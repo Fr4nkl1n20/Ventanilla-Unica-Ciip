@@ -15683,14 +15683,22 @@ applyLang(idiomaParaMi());
     var d = docs[visor.i] || null;
     var activo = document.activeElement;
     var foco = (activo && caja.contains(activo)) ? activo.id : '';
-    var clave = t.id + ':' + visor.i;
+    var vista = visorVista(t);
+    var clave = t.id + ':' + visor.i + ':' + vista;
     var ventana = caja.querySelector('.visor-c');
 
     if (!entera && ventana && caja.getAttribute('data-doc') === clave){
       ventana.replaceChild(visorBarra(t, d, docs), ventana.querySelector('.visor-bar'));
-      var cuerpo = ventana.querySelector('.visor-cu');
-      cuerpo.replaceChild(visorIzq(t, docs), cuerpo.querySelector('.visor-izq'));
-      cuerpo.replaceChild(visorLado(t, d, docs), cuerpo.querySelector('.visor-lado'));
+      var pasosV = ventana.querySelector('.visor-pasos');
+      if (pasosV) ventana.replaceChild(visorPasos(t, vista), pasosV);
+      if (vista === 'entes'){
+        var cuE = ventana.querySelector('.visor-entes-cu');
+        ventana.replaceChild(visorEntes(t), cuE);
+      } else {
+        var cuerpo = ventana.querySelector('.visor-cu');
+        cuerpo.replaceChild(visorIzq(t, docs), cuerpo.querySelector('.visor-izq'));
+        cuerpo.replaceChild(visorLado(t, d, docs), cuerpo.querySelector('.visor-lado'));
+      }
     } else {
       caja.textContent = '';
       ventana = el('div', 'visor-c');
@@ -15698,11 +15706,16 @@ applyLang(idiomaParaMi());
       ventana.setAttribute('aria-modal', 'true');
       ventana.setAttribute('aria-labelledby', 'paVisorTit');
       ventana.appendChild(visorBarra(t, d, docs));
-      var cu = el('div', 'visor-cu');
-      cu.appendChild(visorIzq(t, docs));
-      cu.appendChild(visorHoja(d));
-      cu.appendChild(visorLado(t, d, docs));
-      ventana.appendChild(cu);
+      if (visorConEntes(t)) ventana.appendChild(visorPasos(t, vista));
+      if (vista === 'entes'){
+        ventana.appendChild(visorEntes(t));
+      } else {
+        var cu = el('div', 'visor-cu');
+        cu.appendChild(visorIzq(t, docs));
+        cu.appendChild(visorHoja(d));
+        cu.appendChild(visorLado(t, d, docs));
+        ventana.appendChild(cu);
+      }
       caja.appendChild(ventana);
     }
     caja.setAttribute('data-doc', clave);
@@ -15712,6 +15725,89 @@ applyLang(idiomaParaMi());
       var vuelve = document.getElementById(foco);
       if (vuelve) vuelve.focus();
     }
+  }
+
+  /* ── LOS TRES PASOS DE LOS PARAFISCALES ──
+     Franklin Reyes, 29-9-2026, la idea A de las maquetas: «primero se
+     verifican los recaudos, le doy enviar al ente y se activa la opción de
+     entes varios», y que esa parte «esté más libre y se dedique a recibir y
+     mandar información de los entes».
+
+     Así que el visor de los registros parafiscales tiene una barra de
+     pasos -revisar recaudos, presentar ante el ente, inscripción ante cada
+     ente- y el tercero es una vista propia, a lo ancho, con las seis
+     tarjetas. Se abre al presentar la solicitud: antes está gris y no se
+     puede pulsar. Los otros trámites no tienen tercer paso y siguen sin
+     barra. */
+  function visorConEntes(t){
+    return t.tipo === TIPO_PARAFISCALES && t.estado !== 'borrador';
+  }
+  function visorEntesAbiertos(t){
+    return ENTES_ABIERTOS.indexOf(t.estado) >= 0;
+  }
+  /* La vista que toca: la que eligió quien mira, y si no eligió ninguna,
+     la de los entes en cuanto están abiertos -es lo que queda por hacer-.
+     Con los entes cerrados, siempre los recaudos. */
+  function visorVista(t){
+    if (!visorConEntes(t) || !visorEntesAbiertos(t)) return 'recaudos';
+    return visor.vista || 'entes';
+  }
+  function visorPasos(t, vista){
+    var u = T();
+    var abiertos = visorEntesAbiertos(t);
+    var barra = el('div', 'visor-pasos');
+    barra.setAttribute('role', 'tablist');
+    barra.setAttribute('aria-label', u.vs_pasos || '');
+    var listas = null;
+    var ya = ENTES_YA[t.id];
+    if (ya){
+      listas = ENTES_PARAFISCALES.filter(function(e){ return ya[e] && ya[e].estado === 'listo'; }).length;
+    } else if (abiertos && !visor.cuentaPedida){
+      /* La cuenta llega sola: en cuanto la base conteste, se repinta. Una
+         vez por visor: si la base falla, ENTES_YA se queda vacío y sin el
+         candado se pediría otra vez en cada repintado. */
+      visor.cuentaPedida = true;
+      entesDe(t.id).then(function(){ if (visor && visor.id === t.id) pintaVisor(); });
+    }
+    /* El 1 y el 2 abren los recaudos -el 2, «presentar», es el botón del
+       pie de esa vista-; el 3, los entes. Marcado va el de la vista que se
+       ve: el 1 con los recaudos, el 3 con los entes. */
+    [
+      {k: 'vs_p1', hecho: abiertos, vista: 'recaudos', on: vista === 'recaudos'},
+      {k: 'vs_p2', hecho: abiertos, vista: 'recaudos', on: false},
+      {k: 'vs_p3', hecho: false, vista: 'entes', on: vista === 'entes', cerrado: !abiertos}
+    ].forEach(function(p, i){
+      var b = el('button', 'vp' + (p.hecho ? ' hecho' : '') + (p.on ? ' on' : ''));
+      b.type = 'button';
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', p.on ? 'true' : 'false');
+      b.appendChild(el('span', 'vp-n', p.hecho ? '✓' : String(i + 1)));
+      var txt = u[p.k] || '';
+      if (i === 2 && listas !== null){
+        txt += ' · ' + String(u.vs_listas || '').replace('{n}', listas).replace('{t}', ENTES_PARAFISCALES.length);
+      }
+      b.appendChild(el('span', null, txt));
+      if (p.cerrado){
+        b.disabled = true;
+        b.title = u.vs_p3_bloq || '';
+      } else {
+        b.addEventListener('click', function(){
+          visor.vista = p.vista;
+          pintaVisor(true);
+        });
+      }
+      barra.appendChild(b);
+    });
+    return barra;
+  }
+  /* El paso 3: las seis tarjetas en rejilla, y debajo el pie de siempre
+     -resolver, devolver-, que con los entes abiertos es lo que cierra la
+     solicitud. */
+  function visorEntes(t){
+    var cu = el('div', 'visor-entes-cu');
+    cu.appendChild(listaDeEntes(t, 'equipo', null, false, true));
+    cu.appendChild(visorFin(t));
+    return cu;
   }
 
   function visorBarra(t, d, docs){
@@ -15917,11 +16013,11 @@ applyLang(idiomaParaMi());
        la ventana de la cola, con los mismos botones. Van en este lado y no
        en el izquierdo (Franklin, el mismo día): allí se apretujaban debajo
        de los archivos y aquí sobraba el sitio. */
-    if (t.tipo === TIPO_PARAFISCALES && t.estado !== 'borrador'){
-      var sE = el('section', 'visor-entes');
-      sE.appendChild(el('h4', null, u.pe_titulo || ''));
-      sE.appendChild(listaDeEntes(t, 'equipo'));
-      lado.appendChild(sE);
+    /* Desde el 29-9-2026 los entes tienen su propio paso -el 3- y ya no
+       van aquí, debajo del recaudo, donde se leían como parte de él.
+       Mientras están cerrados se dice cuándo se abren. */
+    if (visorConEntes(t) && !visorEntesAbiertos(t)){
+      lado.appendChild(el('p', 'visor-bloq', u.vs_p3_bloq || ''));
     }
 
     lado.appendChild(visorFin(t));
@@ -22026,8 +22122,14 @@ applyLang(idiomaParaMi());
      casilla para la constancia- y así no hay dos sitios que dibujen un
      ente y puedan acabar dibujándolo distinto. */
   /* recogida: la tarjeta sin pasos y con «Ver trámite», para la fila de
-     Mis trámites (29-9-2026). */
-  function listaDeEntes(tr, modo, soloEste, recogida){
+     Mis trámites (29-9-2026).
+     rejilla: el paso 3 del visor (29-9-2026, la idea A de las maquetas).
+     En vez de la escalera, dos casillas: «Llegó» -el código, o el usuario
+     y la contraseña- y «Enviar» -inscripción hecha, la constancia-, con
+     «Marcar lista» debajo. Son los MISMOS botones y la misma cuenta de
+     siempre, solo colocados de otra forma: un ente se sigue dibujando en
+     un solo sitio. */
+  function listaDeEntes(tr, modo, soloEste, recogida, rejilla){
     var u = T();
     var caja = el('div', 'pe-lista');
     var abierto = ENTES_ABIERTOS.indexOf(tr.estado) >= 0;
@@ -22167,6 +22269,11 @@ applyLang(idiomaParaMi());
          se enseñan según el estado: así el repintado es enseñar y esconder,
          y no volver a construir media pantalla. */
       var form = null, inscribe = null, listo = null, otro = null;
+      /* En la rejilla: lo que dice «Llegó» cuando no ha llegado nada. Lo
+         enciende pon(). La constancia ya enviada la dice su propia casilla
+         (.pe-subido). */
+      var nadaL = rejilla ? el('div', 'pe-nada',
+        (conClave ? u.pe_nada_aun : u.pe_sin_datos) || '') : null;
 
       /* Manda el cambio y repinta con lo que la BASE devolvió. Con
          .select(): una política que no deja pasar el UPDATE no da error,
@@ -22462,6 +22569,7 @@ applyLang(idiomaParaMi());
           dice.appendChild(ver);
         }
         dice.hidden = !dice.childNodes.length;
+        if (nadaL) nadaL.hidden = !dice.hidden;
         /* La caja sale cuando toca escribir -te acaban de inscribir- y se
            cierra en cuanto mandas el código. Reabrirla es cosa del botón de
            al lado, que solo sale mientras el CIIP no lo haya dado por
@@ -22474,6 +22582,26 @@ applyLang(idiomaParaMi());
       }
       pon(null);
       fila.CIIP_PON = pon;
+      /* LA REJILLA DEL VISOR: los mismos nodos, sacados de la escalera y
+         puestos en sus dos casillas. appendChild MUEVE, no copia: el botón
+         que pon() enseña o esconde es el mismo que se ve aquí. */
+      if (rejilla){
+        ol.hidden = true;
+        var dos = el('div', 'pe-dos');
+        var cL = el('div', 'pe-caja');
+        cL.appendChild(el('div', 'pe-caja-t', u.pe_llego || ''));
+        cL.appendChild(dice);
+        cL.appendChild(nadaL);
+        if (otro) cL.appendChild(otro);
+        var cE = el('div', 'pe-caja');
+        cE.appendChild(el('div', 'pe-caja-t', u.pe_envia || ''));
+        if (inscribe) cE.appendChild(inscribe);
+        if (sube) cE.appendChild(sube);
+        dos.appendChild(cL);
+        dos.appendChild(cE);
+        fila.appendChild(dos);
+        if (listo) fila.appendChild(listo);
+      }
       caja.appendChild(fila);
     });
     entesDe(tr.id).then(function(m){

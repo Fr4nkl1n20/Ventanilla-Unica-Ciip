@@ -4847,6 +4847,44 @@ html.visor-abierto{overflow:hidden;}
    que es lo suyo en el expediente, cada bloque medía lo que su texto y la
    casilla de la constancia se quedaba en «N…o». */
 .visor-entes .pe-lista{width:auto; margin-top:0;}
+
+/* ── LOS TRES PASOS DE LOS PARAFISCALES (29-9-2026, la idea A) ──
+   Una barra de pestañas bajo la cabecera del visor, y el paso 3 como vista
+   propia a lo ancho: las seis tarjetas de tres en tres, cada una con lo
+   que llegó y lo que se manda. */
+.visor-pasos{display:flex; gap:4px; padding:0 14px; border-bottom:1px solid var(--line);
+  background:var(--bg); overflow-x:auto;}
+.visor-pasos .vp{display:inline-flex; align-items:center; gap:8px; padding:11px 14px; border:0;
+  border-bottom:3px solid transparent; background:none; font-family:inherit; font-size:var(--fs-pestana);
+  font-weight:700; color:var(--gray); cursor:pointer; white-space:nowrap;}
+.visor-pasos .vp:hover:not(:disabled){color:var(--ink);}
+.visor-pasos .vp.on{color:var(--navy2); border-bottom-color:var(--navy2);}
+.visor-pasos .vp:disabled{opacity:.5; cursor:default;}
+.visor-pasos .vp:focus-visible{outline:2px solid var(--navy2); outline-offset:-2px;}
+.visor-pasos .vp-n{width:20px; height:20px; border-radius:50%; display:inline-flex; align-items:center;
+  justify-content:center; font-size:var(--fs-chip); background:var(--block); color:var(--gray);}
+.visor-pasos .vp.hecho .vp-n{background:var(--good); color:#fff;}
+.visor-pasos .vp.on .vp-n{background:var(--navy2); color:#fff;}
+.visor-bloq{margin:0; padding:12px 14px; border:1px dashed var(--line); border-radius:var(--r-sm);
+  font-size:var(--fs-nota); color:var(--gray); line-height:1.5;}
+.visor-entes-cu{flex:1 1 auto; min-height:0; overflow:auto; padding:16px 18px;
+  display:flex; flex-direction:column; gap:16px; background:var(--block);}
+.visor-entes-cu .pe-lista{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px;
+  width:auto; max-width:none; margin-top:0;}
+@media(max-width:1100px){ .visor-entes-cu .pe-lista{grid-template-columns:repeat(2, minmax(0,1fr));} }
+@media(max-width:700px){  .visor-entes-cu .pe-lista{grid-template-columns:minmax(0,1fr);} }
+.visor-entes-cu .pe-ente{background:var(--bg); padding:14px 16px; gap:10px;}
+.visor-entes-cu .visor-fin{max-width:880px;}
+.visor-entes-cu .pe-listo{align-self:flex-start;}
+/* Las dos casillas de cada ente: lo que llegó y lo que se manda. */
+.pe-dos{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px;}
+.pe-caja{display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-width:0;
+  padding:10px 12px; border-radius:var(--r-sm); background:var(--block); border:1px solid var(--line-soft);
+  font-size:var(--fs-nota);}
+.pe-caja-t{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--gray);}
+.pe-caja .pe-dice{margin-top:0;}
+.pe-nada{color:var(--gray-soft);}
+.pe-nada[hidden]{display:none;}
 .visor-meta{display:flex; flex-direction:column; align-items:flex-start; gap:6px;}
 .visor-chk{display:flex; flex-direction:column; gap:2px;}
 .visor-chk button{display:grid; grid-template-columns:22px minmax(0,1fr); gap:8px; align-items:center; text-align:left;
