@@ -9048,6 +9048,17 @@ applyLang(idiomaParaMi());
             bloqueE.appendChild(listaDeEntes(tr,
               (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) ? 'equipo' : 'inversionista'));
             lista.parentNode.insertBefore(bloqueE, lista.nextSibling);
+            /* Se llegó desde «Ver trámite» de un ente en Mis trámites: a su
+               tarjeta, que es la que se fue a buscar. Una vez y se olvida. */
+            var aVer = window.CIIP_ENTE_A_VER;
+            if (aVer){
+              window.CIIP_ENTE_A_VER = null;
+              var fE = bloqueE.querySelector('.pe-ente[data-ente="' + aVer + '"]');
+              if (fE) setTimeout(function(){
+                try { fE.scrollIntoView({behavior: 'smooth', block: 'center'}); }
+                catch(e){ fE.scrollIntoView(); }
+              }, 60);
+            }
 
             /* ── ESTE PELDAÑO NO TERMINA HASTA QUE ESTÉN LOS CINCO ──
                Franklin Reyes, 25-9-2026: «el proceso falla, necesito una
@@ -18998,7 +19009,11 @@ applyLang(idiomaParaMi());
         var tdE = el('td');
         tdE.colSpan = mtColumnas().length;
         tdE.appendChild(el('div', 'mt-entes-h', u.pe_titulo || ''));
-        tdE.appendChild(listaDeEntes(t, (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) ? 'equipo' : 'inversionista'));
+        var esEq = !!(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO());
+        /* Al inversionista, recogida: aquí solo el estado, la constancia y
+           el camino a la solicitud. El equipo inscribe desde esta tabla, y
+           a él se le deja entera. */
+        tdE.appendChild(listaDeEntes(t, esEq ? 'equipo' : 'inversionista', null, !esEq));
         trE.appendChild(tdE);
         cuerpo.appendChild(trE);
       }
@@ -21994,7 +22009,9 @@ applyLang(idiomaParaMi());
      solicitud. El bloque es el mismo -mismos pasos, mismos botones, misma
      casilla para la constancia- y así no hay dos sitios que dibujen un
      ente y puedan acabar dibujándolo distinto. */
-  function listaDeEntes(tr, modo, soloEste){
+  /* recogida: la tarjeta sin pasos y con «Ver trámite», para la fila de
+     Mis trámites (29-9-2026). */
+  function listaDeEntes(tr, modo, soloEste, recogida){
     var u = T();
     var caja = el('div', 'pe-lista');
     var abierto = ENTES_ABIERTOS.indexOf(tr.estado) >= 0;
@@ -22087,29 +22104,31 @@ applyLang(idiomaParaMi());
       baja.hidden = true;
       ultimo.txt.appendChild(baja);
 
-      /* ── AL INVERSIONISTA, LA TARJETA RECOGIDA ──
+      /* ── EN «MIS TRÁMITES», LA TARJETA RECOGIDA ──
          Franklin Reyes, 29-9-2026: «se ve raro con los pasos visibles en
          el cuadro, podemos solo dejar la opción de descargar documento
-         cuando esté listo y una opción de ver trámite, para reducir el
-         espacio». Los pasos se esconden detrás de «Ver trámite» y la
-         descarga sube a la vista, bajo el nombre.
+         cuando esté listo y una opción de ver trámite». Y después: que
+         ese botón LLEVE al trámite en vez de desplegar, y que en el
+         detalle del trámite no se toque nada.
 
-         Solo al inversionista: el equipo trabaja DENTRO de los pasos
-         -inscribir, marcar listo, subir la constancia- y escondérselos
-         seria esconderle el trabajo. Y cuando le toca escribir su usuario
-         y contraseña, la tarjeta se abre sola (en pon()): la casilla vive
-         en un paso, y recogida no la veria nadie. */
-      var verTr = null;
-      if (modo === 'inversionista'){
+         Así que solo aquí -recogida, que la pasa la fila de Mis trámites-
+         los pasos se esconden, la descarga sube bajo el nombre y «Ver
+         trámite» abre la solicitud de parafiscales en la tarjeta de ESTE
+         ente, con sus pasos a la vista. Es también donde se escribe el
+         usuario y la contraseña cuando toca. */
+      if (recogida){
         var pie = el('div', 'pe-pie');
-        verTr = el('button', 'pe-vertr', u.pe_vertramite || '');
+        var verTr = el('button', 'pe-vertr', u.pe_vertramite || '');
         verTr.type = 'button';
-        verTr.setAttribute('aria-expanded', 'false');
         ol.hidden = true;
         verTr.addEventListener('click', function(){
-          ol.hidden = !ol.hidden;
-          verTr.setAttribute('aria-expanded', ol.hidden ? 'false' : 'true');
-          verTr.textContent = (ol.hidden ? u.pe_vertramite : u.pe_ocultatramite) || '';
+          var ref = tipoRefDe(tr.tipo);
+          if (!ref) return;
+          /* La solicitud de la fila y no otra del mismo tipo, y el ente al
+             que bajar: los recoge pintaEstado al pintar los entes. */
+          window.CIIP_ABRE_ESTA = tr.id;
+          window.CIIP_ENTE_A_VER = ente;
+          location.hash = 'tramite-' + ref;
         });
         pie.appendChild(baja);
         pie.appendChild(verTr);
@@ -22391,13 +22410,6 @@ applyLang(idiomaParaMi());
            bueno: después ya no hay nada que corregir. */
         if (form) form.hidden = !(abierto && st === 'inscrito');
         if (otro) otro.hidden = !(abierto && st === 'codigo_enviado');
-        /* Le toca escribir: la tarjeta recogida se abre para enseñarle
-           la casilla. */
-        if (verTr && form && !form.hidden && ol.hidden){
-          ol.hidden = false;
-          verTr.setAttribute('aria-expanded', 'true');
-          verTr.textContent = u.pe_ocultatramite || '';
-        }
         if (inscribe) inscribe.hidden = (st !== 'pendiente');
         if (listo) listo.hidden = conClave ? (st !== 'codigo_enviado') : (st === 'listo');
         enciende(HECHOS[st]);
