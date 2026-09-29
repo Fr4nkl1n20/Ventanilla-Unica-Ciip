@@ -4104,7 +4104,26 @@ applyLang(idiomaParaMi());
       {n:'fecha_constitucion',  clave:'f_constitucion', tipo:'date'},
       {n:'capital_social',      clave:'f_capital'},
       {n:'actividad_economica', clave:'f_actividad'},
-      {n:'direccion_fiscal',    clave:'f_direccion',    ancho:true}
+      {n:'direccion_fiscal',    clave:'f_direccion',    ancho:true},
+      /* EL REPRESENTANTE LEGAL, CON SU CORREO Y SU TELÉFONO (Franklin Reyes,
+         29-9-2026). El RIF lo pide la empresa, pero lo firma y lo recibe una
+         persona: quién va a ser, y cómo se la localiza. Los tres son
+         obligatorios -sin ellos el CIIP no sabe a quién llamar cuando el
+         SENIAT pregunta-.
+
+         El nombre va en 'representante' y no en uno nuevo: es la casilla que
+         ya llevan la ficha de la empresa y ocho trámites más, así que llega
+         puesta con lo que se escribió allí. 'representante_legal' no sirve:
+         pide «nombre y cédula», y aquí se pide nombre y apellido.
+
+         El correo y el teléfono son del REPRESENTANTE, y por eso tienen
+         nombre propio. 'correo' se rellenaría con el correo de tu cuenta
+         -que es tuyo, no suyo- y 'telefono' es el de la empresa en la ficha
+         y en los registros: con cualquiera de los dos el formulario
+         saldría relleno con el dato de otra persona. */
+      {n:'representante',          clave:'f_repnombre'},
+      {n:'correo_representante',   clave:'f_repcorreo',   tipo:'email'},
+      {n:'telefono_representante', clave:'f_reptelefono', tipo:'tel'}
     ],
     /* ── la constitucion ──
        Los campos y sus opciones salen del formulario del SAREN,

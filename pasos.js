@@ -1894,6 +1894,10 @@ window.CIIP_PASOS = {
       d_logo:        "Logo",
       /* --- Registros laborales (IVSS · INCES · FAOV) --- */
       f_representante:"Representante legal (patrono)",
+      /* --- RIF de la empresa: el representante legal (Franklin Reyes, 29-9-2026) --- */
+      f_repnombre:   "Nombre y apellido del representante legal",
+      f_repcorreo:   "Correo electrónico del representante legal",
+      f_reptelefono: "Teléfono del representante legal",
       f_iniciolab:   "Fecha de inicio de actividades",
       f_numtrab:     "N.º de trabajadores a inscribir",
       d_nomina:      "Nómina de trabajadores",
@@ -3287,6 +3291,9 @@ window.CIIP_PASOS = {
       d_logo:        "Logo",
       /* --- Labour registrations (IVSS · INCES · FAOV) --- */
       f_representante:"Legal representative (employer)",
+      f_repnombre:   "Legal representative's full name",
+      f_repcorreo:   "Legal representative's email",
+      f_reptelefono: "Legal representative's phone",
       f_iniciolab:   "Date operations started",
       f_numtrab:     "Number of employees to enrol",
       d_nomina:      "Payroll list",
@@ -4665,6 +4672,9 @@ window.CIIP_PASOS = {
       d_logo:        "Logótipo",
       /* --- Registos laborais (IVSS · INCES · FAOV) --- */
       f_representante:"Representante legal (entidade patronal)",
+      f_repnombre:   "Nome e apelido do representante legal",
+      f_repcorreo:   "E-mail do representante legal",
+      f_reptelefono: "Telefone do representante legal",
       f_iniciolab:   "Data de início da atividade",
       f_numtrab:     "N.º de trabalhadores a inscrever",
       d_nomina:      "Folha de trabalhadores",
@@ -6043,6 +6053,9 @@ window.CIIP_PASOS = {
       d_logo:        "Logo",
       /* --- Registrazioni del lavoro (IVSS · INCES · FAOV) --- */
       f_representante:"Rappresentante legale (datore di lavoro)",
+      f_repnombre:   "Nome e cognome del rappresentante legale",
+      f_repcorreo:   "Email del rappresentante legale",
+      f_reptelefono: "Telefono del rappresentante legale",
       f_iniciolab:   "Data di inizio dell’attività",
       f_numtrab:     "Numero di dipendenti da iscrivere",
       d_nomina:      "Elenco dei dipendenti",
@@ -7421,6 +7434,9 @@ window.CIIP_PASOS = {
       d_logo:        "标志",
       /* --- 劳动登记（IVSS · INCES · FAOV） --- */
       f_representante:"法定代表人（雇主）",
+      f_repnombre:   "法定代表人姓名",
+      f_repcorreo:   "法定代表人电子邮箱",
+      f_reptelefono: "法定代表人电话",
       f_iniciolab:   "开业日期",
       f_numtrab:     "拟登记员工人数",
       d_nomina:      "员工名册",
@@ -8799,6 +8815,9 @@ window.CIIP_PASOS = {
       d_logo:        "Логотип",
       /* --- Трудовые регистрации (IVSS · INCES · FAOV) --- */
       f_representante:"Законный представитель (работодатель)",
+      f_repnombre:   "Имя и фамилия законного представителя",
+      f_repcorreo:   "Электронная почта законного представителя",
+      f_reptelefono: "Телефон законного представителя",
       f_iniciolab:   "Дата начала деятельности",
       f_numtrab:     "Число работников для регистрации",
       d_nomina:      "Список работников",

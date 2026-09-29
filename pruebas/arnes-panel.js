@@ -4589,6 +4589,35 @@
       var razon = caja.querySelector('.sol-campo[data-campo="razon_social"] input');
       igual('devuelto: y con lo que ya había rellenado',
             razon ? razon.value : '(no está)', 'Bianchi Agroindustrias, C.A.');
+
+      /* El RIF de la empresa pregunta quién es el representante legal y
+         cómo se le localiza (Franklin Reyes, 29-9-2026): nombre y apellido,
+         correo y teléfono, los tres obligatorios. */
+      var REP = [['representante',          'Nombre y apellido del representante legal', 'text'],
+                 ['correo_representante',   'Correo electrónico del representante legal', 'email'],
+                 ['telefono_representante', 'Teléfono del representante legal',           'tel']];
+      var vistoRep = REP.map(function(r){
+        var c = caja.querySelector('.sol-campo[data-campo="' + r[0] + '"]');
+        if (!c) return r[0] + ': no está';
+        var i = c.querySelector('input');
+        return r[0] + ': ' + (c.querySelector('label').textContent.indexOf(r[1]) === 0 ? 'rótulo' : 'otro rótulo') +
+               ' · ' + (i ? i.type : 'sin input') +
+               ' · ' + (c.hasAttribute('data-opcional') ? 'opcional' : 'obligatorio');
+      });
+      igual('rif de la empresa: pide el representante legal, su correo y su teléfono',
+            vistoRep.join(' | '),
+            REP.map(function(r){ return r[0] + ': rótulo · ' + r[2] + ' · obligatorio'; }).join(' | '));
+
+      /* El nombre llega de Mi empresa, que ya lo sabe. El correo y el
+         teléfono NO: son del representante, y el de tu cuenta o el de la
+         empresa serían el dato de otra persona puesto en su casilla. */
+      var repN = caja.querySelector('.sol-campo[data-campo="representante"] input');
+      igual('rif de la empresa: el representante llega puesto desde tu empresa',
+            repN ? repN.value : '(no está)', 'Franklin Reyes');
+      var repC = caja.querySelector('.sol-campo[data-campo="correo_representante"] input');
+      var repT = caja.querySelector('.sol-campo[data-campo="telefono_representante"] input');
+      igual('rif de la empresa: y su correo y su teléfono llegan en blanco',
+            (repC ? repC.value : '(no está)') + ' · ' + (repT ? repT.value : '(no está)'), ' · ');
     }
     location.hash = '';
   }
