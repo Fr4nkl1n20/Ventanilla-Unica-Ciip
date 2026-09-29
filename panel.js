@@ -8133,6 +8133,51 @@ applyLang(idiomaParaMi());
            espera: 'bo_n_permiso_espera', listo: 'bo_n_permiso_listo'}
         ]}
       ]
+    },
+
+    /* ── EL SELLADO DE LIBROS (c24) ──
+       Pedido del CIIP (29-9-2026): «Aquí se marca automáticamente que la
+       persona trajo los libros al CIIP, vamos a poner un paso previo de
+       Revisión de recaudos, luego Consignación de libros en el CIIP (aquí
+       le debe salir un anuncio al inversionista de que debe traer los
+       libros que quiere sellar al CIIP)».
+
+       La escalera de siempre daba el primer paso por hecho en cuanto se
+       enviaba, porque casi todas empiezan por «Solicitud recibida»; aquí
+       el primero era «Consignar libros» y salía en verde sin que nadie
+       hubiera traído nada.
+
+       Los dos primeros los cierra el ESTADO, como en la licencia: la
+       revisión, al pasar la solicitud a revisión; la consignación, al
+       presentarla ante el SAREN, que no se hace sin los libros en la mano.
+       Mientras la consignación está en curso, el inversionista ve el aviso
+       de que tiene que traerlos. El último lo cierra la resolución: resuelta,
+       los libros están sellados y listos para retirar.
+
+       Y el mismo día, dos pasos más tras el SAREN: «Emisión de PUB por
+       SAREN» y «Comprobante de pago de PUB» (aquí el inversionista envía el
+       comprobante). El PUB es un importe del día CON NOMBRE, 'pub', como
+       el de la licencia y el del bomberos: el equipo lo sube y el
+       inversionista carga el comprobante contra él (IMPORTE_DEL_DIA más
+       abajo, y supabase-libros.sql). Con eso, «Solicitud introducida ante
+       el SAREN» ya no la cierra la resolución sino el estado, igual que la
+       consignación: presentada ante el SAREN, lo que está en curso es el
+       PUB. La base no tiene cómo marcar un paso del CIIP fuera de la marca
+       (marca_paso_ciip solo conoce los suyos), y así no hace falta. */
+    libros_contables: {
+      ref: 'c24',
+      textos: {titulo: 'sl_g_titulo', importe: 'sl_g_importe', retiro: 'sl_g_retiro'},
+      etapas: [
+        {clave: 'sellado', pasos: [
+          {clave: 'revision',    tipo: 'estado', rotulo: 'sl_p_revision', hechoEn: ['en_revision', 'ante_el_ente']},
+          {clave: 'consigna',    tipo: 'estado', rotulo: 'sl_p_consigna', hechoEn: ['ante_el_ente'],
+           espera: 'sl_n_consigna'},
+          {clave: 'saren',       tipo: 'estado', rotulo: 'sl_p_saren',    hechoEn: ['ante_el_ente']},
+          {clave: 'importe_pub', tipo: 'importe', rotulo: 'sl_p_pub',     importe: 'pub'},
+          {clave: 'pago_pub',    tipo: 'pago',    rotulo: 'sl_p_pago',    importe: 'pub'},
+          {clave: 'sellados',    tipo: 'retiro', rotulo: 'sl_p_sellados', listo: 'sl_n_sellados'}
+        ]}
+      ]
     }
   };
 
@@ -8140,6 +8185,12 @@ applyLang(idiomaParaMi());
      bomberos. La fila de la base es una, la de siempre (supabase-bomberos.sql). */
   IMPORTE_DEL_DIA.permiso_bomberos = [
     {paso: 'aranceles', estados: ['ante_el_ente'], rotulo: 'bo_p_imp_aranceles'}
+  ];
+
+  /* El PUB del sellado de libros, con la solicitud ante el SAREN. La fila
+     de la base es una, la de siempre (supabase-libros.sql). */
+  IMPORTE_DEL_DIA.libros_contables = [
+    {paso: 'pub', estados: ['ante_el_ente'], rotulo: 'sl_p_pub'}
   ];
 
   /* Los dos importes de la licencia, con la solicitud ante la alcaldía.
@@ -22899,6 +22950,10 @@ applyLang(idiomaParaMi());
        sin él (supabase-bomberos.sql). */
     if (t.tipo === 'permiso_bomberos')
       return {tipo: 'pago_importe_dia', pasos: ['aranceles'], aviso: 'co_faltabomberos'};
+    /* El sellado de libros (29-9-2026): «Libros sellados» va detrás del
+       comprobante de pago del PUB (supabase-libros.sql). */
+    if (t.tipo === 'libros_contables')
+      return {tipo: 'pago_importe_dia', pasos: ['pub'], aviso: 'co_faltalibros'};
     return null;
   }
 

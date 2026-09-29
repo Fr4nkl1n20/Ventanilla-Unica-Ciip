@@ -8933,6 +8933,47 @@
           reg ? reg.map(function(x){ return x.paso + ' · ' + x.estados.join('+'); }).join(', ') : '(sin registro)',
           'aranceles · ante_el_ente');
     if (puesto) delete cat.c29;
+
+    /* El sellado de libros (c24), 29-9-2026: «Revisión de recaudos →
+       Consignación de libros en el CIIP» delante, y la consignación ya no
+       sale hecha sola al enviar. Mientras está en curso, el aviso de traer
+       los libros. */
+    var puestoL = false;
+    if (cat && !cat.c24){ cat.c24 = {codigo: 'libros_contables', ref_panel: 'c24', ente: 'SAREN', activo: true}; puestoL = true; }
+    var escL = function(estado, pasos){
+      return window.CIIP_ESCALERA({estado: estado, datos: {pasos_ciip: pasos || {}}}, 'libros_contables', 'SAREN');
+    };
+    igual('libros: seis pasos, con la revisión y la consignación delante y el PUB detrás del SAREN',
+          escL('enviado').todos.map(function(p){ return p.nombre; }).join(' → '),
+          'Revisión de recaudos → Consignación de libros en el CIIP → Solicitud introducida ante el SAREN → ' +
+          'Emisión de PUB por SAREN → Comprobante de pago de PUB → Libros sellados. Puede venir a retirar en el CIIP');
+    igual('libros: recién enviada, nada sale hecho solo', dibujo(escL('enviado')),
+          'ahora,porhacer,porhacer,porhacer,porhacer,porhacer');
+    igual('libros: en revisión, toca traer los libros', dibujo(escL('en_revision')),
+          'hecho,ahora,porhacer,porhacer,porhacer,porhacer');
+    igual('libros: ante el SAREN, espera el PUB', dibujo(escL('ante_el_ente')),
+          'hecho,hecho,hecho,ahora,porhacer,porhacer');
+    var yaL = new Date().toISOString();
+    igual('libros: con el PUB, espera el comprobante', dibujo(escL('ante_el_ente', {importe_pub: yaL})),
+          'hecho,hecho,hecho,hecho,ahora,porhacer');
+    igual('libros: con el comprobante, espera los libros sellados',
+          dibujo(escL('ante_el_ente', {importe_pub: yaL, pago_pub: yaL})), 'hecho,hecho,hecho,hecho,hecho,ahora');
+    igual('libros: resuelta, sellados', dibujo(escL('resuelto')), 'hecho,hecho,hecho,hecho,hecho,hecho');
+    var pideL = window.CIIP_MARCA && window.CIIP_MARCA.comprobante({id: 'sl-y', tipo: 'libros_contables', estado: 'ante_el_ente', datos: {}});
+    igual('libros: para resolver pide el comprobante del PUB',
+          pideL ? pideL.tipo + ' · ' + (pideL.pasos || []).join('+') : '(nada)', 'pago_importe_dia · pub');
+    var MM = window.CIIP_MARCA;
+    if (MM && MM.pinta){
+      var huecoL = document.createElement('div'), olL = document.createElement('ol');
+      olL.className = 'tr-pasos';
+      huecoL.appendChild(olL);
+      var tL = {id: 'sl-x', tipo: 'libros_contables', estado: 'en_revision', datos: {}};
+      MM.pinta(olL, MM.escalera(tL, 'libros_contables'), tL, {}, false);
+      var avisoL = huecoL.querySelector('li.tr-paso.ahora[data-paso="consigna"] .tr-nota');
+      igual('libros: y el inversionista ve el aviso de traerlos al CIIP',
+            avisoL ? avisoL.textContent : '(sin aviso)', window.CIIP_T().sl_n_consigna);
+    }
+    if (puestoL) delete cat.c24;
   }
 
   function alDiaFreno(){

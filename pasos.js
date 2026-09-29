@@ -1802,6 +1802,18 @@ window.CIIP_PASOS = {
       bo_g_importe:   "Sube aquí el importe del día por los aranceles correspondientes. Vence a las 12:00 a. m., hora de Caracas.",
       bo_g_retiro:    "Con el comprobante cargado, resuelve la solicitud subiendo el permiso emitido por el Cuerpo de Bomberos.",
       co_faltabomberos: "Falta el comprobante de pago: el inversionista carga el de los aranceles en su paso, contra el importe del día.",
+      sl_p_revision:  "Revisión de recaudos",
+      sl_p_consigna:  "Consignación de libros en el CIIP",
+      sl_p_saren:     "Solicitud introducida ante el SAREN",
+      sl_p_sellados:  "Libros sellados. Puede venir a retirar en el CIIP",
+      sl_p_pub:       "Emisión de PUB por SAREN",
+      sl_p_pago:      "Comprobante de pago de PUB",
+      sl_n_consigna:  "Trae al CIIP los libros que quieres sellar. Sin ellos no podemos presentar la solicitud ante el SAREN.",
+      sl_n_sellados:  "Tus libros ya están sellados: pasa a retirarlos por el CIIP.",
+      sl_g_titulo:    "Sellado de libros · paso en curso",
+      sl_g_importe:   "Sube aquí el PUB que emitió el SAREN, con el monto del día. Vence a las 12:00 a. m., hora de Caracas.",
+      co_faltalibros: "Falta el comprobante de pago: el inversionista carga el del PUB en su paso, contra el importe del día.",
+      sl_g_retiro:    "Cuando el SAREN devuelva los libros sellados, resuelve la solicitud: el inversionista verá que puede pasar a retirarlos.",
       f_telvzla:     "Teléfono en Venezuela",
       f_civil:       "Estado civil",
       f_ocupacion:   "Ocupación",
@@ -3183,6 +3195,18 @@ window.CIIP_PASOS = {
       bo_g_importe:   "Upload the day’s slip for the applicable fees here. It expires at 12:00 a.m., Caracas time.",
       bo_g_retiro:    "With the receipt uploaded, resolve the request by uploading the permit issued by the Fire Department.",
       co_faltabomberos: "The payment receipt is missing: the investor uploads the fees receipt in their step, against the day’s slip.",
+      sl_p_revision:  "Document review",
+      sl_p_consigna:  "Books handed in at CIIP",
+      sl_p_saren:     "Application filed with SAREN",
+      sl_p_sellados:  "Books sealed. You may collect them at CIIP",
+      sl_p_pub:       "PUB issued by SAREN",
+      sl_p_pago:      "Proof of payment of the PUB",
+      sl_n_consigna:  "Bring the books you want sealed to CIIP. Without them we cannot file the application with SAREN.",
+      sl_n_sellados:  "Your books are sealed: you can collect them at CIIP.",
+      sl_g_titulo:    "Book sealing · current step",
+      sl_g_importe:   "Upload here the PUB issued by SAREN, with the day’s amount. It expires at 12:00 a.m., Caracas time.",
+      co_faltalibros: "The payment receipt is missing: the investor uploads the PUB receipt in their step, against the day’s slip.",
+      sl_g_retiro:    "When SAREN returns the sealed books, resolve the request: the investor will see they can collect them.",
       f_telvzla:     "Phone number in Venezuela",
       f_civil:       "Marital status",
       f_ocupacion:   "Occupation",
@@ -4549,6 +4573,18 @@ window.CIIP_PASOS = {
       bo_g_importe:   "Carregue aqui a guia do dia das taxas correspondentes. Vence às 12:00 a. m., hora de Caracas.",
       bo_g_retiro:    "Com o comprovativo carregado, resolva o pedido carregando a licença emitida pelo Corpo de Bombeiros.",
       co_faltabomberos: "Falta o comprovativo de pagamento: o investidor carrega o das taxas no seu passo, contra a guia do dia.",
+      sl_p_revision:  "Revisão dos documentos",
+      sl_p_consigna:  "Entrega dos livros no CIIP",
+      sl_p_saren:     "Solicitação apresentada ao SAREN",
+      sl_p_sellados:  "Livros selados. Pode retirá-los no CIIP",
+      sl_p_pub:       "Emissão do PUB pelo SAREN",
+      sl_p_pago:      "Comprovativo de pagamento do PUB",
+      sl_n_consigna:  "Traga ao CIIP os livros que quer selar. Sem eles não podemos apresentar a solicitação ao SAREN.",
+      sl_n_sellados:  "Os seus livros já estão selados: pode retirá-los no CIIP.",
+      sl_g_titulo:    "Selagem de livros · passo em curso",
+      sl_g_importe:   "Carregue aqui o PUB emitido pelo SAREN, com o montante do dia. Vence às 12:00 a. m., hora de Caracas.",
+      co_faltalibros: "Falta o comprovativo de pagamento: o investidor carrega o do PUB no seu passo, contra a guia do dia.",
+      sl_g_retiro:    "Quando o SAREN devolver os livros selados, resolva o pedido: o investidor verá que pode ir retirá-los.",
       f_telvzla:     "Telefone na Venezuela",
       f_civil:       "Estado civil",
       f_ocupacion:   "Ocupação",
@@ -5915,6 +5951,18 @@ window.CIIP_PASOS = {
       bo_g_importe:   "Carica qui l’importo del giorno dei diritti dovuti. Scade alle 12:00 a. m., ora di Caracas.",
       bo_g_retiro:    "Con la ricevuta caricata, risolvi la richiesta caricando il permesso rilasciato dai Vigili del Fuoco.",
       co_faltabomberos: "Manca la ricevuta di pagamento: l’investitore carica quella dei diritti nel suo passo, contro l’importo del giorno.",
+      sl_p_revision:  "Verifica dei documenti",
+      sl_p_consigna:  "Consegna dei libri al CIIP",
+      sl_p_saren:     "Domanda presentata al SAREN",
+      sl_p_sellados:  "Libri vidimati. Puoi ritirarli al CIIP",
+      sl_p_pub:       "Emissione del PUB da parte del SAREN",
+      sl_p_pago:      "Ricevuta di pagamento del PUB",
+      sl_n_consigna:  "Porta al CIIP i libri che vuoi vidimare. Senza di essi non possiamo presentare la domanda al SAREN.",
+      sl_n_sellados:  "I tuoi libri sono vidimati: puoi ritirarli al CIIP.",
+      sl_g_titulo:    "Vidimazione dei libri · passo in corso",
+      sl_g_importe:   "Carica qui il PUB emesso dal SAREN, con l’importo del giorno. Scade alle 12:00 a. m., ora di Caracas.",
+      co_faltalibros: "Manca la ricevuta di pagamento: l’investitore carica quella del PUB nel suo passo, contro l’importo del giorno.",
+      sl_g_retiro:    "Quando il SAREN restituisce i libri vidimati, risolvi la richiesta: l’investitore vedrà che può ritirarli.",
       f_telvzla:     "Telefono in Venezuela",
       f_civil:       "Stato civile",
       f_ocupacion:   "Occupazione",
@@ -7281,6 +7329,18 @@ window.CIIP_PASOS = {
       bo_g_importe:   "请在此上传相应规费的当日缴费单。缴费单于加拉加斯时间凌晨 12:00 失效。",
       bo_g_retiro:    "凭证上传后，请上传消防部门核发的许可以办结该申请。",
       co_faltabomberos: "缺少付款凭证：投资者须在其步骤中按当日缴费单上传规费凭证。",
+      sl_p_revision:  "材料审核",
+      sl_p_consigna:  "将账簿交至 CIIP",
+      sl_p_saren:     "已向 SAREN 提交申请",
+      sl_p_sellados:  "账簿已盖章，可到 CIIP 领取",
+      sl_p_pub:       "SAREN 开具 PUB",
+      sl_p_pago:      "PUB 付款凭证",
+      sl_n_consigna:  "请把需要盖章的账簿带到 CIIP。没有账簿，我们无法向 SAREN 提交申请。",
+      sl_n_sellados:  "你的账簿已盖章，可到 CIIP 领取。",
+      sl_g_titulo:    "账簿盖章 · 当前步骤",
+      sl_g_importe:   "请在此上传 SAREN 开具的当日金额 PUB。于加拉加斯时间凌晨 12:00 失效。",
+      co_faltalibros: "缺少付款凭证：投资者须在其步骤中按当日缴费单上传 PUB 的凭证。",
+      sl_g_retiro:    "SAREN 退回盖章后的账簿时，请办结该申请：投资者会看到可以前来领取。",
       f_telvzla:     "在委内瑞拉的电话",
       f_civil:       "婚姻状况",
       f_ocupacion:   "职业",
@@ -8647,6 +8707,18 @@ window.CIIP_PASOS = {
       bo_g_importe:   "Загрузите сюда квитанцию текущего дня на соответствующие сборы. Она действует до 12:00 a. m. по времени Каракаса.",
       bo_g_retiro:    "Когда квитанция загружена, завершите заявку, загрузив разрешение, выданное пожарной службой.",
       co_faltabomberos: "Не хватает квитанции об оплате: инвестор загружает квитанцию на сборы на своём шаге, по сумме текущего дня.",
+      sl_p_revision:  "Проверка документов",
+      sl_p_consigna:  "Сдача книг в CIIP",
+      sl_p_saren:     "Заявление подано в SAREN",
+      sl_p_sellados:  "Книги опечатаны. Можно забрать в CIIP",
+      sl_p_pub:       "Выдача PUB в SAREN",
+      sl_p_pago:      "Квитанция об оплате PUB",
+      sl_n_consigna:  "Принесите в CIIP книги, которые нужно опечатать. Без них мы не можем подать заявление в SAREN.",
+      sl_n_sellados:  "Ваши книги опечатаны: их можно забрать в CIIP.",
+      sl_g_titulo:    "Опечатывание книг · текущий шаг",
+      sl_g_importe:   "Загрузите сюда PUB, выданный SAREN, с суммой текущего дня. Он действует до 12:00 a. m. по времени Каракаса.",
+      co_faltalibros: "Не хватает квитанции об оплате: инвестор загружает квитанцию по PUB на своём шаге, по сумме текущего дня.",
+      sl_g_retiro:    "Когда SAREN вернёт опечатанные книги, завершите заявку: инвестор увидит, что может их забрать.",
       f_telvzla:     "Телефон в Венесуэле",
       f_civil:       "Семейное положение",
       f_ocupacion:   "Род занятий",
@@ -8860,7 +8932,7 @@ window.CIIP_PASOS = {
       c21: ["Elección del centro de salud autorizado", "Cita para la evaluación médica", "Evaluación y firma del médico", "Certificado guardado en tu bóveda"],
       c22: ["Emisión de PUB de constitución de compañía", "Pago de aranceles registrales", "Consignación del documento en el Registro Mercantil", "Revisión del registrador", "Acta protocolizada con personalidad jurídica"],
       c23: ["Emisión de PUB de publicación mercantil", "Elección del periódico mercantil", "Envío del acta protocolizada", "Publicación del extracto", "Consignación de ejemplares en el Registro"],
-      c24: ["Consignar libros en el CIIP", "Solicitud introducida ante el SAREN", "Libros sellados. Puede venir a retirar en el CIIP"]
+      c24: ["Revisión de recaudos", "Consignación de libros en el CIIP", "Solicitud introducida ante el SAREN", "Emisión de PUB por SAREN", "Comprobante de pago de PUB", "Libros sellados. Puede venir a retirar en el CIIP"]
     },
 
     en: {
@@ -8900,7 +8972,7 @@ window.CIIP_PASOS = {
       c21: ["Choice of an authorised health centre", "Appointment for the medical assessment", "Assessment signed by the doctor", "Certificate stored in your vault"],
       c22: ["Issue of the PUB payment form for the incorporation", "Payment of registry fees", "Filing of the document at the Mercantile Registry", "Review by the registrar", "Articles filed, legal personality granted"],
       c23: ["Issue of the PUB payment form for the publication", "Choice of the mercantile newspaper", "Submission of the filed articles", "Publication of the extract", "Copies filed back at the Registry"],
-      c24: ["Submit the books to CIIP", "Application filed with SAREN", "Books sealed. You may collect them at CIIP"]
+      c24: ["Document review", "Books handed in at CIIP", "Application filed with SAREN", "PUB issued by SAREN", "Proof of payment of the PUB", "Books sealed. You may collect them at CIIP"]
     },
 
     pt: {
@@ -8940,7 +9012,7 @@ window.CIIP_PASOS = {
       c21: ["Escolha do centro de saúde autorizado", "Consulta para a avaliação médica", "Avaliação e assinatura do médico", "Certificado guardado no seu cofre"],
       c22: ["Emissão do PUB de constituição da empresa", "Pagamento das taxas registrais", "Consignação do documento no Registro Mercantil", "Análise do registrador", "Ata protocolizada com personalidade jurídica"],
       c23: ["Emissão do PUB de publicação mercantil", "Escolha do jornal mercantil", "Envio da ata protocolizada", "Publicação do extrato", "Consignação dos exemplares no Registro"],
-      c24: ["Entregar os livros no CIIP", "Solicitação apresentada ao SAREN", "Livros selados. Pode retirá-los no CIIP"]
+      c24: ["Revisão dos documentos", "Entrega dos livros no CIIP", "Solicitação apresentada ao SAREN", "Emissão do PUB pelo SAREN", "Comprovativo de pagamento do PUB", "Livros selados. Pode retirá-los no CIIP"]
     },
 
     it: {
@@ -8980,7 +9052,7 @@ window.CIIP_PASOS = {
       c21: ["Scelta della struttura sanitaria autorizzata", "Appuntamento per la visita medica", "Visita e firma del medico", "Certificato conservato nel tuo archivio"],
       c22: ["Emissione del PUB per la costituzione della società", "Pagamento dei diritti di registro", "Deposito dell’atto al Registro delle Imprese", "Esame del conservatore", "Atto depositato, personalità giuridica acquisita"],
       c23: ["Emissione del PUB per la pubblicazione", "Scelta del giornale commerciale", "Invio dell’atto depositato", "Pubblicazione dell’estratto", "Consegna delle copie al Registro"],
-      c24: ["Consegna i libri al CIIP", "Domanda presentata al SAREN", "Libri vidimati. Puoi ritirarli al CIIP"]
+      c24: ["Verifica dei documenti", "Consegna dei libri al CIIP", "Domanda presentata al SAREN", "Emissione del PUB da parte del SAREN", "Ricevuta di pagamento del PUB", "Libri vidimati. Puoi ritirarli al CIIP"]
     },
 
     zh: {
@@ -9020,7 +9092,7 @@ window.CIIP_PASOS = {
       c21: ["选择获授权的医疗机构", "预约体检", "医生检查并签字", "证明存入你的档案库"],
       c22: ["签发公司设立的 PUB 缴费单", "缴纳登记规费", "向商事登记处提交文件", "登记官审查", "章程登记完成，取得法人资格"],
       c23: ["签发商事公告的 PUB 缴费单", "选择商事报纸", "提交已登记的章程", "刊登摘要", "将样报交回登记处"],
-      c24: ["将账簿交至 CIIP", "已向 SAREN 提交申请", "账簿已盖章，可到 CIIP 领取"]
+      c24: ["材料审核", "将账簿交至 CIIP", "已向 SAREN 提交申请", "SAREN 开具 PUB", "PUB 付款凭证", "账簿已盖章，可到 CIIP 领取"]
     },
 
     ru: {
@@ -9060,7 +9132,7 @@ window.CIIP_PASOS = {
       c21: ["Выбор аккредитованного медцентра", "Запись на медосмотр", "Осмотр и подпись врача", "Справка в вашем хранилище"],
       c22: ["Выдача PUB для регистрации компании", "Оплата регистрационных пошлин", "Подача документа в Торговый реестр", "Проверка регистратором", "Устав зарегистрирован, получена правосубъектность"],
       c23: ["Выдача PUB для публикации", "Выбор коммерческой газеты", "Направление зарегистрированного устава", "Публикация выписки", "Сдача экземпляров в реестр"],
-      c24: ["Сдать книги в CIIP", "Заявление подано в SAREN", "Книги опечатаны. Можно забрать в CIIP"]
+      c24: ["Проверка документов", "Сдача книг в CIIP", "Заявление подано в SAREN", "Выдача PUB в SAREN", "Квитанция об оплате PUB", "Книги опечатаны. Можно забрать в CIIP"]
     }
 
   }
