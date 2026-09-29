@@ -22085,6 +22085,35 @@ applyLang(idiomaParaMi());
       baja.hidden = true;
       ultimo.txt.appendChild(baja);
 
+      /* ── AL INVERSIONISTA, LA TARJETA RECOGIDA ──
+         Franklin Reyes, 29-9-2026: «se ve raro con los pasos visibles en
+         el cuadro, podemos solo dejar la opción de descargar documento
+         cuando esté listo y una opción de ver trámite, para reducir el
+         espacio». Los pasos se esconden detrás de «Ver trámite» y la
+         descarga sube a la vista, bajo el nombre.
+
+         Solo al inversionista: el equipo trabaja DENTRO de los pasos
+         -inscribir, marcar listo, subir la constancia- y escondérselos
+         seria esconderle el trabajo. Y cuando le toca escribir su usuario
+         y contraseña, la tarjeta se abre sola (en pon()): la casilla vive
+         en un paso, y recogida no la veria nadie. */
+      var verTr = null;
+      if (modo === 'inversionista'){
+        var pie = el('div', 'pe-pie');
+        verTr = el('button', 'pe-vertr', u.pe_vertramite || '');
+        verTr.type = 'button';
+        verTr.setAttribute('aria-expanded', 'false');
+        ol.hidden = true;
+        verTr.addEventListener('click', function(){
+          ol.hidden = !ol.hidden;
+          verTr.setAttribute('aria-expanded', ol.hidden ? 'false' : 'true');
+          verTr.textContent = (ol.hidden ? u.pe_vertramite : u.pe_ocultatramite) || '';
+        });
+        pie.appendChild(baja);
+        pie.appendChild(verTr);
+        fila.insertBefore(pie, ol);
+      }
+
       /* Las tres cosas que se pueden hacer sobre un ente. Se montan todas y
          se enseñan según el estado: así el repintado es enseñar y esconder,
          y no volver a construir media pantalla. */
@@ -22359,6 +22388,13 @@ applyLang(idiomaParaMi());
            bueno: después ya no hay nada que corregir. */
         if (form) form.hidden = !(abierto && st === 'inscrito');
         if (otro) otro.hidden = !(abierto && st === 'codigo_enviado');
+        /* Le toca escribir: la tarjeta recogida se abre para enseñarle
+           la casilla. */
+        if (verTr && form && !form.hidden && ol.hidden){
+          ol.hidden = false;
+          verTr.setAttribute('aria-expanded', 'true');
+          verTr.textContent = u.pe_ocultatramite || '';
+        }
         if (inscribe) inscribe.hidden = (st !== 'pendiente');
         if (listo) listo.hidden = conClave ? (st !== 'codigo_enviado') : (st === 'listo');
         enciende(HECHOS[st]);
