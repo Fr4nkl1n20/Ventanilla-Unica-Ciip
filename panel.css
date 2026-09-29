@@ -433,7 +433,7 @@ body[data-vista="acomp"] #emVolver{display:none;}
    PLIEGO, que es una puerta legal y su botón es parte de la puerta. */
 body[data-vista="acomp"] .fase-bar{display:none;}
 
-.so-caja{background:var(--bg); border:1px solid var(--line);
+.so-caja{background:var(--tr-velo); border:1px solid var(--line);
   border-radius:var(--r); padding:18px 20px; margin-bottom:16px;
   box-shadow:var(--shadow); max-width:760px;}
 .so-t{font-size:12px; font-weight:700; letter-spacing:.01em; color:var(--gray-soft); margin-bottom:14px;}
@@ -561,7 +561,7 @@ body[data-vista="equipo"] .faq-sec,
 body[data-vista="equipo"] .fase-bar{display:none;}
 .eq-tarjetas{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:12px;}
 /* Un <button> entero: la tarjeta se abre con el teclado sin nada mas. */
-.eq-tj{border:1px solid var(--line); border-radius:12px; background:var(--bg); box-shadow:var(--shadow);
+.eq-tj{border:1px solid var(--line); border-radius:12px; background:var(--tr-velo); box-shadow:var(--shadow);
   padding:14px; display:flex; flex-direction:column; gap:11px; text-align:left; cursor:pointer;
   border-top:3px solid var(--navy); font:inherit; color:var(--ink);}
 .eq-tj:hover{border-color:var(--navy2); border-top-color:var(--navy);}
@@ -583,7 +583,7 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .eq-tj-u b{color:var(--ink);}
 .eq-tj-ir{font-size:var(--fs-nota); font-weight:700; color:var(--navy2); margin-top:auto;}
 .eq-vacio{padding:30px 18px; text-align:center; color:var(--gray); font-size:var(--fs-fila);
-  border:1px dashed var(--line); border-radius:12px; background:var(--bg);}
+  border:1px dashed var(--line); border-radius:12px; background:var(--tr-velo);}
 
 /* El panel lateral. Fijo a la ventana y no dentro de la vista: la vista
    crece con las tarjetas, y un panel pegado a ella se iria con el scroll. */
@@ -643,14 +643,14 @@ body[data-vista="equipo"] .fase-bar{display:none;}
    recorta. Con un gap de 1px sobre fondo gris, al partirse la tira en dos
    filas el hueco que sobra salia como un bloque gris. */
 .pu-nums{display:grid; grid-template-columns:repeat(5, minmax(0, 1fr));
-  margin-bottom:18px; background:var(--bg);
+  margin-bottom:18px; background:var(--tr-velo);
   border:1px solid var(--line); border-radius:var(--r); overflow:hidden;
   box-shadow:var(--shadow);}
 @media(max-width:1180px){ .pu-nums{grid-template-columns:repeat(3, minmax(0, 1fr));} }
 @media(max-width:700px){  .pu-nums{grid-template-columns:repeat(2, minmax(0, 1fr));} }
 /* Los que avisan se tiñen SOLO cuando hay algo, y llevan su rotulo al
    lado: el color no puede ser lo unico que lo diga. */
-.pu-n{background:var(--bg); padding:14px 18px;
+.pu-n{background:transparent; padding:14px 18px;
   box-shadow:1px 0 0 var(--line), 0 1px 0 var(--line);}
 .pu-n .l{font-size:var(--fs-rotulo); color:var(--gray); font-weight:700;letter-spacing:.01em;}
 .pu-n .v{font-size:var(--fs-cifra); font-weight:700; line-height:1.1; margin-top:4px;
@@ -664,7 +664,7 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .pu-dos{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px;
   align-items:start;}
 @media(max-width:980px){ .pu-dos{grid-template-columns:minmax(0, 1fr);} }
-.pu-caja{background:var(--bg); border:1px solid var(--line);
+.pu-caja{background:var(--tr-velo); border:1px solid var(--line);
   border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden;}
 .pu-t{display:flex; align-items:center; justify-content:space-between; gap:12px;
   font-size:12.5px; font-weight:700; letter-spacing:.01em; color:var(--ink);
@@ -793,7 +793,7 @@ body[data-vista="catalogo"] .fase-bar{display:none;}
 .cg-plazo-n:disabled{opacity:.55;}
 
 .cg-fila{display:flex; align-items:center; gap:14px; flex-wrap:wrap;
-  background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
+  background:var(--tr-velo); border:1px solid var(--line); border-radius:var(--r);
   padding:12px 15px; margin-bottom:8px; box-shadow:var(--shadow);
   box-shadow:inset 3px 0 0 var(--line), var(--shadow);}
 .cg-fila.on{box-shadow:inset 3px 0 0 var(--good), var(--shadow);}
@@ -863,7 +863,7 @@ body[data-vista="usuarios"] .fase-bar{display:none;}
   gap:12px; margin-bottom:18px; max-width:980px;}
 @media(max-width:1180px){ .us-metricas{grid-template-columns:repeat(3, minmax(0, 1fr));} }
 @media(max-width:700px){  .us-metricas{grid-template-columns:repeat(2, minmax(0, 1fr));} }
-.us-m{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
+.us-m{background:var(--tr-velo); border:1px solid var(--line); border-radius:var(--r);
   padding:14px 16px; box-shadow:var(--shadow);}
 .us-m .n{font-size:var(--fs-cifra); font-weight:700; line-height:1; font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
 .us-m .l{font-size:var(--fs-rotulo); color:var(--gray); margin-top:6px; line-height:1.35;font-weight:700;letter-spacing:.01em;}
@@ -934,7 +934,7 @@ body[data-vista="empresa"] #emVolver{display:none;}
 body[data-vista="empresa"] .fase-bar{display:none;}
 #emVolver{display:none;}
 
-.em-tarjeta{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
+.em-tarjeta{background:var(--tr-velo); border:1px solid var(--line); border-radius:var(--r);
   padding:19px 21px; box-shadow:var(--shadow); max-width:760px;}
 .em-nombre{font-size:var(--fs-titulo); font-weight:700; letter-spacing:-.02em;}
 .em-rif{font-size:12.5px; color:var(--navy2); font-weight:700; margin-top:3px;}
@@ -999,7 +999,7 @@ body[data-vista="empresa"] .fase-bar{display:none;}
    Ahora es una hoja blanca sobre el gris, con su sombra: se lee como un
    documento puesto encima de la mesa. Y funciona en los dos temas, porque
    --bg siempre es mas claro que --block. */
-.ft-hoja{background:var(--bg); border:1px solid var(--line); border-radius:14px;
+.ft-hoja{background:var(--tr-velo); border:1px solid var(--line); border-radius:14px;
   padding:20px 22px; box-shadow:var(--shadow); margin-top:16px;}
 .ft-cuerpo{display:grid; grid-template-columns:minmax(0,1fr) 296px; gap:28px;
   align-items:start;}
@@ -1073,7 +1073,7 @@ body[data-vista="empresa"] .fase-bar{display:none;}
    La caja se desplaza sola: siete columnas en un móvil no caben, y lo que
    NO puede pasar es que empujen la página entera de lado. */
 .tabla-caja{overflow-x:auto; border:1px solid var(--line); border-radius:12px;
-  background:var(--bg);}
+  background:var(--tr-velo);}
 .tabla{width:100%; border-collapse:collapse; font-size:12.5px; min-width:720px;}
 .tabla th{text-align:left; font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em; color:var(--gray-soft); padding:10px 12px;
   border-bottom:1px solid var(--line); white-space:nowrap; background:var(--block);}
@@ -1208,7 +1208,7 @@ body[data-vista="comprobantes"] #acVolver,
 body[data-vista="comprobantes"] #ayVolver,
 body[data-vista="comprobantes"] #paVolver{display:none;}
 
-.cm{display:grid; grid-template-columns:320px minmax(0,1fr) 260px; background:var(--bg); border:1px solid var(--line);
+.cm{display:grid; grid-template-columns:320px minmax(0,1fr) 260px; background:var(--tr-velo); border:1px solid var(--line);
   border-radius:14px; overflow:hidden; height:calc(100vh - var(--tb) - 110px); min-height:520px;}
 .cm-izq{border-right:1px solid var(--line); display:flex; flex-direction:column; min-height:0;}
 .cm-busca{padding:10px; border-bottom:1px solid var(--line);}
@@ -1540,7 +1540,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 #ciVolver{display:none;}
 
 .ci-lista{display:flex; flex-direction:column; gap:10px;}
-.ci-ficha{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
+.ci-ficha{background:var(--tr-velo); border:1px solid var(--line); border-radius:var(--r);
   box-shadow:var(--shadow); padding:15px 17px;}
 /* La que está en marcha se distingue del historial: es la única sobre la que
    se puede hacer algo. */
@@ -1552,7 +1552,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 /* El historial se lee, no se toca: en gris y sin borde azul. */
 .ci-ficha.pasada .ci-linea{color:var(--gray); font-weight:600;}
 
-.ci-vacia{background:var(--bg); border:1px dashed var(--line); border-radius:var(--r);
+.ci-vacia{background:var(--tr-velo); border:1px dashed var(--line); border-radius:var(--r);
   padding:26px 18px; text-align:center; font-size:var(--fs-parrafo); color:var(--gray);}
 
 /* --- la cola del equipo del CIIP ---
@@ -1563,7 +1563,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 /* El alto lo pone el armazón del asistente (max-height:82vh); aquí solo se
    permite que la lista se desborde dentro en vez de estirar la ventana. */
 .cola-lista{padding:6px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;}
-.co-ficha{border:1px solid var(--line); border-radius:var(--r); padding:13px 14px; background:var(--bg);}
+.co-ficha{border:1px solid var(--line); border-radius:var(--r); padding:13px 14px; background:var(--tr-velo);}
 /* Quién pide, y a la derecha cómo quiere verse. El equipo mira esta cola
    para repartir la mañana: verse por vídeo, atender un teléfono o reservar
    una sala no cuestan lo mismo, y hasta ahora eso iba en el mismo renglón
@@ -2132,7 +2132,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
   margin-bottom:14px; max-width:70ch;}
 .em-caminos{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; max-width:860px;}
 @media (max-width:560px){ .em-caminos{grid-template-columns:1fr;} }
-.em-camino{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
+.em-camino{background:var(--tr-velo); border:1px solid var(--line); border-radius:var(--r);
   padding:19px 21px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:7px;}
 .em-camino-t{font-size:var(--fs-seccion); font-weight:700;}
 .em-camino-q{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.55; flex:1;}
@@ -2253,7 +2253,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .rv-filtro:hover{border-color:var(--cyan-deep);}
 .rv-filtro[aria-pressed="true"]{background:var(--ink); color:var(--bg); border-color:var(--ink);}
 .rv-filtro .n{margin-left:6px; opacity:.75; font-variant-numeric:tabular-nums;}
-.rv-lista{border:1px solid var(--line); border-radius:var(--r); background:var(--bg); display:grid; overflow:hidden;}
+.rv-lista{border:1px solid var(--line); border-radius:var(--r); background:var(--tr-velo); display:grid; overflow:hidden;}
 .rv-fila{font:inherit; color:inherit; text-align:left; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:3px 10px;
   padding:11px 13px; border:0; border-bottom:1px solid var(--line-soft); background:none; cursor:pointer;}
 .rv-fila:last-child{border-bottom:0;}
@@ -2279,7 +2279,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .rv-chip{font-size:var(--fs-chip); font-weight:700; border-radius:20px; padding:2px 8px; background:var(--activa-bg); color:var(--navy2);}
 .rv-chip.suelto{background:var(--block); color:var(--gray);}
 .rv-vacio{padding:26px 14px; text-align:center; color:var(--gray); font-size:var(--fs-parrafo);}
-.rv-visor{border:1px solid var(--line); border-radius:var(--r); background:var(--bg); display:grid; min-width:0;}
+.rv-visor{border:1px solid var(--line); border-radius:var(--r); background:var(--tr-velo); display:grid; min-width:0;}
 .rv-cab{padding:12px 14px; border-bottom:1px solid var(--line); display:flex; gap:10px; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;}
 .rv-cab-acc{display:flex; gap:8px; flex-wrap:wrap;}
 .rv-cab .t{font-size:var(--fs-tarjeta); font-weight:700;}
@@ -2506,7 +2506,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
    «i» a su lado sin que caiga al renglon siguiente. */
 .sec-h .t{display:inline-flex; align-items:center;}
 .jp{position:relative; display:flex; flex-direction:column; align-items:flex-start;
-  padding:12px 13px 12px; min-width:0; background:var(--bg);
+  padding:12px 13px 12px; min-width:0; background:var(--tr-velo);
   border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow);}
 
 /* ── LA ETAPA EN LA QUE ESTAS MANDA ──
@@ -2754,7 +2754,7 @@ body[data-vista="inicio"].etapa-elegida .tsec-sig:not([hidden]){display:flex;}
    Dos caminos, uno al lado del otro, dentro de la ficha de cualquiera de
    las dos. El que estas mirando se queda apagado y con su «estas aqui»;
    el otro lleva el boton. En movil van uno debajo del otro. */
-.tr-visas{border:1px solid var(--line); border-radius:var(--r); background:var(--bg);
+.tr-visas{border:1px solid var(--line); border-radius:var(--r); background:var(--tr-velo);
   box-shadow:var(--shadow); padding:14px 16px; margin:0 0 14px;}
 .tr-visas[hidden]{display:none;}
 /* Mientras no elijas visa, la casilla enseña SOLO la guia: el tramite de
@@ -2809,15 +2809,17 @@ body[data-vista="tramite"] #secTramites{display:none;}
    raya entre la cabecera y la descripcion: antes los tres textos iban
    sueltos sobre el fondo y no se distinguia donde acababa uno y empezaba
    otro (Franklin Reyes, 28-9-2026, la 2b de las maquetas).
-   Ahora es la 3 de las maquetas del recuadro: un velo blanco medio
-   transparente, sin borde, cerrado casi pegado a las letras, y la raya en
-   gris. El borde azul grueso chocaba con el cuadro azul de subir el
-   documento, que va justo debajo (Franklin Reyes, 28-9-2026). La
-   descripcion corta a 62ch para que el recuadro no se estire. */
+   Ahora es PAREJA DE LA HOJA del formulario (.pa-hoja): el mismo ancho
+   (hasta 880), el mismo borde gris fino, las mismas esquinas y el mismo
+   velo blanco. Ceñido a las letras, cada caja acababa en un sitio y se
+   veia distorsionado (Franklin Reyes, 29-9-2026: «emparéjalo con el
+   cuadro de abajo»). La raya va en gris: el borde azul grueso de antes
+   chocaba con el cuadro de subir el documento, justo debajo. */
 /* El velo (--tr-velo) va con los demas colores, arriba: blanco al 45 % en
-   claro y al 4 % en oscuro, donde el 45 % seria un parche claro. */
-.tr-caja{background:var(--tr-velo); border-radius:12px; padding:12px 16px; box-sizing:border-box;
-  width:fit-content; max-width:min(100%, 880px); margin-bottom:12px;}
+   claro y al 4 % en oscuro, donde el 45 % seria un parche claro. Es el
+   fondo de todas las cajas fijas del panel: tarjetas, fichas y hojas. */
+.tr-caja{background:var(--tr-velo); border:1px solid var(--line); border-radius:12px;
+  padding:18px 20px; box-sizing:border-box; max-width:880px; margin-bottom:12px;}
 .tr-raya{border:0; border-top:1px solid var(--line); margin:12px 0 10px;}
 .tr-cab{display:flex; align-items:center; gap:14px;}
 /* El hueco del distintivo desaparece cuando no lleva nada dentro. Un div
@@ -3002,7 +3004,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
    hondo, porque el blanco de este lado no tiene pareja al otro. */
 /* El formulario, en su tarjeta. Suelto sobre el fondo no se sabia donde
    empezaba lo que hay que rellenar y donde acababa la cabecera. */
-.sol-col{min-width:0; border:1px solid var(--line); background:var(--hoja);
+.sol-col{min-width:0; border:1px solid var(--line); background:var(--tr-velo);
   border-radius:12px; padding:18px 20px;}
 /* Sin campos no hay rejilla que separar del titulo: el hueco de debajo del
    rotulo se queda en el aire y la tarjeta parece a medio cargar. Pasa de
@@ -3101,7 +3103,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 /* El hilo dentro de la ventana no necesita su propia tarjeta: ya esta dentro
    de una. Sin esto se ve un cuadro dentro de otro cuadro. */
 #consCuerpo .hilo{border:0; background:none; padding:0; margin:0;}
-.sol-gestion{margin-top:22px; border:1px solid var(--line); background:var(--hoja);
+.sol-gestion{margin-top:22px; border:1px solid var(--line); background:var(--tr-velo);
   border-radius:12px; padding:18px 20px;
   display:flex; flex-direction:column; align-items:flex-start; gap:7px;}
 .sol-gestion .sg-t{font-size:var(--fs-seccion); font-weight:700;letter-spacing:.01em;}
@@ -3111,7 +3113,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .sol-gestion .sg-btn{margin:5px 0 0; background:var(--bg); border:1px solid var(--navy2);
   color:var(--navy2); font-weight:700;}
 .sol-gestion .sg-btn:hover{background:var(--block);}
-.sol-lado{min-width:0; border:1px solid var(--line); background:var(--hoja);
+.sol-lado{min-width:0; border:1px solid var(--line); background:var(--tr-velo);
   border-radius:12px; padding:15px 17px;}
 /* Sin caja propia: el cuadro es el de fuera. Se separan con una linea y no
    con aire, que con seis papeles el aire suma media pantalla. */
@@ -3173,7 +3175,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
    paga, y no en el formulario -cuando se pidio el tramite ese papel no
    existia todavia-. */
 .tr-papel{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:7px;
-  padding:8px 12px; border:1px solid var(--line); border-radius:var(--r); background:var(--bg);}
+  padding:8px 12px; border:1px solid var(--line); border-radius:var(--r); background:var(--tr-velo);}
 .tr-papel input[type=file]{display:none;}
 .tr-papel .tp-n{font-size:var(--fs-nota); font-weight:600; color:var(--ink);}
 .tr-papel .tp-e{font-size:var(--fs-nota); color:var(--gray); flex:1 1 auto; min-width:0;
@@ -3420,7 +3422,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .pista-caja .pc-base div{font-size:11.5px; line-height:1.45; color:var(--gray); font-weight:600;}
 .pista-caja .pc-base .caduca{color:var(--amber);}
 .sol-docs{margin-top:24px; display:flex; flex-direction:column; gap:10px; max-width:620px;}
-.sol-doc{display:flex; align-items:center; gap:12px; background:var(--bg); border:1px solid var(--line);
+.sol-doc{display:flex; align-items:center; gap:12px; background:var(--tr-velo); border:1px solid var(--line);
   border-radius:9px; padding:11px 13px;}
 .sol-doc.mal{border-color:var(--rust);}
 .sol-doc .sd-n{font-size:var(--fs-fila); font-weight:600; flex:1 1 auto; min-width:0;}
@@ -3603,7 +3605,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
   color:var(--ink);}
 
 
-.pa-hoja[data-paso="2"] .sol-doc{border:1px solid var(--line); background:var(--hoja);
+.pa-hoja[data-paso="2"] .sol-doc{border:1px solid var(--line); background:var(--tr-velo);
   border-radius:12px; padding:14px 16px; gap:14px; flex-wrap:wrap;}
 .pa-hoja[data-paso="2"] .sol-doc + .sol-doc{border-top:1px solid var(--line);}
 .pa-hoja[data-paso="2"] .sol-doc:last-child{padding-bottom:14px;}
@@ -3618,7 +3620,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 /* El repaso. Cada línea con su «Cambiar», que devuelve al paso donde está
    esa casilla Y la deja enfocada: mandar a alguien a «Tus datos» a buscar
    cuál de las doce era es la mitad del favor. */
-.pa-repaso{border:1px solid var(--line); background:var(--hoja); border-radius:12px;
+.pa-repaso{border:1px solid var(--line); background:var(--tr-velo); border-radius:12px;
   overflow:hidden; margin-bottom:6px;}
 /* Dentro de la hoja el borde ya lo pone ella: uno encima de otro son dos
    cuadros con dos milímetros de aire en medio. Se queda la lista, que es lo
@@ -3956,7 +3958,7 @@ body[data-vista="fase"] .phase-cab > .chev{display:none;}
 .phase-h .pd{font-size:var(--fs-nota); color:var(--gray);}
 .grid-tr{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
 
-.tcard{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); padding:15px 16px;
+.tcard{background:var(--tr-velo); border:1px solid var(--line); border-radius:var(--r); padding:15px 16px;
   display:flex; gap:13px; align-items:flex-start; box-shadow:var(--shadow); transition:transform .12s, box-shadow .12s, border-color .12s; cursor:pointer;}
 .tcard:hover{transform:translateY(-2px); box-shadow:var(--shadow-lg); border-color:var(--cyan-deep);}
 .tcard.action{border-color:var(--amber); box-shadow:0 0 0 1px var(--amber) inset, var(--shadow);}
@@ -4087,7 +4089,7 @@ body[data-vista="fase"] .phase-cab > .chev{display:none;}
 .chip.rust{background:var(--rust-bg); color:var(--rust);}
 
 /* ===================== GESTOR / SUPPORT ===================== */
-.card{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); padding:18px 20px; box-shadow:var(--shadow);}
+.card{background:var(--tr-velo); border:1px solid var(--line); border-radius:var(--r); padding:18px 20px; box-shadow:var(--shadow);}
 .gestor{display:flex; gap:15px; align-items:center;}
 .gestor .g-av{width:56px; height:56px; border-radius:50%; flex:none; background:linear-gradient(135deg,var(--navy),var(--navy2));
   color:#fff; font-size:19px; font-weight:800; display:flex; align-items:center; justify-content:center;}
@@ -4310,7 +4312,7 @@ body[data-vista="pliego"] .faq-sec{display:none;}
 body[data-vista="pliego"] .fase-bar{display:flex;}
 body[data-vista="pliego"] #plVolver{display:inline-flex;}
 #plVolver{display:none;}
-.pl-caja{background:var(--bg); border:1px solid var(--line);
+.pl-caja{background:var(--tr-velo); border:1px solid var(--line);
   border-radius:var(--r); padding:18px 20px; margin-bottom:16px;
   box-shadow:var(--shadow); max-width:820px;}
 .pl-caja .pc-t{font-size:var(--fs-seccion); font-weight:700; color:var(--ink);letter-spacing:.01em;}
@@ -4360,7 +4362,7 @@ body[data-vista="pliego"] #plVolver{display:inline-flex;}
    siete tarjetas se ENCOGEN para caber en el alto maximo —es lo que hace un
    hijo flexible por omision— y no desborda nada: quedaba una lista apretada
    con barra muerta, que es peor que la lista larga de antes. */
-.faq-item{flex:none; background:var(--bg); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; box-shadow:var(--shadow);}
+.faq-item{flex:none; background:var(--tr-velo); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; box-shadow:var(--shadow);}
 .faq-item summary{list-style:none; cursor:pointer; padding:14px 16px; display:flex; align-items:center; gap:11px; font-size:var(--fs-seccion); font-weight:700; color:var(--ink);letter-spacing:.01em;}
 .faq-item summary::-webkit-details-marker{display:none;}
 .faq-item summary .qi{width:26px; height:26px; border-radius:7px; background:var(--block); color:var(--navy2); display:flex; align-items:center; justify-content:center; flex:none; font-weight:800; font-size:12px; font-variant-numeric:tabular-nums; line-height:1; padding-top:1px;}
@@ -4681,14 +4683,14 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
    pasó, ámbar si vence en dos días. */
 /* Cinco desde que «Devueltos» tiene la suya (21-9-2026). */
 .hoy-cifras{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin:0 0 16px;}
-.hoy-cifra{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px 14px;}
+.hoy-cifra{background:var(--tr-velo); border:1px solid var(--line); border-radius:12px; padding:12px 14px;}
 .hoy-cifra b{display:block; font-size:var(--fs-cifra); line-height:1.15; color:var(--ink); font-variant-numeric:tabular-nums;}
 .hoy-cifra span{font-size:var(--fs-nota); color:var(--gray);}
 .hoy-cifra.tarde b{color:var(--rust);}
 .hoy-cifra.pronto b{color:var(--amber);}
 
 .hoy-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:14px; align-items:stretch;}
-.hoy-card{background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:14px; display:flex;
+.hoy-card{background:var(--tr-velo); border:1px solid var(--line); border-radius:14px; padding:14px; display:flex;
   flex-direction:column; gap:10px; cursor:pointer; box-shadow:var(--shadow); min-width:0;}
 .hoy-card:hover{border-color:var(--gray-soft);}
 .hoy-card.tarde{border-color:color-mix(in srgb, var(--rust) 45%, var(--line));}
@@ -4857,7 +4859,7 @@ body[data-vista="horario"] .horario-vista{display:block;}
 body[data-vista="horario"] .solo-inicio, body[data-vista="horario"] #secTramites, body[data-vista="horario"] .faq-sec{display:none;}
 body[data-vista="horario"] .fase-bar{display:none;}
 .ho-seccion{margin-bottom:26px;}
-.ho-lista{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow);}
+.ho-lista{background:var(--tr-velo); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow);}
 .ho-fila{display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:11px 16px; border-bottom:1px solid var(--line-soft); font-size:var(--fs-parrafo);}
 .ho-fila:last-child{border-bottom:0;}
 .ho-dia{font-weight:700; color:var(--ink); min-width:130px;}
@@ -4919,7 +4921,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
 /* En el detalle: tres bloques con sus pasos, y en los tramos 2 y 3 la linea
    que dice cual son y lleva de vuelta. */
 .tr-tramos{margin:14px 0 4px;} .tr-siguen{margin-top:28px; max-width:880px;}
-.tr-bloque{border:1px solid var(--line); border-radius:var(--r); background:var(--bg); padding:12px 16px; margin-top:10px;}
+.tr-bloque{border:1px solid var(--line); border-radius:var(--r); background:var(--tr-velo); padding:12px 16px; margin-top:10px;}
 .tr-bloque.apagado{opacity:.6;}
 .tr-bloque-h{display:flex; align-items:center; gap:10px;}
 .tr-bloque-n{width:22px; height:22px; border-radius:50%; background:var(--block); color:var(--navy2); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;}
