@@ -3455,8 +3455,12 @@ body[data-vista="tramite"] #secTramites{display:none;}
    fondo: se leía como un botón flotando al lado del formulario y no como el
    final del formulario. Poniendo el borde aquí, cada paso es una sola ficha
    y el pie cae dentro, que es donde el ojo lo busca al acabar la última
-   casilla. Los de dentro se apagan justo debajo. */
-.pa-hoja{border:1px solid var(--line); background:var(--hoja); border-radius:12px;
+   casilla. Los de dentro se apagan justo debajo.
+   El fondo es el mismo velo blanco al 45 % que el recuadro del trámite
+   (--tr-velo), para que las dos piezas se vean de la misma familia; las
+   casillas siguen blancas y destacan un poco sobre el (Franklin Reyes,
+   29-9-2026). */
+.pa-hoja{border:1px solid var(--line); background:var(--tr-velo); border-radius:12px;
   padding:18px 20px;}
 .pa-hoja[hidden]{display:none;}
 .pa-hoja .sol-dos{gap:0;}
