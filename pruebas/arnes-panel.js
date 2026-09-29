@@ -11808,8 +11808,14 @@
     E['r9|ivss']    = {tramite:'r9', ente:'ivss', estado:'codigo_enviado', codigo:'empresa.ivss', clave:'S3creta!'};
     E['r9|inces']   = {tramite:'r9', ente:'inces', estado:'inscrito'};
     E['r9|banavih'] = {tramite:'r9', ente:'banavih', estado:'inscrito'};
+    /* El SNC, listo y con su constancia: la descarga es solo del
+       inversionista (Franklin Reyes, 29-9-2026). */
+    E['r9|snc']     = {tramite:'r9', ente:'snc', estado:'listo',
+                       documentos:{archivo:'u1/snc.pdf', tipo:'constancia_ente', nombre_original:'snc.pdf'}};
     ENTES_PRUEBA = window.CIIP_LISTA_ENTES({id:'r9', estado:'ante_el_ente', inversionista:'u1'}, 'inversionista');
+    ENTES_EQUIPO = window.CIIP_LISTA_ENTES({id:'r9', estado:'ante_el_ente', inversionista:'u1'}, 'equipo', 'snc');
   }
+  var ENTES_EQUIPO = null;
   function entesClaveMira(){
     if (CASO !== 'vacio') return;
     var u = window.CIIP_T();
@@ -11847,6 +11853,15 @@
     igual('entes: y aunque venga de antes en «inscrito», se lee en marcha y no esperando tu código',
           (banavih.querySelector('.pe-cab .chip') || {}).textContent, u.pe_pendiente);
 
+    var bajaInv = (fila('snc') || document.createElement('i')).querySelector('.pe-baja');
+    ok('entes: el inversionista puede descargar la constancia del ente',
+       !!bajaInv && !bajaInv.hidden, bajaInv ? (bajaInv.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'a la vista');
+    var fSnc = ENTES_EQUIPO && ENTES_EQUIPO.querySelector('.pe-ente[data-ente="snc"]');
+    var bajaEq = fSnc && fSnc.querySelector('.pe-baja');
+    ok('entes: el gestor y el administrador no la descargan',
+       !!fSnc && (!bajaEq || bajaEq.hidden),
+       !fSnc ? '(sin tarjeta)' : (bajaEq && !bajaEq.hidden ? 'a la vista' : 'escondido'), 'escondido');
+
     /* Y el gestor, en uno sin código: ni «Inscripción hecha» ni revisar un
        código; de pendiente se pasa a lista con un botón en el primer paso. */
     var eq = window.CIIP_LISTA_ENTES({id:'r9', estado:'ante_el_ente', inversionista:'u1'}, 'equipo', 'sundde');
@@ -11875,8 +11890,8 @@
     igual('entes: y el BANAVIH no lleva contraseña', 'clave' in b, false);
     igual('entes: gestor, la SUNDDE pasa de pendiente a lista sin código',
           ((window.__ENTES || {})['r9|sundde'] || {}).estado, 'listo');
-    ['r9|ivss', 'r9|inces', 'r9|banavih', 'r9|sundde'].forEach(function(k){ delete window.__ENTES[k]; });
-    ENTES_PRUEBA = null;
+    ['r9|ivss', 'r9|inces', 'r9|banavih', 'r9|sundde', 'r9|snc'].forEach(function(k){ delete window.__ENTES[k]; });
+    ENTES_PRUEBA = null; ENTES_EQUIPO = null;
   }
 
   function tramoVerdadMira(){

@@ -22078,8 +22078,10 @@ applyLang(idiomaParaMi());
          descargar el documento»). Salía como un «Ver archivo» colgado del
          paso 2, al lado del código, que no es donde nadie la busca: la
          constancia es lo que cierra la inscripción, y va en su último
-         paso. Para los dos, inversionista y equipo: el gestor también
-         tiene que poder comprobar qué subió. */
+         paso. SOLO PARA EL INVERSIONISTA (Franklin Reyes, 29-9-2026: «ni
+         administrador ni gestor deberían poder descargar el documento»): la
+         constancia es suya. El equipo la sube en ese mismo paso y no la
+         descarga desde aquí. */
       var baja = el('button', 'btn navy pe-baja', u.pe_descargar || '');
       baja.type = 'button';
       baja.hidden = true;
@@ -22367,9 +22369,10 @@ applyLang(idiomaParaMi());
         if (conClave && d && d.clave) dice.appendChild(claveTapada(d.clave));
         var doc = d && d.documentos;
         var esConstancia = !!(doc && doc.archivo && doc.tipo === 'constancia_ente');
-        baja.hidden = !esConstancia;
-        baja.title = esConstancia ? (doc.nombre_original || '') : '';
-        baja.onclick = esConstancia
+        var suDescarga = esConstancia && modo === 'inversionista';
+        baja.hidden = !suDescarga;
+        baja.title = suDescarga ? (doc.nombre_original || '') : '';
+        baja.onclick = suDescarga
           ? function(){ abreFirmado(doc.archivo, baja, 'constancia del ente'); } : null;
         /* Y el «Ver archivo» de al lado del código queda para lo que no es
            una constancia: los adjuntos que llegó a mandar algún
