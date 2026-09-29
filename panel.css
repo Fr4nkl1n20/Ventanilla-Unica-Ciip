@@ -3309,6 +3309,28 @@ body[data-vista="tramite"] #secTramites{display:none;}
    salían por la derecha de la tarjeta. */
 .pe-pasos .tr-txt{flex:1 1 auto; min-width:0;}
 .pe-pasos .tr-paso-n{font-size:var(--fs-nota);}
+/* LOS ENTES DEBAJO DE «TU SOLICITUD», A LA MEDIDA DE LA ESCALERA. Franklin
+   Reyes, 29-9-2026: «los recuadros de envío al ente no están en sincronía
+   con el de arriba, están muy largos», y que su línea de pasos vaya «como
+   esta», la de .tr-escalera.
+
+   Al ancho de las cajas (880) y cada recuadro a lo ancho del bloque: con
+   width:max-content los pasos en fila estiraban la lista hasta el borde de
+   la página. Los pasos, centrados bajo su punto de 20 y con el hilo de
+   punto a punto. Solo en .pe-bloque -la cola, Mis trámites y el visor
+   tienen su propia .pe-pasos- y solo por encima de 640px, donde van en
+   fila. */
+.pe-bloque{max-width:880px;}
+.pe-bloque .pe-lista{width:auto;}
+@media(min-width:641px){
+  .pe-bloque .pe-pasos .tr-paso{align-items:center; text-align:center; padding:0 6px;}
+  .pe-bloque .pe-pasos .tr-paso:last-child{padding-right:6px;}
+  .pe-bloque .pe-pasos .tr-paso:not(:last-child)::before{left:calc(50% + 16px); right:calc(-50% + 16px);}
+  .pe-bloque .pe-pasos .tr-txt{display:flex; flex-direction:column; align-items:center;}
+  .pe-bloque .pe-pasos .tr-txt button{text-align:center;}
+  .pe-bloque .pe-pasos .pe-dice{justify-content:center;}
+  .pe-bloque .pe-pasos .tr-paso-n{max-width:24ch; text-wrap:balance;}
+}
 .pe-dice{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;
   font-size:var(--fs-nota); color:var(--gray); overflow-wrap:anywhere;}
 .pe-dice[hidden], .pe-form[hidden], .pe-listo[hidden]{display:none;}
