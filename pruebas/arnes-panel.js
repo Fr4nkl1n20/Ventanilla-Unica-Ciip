@@ -365,6 +365,7 @@
               marcaSiembra, marcaMira,
               conformidadMira,
               licenciaSiembra, licenciaMira,
+              planillaFirmadaSiembra, planillaFirmadaMira, planillaFirmadaTrasSubir,
               importadorMira, bomberosMira,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
@@ -8890,6 +8891,140 @@
     LC_CAJAS.remove();
     LC_CAJAS = null;
     window.__IMPORTE_DOCS = null;
+  }
+
+  /* ═══════════ LA PLANILLA FIRMADA, DE VUELTA DESDE SU PASO ═══════════
+     Franklin Reyes, 29-9-2026: «En las casillas que indique firme la
+     planilla se debe desprender la opción de que el inversionista adjunte
+     o cargue la planilla firmada y nos la envíe de regreso». Todo paso que
+     dice «Firme la planilla» la ofrece en curso, con el enlace y no el
+     selector del navegador; mandada, dice «Planilla enviada». */
+  var PF_CAJAS = null;
+  var FIRMA_LA_PLANILLA = /firm\w* la planilla/i;
+  function planillaFirmadaSiembra(){
+    if (PASE !== 'vacio') return;
+    var P = window.CIIP_PLANILLA_FIRMADA, M = window.CIIP_MARCA, esc = window.CIIP_ESCALERA;
+    if (!P || !M || !esc) return ok('planilla firmada: las piezas están a mano', false, 'falta alguna',
+                                    'CIIP_PLANILLA_FIRMADA, CIIP_MARCA, CIIP_ESCALERA');
+    var pasosEs = ((window.CIIP_PASOS || {}).pasos || {}).es || {};
+    var hallados = [], sinCasilla = [], deMas = [];
+    Object.keys(pasosEs).forEach(function(ref){
+      (pasosEs[ref] || []).forEach(function(txt, i){
+        if (!FIRMA_LA_PLANILLA.test(txt)) return;
+        hallados.push(ref + '.' + (i + 1));
+        if (!P.pide(ref, i + 1)) sinCasilla.push(ref + '.' + (i + 1));
+      });
+    });
+    var reg = P.registro() || {};
+    Object.keys(reg).forEach(function(ref){
+      Object.keys(reg[ref]).forEach(function(n){
+        if (!FIRMA_LA_PLANILLA.test((pasosEs[ref] || [])[n - 1] || '')) deMas.push(ref + '.' + n);
+      });
+    });
+    igual('planilla firmada: dicen «Firme la planilla» el paso 2 de los dos RIF y el de la licencia',
+          hallados.join(','), 'c3.2,c6.2,c10.2');
+    igual('planilla firmada: todos ofrecen devolverla firmada', sinCasilla.join(',') || 'todos', 'todos');
+    igual('planilla firmada: y ningún otro paso la pide', deMas.join(',') || 'ninguno', 'ninguno');
+
+    var trR = {id: 'pf-rif', tipo: 'rif_empresa', estado: 'enviado', datos: {}, inversionista: 'u2'};
+    var E = esc(trR, 'rif_empresa', 'SENIAT');
+    var p2 = E && E.circ && E.circ[1];
+    ok('planilla firmada: RIF de la empresa recibido, «Firme la planilla» es el paso en curso',
+       !!p2 && p2.ahora && FIRMA_LA_PLANILLA.test(p2.nombre),
+       p2 ? p2.nombre + (p2.ahora ? ' (en curso)' : ' (no en curso)') : '(sin paso)', 'Firme la planilla (en curso)');
+
+    var hace = new Date(Date.now() - 3600000).toISOString();
+    window.__IMPORTE_DOCS = {
+      'pf-ya':   [{id: 'pfy', tipo: 'planilla_firmada', estado: 'cargado', creado_en: hace,
+                   nombre_original: 'planilla-firmada.pdf', archivo: 'u2/planilla_firmada-x-planilla-firmada.pdf'}],
+      'pf-rech': [{id: 'pfr', tipo: 'planilla_firmada', estado: 'rechazado', creado_en: hace,
+                   nombre_original: 'planilla-sin-firma.pdf', nota_revision: 'Falta la firma del representante.'}]
+    };
+    PF_CAJAS = document.createElement('div');
+    PF_CAJAS.hidden = true;
+    document.body.appendChild(PF_CAJAS);
+    ['pf-rif', 'pf-ya', 'pf-rech'].forEach(function(id){
+      var c = P.casilla({id: id, tipo: 'rif_empresa', estado: 'enviado', datos: {}, inversionista: 'u2'});
+      c.setAttribute('data-prueba', id);
+      PF_CAJAS.appendChild(c);
+    });
+    /* Y la licencia en revisión, pintada entera: ahí el paso en curso es la
+       firma, y lleva la casilla dentro. */
+    var ol = document.createElement('ol');
+    ol.className = 'tr-pasos';
+    PF_CAJAS.appendChild(ol);
+    var trL = {id: 'pf-lic', tipo: 'licencia_municipal', estado: 'en_revision', datos: {pasos_ciip: {}},
+               inversionista: 'u2', enviado_en: hace, creado_en: hace};
+    M.pinta(ol, M.escalera(trL, 'licencia_municipal'), trL, {}, false);
+  }
+  function planillaFirmadaMira(){
+    if (PASE !== 'vacio' || !PF_CAJAS) return;
+    var u = window.CIIP_T();
+    var caja = function(id){ return PF_CAJAS.querySelector('.tr-firmada[data-prueba="' + id + '"]'); };
+    var visto = function(x){ return !!x && !x.hidden; };
+
+    var rif = caja('pf-rif');
+    var enl = rif && rif.querySelector('.pe-sube > .pe-subir');
+    var nat = rif && rif.querySelector('input[type=file]');
+    ok('planilla firmada: en curso ofrece «Subir la planilla firmada» con su enlace, no el botón gris del navegador',
+       visto(rif) && visto(enl) && enl.textContent === u.tr_pfirmada_subir && !!nat && nat.hidden,
+       !rif ? '(sin casilla)' : (visto(rif) ? (enl ? (enl.hidden ? 'enlace escondido' : enl.textContent) : '(sin enlace)') +
+         (nat && !nat.hidden ? ' + botón gris' : '') : 'casilla escondida'),
+       u.tr_pfirmada_subir);
+    ok('planilla firmada: y antes de mandarla no dice que ya está',
+       !!rif && !visto(rif.querySelector('.pe-subido')), rif && visto(rif.querySelector('.pe-subido')) ? 'lo dice' : 'no', 'no');
+
+    var ya = caja('pf-ya');
+    var yaS = ya && ya.querySelector('.pe-subido');
+    igual('planilla firmada: ya mandada, «Planilla enviada» y «Cambiar»',
+          visto(yaS) ? yaS.textContent : '(escondido)', u.tr_pfirmada_ok + u.pa_cambiar);
+    ok('planilla firmada: y sin el enlace de subir',
+       !!ya && !visto(ya.querySelector('.pe-sube > .pe-subir')),
+       ya && visto(ya.querySelector('.pe-sube > .pe-subir')) ? 'a la vista' : 'escondido', 'escondido');
+
+    var rech = caja('pf-rech');
+    var nota = rech && rech.querySelector('.tr-nota.mal');
+    ok('planilla firmada: rechazada, dice por qué y vuelve a ofrecer subirla',
+       visto(nota) && nota.textContent.indexOf('Falta la firma del representante.') >= 0 &&
+         visto(rech.querySelector('.pe-sube > .pe-subir')),
+       visto(nota) ? nota.textContent : '(sin nota)', u.tr_pfirmada_otra + ' Falta la firma del representante.');
+
+    var lic = PF_CAJAS.querySelector('li.tr-paso.ahora[data-paso="firma"] .tr-firmada');
+    ok('planilla firmada: la licencia, en «Firme la planilla de solicitud de trámite», también la ofrece',
+       visto(lic) && visto(lic.querySelector('.pe-subir')),
+       lic ? (visto(lic) ? 'a la vista' : 'escondida') : '(sin casilla)', 'a la vista');
+
+    /* Y se manda: el archivo va a la bóveda con su tipo y se cuelga de la
+       solicitud. */
+    window.__ENGANCHES = [];
+    if (!nat) return;
+    var dt = new DataTransfer();
+    dt.items.add(new File([new Uint8Array(8)], 'planilla-rif-firmada.pdf', {type: 'application/pdf'}));
+    nat.files = dt.files;
+    nat.dispatchEvent(new Event('change'));
+  }
+  function planillaFirmadaTrasSubir(){
+    if (PASE !== 'vacio' || !PF_CAJAS) return;
+    var u = window.CIIP_T();
+    var rif = PF_CAJAS.querySelector('.tr-firmada[data-prueba="pf-rif"]');
+    var yaS = rif && rif.querySelector('.pe-subido');
+    igual('planilla firmada: al subirla, el paso dice «Planilla enviada»',
+          yaS && !yaS.hidden ? yaS.textContent : '(escondido)', u.tr_pfirmada_ok + u.pa_cambiar);
+    var nom = yaS && yaS.querySelector('.pe-subido-n');
+    igual('planilla firmada: con el nombre del archivo en el title', nom ? nom.title : '(sin nombre)',
+          'planilla-rif-firmada.pdf');
+    var eng = (window.__ENGANCHES || []).filter(function(f){ return f && f.tramite === 'pf-rif'; })[0];
+    ok('planilla firmada: y queda colgada de la solicitud, para que la vea el CIIP',
+       !!eng && !!eng.documento, eng ? 'pf-rif ← ' + eng.documento : '(sin enganche)', 'pf-rif ← su documento');
+    /* El papel de prueba fuera de la bóveda de mentira: las de después
+       cuentan lo que hay. */
+    if (eng && eng.documento && window.sbCIIP){
+      Promise.resolve(window.sbCIIP.from('documentos').delete().eq('id', eng.documento)).catch(function(){});
+    }
+    PF_CAJAS.remove();
+    PF_CAJAS = null;
+    window.__IMPORTE_DOCS = null;
+    window.__ENGANCHES = null;
   }
 
   /* ═══════════ EL REGISTRO DE IMPORTADOR Y EXPORTADOR, FUERA ═══════════

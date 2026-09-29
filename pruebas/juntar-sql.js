@@ -199,7 +199,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* La traducción automática del chat (28-9-2026): lee los tres hilos y
    redefine gasta_uso_ia() de supabase-qa-admin con la pieza 'traductor',
    así que va la última. */
-'supabase-traduccion-chat'];
+'supabase-traduccion-chat',
+/* La planilla firmada que el inversionista devuelve desde «Firme la
+   planilla» (c3, c6, c10): su tipo de documento y la política que la deja
+   colgar con la solicitud en marcha. Solo necesita las tablas de
+   supabase-tramites; va al final para no mover el número de nadie. */
+'supabase-planilla-firmada'];
 
 let mal = 0;
 for (const n of orden) {

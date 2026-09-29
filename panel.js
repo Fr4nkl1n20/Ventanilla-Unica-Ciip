@@ -8415,6 +8415,13 @@ applyLang(idiomaParaMi());
               if (repinta) repinta();
             }));
           }
+          /* «Firme la planilla de solicitud de trámite», la de la licencia:
+             la planilla firmada se devuelve desde su paso, igual que en los
+             dos RIF (Franklin Reyes, 29-9-2026). La ref sale de la propia
+             escalera y no del catálogo de la base: es la misma, y no
+             depende de que el catálogo haya llegado. */
+          if (pideLaPlanillaFirmada((ESCALERA_POR_ETAPAS[E.codigo] || {}).ref, paso.n))
+            txt.appendChild(casillaDeLaPlanillaFirmada(tr));
           /* Varios comprobantes en un paso: una caja por importe, cada una
              con su nombre encima, que es lo que distingue el pago de la tasa
              del pago del timbre. */
@@ -8876,6 +8883,187 @@ applyLang(idiomaParaMi());
     li.appendChild(txt);
     return li;
   }
+  /* ── LA PLANILLA FIRMADA, DE VUELTA DESDE SU PASO ──
+     Franklin Reyes, 29-9-2026: «En las casillas que indique firme la
+     planilla se debe desprender la opción de que el inversionista adjunte
+     o cargue la planilla firmada y nos la envíe de regreso».
+
+     Hasta hoy el paso solo lo decía: firmarla y hacerla llegar al CIIP
+     pasaba fuera del panel. Ahora lleva su casilla, con la forma de la
+     constancia de cada ente (.pe-sube): un enlace con su icono, y el
+     selector de archivos del navegador escondido -en Safari sale con otra
+     letra y un «Ningún archivo seleccionado» cortado-. Subida, el enlace se
+     cambia por una marca verde, «Planilla enviada» y «Cambiar».
+
+     Entra como un papel más de la solicitud: a la bóveda con su tipo
+     ('planilla_firmada') y colgado del trámite en tramite_documentos. Así
+     el equipo la ve donde ya mira los papeles -la cola, el visor del
+     expediente y «Documentos por revisar», que la cuenta como pendiente-
+     sin una pantalla nueva que vigilar.
+
+     SE CREE A LA BASE, NO AL CLIC. Con la solicitud ya enviada, colgar un
+     papel lo deja solo la política de supabase-planilla-firmada.sql, y en
+     esta base un permiso que falta puede contestar que todo bien con cero
+     filas. Por eso el enganche va con .select() y solo con su fila de
+     vuelta se dice «Planilla enviada»; si no vuelve, se quita la ficha
+     recién creada -no se queda en la bóveda un papel suelto- y se dice que
+     no se pudo.
+
+     El equipo no sube nada aquí: si ya llegó, la ve enviada con «Abrir». Y
+     con la solicitud resuelta ya no se cambia: se enseña lo que llegó, si
+     llegó, y nada más. */
+  var TIPO_PLANILLA_FIRMADA = 'planilla_firmada';
+  /* Los mismos dos iconos que la constancia de los entes. */
+  var ICO_SUBE_PLANILLA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>';
+  var ICO_VISTO_PLANILLA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
+
+  function pideLaPlanillaFirmada(ref, n){
+    var reg = PLANILLA_FIRMADA_DEL_PASO || {};
+    return !!(reg[ref] && reg[ref][n]);
+  }
+
+  /* La más reciente de las colgadas. Una rechazada cuenta -es la que dice
+     que hay que mandar otra-, pero no tapa a una posterior. */
+  function laPlanillaFirmada(filas){
+    var ult = null;
+    (filas || []).forEach(function(f){
+      var d = f && f.documentos;
+      if (!d || d.tipo !== TIPO_PLANILLA_FIRMADA) return;
+      if (!d.id && f.documento) d.id = f.documento;
+      if (!ult || (new Date(d.creado_en).getTime() || 0) > (new Date(ult.creado_en).getTime() || 0)) ult = d;
+    });
+    return ult;
+  }
+
+  function casillaDeLaPlanillaFirmada(tr){
+    var u = T();
+    var esEquipo = !!(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO());
+    var abierta = !esEquipo && ['resuelto', 'cancelado', 'borrador'].indexOf(tr.estado) < 0;
+    var caja = el('div', 'pe-sube tr-firmada');
+    caja.setAttribute('data-doc', TIPO_PLANILLA_FIRMADA);
+    /* Escondida hasta saber qué hay: si no, el enlace sale y medio segundo
+       después se cambia por «Planilla enviada», y parece que algo falló. */
+    caja.hidden = true;
+
+    var arch = document.createElement('input');
+    arch.type = 'file';
+    arch.id = 'tr-firmada-' + tr.id;
+    arch.accept = '.pdf,.jpg,.jpeg,.png';
+    arch.hidden = true;
+    arch.setAttribute('aria-label', u.tr_pfirmada_subir || '');
+
+    var pista = el('div', 'tr-nota', u.tr_pfirmada_pista || '');
+    var rechazo = el('div', 'tr-nota mal', '');
+    rechazo.hidden = true;
+
+    var subeEnl = el('button', 'pe-subir');
+    subeEnl.type = 'button';
+    subeEnl.innerHTML = ICO_SUBE_PLANILLA;
+    subeEnl.appendChild(el('span', null, u.tr_pfirmada_subir || ''));
+    subeEnl.addEventListener('click', function(){ arch.click(); });
+
+    var subeYa = el('div', 'pe-subido');
+    subeYa.hidden = true;
+    subeYa.innerHTML = ICO_VISTO_PLANILLA;
+    var subeNom = el('span', 'pe-subido-n', u.tr_pfirmada_ok || '');
+    subeYa.appendChild(subeNom);
+    /* «Cambiar» para quien la mandó; «Abrir» para el equipo. */
+    var otra = el('button', 'pe-subir pe-cambia', (esEquipo ? u.co_abrir : u.pa_cambiar) || '');
+    otra.type = 'button';
+    subeYa.appendChild(otra);
+
+    var msg = el('div', 'pe-msg', '');
+    caja.appendChild(rechazo);
+    caja.appendChild(pista);
+    caja.appendChild(subeEnl);
+    caja.appendChild(subeYa);
+    caja.appendChild(arch);
+    caja.appendChild(msg);
+
+    var puesta = null;
+    function pon(d){
+      puesta = d;
+      var vale = !!d && d.estado !== 'rechazado';
+      /* Sin planilla y sin poder mandarla no hay nada que decir. */
+      if (!vale && !abierta){ caja.hidden = true; return; }
+      caja.hidden = false;
+      subeYa.hidden = !vale;
+      subeNom.title = vale ? (d.nombre_original || '') : '';
+      otra.hidden = vale && (esEquipo ? !d.archivo : !abierta);
+      subeEnl.hidden = vale;
+      rechazo.hidden = !(d && d.estado === 'rechazado');
+      /* La pista o el porqué del rechazo, no los dos. */
+      pista.hidden = vale || !rechazo.hidden;
+      rechazo.textContent = rechazo.hidden ? ''
+        : (u.tr_pfirmada_otra || '') + (d.nota_revision ? ' ' + d.nota_revision : '');
+    }
+    otra.addEventListener('click', function(){
+      if (esEquipo){
+        if (puesta && puesta.archivo) abreFirmado(puesta.archivo, otra, 'planilla firmada');
+        return;
+      }
+      arch.click();
+    });
+
+    arch.addEventListener('change', function(){
+      var f = arch.files && arch.files[0];
+      if (!f) return;
+      var mal = papelMal(f);
+      if (mal){ msg.textContent = u[mal] || u.co_error || ''; arch.value = ''; return; }
+      var docId = null;
+      subeEnl.disabled = otra.disabled = arch.disabled = true;
+      msg.textContent = u.enviando || '';
+      sube(TIPO_PLANILLA_FIRMADA, f)
+        .then(function(id){
+          docId = id;
+          return sb.from('tramite_documentos').insert({tramite: tr.id, documento: id}).select();
+        })
+        .then(function(r){
+          if (r && r.error) throw r.error;
+          if (!(r && r.data && r.data.length)) throw new Error('sin fila: falta supabase-planilla-firmada.sql');
+          PAPELES_DE[tr.id] = null;
+          msg.textContent = '';
+          /* La que se cambió se queda colgada: un papel de una solicitud
+             en marcha no se borra (QA-16, supabase-qa-tramites.sql). Aquí
+             manda la más reciente, y el equipo ve las dos. */
+          pon({id: docId, tipo: TIPO_PLANILLA_FIRMADA, nombre_original: f.name, estado: 'cargado',
+               creado_en: new Date().toISOString()});
+        })
+        .catch(function(e){
+          console.warn('[CIIP] planilla firmada:', e && (e.message || e));
+          if (docId){
+            var suelta = docId;
+            Promise.resolve().then(function(){
+              return sb.from('documentos').delete().eq('id', suelta);
+            }).catch(function(){});
+          }
+          msg.textContent = (e && e.ciip && u[e.ciip]) || u.co_error || '';
+        })
+        .then(function(){
+          subeEnl.disabled = otra.disabled = arch.disabled = false;
+          arch.value = '';
+        });
+    });
+
+    Promise.resolve().then(function(){
+      return sb.from('tramite_documentos').select('documento, documentos(*)').eq('tramite', tr.id);
+    }).then(function(r){
+      if (r && r.error) throw r.error;
+      pon(laPlanillaFirmada(r && r.data));
+    }).catch(function(e){
+      console.warn('[CIIP] planilla firmada, lo que hay:', e && (e.message || e));
+      pon(null);
+    });
+    return caja;
+  }
+  /* Para las pruebas. El registro se da con una función: aquí, al cargar,
+     PLANILLA_FIRMADA_DEL_PASO todavía no tiene valor -se escribe más abajo,
+     junto a DESCARGA_DEL_PASO-. */
+  window.CIIP_PLANILLA_FIRMADA = {
+    registro: function(){ return PLANILLA_FIRMADA_DEL_PASO; },
+    casilla: casillaDeLaPlanillaFirmada, pide: pideLaPlanillaFirmada
+  };
+
   /* Para las pruebas: qué pasos le salen a un trámite sin tener que
      montar su ficha entera. */
   window.CIIP_ESCALERA = escaleraDe;
@@ -9176,6 +9364,9 @@ applyLang(idiomaParaMi());
             }
             var avisoP = ((NOTA_DEL_PASO || {})[refTr] || {})[nPaso];
             if (avisoP) txt.appendChild(el('div', 'tr-nota', u[avisoP] || ''));
+            /* «Firme la planilla»: y aquí se devuelve firmada (Franklin
+               Reyes, 29-9-2026). Ver casillaDeLaPlanillaFirmada(). */
+            if (pideLaPlanillaFirmada(refTr, nPaso)) txt.appendChild(casillaDeLaPlanillaFirmada(tr));
             /* El importe del día, en el paso que su trámite diga
                (IMPORTE_DEL_DIA). El equipo lo sube desde su cola, y aquí no
                se le pone nada, igual que con los demás comprobantes. */
@@ -21599,6 +21790,15 @@ applyLang(idiomaParaMi());
      de que haya nada que mirar es ruido. */
   var NOTA_DEL_PASO = {c1: {6: 'p_visacorreo'}, c38: {6: 'p_visacorreo'}};
 
+  /* Y en qué paso se devuelve firmada la planilla (Franklin Reyes,
+     29-9-2026). La cuenta es la del rótulo, como en los de arriba: los dos
+     RIF -c3 y c6, «Firme la planilla»- y la licencia -c10, «Firme la
+     planilla de solicitud de trámite», que va por su escalera por etapas y
+     también es el segundo-. Lo pinta casillaDeLaPlanillaFirmada(). Un
+     trámite nuevo con ese paso es una entrada aquí y una línea en
+     supabase-planilla-firmada.sql, que es quien deja colgarla. */
+  var PLANILLA_FIRMADA_DEL_PASO = {c3: {2: true}, c6: {2: true}, c10: {2: true}};
+
   /* Que papel se sube en que paso. La cuenta empieza en cero: el 0 es la
      emision del PUB y el 1 es "Pago de aranceles registrales", que desde el
      16 de septiembre de 2026 va delante de la consignacion: en el registro
@@ -23390,6 +23590,10 @@ applyLang(idiomaParaMi());
       CLAVE_DE_TIPO.certificado_marca     = 'd_certificado_marca';
       CLAVE_DE_TIPO.resolucion           = 'co_emitido';
       CLAVE_DE_TIPO.codigo_ente          = 'd_codigoente';
+      /* La planilla que el inversionista devuelve firmada desde el paso
+         «Firme la planilla» (Franklin Reyes, 29-9-2026): tampoco la pide
+         ningún formulario, y en la cola del equipo saldría con el código. */
+      CLAVE_DE_TIPO[TIPO_PLANILLA_FIRMADA] = 'd_planilla_firmada';
     }
     return CLAVE_DE_TIPO;
   }

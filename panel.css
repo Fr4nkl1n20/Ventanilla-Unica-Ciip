@@ -2974,6 +2974,18 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-escalera .tr-aqui{gap:5px; margin-top:5px; line-height:1.2;}
 .tr-escalera .tr-aqui::before{width:6px; height:6px; border-radius:50%;}
 .tr-escalera .tr-desde{font-size:var(--fs-chip); font-weight:700; color:inherit;}
+/* La planilla firmada, de vuelta desde «Firme la planilla» (Franklin
+   Reyes, 29-9-2026): la casilla de la constancia de los entes (.pe-sube),
+   centrada bajo su punto como el resto del paso. */
+.tr-firmada[hidden]{display:none;}
+.tr-firmada{align-items:flex-start; margin-top:8px; max-width:100%;}
+.tr-firmada .tr-nota{margin-top:0;}
+.tr-escalera .tr-firmada{align-items:center;}
+.tr-escalera .tr-firmada .pe-subir{align-self:center;}
+@media(max-width:640px){
+  .tr-escalera .tr-firmada{align-items:flex-start;}
+  .tr-escalera .tr-firmada .pe-subir{align-self:flex-start;}
+}
 @media(max-width:640px){
   .tr-escalera .tr-paso{align-items:flex-start; text-align:left; padding:0 0 20px;}
   .tr-escalera .tr-paso:last-child{padding:0;}

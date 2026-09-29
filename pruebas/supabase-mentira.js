@@ -1618,6 +1618,15 @@
       return {data: Object.keys(ENT).map(function(k){ return ENT[k]; })
                       .filter(function(f){ return !deE || f.tramite === deE; }), error:null};
     }
+    /* Colgar un papel con .insert() -la planilla firmada que se devuelve
+       desde «Firme la planilla», 29-9-2026-: se apunta aparte y vuelve con
+       su fila, que es lo que contesta la base cuando la política deja
+       pasar. Sin esto caía en la lista sin .eq de más abajo y contestaba
+       con tres enganches de otro. */
+    if (tabla === 'tramite_documentos' && op && op.insert){
+      (window.__ENGANCHES = window.__ENGANCHES || []).push(op.insert);
+      return {data:[op.insert], error:null};
+    }
     if (tabla === 'tramite_documentos' && op && op.upsert){
       (window.__ADJUNTOS = window.__ADJUNTOS || []).push(op.upsert);
       return {data:[op.upsert], error:null};
