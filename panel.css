@@ -2918,6 +2918,45 @@ body[data-vista="tramite"] #secTramites{display:none;}
     width:2px; height:auto;}
   .tr-txt{padding-top:3px;}
 }
+/* LA ESCALERA DE «TU SOLICITUD», ORDENADA. Franklin Reyes, 29-9-2026,
+   sobre la captura: «esta linea de procesos se ve como rara»; eligio la
+   maqueta 1 de maquetas/escalera-de-la-solicitud.
+
+   Cada paso va centrado bajo su punto y el hilo corre de punto a punto:
+   pegado a la izquierda, el hilo se cortaba antes del siguiente y el
+   texto no quedaba debajo de nada. La fecha iba sin regla -.sd-e solo
+   tiene tamaño dentro de .sol-doc- y salia mas grande que el nombre del
+   paso. «Vas por aqui» pasa a etiqueta, con los dias dentro, y el paso en
+   curso deja de repetir la fecha: la etiqueta ya dice desde cuando.
+
+   Solo esta lista (.tr-escalera): las de los entes y la del tramo tienen
+   sus propios hilos medidos desde la izquierda. */
+.tr-escalera .tr-paso{align-items:center; text-align:center; padding:0 8px;}
+.tr-escalera .tr-paso:last-child{padding-right:8px;}
+.tr-escalera .tr-paso:not(:last-child)::before{left:calc(50% + 18px); right:calc(-50% + 18px);}
+.tr-escalera .tr-paso.ahora .tr-punto{box-shadow:none;}
+.tr-escalera .tr-txt{display:flex; flex-direction:column; align-items:center;}
+.tr-escalera .tr-txt button{text-align:center;}
+.tr-escalera .tr-paso-n{font-weight:700; max-width:22ch; text-wrap:balance;}
+.tr-escalera .tr-paso.ahora .tr-paso-n{color:var(--navy2);}
+.tr-escalera .tr-txt > .sd-e{font-size:var(--fs-nota); font-weight:400; color:var(--gray-soft);
+  margin-top:3px; font-variant-numeric:tabular-nums;}
+.tr-escalera .tr-paso.ahora:has(.tr-aqui) > .tr-txt > .sd-e{display:none;}
+.tr-escalera .tr-aqui{gap:5px; margin-top:7px; padding:4px 9px; border-radius:20px;
+  background:var(--activa-bg); line-height:1.2;}
+.tr-escalera .tr-aqui::before{width:6px; height:6px; border-radius:50%;}
+.tr-escalera .tr-desde{font-size:var(--fs-chip); font-weight:700; color:inherit;}
+@media(max-width:640px){
+  .tr-escalera .tr-paso{align-items:flex-start; text-align:left; padding:0 0 20px;}
+  .tr-escalera .tr-paso:last-child{padding:0;}
+  .tr-escalera .tr-paso:not(:last-child)::before{left:11px; right:auto;}
+  .tr-escalera .tr-txt{align-items:flex-start;}
+  .tr-escalera .tr-txt button{text-align:left;}
+  .tr-escalera .tr-paso-n{max-width:none;}
+}
+/* La fecha de envio ya va al lado de «Tu solicitud»; el reloj de arriba,
+   que es el mismo dato, sobra mientras esta la escalera. */
+.tr-detalle:has(.sol-estado .se-f) #trPlazo{display:none;}
 .tr-paso.porhacer .tr-paso-n{color:var(--gray);}
 /* Es un distintivo, y el panel ya tiene una familia de distintivos: .chip,
    .ct-chip y .co-estado, todos en versalitas, esquina redonda y 4-5px de

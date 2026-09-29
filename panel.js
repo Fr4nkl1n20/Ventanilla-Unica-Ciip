@@ -8802,7 +8802,10 @@ applyLang(idiomaParaMi());
       return;
     }
 
-    var lista = el('ol', 'tr-pasos');
+    /* tr-escalera: la de «Tu solicitud» va centrada bajo cada punto
+       (maqueta 1 de escalera-de-la-solicitud, 29-9-2026). Con clase propia
+       para no mover las escaleras de los entes ni la del tramo. */
+    var lista = el('ol', 'tr-pasos tr-escalera');
     caja.appendChild(lista);
 
     /* historial: para saber cuándo pasó cada cosa */
