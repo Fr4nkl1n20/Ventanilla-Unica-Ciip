@@ -16454,7 +16454,7 @@ applyLang(idiomaParaMi());
 
     /* Con escalera por etapas -la marca, la licencia, el bomberos, los
        libros-, ordenado en pestañas: ver visorPorEtapas. */
-    if (ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo]) return visorPorEtapas(t, lado);
+    if ((ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo]) || VISOR_CON_PESTANAS[t.tipo]) return visorPorEtapas(t, lado);
 
     lado.appendChild(visorFin(t));
     return lado;
@@ -16479,15 +16479,24 @@ applyLang(idiomaParaMi());
      visor.pestana y no en la página: el lado se repinta entero al validar
      un papel o con el «al día», y volvería a la primera. abreVisor la
      olvida al abrir otra solicitud. */
+  /* Y la constitución, el mismo día (Franklin: «ese mismo formato creo que
+     también lo podemos aplicar para constitución de empresa»). Su escalera
+     no es por etapas: la cuenta escaleraDe, con la firma en el CIIP y la
+     reserva del nombre dentro. En su pie, el PUB de la reserva y la firma
+     van atados al botón de presentar -lo rotulan y lo habilitan-, así que
+     no se separan: «Paso en curso» es ese pie entero, y no hay «Cerrar». */
+  var VISOR_CON_PESTANAS = {constitucion: true};
+
   function visorPorEtapas(t, lado){
     var u = T();
     var mio = !!YO && t.gestor === YO;
-    var E = escaleraPorEtapas(t, t.tipo);
+    var def = ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo];
+    var E = def ? escaleraPorEtapas(t, t.tipo) : escaleraDe(t, t.tipo, hoyEnte(t));
 
     var esc = el('ol', 'vs-esc');
-    (E ? E.todos : []).forEach(function(p){
+    (E ? E.todos : []).forEach(function(p, i){
       var li = el('li', p.hecho ? 'hecho' : (p.ahora ? 'ahora' : ''));
-      li.appendChild(el('span', 'vs-esc-p', p.hecho ? '✓' : String(p.n)));
+      li.appendChild(el('span', 'vs-esc-p', p.hecho ? '✓' : String(p.n || (i + 1))));
       li.appendChild(el('span', 'vs-esc-n', p.nombre));
       esc.appendChild(li);
     });
@@ -16495,9 +16504,11 @@ applyLang(idiomaParaMi());
     var paneles = {};
     var recaudo = el('div', 'vs-panel');
     while (lado.firstChild) recaudo.appendChild(lado.firstChild);
-    var casilla = mio ? casillaDeLaMarca(t, 'hoy-mc-') : null;
+    var casilla = (mio && def) ? casillaDeLaMarca(t, 'hoy-mc-') : null;
     var paso = el('div', 'vs-panel');
-    if (casilla){
+    if (!def){
+      paso.appendChild(visorFin(t));
+    } else if (casilla){
       paso.appendChild(casilla);
     } else {
       var ahora = E && E.ahora;
@@ -16508,16 +16519,20 @@ applyLang(idiomaParaMi());
       paso.appendChild(el('p', 'visor-d', u.vs_paso_nada || ''));
     }
     var cerrar = el('div', 'vs-panel');
-    cerrar.appendChild(visorFin(t, true));
-    paneles.paso = paso; paneles.recaudo = recaudo; paneles.cerrar = cerrar;
+    if (def) cerrar.appendChild(visorFin(t, true));
+    paneles.paso = paso; paneles.recaudo = recaudo;
+    if (def) paneles.cerrar = cerrar;
 
+    var enRevision = ['enviado', 'en_revision'].indexOf(t.estado) >= 0;
     var cual = visor && visor.pestana;
-    if (!paneles[cual]) cual = casilla ? 'paso' : (recaudo.childNodes.length ? 'recaudo' : 'paso');
+    if (!paneles[cual]) cual = casilla ? 'paso'
+      : (recaudo.childNodes.length && (def || enRevision)) ? 'recaudo' : 'paso';
 
     var pest = el('div', 'vs-pest');
     pest.setAttribute('role', 'tablist');
     [['paso', 'vs_pest_paso'], ['recaudo', 'vs_pest_recaudo'], ['cerrar', 'vs_pest_cerrar']].forEach(function(p){
       if (p[0] === 'recaudo' && !recaudo.childNodes.length) return;
+      if (!paneles[p[0]]) return;
       var b = el('button', 'vs-pest-b', u[p[1]] || '');
       b.type = 'button';
       b.setAttribute('role', 'tab');
@@ -16539,7 +16554,7 @@ applyLang(idiomaParaMi());
     lado.appendChild(pest);
     lado.appendChild(paso);
     lado.appendChild(recaudo);
-    lado.appendChild(cerrar);
+    if (def) lado.appendChild(cerrar);
     return lado;
   }
   /* Para las pruebas: el lado de un trámite sin abrir el visor entero. */

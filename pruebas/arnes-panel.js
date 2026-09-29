@@ -9155,6 +9155,19 @@
       ok('visor por etapas: al pulsar «Cerrar» se ve su pie, con el paso en curso escondido',
          visibles() === 1 && !!lado.querySelector('.vs-panel:not([hidden]) .visor-fin'),
          visibles() + ' a la vista', 'solo el pie');
+      /* La constitución, el mismo día: su escalera arriba y dos pestañas,
+         con el pie entero en «Paso en curso» (la reserva y la firma van
+         atadas al botón de presentar). */
+      var ladoC = window.CIIP_VISOR_LADO({id: 'co-v', tipo: 'constitucion', estado: 'en_revision',
+                                           gestor: 'otro-gestor', datos: {}});
+      ok('visor de la constitución: con su escalera en pequeño arriba',
+         ladoC.querySelectorAll('.vs-esc li').length >= 4 && !!ladoC.querySelector('.vs-esc li.ahora'),
+         ladoC.querySelectorAll('.vs-esc li').length + ' pasos', 'cuatro o más, uno en curso');
+      igual('visor de la constitución: sin «Cerrar», el pie va en el paso en curso',
+            [].map.call(ladoC.querySelectorAll('.vs-pest-b'), function(b){ return b.getAttribute('data-pest'); }).join(','),
+            'paso');
+      ok('visor de la constitución: y el pie está dentro de esa pestaña',
+         !!ladoC.querySelector('.vs-panel:not([hidden]) .visor-fin'), 'busca el pie', 'a la vista');
     }
     if (puestoL) delete cat.c24;
   }
