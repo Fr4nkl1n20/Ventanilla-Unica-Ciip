@@ -11848,6 +11848,13 @@
     if (!ENTES_PRUEBA) return;
     var fila = function(e){ return ENTES_PRUEBA.querySelector('.pe-ente[data-ente="' + e + '"]'); };
     var ivss = fila('ivss'), inces = fila('inces'), banavih = fila('banavih');
+    /* Los avisos de la campana: solo el IVSS y el INCES llegan a
+       «inscrito» o mandan algo, y lo que mandan es usuario y contraseña
+       (Franklin Reyes, 29-9-2026: «el IVSS no utiliza códigos»). */
+    ok('entes: los avisos de la campana hablan de usuario y contraseña, no de un código',
+       /usuario y contraseña/.test(u.av_ente_abierto) && /usuario y la contraseña/.test(u.av_codigo) &&
+         !/código/.test(u.av_ente_abierto + u.av_codigo),
+       u.av_ente_abierto + ' / ' + u.av_codigo, 'usuario y contraseña');
     igual('entes: el IVSS pide usuario y contraseña, no un código',
           (ivss.querySelectorAll('.pe-pasos .tr-paso-n')[1] || {}).textContent, u.pe_p1c);
     /* Los otros cuatro, sin código (pedido del CIIP, 28-9-2026): «El CIIP
