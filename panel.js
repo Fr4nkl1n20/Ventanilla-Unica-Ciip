@@ -14350,9 +14350,11 @@ applyLang(idiomaParaMi());
 
       var botones = el('div', 'co-botones');
       (CO_PASOS[t.estado] || []).forEach(function(p, i){
-        var b = el('button', 'btn ' + (i === 0 && p.nota ? 'ghost' : 'navy'), u[p.k] || '');
+        /* «Poder validado» en vez de «Resuelta» en la validación del poder. */
+        var rotP = (p.a === 'resuelto' && esElPoder(t)) ? u.co_h_poder : u[p.k];
+        var b = el('button', 'btn ' + (i === 0 && p.nota ? 'ghost' : 'navy'), rotP || '');
         b.type = 'button';
-        principal = b; principalTxt = u[p.k] || '';
+        principal = b; principalTxt = rotP || '';
         b.addEventListener('click', function(){
           /* Primero el papel para pagar, si espera: devolver no lo manda,
              solo lo manda el de la derecha. */
@@ -14903,10 +14905,15 @@ applyLang(idiomaParaMi());
      registro- se manda en su paso de la escalera, que es donde el
      inversionista lo espera. Pedirlo otra vez al resolver sería subirlo
      dos veces. */
+  /* Y la validación del poder de representación (Franklin Reyes,
+     30-9-2026: «aquí no enviamos ningún documento, solo validamos»): el
+     CIIP mira el poder que subió el inversionista y lo da por bueno. No
+     hay nada que emitir, y el botón lo dice: «Poder validado». */
+  function esElPoder(t){ return !!t && t.tipo === 'poder_representacion'; }
   function pideEmitido(t){
     /* La licencia (c10) sí lo pide: la licencia de actividades económicas
        es su documento emitido, y llega al resolver como el de cualquiera. */
-    return !t || (t.tipo !== 'constitucion' && t.tipo !== TIPO_PARAFISCALES &&
+    return !t || (t.tipo !== 'constitucion' && t.tipo !== TIPO_PARAFISCALES && !esElPoder(t) &&
                   !(ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo] &&
                     ESCALERA_POR_ETAPAS[t.tipo].sinEmitido));
   }
@@ -16216,7 +16223,7 @@ applyLang(idiomaParaMi());
       return;
     }
     var quien = t.nombre || u.co_sinnombre || '';
-    var rotulo = pideEmitido(t) ? u.co_h_resolver : u.co_h_resolver_c;
+    var rotulo = esElPoder(t) ? u.co_h_poder : pideEmitido(t) ? u.co_h_resolver : u.co_h_resolver_c;
     boton.disabled = true;
     boton.textContent = u.co_subiendo || '';
     /* Los datos del acta se guardan ANTES de resolver, y ese orden es lo
@@ -16877,13 +16884,15 @@ applyLang(idiomaParaMi());
          resuelven con los seis entes listos. Decía «…resuelve la
          constitución», que es de otro trámite (29-9-2026). */
       pista.textContent = (t.tipo === TIPO_PARAFISCALES ? u.vs_pista
+        : esElPoder(t) ? u.co_h_p_poder
         : conEmitido ? u.co_h_p_emitido : u.co_h_p_reserva) || '';
+      var rotuloRes = esElPoder(t) ? u.co_h_poder : conEmitido ? u.co_h_resolver : u.co_h_resolver_c;
       fin.appendChild(pista);
       /* Mientras haya papel elegido sin enviar, el boton de abajo es el
          que lo envia; en cuanto sale, vuelve a ser «Resolver». */
       var rotulaRes = function(){
         if (reserva && reserva.pendiente()) res.textContent = u[reserva.clave] || '';
-        else res.textContent = (conEmitido ? u.co_h_resolver : u.co_h_resolver_c) || '';
+        else res.textContent = rotuloRes || '';
       };
       var reserva = casillaDeLaReserva(t, 'hoy-res-', function(){ rotulaRes(); });
       if (reserva) fin.appendChild(reserva.caja);
@@ -16914,7 +16923,7 @@ applyLang(idiomaParaMi());
          protocolización que por lo demás está lista. */
       var delActa = (t.tipo === 'protocolizacion_acta') ? casillasDelActa(t) : null;
       if (delActa) fin.appendChild(delActa.caja);
-      var res = el('button', 'btn navy', (conEmitido ? u.co_h_resolver : u.co_h_resolver_c) || '');
+      var res = el('button', 'btn navy', rotuloRes || '');
       res.type = 'button';
       res.addEventListener('click', function(){
         if (reserva && reserva.pendiente()){
