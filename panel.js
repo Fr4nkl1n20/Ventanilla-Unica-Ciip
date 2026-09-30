@@ -272,6 +272,14 @@ function applyLang(lang){
      el idioma de turno aunque lo que se guarde sea siempre el español. */
   if (window.CIIP_REPINTA_PERFIL) window.CIIP_REPINTA_PERFIL();
   if (window.CIIP_REPINTA_CITA)   window.CIIP_REPINTA_CITA();
+  /* Y la puerta del pliego, que se pinta entera desde el JS -título, ayuda,
+     casilla, botones y el propio texto- y no lleva un solo data-i18n. Sus
+     banderitas llaman aquí y a nada más, así que sin esta línea pulsar el
+     italiano dentro de la puerta no cambiaba nada de lo que se ve: el
+     inversionista seguía delante del documento en castellano, con la casilla
+     como única salida. El arnés no lo veía porque llamaba él mismo a
+     CIIP_REPINTA_PLIEGO después de applyLang (30-9-2026). */
+  if (window.CIIP_REPINTA_PLIEGO) window.CIIP_REPINTA_PLIEGO();
   /* La cola también: sus textos, y de paso si el botón debe verse, porque el
      perfil —y con él el rol— llega después de que la página se dibuje. */
   if (window.CIIP_REPINTA_COLA)   window.CIIP_REPINTA_COLA();

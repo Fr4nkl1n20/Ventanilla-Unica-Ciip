@@ -215,7 +215,7 @@
        una cola lo que va despues- asi que cualquier prueba que corriera
        antes miraria un panel a medio hacer. Se comprueba la puerta, se
        acepta, y desde ahi la tanda sigue como en cualquier otro pase. */
-    enCadena([pliegoMira, pliegoAcepta, pliegoCerrada,
+    enCadena([pliegoMira, pliegoIdioma, pliegoAcepta, pliegoCerrada,
               sinPuertaDelSector, abreElPerfil, sectorEnElPerfil,
               pruebas, trasGuardar, citasAbre, citasPide,
               /* Los huecos solo en el pase 'huecos'; en los demas no hacen nada. */
@@ -509,6 +509,42 @@
       applyLang(antes || 'es');
       if (window.CIIP_REPINTA_PLIEGO) window.CIIP_REPINTA_PLIEGO();
     })();
+  }
+
+  /* Las banderitas de DENTRO de la puerta, pulsadas de verdad. La prueba de
+     arriba llama ella misma a CIIP_REPINTA_PLIEGO despues de applyLang, y
+     asi se le escapaba que el boton no lo llamaba nadie: pulsar otra
+     bandera dejaba la puerta entera en el idioma de antes (30-9-2026).
+     Se pulsan DOS, castellano y luego italiano, y se mira cada vez: con
+     una sola, una puerta que ya estuviera en ese idioma pasaria sin que
+     el boton hubiera hecho nada. */
+  function pliegoIdioma(sigue){
+    if (PASE !== 'pliego') return sigue();
+    var bt = document.getElementById('plAceptar');
+    var ay = document.getElementById('plAyuda');
+    var antes = curLang;
+    ['es', 'it'].forEach(function(l){
+      var b = document.querySelector('#plLang button[data-lang="' + l + '"]');
+      if (!b || !bt || !ay){
+        ok('pliego: la bandera ' + l + ' de dentro cambia la puerta', false, 'faltan botones', 'banderas y boton');
+        return;
+      }
+      b.click();
+      igual('pliego: la bandera ' + l + ' de dentro cambia el boton', bt.textContent.trim(), textoPasos(l, 'pl_aceptar'));
+      igual('pliego: la bandera ' + l + ' de dentro cambia la ayuda', ay.textContent.trim(), textoPasos(l, 'pl_ayuda'));
+      ok('pliego: y la bandera ' + l + ' queda marcada', b.classList.contains('on'),
+         b.className || 'sin clase', 'con on');
+    });
+    var vuelta = document.querySelector('#plLang button[data-lang="' + (antes || 'es') + '"]');
+    if (vuelta) vuelta.click(); else applyLang(antes || 'es');
+    sigue();
+  }
+  /* El texto del mismo sitio de donde lo saca el panel: pasos.js. Se lee
+     aqui y no a mano para que la prueba no se ponga roja el dia que alguien
+     retoque la frase. */
+  function textoPasos(l, k){
+    var U = ((window.CIIP_PASOS || {}).ui || {})[l] || {};
+    return String(U[k] || '(sin ' + k + ' en ' + l + ')').trim();
   }
 
   function pliegoAcepta(){
