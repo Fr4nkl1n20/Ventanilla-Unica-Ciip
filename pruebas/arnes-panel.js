@@ -372,7 +372,7 @@
               licenciaSiembra, licenciaMira,
               planillaFirmadaSiembra, planillaFirmadaMira, planillaFirmadaTrasSubir,
               rifGestorSiembra, rifGestorMira,
-              importadorMira, bomberosMira,
+              importadorMira, bomberosMira, visaEscaleraMira,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
                  cuentas a todo lo que cuenta tarjetas. */
@@ -9365,7 +9365,9 @@
      dice «Firme la planilla» la ofrece en curso, con el enlace y no el
      selector del navegador; mandada, dice «Planilla enviada». */
   var PF_CAJAS = null;
-  var FIRMA_LA_PLANILLA = /firm\w* la planilla/i;
+  /* Y desde el 30-9-2026, la visa: «Carga la planilla firmada», el paso
+     donde vuelve firmada la que el CIIP manda en el anterior. */
+  var FIRMA_LA_PLANILLA = /firm\w* la planilla|planilla firmada/i;
   function planillaFirmadaSiembra(){
     if (PASE !== 'vacio') return;
     var P = window.CIIP_PLANILLA_FIRMADA, M = window.CIIP_MARCA, esc = window.CIIP_ESCALERA;
@@ -9386,8 +9388,8 @@
         if (!FIRMA_LA_PLANILLA.test((pasosEs[ref] || [])[n - 1] || '')) deMas.push(ref + '.' + n);
       });
     });
-    igual('planilla firmada: dicen «Firme la planilla» el paso 3 de los dos RIF y el 2 de la licencia',
-          hallados.join(','), 'c3.3,c6.3,c10.2');
+    igual('planilla firmada: dicen «Firme la planilla» el paso 3 de los dos RIF y el 2 de la licencia, y «Carga la planilla firmada» el 3 de las visas',
+          hallados.join(','), 'c1.3,c38.3,c3.3,c6.3,c10.2');
     igual('planilla firmada: todos ofrecen devolverla firmada', sinCasilla.join(',') || 'todos', 'todos');
     igual('planilla firmada: y ningún otro paso la pide', deMas.join(',') || 'ninguno', 'ninguno');
 
@@ -9636,6 +9638,58 @@
      Pedido del CIIP (28-9-2026): tres recaudos más -cédula o pasaporte y
      RIF del representante legal, documento constitutivo- con los tipos de
      la marca, y la escalera «Revisión de recaudos → Permiso otorgado». */
+  /* ═══════════ LAS DOS VISAS (c1 y c38) ═══════════
+     Pedido del CIIP (30-9-2026): «Revisión de tus recaudos → Descarga
+     aquí la planilla de solicitud y fírmala → Carga la planilla firmada →
+     Solicitud recibida por Cancillería → Visa otorgada». La planilla la
+     manda el CIIP; la firmada la sube el inversionista. Se fue el
+     registro en el portal de Cancillería. Solo cuentas: sin base. */
+  function visaEscaleraMira(sigue){
+    var M = window.CIIP_MARCA, F = window.CIIP_PLANILLA_FIRMADA;
+    if (PASE !== 'vacio') return sigue();
+    if (!M || !F) { ok('visa: las piezas están a mano', false, 'falta alguna', 'CIIP_MARCA, CIIP_PLANILLA_FIRMADA'); return sigue(); }
+    var hace = function(h){ return new Date(Date.now() - h * 3600000).toISOString(); };
+    var tr = function(id, tipo, estado, pasos){
+      return {id: id, tipo: tipo, estado: estado, datos: {pasos_ciip: pasos || {}},
+              inversionista: 'u2', gestor: 'u1', enviado_en: hace(200), creado_en: hace(200)};
+    };
+    ['visa_negocios', 'visa_inversionista'].forEach(function(tipo){
+      var E0 = M.escalera(tr('vs-a', tipo, 'enviado'), tipo);
+      igual('visa (' + tipo + '): cinco pasos, en el orden del CIIP',
+            E0.todos.map(function(p){ return p.clave; }).join(','),
+            'revision,planilla,firmada,cancilleria,visa');
+      igual('visa (' + tipo + '): con los nombres del pedido',
+            E0.todos.map(function(p){ return p.nombre; }).join(' → '),
+            'Revisión de tus recaudos → Descarga aquí la planilla de solicitud y fírmala → ' +
+            'Carga la planilla firmada → Solicitud recibida por Cancillería → Visa otorgada');
+      igual('visa (' + tipo + '): recibida, va por la revisión', E0.ahora && E0.ahora.clave, 'revision');
+    });
+    var T = 'visa_negocios';
+    igual('visa: en revisión y sin planilla, sigue en la revisión',
+          (M.escalera(tr('vs-b', T, 'en_revision'), T).ahora || {}).clave, 'revision');
+    igual('visa: con la planilla del CIIP, toca cargar la firmada',
+          (M.escalera(tr('vs-c', T, 'en_revision', {planilla: hace(3)}), T).ahora || {}).clave, 'firmada');
+    igual('visa: con la firmada, espera a Cancillería',
+          (M.escalera(tr('vs-d', T, 'en_revision', {planilla: hace(3), firmada: hace(1)}), T).ahora || {}).clave, 'cancilleria');
+    igual('visa: con la planilla pero sin la firmada, Cancillería no sale hecha',
+          (M.escalera(tr('vs-e', T, 'en_revision', {planilla: hace(3)}), T).todos[3] || {}).hecho, false);
+    igual('visa: ante Cancillería, espera la visa',
+          (M.escalera(tr('vs-f', T, 'ante_el_ente', {planilla: hace(3), firmada: hace(1)}), T).ahora || {}).clave, 'visa');
+    var E6 = M.escalera(tr('vs-g', T, 'resuelto', {planilla: hace(3), firmada: hace(1)}), T);
+    ok('visa: otorgada, todo hecho', E6.hechos === E6.todos.length && !E6.ahora,
+       E6.hechos + ' de ' + E6.todos.length, 'todo hecho');
+    ok('visa: la planilla firmada se carga en el tercero, en las dos',
+       F.pide('c1', 3) && F.pide('c38', 3) && !F.pide('c1', 2),
+       [F.pide('c1', 3), F.pide('c38', 3), F.pide('c1', 2)].join(','), 'true,true,false');
+    /* Y la licencia no se movió con el cambio del arrastre: con los
+       importes apuntados, la firma sigue hecha aunque vuelva a revisión. */
+    igual('visa: la licencia sigue contando igual con lo apuntado detrás',
+          (M.escalera({id: 'lc-z', tipo: 'licencia_municipal', estado: 'en_revision',
+                       datos: {pasos_ciip: {importe_tasa: hace(2)}}}, 'licencia_municipal').ahora || {}).clave,
+          'importe_timbre');
+    sigue();
+  }
+
   function bomberosMira(){
     if (PASE !== 'vacio') return;
     var R = window.CIIP_RECAUDOS;

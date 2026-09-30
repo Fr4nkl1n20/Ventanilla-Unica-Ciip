@@ -8652,8 +8652,52 @@ applyLang(idiomaParaMi());
           {clave: 'sellados',    tipo: 'retiro', rotulo: 'sl_p_sellados', listo: 'sl_n_sellados'}
         ]}
       ]
-    }
+    },
+
+    /* ── LAS DOS VISAS (c1 y c38) ──
+       Pedido del CIIP (Franklin Reyes, 30-9-2026): «Revisión de tus
+       recaudos → Descarga aquí la planilla de solicitud y fírmela (en este
+       paso la planilla la enviamos nosotros como el CIIP) → Cargue la
+       planilla firmada (aquí el inversionista carga la planilla que firmó)
+       → Solicitud recibida por Cancillería → Visa otorgada».
+
+       Se va el registro en el portal de Cancillería con su «Ya me
+       registré», y la planilla deja de ser un PDF fijo del panel: la manda
+       el CIIP a cada solicitud, como el papel de cualquier otra escalera.
+
+       La revisión se cierra en cuanto el CIIP manda la planilla (la base
+       apunta 'planilla' al colgarla); la firmada, cuando el inversionista
+       la cuelga desde su paso (la base apunta 'firmada', y la quita si el
+       equipo la rechaza); Cancillería, al presentar la solicitud ante el
+       ente, y la visa al resolverse. Las dos visas son el mismo proceso:
+       una sola lista, dos entradas. */
+    visa_negocios: null,
+    visa_inversionista: null
   };
+  (function(){
+    var pasosVisa = [
+      {clave: 'revision',    tipo: 'revision', rotulo: 'vs_p_revision'},
+      {clave: 'planilla',    tipo: 'papel',    rotulo: 'vs_p_planilla',    papel: 'planilla_visa',
+       espera: 'vs_n_planilla_espera', listo: 'vs_n_planilla_lista'},
+      /* 'firmada': la sube el inversionista (casillaDeLaPlanillaFirmada,
+         PLANILLA_FIRMADA_DEL_PASO) y la base la apunta. */
+      {clave: 'firmada',     tipo: 'firmada',  rotulo: 'vs_p_firmada'},
+      {clave: 'cancilleria', tipo: 'estado',   rotulo: 'vs_p_cancilleria', hechoEn: ['ante_el_ente'],
+       espera: 'vs_n_cancilleria'},
+      {clave: 'visa',        tipo: 'retiro',   rotulo: 'vs_p_visa',
+       espera: 'vs_n_visa_espera', listo: 'vs_n_visa_lista'}
+    ];
+    [['visa_negocios', 'c1'], ['visa_inversionista', 'c38']].forEach(function(v){
+      ESCALERA_POR_ETAPAS[v[0]] = {
+        ref: v[1],
+        textos: {titulo: 'vs_g_titulo', retiro: 'vs_g_retiro'},
+        /* La planilla se manda tras revisar, antes de Cancillería: la
+           casilla del gestor sale ya con la solicitud en revisión. */
+        casillaEn: ['en_revision', 'ante_el_ente'],
+        etapas: [{clave: 'visa', pasos: pasosVisa}]
+      };
+    });
+  })();
 
   /* El importe de los aranceles de bomberos, con la solicitud ante los
      bomberos. La fila de la base es una, la de siempre (supabase-bomberos.sql). */
@@ -8710,9 +8754,24 @@ applyLang(idiomaParaMi());
     var P = pasosApuntados(tr);
     var contestacion = !!P.contestacion;
     var resuelta = tr.estado === 'resuelto';
-    /* Si ya hay algo apuntado, la revisión quedó atrás aunque ahora esté
-       devuelta: la escalera no vuelve a la casilla uno por eso. */
-    var algoApuntado = Object.keys(P).some(function(k){ return k !== 'contestacion' && P[k]; });
+    /* Si ya hay algo apuntado DETRÁS de un paso de estado -la revisión
+       incluida-, ese paso quedó atrás aunque ahora esté devuelta: la
+       escalera no vuelve a la casilla uno por eso.
+
+       Solo lo de detrás (30-9-2026). En la visa hay apuntados antes del
+       paso de Cancillería -la planilla, la firmada- y con «algo apuntado»
+       a secas Cancillería saldría hecha sin haberse presentado nada. En las escaleras de antes todo lo apuntado va
+       detrás de sus pasos de estado, así que para ellas es lo mismo. Lo
+       apuntado que no es un paso -pago_tasa, pago_timbre- cuenta como de
+       detrás, que es donde está. */
+    var claves = [];
+    def.etapas.forEach(function(et){ et.pasos.forEach(function(p){ claves.push(p.clave); }); });
+    var apuntadoDetras = function(clave){
+      var hasta = claves.slice(0, claves.indexOf(clave) + 1);
+      return Object.keys(P).some(function(k){
+        return k !== 'contestacion' && P[k] && hasta.indexOf(k) < 0;
+      });
+    };
     var todos = [], etapas = [];
     def.etapas.forEach(function(et, ie){
       var e = {clave: et.clave, nombre: u[et.rotulo] || '', n: ie + 1, pasos: []};
@@ -8730,11 +8789,11 @@ applyLang(idiomaParaMi());
           paso.cuando = fechas.every(Boolean) ? fechas.sort().slice(-1)[0] : null;
         }
         paso.apuntado =
-            p.tipo === 'revision' ? (tr.estado === 'ante_el_ente' || resuelta || algoApuntado)
+            p.tipo === 'revision' ? (tr.estado === 'ante_el_ente' || resuelta || apuntadoDetras(p.clave))
           /* 'estado': lo cierra el estado de la solicitud, en los que diga
              hechoEn. Como la revisión, no vuelve atrás si ya hay algo
              apuntado. */
-          : p.tipo === 'estado'   ? ((p.hechoEn || []).indexOf(tr.estado) >= 0 || resuelta || algoApuntado)
+          : p.tipo === 'estado'   ? ((p.hechoEn || []).indexOf(tr.estado) >= 0 || resuelta || apuntadoDetras(p.clave))
           : p.tipo === 'retiro'   ? resuelta
           : p.tipo === 'pagos'    ? !!paso.cuando
           : !!P[p.clave];
@@ -8886,7 +8945,7 @@ applyLang(idiomaParaMi());
              escalera y no del catálogo de la base: es la misma, y no
              depende de que el catálogo haya llegado. */
           if (pideLaPlanillaFirmada((ESCALERA_POR_ETAPAS[E.codigo] || {}).ref, paso.n))
-            txt.appendChild(casillaDeLaPlanillaFirmada(tr));
+            txt.appendChild(casillaDeLaPlanillaFirmada(tr, repinta));
           /* Varios comprobantes en un paso: una caja por importe, cada una
              con su nombre encima, que es lo que distingue el pago de la tasa
              del pago del timbre. */
@@ -9405,7 +9464,10 @@ applyLang(idiomaParaMi());
     return ult;
   }
 
-  function casillaDeLaPlanillaFirmada(tr){
+  /* alSubir: lo que se hace cuando la base ya la tiene. En las visas la
+     base apunta el paso al colgarla, y la escalera se vuelve a pedir para
+     avanzar con lo que la base dice (30-9-2026). */
+  function casillaDeLaPlanillaFirmada(tr, alSubir){
     var u = T();
     var esEquipo = !!(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO());
     var abierta = !esEquipo && ['resuelto', 'cancelado', 'borrador'].indexOf(tr.estado) < 0;
@@ -9498,6 +9560,7 @@ applyLang(idiomaParaMi());
              manda la más reciente, y el equipo ve las dos. */
           pon({id: docId, tipo: TIPO_PLANILLA_FIRMADA, nombre_original: f.name, estado: 'cargado',
                creado_en: new Date().toISOString()});
+          if (alSubir) alSubir();
         })
         .catch(function(e){
           console.warn('[CIIP] planilla firmada:', e && (e.message || e));
@@ -22795,12 +22858,12 @@ applyLang(idiomaParaMi());
      gesto del inversionista, y con qué llave se apunta en tramites.datos.
      La cuenta es la del rótulo: el 2 es el segundo círculo.
 
-     Las dos visas comparten el mismo: registrarse en el portal de
-     Cancillería pasa fuera del panel, y hasta que no lo confirmes la
-     escalera se queda esperando ahí. Lo lee escaleraDe(), así que la fila
-     de Mis trámites y la ficha cuentan lo mismo. */
-  var PASOS_QUE_MARCAS_TU = {c1:  {2: 'cancilleria_confirmada'},
-                             c38: {2: 'cancilleria_confirmada'}};
+     Lo lee escaleraDe(), así que la fila de Mis trámites y la ficha
+     cuentan lo mismo. Las dos visas estuvieron aquí con el registro en el
+     portal de Cancillería («Ya me registré») hasta el 30-9-2026, cuando el
+     CIIP quitó ese paso: ahora van por ESCALERA_POR_ETAPAS. La mecánica se
+     queda para el próximo paso que ocurra fuera del panel. */
+  var PASOS_QUE_MARCAS_TU = {};
 
   /* ── CUÁNTOS PASOS VAN HECHOS EN CADA ESTADO, CUANDO NO EMPIEZAN POR
      «RECIBIDA» ──
@@ -22865,24 +22928,21 @@ applyLang(idiomaParaMi());
   /* Adónde te manda un paso, cuando lo que toca está fuera del panel. El
      enlace de Cancillería va con el paso que se marca solo al volver: son
      las dos mitades del mismo gesto -ve, y avísanos-. */
-  var ENLACE_DEL_PASO = {c1:  {2: {url: 'https://cancilleriadigital.mppre.gob.ve',
-                                   clave: 'p_ircancilleria'}},
-                         c38: {2: {url: 'https://cancilleriadigital.mppre.gob.ve',
-                                   clave: 'p_ircancilleria'}}};
+  /* Vacía desde el 30-9-2026: era el portal de Cancillería de las visas. */
+  var ENLACE_DEL_PASO = {};
 
   /* Qué se baja en qué paso. El archivo vive AQUÍ, junto al panel, y no se
      enlaza al sitio del ministerio: el día que ellos muevan la página, la
      descarga seguiría funcionando. Es la misma razón por la que los logos
      de los organismos están en logos/. */
-  var DESCARGA_DEL_PASO = {c1:  {3: {archivo: 'planillas/visa-solicitud.pdf',
-                                     clave: 'p_bajaplanilla'}},
-                           c38: {3: {archivo: 'planillas/visa-solicitud.pdf',
-                                     clave: 'p_bajaplanilla'}}};
+  /* Vacía desde el 30-9-2026: era la planilla fija de las visas, que
+     ahora la manda el CIIP a cada solicitud (ESCALERA_POR_ETAPAS). */
+  var DESCARGA_DEL_PASO = {};
 
   /* Y lo que hay que saber al llegar a un paso. Sale cuando el paso está
      en curso o hecho, no antes: «mira tu correo» leído tres semanas antes
      de que haya nada que mirar es ruido. */
-  var NOTA_DEL_PASO = {c1: {6: 'p_visacorreo'}, c38: {6: 'p_visacorreo'}};
+  var NOTA_DEL_PASO = {};
 
   /* Y en qué paso se devuelve firmada la planilla (Franklin Reyes,
      29-9-2026). La cuenta es la del rótulo, como en los de arriba: los dos
@@ -22891,8 +22951,12 @@ applyLang(idiomaParaMi());
      «Firme la planilla de solicitud de trámite», que va por su escalera
      por etapas y es el segundo-. Lo pinta casillaDeLaPlanillaFirmada(). Un
      trámite nuevo con ese paso es una entrada aquí y una línea en
-     supabase-planilla-firmada.sql, que es quien deja colgarla. */
-  var PLANILLA_FIRMADA_DEL_PASO = {c3: {3: true}, c6: {3: true}, c10: {2: true}};
+     supabase-planilla-firmada.sql, que es quien deja colgarla.
+
+     Y las dos visas, en el tercero, «Carga la planilla firmada» (30-9-2026):
+     el CIIP manda la planilla en el segundo y vuelve firmada aquí. */
+  var PLANILLA_FIRMADA_DEL_PASO = {c3: {3: true}, c6: {3: true}, c10: {2: true},
+                                   c1: {3: true}, c38: {3: true}};
 
   /* ── LA PLANILLA QUE MANDA EL CIIP, PARA FIRMARLA ──
      Franklin Reyes, 30-9-2026: «el proceso del gestor» también con el paso
@@ -24707,7 +24771,9 @@ applyLang(idiomaParaMi());
       /* Los dos que el CIIP manda por la escalera de la marca. */
       CLAVE_DE_TIPO.busqueda_antecedentes = 'd_busqueda_antecedentes';
       CLAVE_DE_TIPO.certificado_marca     = 'd_certificado_marca';
-      CLAVE_DE_TIPO.resolucion           = 'co_emitido';
+      /* Y la planilla que el CIIP manda en la escalera de la visa. */
+      CLAVE_DE_TIPO.planilla_visa         = 'd_planilla_visa';
+      CLAVE_DE_TIPO.resolucion          = 'co_emitido';
       CLAVE_DE_TIPO.codigo_ente          = 'd_codigoente';
       /* La planilla que el inversionista devuelve firmada desde el paso
          «Firme la planilla» (Franklin Reyes, 29-9-2026): tampoco la pide
