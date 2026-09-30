@@ -1066,6 +1066,21 @@
            lo que ya tienes, diría «Constitución» y esto se pondría rojo. */
         ok('cadena: espera al papel que falta, no al primero de la lista',
            esperaDe('c6') === 'c3', esperaDe('c6') || '(a nadie)', 'c3');
+
+        /* La cédula de extranjero pide el RIF personal (30-9-2026), y el
+           RIF pide la cédula: sin romperlo, cada tarjeta esperaría a la
+           otra. Va primero el RIF, así que su recaudo de identidad no
+           encadena. El catálogo de mentira no trae la cédula, por eso se
+           mira la lista y no la tarjeta. */
+        var R = window.CIIP_RECAUDOS;
+        var rifEnCedula = R.de('cedula_residencia').filter(function(r){ return r.tipo === 'rif_personal'; })[0];
+        ok('cadena: la cédula de extranjero pide el RIF personal, y no como opcional',
+           !!rifEnCedula && !rifEnCedula.opcional,
+           rifEnCedula ? (rifEnCedula.opcional ? 'opcional' : 'obligatorio') : '(no lo pide)', 'obligatorio');
+        var cedEnRif = R.de('rif_personal').filter(function(r){ return r.tipo === 'cedula'; })[0];
+        ok('cadena: y el RIF personal no espera a la cédula',
+           !!cedEnRif && cedEnRif.noEncadena === true,
+           cedEnRif ? String(!!cedEnRif.noEncadena) : '(no la pide)', 'true');
       }
 
       /* ── el plazo, comparado ──

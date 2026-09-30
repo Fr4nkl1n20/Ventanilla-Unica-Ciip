@@ -3047,7 +3047,12 @@ applyLang(idiomaParaMi());
       {tipo:'pasaporte',  clave:'d_pasaporte'},
       {tipo:'visa',       clave:'d_visa'},
       {tipo:'foto',       clave:'d_foto'},
-      {tipo:'domicilio',  clave:'d_domicilio'}
+      {tipo:'domicilio',  clave:'d_domicilio'},
+      /* Y el RIF personal (Franklin Reyes, 30-9-2026). Va ANTES que la
+         cédula: el extranjero lo saca con su pasaporte, y con él pide la
+         cédula. Por eso la tarjeta de la cédula espera a la del RIF, y no
+         al revés -ver rif_personal, justo debajo-. */
+      {tipo:'rif_personal', clave:'d_rifpersonal'}
     ],
     /* La homologación va después de la cédula: para entonces el
        inversionista ya la tiene, así que su identidad sale de la bóveda.
@@ -3063,7 +3068,11 @@ applyLang(idiomaParaMi());
        pide que alguien acredite donde vives, no un recibo a tu nombre
        (Pendientes FRANK.pdf, 24-9-2026). */
     rif_personal: [
-      {tipo:'cedula',          clave:'d_identidad'},
+      /* noEncadena: la cédula de extranjero se pide CON el RIF, así que
+         el RIF no puede esperarla -cada tarjeta esperaría a la otra-. El
+         extranjero lo saca con el pasaporte; el rótulo ya dice «Cédula o
+         pasaporte». Se sigue pidiendo igual; solo deja de encadenar. */
+      {tipo:'cedula',          clave:'d_identidad', noEncadena:true},
       {tipo:'carta_residencia', clave:'d_cartaresid'}
     ],
     /* El RIF personal es recaudo del de la empresa: quien lo haya hecho
@@ -21728,7 +21737,8 @@ applyLang(idiomaParaMi());
      llegó.
 
      Un recaudo OPCIONAL no encadena: si no hace falta para enviar,
-     tampoco puede detener. */
+     tampoco puede detener. Ni uno con noEncadena, que existe para romper
+     un círculo: el RIF personal pide la cédula y la cédula pide el RIF. */
   function esperaPor(ref){
     var t = (TIPOS || {})[ref];
     if (!t || !t.codigo) return null;
@@ -21736,7 +21746,7 @@ applyLang(idiomaParaMi());
 
     for (var i = 0; i < pide.length; i++){
       var r = pide[i];
-      if (r.opcional || r.siCasilla) continue;
+      if (r.opcional || r.siCasilla || r.noEncadena) continue;
       if (MIOS && MIOS[r.tipo]) continue;   /* ya lo tienes: no te detiene */
 
       for (var otro in TIPOS){
