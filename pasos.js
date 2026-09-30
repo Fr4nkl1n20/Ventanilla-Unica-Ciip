@@ -1730,7 +1730,7 @@ window.CIIP_PASOS = {
       d_doctramite: "Documento del trámite que vas a hacer (PDF)",
       d_otro: "Otro documento",
       d_foto:        "Fotografía tipo carnet",
-      d_registrocom: "Registro Mercantil o carta de la Cámara de Comercio",
+      d_registrocom: "Documento constitutivo y última acta de actualización",
       d_medicoorigen:"Certificado médico del país de origen",
       /* --- Cédula de residencia (SAIME) --- */
       f_numvisa:     "N.º de visa",
@@ -3177,7 +3177,7 @@ window.CIIP_PASOS = {
       d_doctramite: "Document for the procedure you are filing (PDF)",
       d_otro: "Other document",
       d_foto:        "Passport-size photograph",
-      d_registrocom: "Commercial Registry entry or Chamber of Commerce letter",
+      d_registrocom: "Incorporation document and latest amendment minutes",
       d_medicoorigen:"Medical certificate from your country of origin",
       /* --- Residence card (SAIME) --- */
       f_numvisa:     "Visa number",
@@ -4584,7 +4584,7 @@ window.CIIP_PASOS = {
       d_doctramite: "Documento do trâmite que vais fazer (PDF)",
       d_otro: "Outro documento",
       d_foto:        "Fotografia tipo passe",
-      d_registrocom: "Registo Mercantil ou carta da Câmara de Comércio",
+      d_registrocom: "Documento constitutivo e última ata de atualização",
       d_medicoorigen:"Atestado médico do país de origem",
       /* --- Cartão de residência (SAIME) --- */
       f_numvisa:     "N.º do visto",
@@ -5991,7 +5991,7 @@ window.CIIP_PASOS = {
       d_doctramite: "Documento della pratica da presentare (PDF)",
       d_otro: "Altro documento",
       d_foto:        "Fototessera",
-      d_registrocom: "Registro delle imprese o lettera della Camera di Commercio",
+      d_registrocom: "Atto costitutivo e ultimo verbale di aggiornamento",
       d_medicoorigen:"Certificato medico del paese di origine",
       /* --- Permesso di soggiorno (SAIME) --- */
       f_numvisa:     "N. del visto",
@@ -7398,7 +7398,7 @@ window.CIIP_PASOS = {
       d_doctramite: "你要办理的手续文件（PDF）",
       d_otro: "其他文件",
       d_foto:        "证件照",
-      d_registrocom: "商业登记证明或商会信函",
+      d_registrocom: "公司设立文件及最近一次变更会议记录",
       d_medicoorigen:"原籍国出具的健康证明",
       /* --- 居留证（SAIME） --- */
       f_numvisa:     "签证号码",
@@ -8805,7 +8805,7 @@ window.CIIP_PASOS = {
       d_doctramite: "Документ по оформляемой процедуре (PDF)",
       d_otro: "Другой документ",
       d_foto:        "Фото на документы",
-      d_registrocom: "Выписка из торгового реестра или письмо торговой палаты",
+      d_registrocom: "Учредительный документ и последний протокол об изменениях",
       d_medicoorigen:"Медицинская справка из страны происхождения",
       /* --- Вид на жительство (SAIME) --- */
       f_numvisa:     "Номер визы",
@@ -10227,7 +10227,7 @@ window.CIIP_PASOS = {
       d_doctramite: "Document de la démarche que vous déposez (PDF)",
       d_otro: "Autre document",
       d_foto:        "Photo d’identité",
-      d_registrocom: "Inscription au registre du commerce ou lettre de la chambre de commerce",
+      d_registrocom: "Acte constitutif et dernier procès-verbal de mise à jour",
       d_medicoorigen:"Certificat médical de votre pays d’origine",
       /* --- Residence card (SAIME) --- */
       f_numvisa:     "Numéro de visa",
@@ -11649,7 +11649,7 @@ window.CIIP_PASOS = {
       d_doctramite: "申請する手続きの書類（PDF）",
       d_otro: "その他の書類",
       d_foto:        "パスポートサイズの写真",
-      d_registrocom: "商業登記簿の記載事項または商工会議所の書簡",
+      d_registrocom: "設立書類および最新の変更議事録",
       d_medicoorigen:"出身国の診断書",
       /* --- Residence card (SAIME) --- */
       f_numvisa:     "ビザ番号",
