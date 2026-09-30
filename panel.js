@@ -24046,11 +24046,17 @@ applyLang(idiomaParaMi());
             if (!(r && r.data && r.data.length)) throw new Error('sin permiso');
             ENTES_DE[tr.id] = null; ENTES_YA[tr.id] = null;
             pon(r.data[0]);
+            return true;
           })
+          /* Acaba en true o en false, y no en «algo»: el catch se traga el
+             error, así que un .then colgado detrás corre también cuando
+             falla, y quien quiera hacer algo SOLO si entró tiene que poder
+             preguntarlo. */
           .catch(function(e){
             console.warn('[CIIP] ente:', e && (e.message || e));
             if (boton) boton.disabled = false;
             if (alFallar) alFallar();
+            return false;
           });
       }
 
@@ -24109,7 +24115,13 @@ applyLang(idiomaParaMi());
           var cambio = {tramite: tr.id, ente: ente, estado: 'codigo_enviado', codigo: codigo};
           if (cla) cambio.clave = clave;
           manda(cambio, env, function(){ msg.textContent = u.error || ''; })
-            .then(function(){
+            .then(function(entro){
+              /* Vaciar solo si entró. Con un fallo -la red, o una política
+                 que devuelve cero filas- se vaciaban igual, y el aviso de
+                 error salía encima de dos casillas en blanco: había que
+                 volver a copiar el usuario y la contraseña del correo
+                 (30-9-2026). */
+              if (!entro) return;
               cod.value = '';
               if (cla){
                 cla.value = '';

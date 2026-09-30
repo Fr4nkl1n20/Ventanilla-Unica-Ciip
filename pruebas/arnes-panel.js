@@ -347,7 +347,7 @@
               tramoVerdadAbre, reservaMira, reservaAviso, tramoVerdadMira,
               firmaVerdadSale, firmaVerdadAbre, firmaVerdadMira,
               textosMira, firmaEscalera,
-              entesClaveMonta, entesClaveMira, entesClaveTrasEnviar,
+              entesClaveMonta, entesClaveFalla, entesClaveMira, entesClaveTrasEnviar,
               alDiaMira,
               rvAbre, rvMira, rvDespues,
               cbAbre, cbMira,
@@ -13020,6 +13020,37 @@
     ENTES_EQUIPO = window.CIIP_LISTA_ENTES({id:'r9', estado:'ante_el_ente', inversionista:'u1'}, 'equipo', 'snc');
   }
   var ENTES_EQUIPO = null;
+  /* Si el envío falla -la red, o una política que devuelve cero filas-,
+     el usuario y la contraseña se quedan escritos. Se vaciaban igual que
+     al acertar: el aviso de error salía encima de dos casillas en blanco y
+     había que volver a copiarlos del correo (30-9-2026). */
+  function entesClaveFalla(sigue){
+    if (CASO !== 'vacio' || !ENTES_PRUEBA) return sigue();
+    var u = window.CIIP_T();
+    var formI = ENTES_PRUEBA.querySelector('.pe-ente[data-ente="inces"] .pe-form');
+    var us = formI && formI.querySelector('input[type=text]');
+    var cl = formI && formI.querySelector('input[type=password]');
+    if (!us || !cl){
+      ok('entes: un envío que falla deja escritos el usuario y la contraseña', false,
+         '(sin caja del INCES)', 'la caja');
+      return sigue();
+    }
+    us.value = 'empresa.inces'; cl.value = 'Cl4ve INCES';
+    window.__FALLA_ENTES = true;
+    formI.querySelector('.pe-env').click();
+    setTimeout(function(){
+      window.__FALLA_ENTES = false;
+      igual('entes: un envío que falla lo dice', (formI.querySelector('.pe-msg') || {}).textContent, u.error);
+      igual('entes: y deja escritos el usuario y la contraseña', us.value + ' · ' + cl.value,
+            'empresa.inces · Cl4ve INCES');
+      ok('entes: y se puede volver a mandar', !formI.querySelector('.pe-env').disabled,
+         formI.querySelector('.pe-env').disabled ? 'apagado' : 'encendido', 'encendido');
+      /* Como estaba: entesClaveMira empieza por mandar sin contraseña. */
+      us.value = ''; cl.value = '';
+      formI.querySelector('.pe-msg').textContent = '';
+      sigue();
+    }, 300);
+  }
   function entesClaveMira(){
     if (CASO !== 'vacio') return;
     var u = window.CIIP_T();

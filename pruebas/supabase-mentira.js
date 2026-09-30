@@ -1620,6 +1620,13 @@
        el upsert de verdad. */
     if (tabla === 'tramite_entes'){
       var ENT = window.__ENTES = window.__ENTES || {};
+      /* Una vez, cuando la prueba lo pide: la red se cae al mandar el
+         usuario y la contraseña. Es lo que deja ver que un envío fallido
+         no se lleva por delante lo que el inversionista había escrito. */
+      if (op && op.upsert && window.__FALLA_ENTES){
+        window.__FALLA_ENTES = false;
+        return {data:null, error:{message:'la red se cayó', code:'08006'}};
+      }
       if (op && op.upsert){
         var kE = op.upsert.tramite + '|' + op.upsert.ente, filaE = {};
         [ENT[kE] || {}, op.upsert].forEach(function(o){
