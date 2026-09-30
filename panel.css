@@ -3669,7 +3669,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
    casillas siguen blancas y destacan un poco sobre el (Franklin Reyes,
    29-9-2026). */
 .pa-hoja{border:1px solid var(--line); background:var(--tr-velo); border-radius:12px;
-  padding:18px 20px;}
+  padding:18px 20px; margin-top:18px;}
 .pa-hoja[hidden]{display:none;}
 .pa-hoja .sol-dos{gap:0;}
 .pa-hoja .sol-col{border:0; background:none; border-radius:0; padding:0;}
@@ -3703,9 +3703,14 @@ body[data-vista="tramite"] #secTramites{display:none;}
   .pa-l{display:none;}
   .pa-cuerpo{justify-content:center;}
 }
-/* El renglón que cuenta: «Paso 2 de 3 · Recaudos». Es lo que hace que la
-   barra signifique algo para quien no la mira de cerca. */
-.pa-cuenta{display:flex; align-items:baseline; gap:9px; margin:16px 0 14px; flex-wrap:wrap;}
+/* El renglón que cuenta: «Paso 2 de 3 · Recaudos». Oculto a la vista desde
+   el 30-9-2026 (Franklin Reyes: «necesito quitar estos mensajes, son muy
+   repetitivos, porque la barra ya me indica que estoy en los recaudos»):
+   la barra de pasos, justo encima, dice lo mismo. NO se quita: es el
+   título de la hoja para quien la oye con un lector de pantalla. El
+   hueco que dejaba lo pone ahora el margen de la hoja. */
+.pa-cuenta{position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;}
 .pa-cuenta .pc-n{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.04em;
   text-transform:uppercase; color:var(--mudo);}
 .pa-cuenta .pc-t{font-size:var(--fs-tarjeta); font-weight:700; color:var(--ink);letter-spacing:-.01em;}
