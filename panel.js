@@ -7268,6 +7268,12 @@ applyLang(idiomaParaMi());
 
       lis.appendChild(el('div', 'pa-grupo', u.tus_datos));
       hDatos.querySelectorAll('.sol-campo').forEach(function(c){
+        /* Lo que no se pregunta tampoco se repasa, igual que los recaudos
+           de abajo. «¿En qué fechas la tuviste?» -escondida con el «No» de
+           partida, y vaciada- salía como «Sin rellenar» y en rojo, con un
+           «Cambiar» que llevaba a una casilla que no se ve, a todo el que
+           pide su primera visa (30-9-2026). */
+        if (!seVe(c)) return;
         var e = c.querySelector('input, select, textarea');
         /* Se enseña lo que SE VE escrito, no lo que se guarda: en las listas
            y en los paises son dos cosas distintas -se guarda el español- y

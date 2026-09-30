@@ -256,7 +256,7 @@
               tramosMira, tramosDetalle, tramosTramo,
               rupdaeAbre, empiezaSolicitud, rupdaeTrasAbrir,
               rumAbre, empiezaSolicitud, rumTrasAbrir,
-              pistaAbre, empiezaSolicitud, pistaMira, visaCampos,
+              pistaAbre, empiezaSolicitud, pistaMira, visaCampos, visaRepasoEscondido,
               /* El pasaporte con menos de 6 meses (Franklin Reyes, 30-9-2026). */
               vigAbre, vigMira,
               solvenciasAbre, empiezaSolicitud, solvenciasTrasAbrir,
@@ -4016,6 +4016,38 @@
        notaS.hidden && !campoS.classList.contains('mal'),
        notaS.hidden ? 'sin aviso' : notaS.textContent, 'sin aviso');
     ent.value = ''; sal.value = '';
+    sigue();
+  }
+
+  /* ── EL REPASO NO ENSEÑA LO QUE NO SE PREGUNTÓ ──
+     «¿En qué fechas?» solo sale si ya tuviste la visa; con el «No» de
+     partida está escondida y vacía. El repaso la sacaba igual, como «Sin
+     rellenar» y en rojo, con un «Cambiar» que llevaba a una casilla que no
+     se ve: a todo el que pide una visa por primera vez (30-9-2026). */
+  function visaRepasoEscondido(sigue){
+    if (CASO !== 'vacio') return sigue();
+    var caja = document.getElementById('trReal');
+    var campo = caja && caja.querySelector('.sol-campo[data-campo="visa_anterior_fechas"]');
+    var hojas = caja ? caja.querySelectorAll('.pa-hoja').length : 0;
+    if (!campo || !caja.CIIP_VE_PASO || !hojas){
+      ok('visa: el repaso deja fuera las fechas de una visa que no hubo', false,
+         campo ? 'sin hojas' : 'no está la casilla', 'la casilla y el repaso');
+      return sigue();
+    }
+    ok('visa: con el «No» de partida, las fechas de la visa anterior no se ven',
+       campo.hidden, campo.hidden ? 'escondida' : 'a la vista', 'escondida');
+    var lb = campo.querySelector('label');
+    var nombre = ((lb && lb.firstChild && lb.firstChild.nodeType === 3
+                   ? lb.firstChild.textContent : (lb || {}).textContent) || '').trim();
+    caja.CIIP_VE_PASO(hojas);
+    var claves = [].map.call(caja.querySelectorAll('.pa-repaso .pa-k'), function(k){
+      return k.textContent.trim();
+    });
+    ok('visa: el repaso deja fuera las fechas de una visa que no hubo',
+       !!nombre && claves.length > 0 && claves.indexOf(nombre) < 0,
+       claves.indexOf(nombre) >= 0 ? 'sale «' + nombre + '»' : claves.length + ' líneas, sin ella',
+       'sin «' + nombre + '»');
+    caja.CIIP_VE_PASO(1);
     sigue();
   }
 
