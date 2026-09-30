@@ -215,7 +215,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    deja al equipo mandarla, la firmada en la política de la anterior, el
    paso apuntado al colgarse y el candado de la Cancillería. Va detrás de
    la marca (marca_ahora) y de la planilla firmada, cuya política rehace. */
-'supabase-visa-planilla'];
+'supabase-visa-planilla',
+/* La planilla de inscripción del IVSS que manda el CIIP (30-9-2026): su
+   tipo, las dos políticas del equipo y el candado. Solo necesita las tablas
+   de los entes y de los documentos; al final para no mover a nadie. */
+'supabase-planilla-ivss'];
 
 let mal = 0;
 for (const n of orden) {

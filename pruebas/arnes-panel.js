@@ -352,6 +352,7 @@
               firmaVerdadSale, firmaVerdadAbre, firmaVerdadMira,
               textosMira, firmaEscalera,
               entesClaveMonta, entesClaveFalla, entesClaveMira, entesClaveTrasEnviar,
+              ivssPlMonta, ivssPlSube, ivssPlMira,
               alDiaMira,
               rvAbre, rvMira, rvDespues,
               /* Rechazar sin red: se dice, y la nota no se pierde. */
@@ -13304,6 +13305,84 @@
           ((window.__ENTES || {})['r9|sundde'] || {}).estado, 'listo');
     ['r9|ivss', 'r9|inces', 'r9|banavih', 'r9|sundde', 'r9|snc'].forEach(function(k){ delete window.__ENTES[k]; });
     ENTES_PRUEBA = null; ENTES_EQUIPO = null;
+  }
+
+  /* LA PLANILLA DEL IVSS (Franklin Reyes, 30-9-2026). Revisado el usuario
+     y la contraseña, el CIIP sube la planilla de inscripción, el
+     inversionista la descarga y la trae firmada. Seis pasos solo en el
+     IVSS. Se monta otra solicitud de mentira (r8) con el IVSS ya con su
+     usuario y contraseña, y se sube la planilla desde el lado del equipo. */
+  var PL_EQ = null, PL_INV = null;
+  function ivssPlMonta(sigue){
+    if (CASO !== 'vacio' || !window.CIIP_LISTA_ENTES) return sigue();
+    var E = window.__ENTES = window.__ENTES || {};
+    E['r8|ivss'] = {tramite:'r8', ente:'ivss', estado:'codigo_enviado', codigo:'empresa.ivss', clave:'Otr4!'};
+    var tr = {id:'r8', estado:'ante_el_ente', inversionista:'u1'};
+    PL_EQ  = window.CIIP_LISTA_ENTES(tr, 'equipo', 'ivss');
+    PL_INV = window.CIIP_LISTA_ENTES(tr, 'inversionista', 'ivss');
+    setTimeout(sigue, 300);
+  }
+  function ivssPlSube(sigue){
+    if (CASO !== 'vacio' || !PL_EQ) return sigue();
+    var u = window.CIIP_T();
+    var pasosN = [].map.call(PL_INV.querySelectorAll('.pe-pasos .tr-paso-n'), function(x){ return x.textContent; });
+    igual('ivss: seis pasos, con la planilla y el traerla firmada entre la revisión y la lista',
+          pasosN.join(' → '),
+          [u.pe_p0, u.pe_p1c, u.pe_p2c, u.pe_pplanilla, u.pe_ptrae, u.pe_p3].join(' → '));
+    var inces = window.CIIP_LISTA_ENTES({id:'r8', estado:'ante_el_ente', inversionista:'u1'}, 'inversionista', 'inces');
+    igual('ivss: el INCES sigue con sus cuatro',
+          inces.querySelectorAll('.pe-pasos .tr-paso').length, 4);
+    var caja = PL_EQ.querySelector('.pe-sube-pl');
+    var enl = caja && caja.querySelector('.pe-subir');
+    ok('ivss: gestor, con el usuario y la contraseña ya llegados, «Subir la planilla»',
+       !!caja && !caja.hidden && !!enl && !enl.hidden && enl.textContent === u.pe_subirplanilla,
+       caja ? (caja.hidden ? 'escondida' : (enl ? enl.textContent : '(sin enlace)')) : '(no está)', u.pe_subirplanilla);
+    var listo = PL_EQ.querySelector('.pe-listo');
+    ok('ivss: gestor, sin la planilla todavía no se ofrece «Marcar listo»',
+       !!listo && listo.hidden, listo ? (listo.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'escondido');
+    var bajaPl = PL_INV.querySelector('.pe-baja-pl');
+    ok('ivss: inversionista, sin planilla no hay nada que descargar',
+       !!bajaPl && bajaPl.hidden, bajaPl ? (bajaPl.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'escondido');
+    var arch = caja && caja.querySelector('input[type=file]');
+    if (!arch) return sigue();
+    var dt = new DataTransfer();
+    dt.items.add(new File(['%PDF-1.4 planilla'], 'planilla-ivss.pdf', {type: 'application/pdf'}));
+    arch.files = dt.files;
+    arch.dispatchEvent(new Event('change'));
+    setTimeout(function(){
+      /* Otra vez la del inversionista, que es lo que vería al volver. */
+      PL_INV = window.CIIP_LISTA_ENTES({id:'r8', estado:'ante_el_ente', inversionista:'u1'}, 'inversionista', 'ivss');
+      setTimeout(sigue, 300);
+    }, 500);
+  }
+  function ivssPlMira(sigue){
+    if (CASO !== 'vacio' || !PL_EQ) return sigue();
+    var u = window.CIIP_T();
+    var d = (window.__ENTES || {})['r8|ivss'] || {};
+    ok('ivss: la planilla se cuelga de la fila del IVSS, que sigue esperando',
+       !!d.documento && d.estado === 'codigo_enviado' && (d.documentos || {}).tipo === 'planilla_ivss',
+       [d.estado, d.documento || '(sin papel)', (d.documentos || {}).tipo].join(' · '),
+       'codigo_enviado con la planilla');
+    var ya = PL_EQ.querySelector('.pe-sube-pl .pe-subido');
+    ok('ivss: gestor, sale «Planilla enviada» con su «Cambiar»',
+       !!ya && !ya.hidden && ya.textContent === u.pe_planillaok + u.pa_cambiar,
+       ya ? (ya.hidden ? 'escondido' : ya.textContent) : '(no está)', u.pe_planillaok + u.pa_cambiar);
+    var listo = PL_EQ.querySelector('.pe-listo');
+    ok('ivss: gestor, y ya puede «Marcar listo» cuando la traigan firmada',
+       !!listo && !listo.hidden, listo ? (listo.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'a la vista');
+    var bajaPl = PL_INV.querySelector('.pe-baja-pl');
+    ok('ivss: inversionista, «Descargar la planilla» en su paso',
+       !!bajaPl && !bajaPl.hidden && bajaPl.textContent === u.pe_bajaplanilla &&
+         bajaPl.closest('.tr-paso') === PL_INV.querySelectorAll('.pe-pasos .tr-paso')[3],
+       bajaPl ? (bajaPl.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'a la vista, en el cuarto');
+    var dibujo = [].map.call(PL_INV.querySelectorAll('.pe-pasos .tr-paso'), function(li){
+      return li.classList.contains('hecho') ? 'hecho' : li.classList.contains('ahora') ? 'ahora' : 'porhacer';
+    }).join(',');
+    igual('ivss: y va por «Trae la planilla firmada al CIIP»', dibujo, 'hecho,hecho,hecho,hecho,ahora,porhacer');
+    igual('ivss: y la etiqueta lo dice', (PL_INV.querySelector('.pe-cab .chip') || {}).textContent, u.pe_traeplanilla);
+    delete window.__ENTES['r8|ivss'];
+    PL_EQ = null; PL_INV = null;
+    sigue();
   }
 
   function tramoVerdadMira(){

@@ -23832,6 +23832,20 @@ applyLang(idiomaParaMi());
      entera: los seis entes salían por iniciar. Así que si la base dice que
      no la conoce, se vuelve a pedir sin ella y se sigue como antes. */
   var ENTES_CON_CLAVE = ['ivss', 'inces'];
+  /* ── EL IVSS, CON SU PLANILLA ──
+     Franklin Reyes, 30-9-2026: revisado el usuario y la contraseña, el
+     CIIP le manda al inversionista la planilla de inscripción del IVSS, y
+     él tiene que llevarla firmada al CIIP. Dos pasos más, solo en el IVSS.
+
+     La planilla va en la MISMA casilla 'documento' de la fila, que en el
+     IVSS está libre hasta que llega la constancia, y se distingue por su
+     tipo. Una columna nueva con otra referencia a documentos dejaba
+     ambiguo el documentos(...) de ENTES_SELECT, y la consulta de las seis
+     inscripciones caía entera el día que se corriera el SQL. Así solo
+     hace falta el tipo nuevo y sus dos políticas
+     (supabase-planilla-ivss.sql). La constancia la sustituye al cerrar,
+     y la planilla sigue en la bóveda del inversionista. */
+  var ENTES_CON_PLANILLA = ['ivss'];
   function sinColumnaClave(r){
     return !!(r && r.error && ENTES_SELECT !== ENTES_SELECT_BASE &&
               /clave/.test(r.error.message || ''));
@@ -23991,9 +24005,11 @@ applyLang(idiomaParaMi());
          'codigo_enviado' no se pierde: se lee como en marcha, el código que
          hubiera mandado alguien se sigue viendo en el primer paso, y el
          gestor la cierra con el mismo botón. */
+      var conPlanilla = ENTES_CON_PLANILLA.indexOf(ente) >= 0;
       var ol = el('ol', 'tr-pasos pe-pasos');
-      var pasos = (conClave ? ['pe_p0', 'pe_p1c', 'pe_p2c', 'pe_p3']
-                            : ['pe_p0', 'pe_p3']).map(function(clave, i){
+      var pasos = (conPlanilla ? ['pe_p0', 'pe_p1c', 'pe_p2c', 'pe_pplanilla', 'pe_ptrae', 'pe_p3']
+                 : conClave    ? ['pe_p0', 'pe_p1c', 'pe_p2c', 'pe_p3']
+                               : ['pe_p0', 'pe_p3']).map(function(clave, i){
         var li = el('li', 'tr-paso porhacer');
         var punto = el('span', 'tr-punto', String(i + 1));
         var txt = el('div', 'tr-txt');
@@ -24022,6 +24038,16 @@ applyLang(idiomaParaMi());
       baja.type = 'button';
       baja.hidden = true;
       ultimo.txt.appendChild(baja);
+
+      /* La planilla del IVSS, para descargarla en SU paso -el cuarto-. Del
+         inversionista, como la constancia: el equipo la sube y no la baja. */
+      var bajaPl = null;
+      if (conPlanilla){
+        bajaPl = el('button', 'btn navy pe-baja pe-baja-pl', u.pe_bajaplanilla || '');
+        bajaPl.type = 'button';
+        bajaPl.hidden = true;
+        pasos[3].txt.appendChild(bajaPl);
+      }
 
       /* ── EN «MIS TRÁMITES», LA TARJETA RECOGIDA ──
          Franklin Reyes, 29-9-2026: «se ve raro con los pasos visibles en
@@ -24069,7 +24095,7 @@ applyLang(idiomaParaMi());
       /* Las tres cosas que se pueden hacer sobre un ente. Se montan todas y
          se enseñan según el estado: así el repintado es enseñar y esconder,
          y no volver a construir media pantalla. */
-      var form = null, inscribe = null, listo = null, otro = null;
+      var form = null, inscribe = null, listo = null, otro = null, subePl = null;
       /* En la rejilla: lo que dice «Llegó» cuando no ha llegado nada. Lo
          enciende pon(). La constancia ya enviada la dice su propia casilla
          (.pe-subido). */
@@ -24240,7 +24266,9 @@ applyLang(idiomaParaMi());
           manda({tramite: tr.id, ente: ente, estado: 'listo'}, listo,
                 function(){ listo.textContent = u.error || ''; });
         });
-        (conClave ? pasos[2] : pasos[0]).txt.appendChild(listo);
+        /* En el IVSS, en «Trae la planilla firmada»: se cierra cuando el
+           inversionista la entrega en el CIIP. */
+        (conPlanilla ? pasos[4] : conClave ? pasos[2] : pasos[0]).txt.appendChild(listo);
 
         /* ── LA CONSTANCIA DE CADA ENTE, POR SEPARADO ──
            Franklin Reyes, 25-9-2026: «necesito que sean separados, porque
@@ -24321,6 +24349,65 @@ applyLang(idiomaParaMi());
           sube.appendChild(subeEnl); sube.appendChild(subeYa);
           sube.appendChild(arch); sube.appendChild(msgS);
           ultimo.txt.appendChild(sube);
+
+          /* LA PLANILLA DEL IVSS: la misma casilla que la constancia, en su
+             paso -el cuarto- y con su tipo. Sale cuando ya llegaron el
+             usuario y la contraseña, que es cuando el CIIP puede hacerla.
+             No cierra nada: la inscripción sigue hasta que la traigan
+             firmada, y eso lo marca «Marcar listo» o la constancia. */
+          if (conPlanilla){
+            subePl = el('div', 'pe-sube pe-sube-pl');
+            var archPl = document.createElement('input');
+            archPl.type = 'file';
+            archPl.id = 'pe-pl-' + tr.id + '-' + ente;
+            archPl.accept = '.pdf,.jpg,.jpeg,.png';
+            archPl.hidden = true;
+            archPl.setAttribute('aria-label', u.pe_subirplanilla || '');
+            var plEnl = el('button', 'pe-subir');
+            plEnl.type = 'button';
+            plEnl.innerHTML = ICO_SUBE;
+            plEnl.appendChild(el('span', null, u.pe_subirplanilla || ''));
+            plEnl.addEventListener('click', function(){ archPl.click(); });
+            var plYa = el('div', 'pe-subido');
+            plYa.hidden = true;
+            plYa.innerHTML = ICO_PAPEL;
+            var plNom = el('span', 'pe-subido-n', u.pe_planillaok || '');
+            var plOtra = el('button', 'pe-subir pe-cambia', u.pa_cambiar || '');
+            plOtra.type = 'button';
+            plOtra.addEventListener('click', function(){ archPl.click(); });
+            plYa.appendChild(plNom); plYa.appendChild(plOtra);
+            var msgPl = el('div', 'pe-msg', '');
+            archPl.addEventListener('change', function(){
+              var f = archPl.files && archPl.files[0];
+              if (!f) return;
+              archPl.disabled = true;
+              msgPl.textContent = u.enviando || '';
+              entrega(tr, f, 'planilla_ivss')
+                .then(function(doc){
+                  if (!doc) throw new Error('sin documento');
+                  /* Sin estado: la fila sigue en 'codigo_enviado', y es el
+                     papel colgado el que la lleva al quinto paso. */
+                  return manda({tramite: tr.id, ente: ente, documento: doc}, null, null);
+                })
+                .then(function(entro){
+                  archPl.disabled = false; archPl.value = '';
+                  msgPl.textContent = entro === false ? (u.co_error || '') : '';
+                })
+                .catch(function(e){
+                  console.warn('[CIIP] planilla del IVSS:', e && (e.message || e));
+                  archPl.disabled = false;
+                  msgPl.textContent = (e && e.ciip && u[e.ciip]) || u.co_error || '';
+                });
+            });
+            subePl.appendChild(plEnl); subePl.appendChild(plYa);
+            subePl.appendChild(archPl); subePl.appendChild(msgPl);
+            subePl.CIIP_YA = function(hay, nombre){
+              plEnl.hidden = hay;
+              plYa.hidden = !hay;
+              plNom.title = hay ? (nombre || '') : '';
+            };
+            pasos[3].txt.appendChild(subePl);
+          }
         }
       }
 
@@ -24363,6 +24450,25 @@ applyLang(idiomaParaMi());
         if (conClave && d && d.clave) dice.appendChild(claveTapada(d.clave));
         var doc = d && d.documentos;
         var esConstancia = !!(doc && doc.archivo && doc.tipo === 'constancia_ente');
+        /* La planilla del IVSS cuenta mientras la fila espera: con la
+           inscripción lista ya no hay nada que descargar para llevar. */
+        var esPlanilla = conPlanilla && !!(doc && doc.archivo && doc.tipo === 'planilla_ivss');
+        var tienePl = esPlanilla && st === 'codigo_enviado';
+        if (tienePl){
+          chip.className = 'chip info';
+          chip.textContent = u.pe_traeplanilla || '';
+        }
+        if (bajaPl){
+          var suPl = tienePl && modo === 'inversionista';
+          bajaPl.hidden = !suPl;
+          bajaPl.title = suPl ? (doc.nombre_original || '') : '';
+          bajaPl.onclick = suPl
+            ? function(){ abreFirmado(doc.archivo, bajaPl, 'planilla del IVSS'); } : null;
+        }
+        if (subePl){
+          subePl.hidden = st !== 'codigo_enviado';
+          subePl.CIIP_YA(tienePl, tienePl ? doc.nombre_original : '');
+        }
         var suDescarga = esConstancia && modo === 'inversionista';
         baja.hidden = !suDescarga;
         baja.title = suDescarga ? (doc.nombre_original || '') : '';
@@ -24378,7 +24484,7 @@ applyLang(idiomaParaMi());
         /* Y el «Ver archivo» de al lado del código queda para lo que no es
            una constancia: los adjuntos que llegó a mandar algún
            inversionista antes de quitarse (23-9-2026). */
-        if (doc && doc.archivo && !esConstancia){
+        if (doc && doc.archivo && !esConstancia && !esPlanilla){
           var ver = el('button', 'pe-ver', u.pe_ver || '');
           ver.type = 'button';
           ver.title = doc.nombre_original || '';
@@ -24394,8 +24500,13 @@ applyLang(idiomaParaMi());
         if (form) form.hidden = !(abierto && st === 'inscrito');
         if (otro) otro.hidden = !(abierto && st === 'codigo_enviado');
         if (inscribe) inscribe.hidden = (st !== 'pendiente');
-        if (listo) listo.hidden = conClave ? (st !== 'codigo_enviado') : (st === 'listo');
-        enciende(HECHOS[st]);
+        /* En el IVSS, «Marcar listo» espera a la planilla: sin ella no hay
+           nada firmado que traer. La constancia sí lo cierra siempre. */
+        if (listo) listo.hidden = conPlanilla ? !tienePl
+                                : conClave ? (st !== 'codigo_enviado') : (st === 'listo');
+        /* IVSS: con la planilla enviada van hechos cuatro -el quinto es
+           traerla firmada-, y lista son los seis. */
+        enciende(conPlanilla ? (st === 'listo' ? 6 : tienePl ? 4 : HECHOS[st]) : HECHOS[st]);
       }
       pon(null);
       fila.CIIP_PON = pon;
@@ -24413,6 +24524,7 @@ applyLang(idiomaParaMi());
         var cE = el('div', 'pe-caja');
         cE.appendChild(el('div', 'pe-caja-t', u.pe_envia || ''));
         if (inscribe) cE.appendChild(inscribe);
+        if (subePl) cE.appendChild(subePl);
         if (sube) cE.appendChild(sube);
         dos.appendChild(cL);
         dos.appendChild(cE);

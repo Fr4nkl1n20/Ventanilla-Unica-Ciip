@@ -1639,7 +1639,16 @@
         [ENT[kE] || {}, op.upsert].forEach(function(o){
           Object.keys(o).forEach(function(c){ filaE[c] = o[c]; });
         });
-        if (filaE.documento) filaE.documentos = {archivo: 'mentira/' + filaE.documento + '.pdf', nombre_original: 'codigo-del-ente.pdf'};
+        /* Con su TIPO, como lo trae el documentos(...) de la base: la
+           planilla del IVSS y la constancia van en la misma casilla y el
+           panel las distingue por él (30-9-2026). Se saca de lo subido en
+           esta pasada; lo que no está ahí se queda sin tipo, como antes. */
+        if (filaE.documento){
+          var suyoE = subidos.filter(function(s){ return s.id === filaE.documento; })[0];
+          filaE.documentos = {archivo: 'mentira/' + filaE.documento + '.pdf',
+                              nombre_original: suyoE ? suyoE.nombre_original : 'codigo-del-ente.pdf',
+                              tipo: suyoE ? suyoE.tipo : undefined};
+        }
         ENT[kE] = filaE;
         return {data:[filaE], error:null};
       }
