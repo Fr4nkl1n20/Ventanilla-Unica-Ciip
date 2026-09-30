@@ -383,7 +383,9 @@
                  una solicitud de la tabla, y antes le cambiaría las cuentas a otras. */
               descartaAbre, descartaMira, descartaPide, descartaTras,
               /* Y detrás de todo: le escribe la junta al borrador t2 y le cambia la fecha. */
-              juntaBorradorAbre, juntaBorradorMira], volcar);
+              juntaBorradorAbre, juntaBorradorMira,
+              /* Y cancela la t3 de 'lleno': detrás de todo lo que cuenta tarjetas. */
+              mtCanceladaAbre, mtCanceladaMira], volcar);
   });
 
   /* ═══════════════ LA PUERTA DEL SECTOR ═══════════════
@@ -3730,6 +3732,41 @@
      En 'lleno', que tiene la constitución en borrador (t2), y al final:
      se le escribe la junta en la base y eso le cambia la fecha, que
      movería la franja de cualquier prueba de después. */
+  /* ── LO CANCELADO NO VA «FUERA DE PLAZO» ──
+     Una solicitud cancelada ya se enviara en su dia -solo se cancela lo
+     enviado, en revision o devuelto-, asi que conserva su enviado_en, y en
+     cuanto pasaba el plazo del catalogo sumaba en «Fuera de plazo», en
+     rojo, para siempre: la cuenta no bajaba nunca (30-9-2026). En 'lleno'
+     la t3 (RIF personal, 14 dias, enviada el 17-8-2026) va tarde; se
+     cancela en la base y se vuelve a contar. Al final de la cadena: cambia
+     un estado que miran las pruebas de las tarjetas. */
+  function tardeDeMt(){
+    var n = document.querySelector('#mtFiltros button[data-monton="tarde"] .n');
+    return n ? +n.textContent : -1;
+  }
+  var MT_TARDE_ANTES = -1;
+  function mtCanceladaAbre(sigue){
+    if (CASO !== 'lleno') return sigue();
+    location.hash = 'tramites';
+    esperaFilas('#mtFiltros button[data-monton="tarde"]', 1, function(){
+      MT_TARDE_ANTES = tardeDeMt();
+      var sb = window.sbCIIP;
+      if (!sb || !window.CIIP_PINTA_MISTRAM) return sigue();
+      sb.from('tramites').update({estado: 'cancelado'}).eq('id', 't3').then(function(){
+        Promise.resolve(window.CIIP_PINTA_MISTRAM()).then(function(){ sigue(); }, sigue);
+      }, sigue);
+    });
+  }
+  function mtCanceladaMira(sigue){
+    if (CASO !== 'lleno') return sigue();
+    ok('mis trámites: antes de cancelarla, la t3 va fuera de plazo', MT_TARDE_ANTES >= 1,
+       MT_TARDE_ANTES, '1 o más');
+    igual('mis trámites: cancelada, deja de sumar en «Fuera de plazo»',
+          tardeDeMt(), MT_TARDE_ANTES - 1);
+    location.hash = '';
+    sigue();
+  }
+
   function juntaBorradorAbre(sigue){
     if (CASO !== 'lleno') return sigue();
     location.hash = '';

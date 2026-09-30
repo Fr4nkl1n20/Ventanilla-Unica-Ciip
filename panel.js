@@ -19911,9 +19911,12 @@ applyLang(idiomaParaMi());
   /* Si a una solicitud se le paso el plazo. Es la misma cuenta que la cola
      del equipo -desde que se ENVIO y contra plazo_dias del catalogo-, y a
      proposito: si el equipo ve «va tarde» y el inversionista no, uno de
-     los dos esta mirando otra cosa. Lo resuelto no va tarde: ya llego. */
+     los dos esta mirando otra cosa. Lo resuelto no va tarde: ya llego.
+     Y lo cancelado tampoco: se acabo. Solo se cancela lo que ya se habia
+     enviado, asi que conserva su enviado_en, y sin esta guarda sumaba en
+     «Fuera de plazo», en rojo, para siempre (30-9-2026). */
   function mtTarde(t){
-    if (!t || t.estado === 'resuelto' || t.estado === 'borrador') return false;
+    if (!t || t.estado === 'resuelto' || t.estado === 'borrador' || t.estado === 'cancelado') return false;
     var plazo = ((TIPOS || {})[tipoRefDe(t.tipo)] || {}).plazo_dias;
     if (!plazo || !t.enviado_en) return false;
     var lleva = Math.floor((Date.now() - new Date(t.enviado_en).getTime()) / 86400000);
