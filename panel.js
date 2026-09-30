@@ -19432,7 +19432,12 @@ applyLang(idiomaParaMi());
       : String(u.mt_suele || '').replace('{t}', enHoras(marca))));
     caja.appendChild(txt);
     td.appendChild(caja);
-    if (equipoMt.length) td.appendChild(asignaMt(t, u));
+    /* Resuelta o cancelada ya no se reparte: el nombre de quien la llevó se
+       queda, pero sin desplegable (Franklin Reyes, 30-9-2026: «ya en listo
+       no debería poder cambiar el nombre»). */
+    if (equipoMt.length && t.estado !== 'resuelto' && t.estado !== 'cancelado'){
+      td.appendChild(asignaMt(t, u));
+    }
     return td;
   }
 
