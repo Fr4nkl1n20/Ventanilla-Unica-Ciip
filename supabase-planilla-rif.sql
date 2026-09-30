@@ -1,7 +1,4 @@
--- La planilla del RIF que manda el CIIP para firmarla (Franklin Reyes,
--- 30-9-2026): el gestor la deja en «Planilla enviada por el CIIP» y el
--- inversionista la descarga en «Firme la planilla». Se puede correr más de
--- una vez. Sin él el panel no se rompe: la subida falla y lo dice.
+-- La planilla del RIF que el CIIP manda para firmar (30-9-2026).
 
 insert into public.tipos_documento (codigo, nombre, vence) values
   ('planilla_solicitud', 'Planilla de solicitud del RIF (la prepara el CIIP)', false)
