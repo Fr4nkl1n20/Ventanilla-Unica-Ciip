@@ -15590,7 +15590,7 @@ applyLang(idiomaParaMi());
       }
       if (t.estado !== 'enviado'){ boton.disabled = false; return true; }
       return mueveTramite(t, 'en_revision', '', boton, aviso, texto).then(function(bien){
-        if (!bien || bien === 'ya-no') return false;
+        if (!bien) return false;
         hoyRecien = t.id;
         cierraVisor();
         pintaHoy();
@@ -15782,7 +15782,18 @@ applyLang(idiomaParaMi());
       if (mal){
         if (boton){ boton.disabled = false; if (textoBoton) boton.textContent = textoBoton; }
         if (aviso){ aviso.textContent = T()[mal] || ''; aviso.className = 'sol-aviso err'; }
-        return cargaCola().then(pintaTramites).then(function(){ return 'ya-no'; });
+        /* Y en el aviso de abajo también, como con co_ya_movida: quien
+           llama desde el espacio de trabajo no tiene hueco propio (hoyAbre
+           pasa aviso en null) y el de la tarjeta se va con el repintado. */
+        hoyAvisa(T()[mal] || '');
+        /* FALSE, no una palabra. Esto devolvía 'ya-no', que es verdadero, y
+           solo enviaLaPlanilla lo miraba: cancelar, devolver, presentar y
+           resolver preguntan «if (!bien)», así que con una solicitud que el
+           inversionista acababa de cancelar cerraban el visor y decían
+           «Devuelta», «Presentada», «Resuelta»… de algo que no se había
+           movido, y encima tapaban el aviso de que estaba cancelada. Lo
+           que no se hizo no es un éxito con apellido: es un no. */
+        return cargaCola().then(pintaTramites).then(function(){ return false; });
       }
       /* ── Y SOLO DESDE DONDE LO VISTE (QA-36) ──
          La escalera de la base dice qué saltos existen, no desde dónde
@@ -15857,13 +15868,19 @@ applyLang(idiomaParaMi());
            comprobante ya entra solo. */
         var msg = (e && e.message) || '';
         var pide = comprobanteParaResolver(tr);
-        if (aviso) aviso.textContent =
+        var dice =
           (/reserva del nombre/.test(msg) && T().co_faltareserva) ||
           (/comprobante del pago/i.test(msg) && pide && T()[pide.aviso]) ||
           /* La misma regla que mira el panel antes de resolver una
              parafiscal, dicha ahora también por la base (QA-18). */
           (/inscripciones sin terminar/i.test(msg) && T().co_faltanentes) ||
           T().co_error || '';
+        /* Sin hueco propio -hoyAbre, que abre la tarjeta y la pasa a
+           revisión por el camino- va al aviso de abajo. Antes lo ponía
+           hoyAbre con un co_error a secas, y eso pisaba el aviso de «ya
+           estaba cancelada» que acaba de dejar la rama de arriba. */
+        if (aviso) aviso.textContent = dice;
+        else hoyAvisa(dice);
         return false;
       });
     });
@@ -16719,7 +16736,9 @@ applyLang(idiomaParaMi());
     var abre = function(){ abreVisor(t.id, visorSiguiente(t.id, -1)); };
     if (abrirLaPasaARevision(t)){
       mueveTramite(t, 'en_revision', '', null, null, '').then(function(bien){
-        if (!bien){ hoyAvisa(u.co_error); return; }
+        /* El porqué ya lo ha dicho mueveTramite en el aviso de abajo, sea
+           un error, otro gestor o una solicitud cancelada. */
+        if (!bien) return;
         abre();
       });
       return;

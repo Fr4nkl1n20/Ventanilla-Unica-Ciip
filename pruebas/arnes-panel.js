@@ -286,6 +286,8 @@
               hoyCancelaSiembra, hoyCancelaAbre, hoyCancelaPide, hoyCancelaMira,
               /* Los resueltos, solo en su montón «Listos» (30-9-2026). */
               hoyListos,
+              /* La solicitud cancelada mientras el gestor la tenía abierta. */
+              hoyYaNoAbre, hoyYaNoPide,
               /* QA-08: el papel rechazado y sustituido no deja atascado el trámite. */
               hoyReenvia, hoyReenviaAbre, hoyReenviaMira,
               hoyRestaura,
@@ -7209,6 +7211,66 @@
        exp ? exp.className : '(sin expediente)', 'co-exp hoy-exp');
     pulsa('todos');
     sigue();
+  }
+
+  /* ── LA QUE SE CANCELÓ MIENTRAS LA MIRABAS ──
+     mueveTramite pregunta el estado antes de mover, y si el inversionista
+     acaba de cancelar la solicitud no la mueve. Pero contestaba 'ya-no',
+     que es VERDADERO, y quien cancela, devuelve, presenta o resuelve solo
+     mira «if (!bien)»: el visor se cerraba y el aviso decía «Cancelada…
+     lo verá con tu motivo» de algo que la base no había tocado, tapando
+     el aviso bueno. Aquí h1 vuelve devuelta, la base dice que ya está
+     cancelada, y el gestor intenta cancelarla él. */
+  function hoyYaNoAbre(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    window.__YA_CANCELADA = 'h1';
+    window.CIIP_DOBLE.devuelveH1();
+    Promise.resolve(window.CIIP_PINTA_PORATENDER()).then(function(){
+      var m = document.querySelector('#paCifras button[data-monton="devueltos"]');
+      if (m) m.click();
+      esperaFilas('#paTandas .hoy-card[data-tr="h1"]', 1, function(){
+        var t = hoyTarjeta('h1');
+        ok('ya cancelada: el devuelto está en su montón', !!t, t ? 'está' : 'no está', 'está');
+        if (!t) return sigue();
+        t.click();
+        esperaFilas('#paVisor .visor-bs button', 1, sigue);
+      });
+    });
+  }
+
+  function hoyYaNoPide(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    var u = window.CIIP_T();
+    var v = document.getElementById('paVisor');
+    var toast = document.getElementById('paToast');
+    var can = hoyBotonQueDice(v, 'Cancelar la solicitud');
+    function acaba(){
+      window.__YA_CANCELADA = null;
+      if (v && !v.hidden) hoyEscape();
+      var todos = document.querySelector('#paCifras button[data-monton="todos"]');
+      if (todos) todos.click();
+      sigue();
+    }
+    ok('ya cancelada: el visor ofrece cancelar', !!can, can ? 'con botón' : 'sin botón', 'Cancelar la solicitud');
+    if (!can) return acaba();
+    var nota = document.getElementById('hoy-nota-h1');
+    if (nota){
+      nota.value = 'No contesta.';
+      nota.dispatchEvent(new Event('input'));
+    }
+    can.click();                      /* la primera pregunta */
+    if (toast) toast.textContent = '';
+    can.click();                      /* la segunda manda */
+    var n = 0;
+    (function mira(){
+      var dice = toast ? toast.textContent : '';
+      if (!dice && !v.hidden && ++n <= 80) return setTimeout(mira, 40);
+      igual('ya cancelada: el aviso dice que ya estaba cancelada, no «Cancelada… con tu motivo»',
+            dice, u.co_ya_cancelada);
+      ok('ya cancelada: y el visor no se cierra como si se hubiera hecho', !v.hidden,
+         v.hidden ? 'cerrado' : 'abierto', 'abierto');
+      acaba();
+    })();
   }
 
   /* ── EL RECHAZADO QUE YA SE CAMBIÓ (QA-08) ──

@@ -1844,6 +1844,15 @@
     }
     if (tabla === 'bancos_aliados')   return {data:[], error:null};
     if (tabla === 'tramites'){
+      /* La solicitud que el inversionista canceló mientras el gestor la
+         tenía abierta: el panel pregunta su estado con .select('estado')
+         .single() justo antes de moverla (yaNoEsAsi), y la base le
+         contesta que ya está cancelada. Solo la id que pida la prueba, y
+         solo a esa pregunta: todo lo demás sigue como siempre. */
+      if (window.__YA_CANCELADA && op && op.single && op.eq && op.eq.id === window.__YA_CANCELADA &&
+          op.cols === 'estado' && !op.update && !op.insert){
+        return {data:{estado:'cancelado'}, error:null};
+      }
       /* Antes de crear una solicitud, el panel pregunta si YA hay una en
          marcha de ESE MISMO TRAMITE: los tres estados vivos Y un .eq del
          tipo. Va la PRIMERA porque la de abajo -la cola del equipo- se
