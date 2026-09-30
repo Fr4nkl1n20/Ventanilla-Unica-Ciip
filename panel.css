@@ -1661,6 +1661,15 @@ body[data-vista="citas"] .fase-bar{display:none;}
    Reyes, 29-9-2026). */
 :is(#mtFiltros, #paCifras).mt-cifras{display:grid; gap:10px; margin:0 0 14px; background:none;
   border:0; padding:0; grid-template-columns:repeat(7, minmax(0, 1fr));}
+/* La cola tiene OCHO desde que «Listos» tiene el suyo (Franklin Reyes,
+   30-9-2026). Ocho en fila solo donde caben: por debajo, dos filas de
+   cuatro, que en un portátil dejan los rótulos enteros -«Fuera de plazo»,
+   «Sin asignar»- en vez de partirlos en tres renglones. Las dos reglas de
+   pantalla estrecha de abajo siguen mandando, que van después. */
+#paCifras.mt-cifras{grid-template-columns:repeat(8, minmax(0, 1fr));}
+@media (max-width: 1400px){
+  #paCifras.mt-cifras{grid-template-columns:repeat(4, minmax(0, 1fr));}
+}
 :is(#mtFiltros, #paCifras).mt-cifras button{display:flex; flex-direction:column; align-items:stretch;
   gap:6px; text-align:left; border:1px solid var(--line); border-radius:var(--r);
   background:var(--tr-velo); color:var(--ink); padding:12px 13px; cursor:pointer;
@@ -4930,6 +4939,17 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 .hoy-anillo .lleno{stroke:var(--navy2);}
 .hoy-anillo.tarde .lleno{stroke:var(--rust);}
 .hoy-anillo.pronto .lleno{stroke:var(--amber);}
+/* Un resuelto, en «Listos» (Franklin Reyes, 30-9-2026): el anillo cerrado
+   en verde y un visto dentro, en vez de días. Verde y no óxido ni ámbar,
+   que en esta pantalla dicen «va tarde» y «vence pronto». El visto no
+   gira: el giro de arriba es para que el anillo empiece a las doce. */
+.hoy-anillo.listo .lleno{stroke:var(--good);}
+.hoy-anillo .hoy-visto{width:24px; height:24px; transform:none; fill:none; stroke:var(--good);
+  stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round;}
+/* Con el expediente abierto la tarjeta ocupa la fila entera: los datos y
+   la lista de papeles no caben en una columna de 290px. */
+.hoy-card.abierta{grid-column:1 / -1;}
+.hoy-card .hoy-exp{margin-top:0;}
 .hoy-anillo b{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
   font-size:var(--fs-valor); line-height:1; color:var(--ink); font-variant-numeric:tabular-nums;}
 .hoy-anillo small{font-size:var(--fs-chip); max-width:46px; overflow:hidden; font-weight:700; color:var(--gray); text-transform:uppercase; letter-spacing:.03em; margin-top:2px;}

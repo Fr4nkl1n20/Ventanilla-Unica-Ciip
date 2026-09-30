@@ -8123,13 +8123,17 @@ applyLang(idiomaParaMi());
   function importesPorSubir(lista, fases, yo){
     fases = fases || IMPORTE_HOY;
     yo = (yo === undefined) ? YO : yo;
+    /* Un resuelto nunca debe un importe: la cola los trae para su montón
+       «Listos» (30-9-2026), y el aviso de arriba no puede contarlos. Hoy
+       ningún importe se abre en 'resuelto', pero eso lo decide una tabla
+       que otro puede tocar; aquí se dice sin depender de ella. */
     return (lista || []).filter(function(t){
-      return importeAbierto(t) && (!yo || t.gestor === yo) &&
+      return !!t && t.estado !== 'resuelto' && importeAbierto(t) && (!yo || t.gestor === yo) &&
              (fases[t.id] === 'espera' || fases[t.id] === 'vencido');
     });
   }
   function faltaImporteHoy(t){
-    return importeAbierto(t) && (IMPORTE_HOY[t.id] === 'espera' || IMPORTE_HOY[t.id] === 'vencido');
+    return !!t && t.estado !== 'resuelto' && importeAbierto(t) && (IMPORTE_HOY[t.id] === 'espera' || IMPORTE_HOY[t.id] === 'vencido');
   }
   /* El renglón de arriba de la cola. Null si no falta ninguno: un «0
      importes» en ámbar alarma de nada. */
@@ -13692,7 +13696,9 @@ applyLang(idiomaParaMi());
          Cinco y no «las que falten»: cuántas quedan lo dice tramite_entes,
          que se pide aparte y llega después, y un número que aparece tarde
          es peor que uno que se pasa de largo. */
-      var porAtender = enRevision.filter(function(t){ return t.estado !== 'devuelto'; })
+      /* Y SIN LOS RESUELTOS, por lo mismo (Franklin Reyes, 30-9-2026): se
+         traen para el montón «Listos», no porque haya nada que atender. */
+      var porAtender = coActivos().filter(function(t){ return t.estado !== 'devuelto'; })
         .reduce(function(n, t){
           return n + ((t.tipo === TIPO_PARAFISCALES && t.estado === 'ante_el_ente')
                       ? ENTES_PARAFISCALES.length : 1);
@@ -13935,6 +13941,56 @@ applyLang(idiomaParaMi());
   var CO_TRAE = CO_MIOS.concat(['devuelto']);
   var enRevision = [];
 
+  /* ── LOS LISTOS ──
+     Franklin Reyes, 30-9-2026: «en mis trámites de gestor no tengo el
+     cuadro de ver trámites listos… colócalo visible». Es lo mismo que pasó
+     con los devueltos: al resolver una solicitud se esfumaba de la
+     pantalla, y el gestor no tenía dónde volver a mirar lo que ya cerró.
+
+     Llegan a enRevision como los devueltos, y como ellos SOLO salen en su
+     montón («listos»): coCuadra los deja fuera de todos los demás, «Todos»
+     incluido, y el menú, los importes, los plazos, los recaudos y el visor
+     los saltan (coActivos). Lo resuelto no se atiende.
+
+     Pero NO van en CO_TRAE, y a propósito: los devueltos son pocos y se
+     van -se corrigen o se cancelan-, y los resueltos se acumulan para
+     siempre. Meter 'resuelto' en el .in() de la cola traería la historia
+     entera de la oficina cada medio minuto, que es lo que tarda en
+     repintarse. Van en una consulta aparte y con tope: los resueltos de
+     los últimos CO_LISTOS_DIAS días, y como mucho CO_LISTOS_MAX, del más
+     nuevo al más viejo. Noventa días cubren lo que alguien vuelve a mirar
+     -el trimestre-, y doscientas tarjetas son ya más de lo que se lee en
+     una pantalla: la que quiera lo de antes lo tiene en Mis trámites y en
+     la ficha del equipo, que no cuentan por fecha. */
+  var CO_LISTOS_DIAS = 90, CO_LISTOS_MAX = 200;
+
+  /* Lo que sí se atiende: todo lo de enRevision menos los resueltos. Lo
+     que cuenta, avisa o pide trabajo bebe de aquí y no de enRevision. */
+  function coActivos(lista){
+    return (lista || enRevision).filter(function(t){ return t.estado !== 'resuelto'; });
+  }
+
+  /* Nunca falla hacia fuera: sin los listos la cola sale igual, con su
+     montón en cero. Es la misma regla que las notas de las devueltas. */
+  function cargaListos(){
+    var desde = new Date(Date.now() - CO_LISTOS_DIAS * 86400000).toISOString();
+    return Promise.resolve(sb.from('tramites')
+      .select('id, inversionista, tipo, estado, datos, creado_en, enviado_en, resuelto_en, gestor')
+      .eq('estado', 'resuelto')
+      .gte('resuelto_en', desde)
+      .order('resuelto_en', {ascending:false})
+      .limit(CO_LISTOS_MAX))
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        return (r.data || []).filter(function(t){ return t && t.estado === 'resuelto'; })
+          .map(function(t){ t.nombre = ''; return t; });
+      })
+      .catch(function(e){
+        console.warn('[CIIP] listos de la cola:', e && (e.message || e));
+        return [];
+      });
+  }
+
   /* ── POR QUÉ SE DEVOLVIÓ ──
      Franklin Reyes, 21 de septiembre de 2026: «aquí dice "te la devolvimos:
      falta algo" pero no dice qué». La tarjeta traía el distintivo y nada
@@ -14009,6 +14065,10 @@ applyLang(idiomaParaMi());
        suyo aparte, se ve cuando se pide y no estorba lo demás. */
     if (coFiltro === 'devueltos') return t.estado === 'devuelto';
     if (t.estado === 'devuelto') return false;
+    /* Y los resueltos, igual y por lo mismo (Franklin Reyes, 30-9-2026):
+       solo en «Listos». Lo resuelto no lo espera nadie. */
+    if (coFiltro === 'listos') return t.estado === 'resuelto';
+    if (t.estado === 'resuelto') return false;
     if (coFiltro === 'sin')  return !t.gestor;
     if (coFiltro === 'mios') return !!YO && t.gestor === YO;
     /* Y los tres que hasta el 22-9-2026 solo eran cifras que se leian.
@@ -14035,8 +14095,11 @@ applyLang(idiomaParaMi());
     caja.textContent = '';
     /* Sin ninguno asignado los tres montones dicen lo mismo, y tres
        botones que no reparten nada solo estorban. */
-    var hayAlguno = enRevision.some(function(t){ return !!t.gestor; });
-    caja.hidden = (enRevision.length < 2 && !hayAlguno);
+    /* Sin los resueltos: esta fila no tiene montón para ellos, y contarlos
+       aquí encendería unos filtros que no reparten nada (30-9-2026). */
+    var activos = coActivos();
+    var hayAlguno = activos.some(function(t){ return !!t.gestor; });
+    caja.hidden = (activos.length < 2 && !hayAlguno);
     if (caja.hidden) return;
 
     /* «Devueltos» va el último: los tres primeros son para repartir el
@@ -14162,7 +14225,11 @@ applyLang(idiomaParaMi());
        -tomar, devolver, filtrar-, la pantalla de detrás se pone al día. */
     if (document.body.getAttribute('data-vista') === 'poratender') pintaHoy();
 
-    if (!enRevision.length){
+    /* Los resueltos, nunca en esta vista: cada ficha de aquí es trabajo
+       -notas, devolver, subir lo emitido- y lo resuelto solo se mira, en
+       su montón del tablero (Franklin Reyes, 30-9-2026). */
+    var activos = coActivos();
+    if (!activos.length){
       caja.appendChild(el('div', 'co-vacia', u.co_tram_vacio || ''));
       return;
     }
@@ -14184,7 +14251,12 @@ applyLang(idiomaParaMi());
        Solo cambia de sitio, no esconde: las que no llevas siguen todas ahí
        y el filtro «Todos» sigue enseñándolas. Quien reparte trabajo no
        pierde nada; quien lo hace, deja de buscar. */
-    var vistos = enRevision.filter(coCuadra);
+    /* El montón es compartido con el tablero: si allí está puesto «Listos»,
+       aquí se enseña «Todos», que esta fila no tiene aquel montón. */
+    var filtroAntes = coFiltro;
+    if (coFiltro === 'listos') coFiltro = 'todos';
+    var vistos = activos.filter(coCuadra);
+    coFiltro = filtroAntes;
     if (YO){
       var mias = [], otras = [];
       vistos.forEach(function(t){ (t.gestor === YO ? mias : otras).push(t); });
@@ -14700,14 +14772,18 @@ applyLang(idiomaParaMi());
     return f;
   }
 
-  function pintaExpediente(tr, caja){
+  /* soloMirar: el de un trámite ya resuelto, en «Listos» (Franklin Reyes,
+     30-9-2026). Los datos y los papeles, que es lo que se vuelve a buscar,
+     y nada de lo que se hace: ni la comprobación de identidad -con su
+     formulario para firmarla- ni la conversación, que se escribe. */
+  function pintaExpediente(tr, caja, soloMirar){
     var u = T();
     caja.textContent = '';
 
     /* 0. quién dice ser, y si alguien lo miró. Va antes que los datos y
        que los archivos a propósito: al final se habría firmado sin mirar,
        con el ratón ya en el botón de aprobar. */
-    pintaIdentidad(tr, caja);
+    if (!soloMirar) pintaIdentidad(tr, caja);
 
     /* 1. lo que rellenó. Las etiquetas salen de CAMPOS, que es lo que le
        preguntó el formulario: así el gestor lee lo mismo que leyó él, y no
@@ -14768,6 +14844,7 @@ applyLang(idiomaParaMi());
        Al final del expediente por lo mismo que en el detalle: se lee
        después de mirar los datos y los recaudos, que es lo que el gestor
        vino a revisar. */
+    if (soloMirar) return;
     pintaHilo(caja, {tabla:'tramite_mensajes', col:'tramite',
                      id:tr.id, inversionista:tr.inversionista});
   }
@@ -15390,6 +15467,9 @@ applyLang(idiomaParaMi());
        esperarlas al final, abajo del todo: sin eso la cola se pintaría
        antes de que contesten y la sección saldría vacía la primera vez. */
     var lasConsultas = cargaConsultas();
+    /* Los resueltos del montón «Listos», también a la vez (30-9-2026): su
+       consulta no depende de ninguna otra y nunca falla hacia fuera. */
+    var losListos = cargaListos();
     /* Dos consultas y no un embebido: si la política de perfiles no está
        puesta, la segunda vuelve vacía y la cola sigue saliendo sin nombres,
        en vez de caerse entera por el nombre que falta. */
@@ -15406,9 +15486,20 @@ applyLang(idiomaParaMi());
           .order('creado_en', {ascending:true})
           .then(function(rt){
             if (rt && rt.error) throw rt.error;
-            enRevision = (rt.data || []).map(function(t){ t.nombre = ''; return t; });
-            return ponDesdeCuando(enRevision).then(function(){ return ponNotasDevueltas(enRevision); })
-              .then(function(){ return cargaImportesDeLaCola(enRevision); });
+            /* Sin resueltos, aunque la base los mandara: los de «Listos»
+               llegan por su consulta, con su tope, y no dos veces. */
+            var activos = (rt.data || []).filter(function(t){ return t && t.estado !== 'resuelto'; })
+              .map(function(t){ t.nombre = ''; return t; });
+            /* Desde cuándo espera, el porqué de la devolución y el importe
+               del día, solo de los activos: un resuelto no espera, no se
+               devolvió y no debe importes, y pedir su historial entero
+               -doscientos más- solo haría más lento el viaje y le metería
+               a mideRespuestas trámites que ya no se contestan. */
+            return losListos.then(function(listos){
+              enRevision = activos.concat(listos);
+              return ponDesdeCuando(activos);
+            }).then(function(){ return ponNotasDevueltas(activos); })
+              .then(function(){ return cargaImportesDeLaCola(activos); });
           })
           .catch(function(e){ console.warn('[CIIP] cola de trámites:', e && e.message); enRevision = []; })
           .then(function(){
@@ -15482,7 +15573,10 @@ applyLang(idiomaParaMi());
      solo al entrar en esta pantalla -la ventana no los usa- y lo que emitió
      el organismo no cuenta: ese papel no se revisa, se entrega. */
   function cargaRecaudosHoy(){
-    var ids = enRevision.map(function(t){ return t.id; });
+    /* Sin los resueltos (30-9-2026): sus papeles ya no se revisan, y con
+       doscientos ids de más la consulta crecería por nada. Que no tengan
+       recaudos es además lo que los deja fuera de «papeles» y del visor. */
+    var ids = coActivos().map(function(t){ return t.id; });
     if (!ids.length){ hoyDocs = {}; return Promise.resolve(); }
     return Promise.resolve(sb.from('tramite_documentos')
       /* documentos(*) y no la lista de columnas: pedir titular por su nombre
@@ -15546,6 +15640,10 @@ applyLang(idiomaParaMi());
     return ((TIPOS || {})[tipoRefDe(t.tipo)] || {}).plazo_dias || null;
   }
   function hoyPlazo(t){
+    /* Un resuelto ya no corre contra ningún plazo: ni va tarde ni vence
+       pronto, aunque se enviara hace meses (Franklin Reyes, 30-9-2026). Sin
+       esto sumaba en «Fuera de plazo» y su anillo salía en rojo. */
+    if (t.estado === 'resuelto') return null;
     var plazo = hoyPlazoDias(t);
     if (!plazo || !t.enviado_en) return null;
     var lleva = Math.floor((Date.now() - new Date(t.enviado_en).getTime()) / 86400000);
@@ -15558,6 +15656,13 @@ applyLang(idiomaParaMi());
   }
   function hoyTextoPlazo(t){
     var u = T(), resta = hoyPlazo(t);
+    /* En un resuelto, el plazo ya no importa: importa CUÁNDO se resolvió.
+       La frase es la de Mis trámites -mt_resuelta, «resuelta el {fecha}»-
+       con la primera letra en mayúscula, que aquí abre la línea. */
+    if (t.estado === 'resuelto'){
+      var dice = String(u.mt_resuelta || '').replace('{fecha}', fecha(t.resuelto_en));
+      return dice.charAt(0).toUpperCase() + dice.slice(1);
+    }
     if (resta === null) return u.co_h_sinplazo || '';
     if (resta < 0) return String(resta === -1 ? u.co_h_tarde1 : u.co_h_tarde).replace('{n}', -resta);
     if (resta === 0) return u.co_h_vencehoy || '';
@@ -15569,7 +15674,14 @@ applyLang(idiomaParaMi());
     var ra = hoyPlazo(a), rb = hoyPlazo(b);
     return (ra === null ? Infinity : ra) - (rb === null ? Infinity : rb);
   }
+  /* El orden de «Listos»: lo último que se resolvió, arriba. */
+  function hoyMasReciente(a, b){
+    var fa = Date.parse(a.resuelto_en || '') || 0, fb = Date.parse(b.resuelto_en || '') || 0;
+    return fb - fa;
+  }
   function hoyCuenta(t){
+    /* Lo de un resuelto no se cuenta: ni cae en «papeles» ni pide validar. */
+    if (t.estado === 'resuelto') return null;
     var docs = hoyDocs[t.id];
     if (!docs) return null;
     var c = {total: docs.length, validado: 0, rechazado: 0, cargado: 0};
@@ -15624,7 +15736,9 @@ applyLang(idiomaParaMi());
     caja.textContent = '';
     var impHoy = avisoDeImportes();
     if (impHoy) caja.appendChild(impHoy);
-    var vistos = enRevision.filter(coCuadra).sort(hoyUrgencia);
+    /* En «Listos» no hay urgencia que ordene: va primero lo último que se
+       resolvió, que es lo que se viene a buscar. */
+    var vistos = enRevision.filter(coCuadra).sort(coFiltro === 'listos' ? hoyMasReciente : hoyUrgencia);
     vistos.forEach(function(t){ caja.appendChild(hoyTarjeta(t)); });
 
     /* Solo trámites: las consultas y las citas tienen su apartado. */
@@ -15667,7 +15781,10 @@ applyLang(idiomaParaMi());
     tarde:     'M4 6h16v15H4zM4 10h16M8 3v4M16 3v4',
     pronto:    'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2',
     papeles:   'M7 3h7l4 4v14H7zM14 3v5h4M9 13h6M9 17h4',
-    devueltos: 'M9 14l-4-4 4-4M5 10h9a5 5 0 0 1 0 10h-3'
+    devueltos: 'M9 14l-4-4 4-4M5 10h9a5 5 0 0 1 0 10h-3',
+    /* El de 'listo' de MT_ICONOS, copiado por lo de arriba: el círculo con
+       el visto. Lo resuelto se dibuja igual en las dos pantallas. */
+    listos:    'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8 12l3 3 5-6'
   };
 
   /* ── EL TABLERO DE LA COLA ──
@@ -15688,7 +15805,13 @@ applyLang(idiomaParaMi());
     ['tarde',     'co_h_n_tarde'],
     ['pronto',    'co_h_n_pronto'],
     ['papeles',   'co_h_n_papeles'],
-    ['devueltos', 'co_f_devueltos']
+    ['devueltos', 'co_f_devueltos'],
+    /* «Listos», el último (Franklin Reyes, 30-9-2026: «colócalo
+       visible»): como «Devueltos», no es trabajo de hoy sino lo que ya
+       salió, y va detrás de todo lo que sí lo es. El rótulo es el de Mis
+       trámites para lo mismo -qm_listo-: una sola palabra para lo resuelto
+       en todo el panel, y sin clave nueva que traducir ocho veces. */
+    ['listos',    'qm_listo']
   ];
 
   function pintaCifrasHoy(){
@@ -15743,6 +15866,10 @@ applyLang(idiomaParaMi());
        línea caía en «Valida N recaudos» -tiene papeles cargados- y la
        tarjeta le pedía al gestor que hiciera algo que ya hizo. */
     if (t.estado === 'devuelto') return u.co_h_v_devuelto || '';
+    /* Y un resuelto no pide nada (30-9-2026): ni tomarlo, ni validar, ni
+       el importe. Lo que dice la tarjeta es cuándo se resolvió, y eso va
+       en la línea del plazo (hoyTextoPlazo). */
+    if (t.estado === 'resuelto') return '';
     if (!t.gestor) return u.co_h_v_tomar || '';
     /* El importe de hoy va antes que lo demás: mañana ya no vale. */
     if (YO && t.gestor === YO && faltaImporteHoy(t)) return u.imp_g_verbo || '';
@@ -15758,9 +15885,13 @@ applyLang(idiomaParaMi());
      al acercarse al tope. Dentro, cuántos días quedan -o cuántos se pasó-. */
   function hoyAnillo(t){
     var u = T(), plazo = hoyPlazoDias(t), resta = hoyPlazo(t), nivel = hoyNivel(t);
-    var caja = el('div', 'hoy-anillo' + (nivel ? ' ' + nivel : ''));
+    /* Un resuelto, con el anillo cerrado y en verde, y un visto dentro en
+       vez de días: el camino se acabó, no queda plazo que contar ni nada
+       que pueda ir tarde (30-9-2026). */
+    var listo = (t.estado === 'resuelto');
+    var caja = el('div', 'hoy-anillo' + (listo ? ' listo' : nivel ? ' ' + nivel : ''));
     var NS = 'http://www.w3.org/2000/svg', r = 20, largo = 2 * Math.PI * r;
-    var lleno = (plazo && resta !== null) ? Math.max(0, Math.min((plazo - resta) / plazo, 1)) : 0;
+    var lleno = listo ? 1 : (plazo && resta !== null) ? Math.max(0, Math.min((plazo - resta) / plazo, 1)) : 0;
     var svg = document.createElementNS(NS, 'svg');
     svg.setAttribute('viewBox', '0 0 48 48');
     svg.setAttribute('aria-hidden', 'true');
@@ -15773,6 +15904,19 @@ applyLang(idiomaParaMi());
       svg.appendChild(c);
     });
     caja.appendChild(svg);
+    if (listo){
+      var visto = document.createElementNS(NS, 'svg');
+      visto.setAttribute('viewBox', '0 0 24 24');
+      visto.setAttribute('aria-hidden', 'true');
+      visto.setAttribute('class', 'hoy-visto');
+      var p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', 'M7 12.5l3.2 3.2L17 9');
+      visto.appendChild(p);
+      var dentro = el('b');
+      dentro.appendChild(visto);
+      caja.appendChild(dentro);
+      return caja;
+    }
     var num = el('b', null, resta === null ? '—' : String(Math.abs(resta)));
     if (resta !== null) num.appendChild(el('small', null, resta < 0 ? (u.co_h_a_tarde || '') : (u.co_h_a_dias || '')));
     caja.appendChild(num);
@@ -15785,16 +15929,25 @@ applyLang(idiomaParaMi());
     var nombre = ref ? nombreDeTarjeta(ref) : t.tipo;
     var nivel = hoyNivel(t);
     var mio = !!YO && t.gestor === YO;
-    var c = el('div', 'hoy-card' + (nivel ? ' ' + nivel : '') + (t.id === hoyRecien ? ' recien' : ''));
+    var c = el('div', 'hoy-card' + (nivel ? ' ' + nivel : '') + (t.id === hoyRecien ? ' recien' : '') +
+                      (t.estado === 'resuelto' ? ' listo' : ''));
     c.setAttribute('data-tr', t.id);
     c.setAttribute('role', 'button');
     c.setAttribute('aria-label', nombre + ' · ' + (t.nombre || u.co_sinnombre || ''));
     c.tabIndex = 0;
-    c.addEventListener('click', function(){ hoyAbre(t); });
+    /* Un resuelto no abre el visor: el visor es el sitio de TRABAJAR
+       -validar, devolver, marcar los entes, subir lo emitido- y en uno ya
+       resuelto todo eso sobra o miente (la barra de pasos, «se abre al
+       presentar», las casillas de las etapas). Se despliega dentro de la
+       tarjeta el mismo expediente de «Ver el expediente» de la otra vista,
+       y solo para mirar (Franklin Reyes, 30-9-2026). */
+    var esListo = (t.estado === 'resuelto');
+    var abre = esListo ? function(){ hoyVeListo(t, c); } : function(){ hoyAbre(t); };
+    c.addEventListener('click', abre);
     c.addEventListener('keydown', function(e){
       if (e.target !== c || (e.key !== 'Enter' && e.key !== ' ')) return;
       e.preventDefault();
-      hoyAbre(t);
+      abre();
     });
 
     var arriba = el('div', 'hoy-card-top');
@@ -15812,7 +15965,10 @@ applyLang(idiomaParaMi());
     medio.appendChild(hoyAnillo(t));
     var dice = el('div');
     dice.appendChild(el('span', 'hoy-plazo' + (nivel ? ' ' + nivel : ''), hoyTextoPlazo(t)));
-    dice.appendChild(el('span', 'hoy-verbo', hoyVerbo(t)));
+    /* Sin verbo no hay renglón: un hueco vacío bajo «Resuelta el…» se lee
+       como algo que no cargó. */
+    var verbo = hoyVerbo(t);
+    if (verbo) dice.appendChild(el('span', 'hoy-verbo', verbo));
     medio.appendChild(dice);
     c.appendChild(medio);
 
@@ -15854,7 +16010,56 @@ applyLang(idiomaParaMi());
     var b = hoyBoton(t);
     if (b) pie.appendChild(b);
     c.appendChild(pie);
+
+    /* El expediente de un resuelto, debajo del pie. Se guarda el MISMO nodo
+       entre repintados: la cola se repinta cada medio minuto, y rehacerlo
+       lo plegaría -o volvería a pedir sus papeles- a quien lo está leyendo. */
+    if (esListo){
+      var exp = hoyExpListo[t.id];
+      if (!exp){
+        exp = el('div', 'co-exp hoy-exp');
+        /* Lo de dentro -abrir un papel- no pliega la tarjeta. */
+        exp.addEventListener('click', function(e){ e.stopPropagation(); });
+        exp.addEventListener('keydown', function(e){ e.stopPropagation(); });
+      }
+      c.appendChild(exp);
+      if (exp.classList.contains('abierto')){
+        hoyExpListo[t.id] = exp;
+        c.classList.add('abierta');
+        if (b){ b.textContent = u.co_ocultar || ''; b.setAttribute('aria-expanded', 'true'); }
+      }
+    }
     return c;
+  }
+
+  /* Los expedientes abiertos de «Listos», por trámite: solo los abiertos,
+     que son los que hay que conservar entre repintados. */
+  var hoyExpListo = {};
+
+  /* Abre o pliega el expediente de un resuelto dentro de su tarjeta. Es
+     pintaExpediente en su forma de solo mirar: los datos y los papeles,
+     sin la comprobación de identidad -que se firma- ni la conversación
+     -que se escribe-. */
+  function hoyVeListo(t, tarjeta){
+    var u = T();
+    var exp = tarjeta && tarjeta.querySelector('.hoy-exp');
+    if (!exp) return;
+    var abierto = exp.classList.toggle('abierto');
+    tarjeta.classList.toggle('abierta', abierto);
+    var b = tarjeta.querySelector('.hoy-card-pie .btn');
+    if (b){
+      b.textContent = abierto ? (u.co_ocultar || '') : (u.co_ver || '');
+      b.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+    }
+    if (abierto){
+      hoyExpListo[t.id] = exp;
+      if (!exp.getAttribute('data-puesto')){
+        exp.setAttribute('data-puesto', '1');
+        pintaExpediente(t, exp, true);
+      }
+    } else {
+      delete hoyExpListo[t.id];
+    }
   }
 
   function hoyTextoEstado(d){
@@ -15866,6 +16071,19 @@ applyLang(idiomaParaMi());
 
   function hoyBoton(t){
     var u = T(), mio = !!YO && t.gestor === YO, b;
+    /* Un resuelto, lo lleve quien lo lleve -o nadie-, solo se mira: ni
+       «Tomarlo» ni «Revisar», que prometen un trabajo que ya se hizo
+       (Franklin Reyes, 30-9-2026). */
+    if (t.estado === 'resuelto'){
+      b = el('button', 'btn ghost', u.co_ver || '');
+      b.type = 'button';
+      b.setAttribute('aria-expanded', 'false');
+      b.addEventListener('click', function(e){
+        e.stopPropagation();
+        hoyVeListo(t, b.closest('.hoy-card'));
+      });
+      return b;
+    }
     if (!t.gestor){
       b = el('button', 'btn navy', u.co_tomar || '');
       b.addEventListener('click', function(e){ e.stopPropagation(); hoyToma(t, b); });
@@ -15912,6 +16130,8 @@ applyLang(idiomaParaMi());
      Lo de otro, o lo que no tiene dueño, se abre para mirar. */
   function hoyAbre(t){
     var u = T();
+    /* Nunca un resuelto en el visor: ver hoyTarjeta. */
+    if (t.estado === 'resuelto') return;
     var abre = function(){ abreVisor(t.id, visorSiguiente(t.id, -1)); };
     if (!!YO && t.gestor === YO && t.estado === 'enviado'){
       mueveTramite(t, 'en_revision', '', null, null, '').then(function(bien){
@@ -16382,7 +16602,11 @@ applyLang(idiomaParaMi());
   function pintaVisor(entera){
     var caja = document.getElementById('paVisor');
     if (!caja) return;
-    var t = visor && enRevision.filter(function(x){ return x.id === visor.id; })[0];
+    /* Un resuelto cierra el visor como si hubiera salido de la cola, que
+       es lo que pasaba hasta que la cola empezó a traerlos para «Listos»
+       (30-9-2026): quien acaba de resolver ve cerrarse la ventana, y no la
+       misma ventana de trabajo sobre algo que ya no tiene trabajo. */
+    var t = visor && coActivos().filter(function(x){ return x.id === visor.id; })[0];
     if (!t){
       visor = null;
       caja.hidden = true;

@@ -727,6 +727,16 @@
      SIGUEN en la cola, que es lo que hace la base. Los de COLA_TRAM salen
      con cualquier cambio de estado, y hay pruebas que cuentan con eso. */
   var HOY_DOCS = {}, HOY_DOC = {};
+  /* Los resueltos del montón «Listos» (Franklin Reyes, 30-9-2026). Van en
+     su propia lista porque el panel los pide en su propia consulta -con
+     .eq('estado', 'resuelto')- y no en la de la cola. Vacía hasta que se
+     siembra la cola de «lo que toca hoy», y se vacía al restaurarla: así
+     las pruebas de la cola de antes cuentan lo mismo que siempre.
+
+     Uno solo, SUYO (u1) y enviado hace cuarenta días: sin plazo cumplido
+     no probaría que no cuenta como «Fuera de plazo», y de otro no probaría
+     que tampoco se cuela en «Míos». */
+  var colaListos = [];
   function siembraHoy(){
     function hace(n){ return new Date(Date.now() - n * 86400000).toISOString(); }
     colaTram = [
@@ -753,10 +763,15 @@
     };
     HOY_DOC = {};
     Object.keys(HOY_DOCS).forEach(function(k){ HOY_DOCS[k].forEach(function(d){ HOY_DOC[d.id] = d; }); });
+    colaListos = [
+      {id:'h9', inversionista:'u5', tipo:'rif_empresa', estado:'resuelto', gestor:'u1',
+       datos:{razon_social:'Tanaka Hidro, C.A.', rif_empresa:'J-41234567-8'},
+       creado_en: hace(40), enviado_en: hace(40), resuelto_en: hace(5)}
+    ];
   }
   window.CIIP_DOBLE = {
     cola: function(){ return colaTram.slice(); },
-    ponCola: function(lista){ colaTram = lista; HOY_DOCS = {}; HOY_DOC = {}; },
+    ponCola: function(lista){ colaTram = lista; HOY_DOCS = {}; HOY_DOC = {}; colaListos = []; },
     siembraHoy: siembraHoy,
     doc: function(id){ return HOY_DOC[id]; },
     /* QA-08: la inversionista corrige lo que se le devolvió y lo reenvía.
@@ -1858,6 +1873,11 @@
         return {data: (op.single ? nuevo : [nuevo]), error:null};
       }
 
+      /* Los resueltos del montón «Listos»: su consulta es la única que
+         pregunta por un estado con .eq y sin cambiar nada. */
+      if (op && op.eq && op.eq.estado === 'resuelto' && !op.update && !op.insert && !op.borra){
+        return {data: colaListos.slice(), error:null};
+      }
       /* Dos colas distintas sobre la misma tabla: la del equipo pide lo que
          espera por el CIIP, y la franja del inversionista lo que espera por
          el. Confundirlas seria enseñarle a cada uno lo del otro. */

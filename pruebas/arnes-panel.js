@@ -282,6 +282,8 @@
               hoyEntregaAbre, hoyEntregaFalla, hoyEntregaReintenta, hoyEntregaMira,
               /* QA-12: un devuelto que no vuelve, lo cancela el equipo con su motivo. */
               hoyCancelaSiembra, hoyCancelaAbre, hoyCancelaPide, hoyCancelaMira,
+              /* Los resueltos, solo en su montón «Listos» (30-9-2026). */
+              hoyListos,
               /* QA-08: el papel rechazado y sustituido no deja atascado el trámite. */
               hoyReenvia, hoyReenviaAbre, hoyReenviaMira,
               hoyRestaura,
@@ -6721,6 +6723,81 @@
     ok('hoy: y sale de la cola', !hoyTarjeta('h1'), hoyTarjeta('h1') ? 'sigue' : 'fuera', 'fuera');
     var todos = document.querySelector('#paCifras button[data-monton="todos"]');
     if (todos) todos.click();
+  }
+
+  /* ── LOS LISTOS ──
+     Franklin Reyes, 30-9-2026: «en mis trámites de gestor no tengo el
+     cuadro de ver trámites listos… colócalo visible». Los resueltos llegan
+     a la cola para su montón, y SOLO para él: ni en «Todos», ni en «Míos»,
+     ni en «Fuera de plazo», ni en el número del menú. h9 es suyo y se
+     envió hace cuarenta días, justo para que colarse fuera posible.
+
+     Todo es síncrono -pulsar un montón repinta en el acto- y por eso el
+     paso llama a sigue al final, sin esperas fijas. */
+  function hoyListos(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    var cifras = document.getElementById('paCifras');
+    var bs = cifras ? cifras.querySelectorAll('button[data-monton]') : [];
+    var ult = bs[bs.length - 1];
+    igual('listos: el tablero de la cola acaba en «Listos»',
+          ult ? ult.getAttribute('data-monton') : '(sin tablero)', 'listos');
+    igual('listos: con la palabra de Mis trámites',
+          ult ? (ult.querySelector('.mtc-t') || {}).textContent : '', 'Listo');
+    igual('listos: y cuenta el resuelto', ult ? (ult.querySelector('.n') || {}).textContent : '', '1');
+    ok('listos: con su dibujo, el círculo con el visto',
+       !!ult && /M8 12l3 3 5-6/.test(ult.innerHTML), ult ? 'busca el visto' : '(sin recuadro)', 'con él');
+
+    function pulsa(monton){
+      var b = cifras && cifras.querySelector('button[data-monton="' + monton + '"]');
+      if (b && b.getAttribute('aria-disabled') !== 'true') b.click();
+      return b;
+    }
+    function ids(){
+      return [].map.call(document.querySelectorAll('#paTandas .hoy-card[data-tr]'),
+                         function(t){ return t.getAttribute('data-tr'); });
+    }
+
+    pulsa('todos');
+    var enTodos = ids();
+    ok('listos: el resuelto NO sale en «Todos»', enTodos.indexOf('h9') < 0, enTodos.join(' '), 'sin h9');
+    igual('listos: y el número del menú no cuenta los resueltos',
+          (document.getElementById('navTramitesN') || {}).textContent, String(enTodos.length));
+    var tardes = document.querySelectorAll('#paTandas .hoy-card.tarde').length;
+    igual('listos: ni suma en «Fuera de plazo», aunque se envió hace cuarenta días',
+          ((cifras.querySelector('button[data-monton="tarde"] .n')) || {}).textContent, String(tardes));
+    pulsa('mios');
+    ok('listos: ni en «Míos», aunque es suyo', ids().indexOf('h9') < 0, ids().join(' '), 'sin h9');
+
+    pulsa('listos');
+    igual('listos: al pulsarlo enseña el resuelto, y solo él', ids().join(' '), 'h9');
+    var t = hoyTarjeta('h9');
+    if (!t) return sigue();
+    ok('listos: la tarjeta dice cuándo se resolvió',
+       /^Resuelta el /.test((t.querySelector('.hoy-plazo') || {}).textContent || ''),
+       (t.querySelector('.hoy-plazo') || {}).textContent, 'Resuelta el …');
+    ok('listos: y no pide nada que hacer', !t.querySelector('.hoy-verbo'),
+       (t.querySelector('.hoy-verbo') || {}).textContent || '(sin verbo)', '(sin verbo)');
+    ok('listos: ni va tarde, ni con el anillo en rojo',
+       !t.classList.contains('tarde') && !!t.querySelector('.hoy-anillo.listo') &&
+       !t.querySelector('.hoy-anillo.tarde'),
+       t.className + ' / ' + ((t.querySelector('.hoy-anillo') || {}).className || ''), 'hoy-anillo listo');
+    var b = hoyPrincipal('h9');
+    igual('listos: su botón es para ver el expediente', b ? b.textContent.trim() : '(sin botón)', 'Ver el expediente');
+    if (!b) return sigue();
+    b.click();
+    var v = document.getElementById('paVisor');
+    ok('listos: y no abre el visor de trabajo', !v || v.hidden, v && !v.hidden ? 'abierto' : 'cerrado', 'cerrado');
+    var exp = t.querySelector('.hoy-exp');
+    ok('listos: lo despliega en la tarjeta', !!exp && exp.classList.contains('abierto'),
+       exp ? exp.className : '(sin expediente)', 'co-exp hoy-exp abierto');
+    ok('listos: solo para mirar, sin nada que escribir ni firmar',
+       !!exp && !exp.querySelector('textarea, input, .btn.primary'),
+       exp ? exp.querySelectorAll('textarea, input, .btn.primary').length + ' mandos' : '(sin expediente)', '0 mandos');
+    b.click();
+    ok('listos: y se vuelve a plegar', !!exp && !exp.classList.contains('abierto'),
+       exp ? exp.className : '(sin expediente)', 'co-exp hoy-exp');
+    pulsa('todos');
+    sigue();
   }
 
   /* ── EL RECHAZADO QUE YA SE CAMBIÓ (QA-08) ──

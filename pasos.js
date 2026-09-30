@@ -1426,6 +1426,9 @@ window.CIIP_PASOS = {
       qm_tu:         "Te toca a ti",
       qm_tu_d:       "Algo que solo tú puedes hacer",
       qm_ellos_d:    "Solo toca esperar",
+      /* qm_listo rotula también el recuadro «Listos» de Trámites por
+         atender, el de los resueltos (Franklin Reyes, 30-9-2026): la misma
+         palabra para lo mismo en las dos pantallas, en los ocho idiomas. */
       qm_listo:      "Listo",
       qm_listo_d:    "Ya resuelto",
       /* Los seis montones de Mis trámites, que además cuentan. Los rótulos
