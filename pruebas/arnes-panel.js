@@ -294,7 +294,7 @@
               empresaTrasGuardar,
               entregaAbre, entregaMira, entregaAbreVisor, entregaVisorMira, entregaTrasCerrar,
               hiloAbre, hiloMira,
-              docsAbre, docsMira, docsCambia, docsEsperaCambio, docsTrasCambiar,
+              docsAbre, docsMira, docsCambiarNoAbre, docsCambia, docsEsperaCambio, docsTrasCambiar,
               docsNuevoMira, docsNuevoFalta, docsNuevoSube, docsEsperaSubida, docsTrasSubir,
               /* DESPUES de todo lo de la boveda: estos pasos suben un papel,
                  y puestos antes le cambiaban la cuenta a las pruebas que
@@ -7867,6 +7867,30 @@
      -"pasaporte.pdf" puede ser el vencido- y hasta ahi llegaba: mirabas,
      veias que estaba mal y no habia nada que hacer sin entrar en un
      tramite que a lo mejor no ibas a enviar. */
+  /* «Cambiar» abre el selector de archivos con arch.click(), y ese clic
+     nace DENTRO del renglón: subía hasta él y el renglón -que al pulsarlo
+     abre el papel- abría ademas el documento viejo en otra pestaña, justo
+     cuando uno iba a sustituirlo (30-9-2026). Se mide con window.open
+     cambiado por un contador: el selector, sin gesto de verdad, no se abre. */
+  function docsCambiarNoAbre(sigue){
+    if (CASO === 'gestor') return sigue();
+    var f = document.querySelector('#dcLista tr[data-doc]');
+    var arch = f && f.querySelector('input[type=file]');
+    if (!arch){
+      ok('docs: el selector de «Cambiar» no abre el papel viejo', false,
+         f ? 'el renglon no tiene selector' : 'no hay renglon', 'un renglon con selector');
+      return sigue();
+    }
+    var abiertos = 0, open = window.open;
+    window.open = function(){ abiertos++; return null; };
+    arch.click();
+    setTimeout(function(){
+      window.open = open;
+      igual('docs: el selector de «Cambiar» no abre el papel viejo', abiertos, 0);
+      sigue();
+    }, 400);
+  }
+
   function docsCambia(){
     if (CASO === 'gestor'){
       ok('bóveda: y el hash a mano le devuelve a la portada',

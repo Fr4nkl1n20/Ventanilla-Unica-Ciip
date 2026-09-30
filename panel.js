@@ -25304,6 +25304,12 @@ applyLang(idiomaParaMi());
         arch.type = 'file';
         arch.accept = 'image/*,application/pdf';
         arch.hidden = true;
+        /* El arch.click() de «Cambiar» es un clic NUEVO, que nace en el
+           selector y sube hasta el renglón: el stopPropagation del botón
+           no lo alcanza. El renglón lo tomaba por «ábrelo» y sacaba el
+           papel viejo en otra pestaña a la vez que el selector, justo
+           cuando se iba a sustituir (30-9-2026). Se para aquí. */
+        arch.addEventListener('click', function(e){ e.stopPropagation(); });
         var cambiar = el('button', 't-btn', u.dc_cambiar || '');
         cambiar.type = 'button';
         cambiar.addEventListener('click', function(e){
