@@ -287,7 +287,7 @@
               empresaAbre, empresaMira, empresaNueva, empresaFichaAbre, empresaOfreceGuardada,
               empresaGuarda, empresaActaLeida,
               empresaTrasGuardar,
-              entregaAbre, entregaMira,
+              entregaAbre, entregaMira, entregaAbreVisor, entregaVisorMira, entregaTrasCerrar,
               hiloAbre, hiloMira,
               docsAbre, docsMira, docsCambia, docsEsperaCambio, docsTrasCambiar,
               docsNuevoMira, docsNuevoFalta, docsNuevoSube, docsEsperaSubida, docsTrasSubir,
@@ -5103,7 +5103,43 @@
     ok('entrega: y va encima de la escalera',
        !!pasos && (b.compareDocumentPosition(pasos) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
        'la caja va antes', 'antes de los pasos');
+  }
+
+  /* «Abrir» ya no manda a otra pestaña: abre un visor con «Descargar»
+     (Franklin Reyes, 30-9-2026). Y abierto una vez, al cerrar el visor el
+     aviso se va y no vuelve. */
+  /* Con retrollamada: fuera de «lleno» siguen al momento, sin el medio
+     segundo fijo de la cadena. Con tres pasos de ese medio segundo, lo que
+     venía detrás en los otros expedientes se corría 1,5 s y iFasesMira
+     encontraba la portada ya cambiada en «gestor» y «sinsql». */
+  function entregaAbreVisor(sigue){
+    if (CASO !== 'lleno') return sigue();
+    var bt = document.querySelector('#trReal .tr-entrega .btn');
+    if (bt) bt.click();
+    setTimeout(sigue, 500);
+  }
+  function entregaVisorMira(sigue){
+    if (CASO !== 'lleno') return sigue();
+    var v = document.querySelector('.te-visor');
+    ok('entrega: «Abrir» enseña el documento en un visor', !!v,
+       v ? 'hay visor' : 'sin visor', 'un visor en la página');
+    var botones = v ? [].map.call(v.querySelectorAll('.te-visor-cab button'), function(x){ return x.textContent; }) : [];
+    ok('entrega: y el visor ofrece descargarlo',
+       botones.indexOf(window.CIIP_T().co_descargar) >= 0, botones.join(' · ') || '(sin botones)', window.CIIP_T().co_descargar);
+    var cerrar = v && [].filter.call(v.querySelectorAll('.te-visor-cab button'),
+      function(x){ return x.textContent === window.CIIP_T().co_h_cerrar; })[0];
+    if (cerrar) cerrar.click();
+    setTimeout(sigue, 500);
+  }
+  function entregaTrasCerrar(sigue){
+    if (CASO !== 'lleno') return sigue();
+    ok('entrega: al cerrar el visor, el visor se va',
+       !document.querySelector('.te-visor'), document.querySelector('.te-visor') ? 'sigue' : 'cerrado', 'cerrado');
+    ok('entrega: y el aviso «Tu documento» ya no sale',
+       !document.querySelector('#trReal .tr-entrega'),
+       document.querySelector('#trReal .tr-entrega') ? 'sigue a la vista' : 'fuera', 'fuera');
     location.hash = '';
+    setTimeout(sigue, 500);
   }
 
   /* ═══════════ USUARIOS Y EQUIPO ═══════════

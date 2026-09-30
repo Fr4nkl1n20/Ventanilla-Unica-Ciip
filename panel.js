@@ -5126,9 +5126,119 @@ applyLang(idiomaParaMi());
         boton.textContent = u.co_noabre || '';
       });
   }
-  /* Lo que emitió el organismo. La columna «Listo» de la portada y la ficha
-     del trámite ofrecen la misma descarga. */
-  function abreEmitido(d, boton){ abreFirmado(d.archivo, boton, 'abrir lo emitido'); }
+  /* Descargar un papel del cubo con su nombre. La misma dirección firmada,
+     con {download}: el cubo manda el archivo como adjunto en vez de
+     enseñarlo, y un enlace con download y un clic hace que el navegador lo
+     guarde. Es lo que ya hacía «Comprobantes» (cbVisor). */
+  function bajaFirmado(ruta, nombre, boton, que){
+    var u = T();
+    boton.disabled = true;
+    Promise.resolve(sb.storage.from('recaudos').createSignedUrl(ruta, 300, {download: nombre || true}))
+      .then(function(rs){
+        boton.disabled = false;
+        var url = rs && rs.data && rs.data.signedUrl;
+        if (!url) throw new Error('sin url');
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = nombre || '';
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      })
+      .catch(function(e){
+        console.warn('[CIIP] ' + (que || 'descargar') + ':', e && (e.message || e));
+        boton.disabled = false;
+        boton.textContent = u.co_nobaja || '';
+      });
+  }
+
+  /* ── LO QUE EMITIÓ EL ORGANISMO, EN SU VISOR ──
+     Franklin Reyes, 30-9-2026: «que cuando abra la foto tenga la opción de
+     descargar». Abrir la foto en otra pestaña la enseñaba y nada más: para
+     guardarla había que saber que el botón derecho existe. Ahora se abre
+     aquí, en una ventana con «Descargar» y «Cerrar»: la foto se ve, un PDF
+     va en su visor y lo demás solo se descarga. La usan la ficha del
+     trámite y la columna «Listo» de la portada.
+
+     alCerrar: lo que hay que hacer al cerrarla -la ficha borra su aviso-. */
+  function abreEmitido(d, boton, alCerrar){
+    var u = T();
+    var nombre = d.nombre_original || '';
+    var esFoto = /\.(png|jpe?g|webp|gif)$/i.test(d.archivo || nombre);
+    var esPdf = /\.pdf$/i.test(d.archivo || nombre);
+    if (boton) boton.disabled = true;
+    Promise.resolve(sb.storage.from('recaudos').createSignedUrl(d.archivo, 300))
+      .then(function(rs){
+        if (boton) boton.disabled = false;
+        var url = rs && rs.data && rs.data.signedUrl;
+        if (!url) throw new Error('sin url');
+
+        var velo = el('div', 'te-visor');
+        var caja = el('div', 'te-visor-c');
+        caja.setAttribute('role', 'dialog');
+        caja.setAttribute('aria-modal', 'true');
+        caja.setAttribute('aria-label', nombre || (u.tr_entregado || ''));
+        var cab = el('div', 'te-visor-cab');
+        cab.appendChild(el('span', 'te-visor-n', nombre));
+        var bajar = el('button', 'btn navy', u.co_descargar || '');
+        bajar.type = 'button';
+        bajar.addEventListener('click', function(){ bajaFirmado(d.archivo, nombre, bajar, 'descargar lo emitido'); });
+        var cerrar = el('button', 'btn ghost', u.co_h_cerrar || '');
+        cerrar.type = 'button';
+        cab.appendChild(bajar);
+        cab.appendChild(cerrar);
+        caja.appendChild(cab);
+
+        var cuerpo = el('div', 'te-visor-cu');
+        if (esFoto){
+          var img = document.createElement('img');
+          img.alt = nombre;
+          img.src = url;
+          cuerpo.appendChild(img);
+        } else if (esPdf){
+          var marco = document.createElement('iframe');
+          marco.src = url;
+          marco.title = nombre;
+          cuerpo.appendChild(marco);
+        } else {
+          cuerpo.appendChild(el('p', 'te-visor-nada', u.co_h_sinvista || ''));
+        }
+        caja.appendChild(cuerpo);
+        velo.appendChild(caja);
+
+        var antes = document.activeElement;
+        function cierra(){
+          document.removeEventListener('keydown', tecla);
+          velo.remove();
+          if (antes && antes.focus && document.body.contains(antes)) antes.focus();
+          if (alCerrar) alCerrar();
+        }
+        function tecla(e){ if (e.key === 'Escape') cierra(); }
+        cerrar.addEventListener('click', cierra);
+        velo.addEventListener('click', function(e){ if (e.target === velo) cierra(); });
+        document.addEventListener('keydown', tecla);
+        document.body.appendChild(velo);
+        bajar.focus();
+      })
+      .catch(function(e){
+        console.warn('[CIIP] abrir lo emitido:', e && (e.message || e));
+        if (boton){ boton.disabled = false; boton.textContent = u.co_noabre || ''; }
+      });
+  }
+
+  /* Visto una vez, el aviso no vuelve (Franklin Reyes, 30-9-2026: «que solo
+     abra la primera vez y después desaparezca el aviso»). Se apunta en ESTE
+     navegador: en otro equipo vuelve a salir una vez. El documento no se
+     pierde: sigue en la bóveda y en la columna «Listo» de la portada. */
+  function emitidoVisto(id){
+    try { return !!(id && window.localStorage.getItem('ciip.emitido.visto.' + id)); }
+    catch(e){ return false; }
+  }
+  function marcaEmitidoVisto(id){
+    try { if (id) window.localStorage.setItem('ciip.emitido.visto.' + id, '1'); }
+    catch(e){ /* sin almacén, el aviso vuelve a salir: no se pierde nada */ }
+  }
 
   function pintaEntregado(tr, caja){
     var u = T();
@@ -5140,6 +5250,7 @@ applyLang(idiomaParaMi());
         })[0];
         if (!fila) return;
         var d = fila.documentos;
+        if (emitidoVisto(fila.documento)) return;
 
         var b = el('div', 'tr-entrega');
         b.appendChild(el('div', 'te-t', u.tr_entregado || ''));
@@ -5149,7 +5260,13 @@ applyLang(idiomaParaMi());
         pie.appendChild(el('span', 'te-n', d.nombre_original || ''));
         var abrir = el('button', 'btn navy', u.co_abrir || '');
         abrir.type = 'button';
-        abrir.addEventListener('click', function(){ abreEmitido(d, abrir); });
+        /* Abierto una vez, se apunta y, al cerrar el visor, el aviso se va. */
+        abrir.addEventListener('click', function(){
+          abreEmitido(d, abrir, function(){
+            marcaEmitidoVisto(fila.documento);
+            b.remove();
+          });
+        });
         pie.appendChild(abrir);
         b.appendChild(pie);
 

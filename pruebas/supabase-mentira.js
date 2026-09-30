@@ -2611,5 +2611,12 @@
      vez que se corriera el contador ya vendría apagado y la prueba de
      "cuenta 3 avisos" pasaría a rojo sin que nadie hubiera tocado nada. */
   try { window.localStorage.removeItem('ciip.avisos.' + USUARIO.id); } catch(e){}
+  /* Y sin memoria de lo emitido ya abierto (30-9-2026): «Tu documento» se
+     va tras abrirlo una vez, y la tanda siguiente no lo encontraría. */
+  try {
+    Object.keys(window.localStorage).forEach(function(k){
+      if (k.indexOf('ciip.emitido.visto.') === 0) window.localStorage.removeItem(k);
+    });
+  } catch(e){}
 
 })();
