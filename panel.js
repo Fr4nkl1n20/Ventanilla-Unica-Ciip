@@ -8542,8 +8542,7 @@ applyLang(idiomaParaMi());
        Una sola etapa, sin encabezado: el CIIP la cuenta como una fila de
        pasos, no como fases.
 
-       Los dos primeros los cierra el ESTADO, como en el RIF (c3 y c6),
-       donde «Firme la planilla» es el paso que sigue a la recepción: la
+       Los dos primeros los cierra el ESTADO, como en el RIF (c3 y c6): la
        revisión, al pasar la solicitud a revisión; la firma, al presentarla
        ante la alcaldía, que no se hace sin la planilla firmada.
 
@@ -9214,8 +9213,13 @@ applyLang(idiomaParaMi());
        se saben: el primero es cuando se envió y el último cuando se
        resolvió. Los de en medio van sin fecha, que es mejor que ponerles
        una que no es la suya. */
+    /* Con CUATRO pasos la cuenta libre solo se usa si el trámite dice en
+       PASOS_SEGUN_ESTADO qué estado cierra cada uno: sin eso, cuatro pasos
+       siguen yendo por los rótulos del circuito, como hasta ahora. */
     var libres = null;
-    if (!propios && mapaP[claveP] && mapaP[claveP].length && mapaP[claveP].length !== ORDEN.length){
+    var cuentaPropia = (typeof PASOS_SEGUN_ESTADO !== 'undefined' && !!PASOS_SEGUN_ESTADO[ref]);
+    if (!propios && mapaP[claveP] && mapaP[claveP].length &&
+        (mapaP[claveP].length !== ORDEN.length || cuentaPropia)){
       var lista = mapaP[claveP];
       /* ── LOS PASOS QUE NO MUEVE LA OFICINA ──
          Franklin Reyes, 25-9-2026, sobre la visa: «el 2 se marca cuando el
@@ -22654,7 +22658,16 @@ applyLang(idiomaParaMi());
      conformidad de uso». Revisión mientras está en el CIIP, inscripción
      mientras está ante la alcaldía, y la certificación al resolverse. */
   var PASOS_SEGUN_ESTADO = {
-    c28: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1}
+    c28: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    /* Los dos RIF (Franklin Reyes, 30-9-2026): «Solicitud recibida → Planilla
+       enviada por el CIIP → Firme la planilla → RIF emitido». Empiezan por
+       «recibida», así que la cuenta es la de siempre; están aquí porque son
+       CUATRO pasos, uno por estado, y sin esta línea escaleraDe() los
+       pintaría con los rótulos del circuito. Recibida, el CIIP prepara la
+       planilla; en revisión ya la mandó y toca firmarla; ante el SENIAT ya
+       volvió firmada, que sin ella no se presenta. */
+    c3:  {borrador:0, devuelto:1, enviado:1, en_revision:2, ante_el_ente:3},
+    c6:  {borrador:0, devuelto:1, enviado:1, en_revision:2, ante_el_ente:3}
     /* El permiso de bomberos (c29) estuvo aquí el 28-9-2026, con dos pasos.
        Desde el 29, con el importe de aranceles y su comprobante en medio,
        lo cuenta su escalera por etapas (ESCALERA_POR_ETAPAS). */
@@ -22717,12 +22730,13 @@ applyLang(idiomaParaMi());
 
   /* Y en qué paso se devuelve firmada la planilla (Franklin Reyes,
      29-9-2026). La cuenta es la del rótulo, como en los de arriba: los dos
-     RIF -c3 y c6, «Firme la planilla»- y la licencia -c10, «Firme la
-     planilla de solicitud de trámite», que va por su escalera por etapas y
-     también es el segundo-. Lo pinta casillaDeLaPlanillaFirmada(). Un
+     RIF -c3 y c6, «Firme la planilla», el tercero desde que el 30-9-2026
+     entró delante «Planilla enviada por el CIIP»- y la licencia -c10,
+     «Firme la planilla de solicitud de trámite», que va por su escalera
+     por etapas y es el segundo-. Lo pinta casillaDeLaPlanillaFirmada(). Un
      trámite nuevo con ese paso es una entrada aquí y una línea en
      supabase-planilla-firmada.sql, que es quien deja colgarla. */
-  var PLANILLA_FIRMADA_DEL_PASO = {c3: {2: true}, c6: {2: true}, c10: {2: true}};
+  var PLANILLA_FIRMADA_DEL_PASO = {c3: {3: true}, c6: {3: true}, c10: {2: true}};
 
   /* Que papel se sube en que paso. La cuenta empieza en cero: el 0 es la
      emision del PUB y el 1 es "Pago de aranceles registrales", que desde el

@@ -6142,9 +6142,10 @@
         /* Los dos casos que la tabla no puede contar a su manera. t2 es una
            constitución en borrador: cinco pasos, como su ficha -la reserva
            va antes de «Resuelta»-, y el primero es suyo. t1 es un RIF
-           devuelto: TRES desde el 24-9-2026 -«Solicitud recibida», «Firme
-           la planilla», «RIF emitido»-, y se detiene en el segundo con su
-           «!», que es donde la deja volver al principio. */
+           devuelto: CUATRO desde el 30-9-2026 -«Solicitud recibida»,
+           «Planilla enviada por el CIIP», «Firme la planilla», «RIF
+           emitido»-, y se detiene en el segundo con su «!», que es donde la
+           deja volver al principio. */
         var t2 = document.querySelector('#mtCuerpo tr[data-id="t2"]');
         if (t2){
           var p2 = t2.querySelectorAll('.mt-pg-p');
@@ -6158,7 +6159,7 @@
           var alto = [].map.call(p1, function(x, i){ return x.classList.contains('alto') ? i + 1 : 0; })
                        .filter(Boolean).join(',');
           igual('mis trámites: la devuelta se detiene en la revisión',
-                p1.length + ' pasos, detenida en ' + (alto || 'ninguno'), '3 pasos, detenida en 2');
+                p1.length + ' pasos, detenida en ' + (alto || 'ninguno'), '4 pasos, detenida en 2');
         }
         var pg = document.querySelector('#mtCuerpo .mt-pg');
         ok('mis trámites: y el progreso se lee sin ver los círculos',
@@ -9368,17 +9369,26 @@
         if (!FIRMA_LA_PLANILLA.test((pasosEs[ref] || [])[n - 1] || '')) deMas.push(ref + '.' + n);
       });
     });
-    igual('planilla firmada: dicen «Firme la planilla» el paso 2 de los dos RIF y el de la licencia',
-          hallados.join(','), 'c3.2,c6.2,c10.2');
+    igual('planilla firmada: dicen «Firme la planilla» el paso 3 de los dos RIF y el 2 de la licencia',
+          hallados.join(','), 'c3.3,c6.3,c10.2');
     igual('planilla firmada: todos ofrecen devolverla firmada', sinCasilla.join(',') || 'todos', 'todos');
     igual('planilla firmada: y ningún otro paso la pide', deMas.join(',') || 'ninguno', 'ninguno');
 
-    var trR = {id: 'pf-rif', tipo: 'rif_empresa', estado: 'enviado', datos: {}, inversionista: 'u2'};
-    var E = esc(trR, 'rif_empresa', 'SENIAT');
-    var p2 = E && E.circ && E.circ[1];
-    ok('planilla firmada: RIF de la empresa recibido, «Firme la planilla» es el paso en curso',
-       !!p2 && p2.ahora && FIRMA_LA_PLANILLA.test(p2.nombre),
-       p2 ? p2.nombre + (p2.ahora ? ' (en curso)' : ' (no en curso)') : '(sin paso)', 'Firme la planilla (en curso)');
+    /* Desde el 30-9-2026 el CIIP manda la planilla antes de que se firme
+       (Franklin Reyes): recibida, eso es lo que está en curso; en revisión,
+       la firma. */
+    var enCurso = function(estado){
+      var E = esc({id: 'pf-rif', tipo: 'rif_empresa', estado: estado, datos: {}, inversionista: 'u2'},
+                  'rif_empresa', 'SENIAT');
+      var p = ((E && E.circ) || []).filter(function(x){ return x.ahora; })[0];
+      return p ? p.n + '. ' + p.nombre : '(ninguno)';
+    };
+    igual('planilla firmada: RIF de la empresa recibido, en curso «Planilla enviada por el CIIP»',
+          enCurso('enviado'), '2. Planilla enviada por el CIIP');
+    igual('planilla firmada: y en revisión, «Firme la planilla»',
+          enCurso('en_revision'), '3. Firme la planilla');
+    igual('planilla firmada: ante el SENIAT ya volvió firmada, en curso «RIF emitido»',
+          enCurso('ante_el_ente'), '4. RIF emitido');
 
     var hace = new Date(Date.now() - 3600000).toISOString();
     window.__IMPORTE_DOCS = {
