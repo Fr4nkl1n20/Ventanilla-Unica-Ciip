@@ -4038,6 +4038,14 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-devuelta{margin:10px 0 0; padding:9px 12px;}
 .tr-devuelta .sv-d{white-space:pre-wrap; overflow-wrap:anywhere;}
 .tr-dev-ir{margin-top:9px;}
+/* El aviso de la solicitud devuelta, en la pantalla del trámite: azul y del
+   ancho del recuadro de arriba (.tr-caja, 880), no ámbar y a toda la
+   página (Franklin Reyes, 30-9-2026: «que la barra anaranjada esté al nivel
+   del recuadro y que no sea anaranjada sino azul»). El de dentro de un
+   tramo (.tr-devuelta) se queda como estaba. */
+.sol-devuelta:not(.tr-devuelta){background:var(--activa-bg); border-color:var(--navy2);
+  max-width:880px; box-sizing:border-box;}
+.sol-devuelta:not(.tr-devuelta) .sv-t{color:var(--azul-panel);}
 
 /* ── EL RECAUDO QUE NO VALIÓ ──
    El contrario de «✓ ya estaba en tu expediente». Va en óxido y no en
