@@ -2824,9 +2824,14 @@ body[data-vista="inicio"].etapa-elegida .tsec-sig:not([hidden]){display:flex;}
 /* ── LA GUIA DE LAS VISAS ──
    Dos caminos, uno al lado del otro, dentro de la ficha de cualquiera de
    las dos. El que estas mirando se queda apagado y con su «estas aqui»;
-   el otro lleva el boton. En movil van uno debajo del otro. */
-.tr-visas{border:1px solid var(--line); border-radius:var(--r); background:var(--tr-velo);
-  box-shadow:var(--shadow); padding:14px 16px; margin:0 0 14px;}
+   el otro lleva el boton. En movil van uno debajo del otro.
+   Del ancho del formulario de debajo (880, el de .pa y .tr-caja), para que
+   los dos bordes caigan en la misma raya, y en blanco liso, no con el velo
+   de las demas cajas: --bg es el blanco de las superficies y en oscuro
+   pasa a su azul de tarjeta (Franklin Reyes, 30-9-2026: «que sea del mismo
+   tamaño que la de abajo, el fondo blanco»). */
+.tr-visas{border:1px solid var(--line); border-radius:var(--r); background:var(--bg);
+  box-shadow:var(--shadow); padding:14px 16px; margin:0 0 14px; max-width:880px;}
 .tr-visas[hidden]{display:none;}
 /* Mientras no elijas visa, la casilla enseña SOLO la guia: el tramite de
    verdad y la escalera se apartan. No se les toca su hidden -lo llevan por
