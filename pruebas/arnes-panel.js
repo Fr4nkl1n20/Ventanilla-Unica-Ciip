@@ -381,7 +381,9 @@
               envioRepaso, envioManda, envioMira,
               /* QA-11: descartar un borrador. Solo en 'sinnombre' y al final: borra
                  una solicitud de la tabla, y antes le cambiaría las cuentas a otras. */
-              descartaAbre, descartaMira, descartaPide, descartaTras], volcar);
+              descartaAbre, descartaMira, descartaPide, descartaTras,
+              /* Y detrás de todo: le escribe la junta al borrador t2 y le cambia la fecha. */
+              juntaBorradorAbre, juntaBorradorMira], volcar);
   });
 
   /* ═══════════════ LA PUERTA DEL SECTOR ═══════════════
@@ -3714,6 +3716,47 @@
       .filter(function(t){ return t.id === 's1'; });
     igual('descartar: la segunda lo borra de la base', quedan.length, 0);
     location.hash = '';
+  }
+
+  /* ── UN BORRADOR DE LA CONSTITUCIÓN, CON LA JUNTA YA ESCRITA ──
+     Volver a un borrador -o a un devuelto, con «Corregir y reenviar»- que
+     ya traía nombres en la junta directiva reventaba el formulario a medio
+     montar: cada nombre pedía sus papeles y recontaba los recaudos antes
+     de que existiera el cuadro de la cuenta, y ponNota(null) tiraba la
+     excepción. Quedaban la barra de pasos y las hojas vacías, sin pie, sin
+     «Enviar» y sin «Descartar» (30-9-2026). Ninguna prueba lo veía porque
+     la junta solo se probaba en un formulario en blanco.
+
+     En 'lleno', que tiene la constitución en borrador (t2), y al final:
+     se le escribe la junta en la base y eso le cambia la fecha, que
+     movería la franja de cualquier prueba de después. */
+  function juntaBorradorAbre(sigue){
+    if (CASO !== 'lleno') return sigue();
+    location.hash = '';
+    var sb = window.sbCIIP;
+    if (!sb) return sigue();
+    sb.from('tramites').update({datos: {junta_directiva: 'María Pérez (PRESIDENTE)'}})
+      .eq('id', 't2').then(function(){
+        location.hash = 'tramite-c5';
+        esperaFilas('#trReal .pa-pie', 1, sigue);
+      }, sigue);
+  }
+
+  function juntaBorradorMira(sigue){
+    if (CASO !== 'lleno') return sigue();
+    var caja = document.getElementById('trReal');
+    var pie = caja && caja.querySelector('.pa-pie');
+    ok('junta: un borrador con la junta escrita monta el formulario entero',
+       !!pie, pie ? 'con su pie' : 'sin pie: se quedó a medias', 'con su pie');
+    var d = caja && caja.querySelector('.sol-descartar');
+    ok('junta: y se puede descartar', !!d && !d.hidden,
+       d ? (d.hidden ? 'escondido' : 'a la vista') : 'no está', 'a la vista');
+    var suyos = caja ? [].filter.call(caja.querySelectorAll('.sol-junta .sol-doc'), function(f){
+      return f.getAttribute('data-titular') === 'María Pérez';
+    }) : [];
+    igual('junta: y el miembro que ya estaba trae sus dos papeles', suyos.length, 2);
+    location.hash = '';
+    sigue();
   }
 
   function envioManda(sigue){

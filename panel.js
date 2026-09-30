@@ -6672,6 +6672,14 @@ applyLang(idiomaParaMi());
     notaPap = el('div', 'pa-nota');
     lado.appendChild(notaPap);
     function cuentaPapeles(){
+      /* Antes de que exista el cuadro no hay nada que contar. Pasa al
+         volver a un borrador o a un devuelto de la constitución con la
+         junta ya escrita: cada nombre pide sus papeles -y recuenta- mientras
+         se pintan las casillas, mucho antes de llegar aquí, y ponNota(null)
+         tiraba el formulario a medio montar, sin pie, sin «Enviar» y sin
+         «Descartar» (30-9-2026). La cuenta buena la hace la llamada de
+         después de colgar la lista, con todo ya en su sitio. */
+      if (!notaPap) return;
       var pedidos = 0, ya = 0;
       lado.querySelectorAll('.sol-doc').forEach(function(f){
         if (f.getAttribute('data-opcional') || !seVe(f)) return;
