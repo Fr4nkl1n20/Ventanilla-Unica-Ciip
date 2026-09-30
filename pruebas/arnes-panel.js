@@ -3874,8 +3874,8 @@
     var g = caja && caja.querySelector('.sol-grupo[data-grupo="f_itinerario"]');
     var dentro = g ? [].map.call(g.querySelectorAll('.sol-campo'), function(x){
       return x.getAttribute('data-campo'); }).join(' ') : '(sin apartado)';
-    igual('visa: el apartado del itinerario lleva el vuelo, sus fechas y la caja',
-          dentro, 'vuelo_numero fecha_entrada fecha_salida itinerario_vuelo');
+    igual('visa: el apartado del itinerario lleva la aerolínea, el vuelo, sus fechas y la caja',
+          dentro, 'aerolinea vuelo_numero fecha_entrada fecha_salida itinerario_vuelo');
     igual('visa: y se titula «Itinerario de vuelo»',
           g && g.querySelector('legend') ? g.querySelector('legend').textContent : '(sin título)',
           window.CIIP_PASOS.ui[curLang].f_itinerario);

@@ -3972,6 +3972,7 @@ applyLang(idiomaParaMi());
          «Itinerario de vuelo», y debajo una caja que crece con lo escrito
          para las escalas o los demás vuelos, que no todo viaje tiene.
          Y aparte, dónde se hospeda: el consulado lo pide en las dos visas. */
+      {n:'aerolinea',         clave:'f_aerolinea',    grupo:'f_itinerario'},
       {n:'vuelo_numero',      clave:'f_vuelo',        grupo:'f_itinerario'},
       {n:'fecha_entrada',     clave:'f_fechaentrada', tipo:'date', grupo:'f_itinerario'},
       {n:'fecha_salida',      clave:'f_fechasalida',  tipo:'date', grupo:'f_itinerario'},
@@ -4008,6 +4009,7 @@ applyLang(idiomaParaMi());
          «Itinerario de vuelo», y debajo una caja que crece con lo escrito
          para las escalas o los demás vuelos, que no todo viaje tiene.
          Y aparte, dónde se hospeda: el consulado lo pide en las dos visas. */
+      {n:'aerolinea',         clave:'f_aerolinea',    grupo:'f_itinerario'},
       {n:'vuelo_numero',      clave:'f_vuelo',        grupo:'f_itinerario'},
       {n:'fecha_entrada',     clave:'f_fechaentrada', tipo:'date', grupo:'f_itinerario'},
       {n:'fecha_salida',      clave:'f_fechasalida',  tipo:'date', grupo:'f_itinerario'},
