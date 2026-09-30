@@ -155,8 +155,8 @@
   R.push({n:'mostrar/ocultar clave', ok:(t0==='password'&&t1==='text'&&t2==='password'), got:t0+'->'+t1+'->'+t2, exp:'password->text->password'});
 
   /* ---------- TRADUCCIONES COMPLETAS ---------- */
-  var IDIOMAS=['es','en','pt','it','zh','ru'];
-  R.push({n:'clave e.otro en los 6 idiomas',
+  var IDIOMAS=['es','en','pt','it','zh','ru','fr','ja'];
+  R.push({n:'clave e.otro en los 8 idiomas',
           ok:IDIOMAS.every(function(l){ return I18N[l] && I18N[l]['e.otro']; }),
           got:IDIOMAS.filter(function(l){ return !(I18N[l]&&I18N[l]['e.otro']); }).join(',')||'todos', exp:'todos'});
 

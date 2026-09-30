@@ -5,7 +5,7 @@
    en el mismo sitio y en el mismo orden en que estaba escrito dentro. */
 (function(){
   'use strict';
-  var IDIOMAS = ['es', 'en', 'pt', 'it', 'zh', 'ru'];
+  var IDIOMAS = ['es', 'en', 'pt', 'it', 'zh', 'ru', 'fr', 'ja'];
   var CAMBIOS = {};      /* {es: {clave: texto}}: lo que dice la base */
   var ORIG_DIC = {};     /* {es: {clave: original}} del diccionario, al pisarlo */
   var ORIG_UI = {};      /* lo mismo para pasos.js */
@@ -24,7 +24,7 @@
   function uiDe(){ var P = window.CIIP_PASOS; return (P && P.ui) || null; }
   function claveDe(el){ return el.getAttribute('data-i18n') || el.getAttribute('data-texto') || el.getAttribute('data-ui'); }
 
-  /* De cual de los tres sitios es una clave. Se pregunta a los seis idiomas
+  /* De cual de los tres sitios es una clave. Se pregunta a los ocho idiomas
      y no solo al de turno: una clave que el español no tiene y cae al
      ingles sigue siendo del diccionario. */
   function tipoDe(clave){

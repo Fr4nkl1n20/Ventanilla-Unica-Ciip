@@ -2048,10 +2048,15 @@
       igual('idioma: tu país lo elige mientras no elijas tú', idiomaParaMi(), 'es');
       PERFIL.pais = 'Brasil';
       igual('idioma: y cambia si cambia tu país', idiomaParaMi(), 'pt');
-      /* Un país que no habla ninguno de los seis no fuerza nada. */
+      /* Francés y japonés, desde el 30-9-2026: sus países ya eligen. */
+      PERFIL.pais = 'Francia';
+      igual('idioma: Francia elige el francés', idiomaParaMi(), 'fr');
       PERFIL.pais = 'Japón';
-      ok('idioma: un país fuera de los seis no elige por ti',
-         !!I18N[idiomaParaMi()], idiomaParaMi(), 'uno de los seis');
+      igual('idioma: y Japón, el japonés', idiomaParaMi(), 'ja');
+      /* Un país que no habla ninguno de los ocho no fuerza nada. */
+      PERFIL.pais = 'Corea del Sur';
+      ok('idioma: un país fuera de los ocho no elige por ti',
+         !!I18N[idiomaParaMi()] && idiomaParaMi() !== 'ja', idiomaParaMi(), 'uno de los ocho');
 
       try { window.localStorage.setItem('ciip_lang', 'ru'); } catch(e){}
       PERFIL.pais = 'Venezuela';
@@ -2059,6 +2064,65 @@
       try { window.localStorage.removeItem('ciip_lang'); } catch(e){}
 
       PERFIL.pais = antes;
+      applyLang('es');
+    })();
+
+    /* ── FRANCÉS Y JAPONÉS, TAN COMPLETOS COMO EL CASTELLANO ──
+       Llegaron el 30-9-2026, de golpe y con unas dos mil claves cada uno.
+       Una que falte no rompe nada: sale el inglés en medio de la frase, o
+       una etiqueta en blanco, y nadie se entera hasta que un japonés abre
+       esa pantalla. Así que se cuadran contra el castellano, bloque por
+       bloque: mismas claves, mismas listas con el mismo número de
+       elementos y los mismos huecos {n}, {fecha}… en cada texto. */
+    (function(){
+      var P = window.CIIP_PASOS || {};
+      function huecos(s){ return (String(s).match(/\{[a-z_]+\}/g) || []).sort().join(' '); }
+      /* Recorre dos valores a la par y apunta dónde no casan. */
+      function cuadra(a, b, donde, malos, e){
+        if (a === null || a === undefined){
+          if (!(b === null || b === undefined)) malos.push(donde + ' debería ser nulo');
+          return;
+        }
+        if (typeof a === 'string'){
+          if (typeof b !== 'string') { malos.push(donde + ' falta'); return; }
+          /* Vacío solo donde el inglés también lo deja vacío: esos caen al castellano. */
+          if (!b.trim()){ if (!(typeof e === 'string' && !e.trim())) malos.push(donde + ' vacío'); return; }
+          if (huecos(a) !== huecos(b)) malos.push(donde + ' huecos ' + huecos(b) + ' en vez de ' + huecos(a));
+          return;
+        }
+        if (Array.isArray(a)){
+          if (!Array.isArray(b) || b.length !== a.length){ malos.push(donde + ' con ' + (b && b.length) + ' elementos y no ' + a.length); return; }
+          a.forEach(function(x, i){ cuadra(x, b[i], donde + '.' + i, malos, e && e[i]); });
+          return;
+        }
+        if (typeof a === 'object'){
+          if (!b || typeof b !== 'object'){ malos.push(donde + ' falta'); return; }
+          Object.keys(a).forEach(function(k){ cuadra(a[k], b[k], donde + '.' + k, malos, e && e[k]); });
+          Object.keys(b).forEach(function(k){ if (!(k in a)) malos.push(donde + '.' + k + ' sobra'); });
+        }
+      }
+      ['fr', 'ja'].forEach(function(l){
+        var malos = [];
+        cuadra(I18N.es, I18N[l], 'i18n', malos, I18N.en);
+        ['titulo', 'aqui', 'estados', 'circuito', 'sectores', 'guia', 'ui', 'pasos'].forEach(function(b){
+          cuadra((P[b] || {}).es, (P[b] || {})[l], b, malos, (P[b] || {}).en);
+        });
+        igual('idioma: el ' + (l === 'fr' ? 'francés' : 'japonés') + ' tiene todo lo que tiene el castellano',
+              malos.slice(0, 5).join(' · '), '');
+      });
+      igual('idioma: son ocho en el diccionario y en pasos.js',
+            Object.keys(I18N).sort().join(' ') + ' / ' + Object.keys(P.ui || {}).sort().join(' '),
+            'en es fr it ja pt ru zh / en es fr it ja pt ru zh');
+      var menu = [].map.call(document.querySelectorAll('#langMenu button[data-lang]'),
+                             function(b){ return b.getAttribute('data-lang'); }).sort().join(' ');
+      igual('idioma: y ocho en el menú', menu, 'en es fr it ja pt ru zh');
+      applyLang('ja');
+      var bja = document.getElementById('langFlag');
+      ok('idioma: el japonés lleva su bandera', /banderas\/jp\.svg$/.test(bja.getAttribute('src') || ''),
+         bja.getAttribute('src'), 'banderas/jp.svg');
+      igual('idioma: y las fechas en japonés', localeDeAhora(), 'ja-JP');
+      applyLang('fr');
+      igual('idioma: y en francés, las de Francia', localeDeAhora(), 'fr-FR');
       applyLang('es');
     })();
 
@@ -9954,16 +10018,16 @@
     var sin = Object.keys(D).filter(function(l){
       return !/\S/.test(String((D[l] || {}).sg_texto || ''));
     });
-    ok('lo hacemos: el ofrecimiento está escrito en los seis idiomas',
-       Object.keys(D).length === 6 && sin.length === 0,
+    ok('lo hacemos: el ofrecimiento está escrito en los ocho idiomas',
+       Object.keys(D).length === 8 && sin.length === 0,
        sin.length ? ('faltan en: ' + sin.join(', ')) : (Object.keys(D).length + ' idiomas'),
-       'los seis');
+       'los ocho');
 
     /* Y ninguna de las otras cinco se quedó con la promesa de antes. Cambiar
        solo el español es la forma silenciosa de que un inversionista italiano
        siga leyendo algo que ya no decimos. */
     var promete = Object.keys(D).filter(function(l){
-      return /por ti|for you|por si|per te|за вас|为您代办/.test(String((D[l] || {}).sg_texto || ''));
+      return /por ti|for you|por si|per te|за вас|为您代办|à votre place|代行/.test(String((D[l] || {}).sg_texto || ''));
     });
     ok('lo hacemos: y en ningún idioma se quedó el «por ti»',
        promete.length === 0, promete.length ? promete.join(', ') : 'ninguno', 'ninguno');
@@ -10782,7 +10846,7 @@
        Y la otra cara sigue haciendo falta: t.sinestimado NO es una
        estimacion y no puede decirlo. Un parche descuidado que añadiera la
        palabra a todo escribiria «sin plazo estimado hábil». */
-    var DICE = /hábil|útil|úteis|working|lavorativ|工作|рабоч/;
+    var DICE = /hábil|útil|úteis|working|lavorativ|工作|рабоч|ouvr|営業日/;
     var claves = ['t.est1', 't.estN', 't.estsem', 't.estsemN', 't.estmes', 't.estmesN'];
     var otras  = ['t.sinestimado'];
     var todas  = claves.concat(otras);
@@ -10796,7 +10860,7 @@
        'de las dos');
 
     var sinDecir = [], loDicenSinSerlo = [];
-    ['es','en','pt','it','zh','ru'].forEach(function(idi){
+    ['es','en','pt','it','zh','ru','fr','ja'].forEach(function(idi){
       claves.forEach(function(k){
         if (!DICE.test(String((I[idi] || {})[k] || ''))) sinDecir.push(idi + ' ' + k);
       });

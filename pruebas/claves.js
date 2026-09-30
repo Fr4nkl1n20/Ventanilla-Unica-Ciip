@@ -103,7 +103,7 @@ for (const l of idiomas) {
   for (const k of claves) if (!(k in I18N[l])) desiguales.push(l + ' → ' + k);
   for (const k of Object.keys(I18N[l])) if (!(k in I18N.es)) desiguales.push(l + ' ← ' + k);
 }
-ok('i18n: los seis idiomas tienen las mismas claves',
+ok('i18n: los ocho idiomas tienen las mismas claves',
    desiguales.length === 0,
    desiguales.slice(0, 8).join(', '));
 
@@ -120,7 +120,7 @@ for (const l of Object.keys(UI)) {
   for (const k of clavesUI) if (!(k in UI[l])) desigualesUI.push(l + ' → ' + k);
   for (const k of Object.keys(UI[l])) if (!(k in UI.es)) desigualesUI.push(l + ' ← ' + k);
 }
-ok('pasos: los seis idiomas tienen las mismas claves',
+ok('pasos: los ocho idiomas tienen las mismas claves',
    desigualesUI.length === 0,
    desigualesUI.slice(0, 8).join(', '));
 
@@ -135,7 +135,7 @@ for (const l of Object.keys(SEC)) {
   for (const k of refsSec) if (!(k in SEC[l])) secMal.push(l + ' → ' + k);
   for (const k of Object.keys(SEC[l])) if (!refsSec.includes(k)) secMal.push(l + ' ← ' + k);
 }
-ok('sectores: los seis idiomas tienen los mismos',
+ok('sectores: los ocho idiomas tienen los mismos',
    refsSec.length > 0 && Object.keys(SEC).length === idiomas.length && secMal.length === 0,
    secMal.length ? secMal.slice(0, 6).join(', ')
                  : (refsSec.length + ' sectores en ' + Object.keys(SEC).length + ' idiomas'));
@@ -393,7 +393,7 @@ function comoSeEscribe(donde, dic) {
 }
 
 const escritura = comoSeEscribe('i18n', I18N).concat(comoSeEscribe('pasos', UI));
-ok('escritura: los rótulos siguen la misma norma en los seis idiomas',
+ok('escritura: los rótulos siguen la misma norma en los ocho idiomas',
    escritura.length === 0,
    escritura.slice(0, 10).join('\n          '));
 

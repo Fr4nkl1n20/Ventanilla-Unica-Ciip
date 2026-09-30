@@ -77,6 +77,8 @@ function apunte(b, que) { return b.apuntes.find(function (a) { return a.que === 
     ['Italia',         'it'],
     ['Rusia',          'ru'], ['Kazajistán', 'ru'],
     ['China',          'zh'],
+    ['Francia',        'fr'], ['Senegal',   'fr'],
+    ['Japón',          'ja'],
     ['Estados Unidos', 'en'], ['Canadá',    'en']
   ];
   for (const [pais, esperado] of porPais) {
@@ -84,9 +86,9 @@ function apunte(b, que) { return b.apuntes.find(function (a) { return a.que === 
   }
 
   /* El caso que de verdad importa: un pais que no habla ninguno de los
-     seis. Sin este resguardo, un japones recibiria un correo vacio o con
+     ocho. Sin este resguardo, un coreano recibiria un correo vacio o con
      "undefined" dentro. */
-  igual('idioma: un pais fuera de los seis recibe en ingles', M.idiomaDe('Japón'), 'en');
+  igual('idioma: un pais fuera de los ocho recibe en ingles', M.idiomaDe('Corea del Sur'), 'en');
   igual('idioma: sin pais tambien, en vez de fallar', M.idiomaDe(''), 'en');
   igual('idioma: y un pais inventado, igual', M.idiomaDe('Wakanda'), 'en');
 
@@ -137,7 +139,8 @@ function apunte(b, que) { return b.apuntes.find(function (a) { return a.que === 
     let malos = [];
     for (const idioma of Object.keys(TEXTOS)) {
       const pais = { es: 'España', en: 'Estados Unidos', pt: 'Brasil',
-                     it: 'Italia', zh: 'China', ru: 'Rusia' }[idioma];
+                     it: 'Italia', zh: 'China', ru: 'Rusia',
+                     fr: 'Francia', ja: 'Japón' }[idioma];
       for (const motivo of ['devuelto', 'resuelto', 'ante_el_ente', 'documento_vence']) {
         const av = motivo === 'documento_vence'
           ? unAviso({ pais, motivo: 'documento_vence', a_estado: null,

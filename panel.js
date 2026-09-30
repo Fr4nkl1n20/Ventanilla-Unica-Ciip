@@ -140,6 +140,11 @@ var IDIOMA_PAIS = {
   it:'IT SM VA'.split(' '),
   ru:'BY KG KZ RU'.split(' '),
   zh:'CN HK MO TW'.split(' '),
+  /* Francés y japonés, desde el 30-9-2026. Solo donde el francés es la
+     lengua oficial o la de uso corriente. Bélgica y Suiza hablan varias y
+     se quedan con lo que traiga el navegador; Canadá sigue en el inglés. */
+  fr:'BF BJ CD CG CI FR GA GN HT MC ML NE SN TG'.split(' '),
+  ja:'JP'.split(' '),
   /* Solo donde el inglés es oficial o de uso corriente. Sin esta lista, un
      japonés leyendo en inglés vería su bandera al lado de "EN". */
   en:('AG AU BB BS BW BZ CA FJ GB GH GY IE IN JM KE LR MT MW NA NG NZ PG PH ' +
@@ -156,8 +161,10 @@ function llano(x){
 }
 
 /* El idioma de ahora como lo entiende Intl: el chino del panel es «zh» y
-   las fechas y los números lo quieren como «zh-CN». */
-function localeDeAhora(){ return curLang === 'zh' ? 'zh-CN' : curLang; }
+   las fechas y los números lo quieren como «zh-CN». El francés y el
+   japonés, con su país: «fr-FR» y «ja-JP». */
+var LOCALE_DE = {zh:'zh-CN', fr:'fr-FR', ja:'ja-JP'};
+function localeDeAhora(){ return LOCALE_DE[curLang] || curLang; }
 
 /* Un elemento con su clase y su texto. Texto, nunca HTML: lo que venga de
    la base entra por aquí sin poder colar una etiqueta. */
@@ -174,7 +181,7 @@ function idiomaDePais(cod){
   for (var l in IDIOMA_PAIS){
     if (IDIOMA_PAIS[l].indexOf(cod) >= 0) return l;
   }
-  return '';   /* tu país no habla ninguno de los seis */
+  return '';   /* tu país no habla ninguno de los ocho */
 }
 
 /* El expediente guarda el país en español —"Venezuela"— y no su código. Se
@@ -2339,7 +2346,7 @@ applyLang(idiomaParaMi());
         d = document.getElementById('tbRelojD');
     if (!caja || !h || !d) return;
     var hm = h.querySelector('.hm'), ap = h.querySelector('.ap');
-    var CIUDAD = {zh:'加拉加斯', ru:'Каракас'};
+    var CIUDAD = {zh:'加拉加斯', ru:'Каракас', ja:'カラカス'};
     function pon(n, txt){ if (n.textContent !== txt) n.textContent = txt; }
     function tic(){
       var ahora = new Date(), loc = localeDeAhora(), p = {}, fecha, h24;
@@ -12541,14 +12548,15 @@ applyLang(idiomaParaMi());
   }
 
   /* Por qué día empieza la semana. Lo dice el navegador con weekInfo, que
-     no está en todos: si falta, lunes, salvo en inglés. Un calendario que
+     no está en todos: si falta, lunes, salvo en inglés y en japonés, que
+     empiezan en domingo. Un calendario que
      empieza el día equivocado se lee mal sin que se note por qué. */
   function primerDiaSemana(){
     try {
       var w = new Intl.Locale(localeDeAhora()).weekInfo;
       if (w && w.firstDay) return w.firstDay % 7;      /* 7 = domingo -> 0 */
     } catch(e){}
-    return (curLang === 'en') ? 0 : 1;
+    return (curLang === 'en' || curLang === 'ja') ? 0 : 1;
   }
 
   var FLECHA_IZQ = '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>';

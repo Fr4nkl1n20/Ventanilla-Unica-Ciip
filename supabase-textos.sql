@@ -50,9 +50,9 @@ create table if not exists public.textos_panel (
   actualizado_por uuid references auth.users(id) on delete set null,
 
   primary key (clave, idioma),
-  -- Los seis idiomas del panel, ni uno más: un 'ES' o un 'spa' guardaría
+  -- Los ocho idiomas del panel, ni uno más: un 'ES' o un 'spa' guardaría
   -- una fila que no se pinta nunca y nadie sabría por qué.
-  constraint textos_panel_idioma_valido check (idioma in ('es', 'en', 'pt', 'it', 'zh', 'ru')),
+  constraint textos_panel_idioma_valido check (idioma in ('es', 'en', 'pt', 'it', 'zh', 'ru', 'fr', 'ja')),
   -- Una clave con forma de clave: letras, números, punto, guion y guion
   -- bajo. Así no cabe un texto pegado por error en el sitio de la clave.
   constraint textos_panel_clave_valida  check (clave ~ '^[A-Za-z0-9_.-]{1,80}$'),
@@ -66,7 +66,7 @@ create table if not exists public.textos_panel (
 
 comment on table  public.textos_panel        is 'Textos del panel cambiados por el administrador, por idioma. Lo que falte lo pone el diccionario';
 comment on column public.textos_panel.clave  is 'La clave del panel: la del diccionario (c33.name), la de pasos.js (lh_uno) o la del organismo (c33.ente)';
-comment on column public.textos_panel.idioma is 'es, en, pt, it, zh o ru';
+comment on column public.textos_panel.idioma is 'es, en, pt, it, zh, ru, fr o ja';
 
 alter table public.textos_panel enable row level security;
 

@@ -198,7 +198,9 @@ svg{display:block;}
       <button data-lang="en" data-flag="&#127468;&#127463;" role="menuitem"><span class="flag">&#127468;&#127463;</span>English</button>
       <button data-lang="pt" data-flag="&#127463;&#127479;" role="menuitem"><span class="flag">&#127463;&#127479;</span>Portugues</button>
       <button data-lang="it" data-flag="&#127470;&#127481;" role="menuitem"><span class="flag">&#127470;&#127481;</span>Italiano</button>
+      <button data-lang="fr" data-flag="&#127467;&#127479;" role="menuitem"><span class="flag">&#127467;&#127479;</span>Fran&#231;ais</button>
       <button data-lang="zh" data-flag="&#127464;&#127475;" role="menuitem"><span class="flag">&#127464;&#127475;</span>&#20013;&#25991;</button>
+      <button data-lang="ja" data-flag="&#127471;&#127477;" role="menuitem"><span class="flag">&#127471;&#127477;</span>&#26085;&#26412;&#35486;</button>
       <button data-lang="ru" data-flag="&#127479;&#127482;" role="menuitem"><span class="flag">&#127479;&#127482;</span>&#1056;&#1091;&#1089;&#1089;&#1082;&#1080;&#1081;</button>
     </div>
   </div>
@@ -517,6 +519,60 @@ const I18N = {
   'o.reg':'Аккаунт создан. Мы отправили письмо для подтверждения — откройте его и войдите.',
   'o.rec':'Если аккаунт с такой почтой существует, мы отправили ссылку для сброса пароля.',
   'o.new':'Пароль обновлён. Теперь можно войти с ним.','o.in':'Вход выполнен. Открываем ваше дело…'
+ },
+ fr:{
+      'dentro.t':'Connecté','dentro.s':'Vous êtes connecté. Aucun tableau de bord n’est configuré pour cette connexion.','dentro.btn':'Se déconnecter','dentro.como':'Connecté en tant que',
+  'marca':'Guichet unique','pie':'Accès au dossier de l’investisseur du CIIP. En continuant, vous acceptez le traitement de vos données pour la gestion de vos démarches.',
+'brand.eyebrow':'Guichet unique de l’investisseur','brand.h':'Tout ce que le Venezuela vous demande, par une seule porte.',
+  'brand.p':'Accédez à votre dossier et suivez chaque démarche pour vivre, créer votre entreprise et exercer votre activité dans le pays.',
+  'brand.pt1':'Un seul dossier pour tous les organismes','brand.pt2':'Avancement et délais toujours sous les yeux','brand.pt3':'L’accompagnement de l’équipe du CIIP',
+  'cfg.t':'La base de données n’est pas encore connectée.','cfg.d':'Ouvrez ce fichier et renseignez SUPABASE_URL et SUPABASE_ANON_KEY dans le bloc de configuration. D’ici là, la connexion ne fonctionnera pas.',
+  'f.email':'Adresse e-mail','f.pass':'Mot de passe','f.newpass':'Mot de passe (8 caractères minimum)','f.pass2':'Répétez le mot de passe','f.name':'Nom complet','f.country':'Pays d’origine',
+  'ph.email':'vous@email.com','ph.pass':'Votre mot de passe','ph.newpass':'Créez un mot de passe','ph.pass2':'Répétez le mot de passe','ph.name':'Marco Bianchi','ph.country':'Italie',
+  'login.t':'Accédez à votre dossier','login.s':'Utilisez l’e-mail avec lequel le CIIP a ouvert votre dossier d’investisseur.',
+  'login.remember':'Rester connecté','login.forgot':'Mot de passe oublié ?','login.btn':'Se connecter','login.noacct':'Vous n’avez pas encore d’accès ?','login.create':'Créer un compte',
+  'reg.t':'Créez votre compte','reg.s':'Inscrivez-vous pour ouvrir votre dossier et commencer vos démarches au Venezuela.',
+  'reg.terms':'J’accepte que mes données soient traitées pour la gestion de mes démarches.','reg.btn':'Créer un compte','reg.have':'Vous avez déjà un compte ?','reg.login':'Se connecter',
+  'rec.t':'Récupérez votre mot de passe','rec.s':'Saisissez votre e-mail et nous vous enverrons un lien pour définir un nouveau mot de passe.','rec.btn':'Envoyer le lien','rec.back':'← Retour à la connexion',
+  'new.t':'Définissez un nouveau mot de passe','new.s':'Choisissez un nouveau mot de passe pour votre compte. Il doit comporter au moins 8 caractères.','new.btn':'Enregistrer le mot de passe',
+  'e.empty':'Veuillez remplir tous les champs.','e.email':'Saisissez une adresse e-mail valide.','e.short':'Le mot de passe doit comporter au moins 8 caractères.',
+  'e.match':'Les mots de passe ne correspondent pas.','e.terms':'Vous devez accepter le traitement de vos données pour continuer.',
+  'e.creds':'E-mail ou mot de passe incorrect.','e.unconfirmed':'Votre e-mail n’est pas encore confirmé. Consultez votre boîte de réception.',
+  'e.exists':'Un compte existe déjà avec cet e-mail.','e.rate':'Trop de tentatives. Patientez un instant et réessayez.',
+  'e.net':'Impossible de joindre le serveur. Vérifiez votre connexion.','e.cfg':'La connexion n’est pas encore reliée à la base de données.',
+  'e.otro':'L’opération n’a pas pu aboutir. Veuillez réessayer dans un instant.',
+  'e.pais':'Choisissez un pays dans la liste.',
+  'e.link':'Le lien a expiré ou a déjà été utilisé. Demandez-en un nouveau.',
+  'o.reg':'Compte créé. Nous vous avons envoyé un e-mail de confirmation : ouvrez-le, puis connectez-vous.',
+  'o.rec':'Si un compte existe pour cet e-mail, nous avons envoyé un lien pour réinitialiser le mot de passe.',
+  'o.new':'Mot de passe mis à jour. Vous pouvez maintenant vous connecter avec.','o.in':'Connecté. Ouverture de votre dossier…'
+ },
+ ja:{
+      'dentro.t':'ログイン済み','dentro.s':'ログインしました。このログインには移動先のダッシュボードが設定されていません。','dentro.btn':'ログアウト','dentro.como':'ログイン中のアカウント',
+  'marca':'ワンストップ窓口','pie':'CIIPの投資家ファイルへのアクセスです。続行すると、手続き処理のためのデータの取り扱いに同意したものとみなされます。',
+'brand.eyebrow':'投資家ワンストップ窓口','brand.h':'ベネズエラで必要なすべての手続きを、ひとつの窓口で。',
+  'brand.p':'ファイルにログインして、ベネズエラでの居住、会社設立、事業運営に必要なすべての手続きの進捗を確認できます。',
+  'brand.pt1':'すべての機関に対応するひとつのファイル','brand.pt2':'進捗と期限を常に確認','brand.pt3':'CIIPチームによるサポート',
+  'cfg.t':'データベースがまだ接続されていません。','cfg.d':'このファイルを開き、設定ブロックでSUPABASE_URLとSUPABASE_ANON_KEYを入力してください。それまではログインできません。',
+  'f.email':'メールアドレス','f.pass':'パスワード','f.newpass':'パスワード（8文字以上）','f.pass2':'パスワード（確認）','f.name':'氏名','f.country':'出身国',
+  'ph.email':'you@email.com','ph.pass':'パスワード','ph.newpass':'パスワードを作成','ph.pass2':'パスワードを再入力','ph.name':'Marco Bianchi','ph.country':'イタリア',
+  'login.t':'ファイルにログイン','login.s':'CIIPが投資家ファイルを開設した際のメールアドレスを使用してください。',
+  'login.remember':'ログイン状態を保持','login.forgot':'パスワードをお忘れですか？','login.btn':'ログイン','login.noacct':"まだアクセス権がありませんか？",'login.create':'アカウント作成',
+  'reg.t':'アカウントを作成','reg.s':'登録してファイルを開設し、ベネズエラでの手続きを始めましょう。',
+  'reg.terms':'手続き処理のためにデータが取り扱われることに同意します。','reg.btn':'アカウント作成','reg.have':'すでにアカウントをお持ちですか？','reg.login':'ログイン',
+  'rec.t':'パスワードの再設定','rec.s':"メールアドレスを入力してください。新しいパスワードを設定するためのリンクをお送りします。",'rec.btn':'リンクを送信','rec.back':'← ログインに戻る',
+  'new.t':'新しいパスワードの設定','new.s':'アカウントの新しいパスワードを選んでください。8文字以上が必要です。','new.btn':'パスワードを保存',
+  'e.empty':'すべての項目を入力してください。','e.email':'有効なメールアドレスを入力してください。','e.short':'パスワードは8文字以上にしてください。',
+  'e.match':'パスワードが一致しません。','e.terms':'続行するには、データの取り扱いに同意する必要があります。',
+  'e.creds':'メールアドレスまたはパスワードが正しくありません。','e.unconfirmed':'メールアドレスがまだ確認されていません。受信トレイをご確認ください。',
+  'e.exists':'このメールアドレスのアカウントはすでに存在します。','e.rate':'試行回数が多すぎます。しばらく待ってから再度お試しください。',
+  'e.net':'サーバーに接続できませんでした。接続状況をご確認ください。','e.cfg':'ログイン機能がまだデータベースに接続されていません。',
+  'e.otro':'操作を完了できませんでした。しばらくしてから再度お試しください。',
+  'e.pais':'リストから国を選択してください。',
+  'e.link':'リンクの有効期限が切れているか、すでに使用されています。新しいリンクをリクエストしてください。',
+  'o.reg':'アカウントを作成しました。確認メールをお送りしましたので、メールを開いてからログインしてください。',
+  'o.rec':'そのメールアドレスのアカウントが存在する場合、パスワード再設定用のリンクをお送りしました。',
+  'o.new':'パスワードを更新しました。新しいパスワードでログインできます。','o.in':'ログインしました。ファイルを開いています…'
  }
 };
 
