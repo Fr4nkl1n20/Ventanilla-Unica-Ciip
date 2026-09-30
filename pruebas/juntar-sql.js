@@ -210,7 +210,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-planilla-firmada',
 /* Y la planilla del RIF que manda el CIIP para firmarla (30-9-2026): su
    tipo y las dos políticas del equipo. Mismas tablas; detrás de la otra. */
-'supabase-planilla-rif'];
+'supabase-planilla-rif',
+/* Las dos visas (c1, c38) con la planilla de solicitud: el tipo, lo que
+   deja al equipo mandarla, la firmada en la política de la anterior, el
+   paso apuntado al colgarse y el candado de la Cancillería. Va detrás de
+   la marca (marca_ahora) y de la planilla firmada, cuya política rehace. */
+'supabase-visa-planilla'];
 
 let mal = 0;
 for (const n of orden) {

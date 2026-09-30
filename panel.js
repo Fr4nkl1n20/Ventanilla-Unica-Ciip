@@ -8992,9 +8992,13 @@ applyLang(idiomaParaMi());
      importe del día de ESA etapa, que va aquí dentro para que se rehaga
      con la escalera. Y la contestación, mientras la marca está ante el
      SAPI: se habilita con el anuncio escrito, nunca sin él. */
+  /* En qué estados sale: los de su casillaEn, y si no dice nada, solo ante
+     el ente, como la marca. La visa la lleva también en revisión: la
+     planilla de solicitud se manda al terminar de revisar los recaudos, y
+     la firmada vuelve antes de presentarla ante la Cancillería. */
   function casillaDeLaMarca(t, idBase){
     var def = t && ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo];
-    if (!def || t.estado !== 'ante_el_ente') return null;
+    if (!def || (def.casillaEn || ['ante_el_ente']).indexOf(t.estado) < 0) return null;
     var u = T();
     var caja = el('div', 'co-emitir mc-g');
     caja.setAttribute('data-marca', t.id);
@@ -9033,6 +9037,16 @@ applyLang(idiomaParaMi());
         caja.setAttribute('data-paso', cur.clave);
       }
       caja.appendChild(dice);
+      /* Con la revisión en curso y la solicitud todavía en revisión, lo
+         que hace el gestor es el paso siguiente si es un papel suyo -la
+         planilla de la visa-: mandarlo es lo que cierra la revisión. Ante
+         el ente la revisión ya está hecha y esto no pasa. */
+      var toca = cur;
+      if (cur && cur.tipo === 'revision' && t.estado !== 'ante_el_ente'){
+        var sig = E.todos[cur.n];
+        if (sig && sig.tipo === 'papel') toca = sig;
+      }
+      var firmada = pasoFirmadaDe(def);
 
       if (cur && cur.tipo === 'ciip'){
         var marcar = el('button', 'btn navy mc-g-marcar', u.mc_g_marcar || '');
@@ -9044,9 +9058,9 @@ applyLang(idiomaParaMi());
             .then(conDatos).catch(falla(marcar, dice));
         });
         caja.appendChild(marcar);
-      } else if (cur && cur.tipo === 'papel'){
+      } else if (toca && toca.tipo === 'papel'){
         var mando = el('div', 'imp-g-mando');
-        var etiq = el('label', null, u['d_' + cur.papel] || '');
+        var etiq = el('label', null, u['d_' + toca.papel] || '');
         etiq.setAttribute('for', idBase + t.id);
         var inp = document.createElement('input');
         inp.type = 'file';
@@ -9066,7 +9080,7 @@ applyLang(idiomaParaMi());
           dice.textContent = u.co_subiendo || '';
           /* A la bóveda del inversionista, colgado de su solicitud. El paso
              lo apunta la base al colgarlo; aquí se vuelve a leer. */
-          entrega(t, archivo, cur.papel)
+          entrega(t, archivo, toca.papel)
             .then(function(){
               if (typeof PAPELES_DE !== 'undefined') PAPELES_DE[t.id] = null;
               return sb.from('tramites').select('id, datos').eq('id', t.id).single();
@@ -9091,8 +9105,19 @@ applyLang(idiomaParaMi());
           var imp = casillaDelImporte(t, idBase + 'imp-');
           if (imp) caja.appendChild(imp);
         }
+      } else if (cur && cur.tipo === 'firmada'){
+        /* La planilla firmada la sube el inversionista desde su paso; aquí
+           solo se dice que se espera. Llegada, la base apunta el paso y la
+           casilla pasa a decir que está, con «Abrir». */
+        caja.appendChild(el('div', 'tr-nota', u[tx.firmadaFalta || 'vs_g_firmada_falta'] || ''));
       } else if (cur && cur.tipo === 'retiro'){
         caja.appendChild(el('div', 'tr-nota', u[tx.retiro || 'mc_g_retiro'] || ''));
+      }
+      /* La planilla firmada ya recibida, a mano para abrirla mientras la
+         solicitud siga en la casilla: es lo que se presenta ante el ente. */
+      if (firmada && P[firmada.clave] && !(cur && cur.tipo === 'firmada')){
+        caja.appendChild(el('div', 'imp-g-e bien mc-g-firmada', u[tx.firmadaOk || 'vs_g_firmada_ok'] || ''));
+        caja.appendChild(casillaDeLaPlanillaFirmada(t));
       }
 
       /* ── LA CONTESTACIÓN ──
@@ -9166,10 +9191,30 @@ applyLang(idiomaParaMi());
     if (!def || !def.exige) return null;
     return pasosApuntados(t)[def.exige.paso] ? null : def.exige.aviso;
   }
+  /* El paso de la planilla firmada de una escalera -tipo 'firmada', la
+     visa-, o null si no lo lleva. */
+  function pasoFirmadaDe(def){
+    var hay = null;
+    ((def && def.etapas) || []).forEach(function(et){
+      (et.pasos || []).forEach(function(p){ if (!hay && p.tipo === 'firmada') hay = p; });
+    });
+    return hay;
+  }
+  /* Lo que le falta para presentarla ante el ente: la clave del aviso, o
+     null. La visa no va a la Cancillería sin la planilla firmada que
+     devolvió el inversionista; la base dice lo mismo
+     (visa_con_planilla_firmada, supabase-visa-planilla.sql). */
+  function faltaParaPresentarEtapas(t){
+    var def = t && ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo];
+    var f = pasoFirmadaDe(def);
+    if (!f) return null;
+    return pasosApuntados(t)[f.clave] ? null : ((def.textos || {}).firmadaFalta || 'vs_g_firmada_falta');
+  }
 
   window.CIIP_MARCA = {
     registro: ESCALERA_POR_ETAPAS, escalera: escaleraPorEtapas, pinta: pintaPorEtapas,
     casilla: casillaDeLaMarca, certificada: marcaCertificada, falta: faltaParaResolverEtapas,
+    faltaAnte: faltaParaPresentarEtapas,
     comprobante: comprobanteParaResolver, faltaPago: faltaLaReserva
   };
 
@@ -10969,7 +11014,7 @@ applyLang(idiomaParaMi());
     if (ev.clase === 'planilla'){
       return {
         t: ev.ref ? nombreDeTarjeta(ev.ref) : nombreDeTipo_doc(ev.tipo),
-        q: u.av_planilla || '',
+        q: u[(AV_DICE || {})[ev.tipo] || 'av_planilla'] || '',
         nota: nombreDeTipo_doc(ev.tipo),
         /* Se abre el papel Y se va a la ficha. Las dos cosas, porque el
            aviso manda hacer dos: «ábrelo, paga y SUBE el comprobante». El
@@ -10990,7 +11035,7 @@ applyLang(idiomaParaMi());
     if (ev.clase === 'comprobante'){
       return {
         t: ev.ref ? nombreDeTarjeta(ev.ref) : nombreDeTipo_doc(ev.tipo),
-        q: u.av_comprobante || '',
+        q: u[(AV_DICE || {})[ev.tipo] || 'av_comprobante'] || '',
         nota: nombreDeTipo_doc(ev.tipo),
         /* Lo mismo que del otro lado, y por la misma razón: el aviso dice
            que el comprobante ya está subido y que la solicitud se puede
@@ -11573,10 +11618,16 @@ applyLang(idiomaParaMi());
      Una sola consulta para los dos: los enganches de cada solicitud con su
      papel. La fecha es la de cuando se subió el papel, que es cuando la
      noticia ocurrió. */
+  /* La planilla de la visa va por el mismo camino, aunque no se pague: el
+     CIIP la manda, el inversionista la firma y la devuelve. Cada una con
+     su frase (AV_DICE), que «paga y sube el comprobante» no es lo que se
+     hace con ella. La planilla firmada avisa al gestor en cualquier
+     trámite que la pida: es lo que estaba esperando. */
   var AV_PARA_PAGAR = ['planilla_reserva_nombre', 'planilla_aranceles', 'planilla_publicacion',
-                       'planilla_locti', 'importe_dia'];
+                       'planilla_locti', 'importe_dia', 'planilla_visa'];
   var AV_COMPROBANTES = ['reserva_nombre', 'pago_aranceles', 'pago_publicacion', 'pago_locti',
-                         'pago_importe_dia'];
+                         'pago_importe_dia', 'planilla_firmada'];
+  var AV_DICE = {planilla_visa: 'av_planilla_visa', planilla_firmada: 'av_planilla_firmada'};
 
   function sumaPapelesDePago(refDe, loPedi, mios){
     return avPide('papeles del pago', function(){
@@ -14826,6 +14877,13 @@ applyLang(idiomaParaMi());
             aviso.textContent = u[faltaLaFirmada(t)] || '';
             return;
           }
+          /* Y la visa no va a la Cancillería sin la planilla firmada que
+             devolvió el inversionista: es lo que se presenta. */
+          if (p.a === 'ante_el_ente' && faltaParaPresentarEtapas(t)){
+            f.classList.add('mal');
+            aviso.textContent = u[faltaParaPresentarEtapas(t)] || '';
+            return;
+          }
           /* Devolver SIN decir por qué deja al inversionista con un aviso que
              no explica nada: es el único paso que exige la nota. */
           if (p.nota && !(nota.value || '').trim()){
@@ -16792,6 +16850,13 @@ applyLang(idiomaParaMi());
      falta, que es lo que ha pasado de verdad: alguien lo miró. */
   function hoyPresenta(t, boton, aviso){
     var u = T(), ente = hoyEnte(t), texto = boton.textContent;
+    /* La misma regla que la ficha de la cola: la visa, sin la planilla
+       firmada, no se presenta. Ni siquiera se pasa a revisión por el
+       camino: se dice qué falta y nada más. */
+    if (faltaParaPresentarEtapas(t)){
+      if (aviso) aviso.textContent = u[faltaParaPresentarEtapas(t)] || '';
+      return;
+    }
     boton.disabled = true;
     var revisado = t.estado === 'enviado'
       ? mueveTramite(t, 'en_revision', '', boton, aviso, texto)
@@ -17681,6 +17746,11 @@ applyLang(idiomaParaMi());
       } else if (c && c.rechazado){
         pista.className = 'hoy-pista mal';
         pista.textContent = u.co_h_p_rechazo || '';
+      } else if (faltaParaPresentarEtapas(t)){
+        /* Todo validado, pero la visa espera la planilla firmada: decir
+           «listo para presentar» sería mentira. */
+        pista.className = 'hoy-pista mal';
+        pista.textContent = u[faltaParaPresentarEtapas(t)] || '';
       } else if (c && c.total){
         pista.className = 'hoy-pista bien';
         pista.textContent = u.co_h_p_listo || '';
@@ -17721,8 +17791,11 @@ applyLang(idiomaParaMi());
           /* Y la constitución, además, espera a la firma en el CIIP; y el
              RIF, a la planilla firmada. */
           var sinFirma = !!(firma && !firma.firmada());
-          pre.disabled = !!(c && (c.cargado || c.rechazado)) || sinFirma || !!sinFirmada;
-          pre.title = sinFirma ? (u.co_firma_falta || '') : sinFirmada ? (u[sinFirmada] || '') : '';
+          /* Y la visa, a la planilla firmada del inversionista. */
+          var sinPlanilla = faltaParaPresentarEtapas(t);
+          pre.disabled = !!(c && (c.cargado || c.rechazado)) || sinFirma || !!sinFirmada || !!sinPlanilla;
+          pre.title = sinFirma ? (u.co_firma_falta || '') : sinFirmada ? (u[sinFirmada] || '')
+                    : sinPlanilla ? (u[sinPlanilla] || '') : '';
         }
       };
       var pagar = casillaDeLaReserva(t, 'hoy-pag-', function(){ rotulaPre(); });

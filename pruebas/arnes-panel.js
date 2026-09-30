@@ -372,6 +372,7 @@
               licenciaSiembra, licenciaMira,
               planillaFirmadaSiembra, planillaFirmadaMira, planillaFirmadaTrasSubir,
               rifGestorSiembra, rifGestorMira,
+              visaGestorSiembra, visaGestorMira,
               importadorMira, bomberosMira, visaEscaleraMira,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
@@ -9616,6 +9617,104 @@
     RG.caja.remove();
     RG = null;
     window.__IMPORTE_DOCS = null;
+  }
+
+  /* ═══════════ LAS VISAS (c1, c38), DESDE EL GESTOR ═══════════
+     Franklin Reyes, 30-9-2026: «Revisión de tus recaudos → Descarga aquí
+     la planilla de solicitud y fírmela → Cargue la planilla firmada →
+     Solicitud recibida por Cancillería → Visa otorgada». El gestor manda
+     la planilla tras revisar, espera la firmada y no presenta sin ella.
+     Si la escalera de la visa aún no está en el registro, se pone aquí la
+     del pedido mientras dura la prueba, y se quita al acabar. */
+  var VS_CAJAS = null, VS_PUESTA = false;
+  function visaGestorSiembra(){
+    if (PASE !== 'gestor') return;
+    var M = window.CIIP_MARCA;
+    if (!M || !M.faltaAnte) return ok('visa: gestor, las piezas están a mano', false, 'falta alguna', 'CIIP_MARCA.faltaAnte');
+    if (!M.registro.visa_negocios){
+      VS_PUESTA = true;
+      M.registro.visa_negocios = {
+        ref: 'c1', textos: {titulo: 'vs_g_titulo', retiro: 'vs_g_retiro'},
+        casillaEn: ['en_revision', 'ante_el_ente'],
+        etapas: [{clave: 'visa', pasos: [
+          {clave: 'revision',    tipo: 'revision', rotulo: 'vs_p_revision'},
+          {clave: 'planilla',    tipo: 'papel',    rotulo: 'vs_p_planilla', papel: 'planilla_visa',
+           espera: 'vs_n_planilla_espera', listo: 'vs_n_planilla_lista'},
+          {clave: 'firmada',     tipo: 'firmada',  rotulo: 'vs_p_firmada'},
+          {clave: 'cancilleria', tipo: 'estado',   rotulo: 'vs_p_cancilleria', hechoEn: ['ante_el_ente'], espera: 'vs_n_cancilleria'},
+          {clave: 'visa',        tipo: 'retiro',   rotulo: 'vs_p_visa', espera: 'vs_n_visa_espera', listo: 'vs_n_visa_lista'}
+        ]}]
+      };
+    }
+    var hace = function(h){ return new Date(Date.now() - h * 3600000).toISOString(); };
+    var tr = function(id, estado, pasos){
+      return {id: id, tipo: 'visa_negocios', estado: estado, datos: {pasos_ciip: pasos || {}},
+              inversionista: 'u2', gestor: 'u1', enviado_en: hace(50), creado_en: hace(50)};
+    };
+    igual('visa: gestor, recibida y sin revisar no hay casilla', M.casilla(tr('vs-g0', 'enviado'), 'prb-vs-'), null);
+    igual('visa: gestor, la marca sigue sin casilla en revisión',
+          M.casilla({id: 'mc-vs', tipo: 'marca', estado: 'en_revision', datos: {}}, 'prb-vs-'), null);
+
+    VS_CAJAS = document.createElement('div');
+    VS_CAJAS.hidden = true;
+    document.body.appendChild(VS_CAJAS);
+
+    var c1 = M.casilla(tr('vs-g1', 'en_revision'), 'prb-vs-');
+    if (c1) VS_CAJAS.appendChild(c1);
+    ok('visa: gestor, en revisión la casilla ofrece mandar la planilla de solicitud',
+       !!c1 && c1.getAttribute('data-paso') === 'revision' && !!c1.querySelector('#prb-vs-vs-g1') &&
+         !!c1.querySelector('.mc-g-enviar'),
+       c1 ? c1.getAttribute('data-paso') + (c1.querySelector('.mc-g-enviar') ? ' + enviar' : ' sin enviar') : '(sin casilla)',
+       'revision + enviar');
+
+    var c2 = M.casilla(tr('vs-g2', 'en_revision', {planilla: hace(3)}), 'prb-vs-');
+    if (c2) VS_CAJAS.appendChild(c2);
+    ok('visa: gestor, mandada la planilla espera la firmada, sin nada que subir',
+       !!c2 && c2.getAttribute('data-paso') === 'firmada' && !c2.querySelector('.mc-g-enviar'),
+       c2 ? c2.getAttribute('data-paso') : '(sin casilla)', 'firmada');
+    igual('visa: gestor, sin la planilla firmada no se presenta ante la Cancillería',
+          M.faltaAnte(tr('vs-g2b', 'en_revision', {planilla: hace(3)})), 'vs_g_firmada_falta');
+    igual('visa: gestor, con ella sí',
+          M.faltaAnte(tr('vs-g3b', 'en_revision', {planilla: hace(3), firmada: hace(1)})), null);
+    igual('visa: gestor, la licencia no pide planilla para presentarse',
+          M.faltaAnte({id: 'lc-vs', tipo: 'licencia_municipal', estado: 'en_revision', datos: {}}), null);
+
+    window.__IMPORTE_DOCS = {'vs-g3': [{id: 'vsf', tipo: 'planilla_firmada', estado: 'cargado', creado_en: hace(1),
+                                         nombre_original: 'planilla-visa-firmada.pdf', archivo: 'u2/planilla-visa-firmada.pdf'}]};
+    var c3 = M.casilla(tr('vs-g3', 'en_revision', {planilla: hace(3), firmada: hace(1)}), 'prb-vs-');
+    if (c3) VS_CAJAS.appendChild(c3);
+    ok('visa: gestor, llegada la firmada lo dice',
+       !!c3 && !!c3.querySelector('.mc-g-firmada') && !!c3.querySelector('.tr-firmada'),
+       c3 ? (c3.querySelector('.mc-g-firmada') ? 'lo dice' : 'no lo dice') : '(sin casilla)', 'lo dice');
+
+    var c4 = M.casilla(tr('vs-g4', 'ante_el_ente', {planilla: hace(30), firmada: hace(20)}), 'prb-vs-');
+    if (c4) VS_CAJAS.appendChild(c4);
+    igual('visa: gestor, ante la Cancillería lo que queda es la visa', c4 ? c4.getAttribute('data-paso') : '(sin casilla)', 'visa');
+
+    /* Y se manda: el papel va colgado de la solicitud con su tipo. */
+    window.__ENGANCHES = [];
+    var inp = c1 && c1.querySelector('#prb-vs-vs-g1');
+    if (!inp) return;
+    var dt = new DataTransfer();
+    dt.items.add(new File([new Uint8Array(8)], 'planilla-visa.pdf', {type: 'application/pdf'}));
+    inp.files = dt.files;
+    c1.querySelector('.mc-g-enviar').click();
+  }
+  function visaGestorMira(){
+    if (PASE !== 'gestor' || !VS_CAJAS) return;
+    var c3 = VS_CAJAS.querySelector('[data-marca="vs-g3"] .tr-firmada');
+    var abrir = c3 && c3.querySelector('.pe-cambia');
+    ok('visa: gestor, y la puede abrir',
+       !!c3 && !c3.hidden && !!abrir && !abrir.hidden,
+       c3 ? (c3.hidden ? 'escondida' : (abrir && !abrir.hidden ? 'con Abrir' : 'sin Abrir')) : '(sin casilla)', 'con Abrir');
+    var eng = (window.__ENGANCHES || []).filter(function(f){ return f && f.tramite === 'vs-g1'; })[0];
+    ok('visa: gestor, la planilla queda colgada de la solicitud',
+       !!eng && !!eng.documento, eng ? 'vs-g1 ← ' + eng.documento : '(sin enganche)', 'vs-g1 ← su documento');
+    VS_CAJAS.remove();
+    VS_CAJAS = null;
+    window.__IMPORTE_DOCS = null;
+    window.__ENGANCHES = null;
+    if (VS_PUESTA){ delete window.CIIP_MARCA.registro.visa_negocios; VS_PUESTA = false; }
   }
 
   /* ═══════════ EL REGISTRO DE IMPORTADOR Y EXPORTADOR, FUERA ═══════════
