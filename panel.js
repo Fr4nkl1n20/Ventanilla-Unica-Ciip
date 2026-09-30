@@ -6516,6 +6516,14 @@ applyLang(idiomaParaMi());
       inp.addEventListener('change', function(){
         est.textContent = inp.files[0] ? inp.files[0].name : '';
         fila.classList.remove('mal');
+        /* El papel que el CIIP señaló, cambiado: deja de contar como
+           pendiente, y si era el último el aviso de arriba se va (Franklin
+           Reyes, 30-9-2026: «ya no debería salir el recuadro porque ya
+           cambiamos el documento»). Vaciar el archivo lo devuelve. */
+        if (fila.classList.contains('sd-novale')){
+          fila.classList.toggle('sd-arreglado', !!inp.files[0]);
+          cuantosNoValen();
+        }
         if (!inp.files[0]){
           var subeNo = fila.querySelector('.sd-sube'); if (subeNo) subeNo.remove();
           return;
@@ -7076,14 +7084,20 @@ applyLang(idiomaParaMi());
     function cuantosNoValen(){
       var av = caja.querySelector('.sol-devuelta.corrigiendo');
       if (!av || !noValen) return;
+      /* Los que quedan, no los que había: uno ya cambiado no se cuenta, y
+         con todos cambiados no queda nada que decir. Solo si la devolución
+         era por papeles: si la nota habla de un dato, el aviso se queda. */
+      var quedan = caja.querySelectorAll('.sol-doc.sd-novale:not(.sd-arreglado)').length;
+      av.hidden = (quedan === 0);
+      if (!quedan) return;
       var linea = av.querySelector('.sv-cuantos');
       if (!linea){
         linea = el('div', 'sv-cuantos');
         av.appendChild(linea);
       }
       var u2 = T();
-      linea.textContent = noValen === 1 ? (u2.sol_arreglar1 || '')
-        : String(u2.sol_arreglarn || '').replace('{n}', noValen);
+      linea.textContent = quedan === 1 ? (u2.sol_arreglar1 || '')
+        : String(u2.sol_arreglarn || '').replace('{n}', quedan);
     }
 
     function alQueNoVale(fila){
