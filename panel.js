@@ -10713,6 +10713,10 @@ applyLang(idiomaParaMi());
       b.appendChild(el('div', 'av-t', f.t));
       if (f.q) b.appendChild(el('div', 'av-q', f.q));
       if (f.nota) b.appendChild(el('div', 'av-nota', f.nota));
+      /* Quién te atiende, en los avisos de tus solicitudes (30-9-2026). */
+      var teAtiende = ev.tramite && !ev.ajena && NOMBRE_GESTOR[ev.tramite];
+      if (teAtiende) b.appendChild(el('div', 'av-quien',
+        String(u.av_teatiende || '{nombre}').replace('{nombre}', teAtiende)));
       b.appendChild(el('div', 'av-f', avCuando(ev.creado_en)));
       b.addEventListener('click', function(){
         /* Se cierra ANTES de irse. Si no, el menú se queda abierto encima
@@ -10839,7 +10843,8 @@ applyLang(idiomaParaMi());
                 sumaPagos(uid, refDe),
                 sumaPapelesDePago(refDe, loPedi, mios),
                 sumaCodigos(mios, refDe, loPedi),
-                nombresDeDuenos(Object.keys(duenos))
+                nombresDeDuenos(Object.keys(duenos)),
+                nombresDeGestores(Object.keys(loPedi).filter(function(id){ return loPedi[id]; }))
               ]).then(ordenaYPinta);
             });
         });
@@ -10860,6 +10865,25 @@ applyLang(idiomaParaMi());
         if (p && p.id) NOMBRE_DUENO[p.id] = (p.nombre_completo || '').trim();
       });
     }).catch(function(e){ console.warn('[CIIP] avisos, nombres:', e && (e.message || e)); });
+  }
+
+  /* Y el nombre del gestor que atiende cada solicitud tuya, para decirlo en
+     sus avisos (Franklin Reyes, 30-9-2026: «aquí quiero ver el nombre del
+     gestor que me atiende»). El inversionista no lee perfiles ajenos: lo da
+     gestores_de_mis_tramites() (supabase-gestor-visible.sql), que devuelve
+     solo el nombre y solo de lo suyo. Sin ella, o si falla, los avisos
+     salen sin el nombre. */
+  var NOMBRE_GESTOR = {};
+  function nombresDeGestores(ids){
+    if (!ids.length) return Promise.resolve();
+    return Promise.resolve().then(function(){
+      return sb.rpc('gestores_de_mis_tramites');
+    }).then(function(r){
+      if (r && r.error) throw r.error;
+      ((r && r.data) || []).forEach(function(g){
+        if (g && g.tramite && g.nombre) NOMBRE_GESTOR[g.tramite] = String(g.nombre).trim();
+      });
+    }).catch(function(e){ console.warn('[CIIP] avisos, gestores:', e && (e.message || e)); });
   }
 
   /* Se reordena el buzón entero: una cita confirmada hoy tiene que ir por

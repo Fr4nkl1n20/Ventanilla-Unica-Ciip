@@ -2528,6 +2528,13 @@
 
           /* La firma en el CIIP de una constitución: la marca el equipo y
              la base devuelve la fila con datos al día, como la de verdad. */
+          /* El nombre del gestor de cada solicitud propia, para la campana
+             (30-9-2026). La de verdad solo devuelve las de quien pregunta;
+             aquí, la t1, que es la devuelta del expediente de ejemplo. */
+          if (nombre === 'gestores_de_mis_tramites'){
+            var rG = {data: [{tramite: 't1', nombre: 'Saskia Calderon'}], error: null};
+            return {then:function(bien, mal){ return Promise.resolve(rG).then(bien, mal); }};
+          }
           if (nombre === 'marca_firma_ciip'){
             window.CIIP_PRUEBA_FIRMA = args;
             var rF = {data: {id: args && args.p_tramite,

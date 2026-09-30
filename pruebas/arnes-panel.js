@@ -2322,6 +2322,10 @@
 
       igual('buzón: los avisos sin nota no inventan una',
             avisos()[1].querySelector('.av-nota'), null);
+      /* Quién te atiende (30-9-2026): en los avisos de una solicitud con
+         gestor, su nombre. */
+      igual('buzón: el aviso de tu solicitud dice quién te atiende',
+            (avisos()[0].querySelector('.av-quien') || {}).textContent, 'Te atiende: Saskia Calderon');
 
       /* Y del MÁS NUEVO al más viejo, que es lo que se espera de un buzón:
          lo que acaba de pasar, arriba (Franklin Reyes, 18-9-2026). */

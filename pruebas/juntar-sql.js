@@ -179,6 +179,9 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* El sellado de libros (c24): el PUB, importe del día con nombre, y su
    comprobante. Va DETRÁS del importe del día y de la marca. */
 'supabase-libros',
+/* El nombre del gestor de cada solicitud propia, para la campana del
+   inversionista (30-9-2026). Solo necesita tramites y perfiles. */
+'supabase-gestor-visible',
 /* Citas y consultas tras la auditoría QA del 28-9-2026: estados de la cita,
    motivo, una viva por persona, confirmar desde el equipo y la consulta que
    se reabre. Redefine reserva_cita() y consulta_la_firma_la_base(), así que

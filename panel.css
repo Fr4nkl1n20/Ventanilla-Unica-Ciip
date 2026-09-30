@@ -4746,6 +4746,8 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 /* La nota del gestor va en el color del texto normal, no en el gris de lo
    secundario: es lo unico del aviso que hay que leer entero. */
 .av-i .av-nota{font-size:var(--fs-nota); color:var(--ink); margin-top:4px;}
+/* Quién te atiende, en los avisos de tus solicitudes (30-9-2026). */
+.av-i .av-quien{font-size:var(--fs-nota); color:var(--navy2); font-weight:600; margin-top:4px;}
 .av-i .av-f{font-size:var(--fs-nota); color:var(--gray-soft); margin-top:4px;}
 /* El punto marca lo que no habias visto. Se apaga al cerrar el buzon, no al
    abrirlo: si se apagara al abrirlo no llegarias a ver cual era nuevo. */
