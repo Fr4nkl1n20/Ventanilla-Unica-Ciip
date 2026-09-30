@@ -7888,8 +7888,20 @@
           desp[0] ? desp[0].querySelector('.qt').textContent.trim() : '', 'Firma electrónica');
     igual('ayuda: y el segundo los certificados médicos',
           desp[1] ? desp[1].querySelector('.qt').textContent.trim() : '', 'Certificados médicos');
-    igual('ayuda: la de médicos, sin lista, dice que pronto la habrá',
-          document.querySelectorAll('#ayLista [data-ui="ay_medicos_lista"] .ay-pronto').length, 1);
+    /* La de médicos trae las dos farmacias Locatel (Franklin Reyes,
+       30-9-2026): el nombre lleva a su WhatsApp y al lado va el número
+       como se marca, en texto que se puede copiar. */
+    var med = document.querySelectorAll('#ayLista [data-ui="ay_medicos_lista"] li');
+    igual('ayuda: la de médicos trae las dos farmacias, con su WhatsApp',
+          [].map.call(med, function(x){
+            var a = x.querySelector('a.ay-enlace'), h = x.querySelector('.ay-host');
+            return (a ? a.textContent + ' → ' + a.getAttribute('href') : x.textContent) +
+                   ' · ' + (h ? h.textContent : '');
+          }).join(' / '),
+          'Locatel de La Castellana → https://wa.me/584242425377 · WhatsApp 0424-2425377 / ' +
+          'Locatel Mercedes → https://wa.me/584142115835 · WhatsApp 0414-2115835');
+    igual('ayuda: y ya no dice que pronto habrá lista',
+          document.querySelectorAll('#ayLista [data-ui="ay_medicos_lista"] .ay-pronto').length, 0);
     var prov = document.querySelectorAll('#ayLista [data-ui="ay_firma_lista"] li');
     igual('ayuda: la de firma trae los tres proveedores elegidos',
           [].map.call(prov, function(x){ return (x.querySelector('a') || x).textContent; }).join(' / '),

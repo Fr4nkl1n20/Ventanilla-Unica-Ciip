@@ -932,7 +932,8 @@ window.CIIP_PASOS = {
                       "Soluciones Tecnológicas Apacuana, C.A. | https://www.apacuana.com\n" +
                       "PROCERT C.A. | https://www.procert.net.ve",
       ay_medicos:    "Certificados médicos",
-      ay_medicos_lista: "",
+      ay_medicos_lista: "Locatel de La Castellana | https://wa.me/584242425377\n" +
+                        "Locatel Mercedes | https://wa.me/584142115835",
       ay_pronto:     "Pronto publicaremos la lista.",
       ay_hor_t:      "Horario de atención",
       ay_hor:        "De lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela.",

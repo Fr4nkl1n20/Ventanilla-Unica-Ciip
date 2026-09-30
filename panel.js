@@ -23731,6 +23731,12 @@ applyLang(idiomaParaMi());
       return li;
     }
     var host = url.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+    /* Un WhatsApp de Venezuela (wa.me/58…) no enseña la dirección sino el
+       número como se marca aquí, 0424-2425377, fuera del enlace para poder
+       copiarlo. «WhatsApp» y el número no se traducen. Así están las
+       farmacias del certificado médico (Franklin Reyes, 30-9-2026). */
+    var wa = /^wa\.me\/58(\d{3})(\d{7})$/i.exec(host);
+    if (wa) host = 'WhatsApp 0' + wa[1] + '-' + wa[2];
     var a = el('a', 'ay-enlace', nombre && nombre !== url ? nombre : host);
     a.href = url;
     a.target = '_blank';
