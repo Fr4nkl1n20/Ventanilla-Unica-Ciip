@@ -207,7 +207,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    planilla» (c3, c6, c10): su tipo de documento y la política que la deja
    colgar con la solicitud en marcha. Solo necesita las tablas de
    supabase-tramites; va al final para no mover el número de nadie. */
-'supabase-planilla-firmada'];
+'supabase-planilla-firmada',
+/* Y la planilla del RIF que manda el CIIP para firmarla (30-9-2026): su
+   tipo y las dos políticas del equipo. Mismas tablas; detrás de la otra. */
+'supabase-planilla-rif'];
 
 let mal = 0;
 for (const n of orden) {

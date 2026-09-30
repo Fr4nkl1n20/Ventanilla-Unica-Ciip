@@ -9529,9 +9529,20 @@ applyLang(idiomaParaMi());
   /* Para las pruebas. El registro se da con una función: aquí, al cargar,
      PLANILLA_FIRMADA_DEL_PASO todavía no tiene valor -se escribe más abajo,
      junto a DESCARGA_DEL_PASO-. */
+  /* La planilla que mandó el CIIP, en «Firme la planilla» de los RIF
+     (Franklin Reyes, 30-9-2026). Es la misma fila que el PUB de los
+     aranceles -nombre, archivo y «Abrir», escondida hasta saber que está-,
+     con su propia pista: se descarga, se firma y se sube abajo. */
+  function filaDeLaPlanillaDelCiip(tr){
+    var fila = filaDelDocumentoParaPagar(tr, TIPO_PLANILLA_CIIP, 'd_planilla_solicitud', 'tr_bajaplanilla_rif');
+    fila.classList.add('tr-planilla-ciip');
+    return fila;
+  }
   window.CIIP_PLANILLA_FIRMADA = {
     registro: function(){ return PLANILLA_FIRMADA_DEL_PASO; },
-    casilla: casillaDeLaPlanillaFirmada, pide: pideLaPlanillaFirmada
+    casilla: casillaDeLaPlanillaFirmada, pide: pideLaPlanillaFirmada,
+    delCiip: filaDeLaPlanillaDelCiip,
+    pasoDelCiip: function(){ return PLANILLA_DEL_CIIP_DEL_PASO; }
   };
 
   /* Para las pruebas: qué pasos le salen a un trámite sin tener que
@@ -9836,6 +9847,11 @@ applyLang(idiomaParaMi());
             if (avisoP) txt.appendChild(el('div', 'tr-nota', u[avisoP] || ''));
             /* «Firme la planilla»: y aquí se devuelve firmada (Franklin
                Reyes, 29-9-2026). Ver casillaDeLaPlanillaFirmada(). */
+            /* Y encima, en los RIF, la planilla que mandó el CIIP para
+               descargarla (30-9-2026): primero se baja, luego se sube
+               firmada. Escondida mientras no esté. */
+            if ((PLANILLA_DEL_CIIP_DEL_PASO || {})[refTr] === nPaso)
+              txt.appendChild(filaDeLaPlanillaDelCiip(tr));
             if (pideLaPlanillaFirmada(refTr, nPaso)) txt.appendChild(casillaDeLaPlanillaFirmada(tr));
             /* El importe del día, en el paso que su trámite diga
                (IMPORTE_DEL_DIA). El equipo lo sube desde su cola, y aquí no
@@ -14364,7 +14380,8 @@ applyLang(idiomaParaMi());
     if (coFiltro === 'pronto')  return hoyNivel(t) === 'pronto';
     if (coFiltro === 'papeles'){
       var c = hoyCuenta(t);
-      return !!YO && t.gestor === YO && t.estado === 'en_revision' && !!(c && c.cargado);
+      /* revisaPapelesEn: en los RIF también recibida (30-9-2026). */
+      return !!YO && t.gestor === YO && revisaPapelesEn(t) && !!(c && c.cargado);
     }
     return true;
   }
@@ -14708,10 +14725,23 @@ applyLang(idiomaParaMi());
       (CO_PASOS[t.estado] || []).forEach(function(p, i){
         /* «Poder validado» en vez de «Resuelta» en la validación del poder. */
         var rotP = (p.a === 'resuelto' && esElPoder(t)) ? u.co_h_poder : u[p.k];
+        /* Y en los RIF, pasar a revisión es mandar la planilla (30-9-2026). */
+        var mandaP = (p.a === 'en_revision' && mandaLaPlanilla(t));
+        if (mandaP) rotP = u.co_h_env_planilla;
         var b = el('button', 'btn ' + (i === 0 && p.nota ? 'ghost' : 'navy'), rotP || '');
         b.type = 'button';
         principal = b; principalTxt = rotP || '';
         b.addEventListener('click', function(){
+          /* La planilla del RIF: se sube, si hay una elegida, y la
+             solicitud pasa a revisión. Sin ninguna, se dice y no se mueve. */
+          if (mandaP){
+            f.classList.remove('mal');
+            aviso.textContent = '';
+            enviaLaPlanilla(t, reserva, b, aviso).then(function(bien){
+              if (!bien && aviso.textContent) f.classList.add('mal');
+            });
+            return;
+          }
           /* Primero el papel para pagar, si espera: devolver no lo manda,
              solo lo manda el de la derecha. */
           if (b === principal && reserva && reserva.pendiente()){
@@ -14724,6 +14754,13 @@ applyLang(idiomaParaMi());
           if (p.a === 'ante_el_ente' && firmaCo && !firmaCo.firmada()){
             f.classList.add('mal');
             aviso.textContent = u.co_firma_falta || '';
+            return;
+          }
+          /* Y el RIF no se presenta ante el SENIAT sin la planilla firmada
+             (30-9-2026): es lo que se presenta. */
+          if (p.a === 'ante_el_ente' && faltaLaFirmada(t)){
+            f.classList.add('mal');
+            aviso.textContent = u[faltaLaFirmada(t)] || '';
             return;
           }
           /* Devolver SIN decir por qué deja al inversionista con un aviso que
@@ -15316,8 +15353,88 @@ applyLang(idiomaParaMi());
       return {tipo: 'planilla_locti', clave: 'd_planilla_locti',
               boton: 'co_h_env_pagar'};
     }
+    /* Y la planilla de los dos RIF (Franklin Reyes, 30-9-2026). No se paga
+       con ella: se firma. Se elige recibida -es el paso «Planilla enviada
+       por el CIIP»- y en revisión se enseña cuál se mandó; ante el SENIAT
+       ya no hace falta a la vista. Al mandarla la solicitud pasa a
+       revisión: ver enviaLaPlanilla(). */
+    if (mandaLaPlanilla(t) &&
+        ['enviado','en_revision'].indexOf(t.estado) >= 0){
+      return {tipo: TIPO_PLANILLA_CIIP, clave: 'd_planilla_solicitud',
+              boton: 'co_h_env_planilla', revisa: true};
+    }
     return null;
   }
+
+  /* ── LOS RIF, DEL LADO DEL GESTOR ──
+     Franklin Reyes, 30-9-2026: la escalera del inversionista es ahora
+     «Solicitud recibida → Planilla enviada por el CIIP → Firme la planilla
+     → RIF emitido», un paso por estado, y el gestor tiene que llevarla
+     igual:
+
+       recibida      mira los recaudos y manda la planilla. Abrirla YA NO
+                     la pasa a revisión (hoyAbre): en los RIF revisión es
+                     «la planilla ya salió», y abrir no manda nada.
+       en revisión   espera la planilla firmada, la valida o la rechaza
+                     como cualquier recaudo, y sin ella no se presenta.
+       ante el ente  lo de siempre: el RIF emitido al resolver. */
+  function mandaLaPlanilla(t){
+    return !!t && !!(PLANILLA_DEL_CIIP_DEL_PASO || {})[tipoRefDe(t.tipo)];
+  }
+  /* Si los papeles se revisan ya con la solicitud recibida: en los RIF sí,
+     porque la revisión -el estado- empieza al mandar la planilla. */
+  function revisaPapelesEn(t){
+    return !!t && (t.estado === 'en_revision' || (t.estado === 'enviado' && mandaLaPlanilla(t)));
+  }
+  /* Qué falta para presentar un RIF ante el SENIAT: la planilla firmada, y
+     que no esté rechazada (si está sin mirar, lo dice ya la cuenta de los
+     recaudos). Devuelve la clave del aviso, o '' si no falta nada o si no
+     se sabe todavía -los recaudos no han llegado-: el gestor los tiene
+     delante, y frenar a ciegas dejaría la solicitud atascada. */
+  function faltaLaFirmada(t, docs){
+    if (!mandaLaPlanilla(t)) return '';
+    var lista = docs || hoyDocs[t.id];
+    if (!lista) return '';
+    var buena = lista.some(function(d){
+      return d && d.tipo === TIPO_PLANILLA_FIRMADA && d.estado !== 'rechazado';
+    });
+    return buena ? '' : 'co_firmada_falta';
+  }
+
+  /* Mandar la planilla: se sube la elegida -o, si ya había una, se vuelve
+     a mandar esa, que es lo que pasa con una solicitud devuelta y
+     reenviada- y la solicitud pasa a revisión. Sin planilla ni elegida ni
+     puesta no se mueve nada: sería decirle al inversionista que la firme
+     sin tenerla. Devuelve si se movió. */
+  function enviaLaPlanilla(t, casilla, boton, aviso){
+    var u = T(), texto = boton.textContent;
+    var elegida = !!(casilla && casilla.pendiente());
+    boton.disabled = true;
+    var sube = elegida ? casilla.envia() : Promise.resolve(!!(casilla && casilla.puesta()));
+    return sube.then(function(hay){
+      if (!hay){
+        boton.disabled = false;
+        /* Si falló la subida, el porqué ya está en la casilla. */
+        if (!elegida && aviso) aviso.textContent = u.co_planilla_falta || '';
+        return false;
+      }
+      if (t.estado !== 'enviado'){ boton.disabled = false; return true; }
+      return mueveTramite(t, 'en_revision', '', boton, aviso, texto).then(function(bien){
+        if (!bien || bien === 'ya-no') return false;
+        hoyRecien = t.id;
+        cierraVisor();
+        pintaHoy();
+        hoyAvisa(String(u.co_h_planilla_ida || '').replace('{quien}', t.nombre || u.co_sinnombre || ''));
+        return true;
+      });
+    });
+  }
+  /* Para las pruebas. */
+  window.CIIP_RIF_GESTOR = {
+    manda: mandaLaPlanilla, revisa: revisaPapelesEn, falta: faltaLaFirmada,
+    pide: loQueSePaga, casilla: function(t){ return casillaDeLaReserva(t, 'pr-rif-', null); },
+    envia: enviaLaPlanilla, abreRevisa: function(t, quien){ return abrirLaPasaARevision(t, quien); }
+  };
 
   /* Devuelve {caja, clave, pendiente, envia} y no el nodo suelto: el pie
      necesita saber si hay un papel elegido sin enviar, porque mientras lo
@@ -15344,7 +15461,9 @@ applyLang(idiomaParaMi());
     inp.accept = '.pdf,.jpg,.jpeg,.png';
     var est = el('span', 'co-reserva-e', '');
     var elegido = null;
+    var yaPuesto = false;
     var puesto = function(nombre){
+      yaPuesto = true;
       elegido = null;
       caja.classList.remove('espera');
       caja.classList.add('puesto');
@@ -15376,6 +15495,10 @@ applyLang(idiomaParaMi());
       caja: caja,
       clave: pide.boton,
       pendiente: function(){ return !!elegido; },
+      /* Si ya hay uno enviado: la planilla del RIF se puede volver a mandar
+         sin elegirla otra vez (enviaLaPlanilla). */
+      puesta: function(){ return yaPuesto; },
+      revisa: !!pide.revisa,
       /* Si falla, el archivo se queda elegido: el boton sigue siendo el de
          enviar y se puede volver a pulsar sin buscarlo otra vez. */
       envia: function(){
@@ -15876,7 +15999,7 @@ applyLang(idiomaParaMi());
           var d = f.documentos;
           if (!d || !de[f.tramite] || d.tipo === 'resolucion' ||
               d.tipo === 'planilla_reserva_nombre' ||
-              d.tipo === 'importe_dia' ||
+              d.tipo === 'importe_dia' || d.tipo === TIPO_PLANILLA_CIIP ||
               d.tipo === 'busqueda_antecedentes' || d.tipo === 'certificado_marca') return;
           de[f.tramite].push({id: d.id || f.documento, tipo: d.tipo, archivo: d.archivo,
             nombre_original: d.nombre_original || '', estado: d.estado || 'cargado',
@@ -16412,12 +16535,19 @@ applyLang(idiomaParaMi());
      el mismo paso que «Empezar la revisión» en la ventana: el inversionista
      ve que alguien lo está mirando. Si la base no deja moverlo, no se abre.
      Lo de otro, o lo que no tiene dueño, se abre para mirar. */
+  /* Salvo en los RIF (Franklin Reyes, 30-9-2026): allí revisión es «la
+     planilla ya salió», y abrir la solicitud no la manda. La pasa a
+     revisión enviaLaPlanilla(). */
+  function abrirLaPasaARevision(t, quien){
+    var yo = (quien === undefined) ? YO : quien;   /* quien: para las pruebas */
+    return !!yo && t.gestor === yo && t.estado === 'enviado' && !mandaLaPlanilla(t);
+  }
   function hoyAbre(t){
     var u = T();
     /* Nunca un resuelto en el visor: ver hoyTarjeta. */
     if (t.estado === 'resuelto') return;
     var abre = function(){ abreVisor(t.id, visorSiguiente(t.id, -1)); };
-    if (!!YO && t.gestor === YO && t.estado === 'enviado'){
+    if (abrirLaPasaARevision(t)){
       mueveTramite(t, 'en_revision', '', null, null, '').then(function(bien){
         if (!bien){ hoyAvisa(u.co_error); return; }
         abre();
@@ -17175,7 +17305,8 @@ applyLang(idiomaParaMi());
     var u = T();
     var lado = el('div', 'visor-lado');
     var mio = !!YO && t.gestor === YO;
-    var revisa = mio && t.estado === 'en_revision';
+    /* En los RIF, ya con la solicitud recibida (30-9-2026): revisaPapelesEn. */
+    var revisa = mio && revisaPapelesEn(t);
 
     if (d){
       var s1 = el('section');
@@ -17297,7 +17428,10 @@ applyLang(idiomaParaMi());
      reserva del nombre dentro. En su pie, el PUB de la reserva y la firma
      van atados al botón de presentar -lo rotulan y lo habilitan-, así que
      no se separan: «Paso en curso» es ese pie entero, y no hay «Cerrar». */
-  var VISOR_CON_PESTANAS = {constitucion: true};
+  /* Y los dos RIF (Franklin Reyes, 30-9-2026): su escalera de cuatro pasos
+     arriba, la misma del inversionista, y el pie -mandar la planilla,
+     presentar- en «Paso en curso». */
+  var VISOR_CON_PESTANAS = {constitucion: true, rif_personal: true, rif_empresa: true};
 
   function visorPorEtapas(t, lado){
     var u = T();
@@ -17489,6 +17623,14 @@ applyLang(idiomaParaMi());
         pista.textContent = u.co_h_p_listo || '';
       }
       fin.appendChild(pista);
+      /* Los RIF (Franklin Reyes, 30-9-2026): recibida, lo que toca es
+         mandar la planilla; en revisión, esperar a que vuelva firmada. Se
+         dice aparte de la cuenta de los recaudos, que sigue siendo verdad. */
+      var rif = mandaLaPlanilla(t);
+      var rifEnviar = rif && t.estado === 'enviado';
+      var sinFirmada = rif && !rifEnviar ? faltaLaFirmada(t) : '';
+      if (rifEnviar) fin.appendChild(el('div', 'hoy-pista hoy-rif', u.co_h_p_planilla || ''));
+      else if (sinFirmada) fin.appendChild(el('div', 'hoy-pista mal hoy-rif', u[sinFirmada] || ''));
       /* El documento para pagar los aranceles se deja en cuanto la
          protocolización está en marcha, sin esperar a presentarla ante el
          registro: allí se paga antes de consignar (Franklin Reyes,
@@ -17498,16 +17640,26 @@ applyLang(idiomaParaMi());
          se paga antes-; enviado, vuelve a ser «Preselo ante el ente» con
          su candado de siempre. */
       var rotulaPre = function(){
-        if (pagar && pagar.pendiente()){
+        /* Un RIF recibido no se presenta: se le manda la planilla. El
+           botón es ése, con archivo elegido o sin él -ver enviaLaPlanilla,
+           que dice qué falta si no hay ninguna-. Y con el candado de
+           presentar: la planilla se hace con lo que dicen los recaudos, así
+           que no sale mientras quede alguno sin mirar o sin valer. */
+        if (rifEnviar){
+          pre.textContent = u.co_h_env_planilla || '';
+          pre.disabled = !!(c && (c.cargado || c.rechazado));
+          pre.title = '';
+        } else if (pagar && pagar.pendiente()){
           pre.textContent = u[pagar.clave] || '';
           pre.disabled = false;
           pre.title = '';
         } else {
           pre.textContent = String(u.co_h_presentar || '').replace('{ente}', ente);
-          /* Y la constitución, además, espera a la firma en el CIIP. */
+          /* Y la constitución, además, espera a la firma en el CIIP; y el
+             RIF, a la planilla firmada. */
           var sinFirma = !!(firma && !firma.firmada());
-          pre.disabled = !!(c && (c.cargado || c.rechazado)) || sinFirma;
-          pre.title = sinFirma ? (u.co_firma_falta || '') : '';
+          pre.disabled = !!(c && (c.cargado || c.rechazado)) || sinFirma || !!sinFirmada;
+          pre.title = sinFirma ? (u.co_firma_falta || '') : sinFirmada ? (u[sinFirmada] || '') : '';
         }
       };
       var pagar = casillaDeLaReserva(t, 'hoy-pag-', function(){ rotulaPre(); });
@@ -17554,6 +17706,10 @@ applyLang(idiomaParaMi());
       pre.type = 'button';
       rotulaPre();
       pre.addEventListener('click', function(){
+        if (rifEnviar){
+          enviaLaPlanilla(t, pagar, pre, aviso);
+          return;
+        }
         if (pagar && pagar.pendiente()){
           pre.disabled = true;
           pagar.envia().then(function(){ rotulaPre(); });
@@ -22738,6 +22894,22 @@ applyLang(idiomaParaMi());
      supabase-planilla-firmada.sql, que es quien deja colgarla. */
   var PLANILLA_FIRMADA_DEL_PASO = {c3: {3: true}, c6: {3: true}, c10: {2: true}};
 
+  /* ── LA PLANILLA QUE MANDA EL CIIP, PARA FIRMARLA ──
+     Franklin Reyes, 30-9-2026: «el proceso del gestor» también con el paso
+     nuevo de los dos RIF, «Planilla enviada por el CIIP». La planilla la
+     prepara el gestor con los datos de la solicitud y la deja desde su
+     cola (loQueSePaga(), el mismo recuadro que el PUB de los aranceles);
+     al mandarla, la solicitud pasa a revisión, que es lo que cierra ese
+     paso. El inversionista la descarga en el paso que dice el número
+     -«Firme la planilla»- y la devuelve firmada en la casilla de siempre
+     (casillaDeLaPlanillaFirmada). Sin la firmada no se presenta ante el
+     SENIAT: ver faltaLaFirmada().
+
+     El tipo es del catálogo (supabase-planilla-rif.sql): uno inventado lo
+     rechazaría la base al subirlo. */
+  var TIPO_PLANILLA_CIIP = 'planilla_solicitud';
+  var PLANILLA_DEL_CIIP_DEL_PASO = {c3: 3, c6: 3};
+
   /* Que papel se sube en que paso. La cuenta empieza en cero: el 0 es la
      emision del PUB y el 1 es "Pago de aranceles registrales", que desde el
      16 de septiembre de 2026 va delante de la consignacion: en el registro
@@ -24528,6 +24700,8 @@ applyLang(idiomaParaMi());
       CLAVE_DE_TIPO.planilla_aranceles   = 'd_planilla_aranceles';
       CLAVE_DE_TIPO.planilla_publicacion = 'd_planilla_publicacion';
       CLAVE_DE_TIPO.planilla_locti       = 'd_planilla_locti';
+      /* Y la del RIF, que el CIIP manda para firmar (30-9-2026). */
+      CLAVE_DE_TIPO[TIPO_PLANILLA_CIIP]  = 'd_planilla_solicitud';
       CLAVE_DE_TIPO.importe_dia          = 'd_importe_dia';
       CLAVE_DE_TIPO.pago_importe_dia     = 'd_pago_importe_dia';
       /* Los dos que el CIIP manda por la escalera de la marca. */

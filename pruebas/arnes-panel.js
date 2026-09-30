@@ -371,6 +371,7 @@
               conformidadMira,
               licenciaSiembra, licenciaMira,
               planillaFirmadaSiembra, planillaFirmadaMira, planillaFirmadaTrasSubir,
+              rifGestorSiembra, rifGestorMira,
               importadorMira, bomberosMira,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
@@ -6563,6 +6564,10 @@
     var caja = document.getElementById('paTandas');
     return caja && caja.querySelector('.hoy-card[data-tr="' + id + '"]');
   }
+  /* El botón de la derecha de h1, que es un RIF recibido: desde el 30-9-2026
+     no se presenta, se le manda la planilla, con el mismo candado de los
+     papeles sin mirar. */
+  var HOY_BOTON_H1 = 'Enviar la planilla al inversionista';
   function hoyBotonQueDice(caja, texto){
     return caja && [].filter.call(caja.querySelectorAll('button'), function(b){
       return b.textContent.trim() === texto;
@@ -6709,8 +6714,12 @@
     ok('hoy: revisar abre el espacio de trabajo', !v.hidden && !!v.querySelector('[role="dialog"]'),
        v.hidden ? 'escondido' : 'a la vista', 'a la vista');
     igual('hoy: con el nombre del trámite', (document.getElementById('paVisorTit') || {}).textContent, 'RIF personal');
-    ok('hoy: y abrirlo lo pone en revisión',
-       !!v.querySelector('.visor-meta .co-estado.mirando'), 'busca el estado', 'en revisión');
+    /* h1 es un RIF: desde el 30-9-2026 abrirlo NO lo pasa a revisión (Franklin
+       Reyes, «el proceso del gestor»). En un RIF revisión es «la planilla ya
+       salió», y eso lo hace el botón de mandarla. */
+    ok('hoy: abrir un RIF recibido no lo pone en revisión: eso es mandar la planilla',
+       !v.querySelector('.visor-meta .co-estado.mirando'),
+       v.querySelector('.visor-meta .co-estado.mirando') ? 'en revisión' : 'recibido', 'recibido');
     igual('hoy: a la izquierda, sus papeles', v.querySelectorAll('.visor-chk button').length, 2);
     igual('hoy: y empieza por el que falta por mirar',
           (document.getElementById('paVisorDoc') || {}).textContent, 'pasaporte-bianchi.pdf');
@@ -6718,8 +6727,8 @@
        !!v.querySelector('.visor-doc iframe, .visor-doc img'), 'busca el marco', 'con el documento');
     ok('hoy: y al lado, lo que ese papel respalda', v.querySelectorAll('.visor-lado .co-dato').length > 0,
        v.querySelectorAll('.visor-lado .co-dato').length + ' datos', 'al menos uno');
-    var pre = hoyBotonQueDice(v, 'Presentar ante SENIAT');
-    ok('hoy: no deja presentar con papeles sin mirar', !!pre && pre.disabled,
+    var pre = hoyBotonQueDice(v, HOY_BOTON_H1);
+    ok('hoy: no deja mandar la planilla con papeles sin mirar', !!pre && pre.disabled,
        pre ? (pre.disabled ? 'apagado' : 'encendido') : 'no hay botón', 'apagado');
     igual('hoy: y dice cuántos faltan', (v.querySelector('.visor-fin .hoy-pista') || {}).textContent, 'Falta 1 recaudo por mirar.');
     igual('hoy: el foco entra al espacio', document.activeElement && document.activeElement.id, 'paVisorCerrar');
@@ -6733,8 +6742,8 @@
     igual('hoy: «Vale» lo guarda en la base', papel.estado, 'validado');
     igual('hoy: y firma quién lo revisó', papel.revisado_por, 'u1');
     var v = document.getElementById('paVisor');
-    var pre = hoyBotonQueDice(v, 'Presentar ante SENIAT');
-    ok('hoy: con todo validado ya deja presentar', !!pre && !pre.disabled,
+    var pre = hoyBotonQueDice(v, HOY_BOTON_H1);
+    ok('hoy: con todo validado ya deja mandar la planilla', !!pre && !pre.disabled,
        pre ? (pre.disabled ? 'apagado' : 'encendido') : 'no hay botón', 'encendido');
     igual('hoy: y la miniatura de la tarjeta cambia con él',
           hoyTarjeta('h1') ? hoyTarjeta('h1').querySelectorAll('.hoy-th.validado').length : 0, 2);
@@ -6774,8 +6783,8 @@
     ok('hoy: con la nota que leerá el inversionista', /^Sube de nuevo/.test(papel.nota_revision || ''),
        papel.nota_revision || '(vacía)', 'Sube de nuevo…');
     var v = document.getElementById('paVisor');
-    var pre = hoyBotonQueDice(v, 'Presentar ante SENIAT');
-    ok('hoy: con un papel que no vale, no deja presentar', !!pre && pre.disabled,
+    var pre = hoyBotonQueDice(v, HOY_BOTON_H1);
+    ok('hoy: con un papel que no vale, no deja mandar la planilla', !!pre && pre.disabled,
        pre ? (pre.disabled ? 'apagado' : 'encendido') : 'no hay botón', 'apagado');
     var nota = document.getElementById('hoy-nota-h1');
     ok('hoy: y la nota de devolver ya lleva el motivo', !!nota && /^Sube de nuevo/.test(nota.value),
@@ -7059,9 +7068,17 @@
           [].map.call(v.querySelectorAll('.visor-chk button'), function(b){
             return /recibo-bianchi\.jpg/.test(b.textContent) ? 'el viejo' : 'otro';
           }).join(' '), 'otro otro');
+    /* El reenviado vuelve EN REVISIÓN, o sea con la planilla ya mandada: lo
+       que queda es presentarlo, y desde el 30-9-2026 un RIF no se presenta
+       sin la planilla firmada. Los papeles ya no frenan; frena ella, y el
+       botón dice por qué. */
+    var u = window.CIIP_T();
     var pre = hoyBotonQueDice(v, 'Presentar ante SENIAT');
-    ok('hoy: y con el nuevo validado, ya deja presentar', !!pre && !pre.disabled,
-       pre ? (pre.disabled ? 'apagado' : 'encendido') : 'no hay botón', 'encendido');
+    igual('hoy: y con el nuevo validado, los papeles ya no frenan: solo la planilla firmada que falta',
+          pre ? (pre.disabled ? 'apagado' : 'encendido') + ' · ' + pre.title : 'no hay botón',
+          'apagado · ' + u.co_firmada_falta);
+    var pistaRif = v.querySelector('.visor-fin .hoy-pista.hoy-rif');
+    igual('hoy: y el pie lo dice', pistaRif ? pistaRif.textContent : '(sin pista)', u.co_firmada_falta);
     hoyEscape();
   }
 
@@ -9482,6 +9499,121 @@
     PF_CAJAS = null;
     window.__IMPORTE_DOCS = null;
     window.__ENGANCHES = null;
+  }
+
+  /* ═══════════ LOS RIF, DEL LADO DEL GESTOR ═══════════
+     Franklin Reyes, 30-9-2026: «el proceso del gestor» con el paso nuevo,
+     «Planilla enviada por el CIIP». El gestor ve la misma escalera de
+     cuatro, manda la planilla desde su cola -y eso pasa la solicitud a
+     revisión, no el abrirla-, y no presenta ante el SENIAT sin la firmada.
+     El inversionista la descarga en «Firme la planilla». */
+  var RG = null;
+  function rifGestorSiembra(){
+    if (PASE !== 'vacio') return;
+    var G = window.CIIP_RIF_GESTOR, P = window.CIIP_PLANILLA_FIRMADA;
+    if (!G || !P || !P.delCiip) return ok('rif del gestor: las piezas están a mano', false, 'falta alguna',
+                                          'CIIP_RIF_GESTOR, CIIP_PLANILLA_FIRMADA.delCiip');
+    var tr = function(id, tipo, estado){
+      return {id: id, tipo: tipo, estado: estado, datos: {}, inversionista: 'u2', gestor: 'g-rif'};
+    };
+    igual('rif del gestor: los dos RIF mandan planilla, la constitución no',
+          [G.manda(tr('a', 'rif_personal', 'enviado')), G.manda(tr('a', 'rif_empresa', 'enviado')),
+           G.manda(tr('a', 'constitucion', 'enviado'))].join(','), 'true,true,false');
+    var pide = G.pide(tr('a', 'rif_empresa', 'enviado'));
+    igual('rif del gestor: recibido, el recuadro pide la planilla del RIF con su botón',
+          pide ? pide.tipo + ' · ' + pide.clave + ' · ' + pide.boton : '(nada)',
+          'planilla_solicitud · d_planilla_solicitud · co_h_env_planilla');
+    igual('rif del gestor: ante el SENIAT y resuelto ya no la pide',
+          [!!G.pide(tr('a', 'rif_personal', 'ante_el_ente')), !!G.pide(tr('a', 'rif_personal', 'resuelto'))].join(','),
+          'false,false');
+    P.pasoDelCiip && igual('rif del gestor: se descarga en el mismo paso donde se devuelve firmada',
+          [3 === (P.pasoDelCiip() || {}).c3, 3 === (P.pasoDelCiip() || {}).c6, P.pide('c3', 3), P.pide('c6', 3)].join(','),
+          'true,true,true,true');
+    igual('rif del gestor: los papeles se revisan ya recibida; en otros trámites, en revisión',
+          [G.revisa(tr('a', 'rif_empresa', 'enviado')), G.revisa(tr('a', 'rif_empresa', 'en_revision')),
+           G.revisa(tr('a', 'constitucion', 'enviado'))].join(','), 'true,true,false');
+    igual('rif del gestor: abrir un RIF recibido NO lo pasa a revisión; otro trámite sí',
+          [G.abreRevisa(tr('a', 'rif_empresa', 'enviado'), 'g-rif'),
+           G.abreRevisa(tr('a', 'constitucion', 'enviado'), 'g-rif')].join(','), 'false,true');
+    var enRev = tr('a', 'rif_empresa', 'en_revision');
+    igual('rif del gestor: sin planilla firmada no se presenta; cargada o validada, sí; rechazada, no',
+          [G.falta(enRev, []),
+           G.falta(enRev, [{tipo: 'planilla_firmada', estado: 'cargado'}]) || 'nada',
+           G.falta(enRev, [{tipo: 'planilla_firmada', estado: 'validado'}]) || 'nada',
+           G.falta(enRev, [{tipo: 'planilla_firmada', estado: 'rechazado'}])].join(','),
+          'co_firmada_falta,nada,nada,co_firmada_falta');
+    igual('rif del gestor: y a otro trámite no le pide planilla firmada',
+          G.falta(tr('a', 'constitucion', 'en_revision'), []) || 'nada', 'nada');
+
+    /* La escalera del visor del equipo, la misma de cuatro del
+       inversionista. */
+    if (window.CIIP_VISOR_LADO){
+      var enCurso = function(estado){
+        var lado = window.CIIP_VISOR_LADO({id: 'rg-v', tipo: 'rif_empresa', estado: estado,
+                                            gestor: 'otro-gestor', datos: {}});
+        var lis = lado.querySelectorAll('.vs-esc li');
+        var ah = lado.querySelector('.vs-esc li.ahora .vs-esc-n');
+        return lis.length + ' · ' + (ah ? ah.textContent : '(ninguno)');
+      };
+      igual('rif del gestor: el visor enseña la escalera de cuatro, recibida en «Planilla enviada por el CIIP»',
+            enCurso('enviado'), '4 · Planilla enviada por el CIIP');
+      igual('rif del gestor: y en revisión, en «Firme la planilla»',
+            enCurso('en_revision'), '4 · Firme la planilla');
+    }
+
+    var hace = new Date(Date.now() - 3600000).toISOString();
+    window.__IMPORTE_DOCS = {
+      'rg-ya': [{id: 'rgp', tipo: 'planilla_solicitud', estado: 'validado', creado_en: hace,
+                 nombre_original: 'planilla-rif.pdf', archivo: 'u2/emitidos/planilla-rif.pdf'}],
+      'rg-sin': []
+    };
+    RG = {caja: document.createElement('div'), aviso: document.createElement('div'),
+          boton: document.createElement('button')};
+    RG.caja.hidden = true;
+    document.body.appendChild(RG.caja);
+    RG.sin = G.casilla(tr('rg-sin', 'rif_empresa', 'enviado'));
+    RG.ya = G.casilla(tr('rg-ya', 'rif_empresa', 'en_revision'));
+    RG.caja.appendChild(RG.sin.caja);
+    RG.caja.appendChild(RG.ya.caja);
+    RG.filaYa = P.delCiip(tr('rg-ya', 'rif_empresa', 'en_revision'));
+    RG.filaSin = P.delCiip(tr('rg-sin', 'rif_empresa', 'en_revision'));
+    RG.caja.appendChild(RG.filaYa);
+    RG.caja.appendChild(RG.filaSin);
+    /* Mandar sin planilla: no se mueve y se dice por qué. */
+    RG.trSin = tr('rg-sin', 'rif_empresa', 'enviado');
+    RG.boton.textContent = 'x';
+    RG.movido = null;
+    G.envia(RG.trSin, RG.sin, RG.boton, RG.aviso).then(function(b){ RG.movido = b; });
+  }
+  function rifGestorMira(){
+    if (PASE !== 'vacio' || !RG) return;
+    var u = window.CIIP_T();
+    var lab = RG.sin.caja.querySelector('label');
+    var inp = RG.sin.caja.querySelector('input[type=file]');
+    igual('rif del gestor: el recuadro se llama «Planilla de solicitud del RIF» y deja elegir el archivo',
+          (lab ? lab.textContent : '(sin rótulo)') + ' · ' + (inp && !inp.hidden ? 'elige' : 'no elige'),
+          u.d_planilla_solicitud + ' · elige');
+    igual('rif del gestor: sin planilla, el botón «Enviar la planilla» no mueve la solicitud y lo dice',
+          RG.movido + ' · ' + RG.trSin.estado + ' · ' + RG.aviso.textContent,
+          'false · enviado · ' + u.co_planilla_falta);
+    ok('rif del gestor: y con la planilla ya enviada, el recuadro la enseña y se puede volver a mandar',
+       RG.ya.puesta() && RG.ya.caja.classList.contains('puesto') &&
+         (RG.ya.caja.querySelector('.co-reserva-e') || {}).textContent.indexOf('planilla-rif.pdf') >= 0,
+       (RG.ya.puesta() ? 'puesta' : 'no puesta') + ' · ' + ((RG.ya.caja.querySelector('.co-reserva-e') || {}).textContent || ''),
+       'puesta · ✓ planilla-rif.pdf');
+    var vis = function(x){ return !!x && !x.hidden; };
+    igual('rif del gestor: el inversionista la tiene en «Firme la planilla», con su nombre y «Abrir»',
+          vis(RG.filaYa) ? (RG.filaYa.querySelector('.tp-n') || {}).textContent + ' · ' +
+            (RG.filaYa.querySelector('.tp-e') || {}).textContent + ' · ' +
+            (RG.filaYa.querySelector('.sd-btn') || {}).textContent : '(escondida)',
+          u.d_planilla_solicitud + ' · planilla-rif.pdf · ' + u.co_abrir);
+    igual('rif del gestor: con la pista de bajarla, firmarla y subirla',
+          (RG.filaYa.querySelector('.tr-pagar-p') || {}).textContent, u.tr_bajaplanilla_rif);
+    igual('rif del gestor: y mientras el CIIP no la manda, no se ofrece nada',
+          vis(RG.filaSin) ? 'a la vista' : 'escondida', 'escondida');
+    RG.caja.remove();
+    RG = null;
+    window.__IMPORTE_DOCS = null;
   }
 
   /* ═══════════ EL REGISTRO DE IMPORTADOR Y EXPORTADOR, FUERA ═══════════
@@ -14230,8 +14362,10 @@
       var t = []; f.querySelectorAll('.co-botones .btn').forEach(function(b){ t.push(b.textContent.trim()); });
       return t.join(' | ');
     }
-    igual('cola: un trámite recién enviado se devuelve o se empieza a revisar',
-          botones(fichas[0]), 'Devolver | Empezar la revisión');
+    /* El primero es un RIF: desde el 30-9-2026 pasar a revisión es mandarle
+       la planilla (Franklin Reyes). */
+    igual('cola: un RIF recién enviado se devuelve o se le manda la planilla',
+          botones(fichas[0]), 'Devolver | Enviar la planilla al inversionista');
     igual('cola: y uno en revisión se devuelve o se presenta ante el ente',
           botones(fichas[1]), 'Devolver | Presentada ante el ente');
 
