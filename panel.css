@@ -3479,11 +3479,21 @@ body[data-vista="tramite"] #secTramites{display:none;}
   .sol-lista .sl-fila select{flex:1 1 160px;}
 }
 .sol-campo label{display:block; font-size:var(--fs-rotulo-form); font-weight:700; color:var(--gray); margin-bottom:5px;}
-.sol-campo input, .sol-campo select{width:100%; font:inherit; font-size:var(--fs-campo); color:var(--ink);
+.sol-campo input, .sol-campo select, .sol-campo textarea{width:100%; font:inherit; font-size:var(--fs-campo); color:var(--ink);
   background:var(--bg); border:1.5px solid var(--line); border-radius:8px; padding:9px 11px; outline:none;}
-.sol-campo input:focus, .sol-campo select:focus{border-color:var(--cyan-deep); background:var(--bg);
+.sol-campo input:focus, .sol-campo select:focus, .sol-campo textarea:focus{border-color:var(--cyan-deep); background:var(--bg);
   box-shadow:0 0 0 3px rgba(32,176,240,.12);}
-.sol-campo.mal input, .sol-campo.mal select{border-color:var(--rust);}
+.sol-campo.mal input, .sol-campo.mal select, .sol-campo.mal textarea{border-color:var(--rust);}
+/* La caja que crece con lo escrito (tipo 'area'): sin asa ni barra, el
+   alto lo pone panel.js. */
+.sol-campo textarea.sol-crece{display:block; resize:none; overflow:hidden; line-height:1.4;}
+/* Un apartado dentro del formulario (los campos con «grupo»): ocupa las dos
+   columnas, con su título en el borde, y por dentro sigue en dos, como el
+   resto: en tres, el mes de una fecha no cabía. */
+.sol-grupo{grid-column:1 / -1; min-width:0; border:1px solid var(--line); border-radius:calc(var(--r) - 2px);
+  padding:10px 14px 14px;}
+.sol-grupo > legend{padding:0 6px; font-size:var(--fs-seccion); font-weight:700; color:var(--ink);}
+.sol-grupo > .sol-campos{max-width:none;}
 /* ── LAS FECHAS, A SU TAMAÑO ──
    Las tres listas de una fecha se repartian el ancho del campo a partes
    iguales, asi que «Dia» ocupaba lo mismo que «Septiembre» y entre las dos
@@ -4838,10 +4848,10 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 .chip.niv{ border-radius:9999px; padding:2px 10px; letter-spacing:0; }
 
 /* — campos — */
-.sol-campo input, .sol-campo select, .pf-campo input, .pf-campo select{
+.sol-campo input, .sol-campo select, .sol-campo textarea, .pf-campo input, .pf-campo select{
   border-width:1px; border-color:var(--line); border-radius:calc(var(--r) - 4px);
   min-height:36px; }
-.sol-campo input:focus, .sol-campo select:focus,
+.sol-campo input:focus, .sol-campo select:focus, .sol-campo textarea:focus,
 .pf-campo input:focus, .pf-campo select:focus{
   border-color:var(--line); box-shadow:0 0 0 3px color-mix(in srgb, var(--navy2) 30%, transparent); }
 

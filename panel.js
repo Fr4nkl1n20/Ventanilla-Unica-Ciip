@@ -3859,9 +3859,17 @@ applyLang(idiomaParaMi());
       {n:'consulado',         clave:'f_consulado'},
       {n:'telefono',          clave:'f_telefono',  tipo:'tel'},
       {n:'correo',            clave:'f_correo',    tipo:'email'},
-      {n:'vuelo_numero',      clave:'f_vuelo'},
-      {n:'fecha_entrada',     clave:'f_fechaentrada', tipo:'date'},
-      {n:'fecha_salida',      clave:'f_fechasalida',  tipo:'date'},
+      /* EL ITINERARIO, EN SU APARTADO (Franklin Reyes, 30-9-2026). El vuelo
+         y sus dos fechas iban sueltos entre el resto; ahora van juntos bajo
+         «Itinerario de vuelo», y debajo una caja que crece con lo escrito
+         para las escalas o los demás vuelos, que no todo viaje tiene.
+         Y aparte, dónde se hospeda: el consulado lo pide en las dos visas. */
+      {n:'vuelo_numero',      clave:'f_vuelo',        grupo:'f_itinerario'},
+      {n:'fecha_entrada',     clave:'f_fechaentrada', tipo:'date', grupo:'f_itinerario'},
+      {n:'fecha_salida',      clave:'f_fechasalida',  tipo:'date', grupo:'f_itinerario'},
+      {n:'itinerario_vuelo',  clave:'f_itinerario_mas', tipo:'area', ancho:true,
+       opcional:true, grupo:'f_itinerario'},
+      {n:'direccion_hospedaje', clave:'f_hospedaje', ancho:true},
       /* Y la de antes, con sus fechas colgando: la pregunta se contesta en
          un segundo y el hueco solo sale si hace falta. */
       {n:'visa_anterior',        clave:'f_visaantes', opcionesClave:'o_sino'},
@@ -3887,9 +3895,17 @@ applyLang(idiomaParaMi());
       {n:'consulado',           clave:'f_consulado'},
       {n:'telefono',            clave:'f_telefono',   tipo:'tel'},
       {n:'correo',              clave:'f_correo',     tipo:'email'},
-      {n:'vuelo_numero',        clave:'f_vuelo'},
-      {n:'fecha_entrada',       clave:'f_fechaentrada', tipo:'date'},
-      {n:'fecha_salida',        clave:'f_fechasalida',  tipo:'date'},
+      /* EL ITINERARIO, EN SU APARTADO (Franklin Reyes, 30-9-2026). El vuelo
+         y sus dos fechas iban sueltos entre el resto; ahora van juntos bajo
+         «Itinerario de vuelo», y debajo una caja que crece con lo escrito
+         para las escalas o los demás vuelos, que no todo viaje tiene.
+         Y aparte, dónde se hospeda: el consulado lo pide en las dos visas. */
+      {n:'vuelo_numero',      clave:'f_vuelo',        grupo:'f_itinerario'},
+      {n:'fecha_entrada',     clave:'f_fechaentrada', tipo:'date', grupo:'f_itinerario'},
+      {n:'fecha_salida',      clave:'f_fechasalida',  tipo:'date', grupo:'f_itinerario'},
+      {n:'itinerario_vuelo',  clave:'f_itinerario_mas', tipo:'area', ancho:true,
+       opcional:true, grupo:'f_itinerario'},
+      {n:'direccion_hospedaje', clave:'f_hospedaje', ancho:true},
       {n:'visa_anterior',        clave:'f_visaantes', opcionesClave:'o_sino'},
       {n:'visa_anterior_fechas', clave:'f_visaantesfechas',
        verSi:'visa_anterior', ancho:true},
@@ -6212,6 +6228,18 @@ applyLang(idiomaParaMi());
           op.textContent = o;
           entrada.appendChild(op);
         });
+      } else if (c.tipo === 'area'){
+        /* Texto largo que CRECE: arranca de un renglón, como las demás, y
+           se alarga con lo escrito en vez de enseñar una barra de scroll.
+           El alto se rehace también al montar y al entrar, que un borrador
+           trae texto; con la hoja escondida no se mide, o quedaría a cero. */
+        entrada = document.createElement('textarea');
+        entrada.rows = 1;
+        entrada.className = 'sol-crece';
+        var creceA = function(){ if (!this.offsetParent) return; this.style.height = 'auto'; this.style.height = this.scrollHeight + 2 + 'px'; };
+        entrada.addEventListener('input', creceA);
+        entrada.addEventListener('focus', creceA);
+        setTimeout(creceA.bind(entrada), 0);
       } else {
         entrada = document.createElement('input');
         /* Una fecha no la pone el calendario del navegador sino tres
@@ -6396,7 +6424,7 @@ applyLang(idiomaParaMi());
       var campo = rejilla.querySelector('[data-campo="' + c.n + '"]');
       var manda = rejilla.querySelector('[name="' + c.verSi + '"]');
       if (!campo || !manda) return;
-      var suyo = campo.querySelector('input, select');
+      var suyo = campo.querySelector('input, select, textarea');
       function mira(){
         var si = (manda.type === 'checkbox') ? manda.checked
                                              : (manda.value && manda.value !== 'No');
@@ -6411,6 +6439,25 @@ applyLang(idiomaParaMi());
       mira();
       manda.addEventListener('change', mira);
     });
+    });
+    /* Los campos con el mismo «grupo» van juntos en un recuadro con su
+       título, en el sitio del primero. Se mueven DESPUÉS de montarlos: los
+       que validan, repasan y envían buscan .sol-campo por debajo de la
+       rejilla, así que dentro del recuadro los siguen encontrando. */
+    var gruposF = {};
+    (CAMPOS[tipo.codigo] || []).forEach(function(c){
+      if (!c.grupo) return;
+      var suCampo = rejilla.querySelector('[data-campo="' + c.n + '"]');
+      if (!suCampo) return;
+      var g = gruposF[c.grupo];
+      if (!g){
+        g = gruposF[c.grupo] = el('fieldset', 'sol-grupo');
+        g.setAttribute('data-grupo', c.grupo);
+        g.appendChild(el('legend', null, u[c.grupo] || ''));
+        g.appendChild(el('div', 'sol-campos'));
+        rejilla.insertBefore(g, suCampo);
+      }
+      g.lastChild.appendChild(suCampo);
     });
     col.appendChild(rejilla);
 
@@ -6925,7 +6972,7 @@ applyLang(idiomaParaMi());
     function validaPaso(n){
       var hoja = HOJAS[n - 1].hoja, falta = false, primero = null;
       hoja.querySelectorAll('.sol-campo').forEach(function(c){
-        var e = c.querySelector('input, select');
+        var e = c.querySelector('input, select, textarea');
         var v = (e && e.type === 'checkbox')
           ? (e.checked ? (u.f_si || '') : '')
           : (c.getAttribute('data-es') || (e && e.value) || '').trim();
@@ -6994,7 +7041,7 @@ applyLang(idiomaParaMi());
 
       lis.appendChild(el('div', 'pa-grupo', u.tus_datos));
       hDatos.querySelectorAll('.sol-campo').forEach(function(c){
-        var e = c.querySelector('input, select');
+        var e = c.querySelector('input, select, textarea');
         /* Se enseña lo que SE VE escrito, no lo que se guarda: en las listas
            y en los paises son dos cosas distintas -se guarda el español- y
            repasar un dato en un idioma que no es el tuyo no es repasarlo. */
@@ -7249,7 +7296,7 @@ applyLang(idiomaParaMi());
        opcional no es un error; simplemente no se guarda. */
     var datos = {}, falta = false;
     caja.querySelectorAll('.sol-campo').forEach(function(c){
-      var e = c.querySelector('input, select');
+      var e = c.querySelector('input, select, textarea');
       /* data-es lo pone el buscador de paises cuando se elige uno de la
          lista: es el nombre en ESPANOL. Lo que se ve en pantalla esta en
          el idioma de turno, y guardar eso haria que el mismo pais entrara

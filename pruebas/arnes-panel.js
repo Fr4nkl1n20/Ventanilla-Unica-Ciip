@@ -256,7 +256,7 @@
               tramosMira, tramosDetalle, tramosTramo,
               rupdaeAbre, empiezaSolicitud, rupdaeTrasAbrir,
               rumAbre, empiezaSolicitud, rumTrasAbrir,
-              pistaAbre, empiezaSolicitud, pistaMira,
+              pistaAbre, empiezaSolicitud, pistaMira, visaCampos,
               solvenciasAbre, empiezaSolicitud, solvenciasTrasAbrir,
               activosAbre, activosMira, opacidadActivos, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
@@ -3853,6 +3853,44 @@
      pantalla. Por eso aquí se mira el TEXTO y no sólo el número.
 
      Los nueve campos salen del portal, https://sisref.saren.gob.ve/. */
+  /* El itinerario y dónde se hospeda (30-9-2026). El itinerario es la
+     única caja de texto largo del formulario: crece con lo escrito en vez
+     de enseñar una barra, y eso es lo que se mide. Con retrollamada, para
+     no retrasar a los demás expedientes. */
+  function visaCampos(sigue){
+    if (CASO !== 'vacio') return sigue();
+    var caja = document.getElementById('trReal');
+    if (caja && caja.CIIP_VE_PASO) caja.CIIP_VE_PASO(1);
+    var it = caja && caja.querySelector('[data-campo="itinerario_vuelo"] textarea');
+    var ho = caja && caja.querySelector('[data-campo="direccion_hospedaje"] input');
+    ok('visa: pide el itinerario de vuelo, en una caja de texto',
+       !!it, it ? 'textarea' : '(no está)', 'textarea');
+    ok('visa: y la dirección donde se va a hospedar',
+       !!ho, ho ? 'input' : '(no está)', 'input');
+    /* El vuelo, sus dos fechas y la caja, juntos bajo «Itinerario de
+       vuelo»; la dirección, fuera. */
+    var g = caja && caja.querySelector('.sol-grupo[data-grupo="f_itinerario"]');
+    var dentro = g ? [].map.call(g.querySelectorAll('.sol-campo'), function(x){
+      return x.getAttribute('data-campo'); }).join(' ') : '(sin apartado)';
+    igual('visa: el apartado del itinerario lleva el vuelo, sus fechas y la caja',
+          dentro, 'vuelo_numero fecha_entrada fecha_salida itinerario_vuelo');
+    igual('visa: y se titula «Itinerario de vuelo»',
+          g && g.querySelector('legend') ? g.querySelector('legend').textContent : '(sin título)',
+          window.CIIP_PASOS.ui[curLang].f_itinerario);
+    ok('visa: la dirección de hospedaje va fuera del apartado',
+       !!ho && !(g && g.contains(ho)), ho && g && g.contains(ho) ? 'dentro' : 'fuera', 'fuera');
+    if (!it) return sigue();
+    it.focus();
+    var antes = it.offsetHeight;
+    it.value = 'Madrid 10:00\nBogotá 15:00\nCaracas 19:30\nVuelta el 12';
+    it.dispatchEvent(new Event('input'));
+    ok('visa: la caja del itinerario crece con lo escrito',
+       it.offsetHeight > antes, antes + ' → ' + it.offsetHeight, 'más alta');
+    it.value = '';
+    it.dispatchEvent(new Event('input'));
+    sigue();
+  }
+
   /* ═══════════ EL GLOBO DE «CÓMO DEBE VENIR CADA RECAUDO» ═══════════
      Primera pieza de los instrumentos guía para operadores jurídicos: que
      el apoderado suba los papeles igual siempre y dejen de rechazárselos
