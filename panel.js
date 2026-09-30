@@ -15872,7 +15872,9 @@ applyLang(idiomaParaMi());
     } else if (!mio){
       return null;
     } else if (t.estado === 'ante_el_ente'){
-      b = el('button', 'btn ghost', u.co_h_respuesta || '');
+      /* En la validación del poder no hay respuesta que adjuntar: el
+         mismo nombre que el botón del visor (Franklin Reyes, 30-9-2026). */
+      b = el('button', 'btn ghost', (esElPoder(t) ? u.co_h_poder : u.co_h_respuesta) || '');
       b.addEventListener('click', function(e){ e.stopPropagation(); hoyAbre(t); });
     } else if (t.estado === 'devuelto'){
       /* «Revisar» en un devuelto invita a lo que no toca: ya se revisó, y
