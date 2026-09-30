@@ -288,6 +288,8 @@
               hoyListos,
               /* La solicitud cancelada mientras el gestor la tenía abierta. */
               hoyYaNoAbre, hoyYaNoPide,
+              /* «Abrir» desde los códigos de los entes lleva al expediente. */
+              cdAbreSiembra, cdAbreMira,
               /* QA-08: el papel rechazado y sustituido no deja atascado el trámite. */
               hoyReenvia, hoyReenviaAbre, hoyReenviaMira,
               hoyRestaura,
@@ -7269,6 +7271,47 @@
             dice, u.co_ya_cancelada);
       ok('ya cancelada: y el visor no se cierra como si se hubiera hecho', !v.hidden,
          v.hidden ? 'cerrado' : 'abierto', 'abierto');
+      acaba();
+    })();
+  }
+
+  /* ── «ABRIR» DESDE LOS CÓDIGOS DE LOS ENTES ──
+     El botón de cada código lleva al expediente entero, en la cola. Ponía
+     la bandera del detalle del inversionista (CIIP_ABRE_ESTA), que la cola
+     no mira: el gestor aterrizaba en «Por atender» sin nada abierto. Ningún
+     paso entraba en #codigos con la cuenta del equipo, y por eso no se vio.
+     Se siembra un código del INCES para h2, que está en la cola con sus
+     papeles, y se pulsa «Abrir». */
+  function cdAbreSiembra(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    var E = window.__ENTES = window.__ENTES || {};
+    E['h2|inces'] = {tramite:'h2', ente:'inces', estado:'codigo_enviado', codigo:'INC-40021',
+                     actualizado_en: new Date().toISOString()};
+    location.hash = 'codigos';
+    esperaFilas('#cd .pe-ente[data-ente="inces"]', 1, sigue);
+  }
+
+  function cdAbreMira(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    var fila = document.querySelector('#cd .pe-ente[data-ente="inces"]');
+    var abrir = fila && fila.querySelector('.rv-acc .rv-btn:not(.prim)');
+    ok('códigos: cada código tiene su «Abrir»', !!abrir, abrir ? 'con botón' : 'sin botón', 'Abrir');
+    var v = document.getElementById('paVisor');
+    function acaba(){
+      delete window.__ENTES['h2|inces'];
+      if (v && !v.hidden) hoyEscape();
+      var todos = document.querySelector('#paCifras button[data-monton="todos"]');
+      if (todos) todos.click();
+      sigue();
+    }
+    if (!abrir) return acaba();
+    abrir.click();
+    var n = 0;
+    (function mira(){
+      if ((!v || v.hidden) && ++n <= 80) return setTimeout(mira, 40);
+      igual('códigos: «Abrir» lleva a la cola', document.body.getAttribute('data-vista'), 'poratender');
+      igual('códigos: y abre el expediente de ESA solicitud, no la cola sin nada',
+            v && !v.hidden ? String(v.getAttribute('data-doc') || '').split(':')[0] : '(visor cerrado)', 'h2');
       acaba();
     })();
   }

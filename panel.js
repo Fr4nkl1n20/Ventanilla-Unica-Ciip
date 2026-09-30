@@ -19122,8 +19122,13 @@ applyLang(idiomaParaMi());
       abrir.type = 'button';
       abrir.addEventListener('click', function(){
         /* Al expediente entero, por si hace falta ver el resto. La cola
-           sabe abrir uno por su id. */
-        window.CIIP_ABRE_ESTA = x.tramite;
+           sabe abrir uno por su id: lo recoge pintaHoy de CIIP_VISOR_DE,
+           igual que el «Ver trámite» de los entes en modo equipo.
+           Aquí se ponía CIIP_ABRE_ESTA, que es la bandera del detalle del
+           INVERSIONISTA (#tramite-…): la cola no la mira, así que «Abrir»
+           dejaba al gestor en «Por atender» sin abrir nada, y la bandera
+           se quedaba puesta para el siguiente detalle que se abriera. */
+        window.CIIP_VISOR_DE = x.tramite;
         location.hash = 'poratender';
       });
       var listo = el('button', 'rv-btn prim', u.pe_marcar || '');
