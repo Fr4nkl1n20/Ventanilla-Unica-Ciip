@@ -2403,6 +2403,15 @@ applyLang(idiomaParaMi());
   }
   function fecha(iso){
     if (!iso) return '';
+    /* Un DÍA a secas -«2026-08-25», lo que guardan las columnas date: los
+       días que le vienen bien a quien pide cita (desde/hasta) y el
+       vencimiento de un papel (vence_el)- se lee al mediodía UTC. new Date
+       lo toma como la medianoche UTC, que en Caracas son las ocho de la
+       noche del día ANTERIOR: la cola del equipo decía «24 ago – 4 sept»
+       de una cita pedida para el 25 al 5. Es el mismo 'T12:00:00Z' que ya
+       usan los huecos del horario (huSuma). Las marcas con hora siguen
+       como estaban. */
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(iso))) iso = iso + 'T12:00:00Z';
     try { return new Date(iso).toLocaleDateString(localeDeAhora(), {day:'numeric', month:'short', year:'numeric'}); }
     catch(e){ return String(iso).slice(0,10); }
   }

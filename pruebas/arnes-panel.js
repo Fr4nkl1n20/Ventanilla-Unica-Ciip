@@ -14630,6 +14630,22 @@
     ok('cola: y sobre qué y qué días le vienen bien',
        /RIF de la empresa/.test(fichas[0].querySelector('.co-que').textContent),
        fichas[0].querySelector('.co-que').textContent, 'el trámite y las fechas');
+    /* Y los días que pidió, no el anterior. desde y hasta son columnas
+       date -«2026-08-25»- y new Date las toma por la medianoche UTC: en
+       Caracas eso es el 24 a las ocho de la noche, y la ficha decía
+       «24 ago – 4 sept» de una cita pedida del 25 al 5. Lo esperado se
+       arma con el día LOCAL, con el mismo idioma y el mismo formato que
+       el panel, para no depender del almanaque de nadie. El doble desliza
+       el expediente hasta hoy (CIIP_MENTIRA_DESLIZ): el 25-8 y el 5-9 de
+       la fila son los de antes de deslizar, y se deslizan igual aquí. */
+    var dFmt = {day:'numeric', month:'short', year:'numeric'};
+    function dLocal(dia){
+      var p = new Date(Date.parse(dia) + (window.CIIP_MENTIRA_DESLIZ || 0)).toISOString().slice(0, 10).split('-');
+      return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString(localeDeAhora(), dFmt);
+    }
+    var dEsp = dLocal('2026-08-25') + ' – ' + dLocal('2026-09-05');
+    igual('cola: los días que pidió, sin correrse uno hacia atrás',
+          (fichas[0].querySelector('.co-que').textContent.split(' · ')[1] || ''), dEsp);
 
     /* Cómo quiere verse decide cómo se reparte la mañana: vídeo, teléfono o
        una sala no cuestan lo mismo. Va con el nombre, no en el renglón gris,
