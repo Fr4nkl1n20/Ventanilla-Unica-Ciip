@@ -350,6 +350,8 @@
               entesClaveMonta, entesClaveFalla, entesClaveMira, entesClaveTrasEnviar,
               alDiaMira,
               rvAbre, rvMira, rvDespues,
+              /* Rechazar sin red: se dice, y la nota no se pierde. */
+              rvFallaPide, rvFallaMira,
               cbAbre, cbMira,
               tdAbre, tdMira, tdAsignaMira,
               ajAbre, ajMira,
@@ -13520,6 +13522,56 @@
     ok('revisar: y se dice que quedó validado', !!aviso && !!aviso.textContent,
        aviso ? aviso.textContent : '(sin aviso)', 'un aviso');
     location.hash = '';
+  }
+
+  /* Y SI LA BASE NO CONTESTA. Rechazar un papel que no llega a la base
+     tiene que decirlo, y dejar la nota escrita donde estaba. El aviso se
+     escribía en el visor de ANTES de repintar -rvPinta arma #rv de
+     nuevo-, así que no salía en ningún sitio, y el recuadro del motivo
+     volvía en blanco. */
+  var RV_NOTA = 'La foto de la página de datos sale cortada.';
+  function rvFallaPide(sigue){
+    if (CASO !== 'gestor') return sigue();
+    /* Se vacía la bandeja antes de entrar: al entrar se vuelve a pedir y a
+       pintar, y sin esto la espera de abajo encontraba los botones de la
+       pintura de ANTES, que la carga borraba justo después de pulsar. */
+    var rv = document.getElementById('rv');
+    if (rv) rv.textContent = '';
+    location.hash = 'revisar';
+    esperaFilas('#rv .rv-pie .rv-btn.no', 1, function(){
+      var no = document.querySelector('#rv .rv-pie .rv-btn.no');
+      ok('revisar sin red: hay un papel pendiente con «Rechazar»', !!no, no ? 'está' : 'no está', 'está');
+      if (!no) return sigue();
+      no.click();
+      var nota = document.getElementById('rvNota');
+      var confirma = document.querySelector('#rv .rv-pie .rv-acc .rv-btn.prim');
+      if (!nota || !confirma){
+        ok('revisar sin red: sale el recuadro del motivo', false, 'sin recuadro', 'con él');
+        return sigue();
+      }
+      nota.value = RV_NOTA;
+      window.__FALLA_REVISAR = true;
+      confirma.click();
+      var n = 0;
+      (function mira(){
+        var m = document.querySelector('#rv .rv-visor .rv-msg');
+        if (!(m && m.textContent) && ++n <= 60) return setTimeout(mira, 40);
+        sigue();
+      })();
+    });
+  }
+  function rvFallaMira(sigue){
+    if (CASO !== 'gestor') return sigue();
+    var u = window.CIIP_T();
+    var m = document.querySelector('#rv .rv-visor .rv-msg');
+    igual('revisar sin red: el visor dice que algo falló', m ? m.textContent : '(sin aviso)', u.co_error);
+    var nota = document.getElementById('rvNota');
+    igual('revisar sin red: y la nota escrita sigue en su recuadro', nota ? nota.value : '(sin recuadro)', RV_NOTA);
+    window.__FALLA_REVISAR = false;
+    var cancela = document.querySelector('#rv .rv-pie .rv-acc .rv-btn:not(.prim)');
+    if (cancela && nota) cancela.click();
+    location.hash = '';
+    sigue();
   }
 
   /* LA BÓVEDA DE COMPROBANTES. Del equipo: su renglón, solo comprobantes

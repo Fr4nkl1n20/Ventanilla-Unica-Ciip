@@ -1496,6 +1496,13 @@
       return {data:visibles, error:null};
     }
     if (tabla === 'documentos'){
+      /* Una vez, cuando la prueba lo pide: la revisión de un papel no llega
+         a la base (la red se cae a medias), para ver qué le dice el panel
+         al gestor y qué hace con la nota que había escrito. */
+      if (window.__FALLA_REVISAR && op && op.update && op.eq && op.eq.id){
+        window.__FALLA_REVISAR = false;
+        return {data:null, error:{message:'la red se cayó a medias', code:'08006'}};
+      }
       /* Revisar un papel de los sembrados: se APUNTA, para que la prueba
          compruebe que el panel escribio el estado y quien lo reviso. */
       if (op && op.update && op.eq && op.eq.id && HOY_DOC[op.eq.id]){

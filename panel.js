@@ -18963,8 +18963,21 @@ applyLang(idiomaParaMi());
       }
     }).catch(function(e){
       console.warn('[CIIP] revisar documento:', e && (e.message || e));
-      if (msg) msg.textContent = u.co_error || '';
+      /* Primero se repinta y DESPUÉS se avisa, en el visor nuevo: rvPinta
+         vacía #rv entero y lo vuelve a armar, así que el «algo ha fallado»
+         escrito en el msg de antes iba a un nodo que ya no estaba en la
+         página. El gestor pulsaba, el botón volvía y no pasaba nada. Y la
+         nota que escribió para rechazar u observar se guarda antes y se
+         vuelve a poner: el recuadro sale otra vez -rvRechazando sigue
+         puesto- pero en blanco, y el motivo era lo que había costado
+         escribir. */
+      var escrita = document.getElementById('rvNota');
+      var texto = escrita ? escrita.value : '';
       rvPinta();
+      var nueva = document.getElementById('rvNota');
+      if (nueva && texto) nueva.value = texto;
+      var aviso = document.querySelector('#rv .rv-visor .rv-msg') || msg;
+      if (aviso) aviso.textContent = u.co_error || '';
     });
   }
 
