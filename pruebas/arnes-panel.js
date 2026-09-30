@@ -257,6 +257,8 @@
               rupdaeAbre, empiezaSolicitud, rupdaeTrasAbrir,
               rumAbre, empiezaSolicitud, rumTrasAbrir,
               pistaAbre, empiezaSolicitud, pistaMira, visaCampos,
+              /* El pasaporte con menos de 6 meses (Franklin Reyes, 30-9-2026). */
+              vigAbre, vigMira,
               solvenciasAbre, empiezaSolicitud, solvenciasTrasAbrir,
               activosAbre, activosMira, opacidadActivos, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
@@ -3889,6 +3891,146 @@
     it.value = '';
     it.dispatchEvent(new Event('input'));
     sigue();
+  }
+
+  /* ═══════════ EL PASAPORTE, CON SEIS MESES POR DELANTE ═══════════
+     Franklin Reyes, 30-9-2026: un pasaporte que vence en menos de seis
+     meses no deja pasar de «Tus datos», y el aviso de debajo del campo
+     dice por qué. Se mide en la TR-N (c1), con las tres fechas sacadas de
+     HOY y no escritas a mano: una fecha fija que hoy vence dentro de un
+     año, dentro de un año ya está vencida y la prueba se pondría roja sola.
+
+     El resto de la hoja se rellena antes, igual que envioRellena: si no,
+     «no deja pasar» saldría verde por cualquier casilla vacía y no por el
+     pasaporte, que es justo lo que no se querría medir. */
+  function vigAbre(sigue){
+    if (CASO !== 'vacio') return sigue();
+    location.hash = '';
+    setTimeout(function(){
+      location.hash = 'tramite-c1';
+      esperaFilas('.gv-col[data-visa="c1"][role="button"]', 1, function(){
+        var elige = document.querySelector('.gv-col[data-visa="c1"][role="button"]');
+        if (elige) elige.click();
+        esperaFilas('#trReal [name="vence_pasaporte"]', 1, sigue);
+      });
+    }, 100);
+  }
+
+  /* Con «sigue», como vigAbre: en los demás expedientes no hace nada, y un
+     paso sin él le añade medio segundo a toda la cadena. Ese medio segundo
+     movía otras pruebas que dependen de cuándo corren -la «i» del camino
+     en 'gestor' y 'sinsql' salía roja-. Todo lo de aquí es síncrono, así
+     que sigue en cuanto termina. */
+  function vigMira(sigue){
+    if (CASO !== 'vacio') return sigue();
+    /* La excepción se apunta aquí y no se deja subir: enCadena la cogería
+       y seguiría por su cuenta, y la cadena correría dos veces. */
+    try { vigMide(); }
+    catch(e){ ok('pasaporte: el paso llegó al final', false, 'EXCEPCION: ' + e.message, 'sin excepciones'); }
+    sigue();
+  }
+
+  function vigMide(){
+    var caja = document.getElementById('trReal');
+    var ven = caja && caja.querySelector('[name="vence_pasaporte"]');
+    ok('pasaporte: la TR-N trae el vencimiento del pasaporte', !!ven,
+       ven ? 'está' : 'no está', 'está');
+    if (!ven) return;
+    var campo = ven.closest('.sol-campo');
+    var hoja1 = campo.closest('.pa-hoja');
+
+    /* Todo lo demás de la hoja, con algo dentro. */
+    hoja1.querySelectorAll('.sol-campo').forEach(function(c){
+      if (c === campo) return;
+      if (c.querySelector('.fecha3')){
+        ['.a', '.m', '.d'].forEach(function(cual){
+          var s = c.querySelector('.fecha3 select' + cual);
+          if (!s || s.options.length < 2) return;
+          s.value = s.options[1].value;
+          s.dispatchEvent(new Event('change'));
+        });
+        return;
+      }
+      var e = c.querySelector('input, select');
+      if (!e || e.type === 'checkbox') return;
+      if (e.tagName === 'SELECT'){
+        if (e.options.length < 2) return;
+        e.value = e.options[1].value;
+      } else {
+        e.value = (e.type === 'tel') ? '04141234567'
+                : (e.type === 'email') ? 'arnes@ejemplo.com' : 'Lo que escribe el arnés';
+      }
+      e.dispatchEvent(new Event('input', {bubbles:true}));
+      e.dispatchEvent(new Event('change', {bubbles:true}));
+    });
+
+    /* Las fechas, en meses de calendario desde hoy y el día 1: así ninguna
+       cae en un 31 que el mes de destino no tiene. */
+    var hoy = new Date();
+    function iso(d){
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') +
+             '-' + String(d.getDate()).padStart(2, '0');
+    }
+    var corta   = iso(new Date(hoy.getFullYear(), hoy.getMonth() + 3, 1));
+    var larga   = iso(new Date(hoy.getFullYear() + 1, hoy.getMonth(), 1));
+    var vencida = iso(new Date(hoy.getFullYear(), hoy.getMonth() - 2, 1));
+    function pon(f){
+      [['.a', f.slice(0, 4)], ['.m', f.slice(5, 7)], ['.d', f.slice(8, 10)]].forEach(function(p){
+        var s = campo.querySelector('.fecha3 select' + p[0]);
+        if (!s) return;
+        s.value = p[1];
+        s.dispatchEvent(new Event('change'));
+      });
+    }
+    var nota = function(){ return campo.querySelector('.sol-vigencia'); };
+    var sigue = caja.querySelector('.pa-sigue');
+    var aviso = caja.querySelector('.pa-aviso');
+    function hojaVista(){
+      var v = [].filter.call(caja.querySelectorAll('.pa-hoja'), function(h){ return !h.hidden; })[0];
+      return v ? v.getAttribute('data-paso') : '(ninguna)';
+    }
+
+    /* 1. A menos de seis meses: el aviso sale al elegir, y no deja pasar. */
+    pon(corta);
+    igual('pasaporte: las tres listas llegan al campo', ven.value, corta);
+    var n1 = nota();
+    ok('pasaporte: a menos de 6 meses sale el aviso debajo del campo',
+       !!n1 && !n1.hidden && /faltan menos de 6 meses/.test(n1.textContent) &&
+         /al menos 6 meses de vigencia/.test(n1.textContent) && /Renuévalo/.test(n1.textContent),
+       n1 ? (n1.hidden ? '(escondido)' : n1.textContent) : '(no hay aviso)',
+       '«Tu pasaporte vence el …: faltan menos de 6 meses…»');
+    ok('pasaporte: y el aviso dice el año en que vence',
+       !!n1 && n1.textContent.indexOf(corta.slice(0, 4)) >= 0,
+       n1 ? n1.textContent : '(no hay aviso)', 'con ' + corta.slice(0, 4));
+    ok('pasaporte: y el campo se marca en rojo', campo.classList.contains('mal'),
+       campo.className, 'con mal');
+    if (sigue) sigue.click();
+    igual('pasaporte: a menos de 6 meses no deja pasar de hoja', hojaVista(), '1');
+    ok('pasaporte: y el aviso de la hoja dice que es por el pasaporte',
+       !!aviso && /pasaporte/.test(aviso.textContent) && /vigencia/.test(aviso.textContent),
+       aviso ? aviso.textContent : '(no hay aviso)', 'por la vigencia del pasaporte');
+    var marcados = [].map.call(hoja1.querySelectorAll('.sol-campo.mal'),
+      function(c){ return c.getAttribute('data-campo'); });
+    igual('pasaporte: y lo único en rojo es el pasaporte', marcados.join(', '), 'vence_pasaporte');
+
+    /* 2. Ya vencido: lo dice con «venció». */
+    pon(vencida);
+    var n2 = nota();
+    ok('pasaporte: vencido, el aviso dice «venció»',
+       !!n2 && !n2.hidden && /venció el/.test(n2.textContent),
+       n2 ? (n2.hidden ? '(escondido)' : n2.textContent) : '(no hay aviso)', '«Tu pasaporte venció el …»');
+    if (sigue) sigue.click();
+    igual('pasaporte: vencido tampoco deja pasar', hojaVista(), '1');
+
+    /* 3. Con más de seis meses: nada, y se pasa a la hoja siguiente. */
+    pon(larga);
+    var n3 = nota();
+    ok('pasaporte: con más de 6 meses no sale el aviso', !n3 || n3.hidden,
+       n3 ? (n3.hidden ? '(escondido)' : n3.textContent) : '(no hay aviso)', '(escondido)');
+    ok('pasaporte: y el campo deja de estar en rojo', !campo.classList.contains('mal'),
+       campo.className, 'sin mal');
+    if (sigue) sigue.click();
+    igual('pasaporte: con más de 6 meses deja pasar', hojaVista(), '2');
   }
 
   /* ═══════════ EL GLOBO DE «CÓMO DEBE VENIR CADA RECAUDO» ═══════════

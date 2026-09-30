@@ -3748,6 +3748,114 @@ applyLang(idiomaParaMi());
     fecha_salida:       {desde:'-1', hasta:'+3'}
   };
 
+  /* ── EL PASAPORTE, CON SEIS MESES POR DELANTE ──
+     Franklin Reyes, 30-9-2026: «necesito generar un aviso que sea
+     automático que reconozca desde la fecha si un pasaporte está a 6 meses
+     de vencer, y explicar en un aviso por qué no puede avanzar con el
+     trámite». El campo sale en las dos visas del MPPRE -TR-N y TR-I-, y
+     para ellas el pasaporte tiene que tener al menos seis meses de
+     vigencia: una solicitud que sale con menos vuelve devuelta semanas
+     después, cuando ya no hay nada que hacer más que empezar de nuevo.
+     Decirlo al elegir la fecha cuesta una línea.
+
+     Va en una tabla, como FECHA_TOPES, y no pegado a cada campo: el mismo
+     vence_pasaporte sale en las dos visas, y dos sitios con el «6» son dos
+     sitios donde se queda uno atrás el día que cambie. Lo que no está aquí
+     no tiene vigencia mínima.
+
+     Es una comprobación del panel y no de la base: la fecha se guarda como
+     texto dentro de tramites.datos, y un vencimiento que hoy vale dentro de
+     un mes ya no valdría, así que un CHECK no puede decidirlo. */
+  var VIGENCIA_MINIMA = {
+    vence_pasaporte: 6
+  };
+
+  /* Hoy más n meses DE CALENDARIO, en AAAA-MM-DD. No son 180 días: seis
+     meses desde el 30 de septiembre llegan al 30 de marzo, y 180 días se
+     quedarían en el 29. Quien lee «6 meses» cuenta meses, y la cuenta tiene
+     que dar lo mismo que la suya.
+
+     El día 31 de un mes que no lo tiene -o el 29, 30 o 31 hacia un
+     febrero- se queda en el ÚLTIMO día de ese mes: del 31 de agosto, seis
+     meses son el 28 (o 29) de febrero, y no el 3 de marzo, que es adonde lo
+     empujaría new Date(año, mes, 31) por su cuenta. Así el umbral nunca se
+     sale del mes que toca y nunca pide un día más de lo que dice. */
+  function hoyMasMeses(n, desde){
+    var d = desde || new Date();
+    var total = d.getMonth() + n;
+    var anio = d.getFullYear() + Math.floor(total / 12);
+    var mes = ((total % 12) + 12) % 12;
+    var ultimo = new Date(anio, mes + 1, 0).getDate();
+    var dia = Math.min(d.getDate(), ultimo);
+    return anio + '-' + String(mes + 1).padStart(2, '0') + '-' +
+           String(dia).padStart(2, '0');
+  }
+
+  /* El aviso de un vencimiento que no llega a la vigencia mínima, o null
+     si llega (o si el campo no la tiene, o la fecha está a medias). Vence
+     justo en el umbral -hoy más seis meses exactos- vale: tiene sus seis
+     meses. Vencido es ANTES de hoy; el que vence hoy todavía es «faltan
+     menos de 6 meses», que es lo que le pasa. La fecha, con diaDelImporte:
+     «15 de marzo de 2027» en el idioma del panel y sin moverse de día. */
+  function vigenciaCorta(nombre, iso){
+    var meses = VIGENCIA_MINIMA[nombre];
+    if (!meses || !/^\d{4}-\d{2}-\d{2}$/.test(iso || '')) return null;
+    if (iso >= hoyMasMeses(meses)) return null;
+    var u = T();
+    var clave = (iso < hoyISO()) ? 'f_vigencia_vencio' : 'f_vigencia_corta';
+    return String(u[clave] || '').replace('{fecha}', diaDelImporte(iso))
+                                  .replace(/\{n\}/g, meses);
+  }
+
+  /* Debajo del campo, y al momento: al cambiar cualquiera de las tres
+     listas -montaFecha3 avisa al escondido con un 'input'- y al abrir, si
+     la fecha ya venía de un borrador, de otro trámite o del lector. Quien
+     reabre la solicitud con el pasaporte a punto de vencer tiene que verlo
+     sin tocar nada: descubrirlo al pulsar «Siguiente» es descubrirlo tarde.
+
+     Marca el campo en rojo con la misma clase 'mal' de lo que falta, y la
+     quita en cuanto la fecha vale. Si la fecha se queda a medias no toca la
+     marca: eso ya lo dirá validaPaso como un campo vacío más. */
+  function vigilaVigencia(campo, oculto, nombre){
+    var nota = el('div', 'sol-vigencia', '');
+    nota.setAttribute('aria-live', 'polite');
+    nota.hidden = true;
+    campo.appendChild(nota);
+    function mira(){
+      var dice = vigenciaCorta(nombre, oculto.value);
+      nota.textContent = dice || '';
+      nota.hidden = !dice;
+      if (dice) campo.classList.add('mal');
+      else if (oculto.value) campo.classList.remove('mal');
+    }
+    oculto.addEventListener('input', mira);
+    /* Guardado en la casilla para que validaPaso lo repinte al frenar: si
+       el idioma cambió desde que se escribió, el aviso sale en el nuevo. */
+    campo._vigencia = mira;
+    mira();
+  }
+
+  /* La primera casilla con vigencia mínima que no llega, dentro de raiz
+     -una hoja o el formulario entero-, o null. Las marca TODAS en rojo y
+     les repinta el aviso: validaPaso y el envío pasan antes su propio
+     recorrido, que quita el rojo a todo lo que está escrito, y el aviso
+     puede venir de antes de un cambio de idioma. Lo escondido no cuenta,
+     igual que en ese recorrido. */
+  function vigenciaQueFrena(raiz){
+    var primera = null;
+    Object.keys(VIGENCIA_MINIMA).forEach(function(n){
+      raiz.querySelectorAll('.sol-campo[data-campo="' + n + '"]').forEach(function(c){
+        if (c.hidden) return;
+        var e = c.querySelector('input[name="' + n + '"]');
+        if (!vigenciaCorta(n, e && e.value)) return;
+        if (c._vigencia) c._vigencia();
+        c.classList.add('mal');
+        if (!primera) primera = c;
+      });
+    });
+    return primera;
+  }
+
   /* Las oficinas del Registro Mercantil donde el SAREN deja hacer la
      constitucion, por estado. Salen de su propia consulta
      (https://tramites.saren.gob.ve/get/oficina, la que usa su formulario
@@ -6327,6 +6435,9 @@ applyLang(idiomaParaMi());
         montaFecha3(campo, campo.querySelector('label'),
                     {n:c.n, clave:c.clave, desde:topes.desde, hasta:topes.hasta},
                     entrada.value, entrada);
+        /* Y si esta fecha tiene vigencia mínima -el pasaporte de las visas-,
+           el aviso debajo, ya con lo que traiga puesto (VIGENCIA_MINIMA). */
+        if (VIGENCIA_MINIMA[c.n]) vigilaVigencia(campo, entrada, c.n);
       } else {
         campo.appendChild(entrada);
       }
@@ -6988,6 +7099,22 @@ applyLang(idiomaParaMi());
         f.classList.toggle('mal', !tiene && !suelto);
         if (!tiene && !suelto){ falta = true; if (!primero) primero = f.querySelector('.sd-btn'); }
       });
+      /* Escrito no es lo mismo que válido: un pasaporte con menos de seis
+         meses por delante está relleno y aun así no deja seguir (Franklin
+         Reyes, 30-9-2026, VIGENCIA_MINIMA). Va aparte del recorrido de
+         arriba, que solo pregunta «¿hay algo?», y va ANTES de dar la hoja
+         por buena. Y se dice ESO, no «falta algo»: sobre un campo lleno,
+         eso manda a buscar un hueco que no existe. La frase es corta y
+         remite al aviso de debajo del campo, que lleva la fecha y el porqué.
+         Lo demás que falte ya quedó en rojo con el recorrido de arriba. */
+      var corto = vigenciaQueFrena(hoja);
+      if (corto){
+        avisoPaso.textContent = u.pa_vigencia_paso || '';
+        /* A la primera de las tres listas: el escondido no coge el foco. */
+        var lista3 = corto.querySelector('.fecha3 select');
+        if (lista3 && lista3.focus) lista3.focus();
+        return false;
+      }
       if (!falta) return true;
       avisoPaso.textContent = u.pa_falta_paso || u.falta || '';
       if (primero && primero.focus) primero.focus();
@@ -7317,6 +7444,20 @@ applyLang(idiomaParaMi());
       f.classList.toggle('mal', !tiene && !suelto);
       if (!tiene && !suelto) falta = true;
     });
+    /* Lo mismo que validaPaso, y aparte del recorrido de arriba por lo
+       mismo: el pasaporte sin sus seis meses tampoco se envía, aunque se
+       haya llegado aquí con él -volviendo atrás a cambiar la fecha, o con
+       un borrador que dejó de valer entre una visita y otra- (Franklin
+       Reyes, 30-9-2026). Y se lleva a la hoja donde está el campo, que es
+       donde se lee el aviso entero. */
+    var cortoEnvio = vigenciaQueFrena(caja);
+    if (cortoEnvio){
+      aviso.textContent = u.pa_vigencia_paso || ''; aviso.className = 'sol-aviso err';
+      var hojaCorta = cortoEnvio.closest && cortoEnvio.closest('.pa-hoja');
+      if (hojaCorta && caja.CIIP_VE_PASO)
+        caja.CIIP_VE_PASO(+hojaCorta.getAttribute('data-paso'), u.pa_vigencia_paso || '');
+      return;
+    }
     if (falta){
       aviso.textContent = u.falta; aviso.className = 'sol-aviso err';
       /* Y SE VA a donde esta el fallo. Con la solicitud partida en hojas, lo

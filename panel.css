@@ -3508,6 +3508,13 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .sol-campo .fecha3 select.d{flex:0 0 96px;}
 .sol-campo .fecha3 select.a{flex:0 0 100px;}
 .sol-campo .fecha3 select.m{flex:1 1 auto; min-width:0;}
+/* ── EL PASAPORTE QUE NO LLEGA A SEIS MESES ──
+   Franklin Reyes, 30-9-2026. El aviso va debajo de las tres listas, en
+   el óxido de «no vale» y como texto corrido: es una explicación que se
+   lee entera -la fecha, lo que pide el trámite y qué hacer-, no una
+   etiqueta, así que ni fondo ni borde ni esquinas (capa sin insignias). */
+.sol-campo .sol-vigencia{margin-top:6px; font-size:var(--fs-nota); line-height:1.45; color:var(--rust);}
+.sol-campo .sol-vigencia[hidden]{display:none;}
 
 /* ── Y CADA CAMPO, A LO QUE LLEVA ──
    Todos median media columna, tuvieran dentro un numero de cuatro cifras o
