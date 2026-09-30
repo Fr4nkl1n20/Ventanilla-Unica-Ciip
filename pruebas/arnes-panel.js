@@ -11746,7 +11746,25 @@
        'al menos una pareja y la caja nunca escondida');
   }
 
-  function iFasesMira(){
+  /* Con retrollamada, y yendo ella a la portada. Antes daba por hecho que
+     el paso de antes la dejaba allí, y en «gestor» y «sinsql» dependía de
+     cuánto tardara la cadena: al juntar once arreglos con sus pruebas
+     (30-9-2026) llegaba con la pantalla aún en otra parte y la «i» del
+     camino salía «no a la vista» sin que nada estuviera roto. Lo que se
+     mide es que la «i» exista y se vea en la portada, no a qué hora. */
+  function iFasesMira(sigue){
+    if (document.body.getAttribute('data-vista') !== 'inicio') location.hash = '';
+    var n = 0;
+    (function espera(){
+      var i = document.querySelector('.sec-h .pista');
+      if (!(i && i.getBoundingClientRect().width > 0) && ++n <= 50) return setTimeout(espera, 40);
+      try { iFasesMide(); }
+      catch(e){ ok('fases: el paso llegó al final', false, 'EXCEPCION: ' + e.message, 'sin excepciones'); }
+      sigue();
+    })();
+  }
+
+  function iFasesMide(){
     var fases = document.querySelectorAll('.phase[data-fase]');
     ok('fases: hay fases que mirar', fases.length >= 3,
        fases.length + ' fases', '3 o más');
