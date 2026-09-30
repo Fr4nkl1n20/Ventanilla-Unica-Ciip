@@ -1897,6 +1897,15 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .co-arch button:hover{border-color:var(--navy2);}
 
 .co-aviso{font-size:var(--fs-nota); color:var(--rust); margin-top:7px; min-height:14px;}
+/* Qué hay que corregir, junto a la nota de devolver (30-9-2026): una
+   casilla por recaudo y la del dato del formulario. */
+.co-dev{border:1px solid var(--line); border-radius:var(--r-sm); padding:8px 10px 10px; margin:8px 0 0;
+  display:flex; flex-direction:column; gap:6px; min-width:0;}
+.co-dev-t{font-size:var(--fs-rotulo-form); font-weight:700; color:var(--gray); padding:0 4px;}
+.co-dev-f{display:flex; align-items:flex-start; gap:8px; font-size:var(--fs-fila); color:var(--ink); cursor:pointer; min-width:0;}
+.co-dev-f input{margin:2px 0 0; flex:none; accent-color:var(--rust);}
+.co-dev-n{display:flex; flex-direction:column; min-width:0; overflow-wrap:anywhere;}
+.co-dev-n small{font-size:var(--fs-nota); color:var(--gray);}
 .co-vacia{font-size:var(--fs-parrafo); color:var(--gray); padding:16px 12px 20px; text-align:center;}
 /* --- «Mis tramites», en tabla --- */
 /* La fila NO es pulsable aqui, y por eso se le quita el cursor que .tabla

@@ -14249,6 +14249,10 @@ applyLang(idiomaParaMi());
       nota.placeholder = u[notaDe] || '';
       nota.setAttribute('aria-label', u[notaDe] || '');
       f.appendChild(nota);
+      /* Y qué hay que corregir, donde se puede devolver (30-9-2026). */
+      var qCo = (CO_PASOS[t.estado] || []).some(function(p){ return p.a === 'devuelto'; })
+        ? casillasDelDevolver(t) : null;
+      if (qCo) f.appendChild(qCo.caja);
 
       var aviso = el('div', 'co-aviso');
       f.appendChild(aviso);
@@ -14332,6 +14336,12 @@ applyLang(idiomaParaMi());
             f.classList.add('mal');
             aviso.textContent = (p.a === 'cancelado' ? u.co_nota_cancelar_falta : u.co_nota_falta) || '';
             nota.focus();
+            return;
+          }
+          /* Devolver sin decir QUÉ papel, tampoco (30-9-2026). */
+          if (p.a === 'devuelto' && qCo && !qCo.vale()){
+            f.classList.add('mal');
+            aviso.textContent = u.co_dev_falta || '';
             return;
           }
           /* Lo que no se deshace pide dos pulsaciones, como la cancelación
@@ -14418,6 +14428,17 @@ applyLang(idiomaParaMi());
                 b.textContent = u[p.k] || '';
                 aviso.textContent = (e && e.ciip && u[e.ciip]) || u.co_error || '';
               });
+            return;
+          }
+          if (p.a === 'devuelto' && qCo){
+            var textoCo = (nota.value || '').trim();
+            qCo.marca(textoCo).then(function(marcado){
+              if (!marcado){ b.disabled = false; return; }
+              return mueveTramite(t, p.a, textoCo, b, aviso, u[p.k]).then(function(bien){
+                if (bien) qCo.olvida();
+                return laNotaFalto(t, p.a)(bien);
+              });
+            });
             return;
           }
           mueveTramite(t, p.a, (nota.value || '').trim(), b, aviso, u[p.k])
@@ -15932,17 +15953,84 @@ applyLang(idiomaParaMi());
     });
   }
 
-  function hoyDevuelve(t, nota, boton, aviso){
+  /* ── QUÉ HAY QUE CORREGIR, AL DEVOLVER ──
+     Franklin Reyes, 30-9-2026: «me devolvieron la solicitud pero no sé cuál
+     es». El gestor devolvió con la nota «La cédula no se ve con nitidez» y
+     sin marcar el papel, y al otro lado los cuatro recaudos salían con ✓.
+     El «✕ No vale» del visor ya señalaba el papel, pero había que usarlo
+     ANTES de devolver, y desde la ficha de la cola ni siquiera existía.
+
+     Ahora, junto a la nota de devolver, la lista de los recaudos de la
+     solicitud con una casilla cada uno: los marcados pasan a «no vale» con
+     la misma nota, y al inversionista le llegan en rojo, señalados. Sin
+     marcar ninguno no se devuelve, salvo con «Un dato del formulario»:
+     a veces lo que falla no es un papel. Los que ya están en «no vale»
+     salen marcados. Lo marcado vive en hoyDev y no en la página, para que
+     sobreviva a los repintados, como la nota en hoyNotas. */
+  var hoyDev = {};
+  function casillasDelDevolver(t){
+    var u = T();
+    var docs = (hoyDocs[t.id] || []).filter(function(d){ return d && d.id; });
+    var ya = hoyDev[t.id] = hoyDev[t.id] || {ids: null, dato: false};
+    ya.ids = ya.ids || {};
+    /* Los que ya están en «no vale» -por el ✕ del visor- salen siempre
+       marcados: ya están señalados al otro lado. */
+    docs.forEach(function(d){ if (d.estado === 'rechazado') ya.ids[d.id] = true; });
+    var caja = el('fieldset', 'co-dev');
+    caja.appendChild(el('legend', 'co-dev-t', u.co_dev_que || ''));
+    var fila = function(clave, texto, sub, marcado, alCambiar){
+      var lab = el('label', 'co-dev-f');
+      var c = document.createElement('input');
+      c.type = 'checkbox';
+      c.id = 'co-dev-' + t.id + '-' + clave;
+      c.checked = !!marcado;
+      c.addEventListener('change', function(){ alCambiar(c.checked); });
+      lab.appendChild(c);
+      var txt = el('span', 'co-dev-n', texto);
+      if (sub) txt.appendChild(el('small', null, sub));
+      lab.appendChild(txt);
+      caja.appendChild(lab);
+    };
+    docs.forEach(function(d){
+      fila(d.id, nombreDeTipo_doc(d.tipo), d.nombre_original || '', ya.ids[d.id], function(si){
+        if (si) ya.ids[d.id] = true; else delete ya.ids[d.id];
+      });
+    });
+    fila('dato', u.co_dev_dato || '', '', ya.dato, function(si){ ya.dato = si; });
+    return {
+      caja: caja,
+      /* Si se puede devolver así: algún papel marcado, o el dato. */
+      vale: function(){ return !docs.length || ya.dato || Object.keys(ya.ids).length > 0; },
+      /* Pasa a «no vale» los marcados que no lo estaban, con la nota. */
+      marca: function(nota){
+        var pendientes = docs.filter(function(d){ return ya.ids[d.id] && d.estado !== 'rechazado'; });
+        return pendientes.reduce(function(p, d){
+          return p.then(function(bien){ return bien && hoyMarca(t, d, 'rechazado', nota); });
+        }, Promise.resolve(true));
+      },
+      olvida: function(){ delete hoyDev[t.id]; }
+    };
+  }
+
+  function hoyDevuelve(t, nota, boton, aviso, dev){
     var u = T(), texto = (nota.value || '').trim();
     if (!texto){
       aviso.textContent = u.co_nota_falta || '';
       nota.focus();
       return;
     }
+    if (dev && !dev.vale()){
+      aviso.textContent = u.co_dev_falta || '';
+      return;
+    }
     var quien = t.nombre || u.co_sinnombre || '';
     boton.disabled = true;
-    mueveTramite(t, 'devuelto', texto, boton, aviso, u.co_devolver).then(function(bien){
+    (dev ? dev.marca(texto) : Promise.resolve(true)).then(function(marcado){
+      if (!marcado){ boton.disabled = false; return false; }
+      return mueveTramite(t, 'devuelto', texto, boton, aviso, u.co_devolver);
+    }).then(function(bien){
       if (!bien) return;
+      if (dev) dev.olvida();
       delete hoyNotas[t.id];
       cierraVisor();
       pintaHoy();
@@ -16803,9 +16891,11 @@ applyLang(idiomaParaMi());
          nota. Va a la izquierda de resolver, como en revisión. */
       var notaEnte = hoyNotaDe(t, 'co_nota');
       fin.appendChild(notaEnte);
+      var qEnte = casillasDelDevolver(t);
+      fin.appendChild(qEnte.caja);
       var devEnte = el('button', 'btn ghost', u.co_devolver || '');
       devEnte.type = 'button';
-      devEnte.addEventListener('click', function(){ hoyDevuelve(t, notaEnte, devEnte, aviso); });
+      devEnte.addEventListener('click', function(){ hoyDevuelve(t, notaEnte, devEnte, aviso, qEnte); });
       botones.appendChild(devEnte);
       botones.appendChild(res);
     } else if (mio && t.estado === 'devuelto'){
@@ -16875,6 +16965,8 @@ applyLang(idiomaParaMi());
       nota.value = hoyNotas[t.id] || '';
       nota.addEventListener('input', function(){ hoyNotas[t.id] = nota.value; });
       fin.appendChild(nota);
+      var qRev = casillasDelDevolver(t);
+      fin.appendChild(qRev.caja);
 
       /* QUÉ VA A RECIBIR EL OTRO, DICHO AQUÍ (Franklin Reyes, 21-9-2026:
          «quiero que ese proceso esté bien estructurado, que al
@@ -16897,7 +16989,7 @@ applyLang(idiomaParaMi());
 
       var dev = el('button', 'btn ghost', u.co_devolver || '');
       dev.type = 'button';
-      dev.addEventListener('click', function(){ hoyDevuelve(t, nota, dev, aviso); });
+      dev.addEventListener('click', function(){ hoyDevuelve(t, nota, dev, aviso, qRev); });
       botones.appendChild(dev);
       /* No se presenta ante el organismo lo que nadie ha mirado: el botón
          espera a que todos los papeles estén validados, y dice por qué. */

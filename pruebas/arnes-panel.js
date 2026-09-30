@@ -6527,6 +6527,14 @@
     var nota = document.getElementById('hoy-nota-h1');
     ok('hoy: y la nota de devolver ya lleva el motivo', !!nota && /^Sube de nuevo/.test(nota.value),
        nota ? nota.value : '(sin nota)', 'Sube de nuevo…');
+    /* Qué hay que corregir (30-9-2026): una casilla por recaudo, y el que
+       no vale ya sale marcado. */
+    var cas = v.querySelectorAll('.co-dev input[type=checkbox]');
+    ok('hoy: al devolver, una casilla por recaudo y la del dato del formulario', cas.length === 3,
+       cas.length + ' casillas', '2 papeles + el dato');
+    var casHd2 = document.getElementById('co-dev-h1-hd2');
+    ok('hoy: y el papel que no vale ya sale marcado', !!casHd2 && casHd2.checked,
+       casHd2 ? (casHd2.checked ? 'marcado' : 'sin marcar') : '(sin casilla)', 'marcado');
     var dev = hoyBotonQueDice(v, 'Devolver');
     if (dev) dev.click();
   }
