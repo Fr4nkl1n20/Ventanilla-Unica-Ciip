@@ -9383,12 +9383,21 @@ applyLang(idiomaParaMi());
                   ahora: !hechoP && tr.estado !== 'devuelto', n: p + 1});
       }
     }
+    /* «Revisión de tus recaudos» está EN CURSO mientras la solicitud está en
+       revisión, y hecha al presentarla ante el ente (Franklin Reyes,
+       30-9-2026: la escalera pasaba «directo de verificación de recaudos»).
+       El gestor la pasa a revisión con solo abrirla, así que contarla hecha
+       ahí era dar por mirados unos papeles que nadie ha mirado todavía. La
+       constitución se queda como estaba: detrás de la revisión va la firma
+       en el CIIP, que es la que está en curso en ese estado. */
+    var revisando = (tr.estado === 'en_revision' && !conFirma);
     var circ = ORDEN.map(function(est, i){
       return {
         est: est,
         nombre: propios ? propios[i + delante] : estadoTexto(i, ente, ref),
-        hecho: i <= alcanzado,
-        ahora: (i === alcanzado + 1) && tr.estado !== 'resuelto' &&
+        hecho: i <= alcanzado && !(revisando && est === 'en_revision'),
+        ahora: revisando ? est === 'en_revision' :
+               (i === alcanzado + 1) && tr.estado !== 'resuelto' &&
                !(conReserva && est === 'resuelto') &&
                !(conFirma && est === 'ante_el_ente' && !firmada),
         /* La numeración corre detrás de los pasos de delante: con el PUB
@@ -9968,7 +9977,9 @@ applyLang(idiomaParaMi());
                 !(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()))
               txt.appendChild(cajaDelImporte(tr));
           }
-          if (est && cuando[est]) txt.appendChild(el('div', 'sd-e', fecha(cuando[est])));
+          /* En curso va «Vas por aquí» aunque su estado ya tenga fecha: es
+             la revisión, que empieza al entrar en revisión y sigue abierta. */
+          if (est && cuando[est] && !ahora) txt.appendChild(el('div', 'sd-e', fecha(cuando[est])));
           else if (ahora){
             var eti = el('span', 'tr-aqui', textoAqui());
             /* Desde cuando estas parado en este punto. Para un devuelto es
@@ -22951,6 +22962,9 @@ applyLang(idiomaParaMi());
      mientras está ante la alcaldía, y la certificación al resolverse. */
   var PASOS_SEGUN_ESTADO = {
     c28: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    /* La verificación (c33), «Revisión de tus recaudos → Verificado»: con la
+       cuenta de siempre la revisión salía hecha nada más enviarla (30-9-2026). */
+    c33: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Los dos RIF (Franklin Reyes, 30-9-2026): «Solicitud recibida → Planilla
        enviada por el CIIP → Firme la planilla → RIF emitido». Empiezan por
        «recibida», así que la cuenta es la de siempre; están aquí porque son

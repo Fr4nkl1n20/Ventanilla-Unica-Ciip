@@ -9410,6 +9410,22 @@
     igual('planilla firmada: ante el SENIAT ya volvió firmada, en curso «RIF emitido»',
           enCurso('ante_el_ente'), '4. RIF emitido');
 
+    /* «Revisión de tus recaudos», en curso mientras está en revisión y no
+       hecha nada más abrirla el gestor (Franklin Reyes, 30-9-2026, en los
+       parafiscales: «pasó directo de verificación de recaudos»). */
+    var pasoDe = function(codigo, estado){
+      var E = esc({id: 'rv-' + codigo, tipo: codigo, estado: estado, datos: {}, inversionista: 'u2'},
+                  codigo, 'Entes varios');
+      var c = (E && E.circ) || [];
+      var p = c.filter(function(x){ return x.ahora; })[0];
+      return (p ? p.n + '. ' + p.nombre : '(ninguno)') + ' · hechos ' +
+             c.filter(function(x){ return x.hecho; }).length;
+    };
+    igual('revisión: parafiscales en revisión, la revisión es la que está en curso',
+          pasoDe('registros_parafiscales', 'en_revision'), '2. Revisión de tus recaudos · hechos 1');
+    igual('revisión: y hecha al presentarla ante los entes',
+          pasoDe('registros_parafiscales', 'ante_el_ente'), '4. Las seis constancias, en tu bóveda · hechos 3');
+
     var hace = new Date(Date.now() - 3600000).toISOString();
     window.__IMPORTE_DOCS = {
       'pf-ya':   [{id: 'pfy', tipo: 'planilla_firmada', estado: 'cargado', creado_en: hace,
