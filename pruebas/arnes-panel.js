@@ -3890,6 +3890,36 @@
        it.offsetHeight > antes, antes + ' → ' + it.offsetHeight, 'más alta');
     it.value = '';
     it.dispatchEvent(new Event('input'));
+
+    /* La salida antes de la entrada: aviso debajo y el paso no sigue
+       (FECHA_ORDEN). Se escribe en los escondidos, que es lo que leen el
+       aviso y validaPaso; las tres listas avisan igual, con un 'input'. */
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var ent = caja.querySelector('input[name="fecha_entrada"]');
+    var sal = caja.querySelector('input[name="fecha_salida"]');
+    var campoS = sal && sal.closest('.sol-campo');
+    var notaS = campoS && campoS.querySelector('.sol-orden');
+    if (!ent || !sal || !notaS){
+      ok('visa: la fecha de salida trae su aviso de orden', false,
+         (ent ? '' : 'sin entrada ') + (sal ? '' : 'sin salida ') + (notaS ? '' : 'sin aviso'), 'las tres');
+      return sigue();
+    }
+    var hoy = new Date(), anio = hoy.getFullYear() + 1;
+    ent.value = anio + '-05-10'; ent.dispatchEvent(new Event('input'));
+    sal.value = anio + '-05-01'; sal.dispatchEvent(new Event('input'));
+    ok('visa: con la salida antes de la entrada, lo dice debajo de la salida',
+       !notaS.hidden && campoS.classList.contains('mal'),
+       notaS.hidden ? '(sin aviso)' : notaS.textContent, 'el aviso, en rojo');
+    var sigueB = caja.querySelector('.pa-sigue');
+    if (sigueB) sigueB.click();
+    igual('visa: y el paso no sigue, diciendo por qué',
+          (caja.querySelector('.pa-aviso') || {}).textContent, U.pa_orden_paso);
+    /* Y al corregir la ENTRADA, no la salida, el aviso se va igual. */
+    ent.value = anio + '-04-20'; ent.dispatchEvent(new Event('input'));
+    ok('visa: corregida la entrada, el aviso de la salida se va',
+       notaS.hidden && !campoS.classList.contains('mal'),
+       notaS.hidden ? 'sin aviso' : notaS.textContent, 'sin aviso');
+    ent.value = ''; sal.value = '';
     sigue();
   }
 

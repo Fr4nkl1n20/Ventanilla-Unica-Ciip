@@ -3856,6 +3856,70 @@ applyLang(idiomaParaMi());
     return primera;
   }
 
+  /* ── UNA FECHA QUE NO PUEDE IR ANTES DE OTRA ──
+     Franklin Reyes, 30-9-2026: con la salida antes de la entrada el viaje
+     no existe, y la solicitud se dejaba enviar así. Misma forma que la
+     vigencia del pasaporte: aviso debajo del campo al momento, en rojo, y
+     validaPaso y el envío no siguen. Cada nombre apunta al campo que no
+     puede adelantar; el mismo día vale -se entra y se sale en uno-. */
+  var FECHA_ORDEN = {
+    fecha_salida: 'fecha_entrada'
+  };
+
+  /* El aviso si la fecha n va antes de la suya dentro de raiz, o null si
+     no, o si alguna de las dos está a medias: una fecha sin terminar ya la
+     dirá validaPaso como un hueco. */
+  function ordenAlReves(raiz, n){
+    var e = raiz.querySelector('input[name="' + n + '"]');
+    var a = raiz.querySelector('input[name="' + FECHA_ORDEN[n] + '"]');
+    var re = /^\d{4}-\d{2}-\d{2}$/;
+    if (!e || !a || !re.test(e.value) || !re.test(a.value)) return null;
+    if (e.value >= a.value) return null;
+    return String(T().f_orden_salida || '').replace('{fecha}', diaDelImporte(a.value));
+  }
+
+  /* Se engancha a las DOS fechas: corregir la entrada también quita el
+     aviso de la salida. Va sobre la rejilla ya montada, que al montar la
+     salida la entrada puede no existir todavía. */
+  function vigilaOrden(raiz){
+    Object.keys(FECHA_ORDEN).forEach(function(n){
+      var campo = raiz.querySelector('.sol-campo[data-campo="' + n + '"]');
+      var e = raiz.querySelector('input[name="' + n + '"]');
+      var a = raiz.querySelector('input[name="' + FECHA_ORDEN[n] + '"]');
+      if (!campo || !e || !a) return;
+      var nota = el('div', 'sol-vigencia sol-orden', '');
+      nota.setAttribute('aria-live', 'polite');
+      nota.hidden = true;
+      campo.appendChild(nota);
+      function mira(){
+        var dice = ordenAlReves(raiz, n);
+        nota.textContent = dice || '';
+        nota.hidden = !dice;
+        if (dice) campo.classList.add('mal');
+        else if (e.value) campo.classList.remove('mal');
+      }
+      e.addEventListener('input', mira);
+      a.addEventListener('input', mira);
+      campo._orden = mira;
+      mira();
+    });
+  }
+
+  /* La primera fecha al revés dentro de raiz, o null. Como
+     vigenciaQueFrena: la marca y le repinta el aviso, que el recorrido de
+     validaPaso acaba de quitarle el rojo por estar escrita. */
+  function ordenQueFrena(raiz){
+    var primera = null;
+    Object.keys(FECHA_ORDEN).forEach(function(n){
+      var c = raiz.querySelector('.sol-campo[data-campo="' + n + '"]');
+      if (!c || c.hidden || !ordenAlReves(raiz, n)) return;
+      if (c._orden) c._orden();
+      c.classList.add('mal');
+      if (!primera) primera = c;
+    });
+    return primera;
+  }
+
   /* Las oficinas del Registro Mercantil donde el SAREN deja hacer la
      constitucion, por estado. Salen de su propia consulta
      (https://tramites.saren.gob.ve/get/oficina, la que usa su formulario
@@ -6572,6 +6636,7 @@ applyLang(idiomaParaMi());
       }
       g.lastChild.appendChild(suCampo);
     });
+    vigilaOrden(rejilla);
     col.appendChild(rejilla);
 
     /* --- recaudos, EN LA COLUMNA DE AL LADO ---
@@ -7117,6 +7182,14 @@ applyLang(idiomaParaMi());
         if (lista3 && lista3.focus) lista3.focus();
         return false;
       }
+      /* Y las fechas del viaje, al derecho (FECHA_ORDEN). */
+      var alReves = ordenQueFrena(hoja);
+      if (alReves){
+        avisoPaso.textContent = u.pa_orden_paso || '';
+        var listaO = alReves.querySelector('.fecha3 select');
+        if (listaO && listaO.focus) listaO.focus();
+        return false;
+      }
       if (!falta) return true;
       avisoPaso.textContent = u.pa_falta_paso || u.falta || '';
       if (primero && primero.focus) primero.focus();
@@ -7458,6 +7531,14 @@ applyLang(idiomaParaMi());
       var hojaCorta = cortoEnvio.closest && cortoEnvio.closest('.pa-hoja');
       if (hojaCorta && caja.CIIP_VE_PASO)
         caja.CIIP_VE_PASO(+hojaCorta.getAttribute('data-paso'), u.pa_vigencia_paso || '');
+      return;
+    }
+    var alRevesEnvio = ordenQueFrena(caja);
+    if (alRevesEnvio){
+      aviso.textContent = u.pa_orden_paso || ''; aviso.className = 'sol-aviso err';
+      var hojaO = alRevesEnvio.closest && alRevesEnvio.closest('.pa-hoja');
+      if (hojaO && caja.CIIP_VE_PASO)
+        caja.CIIP_VE_PASO(+hojaO.getAttribute('data-paso'), u.pa_orden_paso || '');
       return;
     }
     if (falta){
