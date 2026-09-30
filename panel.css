@@ -2685,7 +2685,11 @@ body[data-vista="citas"] .fase-bar{display:none;}
    cuanto la fase 01 dejo de llamarse con una sola palabra. */
 .jbar{height:5px; border-radius:20px; background:var(--line-soft); margin-top:9px;
   overflow:hidden; width:100%;}
-.jbar>span{display:block; height:100%; border-radius:20px; background:linear-gradient(90deg,var(--cyan-deep),var(--cyan));}
+/* El avance de la etapa, del azul de su punto (.jp.active .num) y no el
+   degradado cyan (Franklin Reyes, 30-9-2026: «la barra de procesos puede
+   ser un azul más oscuro, igual que los puntos de la etapa»). --azul-panel
+   es #004090 en claro y se aclara en oscuro, donde el --navy no se veía. */
+.jbar>span{display:block; height:100%; border-radius:20px; background:var(--azul-panel);}
 .jp.done .jbar>span{background:var(--good);}
 
 .jcount{font-size:var(--fs-nota); font-weight:700; color:var(--gray); letter-spacing:.02em; margin-top:5px;}
