@@ -1901,11 +1901,11 @@ body[data-vista="citas"] .fase-bar{display:none;}
    casilla por recaudo y la del dato del formulario. */
 .co-dev{border:1px solid var(--line); border-radius:var(--r-sm); padding:8px 10px 10px; margin:8px 0 0;
   display:flex; flex-direction:column; gap:6px; min-width:0;}
-.co-dev-t{font-size:var(--fs-rotulo-form); font-weight:700; color:var(--gray); padding:0 4px;}
-.co-dev-f{display:flex; align-items:flex-start; gap:8px; font-size:var(--fs-fila); color:var(--ink); cursor:pointer; min-width:0;}
+.co-dev-t{font-size:var(--fs-rotulo-form); font-weight:500; color:var(--gray); padding:0 4px;}
+.co-dev-f{display:flex; align-items:flex-start; gap:8px; font-size:var(--fs-fila); font-weight:600; color:var(--ink); cursor:pointer; min-width:0;}
 .co-dev-f input{margin:2px 0 0; flex:none; accent-color:var(--rust);}
 .co-dev-n{display:flex; flex-direction:column; min-width:0; overflow-wrap:anywhere;}
-.co-dev-n small{font-size:var(--fs-nota); color:var(--gray);}
+.co-dev-n small{font-size:var(--fs-nota); font-weight:400; color:var(--gray);}
 .co-vacia{font-size:var(--fs-parrafo); color:var(--gray); padding:16px 12px 20px; text-align:center;}
 /* --- «Mis tramites», en tabla --- */
 /* La fila NO es pulsable aqui, y por eso se le quita el cursor que .tabla
@@ -5007,7 +5007,7 @@ html.visor-abierto{overflow:hidden;}
 .vs-esc li.ahora .vs-esc-p{background:var(--navy2); border-color:var(--navy2); color:#fff;}
 .vs-esc-n{min-width:0; overflow-wrap:anywhere;}
 .vs-pest{display:flex; gap:2px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
-.vs-pest-b{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--gray); background:none; border:0;
+.vs-pest-b{font:inherit; font-size:var(--fs-pestana); font-weight:600; color:var(--gray); background:none; border:0;
   border-bottom:2px solid transparent; margin-bottom:-1px; padding:8px 10px; cursor:pointer;}
 .vs-pest-b[aria-selected="true"]{color:var(--navy2); border-bottom-color:var(--navy2);}
 .vs-pest-b:focus-visible{outline:2px solid var(--navy2); outline-offset:2px;}
