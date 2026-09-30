@@ -1198,8 +1198,15 @@ function applyLang(lang){
     var rolSabido = typeof PERFIL !== 'undefined' && PERFIL.rolReal;
     var delEquipo = !!(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO());
     if ((tipo === 'poratender' || tipo === 'consultas' || tipo === 'revisar' || tipo === 'codigos' || tipo === 'comprobantes') && rolSabido && !delEquipo) tipo = null;
-    /* Y el horario de citas, igual: es del equipo. */
-    if (tipo === 'horario' && !(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO())) tipo = null;
+    /* Y el horario de citas, igual: es del equipo. Con la MISMA regla del
+       rol sabido: esta línea preguntaba solo «¿eres del equipo?», y al
+       recargar sobre #horario el perfil aún no ha llegado, así que la
+       respuesta era siempre no y F5 sacaba al gestor de su propio horario
+       a la portada -el fallo que arriba se arregló para la cola y las
+       consultas-. Si el rol no ha llegado se entra, y CIIP_PINTA_HORARIO,
+       que espera al rol con traeAlEntrar, saca de ahí a quien no sea del
+       equipo. */
+    if (tipo === 'horario' && rolSabido && !delEquipo) tipo = null;
     /* Y el equipo, solo el administrador: son las cifras y el historial de
        cada persona de la oficina. Con el rol sabido, como la cola: al
        recargar sobre #equipo el rol todavia no ha llegado. */
@@ -29550,7 +29557,16 @@ applyLang(idiomaParaMi());
       });
     }
 
-    window.CIIP_PINTA_HORARIO   = function(){ return carga().then(pinta); };
+    /* La otra mitad de la guardia del enrutador: con F5 se entra antes de
+       saber el rol, y esto corre ya con él. Si no eres del equipo, fuera,
+       como en la cola y en «Consultas y citas». */
+    window.CIIP_PINTA_HORARIO   = function(){
+      if (!esEquipo()){
+        if (location.hash === '#horario') location.hash = '';
+        return Promise.resolve();
+      }
+      return carga().then(pinta);
+    };
     window.CIIP_REPINTA_HORARIO = function(){
       if (document.body.getAttribute('data-vista') === 'horario') pinta();
     };

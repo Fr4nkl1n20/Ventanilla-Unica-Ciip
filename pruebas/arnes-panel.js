@@ -244,7 +244,7 @@
               /* El horario del equipo: se entra, se toca y se sale a la portada. */
               horarioBarra, horarioAbre, horarioMira, horarioTrasAnadir,
               horarioCitasMira, horarioCitasTras,
-              horarioQuita, horarioTrasQuitar, horarioTrasCerrar,
+              horarioQuita, horarioTrasQuitar, horarioTrasCerrar, horarioF5,
               paisesMira, empiezaSolicitud, paisesTrasAbrir,
               dupeAbre, empiezaSolicitud, dupeMira, dupeTrasEnviar,
               antesAbre, empiezaSolicitud, antesMira, fecha3Mira, fecha3Cambia,
@@ -3249,6 +3249,31 @@
       location.hash = '';
       sigue();
     });
+  }
+
+  /* F5 SOBRE #horario. El enrutador preguntaba «¿eres del equipo?» sin
+     mirar si el rol había llegado, y al recargar no ha llegado nunca: el
+     gestor que pulsaba F5 en su horario acababa en la portada. Es lo que ya
+     prueba cmF5 para #consultas, con el horario. Se apaga el rol a mano,
+     como si el perfil no hubiera contestado, y se entra. */
+  function horarioF5(sigue){
+    if (CASO !== 'gestor') return sigue();
+    var antes = {rol: PERFIL.rol, real: PERFIL.rolReal};
+    PERFIL.rol = '';
+    PERFIL.rolReal = false;
+    location.hash = 'horario';
+    var n = 0;
+    (function mira(){
+      if (document.body.getAttribute('data-vista') !== 'horario' && ++n <= 20) return setTimeout(mira, 40);
+      igual('horario: F5 sobre #horario no te saca antes de saber tu rol',
+            document.body.getAttribute('data-vista'), 'horario');
+      PERFIL.rol = antes.rol;
+      PERFIL.rolReal = antes.real;
+      /* Lo que hace la página cuando el perfil llega de verdad (ver cmF5Mira). */
+      if (window.CIIP_REPINTA_COLA) window.CIIP_REPINTA_COLA();
+      location.hash = '';
+      sigue();
+    })();
   }
 
   /* ═══════════ LA CONSTITUCIÓN, EN TRES TRAMOS ═══════════
