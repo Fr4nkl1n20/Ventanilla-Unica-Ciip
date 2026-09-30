@@ -26662,6 +26662,10 @@ applyLang(idiomaParaMi());
      cambiar, por idioma; lo que no este, lo pone el diccionario. Asi
      escribir solo la española no deja los otros cinco en blanco.
      ─────────────────────────────────────────────────────────────────── */
+  /* El subtítulo se fue con la cabecera el 8-9-2026 (76705de); la
+     pantalla se reconoce por su caja, no por él. Con la guarda puesta en
+     soSub, «Acompañamiento» dejó de abrir desde ese día. */
+  var soVista = document.querySelector('.acomp-vista');
   var soSub = document.getElementById('soSub');
   var soNav = document.getElementById('navAcomp');
 
@@ -26717,10 +26721,10 @@ applyLang(idiomaParaMi());
   }
 
   function pintaAcomp(){
-    if (!soSub) return;
+    if (!soVista) return;
     var u = T();
     var d = I18N[curLang] || I18N.en;
-    soSub.textContent = u.sop_sub || '';
+    if (soSub) soSub.textContent = u.sop_sub || '';
     document.getElementById('soTsale').textContent = u.sop_g_sale || '';
     document.getElementById('soTtiempos').textContent = u.sop_g_tiempos || '';
     document.getElementById('soTtextos').textContent = u.sop_g_textos || '';
@@ -26858,7 +26862,7 @@ applyLang(idiomaParaMi());
       });
   }
 
-  if (soSub){
+  if (soVista){
     if (soNav) soNav.addEventListener('click', function(){ location.hash = 'acompanamiento'; });
     var soG = document.getElementById('soGuardar');
     if (soG) soG.addEventListener('click', guardaAcomp);

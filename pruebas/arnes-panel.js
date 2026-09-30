@@ -264,6 +264,7 @@
               usuariosMira, usuariosCambia, usuariosConfirma, usuariosTrasCambiar, usuariosSeMueve,
               usBloqPide, usBloqMira, usBajaPide, usBajaSi, usBajaMira,
               guardiaEntra, guardiaMira, guardiaMiraOtra,
+              acompAbre, acompMira,
               cuentaBloqMira,
               sinSqlAbre, sinSqlMira,
               adminMira, adminAbre, adminDentro,
@@ -5702,6 +5703,26 @@
        document.body.getAttribute('data-vista') !== 'acomp',
        document.body.getAttribute('data-vista'), 'otra vista');
     location.hash = '';
+  }
+
+  /* «Acompañamiento» no abría desde el 8-9-2026: su código esperaba el
+     subtítulo #soSub, que se fue con la cabecera, y sin él no enganchaba
+     ni el clic. Ninguna prueba entraba en la pantalla. */
+  function acompAbre(sigue){
+    if (!ES_ADMIN) return sigue();
+    var nav = document.getElementById('navAcomp');
+    if (nav) nav.click();
+    esperaFilas('#soSale input', 1, sigue);
+  }
+  function acompMira(sigue){
+    if (!ES_ADMIN) return sigue();
+    igual('acompañamiento: el renglón abre su pantalla',
+          document.body.getAttribute('data-vista'), 'acomp');
+    ok('acompañamiento: y la pinta, con sus interruptores',
+       document.querySelectorAll('#soSale input').length > 0,
+       document.querySelectorAll('#soSale input').length + ' casillas', 'alguna casilla');
+    location.hash = '';
+    setTimeout(sigue, 500);
   }
 
   /* QA-28: una cuenta bloqueada entraba normal y todo le fallaba sin
