@@ -3459,7 +3459,9 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .pe-cab .chip{white-space:normal; max-width:100%;}
 .pe-msg{flex-basis:100%; font-size:var(--fs-nota); color:var(--gray);}
 .pe-msg:empty{display:none;}
-.pe-listo{margin-top:8px;}
+/* «Marcar listo» es un botón, no una barra: dentro de una tarjeta en columna
+   se estiraba a todo el ancho y se leía como una franja blanca (1-10-2026). */
+.pe-listo{margin-top:8px; align-self:flex-start; width:auto; max-width:100%;}
 .pe-baja{margin-top:8px;}
 .pe-baja[hidden]{display:none;}
 .co-entes{margin-top:12px;}
