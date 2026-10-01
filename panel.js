@@ -3243,20 +3243,26 @@ applyLang(idiomaParaMi());
        y la cédula y el RIF de los miembros de la junta directiva. Un
        archivo por papel, con todas las personas dentro: Franklin lo
        prefirió a la lista por persona de la constitución. Y el recibo de
-       un servicio público que compruebe la dirección comercial. */
+       un servicio público que compruebe la dirección comercial.
+
+       TRES, DESDE EL 1-10-2026 (Franklin Reyes, 1-10-2026, Taquilla única
+       opción 2): «Cédula de identidad y RIF del representante legal» y
+       «RIF de la empresa», y nada más. Cada ente le pide lo suyo al
+       inversionista en su propio portal, que es donde ahora se inscribe
+       él; aquí el CIIP solo necesita saber quién es la empresa y quién la
+       representa. Todo lo de arriba queda como historia de la lista.
+
+       La cédula y el RIF del representante van en DOS casillas aunque el
+       documento los nombre juntos: son dos papeles distintos en la
+       bóveda, con sus tipos de siempre (cedula y rif_personal), y en una
+       sola casilla el segundo no se reutilizaría nunca. Las claves son las
+       del registro de marca y de la opinión de la ZODI -d_cedrep y
+       d_rifrep-, que ya dicen «del representante legal» en los ocho
+       idiomas. */
     registros_parafiscales: [
-      {tipo:'acta_constitutiva',    clave:'d_acta'},
-      {tipo:'rif_empresa',          clave:'d_rifempresa'},
-      {tipo:'cedula',               clave:'d_identidad'},
-      {tipo:'rif_inversionistas',   clave:'d_rifinversionistas'},
-      {tipo:'cedulas_junta',        clave:'d_cedulasjunta'},
-      {tipo:'rifs_junta',           clave:'d_rifsjunta'},
-      {tipo:'recibo_servicio',      clave:'d_recibocomercial'},
-      {tipo:'acta_asamblea',        clave:'d_asamblea',    opcional:true},
-      {tipo:'nomina',               clave:'d_nomina',      opcional:true},
-      {tipo:'poder',                clave:'d_poder',       opcional:true},
-      {tipo:'declaracion_islr',     clave:'d_islr',        opcional:true},
-      {tipo:'solvencia_seniat',     clave:'d_solvseniat',  opcional:true}
+      {tipo:'cedula',               clave:'d_cedrep'},
+      {tipo:'rif_personal',         clave:'d_rifrep'},
+      {tipo:'rif_empresa',          clave:'d_rifempresa'}
     ],
     /* ── Fase 03: los seis que faltaban frente a la hoja ──────────
        El FAOV y el INCES piden lo mismo que el IVSS del c9 —acta, RIF de
@@ -4515,24 +4521,18 @@ applyLang(idiomaParaMi());
        Las tres últimas son del RNC y van OPCIONALES, por lo mismo que
        sus recaudos: quien no aspira a contratar con el Estado no tiene
        por qué quedarse sin enviar por un capital social. Era cuatro: «Qué
-       vas a contratar» se quitó el 23-9-2026, que lo pidió Franklin. */
+       vas a contratar» se quitó el 23-9-2026, que lo pidió Franklin.
+
+       TRES, DESDE EL 1-10-2026 (Franklin Reyes, 1-10-2026, Taquilla única
+       opción 2): razón social, RIF y representante legal. Lo demás
+       -correo, trabajadores, actividad, establecimientos, lo del RNC- lo
+       pregunta cada ente en su portal, donde ahora se inscribe el propio
+       inversionista. Los nombres son los de siempre para que se hereden de
+       Mi empresa y de los demás trámites. */
     registros_parafiscales: [
       {n:'razon_social',        clave:'f_razon',         ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
-      {n:'representante',       clave:'f_representante'},
-      {n:'correo_empresa',      clave:'f_correoempresa'},
-      {n:'telefono',            clave:'f_telefono',      tipo:'tel'},
-      {n:'actividad_economica', clave:'f_actividad'},
-      {n:'num_trabajadores',    clave:'f_numtrab',       tipo:'number'},
-      {n:'inicio_actividades',  clave:'f_iniciolab',     tipo:'date'},
-      {n:'direccion_fiscal',    clave:'f_direccion',     ancho:true},
-      /* Opcional desde el 23 de septiembre de 2026, que lo pidió Franklin:
-         una empresa recién constituida puede no tener más sitio que su
-         domicilio fiscal, y eso ya va en el campo de arriba. */
-      {n:'establecimientos',    clave:'f_rupdaeestab',   ancho:true, opcional:true},
-      {n:'numero_registro',     clave:'f_registro',      opcional:true},
-      {n:'capital_social',      clave:'f_capital',       opcional:true},
-      {n:'fecha_constitucion',  clave:'f_constitucion',  tipo:'date', opcional:true}
+      {n:'representante',       clave:'f_representante'}
     ],
     /* Los tres registros laborales comparten casi todo el formulario: al
        ente le hace falta saber quién es la empresa, quién la representa y
@@ -10053,15 +10053,15 @@ applyLang(idiomaParaMi());
             bloqueE.appendChild(el('div', 'pe-titulo', u.pe_titulo || ''));
             /* 'equipo' y no 'lectura' (Franklin Reyes, 25-9-2026, viendo
                los cinco entes sin nada que tocar). listaDeEntes conoce dos
-               modos con algo que hacer -el inversionista escribe el código,
-               el equipo lo da por listo- y cualquier otra palabra cae en un
-               tercero mudo. Aquí se mandaba 'lectura', así que el mismo
-               gestor tenía el botón en la cola y no lo tenía aquí: el mismo
-               expediente contestaba distinto según por dónde se abriera.
+               modos con algo que hacer -el inversionista marca lo que hizo
+               en cada portal (desde el 1-10-2026), el equipo lo da por
+               listo- y cualquier otra palabra cae en un tercero mudo. Aquí
+               se mandaba 'lectura', así que el mismo gestor tenía el botón
+               en la cola y no lo tenía aquí: el mismo expediente contestaba
+               distinto según por dónde se abriera.
 
-               La caja del código sigue siendo solo del inversionista, y eso
-               NO cambia: «el usuario es quien recibe los códigos en sus
-               correos y los ingresa». */
+               Las marcas siguen siendo solo del inversionista: es él quien
+               se inscribe en el portal de cada ente. */
             bloqueE.appendChild(listaDeEntes(tr,
               (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) ? 'equipo' : 'inversionista'));
             lista.parentNode.insertBefore(bloqueE, lista.nextSibling);
@@ -23800,14 +23800,15 @@ applyLang(idiomaParaMi());
 
   /* ── LOS CINCO ENTES DE LOS REGISTROS PARAFISCALES ──
      Franklin Reyes, 23-9-2026: la solicitud es una -un solo envío de
-     recaudos- pero cada ente es un proceso aparte. El ente le da un código
-     al inversionista, el inversionista nos lo manda desde aquí -escrito- y
-     el equipo da ese ente por listo desde su cola. Vive en tramite_entes
-     (supabase-entes-parafiscales.sql): sin fila, el ente está por iniciar.
+     recaudos- pero cada ente es un proceso aparte. Desde el 1-10-2026 el
+     inversionista se inscribe él mismo en el portal de cada ente y lo
+     marca aquí, y el equipo da ese ente por listo desde su cola. El cierre
+     vive en tramite_entes (supabase-entes-parafiscales.sql): sin fila, el
+     ente está por cerrar.
 
-     Una sola función para las dos pantallas. modo 'inversionista' pone la
-     casilla del código; 'equipo', el botón de darlo por listo; cualquier
-     otro, solo lectura. */
+     Una sola función para las dos pantallas. modo 'inversionista' pone los
+     enlaces a los portales y las marcas; 'equipo', el botón de darlo por
+     listo y la constancia; cualquier otro, solo lectura. */
   var TIPO_PARAFISCALES = 'registros_parafiscales';
   /* El IVSS entra el 25-9-2026 (Franklin Reyes: «IVSS sí va»). El texto de
      la ficha prometía seis inscripciones -FAOV, INCES, RNET, RUPDAE, IVSS y
@@ -23831,21 +23832,76 @@ applyLang(idiomaParaMi());
      Sin ese SQL corrido la columna no existe y pedirla tumbaba la consulta
      entera: los seis entes salían por iniciar. Así que si la base dice que
      no la conoce, se vuelve a pedir sin ella y se sigue como antes. */
+  /* Desde el 1-10-2026 nadie manda ya usuario y contraseña (ver
+     pasosDelEnte, abajo). Se queda para la bandeja de #codigos, que sigue
+     enseñando las filas de antes que se quedaron en 'codigo_enviado'. */
   var ENTES_CON_CLAVE = ['ivss', 'inces'];
-  /* ── EL IVSS, CON SU PLANILLA ──
-     Franklin Reyes, 30-9-2026: revisado el usuario y la contraseña, el
-     CIIP le manda al inversionista la planilla de inscripción del IVSS, y
-     él tiene que llevarla firmada al CIIP. Dos pasos más, solo en el IVSS.
+  /* ── CADA ENTE, LO INSCRIBE EL PROPIO INVERSIONISTA ──
+     Franklin Reyes, 1-10-2026, Taquilla única opción 2: en cada ente, el
+     inversionista se inscribe él mismo en el portal del organismo y marca
+     aquí que lo hizo. Después, «Solicitud de inscripción en proceso», y al
+     final «Certificado de inscripción listo», que sigue cerrando el
+     equipo con «Marcar listo» o con la constancia.
 
-     La planilla va en la MISMA casilla 'documento' de la fila, que en el
-     IVSS está libre hasta que llega la constancia, y se distingue por su
-     tipo. Una columna nueva con otra referencia a documentos dejaba
-     ambiguo el documentos(...) de ENTES_SELECT, y la consulta de las seis
-     inscripciones caía entera el día que se corriera el SQL. Así solo
-     hace falta el tipo nuevo y sus dos políticas
-     (supabase-planilla-ivss.sql). La constancia la sustituye al cerrar,
-     y la planilla sigue en la bóveda del inversionista. */
-  var ENTES_CON_PLANILLA = ['ivss'];
+     El IVSS lleva más: primero se solicita la afiliación y luego se
+     confirma, en dos páginas distintas de su portal, y después hay que
+     llevar los recaudos y la planilla de confirmación a la oficina del
+     municipio. Las tres cosas las marca el inversionista.
+
+     Hasta ese día el CIIP inscribía, el IVSS y el INCES mandaban usuario y
+     contraseña y el CIIP enviaba la planilla del IVSS (30-9-2026). Todo eso
+     se fue: ver «EL CIERRE SIGUE SIENDO DEL EQUIPO» en listaDeEntes.
+
+     LAS MARCAS VAN EN tramites.datos, por confirma_paso(), que es lo que
+     ya usaba el «Ya me registré» de Cancillería: una función de la base
+     que escribe datos[clave] = la fecha, solo para el dueño y con la
+     solicitud viva, y devuelve la fila. Cada clave tiene que estar en su
+     lista de permitidas -'ente_banavih', 'ente_inces', 'ente_ivss',
+     'ente_ivss_confirma', 'ente_ivss_oficina', 'ente_mpppst',
+     'ente_sundde', 'ente_snc'-; una que no esté, la base la rechaza. Y no
+     en tramite_entes: el estado de esa fila es del equipo (sus políticas
+     no dejan escribir al inversionista), y mezclar en él lo que marca cada
+     uno haría que un «listo» pudiera pisar una marca o al revés. */
+  var PORTAL_DEL_ENTE = {
+    banavih: 'https://faovel.banavih.gob.ve/index.php/empleador_login/afiliarEmpleador',
+    inces:   'https://contribuyentes-parafiscal.sigat.net/registro?institucion=3',
+    mpppst:  'https://rnet.mpppst.gob.ve/mpppst2/rnet/mod_rnet/identificacion_emp.php',
+    sundde:  'https://rupdae.sundde.gob.ve/register',
+    snc:     'https://rncenlinea.snc.gob.ve/suscripciones/new'
+  };
+  var IVSS_SOLICITUD = 'http://registro.ivss.gob.ve:28085/RegistroSolicitudTiuna/crearSolicitudAfiliacion.htm';
+  var IVSS_CONFIRMA  = 'http://registro.ivss.gob.ve:28085/RegistroSolicitudTiuna/confirmarSolicitudManual.htm';
+  /* Los pasos de un ente. n: el texto (pasos.js); url: el portal; marca:
+     la clave que escribe confirma_paso; boton: el texto de la marca;
+     cierre: el que cierra el equipo. */
+  function pasosDelEnte(ente){
+    if (ente === 'ivss') return [
+      {n:'pe_ivss_solicite', url:IVSS_SOLICITUD, marca:'ente_ivss',          boton:'pe_yasolicite'},
+      {n:'pe_ivss_confirme', url:IVSS_CONFIRMA,  marca:'ente_ivss_confirma', boton:'pe_yaconfirme'},
+      {n:'pe_enproceso'},
+      {n:'pe_ivss_oficina',                      marca:'ente_ivss_oficina',  boton:'pe_yaentregue'},
+      {n:'pe_certlisto', cierre:true}
+    ];
+    return [
+      {n:'pe_ins_' + ente, url:PORTAL_DEL_ENTE[ente], marca:'ente_' + ente, boton:'pe_yainscribi'},
+      {n:'pe_enproceso'},
+      {n:'pe_certlisto', cierre:true}
+    ];
+  }
+  /* Cuántos pasos van hechos. Las marcas cuentan EN ORDEN: una suelta más
+     adelante no se salta las de antes (confirmar sin haber solicitado no es
+     haber hecho las dos). «En proceso» queda hecho en cuanto lo está lo de
+     delante -es una noticia, no una tarea-, y con el ente listo, todos. */
+  function hechosDelEnte(pasos, datos, listo){
+    if (listo) return pasos.length;
+    var n = 0;
+    for (var i = 0; i < pasos.length; i++){
+      if (pasos[i].cierre) break;
+      if (pasos[i].marca && !datos[pasos[i].marca]) break;
+      n = i + 1;
+    }
+    return n;
+  }
   /* Cada ente, por la sigla con que sale en la lista de «Pasos y recaudos»
      de Ayuda y guías (Franklin Reyes, 1-10-2026; el SNC, el Registro Nacional
      de Contratistas, entró el mismo día). Los seis. */
@@ -23888,7 +23944,13 @@ applyLang(idiomaParaMi());
      cosas distintas, que es el fallo que se repite en esta ficha.
 
      Ahora es una sola cosa la que manda -la etapa de arriba- y las cinco
-     casillas cuelgan de ella. */
+     casillas cuelgan de ella.
+
+     Y se queda así con las marcas del inversionista (1-10-2026), aunque
+     confirma_paso() dejaría marcar desde que se envía: el «Ya me inscribí»
+     sale cuando el CIIP ha revisado los recaudos y abierto esta etapa, que
+     es también cuando el visor del gestor abre su paso 3 -donde se ven las
+     marcas-. Marcar antes dejaría marcas que el gestor no tiene dónde ver. */
   var ENTES_ABIERTOS = ['ante_el_ente'];
 
   var ENTES_DE = {};
@@ -23931,12 +23993,15 @@ applyLang(idiomaParaMi());
   };
 
   /* Cada ente con SU escalera, como los tramos de la constitución
-     (Franklin, 23-9-2026): tres pasos que se encienden con lo que hay en
-     tramite_entes. Sin fila, toca el primero -mandar el código-; con el
-     código enviado, el segundo -lo revisa el CIIP-; listo, los tres.
-     La casilla del código vive en el primer paso y el botón del equipo en
-     el segundo, que es donde se hace cada cosa. */
-  /* soloEste: uno de los cinco en vez de los cinco. Lo pide la cola, que
+     (Franklin, 23-9-2026). Desde el 1-10-2026 (Taquilla única opción 2)
+     los pasos los dice pasosDelEnte(): primero lo que hace el inversionista
+     en el portal del ente -con su enlace y su «Ya me inscribí»-, luego la
+     solicitud en proceso y al final el certificado, que cierra el equipo.
+
+     Se encienden con dos cosas: las marcas del inversionista, que viven en
+     tramites.datos (las escribe confirma_paso), y el estado 'listo' de la
+     fila de tramite_entes, que sigue siendo del equipo. */
+  /* soloEste: uno de los seis en vez de los seis. Lo pide la cola, que
      desde el 25-9-2026 enseña una ficha POR ENTE en vez de una por
      solicitud. El bloque es el mismo -mismos pasos, mismos botones, misma
      casilla para la constancia- y así no hay dos sitios que dibujen un
@@ -23944,20 +24009,61 @@ applyLang(idiomaParaMi());
   /* recogida: la tarjeta sin pasos y con «Ver trámite», para la fila de
      Mis trámites (29-9-2026).
      rejilla: el paso 3 del visor (29-9-2026, la idea A de las maquetas).
-     En vez de la escalera, dos casillas: «Llegó» -el código, o el usuario
-     y la contraseña- y «Enviar» -inscripción hecha, la constancia-, con
-     «Marcar lista» debajo. Son los MISMOS botones y la misma cuenta de
-     siempre, solo colocados de otra forma: un ente se sigue dibujando en
-     un solo sitio. */
+     En vez de la escalera, dos casillas: «Lo que marcó el inversionista»
+     -sus marcas, con la fecha- y «Enviar» -la constancia-, con «Marcar
+     listo» debajo. Son los MISMOS botones de siempre, solo colocados de
+     otra forma: un ente se sigue dibujando en un solo sitio. */
   function listaDeEntes(tr, modo, soloEste, recogida, rejilla){
     var u = T();
     var caja = el('div', 'pe-lista');
     var abierto = ENTES_ABIERTOS.indexOf(tr.estado) >= 0;
-    /* Y se DICE por qué están quietas. Cinco bloques grises sin una línea
+    /* Y se DICE por qué están quietas. Seis bloques grises sin una línea
        que lo explique se leen como una pantalla rota, no como una espera.
        Solo al inversionista: al equipo no se le cierran. */
     if (!abierto && modo === 'inversionista' && tr.estado !== 'resuelto')
       caja.appendChild(el('div', 'pe-aun', u.pe_aun_no || ''));
+
+    /* Las marcas son de la SOLICITUD -tramites.datos- y no de cada fila:
+       marcar el IVSS cambia los datos que leen los seis. Por eso, al volver
+       la respuesta, se repintan todos con la última fila que tenía cada
+       uno, y no solo el que se pulsó. */
+    function repintaTodos(){
+      caja.querySelectorAll('.pe-ente').forEach(function(f){
+        if (f.CIIP_PON) f.CIIP_PON(f.CIIP_FILA || null);
+      });
+    }
+    /* ── «YA ME INSCRIBÍ» ──
+       El mismo camino que el «Ya me registré» de Cancillería: SE CREE A LA
+       BASE Y NO AL CLIC. confirma_paso() levanta una excepción si no tocó
+       ninguna fila -una política que falta en PostgREST no da error,
+       cambia cero filas-, y el paso no se pinta hecho hasta que vuelve la
+       solicitud con la marca puesta. Si no vuelve, se dice. */
+    function marcaPaso(clave, bt, txt){
+      bt.disabled = true;
+      var antes = txt.querySelector('.tr-nota.mal');
+      if (antes) antes.parentNode.removeChild(antes);
+      sb.rpc('confirma_paso', {p_tramite: tr.id, p_clave: clave})
+        .then(function(r){
+          if (!r || r.error || !r.data) throw ((r && r.error) || new Error('sin fila'));
+          var filaT = Array.isArray(r.data) ? r.data[0] : r.data;
+          var nuevos = filaT && filaT.datos;
+          if (!nuevos || !nuevos[clave]) throw new Error('la base no trae la marca');
+          /* Encima de lo que había: la base devuelve los datos enteros,
+             pero así un doble que conteste solo la marca no borra nada. */
+          var juntos = {};
+          Object.keys(tr.datos || {}).forEach(function(k){ juntos[k] = tr.datos[k]; });
+          Object.keys(nuevos).forEach(function(k){ juntos[k] = nuevos[k]; });
+          tr.datos = juntos;
+          bt.disabled = false;
+          repintaTodos();
+        })
+        .catch(function(e){
+          bt.disabled = false;
+          txt.insertBefore(el('div', 'tr-nota mal', u.co_error || ''), bt.nextSibling);
+          console.warn('[CIIP] confirma_paso del ente:', e && (e.message || e));
+        });
+    }
+
     (soloEste ? [soloEste] : ENTES_PARAFISCALES).forEach(function(ente){
       var nombre = u['pe_' + ente] || ente;
       var fila = el('div', 'pe-ente');
@@ -23965,65 +24071,55 @@ applyLang(idiomaParaMi());
       fila.setAttribute('data-st', 'pendiente');
       var cab = el('div', 'pe-cab');
       cab.appendChild(el('span', 'pe-n', nombre));
-      var chip = el('span', 'chip mute', u.pe_pendiente || '');
+      var chip = el('span', 'chip mute', u.pe_por_iniciar || '');
       cab.appendChild(chip);
       fila.appendChild(cab);
 
-      /* ── PRIMERO TE INSCRIBEN, LUEGO LLEGA TU CÓDIGO ──
-         Franklin Reyes, 25-9-2026: «esas cinco casillas deberían
-         habilitarse cuando la fase de inscripción ante cada ente esté
-         resuelta», y el porqué: «para que el gestor pueda ver que esas
-         solicitudes están generadas y pueda trabajar en ellas».
-
-         Aquí la escalera empezaba en «Envía el código», y eso pedía un
-         código que todavía no podía existir: el ente no lo manda hasta que
-         el CIIP inscribe a la empresa ante él. El inversionista se quedaba
-         mirando cinco cajas vacías sin saber que le tocaba esperar, no
-         escribir; y el gestor no tenía dónde ver las cinco inscripciones
-         que le quedaban por hacer.
-
-         Así que la inscripción deja de ser invisible y pasa a ser el PRIMER
-         PASO, con su estado propio en la base. Las cinco filas nacen solas
-         al enviarse la solicitud -las crea un disparador, no el panel- y
-         por eso el gestor las ve desde el primer día aunque nadie las haya
-         tocado. Va en la base y no aquí porque una fila que solo existe si
-         alguien abrió una pantalla no es una fila: es una casualidad.
-
-         Uno por uno y no los cinco de golpe, porque no se inscriben el
-         mismo día. Si un día sí, se marcan los cinco seguidos y cuesta lo
-         mismo. */
-      /* El IVSS y el INCES: usuario y contraseña en vez de código. */
-      var conClave = ENTES_CON_CLAVE.indexOf(ente) >= 0;
-      /* ── LOS OTROS CUATRO, SIN CÓDIGO ──
-         Pedido del CIIP (28-9-2026): «Referente a las otras inscripciones,
-         eliminar "Coloque el código enviado", solamente quedará: El CIIP te
-         inscribe ante el ente → Inscripción lista».
-
-         Así que el BANAVIH, el Ministerio del Trabajo, la SUNDDE y el SNC
-         se quedan en DOS pasos: el CIIP los inscribe y, con la constancia
-         subida -o con «Marcar listo»-, la inscripción queda lista. Ni caja
-         del código para el inversionista ni revisión del código para el
-         gestor. El IVSS y el INCES siguen con sus cuatro, porque ellos sí
-         mandan usuario y contraseña.
-
-         Una fila vieja de uno de esos cuatro en 'inscrito' o en
-         'codigo_enviado' no se pierde: se lee como en marcha, el código que
-         hubiera mandado alguien se sigue viendo en el primer paso, y el
-         gestor la cierra con el mismo botón. */
-      var conPlanilla = ENTES_CON_PLANILLA.indexOf(ente) >= 0;
+      var defs = pasosDelEnte(ente);
+      var delInv = modo === 'inversionista' && !recogida;
       var ol = el('ol', 'tr-pasos pe-pasos');
-      var pasos = (conPlanilla ? ['pe_p0', 'pe_p1c', 'pe_p2c', 'pe_pplanilla', 'pe_ptrae', 'pe_p3']
-                 : conClave    ? ['pe_p0', 'pe_p1c', 'pe_p2c', 'pe_p3']
-                               : ['pe_p0', 'pe_p3']).map(function(clave, i){
+      var pasos = defs.map(function(def, i){
         var li = el('li', 'tr-paso porhacer');
         var punto = el('span', 'tr-punto', String(i + 1));
         var txt = el('div', 'tr-txt');
-        txt.appendChild(el('div', 'tr-paso-n', u[clave] || ''));
+        txt.appendChild(el('div', 'tr-paso-n', u[def.n] || ''));
         li.appendChild(punto); li.appendChild(txt);
         ol.appendChild(li);
-        return {li: li, punto: punto, txt: txt};
+        var p = {li: li, punto: punto, txt: txt, def: def};
+        /* El portal del ente, en otra pestaña: es allí donde se inscribe.
+           Solo al inversionista; el equipo no tiene nada que hacer allí. */
+        if (def.url && delInv){
+          var a = document.createElement('a');
+          a.className = 'tr-hacer pe-portal';
+          a.href = def.url;
+          a.target = '_blank';
+          /* noopener: la pestaña que se abre no puede tocar esta. */
+          a.rel = 'noopener noreferrer';
+          a.textContent = u.pe_irportal || '';
+          a.hidden = true;
+          txt.appendChild(a);
+          p.enl = a;
+        }
+        if (def.marca){
+          /* Cuándo lo marcó: lo leen los dos, y es lo que el gestor busca
+             para saber si ya puede ir a por el certificado. */
+          p.cuando = el('div', 'pe-hecho-el', '');
+          p.cuando.hidden = true;
+          txt.appendChild(p.cuando);
+          if (delInv){
+            var bt = el('button', 'tr-hacer pe-marca', u[def.boton] || '');
+            bt.type = 'button';
+            bt.hidden = true;
+            bt.setAttribute('data-clave', def.marca);
+            bt.addEventListener('click', function(){ marcaPaso(def.marca, bt, txt); });
+            txt.appendChild(bt);
+            p.bt = bt;
+          }
+        }
+        return p;
       });
       fila.appendChild(ol);
+      var ultimo = pasos[pasos.length - 1];
 
       /* «¿Sabes cuáles son los recaudos que necesitas?» (Franklin Reyes,
          1-10-2026, «Taquilla única 2.2»): lleva a Ayuda y guías, con el
@@ -24042,53 +24138,34 @@ applyLang(idiomaParaMi());
         fila.appendChild(aRec);
       }
 
-      var dice = el('div', 'pe-dice');
-      dice.hidden = true;
-      var ultimo = pasos[pasos.length - 1];
-      (conClave ? pasos[1] : pasos[0]).txt.appendChild(dice);
-
       /* La constancia que emitió el ente, para DESCARGARLA (Franklin
          Reyes, 25-9-2026: «falta una opción de que el inversionista pueda
-         descargar el documento»). Salía como un «Ver archivo» colgado del
-         paso 2, al lado del código, que no es donde nadie la busca: la
-         constancia es lo que cierra la inscripción, y va en su último
-         paso. SOLO PARA EL INVERSIONISTA (Franklin Reyes, 29-9-2026: «ni
-         administrador ni gestor deberían poder descargar el documento»): la
-         constancia es suya. El equipo la sube en ese mismo paso y no la
+         descargar el documento»). Va en el último paso -«Certificado de
+         inscripción listo»-, que es lo que cierra la inscripción. SOLO
+         PARA EL INVERSIONISTA (Franklin Reyes, 29-9-2026: «ni
+         administrador ni gestor deberían poder descargar el documento»):
+         la constancia es suya. El equipo la sube en ese mismo paso y no la
          descarga desde aquí. */
       var baja = el('button', 'btn navy pe-baja', u.pe_descargar || '');
       baja.type = 'button';
       baja.hidden = true;
       ultimo.txt.appendChild(baja);
 
-      /* La planilla del IVSS, para descargarla en SU paso -el cuarto-. Del
-         inversionista, como la constancia: el equipo la sube y no la baja. */
-      var bajaPl = null;
-      if (conPlanilla){
-        bajaPl = el('button', 'btn navy pe-baja pe-baja-pl', u.pe_bajaplanilla || '');
-        bajaPl.type = 'button';
-        bajaPl.hidden = true;
-        pasos[3].txt.appendChild(bajaPl);
-      }
-
       /* ── EN «MIS TRÁMITES», LA TARJETA RECOGIDA ──
          Franklin Reyes, 29-9-2026: «se ve raro con los pasos visibles en
          el cuadro, podemos solo dejar la opción de descargar documento
          cuando esté listo y una opción de ver trámite». Y después: que
-         ese botón LLEVE al trámite en vez de desplegar, y que en el
-         detalle del trámite no se toque nada.
+         ese botón LLEVE al trámite en vez de desplegar.
 
          Así que solo aquí -recogida, que la pasa la fila de Mis trámites-
          los pasos se esconden, la descarga sube bajo el nombre y «Ver
          trámite» abre la solicitud de parafiscales en la tarjeta de ESTE
-         ente, con sus pasos a la vista. Es también donde se escribe el
-         usuario y la contraseña cuando toca.
+         ente, con sus pasos a la vista. Es allí donde se marca lo hecho.
 
          Al EQUIPO, igual en la tabla (Franklin Reyes, 29-9-2026, por
-         ciipven-60: «ocupan mucho espacio dentro del cuadro», para el
-         administrador y el gestor). Su «Ver trámite» abre la ficha de la
-         solicitud en la cola -el visor-, que es donde se inscribe, se marca
-         listo y se sube la constancia. */
+         ciipven-60). Su «Ver trámite» abre la ficha de la solicitud en la
+         cola -el visor-, que es donde se marca listo y se sube la
+         constancia. */
       if (recogida){
         var pie = el('div', 'pe-pie');
         var verTr = el('button', 'pe-vertr', u.pe_vertramite || '');
@@ -24114,33 +24191,25 @@ applyLang(idiomaParaMi());
         fila.insertBefore(pie, ol);
       }
 
-      /* Las tres cosas que se pueden hacer sobre un ente. Se montan todas y
-         se enseñan según el estado: así el repintado es enseñar y esconder,
-         y no volver a construir media pantalla. */
-      var form = null, inscribe = null, listo = null, otro = null, subePl = null;
-      /* En la rejilla: lo que dice «Llegó» cuando no ha llegado nada. Lo
-         enciende pon(). La constancia ya enviada la dice su propia casilla
-         (.pe-subido). */
-      var nadaL = rejilla ? el('div', 'pe-nada',
-        (conClave ? u.pe_nada_aun : u.pe_sin_datos) || '') : null;
+      var listo = null, sube = null, subeEnl = null, subeYa = null, subeNom = null;
 
       /* Manda el cambio y repinta con lo que la BASE devolvió. Con
          .select(): una política que no deja pasar el UPDATE no da error,
          devuelve cero filas, y sin mirarlo aquí se diría «hecho» de algo que
          no cambió. Es la misma trampa de la nota de la devolución. */
       function manda(cambio, boton, alFallar){
-        function sube(){
+        function pide(){
           return Promise.resolve(sb.from('tramite_entes')
             .upsert(cambio, {onConflict: 'tramite,ente'}).select(ENTES_SELECT));
         }
-        return sube()
-          /* Sin la columna de la contraseña en la base, lo que no la lleva
-             se vuelve a mandar pidiendo lo de siempre. Lo que sí la lleva no
-             tiene dónde guardarla, y falla como tiene que fallar. */
+        return pide()
+          /* Sin la columna de la contraseña en la base -la de los usuarios
+             del IVSS y del INCES de antes del 1-10-2026- se vuelve a pedir
+             lo de siempre. */
           .then(function(r){
-            if (!sinColumnaClave(r) || ('clave' in cambio)) return r;
+            if (!sinColumnaClave(r)) return r;
             ENTES_SELECT = ENTES_SELECT_BASE;
-            return sube();
+            return pide();
           })
           .then(function(r){
             if (r && r.error) throw r.error;
@@ -24161,125 +24230,21 @@ applyLang(idiomaParaMi());
           });
       }
 
-      if (modo === 'inversionista' && conClave){
-        form = el('div', 'pe-form');
-        form.hidden = true;
-        var cod = document.createElement('input');
-        cod.type = 'text';
-        cod.maxLength = 200;
-        var rotuloCod = (conClave ? u.pe_usuario : u.pe_codigo) || '';
-        cod.placeholder = rotuloCod;
-        cod.setAttribute('aria-label', nombre + ': ' + rotuloCod);
-        /* La contraseña, con los ojos cerrados y su botón de verla: se
-           copia de un correo y conviene poder comprobarla antes de mandar.
-           new-password para que el navegador no la guarde como la de este
-           panel, que no lo es. */
-        var cla = null, verCla = null;
-        if (conClave){
-          cod.autocomplete = 'off';
-          cla = document.createElement('input');
-          cla.type = 'password';
-          cla.maxLength = 200;
-          cla.autocomplete = 'new-password';
-          cla.className = 'pe-clave-in';
-          cla.placeholder = u.pe_clave || '';
-          cla.setAttribute('aria-label', nombre + ': ' + (u.pe_clave || ''));
-          verCla = el('button', 'pe-ver', u.pe_verclave || '');
-          verCla.type = 'button';
-          verCla.setAttribute('aria-pressed', 'false');
-          verCla.addEventListener('click', function(){
-            var abierta = cla.type === 'password';
-            cla.type = abierta ? 'text' : 'password';
-            verCla.setAttribute('aria-pressed', abierta ? 'true' : 'false');
-            verCla.textContent = abierta ? (u.pe_ocultaclave || '') : (u.pe_verclave || '');
-          });
-        }
-        /* Solo el código, escrito (Franklin, 23-9-2026): el archivo
-           adjunto se quitó. La columna documento sigue en la tabla, y si
-           alguno llegó a subirse se sigue viendo arriba con «Ver archivo». */
-        var env = el('button', 'btn navy pe-env', u.pe_enviar || '');
-        env.type = 'button';
-        var msg = el('div', 'pe-msg', '');
-        form.appendChild(cod);
-        if (cla){ form.appendChild(cla); form.appendChild(verCla); }
-        form.appendChild(env); form.appendChild(msg);
-        cod.addEventListener('keydown', function(e){ if (e.key === 'Enter') env.click(); });
-        if (cla) cla.addEventListener('keydown', function(e){ if (e.key === 'Enter') env.click(); });
-        env.addEventListener('click', function(){
-          var codigo = (cod.value || '').trim();
-          /* La contraseña tal cual, sin recortar: un espacio puede ser suyo. */
-          var clave = cla ? (cla.value || '') : null;
-          if (!codigo){ msg.textContent = (conClave ? u.pe_faltaclave : u.pe_falta) || ''; cod.focus(); return; }
-          if (cla && !clave.trim()){ msg.textContent = u.pe_faltaclave || ''; cla.focus(); return; }
-          env.disabled = true;
-          msg.textContent = u.enviando || '';
-          var cambio = {tramite: tr.id, ente: ente, estado: 'codigo_enviado', codigo: codigo};
-          if (cla) cambio.clave = clave;
-          manda(cambio, env, function(){ msg.textContent = u.error || ''; })
-            .then(function(entro){
-              /* Vaciar solo si entró. Con un fallo -la red, o una política
-                 que devuelve cero filas- se vaciaban igual, y el aviso de
-                 error salía encima de dos casillas en blanco: había que
-                 volver a copiar el usuario y la contraseña del correo
-                 (30-9-2026). */
-              if (!entro) return;
-              cod.value = '';
-              if (cla){
-                cla.value = '';
-                cla.type = 'password';
-                verCla.setAttribute('aria-pressed', 'false');
-                verCla.textContent = u.pe_verclave || '';
-              }
-              env.disabled = false;
-            });
-        });
-        pasos[1].txt.appendChild(form);
+      /* ── EL CIERRE SIGUE SIENDO DEL EQUIPO ──
+         Lo que se fue el 1-10-2026 (Franklin Reyes, Taquilla única opción
+         2): la «Inscripción hecha» del gestor, la caja del usuario y la
+         contraseña del IVSS y del INCES con su revisión, y la planilla del
+         IVSS que mandaba el CIIP. Ahora se inscribe el propio
+         inversionista. Las columnas y los tipos de esas cosas se quedan en
+         la base (supabase-entes-clave.sql, supabase-planilla-ivss.sql):
+         solo dejan de usarse.
 
-        /* ── LA CAJA SE CIERRA AL MANDARLO ──
-           Franklin Reyes, 25-9-2026. Después de enviar, la caja se quedaba
-           abierta y vacía: exactamente igual que antes de escribir nada, y
-           quien lo acababa de mandar no tenía forma de saber si había
-           entrado. Ahora se cierra y queda escrito el código que mandaste
-           -eso ya lo enseña «Código: X» aquí al lado-, con este botón para
-           reabrirla si te equivocaste al copiarlo.
-
-           Se puede hasta que el CIIP lo da por bueno; después ya no hay
-           nada que corregir. */
-        otro = el('button', 'pe-otro', (conClave ? u.pe_otroc : u.pe_otro) || '');
-        otro.type = 'button';
-        otro.hidden = true;
-        otro.addEventListener('click', function(){
-          otro.hidden = true;
-          form.hidden = false;
-          cod.focus();
-        });
-        pasos[1].txt.appendChild(otro);
-      }
-
-      /* AL EQUIPO NO SE LE CIERRA NADA, y es a propósito (Franklin Reyes,
-         25-9-2026): «como gestor necesito que las solicitudes de abajo
-         estén activas, porque necesito leer los códigos enviados por los
-         inversionistas». La espera es del inversionista -no puede mandar un
-         código antes de que el CIIP presente la solicitud-, no de quien la
-         está llevando. */
+         Lo que se queda: «Certificado de inscripción listo» lo cierra el
+         gestor, con «Marcar listo» o subiendo la constancia. AL EQUIPO NO
+         SE LE CIERRA NADA (Franklin Reyes, 25-9-2026): puede cerrar un ente
+         aunque el inversionista no haya marcado nada, porque a veces se lo
+         cuenta por teléfono o lo trae en papel. */
       if (modo === 'equipo' && tr.estado !== 'resuelto'){
-        /* «Ya la inscribimos»: abre la caja del código de ESTE ente y de
-           ninguno más. Es el botón que convierte las cinco filas en cinco
-           tareas con principio y final. */
-        /* Solo el IVSS y el INCES: los otros cuatro no esperan nada del
-           inversionista, así que del primer paso se pasa a «lista». */
-        if (conClave){
-          inscribe = el('button', 'btn ghost pe-inscribe', u.pe_inscribir || '');
-          inscribe.type = 'button';
-          inscribe.hidden = true;
-          inscribe.addEventListener('click', function(){
-            inscribe.disabled = true;
-            manda({tramite: tr.id, ente: ente, estado: 'inscrito'}, inscribe,
-                  function(){ inscribe.textContent = u.error || ''; });
-          });
-          pasos[0].txt.appendChild(inscribe);
-        }
-
         listo = el('button', 'btn ghost pe-listo', u.pe_marcar || '');
         listo.type = 'button';
         listo.hidden = true;
@@ -24288,37 +24253,23 @@ applyLang(idiomaParaMi());
           manda({tramite: tr.id, ente: ente, estado: 'listo'}, listo,
                 function(){ listo.textContent = u.error || ''; });
         });
-        /* En el IVSS, en «Trae la planilla firmada»: se cierra cuando el
-           inversionista la entrega en el CIIP. */
-        (conPlanilla ? pasos[4] : conClave ? pasos[2] : pasos[0]).txt.appendChild(listo);
+        ultimo.txt.appendChild(listo);
 
         /* ── LA CONSTANCIA DE CADA ENTE, POR SEPARADO ──
            Franklin Reyes, 25-9-2026: «necesito que sean separados, porque
-           tengo que subirle un documento a cada uno de esos entes».
-
-           Cada inscripción termina con su propio papel -la constancia del
-           BANAVIH no es la del INCES- y hasta hoy no había dónde dejarlo:
-           el trámite entero tenía UN «documento emitido» y los cinco entes
-           ninguno. La columna para colgarlo existía en tramite_entes desde
-           el principio; lo que faltaba era la casilla para subirlo.
-
-           Va en el último paso, que es donde acaba esa inscripción, y solo
-           para el equipo: lo emite el organismo y lo entrega el CIIP. Entra
-           como 'validado' por lo mismo que la resolución -no hay nada que
-           revisar en un papel que emitió el ente- y así el inversionista
-           tampoco puede borrarlo sin querer.
-
-           Se sube al elegirlo, sin botón aparte: quien abre el explorador
-           de archivos y elige uno ya ha decidido.
+           tengo que subirle un documento a cada uno de esos entes». Va en
+           el último paso, que es donde acaba esa inscripción. Entra como
+           'validado' por lo mismo que la resolución -no hay nada que
+           revisar en un papel que emitió el ente-. Se sube al elegirlo,
+           sin botón aparte.
 
            SOLO UN ENLACE (Franklin Reyes, 29-9-2026, el modelo 3 de las
-           maquetas de la constancia): el botón gris del navegador -con su
-           «Ningún …cionado» cortado- se esconde, y lo abre un enlace
-           «Subir la constancia» con su icono. Con la constancia ya subida,
-           el enlace se cambia por el nombre del archivo y «Cambiar» (lo
-           pone pon(), que es quien sabe si hay constancia). */
+           maquetas de la constancia): el botón gris del navegador se
+           esconde, y lo abre un enlace «Subir la constancia» con su icono.
+           Con la constancia ya subida, el enlace se cambia por una marca y
+           «Cambiar» (lo pone pon(), que es quien sabe si hay constancia). */
         if (tr.inversionista){
-          var sube = el('div', 'pe-sube');
+          sube = el('div', 'pe-sube');
           var arch = document.createElement('input');
           arch.type = 'file';
           arch.id = 'pe-doc-' + tr.id + '-' + ente;
@@ -24327,19 +24278,17 @@ applyLang(idiomaParaMi());
           arch.setAttribute('aria-label', u.pe_constancia || '');
           var ICO_SUBE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>';
           /* Subida, una marca de aprobado y no el nombre del archivo
-             (Franklin Reyes, 29-9-2026): lo que se busca aquí es SI está,
-             y un nombre como «Captura de pantalla 2026-08-18 131004.png»
-             ocupaba tres líneas sin decirlo. El nombre queda en el title. */
+             (Franklin Reyes, 29-9-2026). El nombre queda en el title. */
           var ICO_PAPEL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
-          var subeEnl = el('button', 'pe-subir');
+          subeEnl = el('button', 'pe-subir');
           subeEnl.type = 'button';
           subeEnl.innerHTML = ICO_SUBE;
           subeEnl.appendChild(el('span', null, u.pe_subirconst || ''));
           subeEnl.addEventListener('click', function(){ arch.click(); });
-          var subeYa = el('div', 'pe-subido');
+          subeYa = el('div', 'pe-subido');
           subeYa.hidden = true;
           subeYa.innerHTML = ICO_PAPEL;
-          var subeNom = el('span', 'pe-subido-n', '');
+          subeNom = el('span', 'pe-subido-n', '');
           var subeOtra = el('button', 'pe-subir pe-cambia', u.pa_cambiar || '');
           subeOtra.type = 'button';
           subeOtra.addEventListener('click', function(){ arch.click(); });
@@ -24355,10 +24304,7 @@ applyLang(idiomaParaMi());
                 if (!doc) throw new Error('sin documento');
                 /* Y con la constancia, LISTA (Franklin Reyes, 25-9-2026:
                    «debería estar lista cuando el CIIP envía el archivo»).
-                   La constancia es la prueba de que esa inscripción
-                   terminó; dejarla en «Código enviado» con el papel ya
-                   entregado obligaba a un segundo clic que no decía nada
-                   nuevo. «Marcar listo» sigue para cerrar una sin papel. */
+                   «Marcar listo» sigue para cerrar una sin papel. */
                 return manda({tramite: tr.id, ente: ente, documento: doc, estado: 'listo'}, null, null);
               })
               .then(function(){ arch.disabled = false; arch.value = ''; msgS.textContent = ''; })
@@ -24371,164 +24317,83 @@ applyLang(idiomaParaMi());
           sube.appendChild(subeEnl); sube.appendChild(subeYa);
           sube.appendChild(arch); sube.appendChild(msgS);
           ultimo.txt.appendChild(sube);
-
-          /* LA PLANILLA DEL IVSS: la misma casilla que la constancia, en su
-             paso -el cuarto- y con su tipo. Sale cuando ya llegaron el
-             usuario y la contraseña, que es cuando el CIIP puede hacerla.
-             No cierra nada: la inscripción sigue hasta que la traigan
-             firmada, y eso lo marca «Marcar listo» o la constancia. */
-          if (conPlanilla){
-            subePl = el('div', 'pe-sube pe-sube-pl');
-            var archPl = document.createElement('input');
-            archPl.type = 'file';
-            archPl.id = 'pe-pl-' + tr.id + '-' + ente;
-            archPl.accept = '.pdf,.jpg,.jpeg,.png';
-            archPl.hidden = true;
-            archPl.setAttribute('aria-label', u.pe_subirplanilla || '');
-            var plEnl = el('button', 'pe-subir');
-            plEnl.type = 'button';
-            plEnl.innerHTML = ICO_SUBE;
-            plEnl.appendChild(el('span', null, u.pe_subirplanilla || ''));
-            plEnl.addEventListener('click', function(){ archPl.click(); });
-            var plYa = el('div', 'pe-subido');
-            plYa.hidden = true;
-            plYa.innerHTML = ICO_PAPEL;
-            var plNom = el('span', 'pe-subido-n', u.pe_planillaok || '');
-            var plOtra = el('button', 'pe-subir pe-cambia', u.pa_cambiar || '');
-            plOtra.type = 'button';
-            plOtra.addEventListener('click', function(){ archPl.click(); });
-            plYa.appendChild(plNom); plYa.appendChild(plOtra);
-            var msgPl = el('div', 'pe-msg', '');
-            archPl.addEventListener('change', function(){
-              var f = archPl.files && archPl.files[0];
-              if (!f) return;
-              archPl.disabled = true;
-              msgPl.textContent = u.enviando || '';
-              entrega(tr, f, 'planilla_ivss')
-                .then(function(doc){
-                  if (!doc) throw new Error('sin documento');
-                  /* Sin estado: la fila sigue en 'codigo_enviado', y es el
-                     papel colgado el que la lleva al quinto paso. */
-                  return manda({tramite: tr.id, ente: ente, documento: doc}, null, null);
-                })
-                .then(function(entro){
-                  archPl.disabled = false; archPl.value = '';
-                  msgPl.textContent = entro === false ? (u.co_error || '') : '';
-                })
-                .catch(function(e){
-                  console.warn('[CIIP] planilla del IVSS:', e && (e.message || e));
-                  archPl.disabled = false;
-                  msgPl.textContent = (e && e.ciip && u[e.ciip]) || u.co_error || '';
-                });
-            });
-            subePl.appendChild(plEnl); subePl.appendChild(plYa);
-            subePl.appendChild(archPl); subePl.appendChild(msgPl);
-            subePl.CIIP_YA = function(hay, nombre){
-              plEnl.hidden = hay;
-              plYa.hidden = !hay;
-              plNom.title = hay ? (nombre || '') : '';
-            };
-            pasos[3].txt.appendChild(subePl);
-          }
         }
       }
 
-      /* Cuántos pasos van hechos en cada estado. El que sigue al último
-         hecho es el de «vas por aquí», salvo con la solicitud cerrada, que
-         ya no espera nada. */
-      /* Sin código, 'inscrito' y 'codigo_enviado' -filas de antes del
-         28-9-2026- cuentan como lo que son para el inversionista: la
-         inscripción sigue en marcha hasta que el CIIP la da por lista. */
-      var HECHOS = conClave ? {pendiente: 0, inscrito: 1, codigo_enviado: 2, listo: 4}
-                            : {pendiente: 0, inscrito: 0, codigo_enviado: 0, listo: 2};
-      var CHIP = conClave
-        ? {pendiente:      ['mute', 'pe_pendiente'],
-           inscrito:       ['info', 'pe_esperandoc'],
-           codigo_enviado: ['info', 'pe_enviadoc'],
-           listo:          ['good', 'pe_listo']}
-        : {pendiente:      ['mute', 'pe_pendiente'],
-           inscrito:       ['mute', 'pe_pendiente'],
-           codigo_enviado: ['mute', 'pe_pendiente'],
-           listo:          ['good', 'pe_listo']};
-      function enciende(hechos){
-        pasos.forEach(function(p, i){
-          var hecho = i < hechos;
-          var ahora = !hecho && i === hechos && abierto;
-          p.li.className = 'tr-paso ' + (hecho ? 'hecho' : (ahora ? 'ahora' : 'porhacer'));
-          p.punto.textContent = hecho ? String.fromCharCode(10003) : String(i + 1);
+      /* En la rejilla del visor: lo que ha marcado el inversionista, una
+         línea por marca -el IVSS lleva tres-, con su fecha o «Nada
+         todavía». Es lo que el gestor mira antes de ir a por el
+         certificado. */
+      var marcasL = null;
+      if (rejilla){
+        marcasL = [];
+        defs.forEach(function(def){
+          if (!def.marca) return;
+          var l = el('div', 'pe-marca-l no');
+          l.setAttribute('data-clave', def.marca);
+          l.appendChild(el('span', 'pe-marca-n', u[def.n] || ''));
+          var est = el('span', 'pe-marca-e', '');
+          l.appendChild(est);
+          marcasL.push({clave: def.marca, l: l, est: est});
         });
       }
+
+      /* Cada estado, su etiqueta. Por iniciar mientras el inversionista no
+         ha marcado nada; en proceso en cuanto marca la primera; listo
+         cuando el equipo lo cierra. Las filas de antes del 1-10-2026 en
+         'inscrito' o 'codigo_enviado' no son 'listo', así que cuentan por
+         sus marcas, como todas. */
+      var CHIP = {pendiente:  ['mute', 'pe_por_iniciar'],
+                  en_proceso: ['info', 'pe_enproceso_chip'],
+                  listo:      ['good', 'pe_listo']};
       function pon(d){
-        /* Sin fila -una solicitud de antes del disparador- cuenta como
-           pendiente: nadie la ha inscrito todavía, que es justo lo que
-           quiere decir no tener fila. */
-        var st = (d && CHIP[d.estado]) ? d.estado : 'pendiente';
+        fila.CIIP_FILA = d || null;
+        var datos = tr.datos || {};
+        var listoYa = !!(d && d.estado === 'listo');
+        var hechos = hechosDelEnte(defs, datos, listoYa);
+        var st = listoYa ? 'listo' : (hechos > 0 ? 'en_proceso' : 'pendiente');
         fila.setAttribute('data-st', st);
         chip.className = 'chip ' + CHIP[st][0];
         chip.textContent = u[CHIP[st][1]] || '';
-        dice.textContent = '';
-        if (d && d.codigo) dice.appendChild(el('span', 'pe-cod',
-          String((conClave ? u.pe_tuusuario : u.pe_tucodigo) || '{c}').replace('{c}', d.codigo)));
-        if (conClave && d && d.clave) dice.appendChild(claveTapada(d.clave));
+        pasos.forEach(function(p, i){
+          var hecho = i < hechos;
+          /* El que sigue al último hecho es el de «vas por aquí», salvo con
+             la solicitud fuera de la etapa de los entes. */
+          var ahora = !hecho && i === hechos && abierto;
+          p.li.className = 'tr-paso ' + (hecho ? 'hecho' : (ahora ? 'ahora' : 'porhacer'));
+          p.punto.textContent = hecho ? String.fromCharCode(10003) : String(i + 1);
+          var cuando = p.def.marca ? datos[p.def.marca] : null;
+          if (p.cuando){
+            p.cuando.hidden = !cuando;
+            p.cuando.textContent = cuando ? String(u.pe_marcado || '{f}').replace('{f}', fecha(cuando)) : '';
+          }
+          /* El enlace, mientras sirve: en curso o ya hecho -por si hay que
+             volver al portal-, nunca con el ente cerrado. */
+          if (p.enl) p.enl.hidden = !(abierto && !listoYa && (hecho || ahora));
+          /* Y el botón, solo en curso y sin marcar: una vez marcado,
+             volver a ofrecerlo no le sirve a nadie. */
+          if (p.bt) p.bt.hidden = !(ahora && !cuando && !listoYa);
+        });
+        if (marcasL) marcasL.forEach(function(m){
+          var c = datos[m.clave];
+          m.l.className = 'pe-marca-l ' + (c ? 'si' : 'no');
+          m.est.textContent = c ? String(u.pe_marcado || '{f}').replace('{f}', fecha(c)) : (u.pe_nada_aun || '');
+        });
         var doc = d && d.documentos;
         var esConstancia = !!(doc && doc.archivo && doc.tipo === 'constancia_ente');
-        /* La planilla del IVSS cuenta mientras la fila espera: con la
-           inscripción lista ya no hay nada que descargar para llevar. */
-        var esPlanilla = conPlanilla && !!(doc && doc.archivo && doc.tipo === 'planilla_ivss');
-        var tienePl = esPlanilla && st === 'codigo_enviado';
-        if (tienePl){
-          chip.className = 'chip info';
-          chip.textContent = u.pe_traeplanilla || '';
-        }
-        if (bajaPl){
-          var suPl = tienePl && modo === 'inversionista';
-          bajaPl.hidden = !suPl;
-          bajaPl.title = suPl ? (doc.nombre_original || '') : '';
-          bajaPl.onclick = suPl
-            ? function(){ abreFirmado(doc.archivo, bajaPl, 'planilla del IVSS'); } : null;
-        }
-        if (subePl){
-          subePl.hidden = st !== 'codigo_enviado';
-          subePl.CIIP_YA(tienePl, tienePl ? doc.nombre_original : '');
-        }
         var suDescarga = esConstancia && modo === 'inversionista';
         baja.hidden = !suDescarga;
         baja.title = suDescarga ? (doc.nombre_original || '') : '';
         baja.onclick = suDescarga
           ? function(){ abreFirmado(doc.archivo, baja, 'constancia del ente'); } : null;
-        /* La casilla del equipo: el enlace, o el nombre y «Cambiar». */
+        /* La casilla del equipo: el enlace, o la marca y «Cambiar». */
         if (sube){
           subeEnl.hidden = esConstancia;
           subeYa.hidden = !esConstancia;
           subeNom.textContent = esConstancia ? (u.pe_enviadaok || '') : '';
           subeNom.title = esConstancia ? (doc.nombre_original || '') : '';
         }
-        /* Y el «Ver archivo» de al lado del código queda para lo que no es
-           una constancia: los adjuntos que llegó a mandar algún
-           inversionista antes de quitarse (23-9-2026). */
-        if (doc && doc.archivo && !esConstancia && !esPlanilla){
-          var ver = el('button', 'pe-ver', u.pe_ver || '');
-          ver.type = 'button';
-          ver.title = doc.nombre_original || '';
-          ver.addEventListener('click', function(){ abreFirmado(doc.archivo, ver, 'archivo del ente'); });
-          dice.appendChild(ver);
-        }
-        dice.hidden = !dice.childNodes.length;
-        if (nadaL) nadaL.hidden = !dice.hidden;
-        /* La caja sale cuando toca escribir -te acaban de inscribir- y se
-           cierra en cuanto mandas el código. Reabrirla es cosa del botón de
-           al lado, que solo sale mientras el CIIP no lo haya dado por
-           bueno: después ya no hay nada que corregir. */
-        if (form) form.hidden = !(abierto && st === 'inscrito');
-        if (otro) otro.hidden = !(abierto && st === 'codigo_enviado');
-        if (inscribe) inscribe.hidden = (st !== 'pendiente');
-        /* En el IVSS, «Marcar listo» espera a la planilla: sin ella no hay
-           nada firmado que traer. La constancia sí lo cierra siempre. */
-        if (listo) listo.hidden = conPlanilla ? !tienePl
-                                : conClave ? (st !== 'codigo_enviado') : (st === 'listo');
-        /* IVSS: con la planilla enviada van hechos cuatro -el quinto es
-           traerla firmada-, y lista son los seis. */
-        enciende(conPlanilla ? (st === 'listo' ? 6 : tienePl ? 4 : HECHOS[st]) : HECHOS[st]);
+        if (listo) listo.hidden = listoYa;
       }
       pon(null);
       fila.CIIP_PON = pon;
@@ -24538,15 +24403,11 @@ applyLang(idiomaParaMi());
       if (rejilla){
         ol.hidden = true;
         var dos = el('div', 'pe-dos');
-        var cL = el('div', 'pe-caja');
-        cL.appendChild(el('div', 'pe-caja-t', u.pe_llego || ''));
-        cL.appendChild(dice);
-        cL.appendChild(nadaL);
-        if (otro) cL.appendChild(otro);
+        var cL = el('div', 'pe-caja pe-caja-marcas');
+        cL.appendChild(el('div', 'pe-caja-t', u.pe_marco || ''));
+        marcasL.forEach(function(m){ cL.appendChild(m.l); });
         var cE = el('div', 'pe-caja');
         cE.appendChild(el('div', 'pe-caja-t', u.pe_envia || ''));
-        if (inscribe) cE.appendChild(inscribe);
-        if (subePl) cE.appendChild(subePl);
         if (sube) cE.appendChild(sube);
         dos.appendChild(cL);
         dos.appendChild(cE);

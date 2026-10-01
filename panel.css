@@ -3412,7 +3412,25 @@ body[data-vista="tramite"] #secTramites{display:none;}
      Reyes, 29-9-2026: «no quiero que el paso se vea tan largo en las que
      tengan 2»). Se queda en lo que ocupan dos pasos; los de cuatro, igual. */
   .pe-bloque .pe-pasos:not(:has(> .tr-paso:nth-child(3))){max-width:460px;}
+  /* Desde el 1-10-2026 (Taquilla única opción 2) son TRES -inscríbase,
+     en proceso, certificado- en todos menos el IVSS, que lleva cinco. Lo
+     mismo de arriba: tres pasos a lo ancho de 880 dejaban hilos de casi
+     400 px. */
+  .pe-bloque .pe-pasos:has(> .tr-paso:nth-child(3)):not(:has(> .tr-paso:nth-child(4))){max-width:680px;}
 }
+/* LO QUE MARCA EL INVERSIONISTA (Franklin Reyes, 1-10-2026, Taquilla
+   única opción 2): el enlace al portal del ente y su «Ya me inscribí» son
+   .tr-hacer, como el «Ya me registré» de Cancillería. .tr-hacer pone
+   display:inline-flex, que gana al atributo hidden: sin esta línea, el
+   botón de una marca ya hecha seguía a la vista. */
+.pe-portal[hidden], .pe-marca[hidden], .pe-hecho-el[hidden]{display:none;}
+.pe-pasos .pe-portal, .pe-pasos .pe-marca{margin-top:6px;}
+.pe-hecho-el{margin-top:4px; font-size:var(--fs-nota); font-weight:600; color:var(--good);}
+/* En la rejilla del visor, una línea por marca: qué paso y cuándo. */
+.pe-marca-l{display:flex; flex-direction:column; gap:1px; min-width:0;}
+.pe-marca-n{font-weight:600; color:var(--ink); overflow-wrap:anywhere;}
+.pe-marca-e{color:var(--gray-soft);}
+.pe-marca-l.si .pe-marca-e{color:var(--good); font-weight:600;}
 .pe-dice{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;
   font-size:var(--fs-nota); color:var(--gray); overflow-wrap:anywhere;}
 .pe-dice[hidden], .pe-form[hidden], .pe-listo[hidden]{display:none;}

@@ -149,7 +149,8 @@
   /* 'parafiscales' (23-9-2026): el expediente vacío con los registros
      parafiscales ya ante los entes, para ver sus cinco escaleras. Uno de
      cada: el BANAVIH listo, el INCES con el código enviado y los otros tres
-     por iniciar. */
+     por iniciar. Desde el 1-10-2026 el código ya no se pinta: la fila del
+     INCES queda como una de antes, y lo que manda son las marcas de r1. */
   var conParafiscales = (caso === 'parafiscales');
   if (conParafiscales){
     caso = 'vacio';
@@ -487,7 +488,10 @@
        creado_en:'2026-09-10T10:00:00Z', enviado_en:'2026-09-10T10:00:00Z',
        actualizado_en:'2026-09-10T10:00:00Z'}
     ] : []).concat(conParafiscales ? [
-      {id:'r1', tipo:'registros_parafiscales', estado:'ante_el_ente', datos:{},
+      /* Con dos marcas del inversionista (1-10-2026): el INCES inscrito
+         y el IVSS con la afiliación solicitada, para ver los dos casos. */
+      {id:'r1', tipo:'registros_parafiscales', estado:'ante_el_ente',
+       datos:{ente_inces:'2026-09-28T10:00:00-04:00', ente_ivss:'2026-09-29T10:00:00-04:00'},
        creado_en:'2026-09-15T10:00:00Z', enviado_en:'2026-09-15T10:00:00Z',
        actualizado_en:'2026-09-20T10:00:00Z'}
     ] : []),
@@ -2586,6 +2590,36 @@
           if (nombre === 'gestores_de_mis_tramites'){
             var rG = {data: [{tramite: 't1', nombre: 'Saskia Calderon'}], error: null};
             return {then:function(bien, mal){ return Promise.resolve(rG).then(bien, mal); }};
+          }
+          /* Las marcas del inversionista en cada ente de los parafiscales
+             (Franklin Reyes, 1-10-2026, Taquilla única opción 2). Como la
+             de verdad: solo las claves de su lista -una que no esté, la
+             rechaza-, escribe datos[clave] = la fecha y devuelve la fila.
+             Los datos de cada solicitud se guardan en esta pestaña, en
+             window.__DATOS_TR, para que la segunda marca no borre la
+             primera. Con window.__FALLA_CONFIRMA, una vez, la red se cae:
+             es lo que deja ver que el paso no se pinta hecho sin respuesta.
+             Las demás claves -la de Cancillería- siguen cayendo abajo,
+             como antes. */
+          var MARCAS_DE_ENTE = ['ente_banavih', 'ente_inces', 'ente_ivss', 'ente_ivss_confirma',
+                                'ente_ivss_oficina', 'ente_mpppst', 'ente_sundde', 'ente_snc'];
+          if (nombre === 'confirma_paso' && args && /^ente_/.test(args.p_clave || '')){
+            window.CIIP_PRUEBA_CONFIRMA_PASO = (window.CIIP_PRUEBA_CONFIRMA_PASO || []).concat([args]);
+            var rCP;
+            if (window.__FALLA_CONFIRMA){
+              window.__FALLA_CONFIRMA = false;
+              rCP = {data:null, error:{message:'la red se cayó', code:'08006'}};
+            } else if (MARCAS_DE_ENTE.indexOf(args.p_clave) < 0){
+              rCP = {data:null, error:{message:'paso desconocido: ' + args.p_clave, code:'P0001'}};
+            } else {
+              var DT = window.__DATOS_TR = window.__DATOS_TR || {};
+              var dCP = DT[args.p_tramite] = DT[args.p_tramite] || {};
+              dCP[args.p_clave] = '2026-10-01T10:00:00-04:00';
+              var copiaCP = {};
+              Object.keys(dCP).forEach(function(k){ copiaCP[k] = dCP[k]; });
+              rCP = {data:{id: args.p_tramite, estado:'ante_el_ente', datos: copiaCP}, error:null};
+            }
+            return {then:function(bien, mal){ return Promise.resolve(rCP).then(bien, mal); }};
           }
           if (nombre === 'marca_firma_ciip'){
             window.CIIP_PRUEBA_FIRMA = args;

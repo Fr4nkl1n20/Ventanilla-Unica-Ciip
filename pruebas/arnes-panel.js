@@ -351,8 +351,13 @@
               tramoVerdadAbre, reservaMira, reservaAviso, tramoVerdadMira,
               firmaVerdadSale, firmaVerdadAbre, firmaVerdadMira,
               textosMira, firmaEscalera,
-              entesClaveMonta, entesClaveFalla, entesClaveMira, entesClaveTrasEnviar,
-              ivssPlMonta, ivssPlSube, ivssPlMira,
+              /* Los entes de los parafiscales, desde el 1-10-2026: los
+                 marca el inversionista y los cierra el gestor. Sustituyen a
+                 entesClave* e ivssPl*, que se retiraron con la caja del
+                 usuario y la contraseña y la planilla del IVSS. */
+              entesMonta, entesMira, entesFalla, entesMarca, entesTrasMarcar,
+              entesIvss1, entesIvss2, entesIvss3, entesIvssMira,
+              entesGestor, entesGestorMira, entesGestorTras,
               alDiaMira,
               rvAbre, rvMira, rvDespues,
               /* Rechazar sin red: se dice, y la nota no se pierde. */
@@ -4911,47 +4916,34 @@
     ok('parafiscales: ya se puede solicitar, no solo leer',
        campos.length > 0 && docs.length > 0,
        campos.length + ' campos y ' + docs.length + ' recaudos', 'formulario con campos y recaudos');
-    igual('parafiscales: pide los trece datos de los cinco entes', campos.length, 13);
-    igual('parafiscales: y los doce recaudos, en una sola lista', docs.length, 12);
-
+    /* Franklin Reyes, 1-10-2026, Taquilla única opción 2: el paso 1 pide
+       SOLO razón social, RIF y representante legal, y los recaudos son
+       SOLO la cédula y el RIF del representante y el RIF de la empresa.
+       Eran trece datos y doce recaudos -la unión de lo que pedían los
+       cinco-, y esas pruebas se cambiaron por éstas: ahora cada ente pide
+       lo suyo en su portal, donde se inscribe el propio inversionista. */
     (function(){
+      var ns = [];
+      campos.forEach(function(c){ ns.push(c.getAttribute('data-campo')); });
+      igual('parafiscales: tres datos, razón social, RIF y representante legal',
+            ns.join(' '), 'razon_social rif_empresa representante');
       var tipos = [];
       docs.forEach(function(d){ tipos.push(d.getAttribute('data-doc')); });
-      igual('parafiscales: los tres primeros son los comunes a los cinco',
-            tipos.slice(0, 3).join(' '),
-            'acta_constitutiva rif_empresa cedula');
-      var opc = [];
-      caja.querySelectorAll('.sol-doc[data-opcional]').forEach(function(d){
-        opc.push(d.getAttribute('data-doc'));
+      igual('parafiscales: y tres recaudos, cédula y RIF del representante y RIF de la empresa',
+            tipos.join(' '), 'cedula rif_personal rif_empresa');
+      igual('parafiscales: los tres obligatorios',
+            caja.querySelectorAll('.sol-doc[data-opcional]').length, 0);
+      ok('parafiscales: con los rótulos del representante legal',
+         /Cédula de identidad del representante legal/.test(caja.textContent) &&
+           /RIF del representante legal/.test(caja.textContent) && /RIF de la empresa/.test(caja.textContent),
+         'busca los tres rótulos', 'los tres');
+      var sobran = [];
+      ['correo_empresa', 'num_trabajadores', 'inicio_actividades', 'actividad_economica',
+       'establecimientos', 'capital_social'].forEach(function(n){
+        if (caja.querySelector('.sol-campo[data-campo="' + n + '"]')) sobran.push(n);
       });
-      /* Los cinco opcionales: los tres que dependen del caso -asamblea,
-         nómina y poder- y los dos propios del RNC, que el SNC sí exige
-         pero que no pueden dejar sin enviar a la empresa recién
-         constituida. Los otros siete son obligatorios: los tres comunes
-         y los cuatro de inversionistas, junta y recibo. El comentario largo está en
-         RECAUDOS. */
-      igual('parafiscales: y cinco no frenan el envío', opc.length, 5);
-      ok('parafiscales: ninguno de los tres comunes es opcional',
-         opc.indexOf('acta_constitutiva') === -1 && opc.indexOf('rif_empresa') === -1 &&
-         opc.indexOf('cedula') === -1,
-         opc.join(' '), 'los tres obligatorios');
-    })();
-
-    /* Que cada ente siga preguntando lo suyo: si al juntarlos se hubiera
-       perdido un campo, el expediente saldría incompleto y no se vería. */
-    (function(){
-      var faltan = [];
-      ['establecimientos',    /* SUNDDE, el RUPDAE */
-       'correo_empresa',      /* SUNDDE: el correo de la EMPRESA */
-       'num_trabajadores',    /* BANAVIH e INCES */
-       'inicio_actividades',  /* RNET */
-       'actividad_economica', /* INCES */
-       'capital_social'       /* RNC */
-      ].forEach(function(n){
-        if (!caja.querySelector('.sol-campo[data-campo="' + n + '"]')) faltan.push(n);
-      });
-      igual('parafiscales: no se perdió el dato propio de ningún ente',
-            faltan.join(' ') || '(ninguno)', '(ninguno)');
+      igual('parafiscales: ya no pregunta lo que pregunta cada ente en su portal',
+            sobran.join(' ') || '(ninguno)', '(ninguno)');
     })();
 
     /* Un recaudo que ya estaba en la bóveda se reutiliza, pero hay que poder
@@ -4989,17 +4981,15 @@
          fila.querySelector('.sd-ver') ? 'sigue el boton' : 'se fue', 'se fue');
     })();
 
-    /* Lo que es del RNC se pide en el RNC. El 23-9-2026 (53e20b7) salieron
-       de esta casilla la nómina de personal TÉCNICO, la relación de
-       experiencia, la de equipos y la solvencia del IVSS: «el RNC (c13) los
-       sigue pidiendo». Aquí se queda la nómina de trabajadores, y la
-       técnica no puede volver a colarse: juntarlas dejaría al RNC midiendo
-       tamaño de plantilla en vez de capacidad técnica. */
-    ok('parafiscales: la nómina de trabajadores sí, la técnica es del RNC',
-       /Nómina de trabajadores/.test(caja.textContent) && !/personal técnico/i.test(caja.textContent),
+    /* Aquí se comprobaba que la nómina de trabajadores seguía y la de
+       personal técnico no (23-9-2026, 53e20b7). Desde el 1-10-2026 no
+       queda ninguna de las dos -los recaudos son tres, ver arriba-, así
+       que lo que se mira es que ninguna vuelva a colarse. */
+    ok('parafiscales: ni nómina de trabajadores ni de personal técnico',
+       !/Nómina de trabajadores/.test(caja.textContent) && !/personal técnico/i.test(caja.textContent),
        (/Nómina de trabajadores/.test(caja.textContent) ? 'trabajadores: sí' : 'trabajadores: no') + ' · ' +
        (/personal técnico/i.test(caja.textContent) ? 'técnica: sí' : 'técnica: no'),
-       'trabajadores: sí · técnica: no');
+       'trabajadores: no · técnica: no');
 
     /* El relleno: la razón social ya viene escrita desde Mi empresa, y el
        campo dice de dónde salió. Sin decirlo, parecería que el panel se
@@ -5016,12 +5006,13 @@
     })();
 
     /* Con su nombre y no con su código: se buscaba «Estados financieros
-       auditados», que salió el 23-9-2026 (e3f82a2). Ahora, uno de los tres
-       que entraron ese día en su lugar, y que el código no asome. */
+       auditados», que salió el 23-9-2026 (e3f82a2), y después la cédula de
+       la junta directiva, que salió el 1-10-2026. Ahora, el RIF del
+       representante, y que el código no asome. */
     ok('parafiscales: los recaudos salen con su nombre, no con su código',
-       /Cédula de los miembros de la junta directiva/.test(caja.textContent) &&
-         !/cedulas_junta|d_cedulasjunta/.test(caja.textContent),
-       'busca "Cédula de los miembros de la junta directiva"', 'aparece, y sin el código');
+       /RIF del representante legal/.test(caja.textContent) &&
+         !/rif_personal|d_rifrep/.test(caja.textContent),
+       'busca "RIF del representante legal"', 'aparece, y sin el código');
 
     /* La escalera del trámite en curso marca dónde vas. El texto vive en
        CIIP_PASOS.aqui, no dentro de ui: buscarlo en el sitio equivocado
@@ -8395,9 +8386,11 @@
      pide seguia diciendo que no la tenias. */
   function cacheAbre(){
     if (CASO !== 'vacio') return;
-    /* El c37 pide la solvencia del SENIAT. Era la del IVSS, que se quitó
-       de sus recaudos el 23-9-2026. */
-    location.hash = 'tramite-c37';
+    /* Las solvencias (c14) piden la constancia del RNET, que no está en la
+       bóveda de mentira. Era el c37 con la solvencia del SENIAT, pero el
+       c37 se quedó el 1-10-2026 con tres recaudos (Taquilla única opción
+       2), y los tres ya están en la bóveda o los esperan otras pruebas. */
+    location.hash = 'tramite-c14';
   }
 
   function cacheMira(){
@@ -8405,9 +8398,9 @@
     var caja = document.getElementById('trReal');
     /* En la columna de subir, que es donde vive ahora la lista. */
     var fila = [].filter.call(caja.querySelectorAll('.sol-lado .sol-doc'), function(d){
-      return /Solvencia del SENIAT/.test(d.textContent);
+      return /Constancia de inscripción en el RNET/.test(d.textContent);
     })[0];
-    ok('cache: el tramite pide la solvencia del SENIAT', !!fila,
+    ok('cache: el tramite pide la constancia del RNET', !!fila,
        fila ? 'la pide' : 'no la pide', 'la pide');
     if (!fila) return;
     /* Sin marca de reusado: todavia no esta en la boveda. */
@@ -8436,23 +8429,23 @@
     var sel = document.getElementById('dcTipo');
     var arc = document.getElementById('dcArchivo');
     if (!sel || !arc) return listo();
-    sel.value = 'solvencia_seniat';
+    sel.value = 'registro_rnet';
     var dt = new DataTransfer();
-    dt.items.add(new File([new Uint8Array(8)], 'solvencia-seniat.pdf', {type:'application/pdf'}));
+    dt.items.add(new File([new Uint8Array(8)], 'constancia-rnet.pdf', {type:'application/pdf'}));
     arc.files = dt.files;
     arc.dispatchEvent(new Event('change'));
     document.getElementById('dcGuarda').click();
     var n = 0;
     (function mira(){
       var boveda = document.querySelector('.docs-vista');
-      if ((boveda && boveda.textContent.indexOf('solvencia-seniat.pdf') >= 0) || ++n > 75) return listo();
+      if ((boveda && boveda.textContent.indexOf('constancia-rnet.pdf') >= 0) || ++n > 75) return listo();
       setTimeout(mira, 40);
     })();
   }
 
   function cacheVuelve(){
     if (CASO !== 'vacio' || !window.PRUEBA_CACHE) return;
-    location.hash = 'tramite-c37';
+    location.hash = 'tramite-c14';
   }
 
   function cacheTrasVolver(){
@@ -8460,7 +8453,7 @@
     var caja = document.getElementById('trReal');
     /* En la columna de subir, que es donde vive ahora la lista. */
     var fila = [].filter.call(caja.querySelectorAll('.sol-lado .sol-doc'), function(d){
-      return /Solvencia del SENIAT/.test(d.textContent);
+      return /Constancia de inscripción en el RNET/.test(d.textContent);
     })[0];
     /* SIN recargar la pagina. Es lo unico que se mide aqui. */
     ok('cache: al subirla, el tramite se entera sin recargar',
@@ -13206,244 +13199,319 @@
           caja ? (caja.querySelector('.btn') || {}).textContent : '(sin casilla)', u.co_firma_deshacer);
   }
 
-  /* ── EL IVSS Y EL INCES: USUARIO Y CONTRASEÑA ──
-     Franklin Reyes, 27-9-2026: esos dos entes mandan usuario y contraseña,
-     y el inversionista escribe los dos. La contraseña se enseña tapada, con
-     «Ver». Los otros cuatro siguen con un código. Se monta el bloque de una
-     solicitud de mentira (r9) con tres entes sembrados en el doble: el IVSS
-     ya enviado, el INCES y el BANAVIH recién inscritos. */
-  var ENTES_PRUEBA = null;
-  function entesClaveMonta(){
-    if (CASO !== 'vacio' || !window.CIIP_LISTA_ENTES) return;
+  /* ── CADA ENTE, LO INSCRIBE EL PROPIO INVERSIONISTA ──
+     Franklin Reyes, 1-10-2026, Taquilla única opción 2. Aquí vivían las
+     pruebas del usuario y la contraseña del IVSS y del INCES
+     (entesClaveMonta/Falla/Mira/TrasEnviar) y las de la planilla del IVSS
+     (ivssPlMonta/Sube/Mira). Se retiraron con lo que probaban: ese día se
+     fueron la caja del usuario y la contraseña, su revisión, la
+     «Inscripción hecha» del gestor y la planilla que mandaba el CIIP.
+     Lo que de ellas sigue valiendo -la descarga de la constancia solo para
+     el inversionista, la casilla de la constancia del equipo con su enlace
+     y su «Constancia enviada», «Marcar listo»- se prueba aquí abajo con
+     los pasos nuevos.
+
+     Se monta una solicitud de mentira (r9) ante los entes: el SNC ya listo
+     con su constancia, los demás sin fila. El inversionista marca el
+     BANAVIH -primero con la red caída, luego bien- y los tres pasos del
+     IVSS; después el gestor lo ve en la rejilla de su visor y cierra uno. */
+  var EN_TR = null, EN_INV = null, EN_EQ = null;
+  function enFila(caja, e){ return caja ? caja.querySelector('.pe-ente[data-ente="' + e + '"]') : null; }
+  function enNombres(f){
+    return f ? [].map.call(f.querySelectorAll('.pe-pasos .tr-paso-n'), function(x){ return x.textContent; }).join(' → ') : '(sin ente)';
+  }
+  function enDibujo(f){
+    return f ? [].map.call(f.querySelectorAll('.pe-pasos .tr-paso'), function(li){
+      return li.classList.contains('hecho') ? 'hecho' : li.classList.contains('ahora') ? 'ahora' : 'porhacer';
+    }).join(',') : '(sin ente)';
+  }
+  /* El botón de marcar a la vista de un ente, o null. */
+  function enBoton(f){
+    var b = f ? [].filter.call(f.querySelectorAll('.pe-marca'), function(x){ return !x.hidden; }) : [];
+    return b[0] || null;
+  }
+  function enUltimaMarca(){
+    var l = window.CIIP_PRUEBA_CONFIRMA_PASO || [];
+    return l.length ? l[l.length - 1] : null;
+  }
+  /* Espera a que la marca haya vuelto de la base -o se rinde- y sigue. */
+  function enEsperaMarca(clave, sigue){
+    var n = 0;
+    (function mira(){
+      if ((EN_TR && EN_TR.datos && EN_TR.datos[clave]) || ++n > 40) return setTimeout(sigue, 60);
+      setTimeout(mira, 30);
+    })();
+  }
+
+  function entesMonta(sigue){
+    if (CASO !== 'vacio' || !window.CIIP_LISTA_ENTES) return sigue();
     var E = window.__ENTES = window.__ENTES || {};
-    E['r9|ivss']    = {tramite:'r9', ente:'ivss', estado:'codigo_enviado', codigo:'empresa.ivss', clave:'S3creta!'};
-    E['r9|inces']   = {tramite:'r9', ente:'inces', estado:'inscrito'};
-    E['r9|banavih'] = {tramite:'r9', ente:'banavih', estado:'inscrito'};
-    /* El SNC, listo y con su constancia: la descarga es solo del
-       inversionista (Franklin Reyes, 29-9-2026). */
-    E['r9|snc']     = {tramite:'r9', ente:'snc', estado:'listo',
-                       documentos:{archivo:'u1/snc.pdf', tipo:'constancia_ente', nombre_original:'snc.pdf'}};
-    ENTES_PRUEBA = window.CIIP_LISTA_ENTES({id:'r9', estado:'ante_el_ente', inversionista:'u1'}, 'inversionista');
-    ENTES_EQUIPO = window.CIIP_LISTA_ENTES({id:'r9', estado:'ante_el_ente', inversionista:'u1'}, 'equipo', 'snc');
+    E['r9|snc'] = {tramite:'r9', ente:'snc', estado:'listo',
+                   documentos:{archivo:'u1/snc.pdf', tipo:'constancia_ente', nombre_original:'snc.pdf'}};
+    if (window.__DATOS_TR) delete window.__DATOS_TR.r9;
+    window.CIIP_PRUEBA_CONFIRMA_PASO = [];
+    EN_TR = {id:'r9', tipo:'registros_parafiscales', estado:'ante_el_ente', inversionista:'u1', datos:{}};
+    EN_INV = window.CIIP_LISTA_ENTES(EN_TR, 'inversionista');
+    setTimeout(sigue, 300);
   }
-  var ENTES_EQUIPO = null;
-  /* Si el envío falla -la red, o una política que devuelve cero filas-,
-     el usuario y la contraseña se quedan escritos. Se vaciaban igual que
-     al acertar: el aviso de error salía encima de dos casillas en blanco y
-     había que volver a copiarlos del correo (30-9-2026). */
-  function entesClaveFalla(sigue){
-    if (CASO !== 'vacio' || !ENTES_PRUEBA) return sigue();
+
+  function entesMira(sigue){
+    if (CASO !== 'vacio' || !EN_INV) return sigue();
     var u = window.CIIP_T();
-    var formI = ENTES_PRUEBA.querySelector('.pe-ente[data-ente="inces"] .pe-form');
-    var us = formI && formI.querySelector('input[type=text]');
-    var cl = formI && formI.querySelector('input[type=password]');
-    if (!us || !cl){
-      ok('entes: un envío que falla deja escritos el usuario y la contraseña', false,
-         '(sin caja del INCES)', 'la caja');
-      return sigue();
-    }
-    us.value = 'empresa.inces'; cl.value = 'Cl4ve INCES';
-    window.__FALLA_ENTES = true;
-    formI.querySelector('.pe-env').click();
-    setTimeout(function(){
-      window.__FALLA_ENTES = false;
-      igual('entes: un envío que falla lo dice', (formI.querySelector('.pe-msg') || {}).textContent, u.error);
-      igual('entes: y deja escritos el usuario y la contraseña', us.value + ' · ' + cl.value,
-            'empresa.inces · Cl4ve INCES');
-      ok('entes: y se puede volver a mandar', !formI.querySelector('.pe-env').disabled,
-         formI.querySelector('.pe-env').disabled ? 'apagado' : 'encendido', 'encendido');
-      /* Como estaba: entesClaveMira empieza por mandar sin contraseña. */
-      us.value = ''; cl.value = '';
-      formI.querySelector('.pe-msg').textContent = '';
-      sigue();
-    }, 300);
-  }
-  function entesClaveMira(){
-    if (CASO !== 'vacio') return;
-    var u = window.CIIP_T();
-    ok('entes: el bloque de prueba se monta', !!ENTES_PRUEBA, ENTES_PRUEBA ? 'está' : 'no está', 'el bloque');
-    if (!ENTES_PRUEBA) return;
-    var fila = function(e){ return ENTES_PRUEBA.querySelector('.pe-ente[data-ente="' + e + '"]'); };
-    var ivss = fila('ivss'), inces = fila('inces'), banavih = fila('banavih');
-    /* Los avisos de la campana: solo el IVSS y el INCES llegan a
-       «inscrito» o mandan algo, y lo que mandan es usuario y contraseña
-       (Franklin Reyes, 29-9-2026: «el IVSS no utiliza códigos»). */
+    var banavih = enFila(EN_INV, 'banavih'), ivss = enFila(EN_INV, 'ivss'), snc = enFila(EN_INV, 'snc');
+    igual('entes: un ente normal, tres pasos: inscríbase, en proceso, certificado listo',
+          enNombres(banavih), [u.pe_ins_banavih, u.pe_enproceso, u.pe_certlisto].join(' → '));
+    igual('entes: el IVSS, cinco: solicite, confirme, en proceso, oficina, certificado',
+          enNombres(ivss),
+          [u.pe_ivss_solicite, u.pe_ivss_confirme, u.pe_enproceso, u.pe_ivss_oficina, u.pe_certlisto].join(' → '));
+    igual('entes: los textos son los del documento',
+          [u.pe_ins_banavih, u.pe_ins_snc, u.pe_ivss_confirme].join(' | '),
+          'Inscríbase en BANAVIH (FAOV) | Inscríbase en el Registro Nacional de Contratistas | Confirme su inscripción en el IVSS');
+    /* Cada ente, a SU portal, en otra pestaña. */
+    var PORTALES = {
+      banavih: 'https://faovel.banavih.gob.ve/index.php/empleador_login/afiliarEmpleador',
+      inces:   'https://contribuyentes-parafiscal.sigat.net/registro?institucion=3',
+      mpppst:  'https://rnet.mpppst.gob.ve/mpppst2/rnet/mod_rnet/identificacion_emp.php',
+      sundde:  'https://rupdae.sundde.gob.ve/register',
+      snc:     'https://rncenlinea.snc.gob.ve/suscripciones/new',
+      ivss:    'http://registro.ivss.gob.ve:28085/RegistroSolicitudTiuna/crearSolicitudAfiliacion.htm'
+    };
+    var malos = [];
+    Object.keys(PORTALES).forEach(function(e){
+      var a = enFila(EN_INV, e) && enFila(EN_INV, e).querySelector('.pe-pasos .tr-paso .pe-portal');
+      if (!a || a.getAttribute('href') !== PORTALES[e] || a.target !== '_blank') malos.push(e);
+    });
+    igual('entes: cada ente lleva a su portal, en otra pestaña', malos.join(' ') || '(todos bien)', '(todos bien)');
+    var aB = banavih && banavih.querySelector('.pe-portal');
+    ok('entes: el enlace del BANAVIH se ve en el primer paso',
+       !!aB && !aB.hidden && aB.textContent === u.pe_irportal,
+       aB ? (aB.hidden ? 'escondido' : aB.textContent) : '(sin enlace)', u.pe_irportal);
+    var aI2 = ivss && ivss.querySelectorAll('.pe-pasos .tr-paso')[1].querySelector('.pe-portal');
+    ok('entes: el IVSS lleva su página de confirmar, escondida hasta que toque',
+       !!aI2 && aI2.hidden &&
+         aI2.getAttribute('href') === 'http://registro.ivss.gob.ve:28085/RegistroSolicitudTiuna/confirmarSolicitudManual.htm',
+       aI2 ? (aI2.hidden ? 'escondida' : 'a la vista') + ' · ' + aI2.getAttribute('href') : '(sin enlace)',
+       'escondida · …confirmarSolicitudManual.htm');
+    var bB = enBoton(banavih);
+    ok('entes: «Ya me inscribí» en el primer paso del BANAVIH',
+       !!bB && bB.textContent === u.pe_yainscribi && bB.getAttribute('data-clave') === 'ente_banavih' &&
+         bB.closest('.tr-paso') === banavih.querySelectorAll('.pe-pasos .tr-paso')[0],
+       bB ? bB.textContent + ' · ' + bB.getAttribute('data-clave') : '(sin botón)', u.pe_yainscribi + ' · ente_banavih');
+    igual('entes: va por el primero', enDibujo(banavih), 'ahora,porhacer,porhacer');
+    igual('entes: y sin marcar está por iniciar', (banavih.querySelector('.pe-cab .chip') || {}).textContent, u.pe_por_iniciar);
+    /* Lo de antes, fuera. */
+    ok('entes: ni caja de usuario y contraseña, ni «Inscripción hecha», ni planilla del IVSS',
+       !EN_INV.querySelector('.pe-form, .pe-inscribe, .pe-sube-pl, .pe-baja-pl, input[type=password]'),
+       (EN_INV.querySelector('.pe-form, .pe-inscribe, .pe-sube-pl, .pe-baja-pl, input[type=password]') || {}).className || 'nada',
+       'nada');
+    /* El SNC, listo: todo hecho, nada que marcar, y la constancia para
+       descargar, que es solo del inversionista (29-9-2026). */
+    igual('entes: el SNC, cerrado por el equipo, tiene los tres hechos', enDibujo(snc), 'hecho,hecho,hecho');
+    ok('entes: y no ofrece marcar nada', !enBoton(snc), enBoton(snc) ? 'lo ofrece' : 'no', 'no');
+    var bajaInv = snc && snc.querySelector('.pe-baja');
+    ok('entes: el inversionista puede descargar la constancia del ente',
+       !!bajaInv && !bajaInv.hidden, bajaInv ? (bajaInv.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'a la vista');
+    /* Con la solicitud fuera de la etapa de los entes: quietos, y se dice. */
+    var cerr = window.CIIP_LISTA_ENTES({id:'r6', estado:'en_revision', inversionista:'u1', datos:{}}, 'inversionista');
+    ok('entes: antes de presentarse ante los organismos, nada que marcar, y se dice por qué',
+       !!cerr.querySelector('.pe-aun') && ![].some.call(cerr.querySelectorAll('.pe-marca'), function(b){ return !b.hidden; }),
+       (cerr.querySelector('.pe-aun') ? 'lo dice' : 'no lo dice') + ' · ' +
+         [].filter.call(cerr.querySelectorAll('.pe-marca'), function(b){ return !b.hidden; }).length + ' botones',
+       'lo dice · 0 botones');
+    /* Los avisos de la campana no cambian de texto: siguen siendo los de
+       las filas de antes, que hablaban de usuario y contraseña. */
     ok('entes: los avisos de la campana hablan de usuario y contraseña, no de un código',
        /usuario y contraseña/.test(u.av_ente_abierto) && /usuario y la contraseña/.test(u.av_codigo) &&
          !/código/.test(u.av_ente_abierto + u.av_codigo),
        u.av_ente_abierto + ' / ' + u.av_codigo, 'usuario y contraseña');
-    igual('entes: el IVSS pide usuario y contraseña, no un código',
-          (ivss.querySelectorAll('.pe-pasos .tr-paso-n')[1] || {}).textContent, u.pe_p1c);
-    /* Los otros cuatro, sin código (pedido del CIIP, 28-9-2026): «El CIIP
-       te inscribe ante el ente → Inscripción lista», y nada más. */
-    igual('entes: los demás, sin código: el CIIP te inscribe y la inscripción queda lista',
-          [].map.call(banavih.querySelectorAll('.pe-pasos .tr-paso-n'), function(x){ return x.textContent; }).join(' → '),
-          u.pe_p0 + ' → ' + u.pe_p3);
-    var dice = ivss.querySelector('.pe-dice');
-    ok('entes: lo enviado sale con el usuario, y la contraseña tapada',
-       !!dice && dice.textContent.indexOf(String(u.pe_tuusuario).replace('{c}', 'empresa.ivss')) >= 0 &&
-         dice.textContent.indexOf('S3creta!') < 0 && !!dice.querySelector('.pe-clave'),
-       dice ? dice.textContent : '(sin nada)', 'usuario a la vista, contraseña no');
-    var ver = dice && dice.querySelector('.pe-clave .pe-ver');
-    if (ver) ver.click();
-    ok('entes: y «Ver» la enseña',
-       !!dice && dice.textContent.indexOf('S3creta!') >= 0 && ver.textContent === u.pe_ocultaclave,
-       dice ? dice.textContent : '(sin nada)', 'S3creta!');
-    if (ver) ver.click();
-
-    var formI = inces.querySelector('.pe-form'), formB = banavih.querySelector('.pe-form');
-    ok('entes: el INCES, recién inscrito, tiene dos casillas: usuario y contraseña',
-       !!formI && !formI.hidden && !!formI.querySelector('input[type=text]') &&
-         !!formI.querySelector('input[type=password]'),
-       formI ? (formI.hidden ? 'escondida' : formI.querySelectorAll('input').length + ' casillas') : '(sin caja)',
-       'una de texto y una de contraseña');
-    ok('entes: el BANAVIH, ninguna: no hay código que mandar',
-       !formB, formB ? formB.querySelectorAll('input').length + ' casillas' : '(sin caja)', 'sin caja');
-    igual('entes: y aunque venga de antes en «inscrito», se lee en marcha y no esperando tu código',
-          (banavih.querySelector('.pe-cab .chip') || {}).textContent, u.pe_pendiente);
-
-    var bajaInv = (fila('snc') || document.createElement('i')).querySelector('.pe-baja');
-    ok('entes: el inversionista puede descargar la constancia del ente',
-       !!bajaInv && !bajaInv.hidden, bajaInv ? (bajaInv.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'a la vista');
-    var fSnc = ENTES_EQUIPO && ENTES_EQUIPO.querySelector('.pe-ente[data-ente="snc"]');
-    var bajaEq = fSnc && fSnc.querySelector('.pe-baja');
-    ok('entes: el gestor y el administrador no la descargan',
-       !!fSnc && (!bajaEq || bajaEq.hidden),
-       !fSnc ? '(sin tarjeta)' : (bajaEq && !bajaEq.hidden ? 'a la vista' : 'escondido'), 'escondido');
-    /* La casilla de la constancia es un enlace (modelo 3, 29-9-2026). Con
-       la constancia subida: «Constancia enviada» con su marca y «Cambiar»,
-       sin el enlace. El nombre del archivo ya no se escribe -Franklin
-       pidió una marca de aprobado en su lugar- pero se queda en el title. */
-    var yaS = fSnc && fSnc.querySelector('.pe-subido');
-    igual('entes: equipo, con la constancia subida sale «Constancia enviada» y «Cambiar»',
-          yaS && !yaS.hidden ? yaS.textContent : '(escondido)', u.pe_enviadaok + u.pa_cambiar);
-    var nomS = yaS && yaS.querySelector('.pe-subido-n');
-    igual('entes: y el nombre del archivo queda en el title',
-          nomS ? nomS.title : '(sin nombre)', 'snc.pdf');
-    var enlS = fSnc && fSnc.querySelector('.pe-sube > .pe-subir');
-    ok('entes: y el enlace de subir se esconde',
-       !!enlS && enlS.hidden, enlS ? (enlS.hidden ? 'escondido' : 'a la vista') : '(sin enlace)', 'escondido');
-
-
-    /* Y el gestor, en uno sin código: ni «Inscripción hecha» ni revisar un
-       código; de pendiente se pasa a lista con un botón en el primer paso. */
-    var eq = window.CIIP_LISTA_ENTES({id:'r9', estado:'ante_el_ente', inversionista:'u1'}, 'equipo', 'sundde');
-    var fS = eq.querySelector('.pe-ente[data-ente="sundde"]');
-    var pasosS = fS ? fS.querySelectorAll('.pe-pasos .tr-paso') : [];
-    ok('entes: gestor, la SUNDDE no ofrece «Inscripción hecha»',
-       !!fS && !fS.querySelector('.pe-inscribe'), fS && fS.querySelector('.pe-inscribe') ? 'lo ofrece' : 'no', 'no');
-    var listoS = pasosS[0] && pasosS[0].querySelector('.pe-listo');
-    ok('entes: gestor, pendiente, y «Marcar listo» ya está en el primer paso',
-       !!listoS && !listoS.hidden, listoS ? (listoS.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'a la vista');
-    var enlSu = fS && fS.querySelector('.pe-sube > .pe-subir');
-    var natSu = fS && fS.querySelector('.pe-sube input[type=file]');
-    ok('entes: gestor, sin constancia, un enlace «Subir la constancia» y no el botón gris del navegador',
-       !!enlSu && !enlSu.hidden && enlSu.textContent === u.pe_subirconst && !!natSu && natSu.hidden,
-       enlSu ? (enlSu.hidden ? 'enlace escondido' : enlSu.textContent) + (natSu && !natSu.hidden ? ' + botón gris' : '') : '(sin enlace)',
-       u.pe_subirconst);
-    if (listoS) listoS.click();
-    if (!formI) return;
-    formI.querySelector('input[type=text]').value = 'empresa.inces';
-    formI.querySelector('.pe-env').click();
-    igual('entes: sin contraseña no se manda, y lo dice',
-          (formI.querySelector('.pe-msg') || {}).textContent, u.pe_faltaclave);
-    formI.querySelector('input[type=password]').value = 'Cl4ve INCES';
-    formI.querySelector('.pe-env').click();
-  }
-  function entesClaveTrasEnviar(){
-    if (CASO !== 'vacio' || !ENTES_PRUEBA) return;
-    var d = (window.__ENTES || {})['r9|inces'] || {};
-    igual('entes: el INCES llega a la base con usuario y contraseña, sin recortar',
-          [d.estado, d.codigo, d.clave].join(' · '), 'codigo_enviado · empresa.inces · Cl4ve INCES');
-    var b = (window.__ENTES || {})['r9|banavih'] || {};
-    igual('entes: y el BANAVIH no lleva contraseña', 'clave' in b, false);
-    igual('entes: gestor, la SUNDDE pasa de pendiente a lista sin código',
-          ((window.__ENTES || {})['r9|sundde'] || {}).estado, 'listo');
-    ['r9|ivss', 'r9|inces', 'r9|banavih', 'r9|sundde', 'r9|snc'].forEach(function(k){ delete window.__ENTES[k]; });
-    ENTES_PRUEBA = null; ENTES_EQUIPO = null;
+    sigue();
   }
 
-  /* LA PLANILLA DEL IVSS (Franklin Reyes, 30-9-2026). Revisado el usuario
-     y la contraseña, el CIIP sube la planilla de inscripción, el
-     inversionista la descarga y la trae firmada. Seis pasos solo en el
-     IVSS. Se monta otra solicitud de mentira (r8) con el IVSS ya con su
-     usuario y contraseña, y se sube la planilla desde el lado del equipo. */
-  var PL_EQ = null, PL_INV = null;
-  function ivssPlMonta(sigue){
-    if (CASO !== 'vacio' || !window.CIIP_LISTA_ENTES) return sigue();
-    var E = window.__ENTES = window.__ENTES || {};
-    E['r8|ivss'] = {tramite:'r8', ente:'ivss', estado:'codigo_enviado', codigo:'empresa.ivss', clave:'Otr4!'};
-    var tr = {id:'r8', estado:'ante_el_ente', inversionista:'u1'};
-    PL_EQ  = window.CIIP_LISTA_ENTES(tr, 'equipo', 'ivss');
-    PL_INV = window.CIIP_LISTA_ENTES(tr, 'inversionista', 'ivss');
+  /* Con la red caída: el paso NO se pinta hecho, el botón vuelve y se dice. */
+  function entesFalla(sigue){
+    if (CASO !== 'vacio' || !EN_INV) return sigue();
+    var u = window.CIIP_T();
+    var banavih = enFila(EN_INV, 'banavih');
+    var bB = enBoton(banavih);
+    if (!bB){ ok('entes: un fallo al marcar se dice', false, '(sin botón)', 'el botón'); return sigue(); }
+    window.__FALLA_CONFIRMA = true;
+    bB.click();
+    setTimeout(function(){
+      window.__FALLA_CONFIRMA = false;
+      var nota = bB.parentNode.querySelector('.tr-nota.mal');
+      ok('entes: si la base no contesta, lo dice',
+         !!nota && nota.textContent === u.co_error, nota ? nota.textContent : '(nada)', u.co_error);
+      igual('entes: y el paso sigue sin hacer', enDibujo(banavih), 'ahora,porhacer,porhacer');
+      ok('entes: y el botón se puede volver a pulsar', !bB.disabled && !bB.hidden,
+         bB.disabled ? 'apagado' : (bB.hidden ? 'escondido' : 'encendido'), 'encendido');
+      sigue();
+    }, 300);
+  }
+
+  function entesMarca(sigue){
+    if (CASO !== 'vacio' || !EN_INV) return sigue();
+    var bB = enBoton(enFila(EN_INV, 'banavih'));
+    if (!bB) return sigue();
+    bB.click();
+    enEsperaMarca('ente_banavih', sigue);
+  }
+
+  function entesTrasMarcar(sigue){
+    if (CASO !== 'vacio' || !EN_INV) return sigue();
+    var u = window.CIIP_T();
+    var banavih = enFila(EN_INV, 'banavih');
+    igual('entes: marcar llama a confirma_paso con la solicitud y la clave del ente',
+          JSON.stringify(enUltimaMarca()), JSON.stringify({p_tramite:'r9', p_clave:'ente_banavih'}));
+    ok('entes: la marca vuelve de la base a los datos de la solicitud',
+       !!(EN_TR.datos && EN_TR.datos.ente_banavih), JSON.stringify(EN_TR.datos), 'ente_banavih con fecha');
+    igual('entes: tras marcar, la solicitud está en proceso y falta el certificado',
+          enDibujo(banavih), 'hecho,hecho,ahora');
+    igual('entes: y la etiqueta lo dice', (banavih.querySelector('.pe-cab .chip') || {}).textContent, u.pe_enproceso_chip);
+    ok('entes: y el botón ya no se ofrece', !enBoton(banavih), enBoton(banavih) ? 'sigue' : 'se fue', 'se fue');
+    var cu = banavih.querySelector('.pe-hecho-el');
+    var prefijo = String(u.pe_marcado || '').split('{f}')[0];
+    ok('entes: y queda escrito cuándo se marcó',
+       !!cu && !cu.hidden && cu.textContent.indexOf(prefijo) === 0 && cu.textContent.length > prefijo.length,
+       cu ? (cu.hidden ? 'escondido' : cu.textContent) : '(nada)', prefijo + '…');
+    ok('entes: la nota del fallo de antes se va', !banavih.querySelector('.tr-nota.mal'),
+       banavih.querySelector('.tr-nota.mal') ? 'sigue' : 'se fue', 'se fue');
+    igual('entes: los demás no se mueven', enDibujo(enFila(EN_INV, 'inces')), 'ahora,porhacer,porhacer');
+    sigue();
+  }
+
+  /* El IVSS: solicitar, confirmar y llevar los papeles a la oficina. */
+  function entesIvss1(sigue){
+    if (CASO !== 'vacio' || !EN_INV) return sigue();
+    var b = enBoton(enFila(EN_INV, 'ivss'));
+    if (!b) return sigue();
+    b.click();
+    enEsperaMarca('ente_ivss', sigue);
+  }
+  function entesIvss2(sigue){
+    if (CASO !== 'vacio' || !EN_INV) return sigue();
+    var u = window.CIIP_T();
+    var ivss = enFila(EN_INV, 'ivss');
+    igual('ivss: solicitada la afiliación, toca confirmarla', enDibujo(ivss), 'hecho,ahora,porhacer,porhacer,porhacer');
+    var b = enBoton(ivss);
+    var a2 = ivss.querySelectorAll('.pe-pasos .tr-paso')[1].querySelector('.pe-portal');
+    ok('ivss: con su enlace a la vista y su botón',
+       !!b && b.getAttribute('data-clave') === 'ente_ivss_confirma' && b.textContent === u.pe_yaconfirme &&
+         !!a2 && !a2.hidden,
+       (b ? b.getAttribute('data-clave') : '(sin botón)') + ' · ' + (a2 && !a2.hidden ? 'enlace' : 'sin enlace'),
+       'ente_ivss_confirma · enlace');
+    if (!b) return sigue();
+    b.click();
+    enEsperaMarca('ente_ivss_confirma', sigue);
+  }
+  function entesIvss3(sigue){
+    if (CASO !== 'vacio' || !EN_INV) return sigue();
+    var u = window.CIIP_T();
+    var ivss = enFila(EN_INV, 'ivss');
+    igual('ivss: confirmada, la solicitud queda en proceso y toca ir a la oficina',
+          enDibujo(ivss), 'hecho,hecho,hecho,ahora,porhacer');
+    var b = enBoton(ivss);
+    var paso4 = ivss.querySelectorAll('.pe-pasos .tr-paso')[3];
+    ok('ivss: la oficina también la marca el inversionista, y no lleva enlace',
+       !!b && b.getAttribute('data-clave') === 'ente_ivss_oficina' && b.textContent === u.pe_yaentregue &&
+         b.closest('.tr-paso') === paso4 && !paso4.querySelector('.pe-portal'),
+       b ? b.getAttribute('data-clave') + ' · ' + b.textContent : '(sin botón)', 'ente_ivss_oficina · ' + u.pe_yaentregue);
+    if (!b) return sigue();
+    b.click();
+    enEsperaMarca('ente_ivss_oficina', sigue);
+  }
+  function entesIvssMira(sigue){
+    if (CASO !== 'vacio' || !EN_INV) return sigue();
+    var ivss = enFila(EN_INV, 'ivss');
+    igual('ivss: con las tres marcas, solo falta el certificado', enDibujo(ivss), 'hecho,hecho,hecho,hecho,ahora');
+    igual('ivss: y las tres claves llegaron a confirma_paso, en orden',
+          (window.CIIP_PRUEBA_CONFIRMA_PASO || []).slice(-3).map(function(a){ return a.p_clave; }).join(' '),
+          'ente_ivss ente_ivss_confirma ente_ivss_oficina');
+    igual('ivss: y el BANAVIH conserva la suya', !!EN_TR.datos.ente_banavih, true);
+    sigue();
+  }
+
+  /* El gestor: en la rejilla de su visor ve lo que marcó el inversionista,
+     y cierra con «Marcar listo» o con la constancia. */
+  function entesGestor(sigue){
+    if (CASO !== 'vacio' || !EN_TR) return sigue();
+    var copia = {id:'r9', tipo:'registros_parafiscales', estado:'ante_el_ente', inversionista:'u1', datos:{}};
+    Object.keys(EN_TR.datos || {}).forEach(function(k){ copia.datos[k] = EN_TR.datos[k]; });
+    EN_EQ = window.CIIP_LISTA_ENTES(copia, 'equipo', null, false, true);
     setTimeout(sigue, 300);
   }
-  function ivssPlSube(sigue){
-    if (CASO !== 'vacio' || !PL_EQ) return sigue();
+  function entesGestorMira(sigue){
+    if (CASO !== 'vacio' || !EN_EQ) return sigue();
     var u = window.CIIP_T();
-    var pasosN = [].map.call(PL_INV.querySelectorAll('.pe-pasos .tr-paso-n'), function(x){ return x.textContent; });
-    igual('ivss: seis pasos, con la planilla y el traerla firmada entre la revisión y la lista',
-          pasosN.join(' → '),
-          [u.pe_p0, u.pe_p1c, u.pe_p2c, u.pe_pplanilla, u.pe_ptrae, u.pe_p3].join(' → '));
-    var inces = window.CIIP_LISTA_ENTES({id:'r8', estado:'ante_el_ente', inversionista:'u1'}, 'inversionista', 'inces');
-    igual('ivss: el INCES sigue con sus cuatro',
-          inces.querySelectorAll('.pe-pasos .tr-paso').length, 4);
-    var caja = PL_EQ.querySelector('.pe-sube-pl');
-    var enl = caja && caja.querySelector('.pe-subir');
-    ok('ivss: gestor, con el usuario y la contraseña ya llegados, «Subir la planilla»',
-       !!caja && !caja.hidden && !!enl && !enl.hidden && enl.textContent === u.pe_subirplanilla,
-       caja ? (caja.hidden ? 'escondida' : (enl ? enl.textContent : '(sin enlace)')) : '(no está)', u.pe_subirplanilla);
-    var listo = PL_EQ.querySelector('.pe-listo');
-    ok('ivss: gestor, sin la planilla todavía no se ofrece «Marcar listo»',
-       !!listo && listo.hidden, listo ? (listo.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'escondido');
-    var bajaPl = PL_INV.querySelector('.pe-baja-pl');
-    ok('ivss: inversionista, sin planilla no hay nada que descargar',
-       !!bajaPl && bajaPl.hidden, bajaPl ? (bajaPl.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'escondido');
-    var arch = caja && caja.querySelector('input[type=file]');
-    if (!arch) return sigue();
-    var dt = new DataTransfer();
-    dt.items.add(new File(['%PDF-1.4 planilla'], 'planilla-ivss.pdf', {type: 'application/pdf'}));
-    arch.files = dt.files;
-    arch.dispatchEvent(new Event('change'));
-    /* Se espera a que la planilla esté colgada, y no un tiempo fijo: la
-       huella y la subida tardan lo que tardan, y con la cadena más larga
-       medio segundo no bastó y la del inversionista se leía de antes. */
+    ok('gestor: ni enlaces a los portales ni botones de marcar',
+       !EN_EQ.querySelector('.pe-portal, .pe-marca'),
+       EN_EQ.querySelector('.pe-portal, .pe-marca') ? 'los tiene' : 'no', 'no');
+    var linea = function(e){
+      return [].map.call(enFila(EN_EQ, e).querySelectorAll('.pe-marca-l'), function(l){
+        return l.getAttribute('data-clave') + ':' + (l.classList.contains('si') ? 'si' : 'no'); }).join(' ');
+    };
+    igual('gestor: ve las tres marcas del IVSS', linea('ivss'), 'ente_ivss:si ente_ivss_confirma:si ente_ivss_oficina:si');
+    igual('gestor: la del BANAVIH, hecha, y la del INCES, no', linea('banavih') + ' | ' + linea('inces'),
+          'ente_banavih:si | ente_inces:no');
+    var cajaM = enFila(EN_EQ, 'inces').querySelector('.pe-caja-marcas');
+    ok('gestor: en su casilla, con su título y «Nada todavía» en lo que falta',
+       !!cajaM && cajaM.querySelector('.pe-caja-t').textContent === u.pe_marco &&
+         cajaM.querySelector('.pe-marca-e').textContent === u.pe_nada_aun,
+       cajaM ? cajaM.textContent : '(sin casilla)', u.pe_marco + ' … ' + u.pe_nada_aun);
+    var eB = enFila(EN_EQ, 'banavih').querySelector('.pe-marca-l.si .pe-marca-e');
+    var prefijo = String(u.pe_marcado || '').split('{f}')[0];
+    ok('gestor: y con la fecha', !!eB && eB.textContent.indexOf(prefijo) === 0,
+       eB ? eB.textContent : '(nada)', prefijo + '…');
+    /* La constancia: el SNC con la suya subida, la SUNDDE sin ella. */
+    var fSnc = enFila(EN_EQ, 'snc');
+    var yaS = fSnc && fSnc.querySelector('.pe-subido');
+    igual('gestor: con la constancia subida sale «Constancia enviada» y «Cambiar»',
+          yaS && !yaS.hidden ? yaS.textContent : '(escondido)', u.pe_enviadaok + u.pa_cambiar);
+    igual('gestor: y el nombre del archivo queda en el title',
+          (yaS && yaS.querySelector('.pe-subido-n') || {}).title, 'snc.pdf');
+    var bajaEq = fSnc && fSnc.querySelector('.pe-baja');
+    ok('gestor: el gestor y el administrador no la descargan', !!fSnc && (!bajaEq || bajaEq.hidden),
+       bajaEq && !bajaEq.hidden ? 'a la vista' : 'escondido', 'escondido');
+    var lSnc = fSnc && fSnc.querySelector('.pe-listo');
+    ok('gestor: un ente ya listo no ofrece «Marcar listo»', !!lSnc && lSnc.hidden,
+       lSnc ? (lSnc.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'escondido');
+    var fS = enFila(EN_EQ, 'sundde');
+    var enlSu = fS && fS.querySelector('.pe-sube > .pe-subir');
+    var natSu = fS && fS.querySelector('.pe-sube input[type=file]');
+    ok('gestor: sin constancia, un enlace «Subir la constancia» y no el botón gris del navegador',
+       !!enlSu && !enlSu.hidden && enlSu.textContent === u.pe_subirconst && !!natSu && natSu.hidden,
+       enlSu ? (enlSu.hidden ? 'enlace escondido' : enlSu.textContent) : '(sin enlace)', u.pe_subirconst);
+    var lS = fS && fS.querySelector('.pe-listo');
+    ok('gestor: y puede cerrarlo aunque el inversionista no haya marcado nada', !!lS && !lS.hidden,
+       lS ? (lS.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'a la vista');
+    /* En la ficha de la cola -sin rejilla- las marcas salen en los pasos. */
+    var cola = window.CIIP_LISTA_ENTES({id:'r9', tipo:'registros_parafiscales', estado:'ante_el_ente',
+                                        inversionista:'u1', datos:EN_TR.datos}, 'equipo', 'ivss');
+    var fI = enFila(cola, 'ivss');
+    igual('gestor: en la ficha de la cola, el IVSS con sus pasos al día', enDibujo(fI), 'hecho,hecho,hecho,hecho,ahora');
+    igual('gestor: y la fecha en cada paso marcado',
+          [].filter.call(fI.querySelectorAll('.pe-hecho-el'), function(x){ return !x.hidden; }).length, 3);
+    var lB = enFila(EN_EQ, 'banavih').querySelector('.pe-listo');
+    if (!lB || lB.hidden) return sigue();
+    lB.click();
     var n = 0;
     (function espera(){
-      var d = (window.__ENTES || {})['r8|ivss'] || {};
-      if (!d.documento && ++n <= 60) return setTimeout(espera, 50);
-      /* Otra vez la del inversionista, que es lo que vería al volver. */
-      PL_INV = window.CIIP_LISTA_ENTES({id:'r8', estado:'ante_el_ente', inversionista:'u1'}, 'inversionista', 'ivss');
-      setTimeout(sigue, 300);
+      var d = (window.__ENTES || {})['r9|banavih'] || {};
+      if (d.estado !== 'listo' && ++n <= 40) return setTimeout(espera, 30);
+      setTimeout(sigue, 60);
     })();
   }
-  function ivssPlMira(sigue){
-    if (CASO !== 'vacio' || !PL_EQ) return sigue();
+  function entesGestorTras(sigue){
+    if (CASO !== 'vacio' || !EN_EQ) return sigue();
     var u = window.CIIP_T();
-    var d = (window.__ENTES || {})['r8|ivss'] || {};
-    ok('ivss: la planilla se cuelga de la fila del IVSS, que sigue esperando',
-       !!d.documento && d.estado === 'codigo_enviado' && (d.documentos || {}).tipo === 'planilla_ivss',
-       [d.estado, d.documento || '(sin papel)', (d.documentos || {}).tipo].join(' · '),
-       'codigo_enviado con la planilla');
-    var ya = PL_EQ.querySelector('.pe-sube-pl .pe-subido');
-    ok('ivss: gestor, sale «Planilla enviada» con su «Cambiar»',
-       !!ya && !ya.hidden && ya.textContent === u.pe_planillaok + u.pa_cambiar,
-       ya ? (ya.hidden ? 'escondido' : ya.textContent) : '(no está)', u.pe_planillaok + u.pa_cambiar);
-    var listo = PL_EQ.querySelector('.pe-listo');
-    ok('ivss: gestor, y ya puede «Marcar listo» cuando la traigan firmada',
-       !!listo && !listo.hidden, listo ? (listo.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'a la vista');
-    var bajaPl = PL_INV.querySelector('.pe-baja-pl');
-    ok('ivss: inversionista, «Descargar la planilla» en su paso',
-       !!bajaPl && !bajaPl.hidden && bajaPl.textContent === u.pe_bajaplanilla &&
-         bajaPl.closest('.tr-paso') === PL_INV.querySelectorAll('.pe-pasos .tr-paso')[3],
-       bajaPl ? (bajaPl.hidden ? 'escondido' : 'a la vista') : '(sin botón)', 'a la vista, en el cuarto');
-    var dibujo = [].map.call(PL_INV.querySelectorAll('.pe-pasos .tr-paso'), function(li){
-      return li.classList.contains('hecho') ? 'hecho' : li.classList.contains('ahora') ? 'ahora' : 'porhacer';
-    }).join(',');
-    igual('ivss: y va por «Trae la planilla firmada al CIIP»', dibujo, 'hecho,hecho,hecho,hecho,ahora,porhacer');
-    igual('ivss: y la etiqueta lo dice', (PL_INV.querySelector('.pe-cab .chip') || {}).textContent, u.pe_traeplanilla);
-    delete window.__ENTES['r8|ivss'];
-    PL_EQ = null; PL_INV = null;
+    igual('gestor: «Marcar listo» cierra el ente en la base',
+          ((window.__ENTES || {})['r9|banavih'] || {}).estado, 'listo');
+    var fB = enFila(EN_EQ, 'banavih');
+    igual('gestor: y la tarjeta dice listo', (fB.querySelector('.pe-cab .chip') || {}).textContent, u.pe_listo);
+    ok('gestor: y el botón se va', fB.querySelector('.pe-listo').hidden,
+       fB.querySelector('.pe-listo').hidden ? 'escondido' : 'a la vista', 'escondido');
+    ['r9|snc', 'r9|banavih'].forEach(function(k){ delete window.__ENTES[k]; });
+    if (window.__DATOS_TR) delete window.__DATOS_TR.r9;
+    EN_TR = null; EN_INV = null; EN_EQ = null;
     sigue();
   }
 
