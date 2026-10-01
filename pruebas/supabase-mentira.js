@@ -2021,6 +2021,12 @@
       var mios = (TRAMITES[caso] || []).slice();
       if (window.CIIP_MENTIRA_TARDIO) mios = mios.concat([TRAMITE_TARDIO]);
       if (op && op.eq && op.eq.tipo){
+        /* Y las que una prueba ponga mientras dura (window.__TRAMITES_EXTRA),
+           SOLO en la pregunta del detalle, que es la que lleva el tipo: así
+           la ficha de ese trámite se abre con su solicitud y las cuentas de
+           la portada y de Mis trámites no se enteran. La usa la de la visa
+           con su «Ya me registré» (1-10-2026). */
+        if (window.__TRAMITES_EXTRA) mios = mios.concat(window.__TRAMITES_EXTRA);
         mios = mios.filter(function(t){ return t.tipo === op.eq.tipo; });
       }
       /* La franja pide solo devueltos y borradores. Sin filtrar, se le
@@ -2618,6 +2624,29 @@
               var copiaCP = {};
               Object.keys(dCP).forEach(function(k){ copiaCP[k] = dCP[k]; });
               rCP = {data:{id: args.p_tramite, estado:'ante_el_ente', datos: copiaCP}, error:null};
+            }
+            return {then:function(bien, mal){ return Promise.resolve(rCP).then(bien, mal); }};
+          }
+          /* «Ya me registré» en el portal de Cancillería, el paso 1 de las
+             dos visas (Franklin Reyes, 1-10-2026, Taquilla única opción 2).
+             Como la de verdad (supabase-confirma-paso.sql): una sola llave,
+             solo sobre una solicitud propia en marcha, y devuelve la fila
+             entera con datos[clave] = la fecha. Sin esto contestaba
+             {data:null} y el botón decía «error» en todas las pruebas.
+             Solo la de Cancillería: las de la licencia, la conformidad y el
+             minero las contesta la rama de más abajo. */
+          if (nombre === 'confirma_paso' && args && args.p_clave === 'cancilleria_confirmada'){
+            window.CIIP_PRUEBA_CONFIRMA_PASO = (window.CIIP_PRUEBA_CONFIRMA_PASO || []).concat([args]);
+            var clv = args && args.p_clave;
+            var trC = (TRAMITES[caso] || []).concat(window.__TRAMITES_EXTRA || [])
+                      .filter(function(t){ return t.id === (args && args.p_tramite); })[0];
+            var rCP;
+            if (!trC || trC.estado === 'borrador' || trC.estado === 'resuelto'){
+              rCP = {data:null, error:{message:'no se pudo marcar el paso', code:'P0001'}};
+            } else {
+              trC.datos = trC.datos || {};
+              trC.datos[clv] = ahora();
+              rCP = {data:trC, error:null};
             }
             return {then:function(bien, mal){ return Promise.resolve(rCP).then(bien, mal); }};
           }

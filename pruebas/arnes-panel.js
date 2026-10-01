@@ -256,9 +256,9 @@
               tramosMira, tramosDetalle, tramosTramo,
               rupdaeAbre, empiezaSolicitud, rupdaeTrasAbrir,
               rumAbre, empiezaSolicitud, rumTrasAbrir,
-              pistaAbre, empiezaSolicitud, pistaMira, visaCampos, visaRepasoEscondido,
-              /* El pasaporte con menos de 6 meses (Franklin Reyes, 30-9-2026). */
-              vigAbre, vigMira,
+              /* Las visas con la Taquilla única opción 2 (1-10-2026): cuatro
+                 campos y el pasaporte; y la regla de los 6 meses, directa. */
+              pistaAbre, empiezaSolicitud, pistaMira, visaCampos, visaRecaudos, vigenciaRegla,
               solvenciasAbre, empiezaSolicitud, solvenciasTrasAbrir,
               activosAbre, activosMira, opacidadActivos, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
@@ -384,8 +384,10 @@
               licenciaSiembra, licenciaMira,
               planillaFirmadaSiembra, planillaFirmadaMira, planillaFirmadaTrasSubir,
               rifGestorSiembra, rifGestorMira,
-              visaGestorSiembra, visaGestorMira,
+              visaGestorMira,
               importadorMira, bomberosMira, visaEscaleraMira,
+              /* La ficha de la visa con su «Ya me registré» (1-10-2026). */
+              visaFichaAbre, visaFichaMira, visaFichaTrasConfirmar,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
                  cuentas a todo lo que cuenta tarjetas. */
@@ -4025,179 +4027,98 @@
      pantalla. Por eso aquí se mira el TEXTO y no sólo el número.
 
      Los nueve campos salen del portal, https://sisref.saren.gob.ve/. */
-  /* El itinerario y dónde se hospeda (30-9-2026). El itinerario es la
-     única caja de texto largo del formulario: crece con lo escrito en vez
-     de enseñar una barra, y eso es lo que se mide. Con retrollamada, para
-     no retrasar a los demás expedientes. */
-  function visaCampos(sigue){
-    if (CASO !== 'vacio') return sigue();
-    var caja = document.getElementById('trReal');
-    if (caja && caja.CIIP_VE_PASO) caja.CIIP_VE_PASO(1);
-    var it = caja && caja.querySelector('[data-campo="itinerario_vuelo"] textarea');
-    var ho = caja && caja.querySelector('[data-campo="direccion_hospedaje"] input');
-    ok('visa: pide el itinerario de vuelo, en una caja de texto',
-       !!it, it ? 'textarea' : '(no está)', 'textarea');
-    ok('visa: y la dirección donde se va a hospedar',
-       !!ho, ho ? 'input' : '(no está)', 'input');
-    /* El vuelo, sus dos fechas y la caja, juntos bajo «Itinerario de
-       vuelo»; la dirección, fuera. */
-    var g = caja && caja.querySelector('.sol-grupo[data-grupo="f_itinerario"]');
-    var dentro = g ? [].map.call(g.querySelectorAll('.sol-campo'), function(x){
-      return x.getAttribute('data-campo'); }).join(' ') : '(sin apartado)';
-    igual('visa: el apartado del itinerario lleva la aerolínea, el vuelo, sus fechas y la caja',
-          dentro, 'aerolinea vuelo_numero fecha_entrada fecha_salida itinerario_vuelo');
-    igual('visa: y se titula «Itinerario de vuelo»',
-          g && g.querySelector('legend') ? g.querySelector('legend').textContent : '(sin título)',
-          window.CIIP_PASOS.ui[curLang].f_itinerario);
-    ok('visa: la dirección de hospedaje va fuera del apartado',
-       !!ho && !(g && g.contains(ho)), ho && g && g.contains(ho) ? 'dentro' : 'fuera', 'fuera');
-    if (!it) return sigue();
-    it.focus();
-    var antes = it.offsetHeight;
-    it.value = 'Madrid 10:00\nBogotá 15:00\nCaracas 19:30\nVuelta el 12';
-    it.dispatchEvent(new Event('input'));
-    ok('visa: la caja del itinerario crece con lo escrito',
-       it.offsetHeight > antes, antes + ' → ' + it.offsetHeight, 'más alta');
-    it.value = '';
-    it.dispatchEvent(new Event('input'));
+  /* ═══════════ LAS DOS VISAS: EL FORMULARIO ═══════════
+     Franklin Reyes, 1-10-2026, Taquilla única opción 2: en «Visa para
+     extranjeros» el paso «Tus datos» pide SOLO nombre y apellido, número
+     de pasaporte y país de emisión, y el de los recaudos SOLO el pasaporte.
 
-    /* La salida antes de la entrada: aviso debajo y el paso no sigue
-       (FECHA_ORDEN). Se escribe en los escondidos, que es lo que leen el
-       aviso y validaPaso; las tres listas avisan igual, con un 'input'. */
-    var U = window.CIIP_PASOS.ui[curLang] || {};
-    var ent = caja.querySelector('input[name="fecha_entrada"]');
-    var sal = caja.querySelector('input[name="fecha_salida"]');
-    var campoS = sal && sal.closest('.sol-campo');
-    var notaS = campoS && campoS.querySelector('.sol-orden');
-    if (!ent || !sal || !notaS){
-      ok('visa: la fecha de salida trae su aviso de orden', false,
-         (ent ? '' : 'sin entrada ') + (sal ? '' : 'sin salida ') + (notaS ? '' : 'sin aviso'), 'las tres');
+     Sustituye a tres pruebas del 30-9-2026 que medían campos que ya no
+     están en ningún formulario: visaCampos (el apartado del itinerario,
+     la caja que crece y la salida antes de la entrada), visaRepasoEscondido
+     (el repaso sin las fechas de una visa anterior) y vigAbre/vigMira (el
+     pasaporte con menos de seis meses, por la pantalla). Las piezas que
+     medían siguen en el panel -'area', 'grupo', FECHA_ORDEN y verSi, que
+     usa el RIF personal-; la regla de la vigencia se mide ahora directa,
+     en vigenciaRegla, porque no queda formulario que pregunte
+     vence_pasaporte. Con retrollamada, para no retrasar a los demás. */
+  function visaCampos(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var caja = document.getElementById('trReal');
+    if (!caja || !caja.CIIP_VE_PASO){
+      ok('visa: el formulario de la TR-N está abierto', false, '(sin formulario)', 'abierto');
       return sigue();
     }
-    var hoy = new Date(), anio = hoy.getFullYear() + 1;
-    ent.value = anio + '-05-10'; ent.dispatchEvent(new Event('input'));
-    sal.value = anio + '-05-01'; sal.dispatchEvent(new Event('input'));
-    ok('visa: con la salida antes de la entrada, lo dice debajo de la salida',
-       !notaS.hidden && campoS.classList.contains('mal'),
-       notaS.hidden ? '(sin aviso)' : notaS.textContent, 'el aviso, en rojo');
-    var sigueB = caja.querySelector('.pa-sigue');
-    if (sigueB) sigueB.click();
-    igual('visa: y el paso no sigue, diciendo por qué',
-          (caja.querySelector('.pa-aviso') || {}).textContent, U.pa_orden_paso);
-    /* Y al corregir la ENTRADA, no la salida, el aviso se va igual. */
-    ent.value = anio + '-04-20'; ent.dispatchEvent(new Event('input'));
-    ok('visa: corregida la entrada, el aviso de la salida se va',
-       notaS.hidden && !campoS.classList.contains('mal'),
-       notaS.hidden ? 'sin aviso' : notaS.textContent, 'sin aviso');
-    ent.value = ''; sal.value = '';
+    caja.CIIP_VE_PASO(1);
+    var hoja1 = caja.querySelector('.pa-hoja[data-paso="1"]') || caja;
+    var campos = [].map.call(hoja1.querySelectorAll('.sol-campo'), function(c){
+      return c.getAttribute('data-campo'); });
+    igual('visa: «Tus datos» pide solo nombre y apellido, número de pasaporte y país de emisión',
+          campos.join(' '), 'nombres apellidos numero_pasaporte pais_emisor');
+    ok('visa: sin el apartado del itinerario ni cajas de texto largo',
+       !caja.querySelector('.sol-grupo') && !caja.querySelector('textarea'),
+       (caja.querySelector('.sol-grupo') ? 'con apartado ' : '') + (caja.querySelector('textarea') ? 'con caja' : '') || 'sin nada',
+       'sin nada');
+    ok('visa: ni el vencimiento del pasaporte',
+       !caja.querySelector('[name="vence_pasaporte"]'),
+       caja.querySelector('[name="vence_pasaporte"]') ? 'está' : 'no está', 'no está');
+    /* El nombre, del perfil y con su sello, como en el registro de
+       extranjeros: son los mismos dos campos. */
+    ['nombres', 'apellidos'].forEach(function(n){
+      var c = caja.querySelector('.sol-campo[data-campo="' + n + '"]');
+      var e = c && c.querySelector('[name="' + n + '"]');
+      var v = e ? (e.value || '') : '';
+      ok('visa: «' + n + '» sale ya puesto y con su sello',
+         !!v && !!c.querySelector('.de-perfil, .de-antes, .de-empresa'),
+         (v ? '«' + v + '»' : 'vacío') +
+           (c && c.querySelector('.de-perfil, .de-antes, .de-empresa') ? ' con sello' : ' SIN sello'),
+         'con valor y con sello');
+    });
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var rot = function(n){
+      var lb = caja.querySelector('.sol-campo[data-campo="' + n + '"] label');
+      return ((lb && lb.firstChild && lb.firstChild.nodeType === 3
+               ? lb.firstChild.textContent : (lb || {}).textContent) || '').trim();
+    };
+    ok('visa: con los rótulos de siempre',
+       rot('numero_pasaporte').indexOf(U.f_pasaporte) === 0 && rot('pais_emisor').indexOf(U.f_paisemisor) === 0,
+       rot('numero_pasaporte') + ' · ' + rot('pais_emisor'), U.f_pasaporte + ' · ' + U.f_paisemisor);
     sigue();
   }
 
-  /* ── EL REPASO NO ENSEÑA LO QUE NO SE PREGUNTÓ ──
-     «¿En qué fechas?» solo sale si ya tuviste la visa; con el «No» de
-     partida está escondida y vacía. El repaso la sacaba igual, como «Sin
-     rellenar» y en rojo, con un «Cambiar» que llevaba a una casilla que no
-     se ve: a todo el que pide una visa por primera vez (30-9-2026). */
-  function visaRepasoEscondido(sigue){
-    if (CASO !== 'vacio') return sigue();
+  /* Y el único recaudo, el pasaporte: en la pantalla de la TR-N y en las
+     listas de las dos. */
+  function visaRecaudos(sigue){
+    if (PASE !== 'vacio') return sigue();
     var caja = document.getElementById('trReal');
-    var campo = caja && caja.querySelector('.sol-campo[data-campo="visa_anterior_fechas"]');
-    var hojas = caja ? caja.querySelectorAll('.pa-hoja').length : 0;
-    if (!campo || !caja.CIIP_VE_PASO || !hojas){
-      ok('visa: el repaso deja fuera las fechas de una visa que no hubo', false,
-         campo ? 'sin hojas' : 'no está la casilla', 'la casilla y el repaso');
-      return sigue();
+    if (caja && caja.CIIP_VE_PASO) caja.CIIP_VE_PASO(2);
+    var docs = caja ? [].map.call(caja.querySelectorAll('.sol-doc'), function(d){
+      return d.getAttribute('data-doc'); }) : [];
+    igual('visa: el único recaudo es el pasaporte', docs.join(' ') || '(ninguno)', 'pasaporte');
+    var R = window.CIIP_RECAUDOS;
+    if (R){
+      igual('visa: y en las dos visas, la TR-N y la TR-I',
+            ['visa_negocios', 'visa_inversionista'].map(function(t){
+              return R.de(t).map(function(r){ return r.tipo + '·' + r.clave; }).join('+');
+            }).join(' | '), 'pasaporte·d_pasaporte | pasaporte·d_pasaporte');
     }
-    ok('visa: con el «No» de partida, las fechas de la visa anterior no se ven',
-       campo.hidden, campo.hidden ? 'escondida' : 'a la vista', 'escondida');
-    var lb = campo.querySelector('label');
-    var nombre = ((lb && lb.firstChild && lb.firstChild.nodeType === 3
-                   ? lb.firstChild.textContent : (lb || {}).textContent) || '').trim();
-    caja.CIIP_VE_PASO(hojas);
-    var claves = [].map.call(caja.querySelectorAll('.pa-repaso .pa-k'), function(k){
-      return k.textContent.trim();
-    });
-    ok('visa: el repaso deja fuera las fechas de una visa que no hubo',
-       !!nombre && claves.length > 0 && claves.indexOf(nombre) < 0,
-       claves.indexOf(nombre) >= 0 ? 'sale «' + nombre + '»' : claves.length + ' líneas, sin ella',
-       'sin «' + nombre + '»');
-    caja.CIIP_VE_PASO(1);
+    if (caja && caja.CIIP_VE_PASO) caja.CIIP_VE_PASO(1);
     sigue();
   }
 
   /* ═══════════ EL PASAPORTE, CON SEIS MESES POR DELANTE ═══════════
      Franklin Reyes, 30-9-2026: un pasaporte que vence en menos de seis
-     meses no deja pasar de «Tus datos», y el aviso de debajo del campo
-     dice por qué. Se mide en la TR-N (c1), con las tres fechas sacadas de
-     HOY y no escritas a mano: una fecha fija que hoy vence dentro de un
-     año, dentro de un año ya está vencida y la prueba se pondría roja sola.
-
-     El resto de la hoja se rellena antes, igual que envioRellena: si no,
-     «no deja pasar» saldría verde por cualquier casilla vacía y no por el
-     pasaporte, que es justo lo que no se querría medir. */
-  function vigAbre(sigue){
-    if (CASO !== 'vacio') return sigue();
-    location.hash = '';
-    setTimeout(function(){
-      location.hash = 'tramite-c1';
-      esperaFilas('.gv-col[data-visa="c1"][role="button"]', 1, function(){
-        var elige = document.querySelector('.gv-col[data-visa="c1"][role="button"]');
-        if (elige) elige.click();
-        esperaFilas('#trReal [name="vence_pasaporte"]', 1, sigue);
-      });
-    }, 100);
-  }
-
-  /* Con «sigue», como vigAbre: en los demás expedientes no hace nada, y un
-     paso sin él le añade medio segundo a toda la cadena. Ese medio segundo
-     movía otras pruebas que dependen de cuándo corren -la «i» del camino
-     en 'gestor' y 'sinsql' salía roja-. Todo lo de aquí es síncrono, así
-     que sigue en cuanto termina. */
-  function vigMira(sigue){
-    if (CASO !== 'vacio') return sigue();
-    /* La excepción se apunta aquí y no se deja subir: enCadena la cogería
-       y seguiría por su cuenta, y la cadena correría dos veces. */
-    try { vigMide(); }
-    catch(e){ ok('pasaporte: el paso llegó al final', false, 'EXCEPCION: ' + e.message, 'sin excepciones'); }
-    sigue();
-  }
-
-  function vigMide(){
-    var caja = document.getElementById('trReal');
-    var ven = caja && caja.querySelector('[name="vence_pasaporte"]');
-    ok('pasaporte: la TR-N trae el vencimiento del pasaporte', !!ven,
-       ven ? 'está' : 'no está', 'está');
-    if (!ven) return;
-    var campo = ven.closest('.sol-campo');
-    var hoja1 = campo.closest('.pa-hoja');
-
-    /* Todo lo demás de la hoja, con algo dentro. */
-    hoja1.querySelectorAll('.sol-campo').forEach(function(c){
-      if (c === campo) return;
-      if (c.querySelector('.fecha3')){
-        ['.a', '.m', '.d'].forEach(function(cual){
-          var s = c.querySelector('.fecha3 select' + cual);
-          if (!s || s.options.length < 2) return;
-          s.value = s.options[1].value;
-          s.dispatchEvent(new Event('change'));
-        });
-        return;
-      }
-      var e = c.querySelector('input, select');
-      if (!e || e.type === 'checkbox') return;
-      if (e.tagName === 'SELECT'){
-        if (e.options.length < 2) return;
-        e.value = e.options[1].value;
-      } else {
-        e.value = (e.type === 'tel') ? '04141234567'
-                : (e.type === 'email') ? 'arnes@ejemplo.com' : 'Lo que escribe el arnés';
-      }
-      e.dispatchEvent(new Event('input', {bubbles:true}));
-      e.dispatchEvent(new Event('change', {bubbles:true}));
-    });
-
-    /* Las fechas, en meses de calendario desde hoy y el día 1: así ninguna
-       cae en un 31 que el mes de destino no tiene. */
+     meses no deja seguir, y el aviso dice por qué. Se medía en la pantalla
+     de la TR-N (vigAbre/vigMira); desde el 1-10-2026 ninguna visa pregunta
+     el vencimiento -lo pide la Cancillería en su portal- y no queda
+     formulario donde hacerlo. La regla se queda en el panel para el
+     próximo trámite que lo pregunte, así que se mide directa
+     (window.CIIP_VIGENCIA): el texto de los dos avisos, el umbral exacto y
+     la cuenta de meses de calendario. Las fechas salen de HOY: una fija se
+     pondría roja sola con el tiempo. */
+  function vigenciaRegla(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var V = window.CIIP_VIGENCIA;
+    if (!V){ ok('pasaporte: la regla de la vigencia está a mano', false, 'no está', 'window.CIIP_VIGENCIA'); return sigue(); }
     var hoy = new Date();
     function iso(d){
       return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') +
@@ -4206,65 +4127,22 @@
     var corta   = iso(new Date(hoy.getFullYear(), hoy.getMonth() + 3, 1));
     var larga   = iso(new Date(hoy.getFullYear() + 1, hoy.getMonth(), 1));
     var vencida = iso(new Date(hoy.getFullYear(), hoy.getMonth() - 2, 1));
-    function pon(f){
-      [['.a', f.slice(0, 4)], ['.m', f.slice(5, 7)], ['.d', f.slice(8, 10)]].forEach(function(p){
-        var s = campo.querySelector('.fecha3 select' + p[0]);
-        if (!s) return;
-        s.value = p[1];
-        s.dispatchEvent(new Event('change'));
-      });
-    }
-    var nota = function(){ return campo.querySelector('.sol-vigencia'); };
-    var sigue = caja.querySelector('.pa-sigue');
-    var aviso = caja.querySelector('.pa-aviso');
-    function hojaVista(){
-      var v = [].filter.call(caja.querySelectorAll('.pa-hoja'), function(h){ return !h.hidden; })[0];
-      return v ? v.getAttribute('data-paso') : '(ninguna)';
-    }
-
-    /* 1. A menos de seis meses: el aviso sale al elegir, y no deja pasar. */
-    pon(corta);
-    igual('pasaporte: las tres listas llegan al campo', ven.value, corta);
-    var n1 = nota();
-    ok('pasaporte: a menos de 6 meses sale el aviso debajo del campo',
-       !!n1 && !n1.hidden && /faltan menos de 6 meses/.test(n1.textContent) &&
-         /al menos 6 meses de vigencia/.test(n1.textContent) && /Renuévalo/.test(n1.textContent),
-       n1 ? (n1.hidden ? '(escondido)' : n1.textContent) : '(no hay aviso)',
-       '«Tu pasaporte vence el …: faltan menos de 6 meses…»');
-    ok('pasaporte: y el aviso dice el año en que vence',
-       !!n1 && n1.textContent.indexOf(corta.slice(0, 4)) >= 0,
-       n1 ? n1.textContent : '(no hay aviso)', 'con ' + corta.slice(0, 4));
-    ok('pasaporte: y el campo se marca en rojo', campo.classList.contains('mal'),
-       campo.className, 'con mal');
-    if (sigue) sigue.click();
-    igual('pasaporte: a menos de 6 meses no deja pasar de hoja', hojaVista(), '1');
-    ok('pasaporte: y el aviso de la hoja dice que es por el pasaporte',
-       !!aviso && /pasaporte/.test(aviso.textContent) && /vigencia/.test(aviso.textContent),
-       aviso ? aviso.textContent : '(no hay aviso)', 'por la vigencia del pasaporte');
-    var marcados = [].map.call(hoja1.querySelectorAll('.sol-campo.mal'),
-      function(c){ return c.getAttribute('data-campo'); });
-    igual('pasaporte: y lo único en rojo es el pasaporte', marcados.join(', '), 'vence_pasaporte');
-
-    /* 2. Ya vencido: lo dice con «venció». */
-    pon(vencida);
-    var n2 = nota();
-    ok('pasaporte: vencido, el aviso dice «venció»',
-       !!n2 && !n2.hidden && /venció el/.test(n2.textContent),
-       n2 ? (n2.hidden ? '(escondido)' : n2.textContent) : '(no hay aviso)', '«Tu pasaporte venció el …»');
-    if (sigue) sigue.click();
-    igual('pasaporte: vencido tampoco deja pasar', hojaVista(), '1');
-
-    /* 3. Con más de seis meses: nada, y se pasa a la hoja siguiente. */
-    pon(larga);
-    var n3 = nota();
-    ok('pasaporte: con más de 6 meses no sale el aviso', !n3 || n3.hidden,
-       n3 ? (n3.hidden ? '(escondido)' : n3.textContent) : '(no hay aviso)', '(escondido)');
-    ok('pasaporte: y el campo deja de estar en rojo', !campo.classList.contains('mal'),
-       campo.className, 'sin mal');
-    if (sigue) sigue.click();
-    igual('pasaporte: con más de 6 meses deja pasar', hojaVista(), '2');
+    igual('pasaporte: la vigencia mínima sigue siendo de 6 meses', V.minima.vence_pasaporte, 6);
+    var n1 = V.corta('vence_pasaporte', corta) || '';
+    ok('pasaporte: a menos de 6 meses, el aviso lo dice y dice qué hacer',
+       /faltan menos de 6 meses/.test(n1) && /al menos 6 meses de vigencia/.test(n1) && /Renuévalo/.test(n1),
+       n1 || '(sin aviso)', '«Tu pasaporte vence el …: faltan menos de 6 meses…»');
+    ok('pasaporte: y dice el año en que vence', n1.indexOf(corta.slice(0, 4)) >= 0, n1, 'con ' + corta.slice(0, 4));
+    ok('pasaporte: vencido, el aviso dice «venció»', /venció el/.test(V.corta('vence_pasaporte', vencida) || ''),
+       V.corta('vence_pasaporte', vencida) || '(sin aviso)', '«Tu pasaporte venció el …»');
+    igual('pasaporte: con más de 6 meses, sin aviso', V.corta('vence_pasaporte', larga), null);
+    igual('pasaporte: justo en el umbral vale: tiene sus 6 meses',
+          V.corta('vence_pasaporte', V.hoyMasMeses(6)), null);
+    igual('pasaporte: seis meses desde un 31 de agosto llegan al último de febrero',
+          V.hoyMasMeses(6, new Date(2026, 7, 31)), '2027-02-28');
+    igual('pasaporte: un campo sin vigencia mínima no avisa', V.corta('fecha_nacimiento', vencida), null);
+    sigue();
   }
-
   /* ═══════════ EL GLOBO DE «CÓMO DEBE VENIR CADA RECAUDO» ═══════════
      Primera pieza de los instrumentos guía para operadores jurídicos: que
      el apoderado suba los papeles igual siempre y dejen de rechazárselos
@@ -4372,6 +4250,12 @@
          glo.hidden === true && envs[1].querySelector('.pista-caja').hidden === false,
          'primera ' + (glo.hidden ? 'cerrada' : 'ABIERTA'), 'solo una abierta');
       btn2.click();
+    } else {
+      /* Con UN solo recaudo -la visa desde el 1-10-2026 (Taquilla única
+         opción 2) pide solo el pasaporte- no hay otra que la cierre: se
+         recoge con su propio botón, para que lo de abajo empiece igual
+         que con varias, con todo cerrado. */
+      btn.click();
     }
 
     /* Pulsar el mismo botón otra vez la cierra. */
@@ -9767,8 +9651,10 @@
      dice «Firme la planilla» la ofrece en curso, con el enlace y no el
      selector del navegador; mandada, dice «Planilla enviada». */
   var PF_CAJAS = null;
-  /* Y desde el 30-9-2026, la visa: «Carga la planilla firmada», el paso
-     donde vuelve firmada la que el CIIP manda en el anterior. */
+  /* Del 30-9 al 1-10-2026 también la visa: «Carga la planilla firmada». Se
+     fue con la Taquilla única opción 2 (Franklin Reyes, 1-10-2026), y la
+     expresión sigue cazando «planilla firmada»: si un paso vuelve a decirlo
+     sin ofrecer la casilla, esto lo canta. */
   var FIRMA_LA_PLANILLA = /firm\w* la planilla|planilla firmada/i;
   function planillaFirmadaSiembra(){
     if (PASE !== 'vacio') return;
@@ -9790,10 +9676,10 @@
         if (!FIRMA_LA_PLANILLA.test((pasosEs[ref] || [])[n - 1] || '')) deMas.push(ref + '.' + n);
       });
     });
-    /* La licencia (c10.2) salió de esta lista el 1-10-2026: con la
-       Taquilla única opción 2 (Franklin Reyes) ya no firma planilla. */
-    igual('planilla firmada: dicen «Firme la planilla» el paso 3 de los dos RIF, y «Carga la planilla firmada» el 3 de las visas',
-          hallados.join(','), 'c1.3,c38.3,c3.3,c6.3');
+    /* Las visas y la licencia (c10.2) salieron de esta lista el 1-10-2026:
+       con la Taquilla única opción 2 (Franklin Reyes) ya no firman planilla. */
+    igual('planilla firmada: dicen «Firme la planilla» el paso 3 de los dos RIF (las visas y la licencia ya no)',
+          hallados.join(','), 'c3.3,c6.3');
     igual('planilla firmada: todos ofrecen devolverla firmada', sinCasilla.join(',') || 'todos', 'todos');
     igual('planilla firmada: y ningún otro paso la pide', deMas.join(',') || 'ninguno', 'ninguno');
 
@@ -10037,101 +9923,46 @@
   }
 
   /* ═══════════ LAS VISAS (c1, c38), DESDE EL GESTOR ═══════════
-     Franklin Reyes, 30-9-2026: «Revisión de tus recaudos → Descarga aquí
-     la planilla de solicitud y fírmela → Cargue la planilla firmada →
-     Solicitud recibida por Cancillería → Visa otorgada». El gestor manda
-     la planilla tras revisar, espera la firmada y no presenta sin ella.
-     Si la escalera de la visa aún no está en el registro, se pone aquí la
-     del pedido mientras dura la prueba, y se quita al acabar. */
-  var VS_CAJAS = null, VS_PUESTA = false;
-  function visaGestorSiembra(){
+     Del 30-9 al 1-10-2026 el gestor llevaba la visa por su escalera por
+     etapas: mandaba la planilla tras revisar, esperaba la firmada y no la
+     presentaba sin ella (visaGestorSiembra/visaGestorMira de entonces, que
+     sembraban esa escalera y miraban su casilla). Con la Taquilla única
+     opción 2 (Franklin Reyes, 1-10-2026) no hay planilla: la visa vuelve al
+     visor normal -revisar, presentar y resolver subiendo la visa como
+     documento emitido-. Aquellas pruebas medían algo que ya no existe; esta
+     mira que no quede nada de la escalera colgando del lado del gestor. */
+  function visaGestorMira(){
     if (PASE !== 'gestor') return;
     var M = window.CIIP_MARCA;
-    if (!M || !M.faltaAnte) return ok('visa: gestor, las piezas están a mano', false, 'falta alguna', 'CIIP_MARCA.faltaAnte');
-    if (!M.registro.visa_negocios){
-      VS_PUESTA = true;
-      M.registro.visa_negocios = {
-        ref: 'c1', textos: {titulo: 'vs_g_titulo', retiro: 'vs_g_retiro'},
-        casillaEn: ['en_revision', 'ante_el_ente'],
-        etapas: [{clave: 'visa', pasos: [
-          {clave: 'revision',    tipo: 'revision', rotulo: 'vs_p_revision'},
-          {clave: 'planilla',    tipo: 'papel',    rotulo: 'vs_p_planilla', papel: 'planilla_visa',
-           espera: 'vs_n_planilla_espera', listo: 'vs_n_planilla_lista'},
-          {clave: 'firmada',     tipo: 'firmada',  rotulo: 'vs_p_firmada'},
-          {clave: 'cancilleria', tipo: 'estado',   rotulo: 'vs_p_cancilleria', hechoEn: ['ante_el_ente'], espera: 'vs_n_cancilleria'},
-          {clave: 'visa',        tipo: 'retiro',   rotulo: 'vs_p_visa', espera: 'vs_n_visa_espera', listo: 'vs_n_visa_lista'}
-        ]}]
-      };
-    }
+    if (!M) return ok('visa: gestor, las piezas están a mano', false, 'falta alguna', 'CIIP_MARCA');
     var hace = function(h){ return new Date(Date.now() - h * 3600000).toISOString(); };
-    var tr = function(id, estado, pasos){
-      return {id: id, tipo: 'visa_negocios', estado: estado, datos: {pasos_ciip: pasos || {}},
+    var tr = function(id, tipo, estado){
+      return {id: id, tipo: tipo, estado: estado, datos: {numero_pasaporte: 'YB1234567'},
               inversionista: 'u2', gestor: 'u1', enviado_en: hace(50), creado_en: hace(50)};
     };
-    igual('visa: gestor, recibida y sin revisar no hay casilla', M.casilla(tr('vs-g0', 'enviado'), 'prb-vs-'), null);
-    igual('visa: gestor, la marca sigue sin casilla en revisión',
-          M.casilla({id: 'mc-vs', tipo: 'marca', estado: 'en_revision', datos: {}}, 'prb-vs-'), null);
-
-    VS_CAJAS = document.createElement('div');
-    VS_CAJAS.hidden = true;
-    document.body.appendChild(VS_CAJAS);
-
-    var c1 = M.casilla(tr('vs-g1', 'en_revision'), 'prb-vs-');
-    if (c1) VS_CAJAS.appendChild(c1);
-    ok('visa: gestor, en revisión la casilla ofrece mandar la planilla de solicitud',
-       !!c1 && c1.getAttribute('data-paso') === 'revision' && !!c1.querySelector('#prb-vs-vs-g1') &&
-         !!c1.querySelector('.mc-g-enviar'),
-       c1 ? c1.getAttribute('data-paso') + (c1.querySelector('.mc-g-enviar') ? ' + enviar' : ' sin enviar') : '(sin casilla)',
-       'revision + enviar');
-
-    var c2 = M.casilla(tr('vs-g2', 'en_revision', {planilla: hace(3)}), 'prb-vs-');
-    if (c2) VS_CAJAS.appendChild(c2);
-    ok('visa: gestor, mandada la planilla espera la firmada, sin nada que subir',
-       !!c2 && c2.getAttribute('data-paso') === 'firmada' && !c2.querySelector('.mc-g-enviar'),
-       c2 ? c2.getAttribute('data-paso') : '(sin casilla)', 'firmada');
-    igual('visa: gestor, sin la planilla firmada no se presenta ante la Cancillería',
-          M.faltaAnte(tr('vs-g2b', 'en_revision', {planilla: hace(3)})), 'vs_g_firmada_falta');
-    igual('visa: gestor, con ella sí',
-          M.faltaAnte(tr('vs-g3b', 'en_revision', {planilla: hace(3), firmada: hace(1)})), null);
-    igual('visa: gestor, la licencia no pide planilla para presentarse',
-          M.faltaAnte({id: 'lc-vs', tipo: 'licencia_municipal', estado: 'en_revision', datos: {}}), null);
-
-    window.__IMPORTE_DOCS = {'vs-g3': [{id: 'vsf', tipo: 'planilla_firmada', estado: 'cargado', creado_en: hace(1),
-                                         nombre_original: 'planilla-visa-firmada.pdf', archivo: 'u2/planilla-visa-firmada.pdf'}]};
-    var c3 = M.casilla(tr('vs-g3', 'en_revision', {planilla: hace(3), firmada: hace(1)}), 'prb-vs-');
-    if (c3) VS_CAJAS.appendChild(c3);
-    ok('visa: gestor, llegada la firmada lo dice',
-       !!c3 && !!c3.querySelector('.mc-g-firmada') && !!c3.querySelector('.tr-firmada'),
-       c3 ? (c3.querySelector('.mc-g-firmada') ? 'lo dice' : 'no lo dice') : '(sin casilla)', 'lo dice');
-
-    var c4 = M.casilla(tr('vs-g4', 'ante_el_ente', {planilla: hace(30), firmada: hace(20)}), 'prb-vs-');
-    if (c4) VS_CAJAS.appendChild(c4);
-    igual('visa: gestor, ante la Cancillería lo que queda es la visa', c4 ? c4.getAttribute('data-paso') : '(sin casilla)', 'visa');
-
-    /* Y se manda: el papel va colgado de la solicitud con su tipo. */
-    window.__ENGANCHES = [];
-    var inp = c1 && c1.querySelector('#prb-vs-vs-g1');
-    if (!inp) return;
-    var dt = new DataTransfer();
-    dt.items.add(new File([new Uint8Array(8)], 'planilla-visa.pdf', {type: 'application/pdf'}));
-    inp.files = dt.files;
-    c1.querySelector('.mc-g-enviar').click();
-  }
-  function visaGestorMira(){
-    if (PASE !== 'gestor' || !VS_CAJAS) return;
-    var c3 = VS_CAJAS.querySelector('[data-marca="vs-g3"] .tr-firmada');
-    var abrir = c3 && c3.querySelector('.pe-cambia');
-    ok('visa: gestor, y la puede abrir',
-       !!c3 && !c3.hidden && !!abrir && !abrir.hidden,
-       c3 ? (c3.hidden ? 'escondida' : (abrir && !abrir.hidden ? 'con Abrir' : 'sin Abrir')) : '(sin casilla)', 'con Abrir');
-    var eng = (window.__ENGANCHES || []).filter(function(f){ return f && f.tramite === 'vs-g1'; })[0];
-    ok('visa: gestor, la planilla queda colgada de la solicitud',
-       !!eng && !!eng.documento, eng ? 'vs-g1 ← ' + eng.documento : '(sin enganche)', 'vs-g1 ← su documento');
-    VS_CAJAS.remove();
-    VS_CAJAS = null;
-    window.__IMPORTE_DOCS = null;
-    window.__ENGANCHES = null;
-    if (VS_PUESTA){ delete window.CIIP_MARCA.registro.visa_negocios; VS_PUESTA = false; }
+    ok('visa: gestor, ninguna de las dos va ya por escalera por etapas',
+       !M.registro.visa_negocios && !M.registro.visa_inversionista,
+       Object.keys(M.registro).join(', '), 'sin visa_negocios ni visa_inversionista');
+    igual('visa: gestor, sin casilla de planilla en revisión ni ante la Cancillería',
+          [M.casilla(tr('vs-g1', 'visa_negocios', 'en_revision'), 'prb-vs-'),
+           M.casilla(tr('vs-g2', 'visa_inversionista', 'ante_el_ente'), 'prb-vs-')]
+            .map(function(c){ return c ? 'casilla' : 'nada'; }).join(','), 'nada,nada');
+    igual('visa: gestor, y ninguna planilla firmada le impide presentarla',
+          [M.faltaAnte(tr('vs-g3', 'visa_negocios', 'en_revision')),
+           M.faltaAnte(tr('vs-g4', 'visa_inversionista', 'en_revision'))]
+            .map(function(x){ return x || 'nada'; }).join(','), 'nada,nada');
+    if (!window.CIIP_VISOR_LADO) return;
+    var ladoR = window.CIIP_VISOR_LADO(tr('vs-v1', 'visa_negocios', 'en_revision'));
+    ok('visa: gestor, en revisión el visor es el normal, sin escalera en pequeño ni pestañas',
+       !ladoR.querySelector('.vs-esc') && !ladoR.querySelector('.vs-pest') && !!ladoR.querySelector('.visor-fin'),
+       (ladoR.querySelector('.vs-esc') ? 'con escalera ' : '') + (ladoR.querySelector('.vs-pest') ? 'con pestañas ' : '') +
+         (ladoR.querySelector('.visor-fin') ? 'con su pie' : 'sin pie'), 'con su pie');
+    ok('visa: gestor, y sin aviso de planilla firmada',
+       !/planilla firmada/i.test(ladoR.textContent), ladoR.textContent.slice(0, 80), 'sin planilla');
+    var ladoE = window.CIIP_VISOR_LADO(tr('vs-v2', 'visa_inversionista', 'ante_el_ente'));
+    ok('visa: gestor, ante la Cancillería se resuelve subiendo la visa como documento emitido',
+       !!ladoE.querySelector('#hoy-doc-vs-v2') && !ladoE.querySelector('.vs-esc'),
+       ladoE.querySelector('#hoy-doc-vs-v2') ? 'con el archivo' : 'sin el archivo', 'con el archivo');
   }
 
   /* ═══════════ EL REGISTRO DE IMPORTADOR Y EXPORTADOR, FUERA ═══════════
@@ -10154,49 +9985,56 @@
      Pedido del CIIP (28-9-2026): tres recaudos más -cédula o pasaporte y
      RIF del representante legal, documento constitutivo- con los tipos de
      la marca, y la escalera «Revisión de recaudos → Permiso otorgado». */
-  /* ═══════════ LAS DOS VISAS (c1 y c38) ═══════════
-     Pedido del CIIP (30-9-2026): «Revisión de tus recaudos → Descarga
-     aquí la planilla de solicitud y fírmala → Carga la planilla firmada →
-     Solicitud recibida por Cancillería → Visa otorgada». La planilla la
-     manda el CIIP; la firmada la sube el inversionista. Se fue el
-     registro en el portal de Cancillería. Solo cuentas: sin base. */
+  /* ═══════════ LAS DOS VISAS (c1 y c38): LA ESCALERA ═══════════
+     Franklin Reyes, 1-10-2026, Taquilla única opción 2: «Regístrate y
+     solicita la visa a través del portal de Cancillería» -con el enlace y
+     un botón para avisar de que ya se inscribió y generó la solicitud- →
+     «Verificación de la solicitud» → «Visa otorgada».
+
+     Sustituye a la visaEscaleraMira del 30-9-2026, que contaba la
+     escalera por etapas de cinco pasos con la planilla del CIIP y la
+     firmada: esa escalera ya no existe. Aquí, solo cuentas y sin base: la
+     escalera de lista (escaleraDe) con el tope del paso que marcas tú. */
   function visaEscaleraMira(sigue){
-    var M = window.CIIP_MARCA, F = window.CIIP_PLANILLA_FIRMADA;
     if (PASE !== 'vacio') return sigue();
-    if (!M || !F) { ok('visa: las piezas están a mano', false, 'falta alguna', 'CIIP_MARCA, CIIP_PLANILLA_FIRMADA'); return sigue(); }
+    var esc = window.CIIP_ESCALERA, F = window.CIIP_PLANILLA_FIRMADA;
+    if (!esc || !F){ ok('visa: las piezas están a mano', false, 'falta alguna', 'CIIP_ESCALERA, CIIP_PLANILLA_FIRMADA'); return sigue(); }
     var hace = function(h){ return new Date(Date.now() - h * 3600000).toISOString(); };
-    var tr = function(id, tipo, estado, pasos){
-      return {id: id, tipo: tipo, estado: estado, datos: {pasos_ciip: pasos || {}},
-              inversionista: 'u2', gestor: 'u1', enviado_en: hace(200), creado_en: hace(200)};
+    var ya = {cancilleria_confirmada: hace(1)};
+    var tr = function(tipo, estado, datos){
+      return {id: 'vs-' + estado, tipo: tipo, estado: estado, datos: datos || {},
+              enviado_en: hace(200), creado_en: hace(200)};
+    };
+    var dibujo = function(E){
+      return E.todos.map(function(p){ return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(',');
     };
     ['visa_negocios', 'visa_inversionista'].forEach(function(tipo){
-      var E0 = M.escalera(tr('vs-a', tipo, 'enviado'), tipo);
-      igual('visa (' + tipo + '): cinco pasos, en el orden del CIIP',
-            E0.todos.map(function(p){ return p.clave; }).join(','),
-            'revision,planilla,firmada,cancilleria,visa');
-      igual('visa (' + tipo + '): con los nombres del pedido',
+      var E0 = esc(tr(tipo, 'enviado'), tipo, 'MPPRE');
+      igual('visa (' + tipo + '): tres pasos, con los nombres del pedido',
             E0.todos.map(function(p){ return p.nombre; }).join(' → '),
-            'Revisión de tus recaudos → Descarga aquí la planilla de solicitud y fírmala → ' +
-            'Carga la planilla firmada → Solicitud recibida por Cancillería → Visa otorgada');
-      igual('visa (' + tipo + '): recibida, va por la revisión', E0.ahora && E0.ahora.clave, 'revision');
+            'Regístrate y solicita la visa a través del portal de Cancillería → ' +
+            'Verificación de la solicitud → Visa otorgada');
+      igual('visa (' + tipo + '): por la escalera de lista, no por etapas', !!E0.porEtapas, false);
+      igual('visa (' + tipo + '): recibida y sin confirmar, en curso el registro en el portal',
+            dibujo(E0), 'ahora,porhacer,porhacer');
+      igual('visa (' + tipo + '): confirmado, en curso la verificación',
+            dibujo(esc(tr(tipo, 'enviado', ya), tipo, 'MPPRE')), 'hecho,ahora,porhacer');
     });
     var T = 'visa_negocios';
-    igual('visa: en revisión y sin planilla, sigue en la revisión',
-          (M.escalera(tr('vs-b', T, 'en_revision'), T).ahora || {}).clave, 'revision');
-    igual('visa: con la planilla del CIIP, toca cargar la firmada',
-          (M.escalera(tr('vs-c', T, 'en_revision', {planilla: hace(3)}), T).ahora || {}).clave, 'firmada');
-    igual('visa: con la firmada, espera a Cancillería',
-          (M.escalera(tr('vs-d', T, 'en_revision', {planilla: hace(3), firmada: hace(1)}), T).ahora || {}).clave, 'cancilleria');
-    igual('visa: con la planilla pero sin la firmada, Cancillería no sale hecha',
-          (M.escalera(tr('vs-e', T, 'en_revision', {planilla: hace(3)}), T).todos[3] || {}).hecho, false);
-    igual('visa: ante Cancillería, espera la visa',
-          (M.escalera(tr('vs-f', T, 'ante_el_ente', {planilla: hace(3), firmada: hace(1)}), T).ahora || {}).clave, 'visa');
-    var E6 = M.escalera(tr('vs-g', T, 'resuelto', {planilla: hace(3), firmada: hace(1)}), T);
-    ok('visa: otorgada, todo hecho', E6.hechos === E6.todos.length && !E6.ahora,
-       E6.hechos + ' de ' + E6.todos.length, 'todo hecho');
-    ok('visa: la planilla firmada se carga en el tercero, en las dos',
-       F.pide('c1', 3) && F.pide('c38', 3) && !F.pide('c1', 2),
-       [F.pide('c1', 3), F.pide('c38', 3), F.pide('c1', 2)].join(','), 'true,true,false');
+    igual('visa: sin confirmar no avanza aunque el CIIP la mueva: en revisión y ante la Cancillería',
+          [dibujo(esc(tr(T, 'en_revision'), T)), dibujo(esc(tr(T, 'ante_el_ente'), T))].join(' | '),
+          'ahora,porhacer,porhacer | ahora,porhacer,porhacer');
+    igual('visa: confirmado, sigue verificando en revisión y ante la Cancillería: la visa no se promete antes',
+          [dibujo(esc(tr(T, 'en_revision', ya), T)), dibujo(esc(tr(T, 'ante_el_ente', ya), T))].join(' | '),
+          'hecho,ahora,porhacer | hecho,ahora,porhacer');
+    igual('visa: devuelta y ya confirmada, la verificación sigue en curso',
+          dibujo(esc(tr(T, 'devuelto', ya), T)), 'hecho,ahora,porhacer');
+    igual('visa: otorgada, todo hecho, se confirmara o no',
+          [dibujo(esc(tr(T, 'resuelto'), T)), dibujo(esc(tr(T, 'resuelto', ya), T))].join(' | '),
+          'hecho,hecho,hecho | hecho,hecho,hecho');
+    ok('visa: ningún paso pide ya la planilla firmada',
+       [1, 2, 3].every(function(n){ return !F.pide('c1', n) && !F.pide('c38', n); }),
+       [1, 2, 3].map(function(n){ return F.pide('c1', n) + '/' + F.pide('c38', n); }).join(' '), 'ninguno');
     /* Y las escaleras de antes no se movieron con el cambio del arrastre:
        con algo apuntado detrás, los pasos de estado siguen hechos aunque
        la solicitud vuelva a revisión. Se medía con la licencia hasta el
@@ -10208,6 +10046,74 @@
                        datos: {pasos_ciip: {importe_pub: hace(2)}}}, 'libros_contables').ahora || {}).clave,
           'pago_pub');
     sigue();
+  }
+
+  /* ── Y EN LA FICHA, CON EL BOTÓN ──
+     Lo de arriba son cuentas; esto es la pantalla: el enlace al portal y
+     el «Ya me registré» en el paso 1, el botón llama a la base y, con la
+     respuesta, la verificación queda en curso. La solicitud la pone la
+     prueba mientras dura (window.__TRAMITES_EXTRA en supabase-mentira.js):
+     solo sale en el detalle de la TR-I, así que ninguna cuenta de la
+     portada se entera. La TR-I y no la TR-N porque no tiene la guía de
+     elegir visa delante. En revisión a propósito: es donde el estado solo
+     ya habría dado el registro por hecho. */
+  function visaFichaAbre(sigue){
+    if (PASE !== 'vacio') return sigue();
+    window.CIIP_PRUEBA_CONFIRMA_PASO = [];
+    window.__TRAMITES_EXTRA = [{id: 'vx1', tipo: 'visa_inversionista', estado: 'en_revision',
+      datos: {nombres: 'Franklin', apellidos: 'Reyes', numero_pasaporte: 'YB1234567', pais_emisor: 'Italia'},
+      inversionista: 'u1', creado_en: '2026-09-30T10:00:00Z', enviado_en: '2026-09-30T10:00:00Z',
+      actualizado_en: '2026-09-30T12:00:00Z'}];
+    location.hash = '';
+    setTimeout(function(){
+      location.hash = 'tramite-c38';
+      esperaFilas('#trReal li.tr-paso', 3, sigue);
+    }, 100);
+  }
+  var visaFichaDibujo = function(){
+    return [].map.call(document.querySelectorAll('#trReal li.tr-paso'), function(li){
+      return li.classList.contains('hecho') ? 'hecho' : (li.classList.contains('ahora') ? 'ahora' : 'porhacer');
+    }).join(',');
+  };
+  function visaFichaMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var lis = document.querySelectorAll('#trReal li.tr-paso');
+    igual('visa: la ficha enseña los tres pasos',
+          [].map.call(lis, function(li){ return (li.querySelector('.tr-paso-n') || {}).textContent; }).join(' → '),
+          'Regístrate y solicita la visa a través del portal de Cancillería → ' +
+          'Verificación de la solicitud → Visa otorgada');
+    igual('visa: en revisión y sin confirmar, el paso 1 sigue en curso', visaFichaDibujo(), 'ahora,porhacer,porhacer');
+    var enl = lis[0] && lis[0].querySelector('a.tr-hacer');
+    igual('visa: el paso 1 lleva al portal de Cancillería', enl ? enl.href : '(sin enlace)',
+          'https://cancilleriadigital.mppre.gob.ve/');
+    ok('visa: en otra pestaña, sin que esa pestaña pueda tocar el panel',
+       !!enl && enl.target === '_blank' && /noopener/.test(enl.rel),
+       enl ? enl.target + ' · ' + enl.rel : '(sin enlace)', '_blank · noopener');
+    var bt = lis[0] && lis[0].querySelector('button.tr-hacer');
+    igual('visa: y el botón para avisar de que ya se registró', bt ? bt.textContent : '(sin botón)', U.p_yamehice);
+    igual('visa: el botón y el enlace, solo en el paso 1',
+          [].slice.call(lis, 1).filter(function(li){ return li.querySelector('.tr-hacer'); }).length, 0);
+    if (!bt) return sigue();
+    bt.click();
+    esperaFilas('#trReal li.tr-paso.hecho', 1, sigue);
+  }
+  function visaFichaTrasConfirmar(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var pedido = (window.CIIP_PRUEBA_CONFIRMA_PASO || [])[0];
+    igual('visa: el botón se lo pide a la base, con la llave de Cancillería',
+          pedido ? pedido.p_tramite + ' · ' + pedido.p_clave : '(no llamó)', 'vx1 · cancilleria_confirmada');
+    igual('visa: confirmado, el paso 2 «Verificación de la solicitud» queda en curso',
+          visaFichaDibujo(), 'hecho,ahora,porhacer');
+    var lis = document.querySelectorAll('#trReal li.tr-paso');
+    ok('visa: y el botón ya no se ofrece', !document.querySelector('#trReal li.tr-paso button.tr-hacer'),
+       document.querySelector('#trReal li.tr-paso button.tr-hacer') ? 'sigue' : 'se fue', 'se fue');
+    ok('visa: el enlace al portal sigue en el paso 1, ya hecho',
+       !!(lis[0] && lis[0].querySelector('a.tr-hacer')), lis[0] && lis[0].querySelector('a.tr-hacer') ? 'está' : 'no está', 'está');
+    window.__TRAMITES_EXTRA = null;
+    window.CIIP_PRUEBA_CONFIRMA_PASO = null;
+    location.hash = '';
+    setTimeout(sigue, 100);
   }
 
   function bomberosMira(){

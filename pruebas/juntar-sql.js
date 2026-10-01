@@ -219,7 +219,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* La planilla de inscripción del IVSS que manda el CIIP (30-9-2026): su
    tipo, las dos políticas del equipo y el candado. Solo necesita las tablas
    de los entes y de los documentos; al final para no mover a nadie. */
-'supabase-planilla-ivss'];
+'supabase-planilla-ivss',
+/* La Taquilla única opción 2 (1-10-2026): las marcas nuevas de confirma_paso
+   y fuera los candados de la planilla de la visa y de los pagos de la
+   licencia. Redefine la confirma_paso de supabase-qa-tramites; al final. */
+'supabase-opcion2'];
 
 let mal = 0;
 for (const n of orden) {

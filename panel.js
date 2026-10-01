@@ -3027,37 +3027,25 @@ applyLang(idiomaParaMi());
        en https://mppre.gob.ve/descripcion/28, en su orden. El certificado
        médico y el arancel llevan tipo PROPIO, no el del INTT ni el del
        registro: con el mismo tipo, la bóveda daría el uno por el otro. */
-    /* Los siete de Pendientes FRANK.pdf (24-9-2026), que sustituyen a los
-       seis de antes. Se van el arancel consular y la carta del motivo del
-       viaje -el motivo pasa a preguntarse en el formulario- y entran la
-       carta de la empresa, la planilla, la solvencia y los antecedentes. */
+    /* ── LAS DOS VISAS: SOLO EL PASAPORTE ──
+       Franklin Reyes, 1-10-2026, Taquilla única opción 2: en «Visa para
+       extranjeros» el único recaudo es el pasaporte. Se van la carta de la
+       empresa, la foto, la planilla, el registro de comercio, la solvencia,
+       los antecedentes y, en la TR-I, el certificado médico del país de
+       origen (los siete de Pendientes FRANK.pdf, 24-9-2026, y el octavo de
+       la TR-I). Todo eso lo pide la propia Cancillería en su portal, donde
+       el inversionista se registra y genera la solicitud -el paso 1 de su
+       escalera, PASOS_QUE_MARCAS_TU-, y pedirlo también aquí era hacerle
+       subir los mismos papeles dos veces, una en cada ventanilla.
+
+       Las dos piden lo mismo y van en dos entradas iguales, no en una
+       compartida: cada trámite tiene su lista, y el día que vuelvan a
+       diferir -la TR-I pedía el certificado médico- es un renglón. */
     visa_negocios: [
-      {tipo:'carta_solicitud_empresa', clave:'d_cartaempresa'},
-      {tipo:'foto',                    clave:'d_foto'},
-      {tipo:'pasaporte',               clave:'d_pasaporte'},
-      {tipo:'planilla_visa',           clave:'d_planillavisa'},
-      {tipo:'registro_comercio',       clave:'d_registrocom'},
-      {tipo:'solvencia_economica',     clave:'d_solvecon'},
-      {tipo:'antecedentes',            clave:'d_antecjur'}
+      {tipo:'pasaporte', clave:'d_pasaporte'}
     ],
-    /* Los CINCO de la TR-I, los que publica el MPPRE en
-       https://mppre.gob.ve/descripcion/27, en su orden. El que la separa de
-       la TR-N es el tercero: el Certificado de Inversionista, que se saca
-       por la Ventanilla Única de Comercio Exterior. Lleva tipo PROPIO y no
-       el genérico de la constancia de inversión: con el mismo tipo, la
-       bóveda daría el uno por el otro. Es el criterio que ya separa el
-       certificado médico del país de origen del de aquí. */
-    /* Los mismos siete de la de negocios y el certificado medico, que la
-       de inversionista si pide (Pendientes FRANK.pdf, 24-9-2026). */
     visa_inversionista: [
-      {tipo:'carta_solicitud_empresa',   clave:'d_cartaempresa'},
-      {tipo:'foto',                      clave:'d_foto'},
-      {tipo:'pasaporte',                 clave:'d_pasaporte'},
-      {tipo:'planilla_visa',             clave:'d_planillavisa'},
-      {tipo:'registro_comercio',         clave:'d_registrocom'},
-      {tipo:'solvencia_economica',       clave:'d_solvecon'},
-      {tipo:'antecedentes',              clave:'d_antecjur'},
-      {tipo:'certificado_medico_origen', clave:'d_medicoorigen'}
+      {tipo:'pasaporte', clave:'d_pasaporte'}
     ],
     /* La cédula ya NO va después de la c1. La c1 era la visa de
        inversionista (TR-I), que daba la residencia; desde el 15 de
@@ -3803,7 +3791,13 @@ applyLang(idiomaParaMi());
 
      Es una comprobación del panel y no de la base: la fecha se guarda como
      texto dentro de tramites.datos, y un vencimiento que hoy vale dentro de
-     un mes ya no valdría, así que un CHECK no puede decidirlo. */
+     un mes ya no valdría, así que un CHECK no puede decidirlo.
+
+     Desde el 1-10-2026 (Franklin Reyes, Taquilla única opción 2) ninguna
+     visa pregunta el vencimiento: lo pide la Cancillería en su portal. La
+     regla se queda, sin campo que la use, para el próximo trámite que
+     pregunte vence_pasaporte; la prueba del arnés la mide directamente
+     (window.CIIP_VIGENCIA). */
   var VIGENCIA_MINIMA = {
     vence_pasaporte: 6
   };
@@ -3844,6 +3838,11 @@ applyLang(idiomaParaMi());
     return String(u[clave] || '').replace('{fecha}', diaDelImporte(iso))
                                   .replace(/\{n\}/g, meses);
   }
+  /* A mano del arnés: desde que las visas dejaron de preguntar el
+     vencimiento del pasaporte (1-10-2026) no queda formulario donde medir
+     la regla por la pantalla, y una regla que no mide nadie se rompe sin
+     que se note el día que vuelva a hacer falta. */
+  window.CIIP_VIGENCIA = {corta: vigenciaCorta, hoyMasMeses: hoyMasMeses, minima: VIGENCIA_MINIMA};
 
   /* Debajo del campo, y al momento: al cambiar cualquiera de las tres
      listas -montaFecha3 avisa al escondido con un 'input'- y al abrir, si
@@ -4077,79 +4076,42 @@ applyLang(idiomaParaMi());
       {n:'poder_fecha',        clave:'f_poderfecha', tipo:'date'},
       {n:'poder_alcance',      clave:'f_alcance',    ancho:true}
     ],
-    /* ── CÓMO LOCALIZARTE, Y CUÁNDO VIENES ──
-       Franklin Reyes, 24-9-2026: el teléfono y el correo del solicitante,
-       los del contacto en Venezuela, el itinerario y si la visa ya se tuvo
-       antes. Van en las DOS visas, porque el consulado los pide en las dos.
+    /* ── LAS DOS VISAS: QUIÉN ERES Y CON QUÉ PASAPORTE ──
+       Franklin Reyes, 1-10-2026, Taquilla única opción 2: en «Visa para
+       extranjeros» el paso «Tus datos» pide SOLO «Nombre y apellido»,
+       «Número de pasaporte» y «País de emisión del pasaporte». Lo demás
+       -consulado, teléfono, correo, el itinerario con su aerolínea, vuelo,
+       fechas y escalas, el hospedaje, la visa anterior, el motivo, el
+       contacto en Venezuela, el vencimiento del pasaporte y, en la TR-I, el
+       monto y la actividad- lo pregunta la Cancillería en su propio
+       formulario, en el portal donde el inversionista genera la solicitud
+       (el paso 1 de la escalera). Preguntarlo también aquí era el doble
+       trabajo que esta taquilla viene a quitar, y además dos respuestas que
+       podían no coincidir.
 
-       telefono y correo se llaman así y no «telefono_solicitante»: son los
-       mismos nombres que usa el registro de extranjeros, y los campos se
-       heredan por NOMBRE entre trámites. Bautizarlos aparte haría que
-       quien ya los escribió una vez los volviera a escribir. */
+       El nombre va en los dos campos que ya existen, 'nombres' y
+       'apellidos', y no en uno nuevo: así salen ya puestos del perfil
+       (rellenaDelPerfil) y se heredan por NOMBRE entre trámites, igual que
+       en el registro de extranjeros. Pasaporte y país, los de siempre: los
+       respalda la página del pasaporte en el visor del gestor
+       (VISOR_COTEJO).
+
+       Los tipos genéricos que nacieron para la visa -'area', 'grupo' con
+       su apartado y FECHA_ORDEN- se quedan en el formulario aunque hoy no
+       los use nadie: son piezas del montaje, no de este trámite. Igual que
+       VIGENCIA_MINIMA, que sigue sabiendo de vence_pasaporte para el día
+       que otro trámite lo pregunte. */
     visa_negocios: [
-      {n:'numero_pasaporte',  clave:'f_pasaporte'},
-      {n:'pais_emisor',       clave:'f_paisemisor', paises:true},
-      {n:'vence_pasaporte',   clave:'f_vencepas',  tipo:'date'},
-      {n:'consulado',         clave:'f_consulado'},
-      {n:'telefono',          clave:'f_telefono',  tipo:'tel'},
-      {n:'correo',            clave:'f_correo',    tipo:'email'},
-      /* EL ITINERARIO, EN SU APARTADO (Franklin Reyes, 30-9-2026). El vuelo
-         y sus dos fechas iban sueltos entre el resto; ahora van juntos bajo
-         «Itinerario de vuelo», y debajo una caja que crece con lo escrito
-         para las escalas o los demás vuelos, que no todo viaje tiene.
-         Y aparte, dónde se hospeda: el consulado lo pide en las dos visas. */
-      {n:'aerolinea',         clave:'f_aerolinea',    grupo:'f_itinerario'},
-      {n:'vuelo_numero',      clave:'f_vuelo',        grupo:'f_itinerario'},
-      {n:'fecha_entrada',     clave:'f_fechaentrada', tipo:'date', grupo:'f_itinerario'},
-      {n:'fecha_salida',      clave:'f_fechasalida',  tipo:'date', grupo:'f_itinerario'},
-      {n:'itinerario_vuelo',  clave:'f_itinerario_mas', tipo:'area', ancho:true,
-       opcional:true, grupo:'f_itinerario'},
-      {n:'direccion_hospedaje', clave:'f_hospedaje', ancho:true},
-      /* Y la de antes, con sus fechas colgando: la pregunta se contesta en
-         un segundo y el hueco solo sale si hace falta. */
-      {n:'visa_anterior',        clave:'f_visaantes', opcionesClave:'o_sino'},
-      {n:'visa_anterior_fechas', clave:'f_visaantesfechas',
-       verSi:'visa_anterior', ancho:true},
-      /* La TR-N no pregunta por la inversion: pide el motivo del viaje y a
-         quien vienes a ver, que es lo que lleva la carta que exige el MPPRE. */
-      {n:'motivo_viaje',       clave:'f_motivoviaje',  ancho:true},
-      {n:'contacto_venezuela', clave:'f_contactovzla', ancho:true},
-      {n:'contacto_telefono',  clave:'f_contactotel',    tipo:'tel'},
-      {n:'contacto_correo',    clave:'f_contactocorreo', tipo:'email'}
+      {n:'nombres',          clave:'f_nombres'},
+      {n:'apellidos',        clave:'f_apellidos'},
+      {n:'numero_pasaporte', clave:'f_pasaporte'},
+      {n:'pais_emisor',      clave:'f_paisemisor', paises:true}
     ],
-    /* La TR-I SÍ pregunta por la inversión, que es lo que la distingue de
-       la TR-N: el MPPRE la concede a quien ya la tiene aceptada por los
-       organismos venezolanos. Los cuatro primeros campos son los mismos de
-       la TR-N -el pasaporte y dónde se tramita- y se llaman igual a
-       propósito: así, quien empezó una y sigue con la otra no los vuelve a
-       escribir, que los campos se heredan por NOMBRE entre trámites. */
     visa_inversionista: [
-      {n:'numero_pasaporte',    clave:'f_pasaporte'},
-      {n:'pais_emisor',         clave:'f_paisemisor', paises:true},
-      {n:'vence_pasaporte',     clave:'f_vencepas',   tipo:'date'},
-      {n:'consulado',           clave:'f_consulado'},
-      {n:'telefono',            clave:'f_telefono',   tipo:'tel'},
-      {n:'correo',              clave:'f_correo',     tipo:'email'},
-      /* EL ITINERARIO, EN SU APARTADO (Franklin Reyes, 30-9-2026). El vuelo
-         y sus dos fechas iban sueltos entre el resto; ahora van juntos bajo
-         «Itinerario de vuelo», y debajo una caja que crece con lo escrito
-         para las escalas o los demás vuelos, que no todo viaje tiene.
-         Y aparte, dónde se hospeda: el consulado lo pide en las dos visas. */
-      {n:'aerolinea',         clave:'f_aerolinea',    grupo:'f_itinerario'},
-      {n:'vuelo_numero',      clave:'f_vuelo',        grupo:'f_itinerario'},
-      {n:'fecha_entrada',     clave:'f_fechaentrada', tipo:'date', grupo:'f_itinerario'},
-      {n:'fecha_salida',      clave:'f_fechasalida',  tipo:'date', grupo:'f_itinerario'},
-      {n:'itinerario_vuelo',  clave:'f_itinerario_mas', tipo:'area', ancho:true,
-       opcional:true, grupo:'f_itinerario'},
-      {n:'direccion_hospedaje', clave:'f_hospedaje', ancho:true},
-      {n:'visa_anterior',        clave:'f_visaantes', opcionesClave:'o_sino'},
-      {n:'visa_anterior_fechas', clave:'f_visaantesfechas',
-       verSi:'visa_anterior', ancho:true},
-      {n:'monto_inversion',     clave:'f_montoinv'},
-      {n:'actividad_economica', clave:'f_actividad',  ancho:true},
-      {n:'contacto_venezuela',  clave:'f_contactovzla',   ancho:true},
-      {n:'contacto_telefono',   clave:'f_contactotel',    tipo:'tel'},
-      {n:'contacto_correo',     clave:'f_contactocorreo', tipo:'email'}
+      {n:'nombres',          clave:'f_nombres'},
+      {n:'apellidos',        clave:'f_apellidos'},
+      {n:'numero_pasaporte', clave:'f_pasaporte'},
+      {n:'pais_emisor',      clave:'f_paisemisor', paises:true}
     ],
     /* ── la firma en el Registro de Extranjeros ──
        Los campos y sus opciones salen del portal del SAREN,
@@ -8716,52 +8678,30 @@ applyLang(idiomaParaMi());
           {clave: 'sellados',    tipo: 'retiro', rotulo: 'sl_p_sellados', listo: 'sl_n_sellados'}
         ]}
       ]
-    },
+    }
 
-    /* ── LAS DOS VISAS (c1 y c38) ──
-       Pedido del CIIP (Franklin Reyes, 30-9-2026): «Revisión de tus
-       recaudos → Descarga aquí la planilla de solicitud y fírmela (en este
-       paso la planilla la enviamos nosotros como el CIIP) → Cargue la
-       planilla firmada (aquí el inversionista carga la planilla que firmó)
-       → Solicitud recibida por Cancillería → Visa otorgada».
+    /* ── LAS DOS VISAS (c1 y c38), YA NO ──
+       Estuvieron aquí del 30-9-2026 al 1-10-2026, con la escalera «Revisión
+       de tus recaudos → Descarga aquí la planilla de solicitud y fírmala →
+       Carga la planilla firmada → Solicitud recibida por Cancillería → Visa
+       otorgada»: la planilla la mandaba el CIIP y volvía firmada.
 
-       Se va el registro en el portal de Cancillería con su «Ya me
-       registré», y la planilla deja de ser un PDF fijo del panel: la manda
-       el CIIP a cada solicitud, como el papel de cualquier otra escalera.
+       Franklin Reyes, 1-10-2026, Taquilla única opción 2, la deshace: el
+       inversionista se registra y genera la solicitud él mismo en el portal
+       de Cancillería, y el proceso queda en TRES pasos -«Regístrate y
+       solicita la visa a través del portal de Cancillería» (con el enlace y
+       su «Ya me registré»), «Verificación de la solicitud» y «Visa
+       otorgada»-. Sin planilla del CIIP, sin firmada de vuelta y sin
+       importes, aquí no le queda nada: vuelven a la escalera de lista de
+       pasos (escaleraDe() con los de pasos.js), con PASOS_QUE_MARCAS_TU,
+       ENLACE_DEL_PASO y PASOS_SEGUN_ESTADO. Y el gestor, sin escalera por
+       etapas, las lleva con el visor normal: revisar, presentar y resolver
+       con la visa como documento emitido.
 
-       La revisión se cierra en cuanto el CIIP manda la planilla (la base
-       apunta 'planilla' al colgarla); la firmada, cuando el inversionista
-       la cuelga desde su paso (la base apunta 'firmada', y la quita si el
-       equipo la rechaza); Cancillería, al presentar la solicitud ante el
-       ente, y la visa al resolverse. Las dos visas son el mismo proceso:
-       una sola lista, dos entradas. */
-    visa_negocios: null,
-    visa_inversionista: null
+       Las piezas genéricas que nacieron para ellas -el paso de tipo
+       'firmada', casillaEn, faltaParaPresentarEtapas- se quedan, sin nadie
+       que las use, para la próxima escalera que devuelva un papel firmado. */
   };
-  (function(){
-    var pasosVisa = [
-      {clave: 'revision',    tipo: 'revision', rotulo: 'vs_p_revision'},
-      {clave: 'planilla',    tipo: 'papel',    rotulo: 'vs_p_planilla',    papel: 'planilla_visa',
-       espera: 'vs_n_planilla_espera', listo: 'vs_n_planilla_lista'},
-      /* 'firmada': la sube el inversionista (casillaDeLaPlanillaFirmada,
-         PLANILLA_FIRMADA_DEL_PASO) y la base la apunta. */
-      {clave: 'firmada',     tipo: 'firmada',  rotulo: 'vs_p_firmada'},
-      {clave: 'cancilleria', tipo: 'estado',   rotulo: 'vs_p_cancilleria', hechoEn: ['ante_el_ente'],
-       espera: 'vs_n_cancilleria'},
-      {clave: 'visa',        tipo: 'retiro',   rotulo: 'vs_p_visa',
-       espera: 'vs_n_visa_espera', listo: 'vs_n_visa_lista'}
-    ];
-    [['visa_negocios', 'c1'], ['visa_inversionista', 'c38']].forEach(function(v){
-      ESCALERA_POR_ETAPAS[v[0]] = {
-        ref: v[1],
-        textos: {titulo: 'vs_g_titulo', retiro: 'vs_g_retiro'},
-        /* La planilla se manda tras revisar, antes de Cancillería: la
-           casilla del gestor sale ya con la solicitud en revisión. */
-        casillaEn: ['en_revision', 'ante_el_ente'],
-        etapas: [{clave: 'visa', pasos: pasosVisa}]
-      };
-    });
-  })();
 
   /* El importe de los aranceles de bomberos, con la solicitud ante los
      bomberos. La fila de la base es una, la de siempre (supabase-bomberos.sql). */
@@ -9055,9 +8995,10 @@ applyLang(idiomaParaMi());
      con la escalera. Y la contestación, mientras la marca está ante el
      SAPI: se habilita con el anuncio escrito, nunca sin él. */
   /* En qué estados sale: los de su casillaEn, y si no dice nada, solo ante
-     el ente, como la marca. La visa la lleva también en revisión: la
-     planilla de solicitud se manda al terminar de revisar los recaudos, y
-     la firmada vuelve antes de presentarla ante la Cancillería. */
+     el ente, como la marca. La visa la llevaba también en revisión, para
+     mandar su planilla tras revisar los recaudos; desde el 1-10-2026 la
+     visa ya no va por aquí (Taquilla única opción 2) y casillaEn queda
+     para la próxima escalera que necesite la casilla antes de presentar. */
   function casillaDeLaMarca(t, idBase){
     var def = t && ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo];
     if (!def || (def.casillaEn || ['ante_el_ente']).indexOf(t.estado) < 0) return null;
@@ -9253,8 +9194,9 @@ applyLang(idiomaParaMi());
     if (!def || !def.exige) return null;
     return pasosApuntados(t)[def.exige.paso] ? null : def.exige.aviso;
   }
-  /* El paso de la planilla firmada de una escalera -tipo 'firmada', la
-     visa-, o null si no lo lleva. */
+  /* El paso de la planilla firmada de una escalera -tipo 'firmada', el que
+     llevó la visa del 30-9 al 1-10-2026-, o null si no lo lleva. Hoy no lo
+     lleva ninguna: queda la pieza, por si vuelve. */
   function pasoFirmadaDe(def){
     var hay = null;
     ((def && def.etapas) || []).forEach(function(et){
@@ -9263,9 +9205,11 @@ applyLang(idiomaParaMi());
     return hay;
   }
   /* Lo que le falta para presentarla ante el ente: la clave del aviso, o
-     null. La visa no va a la Cancillería sin la planilla firmada que
-     devolvió el inversionista; la base dice lo mismo
-     (visa_con_planilla_firmada, supabase-visa-planilla.sql). */
+     null. La visa no iba a la Cancillería sin la planilla firmada que
+     devolvía el inversionista (visa_con_planilla_firmada,
+     supabase-visa-planilla.sql). Desde el 1-10-2026 no hay planilla en la
+     visa, y supabase-opcion2.sql quita ese cerrojo de la base: con él
+     puesto, el gestor no podría presentar ninguna visa. */
   function faltaParaPresentarEtapas(t){
     var def = t && ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo];
     var f = pasoFirmadaDe(def);
@@ -11731,16 +11675,20 @@ applyLang(idiomaParaMi());
      Una sola consulta para los dos: los enganches de cada solicitud con su
      papel. La fecha es la de cuando se subió el papel, que es cuando la
      noticia ocurrió. */
-  /* La planilla de la visa va por el mismo camino, aunque no se pague: el
-     CIIP la manda, el inversionista la firma y la devuelve. Cada una con
-     su frase (AV_DICE), que «paga y sube el comprobante» no es lo que se
-     hace con ella. La planilla firmada avisa al gestor en cualquier
-     trámite que la pida: es lo que estaba esperando. */
+  /* La planilla firmada va por el mismo camino, aunque no se pague, con su
+     frase (AV_DICE): avisa al gestor en cualquier trámite que la pida, que
+     es lo que estaba esperando.
+
+     La planilla de la visa también estuvo aquí (30-9-2026), con su «el CIIP
+     te envió la planilla, fírmala y súbela desde su paso». Se fue el
+     1-10-2026 con la Taquilla única opción 2 (Franklin Reyes): la visa ya
+     no tiene ese paso, y una planilla mandada aquel día que siguiera
+     avisando mandaría al inversionista a un paso que no existe. */
   var AV_PARA_PAGAR = ['planilla_reserva_nombre', 'planilla_aranceles', 'planilla_publicacion',
-                       'planilla_locti', 'importe_dia', 'planilla_visa'];
+                       'planilla_locti', 'importe_dia'];
   var AV_COMPROBANTES = ['reserva_nombre', 'pago_aranceles', 'pago_publicacion', 'pago_locti',
                          'pago_importe_dia', 'planilla_firmada'];
-  var AV_DICE = {planilla_visa: 'av_planilla_visa', planilla_firmada: 'av_planilla_firmada'};
+  var AV_DICE = {planilla_firmada: 'av_planilla_firmada'};
 
   function sumaPapelesDePago(refDe, loPedi, mios){
     return avPide('papeles del pago', function(){
@@ -23087,8 +23035,16 @@ applyLang(idiomaParaMi());
      Lo lee escaleraDe(), así que la fila de Mis trámites y la ficha
      cuentan lo mismo. Las dos visas estuvieron aquí con el registro en el
      portal de Cancillería («Ya me registré») hasta el 30-9-2026, cuando el
-     CIIP quitó ese paso: ahora van por ESCALERA_POR_ETAPAS. La mecánica se
-     queda para el próximo paso que ocurra fuera del panel. */
+     CIIP quitó ese paso y las llevó a ESCALERA_POR_ETAPAS.
+
+     Y VUELVEN (Franklin Reyes, 1-10-2026, Taquilla única opción 2): el
+     primer paso es «Regístrate y solicita la visa a través del portal de
+     Cancillería», con un botón para que el inversionista avise de que ya
+     se inscribió y generó la solicitud. Ningún estado de la base sabe eso
+     -pasa en el portal del ministerio, no aquí-, así que hasta que no lo
+     confirma la escalera se queda en el 1, «ahora», aunque la solicitud
+     esté ya en revisión: es la verdad, el siguiente paso espera por él. La
+     llave es la que confirma_paso() acepta (supabase-confirma-paso.sql). */
   /* Y el próximo llegó al día siguiente (Franklin Reyes, 1-10-2026,
      Taquilla única opción 2): la licencia de actividades económicas, la
      conformidad de uso y el Registro Único Minero los solicita el propio
@@ -23102,6 +23058,8 @@ applyLang(idiomaParaMi());
      confirma_paso() en la base, que no deja escribir cualquier cosa en
      datos (supabase-confirma-paso.sql). Ver claveDelPasoMio(). */
   var PASOS_QUE_MARCAS_TU = {
+    c1:  {1: 'cancilleria_confirmada'},
+    c38: {1: 'cancilleria_confirmada'},
     c10: {1: {clave: 'licencia_solicitada',    texto: 'p_yalasolicite'}},
     c28: {1: {clave: 'conformidad_solicitada', texto: 'p_yalasolicite'}},
     c36: {1: {clave: 'minero_solicitado',      texto: 'p_yalosolicite'}}
@@ -23151,7 +23109,18 @@ applyLang(idiomaParaMi());
        planilla; en revisión ya la mandó y toca firmarla; ante el SENIAT ya
        volvió firmada, que sin ella no se presenta. */
     c3:  {borrador:0, devuelto:1, enviado:1, en_revision:2, ante_el_ente:3},
-    c6:  {borrador:0, devuelto:1, enviado:1, en_revision:2, ante_el_ente:3}
+    c6:  {borrador:0, devuelto:1, enviado:1, en_revision:2, ante_el_ente:3},
+    /* Las dos visas (Franklin Reyes, 1-10-2026, Taquilla única opción 2):
+       «Regístrate y solicita la visa a través del portal de Cancillería →
+       Verificación de la solicitud → Visa otorgada». Enviada, el registro
+       en el portal queda atrás SOLO si el inversionista lo confirmó -el
+       tope lo pone PASOS_QUE_MARCAS_TU-, y entonces lo que está en curso
+       es la verificación, en cualquier estado hasta resolverse: recibida,
+       en revisión o ante la Cancillería es todo verificar. Sin esta línea
+       la cuenta de siempre pondría «Visa otorgada» en curso con la
+       solicitud en revisión, que es prometer la visa antes de tiempo. */
+    c1:  {borrador:0, devuelto:1, enviado:1, en_revision:1, ante_el_ente:1},
+    c38: {borrador:0, devuelto:1, enviado:1, en_revision:1, ante_el_ente:1}
     /* El permiso de bomberos (c29) estuvo aquí el 28-9-2026, con dos pasos.
        Desde el 29, con el importe de aranceles y su comprobante en medio,
        lo cuenta su escalera por etapas (ESCALERA_POR_ETAPAS). */
@@ -23193,7 +23162,10 @@ applyLang(idiomaParaMi());
   /* Adónde te manda un paso, cuando lo que toca está fuera del panel. El
      enlace de Cancillería va con el paso que se marca solo al volver: son
      las dos mitades del mismo gesto -ve, y avísanos-. */
-  /* Vacía desde el 30-9-2026: era el portal de Cancillería de las visas. */
+  /* Vacía del 30-9-2026 al 1-10-2026; desde entonces, otra vez el portal de
+     Cancillería de las dos visas, en su primer paso (Franklin Reyes,
+     1-10-2026, Taquilla única opción 2): ve, regístrate y solicítala allí,
+     y vuelve a decir «Ya me registré». */
   /* Y desde el 1-10-2026 (Franklin Reyes, Taquilla única opción 2), los
      portales de la licencia, la conformidad de uso y el Registro Único
      Minero, cada uno en su paso 1, el que se marca con «Ya la solicité».
@@ -23207,6 +23179,8 @@ applyLang(idiomaParaMi());
      que el de otra alcaldía. 'clave' es el texto del enlace. Ver
      enlaceDelPaso(). */
   var ENLACE_DEL_PASO = {
+    c1:  {1: {url: 'https://cancilleriadigital.mppre.gob.ve/', clave: 'p_ircancilleria'}},
+    c38: {1: {url: 'https://cancilleriadigital.mppre.gob.ve/', clave: 'p_ircancilleria'}},
     c10: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
     c28: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
     c36: {1: {url: 'https://sigdme2-0.desarrollominero.gob.ve/', clave: 'p_irsigdme'}}
@@ -23246,14 +23220,14 @@ applyLang(idiomaParaMi());
      trámite nuevo con ese paso es una entrada aquí y una línea en
      supabase-planilla-firmada.sql, que es quien deja colgarla.
 
-     Y las dos visas, en el tercero, «Carga la planilla firmada» (30-9-2026):
-     el CIIP manda la planilla en el segundo y vuelve firmada aquí.
+     Las dos visas estuvieron aquí del 30-9 al 1-10-2026, con «Carga la
+     planilla firmada» en el tercero. Se fueron con la Taquilla única
+     opción 2 (Franklin Reyes, 1-10-2026): la visa ya no lleva planilla. */
 
      La licencia (c10) salió de aquí el 1-10-2026: con la Taquilla única
      opción 2 (Franklin Reyes) ya no firma planilla ninguna, la pide el
      inversionista en el portal de su alcaldía. */
-  var PLANILLA_FIRMADA_DEL_PASO = {c3: {3: true}, c6: {3: true},
-                                   c1: {3: true}, c38: {3: true}};
+  var PLANILLA_FIRMADA_DEL_PASO = {c3: {3: true}, c6: {3: true}};
 
   /* ── LA PLANILLA QUE MANDA EL CIIP, PARA FIRMARLA ──
      Franklin Reyes, 30-9-2026: «el proceso del gestor» también con el paso
@@ -25057,6 +25031,10 @@ applyLang(idiomaParaMi());
      Se nombran como los demás, pero no se ofrecen en «Subir documento»:
      subidos desde ahí no llevarían de quién son. */
   var TIPOS_POR_PERSONA = {};
+  /* Los tipos que solo se NOMBRAN: papeles que un trámite pidió y ya no
+     pide -los de la visa hasta el 1-10-2026-. Siguen en la bóveda de quien
+     los subió, pero no se ofrecen en «Subir documento». */
+  var SOLO_NOMBRE = {};
   function clavesDeTipo(){
     if (!CLAVE_DE_TIPO){
       CLAVE_DE_TIPO = {};
@@ -25137,8 +25115,26 @@ applyLang(idiomaParaMi());
       /* Los dos que el CIIP manda por la escalera de la marca. */
       CLAVE_DE_TIPO.busqueda_antecedentes = 'd_busqueda_antecedentes';
       CLAVE_DE_TIPO.certificado_marca     = 'd_certificado_marca';
-      /* Y la planilla que el CIIP manda en la escalera de la visa. */
+      /* Y la planilla que el CIIP mandó en la escalera de la visa del 30-9
+         al 1-10-2026: ya no se manda (Taquilla única opción 2), pero las
+         que se mandaron siguen en Documentos y tienen que llamarse por su
+         nombre. */
       CLAVE_DE_TIPO.planilla_visa         = 'd_planilla_visa';
+      /* Y LO QUE LA VISA PEDÍA HASTA EL 1-10-2026. Con la Taquilla única
+         opción 2 (Franklin Reyes) el único recaudo de las dos visas es el
+         pasaporte, y estos seis dejaron de ser recaudo de nadie: la vuelta
+         de arriba ya no les da nombre. Pero los que se subieron siguen en
+         la bóveda de quien los subió, y sin esto saldrían con el código
+         pelado. Se nombran y NO se ofrecen en «Subir documento»
+         (SOLO_NOMBRE): ofrecer un papel que ningún trámite pide es invitar
+         a subirlo para nada. */
+      [['carta_solicitud_empresa', 'd_cartaempresa'], ['planilla_visa', 'd_planilla_visa'],
+       ['registro_comercio', 'd_registrocom'], ['solvencia_economica', 'd_solvecon'],
+       ['antecedentes', 'd_antecjur'], ['certificado_medico_origen', 'd_medicoorigen']
+      ].forEach(function(p){
+        if (!CLAVE_DE_TIPO[p[0]]) CLAVE_DE_TIPO[p[0]] = p[1];
+        if (CLAVE_DE_TIPO[p[0]] === p[1]) SOLO_NOMBRE[p[0]] = true;
+      });
       CLAVE_DE_TIPO.resolucion          = 'co_emitido';
       CLAVE_DE_TIPO.codigo_ente          = 'd_codigoente';
       /* La planilla que el inversionista devuelve firmada desde el paso
@@ -25776,7 +25772,7 @@ applyLang(idiomaParaMi());
     Object.keys(clavesDeTipo())
       /* Lo de una persona se sube desde su fila, con su nombre: aquí saldría
          sin titular, y en la bóveda no se sabría de quién es. */
-      .filter(function(t){ return !TIPOS_POR_PERSONA[t] && t !== TIPO_PLANILLA; })
+      .filter(function(t){ return !TIPOS_POR_PERSONA[t] && !SOLO_NOMBRE[t] && t !== TIPO_PLANILLA; })
       .map(function(t){ return {tipo:t, nombre:nombreDeTipo_doc(t)}; })
       /* Por nombre y en el idioma de turno, no por el código interno: en
          una lista de cincuenta, buscar «Pasaporte» donde el orden lo pone
