@@ -4872,20 +4872,36 @@
     igual('rum: se abre su detalle', document.body.getAttribute('data-vista'), 'tramite');
 
     var caja = document.getElementById('trReal');
-    igual('rum: pide los siete datos del alta del SIGDME',
-          caja.querySelectorAll('.sol-campo').length, 7);
-
-    var tipos = [];
-    caja.querySelectorAll('.sol-doc').forEach(function(d){ tipos.push(d.getAttribute('data-doc')); });
-    igual('rum: sus cuatro recaudos, los de una empresa conformada',
-          tipos.join(' '), 'cedula rif_empresa acta_constitutiva acta_asamblea');
-
-    var mot = caja.querySelector('.sol-campo[data-campo="actividad_minera"] select');
-    var ops = [];
-    if (mot) mot.querySelectorAll('option').forEach(function(o){ if (o.value) ops.push(o.value); });
-    ok('rum: la actividad minera deja decir «no lo sé»',
-       ops.indexOf('No lo sé: que lo revise el CIIP') !== -1,
-       ops.join(' | ') || '(sin opciones)', 'la salida para quien no sabe');
+    /* Desde el 1-10-2026 (Franklin Reyes, Taquilla única opción 2) el RUM
+       pregunta SOLO razón social y RIF y no pide recaudos: el alta, con su
+       cédula, su acta y su actividad minera, la hace el inversionista en el
+       SIGDME. Por eso se retiraron las de los siete datos, los cuatro
+       recaudos y el «No lo sé» de la actividad minera, que ya no se
+       pregunta aquí; y se mide lo que importa de un formulario sin papeles:
+       que no salga una hoja de recaudos vacía y que se pueda llegar al
+       envío. */
+    igual('rum: pide solo la razón social y el RIF',
+          [].map.call(caja.querySelectorAll('.sol-campo'), function(c){ return c.getAttribute('data-campo'); }).join(','),
+          'razon_social,rif_empresa');
+    igual('rum: sin recaudos', caja.querySelectorAll('.sol-doc').length, 0);
+    igual('rum: dos hojas, sin la de recaudos vacía',
+          [].map.call(caja.querySelectorAll('.pa-barra .pa-l'), function(l){ return l.textContent; }).join(' · '),
+          window.CIIP_T().tus_datos + ' · ' + window.CIIP_T().pa_repasar);
+    caja.querySelectorAll('.sol-campo input').forEach(function(e, i){
+      e.value = i ? 'J-12345678-9' : 'Minera de Prueba, C.A.';
+      e.dispatchEvent(new Event('input'));
+    });
+    var sigueR = caja.querySelector('.pa-sigue');
+    if (sigueR) sigueR.click();
+    var envR = caja.querySelector('.sol-enviar');
+    var hojaR = envR && envR.closest('.pa-hoja');
+    ok('rum: rellenos los dos, pasa al repaso y ofrece enviar',
+       !!hojaR && !hojaR.hidden && hojaR.getAttribute('data-paso') === '2' &&
+         !(caja.querySelector('.pa-aviso') || {}).textContent,
+       hojaR ? 'hoja ' + hojaR.getAttribute('data-paso') + (hojaR.hidden ? ' escondida' : '') +
+               ' · aviso «' + ((caja.querySelector('.pa-aviso') || {}).textContent || '') + '»' : '(sin botón de enviar)',
+       'hoja 2 a la vista, sin aviso');
+    caja.querySelectorAll('.sol-campo input').forEach(function(e){ e.value = ''; });
 
     ok('rum: sin plazo, y sin «undefined» en su lugar',
        document.body.innerText.indexOf('undefined') === -1,
@@ -9546,171 +9562,202 @@
   /* ═══════════ LA CONFORMIDAD DE USO (c28) ═══════════
      Pedido del CIIP (28-9-2026): los recaudos del SIGAT y la escalera
      «Revisión de recaudos → Inscripción ante el ente → Emitida
-     certificación de conformidad de uso». La escalera se cuenta sin base;
-     el catálogo del doble no trae la c28 y se le pone solo para esto. */
+     certificación de conformidad de uso».
+
+     CAMBIÓ EL 1-10-2026 (Franklin Reyes, Taquilla única opción 2): «el
+     mismo proceso que la licencia». Sin recaudos -se fueron las pruebas de
+     la lista del SIGAT, que ya no se pide aquí, y se quedan las de la regla
+     siExiste, que sigue viva en bomberos-, tres campos y la escalera
+     «Solicita la conformidad de uso… a través del portal de la alcaldía →
+     Emisión… en proceso → Conformidad de uso emitida», con el paso 1
+     marcado por el inversionista. La escalera se cuenta sin base; el
+     catálogo del doble no trae la c28 y se le pone solo para esto. */
   function conformidadMira(){
     if (PASE !== 'vacio') return;
     var R = window.CIIP_RECAUDOS;
     ok('conformidad: la lista de recaudos está a mano', !!R, R ? 'está' : 'no está', 'window.CIIP_RECAUDOS');
     if (!R) return;
-    var tipos = R.de('conformidad_uso').map(function(r){ return r.tipo; });
-    ok('conformidad: pide lo del SIGAT además de lo de antes',
-       ['titulo_inmueble', 'acta_constitutiva', 'rif_empresa', 'cedula', 'cedula_catastral',
-        'permiso_construccion', 'plano_local', 'fotos_local'].every(function(t){ return tipos.indexOf(t) >= 0; }),
-       tipos.join(', '), 'título, acta, RIF, cédula, catastral, permiso de construcción, plano y fotos');
+    igual('conformidad: ya no pide recaudos, los pide el portal de la alcaldía',
+          R.de('conformidad_uso').map(function(r){ return r.tipo; }).join(', ') || 'ninguno', 'ninguno');
+    igual('conformidad: pregunta solo razón social, RIF y municipio del local',
+          R.campos('conformidad_uso').map(function(c){ return c.n; }).join(','), 'razon_social,rif_empresa,municipio');
     var nuevo = {tipo: 'fotos_local', siExiste: true};
-    igual('conformidad: un recaudo nuevo que la base aún no conoce no se pide',
+    igual('recaudo nuevo: si la base aún no lo conoce, no se pide',
           R.vale(nuevo, {cedula: true, plano_local: false}), false);
-    igual('conformidad: y en cuanto la base lo conoce, sí', R.vale(nuevo, {fotos_local: false}), true);
-    igual('conformidad: sin la lista de la base, se pide como siempre', R.vale(nuevo, {}), true);
+    igual('recaudo nuevo: y en cuanto la base lo conoce, sí', R.vale(nuevo, {fotos_local: false}), true);
+    igual('recaudo nuevo: sin la lista de la base, se pide como siempre', R.vale(nuevo, {}), true);
 
     var cat = window.CIIP_TIPOS_POR_REF, puesto = false;
     if (cat && !cat.c28){ cat.c28 = {codigo: 'conformidad_uso', ref_panel: 'c28', ente: 'Alcaldía', activo: true}; puesto = true; }
-    var dibujo = function(estado){
-      var E = window.CIIP_ESCALERA({estado: estado, datos: {}}, 'conformidad_uso', 'Alcaldía');
+    var dibujo = function(estado, datos){
+      var E = window.CIIP_ESCALERA({estado: estado, datos: datos || {}}, 'conformidad_uso', 'Alcaldía');
       return E.todos.map(function(p){ return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(',');
     };
     var E0 = window.CIIP_ESCALERA({estado: 'enviado', datos: {}}, 'conformidad_uso', 'Alcaldía');
-    igual('conformidad: tres pasos, los del CIIP',
+    igual('conformidad: tres pasos, los de la Taquilla única',
           E0.todos.map(function(p){ return p.nombre; }).join(' → '),
-          'Revisión de recaudos → Inscripción ante el ente → Emitida certificación de conformidad de uso');
-    ok('conformidad: y ninguno habla de un PUB ni de la reserva del nombre',
-       !/PUB|reserva/i.test(E0.todos.map(function(p){ return p.nombre; }).join(' ')), 'sin PUB', 'sin PUB');
-    igual('conformidad: recibida, la revisión es la que está en curso', dibujo('enviado'), 'ahora,porhacer,porhacer');
-    igual('conformidad: en revisión, también', dibujo('en_revision'), 'ahora,porhacer,porhacer');
-    igual('conformidad: ante la alcaldía, la inscripción', dibujo('ante_el_ente'), 'hecho,ahora,porhacer');
+          'Solicita la conformidad de uso del inmueble a través del portal de la alcaldía → ' +
+          'Emisión de la conformidad de uso en proceso → Conformidad de uso emitida');
+    var ya = {conformidad_solicitada: '2026-10-01T10:00:00-04:00'};
+    igual('conformidad: recibida y sin marcar, el paso 1 está en curso', dibujo('enviado'), 'ahora,porhacer,porhacer');
+    igual('conformidad: y aunque el gestor la mueva, sin la marca no avanza', dibujo('ante_el_ente'), 'ahora,porhacer,porhacer');
+    igual('conformidad: marcada, «en proceso» queda en curso aunque siga recibida', dibujo('enviado', ya), 'hecho,ahora,porhacer');
     igual('conformidad: resuelta, todo hecho', dibujo('resuelto'), 'hecho,hecho,hecho');
     if (puesto) delete cat.c28;
   }
 
   /* ═══════════ LA LICENCIA DE ACTIVIDADES ECONÓMICAS (c10) ═══════════
-     Pedido del CIIP (28-9-2026): sin metros cuadrados, y la escalera
-     «Revisión → Firme la planilla → Importe de tasa → Importe de timbre →
-     Comprobante del pago» con dos casillas en el último, más «Licencia
-     otorgada». Dos importes del día con nombre; no se resuelve sin los
-     dos comprobantes. */
-  var LC_CAJAS = null, LC_FALTA = {};
+     Pedido del CIIP (28-9-2026): sin metros cuadrados, y una escalera por
+     etapas con revisión, firma de la planilla, los importes del día de tasa
+     y timbre y sus dos comprobantes. Aquí se medía todo eso: los seis
+     pasos, las dos casillas del comprobante, que el gestor viera los dos
+     importes a la vez y que no se resolviera sin los dos comprobantes.
+
+     SE RETIRARON EL 1-10-2026, todas, porque lo que medían ya no existe:
+     Franklin Reyes, 1-10-2026, Taquilla única opción 2, rehízo la licencia
+     -sin recaudos, sin planilla, sin importes ni comprobantes por el CIIP;
+     la pide el inversionista en el portal de su alcaldía-. El mecanismo de
+     varios importes en un paso ('pagos', importesJuntos) se queda en
+     panel.js sin trámite que lo use, y por eso sin prueba propia.
+
+     Lo que se mide ahora: los tres campos, que no pide recaudos, que ya no
+     va por la escalera por etapas ni pide importes, planilla o
+     comprobantes, la escalera de tres pasos, el enlace del paso 1 según el
+     municipio, y el botón «Ya la solicité» con su llave. El botón se pulsa
+     aquí y lo que contestó la base se mira en licenciaMira. */
+  var LC_BOTON = null;
   function licenciaSiembra(){
-    var M = window.CIIP_MARCA, I = window.CIIP_IMPORTE, R = window.CIIP_RECAUDOS;
-    if (PASE !== 'vacio' && PASE !== 'gestor') return;
-    if (!M || !I || !R) return ok('licencia: las piezas están a mano', false, 'falta alguna', 'CIIP_MARCA, CIIP_IMPORTE, CIIP_RECAUDOS');
-    var hace = function(h){ return new Date(Date.now() - h * 3600000).toISOString(); };
-    var tr = function(id, estado, pasos){
-      return {id: id, tipo: 'licencia_municipal', estado: estado, datos: {pasos_ciip: pasos || {}},
-              inversionista: 'u2', gestor: 'u1', enviado_en: hace(200), creado_en: hace(200)};
-    };
-    var pago = function(id, paso, estado){
-      return {id: id, tipo: 'pago_importe_dia', creado_en: hace(3), estado: estado || 'cargado',
-              paso_importe: paso, nombre_original: id + '.pdf'};
-    };
-    var imp = function(id, paso){
-      return {id: id, tipo: 'importe_dia', creado_en: new Date().toISOString(), estado: 'validado',
-              paso_importe: paso, nombre_original: id + '.pdf', archivo: 'u2/emitidos/' + id + '.pdf'};
+    if (PASE !== 'vacio') return;
+    var M = window.CIIP_MARCA, I = window.CIIP_IMPORTE, R = window.CIIP_RECAUDOS,
+        F = window.CIIP_PLANILLA_FIRMADA, PM = window.CIIP_PASO_MIO;
+    if (!M || !I || !R || !F || !PM)
+      return ok('licencia: las piezas están a mano', false, 'falta alguna',
+                'CIIP_MARCA, CIIP_IMPORTE, CIIP_RECAUDOS, CIIP_PLANILLA_FIRMADA, CIIP_PASO_MIO');
+    var u = window.CIIP_T();
+    var tr = function(id, tipo, estado, datos){
+      return {id: id, tipo: tipo, estado: estado, datos: datos || {}, inversionista: 'u2', gestor: 'u1'};
     };
 
-    if (PASE === 'vacio'){
-      ok('licencia: el formulario ya no pregunta los metros cuadrados',
-         !R.campos('licencia_municipal').some(function(c){ return c.n === 'metros'; }),
-         R.campos('licencia_municipal').map(function(c){ return c.n; }).join(', '), 'sin metros');
-      var E0 = M.escalera(tr('lc-a', 'enviado'), 'licencia_municipal');
-      igual('licencia: seis pasos, en el orden del CIIP',
-            E0.todos.map(function(p){ return p.clave; }).join(','),
-            'revision,firma,importe_tasa,importe_timbre,pagos,licencia');
-      igual('licencia: con los nombres del pedido',
-            E0.todos.slice(0, 5).map(function(p){ return p.nombre; }).join(' → '),
-            'Revisión de recaudos por el CIIP → Firme la planilla de solicitud de trámite → ' +
-            'Importe de tasa administrativa → Importe de timbre fiscal otorgamiento de documentos: ' +
-            'licencia de actividades económicas → Comprobante del pago');
-      igual('licencia: recibida, va por la revisión', E0.ahora && E0.ahora.clave, 'revision');
-      var E1 = M.escalera(tr('lc-b', 'en_revision'), 'licencia_municipal');
-      igual('licencia: en revisión, toca firmar la planilla', E1.ahora && E1.ahora.clave, 'firma');
-      var E2 = M.escalera(tr('lc-c', 'ante_el_ente'), 'licencia_municipal');
-      igual('licencia: ante la alcaldía, espera el importe de la tasa', E2.ahora && E2.ahora.clave, 'importe_tasa');
-      var dos = {importe_tasa: hace(5), importe_timbre: hace(4)};
-      var E3 = M.escalera(tr('lc-d', 'ante_el_ente', dos), 'licencia_municipal');
-      igual('licencia: con los dos importes, toca el comprobante del pago', E3.ahora && E3.ahora.clave, 'pagos');
-      var unPago = {importe_tasa: hace(5), importe_timbre: hace(4), pago_tasa: hace(2)};
-      var E4 = M.escalera(tr('lc-e', 'ante_el_ente', unPago), 'licencia_municipal');
-      ok('licencia: con un solo comprobante el paso sigue en curso, esperando el del timbre',
-         !!E4.ahora && E4.ahora.clave === 'pagos' && E4.importeEnCurso === 'timbre',
-         (E4.ahora && E4.ahora.clave) + ' · ' + E4.importeEnCurso, 'pagos · timbre');
-      var todo = {importe_tasa: hace(5), importe_timbre: hace(4), pago_tasa: hace(2), pago_timbre: hace(1)};
-      var E5 = M.escalera(tr('lc-f', 'ante_el_ente', todo), 'licencia_municipal');
-      igual('licencia: con los dos, espera la licencia', E5.ahora && E5.ahora.clave, 'licencia');
-      var E6 = M.escalera(tr('lc-g', 'resuelto', todo), 'licencia_municipal');
-      ok('licencia: resuelta, todo hecho', E6.hechos === E6.todos.length && !E6.ahora,
-         E6.hechos + ' de ' + E6.todos.length, 'todo hecho');
-      igual('licencia: no exige un paso apuntado para resolver, como la marca', M.falta(tr('lc-h', 'ante_el_ente', todo)), null);
-      igual('licencia: la marca sigue exigiendo su certificado',
-            M.falta({id: 'mc-x', tipo: 'marca', estado: 'ante_el_ente', datos: {pasos_ciip: {}}}), 'mc_g_faltacert');
-      var pide = M.comprobante(tr('lc-i', 'ante_el_ente'));
-      igual('licencia: para resolver pide los dos comprobantes',
-            pide ? pide.tipo + ' · ' + (pide.pasos || []).join('+') : '(nada)', 'pago_importe_dia · tasa+timbre');
+    /* El formulario: tres campos, el municipio con las cuatro alcaldías. */
+    igual('licencia: pregunta solo razón social, RIF y municipio del local',
+          R.campos('licencia_municipal').map(function(c){ return c.n; }).join(','), 'razon_social,rif_empresa,municipio');
+    var mun = R.campos('licencia_municipal').filter(function(c){ return c.n === 'municipio'; })[0] || {};
+    igual('licencia: el municipio se elige entre las cuatro alcaldías',
+          (mun.opciones || []).join(','), 'Chacao,Baruta,Libertador,Sucre');
+    igual('licencia: y la conformidad de uso usa la misma lista',
+          ((R.campos('conformidad_uso').filter(function(c){ return c.n === 'municipio'; })[0] || {}).opciones || []).join(','),
+          'Chacao,Baruta,Libertador,Sucre');
+    igual('licencia: ya no pide recaudos',
+          R.de('licencia_municipal').map(function(r){ return r.tipo; }).join(', ') || 'ninguno', 'ninguno');
+    igual('rum: el Registro Único Minero tampoco',
+          R.de('registro_minero').map(function(r){ return r.tipo; }).join(', ') || 'ninguno', 'ninguno');
+    igual('rum: y pregunta solo razón social y RIF',
+          R.campos('registro_minero').map(function(c){ return c.n; }).join(','), 'razon_social,rif_empresa');
 
-      /* Pintada en el paso del comprobante: sin encabezado de etapa y con
-         una caja por importe. */
-      var hueco = document.createElement('div');
-      var ol = document.createElement('ol');
-      ol.className = 'tr-pasos';
-      hueco.appendChild(ol);
-      window.__IMPORTE_DOCS = {'lc-caja': [imp('it', 'tasa'), imp('ib', 'timbre'), pago('pt', 'tasa')],
-                               'lc-sin': [pago('pt2', 'tasa')],
-                               'lc-con': [pago('pt3', 'tasa'), pago('pb3', 'timbre')],
-                               'lc-rech': [pago('pt4', 'tasa'), pago('pb4', 'timbre', 'rechazado')]};
-      var tCaja = tr('lc-caja', 'ante_el_ente', unPago);
-      M.pinta(ol, M.escalera(tCaja, 'licencia_municipal'), tCaja, {}, false);
-      igual('licencia: una sola etapa, sin encabezado', hueco.querySelectorAll('li.tr-etapa').length, 0);
-      var cajas = hueco.querySelectorAll('li.tr-paso.ahora[data-paso="pagos"] .imp-de');
-      igual('licencia: el comprobante del pago lleva dos casillas, tasa y timbre',
-            [].map.call(cajas, function(c){ return c.getAttribute('data-paso-importe'); }).join(','), 'tasa,timbre');
-      ok('licencia: cada una con el nombre de su importe',
-         cajas.length === 2 && cajas[1].querySelector('.imp-de-t').textContent.indexOf('timbre fiscal') > 0,
-         cajas.length ? cajas[cajas.length - 1].querySelector('.imp-de-t').textContent : '(sin cajas)', 'Importe de timbre fiscal…');
-      LC_CAJAS = hueco;
-      LC_CAJAS.hidden = true;
-      document.body.appendChild(LC_CAJAS);
+    /* Lo que se fue con la escalera por etapas. */
+    igual('licencia: ya no va por la escalera por etapas',
+          M.escalera(tr('lc-a', 'licencia_municipal', 'enviado'), 'licencia_municipal'), null);
+    ok('licencia: ni tiene importes del día',
+       !(I.registro && I.registro.licencia_municipal), I.registro && I.registro.licencia_municipal ? 'los tiene' : 'no', 'no');
+    igual('licencia: para resolver no pide comprobantes, solo la licencia emitida',
+          M.comprobante(tr('lc-b', 'licencia_municipal', 'ante_el_ente')), null);
+    igual('licencia: ni planilla firmada en ningún paso',
+          [1, 2, 3].filter(function(n){ return F.pide('c10', n); }).join(',') || 'ninguno', 'ninguno');
 
-      /* Y la cuenta de los comprobantes para resolver, con la base de
-         mentira: uno solo no basta, uno rechazado tampoco. */
-      M.faltaPago(tr('lc-sin', 'ante_el_ente')).then(function(f){ LC_FALTA.sin = f; });
-      M.faltaPago(tr('lc-con', 'ante_el_ente')).then(function(f){ LC_FALTA.con = f; });
-      M.faltaPago(tr('lc-rech', 'ante_el_ente')).then(function(f){ LC_FALTA.rech = f; });
-    }
+    /* La escalera de tres pasos, con la marca. */
+    var cat = window.CIIP_TIPOS_POR_REF, puesto = false;
+    if (cat && !cat.c10){ cat.c10 = {codigo: 'licencia_municipal', ref_panel: 'c10', ente: 'Alcaldía', activo: true}; puesto = true; }
+    var dibujo = function(estado, datos){
+      var E = window.CIIP_ESCALERA({estado: estado, datos: datos || {}}, 'licencia_municipal', 'Alcaldía');
+      return E.todos.map(function(p){ return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(',');
+    };
+    igual('licencia: tres pasos, los de la Taquilla única',
+          window.CIIP_ESCALERA({estado: 'enviado', datos: {}}, 'licencia_municipal', 'Alcaldía').todos
+            .map(function(p){ return p.nombre; }).join(' → '),
+          'Solicita la licencia de actividades económicas a través del portal de la alcaldía → ' +
+          'Emisión de la licencia en proceso → Licencia de Actividades Económicas emitida');
+    var ya = {licencia_solicitada: '2026-10-01T10:00:00-04:00'};
+    igual('licencia: recibida y sin marcar, el paso 1 está en curso', dibujo('enviado'), 'ahora,porhacer,porhacer');
+    igual('licencia: en revisión tampoco avanza sin la marca', dibujo('en_revision'), 'ahora,porhacer,porhacer');
+    igual('licencia: marcada, «en proceso» queda en curso aunque siga recibida', dibujo('enviado', ya), 'hecho,ahora,porhacer');
+    igual('licencia: devuelta, vuelve al principio aunque esté marcada', dibujo('devuelto', ya), 'ahora,porhacer,porhacer');
+    igual('licencia: resuelta, todo hecho', dibujo('resuelto'), 'hecho,hecho,hecho');
+    if (puesto) delete cat.c10;
+    var dibujoRum = function(estado, datos){
+      var E = window.CIIP_ESCALERA({estado: estado, datos: datos || {}}, 'registro_minero', 'Ministerio de Desarrollo Minero');
+      return E.todos.map(function(p){ return p.nombre + ':' + (p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer')); }).join(' → ');
+    };
+    igual('rum: dos pasos, y sin marcar el 1 en curso', dibujoRum('enviado'),
+          'Solicite el Registro Único Minero a través del portal:ahora → Registro listo:porhacer');
+    igual('rum: marcado, toca «Registro listo»', dibujoRum('enviado', {minero_solicitado: '2026-10-01T10:00:00-04:00'}),
+          'Solicite el Registro Único Minero a través del portal:hecho → Registro listo:ahora');
+    igual('rum: resuelto, todo hecho', dibujoRum('resuelto'),
+          'Solicite el Registro Único Minero a través del portal:hecho → Registro listo:hecho');
 
-    if (PASE === 'gestor'){
-      igual('licencia: gestor, en revisión no hay casilla de importes',
-            M.casilla(tr('lc-g0', 'en_revision'), 'prb-lc-'), null);
-      LC_CAJAS = document.createElement('div');
-      LC_CAJAS.hidden = true;
-      document.body.appendChild(LC_CAJAS);
-      var c = M.casilla(tr('lc-g1', 'ante_el_ente'), 'prb-lc-');
-      if (c) LC_CAJAS.appendChild(c);
-      var g = c ? c.querySelectorAll('.imp-g') : [];
-      igual('licencia: gestor, ante la alcaldía ve las dos casillas del importe a la vez',
-            [].map.call(g, function(x){ return x.getAttribute('data-paso-importe'); }).join(','), 'tasa,timbre');
-      ok('licencia: gestor, con el título de la licencia y no el de la marca',
-         !!c && c.querySelector('.imp-g-t').textContent.indexOf('Licencia de actividades') === 0,
-         c ? c.querySelector('.imp-g-t').textContent : '(sin casilla)', 'Licencia de actividades económicas · paso en curso');
-      ok('licencia: gestor, y sin «Etapa 1» delante del paso',
-         !!c && !/Etapa/.test((c.querySelector('.mc-g-paso') || {}).textContent || ''),
-         c ? (c.querySelector('.mc-g-paso') || {}).textContent : '(sin casilla)', '3. Importe de tasa administrativa');
-    }
+    /* El enlace del paso 1: el portal de la alcaldía del municipio que se
+       contestó, y ninguno si no hay respuesta que lleve a alguna parte. */
+    var url = function(ref, n, datos){ var e = PM.enlace(ref, n, {datos: datos}); return e ? e.url : '(ninguno)'; };
+    igual('licencia: en Libertador, el SIGAT de la alcaldía 1', url('c10', 1, {municipio: 'Libertador'}),
+          'https://contribuyentes.sigat.net/registro?alcaldia=1');
+    igual('licencia: en Sucre, el SIGAT de la alcaldía 4', url('c10', 1, {municipio: 'Sucre'}),
+          'https://contribuyentes.sigat.net/registro?alcaldia=4');
+    igual('licencia: en Chacao, su oficina virtual', url('c10', 1, {municipio: 'Chacao'}),
+          'https://oficinavirtual.chacao.gob.ve/appweb/gestion_usuario/registro');
+    igual('licencia: en Baruta, el enlace que trae el documento', url('c10', 1, {municipio: 'Baruta'}),
+          'https://oficinavirtual.chacao.gob.ve/appweb/gestion_usuario/registro');
+    igual('licencia: sin municipio no hay enlace', url('c10', 1, {}), '(ninguno)');
+    igual('licencia: ni con uno escrito a mano que no está en la tabla', url('c10', 1, {municipio: 'chacao'}), '(ninguno)');
+    igual('licencia: y el paso 2 no lleva enlace', url('c10', 2, {municipio: 'Sucre'}), '(ninguno)');
+    igual('conformidad: el mismo enlace por municipio', url('c28', 1, {municipio: 'Libertador'}),
+          'https://contribuyentes.sigat.net/registro?alcaldia=1');
+    igual('rum: el paso 1 lleva al SIGDME', url('c36', 1, {}), 'https://sigdme2-0.desarrollominero.gob.ve/');
+    var a = PM.enlacePintado('c10', 1, {datos: {municipio: 'Sucre'}});
+    igual('licencia: el enlace pintado dice adónde va y se abre aparte',
+          a ? a.textContent + ' · ' + a.getAttribute('href') + ' · ' + a.target : '(sin enlace)',
+          u.p_iralcaldia + ' · https://contribuyentes.sigat.net/registro?alcaldia=4 · _blank');
+
+    /* El botón: su texto y su llave, uno por trámite. */
+    var texto = function(ref, tipo){
+      var b = PM.boton(tr('bt-' + ref, tipo, 'enviado'), ref, 1, null, null);
+      return b ? b.textContent + ' · ' + b.getAttribute('data-clave') : '(sin botón)';
+    };
+    igual('licencia: el botón dice «Ya la solicité» y marca licencia_solicitada',
+          texto('c10', 'licencia_municipal'), 'Ya la solicité · licencia_solicitada');
+    igual('conformidad: el botón dice «Ya la solicité» y marca conformidad_solicitada',
+          texto('c28', 'conformidad_uso'), 'Ya la solicité · conformidad_solicitada');
+    igual('rum: el botón dice «Ya lo solicité» y marca minero_solicitado',
+          texto('c36', 'registro_minero'), 'Ya lo solicité · minero_solicitado');
+    igual('licencia: ya marcado, no se vuelve a ofrecer',
+          PM.boton(tr('bt-ya', 'licencia_municipal', 'enviado', ya), 'c10', 1, null, null), null);
+    igual('licencia: y el paso 2 no lleva botón',
+          PM.boton(tr('bt-2', 'licencia_municipal', 'enviado'), 'c10', 2, null, null), null);
+
+    /* Y se pulsa: va a confirma_paso con la llave, y lo que contesta la
+       base es lo que mueve la escalera. */
+    LC_BOTON = {tr: tr('lc-bt', 'licencia_municipal', 'enviado', {municipio: 'Libertador'}), marcado: null};
+    window.CIIP_PRUEBA_CONFIRMA_PASO = [];
+    var txt = document.createElement('div');
+    var b = PM.boton(LC_BOTON.tr, 'c10', 1, txt, function(t){ LC_BOTON.marcado = t; });
+    if (b){ txt.appendChild(b); b.click(); }
   }
   function licenciaMira(){
-    if (!LC_CAJAS || (PASE !== 'vacio' && PASE !== 'gestor')) return;
-    if (PASE === 'vacio'){
-      var tasa = LC_CAJAS.querySelector('.imp-de[data-paso-importe="tasa"] [data-fase]');
-      var timbre = LC_CAJAS.querySelector('.imp-de[data-paso-importe="timbre"] [data-fase]');
-      igual('licencia: la tasa sale pagada y el timbre por pagar, cada uno con lo suyo',
-            (tasa ? tasa.getAttribute('data-fase') : '?') + ' · ' + (timbre ? timbre.getAttribute('data-fase') : '?'),
-            'pagado · vigente');
-      igual('licencia: con un solo comprobante falta el otro para resolver', LC_FALTA.sin, true);
-      igual('licencia: con los dos, ya se puede resolver', LC_FALTA.con, false);
-      igual('licencia: un comprobante rechazado no cuenta', LC_FALTA.rech, true);
-    }
-    LC_CAJAS.remove();
-    LC_CAJAS = null;
-    window.__IMPORTE_DOCS = null;
+    if (PASE !== 'vacio' || !LC_BOTON) return;
+    var pedido = (window.CIIP_PRUEBA_CONFIRMA_PASO || [])[0] || {};
+    igual('licencia: al pulsar, pide a la base confirma_paso con la llave de la licencia',
+          pedido.p_tramite + ' · ' + pedido.p_clave, 'lc-bt · licencia_solicitada');
+    var t = LC_BOTON.marcado;
+    ok('licencia: y la marca vuelve de la base a la solicitud',
+       !!t && !!(t.datos || {}).licencia_solicitada,
+       t ? JSON.stringify(t.datos) : '(sin respuesta)', 'con licencia_solicitada');
+    var cat = window.CIIP_TIPOS_POR_REF, puesto = false;
+    if (cat && !cat.c10){ cat.c10 = {codigo: 'licencia_municipal', ref_panel: 'c10', ente: 'Alcaldía', activo: true}; puesto = true; }
+    var E = t ? window.CIIP_ESCALERA(t, 'licencia_municipal', 'Alcaldía') : null;
+    var ahora = E ? E.todos.filter(function(p){ return p.ahora; })[0] : null;
+    igual('licencia: tras marcar, el paso 2 es el que está en curso',
+          ahora ? ahora.n + '. ' + ahora.nombre : '(ninguno)', '2. Emisión de la licencia en proceso');
+    if (puesto) delete cat.c10;
+    LC_BOTON = null;
+    window.CIIP_PRUEBA_CONFIRMA_PASO = null;
   }
 
   /* ═══════════ LA PLANILLA FIRMADA, DE VUELTA DESDE SU PASO ═══════════
@@ -9743,8 +9790,10 @@
         if (!FIRMA_LA_PLANILLA.test((pasosEs[ref] || [])[n - 1] || '')) deMas.push(ref + '.' + n);
       });
     });
-    igual('planilla firmada: dicen «Firme la planilla» el paso 3 de los dos RIF y el 2 de la licencia, y «Carga la planilla firmada» el 3 de las visas',
-          hallados.join(','), 'c1.3,c38.3,c3.3,c6.3,c10.2');
+    /* La licencia (c10.2) salió de esta lista el 1-10-2026: con la
+       Taquilla única opción 2 (Franklin Reyes) ya no firma planilla. */
+    igual('planilla firmada: dicen «Firme la planilla» el paso 3 de los dos RIF, y «Carga la planilla firmada» el 3 de las visas',
+          hallados.join(','), 'c1.3,c38.3,c3.3,c6.3');
     igual('planilla firmada: todos ofrecen devolverla firmada', sinCasilla.join(',') || 'todos', 'todos');
     igual('planilla firmada: y ningún otro paso la pide', deMas.join(',') || 'ninguno', 'ninguno');
 
@@ -9795,14 +9844,11 @@
       c.setAttribute('data-prueba', id);
       PF_CAJAS.appendChild(c);
     });
-    /* Y la licencia en revisión, pintada entera: ahí el paso en curso es la
-       firma, y lleva la casilla dentro. */
-    var ol = document.createElement('ol');
-    ol.className = 'tr-pasos';
-    PF_CAJAS.appendChild(ol);
-    var trL = {id: 'pf-lic', tipo: 'licencia_municipal', estado: 'en_revision', datos: {pasos_ciip: {}},
-               inversionista: 'u2', enviado_en: hace, creado_en: hace};
-    M.pinta(ol, M.escalera(trL, 'licencia_municipal'), trL, {}, false);
+    /* Aquí se pintaba entera la licencia en revisión, para ver la casilla
+       dentro de «Firme la planilla de solicitud de trámite». Se retiró el
+       1-10-2026: ese paso ya no existe (Franklin Reyes, Taquilla única
+       opción 2), y lo que mide -la casilla dentro de un paso pintado por
+       etapas- lo siguen midiendo las pruebas de las visas. */
   }
   function planillaFirmadaMira(){
     if (PASE !== 'vacio' || !PF_CAJAS) return;
@@ -9836,10 +9882,11 @@
          visto(rech.querySelector('.pe-sube > .pe-subir')),
        visto(nota) ? nota.textContent : '(sin nota)', u.tr_pfirmada_otra + ' Falta la firma del representante.');
 
-    var lic = PF_CAJAS.querySelector('li.tr-paso.ahora[data-paso="firma"] .tr-firmada');
-    ok('planilla firmada: la licencia, en «Firme la planilla de solicitud de trámite», también la ofrece',
-       visto(lic) && visto(lic.querySelector('.pe-subir')),
-       lic ? (visto(lic) ? 'a la vista' : 'escondida') : '(sin casilla)', 'a la vista');
+    /* Aquí se miraba que la licencia ofreciera la casilla en «Firme la
+       planilla de solicitud de trámite». Retirada el 1-10-2026: ese paso ya
+       no existe (Franklin Reyes, Taquilla única opción 2). Que la casilla
+       sale en su paso lo siguen diciendo la lista de arriba -todo paso que
+       dice «firme la planilla» la pide- y las de las visas. */
 
     /* Y se manda: el archivo va a la bóveda con su tipo y se cuelga de la
        solicitud. */
@@ -10150,12 +10197,16 @@
     ok('visa: la planilla firmada se carga en el tercero, en las dos',
        F.pide('c1', 3) && F.pide('c38', 3) && !F.pide('c1', 2),
        [F.pide('c1', 3), F.pide('c38', 3), F.pide('c1', 2)].join(','), 'true,true,false');
-    /* Y la licencia no se movió con el cambio del arrastre: con los
-       importes apuntados, la firma sigue hecha aunque vuelva a revisión. */
-    igual('visa: la licencia sigue contando igual con lo apuntado detrás',
-          (M.escalera({id: 'lc-z', tipo: 'licencia_municipal', estado: 'en_revision',
-                       datos: {pasos_ciip: {importe_tasa: hace(2)}}}, 'licencia_municipal').ahora || {}).clave,
-          'importe_timbre');
+    /* Y las escaleras de antes no se movieron con el cambio del arrastre:
+       con algo apuntado detrás, los pasos de estado siguen hechos aunque
+       la solicitud vuelva a revisión. Se medía con la licencia hasta el
+       1-10-2026, cuando dejó la escalera por etapas (Franklin Reyes,
+       Taquilla única opción 2); ahora con el sellado de libros, que tiene
+       tres pasos de estado delante de su PUB. */
+    igual('visa: el sellado de libros sigue contando igual con lo apuntado detrás',
+          (M.escalera({id: 'sl-z', tipo: 'libros_contables', estado: 'en_revision',
+                       datos: {pasos_ciip: {importe_pub: hace(2)}}}, 'libros_contables').ahora || {}).clave,
+          'pago_pub');
     sigue();
   }
 
@@ -12464,9 +12515,13 @@
        lea también el proyecto -de ahí saldrían la denominación y el objeto
        social- es una decisión pendiente. Si se toma, basta con añadir
        'proyecto_acta' a esas casillas en LEE_DE y quitarla de aquí. */
-    igual('lector: el cuadro sale en todas las fichas menos la firma y la opinión de la ZODI',
+    /* Y desde el 1-10-2026, la licencia, la conformidad de uso y el
+       Registro Único Minero: con la Taquilla única opción 2 (Franklin
+       Reyes) no piden ningún papel, así que no hay documento que lea el
+       lector. No es un olvido: es que no hay nada que soltar. */
+    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI y las tres sin recaudos',
           window.CIIP_SIN_LECTOR ? window.CIIP_SIN_LECTOR().join(', ') : '(no está la función)',
-          'opinion_zodi, firma_electronica');
+          'licencia_municipal, conformidad_uso, opinion_zodi, registro_minero, firma_electronica');
   }
 
   /* La situacion que se quiere medir: alguien que TODAVIA no tiene empresa
@@ -12731,15 +12786,27 @@
      Y se mide en el expediente VACIO, donde nada esta empezado. En
      'lleno' hay solicitudes en marcha y la marca no debe salir en ellas,
      que es la tercera comprobacion. */
+  /* Y desde el 1-10-2026 se mide en el pago del aporte LOCTI (c40), que
+     solo pide el RIF de la empresa: el Registro Único Minero se quedó sin
+     recaudos con la Taquilla única opción 2 (Franklin Reyes), y sin
+     recaudos no hay «ya los tienes» que decir -lo dice tieneLosPapeles()-.
+     Es el único de la bóveda de pruebas que los tiene todos sin estar en
+     espera de otro; su tarjeta va escondida como segundo tramo, pero la
+     marca se pinta igual y es la misma mecánica entera. Y se mide la otra
+     cara del cambio: el RUM, sin papeles, no la lleva. */
   function listoMira(){
     if (CASO !== 'vacio') return;
-    var c36 = document.querySelector('.tcard[data-tr="c36"]');
-    ok('listo: hay tarjeta del registro minero que mirar', !!c36, c36 ? '' : '(no esta)');
-    if (!c36) return;
-    igual('listo: y es una que no has empezado', c36.getAttribute('data-st'), 'pendiente');
+    var rum = document.querySelector('.tcard[data-tr="c36"]');
+    ok('listo: el registro minero, sin recaudos, no dice que ya los tienes',
+       !!rum && !rum.querySelector('.t-listo'),
+       rum ? (rum.querySelector('.t-listo') ? 'lo dice' : 'no lo dice') : '(sin tarjeta)', 'no lo dice');
+    var c40 = document.querySelector('.tcard[data-tr="c40"]');
+    ok('listo: hay tarjeta del pago del aporte LOCTI que mirar', !!c40, c40 ? '' : '(no esta)');
+    if (!c40) return;
+    igual('listo: y es una que no has empezado', c40.getAttribute('data-st'), 'pendiente');
 
-    var marca = c36.querySelector('.t-listo');
-    ok('listo: el registro minero dice que ya tienes sus papeles', !!marca,
+    var marca = c40.querySelector('.t-listo');
+    ok('listo: el pago del aporte LOCTI dice que ya tienes sus papeles', !!marca,
        marca ? marca.textContent.trim() : '(sin marca)', 'la marca');
     if (marca){
       ok('listo: y lo dice con palabras, no solo con un color',
@@ -12749,10 +12816,10 @@
          (marca.getAttribute('title') || '').length > 20,
          marca.getAttribute('title') || '(sin titulo)', 'una explicacion');
       /* Delante de «Ver detalles», que es quien se va a la derecha. */
-      var go = c36.querySelector('.t-foot .go');
+      var go = c40.querySelector('.t-foot .go');
       ok('listo: y va antes de «Ver detalles», no despues',
          !!go && (marca.compareDocumentPosition(go) & 4) !== 0,
-         c36.querySelector('.t-foot').textContent.trim().slice(0, 40), 'antes');
+         c40.querySelector('.t-foot').textContent.trim().slice(0, 40), 'antes');
     }
 
     /* LA OTRA MITAD. El RIF de la empresa -c6- pide el acta, que si la
@@ -12783,13 +12850,13 @@
       try { eraGuardado = window.localStorage.getItem('ciip_lang'); } catch(e){}
       var otro = (eraLang === 'es') ? 'en' : 'es';
       document.querySelector('#langMenu button[data-lang="' + otro + '"]').click();
-      var ahora = document.querySelector('.tcard[data-tr="c36"] .t-listo');
+      var ahora = document.querySelector('.tcard[data-tr="c40"] .t-listo');
       ok('listo: y la marca cambia de idioma con el panel',
          !!ahora && ahora.textContent.trim() !== eraTexto,
          (ahora ? ahora.textContent.trim() : '(desaparecio)') + ' / antes: ' + eraTexto,
          'otro texto');
       document.querySelector('#langMenu button[data-lang="' + eraLang + '"]').click();
-      var vuelta = document.querySelector('.tcard[data-tr="c36"] .t-listo');
+      var vuelta = document.querySelector('.tcard[data-tr="c40"] .t-listo');
       igual('listo: y vuelve al de antes',
             vuelta ? vuelta.textContent.trim() : '(desaparecio)', eraTexto);
       try {

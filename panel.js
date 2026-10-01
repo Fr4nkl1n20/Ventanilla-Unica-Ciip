@@ -3194,14 +3194,16 @@ applyLang(idiomaParaMi());
        Lo de bomberos se queda opcional aunque ahora sea el c29: casi todas
        las alcaldías lo exigen, pero el plazo del c29 es más largo que el
        de la licencia y quien va en paralelo no podría ni enviar. */
-    licencia_municipal: [
-      {tipo:'titulo_inmueble',   clave:'d_inmueble'},
-      {tipo:'acta_constitutiva', clave:'d_acta'},
-      {tipo:'rif_empresa',       clave:'d_rifempresa'},
-      {tipo:'cedula',            clave:'d_identidad'},
-      {tipo:'conformidad_uso',   clave:'d_conformidad'},
-      {tipo:'bomberos',          clave:'d_bomberos', opcional:true}
-    ],
+    /* SIN RECAUDOS desde el 1-10-2026 (Franklin Reyes, 1-10-2026, Taquilla
+       única opción 2: «el paso de recaudos se elimina»). La licencia la
+       pide el propio inversionista en el portal de su alcaldía, que es
+       quien le pide allí los papeles; aquí solo se deja dicho para qué
+       empresa y en qué municipio, y el CIIP acompaña. La lista vacía es lo
+       que hace que el formulario salga con dos hojas -Tus datos y Repasar-
+       y no con una de recaudos vacía (pintaFormulario, hayPapeles).
+       Lo que pedía hasta hoy era: título del inmueble, acta, RIF de la
+       empresa, cédula, conformidad de uso y, opcional, bomberos. */
+    licencia_municipal: [],
 
     /* La hoja CIIP_Tramites_por_Fase, en «Permisos sectoriales», da estos
        recaudos: inscripción aduanera; certificados sanitarios o
@@ -3370,16 +3372,14 @@ applyLang(idiomaParaMi());
        sube dos veces. Los otros tres son tipos nuevos (supabase-conformidad-
        uso.sql), y por eso llevan siExiste: hasta que la base los conozca no
        se piden. */
-    conformidad_uso: [
-      {tipo:'titulo_inmueble',   clave:'d_inmueble'},
-      {tipo:'acta_constitutiva', clave:'d_acta'},
-      {tipo:'rif_empresa',       clave:'d_rifempresa'},
-      {tipo:'cedula',            clave:'d_identidad'},
-      {tipo:'cedula_catastral',  clave:'d_catastral',    siExiste:true},
-      {tipo:'permiso_construccion', clave:'d_permconst', siExiste:true},
-      {tipo:'plano_local',       clave:'d_planointerno'},
-      {tipo:'fotos_local',       clave:'d_fotoslocal',   siExiste:true}
-    ],
+    /* Y SIN RECAUDOS desde el 1-10-2026 (Franklin Reyes, 1-10-2026,
+       Taquilla única opción 2): «el mismo proceso que la licencia». La
+       conformidad la solicita el inversionista en el portal de su alcaldía
+       -el SIGAT o la oficina virtual-, y es ese portal el que le pide los
+       papeles de arriba. Los tipos que nacieron para ella (cédula
+       catastral, permiso de construcción, fotos del local) siguen en la
+       base y con su nombre en la bóveda: ver CLAVE_DE_TIPO. */
+    conformidad_uso: [],
     /* Bomberos sí pide la conformidad de uso, y obligatoria: la inspección
        se hace sobre un local del que ya se sabe qué actividad va a
        albergar. El contrato de mantenimiento de extintores va opcional
@@ -3603,12 +3603,11 @@ applyLang(idiomaParaMi());
        A la empresa que TODAVÍA NO está constituida el SIGDME le pide otra
        cosa -el proyecto del acta y una carta explicativa-, y ese caso no
        está aquí porque no es de la fase 3. POR CONFIRMAR con el CIIP. */
-    registro_minero: [
-      {tipo:'cedula',               clave:'d_identidad'},
-      {tipo:'rif_empresa',          clave:'d_rifempresa'},
-      {tipo:'acta_constitutiva',    clave:'d_acta'},
-      {tipo:'acta_asamblea',        clave:'d_asamblea',    opcional:true}
-    ],
+    /* SIN RECAUDOS desde el 1-10-2026 (Franklin Reyes, 1-10-2026, Taquilla
+       única opción 2): el registro lo hace el inversionista en el SIGDME,
+       que es quien le pide allí la cédula, el RIF y el acta. Aquí solo se
+       dice para qué empresa, y el paso 1 de la escalera le lleva al portal. */
+    registro_minero: [],
     /* La inscripción en el SIDCAI (c39). Lo que el FONACIT pide cargar en
        PDF: el acta y la última asamblea, el RIF y las declaraciones del
        ISLR. Los estados financieros y la licencia de actividades el
@@ -4025,6 +4024,30 @@ applyLang(idiomaParaMi());
     'Monagas', 'Nueva Esparta', 'Portuguesa', 'Sucre', 'Táchira',
     'Trujillo', 'Yaracuy', 'Zulia'
   ];
+
+  /* ── EL PORTAL DE CADA ALCALDÍA ──
+     Franklin Reyes, 1-10-2026, Taquilla única opción 2: la licencia de
+     actividades económicas (c10) y la conformidad de uso (c28) las pide el
+     propio inversionista en el portal de la alcaldía donde está el local,
+     y el panel le lleva a ese portal desde el paso 1 (ENLACE_DEL_PASO, con
+     la url según el municipio que contestó en el formulario).
+
+     Son los CUATRO municipios en los que opera el CIIP, y el desplegable
+     del formulario sale de aquí mismo: un municipio nuevo es un renglón, y
+     no puede haber uno en la lista que no tenga adónde llevar. Literales,
+     como ESTADOS_VE: son nombres propios y se guardan tal cual.
+
+     OJO, BARUTA: el documento trae para Baruta EXACTAMENTE el mismo enlace
+     que para Chacao, la oficina virtual de Chacao. Parece un error de
+     copia; se deja tal cual hasta que el CIIP dé el bueno, y cambiarlo es
+     tocar solo este renglón. */
+  var PORTAL_DE_LA_ALCALDIA = {
+    'Chacao':     'https://oficinavirtual.chacao.gob.ve/appweb/gestion_usuario/registro',
+    'Baruta':     'https://oficinavirtual.chacao.gob.ve/appweb/gestion_usuario/registro',
+    'Libertador': 'https://contribuyentes.sigat.net/registro?alcaldia=1',
+    'Sucre':      'https://contribuyentes.sigat.net/registro?alcaldia=4'
+  };
+  var MUNICIPIOS_DEL_LOCAL = Object.keys(PORTAL_DE_LA_ALCALDIA);
 
   var CAMPOS = {
     /* ── el poder de representacion ──
@@ -4493,14 +4516,19 @@ applyLang(idiomaParaMi());
        («Quitar el campo de Metros cuadrados»): la tasa ya no se calcula
        aquí, llega como importe del día. Las solicitudes viejas que los
        traigan los conservan en tramites.datos. */
+    /* TRES CAMPOS desde el 1-10-2026 (Franklin Reyes, 1-10-2026, Taquilla
+       única opción 2, «primera fase»): razón social, RIF y el municipio del
+       local. Los nombres son los de siempre para que se hereden de los
+       otros trámites; el municipio, aquí y en la conformidad de uso, ya no
+       es texto libre: es uno de los cuatro de PORTAL_DE_LA_ALCALDIA, porque
+       de él sale el enlace del paso 1 y un «chacao» escrito a mano no
+       llevaría a ninguna parte. Lo demás que preguntaba -tenencia,
+       actividad, inicio, dirección- lo pregunta el portal de la alcaldía,
+       y las solicitudes viejas lo conservan en tramites.datos. */
     licencia_municipal: [
       {n:'razon_social',        clave:'f_razon',       ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
-      {n:'municipio',           clave:'f_municipio'},
-      {n:'tenencia',            clave:'f_tenencia',    opcionesClave:'o_tenencia'},
-      {n:'actividad_economica', clave:'f_actividad'},
-      {n:'inicio_actividades',  clave:'f_iniciolab',   tipo:'date'},
-      {n:'direccion_local',     clave:'f_dirlocal',    ancho:true}
+      {n:'municipio',           clave:'f_municipio',   opciones:MUNICIPIOS_DEL_LOCAL}
     ],
 
     /* El rubro y la partida arancelaria van delante porque de ellos depende
@@ -4594,16 +4622,15 @@ applyLang(idiomaParaMi());
       {n:'inicio_actividades',  clave:'f_iniciolab',   tipo:'date'},
       {n:'direccion_fiscal',    clave:'f_direccion',   ancho:true}
     ],
-    /* Los metros no son curiosidad: la zonificación se decide con el uso y
-       el tamaño juntos, y la tasa municipal se calcula con la superficie. */
+    /* Hasta el 1-10-2026 preguntaba también los metros -la zonificación se
+       decide con el uso y el tamaño juntos-, la tenencia y la dirección. */
+    /* Los mismos tres que la licencia desde el 1-10-2026 (Franklin Reyes,
+       1-10-2026, Taquilla única opción 2): «el mismo proceso que la
+       licencia». Los metros, la tenencia y la dirección los pide el portal. */
     conformidad_uso: [
       {n:'razon_social',        clave:'f_razon',       ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
-      {n:'municipio',           clave:'f_municipio'},
-      {n:'tenencia',            clave:'f_tenencia',    opcionesClave:'o_tenencia'},
-      {n:'actividad_economica', clave:'f_actividad'},
-      {n:'metros',              clave:'f_metros',      tipo:'number'},
-      {n:'direccion_local',     clave:'f_dirlocal',    ancho:true}
+      {n:'municipio',           clave:'f_municipio',   opciones:MUNICIPIOS_DEL_LOCAL}
     ],
     /* El aforo es lo que manda en esta inspección: de él salen cuántas
        salidas de emergencia y cuántos extintores hacen falta. */
@@ -4676,14 +4703,13 @@ applyLang(idiomaParaMi());
        delante lo que decide el trámite: qué actividad minera. Con su «No lo
        sé», como la ZODI: distinguir primaria de conexa no es algo que un
        inversionista tenga que saber de antemano. */
+    /* Y desde el 1-10-2026, SOLO razón social y RIF (Franklin Reyes,
+       1-10-2026, Taquilla única opción 2): el alta la hace el inversionista
+       en el SIGDME, que es quien pregunta allí la actividad, el mineral y
+       el representante. Las solicitudes viejas los conservan en datos. */
     registro_minero: [
-      {n:'actividad_minera',    clave:'f_rumtipo',       opcionesClave:'o_rumtipo'},
       {n:'razon_social',        clave:'f_razon',         ancho:true},
-      {n:'rif_empresa',         clave:'f_rifempresa'},
-      {n:'representante_legal', clave:'f_replegal'},
-      {n:'correo_empresa',      clave:'f_correoempresa'},
-      {n:'telefono',            clave:'f_telefono',      tipo:'tel'},
-      {n:'mineral_estado',      clave:'f_rummineral',    ancho:true}
+      {n:'rif_empresa',         clave:'f_rifempresa'}
     ],
     /* La inscripción en el SIDCAI (c39). Lo que piden las pantallas de
        «Nuevos Usuarios»: la empresa, el representante legal y el usuario
@@ -6685,6 +6711,16 @@ applyLang(idiomaParaMi());
        sola: el «ya lo tienes» de cada recaudo llega por su cuenta y tarde,
        una consulta por fila, asi que la cuenta se rehace cada vez que
        contesta una -y cada vez que se elige un archivo a mano-. */
+    /* SIN RECAUDOS NO HAY HOJA, PERO SÍ COLUMNA (1-10-2026). Sin papeles
+       no se monta la hoja de recaudos ni, con ella, 'lado'; y todo lo de
+       aquí abajo la daba por hecha: lado.appendChild reventaba y el
+       formulario se quedaba a medio montar, sin barra, sin «Siguiente» y
+       sin «Enviar». No había pasado nunca porque ningún trámite llegaba sin
+       papeles hasta la Taquilla única opción 2 (Franklin Reyes, 1-10-2026:
+       licencia, conformidad de uso y Registro Único Minero). Una columna
+       suelta, sin colgar de ninguna hoja, deja que cuente cero papeles y
+       siga como siempre. */
+    if (!lado) lado = el('aside', 'sol-lado');
     notaPap = el('div', 'pa-nota');
     lado.appendChild(notaPap);
     function cuentaPapeles(){
@@ -8597,28 +8633,18 @@ applyLang(idiomaParaMi());
        justo la mentira que esta escalera no cuenta. Lo cierra la
        resolución, y la licencia llega como el documento emitido de
        cualquier trámite. */
-    licencia_municipal: {
-      ref: 'c10',
-      estados: ['lc_ev_enviado', 'lc_ev_en_revision', 'lc_ev_ante_el_ente', 'lc_ev_resuelto'],
-      /* Los rótulos de la casilla del gestor, que en la marca son otros. */
-      textos: {titulo: 'lc_g_titulo', importe: 'lc_g_importe', retiro: 'lc_g_retiro'},
-      /* El gestor ve las dos casillas de importe a la vez: los dos vencen
-         a medianoche y lo normal es subirlos el mismo día. */
-      importesJuntos: true,
-      etapas: [
-        {clave: 'licencia', pasos: [
-          {clave: 'revision',        tipo: 'estado',  rotulo: 'lc_p_revision',   hechoEn: ['en_revision', 'ante_el_ente']},
-          {clave: 'firma',           tipo: 'estado',  rotulo: 'lc_p_firma',      hechoEn: ['ante_el_ente'],
-           espera: 'lc_n_firma'},
-          {clave: 'importe_tasa',    tipo: 'importe', rotulo: 'lc_p_imp_tasa',   importe: 'tasa'},
-          {clave: 'importe_timbre',  tipo: 'importe', rotulo: 'lc_p_imp_timbre', importe: 'timbre'},
-          {clave: 'pagos',           tipo: 'pagos',   rotulo: 'lc_p_pagos',      importes: ['tasa', 'timbre'],
-           espera: 'lc_n_pagos'},
-          {clave: 'licencia',        tipo: 'retiro',  rotulo: 'lc_p_licencia',
-           espera: 'lc_n_licencia_espera', listo: 'lc_n_licencia_lista'}
-        ]}
-      ]
-    },
+    /* SE FUE EL 1-10-2026. Franklin Reyes, 1-10-2026, Taquilla única
+       opción 2, rehízo la licencia entera: la pide el propio inversionista
+       en el portal de su alcaldía, sin recaudos y sin importes ni
+       comprobantes por el CIIP, en tres pasos -«Solicita la licencia de
+       actividades económicas a través del portal de la alcaldía»,
+       «Emisión de la licencia en proceso», «Licencia de Actividades
+       Económicas emitida»-. Ya no hay nada que contar con esta escalera:
+       va por la de la lista de pasos (escaleraDe(), con PASOS_QUE_MARCAS_TU,
+       ENLACE_DEL_PASO y PASOS_SEGUN_ESTADO), y la licencia sigue llegando
+       al resolver como el documento emitido de cualquier trámite. El tipo
+       de paso 'pagos' y importesJuntos, que nacieron para ella, se quedan
+       en la mecánica para el próximo trámite con dos importes juntos. */
 
     /* ── EL PERMISO DE BOMBEROS (c29) ──
        Pedido del CIIP (29-9-2026): «En proceso vamos a añadir estos dos
@@ -8759,12 +8785,10 @@ applyLang(idiomaParaMi());
               imp_g_falta: 'sl_ig_falta', imp_g_pagado: 'imp_g_pagado'}}
   ];
 
-  /* Los dos importes de la licencia, con la solicitud ante la alcaldía.
-     La fila de la base es una, la de siempre (supabase-licencia.sql). */
-  IMPORTE_DEL_DIA.licencia_municipal = [
-    {paso: 'tasa',   estados: ['ante_el_ente'], rotulo: 'lc_p_imp_tasa'},
-    {paso: 'timbre', estados: ['ante_el_ente'], rotulo: 'lc_p_imp_timbre'}
-  ];
+  /* Aquí iban los dos importes de la licencia, la tasa y el timbre. Se
+     fueron con su escalera el 1-10-2026 (Franklin Reyes, Taquilla única
+     opción 2): la licencia la paga el inversionista en el portal de su
+     alcaldía, y el CIIP ya no le sube importes. */
 
   /* Los cuatro importes de la marca. Todos con la solicitud ante el ente:
      cuál toca lo dice la escalera, no el estado. La fila de la base es una,
@@ -9391,10 +9415,21 @@ applyLang(idiomaParaMi());
       var hechos = (tr.estado === 'resuelto')
         ? n
         : Math.min(HASTA[tr.estado] === undefined ? 0 : HASTA[tr.estado], n - 1);
+      /* Y AL REVÉS, MARCADO ES HECHO (1-10-2026, Franklin Reyes, Taquilla
+         única opción 2). La licencia, la conformidad y el RUM empiezan por
+         su paso marcado, con la solicitud recién recibida: ningún estado lo
+         cierra, así que sin esto la marca no movía nada y «en proceso» no
+         llegaba nunca. Hecho el paso, lo de detrás queda en curso, topado
+         en el penúltimo como todo lo demás. Devuelta no: «volvió al
+         principio» manda sobre la marca, como en la escalera de cuatro. */
       if (MIOS && tr.estado !== 'resuelto'){
         var datosTr = tr.datos || {};
         for (var np = 1; np <= n; np++){
-          if (MIOS[np] && !datosTr[MIOS[np]]){ hechos = Math.min(hechos, np - 1); break; }
+          var llave = claveDelPasoMio(MIOS[np]);
+          if (!llave) continue;
+          if (!datosTr[llave]){ hechos = Math.min(hechos, np - 1); break; }
+          if (tr.estado !== 'devuelto' && tr.estado !== 'borrador')
+            hechos = Math.max(hechos, Math.min(np, n - 1));
         }
       }
       libres = lista.map(function(txt, i){
@@ -9704,6 +9739,62 @@ applyLang(idiomaParaMi());
      montar su ficha entera. */
   window.CIIP_ESCALERA = escaleraDe;
 
+  /* ── LO DE DENTRO DE UN PASO QUE OCURRE FUERA DEL PANEL ──
+     El enlace al portal y el botón de «ya lo hice», sacados de pintaEstado
+     el 1-10-2026 (Franklin Reyes, Taquilla única opción 2: licencia,
+     conformidad de uso y Registro Único Minero) para que las pruebas los
+     midan sin montar una ficha: qué url sale según el municipio, qué dice
+     el botón y con qué llave llama a la base. pintaEstado los cuelga solo
+     con el paso en curso o hecho, como siempre. */
+  function enlaceDelPasoPintado(ref, n, tr){
+    var u = T();
+    var hacia = enlaceDelPaso(ref, n, tr);
+    if (!hacia) return null;
+    var enl = document.createElement('a');
+    enl.className = 'tr-hacer';
+    enl.href = hacia.url;
+    enl.target = '_blank';
+    /* noopener: la pestaña que se abre no puede tocar esta. */
+    enl.rel = 'noopener noreferrer';
+    enl.textContent = u[hacia.clave] || hacia.url;
+    return enl;
+  }
+  /* El botón, o null si el paso no se marca o ya está marcado. txt es
+     donde se dice el error; alMarcar, qué hacer con tr.datos ya al día. */
+  function botonDelPasoMio(tr, ref, n, txt, alMarcar){
+    var u = T();
+    var entrada = ((PASOS_QUE_MARCAS_TU || {})[ref] || {})[n];
+    var mio = claveDelPasoMio(entrada);
+    if (!mio || ((tr.datos || {})[mio])) return null;
+    var bt = el('button', 'tr-hacer', textoDelPasoMio(entrada, u));
+    bt.type = 'button';
+    bt.setAttribute('data-clave', mio);
+    bt.addEventListener('click', function(){
+      bt.disabled = true;
+      sb.rpc('confirma_paso', {p_tramite: tr.id, p_clave: mio})
+        .then(function(r){
+          if (r.error || !r.data) throw (r.error || new Error('sin fila'));
+          /* Se repinta entero con lo que la base devolvió, no con lo que
+             aquí se supone: así el paso, la fecha y la fila de Mis
+             trámites salen de la misma verdad. */
+          tr.datos = (r.data.datos || r.data[0] && r.data[0].datos) || tr.datos;
+          if (alMarcar) alMarcar(tr);
+        })
+        .catch(function(e){
+          bt.disabled = false;
+          /* Y SE DICE. Un botón que se queda igual después de pulsarlo
+             deja al inversionista sin saber si el CIIP se enteró o no. */
+          if (txt && (!bt.nextSibling || bt.nextSibling.className !== 'tr-nota mal'))
+            txt.insertBefore(el('div', 'tr-nota mal', u.co_error || ''), bt.nextSibling);
+          console.warn('[CIIP] confirma_paso:', e && e.message);
+        });
+    });
+    return bt;
+  }
+  /* Para las pruebas. */
+  window.CIIP_PASO_MIO = {enlace: enlaceDelPaso, enlacePintado: enlaceDelPasoPintado,
+                          boton: botonDelPasoMio, municipios: MUNICIPIOS_DEL_LOCAL};
+
   function pintaEstado(tipo, tr){
     var u = T();
     vaciaAcompana();
@@ -9934,17 +10025,10 @@ applyLang(idiomaParaMi());
              sabe que el 2 no lo mueve ningún estado. */
           if (hecho || ahora){
             var nPaso = i + 1;
-            var haciaP = ((ENLACE_DEL_PASO || {})[refTr] || {})[nPaso];
-            if (haciaP){
-              var enl = document.createElement('a');
-              enl.className = 'tr-hacer';
-              enl.href = haciaP.url;
-              enl.target = '_blank';
-              /* noopener: la pestaña que se abre no puede tocar esta. */
-              enl.rel = 'noopener noreferrer';
-              enl.textContent = u[haciaP.clave] || haciaP.url;
-              txt.appendChild(enl);
-            }
+            /* La url puede depender de lo contestado -el municipio del
+               local, en la licencia y la conformidad-: enlaceDelPaso(). */
+            var enl = enlaceDelPasoPintado(refTr, nPaso, tr);
+            if (enl) txt.appendChild(enl);
             /* ── «YA ME REGISTRÉ» ──
                El botón que mueve el paso que ningún estado puede mover.
                Solo sale mientras el paso está EN CURSO: una vez marcado,
@@ -9957,34 +10041,14 @@ applyLang(idiomaParaMi());
                todo bien. Por eso va por confirma_paso(), que levanta una
                excepción si no tocó ninguna fila, y por eso el paso no se
                pinta hecho hasta que la respuesta ha vuelto. */
-            var mio = ((PASOS_QUE_MARCAS_TU || {})[refTr] || {})[nPaso];
-            if (mio && ahora && !((tr.datos || {})[mio])){
-              var bt = el('button', 'tr-hacer', u.p_yamehice || '');
-              bt.type = 'button';
-              bt.addEventListener('click', function(){
-                bt.disabled = true;
-                sb.rpc('confirma_paso', {p_tramite: tr.id, p_clave: mio})
-                  .then(function(r){
-                    if (r.error || !r.data) throw (r.error || new Error('sin fila'));
-                    /* Se repinta entero con lo que la base devolvió, no con
-                       lo que aquí se supone: así el paso, la fecha y la
-                       fila de Mis trámites salen de la misma verdad. */
-                    tr.datos = (r.data.datos || r.data[0] && r.data[0].datos) || tr.datos;
-                    caja.textContent = '';
-                    pintaEstado(tipo, tr);
-                  })
-                  .catch(function(e){
-                    bt.disabled = false;
-                    /* Y SE DICE. Un botón que se queda igual después de
-                       pulsarlo deja al inversionista sin saber si el CIIP
-                       se enteró o no. */
-                    if (!bt.nextSibling || bt.nextSibling.className !== 'tr-nota mal')
-                      txt.insertBefore(el('div', 'tr-nota mal', u.co_error || ''),
-                                       bt.nextSibling);
-                    console.warn('[CIIP] confirma_paso:', e && e.message);
-                  });
+            /* El botón lo monta botonDelPasoMio(), y aquí solo se dice qué
+               hacer cuando la base contesta: repintar la ficha entera. */
+            if (ahora){
+              var bt = botonDelPasoMio(tr, refTr, nPaso, txt, function(){
+                caja.textContent = '';
+                pintaEstado(tipo, tr);
               });
-              txt.appendChild(bt);
+              if (bt) txt.appendChild(bt);
             }
 
             var bajaP = ((DESCARGA_DEL_PASO || {})[refTr] || {})[nPaso];
@@ -23025,7 +23089,31 @@ applyLang(idiomaParaMi());
      portal de Cancillería («Ya me registré») hasta el 30-9-2026, cuando el
      CIIP quitó ese paso: ahora van por ESCALERA_POR_ETAPAS. La mecánica se
      queda para el próximo paso que ocurra fuera del panel. */
-  var PASOS_QUE_MARCAS_TU = {};
+  /* Y el próximo llegó al día siguiente (Franklin Reyes, 1-10-2026,
+     Taquilla única opción 2): la licencia de actividades económicas, la
+     conformidad de uso y el Registro Único Minero los solicita el propio
+     inversionista en el portal de la alcaldía o del SIGDME, y su paso 1
+     -«Solicita… a través del portal»- lo marca él con su botón.
+
+     Cada entrada es la llave de tramites.datos, o un objeto {clave, texto}
+     cuando el botón no debe decir «Ya me registré» (u.p_yamehice), que es
+     lo de un registro y no lo de una solicitud: aquí dice «Ya la solicité»
+     o «Ya lo solicité». La llave tiene que estar entre las que acepta
+     confirma_paso() en la base, que no deja escribir cualquier cosa en
+     datos (supabase-confirma-paso.sql). Ver claveDelPasoMio(). */
+  var PASOS_QUE_MARCAS_TU = {
+    c10: {1: {clave: 'licencia_solicitada',    texto: 'p_yalasolicite'}},
+    c28: {1: {clave: 'conformidad_solicitada', texto: 'p_yalasolicite'}},
+    c36: {1: {clave: 'minero_solicitado',      texto: 'p_yalosolicite'}}
+  };
+  /* La llave de un paso que marcas tú, y el texto de su botón: la entrada
+     puede ser la llave a secas -como las de las visas- o {clave, texto}. */
+  function claveDelPasoMio(v){
+    return (typeof v === 'string') ? v : ((v && v.clave) || null);
+  }
+  function textoDelPasoMio(v, u){
+    return ((v && typeof v === 'object' && v.texto && u[v.texto]) || u.p_yamehice || '');
+  }
 
   /* ── CUÁNTOS PASOS VAN HECHOS EN CADA ESTADO, CUANDO NO EMPIEZAN POR
      «RECIBIDA» ──
@@ -23039,7 +23127,19 @@ applyLang(idiomaParaMi());
      conformidad de uso». Revisión mientras está en el CIIP, inscripción
      mientras está ante la alcaldía, y la certificación al resolverse. */
   var PASOS_SEGUN_ESTADO = {
+    /* CAMBIÓ EL 1-10-2026 (Franklin Reyes, Taquilla única opción 2). La
+       licencia (c10), la conformidad de uso (c28) y el Registro Único
+       Minero (c36) empiezan por un paso que hace el inversionista fuera del
+       panel -solicitarla en el portal-, así que enviada no hay NADA hecho:
+       el paso 1 es el que está en curso. Lo cierra su marca
+       (PASOS_QUE_MARCAS_TU), no un estado: con ella, «en proceso» pasa a
+       estar en curso aunque la solicitud siga recibida, y sin ella se
+       queda en el 1 aunque el gestor la mueva. La emitida, al resolver.
+       La c28 contaba antes «Revisión de recaudos → Inscripción ante el
+       ente → Emitida certificación», del 28-9-2026, y ya no tiene recaudos. */
+    c10: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c28: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c36: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* La verificación (c33), «Revisión de tus recaudos → Verificado»: con la
        cuenta de siempre la revisión salía hecha nada más enviarla (30-9-2026). */
     c33: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
@@ -23094,7 +23194,35 @@ applyLang(idiomaParaMi());
      enlace de Cancillería va con el paso que se marca solo al volver: son
      las dos mitades del mismo gesto -ve, y avísanos-. */
   /* Vacía desde el 30-9-2026: era el portal de Cancillería de las visas. */
-  var ENLACE_DEL_PASO = {};
+  /* Y desde el 1-10-2026 (Franklin Reyes, Taquilla única opción 2), los
+     portales de la licencia, la conformidad de uso y el Registro Único
+     Minero, cada uno en su paso 1, el que se marca con «Ya la solicité».
+
+     Una entrada lleva su url fija -{url, clave}- o, cuando el portal
+     depende de lo que se contestó en el formulario, el campo y una url por
+     respuesta -{campo, urls, clave}-: la licencia y la conformidad llevan
+     al portal de la alcaldía del municipio del local (PORTAL_DE_LA_ALCALDIA).
+     Sin respuesta, o con una que no está en la tabla -una solicitud de
+     antes, con el municipio escrito a mano-, no hay enlace: mejor ninguno
+     que el de otra alcaldía. 'clave' es el texto del enlace. Ver
+     enlaceDelPaso(). */
+  var ENLACE_DEL_PASO = {
+    c10: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
+    c28: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
+    c36: {1: {url: 'https://sigdme2-0.desarrollominero.gob.ve/', clave: 'p_irsigdme'}}
+  };
+  /* Adónde lleva el paso n del trámite ref, para ESTA solicitud: {url,
+     clave} o null. */
+  function enlaceDelPaso(ref, n, tr){
+    var e = ((ENLACE_DEL_PASO || {})[ref] || {})[n];
+    if (!e) return null;
+    var url = e.url || null;
+    if (e.campo){
+      var dicho = ((tr && tr.datos) || {})[e.campo];
+      url = (dicho && e.urls && Object.prototype.hasOwnProperty.call(e.urls, dicho)) ? e.urls[dicho] : null;
+    }
+    return url ? {url: url, clave: e.clave} : null;
+  }
 
   /* Qué se baja en qué paso. El archivo vive AQUÍ, junto al panel, y no se
      enlaza al sitio del ministerio: el día que ellos muevan la página, la
@@ -23119,8 +23247,12 @@ applyLang(idiomaParaMi());
      supabase-planilla-firmada.sql, que es quien deja colgarla.
 
      Y las dos visas, en el tercero, «Carga la planilla firmada» (30-9-2026):
-     el CIIP manda la planilla en el segundo y vuelve firmada aquí. */
-  var PLANILLA_FIRMADA_DEL_PASO = {c3: {3: true}, c6: {3: true}, c10: {2: true},
+     el CIIP manda la planilla en el segundo y vuelve firmada aquí.
+
+     La licencia (c10) salió de aquí el 1-10-2026: con la Taquilla única
+     opción 2 (Franklin Reyes) ya no firma planilla ninguna, la pide el
+     inversionista en el portal de su alcaldía. */
+  var PLANILLA_FIRMADA_DEL_PASO = {c3: {3: true}, c6: {3: true},
                                    c1: {3: true}, c38: {3: true}};
 
   /* ── LA PLANILLA QUE MANDA EL CIIP, PARA FIRMARLA ──
@@ -24505,12 +24637,12 @@ applyLang(idiomaParaMi());
        «Comprobante de pago», y la base no la deja resolver sin él
        (supabase-traduccion.sql). */
     if (t.tipo === 'apostilla_documentos') return {tipo: 'pago_importe_dia', aviso: 'co_faltatraduccion'};
-    /* La licencia de actividades económicas (28-9-2026): DOS comprobantes,
-       el de la tasa administrativa y el del timbre fiscal, cada uno atado a
-       su importe por su nombre. La base tampoco la deja resolver sin los
-       dos (supabase-licencia.sql). */
-    if (t.tipo === 'licencia_municipal')
-      return {tipo: 'pago_importe_dia', pasos: ['tasa', 'timbre'], aviso: 'co_faltalicencia'};
+    /* La licencia de actividades económicas pedía aquí, del 28-9 al
+       1-10-2026, los dos comprobantes de tasa y timbre. Desde la Taquilla
+       única opción 2 (Franklin Reyes, 1-10-2026) la paga el inversionista
+       en el portal de su alcaldía y el CIIP no ve esos pagos: el gestor la
+       resuelve con la licencia emitida y nada más. El freno de la base
+       (supabase-licencia.sql) lo quita su propio SQL. */
     /* El permiso de bomberos (29-9-2026): «Permiso otorgado» va detrás del
        comprobante de pago de aranceles, y la base tampoco lo deja resolver
        sin él (supabase-bomberos.sql). */
@@ -24942,6 +25074,16 @@ applyLang(idiomaParaMi());
          del local», como lo pide el SIGAT- y en bomberos y sanidad: en la
          bóveda se llama con el nombre de todos, no con el de uno. */
       CLAVE_DE_TIPO.plano_local = 'd_plano';
+      /* Los tres que nacieron para la conformidad de uso (28-9-2026) ya no
+         los pide ningún trámite desde la Taquilla única opción 2 (Franklin
+         Reyes, 1-10-2026), pero quien los subió los tiene en la bóveda, y
+         ahí tienen que seguir llamándose por su nombre. */
+      CLAVE_DE_TIPO.cedula_catastral = 'd_catastral';
+      CLAVE_DE_TIPO.permiso_construccion = 'd_permconst';
+      CLAVE_DE_TIPO.fotos_local = 'd_fotoslocal';
+      /* Y el permiso de bomberos, que hasta el mismo día solo nombraba la
+         lista de la licencia y es lo que emite el c29. */
+      if (!CLAVE_DE_TIPO.bomberos) CLAVE_DE_TIPO.bomberos = 'd_bomberos';
       Object.keys(RECAUDOS).forEach(function(t){
         (RECAUDOS[t] || []).forEach(function(r){
           if (r.tipo && r.clave && !CLAVE_DE_TIPO[r.tipo]) CLAVE_DE_TIPO[r.tipo] = r.clave;

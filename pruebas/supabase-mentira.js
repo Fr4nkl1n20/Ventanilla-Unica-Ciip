@@ -2631,6 +2631,28 @@
           /* Los dos pasos del gestor en el registro de marca. Contesta lo que
              diga la prueba en window.__MARCA_RPC -la solicitud tal como la
              dejaría la base- y apunta lo que se pidió. */
+          /* «Ya la solicité»: el paso que marca el inversionista, como la de
+             verdad (supabase-confirma-paso.sql). Solo las llaves que ella
+             acepta -las de la Taquilla única opción 2 del 1-10-2026 y la de
+             Cancillería de antes-; otra cualquiera, su mismo error. Escribe
+             la marca en la solicitud si está en la tabla y devuelve la fila
+             entera con datos al día, que es lo que repinta la ficha. */
+          if (nombre === 'confirma_paso'){
+            window.CIIP_PRUEBA_CONFIRMA_PASO = (window.CIIP_PRUEBA_CONFIRMA_PASO || []).concat([args]);
+            var llaves = ['cancilleria_confirmada', 'licencia_solicitada', 'conformidad_solicitada', 'minero_solicitado'];
+            var rCP;
+            if (!args || llaves.indexOf(args.p_clave) < 0){
+              rCP = {data: null, error: {message: 'paso desconocido: ' + (args && args.p_clave), code: 'P0001'}};
+            } else {
+              var tCP = (TRAMITES[caso] || []).filter(function(t){ return t.id === args.p_tramite; })[0];
+              var datosCP = {};
+              Object.keys((tCP && tCP.datos) || {}).forEach(function(k){ datosCP[k] = tCP.datos[k]; });
+              datosCP[args.p_clave] = new Date().toISOString();
+              if (tCP) tCP.datos = datosCP;
+              rCP = {data: {id: args.p_tramite, estado: tCP ? tCP.estado : 'enviado', datos: datosCP}, error: null};
+            }
+            return {then:function(bien, mal){ return Promise.resolve(rCP).then(bien, mal); }};
+          }
           if ((nombre === 'marca_paso_ciip' || nombre === 'habilita_contestacion') && window.__MARCA_RPC){
             window.CIIP_PRUEBA_MARCA = (window.CIIP_PRUEBA_MARCA || []).concat([{nombre: nombre, args: args}]);
             var rM = {data: window.__MARCA_RPC(nombre, args), error:null};
