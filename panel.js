@@ -1252,7 +1252,8 @@ function applyLang(lang){
 
     var fase = null;
     if (tipo === 'fase') {
-      fase = document.querySelector('[data-fase="'+destino.n+'"]');
+      /* Una fase oculta -la 4 desde el 1-10-2026- tampoco se abre a mano. */
+      fase = document.querySelector('[data-fase="'+destino.n+'"]:not([hidden])');
       if (!fase) tipo = null;
     }
 

@@ -2549,7 +2549,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
    declaradas y cuatro cajas, la quinta columna se quedaba reservada y las
    cuatro salian mas estrechas de lo que les toca, apretando los nombres
    contra el borde. */
-.journey{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+.journey{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
 /* ---------- el globo del camino ---------- */
 /* La explicacion de las cuatro etapas va detras de la «i» del titulo, con
    la misma pieza que usan los recaudos. Lo que cambia respecto de aquellos

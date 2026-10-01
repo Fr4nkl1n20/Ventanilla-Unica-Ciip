@@ -744,7 +744,8 @@
        inversión extranjera tenía una etapa para él solo —y una etapa con una
        sola tarjeta dentro— y ahora comparte la 4 con el banco de activos y
        las solvencias. Ya no hay quinta. */
-    igual('camino: la fase 04 cuenta sus 3',           deEtapa(3, '.jcount'), '0 de 3 listos');
+    /* Y sin cuarta desde el 1-10-2026: el CIIP quitó la etapa 4. */
+    igual('camino: ya no hay fase 04', etapas().length, 3);
 
     (function(){
       var barra = etapas()[0].querySelector('.jbar > span');
@@ -1777,7 +1778,7 @@
       /* Pero el orden no puede perderse: lo llevan los puntos. */
       var puntos = [];
       etapas().forEach(function(e){ puntos.push(e.querySelector('.num').textContent.trim()); });
-      igual('camino: y el punto sigue numándolas', puntos.join(''), '1234');
+      igual('camino: y el punto sigue numándolas', puntos.join(''), '123');
 
       var nombres = [];
       etapas().forEach(function(e){ nombres.push(e.querySelector('.jname').textContent.trim()); });
@@ -1838,8 +1839,8 @@
           });
         }
         var d = desnivel();
-        ok('camino: las cuatro barras quedan a la misma altura',
-           d.lista.length >= 4 && d.dif <= 1,
+        ok('camino: las tres barras quedan a la misma altura',
+           d.lista.length >= 3 && d.dif <= 1,
            d.lista.join(' / ') + '  (' + d.dif + ' px de diferencia)',
            'todas iguales');
 
@@ -1858,16 +1859,16 @@
           void carril.offsetWidth;
           var e = desnivel();
           ok('camino: y también cuando el carril se estrecha',
-             e.lista.length >= 4 && e.dif <= 1,
+             e.lista.length >= 3 && e.dif <= 1,
              e.lista.join(' / ') + '  (' + e.dif + ' px de diferencia)',
              'todas iguales');
           carril.style.width = era;
         })();
       })();
 
-      igual('camino: las cuatro etapas se llaman como deben',
+      igual('camino: las tres etapas se llaman como deben (la 4 se quitó el 1-10-2026)',
             nombres.join(' → '),
-            'Acreditación de identidad y legitimación → Estructuración corporativa → Habilitación operativa y cumplimiento → Expansión y consolidación de inversión');
+            'Acreditación de identidad y legitimación → Estructuración corporativa → Habilitación operativa y cumplimiento');
       /* En el ÍNDICE de abajo hace falta algo que ponga las cuatro en orden,
          pero no la palabra: el mismo punto numerado que usa el camino. */
       /* Los números, centrados de verdad dentro de su punto. Centrar la caja
@@ -12342,9 +12343,9 @@
     var v = document.body.getAttribute('data-vista');
     ok('volver: y lleva a la portada, no al catalogo de su etapa',
        v === 'inicio' || !v, v || '(sin vista)', 'inicio');
-    /* Y las cuatro etapas estan ahi, que es lo que se venia a ver. */
-    igual('volver: con sus cuatro etapas',
-          document.querySelectorAll('.jp[data-ir]').length, 4);
+    /* Y las tres etapas estan ahi, que es lo que se venia a ver. */
+    igual('volver: con sus tres etapas',
+          document.querySelectorAll('.jp[data-ir]').length, 3);
   }
 
   /* ── Y TAMBIEN LLEGANDO POR LA ETAPA ──
