@@ -385,7 +385,7 @@
               planillaFirmadaSiembra, planillaFirmadaMira, planillaFirmadaTrasSubir,
               rifGestorSiembra, rifGestorMira,
               visaGestorMira,
-              importadorMira, bomberosMira, visaEscaleraMira,
+              importadorMira, bomberosMira, visaEscaleraMira, marcasSeQuedan,
               /* La ficha de la visa con su «Ya me registré» (1-10-2026). */
               visaFichaAbre, visaFichaMira, visaFichaTrasConfirmar,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
@@ -9572,11 +9572,11 @@
       return E.todos.map(function(p){ return p.nombre + ':' + (p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer')); }).join(' → ');
     };
     igual('rum: dos pasos, y sin marcar el 1 en curso', dibujoRum('enviado'),
-          'Solicite el Registro Único Minero a través del portal:ahora → Registro listo:porhacer');
+          'Solicita el Registro Único Minero a través del portal:ahora → Registro listo:porhacer');
     igual('rum: marcado, toca «Registro listo»', dibujoRum('enviado', {minero_solicitado: '2026-10-01T10:00:00-04:00'}),
-          'Solicite el Registro Único Minero a través del portal:hecho → Registro listo:ahora');
+          'Solicita el Registro Único Minero a través del portal:hecho → Registro listo:ahora');
     igual('rum: resuelto, todo hecho', dibujoRum('resuelto'),
-          'Solicite el Registro Único Minero a través del portal:hecho → Registro listo:hecho');
+          'Solicita el Registro Único Minero a través del portal:hecho → Registro listo:hecho');
 
     /* El enlace del paso 1: el portal de la alcaldía del municipio que se
        contestó, y ninguno si no hay respuesta que lleve a alguna parte. */
@@ -9995,6 +9995,24 @@
      escalera por etapas de cinco pasos con la planilla del CIIP y la
      firmada: esa escalera ya no existe. Aquí, solo cuentas y sin base: la
      escalera de lista (escaleraDe) con el tope del paso que marcas tú. */
+  /* Reenviar una devuelta no borra lo que marcó el inversionista (Taquilla
+     única opción 2, 1-10-2026): «Ya me registré», «Ya la solicité», «Ya me
+     inscribí» viven en datos, y el envío los pisaba con lo del formulario. */
+  function marcasSeQuedan(sigue){
+    if (CASO !== 'vacio') return sigue();
+    var C = window.CIIP_CONSERVA_MARCAS;
+    ok('marcas: el envío sabe qué marcas conservar', typeof C === 'function',
+       typeof C, 'una función');
+    if (typeof C !== 'function') return sigue();
+    var viejos = {cancilleria_confirmada: 'a', licencia_solicitada: 'b', ente_ivss: 'c',
+                  ente_ivss_oficina: 'd', razon_social: 'Vieja C.A.', pasos_ciip: {x: 1}};
+    igual('marcas: se quedan las del inversionista y nada más',
+          Object.keys(C(viejos)).sort().join(','),
+          'cancilleria_confirmada,ente_ivss,ente_ivss_oficina,licencia_solicitada');
+    igual('marcas: sin datos viejos, nada', Object.keys(C(null)).length, 0);
+    sigue();
+  }
+
   function visaEscaleraMira(sigue){
     if (PASE !== 'vacio') return sigue();
     var esc = window.CIIP_ESCALERA, F = window.CIIP_PLANILLA_FIRMADA;
@@ -10042,7 +10060,7 @@
        Taquilla única opción 2); ahora con el sellado de libros, que tiene
        tres pasos de estado delante de su PUB. */
     igual('visa: el sellado de libros sigue contando igual con lo apuntado detrás',
-          (M.escalera({id: 'sl-z', tipo: 'libros_contables', estado: 'en_revision',
+          ((window.CIIP_MARCA || {escalera: function(){ return {}; }}).escalera({id: 'sl-z', tipo: 'libros_contables', estado: 'en_revision',
                        datos: {pasos_ciip: {importe_pub: hace(2)}}}, 'libros_contables').ahora || {}).clave,
           'pago_pub');
     sigue();
@@ -13239,7 +13257,7 @@
           [u.pe_ivss_solicite, u.pe_ivss_confirme, u.pe_enproceso, u.pe_ivss_oficina, u.pe_certlisto].join(' → '));
     igual('entes: los textos son los del documento',
           [u.pe_ins_banavih, u.pe_ins_snc, u.pe_ivss_confirme].join(' | '),
-          'Inscríbase en BANAVIH (FAOV) | Inscríbase en el Registro Nacional de Contratistas | Confirme su inscripción en el IVSS');
+          'Inscríbete en BANAVIH (FAOV) | Inscríbete en el Registro Nacional de Contratistas | Confirma tu inscripción en el IVSS');
     /* Cada ente, a SU portal, en otra pestaña. */
     var PORTALES = {
       banavih: 'https://faovel.banavih.gob.ve/index.php/empleador_login/afiliarEmpleador',

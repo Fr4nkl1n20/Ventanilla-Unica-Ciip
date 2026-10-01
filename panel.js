@@ -5692,6 +5692,28 @@ applyLang(idiomaParaMi());
     caja.appendChild(hoja);
   }
 
+  /* Las marcas que puso el propio inversionista en datos, para no perderlas
+     al reenviar: las llaves de PASOS_QUE_MARCAS_TU y las de cada ente de los
+     parafiscales (ente_*). Con typeof porque la tabla se declara mucho más
+     abajo y esto se puede llamar antes de que llegue a ella. */
+  function conservaMarcas(viejos){
+    var suyas = {};
+    var tabla = (typeof PASOS_QUE_MARCAS_TU !== 'undefined' && PASOS_QUE_MARCAS_TU) || {};
+    Object.keys(tabla).forEach(function(ref){
+      Object.keys(tabla[ref] || {}).forEach(function(n){
+        var v = tabla[ref][n];
+        var k = (typeof v === 'string') ? v : (v && v.clave);
+        if (k) suyas[k] = true;
+      });
+    });
+    var m = {};
+    Object.keys(viejos || {}).forEach(function(k){
+      if (suyas[k] || /^ente_/.test(k)) m[k] = viejos[k];
+    });
+    return m;
+  }
+  window.CIIP_CONSERVA_MARCAS = conservaMarcas;
+
   function pintaFormulario(tipo, borrador){
     var u = T();
     vaciaAcompana();
@@ -7646,8 +7668,15 @@ applyLang(idiomaParaMi());
            borrador o devuelto. */
         return desenganchaLosSustituidos(tr.id, vanAhora);
       }).then(function(){
-        /* 4. datos al día y a enviar */
-        return sb.from('tramites').update({datos: datos, estado: 'enviado'})
+        /* 4. datos al día y a enviar. Con las MARCAS del inversionista que
+           ya tuviera (Taquilla única opción 2, 1-10-2026): «Ya me
+           registré», «Ya la solicité», «Ya me inscribí» viven en datos, y
+           reenviar una devuelta con solo lo del formulario las borraba -la
+           base guarda los pasos del CIIP, no éstas-. La escalera volvía al
+           paso 1 a pedir otra vez lo que ya se hizo. */
+        var marcas = conservaMarcas(borrador && borrador.datos);
+        Object.keys(datos).forEach(function(k){ marcas[k] = datos[k]; });
+        return sb.from('tramites').update({datos: marcas, estado: 'enviado'})
           .eq('id', tr.id).select().single();
       });
     }).then(function(r){
@@ -23222,7 +23251,7 @@ applyLang(idiomaParaMi());
 
      Las dos visas estuvieron aquí del 30-9 al 1-10-2026, con «Carga la
      planilla firmada» en el tercero. Se fueron con la Taquilla única
-     opción 2 (Franklin Reyes, 1-10-2026): la visa ya no lleva planilla. */
+     opción 2 (Franklin Reyes, 1-10-2026): la visa ya no lleva planilla.
 
      La licencia (c10) salió de aquí el 1-10-2026: con la Taquilla única
      opción 2 (Franklin Reyes) ya no firma planilla ninguna, la pide el
