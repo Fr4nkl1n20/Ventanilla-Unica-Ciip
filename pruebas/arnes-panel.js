@@ -304,7 +304,7 @@
                  y puestos antes le cambiaban la cuenta a las pruebas que
                  esperan los tres del expediente de partida. */
               cacheAbre, cacheMira, cacheSube, cacheSube2, cacheVuelve, cacheTrasVolver,
-              ayudaAbre, ayudaMira, ayudaFaq,
+              ayudaAbre, ayudaMira, ayudaFaq, ayRecMira, ayRecSalta, ayRecLlega,
               supAbre, supMira, supTemas, supVuelve,
               asstConServidor, asstSinServidor,
               fotoAbre, fotoMira, fotoMala, fotoSube, fotoTrasSubir, fotoCierra,
@@ -8615,6 +8615,62 @@
     igual('ayuda: con sus siete de siempre', sec.querySelectorAll('details:not(.ay-nueva)').length, 7);
   }
 
+  /* PASOS Y RECAUDOS DE CADA TRÁMITE (Franklin Reyes, 1-10-2026,
+     «Taquilla única 2.2»). En Ayuda y guías, tres listas de páginas
+     oficiales; y en cada ente de los parafiscales, un enlace que lleva a la
+     suya con su renglón resaltado. Con retrollamada: fuera de 'vacio' no
+     hacen nada y no deben retrasar a nadie. */
+  function ayRecMira(sigue){
+    if (CASO !== 'vacio') return sigue();
+    var u = window.CIIP_T();
+    var rec = document.querySelector('.ayuda-vista .ay-rec');
+    var grupos = rec ? [].map.call(rec.querySelectorAll('details'), function(d){
+      return d.getAttribute('data-clave') + ':' + d.querySelectorAll('.ay-sitios a.ay-enlace').length;
+    }).join(' ') : '(no está)';
+    igual('recaudos: en Ayuda, la licencia, los parafiscales y la conformidad de uso, con sus enlaces',
+          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3');
+    var t = document.querySelector('.ayuda-vista .ay-rec-h .t');
+    igual('recaudos: con su título', t ? t.textContent : '(sin título)', u.ay_rec_t);
+    var ivss = rec && [].filter.call(rec.querySelectorAll('a.ay-enlace'), function(a){
+      return /IVSS/.test(a.textContent); })[0];
+    ok('recaudos: el del IVSS lleva a su página y se abre aparte',
+       !!ivss && ivss.href.indexOf('registro.ivss.gob.ve') >= 0 && ivss.target === '_blank',
+       ivss ? ivss.href + ' · ' + ivss.target : '(no está)', 'registro.ivss.gob.ve en otra pestaña');
+    location.hash = '';
+    setTimeout(sigue, 200);
+  }
+  var AY_REC = null;
+  function ayRecSalta(sigue){
+    if (CASO !== 'vacio' || !window.CIIP_LISTA_ENTES) return sigue();
+    var u = window.CIIP_T();
+    AY_REC = window.CIIP_LISTA_ENTES({id:'r7', estado:'ante_el_ente', inversionista:'u1'}, 'inversionista');
+    var de = function(e){ return AY_REC.querySelector('.pe-ente[data-ente="' + e + '"] .pe-recaudos'); };
+    var conEnlace = ['banavih', 'inces', 'ivss', 'mpppst', 'sundde', 'snc'].filter(function(e){ return !!de(e); });
+    igual('recaudos: los seis entes llevan «¿Sabes cuáles son los recaudos que necesitas?»',
+          conEnlace.join(' '), 'banavih inces ivss mpppst sundde snc');
+    var eq = window.CIIP_LISTA_ENTES({id:'r7', estado:'ante_el_ente', inversionista:'u1'}, 'equipo', 'ivss');
+    ok('recaudos: el gestor no lo ve', !eq.querySelector('.pe-recaudos'),
+       eq.querySelector('.pe-recaudos') ? 'lo ve' : 'no', 'no');
+    var b = de('ivss');
+    if (!b) return sigue();
+    igual('recaudos: el enlace dice lo que pidió el CIIP', b.textContent, u.pe_recaudos);
+    b.click();
+    setTimeout(sigue, 400);
+  }
+  function ayRecLlega(sigue){
+    if (CASO !== 'vacio' || !AY_REC) return sigue();
+    igual('recaudos: el enlace lleva a Ayuda y guías', document.body.getAttribute('data-vista'), 'ayuda');
+    var g = document.querySelector('.ayuda-vista .ay-rec details[data-clave="ay_rec_parafiscales"]');
+    ok('recaudos: con los parafiscales abiertos', !!g && g.open, g ? (g.open ? 'abierto' : 'cerrado') : '(no está)', 'abierto');
+    var aqui = g && g.querySelectorAll('li.ay-aqui');
+    igual('recaudos: y el renglón del IVSS resaltado, solo ése',
+          aqui ? [].map.call(aqui, function(li){ return li.querySelector('a').textContent; }).join(' | ') : '(nada)',
+          'IVSS · Seguro Social');
+    AY_REC = null;
+    location.hash = '';
+    setTimeout(sigue, 200);
+  }
+
   /* ═══════════ LOS LOGOS DE LOS ORGANISMOS ═══════════
      Va al FINAL de la cadena a propósito: una imagen tarda en cargar, y
      preguntarle nada más pintar la página daría rojo por lo que aún no ha
@@ -13349,11 +13405,17 @@
     dt.items.add(new File(['%PDF-1.4 planilla'], 'planilla-ivss.pdf', {type: 'application/pdf'}));
     arch.files = dt.files;
     arch.dispatchEvent(new Event('change'));
-    setTimeout(function(){
+    /* Se espera a que la planilla esté colgada, y no un tiempo fijo: la
+       huella y la subida tardan lo que tardan, y con la cadena más larga
+       medio segundo no bastó y la del inversionista se leía de antes. */
+    var n = 0;
+    (function espera(){
+      var d = (window.__ENTES || {})['r8|ivss'] || {};
+      if (!d.documento && ++n <= 60) return setTimeout(espera, 50);
       /* Otra vez la del inversionista, que es lo que vería al volver. */
       PL_INV = window.CIIP_LISTA_ENTES({id:'r8', estado:'ante_el_ente', inversionista:'u1'}, 'inversionista', 'ivss');
       setTimeout(sigue, 300);
-    }, 500);
+    })();
   }
   function ivssPlMira(sigue){
     if (CASO !== 'vacio' || !PL_EQ) return sigue();

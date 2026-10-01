@@ -23846,6 +23846,11 @@ applyLang(idiomaParaMi());
      (supabase-planilla-ivss.sql). La constancia la sustituye al cerrar,
      y la planilla sigue en la bóveda del inversionista. */
   var ENTES_CON_PLANILLA = ['ivss'];
+  /* Cada ente, por la sigla con que sale en la lista de «Pasos y recaudos»
+     de Ayuda y guías (Franklin Reyes, 1-10-2026; el SNC, el Registro Nacional
+     de Contratistas, entró el mismo día). Los seis. */
+  var SIGLA_EN_AYUDA = {banavih: 'BANAVIH', inces: 'INCES', ivss: 'IVSS',
+                        mpppst: 'RNET', sundde: 'RUPDAE', snc: 'SNC'};
   function sinColumnaClave(r){
     return !!(r && r.error && ENTES_SELECT !== ENTES_SELECT_BASE &&
               /clave/.test(r.error.message || ''));
@@ -24019,6 +24024,23 @@ applyLang(idiomaParaMi());
         return {li: li, punto: punto, txt: txt};
       });
       fila.appendChild(ol);
+
+      /* «¿Sabes cuáles son los recaudos que necesitas?» (Franklin Reyes,
+         1-10-2026, «Taquilla única 2.2»): lleva a Ayuda y guías, con el
+         grupo de los parafiscales abierto y el renglón de ESTE ente
+         resaltado. Del inversionista, y con los pasos a la vista: en la
+         tarjeta recogida de Mis trámites solo queda descargar y ver. */
+      if (modo === 'inversionista' && !recogida && SIGLA_EN_AYUDA[ente]){
+        var aRec = el('button', 'pe-recaudos', u.pe_recaudos || '');
+        aRec.type = 'button';
+        aRec.addEventListener('click', function(){
+          window.CIIP_AYUDA_A = {grupo: 'ay_rec_parafiscales', sigla: SIGLA_EN_AYUDA[ente]};
+          /* Con el hash ya puesto no hay hashchange que repinte. */
+          if (location.hash === '#ayuda' && window.CIIP_REPINTA_AYUDA) window.CIIP_REPINTA_AYUDA();
+          else location.hash = 'ayuda';
+        });
+        fila.appendChild(aRec);
+      }
 
       var dice = el('div', 'pe-dice');
       dice.hidden = true;
@@ -24924,11 +24946,18 @@ applyLang(idiomaParaMi());
     cab.appendChild(tit);
     ayLista.appendChild(cab);
 
-    var caja = el('div', 'faq ay-dil');
-    [{kt: 'ay_firma',   t: u.ay_firma,   kl: 'ay_firma_lista',
-      l: u.ay_firma_lista || es.ay_firma_lista},
-     {kt: 'ay_medicos', t: u.ay_medicos, kl: 'ay_medicos_lista',
-      l: u.ay_medicos_lista || es.ay_medicos_lista}].forEach(function(g){
+    /* Adónde mandó a esta pantalla el «¿Sabes cuáles son los recaudos que
+       necesitas?» de un ente: su grupo se abre y su renglón se resalta. Se
+       gasta, para que volver a Ayuda a mano no repita el salto, pero no al
+       primer pintado: entrar pinta dos veces -el clic y el hashchange que
+       deja- y el segundo borraría el resaltado del primero. */
+    var aqui = window.CIIP_AYUDA_A || null;
+    if (aqui && !aqui.gasta) aqui.gasta = setTimeout(function(){
+      if (window.CIIP_AYUDA_A === aqui) window.CIIP_AYUDA_A = null;
+    }, 1500);
+    var marcado = null;
+
+    function grupo(g){
       var d = el('details', 'faq-item');
       d.setAttribute('data-clave', g.kt);
       var s = el('summary');
@@ -24943,18 +24972,63 @@ applyLang(idiomaParaMi());
       var cuerpo = el('div', 'faq-a');
       cuerpo.setAttribute('data-ui', g.kl);
       var sitios = ayRenglones(g.l);
+      var esAqui = !!(aqui && aqui.grupo === g.kt);
       if (sitios.length){
         var ul = el('ul', 'ay-sitios');
-        sitios.forEach(function(x){ ul.appendChild(aySitio(x)); });
+        sitios.forEach(function(x){
+          var li = aySitio(x);
+          /* El renglón del ente por su sigla en el nombre -«IVSS · Seguro
+             Social»-: la lista se edita a mano y un orden fijo se perdería
+             el día que alguien añada uno. */
+          if (esAqui && aqui.sigla && !marcado &&
+              x.split('|')[0].toUpperCase().indexOf(aqui.sigla) >= 0){
+            li.classList.add('ay-aqui');
+            marcado = li;
+          }
+          ul.appendChild(li);
+        });
         cuerpo.appendChild(ul);
       } else {
         cuerpo.appendChild(el('div', 'ay-pronto', u.ay_pronto || ''));
       }
       d.appendChild(cuerpo);
-      if (yaAbiertos[g.kt]) d.open = true;
-      caja.appendChild(d);
+      if (yaAbiertos[g.kt] || esAqui) d.open = true;
+      if (esAqui && !marcado) marcado = d;
+      return d;
+    }
+
+    var caja = el('div', 'faq ay-dil');
+    [{kt: 'ay_firma',   t: u.ay_firma,   kl: 'ay_firma_lista',
+      l: u.ay_firma_lista || es.ay_firma_lista},
+     {kt: 'ay_medicos', t: u.ay_medicos, kl: 'ay_medicos_lista',
+      l: u.ay_medicos_lista || es.ay_medicos_lista}].forEach(function(g){
+      caja.appendChild(grupo(g));
     });
     ayLista.appendChild(caja);
+
+    /* 3 · PASOS Y RECAUDOS DE CADA TRÁMITE (Franklin Reyes, 1-10-2026,
+       «Taquilla única 2.2»): las páginas oficiales donde cada ente y cada
+       alcaldía dice qué pide. Las mismas listas que las de arriba -un
+       enlace por renglón, editables desde «Editar textos»-, y a la de los
+       parafiscales lleva el «¿Sabes cuáles son los recaudos…?» de cada
+       ente en «Registros Parafiscales y Regulatorios». */
+    var cab2 = el('div', 'sec-h ay-rec-h');
+    var tit2 = el('span', 't', u.ay_rec_t || es.ay_rec_t || '');
+    tit2.setAttribute('data-ui', 'ay_rec_t');
+    cab2.appendChild(tit2);
+    ayLista.appendChild(cab2);
+    var caja2 = el('div', 'faq ay-rec');
+    ['licencia', 'parafiscales', 'conformidad'].forEach(function(k){
+      var kt = 'ay_rec_' + k, kl = kt + '_lista';
+      caja2.appendChild(grupo({kt: kt, t: u[kt] || es[kt], kl: kl, l: u[kl] || es[kl]}));
+    });
+    ayLista.appendChild(caja2);
+
+    /* Y a la vista, cuando se llega desde un ente. Después de pintar: la
+       vista acaba de encenderse y hasta el siguiente tick no tiene sitio. */
+    if (marcado) setTimeout(function(){
+      if (marcado.scrollIntoView) marcado.scrollIntoView({block: 'center'});
+    }, 0);
   }
 
   if (ayLista){

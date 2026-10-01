@@ -1449,7 +1449,7 @@ body.editando-textos .faq-item.ay-sin{display:block;}
 .faq-a.ay-vacia{font-style:italic; color:var(--gray-soft);}
 /* Donde hacer cada diligencia: el mismo desplegable que las preguntas, sin
    el numero delante, y dentro un lugar por renglon. */
-.ay-dil .faq-a{padding-left:16px;}
+.ay-dil .faq-a, .ay-rec .faq-a{padding-left:16px;}
 .ay-sitios{margin:0; padding:0 0 0 18px; display:grid; gap:5px;}
 .ay-sitios li{line-height:1.5;}
 /* El nombre lleva a la página del lugar; la dirección, al lado y más
@@ -1458,6 +1458,13 @@ body.editando-textos .faq-item.ay-sin{display:block;}
 .ay-enlace:hover{text-decoration:underline;}
 .ay-host{margin-left:8px; font-size:var(--fs-nota); color:var(--gray-soft); overflow-wrap:anywhere;}
 .ay-pronto{color:var(--gray-soft);}
+/* Pasos y recaudos de cada trámite (1-10-2026): el mismo desplegable,
+   con su propio título y aire encima, y el renglón del ente del que se
+   viene, marcado -llegar a una lista de cinco sin saber cuál es la tuya es
+   volver a buscar-. */
+.ay-rec-h{margin-top:22px;}
+.ay-sitios li.ay-aqui{margin-left:-8px; padding:3px 8px; border-radius:6px;
+  background:color-mix(in srgb, var(--navy2) 9%, transparent);}
 /* El horario de atencion: una tarjeta como las preguntas, que no se pliega,
    con el reloj donde las preguntas llevan el numero (con su propia clase:
    la prueba de las cifras mide el texto de cada .qi, y el reloj no tiene). */
@@ -3347,6 +3354,13 @@ body[data-vista="tramite"] #secTramites{display:none;}
   font-weight:700; color:var(--navy2); cursor:pointer;}
 .pe-vertr:hover{text-decoration:underline;}
 .pe-vertr:focus-visible{outline:2px solid var(--navy2); outline-offset:2px; border-radius:3px;}
+/* «¿Sabes cuáles son los recaudos que necesitas?», debajo de los pasos de
+   cada ente: un enlace como «Ver trámite», que lleva a Ayuda y guías. */
+.pe-recaudos{display:inline-block; margin-top:8px; background:none; border:0; padding:4px 0;
+  font-family:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy2);
+  cursor:pointer; text-align:left;}
+.pe-recaudos:hover{text-decoration:underline;}
+.pe-recaudos:focus-visible{outline:2px solid var(--navy2); outline-offset:2px; border-radius:3px;}
 /* En la tarjeta de cada ente, los pasos en horizontal y mas apretados: el
    punto de 20 y el hilo a su altura. */
 .pe-pasos .tr-paso{gap:7px; min-width:120px; padding-right:12px;}
