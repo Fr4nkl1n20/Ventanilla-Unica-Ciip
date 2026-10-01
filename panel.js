@@ -10867,6 +10867,39 @@ applyLang(idiomaParaMi());
          lo hagan ustedes» no tiene que volver a contar de que trámite habla. */
       if (sugerido && sugerido.asunto) caja.value = sugerido.asunto;
       campo.appendChild(caja);
+
+      /* ── LOS SECTORES ──
+         Franklin Reyes, 1-10-2026: desde la franja «¿Necesitas tramitar
+         algún permiso, autorización o licencia en específico?» el chat
+         abre con los nueve sectores. El elegido entra en el asunto, que es
+         lo primero que ve el equipo en su bandeja; lo demás lo escribe la
+         persona detrás. No hay columna nueva en la base: el asunto ya lo
+         lleva. */
+      var primerSector = null;
+      if (sugerido && sugerido.sectores){
+        cuerpo.appendChild(el('p', 'cs-pide', u.cs_pide || ''));
+        var fila = el('div', 'cs-sectores');
+        fila.setAttribute('role', 'group');
+        fila.setAttribute('aria-label', u.cs_pide || '');
+        for (var k = 1; k <= 9; k++){
+          (function(nombre){
+            var b = el('button', 'cs-sector', nombre);
+            b.type = 'button';
+            b.setAttribute('aria-pressed', 'false');
+            b.addEventListener('click', function(){
+              [].forEach.call(fila.querySelectorAll('.cs-sector'), function(o){
+                o.setAttribute('aria-pressed', o === b ? 'true' : 'false');
+              });
+              caja.value = String(u.cs_asunto || '{s}: ').replace('{s}', nombre);
+              caja.focus();
+              try { caja.setSelectionRange(caja.value.length, caja.value.length); } catch(e){}
+            });
+            if (!primerSector) primerSector = b;
+            fila.appendChild(b);
+          })(u['cs_s' + k] || '');
+        }
+        cuerpo.appendChild(fila);
+      }
       cuerpo.appendChild(campo);
 
       var aviso = el('div', 'cons-aviso', '');
@@ -10909,7 +10942,7 @@ applyLang(idiomaParaMi());
           });
       });
 
-      setTimeout(function(){ (sugerido ? crear : caja).focus(); }, 60);
+      setTimeout(function(){ (primerSector || (sugerido ? crear : caja)).focus(); }, 60);
     }
 
     /* ── una consulta, con su conversacion ── */
@@ -10946,9 +10979,12 @@ applyLang(idiomaParaMi());
        nada de aqui dentro, y la ficha de un tramite, que si esta en este
        mismo bloque pero pasa por window igual: una sola puerta se cambia en
        un sitio. */
-    window.CIIP_ABRE_CONSULTA = function(tramiteId, asunto, codigo){
-      sugerido = (tramiteId || asunto || codigo)
-        ? {tramite: tramiteId || null, asunto: asunto || '', tipo: codigo || null}
+    /* opts.sectores: la abre la franja del final del catálogo, y la
+       consulta nueva empieza preguntando el sector (pintaNueva). */
+    window.CIIP_ABRE_CONSULTA = function(tramiteId, asunto, codigo, opts){
+      var sectores = !!(opts && opts.sectores);
+      sugerido = (tramiteId || asunto || codigo || sectores)
+        ? {tramite: tramiteId || null, asunto: asunto || '', tipo: codigo || null, sectores: sectores}
         : null;
       var u = T();
       var t = document.getElementById('consTitulo');
@@ -10958,6 +10994,13 @@ applyLang(idiomaParaMi());
       back.classList.add('open');
       if (sugerido) pintaNueva(); else pintaLista();
     };
+
+    /* La franja del final del catálogo (Franklin Reyes, 1-10-2026): abre
+       la consulta nueva preguntando el sector. */
+    var ccChat = document.getElementById('ccChat');
+    if (ccChat) ccChat.addEventListener('click', function(){
+      window.CIIP_ABRE_CONSULTA(null, null, null, {sectores: true});
+    });
 
     /* La otra puerta: abrir UNA consulta que ya existe, por su conversacion.
        La usa el buzon de avisos, que cuando el CIIP contesta tiene que

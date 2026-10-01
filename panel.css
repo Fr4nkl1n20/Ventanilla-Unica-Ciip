@@ -2832,6 +2832,30 @@ body[data-vista="inicio"].etapa-elegida .tsec-sig:not([hidden]){display:flex;}
 .tsec-sig:hover{text-decoration:underline; text-underline-offset:3px;}
 .tsec-sig:focus-visible{outline:2px solid var(--navy); outline-offset:2px;}
 
+/* ── EL CIERRE DEL CATÁLOGO ──
+   Franklin Reyes, 1-10-2026, opción A de la maqueta: una franja a todo el
+   ancho, con el azul claro de lo activo, para quien no encuentra su permiso
+   en la lista. La burbuja y el botón llevan el azul de la marca. */
+.cc-franja{margin-top:18px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  background:var(--activa-bg); border:1px solid var(--line); border-radius:var(--r); padding:16px 18px;}
+.cc-burbuja{width:40px; height:40px; border-radius:50%; background:var(--navy); color:#fff; flex:none;
+  display:flex; align-items:center; justify-content:center;}
+.cc-burbuja svg{width:20px; height:20px; stroke:currentColor; stroke-width:1.8; fill:none;}
+.cc-txt{flex:1; min-width:200px;}
+.cc-q{margin:0 0 3px; font-size:var(--fs-tarjeta); font-weight:700; color:var(--ink);}
+.cc-s{margin:0; font-size:var(--fs-parrafo); line-height:1.5; color:var(--mudo);}
+.cc-btn{white-space:nowrap;}
+.cc-btn:focus-visible{outline:2px solid var(--cyan-deep); outline-offset:2px;}
+
+/* Y los sectores, dentro de la consulta nueva que abre la franja. */
+.cs-pide{margin:4px 0 8px; font-size:var(--fs-parrafo); line-height:1.5; color:var(--ink);}
+.cs-sectores{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;}
+.cs-sector{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy2); background:var(--bg);
+  border:1px solid var(--line); border-radius:999px; padding:6px 11px; cursor:pointer;}
+.cs-sector:hover{border-color:var(--cyan-deep);}
+.cs-sector[aria-pressed="true"]{background:var(--activa-bg); border-color:var(--navy2);}
+.cs-sector:focus-visible{outline:2px solid var(--cyan-deep); outline-offset:2px;}
+
 /* ── LA GUIA DE LAS VISAS ──
    Dos caminos, uno al lado del otro, dentro de la ficha de cualquiera de
    las dos. El que estas mirando se queda apagado y con su «estas aqui»;

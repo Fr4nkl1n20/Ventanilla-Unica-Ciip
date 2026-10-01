@@ -330,7 +330,7 @@
               logoAbre, logoEspera, logoSube, logoTrasSubir, logoQuita, logoTrasQuitar,
               puertaTodos,
               consultaAbre, consultaMira, consultaEntra, consultaDentro,
-              rotulosMiran, consultaNueva, consultaNuevaMira, consultaTrasCrear,
+              rotulosMiran, consultaNueva, consultaNuevaMira, consultaTrasCrear, cierreCatalogo,
               consultaCola, consultaToma, consultaTrasTomar,
               consultaResuelve, consultaResuelveOtra, consultaTrasResolver,
               velocidadArranque, velocidadAbre, velocidadMira,
@@ -11818,6 +11818,47 @@
 
     var cerrar = document.getElementById('consCerrar');
     if (cerrar) cerrar.click();
+  }
+
+  /* ── EL CIERRE DEL CATÁLOGO ──
+     Franklin Reyes, 1-10-2026, opción A de la maqueta: la franja del final
+     del catálogo abre el chat de Consultas preguntando el sector, y el
+     sector elegido entra en el asunto. Con retrollamada: solo actúa fuera
+     del gestor, y así no retrasa a los demás. */
+  function cierreCatalogo(sigue){
+    if (CASO === 'gestor') return sigue();
+    var fr = document.getElementById('ccFranja');
+    var U = (window.CIIP_PASOS && window.CIIP_PASOS.ui && window.CIIP_PASOS.ui[curLang]) || {};
+    ok('cierre: la franja está al final del catálogo, con su pregunta',
+       !!fr && !!fr.closest('#secTramites') && /\S/.test((fr.querySelector('.cc-q') || {}).textContent || ''),
+       fr ? (fr.querySelector('.cc-q') || {}).textContent : '(no hay franja)', 'la pregunta');
+    var b = document.getElementById('ccChat');
+    if (!b) return sigue();
+    b.click();
+    var back = document.getElementById('consBack');
+    ok('cierre: el botón abre el chat de Consultas',
+       !!back && back.classList.contains('open'), back ? back.className : '(sin ventana)', 'abierta');
+    var sect = [].map.call(document.querySelectorAll('#consCuerpo .cs-sector'), function(x){ return x.textContent; });
+    igual('cierre: y pregunta el sector, con los nueve', sect.length, 9);
+    var min = document.querySelector('#consCuerpo .cs-sector:nth-child(2)');
+    var caja = document.getElementById('consAsunto');
+    if (min && caja){
+      min.click();
+      igual('cierre: el sector elegido entra en el asunto',
+            caja.value, String(U.cs_asunto || '').replace('{s}', U.cs_s2 || ''));
+      ok('cierre: y queda marcado', min.getAttribute('aria-pressed') === 'true',
+         min.getAttribute('aria-pressed'), 'true');
+    }
+    var cerrar = document.getElementById('consCerrar');
+    if (cerrar) cerrar.click();
+    /* Y al abrir Consultas por su puerta de siempre, sin sectores. */
+    if (window.CIIP_ABRE_CONSULTA) window.CIIP_ABRE_CONSULTA();
+    var nb = document.querySelector('#consCuerpo .btn.navy');
+    if (nb) nb.click();
+    igual('cierre: la consulta de siempre no pregunta el sector',
+          document.querySelectorAll('#consCuerpo .cs-sector').length, 0);
+    if (cerrar) cerrar.click();
+    setTimeout(sigue, 300);
   }
 
   /* ── Y LA OTRA PUNTA: LA COLA DEL EQUIPO ──
