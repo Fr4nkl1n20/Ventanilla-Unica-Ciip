@@ -613,6 +613,15 @@ function applyLang(lang){
      llega a ella eligiendo, o por su direccion, y en los dos casos ya
      esta dicho cual. */
   var VISA_ELEGIDA = '';
+  /* Y la da por elegida el módulo de solicitudes cuando ya hay una TR-N
+     pedida (CIIP_TRAMITE_REAL): repinta la guía con la de aquí marcada y
+     enseña lo de abajo. Solo si sigues en esa ficha. */
+  var GUIA_D = null;
+  window.CIIP_VISA_ELEGIDA = function(ref){
+    if (VISA_ELEGIDA === ref) return;
+    VISA_ELEGIDA = ref;
+    if (trAbierto === ref && GUIA_D) pintaGuiaVisas(ref, GUIA_D);
+  };
 
   /* El tramite de verdad y la escalera, que son lo que se aparta hasta
      que elijas. El plazo y la descripcion se quedan: eso es de la casilla
@@ -643,6 +652,7 @@ function applyLang(lang){
       return;
     }
 
+    GUIA_D = D;
     var hayQueElegir = (id === 'c1' && VISA_ELEGIDA !== 'c1');
     tramiteALaVista(!hayQueElegir);
 
@@ -5224,6 +5234,13 @@ applyLang(idiomaParaMi());
                encendido de la vez anterior escondería los tramos de una
                ficha que no tiene nada que ver. */
             pidiendoOtra = otraIgual;
+            /* La c1 es la casilla de las DOS visas y esconde lo de abajo
+               hasta que eliges cuál (pintaGuiaVisas). Con una TR-N ya
+               pedida no hay nada que elegir: escondida, quien la había
+               enviado entraba y solo veía «¿Qué visa necesitas?», sin su
+               escalera, sin «Ya me registré» y sin «Corregir y reenviar»
+               (1-10-2026). Con una solicitud viva, se da por elegida. */
+            if (refPanel === 'c1' && !otraIgual && mio && window.CIIP_VISA_ELEGIDA) window.CIIP_VISA_ELEGIDA('c1');
             if (!otraIgual && mio && mio.estado !== 'borrador'){ chipReal(mio.estado); pintaEstado(t, mio); }
             else {
               if (otraIgual) mio = null;
@@ -9722,6 +9739,9 @@ applyLang(idiomaParaMi());
      con el paso en curso o hecho, como siempre. */
   function enlaceDelPasoPintado(ref, n, tr){
     var u = T();
+    /* Resuelta ya no hay nada que hacer en el portal: el enlace en un paso
+       hecho de una solicitud terminada invitaba a empezar otra vez. */
+    if (tr && tr.estado === 'resuelto') return null;
     var hacia = enlaceDelPaso(ref, n, tr);
     if (!hacia) return null;
     var enl = document.createElement('a');
@@ -17495,6 +17515,31 @@ applyLang(idiomaParaMi());
       s2.appendChild(fila);
     });
     izq.appendChild(s2);
+
+    /* LO QUE MARCÓ EL INVERSIONISTA (Taquilla única opción 2, 1-10-2026).
+       En la visa, la licencia, la conformidad y el minero el paso 1 lo hace
+       él en un portal de fuera y lo avisa con su botón. El gestor no lo
+       veía en ningún sitio y presentaba o resolvía sin saber si la
+       solicitud existía en el portal, que es justo lo que viene a
+       verificar. Los parafiscales lo enseñan en la rejilla de cada ente. */
+    var refM = tipoRefDe(t.tipo);
+    var suyos = (typeof PASOS_QUE_MARCAS_TU !== 'undefined' && PASOS_QUE_MARCAS_TU[refM]) || null;
+    if (suyos){
+      var s3 = el('section', 'visor-marcas');
+      s3.appendChild(el('h4', null, u.pe_marco || ''));
+      var nombres = ((window.CIIP_PASOS || {}).pasos || {})[curLang] || {};
+      Object.keys(suyos).forEach(function(n){
+        var v = suyos[n];
+        var k = (typeof v === 'string') ? v : (v && v.clave);
+        var cuando = k && (t.datos || {})[k];
+        var fila = el('div', 'co-dato');
+        fila.appendChild(el('span', 'k', ((nombres[refM] || [])[n - 1] || '') + ':'));
+        fila.appendChild(el('span', 'v' + (cuando ? ' marcado' : ''),
+          cuando ? String(u.pe_marcado || '{f}').replace('{f}', fecha(cuando)) : (u.pe_nada_aun || '')));
+        s3.appendChild(fila);
+      });
+      izq.appendChild(s3);
+    }
 
     /* La identidad, con la misma función que el expediente de la ventana,
        plegada: abierta es un formulario de cuatro campos, y lo que se viene

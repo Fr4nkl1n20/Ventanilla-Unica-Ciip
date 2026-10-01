@@ -1902,6 +1902,10 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .co-dato{display:flex; gap:8px; font-size:var(--fs-valor); padding:3px 0; align-items:baseline;font-weight:500;}
 .co-dato .k{color:var(--gray); flex:0 0 42%; min-width:0;}
 .co-dato .v{color:var(--ink); font-weight:600; flex:1 1 auto; min-width:0; word-break:break-word;}
+/* En «Lo que marcó el inversionista» del visor: la fecha en verde si lo marcó,
+   «Nada todavía» apagado si no (1-10-2026). */
+.visor-marcas .co-dato .v{color:var(--gray-soft); font-weight:500;}
+.visor-marcas .co-dato .v.marcado{color:var(--good); font-weight:600;}
 .co-arch{display:flex; align-items:center; gap:9px; font-size:var(--fs-fila); padding:6px 0;
   border-bottom:1px solid var(--line-soft);}
 .co-arch:last-child{border-bottom:0;}

@@ -387,7 +387,7 @@
               visaGestorMira,
               importadorMira, bomberosMira, visaEscaleraMira, marcasSeQuedan,
               /* La ficha de la visa con su «Ya me registré» (1-10-2026). */
-              visaFichaAbre, visaFichaMira, visaFichaTrasConfirmar,
+              visaFichaAbre, visaFichaMira, visaFichaTrasConfirmar, visaC1Abre, visaC1Mira,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
                  cuentas a todo lo que cuenta tarjetas. */
@@ -5065,15 +5065,20 @@
          de la TR-N seria contestar por ti. Asi que la de aqui no dice «estas
          aqui»: dice «elige esta», y al pulsarla despliega el formulario sin
          moverte de sitio. */
-      ok('visas: sin elegir, la de esta ficha tambien se pulsa',
-         !!trn && trn.getAttribute('role') === 'button',
-         trn ? ('role=' + (trn.getAttribute('role') || 'sin')) : 'no esta',
-         'role=button');
+      /* SALVO QUE YA LA HAYAS PEDIDO (1-10-2026). Este expediente tiene una
+         TR-N -la t4, resuelta-, y con una solicitud viva la c1 la da por
+         elegida: escondida tras la guía, quien ya la pidió no veía su
+         escalera. La guía sin elegir la miden los expedientes sin visa
+         (pistaMira, en 'vacio', la elige pulsándola). */
+      ok('visas: con una TR-N ya pedida, la de esta ficha sale como la tuya',
+         !!trn && trn.getAttribute('aria-current') === 'true' && !trn.getAttribute('role'),
+         trn ? ('aria-current=' + trn.getAttribute('aria-current') + ' role=' + (trn.getAttribute('role') || 'sin')) : 'no esta',
+         'aria-current=true role=sin');
       var detalle = document.getElementById('trDetalle');
-      ok('visas: y el formulario no se despliega hasta que elijas',
-         !!detalle && detalle.classList.contains('elige-visa'),
+      ok('visas: y lo de abajo se ve sin volver a elegir',
+         !!detalle && !detalle.classList.contains('elige-visa'),
          detalle ? (detalle.className || '(sin clases)') : 'no esta',
-         'con la clase elige-visa');
+         'sin la clase elige-visa');
       if (trn){
         trn.click();
         ok('visas: al elegirla, el formulario se despliega ahi mismo',
@@ -10131,6 +10136,37 @@
        !!(lis[0] && lis[0].querySelector('a.tr-hacer')), lis[0] && lis[0].querySelector('a.tr-hacer') ? 'está' : 'no está', 'está');
     window.__TRAMITES_EXTRA = null;
     window.CIIP_PRUEBA_CONFIRMA_PASO = null;
+    location.hash = '';
+    setTimeout(sigue, 100);
+  }
+
+  /* La c1 con una TR-N ya enviada (1-10-2026): la guía «¿Qué visa
+     necesitas?» escondía lo de abajo hasta volver a elegir, y quien había
+     pedido su visa no veía su escalera ni su «Ya me registré». Se olvida
+     la elección de antes en esta visita, como quien entra de nuevo. */
+  function visaC1Abre(sigue){
+    if (PASE !== 'vacio' || !window.CIIP_VISA_ELEGIDA) return sigue();
+    window.CIIP_VISA_ELEGIDA('');
+    window.__TRAMITES_EXTRA = [{id: 'vx2', tipo: 'visa_negocios', estado: 'enviado',
+      datos: {nombres: 'Franklin', apellidos: 'Reyes', numero_pasaporte: 'YB7654321', pais_emisor: 'Italia'},
+      inversionista: 'u1', creado_en: '2026-09-30T10:00:00Z', enviado_en: '2026-09-30T10:00:00Z',
+      actualizado_en: '2026-09-30T12:00:00Z'}];
+    location.hash = '';
+    setTimeout(function(){
+      location.hash = 'tramite-c1';
+      esperaFilas('#trReal li.tr-paso', 3, sigue);
+    }, 100);
+  }
+  function visaC1Mira(sigue){
+    if (PASE !== 'vacio' || !window.CIIP_VISA_ELEGIDA) return sigue();
+    var d = document.getElementById('trDetalle');
+    ok('visa: con la TR-N ya enviada, la c1 enseña su solicitud sin volver a elegir',
+       !!d && !d.classList.contains('elige-visa'),
+       d ? (d.classList.contains('elige-visa') ? 'escondida tras la guía' : 'a la vista') : '(sin ficha)', 'a la vista');
+    var bt = document.querySelector('#trReal li.tr-paso button.tr-hacer');
+    ok('visa: y con su «Ya me registré» al alcance', !!bt && !!bt.offsetParent,
+       bt ? (bt.offsetParent ? 'a la vista' : 'escondido') : '(sin botón)', 'a la vista');
+    window.__TRAMITES_EXTRA = null;
     location.hash = '';
     setTimeout(sigue, 100);
   }
