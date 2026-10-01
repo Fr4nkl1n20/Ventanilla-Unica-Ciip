@@ -385,7 +385,7 @@
               planillaFirmadaSiembra, planillaFirmadaMira, planillaFirmadaTrasSubir,
               rifGestorSiembra, rifGestorMira,
               visaGestorMira,
-              importadorMira, bomberosMira, visaEscaleraMira, marcasSeQuedan,
+              importadorMira, bomberosSiembra, bomberosAnotado, librosMira, visaEscaleraMira, marcasSeQuedan,
               /* La ficha de la visa con su «Ya me registré» (1-10-2026). */
               visaFichaAbre, visaFichaMira, visaFichaTrasConfirmar, visaC1Abre, visaC1Mira,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
@@ -8526,8 +8526,15 @@
     var grupos = rec ? [].map.call(rec.querySelectorAll('details'), function(d){
       return d.getAttribute('data-clave') + ':' + d.querySelectorAll('.ay-sitios a.ay-enlace').length;
     }).join(' ') : '(no está)';
-    igual('recaudos: en Ayuda, la licencia, los parafiscales y la conformidad de uso, con sus enlaces',
-          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3');
+    /* Y desde el mismo día, el permiso de bomberos: Miranda y Distrito
+       Capital (Franklin Reyes, 1-10-2026, Permiso de Bomberos). */
+    igual('recaudos: en Ayuda, la licencia, los parafiscales, la conformidad de uso y los bomberos, con sus enlaces',
+          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3 ay_rec_bomberos:2');
+    var bomb = rec ? [].map.call(rec.querySelectorAll('details[data-clave="ay_rec_bomberos"] a.ay-enlace'), function(a){
+      return a.getAttribute('href'); }).join(' ') : '(no está)';
+    igual('recaudos: los de bomberos, Miranda y Distrito Capital, con los enlaces del documento', bomb,
+          'http://www.miranda.gob.ve/index.php/tramites-y-requisitos-bomberos/ ' +
+          'https://www.instagram.com/reel/CjbE4crJOwg/?hl=es-la');
     var t = document.querySelector('.ayuda-vista .ay-rec-h .t');
     igual('recaudos: con su título', t ? t.textContent : '(sin título)', u.ay_rec_t);
     var ivss = rec && [].filter.call(rec.querySelectorAll('a.ay-enlace'), function(a){
@@ -9457,7 +9464,9 @@
      CAMBIÓ EL 1-10-2026 (Franklin Reyes, Taquilla única opción 2): «el
      mismo proceso que la licencia». Sin recaudos -se fueron las pruebas de
      la lista del SIGAT, que ya no se pide aquí, y se quedan las de la regla
-     siExiste, que sigue viva en bomberos-, tres campos y la escalera
+     siExiste, que sigue viva en el panel (desde el mismo 1-10-2026 sin
+     ningún recaudo que la use: el bomberos, el último, se quedó también
+     sin recaudos; queda para el próximo tipo nuevo)-, tres campos y la escalera
      «Solicita la conformidad de uso… a través del portal de la alcaldía →
      Emisión… en proceso → Conformidad de uso emitida», con el paso 1
      marcado por el inversionista. La escalera se cuenta sin base; el
@@ -10171,56 +10180,190 @@
     setTimeout(sigue, 100);
   }
 
-  function bomberosMira(){
-    if (PASE !== 'vacio') return;
-    var R = window.CIIP_RECAUDOS;
-    if (!R) return ok('bomberos: la lista de recaudos está a mano', false, 'no está', 'window.CIIP_RECAUDOS');
-    var recs = R.de('permiso_bomberos');
-    var de = function(t){ return recs.filter(function(r){ return r.tipo === t; })[0] || {}; };
-    igual('bomberos: pide la cédula o el pasaporte del representante legal', de('cedula').clave, 'd_cedpasrep');
-    igual('bomberos: y su RIF', de('rif_personal').clave, 'd_rifrep');
-    igual('bomberos: y el documento constitutivo de la empresa', de('acta_constitutiva').clave, 'd_docconst');
-    ok('bomberos: sin perder los de antes',
-       ['conformidad_uso', 'plano_local', 'rif_empresa'].every(function(t){ return !!de(t).tipo; }) &&
-         de('mantenimiento_extintores').opcional === true,
-       recs.map(function(r){ return r.tipo; }).join(', '), 'conformidad, plano, RIF y extintores opcional');
-    igual('bomberos: con los rótulos del CIIP', window.CIIP_T().d_docconst, 'Documento constitutivo de la empresa');
-    /* Y el 29-9-2026: el contrato o título y el plano de seguridad. */
-    igual('bomberos: pide el contrato de arrendamiento o título de propiedad', de('titulo_inmueble').clave, 'd_inmueble');
-    ok('bomberos: y el plano 1:50 de los sistemas de seguridad, un tipo propio que espera a la base',
-       de('plano_seguridad').clave === 'd_planoseg' && de('plano_seguridad').siExiste === true,
-       de('plano_seguridad').clave + ' · siExiste ' + de('plano_seguridad').siExiste, 'd_planoseg · siExiste true');
-    igual('bomberos: sin el SQL corrido, el plano de seguridad no se pide',
-          R.vale({tipo: 'plano_seguridad', siExiste: true}, {cedula: true}), false);
-    igual('bomberos: con el rótulo del pedido', window.CIIP_T().d_planoseg,
-          'Plano a escala 1:50 demarcando los sistemas de seguridad');
+  /* ═══════════ EL PERMISO DE BOMBEROS (c29), POR EL PORTAL ═══════════
+     Aquí se medía, del 28-9 al 1-10-2026, la lista de nueve recaudos (los
+     tres del representante y la empresa, el contrato o título, el plano
+     1:50 de seguridad con siExiste), la escalera por etapas de cuatro
+     pasos con el importe de aranceles y su comprobante, que para resolver
+     se pidiera ese comprobante y el registro del importe del día.
 
+     SE RETIRARON EL 1-10-2026, todas, porque lo que medían ya no existe:
+     Franklin Reyes, 1-10-2026, Permiso de Bomberos, rehízo el trámite -sin
+     recaudos, sin importe ni comprobante por el CIIP; lo solicita el
+     inversionista en el portal de los bomberos de su estado-. La regla
+     siExiste que se medía con el plano de seguridad sigue medida en
+     conformidadMira.
+
+     Lo que se mide ahora: los tres campos con el estado entre Distrito
+     Capital y Miranda, que no pide recaudos, que ya no va por etapas ni
+     pide importe ni comprobante, la escalera de cuatro pasos con sus dos
+     marcas, el enlace del paso 1 según el estado, el botón «Ya la
+     solicité», la caja de la sede con su botón, la nota de la sede ya
+     dicha, lo que ve el gestor y que reenviar no la borra. La caja se
+     pulsa aquí -vacía y luego con la sede- y lo que contestó la base se
+     mira en bomberosAnotado. */
+  var BO_SEDE = null;
+  function bomberosSiembra(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var M = window.CIIP_MARCA, I = window.CIIP_IMPORTE, R = window.CIIP_RECAUDOS,
+        PM = window.CIIP_PASO_MIO, C = window.CIIP_CONSERVA_MARCAS;
+    if (!M || !I || !R || !PM || !C){
+      ok('bomberos: las piezas están a mano', false, 'falta alguna',
+         'CIIP_MARCA, CIIP_IMPORTE, CIIP_RECAUDOS, CIIP_PASO_MIO, CIIP_CONSERVA_MARCAS');
+      return sigue();
+    }
+    var u = window.CIIP_T();
+    var tr = function(id, estado, datos){
+      return {id: id, tipo: 'permiso_bomberos', estado: estado, datos: datos || {}, inversionista: 'u2', gestor: 'u1'};
+    };
+
+    /* El formulario: tres campos, el estado entre los dos del documento. */
+    igual('bomberos: pregunta solo razón social, RIF y el estado del local',
+          R.campos('permiso_bomberos').map(function(c){ return c.n; }).join(','), 'razon_social,rif_empresa,estado_local');
+    var est = R.campos('permiso_bomberos').filter(function(c){ return c.n === 'estado_local'; })[0] || {};
+    igual('bomberos: el estado se elige entre Distrito Capital y Miranda',
+          (est.opciones || []).join(','), 'Distrito Capital,Miranda');
+    igual('bomberos: con su rótulo', u[est.clave], 'Estado donde está el local');
+    igual('bomberos: ya no pide recaudos',
+          R.de('permiso_bomberos').map(function(r){ return r.tipo; }).join(', ') || 'ninguno', 'ninguno');
+
+    /* Lo que se fue con la escalera por etapas. */
+    igual('bomberos: ya no va por la escalera por etapas', M.escalera(tr('bo-a', 'enviado'), 'permiso_bomberos'), null);
+    ok('bomberos: ni tiene importe del día',
+       !(I.registro && I.registro.permiso_bomberos), I.registro && I.registro.permiso_bomberos ? 'lo tiene' : 'no', 'no');
+    igual('bomberos: para resolver no pide comprobante, solo el certificado emitido',
+          M.comprobante(tr('bo-b', 'ante_el_ente')), null);
+
+    /* La escalera de cuatro pasos, con las dos marcas. */
     var cat = window.CIIP_TIPOS_POR_REF, puesto = false;
     if (cat && !cat.c29){ cat.c29 = {codigo: 'permiso_bomberos', ref_panel: 'c29', ente: 'Cuerpo de Bomberos', activo: true}; puesto = true; }
-    var esc = function(estado, pasos){
-      return window.CIIP_ESCALERA({estado: estado, datos: {pasos_ciip: pasos || {}}}, 'permiso_bomberos', 'Cuerpo de Bomberos');
+    var esc = function(estado, datos){
+      return window.CIIP_ESCALERA({estado: estado, datos: datos || {}}, 'permiso_bomberos', 'Cuerpo de Bomberos');
     };
-    var dibujo = function(E){ return E.todos.map(function(p){ return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(','); };
-    igual('bomberos: cuatro pasos, con el importe de aranceles y su comprobante en medio',
+    var dibujo = function(estado, datos){
+      return esc(estado, datos).todos.map(function(p){ return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(',');
+    };
+    igual('bomberos: cuatro pasos, los del documento',
           esc('enviado').todos.map(function(p){ return p.nombre; }).join(' → '),
-          'Revisión de recaudos → Importe por aranceles correspondientes → Comprobante de pago de aranceles → Permiso otorgado');
-    igual('bomberos: en revisión, la revisión en curso', dibujo(esc('en_revision')), 'ahora,porhacer,porhacer,porhacer');
-    igual('bomberos: ante los bomberos, espera el importe', dibujo(esc('ante_el_ente')), 'hecho,ahora,porhacer,porhacer');
-    var ya = new Date().toISOString();
-    igual('bomberos: con el importe, espera el comprobante',
-          dibujo(esc('ante_el_ente', {importe_aranceles: ya})), 'hecho,hecho,ahora,porhacer');
-    igual('bomberos: con el comprobante, espera el permiso',
-          dibujo(esc('ante_el_ente', {importe_aranceles: ya, pago_aranceles: ya})), 'hecho,hecho,hecho,ahora');
-    igual('bomberos: resuelto, otorgado', dibujo(esc('resuelto')), 'hecho,hecho,hecho,hecho');
-    var M = window.CIIP_MARCA;
-    var pide = M && M.comprobante({id: 'bo-x', tipo: 'permiso_bomberos', estado: 'ante_el_ente', datos: {}});
-    igual('bomberos: para resolver pide el comprobante de los aranceles',
-          pide ? pide.tipo + ' · ' + (pide.pasos || []).join('+') : '(nada)', 'pago_importe_dia · aranceles');
-    var reg = window.CIIP_IMPORTE && window.CIIP_IMPORTE.registro.permiso_bomberos;
-    igual('bomberos: el importe del día, con nombre y ante los bomberos',
-          reg ? reg.map(function(x){ return x.paso + ' · ' + x.estados.join('+'); }).join(', ') : '(sin registro)',
-          'aranceles · ante_el_ente');
+          'Realiza tu solicitud de permiso de bomberos a través del portal → ' +
+          'Indica la sede de bomberos en la cual introdujiste la solicitud → ' +
+          'Solicitud en revisión → Certificado de bomberos emitido');
+    igual('bomberos: por la escalera de lista, no por etapas', !!esc('enviado').porEtapas, false);
+    var sol = {bomberos_solicitado: '2026-10-01T10:00:00-04:00'};
+    var ambas = {bomberos_solicitado: '2026-10-01T10:00:00-04:00', sede_bomberos: 'Estación Los Ruices'};
+    igual('bomberos: recibida y sin marcar, el paso 1 está en curso', dibujo('enviado'), 'ahora,porhacer,porhacer,porhacer');
+    igual('bomberos: y aunque el gestor la mueva, sin la marca no avanza',
+          [dibujo('en_revision'), dibujo('ante_el_ente')].join(' | '),
+          'ahora,porhacer,porhacer,porhacer | ahora,porhacer,porhacer,porhacer');
+    igual('bomberos: solicitada, toca indicar la sede', dibujo('enviado', sol), 'hecho,ahora,porhacer,porhacer');
+    igual('bomberos: una sede sin la solicitud marcada no se salta el paso 1',
+          dibujo('enviado', {sede_bomberos: 'X'}), 'ahora,porhacer,porhacer,porhacer');
+    igual('bomberos: con la sede, «Solicitud en revisión» queda en curso aunque siga recibida',
+          dibujo('enviado', ambas), 'hecho,hecho,ahora,porhacer');
+    igual('bomberos: y ante los bomberos, igual: el certificado no se promete antes',
+          dibujo('ante_el_ente', ambas), 'hecho,hecho,ahora,porhacer');
+    igual('bomberos: devuelta, vuelve al principio aunque esté marcada', dibujo('devuelto', ambas), 'ahora,porhacer,porhacer,porhacer');
+    igual('bomberos: resuelto, todo hecho', dibujo('resuelto'), 'hecho,hecho,hecho,hecho');
+
+    /* El enlace del paso 1: el portal de los bomberos del estado. */
+    var url = function(n, datos){ var e = PM.enlace('c29', n, {datos: datos}); return e ? e.url : '(ninguno)'; };
+    igual('bomberos: en Miranda, el portal de la gobernación de Miranda', url(1, {estado_local: 'Miranda'}),
+          'https://servicios.miranda.gob.ve/RegistroNatural?url=https://servicios.miranda.gob.ve:8006/Solicitud');
+    igual('bomberos: en Distrito Capital, el de la gobernación 1', url(1, {estado_local: 'Distrito Capital'}),
+          'https://contribuyentes.gobernacion.web.ve/?gobernacion=1');
+    igual('bomberos: sin estado no hay enlace', url(1, {}), '(ninguno)');
+    igual('bomberos: ni con uno que no está en la tabla', url(1, {estado_local: 'Zulia'}), '(ninguno)');
+    igual('bomberos: y el paso 2 no lleva enlace', url(2, {estado_local: 'Miranda'}), '(ninguno)');
+    var a = PM.enlacePintado('c29', 1, {datos: {estado_local: 'Miranda'}});
+    igual('bomberos: el enlace pintado dice adónde va y se abre aparte',
+          a ? a.textContent + ' · ' + a.target : '(sin enlace)', u.p_irbomberos + ' · _blank');
+
+    /* El botón del paso 1 y la caja del paso 2. */
+    var b1 = PM.boton(tr('bo-1', 'enviado'), 'c29', 1, null, null);
+    igual('bomberos: el paso 1 dice «Ya la solicité» y marca bomberos_solicitado',
+          b1 ? b1.textContent + ' · ' + b1.getAttribute('data-clave') : '(sin botón)', 'Ya la solicité · bomberos_solicitado');
+    var c2 = PM.boton(tr('bo-2', 'enviado', sol), 'c29', 2, null, null);
+    var campo = c2 && c2.querySelector('input.tr-dato-v'), bt2 = c2 && c2.querySelector('button.tr-hacer');
+    ok('bomberos: el paso 2 es una caja para escribir la sede, con su botón',
+       !!campo && !!bt2 && bt2.getAttribute('data-clave') === 'sede_bomberos',
+       c2 ? (campo ? 'caja' : 'sin caja') + ' · ' + (bt2 ? bt2.textContent + ' ' + bt2.getAttribute('data-clave') : 'sin botón') : '(nada)',
+       'caja · ' + u.p_guardasede + ' sede_bomberos');
+    igual('bomberos: la caja dice qué escribir', campo ? campo.placeholder : '(sin caja)', u.p_sede_ph);
+    igual('bomberos: con la sede ya dicha, la caja no se vuelve a ofrecer',
+          PM.boton(tr('bo-3', 'enviado', ambas), 'c29', 2, null, null), null);
+    igual('bomberos: y los pasos 3 y 4 no llevan nada',
+          [PM.boton(tr('bo-4', 'enviado', ambas), 'c29', 3, null, null),
+           PM.boton(tr('bo-4', 'enviado', ambas), 'c29', 4, null, null)].map(String).join(','), 'null,null');
+
+    /* La sede ya dicha, en su paso y en el expediente del gestor. */
+    var nota = PM.nota(tr('bo-5', 'enviado', ambas), 'c29', 2);
+    igual('bomberos: hecho el paso 2, se ve qué sede se dijo', nota ? nota.textContent : '(sin nota)',
+          u.p_sede + ': Estación Los Ruices');
+    igual('bomberos: sin sede, ninguna nota', PM.nota(tr('bo-6', 'enviado', sol), 'c29', 2), null);
+    igual('bomberos: el paso 1 no lleva nota, solo marca', PM.nota(tr('bo-7', 'enviado', ambas), 'c29', 1), null);
+    igual('bomberos: el gestor ve la sede en el expediente',
+          PM.delGestor(tr('bo-8', 'ante_el_ente', ambas)).map(function(d){ return d.rotulo + ': ' + d.valor; }).join(' | '),
+          u.p_sede + ': Estación Los Ruices');
+    igual('bomberos: y en otro trámite no sale nada',
+          PM.delGestor({id: 'lc-z', tipo: 'licencia_municipal', datos: ambas}).length, 0);
     if (puesto) delete cat.c29;
+
+    /* Reenviar una devuelta no borra la solicitud marcada ni la sede. */
+    igual('bomberos: al reenviar se quedan la marca y la sede',
+          Object.keys(C({bomberos_solicitado: 'a', sede_bomberos: 'b', razon_social: 'Vieja C.A.'})).sort().join(','),
+          'bomberos_solicitado,sede_bomberos');
+
+    /* Y se pulsa: vacía no llama a la base y lo dice; con la sede escrita,
+       va a anota_paso con lo escrito, recortado. La solicitud la pone la
+       prueba en __TRAMITES_EXTRA para que la base de mentira la encuentre:
+       solo sale en el detalle de un permiso de bomberos, que ninguna
+       prueba abre. */
+    BO_SEDE = {tr: tr('bo-sede', 'enviado', {estado_local: 'Miranda', bomberos_solicitado: '2026-10-01T10:00:00-04:00'}),
+               marcado: null, vacia: null};
+    window.__TRAMITES_EXTRA = [BO_SEDE.tr];
+    window.CIIP_PRUEBA_ANOTA_PASO = [];
+    var caja = PM.boton(BO_SEDE.tr, 'c29', 2, null, function(t){ BO_SEDE.marcado = t; });
+    if (!caja) return sigue();
+    var cv = caja.querySelector('input.tr-dato-v'), bv = caja.querySelector('button.tr-hacer');
+    bv.click();
+    BO_SEDE.vacia = {llamo: (window.CIIP_PRUEBA_ANOTA_PASO || []).length,
+                     dice: (caja.querySelector('.tr-nota.mal') || {}).textContent || ''};
+    cv.value = '  Estación Los Ruices  ';
+    bv.click();
+    setTimeout(sigue, 100);
+  }
+  function bomberosAnotado(sigue){
+    if (PASE !== 'vacio' || !BO_SEDE) return sigue();
+    var u = window.CIIP_T();
+    igual('bomberos: con la caja vacía no se llama a la base, y se dice qué falta',
+          BO_SEDE.vacia ? BO_SEDE.vacia.llamo + ' · ' + BO_SEDE.vacia.dice : '(no se pulsó)', '0 · ' + u.p_sede_falta);
+    var pedido = (window.CIIP_PRUEBA_ANOTA_PASO || [])[0] || {};
+    igual('bomberos: con la sede, pide a la base anota_paso con lo escrito y sin espacios de más',
+          pedido.p_tramite + ' · ' + pedido.p_clave + ' · ' + pedido.p_valor, 'bo-sede · sede_bomberos · Estación Los Ruices');
+    var t = BO_SEDE.marcado;
+    igual('bomberos: y la sede vuelve de la base a la solicitud, sin perder la marca de antes',
+          t ? [t.datos.sede_bomberos, !!t.datos.bomberos_solicitado].join(' · ') : '(sin respuesta)',
+          'Estación Los Ruices · true');
+    var cat = window.CIIP_TIPOS_POR_REF, puesto = false;
+    if (cat && !cat.c29){ cat.c29 = {codigo: 'permiso_bomberos', ref_panel: 'c29', ente: 'Cuerpo de Bomberos', activo: true}; puesto = true; }
+    var E = t ? window.CIIP_ESCALERA(t, 'permiso_bomberos', 'Cuerpo de Bomberos') : null;
+    var ahora = E ? E.todos.filter(function(p){ return p.ahora; })[0] : null;
+    igual('bomberos: tras indicar la sede, el paso 3 es el que está en curso',
+          ahora ? ahora.n + '. ' + ahora.nombre : '(ninguno)', '3. Solicitud en revisión');
+    if (puesto) delete cat.c29;
+    BO_SEDE = null;
+    window.__TRAMITES_EXTRA = null;
+    window.CIIP_PRUEBA_ANOTA_PASO = null;
+    sigue();
+  }
+
+  /* El sellado de libros (c24). Vivía al final de la prueba del bomberos
+     -bomberosMira- y se quedó solo cuando el bomberos dejó la escalera por
+     etapas el 1-10-2026: mismo contenido, con su nombre. */
+  function librosMira(){
+    if (PASE !== 'vacio') return;
+    var cat = window.CIIP_TIPOS_POR_REF;
+    var dibujo = function(E){ return E.todos.map(function(p){ return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(','); };
 
     /* El sellado de libros (c24), 29-9-2026: «Revisión de recaudos →
        Consignación de libros en el CIIP» delante, y la consignación ya no
@@ -12479,10 +12622,11 @@
     /* Y desde el 1-10-2026, la licencia, la conformidad de uso y el
        Registro Único Minero: con la Taquilla única opción 2 (Franklin
        Reyes) no piden ningún papel, así que no hay documento que lea el
-       lector. No es un olvido: es que no hay nada que soltar. */
-    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI y las tres sin recaudos',
+       lector. No es un olvido: es que no hay nada que soltar. Y el mismo
+       día el permiso de bomberos (Franklin Reyes, Permiso de Bomberos). */
+    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI y las cuatro sin recaudos',
           window.CIIP_SIN_LECTOR ? window.CIIP_SIN_LECTOR().join(', ') : '(no está la función)',
-          'licencia_municipal, conformidad_uso, opinion_zodi, registro_minero, firma_electronica');
+          'licencia_municipal, conformidad_uso, permiso_bomberos, opinion_zodi, registro_minero, firma_electronica');
   }
 
   /* La situacion que se quiere medir: alguien que TODAVIA no tiene empresa

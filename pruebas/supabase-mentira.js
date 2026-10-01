@@ -2668,7 +2668,9 @@
              entera con datos al día, que es lo que repinta la ficha. */
           if (nombre === 'confirma_paso'){
             window.CIIP_PRUEBA_CONFIRMA_PASO = (window.CIIP_PRUEBA_CONFIRMA_PASO || []).concat([args]);
-            var llaves = ['cancilleria_confirmada', 'licencia_solicitada', 'conformidad_solicitada', 'minero_solicitado'];
+            /* Y la del permiso de bomberos (1-10-2026, supabase-bomberos-opcion2.sql). */
+            var llaves = ['cancilleria_confirmada', 'licencia_solicitada', 'conformidad_solicitada', 'minero_solicitado',
+                          'bomberos_solicitado'];
             var rCP;
             if (!args || llaves.indexOf(args.p_clave) < 0){
               rCP = {data: null, error: {message: 'paso desconocido: ' + (args && args.p_clave), code: 'P0001'}};
@@ -2681,6 +2683,30 @@
               rCP = {data: {id: args.p_tramite, estado: tCP ? tCP.estado : 'enviado', datos: datosCP}, error: null};
             }
             return {then:function(bien, mal){ return Promise.resolve(rCP).then(bien, mal); }};
+          }
+          /* La sede de bomberos (Franklin Reyes, 1-10-2026, Permiso de
+             Bomberos): anota_paso() como la de verdad
+             (supabase-bomberos-opcion2.sql). Solo su llave, y el dato entre 1
+             y 200 caracteres ya recortado; escribe lo dicho, no la fecha, y
+             devuelve la fila. Apunta lo pedido en CIIP_PRUEBA_ANOTA_PASO. */
+          if (nombre === 'anota_paso'){
+            window.CIIP_PRUEBA_ANOTA_PASO = (window.CIIP_PRUEBA_ANOTA_PASO || []).concat([args]);
+            var vAP = String((args && args.p_valor) || '').trim();
+            var rAP;
+            if (!args || args.p_clave !== 'sede_bomberos'){
+              rAP = {data: null, error: {message: 'paso desconocido: ' + (args && args.p_clave), code: 'P0001'}};
+            } else if (!vAP || vAP.length > 200){
+              rAP = {data: null, error: {message: 'el dato tiene que tener entre 1 y 200 caracteres', code: 'P0001'}};
+            } else {
+              var tAP = (TRAMITES[caso] || []).concat(window.__TRAMITES_EXTRA || [])
+                        .filter(function(t){ return t.id === args.p_tramite; })[0];
+              var datosAP = {};
+              Object.keys((tAP && tAP.datos) || {}).forEach(function(k){ datosAP[k] = tAP.datos[k]; });
+              datosAP[args.p_clave] = vAP;
+              if (tAP) tAP.datos = datosAP;
+              rAP = {data: {id: args.p_tramite, estado: tAP ? tAP.estado : 'enviado', datos: datosAP}, error: null};
+            }
+            return {then:function(bien, mal){ return Promise.resolve(rAP).then(bien, mal); }};
           }
           if ((nombre === 'marca_paso_ciip' || nombre === 'habilita_contestacion') && window.__MARCA_RPC){
             window.CIIP_PRUEBA_MARCA = (window.CIIP_PRUEBA_MARCA || []).concat([{nombre: nombre, args: args}]);

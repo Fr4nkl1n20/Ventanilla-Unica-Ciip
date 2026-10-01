@@ -3395,17 +3395,17 @@ applyLang(idiomaParaMi());
        nuevo, plano_seguridad (supabase-bomberos.sql): no es el croquis del
        local, y si fuera plano_local la bóveda ofrecería el croquis como si
        valiera. Lleva siExiste: hasta que la base lo conozca no se pide. */
-    permiso_bomberos: [
-      {tipo:'conformidad_uso',   clave:'d_conformidad'},
-      {tipo:'titulo_inmueble',   clave:'d_inmueble'},
-      {tipo:'plano_local',       clave:'d_plano'},
-      {tipo:'plano_seguridad',   clave:'d_planoseg',    siExiste:true},
-      {tipo:'rif_empresa',       clave:'d_rifempresa'},
-      {tipo:'cedula',            clave:'d_cedpasrep'},
-      {tipo:'rif_personal',      clave:'d_rifrep'},
-      {tipo:'acta_constitutiva', clave:'d_docconst'},
-      {tipo:'mantenimiento_extintores', clave:'d_extintores', opcional:true}
-    ],
+    /* SIN RECAUDOS desde el 1-10-2026 (Franklin Reyes, 1-10-2026, Permiso
+       de Bomberos: «El paso de recaudos debe eliminarse»). La solicitud la
+       hace el propio inversionista en el portal de los bomberos de su
+       estado -Miranda o Distrito Capital-, y es ese portal el que le pide
+       allí los papeles. Lo que pedía hasta hoy era: conformidad de uso,
+       contrato o título del inmueble, plano del local, plano 1:50 de los
+       sistemas de seguridad, RIF de la empresa, cédula o pasaporte y RIF
+       del representante legal, documento constitutivo y, opcional, el
+       contrato de mantenimiento de extintores. Los dos tipos que solo
+       pedía él siguen nombrándose en la bóveda: ver SOLO_NOMBRE. */
+    permiso_bomberos: [],
     /* El estudio de impacto va opcional a propósito. La hoja avisa de que
        los recaudos y la evaluación dependen del nivel de impacto o riesgo:
        una oficina no necesita el estudio que sí necesita una planta.
@@ -4059,6 +4059,24 @@ applyLang(idiomaParaMi());
   };
   var MUNICIPIOS_DEL_LOCAL = Object.keys(PORTAL_DE_LA_ALCALDIA);
 
+  /* ── EL PORTAL DE LOS BOMBEROS DE CADA ESTADO ──
+     Franklin Reyes, 1-10-2026, Permiso de Bomberos: el permiso lo solicita
+     el propio inversionista en el portal de los bomberos del estado donde
+     está el local, y el formulario solo pregunta cuál de los dos: «Distrito
+     Capital / Miranda». El desplegable sale de aquí, como el de los
+     municipios: un estado nuevo es un renglón, y no puede haber uno en la
+     lista que no tenga adónde llevar (ENLACE_DEL_PASO, paso 1 del c29).
+
+     OJO, MIRANDA: el enlace del documento es el del registro de persona
+     natural del portal de la gobernación, que luego lleva a la solicitud
+     (url=...:8006/Solicitud). Se deja tal cual; si el CIIP da otro, es
+     tocar solo este renglón. */
+  var PORTAL_DE_BOMBEROS = {
+    'Distrito Capital': 'https://contribuyentes.gobernacion.web.ve/?gobernacion=1',
+    'Miranda':          'https://servicios.miranda.gob.ve/RegistroNatural?url=https://servicios.miranda.gob.ve:8006/Solicitud'
+  };
+  var ESTADOS_DE_BOMBEROS = Object.keys(PORTAL_DE_BOMBEROS);
+
   var CAMPOS = {
     /* ── el poder de representacion ──
        El tramite estaba en el catalogo desde el 3 de septiembre, con sus
@@ -4607,14 +4625,18 @@ applyLang(idiomaParaMi());
     ],
     /* El aforo es lo que manda en esta inspección: de él salen cuántas
        salidas de emergencia y cuántos extintores hacen falta. */
+    /* TRES CAMPOS desde el 1-10-2026 (Franklin Reyes, 1-10-2026, Permiso
+       de Bomberos): razón social, RIF y «un campo donde el inversionista
+       seleccione Distrito Capital / Miranda»; «los demás campos deben
+       eliminarse». El estado no es texto libre por lo mismo que el
+       municipio de la licencia: de él sale el enlace del paso 1
+       (PORTAL_DE_BOMBEROS). El municipio, la actividad, los metros, el
+       aforo y la dirección los pregunta el portal de los bomberos, y las
+       solicitudes viejas los conservan en tramites.datos. */
     permiso_bomberos: [
       {n:'razon_social',        clave:'f_razon',       ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
-      {n:'municipio',           clave:'f_municipio'},
-      {n:'actividad_economica', clave:'f_actividad'},
-      {n:'metros',              clave:'f_metros',      tipo:'number'},
-      {n:'aforo',               clave:'f_aforo',       tipo:'number'},
-      {n:'direccion_local',     clave:'f_dirlocal',    ancho:true}
+      {n:'estado_local',        clave:'f_estadolocal', opciones:ESTADOS_DE_BOMBEROS}
     ],
     /* El nivel de impacto va delante de todo lo demás porque de él depende
        si esto se resuelve con un registro o con un estudio entero. */
@@ -8668,19 +8690,19 @@ applyLang(idiomaParaMi());
        comprobante al colgarse, y no deja resolver sin el comprobante
        (supabase-bomberos.sql). El permiso lo cierra la resolución, y llega
        como el documento emitido de cualquier trámite. */
-    permiso_bomberos: {
-      ref: 'c29',
-      textos: {titulo: 'bo_g_titulo', importe: 'bo_g_importe', retiro: 'bo_g_retiro'},
-      etapas: [
-        {clave: 'permiso', pasos: [
-          {clave: 'revision',           tipo: 'revision', rotulo: 'bo_p_revision'},
-          {clave: 'importe_aranceles',  tipo: 'importe',  rotulo: 'bo_p_imp_aranceles', importe: 'aranceles'},
-          {clave: 'pago_aranceles',     tipo: 'pago',     rotulo: 'bo_p_pago',          importe: 'aranceles'},
-          {clave: 'permiso',            tipo: 'retiro',   rotulo: 'bo_p_permiso',
-           espera: 'bo_n_permiso_espera', listo: 'bo_n_permiso_listo'}
-        ]}
-      ]
-    },
+    /* SE FUE EL 1-10-2026. Franklin Reyes, 1-10-2026, Permiso de Bomberos,
+       rehízo el trámite como la Taquilla única opción 2: la solicitud la
+       hace el propio inversionista en el portal de los bomberos de su
+       estado, sin recaudos y sin importe ni comprobante por el CIIP, en
+       cuatro pasos -«Realiza tu solicitud de permiso de bomberos a través
+       del portal», «Indica la sede de bomberos en la cual introdujiste la
+       solicitud», «Solicitud en revisión», «Certificado de bomberos
+       emitido»-. Ya no hay nada que contar con esta escalera: va por la de
+       la lista de pasos (escaleraDe(), con PASOS_QUE_MARCAS_TU,
+       ENLACE_DEL_PASO y PASOS_SEGUN_ESTADO), y el certificado llega al
+       resolver como el documento emitido de cualquier trámite. Los textos
+       de la escalera vieja (bo_p_*, bo_g_*) se quedan en pasos.js sin uso,
+       como los de la licencia. */
 
     /* ── EL SELLADO DE LIBROS (c24) ──
        Pedido del CIIP (29-9-2026): «Aquí se marca automáticamente que la
@@ -8750,11 +8772,10 @@ applyLang(idiomaParaMi());
        que las use, para la próxima escalera que devuelva un papel firmado. */
   };
 
-  /* El importe de los aranceles de bomberos, con la solicitud ante los
-     bomberos. La fila de la base es una, la de siempre (supabase-bomberos.sql). */
-  IMPORTE_DEL_DIA.permiso_bomberos = [
-    {paso: 'aranceles', estados: ['ante_el_ente'], rotulo: 'bo_p_imp_aranceles'}
-  ];
+  /* Aquí iba el importe de los aranceles de bomberos. Se fue con su
+     escalera el 1-10-2026 (Franklin Reyes, Permiso de Bomberos): los
+     aranceles los paga el inversionista en el portal de los bomberos, y el
+     CIIP ya no le sube importes. */
 
   /* El PUB del sellado de libros, con la solicitud ante el SAREN. La fila
      de la base es una, la de siempre (supabase-libros.sql). */
@@ -9760,6 +9781,8 @@ applyLang(idiomaParaMi());
     var entrada = ((PASOS_QUE_MARCAS_TU || {})[ref] || {})[n];
     var mio = claveDelPasoMio(entrada);
     if (!mio || ((tr.datos || {})[mio])) return null;
+    if (entrada && typeof entrada === 'object' && entrada.pide)
+      return datoDelPasoMio(tr, entrada, alMarcar);
     var bt = el('button', 'tr-hacer', textoDelPasoMio(entrada, u));
     bt.type = 'button';
     bt.setAttribute('data-clave', mio);
@@ -9785,9 +9808,85 @@ applyLang(idiomaParaMi());
     });
     return bt;
   }
+  /* ── UN PASO TUYO QUE PIDE UN DATO ──
+     Franklin Reyes, 1-10-2026, Permiso de Bomberos: «Indique la sede de
+     bomberos en la cual introdujo la solicitud». No basta un «ya lo
+     hice»: el CIIP necesita saber CUÁL, que es por donde va a preguntar
+     luego. Así que el paso lleva una caja donde se escribe y un botón que
+     lo guarda en tramites.datos por anota_paso(), la hermana de
+     confirma_paso() que escribe lo dicho en vez de la fecha y solo acepta
+     las llaves de su lista (supabase-bomberos-opcion2.sql). Como con el
+     botón, el paso no se pinta hecho hasta que la base contesta: si falta
+     el SQL o la política, se dice, y lo escrito se queda en la caja.
+     Vacío no se manda: un paso hecho con la sede en blanco sería un «ya
+     lo hice» disfrazado. */
+  var MAX_DATO_DEL_PASO = 200;
+  function datoDelPasoMio(tr, entrada, alMarcar){
+    var u = T();
+    var mio = claveDelPasoMio(entrada);
+    var caja = el('div', 'tr-dato');
+    caja.setAttribute('data-clave', mio);
+    var campo = document.createElement('input');
+    campo.type = 'text';
+    campo.className = 'tr-dato-v';
+    campo.maxLength = MAX_DATO_DEL_PASO;
+    campo.placeholder = u[entrada.pide] || '';
+    campo.setAttribute('aria-label', u[entrada.rotulo] || u[entrada.pide] || '');
+    caja.appendChild(campo);
+    var bt = el('button', 'tr-hacer', textoDelPasoMio(entrada, u));
+    bt.type = 'button';
+    bt.setAttribute('data-clave', mio);
+    caja.appendChild(bt);
+    var nota = null;
+    function dice(t){
+      if (!nota){ nota = el('div', 'tr-nota mal'); caja.appendChild(nota); }
+      nota.textContent = t || '';
+    }
+    bt.addEventListener('click', function(){
+      var valor = String(campo.value || '').trim();
+      if (!valor){ dice(u.p_sede_falta || ''); campo.focus(); return; }
+      bt.disabled = true;
+      sb.rpc('anota_paso', {p_tramite: tr.id, p_clave: mio, p_valor: valor})
+        .then(function(r){
+          if (r.error || !r.data) throw (r.error || new Error('sin fila'));
+          tr.datos = (r.data.datos || r.data[0] && r.data[0].datos) || tr.datos;
+          if (alMarcar) alMarcar(tr);
+        })
+        .catch(function(e){
+          bt.disabled = false;
+          dice(u.co_error || '');
+          console.warn('[CIIP] anota_paso:', e && e.message);
+        });
+    });
+    return caja;
+  }
+  /* Lo que se dijo en un paso que pide un dato, ya hecho: «Sede de
+     bomberos: …», para que quien vuelva a la ficha vea qué contestó. */
+  function notaDelPasoMio(tr, ref, n){
+    var u = T();
+    var entrada = ((PASOS_QUE_MARCAS_TU || {})[ref] || {})[n];
+    if (!entrada || typeof entrada !== 'object' || !entrada.pide) return null;
+    var dicho = (tr.datos || {})[entrada.clave];
+    if (!dicho) return null;
+    return el('div', 'tr-nota', (u[entrada.rotulo] || '') + ': ' + String(dicho));
+  }
+  /* Y para el gestor: los datos que el inversionista dio en sus pasos, con
+     su rótulo, para el expediente (pintaExpediente). [{clave, rotulo,
+     valor}], vacío si no hay. */
+  function datosDePasosMios(tr){
+    var u = T();
+    var ref = tipoRefDe(tr.tipo);
+    var tabla = ((PASOS_QUE_MARCAS_TU || {})[ref]) || {};
+    var datos = tr.datos || {};
+    return Object.keys(tabla).map(function(n){ return tabla[n]; })
+      .filter(function(v){ return v && typeof v === 'object' && v.pide && datos[v.clave]; })
+      .map(function(v){ return {clave: v.clave, rotulo: u[v.rotulo] || v.clave, valor: String(datos[v.clave])}; });
+  }
   /* Para las pruebas. */
   window.CIIP_PASO_MIO = {enlace: enlaceDelPaso, enlacePintado: enlaceDelPasoPintado,
-                          boton: botonDelPasoMio, municipios: MUNICIPIOS_DEL_LOCAL};
+                          boton: botonDelPasoMio, municipios: MUNICIPIOS_DEL_LOCAL,
+                          estadosBomberos: ESTADOS_DE_BOMBEROS,
+                          nota: notaDelPasoMio, delGestor: datosDePasosMios};
 
   function pintaEstado(tipo, tr){
     var u = T();
@@ -10023,6 +10122,10 @@ applyLang(idiomaParaMi());
                local, en la licencia y la conformidad-: enlaceDelPaso(). */
             var enl = enlaceDelPasoPintado(refTr, nPaso, tr);
             if (enl) txt.appendChild(enl);
+            /* Y lo que se contestó en un paso que pide un dato -la sede de
+               bomberos-, ya hecho: notaDelPasoMio(). */
+            var dichoP = hecho ? notaDelPasoMio(tr, refTr, nPaso) : null;
+            if (dichoP) txt.appendChild(dichoP);
             /* ── «YA ME REGISTRÉ» ──
                El botón que mueve el paso que ningún estado puede mover.
                Solo sale mientras el paso está EN CURSO: una vez marcado,
@@ -15354,6 +15457,18 @@ applyLang(idiomaParaMi());
         caja.appendChild(fila);
       });
     }
+    /* 1b. Y lo que dijo en sus pasos, después de enviar: la sede de
+       bomberos donde introdujo la solicitud (Franklin Reyes, 1-10-2026,
+       Permiso de Bomberos). No es un campo del formulario, así que la
+       vuelta de arriba no lo ve; y es justo lo que el gestor necesita para
+       saber adónde preguntar. */
+    datosDePasosMios(tr).forEach(function(d){
+      var fila = el('div', 'co-dato');
+      fila.setAttribute('data-clave', d.clave);
+      fila.appendChild(el('span', 'k', d.rotulo + ':'));
+      fila.appendChild(el('span', 'v', d.valor));
+      caja.appendChild(fila);
+    });
 
     /* 2. lo que subió */
     var lista = el('div');
@@ -17534,8 +17649,12 @@ applyLang(idiomaParaMi());
         var cuando = k && (t.datos || {})[k];
         var fila = el('div', 'co-dato');
         fila.appendChild(el('span', 'k', ((nombres[refM] || [])[n - 1] || '') + ':'));
-        fila.appendChild(el('span', 'v' + (cuando ? ' marcado' : ''),
-          cuando ? String(u.pe_marcado || '{f}').replace('{f}', fecha(cuando)) : (u.pe_nada_aun || '')));
+        /* Un paso que pide un dato -la sede de bomberos- guarda lo escrito,
+           no una fecha: se enseña tal cual. */
+        var dicho = !cuando ? (u.pe_nada_aun || '')
+                  : (v && typeof v === 'object' && v.pide) ? String(cuando)
+                  : String(u.pe_marcado || '{f}').replace('{f}', fecha(cuando));
+        fila.appendChild(el('span', 'v' + (cuando ? ' marcado' : ''), dicho));
         s3.appendChild(fila);
       });
       izq.appendChild(s3);
@@ -23137,7 +23256,21 @@ applyLang(idiomaParaMi());
     c38: {1: 'cancilleria_confirmada'},
     c10: {1: {clave: 'licencia_solicitada',    texto: 'p_yalasolicite'}},
     c28: {1: {clave: 'conformidad_solicitada', texto: 'p_yalasolicite'}},
-    c36: {1: {clave: 'minero_solicitado',      texto: 'p_yalosolicite'}}
+    c36: {1: {clave: 'minero_solicitado',      texto: 'p_yalosolicite'}},
+    /* Y el permiso de bomberos (Franklin Reyes, 1-10-2026, Permiso de
+       Bomberos), con DOS pasos del inversionista: solicitarlo en el portal
+       de los bomberos de su estado («Ya la solicité») e indicar en qué sede
+       de bomberos introdujo la solicitud. El segundo no es un «ya lo
+       hice»: hay que decir cuál, y por eso lleva 'pide' -el texto de
+       ejemplo de la caja donde se escribe-. Esa marca no la escribe
+       confirma_paso() con la fecha sino anota_paso() con lo escrito
+       (supabase-bomberos-opcion2.sql), y el paso está hecho cuando
+       datos.sede_bomberos tiene algo. Ver datoDelPasoMio(). El documento no
+       dice quién cierra «Solicitud en revisión»: en curso desde que se
+       indica la sede, como el «en proceso» de la licencia, y el
+       certificado lo cierra el gestor al resolver con él. */
+    c29: {1: {clave: 'bomberos_solicitado', texto: 'p_yalasolicite'},
+          2: {clave: 'sede_bomberos',       texto: 'p_guardasede', pide: 'p_sede_ph', rotulo: 'p_sede'}}
   };
   /* La llave de un paso que marcas tú, y el texto de su botón: la entrada
      puede ser la llave a secas -como las de las visas- o {clave, texto}. */
@@ -23195,10 +23328,17 @@ applyLang(idiomaParaMi());
        la cuenta de siempre pondría «Visa otorgada» en curso con la
        solicitud en revisión, que es prometer la visa antes de tiempo. */
     c1:  {borrador:0, devuelto:1, enviado:1, en_revision:1, ante_el_ente:1},
-    c38: {borrador:0, devuelto:1, enviado:1, en_revision:1, ante_el_ente:1}
+    c38: {borrador:0, devuelto:1, enviado:1, en_revision:1, ante_el_ente:1},
     /* El permiso de bomberos (c29) estuvo aquí el 28-9-2026, con dos pasos.
-       Desde el 29, con el importe de aranceles y su comprobante en medio,
-       lo cuenta su escalera por etapas (ESCALERA_POR_ETAPAS). */
+       Del 29-9 al 1-10-2026, con el importe de aranceles y su comprobante
+       en medio, lo contó su escalera por etapas (ESCALERA_POR_ETAPAS).
+       Y vuelve el 1-10-2026 (Franklin Reyes, Permiso de Bomberos) con
+       CUATRO pasos, los dos primeros del inversionista: enviada no hay nada
+       hecho, y lo que mueve la escalera son sus dos marcas
+       (PASOS_QUE_MARCAS_TU), no el estado. Con las dos, «Solicitud en
+       revisión» queda en curso en cualquier estado hasta resolverse. Sin
+       esta línea, cuatro pasos irían por los rótulos del circuito. */
+    c29: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:0}
   };
 
   /* ── UN TRÁMITE CON DOS ESCALERAS ──
@@ -23258,7 +23398,11 @@ applyLang(idiomaParaMi());
     c38: {1: {url: 'https://cancilleriadigital.mppre.gob.ve/', clave: 'p_ircancilleria'}},
     c10: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
     c28: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
-    c36: {1: {url: 'https://sigdme2-0.desarrollominero.gob.ve/', clave: 'p_irsigdme'}}
+    c36: {1: {url: 'https://sigdme2-0.desarrollominero.gob.ve/', clave: 'p_irsigdme'}},
+    /* El permiso de bomberos (Franklin Reyes, 1-10-2026, Permiso de
+       Bomberos): el portal de los bomberos según el estado que contestó,
+       Miranda o Distrito Capital (PORTAL_DE_BOMBEROS). */
+    c29: {1: {campo: 'estado_local', urls: PORTAL_DE_BOMBEROS, clave: 'p_irbomberos'}}
   };
   /* Adónde lleva el paso n del trámite ref, para ESTA solicitud: {url,
      clave} o null. */
@@ -24692,11 +24836,12 @@ applyLang(idiomaParaMi());
        en el portal de su alcaldía y el CIIP no ve esos pagos: el gestor la
        resuelve con la licencia emitida y nada más. El freno de la base
        (supabase-licencia.sql) lo quita su propio SQL. */
-    /* El permiso de bomberos (29-9-2026): «Permiso otorgado» va detrás del
-       comprobante de pago de aranceles, y la base tampoco lo deja resolver
-       sin él (supabase-bomberos.sql). */
-    if (t.tipo === 'permiso_bomberos')
-      return {tipo: 'pago_importe_dia', pasos: ['aranceles'], aviso: 'co_faltabomberos'};
+    /* El permiso de bomberos pedía aquí, del 29-9 al 1-10-2026, el
+       comprobante de pago de aranceles. Desde el documento de Franklin
+       Reyes (1-10-2026, Permiso de Bomberos) la solicitud y el pago los
+       hace el inversionista en el portal de los bomberos, y el CIIP no ve
+       ese pago: el gestor lo resuelve con el certificado emitido y nada
+       más. El freno de la base lo quita supabase-bomberos-opcion2.sql. */
     /* El sellado de libros (29-9-2026): «Libros sellados» va detrás del
        comprobante de pago del PUB (supabase-libros.sql). */
     if (t.tipo === 'libros_contables')
@@ -25060,7 +25205,9 @@ applyLang(idiomaParaMi());
     cab2.appendChild(tit2);
     ayLista.appendChild(cab2);
     var caja2 = el('div', 'faq ay-rec');
-    ['licencia', 'parafiscales', 'conformidad'].forEach(function(k){
+    /* Y el permiso de bomberos, uno por estado (Franklin Reyes, 1-10-2026,
+       Permiso de Bomberos, «Casilla Ayuda y Guías: incluir»). */
+    ['licencia', 'parafiscales', 'conformidad', 'bomberos'].forEach(function(k){
       var kt = 'ay_rec_' + k, kl = kt + '_lista';
       caja2.appendChild(grupo({kt: kt, t: u[kt] || es[kt], kl: kl, l: u[kl] || es[kl]}));
     });
@@ -25205,7 +25352,10 @@ applyLang(idiomaParaMi());
          a subirlo para nada. */
       [['carta_solicitud_empresa', 'd_cartaempresa'], ['planilla_visa', 'd_planilla_visa'],
        ['registro_comercio', 'd_registrocom'], ['solvencia_economica', 'd_solvecon'],
-       ['antecedentes', 'd_antecjur'], ['certificado_medico_origen', 'd_medicoorigen']
+       ['antecedentes', 'd_antecjur'], ['certificado_medico_origen', 'd_medicoorigen'],
+       /* Y los dos que solo pedía el permiso de bomberos hasta el mismo
+          1-10-2026 (Franklin Reyes, Permiso de Bomberos: sin recaudos). */
+       ['plano_seguridad', 'd_planoseg'], ['mantenimiento_extintores', 'd_extintores']
       ].forEach(function(p){
         if (!CLAVE_DE_TIPO[p[0]]) CLAVE_DE_TIPO[p[0]] = p[1];
         if (CLAVE_DE_TIPO[p[0]] === p[1]) SOLO_NOMBRE[p[0]] = true;

@@ -3097,6 +3097,16 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-nota{font-size:var(--fs-nota); font-weight:400; line-height:1.4;
   color:var(--gray-soft); margin-top:6px;}
 .tr-nota.mal{color:var(--rust);}
+/* Un paso tuyo que pide un dato -la sede de bomberos donde introdujiste
+   la solicitud (Franklin Reyes, 1-10-2026, Permiso de Bomberos)-: la caja
+   y su botón en una línea, como el código de un ente (.pe-form); en un
+   móvil la caja se queda sola arriba. El botón ya trae su margen. */
+.tr-dato{display:flex; align-items:flex-end; gap:6px; flex-wrap:wrap;}
+.tr-dato .tr-dato-v{flex:0 1 280px; width:280px; max-width:100%; min-width:0; box-sizing:border-box;
+  padding:6px 8px; font:inherit; font-size:var(--fs-nota); border:1px solid var(--line);
+  border-radius:var(--r-sm); background:var(--bg); color:var(--ink); margin-top:8px;}
+.tr-dato .tr-dato-v:focus{outline:none; border-color:var(--cyan-deep);}
+.tr-dato .tr-nota{flex-basis:100%;}
 /* Lo que hay que llevar al CIIP para firmar la constitución. Destacado y
    no en gris como .tr-nota: es lo único del trámite que se hace fuera del
    panel, y si se lee de pasada se llega sin un papel. */
