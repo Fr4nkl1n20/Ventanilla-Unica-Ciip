@@ -25213,11 +25213,24 @@ applyLang(idiomaParaMi());
     });
     ayLista.appendChild(caja2);
 
-    /* Y a la vista, cuando se llega desde un ente. Después de pintar: la
-       vista acaba de encenderse y hasta el siguiente tick no tiene sitio. */
-    if (marcado) setTimeout(function(){
-      if (marcado.scrollIntoView) marcado.scrollIntoView({block: 'center'});
-    }, 0);
+    /* Y a la vista, cuando se llega desde un ente. NO se quedaba: la página
+       tiene desplazamiento suave (html{scroll-behavior:smooth}) y el
+       enrutador sube a lo alto con window.scrollTo(0, 0) al acabar de
+       cambiar de vista; las dos animaciones se pisaban y ganaba la subida
+       -Franklin llegaba arriba y tenía que bajar a buscarlo (1-10-2026)-.
+       Así que se baja SIN animación, cuando el enrutador ya terminó, y una
+       vez más un poco después, por si la vista se pinta dos veces. */
+    if (marcado){
+      var vaAlli = function(){
+        if (!marcado.isConnected) return;
+        var r = marcado.getBoundingClientRect();
+        if (!r.height) return;
+        window.scrollTo({top: Math.max(0, window.scrollY + r.top - (window.innerHeight - r.height) / 2),
+                         behavior: 'instant'});
+      };
+      setTimeout(vaAlli, 60);
+      setTimeout(vaAlli, 400);
+    }
   }
 
   if (ayLista){

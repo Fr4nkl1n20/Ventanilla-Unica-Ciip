@@ -8561,7 +8561,7 @@
     if (!b) return sigue();
     igual('recaudos: el enlace dice lo que pidió el CIIP', b.textContent, u.pe_recaudos);
     b.click();
-    setTimeout(sigue, 400);
+    setTimeout(sigue, 700);
   }
   function ayRecLlega(sigue){
     if (CASO !== 'vacio' || !AY_REC) return sigue();
@@ -8572,6 +8572,12 @@
     igual('recaudos: y el renglón del IVSS resaltado, solo ése',
           aqui ? [].map.call(aqui, function(li){ return li.querySelector('a').textContent; }).join(' | ') : '(nada)',
           'IVSS · Seguro Social');
+    /* Y A LA VISTA, sin bajar a buscarlo: la subida del enrutador, con el
+       desplazamiento suave de la página, lo dejaba arriba (1-10-2026). */
+    var liA = aqui && aqui[0], rA = liA && liA.getBoundingClientRect();
+    ok('recaudos: y se llega con ese renglón a la vista, sin bajar a buscarlo',
+       !!rA && rA.top >= 0 && rA.bottom <= window.innerHeight,
+       rA ? ('top ' + Math.round(rA.top) + ', alto de ventana ' + window.innerHeight) : '(nada)', 'dentro de la ventana');
     AY_REC = null;
     location.hash = '';
     setTimeout(sigue, 200);
