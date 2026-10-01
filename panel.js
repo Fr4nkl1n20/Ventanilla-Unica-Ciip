@@ -3620,14 +3620,13 @@ applyLang(idiomaParaMi());
 
        El comprobante del pago NO está: se sube en el segundo tramo (c40),
        desde su paso, cuando se paga. */
-    aporte_locti: [
-      {tipo:'acta_constitutiva',    clave:'d_acta'},
-      {tipo:'acta_asamblea',        clave:'d_asamblea',    opcional:true},
-      {tipo:'rif_empresa',          clave:'d_rifempresa'},
-      {tipo:'declaracion_islr',     clave:'d_islrtres'},
-      {tipo:'estados_financieros',  clave:'d_estadosfin',  opcional:true},
-      {tipo:'licencia_actividades', clave:'d_licenciamun', opcional:true}
-    ],
+    /* SIN RECAUDOS desde el 1-10-2026 (Franklin Reyes, 1-10-2026,
+       Ventanilla Única 2.3: «Quitar el segundo paso de recaudos»): la
+       inscripción la hace el inversionista en el portal del SIDCAI, que es
+       quien le pide allí el acta, el RIF y las declaraciones. Aquí solo se
+       dice para qué empresa, y el paso 1 de la escalera le lleva al portal,
+       como en el Registro Único Minero. */
+    aporte_locti: [],
     /* El segundo tramo (c40) pide solo el RIF: la planilla del SIDCAI va a
        su nombre, y ya está en la bóveda desde la c39. El comprobante del
        pago no es recaudo: se sube desde su paso, como en la publicación. */
@@ -4717,16 +4716,21 @@ applyLang(idiomaParaMi());
        «Nuevos Usuarios»: la empresa, el representante legal y el usuario
        principal, que tiene que ser del dominio de la empresa. Y los
        ingresos brutos, que deciden si toca aportar y cuánto. */
+    /* Y desde el 1-10-2026, SOLO razón social, RIF y nombre del
+       representante legal (Franklin Reyes, 1-10-2026, Ventanilla Única
+       2.3): el correo, el teléfono, los ingresos, el cierre fiscal y el
+       usuario principal los pregunta el propio SIDCAI cuando el
+       inversionista se inscribe allí. El representante va en
+       'representante' y no en 'representante_legal' («nombre y cédula»):
+       es la casilla de la ficha de la empresa y de otros ocho trámites, así
+       que llega ya puesta, y lo que se pide es el nombre. Las solicitudes
+       viejas conservan lo suyo en datos. Los ingresos brutos que se
+       copiaban al segundo tramo (c40) ya no llegan desde aquí: allí son
+       opcionales. */
     aporte_locti: [
       {n:'razon_social',        clave:'f_razon',         ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
-      {n:'correo_empresa',      clave:'f_correoempresa'},
-      {n:'telefono',            clave:'f_telefono',      tipo:'tel'},
-      {n:'representante_legal', clave:'f_replegal'},
-      {n:'actividad_economica', clave:'f_actividad'},
-      {n:'ingresos_brutos',     clave:'f_lcingresos'},
-      {n:'cierre_fiscal',       clave:'f_lccierre'},
-      {n:'usuario_principal',   clave:'f_lcusuario',     ancho:true}
+      {n:'representante',       clave:'f_repnombre'}
     ],
     /* La declaración y el primer pago (c40). Nace de la c39 con estos
        datos copiados, y su hoja no se enseña: los tres opcionales, por
@@ -17639,7 +17643,8 @@ applyLang(idiomaParaMi());
     izq.appendChild(s2);
 
     /* LO QUE MARCÓ EL INVERSIONISTA (Taquilla única opción 2, 1-10-2026).
-       En la visa, la licencia, la conformidad y el minero el paso 1 lo hace
+       En la visa, la licencia, la conformidad, el minero y el SIDCAI
+       (este, desde Ventanilla Única 2.3, 1-10-2026) el paso 1 lo hace
        él en un portal de fuera y lo avisa con su botón. El gestor no lo
        veía en ningún sitio y presentaba o resolvía sin saber si la
        solicitud existía en el portal, que es justo lo que viene a
@@ -23282,7 +23287,14 @@ applyLang(idiomaParaMi());
        indica la sede, como el «en proceso» de la licencia, y el
        certificado lo cierra el gestor al resolver con él. */
     c29: {1: {clave: 'bomberos_solicitado', texto: 'p_yalasolicite'},
-          2: {clave: 'sede_bomberos',       texto: 'p_guardasede', pide: 'p_sede_ph', rotulo: 'p_sede'}}
+          2: {clave: 'sede_bomberos',       texto: 'p_guardasede', pide: 'p_sede_ph', rotulo: 'p_sede'}},
+    /* Y la inscripción en el SIDCAI (Franklin Reyes, 1-10-2026, Ventanilla
+       Única 2.3), como el Registro Único Minero: «Inscríbete en el FONACIT
+       a través del portal», y el inversionista avisa con «Ya me inscribí»
+       -el mismo texto que el de los entes de los parafiscales, porque es
+       una inscripción y no una solicitud-. La llave la acepta confirma_paso()
+       desde supabase-locti-opcion2.sql. */
+    c39: {1: {clave: 'locti_inscrito',         texto: 'pe_yainscribi'}}
   };
   /* La llave de un paso que marcas tú, y el texto de su botón: la entrada
      puede ser la llave a secas -como las de las visas- o {clave, texto}. */
@@ -23318,6 +23330,12 @@ applyLang(idiomaParaMi());
     c10: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c28: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c36: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    /* Y la inscripción en el SIDCAI (c39), igual que el minero (Franklin
+       Reyes, 1-10-2026, Ventanilla Única 2.3): «Inscríbete en el FONACIT a
+       través del portal → Inscripción lista». Enviada no hay nada hecho; el
+       paso 1 lo cierra la marca «Ya me inscribí», y «Inscripción lista», el
+       gestor al resolver. */
+    c39: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* La verificación (c33), «Revisión de tus recaudos → Verificado»: con la
        cuenta de siempre la revisión salía hecha nada más enviarla (30-9-2026). */
     c33: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
@@ -23419,7 +23437,10 @@ applyLang(idiomaParaMi());
     /* El permiso de bomberos (Franklin Reyes, 1-10-2026, Permiso de
        Bomberos): el portal de los bomberos según el estado que contestó,
        Miranda o Distrito Capital (PORTAL_DE_BOMBEROS). */
-    c29: {1: {campo: 'estado_local', urls: PORTAL_DE_BOMBEROS, clave: 'p_irbomberos'}}
+    c29: {1: {campo: 'estado_local', urls: PORTAL_DE_BOMBEROS, clave: 'p_irbomberos'}},
+    /* La inscripción en el SIDCAI (Franklin Reyes, 1-10-2026, Ventanilla
+       Única 2.3): el portal del FONACIT, con la url que trae el documento. */
+    c39: {1: {url: 'https://sidcai.fonacit.gob.ve/', clave: 'p_irsidcai'}}
   };
   /* Adónde lleva el paso n del trámite ref, para ESTA solicitud: {url,
      clave} o null. */

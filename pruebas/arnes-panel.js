@@ -256,6 +256,8 @@
               tramosMira, tramosDetalle, tramosTramo,
               rupdaeAbre, empiezaSolicitud, rupdaeTrasAbrir,
               rumAbre, empiezaSolicitud, rumTrasAbrir,
+              /* El SIDCAI sin recaudos (Ventanilla Única 2.3, 1-10-2026). */
+              loctiAbre, empiezaSolicitud, loctiTrasAbrir,
               /* Las visas con la Taquilla única opción 2 (1-10-2026): cuatro
                  campos y el pasaporte; y la regla de los 6 meses, directa. */
               pistaAbre, empiezaSolicitud, pistaMira, visaCampos, visaRecaudos, vigenciaRegla,
@@ -382,6 +384,8 @@
               marcaSiembra, marcaMira,
               conformidadMira,
               licenciaSiembra, licenciaMira,
+              /* El SIDCAI por el portal del FONACIT (Ventanilla Única 2.3). */
+              loctiSiembra, loctiMarcado,
               planillaFirmadaSiembra, planillaFirmadaMira, planillaFirmadaTrasSubir,
               rifGestorSiembra, rifGestorMira,
               visaGestorMira,
@@ -4804,6 +4808,48 @@
     ok('rum: sin plazo, y sin «undefined» en su lugar',
        document.body.innerText.indexOf('undefined') === -1,
        'dice «undefined»', 'limpio');
+  }
+
+  /* ═══════════ LA INSCRIPCIÓN EN EL SIDCAI (c39), SIN RECAUDOS ═══════════
+     Franklin Reyes, 1-10-2026, Ventanilla Única 2.3: en el primer paso
+     solo «Razón social», «RIF» y «Nombre del representante legal», y fuera
+     el segundo paso de recaudos. Lo mismo que se mide en el RUM: los tres
+     campos, ninguna hoja de recaudos vacía y que se llega al envío. */
+  function loctiAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'tramite-c39';
+  }
+
+  function loctiTrasAbrir(){
+    if (CASO !== 'vacio') return;
+    igual('sidcai: se abre su detalle', document.body.getAttribute('data-vista'), 'tramite');
+    var caja = document.getElementById('trReal');
+    if (!caja) return ok('sidcai: hay formulario', false, '(sin #trReal)', 'el formulario');
+    igual('sidcai: pide solo la razón social, el RIF y el representante legal',
+          [].map.call(caja.querySelectorAll('.sol-campo'), function(c){ return c.getAttribute('data-campo'); }).join(','),
+          'razon_social,rif_empresa,representante');
+    igual('sidcai: sin recaudos', caja.querySelectorAll('.sol-doc').length, 0);
+    igual('sidcai: dos hojas, sin la de recaudos vacía',
+          [].map.call(caja.querySelectorAll('.pa-barra .pa-l'), function(l){ return l.textContent; }).join(' · '),
+          window.CIIP_T().tus_datos + ' · ' + window.CIIP_T().pa_repasar);
+    var valores = ['Innova de Prueba, C.A.', 'J-12345678-9', 'Ana Pérez'];
+    caja.querySelectorAll('.sol-campo input').forEach(function(e, i){
+      e.value = valores[i] || 'x';
+      e.dispatchEvent(new Event('input'));
+    });
+    var sigueL = caja.querySelector('.pa-sigue');
+    if (sigueL) sigueL.click();
+    var envL = caja.querySelector('.sol-enviar');
+    var hojaL = envL && envL.closest('.pa-hoja');
+    ok('sidcai: rellenos los tres, pasa al repaso y ofrece enviar',
+       !!hojaL && !hojaL.hidden && hojaL.getAttribute('data-paso') === '2' &&
+         !(caja.querySelector('.pa-aviso') || {}).textContent,
+       hojaL ? 'hoja ' + hojaL.getAttribute('data-paso') + (hojaL.hidden ? ' escondida' : '') +
+               ' · aviso «' + ((caja.querySelector('.pa-aviso') || {}).textContent || '') + '»' : '(sin botón de enviar)',
+       'hoja 2 a la vista, sin aviso');
+    caja.querySelectorAll('.sol-campo input').forEach(function(e){ e.value = ''; });
+    ok('sidcai: sin «undefined» en el detalle',
+       document.body.innerText.indexOf('undefined') === -1, 'dice «undefined»', 'limpio');
   }
 
   /* ═══════════ LAS CINCO INSCRIPCIONES, EN UNA CASILLA (c37) ═══════════
@@ -9678,6 +9724,93 @@
     window.CIIP_PRUEBA_CONFIRMA_PASO = null;
   }
 
+  /* ═══════════ EL SIDCAI (c39), POR EL PORTAL DEL FONACIT ═══════════
+     Franklin Reyes, 1-10-2026, Ventanilla Única 2.3: «Inscríbase en
+     FONACIT a través del siguiente enlace» e «Inscripción lista». El mismo
+     molde que el Registro Único Minero: sin recaudos, dos pasos, el enlace
+     al portal y «Ya me inscribí» en el 1, y el 2 lo cierra el gestor al
+     resolver. Aquí se mide la escalera, el enlace y el botón, y se pulsa;
+     lo que contesta la base se mira en loctiMarcado. */
+  var LT_BOTON = null;
+  function loctiSiembra(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var R = window.CIIP_RECAUDOS, PM = window.CIIP_PASO_MIO, M = window.CIIP_MARCA;
+    if (!R || !PM || !M){
+      ok('sidcai: las piezas están a mano', false, 'falta alguna', 'CIIP_RECAUDOS, CIIP_PASO_MIO, CIIP_MARCA');
+      return sigue();
+    }
+    var u = window.CIIP_T();
+    var tr = function(id, estado, datos){
+      return {id: id, tipo: 'aporte_locti', estado: estado, datos: datos || {}, inversionista: 'u2', gestor: 'u1'};
+    };
+    igual('sidcai: ya no pide recaudos',
+          R.de('aporte_locti').map(function(r){ return r.tipo; }).join(', ') || 'ninguno', 'ninguno');
+    igual('sidcai: y pregunta solo razón social, RIF y representante legal',
+          R.campos('aporte_locti').map(function(c){ return c.n; }).join(','), 'razon_social,rif_empresa,representante');
+    igual('sidcai: el representante, con el rótulo del nombre', u[(R.campos('aporte_locti')[2] || {}).clave],
+          u.f_repnombre);
+    igual('sidcai: ni pide comprobante para resolver', M.comprobante(tr('lt-c', 'ante_el_ente')), null);
+    igual('sidcai: y su segundo tramo sigue pidiendo el RIF',
+          R.de('aporte_locti_pago').map(function(r){ return r.tipo; }).join(', '), 'rif_empresa');
+
+    var cat = window.CIIP_TIPOS_POR_REF, puesto = false;
+    if (cat && !cat.c39){ cat.c39 = {codigo: 'aporte_locti', ref_panel: 'c39', ente: 'FONACIT', activo: true}; puesto = true; }
+    var dibujo = function(estado, datos){
+      var E = window.CIIP_ESCALERA({estado: estado, datos: datos || {}}, 'aporte_locti', 'FONACIT');
+      return E.todos.map(function(p){ return p.nombre + ':' + (p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer')); }).join(' → ');
+    };
+    var ya = {locti_inscrito: '2026-10-01T10:00:00-04:00'};
+    igual('sidcai: dos pasos, y sin marcar el 1 en curso', dibujo('enviado'),
+          'Inscríbete en el FONACIT a través del portal:ahora → Inscripción lista:porhacer');
+    igual('sidcai: y aunque el gestor la mueva, sin la marca no avanza', dibujo('ante_el_ente'),
+          'Inscríbete en el FONACIT a través del portal:ahora → Inscripción lista:porhacer');
+    igual('sidcai: marcado, toca «Inscripción lista»', dibujo('enviado', ya),
+          'Inscríbete en el FONACIT a través del portal:hecho → Inscripción lista:ahora');
+    igual('sidcai: resuelto, todo hecho', dibujo('resuelto'),
+          'Inscríbete en el FONACIT a través del portal:hecho → Inscripción lista:hecho');
+    if (puesto) delete cat.c39;
+
+    var e1 = PM.enlace('c39', 1, {datos: {}});
+    igual('sidcai: el paso 1 lleva al portal del SIDCAI', e1 ? e1.url : '(ninguno)', 'https://sidcai.fonacit.gob.ve/');
+    igual('sidcai: y el paso 2 no lleva enlace', PM.enlace('c39', 2, {datos: {}}), null);
+    var a = PM.enlacePintado('c39', 1, {datos: {}});
+    igual('sidcai: el enlace pintado dice adónde va y se abre aparte',
+          a ? a.textContent + ' · ' + a.getAttribute('href') + ' · ' + a.target : '(sin enlace)',
+          u.p_irsidcai + ' · https://sidcai.fonacit.gob.ve/ · _blank');
+    var b1 = PM.boton(tr('lt-1', 'enviado'), 'c39', 1, null, null);
+    igual('sidcai: el botón dice «Ya me inscribí» y marca locti_inscrito',
+          b1 ? b1.textContent + ' · ' + b1.getAttribute('data-clave') : '(sin botón)', 'Ya me inscribí · locti_inscrito');
+    igual('sidcai: ya marcado, no se vuelve a ofrecer', PM.boton(tr('lt-2', 'enviado', ya), 'c39', 1, null, null), null);
+    igual('sidcai: y el paso 2 no lleva botón', PM.boton(tr('lt-3', 'enviado'), 'c39', 2, null, null), null);
+
+    LT_BOTON = {tr: tr('lt-bt', 'enviado', {razon_social: 'Innova de Prueba, C.A.'}), marcado: null};
+    window.CIIP_PRUEBA_CONFIRMA_PASO = [];
+    var txt = document.createElement('div');
+    var b = PM.boton(LT_BOTON.tr, 'c39', 1, txt, function(t){ LT_BOTON.marcado = t; });
+    if (b){ txt.appendChild(b); b.click(); }
+    setTimeout(sigue, 100);
+  }
+  function loctiMarcado(sigue){
+    if (PASE !== 'vacio' || !LT_BOTON) return sigue();
+    var pedido = (window.CIIP_PRUEBA_CONFIRMA_PASO || [])[0] || {};
+    igual('sidcai: al pulsar, pide a la base confirma_paso con locti_inscrito',
+          pedido.p_tramite + ' · ' + pedido.p_clave, 'lt-bt · locti_inscrito');
+    var t = LT_BOTON.marcado;
+    ok('sidcai: y la marca vuelve de la base a la solicitud',
+       !!t && !!(t.datos || {}).locti_inscrito,
+       t ? JSON.stringify(t.datos) : '(sin respuesta)', 'con locti_inscrito');
+    var cat = window.CIIP_TIPOS_POR_REF, puesto = false;
+    if (cat && !cat.c39){ cat.c39 = {codigo: 'aporte_locti', ref_panel: 'c39', ente: 'FONACIT', activo: true}; puesto = true; }
+    var E = t ? window.CIIP_ESCALERA(t, 'aporte_locti', 'FONACIT') : null;
+    var ahora = E ? E.todos.filter(function(p){ return p.ahora; })[0] : null;
+    igual('sidcai: tras marcar, el paso 2 es el que está en curso',
+          ahora ? ahora.n + '. ' + ahora.nombre : '(ninguno)', '2. Inscripción lista');
+    if (puesto) delete cat.c39;
+    LT_BOTON = null;
+    window.CIIP_PRUEBA_CONFIRMA_PASO = null;
+    sigue();
+  }
+
   /* ═══════════ LA PLANILLA FIRMADA, DE VUELTA DESDE SU PASO ═══════════
      Franklin Reyes, 29-9-2026: «En las casillas que indique firme la
      planilla se debe desprender la opción de que el inversionista adjunte
@@ -12642,10 +12775,12 @@
        Registro Único Minero: con la Taquilla única opción 2 (Franklin
        Reyes) no piden ningún papel, así que no hay documento que lea el
        lector. No es un olvido: es que no hay nada que soltar. Y el mismo
-       día el permiso de bomberos (Franklin Reyes, Permiso de Bomberos). */
-    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI y las cuatro sin recaudos',
+       día el permiso de bomberos (Franklin Reyes, Permiso de Bomberos). Y
+       la inscripción en el SIDCAI (Franklin Reyes, 1-10-2026, Ventanilla
+       Única 2.3), que también se quedó sin recaudos. */
+    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI y las cinco sin recaudos',
           window.CIIP_SIN_LECTOR ? window.CIIP_SIN_LECTOR().join(', ') : '(no está la función)',
-          'licencia_municipal, conformidad_uso, permiso_bomberos, opinion_zodi, registro_minero, firma_electronica');
+          'licencia_municipal, conformidad_uso, permiso_bomberos, opinion_zodi, registro_minero, aporte_locti, firma_electronica');
   }
 
   /* La situacion que se quiere medir: alguien que TODAVIA no tiene empresa

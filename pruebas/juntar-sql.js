@@ -230,7 +230,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-bomberos-opcion2',
 /* La cédula por el portal del SAIME (1-10-2026): 'saime_confirmada' en
    confirma_paso. Redefine la de supabase-bomberos-opcion2; al final. */
-'supabase-cedula-opcion2'];
+'supabase-cedula-opcion2',
+/* La inscripción en el SIDCAI por el portal (1-10-2026, Ventanilla Única
+   2.3): 'locti_inscrito' en confirma_paso y fuera los pasos del c39 escritos
+   a mano. Redefine la confirma_paso de supabase-cedula-opcion2, con su
+   'saime_confirmada' dentro; al final. */
+'supabase-locti-opcion2'];
 
 let mal = 0;
 for (const n of orden) {
