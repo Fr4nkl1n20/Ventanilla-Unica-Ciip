@@ -601,11 +601,25 @@
   ];
   /* Lo que se escriba en el hilo de una consulta durante la tanda. */
   var dichosConsulta = [];
+  /* Los trámites específicos de cada sector que cargó el CIIP. Dos en
+     hidrocarburos y ninguno en los demás: con eso se ve la lista bajo el
+     sector en el chat y también que un sector sin nada no enseña nada. */
+  var porSector = [
+    {id:'ps1', sector:'hidrocarburos', nombre:'Licencia de exploración y explotación',
+     organismo:'Ministerio de Hidrocarburos', orden:10},
+    {id:'ps2', sector:'hidrocarburos', nombre:'Registro de empresas de servicios petroleros',
+     organismo:'PDVSA', orden:20}
+  ];
+  var psCreados = 2;
   /* Dos ganchos para las pruebas de la auditoría QA: mirar o tocar una
      consulta como lo haría otro gestor desde otra pestaña (QA-22), y quitar
      la que abre una prueba para dejar la mesa como estaba (QA-04). */
   window.CIIP_MENTIRA_CONSULTA = function(id){
     return consultas.filter(function(c){ return c.id === id; })[0] || null;
+  };
+  /* La última consulta abierta, para ver qué sector se guardó con ella. */
+  window.CIIP_MENTIRA_ULTIMA_CONSULTA = function(){
+    return consultas[consultas.length - 1] || null;
   };
   window.CIIP_MENTIRA_OLVIDA_CONSULTA = function(id){
     consultas = consultas.filter(function(c){ return c.id !== id; });
@@ -2163,6 +2177,36 @@
       }
       return {data:soloLoPedido(hilo, op && op.cols), error:null};
     }
+    /* Los trámites específicos de cada sector (Franklin Reyes, 1-10-2026,
+       supabase-control-estadisticas.sql). Con estado de verdad: añadir,
+       guardar, mover y quitar se ven después en la lista. Como la RLS:
+       leer, todos; escribir, solo el administrador -al resto el insert le
+       da error y el update o el delete no cambian ninguna fila, sin
+       error-. */
+    if (tabla === 'tramites_por_sector'){
+      var psEsc = esAdmin && !sinSql;
+      if (op && op.insert){
+        if (!psEsc) return {data:null, error:{message:'new row violates row-level security policy', code:'42501'}};
+        var psN = {id:'ps' + (++psCreados), sector:op.insert.sector, nombre:op.insert.nombre,
+                   organismo:op.insert.organismo || '', orden:+op.insert.orden || 0};
+        porSector.push(psN);
+        return {data:[psN], error:null};
+      }
+      if (op && op.update && op.eq && op.eq.id){
+        var psU = psEsc ? porSector.filter(function(p){ return p.id === op.eq.id; })[0] : null;
+        if (psU) Object.keys(op.update).forEach(function(k){ psU[k] = op.update[k]; });
+        return {data: psU ? [psU] : [], error:null};
+      }
+      if (op && op.borra && op.eq && op.eq.id){
+        if (psEsc) porSector = porSector.filter(function(p){ return p.id !== op.eq.id; });
+        return {data:null, error:null};
+      }
+      var psL = porSector.filter(function(p){ return !(op && op.eq && op.eq.sector) || p.sector === op.eq.sector; })
+        .map(function(p){ return {id:p.id, sector:p.sector, nombre:p.nombre, organismo:p.organismo, orden:p.orden}; })
+        .sort(function(a, b){ return a.orden - b.orden; });
+      return {data:psL, error:null};
+    }
+
     if (tabla === 'consultas'){
       /* ABRIRLA. Lo que manda el navegador NO decide de quien es ni en que
          estado nace: eso lo pone el disparador consulta_la_firma_la_base()
@@ -2175,6 +2219,8 @@
           inversionista: USUARIO.id,
           tramite: op.insert.tramite || null,
           tipo: op.insert.tipo || null,
+          /* El sector del chat (supabase-control-estadisticas.sql). */
+          sector: op.insert.sector || null,
           asunto: op.insert.asunto || '',
           estado: 'abierta',
           gestor: null,
@@ -2656,6 +2702,37 @@
                              datos: (args && args.p_hecha) ? {firma_ciip: '2026-09-27T10:00:00Z'} : {}},
                       error: null};
             return {then:function(bien, mal){ return Promise.resolve(rF).then(bien, mal); }};
+          }
+          /* Las cifras de «Control y Estadísticas» (Franklin Reyes,
+             1-10-2026, supabase-control-estadisticas.sql). Como la de
+             verdad: solo a un administrador, y a los demás el error de
+             permiso. Las consultas por sector suman a las fijas las que
+             se abran en la tanda con su sector, para que la prueba del
+             chat se vea contada. */
+          if (nombre === 'estadisticas_control'){
+            var rE;
+            if (!esAdmin || sinSql){
+              rE = {data:null, error:{message:'Solo un administrador ve las estadísticas', code:'42501'}};
+            } else {
+              var porSec = {hidrocarburos: 4, turismo: 2};
+              consultas.forEach(function(c){ if (c.sector) porSec[c.sector] = (porSec[c.sector] || 0) + 1; });
+              rE = {data:{
+                tramites: [
+                  {tipo:'constitucion', ente:'SAREN', solicitados:5, resueltos:3, mediana_h:96,
+                   promedio_h:120.5, n_ente:3, mediana_ente_h:48},
+                  {tipo:'rif_personal', ente:'SENIAT', solicitados:3, resueltos:1, mediana_h:30,
+                   promedio_h:30, n_ente:0, mediana_ente_h:null},
+                  {tipo:'visa_negocios', ente:'Cancillería', solicitados:2, resueltos:0, mediana_h:null,
+                   promedio_h:null, n_ente:0, mediana_ente_h:null}
+                ],
+                entes: [
+                  {ente:'SAREN', resueltos:3, mediana_h:96, promedio_h:120.5, n_ente:3, mediana_ente_h:48},
+                  {ente:'SENIAT', resueltos:1, mediana_h:30, promedio_h:30, n_ente:0, mediana_ente_h:null}
+                ],
+                sectores: Object.keys(porSec).map(function(s){ return {sector:s, consultas:porSec[s]}; })
+              }, error:null};
+            }
+            return {then:function(bien, mal){ return Promise.resolve(rE).then(bien, mal); }};
           }
           /* Los dos pasos del gestor en el registro de marca. Contesta lo que
              diga la prueba en window.__MARCA_RPC -la solicitud tal como la

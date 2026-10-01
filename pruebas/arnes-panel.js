@@ -331,6 +331,7 @@
               puertaTodos,
               consultaAbre, consultaMira, consultaEntra, consultaDentro,
               rotulosMiran, consultaNueva, consultaNuevaMira, consultaTrasCrear, cierreCatalogo,
+              sectorChatAbre, sectorChatSinNada, sectorChatConTramites, sectorChatGuardado,
               consultaCola, consultaToma, consultaTrasTomar,
               consultaResuelve, consultaResuelveOtra, consultaTrasResolver,
               velocidadArranque, velocidadAbre, velocidadMira,
@@ -377,6 +378,8 @@
               nuevaVersionMira, guardaCatalogo,
               rastroAbre, rastroMira, rastroQaMira,
               equipoAbre, equipoMira, equipoFichaMira, equipoCierraMira,
+              controlAbre, controlMira, controlTrasAnadir, controlTrasMover,
+              controlTrasGuardar, controlTrasQuitar, controlOtroSector,
               rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
               rastroDesdeTramiteSalta, rastroDesdeTramiteMira,
               alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno,
@@ -11861,6 +11864,57 @@
     setTimeout(sigue, 300);
   }
 
+  /* ── EL SECTOR, GUARDADO Y CON SUS TRÁMITES ──
+     Franklin Reyes, 1-10-2026, «Control y Estadísticas»: el sector que se
+     elige en el chat se guarda en consultas.sector con su código, y debajo
+     salen los trámites que el CIIP cargó para él. En el doble, minero no
+     tiene ninguno e hidrocarburos tiene dos. */
+  function sectorChatAbre(sigue){
+    if (CASO === 'gestor' || !window.CIIP_ABRE_CONSULTA) return sigue();
+    window.CIIP_ABRE_CONSULTA(null, null, null, {sectores: true});
+    var min = document.querySelector('#consCuerpo .cs-sector[data-sector="mineria"]');
+    if (min) min.click();
+    setTimeout(sigue, 300);
+  }
+
+  function sectorChatSinNada(sigue){
+    if (CASO === 'gestor' || !window.CIIP_ABRE_CONSULTA) return sigue();
+    var caja = document.querySelector('#consCuerpo .cs-tramites');
+    ok('chat: un sector sin trámites cargados no enseña nada',
+       !!caja && caja.hidden && !caja.querySelector('.cs-tramite'),
+       caja ? (caja.hidden ? 'escondida' : caja.querySelectorAll('.cs-tramite').length + ' trámites') : '(no hay caja)',
+       'escondida');
+    var hid = document.querySelector('#consCuerpo .cs-sector[data-sector="hidrocarburos"]');
+    if (hid) hid.click();
+    setTimeout(sigue, 300);
+  }
+
+  function sectorChatConTramites(sigue){
+    if (CASO === 'gestor' || !window.CIIP_ABRE_CONSULTA) return sigue();
+    var U = (window.CIIP_PASOS && window.CIIP_PASOS.ui && window.CIIP_PASOS.ui[curLang]) || {};
+    var bs = document.querySelectorAll('#consCuerpo .cs-tramites .cs-tramite');
+    igual('chat: al elegir el sector salen sus trámites', bs.length, 2);
+    var caja = document.getElementById('consAsunto');
+    if (bs[0] && caja){
+      bs[0].click();
+      igual('chat: y pulsar uno lo pone en el asunto', caja.value,
+            String(U.cs_asunto || '').replace('{s}', U.cs_s1 || '') + 'Licencia de exploración y explotación');
+    }
+    var crear = document.getElementById('consCrear');
+    if (crear) crear.click();
+    setTimeout(sigue, 300);
+  }
+
+  function sectorChatGuardado(sigue){
+    if (CASO === 'gestor' || !window.CIIP_ABRE_CONSULTA) return sigue();
+    var c = window.CIIP_MENTIRA_ULTIMA_CONSULTA && window.CIIP_MENTIRA_ULTIMA_CONSULTA();
+    igual('chat: la consulta se guarda con el código del sector', c ? c.sector : '(no se abrió)', 'hidrocarburos');
+    if (c && window.CIIP_MENTIRA_OLVIDA_CONSULTA) window.CIIP_MENTIRA_OLVIDA_CONSULTA(c.id);
+    var cerrar = document.getElementById('consCerrar');
+    if (cerrar) cerrar.click();
+    setTimeout(sigue, 300);
+  }
+
   /* ── Y LA OTRA PUNTA: LA COLA DEL EQUIPO ──
      Una consulta que el inversionista abre y el equipo no ve es un buzon sin
      fondo. Estas corren sobre el gestor. */
@@ -14876,6 +14930,136 @@
     ok('equipo: y el foco vuelve a la tarjeta que la abrió',
        !!a && a.classList.contains('eq-tj'), a ? (a.className || a.tagName) : '(nada)', 'eq-tj');
     location.hash = '';
+  }
+
+  /* ── CONTROL Y ESTADÍSTICAS ──
+     Franklin Reyes, 1-10-2026: «Equipo» pasa a llamarse «Control y
+     Estadísticas», lo de antes se queda y debajo van el conteo por
+     trámite, los tiempos, las consultas por sector y la lista de trámites
+     de cada sector. Solo en el pase del administrador, y con retrollamada
+     para no retrasar a los demás. */
+  function ceU(){ return (window.CIIP_PASOS && window.CIIP_PASOS.ui && window.CIIP_PASOS.ui[curLang]) || {}; }
+  function ceFilas(){ return document.querySelectorAll('#cePorSector .ce-ps-lista .ce-ps-fila'); }
+  function ceNombres(){ return [].map.call(ceFilas(), function(f){ return f.querySelector('.ce-ps-n').value; }); }
+
+  function controlAbre(sigue){
+    if (!ES_ADMIN) return sigue();
+    location.hash = 'equipo';
+    setTimeout(sigue, 400);
+  }
+
+  function controlMira(sigue){
+    if (!ES_ADMIN) return sigue();
+    var U = ceU();
+    var rot = document.querySelector('#navEquipo [data-i18n]');
+    igual('control: el renglón se llama «Control y Estadísticas»',
+          rot ? rot.textContent : '(no hay)', (I18N[curLang] || {})['nav.equipo']);
+    igual('control: en español, con ese nombre', I18N.es['nav.equipo'], 'Control y Estadísticas');
+    igual('control: y «Usuarios y equipo» no cambia', I18N.es['nav.users'], 'Usuarios y equipo');
+    igual('control: la pantalla se titula igual', document.getElementById('eqCabT').textContent, U.eq_titulo);
+    igual('control: el pulso sigue arriba, con sus cinco cifras', document.querySelectorAll('#puNums .pu-n').length, 5);
+    ok('control: y las tarjetas del equipo, con su rótulo',
+       document.querySelectorAll('#eqTarjetas .eq-tj').length >= 2 &&
+       document.getElementById('ceTequipo').textContent === U.ce_eq_t,
+       document.getElementById('ceTequipo').textContent, U.ce_eq_t);
+
+    var tr = document.querySelectorAll('#ceTramites tbody tr');
+    igual('control: una fila por trámite solicitado', tr.length, 3);
+    ok('control: el más pedido arriba, con sus solicitudes',
+       !!tr[0] && tr[0].getAttribute('data-tipo') === 'constitucion' &&
+       (tr[0].querySelector('td.num') || {}).textContent === '5',
+       tr[0] ? tr[0].textContent : '(nada)', 'constitucion · 5');
+
+    var se = document.querySelectorAll('#ceSectores tbody tr');
+    igual('control: los nueve sectores, también los que están a cero', se.length, 9);
+    ok('control: y el más preguntado arriba, resaltado',
+       !!se[0] && se[0].getAttribute('data-sector') === 'hidrocarburos' && se[0].classList.contains('tope'),
+       se[0] ? se[0].getAttribute('data-sector') + ' ' + se[0].className : '(nada)', 'hidrocarburos tope');
+
+    var ti = document.querySelectorAll('#ceTiempos tbody tr');
+    igual('control: tiempos por organismo, uno por organismo con resueltos', ti.length, 2);
+    ok('control: con su mediana', !!ti[0] && /SAREN/.test(ti[0].textContent) && !!ti[0].querySelector('.ce-fuerte'),
+       ti[0] ? ti[0].textContent : '(nada)', 'SAREN y su mediana');
+    var porTr = document.querySelector('#ceTiempos .ce-modo[data-modo="tramite"]');
+    if (porTr) porTr.click();
+    var ti2 = document.querySelectorAll('#ceTiempos tbody tr');
+    igual('control: y por trámite, solo los que tienen alguno resuelto', ti2.length, 2);
+    var pulsado = document.querySelector('#ceTiempos .ce-modo[aria-pressed="true"]');
+    igual('control: con el botón marcado', pulsado ? pulsado.getAttribute('data-modo') : '(ninguno)', 'tramite');
+
+    igual('control: la lista por sector ofrece los nueve', document.querySelectorAll('#cePorSector .cs-sector').length, 9);
+    var marcado = document.querySelector('#cePorSector .cs-sector[aria-pressed="true"]');
+    igual('control: empieza por hidrocarburos', marcado ? marcado.getAttribute('data-sector') : '(ninguno)', 'hidrocarburos');
+    igual('control: con los dos trámites que tiene cargados', ceNombres().join(' | '),
+          'Licencia de exploración y explotación | Registro de empresas de servicios petroleros');
+
+    var nueva = document.querySelector('#cePorSector .ce-ps-nueva');
+    if (nueva){
+      nueva.querySelector('.ce-ps-n').value = 'Concesión de gas';
+      nueva.querySelector('.ce-ps-o').value = 'Ministerio de Hidrocarburos';
+      nueva.querySelector('.ce-ps-anadir').click();
+    }
+    setTimeout(sigue, 300);
+  }
+
+  function controlTrasAnadir(sigue){
+    if (!ES_ADMIN) return sigue();
+    var n = ceNombres();
+    igual('control: añadir lo pone al final de la lista', n[n.length - 1], 'Concesión de gas');
+    var f = ceFilas();
+    var sube = f[f.length - 1] && f[f.length - 1].querySelector('.ce-ps-sube');
+    if (sube) sube.click();
+    setTimeout(sigue, 300);
+  }
+
+  function controlTrasMover(sigue){
+    if (!ES_ADMIN) return sigue();
+    igual('control: Subir lo cambia de sitio con el de arriba', ceNombres().join(' | '),
+          'Licencia de exploración y explotación | Concesión de gas | Registro de empresas de servicios petroleros');
+    var f = ceFilas()[1];
+    if (f){
+      f.querySelector('.ce-ps-o').value = 'ENAGAS';
+      f.querySelector('.ce-ps-guarda').click();
+    }
+    setTimeout(sigue, 300);
+  }
+
+  function controlTrasGuardar(sigue){
+    if (!ES_ADMIN) return sigue();
+    var f = ceFilas()[1];
+    igual('control: Guardar deja el cambio en la base', f ? f.querySelector('.ce-ps-o').value : '(no hay)', 'ENAGAS');
+    var U = ceU();
+    var p = ceFilas()[0];
+    if (p){
+      var antes = p.querySelector('.ce-ps-n').value;
+      p.querySelector('.ce-ps-n').value = '   ';
+      p.querySelector('.ce-ps-guarda').click();
+      var av = document.querySelector('#cePorSector .ce-ps-aviso');
+      igual('control: sin nombre no se guarda, y lo dice', av ? av.textContent : '(sin aviso)', U.ce_ps_falta);
+      p.querySelector('.ce-ps-n').value = antes;
+    }
+    if (f) f.querySelector('.ce-ps-quita').click();
+    setTimeout(sigue, 300);
+  }
+
+  function controlTrasQuitar(sigue){
+    if (!ES_ADMIN) return sigue();
+    igual('control: Quitar lo saca de la lista', ceNombres().join(' | '),
+          'Licencia de exploración y explotación | Registro de empresas de servicios petroleros');
+    var min = document.querySelector('#cePorSector .cs-sector[data-sector="mineria"]');
+    if (min) min.click();
+    setTimeout(sigue, 300);
+  }
+
+  function controlOtroSector(sigue){
+    if (!ES_ADMIN) return sigue();
+    var marcado = document.querySelector('#cePorSector .cs-sector[aria-pressed="true"]');
+    igual('control: al cambiar de sector se ve el suyo', marcado ? marcado.getAttribute('data-sector') : '(ninguno)', 'mineria');
+    ok('control: y si no tiene ninguno, lo dice',
+       ceFilas().length === 0 && !!document.querySelector('#cePorSector .ce-ps-vacio'),
+       ceFilas().length + ' filas', 'ninguna, con el aviso');
+    location.hash = '';
+    setTimeout(sigue, 300);
   }
 
   function rastroAbre(){

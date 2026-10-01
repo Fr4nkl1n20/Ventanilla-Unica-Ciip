@@ -293,6 +293,7 @@ function applyLang(lang){
   if (window.CIIP_REPINTA_EMPRESA) window.CIIP_REPINTA_EMPRESA();
   if (window.CIIP_REPINTA_USUARIOS) window.CIIP_REPINTA_USUARIOS();
   if (window.CIIP_REPINTA_EQUIPO) window.CIIP_REPINTA_EQUIPO();
+  if (window.CIIP_REPINTA_CONTROL) window.CIIP_REPINTA_CONTROL();
   if (window.CIIP_REPINTA_HORARIO) window.CIIP_REPINTA_HORARIO();
   if (window.CIIP_REPINTA_ACTIVOS) window.CIIP_REPINTA_ACTIVOS();
   if (window.CIIP_REPINTA_FICHA)   window.CIIP_REPINTA_FICHA();
@@ -1249,6 +1250,11 @@ function applyLang(lang){
     /* El pulso va dentro de la vista del equipo: se trae con ella. */
     if (tipo === 'equipo') traeAlEntrar('CIIP_PINTA_PULSO');
     if (tipo === 'equipo') traeAlEntrar('CIIP_PINTA_EQUIPO');
+    /* Y Control y Estadísticas, que vive en la misma vista (1-10-2026).
+       Solo al entrar: las cifras no corren prisa, y el repaso de cada
+       minuto le borraría a medias lo que se esté escribiendo en la lista
+       de un sector. */
+    if (tipo === 'equipo') traeAlEntrar('CIIP_PINTA_CONTROL');
     if (tipo === 'horario') traeAlEntrar('CIIP_PINTA_HORARIO');
     if (tipo === 'rastro') traeAlEntrar('CIIP_PINTA_RASTRO');
     if (tipo === 'acomp') traeAlEntrar('CIIP_PINTA_ACOMP');
@@ -10777,6 +10783,22 @@ applyLang(idiomaParaMi());
      cita, cambiando solo la tabla. Escribir una tercera copia casi igual es
      de donde salen los comportamientos que se separan sin que nadie lo note.
      ═══════════════════════════════════════════════════════════════════════ */
+  /* LOS NUEVE SECTORES DEL CHAT, con su código estable (Franklin Reyes,
+     1-10-2026, «Control y Estadísticas»). El botón k enseña cs_s{k} en el
+     idioma de turno y guarda CS_CODIGOS[k-1] en consultas.sector: el nombre
+     traducido no sirve para contar, el código sí. Seis son los mismos
+     códigos de public.sectores (supabase-sectores.sql); energetico,
+     telecomunicaciones y construccion son nuevos. La lista entera vive
+     también en el CHECK de supabase-control-estadisticas.sql: si se cambia
+     aquí, se cambia allí. Va fuera del bloque de las consultas porque la
+     pantalla de Control y Estadísticas cuenta con los mismos códigos. */
+  var CS_CODIGOS = ['hidrocarburos', 'mineria', 'industrial', 'agroindustrial', 'pesca_acuicultura',
+                    'energetico', 'telecomunicaciones', 'turismo', 'construccion'];
+  function nombreDeSectorCs(codigo){
+    var i = CS_CODIGOS.indexOf(codigo);
+    return i < 0 ? String(codigo || '') : (T()['cs_s' + (i + 1)] || codigo);
+  }
+
   (function(){
     var back   = document.getElementById('consBack');
     var cuerpo = document.getElementById('consCuerpo');
@@ -10873,32 +10895,82 @@ applyLang(idiomaParaMi());
          algún permiso, autorización o licencia en específico?» el chat
          abre con los nueve sectores. El elegido entra en el asunto, que es
          lo primero que ve el equipo en su bandeja; lo demás lo escribe la
-         persona detrás. No hay columna nueva en la base: el asunto ya lo
-         lleva. */
+         persona detrás.
+
+         Desde el mismo día, por «Control y Estadísticas», el sector se
+         guarda además ESTRUCTURADO, en consultas.sector, con su código
+         estable (CS_CODIGOS): el asunto va traducido al idioma de quien
+         escribe y no se puede contar. Y debajo de los botones salen los
+         trámites que el CIIP cargó para ese sector (tramites_por_sector);
+         si no cargó ninguno, no sale nada. Pulsar uno lo pone en el
+         asunto, que es decir «es por esto». */
       var primerSector = null;
+      var sectorElegido = null;
       if (sugerido && sugerido.sectores){
         cuerpo.appendChild(el('p', 'cs-pide', u.cs_pide || ''));
         var fila = el('div', 'cs-sectores');
         fila.setAttribute('role', 'group');
         fila.setAttribute('aria-label', u.cs_pide || '');
+        var listaSec = el('div', 'cs-tramites');
+        listaSec.hidden = true;
+        var vez = 0;
+        /* Los trámites del sector. Con la vuelta contada: quien pulsa dos
+           sectores seguidos tiene que ver los del segundo aunque la base
+           conteste antes por el primero. Sin la tabla, o sin ninguno
+           cargado, la caja se queda escondida. */
+        var pintaTramitesSector = function(codigo, nombre){
+          var esta = ++vez;
+          listaSec.textContent = '';
+          listaSec.hidden = true;
+          Promise.resolve(sb.from('tramites_por_sector')
+            .select('id, nombre, organismo, orden').eq('sector', codigo)
+            .order('orden', {ascending:true}))
+            .then(function(r){
+              if (esta !== vez) return;
+              if (r && r.error) throw r.error;
+              var filas = (r && r.data) || [];
+              if (!filas.length) return;
+              listaSec.appendChild(el('p', 'cs-tr-t', u.cs_tramites || ''));
+              filas.forEach(function(t){
+                var b = el('button', 'cs-tramite');
+                b.type = 'button';
+                b.appendChild(el('span', 'nm', t.nombre || ''));
+                if (t.organismo) b.appendChild(el('span', 'org', t.organismo));
+                b.addEventListener('click', function(){
+                  caja.value = String(u.cs_asunto || '{s}: ').replace('{s}', nombre) + (t.nombre || '');
+                  caja.focus();
+                  try { caja.setSelectionRange(caja.value.length, caja.value.length); } catch(e){}
+                });
+                listaSec.appendChild(b);
+              });
+              listaSec.hidden = false;
+            })
+            .catch(function(e){
+              console.warn('[CIIP] trámites del sector:', e && (e.message || e));
+            });
+        };
         for (var k = 1; k <= 9; k++){
-          (function(nombre){
+          (function(nombre, codigo){
             var b = el('button', 'cs-sector', nombre);
             b.type = 'button';
             b.setAttribute('aria-pressed', 'false');
+            b.setAttribute('data-sector', codigo);
             b.addEventListener('click', function(){
               [].forEach.call(fila.querySelectorAll('.cs-sector'), function(o){
                 o.setAttribute('aria-pressed', o === b ? 'true' : 'false');
               });
+              sectorElegido = codigo;
               caja.value = String(u.cs_asunto || '{s}: ').replace('{s}', nombre);
+              pintaTramitesSector(codigo, nombre);
               caja.focus();
               try { caja.setSelectionRange(caja.value.length, caja.value.length); } catch(e){}
             });
             if (!primerSector) primerSector = b;
             fila.appendChild(b);
-          })(u['cs_s' + k] || '');
+          })(u['cs_s' + k] || '', CS_CODIGOS[k - 1]);
         }
         cuerpo.appendChild(fila);
+        cuerpo.appendChild(listaSec);
       }
       cuerpo.appendChild(campo);
 
@@ -10925,7 +10997,22 @@ applyLang(idiomaParaMi());
         var fila = {asunto: dice};
         if (sugerido && sugerido.tramite) fila.tramite = sugerido.tramite;
         if (sugerido && sugerido.tipo)    fila.tipo    = sugerido.tipo;
-        Promise.resolve(sb.from('consultas').insert(fila).select())
+        /* El sector, solo si se eligió uno. Si la base todavía no tiene
+           la columna (falta supabase-control-estadisticas.sql), Postgres
+           rechaza el insert entero: se repite sin ella, porque una
+           consulta sin sector contado vale más que una consulta que no
+           sale. */
+        if (sectorElegido) fila.sector = sectorElegido;
+        var abre = function(f){ return Promise.resolve(sb.from('consultas').insert(f).select()); };
+        abre(fila)
+          .then(function(r){
+            if (r && r.error && fila.sector && /sector/i.test(r.error.message || '')){
+              var sin = {};
+              Object.keys(fila).forEach(function(c){ if (c !== 'sector') sin[c] = fila[c]; });
+              return abre(sin);
+            }
+            return r;
+          })
           .then(function(r){
             if (r && r.error) throw r.error;
             var nueva = (r && r.data && r.data[0]) || null;
@@ -29700,6 +29787,374 @@ applyLang(idiomaParaMi());
     });
     window.CIIP_PINTA_EQUIPO   = cargaEquipo;
     window.CIIP_REPINTA_EQUIPO = pintaEquipo;
+  }
+
+  /* ══ CONTROL Y ESTADÍSTICAS ════════════════════════════════════════════
+     Franklin Reyes, 1-10-2026: el renglón «Equipo» de Administración pasa
+     a llamarse «Control y Estadísticas». El pulso y las tarjetas de arriba
+     se quedan como estaban, y debajo van cuatro cosas nuevas:
+
+       · cuántas veces se ha solicitado cada trámite;
+       · cuánto tardan, de que el inversionista envía a que el CIIP lo da
+         por resuelto, por organismo o por trámite;
+       · por qué sector pregunta el inversionista en el chat;
+       · y la lista de trámites específicos de cada sector, que el
+         administrador escribe aquí y el inversionista ve en el chat.
+
+     LAS CIFRAS NO SE CUENTAN AQUÍ. Las tres primeras las devuelve ya
+     hechas estadisticas_control() (supabase-control-estadisticas.sql), una
+     función security definer que comprueba que quien llama es
+     administrador. Contarlas aquí obligaba a traerse todas las solicitudes
+     y todo el historial de la oficina para sacar tres medianas, y una
+     mediana no se puede rehacer sumando trozos.
+
+     «SOLICITADO» ES ENVIADO. Un borrador es un formulario a medio
+     rellenar que el inversionista puede tirar mañana: contarlo como
+     solicitud inflaría justo los trámites que más se empiezan y menos se
+     terminan. Cuenta lo que tiene enviado_en o un estado posterior.
+
+     EL TIEMPO, SOLO DE LO RESUELTO, y en mediana además de promedio: con
+     cinco casos, uno parado dos meses se come el promedio entero. La
+     columna «Ante el ente» mide aparte el tramo del organismo, desde que
+     el CIIP lo presentó hasta que quedó resuelto.
+     ────────────────────────────────────────────────────────────────── */
+  var ceCaja  = document.getElementById('ceCaja');
+  var ceDatos = null, ceFallo = false, ceModo = 'ente';
+  var cePs = {sector: CS_CODIGOS[0], filas: null, fallo: false, aviso: ''};
+
+  function cargaControl(){
+    if (!ceCaja) return Promise.resolve();
+    return Promise.all([
+      Promise.resolve(sb.rpc('estadisticas_control')).then(function(r){
+        if (r && r.error) throw r.error;
+        return (r && r.data) || {};
+      }),
+      /* Los nombres de los trámites salen del catálogo, en el idioma de
+         turno; la base solo manda el código. */
+      Promise.resolve(cargaCatalogo()).catch(function(){ return null; })
+    ]).then(function(rs){
+      ceDatos = rs[0];
+      ceFallo = false;
+    }).catch(function(e){
+      console.warn('[CIIP] control y estadísticas:', e && (e.message || e));
+      ceDatos = null;
+      ceFallo = true;
+    }).then(cargaPsLista).then(pintaControl);
+  }
+
+  function cargaPsLista(){
+    var sector = cePs.sector;
+    return Promise.resolve(sb.from('tramites_por_sector')
+      .select('id, sector, nombre, organismo, orden').eq('sector', sector)
+      .order('orden', {ascending:true}))
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        if (sector !== cePs.sector) return;
+        cePs.filas = ((r && r.data) || []).slice().sort(function(a, b){ return (a.orden || 0) - (b.orden || 0); });
+        cePs.fallo = false;
+      })
+      .catch(function(e){
+        console.warn('[CIIP] trámites por sector:', e && (e.message || e));
+        cePs.filas = null;
+        cePs.fallo = true;
+      });
+  }
+
+  function ceNombreTramite(codigo){
+    var ref = tipoRefDe(codigo);
+    return (ref && nombreDeTarjeta(ref)) || String(codigo || '');
+  }
+  function ceHoras(h){
+    return (h === null || h === undefined || isNaN(+h)) ? '—' : enHoras(Math.max(0, +h) * 3600000);
+  }
+
+  /* Una caja como las del pulso: título arriba y, debajo, la frase que
+     dice qué se está contando. Sin esa frase, «Solicitados» deja abierta
+     justo la pregunta que esta pantalla viene a cerrar. */
+  function ceSeccion(id, titulo, desc){
+    var s = el('section', 'pu-caja ce-caja');
+    s.id = id;
+    s.appendChild(el('div', 'pu-t', titulo || ''));
+    if (desc) s.appendChild(el('p', 'ce-d', desc));
+    return s;
+  }
+
+  function pintaControl(){
+    if (!ceCaja) return;
+    var u = T();
+    var tEq = document.getElementById('ceTequipo');
+    if (tEq) tEq.textContent = u.ce_eq_t || '';
+    ceCaja.textContent = '';
+
+    if (!ceDatos){
+      ceCaja.appendChild(el('div', 'pu-vacio ce-aviso', ceFallo ? (u.ce_nocarga || '') : ''));
+    } else {
+      var dos = el('div', 'pu-dos ce-dos');
+      dos.appendChild(ceCajaTramites(u));
+      dos.appendChild(ceCajaSectores(u));
+      ceCaja.appendChild(dos);
+      ceCaja.appendChild(ceCajaTiempos(u));
+    }
+    /* La lista de cada sector va aunque las cifras fallen: es otra tabla,
+       y escribirla no depende de poder contar. */
+    ceCaja.appendChild(ceCajaPorSector(u));
+  }
+
+  function ceCajaTramites(u){
+    var s = ceSeccion('ceTramites', u.ce_tr_t, u.ce_tr_d);
+    var filas = (ceDatos.tramites || []).filter(function(t){ return (t.solicitados || 0) > 0; });
+    if (!filas.length){ s.appendChild(el('div', 'pu-vacio', u.ce_vacio || '')); return s; }
+    var tope = filas.reduce(function(m, t){ return Math.max(m, t.solicitados || 0); }, 0);
+    var cuerpo = unaTabla(s, [{t:u.ce_c_tramite}, {}, {t:u.ce_c_pedidos, num:true}, {t:u.ce_c_resueltos, num:true}]);
+    filas.forEach(function(t, i){
+      var tr = el('tr', i === 0 ? 'tope' : null);
+      tr.setAttribute('data-tipo', t.tipo || '');
+      var nom = el('td', 'nombre ce-nombre');
+      nom.appendChild(el('span', 'nm', ceNombreTramite(t.tipo)));
+      if (t.ente) nom.appendChild(el('span', 'ce-sub', t.ente));
+      tr.appendChild(nom);
+      tr.appendChild(celdaBarra(t.solicitados || 0, tope));
+      tr.appendChild(el('td', 'num', String(t.solicitados || 0)));
+      tr.appendChild(el('td', 'num pct', String(t.resueltos || 0)));
+      cuerpo.appendChild(tr);
+    });
+    return s;
+  }
+
+  /* Los nueve sectores SIEMPRE, también los que están a cero: saber que
+     nadie pregunta por telecomunicaciones es la mitad de la respuesta. */
+  function ceCajaSectores(u){
+    var s = ceSeccion('ceSectores', u.ce_se_t, u.ce_se_d);
+    var n = {};
+    (ceDatos.sectores || []).forEach(function(x){ n[x.sector] = x.consultas || 0; });
+    var suma = 0, tope = 0;
+    CS_CODIGOS.forEach(function(c){ suma += n[c] || 0; tope = Math.max(tope, n[c] || 0); });
+    var orden = CS_CODIGOS.slice().sort(function(a, b){
+      return ((n[b] || 0) - (n[a] || 0)) || (CS_CODIGOS.indexOf(a) - CS_CODIGOS.indexOf(b));
+    });
+    var cuerpo = unaTabla(s, [{t:u.ce_c_sector}, {}, {t:u.ce_c_consultas, num:true}, {t:'%', num:true}]);
+    var resaltado = false;
+    orden.forEach(function(c){
+      var k = n[c] || 0;
+      var esTope = !resaltado && k > 0 && k === tope;
+      if (esTope) resaltado = true;
+      var tr = el('tr', k === 0 ? 'cero' : (esTope ? 'tope' : null));
+      tr.setAttribute('data-sector', c);
+      tr.appendChild(el('td', 'nombre', nombreDeSectorCs(c)));
+      tr.appendChild(celdaBarra(k, tope));
+      tr.appendChild(el('td', 'num', String(k)));
+      tr.appendChild(el('td', 'num pct', (k === 0 || !suma) ? '—' : String(Math.round((k / suma) * 100))));
+      cuerpo.appendChild(tr);
+    });
+    return s;
+  }
+
+  function ceCajaTiempos(u){
+    var s = ceSeccion('ceTiempos', u.ce_ti_t, u.ce_ti_d);
+    var modos = el('div', 'ce-modos');
+    modos.setAttribute('role', 'group');
+    modos.setAttribute('aria-label', u.ce_ti_t || '');
+    [['ente', u.ce_ti_ente], ['tramite', u.ce_ti_tram]].forEach(function(m){
+      var b = el('button', 'cs-sector ce-modo', m[1] || '');
+      b.type = 'button';
+      b.setAttribute('data-modo', m[0]);
+      b.setAttribute('aria-pressed', ceModo === m[0] ? 'true' : 'false');
+      b.addEventListener('click', function(){
+        ceModo = m[0];
+        var viejo = document.getElementById('ceTiempos');
+        if (viejo) viejo.parentNode.replaceChild(ceCajaTiempos(T()), viejo);
+        var nb = document.querySelector('#ceTiempos .ce-modo[data-modo="' + m[0] + '"]');
+        if (nb) nb.focus();
+      });
+      modos.appendChild(b);
+    });
+    s.appendChild(modos);
+
+    var porEnte = ceModo === 'ente';
+    var filas = porEnte ? (ceDatos.entes || [])
+                        : (ceDatos.tramites || []).filter(function(t){ return (t.resueltos || 0) > 0; });
+    if (!filas.length){ s.appendChild(el('div', 'pu-vacio', u.ce_vacio || '')); return s; }
+    var cuerpo = unaTabla(s, [{t:porEnte ? u.ce_c_ente : u.ce_c_tramite}, {t:u.ce_c_casos, num:true},
+                              {t:u.ce_c_mediana, num:true}, {t:u.ce_c_media, num:true},
+                              {t:u.ce_c_anteente, num:true}]);
+    filas.forEach(function(f){
+      var tr = el('tr');
+      var nom = el('td', 'nombre ce-nombre');
+      if (porEnte) nom.appendChild(el('span', 'nm', f.ente || u.ce_sinente || ''));
+      else {
+        nom.appendChild(el('span', 'nm', ceNombreTramite(f.tipo)));
+        if (f.ente) nom.appendChild(el('span', 'ce-sub', f.ente));
+      }
+      tr.appendChild(nom);
+      tr.appendChild(el('td', 'num', String(f.resueltos || 0)));
+      tr.appendChild(el('td', 'num ce-fuerte', ceHoras(f.mediana_h)));
+      tr.appendChild(el('td', 'num pct', ceHoras(f.promedio_h)));
+      tr.appendChild(el('td', 'num pct', (f.n_ente || 0) ? ceHoras(f.mediana_ente_h) : '—'));
+      cuerpo.appendChild(tr);
+    });
+    return s;
+  }
+
+  /* ── LOS TRÁMITES DE CADA SECTOR ──
+     Solo el administrador escribe (la política de la tabla lo dice; aquí
+     solo se pinta). Cada fila se guarda sola, con su botón: un «Guardar
+     todo» al final se pierde en cuanto alguien cambia de sector a medias.
+     El orden se mueve con Subir y Bajar, y al mover se renumeran todas de
+     diez en diez: con dos filas a orden 0, cambiarlas entre sí no
+     movería nada. */
+  function ceCajaPorSector(u){
+    var s = ceSeccion('cePorSector', u.ce_ps_t, u.ce_ps_d);
+    var chips = el('div', 'cs-sectores ce-ps-sectores');
+    chips.setAttribute('role', 'group');
+    chips.setAttribute('aria-label', u.ce_ps_t || '');
+    CS_CODIGOS.forEach(function(c){
+      var b = el('button', 'cs-sector', nombreDeSectorCs(c));
+      b.type = 'button';
+      b.setAttribute('data-sector', c);
+      b.setAttribute('aria-pressed', cePs.sector === c ? 'true' : 'false');
+      b.addEventListener('click', function(){
+        if (cePs.sector === c) return;
+        cePs.sector = c; cePs.filas = null; cePs.aviso = '';
+        cargaPsLista().then(function(){ ceRepintaPorSector(c); });
+      });
+      chips.appendChild(b);
+    });
+    s.appendChild(chips);
+
+    var lista = el('div', 'ce-ps-lista');
+    var filas = cePs.filas || [];
+    if (cePs.fallo) lista.appendChild(el('div', 'pu-vacio', u.ce_nocarga || ''));
+    else if (!filas.length) lista.appendChild(el('div', 'pu-vacio ce-ps-vacio', u.ce_ps_vacio || ''));
+    filas.forEach(function(f, i){ lista.appendChild(ceFilaPs(u, f, i, filas.length)); });
+    s.appendChild(lista);
+
+    if (!cePs.fallo){
+      var nueva = el('div', 'ce-ps-fila ce-ps-nueva');
+      var nNom = ceCampo('ce-ps-n', u.ce_ps_nombre, '');
+      var nOrg = ceCampo('ce-ps-o', u.ce_ps_organismo, '');
+      nueva.appendChild(nNom); nueva.appendChild(nOrg);
+      var anadir = el('button', 'btn navy ce-ps-anadir', u.ce_ps_anadir || '');
+      anadir.type = 'button';
+      anadir.addEventListener('click', function(){
+        var nombre = nNom.value.trim();
+        if (!nombre){ ceAviso(u.ce_ps_falta); nNom.focus(); return; }
+        var ultimo = filas.reduce(function(m, f){ return Math.max(m, f.orden || 0); }, 0);
+        anadir.disabled = true;
+        ceEscribe(sb.from('tramites_por_sector').insert({
+          sector: cePs.sector, nombre: nombre, organismo: nOrg.value.trim(), orden: ultimo + 10
+        }).select(), '.ce-ps-nueva .ce-ps-n');
+      });
+      nueva.appendChild(anadir);
+      s.appendChild(nueva);
+    }
+    s.appendChild(el('div', 'ce-ps-aviso', cePs.aviso || ''));
+    return s;
+  }
+
+  function ceCampo(cls, rotulo, valor){
+    var i = document.createElement('input');
+    i.type = 'text';
+    i.className = cls;
+    i.maxLength = 200;
+    i.value = valor || '';
+    i.placeholder = rotulo || '';
+    i.setAttribute('aria-label', rotulo || '');
+    return i;
+  }
+
+  function ceBoton(cls, texto, titulo){
+    var b = el('button', 'btn ghost ' + cls, texto);
+    b.type = 'button';
+    if (titulo){ b.title = titulo; b.setAttribute('aria-label', titulo); }
+    return b;
+  }
+
+  function ceFilaPs(u, f, i, n){
+    var fila = el('div', 'ce-ps-fila');
+    fila.setAttribute('data-id', f.id);
+    var nom = ceCampo('ce-ps-n', u.ce_ps_nombre, f.nombre);
+    var org = ceCampo('ce-ps-o', u.ce_ps_organismo, f.organismo);
+    fila.appendChild(nom); fila.appendChild(org);
+    var sube = ceBoton('ce-ps-sube', '↑', u.ce_ps_subir);
+    var baja = ceBoton('ce-ps-baja', '↓', u.ce_ps_bajar);
+    sube.disabled = (i === 0);
+    baja.disabled = (i === n - 1);
+    sube.addEventListener('click', function(){ ceMueve(i, -1); });
+    baja.addEventListener('click', function(){ ceMueve(i, +1); });
+    var guarda = ceBoton('ce-ps-guarda', u.ce_ps_guardar || '');
+    guarda.addEventListener('click', function(){
+      var nombre = nom.value.trim();
+      if (!nombre){ ceAviso(u.ce_ps_falta); nom.focus(); return; }
+      ceEscribe(sb.from('tramites_por_sector')
+        .update({nombre: nombre, organismo: org.value.trim()}).eq('id', f.id).select());
+    });
+    var quita = ceBoton('ce-ps-quita', u.ce_ps_quitar || '');
+    quita.addEventListener('click', function(){
+      ceEscribe(sb.from('tramites_por_sector').delete().eq('id', f.id));
+    });
+    [sube, baja, guarda, quita].forEach(function(b){ fila.appendChild(b); });
+    return fila;
+  }
+
+  function ceMueve(i, paso){
+    var filas = (cePs.filas || []).slice();
+    var j = i + paso;
+    if (j < 0 || j >= filas.length) return;
+    var x = filas[i]; filas[i] = filas[j]; filas[j] = x;
+    /* Solo se escriben las que cambian de número: lo normal es mover una
+       y que se escriban dos. */
+    var cambios = [];
+    filas.forEach(function(f, k){
+      var orden = (k + 1) * 10;
+      if (f.orden !== orden){
+        cambios.push(Promise.resolve(sb.from('tramites_por_sector')
+          .update({orden: orden}).eq('id', f.id).select()));
+      }
+    });
+    ceEscribe(Promise.all(cambios).then(function(rs){
+      var mal = rs.filter(function(r){ return r && r.error; })[0];
+      return mal || {error: null};
+    }), (paso < 0 ? '.ce-ps-fila[data-id="' + x.id + '"] .ce-ps-sube'
+                  : '.ce-ps-fila[data-id="' + x.id + '"] .ce-ps-baja'));
+  }
+
+  /* Escribir, volver a leer y repintar la caja: lo que se ve es lo que
+     quedó en la base, no lo que se mandó. Un permiso que falta no da
+     error en Postgres -cambia cero filas-, y solo releyendo se nota. */
+  function ceEscribe(promesa, foco){
+    cePs.aviso = '';
+    var sector = cePs.sector;
+    Promise.resolve(promesa)
+      .then(function(r){ if (r && r.error) throw r.error; })
+      .catch(function(e){
+        console.warn('[CIIP] trámites por sector, guardar:', e && (e.message || e));
+        cePs.aviso = T().ce_ps_error || '';
+      })
+      .then(cargaPsLista)
+      .then(function(){
+        ceRepintaPorSector(sector);
+        var n = foco ? document.querySelector('#cePorSector ' + foco) : null;
+        if (n && !n.disabled) n.focus();
+      });
+  }
+
+  function ceAviso(txt){
+    var a = document.querySelector('#cePorSector .ce-ps-aviso');
+    if (a) a.textContent = txt || '';
+  }
+
+  function ceRepintaPorSector(sector){
+    var viejo = document.getElementById('cePorSector');
+    if (!viejo || sector !== cePs.sector) return;
+    var nuevo = ceCajaPorSector(T());
+    viejo.parentNode.replaceChild(nuevo, viejo);
+    var chip = nuevo.querySelector('.cs-sector[aria-pressed="true"]');
+    if (chip && !nuevo.contains(document.activeElement) && document.activeElement === document.body) chip.focus();
+  }
+
+  if (ceCaja){
+    window.CIIP_PINTA_CONTROL   = cargaControl;
+    window.CIIP_REPINTA_CONTROL = pintaControl;
   }
 
   /* == EL HORARIO DE CITAS DEL CIIP ========================================

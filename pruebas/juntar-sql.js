@@ -235,7 +235,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    2.3): 'locti_inscrito' en confirma_paso y fuera los pasos del c39 escritos
    a mano. Redefine la confirma_paso de supabase-cedula-opcion2, con su
    'saime_confirmada' dentro; al final. */
-'supabase-locti-opcion2'];
+'supabase-locti-opcion2',
+/* Control y Estadísticas (1-10-2026): el sector de cada consulta, los
+   trámites específicos de cada sector y estadisticas_control(). Usa
+   es_admin, consultas, tramites, tipos_tramite y tramite_eventos; no
+   redefine nada de nadie, así que va al final. */
+'supabase-control-estadisticas'];
 
 let mal = 0;
 for (const n of orden) {

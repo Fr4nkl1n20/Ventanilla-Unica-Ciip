@@ -735,6 +735,47 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .pu-tabla .mal{color:var(--rust); font-weight:700;}
 .pu-vacio{font-size:var(--fs-parrafo); color:var(--gray); padding:16px 18px;}
 .pu-caja .pu-vacio.pie{text-align:center; border-top:1px solid var(--line-soft); padding:22px 18px;}
+
+/* ══ CONTROL Y ESTADÍSTICAS ══
+   Franklin Reyes, 1-10-2026. Las cajas son las del pulso, para que la
+   pantalla se lea como una sola; lo nuevo es el rótulo de las tarjetas,
+   la frase que dice qué se cuenta y la lista editable de cada sector. */
+.ce-h{font-size:var(--fs-seccion); font-weight:700; color:var(--ink); margin:4px 0 10px;}
+.ce-h:empty{display:none;}
+.ce-vista{margin-top:18px; display:flex; flex-direction:column; gap:16px;}
+.ce-caja .ce-d{margin:0; padding:10px 18px 4px; font-size:var(--fs-nota); line-height:1.5; color:var(--gray);}
+.ce-aviso{background:var(--tr-velo); border:1px solid var(--line); border-radius:var(--r);}
+.pu-tabla td.ce-nombre{white-space:normal; max-width:none;}
+.ce-nombre .nm{display:block;}
+.ce-sub{display:block; font-size:var(--fs-nota); color:var(--gray); margin-top:2px;}
+.pu-tabla .ce-fuerte{font-weight:700;}
+.ce-modos{display:flex; flex-wrap:wrap; gap:6px; padding:10px 18px 2px;}
+.ce-ps-sectores{padding:10px 18px 0; margin-bottom:6px;}
+.ce-ps-lista{display:flex; flex-direction:column;}
+.ce-ps-fila{display:grid; grid-template-columns:minmax(0, 2fr) minmax(0, 1.4fr) auto auto auto auto;
+  gap:6px; align-items:center; padding:8px 18px; border-bottom:1px solid var(--line-soft);}
+.ce-ps-fila input{font:inherit; font-size:var(--fs-campo); color:var(--ink); background:var(--bg);
+  border:1px solid var(--line); border-radius:8px; padding:7px 9px; min-width:0;}
+.ce-ps-fila input:focus-visible{outline:2px solid var(--cyan-deep); outline-offset:1px;}
+.ce-ps-fila .btn{font-size:var(--fs-boton); padding:6px 10px;}
+.ce-ps-nueva{grid-template-columns:minmax(0, 2fr) minmax(0, 1.4fr) auto; border-bottom:0; background:var(--activa-bg);}
+.ce-ps-aviso{font-size:var(--fs-nota); color:var(--rust); padding:0 18px 10px;}
+.ce-ps-aviso:empty{display:none;}
+@media(max-width:700px){
+  .ce-ps-fila, .ce-ps-nueva{grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);}
+  .ce-ps-fila input{grid-column:1 / -1;}
+}
+
+/* Y en el chat, bajo los sectores: los trámites que el CIIP cargó para
+   el elegido. Pulsar uno lo pone en el asunto. */
+.cs-tramites{display:flex; flex-direction:column; gap:5px; margin:-4px 0 14px;}
+.cs-tr-t{margin:0 0 2px; font-size:var(--fs-nota); color:var(--gray); line-height:1.5;}
+.cs-tramite{font:inherit; text-align:left; background:var(--bg); border:1px solid var(--line);
+  border-radius:8px; padding:7px 10px; cursor:pointer; display:flex; flex-direction:column; gap:1px;}
+.cs-tramite:hover{border-color:var(--cyan-deep);}
+.cs-tramite:focus-visible{outline:2px solid var(--cyan-deep); outline-offset:2px;}
+.cs-tramite .nm{font-size:var(--fs-fila); font-weight:700; color:var(--navy2);}
+.cs-tramite .org{font-size:var(--fs-nota); color:var(--gray);}
 /* El catalogo. Misma mecanica que la vista de usuarios: se enseña sola
    cuando data-vista lo dice, y se lleva por delante la portada. */
 .catalogo-vista{display:none;}
