@@ -1124,16 +1124,29 @@
         ok('cadena: espera al papel que falta, no al primero de la lista',
            esperaDe('c6') === 'c3', esperaDe('c6') || '(a nadie)', 'c3');
 
-        /* La cédula de extranjero pide el RIF personal (30-9-2026), y el
-           RIF pide la cédula: sin romperlo, cada tarjeta esperaría a la
-           otra. Va primero el RIF, así que su recaudo de identidad no
-           encadena. El catálogo de mentira no trae la cédula, por eso se
-           mira la lista y no la tarjeta. */
+        /* La cédula de extranjero pidió el RIF personal del 30-9 al
+           1-10-2026. Desde «Ventanilla unica 2.4» (Franklin Reyes) pide
+           SOLO el pasaporte: lo demás lo pide el SAIME en su portal. El
+           catálogo de mentira no trae la cédula, por eso se mira la lista
+           y no la tarjeta. */
         var R = window.CIIP_RECAUDOS;
-        var rifEnCedula = R.de('cedula_residencia').filter(function(r){ return r.tipo === 'rif_personal'; })[0];
-        ok('cadena: la cédula de extranjero pide el RIF personal, y no como opcional',
-           !!rifEnCedula && !rifEnCedula.opcional,
-           rifEnCedula ? (rifEnCedula.opcional ? 'opcional' : 'obligatorio') : '(no lo pide)', 'obligatorio');
+        igual('cédula: el único recaudo es el pasaporte',
+              R.de('cedula_residencia').map(function(r){ return r.tipo; }).join(','), 'pasaporte');
+        /* Y sus tres pasos, con el registro en el portal del SAIME que marca
+           el inversionista (saime_confirmada) y que no se pierde al
+           reenviar. La escalera de verdad no se puede dibujar aquí: sin la
+           cédula en el catálogo de mentira, el panel no sabe que es la c2.
+           Cuenta igual que la de las visas (PASOS_SEGUN_ESTADO), y esa sí
+           se mide en visaEscaleraMira. */
+        var PC = ((window.CIIP_PASOS || {}).pasos || {}).es || {};
+        igual('cédula: tres pasos, con los nombres del pedido',
+              (PC.c2 || []).join(' → '),
+              'Regístrate y solicita la cédula a través del portal del SAIME → ' +
+              'Solicitud en proceso de verificación → Cédula otorgada');
+        var CM = window.CIIP_CONSERVA_MARCAS;
+        igual('cédula: «Ya me registré» marca saime_confirmada, y se conserva al reenviar',
+              CM ? Object.keys(CM({saime_confirmada: 'a', numero_visa: 'b'})).join(',') : '(sin pieza)',
+              'saime_confirmada');
         var cedEnRif = R.de('rif_personal').filter(function(r){ return r.tipo === 'cedula'; })[0];
         ok('cadena: y el RIF personal no espera a la cédula',
            !!cedEnRif && cedEnRif.noEncadena === true,

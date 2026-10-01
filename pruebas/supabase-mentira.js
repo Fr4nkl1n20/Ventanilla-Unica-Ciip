@@ -2670,7 +2670,7 @@
             window.CIIP_PRUEBA_CONFIRMA_PASO = (window.CIIP_PRUEBA_CONFIRMA_PASO || []).concat([args]);
             /* Y la del permiso de bomberos (1-10-2026, supabase-bomberos-opcion2.sql). */
             var llaves = ['cancilleria_confirmada', 'licencia_solicitada', 'conformidad_solicitada', 'minero_solicitado',
-                          'bomberos_solicitado'];
+                          'bomberos_solicitado', 'saime_confirmada'];
             var rCP;
             if (!args || llaves.indexOf(args.p_clave) < 0){
               rCP = {data: null, error: {message: 'paso desconocido: ' + (args && args.p_clave), code: 'P0001'}};

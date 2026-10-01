@@ -3066,16 +3066,15 @@ applyLang(idiomaParaMi());
        cédula se quedaría esperando por un trámite que no le sirve.
        Pasaporte y foto, si ya se subieron para otro trámite, salen de la
        bóveda igual. */
+    /* ── LA CÉDULA: SOLO EL PASAPORTE ──
+       Franklin Reyes, 1-10-2026, «Ventanilla unica 2.4»: en «Cédula de
+       identidad de extranjero» el único recaudo es el pasaporte. Se van la
+       visa, la foto, el domicilio y el RIF personal: los pide el propio
+       SAIME en su portal, donde el inversionista se registra y solicita la
+       cédula -el paso 1 de su escalera, PASOS_QUE_MARCAS_TU-, como en las
+       dos visas. */
     cedula_residencia: [
-      {tipo:'pasaporte',  clave:'d_pasaporte'},
-      {tipo:'visa',       clave:'d_visa'},
-      {tipo:'foto',       clave:'d_foto'},
-      {tipo:'domicilio',  clave:'d_domicilio'},
-      /* Y el RIF personal (Franklin Reyes, 30-9-2026). Va ANTES que la
-         cédula: el extranjero lo saca con su pasaporte, y con él pide la
-         cédula. Por eso la tarjeta de la cédula espera a la del RIF, y no
-         al revés -ver rif_personal, justo debajo-. */
-      {tipo:'rif_personal', clave:'d_rifpersonal'}
+      {tipo:'pasaporte',  clave:'d_pasaporte'}
     ],
     /* La homologación va después de la cédula: para entonces el
        inversionista ya la tiene, así que su identidad sale de la bóveda.
@@ -3094,7 +3093,10 @@ applyLang(idiomaParaMi());
       /* noEncadena: la cédula de extranjero se pide CON el RIF, así que
          el RIF no puede esperarla -cada tarjeta esperaría a la otra-. El
          extranjero lo saca con el pasaporte; el rótulo ya dice «Cédula o
-         pasaporte». Se sigue pidiendo igual; solo deja de encadenar. */
+         pasaporte». Se sigue pidiendo igual; solo deja de encadenar.
+         Desde el 1-10-2026 la cédula ya no pide el RIF (solo el
+         pasaporte), pero el RIF sigue sin esperarla: se saca con el
+         pasaporte, y no tiene por qué quedarse detrás de la cédula. */
       {tipo:'cedula',          clave:'d_identidad', noEncadena:true},
       {tipo:'carta_residencia', clave:'d_cartaresid'}
     ],
@@ -4241,13 +4243,18 @@ applyLang(idiomaParaMi());
       {n:'vence_licencia',   clave:'f_vencelic',   tipo:'date'},
       {n:'direccion_vzla',   clave:'f_dirvzla',    ancho:true}
     ],
+    /* ── LA CÉDULA: QUIÉN ERES Y CON QUÉ PASAPORTE ──
+       Franklin Reyes, 1-10-2026, «Ventanilla unica 2.4»: el primer paso
+       pide solo nombres y apellidos, número de pasaporte y país de emisión,
+       igual que las dos visas y con sus mismos campos, que se heredan por
+       NOMBRE entre trámites. Lo demás -la visa, la fecha de ingreso, el
+       estado civil, la ocupación, el teléfono y la dirección- lo pregunta
+       el SAIME en su portal. */
     cedula_residencia: [
-      {n:'numero_visa',      clave:'f_numvisa'},
-      {n:'fecha_ingreso',    clave:'f_ingreso',   tipo:'date'},
-      {n:'estado_civil',     clave:'f_civil',     opcionesClave:'o_civil'},
-      {n:'ocupacion',        clave:'f_ocupacion'},
-      {n:'telefono_local',   clave:'f_telvzla',   tipo:'tel'},
-      {n:'direccion_vzla',   clave:'f_dirvzla',   ancho:true}
+      {n:'nombres',          clave:'f_nombres'},
+      {n:'apellidos',        clave:'f_apellidos'},
+      {n:'numero_pasaporte', clave:'f_pasaporte'},
+      {n:'pais_emisor',      clave:'f_paisemisor', paises:true}
     ],
     /* ── LAS CASILLAS DEL SENIAT ──
        Franklin Reyes, 25-9-2026: «coloca los que salen en la casilla del
@@ -23254,6 +23261,11 @@ applyLang(idiomaParaMi());
   var PASOS_QUE_MARCAS_TU = {
     c1:  {1: 'cancilleria_confirmada'},
     c38: {1: 'cancilleria_confirmada'},
+    /* La cédula (Franklin Reyes, 1-10-2026, «Ventanilla unica 2.4»): se
+       registra y la solicita en el portal del SAIME, y lo avisa con su
+       «Ya me registré». Llave propia y no la de Cancillería: el visor del
+       gestor dice qué marcó el inversionista, y no fue en la Cancillería. */
+    c2:  {1: 'saime_confirmada'},
     c10: {1: {clave: 'licencia_solicitada',    texto: 'p_yalasolicite'}},
     c28: {1: {clave: 'conformidad_solicitada', texto: 'p_yalasolicite'}},
     c36: {1: {clave: 'minero_solicitado',      texto: 'p_yalosolicite'}},
@@ -23329,6 +23341,10 @@ applyLang(idiomaParaMi());
        solicitud en revisión, que es prometer la visa antes de tiempo. */
     c1:  {borrador:0, devuelto:1, enviado:1, en_revision:1, ante_el_ente:1},
     c38: {borrador:0, devuelto:1, enviado:1, en_revision:1, ante_el_ente:1},
+    /* La cédula, igual (Franklin Reyes, 1-10-2026, «Ventanilla unica 2.4»):
+       registro en el portal del SAIME → solicitud en proceso de
+       verificación → cédula otorgada. */
+    c2:  {borrador:0, devuelto:1, enviado:1, en_revision:1, ante_el_ente:1},
     /* El permiso de bomberos (c29) estuvo aquí el 28-9-2026, con dos pasos.
        Del 29-9 al 1-10-2026, con el importe de aranceles y su comprobante
        en medio, lo contó su escalera por etapas (ESCALERA_POR_ETAPAS).
@@ -23396,6 +23412,7 @@ applyLang(idiomaParaMi());
   var ENLACE_DEL_PASO = {
     c1:  {1: {url: 'https://cancilleriadigital.mppre.gob.ve/', clave: 'p_ircancilleria'}},
     c38: {1: {url: 'https://cancilleriadigital.mppre.gob.ve/', clave: 'p_ircancilleria'}},
+    c2:  {1: {url: 'https://siic.saime.gob.ve/', clave: 'p_irsaime'}},
     c10: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
     c28: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
     c36: {1: {url: 'https://sigdme2-0.desarrollominero.gob.ve/', clave: 'p_irsigdme'}},

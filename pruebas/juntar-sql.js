@@ -227,7 +227,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* El permiso de bomberos por el portal (1-10-2026): 'bomberos_solicitado'
    en confirma_paso, anota_paso() para la sede y fuera el candado del
    comprobante de aranceles. Redefine la confirma_paso de supabase-opcion2. */
-'supabase-bomberos-opcion2'];
+'supabase-bomberos-opcion2',
+/* La cédula por el portal del SAIME (1-10-2026): 'saime_confirmada' en
+   confirma_paso. Redefine la de supabase-bomberos-opcion2; al final. */
+'supabase-cedula-opcion2'];
 
 let mal = 0;
 for (const n of orden) {
