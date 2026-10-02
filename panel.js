@@ -10871,7 +10871,14 @@ applyLang(idiomaParaMi());
 
       var bNueva = el('button', 'btn navy', u['cons.nueva'] || '');
       bNueva.type = 'button';
-      bNueva.addEventListener('click', function(){ pintaNueva(); });
+      /* La nueva también empieza por los sectores, como la franja del
+         catálogo (Franklin Reyes, 2-10-2026: «al generar una nueva
+         consulta, que salgan nuevamente los recuadros»). desdeLista pone
+         en el paso 1 el camino de vuelta a esta lista. */
+      bNueva.addEventListener('click', function(){
+        sugerido = {sectores: true, desdeLista: true};
+        pintaSectores();
+      });
 
       var titulo = el('div', 'sol-h', u['cons.mias'] || '');
       cuerpo.appendChild(titulo);
@@ -11042,6 +11049,14 @@ applyLang(idiomaParaMi());
       var u = T();
       ponCabecera(true);
       cuerpo.textContent = '';
+      /* Desde la lista de tus consultas hay camino de vuelta. Desde la
+         franja del catálogo no: allí la ventana se abrió para esto. */
+      if (sugerido && sugerido.desdeLista){
+        var volver = el('button', 'cons-volver', '‹ ' + (u['cons.volver'] || ''));
+        volver.type = 'button';
+        volver.addEventListener('click', function(){ sugerido = null; ponCabecera(false); pintaLista(); });
+        cuerpo.appendChild(volver);
+      }
       cuerpo.appendChild(el('div', 'cs-paso', String(u.cs_paso || '').replace('{n}', '1')));
       cuerpo.appendChild(el('p', 'cs-pide', u.cs_pide || ''));
       var rej = el('div', 'cs-rej');

@@ -11825,9 +11825,19 @@
 
   function consultaNuevaMira(){
     if (CASO === 'gestor') return;
-    /* Se vuelve a la lista, y de ahi al formulario. */
+    /* Se vuelve a la lista, y de ahi a una nueva. Desde el 2-10-2026 la
+       nueva empieza, como la franja del catalogo, por los sectores
+       (Franklin Reyes: «que salgan nuevamente los recuadros»), y con el
+       camino de vuelta a la lista. */
     var b = document.querySelector('#consCuerpo .btn.navy');
     if (b) b.click();
+    igual('consulta: la nueva empieza por los nueve sectores',
+          document.querySelectorAll('#consCuerpo .cs-rej .cs-sector').length, 9);
+    ok('consulta: y con el camino de vuelta a tus consultas',
+       !!document.querySelector('#consCuerpo .cons-volver'),
+       document.querySelector('#consCuerpo .cons-volver') ? 'con «Volver»' : '(sin «Volver»)', 'con «Volver»');
+    var sec = document.querySelector('#consCuerpo .cs-rej .cs-sector');
+    if (sec) sec.click();
     var campo = document.getElementById('consAsunto');
     ok('consulta: se puede abrir una nueva',
        !!campo, campo ? 'con su campo' : '(no hay formulario)', 'el formulario');
@@ -11835,15 +11845,14 @@
 
     /* Sin asunto no se abre. Una consulta sin asunto llega a la cola del
        equipo como un renglon en blanco: hay que abrirla para saber que
-       pide, y con quince encima eso es quince veces. */
+       pide, y con quince encima eso es quince veces. En el paso 2 lo
+       impide «Enviar», apagado hasta que se escribe algo. */
     var crear = document.getElementById('consCrear');
-    if (crear) crear.click();
-    var aviso = document.querySelector('#consCuerpo .cons-aviso');
-    ok('consulta: sin decir de que va no se abre, y lo dice',
-       !!aviso && /\S/.test(aviso.textContent),
-       aviso ? aviso.textContent : '(sin aviso)', 'que falta el asunto');
+    ok('consulta: sin decir de que va no se puede enviar',
+       !!crear && crear.disabled, crear ? (crear.disabled ? 'apagado' : 'encendido') : '(sin botón)', 'apagado');
 
     campo.value = 'Cuanto tarda el registro mercantil?';
+    campo.dispatchEvent(new Event('input'));
     if (crear) crear.click();
   }
 
@@ -11913,12 +11922,19 @@
     }
     var cerrar = document.getElementById('consCerrar');
     if (cerrar) cerrar.click();
-    /* Y al abrir Consultas por su puerta de siempre, sin sectores. */
+    /* Y al abrir Consultas por su puerta de siempre y pulsar «Nueva
+       consulta», también los sectores (Franklin Reyes, 2-10-2026). Por la
+       franja no hay «Volver»; desde la lista, sí. */
     if (window.CIIP_ABRE_CONSULTA) window.CIIP_ABRE_CONSULTA();
     var nb = document.querySelector('#consCuerpo .btn.navy');
     if (nb) nb.click();
-    igual('cierre: la consulta de siempre no pregunta el sector',
-          document.querySelectorAll('#consCuerpo .cs-sector').length, 0);
+    igual('cierre: la consulta nueva desde la lista también pregunta el sector',
+          document.querySelectorAll('#consCuerpo .cs-rej .cs-sector').length, 9);
+    var vu = document.querySelector('#consCuerpo .cons-volver');
+    if (vu) vu.click();
+    ok('cierre: y «Volver» regresa a la lista de tus consultas',
+       !!vu && !document.querySelector('#consCuerpo .cs-rej') && !!document.querySelector('#consCuerpo .btn.navy'),
+       vu ? (document.querySelector('#consCuerpo .cs-rej') ? '(sigue en los sectores)' : 'en la lista') : '(sin «Volver»)', 'en la lista');
     if (cerrar) cerrar.click();
     setTimeout(sigue, 300);
   }
