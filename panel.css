@@ -3048,6 +3048,16 @@ body[data-vista="inicio"].etapa-elegida .tsec-sig:not([hidden]){display:flex;}
   font-size:var(--fs-fila); line-height:1.45; color:var(--ink);}
 .gv-nota > span{flex:1 1 220px; min-width:0;}
 .gv-nota .btn{flex:none;}
+/* Y con todo elegido, la caja se pliega en una línea, sin borde ni fondo:
+   lo elegido y «Cambiar», encima del trámite (2-10-2026). */
+.tr-visas.gv-plegada{border:0; box-shadow:none; background:none; padding:0; margin:0 0 12px;}
+.gv-resumen{display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px;
+  font-size:var(--fs-fila); color:var(--ink);}
+.gv-resumen-t{font-weight:600;}
+.gv-cambia{appearance:none; border:0; background:none; padding:0; cursor:pointer;
+  font-family:inherit; font-size:var(--fs-fila); font-weight:700; color:var(--navy2);}
+.gv-cambia:hover{text-decoration:underline; text-underline-offset:3px;}
+.gv-cambia:focus-visible{outline:2px solid var(--navy); outline-offset:2px;}
 
 /* ============== DETALLE DE UN TRAMITE (tercer nivel) ==============
    portada -> fase -> tramite. Cada nivel tiene su vista y su boton de

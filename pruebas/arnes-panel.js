@@ -4969,6 +4969,14 @@
     ok('bienes: con la redacción, se abren los datos y los recaudos',
        !!detalle && !detalle.classList.contains('elige-visa'),
        detalle ? (detalle.className || '(sin clases)') : 'no está', 'sin la clase elige-visa');
+    /* Y la guía se pliega en una línea: «cuando pase a la línea de
+       procesos no quiero ver el cuadro de arriba» (Franklin, 2-10-2026). */
+    ok('bienes: elegido todo, el cuadro de la guía se pliega en una línea',
+       guia.classList.contains('gv-plegada') && !guia.querySelector('.gv-col') && !!document.getElementById('bienCambiar'),
+       (guia.classList.contains('gv-plegada') ? 'plegada' : 'abierta') + ' · ' +
+         guia.querySelectorAll('.gv-col').length + ' cajas', 'plegada · 0 cajas');
+    igual('bienes: con lo elegido escrito', (guia.querySelector('.gv-resumen-t') || {}).textContent,
+          U.bi_cv + ' · ' + U.bi_red);
     setTimeout(sigue, 300);
   }
 
@@ -4986,6 +4994,18 @@
           'propiedad_inmueble identidad_propietario cedula_catastral solvencia_inmuebles');
     ok('bienes: sin «undefined» en el detalle',
        document.body.innerText.indexOf('undefined') === -1, 'dice «undefined»', 'limpio');
+
+    /* «Cambiar» vuelve a abrir la guía y aparta el formulario. */
+    var cb = document.getElementById('bienCambiar');
+    if (cb) cb.click();
+    var guia = document.getElementById('trVisas');
+    var detalle = document.getElementById('trDetalle');
+    ok('bienes: «Cambiar» vuelve a abrir la guía',
+       !!cb && !guia.classList.contains('gv-plegada') && guia.querySelectorAll('[data-bien-serv]').length === 2,
+       cb ? (guia.classList.contains('gv-plegada') ? 'sigue plegada' : 'abierta') : '(sin «Cambiar»)', 'abierta');
+    ok('bienes: y aparta otra vez el formulario',
+       !!detalle && detalle.classList.contains('elige-visa'),
+       detalle ? (detalle.className || '(sin clases)') : 'no está', 'con la clase elige-visa');
 
     /* Y el alquiler, desde la misma guía: lleva a su ficha. */
     var alq = document.querySelector('#trVisas [data-bien-op="c42"]');
@@ -5018,7 +5038,10 @@
           (U.o_bipapel_alq || []).join('|'));
     igual('bienes: con dos recaudos', bienesDocs(caja), 'propiedad_inmueble identidad_propietario');
 
-    /* Y la asesoría: aparta el formulario y abre la consulta. */
+    /* Y la asesoría, pasando por «Cambiar»: aparta el formulario y abre la
+       consulta. */
+    var cb = document.getElementById('bienCambiar');
+    if (cb) cb.click();
     var ase = guia && guia.querySelector('[data-bien-serv="asesoria"]');
     if (ase) ase.click();
     setTimeout(sigue, 300);

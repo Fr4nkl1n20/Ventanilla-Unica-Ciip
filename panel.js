@@ -645,6 +645,8 @@ function applyLang(lang){
     if (GUIA_BIENES.codigo[id]) return pintaGuiaBienes(id, D);
     var caja = document.getElementById('trVisas');
     if (!caja) return;
+    /* La misma caja la pliega «Bienes»: viniendo de allí, se despliega. */
+    caja.classList.remove('gv-plegada');
     var mia = null;
     GUIA_VISAS.forEach(function(v){ if (v.ref === id) mia = v; });
     caja.hidden = !mia;
@@ -796,7 +798,31 @@ function applyLang(lang){
     var u = (D && D.ui && (D.ui[curLang] || D.ui.en)) || {};
     var op = (id === 'c42') ? 'c42' : BIEN_OP;
     var serv = op ? (BIEN_SERV[id] || '') : '';
-    tramiteALaVista(!!op && serv === 'redaccion');
+    var todoElegido = !!op && serv === 'redaccion';
+    tramiteALaVista(todoElegido);
+
+    /* Con todo elegido, la guía se pliega en UNA LÍNEA con lo elegido y
+       «Cambiar», y el trámite queda arriba (Franklin Reyes, 2-10-2026:
+       «cuando pase a la línea de procesos no quiero ver el cuadro de
+       arriba»). Sin «Cambiar» no habría vuelta: lo elegido dura la visita,
+       y al volver a la ficha saldría otra vez el formulario. */
+    caja.classList.toggle('gv-plegada', todoElegido);
+    if (todoElegido){
+      var res = el('div', 'gv-resumen');
+      res.appendChild(el('span', 'gv-resumen-t',
+        (u[op === 'c42' ? 'bi_alq' : 'bi_cv'] || '') + ' · ' + (u.bi_red || '')));
+      var cambia = el('button', 'gv-cambia', u.bi_cambiar || '');
+      cambia.type = 'button';
+      cambia.id = 'bienCambiar';
+      cambia.setAttribute('data-ui', 'bi_cambiar');
+      cambia.addEventListener('click', function(){
+        BIEN_SERV[id] = '';
+        pintaGuiaBienes(id, D);
+      });
+      res.appendChild(cambia);
+      caja.appendChild(res);
+      return;
+    }
 
     var h = el('div', 'gv-h');
     h.appendChild(el('span', 'gv-ico', '?'));
