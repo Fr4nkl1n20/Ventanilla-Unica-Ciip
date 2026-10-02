@@ -4106,8 +4106,6 @@
     sigue();
   }
 
-  /* Y el único recaudo, el pasaporte: en la pantalla de la TR-N y en las
-     listas de las dos. */
   /* ── LA PLANILLA DE SOLICITUD DE VISA ──
      Franklin Reyes, 2-10-2026: en «Tus datos» de la visa, un botón que
      lleva a Ayuda y guía, al grupo «Solicitud de visa» de «Pasos y
@@ -4121,6 +4119,10 @@
     ok('visa: «Tus datos» lleva el botón de la planilla de solicitud',
        !!b && !!hoja1 && hoja1.contains(b), b ? (hoja1 && hoja1.contains(b) ? 'en Tus datos' : 'fuera de Tus datos') : '(no hay botón)', 'en Tus datos');
     if (!b) return sigue();
+    /* Lo escrito antes de salir tiene que seguir ahí al volver: el
+       formulario se rehace entero y sin esto se perdía. */
+    var pas = hoja1.querySelector('input[name="numero_pasaporte"]');
+    if (pas) pas.value = 'ZZ7654321';
     b.click();
     setTimeout(function(){
       igual('visa: el botón lleva a Ayuda y guía', location.hash, '#ayuda');
@@ -4129,11 +4131,19 @@
          g ? (g.open ? 'abierto' : 'cerrado') : '(no hay grupo)', 'abierto');
       var d = g && g.querySelector('a.ay-descarga');
       igual('visa: y la planilla para descargar', d ? d.getAttribute('href') : '(sin enlace)', 'planillas/visa-solicitud.pdf');
-      location.hash = '';
-      setTimeout(sigue, 300);
+      history.back();
+      setTimeout(function(){
+        var p2 = document.querySelector('#trReal input[name="numero_pasaporte"]');
+        igual('visa: al volver de Ayuda, lo escrito en «Tus datos» sigue ahí',
+              p2 ? p2.value : '(sin formulario)', 'ZZ7654321');
+        location.hash = '';
+        setTimeout(sigue, 300);
+      }, 600);
     }, 300);
   }
 
+  /* Y el único recaudo, el pasaporte: en la pantalla de la TR-N y en las
+     listas de las dos. */
   function visaRecaudos(sigue){
     if (PASE !== 'vacio') return sigue();
     var caja = document.getElementById('trReal');

@@ -5771,10 +5771,23 @@ applyLang(idiomaParaMi());
   }
   window.CIIP_CONSERVA_MARCAS = conservaMarcas;
 
+  /* Lo escrito en «Tus datos» cuando se sale a buscar algo y se vuelve:
+     hoy, el botón de la planilla de la visa, que lleva a Ayuda y guía.
+     El formulario se rehace entero al volver (CIIP_TRAMITE_REAL) y la base
+     solo guarda borrador al enviar, así que sin esto el pasaporte recién
+     tecleado se perdía (lo encontró la revisión del 2-10-2026). Por tipo de
+     trámite, en memoria y de un solo uso: si la pestaña se recarga, se
+     pierde, como cualquier formulario sin enviar. */
+  var DATOS_EN_VUELO = {};
+
   function pintaFormulario(tipo, borrador){
     var u = T();
     vaciaAcompana();
     var datos = (borrador && borrador.datos) || {};
+    if (!(borrador && borrador.datos) && DATOS_EN_VUELO[tipo.codigo]){
+      datos = DATOS_EN_VUELO[tipo.codigo];
+    }
+    delete DATOS_EN_VUELO[tipo.codigo];
 
     /* Tres hojas, una detras de otra: los datos, los papeles y el repaso de
        lo que se va a mandar. Antes eran dos columnas en la misma pantalla, y
@@ -5868,6 +5881,11 @@ applyLang(idiomaParaMi());
       bPv.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 12v6M9 15l3 3 3-3"/></svg>';
       bPv.appendChild(el('span', null, u.vs_planilla_btn || ''));
       bPv.addEventListener('click', function(){
+        var lleva = {};
+        [].forEach.call(hDatos.querySelectorAll('input[name], select[name], textarea[name]'), function(e){
+          if (e.value) lleva[e.name] = e.value;
+        });
+        DATOS_EN_VUELO[tipo.codigo] = lleva;
         window.CIIP_AYUDA_A = {grupo: 'ay_rec_visa'};
         if (location.hash === '#ayuda' && window.CIIP_REPINTA_AYUDA) window.CIIP_REPINTA_AYUDA();
         else location.hash = 'ayuda';
@@ -25360,6 +25378,7 @@ applyLang(idiomaParaMi());
          aySitio, que solo deja salir a direcciones http. */
       if (g.descarga){
         var aD = el('a', 'ay-enlace ay-descarga', g.descarga.texto || '');
+        if (g.descarga.ui) aD.setAttribute('data-ui', g.descarga.ui);
         aD.href = g.descarga.href;
         aD.setAttribute('download', '');
         aD.target = '_blank';
@@ -25422,7 +25441,8 @@ applyLang(idiomaParaMi());
     ['licencia', 'parafiscales', 'conformidad', 'bomberos', 'visa'].forEach(function(k){
       var kt = 'ay_rec_' + k, kl = kt + '_lista';
       var g = {kt: kt, t: u[kt] || es[kt], kl: kl, l: u[kl] || es[kl]};
-      if (k === 'visa') g.descarga = {href: PLANILLA_VISA, texto: u.ay_visa_planilla || es.ay_visa_planilla};
+      if (k === 'visa') g.descarga = {href: PLANILLA_VISA, texto: u.ay_visa_planilla || es.ay_visa_planilla,
+                                    ui: 'ay_visa_planilla'};
       caja2.appendChild(grupo(g));
     });
     ayLista.appendChild(caja2);
