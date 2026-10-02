@@ -739,7 +739,7 @@ create table if not exists public.tramites (
   actualizado_en timestamptz not null default now(),
 
   constraint tramites_estado_valido
-    check (estado in ('borrador','enviado','en_revision','devuelto','ante_el_ente','resuelto')),
+    check (estado in ('borrador','enviado','en_revision','devuelto','ante_el_ente','resuelto','cancelado')),
   constraint tramites_datos_es_objeto
     check (jsonb_typeof(datos) = 'object')
 );
@@ -918,6 +918,10 @@ begin
     or (old.estado = 'enviado'      and new.estado in ('en_revision','devuelto'))
     or (old.estado = 'en_revision'  and new.estado in ('ante_el_ente','devuelto'))
     or (old.estado = 'ante_el_ente' and new.estado in ('resuelto','devuelto'))
+    -- Cancelar: el inversionista, con cancela_tramite(), antes de que llegue al ente
+    -- (supabase-cancelar.sql). Sin esta línea, volver a correr este archivo rompe el botón.
+    or (old.estado in ('borrador','enviado','en_revision','devuelto')
+        and new.estado = 'cancelado')
   ) then
     raise exception 'Un trámite no pasa de "%" a "%"', old.estado, new.estado
       using errcode = 'check_violation';
