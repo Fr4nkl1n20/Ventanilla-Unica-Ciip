@@ -260,7 +260,7 @@
               loctiAbre, empiezaSolicitud, loctiTrasAbrir,
               /* Las visas con la Taquilla única opción 2 (1-10-2026): cuatro
                  campos y el pasaporte; y la regla de los 6 meses, directa. */
-              pistaAbre, empiezaSolicitud, pistaMira, visaCampos, visaRecaudos, vigenciaRegla,
+              pistaAbre, empiezaSolicitud, pistaMira, visaCampos, visaRecaudos, vigenciaRegla, visaPlanilla,
               solvenciasAbre, empiezaSolicitud, solvenciasTrasAbrir,
               activosAbre, activosMira, opacidadActivos, activosPublica, activosTrasPublicar,
               activosEdita, activosTrasEditar, activosBorra, activosTrasBorrar,
@@ -4108,6 +4108,32 @@
 
   /* Y el único recaudo, el pasaporte: en la pantalla de la TR-N y en las
      listas de las dos. */
+  /* ── LA PLANILLA DE SOLICITUD DE VISA ──
+     Franklin Reyes, 2-10-2026: en «Tus datos» de la visa, un botón que
+     lleva a Ayuda y guía, al grupo «Solicitud de visa» de «Pasos y
+     recaudos», abierto, donde se descarga la planilla. */
+  function visaPlanilla(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var caja = document.getElementById('trReal');
+    if (caja && caja.CIIP_VE_PASO) caja.CIIP_VE_PASO(1);
+    var b = document.getElementById('paPlanillaVisa');
+    var hoja1 = caja && caja.querySelector('.pa-hoja[data-paso="1"]');
+    ok('visa: «Tus datos» lleva el botón de la planilla de solicitud',
+       !!b && !!hoja1 && hoja1.contains(b), b ? (hoja1 && hoja1.contains(b) ? 'en Tus datos' : 'fuera de Tus datos') : '(no hay botón)', 'en Tus datos');
+    if (!b) return sigue();
+    b.click();
+    setTimeout(function(){
+      igual('visa: el botón lleva a Ayuda y guía', location.hash, '#ayuda');
+      var g = document.querySelector('#ayLista details[data-clave="ay_rec_visa"]');
+      ok('visa: con el grupo «Solicitud de visa» abierto', !!g && g.open,
+         g ? (g.open ? 'abierto' : 'cerrado') : '(no hay grupo)', 'abierto');
+      var d = g && g.querySelector('a.ay-descarga');
+      igual('visa: y la planilla para descargar', d ? d.getAttribute('href') : '(sin enlace)', 'planillas/visa-solicitud.pdf');
+      location.hash = '';
+      setTimeout(sigue, 300);
+    }, 300);
+  }
+
   function visaRecaudos(sigue){
     if (PASE !== 'vacio') return sigue();
     var caja = document.getElementById('trReal');
@@ -8590,8 +8616,10 @@
     }).join(' ') : '(no está)';
     /* Y desde el mismo día, el permiso de bomberos: Miranda y Distrito
        Capital (Franklin Reyes, 1-10-2026, Permiso de Bomberos). */
-    igual('recaudos: en Ayuda, la licencia, los parafiscales, la conformidad de uso y los bomberos, con sus enlaces',
-          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3 ay_rec_bomberos:2');
+    /* Y la visa (2-10-2026): el portal de Cancillería; la planilla para
+       descargar va aparte, fuera de .ay-sitios, y la mide visaPlanilla. */
+    igual('recaudos: en Ayuda, la licencia, los parafiscales, la conformidad de uso, los bomberos y la visa, con sus enlaces',
+          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3 ay_rec_bomberos:2 ay_rec_visa:1');
     var bomb = rec ? [].map.call(rec.querySelectorAll('details[data-clave="ay_rec_bomberos"] a.ay-enlace'), function(a){
       return a.getAttribute('href'); }).join(' ') : '(no está)';
     igual('recaudos: los de bomberos, Miranda y Distrito Capital, con los enlaces del documento', bomb,

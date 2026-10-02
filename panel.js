@@ -5851,6 +5851,30 @@ applyLang(idiomaParaMi());
     var dos = el('div', 'sol-dos sola');
     var col = el('div', 'sol-col');
     dos.appendChild(col);
+
+    /* ── LA PLANILLA DE LA VISA ──
+       Franklin Reyes, 2-10-2026: en «Tus datos» de las dos visas, un botón
+       «Planilla de solicitud de visa» que lleva a Ayuda y guía → Pasos y
+       recaudos → Solicitud de visa, donde se descarga: la van a necesitar
+       al registrarse en el portal de Cancillería, el paso 1 de su
+       escalera. Mismo salto que el «¿Sabes cuáles son los recaudos…?» de
+       los parafiscales (CIIP_AYUDA_A). */
+    if (tipo.codigo === 'visa_negocios' || tipo.codigo === 'visa_inversionista'){
+      var fPv = el('div', 'pa-planilla');
+      fPv.appendChild(el('span', 'pa-planilla-t', u.vs_planilla_nota || ''));
+      var bPv = el('button', 'btn ghost pa-planilla-b', '');
+      bPv.type = 'button';
+      bPv.id = 'paPlanillaVisa';
+      bPv.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 12v6M9 15l3 3 3-3"/></svg>';
+      bPv.appendChild(el('span', null, u.vs_planilla_btn || ''));
+      bPv.addEventListener('click', function(){
+        window.CIIP_AYUDA_A = {grupo: 'ay_rec_visa'};
+        if (location.hash === '#ayuda' && window.CIIP_REPINTA_AYUDA) window.CIIP_REPINTA_AYUDA();
+        else location.hash = 'ayuda';
+      });
+      fPv.appendChild(bPv);
+      hDatos.appendChild(fPv);
+    }
     hDatos.appendChild(dos);
 
     var lado = null, notaPap = null, cajaJunta = null;
@@ -25222,6 +25246,9 @@ applyLang(idiomaParaMi());
     return li;
   }
 
+  /* La planilla de solicitud de visa de Cancillería (abril de 2026). */
+  var PLANILLA_VISA = 'planillas/visa-solicitud.pdf';
+
   function pintaAyuda(){
     if (!ayLista) return;
     var u = T();
@@ -25328,6 +25355,19 @@ applyLang(idiomaParaMi());
       cuerpo.setAttribute('data-ui', g.kl);
       var sitios = ayRenglones(g.l);
       var esAqui = !!(aqui && aqui.grupo === g.kt);
+      /* Un archivo del propio panel para descargar, delante de los
+         enlaces: la planilla de solicitud de visa (2-10-2026). No pasa por
+         aySitio, que solo deja salir a direcciones http. */
+      if (g.descarga){
+        var aD = el('a', 'ay-enlace ay-descarga', g.descarga.texto || '');
+        aD.href = g.descarga.href;
+        aD.setAttribute('download', '');
+        aD.target = '_blank';
+        aD.rel = 'noopener';
+        var pD = el('div', 'ay-descarga-fila');
+        pD.appendChild(aD);
+        cuerpo.appendChild(pD);
+      }
       if (sitios.length){
         var ul = el('ul', 'ay-sitios');
         sitios.forEach(function(x){
@@ -25375,9 +25415,15 @@ applyLang(idiomaParaMi());
     var caja2 = el('div', 'faq ay-rec');
     /* Y el permiso de bomberos, uno por estado (Franklin Reyes, 1-10-2026,
        Permiso de Bomberos, «Casilla Ayuda y Guías: incluir»). */
-    ['licencia', 'parafiscales', 'conformidad', 'bomberos'].forEach(function(k){
+    /* Y la visa (Franklin Reyes, 2-10-2026): la planilla de solicitud,
+       que hace falta para registrarse en el portal de Cancillería, y el
+       portal. A este grupo lleva el botón «Planilla de solicitud de visa»
+       del paso «Tus datos» de las dos visas. */
+    ['licencia', 'parafiscales', 'conformidad', 'bomberos', 'visa'].forEach(function(k){
       var kt = 'ay_rec_' + k, kl = kt + '_lista';
-      caja2.appendChild(grupo({kt: kt, t: u[kt] || es[kt], kl: kl, l: u[kl] || es[kl]}));
+      var g = {kt: kt, t: u[kt] || es[kt], kl: kl, l: u[kl] || es[kl]};
+      if (k === 'visa') g.descarga = {href: PLANILLA_VISA, texto: u.ay_visa_planilla || es.ay_visa_planilla};
+      caja2.appendChild(grupo(g));
     });
     ayLista.appendChild(caja2);
 

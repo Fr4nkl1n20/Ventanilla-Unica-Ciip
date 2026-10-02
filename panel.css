@@ -1497,6 +1497,9 @@ body.editando-textos .faq-item.ay-sin{display:block;}
    apagada, dice adónde antes de pulsar. */
 .ay-enlace{color:var(--navy2); font-weight:700; text-decoration:none;}
 .ay-enlace:hover{text-decoration:underline;}
+/* La planilla de la visa para descargar, delante de los enlaces de su grupo (2-10-2026). */
+.ay-descarga-fila{margin:2px 0 10px;}
+.ay-descarga{font-size:var(--fs-enlace);}
 .ay-host{margin-left:8px; font-size:var(--fs-nota); color:var(--gray-soft); overflow-wrap:anywhere;}
 .ay-pronto{color:var(--gray-soft);}
 /* Pasos y recaudos de cada trámite (1-10-2026): el mismo desplegable,
@@ -3440,6 +3443,14 @@ body[data-vista="tramite"] #secTramites{display:none;}
   cursor:pointer; text-align:left;}
 .pe-recaudos:hover{text-decoration:underline;}
 .pe-recaudos:focus-visible{outline:2px solid var(--navy2); outline-offset:2px; border-radius:3px;}
+
+/* El botón de la planilla de solicitud de visa, en «Tus datos» de las dos
+   visas (Franklin Reyes, 2-10-2026): una fila con el azul claro de lo
+   activo, encima de los campos. */
+.pa-planilla{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  margin-bottom:14px; padding:12px 14px; background:var(--activa-bg); border:1px solid var(--line); border-radius:var(--r);}
+.pa-planilla-t{flex:1; min-width:200px; font-size:var(--fs-parrafo); line-height:1.5; color:var(--ink);}
+.pa-planilla-b{white-space:nowrap;}
 /* En la tarjeta de cada ente, los pasos en horizontal y mas apretados: el
    punto de 20 y el hilo a su altura. */
 .pe-pasos .tr-paso{gap:7px; min-width:120px; padding-right:12px;}
