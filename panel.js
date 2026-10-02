@@ -10911,7 +10911,61 @@ applyLang(idiomaParaMi());
     }
 
     /* ── abrir una nueva ── */
+    /* Abre la consulta en la base y entra en su conversación. La usan las
+       dos puertas: la de siempre y la de los sectores. De quien es, en que
+       estado nace y quien la lleva NO se mandan: los pone la base. Mandarlos
+       desde aqui seria dejar que el navegador abriera una consulta a nombre
+       de otro.
+
+       El sector, solo si se eligió uno. Si la base todavía no tiene la
+       columna (falta supabase-control-estadisticas.sql), Postgres rechaza
+       el insert entero: se repite sin ella, porque una consulta sin sector
+       contado vale más que una consulta que no sale. */
+    function creaConsulta(fila, boton, aviso){
+      var u = T();
+      boton.disabled = true;
+      aviso.textContent = '';
+      var abre = function(f){ return Promise.resolve(sb.from('consultas').insert(f).select()); };
+      abre(fila)
+        .then(function(r){
+          if (r && r.error && fila.sector && /sector/i.test(r.error.message || '')){
+            var sin = {};
+            Object.keys(fila).forEach(function(c){ if (c !== 'sector') sin[c] = fila[c]; });
+            return abre(sin);
+          }
+          return r;
+        })
+        .then(function(r){
+          if (r && r.error) throw r.error;
+          var nueva = (r && r.data && r.data[0]) || null;
+          sugerido = null;
+          boton.disabled = false;
+          /* La cabecera vuelve a la de siempre: la de los sectores
+             («¿Qué permiso necesitas?») ya no dice nada dentro del hilo. */
+          ponCabecera(false);
+          if (nueva) pintaUna(nueva); else pintaLista();
+        })
+        .catch(function(e){
+          console.warn('[CIIP] abrir consulta:', e && (e.message || e));
+          boton.disabled = false;
+          /* Que falle la base no es que falte el asunto (QA-24): decírselo
+             así le hacía reescribir lo que ya estaba escrito. */
+          aviso.textContent = u.cons_noabre || '';
+        });
+    }
+
+    /* El título y la frase de la ventana. Los de siempre dicen cuándo
+       responde el equipo; los de los sectores, qué se pregunta. */
+    function ponCabecera(deSectores){
+      var u = T();
+      var t = document.getElementById('consTitulo');
+      var b = document.getElementById('consSub');
+      if (t) t.textContent = (deSectores ? u.cs_titulo : u['cons.t']) || '';
+      if (b) b.textContent = (deSectores ? u.cs_sub : u['cons.sub']) || '';
+    }
+
     function pintaNueva(){
+      if (sugerido && sugerido.sectores) return pintaSectores();
       var u = T();
       cuerpo.textContent = '';
 
@@ -10931,89 +10985,6 @@ applyLang(idiomaParaMi());
          lo hagan ustedes» no tiene que volver a contar de que trámite habla. */
       if (sugerido && sugerido.asunto) caja.value = sugerido.asunto;
       campo.appendChild(caja);
-
-      /* ── LOS SECTORES ──
-         Franklin Reyes, 1-10-2026: desde la franja «¿Necesitas tramitar
-         algún permiso, autorización o licencia en específico?» el chat
-         abre con los nueve sectores. El elegido entra en el asunto, que es
-         lo primero que ve el equipo en su bandeja; lo demás lo escribe la
-         persona detrás.
-
-         Desde el mismo día, por «Control y Estadísticas», el sector se
-         guarda además ESTRUCTURADO, en consultas.sector, con su código
-         estable (CS_CODIGOS): el asunto va traducido al idioma de quien
-         escribe y no se puede contar. Y debajo de los botones salen los
-         trámites que el CIIP cargó para ese sector (tramites_por_sector);
-         si no cargó ninguno, no sale nada. Pulsar uno lo pone en el
-         asunto, que es decir «es por esto». */
-      var primerSector = null;
-      var sectorElegido = null;
-      if (sugerido && sugerido.sectores){
-        cuerpo.appendChild(el('p', 'cs-pide', u.cs_pide || ''));
-        var fila = el('div', 'cs-sectores');
-        fila.setAttribute('role', 'group');
-        fila.setAttribute('aria-label', u.cs_pide || '');
-        var listaSec = el('div', 'cs-tramites');
-        listaSec.hidden = true;
-        var vez = 0;
-        /* Los trámites del sector. Con la vuelta contada: quien pulsa dos
-           sectores seguidos tiene que ver los del segundo aunque la base
-           conteste antes por el primero. Sin la tabla, o sin ninguno
-           cargado, la caja se queda escondida. */
-        var pintaTramitesSector = function(codigo, nombre){
-          var esta = ++vez;
-          listaSec.textContent = '';
-          listaSec.hidden = true;
-          Promise.resolve(sb.from('tramites_por_sector')
-            .select('id, nombre, organismo, orden').eq('sector', codigo)
-            .order('orden', {ascending:true}))
-            .then(function(r){
-              if (esta !== vez) return;
-              if (r && r.error) throw r.error;
-              var filas = (r && r.data) || [];
-              if (!filas.length) return;
-              listaSec.appendChild(el('p', 'cs-tr-t', u.cs_tramites || ''));
-              filas.forEach(function(t){
-                var b = el('button', 'cs-tramite');
-                b.type = 'button';
-                b.appendChild(el('span', 'nm', t.nombre || ''));
-                if (t.organismo) b.appendChild(el('span', 'org', t.organismo));
-                b.addEventListener('click', function(){
-                  caja.value = String(u.cs_asunto || '{s}: ').replace('{s}', nombre) + (t.nombre || '');
-                  caja.focus();
-                  try { caja.setSelectionRange(caja.value.length, caja.value.length); } catch(e){}
-                });
-                listaSec.appendChild(b);
-              });
-              listaSec.hidden = false;
-            })
-            .catch(function(e){
-              console.warn('[CIIP] trámites del sector:', e && (e.message || e));
-            });
-        };
-        for (var k = 1; k <= 9; k++){
-          (function(nombre, codigo){
-            var b = el('button', 'cs-sector', nombre);
-            b.type = 'button';
-            b.setAttribute('aria-pressed', 'false');
-            b.setAttribute('data-sector', codigo);
-            b.addEventListener('click', function(){
-              [].forEach.call(fila.querySelectorAll('.cs-sector'), function(o){
-                o.setAttribute('aria-pressed', o === b ? 'true' : 'false');
-              });
-              sectorElegido = codigo;
-              caja.value = String(u.cs_asunto || '{s}: ').replace('{s}', nombre);
-              pintaTramitesSector(codigo, nombre);
-              caja.focus();
-              try { caja.setSelectionRange(caja.value.length, caja.value.length); } catch(e){}
-            });
-            if (!primerSector) primerSector = b;
-            fila.appendChild(b);
-          })(u['cs_s' + k] || '', CS_CODIGOS[k - 1]);
-        }
-        cuerpo.appendChild(fila);
-        cuerpo.appendChild(listaSec);
-      }
       cuerpo.appendChild(campo);
 
       var aviso = el('div', 'cons-aviso', '');
@@ -11031,48 +11002,150 @@ applyLang(idiomaParaMi());
           caja.focus();
           return;
         }
-        crear.disabled = true;
-        aviso.textContent = '';
-        /* De quien es, en que estado nace y quien la lleva NO se mandan: los
-           pone la base. Mandarlos desde aqui seria dejar que el navegador
-           abriera una consulta a nombre de otro. */
         var fila = {asunto: dice};
         if (sugerido && sugerido.tramite) fila.tramite = sugerido.tramite;
         if (sugerido && sugerido.tipo)    fila.tipo    = sugerido.tipo;
-        /* El sector, solo si se eligió uno. Si la base todavía no tiene
-           la columna (falta supabase-control-estadisticas.sql), Postgres
-           rechaza el insert entero: se repite sin ella, porque una
-           consulta sin sector contado vale más que una consulta que no
-           sale. */
-        if (sectorElegido) fila.sector = sectorElegido;
-        var abre = function(f){ return Promise.resolve(sb.from('consultas').insert(f).select()); };
-        abre(fila)
-          .then(function(r){
-            if (r && r.error && fila.sector && /sector/i.test(r.error.message || '')){
-              var sin = {};
-              Object.keys(fila).forEach(function(c){ if (c !== 'sector') sin[c] = fila[c]; });
-              return abre(sin);
-            }
-            return r;
-          })
-          .then(function(r){
-            if (r && r.error) throw r.error;
-            var nueva = (r && r.data && r.data[0]) || null;
-            sugerido = null;
-            crear.disabled = false;
-            if (nueva) pintaUna(nueva); else pintaLista();
-          })
-          .catch(function(e){
-            console.warn('[CIIP] abrir consulta:', e && (e.message || e));
-            crear.disabled = false;
-            /* Que falle la base no es que falte el asunto (QA-24): decírselo
-               así le hacía reescribir lo que ya estaba escrito. */
-            aviso.textContent = u.cons_noabre || '';
-          });
+        creaConsulta(fila, crear, aviso);
       });
 
-      setTimeout(function(){ (primerSector || (sugerido ? crear : caja)).focus(); }, 60);
+      setTimeout(function(){ (sugerido ? crear : caja).focus(); }, 60);
     }
+
+    /* ── LOS SECTORES, EN DOS PASOS ──
+       Franklin Reyes, 2-10-2026, opción 2 de la maqueta «Chat por
+       sectores»: la ventana que abre la franja del final del catálogo
+       («¿Necesitas tramitar algún permiso…?») era todo a la vez -volver,
+       los nueve botones, el asunto «en una línea» y «Abrir consulta»- y
+       se leía complicada. Ahora va de uno en uno: primero solo los
+       sectores, en tarjetas con su dibujo; al pulsar uno, «Cuéntanos qué
+       necesitas» y «Enviar». El sector elegido se puede cambiar.
+
+       Lo que se guarda no cambia: el sector estructurado en
+       consultas.sector (CS_CODIGOS, lo cuenta «Control y Estadísticas») y,
+       en el asunto, el sector traducido delante de lo escrito (cs_asunto),
+       que es lo primero que ve el equipo en su bandeja. Y en el paso 2
+       siguen los trámites que el CIIP cargó para ese sector
+       (tramites_por_sector): pulsar uno lo escribe en la caja. */
+    var CS_DIBUJO = [
+      '<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>',
+      '<path d="M3 20h18M6 20l4-9 3 5 2-3 3 7"/>',
+      '<path d="M3 21V10l6 4V10l6 4V6l6 3v12z"/>',
+      '<path d="M12 21V9M12 9c0-3 3-5 6-5 0 3-3 5-6 5zM12 13c0-3-3-5-6-5 0 3 3 5 6 5z"/>',
+      '<path d="M3 12c3-4 9-5 13 0-4 5-10 4-13 0zM16 12l5-3v6z"/>',
+      '<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>',
+      '<path d="M12 20v-8M8 8a6 6 0 0 1 8 0M5 5a10 10 0 0 1 14 0"/><circle cx="12" cy="11" r="1"/>',
+      '<path d="M4 21V8l8-5 8 5v13M9 21v-6h6v6"/>',
+      '<path d="M3 21h18M5 21V11h14v10M9 11V7h6v4"/>'
+    ];
+
+    function pintaSectores(){
+      var u = T();
+      ponCabecera(true);
+      cuerpo.textContent = '';
+      cuerpo.appendChild(el('div', 'cs-paso', String(u.cs_paso || '').replace('{n}', '1')));
+      cuerpo.appendChild(el('p', 'cs-pide', u.cs_pide || ''));
+      var rej = el('div', 'cs-rej');
+      rej.setAttribute('role', 'group');
+      rej.setAttribute('aria-label', u.cs_pide || '');
+      var primero = null;
+      for (var k = 1; k <= 9; k++){
+        (function(nombre, codigo, dibujo){
+          var b = el('button', 'cs-sector');
+          b.type = 'button';
+          b.setAttribute('data-sector', codigo);
+          b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + dibujo + '</svg>';
+          b.appendChild(el('span', null, nombre));
+          b.addEventListener('click', function(){ pintaSectorElegido(nombre, codigo); });
+          if (!primero) primero = b;
+          rej.appendChild(b);
+        })(u['cs_s' + k] || '', CS_CODIGOS[k - 1], CS_DIBUJO[k - 1]);
+      }
+      cuerpo.appendChild(rej);
+      setTimeout(function(){ if (primero && primero.isConnected) primero.focus(); }, 60);
+    }
+
+    function pintaSectorElegido(nombre, codigo){
+      var u = T();
+      cuerpo.textContent = '';
+      cuerpo.appendChild(el('div', 'cs-paso', String(u.cs_paso || '').replace('{n}', '2')));
+
+      var elegido = el('div', 'cs-elegido');
+      elegido.appendChild(el('span', null, u.cs_sector || ''));
+      elegido.appendChild(el('b', null, nombre));
+      var cambia = el('button', 'cs-cambia', u.cs_cambiar || '');
+      cambia.type = 'button';
+      cambia.addEventListener('click', pintaSectores);
+      elegido.appendChild(cambia);
+      cuerpo.appendChild(elegido);
+
+      /* El asunto lleva el sector delante; lo escrito cabe en lo que deja
+         el tope de la base (200, consultas_asunto_cabe). */
+      var prefijo = String(u.cs_asunto || '{s}: ').replace('{s}', nombre);
+
+      var campo = el('div', 'pf-campo');
+      var lb = el('label', null, u.cs_cuenta || '');
+      lb.setAttribute('for', 'consAsunto');
+      campo.appendChild(lb);
+      var caja = document.createElement('textarea');
+      caja.id = 'consAsunto';
+      caja.className = 'cs-caja';
+      caja.rows = 3;
+      caja.maxLength = Math.max(20, 200 - prefijo.length);
+      caja.placeholder = u.cs_cuentaph || '';
+      campo.appendChild(caja);
+
+      /* Los trámites que el CIIP cargó para el sector, debajo de la caja.
+         Con la vuelta contada por si se cambia de sector antes de que
+         conteste la base. Sin la tabla, o sin ninguno, no sale nada. */
+      var listaSec = el('div', 'cs-tramites');
+      listaSec.hidden = true;
+      var esta = ++vezSector;
+      Promise.resolve(sb.from('tramites_por_sector')
+        .select('id, nombre, organismo, orden').eq('sector', codigo)
+        .order('orden', {ascending:true}))
+        .then(function(r){
+          if (esta !== vezSector) return;
+          if (r && r.error) throw r.error;
+          var filas = (r && r.data) || [];
+          if (!filas.length) return;
+          listaSec.appendChild(el('p', 'cs-tr-t', u.cs_tramites || ''));
+          filas.forEach(function(t){
+            var b = el('button', 'cs-tramite');
+            b.type = 'button';
+            b.appendChild(el('span', 'nm', t.nombre || ''));
+            if (t.organismo) b.appendChild(el('span', 'org', t.organismo));
+            b.addEventListener('click', function(){
+              caja.value = (t.nombre || '').slice(0, caja.maxLength);
+              caja.dispatchEvent(new Event('input'));
+              caja.focus();
+            });
+            listaSec.appendChild(b);
+          });
+          listaSec.hidden = false;
+        })
+        .catch(function(e){
+          console.warn('[CIIP] trámites del sector:', e && (e.message || e));
+        });
+      cuerpo.appendChild(campo);
+      cuerpo.appendChild(listaSec);
+
+      var aviso = el('div', 'cons-aviso', '');
+      cuerpo.appendChild(aviso);
+
+      var enviar = el('button', 'btn navy cs-enviar', u.cs_enviar || '');
+      enviar.type = 'button';
+      enviar.id = 'consCrear';
+      enviar.disabled = true;
+      caja.addEventListener('input', function(){ enviar.disabled = !caja.value.trim(); });
+      enviar.addEventListener('click', function(){
+        var dice = caja.value.trim();
+        if (!dice){ aviso.textContent = u['cons.falta'] || ''; caja.focus(); return; }
+        creaConsulta({asunto: (prefijo + dice).slice(0, 200), sector: codigo}, enviar, aviso);
+      });
+      cuerpo.appendChild(enviar);
+      setTimeout(function(){ if (caja.isConnected) caja.focus(); }, 60);
+    }
+    var vezSector = 0;
 
     /* ── una consulta, con su conversacion ── */
     function pintaUna(c){

@@ -11884,14 +11884,32 @@
        !!back && back.classList.contains('open'), back ? back.className : '(sin ventana)', 'abierta');
     var sect = [].map.call(document.querySelectorAll('#consCuerpo .cs-sector'), function(x){ return x.textContent; });
     igual('cierre: y pregunta el sector, con los nueve', sect.length, 9);
+    /* En dos pasos desde el 2-10-2026 (opción 2 de la maqueta): primero
+       solo los sectores, sin caja de texto; al elegir uno, el paso 2 con
+       el sector, la caja vacía y «Enviar» apagado hasta que se escriba. */
+    var tit = document.getElementById('consTitulo');
+    igual('cierre: la ventana pregunta qué permiso necesitas', tit ? tit.textContent : '(sin título)', U.cs_titulo || '');
+    igual('cierre: en el paso 1 no hay caja de texto todavía', !!document.getElementById('consAsunto'), false);
     var min = document.querySelector('#consCuerpo .cs-sector:nth-child(2)');
-    var caja = document.getElementById('consAsunto');
-    if (min && caja){
+    if (min){
       min.click();
-      igual('cierre: el sector elegido entra en el asunto',
-            caja.value, String(U.cs_asunto || '').replace('{s}', U.cs_s2 || ''));
-      ok('cierre: y queda marcado', min.getAttribute('aria-pressed') === 'true',
-         min.getAttribute('aria-pressed'), 'true');
+      var eleg = document.querySelector('#consCuerpo .cs-elegido b');
+      igual('cierre: al elegir, el paso 2 dice el sector', eleg ? eleg.textContent : '(sin paso 2)', U.cs_s2 || '');
+      var caja = document.getElementById('consAsunto');
+      var env = document.getElementById('consCrear');
+      ok('cierre: con la caja vacía y «Enviar» apagado',
+         !!caja && !caja.value && !!env && env.disabled,
+         (caja ? 'caja «' + caja.value + '»' : 'sin caja') + (env ? (env.disabled ? ', apagado' : ', encendido') : ', sin botón'),
+         'caja vacía, apagado');
+      if (caja && env){
+        caja.value = 'Licencia minera';
+        caja.dispatchEvent(new Event('input'));
+        ok('cierre: y se enciende al escribir', !env.disabled, env.disabled ? 'apagado' : 'encendido', 'encendido');
+      }
+      var cb = document.querySelector('#consCuerpo .cs-cambia');
+      if (cb) cb.click();
+      igual('cierre: «Cambiar» vuelve a los nueve sectores',
+            document.querySelectorAll('#consCuerpo .cs-rej .cs-sector').length, 9);
     }
     var cerrar = document.getElementById('consCerrar');
     if (cerrar) cerrar.click();
@@ -11925,6 +11943,9 @@
        !!caja && caja.hidden && !caja.querySelector('.cs-tramite'),
        caja ? (caja.hidden ? 'escondida' : caja.querySelectorAll('.cs-tramite').length + ' trámites') : '(no hay caja)',
        'escondida');
+    /* De vuelta a las tarjetas, y otro sector. */
+    var cb = document.querySelector('#consCuerpo .cs-cambia');
+    if (cb) cb.click();
     var hid = document.querySelector('#consCuerpo .cs-sector[data-sector="hidrocarburos"]');
     if (hid) hid.click();
     setTimeout(sigue, 300);
@@ -11938,8 +11959,7 @@
     var caja = document.getElementById('consAsunto');
     if (bs[0] && caja){
       bs[0].click();
-      igual('chat: y pulsar uno lo pone en el asunto', caja.value,
-            String(U.cs_asunto || '').replace('{s}', U.cs_s1 || '') + 'Licencia de exploración y explotación');
+      igual('chat: y pulsar uno lo escribe en la caja', caja.value, 'Licencia de exploración y explotación');
     }
     var crear = document.getElementById('consCrear');
     if (crear) crear.click();
@@ -11950,6 +11970,9 @@
     if (CASO === 'gestor' || !window.CIIP_ABRE_CONSULTA) return sigue();
     var c = window.CIIP_MENTIRA_ULTIMA_CONSULTA && window.CIIP_MENTIRA_ULTIMA_CONSULTA();
     igual('chat: la consulta se guarda con el código del sector', c ? c.sector : '(no se abrió)', 'hidrocarburos');
+    var U = (window.CIIP_PASOS && window.CIIP_PASOS.ui && window.CIIP_PASOS.ui[curLang]) || {};
+    igual('chat: y con el sector delante en el asunto', c ? c.asunto : '(no se abrió)',
+          String(U.cs_asunto || '').replace('{s}', U.cs_s1 || '') + 'Licencia de exploración y explotación');
     if (c && window.CIIP_MENTIRA_OLVIDA_CONSULTA) window.CIIP_MENTIRA_OLVIDA_CONSULTA(c.id);
     var cerrar = document.getElementById('consCerrar');
     if (cerrar) cerrar.click();

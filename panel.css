@@ -836,7 +836,7 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 
 /* Y en el chat, bajo los sectores: los trámites que el CIIP cargó para
    el elegido. Pulsar uno lo pone en el asunto. */
-.cs-tramites{display:flex; flex-direction:column; gap:5px; margin:-4px 0 14px;}
+.cs-tramites{display:flex; flex-direction:column; gap:5px; margin:0 0 14px;}
 .cs-tr-t{margin:0 0 2px; font-size:var(--fs-nota); color:var(--gray); line-height:1.5;}
 .cs-tramite{font:inherit; text-align:left; background:var(--bg); border:1px solid var(--line);
   border-radius:8px; padding:7px 10px; cursor:pointer; display:flex; flex-direction:column; gap:1px;}
@@ -2959,14 +2959,35 @@ body[data-vista="inicio"].etapa-elegida .tsec-sig:not([hidden]){display:flex;}
 .cc-btn{white-space:nowrap;}
 .cc-btn:focus-visible{outline:2px solid var(--cyan-deep); outline-offset:2px;}
 
-/* Y los sectores, dentro de la consulta nueva que abre la franja. */
-.cs-pide{margin:4px 0 8px; font-size:var(--fs-parrafo); line-height:1.5; color:var(--ink);}
+/* Y los sectores, dentro de la consulta nueva que abre la franja: en dos
+   pasos (Franklin Reyes, 2-10-2026, opción 2 de la maqueta). Primero las
+   nueve tarjetas con su dibujo, de tres en tres; luego el sector elegido,
+   la caja y «Enviar». */
+.cs-paso{font-size:var(--fs-nota); font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--mudo); margin-bottom:6px;}
+.cs-pide{margin:0 0 12px; font-size:var(--fs-parrafo); line-height:1.5; color:var(--ink);}
+.cs-rej{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;}
+/* Los botones de sector sueltos, como píldoras: los usa la lista por sector
+   de «Control y Estadísticas» (.cs-sectores), que marca el elegido. */
 .cs-sectores{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;}
 .cs-sector{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy2); background:var(--bg);
   border:1px solid var(--line); border-radius:999px; padding:6px 11px; cursor:pointer;}
 .cs-sector:hover{border-color:var(--cyan-deep);}
 .cs-sector[aria-pressed="true"]{background:var(--activa-bg); border-color:var(--navy2);}
 .cs-sector:focus-visible{outline:2px solid var(--cyan-deep); outline-offset:2px;}
+/* Y en la ventana del chat, tarjetas con su dibujo. */
+.cs-rej .cs-sector{text-align:left; border-radius:var(--r); padding:12px; display:flex; flex-direction:column;
+  align-items:flex-start; gap:8px; line-height:1.3; color:var(--ink); min-width:0; overflow-wrap:anywhere;}
+.cs-rej .cs-sector svg{width:20px; height:20px; stroke:var(--navy2); stroke-width:1.7; fill:none; flex:none;}
+.cs-rej .cs-sector:hover{background:var(--activa-bg);}
+.cs-elegido{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:14px; font-size:var(--fs-parrafo); color:var(--ink);}
+.cs-elegido b{color:var(--navy2);}
+.cs-cambia{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy2); background:none; border:0; padding:0;
+  cursor:pointer; text-decoration:underline; text-underline-offset:3px;}
+.cs-cambia:focus-visible{outline:2px solid var(--cyan-deep); outline-offset:2px; border-radius:3px;}
+.cs-caja{width:100%; box-sizing:border-box; min-height:84px; resize:vertical; line-height:1.5;}
+.cs-enviar{width:100%; justify-content:center;}
+.cs-enviar:disabled{opacity:.45; cursor:default;}
+ (max-width:520px){ .cs-rej{grid-template-columns:repeat(2,minmax(0,1fr));} }
 
 /* ── LA GUIA DE LAS VISAS ──
    Dos caminos, uno al lado del otro, dentro de la ficha de cualquiera de
