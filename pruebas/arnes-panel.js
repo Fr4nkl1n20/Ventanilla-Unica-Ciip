@@ -11885,6 +11885,19 @@
     ok('cierre: la franja está al final del catálogo, con su pregunta',
        !!fr && !!fr.closest('#secTramites') && /\S/.test((fr.querySelector('.cc-q') || {}).textContent || ''),
        fr ? (fr.querySelector('.cc-q') || {}).textContent : '(no hay franja)', 'la pregunta');
+    /* Desde el 2-10-2026, solo en la etapa 3 (Franklin Reyes: «que esta
+       casilla solo salga en la fase 3»): vive dentro de su bloque, debajo
+       de sus fichas, y se ve solo cuando ese bloque está a la vista y
+       desplegado. */
+    var f3 = document.querySelector('.phase[data-fase="3"]');
+    ok('cierre: la franja vive dentro de la etapa 3, debajo de sus fichas',
+       !!fr && !!f3 && fr.parentNode === f3 && !!fr.previousElementSibling && fr.previousElementSibling.classList.contains('grid-tr'),
+       fr && fr.parentNode ? (fr.parentNode.getAttribute('data-fase') || fr.parentNode.id || fr.parentNode.className) : '(no hay franja)', 'etapa 3');
+    if (fr && f3){
+      var f3ve = f3.getClientRects().length > 0 && !f3.classList.contains('plegada');
+      igual('cierre: y se ve solo si la etapa 3 está a la vista y desplegada',
+            fr.getClientRects().length > 0, f3ve);
+    }
     var b = document.getElementById('ccChat');
     if (!b) return sigue();
     b.click();
