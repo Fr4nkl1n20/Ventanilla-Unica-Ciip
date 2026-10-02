@@ -25402,7 +25402,9 @@ applyLang(idiomaParaMi());
           ul.appendChild(li);
         });
         cuerpo.appendChild(ul);
-      } else {
+      } else if (!g.descarga){
+        /* Un grupo que solo trae su descarga -la visa, desde el 2-10-2026- no
+           es un grupo «por publicar». */
         cuerpo.appendChild(el('div', 'ay-pronto', u.ay_pronto || ''));
       }
       d.appendChild(cuerpo);

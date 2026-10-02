@@ -4131,6 +4131,8 @@
          g ? (g.open ? 'abierto' : 'cerrado') : '(no hay grupo)', 'abierto');
       var d = g && g.querySelector('a.ay-descarga');
       igual('visa: y la planilla para descargar', d ? d.getAttribute('href') : '(sin enlace)', 'planillas/visa-solicitud.pdf');
+      igual('visa: con la descarga, sin el «se publicará pronto» de un grupo vacío',
+            g ? g.querySelectorAll('.ay-pronto').length : -1, 0);
       history.back();
       setTimeout(function(){
         var p2 = document.querySelector('#trReal input[name="numero_pasaporte"]');
