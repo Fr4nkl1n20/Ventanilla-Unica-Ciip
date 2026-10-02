@@ -299,7 +299,7 @@
               /* QA-08: el papel rechazado y sustituido no deja atascado el trámite. */
               hoyReenvia, hoyReenviaAbre, hoyReenviaMira,
               hoyRestaura,
-              empresaAbre, empresaMira, empresaNueva, empresaFichaAbre, empresaOfreceGuardada,
+              empresaDelGestor, empresaAbre, empresaMira, empresaNueva, empresaFichaAbre, empresaOfreceGuardada,
               empresaGuarda, empresaActaLeida,
               empresaTrasGuardar,
               entregaAbre, entregaMira, entregaAbreVisor, entregaVisorMira, entregaTrasCerrar,
@@ -7571,6 +7571,15 @@
        contando dos trámites que ya no existen. */
     window.CIIP_PINTA_PORATENDER();
     location.hash = '';
+  }
+
+  /* «Mi empresa» no sale en el menú del gestor (Franklin Reyes,
+     2-10-2026); al inversionista y al administrador, sí. */
+  function empresaDelGestor(sigue){
+    var b = document.getElementById('navEmpresa');
+    igual('menú: «Mi empresa» solo se esconde al gestor (' + PASE + ')',
+          b ? b.hidden : '(sin renglón)', CASO === 'gestor' && !ES_ADMIN);
+    sigue();
   }
 
   function empresaAbre(){

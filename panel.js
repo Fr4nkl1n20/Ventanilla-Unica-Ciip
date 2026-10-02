@@ -20277,6 +20277,15 @@ applyLang(idiomaParaMi());
     var pn = document.getElementById('navPanel');
     if (pn) pn.hidden = soloGestor;
     if (soloGestor && !location.hash) location.hash = 'poratender';
+    /* Y TAMPOCO «MI EMPRESA» (Franklin Reyes, 2-10-2026: «como gestor,
+       del apartado del panel quiero quitar Mi empresa»). Es la ficha de la
+       empresa del inversionista, la que rellena los formularios de sus
+       trámites; el gestor no tiene empresa propia que cuidar aquí, y la de
+       cada inversionista la ve dentro de su expediente. Como con «Mi
+       panel»: se quita la puerta, no la vista, y el administrador la
+       sigue teniendo. */
+    var emp = document.getElementById('navEmpresa');
+    if (emp) emp.hidden = soloGestor;
     var mt = document.getElementById('navTramites');
     if (mt) mt.hidden = false;
     var dc = document.getElementById('navDocs');
