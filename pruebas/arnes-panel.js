@@ -4915,13 +4915,27 @@
     return caja ? [].map.call(caja.querySelectorAll('.sol-campo'), function(c){
       return c.getAttribute('data-campo'); }).join(' ') : '(sin formulario)';
   }
-  function bienesDocs(caja){
-    return caja ? [].map.call(caja.querySelectorAll('.sol-doc'), function(d){
+  function bienesDocs(caja, filtro){
+    return caja ? [].map.call(caja.querySelectorAll('.sol-doc' + (filtro || '')), function(d){
       return d.getAttribute('data-doc'); }).join(' ') : '(sin formulario)';
   }
   function bienesOpciones(caja, n){
     var s = caja && caja.querySelector('select[name="' + n + '"]');
     return s ? [].map.call(s.options, function(o){ return o.textContent; }).join('|') : '(sin desplegable)';
+  }
+  /* Lo que se ve de los papeles del vendedor, con lo que dice el Sí/No
+     delante (Franklin Reyes, 2-10-2026). Se mira fila.hidden y no lo que
+     mide en pantalla: los recaudos viven en su propia hoja, escondida
+     mientras se está en «Tus datos». */
+  function bienesVendedor(caja){
+    var s = caja && caja.querySelector('select[name="vendedor_juridico"]');
+    var ide = caja && caja.querySelector('.sol-doc[data-doc="identidad_vendedor"]');
+    var jur = caja ? caja.querySelectorAll('.sol-doc[data-si="vendedor_juridico"]') : [];
+    return (s ? '«' + s.value + '»' : '(sin desplegable)') + ' · ' +
+           (ide ? 'identificación del vendedor ' + (ide.hidden ? 'escondida' : 'a la vista')
+                : '(sin identificación del vendedor)') + ' · ' +
+           [].filter.call(jur, function(f){ return !f.hidden; }).length + ' de ' + jur.length +
+           ' del jurídico a la vista';
   }
 
   function bienesAbre(sigue){
@@ -4985,15 +4999,59 @@
     var U = window.CIIP_PASOS.ui[curLang] || {};
     var caja = document.getElementById('trReal');
     igual('bienes: la compraventa pide los datos del contrato', bienesCampos(caja),
-          'razon_social rif_empresa tipo_inmueble papel_empresa_bien estado_inmueble municipio_inmueble ' +
-          'direccion_inmueble otra_parte otra_parte_documento otra_parte_contacto precio_inmueble ' +
-          'moneda_bien fecha_firma_bien observaciones_bien');
+          'vendedor_juridico razon_social rif_empresa tipo_inmueble papel_empresa_bien estado_inmueble ' +
+          'municipio_inmueble direccion_inmueble otra_parte otra_parte_documento otra_parte_contacto ' +
+          'precio_inmueble moneda_bien fecha_firma_bien observaciones_bien');
     igual('bienes: y su empresa compra o vende', bienesOpciones(caja, 'papel_empresa_bien'),
           (U.o_bipapel_cv || []).join('|'));
-    igual('bienes: con sus cuatro recaudos', bienesDocs(caja),
-          'propiedad_inmueble identidad_propietario cedula_catastral solvencia_inmuebles');
+    /* Diez desde el 2-10-2026 (Franklin Reyes), contando los escondidos: la
+       identificación del vendedor sustituye a la del propietario, que se
+       queda en el alquiler; se suman la forma 33 y la identificación del
+       comprador, y al final van los cuatro del vendedor jurídico. */
+    igual('bienes: con sus diez recaudos', bienesDocs(caja),
+          'propiedad_inmueble forma_33 identidad_vendedor identidad_comprador cedula_catastral ' +
+          'solvencia_inmuebles acta_vendedor identidad_rep_vendedor asamblea_rep_vendedor rif_vendedor');
     ok('bienes: sin «undefined» en el detalle',
        document.body.innerText.indexOf('undefined') === -1, 'dice «undefined»', 'limpio');
+
+    /* ¿EL VENDEDOR ES UNA PERSONA JURÍDICA? (Franklin Reyes, 2-10-2026). La
+       primera pregunta de la compraventa, un Sí/No que nace en «No». Con
+       «No» se pide la identificación del vendedor; con «Sí», en su lugar,
+       el acta del vendedor, la identificación y la asamblea de su
+       representante y su RIF. Se prueba el «Sí» y se deja otra vez en «No»:
+       lo que venga detrás no tiene por qué heredar un vendedor jurídico
+       puesto por una prueba. */
+    var primera = caja && caja.querySelector('.sol-campo');
+    var sinoV = caja && caja.querySelector('select[name="vendedor_juridico"]');
+    igual('bienes: la primera pregunta es si el vendedor es una persona jurídica',
+          primera ? primera.getAttribute('data-campo') +
+                      (primera.querySelector('select[name="vendedor_juridico"]') ? ', un desplegable' : ', sin desplegable')
+                  : '(sin formulario)',
+          'vendedor_juridico, un desplegable');
+    var rotV = caja && caja.querySelector('.sol-campo[data-campo="vendedor_juridico"] label');
+    igual('bienes: la pregunta del vendedor, con su rótulo', rotV ? rotV.textContent : '(sin rótulo)',
+          U.f_bivendjur);
+    igual('bienes: que se contesta Sí o No, y nace en «No»',
+          bienesOpciones(caja, 'vendedor_juridico') + ' → ' + (sinoV ? sinoV.value : '(nada)'),
+          (U.o_sino || []).join('|') + ' → No');
+    igual('bienes: la identificación del vendedor cuelga del «No», y cuatro papeles del «Sí»',
+          bienesDocs(caja, '[data-no="vendedor_juridico"]') + ' | ' +
+            bienesDocs(caja, '[data-si="vendedor_juridico"]'),
+          'identidad_vendedor | acta_vendedor identidad_rep_vendedor asamblea_rep_vendedor rif_vendedor');
+    igual('bienes: con «No», la identificación del vendedor y nada del jurídico', bienesVendedor(caja),
+          '«No» · identificación del vendedor a la vista · 0 de 4 del jurídico a la vista');
+    if (sinoV){
+      sinoV.value = 'Sí';
+      sinoV.dispatchEvent(new Event('change'));
+    }
+    igual('bienes: con «Sí», los cuatro del jurídico en lugar de la identificación', bienesVendedor(caja),
+          '«Sí» · identificación del vendedor escondida · 4 de 4 del jurídico a la vista');
+    if (sinoV){
+      sinoV.value = 'No';
+      sinoV.dispatchEvent(new Event('change'));
+    }
+    igual('bienes: y de vuelta a «No», todo como estaba', bienesVendedor(caja),
+          '«No» · identificación del vendedor a la vista · 0 de 4 del jurídico a la vista');
 
     /* «Cambiar» vuelve a abrir la guía y aparta el formulario. */
     var cb = document.getElementById('bienCambiar');

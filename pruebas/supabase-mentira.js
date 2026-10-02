@@ -1859,7 +1859,14 @@
         /* Los de «Bienes» (2-10-2026), como si supabase-bienes.sql
            estuviera corrido. */
         {codigo:'propiedad_inmueble', vence:false}, {codigo:'identidad_propietario', vence:false},
-        {codigo:'solvencia_inmuebles', vence:true}
+        {codigo:'solvencia_inmuebles', vence:true},
+        /* Y los siete que la compraventa pide desde el mismo día (Franklin
+           Reyes, 2-10-2026): la Forma 33, las dos partes y los cuatro de la
+           empresa vendedora. Ninguno caduca. */
+        {codigo:'forma_33', vence:false}, {codigo:'identidad_vendedor', vence:false},
+        {codigo:'identidad_comprador', vence:false}, {codigo:'acta_vendedor', vence:false},
+        {codigo:'identidad_rep_vendedor', vence:false}, {codigo:'asamblea_rep_vendedor', vence:false},
+        {codigo:'rif_vendedor', vence:false}
       ], error:null};
     }
 

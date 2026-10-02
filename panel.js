@@ -3842,16 +3842,37 @@ applyLang(idiomaParaMi());
       {tipo:'rif_inversionistas',     clave:'d_rifinversionistas'}
     ],
     /* «Bienes» (c41 y c42), Franklin Reyes, 2-10-2026: lo que el CIIP
-       necesita para redactar el contrato. En los dos, el documento de
-       propiedad y la identificación del propietario; en la compraventa,
-       además, la cédula catastral y la solvencia de inmuebles urbanos,
-       que es lo que se mira antes de traspasar un inmueble. Los papeles
-       de la empresa -acta, RIF- ya están en el expediente y no se piden. */
+       necesita para redactar el contrato. En el alquiler, el documento de
+       propiedad y la identificación del propietario. Los papeles de la
+       empresa del inversionista -acta, RIF- ya están en el expediente y no
+       se piden. */
+    /* LA COMPRAVENTA, CON LAS DOS PARTES (Franklin Reyes, 2-10-2026, el
+       mismo día). Además del documento de propiedad, la cédula catastral y
+       la solvencia de inmuebles urbanos -lo que se mira antes de traspasar
+       un inmueble-, la Forma 33 y la identificación del que vende Y del que
+       compra: el contrato lleva a los dos, y «el propietario» era solo uno
+       de ellos. identidad_propietario sale de aquí y la sustituye
+       identidad_vendedor; el alquiler la sigue pidiendo.
+
+       Y el vendedor puede ser una empresa. Lo dice la primera casilla del
+       formulario, «¿El vendedor es una persona jurídica?»: con «Sí» se
+       piden, en lugar de su cédula, el acta constitutiva y su última
+       actualización, la cédula y el RIF de su representante legal, el acta
+       de asamblea que lo nombra y el RIF de la empresa. La cédula del
+       vendedor lleva noCasilla -el contrario de siCasilla, nacido para
+       esto-: una empresa no tiene cédula, y pedírsela dejaría la solicitud
+       trabada por un papel que no existe. */
     bienes_compraventa: [
       {tipo:'propiedad_inmueble',     clave:'d_bipropiedad'},
-      {tipo:'identidad_propietario',  clave:'d_bipropietario'},
+      {tipo:'forma_33',               clave:'d_biforma33'},
+      {tipo:'identidad_vendedor',     clave:'d_bivendedor',  noCasilla:'vendedor_juridico'},
+      {tipo:'identidad_comprador',    clave:'d_bicomprador'},
       {tipo:'cedula_catastral',       clave:'d_bicatastral'},
-      {tipo:'solvencia_inmuebles',    clave:'d_bisolvencia'}
+      {tipo:'solvencia_inmuebles',    clave:'d_bisolvencia'},
+      {tipo:'acta_vendedor',          clave:'d_biactavend',  siCasilla:'vendedor_juridico'},
+      {tipo:'identidad_rep_vendedor', clave:'d_bireprvend',  siCasilla:'vendedor_juridico'},
+      {tipo:'asamblea_rep_vendedor',  clave:'d_biasamvend',  siCasilla:'vendedor_juridico'},
+      {tipo:'rif_vendedor',           clave:'d_birifvend',   siCasilla:'vendedor_juridico'}
     ],
     bienes_alquiler: [
       {tipo:'propiedad_inmueble',     clave:'d_bipropiedad'},
@@ -5134,6 +5155,14 @@ applyLang(idiomaParaMi());
        escrito se hereda entre trámites por el nombre de la casilla, y
        entre la compraventa y el alquiler sí conviene que se herede. */
     bienes_compraventa: [
+      /* LA PRIMERA, PORQUE DECIDE LOS PAPELES (Franklin Reyes, 2-10-2026):
+         «¿El vendedor es una persona jurídica?». Con «No», la hoja de
+         recaudos pide la cédula y el RIF del vendedor; con «Sí», los de la
+         empresa que vende (ver RECAUDOS.bienes_compraventa). Arriba del
+         todo para que se conteste antes de llegar a los papeles, y «No» de
+         partida, que es lo que sale primero en o_sino. Se guarda en
+         castellano, «No» o «Sí», como todo lo de opcionesClave. */
+      {n:'vendedor_juridico',    clave:'f_bivendjur',     opcionesClave:'o_sino'},
       {n:'razon_social',         clave:'f_razon',         ancho:true},
       {n:'rif_empresa',          clave:'f_rifempresa'},
       {n:'tipo_inmueble',        clave:'f_bitipo',        opcionesClave:'o_bitipo'},
@@ -5938,8 +5967,12 @@ applyLang(idiomaParaMi());
        no entran en la cuenta -no faltan si no los tienes-. */
     /* Los que dependen de una casilla del formulario no se enumeran en la
        ficha: la lee todo el mundo, y contarlos sería pedirle dos papeles de
-       más a quien no tiene ningún accionista que sea una empresa. */
-    var recs = recaudosDe(tipo.codigo).filter(function(r){ return !r.siCasilla; });
+       más a quien no tiene ningún accionista que sea una empresa. Y lo
+       mismo los de noCasilla, que dependen de ella al revés (Franklin
+       Reyes, 2-10-2026): la cédula del vendedor de un inmueble no se le
+       pide a quien le compra a una empresa, así que la ficha tampoco puede
+       darla por segura. */
+    var recs = recaudosDe(tipo.codigo).filter(function(r){ return !r.siCasilla && !r.noCasilla; });
     if (recs.length){
       var pedidos = recs.filter(function(r){ return !r.opcional; });
       var tengo = pedidos.filter(function(r){ return MIOS && MIOS[r.tipo]; }).length;
@@ -7112,6 +7145,17 @@ applyLang(idiomaParaMi());
         fila.setAttribute('data-si', r.siCasilla);
         fila.hidden = !(datos[r.siCasilla] && datos[r.siCasilla] !== 'No');
       }
+      /* Y noCasilla, al revés: el papel se pide con «No» y se esconde con
+         cualquier otra cosa. Nació con la compraventa de un inmueble
+         (Franklin Reyes, 2-10-2026): la cédula del vendedor solo existe si
+         el vendedor es una persona, y con «¿El vendedor es una persona
+         jurídica?» en «Sí» la sustituyen los papeles de la empresa, que
+         llevan siCasilla. Sin nada guardado todavía se pide: el desplegable
+         nace en «No», y lo de abajo lo vuelve a mirar en cuanto se ata. */
+      if (r.noCasilla){
+        fila.setAttribute('data-no', r.noCasilla);
+        fila.hidden = !!(datos[r.noCasilla] && datos[r.noCasilla] !== 'No');
+      }
       /* De quién es el papel, cuando no es tuyo: el miembro de la junta. Viaja
          hasta la base -documentos.titular- y es lo que separa su cédula de
          la de los demás. */
@@ -7302,14 +7346,23 @@ applyLang(idiomaParaMi());
        papeles. Se ata aquí, con las dos hojas ya montadas. Puede ser una
        casilla de marcar o un desplegable Sí/No -el de la ZODI-: el
        desplegable pide los papeles con cualquier cosa menos «No». Se mira
-       ya al atar, porque el desplegable puede venir relleno de antes. */
-    lista.querySelectorAll('.sol-doc[data-si]').forEach(function(fila){
-      var deQuien = fila.getAttribute('data-si');
+       ya al atar, porque el desplegable puede venir relleno de antes.
+
+       Las de noCasilla se atan aquí mismo y con la cuenta dada la vuelta:
+       se ven sin marcar o con «No», y se esconden con lo demás -la cédula
+       del vendedor de un inmueble cuando el vendedor es una empresa,
+       Franklin Reyes, 2-10-2026-. Lo demás es igual a propósito: el rojo
+       se quita al esconderse y la cuenta de papeles se rehace, porque un
+       papel escondido no se pide, se mire por donde se mire. */
+    lista.querySelectorAll('.sol-doc[data-si], .sol-doc[data-no]').forEach(function(fila){
+      var alContrario = !fila.hasAttribute('data-si');
+      var deQuien = fila.getAttribute(alContrario ? 'data-no' : 'data-si');
       var marca = caja.querySelector('input[type="checkbox"][name="' + deQuien + '"], select[name="' + deQuien + '"]');
       if (!marca) return;
       function mira(){
-        fila.hidden = (marca.type === 'checkbox') ? !marca.checked
-                                                  : (!marca.value || marca.value === 'No');
+        var dice = (marca.type === 'checkbox') ? marca.checked
+                                               : !!(marca.value && marca.value !== 'No');
+        fila.hidden = alContrario ? dice : !dice;
         /* Un papel que se deja de pedir no puede seguir marcado en rojo. */
         if (fila.hidden) fila.classList.remove('mal');
         cuentaPapeles();
@@ -22915,7 +22968,11 @@ applyLang(idiomaParaMi());
 
      Un recaudo OPCIONAL no encadena: si no hace falta para enviar,
      tampoco puede detener. Ni uno con noEncadena, que existe para romper
-     un círculo: el RIF personal pide la cédula y la cédula pide el RIF. */
+     un círculo: el RIF personal pide la cédula y la cédula pide el RIF.
+     Ni uno que cuelga de una casilla, con siCasilla o con noCasilla
+     (Franklin Reyes, 2-10-2026): desde aquí no se sabe qué contestarás, y
+     detener un trámite por un papel que a lo mejor no te piden es
+     inventarse la espera. */
   function esperaPor(ref){
     var t = (TIPOS || {})[ref];
     if (!t || !t.codigo) return null;
@@ -22923,7 +22980,7 @@ applyLang(idiomaParaMi());
 
     for (var i = 0; i < pide.length; i++){
       var r = pide[i];
-      if (r.opcional || r.siCasilla || r.noEncadena) continue;
+      if (r.opcional || r.siCasilla || r.noCasilla || r.noEncadena) continue;
       if (MIOS && MIOS[r.tipo]) continue;   /* ya lo tienes: no te detiene */
 
       for (var otro in TIPOS){
@@ -23612,10 +23669,14 @@ applyLang(idiomaParaMi());
      tienes los papeles seria pedir un papel que a ti no te toca.
 
      Y solo en las que no has empezado. En una solicitud ya enviada,
-     «tienes los papeles» no informa de nada: los mandaste hace un mes. */
+     «tienes los papeles» no informa de nada: los mandaste hace un mes.
+
+     Los que cuelgan de una casilla -siCasilla y, desde el 2-10-2026,
+     noCasilla (Franklin Reyes)- tampoco entran, igual que en la ficha:
+     antes de abrir el formulario no se sabe si te tocan. */
   function tieneLosPapeles(codigo){
     var pide = recaudosDe(codigo);
-    var hacenFalta = pide.filter(function(r){ return !r.opcional && !r.siCasilla; });
+    var hacenFalta = pide.filter(function(r){ return !r.opcional && !r.siCasilla && !r.noCasilla; });
     /* Sin recaudos no hay nada que celebrar: la tarjeta no diria «los
        tienes», diria «no hacen falta», que es otra cosa y no se ha pedido. */
     if (!hacenFalta.length) return false;
