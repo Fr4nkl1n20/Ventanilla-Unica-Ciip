@@ -258,6 +258,10 @@
               rumAbre, empiezaSolicitud, rumTrasAbrir,
               /* El SIDCAI sin recaudos (Ventanilla Única 2.3, 1-10-2026). */
               loctiAbre, empiezaSolicitud, loctiTrasAbrir,
+              /* «Bienes» (2-10-2026): la guía de dos pisos, lo que pide cada
+                 operación y la asesoría legal en el chat. */
+              bienesAbre, bienesGuia, bienesRedaccion, bienesAlquiler,
+              bienesAsesoria, bienesAsesoriaGuardada,
               /* Las visas con la Taquilla única opción 2 (1-10-2026): cuatro
                  campos y el pasaporte; y la regla de los 6 meses, directa. */
               pistaAbre, empiezaSolicitud, pistaMira, visaCampos, visaRecaudos, vigenciaRegla, visaPlanilla,
@@ -728,8 +732,10 @@
        publicación (c23) pasan a ser tramos de la constitución (c5) y se ven
        dentro de su ficha. No se cuentan dos veces: la constitución está lista
        cuando lo están sus tres tramos. */
+    /* Y SIETE desde «Bienes» (c41, 2-10-2026): una más a la vista. El
+       alquiler (c42) va escondido como su tramo y no se cuenta dos veces. */
     igual('camino: la fase 02 cuenta las que están encendidas',
-          deEtapa(1, '.jcount'), '0 de 6 listos');
+          deEtapa(1, '.jcount'), '0 de 7 listos');
     /* Trece desde el RUPDAE (c35) y el Registro Único Minero (c36).
 
        Y NUEVE desde el 20-9-2026. Cinco salen de la cuenta y una entra: el
@@ -1076,7 +1082,9 @@
              licencia (c4) y el certificado medico (c21).
              Y 29 desde el 28-9-2026, que se va el registro de importador y
              exportador (c11). */
-             pendS === 29, pendS + ' por iniciar de 30 ofrecidas', '29');
+             /* Y 31 desde «Bienes» (2-10-2026): la compraventa (c41) y el
+                alquiler (c42), que se esconde pero cuenta. */
+             pendS === 31, pendS + ' por iniciar de 32 ofrecidas', '31');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -1091,9 +1099,9 @@
              que se esconde pero se cuenta. Y 33 con el SIDCAI (c39) y su
              segundo tramo (c40), por lo mismo. Y 31 desde el 24-9-2026,
              que se van la c4 y la c21. Y 30 desde el 28-9-2026, que se va
-             el c11. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 30,
-             pend + ' por iniciar de 30 ofrecidas', '30');
+             el c11. Y 32 con los dos de «Bienes» (c41 y c42), 2-10-2026. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 32,
+             pend + ' por iniciar de 32 ofrecidas', '32');
       }
 
       /* ── la cadena entre trámites ──
@@ -1611,8 +1619,10 @@
         /* Seis a la vista desde que la protocolización y la publicación son
            tramos de la constitución: siguen en la rejilla -su detalle las
            necesita- pero con data-tramo-de, y no se enseñan como fichas. */
+        /* Siete desde «Bienes» (c41, 2-10-2026); su alquiler (c42) va con
+           data-tramo-de, como las dos de la constitución. */
         igual('fases: y enseña las encendidas de sus nueve',
-          document.querySelectorAll('#trs-2 > .tcard[data-tr]:not([data-tramo-de])').length, 6);
+          document.querySelectorAll('#trs-2 > .tcard[data-tr]:not([data-tramo-de])').length, 7);
         ok('fases: la ZODI está en la fase 02, a la vista',
            !!document.querySelector('#trs-2 > .tcard[data-tr="c34"]'),
            'no está', 'la tarjeta c34');
@@ -4891,6 +4901,173 @@
     caja.querySelectorAll('.sol-campo input').forEach(function(e){ e.value = ''; });
     ok('sidcai: sin «undefined» en el detalle',
        document.body.innerText.indexOf('undefined') === -1, 'dice «undefined»', 'limpio');
+  }
+
+  /* ═══════════ «BIENES»: COMPRAVENTA O ALQUILER (c41 y c42) ═══════════
+     Franklin Reyes, 2-10-2026: se elige la operación y luego el servicio;
+     la redacción del contrato abre los datos y los recaudos, y la asesoría
+     legal una consulta en el chat con el tema. Lo que se mide es lo que la
+     separa de una ficha cualquiera: que no enseñe el formulario hasta elegir
+     LAS DOS cosas, que el alquiler lleve a su ficha con la operación ya
+     dicha, que cada operación pida lo suyo, y que la asesoría acabe en una
+     consulta con su tema y el código del trámite. */
+  function bienesCampos(caja){
+    return caja ? [].map.call(caja.querySelectorAll('.sol-campo'), function(c){
+      return c.getAttribute('data-campo'); }).join(' ') : '(sin formulario)';
+  }
+  function bienesDocs(caja){
+    return caja ? [].map.call(caja.querySelectorAll('.sol-doc'), function(d){
+      return d.getAttribute('data-doc'); }).join(' ') : '(sin formulario)';
+  }
+  function bienesOpciones(caja, n){
+    var s = caja && caja.querySelector('select[name="' + n + '"]');
+    return s ? [].map.call(s.options, function(o){ return o.textContent; }).join('|') : '(sin desplegable)';
+  }
+
+  function bienesAbre(sigue){
+    if (CASO !== 'vacio') return sigue();
+    location.hash = 'tramite-c41';
+    setTimeout(sigue, 600);
+  }
+
+  function bienesGuia(sigue){
+    if (CASO !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var guia = document.getElementById('trVisas');
+    var detalle = document.getElementById('trDetalle');
+    ok('bienes: la ficha abre con su guía',
+       !!guia && !guia.hidden && guia.offsetHeight > 0,
+       guia ? (guia.hidden ? 'escondida' : guia.offsetHeight + 'px') : 'no está', 'a la vista');
+    if (!guia || guia.hidden) return sigue();
+    igual('bienes: con su pregunta', (guia.querySelector('.gv-t') || {}).textContent, U.bi_titulo);
+    igual('bienes: primero, las dos operaciones',
+          [].map.call(guia.querySelectorAll('[data-bien-op]'), function(c){
+            return c.getAttribute('data-bien-op'); }).join(' '), 'c41 c42');
+    igual('bienes: y nada del servicio hasta elegir la operación',
+          guia.querySelectorAll('[data-bien-serv]').length, 0);
+    ok('bienes: ni el formulario', !!detalle && detalle.classList.contains('elige-visa'),
+       detalle ? (detalle.className || '(sin clases)') : 'no está', 'con la clase elige-visa');
+
+    var cv = guia.querySelector('[data-bien-op="c41"]');
+    ok('bienes: la compraventa se pulsa entera, como las visas',
+       !!cv && cv.getAttribute('role') === 'button' && cv.getAttribute('tabindex') === '0',
+       cv ? 'role=' + (cv.getAttribute('role') || 'sin') : 'no está', 'role=button');
+    if (cv) cv.click();
+    cv = guia.querySelector('[data-bien-op="c41"]');
+    ok('bienes: elegida, queda como la tuya y deja de pulsarse',
+       !!cv && cv.getAttribute('aria-current') === 'true' && !cv.hasAttribute('role'),
+       cv ? 'aria-current=' + cv.getAttribute('aria-current') : 'no está', 'aria-current=true');
+    igual('bienes: y salen los dos servicios',
+          [].map.call(guia.querySelectorAll('[data-bien-serv]'), function(c){
+            return c.getAttribute('data-bien-serv'); }).join(' '), 'redaccion asesoria');
+    ok('bienes: el formulario sigue apartado hasta elegir el servicio',
+       !!detalle && detalle.classList.contains('elige-visa'),
+       detalle ? (detalle.className || '(sin clases)') : 'no está', 'con la clase elige-visa');
+
+    var red = guia.querySelector('[data-bien-serv="redaccion"]');
+    if (red) red.click();
+    ok('bienes: con la redacción, se abren los datos y los recaudos',
+       !!detalle && !detalle.classList.contains('elige-visa'),
+       detalle ? (detalle.className || '(sin clases)') : 'no está', 'sin la clase elige-visa');
+    setTimeout(sigue, 300);
+  }
+
+  function bienesRedaccion(sigue){
+    if (CASO !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var caja = document.getElementById('trReal');
+    igual('bienes: la compraventa pide los datos del contrato', bienesCampos(caja),
+          'razon_social rif_empresa tipo_inmueble papel_empresa_bien estado_inmueble municipio_inmueble ' +
+          'direccion_inmueble otra_parte otra_parte_documento otra_parte_contacto precio_inmueble ' +
+          'moneda_bien fecha_firma_bien observaciones_bien');
+    igual('bienes: y su empresa compra o vende', bienesOpciones(caja, 'papel_empresa_bien'),
+          (U.o_bipapel_cv || []).join('|'));
+    igual('bienes: con sus cuatro recaudos', bienesDocs(caja),
+          'propiedad_inmueble identidad_propietario cedula_catastral solvencia_inmuebles');
+    ok('bienes: sin «undefined» en el detalle',
+       document.body.innerText.indexOf('undefined') === -1, 'dice «undefined»', 'limpio');
+
+    /* Y el alquiler, desde la misma guía: lleva a su ficha. */
+    var alq = document.querySelector('#trVisas [data-bien-op="c42"]');
+    if (alq) alq.click();
+    setTimeout(sigue, 600);
+  }
+
+  function bienesAlquiler(sigue){
+    if (CASO !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    igual('bienes: el alquiler lleva a su ficha', location.hash, '#tramite-c42');
+    var guia = document.getElementById('trVisas');
+    var detalle = document.getElementById('trDetalle');
+    var alq = guia && guia.querySelector('[data-bien-op="c42"]');
+    ok('bienes: con la operación ya dicha',
+       !!alq && alq.getAttribute('aria-current') === 'true',
+       alq ? 'aria-current=' + alq.getAttribute('aria-current') : 'no está', 'aria-current=true');
+    igual('bienes: y pregunta el servicio', guia ? guia.querySelectorAll('[data-bien-serv]').length : -1, 2);
+    ok('bienes: con el formulario apartado hasta elegirlo',
+       !!detalle && detalle.classList.contains('elige-visa'),
+       detalle ? (detalle.className || '(sin clases)') : 'no está', 'con la clase elige-visa');
+    var red = guia && guia.querySelector('[data-bien-serv="redaccion"]');
+    if (red) red.click();
+    var caja = document.getElementById('trReal');
+    igual('bienes: el alquiler pide el canon, la moneda, la duración y el depósito', bienesCampos(caja),
+          'razon_social rif_empresa tipo_inmueble papel_empresa_bien estado_inmueble municipio_inmueble ' +
+          'direccion_inmueble otra_parte otra_parte_documento otra_parte_contacto canon_mensual ' +
+          'moneda_bien plazo_meses deposito_garantia fecha_firma_bien observaciones_bien');
+    igual('bienes: y su empresa toma o da en alquiler', bienesOpciones(caja, 'papel_empresa_bien'),
+          (U.o_bipapel_alq || []).join('|'));
+    igual('bienes: con dos recaudos', bienesDocs(caja), 'propiedad_inmueble identidad_propietario');
+
+    /* Y la asesoría: aparta el formulario y abre la consulta. */
+    var ase = guia && guia.querySelector('[data-bien-serv="asesoria"]');
+    if (ase) ase.click();
+    setTimeout(sigue, 300);
+  }
+
+  function bienesAsesoria(sigue){
+    if (CASO !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var detalle = document.getElementById('trDetalle');
+    ok('bienes: la asesoría no enseña el formulario: es una consulta',
+       !!detalle && detalle.classList.contains('elige-visa'),
+       detalle ? (detalle.className || '(sin clases)') : 'no está', 'con la clase elige-visa');
+    ok('bienes: y deja el botón para volver a la consulta', !!document.getElementById('bienAsesoria'),
+       document.getElementById('bienAsesoria') ? 'está' : 'no está', 'está');
+    var caja = document.getElementById('consAsunto');
+    var env = document.getElementById('consCrear');
+    ok('bienes: la asesoría abre el chat con la caja del tema',
+       !!caja && caja.tagName === 'TEXTAREA' && !!caja.offsetHeight,
+       caja ? caja.tagName + (caja.offsetHeight ? '' : ' escondida') : '(no hay caja)', 'TEXTAREA');
+    var lb = document.querySelector('#consCuerpo label[for="consAsunto"]');
+    igual('bienes: que pregunta sobre qué', lb ? lb.textContent : '(sin rótulo)', U.bi_tema);
+    var op = document.querySelector('#consCuerpo .cs-elegido b');
+    igual('bienes: con la operación arriba', op ? op.textContent : '(sin operación)', U.bi_alq);
+    ok('bienes: y «Enviar» apagado hasta escribir', !!env && env.disabled,
+       env ? (env.disabled ? 'apagado' : 'encendido') : '(sin botón)', 'apagado');
+    if (caja){
+      caja.value = '¿Puedo subarrendar parte del local?';
+      caja.dispatchEvent(new Event('input'));
+    }
+    ok('bienes: escrito el tema, se enciende', !!env && !env.disabled,
+       env ? (env.disabled ? 'apagado' : 'encendido') : '(sin botón)', 'encendido');
+    if (env) env.click();
+    setTimeout(sigue, 300);
+  }
+
+  function bienesAsesoriaGuardada(sigue){
+    if (CASO !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var c = window.CIIP_MENTIRA_ULTIMA_CONSULTA && window.CIIP_MENTIRA_ULTIMA_CONSULTA();
+    igual('bienes: la consulta se guarda con el tema y la operación delante', c ? c.asunto : '(no se abrió)',
+          String(U.bi_asunto || '').replace('{op}', U.bi_alq || '') + '¿Puedo subarrendar parte del local?');
+    igual('bienes: y con el código del alquiler, para el equipo', c ? c.tipo : '(no se abrió)', 'bienes_alquiler');
+    ok('bienes: y entra en la conversación', !!document.querySelector('#consCuerpo .sol-h'),
+       document.querySelector('#consCuerpo .sol-h') ? 'en la conversación' : 'no entró', 'en la conversación');
+    if (c && window.CIIP_MENTIRA_OLVIDA_CONSULTA) window.CIIP_MENTIRA_OLVIDA_CONSULTA(c.id);
+    var cerrar = document.getElementById('consCerrar');
+    if (cerrar) cerrar.click();
+    location.hash = '';
+    setTimeout(sigue, 300);
   }
 
   /* ═══════════ LAS CINCO INSCRIPCIONES, EN UNA CASILLA (c37) ═══════════
@@ -9129,8 +9306,9 @@
          !!vuelta, vuelta ? 'está' : 'no volvió', 'la tarjeta c8 en la fase 02');
       /* Nueve fichas desde la ZODI (c34), pero siete cuentan: la
          protocolización y la publicación son tramos de la constitución. */
+      /* Y ocho con «Bienes» (c41, 2-10-2026). */
       igual('al día: y la fase 02 vuelve a contar sus siete',
-            deEtapa(1, '.jcount'), '0 de 7 listos');
+            deEtapa(1, '.jcount'), '0 de 8 listos');
   }
 
   /* ═══════════════ EL IMPORTE DEL DÍA ═══════════════
@@ -12966,9 +13144,12 @@
        día el permiso de bomberos (Franklin Reyes, Permiso de Bomberos). Y
        la inscripción en el SIDCAI (Franklin Reyes, 1-10-2026, Ventanilla
        Única 2.3), que también se quedó sin recaudos. */
-    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI y las cinco sin recaudos',
+    /* Y los dos de «Bienes» (2-10-2026): la propiedad, la identificación
+       del propietario, el catastro y la solvencia no rellenan ninguna de
+       sus casillas. */
+    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI y las cinco sin recaudos y las dos de «Bienes»',
           window.CIIP_SIN_LECTOR ? window.CIIP_SIN_LECTOR().join(', ') : '(no está la función)',
-          'licencia_municipal, conformidad_uso, permiso_bomberos, opinion_zodi, registro_minero, aporte_locti, firma_electronica');
+          'licencia_municipal, conformidad_uso, permiso_bomberos, opinion_zodi, registro_minero, aporte_locti, firma_electronica, bienes_compraventa, bienes_alquiler');
   }
 
   /* La situacion que se quiere medir: alguien que TODAVIA no tiene empresa

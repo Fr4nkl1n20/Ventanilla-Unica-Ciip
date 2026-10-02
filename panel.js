@@ -641,6 +641,8 @@ function applyLang(lang){
   }
 
   function pintaGuiaVisas(id, D){
+    /* Las dos fichas de «Bienes» llevan su propia guía, en la misma caja. */
+    if (GUIA_BIENES.codigo[id]) return pintaGuiaBienes(id, D);
     var caja = document.getElementById('trVisas');
     if (!caja) return;
     var mia = null;
@@ -743,6 +745,161 @@ function applyLang(lang){
       cols.appendChild(col);
     });
     caja.appendChild(cols);
+  }
+
+  /* ── LA GUÍA DE «BIENES» ──
+     Franklin Reyes, 2 de octubre de 2026: un servicio nuevo en la
+     estructura corporativa. El inversionista elige la operación
+     -compraventa o alquiler- y después el servicio: con «Redacción de
+     contrato y acompañamiento» se abren los datos y los recaudos, como en
+     cualquier solicitud; con «Asesoría legal», una consulta en el chat
+     para que escriba el tema (pintaTema, en el módulo de consultas).
+
+     Es la guía de las visas con un piso más, y por eso vive en su misma
+     caja (#trVisas) y con sus mismas piezas. Igual que allí, la casilla de
+     la portada (c41) es una de las dos -la compraventa- y la otra (c42)
+     está escondida de la cuadrícula: cada operación lleva sus campos, sus
+     recaudos y su escalera, y la base deja una solicitud viva de cada una
+     (tramites_una_viva).
+
+     Y como allí, mientras no se elige, lo de abajo se aparta
+     (tramiteALaVista): enseñar el formulario de la compraventa a quien
+     viene a preguntar por un alquiler sería contestar por él. La asesoría
+     tampoco lo enseña: no es una solicitud, es una consulta. */
+  var GUIA_BIENES = {
+    ops:    [{ref:'c41', nombre:'bi_cv',  d:'bi_cv_d'},
+             {ref:'c42', nombre:'bi_alq', d:'bi_alq_d'}],
+    servs:  [{id:'redaccion', nombre:'bi_red', d:'bi_red_d'},
+             {id:'asesoria',  nombre:'bi_ase', d:'bi_ase_d'}],
+    codigo: {c41:'bienes_compraventa', c42:'bienes_alquiler'}
+  };
+  /* Lo elegido, mientras dure la visita, como VISA_ELEGIDA. La operación
+     solo se pregunta en la c41: a la c42 se llega eligiendo el alquiler. */
+  var BIEN_OP = '';
+  var BIEN_SERV = {};
+  /* Con una solicitud ya pedida no hay nada que elegir: la da por hecha
+     el módulo de solicitudes (CIIP_TRAMITE_REAL), como la de la visa. */
+  window.CIIP_BIEN_ELEGIDO = function(ref){
+    if (!GUIA_BIENES.codigo[ref]) return;
+    var antes = BIEN_OP + '|' + (BIEN_SERV[ref] || '');
+    if (ref === 'c41') BIEN_OP = 'c41';
+    BIEN_SERV[ref] = 'redaccion';
+    if (antes !== BIEN_OP + '|redaccion' && trAbierto === ref && GUIA_D) pintaGuiaBienes(ref, GUIA_D);
+  };
+
+  function pintaGuiaBienes(id, D){
+    var caja = document.getElementById('trVisas');
+    if (!caja) return;
+    GUIA_D = D;
+    caja.hidden = false;
+    caja.textContent = '';
+    var u = (D && D.ui && (D.ui[curLang] || D.ui.en)) || {};
+    var op = (id === 'c42') ? 'c42' : BIEN_OP;
+    var serv = op ? (BIEN_SERV[id] || '') : '';
+    tramiteALaVista(!!op && serv === 'redaccion');
+
+    var h = el('div', 'gv-h');
+    h.appendChild(el('span', 'gv-ico', '?'));
+    var ht = el('div', 'gv-ht');
+    [['gv-t', 'bi_titulo'], ['gv-sub', 'bi_ente']].forEach(function(p){
+      var s = el('span', p[0], u[p[1]] || '');
+      s.setAttribute('data-ui', p[1]);
+      ht.appendChild(s);
+    });
+    h.appendChild(ht);
+    var chip = el('span', 'gv-chip', u.bi_guia || '');
+    chip.setAttribute('data-ui', 'bi_guia');
+    h.appendChild(chip);
+    caja.appendChild(h);
+    var intro = el('div', 'gv-intro', u.bi_intro || '');
+    intro.setAttribute('data-ui', 'bi_intro');
+    caja.appendChild(intro);
+
+    /* Un piso: su rótulo y sus dos cajas. La elegida no se pulsa y lo dice
+       (aria-current); la otra se pulsa entera, como en las visas. */
+    function piso(rotulo, opciones, attr, cual, alElegir){
+      var r = el('span', 'gv-paso', u[rotulo] || '');
+      r.setAttribute('data-ui', rotulo);
+      caja.appendChild(r);
+      var cols = el('div', 'gv-cols');
+      opciones.forEach(function(o){
+        var valor = o.ref || o.id;
+        var esta = (valor === cual);
+        var col = el('div', 'gv-col' + (esta ? ' aqui' : ''));
+        col.setAttribute(attr, valor);
+        var nm = el('span', 'gv-nombre', u[o.nombre] || '');
+        nm.setAttribute('data-ui', o.nombre);
+        col.appendChild(nm);
+        var de = el('div', 'gv-d', u[o.d] || '');
+        de.setAttribute('data-ui', o.d);
+        col.appendChild(de);
+        if (esta){
+          var ya = el('span', 'gv-estas', u.bi_elegido || '');
+          ya.setAttribute('data-ui', 'bi_elegido');
+          col.appendChild(ya);
+          col.setAttribute('aria-current', 'true');
+        } else {
+          var ir = el('span', 'gv-ir', (u.bi_elige || '') + ' ›');
+          ir.setAttribute('data-ui', 'bi_elige');
+          col.appendChild(ir);
+          col.setAttribute('role', 'button');
+          col.setAttribute('tabindex', '0');
+          col.setAttribute('aria-label', (u[o.nombre] || '') + ' · ' + (u[o.d] || ''));
+          var elige = function(){ alElegir(valor); };
+          col.addEventListener('click', elige);
+          col.addEventListener('keydown', function(e){
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){
+              e.preventDefault();
+              elige();
+            }
+          });
+        }
+        cols.appendChild(col);
+      });
+      caja.appendChild(cols);
+    }
+
+    /* 1 · La operación. La de esta ficha se contesta aquí mismo; la otra
+       lleva a la suya, y ya va dicha: quien pulsa «Compraventa» en la c42
+       no tiene que volver a pulsarla al llegar a la c41. */
+    piso('bi_paso1', GUIA_BIENES.ops, 'data-bien-op', op, function(ref){
+      if (ref === 'c41') BIEN_OP = 'c41';
+      if (ref === id){ pintaGuiaBienes(id, D); return; }
+      location.hash = 'tramite-' + ref;
+    });
+    if (!op) return;
+
+    /* 2 · El servicio. La asesoría abre la consulta al pulsarla, y deja
+       aquí un botón para volver a ella si se cierra la ventana. */
+    piso('bi_paso2', GUIA_BIENES.servs, 'data-bien-serv', serv, function(s){
+      BIEN_SERV[id] = s;
+      pintaGuiaBienes(id, D);
+      if (s === 'asesoria') abreAsesoria(id, u);
+    });
+    if (serv === 'asesoria'){
+      var nota = el('div', 'gv-nota');
+      var tx = el('span', null, u.bi_ase_nota || '');
+      tx.setAttribute('data-ui', 'bi_ase_nota');
+      nota.appendChild(tx);
+      var b = el('button', 'btn navy', u.bi_ase_btn || '');
+      b.type = 'button';
+      b.id = 'bienAsesoria';
+      b.setAttribute('data-ui', 'bi_ase_btn');
+      b.addEventListener('click', function(){ abreAsesoria(id, u); });
+      nota.appendChild(b);
+      caja.appendChild(nota);
+    }
+  }
+
+  /* La consulta de la asesoría: con el código del trámite -para que el
+     equipo la vea «Sobre: Bienes…»- y la operación delante del tema que se
+     escriba. Se pinta en la ventana de consultas (pintaTema). */
+  function abreAsesoria(id, u){
+    if (!window.CIIP_ABRE_CONSULTA) return;
+    var fila = (window.CIIP_TIPOS_POR_REF || {})[id];
+    var codigo = (fila && fila.codigo) || GUIA_BIENES.codigo[id];
+    window.CIIP_ABRE_CONSULTA(null, '', codigo,
+      {tema: {op: u[id === 'c42' ? 'bi_alq' : 'bi_cv'] || ''}});
   }
 
   function pintaTramosDetalle(id, D, lang){
@@ -3657,6 +3814,22 @@ applyLang(idiomaParaMi());
       {tipo:'rifs_junta',             clave:'d_rifsjunta'},
       {tipo:'identidad_accionistas',  clave:'d_idaccionistas'},
       {tipo:'rif_inversionistas',     clave:'d_rifinversionistas'}
+    ],
+    /* «Bienes» (c41 y c42), Franklin Reyes, 2-10-2026: lo que el CIIP
+       necesita para redactar el contrato. En los dos, el documento de
+       propiedad y la identificación del propietario; en la compraventa,
+       además, la cédula catastral y la solvencia de inmuebles urbanos,
+       que es lo que se mira antes de traspasar un inmueble. Los papeles
+       de la empresa -acta, RIF- ya están en el expediente y no se piden. */
+    bienes_compraventa: [
+      {tipo:'propiedad_inmueble',     clave:'d_bipropiedad'},
+      {tipo:'identidad_propietario',  clave:'d_bipropietario'},
+      {tipo:'cedula_catastral',       clave:'d_bicatastral'},
+      {tipo:'solvencia_inmuebles',    clave:'d_bisolvencia'}
+    ],
+    bienes_alquiler: [
+      {tipo:'propiedad_inmueble',     clave:'d_bipropiedad'},
+      {tipo:'identidad_propietario',  clave:'d_bipropietario'}
     ]
   };
 
@@ -4926,6 +5099,47 @@ applyLang(idiomaParaMi());
       {n:'libros',              clave:'f_libros',     tipo:'listaelige', ancho:true,
        elige:['ACCIONISTAS', 'ACTAS', 'DIARIO', 'MAYOR', 'INVENTARIO', 'JUNTAS DIRECTIVAS', 'SOCIOS'],
        vacia:'f_libros_elige', mas:'f_libros_mas', quita:'f_libros_quita'}
+    ],
+    /* «Bienes» (c41 y c42), Franklin Reyes, 2-10-2026: lo que lleva un
+       contrato de compraventa o de arrendamiento -quiénes, qué inmueble,
+       por cuánto y cuándo-. La empresa sale de su ficha; lo demás lo pone
+       quien pide. Los nombres llevan su apellido (_bien, _inmueble) para
+       no heredar la moneda del capital ni la fecha de otra firma: lo
+       escrito se hereda entre trámites por el nombre de la casilla, y
+       entre la compraventa y el alquiler sí conviene que se herede. */
+    bienes_compraventa: [
+      {n:'razon_social',         clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'tipo_inmueble',        clave:'f_bitipo',        opcionesClave:'o_bitipo'},
+      {n:'papel_empresa_bien',   clave:'f_bipapel',       opcionesClave:'o_bipapel_cv'},
+      {n:'estado_inmueble',      clave:'f_estadovzla',    opciones:ESTADOS_VE},
+      {n:'municipio_inmueble',   clave:'f_municipiovzla'},
+      {n:'direccion_inmueble',   clave:'f_bidir',         ancho:true},
+      {n:'otra_parte',           clave:'f_biparte',       ancho:true},
+      {n:'otra_parte_documento', clave:'f_bipartedoc'},
+      {n:'otra_parte_contacto',  clave:'f_bipartecont'},
+      {n:'precio_inmueble',      clave:'f_biprecio',      tipo:'number'},
+      {n:'moneda_bien',          clave:'f_bimoneda',      opcionesClave:'o_bimoneda'},
+      {n:'fecha_firma_bien',     clave:'f_bifecha',       tipo:'date', opcional:true},
+      {n:'observaciones_bien',   clave:'f_biobs',         tipo:'area', ancho:true, opcional:true}
+    ],
+    bienes_alquiler: [
+      {n:'razon_social',         clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'tipo_inmueble',        clave:'f_bitipo',        opcionesClave:'o_bitipo'},
+      {n:'papel_empresa_bien',   clave:'f_bipapel',       opcionesClave:'o_bipapel_alq'},
+      {n:'estado_inmueble',      clave:'f_estadovzla',    opciones:ESTADOS_VE},
+      {n:'municipio_inmueble',   clave:'f_municipiovzla'},
+      {n:'direccion_inmueble',   clave:'f_bidir',         ancho:true},
+      {n:'otra_parte',           clave:'f_biparte',       ancho:true},
+      {n:'otra_parte_documento', clave:'f_bipartedoc'},
+      {n:'otra_parte_contacto',  clave:'f_bipartecont'},
+      {n:'canon_mensual',        clave:'f_bicanon',       tipo:'number'},
+      {n:'moneda_bien',          clave:'f_bimoneda',      opcionesClave:'o_bimoneda'},
+      {n:'plazo_meses',          clave:'f_biplazo',       tipo:'number'},
+      {n:'deposito_garantia',    clave:'f_bideposito',    tipo:'number', opcional:true},
+      {n:'fecha_firma_bien',     clave:'f_bifecha',       tipo:'date', opcional:true},
+      {n:'observaciones_bien',   clave:'f_biobs',         tipo:'area', ancho:true, opcional:true}
     ]
   };
 
@@ -5280,6 +5494,9 @@ applyLang(idiomaParaMi());
                escalera, sin «Ya me registré» y sin «Corregir y reenviar»
                (1-10-2026). Con una solicitud viva, se da por elegida. */
             if (refPanel === 'c1' && !otraIgual && mio && window.CIIP_VISA_ELEGIDA) window.CIIP_VISA_ELEGIDA('c1');
+            /* Y lo mismo «Bienes» (2-10-2026): con un contrato ya pedido,
+               la operación y la redacción están elegidas (pintaGuiaBienes). */
+            if ((refPanel === 'c41' || refPanel === 'c42') && !otraIgual && mio && window.CIIP_BIEN_ELEGIDO) window.CIIP_BIEN_ELEGIDO(refPanel);
             if (!otraIgual && mio && mio.estado !== 'borrador'){ chipReal(mio.estado); pintaEstado(t, mio); }
             else {
               if (otraIgual) mio = null;
@@ -10973,6 +11190,7 @@ applyLang(idiomaParaMi());
 
     function pintaNueva(){
       if (sugerido && sugerido.sectores) return pintaSectores();
+      if (sugerido && sugerido.tema) return pintaTema();
       var u = T();
       cuerpo.textContent = '';
 
@@ -11016,6 +11234,64 @@ applyLang(idiomaParaMi());
       });
 
       setTimeout(function(){ (sugerido ? crear : caja).focus(); }, 60);
+    }
+
+    /* ── EL TEMA DE LA ASESORÍA LEGAL ──
+       Franklin Reyes, 2-10-2026, «Bienes»: «si es asesoría legal se le
+       debe desplegar un chat consulta para que coloque el tema sobre el
+       cual necesita asesoría». Es el paso 2 de los sectores con lo elegido
+       en la ficha en lugar del sector: arriba la operación, debajo la caja
+       del tema y «Enviar». Lo escrito va al asunto con «Asesoría legal ·
+       operación» delante (bi_asunto), que es lo primero que ve el equipo
+       en su bandeja, y la consulta lleva el código del trámite: el equipo
+       la ve «Sobre: Bienes…», como las que se abren desde una ficha. */
+    function pintaTema(){
+      var u = T();
+      var te = (sugerido && sugerido.tema) || {};
+      var codigo = (sugerido && sugerido.tipo) || null;
+      cuerpo.textContent = '';
+
+      var volver = el('button', 'cons-volver', '‹ ' + (u['cons.volver'] || ''));
+      volver.type = 'button';
+      volver.addEventListener('click', function(){ sugerido = null; pintaLista(); });
+      cuerpo.appendChild(volver);
+
+      var elegido = el('div', 'cs-elegido');
+      elegido.appendChild(el('span', null, u.bi_ase || ''));
+      elegido.appendChild(el('b', null, te.op || ''));
+      cuerpo.appendChild(elegido);
+
+      var prefijo = String(u.bi_asunto || '{op}: ').replace('{op}', te.op || '');
+      var campo = el('div', 'pf-campo');
+      var lb = el('label', null, u.bi_tema || '');
+      lb.setAttribute('for', 'consAsunto');
+      campo.appendChild(lb);
+      var caja = document.createElement('textarea');
+      caja.id = 'consAsunto';
+      caja.className = 'cs-caja';
+      caja.rows = 4;
+      caja.maxLength = Math.max(20, 200 - prefijo.length);
+      caja.placeholder = u.bi_temaph || '';
+      campo.appendChild(caja);
+      cuerpo.appendChild(campo);
+
+      var aviso = el('div', 'cons-aviso', '');
+      cuerpo.appendChild(aviso);
+
+      var enviar = el('button', 'btn navy cs-enviar', u.bi_enviar || '');
+      enviar.type = 'button';
+      enviar.id = 'consCrear';
+      enviar.disabled = true;
+      caja.addEventListener('input', function(){ enviar.disabled = !caja.value.trim(); });
+      enviar.addEventListener('click', function(){
+        var dice = caja.value.trim();
+        if (!dice){ aviso.textContent = u['cons.falta'] || ''; caja.focus(); return; }
+        var fila = {asunto: (prefijo + dice).slice(0, 200)};
+        if (codigo) fila.tipo = codigo;
+        creaConsulta(fila, enviar, aviso);
+      });
+      cuerpo.appendChild(enviar);
+      setTimeout(function(){ if (caja.isConnected) caja.focus(); }, 60);
     }
 
     /* ── LOS SECTORES, EN DOS PASOS ──
@@ -11198,10 +11474,13 @@ applyLang(idiomaParaMi());
        un sitio. */
     /* opts.sectores: la abre la franja del final del catálogo, y la
        consulta nueva empieza preguntando el sector (pintaNueva). */
+    /* opts.tema: la abre la asesoría legal de «Bienes» (2-10-2026), y la
+       consulta nueva pregunta el tema con la operación delante (pintaTema). */
     window.CIIP_ABRE_CONSULTA = function(tramiteId, asunto, codigo, opts){
       var sectores = !!(opts && opts.sectores);
-      sugerido = (tramiteId || asunto || codigo || sectores)
-        ? {tramite: tramiteId || null, asunto: asunto || '', tipo: codigo || null, sectores: sectores}
+      var tema = (opts && opts.tema) || null;
+      sugerido = (tramiteId || asunto || codigo || sectores || tema)
+        ? {tramite: tramiteId || null, asunto: asunto || '', tipo: codigo || null, sectores: sectores, tema: tema}
         : null;
       var u = T();
       var t = document.getElementById('consTitulo');

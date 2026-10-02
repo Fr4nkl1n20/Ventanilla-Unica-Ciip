@@ -3036,6 +3036,18 @@ body[data-vista="inicio"].etapa-elegida .tsec-sig:not([hidden]){display:flex;}
 .gv-ir{display:block; font-size:var(--fs-fila); font-weight:700; color:var(--navy2); padding-top:8px;}
 .gv-estas{display:block; font-size:var(--fs-nota); font-weight:700; color:var(--navy2); margin-top:8px;}
 @media (max-width:760px){ .gv-cols{grid-template-columns:1fr;} }
+/* «Bienes» (2-10-2026): la guía de las visas con un piso más. Cada piso
+   lleva su rótulo -«1 · Operación», «2 · Servicio»- con la letra de la
+   etapa de las visas, y la asesoría deja debajo su nota con el botón
+   que vuelve a abrir la consulta. */
+.gv-paso{display:block; font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--mudo); margin:0 0 8px;}
+.gv-cols + .gv-paso{margin-top:16px;}
+.gv-nota{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; margin-top:14px;
+  padding:12px 14px; border-radius:var(--r); background:var(--activa-bg);
+  font-size:var(--fs-fila); line-height:1.45; color:var(--ink);}
+.gv-nota > span{flex:1 1 220px; min-width:0;}
+.gv-nota .btn{flex:none;}
 
 /* ============== DETALLE DE UN TRAMITE (tercer nivel) ==============
    portada -> fase -> tramite. Cada nivel tiene su vista y su boton de

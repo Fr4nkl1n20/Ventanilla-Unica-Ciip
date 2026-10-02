@@ -240,7 +240,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    trámites específicos de cada sector y estadisticas_control(). Usa
    es_admin, consultas, tramites, tipos_tramite y tramite_eventos; no
    redefine nada de nadie, así que va al final. */
-'supabase-control-estadisticas'];
+'supabase-control-estadisticas',
+/* «Bienes» (2-10-2026): la compraventa (c41) y el alquiler (c42) de un
+   inmueble, y los tres tipos de documento de sus recaudos. Solo inserta
+   en el catálogo; necesita nivel y emite, así que va al final. */
+'supabase-bienes'];
 
 let mal = 0;
 for (const n of orden) {

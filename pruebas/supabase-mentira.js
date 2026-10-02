@@ -305,6 +305,15 @@
     {codigo:'opinion_zodi', ref_panel:'c34', ente:'ZODI',
      activo:true, emite:'no_objecion_zodi', plazo_dias:null,
      nombre:'Opinión favorable de la ZODI', fase:2, nivel:'actividad'},
+    /* «Bienes» (2-10-2026), como en supabase-bienes.sql: la compraventa
+       (c41) a la vista y el alquiler (c42) escondido con data-tramo-de,
+       como las dos visas. Los dos encendidos, 'actividad' y sin plazo. */
+    {codigo:'bienes_compraventa', ref_panel:'c41', ente:'CIIP',
+     activo:true, emite:null, plazo_dias:null,
+     nombre:'Bienes: compraventa de un inmueble', fase:2, nivel:'actividad'},
+    {codigo:'bienes_alquiler', ref_panel:'c42', ente:'CIIP',
+     activo:true, emite:null, plazo_dias:null,
+     nombre:'Bienes: alquiler de un inmueble', fase:2, nivel:'actividad'},
     /* El RUPDAE y el Registro Único Minero, en la fase 3. Como en la base
        de verdad: el RUM 'actividad' y SIN plazo -la resolución no da
        ninguno-. Sin él aquí el panel pintaría una ficha de lectura.
@@ -1846,7 +1855,11 @@
         {codigo:'fotos_local', vence:false},
         /* El plano de seguridad del permiso de bomberos (29-9-2026), como
            si supabase-bomberos.sql estuviera corrido. */
-        {codigo:'plano_seguridad', vence:false}
+        {codigo:'plano_seguridad', vence:false},
+        /* Los de «Bienes» (2-10-2026), como si supabase-bienes.sql
+           estuviera corrido. */
+        {codigo:'propiedad_inmueble', vence:false}, {codigo:'identidad_propietario', vence:false},
+        {codigo:'solvencia_inmuebles', vence:true}
       ], error:null};
     }
 
