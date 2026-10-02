@@ -73,6 +73,10 @@
   --shadow:0 1px 2px rgba(14,20,36,.04), 0 6px 18px rgba(14,20,36,.06);
   --shadow-lg:0 2px 6px rgba(14,20,36,.06), 0 18px 44px rgba(14,20,36,.10);
   --sb:256px; --tb:58px;
+  /* La rampa de la barra de estados de Control y Estadísticas: los
+     azules de Atlas (IN_RAMPA), del más apagado al más intenso. En oscuro
+     se invierte, para que el más intenso siga siendo el que más resalta. */
+  --ce-r0:#C3CDDB; --ce-r1:#86B6EF; --ce-r2:#5598E7; --ce-r3:#256ABF; --ce-r4:#0D366B;
 }
 @media (prefers-color-scheme:dark){
   :root{
@@ -82,6 +86,7 @@
     --amber:#DBA94C; --amber-bg:#33280F; --rust:#E28A67; --rust-bg:#33201A; --good:#43B48C; --good-bg:#11291F;
     --shadow:0 1px 2px 0 rgba(0,0,0,.25);
     --shadow-lg:0 2px 6px rgba(0,0,0,.35), 0 20px 48px rgba(0,0,0,.55);
+    --ce-r0:#34405A; --ce-r1:#1F4C80; --ce-r2:#2F6DB5; --ce-r3:#4C97E8; --ce-r4:#9CCBFF;
   }
 }
 :root[data-theme="light"]{
@@ -91,6 +96,7 @@
   --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9; --good:#1E7F5C; --good-bg:#E7F4EE;
   --shadow:0 1px 2px rgba(14,20,36,.04), 0 6px 18px rgba(14,20,36,.06);
   --shadow-lg:0 2px 6px rgba(14,20,36,.06), 0 18px 44px rgba(14,20,36,.10);
+  --ce-r0:#C3CDDB; --ce-r1:#86B6EF; --ce-r2:#5598E7; --ce-r3:#256ABF; --ce-r4:#0D366B;
 }
 :root[data-theme="dark"]{
   --ink:#EAEEF6; --gray:#9AA6BC; --gray-soft:#6E7B93; --line:rgba(255,255,255,.10); --line-soft:rgba(255,255,255,.06);
@@ -99,6 +105,7 @@
   --amber:#DBA94C; --amber-bg:#33280F; --rust:#E28A67; --rust-bg:#33201A; --good:#43B48C; --good-bg:#11291F;
   --shadow:0 1px 2px 0 rgba(0,0,0,.25);
   --shadow-lg:0 2px 6px rgba(0,0,0,.35), 0 20px 48px rgba(0,0,0,.55);
+  --ce-r0:#34405A; --ce-r1:#1F4C80; --ce-r2:#2F6DB5; --ce-r3:#4C97E8; --ce-r4:#9CCBFF;
 }
 
 *{box-sizing:border-box; margin:0; padding:0;}
@@ -671,100 +678,161 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .eq-tardo.pasa{background:var(--rust-bg); color:var(--rust);} .eq-tardo.ok{background:var(--good-bg); color:var(--good);}
 .eq-f-vacio{padding:26px 18px; text-align:center; color:var(--gray); font-size:var(--fs-fila);}
 
-/* Los numeros de arriba, en UNA tira partida en cinco (idea C de las
-   maquetas, 28-9-2026): se leen como una sola linea de estado y no como
-   cinco tarjetas sueltas. Cada cifra dibuja su linea derecha y la de abajo
-   con una sombra de 1px; las del borde caen fuera y el overflow las
-   recorta. Con un gap de 1px sobre fondo gris, al partirse la tira en dos
-   filas el hueco que sobra salia como un bloque gris. */
-.pu-nums{display:grid; grid-template-columns:repeat(5, minmax(0, 1fr));
-  margin-bottom:18px; background:var(--tr-velo);
-  border:1px solid var(--line); border-radius:var(--r); overflow:hidden;
-  box-shadow:var(--shadow);}
+/* Las cinco cifras de arriba, como las tarjetas .stat de Atlas (idea 1 de
+   maquetas/control-estadisticas-atlas.html, 2-10-2026; antes, una sola
+   tira partida en cinco, la idea C del 28-9-2026): cada una suelta, con la
+   cifra arriba, el rotulo debajo y un medidor al pie que dice de que es
+   parte. Las que avisan tiñen la cifra y el medidor, no la tarjeta entera,
+   y llevan su rotulo al lado: el color no puede ser lo unico que lo diga. */
+.pu-nums{display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:12px;
+  margin-bottom:16px;}
 @media(max-width:1180px){ .pu-nums{grid-template-columns:repeat(3, minmax(0, 1fr));} }
 @media(max-width:700px){  .pu-nums{grid-template-columns:repeat(2, minmax(0, 1fr));} }
-/* Los que avisan se tiñen SOLO cuando hay algo, y llevan su rotulo al
-   lado: el color no puede ser lo unico que lo diga. */
-.pu-n{background:transparent; padding:14px 18px;
-  box-shadow:1px 0 0 var(--line), 0 1px 0 var(--line);}
-.pu-n .l{font-size:var(--fs-rotulo); color:var(--gray); font-weight:700;letter-spacing:.01em;}
-.pu-n .v{font-size:var(--fs-cifra); font-weight:700; line-height:1.1; margin-top:4px;
-  font-variant-numeric:tabular-nums; color:var(--ink);letter-spacing:-.02em;}
-.pu-n.ojo{background:var(--amber-bg);}
+.pu-n{background:var(--bg); border:1px solid var(--line); border-radius:var(--r);
+  padding:14px 16px; min-width:0; display:flex; flex-direction:column;}
+.pu-n .v{font-size:var(--fs-cifra); font-weight:800; line-height:1;
+  font-variant-numeric:tabular-nums; color:var(--ink); letter-spacing:-.02em;}
+.pu-n .v .de{font-size:var(--fs-fila); font-weight:600; color:var(--gray-soft);
+  margin-left:6px; letter-spacing:0;}
+.pu-n .l{font-size:var(--fs-nota); color:var(--gray); line-height:1.35; margin-top:5px; flex:1 1 auto;}
+.pu-medidor{height:3px; border-radius:3px; background:var(--line); margin-top:10px; overflow:hidden;}
+.pu-medidor span{display:block; height:100%; border-radius:3px; background:var(--cyan-deep);}
 .pu-n.ojo .v{color:var(--amber);}
-.pu-n.mal{background:var(--rust-bg);}
+.pu-n.ojo .pu-medidor span{background:var(--amber);}
 .pu-n.mal .v{color:var(--rust);}
+.pu-n.mal .pu-medidor span{background:var(--rust);}
 
-/* Las dos tablas, lado a lado; en pantallas estrechas, una debajo de otra. */
-.pu-dos{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px;
+/* Las dos cajas, lado a lado y en la proporcion de la maqueta: la barra
+   de estados pide mas ancho que la tabla de gestores. En pantallas
+   estrechas, una debajo de otra. */
+.pu-dos{display:grid; grid-template-columns:minmax(0, 7fr) minmax(0, 5fr); gap:14px;
   align-items:start;}
 @media(max-width:980px){ .pu-dos{grid-template-columns:minmax(0, 1fr);} }
-.pu-caja{background:var(--tr-velo); border:1px solid var(--line);
-  border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden;}
-.pu-t{display:flex; align-items:center; justify-content:space-between; gap:12px;
-  font-size:var(--fs-seccion); font-weight:700; letter-spacing:.01em; color:var(--ink);
-  padding:0 18px; min-height:46px; border-bottom:1px solid var(--line);}
-.pu-asignar{font-size:var(--fs-enlace); font-weight:600; color:var(--navy2); text-decoration:none;}
+.pu-caja{background:var(--bg); border:1px solid var(--line);
+  border-radius:var(--r); overflow:hidden; min-width:0;}
+/* La cabecera de cada caja, como .sec-h de Atlas: el cuadradito cyan, el
+   titulo y, si lo hay, un dato gris al lado. */
+.pu-t{display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px;
+  font-size:var(--fs-tarjeta); font-weight:700; letter-spacing:-.01em; color:var(--ink);
+  padding:14px 18px 10px;}
+.pu-t::before, .ce-h::before{content:""; width:7px; height:7px; border-radius:2px;
+  background:var(--cyan); flex:0 0 auto;}
+.pu-sub{font-size:var(--fs-nota); font-weight:500; color:var(--gray); letter-spacing:0;}
+.pu-asignar{margin-left:auto; font-size:var(--fs-boton); font-weight:600; color:var(--navy2); text-decoration:none;}
 .pu-asignar:hover{text-decoration:underline;}
 .pu-asignar:focus-visible{outline:2px solid var(--navy2); outline-offset:2px; border-radius:3px;}
 
+/* Los estados: una barra partida en seis y su leyenda (.in-sbar de Atlas). */
+.pu-apilada{display:flex; gap:2px; height:20px; border-radius:5px; overflow:hidden; margin:2px 18px 10px;}
+.pu-apilada span{height:100%; flex:1 1 0; min-width:3px;}
+.pu-leyenda{list-style:none; display:flex; flex-wrap:wrap; gap:8px 16px; padding:0 18px 16px;
+  font-size:var(--fs-nota); color:var(--gray);}
+.pu-leyenda i{display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:5px; vertical-align:middle;}
+.pu-leyenda b{color:var(--ink); font-weight:700; font-variant-numeric:tabular-nums;}
+.pu-leyenda li.cero, .pu-leyenda li.cero b{color:var(--gray-soft);}
+.pu-leyenda li.cero i{opacity:.45;}
+.e-borrador{background:var(--ce-r0);} .e-enviado{background:var(--ce-r1);}
+.e-en_revision{background:var(--ce-r2);} .e-ante_el_ente{background:var(--ce-r3);}
+.e-devuelto{background:var(--rust);} .e-resuelto{background:var(--ce-r4);}
+
+/* La tabla de gestores, en el formato de Atlas: cabecera en mayusculas
+   espaciadas, gris claro, y el nombre en negrita. */
+/* En la columna estrecha la cabecera parte en dos lineas antes que
+   cortarse, y si aun asi no cabe, la caja rueda de lado. */
+#puCola{overflow-x:auto;}
 .pu-tabla{width:100%; border-collapse:collapse; font-size:var(--fs-parrafo);}
-.pu-tabla th{font-size:var(--fs-rotulo); font-weight:700; color:var(--gray);
-  text-align:left; padding:9px 18px; border-bottom:1px solid var(--line-soft);}
-.pu-tabla td{padding:9px 18px; color:var(--ink); border-bottom:1px solid var(--line-soft);
+.pu-tabla th{font-size:var(--fs-chip); font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--gray-soft); text-align:left; padding:4px 10px 8px; border-bottom:1px solid var(--line);
+  vertical-align:bottom; line-height:1.3;}
+.pu-tabla td{padding:10px; color:var(--ink); border-bottom:1px solid var(--line-soft);
   white-space:nowrap;}
+.pu-tabla th:first-child, .pu-tabla td:first-child{padding-left:18px;}
+.pu-tabla th:last-child, .pu-tabla td:last-child{padding-right:18px;}
 .pu-tabla tr:last-child td{border-bottom:0;}
-.pu-tabla .num{text-align:right; font-variant-numeric:tabular-nums;}
-.pu-tabla td.nombre{overflow:hidden; text-overflow:ellipsis; max-width:220px;}
-/* La barra va en su propia columna y mide contra el MAYOR de la tanda.
-   Un solo tono para todas, y a proposito: lo que se compara es CUANTO, no
-   quien es quien. */
-.pu-tabla td.barra{width:34%; padding-left:0;}
-.pu-pista{height:6px; border-radius:3px; overflow:hidden;}
-/* El extremo redondeado y anclado a la linea de salida: una barra con las
-   dos puntas redondas miente sobre donde empieza. */
-.pu-relleno{height:100%; background:var(--navy2); border-radius:0 3px 3px 0;}
-/* Un estado a cero se escribe, pero apagado: saber que no hay ninguno
-   devuelto es la mitad de la respuesta, pero no debe competir con los
-   que tienen algo. El que mas tiene, resaltado: ahi esta el atasco. */
-.pu-tabla tr.cero td{color:var(--gray);}
-.pu-tabla tr.tope td{background:var(--activa-bg); font-weight:700;}
-.pu-tabla .pct{color:var(--gray);}
-.pu-tabla .pt{display:inline-block; width:8px; height:8px; border-radius:50%;
-  background:var(--amber); margin-right:9px; vertical-align:1px;}
+.pu-tabla .num{text-align:right; font-variant-numeric:tabular-nums; font-weight:700;}
+.pu-tabla td.nombre{overflow:hidden; text-overflow:ellipsis; max-width:220px; font-weight:700;}
+.pu-tabla .pct{color:var(--gray); font-weight:500;}
 .pu-tabla .mal{color:var(--rust); font-weight:700;}
+.pu-sinasig{display:inline-flex; font-size:var(--fs-chip); font-weight:700; letter-spacing:.01em;
+  border-radius:20px; padding:2px 8px; background:var(--amber-bg); color:var(--amber);}
 .pu-vacio{font-size:var(--fs-parrafo); color:var(--gray); padding:16px 18px;}
 .pu-caja .pu-vacio.pie{text-align:center; border-top:1px solid var(--line-soft); padding:22px 18px;}
 
 /* ══ CONTROL Y ESTADÍSTICAS ══
    Franklin Reyes, 1-10-2026. Las cajas son las del pulso, para que la
-   pantalla se lea como una sola; lo nuevo es el rótulo de las tarjetas,
-   la frase que dice qué se cuenta y la lista editable de cada sector. */
-.ce-h{font-size:var(--fs-seccion); font-weight:700; color:var(--ink); margin:4px 0 10px;}
-.ce-h:empty{display:none;}
-.ce-vista{margin-top:18px; display:flex; flex-direction:column; gap:16px;}
-.ce-caja .ce-d{margin:0; padding:10px 18px 4px; font-size:var(--fs-nota); line-height:1.5; color:var(--gray);}
-.ce-aviso{background:var(--tr-velo); border:1px solid var(--line); border-radius:var(--r);}
-.pu-tabla td.ce-nombre{white-space:normal; max-width:none;}
-.ce-nombre .nm{display:block;}
-.ce-sub{display:block; font-size:var(--fs-nota); color:var(--gray); margin-top:2px;}
-.pu-tabla .ce-fuerte{font-weight:700;}
-.ce-modos{display:flex; flex-wrap:wrap; gap:6px; padding:10px 18px 2px;}
-.ce-ps-sectores{padding:10px 18px 0; margin-bottom:6px;}
+   pantalla se lea como una sola. Desde el 2-10-2026, con la idea 1 de
+   maquetas/control-estadisticas-atlas.html: las cifras en barras (.in-rrow
+   del Panel de inteligencia de Atlas) y las cajas de dos en dos. */
+.ce-h{display:flex; align-items:center; gap:10px; font-size:var(--fs-tarjeta); font-weight:700;
+  letter-spacing:-.01em; color:var(--ink); margin:22px 0 12px;}
+.ce-h:has(#ceTequipo:empty){display:none;}
+.ce-vista{margin-top:18px;}
+.ce-rejilla{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; align-items:start;}
+@media(max-width:980px){ .ce-rejilla{grid-template-columns:minmax(0, 1fr);} }
+.ce-caja .ce-d{margin:-4px 0 0; padding:0 18px 6px; font-size:var(--fs-nota); line-height:1.55; color:var(--gray);}
+.ce-aviso{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); margin-bottom:14px;}
+.ce-sub{display:block; font-size:var(--fs-nota); font-weight:500; color:var(--gray); margin-top:1px;
+  white-space:normal;}
+
+/* Una fila: nombre, barra y cifra. */
+.ce-lista{display:flex; flex-direction:column; padding:4px 18px 12px;}
+.ce-fila{display:flex; align-items:center; gap:10px; padding:7px 0; width:100%;}
+.ce-fila .ce-rl{width:170px; flex:0 0 auto; min-width:0;}
+.ce-fila .ce-rl .nm{display:block; font-size:var(--fs-fila); font-weight:700; color:var(--ink);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.ce-fila .ce-pista{flex:1 1 auto; display:flex; height:14px; border-radius:4px; background:var(--block);
+  overflow:hidden; min-width:40px;}
+.ce-fila .ce-pista span{height:100%;}
+.ce-fila .ce-relleno{border-radius:4px; background:linear-gradient(90deg, var(--navy2), var(--cyan-deep));}
+.ce-fila .ce-rv{width:96px; flex:0 0 auto; text-align:right;}
+.ce-fila .ce-rv .n{display:block; font-size:var(--fs-fila); font-weight:800; color:var(--ink);
+  font-variant-numeric:tabular-nums; white-space:nowrap;}
+.ce-fila .ce-rv .ce-sub{white-space:nowrap;}
+.ce-fila.tope .ce-rv .n{color:var(--navy2);}
+.ce-fila.cero .ce-rl .nm, .ce-fila.cero .ce-rv .n{color:var(--gray-soft); font-weight:600;}
+@media(max-width:560px){ .ce-fila .ce-rl{width:110px;} .ce-fila .ce-rv{width:76px;} }
+/* Los dos tramos del tiempo: en el CIIP y ante el ente. */
+.r-ciip{background:var(--ce-r1);}
+.r-ente{background:var(--ce-r3);}
+.ce-leyenda{padding-top:2px;}
+
+/* El renglón «Otros N»: un botón con la suma, que despliega el resto. */
+.ce-fila.ce-resto{font:inherit; text-align:left; background:none; border:0; cursor:pointer;
+  border-top:1px solid var(--line); border-radius:0; margin:0 18px; width:auto; padding:11px 0 9px;}
+.ce-fila.ce-resto .ce-rl .nm, .ce-fila.ce-resto .ce-rv .n{color:var(--gray);}
+.ce-fila.ce-resto .ce-pista{background:none;}
+.ce-fila.ce-resto .ce-pista span{background:var(--ce-r0);}
+.ce-fila.ce-resto:hover .ce-rl .nm{color:var(--ink);}
+.ce-fila.ce-resto:focus-visible{outline:2px solid var(--cyan-deep); outline-offset:2px;}
+.ce-desplegado{background:var(--block); border-radius:8px; margin:2px 18px 12px; padding:2px 10px;
+  max-height:270px; overflow-y:auto;}
+.ce-desplegado .ce-fila + .ce-fila{border-top:1px solid var(--line-soft);}
+
+/* «Por organismo / Por trámite», el segmento de Atlas, a la derecha del título. */
+.pu-seg{display:inline-flex; margin-left:auto; background:var(--block); border:1px solid var(--line);
+  border-radius:8px; padding:3px; gap:3px;}
+.pu-segbtn{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--gray); background:none;
+  border:0; border-radius:6px; padding:6px 12px; cursor:pointer; white-space:nowrap;}
+.pu-segbtn:hover{color:var(--ink);}
+.pu-segbtn[aria-pressed="true"]{background:var(--bg); color:var(--navy2); box-shadow:0 1px 2px rgba(14,20,36,.08);}
+.pu-segbtn:focus-visible{outline:2px solid var(--cyan-deep); outline-offset:1px;}
+
+/* La lista de cada sector: la misma de antes, dentro de su caja. */
+.ce-ps-sectores{padding:4px 18px 0; margin-bottom:6px;}
 .ce-ps-lista{display:flex; flex-direction:column;}
-.ce-ps-fila{display:grid; grid-template-columns:minmax(0, 2fr) minmax(0, 1.4fr) auto auto auto auto;
-  gap:6px; align-items:center; padding:8px 18px; border-bottom:1px solid var(--line-soft);}
+/* En media columna no caben los dos campos y los cuatro botones en una
+   linea: los botones bajan solos a la siguiente cuando no caben. */
+.ce-ps-fila{display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:8px 18px;
+  border-bottom:1px solid var(--line-soft);}
+.ce-ps-fila .ce-ps-n{flex:2 1 160px;}
+.ce-ps-fila .ce-ps-o{flex:1 1 110px;}
 .ce-ps-fila input{font:inherit; font-size:var(--fs-campo); color:var(--ink); background:var(--bg);
   border:1px solid var(--line); border-radius:8px; padding:7px 9px; min-width:0;}
 .ce-ps-fila input:focus-visible{outline:2px solid var(--cyan-deep); outline-offset:1px;}
 .ce-ps-fila .btn{font-size:var(--fs-boton); padding:6px 10px;}
-.ce-ps-nueva{grid-template-columns:minmax(0, 2fr) minmax(0, 1.4fr) auto; border-bottom:0; background:var(--activa-bg);}
+.ce-ps-nueva{border-bottom:0; background:var(--activa-bg);}
 .ce-ps-aviso{font-size:var(--fs-nota); color:var(--rust); padding:0 18px 10px;}
 .ce-ps-aviso:empty{display:none;}
-@media(max-width:700px){
-  .ce-ps-fila, .ce-ps-nueva{grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);}
-  .ce-ps-fila input{grid-column:1 / -1;}
-}
 
 /* Y en el chat, bajo los sectores: los trámites que el CIIP cargó para
    el elegido. Pulsar uno lo pone en el asunto. */

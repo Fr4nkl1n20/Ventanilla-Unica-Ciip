@@ -29211,12 +29211,23 @@ applyLang(idiomaParaMi());
     return Math.max(0, Math.floor((Date.now() - ms) / 86400000));
   }
 
-  /* Rotulo arriba y cifra debajo: en la tira se lee de izquierda a derecha
-     como una frase -«En marcha 14, Esperando 7…»-. */
-  function unNumero(caja, valor, rotulo, tono){
+  /* La tarjeta de cifra de Atlas (.stat): la cifra arriba, el rotulo debajo
+     y un medidor al pie (idea 1 de maquetas/control-estadisticas-atlas.html,
+     2-10-2026). medida va de 0 a 1; de, si viene, es el «de 38» gris que
+     acompaña a la cifra. El medidor es adorno de la cifra: el lector de
+     pantalla se lo salta. */
+  function unNumero(caja, valor, rotulo, tono, medida, de){
     var n = el('div', 'pu-n' + (tono ? ' ' + tono : ''));
+    var v = el('div', 'v', valor);
+    if (de) v.appendChild(el('span', 'de', de));
+    n.appendChild(v);
     n.appendChild(el('div', 'l', rotulo || ''));
-    n.appendChild(el('div', 'v', valor));
+    var m = el('div', 'pu-medidor');
+    m.setAttribute('aria-hidden', 'true');
+    var r = el('span');
+    r.style.width = Math.round(Math.max(0, Math.min(1, medida || 0)) * 100) + '%';
+    m.appendChild(r);
+    n.appendChild(m);
     caja.appendChild(n);
   }
 
@@ -29237,23 +29248,6 @@ applyLang(idiomaParaMi());
     return cuerpo;
   }
 
-  /* La barra. El ancho se mide contra el MAYOR de la tanda y no contra el
-     total: si se midiera contra el total, con un reparto parejo salen seis
-     barritas cortas iguales y no se ve quien lleva mas. Es adorno de la
-     cifra de al lado, asi que el lector de pantalla se la salta. */
-  function celdaBarra(n, tope){
-    var td = el('td', 'barra');
-    td.setAttribute('aria-hidden', 'true');
-    if (n > 0){
-      var pista = el('div', 'pu-pista');
-      var relleno = el('div', 'pu-relleno');
-      relleno.style.width = (tope > 0 ? Math.round((n / tope) * 100) : 0) + '%';
-      pista.appendChild(relleno);
-      td.appendChild(pista);
-    }
-    return td;
-  }
-
   function pintaPulso(){
     if (!puNums) return;
     var u = T();
@@ -29264,8 +29258,10 @@ applyLang(idiomaParaMi());
 
     var cEst = document.getElementById('puEstados');
     var cCol = document.getElementById('puCola');
+    var cTot = document.getElementById('puTotal');
     var asignar = document.getElementById('puAsignar');
     puNums.textContent = ''; cEst.textContent = ''; cCol.textContent = '';
+    if (cTot) cTot.textContent = '';
     if (asignar){
       asignar.textContent = (u.pu_asignar || '') + ' →';
       asignar.hidden = true;
@@ -29276,21 +29272,30 @@ applyLang(idiomaParaMi());
       return;
     }
 
+    /* Cada medidor dice de qué es parte su cifra. Lo en marcha, del total;
+       lo que espera, de lo que está en marcha; la espera más vieja, de la
+       semana, que es donde se pone roja. Las citas y los papeles caducados
+       no tienen un total con el que medirse: su medidor se llena entero
+       cuando hay alguno y se queda vacío cuando no, como un aviso. */
     var dias = diasDesde(pulso.masViejo);
-    unNumero(puNums, String(pulso.enMarcha), u.pu_m_marcha);
+    unNumero(puNums, String(pulso.enMarcha), u.pu_m_marcha, null,
+             pulso.total ? pulso.enMarcha / pulso.total : 0);
     unNumero(puNums, String(pulso.esperando), u.pu_m_espera,
-             pulso.esperando > 0 ? 'ojo' : null);
+             pulso.esperando > 0 ? 'ojo' : null,
+             pulso.enMarcha ? pulso.esperando / pulso.enMarcha : 0,
+             pulso.enMarcha ? String(u.eq_de || '').replace('{n}', pulso.enMarcha) : '');
     /* En horas, como «Esperando» (Franklin Reyes, 24-9-2026: «el pulso
        está en días, podemos colocarlo en horas»). En días, lo que entró
        esta mañana salía «0 días». El rojo sigue siendo a la semana. */
     unNumero(puNums,
              dias === null ? (u.pu_ninguno || '—')
                            : enHoras(Math.max(0, Date.now() - pulso.masViejo)),
-             u.pu_m_viejo, (dias !== null && dias >= 7) ? 'mal' : null);
+             u.pu_m_viejo, (dias !== null && dias >= 7) ? 'mal' : null,
+             dias === null ? 0 : (Date.now() - pulso.masViejo) / (7 * 86400000));
     unNumero(puNums, String(pulso.citas), u.pu_m_citas,
-             pulso.citas > 0 ? 'ojo' : null);
+             pulso.citas > 0 ? 'ojo' : null, pulso.citas > 0 ? 1 : 0);
     unNumero(puNums, String(pulso.caducados), u.pu_m_caduc,
-             pulso.caducados > 0 ? 'mal' : null);
+             pulso.caducados > 0 ? 'mal' : null, pulso.caducados > 0 ? 1 : 0);
 
     if (!pulso.total){
       cEst.appendChild(el('div', 'pu-vacio', u.pu_vacio || ''));
@@ -29298,30 +29303,39 @@ applyLang(idiomaParaMi());
       return;
     }
 
-    /* El porcentaje, sobre los seis estados que se enseñan y no sobre el
-       total de la base: asi la columna suma cien con lo que se ve. */
-    var topeE = 0, sumaE = 0;
+    /* Los estados, en UNA barra partida en seis, como la de Atlas, y su
+       leyenda debajo con la cifra y el porcentaje. Aquí sí hay un color por
+       estado: la barra es un reparto del total y sin color no se ve dónde
+       acaba uno y empieza el otro. Es una rampa de azules en el orden del
+       expediente -del borrador, apagado, al resuelto, el más intenso- y el
+       devuelto en óxido, que es el único que pide que alguien haga algo.
+       El porcentaje, sobre los seis estados que se enseñan y no sobre el
+       total de la base: así la leyenda suma cien con lo que se ve. */
+    var sumaE = 0;
+    PU_ESTADOS.forEach(function(e){ sumaE += pulso.porEstado[e] || 0; });
+    if (cTot) cTot.textContent = String(u.pu_total || '').replace('{n}', sumaE);
+    var barra = el('div', 'pu-apilada');
+    barra.setAttribute('aria-hidden', 'true');
+    var ley = el('ul', 'pu-leyenda');
     PU_ESTADOS.forEach(function(e){
       var n = pulso.porEstado[e] || 0;
-      topeE = Math.max(topeE, n); sumaE += n;
+      if (n > 0){
+        var trozo = el('span', 'e-' + e);
+        trozo.style.flexGrow = String(n);
+        barra.appendChild(trozo);
+      }
+      /* Un estado con cero también se escribe, apagado: saber que no hay
+         ninguno devuelto es justo la mitad de la respuesta. */
+      var li = el('li', n === 0 ? 'cero' : null);
+      li.setAttribute('data-estado', e);
+      li.appendChild(el('i', 'e-' + e));
+      li.appendChild(document.createTextNode((u[PU_ROTULO[e]] || e) + ' '));
+      li.appendChild(el('b', null, String(n)));
+      if (n > 0 && sumaE) li.appendChild(el('span', 'pct', ' · ' + Math.round((n / sumaE) * 100) + ' %'));
+      ley.appendChild(li);
     });
-    var filasE = unaTabla(cEst, [{t:u.pu_c_estado}, {}, {t:u.pu_c_n, num:true}, {t:'%', num:true}]);
-    var resaltado = false;
-    PU_ESTADOS.forEach(function(e){
-      var n = pulso.porEstado[e] || 0;
-      /* Un estado con cero tambien se pinta: saber que no hay ninguno
-         devuelto es justo la mitad de la respuesta. El que mas tiene va
-         resaltado -uno solo, el primero en el orden del expediente-. */
-      var tope = !resaltado && n > 0 && n === topeE;
-      if (tope) resaltado = true;
-      var tr = el('tr', n === 0 ? 'cero' : (tope ? 'tope' : null));
-      tr.appendChild(el('td', 'nombre', u[PU_ROTULO[e]] || e));
-      tr.appendChild(celdaBarra(n, topeE));
-      tr.appendChild(el('td', 'num', String(n)));
-      tr.appendChild(el('td', 'num pct',
-        n === 0 || !sumaE ? '—' : String(Math.round((n / sumaE) * 100))));
-      filasE.appendChild(tr);
-    });
+    cEst.appendChild(barra);
+    cEst.appendChild(ley);
 
     var lleva = pulso.llevaGestor || pulso.porGestor;
     var claves = Object.keys(lleva);
@@ -29348,8 +29362,10 @@ applyLang(idiomaParaMi());
       var tr = el('tr');
       var nom = el('td', 'nombre');
       nom.title = rot;
-      if (!k) nom.appendChild(el('span', 'pt'));
-      nom.appendChild(document.createTextNode(rot));
+      /* El montón sin dueño, en pastilla ámbar como en Atlas: no es una
+         persona, y es lo que hay que repartir. */
+      if (!k) nom.appendChild(el('span', 'pu-sinasig', rot));
+      else nom.appendChild(document.createTextNode(rot));
       tr.appendChild(nom);
       tr.appendChild(el('td', 'num', String(lleva[k])));
       tr.appendChild(el('td', 'num' + (espera ? '' : ' pct'), String(espera)));
@@ -29940,11 +29956,103 @@ applyLang(idiomaParaMi());
   function ceSeccion(id, titulo, desc){
     var s = el('section', 'pu-caja ce-caja');
     s.id = id;
-    s.appendChild(el('div', 'pu-t', titulo || ''));
+    var h = el('div', 'pu-t');
+    h.appendChild(el('span', null, titulo || ''));
+    s.appendChild(h);
     if (desc) s.appendChild(el('p', 'ce-d', desc));
     return s;
   }
 
+  /* ── LAS BARRAS ──
+     Desde el 2-10-2026 las cifras de abajo van en barras horizontales,
+     las .in-rrow del Panel de inteligencia de Atlas (idea 1 de
+     maquetas/control-estadisticas-atlas.html, Franklin Reyes: «aplica
+     esta»): el nombre a la izquierda, la barra en medio y la cifra a la
+     derecha, con su dato pequeño debajo. La barra mide contra el MAYOR de
+     la tanda, como antes, y un valor que no es cero nunca baja de un
+     1,5 % de ancho: si no, no se ve.
+
+     o = {nombre, sub, valor, pie, fuerte, cls, partes}. partes es una
+     lista de [ancho de 0 a 1, clase]; sin clase, el degradado de Atlas.
+     Todo va en <span> para que la fila pueda ser también un <button>. */
+  var CE_MAX = 6;
+  var ceAbierto = {};
+
+  function ceFila(o, tag){
+    var f = el(tag || 'div', 'ce-fila' + (o.cls ? ' ' + o.cls : ''));
+    if (!tag) f.setAttribute('role', 'listitem');
+    var rl = el('span', 'ce-rl');
+    rl.appendChild(el('span', 'nm', o.nombre || ''));
+    if (o.sub) rl.appendChild(el('span', 'ce-sub', o.sub));
+    f.appendChild(rl);
+    var pista = el('span', 'ce-pista');
+    pista.setAttribute('aria-hidden', 'true');
+    (o.partes || []).forEach(function(p){
+      if (!(p[0] > 0)) return;
+      var r = el('span', p[1] || 'ce-relleno');
+      r.style.width = Math.max(1.5, Math.min(100, p[0] * 100)) + '%';
+      pista.appendChild(r);
+    });
+    f.appendChild(pista);
+    var rv = el('span', 'ce-rv');
+    rv.appendChild(el('b', 'n' + (o.fuerte ? ' ce-fuerte' : ''), o.valor || ''));
+    if (o.pie) rv.appendChild(el('span', 'ce-sub', o.pie));
+    f.appendChild(rv);
+    return f;
+  }
+
+  /* Hasta seis filas se enseñan todas. Con más, las cinco primeras y un
+     renglón «Otros N» con la suma, que despliega el resto debajo, como hace
+     Atlas. Abierto o cerrado se recuerda por caja: el refresco de cada
+     minuto no puede plegarlo en las narices de quien lo está leyendo. */
+  function ceLista(caja, id, datos, fila, resumen){
+    var u = T();
+    var lista = el('div', 'ce-lista');
+    lista.setAttribute('role', 'list');
+    caja.appendChild(lista);
+    if (datos.length <= CE_MAX){
+      datos.forEach(function(d, i){ lista.appendChild(fila(d, i)); });
+      return;
+    }
+    var cabeza = datos.slice(0, CE_MAX - 1), cola = datos.slice(CE_MAX - 1);
+    cabeza.forEach(function(d, i){ lista.appendChild(fila(d, i)); });
+    var r = resumen(cola);
+    r.nombre = String(u.ce_otros || '').replace('{n}', cola.length);
+    r.cls = 'ce-resto';
+    var b = ceFila(r, 'button');
+    b.type = 'button';
+    b.querySelector('.ce-rl .nm').appendChild(el('span', 'caret', ' ▸'));
+    var mas = el('div', 'ce-lista ce-desplegado');
+    mas.setAttribute('role', 'list');
+    mas.id = 'ceMas-' + id;
+    b.setAttribute('aria-controls', mas.id);
+    cola.forEach(function(d, i){ mas.appendChild(fila(d, CE_MAX - 1 + i)); });
+    function pon(abierto){
+      ceAbierto[id] = abierto;
+      mas.hidden = !abierto;
+      b.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+      b.querySelector('.caret').textContent = abierto ? ' ▾' : ' ▸';
+    }
+    b.addEventListener('click', function(){ pon(!ceAbierto[id]); });
+    pon(!!ceAbierto[id]);
+    caja.appendChild(b);
+    caja.appendChild(mas);
+  }
+
+  /* La leyenda de una barra partida: un cuadradito por color y su nombre. */
+  function ceLeyenda(caja, items){
+    var ley = el('ul', 'pu-leyenda ce-leyenda');
+    items.forEach(function(x){
+      var li = el('li');
+      li.appendChild(el('i', x[0]));
+      li.appendChild(document.createTextNode(x[1] || ''));
+      ley.appendChild(li);
+    });
+    caja.appendChild(ley);
+  }
+
+  /* De dos en dos, como en la maqueta: lo que se pide al lado de lo que
+     tarda, y lo que se pregunta al lado de lo que se ofrece en el chat. */
   function pintaControl(){
     if (!ceCaja) return;
     var u = T();
@@ -29952,18 +30060,18 @@ applyLang(idiomaParaMi());
     if (tEq) tEq.textContent = u.ce_eq_t || '';
     ceCaja.textContent = '';
 
+    var rejilla = el('div', 'ce-rejilla');
     if (!ceDatos){
       ceCaja.appendChild(el('div', 'pu-vacio ce-aviso', ceFallo ? (u.ce_nocarga || '') : ''));
     } else {
-      var dos = el('div', 'pu-dos ce-dos');
-      dos.appendChild(ceCajaTramites(u));
-      dos.appendChild(ceCajaSectores(u));
-      ceCaja.appendChild(dos);
-      ceCaja.appendChild(ceCajaTiempos(u));
+      rejilla.appendChild(ceCajaTramites(u));
+      rejilla.appendChild(ceCajaTiempos(u));
+      rejilla.appendChild(ceCajaSectores(u));
     }
     /* La lista de cada sector va aunque las cifras fallen: es otra tabla,
        y escribirla no depende de poder contar. */
-    ceCaja.appendChild(ceCajaPorSector(u));
+    rejilla.appendChild(ceCajaPorSector(u));
+    ceCaja.appendChild(rejilla);
   }
 
   function ceCajaTramites(u){
@@ -29971,24 +30079,27 @@ applyLang(idiomaParaMi());
     var filas = (ceDatos.tramites || []).filter(function(t){ return (t.solicitados || 0) > 0; });
     if (!filas.length){ s.appendChild(el('div', 'pu-vacio', u.ce_vacio || '')); return s; }
     var tope = filas.reduce(function(m, t){ return Math.max(m, t.solicitados || 0); }, 0);
-    var cuerpo = unaTabla(s, [{t:u.ce_c_tramite}, {}, {t:u.ce_c_pedidos, num:true}, {t:u.ce_c_resueltos, num:true}]);
-    filas.forEach(function(t, i){
-      var tr = el('tr', i === 0 ? 'tope' : null);
-      tr.setAttribute('data-tipo', t.tipo || '');
-      var nom = el('td', 'nombre ce-nombre');
-      nom.appendChild(el('span', 'nm', ceNombreTramite(t.tipo)));
-      if (t.ente) nom.appendChild(el('span', 'ce-sub', t.ente));
-      tr.appendChild(nom);
-      tr.appendChild(celdaBarra(t.solicitados || 0, tope));
-      tr.appendChild(el('td', 'num', String(t.solicitados || 0)));
-      tr.appendChild(el('td', 'num pct', String(t.resueltos || 0)));
-      cuerpo.appendChild(tr);
+    function resueltos(n){ return (u.ce_c_resueltos || '') + ' ' + n; }
+    ceLista(s, 'tramites', filas, function(t, i){
+      var f = ceFila({
+        cls: i === 0 ? 'tope' : '',
+        nombre: ceNombreTramite(t.tipo), sub: t.ente || '',
+        valor: String(t.solicitados || 0), pie: resueltos(t.resueltos || 0),
+        partes: [[tope ? (t.solicitados || 0) / tope : 0]]
+      });
+      f.setAttribute('data-tipo', t.tipo || '');
+      return f;
+    }, function(cola){
+      var sol = 0, res = 0;
+      cola.forEach(function(t){ sol += t.solicitados || 0; res += t.resueltos || 0; });
+      return {valor: String(sol), pie: resueltos(res), partes: [[tope ? sol / tope : 0]]};
     });
     return s;
   }
 
   /* Los nueve sectores SIEMPRE, también los que están a cero: saber que
-     nadie pregunta por telecomunicaciones es la mitad de la respuesta. */
+     nadie pregunta por telecomunicaciones es la mitad de la respuesta. Por
+     eso aquí no se pliega nada en «Otros». */
   function ceCajaSectores(u){
     var s = ceSeccion('ceSectores', u.ce_se_t, u.ce_se_d);
     var n = {};
@@ -29998,30 +30109,41 @@ applyLang(idiomaParaMi());
     var orden = CS_CODIGOS.slice().sort(function(a, b){
       return ((n[b] || 0) - (n[a] || 0)) || (CS_CODIGOS.indexOf(a) - CS_CODIGOS.indexOf(b));
     });
-    var cuerpo = unaTabla(s, [{t:u.ce_c_sector}, {}, {t:u.ce_c_consultas, num:true}, {t:'%', num:true}]);
+    var lista = el('div', 'ce-lista');
+    lista.setAttribute('role', 'list');
     var resaltado = false;
     orden.forEach(function(c){
       var k = n[c] || 0;
       var esTope = !resaltado && k > 0 && k === tope;
       if (esTope) resaltado = true;
-      var tr = el('tr', k === 0 ? 'cero' : (esTope ? 'tope' : null));
-      tr.setAttribute('data-sector', c);
-      tr.appendChild(el('td', 'nombre', nombreDeSectorCs(c)));
-      tr.appendChild(celdaBarra(k, tope));
-      tr.appendChild(el('td', 'num', String(k)));
-      tr.appendChild(el('td', 'num pct', (k === 0 || !suma) ? '—' : String(Math.round((k / suma) * 100))));
-      cuerpo.appendChild(tr);
+      var f = ceFila({
+        cls: k === 0 ? 'cero' : (esTope ? 'tope' : ''),
+        nombre: nombreDeSectorCs(c), valor: String(k),
+        /* La raya en los que están a cero: así todas las filas miden lo
+           mismo y la columna del porcentaje no se queda con huecos. */
+        pie: (k && suma) ? Math.round((k / suma) * 100) + ' %' : '—',
+        partes: [[tope ? k / tope : 0]]
+      });
+      f.setAttribute('data-sector', c);
+      lista.appendChild(f);
     });
+    s.appendChild(lista);
     return s;
   }
 
+  /* Cada barra es la mediana, partida en dos: el tramo en el CIIP, de que
+     el inversionista envía a que se presenta, y el tramo ante el ente, de
+     que se presenta a que queda resuelto. Las dos medianas no se suman
+     exactas -una mediana no se parte en trozos-, así que el tramo del ente
+     se dibuja con su propia mediana y nunca más largo que la barra entera.
+     Las cifras exactas van escritas al lado. */
   function ceCajaTiempos(u){
     var s = ceSeccion('ceTiempos', u.ce_ti_t, u.ce_ti_d);
-    var modos = el('div', 'ce-modos');
+    var modos = el('div', 'pu-seg ce-modos');
     modos.setAttribute('role', 'group');
     modos.setAttribute('aria-label', u.ce_ti_t || '');
     [['ente', u.ce_ti_ente], ['tramite', u.ce_ti_tram]].forEach(function(m){
-      var b = el('button', 'cs-sector ce-modo', m[1] || '');
+      var b = el('button', 'pu-segbtn ce-modo', m[1] || '');
       b.type = 'button';
       b.setAttribute('data-modo', m[0]);
       b.setAttribute('aria-pressed', ceModo === m[0] ? 'true' : 'false');
@@ -30034,30 +30156,38 @@ applyLang(idiomaParaMi());
       });
       modos.appendChild(b);
     });
-    s.appendChild(modos);
+    s.querySelector('.pu-t').appendChild(modos);
 
     var porEnte = ceModo === 'ente';
     var filas = porEnte ? (ceDatos.entes || [])
                         : (ceDatos.tramites || []).filter(function(t){ return (t.resueltos || 0) > 0; });
     if (!filas.length){ s.appendChild(el('div', 'pu-vacio', u.ce_vacio || '')); return s; }
-    var cuerpo = unaTabla(s, [{t:porEnte ? u.ce_c_ente : u.ce_c_tramite}, {t:u.ce_c_casos, num:true},
-                              {t:u.ce_c_mediana, num:true}, {t:u.ce_c_media, num:true},
-                              {t:u.ce_c_anteente, num:true}]);
-    filas.forEach(function(f){
-      var tr = el('tr');
-      var nom = el('td', 'nombre ce-nombre');
-      if (porEnte) nom.appendChild(el('span', 'nm', f.ente || u.ce_sinente || ''));
-      else {
-        nom.appendChild(el('span', 'nm', ceNombreTramite(f.tipo)));
-        if (f.ente) nom.appendChild(el('span', 'ce-sub', f.ente));
-      }
-      tr.appendChild(nom);
-      tr.appendChild(el('td', 'num', String(f.resueltos || 0)));
-      tr.appendChild(el('td', 'num ce-fuerte', ceHoras(f.mediana_h)));
-      tr.appendChild(el('td', 'num pct', ceHoras(f.promedio_h)));
-      tr.appendChild(el('td', 'num pct', (f.n_ente || 0) ? ceHoras(f.mediana_ente_h) : '—'));
-      cuerpo.appendChild(tr);
+    var tope = filas.reduce(function(m, f){ return Math.max(m, +f.mediana_h || 0); }, 0);
+    function partes(med, ente){
+      return [[tope ? (med - ente) / tope : 0, 'r-ciip'], [tope ? ente / tope : 0, 'r-ente']];
+    }
+    function tramo(f){
+      return (f.n_ente || 0) ? Math.min(+f.mediana_ente_h || 0, +f.mediana_h || 0) : 0;
+    }
+    ceLista(s, 'tiempos-' + ceModo, filas, function(f){
+      var sub = [];
+      if (!porEnte && f.ente) sub.push(f.ente);
+      sub.push((u.ce_c_casos || '') + ' ' + (f.resueltos || 0));
+      if (f.n_ente || 0) sub.push((u.ce_c_anteente || '') + ' ' + ceHoras(f.mediana_ente_h));
+      return ceFila({
+        nombre: porEnte ? (f.ente || u.ce_sinente || '') : ceNombreTramite(f.tipo),
+        sub: sub.join(' · '),
+        valor: ceHoras(f.mediana_h), fuerte: true,
+        pie: (u.ce_c_media || '') + ' ' + ceHoras(f.promedio_h),
+        partes: partes(+f.mediana_h || 0, tramo(f))
+      });
+    }, function(cola){
+      /* La de «Otros» no suma medianas: enseña la más larga de las que
+         recoge, que es lo que hay que ir a mirar. */
+      var peor = cola.reduce(function(m, f){ return (+f.mediana_h || 0) > (+m.mediana_h || 0) ? f : m; }, cola[0]);
+      return {valor: ceHoras(peor.mediana_h), partes: partes(+peor.mediana_h || 0, tramo(peor))};
     });
+    ceLeyenda(s, [['r-ciip', u.ce_ti_ciip], ['r-ente', u.ce_c_anteente]]);
     return s;
   }
 

@@ -14996,31 +14996,57 @@
     igual('control: y «Usuarios y equipo» no cambia', I18N.es['nav.users'], 'Usuarios y equipo');
     igual('control: la pantalla se titula igual', document.getElementById('eqCabT').textContent, U.eq_titulo);
     igual('control: el pulso sigue arriba, con sus cinco cifras', document.querySelectorAll('#puNums .pu-n').length, 5);
+    /* Desde el 2-10-2026, con la idea 1 de maquetas/control-estadisticas-atlas.html:
+       las cifras son tarjetas de Atlas con su medidor, los estados una
+       barra apilada y lo de abajo, barras de dos en dos. */
+    igual('control: cada cifra lleva su medidor', document.querySelectorAll('#puNums .pu-n .pu-medidor').length, 5);
+    var cifra = document.querySelector('#puNums .pu-n');
+    ok('control: la cifra arriba y el rótulo debajo',
+       !!cifra && !!cifra.firstElementChild && cifra.firstElementChild.classList.contains('v'),
+       cifra && cifra.firstElementChild ? cifra.firstElementChild.className : '(nada)', 'v');
+    var ley = document.querySelectorAll('#puEstados .pu-leyenda li');
+    igual('control: los estados, en una barra con su leyenda de seis', ley.length, 6);
+    ok('control: la barra tiene un trozo por estado con algo',
+       !!document.querySelector('#puEstados .pu-apilada') &&
+       document.querySelectorAll('#puEstados .pu-apilada span').length ===
+         [].filter.call(ley, function(li){ return !li.classList.contains('cero'); }).length,
+       document.querySelectorAll('#puEstados .pu-apilada span').length, 'uno por estado con algo');
+    ok('control: y el total al lado del título',
+       /\d/.test((document.getElementById('puTotal') || {}).textContent || ''),
+       (document.getElementById('puTotal') || {}).textContent, U.pu_total);
     ok('control: y las tarjetas del equipo, con su rótulo',
        document.querySelectorAll('#eqTarjetas .eq-tj').length >= 2 &&
        document.getElementById('ceTequipo').textContent === U.ce_eq_t,
        document.getElementById('ceTequipo').textContent, U.ce_eq_t);
+    igual('control: las cuatro cajas de abajo, en la rejilla de dos',
+          document.querySelectorAll('#ceCaja .ce-rejilla > .ce-caja').length, 4);
 
-    var tr = document.querySelectorAll('#ceTramites tbody tr');
-    igual('control: una fila por trámite solicitado', tr.length, 3);
+    var tr = document.querySelectorAll('#ceTramites .ce-fila[data-tipo]');
+    igual('control: una barra por trámite solicitado', tr.length, 3);
     ok('control: el más pedido arriba, con sus solicitudes',
        !!tr[0] && tr[0].getAttribute('data-tipo') === 'constitucion' &&
-       (tr[0].querySelector('td.num') || {}).textContent === '5',
+       (tr[0].querySelector('.ce-rv .n') || {}).textContent === '5',
        tr[0] ? tr[0].textContent : '(nada)', 'constitucion · 5');
+    ok('control: y la barra del más pedido, entera',
+       !!tr[0] && !!tr[0].querySelector('.ce-relleno') && tr[0].querySelector('.ce-relleno').style.width === '100%',
+       tr[0] && tr[0].querySelector('.ce-relleno') ? tr[0].querySelector('.ce-relleno').style.width : '(sin barra)', '100%');
 
-    var se = document.querySelectorAll('#ceSectores tbody tr');
+    var se = document.querySelectorAll('#ceSectores .ce-fila');
     igual('control: los nueve sectores, también los que están a cero', se.length, 9);
     ok('control: y el más preguntado arriba, resaltado',
        !!se[0] && se[0].getAttribute('data-sector') === 'hidrocarburos' && se[0].classList.contains('tope'),
        se[0] ? se[0].getAttribute('data-sector') + ' ' + se[0].className : '(nada)', 'hidrocarburos tope');
 
-    var ti = document.querySelectorAll('#ceTiempos tbody tr');
+    var ti = document.querySelectorAll('#ceTiempos .ce-fila');
     igual('control: tiempos por organismo, uno por organismo con resueltos', ti.length, 2);
     ok('control: con su mediana', !!ti[0] && /SAREN/.test(ti[0].textContent) && !!ti[0].querySelector('.ce-fuerte'),
        ti[0] ? ti[0].textContent : '(nada)', 'SAREN y su mediana');
+    ok('control: y la leyenda de los dos tramos',
+       document.querySelectorAll('#ceTiempos .ce-leyenda li').length === 2,
+       document.querySelectorAll('#ceTiempos .ce-leyenda li').length, 2);
     var porTr = document.querySelector('#ceTiempos .ce-modo[data-modo="tramite"]');
     if (porTr) porTr.click();
-    var ti2 = document.querySelectorAll('#ceTiempos tbody tr');
+    var ti2 = document.querySelectorAll('#ceTiempos .ce-fila');
     igual('control: y por trámite, solo los que tienen alguno resuelto', ti2.length, 2);
     var pulsado = document.querySelector('#ceTiempos .ce-modo[aria-pressed="true"]');
     igual('control: con el botón marcado', pulsado ? pulsado.getAttribute('data-modo') : '(ninguno)', 'tramite');

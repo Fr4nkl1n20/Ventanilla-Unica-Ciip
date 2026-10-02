@@ -1,0 +1,696 @@
+<title>Control y Estadísticas con Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Instrument+Serif&display=swap">
+<style>
+/* Página de maquetas: «Así está ahora» y cuatro propuestas, una debajo de otra.
+   Los tokens son los de Atlas (css/app.css) y la escala de letra la de TIPOGRAFIA.md. */
+:root{
+  --navy:#004090; --navy2:#0060B0; --navy-deep:#00336d; --cyan:#20B0F0; --cyan-deep:#0E8FD6;
+  --ink:#0E1424; --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6;
+  --block:#F4F7FB; --bg:#FFFFFF; --page:#EBEFF5; --activa-bg:#EEF5FC; --on-bg:#e8f6fe;
+  --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9; --good:#1E7F5C; --good-bg:#E7F4EE;
+  --sel:#B87315; --tenue:#C3CDDB; --banda:#00336d; --banda-fg:#FFFFFF; --pliego:#FFFFFF;
+  --r:10px;
+  --fs-cifra:24px; --fs-titulo:20px; --fs-tarjeta:14px; --fs-valor:13.5px; --fs-seccion:13px;
+  --fs-enlace:13px; --fs-parrafo:12.5px; --fs-pestana:12.5px; --fs-fila:12px; --fs-boton:11.5px;
+  --fs-rotulo:11px; --fs-nota:11px; --fs-chip:10px;
+  --sans:'Geist','Helvetica Neue',Arial,sans-serif; --serif:'Instrument Serif',Georgia,serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --navy:#7FB2F0; --navy2:#6AA8F0; --navy-deep:#0B2A52; --cyan:#3CC0F5; --cyan-deep:#3CB2EE;
+  --ink:#E8EDF6; --gray:#9AA6BC; --gray-soft:#7A869C; --line:#2A3448; --line-soft:#222B3C;
+  --block:#18202E; --bg:#121926; --page:#0C111B; --activa-bg:#16263D; --on-bg:#132C44;
+  --amber:#E2A852; --amber-bg:#33280F; --rust:#E58866; --rust-bg:#3A1F16; --good:#5CC89E; --good-bg:#12302A;
+  --sel:#E2A852; --tenue:#3A465C; --banda:#0B2A52; --pliego:#151C29; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --navy:#7FB2F0; --navy2:#6AA8F0; --navy-deep:#0B2A52; --cyan:#3CC0F5; --cyan-deep:#3CB2EE;
+  --ink:#E8EDF6; --gray:#9AA6BC; --gray-soft:#7A869C; --line:#2A3448; --line-soft:#222B3C;
+  --block:#18202E; --bg:#121926; --page:#0C111B; --activa-bg:#16263D; --on-bg:#132C44;
+  --amber:#E2A852; --amber-bg:#33280F; --rust:#E58866; --rust-bg:#3A1F16; --good:#5CC89E; --good-bg:#12302A;
+  --sel:#E2A852; --tenue:#3A465C; --banda:#0B2A52; --pliego:#151C29; color-scheme:dark;}
+
+*{box-sizing:border-box;}
+[hidden]{display:none !important;}
+body{margin:0; background:var(--page); color:var(--ink); font-family:var(--sans); font-size:13px; line-height:1.45; -webkit-font-smoothing:antialiased;}
+.hoja-web{max-width:1180px; margin:0 auto; padding-inline:20px; padding-block:28px 64px;}
+@media(max-width:600px){.hoja-web{padding-inline:16px;}}
+button{font:inherit;}
+:focus-visible{outline:2px solid var(--cyan-deep); outline-offset:2px;}
+
+/* ── cabecera de la página de maquetas ── */
+.cab{display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:8px;}
+.cab img{height:38px; width:auto;}
+.cab h1{font-family:var(--serif); font-weight:400; font-size:34px; line-height:1; margin:0; letter-spacing:-.01em;}
+.intro{font-size:var(--fs-parrafo); color:var(--gray); max-width:78ch; line-height:1.6; margin:6px 0 22px;}
+.indice{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:30px;}
+.indice a{font-size:var(--fs-boton); font-weight:700; color:var(--navy2); text-decoration:none; background:var(--bg);
+  border:1px solid var(--line); border-radius:20px; padding:5px 12px;}
+.indice a:hover{border-color:var(--cyan-deep);}
+
+.caso{margin-top:46px; scroll-margin-top:16px;}
+.caso:first-of-type{margin-top:0;}
+.caso-h{display:flex; align-items:center; gap:10px; margin-bottom:4px;}
+.caso-n{flex:none; width:24px; height:24px; border-radius:50%; background:var(--ink); color:var(--bg);
+  font-size:var(--fs-rotulo); font-weight:800; display:flex; align-items:center; justify-content:center;}
+.caso-n.gris{background:var(--gray-soft);}
+.caso-t{font-size:15px; font-weight:700; letter-spacing:-.01em; text-wrap:balance;}
+.caso-q{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.6; max-width:86ch; margin:0 0 14px 34px;}
+.caso-q b{color:var(--ink); font-weight:600;}
+@media(max-width:600px){.caso-q{margin-left:0;}}
+.pantalla{border:1px dashed var(--tenue); border-radius:14px; padding:20px; background:var(--block); min-width:0;}
+@media(max-width:600px){.pantalla{padding:12px;}}
+.pantalla-r{font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--gray-soft); margin-bottom:12px;}
+
+/* ── piezas de Atlas ── */
+.page-h{display:flex; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:16px;}
+.page-h h2{font-size:var(--fs-titulo); font-weight:700; letter-spacing:-.02em; margin:0; line-height:1.2;}
+.page-h .p-sub{font-size:var(--fs-nota); color:var(--gray); margin-top:4px;}
+.page-h .p-actions{margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+.aldia{display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-nota); color:var(--good); font-weight:600;}
+.aldia i{width:7px; height:7px; border-radius:50%; background:var(--good);}
+
+.card{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); padding:16px 18px; min-width:0;}
+.card.flush{padding:0; overflow:hidden;}
+.sec-h{display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;}
+.sec-h .t{font-size:var(--fs-tarjeta); font-weight:700; letter-spacing:-.01em;}
+.sec-h .sub{font-size:var(--fs-nota); color:var(--gray); font-weight:500;}
+.sec-h .spacer{flex:1 1 auto;}
+.sec-h .link{font-size:var(--fs-boton); font-weight:600; color:var(--navy2); cursor:pointer; text-decoration:none;}
+.card.flush .sec-h{padding:14px 18px 0;}
+.tick{width:7px; height:7px; background:var(--cyan); border-radius:2px; flex:0 0 auto;}
+.desc{font-size:var(--fs-nota); color:var(--gray); line-height:1.55; margin:-6px 0 12px; max-width:80ch;}
+.card.flush .desc{padding:0 18px;}
+
+.grid{display:grid; grid-template-columns:repeat(12, minmax(0,1fr)); gap:14px; align-content:start;}
+.c12{grid-column:span 12;} .c7{grid-column:span 7;} .c5{grid-column:span 5;} .c6{grid-column:span 6;} .c4{grid-column:span 4;} .c8{grid-column:span 8;}
+@media(max-width:900px){.c7,.c5,.c6,.c4,.c8{grid-column:span 12;}}
+
+.stat-row{display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:12px;}
+@media(max-width:900px){.stat-row{grid-template-columns:repeat(3, minmax(0,1fr));}}
+@media(max-width:560px){.stat-row{grid-template-columns:repeat(2, minmax(0,1fr));}}
+.stat{background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:14px 16px; min-width:0;}
+.stat .sn{font-size:var(--fs-cifra); font-weight:800; letter-spacing:-.02em; line-height:1; font-variant-numeric:tabular-nums;}
+.stat .sn .sd{font-size:var(--fs-fila); font-weight:600; color:var(--gray-soft); margin-left:6px; letter-spacing:0;}
+.stat .sl{font-size:var(--fs-nota); color:var(--gray); margin-top:5px; line-height:1.35;}
+.stat .smeter{height:3px; border-radius:3px; background:var(--line); margin-top:10px; overflow:hidden;}
+.stat .smeter span{display:block; height:100%; border-radius:3px; background:var(--cyan-deep);}
+.stat.ojo .sn{color:var(--amber);} .stat.ojo .smeter span{background:var(--amber);}
+.stat.mal .sn{color:var(--rust);} .stat.mal .smeter span{background:var(--rust);}
+.stat.clic{cursor:pointer; text-align:left; font:inherit; color:inherit;}
+.stat.clic:hover{border-color:var(--tenue);}
+.stat.clic.on{background:var(--activa-bg); border-color:var(--cyan-deep);}
+
+.chip{display:inline-flex; align-items:center; gap:5px; font-size:var(--fs-chip); font-weight:700; border-radius:20px; padding:2px 8px; white-space:nowrap; letter-spacing:.01em;}
+.chip.good{background:var(--good-bg); color:var(--good);} .chip.warn{background:var(--amber-bg); color:var(--amber);}
+.chip.info{background:var(--on-bg); color:var(--cyan-deep);} .chip.rust{background:var(--rust-bg); color:var(--rust);}
+.chip.mute{background:var(--block); color:var(--gray); border:1px solid var(--line);}
+
+.seg{display:inline-flex; background:var(--block); border:1px solid var(--line); border-radius:8px; padding:3px; gap:3px; max-width:100%; overflow-x:auto;}
+.segbtn{flex:0 0 auto; text-align:center; font-size:var(--fs-boton); font-weight:700; color:var(--gray); padding:6px 12px; border-radius:6px; cursor:pointer; border:0; background:none; white-space:nowrap;}
+.segbtn:hover{color:var(--ink);}
+.segbtn.on{background:var(--bg); color:var(--navy); box-shadow:0 1px 2px rgba(14,20,36,.08);}
+.segsel{position:relative; display:inline-flex; align-items:center; background:var(--block); border:1px solid var(--line); border-radius:8px; padding:3px;}
+.segsel select{appearance:none; -webkit-appearance:none; border:0; background:transparent; font-family:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--gray); padding:6px 26px 6px 10px; cursor:pointer;}
+.segsel::after{content:"▾"; position:absolute; right:10px; font-size:10px; color:var(--gray); pointer-events:none;}
+.btn{display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-boton); font-weight:700; border-radius:8px; padding:8px 13px; border:1px solid var(--line); background:var(--bg); color:var(--ink); cursor:pointer; white-space:nowrap;}
+.btn.pri{background:var(--navy); border-color:var(--navy); color:#fff;}
+.btn svg{width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+
+.tscroll{overflow-x:auto;}
+table.tbl{width:100%; border-collapse:collapse; font-size:var(--fs-parrafo);}
+table.tbl th{text-align:left; font-size:var(--fs-chip); font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--gray-soft); padding:0 12px 8px; border-bottom:1px solid var(--line); white-space:nowrap;}
+table.tbl td{padding:10px 12px; border-bottom:1px solid var(--line-soft); vertical-align:middle; font-size:var(--fs-valor);}
+table.tbl tr:last-child td{border-bottom:none;}
+table.tbl .num{text-align:right; font-variant-numeric:tabular-nums; font-weight:700;}
+table.tbl th.num{text-align:right;}
+table.tbl td.who{font-weight:700;}
+table.tbl td.who small{display:block; font-weight:500; color:var(--gray); font-size:var(--fs-nota); margin-top:1px;}
+table.tbl tbody tr:hover td{background:var(--block);}
+.card.flush table.tbl th:first-child, .card.flush table.tbl td:first-child{padding-left:18px;}
+.card.flush table.tbl th:last-child, .card.flush table.tbl td:last-child{padding-right:18px;}
+.mini{display:inline-block; width:90px; height:6px; border-radius:3px; background:var(--block); overflow:hidden; vertical-align:middle;}
+.mini span{display:block; height:100%; background:var(--navy2); border-radius:3px;}
+
+.rrow{display:flex; align-items:center; gap:10px; padding:7px 0;}
+.rrow .rl{width:170px; flex:0 0 auto; font-size:var(--fs-fila); font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.rrow .rl small{display:block; font-weight:500; color:var(--gray); font-size:var(--fs-nota);}
+.rrow .rtrack{flex:1 1 auto; height:14px; border-radius:4px; background:var(--block); overflow:hidden; display:flex; min-width:40px;}
+.rrow .rfill{height:100%; border-radius:4px; background:linear-gradient(90deg, var(--navy), var(--cyan-deep));}
+.rrow .rseg{height:100%;}
+.rrow .rv{width:96px; flex:0 0 auto; font-size:var(--fs-fila); font-weight:800; text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.rrow .rv small{display:block; font-weight:600; color:var(--gray); font-size:var(--fs-nota);}
+.rrow.clic{cursor:pointer; border-radius:7px; padding-inline:6px; margin-inline:-6px;}
+.rrow.clic:hover{background:var(--block);}
+.rrow.clic.on{background:var(--activa-bg);} .rrow.clic.on .rl{color:var(--sel);}
+.rrow.resto{margin-top:4px; padding-top:11px; border-top:1px solid var(--line);}
+.rrow.resto .rl, .rrow.resto .rv{color:var(--gray);}
+.rrow.resto .rtrack{background:none;}
+.rrow.resto .rfill{background:var(--tenue);}
+@media(max-width:560px){.rrow .rl{width:110px;} .rrow .rv{width:70px;}}
+.leyenda{display:flex; flex-wrap:wrap; gap:8px 16px; font-size:var(--fs-nota); color:var(--gray); margin-top:8px;}
+.leyenda i{width:8px; height:8px; border-radius:2px; display:inline-block; margin-right:5px; vertical-align:middle;}
+.leyenda b{color:var(--ink); font-weight:700;}
+
+.sbar{display:flex; gap:2px; height:20px; border-radius:5px; overflow:hidden; margin:4px 0 10px;}
+.sbar span{height:100%;}
+.cifras3{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; padding-bottom:12px; margin-bottom:8px; border-bottom:1px solid var(--line-soft);}
+.cifras3 b{display:block; font-size:17px; font-weight:800; line-height:1.2; font-variant-numeric:tabular-nums;}
+.cifras3 span{display:block; font-size:var(--fs-nota); color:var(--gray); line-height:1.3;}
+
+.tabbar{display:flex; gap:4px; border-bottom:1px solid var(--line); overflow-x:auto; background:var(--bg); border-radius:10px 10px 0 0; padding:0 10px;}
+.tabitem{display:flex; align-items:center; gap:7px; padding:12px 14px; font-size:var(--fs-valor); font-weight:600; color:var(--gray); cursor:pointer; border:0; background:none; border-bottom:3px solid transparent; margin-bottom:-1px; white-space:nowrap;}
+.tabitem:hover{color:var(--ink);}
+.tabitem.on{color:var(--navy); font-weight:700; border-bottom-color:var(--cyan);}
+.tabitem .tcount{font-size:var(--fs-chip); font-weight:700; color:var(--gray-soft); background:var(--block); border:1px solid var(--line-soft); border-radius:20px; padding:0 6px;}
+.tabitem.on .tcount{color:var(--cyan-deep); background:var(--on-bg); border-color:transparent;}
+.tabcuerpo{background:var(--bg); border:1px solid var(--line); border-top:0; border-radius:0 0 10px 10px; padding:18px;}
+
+.toolbar{display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; padding:10px 16px; background:var(--bg); border:1px solid var(--line); border-radius:10px; margin-bottom:14px;}
+.toolbar .lbl{font-size:var(--fs-rotulo); font-weight:700; color:var(--gray);}
+.toolbar .grupo{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.toolbar .spacer{flex:1 1 auto;}
+.filtro-on{display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-boton); font-weight:700; color:var(--sel); background:var(--amber-bg); border-radius:20px; padding:4px 10px;}
+
+/* equipo */
+.eq{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:12px;}
+.eqt{background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:14px 16px; min-width:0;}
+.eqt .nm{font-size:var(--fs-tarjeta); font-weight:700;}
+.eqt .rol{font-size:var(--fs-nota); color:var(--gray);}
+.eqt .tres{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px; margin-top:12px;}
+.eqt .tres b{display:block; font-size:17px; font-weight:800; font-variant-numeric:tabular-nums;}
+.eqt .tres span{font-size:var(--fs-nota); color:var(--gray);}
+.eqt .tres .mal b{color:var(--rust);}
+.eqt .ver{display:block; margin-top:10px; font-size:var(--fs-boton); font-weight:700; color:var(--navy2);}
+.av{width:30px; height:30px; border-radius:50%; background:var(--activa-bg); color:var(--navy); font-size:var(--fs-rotulo); font-weight:800; display:inline-flex; align-items:center; justify-content:center; flex:none;}
+.quien{display:flex; align-items:center; gap:10px;}
+
+/* «así está ahora» (copia del panel) */
+.ahora-h{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px;}
+.ahora-h .t{font-size:var(--fs-seccion); font-weight:700; color:var(--navy);}
+.ahora-h .s{font-size:var(--fs-nota); color:var(--gray); margin-top:3px;}
+.pu-nums{display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; background:var(--bg); margin-bottom:14px;}
+@media(max-width:900px){.pu-nums{grid-template-columns:repeat(2, minmax(0,1fr));}}
+.pu-n{padding:14px 18px; border-right:1px solid var(--line-soft);}
+.pu-n .l{font-size:var(--fs-rotulo); color:var(--gray); font-weight:700;}
+.pu-n .v{font-size:var(--fs-cifra); font-weight:800; margin-top:4px; font-variant-numeric:tabular-nums;}
+.pu-n.ojo{background:var(--amber-bg);} .pu-n.ojo .v{color:var(--amber);}
+.pu-n.mal{background:var(--rust-bg);} .pu-n.mal .v{color:var(--rust);}
+.pu-dos{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:14px;}
+@media(max-width:900px){.pu-dos{grid-template-columns:minmax(0,1fr);}}
+.pu-caja{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; min-width:0;}
+.pu-t{font-size:var(--fs-seccion); font-weight:700; padding:12px 18px; border-bottom:1px solid var(--line-soft);}
+.pu-d{font-size:var(--fs-nota); color:var(--gray); padding:10px 18px 4px; margin:0;}
+.pu-tabla{width:100%; border-collapse:collapse; font-size:var(--fs-parrafo);}
+.pu-tabla th{font-size:var(--fs-rotulo); font-weight:700; color:var(--gray); text-align:left; padding:9px 18px; border-bottom:1px solid var(--line-soft); white-space:nowrap;}
+.pu-tabla td{padding:9px 18px; border-bottom:1px solid var(--line-soft);}
+.pu-tabla tr:last-child td{border-bottom:0;}
+.pu-tabla .num{text-align:right; font-variant-numeric:tabular-nums;}
+.pu-tabla tr.tope td{background:var(--activa-bg); font-weight:700;}
+.pu-tabla td.barra{width:30%; padding-left:0;}
+.pu-pista{height:6px; border-radius:3px; background:var(--block); overflow:hidden;}
+.pu-pista span{display:block; height:100%; background:var(--navy2);}
+.pila{display:flex; flex-direction:column; gap:14px; margin-top:14px;}
+.rot-h{font-size:var(--fs-seccion); font-weight:700; margin:18px 0 10px;}
+.modos{display:flex; gap:6px; padding:10px 18px 2px;}
+.modo{font-size:var(--fs-boton); font-weight:700; border:1px solid var(--line); border-radius:20px; padding:4px 11px; background:var(--bg); color:var(--gray);}
+.modo.on{background:var(--navy); border-color:var(--navy); color:#fff;}
+
+/* hoja de informe (idea 4) */
+.hoja{background:var(--pliego); border:1px solid var(--line); border-radius:6px; box-shadow:0 2px 6px rgba(14,20,36,.06), 0 18px 44px rgba(14,20,36,.10); overflow:hidden; max-width:880px; margin:0 auto;}
+.hoja-banda{background:var(--banda); display:flex; align-items:center; gap:14px; padding:13px 40px; flex-wrap:wrap;}
+.hoja-banda img{height:28px; width:auto;}
+.hoja-banda span{color:var(--banda-fg); font-size:9px; font-weight:600; letter-spacing:.4px; line-height:1.4; opacity:.9;}
+.hoja-banda .fecha{margin-left:auto;}
+.hoja-cuerpo{padding:30px 40px 34px;}
+@media(max-width:600px){.hoja-cuerpo{padding:22px 18px;} .hoja-banda{padding:12px 18px;}}
+.hoja-h1{font-family:var(--serif); font-weight:400; font-size:34px; line-height:1.05; margin:0;}
+.hoja-h2{font-size:var(--fs-parrafo); color:var(--gray); margin-top:6px;}
+.hoja-cifras{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:0; border-top:2px solid var(--ink); border-bottom:1px solid var(--line); margin:22px 0 24px;}
+@media(max-width:600px){.hoja-cifras{grid-template-columns:repeat(2, minmax(0,1fr));}}
+.hoja-cifras div{padding:12px 14px 12px 0;}
+.hoja-cifras b{display:block; font-family:var(--serif); font-weight:400; font-size:34px; line-height:1; font-variant-numeric:tabular-nums;}
+.hoja-cifras span{font-size:var(--fs-nota); color:var(--gray);}
+.hoja-2{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:28px;}
+@media(max-width:700px){.hoja-2{grid-template-columns:minmax(0,1fr);}}
+.hoja-sec{font-size:var(--fs-rotulo); font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--navy); border-bottom:1px solid var(--line); padding-bottom:6px; margin:0 0 8px;}
+.hoja-txt{font-size:var(--fs-parrafo); line-height:1.6; margin:0 0 10px;}
+.hoja-pie{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; border-top:1px solid var(--line); margin-top:24px; padding-top:10px; font-size:var(--fs-nota); color:var(--gray);}
+.antes-hoja{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+
+.cambia{margin:14px 0 0 34px; padding:0; list-style:none; display:flex; flex-direction:column; gap:5px; max-width:90ch;}
+.cambia li{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.5; padding-left:16px; position:relative;}
+.cambia li::before{content:""; position:absolute; left:0; top:7px; width:6px; height:6px; border-radius:2px; background:var(--cyan);}
+.cambia b{color:var(--ink); font-weight:600;}
+@media(max-width:600px){.cambia{margin-left:0;}}
+@media (prefers-reduced-motion: reduce){*{transition:none !important;}}
+</style>
+
+<div class="hoja-web">
+  <div class="cab">
+    <img src="data:image/png;base64,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" alt="CIIP">
+    <h1>Control y Estadísticas</h1>
+  </div>
+  <p class="intro">Cuatro maquetas de la pantalla del administrador hechas con las piezas de Atlas: cifras con su medidor, barras horizontales con degradado, segmentos, pestañas de módulo, la barra apilada y la hoja de informe del Panel de inteligencia. Arriba está la pantalla de hoy para comparar. Los datos son de ejemplo y son los mismos en las cinco.</p>
+  <nav class="indice" aria-label="Maquetas">
+    <a href="#ahora">Así está ahora</a><a href="#idea1">1 · Cifras y barras</a><a href="#idea2">2 · Pestañas</a><a href="#idea3">3 · Panel de inteligencia</a><a href="#idea4">4 · Hoja de informe</a>
+  </nav>
+
+  <!-- ═════════════ AHORA ═════════════ -->
+  <section class="caso" id="ahora">
+    <div class="caso-h"><div class="caso-n gris">·</div><div class="caso-t">Así está ahora</div></div>
+    <p class="caso-q">El pulso arriba (cinco cifras y dos tablas), las tarjetas del equipo y, debajo, <b>cuatro tablas seguidas</b> con la misma forma: solicitudes por trámite, tiempo de respuesta, consultas por sector y la lista de cada sector. Todo se lee de arriba abajo y todo pesa igual.</p>
+    <div class="pantalla">
+      <div class="pantalla-r">Panel · hoy</div>
+      <div class="ahora-h"><div><div class="t">Control y Estadísticas</div><div class="s">La oficina, el equipo y lo que piden los inversionistas</div></div><span class="aldia"><i></i>Al día</span></div>
+      <div class="pu-nums">
+        <div class="pu-n"><div class="l">Trámites en marcha</div><div class="v">38</div></div>
+        <div class="pu-n ojo"><div class="l">Esperando respuesta</div><div class="v">9</div></div>
+        <div class="pu-n"><div class="l">Lo que lleva más esperando</div><div class="v">52 h</div></div>
+        <div class="pu-n ojo"><div class="l">Citas por confirmar</div><div class="v">3</div></div>
+        <div class="pu-n mal"><div class="l">Papeles caducados</div><div class="v">1</div></div>
+      </div>
+      <div class="pu-dos">
+        <section class="pu-caja"><div class="pu-t">Trámites por estado</div>
+          <div class="tscroll"><table class="pu-tabla"><thead><tr><th>Estado</th><th></th><th class="num">N.º</th><th class="num">%</th></tr></thead><tbody>
+          <tr><td>Borrador</td><td class="barra"><div class="pu-pista"><span style="width:34%"></span></div></td><td class="num">14</td><td class="num">16</td></tr>
+          <tr><td>Enviado</td><td class="barra"><div class="pu-pista"><span style="width:20%"></span></div></td><td class="num">8</td><td class="num">9</td></tr>
+          <tr><td>En revisión</td><td class="barra"><div class="pu-pista"><span style="width:27%"></span></div></td><td class="num">11</td><td class="num">12</td></tr>
+          <tr><td>Ante el ente</td><td class="barra"><div class="pu-pista"><span style="width:32%"></span></div></td><td class="num">13</td><td class="num">14</td></tr>
+          <tr><td>Devuelto</td><td class="barra"><div class="pu-pista"><span style="width:7%"></span></div></td><td class="num">3</td><td class="num">3</td></tr>
+          <tr class="tope"><td>Resuelto</td><td class="barra"><div class="pu-pista"><span style="width:100%"></span></div></td><td class="num">41</td><td class="num">46</td></tr>
+          </tbody></table></div></section>
+        <section class="pu-caja"><div class="pu-t">Lo que lleva cada gestor</div>
+          <div class="tscroll"><table class="pu-tabla"><thead><tr><th>Gestor</th><th class="num">Lleva</th><th class="num">Esperan respuesta</th><th class="num">Espera máx.</th></tr></thead><tbody>
+          <tr><td>María Pérez</td><td class="num">12</td><td class="num">3</td><td class="num">52 h</td></tr>
+          <tr><td>Luis Rondón</td><td class="num">9</td><td class="num">2</td><td class="num">30 h</td></tr>
+          <tr><td>Ana Salazar</td><td class="num">7</td><td class="num">4</td><td class="num">18 h</td></tr>
+          <tr><td>Sin asignar</td><td class="num">5</td><td class="num">—</td><td class="num">—</td></tr>
+          </tbody></table></div></section>
+      </div>
+      <div class="rot-h">El equipo</div>
+      <div class="eq">
+        <div class="eqt"><div class="quien"><span class="av">MP</span><div><div class="nm">María Pérez</div><div class="rol">Gestor</div></div></div><div class="tres"><div><b>12</b><span>En marcha</span></div><div><b>6 h</b><span>Contesta en</span></div><div class="mal"><b>2</b><span>Se pasaron</span></div></div></div>
+        <div class="eqt"><div class="quien"><span class="av">LR</span><div><div class="nm">Luis Rondón</div><div class="rol">Gestor</div></div></div><div class="tres"><div><b>9</b><span>En marcha</span></div><div><b>4 h</b><span>Contesta en</span></div><div><b>0</b><span>Se pasaron</span></div></div></div>
+        <div class="eqt"><div class="quien"><span class="av">AS</span><div><div class="nm">Ana Salazar</div><div class="rol">Administrador</div></div></div><div class="tres"><div><b>7</b><span>En marcha</span></div><div><b>9 h</b><span>Contesta en</span></div><div class="mal"><b>1</b><span>Se pasaron</span></div></div></div>
+      </div>
+      <div class="pila">
+        <section class="pu-caja"><div class="pu-t">Solicitudes por trámite</div><p class="pu-d">Cuántas veces se ha enviado cada trámite. Los borradores no cuentan.</p>
+          <div class="tscroll"><table class="pu-tabla"><thead><tr><th>Trámite</th><th class="num">Solicitados</th><th class="num">Resueltos</th></tr></thead><tbody>
+          <tr><td>Visa de inversionista</td><td class="num">24</td><td class="num">15</td></tr><tr><td>Registro mercantil</td><td class="num">19</td><td class="num">11</td></tr><tr><td>RIF de la empresa</td><td class="num">17</td><td class="num">12</td></tr><tr><td>Cédula de extranjero</td><td class="num">12</td><td class="num">6</td></tr><tr><td>…cuatro más</td><td class="num">27</td><td class="num">14</td></tr>
+          </tbody></table></div></section>
+        <section class="pu-caja"><div class="pu-t">Tiempo de respuesta</div><div class="modos"><span class="modo on">Por organismo</span><span class="modo">Por trámite</span></div>
+          <div class="tscroll"><table class="pu-tabla"><thead><tr><th>Organismo</th><th class="num">Casos</th><th class="num">Mediana</th><th class="num">Promedio</th><th class="num">Ante el ente</th></tr></thead><tbody>
+          <tr><td>SAIME</td><td class="num">21</td><td class="num">18 d</td><td class="num">23 d</td><td class="num">12 d</td></tr><tr><td>SAREN</td><td class="num">11</td><td class="num">9 d</td><td class="num">12 d</td><td class="num">6 d</td></tr><tr><td>…cuatro más</td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td></tr>
+          </tbody></table></div></section>
+        <section class="pu-caja"><div class="pu-t">Consultas por sector</div><p class="pu-d">Sector · Consultas — Energía 18 · Manufactura 13 · Turismo 11 · …</p></section>
+        <section class="pu-caja"><div class="pu-t">Trámites específicos por sector</div><p class="pu-d">Lista editable: nombre, organismo, subir, bajar, guardar, quitar.</p></section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════ IDEA 1 ═════════════ -->
+  <section class="caso" id="idea1">
+    <div class="caso-h"><div class="caso-n">1</div><div class="caso-t">Cifras de Atlas y las tablas pasan a barras</div></div>
+    <p class="caso-q">La misma pantalla y el mismo orden, con el lenguaje del Panel de inteligencia: las cinco cifras son <b>tarjetas con su medidor</b>, cada bloque es una tarjeta con el cuadradito cian, y las tablas de conteo se vuelven <b>barras horizontales</b> en una cuadrícula de dos columnas. Es el cambio más discreto.</p>
+    <div class="pantalla">
+      <div class="pantalla-r">Maqueta 1</div>
+      <div class="page-h"><div><h2>Control y Estadísticas</h2><div class="p-sub">La oficina, el equipo y lo que piden los inversionistas</div></div><div class="p-actions"><span class="aldia"><i></i>Al día · hace 2 min</span></div></div>
+      <div class="stat-row" style="margin-bottom:14px">
+        <div class="stat"><div class="sn">38</div><div class="sl">Trámites en marcha</div><div class="smeter"><span style="width:42%"></span></div></div>
+        <div class="stat ojo"><div class="sn">9<span class="sd">de 38</span></div><div class="sl">Esperando respuesta</div><div class="smeter"><span style="width:24%"></span></div></div>
+        <div class="stat"><div class="sn">52 h</div><div class="sl">Lo que lleva más esperando</div><div class="smeter"><span style="width:31%"></span></div></div>
+        <div class="stat ojo"><div class="sn">3</div><div class="sl">Citas por confirmar</div><div class="smeter"><span style="width:30%"></span></div></div>
+        <div class="stat mal"><div class="sn">1</div><div class="sl">Papeles caducados</div><div class="smeter"><span style="width:100%"></span></div></div>
+      </div>
+      <div class="grid">
+        <div class="card c7">
+          <div class="sec-h"><span class="tick"></span><span class="t">Trámites por estado</span><span class="sub">90 en total</span></div>
+          <div class="sbar" aria-label="Trámites por estado">
+            <span style="flex:14; background:var(--tenue)"></span><span style="flex:8; background:#86b6ef"></span><span style="flex:11; background:#5598e7"></span><span style="flex:13; background:#256abf"></span><span style="flex:3; background:var(--rust)"></span><span style="flex:41; background:var(--navy-deep)"></span>
+          </div>
+          <div class="leyenda">
+            <span><i style="background:var(--tenue)"></i>Borrador <b>14</b></span><span><i style="background:#86b6ef"></i>Enviado <b>8</b></span><span><i style="background:#5598e7"></i>En revisión <b>11</b></span><span><i style="background:#256abf"></i>Ante el ente <b>13</b></span><span><i style="background:var(--rust)"></i>Devuelto <b>3</b></span><span><i style="background:var(--navy-deep)"></i>Resuelto <b>41 · 46 %</b></span>
+          </div>
+        </div>
+        <div class="card flush c5">
+          <div class="sec-h"><span class="tick"></span><span class="t">Lo que lleva cada gestor</span><span class="spacer"></span><a class="link" href="#idea1">Asignar →</a></div>
+          <div class="tscroll"><table class="tbl"><thead><tr><th>Gestor</th><th class="num">Lleva</th><th class="num">Esperan</th><th class="num">Máx.</th></tr></thead><tbody>
+            <tr><td class="who">María Pérez</td><td class="num">12</td><td class="num">3</td><td class="num">52 h</td></tr>
+            <tr><td class="who">Luis Rondón</td><td class="num">9</td><td class="num">2</td><td class="num">30 h</td></tr>
+            <tr><td class="who">Ana Salazar</td><td class="num">7</td><td class="num">4</td><td class="num">18 h</td></tr>
+            <tr><td class="who"><span class="chip warn">Sin asignar</span></td><td class="num">5</td><td class="num">—</td><td class="num">—</td></tr>
+          </tbody></table></div>
+        </div>
+
+        <div class="c12"><div class="sec-h" style="margin:6px 0 0"><span class="tick"></span><span class="t">El equipo</span><span class="sub">cifras de los últimos 7 días</span></div></div>
+        <div class="c12 eq">
+          <div class="eqt"><div class="quien"><span class="av">MP</span><div><div class="nm">María Pérez</div><div class="rol">Gestor</div></div></div><div class="tres"><div><b>12</b><span>En marcha</span></div><div><b>6 h</b><span>Contesta en</span></div><div class="mal"><b>2</b><span>Se pasaron</span></div></div><a class="ver" href="#idea1">Ver a María →</a></div>
+          <div class="eqt"><div class="quien"><span class="av">LR</span><div><div class="nm">Luis Rondón</div><div class="rol">Gestor</div></div></div><div class="tres"><div><b>9</b><span>En marcha</span></div><div><b>4 h</b><span>Contesta en</span></div><div><b>0</b><span>Se pasaron</span></div></div><a class="ver" href="#idea1">Ver a Luis →</a></div>
+          <div class="eqt"><div class="quien"><span class="av">AS</span><div><div class="nm">Ana Salazar</div><div class="rol">Administrador</div></div></div><div class="tres"><div><b>7</b><span>En marcha</span></div><div><b>9 h</b><span>Contesta en</span></div><div class="mal"><b>1</b><span>Se pasaron</span></div></div><a class="ver" href="#idea1">Ver a Ana →</a></div>
+        </div>
+
+        <div class="card c6">
+          <div class="sec-h"><span class="tick"></span><span class="t">Solicitudes por trámite</span><span class="sub">sin borradores</span></div>
+          <div class="rrow"><div class="rl">Visa de inversionista</div><div class="rtrack"><div class="rfill" style="width:100%"></div></div><div class="rv">24<small>15 resueltas</small></div></div>
+          <div class="rrow"><div class="rl">Registro mercantil</div><div class="rtrack"><div class="rfill" style="width:79%"></div></div><div class="rv">19<small>11 resueltas</small></div></div>
+          <div class="rrow"><div class="rl">RIF de la empresa</div><div class="rtrack"><div class="rfill" style="width:71%"></div></div><div class="rv">17<small>12 resueltas</small></div></div>
+          <div class="rrow"><div class="rl">Cédula de extranjero</div><div class="rtrack"><div class="rfill" style="width:50%"></div></div><div class="rv">12<small>6 resueltas</small></div></div>
+          <div class="rrow"><div class="rl">Permiso de Bomberos</div><div class="rtrack"><div class="rfill" style="width:38%"></div></div><div class="rv">9<small>4 resueltas</small></div></div>
+          <div class="rrow resto"><div class="rl">Otros 3 trámites ▸</div><div class="rtrack"><div class="rfill" style="width:75%"></div></div><div class="rv">18<small>10 resueltas</small></div></div>
+        </div>
+        <div class="card c6">
+          <div class="sec-h"><span class="tick"></span><span class="t">Tiempo de respuesta</span><span class="spacer"></span>
+            <div class="seg" role="group" aria-label="Agrupar"><button class="segbtn on" type="button" data-t1="ente">Por organismo</button><button class="segbtn" type="button" data-t1="tram">Por trámite</button></div></div>
+          <div id="t1-ente">
+            <div class="rrow"><div class="rl">SAIME<small>21 casos</small></div><div class="rtrack"><div class="rseg" style="width:50%; background:var(--navy)"></div><div class="rseg" style="width:28%; background:var(--cyan)"></div></div><div class="rv">18 d<small>prom. 23 d</small></div></div>
+            <div class="rrow"><div class="rl">Bomberos<small>4 casos</small></div><div class="rtrack"><div class="rseg" style="width:43%; background:var(--navy)"></div><div class="rseg" style="width:18%; background:var(--cyan)"></div></div><div class="rv">14 d<small>prom. 15 d</small></div></div>
+            <div class="rrow"><div class="rl">SAREN<small>11 casos</small></div><div class="rtrack"><div class="rseg" style="width:25%; background:var(--navy)"></div><div class="rseg" style="width:14%; background:var(--cyan)"></div></div><div class="rv">9 d<small>prom. 12 d</small></div></div>
+            <div class="rrow"><div class="rl">MINCYT · LOCTI<small>3 casos</small></div><div class="rtrack"><div class="rseg" style="width:15%; background:var(--navy)"></div><div class="rseg" style="width:11%; background:var(--cyan)"></div></div><div class="rv">6 d<small>prom. 8 d</small></div></div>
+            <div class="rrow"><div class="rl">SENIAT<small>12 casos</small></div><div class="rtrack"><div class="rseg" style="width:11%; background:var(--navy)"></div><div class="rseg" style="width:7%; background:var(--cyan)"></div></div><div class="rv">5 d<small>prom. 7 d</small></div></div>
+          </div>
+          <div id="t1-tram" hidden>
+            <div class="rrow"><div class="rl">Visa de inversionista<small>15 casos</small></div><div class="rtrack"><div class="rseg" style="width:58%; background:var(--navy)"></div><div class="rseg" style="width:25%; background:var(--cyan)"></div></div><div class="rv">21 d<small>prom. 26 d</small></div></div>
+            <div class="rrow"><div class="rl">Permiso de Bomberos<small>4 casos</small></div><div class="rtrack"><div class="rseg" style="width:43%; background:var(--navy)"></div><div class="rseg" style="width:18%; background:var(--cyan)"></div></div><div class="rv">14 d<small>prom. 15 d</small></div></div>
+            <div class="rrow"><div class="rl">Registro mercantil<small>11 casos</small></div><div class="rtrack"><div class="rseg" style="width:25%; background:var(--navy)"></div><div class="rseg" style="width:14%; background:var(--cyan)"></div></div><div class="rv">9 d<small>prom. 12 d</small></div></div>
+            <div class="rrow"><div class="rl">RIF de la empresa<small>12 casos</small></div><div class="rtrack"><div class="rseg" style="width:11%; background:var(--navy)"></div><div class="rseg" style="width:7%; background:var(--cyan)"></div></div><div class="rv">5 d<small>prom. 7 d</small></div></div>
+          </div>
+          <div class="leyenda"><span><i style="background:var(--navy)"></i>Ante el ente</span><span><i style="background:var(--cyan)"></i>En el CIIP</span><span>La cifra es la mediana: el caso típico.</span></div>
+        </div>
+        <div class="card c6">
+          <div class="sec-h"><span class="tick"></span><span class="t">Consultas por sector</span><span class="sub">65 desde el chat</span></div>
+          <div class="rrow"><div class="rl">Energía</div><div class="rtrack"><div class="rfill" style="width:100%"></div></div><div class="rv">18</div></div>
+          <div class="rrow"><div class="rl">Manufactura</div><div class="rtrack"><div class="rfill" style="width:72%"></div></div><div class="rv">13</div></div>
+          <div class="rrow"><div class="rl">Turismo</div><div class="rtrack"><div class="rfill" style="width:61%"></div></div><div class="rv">11</div></div>
+          <div class="rrow"><div class="rl">Agroindustria</div><div class="rtrack"><div class="rfill" style="width:50%"></div></div><div class="rv">9</div></div>
+          <div class="rrow resto"><div class="rl">Otros 3 sectores ▸</div><div class="rtrack"><div class="rfill" style="width:78%"></div></div><div class="rv">14</div></div>
+        </div>
+        <div class="card flush c6">
+          <div class="sec-h"><span class="tick"></span><span class="t">Trámites específicos por sector</span><span class="spacer"></span><span class="segsel"><select id="m1-sector" aria-label="Sector"><option>Energía</option><option>Manufactura</option><option>Turismo</option></select></span></div>
+          <p class="desc">Lo que se cargue aquí lo ve el inversionista en el chat al elegir el sector.</p>
+          <div class="tscroll"><table class="tbl"><thead><tr><th>Trámite</th><th>Organismo</th><th></th></tr></thead><tbody>
+            <tr><td class="who">Permiso de generación eléctrica</td><td>MPPEE</td><td class="num"><span class="chip mute">Editar</span></td></tr>
+            <tr><td class="who">Registro de empresas de hidrocarburos</td><td>MPPP</td><td class="num"><span class="chip mute">Editar</span></td></tr>
+            <tr><td class="who">Autorización ambiental</td><td>MINEC</td><td class="num"><span class="chip mute">Editar</span></td></tr>
+          </tbody></table></div>
+          <div style="padding:10px 18px 14px"><button class="btn" type="button">+ Añadir trámite</button></div>
+        </div>
+      </div>
+    </div>
+    <ul class="cambia">
+      <li><b>Cifras:</b> la tira de cinco pasa a tarjetas <code>.stat</code> de Atlas con medidor; las de aviso siguen en ámbar y rojo.</li>
+      <li><b>Estados:</b> la tabla de seis filas pasa a la barra apilada de Atlas con su leyenda.</li>
+      <li><b>Tiempo:</b> cada barra separa el tramo en el CIIP y el tramo ante el ente; Por organismo / Por trámite pasa al segmento de Atlas.</li>
+      <li><b>Sectores:</b> la lista editable se queda, con un selector de sector en la cabecera.</li>
+    </ul>
+  </section>
+
+  <!-- ═════════════ IDEA 2 ═════════════ -->
+  <section class="caso" id="idea2">
+    <div class="caso-h"><div class="caso-n">2</div><div class="caso-t">Las cifras fijas arriba y el resto en pestañas de módulo</div></div>
+    <p class="caso-q">La pantalla hoy es muy larga. Aquí las cinco cifras quedan <b>siempre a la vista</b> y lo demás se reparte en las pestañas de módulo de Atlas: <b>Oficina · Equipo · Solicitudes · Tiempos · Sectores</b>, cada una con su contador. Se ve una cosa a la vez y las tablas usan el formato consola de Atlas. Pulsa las pestañas.</p>
+    <div class="pantalla">
+      <div class="pantalla-r">Maqueta 2</div>
+      <div class="page-h"><div><h2>Control y Estadísticas</h2><div class="p-sub">La oficina, el equipo y lo que piden los inversionistas</div></div><div class="p-actions"><span class="aldia"><i></i>Al día</span></div></div>
+      <div class="stat-row" style="margin-bottom:16px">
+        <div class="stat"><div class="sn">38</div><div class="sl">Trámites en marcha</div></div>
+        <div class="stat ojo"><div class="sn">9</div><div class="sl">Esperando respuesta</div></div>
+        <div class="stat"><div class="sn">52 h</div><div class="sl">Lo que lleva más esperando</div></div>
+        <div class="stat ojo"><div class="sn">3</div><div class="sl">Citas por confirmar</div></div>
+        <div class="stat mal"><div class="sn">1</div><div class="sl">Papeles caducados</div></div>
+      </div>
+      <div class="tabbar" role="tablist" aria-label="Apartados">
+        <button class="tabitem" role="tab" type="button" data-t2="oficina">Oficina</button>
+        <button class="tabitem" role="tab" type="button" data-t2="equipo">Equipo<span class="tcount">3</span></button>
+        <button class="tabitem on" role="tab" type="button" data-t2="solicitudes">Solicitudes<span class="tcount">99</span></button>
+        <button class="tabitem" role="tab" type="button" data-t2="tiempos">Tiempos</button>
+        <button class="tabitem" role="tab" type="button" data-t2="sectores">Sectores<span class="tcount">65</span></button>
+      </div>
+      <div class="tabcuerpo">
+        <div data-p2="oficina" hidden>
+          <div class="grid">
+            <div class="c6"><div class="sec-h"><span class="tick"></span><span class="t">Trámites por estado</span></div>
+              <div class="tscroll"><table class="tbl"><thead><tr><th>Estado</th><th></th><th class="num">N.º</th><th class="num">%</th></tr></thead><tbody>
+              <tr><td class="who">Borrador</td><td><span class="mini"><span style="width:34%"></span></span></td><td class="num">14</td><td class="num">16</td></tr>
+              <tr><td class="who">Enviado</td><td><span class="mini"><span style="width:20%"></span></span></td><td class="num">8</td><td class="num">9</td></tr>
+              <tr><td class="who">En revisión</td><td><span class="mini"><span style="width:27%"></span></span></td><td class="num">11</td><td class="num">12</td></tr>
+              <tr><td class="who">Ante el ente</td><td><span class="mini"><span style="width:32%"></span></span></td><td class="num">13</td><td class="num">14</td></tr>
+              <tr><td class="who"><span class="chip rust">Devuelto</span></td><td><span class="mini"><span style="width:7%"></span></span></td><td class="num">3</td><td class="num">3</td></tr>
+              <tr><td class="who"><span class="chip good">Resuelto</span></td><td><span class="mini"><span style="width:100%"></span></span></td><td class="num">41</td><td class="num">46</td></tr>
+              </tbody></table></div></div>
+            <div class="c6"><div class="sec-h"><span class="tick"></span><span class="t">Lo que lleva cada gestor</span><span class="spacer"></span><a class="link" href="#idea2">Asignar →</a></div>
+              <div class="tscroll"><table class="tbl"><thead><tr><th>Gestor</th><th class="num">Lleva</th><th class="num">Esperan</th><th class="num">Máx.</th></tr></thead><tbody>
+              <tr><td class="who">María Pérez</td><td class="num">12</td><td class="num">3</td><td class="num">52 h</td></tr>
+              <tr><td class="who">Luis Rondón</td><td class="num">9</td><td class="num">2</td><td class="num">30 h</td></tr>
+              <tr><td class="who">Ana Salazar</td><td class="num">7</td><td class="num">4</td><td class="num">18 h</td></tr>
+              <tr><td class="who"><span class="chip warn">Sin asignar</span></td><td class="num">5</td><td class="num">—</td><td class="num">—</td></tr>
+              </tbody></table></div></div>
+          </div>
+        </div>
+        <div data-p2="equipo" hidden>
+          <div class="tscroll"><table class="tbl"><thead><tr><th>Persona</th><th class="num">En marcha</th><th class="num">Contesta en</th><th class="num">Se pasaron</th><th class="num">Resueltas 7 d</th><th class="num">Devueltas 7 d</th></tr></thead><tbody>
+            <tr><td class="who"><div class="quien"><span class="av">MP</span><div>María Pérez<small>Gestor</small></div></div></td><td class="num">12</td><td class="num">6 h</td><td class="num"><span class="chip rust">2</span></td><td class="num">7</td><td class="num">1</td></tr>
+            <tr><td class="who"><div class="quien"><span class="av">LR</span><div>Luis Rondón<small>Gestor</small></div></div></td><td class="num">9</td><td class="num">4 h</td><td class="num">0</td><td class="num">5</td><td class="num">0</td></tr>
+            <tr><td class="who"><div class="quien"><span class="av">AS</span><div>Ana Salazar<small>Administrador</small></div></div></td><td class="num">7</td><td class="num">9 h</td><td class="num"><span class="chip rust">1</span></td><td class="num">3</td><td class="num">2</td></tr>
+          </tbody></table></div>
+        </div>
+        <div data-p2="solicitudes">
+          <div class="sec-h"><span class="tick"></span><span class="t">Solicitudes por trámite</span><span class="sub">Cuántas veces se ha enviado cada trámite. Los borradores no cuentan.</span></div>
+          <div class="tscroll"><table class="tbl"><thead><tr><th>Trámite</th><th>Organismo</th><th class="num">Solicitados</th><th class="num">Resueltos</th><th>Avance</th></tr></thead><tbody>
+            <tr><td class="who">Visa de inversionista</td><td>SAIME · MPPRE</td><td class="num">24</td><td class="num">15</td><td><span class="mini"><span style="width:63%"></span></span> <span class="chip info">63 %</span></td></tr>
+            <tr><td class="who">Registro mercantil</td><td>SAREN</td><td class="num">19</td><td class="num">11</td><td><span class="mini"><span style="width:58%"></span></span> <span class="chip info">58 %</span></td></tr>
+            <tr><td class="who">RIF de la empresa</td><td>SENIAT</td><td class="num">17</td><td class="num">12</td><td><span class="mini"><span style="width:71%"></span></span> <span class="chip good">71 %</span></td></tr>
+            <tr><td class="who">Cédula de extranjero</td><td>SAIME</td><td class="num">12</td><td class="num">6</td><td><span class="mini"><span style="width:50%"></span></span> <span class="chip info">50 %</span></td></tr>
+            <tr><td class="who">Permiso de Bomberos</td><td>Bomberos</td><td class="num">9</td><td class="num">4</td><td><span class="mini"><span style="width:44%"></span></span> <span class="chip warn">44 %</span></td></tr>
+            <tr><td class="who">Inscripción LOCTI</td><td>MINCYT</td><td class="num">7</td><td class="num">3</td><td><span class="mini"><span style="width:43%"></span></span> <span class="chip warn">43 %</span></td></tr>
+            <tr><td class="who">Reserva de nombre</td><td>SAREN</td><td class="num">6</td><td class="num">5</td><td><span class="mini"><span style="width:83%"></span></span> <span class="chip good">83 %</span></td></tr>
+            <tr><td class="who">Inscripción en el IVSS</td><td>IVSS</td><td class="num">5</td><td class="num">2</td><td><span class="mini"><span style="width:40%"></span></span> <span class="chip warn">40 %</span></td></tr>
+          </tbody></table></div>
+        </div>
+        <div data-p2="tiempos" hidden>
+          <div class="sec-h"><span class="tick"></span><span class="t">Tiempo de respuesta</span><span class="spacer"></span><div class="seg"><button class="segbtn on" type="button">Por organismo</button><button class="segbtn" type="button">Por trámite</button></div></div>
+          <div class="tscroll"><table class="tbl"><thead><tr><th>Organismo</th><th class="num">Casos</th><th class="num">Mediana</th><th class="num">Promedio</th><th class="num">Ante el ente</th></tr></thead><tbody>
+            <tr><td class="who">SAIME</td><td class="num">21</td><td class="num">18 d</td><td class="num">23 d</td><td class="num">12 d</td></tr>
+            <tr><td class="who">Bomberos</td><td class="num">4</td><td class="num">14 d</td><td class="num">15 d</td><td class="num">10 d</td></tr>
+            <tr><td class="who">SAREN</td><td class="num">11</td><td class="num">9 d</td><td class="num">12 d</td><td class="num">6 d</td></tr>
+            <tr><td class="who">MINCYT</td><td class="num">3</td><td class="num">6 d</td><td class="num">8 d</td><td class="num">4 d</td></tr>
+            <tr><td class="who">SENIAT</td><td class="num">12</td><td class="num">5 d</td><td class="num">7 d</td><td class="num">3 d</td></tr>
+            <tr><td class="who">IVSS</td><td class="num">2</td><td class="num">4 d</td><td class="num">4 d</td><td class="num">2 d</td></tr>
+          </tbody></table></div>
+        </div>
+        <div data-p2="sectores" hidden>
+          <div class="grid">
+            <div class="c5"><div class="sec-h"><span class="tick"></span><span class="t">Consultas por sector</span></div>
+              <div class="rrow"><div class="rl">Energía</div><div class="rtrack"><div class="rfill" style="width:100%"></div></div><div class="rv">18</div></div>
+              <div class="rrow"><div class="rl">Manufactura</div><div class="rtrack"><div class="rfill" style="width:72%"></div></div><div class="rv">13</div></div>
+              <div class="rrow"><div class="rl">Turismo</div><div class="rtrack"><div class="rfill" style="width:61%"></div></div><div class="rv">11</div></div>
+              <div class="rrow"><div class="rl">Agroindustria</div><div class="rtrack"><div class="rfill" style="width:50%"></div></div><div class="rv">9</div></div>
+              <div class="rrow"><div class="rl">Minería</div><div class="rtrack"><div class="rfill" style="width:39%"></div></div><div class="rv">7</div></div>
+            </div>
+            <div class="c7"><div class="sec-h"><span class="tick"></span><span class="t">Trámites de Energía</span><span class="sub">los ve el inversionista en el chat</span></div>
+              <div class="tscroll"><table class="tbl"><tbody>
+                <tr><td class="who">Permiso de generación eléctrica</td><td>MPPEE</td></tr>
+                <tr><td class="who">Registro de empresas de hidrocarburos</td><td>MPPP</td></tr>
+                <tr><td class="who">Autorización ambiental</td><td>MINEC</td></tr>
+              </tbody></table></div>
+              <button class="btn" type="button" style="margin-top:10px">+ Añadir trámite</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="cambia">
+      <li><b>Lo fijo:</b> las cinco cifras, porque son lo que se mira a diario.</li>
+      <li><b>Lo que cambia:</b> cinco pestañas en lugar de una pantalla larga. El equipo pasa de tarjetas a una tabla que se puede ordenar por columna.</li>
+      <li><b>Solicitudes:</b> añade el organismo y la columna de avance (resueltos sobre solicitados) con su chip.</li>
+    </ul>
+  </section>
+
+  <!-- ═════════════ IDEA 3 ═════════════ -->
+  <section class="caso" id="idea3">
+    <div class="caso-h"><div class="caso-n">3</div><div class="caso-t">Como el Panel de inteligencia: filtros arriba y todo responde</div></div>
+    <p class="caso-q">La forma del Panel de inteligencia de Atlas: una <b>barra de filtros</b> (periodo, organismo, sector), el cambio <b>Gráficos / Tabla</b> y una cifra resumen grande. Pulsar una barra filtra lo demás, como en Atlas, y la fila elegida se pinta en ámbar. Prueba a pulsar «Visa de inversionista».</p>
+    <div class="pantalla">
+      <div class="pantalla-r">Maqueta 3</div>
+      <div class="page-h"><div><h2>Control y Estadísticas</h2><div class="p-sub">La oficina, el equipo y lo que piden los inversionistas</div></div>
+        <div class="p-actions"><div class="seg" role="group" aria-label="Vista"><button class="segbtn on" type="button" data-v3="g">Gráficos</button><button class="segbtn" type="button" data-v3="t">Tabla</button></div></div></div>
+      <div class="toolbar">
+        <div class="grupo"><span class="lbl">Periodo</span><div class="seg"><button class="segbtn" type="button">7 días</button><button class="segbtn on" type="button">30 días</button><button class="segbtn" type="button">Este año</button><button class="segbtn" type="button">Todo</button></div></div>
+        <div class="grupo"><span class="lbl">Organismo</span><span class="segsel"><select aria-label="Organismo"><option>Todos</option><option>SAIME</option><option>SAREN</option><option>SENIAT</option></select></span></div>
+        <div class="grupo"><span class="lbl">Sector</span><span class="segsel"><select aria-label="Sector"><option>Todos</option><option>Energía</option><option>Manufactura</option></select></span></div>
+        <span class="spacer"></span>
+        <span class="filtro-on" id="m3-filtro" hidden>Visa de inversionista ✕</span>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="sec-h"><span class="tick"></span><span class="t" id="m3-titulo">Lo que pidieron los inversionistas</span><span class="sub">últimos 30 días</span></div>
+        <div class="cifras3" style="grid-template-columns:repeat(4,minmax(0,1fr))" id="m3-cifras">
+          <div><b>99</b><span>solicitudes enviadas</span></div><div><b>61</b><span>resueltas</span></div><div><b>9 días</b><span>mediana de respuesta</span></div><div><b>65</b><span>consultas en el chat</span></div>
+        </div>
+        <div class="sbar" id="m3-sbar">
+          <span style="flex:8; background:#86b6ef"></span><span style="flex:11; background:#5598e7"></span><span style="flex:13; background:#256abf"></span><span style="flex:3; background:var(--rust)"></span><span style="flex:41; background:var(--navy-deep)"></span>
+        </div>
+        <div class="leyenda"><span><i style="background:#86b6ef"></i>Enviado <b>8</b></span><span><i style="background:#5598e7"></i>En revisión <b>11</b></span><span><i style="background:#256abf"></i>Ante el ente <b>13</b></span><span><i style="background:var(--rust)"></i>Devuelto <b>3</b></span><span><i style="background:var(--navy-deep)"></i>Resuelto <b>41</b></span></div>
+      </div>
+
+      <div id="m3-graf" class="grid">
+        <div class="card c6">
+          <div class="sec-h"><span class="tick"></span><span class="t">Solicitudes por trámite</span><span class="sub">pulsa para filtrar</span></div>
+          <div id="m3-tram">
+            <div class="rrow clic" data-f="visa" tabindex="0"><div class="rl">Visa de inversionista</div><div class="rtrack"><div class="rfill" style="width:100%"></div></div><div class="rv">24</div></div>
+            <div class="rrow clic" tabindex="0"><div class="rl">Registro mercantil</div><div class="rtrack"><div class="rfill" style="width:79%"></div></div><div class="rv">19</div></div>
+            <div class="rrow clic" tabindex="0"><div class="rl">RIF de la empresa</div><div class="rtrack"><div class="rfill" style="width:71%"></div></div><div class="rv">17</div></div>
+            <div class="rrow clic" tabindex="0"><div class="rl">Cédula de extranjero</div><div class="rtrack"><div class="rfill" style="width:50%"></div></div><div class="rv">12</div></div>
+            <div class="rrow clic" tabindex="0"><div class="rl">Permiso de Bomberos</div><div class="rtrack"><div class="rfill" style="width:38%"></div></div><div class="rv">9</div></div>
+            <div class="rrow resto clic" tabindex="0"><div class="rl">Otros 3 ▸</div><div class="rtrack"><div class="rfill" style="width:75%"></div></div><div class="rv">18</div></div>
+          </div>
+        </div>
+        <div class="card c6">
+          <div class="sec-h"><span class="tick"></span><span class="t">Tiempo de respuesta por organismo</span></div>
+          <div class="rrow"><div class="rl">SAIME<small>21 casos</small></div><div class="rtrack"><div class="rfill" style="width:100%"></div></div><div class="rv">18 días</div></div>
+          <div class="rrow"><div class="rl">Bomberos<small>4 casos</small></div><div class="rtrack"><div class="rfill" style="width:78%"></div></div><div class="rv">14 días</div></div>
+          <div class="rrow"><div class="rl">SAREN<small>11 casos</small></div><div class="rtrack"><div class="rfill" style="width:50%"></div></div><div class="rv">9 días</div></div>
+          <div class="rrow"><div class="rl">MINCYT<small>3 casos</small></div><div class="rtrack"><div class="rfill" style="width:33%"></div></div><div class="rv">6 días</div></div>
+          <div class="rrow"><div class="rl">SENIAT<small>12 casos</small></div><div class="rtrack"><div class="rfill" style="width:28%"></div></div><div class="rv">5 días</div></div>
+        </div>
+        <div class="card c4">
+          <div class="sec-h"><span class="tick"></span><span class="t">Consultas por sector</span></div>
+          <div class="rrow"><div class="rl" style="width:100px">Energía</div><div class="rtrack"><div class="rfill" style="width:100%"></div></div><div class="rv" style="width:40px">18</div></div>
+          <div class="rrow"><div class="rl" style="width:100px">Manufactura</div><div class="rtrack"><div class="rfill" style="width:72%"></div></div><div class="rv" style="width:40px">13</div></div>
+          <div class="rrow"><div class="rl" style="width:100px">Turismo</div><div class="rtrack"><div class="rfill" style="width:61%"></div></div><div class="rv" style="width:40px">11</div></div>
+          <div class="rrow"><div class="rl" style="width:100px">Agroindustria</div><div class="rtrack"><div class="rfill" style="width:50%"></div></div><div class="rv" style="width:40px">9</div></div>
+        </div>
+        <div class="card c8">
+          <div class="sec-h"><span class="tick"></span><span class="t">La oficina y el equipo</span><span class="spacer"></span><a class="link" href="#idea3">Ver el equipo →</a></div>
+          <div class="stat-row" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+            <button class="stat clic" type="button"><div class="sn">38</div><div class="sl">En marcha</div></button>
+            <button class="stat clic ojo" type="button"><div class="sn">9</div><div class="sl">Esperando respuesta · 52 h la más vieja</div></button>
+            <button class="stat clic mal" type="button"><div class="sn">1</div><div class="sl">Papel caducado · 3 citas por confirmar</div></button>
+          </div>
+          <div class="leyenda" style="margin-top:12px"><span>María Pérez <b>12</b></span><span>Luis Rondón <b>9</b></span><span>Ana Salazar <b>7</b></span><span><span class="chip warn">Sin asignar 5</span></span></div>
+        </div>
+      </div>
+      <div id="m3-tabla" class="card flush" hidden>
+        <div class="tscroll"><table class="tbl"><thead><tr><th>Trámite</th><th>Organismo</th><th class="num">Solicitados</th><th class="num">Resueltos</th><th class="num">Mediana</th><th class="num">Ante el ente</th></tr></thead><tbody>
+          <tr><td class="who">Visa de inversionista</td><td>SAIME</td><td class="num">24</td><td class="num">15</td><td class="num">21 d</td><td class="num">14 d</td></tr>
+          <tr><td class="who">Registro mercantil</td><td>SAREN</td><td class="num">19</td><td class="num">11</td><td class="num">9 d</td><td class="num">6 d</td></tr>
+          <tr><td class="who">RIF de la empresa</td><td>SENIAT</td><td class="num">17</td><td class="num">12</td><td class="num">5 d</td><td class="num">3 d</td></tr>
+          <tr><td class="who">Cédula de extranjero</td><td>SAIME</td><td class="num">12</td><td class="num">6</td><td class="num">16 d</td><td class="num">11 d</td></tr>
+          <tr><td class="who">Permiso de Bomberos</td><td>Bomberos</td><td class="num">9</td><td class="num">4</td><td class="num">14 d</td><td class="num">10 d</td></tr>
+        </tbody></table></div>
+      </div>
+    </div>
+    <ul class="cambia">
+      <li><b>Filtros:</b> periodo, organismo y sector cambian todas las cifras a la vez. Hoy no hay periodo: todo es desde el principio.</li>
+      <li><b>Pulsar para filtrar:</b> igual que en el Panel de inteligencia. La cifra resumen y la barra apilada pasan a ser solo del trámite elegido.</li>
+      <li><b>Gráficos / Tabla:</b> la tabla junta trámite, organismo y tiempos en una sola, para quien prefiere números.</li>
+      <li><b>Equipo:</b> se resume en una tarjeta. El detalle de cada persona sigue en su ficha lateral.</li>
+    </ul>
+  </section>
+
+  <!-- ═════════════ IDEA 4 ═════════════ -->
+  <section class="caso" id="idea4">
+    <div class="caso-h"><div class="caso-n">4</div><div class="caso-t">Además, la hoja de informe para mandar</div></div>
+    <p class="caso-q">Atlas saca su Panel de inteligencia como una <b>hoja con la banda azul y el logo</b> del CIIP. Aquí la pantalla sigue como en la idea 1 o la 3, y arriba se añade «Informe del mes», que arma esta hoja con las mismas cifras escritas en frases, lista para mandar a la dirección.</p>
+    <div class="pantalla">
+      <div class="pantalla-r">Maqueta 4</div>
+      <div class="antes-hoja"><button class="btn pri" type="button"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Informe del mes</button><div class="seg"><button class="segbtn" type="button">Agosto</button><button class="segbtn on" type="button">Septiembre</button></div><span class="aldia" style="color:var(--gray)">Se descarga en PDF</span></div>
+      <article class="hoja">
+        <div class="hoja-banda"><img src="data:image/png;base64,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" alt="CIIP"><span>CENTRO INTERNACIONAL DE INVERSIÓN PRODUCTIVA<br>VENTANILLA ÚNICA</span><span class="fecha">INFORME · SEPTIEMBRE 2026</span></div>
+        <div class="hoja-cuerpo">
+          <h3 class="hoja-h1">Control y Estadísticas</h3>
+          <div class="hoja-h2">Del 1 al 30 de septiembre de 2026 · solo solicitudes enviadas, sin borradores</div>
+          <div class="hoja-cifras">
+            <div><b>99</b><span>solicitudes enviadas</span></div>
+            <div><b>61</b><span>resueltas</span></div>
+            <div><b>9 d</b><span>mediana de respuesta</span></div>
+            <div><b>65</b><span>consultas en el chat</span></div>
+          </div>
+          <div class="hoja-2">
+            <div>
+              <h4 class="hoja-sec">Lo más pedido</h4>
+              <p class="hoja-txt">La <b>visa de inversionista</b> es el trámite más solicitado, con 24 envíos y 15 resueltos. Le siguen el registro mercantil (19) y el RIF de la empresa (17).</p>
+              <div class="rrow"><div class="rl" style="width:130px">Visa</div><div class="rtrack"><div class="rfill" style="width:100%"></div></div><div class="rv" style="width:40px">24</div></div>
+              <div class="rrow"><div class="rl" style="width:130px">Registro mercantil</div><div class="rtrack"><div class="rfill" style="width:79%"></div></div><div class="rv" style="width:40px">19</div></div>
+              <div class="rrow"><div class="rl" style="width:130px">RIF</div><div class="rtrack"><div class="rfill" style="width:71%"></div></div><div class="rv" style="width:40px">17</div></div>
+              <h4 class="hoja-sec" style="margin-top:18px">Sectores que preguntan</h4>
+              <p class="hoja-txt">Energía concentra 18 de las 65 consultas del chat (28 %), por delante de manufactura (13) y turismo (11).</p>
+            </div>
+            <div>
+              <h4 class="hoja-sec">Cuánto se tarda</h4>
+              <p class="hoja-txt">El caso típico se resuelve en <b>9 días</b>. El organismo más lento es el <b>SAIME</b>, con 18 días de mediana, 12 de ellos ante el ente. El SENIAT es el más rápido: 5 días.</p>
+              <div class="tscroll"><table class="tbl"><thead><tr><th>Organismo</th><th class="num">Casos</th><th class="num">Mediana</th></tr></thead><tbody>
+                <tr><td class="who">SAIME</td><td class="num">21</td><td class="num">18 d</td></tr>
+                <tr><td class="who">SAREN</td><td class="num">11</td><td class="num">9 d</td></tr>
+                <tr><td class="who">SENIAT</td><td class="num">12</td><td class="num">5 d</td></tr>
+              </tbody></table></div>
+              <h4 class="hoja-sec" style="margin-top:18px">La oficina</h4>
+              <p class="hoja-txt">Al cierre quedan 38 trámites en marcha, 9 esperando respuesta y 5 sin asignar. El equipo contesta en una media de 6 horas.</p>
+            </div>
+          </div>
+          <div class="hoja-pie"><span>Ventanilla Única · CIIP</span><span>Generado el 2 de octubre de 2026 por Franklin Reyes</span></div>
+        </div>
+      </article>
+    </div>
+    <ul class="cambia">
+      <li><b>No sustituye la pantalla:</b> se suma a la idea que elijas. Sale de las mismas cifras de <code>estadisticas_control()</code>.</li>
+      <li><b>Frases y no solo tablas:</b> cada bloque dice lo más importante en una línea, como la hoja de Atlas.</li>
+      <li><b>Letra:</b> el titular y las cifras grandes en la serif de Atlas (la de la marca); el resto en la escala de siempre.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(function(){
+  // Maqueta 1: Por organismo / Por trámite
+  document.querySelectorAll('[data-t1]').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('[data-t1]').forEach(function(x){ x.classList.toggle('on', x === b); });
+      document.getElementById('t1-ente').hidden = b.dataset.t1 !== 'ente';
+      document.getElementById('t1-tram').hidden = b.dataset.t1 !== 'tram';
+    });
+  });
+  // Maqueta 2: pestañas
+  document.querySelectorAll('[data-t2]').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('[data-t2]').forEach(function(x){ x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b); });
+      document.querySelectorAll('[data-p2]').forEach(function(p){ p.hidden = p.dataset.p2 !== b.dataset.t2; });
+    });
+  });
+  // Segmentos sueltos (solo cambian de aspecto)
+  document.querySelectorAll('.seg').forEach(function(s){
+    if (s.querySelector('[data-t1],[data-v3]')) return;
+    s.querySelectorAll('.segbtn').forEach(function(b){
+      b.addEventListener('click', function(){ s.querySelectorAll('.segbtn').forEach(function(x){ x.classList.toggle('on', x === b); }); });
+    });
+  });
+  // Maqueta 3: Gráficos / Tabla
+  document.querySelectorAll('[data-v3]').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('[data-v3]').forEach(function(x){ x.classList.toggle('on', x === b); });
+      document.getElementById('m3-graf').hidden = b.dataset.v3 !== 'g';
+      document.getElementById('m3-tabla').hidden = b.dataset.v3 !== 't';
+    });
+  });
+  // Maqueta 3: pulsar «Visa» filtra la cifra resumen
+  var visa = document.querySelector('#m3-tram [data-f="visa"]');
+  var filtro = document.getElementById('m3-filtro');
+  var cifras = document.getElementById('m3-cifras');
+  var sbar = document.getElementById('m3-sbar');
+  var cTodo = cifras.innerHTML, sTodo = sbar.innerHTML;
+  var cVisa = '<div><b>24</b><span>solicitudes enviadas</span></div><div><b>15</b><span>resueltas</span></div><div><b>21 días</b><span>mediana de respuesta</span></div><div><b>SAIME</b><span>organismo</span></div>';
+  var sVisa = '<span style="flex:2; background:#86b6ef"></span><span style="flex:3; background:#5598e7"></span><span style="flex:3; background:#256abf"></span><span style="flex:1; background:var(--rust)"></span><span style="flex:15; background:var(--navy-deep)"></span>';
+  function poner(on){
+    visa.classList.toggle('on', on);
+    document.querySelectorAll('#m3-tram .rrow').forEach(function(r){ if (r !== visa) r.style.opacity = on ? .45 : ''; });
+    filtro.hidden = !on;
+    cifras.innerHTML = on ? cVisa : cTodo;
+    sbar.innerHTML = on ? sVisa : sTodo;
+    document.getElementById('m3-titulo').textContent = on ? 'Visa de inversionista' : 'Lo que pidieron los inversionistas';
+  }
+  function alternar(){ poner(!visa.classList.contains('on')); }
+  visa.addEventListener('click', alternar);
+  visa.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); alternar(); } });
+  filtro.addEventListener('click', function(){ poner(false); });
+})();
+</script>
