@@ -8626,10 +8626,11 @@
     }).join(' ') : '(no está)';
     /* Y desde el mismo día, el permiso de bomberos: Miranda y Distrito
        Capital (Franklin Reyes, 1-10-2026, Permiso de Bomberos). */
-    /* Y la visa (2-10-2026): el portal de Cancillería; la planilla para
-       descargar va aparte, fuera de .ay-sitios, y la mide visaPlanilla. */
+    /* Y la visa (2-10-2026): sin enlaces -el del portal de Cancillería se
+       quitó el mismo día-; solo la planilla para descargar, que va fuera
+       de .ay-sitios y la mide visaPlanilla. */
     igual('recaudos: en Ayuda, la licencia, los parafiscales, la conformidad de uso, los bomberos y la visa, con sus enlaces',
-          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3 ay_rec_bomberos:2 ay_rec_visa:1');
+          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3 ay_rec_bomberos:2 ay_rec_visa:0');
     var bomb = rec ? [].map.call(rec.querySelectorAll('details[data-clave="ay_rec_bomberos"] a.ay-enlace'), function(a){
       return a.getAttribute('href'); }).join(' ') : '(no está)';
     igual('recaudos: los de bomberos, Miranda y Distrito Capital, con los enlaces del documento', bomb,

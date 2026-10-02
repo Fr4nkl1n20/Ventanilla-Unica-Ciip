@@ -1011,7 +1011,7 @@ window.CIIP_PASOS = {
                       "Distrito Capital | https://www.instagram.com/reel/CjbE4crJOwg/?hl=es-la",
       /* La visa (Franklin Reyes, 2-10-2026): la planilla de solicitud y el portal. */
       ay_rec_visa: "Solicitud de visa",
-      ay_rec_visa_lista: "Portal de Cancillería | https://cancilleriadigital.mppre.gob.ve/",
+      ay_rec_visa_lista: "",
       ay_visa_planilla: "Descargar la planilla de solicitud de visa (PDF)",
       vs_planilla_nota: "Necesitarás la planilla de solicitud de visa para registrarte en el portal de Cancillería.",
       vs_planilla_btn: "Planilla de solicitud de visa",

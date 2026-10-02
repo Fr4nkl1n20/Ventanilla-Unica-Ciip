@@ -25435,8 +25435,9 @@ applyLang(idiomaParaMi());
     /* Y el permiso de bomberos, uno por estado (Franklin Reyes, 1-10-2026,
        Permiso de Bomberos, «Casilla Ayuda y Guías: incluir»). */
     /* Y la visa (Franklin Reyes, 2-10-2026): la planilla de solicitud,
-       que hace falta para registrarse en el portal de Cancillería, y el
-       portal. A este grupo lleva el botón «Planilla de solicitud de visa»
+       que hace falta para registrarse en el portal de Cancillería. El
+       enlace al portal se quitó el mismo día: ya lo lleva el paso 1 de la
+       ficha de la visa. A este grupo lleva el botón «Planilla de solicitud de visa»
        del paso «Tus datos» de las dos visas. */
     ['licencia', 'parafiscales', 'conformidad', 'bomberos', 'visa'].forEach(function(k){
       var kt = 'ay_rec_' + k, kl = kt + '_lista';
