@@ -244,7 +244,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* «Bienes» (2-10-2026): la compraventa (c41) y el alquiler (c42) de un
    inmueble, y los tres tipos de documento de sus recaudos. Solo inserta
    en el catálogo; necesita nivel y emite, así que va al final. */
-'supabase-bienes'];
+'supabase-bienes',
+/* La marca en proceso de registro (c43), Franklin Reyes, 5-10-2026: el
+   trámite y los dos tipos de documento de sus recaudos. Solo inserta en
+   el catálogo, como «Bienes»; necesita nivel y emite, así que va al final. */
+'supabase-marca-proceso'];
 
 let mal = 0;
 for (const n of orden) {

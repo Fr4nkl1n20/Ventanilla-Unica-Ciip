@@ -400,6 +400,10 @@
               importadorMira, bomberosSiembra, bomberosAnotado, librosMira, visaEscaleraMira, marcasSeQuedan,
               /* La ficha de la visa con su «Ya me registré» (1-10-2026). */
               visaFichaAbre, visaFichaMira, visaFichaTrasConfirmar, visaC1Abre, visaC1Mira,
+              /* El registro de marca en dos opciones (5-10-2026): con la c8
+                 ya encendida por alDiaVuelve. */
+              marcaGuiaAbre, marcaGuiaMira, marcaNuevaMira, marcaProcMira,
+              marcaVivaMira, marcaVivaNueva,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
                  cuentas a todo lo que cuenta tarjetas. */
@@ -1085,7 +1089,9 @@
              exportador (c11). */
              /* Y 31 desde «Bienes» (2-10-2026): la compraventa (c41) y el
                 alquiler (c42), que se esconde pero cuenta. */
-             pendS === 31, pendS + ' por iniciar de 32 ofrecidas', '31');
+             /* Y 32 con la marca en proceso de registro (c43, 5-10-2026),
+                escondida detrás de la c8 pero contada. */
+             pendS === 32, pendS + ' por iniciar de 33 ofrecidas', '32');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -1100,9 +1106,10 @@
              que se esconde pero se cuenta. Y 33 con el SIDCAI (c39) y su
              segundo tramo (c40), por lo mismo. Y 31 desde el 24-9-2026,
              que se van la c4 y la c21. Y 30 desde el 28-9-2026, que se va
-             el c11. Y 32 con los dos de «Bienes» (c41 y c42), 2-10-2026. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 32,
-             pend + ' por iniciar de 32 ofrecidas', '32');
+             el c11. Y 32 con los dos de «Bienes» (c41 y c42), 2-10-2026.
+             Y 33 con la marca en proceso de registro (c43), 5-10-2026. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 33,
+             pend + ' por iniciar de 33 ofrecidas', '33');
       }
 
       /* ── la cadena entre trámites ──
@@ -10692,6 +10699,175 @@
     setTimeout(sigue, 100);
   }
 
+  /* ═══════════ EL REGISTRO DE MARCA EN DOS OPCIONES (c8 y c43) ═══════════
+     Franklin Reyes, 5-10-2026 («Ventanilla única 2.5»): la casilla del
+     registro de marca pregunta primero «¿Tienes una marca en proceso de
+     registro?» o «¿Quieres registrar tu marca por primera vez?». Lo que se
+     mide: que la c8 no enseñe nada hasta elegir, que «por primera vez» deje
+     el registro de siempre tal cual, que «en proceso» lleve a la c43 con
+     sus cuatro datos y sus dos recaudos, su escalera de tres pasos, que
+     «Cambiar» vuelva a preguntar y que con una marca ya pedida no se
+     pregunte.
+
+     Aquí al final y no con «Bienes»: en la base de prueba el registro de
+     marca nace apagado y su tarjeta no está hasta que lo enciende
+     alDiaVuelve. Solo en el pase 'vacio', como la ficha de la visa. */
+  function marcaOpciones(){
+    return [].map.call(document.querySelectorAll('#trVisas [data-marca-op]'), function(c){
+      return c.getAttribute('data-marca-op'); }).join(' ');
+  }
+  function marcaElige(){
+    var d = document.getElementById('trDetalle');
+    return d ? (d.classList.contains('elige-visa') ? 'apartado' : 'a la vista') : '(sin ficha)';
+  }
+
+  function marcaGuiaAbre(sigue){
+    if (PASE !== 'vacio') return sigue();
+    location.hash = 'tramite-c8';
+    setTimeout(sigue, 800);
+  }
+
+  function marcaGuiaMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var guia = document.getElementById('trVisas');
+    ok('marca: la c8 abre con su guía',
+       !!guia && !guia.hidden && guia.offsetHeight > 0,
+       guia ? (guia.hidden ? 'escondida' : guia.offsetHeight + 'px') : 'no está', 'a la vista');
+    if (!guia || guia.hidden) return sigue();
+    igual('marca: con su pregunta', (guia.querySelector('.gv-t') || {}).textContent, U.mg_titulo);
+    igual('marca: primero la marca en proceso y después el registro por primera vez', marcaOpciones(), 'c43 c8');
+    igual('marca: con las dos preguntas del encargo',
+          [].map.call(guia.querySelectorAll('[data-marca-op] .gv-nombre'), function(n){ return n.textContent; }).join(' | '),
+          U.mg_proc + ' | ' + U.mg_nueva);
+    igual('marca: y el formulario apartado hasta elegir', marcaElige(), 'apartado');
+
+    var nueva = guia.querySelector('[data-marca-op="c8"]');
+    ok('marca: «por primera vez» se pulsa entera, como las visas',
+       !!nueva && nueva.getAttribute('role') === 'button' && nueva.getAttribute('tabindex') === '0',
+       nueva ? 'role=' + (nueva.getAttribute('role') || 'sin') : 'no está', 'role=button');
+    if (nueva) nueva.click();
+    igual('marca: elegida, se queda en la c8', location.hash, '#tramite-c8');
+    igual('marca: y enseña el registro de siempre', marcaElige(), 'a la vista');
+    ok('marca: con la guía plegada en una línea', guia.classList.contains('gv-plegada'),
+       guia.className || '(sin clases)', 'gv-plegada');
+    igual('marca: que dice lo elegido', (guia.querySelector('.gv-resumen-t') || {}).textContent, U.mg_nueva_c);
+    setTimeout(sigue, 300);
+  }
+
+  function marcaNuevaMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var caja = document.getElementById('trReal');
+    /* Por primera vez, NADA cambia: los mismos cinco datos y los mismos
+       cinco recaudos de antes del encargo. */
+    igual('marca: por primera vez, los datos de siempre', bienesCampos(caja),
+          'signo tipo_signo empresa_registra en_uso productos');
+    igual('marca: y los recaudos de siempre', bienesDocs(caja),
+          'logo_marca acta_constitutiva rif_empresa cedula rif_personal');
+    var cambia = document.getElementById('marcaCambiar');
+    ok('marca: «Cambiar» está a mano', !!cambia, cambia ? 'está' : 'no está', 'está');
+    if (cambia) cambia.click();
+    igual('marca: «Cambiar» vuelve a preguntar', marcaOpciones(), 'c43 c8');
+    igual('marca: y aparta otra vez el formulario', marcaElige(), 'apartado');
+    var proc = document.querySelector('#trVisas [data-marca-op="c43"]');
+    if (proc) proc.click();
+    setTimeout(sigue, 800);
+  }
+
+  function marcaProcMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    igual('marca: «en proceso» lleva a su ficha', location.hash, '#tramite-c43');
+    var guia = document.getElementById('trVisas');
+    igual('marca: ya elegida, con la guía plegada',
+          guia ? (guia.querySelector('.gv-resumen-t') || {}).textContent : '(sin guía)', U.mg_proc_c);
+    igual('marca: y enseña su formulario', marcaElige(), 'a la vista');
+    var caja = document.getElementById('trReal');
+    igual('marca: en proceso, solo los cuatro datos del encargo', bienesCampos(caja),
+          'signo fecha_solicitud_marca titular_marca incidencia_marca');
+    var rotulos = caja ? [].map.call(caja.querySelectorAll('.sol-campo > label'), function(l){
+      return l.textContent; }) : [];
+    igual('marca: con sus rótulos', rotulos.slice(0, 3).join(' | '),
+          U.f_mpnombre + ' | ' + U.f_mpfecha + ' | ' + U.f_mptitular);
+    var inc = caja && caja.querySelector('.sol-campo[data-campo="incidencia_marca"]');
+    ok('marca: la oposición, el recurso o la devolución, opcional',
+       !!inc && inc.getAttribute('data-opcional') === '1',
+       inc ? 'data-opcional=' + inc.getAttribute('data-opcional') : 'no está', 'data-opcional=1');
+    igual('marca: y sus dos recaudos', bienesDocs(caja), 'planilla_solicitud_marca identidad_titular_marca');
+    ok('marca: sin «undefined» en el detalle',
+       document.body.innerText.indexOf('undefined') === -1, 'dice «undefined»', 'limpio');
+
+    /* La escalera, sin pintarla: empieza por la revisión, como la c33. */
+    var E = window.CIIP_ESCALERA;
+    var dibujo = function(estado){
+      var e = E({estado: estado, datos: {}}, 'marca_en_proceso', 'SAPI');
+      return e.todos.map(function(p){ return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(',');
+    };
+    if (E){
+      igual('marca: la escalera en proceso tiene los tres pasos del encargo',
+            E({estado: 'enviado', datos: {}}, 'marca_en_proceso', 'SAPI').todos.map(function(p){ return p.nombre; }).join(' → '),
+            'Revisión de estatus de la marca → Solicitud de información al SAPI → Marca concedida');
+      igual('marca: recibida, la revisión del estatus en curso', dibujo('enviado'), 'ahora,porhacer,porhacer');
+      igual('marca: en revisión, también', dibujo('en_revision'), 'ahora,porhacer,porhacer');
+      igual('marca: ante el SAPI, la solicitud de información', dibujo('ante_el_ente'), 'hecho,ahora,porhacer');
+      igual('marca: resuelta, la marca concedida', dibujo('resuelto'), 'hecho,hecho,hecho');
+    }
+
+    /* «Cambiar» en la c43 también pregunta, y elegirla otra vez la pliega. */
+    var cambia = document.getElementById('marcaCambiar');
+    if (cambia) cambia.click();
+    igual('marca: «Cambiar» en la c43 enseña las dos', marcaOpciones(), 'c43 c8');
+    igual('marca: y aparta su formulario', marcaElige(), 'apartado');
+    var proc = document.querySelector('#trVisas [data-marca-op="c43"]');
+    if (proc) proc.click();
+    igual('marca: elegida otra vez, se queda y lo enseña', location.hash + ' ' + marcaElige(), '#tramite-c43 a la vista');
+
+    /* Y con una de cada ya pedida: la c43 ante el SAPI y la c8 recibida. */
+    window.__TRAMITES_EXTRA = [
+      {id: 'mp1', tipo: 'marca_en_proceso', estado: 'ante_el_ente',
+       datos: {signo: 'Café Ávila', fecha_solicitud_marca: '2026-06-15', titular_marca: 'Inversiones Ávila, C.A.'},
+       inversionista: 'u1', creado_en: '2026-10-01T10:00:00Z', enviado_en: '2026-10-01T10:00:00Z',
+       actualizado_en: '2026-10-03T12:00:00Z'},
+      {id: 'mn1', tipo: 'marca', estado: 'enviado',
+       datos: {signo: 'Cacao Andino', tipo_signo: 'Denominativa', empresa_registra: 'Inversiones Ávila, C.A.'},
+       inversionista: 'u1', creado_en: '2026-10-02T10:00:00Z', enviado_en: '2026-10-02T10:00:00Z',
+       actualizado_en: '2026-10-02T10:00:00Z'}];
+    location.hash = '';
+    setTimeout(function(){
+      location.hash = 'tramite-c43';
+      esperaFilas('#trReal li.tr-paso', 3, sigue);
+    }, 100);
+  }
+
+  function marcaVivaMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var lis = document.querySelectorAll('#trReal li.tr-paso');
+    igual('marca: la solicitud en proceso enseña sus tres pasos',
+          [].map.call(lis, function(li){ return (li.querySelector('.tr-paso-n') || {}).textContent; }).join(' → '),
+          'Revisión de estatus de la marca → Solicitud de información al SAPI → Marca concedida');
+    igual('marca: ante el SAPI, en la solicitud de información',
+          [].map.call(lis, function(li){
+            return li.classList.contains('hecho') ? 'hecho' : (li.classList.contains('ahora') ? 'ahora' : 'porhacer');
+          }).join(','), 'hecho,ahora,porhacer');
+    igual('marca: y a la vista, sin preguntar', marcaElige(), 'a la vista');
+    location.hash = 'tramite-c8';
+    setTimeout(sigue, 800);
+  }
+
+  function marcaVivaNueva(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    /* La c8 se había quedado sin elegir («Cambiar», en marcaNuevaMira): la
+       elige la solicitud ya enviada, como la TR-N en la c1. */
+    igual('marca: con un registro ya pedido, la c8 no vuelve a preguntar', marcaElige(), 'a la vista');
+    var guia = document.getElementById('trVisas');
+    igual('marca: y dice cuál es',
+          guia ? (guia.querySelector('.gv-resumen-t') || {}).textContent : '(sin guía)', U.mg_nueva_c);
+    window.__TRAMITES_EXTRA = null;
+    location.hash = '';
+    setTimeout(sigue, 100);
+  }
+
   /* ═══════════ EL PERMISO DE BOMBEROS (c29), POR EL PORTAL ═══════════
      Aquí se medía, del 28-9 al 1-10-2026, la lista de nueve recaudos (los
      tres del representante y la empresa, el contrato o título, el plano
@@ -13354,9 +13530,11 @@
     /* Y los dos de «Bienes» (2-10-2026): la propiedad, la identificación
        del propietario, el catastro y la solvencia no rellenan ninguna de
        sus casillas. */
-    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI y las cinco sin recaudos y las dos de «Bienes»',
+    /* Y la marca en proceso de registro (5-10-2026): la planilla y la
+       cédula y el RIF del titular no rellenan ninguna de sus casillas. */
+    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI, las cinco sin recaudos, las dos de «Bienes» y la marca en proceso',
           window.CIIP_SIN_LECTOR ? window.CIIP_SIN_LECTOR().join(', ') : '(no está la función)',
-          'licencia_municipal, conformidad_uso, permiso_bomberos, opinion_zodi, registro_minero, aporte_locti, firma_electronica, bienes_compraventa, bienes_alquiler');
+          'licencia_municipal, conformidad_uso, permiso_bomberos, opinion_zodi, registro_minero, aporte_locti, firma_electronica, bienes_compraventa, bienes_alquiler, marca_en_proceso');
   }
 
   /* La situacion que se quiere medir: alguien que TODAVIA no tiene empresa

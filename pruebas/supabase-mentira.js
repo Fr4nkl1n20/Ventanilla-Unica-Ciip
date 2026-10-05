@@ -314,6 +314,14 @@
     {codigo:'bienes_alquiler', ref_panel:'c42', ente:'CIIP',
      activo:true, emite:null, plazo_dias:null,
      nombre:'Bienes: alquiler de un inmueble', fase:2, nivel:'actividad'},
+    /* La marca en proceso de registro (Franklin Reyes, 5-10-2026), como en
+       supabase-marca-proceso.sql: escondida con data-tramo-de detrás de la
+       c8, como el alquiler detrás de la compraventa. Encendida aunque la
+       c8 nazca apagada aquí: así su ficha se puede probar en todos los
+       pases, y la guía se mira con la c8 ya encendida (alDiaVuelve). */
+    {codigo:'marca_en_proceso', ref_panel:'c43', ente:'SAPI',
+     activo:true, emite:null, plazo_dias:null,
+     nombre:'Registro de marca: marca en proceso de registro', fase:2, nivel:'esencial'},
     /* El RUPDAE y el Registro Único Minero, en la fase 3. Como en la base
        de verdad: el RUM 'actividad' y SIN plazo -la resolución no da
        ninguno-. Sin él aquí el panel pintaría una ficha de lectura.
@@ -1869,7 +1877,10 @@
         {codigo:'forma_33', vence:false}, {codigo:'identidad_vendedor', vence:false},
         {codigo:'identidad_comprador', vence:false}, {codigo:'acta_vendedor', vence:false},
         {codigo:'identidad_rep_vendedor', vence:false}, {codigo:'asamblea_rep_vendedor', vence:false},
-        {codigo:'rif_vendedor', vence:false}
+        {codigo:'rif_vendedor', vence:false},
+        /* Los dos de la marca en proceso de registro (5-10-2026), como si
+           supabase-marca-proceso.sql estuviera corrido. */
+        {codigo:'planilla_solicitud_marca', vence:false}, {codigo:'identidad_titular_marca', vence:false}
       ], error:null};
     }
 

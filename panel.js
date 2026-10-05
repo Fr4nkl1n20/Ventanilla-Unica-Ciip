@@ -643,6 +643,8 @@ function applyLang(lang){
   function pintaGuiaVisas(id, D){
     /* Las dos fichas de «Bienes» llevan su propia guía, en la misma caja. */
     if (GUIA_BIENES.codigo[id]) return pintaGuiaBienes(id, D);
+    /* Y las dos del registro de marca (5-10-2026), la suya. */
+    if (GUIA_MARCA.codigo[id]) return pintaGuiaMarca(id, D);
     var caja = document.getElementById('trVisas');
     if (!caja) return;
     /* La misma caja la pliega «Bienes»: viniendo de allí, se despliega. */
@@ -926,6 +928,125 @@ function applyLang(lang){
     var codigo = (fila && fila.codigo) || GUIA_BIENES.codigo[id];
     window.CIIP_ABRE_CONSULTA(null, '', codigo,
       {tema: {op: u[id === 'c42' ? 'bi_alq' : 'bi_cv'] || ''}});
+  }
+
+  /* ── LA GUÍA DEL REGISTRO DE MARCA ──
+     Franklin Reyes, 5 de octubre de 2026 («Ventanilla única 2.5»): el
+     registro de marca se divide en dos opciones previas, «¿Tienes una
+     marca en proceso de registro?» y «¿Quieres registrar tu marca por
+     primera vez?».
+
+     Es la guía de las visas otra vez, en su misma caja (#trVisas) y con
+     sus mismas piezas. La casilla de la portada (c8) es el registro por
+     primera vez, que se queda tal cual, y la marca en proceso (c43) va
+     escondida de la cuadrícula con data-tramo-de: cada una con sus campos,
+     sus recaudos y su escalera, y la base deja una solicitud viva de cada
+     una (tramites_una_viva).
+
+     Como en la c1, mientras no se elige lo de abajo se aparta
+     (tramiteALaVista): pedirle el logo y la búsqueda de antecedentes a
+     quien ya presentó su marca ante el SAPI sería contestar por él. Y como
+     en «Bienes», elegida la opción la guía se pliega en una línea con lo
+     elegido y «Cambiar». */
+  var GUIA_MARCA = {
+    ops:    [{ref:'c43', nombre:'mg_proc',  d:'mg_proc_d',  corto:'mg_proc_c'},
+             {ref:'c8',  nombre:'mg_nueva', d:'mg_nueva_d', corto:'mg_nueva_c'}],
+    codigo: {c8:'marca', c43:'marca_en_proceso'}
+  };
+  /* Lo elegido, mientras dure la visita, como VISA_ELEGIDA. La c8 es la
+     casilla de las dos y pregunta; a la c43 solo se llega eligiéndola -o
+     desde Mis trámites, con la suya ya pedida-, así que nace elegida.
+     «Cambiar» desmarca la de la ficha abierta y vuelve a preguntar. */
+  var MARCA_ELEGIDA = {c8:false, c43:true};
+  /* Con una solicitud ya pedida no hay nada que elegir: la da por hecha
+     el módulo de solicitudes (CIIP_TRAMITE_REAL), como la de la visa. */
+  window.CIIP_MARCA_ELEGIDA = function(ref){
+    if (!GUIA_MARCA.codigo[ref] || MARCA_ELEGIDA[ref]) return;
+    MARCA_ELEGIDA[ref] = true;
+    if (trAbierto === ref && GUIA_D) pintaGuiaMarca(ref, GUIA_D);
+  };
+
+  function pintaGuiaMarca(id, D){
+    var caja = document.getElementById('trVisas');
+    if (!caja) return;
+    GUIA_D = D;
+    caja.hidden = false;
+    caja.textContent = '';
+    var u = (D && D.ui && (D.ui[curLang] || D.ui.en)) || {};
+    var elegida = !!MARCA_ELEGIDA[id];
+    tramiteALaVista(elegida);
+    caja.classList.toggle('gv-plegada', elegida);
+
+    if (elegida){
+      var mia = GUIA_MARCA.ops.filter(function(o){ return o.ref === id; })[0];
+      var res = el('div', 'gv-resumen');
+      var rt = el('span', 'gv-resumen-t', u[mia.corto] || '');
+      rt.setAttribute('data-ui', mia.corto);
+      res.appendChild(rt);
+      var cambia = el('button', 'gv-cambia', u.mg_cambiar || '');
+      cambia.type = 'button';
+      cambia.id = 'marcaCambiar';
+      cambia.setAttribute('data-ui', 'mg_cambiar');
+      cambia.addEventListener('click', function(){
+        MARCA_ELEGIDA[id] = false;
+        pintaGuiaMarca(id, D);
+      });
+      res.appendChild(cambia);
+      caja.appendChild(res);
+      return;
+    }
+
+    var h = el('div', 'gv-h');
+    h.appendChild(el('span', 'gv-ico', '?'));
+    var ht = el('div', 'gv-ht');
+    [['gv-t', 'mg_titulo'], ['gv-sub', 'mg_ente']].forEach(function(p){
+      var s = el('span', p[0], u[p[1]] || '');
+      s.setAttribute('data-ui', p[1]);
+      ht.appendChild(s);
+    });
+    h.appendChild(ht);
+    var chip = el('span', 'gv-chip', u.mg_guia || '');
+    chip.setAttribute('data-ui', 'mg_guia');
+    h.appendChild(chip);
+    caja.appendChild(h);
+    var intro = el('div', 'gv-intro', u.mg_intro || '');
+    intro.setAttribute('data-ui', 'mg_intro');
+    caja.appendChild(intro);
+
+    /* Las dos cajas, y las dos se pulsan enteras: sin elegir no hay
+       ninguna «tuya». La de esta ficha se contesta aquí mismo; la otra
+       lleva a la suya, y ya va dicha. */
+    var cols = el('div', 'gv-cols');
+    GUIA_MARCA.ops.forEach(function(o){
+      var col = el('div', 'gv-col');
+      col.setAttribute('data-marca-op', o.ref);
+      var nm = el('span', 'gv-nombre', u[o.nombre] || '');
+      nm.setAttribute('data-ui', o.nombre);
+      col.appendChild(nm);
+      var de = el('div', 'gv-d', u[o.d] || '');
+      de.setAttribute('data-ui', o.d);
+      col.appendChild(de);
+      var ir = el('span', 'gv-ir', (u.mg_elige || '') + ' ›');
+      ir.setAttribute('data-ui', 'mg_elige');
+      col.appendChild(ir);
+      col.setAttribute('role', 'button');
+      col.setAttribute('tabindex', '0');
+      col.setAttribute('aria-label', (u[o.nombre] || '') + ' · ' + (u[o.d] || ''));
+      var elige = function(){
+        MARCA_ELEGIDA[o.ref] = true;
+        if (o.ref === id){ pintaGuiaMarca(id, D); return; }
+        location.hash = 'tramite-' + o.ref;
+      };
+      col.addEventListener('click', elige);
+      col.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){
+          e.preventDefault();
+          elige();
+        }
+      });
+      cols.appendChild(col);
+    });
+    caja.appendChild(cols);
   }
 
   function pintaTramosDetalle(id, D, lang){
@@ -3877,6 +3998,16 @@ applyLang(idiomaParaMi());
     bienes_alquiler: [
       {tipo:'propiedad_inmueble',     clave:'d_bipropiedad'},
       {tipo:'identidad_propietario',  clave:'d_bipropietario'}
+    ],
+    /* La marca en proceso de registro (c43), Franklin Reyes, 5-10-2026
+       («Ventanilla única 2.5»): la planilla de solicitud con la que se
+       presentó ante el SAPI, y la cédula y el RIF de quien registra la
+       marca. Tipos propios y no planilla_solicitud -la del RIF, que la
+       prepara el CIIP- ni cedula y rif_personal sueltos: es UN papel de
+       quien sea el titular, que puede no ser quien rellena. */
+    marca_en_proceso: [
+      {tipo:'planilla_solicitud_marca', clave:'d_mpplanilla'},
+      {tipo:'identidad_titular_marca',  clave:'d_mptitular'}
     ]
   };
 
@@ -5196,6 +5327,21 @@ applyLang(idiomaParaMi());
       {n:'deposito_garantia',    clave:'f_bideposito',    tipo:'number', opcional:true},
       {n:'fecha_firma_bien',     clave:'f_bifecha',       tipo:'date', opcional:true},
       {n:'observaciones_bien',   clave:'f_biobs',         tipo:'area', ancho:true, opcional:true}
+    ],
+    /* La marca en proceso de registro (c43), Franklin Reyes, 5-10-2026
+       («Ventanilla única 2.5»): solo cuatro datos. El nombre se llama
+       'signo', como en el registro por primera vez, para que lo escrito en
+       uno se herede en el otro. La fecha de la solicitud es del pasado -ya
+       se presentó-, que es el tope de cualquier fecha. A nombre de quién se
+       registra es texto libre: puede ser la empresa o una persona, y aquí
+       no hay desplegable que valga. Y la oposición, el recurso de
+       reconsideración o la devolución del SAPI, opcional y escrita, que el
+       equipo necesita saber cuál fue y cómo va, no solo un «sí». */
+    marca_en_proceso: [
+      {n:'signo',                 clave:'f_mpnombre',     ancho:true},
+      {n:'fecha_solicitud_marca', clave:'f_mpfecha',      tipo:'date'},
+      {n:'titular_marca',         clave:'f_mptitular',    ancho:true},
+      {n:'incidencia_marca',      clave:'f_mpincidencia', tipo:'area', ancho:true, opcional:true}
     ]
   };
 
@@ -5553,6 +5699,10 @@ applyLang(idiomaParaMi());
             /* Y lo mismo «Bienes» (2-10-2026): con un contrato ya pedido,
                la operación y la redacción están elegidas (pintaGuiaBienes). */
             if ((refPanel === 'c41' || refPanel === 'c42') && !otraIgual && mio && window.CIIP_BIEN_ELEGIDO) window.CIIP_BIEN_ELEGIDO(refPanel);
+            /* Y el registro de marca (5-10-2026): con una marca ya pedida,
+               por primera vez o en proceso, la opción está elegida
+               (pintaGuiaMarca). */
+            if ((refPanel === 'c8' || refPanel === 'c43') && !otraIgual && mio && window.CIIP_MARCA_ELEGIDA) window.CIIP_MARCA_ELEGIDA(refPanel);
             if (!otraIgual && mio && mio.estado !== 'borrador'){ chipReal(mio.estado); pintaEstado(t, mio); }
             else {
               if (otraIgual) mio = null;
@@ -24051,6 +24201,13 @@ applyLang(idiomaParaMi());
     /* La verificación (c33), «Revisión de tus recaudos → Verificado»: con la
        cuenta de siempre la revisión salía hecha nada más enviarla (30-9-2026). */
     c33: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    /* La marca en proceso de registro (c43), Franklin Reyes, 5-10-2026
+       («Ventanilla única 2.5»): «Revisión de estatus de la marca →
+       Solicitud de información al SAPI → Marca concedida». Empieza por la
+       revisión, como la verificación: recibida o en revisión, lo que está
+       en curso es mirar en qué punto está la marca; ante el SAPI, la
+       solicitud de información; y concedida, al resolver. */
+    c43: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Los dos RIF (Franklin Reyes, 30-9-2026): «Solicitud recibida → Planilla
        enviada por el CIIP → Firme la planilla → RIF emitido». Empiezan por
        «recibida», así que la cuenta es la de siempre; están aquí porque son
