@@ -404,6 +404,8 @@
                  ya encendida por alDiaVuelve. */
               marcaGuiaAbre, marcaGuiaMira, marcaNuevaMira, marcaProcMira,
               marcaVivaMira, marcaVivaNueva,
+              /* Ante el ente, su paso en curso (Franklin Reyes, 5-10-2026, c32). */
+              escaleraEnteMira, escaleraEnteFicha,
               /* El repaso de cada minuto no «reinicia» el trámite (5-10-2026). */
               repasoAbre, repasoMira, repasoTras, repasoPedida, repasoEstado, colaNoArrastra, rvRepaso,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
@@ -10873,6 +10875,105 @@
     var guia = document.getElementById('trVisas');
     igual('marca: y dice cuál es',
           guia ? (guia.querySelector('.gv-resumen-t') || {}).textContent : '(sin guía)', U.mg_nueva_c);
+    window.__TRAMITES_EXTRA = null;
+    location.hash = '';
+    setTimeout(sigue, 100);
+  }
+
+  /* ═══════════ ANTE EL ENTE, SU PASO EN CURSO ═══════════
+     Franklin Reyes, 5-10-2026, en el Registro de Extranjeros (c32): «aquí
+     saltó los pasos». Con la solicitud ante el SAREN, la escalera daba por
+     hecho «Solicitud recibida por SAREN» y ponía «Vas por aquí» en
+     «Autorización para la firma otorgada», que solo llega al resolver. Se
+     fija, estado a estado, qué paso está en curso: en la c32, en los dos
+     de «Bienes» (mismo dibujo), en uno de los cuatro rótulos de todos y en
+     los de PUB delante. La constitución y los parafiscales tienen sus
+     propias pruebas y no cambian. */
+  function escaleraEnteMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var E = window.CIIP_ESCALERA;
+    if (!E){ ok('ante el ente: la escalera está a mano', false, 'no está', 'CIIP_ESCALERA'); return sigue(); }
+    var cat = window.CIIP_TIPOS_POR_REF || {}, puesto = false;
+    if (!cat.c22){ cat.c22 = {codigo: 'protocolizacion_acta', ref_panel: 'c22', ente: 'SAREN', activo: true}; puesto = true; }
+    var dibujo = function(codigo, ente, estado){
+      return E({estado: estado, datos: {}}, codigo, ente).todos.map(function(p){
+        return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(',');
+    };
+    var enCurso = function(codigo, ente, estado){
+      var p = E({estado: estado, datos: {}}, codigo, ente).todos.filter(function(x){ return x.ahora; })[0];
+      return p ? p.n + '. ' + p.nombre : '(ninguno)';
+    };
+    var C = ((window.CIIP_PASOS || {}).circuito || {})[curLang] || {};
+    var cuatro = [
+      ['registro_extranjeros_saren', 'SAREN · SISREF', 'c32'],
+      ['bienes_compraventa', 'CIIP', 'c41'],
+      ['bienes_alquiler', 'CIIP', 'c42'],
+      ['opinion_zodi', 'ZODI', 'c34']
+    ];
+    cuatro.forEach(function(t){
+      var q = t[2] + ': ';
+      igual('ante el ente: ' + q + 'recibida, la revisión por delante',
+            dibujo(t[0], t[1], 'enviado'), 'hecho,ahora,porhacer,porhacer');
+      igual('ante el ente: ' + q + 'en revisión, la revisión en curso',
+            dibujo(t[0], t[1], 'en_revision'), 'hecho,ahora,porhacer,porhacer');
+      igual('ante el ente: ' + q + 'ante el ente, su paso en curso y el último por venir',
+            dibujo(t[0], t[1], 'ante_el_ente'), 'hecho,hecho,ahora,porhacer');
+      igual('ante el ente: ' + q + 'resuelta, los cuatro hechos',
+            dibujo(t[0], t[1], 'resuelto'), 'hecho,hecho,hecho,hecho');
+      igual('ante el ente: ' + q + 'devuelta, vuelve a la revisión',
+            dibujo(t[0], t[1], 'devuelto'), 'hecho,ahora,porhacer,porhacer');
+    });
+    if (C.c32) igual('ante el ente: c32: el paso en curso es el del SAREN, como dice la cabecera',
+                     enCurso('registro_extranjeros_saren', 'SAREN · SISREF', 'ante_el_ente'), '3. ' + C.c32[2]);
+    if (C.c41) igual('ante el ente: c41: en curso, la redacción del contrato',
+                     enCurso('bienes_compraventa', 'CIIP', 'ante_el_ente'), '3. ' + C.c41[2]);
+    /* Con el PUB delante: el paso del ente es el cuarto de cinco. */
+    [['protocolizacion_acta', 'SAREN', 'c22', 'Revisión del registrador'],
+     ['aporte_locti_pago', 'FONACIT', 'c40', 'Revisión del FONACIT']].forEach(function(t){
+      var q = t[2] + ': ';
+      igual('ante el ente: ' + q + 'en revisión, el tercero en curso',
+            dibujo(t[0], t[1], 'en_revision'), 'hecho,hecho,ahora,porhacer,porhacer');
+      igual('ante el ente: ' + q + 'ante el ente, su paso en curso',
+            dibujo(t[0], t[1], 'ante_el_ente'), 'hecho,hecho,hecho,ahora,porhacer');
+      igual('ante el ente: ' + q + 'y es el que toca',
+            enCurso(t[0], t[1], 'ante_el_ente'), '4. ' + t[3]);
+      igual('ante el ente: ' + q + 'resuelta, los cinco hechos',
+            dibujo(t[0], t[1], 'resuelto'), 'hecho,hecho,hecho,hecho,hecho');
+    });
+    if (puesto) delete cat.c22;
+
+    /* Y pintada: una c32 ante el SAREN, abierta como la abre el inversionista. */
+    window.__TRAMITES_EXTRA = [
+      {id: 'sx1', tipo: 'registro_extranjeros_saren', estado: 'ante_el_ente', datos: {},
+       inversionista: 'u1', creado_en: '2026-10-05T10:00:00Z', enviado_en: '2026-10-05T10:00:00Z',
+       actualizado_en: '2026-10-05T10:20:00Z'}];
+    location.hash = '';
+    setTimeout(function(){
+      location.hash = 'tramite-c32';
+      var n = 0;
+      (function mira(){
+        if (document.querySelector('#trReal [data-ui="_p.circuito.c32.2"]') || ++n > 80) return sigue();
+        setTimeout(mira, 40);
+      })();
+    }, 100);
+  }
+
+  function escaleraEnteFicha(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var lis = [].slice.call(document.querySelectorAll('#trReal li.tr-paso'));
+    igual('ante el ente: la ficha de la c32 pinta sus cuatro pasos, el del SAREN en curso',
+          lis.map(function(li){
+            return li.classList.contains('hecho') ? 'hecho' : (li.classList.contains('ahora') ? 'ahora' : 'porhacer');
+          }).join(','), 'hecho,hecho,ahora,porhacer');
+    var aqui = lis.map(function(li, i){ return li.querySelector('.tr-aqui') ? i + 1 : 0; }).filter(Boolean);
+    igual('ante el ente: «Vas por aquí» va en el 3 y en ningún otro', aqui.join(','), '3');
+    var chip = document.querySelector('#trChip .chip');
+    var tercero = lis[2] && lis[2].querySelector('.tr-paso-n');
+    igual('ante el ente: y la cabecera nombra el paso en curso',
+          chip ? chip.textContent : '(sin distintivo)', tercero ? tercero.textContent : '(sin paso 3)');
+    igual('ante el ente: el último, sin fecha ni visto',
+          lis[3] ? (lis[3].querySelector('.tr-punto') || {}).textContent + ' · ' + !!lis[3].querySelector('.sd-e') : '(no está)',
+          '4 · false');
     window.__TRAMITES_EXTRA = null;
     location.hash = '';
     setTimeout(sigue, 100);

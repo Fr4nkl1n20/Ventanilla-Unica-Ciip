@@ -10050,12 +10050,28 @@ applyLang(idiomaParaMi());
        constitución se queda como estaba: detrás de la revisión va la firma
        en el CIIP, que es la que está en curso en ese estado. */
     var revisando = (tr.estado === 'en_revision' && !conFirma);
+    /* Y LO MISMO ANTE EL ENTE (Franklin Reyes, 5-10-2026, en el Registro de
+       Extranjeros: «aquí saltó los pasos»). Con la solicitud ante el SAREN,
+       el paso del SAREN salía hecho y «Vas por aquí» se iba al último,
+       «Autorización para la firma otorgada», que es lo que el SAREN da al
+       resolver y todavía no ha pasado. La cabecera, mientras, decía
+       «Solicitud recibida por SAREN»: el paso en curso. Le pasaba a todo
+       trámite de cuatro pasos del circuito -y a la protocolización, la
+       publicación y el LOCTI, con el PUB delante-: el paso del ente queda
+       EN CURSO mientras está allí, y el último solo se da al resolver.
+       Fuera quedan la constitución, que ahí tiene en curso la firma y la
+       reserva del nombre, y los parafiscales, cuyo paso lo cierran sus
+       cinco entes en pintaEstado. */
+    var enElEnte = (tr.estado === 'ante_el_ente' && !conFirma && !conReserva &&
+                    codigo !== TIPO_PARAFISCALES);
     var circ = ORDEN.map(function(est, i){
       return {
         est: est,
         nombre: propios ? propios[i + delante] : estadoTexto(i, ente, ref),
-        hecho: i <= alcanzado && !(revisando && est === 'en_revision'),
+        hecho: i <= alcanzado && !(revisando && est === 'en_revision') &&
+               !(enElEnte && est === 'ante_el_ente'),
         ahora: revisando ? est === 'en_revision' :
+               enElEnte ? est === 'ante_el_ente' :
                (i === alcanzado + 1) && tr.estado !== 'resuelto' &&
                !(conReserva && est === 'resuelto') &&
                !(conFirma && est === 'ante_el_ente' && !firmada),
@@ -24818,6 +24834,9 @@ applyLang(idiomaParaMi());
            inversionista tiene que quedarse: no hay con que pagar. */
         if (delante && !hay[delante.papel])
           tope = Math.min(tope, delante.cuantos - 2);
+        /* Ante el ente, su paso sigue en curso y no hecho, como en la ficha
+           de cada tramo (escaleraDe; Franklin Reyes, 5-10-2026). */
+        if (tr.estado === 'ante_el_ente' && tope === alcanzado) tope = alcanzado - 1;
         [].forEach.call(pasos, function(li, i){
           var hecho = i <= tope;
           var ahora = (i === tope + 1) && tr.estado !== 'resuelto';
