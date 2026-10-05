@@ -1371,8 +1371,9 @@ body[data-vista="comprobantes"] #paVolver{display:none;}
 .cm-fila{display:grid; grid-template-columns:34px minmax(0,1fr) auto; gap:2px 10px; align-items:center; width:100%;
   text-align:left; font:inherit; color:var(--ink); background:transparent; border:0; border-bottom:1px solid var(--line-soft);
   padding:11px 12px; cursor:pointer;}
+/* La abierta, igual que las demas (Franklin Reyes, 5-10-2026: sin efecto
+   al seleccionar). Cual es lo dice la conversacion de la derecha. */
 .cm-fila:hover{background:var(--block);}
-.cm-fila[aria-current="true"]{background:var(--activa-bg); box-shadow:inset 3px 0 0 var(--cyan);}
 .cm-av{width:34px; height:34px; flex:none; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
   font-size:12px; font-weight:700; color:#fff; background:var(--navy2);}
 .cm-av.cita{background:var(--good);}
@@ -1459,10 +1460,9 @@ body[data-vista="poratender"] .fase-bar{display:none;}
    quitarlo del todo deja la columna sin nombre para quien la oye. */
 .visualmente-oculto{position:absolute; width:1px; height:1px; padding:0;
   margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;}
-/* La que se venia a buscar desde la lista, marcada un momento: sin esto
-   la ventana se abre por el sitio correcto y aun asi hay que adivinar
-   cual de las tres fichas a la vista era la tuya. */
-.co-ficha.recien{box-shadow:0 0 0 2px var(--cyan-deep);}
+/* La que se venia a buscar desde la lista iba marcada un momento con un
+   anillo. Se quito el 5-10-2026 (Franklin Reyes): se veia igual que una
+   tarjeta seleccionada. La ventana sigue abriendose por esa ficha. */
 
 .docs-vista{display:none;}
 body[data-vista="documentos"] .docs-vista{display:block;}
@@ -1776,8 +1776,13 @@ body[data-vista="citas"] .fase-bar{display:none;}
    hueco compartía con la cola del equipo.
 
    Las tarjetas, en el velo blanco al 45 % de las demas cajas fijas, tambien
-   la puesta: lo que la marca es el borde azul, no el blanco (Franklin
-   Reyes, 29-9-2026). */
+   la puesta (Franklin Reyes, 29-9-2026).
+
+   Y la puesta, sin ningun efecto (Franklin Reyes, 5-10-2026: «quiero
+   quitar el efecto a los cuadros al seleccionar»): ni el borde azul ni el
+   anillo de dentro. Se ve igual que sus hermanas; lo que dice cual esta
+   puesta es la lista de debajo, y aria-pressed para el lector de
+   pantalla. */
 :is(#mtFiltros, #paCifras).mt-cifras{display:grid; gap:10px; margin:0 0 14px; background:none;
   border:0; padding:0; grid-template-columns:repeat(7, minmax(0, 1fr));}
 /* La cola tiene OCHO desde que «Listos» tiene el suyo (Franklin Reyes,
@@ -1792,10 +1797,14 @@ body[data-vista="citas"] .fase-bar{display:none;}
 :is(#mtFiltros, #paCifras).mt-cifras button{display:flex; flex-direction:column; align-items:stretch;
   gap:6px; text-align:left; border:1px solid var(--line); border-radius:var(--r);
   background:var(--tr-velo); color:var(--ink); padding:12px 13px; cursor:pointer;
-  border-bottom-width:3px; border-bottom-color:var(--navy);}
+  border-bottom-width:3px; border-bottom-color:var(--navy); font-weight:600;}
+/* Tiene que repetir la tarjeta entera, y no basta con borrarla: las reglas
+   de las pestañas del final (#mtFiltros button.aqui) le pondrían el fondo
+   blanco, la sombra y la negrita. Va antes del :hover para que la puesta
+   reaccione al ratón como las demás. */
+:is(#mtFiltros, #paCifras).mt-cifras button.aqui{background:var(--tr-velo); color:var(--ink); font-weight:600;
+  border-color:var(--line); border-bottom-color:var(--navy); box-shadow:none;}
 :is(#mtFiltros, #paCifras).mt-cifras button:hover{border-color:var(--cyan-deep); border-bottom-color:var(--navy);}
-:is(#mtFiltros, #paCifras).mt-cifras button.aqui{background:var(--tr-velo); color:var(--ink);
-  border-color:var(--navy); box-shadow:inset 0 0 0 1px var(--navy);}
 /* El montón vacío se lee pero no se pulsa: llevar a una lista en blanco
    es una promesa que no se cumple, y esconderlo dejaría un hueco en la
    rejilla y una cifra que el tablero sí quiere enseñar. */
@@ -1917,15 +1926,15 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .mt-nada{color:var(--gray-soft);}
 
 /* La franja del equipo, encima de la tabla. Mismos botones que los
-   montones -borde, radio y el filo azul del puesto- porque hace lo mismo:
-   filtrar. Y por eso el mismo velo que ellos (Franklin Reyes, 29-9-2026). */
+   montones -borde y radio- porque hace lo mismo: filtrar. Y por eso el
+   mismo velo que ellos (Franklin Reyes, 29-9-2026), y como ellos, sin
+   efecto en el puesto (5-10-2026). */
 .mt-equipo{display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px;}
 .mt-equipo[hidden]{display:none;}
 .mt-eq{font:inherit; text-align:left; display:flex; align-items:center; gap:8px;
   background:var(--tr-velo); border:1px solid var(--line); border-radius:var(--r);
   padding:7px 12px 7px 8px; cursor:pointer; color:var(--ink);}
 .mt-eq:hover{border-color:var(--cyan-deep);}
-.mt-eq.aqui{border-color:var(--navy); box-shadow:inset 0 0 0 1px var(--navy);}
 .mt-eq:focus-visible{outline:2px solid var(--cyan); outline-offset:2px;}
 .mt-eq .mt-av{width:24px; height:24px;}
 
@@ -2354,8 +2363,9 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .ct-modos label{display:inline-flex; align-items:center; gap:7px; cursor:pointer;
   border:1px solid var(--line); border-radius:9px; padding:9px 12px;
   font-size:var(--fs-pestana); font-weight:600; color:var(--gray); flex:1 1 0; min-width:0;}
+/* El elegido no cambia de caja (Franklin Reyes, 5-10-2026: sin efecto al
+   seleccionar): lo marca su radio, que sigue a la vista. */
 .ct-modos label:hover{border-color:var(--gray-soft);}
-.ct-modos label:has(input:checked){border-color:var(--navy); color:var(--navy); background:var(--block);}
 /* Hay que devolverle al radio su tamaño. La regla de arriba viste TODOS
    los <input> de un .pf-campo —caja blanca, borde, relleno y ancho completo—
    y eso a un radio lo convierte en una barra de lado a lado que empujaba el
@@ -2447,8 +2457,9 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .rv-fila{font:inherit; color:inherit; text-align:left; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:3px 10px;
   padding:11px 13px; border:0; border-bottom:1px solid var(--line-soft); background:none; cursor:pointer;}
 .rv-fila:last-child{border-bottom:0;}
+/* La abierta, igual que las demas (Franklin Reyes, 5-10-2026: sin efecto
+   al seleccionar). Vale para Revisar y para la Boveda, que la comparten. */
 .rv-fila:hover{background:var(--card-2);}
-.rv-fila[aria-current="true"]{background:var(--activa-bg); box-shadow:inset 3px 0 0 var(--navy2);}
 /* EL NOMBRE, A DOS LINEAS COMO MUCHO (Franklin Reyes, 24-9-2026:
    «podemos anivelar las filas?»). «RIF de la empresa» ocupaba una linea y
    «Recibo de pago de servicios publicos donde se compruebe la direccion
@@ -2541,11 +2552,10 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .cb-persona{font:inherit; color:inherit; text-align:left; display:flex; align-items:center; gap:10px; width:100%;
   padding:10px 12px; border:0; border-bottom:1px solid var(--line-soft); background:none; cursor:pointer;}
 .cb-persona:last-child{border-bottom:0;}
+/* Y la persona elegida, tambien sin efecto (5-10-2026). */
 .cb-persona:hover{background:var(--card-2);}
-.cb-persona[aria-current="true"]{background:var(--activa-bg); box-shadow:inset 3px 0 0 var(--navy2);}
 .cb-ini{width:30px; height:30px; border-radius:50%; flex:none; display:inline-flex; align-items:center; justify-content:center;
   background:var(--activa-bg); color:var(--navy); font-size:var(--fs-chip); font-weight:700;}
-.cb-persona[aria-current="true"] .cb-ini{background:var(--bg);}
 .cb-quien{display:grid; min-width:0; flex:1;}
 .cb-quien .nom{font-size:var(--fs-fila); font-weight:700; overflow-wrap:anywhere;}
 .cb-quien .cu{font-size:var(--fs-nota); color:var(--gray);}
@@ -2699,23 +2709,19 @@ body[data-vista="citas"] .fase-bar{display:none;}
   padding:12px 13px 12px; min-width:0; background:var(--tr-velo);
   border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow);}
 
-/* ── LA ETAPA EN LA QUE ESTAS MANDA ──
-   El azul del borde decia cual era la etapa en curso, y separadas las
-   cuatro no bastaba: hay que recorrer las cuatro cajas para encontrar la
-   que lleva el borde de otro color.
+/* ── LA ETAPA ELEGIDA, SIN EFECTO ──
+   La de en curso llevaba borde azul, fondo, sombra, el punto con anillo y
+   su «Estas aqui», y las otras tres bajaban a un fondo casi blanco. Todo
+   eso se fue (Franklin Reyes, 5-10-2026: «quiero quitar el efecto a los
+   cuadros al seleccionar»): las cuatro se ven siempre igual, con el fondo
+   que ya tenian cuando no habia ninguna elegida. Lo que dice cual esta
+   puesta es la lista de tramites que se despliega debajo, y aria-pressed
+   para el lector de pantalla.
 
-   Ahora la de en curso se lleva fondo, sombra y su rotulo; las otras tres
-   bajan a un fondo casi blanco y su titulo pierde un grado de grosor.
-
-   LO QUE NO SE HACE, Y ES LO MAS IMPORTANTE DE ESTA REGLA: las otras tres
-   NO se apagan con opacidad. La letra se queda entera. Apagarlas seria
-   volver exactamente a lo que se quito el 7 de septiembre, cuando el CIIP
-   pregunto tres veces por que unas fichas se veian mas opacas que otras.
-   Lo que baja es el FONDO y el grosor del titulo, no la tinta. */
-.jp.active{border-color:var(--navy); border-width:1.5px; padding:13.5px 13.5px 14.5px;
-  background:var(--activa-bg); box-shadow:0 2px 10px rgba(0,64,144,.10);}
-.jp:not(.active){background:var(--dormida-bg);}
-.jp:not(.active) .jname{font-weight:700;}
+   Y sigue sin apagarse nada con opacidad: es lo que se quito el 7 de
+   septiembre, cuando el CIIP pregunto tres veces por que unas fichas se
+   veian mas opacas que otras. */
+.jp{background:var(--dormida-bg);}
 
 /* ── LAS QUE TODAVIA NO TOCAN ──
    Una barra al 0% y un «0 de 8 listos» no dicen nada que no diga ya el no
@@ -2735,14 +2741,6 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .jluego{display:none; font-size:var(--fs-nota); font-weight:500; color:var(--mudo);
   letter-spacing:.02em; margin-top:9px;}
 .jp.luego .jluego{display:block;}
-/* El rotulo de «estas aqui», solo en la de en curso y solo cuando el panel
-   sabe cual es: sin data-ir no hay etapa elegida y anunciarla seria mentir. */
-.jp.active[data-ir]::after{content:attr(data-aqui); position:absolute; top:15px; left:44px;
-  font-size:var(--fs-chip); font-weight:700; letter-spacing:.05em; color:var(--navy2);}
-/* --navy2 y no --navy: --navy es el mismo azul oscuro en los dos temas, y
-   sobre el fondo oscuro de la tarjeta en curso el rotulo se lei­a casi negro
-   sobre azul. --navy2 aclara de noche y oscurece de dia, que es lo que hace
-   falta cuando el fondo tambien cambia. */
 
 /* El hilo hasta la etapa siguiente. Ya no cruza por dentro de una tarjeta
    comun: va de caja a caja, ocupando justo el hueco del grid (14px) a la
@@ -2763,8 +2761,6 @@ body[data-vista="citas"] .fase-bar{display:none;}
   font-variant-numeric:tabular-nums; line-height:1;
   flex:none; display:flex; align-items:center; justify-content:center; position:relative; z-index:1;}
 .jp.done .num{background:var(--good-bg); color:var(--good); border-color:transparent;}
-.jp.active .num{background:var(--navy); color:#fff; border-color:var(--navy);
-  box-shadow:0 0 0 4px rgba(0,64,144,.12);}
 
 /* El cintillo "FASE 01" se cae de las cajas del camino. Repetía en letra lo
    que el punto de arriba ya dice en número, en el mismo golpe de vista, y
@@ -2817,7 +2813,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
    cuanto la fase 01 dejo de llamarse con una sola palabra. */
 .jbar{height:5px; border-radius:20px; background:var(--line-soft); margin-top:9px;
   overflow:hidden; width:100%;}
-/* El avance de la etapa, del azul de su punto (.jp.active .num) y no el
+/* El avance de la etapa, del azul que llevaba el punto de la elegida y no el
    degradado cyan (Franklin Reyes, 30-9-2026: «la barra de procesos puede
    ser un azul más oscuro, igual que los puntos de la etapa»). --azul-panel
    es #004090 en claro y se aclara en oscuro, donde el --navy no se veía. */
@@ -2836,7 +2832,6 @@ body[data-vista="citas"] .fase-bar{display:none;}
 
    En verde cuando están, que también es información: quitar el renglón
    dejaría sin saber si es que no faltan o es que no hay. */
-.jp.active .jcount{color:var(--ink);}
 
 /* ── EL «VER LOS TRAMITES» SE FUE ──
    Fue primero un boton con fondo y relleno -y era el quien fijaba la altura
@@ -2849,15 +2844,14 @@ body[data-vista="citas"] .fase-bar{display:none;}
 
    Y no hace falta para anunciar que la tarjeta se pulsa: la tarjeta ENTERA
    es el boton -lleva role, tabindex y responde a Enter-, se levanta al pasar
-   por encima, y la que esta elegida se distingue por el marco y el «Estas
-   aqui». Un renglon mas debajo de eso no aclara nada. */
+   por encima, y lo que trae la elegida se despliega justo debajo. Un
+   renglon mas debajo de eso no aclara nada. */
 
 /* --- las etapas se pulsan ---
-   REGLA: el azul significa "esta es la etapa en curso" y NADA MAS. Al pasar
-   por encima solo se realza el fondo, que no se confunde con un estado. */
+   Al pasar por encima solo se realza el fondo, que no se confunde con un
+   estado. */
 .jp[data-ir]{cursor:pointer; transition:background .14s ease, border-color .14s ease;}
 .jp[data-ir]:hover{background:var(--block); border-color:var(--gray-soft);}
-.jp.active[data-ir]:hover{border-color:var(--navy);}
 .jp[data-ir]:focus-visible{outline:2px solid var(--navy); outline-offset:2px;}
 /* La flecha del hover era para las filas resumidas, que ya no existen. */
 .jp .jfl{display:none;}
@@ -3018,8 +3012,9 @@ body[data-vista="inicio"].etapa-elegida .tsec-sig:not([hidden]){display:flex;}
   padding:2px 9px; background:var(--linea-suave, var(--line-soft)); color:var(--mudo);}
 .gv-intro{font-size:var(--fs-fila); color:var(--ink); margin:8px 0 12px;}
 .gv-cols{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px;}
+/* La que estas mirando, sin fondo ni borde propios (Franklin Reyes,
+   5-10-2026): lo dice su «Estas aqui» en letra, como un renglon mas. */
 .gv-col{border:1px solid var(--line); border-radius:var(--r); padding:12px 14px;}
-.gv-col.aqui{background:var(--activa-bg); border-color:var(--navy2);}
 /* La que NO estas mirando se pulsa entera. Se nota antes de tocarla: el
    dedo del raton, y al pasar por encima se levanta y se tiñe el borde. */
 .gv-col[role="button"]{cursor:pointer; transition:border-color .12s, box-shadow .12s, transform .12s;}
@@ -5066,7 +5061,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 /* — titulos — */
 .sec-h .t, .sol-h, .ft-rh .t{ font-weight:600; letter-spacing:-.01em; }
 .jname, .t-name{ font-weight:600; letter-spacing:-.01em; }
-.jp:not(.active) .jname{ font-weight:600; }
+.jp .jname{ font-weight:600; }
 
 /* — lo secundario, con UN solo gris —
    Menos DENTRO DE LAS FICHAS. Ahi lo pidio el CIIP en negro, y tiene
@@ -5196,7 +5191,8 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 .hoy-card:hover{border-color:var(--gray-soft);}
 .hoy-card.tarde{border-color:color-mix(in srgb, var(--rust) 45%, var(--line));}
 .hoy-card.pronto{border-color:color-mix(in srgb, var(--amber) 45%, var(--line));}
-.hoy-card.recien{box-shadow:0 0 0 2px var(--cyan-deep);}
+/* La que se acaba de mover ya no lleva anillo (Franklin Reyes, 5-10-2026):
+   se veia igual que una tarjeta seleccionada. */
 .hoy-card-top{display:flex; justify-content:space-between; align-items:center; gap:8px;}
 .hoy-ente{font-size:var(--fs-chip); font-weight:700; letter-spacing:.04em; color:var(--navy2); background:var(--bg);
   border:1px solid var(--line); border-radius:6px; padding:2px 6px; white-space:nowrap;}
@@ -5499,15 +5495,15 @@ html.visor-abierto{overflow:hidden;}
   .visor-izq, .visor-lado{border:0; border-bottom:1px solid var(--line); overflow:visible;}
 }
 /* -- LOS HUECOS DEL CIIP, EN LA VENTANA DE LA CITA --
-   Los dias como los botones del modo, las horas en rejilla. Lo elegido va
-   en el azul lleno del calendario, que es como ya se marca un dia puesto. */
+   Los dias como los botones del modo, las horas en rejilla. Lo elegido iba
+   en el azul lleno del calendario; desde el 5-10-2026 no lleva ningun
+   efecto (Franklin Reyes: «quiero quitar el efecto a los cuadros al
+   seleccionar»). La clase .puesto se queda, que la usa el panel. */
 .ct-dias{display:flex; gap:6px; flex-wrap:wrap;}
 .ct-dia, .ct-hora{font:inherit; font-size:var(--fs-campo); font-weight:600; color:var(--gray); background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:8px 11px; cursor:pointer;}
 .ct-dia:hover, .ct-hora:hover{border-color:var(--cyan-deep); color:var(--navy2);}
-.ct-dia.puesto{border-color:var(--navy); color:var(--navy); background:var(--block);}
 .ct-horas{display:grid; grid-template-columns:repeat(auto-fill, minmax(76px, 1fr)); gap:6px;}
 .ct-hora{text-align:center; font-variant-numeric:tabular-nums;}
-.ct-hora.puesto{background:var(--navy); border-color:var(--navy); color:#fff;}
 .ct-zona{font-size:var(--fs-nota); color:var(--gray);}
 .ct-sinhuecos{font-size:var(--fs-parrafo); line-height:1.6; color:var(--ink);}
 .pf-campo.mal .ct-horas{outline:1px solid var(--rust); outline-offset:3px; border-radius:9px;}

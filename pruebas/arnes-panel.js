@@ -2101,8 +2101,10 @@
            m.length + ' marcada(s)' + (m.length ? ' — la ' + m[0].getAttribute('data-ir') : ''),
            '1 marcada — la 3');
 
-        /* El punto azul solo no bastaba para encontrarla con las cuatro cajas
-           separadas: se marca también el borde.
+        /* Y SIN EFECTO (Franklin Reyes, 5-10-2026: «quiero quitar el efecto a
+           los cuadros al seleccionar»). Aquí se pedía lo contrario -que la
+           elegida se distinguiera por el borde-; ahora se ve igual que las
+           otras: el mismo borde, el mismo fondo, la misma sombra y sin rótulo.
 
            Antes hay que ADELANTAR la transición. La caja tiene 140 ms de
            desvanecido de borde, y ahí está bien -lo acabas de pulsar, y el
@@ -2118,15 +2120,18 @@
           });
         });
         var otra = document.querySelector('.jp[data-ir]:not(.active)');
-        var ca = window.getComputedStyle(tercera).borderTopColor;
-        var co = otra ? window.getComputedStyle(otra).borderTopColor : '';
-        ok('camino: y se distingue por el borde', !!ca && ca !== co,
-           'elegida=' + ca + ' otra=' + co, 'colores distintos');
+        function aspecto(e){
+          var c = window.getComputedStyle(e);
+          return [c.borderTopColor, c.borderTopWidth, c.backgroundColor, c.boxShadow].join(' | ');
+        }
+        var ca = aspecto(tercera), co = otra ? aspecto(otra) : '';
+        ok('camino: y la elegida se ve igual que las otras', !!co && ca === co,
+           'elegida=' + ca + ' otra=' + co, 'el mismo aspecto');
 
-        /* Y el rótulo, que va en un atributo y lo pinta el CSS con ::after. */
-        ok('camino: y le sale su «Estás aquí»',
-           !!(tercera.getAttribute('data-aqui') || '').trim(),
-           JSON.stringify(tercera.getAttribute('data-aqui')), 'un rótulo con texto');
+        /* Ni el rótulo «Estás aquí» que pintaba el CSS con ::after. */
+        var tras = window.getComputedStyle(tercera, '::after').content;
+        ok('camino: y sin rótulo «Estás aquí» encima',
+           tras === 'none' || tras === 'normal', tras, 'none');
 
         /* Y AHÍ SE QUEDA. Es la otra mitad de «se corrige sola»: si la
            elección se recalculara en cada repintado, la 3 volvería a la 01 en
@@ -7162,6 +7167,22 @@
        !vacio || vacio.getAttribute('data-monton') !== 'todos',
        vacio ? ('apagado: ' + vacio.getAttribute('data-monton')) : 'ninguno apagado',
        'todos nunca se apaga');
+
+    /* Y el puesto, sin efecto (Franklin Reyes, 5-10-2026: «quiero quitar el
+       efecto a los cuadros al seleccionar»): ni el borde azul ni el anillo
+       de dentro. Aquí el puesto es «Todos», que se pulsó al entrar, y se
+       compara con «Sin asignar», que se puede pulsar y no lleva color. */
+    var puesto = cifras.querySelector('button[aria-pressed="true"]');
+    var vecino = cifras.querySelector('button[data-monton="sin"]');
+    function aspectoCifra(b){
+      var c = window.getComputedStyle(b);
+      return [c.borderTopColor, c.borderLeftColor, c.borderBottomColor, c.backgroundColor,
+              c.boxShadow, c.fontWeight].join(' | ');
+    }
+    ok('hoy: y el montón puesto se ve igual que los otros',
+       !!puesto && !!vecino && puesto !== vecino && aspectoCifra(puesto) === aspectoCifra(vecino),
+       puesto && vecino ? ('puesto=' + aspectoCifra(puesto) + ' otro=' + aspectoCifra(vecino)) : 'falta alguno',
+       'el mismo aspecto');
 
     /* Solo trámites: las consultas y las citas tienen su apartado. */
     ok('hoy: y solo trámites, sin consultas ni citas',
