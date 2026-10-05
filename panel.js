@@ -16582,8 +16582,23 @@ applyLang(idiomaParaMi());
     /* La licencia (c10) sí lo pide: la licencia de actividades económicas
        es su documento emitido, y llega al resolver como el de cualquiera. */
     return !t || (t.tipo !== 'constitucion' && t.tipo !== TIPO_PARAFISCALES && !esElPoder(t) &&
+                  !esAutorizacion(t) &&
                   !(ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo] &&
                     ESCALERA_POR_ETAPAS[t.tipo].sinEmitido));
+  }
+
+  /* El registro de extranjeros del SAREN (c32) no emite un papel que haya
+     que entregar: lo que da el SAREN es la autorización para firmar ante el
+     Registro. Se resuelve sin subir nada y el botón lo dice (Franklin
+     Reyes, 5-10-2026: «quitar la opción de subir el documento y en el
+     botón colocar "Autorizado para la firma"»). */
+  function esAutorizacion(t){ return !!t && t.tipo === 'registro_extranjeros_saren'; }
+
+  /* Lo que dice el botón de resolver, el mismo en la cola y en el visor. */
+  function rotuloResolver(t, u){
+    if (esElPoder(t)) return u.co_h_poder;
+    if (esAutorizacion(t)) return u.co_h_autoriza;
+    return pideEmitido(t) ? u.co_h_resolver : u.co_h_resolver_c;
   }
 
   /* QUÉ documento para pagar deja el equipo, y en qué trámite. Son tres, el
@@ -18155,7 +18170,7 @@ applyLang(idiomaParaMi());
       return;
     }
     var quien = t.nombre || u.co_sinnombre || '';
-    var rotulo = esElPoder(t) ? u.co_h_poder : pideEmitido(t) ? u.co_h_resolver : u.co_h_resolver_c;
+    var rotulo = rotuloResolver(t, u);
     boton.disabled = true;
     boton.textContent = u.co_subiendo || '';
     /* Los datos del acta se guardan ANTES de resolver, y ese orden es lo
@@ -18970,9 +18985,10 @@ applyLang(idiomaParaMi());
          constitución», que es de otro trámite (29-9-2026). */
       pista.textContent = (t.tipo === TIPO_PARAFISCALES ? u.vs_pista
         : esElPoder(t) ? u.co_h_p_poder
+        : esAutorizacion(t) ? u.co_h_p_autoriza
         : conEmitido ? u.co_h_p_emitido
         : t.tipo === 'constitucion' ? u.co_h_p_reserva : u.vt_p_resolver) || '';
-      var rotuloRes = esElPoder(t) ? u.co_h_poder : conEmitido ? u.co_h_resolver : u.co_h_resolver_c;
+      var rotuloRes = rotuloResolver(t, u);
       dondeRes.appendChild(pista);
       /* Mientras haya papel elegido sin enviar, el boton de abajo es el
          que lo envia; en cuanto sale, vuelve a ser «Resolver». */

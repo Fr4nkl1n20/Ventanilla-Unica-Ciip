@@ -10584,6 +10584,18 @@
        !ladoL.querySelector('#paVisorVale') && ladoL.textContent.indexOf(window.CIIP_T().co_h_sololectura) >= 0,
        ladoL.querySelector('#paVisorVale') ? 'con «Vale»' : (ladoL.textContent.indexOf(window.CIIP_T().co_h_sololectura) >= 0 ? 'con el aviso' : 'sin el aviso'),
        'con el aviso');
+    /* La c32 ante el SAREN no se resuelve con un papel: lo que da el SAREN
+       es la autorización para firmar (Franklin Reyes, 5-10-2026). Ni
+       archivo que subir, y el botón lo dice. */
+    var ladoS = window.CIIP_VISOR_LADO(tr('vs-v5', 'registro_extranjeros_saren', 'ante_el_ente'));
+    var uS = window.CIIP_T();
+    ok('saren: la c32 se resuelve sin subir documento',
+       !ladoS.querySelector('#hoy-doc-vs-v5'),
+       ladoS.querySelector('#hoy-doc-vs-v5') ? 'con el archivo' : 'sin el archivo', 'sin el archivo');
+    ok('saren: y el botón dice «Autorizado para la firma»',
+       [].some.call(ladoS.querySelectorAll('button'), function(b){ return b.textContent === uS.co_h_autoriza; }),
+       [].map.call(ladoS.querySelectorAll('button.btn.navy'), function(b){ return b.textContent; }).join(' | '),
+       uS.co_h_autoriza);
   }
 
   /* ═══════════ EL REGISTRO DE IMPORTADOR Y EXPORTADOR, FUERA ═══════════
