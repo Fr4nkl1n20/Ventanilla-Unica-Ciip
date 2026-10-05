@@ -10831,6 +10831,14 @@ applyLang(idiomaParaMi());
        id             de cuál
        inversionista  de quién es, para saber en qué bóveda dejar un
                       adjunto que suba el equipo
+       cerrada        (opcional) por qué no se puede escribir: la caja, «Adjuntar»
+                      y «Enviar» salen apagados y esa frase encima
+
+     Devuelve {cierra(motivo, extra)} para bloquear o desbloquear la caja
+     después, sin volver a pintar la conversación: motivo es la frase, extra
+     un nodo que va debajo -un botón-, y null desbloquea. El hilo no sabe
+     CUÁNDO se cierra; lo decide quien lo pinta. Hoy solo lo usa una
+     consulta resuelta: los trámites y las citas no lo pasan y quedan igual.
    */
   function pintaHilo(caja, de){
     var u = T();
@@ -10896,11 +10904,40 @@ applyLang(idiomaParaMi());
     pie.appendChild(fila);
     pie.appendChild(arch);
     pie.appendChild(avisoH);
+
+    /* ── LA CAJA, BLOQUEADA Y DICIENDO POR QUÉ ──
+       «al colocar una solicitud como resuelta se bloquee el chat y avise el
+        porqué» (Franklin Reyes, 5-10-2026). Se apagan la caja, «Adjuntar» y
+       «Enviar», y encima sale la razón. Apagados y no quitados: quien llega
+       ve dónde se escribiría y, justo encima, por qué ahora no. Lo que
+       estuviera a medio escribir se queda en la caja para cuando se abra. */
+    var avisoCerrado = el('div', 'hilo-cerrado');
+    avisoCerrado.setAttribute('role', 'status');
+    avisoCerrado.hidden = true;
+    pie.insertBefore(avisoCerrado, texto);
+    var cerrado = false;
+    function cierra(motivo, extra){
+      cerrado = (motivo != null);   /* una frase vacía sigue siendo bloqueo */
+      pie.classList.toggle('cerrado', cerrado);
+      texto.disabled = cerrado;
+      bClip.disabled = cerrado;
+      arch.disabled = cerrado;
+      bEnv.disabled = cerrado;
+      avisoCerrado.textContent = '';
+      avisoCerrado.hidden = !cerrado;
+      if (cerrado){
+        avisoCerrado.appendChild(el('span', null, motivo));
+        if (extra) avisoCerrado.appendChild(extra);
+        avisoH.textContent = '';
+      }
+    }
+
     /* soloLeer: lo que ya se dijo, sin caja para contestar. Es el hilo de
        una cita del lado del equipo desde la auditoría QA-04: escribir ahí
        no le llegaba a nadie. */
     if (!de.soloLeer) bloque.appendChild(pie);
     caja.appendChild(bloque);
+    if (de.cerrada != null) cierra(de.cerrada);
 
     /* La traducción automática (supabase-traduccion-chat.sql). trad lleva
        la de cada mensaje del otro lado que la tenga, y original los que
@@ -11031,6 +11068,8 @@ applyLang(idiomaParaMi());
     }
 
     bEnv.addEventListener('click', function(){
+      /* Bloqueada, ni con Enter ni con un clic que llegue por otro lado. */
+      if (cerrado) return;
       var dice = (texto.value || '').trim();
       var papel = arch.files[0] || null;
       if (!dice && !papel) return;   /* nada que decir */
@@ -11070,11 +11109,11 @@ applyLang(idiomaParaMi());
         texto.value = '';
         arch.value = ''; nomb.textContent = '';
         avisoH.textContent = '';
-        bEnv.disabled = false;
+        bEnv.disabled = cerrado;
         return lee().then(function(){ if (de.alEnviar) de.alEnviar(); });
       }).catch(function(e){
         console.warn('[CIIP] enviar mensaje:', e && (e.message || e));
-        bEnv.disabled = false;
+        bEnv.disabled = cerrado;
         avisoH.className = 'hilo-aviso err';
         avisoH.textContent = (fase === 'mensaje')
           ? (u.hilo_noenvia || '')
@@ -11102,6 +11141,8 @@ applyLang(idiomaParaMi());
       if (document.hidden || bloque.hidden || !bloque.getClientRects().length) return;
       lee(true);
     }, 20000);
+
+    return {cierra: cierra};
   }
 
 
@@ -11543,8 +11584,24 @@ applyLang(idiomaParaMi());
       }
 
       /* Y la conversacion, con la MISMA funcion que el expediente y la cita. */
-      pintaHilo(cuerpo, {tabla:'consulta_mensajes', col:'consulta', id:c.id,
-                         inversionista: c.inversionista || null});
+      var hilo = pintaHilo(cuerpo, {tabla:'consulta_mensajes', col:'consulta', id:c.id,
+                                    inversionista: c.inversionista || null});
+
+      /* Resuelta, no se escribe en ella (Franklin Reyes, 5-10-2026: «al
+         colocar una solicitud como resuelta se bloquee el chat y avise el
+         porqué»). Se dice por qué y, en el mismo sitio, la salida: una
+         consulta nueva, que entra en la cola del equipo como cualquiera.
+         Reabrirla es cosa del equipo, que es quien la dio por contestada. */
+      if (c.estado === 'resuelta'){
+        var bOtra = el('button', 'btn ghost', u['cons.nueva'] || '');
+        bOtra.type = 'button';
+        bOtra.id = 'consOtra';
+        bOtra.addEventListener('click', function(){
+          sugerido = {sectores: true, desdeLista: true};
+          pintaSectores();
+        });
+        hilo.cierra(u.cons_cerrada || '', bOtra);
+      }
     }
 
     /* ── la puerta ──
@@ -18920,6 +18977,7 @@ applyLang(idiomaParaMi());
   var cmFiltro = 'todas';
   var cmBusca = '';
   var cmUltimos = {};     /* consulta -> su último mensaje */
+  var cmHilo = null;       /* el hilo de la consulta abierta, para bloquearlo sin repintarlo */
 
   var navConsultas = document.getElementById('navConsultas');
   if (navConsultas) navConsultas.addEventListener('click', function(){ location.hash = 'consultas'; });
@@ -18994,6 +19052,11 @@ applyLang(idiomaParaMi());
         consultas = consultas.filter(function(x){ return x.id !== c.id; });
         c.estado = 'resuelta';
         resueltas = [c].concat(resueltas.filter(function(x){ return x.id !== c.id; }));
+        /* Si es la que está abierta en «Consultas y citas», se queda a la
+           vista, en su filtro, con el chat ya bloqueado y diciendo por qué
+           (Franklin Reyes, 5-10-2026). Antes se iba de la lista y se abría
+           otra, y no se veía qué le había pasado. */
+        if (cmSel === 'cons:' + c.id) cmFiltro = 'resueltas';
         pintaCola();
         return true;
       })
@@ -19210,10 +19273,14 @@ applyLang(idiomaParaMi());
     var cab = cmCabecera(it);
     if (centro.getAttribute('data-cm') === it.id && centro.firstChild){
       centro.replaceChild(cab, centro.firstChild);
+      /* Y el candado, que cambia con la cabecera: resolverla o reabrirla
+         bloquea o abre la caja en el acto, sin perder lo escrito. */
+      if (it.clase === 'cons' && cmHilo) cmHilo.cierra(cmCerrada(it.x));
       return;
     }
     centro.setAttribute('data-cm', it.id);
     centro.textContent = '';
+    cmHilo = null;
     centro.appendChild(cab);
     var cuerpo = el('div', 'cm-cuerpo');
     centro.appendChild(cuerpo);
@@ -19258,10 +19325,18 @@ applyLang(idiomaParaMi());
     return cab;
   }
 
+  /* Por qué no se escribe en una consulta, o null si se puede. Resuelta es
+     «esto ya está contestado»: escribir ahí sería contestar a algo que nadie
+     espera, y el inversionista tampoco puede (Franklin Reyes, 5-10-2026). La
+     frase dice la salida, que es «Reabrir», el botón de arriba. */
+  function cmCerrada(c){
+    return c.estado === 'resuelta' ? (T().co_m_cerrada || '') : null;
+  }
   function cmCuerpoConsulta(c, cuerpo){
     var u = T();
-    pintaHilo(cuerpo, {tabla:'consulta_mensajes', col:'consulta', id:c.id,
+    cmHilo = pintaHilo(cuerpo, {tabla:'consulta_mensajes', col:'consulta', id:c.id,
       inversionista:c.inversionista, equipo:true, quien:c.nombre || u.co_sinnombre || '',
+      cerrada:cmCerrada(c),
       alEnviar:function(){ cargaUltimosCm().then(pintaCm); }});
   }
 

@@ -334,7 +334,8 @@
               logoAbre, logoEspera, logoSube, logoTrasSubir, logoQuita, logoTrasQuitar,
               puertaTodos,
               consultaAbre, consultaMira, consultaEntra, consultaDentro,
-              rotulosMiran, consultaNueva, consultaNuevaMira, consultaTrasCrear, cierreCatalogo,
+              rotulosMiran, consultaCerradaVuelve, consultaCerradaEntra, consultaCerradaMira, consultaCerradaOtra,
+              consultaNueva, consultaNuevaMira, consultaTrasCrear, cierreCatalogo,
               sectorChatAbre, sectorChatSinNada, sectorChatConTramites, sectorChatGuardado,
               consultaCola, consultaToma, consultaTrasTomar,
               consultaResuelve, consultaResuelveOtra, consultaTrasResolver,
@@ -6902,9 +6903,31 @@
        todas ? todas.querySelector('.n').textContent : '(no hay)', (document.getElementById('navConsultasN') || {}).textContent);
     var fila = document.querySelector('#cmLista .cm-fila[data-cm="cons:cs3"]');
     if (fila) fila.click();
+    /* Franklin Reyes, 5-10-2026: «al colocar una solicitud como resuelta se
+       bloquee el chat y avise el porqué». */
+    var cand = cmCandado();
+    ok('mensajería: en una resuelta la caja, «Adjuntar» y «Enviar» están bloqueados',
+       cand.hay && cand.caja && cand.clip && cand.env, cand.dice, 'los tres apagados');
+    var U = window.CIIP_T ? window.CIIP_T() : {};
+    ok('mensajería: y dice por qué, y que se sigue con «Reabrir»',
+       cand.aviso && !!U.co_m_cerrada && cand.texto === U.co_m_cerrada &&
+         !!U.cons_reabrir && cand.texto.indexOf(U.cons_reabrir) >= 0,
+       cand.texto || '(sin aviso)', U.co_m_cerrada || '(sin la clave co_m_cerrada)');
     var re = document.getElementById('cmReabrir');
     ok('mensajería: una resuelta se puede reabrir', !!re, re ? re.textContent : '(no hay botón)', 'Reabrir');
     if (re) re.click();
+  }
+  /* Cómo está la caja de la conversación abierta en «Consultas y citas». */
+  function cmCandado(){
+    var ta = document.querySelector('#cmConv .hilo-txt');
+    var clip = document.querySelector('#cmConv .hilo-clip');
+    var env = document.querySelector('#cmConv .hilo-fila .btn.navy');
+    var av = document.querySelector('#cmConv .hilo-cerrado');
+    var r = {hay: !!(ta && clip && env), caja: !!(ta && ta.disabled), clip: !!(clip && clip.disabled),
+             env: !!(env && env.disabled), aviso: !!(av && !av.hidden), texto: av && !av.hidden ? av.textContent : ''};
+    r.dice = r.hay ? ('caja ' + (r.caja ? 'apagada' : 'encendida') + ', adjuntar ' + (r.clip ? 'apagado' : 'encendido') +
+                      ', enviar ' + (r.env ? 'apagado' : 'encendido')) : '(sin caja)';
+    return r;
   }
 
   function cmTrasReabrir(){
@@ -6916,6 +6939,15 @@
     var chip = document.querySelector('#cmConv .cm-cab .cons-est');
     ok('mensajería: y en curso, que alguien la llevaba',
        !!chip && chip.classList.contains('en_curso'), chip ? chip.className : '(sin chip)', 'en_curso');
+    /* Reabierta, se escribe otra vez, en el acto y sin recargar. */
+    var cand = cmCandado();
+    ok('mensajería: reabierta, la caja se desbloquea al momento',
+       cand.hay && !cand.caja && !cand.clip && !cand.env && !cand.aviso,
+       cand.dice + (cand.aviso ? ', con aviso' : ''), 'los tres encendidos, sin aviso');
+    /* Lo que se escriba ahora tiene que seguir ahí cuando se vuelva a
+       bloquear: se bloquea la caja, no se rehace. */
+    var ta = document.querySelector('#cmConv .hilo-txt');
+    if (ta) ta.value = 'A medio escribir';
     /* Y se vuelve a resolver, en dos pulsaciones, para dejarla como estaba. */
     var bs = document.querySelectorAll('#cmConv .cm-cab .acc .btn');
     var r = bs[bs.length - 1];
@@ -6924,6 +6956,22 @@
 
   function cmTrasReresolver(){
     if (CASO !== 'gestor') return;
+    /* Resuelta desde aquí, se queda a la vista en su filtro y bloqueada en
+       el acto (Franklin Reyes, 5-10-2026); de «Todas» sí sale. */
+    var res = document.querySelector('#cmFiltros button[data-filtro="resueltas"]');
+    igual('mensajería: al resolverla se queda a la vista, en «Resueltas»',
+          res ? res.getAttribute('aria-pressed') : '(sin filtro)', 'true');
+    var sel = document.querySelector('#cmLista .cm-fila[aria-current="true"]');
+    igual('mensajería: y sigue abierta la misma', sel ? sel.getAttribute('data-cm') : '(ninguna)', 'cons:cs3');
+    var cand = cmCandado();
+    ok('mensajería: resuelta, la caja se bloquea al momento y dice por qué',
+       cand.hay && cand.caja && cand.clip && cand.env && cand.aviso && cand.texto === (window.CIIP_T ? window.CIIP_T().co_m_cerrada : '?'),
+       cand.dice + ' · ' + (cand.texto || '(sin aviso)'), 'los tres apagados, con el aviso');
+    var ta = document.querySelector('#cmConv .hilo-txt');
+    igual('mensajería: sin perder lo que estaba a medio escribir', ta ? ta.value : '(sin caja)', 'A medio escribir');
+    if (ta) ta.value = '';
+    var todas = document.querySelector('#cmFiltros button[data-filtro="todas"]');
+    if (todas) todas.click();
     igual('mensajería: y resuelta otra vez, sale de todas',
           !!document.querySelector('#cmLista .cm-fila[data-cm="cons:cs3"]'), false);
   }
@@ -12083,6 +12131,75 @@
     ok('rotulos: la ventana de la consulta tiene titulo',
        !!t && /\S/.test(t.textContent),
        t ? ('"' + t.textContent + '"') : '(no esta)', 'algo escrito');
+  }
+
+  /* ── LA CONSULTA RESUELTA, BLOQUEADA (Franklin Reyes, 5-10-2026) ──
+     «al colocar una solicitud como resuelta se bloquee el chat y avise el
+      porqué». La viva que se acaba de mirar se sigue pudiendo escribir; la
+     resuelta del ejemplo (cs3) no, lo dice, y ofrece abrir otra. */
+  function consultaCerradaVuelve(sigue){
+    if (CASO === 'gestor') return sigue();
+    var ta = document.querySelector('#consCuerpo .hilo-txt');
+    var av = document.querySelector('#consCuerpo .hilo-cerrado');
+    ok('consulta: una viva se sigue pudiendo escribir',
+       !!ta && !ta.disabled && (!av || av.hidden),
+       ta ? (ta.disabled ? 'caja apagada' : 'caja encendida') + (av && !av.hidden ? ', con aviso' : '') : '(sin caja)',
+       'caja encendida, sin aviso');
+    var v = document.querySelector('#consCuerpo .cons-volver');
+    if (v) v.click();
+    esperaFilas('#consCuerpo .cons-i[data-cons="cs3"]', 1, sigue);
+  }
+
+  function consultaCerradaEntra(){
+    if (CASO === 'gestor') return;
+    var b = document.querySelector('#consCuerpo .cons-i[data-cons="cs3"]');
+    ok('consulta: la resuelta sale en tu lista', !!b, b ? 'está' : '(no está)', 'cs3');
+    if (b) b.click();
+  }
+
+  function consultaCerradaMira(){
+    if (CASO === 'gestor') return;
+    var hilo = document.querySelector('#consCuerpo .hilo');
+    ok('consulta: la resuelta también enseña su conversación', !!hilo, hilo ? 'está' : '(no hay hilo)', 'el hilo');
+    if (!hilo) return;
+    var ta = hilo.querySelector('.hilo-txt'), clip = hilo.querySelector('.hilo-clip'),
+        env = hilo.querySelector('.hilo-fila .btn.navy');
+    ok('consulta: resuelta, no se puede escribir, adjuntar ni enviar',
+       !!ta && ta.disabled && !!clip && clip.disabled && !!env && env.disabled,
+       [ta ? (ta.disabled ? 'caja apagada' : 'caja encendida') : 'sin caja',
+        clip ? (clip.disabled ? 'adjuntar apagado' : 'adjuntar encendido') : 'sin adjuntar',
+        env ? (env.disabled ? 'enviar apagado' : 'enviar encendido') : 'sin enviar'].join(', '),
+       'los tres apagados');
+    var av = hilo.querySelector('.hilo-cerrado');
+    var dice = av && !av.hidden ? av.textContent : '';
+    var U = window.CIIP_T ? window.CIIP_T() : {};
+    ok('consulta: y le dice por qué, y que abra una nueva',
+       !!U.cons_cerrada && dice.indexOf(U.cons_cerrada) === 0, dice || '(sin aviso)', U.cons_cerrada || '(sin la clave cons_cerrada)');
+    var otra = document.getElementById('consOtra');
+    ok('consulta: con el botón para abrir otra', !!otra && !!U['cons.nueva'] && otra.textContent === U['cons.nueva'],
+       otra ? otra.textContent : '(no hay)', U['cons.nueva'] || '(sin la clave)');
+    /* Y escribir a la fuerza -el botón encendido a mano- no manda nada: el
+       clic se ignora. Se mira en el paso siguiente, cuando ya habría
+       llegado a la base. */
+    if (ta && env){
+      ta.value = 'Esto no debe salir';
+      env.disabled = false;
+      env.click();
+      env.disabled = true;
+    }
+  }
+
+  function consultaCerradaOtra(){
+    if (CASO === 'gestor') return;
+    var dichos = window.CIIP_MENTIRA_DICHOS_CONSULTA ? window.CIIP_MENTIRA_DICHOS_CONSULTA() : [];
+    ok('consulta: ni forzando el botón se escribe en una resuelta',
+       !dichos.some(function(m){ return m.texto === 'Esto no debe salir'; }),
+       dichos.map(function(m){ return m.consulta + ': ' + m.texto; }).join(' | ') || '(nada escrito)',
+       'nada en cs3');
+    var otra = document.getElementById('consOtra');
+    if (otra) otra.click();
+    igual('consulta: «Nueva consulta» desde la resuelta empieza por los sectores',
+          document.querySelectorAll('#consCuerpo .cs-rej .cs-sector').length, 9);
   }
 
   function consultaNueva(){

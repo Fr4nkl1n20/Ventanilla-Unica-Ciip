@@ -633,6 +633,9 @@
   window.CIIP_MENTIRA_OLVIDA_CONSULTA = function(id){
     consultas = consultas.filter(function(c){ return c.id !== id; });
   };
+  /* Lo que se ha escrito en los hilos de consulta durante la tanda: que en
+     una resuelta no se escriba ni forzando el botón (5-10-2026). */
+  window.CIIP_MENTIRA_DICHOS_CONSULTA = function(){ return dichosConsulta.slice(); };
   /* Lo que se borro en esta pasada, para que la lista lo respete. */
   var borrados = {};
   /* La configuracion del acompañamiento, con sus valores de fabrica. */

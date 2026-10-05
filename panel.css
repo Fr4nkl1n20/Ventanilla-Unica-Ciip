@@ -4185,6 +4185,17 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .hilo-fila .btn.navy{margin-left:auto;}
 .hilo-aviso{font-size:var(--fs-nota); font-weight:700;}
 .hilo-aviso.err{color:var(--rust);}
+/* La conversación bloqueada -una consulta resuelta- y por qué (Franklin
+   Reyes, 5-10-2026). El aviso va encima de la caja apagada, con el mismo
+   tono que los demás avisos que piden algo: ámbar con su raya. */
+.hilo-cerrado{display:flex; align-items:center; gap:8px 12px; flex-wrap:wrap;
+  padding:9px 11px; border-radius:var(--r-sm); background:var(--amber-bg);
+  border-left:3px solid var(--amber); color:var(--ink);
+  font-size:var(--fs-parrafo); line-height:1.45;}
+.hilo-cerrado > span{flex:1 1 220px; min-width:0;}
+.hilo-cerrado[hidden]{display:none;}
+.hilo-pie.cerrado .hilo-txt{opacity:.55; cursor:not-allowed;}
+.hilo-pie.cerrado .hilo-fila .btn{opacity:.45; cursor:not-allowed;}
 .hilo-arch{font-size:var(--fs-nota); color:var(--gray-soft); min-width:0;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 
