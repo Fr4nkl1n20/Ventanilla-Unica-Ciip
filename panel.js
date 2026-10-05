@@ -22301,13 +22301,14 @@ applyLang(idiomaParaMi());
         }
       });
       equipoMt.sort(function(a, b){ return a.nombre.localeCompare(b.nombre, 'es'); });
-      /* Lo que reclama algo arriba, igual que en la lista personal y en la
-         cola: el criterio es el mismo en las tres pantallas. */
-      todasMt.sort(function(a, b){
-        var ra = (a.estado === 'devuelto' || a.estado === 'borrador') ? 0 : 1;
-        var rb = (b.estado === 'devuelto' || b.estado === 'borrador') ? 0 : 1;
-        return (ra - rb) || (Date.parse(b.creado_en) - Date.parse(a.creado_en));
-      });
+      /* La más nueva, siempre la primera (Franklin Reyes, 5-10-2026:
+         «necesito que la nueva solicitud salga siempre de primera»). Antes
+         subían los borradores y las devueltas, como en la lista personal,
+         pero aquí no es el equipo quien tiene que moverlos: un borrador
+         viejo tapaba la solicitud que acababa de llegar. Cuenta desde que
+         se envió, o desde que se creó si aún no se ha enviado. */
+      function llego(t){ return Date.parse(t.enviado_en || t.creado_en) || 0; }
+      todasMt.sort(function(a, b){ return llego(b) - llego(a); });
       return ponDesdeCuando(todasMt);
     }).catch(function(e){
       console.warn('[CIIP] todos los trámites:', e && e.message);
