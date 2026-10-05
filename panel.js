@@ -9655,6 +9655,8 @@ applyLang(idiomaParaMi());
       if (!fila || !fila.datos) throw new Error('sin fila');
       t.datos = fila.datos;
       pinta();
+      /* Con el visor abierto, sus pasos y su cabecera avanzan con la casilla. */
+      if (visor && visor.id === t.id) pintaVisor();
     };
     var falla = function(boton, dice){
       return function(e){
@@ -18226,8 +18228,12 @@ applyLang(idiomaParaMi());
     return -1;
   }
 
+  /* modo: la vista del lado de trabajo, 'recaudo' o 'paso' (ver
+     visorModo); null = la que toque. respuesta: lo que contestó el ente,
+     'si' o 'no' (ver visorFin), para que el «al día» no la olvide. */
   function abreVisor(id, i){
-    visor = {id: id, i: Math.max(0, i), rechazo: false, motivo: null, borrador: null};
+    visor = {id: id, i: Math.max(0, i), rechazo: false, motivo: null, borrador: null,
+             modo: null, respuesta: null, devAbierto: false};
     pintaVisor(true);
     var cerrar = document.getElementById('paVisorCerrar');
     if (cerrar) cerrar.focus();
@@ -18248,6 +18254,7 @@ applyLang(idiomaParaMi());
   function visorVe(i){
     if (!visor) return;
     visor.i = i;
+    visor.modo = 'recaudo';
     visor.rechazo = false;
     visor.motivo = null;
     visor.borrador = null;
@@ -18295,11 +18302,14 @@ applyLang(idiomaParaMi());
     var activo = document.activeElement;
     var foco = (activo && caja.contains(activo)) ? activo.id : '';
     var vista = visorVista(t);
-    var clave = t.id + ':' + visor.i + ':' + vista;
+    var modo = visorModo(t, docs);
+    /* Con el modo en la clave, pasar del papel al paso -o al revés- rehace
+       el cuerpo entero: el documento solo se ve en el modo del recaudo. */
+    var clave = t.id + ':' + visor.i + ':' + vista + ':' + modo;
     var ventana = caja.querySelector('.visor-c');
 
     if (!entera && ventana && caja.getAttribute('data-doc') === clave){
-      ventana.replaceChild(visorBarra(t, d, docs), ventana.querySelector('.visor-bar'));
+      ventana.replaceChild(visorBarra(t, d, docs, modo), ventana.querySelector('.visor-bar'));
       var pasosV = ventana.querySelector('.visor-pasos');
       if (pasosV) ventana.replaceChild(visorPasos(t, vista), pasosV);
       if (vista === 'entes'){
@@ -18307,8 +18317,9 @@ applyLang(idiomaParaMi());
         ventana.replaceChild(visorEntes(t), cuE);
       } else {
         var cuerpo = ventana.querySelector('.visor-cu');
-        cuerpo.replaceChild(visorIzq(t, docs), cuerpo.querySelector('.visor-izq'));
-        cuerpo.replaceChild(visorLado(t, d, docs), cuerpo.querySelector('.visor-lado'));
+        cuerpo.replaceChild(visorIzq(t, docs, modo), cuerpo.querySelector('.visor-izq'));
+        var ladoV = cuerpo.querySelector('.visor-lado');
+        ladoV.parentNode.replaceChild(visorLado(t, d, docs, modo), ladoV);
       }
     } else {
       caja.textContent = '';
@@ -18316,15 +18327,26 @@ applyLang(idiomaParaMi());
       ventana.setAttribute('role', 'dialog');
       ventana.setAttribute('aria-modal', 'true');
       ventana.setAttribute('aria-labelledby', 'paVisorTit');
-      ventana.appendChild(visorBarra(t, d, docs));
+      ventana.appendChild(visorBarra(t, d, docs, modo));
       if (visorConEntes(t)) ventana.appendChild(visorPasos(t, vista));
       if (vista === 'entes'){
         ventana.appendChild(visorEntes(t));
       } else {
         var cu = el('div', 'visor-cu');
-        cu.appendChild(visorIzq(t, docs));
-        cu.appendChild(visorHoja(d));
-        cu.appendChild(visorLado(t, d, docs));
+        cu.appendChild(visorIzq(t, docs, modo));
+        if (modo === 'clasico'){
+          cu.appendChild(visorHoja(d));
+          cu.appendChild(visorLado(t, d, docs, modo));
+        } else {
+          /* La lista de tareas: a la izquierda los pasos, y a la derecha el
+             trabajo, que es el papel con su «Vale / No vale» debajo o el
+             paso en curso. Ver visorModo. */
+          cu.classList.add('vt');
+          var trabajo = el('div', 'vt-trabajo vt-' + modo);
+          if (modo === 'recaudo') trabajo.appendChild(visorHoja(d));
+          trabajo.appendChild(visorLado(t, d, docs, modo));
+          cu.appendChild(trabajo);
+        }
         ventana.appendChild(cu);
       }
       caja.appendChild(ventana);
@@ -18421,7 +18443,7 @@ applyLang(idiomaParaMi());
     return cu;
   }
 
-  function visorBarra(t, d, docs){
+  function visorBarra(t, d, docs, modo){
     var u = T(), ref = tipoRefDe(t.tipo);
     var bar = el('div', 'visor-bar');
     var tt = el('div', 'tt');
@@ -18438,7 +18460,11 @@ applyLang(idiomaParaMi());
        quiero que salga cuando estamos en el apartado de recaudos»). Solo
        queda cerrar. */
     var enEntes = visorVista(t) === 'entes';
-    if (d && !enEntes){
+    /* Y en el paso en curso de la lista de tareas (5-10-2026) tampoco hay
+       papel a la vista: fuera «Recaudo X de N», anterior, siguiente y
+       abrir en otra pestaña. Se vuelve a los papeles por la izquierda. */
+    var enPaso = modo === 'paso';
+    if (d && !enEntes && !enPaso){
       var cual = el('span', 'visor-cual');
       cual.appendChild(document.createTextNode(String(u.co_h_recaudo || '')
         .replace('{i}', visor.i + 1).replace('{n}', docs.length) + ' · '));
@@ -18454,6 +18480,7 @@ applyLang(idiomaParaMi());
      ['paVisorCola', u.co_ver, function(){ var id = t.id; cierraVisor(); abreCola(id); }, false],
      ['paVisorCerrar', u.co_h_cerrar, cierraVisor, false]].forEach(function(x){
       if (enEntes && x[0] !== 'paVisorCerrar') return;
+      if (enPaso && (x[0] === 'paVisorAnt' || x[0] === 'paVisorSig' || x[0] === 'paVisorPest')) return;
       var b = el('button', 't-btn', x[1] || '');
       b.type = 'button';
       b.id = x[0];
@@ -18464,7 +18491,81 @@ applyLang(idiomaParaMi());
     return bar;
   }
 
-  function visorIzq(t, docs){
+  /* ── EL VISOR COMO LISTA DE TAREAS ──
+     Franklin Reyes, 5-10-2026, con la maqueta «Lista de tareas» elegida
+     entre cuatro: la columna de la derecha enseñaba a la vez el estado del
+     recaudo, el archivo para resolver, la nota y las casillas para
+     devolver y los dos botones, y no se sabía en qué paso iba el trámite
+     ni qué pedía cada cosa.
+
+     Ahora, a la izquierda, los PASOS del trámite -los mismos que ve el
+     inversionista, de escaleraDe o escaleraPorEtapas: «que todos los pasos
+     coincidan»-, con «Tomarlo» delante y los recaudos debajo. A la
+     derecha, una de dos:
+       · 'recaudo': el papel, y debajo «Vale / No vale».
+       · 'paso': lo que hay que hacer en el paso en curso, y nada más.
+     Los parafiscales se quedan con su visor de tres pasos y los entes a
+     lo ancho ('clasico'): ya lo tenían ordenado así (29-9-2026). */
+  function visorModo(t, docs){
+    if (visorConEntes(t)) return 'clasico';
+    if (visor && visor.modo) return visor.modo;
+    docs = docs || [];
+    if (!t.gestor || !docs.length) return 'paso';
+    var mio = !!YO && t.gestor === YO;
+    /* Quien no la lleva viene a mirar papeles; quien la lleva, a lo que
+       toca: el papel mientras quede alguno sin mirar en la revisión. */
+    if (!mio) return 'recaudo';
+    var falta = docs.some(function(d){ return d.estado === 'cargado'; });
+    return (revisaPapelesEn(t) && falta) ? 'recaudo' : 'paso';
+  }
+  function escaleraDelVisor(t){
+    var def = ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo];
+    return def ? escaleraPorEtapas(t, t.tipo) : escaleraDe(t, t.tipo, hoyEnte(t));
+  }
+  function pasoEnCursoDe(E){
+    var todos = (E && E.todos) || [];
+    return (E && E.ahora) || todos.filter(function(p){ return p.ahora; })[0] || null;
+  }
+  function visorTareas(t, modo){
+    var u = T();
+    var mio = !!YO && t.gestor === YO;
+    var sec = el('section', 'vt-pasos');
+    sec.appendChild(el('h4', null, u.vt_pasos || ''));
+    var aPaso = function(){ if (!visor) return; visor.modo = 'paso'; pintaVisor(true); };
+
+    /* «Tomarlo» va fuera de la escalera: es del equipo, el inversionista
+       no lo ve. Sin gestor es lo que toca, y el paso de la escalera queda
+       en espera (vt-espera) para que no haya dos en azul. */
+    var toma = el('button', 'vt-tomar' + (t.gestor ? ' hecho' : ' ahora'));
+    toma.type = 'button';
+    toma.appendChild(el('span', 'vs-esc-p', t.gestor ? '✓' : '·'));
+    var tn = el('span', 'vt-n', u.vt_tomar || '');
+    tn.appendChild(el('small', null, mio ? (u.co_lollevas || '')
+      : t.gestor ? String(u.co_lolleva || '').replace('{quien}', nombreDeGestor(t.gestor))
+      : (u.vt_tomar_d || '')));
+    toma.appendChild(tn);
+    toma.addEventListener('click', aPaso);
+    sec.appendChild(toma);
+
+    var E = escaleraDelVisor(t);
+    /* Devuelta, la pelota es del inversionista: tampoco hay paso en azul. */
+    var ol = el('ol', 'vs-esc' + ((t.gestor && t.estado !== 'devuelto') ? '' : ' vt-espera'));
+    ((E && E.todos) || []).forEach(function(p, i){
+      var li = el('li', p.hecho ? 'hecho' : (p.ahora ? 'ahora' : ''));
+      if (p.ahora && modo === 'paso' && t.gestor && t.estado !== 'devuelto') li.setAttribute('aria-current', 'step');
+      var b = el('button', 'vt-paso-b');
+      b.type = 'button';
+      b.appendChild(el('span', 'vs-esc-p', p.hecho ? '✓' : String(p.n || (i + 1))));
+      b.appendChild(el('span', 'vs-esc-n', p.nombre));
+      b.addEventListener('click', aPaso);
+      li.appendChild(b);
+      ol.appendChild(li);
+    });
+    sec.appendChild(ol);
+    return sec;
+  }
+
+  function visorIzq(t, docs, modo){
     var u = T();
     var izq = el('div', 'visor-izq');
 
@@ -18477,6 +18578,7 @@ applyLang(idiomaParaMi());
     meta.appendChild(el('span', 'quien-lleva' + (mio ? ' mio' : ''),
       mio ? (u.co_lollevas || '') : t.gestor ? String(u.co_lolleva || '').replace('{quien}', nombreDeGestor(t.gestor)) : (u.co_sinasig || '')));
     izq.appendChild(meta);
+    if (modo && modo !== 'clasico') izq.appendChild(visorTareas(t, modo));
 
     var s1 = el('section');
     var cab = el('h4', null, u.co_archivos || '');
@@ -18492,7 +18594,7 @@ applyLang(idiomaParaMi());
       var b = el('button');
       b.type = 'button';
       b.setAttribute('data-doc', t.id + ':' + k);
-      b.setAttribute('aria-current', k === visor.i ? 'true' : 'false');
+      b.setAttribute('aria-current', (k === visor.i && modo !== 'paso') ? 'true' : 'false');
       b.appendChild(el('span', 'o ' + d.estado, d.estado === 'validado' ? '✓' : d.estado === 'rechazado' ? '✕' : ''));
       var n = el('span', 'n', d.nombre_original || nombreDeTipo_doc(d.tipo));
       /* Con cinco cédulas de cinco miembros de la junta, el tipo solo no dice
@@ -18591,12 +18693,22 @@ applyLang(idiomaParaMi());
     return hoja;
   }
 
-  function visorLado(t, d, docs){
+  /* modo: 'recaudo' (el «Vale / No vale» del papel, debajo del papel),
+     'paso' (lo que toca en el paso en curso) o 'clasico' (los
+     parafiscales: el recaudo y el pie juntos, en la columna de siempre).
+     Ver visorModo. */
+  function visorLado(t, d, docs, modo){
     var u = T();
-    var lado = el('div', 'visor-lado');
+    modo = modo || 'clasico';
+    var lado = el('div', 'visor-lado' + (modo === 'clasico' ? '' : ' vt-' + (modo === 'paso' ? 'paso' : 'dec')));
     var mio = !!YO && t.gestor === YO;
     /* En los RIF, ya con la solicitud recibida (30-9-2026): revisaPapelesEn. */
     var revisa = mio && revisaPapelesEn(t);
+
+    if (modo === 'paso'){
+      visorPaso(t, lado);
+      return lado;
+    }
 
     if (d){
       /* Aquí iba «Compáralo con lo que rellenó»: los datos del formulario
@@ -18617,15 +18729,17 @@ applyLang(idiomaParaMi());
           hoyMarca(t, d, nuevo, '').then(function(bien){
             if (!bien || nuevo !== 'validado' || !visor) return;
             /* Y al siguiente que falta: revisar seis papeles no debería
-               pedir doce clics. */
+               pedir doce clics. Sin ninguno por mirar, al paso en curso:
+               presentar, o devolver si alguno no vale. */
             var j = visorSiguiente(t.id, visor.i);
             if (j >= 0) visorVe(j);
+            else if (modo === 'recaudo' && visorSinMirar(t) === 0){ visor.modo = 'paso'; pintaVisor(true); }
           });
         });
         var no = el('button', 'no', u.co_h_novale || '');
         no.type = 'button';
         no.id = 'paVisorNoVale';
-        no.setAttribute('aria-pressed', (visor.rechazo || d.estado === 'rechazado') ? 'true' : 'false');
+        no.setAttribute('aria-pressed', ((visor && visor.rechazo) || d.estado === 'rechazado') ? 'true' : 'false');
         no.addEventListener('click', function(){
           visor.rechazo = true;
           pintaVisor();
@@ -18635,7 +18749,10 @@ applyLang(idiomaParaMi());
         dec.appendChild(si);
         dec.appendChild(no);
         s2.appendChild(dec);
-        if (visor.rechazo || d.estado === 'rechazado') s2.appendChild(visorRechazo(t, d));
+        if (modo === 'recaudo' && !((visor && visor.rechazo) || d.estado === 'rechazado')){
+          s2.appendChild(el('p', 'visor-d', u.vt_vale_sig || ''));
+        }
+        if (visor && (visor.rechazo || d.estado === 'rechazado')) s2.appendChild(visorRechazo(t, d, modo));
       } else {
         s2.appendChild(el('span', 'ct-chip' + (d.estado === 'validado' ? ' listo' : ''), hoyTextoEstado(d)));
         if (d.nota_revision) s2.appendChild(el('p', 'visor-d', d.nota_revision));
@@ -18644,15 +18761,21 @@ applyLang(idiomaParaMi());
       lado.appendChild(s2);
     }
 
+    /* Debajo del papel, el camino de vuelta a lo que toca. */
+    if (modo === 'recaudo'){
+      var E = escaleraDelVisor(t), ahora = pasoEnCursoDe(E);
+      var ir = el('button', 'enlace vt-ir', (u.vt_ir_paso || '') +
+        (!t.gestor ? ': ' + (u.vt_tomar || '') : (ahora && t.estado !== 'devuelto') ? ': ' + ahora.nombre : ''));
+      ir.type = 'button';
+      ir.id = 'paVisorIrPaso';
+      ir.addEventListener('click', function(){ visor.modo = 'paso'; pintaVisor(true); });
+      lado.appendChild(ir);
+      return lado;
+    }
+
     /* Los entes de los registros parafiscales, con «Inscripción hecha» y
-       «Marcar listo». Estaban en el expediente de «Mi panel», y el gestor
-       ya no lo tiene (dba9dd3): desde la tarjeta no había por dónde
-       inscribir a nadie (Franklin Reyes, 25-9-2026). Es el mismo bloque de
-       la ventana de la cola, con los mismos botones. Van en este lado y no
-       en el izquierdo (Franklin, el mismo día): allí se apretujaban debajo
-       de los archivos y aquí sobraba el sitio. */
-    /* Desde el 29-9-2026 los entes tienen su propio paso -el 3- y ya no
-       van aquí, debajo del recaudo, donde se leían como parte de él.
+       «Marcar listo». Desde el 29-9-2026 tienen su propio paso -el 3- y ya
+       no van aquí, debajo del recaudo, donde se leían como parte de él.
        Mientras están cerrados se dice cuándo se abren. */
     if (visorConEntes(t) && !visorEntesAbiertos(t)){
       lado.appendChild(el('p', 'visor-bloq', u.vs_p3_bloq || ''));
@@ -18674,120 +18797,85 @@ applyLang(idiomaParaMi());
       return lado;
     }
 
-    /* Con escalera por etapas -la marca, la licencia, el bomberos, los
-       libros-, ordenado en pestañas: ver visorPorEtapas. */
-    if ((ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo]) || VISOR_CON_PESTANAS[t.tipo]) return visorPorEtapas(t, lado);
-
     lado.appendChild(visorFin(t));
     return lado;
   }
 
-  /* ── EL LADO DE UN TRÁMITE CON ESCALERA POR ETAPAS ──
-     Franklin Reyes, 29-9-2026, con el sellado de libros delante: «¿cómo
-     podemos trabajar con más orden aquí?», «está muy confuso». El lado
-     apilaba el recaudo, la casilla de resolver -que aún no se podía usar-,
-     la del paso en curso con su importe y los botones sueltos; lo que
-     tocaba hacer quedaba enterrado en medio. Eligió la maqueta 3:
+  /* DEVOLVER, PLEGADO: es la excepción. Se abre solo cuando toca
+     (abierto: un papel que no vale, una nota empezada) o si quien trabaja
+     lo dejó abierto; y solo se recuerda lo que hace la persona, no la
+     apertura automática, o se quedaría abierto para siempre. */
+  function plegadoDevolver(abierto){
+    var u = T();
+    var p = el('details', 'vt-dev');
+    p.open = !!abierto || !!(visor && visor.devAbierto);
+    var antes = p.open;
+    p.addEventListener('toggle', function(){
+      if (p.open !== antes && visor) visor.devAbierto = p.open;
+      antes = p.open;
+    });
+    p.appendChild(el('summary', null, u.vt_dev_rev || ''));
+    return p;
+  }
 
-       · arriba, la escalera en pequeño, con el paso de ahora en azul;
-       · debajo, tres pestañas: «Paso en curso» (lo que pide la escalera:
-         el importe, el papel o el paso que marca el CIIP), «Este recaudo»
-         (validar o no el papel) y «Cerrar» (tomar, presentar,
-         devolver, resolver).
+  /* Cuántos recaudos quedan sin mirar. */
+  function visorSinMirar(t){
+    return (hoyDocs[t.id] || []).filter(function(d){ return d.estado === 'cargado'; }).length;
+  }
 
-     Se ve una a la vez. La que abre sola es la del paso en curso cuando
-     hay algo que hacer en ella -ante el ente-; antes, en la revisión, la
-     del recaudo, que es lo que se trabaja entonces. La elegida vive en
-     visor.pestana y no en la página: el lado se repinta entero al validar
-     un papel o con el «al día», y volvería a la primera. abreVisor la
-     olvida al abrir otra solicitud. */
-  /* Y la constitución, el mismo día (Franklin: «ese mismo formato creo que
-     también lo podemos aplicar para constitución de empresa»). Su escalera
-     no es por etapas: la cuenta escaleraDe, con la firma en el CIIP y la
-     reserva del nombre dentro. En su pie, el PUB de la reserva y la firma
-     van atados al botón de presentar -lo rotulan y lo habilitan-, así que
-     no se separan: «Paso en curso» es ese pie entero, y no hay «Cerrar». */
-  /* Y los dos RIF (Franklin Reyes, 30-9-2026): su escalera de cuatro pasos
-     arriba, la misma del inversionista, y el pie -mandar la planilla,
-     presentar- en «Paso en curso». */
-  var VISOR_CON_PESTANAS = {constitucion: true, rif_personal: true, rif_empresa: true};
-
-  function visorPorEtapas(t, lado){
+  /* EL PASO EN CURSO: su nombre, como lo ve el inversionista, y lo que
+     hay que hacer en él. Es lo que antes se repartía en pestañas («Paso
+     en curso», «Este recaudo», «Cerrar», 29-9-2026) en la marca, la
+     licencia, los bomberos, los libros, la constitución y los RIF, y en
+     un solo montón en los demás: ahora es una vista, en orden. En los de
+     escalera por etapas va primero la casilla del paso (el importe, el
+     papel, el paso que marca el CIIP) y luego el pie, que es el que
+     presenta, devuelve o resuelve. */
+  function visorPaso(t, lado){
     var u = T();
     var mio = !!YO && t.gestor === YO;
-    var def = ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo];
-    var E = def ? escaleraPorEtapas(t, t.tipo) : escaleraDe(t, t.tipo, hoyEnte(t));
-
-    var esc = el('ol', 'vs-esc');
-    (E ? E.todos : []).forEach(function(p, i){
-      var li = el('li', p.hecho ? 'hecho' : (p.ahora ? 'ahora' : ''));
-      li.appendChild(el('span', 'vs-esc-p', p.hecho ? '✓' : String(p.n || (i + 1))));
-      li.appendChild(el('span', 'vs-esc-n', p.nombre));
-      esc.appendChild(li);
-    });
-
-    var paneles = {};
-    var recaudo = el('div', 'vs-panel');
-    while (lado.firstChild) recaudo.appendChild(lado.firstChild);
-    var casilla = (mio && def) ? casillaDeLaMarca(t, 'hoy-mc-') : null;
-    var paso = el('div', 'vs-panel');
-    if (!def){
-      paso.appendChild(visorFin(t));
-    } else if (casilla){
-      paso.appendChild(casilla);
-    } else {
-      var ahora = E && E.ahora;
-      if (ahora){
-        paso.appendChild(el('div', 'vs-paso-t', String(u.vs_paso_n || '{n}. {paso}')
-          .replace('{n}', ahora.n).replace('{paso}', ahora.nombre)));
-      }
-      paso.appendChild(el('p', 'visor-d', u.vs_paso_nada || ''));
+    var E = escaleraDelVisor(t), todos = (E && E.todos) || [];
+    var ahora = pasoEnCursoDe(E);
+    var cab = el('div', 'vt-paso-cab');
+    if (t.gestor && ahora && t.estado !== 'devuelto'){
+      cab.appendChild(el('span', 'vt-paso-k', String(u.vt_paso_n || '')
+        .replace('{n}', ahora.n || (todos.indexOf(ahora) + 1)).replace('{t}', todos.length)));
     }
-    var cerrar = el('div', 'vs-panel');
-    if (def) cerrar.appendChild(visorFin(t, true));
-    paneles.paso = paso; paneles.recaudo = recaudo;
-    if (def) paneles.cerrar = cerrar;
+    var nombre = !t.gestor ? (u.vt_tomar || '')
+      : t.estado === 'devuelto' ? String(u.vt_devuelta || '').replace('{quien}', t.nombre || u.co_sinnombre || '')
+      : ahora ? ahora.nombre
+      : (todos.length ? todos[todos.length - 1].nombre : '');
+    cab.appendChild(el('b', 'vt-paso-t', nombre));
+    lado.appendChild(cab);
+    if (!t.gestor){
+      lado.appendChild(el('p', 'visor-d', String(u.vt_tomar_p || '').replace('{quien}', t.nombre || u.co_sinnombre || '')));
+    } else if (!mio){
+      lado.appendChild(el('p', 'visor-d', String(u.co_lolleva || '').replace('{quien}', nombreDeGestor(t.gestor))));
+    }
 
-    var enRevision = ['enviado', 'en_revision'].indexOf(t.estado) >= 0;
-    var cual = visor && visor.pestana;
-    if (!paneles[cual]) cual = casilla ? 'paso'
-      : (recaudo.childNodes.length && (def || enRevision)) ? 'recaudo' : 'paso';
-
-    var pest = el('div', 'vs-pest');
-    pest.setAttribute('role', 'tablist');
-    [['paso', 'vs_pest_paso'], ['recaudo', 'vs_pest_recaudo'], ['cerrar', 'vs_pest_cerrar']].forEach(function(p){
-      if (p[0] === 'recaudo' && !recaudo.childNodes.length) return;
-      if (!paneles[p[0]]) return;
-      var b = el('button', 'vs-pest-b', u[p[1]] || '');
-      b.type = 'button';
-      b.setAttribute('role', 'tab');
-      b.setAttribute('data-pest', p[0]);
-      b.setAttribute('aria-selected', p[0] === cual ? 'true' : 'false');
-      b.addEventListener('click', function(){
-        if (visor) visor.pestana = p[0];
-        pest.querySelectorAll('.vs-pest-b').forEach(function(x){
-          x.setAttribute('aria-selected', x === b ? 'true' : 'false');
-        });
-        Object.keys(paneles).forEach(function(k){ paneles[k].hidden = k !== p[0]; });
-      });
-      pest.appendChild(b);
-    });
-    Object.keys(paneles).forEach(function(k){ paneles[k].hidden = k !== cual; });
-
-    lado.classList.add('vs-etapas');
-    lado.appendChild(esc);
-    lado.appendChild(pest);
-    lado.appendChild(paso);
-    lado.appendChild(recaudo);
-    if (def) lado.appendChild(cerrar);
+    var def = ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo];
+    if (def){
+      var casilla = mio ? casillaDeLaMarca(t, 'hoy-mc-') : null;
+      if (casilla) lado.appendChild(casilla);
+      lado.appendChild(visorFin(t, true));
+    } else {
+      lado.appendChild(visorFin(t));
+    }
     return lado;
   }
-  /* Para las pruebas: el lado de un trámite sin abrir el visor entero. */
-  window.CIIP_VISOR_LADO = function(t, d){ return visorLado(t, d || null, []); };
+
+  /* Para las pruebas: los pasos y el paso en curso de un trámite, sin
+     abrir el visor entero. */
+  window.CIIP_VISOR_LADO = function(t, d){
+    var caja = el('div', 'vt-prueba');
+    caja.appendChild(visorTareas(t, 'paso'));
+    caja.appendChild(visorLado(t, d || null, [], d ? 'recaudo' : 'paso'));
+    return caja;
+  };
 
   /* El pie del lado: lo que se puede hacer con el trámite entero, según
      quién lo lleva y dónde está. sinEscalera: la casilla de la escalera
-     por etapas va en su propia pestaña (visorPorEtapas), no aquí. */
+     por etapas va delante, en el paso en curso (visorPaso), no aquí. */
   function visorFin(t, sinEscalera){
     var u = T(), ente = hoyEnte(t), c = hoyCuenta(t);
     var mio = !!YO && t.gestor === YO;
@@ -18795,22 +18883,97 @@ applyLang(idiomaParaMi());
     var pista = el('span', 'hoy-pista');
     var aviso = el('div', 'co-aviso');
     var botones = el('div', 'visor-bs');
+    var trasBotones = null;   /* lo que va debajo de los botones: devolver, plegado */
 
     if (!t.gestor){
       var toma = el('button', 'btn navy', u.co_tomar || '');
       toma.type = 'button';
-      toma.addEventListener('click', function(){ hoyToma(t, toma); });
+      /* Tomarla aquí es empezar a revisarla, como abrirla siendo tuya
+         (hoyAbre): sin el paso a revisión los papeles se quedaban sin
+         «Vale» hasta cerrar y volver a abrir. */
+      /* Sin el «Deshacer» del aviso de hoyToma: deshacer solo quita el
+         dueño, y dejaría la solicitud en revisión sin nadie que la lleve. */
+      toma.addEventListener('click', function(){
+        ponDuenio(t, YO, toma).then(function(){
+          if (t.gestor !== YO) return;
+          hoyRecien = t.id;
+          var sigue = (visor && visor.id === t.id && abrirLaPasaARevision(t))
+            ? mueveTramite(t, 'en_revision', '', null, null, '') : Promise.resolve(true);
+          return sigue.then(function(){
+            pintaHoy();
+            hoyAvisa(u.co_h_tomado);
+            if (visor && visor.id === t.id){ visor.modo = null; pintaVisor(true); }
+          });
+        });
+      });
       botones.appendChild(toma);
     } else if (mio && t.estado === 'ante_el_ente'){
       var conEmitido = pideEmitido(t);
+      /* QUÉ CONTESTÓ EL ENTE (5-10-2026, la lista de tareas). Resolver y
+         devolver salían juntos: el archivo, la nota, las casillas y los dos
+         botones. Ahora se elige primero la respuesta, y se ve solo lo suyo.
+         Los parafiscales no: se resuelven con los seis entes listos. */
+      /* Sin pregunta, con devolver plegado: cuando el ente es el propio
+         CIIP (el poder, los bienes: ahí no contesta nadie de fuera) y en los
+         de escalera por etapas, donde ante el ente quedan muchos pasos y la
+         casilla del paso va delante. */
+      var porEtapasF = !!(ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo]);
+      var pregunta = t.tipo !== TIPO_PARAFISCALES && ente !== 'CIIP' && !porEtapasF;
+      var dondeRes = fin, dondeDev = fin, bsRes = botones, bsDev = botones;
+      if (!pregunta && t.tipo !== TIPO_PARAFISCALES){
+        dondeDev = plegadoDevolver(!!(hoyNotas[t.id] || '').trim());
+        bsDev = el('div', 'visor-bs');
+      }
+      if (pregunta){
+        var resp = (visor && visor.respuesta) || 'si';
+        var quien = t.nombre || u.co_sinnombre || '';
+        fin.appendChild(el('div', 'vt-resp-q', String(u.vt_r_que || '').replace('{ente}', ente)));
+        var elige = el('div', 'vt-resp');
+        elige.setAttribute('role', 'radiogroup');
+        dondeRes = el('div', 'vt-pan');
+        dondeDev = el('div', 'vt-pan');
+        bsRes = el('div', 'visor-bs');
+        bsDev = el('div', 'visor-bs');
+        var pinta = function(){
+          elige.querySelectorAll('.vt-op').forEach(function(b){
+            b.setAttribute('aria-checked', b.getAttribute('data-r') === resp ? 'true' : 'false');
+          });
+          dondeRes.hidden = resp !== 'si';
+          dondeDev.hidden = resp !== 'no';
+        };
+        [['si', pideEmitido(t) ? u.vt_r_si : u.vt_r_listo, pideEmitido(t) ? u.vt_r_si_d : u.vt_r_listo_d, '✓'],
+         ['no', u.vt_r_no, u.vt_r_no_d, '↩']].forEach(function(o){
+          var b = el('button', 'vt-op vt-op-' + o[0]);
+          b.type = 'button';
+          b.id = 'paVisorR' + o[0];
+          b.setAttribute('role', 'radio');
+          b.setAttribute('data-r', o[0]);
+          b.appendChild(el('span', 'vt-op-ic', o[3]));
+          var tx = el('span', 'vt-op-tx');
+          tx.appendChild(el('b', null, o[1] || ''));
+          tx.appendChild(el('small', null, String(o[2] || '').replace('{quien}', quien)));
+          b.appendChild(tx);
+          b.addEventListener('click', function(){
+            resp = o[0];
+            if (visor) visor.respuesta = resp;
+            pinta();
+          });
+          elige.appendChild(b);
+        });
+        fin.appendChild(elige);
+        fin.appendChild(dondeRes);
+        fin.appendChild(dondeDev);
+        pinta();
+      }
       /* Los parafiscales no tienen reserva ni un único papel emitido: se
          resuelven con los seis entes listos. Decía «…resuelve la
          constitución», que es de otro trámite (29-9-2026). */
       pista.textContent = (t.tipo === TIPO_PARAFISCALES ? u.vs_pista
         : esElPoder(t) ? u.co_h_p_poder
-        : conEmitido ? u.co_h_p_emitido : u.co_h_p_reserva) || '';
+        : conEmitido ? u.co_h_p_emitido
+        : t.tipo === 'constitucion' ? u.co_h_p_reserva : u.vt_p_resolver) || '';
       var rotuloRes = esElPoder(t) ? u.co_h_poder : conEmitido ? u.co_h_resolver : u.co_h_resolver_c;
-      fin.appendChild(pista);
+      dondeRes.appendChild(pista);
       /* Mientras haya papel elegido sin enviar, el boton de abajo es el
          que lo envia; en cuanto sale, vuelve a ser «Resolver». */
       var rotulaRes = function(){
@@ -18818,7 +18981,7 @@ applyLang(idiomaParaMi());
         else res.textContent = rotuloRes || '';
       };
       var reserva = casillaDeLaReserva(t, 'hoy-res-', function(){ rotulaRes(); });
-      if (reserva) fin.appendChild(reserva.caja);
+      if (reserva) dondeRes.appendChild(reserva.caja);
       var archivo = null;
       if (conEmitido){
         var sube = el('div', 'co-emitir');
@@ -18830,7 +18993,7 @@ applyLang(idiomaParaMi());
         archivo.id = 'hoy-doc-' + t.id;
         archivo.accept = '.pdf,.jpg,.jpeg,.png';
         sube.appendChild(archivo);
-        fin.appendChild(sube);
+        dondeRes.appendChild(sube);
       }
       /* LO QUE TRAE EL ACTA PROTOCOLIZADA (Franklin Reyes, 21-9-2026:
          «esa información debería llenarse con la primera fase»). No puede:
@@ -18845,7 +19008,7 @@ applyLang(idiomaParaMi());
          los pide como hasta ahora. Un candado aquí dejaría sin resolver una
          protocolización que por lo demás está lista. */
       var delActa = (t.tipo === 'protocolizacion_acta') ? casillasDelActa(t) : null;
-      if (delActa) fin.appendChild(delActa.caja);
+      if (delActa) dondeRes.appendChild(delActa.caja);
       var res = el('button', 'btn navy', rotuloRes || '');
       res.type = 'button';
       res.addEventListener('click', function(){
@@ -18860,14 +19023,16 @@ applyLang(idiomaParaMi());
          pide algo que falta y el trámite vuelve al inversionista con la
          nota. Va a la izquierda de resolver, como en revisión. */
       var notaEnte = hoyNotaDe(t, 'co_nota');
-      fin.appendChild(notaEnte);
+      dondeDev.appendChild(notaEnte);
       var qEnte = casillasDelDevolver(t);
-      fin.appendChild(qEnte.caja);
+      dondeDev.appendChild(qEnte.caja);
       var devEnte = el('button', 'btn ghost', u.co_devolver || '');
       devEnte.type = 'button';
       devEnte.addEventListener('click', function(){ hoyDevuelve(t, notaEnte, devEnte, aviso, qEnte); });
-      botones.appendChild(devEnte);
-      botones.appendChild(res);
+      bsDev.appendChild(devEnte);
+      bsRes.appendChild(res);
+      if (pregunta){ dondeRes.appendChild(bsRes); dondeDev.appendChild(bsDev); }
+      else if (bsDev !== botones){ dondeDev.appendChild(bsDev); trasBotones = dondeDev; }
     } else if (mio && t.estado === 'devuelto'){
       /* Un devuelto ya no espera al CIIP: la pelota es del inversionista.
          Esta rama existe porque no estaba: desde que los devueltos entran
@@ -18951,7 +19116,10 @@ applyLang(idiomaParaMi());
       };
       var pagar = casillaDeLaReserva(t, 'hoy-pag-', function(){ rotulaPre(); });
       if (pagar) fin.appendChild(pagar.caja);
-      var firma = casillaDeLaFirma(t, function(){ rotulaPre(); });
+      var firma = casillaDeLaFirma(t, function(){
+        rotulaPre();
+        if (visor && visor.id === t.id) pintaVisor();
+      });
       if (firma) fin.appendChild(firma.caja);
       var nota = el('textarea');
       nota.id = 'hoy-nota-' + t.id;
@@ -18960,9 +19128,17 @@ applyLang(idiomaParaMi());
       nota.setAttribute('aria-label', u.co_nota || '');
       nota.value = hoyNotas[t.id] || '';
       nota.addEventListener('input', function(){ hoyNotas[t.id] = nota.value; });
-      fin.appendChild(nota);
+      /* DEVOLVER, PLEGADO (5-10-2026, la lista de tareas). Lo que toca en
+         la revisión es presentar; devolver es la excepción. Se abre solo
+         con un papel que no vale -lo normal es devolverla por él-, con una
+         nota ya empezada o si se dejó abierto. */
+      /* Los parafiscales, como estaban: su visor no cambia. */
+      var plegado = (t.tipo === TIPO_PARAFISCALES) ? null
+        : plegadoDevolver(!!(c && c.rechazado) || !!(hoyNotas[t.id] || '').trim());
+      var dondeDevR = plegado || fin;
+      dondeDevR.appendChild(nota);
       var qRev = casillasDelDevolver(t);
-      fin.appendChild(qRev.caja);
+      dondeDevR.appendChild(qRev.caja);
 
       /* QUÉ VA A RECIBIR EL OTRO, DICHO AQUÍ (Franklin Reyes, 21-9-2026:
          «quiero que ese proceso esté bien estructurado, que al
@@ -18981,12 +19157,17 @@ applyLang(idiomaParaMi());
       loQueRecibe.textContent = !c || !c.rechazado ? (u.co_h_dev_sinmarcar || '')
         : c.rechazado === 1 ? (u.co_h_dev_con1 || '')
         : String(u.co_h_dev_conn || '').replace('{n}', c.rechazado);
-      fin.appendChild(loQueRecibe);
+      dondeDevR.appendChild(loQueRecibe);
 
       var dev = el('button', 'btn ghost', u.co_devolver || '');
       dev.type = 'button';
       dev.addEventListener('click', function(){ hoyDevuelve(t, nota, dev, aviso, qRev); });
-      botones.appendChild(dev);
+      if (plegado){
+        var bsDevR = el('div', 'visor-bs');
+        bsDevR.appendChild(dev);
+        plegado.appendChild(bsDevR);
+        trasBotones = plegado;
+      } else botones.appendChild(dev);
       /* No se presenta ante el organismo lo que nadie ha mirado: el botón
          espera a que todos los papeles estén validados, y dice por qué. */
       var pre = el('button', 'btn navy', '');
@@ -19014,11 +19195,12 @@ applyLang(idiomaParaMi());
       if (importeV) fin.appendChild(importeV);
     }
     if (botones.childNodes.length) fin.appendChild(botones);
+    if (trasBotones) fin.appendChild(trasBotones);
     fin.appendChild(aviso);
     return fin;
   }
 
-  function visorRechazo(t, d){
+  function visorRechazo(t, d, modo){
     var u = T(), papel = nombreDeTipo_doc(d.tipo);
     var caja = el('div', 'visor-rechazo');
     caja.appendChild(el('p', 'visor-d', String(u.co_h_porque || '').replace('{quien}', t.nombre || u.co_sinnombre || '')));
@@ -19071,7 +19253,10 @@ applyLang(idiomaParaMi());
           visor.rechazo = false;
           visor.borrador = null;
           visor.motivo = null;
-          pintaVisor();
+          /* Sin papeles por mirar, al paso en curso: allí está devolver,
+             abierto y con este papel ya marcado. */
+          if (modo === 'recaudo' && visorSinMirar(t) === 0) visor.modo = 'paso';
+          pintaVisor(visor.modo === 'paso');
         }
       });
     });
@@ -19093,6 +19278,8 @@ applyLang(idiomaParaMi());
     /* En el paso 3 de los parafiscales no hay papel que pasar. */
     var tv = enRevision.filter(function(x){ return x.id === visor.id; })[0];
     if (tv && visorVista(tv) === 'entes') return;
+    /* Ni en el paso en curso: no hay papel a la vista. */
+    if (tv && visorModo(tv, docs) === 'paso') return;
     if (e.key === 'ArrowRight' && visor.i < docs.length - 1) visorVe(visor.i + 1);
     if (e.key === 'ArrowLeft' && visor.i > 0) visorVe(visor.i - 1);
   });
@@ -24302,6 +24489,11 @@ applyLang(idiomaParaMi());
     /* La verificación (c33), «Revisión de tus recaudos → Verificado»: con la
        cuenta de siempre la revisión salía hecha nada más enviarla (30-9-2026). */
     c33: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    /* Y la cuenta bancaria (c7, 5-10-2026, «que todos los pasos coincidan»):
+       «Solicitud en revisión → Cuenta aperturada». Sin esta línea iba por
+       la cuenta de siempre y la revisión salía hecha nada más enviarla,
+       con la apertura en curso mientras el gestor aún miraba los papeles. */
+    c7:  {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* La marca en proceso de registro (c43), Franklin Reyes, 5-10-2026
        («Ventanilla única 2.5»): «Revisión de estatus de la marca →
        Solicitud de información al SAPI → Marca concedida». Empieza por la

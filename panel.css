@@ -5300,11 +5300,10 @@ html.visor-abierto{overflow:hidden;}
    casilla de la constancia se quedaba en «N…o». */
 .visor-entes .pe-lista{width:auto; margin-top:0;}
 
-/* ── EL LADO CON ESCALERA POR ETAPAS (29-9-2026, la maqueta 3) ──
-   Arriba, la escalera en pequeño, con el paso de ahora en azul; debajo,
-   tres pestañas -paso en curso, este recaudo, cerrar- y una sola a la
-   vista. Ver visorPorEtapas en panel.js. */
-.vs-etapas{gap:12px;}
+/* ── LA ESCALERA EN PEQUEÑO DEL VISOR ──
+   Los pasos del trámite, con el de ahora en azul. Nació en el lado de los
+   de escalera por etapas (29-9-2026); desde la lista de tareas (5-10-2026)
+   va a la izquierda en todos, y sus pestañas se fueron. */
 .vs-esc{list-style:none; margin:0; padding:0; display:grid; gap:6px;}
 .vs-esc li{display:flex; align-items:center; gap:8px; font-size:var(--fs-fila); color:var(--gray-soft); min-width:0;}
 .vs-esc li.hecho{color:var(--ink);}
@@ -5314,15 +5313,6 @@ html.visor-abierto{overflow:hidden;}
 .vs-esc li.hecho .vs-esc-p{background:var(--good); border-color:var(--good); color:#fff;}
 .vs-esc li.ahora .vs-esc-p{background:var(--navy2); border-color:var(--navy2); color:#fff;}
 .vs-esc-n{min-width:0; overflow-wrap:anywhere;}
-.vs-pest{display:flex; gap:2px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
-.vs-pest-b{font:inherit; font-size:var(--fs-pestana); font-weight:600; color:var(--gray); background:none; border:0;
-  border-bottom:2px solid transparent; margin-bottom:-1px; padding:8px 10px; cursor:pointer;}
-.vs-pest-b[aria-selected="true"]{color:var(--navy2); border-bottom-color:var(--navy2);}
-.vs-pest-b:focus-visible{outline:2px solid var(--navy2); outline-offset:2px;}
-.vs-panel{display:flex; flex-direction:column; gap:16px; min-width:0;}
-.vs-panel[hidden]{display:none;}
-.vs-panel .visor-fin{margin-top:0; border-top:0; padding-top:0;}
-.vs-paso-t{font-size:var(--fs-tarjeta); font-weight:700;}
 
 /* ── LOS TRES PASOS DE LOS PARAFISCALES (29-9-2026, la idea A) ──
    Una barra de pestañas bajo la cabecera del visor, y el paso 3 como vista
@@ -5420,9 +5410,80 @@ html.visor-abierto{overflow:hidden;}
 .hoy-pista.bien{color:var(--good); font-weight:700;}
 .visor-bs{display:flex; gap:8px; flex-wrap:wrap;}
 .visor-bs .btn:disabled{opacity:.45; cursor:not-allowed;}
+/* ── EL VISOR COMO LISTA DE TAREAS (5-10-2026) ──
+   A la izquierda los pasos del trámite, los recaudos y lo que rellenó; a la
+   derecha el trabajo: el papel con «Vale / No vale» debajo, o el paso en
+   curso. Ver visorModo en panel.js. Los parafiscales siguen con su visor. */
+.visor-cu.vt{grid-template-columns:290px minmax(0,1fr);}
+.vt-trabajo{display:flex; flex-direction:column; min-width:0; min-height:0;}
+.vt-trabajo .visor-doc{flex:1 1 auto; min-height:0;}
+.vt-trabajo .visor-lado{border-left:0;}
+.visor-lado.vt-dec{flex:none; max-height:45%; border-top:1px solid var(--line); gap:10px; padding:12px 18px;}
+.vt-dec section{display:flex; flex-direction:column; gap:8px;}
+.vt-dec section h4{margin:0;}
+.vt-dec .visor-dec{max-width:420px;}
+.vt-dec .visor-d{margin:0;}
+.vt-ir{align-self:flex-start; font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy2);
+  background:none; border:0; padding:0; cursor:pointer;}
+.vt-ir:hover{text-decoration:underline;}
+.vt-ir:focus-visible{outline:2px solid var(--navy2); outline-offset:2px;}
+.visor-lado.vt-paso{flex:1 1 auto; padding:20px 24px; gap:14px;}
+.vt-paso > *{max-width:720px;}
+.vt-paso-cab{display:flex; flex-direction:column; gap:3px;}
+.vt-paso-k{font-size:var(--fs-chip); font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--navy2);}
+.vt-paso-t{font-size:var(--fs-tarjeta); font-weight:700; color:var(--ink);}
+.vt-paso .visor-fin{margin-top:0; border-top:0; padding-top:0;}
+
+/* Los pasos, como botones: llevan al paso en curso. */
+.vt-pasos{display:flex; flex-direction:column; gap:4px;}
+.vt-tomar, .vt-paso-b{display:flex; align-items:center; gap:8px; width:100%; text-align:left; font:inherit;
+  font-size:var(--fs-fila); color:inherit; background:none; border:0; border-radius:var(--r-sm); padding:6px 8px; cursor:pointer;}
+.vt-tomar:hover, .vt-paso-b:hover{background:var(--block);}
+.vt-tomar:focus-visible, .vt-paso-b:focus-visible{outline:2px solid var(--navy2); outline-offset:1px;}
+.vt-tomar{align-items:flex-start; color:var(--gray-soft);}
+.vt-tomar .vs-esc-p{flex:none; display:inline-grid; place-items:center; width:18px; height:18px; border-radius:50%;
+  border:1.5px solid var(--gray-soft); font-size:var(--fs-chip); font-weight:700;}
+.vt-tomar.hecho{color:var(--ink);}
+.vt-tomar.hecho .vs-esc-p{background:var(--good); border-color:var(--good); color:#fff;}
+.vt-tomar.ahora{color:var(--navy2); font-weight:700; background:var(--activa-bg);}
+.vt-tomar.ahora .vs-esc-p{background:var(--navy2); border-color:var(--navy2); color:#fff;}
+.vt-n{display:flex; flex-direction:column; min-width:0;}
+.vt-n small{font-size:var(--fs-nota); font-weight:400; color:var(--gray);}
+.vt-pasos .vs-esc{gap:2px;}
+.vt-pasos .vs-esc li{display:block;}
+.vt-pasos .vs-esc li.ahora .vt-paso-b{background:var(--activa-bg);}
+.vt-pasos .vs-esc.vt-espera li.ahora{color:var(--gray); font-weight:600;}
+.vt-pasos .vs-esc.vt-espera li.ahora .vt-paso-b{background:none;}
+.vt-pasos .vs-esc.vt-espera li.ahora .vs-esc-p{background:var(--bg); border-color:var(--gray-soft); color:var(--gray);}
+
+/* Devolver, plegado, en la revisión. */
+.vt-dev{border:1px solid var(--line); border-radius:var(--r-sm); padding:0 12px;}
+.vt-dev > summary{cursor:pointer; padding:10px 0; font-size:var(--fs-fila); font-weight:700; color:var(--rust);}
+.vt-dev > summary:focus-visible{outline:2px solid var(--navy2); outline-offset:2px;}
+.vt-dev[open]{padding-bottom:12px; display:flex; flex-direction:column; gap:8px;}
+.vt-dev[open] > summary{padding-bottom:2px;}
+
+/* Ante el ente: qué contestó. */
+.vt-resp-q{font-size:var(--fs-seccion); font-weight:700; color:var(--ink);}
+.vt-resp{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.vt-op{display:flex; gap:10px; align-items:flex-start; text-align:left; font:inherit; color:var(--ink); background:var(--bg);
+  border:1.5px solid var(--line); border-radius:var(--r); padding:12px; cursor:pointer;}
+.vt-op:hover{border-color:var(--cyan-deep);}
+.vt-op:focus-visible{outline:2px solid var(--navy2); outline-offset:2px;}
+.vt-op[aria-checked="true"]{border-color:var(--navy2); background:var(--activa-bg);}
+.vt-op-no[aria-checked="true"]{border-color:var(--rust); background:var(--rust-bg);}
+.vt-op-ic{flex:none; width:26px; height:26px; border-radius:50%; display:inline-grid; place-items:center;
+  font-size:var(--fs-fila); font-weight:700; background:var(--good-bg); color:var(--good);}
+.vt-op-no .vt-op-ic{background:var(--rust-bg); color:var(--rust);}
+.vt-op-tx{display:flex; flex-direction:column; gap:2px; min-width:0;}
+.vt-op-tx b{font-size:var(--fs-fila);}
+.vt-op-tx small{font-size:var(--fs-nota); color:var(--gray); line-height:1.4;}
+.vt-pan{display:flex; flex-direction:column; gap:8px;}
+.vt-pan[hidden]{display:none;}
 
 @media (max-width:1100px){
   .visor-cu{grid-template-columns:220px minmax(0,1fr) 280px;}
+  .visor-cu.vt{grid-template-columns:240px minmax(0,1fr);}
   /* Cinco cifras no caben aquí: a tres, que reparte mejor que a cuatro
      con una descolgada sola en la segunda fila. */
   .hoy-cifras{grid-template-columns:repeat(3,minmax(0,1fr));}
@@ -5432,6 +5493,9 @@ html.visor-abierto{overflow:hidden;}
   .visor{padding:0;}
   .visor-c{border-radius:0; max-height:none;}
   .visor-cu{grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(320px,1fr) auto; overflow:auto;}
+  .visor-cu.vt{grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(320px,1fr);}
+  .vt-resp{grid-template-columns:minmax(0,1fr);}
+  .visor-lado.vt-dec{max-height:none;}
   .visor-izq, .visor-lado{border:0; border-bottom:1px solid var(--line); overflow:visible;}
 }
 /* -- LOS HUECOS DEL CIIP, EN LA VENTANA DE LA CITA --

@@ -7230,11 +7230,33 @@
          (/Compáral[oa]/.test(ladoV.textContent) ? 'con el rótulo' : 'sin el rótulo')), '0 datos · sin el rótulo');
     ok('hoy: y lo que rellenó sigue a la izquierda', v.querySelectorAll('.visor-izq .co-dato').length > 0,
        v.querySelectorAll('.visor-izq .co-dato').length + ' datos', 'al menos uno');
+    igual('hoy: el foco entra al espacio', document.activeElement && document.activeElement.id, 'paVisorCerrar');
+    /* LA LISTA DE TAREAS (5-10-2026): a la izquierda los pasos del RIF, los
+       mismos del inversionista, con «Tomarlo» hecho delante; a la derecha,
+       con un papel sin mirar, el papel y su «Vale / No vale». */
+    ok('hoy: a la izquierda, los cuatro pasos del RIF y «Tomarlo» hecho',
+       v.querySelectorAll('.vt-pasos .vs-esc li').length === 4 && !!v.querySelector('.vt-pasos .vt-tomar.hecho'),
+       v.querySelectorAll('.vt-pasos .vs-esc li').length + ' pasos' + (v.querySelector('.vt-tomar.hecho') ? ', tomado' : ''),
+       '4 pasos, tomado');
+    ok('hoy: con un papel sin mirar, a la derecha el papel y su «Vale / No vale», sin el pie',
+       !!v.querySelector('.vt-recaudo .visor-doc') && !!document.getElementById('paVisorVale') && !v.querySelector('.visor-fin'),
+       (v.querySelector('.vt-recaudo') ? 'el papel' : 'otra vista') + (v.querySelector('.visor-fin') ? ', con el pie' : ''), 'el papel');
+    /* Y en el paso en curso, el botón de la planilla, apagado. */
+    var irP = document.getElementById('paVisorIrPaso');
+    if (irP) irP.click();
+    igual('hoy: el paso en curso se llama como el del inversionista',
+          (v.querySelector('.vt-paso .vt-paso-t') || {}).textContent, 'Planilla enviada por el CIIP');
     var pre = hoyBotonQueDice(v, HOY_BOTON_H1);
     ok('hoy: no deja mandar la planilla con papeles sin mirar', !!pre && pre.disabled,
        pre ? (pre.disabled ? 'apagado' : 'encendido') : 'no hay botón', 'apagado');
     igual('hoy: y dice cuántos faltan', (v.querySelector('.visor-fin .hoy-pista') || {}).textContent, 'Falta 1 recaudo por mirar.');
-    igual('hoy: el foco entra al espacio', document.activeElement && document.activeElement.id, 'paVisorCerrar');
+    ok('hoy: devolver va plegado mientras ningún papel se rechaza',
+       !!v.querySelector('details.vt-dev') && !v.querySelector('details.vt-dev').open,
+       v.querySelector('details.vt-dev') ? (v.querySelector('details.vt-dev').open ? 'abierto' : 'plegado') : 'sin devolver', 'plegado');
+    /* De vuelta al papel por la lista de la izquierda. */
+    [].forEach.call(v.querySelectorAll('.visor-chk button'), function(b){
+      if (/pasaporte-bianchi.pdf/.test(b.textContent)) b.click();
+    });
     var vale = document.getElementById('paVisorVale');
     if (vale) vale.click();
   }
@@ -7323,6 +7345,17 @@
     /* QA-10: ante el ente también se devuelve, que la escalera lo deja. */
     ok('hoy: ante el ente también se puede devolver',
        !!hoyBotonQueDice(v, 'Devolver'), hoyBotonQueDice(v, 'Devolver') ? 'con botón' : 'sin botón', 'Devolver');
+    /* Primero, qué contestó el ente: con «Emitió el documento» se ve el
+       archivo y resolver; con «Pide algo que falta», la nota y devolver. */
+    var rSi = document.getElementById('paVisorRsi'), rNo = document.getElementById('paVisorRno');
+    ok('hoy: ante el ente pregunta qué contestó, y abre en «Emitió el documento»',
+       !!rSi && !!rNo && rSi.getAttribute('aria-checked') === 'true' && !document.getElementById('hoy-doc-h3').closest('[hidden]'),
+       rSi ? rSi.getAttribute('aria-checked') : '(sin pregunta)', 'true');
+    if (rNo) rNo.click();
+    ok('hoy: con «Pide algo que falta» se esconde el archivo y sale la nota',
+       !!document.getElementById('hoy-doc-h3').closest('[hidden]') && !document.getElementById('hoy-nota-h3').closest('[hidden]'),
+       document.getElementById('hoy-doc-h3').closest('[hidden]') ? 'archivo escondido' : 'archivo a la vista', 'archivo escondido');
+    if (rSi) rSi.click();
     var res = hoyBotonQueDice(v, 'Resolver y entregar');
     if (res) res.click();
     igual('hoy: y no resuelve sin el documento',
@@ -10499,16 +10532,37 @@
             .map(function(x){ return x || 'nada'; }).join(','), 'nada,nada');
     if (!window.CIIP_VISOR_LADO) return;
     var ladoR = window.CIIP_VISOR_LADO(tr('vs-v1', 'visa_negocios', 'en_revision'));
-    ok('visa: gestor, en revisión el visor es el normal, sin escalera en pequeño ni pestañas',
-       !ladoR.querySelector('.vs-esc') && !ladoR.querySelector('.vs-pest') && !!ladoR.querySelector('.visor-fin'),
-       (ladoR.querySelector('.vs-esc') ? 'con escalera ' : '') + (ladoR.querySelector('.vs-pest') ? 'con pestañas ' : '') +
-         (ladoR.querySelector('.visor-fin') ? 'con su pie' : 'sin pie'), 'con su pie');
+    /* Desde la lista de tareas (5-10-2026) todos los visores llevan los
+       pasos del trámite a la izquierda, y ninguno pestañas. */
+    ok('visa: gestor, en revisión el visor lleva sus tres pasos y su pie, sin pestañas',
+       ladoR.querySelectorAll('.vs-esc li').length === 3 && !ladoR.querySelector('.vs-pest') && !!ladoR.querySelector('.vt-paso .visor-fin'),
+       ladoR.querySelectorAll('.vs-esc li').length + ' pasos' + (ladoR.querySelector('.vs-pest') ? ', con pestañas' : '') +
+         (ladoR.querySelector('.vt-paso .visor-fin') ? ', con su pie' : ', sin pie'), '3 pasos, con su pie');
     ok('visa: gestor, y sin aviso de planilla firmada',
        !/planilla firmada/i.test(ladoR.textContent), ladoR.textContent.slice(0, 80), 'sin planilla');
     var ladoE = window.CIIP_VISOR_LADO(tr('vs-v2', 'visa_inversionista', 'ante_el_ente'));
     ok('visa: gestor, ante la Cancillería se resuelve subiendo la visa como documento emitido',
-       !!ladoE.querySelector('#hoy-doc-vs-v2') && !ladoE.querySelector('.vs-esc'),
+       !!ladoE.querySelector('#hoy-doc-vs-v2'),
        ladoE.querySelector('#hoy-doc-vs-v2') ? 'con el archivo' : 'sin el archivo', 'con el archivo');
+    /* La lista de tareas (5-10-2026), lo que encontraron los agentes que la
+       verificaron. Ante el propio CIIP -los bienes, el poder- no contesta
+       nadie de fuera: no se pregunta, resolver queda a la vista y devolver,
+       plegado. */
+    var ladoB = window.CIIP_VISOR_LADO(tr('vs-v3', 'bienes_compraventa', 'ante_el_ente'));
+    ok('lista de tareas: ante el propio CIIP no se pregunta qué contestó, y devolver va plegado',
+       !ladoB.querySelector('#paVisorRsi') && !!ladoB.querySelector('details.vt-dev') && !!ladoB.querySelector('#hoy-doc-vs-v3'),
+       (ladoB.querySelector('#paVisorRsi') ? 'con pregunta' : 'sin pregunta') +
+         (ladoB.querySelector('details.vt-dev') ? ', devolver plegado' : ', sin plegado') +
+         (ladoB.querySelector('#hoy-doc-vs-v3') ? ', con el archivo' : ', sin el archivo'),
+       'sin pregunta, devolver plegado, con el archivo');
+    /* Y un papel que no se puede validar dice por qué: con la solicitud ya
+       ante el ente no hay «Vale», y lo dice el aviso de solo lectura. */
+    var ladoL = window.CIIP_VISOR_LADO(tr('vs-v4', 'visa_negocios', 'ante_el_ente'),
+      {id: 'vs-d4', tipo: 'pasaporte', estado: 'validado', nombre_original: 'pasaporte.pdf', archivo: 'u2/pasaporte.pdf'});
+    ok('lista de tareas: un papel sin «Vale» dice por qué',
+       !ladoL.querySelector('#paVisorVale') && ladoL.textContent.indexOf(window.CIIP_T().co_h_sololectura) >= 0,
+       ladoL.querySelector('#paVisorVale') ? 'con «Vale»' : (ladoL.textContent.indexOf(window.CIIP_T().co_h_sololectura) >= 0 ? 'con el aviso' : 'sin el aviso'),
+       'con el aviso');
   }
 
   /* ═══════════ EL REGISTRO DE IMPORTADOR Y EXPORTADOR, FUERA ═══════════
@@ -11357,8 +11411,9 @@
       igual('libros: y el inversionista ve el aviso de traerlos al CIIP',
             avisoL ? avisoL.textContent : '(sin aviso)', window.CIIP_T().sl_n_consigna);
     }
-    /* El lado del visor del equipo, con escalera por etapas (maqueta 3,
-       29-9-2026): la escalera en pequeño arriba y pestañas debajo. */
+    /* El visor del equipo con escalera por etapas: desde la lista de
+       tareas (5-10-2026), los pasos a la izquierda y, a la derecha, el paso
+       en curso con su casilla y el pie, sin pestañas. */
     if (window.CIIP_VISOR_LADO){
       var lado = window.CIIP_VISOR_LADO({id: 'sl-v', tipo: 'libros_contables', estado: 'ante_el_ente',
                                           gestor: 'otro-gestor', datos: {}});
@@ -11366,28 +11421,21 @@
       igual('visor por etapas: la escalera en pequeño, con los seis pasos', lis.length, 6);
       igual('visor por etapas: y el de ahora es el PUB',
             (lado.querySelector('.vs-esc li.ahora .vs-esc-n') || {}).textContent, 'Emisión de PUB por SAREN');
-      var pestB = lado.querySelectorAll('.vs-pest-b');
-      igual('visor por etapas: sin papel a la vista, dos pestañas: paso en curso y cerrar',
-            [].map.call(pestB, function(b){ return b.getAttribute('data-pest'); }).join(','), 'paso,cerrar');
-      var visibles = function(){ return [].filter.call(lado.querySelectorAll('.vs-panel'), function(p){ return !p.hidden; }).length; };
-      igual('visor por etapas: una sola pestaña a la vista', visibles(), 1);
-      if (pestB[1]) pestB[1].click();
-      ok('visor por etapas: al pulsar «Cerrar» se ve su pie, con el paso en curso escondido',
-         visibles() === 1 && !!lado.querySelector('.vs-panel:not([hidden]) .visor-fin'),
-         visibles() + ' a la vista', 'solo el pie');
-      /* La constitución, el mismo día: su escalera arriba y dos pestañas,
-         con el pie entero en «Paso en curso» (la reserva y la firma van
-         atadas al botón de presentar). */
+      igual('visor por etapas: sin pestañas', lado.querySelectorAll('.vs-pest-b').length, 0);
+      igual('visor por etapas: el paso en curso se llama como el de la escalera',
+            (lado.querySelector('.vt-paso .vt-paso-t') || {}).textContent, 'Emisión de PUB por SAREN');
+      ok('visor por etapas: y su pie está en el paso en curso',
+         !!lado.querySelector('.vt-paso .visor-fin'), 'busca el pie', 'a la vista');
+      /* La constitución: su escalera, y el pie entero en el paso en curso
+         (la reserva y la firma van atadas al botón de presentar). */
       var ladoC = window.CIIP_VISOR_LADO({id: 'co-v', tipo: 'constitucion', estado: 'en_revision',
                                            gestor: 'otro-gestor', datos: {}});
       ok('visor de la constitución: con su escalera en pequeño arriba',
          ladoC.querySelectorAll('.vs-esc li').length >= 4 && !!ladoC.querySelector('.vs-esc li.ahora'),
          ladoC.querySelectorAll('.vs-esc li').length + ' pasos', 'cuatro o más, uno en curso');
-      igual('visor de la constitución: sin «Cerrar», el pie va en el paso en curso',
-            [].map.call(ladoC.querySelectorAll('.vs-pest-b'), function(b){ return b.getAttribute('data-pest'); }).join(','),
-            'paso');
-      ok('visor de la constitución: y el pie está dentro de esa pestaña',
-         !!ladoC.querySelector('.vs-panel:not([hidden]) .visor-fin'), 'busca el pie', 'a la vista');
+      igual('visor de la constitución: sin pestañas', ladoC.querySelectorAll('.vs-pest-b').length, 0);
+      ok('visor de la constitución: y el pie está en el paso en curso',
+         !!ladoC.querySelector('.vt-paso .visor-fin'), 'busca el pie', 'a la vista');
     }
     if (puestoL) delete cat.c24;
   }
