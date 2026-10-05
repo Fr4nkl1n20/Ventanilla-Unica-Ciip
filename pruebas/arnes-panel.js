@@ -7218,8 +7218,16 @@
           (document.getElementById('paVisorDoc') || {}).textContent, 'pasaporte-bianchi.pdf');
     ok('hoy: el documento se ve dentro, sin salir a otra pestaña',
        !!v.querySelector('.visor-doc iframe, .visor-doc img'), 'busca el marco', 'con el documento');
-    ok('hoy: y al lado, lo que ese papel respalda', v.querySelectorAll('.visor-lado .co-dato').length > 0,
-       v.querySelectorAll('.visor-lado .co-dato').length + ' datos', 'al menos uno');
+    /* «Compáralo con lo que rellenó» se quitó del lado (Franklin Reyes,
+       5-10-2026): ni el rótulo ni los datos. Lo que rellenó sigue a la
+       izquierda. */
+    var ladoV = v.querySelector('.visor-lado');
+    ok('hoy: al lado ya no está «Compáralo con lo que rellenó»',
+       !!ladoV && !ladoV.querySelector('.co-dato') && !/Compáral[oa]/.test(ladoV.textContent),
+       !ladoV ? 'sin lado' : (ladoV.querySelectorAll('.co-dato').length + ' datos · ' +
+         (/Compáral[oa]/.test(ladoV.textContent) ? 'con el rótulo' : 'sin el rótulo')), '0 datos · sin el rótulo');
+    ok('hoy: y lo que rellenó sigue a la izquierda', v.querySelectorAll('.visor-izq .co-dato').length > 0,
+       v.querySelectorAll('.visor-izq .co-dato').length + ' datos', 'al menos uno');
     var pre = hoyBotonQueDice(v, HOY_BOTON_H1);
     ok('hoy: no deja mandar la planilla con papeles sin mirar', !!pre && pre.disabled,
        pre ? (pre.disabled ? 'apagado' : 'encendido') : 'no hay botón', 'apagado');

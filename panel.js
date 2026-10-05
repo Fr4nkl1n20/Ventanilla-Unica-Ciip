@@ -4483,8 +4483,7 @@ applyLang(idiomaParaMi());
        'apellidos', y no en uno nuevo: así salen ya puestos del perfil
        (rellenaDelPerfil) y se heredan por NOMBRE entre trámites, igual que
        en el registro de extranjeros. Pasaporte y país, los de siempre: los
-       respalda la página del pasaporte en el visor del gestor
-       (VISOR_COTEJO).
+       ve el gestor en la página del pasaporte, en su visor.
 
        Los tipos genéricos que nacieron para la visa -'area', 'grupo' con
        su apartado y FECHA_ORDEN- se quedan en el formulario aunque hoy no
@@ -18174,44 +18173,14 @@ applyLang(idiomaParaMi());
 
   /* ── EL ESPACIO DE TRABAJO ──
      Se abre al pulsar una tarjeta, en grande. A la izquierda los papeles del
-     trámite y lo que rellenó; en el centro el documento; a la derecha lo
-     que ese papel tiene que respaldar, la decisión y los botones del
-     trámite.
+     trámite y lo que rellenó; en el centro el documento; a la derecha la
+     decisión y los botones del trámite. (Encima de la decisión iba
+     «Compáralo con lo que rellenó»; se quitó, Franklin Reyes, 5-10-2026.)
 
      Validar un papel sin abrirlo es firmarlo a ciegas, y abrirlo en otra
-     pestaña obliga a ir y volver para compararlo con lo que rellenó.
-
-     Lo que NO hace, y por eso el rótulo dice «Compáralo»: no lee el
-     documento. No sabe si el número del pasaporte coincide; pone uno al
-     lado del otro para que lo vea una persona. ─────────────────────── */
+     pestaña obliga a ir y volver para compararlo con lo que rellenó. ─────────────────────── */
   var visor = null;       /* {id, i, rechazo, motivo, borrador} */
   var visorUrl = {};      /* archivo -> URL firmada; null pidiéndola, false si no abrió */
-
-  /* Qué datos del formulario respalda cada tipo de papel. Lo que no está
-     aquí enseña todos los datos: mejor de más que dejar al gestor sin nada
-     con qué comparar. La foto no respalda ninguno, y lo dice. */
-  var VISOR_COTEJO = {
-    pasaporte:          ['tipo_documento', 'numero_documento', 'numero_pasaporte', 'pais_emisor',
-                         'vence_pasaporte', 'fecha_nacimiento', 'apoderado_documento'],
-    cedula:             ['tipo_documento', 'numero_documento', 'fecha_nacimiento'],
-    visa:               ['numero_visa', 'fecha_ingreso', 'numero_pasaporte'],
-    domicilio:          ['direccion_fiscal', 'direccion_vzla'],
-    domicilio_empresa:  ['direccion_fiscal', 'direccion_local', 'domicilio_social', 'municipio'],
-    acta_constitutiva:  ['razon_social', 'denominacion', 'numero_registro', 'fecha_constitucion',
-                         'capital_social', 'tipo_sociedad', 'objeto_social', 'domicilio_social',
-                         'socios', 'representante'],
-    rif_personal:       ['numero_documento', 'direccion_fiscal'],
-    rif_empresa:        ['rif_empresa', 'razon_social', 'direccion_fiscal'],
-    poder:              ['apoderado_nombre', 'apoderado_documento', 'poder_numero', 'poder_notaria',
-                         'representante', 'titular'],
-    inversion:          ['monto_inversion', 'moneda', 'pais_origen_fondos', 'fecha_aporte', 'modalidad'],
-    comprobante_capital:['capital_social', 'monto_inversion', 'moneda'],
-    carta_motivo_viaje: ['motivo_viaje', 'contacto_venezuela'],
-    licencia_extranjera:['numero_licencia', 'pais_licencia', 'categoria', 'fecha_emision', 'vence_licencia'],
-    registro_comercio:  ['razon_social', 'numero_registro'],
-    logo_marca:         ['signo', 'tipo_signo'],
-    foto:               []
-  };
 
   /* Los motivos de siempre, con la frase que leerá el inversionista. Van
      escritos desde su lado: qué hacer, por qué lo pide el organismo y qué
@@ -18221,19 +18190,15 @@ applyLang(idiomaParaMi());
     ['co_h_m_vence', 'co_h_mt_vence'], ['co_h_m_otro', 'co_h_mt_otro']
   ];
 
-  function visorCampos(t, d){
+  /* Los datos que rellenó, para la columna de la izquierda. Ya no se
+     filtran por papel: eso era del «Compáralo» del lado, que se quitó
+     (Franklin Reyes, 5-10-2026), y con él VISOR_COTEJO. */
+  function visorCampos(t){
     var datos = t.datos || {};
-    var con = (CAMPOS[t.tipo] || []).filter(function(cp){
+    return (CAMPOS[t.tipo] || []).filter(function(cp){
       var v = datos[cp.n];
       return v !== undefined && v !== null && v !== '';
     });
-    if (!d) return con;
-    var quiere = VISOR_COTEJO[d.tipo];
-    if (quiere){
-      var suyos = con.filter(function(cp){ return quiere.indexOf(cp.n) >= 0; });
-      if (suyos.length || !quiere.length) return suyos;
-    }
-    return con;
   }
 
   function visorSiguiente(id, desde){
@@ -18527,7 +18492,7 @@ applyLang(idiomaParaMi());
 
     var s2 = el('section');
     s2.appendChild(el('h4', null, u.co_datos || ''));
-    var campos = visorCampos(t, null);
+    var campos = visorCampos(t);
     if (!campos.length) s2.appendChild(el('div', 'co-vacia', u.co_h_sindatos || ''));
     campos.forEach(function(cp){
       var fila = el('div', 'co-dato');
@@ -18618,20 +18583,9 @@ applyLang(idiomaParaMi());
     var revisa = mio && revisaPapelesEn(t);
 
     if (d){
-      var s1 = el('section');
-      s1.appendChild(el('h4', null, u.co_h_cotejo || ''));
-      var campos = visorCampos(t, d);
-      if (!campos.length){
-        s1.appendChild(el('p', 'visor-d', d.tipo === 'foto' ? (u.co_h_foto || '') : (u.co_h_sincotejo || '')));
-      }
-      campos.forEach(function(cp){
-        var fila = el('div', 'co-dato');
-        fila.appendChild(el('span', 'k', (u[cp.clave] || cp.n) + ':'));
-        fila.appendChild(el('span', 'v', String((t.datos || {})[cp.n])));
-        s1.appendChild(fila);
-      });
-      lado.appendChild(s1);
-
+      /* Aquí iba «Compáralo con lo que rellenó»: los datos del formulario
+         que respaldaba el papel. Se quitó (Franklin Reyes, 5-10-2026); lo
+         que rellenó sigue en la columna de la izquierda. */
       var s2 = el('section');
       s2.appendChild(el('h4', null, u.co_h_este || ''));
       if (revisa){
@@ -18722,7 +18676,7 @@ applyLang(idiomaParaMi());
        · arriba, la escalera en pequeño, con el paso de ahora en azul;
        · debajo, tres pestañas: «Paso en curso» (lo que pide la escalera:
          el importe, el papel o el paso que marca el CIIP), «Este recaudo»
-         (el cotejo y validar o no el papel) y «Cerrar» (tomar, presentar,
+         (validar o no el papel) y «Cerrar» (tomar, presentar,
          devolver, resolver).
 
      Se ve una a la vez. La que abre sola es la del paso en curso cuando
