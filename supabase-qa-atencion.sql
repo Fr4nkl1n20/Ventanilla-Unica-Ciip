@@ -388,10 +388,11 @@ begin
 end
 $con$;
 
+-- Desde el 5-10-2026 ya no: en una consulta resuelta no se puede escribir
+-- (política «consulta_mensajes: escribir en mi consulta», en
+-- supabase-consultas.sql) y reabrirla es cosa del equipo, con «Reabrir».
+-- La función se queda, pero el disparador se quita.
 drop trigger if exists consulta_mensajes_reabre on public.consulta_mensajes;
-create trigger consulta_mensajes_reabre
-  after insert on public.consulta_mensajes
-  for each row execute function public.consulta_se_reabre();
 
 
 -- ── 8. EL EQUIPO ABRE UNA CONSULTA CON ALGUIEN ───────────────────────────

@@ -321,11 +321,16 @@ create policy "consulta_mensajes: los de mi consulta" on public.consulta_mensaje
   );
 
 drop policy if exists "consulta_mensajes: escribir en mi consulta" on public.consulta_mensajes;
+-- En una consulta resuelta no escribe nadie: ni el inversionista ni el
+-- equipo (Franklin Reyes, 5-10-2026, «al colocar una solicitud como resuelta
+-- se bloquee el chat»). Reabrirla es cosa del equipo, con «Reabrir».
 create policy "consulta_mensajes: escribir en mi consulta" on public.consulta_mensajes
   for insert with check (
-    public.es_gestor() or exists (
+    exists (
       select 1 from public.consultas c
-      where c.id = consulta and c.inversionista = auth.uid()
+       where c.id = consulta
+         and c.estado <> 'resuelta'
+         and (public.es_gestor() or c.inversionista = auth.uid())
     )
   );
 

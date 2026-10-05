@@ -5695,11 +5695,16 @@ create policy "consulta_mensajes: los de mi consulta" on public.consulta_mensaje
   );
 
 drop policy if exists "consulta_mensajes: escribir en mi consulta" on public.consulta_mensajes;
+-- En una consulta resuelta no escribe nadie: ni el inversionista ni el
+-- equipo (Franklin Reyes, 5-10-2026, «al colocar una solicitud como resuelta
+-- se bloquee el chat»). Reabrirla es cosa del equipo, con «Reabrir».
 create policy "consulta_mensajes: escribir en mi consulta" on public.consulta_mensajes
   for insert with check (
-    public.es_gestor() or exists (
+    exists (
       select 1 from public.consultas c
-      where c.id = consulta and c.inversionista = auth.uid()
+       where c.id = consulta
+         and c.estado <> 'resuelta'
+         and (public.es_gestor() or c.inversionista = auth.uid())
     )
   );
 
@@ -11777,10 +11782,11 @@ begin
 end
 $con$;
 
+-- Desde el 5-10-2026 ya no: en una consulta resuelta no se puede escribir
+-- (política «consulta_mensajes: escribir en mi consulta», en
+-- supabase-consultas.sql) y reabrirla es cosa del equipo, con «Reabrir».
+-- La función se queda, pero el disparador se quita.
 drop trigger if exists consulta_mensajes_reabre on public.consulta_mensajes;
-create trigger consulta_mensajes_reabre
-  after insert on public.consulta_mensajes
-  for each row execute function public.consulta_se_reabre();
 
 
 -- ── 8. EL EQUIPO ABRE UNA CONSULTA CON ALGUIEN ───────────────────────────
