@@ -1131,7 +1131,7 @@ function applyLang(lang){
     if (window.CIIP_TRAMOS_DE_VERDAD) window.CIIP_TRAMOS_DE_VERDAD();
   }
 
-  function pintaTramite(id){
+  function pintaTramite(id, repaso){
     var tarjeta = document.querySelector('.tcard[data-tr="'+id+'"]');
     if (!tarjeta) return false;
 
@@ -1210,7 +1210,10 @@ function applyLang(lang){
     pintaGuiaVisas(id, D);
     pintaTramosDetalle(id, D, lang);
 
-    if (window.CIIP_TRAMITE_REAL) window.CIIP_TRAMITE_REAL(id);
+    /* «repaso» es el mismo trámite que ya estaba abierto, vuelto a pintar
+       por el repaso de cada minuto o por el cambio de idioma: el módulo de
+       solicitudes lo usa para no vaciar la pantalla mientras pregunta. */
+    if (window.CIIP_TRAMITE_REAL) window.CIIP_TRAMITE_REAL(id, !!repaso && trAbierto === id);
 
     trAbierto = id;
     return true;
@@ -1218,7 +1221,7 @@ function applyLang(lang){
 
   /* applyLang traduce lo clonado, pero los pasos salen de pasos.js y no
      llevan data-i18n. Este gancho los vuelve a dibujar. */
-  window.CIIP_REPINTA_PASOS = function(){ if (trAbierto) pintaTramite(trAbierto); };
+  window.CIIP_REPINTA_PASOS = function(){ if (trAbierto) pintaTramite(trAbierto, true); };
 
   /* ── EL PLAZO DE LA PANTALLA DEL TRÁMITE ES UNA COPIA, Y LAS COPIAS SE
         QUEDAN VIEJAS ────────────────────────────────────────────────────
@@ -5530,11 +5533,62 @@ applyLang(idiomaParaMi());
     return String(a.creado_en) > String(b.creado_en);
   }
 
-  window.CIIP_TRAMITE_REAL = function(refPanel){
+  /* ── EL REPASO NO VACÍA LA PANTALLA ──
+     Franklin Reyes, 5-10-2026: «a veces la página parece que se reiniciara
+     sola». Con una solicitud abierta, el repaso de cada minuto -y el de
+     volver a la pestaña- repinta el trámite, y esto empezaba vaciando la
+     caja y esperando tres viajes a la base: durante uno o dos segundos
+     desaparecía todo lo de debajo de la cabecera, la página se encogía y
+     el navegador subía la vista. Medido con el doble a 700 ms: la página
+     pasaba de 745 a 428 px de alto y volvía.
+
+     En un repaso -el MISMO trámite, ya pintado- lo de antes se queda a la
+     vista hasta que llega lo nuevo, y el alto se sostiene mientras se
+     rellena lo que llega más tarde (la escalera espera a su historial).
+
+     Y se repite lo que se eligió al abrir: la solicitud pedida desde «Mis
+     trámites» y el «Solicitar otro igual» se gastaban en la primera
+     pintada, así que al minuto se abría otra solicitud o volvía la resuelta
+     encima del formulario en blanco. */
+  var eleccion = {ref: null, pedida: null, otra: false};
+  var chipPuesto = null;
+  var sueltaReloj = null;
+  function sostenAlto(){
+    [caja, acompana].forEach(function(c){
+      if (!c) return;
+      var h = c.offsetHeight;
+      if (h) c.style.minHeight = h + 'px';
+    });
+    if (sueltaReloj) clearTimeout(sueltaReloj);
+    /* Por si la red no contesta: el alto no se queda sostenido para siempre. */
+    sueltaReloj = setTimeout(sueltaAlto, 8000);
+  }
+  function sueltaAlto(){
+    if (sueltaReloj){ clearTimeout(sueltaReloj); sueltaReloj = null; }
+    caja.style.minHeight = '';
+    if (acompana) acompana.style.minHeight = '';
+  }
+  /* Lo que se pinta después llega con una consulta más (el historial de la
+     escalera, los entes, el hilo): se suelta cuando ya ha tenido tiempo. */
+  function sueltaLuego(){
+    if (sueltaReloj) clearTimeout(sueltaReloj);
+    sueltaReloj = setTimeout(sueltaAlto, 2500);
+  }
+
+  window.CIIP_TRAMITE_REAL = function(refPanel, repaso){
     var miTurno = ++turno;
-    caja.textContent = '';
-    vaciaAcompana();
-    caja.classList.remove('puesto');
+    repaso = !!repaso && eleccion.ref === refPanel && caja.classList.contains('puesto');
+    if (repaso){
+      sostenAlto();
+      /* El distintivo se acaba de clonar de la tarjeta: se le devuelve el
+         de la solicitud, que es el que estaba a la vista. */
+      chipReal(chipPuesto);
+    } else {
+      sueltaAlto();
+      caja.textContent = '';
+      vaciaAcompana();
+      caja.classList.remove('puesto');
+    }
     /* LA ESCALERA DE MUESTRA NO SE ENSEÑA TODAVIA.
 
        Aqui se enseñaba nada mas pulsar, y se quitaba al llegar los datos.
@@ -5551,7 +5605,7 @@ applyLang(idiomaParaMi());
        encendido, sale la escalera; si lo esta, no sale nunca. Mientras
        tanto no queda un hueco vacio -la cabecera con su nombre, su
        organismo, su plazo y su descripcion se pinta al instante-. */
-    chipReal(null);
+    if (!repaso) chipReal(null);
 
     /* ── LAS DOS QUE NO DEPENDEN DE NADA, YA ──
        Franklin Reyes, 25-9-2026: «¿por qué tengo ese tiempo de tardanza al
@@ -5577,6 +5631,8 @@ applyLang(idiomaParaMi());
       if (miTurno !== turno) return;
       var t = tipos[refPanel];
       if (!t || !t.activo){                     /* sigue siendo maqueta */
+        /* Un repaso que encuentra el trámite apagado quita lo de antes. */
+        if (repaso){ caja.textContent = ''; vaciaAcompana(); caja.classList.remove('puesto'); sueltaAlto(); }
         escalera.classList.remove('oculto');
         return;
       }
@@ -5607,7 +5663,7 @@ applyLang(idiomaParaMi());
       return quienSoy().catch(function(){ return null; }).then(function(u){
         if (miTurno !== turno) return;
         usuario = u;
-        if (!usuario) return;
+        if (!usuario){ sueltaAlto(); return; }
         /* 'tipo' en el select, aunque se filtre por él y parezca que sobra
            (Franklin Reyes, 21-9-2026). La fila que sale de aquí es la que
            recibe pintaEstado como 'tr', y allí dentro se le pide tr.tipo:
@@ -5660,6 +5716,9 @@ applyLang(idiomaParaMi());
                es peor que acertar pero mucho mejor que una ficha vacía. */
             var pedida = window.CIIP_ABRE_ESTA;
             window.CIIP_ABRE_ESTA = null;
+            /* En un repaso, la que se eligió al abrir (ver «EL REPASO NO
+               VACÍA LA PANTALLA», arriba). */
+            if (repaso) pedida = eleccion.pedida;
             if (pedida){
               /* Se busca en TODAS, también en las canceladas: quien pulsa
                  «Abrir» en la fila de una cancelada viene a ver ésa. El
@@ -5669,7 +5728,9 @@ applyLang(idiomaParaMi());
             }
             escalera.classList.add('oculto');
             caja.classList.add('puesto');
-            caja.textContent = '';
+            /* En un repaso lo de antes sigue a la vista hasta el momento de
+               pintar lo nuevo: se vacía justo antes, más abajo. */
+            if (!repaso) caja.textContent = '';
             /* «Solicitar otro igual», elegido en el aviso que sale al
                pulsar una tarjeta ya resuelta: se entra al formulario EN
                BLANCO aunque haya una resuelta, que es lo que se acaba de
@@ -5682,6 +5743,8 @@ applyLang(idiomaParaMi());
                encima de algo terminado. */
             var otraIgual = window.CIIP_OTRA_IGUAL === refPanel;
             window.CIIP_OTRA_IGUAL = null;
+            if (repaso) otraIgual = eleccion.otra;
+            eleccion = {ref: refPanel, pedida: pedida, otra: otraIgual};
             /* Se apunta para toda la pantalla y no solo para este if: los
                tramos de abajo también tienen que saberlo, y se pintan
                después. Se pone SIEMPRE, también a false, porque esta línea
@@ -5703,7 +5766,11 @@ applyLang(idiomaParaMi());
                por primera vez o en proceso, la opción está elegida
                (pintaGuiaMarca). */
             if ((refPanel === 'c8' || refPanel === 'c43') && !otraIgual && mio && window.CIIP_MARCA_ELEGIDA) window.CIIP_MARCA_ELEGIDA(refPanel);
-            if (!otraIgual && mio && mio.estado !== 'borrador'){ chipReal(mio.estado); pintaEstado(t, mio); }
+            if (!otraIgual && mio && mio.estado !== 'borrador'){
+              caja.textContent = '';
+              chipReal(mio.estado); pintaEstado(t, mio);
+              if (repaso) sueltaLuego();
+            }
             else {
               if (otraIgual) mio = null;
               chipReal('sin_iniciar');
@@ -5733,6 +5800,7 @@ applyLang(idiomaParaMi());
                 if (miTurno !== turno) return;
                 caja.textContent = '';
                 pintaFormulario(t, mio);
+                if (repaso) sueltaLuego();
               });
             }
             /* Con varias del mismo trámite aquí salía «Tienes 2 solicitudes
@@ -5740,13 +5808,14 @@ applyLang(idiomaParaMi());
                porque no hacía nada. Las demás están en «Mis trámites». */
           });
       });
-    }).catch(function(e){ console.warn('[CIIP] trámite real:', e && e.message); });
+    }).catch(function(e){ sueltaAlto(); console.warn('[CIIP] trámite real:', e && e.message); });
   };
 
   /* El distintivo de la cabecera se clona de la tarjeta, y esa tarjeta lleva
      su estado escrito a mano: decía "Completado" sin existir la solicitud.
      En un trámite de verdad manda la base, así que se reescribe. */
   function chipReal(estado){
+    chipPuesto = estado;
     var hueco = document.getElementById('trChip');
     if (!hueco) return;
     var chip = hueco.querySelector('.chip');
@@ -19627,7 +19696,7 @@ applyLang(idiomaParaMi());
      aún no la tiene se guarda sin ella. */
   var rvDocs = null, rvNombres = {}, rvUsos = {}, rvFiltro = 'cargado',
       rvElegido = null, rvRechazando = false, rvCargando = null,
-      rvPersona = null, rvBusca = '';
+      rvPersona = null, rvBusca = '', rvNotaDe = null;
 
   function rvCarga(){
     if (rvCargando) return rvCargando;
@@ -19973,6 +20042,14 @@ applyLang(idiomaParaMi());
       var nota = document.createElement('textarea');
       nota.id = 'rvNota';
       nota.placeholder = u.rv_nota_ph || '';
+      /* Lo escrito sobrevive al repintado (5-10-2026): la bandeja se rehace
+         cuando entra trabajo de otro, y sin esto el motivo a medio poner se
+         iba con ella. Es de ESTE papel y de este gesto -rechazar u
+         observar-; cualquier otro empieza en blanco. */
+      if (rvNotaDe && rvNotaDe.id === d.id && rvNotaDe.modo === rvRechazando) nota.value = rvNotaDe.texto;
+      nota.addEventListener('input', function(){
+        rvNotaDe = {id: d.id, modo: rvRechazando, texto: nota.value};
+      });
       /* Los mismos motivos rápidos que el visor de la cola: el inversionista
          lee lo mismo venga de donde venga el rechazo. En una observación no
          salen: son motivos para tumbar un papel -«ilegible», «vencido»- y
@@ -19982,6 +20059,7 @@ applyLang(idiomaParaMi());
         b.type = 'button';
         b.addEventListener('click', function(){
           nota.value = u[m[1]] || u[m[0]] || '';
+          rvNotaDe = {id: d.id, modo: rvRechazando, texto: nota.value};
           nota.focus();
         });
         motivos.appendChild(b);
@@ -20041,6 +20119,7 @@ applyLang(idiomaParaMi());
       d.revisado_en = ahora;
       rvElegido = null;
       rvRechazando = false;
+      rvNotaDe = null;
       rvPinta();
       var aviso = document.querySelector('#rv .rv-visor .rv-msg');
       if (aviso){
@@ -20502,6 +20581,31 @@ applyLang(idiomaParaMi());
     });
   };
   window.CIIP_REPINTA_COMPROBANTES = function(){ if (rvDocs) cbPinta(); };
+
+  /* LAS DOS BANDEJAS, EN EL REPASO DE CADA MINUTO, SOLO SI ALGO CAMBIÓ
+     (Franklin Reyes, 5-10-2026: «parece que se reiniciara sola»). Repintar
+     rehace el visor entero: la imagen del papel se vuelve a firmar y a
+     cargar -desaparece un momento y lo de debajo salta- y el motivo de un
+     rechazo a medio escribir se perdía en cuanto el cursor no estaba
+     dentro, por ejemplo al volver de abrir el papel en otra pestaña. Se
+     pide primero y se repinta solo si la respuesta es otra, como ya hacen
+     los códigos (CIIP_AL_DIA_CODIGOS). */
+  function rvHuella(){
+    try { return JSON.stringify([rvDocs, rvUsos, rvNombres]); }
+    catch(e){ return String(Date.now()); }
+  }
+  function rvAlDia(entra, pinta){
+    return function(){
+      if (!esDelEquipo()) return;
+      if (rvDocs === null) return window[entra]();
+      var antes = rvHuella();
+      rvCargando = null;
+      return rvCarga().then(function(){ if (rvHuella() !== antes) pinta(); })
+        .catch(function(e){ console.warn('[CIIP] al día, documentos:', e && (e.message || e)); });
+    };
+  }
+  window.CIIP_AL_DIA_REVISAR      = rvAlDia('CIIP_PINTA_REVISAR', rvPinta);
+  window.CIIP_AL_DIA_COMPROBANTES = rvAlDia('CIIP_PINTA_COMPROBANTES', cbPinta);
   var navComprobantes = document.getElementById('navComprobantes');
   if (navComprobantes) navComprobantes.addEventListener('click', function(){ location.hash = 'comprobantes'; });
 
@@ -20528,6 +20632,7 @@ applyLang(idiomaParaMi());
      llegar -si la consulta de perfiles falla- dejaria a un inversionista sin
      menu, que es mucho peor que verlo un instante mal. Por eso la red de mas
      abajo los saca de todas formas. */
+  var colaAlEntrar = false;
   function menuPorRol(){
     renglonDeCola();
     /* ── EL EQUIPO NO TIENE «MI PANEL» ──
@@ -20555,7 +20660,17 @@ applyLang(idiomaParaMi());
     var soloGestor = (typeof PERFIL !== 'undefined' && PERFIL.rol) === 'gestor';
     var pn = document.getElementById('navPanel');
     if (pn) pn.hidden = soloGestor;
-    if (soloGestor && !location.hash) location.hash = 'poratender';
+    /* AL ENTRAR, y una sola vez (Franklin Reyes, 5-10-2026: «parece que se
+       reiniciara sola»). Esto se vuelve a llamar con cada repaso de la cola
+       -cada minuto-, así que un gestor que volvía a la portada con un
+       «Volver» se encontraba, hasta un minuto después y sin tocar nada,
+       llevado a «Por atender» con la vista subiendo. La regla es la de
+       arriba, «si entra sin dirección»: se cumple al entrar, cuando ya se
+       sabe el rol, y no se repite. */
+    if (soloGestor && !colaAlEntrar){
+      colaAlEntrar = true;
+      if (!location.hash) location.hash = 'poratender';
+    }
     /* Y TAMPOCO «MI EMPRESA» (Franklin Reyes, 2-10-2026: «como gestor,
        del apartado del panel quiero quitar Mi empresa»). Es la ficha de la
        empresa del inversionista, la que rellena los formularios de sus
@@ -22385,8 +22500,9 @@ applyLang(idiomaParaMi());
        abajo, porque además de repintarse pone al día el número del
        renglón. */
     var AL_DIA_DE_LA_VISTA = {
-      revisar:      'CIIP_PINTA_REVISAR',
-      comprobantes: 'CIIP_PINTA_COMPROBANTES',
+      /* Estas dos, por su repaso propio: solo repintan si algo cambió. */
+      revisar:      'CIIP_AL_DIA_REVISAR',
+      comprobantes: 'CIIP_AL_DIA_COMPROBANTES',
       codigos:      'CIIP_AL_DIA_CODIGOS',
       consultas:    'CIIP_PINTA_CONSULTAS',
       citas:        'CIIP_PINTA_AGENDA',
@@ -22435,6 +22551,17 @@ applyLang(idiomaParaMi());
       });
       return hay;
     }
+    /* ¿Lo que hay en el trámite es un FORMULARIO -el borrador, «Corregir»,
+       uno nuevo-? Entonces la pelota la tiene quien lo rellena y el CIIP no
+       mueve nada ahí, así que repintarlo no trae nada nuevo; y repintarlo
+       en blanco -sin nada escrito todavía, que la guarda de arriba deja
+       pasar- lo devolvía a la primera hoja y cerraba «Corregir» delante de
+       quien lo estaba leyendo (Franklin Reyes, 5-10-2026: «parece que se
+       reiniciara sola»). */
+    function formularioEnElTramite(){
+      var caja = document.getElementById('trReal');
+      return !!(caja && caja.querySelector('.pa'));
+    }
     function alDiaSiToca(){
       if (document.hidden) return false;
       if (Date.now() - ultimoAlDia < 20000) return false;
@@ -22445,6 +22572,7 @@ applyLang(idiomaParaMi());
          Lo único intocable es un formulario a medio rellenar. */
       var enTramite = document.body.getAttribute('data-vista') === 'tramite';
       if (enTramite && escribiendoEnElTramite()) return false;
+      var repasaTramite = enTramite && !formularioEnElTramite();
       ultimoAlDia = Date.now();
       if (window.CIIP_OLVIDA_CATALOGO) window.CIIP_OLVIDA_CATALOGO();
       /* Y los papeles de cada solicitud, que se guardan en memoria la
@@ -22497,11 +22625,13 @@ applyLang(idiomaParaMi());
         /* La escalera del trámite abierto se dibuja al abrirlo y no la
            repinta nadie cuando llegan datos nuevos: sin esto, la solicitud
            cambiaba de estado en la portada y el detalle seguía igual. */
-        if (enTramite && window.CIIP_REPINTA_PASOS) window.CIIP_REPINTA_PASOS();
+        if (repasaTramite && window.CIIP_REPINTA_PASOS) window.CIIP_REPINTA_PASOS();
       }, function(){});
       return true;
     }
     window.CIIP_AL_DIA = alDiaSiToca;
+    /* A la vista para la tanda, por lo mismo que la tabla de abajo. */
+    window.CIIP_FORMULARIO_EN_TRAMITE = formularioEnElTramite;
     /* A la vista para que la tanda pueda comprobar QUÉ pantallas se ponen
        al día solas y cuáles no: la lista de arriba es una decisión -las de
        formulario se quedan fuera a propósito- y una decisión sin prueba se

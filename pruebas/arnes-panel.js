@@ -404,6 +404,8 @@
                  ya encendida por alDiaVuelve. */
               marcaGuiaAbre, marcaGuiaMira, marcaNuevaMira, marcaProcMira,
               marcaVivaMira, marcaVivaNueva,
+              /* El repaso de cada minuto no «reinicia» el trámite (5-10-2026). */
+              repasoAbre, repasoMira, repasoTras, repasoPedida, repasoEstado, colaNoArrastra, rvRepaso,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
                  trámite nuevo en la tabla, y puesta antes le cambiaría las
                  cuentas a todo lo que cuenta tarjetas. */
@@ -10866,6 +10868,148 @@
     window.__TRAMITES_EXTRA = null;
     location.hash = '';
     setTimeout(sigue, 100);
+  }
+
+  /* ═══════════ EL REPASO NO REINICIA EL TRÁMITE ═══════════
+     Franklin Reyes, 5-10-2026: «a veces la página parece que se reiniciara
+     sola». Con un trámite abierto, el repaso de cada minuto vaciaba la caja
+     y esperaba a la base para volver a llenarla: la página se encogía, la
+     vista subía, y lo elegido al abrir -«Solicitar otro igual», la
+     solicitud pulsada en «Mis trámites»- se perdía. En 'lleno' la c1 tiene
+     una visa resuelta (t4) y un borrador (t5): es donde se ven las dos. */
+  function repasoAbre(sigue){
+    if (PASE !== 'lleno') return sigue();
+    if (window.CIIP_VISA_ELEGIDA) window.CIIP_VISA_ELEGIDA('c1');
+    location.hash = '';
+    setTimeout(function(){
+      window.CIIP_OTRA_IGUAL = 'c1';
+      location.hash = 'tramite-c1';
+      esperaFilas('#trReal .pa', 1, sigue);
+    }, 100);
+  }
+  function repasoMira(){
+    if (PASE !== 'lleno') return;
+    var real = document.getElementById('trReal');
+    ok('repaso: «Solicitar otro igual» abre el formulario en blanco',
+       !!(real && real.querySelector('.pa')), real && real.querySelector('.pa') ? 'formulario' : 'otra cosa', 'formulario');
+    ok('repaso: con un formulario a la vista, el repaso de cada minuto no repinta el trámite',
+       !!window.CIIP_FORMULARIO_EN_TRAMITE && window.CIIP_FORMULARIO_EN_TRAMITE() === true,
+       window.CIIP_FORMULARIO_EN_TRAMITE ? String(window.CIIP_FORMULARIO_EN_TRAMITE()) : 'no está', 'true');
+    if (window.CIIP_REPINTA_PASOS) window.CIIP_REPINTA_PASOS();
+    ok('repaso: no vacía el trámite mientras pregunta a la base',
+       !!real && real.childElementCount > 0 && real.classList.contains('puesto'),
+       real ? real.childElementCount + ' hijos' : '(sin caja)', 'lo de antes, a la vista');
+    ok('repaso: y sostiene el alto mientras tanto',
+       !!real && real.style.minHeight !== '', real ? (real.style.minHeight || '(sin alto)') : '(sin caja)', 'el alto de antes');
+  }
+  function repasoTras(sigue){
+    if (PASE !== 'lleno') return sigue();
+    var real = document.getElementById('trReal');
+    ok('repaso: «Solicitar otro igual» sigue en blanco, no vuelve la resuelta',
+       !!(real && real.querySelector('.pa')),
+       real && real.querySelector('.pa') ? 'formulario' : 'la resuelta', 'formulario');
+    setTimeout(function(){
+      ok('repaso: y suelta el alto cuando ya pintó',
+         !!real && real.style.minHeight === '', real ? (real.style.minHeight || 'suelto') : '(sin caja)', 'suelto');
+      location.hash = '';
+      setTimeout(function(){
+        window.CIIP_ABRE_ESTA = 't5';
+        location.hash = 'tramite-c1';
+        esperaFilas('#trReal .pa', 1, sigue);
+      }, 100);
+    }, 3000);
+  }
+  function repasoPedida(sigue){
+    if (PASE !== 'lleno') return sigue();
+    if (window.CIIP_REPINTA_PASOS) window.CIIP_REPINTA_PASOS();
+    setTimeout(function(){
+      var real = document.getElementById('trReal');
+      ok('repaso: la solicitud abierta desde «Mis trámites» sigue siendo esa',
+         !!(real && real.querySelector('.pa')),
+         real && real.querySelector('.pa') ? 'el borrador pedido' : 'otra', 'el borrador pedido');
+      location.hash = '';
+      setTimeout(sigue, 100);
+    }, 1500);
+  }
+  function repasoEstado(sigue){
+    if (PASE !== 'lleno') return sigue();
+    location.hash = 'tramite-c3';
+    esperaFilas('#trReal .sol-estado', 1, function(){
+      var real = document.getElementById('trReal');
+      ok('repaso: con una solicitud enviada a la vista sí se repasa (ahí se espera al CIIP)',
+         !!window.CIIP_FORMULARIO_EN_TRAMITE && window.CIIP_FORMULARIO_EN_TRAMITE() === false,
+         window.CIIP_FORMULARIO_EN_TRAMITE ? String(window.CIIP_FORMULARIO_EN_TRAMITE()) : 'no está', 'false');
+      var alto = real ? real.offsetHeight : 0;
+      if (window.CIIP_REPINTA_PASOS) window.CIIP_REPINTA_PASOS();
+      ok('repaso: y la solicitud enviada no se encoge mientras se repasa',
+         !!real && alto > 0 && real.offsetHeight >= alto,
+         real ? alto + ' → ' + real.offsetHeight + ' px' : '(sin caja)', 'el mismo alto');
+      setTimeout(function(){
+        location.hash = '';
+        setTimeout(sigue, 100);
+      }, 1500);
+    });
+  }
+
+  /* Y el gestor: «si entra sin dirección» se le lleva a la cola, pero eso
+     se repetía con cada repaso de la cola, y quien volvía a la portada con
+     un «Volver» era llevado a «Por atender» hasta un minuto después, sin
+     tocar nada (5-10-2026). Solo el gestor: al administrador no se le
+     lleva nunca. */
+  function colaNoArrastra(sigue){
+    if (PASE !== 'gestor' || !window.CIIP_REPINTA_COLA) return sigue();
+    var antes = location.hash;
+    location.hash = '';
+    setTimeout(function(){
+      window.CIIP_REPINTA_COLA();
+      setTimeout(function(){
+        igual('cola: el repaso de cada minuto no se lleva al gestor de la portada',
+              location.hash, '');
+        location.hash = antes ? antes.slice(1) : '';
+        setTimeout(sigue, 100);
+      }, 300);
+    }, 100);
+  }
+
+  /* Y «Documentos por revisar»: el repaso de cada minuto rehacía el visor
+     -la imagen del papel se volvía a cargar- y se llevaba el motivo de un
+     rechazo a medio escribir si el cursor no estaba dentro, por ejemplo al
+     volver de abrir el papel en otra pestaña (5-10-2026). */
+  var RV_REPASO_NOTA = 'Falta la segunda página';
+  function rvRepaso(sigue){
+    if (PASE !== 'gestor' || !window.CIIP_AL_DIA_REVISAR) return sigue();
+    var rv = document.getElementById('rv');
+    if (rv) rv.textContent = '';
+    location.hash = 'revisar';
+    esperaFilas('#rv .rv-pie .rv-btn.no', 1, function(){
+      var no = document.querySelector('#rv .rv-pie .rv-btn.no');
+      if (!no){
+        ok('repaso de revisar: hay un papel con «Rechazar»', false, 'no está', 'está');
+        return sigue();
+      }
+      no.click();
+      var nota = document.getElementById('rvNota');
+      if (nota){
+        nota.value = RV_REPASO_NOTA;
+        nota.dispatchEvent(new Event('input'));
+        nota.blur();
+      }
+      var visor = document.querySelector('#rv .rv-visor');
+      window.CIIP_AL_DIA_REVISAR();
+      setTimeout(function(){
+        ok('repaso de revisar: sin nada nuevo, el papel abierto no se vuelve a pintar',
+           !!visor && visor.isConnected, visor && visor.isConnected ? 'el mismo' : 'repintado', 'el mismo');
+        if (window.CIIP_REPINTA_REVISAR) window.CIIP_REPINTA_REVISAR();
+        var n2 = document.getElementById('rvNota');
+        igual('repaso de revisar: y si se repinta, el motivo a medio escribir sigue ahí',
+              n2 ? n2.value : '(sin recuadro)', RV_REPASO_NOTA);
+        if (n2){ n2.value = ''; n2.dispatchEvent(new Event('input')); }
+        var cancela = document.querySelector('#rv .rv-pie .rv-acc .rv-btn:not(.prim)');
+        if (cancela) cancela.click();
+        location.hash = '';
+        setTimeout(sigue, 100);
+      }, 800);
+    });
   }
 
   /* ═══════════ EL PERMISO DE BOMBEROS (c29), POR EL PORTAL ═══════════
