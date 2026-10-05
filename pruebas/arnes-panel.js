@@ -1256,7 +1256,7 @@
            Las cinco inscripciones le tocan a toda empresa: 'esencial', sin
            distintivo. El RUM sólo a la minería, y lo dice. */
         igual('nivel: las cinco inscripciones, que son de todos, no llevan nada', niv('c37'), '');
-        igual('nivel: el Registro Único Minero depende del ramo',   niv('c36'), 'Según tu actividad');
+        igual('nivel: el Registro Único Minero tampoco lleva «Según tu actividad» (5-10-2026)', niv('c36'), '');
 
         /* Y que apagarlos hizo lo que tenía que hacer: cinco fichas menos en
            la portada. Sin esto, dejarse una encendida en el catálogo pasaría
@@ -5001,7 +5001,7 @@
     igual('bienes: la compraventa pide los datos del contrato', bienesCampos(caja),
           'vendedor_juridico razon_social rif_empresa tipo_inmueble papel_empresa_bien estado_inmueble ' +
           'municipio_inmueble direccion_inmueble otra_parte otra_parte_documento otra_parte_contacto ' +
-          'precio_inmueble moneda_bien fecha_firma_bien observaciones_bien');
+          'precio_inmueble moneda_bien observaciones_bien');
     igual('bienes: y su empresa compra o vende', bienesOpciones(caja, 'papel_empresa_bien'),
           (U.o_bipapel_cv || []).join('|'));
     /* Diez desde el 2-10-2026 (Franklin Reyes), contando los escondidos: la

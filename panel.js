@@ -5175,7 +5175,8 @@ applyLang(idiomaParaMi());
       {n:'otra_parte_contacto',  clave:'f_bipartecont'},
       {n:'precio_inmueble',      clave:'f_biprecio',      tipo:'number'},
       {n:'moneda_bien',          clave:'f_bimoneda',      opcionesClave:'o_bimoneda'},
-      {n:'fecha_firma_bien',     clave:'f_bifecha',       tipo:'date', opcional:true},
+      /* Sin «Fecha prevista de la firma» en la compraventa (Franklin Reyes,
+         5-10-2026). El alquiler la sigue preguntando. */
       {n:'observaciones_bien',   clave:'f_biobs',         tipo:'area', ancho:true, opcional:true}
     ],
     bienes_alquiler: [
@@ -23274,11 +23275,12 @@ applyLang(idiomaParaMi());
        Se vio porque una prueba miraba el TEXTO y no solo la clase. Mirando
        solo la clase salia verde, que es como estuvo un rato. */
     var d = I18N[curLang] || I18N.en || {};
-    var clave, texto;
-    /* El que hace falta no lleva distintivo: se retira y se sale. */
-    if (nivel === 'obligatorio'){ if (viejo) viejo.remove(); return; }
-    else if (nivel === 'opcional')   { clave = 'niv.opcional';  texto = d['niv.opcional']; }
-    else                             { clave = 'niv.actividad'; texto = d['niv.actividad']; }
+    /* El que hace falta no lleva distintivo: se retira y se sale. Y el
+       que depende de la actividad tampoco, desde el 5-10-2026 (Franklin
+       Reyes: «quita eso de "Según tu actividad"»). Solo queda el opcional;
+       el nivel 'actividad' sigue contando en la base y en «Te quedan». */
+    if (nivel !== 'opcional'){ if (viejo) viejo.remove(); return; }
+    var clave = 'niv.opcional', texto = d['niv.opcional'];
 
     var span = viejo;
     if (!span){
