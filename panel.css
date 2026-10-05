@@ -1797,19 +1797,23 @@ body[data-vista="citas"] .fase-bar{display:none;}
 :is(#mtFiltros, #paCifras).mt-cifras button{display:flex; flex-direction:column; align-items:stretch;
   gap:6px; text-align:left; border:1px solid var(--line); border-radius:var(--r);
   background:var(--tr-velo); color:var(--ink); padding:12px 13px; cursor:pointer;
-  border-bottom-width:3px; border-bottom-color:var(--navy); font-weight:600;}
+  font-weight:600;}
+/* Sin la franja de abajo (Franklin Reyes, 5-10-2026: «quiero que no le
+   salga esa franja azul»). Era un borde de 3 px en azul marino que salía
+   en los cuadros con trámites; ahora todos llevan el mismo borde fino. Lo
+   que avisa -tarde, devueltas- lo sigue diciendo el color de la cifra y
+   del icono. */
 /* Tiene que repetir la tarjeta entera, y no basta con borrarla: las reglas
    de las pestañas del final (#mtFiltros button.aqui) le pondrían el fondo
    blanco, la sombra y la negrita. Va antes del :hover para que la puesta
    reaccione al ratón como las demás. */
 :is(#mtFiltros, #paCifras).mt-cifras button.aqui{background:var(--tr-velo); color:var(--ink); font-weight:600;
-  border-color:var(--line); border-bottom-color:var(--navy); box-shadow:none;}
-:is(#mtFiltros, #paCifras).mt-cifras button:hover{border-color:var(--cyan-deep); border-bottom-color:var(--navy);}
+  border-color:var(--line); box-shadow:none;}
+:is(#mtFiltros, #paCifras).mt-cifras button:hover{border-color:var(--cyan-deep);}
 /* El montón vacío se lee pero no se pulsa: llevar a una lista en blanco
    es una promesa que no se cumple, y esconderlo dejaría un hueco en la
    rejilla y una cifra que el tablero sí quiere enseñar. */
-:is(#mtFiltros, #paCifras).mt-cifras button[aria-disabled="true"]{cursor:default; opacity:.85;
-  border-bottom-color:var(--line);}
+:is(#mtFiltros, #paCifras).mt-cifras button[aria-disabled="true"]{cursor:default; opacity:.85;}
 :is(#mtFiltros, #paCifras).mt-cifras .mtc-h{display:flex; align-items:flex-start; gap:8px;
   justify-content:space-between;}
 :is(#mtFiltros, #paCifras).mt-cifras .mtc-t{font-size:var(--fs-nota); font-weight:700; color:var(--navy);
@@ -1825,7 +1829,6 @@ body[data-vista="citas"] .fase-bar{display:none;}
 /* Lo que va tarde se dice en rojo, con la misma palabra y el mismo color
    que la cola del equipo. */
 :is(#mtFiltros, #paCifras).mt-cifras button.tarde .n, :is(#mtFiltros, #paCifras).mt-cifras button.tarde .mtc-t{color:var(--rust);}
-:is(#mtFiltros, #paCifras).mt-cifras button.tarde{border-bottom-color:var(--rust);}
 :is(#mtFiltros, #paCifras).mt-cifras button.tarde .mtc-i svg{stroke:var(--rust);}
 /* Lo devuelto, en ambar: es el mismo color del distintivo de la fila y del
    aviso de la ficha, asi que las tres formas de enterarte de lo mismo se
@@ -1833,7 +1836,6 @@ body[data-vista="citas"] .fase-bar{display:none;}
    plazo» y son dos cosas distintas. */
 :is(#mtFiltros, #paCifras).mt-cifras button.devuelta .n,
 :is(#mtFiltros, #paCifras).mt-cifras button.devuelta .mtc-t{color:var(--amber);}
-:is(#mtFiltros, #paCifras).mt-cifras button.devuelta{border-bottom-color:var(--amber);}
 :is(#mtFiltros, #paCifras).mt-cifras button.devuelta .mtc-i svg{stroke:var(--amber);}
 @media (max-width: 1100px){
   :is(#mtFiltros, #paCifras).mt-cifras{grid-template-columns:repeat(3, minmax(0, 1fr));}
