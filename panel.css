@@ -5256,9 +5256,8 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
   background-size:62% 3px,74% 2px,54% 2px; background-position:4px 6px,4px 12px,4px 17px; background-repeat:no-repeat;}
 .hoy-th.img{background-image:none; background-color:var(--block);}
 .hoy-th.img::before{content:""; position:absolute; left:50%; top:8px; width:9px; height:9px; margin-left:-4.5px; border-radius:50%; background:var(--gray-soft);}
-.hoy-th::after{content:""; position:absolute; left:0; right:0; bottom:0; height:4px; background:var(--gray-soft);}
-.hoy-th.validado::after{background:var(--good);}
-.hoy-th.rechazado::after{background:var(--rust);}
+/* Sin la franja de color de abajo (Franklin Reyes, 6-10-2026): lo validado ya
+   lo dice «N de M validados» al lado, y cada papel su estado al pasar por encima. */
 .hoy-card-pie{display:flex; align-items:center; gap:8px; flex-wrap:wrap; border-top:1px solid var(--line-soft); padding-top:10px; margin-top:auto;}
 .hoy-card-pie .sp{flex:1 1 auto;}
 .hoy-card-pie .btn{padding:6px 11px;}
