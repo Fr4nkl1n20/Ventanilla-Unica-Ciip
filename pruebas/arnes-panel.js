@@ -5025,9 +5025,13 @@
        identificación del vendedor sustituye a la del propietario, que se
        queda en el alquiler; se suman la forma 33 y la identificación del
        comprador, y al final van los cuatro del vendedor jurídico. */
-    igual('bienes: con sus diez recaudos', bienesDocs(caja),
-          'propiedad_inmueble forma_33 identidad_vendedor identidad_comprador cedula_catastral ' +
-          'solvencia_inmuebles acta_vendedor identidad_rep_vendedor asamblea_rep_vendedor rif_vendedor');
+    /* Trece desde el 5-10-2026: la identificación del comprador deja paso
+       a su acta, su RIF y la identificación de su representante, y al
+       final va su última acta de asamblea, si aplica. */
+    igual('bienes: con sus trece recaudos', bienesDocs(caja),
+          'propiedad_inmueble forma_33 identidad_vendedor acta_comprador rif_comprador identidad_rep_comprador ' +
+          'cedula_catastral solvencia_inmuebles acta_vendedor identidad_rep_vendedor asamblea_rep_vendedor ' +
+          'rif_vendedor asamblea_comprador');
     ok('bienes: sin «undefined» en el detalle',
        document.body.innerText.indexOf('undefined') === -1, 'dice «undefined»', 'limpio');
 

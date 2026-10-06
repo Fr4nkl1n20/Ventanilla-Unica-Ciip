@@ -1881,6 +1881,10 @@
         {codigo:'identidad_comprador', vence:false}, {codigo:'acta_vendedor', vence:false},
         {codigo:'identidad_rep_vendedor', vence:false}, {codigo:'asamblea_rep_vendedor', vence:false},
         {codigo:'rif_vendedor', vence:false},
+        /* Los cuatro del comprador (5-10-2026), como si
+           supabase-bienes-comprador.sql estuviera corrido. */
+        {codigo:'acta_comprador', vence:false}, {codigo:'rif_comprador', vence:false},
+        {codigo:'identidad_rep_comprador', vence:false}, {codigo:'asamblea_comprador', vence:false},
         /* Los dos de la marca en proceso de registro (5-10-2026), como si
            supabase-marca-proceso.sql estuviera corrido. */
         {codigo:'planilla_solicitud_marca', vence:false}, {codigo:'identidad_titular_marca', vence:false}

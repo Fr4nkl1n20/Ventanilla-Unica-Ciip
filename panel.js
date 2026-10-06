@@ -3986,17 +3986,24 @@ applyLang(idiomaParaMi());
        vendedor lleva noCasilla -el contrario de siCasilla, nacido para
        esto-: una empresa no tiene cédula, y pedírsela dejaría la solicitud
        trabada por un papel que no existe. */
+    /* EL COMPRADOR ES UNA EMPRESA (Franklin Reyes, 5-10-2026). Su cédula y
+       su RIF dejan paso al acta constitutiva, el RIF, la cédula y el RIF
+       de su representante legal y, al final y si aplica, su última acta de
+       asamblea. */
     bienes_compraventa: [
       {tipo:'propiedad_inmueble',     clave:'d_bipropiedad'},
       {tipo:'forma_33',               clave:'d_biforma33'},
       {tipo:'identidad_vendedor',     clave:'d_bivendedor',  noCasilla:'vendedor_juridico'},
-      {tipo:'identidad_comprador',    clave:'d_bicomprador'},
+      {tipo:'acta_comprador',         clave:'d_biactacomp'},
+      {tipo:'rif_comprador',          clave:'d_birifcomp'},
+      {tipo:'identidad_rep_comprador', clave:'d_bireprcomp'},
       {tipo:'cedula_catastral',       clave:'d_bicatastral'},
       {tipo:'solvencia_inmuebles',    clave:'d_bisolvencia'},
       {tipo:'acta_vendedor',          clave:'d_biactavend',  siCasilla:'vendedor_juridico'},
       {tipo:'identidad_rep_vendedor', clave:'d_bireprvend',  siCasilla:'vendedor_juridico'},
       {tipo:'asamblea_rep_vendedor',  clave:'d_biasamvend',  siCasilla:'vendedor_juridico'},
-      {tipo:'rif_vendedor',           clave:'d_birifvend',   siCasilla:'vendedor_juridico'}
+      {tipo:'rif_vendedor',           clave:'d_birifvend',   siCasilla:'vendedor_juridico'},
+      {tipo:'asamblea_comprador',     clave:'d_biasamcomp',  opcional:true}
     ],
     bienes_alquiler: [
       {tipo:'propiedad_inmueble',     clave:'d_bipropiedad'},
