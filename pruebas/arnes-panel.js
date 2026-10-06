@@ -7381,7 +7381,7 @@
        !!document.getElementById('hoy-doc-h3').closest('[hidden]') && !document.getElementById('hoy-nota-h3').closest('[hidden]'),
        document.getElementById('hoy-doc-h3').closest('[hidden]') ? 'archivo escondido' : 'archivo a la vista', 'archivo escondido');
     if (rSi) rSi.click();
-    var res = hoyBotonQueDice(v, 'Resolver y entregar');
+    var res = hoyBotonQueDice(v, 'RIF emitido');
     if (res) res.click();
     igual('hoy: y no resuelve sin el documento',
           (v.querySelector('.visor-fin .co-aviso') || {}).textContent,
@@ -7409,7 +7409,7 @@
     var n = 0;
     (function mira(){
       var v = document.getElementById('paVisor');
-      if ((v && v.hidden) || (!b.disabled && b.textContent.trim() === 'Resolver y entregar') || ++n > 120) return sigue();
+      if ((v && v.hidden) || (!b.disabled && b.textContent.trim() === 'RIF emitido') || ++n > 120) return sigue();
       setTimeout(mira, 50);
     })();
   }
@@ -7426,7 +7426,7 @@
   function hoyEntregaFalla(sigue){
     if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
     var inp = document.getElementById('hoy-doc-h3');
-    var res = hoyBotonQueDice(document.getElementById('paVisor'), 'Resolver y entregar');
+    var res = hoyBotonQueDice(document.getElementById('paVisor'), 'RIF emitido');
     if (!inp || !res) return sigue();
     try {
       var dt = new DataTransfer();
@@ -7447,7 +7447,7 @@
     var v = document.getElementById('paVisor');
     igual('hoy: si mover falla, la resolución ya se entregó una vez', hoyResolucionesNuevas(), 1);
     ok('hoy: y el trámite sigue abierto para reintentar', !v.hidden, v.hidden ? 'cerrado' : 'abierto', 'abierto');
-    var res = hoyBotonQueDice(v, 'Resolver y entregar');
+    var res = hoyBotonQueDice(v, 'RIF emitido');
     if (!res) return sigue();
     res.click();
     hoyEsperaBoton(res, sigue);
@@ -10623,9 +10623,23 @@
     ok('presentar: y con el «Ya me registré», encendido',
        !!bP2 && !bP2.disabled, bP2 ? (bP2.disabled ? 'apagado' : 'encendido') : '(sin botón)', 'encendido');
     var ladoE = window.CIIP_VISOR_LADO(tr('vs-v8', 'visa_negocios', 'ante_el_ente'));
-    var bE = [].filter.call(ladoE.querySelectorAll('button'), function(b){ return b.textContent === uS.co_h_resolver; })[0];
+    var pasosEs = window.CIIP_PASOS.pasos.es;
+    var bE = [].filter.call(ladoE.querySelectorAll('button'), function(b){ return b.textContent === pasosEs.c1[pasosEs.c1.length - 1]; })[0];
     ok('presentar: ante el ente, sin la marca no se resuelve',
        !!bE && bE.disabled, bE ? (bE.disabled ? 'apagado' : 'encendido') : '(sin botón)', 'apagado');
+
+    /* RESOLVER, CON EL NOMBRE DEL ÚLTIMO PASO (Franklin Reyes, 5-10-2026).
+       La ZODI dice su último paso tal cual; la compraventa, que
+       termina en «…en tu bóveda», un rótulo propio; la constitución, cuyo
+       último paso está por decidir, sigue «Resolver». */
+    var resDe = function(id, tipo){
+      var lado = window.CIIP_VISOR_LADO(tr(id, tipo, 'ante_el_ente'));
+      return [].map.call(lado.querySelectorAll('.visor-fin button.btn.navy'), function(b){ return b.textContent; }).join(' | ');
+    };
+    igual('resolver: la ZODI dice su último paso', resDe('vs-r1', 'opinion_zodi'),
+          pasosEs.c34[pasosEs.c34.length - 1]);
+    igual('resolver: la compraventa, su rótulo propio', resDe('vs-r2', 'bienes_compraventa'), uS.co_r_contrato);
+    igual('resolver: la constitución sigue «Resolver»', resDe('vs-r3', 'constitucion'), uS.co_h_resolver_c);
   }
 
   /* ═══════════ EL REGISTRO DE IMPORTADOR Y EXPORTADOR, FUERA ═══════════

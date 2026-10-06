@@ -16627,10 +16627,33 @@ applyLang(idiomaParaMi());
      botón colocar "Autorizado para la firma"»). */
   function esAutorizacion(t){ return !!t && t.tipo === 'registro_extranjeros_saren'; }
 
-  /* Lo que dice el botón de resolver, el mismo en la cola y en el visor. */
+  /* Lo que dice el botón de resolver, el mismo en la cola y en el visor.
+
+     CON EL NOMBRE DEL ÚLTIMO PASO (Franklin Reyes, 5-10-2026: «que lleve
+     los mismos nombres»). Resolver cierra el último paso de la ficha, así
+     que el botón dice ese paso tal como lo lee el inversionista, en su
+     idioma: «Visa otorgada», «RIF emitido», «Cuenta aperturada». Donde el
+     último paso no se puede decir como respuesta del gestor -habla de «tu
+     bóveda», o da una instrucción- va un rótulo propio (RESUELVE_DICE). La
+     constitución no: su último paso está por decidir, y sigue «Resolver». */
+  var RESUELVE_DICE = {
+    publicacion_acta: 'co_r_publicacion', libros_contables: 'co_r_libros',
+    marca: 'co_r_marca', bienes_compraventa: 'co_r_contrato',
+    bienes_alquiler: 'co_r_contrato', registros_parafiscales: 'co_r_constancias'
+  };
+  var RESUELVE_COMO_SIEMPRE = {constitucion: true};
+  function ultimoPasoDe(t){
+    var DP = window.CIIP_PASOS || {};
+    var mapa = (DP.pasos && (DP.pasos[curLang] || DP.pasos.en)) || {};
+    var lista = t && mapa[tipoRefDe(t.tipo)];
+    return (lista && lista.length) ? String(lista[lista.length - 1] || '') : '';
+  }
   function rotuloResolver(t, u){
     if (esElPoder(t)) return u.co_h_poder;
     if (esAutorizacion(t)) return u.co_h_autoriza;
+    if (t && RESUELVE_DICE[t.tipo] && u[RESUELVE_DICE[t.tipo]]) return u[RESUELVE_DICE[t.tipo]];
+    var ultimo = t && !RESUELVE_COMO_SIEMPRE[t.tipo] ? ultimoPasoDe(t) : '';
+    if (ultimo) return ultimo;
     return pideEmitido(t) ? u.co_h_resolver : u.co_h_resolver_c;
   }
 
