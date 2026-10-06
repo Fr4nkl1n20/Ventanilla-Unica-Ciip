@@ -16596,6 +16596,23 @@ applyLang(idiomaParaMi());
              habitual -dejar pasar en vez de bloquear- porque el gestor
              tiene los seis bloques delante en esta misma pantalla: si
              resuelve sin mirarlos, no es que no se lo dijéramos. */
+          /* Salvo que no haya llegado (6-10-2026): en la empresa ya
+             inscrita (c44) la cola no siempre los tiene cargados, y se
+             resolvió una con los entes en proceso. Sin la lista, se pide y
+             se vuelve a pulsar; si la base no contesta, no se resuelve. */
+          if (p.a === 'resuelto' && conEntes(t) && entesTodosListos(t) === null){
+            b.disabled = true;
+            entesDe(t.id).then(function(){
+              b.disabled = false;
+              if (entesTodosListos(t) === null){
+                f.classList.add('mal');
+                aviso.textContent = u.co_error || '';
+                return;
+              }
+              b.click();
+            });
+            return;
+          }
           if (p.a === 'resuelto' && conEntes(t)){
             if (entesTodosListos(t) === false){
               f.classList.add('mal');
@@ -18720,6 +18737,17 @@ applyLang(idiomaParaMi());
        resuelve por su cuenta, y una regla que solo vive en uno de los dos
        caminos es una regla que se salta quien entra por el otro. */
     if (conEntes(t)){
+      /* Sin la lista cargada no se deja pasar (6-10-2026, una c44 resuelta
+         con los entes en proceso): se pide y se vuelve a intentar. */
+      if (entesTodosListos(t) === null){
+        boton.disabled = true;
+        entesDe(t.id).then(function(){
+          boton.disabled = false;
+          if (entesTodosListos(t) === null){ aviso.textContent = u.co_error || ''; return; }
+          hoyResuelve(t, archivo, boton, aviso, delActa);
+        });
+        return;
+      }
       if (entesTodosListos(t) === false){
         aviso.textContent = u.co_faltanentes || '';
         return;
