@@ -15974,8 +15974,10 @@ applyLang(idiomaParaMi());
 
       var botones = el('div', 'co-botones');
       (CO_PASOS[t.estado] || []).forEach(function(p, i){
-        /* «Poder validado» en vez de «Resuelta» en la validación del poder. */
-        var rotP = (p.a === 'resuelto' && esElPoder(t)) ? u.co_h_poder : u[p.k];
+        /* Resolver dice lo mismo que en el visor: «Poder validado» en el
+           poder, «Autorizado para la firma» en el SAREN (c32) y «Resolver y
+           entregar» donde se sube lo emitido (5-10-2026). */
+        var rotP = (p.a === 'resuelto') ? rotuloResolver(t, u) : u[p.k];
         /* Y en los RIF, pasar a revisión es mandar la planilla (30-9-2026). */
         var mandaP = (p.a === 'en_revision' && mandaLaPlanilla(t));
         if (mandaP) rotP = u.co_h_env_planilla;
@@ -16110,13 +16112,13 @@ applyLang(idiomaParaMi());
             b.textContent = u.co_subiendo || '';
             entregaUnaVez(t, elArchivo)
               .then(function(){
-                return mueveTramite(t, p.a, (nota.value || '').trim(), b, aviso, u[p.k])
+                return mueveTramite(t, p.a, (nota.value || '').trim(), b, aviso, rotP)
                   .then(laNotaFalto(t, p.a));
               })
               .catch(function(e){
                 console.warn('[CIIP] entregar:', e && (e.message || e));
                 b.disabled = false;
-                b.textContent = u[p.k] || '';
+                b.textContent = rotP || '';
                 aviso.textContent = (e && e.ciip && u[e.ciip]) || u.co_error || '';
               });
             return;
@@ -16125,14 +16127,14 @@ applyLang(idiomaParaMi());
             var textoCo = (nota.value || '').trim();
             qCo.marca(textoCo).then(function(marcado){
               if (!marcado){ b.disabled = false; return; }
-              return mueveTramite(t, p.a, textoCo, b, aviso, u[p.k]).then(function(bien){
+              return mueveTramite(t, p.a, textoCo, b, aviso, rotP).then(function(bien){
                 if (bien) qCo.olvida();
                 return laNotaFalto(t, p.a)(bien);
               });
             });
             return;
           }
-          mueveTramite(t, p.a, (nota.value || '').trim(), b, aviso, u[p.k])
+          mueveTramite(t, p.a, (nota.value || '').trim(), b, aviso, rotP)
             .then(laNotaFalto(t, p.a));
         });
         botones.appendChild(b);
@@ -17799,9 +17801,10 @@ applyLang(idiomaParaMi());
     } else if (!mio){
       return null;
     } else if (t.estado === 'ante_el_ente'){
-      /* En la validación del poder no hay respuesta que adjuntar: el
-         mismo nombre que el botón del visor (Franklin Reyes, 30-9-2026). */
-      b = el('button', 'btn ghost', (esElPoder(t) ? u.co_h_poder : u.co_h_respuesta) || '');
+      /* Donde no hay respuesta que adjuntar (el poder, el SAREN de la c32,
+         la constitución…), el mismo nombre que el botón del visor
+         (Franklin Reyes, 30-9 y 5-10-2026). */
+      b = el('button', 'btn ghost', (pideEmitido(t) ? u.co_h_respuesta : rotuloResolver(t, u)) || '');
       b.addEventListener('click', function(e){ e.stopPropagation(); hoyAbre(t); });
     } else if (t.estado === 'devuelto'){
       /* «Revisar» en un devuelto invita a lo que no toca: ya se revisó, y
@@ -18172,7 +18175,8 @@ applyLang(idiomaParaMi());
     var quien = t.nombre || u.co_sinnombre || '';
     var rotulo = rotuloResolver(t, u);
     boton.disabled = true;
-    boton.textContent = u.co_subiendo || '';
+    /* «Entregando…» solo si hay algo que entregar. */
+    boton.textContent = papel ? (u.co_subiendo || '') : (rotulo || '');
     /* Los datos del acta se guardan ANTES de resolver, y ese orden es lo
        único que hace que sirvan: el trigger que abre la publicación los
        copia de la fila en el momento del cambio de estado. Guardados
@@ -18194,7 +18198,8 @@ applyLang(idiomaParaMi());
         if (!bien) return;
         cierraVisor();
         pintaHoy();
-        hoyAvisa(String(u.co_h_resuelto || '').replace('{quien}', quien));
+        /* Y la bóveda, solo si se dejó algo en ella. */
+        hoyAvisa(String((papel ? u.co_h_resuelto : u.co_h_resuelto_c) || '').replace('{quien}', quien));
       })
       .catch(function(e){
         console.warn('[CIIP] entregar:', e && (e.message || e));

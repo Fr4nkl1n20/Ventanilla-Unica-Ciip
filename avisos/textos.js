@@ -54,8 +54,8 @@ const TEXTOS = {
     },
     resuelto: {
       asunto: 'Tu trámite está resuelto',
-      cuerpo: 'Tu solicitud de {tramite} quedó resuelta. El documento emitido ya está en tu bóveda.',
-      pie:    'Puedes descargarlo cuando quieras desde la Ventanilla Única.'
+      cuerpo: 'Tu solicitud de {tramite} quedó resuelta.',
+      pie:    'Entra en la Ventanilla Única para ver el resultado. Si el organismo emitió un documento, lo tienes en tu bóveda.'
     },
     ante_el_ente: {
       asunto: 'Tu solicitud ya está en el organismo',
@@ -84,8 +84,8 @@ const TEXTOS = {
     },
     resuelto: {
       asunto: 'Your procedure is complete',
-      cuerpo: 'Your {tramite} application is complete. The issued document is already in your vault.',
-      pie:    'You can download it any time from the One-Stop Window.'
+      cuerpo: 'Your {tramite} application is complete.',
+      pie:    'Open the One-Stop Window to see the outcome. If the agency issued a document, it is in your vault.'
     },
     ante_el_ente: {
       asunto: 'Your application is with the agency',
@@ -114,8 +114,8 @@ const TEXTOS = {
     },
     resuelto: {
       asunto: 'O seu trâmite está resolvido',
-      cuerpo: 'O seu pedido de {tramite} ficou resolvido. O documento emitido já está no seu cofre.',
-      pie:    'Pode descarregá-lo quando quiser no Balcão Único.'
+      cuerpo: 'O seu pedido de {tramite} ficou resolvido.',
+      pie:    'Entre no Balcão Único para ver o resultado. Se o organismo emitiu um documento, tem-no no seu cofre.'
     },
     ante_el_ente: {
       asunto: 'O seu pedido já está no organismo',
@@ -144,8 +144,8 @@ const TEXTOS = {
     },
     resuelto: {
       asunto: 'La tua pratica è conclusa',
-      cuerpo: 'La tua domanda di {tramite} è conclusa. Il documento rilasciato è già nel tuo archivio.',
-      pie:    'Puoi scaricarlo quando vuoi dallo Sportello Unico.'
+      cuerpo: 'La tua domanda di {tramite} è conclusa.',
+      pie:    'Entra nello Sportello Unico per vedere l’esito. Se l’ente ha rilasciato un documento, lo trovi nel tuo archivio.'
     },
     ante_el_ente: {
       asunto: 'La tua domanda è presso l’ente',
@@ -174,8 +174,8 @@ const TEXTOS = {
     },
     resuelto: {
       asunto: '您的业务已办结',
-      cuerpo: '您的{tramite}申请已办结。签发的文件已存入您的文件库。',
-      pie:    '您可以随时在一站式窗口下载。'
+      cuerpo: '您的{tramite}申请已办结。',
+      pie:    '请登录一站式窗口查看结果。如机构签发了文件，文件已存入您的文件库。'
     },
     ante_el_ente: {
       asunto: '您的申请已递交主管机关',
@@ -204,8 +204,8 @@ const TEXTOS = {
     },
     resuelto: {
       asunto: 'Ваша услуга оказана',
-      cuerpo: 'Ваша заявка «{tramite}» выполнена. Выданный документ уже в вашем хранилище.',
-      pie:    'Вы можете скачать его в любой момент в Едином окне.'
+      cuerpo: 'Ваша заявка «{tramite}» выполнена.',
+      pie:    'Откройте Единое окно, чтобы увидеть результат. Если организация выдала документ, он в вашем хранилище.'
     },
     ante_el_ente: {
       asunto: 'Ваша заявка передана в орган',
@@ -234,8 +234,8 @@ const TEXTOS = {
     },
     resuelto: {
       asunto: 'Votre démarche est terminée',
-      cuerpo: 'Votre demande de {tramite} est terminée. Le document délivré se trouve déjà dans votre coffre-fort.',
-      pie:    'Vous pouvez le télécharger à tout moment depuis le Guichet unique.'
+      cuerpo: 'Votre demande de {tramite} est terminée.',
+      pie:    'Ouvrez le Guichet unique pour voir le résultat. Si l’organisme a délivré un document, il se trouve dans votre coffre-fort.'
     },
     ante_el_ente: {
       asunto: 'Votre demande est entre les mains de l’organisme',
@@ -264,8 +264,8 @@ const TEXTOS = {
     },
     resuelto: {
       asunto: '手続きが完了しました',
-      cuerpo: '{tramite}の申請が完了しました。発行された書類はすでに保管庫にあります。',
-      pie:    'ワンストップ窓口からいつでもダウンロードできます。'
+      cuerpo: '{tramite}の申請が完了しました。',
+      pie:    'ワンストップ窓口で結果をご確認ください。機関が書類を発行した場合は、保管庫に入っています。'
     },
     ante_el_ente: {
       asunto: '申請を機関に提出しました',
