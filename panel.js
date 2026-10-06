@@ -10032,9 +10032,12 @@ applyLang(idiomaParaMi());
          (PASOS_SEGUN_ESTADO) y la presentación mueve un paso más que la
          revisión: en las visas, la cédula o los bomberos no cambia nada.
          Va antes de los pasos que marcas tú, que siguen topando. */
+      /* Un paso, el de la revisión, y no hasta «ante el ente»: en los
+         genéricos (c12, c30…) la presentación es otro paso más, y la marca
+         no la da por hecha. */
       if (cuentaPropia && recaudosYaRevisados(tr, ref) &&
           HASTA.en_revision < HASTA.ante_el_ente)
-        hechos = Math.max(hechos, Math.min(HASTA.ante_el_ente, n - 1));
+        hechos = Math.max(hechos, Math.min(HASTA.en_revision + 1, n - 1));
       /* Y AL REVÉS, MARCADO ES HECHO (1-10-2026, Franklin Reyes, Taquilla
          única opción 2). La licencia, la conformidad y el RUM empiezan por
          su paso marcado, con la solicitud recién recibida: ningún estado lo

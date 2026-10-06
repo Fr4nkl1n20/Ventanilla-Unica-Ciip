@@ -11127,7 +11127,7 @@
     if (!E){ ok('revisados: la escalera está a mano', false, 'no está', 'CIIP_ESCALERA'); return sigue(); }
     var cat = window.CIIP_TIPOS_POR_REF || {}, puestos = [];
     [['c22', 'protocolizacion_acta', 'SAREN'], ['c33', 'verificacion_prueba', 'CIIP'],
-     ['c24', 'libros_contables', 'SAREN']].forEach(function(x){
+     ['c24', 'libros_contables', 'SAREN'], ['c12', 'permiso_sanitario', 'SACS']].forEach(function(x){
       if (!cat[x[0]]){ cat[x[0]] = {codigo: x[1], ref_panel: x[0], ente: x[2], activo: true}; puestos.push(x[0]); }
     });
     var ya = '2026-10-05T10:30:00Z';
@@ -11179,8 +11179,14 @@
        marca no da por consignados los libros ni por presentado el SAREN. */
     igual('revisados: libros con la marca, toca traer los libros',
           dibujo('libros_contables', 'SAREN', 'en_revision', true), 'hecho,ahora,porhacer,porhacer,porhacer,porhacer');
+    /* Y un genérico con pasos propios (c12, 5-10-2026): la marca cierra la
+       revisión y nada más; la presentación sigue por hacer, en curso. */
+    igual('revisados: el permiso sanitario con la marca, solo la revisión hecha',
+          dibujo('permiso_sanitario', 'SACS', 'en_revision', true), 'hecho,ahora,porhacer,porhacer,porhacer');
     puestos.forEach(function(r){ delete cat[r]; });
     sigue();
+  }
+
   /* ═══════════ LOS GENÉRICOS, UNA SOLA FICHA ═══════════
      Franklin Reyes, 5-10-2026. El permiso sanitario (c12), las solvencias
      (c14), la firma electrónica (c19), el permiso ambiental (c30) y el
