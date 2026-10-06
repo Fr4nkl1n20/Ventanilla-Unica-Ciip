@@ -5350,6 +5350,11 @@ html.visor-abierto{overflow:hidden;}
 .visor-entes-cu .pe-ente{background:var(--tr-velo); padding:14px 16px; gap:10px;}
 .visor-entes-cu .visor-fin{max-width:880px;}
 .visor-entes-cu .pe-listo{align-self:flex-start;}
+/* La empresa ya inscrita (c44, 6-10-2026): las mismas tarjetas, en el paso de los entes. */
+.vt-entes .pe-lista{display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:12px; align-items:start;
+  width:auto; max-width:none; margin-top:0;}
+.vt-entes .pe-ente{background:var(--tr-velo); padding:14px 16px; gap:10px;}
+.vt-entes .pe-listo{align-self:flex-start;}
 /* Las dos casillas de cada ente: lo que llegó y lo que se manda. */
 .pe-dos{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px;}
 .pe-caja{display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-width:0;

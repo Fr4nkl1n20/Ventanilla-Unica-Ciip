@@ -11307,7 +11307,11 @@ applyLang(idiomaParaMi());
              siempre. */
           var entesALaVista = (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) ||
                               entesALaVistaDelInversionista(tr);
-          if (tipo.codigo === TIPO_PARAFISCALES && est === 'ante_el_ente' && tr.estado !== 'devuelto' && entesALaVista){
+          if ((tipo.codigo === TIPO_PARAFISCALES && est === 'ante_el_ente' && tr.estado !== 'devuelto' && entesALaVista) ||
+              /* c44, en su paso de los entes: ahí le llega cada constancia
+                 (6-10-2026). También resuelta, para descargarlas. */
+              (tipo.codigo === TIPO_YA_INSCRITA && i === 1 &&
+               (tr.estado === 'ante_el_ente' || tr.estado === 'resuelto'))){
             var bloqueE = el('div', 'pe-bloque');
             bloqueE.appendChild(el('div', 'pe-titulo', u.pe_titulo || ''));
             /* 'equipo' y no 'lectura' (Franklin Reyes, 25-9-2026, viendo
@@ -11367,7 +11371,7 @@ applyLang(idiomaParaMi());
             if (tr.estado === 'ante_el_ente'){
               entesDe(tr.id).then(function(m){
                 if (!m) return;
-                var todos = ENTES_PARAFISCALES.every(function(e){
+                var todos = entesDelTramite(tr).every(function(e){
                   return m[e] && m[e].estado === 'listo'; });
                 if (todos) return;      /* la escalera de siempre ya acierta */
 
@@ -16592,10 +16596,8 @@ applyLang(idiomaParaMi());
              habitual -dejar pasar en vez de bloquear- porque el gestor
              tiene los seis bloques delante en esta misma pantalla: si
              resuelve sin mirarlos, no es que no se lo dijéramos. */
-          if (p.a === 'resuelto' && t.tipo === TIPO_PARAFISCALES){
-            var yaE = ENTES_YA[t.id];
-            if (yaE && !ENTES_PARAFISCALES.every(function(e){
-                  return yaE[e] && yaE[e].estado === 'listo'; })){
+          if (p.a === 'resuelto' && conEntes(t)){
+            if (entesTodosListos(t) === false){
               f.classList.add('mal');
               aviso.textContent = u.co_faltanentes || '';
               return;
@@ -17110,7 +17112,7 @@ applyLang(idiomaParaMi());
   function pideEmitido(t){
     /* La licencia (c10) sí lo pide: la licencia de actividades económicas
        es su documento emitido, y llega al resolver como el de cualquiera. */
-    return !t || (t.tipo !== 'constitucion' && t.tipo !== TIPO_PARAFISCALES && !esElPoder(t) &&
+    return !t || (t.tipo !== 'constitucion' && !conEntes(t) && !esElPoder(t) &&
                   !esAutorizacion(t) &&
                   !(ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo] &&
                     ESCALERA_POR_ETAPAS[t.tipo].sinEmitido));
@@ -17854,7 +17856,9 @@ applyLang(idiomaParaMi());
           if (!d || !de[f.tramite] || d.tipo === 'resolucion' ||
               d.tipo === 'planilla_reserva_nombre' ||
               d.tipo === 'importe_dia' || d.tipo === TIPO_PLANILLA_CIIP ||
-              d.tipo === 'busqueda_antecedentes' || d.tipo === 'certificado_marca') return;
+              d.tipo === 'busqueda_antecedentes' || d.tipo === 'certificado_marca' ||
+              /* Ni la constancia de cada ente (6-10-2026): la manda el CIIP. */
+              d.tipo === 'constancia_ente') return;
           de[f.tramite].push({id: d.id || f.documento, tipo: d.tipo, archivo: d.archivo,
             nombre_original: d.nombre_original || '', estado: d.estado || 'cargado',
             nota_revision: d.nota_revision || '', titular: d.titular || '',
@@ -18715,10 +18719,8 @@ applyLang(idiomaParaMi());
        con inscripciones a medias. Va aquí también porque esta ventana
        resuelve por su cuenta, y una regla que solo vive en uno de los dos
        caminos es una regla que se salta quien entra por el otro. */
-    if (t.tipo === TIPO_PARAFISCALES){
-      var yaP = ENTES_YA[t.id];
-      if (yaP && !ENTES_PARAFISCALES.every(function(e){
-            return yaP[e] && yaP[e].estado === 'listo'; })){
+    if (conEntes(t)){
+      if (entesTodosListos(t) === false){
         aviso.textContent = u.co_faltanentes || '';
         return;
       }
@@ -19624,6 +19626,14 @@ applyLang(idiomaParaMi());
       if (casilla) lado.appendChild(casilla);
       lado.appendChild(visorFin(t, true));
     } else {
+      /* La empresa ya inscrita (6-10-2026): en el paso de los entes, una
+         tarjeta por ente marcado para enviarle su constancia o darlo por
+         listo, y debajo resolver, que espera a que estén todos. */
+      if (t.tipo === TIPO_YA_INSCRITA && t.estado === 'ante_el_ente' && t.gestor){
+        var entesV = el('div', 'vt-entes');
+        entesV.appendChild(listaDeEntes(t, mio ? 'equipo' : 'lectura', null, false, true));
+        lado.appendChild(entesV);
+      }
       lado.appendChild(visorFin(t));
     }
     return lado;
@@ -19683,7 +19693,7 @@ applyLang(idiomaParaMi());
          de escalera por etapas, donde ante el ente quedan muchos pasos y la
          casilla del paso va delante. */
       var porEtapasF = !!(ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo]);
-      var pregunta = t.tipo !== TIPO_PARAFISCALES && ente !== 'CIIP' && !porEtapasF;
+      var pregunta = !conEntes(t) && ente !== 'CIIP' && !porEtapasF;
       var dondeRes = fin, dondeDev = fin, bsRes = botones, bsDev = botones;
       if (!pregunta && t.tipo !== TIPO_PARAFISCALES){
         dondeDev = plegadoDevolver(!!(hoyNotas[t.id] || '').trim());
@@ -20664,7 +20674,8 @@ applyLang(idiomaParaMi());
         return d && d.tipo !== 'resolucion' && d.tipo !== 'planilla_reserva_nombre' &&
                d.tipo !== 'importe_dia' &&
                /* Ni lo que el CIIP manda por la escalera de la marca. */
-               d.tipo !== 'busqueda_antecedentes' && d.tipo !== 'certificado_marca';
+               d.tipo !== 'busqueda_antecedentes' && d.tipo !== 'certificado_marca' &&
+               d.tipo !== 'constancia_ente';
       });
       rvNombres = {};
       ((rs[1] && rs[1].data) || []).forEach(function(p){ if (p && p.id) rvNombres[p.id] = p.nombre_completo || ''; });
@@ -26285,6 +26296,35 @@ applyLang(idiomaParaMi());
      RNC- y el panel llevaba cinco: faltaba la patronal del seguro social.
      Va donde lo nombra ese texto, entre el RUPDAE y el RNC. */
   var ENTES_PARAFISCALES = ['banavih', 'inces', 'mpppst', 'sundde', 'ivss', 'snc'];
+  /* ── LA EMPRESA YA INSCRITA (c44), ENTE POR ENTE ──
+     Franklin Reyes, 6-10-2026: «aquí debería tener yo la opción como
+     gestor de enviar los documentos a los entes», y el inversionista de
+     recibirlos. En c44 ya presentó la solicitud ante los entes que marcó
+     en el formulario (ya_banavih, ya_rupdae…): el CIIP la gestiona ante
+     cada uno y le envía su constancia, con las MISMAS tarjetas de los
+     parafiscales -una sola función dibuja un ente-, pero solo las de los
+     entes marcados y sin pasos suyos en los portales. La fila de cada ente
+     la crea el upsert del gestor al enviar o marcar listo: la política «el
+     equipo los lleva» no mira el tipo, así que no hace falta otro SQL. */
+  var TIPO_YA_INSCRITA = 'parafiscales_en_proceso';
+  var YA_DEL_ENTE = {banavih: 'banavih', inces: 'inces', mpppst: 'rnet',
+                     sundde: 'rupdae', ivss: 'ivss', snc: 'rnc'};
+  function conEntes(t){
+    return !!t && (t.tipo === TIPO_PARAFISCALES || t.tipo === TIPO_YA_INSCRITA);
+  }
+  /* Los seis salvo en c44, que lleva los marcados. */
+  function entesDelTramite(t){
+    if (!t || t.tipo !== TIPO_YA_INSCRITA) return ENTES_PARAFISCALES;
+    var d = t.datos || {};
+    return ENTES_PARAFISCALES.filter(function(e){ return !!d['ya_' + YA_DEL_ENTE[e]]; });
+  }
+  /* null mientras la base no haya contestado: quien decide con esto tiene
+     que contar con que todavía no se sabe. */
+  function entesTodosListos(t){
+    var ya = ENTES_YA[t.id];
+    if (!ya) return null;
+    return entesDelTramite(t).every(function(e){ return ya[e] && ya[e].estado === 'listo'; });
+  }
   var ENTES_SELECT_BASE = 'ente, codigo, estado, documento, documentos(archivo, nombre_original, tipo)';
   var ENTES_SELECT = ENTES_SELECT_BASE + ', clave';
 
@@ -26344,7 +26384,12 @@ applyLang(idiomaParaMi());
   /* Los pasos de un ente. n: el texto (pasos.js); url: el portal; marca:
      la clave que escribe confirma_paso; boton: el texto de la marca;
      cierre: el que cierra el equipo. */
-  function pasosDelEnte(ente){
+  function pasosDelEnte(ente, tipo){
+    /* En c44 el inversionista ya presentó: el CIIP gestiona y envía. */
+    if (tipo === TIPO_YA_INSCRITA) return [
+      {n:'pe_enproceso'},
+      {n:'pe_certlisto', cierre:true}
+    ];
     if (ente === 'ivss') return [
       {n:'pe_ivss_solicite', url:IVSS_SOLICITUD, marca:'ente_ivss',          boton:'pe_yasolicite'},
       {n:'pe_ivss_confirme', url:IVSS_CONFIRMA,  marca:'ente_ivss_confirma', boton:'pe_yaconfirme'},
@@ -26548,7 +26593,7 @@ applyLang(idiomaParaMi());
         });
     }
 
-    (soloEste ? [soloEste] : ENTES_PARAFISCALES).forEach(function(ente){
+    (soloEste ? [soloEste] : entesDelTramite(tr)).forEach(function(ente){
       var nombre = u['pe_' + ente] || ente;
       var fila = el('div', 'pe-ente');
       fila.setAttribute('data-ente', ente);
@@ -26559,7 +26604,7 @@ applyLang(idiomaParaMi());
       cab.appendChild(chip);
       fila.appendChild(cab);
 
-      var defs = pasosDelEnte(ente);
+      var defs = pasosDelEnte(ente, tr.tipo);
       var delInv = modo === 'inversionista' && !recogida;
       var ol = el('ol', 'tr-pasos pe-pasos');
       var pasos = defs.map(function(def, i){
@@ -26610,7 +26655,7 @@ applyLang(idiomaParaMi());
          grupo de los parafiscales abierto y el renglón de ESTE ente
          resaltado. Del inversionista, y con los pasos a la vista: en la
          tarjeta recogida de Mis trámites solo queda descargar y ver. */
-      if (modo === 'inversionista' && !recogida && SIGLA_EN_AYUDA[ente]){
+      if (modo === 'inversionista' && !recogida && SIGLA_EN_AYUDA[ente] && tr.tipo !== TIPO_YA_INSCRITA){
         var aRec = el('button', 'pe-recaudos', u.pe_recaudos || '');
         aRec.type = 'button';
         aRec.addEventListener('click', function(){
@@ -26700,6 +26745,8 @@ applyLang(idiomaParaMi());
             if (!(r && r.data && r.data.length)) throw new Error('sin permiso');
             ENTES_DE[tr.id] = null; ENTES_YA[tr.id] = null;
             pon(r.data[0]);
+            /* Y la cuenta de listos, otra vez a la base: resolver la mira. */
+            entesDe(tr.id);
             return true;
           })
           /* Acaba en true o en false, y no en «algo»: el catch se traga el
@@ -26897,7 +26944,23 @@ applyLang(idiomaParaMi());
         ol.hidden = true;
         var dos = el('div', 'pe-dos');
         var cL = el('div', 'pe-caja pe-caja-marcas');
-        cL.appendChild(el('div', 'pe-caja-t', u.pe_marco || ''));
+        if (tr.tipo === TIPO_YA_INSCRITA){
+          /* En c44 no hay marcas: lo que el gestor necesita antes de ir al
+             ente es cuándo lo presentó y por qué pide ayuda con él. */
+          var dY = tr.datos || {}, kY = YA_DEL_ENTE[ente];
+          cL.appendChild(el('div', 'pe-caja-t', u.pe_conto || ''));
+          [['f_yafecha', dY['fecha_ya_' + kY] ? fecha(dY['fecha_ya_' + kY]) : ''],
+           ['f_yamotivo', dY['motivo_ya_' + kY] || ''],
+           ['f_yadetalle', dY['detalle_ya_' + kY] || '']].forEach(function(x){
+            if (!x[1]) return;
+            var l = el('div', 'pe-marca-l si pe-conto');
+            l.appendChild(el('span', 'pe-marca-n', u[x[0]] || ''));
+            l.appendChild(el('span', 'pe-marca-e', x[1]));
+            cL.appendChild(l);
+          });
+        } else {
+          cL.appendChild(el('div', 'pe-caja-t', u.pe_marco || ''));
+        }
         marcasL.forEach(function(m){ cL.appendChild(m.l); });
         var cE = el('div', 'pe-caja');
         cE.appendChild(el('div', 'pe-caja-t', u.pe_envia || ''));

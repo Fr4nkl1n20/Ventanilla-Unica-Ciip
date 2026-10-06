@@ -366,6 +366,7 @@
               entesMonta, entesMira, entesFalla, entesMarca, entesTrasMarcar,
               entesIvss1, entesIvss2, entesIvss3, entesIvssMira,
               entesGestor, entesGestorMira, entesGestorTras,
+              yaEntesMira,
               alDiaMira,
               rvAbre, rvMira, rvDespues,
               /* Rechazar sin red: se dice, y la nota no se pierde. */
@@ -11405,7 +11406,10 @@
   function yaVivaIvss(sigue){
     if (PASE !== 'vacio') return sigue();
     var U = window.CIIP_PASOS.ui[curLang] || {};
-    var lis = document.querySelectorAll('#trReal li.tr-paso');
+    /* Los de la escalera de la solicitud, no los de las tarjetas de sus
+       entes, que desde el 6-10-2026 salen debajo (yaEntesMira). */
+    var lis = [].filter.call(document.querySelectorAll('#trReal li.tr-paso'), function(li){
+      return !li.closest('.pe-bloque'); });
     var ult = lis[lis.length - 1];
     igual('ya: con el IVSS elegido, la planilla sellada se retira en el CIIP',
           ult ? [].map.call(ult.querySelectorAll('.tr-nota'), function(n){ return n.textContent; }).join(' | ') : '(sin pasos)',
@@ -15530,6 +15534,47 @@
     ['r9|snc', 'r9|banavih'].forEach(function(k){ delete window.__ENTES[k]; });
     if (window.__DATOS_TR) delete window.__DATOS_TR.r9;
     EN_TR = null; EN_INV = null; EN_EQ = null;
+    sigue();
+  }
+
+  /* LA EMPRESA YA INSCRITA (c44, 6-10-2026): las tarjetas de los entes, solo
+     las de los que marcó, sin pasos suyos; el gestor envía y cierra cada uno,
+     y ve lo que contó el inversionista. */
+  function yaEntesMira(sigue){
+    if (CASO !== 'vacio' || !window.CIIP_LISTA_ENTES) return sigue();
+    var u = window.CIIP_T();
+    var tr = {id: 'y44', tipo: 'parafiscales_en_proceso', estado: 'ante_el_ente', inversionista: 'u1',
+              datos: {ya_inces: 'Sí', fecha_ya_inces: '2026-08-02', motivo_ya_inces: 'Falla o error en el portal del ente',
+                      ya_ivss: 'Sí', fecha_ya_ivss: '2026-07-20', motivo_ya_ivss: 'Lleva mucho tiempo sin respuesta',
+                      detalle_ya_ivss: 'No me llega la constancia.'}};
+    var eq = window.CIIP_LISTA_ENTES(tr, 'equipo', null, false, true);
+    igual('ya inscrita: solo los entes que marcó',
+          [].map.call(eq.querySelectorAll('.pe-ente'), function(f){ return f.getAttribute('data-ente'); }).join(' '),
+          'inces ivss');
+    var fI = enFila(eq, 'ivss');
+    igual('ya inscrita: cada ente, la gestión y la constancia',
+          [].map.call(fI.querySelectorAll('.tr-paso-n'), function(x){ return x.textContent; }).join(' → '),
+          u.pe_enproceso + ' → ' + u.pe_certlisto);
+    igual('ya inscrita: en curso desde el principio', (fI.querySelector('.pe-cab .chip') || {}).textContent,
+          u.pe_enproceso_chip);
+    var cajaY = fI.querySelector('.pe-caja-marcas');
+    igual('ya inscrita: lo que contó, con su título',
+          cajaY ? (cajaY.querySelector('.pe-caja-t') || {}).textContent : '(sin casilla)', u.pe_conto);
+    igual('ya inscrita: el motivo y lo que añadió',
+          cajaY ? [].map.call(cajaY.querySelectorAll('.pe-conto .pe-marca-e'), function(x){ return x.textContent; })
+                    .slice(1).join(' | ') : '',
+          'Lleva mucho tiempo sin respuesta | No me llega la constancia.');
+    var lY = fI.querySelector('.pe-listo');
+    ok('ya inscrita: «Marcar listo», sin esperar marcas suyas', !!lY && !lY.hidden && !lY.disabled,
+       lY ? (lY.hidden ? 'escondido' : (lY.disabled ? 'apagado' : 'encendido')) : '(sin botón)', 'encendido');
+    var subY = fI.querySelector('.pe-sube > .pe-subir');
+    ok('ya inscrita: y el enlace para enviarle la constancia', !!subY && !subY.hidden,
+       subY ? (subY.hidden ? 'escondido' : subY.textContent) : '(sin enlace)', u.pe_subirconst);
+    var inv = window.CIIP_LISTA_ENTES(tr, 'inversionista');
+    ok('ya inscrita: el inversionista, sin portales, marcas ni guía de recaudos',
+       !inv.querySelector('.pe-portal, .pe-marca, .pe-recaudos'),
+       inv.querySelector('.pe-portal, .pe-marca, .pe-recaudos') ? 'los tiene' : 'no', 'no');
+    igual('ya inscrita: y los mismos dos entes', inv.querySelectorAll('.pe-ente').length, 2);
     sigue();
   }
 
