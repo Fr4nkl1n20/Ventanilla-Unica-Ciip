@@ -389,7 +389,7 @@
               rastroDesdeTramiteSalta, rastroDesdeTramiteMira,
               alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno,
               importeSiembra, importeMira, traduccionMira,
-              marcaSiembra, marcaMira,
+              marcaSiembra, marcaMira, compraventaFases,
               conformidadMira,
               licenciaSiembra, licenciaMira,
               /* El SIDCAI por el portal del FONACIT (Ventanilla Única 2.3). */
@@ -9959,6 +9959,154 @@
     window.__MARCA_RPC = null;
   }
 
+  /* ═══════════ LA COMPRAVENTA EN DOS FASES (c41) ═══════════
+     Franklin Reyes, 5-10-2026: contrato y registro, por la escalera por
+     etapas de la marca. Lo del inversionista en «vacio», la casilla en
+     «gestor». Un solo paso con retrollamada: no retrasa a los demás. */
+  function compraventaFases(sigue){
+    var M = window.CIIP_MARCA, I = window.CIIP_IMPORTE;
+    if (PASE !== 'vacio' && PASE !== 'gestor') return sigue();
+    if (!M || !I){ ok('compraventa: la escalera por etapas está a mano', false, 'no está', 'window.CIIP_MARCA'); return sigue(); }
+    var u = window.CIIP_PASOS.ui[curLang] || {};
+    var hace = function(h){ return new Date(Date.now() - h * 3600000).toISOString(); };
+    var tr = function(id, estado, pasos, extra){
+      var d = {pasos_ciip: pasos || {}};
+      Object.keys(extra || {}).forEach(function(k){ d[k] = extra[k]; });
+      return {id: id, tipo: 'bienes_compraventa', estado: estado, datos: d, inversionista: 'u2', gestor: 'u1',
+              enviado_en: hace(200), creado_en: hace(200)};
+    };
+    var hasta = function(ultimo){
+      var orden = ['redaccion', 'contrato', 'introduccion', 'registrador', 'importe_pub', 'pago_pub',
+                   'importe_timbre', 'pago_timbre', 'firma'];
+      var p = {};
+      for (var i = 0; i < orden.length; i++){ p[orden[i]] = hace(100 - i); if (orden[i] === ultimo) break; }
+      if (p.firma) p.firma_dia = '2026-10-20';
+      return p;
+    };
+    var ahora = function(t){ var E = M.escalera(t, 'bienes_compraventa'); return E.ahora ? E.ahora.clave : '(ninguno)'; };
+
+    if (PASE === 'vacio'){
+      var E0 = M.escalera(tr('cv-a', 'enviado', {}), 'bienes_compraventa');
+      igual('compraventa: dos fases, contrato y registro',
+            E0.etapas.map(function(e){ return e.nombre; }).join(' / '), u.cv_e1 + ' / ' + u.cv_e2);
+      igual('compraventa: los doce pasos, en su orden',
+            E0.todos.map(function(p){ return p.clave; }).join(','),
+            'recibida,revision,redaccion,contrato,introduccion,registrador,importe_pub,pago_pub,' +
+            'importe_timbre,pago_timbre,firma,protocolizado');
+      igual('compraventa: recibida, la revisión en curso', ahora(tr('cv-a', 'enviado', {})), 'revision');
+      igual('compraventa: ante el CIIP, la redacción en curso', ahora(tr('cv-b', 'ante_el_ente', {})), 'redaccion');
+      igual('compraventa: con el contrato enviado, toca introducir el expediente',
+            ahora(tr('cv-c', 'ante_el_ente', hasta('contrato'))), 'introduccion');
+      igual('compraventa: tras el Registrador, la PUB', ahora(tr('cv-d', 'ante_el_ente', hasta('registrador'))), 'importe_pub');
+      var act = I.activo(tr('cv-e', 'ante_el_ente', hasta('pago_pub')));
+      igual('compraventa: pagada la PUB, el importe que toca es el del timbre', act && act.paso, 'timbre');
+      igual('compraventa: pagado el timbre, toca la fecha de la firma',
+            ahora(tr('cv-f', 'ante_el_ente', hasta('pago_timbre'))), 'firma');
+      igual('compraventa: con la fecha puesta, el documento protocolizado',
+            ahora(tr('cv-g', 'ante_el_ente', hasta('firma'))), 'protocolizado');
+      igual('compraventa: el día de la firma no cuenta como paso hecho de detrás',
+            ahora(tr('cv-h', 'en_revision', {firma_dia: '2026-10-20'})), 'revision');
+      igual('compraventa: la PUB no caduca y el timbre sí',
+            [!!(I.delPaso('bienes_compraventa', 'pub') || {}).sinVencer,
+             !!(I.delPaso('bienes_compraventa', 'timbre') || {}).sinVencer].join('/'), 'true/false');
+
+      var pintaEn = function(t){
+        var hueco = document.createElement('div');
+        var ol = document.createElement('ol');
+        ol.className = 'tr-pasos';
+        hueco.appendChild(ol);
+        M.pinta(ol, M.escalera(t, 'bienes_compraventa'), t, {}, false);
+        return hueco;
+      };
+      var fin = pintaEn(tr('cv-i', 'ante_el_ente', hasta('firma')));
+      igual('compraventa: dos encabezados de fase', fin.querySelectorAll('li.tr-etapa').length, 2);
+      var nf = fin.querySelector('[data-paso="firma"] .cv-firma');
+      ok('compraventa: el paso de la firma dice el día',
+         !!nf && nf.textContent.indexOf('20') >= 0, nf ? nf.textContent : '(sin nota)', u.cv_n_firma);
+      var nr = fin.querySelector('[data-paso="protocolizado"] .mc-retiro');
+      igual('compraventa: y el último, que lo retire en el CIIP', nr ? nr.textContent : '(sin nota)', u.cv_n_retiro_espera);
+      var av = pintaEn(tr('cv-j', 'ante_el_ente', hasta('introduccion'),
+                          {anuncio: 'El Registrador pide la solvencia actualizada.', anuncio_en: hace(2)}));
+      var an = av.querySelector('.mc-anuncio');
+      ok('compraventa: el aviso del CIIP sale destacado, con su título',
+         !!an && an.textContent.indexOf(u.cv_anuncio_t) === 0 && an.textContent.indexOf('solvencia actualizada') > 0,
+         an ? an.textContent.slice(0, 70) : '(sin aviso)', u.cv_anuncio_t + '…');
+      return sigue();
+    }
+
+    /* El gestor. */
+    var caja = document.createElement('div');
+    caja.hidden = true;
+    document.body.appendChild(caja);
+    var datosDe = {};
+    window.CIIP_PRUEBA_MARCA = [];
+    window.__MARCA_RPC = function(nombre, args){
+      var d = JSON.parse(JSON.stringify(datosDe[args.p_tramite] || {pasos_ciip: {}}));
+      if (nombre === 'compraventa_paso_ciip') d.pasos_ciip[args.p_clave] = new Date().toISOString();
+      if (nombre === 'compraventa_fecha_firma'){
+        d.pasos_ciip.firma = d.pasos_ciip.firma || new Date().toISOString();
+        d.pasos_ciip.firma_dia = args.p_dia;
+      }
+      if (nombre === 'anuncio_del_ciip'){ d.anuncio = args.p_anuncio; d.anuncio_en = new Date().toISOString(); }
+      return {id: args.p_tramite, tipo: 'bienes_compraventa', estado: 'ante_el_ente', datos: d};
+    };
+    var casilla = function(t){ datosDe[t.id] = t.datos; var c = M.casilla(t, 'prb-cv-'); caja.appendChild(c); return c; };
+
+    var cRed = casilla(tr('cv-g1', 'ante_el_ente', {}));
+    igual('compraventa: gestor, ante el CIIP marca la redacción', cRed.getAttribute('data-paso'), 'redaccion');
+    cRed.querySelector('.mc-g-marcar').click();
+
+    var cReg = casilla(tr('cv-g2', 'ante_el_ente', hasta('introduccion')));
+    ok('compraventa: gestor, con el Registrador puede avisar al inversionista y marcar el paso',
+       !!cReg.querySelector('.cv-g-abre') && !!cReg.querySelector('.mc-g-marcar'),
+       [!!cReg.querySelector('.cv-g-abre'), !!cReg.querySelector('.mc-g-marcar')].join('/'), 'true/true');
+    cReg.querySelector('.cv-g-abre').click();
+    cReg.querySelector('.cv-g-avisa').click();
+    igual('compraventa: gestor, sin texto no avisa', cReg.querySelector('.cv-g-avisar .imp-g-e').textContent,
+          u.mc_g_anuncio_falta);
+    cReg.querySelector('.cv-g-avisar textarea').value = 'El Registrador pide la solvencia actualizada.';
+    cReg.querySelector('.cv-g-avisa').click();
+    var cPub = casilla(tr('cv-g5', 'ante_el_ente', hasta('registrador')));
+    ok('compraventa: gestor, en la PUB no se ofrece avisar', !cPub.querySelector('.cv-g-abre'),
+       cPub.querySelector('.cv-g-abre') ? 'lo ofrece' : 'no', 'no');
+
+    var cFir = casilla(tr('cv-g3', 'ante_el_ente', hasta('pago_timbre')));
+    igual('compraventa: gestor, pagado el timbre, pone la fecha de la firma', cFir.getAttribute('data-paso'), 'firma');
+    cFir.querySelector('.cv-g-guarda').click();
+    igual('compraventa: gestor, sin día no se guarda', cFir.querySelector('.cv-g-fecha .imp-g-e').textContent,
+          u.cv_g_fecha_falta);
+    cFir.querySelector('.cv-g-fecha input[type="date"]').value = '2026-10-20';
+    cFir.querySelector('.cv-g-guarda').click();
+    var cRet = casilla(tr('cv-g4', 'ante_el_ente', hasta('firma')));
+    var dRet = cRet.querySelector('.cv-g-fecha input[type="date"]');
+    igual('compraventa: gestor, con la fecha puesta se puede mover hasta resolver',
+          cRet.getAttribute('data-paso') + ' · ' + (dRet ? dRet.value : '(sin fecha)'), 'protocolizado · 2026-10-20');
+    igual('compraventa: gestor, sin la fecha de la firma no se resuelve',
+          M.falta(tr('cv-g6', 'ante_el_ente', hasta('pago_timbre'))), 'cv_g_faltafirma');
+    igual('compraventa: gestor, con ella sí', M.falta(tr('cv-g7', 'ante_el_ente', hasta('firma'))), null);
+
+    setTimeout(function(){
+      var pedidos = (window.CIIP_PRUEBA_MARCA || []).map(function(p){
+        return p.nombre + '(' + (p.args.p_clave || p.args.p_dia || p.args.p_anuncio) + ')';
+      }).join(' · ');
+      igual('compraventa: gestor, lo que se le pide a la base', pedidos,
+            'compraventa_paso_ciip(redaccion) · anuncio_del_ciip(El Registrador pide la solvencia actualizada.) · ' +
+            'compraventa_fecha_firma(2026-10-20)');
+      var g2 = caja.querySelector('[data-marca="cv-g2"]');
+      ok('compraventa: gestor, la casilla queda con el último aviso',
+         !!g2 && !!g2.querySelector('.mc-g-contestada') &&
+         g2.querySelector('.mc-g-contestada').textContent.indexOf('solvencia actualizada') > 0,
+         g2 && g2.querySelector('.mc-g-contestada') ? g2.querySelector('.mc-g-contestada').textContent.slice(0, 60) : '(sin aviso)',
+         u.cv_g_avisado);
+      var g3 = caja.querySelector('[data-marca="cv-g3"]');
+      igual('compraventa: gestor, guardada la fecha, pasa al documento protocolizado',
+            g3 ? g3.getAttribute('data-paso') : '(sin casilla)', 'protocolizado');
+      caja.remove();
+      window.__MARCA_RPC = null;
+      sigue();
+    }, 300);
+  }
+
   /* EL FRENO. Cambiar de pestaña y volver es lo que más se hace en una
      oficina; sin esto, cada ida y vuelta son dos consultas. Se mide justo
      después de una puesta al día, que es cuando tiene que decir que no. */
@@ -10577,7 +10725,7 @@
        verificaron. Ante el propio CIIP -los bienes, el poder- no contesta
        nadie de fuera: no se pregunta, resolver queda a la vista y devolver,
        plegado. */
-    var ladoB = window.CIIP_VISOR_LADO(tr('vs-v3', 'bienes_compraventa', 'ante_el_ente'));
+    var ladoB = window.CIIP_VISOR_LADO(tr('vs-v3', 'bienes_alquiler', 'ante_el_ente'));
     ok('lista de tareas: ante el propio CIIP no se pregunta qué contestó, y devolver va plegado',
        !ladoB.querySelector('#paVisorRsi') && !!ladoB.querySelector('details.vt-dev') && !!ladoB.querySelector('#hoy-doc-vs-v3'),
        (ladoB.querySelector('#paVisorRsi') ? 'con pregunta' : 'sin pregunta') +
@@ -10642,7 +10790,7 @@
     };
     igual('resolver: la ZODI dice su último paso', resDe('vs-r1', 'opinion_zodi'),
           pasosEs.c34[pasosEs.c34.length - 1]);
-    igual('resolver: la compraventa, su rótulo propio', resDe('vs-r2', 'bienes_compraventa'), uS.co_r_contrato);
+    igual('resolver: la compraventa, su rótulo propio', resDe('vs-r2', 'bienes_compraventa'), uS.cv_p_protocolizado);
     igual('resolver: la constitución sigue «Resolver»', resDe('vs-r3', 'constitucion'), uS.co_h_resolver_c);
   }
 
@@ -11041,7 +11189,6 @@
     var C = ((window.CIIP_PASOS || {}).circuito || {})[curLang] || {};
     var cuatro = [
       ['registro_extranjeros_saren', 'SAREN · SISREF', 'c32'],
-      ['bienes_compraventa', 'CIIP', 'c41'],
       ['bienes_alquiler', 'CIIP', 'c42'],
       ['opinion_zodi', 'ZODI', 'c34']
     ];
@@ -11060,8 +11207,6 @@
     });
     if (C.c32) igual('ante el ente: c32: el paso en curso es el del SAREN, como dice la cabecera',
                      enCurso('registro_extranjeros_saren', 'SAREN · SISREF', 'ante_el_ente'), '3. ' + C.c32[2]);
-    if (C.c41) igual('ante el ente: c41: en curso, la redacción del contrato',
-                     enCurso('bienes_compraventa', 'CIIP', 'ante_el_ente'), '3. ' + C.c41[2]);
     /* Con el PUB delante: el paso del ente es el cuarto de cinco. */
     [['protocolizacion_acta', 'SAREN', 'c22', 'Revisión del registrador'],
      ['aporte_locti_pago', 'FONACIT', 'c40', 'Revisión del FONACIT']].forEach(function(t){

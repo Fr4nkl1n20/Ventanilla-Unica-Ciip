@@ -1885,6 +1885,9 @@
            supabase-bienes-comprador.sql estuviera corrido. */
         {codigo:'acta_comprador', vence:false}, {codigo:'rif_comprador', vence:false},
         {codigo:'identidad_rep_comprador', vence:false}, {codigo:'asamblea_comprador', vence:false},
+        /* El contrato que manda el CIIP en la compraventa (5-10-2026), como si
+           supabase-bienes-registro.sql estuviera corrido. */
+        {codigo:'contrato_compraventa', vence:false},
         /* Los dos de la marca en proceso de registro (5-10-2026), como si
            supabase-marca-proceso.sql estuviera corrido. */
         {codigo:'planilla_solicitud_marca', vence:false}, {codigo:'identidad_titular_marca', vence:false}
@@ -2848,7 +2851,9 @@
             }
             return {then:function(bien, mal){ return Promise.resolve(rRR).then(bien, mal); }};
           }
-          if ((nombre === 'marca_paso_ciip' || nombre === 'habilita_contestacion') && window.__MARCA_RPC){
+          if ((nombre === 'marca_paso_ciip' || nombre === 'habilita_contestacion' ||
+               nombre === 'compraventa_paso_ciip' || nombre === 'compraventa_fecha_firma' ||
+               nombre === 'anuncio_del_ciip') && window.__MARCA_RPC){
             window.CIIP_PRUEBA_MARCA = (window.CIIP_PRUEBA_MARCA || []).concat([{nombre: nombre, args: args}]);
             var rM = {data: window.__MARCA_RPC(nombre, args), error:null};
             return {then:function(bien, mal){ return Promise.resolve(rM).then(bien, mal); }};

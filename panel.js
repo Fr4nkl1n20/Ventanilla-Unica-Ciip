@@ -9331,6 +9331,54 @@ applyLang(idiomaParaMi());
           {clave: 'sellados',    tipo: 'retiro', rotulo: 'sl_p_sellados', listo: 'sl_n_sellados'}
         ]}
       ]
+    },
+
+    /* ── LA COMPRAVENTA DE UN INMUEBLE (c41), EN DOS FASES ──
+       Franklin Reyes, 5-10-2026: «el proceso se divide en 2 fases». La
+       primera es la de siempre -recibida, revisión, redacción del contrato
+       y contrato en la bóveda-; la segunda, el registro: introducción del
+       expediente ante el Registro Público, revisión del Registrador, PUB y
+       su comprobante, timbre fiscal (importe del día) y su comprobante,
+       fecha para la firma y documento protocolizado, que se retira en el
+       CIIP.
+
+       Todo con la solicitud ante el ente, como la marca. La redacción, la
+       introducción y la revisión del Registrador las marca el gestor
+       (compraventa_paso_ciip); el contrato se apunta al mandarlo. Mientras
+       el Registrador revisa, el gestor puede avisar al inversionista de lo
+       que observe o pida (anuncios), las veces que haga falta. La fecha de
+       la firma la pone el gestor, que es quien la sabe (tipo 'fecha'), y la
+       puede cambiar si el Registrador la mueve. No se resuelve sin ella. */
+    bienes_compraventa: {
+      ref: 'c41',
+      estados: ['cv_ev_enviado', 'cv_ev_en_revision', 'cv_ev_ante_el_ente', 'cv_ev_resuelto'],
+      textos: {titulo: 'cv_g_titulo', retiro: 'cv_g_retiro', anuncio: 'cv_anuncio_t'},
+      exige: {paso: 'firma', aviso: 'cv_g_faltafirma'},
+      sinEmitido: true,
+      rpcPaso: 'compraventa_paso_ciip',
+      anuncios: ['registrador'],
+      etapas: [
+        {clave: 'contrato', rotulo: 'cv_e1', pasos: [
+          {clave: 'recibida',       tipo: 'estado',  rotulo: 'cv_p_recibida',
+           hechoEn: ['enviado', 'en_revision', 'devuelto', 'ante_el_ente']},
+          {clave: 'revision',       tipo: 'revision', rotulo: 'cv_p_revision'},
+          {clave: 'redaccion',      tipo: 'ciip',    rotulo: 'cv_p_redaccion',     espera: 'cv_n_redaccion'},
+          {clave: 'contrato',       tipo: 'papel',   rotulo: 'cv_p_contrato',      papel: 'contrato_compraventa',
+           espera: 'cv_n_contrato_espera', listo: 'cv_n_contrato_listo'}
+        ]},
+        {clave: 'registro', rotulo: 'cv_e2', pasos: [
+          {clave: 'introduccion',   tipo: 'ciip',    rotulo: 'cv_p_introduccion',  espera: 'cv_n_introduccion'},
+          {clave: 'registrador',    tipo: 'ciip',    rotulo: 'cv_p_registrador',   espera: 'cv_n_registrador'},
+          {clave: 'importe_pub',    tipo: 'importe', rotulo: 'cv_p_pub',           importe: 'pub'},
+          {clave: 'pago_pub',       tipo: 'pago',    rotulo: 'cv_p_pago_pub',      importe: 'pub'},
+          {clave: 'importe_timbre', tipo: 'importe', rotulo: 'cv_p_timbre',        importe: 'timbre'},
+          {clave: 'pago_timbre',    tipo: 'pago',    rotulo: 'cv_p_pago_timbre',   importe: 'timbre'},
+          {clave: 'firma',          tipo: 'fecha',   rotulo: 'cv_p_firma',
+           espera: 'cv_n_firma_espera', listo: 'cv_n_firma'},
+          {clave: 'protocolizado',  tipo: 'retiro',  rotulo: 'cv_p_protocolizado',
+           espera: 'cv_n_retiro_espera', listo: 'cv_n_retiro_listo'}
+        ]}
+      ]
     }
 
     /* ── LAS DOS VISAS (c1 y c38), YA NO ──
@@ -9375,6 +9423,22 @@ applyLang(idiomaParaMi());
               imp_g_titulo: 'sl_ig_titulo', imp_g_archivo: 'sl_ig_archivo', imp_g_subir: 'sl_ig_subir',
               imp_g_reemplazar: 'sl_ig_reemplazar', imp_g_elige: 'sl_ig_elige', imp_g_hoy: 'sl_ig_hoy',
               imp_g_falta: 'sl_ig_falta', imp_g_pagado: 'imp_g_pagado'}}
+  ];
+
+  /* Los dos de la compraventa (5-10-2026), con la solicitud ante el ente.
+     El PUB del Registro Público no caduca, como el del sellado de libros, y
+     se dice con sus mismas palabras; el timbre fiscal sí: vale hasta las
+     12:00 a. m. de Venezuela, y lo avisa. En la base, el PUB es el único
+     paso sin caducidad (supabase-bienes-registro.sql). */
+  IMPORTE_DEL_DIA.bienes_compraventa = [
+    {paso: 'pub', estados: ['ante_el_ente'], rotulo: 'cv_p_pub', sinVencer: true,
+     textos: {imp_titulo: 'sl_i_titulo', imp_aviso: 'sl_i_aviso', imp_espera: 'sl_i_espera',
+              imp_pagado: 'sl_i_pagado', imp_cargar: 'imp_cargar',
+              imp_g_titulo: 'sl_ig_titulo', imp_g_archivo: 'sl_ig_archivo', imp_g_subir: 'sl_ig_subir',
+              imp_g_reemplazar: 'sl_ig_reemplazar', imp_g_elige: 'sl_ig_elige', imp_g_hoy: 'sl_ig_hoy',
+              imp_g_falta: 'sl_ig_falta', imp_g_pagado: 'imp_g_pagado'}},
+    {paso: 'timbre', estados: ['ante_el_ente'], rotulo: 'cv_p_timbre',
+     textos: {imp_aviso: 'cv_i_aviso'}}
   ];
 
   /* Aquí iban los dos importes de la licencia, la tasa y el timbre. Se
@@ -9423,7 +9487,7 @@ applyLang(idiomaParaMi());
     var apuntadoDetras = function(clave){
       var hasta = claves.slice(0, claves.indexOf(clave) + 1);
       return Object.keys(P).some(function(k){
-        return k !== 'contestacion' && k !== 'recaudos_revisados' && P[k] && hasta.indexOf(k) < 0;
+        return k !== 'contestacion' && k !== 'recaudos_revisados' && k !== 'firma_dia' && P[k] && hasta.indexOf(k) < 0;
       });
     };
     /* ── «RECAUDOS REVISADOS» CIERRA LA REVISIÓN ──
@@ -9452,6 +9516,10 @@ applyLang(idiomaParaMi());
           var fechas = (p.importes || []).map(function(x){ return P['pago_' + x] || null; });
           paso.cuando = fechas.every(Boolean) ? fechas.sort().slice(-1)[0] : null;
         }
+        /* 'fecha': el gestor pone un día -la firma de la compraventa-. Se
+           apunta como cualquier paso, y el día va al lado, en <clave>_dia
+           (AAAA-MM-DD). Por eso firma_dia no cuenta como paso de detrás. */
+        if (p.tipo === 'fecha') paso.dia = P[p.clave + '_dia'] || null;
         paso.apuntado =
             p.tipo === 'revision' ? (tr.estado === 'ante_el_ente' || resuelta || revisados || apuntadoDetras(p.clave))
           /* 'estado': lo cierra el estado de la solicitud, en los que diga
@@ -9487,7 +9555,7 @@ applyLang(idiomaParaMi());
                       ? ((ahora.importes || []).filter(function(x){ return !P['pago_' + x]; })[0] || null)
                     : null,
       contestacion: contestacion,
-      anuncio: contestacion ? String((tr.datos || {}).anuncio || '') : '',
+      anuncio: (contestacion || def.anuncios) ? String((tr.datos || {}).anuncio || '') : '',
       anuncioEn: (tr.datos || {}).anuncio_en || P.contestacion || null,
       apuntados: P
     };
@@ -9537,10 +9605,10 @@ applyLang(idiomaParaMi());
 
     /* El anuncio del gestor, ANTES de la escalera y destacado: es lo que
        cambió en su trámite y lo que tiene que leer primero. */
-    if (E.contestacion && E.anuncio && cajaTr){
+    if (E.anuncio && cajaTr){
       var an = el('div', 'mc-anuncio');
       an.setAttribute('role', 'status');
-      an.appendChild(el('div', 'mc-anuncio-t', u.mc_anuncio_t || ''));
+      an.appendChild(el('div', 'mc-anuncio-t', u[((ESCALERA_POR_ETAPAS[E.codigo] || {}).textos || {}).anuncio || 'mc_anuncio_t'] || ''));
       an.appendChild(el('div', 'mc-anuncio-d', E.anuncio));
       if (E.anuncioEn) an.appendChild(el('div', 'sd-e',
         String(u.mc_anuncio_f || '').replace('{fecha}', fecha(E.anuncioEn))));
@@ -9593,6 +9661,11 @@ applyLang(idiomaParaMi());
             txt.appendChild(el('div', 'tr-nota', u[paso.espera] || ''));
           } else if (paso.tipo === 'retiro'){
             txt.appendChild(el('div', 'tr-nota mc-retiro', u[(paso.hecho && paso.listo) || paso.espera] || ''));
+          } else if (paso.tipo === 'fecha'){
+            /* Puesta, el día; sin poner, que lo dirá el Registrador. */
+            if (paso.hecho && paso.dia)
+              txt.appendChild(el('div', 'tr-nota cv-firma', String(u[paso.listo] || '').replace('{fecha}', fecha(paso.dia))));
+            else if (paso.ahora && paso.espera) txt.appendChild(el('div', 'tr-nota', u[paso.espera] || ''));
           }
           /* El importe y su comprobante, en el paso que está en curso de
              los dos. Al equipo no: lo sube desde su cola. */
@@ -9722,7 +9795,7 @@ applyLang(idiomaParaMi());
         marcar.addEventListener('click', function(){
           marcar.disabled = true;
           dice.textContent = u.enviando || '';
-          Promise.resolve(sb.rpc('marca_paso_ciip', {p_tramite: t.id, p_clave: cur.clave}))
+          Promise.resolve(sb.rpc(def.rpcPaso || 'marca_paso_ciip', {p_tramite: t.id, p_clave: cur.clave}))
             .then(conDatos).catch(falla(marcar, dice));
         });
         caja.appendChild(marcar);
@@ -9780,6 +9853,97 @@ applyLang(idiomaParaMi());
         caja.appendChild(el('div', 'tr-nota', u[tx.firmadaFalta || 'vs_g_firmada_falta'] || ''));
       } else if (cur && cur.tipo === 'retiro'){
         caja.appendChild(el('div', 'tr-nota', u[tx.retiro || 'mc_g_retiro'] || ''));
+      }
+
+      /* ── LA FECHA DE LA FIRMA ── (compraventa, 5-10-2026)
+         La indica el Registrador y la escribe el gestor. Con su paso en
+         curso, para ponerla; ya puesta y hasta resolver, para moverla si el
+         Registrador la cambia. */
+      var pasoFecha = E.todos.filter(function(p){ return p.tipo === 'fecha'; })[0];
+      if (pasoFecha && (pasoFecha.ahora || (pasoFecha.hecho && cur && cur.tipo === 'retiro'))){
+        var zonaF = el('div', 'imp-g-mando cv-g-fecha');
+        if (pasoFecha.dia) zonaF.appendChild(el('div', 'imp-g-e bien',
+          String(u.cv_g_fecha_ok || '').replace('{fecha}', fecha(pasoFecha.dia))));
+        var etiqF = el('label', null, u.cv_g_fecha || '');
+        etiqF.setAttribute('for', idBase + 'fecha-' + t.id);
+        var dia = document.createElement('input');
+        dia.type = 'date';
+        dia.id = idBase + 'fecha-' + t.id;
+        dia.value = pasoFecha.dia || '';
+        var guarda = el('button', 'btn navy cv-g-guarda', u.cv_g_fecha_guardar || '');
+        guarda.type = 'button';
+        var diceF = el('div', 'imp-g-e', '');
+        guarda.addEventListener('click', function(){
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(dia.value || '')){
+            diceF.className = 'imp-g-e falta';
+            diceF.textContent = u.cv_g_fecha_falta || '';
+            dia.focus();
+            return;
+          }
+          guarda.disabled = true;
+          diceF.textContent = u.enviando || '';
+          Promise.resolve(sb.rpc('compraventa_fecha_firma', {p_tramite: t.id, p_dia: dia.value}))
+            .then(conDatos).catch(falla(guarda, diceF));
+        });
+        zonaF.appendChild(etiqF);
+        zonaF.appendChild(dia);
+        zonaF.appendChild(guarda);
+        zonaF.appendChild(diceF);
+        caja.appendChild(zonaF);
+      }
+
+      /* ── AVISAR AL INVERSIONISTA ── (compraventa, 5-10-2026)
+         En los pasos de 'anuncios' -la revisión del Registrador-: lo que
+         observe o pida, con el mismo anuncio destacado y el mismo correo
+         que la contestación de la marca. Se puede avisar más de una vez;
+         el inversionista ve el último, y todos quedan en la conversación. */
+      if (def.anuncios && cur && def.anuncios.indexOf(cur.clave) >= 0){
+        var zonaA = el('div', 'mc-g-contestar cv-g-avisar');
+        if (E.anuncio){
+          var ultimo = el('div', 'mc-g-contestada');
+          ultimo.appendChild(el('div', 'imp-g-e bien',
+            String(u.cv_g_avisado || '').replace('{fecha}', fecha(E.anuncioEn))));
+          ultimo.appendChild(el('div', 'mc-anuncio-d', E.anuncio));
+          zonaA.appendChild(ultimo);
+        }
+        var abreA = el('button', 'btn ghost cv-g-abre', u.cv_g_avisar || '');
+        abreA.type = 'button';
+        var formA = el('div', 'mc-g-form');
+        formA.hidden = true;
+        formA.appendChild(el('div', 'tr-nota', u.cv_g_avisar_ayuda || ''));
+        var textoA = document.createElement('textarea');
+        textoA.className = 'mc-g-anuncio';
+        textoA.rows = 3;
+        textoA.maxLength = 2000;
+        textoA.placeholder = u.mc_g_anuncio_ph || '';
+        textoA.setAttribute('aria-label', u.mc_g_anuncio_ph || '');
+        formA.appendChild(textoA);
+        var siA = el('button', 'btn navy cv-g-avisa', u.cv_g_avisar_si || '');
+        siA.type = 'button';
+        var diceA = el('div', 'imp-g-e', '');
+        formA.appendChild(siA);
+        formA.appendChild(diceA);
+        abreA.addEventListener('click', function(){
+          formA.hidden = false;
+          abreA.hidden = true;
+          textoA.focus();
+        });
+        siA.addEventListener('click', function(){
+          var escrito = (textoA.value || '').trim();
+          if (!escrito){
+            diceA.className = 'imp-g-e falta';
+            diceA.textContent = u.mc_g_anuncio_falta || '';
+            textoA.focus();
+            return;
+          }
+          siA.disabled = true;
+          diceA.textContent = u.enviando || '';
+          Promise.resolve(sb.rpc('anuncio_del_ciip', {p_tramite: t.id, p_anuncio: escrito}))
+            .then(conDatos).catch(falla(siA, diceA));
+        });
+        zonaA.appendChild(abreA);
+        zonaA.appendChild(formA);
+        caja.appendChild(zonaA);
       }
       /* La planilla firmada ya recibida, a mano para abrirla mientras la
          solicitud siga en la casilla: es lo que se presenta ante el ente. */
@@ -16672,7 +16836,7 @@ applyLang(idiomaParaMi());
      constitución no: su último paso está por decidir, y sigue «Resolver». */
   var RESUELVE_DICE = {
     publicacion_acta: 'co_r_publicacion', libros_contables: 'co_r_libros',
-    marca: 'co_r_marca', bienes_compraventa: 'co_r_contrato',
+    marca: 'co_r_marca', bienes_compraventa: 'cv_p_protocolizado',
     bienes_alquiler: 'co_r_contrato', registros_parafiscales: 'co_r_constancias'
   };
   var RESUELVE_COMO_SIEMPRE = {constitucion: true};
