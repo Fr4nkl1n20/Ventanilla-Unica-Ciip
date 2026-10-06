@@ -248,7 +248,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* La marca en proceso de registro (c43), Franklin Reyes, 5-10-2026: el
    trámite y los dos tipos de documento de sus recaudos. Solo inserta en
    el catálogo, como «Bienes»; necesita nivel y emite, así que va al final. */
-'supabase-marca-proceso'];
+'supabase-marca-proceso',
+/* «Recaudos revisados» como botón aparte (Franklin Reyes, 5-10-2026):
+   marca_recaudos_revisados() apunta datos.pasos_ciip.recaudos_revisados.
+   No redefine nada de nadie; al final. */
+'supabase-recaudos-revisados'];
 
 let mal = 0;
 for (const n of orden) {

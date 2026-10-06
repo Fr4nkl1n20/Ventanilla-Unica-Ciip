@@ -676,6 +676,9 @@
          tres montones dirian lo mismo y probar que reparten no probaria
          nada. */
       {id:'x2', inversionista:'u3', tipo:'constitucion', estado:'en_revision',
+       /* Con los recaudos ya dados por revisados (5-10-2026): lo que se
+          prueba con ella es presentar, y la firma que lo frena. */
+       datos:{pasos_ciip:{recaudos_revisados:'2026-08-08T10:00:00-04:00'}},
        creado_en:'2026-08-07T09:00:00Z', enviado_en:'2026-08-07T09:00:00Z',
        gestor:'u4'}
     ],
@@ -2820,6 +2823,26 @@
               rAP = {data: {id: args.p_tramite, estado: tAP ? tAP.estado : 'enviado', datos: datosAP}, error: null};
             }
             return {then:function(bien, mal){ return Promise.resolve(rAP).then(bien, mal); }};
+          }
+          /* «Recaudos revisados» (Franklin Reyes, 5-10-2026,
+             supabase-recaudos-revisados.sql): como la de verdad, solo en
+             revisión, y apunta la fecha en datos.pasos_ciip. Lo pedido queda
+             en CIIP_PRUEBA_REVISADOS. */
+          if (nombre === 'marca_recaudos_revisados'){
+            window.CIIP_PRUEBA_REVISADOS = (window.CIIP_PRUEBA_REVISADOS || []).concat([args]);
+            var tRR = (TRAMITES[caso] || []).concat(window.__TRAMITES_EXTRA || [])
+                      .filter(function(t){ return t.id === (args && args.p_tramite); })[0];
+            var rRR;
+            if (tRR && tRR.estado !== 'en_revision'){
+              rRR = {data: null, error: {message: 'no se pudo marcar la revisión', code: 'P0001'}};
+            } else {
+              var dRR = JSON.parse(JSON.stringify((tRR && tRR.datos) || {}));
+              dRR.pasos_ciip = dRR.pasos_ciip || {};
+              dRR.pasos_ciip.recaudos_revisados = '2026-10-05T10:00:00-04:00';
+              if (tRR) tRR.datos = dRR;
+              rRR = {data: {id: args && args.p_tramite, estado: 'en_revision', datos: dRR}, error: null};
+            }
+            return {then:function(bien, mal){ return Promise.resolve(rRR).then(bien, mal); }};
           }
           if ((nombre === 'marca_paso_ciip' || nombre === 'habilita_contestacion') && window.__MARCA_RPC){
             window.CIIP_PRUEBA_MARCA = (window.CIIP_PRUEBA_MARCA || []).concat([{nombre: nombre, args: args}]);

@@ -7731,7 +7731,7 @@
        sin la planilla firmada. Los papeles ya no frenan; frena ella, y el
        botón dice por qué. */
     var u = window.CIIP_T();
-    var pre = hoyBotonQueDice(v, 'Presentar ante SENIAT');
+    var pre = hoyBotonQueDice(v, 'Presentada ante SENIAT');
     igual('hoy: y con el nuevo validado, los papeles ya no frenan: solo la planilla firmada que falta',
           pre ? (pre.disabled ? 'apagado' : 'encendido') + ' · ' + pre.title : 'no hay botón',
           'apagado · ' + u.co_firmada_falta);
@@ -10596,6 +10596,32 @@
        [].some.call(ladoS.querySelectorAll('button'), function(b){ return b.textContent === uS.co_h_autoriza; }),
        [].map.call(ladoS.querySelectorAll('button.btn.navy'), function(b){ return b.textContent; }).join(' | '),
        uS.co_h_autoriza);
+
+    /* «PRESENTAR», PARTIDO EN DOS, Y LA ESPERA DE LA MARCA (Franklin Reyes,
+       5-10-2026). En revisión, primero «Recaudos revisados»; con la revisión
+       marcada, «Presentada ante {ente}», que no sale encendido mientras el
+       inversionista no diga que se registró en la Cancillería. Y ante el
+       ente, sin esa marca, tampoco se resuelve. */
+    var navyDe = function(lado){ return lado.querySelector('.visor-fin button.btn.navy'); };
+    var bR = navyDe(window.CIIP_VISOR_LADO(tr('vs-v6', 'visa_negocios', 'en_revision')));
+    igual('presentar: en revisión, el primer botón es «Recaudos revisados»',
+          bR ? bR.textContent : '(sin botón)', uS.co_h_revisados);
+    var tP = tr('vs-v7', 'visa_negocios', 'en_revision');
+    tP.datos.pasos_ciip = {recaudos_revisados: hace(1)};
+    var bP = navyDe(window.CIIP_VISOR_LADO(tP));
+    ok('presentar: con la revisión marcada y sin el «Ya me registré», «Presentada ante…» espera al inversionista',
+       !!bP && bP.disabled && bP.textContent.indexOf(uS.co_h_presentar.split('{')[0]) === 0 &&
+         bP.title.indexOf('«' + window.CIIP_PASOS.pasos.es.c1[0] + '»') >= 0,
+       bP ? (bP.disabled ? 'apagado' : 'encendido') + ' · ' + bP.textContent + ' · ' + bP.title : '(sin botón)',
+       'apagado, con el paso 1 en el título');
+    tP.datos.cancilleria_confirmada = hace(1);
+    var bP2 = navyDe(window.CIIP_VISOR_LADO(tP));
+    ok('presentar: y con el «Ya me registré», encendido',
+       !!bP2 && !bP2.disabled, bP2 ? (bP2.disabled ? 'apagado' : 'encendido') : '(sin botón)', 'encendido');
+    var ladoE = window.CIIP_VISOR_LADO(tr('vs-v8', 'visa_negocios', 'ante_el_ente'));
+    var bE = [].filter.call(ladoE.querySelectorAll('button'), function(b){ return b.textContent === uS.co_h_resolver; })[0];
+    ok('presentar: ante el ente, sin la marca no se resuelve',
+       !!bE && bE.disabled, bE ? (bE.disabled ? 'apagado' : 'encendido') : '(sin botón)', 'apagado');
   }
 
   /* ═══════════ EL REGISTRO DE IMPORTADOR Y EXPORTADOR, FUERA ═══════════
@@ -14588,9 +14614,9 @@
     var caja = f.querySelector('.co-firma');
     igual('firma: con los tres papeles que hay que traer', caja.querySelectorAll('li').length, 3);
     var pres = [].filter.call(f.querySelectorAll('.co-botones .btn'), function(b){
-      return b.textContent.trim() === u.co_presentar;
+      return b.textContent.trim() === u.co_h_presentar.replace('{ente}', 'SAREN');
     })[0];
-    ok('firma: y el botón de presentarla está', !!pres, pres ? 'está' : 'no está', u.co_presentar);
+    ok('firma: y el botón de presentarla está', !!pres, pres ? 'está' : 'no está', u.co_h_presentar);
     if (pres) pres.click();
     igual('firma: pero sin la firma no se presenta, y lo dice',
           (f.querySelector(':scope > .co-aviso') || {}).textContent, u.co_firma_falta);
@@ -16729,7 +16755,7 @@
     igual('cola: un RIF recién enviado se devuelve o se le manda la planilla',
           botones(fichas[0]), 'Devolver | Enviar la planilla al inversionista');
     igual('cola: y uno en revisión se devuelve o se presenta ante el ente',
-          botones(fichas[1]), 'Devolver | Presentada ante el ente');
+          botones(fichas[1]), 'Devolver | Presentada ante SAREN');
 
     /* ── el expediente ──
        La cola decía quién, qué y cuándo, pero no qué había dentro: se movían

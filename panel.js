@@ -15984,6 +15984,12 @@ applyLang(idiomaParaMi());
         /* Y en los RIF, pasar a revisión es mandar la planilla (30-9-2026). */
         var mandaP = (p.a === 'en_revision' && mandaLaPlanilla(t));
         if (mandaP) rotP = u.co_h_env_planilla;
+        /* Y presentar, partido en dos como en el visor (Franklin Reyes,
+           5-10-2026): primero «Recaudos revisados», luego «Presentada ante
+           {ente}». */
+        var revisaP = (p.a === 'ante_el_ente' && faltaRevisarRecaudos(t));
+        if (revisaP) rotP = u.co_h_revisados;
+        else if (p.a === 'ante_el_ente') rotP = String(u.co_h_presentar || '').replace('{ente}', hoyEnte(t));
         var b = el('button', 'btn ' + (i === 0 && p.nota ? 'ghost' : 'navy'), rotP || '');
         b.type = 'button';
         principal = b; principalTxt = rotP || '';
@@ -16003,6 +16009,21 @@ applyLang(idiomaParaMi());
           if (b === principal && reserva && reserva.pendiente()){
             b.disabled = true;
             reserva.envia().then(function(){ b.disabled = false; rotulaCo(); });
+            return;
+          }
+          /* Ni presentar ni resolver sin la marca del inversionista: se
+             espera a que lo indique (5-10-2026). */
+          if ((p.a === 'ante_el_ente' || p.a === 'resuelto') && esperaLaMarca(t, u)){
+            f.classList.add('mal');
+            aviso.textContent = esperaLaMarca(t, u);
+            return;
+          }
+          if (revisaP){
+            f.classList.remove('mal');
+            aviso.textContent = '';
+            marcaRecaudosRevisados(t, b, aviso).then(function(bien){
+              if (bien) pintaTramites(); else f.classList.add('mal');
+            });
             return;
           }
           /* Y la constitución no se presenta ante el SAREN sin que la
@@ -17587,11 +17608,15 @@ applyLang(idiomaParaMi());
     if (!t.gestor) return u.co_h_v_tomar || '';
     /* El importe de hoy va antes que lo demás: mañana ya no vale. */
     if (YO && t.gestor === YO && faltaImporteHoy(t)) return u.imp_g_verbo || '';
+    /* Lo que tiene que marcar el inversionista: se espera, y lo dice. */
+    if (YO && t.gestor === YO && marcaQueFalta(t) && !(c && (c.cargado || c.rechazado)) && !faltaRevisarRecaudos(t))
+      return u.co_h_v_devuelto || '';
     if (t.estado === 'ante_el_ente') return String(u.co_h_v_ente || '').replace('{ente}', ente);
     if (!YO || t.gestor !== YO) return String(u.co_lolleva || '').replace('{quien}', nombreDeGestor(t.gestor));
     if (t.estado === 'enviado' || !c) return u.co_h_v_revisar || '';
     if (c.cargado) return String(c.cargado === 1 ? u.co_h_v_validar1 : u.co_h_v_validar).replace('{n}', c.cargado);
     if (c.rechazado) return u.co_h_v_devolver || '';
+    if (faltaRevisarRecaudos(t)) return u.co_h_v_revisar || '';
     return String(u.co_h_v_presentar || '').replace('{ente}', ente);
   }
 
@@ -18046,6 +18071,16 @@ applyLang(idiomaParaMi());
       if (aviso) aviso.textContent = u[faltaParaPresentarEtapas(t)] || '';
       return;
     }
+    /* Ni sin la marca del inversionista, ni sin «Recaudos revisados»
+       (Franklin Reyes, 5-10-2026). */
+    if (esperaLaMarca(t, u)){
+      if (aviso) aviso.textContent = esperaLaMarca(t, u);
+      return;
+    }
+    if (faltaRevisarRecaudos(t)){
+      if (aviso) aviso.textContent = u.co_revisados_falta || '';
+      return;
+    }
     boton.disabled = true;
     var revisado = t.estado === 'enviado'
       ? mueveTramite(t, 'en_revision', '', boton, aviso, texto)
@@ -18143,6 +18178,11 @@ applyLang(idiomaParaMi());
     if (!papel && pideEmitido(t)){
       aviso.textContent = u.co_faltadoc || '';
       if (archivo) archivo.focus();
+      return;
+    }
+    /* Y sin la marca del inversionista, tampoco (5-10-2026). */
+    if (esperaLaMarca(t, u)){
+      aviso.textContent = esperaLaMarca(t, u);
       return;
     }
     /* La misma regla que la ficha de la cola: una parafiscal no se cierra
@@ -19035,6 +19075,14 @@ applyLang(idiomaParaMi());
       if (delActa) dondeRes.appendChild(delActa.caja);
       var res = el('button', 'btn navy', rotuloRes || '');
       res.type = 'button';
+      /* Sin la marca del inversionista no se resuelve: se espera. */
+      var esperaRes = esperaLaMarca(t, u);
+      if (esperaRes){
+        res.disabled = true;
+        res.title = esperaRes;
+        pista.className = 'hoy-pista mal';
+        pista.textContent = esperaRes;
+      }
       res.addEventListener('click', function(){
         if (reserva && reserva.pendiente()){
           res.disabled = true;
@@ -19091,6 +19139,10 @@ applyLang(idiomaParaMi());
            «listo para presentar» sería mentira. */
         pista.className = 'hoy-pista mal';
         pista.textContent = u[faltaParaPresentarEtapas(t)] || '';
+      } else if (esperaLaMarca(t, u)){
+        /* Y lo que falta lo hace el inversionista: se espera (5-10-2026). */
+        pista.className = 'hoy-pista mal';
+        pista.textContent = esperaLaMarca(t, u);
       } else if (c && c.total){
         pista.className = 'hoy-pista bien';
         pista.textContent = u.co_h_p_listo || '';
@@ -19126,6 +19178,12 @@ applyLang(idiomaParaMi());
           pre.textContent = u[pagar.clave] || '';
           pre.disabled = false;
           pre.title = '';
+        } else if (faltaRevisarRecaudos(t)){
+          /* Primero se da la revisión por cerrada, con todo mirado y en
+             orden; presentar es el botón siguiente (5-10-2026). */
+          pre.textContent = u.co_h_revisados || '';
+          pre.disabled = !!(c && (c.cargado || c.rechazado));
+          pre.title = '';
         } else {
           pre.textContent = String(u.co_h_presentar || '').replace('{ente}', ente);
           /* Y la constitución, además, espera a la firma en el CIIP; y el
@@ -19133,9 +19191,11 @@ applyLang(idiomaParaMi());
           var sinFirma = !!(firma && !firma.firmada());
           /* Y la visa, a la planilla firmada del inversionista. */
           var sinPlanilla = faltaParaPresentarEtapas(t);
-          pre.disabled = !!(c && (c.cargado || c.rechazado)) || sinFirma || !!sinFirmada || !!sinPlanilla;
+          /* Y lo que tiene que marcar el inversionista. */
+          var sinMarca = esperaLaMarca(t, u);
+          pre.disabled = !!(c && (c.cargado || c.rechazado)) || sinFirma || !!sinFirmada || !!sinPlanilla || !!sinMarca;
           pre.title = sinFirma ? (u.co_firma_falta || '') : sinFirmada ? (u[sinFirmada] || '')
-                    : sinPlanilla ? (u[sinPlanilla] || '') : '';
+                    : sinPlanilla ? (u[sinPlanilla] || '') : (sinMarca || '');
         }
       };
       var pagar = casillaDeLaReserva(t, 'hoy-pag-', function(){ rotulaPre(); });
@@ -19205,6 +19265,14 @@ applyLang(idiomaParaMi());
         if (pagar && pagar.pendiente()){
           pre.disabled = true;
           pagar.envia().then(function(){ rotulaPre(); });
+          return;
+        }
+        if (faltaRevisarRecaudos(t)){
+          marcaRecaudosRevisados(t, pre, aviso).then(function(bien){
+            if (!bien) return;
+            pintaHoy();
+            if (visor && visor.id === t.id) pintaVisor(); else rotulaPre();
+          });
           return;
         }
         hoyPresenta(t, pre, aviso);
@@ -24479,6 +24547,96 @@ applyLang(idiomaParaMi());
     return ((v && typeof v === 'object' && v.texto && u[v.texto]) || u.p_yamehice || '');
   }
 
+  /* ── EL GESTOR ESPERA A QUE EL INVERSIONISTA LO INDIQUE ──
+     Franklin Reyes, 5-10-2026, tras repasar las fichas con los botones del
+     gestor: «sí se bloquea». Si un paso lo hace el inversionista fuera del
+     panel (registrarse en un portal, indicar la sede), el gestor no
+     presenta ni resuelve hasta que él lo marque: antes se podía, y le
+     llegaba «No tienes que hacer nada» con su ficha pidiéndole el paso.
+
+     Devuelve el primer paso suyo sin marcar, {n, clave}, o null. */
+  function marcaQueFalta(t){
+    var ref = t && tipoRefDe(t.tipo);
+    var m = ref && PASOS_QUE_MARCAS_TU[ref];
+    if (!m) return null;
+    var d = (t && t.datos) || {};
+    var ns = Object.keys(m).map(Number).sort(function(a, b){ return a - b; });
+    for (var i = 0; i < ns.length; i++){
+      var k = claveDelPasoMio(m[ns[i]]);
+      if (k && !d[k]) return {n: ns[i], clave: k};
+    }
+    return null;
+  }
+  /* Lo que lee el gestor mientras espera, con el nombre del paso tal como
+     lo ve el inversionista; '' si no espera nada. */
+  function esperaLaMarca(t, u){
+    var f = marcaQueFalta(t);
+    if (!f) return '';
+    var DP = window.CIIP_PASOS || {};
+    var mapa = (DP.pasos && (DP.pasos[curLang] || DP.pasos.en)) || {};
+    var lista = mapa[tipoRefDe(t.tipo)] || [];
+    return String(u.vt_espera_marca || '')
+      .replace('{quien}', t.nombre || u.co_sinnombre || '')
+      .replace('{n}', f.n)
+      .replace('{paso}', lista[f.n - 1] || '');
+  }
+
+  /* ── «RECAUDOS REVISADOS», UN BOTÓN APARTE ──
+     Franklin Reyes, 5-10-2026: «Presentar» se parte en dos. Primero
+     «Recaudos revisados», que cierra la revisión (el paso «Revisión de tus
+     recaudos», dicho como respuesta), y después «Presentada ante {ente}».
+     La marca va en datos.pasos_ciip.recaudos_revisados y la escribe
+     marca_recaudos_revisados() (supabase-recaudos-revisados.sql).
+
+     El RIF no: en él la revisión es mandar la planilla, que ya es su botón. */
+  function faltaRevisarRecaudos(t){
+    if (!t || (t.estado !== 'enviado' && t.estado !== 'en_revision') || mandaLaPlanilla(t)) return false;
+    var p = (t.datos || {}).pasos_ciip || {};
+    return !p.recaudos_revisados;
+  }
+  function marcaRecaudosRevisados(t, boton, aviso){
+    var u = T(), texto = boton ? boton.textContent : '';
+    if (boton) boton.disabled = true;
+    var apunta = function(datos){
+      t.datos = datos;
+      return true;
+    };
+    /* Recibida, primero sube a revisión: la base solo la marca ahí, y es
+       lo que ha pasado de verdad (alguien la miró). */
+    var enRevision = t.estado === 'enviado'
+      ? mueveTramite(t, 'en_revision', '', boton, aviso, texto)
+      : Promise.resolve(true);
+    return enRevision
+      .then(function(bien){
+        if (!bien) return {error: {cortado: true}};
+        return sb.rpc('marca_recaudos_revisados', {p_tramite: t.id});
+      })
+      .then(function(r){
+        if (r && r.error && r.error.cortado) return false;
+        if (r && r.error){
+          /* Sin la función en la base (falta correr el SQL) no se deja al
+             gestor atascado: se apunta aquí y se puede presentar igual. */
+          if (r.error.code === '42883' || r.error.code === 'PGRST202'){
+            console.warn('[CIIP] marca_recaudos_revisados no está en la base:', r.error.message);
+            var d = JSON.parse(JSON.stringify(t.datos || {}));
+            d.pasos_ciip = d.pasos_ciip || {};
+            d.pasos_ciip.recaudos_revisados = new Date().toISOString();
+            return apunta(d);
+          }
+          throw r.error;
+        }
+        var fila = r && (r.data && r.data.datos ? r.data : (r.data && r.data[0]));
+        if (!fila || !fila.datos) throw new Error('sin fila');
+        return apunta(fila.datos);
+      })
+      .catch(function(e){
+        console.warn('[CIIP] recaudos revisados:', e && (e.message || e));
+        if (boton){ boton.disabled = false; boton.textContent = texto; }
+        if (aviso) aviso.textContent = u.co_error || '';
+        return false;
+      });
+  }
+
   /* ── CUÁNTOS PASOS VAN HECHOS EN CADA ESTADO, CUANDO NO EMPIEZAN POR
      «RECIBIDA» ──
      La cuenta de siempre de los pasos propios da el primero por hecho en
@@ -25792,10 +25950,10 @@ applyLang(idiomaParaMi());
          solo dejan de usarse.
 
          Lo que se queda: «Certificado de inscripción listo» lo cierra el
-         gestor, con «Marcar listo» o subiendo la constancia. AL EQUIPO NO
-         SE LE CIERRA NADA (Franklin Reyes, 25-9-2026): puede cerrar un ente
-         aunque el inversionista no haya marcado nada, porque a veces se lo
-         cuenta por teléfono o lo trae en papel. */
+         gestor, con «Marcar listo» o subiendo la constancia. «Marcar
+         listo» espera a que el inversionista marque sus pasos en ese ente
+         (Franklin Reyes, 5-10-2026, «sí se bloquea»; hasta entonces valía
+         el «al equipo no se le cierra nada» del 25-9-2026). Ver pon(). */
       if (modo === 'equipo' && tr.estado !== 'resuelto'){
         listo = el('button', 'btn ghost pe-listo', u.pe_marcar || '');
         listo.type = 'button';
@@ -25945,7 +26103,16 @@ applyLang(idiomaParaMi());
           subeNom.textContent = esConstancia ? (u.pe_enviadaok || '') : '';
           subeNom.title = esConstancia ? (doc.nombre_original || '') : '';
         }
-        if (listo) listo.hidden = listoYa;
+        if (listo){
+          listo.hidden = listoYa;
+          /* Y no se cierra mientras el inversionista no haya marcado sus
+             pasos en este ente (Franklin Reyes, 5-10-2026: «sí se
+             bloquea»; deja atrás el «al equipo no se le cierra nada» del
+             25-9). La constancia se sigue pudiendo subir. */
+          var faltaSuyo = defs.some(function(def){ return def.marca && !datos[def.marca]; });
+          listo.disabled = faltaSuyo;
+          listo.title = faltaSuyo ? (u.pe_espera_marca || '') : '';
+        }
       }
       pon(null);
       fila.CIIP_PON = pon;
