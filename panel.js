@@ -24785,7 +24785,33 @@ applyLang(idiomaParaMi());
        (PASOS_QUE_MARCAS_TU), no el estado. Con las dos, «Solicitud en
        revisión» queda en curso en cualquier estado hasta resolverse. Sin
        esta línea, cuatro pasos irían por los rótulos del circuito. */
-    c29: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:0}
+    c29: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:0},
+    /* LOS GENÉRICOS ENCENDIDOS, CON SUS PASOS (Franklin Reyes, 5-10-2026,
+       «que cada uno enseñe una sola ficha»). El permiso sanitario (c12), las
+       solvencias (c14), la firma electrónica (c19), el permiso ambiental
+       (c30) y el registro de inversión (c31) tenían cuatro pasos propios en
+       pasos.js y ninguna línea aquí, así que la tarjeta enseñaba esos y «Tu
+       solicitud» y el visor del gestor, los cuatro del circuito: tres
+       escaleras distintas del mismo trámite. Ahora los tres sitios leen la
+       misma lista, con «Revisión de tus recaudos» delante, que es lo que hace
+       el CIIP antes de presentar (el botón «Recaudos revisados»).
+
+       Recibida, en revisión o devuelta, la revisión está en curso, como en la
+       verificación (c33). Ante el ente queda hecho lo que no se presenta sin
+       haber pasado: la revisión y el paso de la presentación -la solicitud
+       ante la contraloría, el expediente ante el órgano rector, la solicitud
+       al proveedor de SUSCERTE-, y en curso el primero que hace el ente. En
+       el ambiental la presentación es la consignación del expediente, el
+       tercero, y la clasificación del impacto va antes, así que ante el MINEC
+       la evaluación está en curso. En las solvencias no hay paso de
+       presentación: ante los entes, en curso la primera solvencia. Lo de en
+       medio no lo cierra ningún estado y se queda topado; el último, al
+       resolver, que es el rótulo con el que el gestor la resuelve. */
+    c12: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:2},
+    c14: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c19: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:2},
+    c30: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:3},
+    c31: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:2}
   };
 
   /* ── UN TRÁMITE CON DOS ESCALERAS ──

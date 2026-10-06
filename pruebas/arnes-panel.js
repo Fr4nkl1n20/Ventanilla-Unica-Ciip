@@ -408,6 +408,8 @@
               escaleraEnteMira, escaleraEnteFicha,
               /* «Recaudos revisados» cierra la revisión (5-10-2026, punto 2). */
               revisadosMira,
+              /* Los genéricos encendidos, una sola ficha (Franklin Reyes, 5-10-2026). */
+              genericosMira, genericosFicha,
               /* El repaso de cada minuto no «reinicia» el trámite (5-10-2026). */
               repasoAbre, repasoMira, repasoTras, repasoPedida, repasoEstado, colaNoArrastra, rvRepaso,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
@@ -11179,6 +11181,88 @@
           dibujo('libros_contables', 'SAREN', 'en_revision', true), 'hecho,ahora,porhacer,porhacer,porhacer,porhacer');
     puestos.forEach(function(r){ delete cat[r]; });
     sigue();
+  /* ═══════════ LOS GENÉRICOS, UNA SOLA FICHA ═══════════
+     Franklin Reyes, 5-10-2026. El permiso sanitario (c12), las solvencias
+     (c14), la firma electrónica (c19), el permiso ambiental (c30) y el
+     registro de inversión (c31) enseñaban sus pasos de pasos.js en el globo
+     de la tarjeta y los cuatro del circuito en «Tu solicitud» y en el visor
+     del gestor. Se fija que la escalera y el visor dicen lo mismo que el
+     globo -la lista de pasos.js-, y qué paso está en curso en cada estado. */
+  function genericosMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var E = window.CIIP_ESCALERA;
+    if (!E){ ok('genéricos: la escalera está a mano', false, 'no está', 'CIIP_ESCALERA'); return sigue(); }
+    var D = window.CIIP_PASOS || {};
+    var mapa = (D.pasos && (D.pasos[curLang] || D.pasos.en)) || {};
+    var cat = window.CIIP_TIPOS_POR_REF || {}, puestos = [];
+    var gen = [
+      ['permiso_sanitario', 'SACS', 'c12', 'hecho,hecho,ahora,porhacer,porhacer'],
+      ['solvencias', 'Entes varios', 'c14', 'hecho,ahora,porhacer,porhacer,porhacer'],
+      ['firma_electronica', 'SUSCERTE', 'c19', 'hecho,hecho,ahora,porhacer,porhacer'],
+      ['permiso_ambiental', 'MINEC', 'c30', 'hecho,hecho,hecho,ahora,porhacer'],
+      ['registro_inversion', 'CIIP', 'c31', 'hecho,hecho,ahora,porhacer,porhacer']
+    ];
+    gen.forEach(function(g){
+      if (!cat[g[2]]){ cat[g[2]] = {codigo: g[0], ref_panel: g[2], ente: g[1], activo: true}; puestos.push(g[2]); }
+    });
+    var dibujo = function(codigo, ente, estado){
+      return E({estado: estado, datos: {}}, codigo, ente).todos.map(function(p){
+        return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(',');
+    };
+    gen.forEach(function(g){
+      var q = g[2] + ': ', lista = mapa[g[2]] || [];
+      var e = E({estado: 'en_revision', datos: {}}, g[0], g[1]);
+      igual('genéricos: ' + q + 'la escalera son sus pasos de pasos.js, los mismos del globo',
+            e.todos.map(function(p){ return p.nombre; }).join(' → '), lista.join(' → '));
+      igual('genéricos: ' + q + 'empieza por la revisión de los recaudos',
+            lista[0], (((D.estados || {})[curLang] || [])[1]) || '(sin rótulo)');
+      var ah = e.todos.filter(function(p){ return p.ahora; })[0];
+      igual('genéricos: ' + q + 'en revisión, la revisión en curso',
+            ah ? ah.n + '. ' + ah.nombre : '(ninguno)', '1. ' + lista[0]);
+      igual('genéricos: ' + q + 'recibida, también', dibujo(g[0], g[1], 'enviado'), 'ahora,porhacer,porhacer,porhacer,porhacer');
+      igual('genéricos: ' + q + 'devuelta, vuelve a la revisión', dibujo(g[0], g[1], 'devuelto'), 'ahora,porhacer,porhacer,porhacer,porhacer');
+      igual('genéricos: ' + q + 'ante el ente, el primer paso del ente en curso', dibujo(g[0], g[1], 'ante_el_ente'), g[3]);
+      igual('genéricos: ' + q + 'resuelta, los cinco hechos', dibujo(g[0], g[1], 'resuelto'), 'hecho,hecho,hecho,hecho,hecho');
+      /* Y el visor del gestor, a la izquierda, con la misma lista. */
+      if (window.CIIP_VISOR_LADO){
+        var lado = window.CIIP_VISOR_LADO({id: 'gn-' + g[2], tipo: g[0], estado: 'en_revision',
+                                            gestor: 'otro-gestor', datos: {}});
+        var nombres = [].map.call(lado.querySelectorAll('.vs-esc li .vs-esc-n'), function(x){ return x.textContent; });
+        var ahV = lado.querySelector('.vs-esc li.ahora .vs-esc-n');
+        igual('genéricos: ' + q + 'el visor del gestor enseña los mismos pasos, la revisión en curso',
+              nombres.join(' → ') + ' · ' + (ahV ? ahV.textContent : '(ninguno)'),
+              lista.join(' → ') + ' · ' + lista[0]);
+      }
+    });
+    puestos.forEach(function(r){ delete cat[r]; });
+
+    /* Y pintada: un registro de inversión en revisión, como lo abre el inversionista. */
+    window.__TRAMITES_EXTRA = [
+      {id: 'gn1', tipo: 'registro_inversion', estado: 'en_revision', datos: {},
+       inversionista: 'u1', creado_en: '2026-10-05T10:00:00Z', enviado_en: '2026-10-05T10:00:00Z',
+       actualizado_en: '2026-10-05T10:20:00Z'}];
+    location.hash = '';
+    setTimeout(function(){
+      location.hash = 'tramite-c31';
+      esperaFilas('#trReal li.tr-paso', 5, sigue);
+    }, 100);
+  }
+
+  function genericosFicha(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var D = window.CIIP_PASOS || {};
+    var lista = ((D.pasos && (D.pasos[curLang] || D.pasos.en)) || {}).c31 || [];
+    var lis = [].slice.call(document.querySelectorAll('#trReal li.tr-paso'));
+    igual('genéricos: la ficha de la c31 pinta sus cinco pasos de pasos.js',
+          lis.map(function(li){ return ((li.querySelector('.tr-paso-n') || {}).textContent || '').trim(); }).join(' → '),
+          lista.join(' → '));
+    igual('genéricos: en revisión, la revisión en curso y nada hecho',
+          lis.map(function(li){
+            return li.classList.contains('hecho') ? 'hecho' : (li.classList.contains('ahora') ? 'ahora' : 'porhacer');
+          }).join(','), 'ahora,porhacer,porhacer,porhacer,porhacer');
+    window.__TRAMITES_EXTRA = null;
+    location.hash = '';
+    setTimeout(sigue, 100);
   }
 
   /* ═══════════ EL REPASO NO REINICIA EL TRÁMITE ═══════════
