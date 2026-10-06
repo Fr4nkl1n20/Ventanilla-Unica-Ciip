@@ -5418,7 +5418,25 @@ html.visor-abierto{overflow:hidden;}
    A la izquierda los pasos del trámite, los recaudos y lo que rellenó; a la
    derecha el trabajo: el papel con «Vale / No vale» debajo, o el paso en
    curso. Ver visorModo en panel.js. Los parafiscales siguen con su visor. */
-.visor-cu.vt{grid-template-columns:290px minmax(0,1fr);}
+.visor-cu.vt{grid-template-columns:var(--vt-izq, 460px) 6px minmax(0,1fr);}
+/* La raya que ensancha la izquierda (6-10-2026): ver vtTirador. */
+.vt-tirador{cursor:col-resize; background:var(--line); position:relative; touch-action:none;}
+.vt-tirador::after{content:""; position:absolute; top:50%; left:1px; width:4px; height:36px; margin-top:-18px; border-radius:3px; background:var(--gray-soft);}
+.vt-tirador:hover, .vt-tirador.arrastra, .vt-tirador:focus-visible{background:var(--line-soft); outline:none;}
+.vt-tirador:hover::after, .vt-tirador.arrastra::after, .vt-tirador:focus-visible::after{background:var(--navy2);}
+/* El tamaño del papel (6-10-2026): ver visorZoom. */
+.vz-barra{flex:none; display:flex; align-items:center; gap:6px 8px; flex-wrap:wrap; padding:8px 14px; border-bottom:1px solid var(--line); background:var(--bg);}
+.vz-grupo{display:inline-flex;}
+.vz-grupo .t-btn{border-radius:0; min-width:34px; justify-content:center;}
+.vz-grupo .t-btn:first-child{border-radius:8px 0 0 8px;}
+.vz-grupo .t-btn:last-child{border-radius:0 8px 8px 0;}
+.vz-grupo .vz-pct{min-width:62px; margin:0 -1px; color:var(--ink); font-variant-numeric:tabular-nums;}
+.vz-barra .vz-modo[aria-pressed="true"]{border-color:var(--navy2); background:var(--block);}
+.vz-pista{margin-left:auto; font-size:var(--fs-nota); color:var(--gray);}
+.visor-doc.vz-zoom{justify-content:flex-start;}
+.visor-doc.vz-zoom iframe, .visor-doc.vz-zoom img{flex:none; margin:0 auto; max-width:none;}
+.visor-doc.vz-mano{cursor:grab;}
+.visor-doc.vz-mano.agarra{cursor:grabbing; user-select:none;}
 .vt-trabajo{display:flex; flex-direction:column; min-width:0; min-height:0;}
 .vt-trabajo .visor-doc{flex:1 1 auto; min-height:0;}
 .vt-trabajo .visor-lado{border-left:0;}
@@ -5487,7 +5505,7 @@ html.visor-abierto{overflow:hidden;}
 
 @media (max-width:1100px){
   .visor-cu{grid-template-columns:220px minmax(0,1fr) 280px;}
-  .visor-cu.vt{grid-template-columns:240px minmax(0,1fr);}
+  .visor-cu.vt{grid-template-columns:min(var(--vt-izq, 460px), 38vw) 6px minmax(0,1fr);}
   /* Cinco cifras no caben aquí: a tres, que reparte mejor que a cuatro
      con una descolgada sola en la segunda fila. */
   .hoy-cifras{grid-template-columns:repeat(3,minmax(0,1fr));}
@@ -5498,6 +5516,8 @@ html.visor-abierto{overflow:hidden;}
   .visor-c{border-radius:0; max-height:none;}
   .visor-cu{grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(320px,1fr) auto; overflow:auto;}
   .visor-cu.vt{grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(320px,1fr);}
+  .vt-tirador{display:none;}
+  .vz-pista{display:none;}
   .vt-resp{grid-template-columns:minmax(0,1fr);}
   .visor-lado.vt-dec{max-height:none;}
   .visor-izq, .visor-lado{border:0; border-bottom:1px solid var(--line); overflow:visible;}

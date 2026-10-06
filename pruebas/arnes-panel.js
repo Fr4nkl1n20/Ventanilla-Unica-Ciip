@@ -7279,6 +7279,24 @@
     ok('hoy: con un papel sin mirar, a la derecha el papel y su «Vale / No vale», sin el pie',
        !!v.querySelector('.vt-recaudo .visor-doc') && !!document.getElementById('paVisorVale') && !v.querySelector('.visor-fin'),
        (v.querySelector('.vt-recaudo') ? 'el papel' : 'otra vista') + (v.querySelector('.visor-fin') ? ', con el pie' : ''), 'el papel');
+    /* La izquierda más ancha y el tamaño del papel (6-10-2026). */
+    var cuV = v.querySelector('.visor-cu.vt');
+    igual('hoy: la izquierda mide 460 de entrada', cuV ? cuV.style.getPropertyValue('--vt-izq') : '(sin cuerpo)', '460px');
+    ok('hoy: con la raya para ensancharla, entre las dos columnas',
+       !!cuV && !!cuV.querySelector('.visor-izq + .vt-tirador[role="separator"] + .vt-trabajo'),
+       cuV && cuV.querySelector('.vt-tirador') ? 'otro sitio' : 'no está', 'entre las dos');
+    var vzB = v.querySelector('.vt-recaudo .vz-barra');
+    var vzU = window.CIIP_PASOS.ui[curLang] || {};
+    ok('hoy: encima del papel, la barra del tamaño',
+       !!vzB && vzB.nextElementSibling && vzB.nextElementSibling.classList.contains('visor-doc') &&
+       [].map.call(vzB.querySelectorAll('.vz-modo'), function(b){ return b.textContent; }).join(' | ') === vzU.vz_ancho + ' | ' + vzU.vz_pagina,
+       vzB ? vzB.textContent : 'no está', vzU.vz_ancho + ' | ' + vzU.vz_pagina);
+    var vzMas = vzB && vzB.querySelector('.vz-mas');
+    if (vzMas && !vzMas.disabled) vzMas.click();
+    igual('hoy: «+» lo agranda un paso', vzB ? (vzB.querySelector('.vz-pct') || {}).textContent : '', '110 %');
+    var vzAn = vzB && vzB.querySelector('.vz-modo');
+    if (vzAn) vzAn.click();
+    igual('hoy: y «Ajustar al ancho» lo deja como estaba', vzB ? (vzB.querySelector('.vz-pct') || {}).textContent : '', '100 %');
     /* Y en el paso en curso, el botón de la planilla, apagado. */
     var irP = document.getElementById('paVisorIrPaso');
     if (irP) irP.click();

@@ -18924,8 +18924,14 @@ applyLang(idiomaParaMi());
              trabajo, que es el papel con su «Vale / No vale» debajo o el
              paso en curso. Ver visorModo. */
           cu.classList.add('vt');
+          cu.style.setProperty('--vt-izq', vtAnchoGuardado() + 'px');
+          cu.appendChild(vtTirador(cu));
           var trabajo = el('div', 'vt-trabajo vt-' + modo);
-          if (modo === 'recaudo') trabajo.appendChild(visorHoja(d));
+          if (modo === 'recaudo'){
+            var hojaV = visorHoja(d);
+            trabajo.appendChild(visorZoom(hojaV));
+            trabajo.appendChild(hojaV);
+          }
           trabajo.appendChild(visorLado(t, d, docs, modo));
           cu.appendChild(trabajo);
         }
@@ -19273,6 +19279,171 @@ applyLang(idiomaParaMi());
       hoja.appendChild(marco);
     }
     return hoja;
+  }
+
+  /* ── LA COLUMNA DE LA IZQUIERDA, MÁS ANCHA (Franklin Reyes, 6-10-2026) ──
+     En la lista de tareas mide 460 px y no 290: los nombres de los papeles
+     y lo que rellenó se leían partidos en tres renglones. La raya entre
+     las dos columnas se arrastra -o se mueve con las flechas- para
+     ensancharla o estrecharla, y el ancho se recuerda en este navegador. */
+  var VT_MIN = 260, VT_MAX = 620, VT_ANCHO = 460;
+  function vtAnchoGuardado(){
+    var w = 0;
+    try { w = +window.localStorage.getItem('ciip_visor_izq') || 0; } catch(e){}
+    return (w >= VT_MIN && w <= VT_MAX) ? w : VT_ANCHO;
+  }
+  function vtTirador(cu){
+    var u = T();
+    var t = el('div', 'vt-tirador');
+    t.setAttribute('role', 'separator');
+    t.setAttribute('aria-orientation', 'vertical');
+    t.setAttribute('aria-label', u.vz_tirador || '');
+    t.setAttribute('aria-valuemin', VT_MIN);
+    t.setAttribute('aria-valuemax', VT_MAX);
+    t.tabIndex = 0;
+    var ahora = vtAnchoGuardado();
+    function pon(w){
+      ahora = Math.round(Math.max(VT_MIN, Math.min(VT_MAX, w)));
+      cu.style.setProperty('--vt-izq', ahora + 'px');
+      t.setAttribute('aria-valuenow', ahora);
+      try { window.localStorage.setItem('ciip_visor_izq', String(ahora)); } catch(e){}
+      if (vzAplica) vzAplica();
+    }
+    t.setAttribute('aria-valuenow', ahora);
+    t.addEventListener('pointerdown', function(e){
+      if (e.button !== 0) return;
+      e.preventDefault();
+      t.setPointerCapture(e.pointerId);
+      t.classList.add('arrastra');
+      var x0 = e.clientX, w0 = ahora;
+      function mueve(ev){ pon(w0 + ev.clientX - x0); }
+      function suelta(){
+        t.classList.remove('arrastra');
+        t.removeEventListener('pointermove', mueve);
+        t.removeEventListener('pointerup', suelta);
+        t.removeEventListener('pointercancel', suelta);
+      }
+      t.addEventListener('pointermove', mueve);
+      t.addEventListener('pointerup', suelta);
+      t.addEventListener('pointercancel', suelta);
+    });
+    t.addEventListener('keydown', function(e){
+      if (e.key === 'ArrowLeft'){ pon(ahora - 20); e.preventDefault(); }
+      else if (e.key === 'ArrowRight'){ pon(ahora + 20); e.preventDefault(); }
+    });
+    return t;
+  }
+
+  /* ── EL TAMAÑO DEL PAPEL (Franklin Reyes, 6-10-2026) ──
+     Encima del papel: − / 100 % / +, «Ajustar al ancho» -como se veía
+     hasta hoy- y «Página entera». Ctrl + rueda hace lo mismo que − y +, y
+     con el papel más ancho que el hueco se arrastra para moverlo.
+
+     Agrandar es dar más ancho a lo que se enseña. En una imagen es
+     literal. En un PDF el lector del navegador ajusta la página al ancho
+     de su marco, así que un marco más ancho es una página más grande; y
+     «Página entera» le da el ancho con el que la hoja, en vertical, cabe
+     en el alto del hueco. Vuelve a «Ajustar al ancho» al cambiar de papel. */
+  var VZ_PASOS = [25, 33, 50, 67, 75, 90, 100, 110, 125, 150, 175, 200, 250, 300, 400];
+  var vzAplica = null;
+  window.addEventListener('resize', function(){ if (vzAplica) vzAplica(); });
+
+  function visorZoom(hoja){
+    var u = T();
+    var barra = el('div', 'vz-barra');
+    barra.setAttribute('role', 'toolbar');
+    barra.setAttribute('aria-label', u.vz_t || '');
+    function boton(cls, texto, titulo){
+      var b = el('button', 't-btn ' + cls, texto);
+      b.type = 'button';
+      if (titulo){ b.title = titulo; b.setAttribute('aria-label', titulo); }
+      return b;
+    }
+    var grupo = el('span', 'vz-grupo');
+    var menos = boton('vz-menos', '−', u.vz_menos);
+    var pct = boton('vz-pct', '100 %');
+    pct.title = u.vz_cien || '';
+    var mas = boton('vz-mas', '+', u.vz_mas);
+    grupo.appendChild(menos);
+    grupo.appendChild(pct);
+    grupo.appendChild(mas);
+    barra.appendChild(grupo);
+    var ancho = boton('vz-modo', u.vz_ancho || '');
+    var pagina = boton('vz-modo', u.vz_pagina || '');
+    barra.appendChild(ancho);
+    barra.appendChild(pagina);
+    barra.appendChild(el('span', 'vz-pista', u.vz_pista || ''));
+
+    var modo = 'ancho', z = 100;
+    function aplica(){
+      var cosa = hoja.querySelector('iframe, img');
+      var base = hoja.clientWidth - 28, alto = hoja.clientHeight - 28;
+      var w = null;
+      if (modo === 'libre') w = base * z / 100;
+      else if (modo === 'pagina'){
+        var prop = (cosa && cosa.tagName === 'IMG')
+          ? (cosa.naturalWidth ? cosa.naturalHeight / cosa.naturalWidth : 0)
+          : 11 / 8.5;
+        w = (prop && alto > 0) ? Math.min(base, alto / prop) : base;
+        z = base > 0 ? Math.round((w / base) * 100) : 100;
+      } else z = 100;
+      if (cosa) cosa.style.width = (w === null || base <= 0) ? '' : Math.round(w) + 'px';
+      hoja.classList.toggle('vz-zoom', w !== null);
+      hoja.classList.toggle('vz-mano', w !== null && w > base + 1);
+      pct.textContent = z + ' %';
+      menos.disabled = !cosa || z <= VZ_PASOS[0];
+      mas.disabled = !cosa || z >= VZ_PASOS[VZ_PASOS.length - 1];
+      pct.disabled = ancho.disabled = pagina.disabled = !cosa;
+      ancho.setAttribute('aria-pressed', String(modo === 'ancho'));
+      pagina.setAttribute('aria-pressed', String(modo === 'pagina'));
+    }
+    function paso(dir){
+      var i = -1;
+      if (dir > 0){
+        for (i = 0; i < VZ_PASOS.length - 1 && VZ_PASOS[i] <= z; i++);
+      } else {
+        VZ_PASOS.forEach(function(p, k){ if (p < z) i = k; });
+        if (i < 0) i = 0;
+      }
+      modo = 'libre';
+      z = VZ_PASOS[i];
+      aplica();
+    }
+    mas.addEventListener('click', function(){ paso(1); });
+    menos.addEventListener('click', function(){ paso(-1); });
+    pct.addEventListener('click', function(){ modo = 'libre'; z = 100; aplica(); });
+    ancho.addEventListener('click', function(){ modo = 'ancho'; aplica(); });
+    pagina.addEventListener('click', function(){ modo = 'pagina'; aplica(); });
+    hoja.addEventListener('wheel', function(e){
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      paso(e.deltaY < 0 ? 1 : -1);
+    }, {passive: false});
+    hoja.addEventListener('pointerdown', function(e){
+      if (!hoja.classList.contains('vz-mano') || e.button !== 0) return;
+      var x0 = e.clientX, y0 = e.clientY, sl = hoja.scrollLeft, st = hoja.scrollTop;
+      e.preventDefault();
+      hoja.classList.add('agarra');
+      hoja.setPointerCapture(e.pointerId);
+      function mueve(ev){ hoja.scrollLeft = sl - (ev.clientX - x0); hoja.scrollTop = st - (ev.clientY - y0); }
+      function suelta(){
+        hoja.classList.remove('agarra');
+        hoja.removeEventListener('pointermove', mueve);
+        hoja.removeEventListener('pointerup', suelta);
+        hoja.removeEventListener('pointercancel', suelta);
+      }
+      hoja.addEventListener('pointermove', mueve);
+      hoja.addEventListener('pointerup', suelta);
+      hoja.addEventListener('pointercancel', suelta);
+    });
+    var img = hoja.querySelector('img');
+    if (img){
+      img.draggable = false;
+      img.addEventListener('load', aplica);
+    }
+    vzAplica = aplica;
+    setTimeout(aplica, 0);
+    return barra;
   }
 
   /* modo: 'recaudo' (el «Vale / No vale» del papel, debajo del papel),
