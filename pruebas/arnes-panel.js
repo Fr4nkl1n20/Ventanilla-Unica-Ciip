@@ -15539,14 +15539,9 @@
        antes.length > 0 && antes.every(function(n){ return n.indexOf(est.value) >= 0; }),
        est.value + ': ' + antes.length + ' oficinas', 'las de ' + est.value);
 
-    ofi.value = antes[0];
-    est.value = 'ZULIA';
-    est.dispatchEvent(new Event('change'));
-    var despues = nombres();
-    ok('oficina: al cambiar el estado, cambia la lista',
-       despues.length > 0 && despues.every(function(n){ return antes.indexOf(n) < 0; }),
-       despues.slice(0, 2).join(' | ') || '(vacia)', 'otras, las de Zulia');
-    igual('oficina: y lo elegido antes se vacia', ofi.value, '');
+    /* Por ahora solo se ofrece el Distrito Capital. */
+    var estados = [].map.call(est.options, function(o){ return o.value; }).filter(Boolean);
+    igual('oficina: solo se ofrece el Distrito Capital', estados.join(' | '), 'DISTRITO CAPITAL');
     location.hash = '';
   }
 

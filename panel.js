@@ -4777,7 +4777,10 @@ applyLang(idiomaParaMi());
     constitucion: [
       {n:'denominacion',      clave:'f_denominacion'},
       {n:'denominacion_alt',  clave:'f_denomalt'},
-      {n:'estado_solicitud',  clave:'f_estadosol',  opciones:['DISTRITO CAPITAL','AMAZONAS','ANZOÁTEGUI','APURE','ARAGUA','BARINAS','BOLIVAR','CARABOBO','COJEDES','DELTA AMACURO','FALCÓN','GUÁRICO','LARA','MÉRIDA','MIRANDA','MONAGAS','NUEVA ESPARTA','PORTUGUESA','SUCRE','TÁCHIRA','TRUJILLO','YARACUY','ZULIA']},
+      /* Por ahora solo se ofrece el Distrito Capital (Franklin, 5-10-2026):
+         el registro en los demas estados aun no se atiende. Sus oficinas
+         siguen en OFICINAS_SAREN para cuando se abran. */
+      {n:'estado_solicitud',  clave:'f_estadosol',  opciones:['DISTRITO CAPITAL']},
       {n:'oficina_registro',  clave:'f_oficinasol',
        opcionesSegun:'estado_solicitud', opcionesDe:OFICINAS_SAREN},
       {n:'capital_social',    clave:'f_capsuscrito'},
