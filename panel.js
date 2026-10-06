@@ -12407,8 +12407,16 @@ applyLang(idiomaParaMi());
        la burbuja vive en otro bloque de este archivo y no ve nada de este,
        asi que su codigo tendria que pasar por window igualmente. Mejor que
        el que abre la ventana sea el mismo que la sabe pintar. */
+    /* Desde el 6-10-2026 (Franklin Reyes: «el apartado de mis consultas
+       dentro del botón azul con auriculares») son dos: «Hablar con el
+       CIIP» empieza una consulta nueva, por los sectores como la del final
+       del catálogo, y «Mis consultas» abre la lista de las propias. */
     var boton = document.getElementById('consBtn');
     if (boton) boton.addEventListener('click', function(){
+      window.CIIP_ABRE_CONSULTA(null, null, null, {sectores: true});
+    });
+    var mias = document.getElementById('consMias');
+    if (mias) mias.addEventListener('click', function(){
       window.CIIP_ABRE_CONSULTA();
     });
   })();
