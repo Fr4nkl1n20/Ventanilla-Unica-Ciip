@@ -3041,11 +3041,8 @@ body[data-vista="inicio"].etapa-elegida .tsec-sig:not([hidden]){display:flex;}
 .gv-paso{display:block; font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
   text-transform:uppercase; color:var(--mudo); margin:0 0 8px;}
 .gv-cols + .gv-paso{margin-top:16px;}
-.gv-nota{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; margin-top:14px;
-  padding:12px 14px; border-radius:var(--r); background:var(--activa-bg);
-  font-size:var(--fs-fila); line-height:1.45; color:var(--ink);}
-.gv-nota > span{flex:1 1 220px; min-width:0;}
-.gv-nota .btn{flex:none;}
+/* Solo el botón, sin frase ni fondo (6-10-2026): la asesoría de bienes. */
+.gv-boton{margin-top:14px;}
 /* Y con todo elegido, la caja se pliega en una línea, sin borde ni fondo:
    lo elegido y «Cambiar», encima del trámite (2-10-2026). */
 .tr-visas.gv-plegada{border:0; box-shadow:none; background:none; padding:0; margin:0 0 12px;}

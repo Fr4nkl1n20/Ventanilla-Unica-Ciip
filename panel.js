@@ -907,10 +907,10 @@ function applyLang(lang){
       if (s === 'asesoria') abreAsesoria(id, u);
     });
     if (serv === 'asesoria'){
-      var nota = el('div', 'gv-nota');
-      var tx = el('span', null, u.bi_ase_nota || '');
-      tx.setAttribute('data-ui', 'bi_ase_nota');
-      nota.appendChild(tx);
+      /* Solo el botón: la frase «Tu consulta se abre en la ventana de
+         consultas…» se fue a pedido de Franklin Reyes (6-10-2026), y con
+         ella el fondo sombreado de la caja. */
+      var nota = el('div', 'gv-boton');
       var b = el('button', 'btn navy', u.bi_ase_btn || '');
       b.type = 'button';
       b.id = 'bienAsesoria';
