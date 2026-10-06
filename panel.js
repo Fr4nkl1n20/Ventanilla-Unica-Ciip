@@ -3962,7 +3962,7 @@ applyLang(idiomaParaMi());
       {tipo:'rif_empresa',            clave:'d_rifempresa'},
       {tipo:'cedulas_junta',          clave:'d_cedulasjunta'},
       {tipo:'rifs_junta',             clave:'d_rifsjunta'},
-      {tipo:'identidad_accionistas',  clave:'d_idaccionistas'},
+      {tipo:'identidad_accionistas',  clave:'d_cedaccionistas'},
       {tipo:'rif_inversionistas',     clave:'d_rifinversionistas'}
     ],
     /* «Bienes» (c41 y c42), Franklin Reyes, 2-10-2026: lo que el CIIP
