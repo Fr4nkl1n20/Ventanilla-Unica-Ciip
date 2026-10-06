@@ -406,6 +406,8 @@
               marcaVivaMira, marcaVivaNueva,
               /* Ante el ente, su paso en curso (Franklin Reyes, 5-10-2026, c32). */
               escaleraEnteMira, escaleraEnteFicha,
+              /* «Recaudos revisados» cierra la revisión (5-10-2026, punto 2). */
+              revisadosMira,
               /* El repaso de cada minuto no «reinicia» el trámite (5-10-2026). */
               repasoAbre, repasoMira, repasoTras, repasoPedida, repasoEstado, colaNoArrastra, rvRepaso,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
@@ -11108,6 +11110,75 @@
     window.__TRAMITES_EXTRA = null;
     location.hash = '';
     setTimeout(sigue, 100);
+  }
+
+  /* ═══════════ «RECAUDOS REVISADOS» CIERRA LA REVISIÓN ═══════════
+     Franklin Reyes, 5-10-2026 (punto 2, tras partir «Presentar» en dos):
+     con la marca datos.pasos_ciip.recaudos_revisados, la ficha y el visor
+     dan la revisión por hecha aunque la solicitud siga en revisión, y el
+     paso siguiente queda en curso. Sin la marca, como antes. Y donde no
+     hay paso de revisión -la visa, el RIF, el PUB delante- no cambia
+     nada. Se mide la escalera sin pintarla (window.CIIP_ESCALERA). */
+  function revisadosMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var E = window.CIIP_ESCALERA;
+    if (!E){ ok('revisados: la escalera está a mano', false, 'no está', 'CIIP_ESCALERA'); return sigue(); }
+    var cat = window.CIIP_TIPOS_POR_REF || {}, puestos = [];
+    [['c22', 'protocolizacion_acta', 'SAREN'], ['c33', 'verificacion_prueba', 'CIIP'],
+     ['c24', 'libros_contables', 'SAREN']].forEach(function(x){
+      if (!cat[x[0]]){ cat[x[0]] = {codigo: x[1], ref_panel: x[0], ente: x[2], activo: true}; puestos.push(x[0]); }
+    });
+    var ya = '2026-10-05T10:30:00Z';
+    var tr = function(estado, marca){
+      return {estado: estado, datos: marca ? {pasos_ciip: {recaudos_revisados: ya}} : {}};
+    };
+    var dibujo = function(codigo, ente, estado, marca){
+      return E(tr(estado, marca), codigo, ente).todos.map(function(p){
+        return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(',');
+    };
+    var enCurso = function(codigo, ente, estado, marca){
+      var p = E(tr(estado, marca), codigo, ente).todos.filter(function(x){ return x.ahora; })[0];
+      return p ? p.n + '. ' + p.nombre : '(ninguno)';
+    };
+    var est = ((window.CIIP_PASOS || {}).estados || {})[curLang] || [];
+
+    /* Los cuatro rótulos de todos (la opinión de la ZODI). */
+    igual('revisados: genérico en revisión sin la marca, la revisión en curso',
+          dibujo('opinion_zodi', 'ZODI', 'en_revision'), 'hecho,ahora,porhacer,porhacer');
+    igual('revisados: y el paso en curso es «Revisión de tus recaudos»',
+          enCurso('opinion_zodi', 'ZODI', 'en_revision'), '2. ' + est[1]);
+    igual('revisados: genérico en revisión con la marca, la revisión hecha y el siguiente en curso',
+          dibujo('opinion_zodi', 'ZODI', 'en_revision', true), 'hecho,hecho,ahora,porhacer');
+    igual('revisados: y el que toca es «Presentada ante» su ente',
+          enCurso('opinion_zodi', 'ZODI', 'en_revision', true), '3. ' + String(est[2] || '').replace('{ente}', 'ZODI'));
+    igual('revisados: genérico ante el ente, como antes con o sin la marca',
+          dibujo('opinion_zodi', 'ZODI', 'ante_el_ente', true), 'hecho,hecho,ahora,porhacer');
+    igual('revisados: devuelta con la marca, vuelve a la revisión',
+          dibujo('opinion_zodi', 'ZODI', 'devuelto', true), 'hecho,ahora,porhacer,porhacer');
+    igual('revisados: c32 con la marca, en curso el paso del SAREN',
+          dibujo('registro_extranjeros_saren', 'SAREN · SISREF', 'en_revision', true), 'hecho,hecho,ahora,porhacer');
+
+    /* Con sus pasos propios y su cuenta: la verificación y la marca en proceso. */
+    igual('revisados: c33 en revisión sin la marca, la revisión en curso',
+          dibujo('verificacion_prueba', 'CIIP', 'en_revision'), 'ahora,porhacer');
+    igual('revisados: c33 con la marca, la revisión hecha y «Verificado» en curso',
+          dibujo('verificacion_prueba', 'CIIP', 'en_revision', true), 'hecho,ahora');
+    igual('revisados: c43 sin la marca, la revisión de estatus en curso',
+          dibujo('marca_en_proceso', 'SAPI', 'en_revision'), 'ahora,porhacer,porhacer');
+    igual('revisados: c43 con la marca, la solicitud al SAPI en curso',
+          dibujo('marca_en_proceso', 'SAPI', 'en_revision', true), 'hecho,ahora,porhacer');
+
+    /* Donde no hay paso de revisión, nada cambia. */
+    [['visa_negocios', 'MPPRE'], ['rif_personal', 'SENIAT'], ['protocolizacion_acta', 'SAREN']].forEach(function(t){
+      igual('revisados: ' + t[0] + ': con la marca, la misma escalera que sin ella',
+            dibujo(t[0], t[1], 'en_revision', true), dibujo(t[0], t[1], 'en_revision'));
+    });
+    /* Y en los libros, que ya tenían la revisión hecha en revisión: la
+       marca no da por consignados los libros ni por presentado el SAREN. */
+    igual('revisados: libros con la marca, toca traer los libros',
+          dibujo('libros_contables', 'SAREN', 'en_revision', true), 'hecho,ahora,porhacer,porhacer,porhacer,porhacer');
+    puestos.forEach(function(r){ delete cat[r]; });
+    sigue();
   }
 
   /* ═══════════ EL REPASO NO REINICIA EL TRÁMITE ═══════════

@@ -9423,9 +9423,19 @@ applyLang(idiomaParaMi());
     var apuntadoDetras = function(clave){
       var hasta = claves.slice(0, claves.indexOf(clave) + 1);
       return Object.keys(P).some(function(k){
-        return k !== 'contestacion' && P[k] && hasta.indexOf(k) < 0;
+        return k !== 'contestacion' && k !== 'recaudos_revisados' && P[k] && hasta.indexOf(k) < 0;
       });
     };
+    /* ── «RECAUDOS REVISADOS» CIERRA LA REVISIÓN ──
+       Franklin Reyes, 5-10-2026 (punto 2, tras partir «Presentar» en dos):
+       la ficha da la revisión por hecha en cuanto el gestor pulsa
+       «Recaudos revisados», aunque la solicitud siga en revisión, y deja
+       en curso lo de detrás. La marca va en pasos_ciip, pero no es un paso
+       de esta escalera ni «algo apuntado detrás»: contada así, daba por
+       hechos también los pasos de estado de después -en los libros, la
+       consignación y el SAREN- sin haberse presentado nada. Por eso arriba
+       se aparta, y aquí cierra solo el paso de la revisión. */
+    var revisados = tr.estado === 'en_revision' && !!P.recaudos_revisados;
     var todos = [], etapas = [];
     def.etapas.forEach(function(et, ie){
       var e = {clave: et.clave, nombre: u[et.rotulo] || '', n: ie + 1, pasos: []};
@@ -9443,11 +9453,12 @@ applyLang(idiomaParaMi());
           paso.cuando = fechas.every(Boolean) ? fechas.sort().slice(-1)[0] : null;
         }
         paso.apuntado =
-            p.tipo === 'revision' ? (tr.estado === 'ante_el_ente' || resuelta || apuntadoDetras(p.clave))
+            p.tipo === 'revision' ? (tr.estado === 'ante_el_ente' || resuelta || revisados || apuntadoDetras(p.clave))
           /* 'estado': lo cierra el estado de la solicitud, en los que diga
              hechoEn. Como la revisión, no vuelve atrás si ya hay algo
              apuntado. */
-          : p.tipo === 'estado'   ? ((p.hechoEn || []).indexOf(tr.estado) >= 0 || resuelta || apuntadoDetras(p.clave))
+          : p.tipo === 'estado'   ? ((p.hechoEn || []).indexOf(tr.estado) >= 0 || resuelta ||
+                                     (revisados && p.clave === 'revision') || apuntadoDetras(p.clave))
           : p.tipo === 'retiro'   ? resuelta
           : p.tipo === 'pagos'    ? !!paso.cuando
           : !!P[p.clave];
@@ -10013,6 +10024,17 @@ applyLang(idiomaParaMi());
       var hechos = (tr.estado === 'resuelto')
         ? n
         : Math.min(HASTA[tr.estado] === undefined ? 0 : HASTA[tr.estado], n - 1);
+      /* «RECAUDOS REVISADOS» (Franklin Reyes, 5-10-2026, punto 2): con la
+         marca del gestor, el paso que cierra la presentación -la revisión
+         de la verificación, de la cuenta bancaria o de la marca en
+         proceso- queda hecho aunque la solicitud siga en revisión, y lo de
+         detrás en curso. Solo donde la cuenta es la del trámite
+         (PASOS_SEGUN_ESTADO) y la presentación mueve un paso más que la
+         revisión: en las visas, la cédula o los bomberos no cambia nada.
+         Va antes de los pasos que marcas tú, que siguen topando. */
+      if (cuentaPropia && recaudosYaRevisados(tr, ref) &&
+          HASTA.en_revision < HASTA.ante_el_ente)
+        hechos = Math.max(hechos, Math.min(HASTA.ante_el_ente, n - 1));
       /* Y AL REVÉS, MARCADO ES HECHO (1-10-2026, Franklin Reyes, Taquilla
          única opción 2). La licencia, la conformidad y el RUM empiezan por
          su paso marcado, con la solicitud recién recibida: ningún estado lo
@@ -10062,6 +10084,15 @@ applyLang(idiomaParaMi());
        constitución se queda como estaba: detrás de la revisión va la firma
        en el CIIP, que es la que está en curso en ese estado. */
     var revisando = (tr.estado === 'en_revision' && !conFirma);
+    /* Y HECHA CON «RECAUDOS REVISADOS» (Franklin Reyes, 5-10-2026, punto
+       2). Desde que «Presentar» se partió en dos, el gestor cierra la
+       revisión con su botón antes de presentarla: con esa marca la
+       revisión sale hecha y «Presentada ante {ente}» queda en curso,
+       aunque la solicitud siga en revisión. Solo con los rótulos del
+       circuito, donde el segundo paso es siempre la revisión: con el PUB
+       delante (protocolización, publicación, LOCTI) el paso de ese estado
+       es otro -la consignación, la carga del comprobante- y no se toca. */
+    var revisados = revisando && !propios && recaudosYaRevisados(tr, ref);
     /* Y LO MISMO ANTE EL ENTE (Franklin Reyes, 5-10-2026, en el Registro de
        Extranjeros: «aquí saltó los pasos»). Con la solicitud ante el SAREN,
        el paso del SAREN salía hecho y «Vas por aquí» se iba al último,
@@ -10080,9 +10111,9 @@ applyLang(idiomaParaMi());
       return {
         est: est,
         nombre: propios ? propios[i + delante] : estadoTexto(i, ente, ref),
-        hecho: i <= alcanzado && !(revisando && est === 'en_revision') &&
+        hecho: i <= alcanzado && !(revisando && !revisados && est === 'en_revision') &&
                !(enElEnte && est === 'ante_el_ente'),
-        ahora: revisando ? est === 'en_revision' :
+        ahora: revisando ? est === (revisados ? 'ante_el_ente' : 'en_revision') :
                enElEnte ? est === 'ante_el_ente' :
                (i === alcanzado + 1) && tr.estado !== 'resuelto' &&
                !(conReserva && est === 'resuelto') &&
@@ -24623,6 +24654,14 @@ applyLang(idiomaParaMi());
     if (!t || (t.estado !== 'enviado' && t.estado !== 'en_revision') || mandaLaPlanilla(t)) return false;
     var p = (t.datos || {}).pasos_ciip || {};
     return !p.recaudos_revisados;
+  }
+  /* Y lo que lee la escalera (escaleraDe, Franklin Reyes, 5-10-2026, punto
+     2): en revisión y con la marca puesta, la revisión ya está hecha. Con
+     la referencia del trámite y no con t.tipo, porque la ficha la llama
+     con el código del catálogo. El RIF, fuera, como arriba. */
+  function recaudosYaRevisados(t, ref){
+    if (!t || t.estado !== 'en_revision' || (PLANILLA_DEL_CIIP_DEL_PASO || {})[ref]) return false;
+    return !!((t.datos || {}).pasos_ciip || {}).recaudos_revisados;
   }
   function marcaRecaudosRevisados(t, boton, aviso){
     var u = T(), texto = boton ? boton.textContent : '';
