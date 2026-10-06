@@ -11300,7 +11300,14 @@ applyLang(idiomaParaMi());
              escalera, cada uno con la suya. Se ven desde que se envía -el
              código puede llegar antes de que el CIIP pase la solicitud de
              paso-, salvo devuelta, que vuelve al principio. */
-          if (tipo.codigo === TIPO_PARAFISCALES && est === 'ante_el_ente' && tr.estado !== 'devuelto'){
+          /* Franklin Reyes, 6-10-2026: «estoy en el paso 2 y ya salen las
+             fichas abajo». Al inversionista no le salen hasta que la
+             escalera llega al 3, «Inscripción ante cada ente»: entonces
+             aparecen, y ya activas (ENTES_ABIERTOS). El equipo las ve
+             siempre. */
+          var entesALaVista = (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) ||
+                              entesALaVistaDelInversionista(tr);
+          if (tipo.codigo === TIPO_PARAFISCALES && est === 'ante_el_ente' && tr.estado !== 'devuelto' && entesALaVista){
             var bloqueE = el('div', 'pe-bloque');
             bloqueE.appendChild(el('div', 'pe-titulo', u.pe_titulo || ''));
             /* 'equipo' y no 'lectura' (Franklin Reyes, 25-9-2026, viendo
@@ -18966,16 +18973,21 @@ applyLang(idiomaParaMi());
   function visorEntesAbiertos(t){
     return ENTES_ABIERTOS.indexOf(t.estado) >= 0;
   }
+  function visorPresentada(t){
+    return ENTES_PRESENTADOS.indexOf(t.estado) >= 0;
+  }
   /* La vista que toca: la que eligió quien mira, y si no eligió ninguna,
-     la de los entes en cuanto están abiertos -es lo que queda por hacer-.
-     Con los entes cerrados, siempre los recaudos. */
+     la de los entes en cuanto se presentó -es lo que queda por hacer-; en
+     revisión, los recaudos, que aún están por revisar. Con los entes
+     cerrados, siempre los recaudos. */
   function visorVista(t){
     if (!visorConEntes(t) || !visorEntesAbiertos(t)) return 'recaudos';
-    return visor.vista || 'entes';
+    return visor.vista || (visorPresentada(t) ? 'entes' : 'recaudos');
   }
   function visorPasos(t, vista){
     var u = T();
     var abiertos = visorEntesAbiertos(t);
+    var presentada = visorPresentada(t);
     var barra = el('div', 'visor-pasos');
     barra.setAttribute('role', 'tablist');
     barra.setAttribute('aria-label', u.vs_pasos || '');
@@ -18994,8 +19006,8 @@ applyLang(idiomaParaMi());
        pie de esa vista-; el 3, los entes. Marcado va el de la vista que se
        ve: el 1 con los recaudos, el 3 con los entes. */
     [
-      {k: 'vs_p1', hecho: abiertos, vista: 'recaudos', on: vista === 'recaudos'},
-      {k: 'vs_p2', hecho: abiertos, vista: 'recaudos', on: false},
+      {k: 'vs_p1', hecho: presentada, vista: 'recaudos', on: vista === 'recaudos'},
+      {k: 'vs_p2', hecho: presentada, vista: 'recaudos', on: false},
       {k: 'vs_p3', hecho: false, vista: 'entes', on: vista === 'entes', cerrado: !abiertos}
     ].forEach(function(p, i){
       var b = el('button', 'vp' + (p.hecho ? ' hecho' : '') + (p.on ? ' on' : ''));
@@ -19539,7 +19551,7 @@ applyLang(idiomaParaMi());
        como si se pudiera cerrar la solicitud desde un papel (Franklin
        Reyes, 29-9-2026: «en esta etapa, en esta ficha, no debería aparecer
        el resolver»). En su sitio, el camino al paso 3. */
-    if (visorConEntes(t) && visorEntesAbiertos(t)){
+    if (visorConEntes(t) && visorPresentada(t)){
       var va = el('div', 'visor-fin visor-a3');
       va.appendChild(el('p', 'visor-bloq', u.vs_en3 || ''));
       var ir3 = el('button', 'btn navy', u.vs_ir3 || '');
@@ -23001,7 +23013,8 @@ applyLang(idiomaParaMi());
          de la cola y del visor, con «Inscripción hecha» y «Marcar listo»:
          desde esta tabla se inscribe sin ir a buscar la solicitud a otro
          sitio. */
-      if (t.tipo === TIPO_PARAFISCALES && t.estado !== 'borrador' && t.estado !== 'cancelado'){
+      if (t.tipo === TIPO_PARAFISCALES && t.estado !== 'borrador' && t.estado !== 'cancelado' &&
+          ((window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) || entesALaVistaDelInversionista(t))){
         var trE = document.createElement('tr');
         trE.className = 'mt-entes';
         var tdE = el('td');
@@ -26407,8 +26420,25 @@ applyLang(idiomaParaMi());
      confirma_paso() dejaría marcar desde que se envía: el «Ya me inscribí»
      sale cuando el CIIP ha revisado los recaudos y abierto esta etapa, que
      es también cuando el visor del gestor abre su paso 3 -donde se ven las
-     marcas-. Marcar antes dejaría marcas que el gestor no tiene dónde ver. */
-  var ENTES_ABIERTOS = ['ante_el_ente'];
+     marcas-. Marcar antes dejaría marcas que el gestor no tiene dónde ver.
+
+     Franklin Reyes, 6-10-2026: «quiero que esta etapa se active cuando el
+     proceso pase a revisión». O sea, cuando el gestor la pasa a revisión
+     y la escalera del inversionista llega al paso 3, «Inscripción ante
+     cada ente»; con la solicitud solo enviada -el paso 2 en curso- siguen
+     quietas. Con ellas se abre el paso 3 del visor, para que el gestor vea
+     las marcas. Lo que
+     sigue colgado de la presentación (ENTES_PRESENTADOS) es el resto del
+     visor: el 1 y el 2 hechos, abrir en los entes y el pie de los recaudos,
+     donde está «Presentar ante el ente». */
+  var ENTES_ABIERTOS = ['en_revision', 'ante_el_ente'];
+  /* Y el inversionista no ve los entes hasta que se abren: con la escalera
+     en el paso 1 o 2 no salen (6-10-2026). Resuelta, se ven con sus
+     constancias. */
+  function entesALaVistaDelInversionista(tr){
+    return !!tr && (ENTES_ABIERTOS.indexOf(tr.estado) >= 0 || tr.estado === 'resuelto');
+  }
+  var ENTES_PRESENTADOS = ['ante_el_ente'];
 
   var ENTES_DE = {};
   var ENTES_YA = {};
