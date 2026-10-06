@@ -1111,7 +1111,10 @@ declare
   quien uuid; tipoAct text; primero uuid;
 begin
   select id into quien from arnes.gente where papel = 'A';
-  select codigo into tipoAct from public.tipos_tramite where activo limit 1 offset 4;
+  -- La compraventa no se resuelve sin la fecha de la firma (3207268), y el
+  -- paso 3 resuelve esta: cualquier otro tipo vale.
+  select codigo into tipoAct from public.tipos_tramite
+   where activo and codigo <> 'bienes_compraventa' limit 1 offset 4;
 
   insert into public.tramites (inversionista, tipo, estado)
   values (quien, tipoAct, 'borrador') returning id into primero;
@@ -1158,8 +1161,10 @@ declare
   quien uuid; tipoAct text; cual uuid; otra uuid;
 begin
   select id into quien from arnes.gente where papel = 'A';
-  select codigo into tipoAct from public.tipos_tramite where activo limit 1 offset 6;
   select id into cual from arnes.escenario where clave = 'viva';
+  -- La misma que se resuelve: «pedirla otra vez». Con otro tipo cualquiera
+  -- dejaba a A con una parafiscal viva que choca con las pruebas de «hoy».
+  select tipo into tipoAct from public.tramites where id = cual;
 
   update public.tramites set estado = 'en_revision'  where id = cual;
   update public.tramites set estado = 'ante_el_ente' where id = cual;
@@ -4128,12 +4133,13 @@ select arnes.nadie();
 do $qa$
 declare
   t uuid;
-  quien uuid := (select g.id from arnes.gente g where g.papel in ('A', 'B', 'G')
-      and not exists (select 1 from public.tramites o where o.inversionista = g.id
-                        and o.tipo = 'registros_parafiscales'
-                        and o.estado in ('enviado','en_revision','ante_el_ente'))
-      order by g.papel limit 1);
+  quien uuid;
 begin
+  -- Una cuenta propia: B ya se borró más arriba, y las de los demás las
+  -- usan las pruebas de «hoy» para sus propios parafiscales.
+  insert into auth.users (email, raw_user_meta_data)
+  values ('pf@prueba.local', '{"nombre_completo":"Pía Parafiscal","pais":"Chile"}')
+  returning id into quien;
   insert into public.tramites (inversionista, tipo, estado, datos)
   values (quien, 'registros_parafiscales', 'ante_el_ente', '{"razon_social":"Bruno Frutas, C.A."}')
   returning id into t;
@@ -4386,11 +4392,20 @@ exception when others then
 end
 $qa$;
 
-insert into public.consulta_mensajes (consulta, texto)
-values ((select id from arnes.escenario where clave = 'qa-consulta'), 'Una cosa más');
+-- Desde d2c3e8f (5-10-2026) una resuelta ya no admite mensajes: la base
+-- los rechaza y reabrir es cosa del equipo, con «Reabrir».
+do $qa$
+begin
+  insert into public.consulta_mensajes (consulta, texto)
+  values ((select id from arnes.escenario where clave = 'qa-consulta'), 'Una cosa más');
+  perform arnes.comprueba('qa consultas: en una resuelta el inversionista no escribe', false, 'entro el mensaje');
+exception when others then
+  perform arnes.comprueba('qa consultas: en una resuelta el inversionista no escribe', true, sqlerrm);
+end
+$qa$;
 
-select arnes.comprueba('qa consultas: si el inversionista escribe en una resuelta, se reabre',
-  coalesce((select estado = 'en_curso' and resuelto_en is null from public.consultas
+select arnes.comprueba('qa consultas: escribir en una resuelta no la reabre',
+  coalesce((select estado = 'resuelta' from public.consultas
              where id = (select id from arnes.escenario where clave = 'qa-consulta')), false),
   (select estado from public.consultas where id = (select id from arnes.escenario where clave = 'qa-consulta')));
 
@@ -4437,15 +4452,16 @@ $qa$;
 
 select arnes.soy((select id from arnes.gente where papel = 'Z'));
 do $qa$
-declare antes text := (select rol from public.perfiles where id = (select id from arnes.gente where papel = 'A'));
+declare n int;
 begin
   perform arnes.comprueba('qa-05: un admin bloqueado deja de ser admin', not public.es_admin());
   begin
-    update public.perfiles set rol = case when antes = 'gestor' then 'inversionista' else 'gestor' end
+    -- Bloqueado ya no ve el perfil ajeno: leer el rol de antes desde aquí
+    -- daba null y la prueba fallaba siempre. Basta con que no toque filas.
+    update public.perfiles set rol = 'gestor'
      where id = (select id from arnes.gente where papel = 'A');
-    perform arnes.comprueba('qa-05: y no reparte roles',
-      (select rol = antes from public.perfiles where id = (select id from arnes.gente where papel = 'A')),
-      'lo cambio');
+    get diagnostics n = row_count;
+    perform arnes.comprueba('qa-05: y no reparte roles', n = 0, 'lo cambio');
   exception when others then
     perform arnes.comprueba('qa-05: y no reparte roles', true);
   end;
@@ -4564,7 +4580,8 @@ do $qa$
 begin
   perform arnes.comprueba('qa-07: el admin ve el correo de cada cuenta',
     exists (select 1 from public.correos_de_las_cuentas() c
-             where c.id = (select id from arnes.gente where papel = 'A') and c.correo = 'a@prueba.local'));
+             where c.id = (select id from arnes.gente where papel = 'A')
+               and c.correo = (select email from auth.users where id = c.id)));
 exception when others then
   perform arnes.comprueba('qa-07: el admin ve el correo de cada cuenta', false, sqlerrm);
 end
