@@ -11301,8 +11301,8 @@ applyLang(idiomaParaMi());
              código puede llegar antes de que el CIIP pase la solicitud de
              paso-, salvo devuelta, que vuelve al principio. */
           /* Franklin Reyes, 6-10-2026: «estoy en el paso 2 y ya salen las
-             fichas abajo». Al inversionista no le salen hasta que la
-             escalera llega al 3, «Inscripción ante cada ente»: entonces
+             fichas abajo». Al inversionista no le salen hasta que el
+             gestor presenta la solicitud ante los entes: entonces
              aparecen, y ya activas (ENTES_ABIERTOS). El equipo las ve
              siempre. */
           var entesALaVista = (window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()) ||
@@ -26422,19 +26422,16 @@ applyLang(idiomaParaMi());
      es también cuando el visor del gestor abre su paso 3 -donde se ven las
      marcas-. Marcar antes dejaría marcas que el gestor no tiene dónde ver.
 
-     Franklin Reyes, 6-10-2026: «quiero que esta etapa se active cuando el
-     proceso pase a revisión». O sea, cuando el gestor la pasa a revisión
-     y la escalera del inversionista llega al paso 3, «Inscripción ante
-     cada ente»; con la solicitud solo enviada -el paso 2 en curso- siguen
-     quietas. Con ellas se abre el paso 3 del visor, para que el gestor vea
-     las marcas. Lo que
-     sigue colgado de la presentación (ENTES_PRESENTADOS) es el resto del
-     visor: el 1 y el 2 hechos, abrir en los entes y el pie de los recaudos,
-     donde está «Presentar ante el ente». */
-  var ENTES_ABIERTOS = ['en_revision', 'ante_el_ente'];
-  /* Y el inversionista no ve los entes hasta que se abren: con la escalera
-     en el paso 1 o 2 no salen (6-10-2026). Resuelta, se ven con sus
-     constancias. */
+     Franklin Reyes, 6-10-2026, después de probar a abrirlas con la
+     revisión: «quiero que salgan cuando el gestor la presente ante entes
+     varios». Siguen abriéndose con la presentación. ENTES_PRESENTADOS es
+     lo que en el visor cuelga de ella -el 1 y el 2 hechos, abrir en los
+     entes y el pie de los recaudos, donde está «Presentar ante el ente»-;
+     hoy son los mismos estados, pero va aparte por si se separan. */
+  var ENTES_ABIERTOS = ['ante_el_ente'];
+  /* Y el inversionista no ve los entes hasta que se abren (6-10-2026:
+     «estoy en el paso 2 y ya salen las fichas abajo»). Resuelta, se ven
+     con sus constancias. */
   function entesALaVistaDelInversionista(tr){
     return !!tr && (ENTES_ABIERTOS.indexOf(tr.estado) >= 0 || tr.estado === 'resuelto');
   }
