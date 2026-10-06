@@ -645,6 +645,8 @@ function applyLang(lang){
     if (GUIA_BIENES.codigo[id]) return pintaGuiaBienes(id, D);
     /* Y las dos del registro de marca (5-10-2026), la suya. */
     if (GUIA_MARCA.codigo[id]) return pintaGuiaMarca(id, D);
+    /* Y las cuatro de «Ya lo solicité» (Ventanilla única 2.6), la suya. */
+    if (GUIA_YA_DE[id]) return pintaGuiaYa(id, D);
     var caja = document.getElementById('trVisas');
     if (!caja) return;
     /* La misma caja la pliega «Bienes»: viniendo de allí, se despliega. */
@@ -1035,6 +1037,129 @@ function applyLang(lang){
       var elige = function(){
         MARCA_ELEGIDA[o.ref] = true;
         if (o.ref === id){ pintaGuiaMarca(id, D); return; }
+        location.hash = 'tramite-' + o.ref;
+      };
+      col.addEventListener('click', elige);
+      col.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){
+          e.preventDefault();
+          elige();
+        }
+      });
+      cols.appendChild(col);
+    });
+    caja.appendChild(cols);
+  }
+
+  /* ── «YA LO SOLICITÉ» O «POR PRIMERA VEZ» ──
+     Franklin Reyes, 5 de octubre de 2026 («Ventanilla única 2.6»): cuatro
+     casillas de la habilitación operativa llevan una opción previa, como
+     el registro de marca. Las inscripciones (c37) preguntan «¿Ya tienes
+     inscrita tu empresa?» o «Inscribe tu empresa por primera vez»; la
+     licencia (c10), la conformidad de uso (c28) y el permiso de bomberos
+     (c29), «Ya lo solicité» o «por primera vez».
+
+     «Por primera vez» es la casilla de la portada y el trámite de siempre,
+     que no cambia. «Ya lo solicité» es un trámite nuevo de cada una -c44,
+     c45, c46 y c47-, escondido de la cuadrícula con data-tramo-de, con sus
+     campos, sus recaudos y su escalera: el CIIP revisa, gestiona ante el
+     ente y avisa cuando está listo para retirarlo.
+
+     Es pintaGuiaMarca con la tabla por fuera: las mismas piezas, la misma
+     caja (#trVisas), el mismo «Cambiar». Cada casilla trae su prefijo de
+     textos en pasos.js (yp_, yl_, yc_, yb_); «Elegir», «Cambiar», «Guía»
+     y la entradilla son los de la marca, que dicen lo mismo. */
+  var GUIAS_YA = {
+    c37: {ya:'c44', nueva:'c37', p:'yp'},
+    c10: {ya:'c45', nueva:'c10', p:'yl'},
+    c28: {ya:'c46', nueva:'c28', p:'yc'},
+    c29: {ya:'c47', nueva:'c29', p:'yb'}
+  };
+  /* De cada ref, su pareja: la de la portada y la escondida, las dos. */
+  var GUIA_YA_DE = {};
+  Object.keys(GUIAS_YA).forEach(function(k){
+    GUIA_YA_DE[GUIAS_YA[k].ya] = GUIAS_YA[k];
+    GUIA_YA_DE[GUIAS_YA[k].nueva] = GUIAS_YA[k];
+  });
+  /* Lo elegido, como MARCA_ELEGIDA: la de la portada pregunta y la
+     escondida nace elegida, que solo se llega a ella eligiéndola. */
+  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false,
+                    c44:true, c45:true, c46:true, c47:true};
+  window.CIIP_YA_ELEGIDA = function(ref){
+    if (!GUIA_YA_DE[ref] || YA_ELEGIDA[ref]) return;
+    YA_ELEGIDA[ref] = true;
+    if (trAbierto === ref && GUIA_D) pintaGuiaYa(ref, GUIA_D);
+  };
+
+  function pintaGuiaYa(id, D){
+    var caja = document.getElementById('trVisas');
+    if (!caja) return;
+    var g = GUIA_YA_DE[id];
+    GUIA_D = D;
+    caja.hidden = false;
+    caja.textContent = '';
+    var u = (D && D.ui && (D.ui[curLang] || D.ui.en)) || {};
+    var ops = [{ref:g.ya,    nombre:g.p + '_ya',    d:g.p + '_ya_d',    corto:g.p + '_ya_c'},
+               {ref:g.nueva, nombre:g.p + '_nueva', d:g.p + '_nueva_d', corto:g.p + '_nueva_c'}];
+    var elegida = !!YA_ELEGIDA[id];
+    tramiteALaVista(elegida);
+    caja.classList.toggle('gv-plegada', elegida);
+
+    if (elegida){
+      var mia = ops.filter(function(o){ return o.ref === id; })[0];
+      var res = el('div', 'gv-resumen');
+      var rt = el('span', 'gv-resumen-t', u[mia.corto] || '');
+      rt.setAttribute('data-ui', mia.corto);
+      res.appendChild(rt);
+      var cambia = el('button', 'gv-cambia', u.mg_cambiar || '');
+      cambia.type = 'button';
+      cambia.id = 'yaCambiar';
+      cambia.setAttribute('data-ui', 'mg_cambiar');
+      cambia.addEventListener('click', function(){
+        YA_ELEGIDA[id] = false;
+        pintaGuiaYa(id, D);
+      });
+      res.appendChild(cambia);
+      caja.appendChild(res);
+      return;
+    }
+
+    var h = el('div', 'gv-h');
+    h.appendChild(el('span', 'gv-ico', '?'));
+    var ht = el('div', 'gv-ht');
+    [['gv-t', g.p + '_titulo'], ['gv-sub', g.p + '_ente']].forEach(function(p){
+      var s = el('span', p[0], u[p[1]] || '');
+      s.setAttribute('data-ui', p[1]);
+      ht.appendChild(s);
+    });
+    h.appendChild(ht);
+    var chip = el('span', 'gv-chip', u.mg_guia || '');
+    chip.setAttribute('data-ui', 'mg_guia');
+    h.appendChild(chip);
+    caja.appendChild(h);
+    var intro = el('div', 'gv-intro', u.mg_intro || '');
+    intro.setAttribute('data-ui', 'mg_intro');
+    caja.appendChild(intro);
+
+    var cols = el('div', 'gv-cols');
+    ops.forEach(function(o){
+      var col = el('div', 'gv-col');
+      col.setAttribute('data-ya-op', o.ref);
+      var nm = el('span', 'gv-nombre', u[o.nombre] || '');
+      nm.setAttribute('data-ui', o.nombre);
+      col.appendChild(nm);
+      var de = el('div', 'gv-d', u[o.d] || '');
+      de.setAttribute('data-ui', o.d);
+      col.appendChild(de);
+      var ir = el('span', 'gv-ir', (u.mg_elige || '') + ' ›');
+      ir.setAttribute('data-ui', 'mg_elige');
+      col.appendChild(ir);
+      col.setAttribute('role', 'button');
+      col.setAttribute('tabindex', '0');
+      col.setAttribute('aria-label', (u[o.nombre] || '') + ' · ' + (u[o.d] || ''));
+      var elige = function(){
+        YA_ELEGIDA[o.ref] = true;
+        if (o.ref === id){ pintaGuiaYa(id, D); return; }
         location.hash = 'tramite-' + o.ref;
       };
       col.addEventListener('click', elige);
@@ -4018,6 +4143,42 @@ applyLang(idiomaParaMi());
     marca_en_proceso: [
       {tipo:'planilla_solicitud_marca', clave:'d_mpplanilla'},
       {tipo:'identidad_titular_marca',  clave:'d_mptitular'}
+    ],
+    /* «YA LO SOLICITÉ» (c44 a c47), Franklin Reyes, 5-10-2026 («Ventanilla
+       única 2.6»). Todos con los tipos de siempre -acta, RIF de la
+       empresa, cédula y RIF del representante-, que ya están en la bóveda
+       desde la constitución y el RIF: ningún tipo nuevo en el catálogo.
+       La cédula y el RIF van en dos casillas, como en el c37 (d_cedrep y
+       d_rifrep): son dos papeles en la bóveda. En la licencia, la
+       conformidad y los bomberos la cédula se rotula «cédula o pasaporte»
+       (d_cedpasrep), que es como lo pide el documento.
+       En las inscripciones, además, la última acta de actualización de la
+       empresa, opcional -«si aplica»-: una empresa que no ha cambiado nada
+       desde que se constituyó no tiene ninguna. Es el tipo acta_asamblea. */
+    parafiscales_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'acta_asamblea',     clave:'d_yaactualiza', opcional:true},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    licencia_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedpasrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    conformidad_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedpasrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    bomberos_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedpasrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
     ]
   };
 
@@ -4336,6 +4497,22 @@ applyLang(idiomaParaMi());
     return primera;
   }
 
+  /* «AL MENOS UNA» (Franklin Reyes, 5-10-2026, Ventanilla única 2.6): las
+     casillas con unoAlMenos -los entes de «¿Ya tienes inscrita tu
+     empresa?»- son opcionales una a una, como toda casilla, pero sin
+     ninguna marcada no hay nada que gestionar. Las pone en rojo a todas y
+     devuelve la primera, o null si hay alguna marcada o no hay ninguna. */
+  function ningunoQueFrena(raiz){
+    var todas = raiz.querySelectorAll('.sol-casilla[data-uno]');
+    if (!todas.length) return null;
+    var alguna = [].some.call(todas, function(c){
+      var e = c.querySelector('input[type=checkbox]');
+      return !!(e && e.checked);
+    });
+    [].forEach.call(todas, function(c){ c.classList.toggle('mal', !alguna); });
+    return alguna ? null : todas[0];
+  }
+
   /* Las oficinas del Registro Mercantil donde el SAREN deja hacer la
      constitucion, por estado. Salen de su propia consulta
      (https://tramites.saren.gob.ve/get/oficina, la que usa su formulario
@@ -4444,6 +4621,12 @@ applyLang(idiomaParaMi());
     'Miranda':          'https://servicios.miranda.gob.ve/RegistroNatural?url=https://servicios.miranda.gob.ve:8006/Solicitud'
   };
   var ESTADOS_DE_BOMBEROS = Object.keys(PORTAL_DE_BOMBEROS);
+
+  /* Las tres alcaldías de «Ya solicité» la licencia o la conformidad de uso
+     (Franklin Reyes, 5-10-2026, Ventanilla única 2.6), con la primera
+     vacía: elegir es obligatorio, y un desplegable que nace en «Baruta» lo
+     mandaría sin que nadie lo eligiera. */
+  var ALCALDIAS_YA = ['', 'Baruta', 'Chacao', 'Libertador'];
 
   var CAMPOS = {
     /* ── el poder de representacion ──
@@ -5354,6 +5537,60 @@ applyLang(idiomaParaMi());
       {n:'fecha_solicitud_marca', clave:'f_mpfecha',      tipo:'date'},
       {n:'titular_marca',         clave:'f_mptitular',    ancho:true},
       {n:'incidencia_marca',      clave:'f_mpincidencia', tipo:'area', ancho:true, opcional:true}
+    ],
+    /* «YA LO SOLICITÉ» (c44 a c47), Franklin Reyes, 5-10-2026 («Ventanilla
+       única 2.6»).
+
+       Las inscripciones (c44): los entes ante los que ya la solicitaste,
+       con selección múltiple -una casilla por ente, en un recuadro que
+       exige al menos una (unoAlMenos)-, la fecha de cada uno, que solo
+       sale al marcar el suyo (verSi), y el problema y cómo esperas que te
+       ayudemos, que es la razón de venir.
+
+       La licencia, la conformidad de uso y los bomberos (c45 a c47): la
+       fecha de la solicitud, dónde se introdujo, la razón social, el RIF y
+       el representante legal. La alcaldía es una de las tres del documento,
+       y no PORTAL_DE_LA_ALCALDIA, que lleva Sucre y es la lista de los
+       portales; nace vacía para que nadie mande «Baruta» sin elegirla. El
+       cuerpo de bomberos es texto libre, como dice el documento. La razón
+       social, el RIF y el representante se llaman como siempre para que se
+       hereden de Mi empresa y de los demás trámites. */
+    parafiscales_en_proceso: [
+      {n:'ya_banavih',        clave:'f_ypbanavih', tipo:'casilla', grupo:'f_ypentes', unoAlMenos:true},
+      {n:'fecha_ya_banavih',  clave:'f_ypfbanavih', tipo:'date', grupo:'f_ypentes', verSi:'ya_banavih'},
+      {n:'ya_inces',          clave:'f_ypinces',   tipo:'casilla', grupo:'f_ypentes', unoAlMenos:true},
+      {n:'fecha_ya_inces',    clave:'f_ypfinces',  tipo:'date', grupo:'f_ypentes', verSi:'ya_inces'},
+      {n:'ya_rupdae',         clave:'f_yprupdae',  tipo:'casilla', grupo:'f_ypentes', unoAlMenos:true},
+      {n:'fecha_ya_rupdae',   clave:'f_ypfrupdae', tipo:'date', grupo:'f_ypentes', verSi:'ya_rupdae'},
+      {n:'ya_ivss',           clave:'f_ypivss',    tipo:'casilla', grupo:'f_ypentes', unoAlMenos:true,
+       nota:'yp_n_ivss_f'},
+      {n:'fecha_ya_ivss',     clave:'f_ypfivss',   tipo:'date', grupo:'f_ypentes', verSi:'ya_ivss'},
+      {n:'ya_rnet',           clave:'f_yprnet',    tipo:'casilla', grupo:'f_ypentes', unoAlMenos:true},
+      {n:'fecha_ya_rnet',     clave:'f_ypfrnet',   tipo:'date', grupo:'f_ypentes', verSi:'ya_rnet'},
+      {n:'ya_rnc',            clave:'f_yprnc',     tipo:'casilla', grupo:'f_ypentes', unoAlMenos:true},
+      {n:'fecha_ya_rnc',      clave:'f_ypfrnc',    tipo:'date', grupo:'f_ypentes', verSi:'ya_rnc'},
+      {n:'problema_ya',       clave:'f_ypproblema', tipo:'area', ancho:true}
+    ],
+    licencia_en_proceso: [
+      {n:'fecha_solicitud_ya', clave:'f_yafecha',    tipo:'date'},
+      {n:'alcaldia_ya',        clave:'f_yaalcaldia', opciones:ALCALDIAS_YA},
+      {n:'razon_social',       clave:'f_razon',      ancho:true},
+      {n:'rif_empresa',        clave:'f_rifempresa'},
+      {n:'representante',      clave:'f_yarep'}
+    ],
+    conformidad_en_proceso: [
+      {n:'fecha_solicitud_ya', clave:'f_yafecha',    tipo:'date'},
+      {n:'alcaldia_ya',        clave:'f_yaalcaldia', opciones:ALCALDIAS_YA},
+      {n:'razon_social',       clave:'f_razon',      ancho:true},
+      {n:'rif_empresa',        clave:'f_rifempresa'},
+      {n:'representante',      clave:'f_yarep'}
+    ],
+    bomberos_en_proceso: [
+      {n:'fecha_solicitud_ya', clave:'f_yafecha',    tipo:'date'},
+      {n:'cuerpo_bomberos_ya', clave:'f_yabomberos', ancho:true},
+      {n:'razon_social',       clave:'f_razon',      ancho:true},
+      {n:'rif_empresa',        clave:'f_rifempresa'},
+      {n:'representante',      clave:'f_yarep'}
     ]
   };
 
@@ -5775,6 +6012,9 @@ applyLang(idiomaParaMi());
                por primera vez o en proceso, la opción está elegida
                (pintaGuiaMarca). */
             if ((refPanel === 'c8' || refPanel === 'c43') && !otraIgual && mio && window.CIIP_MARCA_ELEGIDA) window.CIIP_MARCA_ELEGIDA(refPanel);
+            /* Y las cuatro de «Ya lo solicité» (5-10-2026, Ventanilla única
+               2.6): con una ya pedida, la opción está elegida (pintaGuiaYa). */
+            if (!otraIgual && mio && window.CIIP_YA_ELEGIDA) window.CIIP_YA_ELEGIDA(refPanel);
             if (!otraIgual && mio && mio.estado !== 'borrador'){
               caja.textContent = '';
               chipReal(mio.estado); pintaEstado(t, mio);
@@ -6994,6 +7234,8 @@ applyLang(idiomaParaMi());
         var casilla = el('div', 'sol-campo sol-casilla' + (c.ancho ? ' ancho' : ''));
         casilla.setAttribute('data-campo', c.n);
         casilla.setAttribute('data-opcional', '1');
+        /* Opcional sola, pero con sus hermanas exige una (ningunoQueFrena). */
+        if (c.unoAlMenos) casilla.setAttribute('data-uno', '1');
         var marca = document.createElement('input');
         marca.type = 'checkbox';
         marca.name = c.n;
@@ -7258,6 +7500,9 @@ applyLang(idiomaParaMi());
           campo.setAttribute('data-opcional', '1');
           campo.classList.remove('mal');
           if (suyo) suyo.value = '';
+          /* Y las tres listas de una fecha, que si no seguirían enseñando
+             el día que se borró por dentro (5-10-2026). */
+          campo.querySelectorAll('.fecha3 select').forEach(function(s){ s.value = ''; });
         }
       }
       mira();
@@ -7875,6 +8120,14 @@ applyLang(idiomaParaMi());
         if (listaO && listaO.focus) listaO.focus();
         return false;
       }
+      /* Y al menos un ente marcado, en las inscripciones ya solicitadas. */
+      var ninguno = ningunoQueFrena(hoja);
+      if (ninguno){
+        avisoPaso.textContent = u.yp_uno || u.pa_falta_paso || '';
+        var marcaN = ninguno.querySelector('input');
+        if (marcaN && marcaN.focus) marcaN.focus();
+        return false;
+      }
       if (!falta) return true;
       avisoPaso.textContent = u.pa_falta_paso || u.falta || '';
       if (primero && primero.focus) primero.focus();
@@ -8230,6 +8483,14 @@ applyLang(idiomaParaMi());
       var hojaO = alRevesEnvio.closest && alRevesEnvio.closest('.pa-hoja');
       if (hojaO && caja.CIIP_VE_PASO)
         caja.CIIP_VE_PASO(+hojaO.getAttribute('data-paso'), u.pa_orden_paso || '');
+      return;
+    }
+    var ningunoEnvio = ningunoQueFrena(caja);
+    if (ningunoEnvio){
+      aviso.textContent = u.yp_uno || u.falta || ''; aviso.className = 'sol-aviso err';
+      var hojaN = ningunoEnvio.closest && ningunoEnvio.closest('.pa-hoja');
+      if (hojaN && caja.CIIP_VE_PASO)
+        caja.CIIP_VE_PASO(+hojaN.getAttribute('data-paso'), u.yp_uno || '');
       return;
     }
     if (falta){
@@ -10960,6 +11221,8 @@ applyLang(idiomaParaMi());
               txt.appendChild(des);
             }
             var avisoP = ((NOTA_DEL_PASO || {})[refTr] || {})[nPaso];
+            if (avisoP && typeof avisoP === 'object')
+              avisoP = ((tr.datos || {})[avisoP.si]) ? avisoP.clave : null;
             if (avisoP) txt.appendChild(el('div', 'tr-nota', u[avisoP] || ''));
             /* «Firme la planilla»: y aquí se devuelve firmada (Franklin
                Reyes, 29-9-2026). Ver casillaDeLaPlanillaFirmada(). */
@@ -24919,6 +25182,15 @@ applyLang(idiomaParaMi());
        en curso es mirar en qué punto está la marca; ante el SAPI, la
        solicitud de información; y concedida, al resolver. */
     c43: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    /* Y los cuatro de «Ya lo solicité» (c44 a c47), Franklin Reyes,
+       5-10-2026 («Ventanilla única 2.6»), con el mismo dibujo: «Tu solicitud
+       está en revisión → Gestión ante el ente → emitido». Recibida o en
+       revisión, la revisión en curso; ante el ente, la gestión; y lo
+       emitido, al resolver. */
+    c44: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c45: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c46: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c47: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Los dos RIF (Franklin Reyes, 30-9-2026): «Solicitud recibida → Planilla
        enviada por el CIIP → Firme la planilla → RIF emitido». Empiezan por
        «recibida», así que la cuenta es la de siempre; están aquí porque son
@@ -25072,7 +25344,21 @@ applyLang(idiomaParaMi());
   /* Y lo que hay que saber al llegar a un paso. Sale cuando el paso está
      en curso o hecho, no antes: «mira tu correo» leído tres semanas antes
      de que haya nada que mirar es ruido. */
-  var NOTA_DEL_PASO = {};
+  /* Franklin Reyes, 5-10-2026 («Ventanilla única 2.6»): los cuatro de «Ya
+     lo solicité» acaban en el CIIP. La licencia, la conformidad y los
+     bomberos, con el documento emitido: «diríjase al CIIP a retirar el
+     documento». Va como nota del último paso y no en su nombre, que es
+     también el rótulo con el que el gestor lo resuelve.
+     Y una entrada puede ser {clave, si}: la nota sale solo si la solicitud
+     marcó ese campo. Es el IVSS de las inscripciones: «Debe dirigirse al
+     CIIP a retirar la planilla de inscripción sellada», y solo a quien lo
+     eligió. */
+  var NOTA_DEL_PASO = {
+    c44: {3: {clave: 'yp_n_ivss', si: 'ya_ivss'}},
+    c45: {3: 'ya_n_retiro'},
+    c46: {3: 'ya_n_retiro'},
+    c47: {3: 'ya_n_retiro'}
+  };
 
   /* Y en qué paso se devuelve firmada la planilla (Franklin Reyes,
      29-9-2026). La cuenta es la del rótulo, como en los de arriba: los dos

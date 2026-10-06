@@ -3478,6 +3478,12 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .sc-q{font-size:var(--fs-parrafo); color:var(--ink); margin-bottom:6px;}
 .sc-nota ul{margin:0; padding-left:18px; display:grid; gap:5px;}
 .sc-nota li{font-size:var(--fs-parrafo); color:var(--ink); line-height:1.5;}
+/* Una nota sin lista -el aviso del IVSS en «¿Ya tienes inscrita tu
+   empresa?»- y las casillas de «al menos una» sin ninguna marcada
+   (ningunoQueFrena), en el rojo de los demás campos (5-10-2026). */
+.sc-nota ul:empty{display:none;}
+.sc-nota .sc-q:only-child, .sc-nota .sc-q:has(+ ul:empty){margin-bottom:0;}
+.sol-casilla.mal .sc-fila label{color:var(--rust);}
 /* La junta directiva: una fila por persona, el nombre se escribe y el cargo
    se elige. En pantalla estrecha la fila se parte en dos renglones antes de
    dejar el nombre en cuatro letras. */

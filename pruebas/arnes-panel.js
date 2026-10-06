@@ -404,6 +404,10 @@
                  ya encendida por alDiaVuelve. */
               marcaGuiaAbre, marcaGuiaMira, marcaNuevaMira, marcaProcMira,
               marcaVivaMira, marcaVivaNueva,
+              /* «Ya lo solicité» o «por primera vez» en las inscripciones, la
+                 licencia, la conformidad y los bomberos (5-10-2026, 2.6). */
+              yaGuiaAbre, yaGuiaMira, yaInscritaMira, yaInscritaFrena,
+              yaLicenciaAbre, yaLicenciaMira, yaVivaMira, yaVivaIvss,
               /* Ante el ente, su paso en curso (Franklin Reyes, 5-10-2026, c32). */
               escaleraEnteMira, escaleraEnteFicha,
               /* «Recaudos revisados» cierra la revisión (5-10-2026, punto 2). */
@@ -1099,7 +1103,9 @@
                 alquiler (c42), que se esconde pero cuenta. */
              /* Y 32 con la marca en proceso de registro (c43, 5-10-2026),
                 escondida detrás de la c8 pero contada. */
-             pendS === 32, pendS + ' por iniciar de 33 ofrecidas', '32');
+             /* Y 36 con los cuatro de «Ya lo solicité» (c44 a c47,
+                5-10-2026), escondidos detrás de su casilla pero contados. */
+             pendS === 36, pendS + ' por iniciar de 37 ofrecidas', '36');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -1115,9 +1121,10 @@
              segundo tramo (c40), por lo mismo. Y 31 desde el 24-9-2026,
              que se van la c4 y la c21. Y 30 desde el 28-9-2026, que se va
              el c11. Y 32 con los dos de «Bienes» (c41 y c42), 2-10-2026.
-             Y 33 con la marca en proceso de registro (c43), 5-10-2026. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 33,
-             pend + ' por iniciar de 33 ofrecidas', '33');
+             Y 33 con la marca en proceso de registro (c43), 5-10-2026.
+             Y 37 con los cuatro de «Ya lo solicité» (c44 a c47), 5-10-2026. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 37,
+             pend + ' por iniciar de 37 ofrecidas', '37');
       }
 
       /* ── la cadena entre trámites ──
@@ -1556,8 +1563,10 @@
            (c40), que como el FAOV se esconde pero está. */
         /* Y DOCE desde el 28-9-2026: se va el registro de importador y
            exportador (c11), y de verdad -la tarjeta deja el documento-. */
-        igual('grupo: la fase 03 se queda con doce tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 12);
+        /* Y DIECISÉIS desde el 5-10-2026 (Ventanilla única 2.6): los cuatro
+           de «Ya lo solicité» -c44 a c47-, escondidos pero presentes. */
+        igual('grupo: la fase 03 se queda con dieciséis tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 16);
         ok('grupo: y el título no es una tarjeta',
            !t.classList.contains('tcard') && !t.hasAttribute('data-tr'),
            t.className, 'sin ser tarjeta');
@@ -11163,6 +11172,218 @@
     setTimeout(sigue, 100);
   }
 
+  /* ═══════════ «YA LO SOLICITÉ» O «POR PRIMERA VEZ» (c44 a c47) ═══════════
+     Franklin Reyes, 5-10-2026 («Ventanilla única 2.6»): las inscripciones
+     (c37), la licencia (c10), la conformidad de uso (c28) y el permiso de
+     bomberos (c29) preguntan primero si ya se solicitó. Lo que se mide: que
+     la c37 no enseñe nada hasta elegir y lleve a la c44; que la c44 pida los
+     entes con su fecha, el problema y sus cinco recaudos, con el aviso del
+     IVSS al marcarlo y sin dejar seguir sin ningún ente; que la licencia, la
+     conformidad y los bomberos pidan sus cinco datos y sus cuatro recaudos;
+     las cuatro escaleras; y la nota de «retirar en el CIIP» al final, la del
+     IVSS solo a quien lo eligió. Solo en el pase 'vacio', como la marca. */
+  function yaOpciones(){
+    return [].map.call(document.querySelectorAll('#trVisas [data-ya-op]'), function(c){
+      return c.getAttribute('data-ya-op'); }).join(' ');
+  }
+
+  function yaGuiaAbre(sigue){
+    if (PASE !== 'vacio') return sigue();
+    location.hash = 'tramite-c37';
+    setTimeout(sigue, 800);
+  }
+
+  function yaGuiaMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var guia = document.getElementById('trVisas');
+    ok('ya: la c37 abre con su guía',
+       !!guia && !guia.hidden && guia.offsetHeight > 0,
+       guia ? (guia.hidden ? 'escondida' : guia.offsetHeight + 'px') : 'no está', 'a la vista');
+    if (!guia || guia.hidden) return sigue();
+    igual('ya: con su pregunta', (guia.querySelector('.gv-t') || {}).textContent, U.yp_titulo);
+    igual('ya: primero «ya inscrita» y después «por primera vez»', yaOpciones(), 'c44 c37');
+    igual('ya: con las dos opciones del encargo',
+          [].map.call(guia.querySelectorAll('[data-ya-op] .gv-nombre'), function(n){ return n.textContent; }).join(' | '),
+          U.yp_ya + ' | ' + U.yp_nueva);
+    igual('ya: y el formulario apartado hasta elegir', marcaElige(), 'apartado');
+    var nueva = guia.querySelector('[data-ya-op="c37"]');
+    if (nueva) nueva.click();
+    igual('ya: «por primera vez» se queda en la c37', location.hash, '#tramite-c37');
+    igual('ya: y enseña las inscripciones de siempre', marcaElige(), 'a la vista');
+    igual('ya: con la guía plegada', (guia.querySelector('.gv-resumen-t') || {}).textContent, U.yp_nueva_c);
+    var caja = document.getElementById('trReal');
+    igual('ya: por primera vez, los datos de siempre', bienesCampos(caja), 'razon_social rif_empresa representante');
+    var cambia = document.getElementById('yaCambiar');
+    ok('ya: «Cambiar» está a mano', !!cambia, cambia ? 'está' : 'no está', 'está');
+    if (cambia) cambia.click();
+    igual('ya: «Cambiar» vuelve a preguntar', yaOpciones(), 'c44 c37');
+    var ya = document.querySelector('#trVisas [data-ya-op="c44"]');
+    if (ya) ya.click();
+    setTimeout(sigue, 800);
+  }
+
+  function yaInscritaMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    igual('ya: «ya inscrita» lleva a la c44', location.hash, '#tramite-c44');
+    var guia = document.getElementById('trVisas');
+    igual('ya: ya elegida, con la guía plegada',
+          guia ? (guia.querySelector('.gv-resumen-t') || {}).textContent : '(sin guía)', U.yp_ya_c);
+    igual('ya: y enseña su formulario', marcaElige(), 'a la vista');
+    var caja = document.getElementById('trReal');
+    igual('ya: los seis entes, cada uno con su fecha, y el problema', bienesCampos(caja),
+          'ya_banavih fecha_ya_banavih ya_inces fecha_ya_inces ya_rupdae fecha_ya_rupdae ' +
+          'ya_ivss fecha_ya_ivss ya_rnet fecha_ya_rnet ya_rnc fecha_ya_rnc problema_ya');
+    igual('ya: los entes, con su nombre',
+          caja ? [].map.call(caja.querySelectorAll('.sol-casilla label'), function(l){ return l.textContent; }).join(' | ') : '',
+          'BANAVIH (FAOV) | INCES | RUPDAE | IVSS | RNET | RNC');
+    var grupo = caja && caja.querySelector('.sol-grupo[data-grupo="f_ypentes"]');
+    igual('ya: juntos en un recuadro con su pregunta',
+          grupo ? (grupo.querySelector('legend') || {}).textContent : '(sin recuadro)', U.f_ypentes);
+    var fIvss = caja && caja.querySelector('.sol-campo[data-campo="fecha_ya_ivss"]');
+    ok('ya: la fecha de cada ente, escondida hasta marcarlo', !!fIvss && fIvss.hidden,
+       fIvss ? (fIvss.hidden ? 'escondida' : 'a la vista') : 'no está', 'escondida');
+    var ivss = caja && caja.querySelector('input[name="ya_ivss"]');
+    var notaIvss = ivss && ivss.closest('.sol-casilla').querySelector('.sc-nota');
+    ok('ya: el aviso del IVSS, escondido sin marcar', !!notaIvss && notaIvss.hidden,
+       notaIvss ? (notaIvss.hidden ? 'escondido' : 'a la vista') : 'no está', 'escondido');
+    if (ivss){ ivss.checked = true; ivss.dispatchEvent(new Event('change')); }
+    ok('ya: marcado el IVSS, sale su fecha', !!fIvss && !fIvss.hidden && !fIvss.getAttribute('data-opcional'),
+       fIvss ? (fIvss.hidden ? 'escondida' : 'opcional=' + fIvss.getAttribute('data-opcional')) : 'no está', 'a la vista y obligatoria');
+    igual('ya: y el aviso de la planilla sellada',
+          notaIvss && !notaIvss.hidden ? (notaIvss.querySelector('.sc-q') || {}).textContent : '(escondido)', U.yp_n_ivss_f);
+    if (ivss){ ivss.checked = false; ivss.dispatchEvent(new Event('change')); }
+    var prob = caja && caja.querySelector('.sol-campo[data-campo="problema_ya"]');
+    ok('ya: el problema es obligatorio', !!prob && !prob.getAttribute('data-opcional'),
+       prob ? 'data-opcional=' + prob.getAttribute('data-opcional') : 'no está', 'sin data-opcional');
+    igual('ya: y sus cinco recaudos', bienesDocs(caja), 'acta_constitutiva acta_asamblea rif_empresa cedula rif_personal');
+    igual('ya: la última acta de actualización, opcional', bienesDocs(caja, '[data-opcional]'), 'acta_asamblea');
+    ok('ya: sin «undefined» en el detalle',
+       document.body.innerText.indexOf('undefined') === -1, 'dice «undefined»', 'limpio');
+
+    var E = window.CIIP_ESCALERA;
+    var dibujo = function(estado){
+      return E({estado: estado, datos: {}}, 'parafiscales_en_proceso', 'Entes varios').todos.map(function(p){
+        return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(',');
+    };
+    if (E){
+      igual('ya: la escalera de la c44, con los tres pasos del encargo',
+            E({estado: 'enviado', datos: {}}, 'parafiscales_en_proceso', 'Entes varios').todos.map(function(p){ return p.nombre; }).join(' → '),
+            'Tu solicitud está en revisión → Gestión ante los entes correspondientes → Certificados e inscripciones listos');
+      igual('ya: recibida, la revisión en curso', dibujo('enviado'), 'ahora,porhacer,porhacer');
+      igual('ya: ante los entes, la gestión', dibujo('ante_el_ente'), 'hecho,ahora,porhacer');
+      igual('ya: resuelta, todo hecho', dibujo('resuelto'), 'hecho,hecho,hecho');
+    }
+    /* Y sin ningún ente marcado no se pasa de «Tus datos». */
+    var sigueB = caja && caja.querySelector('.pa-sigue');
+    if (sigueB) sigueB.click();
+    setTimeout(sigue, 200);
+  }
+
+  function yaInscritaFrena(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var caja = document.getElementById('trReal');
+    var malas = caja ? caja.querySelectorAll('.sol-casilla.mal').length : -1;
+    igual('ya: sin ningún ente marcado, los seis en rojo', malas, 6);
+    var aviso = caja && caja.querySelector('.pa-aviso');
+    igual('ya: y lo dice', aviso ? aviso.textContent : '(sin aviso)', U.yp_uno);
+    sigue();
+  }
+
+  function yaLicenciaAbre(sigue){
+    if (PASE !== 'vacio') return sigue();
+    location.hash = 'tramite-c45';
+    setTimeout(sigue, 800);
+  }
+
+  function yaLicenciaMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var guia = document.getElementById('trVisas');
+    igual('ya: la c45 nace elegida, con la guía plegada',
+          guia ? (guia.querySelector('.gv-resumen-t') || {}).textContent : '(sin guía)', U.yl_ya_c);
+    var caja = document.getElementById('trReal');
+    igual('ya: la licencia ya solicitada, sus cinco datos', bienesCampos(caja),
+          'fecha_solicitud_ya alcaldia_ya razon_social rif_empresa representante');
+    igual('ya: con las tres alcaldías del encargo, sin ninguna elegida', bienesOpciones(caja, 'alcaldia_ya'),
+          '|Baruta|Chacao|Libertador');
+    igual('ya: y sus cuatro recaudos', bienesDocs(caja), 'acta_constitutiva rif_empresa cedula rif_personal');
+    /* La conformidad y los bomberos, por su catálogo: los mismos papeles, y
+       los bomberos con su cuerpo de bomberos escrito en vez de la alcaldía. */
+    var R = window.CIIP_RECAUDOS;
+    if (R && R.campos){
+      igual('ya: la conformidad, los mismos cinco datos',
+            R.campos('conformidad_en_proceso').map(function(c){ return c.n; }).join(' '),
+            'fecha_solicitud_ya alcaldia_ya razon_social rif_empresa representante');
+      igual('ya: los bomberos, con el cuerpo de bomberos',
+            R.campos('bomberos_en_proceso').map(function(c){ return c.n; }).join(' '),
+            'fecha_solicitud_ya cuerpo_bomberos_ya razon_social rif_empresa representante');
+      igual('ya: y los mismos cuatro recaudos',
+            ['conformidad_en_proceso', 'bomberos_en_proceso'].map(function(k){
+              return R.de(k).map(function(r){ return r.tipo; }).join(' '); }).join(' / '),
+            'acta_constitutiva rif_empresa cedula rif_personal / acta_constitutiva rif_empresa cedula rif_personal');
+    }
+    var E = window.CIIP_ESCALERA;
+    if (E){
+      var nombres = function(codigo){
+        return E({estado: 'ante_el_ente', datos: {}}, codigo, 'Alcaldía').todos.map(function(p){
+          return (p.hecho ? '✓' : (p.ahora ? '›' : '·')) + p.nombre; }).join(' → ');
+      };
+      igual('ya: la escalera de la licencia', nombres('licencia_en_proceso'),
+            '✓Tu solicitud está en revisión → ›Gestión ante la alcaldía correspondiente → ·Licencia de actividades económicas emitida');
+      igual('ya: la de la conformidad', nombres('conformidad_en_proceso'),
+            '✓Tu solicitud está en revisión → ›Gestión ante la alcaldía correspondiente → ·Conformidad de uso emitida');
+      igual('ya: y la de los bomberos', nombres('bomberos_en_proceso'),
+            '✓Tu solicitud está en revisión → ›Gestión ante el cuerpo de bomberos correspondiente → ·Permiso de bomberos emitido');
+    }
+    /* Y con una licencia ya emitida y unas inscripciones listas con el IVSS. */
+    window.__TRAMITES_EXTRA = [
+      {id: 'yl1', tipo: 'licencia_en_proceso', estado: 'resuelto',
+       datos: {fecha_solicitud_ya: '2026-08-03', alcaldia_ya: 'Chacao', razon_social: 'Inversiones Ávila, C.A.'},
+       inversionista: 'u1', creado_en: '2026-10-01T10:00:00Z', enviado_en: '2026-10-01T10:00:00Z',
+       actualizado_en: '2026-10-04T12:00:00Z'},
+      {id: 'yp1', tipo: 'parafiscales_en_proceso', estado: 'resuelto',
+       datos: {ya_ivss: 'Sí', fecha_ya_ivss: '2026-07-20', problema_ya: 'No me llega la constancia.'},
+       inversionista: 'u1', creado_en: '2026-10-01T10:00:00Z', enviado_en: '2026-10-01T10:00:00Z',
+       actualizado_en: '2026-10-04T12:00:00Z'}];
+    location.hash = '';
+    setTimeout(function(){
+      location.hash = 'tramite-c45';
+      esperaFilas('#trReal li.tr-paso', 3, sigue);
+    }, 100);
+  }
+
+  function yaVivaMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var lis = document.querySelectorAll('#trReal li.tr-paso');
+    igual('ya: la licencia emitida, sus tres pasos hechos',
+          [].map.call(lis, function(li){ return li.classList.contains('hecho') ? 'hecho' : 'no'; }).join(','), 'hecho,hecho,hecho');
+    var ult = lis[lis.length - 1];
+    igual('ya: y en el último, que se retira en el CIIP',
+          ult ? [].map.call(ult.querySelectorAll('.tr-nota'), function(n){ return n.textContent; }).join(' | ') : '(sin pasos)',
+          U.ya_n_retiro);
+    igual('ya: la nota va aparte del nombre del paso',
+          ult ? (ult.querySelector('.tr-paso-n') || {}).textContent : '', 'Licencia de actividades económicas emitida');
+    location.hash = 'tramite-c44';
+    esperaFilas('#trReal li.tr-paso', 3, sigue);
+  }
+
+  function yaVivaIvss(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var lis = document.querySelectorAll('#trReal li.tr-paso');
+    var ult = lis[lis.length - 1];
+    igual('ya: con el IVSS elegido, la planilla sellada se retira en el CIIP',
+          ult ? [].map.call(ult.querySelectorAll('.tr-nota'), function(n){ return n.textContent; }).join(' | ') : '(sin pasos)',
+          U.yp_n_ivss);
+    window.__TRAMITES_EXTRA = null;
+    location.hash = '';
+    setTimeout(sigue, 100);
+  }
+
   /* ═══════════ ANTE EL ENTE, SU PASO EN CURSO ═══════════
      Franklin Reyes, 5-10-2026, en el Registro de Extranjeros (c32): «aquí
      saltó los pasos». Con la solicitud ante el SAREN, la escalera daba por
@@ -14216,9 +14437,11 @@
        sus casillas. */
     /* Y la marca en proceso de registro (5-10-2026): la planilla y la
        cédula y el RIF del titular no rellenan ninguna de sus casillas. */
-    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI, las cinco sin recaudos, las dos de «Bienes» y la marca en proceso',
+    /* Y las inscripciones ya solicitadas (c44, 5-10-2026): sus casillas son
+       entes, fechas y el problema, y ningún papel dice nada de eso. */
+    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI, las cinco sin recaudos, las dos de «Bienes» y la marca en proceso y las inscripciones ya solicitadas',
           window.CIIP_SIN_LECTOR ? window.CIIP_SIN_LECTOR().join(', ') : '(no está la función)',
-          'licencia_municipal, conformidad_uso, permiso_bomberos, opinion_zodi, registro_minero, aporte_locti, firma_electronica, bienes_compraventa, bienes_alquiler, marca_en_proceso');
+          'licencia_municipal, conformidad_uso, permiso_bomberos, opinion_zodi, registro_minero, aporte_locti, firma_electronica, bienes_compraventa, bienes_alquiler, marca_en_proceso, parafiscales_en_proceso');
   }
 
   /* La situacion que se quiere medir: alguien que TODAVIA no tiene empresa

@@ -252,7 +252,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* «Recaudos revisados» como botón aparte (Franklin Reyes, 5-10-2026):
    marca_recaudos_revisados() apunta datos.pasos_ciip.recaudos_revisados.
    No redefine nada de nadie; al final. */
-'supabase-recaudos-revisados'];
+'supabase-recaudos-revisados',
+/* «Ya lo solicité» (Franklin Reyes, 5-10-2026, Ventanilla única 2.6): los
+   cuatro trámites c44 a c47. Solo inserta en el catálogo y copia el nivel
+   de su casilla madre; necesita nivel y emite, así que va al final. */
+'supabase-ya-solicitado'];
 
 let mal = 0;
 for (const n of orden) {

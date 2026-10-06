@@ -322,6 +322,25 @@
     {codigo:'marca_en_proceso', ref_panel:'c43', ente:'SAPI',
      activo:true, emite:null, plazo_dias:null,
      nombre:'Registro de marca: marca en proceso de registro', fase:2, nivel:'esencial'},
+    /* Los cuatro de «Ya lo solicité» (Franklin Reyes, 5-10-2026, Ventanilla
+       única 2.6), como en supabase-ya-solicitado.sql: escondidos con
+       data-tramo-de detrás de su casilla -c37, c10, c28 y c29-, encendidos y
+       sin plazo. El nivel, el de la base: 'esencial' el de las inscripciones
+       (aquí el c37 va 'obligatorio' a propósito, ver «LA PRIMERA» más
+       abajo, y un segundo obligatorio en la fase 3 movería lo que eso mide)
+       y 'actividad' los otros tres. */
+    {codigo:'parafiscales_en_proceso', ref_panel:'c44', ente:'Entes varios',
+     activo:true, emite:null, plazo_dias:null,
+     nombre:'Inscripciones: empresa ya inscrita', fase:3, nivel:'esencial'},
+    {codigo:'licencia_en_proceso', ref_panel:'c45', ente:'Alcaldía',
+     activo:true, emite:null, plazo_dias:null,
+     nombre:'Licencia de actividades económicas: ya solicitada', fase:3, nivel:'actividad'},
+    {codigo:'conformidad_en_proceso', ref_panel:'c46', ente:'Alcaldía',
+     activo:true, emite:null, plazo_dias:null,
+     nombre:'Conformidad de uso: ya solicitada', fase:3, nivel:'actividad'},
+    {codigo:'bomberos_en_proceso', ref_panel:'c47', ente:'Bomberos',
+     activo:true, emite:null, plazo_dias:null,
+     nombre:'Permiso de bomberos: ya solicitado', fase:3, nivel:'actividad'},
     /* El RUPDAE y el Registro Único Minero, en la fase 3. Como en la base
        de verdad: el RUM 'actividad' y SIN plazo -la resolución no da
        ninguno-. Sin él aquí el panel pintaría una ficha de lectura.
