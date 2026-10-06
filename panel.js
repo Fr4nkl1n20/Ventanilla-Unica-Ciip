@@ -26415,14 +26415,15 @@ applyLang(idiomaParaMi());
      marcas-. Marcar antes dejaría marcas que el gestor no tiene dónde ver.
 
      Franklin Reyes, 6-10-2026: «quiero que esta etapa se active cuando el
-     proceso pase a revisión». Y es la revisión que ve el inversionista: su
-     escalera pone «Revisión de tus recaudos» en curso desde que la envía,
-     así que se abren con la solicitud enviada, y con ellas el paso 3 del
-     visor, para que el gestor vea las marcas. Lo que
+     proceso pase a revisión». O sea, cuando el gestor la pasa a revisión
+     y la escalera del inversionista llega al paso 3, «Inscripción ante
+     cada ente»; con la solicitud solo enviada -el paso 2 en curso- siguen
+     quietas. Con ellas se abre el paso 3 del visor, para que el gestor vea
+     las marcas. Lo que
      sigue colgado de la presentación (ENTES_PRESENTADOS) es el resto del
      visor: el 1 y el 2 hechos, abrir en los entes y el pie de los recaudos,
      donde está «Presentar ante el ente». */
-  var ENTES_ABIERTOS = ['enviado', 'en_revision', 'ante_el_ente'];
+  var ENTES_ABIERTOS = ['en_revision', 'ante_el_ente'];
   var ENTES_PRESENTADOS = ['ante_el_ente'];
 
   var ENTES_DE = {};
