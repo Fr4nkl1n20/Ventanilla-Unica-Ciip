@@ -2792,7 +2792,12 @@
                   {ente:'SAREN', resueltos:3, mediana_h:96, promedio_h:120.5, n_ente:3, mediana_ente_h:48},
                   {ente:'SENIAT', resueltos:1, mediana_h:30, promedio_h:30, n_ente:0, mediana_ente_h:null}
                 ],
-                sectores: Object.keys(porSec).map(function(s){ return {sector:s, consultas:porSec[s]}; })
+                sectores: Object.keys(porSec).map(function(s){ return {sector:s, consultas:porSec[s]}; }),
+                motivos: [
+                  {motivo:'Lleva mucho tiempo sin respuesta', ente:'IVSS', n:3},
+                  {motivo:'Lleva mucho tiempo sin respuesta', ente:'Alcaldía', n:2},
+                  {motivo:'Falla o error en el portal del ente', ente:'INCES', n:1}
+                ]
               }, error:null};
             }
             return {then:function(bien, mal){ return Promise.resolve(rE).then(bien, mal); }};

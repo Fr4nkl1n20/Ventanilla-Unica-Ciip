@@ -769,6 +769,7 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .ce-vista{margin-top:18px;}
 .ce-rejilla{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; align-items:start;}
 @media(max-width:980px){ .ce-rejilla{grid-template-columns:minmax(0, 1fr);} }
+.ce-rejilla > .ce-ancha{grid-column:1 / -1;}
 .ce-caja .ce-d{margin:-4px 0 0; padding:0 18px 6px; font-size:var(--fs-nota); line-height:1.55; color:var(--gray);}
 .ce-aviso{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); margin-bottom:14px;}
 .ce-sub{display:block; font-size:var(--fs-nota); font-weight:500; color:var(--gray); margin-top:1px;

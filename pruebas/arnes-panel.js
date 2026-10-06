@@ -11232,9 +11232,9 @@
           guia ? (guia.querySelector('.gv-resumen-t') || {}).textContent : '(sin guía)', U.yp_ya_c);
     igual('ya: y enseña su formulario', marcaElige(), 'a la vista');
     var caja = document.getElementById('trReal');
-    igual('ya: los seis entes, cada uno con su fecha, y el problema', bienesCampos(caja),
-          'ya_banavih fecha_ya_banavih ya_inces fecha_ya_inces ya_rupdae fecha_ya_rupdae ' +
-          'ya_ivss fecha_ya_ivss ya_rnet fecha_ya_rnet ya_rnc fecha_ya_rnc problema_ya');
+    igual('ya: los seis entes, cada uno con su fecha y su motivo', bienesCampos(caja),
+          ['banavih', 'inces', 'rupdae', 'ivss', 'rnet', 'rnc'].map(function(e){
+            return 'ya_' + e + ' fecha_ya_' + e + ' motivo_ya_' + e + ' detalle_ya_' + e; }).join(' '));
     igual('ya: los entes, con su nombre',
           caja ? [].map.call(caja.querySelectorAll('.sol-casilla label'), function(l){ return l.textContent; }).join(' | ') : '',
           'BANAVIH (FAOV) | INCES | RUPDAE | IVSS | RNET | RNC');
@@ -11254,9 +11254,22 @@
     igual('ya: y el aviso de la planilla sellada',
           notaIvss && !notaIvss.hidden ? (notaIvss.querySelector('.sc-q') || {}).textContent : '(escondido)', U.yp_n_ivss_f);
     if (ivss){ ivss.checked = false; ivss.dispatchEvent(new Event('change')); }
-    var prob = caja && caja.querySelector('.sol-campo[data-campo="problema_ya"]');
-    ok('ya: el problema es obligatorio', !!prob && !prob.getAttribute('data-opcional'),
-       prob ? 'data-opcional=' + prob.getAttribute('data-opcional') : 'no está', 'sin data-opcional');
+    /* El motivo de cada ente (6-10-2026): sale con su ente, obligatorio, y al
+       lado lo que quiera contar, que es opcional también a la vista. */
+    var mIvss = caja && caja.querySelector('.sol-campo[data-campo="motivo_ya_ivss"]');
+    var dIvss = caja && caja.querySelector('.sol-campo[data-campo="detalle_ya_ivss"]');
+    ok('ya: el motivo, escondido hasta marcar su ente', !!mIvss && mIvss.hidden,
+       mIvss ? (mIvss.hidden ? 'escondido' : 'a la vista') : 'no está', 'escondido');
+    igual('ya: el motivo, con la lista sin ninguno elegido', bienesOpciones(caja, 'motivo_ya_ivss'),
+          (U.o_ya_motivo || []).join('|'));
+    if (ivss){ ivss.checked = true; ivss.dispatchEvent(new Event('change')); }
+    ok('ya: marcado el IVSS, su motivo es obligatorio', !!mIvss && !mIvss.hidden && !mIvss.getAttribute('data-opcional'),
+       mIvss ? (mIvss.hidden ? 'escondido' : 'opcional=' + mIvss.getAttribute('data-opcional')) : 'no está', 'a la vista y obligatorio');
+    ok('ya: y lo que quiera contar, opcional', !!dIvss && !dIvss.hidden && dIvss.getAttribute('data-opcional') === '1',
+       dIvss ? (dIvss.hidden ? 'escondido' : 'opcional=' + dIvss.getAttribute('data-opcional')) : 'no está', 'a la vista y opcional');
+    igual('ya: el motivo lleva el nombre de su ente',
+          mIvss ? (mIvss.querySelector('label') || {}).textContent : '(no está)', U.f_ypmivss);
+    if (ivss){ ivss.checked = false; ivss.dispatchEvent(new Event('change')); }
     igual('ya: y sus cinco recaudos', bienesDocs(caja), 'acta_constitutiva acta_asamblea rif_empresa cedula rif_personal');
     igual('ya: la última acta de actualización, opcional', bienesDocs(caja, '[data-opcional]'), 'acta_asamblea');
     ok('ya: sin «undefined» en el detalle',
@@ -11305,8 +11318,8 @@
     igual('ya: la c45 nace elegida, con la guía plegada',
           guia ? (guia.querySelector('.gv-resumen-t') || {}).textContent : '(sin guía)', U.yl_ya_c);
     var caja = document.getElementById('trReal');
-    igual('ya: la licencia ya solicitada, sus cinco datos', bienesCampos(caja),
-          'fecha_solicitud_ya alcaldia_ya razon_social rif_empresa representante');
+    igual('ya: la licencia ya solicitada, sus cinco datos y el motivo', bienesCampos(caja),
+          'fecha_solicitud_ya alcaldia_ya razon_social rif_empresa representante motivo_ya detalle_ya');
     igual('ya: con las tres alcaldías del encargo, sin ninguna elegida', bienesOpciones(caja, 'alcaldia_ya'),
           '|Baruta|Chacao|Libertador');
     igual('ya: y sus cuatro recaudos', bienesDocs(caja), 'acta_constitutiva rif_empresa cedula rif_personal');
@@ -11316,10 +11329,10 @@
     if (R && R.campos){
       igual('ya: la conformidad, los mismos cinco datos',
             R.campos('conformidad_en_proceso').map(function(c){ return c.n; }).join(' '),
-            'fecha_solicitud_ya alcaldia_ya razon_social rif_empresa representante');
+            'fecha_solicitud_ya alcaldia_ya razon_social rif_empresa representante motivo_ya detalle_ya');
       igual('ya: los bomberos, con el cuerpo de bomberos',
             R.campos('bomberos_en_proceso').map(function(c){ return c.n; }).join(' '),
-            'fecha_solicitud_ya cuerpo_bomberos_ya razon_social rif_empresa representante');
+            'fecha_solicitud_ya cuerpo_bomberos_ya razon_social rif_empresa representante motivo_ya detalle_ya');
       igual('ya: y los mismos cuatro recaudos',
             ['conformidad_en_proceso', 'bomberos_en_proceso'].map(function(k){
               return R.de(k).map(function(r){ return r.tipo; }).join(' '); }).join(' / '),
@@ -11345,7 +11358,7 @@
        inversionista: 'u1', creado_en: '2026-10-01T10:00:00Z', enviado_en: '2026-10-01T10:00:00Z',
        actualizado_en: '2026-10-04T12:00:00Z'},
       {id: 'yp1', tipo: 'parafiscales_en_proceso', estado: 'resuelto',
-       datos: {ya_ivss: 'Sí', fecha_ya_ivss: '2026-07-20', problema_ya: 'No me llega la constancia.'},
+       datos: {ya_ivss: 'Sí', fecha_ya_ivss: '2026-07-20', motivo_ya_ivss: 'Lleva mucho tiempo sin respuesta', detalle_ya_ivss: 'No me llega la constancia.'},
        inversionista: 'u1', creado_en: '2026-10-01T10:00:00Z', enviado_en: '2026-10-01T10:00:00Z',
        actualizado_en: '2026-10-04T12:00:00Z'}];
     location.hash = '';
@@ -16541,8 +16554,24 @@
        document.querySelectorAll('#eqTarjetas .eq-tj').length >= 2 &&
        document.getElementById('ceTequipo').textContent === U.ce_eq_t,
        document.getElementById('ceTequipo').textContent, U.ce_eq_t);
-    igual('control: las cuatro cajas de abajo, en la rejilla de dos',
-          document.querySelectorAll('#ceCaja .ce-rejilla > .ce-caja').length, 4);
+    igual('control: las cinco cajas de abajo, en la rejilla de dos',
+          document.querySelectorAll('#ceCaja .ce-rejilla > .ce-caja').length, 5);
+
+    /* Los motivos de «ya lo solicité» (6-10-2026): a lo ancho, uno por
+       motivo de más a menos, traducido, y debajo en qué entes sale. */
+    var mo = document.querySelectorAll('#ceMotivos .ce-fila[data-motivo]');
+    ok('control: los motivos, a lo ancho', !!document.querySelector('#ceMotivos.ce-ancha'),
+       document.getElementById('ceMotivos') ? document.getElementById('ceMotivos').className : '(no está)', 'ce-ancha');
+    igual('control: una fila por motivo', mo.length, 2);
+    ok('control: el más marcado arriba, sumando sus entes',
+       !!mo[0] && mo[0].getAttribute('data-motivo') === 'Lleva mucho tiempo sin respuesta' &&
+       (mo[0].querySelector('.ce-rv .n') || {}).textContent === '5',
+       mo[0] ? mo[0].getAttribute('data-motivo') + ' ' + (mo[0].querySelector('.ce-rv .n') || {}).textContent : '(nada)',
+       'Lleva mucho tiempo sin respuesta 5');
+    igual('control: con su nombre en el idioma de turno', mo[0] ? (mo[0].querySelector('.nm') || {}).textContent : '',
+          (U.o_ya_motivo || [])[1]);
+    igual('control: y en qué entes, de más a menos', mo[0] ? (mo[0].querySelector('.ce-rl .ce-sub') || {}).textContent : '',
+          'IVSS 3 · Alcaldía 2');
 
     var tr = document.querySelectorAll('#ceTramites .ce-fila[data-tipo]');
     igual('control: una barra por trámite solicitado', tr.length, 3);

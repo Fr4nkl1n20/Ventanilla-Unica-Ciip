@@ -5544,8 +5544,8 @@ applyLang(idiomaParaMi());
        Las inscripciones (c44): los entes ante los que ya la solicitaste,
        con selección múltiple -una casilla por ente, en un recuadro que
        exige al menos una (unoAlMenos)-, la fecha de cada uno, que solo
-       sale al marcar el suyo (verSi), y el problema y cómo esperas que te
-       ayudemos, que es la razón de venir.
+       sale al marcar el suyo (verSi), y por qué necesita ayuda con ESE
+       ente, que es la razón de venir.
 
        La licencia, la conformidad de uso y los bomberos (c45 a c47): la
        fecha de la solicitud, dónde se introdujo, la razón social, el RIF y
@@ -5554,43 +5554,69 @@ applyLang(idiomaParaMi());
        portales; nace vacía para que nadie mande «Baruta» sin elegirla. El
        cuerpo de bomberos es texto libre, como dice el documento. La razón
        social, el RIF y el representante se llaman como siempre para que se
-       hereden de Mi empresa y de los demás trámites. */
+       hereden de Mi empresa y de los demás trámites.
+
+       EL MOTIVO (Franklin Reyes, 6-10-2026: «en estadísticas el por qué
+       piden ayuda, qué trabas tienen para sacar el papel ellos»). Antes era
+       un solo «cuéntanos el problema» escrito, y un texto libre no se
+       cuenta. Ahora es un desplegable de o_ya_motivo -se guarda en español,
+       como todo opcionesClave, para que estadisticas_control() lo agrupe
+       igual en cualquier idioma- y, al lado, lo que quiera añadir, que es
+       opcional. En c44 va uno por ente marcado (motivo_ya_<ente>); en c45 a
+       c47, que son de un solo ente, uno (motivo_ya). */
     parafiscales_en_proceso: [
       {n:'ya_banavih',        clave:'f_ypbanavih', tipo:'casilla', grupo:'f_ypentes', unoAlMenos:true},
       {n:'fecha_ya_banavih',  clave:'f_ypfbanavih', tipo:'date', grupo:'f_ypentes', verSi:'ya_banavih'},
+      {n:'motivo_ya_banavih', clave:'f_ypmbanavih', opcionesClave:'o_ya_motivo', grupo:'f_ypentes', verSi:'ya_banavih'},
+      {n:'detalle_ya_banavih',clave:'f_ypdbanavih', grupo:'f_ypentes', verSi:'ya_banavih', opcional:true},
       {n:'ya_inces',          clave:'f_ypinces',   tipo:'casilla', grupo:'f_ypentes', unoAlMenos:true},
       {n:'fecha_ya_inces',    clave:'f_ypfinces',  tipo:'date', grupo:'f_ypentes', verSi:'ya_inces'},
+      {n:'motivo_ya_inces',   clave:'f_ypminces',  opcionesClave:'o_ya_motivo', grupo:'f_ypentes', verSi:'ya_inces'},
+      {n:'detalle_ya_inces',  clave:'f_ypdinces',  grupo:'f_ypentes', verSi:'ya_inces', opcional:true},
       {n:'ya_rupdae',         clave:'f_yprupdae',  tipo:'casilla', grupo:'f_ypentes', unoAlMenos:true},
       {n:'fecha_ya_rupdae',   clave:'f_ypfrupdae', tipo:'date', grupo:'f_ypentes', verSi:'ya_rupdae'},
+      {n:'motivo_ya_rupdae',  clave:'f_ypmrupdae', opcionesClave:'o_ya_motivo', grupo:'f_ypentes', verSi:'ya_rupdae'},
+      {n:'detalle_ya_rupdae', clave:'f_ypdrupdae', grupo:'f_ypentes', verSi:'ya_rupdae', opcional:true},
       {n:'ya_ivss',           clave:'f_ypivss',    tipo:'casilla', grupo:'f_ypentes', unoAlMenos:true,
        nota:'yp_n_ivss_f'},
       {n:'fecha_ya_ivss',     clave:'f_ypfivss',   tipo:'date', grupo:'f_ypentes', verSi:'ya_ivss'},
+      {n:'motivo_ya_ivss',    clave:'f_ypmivss',   opcionesClave:'o_ya_motivo', grupo:'f_ypentes', verSi:'ya_ivss'},
+      {n:'detalle_ya_ivss',   clave:'f_ypdivss',   grupo:'f_ypentes', verSi:'ya_ivss', opcional:true},
       {n:'ya_rnet',           clave:'f_yprnet',    tipo:'casilla', grupo:'f_ypentes', unoAlMenos:true},
       {n:'fecha_ya_rnet',     clave:'f_ypfrnet',   tipo:'date', grupo:'f_ypentes', verSi:'ya_rnet'},
+      {n:'motivo_ya_rnet',    clave:'f_ypmrnet',   opcionesClave:'o_ya_motivo', grupo:'f_ypentes', verSi:'ya_rnet'},
+      {n:'detalle_ya_rnet',   clave:'f_ypdrnet',   grupo:'f_ypentes', verSi:'ya_rnet', opcional:true},
       {n:'ya_rnc',            clave:'f_yprnc',     tipo:'casilla', grupo:'f_ypentes', unoAlMenos:true},
       {n:'fecha_ya_rnc',      clave:'f_ypfrnc',    tipo:'date', grupo:'f_ypentes', verSi:'ya_rnc'},
-      {n:'problema_ya',       clave:'f_ypproblema', tipo:'area', ancho:true}
+      {n:'motivo_ya_rnc',     clave:'f_ypmrnc',    opcionesClave:'o_ya_motivo', grupo:'f_ypentes', verSi:'ya_rnc'},
+      {n:'detalle_ya_rnc',    clave:'f_ypdrnc',    grupo:'f_ypentes', verSi:'ya_rnc', opcional:true}
     ],
     licencia_en_proceso: [
       {n:'fecha_solicitud_ya', clave:'f_yafecha',    tipo:'date'},
       {n:'alcaldia_ya',        clave:'f_yaalcaldia', opciones:ALCALDIAS_YA},
       {n:'razon_social',       clave:'f_razon',      ancho:true},
       {n:'rif_empresa',        clave:'f_rifempresa'},
-      {n:'representante',      clave:'f_yarep'}
+      {n:'representante',      clave:'f_yarep'},
+      {n:'motivo_ya',          clave:'f_yamotivo',   opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',         clave:'f_yadetalle',  opcional:true}
     ],
     conformidad_en_proceso: [
       {n:'fecha_solicitud_ya', clave:'f_yafecha',    tipo:'date'},
       {n:'alcaldia_ya',        clave:'f_yaalcaldia', opciones:ALCALDIAS_YA},
       {n:'razon_social',       clave:'f_razon',      ancho:true},
       {n:'rif_empresa',        clave:'f_rifempresa'},
-      {n:'representante',      clave:'f_yarep'}
+      {n:'representante',      clave:'f_yarep'},
+      {n:'motivo_ya',          clave:'f_yamotivo',   opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',         clave:'f_yadetalle',  opcional:true}
     ],
     bomberos_en_proceso: [
       {n:'fecha_solicitud_ya', clave:'f_yafecha',    tipo:'date'},
       {n:'cuerpo_bomberos_ya', clave:'f_yabomberos', ancho:true},
       {n:'razon_social',       clave:'f_razon',      ancho:true},
       {n:'rif_empresa',        clave:'f_rifempresa'},
-      {n:'representante',      clave:'f_yarep'}
+      {n:'representante',      clave:'f_yarep'},
+      {n:'motivo_ya',          clave:'f_yamotivo',   opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',         clave:'f_yadetalle',  opcional:true}
     ]
   };
 
@@ -7495,7 +7521,9 @@ applyLang(idiomaParaMi());
         var si = (manda.type === 'checkbox') ? manda.checked
                                              : (manda.value && manda.value !== 'No');
         campo.hidden = !si;
-        if (si) campo.removeAttribute('data-opcional');
+        /* Al volver a verse recupera lo que era: el detalle del motivo
+           (6-10-2026) es opcional también cuando su ente está marcado. */
+        if (si){ if (!c.opcional) campo.removeAttribute('data-opcional'); }
         else {
           campo.setAttribute('data-opcional', '1');
           campo.classList.remove('mal');
@@ -31806,7 +31834,55 @@ applyLang(idiomaParaMi());
     /* La lista de cada sector va aunque las cifras fallen: es otra tabla,
        y escribirla no depende de poder contar. */
     rejilla.appendChild(ceCajaPorSector(u));
+    /* Los motivos, a lo ancho y al final: los cuatro de arriba van por
+       parejas y este no tiene pareja. */
+    if (ceDatos) rejilla.appendChild(ceCajaMotivos(u));
     ceCaja.appendChild(rejilla);
+  }
+
+  /* ¿POR QUÉ PIDEN AYUDA? (Franklin Reyes, 6-10-2026). Lo que marca el
+     inversionista en «ya lo solicité» (c44 a c47), ente por ente. Una fila
+     por motivo, de más a menos, y debajo en qué entes sale: «Lleva mucho
+     tiempo sin respuesta · IVSS 4 · INCES 2» dice a la vez qué traba hay y
+     dónde. El motivo llega en español, que es como se guarda, y se enseña
+     en el idioma de turno buscándolo en la lista del formulario. */
+  function ceCajaMotivos(u){
+    var s = ceSeccion('ceMotivos', u.ce_mo_t, u.ce_mo_d);
+    s.classList.add('ce-ancha');
+    var es = (window.CIIP_PASOS && window.CIIP_PASOS.ui.es.o_ya_motivo) || [];
+    var aqui = u.o_ya_motivo || es;
+    var por = {}, orden = [], suma = 0;
+    (ceDatos.motivos || []).forEach(function(m){
+      var k = m.motivo || '';
+      if (!por[k]){ por[k] = {motivo: k, n: 0, entes: []}; orden.push(por[k]); }
+      por[k].n += m.n || 0;
+      por[k].entes.push(m);
+      suma += m.n || 0;
+    });
+    if (!orden.length){ s.appendChild(el('div', 'pu-vacio', u.ce_vacio || '')); return s; }
+    orden.sort(function(a, b){ return (b.n - a.n) || (es.indexOf(a.motivo) - es.indexOf(b.motivo)); });
+    var tope = orden[0].n;
+    function nombre(k){ var i = es.indexOf(k); return (i > 0 && aqui[i]) || k; }
+    function entes(lista){
+      return lista.slice().sort(function(a, b){ return (b.n || 0) - (a.n || 0); })
+        .map(function(e){ return (e.ente || u.ce_sinente || '') + ' ' + (e.n || 0); }).join(' · ');
+    }
+    ceLista(s, 'motivos', orden, function(m, i){
+      var f = ceFila({
+        cls: i === 0 ? 'tope' : '',
+        nombre: nombre(m.motivo), sub: entes(m.entes),
+        valor: String(m.n), pie: suma ? Math.round((m.n / suma) * 100) + ' %' : '',
+        partes: [[tope ? m.n / tope : 0]]
+      });
+      f.setAttribute('data-motivo', m.motivo);
+      return f;
+    }, function(cola){
+      var n = 0;
+      cola.forEach(function(m){ n += m.n; });
+      return {valor: String(n), pie: suma ? Math.round((n / suma) * 100) + ' %' : '',
+              partes: [[tope ? n / tope : 0]]};
+    });
+    return s;
   }
 
   function ceCajaTramites(u){

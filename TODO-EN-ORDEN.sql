@@ -13768,6 +13768,7 @@ begin
 
   with enviados as (
     select t.id, t.tipo, coalesce(tt.ente, '') as ente, t.estado,
+           t.datos,
            coalesce(t.enviado_en, t.creado_en) as desde, t.resuelto_en
       from public.tramites t
       left join public.tipos_tramite tt on tt.codigo = t.tipo
@@ -13816,6 +13817,27 @@ begin
       from public.consultas
      where sector is not null
      group by sector
+  ),
+  -- Los motivos de «ya lo solicité» (6-10-2026): por qué pide ayuda el inversionista, ente por
+  -- ente. En c45 a c47 hay un solo ente, el del catálogo, y un motivo_ya; en c44, uno por cada
+  -- ente marcado, motivo_ya_<ente>. Se guardan en español (opcionesClave), así que se agrupan
+  -- igual los haya escrito quien sea en el idioma que sea.
+  motivos as (
+    select m.motivo, m.ente, count(*) as n
+      from (
+        select e.datos ->> 'motivo_ya' as motivo, e.ente
+          from enviados e
+         where e.tipo in ('licencia_en_proceso', 'conformidad_en_proceso', 'bomberos_en_proceso')
+        union all
+        select e.datos ->> ('motivo_ya_' || x.clave), x.ente
+          from enviados e
+         cross join (values ('banavih', 'BANAVIH (FAOV)'), ('inces', 'INCES'),
+                            ('rupdae', 'RUPDAE'), ('ivss', 'IVSS'),
+                            ('rnet', 'RNET'), ('rnc', 'RNC')) as x(clave, ente)
+         where e.tipo = 'parafiscales_en_proceso'
+      ) m
+     where coalesce(m.motivo, '') <> ''
+     group by m.motivo, m.ente
   )
   select jsonb_build_object(
     'tramites', coalesce((
@@ -13841,7 +13863,11 @@ begin
     'sectores', coalesce((
       select jsonb_agg(jsonb_build_object('sector', s.sector, 'consultas', s.n)
              order by s.n desc, s.sector)
-        from por_sector s), '[]'::jsonb)
+        from por_sector s), '[]'::jsonb),
+    'motivos', coalesce((
+      select jsonb_agg(jsonb_build_object('motivo', mo.motivo, 'ente', mo.ente, 'n', mo.n)
+             order by mo.n desc, mo.motivo, mo.ente)
+        from motivos mo), '[]'::jsonb)
   ) into r;
 
   return r;
