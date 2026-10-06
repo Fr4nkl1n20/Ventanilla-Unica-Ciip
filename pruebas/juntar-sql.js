@@ -256,7 +256,15 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* «Ya lo solicité» (Franklin Reyes, 5-10-2026, Ventanilla única 2.6): los
    cuatro trámites c44 a c47. Solo inserta en el catálogo y copia el nivel
    de su casilla madre; necesita nivel y emite, así que va al final. */
-'supabase-ya-solicitado'];
+'supabase-ya-solicitado',
+/* Los recaudos del comprador en la compraventa (c41), Franklin Reyes,
+   5-10-2026: cuatro tipos de documento. Solo inserta en el catálogo. */
+'supabase-bienes-comprador',
+/* La compraventa en dos fases, contrato y registro (5-10-2026): el contrato
+   del CIIP, los dos importes, los pasos del gestor, la fecha de la firma y
+   el anuncio del CIIP. Redefine importe_del_dia_vigente(); va DETRÁS del
+   importe del día, la marca, los libros y «Bienes». */
+'supabase-bienes-registro'];
 
 let mal = 0;
 for (const n of orden) {
