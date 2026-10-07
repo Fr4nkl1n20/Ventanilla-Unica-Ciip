@@ -10524,7 +10524,9 @@
       'pf-ya':   [{id: 'pfy', tipo: 'planilla_firmada', estado: 'cargado', creado_en: hace,
                    nombre_original: 'planilla-firmada.pdf', archivo: 'u2/planilla_firmada-x-planilla-firmada.pdf'}],
       'pf-rech': [{id: 'pfr', tipo: 'planilla_firmada', estado: 'rechazado', creado_en: hace,
-                   nombre_original: 'planilla-sin-firma.pdf', nota_revision: 'Falta la firma del representante.'}]
+                   nombre_original: 'planilla-sin-firma.pdf', nota_revision: 'Falta la firma del representante.'}],
+      'pf-ante': [{id: 'pfa', tipo: 'planilla_firmada', estado: 'validado', creado_en: hace,
+                   nombre_original: 'planilla-firmada.pdf', archivo: 'u2/planilla_firmada-y-planilla-firmada.pdf'}]
     };
     PF_CAJAS = document.createElement('div');
     PF_CAJAS.hidden = true;
@@ -10534,6 +10536,10 @@
       c.setAttribute('data-prueba', id);
       PF_CAJAS.appendChild(c);
     });
+    /* Y una ante el SENIAT, con la firmada dentro (7-10-2026): ahí ya no se cambia. */
+    var cAnte = P.casilla({id: 'pf-ante', tipo: 'rif_empresa', estado: 'ante_el_ente', datos: {}, inversionista: 'u2'});
+    cAnte.setAttribute('data-prueba', 'pf-ante');
+    PF_CAJAS.appendChild(cAnte);
     /* Aquí se pintaba entera la licencia en revisión, para ver la casilla
        dentro de «Firme la planilla de solicitud de trámite». Se retiró el
        1-10-2026: ese paso ya no existe (Franklin Reyes, Taquilla única
@@ -10564,6 +10570,17 @@
     ok('planilla firmada: y sin el enlace de subir',
        !!ya && !visto(ya.querySelector('.pe-sube > .pe-subir')),
        ya && visto(ya.querySelector('.pe-sube > .pe-subir')) ? 'a la vista' : 'escondido', 'escondido');
+
+    /* Ante el SENIAT (Franklin Reyes, 7-10-2026, c6): la planilla ya entró
+       con la solicitud y su paso está en verde. Se enseña enviada, sin
+       «Cambiar», que mandaría otra que ya no va a ninguna parte. */
+    var ante = caja('pf-ante');
+    var anteS = ante && ante.querySelector('.pe-subido');
+    var anteC = ante && ante.querySelector('.pe-cambia');
+    ok('planilla firmada: ante el ente, enviada y sin «Cambiar»',
+       visto(anteS) && !!anteC && anteC.hidden && !visto(ante.querySelector('.pe-sube > .pe-subir')),
+       !ante ? '(sin casilla)' : (visto(anteS) ? 'enviada' : 'sin «enviada»') + (anteC && !anteC.hidden ? ' + Cambiar' : ''),
+       'enviada, sin Cambiar');
 
     var rech = caja('pf-rech');
     var nota = rech && rech.querySelector('.tr-nota.mal');
@@ -10840,6 +10857,33 @@
           pasosEs.c34[pasosEs.c34.length - 1]);
     igual('resolver: la compraventa, su rótulo propio', resDe('vs-r2', 'bienes_compraventa'), uS.cv_p_protocolizado);
     igual('resolver: la constitución sigue «Resolver»', resDe('vs-r3', 'constitucion'), uS.co_h_resolver_c);
+
+    /* PRESENTAR, CON LO QUE DE VERDAD EMPIEZA (Franklin Reyes, 7-10-2026).
+       En la marca no se presenta nada ante el SAPI: empieza la búsqueda de
+       antecedentes. En la compraventa y el alquiler el ente es el propio
+       CIIP: empieza la redacción del contrato. Los demás, como siempre. Y el
+       alquiler se resuelve adjuntando el contrato, no «lo que emitió el
+       organismo» (PRESENTA_DICE y EMITIDO_DICE). */
+    var preDe = function(id, tipo, ente){
+      var t = tr(id, tipo, 'en_revision');
+      t.datos.pasos_ciip = {recaudos_revisados: hace(1)};
+      var b = navyDe(window.CIIP_VISOR_LADO(t));
+      return b ? b.textContent : '(sin botón)';
+    };
+    igual('presentar: la marca empieza la búsqueda de antecedentes', preDe('vs-p1', 'marca'), uS.co_h_pre_marca);
+    igual('presentar: la compraventa empieza la redacción del contrato', preDe('vs-p2', 'bienes_compraventa'), uS.co_h_pre_contrato);
+    igual('presentar: y el alquiler, igual', preDe('vs-p3', 'bienes_alquiler'), uS.co_h_pre_contrato);
+    igual('presentar: la ZODI sigue «Presentada ante» su ente', preDe('vs-p4', 'opinion_zodi'),
+          uS.co_h_presentar.replace('{ente}', ((window.CIIP_TIPOS_POR_REF || {}).c34 || {}).ente || ''));
+    var ladoA = window.CIIP_VISOR_LADO(tr('vs-p5', 'bienes_alquiler', 'ante_el_ente'));
+    var etiA = ladoA.querySelector('label[for="hoy-doc-vs-p5"]');
+    igual('alquiler: lo que se adjunta es el contrato', etiA ? etiA.textContent : '(sin etiqueta)', uS.co_emitido_contrato);
+    ok('alquiler: y la pista lo dice', ladoA.textContent.indexOf(uS.co_h_p_emitido_contrato) >= 0 &&
+         ladoA.textContent.indexOf(uS.co_h_p_emitido) < 0,
+       ladoA.textContent.indexOf(uS.co_h_p_emitido_contrato) >= 0 ? 'la del contrato' : 'otra', uS.co_h_p_emitido_contrato);
+    var ladoV = window.CIIP_VISOR_LADO(tr('vs-p6', 'visa_inversionista', 'ante_el_ente'));
+    var etiV = ladoV.querySelector('label[for="hoy-doc-vs-p6"]');
+    igual('visa: y lo emitido sigue siendo «Documento emitido por el organismo»', etiV ? etiV.textContent : '(sin etiqueta)', uS.co_emitido);
   }
 
   /* ═══════════ EL REGISTRO DE IMPORTADOR Y EXPORTADOR, FUERA ═══════════
@@ -10856,6 +10900,25 @@
     var n = window.CIIP_NOMBRE_TRAMITE ? window.CIIP_NOMBRE_TRAMITE('c11') : '';
     ok('importador: una solicitud vieja se sigue llamando por su nombre, no «c11»',
        !!n && n !== 'c11', n || '(nada)', 'el nombre del diccionario');
+
+    /* Lo mismo el permiso sanitario (c12) desde el 7-10-2026: su tarjeta se
+       fue del marcado, no solo de la portada, para que sin catálogo no salga
+       al lado del SACS que lo sustituye. Y su nombre, por el diccionario. */
+    var n12 = window.CIIP_NOMBRE_TRAMITE ? window.CIIP_NOMBRE_TRAMITE('c12') : '';
+    var D = (typeof I18N !== 'undefined') ? I18N : {};
+    igual('sanitario: una solicitud vieja del c12 se sigue llamando por su nombre',
+          n12, (((D[curLang] || {})['c12.name']) || (D.en || {})['c12.name']) || '(sin diccionario)');
+
+    /* Y los dos nombres de la especificación (7-10-2026): la cédula (c2,
+       «Ventanilla unica 2.4.pdf») y la traducción (c17, «Pendientes
+       FRANK.pdf»; el CIIP ya no apostilla desde el 28-9-2026). */
+    igual('nombres: la c2 es la cédula de identidad de extranjero',
+          (D.es || {})['c2.name'], 'Cédula de identidad de extranjero');
+    igual('nombres: la c17 es la traducción de documentos',
+          (D.es || {})['c17.name'], 'Traducción de documentos');
+    ok('nombres: y ninguno de los ocho idiomas dice ya apostilla en la c17',
+       !Object.keys(D).some(function(l){ return /apost|апостил|アポスティーユ|认证/i.test((D[l] || {})['c17.name'] || ''); }),
+       Object.keys(D).map(function(l){ return l + ': ' + (D[l] || {})['c17.name']; }).join(' · '), 'sin apostilla');
   }
 
   /* ═══════════ EL PERMISO DE BOMBEROS (c29) ═══════════
@@ -11817,8 +11880,14 @@
           dibujo('opinion_zodi', 'ZODI', 'ante_el_ente', true), 'hecho,hecho,ahora,porhacer');
     igual('revisados: devuelta con la marca, vuelve a la revisión',
           dibujo('opinion_zodi', 'ZODI', 'devuelto', true), 'hecho,ahora,porhacer,porhacer');
-    igual('revisados: c32 con la marca, en curso el paso del SAREN',
-          dibujo('registro_extranjeros_saren', 'SAREN · SISREF', 'en_revision', true), 'hecho,hecho,ahora,porhacer');
+    /* CAMBIÓ EL 7-10-2026 (Franklin Reyes). Decía 'hecho,hecho,ahora,porhacer':
+       con la marca y sin presentar, en curso «Solicitud recibida por SAREN»,
+       que se lee como que el SAREN ya la tiene. Ese paso solo está en curso
+       ante el ente; hasta entonces, la revisión (EL_ENTE_SOLO_ANTE_EL_ENTE). */
+    igual('revisados: c32 con la marca y sin presentar, el paso del SAREN todavía no está en curso',
+          dibujo('registro_extranjeros_saren', 'SAREN · SISREF', 'en_revision', true), 'hecho,ahora,porhacer,porhacer');
+    igual('revisados: c32 y presentada ante el SAREN, su paso en curso',
+          dibujo('registro_extranjeros_saren', 'SAREN · SISREF', 'ante_el_ente', true), 'hecho,hecho,ahora,porhacer');
 
     /* Con sus pasos propios y su cuenta: la verificación y la marca en proceso. */
     igual('revisados: c33 en revisión sin la marca, la revisión en curso',

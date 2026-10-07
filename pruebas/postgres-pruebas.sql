@@ -4661,6 +4661,18 @@ end
 $qa$;
 select arnes.nadie();
 
+-- El sellado de libros (c24) se presenta ante el SAREN, y la cédula (c2) y la
+-- traducción (c17) se llaman como la especificación (supabase-libros-saren.sql,
+-- Franklin Reyes, 7-10-2026). El ente del catálogo es el del botón del gestor.
+select arnes.comprueba(
+  'catalogo: el sellado de libros va ante el SAREN',
+  (select ente = 'SAREN' from public.tipos_tramite where codigo = 'libros_contables'));
+select arnes.comprueba(
+  'catalogo: la c2 es la cedula de identidad de extranjero y la c17 la traduccion',
+  (select count(*) = 2 from public.tipos_tramite
+    where (codigo = 'cedula_residencia' and nombre = 'Cédula de identidad de extranjero')
+       or (codigo = 'apostilla_documentos' and nombre = 'Traducción de documentos')));
+
 
 \o
 \pset tuples_only on

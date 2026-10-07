@@ -423,7 +423,7 @@
        tenga algo que faltar: sin ella los tres obligatorios estarían
        hechos y el rótulo en ámbar no se pintaría nunca. */
     {codigo:'apostilla_documentos', ref_panel:'c17', ente:'MPPRE', activo:true, plazo_dias:28,
-     nombre:'Apostilla de documentos', fase:1, nivel:'obligatorio'},
+     nombre:'Traducción de documentos', fase:1, nivel:'obligatorio'},
     /* Uno APAGADO a proposito. Con todos encendidos, la prueba de que el
        interruptor enciende no se puede distinguir de la de que no hace
        nada: los dos casos dejan la lista igual. */

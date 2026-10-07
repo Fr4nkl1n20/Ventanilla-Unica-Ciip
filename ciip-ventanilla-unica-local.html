@@ -730,7 +730,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
           <div class="tcard" data-marca="saime" data-tr="c2">
             <div class="t-ico placa"><img class="ilogo" src="logos/saime.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
-              <div class="t-top"><div class="t-name" data-i18n="c2.name">Residence card</div><span class="chip"></span></div>
+              <div class="t-top"><div class="t-name" data-i18n="c2.name">Foreign national identity card</div><span class="chip"></span></div>
               <div class="t-ente" data-sigla="SAIME"><span data-texto="c2.ente">Registro y cedulación de extranjeros</span></div>
               <div class="t-desc" data-i18n="c2.desc">Your Venezuelan ID is ready. You'll need it for banking, real estate and contracts.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c2.cta">View detail</span> ›</span></div>
@@ -748,7 +748,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
           <div class="tcard" data-marca="mppre" data-tr="c17">
             <div class="t-ico placa"><img class="ilogo" src="logos/mppre.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
-              <div class="t-top"><div class="t-name" data-i18n="c17.name">Apostille and translation of documents</div><span class="chip"></span></div>
+              <div class="t-top"><div class="t-name" data-i18n="c17.name">Translation of documents</div><span class="chip"></span></div>
               <div class="t-ente" data-sigla="MPPRE"><span data-texto="c17.ente">Ministerio del Poder Popular para Relaciones Exteriores</span></div>
               <div class="t-desc" data-i18n="c17.desc">Birth certificate, degree and marriage certificate, apostilled and translated. The basis for dependants, conversions and banking.</div>
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c17.cta">View detail</span> ›</span></div>
@@ -997,9 +997,8 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
                de la portada (c48) es la de primera vez y la puerta de las
                dos, y la de «ya solicité» (c49) va debajo con data-tramo-de.
                Ocupa el sitio del permiso sanitario (c12), al que sustituye:
-               la base lo apaga (supabase-sacs.sql) y su tarjeta se va de la
-               portada sola (ponAlDiaLoEncendido). Se queda en el marcado
-               para que las solicitudes viejas sigan teniendo nombre. -->
+               la base lo apaga (supabase-sacs.sql) y su tarjeta ya no está en
+               el marcado (el apunte de debajo, donde estaba). -->
           <div class="tcard" data-marca="sacs" data-tr="c48">
             <div class="t-ico placa"><img class="ilogo" src="logos/sacs.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">
@@ -1018,18 +1017,13 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
               <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c49.cta">See details</span> ›</span></div>
             </div>
           </div>
-          <!-- El SACS no tiene logo en la carpeta, asi que esta va con
-               sigla y sin imagen, como la del VUCE. Antes llevaba el de
-               SENCAMER, que ni siquiera es el ente de este permiso. -->
-          <div class="tcard" data-marca="sacs" data-tr="c12">
-            <div class="t-ico placa"><img class="ilogo" src="logos/sacs.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
-            <div class="t-body">
-              <div class="t-top"><div class="t-name" data-i18n="c12.name">Health permit for the premises</div><span class="chip"></span></div>
-              <div class="t-ente" data-sigla="SACS"><span data-texto="c12.ente">Servicio Autónomo de Contraloría Sanitaria</span></div>
-              <div class="t-desc" data-i18n="c12.desc">Inspection of the premises for food, health, pharmacy or beauty. Depends on your sector.</div>
-              <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c12.cta">View detail</span> ›</span></div>
-            </div>
-          </div>
+          <!-- AQUÍ IBA LA TARJETA DEL PERMISO SANITARIO (c12). Franklin Reyes,
+               7-10-2026: el SACS (c48) la sustituye y la base la apaga, así que
+               solo se iba si llegaba el catálogo; sin él se veía al lado del
+               SACS, dos fichas para el mismo permiso ante el mismo ente. Se va
+               del marcado, como la del importador (c11): las solicitudes
+               viejas siguen teniendo nombre por el diccionario (c12.name en
+               nombreDeTarjeta), y sus pasos y recaudos se quedan en el panel. -->
           <div class="tcard" data-tramo-de="c37" data-marca="banavih" data-tr="c25">
             <div class="t-ico placa"><img class="ilogo" src="logos/banavih.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
             <div class="t-body">

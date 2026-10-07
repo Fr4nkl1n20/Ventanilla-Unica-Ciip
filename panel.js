@@ -10458,6 +10458,10 @@ applyLang(idiomaParaMi());
      que separa "El proceso" de un dibujo.
      ───────────────────────────────────────────────────────────────── */
   var ORDEN = ['enviado','en_revision','ante_el_ente','resuelto'];
+  /* Los trámites cuyo paso del ente dice que el ente ya la tiene, y por eso
+     no se pone en curso con «Recaudos revisados», solo ante el ente (ver
+     `revisados` en escaleraDe, Franklin Reyes, 7-10-2026). */
+  var EL_ENTE_SOLO_ANTE_EL_ENTE = {c32: true};
 
   /* ── LA ESCALERA DE UNA SOLICITUD, EN UN SOLO SITIO ──
      Que pasos tiene, como se llaman y cuales van hechos o en curso. La
@@ -10658,7 +10662,14 @@ applyLang(idiomaParaMi());
        circuito, donde el segundo paso es siempre la revisión: con el PUB
        delante (protocolización, publicación, LOCTI) el paso de ese estado
        es otro -la consignación, la carga del comprobante- y no se toca. */
-    var revisados = revisando && !propios && recaudosYaRevisados(tr, ref);
+    /* SALVO EN EL REGISTRO DE EXTRANJEROS (c32), Franklin Reyes, 7-10-2026.
+       Allí el tercer paso no es «Presentada ante {ente}» sino «Solicitud
+       recibida por SAREN», y en curso se lee como que el SAREN ya la tiene,
+       cuando todavía no se ha presentado. Ese paso solo está en curso ante
+       el ente; hasta entonces sigue en curso la revisión, que es donde está
+       la solicitud: en el CIIP. Los pasos no cambian. */
+    var revisados = revisando && !propios && recaudosYaRevisados(tr, ref) &&
+                    !EL_ENTE_SOLO_ANTE_EL_ENTE[ref];
     /* Y LO MISMO ANTE EL ENTE (Franklin Reyes, 5-10-2026, en el Registro de
        Extranjeros: «aquí saltó los pasos»). Con la solicitud ante el SAREN,
        el paso del SAREN salía hecho y «Vas por aquí» se iba al último,
@@ -10808,7 +10819,11 @@ applyLang(idiomaParaMi());
   function casillaDeLaPlanillaFirmada(tr, alSubir){
     var u = T();
     var esEquipo = !!(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO());
-    var abierta = !esEquipo && ['resuelto', 'cancelado', 'borrador'].indexOf(tr.estado) < 0;
+    /* Y cerrada ante el ente (Franklin Reyes, 7-10-2026, en el RIF de la
+       empresa): no se presenta sin la firmada (faltaLaFirmada), así que ante
+       el SENIAT la planilla ya está dentro y su paso, en verde. «Cambiar»
+       ahí ofrecía mandar otra que ya no iba a ninguna parte. */
+    var abierta = !esEquipo && ['resuelto', 'cancelado', 'borrador', 'ante_el_ente'].indexOf(tr.estado) < 0;
     var caja = el('div', 'pe-sube tr-firmada');
     caja.setAttribute('data-doc', TIPO_PLANILLA_FIRMADA);
     /* Escondida hasta saber qué hay: si no, el enlace sale y medio segundo
@@ -16589,7 +16604,7 @@ applyLang(idiomaParaMi());
       }
       if (t.estado === 'ante_el_ente' && pideEmitido(t)){
         var sube = el('div', 'co-emitir');
-        var etiq = el('label', null, u.co_emitido || '');
+        var etiq = el('label', null, rotuloEmitido(t, u, 'etiqueta'));
         etiq.setAttribute('for', 'co-doc-' + t.id);
         sube.appendChild(etiq);
         archivo = document.createElement('input');
@@ -16614,7 +16629,7 @@ applyLang(idiomaParaMi());
            {ente}». */
         var revisaP = (p.a === 'ante_el_ente' && faltaRevisarRecaudos(t));
         if (revisaP) rotP = u.co_h_revisados;
-        else if (p.a === 'ante_el_ente') rotP = String(u.co_h_presentar || '').replace('{ente}', hoyEnte(t));
+        else if (p.a === 'ante_el_ente') rotP = rotuloPresentar(t, u, hoyEnte(t));
         var b = el('button', 'btn ' + (i === 0 && p.nota ? 'ghost' : 'navy'), rotP || '');
         b.type = 'button';
         principal = b; principalTxt = rotP || '';
@@ -17275,6 +17290,35 @@ applyLang(idiomaParaMi());
     bienes_alquiler: 'co_r_contrato', registros_parafiscales: 'co_r_constancias'
   };
   var RESUELVE_COMO_SIEMPRE = {constitucion: true};
+
+  /* Y LO QUE DICE EL DE PRESENTAR, el mismo en la cola y en el visor
+     (Franklin Reyes, 7-10-2026). «Presentada ante {ente}» con el ente del
+     catálogo vale donde presentar es llevar la solicitud al organismo; en
+     estos tres no lo es. En la marca (c8) lo que empieza es la búsqueda de
+     antecedentes, y el SAPI no recibe nada hasta la solicitud de registro,
+     varios pasos después; en la compraventa (c41) y el alquiler (c42) el
+     ente es el propio CIIP, y lo que empieza es la redacción del contrato.
+     Un mapa por trámite, como RESUELVE_DICE, y no los `textos` de su
+     escalera: el alquiler no tiene escalera por etapas. */
+  var PRESENTA_DICE = {
+    marca: 'co_h_pre_marca', bienes_compraventa: 'co_h_pre_contrato',
+    bienes_alquiler: 'co_h_pre_contrato'
+  };
+  function rotuloPresentar(t, u, ente){
+    var k = t && PRESENTA_DICE[t.tipo];
+    return (k && u[k]) || String(u.co_h_presentar || '').replace('{ente}', ente || '');
+  }
+  /* Y lo que se adjunta al resolver: «Documento emitido por el organismo»
+     no es lo que entrega el alquiler, que es el contrato que redactó el
+     CIIP (7-10-2026). cual: 'etiqueta' (encima del archivo) o 'pista'. */
+  var EMITIDO_DICE = {
+    bienes_alquiler: {etiqueta: 'co_emitido_contrato', pista: 'co_h_p_emitido_contrato'}
+  };
+  function rotuloEmitido(t, u, cual){
+    var comun = cual === 'pista' ? 'co_h_p_emitido' : 'co_emitido';
+    var d = t && EMITIDO_DICE[t.tipo];
+    return (d && u[d[cual]]) || u[comun] || '';
+  }
   function ultimoPasoDe(t){
     var DP = window.CIIP_PASOS || {};
     var mapa = (DP.pasos && (DP.pasos[curLang] || DP.pasos.en)) || {};
@@ -19892,7 +19936,7 @@ applyLang(idiomaParaMi());
       pista.textContent = (t.tipo === TIPO_PARAFISCALES ? u.vs_pista
         : esElPoder(t) ? u.co_h_p_poder
         : esAutorizacion(t) ? u.co_h_p_autoriza
-        : conEmitido ? u.co_h_p_emitido
+        : conEmitido ? rotuloEmitido(t, u, 'pista')
         : t.tipo === 'constitucion' ? u.co_h_p_reserva : u.vt_p_resolver) || '';
       var rotuloRes = rotuloResolver(t, u);
       dondeRes.appendChild(pista);
@@ -19907,7 +19951,7 @@ applyLang(idiomaParaMi());
       var archivo = null;
       if (conEmitido){
         var sube = el('div', 'co-emitir');
-        var etiq = el('label', null, u.co_emitido || '');
+        var etiq = el('label', null, rotuloEmitido(t, u, 'etiqueta'));
         etiq.setAttribute('for', 'hoy-doc-' + t.id);
         sube.appendChild(etiq);
         archivo = el('input');
@@ -20043,7 +20087,7 @@ applyLang(idiomaParaMi());
           pre.disabled = !!(c && (c.cargado || c.rechazado));
           pre.title = '';
         } else {
-          pre.textContent = String(u.co_h_presentar || '').replace('{ente}', ente);
+          pre.textContent = rotuloPresentar(t, u, ente);
           /* Y la constitución, además, espera a la firma en el CIIP; y el
              RIF, a la planilla firmada. */
           var sinFirma = !!(firma && !firma.firmada());

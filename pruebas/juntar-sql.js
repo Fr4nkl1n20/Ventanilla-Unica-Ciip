@@ -270,7 +270,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    estadisticas_control() con el SACS ya solicitado. Redefine la confirma_paso
    de supabase-locti-opcion2 y la estadisticas_control() de
    supabase-control-estadisticas, y copia el nivel del c12; va la última. */
-'supabase-sacs'];
+'supabase-sacs',
+/* El sellado de libros (c24) ante el SAREN y los nombres de la cédula (c2)
+   y la traducción (c17), Franklin Reyes, 7-10-2026. Tres update sobre
+   tipos_tramite, que ya existe desde el segundo; al final para no mover el
+   número de nadie. */
+'supabase-libros-saren'];
 
 let mal = 0;
 for (const n of orden) {
