@@ -2122,6 +2122,18 @@ function applyLang(lang){
      al mismo sitio y de la misma forma: se limpia el hash y se pinta la
      portada. */
   if (volverTr) volverTr.addEventListener('click', function(){
+    /* En los de «ya lo solicité / por primera vez», con una de las dos ya
+       elegida, atrás es volver a la pregunta, no a las etapas (Franklin
+       Reyes, 7-10-2026, en el SACS: «quiero que al darle atrás me devuelva
+       a las preguntas»). Desde la pregunta, sí a las etapas. */
+    var par = trAbierto && GUIA_YA_DE[trAbierto];
+    if (par && YA_ELEGIDA[trAbierto]){
+      YA_ELEGIDA[par.nueva] = false;
+      if (trAbierto !== par.nueva) location.hash = 'tramite-' + par.nueva;
+      else if (GUIA_D) pintaGuiaYa(par.nueva, GUIA_D);
+      window.scrollTo(0, 0);
+      return;
+    }
     if (location.hash) location.hash = '';
     pinta(null);
   });

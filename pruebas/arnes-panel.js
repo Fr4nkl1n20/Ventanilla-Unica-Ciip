@@ -410,7 +410,7 @@
               yaGuiaAbre, yaGuiaMira, yaInscritaMira, yaInscritaFrena,
               yaLicenciaAbre, yaLicenciaMira, yaVivaMira, yaVivaIvss,
               /* El SACS, con «ya solicité» o «por primera vez» (7-10-2026, 2.7). */
-              sacsGuiaAbre, sacsGuiaMira, sacsYaMira, sacsMarcado, sacsVivaMira,
+              sacsGuiaAbre, sacsGuiaMira, sacsYaMira, sacsAtras, sacsAtrasMira, sacsMarcado, sacsVivaMira,
               /* Ante el ente, su paso en curso (Franklin Reyes, 5-10-2026, c32). */
               escaleraEnteMira, escaleraEnteFicha,
               /* «Recaudos revisados» cierra la revisión (5-10-2026, punto 2). */
@@ -11616,6 +11616,21 @@
       if (b){ txt.appendChild(b); b.click(); }
     }
     setTimeout(sigue, 200);
+  }
+
+  /* Atrás, con «ya solicité» elegido, vuelve a la pregunta y no a las
+     etapas (Franklin Reyes, 7-10-2026). */
+  function sacsAtras(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var v = document.getElementById('trVolver');
+    if (v) v.click();
+    setTimeout(sigue, 800);
+  }
+  function sacsAtrasMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    igual('sacs: atrás desde la c49 vuelve a la c48', location.hash, '#tramite-c48');
+    igual('sacs: y a su pregunta, con las dos opciones', yaOpciones(), 'c49 c48');
+    sigue();
   }
 
   function sacsMarcado(sigue){
