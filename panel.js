@@ -6429,7 +6429,12 @@ applyLang(idiomaParaMi());
   function misPapeles(){
     if (miosPide) return miosPide;
     var q;
-    try { q = sb.from('documentos').select('tipo'); }
+    /* Solo los tuyos (7-10-2026): la base deja al equipo leer los de
+       todos, y a una cuenta del CIIP le salía «Tienes los papeles» con los
+       de otras personas. */
+    try { q = quienSoy().then(function(yo){
+      return sb.from('documentos').select('tipo').eq('inversionista', yo.id);
+    }); }
     catch(e){ MIOS = {}; return (miosPide = Promise.resolve()); }
     /* Y de camino, qué tipos conoce la base: con eso se sabe si un
        recaudo nuevo ya se puede pedir (recaudosDe). Se pide una vez. */
@@ -6840,9 +6845,14 @@ applyLang(idiomaParaMi());
          Se busca igual que en los recaudos de abajo -el más reciente de
          cada tipo- para que el que se ofrece sea el mismo que se reutiliza. */
       var sbLee = window.sbCIIP;
+      /* Y solo los tuyos, por la misma razón que en Mi empresa: al equipo
+         la base le deja leer los de todos (7-10-2026). */
       if (sbLee) docs.forEach(function(d){
-        sbLee.from('documentos').select('id, nombre_original, archivo')
-          .eq('tipo', d).order('creado_en', {ascending:false}).limit(1)
+        quienSoy().then(function(yo){
+          return sbLee.from('documentos').select('id, nombre_original, archivo')
+            .eq('tipo', d).eq('inversionista', yo.id)
+            .order('creado_en', {ascending:false}).limit(1);
+        })
           .then(function(r){
             var ya = ((r && r.data) || [])[0];
             if (!ya || !ya.archivo) return;
@@ -7868,15 +7878,22 @@ applyLang(idiomaParaMi());
 
       /* Si ya hay un documento de ese tipo en la bóveda, se reutiliza: no
          se le vuelve a pedir. Ese es el punto de todo el diseño. */
+      /* Y TUYO (7-10-2026): la base deja al equipo del CIIP leer los
+         documentos de todos, y a una cuenta del CIIP que pedía un trámite se
+         le enganchaba el acta o el RIF de otra persona; al enviar, la base
+         lo rechazaba («new row violates row-level security policy for
+         table tramite_documentos»). */
+      quienSoy().then(function(yo){
       var enBoveda = sb.from('documentos')
         .select('id, nombre_original, archivo, estado, nota_revision')
-        .eq('tipo', r.tipo);
+        .eq('tipo', r.tipo).eq('inversionista', yo.id);
       /* Y si el papel es de una persona, el de ESA persona: sin esto, la
          cédula más reciente de la junta se ofrecería a todos sus miembros.
          Si la base aún no tiene la columna, la consulta falla y no se
          reutiliza nada, que es lo prudente: se pide subirlo. */
       if (r.titular) enBoveda = enBoveda.eq('titular', r.titular);
-      enBoveda.order('creado_en', {ascending:false}).limit(1)
+      return enBoveda.order('creado_en', {ascending:false}).limit(1);
+      })
         .then(function(d){
           var ya = (d.data || [])[0];
           if (!ya) return;
