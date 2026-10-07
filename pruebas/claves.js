@@ -341,7 +341,12 @@ const SALTOS = new Set([
      nombre propio: «Registros Parafiscales y Regulatorios». Su version
      editada vive en textos_panel y manda sobre la de aqui; la norma de
      «sin mayusculas en medio» no es para un nombre que el CIIP decidio. */
-  'c37.name'
+  'c37.name',
+  /* Y la casilla del SACS (c48, Franklin Reyes, 7-10-2026, Ventanilla única
+     2.7): su nombre es el del organismo, «Servicio Autónomo de Contraloría
+     Sanitaria», con sus mayúsculas, y en inglés queda en menos de seis
+     palabras («Autonomous Health Comptroller Service»). */
+  'c48.name'
 ]);
 
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\s*/gu;

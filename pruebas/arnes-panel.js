@@ -409,6 +409,8 @@
                  licencia, la conformidad y los bomberos (5-10-2026, 2.6). */
               yaGuiaAbre, yaGuiaMira, yaInscritaMira, yaInscritaFrena,
               yaLicenciaAbre, yaLicenciaMira, yaVivaMira, yaVivaIvss,
+              /* El SACS, con «ya solicité» o «por primera vez» (7-10-2026, 2.7). */
+              sacsGuiaAbre, sacsGuiaMira, sacsYaMira, sacsMarcado, sacsVivaMira,
               /* Ante el ente, su paso en curso (Franklin Reyes, 5-10-2026, c32). */
               escaleraEnteMira, escaleraEnteFicha,
               /* «Recaudos revisados» cierra la revisión (5-10-2026, punto 2). */
@@ -1106,7 +1108,9 @@
                 escondida detrás de la c8 pero contada. */
              /* Y 36 con los cuatro de «Ya lo solicité» (c44 a c47,
                 5-10-2026), escondidos detrás de su casilla pero contados. */
-             pendS === 36, pendS + ' por iniciar de 37 ofrecidas', '36');
+             /* Y 37 con el SACS (Ventanilla única 2.7, 7-10-2026): entran
+                c48 y c49 y se va el permiso sanitario (c12), apagado. */
+             pendS === 37, pendS + ' por iniciar de 38 ofrecidas', '37');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -1123,9 +1127,10 @@
              que se van la c4 y la c21. Y 30 desde el 28-9-2026, que se va
              el c11. Y 32 con los dos de «Bienes» (c41 y c42), 2-10-2026.
              Y 33 con la marca en proceso de registro (c43), 5-10-2026.
-             Y 37 con los cuatro de «Ya lo solicité» (c44 a c47), 5-10-2026. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 37,
-             pend + ' por iniciar de 37 ofrecidas', '37');
+             Y 37 con los cuatro de «Ya lo solicité» (c44 a c47), 5-10-2026.
+             Y 38 con el SACS (c48 y c49, sin el c12 apagado), 7-10-2026. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 38,
+             pend + ' por iniciar de 38 ofrecidas', '38');
       }
 
       /* ── la cadena entre trámites ──
@@ -1523,10 +1528,11 @@
           var h2 = [].slice.call(rej.children);
           var j  = h2.indexOf(t2);
           /* Tres desde el Registro Único Minero (c36), y cuatro desde el
-             SIDCAI (c39). */
+             SIDCAI (c39). Y desde el 7-10-2026 (Ventanilla única 2.7) el
+             SACS (c48) en el sitio del permiso sanitario (c12), apagado. */
           igual('grupo: con sus cuatro detrás',
                 h2.slice(j+1, j+5).map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
-                'c12 c30 c36 c39');
+                'c48 c30 c36 c39');
         }
         /* Y el SEGUNDO: los permisos del local, que no son sectoriales. El
            rótulo de un grupo no cierra nada -es un hijo más de la rejilla-,
@@ -1566,8 +1572,11 @@
            exportador (c11), y de verdad -la tarjeta deja el documento-. */
         /* Y DIECISÉIS desde el 5-10-2026 (Ventanilla única 2.6): los cuatro
            de «Ya lo solicité» -c44 a c47-, escondidos pero presentes. */
-        igual('grupo: la fase 03 se queda con dieciséis tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 16);
+        /* Y DIECISIETE desde el 7-10-2026 (Ventanilla única 2.7): entran
+           las dos del SACS -c48, y c49 escondida- y se va la del permiso
+           sanitario (c12), que el catálogo trae apagado. */
+        igual('grupo: la fase 03 se queda con diecisiete tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 17);
         ok('grupo: y el título no es una tarjeta',
            !t.classList.contains('tcard') && !t.hasAttribute('data-tr'),
            t.className, 'sin ser tarjeta');
@@ -1594,7 +1603,7 @@
                 .slice([].slice.call(rej.children).indexOf(t) + 1,
                        [].slice.call(rej.children).indexOf(t) + 5)
                 .map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
-              'c12 c30 c36 c39');
+              'c48 c30 c36 c39');
 
         /* Y se traduce al cambiar de idioma, como cualquier otro rótulo:
            lleva data-i18n, así que de eso se encarga applyLang. */
@@ -9055,8 +9064,19 @@
     /* Y la visa (2-10-2026): sin enlaces -el del portal de Cancillería se
        quitó el mismo día-; solo la planilla para descargar, que va fuera
        de .ay-sitios y la mide visaPlanilla. */
-    igual('recaudos: en Ayuda, la licencia, los parafiscales, la conformidad de uso, los bomberos y la visa, con sus enlaces',
-          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3 ay_rec_bomberos:2 ay_rec_visa:0');
+    /* Y el SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7): los
+       recaudos y formularios de sus cuatro direcciones. */
+    igual('recaudos: en Ayuda, la licencia, los parafiscales, la conformidad de uso, los bomberos, la visa y el SACS, con sus enlaces',
+          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3 ay_rec_bomberos:2 ay_rec_visa:0 ay_rec_sacs:4');
+    var sacs = rec ? [].map.call(rec.querySelectorAll('details[data-clave="ay_rec_sacs"] a.ay-enlace'), function(a){
+      return a.textContent + ' | ' + a.getAttribute('href'); }).join('\n') : '(no está)';
+    igual('recaudos: los del SACS, las cuatro direcciones con los enlaces del documento', sacs,
+          'Recaudos y formularios · Dirección de Regulación y Control de Materiales, Equipos, Establecimientos | https://www.sacs.gob.ve/site/recaudos_equipos_medicos2/\n' +
+          'Recaudos y formularios · Dirección de Regulación y Control de Drogas, Medicamentos y Cosméticos | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n' +
+          'Recaudos y formularios · Dirección de Inocuidad de Alimentos y Bebidas | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n' +
+          'Recaudos y formularios · Dirección de Vigilancia y Control Sanitario en Aduanas | https://www.sacs.gob.ve/site/direccion-de-aduanas/');
+    var tSacs = rec && rec.querySelector('details[data-clave="ay_rec_sacs"] summary .qt');
+    igual('recaudos: con su nombre', tSacs ? tSacs.textContent : '(no está)', u.ay_rec_sacs);
     var bomb = rec ? [].map.call(rec.querySelectorAll('details[data-clave="ay_rec_bomberos"] a.ay-enlace'), function(a){
       return a.getAttribute('href'); }).join(' ') : '(no está)';
     igual('recaudos: los de bomberos, Miranda y Distrito Capital, con los enlaces del documento', bomb,
@@ -11414,6 +11434,230 @@
     igual('ya: con el IVSS elegido, la planilla sellada se retira en el CIIP',
           ult ? [].map.call(ult.querySelectorAll('.tr-nota'), function(n){ return n.textContent; }).join(' | ') : '(sin pasos)',
           U.yp_n_ivss);
+    window.__TRAMITES_EXTRA = null;
+    location.hash = '';
+    setTimeout(sigue, 100);
+  }
+
+  /* ═══════════ EL SACS (c48 y c49) ═══════════
+     Franklin Reyes, 7-10-2026 («Ventanilla única 2.7»): el Servicio
+     Autónomo de Contraloría Sanitaria en la etapa 3, con su pregunta previa
+     -«Ya solicité un permiso» o «Solicitar un permiso por primera vez»-, en
+     el sitio del permiso sanitario (c12), que se apaga. Lo que se mide: la
+     elección; los campos de los dos, con el sistema del SACS de los cinco
+     del documento y nada elegido; los cuatro recaudos; las dos escaleras;
+     el enlace del paso 1 según el sistema elegido, con «Ya me registré» y
+     su llave; el visor del gestor con los mismos pasos; y la ficha de una
+     solicitud de verdad con el enlace de su sistema. Solo en 'vacio'. */
+  var SACS_URLS = [
+    'https://sistemas.sacs.gob.ve/titulos/clv_sacs/modulos/empresas/index.php',
+    'https://sistemas.sacs.gob.ve/siacvisa/login_user#',
+    'https://sistemas.sacs.gob.ve/titulos/censo_establecimientos/modulos/inscripcion_censo/index.php',
+    'https://sistemas.sacs.gob.ve/sivercos',
+    'https://sistemas.sacs.gob.ve/siacsv2/login_user#'
+  ];
+  var SACS_BOTON = null;
+  function sacsGuiaAbre(sigue){
+    if (PASE !== 'vacio') return sigue();
+    location.hash = 'tramite-c48';
+    setTimeout(sigue, 800);
+  }
+
+  function sacsGuiaMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var cat = window.CIIP_TIPOS_POR_REF || {};
+    igual('sacs: el permiso sanitario (c12) está apagado en el catálogo',
+          cat.c12 ? String(cat.c12.activo) : '(sin fila)', 'false');
+    ok('sacs: y su tarjeta ya no está en la portada', !document.querySelector('.tcard[data-tr="c12"]'),
+       document.querySelector('.tcard[data-tr="c12"]') ? 'está' : 'no está', 'no está');
+    var c48 = document.querySelector('.grid-tr > .tcard[data-tr="c48"]');
+    ok('sacs: la c48 está en la etapa 3, a la vista', !!c48 && !c48.hasAttribute('data-tramo-de') &&
+       !!c48.closest('[data-fase="3"]'), c48 ? (c48.closest('[data-fase]') || {getAttribute: function(){ return '?'; }}).getAttribute('data-fase') : 'no está', 'en la 3');
+    var c49 = document.querySelector('.tcard[data-tr="c49"]');
+    igual('sacs: y la c49, escondida detrás de ella', c49 ? c49.getAttribute('data-tramo-de') : '(no está)', 'c48');
+    var guia = document.getElementById('trVisas');
+    ok('sacs: la c48 abre con su guía',
+       !!guia && !guia.hidden && guia.offsetHeight > 0,
+       guia ? (guia.hidden ? 'escondida' : guia.offsetHeight + 'px') : 'no está', 'a la vista');
+    if (!guia || guia.hidden) return sigue();
+    igual('sacs: con su pregunta', (guia.querySelector('.gv-t') || {}).textContent, U.ys_titulo);
+    igual('sacs: primero «ya solicité» y después «por primera vez»', yaOpciones(), 'c49 c48');
+    igual('sacs: con las dos opciones del documento',
+          [].map.call(guia.querySelectorAll('[data-ya-op] .gv-nombre'), function(n){ return n.textContent; }).join(' | '),
+          'Ya solicité un permiso | Solicitar un permiso por primera vez');
+    igual('sacs: y el formulario apartado hasta elegir', marcaElige(), 'apartado');
+    var nueva = guia.querySelector('[data-ya-op="c48"]');
+    if (nueva) nueva.click();
+    igual('sacs: «por primera vez» se queda en la c48', location.hash, '#tramite-c48');
+    igual('sacs: y enseña su formulario', marcaElige(), 'a la vista');
+    igual('sacs: con la guía plegada', (guia.querySelector('.gv-resumen-t') || {}).textContent, U.ys_nueva_c);
+    var caja = document.getElementById('trReal');
+    igual('sacs: por primera vez, el sistema, la empresa, la cédula y el RIF del representante y el permiso',
+          bienesCampos(caja), 'sistema_sacs razon_social rif_empresa cedula_representante rif_representante permiso_sacs');
+    igual('sacs: el sistema, uno de los cinco del documento y ninguno elegido', bienesOpciones(caja, 'sistema_sacs'),
+          '|CLV · Certificados Electrónicos de Libre Venta' +
+          '|SIACVISA · Sistema de Información Automatizado de Control y Vigilancia Sanitaria' +
+          '|Censo Nacional Automatizado · Establecimientos de Salud y Similares' +
+          '|SIVERCOS · Sistema Venezolano de Registro de Cosméticos' +
+          '|SIACSv2 · Sistema de Información Automatizado de Contraloría Sanitaria');
+    ok('sacs: y sin «Profesionales de la Salud»', bienesOpciones(caja, 'sistema_sacs').indexOf('Profesionales') < 0,
+       bienesOpciones(caja, 'sistema_sacs'), 'sin él');
+    igual('sacs: los rótulos del permiso y del representante',
+          ['permiso_sacs', 'cedula_representante', 'rif_representante'].map(function(n){
+            var c = caja && caja.querySelector('.sol-campo[data-campo="' + n + '"] label');
+            return c ? c.textContent : '(no está)'; }).join(' | '),
+          'Permiso que vas a solicitar | Cédula de identidad del representante legal | RIF del representante legal');
+    igual('sacs: y sus cuatro recaudos', bienesDocs(caja), 'acta_constitutiva rif_empresa cedula rif_personal');
+    igual('sacs: ninguno opcional', bienesDocs(caja, '[data-opcional]'), '');
+    ok('sacs: sin «undefined» en el detalle',
+       document.body.innerText.indexOf('undefined') === -1, 'dice «undefined»', 'limpio');
+    var cambia = document.getElementById('yaCambiar');
+    if (cambia) cambia.click();
+    igual('sacs: «Cambiar» vuelve a preguntar', yaOpciones(), 'c49 c48');
+    var ya = document.querySelector('#trVisas [data-ya-op="c49"]');
+    if (ya) ya.click();
+    setTimeout(sigue, 800);
+  }
+
+  function sacsYaMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    igual('sacs: «ya solicité» lleva a la c49', location.hash, '#tramite-c49');
+    var guia = document.getElementById('trVisas');
+    igual('sacs: ya elegida, con la guía plegada',
+          guia ? (guia.querySelector('.gv-resumen-t') || {}).textContent : '(sin guía)', U.ys_ya_c);
+    igual('sacs: y enseña su formulario', marcaElige(), 'a la vista');
+    var caja = document.getElementById('trReal');
+    igual('sacs: ya solicitado, el sistema, qué solicitó, la fecha, la empresa, el representante y el motivo',
+          bienesCampos(caja),
+          'sistema_sacs permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya');
+    igual('sacs: el mismo desplegable de sistemas', bienesOpciones(caja, 'sistema_sacs'),
+          (U.o_sacs_sistema || []).join('|'));
+    igual('sacs: «¿Qué trámite o permiso solicitaste?»',
+          (caja && caja.querySelector('.sol-campo[data-campo="permiso_ya"] label') || {}).textContent, U.f_yspermisoya);
+    igual('sacs: el motivo, con la lista de siempre y ninguno elegido', bienesOpciones(caja, 'motivo_ya'),
+          (U.o_ya_motivo || []).join('|'));
+    var det = caja && caja.querySelector('.sol-campo[data-campo="detalle_ya"]');
+    igual('sacs: lo que quiera contar, opcional', det ? det.getAttribute('data-opcional') : '(no está)', '1');
+    igual('sacs: y los mismos cuatro recaudos que por primera vez', bienesDocs(caja),
+          'acta_constitutiva rif_empresa cedula rif_personal');
+
+    var E = window.CIIP_ESCALERA;
+    if (E){
+      var dibujo = function(codigo, estado, datos){
+        return E({estado: estado, datos: datos || {}}, codigo, 'SACS').todos.map(function(p){
+          return (p.hecho ? '✓' : (p.ahora ? '›' : '·')) + p.nombre; }).join(' → ');
+      };
+      igual('sacs: la escalera de «ya solicité», recibida', dibujo('sacs_en_proceso', 'enviado'),
+            '›Revisión de tu solicitud → ·En coordinación con el ente → ·Permiso otorgado');
+      igual('sacs: ante el SACS, en coordinación', dibujo('sacs_en_proceso', 'ante_el_ente'),
+            '✓Revisión de tu solicitud → ›En coordinación con el ente → ·Permiso otorgado');
+      igual('sacs: resuelta, todo hecho', dibujo('sacs_en_proceso', 'resuelto'),
+            '✓Revisión de tu solicitud → ✓En coordinación con el ente → ✓Permiso otorgado');
+      var ya = {sacs_registrado: '2026-10-07T10:00:00-04:00'};
+      igual('sacs: por primera vez, recibida y sin registrarse, el paso 1 en curso', dibujo('permiso_sacs', 'enviado'),
+            '›Regístrate en el sistema del SACS que elegiste y solicita tu permiso → ·Revisión de tu solicitud → ·Permiso otorgado');
+      igual('sacs: y aunque el gestor la mueva, sin la marca no avanza', dibujo('permiso_sacs', 'ante_el_ente'),
+            '›Regístrate en el sistema del SACS que elegiste y solicita tu permiso → ·Revisión de tu solicitud → ·Permiso otorgado');
+      igual('sacs: registrado, la revisión en curso aunque siga recibida', dibujo('permiso_sacs', 'enviado', ya),
+            '✓Regístrate en el sistema del SACS que elegiste y solicita tu permiso → ›Revisión de tu solicitud → ·Permiso otorgado');
+      igual('sacs: devuelta, vuelve al principio aunque esté registrado', dibujo('permiso_sacs', 'devuelto', ya),
+            '›Regístrate en el sistema del SACS que elegiste y solicita tu permiso → ·Revisión de tu solicitud → ·Permiso otorgado');
+      igual('sacs: resuelta, el permiso otorgado', dibujo('permiso_sacs', 'resuelto'),
+            '✓Regístrate en el sistema del SACS que elegiste y solicita tu permiso → ✓Revisión de tu solicitud → ✓Permiso otorgado');
+    }
+
+    /* El enlace del paso 1: el del sistema elegido, y ninguno sin elegir. */
+    var PM = window.CIIP_PASO_MIO;
+    var es = ((window.CIIP_PASOS.ui.es || {}).o_sacs_sistema || []).slice(1);
+    if (PM){
+      var url = function(n, datos){ var e = PM.enlace('c48', n, {datos: datos}); return e ? e.url : '(ninguno)'; };
+      igual('sacs: el paso 1 lleva al enlace de cada sistema, el del documento',
+            es.map(function(s){ return url(1, {sistema_sacs: s}); }).join(' '), SACS_URLS.join(' '));
+      igual('sacs: sin sistema no hay enlace', url(1, {}), '(ninguno)');
+      igual('sacs: ni con uno que no está en la tabla', url(1, {sistema_sacs: 'Profesionales de la Salud'}), '(ninguno)');
+      igual('sacs: y el paso 2 no lleva enlace', url(2, {sistema_sacs: es[0]}), '(ninguno)');
+      igual('sacs: «ya solicité» no lleva enlace', (function(){ var e = PM.enlace('c49', 1, {datos: {sistema_sacs: es[0]}}); return e ? e.url : '(ninguno)'; })(), '(ninguno)');
+      var a = PM.enlacePintado('c48', 1, {datos: {sistema_sacs: es[3]}});
+      igual('sacs: el enlace pintado dice adónde va y se abre aparte',
+            a ? a.textContent + ' · ' + a.getAttribute('href') + ' · ' + a.target : '(sin enlace)',
+            U.p_irsacs + ' · https://sistemas.sacs.gob.ve/sivercos · _blank');
+      var tr = function(id, estado, datos){
+        return {id: id, tipo: 'permiso_sacs', estado: estado, datos: datos || {}, inversionista: 'u2', gestor: 'u1'};
+      };
+      var b1 = PM.boton(tr('ys-1', 'enviado'), 'c48', 1, null, null);
+      igual('sacs: el paso 1 dice «Ya me registré» y marca sacs_registrado',
+            b1 ? b1.textContent + ' · ' + b1.getAttribute('data-clave') : '(sin botón)', 'Ya me registré · sacs_registrado');
+      igual('sacs: ya marcado, no se vuelve a ofrecer',
+            PM.boton(tr('ys-2', 'enviado', {sacs_registrado: 'x'}), 'c48', 1, null, null), null);
+      igual('sacs: el paso 2 no lleva botón', PM.boton(tr('ys-3', 'enviado'), 'c48', 2, null, null), null);
+      igual('sacs: y «ya solicité» tampoco', PM.boton(tr('ys-4', 'enviado'), 'c49', 1, null, null), null);
+    }
+
+    /* El visor del gestor, con la misma lista que el inversionista. */
+    var D = window.CIIP_PASOS || {}, mapa = (D.pasos && (D.pasos[curLang] || D.pasos.en)) || {};
+    if (window.CIIP_VISOR_LADO){
+      [['permiso_sacs', 'c48'], ['sacs_en_proceso', 'c49']].forEach(function(x){
+        var lado = window.CIIP_VISOR_LADO({id: 'ys-v-' + x[1], tipo: x[0], estado: 'en_revision',
+                                            gestor: 'otro-gestor', datos: {sacs_registrado: '2026-10-07T10:00:00-04:00'}});
+        var nombres = [].map.call(lado.querySelectorAll('.vs-esc li .vs-esc-n'), function(n){ return n.textContent; });
+        igual('sacs: el visor del gestor enseña los pasos de la ' + x[1], nombres.join(' → '), (mapa[x[1]] || []).join(' → '));
+      });
+    }
+
+    /* Y se pulsa «Ya me registré»: va a confirma_paso con su llave. */
+    if (PM){
+      SACS_BOTON = {tr: {id: 'ys-bt', tipo: 'permiso_sacs', estado: 'enviado', datos: {sistema_sacs: es[0]},
+                         inversionista: 'u2', gestor: 'u1'}, marcado: null};
+      window.CIIP_PRUEBA_CONFIRMA_PASO = [];
+      var txt = document.createElement('div');
+      var b = PM.boton(SACS_BOTON.tr, 'c48', 1, txt, function(t){ SACS_BOTON.marcado = t; });
+      if (b){ txt.appendChild(b); b.click(); }
+    }
+    setTimeout(sigue, 200);
+  }
+
+  function sacsMarcado(sigue){
+    if (PASE !== 'vacio') return sigue();
+    if (SACS_BOTON){
+      var pedido = (window.CIIP_PRUEBA_CONFIRMA_PASO || [])[0] || {};
+      igual('sacs: al pulsar, pide a la base confirma_paso con sacs_registrado',
+            pedido.p_tramite + ' · ' + pedido.p_clave, 'ys-bt · sacs_registrado');
+      var t = SACS_BOTON.marcado;
+      ok('sacs: y la marca vuelve de la base a la solicitud', !!t && !!(t.datos || {}).sacs_registrado,
+         t ? JSON.stringify(t.datos) : '(sin respuesta)', 'con sacs_registrado');
+      SACS_BOTON = null;
+      window.CIIP_PRUEBA_CONFIRMA_PASO = null;
+    }
+    /* Y una solicitud de verdad, recibida, con el SIVERCOS elegido. */
+    window.__TRAMITES_EXTRA = [
+      {id: 'ys1', tipo: 'permiso_sacs', estado: 'enviado',
+       datos: {sistema_sacs: 'SIVERCOS · Sistema Venezolano de Registro de Cosméticos', razon_social: 'Inversiones Ávila, C.A.',
+               permiso_sacs: 'Registro sanitario de un cosmético'},
+       inversionista: 'u1', creado_en: '2026-10-07T10:00:00Z', enviado_en: '2026-10-07T10:00:00Z',
+       actualizado_en: '2026-10-07T10:00:00Z'}];
+    location.hash = '';
+    setTimeout(function(){
+      location.hash = 'tramite-c48';
+      esperaFilas('#trReal li.tr-paso', 3, sigue);
+    }, 100);
+  }
+
+  function sacsVivaMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    igual('sacs: con una ya enviada, la c48 no vuelve a preguntar', marcaElige(), 'a la vista');
+    var lis = document.querySelectorAll('#trReal li.tr-paso');
+    igual('sacs: la solicitud enseña sus tres pasos, el 1 en curso',
+          [].map.call(lis, function(li){
+            return li.classList.contains('hecho') ? 'hecho' : (li.classList.contains('ahora') ? 'ahora' : 'porhacer');
+          }).join(','), 'ahora,porhacer,porhacer');
+    var a = lis[0] && lis[0].querySelector('a[href^="http"]');
+    igual('sacs: y en el paso 1, el enlace del sistema que eligió',
+          a ? a.textContent + ' · ' + a.getAttribute('href') : '(sin enlace)', U.p_irsacs + ' · https://sistemas.sacs.gob.ve/sivercos');
+    var b = lis[0] && lis[0].querySelector('[data-clave="sacs_registrado"]');
+    igual('sacs: con su «Ya me registré»', b ? b.textContent : '(sin botón)', U.p_yamehice);
     window.__TRAMITES_EXTRA = null;
     location.hash = '';
     setTimeout(sigue, 100);

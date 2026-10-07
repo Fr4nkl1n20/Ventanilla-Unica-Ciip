@@ -990,6 +990,34 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
                catálogo el 28-9-2026, a pedido del CIIP: «Eliminar». Se va la
                tarjeta; sus recaudos, sus campos y sus pasos se quedan en el
                panel para leer las solicitudes que ya existan. -->
+          <!-- EL SACS. Franklin Reyes, 7-10-2026 («Ventanilla única 2.7»):
+               «Servicio Autónomo de Contraloría Sanitaria», con su pregunta
+               previa, «Ya solicité un permiso» o «Solicitar un permiso por
+               primera vez» (pintaGuiaYa, en panel.js). Como la licencia: la
+               de la portada (c48) es la de primera vez y la puerta de las
+               dos, y la de «ya solicité» (c49) va debajo con data-tramo-de.
+               Ocupa el sitio del permiso sanitario (c12), al que sustituye:
+               la base lo apaga (supabase-sacs.sql) y su tarjeta se va de la
+               portada sola (ponAlDiaLoEncendido). Se queda en el marcado
+               para que las solicitudes viejas sigan teniendo nombre. -->
+          <div class="tcard" data-marca="sacs" data-tr="c48">
+            <div class="t-ico placa"><img class="ilogo" src="logos/sacs.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
+            <div class="t-body">
+              <div class="t-top"><div class="t-name" data-i18n="c48.name">Autonomous Health Comptroller Service</div><span class="chip"></span></div>
+              <div class="t-ente" data-sigla="SACS"><span data-texto="c48.ente">Servicio Autónomo de Contraloría Sanitaria</span></div>
+              <div class="t-desc" data-i18n="c48.desc">Health permits through the SACS online systems: register in yours and CIIP supports you until the permit is granted.</div>
+              <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c48.cta">See details</span> ›</span></div>
+            </div>
+          </div>
+          <div class="tcard" data-marca="sacs" data-tramo-de="c48" data-tr="c49">
+            <div class="t-ico placa"><img class="ilogo" src="logos/sacs.png" alt="" onerror="this.closest(&quot;.t-ico&quot;).remove()"></div>
+            <div class="t-body">
+              <div class="t-top"><div class="t-name" data-i18n="c49.name">SACS: permit already applied for</div><span class="chip"></span></div>
+              <div class="t-ente" data-sigla="SACS"><span data-texto="c49.ente">Servicio Autónomo de Contraloría Sanitaria</span></div>
+              <div class="t-desc" data-i18n="c49.desc">If you have already applied in one of the SACS systems: CIIP reviews your application, coordinates with the SACS and lets you know when the permit is granted.</div>
+              <div class="t-foot"><span class="t-time" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span></span></span><span class="go"><span data-i18n="c49.cta">See details</span> ›</span></div>
+            </div>
+          </div>
           <!-- El SACS no tiene logo en la carpeta, asi que esta va con
                sigla y sin imagen, como la del VUCE. Antes llevaba el de
                SENCAMER, que ni siquiera es el ente de este permiso. -->

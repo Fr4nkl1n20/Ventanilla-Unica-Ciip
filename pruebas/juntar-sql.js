@@ -264,7 +264,13 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    del CIIP, los dos importes, los pasos del gestor, la fecha de la firma y
    el anuncio del CIIP. Redefine importe_del_dia_vigente(); va DETRÁS del
    importe del día, la marca, los libros y «Bienes». */
-'supabase-bienes-registro'];
+'supabase-bienes-registro',
+/* El SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7): los trámites c48
+   y c49, el c12 apagado, 'sacs_registrado' en confirma_paso y
+   estadisticas_control() con el SACS ya solicitado. Redefine la confirma_paso
+   de supabase-locti-opcion2 y la estadisticas_control() de
+   supabase-control-estadisticas, y copia el nivel del c12; va la última. */
+'supabase-sacs'];
 
 let mal = 0;
 for (const n of orden) {

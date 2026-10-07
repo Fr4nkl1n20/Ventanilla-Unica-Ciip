@@ -156,12 +156,15 @@ begin
   -- ente. En c45 a c47 hay un solo ente, el del catálogo, y un motivo_ya; en c44, uno por cada
   -- ente marcado, motivo_ya_<ente>. Se guardan en español (opcionesClave), así que se agrupan
   -- igual los haya escrito quien sea en el idioma que sea.
+  -- Y el SACS ya solicitado (c49, Franklin Reyes, 7-10-2026, Ventanilla única 2.7), con su ente
+  -- del catálogo, 'SACS', y su motivo_ya, como c45 a c47.
   motivos as (
     select m.motivo, m.ente, count(*) as n
       from (
         select e.datos ->> 'motivo_ya' as motivo, e.ente
           from enviados e
-         where e.tipo in ('licencia_en_proceso', 'conformidad_en_proceso', 'bomberos_en_proceso')
+         where e.tipo in ('licencia_en_proceso', 'conformidad_en_proceso', 'bomberos_en_proceso',
+                          'sacs_en_proceso')
         union all
         select e.datos ->> ('motivo_ya_' || x.clave), x.ente
           from enviados e

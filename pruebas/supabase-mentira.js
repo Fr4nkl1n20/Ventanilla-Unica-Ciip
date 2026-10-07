@@ -341,6 +341,22 @@
     {codigo:'bomberos_en_proceso', ref_panel:'c47', ente:'Bomberos',
      activo:true, emite:null, plazo_dias:null,
      nombre:'Permiso de bomberos: ya solicitado', fase:3, nivel:'actividad'},
+    /* El SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7), como en
+       supabase-sacs.sql: el de primera vez (c48) a la vista, con el nivel y
+       el plazo del permiso sanitario al que sustituye, y el ya solicitado
+       (c49) escondido detrás con data-tramo-de, sin plazo. Y el permiso
+       sanitario (c12), APAGADO: el SACS ocupa su sitio, y su tarjeta se va
+       de la portada (ponAlDiaLoEncendido). Antes no estaba en este
+       catálogo y su tarjeta se quedaba, como la de toda ficha sin fila. */
+    {codigo:'permiso_sacs', ref_panel:'c48', ente:'SACS',
+     activo:true, emite:null, plazo_dias:90,
+     nombre:'Servicio Autónomo de Contraloría Sanitaria', fase:3, nivel:'actividad'},
+    {codigo:'sacs_en_proceso', ref_panel:'c49', ente:'SACS',
+     activo:true, emite:null, plazo_dias:null,
+     nombre:'SACS: permiso ya solicitado', fase:3, nivel:'actividad'},
+    {codigo:'permiso_sanitario', ref_panel:'c12', ente:'SACS',
+     activo:false, emite:null, plazo_dias:90,
+     nombre:'Permiso sanitario del establecimiento', fase:3, nivel:'actividad'},
     /* El RUPDAE y el Registro Único Minero, en la fase 3. Como en la base
        de verdad: el RUM 'actividad' y SIN plazo -la resolución no da
        ninguno-. Sin él aquí el panel pintaría una ficha de lectura.
@@ -2816,8 +2832,10 @@
             /* Y la del permiso de bomberos (1-10-2026, supabase-bomberos-opcion2.sql). */
             /* Y la de la inscripción en el SIDCAI (Franklin Reyes, 1-10-2026,
                Ventanilla Única 2.3, supabase-locti-opcion2.sql). */
+            /* Y la del SACS por primera vez (Franklin Reyes, 7-10-2026,
+               Ventanilla única 2.7, supabase-sacs.sql). */
             var llaves = ['cancilleria_confirmada', 'licencia_solicitada', 'conformidad_solicitada', 'minero_solicitado',
-                          'bomberos_solicitado', 'saime_confirmada', 'locti_inscrito'];
+                          'bomberos_solicitado', 'saime_confirmada', 'locti_inscrito', 'sacs_registrado'];
             var rCP;
             if (!args || llaves.indexOf(args.p_clave) < 0){
               rCP = {data: null, error: {message: 'paso desconocido: ' + (args && args.p_clave), code: 'P0001'}};

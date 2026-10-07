@@ -1,7 +1,7 @@
 -- ====================================================================
---  LOS 80 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat
+--  LOS 81 ARCHIVOS, EN EL ORDEN QUE PRUEBA PROBAR-SQL.bat
 -- ====================================================================
---  Esto es la union literal de los 80 supabase-*.sql, sin cambiar una
+--  Esto es la union literal de los 81 supabase-*.sql, sin cambiar una
 --  coma, pegados en el orden que ejecuta el arnes contra un Postgres de
 --  usar y tirar. Ese orden no esta deducido leyendo cabeceras: si uno
 --  usara algo que otro define despues, la tanda se caeria diciendo cual.
@@ -11,13 +11,13 @@
 --  policy if exists-, asi que volver a correrlo no rompe nada y es la
 --  forma de poner al dia un proyecto que ya tenia la mitad.
 --
---  Generado el 2026-10-06. Si cambia un archivo, se vuelve a generar:
---  no se edita a mano, que entonces son 80 sitios donde mirar.
+--  Generado el 2026-10-07. Si cambia un archivo, se vuelve a generar:
+--  no se edita a mano, que entonces son 81 sitios donde mirar.
 -- ====================================================================
 
 
 -- ====================================================================
---  01 / 80   supabase-setup.sql
+--  01 / 81   supabase-setup.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -192,7 +192,7 @@ where p.id is null;
 --   from pg_class where relname = 'perfiles';
 
 -- ====================================================================
---  02 / 80   supabase-tramites.sql
+--  02 / 81   supabase-tramites.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1309,7 +1309,7 @@ create policy "recaudos: borrar de su carpeta" on storage.objects
 --    desde el SQL Editor no vale: ahí auth.uid() es null y RLS no aplica.
 
 -- ====================================================================
---  03 / 80   supabase-admin.sql
+--  03 / 81   supabase-admin.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1459,7 +1459,7 @@ create policy "perfiles: el admin reparte roles" on public.perfiles
 --   select relrowsecurity from pg_class where relname = 'perfiles';
 
 -- ====================================================================
---  04 / 80   supabase-citas.sql
+--  04 / 81   supabase-citas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1624,7 +1624,7 @@ create trigger citas_marca_tiempo
 -- (No se crea ninguna política de DELETE, así que RLS lo impide.)
 
 -- ====================================================================
---  05 / 80   supabase-empresa.sql
+--  05 / 81   supabase-empresa.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1725,7 +1725,7 @@ create trigger empresas_marca_tiempo
 --   select relname, relrowsecurity from pg_class where relname = 'empresas';
 
 -- ====================================================================
---  06 / 80   supabase-activos.sql
+--  06 / 81   supabase-activos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1859,7 +1859,7 @@ create trigger activos_marca_tiempo
 -- asi que no hay nada que añadir aqui.
 
 -- ====================================================================
---  07 / 80   supabase-identidad.sql
+--  07 / 81   supabase-identidad.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2018,7 +2018,7 @@ create policy "identidad: solo el equipo la firma"
 --  intenta con una sesión de gestor, que es como llegaría de fuera.
 
 -- ====================================================================
---  08 / 80   supabase-emision.sql
+--  08 / 81   supabase-emision.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2119,7 +2119,7 @@ create policy "recaudos: el equipo deja lo emitido" on storage.objects
 --   select * from public.tipos_documento where codigo = 'resolucion';
 
 -- ====================================================================
---  09 / 80   supabase-presencia.sql
+--  09 / 81   supabase-presencia.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2199,7 +2199,7 @@ grant execute on function public.tocar_visto() to authenticated;
 --   select nombre_completo, visto_en from public.perfiles order by visto_en desc nulls last;
 
 -- ====================================================================
---  10 / 80   supabase-sectores.sql
+--  10 / 81   supabase-sectores.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2367,7 +2367,7 @@ begin
 end $$;
 
 -- ====================================================================
---  11 / 80   supabase-catalogos.sql
+--  11 / 81   supabase-catalogos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2593,7 +2593,7 @@ from   pg_trigger
 where  not tgisinternal and tgrelid = 'public.tipos_tramite'::regclass;
 
 -- ====================================================================
---  12 / 80   supabase-bitacora.sql
+--  12 / 81   supabase-bitacora.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -2849,7 +2849,7 @@ order  by cuando desc
 limit  20;
 
 -- ====================================================================
---  13 / 80   supabase-bloqueo.sql
+--  13 / 81   supabase-bloqueo.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3024,7 +3024,7 @@ where  p.bloqueado
 order  by p.bloqueado_en desc;
 
 -- ====================================================================
---  14 / 80   supabase-acompanamiento.sql
+--  14 / 81   supabase-acompanamiento.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3202,7 +3202,7 @@ where  schemaname = 'public' and tablename = 'acompanamiento';
 -- insert into public.acompanamiento (id) values (true);
 
 -- ====================================================================
---  15 / 80   supabase-gestor.sql
+--  15 / 81   supabase-gestor.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3313,7 +3313,7 @@ create trigger eventos_proteger
   for each row execute function public.eventos_solo_la_nota();
 
 -- ====================================================================
---  16 / 80   supabase-cola.sql
+--  16 / 81   supabase-cola.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3548,7 +3548,7 @@ create policy "trabajos: el equipo los ve" on public.trabajos
 --    no tenía conector o el trigger no está.
 
 -- ====================================================================
---  17 / 80   supabase-avisos.sql
+--  17 / 81   supabase-avisos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -3850,7 +3850,7 @@ create policy "avisos: el equipo los ve" on public.avisos
 --    devolver 0 la segunda: no se avisa dos veces del mismo vencimiento.
 
 -- ====================================================================
---  18 / 80   supabase-aranceles.sql
+--  18 / 81   supabase-aranceles.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4178,7 +4178,7 @@ create policy "ordenes: la mia" on public.ordenes_pago
 --    en public.trabajos hasta que la orden quede 'pagada'.
 
 -- ====================================================================
---  19 / 80   supabase-huellas.sql
+--  19 / 81   supabase-huellas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4365,7 +4365,7 @@ create trigger documentos_huella_fija
 --   select count(*) from public.verificar_documento(repeat('a', 64));
 
 -- ====================================================================
---  20 / 80   supabase-encadenado.sql
+--  20 / 81   supabase-encadenado.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4489,7 +4489,7 @@ update public.tipos_tramite set emite = 'conformidad_uso'    where codigo = 'con
 --    en la tarjeta que diga «esperando a».
 
 -- ====================================================================
---  21 / 80   supabase-plazos.sql
+--  21 / 81   supabase-plazos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4754,7 +4754,7 @@ update public.tipos_tramite
 --   where plazo_legal_dias is not null and plazo_legal_norma is null;
 
 -- ====================================================================
---  22 / 80   supabase-una-viva.sql
+--  22 / 81   supabase-una-viva.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -4861,7 +4861,7 @@ comment on index public.tramites_una_viva is
 --    where tipo = 'solvencias' group by estado;
 
 -- ====================================================================
---  23 / 80   supabase-hilo.sql
+--  23 / 81   supabase-hilo.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -5123,7 +5123,7 @@ create policy "documentos: el equipo adjunta en un hilo" on public.documentos
 --    dos cuentas, y es lo que hace PROBAR-CERRADURAS.bat.
 
 -- ====================================================================
---  24 / 80   supabase-hilo-citas.sql
+--  24 / 81   supabase-hilo-citas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -5369,7 +5369,7 @@ create policy "cita_mensajes: escribir en mi cita" on public.cita_mensajes
 --    dos cuentas, y es lo que hace PROBAR-CERRADURAS.bat.
 
 -- ====================================================================
---  25 / 80   supabase-consultas.sql
+--  25 / 81   supabase-consultas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -5740,7 +5740,7 @@ create policy "consulta_mensajes: escribir en mi consulta" on public.consulta_me
 --      inversionista = <el id de B> tiene que ser rechazado.
 
 -- ====================================================================
---  26 / 80   supabase-informe-victor.sql
+--  26 / 81   supabase-informe-victor.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6191,7 +6191,7 @@ update public.tipos_tramite
 --   select ref_panel, nombre, fase, nivel from public.tipos_tramite where codigo = 'rnc';
 
 -- ====================================================================
---  27 / 80   supabase-pliego.sql
+--  27 / 81   supabase-pliego.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6584,7 +6584,7 @@ create policy "pliego: aceptar el propio" on public.pliego_aceptaciones
 --    PROBAR-CERRADURAS.bat.
 
 -- ====================================================================
---  28 / 80   supabase-disponibilidad.sql
+--  28 / 81   supabase-disponibilidad.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -6915,7 +6915,7 @@ alter table public.cierres_citas add  constraint cierre_dia_laborable
   check (extract(isodow from fecha) between 1 and 5);
 
 -- ====================================================================
---  29 / 80   supabase-textos.sql
+--  29 / 81   supabase-textos.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7058,7 +7058,7 @@ order  by cmd;
 select idioma, count(*) from public.textos_panel group by idioma order by idioma;
 
 -- ====================================================================
---  30 / 80   supabase-bitacora-ajustes.sql
+--  30 / 81   supabase-bitacora-ajustes.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7279,7 +7279,7 @@ select has_function_privilege('anon', 'public.apunta(text,text,text,text)', 'exe
        has_function_privilege('authenticated', 'public.apunta(text,text,text,text)', 'execute') as con_sesion_puede;
 
 -- ====================================================================
---  31 / 80   supabase-zodi.sql
+--  31 / 81   supabase-zodi.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7416,7 +7416,7 @@ update public.tipos_tramite
 --   where nivel = 'obligatorio' group by fase;
 
 -- ====================================================================
---  32 / 80   supabase-rupdae-rum.sql
+--  32 / 81   supabase-rupdae-rum.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7540,7 +7540,7 @@ update public.tipos_tramite
 --   where nivel = 'obligatorio' group by fase;
 
 -- ====================================================================
---  33 / 80   supabase-junta.sql
+--  33 / 81   supabase-junta.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7656,7 +7656,7 @@ on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.ve
 --   select count(*) from public.documentos where titular is not null;
 
 -- ====================================================================
---  34 / 80   supabase-textos-rastro.sql
+--  34 / 81   supabase-textos-rastro.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7794,7 +7794,7 @@ $bitacora$;
 --   where fuente = 'textos' order by id desc limit 3;
 
 -- ====================================================================
---  35 / 80   supabase-revision-papeles.sql
+--  35 / 81   supabase-revision-papeles.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7912,7 +7912,7 @@ $bitacora$;
 --   where fuente = 'papeles' order by id desc limit 3;
 
 -- ====================================================================
---  36 / 80   supabase-accionista-juridica.sql
+--  36 / 81   supabase-accionista-juridica.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -7955,7 +7955,7 @@ on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.ve
 --   where codigo in ('constitutivo_accionista', 'identidad_socios_accionista');
 
 -- ====================================================================
---  37 / 80   supabase-reserva-nombre.sql
+--  37 / 81   supabase-reserva-nombre.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -8136,7 +8136,7 @@ drop function if exists public.tramites_constitucion_con_reserva();
 --                                                          -- NINGUNA fila
 
 -- ====================================================================
---  38 / 80   supabase-logos-fichas.sql
+--  38 / 81   supabase-logos-fichas.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -8235,7 +8235,7 @@ create trigger bitacora_catalogo_logo
   for each row execute function public.bit_catalogo_logo();
 
 -- ====================================================================
---  39 / 80   supabase-protocolizacion.sql
+--  39 / 81   supabase-protocolizacion.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -8574,7 +8574,7 @@ create trigger tramites_protocolizacion_pago
 --        los aranceles
 
 -- ====================================================================
---  40 / 80   supabase-publicacion.sql
+--  40 / 81   supabase-publicacion.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -8886,7 +8886,7 @@ create trigger tramites_publicacion_pago
 --        publicación
 
 -- ====================================================================
---  41 / 80   supabase-parafiscales.sql
+--  41 / 81   supabase-parafiscales.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -9060,7 +9060,7 @@ on conflict (codigo) do update set nombre = excluded.nombre;
 --   where nivel = 'obligatorio' group by fase;
 
 -- ====================================================================
---  42 / 80   supabase-entes-parafiscales.sql
+--  42 / 81   supabase-entes-parafiscales.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -9277,7 +9277,7 @@ create policy "adjuntos: el equipo cuelga la constancia del ente" on public.tram
 --   -- cuatro: leer, mandar, corregir y la del equipo
 
 -- ====================================================================
---  43 / 80   supabase-visa-tri.sql
+--  43 / 81   supabase-visa-tri.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -9454,7 +9454,7 @@ select codigo, ref_panel, nombre, ente, fase, activo
  order by ref_panel;
 
 -- ====================================================================
---  44 / 80   supabase-locti.sql
+--  44 / 81   supabase-locti.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -9635,7 +9635,7 @@ create trigger tramites_sidcai_pago
   for each row execute function public.tramites_sidcai_con_pago();
 
 -- ====================================================================
---  45 / 80   supabase-papeles-sellados.sql
+--  45 / 81   supabase-papeles-sellados.sql
 -- ====================================================================
 
 -- ══════════════════════════════════════════════════════════════════════
@@ -9915,7 +9915,7 @@ revoke all on function public.verificar_documento(text) from public;
 grant execute on function public.verificar_documento(text) to anon, authenticated;
 
 -- ====================================================================
---  46 / 80   supabase-tramites-y-bloqueo.sql
+--  46 / 81   supabase-tramites-y-bloqueo.sql
 -- ====================================================================
 
 -- ══════════════════════════════════════════════════════════════════════
@@ -10090,7 +10090,7 @@ create policy "recaudos: borrar de su carpeta" on storage.objects
   );
 
 -- ====================================================================
---  47 / 80   supabase-tope-ia.sql
+--  47 / 81   supabase-tope-ia.sql
 -- ====================================================================
 
 -- ══════════════════════════════════════════════════════════════════════
@@ -10174,7 +10174,7 @@ revoke all on function public.gasta_uso_ia(text) from public, anon;
 grant execute on function public.gasta_uso_ia(text) to authenticated;
 
 -- ====================================================================
---  48 / 80   supabase-confirma-paso.sql
+--  48 / 81   supabase-confirma-paso.sql
 -- ====================================================================
 
 -- ══════════════════════════════════════════════════════════════════════
@@ -10232,7 +10232,7 @@ revoke execute on function public.confirma_paso(uuid, text) from anon;
 grant execute on function public.confirma_paso(uuid, text) to authenticated;
 
 -- ====================================================================
---  49 / 80   supabase-cancelar.sql
+--  49 / 81   supabase-cancelar.sql
 -- ====================================================================
 
 -- ══════════════════════════════════════════════════════════════════════
@@ -10322,7 +10322,7 @@ revoke execute on function public.cancela_tramite(uuid) from anon;
 grant execute on function public.cancela_tramite(uuid) to authenticated;
 
 -- ====================================================================
---  50 / 80   supabase-importe-del-dia.sql
+--  50 / 81   supabase-importe-del-dia.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -10558,7 +10558,7 @@ create trigger documentos_importe_del_dia
 --   select polname from pg_policy where polname like '%importe del dia%';  -- cinco filas
 
 -- ====================================================================
---  51 / 80   supabase-traduccion.sql
+--  51 / 81   supabase-traduccion.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -10624,7 +10624,7 @@ delete from public.textos_panel
 --   select clave, idioma, texto from public.textos_panel where clave like '\_p.pasos.c17%';  -- ninguna
 
 -- ====================================================================
---  52 / 80   supabase-firma-ciip.sql
+--  52 / 81   supabase-firma-ciip.sql
 -- ====================================================================
 
 -- La constitución (c5): tras revisar los recaudos, el inversionista viene al
@@ -10702,7 +10702,7 @@ select proname from pg_proc where proname in ('marca_firma_ciip', 'tramite_firma
 select tgname from pg_trigger where tgname = 'tramite_firma_ciip';
 
 -- ====================================================================
---  53 / 80   supabase-entes-clave.sql
+--  53 / 81   supabase-entes-clave.sql
 -- ====================================================================
 
 -- El IVSS y el INCES no mandan un código: mandan usuario y contraseña. El
@@ -10752,7 +10752,7 @@ select column_name, data_type from information_schema.columns
 select policyname, cmd from pg_policies where tablename = 'tramite_entes' order by policyname;
 
 -- ====================================================================
---  54 / 80   supabase-marca.sql
+--  54 / 81   supabase-marca.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -11098,7 +11098,7 @@ create trigger tramites_marca_con_certificado
 --    where proname in ('marca_paso_ciip', 'habilita_contestacion');     -- dos filas
 
 -- ====================================================================
---  55 / 80   supabase-entes-sin-codigo.sql
+--  55 / 81   supabase-entes-sin-codigo.sql
 -- ====================================================================
 
 -- Los registros parafiscales sin código (pedido del CIIP, 28-9-2026): solo
@@ -11159,7 +11159,7 @@ select policyname, cmd,
   from pg_policies where tablename = 'tramite_entes' order by policyname;
 
 -- ====================================================================
---  56 / 80   supabase-conformidad-uso.sql
+--  56 / 81   supabase-conformidad-uso.sql
 -- ====================================================================
 
 -- La conformidad de uso (c28), pedido del CIIP del 28-9-2026: los recaudos
@@ -11189,7 +11189,7 @@ select clave from public.textos_panel
  where clave like '\_p.pasos.c28.%' or clave like '\_p.circuito.c28.%';
 
 -- ====================================================================
---  57 / 80   supabase-licencia.sql
+--  57 / 81   supabase-licencia.sql
 -- ====================================================================
 
 -- La licencia de actividades económicas (c10), pedido del CIIP del
@@ -11344,7 +11344,7 @@ delete from public.textos_panel
 --                     'tramites_licencia_pagos');                              -- tres filas
 
 -- ====================================================================
---  58 / 80   supabase-quitar-importador.sql
+--  58 / 81   supabase-quitar-importador.sql
 -- ====================================================================
 
 -- El registro de importador y exportador (c11, VUCE) se va del catálogo
@@ -11368,7 +11368,7 @@ select estado, count(*)
  group by estado;
 
 -- ====================================================================
---  59 / 80   supabase-bomberos.sql
+--  59 / 81   supabase-bomberos.sql
 -- ====================================================================
 
 -- El permiso de bomberos (c29), pedido del CIIP del 28-9-2026: su escalera
@@ -11529,7 +11529,7 @@ create trigger tramites_bomberos_pago
 --                     'tramites_bomberos_pago');                              -- tres filas
 
 -- ====================================================================
---  60 / 80   supabase-libros.sql
+--  60 / 81   supabase-libros.sql
 -- ====================================================================
 
 -- El sellado de libros (c24), pedido del CIIP del 29-9-2026: «Revisión de
@@ -11737,7 +11737,7 @@ $$;
 --   select tipo_tramite, sin_caducidad from public.importe_del_dia_pasos;   -- libros_contables: true
 
 -- ====================================================================
---  61 / 80   supabase-gestor-visible.sql
+--  61 / 81   supabase-gestor-visible.sql
 -- ====================================================================
 
 -- El nombre del gestor que atiende cada solicitud, para el inversionista
@@ -11770,7 +11770,7 @@ grant execute on function public.gestores_de_mis_tramites() to authenticated;
 --   select proname from pg_proc where proname = 'gestores_de_mis_tramites';   -- una fila
 
 -- ====================================================================
---  62 / 80   supabase-qa-atencion.sql
+--  62 / 81   supabase-qa-atencion.sql
 -- ====================================================================
 
 -- Citas y consultas: lo que encontró la auditoría QA del 28-9-2026.
@@ -12238,7 +12238,7 @@ revoke all on function public.abre_consulta_para(uuid, text, text) from public;
 grant execute on function public.abre_consulta_para(uuid, text, text) to authenticated;
 
 -- ====================================================================
---  63 / 80   supabase-qa-tramites.sql
+--  63 / 81   supabase-qa-tramites.sql
 -- ====================================================================
 
 -- Lo que encontró la revisión de trámites y papeles (QA, 28-9-2026).
@@ -12511,7 +12511,7 @@ grant execute on function public.mezcla_datos_tramite(uuid, jsonb) to authentica
 --   select proname from pg_proc where proname = 'mezcla_datos_tramite';           -- una fila
 
 -- ====================================================================
---  64 / 80   supabase-qa-admin.sql
+--  64 / 81   supabase-qa-admin.sql
 -- ====================================================================
 
 -- Auditoría QA, administración y cuentas: QA-05, 06, 07, 26, 27, 40 y 43.
@@ -12888,7 +12888,7 @@ where  p.rol in ('gestor', 'admin')
 order  by p.rol, p.nombre_completo;
 
 -- ====================================================================
---  65 / 80   supabase-traduccion-chat.sql
+--  65 / 81   supabase-traduccion-chat.sql
 -- ====================================================================
 
 -- ══════════════════════════════════════════════════════════════════════
@@ -13072,7 +13072,7 @@ end
 $tr$;
 
 -- ====================================================================
---  66 / 80   supabase-planilla-firmada.sql
+--  66 / 81   supabase-planilla-firmada.sql
 -- ====================================================================
 
 -- La planilla firmada, de vuelta desde «Firme la planilla» (Franklin Reyes,
@@ -13113,7 +13113,7 @@ create policy "adjuntos: la planilla firmada, desde su paso" on public.tramite_d
 --    where polname = 'adjuntos: la planilla firmada, desde su paso';                     -- una fila
 
 -- ====================================================================
---  67 / 80   supabase-planilla-rif.sql
+--  67 / 81   supabase-planilla-rif.sql
 -- ====================================================================
 
 -- La planilla del RIF que el CIIP manda para firmar (30-9-2026).
@@ -13149,7 +13149,7 @@ create policy "adjuntos: el equipo engancha la planilla del RIF" on public.trami
 --   select polname from pg_policy where polname like '%planilla del RIF%';           -- dos filas
 
 -- ====================================================================
---  68 / 80   supabase-visa-planilla.sql
+--  68 / 81   supabase-visa-planilla.sql
 -- ====================================================================
 
 -- Las dos visas (c1 y c38) con la planilla de solicitud (Franklin Reyes,
@@ -13343,7 +13343,7 @@ create trigger tramites_visa_con_planilla_firmada
 --                     'tramites_visa_con_planilla_firmada', 'documentos_visa_planilla_del_ciip');  -- cuatro
 
 -- ====================================================================
---  69 / 80   supabase-planilla-ivss.sql
+--  69 / 81   supabase-planilla-ivss.sql
 -- ====================================================================
 
 -- La planilla de inscripción del IVSS que el CIIP manda al inversionista (30-9-2026).
@@ -13402,7 +13402,7 @@ select codigo, nombre from public.tipos_documento where codigo = 'planilla_ivss'
 select tablename, policyname from pg_policies where policyname ilike '%planilla del IVSS%';
 
 -- ====================================================================
---  70 / 80   supabase-opcion2.sql
+--  70 / 81   supabase-opcion2.sql
 -- ====================================================================
 
 -- Taquilla única, opción 2 (Franklin Reyes, 1-10-2026): el inversionista se registra él mismo en el
@@ -13470,7 +13470,7 @@ select tgname from pg_trigger
  where tgname in ('tramites_visa_con_planilla_firmada', 'tramites_licencia_pagos');
 
 -- ====================================================================
---  71 / 80   supabase-bomberos-opcion2.sql
+--  71 / 81   supabase-bomberos-opcion2.sql
 -- ====================================================================
 
 -- Permiso de bomberos como la Taquilla única opción 2 (Franklin Reyes, 1-10-2026): el inversionista
@@ -13562,7 +13562,7 @@ select proname from pg_proc where proname = 'anota_paso';
 select tgname from pg_trigger where tgname = 'tramites_bomberos_pago';
 
 -- ====================================================================
---  72 / 80   supabase-cedula-opcion2.sql
+--  72 / 81   supabase-cedula-opcion2.sql
 -- ====================================================================
 
 -- Cédula de identidad de extranjero como la Taquilla única opción 2 (Franklin Reyes, 1-10-2026,
@@ -13606,7 +13606,7 @@ revoke execute on function public.confirma_paso(uuid, text) from anon;
 grant execute on function public.confirma_paso(uuid, text) to authenticated;
 
 -- ====================================================================
---  73 / 80   supabase-locti-opcion2.sql
+--  73 / 81   supabase-locti-opcion2.sql
 -- ====================================================================
 
 -- Inscripción en el SIDCAI (c39) por el portal (Franklin Reyes, 1-10-2026, Ventanilla Única 2.3): el
@@ -13661,7 +13661,7 @@ select position('locti_inscrito' in pg_get_functiondef('public.confirma_paso(uui
        as acepta_saime_confirmada;
 
 -- ====================================================================
---  74 / 80   supabase-control-estadisticas.sql
+--  74 / 81   supabase-control-estadisticas.sql
 -- ====================================================================
 
 -- Control y Estadísticas (Franklin Reyes, 1-10-2026): el sector de cada consulta, los trámites
@@ -13822,12 +13822,15 @@ begin
   -- ente. En c45 a c47 hay un solo ente, el del catálogo, y un motivo_ya; en c44, uno por cada
   -- ente marcado, motivo_ya_<ente>. Se guardan en español (opcionesClave), así que se agrupan
   -- igual los haya escrito quien sea en el idioma que sea.
+  -- Y el SACS ya solicitado (c49, Franklin Reyes, 7-10-2026, Ventanilla única 2.7), con su ente
+  -- del catálogo, 'SACS', y su motivo_ya, como c45 a c47.
   motivos as (
     select m.motivo, m.ente, count(*) as n
       from (
         select e.datos ->> 'motivo_ya' as motivo, e.ente
           from enviados e
-         where e.tipo in ('licencia_en_proceso', 'conformidad_en_proceso', 'bomberos_en_proceso')
+         where e.tipo in ('licencia_en_proceso', 'conformidad_en_proceso', 'bomberos_en_proceso',
+                          'sacs_en_proceso')
         union all
         select e.datos ->> ('motivo_ya_' || x.clave), x.ente
           from enviados e
@@ -13878,7 +13881,7 @@ revoke all on function public.estadisticas_control() from public, anon;
 grant execute on function public.estadisticas_control() to authenticated;
 
 -- ====================================================================
---  75 / 80   supabase-bienes.sql
+--  75 / 81   supabase-bienes.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -13978,7 +13981,7 @@ update public.tipos_tramite
 --   Solo solvencia_inmuebles con vence = true.
 
 -- ====================================================================
---  76 / 80   supabase-marca-proceso.sql
+--  76 / 81   supabase-marca-proceso.sql
 -- ====================================================================
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -14030,7 +14033,7 @@ update public.tipos_tramite
 --    where codigo in ('planilla_solicitud_marca', 'identidad_titular_marca'); -- dos filas
 
 -- ====================================================================
---  77 / 80   supabase-recaudos-revisados.sql
+--  77 / 81   supabase-recaudos-revisados.sql
 -- ====================================================================
 
 -- «Recaudos revisados» como botón aparte del gestor (Franklin Reyes, 5-10-2026: «Presentar» se parte
@@ -14088,7 +14091,7 @@ create trigger tramites_devuelta_sin_revisados
   for each row execute function public.devuelta_sin_revisados();
 
 -- ====================================================================
---  78 / 80   supabase-ya-solicitado.sql
+--  78 / 81   supabase-ya-solicitado.sql
 -- ====================================================================
 
 -- «Ya lo solicité» (Franklin Reyes, 5-10-2026, Ventanilla única 2.6): inscripciones (c44), licencia (c45),
@@ -14120,7 +14123,7 @@ select codigo, ref_panel, fase, nivel, activo from public.tipos_tramite
  order by ref_panel;
 
 -- ====================================================================
---  79 / 80   supabase-bienes-comprador.sql
+--  79 / 81   supabase-bienes-comprador.sql
 -- ====================================================================
 
 -- CIIP · Ventanilla Única — los recaudos del comprador en la compraventa (c41)
@@ -14139,7 +14142,7 @@ on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.ve
 --                     'identidad_rep_comprador', 'asamblea_comprador');   -- cuatro filas
 
 -- ====================================================================
---  80 / 80   supabase-bienes-registro.sql
+--  80 / 81   supabase-bienes-registro.sql
 -- ====================================================================
 
 -- CIIP · Ventanilla Única — la compraventa (c41) en dos fases: contrato y registro (Franklin Reyes, 5-10-2026).
@@ -14478,3 +14481,229 @@ create trigger tramites_compraventa_firma
 --   select tgname from pg_trigger
 --    where tgname in ('tramite_documentos_compraventa_apunta', 'documentos_compraventa_pago_rechazado',
 --                     'tramites_compraventa_firma', 'documentos_compraventa_del_ciip');           -- cuatro filas
+
+-- ====================================================================
+--  81 / 81   supabase-sacs.sql
+-- ====================================================================
+
+-- El SACS, Servicio Autónomo de Contraloría Sanitaria (Franklin Reyes, 7-10-2026, Ventanilla única 2.7).
+-- Un trámite nuevo en la etapa 3 con su pregunta previa: «Solicitar un permiso por primera vez» (c48,
+-- permiso_sacs, el de la portada) o «Ya solicité un permiso» (c49, sacs_en_proceso, escondido con
+-- data-tramo-de). Sustituye al permiso sanitario del establecimiento (c12), que se apaga: deja de
+-- ofrecerse en la portada y en el catálogo, pero su fila y sus solicitudes viejas se quedan.
+-- Sus recaudos son tipos que ya existen (acta, RIF de la empresa, cédula y RIF del representante).
+-- Necesita supabase-informe-victor.sql (nivel), supabase-encadenado.sql (emite), supabase-plazos.sql,
+-- supabase-locti-opcion2.sql (la última confirma_paso) y supabase-control-estadisticas.sql.
+-- Se puede correr más de una vez.
+
+-- 1. Los dos trámites, encendidos, en la fase 3 y con el ente del catálogo del c12, 'SACS'.
+insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values
+  ('permiso_sacs',    'c48', 'Servicio Autónomo de Contraloría Sanitaria',        'SACS', 3, true),
+  ('sacs_en_proceso', 'c49', 'SACS: permiso ya solicitado',                       'SACS', 3, true)
+on conflict (codigo) do nothing;
+
+-- El de primera vez, con el nivel, lo que emite y el plazo del permiso sanitario (c12), al que
+-- sustituye y que es el mismo permiso ante el mismo ente; si el c12 no estuviera, los de la
+-- licencia (c10), que es su pareja en «por primera vez». El ya solicitado, como c45 a c47: sin
+-- emite ni plazo, con el nivel de su casilla madre.
+update public.tipos_tramite t
+   set nivel      = coalesce(s.nivel, l.nivel, 'actividad'),
+       emite      = case when s.codigo is not null then s.emite else l.emite end,
+       plazo_dias = coalesce(s.plazo_dias, l.plazo_dias),
+       fase       = 3,
+       activo     = true
+  from (select 1) as uno
+  left join public.tipos_tramite s on s.codigo = 'permiso_sanitario'
+  left join public.tipos_tramite l on l.codigo = 'licencia_municipal'
+ where t.codigo = 'permiso_sacs';
+
+update public.tipos_tramite t
+   set emite      = null,
+       plazo_dias = null,
+       nivel      = coalesce(m.nivel, 'actividad'),
+       fase       = 3,
+       activo     = true
+  from (select 1) as uno
+  left join public.tipos_tramite m on m.codigo = 'permiso_sacs'
+ where t.codigo = 'sacs_en_proceso';
+
+-- 2. El permiso sanitario (c12) se apaga: el SACS nuevo ocupa su sitio. No se borra, que puede
+-- haber solicitudes que apunten a él.
+update public.tipos_tramite set activo = false where codigo = 'permiso_sanitario';
+
+-- 3. La marca del paso 1 del c48, «Ya me registré» en el sistema del SACS: 'sacs_registrado'. Es la
+-- confirma_paso de supabase-locti-opcion2.sql con esa llave más.
+create or replace function public.confirma_paso(p_tramite uuid, p_clave text)
+returns public.tramites
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  fila public.tramites;
+begin
+  if p_clave not in ('cancilleria_confirmada',
+                     'ente_banavih', 'ente_inces', 'ente_ivss', 'ente_ivss_confirma',
+                     'ente_ivss_oficina', 'ente_mpppst', 'ente_sundde', 'ente_snc',
+                     'licencia_solicitada', 'conformidad_solicitada', 'minero_solicitado',
+                     'bomberos_solicitado', 'saime_confirmada', 'locti_inscrito',
+                     'sacs_registrado') then
+    raise exception 'paso desconocido: %', p_clave;
+  end if;
+
+  update public.tramites
+     set datos = coalesce(datos, '{}'::jsonb)
+                 || jsonb_build_object(p_clave, to_char(now(), 'YYYY-MM-DD"T"HH24:MI:SSOF'))
+   where id = p_tramite
+     and inversionista = auth.uid()
+     and estado not in ('borrador', 'resuelto', 'cancelado')
+  returning * into fila;
+
+  if fila.id is null then
+    raise exception 'no se pudo marcar el paso';
+  end if;
+
+  return fila;
+end $$;
+
+revoke all on function public.confirma_paso(uuid, text) from public;
+revoke execute on function public.confirma_paso(uuid, text) from anon;
+grant execute on function public.confirma_paso(uuid, text) to authenticated;
+
+-- 4. Las cifras de Control y Estadísticas: los motivos de «ya lo solicité» cuentan también el SACS
+-- ya solicitado (c49). Es estadisticas_control() de supabase-control-estadisticas.sql, entera.
+create or replace function public.estadisticas_control()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  r jsonb;
+begin
+  if not public.es_admin() then
+    raise exception 'Solo un administrador ve las estadísticas' using errcode = '42501';
+  end if;
+
+  with enviados as (
+    select t.id, t.tipo, coalesce(tt.ente, '') as ente, t.estado,
+           t.datos,
+           coalesce(t.enviado_en, t.creado_en) as desde, t.resuelto_en
+      from public.tramites t
+      left join public.tipos_tramite tt on tt.codigo = t.tipo
+     where t.enviado_en is not null
+        or t.estado not in ('borrador', 'cancelado')
+  ),
+  resueltos as (
+    select e.tipo, e.ente,
+           extract(epoch from (e.resuelto_en - e.desde)) / 3600.0 as horas,
+           (select extract(epoch from (e.resuelto_en - min(ev.creado_en))) / 3600.0
+              from public.tramite_eventos ev
+             where ev.tramite = e.id and ev.a_estado = 'ante_el_ente'
+            having min(ev.creado_en) <= e.resuelto_en) as horas_ente
+      from enviados e
+     where e.estado = 'resuelto'
+       and e.resuelto_en is not null
+       and e.resuelto_en >= e.desde
+  ),
+  por_tipo as (
+    select tipo, max(ente) as ente, count(*) as solicitados
+      from enviados
+     group by tipo
+  ),
+  tiempo_tipo as (
+    select tipo,
+           count(*) as n,
+           percentile_cont(0.5) within group (order by horas) as mediana,
+           avg(horas) as promedio,
+           count(horas_ente) as n_ente,
+           percentile_cont(0.5) within group (order by horas_ente) as mediana_ente
+      from resueltos
+     group by tipo
+  ),
+  tiempo_ente as (
+    select ente,
+           count(*) as n,
+           percentile_cont(0.5) within group (order by horas) as mediana,
+           avg(horas) as promedio,
+           count(horas_ente) as n_ente,
+           percentile_cont(0.5) within group (order by horas_ente) as mediana_ente
+      from resueltos
+     group by ente
+  ),
+  por_sector as (
+    select sector, count(*) as n
+      from public.consultas
+     where sector is not null
+     group by sector
+  ),
+  -- Los motivos de «ya lo solicité» (6-10-2026): por qué pide ayuda el inversionista, ente por
+  -- ente. En c45 a c47 hay un solo ente, el del catálogo, y un motivo_ya; en c44, uno por cada
+  -- ente marcado, motivo_ya_<ente>. Se guardan en español (opcionesClave), así que se agrupan
+  -- igual los haya escrito quien sea en el idioma que sea.
+  -- Y el SACS ya solicitado (c49, Franklin Reyes, 7-10-2026, Ventanilla única 2.7), con su ente
+  -- del catálogo, 'SACS', y su motivo_ya, como c45 a c47.
+  motivos as (
+    select m.motivo, m.ente, count(*) as n
+      from (
+        select e.datos ->> 'motivo_ya' as motivo, e.ente
+          from enviados e
+         where e.tipo in ('licencia_en_proceso', 'conformidad_en_proceso', 'bomberos_en_proceso',
+                          'sacs_en_proceso')
+        union all
+        select e.datos ->> ('motivo_ya_' || x.clave), x.ente
+          from enviados e
+         cross join (values ('banavih', 'BANAVIH (FAOV)'), ('inces', 'INCES'),
+                            ('rupdae', 'RUPDAE'), ('ivss', 'IVSS'),
+                            ('rnet', 'RNET'), ('rnc', 'RNC')) as x(clave, ente)
+         where e.tipo = 'parafiscales_en_proceso'
+      ) m
+     where coalesce(m.motivo, '') <> ''
+     group by m.motivo, m.ente
+  )
+  select jsonb_build_object(
+    'tramites', coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'tipo', p.tipo, 'ente', p.ente, 'solicitados', p.solicitados,
+               'resueltos', coalesce(x.n, 0),
+               'mediana_h', round(x.mediana::numeric, 1),
+               'promedio_h', round(x.promedio::numeric, 1),
+               'n_ente', coalesce(x.n_ente, 0),
+               'mediana_ente_h', round(x.mediana_ente::numeric, 1))
+             order by p.solicitados desc, p.tipo)
+        from por_tipo p
+        left join tiempo_tipo x on x.tipo = p.tipo), '[]'::jsonb),
+    'entes', coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'ente', y.ente, 'resueltos', y.n,
+               'mediana_h', round(y.mediana::numeric, 1),
+               'promedio_h', round(y.promedio::numeric, 1),
+               'n_ente', y.n_ente,
+               'mediana_ente_h', round(y.mediana_ente::numeric, 1))
+             order by y.n desc, y.ente)
+        from tiempo_ente y), '[]'::jsonb),
+    'sectores', coalesce((
+      select jsonb_agg(jsonb_build_object('sector', s.sector, 'consultas', s.n)
+             order by s.n desc, s.sector)
+        from por_sector s), '[]'::jsonb),
+    'motivos', coalesce((
+      select jsonb_agg(jsonb_build_object('motivo', mo.motivo, 'ente', mo.ente, 'n', mo.n)
+             order by mo.n desc, mo.motivo, mo.ente)
+        from motivos mo), '[]'::jsonb)
+  ) into r;
+
+  return r;
+end;
+$$;
+
+revoke all on function public.estadisticas_control() from public, anon;
+grant execute on function public.estadisticas_control() to authenticated;
+
+-- Comprobación: tres filas (c12 apagado, c48 y c49 encendidos) y true si confirma_paso ya acepta
+-- la marca del SACS.
+select ref_panel, codigo, ente, fase, nivel, plazo_dias, activo from public.tipos_tramite
+ where codigo in ('permiso_sanitario', 'permiso_sacs', 'sacs_en_proceso')
+ order by ref_panel;
+select position('sacs_registrado' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+       as acepta_sacs_registrado;

@@ -1073,7 +1073,11 @@ function applyLang(lang){
     c37: {ya:'c44', nueva:'c37', p:'yp'},
     c10: {ya:'c45', nueva:'c10', p:'yl'},
     c28: {ya:'c46', nueva:'c28', p:'yc'},
-    c29: {ya:'c47', nueva:'c29', p:'yb'}
+    c29: {ya:'c47', nueva:'c29', p:'yb'},
+    /* Y el SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7): «Ya
+       solicité un permiso» (c49, escondida) o «Solicitar un permiso por
+       primera vez» (c48, la de la portada), con el prefijo ys_. */
+    c48: {ya:'c49', nueva:'c48', p:'ys'}
   };
   /* De cada ref, su pareja: la de la portada y la escondida, las dos. */
   var GUIA_YA_DE = {};
@@ -1083,8 +1087,8 @@ function applyLang(lang){
   });
   /* Lo elegido, como MARCA_ELEGIDA: la de la portada pregunta y la
      escondida nace elegida, que solo se llega a ella eligiéndola. */
-  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false,
-                    c44:true, c45:true, c46:true, c47:true};
+  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false, c48:false,
+                    c44:true, c45:true, c46:true, c47:true, c49:true};
   window.CIIP_YA_ELEGIDA = function(ref){
     if (!GUIA_YA_DE[ref] || YA_ELEGIDA[ref]) return;
     YA_ELEGIDA[ref] = true;
@@ -4179,6 +4183,25 @@ applyLang(idiomaParaMi());
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
       {tipo:'cedula',            clave:'d_cedpasrep'},
       {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    /* EL SACS (c48 y c49), Franklin Reyes, 7-10-2026, Ventanilla única 2.7:
+       «Acta constitutiva · RIF de la empresa · Cédula de identidad y RIF del
+       representante legal», los mismos en «por primera vez» y en «ya
+       solicité un permiso» (lo decidió el usuario: el documento solo los
+       da para la primera vez). Los tipos de siempre, como en c44 a c47, y
+       la cédula y el RIF en dos casillas. Aquí es «cédula de identidad» y
+       no «cédula o pasaporte», que es como lo pide el documento. */
+    permiso_sacs: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    sacs_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
     ]
   };
 
@@ -4627,6 +4650,32 @@ applyLang(idiomaParaMi());
      vacía: elegir es obligatorio, y un desplegable que nace en «Baruta» lo
      mandaría sin que nadie lo eligiera. */
   var ALCALDIAS_YA = ['', 'Baruta', 'Chacao', 'Libertador'];
+
+  /* ── LOS SISTEMAS EN LÍNEA DEL SACS ──
+     Franklin Reyes, 7-10-2026, Ventanilla única 2.7: el SACS se tramita en
+     uno de sus sistemas en línea (la página «Sistemas en línea» de
+     sacs.gob.ve), todos menos «Profesionales de la Salud». El inversionista
+     elige el suyo al empezar, en los dos trámites (c48 y c49), y en el de
+     primera vez el paso 1 le lleva al enlace de ESE sistema
+     (ENLACE_DEL_PASO), como la alcaldía en la licencia.
+
+     El desplegable es traducible (opcionesClave 'o_sacs_sistema', en
+     pasos.js) y guarda el nombre en español, que es lo que hay aquí a la
+     izquierda: los dos tienen que decir lo mismo letra por letra, o el
+     paso 1 se queda sin enlace (lo vigila sacsMira en el arnés). La
+     primera opción de la lista es la vacía, para obligar a elegir. */
+  var PORTAL_DEL_SACS = {
+    'CLV · Certificados Electrónicos de Libre Venta':
+      'https://sistemas.sacs.gob.ve/titulos/clv_sacs/modulos/empresas/index.php',
+    'SIACVISA · Sistema de Información Automatizado de Control y Vigilancia Sanitaria':
+      'https://sistemas.sacs.gob.ve/siacvisa/login_user#',
+    'Censo Nacional Automatizado · Establecimientos de Salud y Similares':
+      'https://sistemas.sacs.gob.ve/titulos/censo_establecimientos/modulos/inscripcion_censo/index.php',
+    'SIVERCOS · Sistema Venezolano de Registro de Cosméticos':
+      'https://sistemas.sacs.gob.ve/sivercos',
+    'SIACSv2 · Sistema de Información Automatizado de Contraloría Sanitaria':
+      'https://sistemas.sacs.gob.ve/siacsv2/login_user#'
+  };
 
   var CAMPOS = {
     /* ── el poder de representacion ──
@@ -5617,6 +5666,38 @@ applyLang(idiomaParaMi());
       {n:'representante',      clave:'f_yarep'},
       {n:'motivo_ya',          clave:'f_yamotivo',   opcionesClave:'o_ya_motivo'},
       {n:'detalle_ya',         clave:'f_yadetalle',  opcional:true}
+    ],
+    /* EL SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7). Los dos
+       empiezan por el sistema en línea del SACS (PORTAL_DEL_SACS), que es
+       lo primero que pide el documento al elegir la opción, y nace vacío
+       para que nadie mande el CLV sin elegirlo.
+
+       Por primera vez (c48): la razón social, el RIF, la cédula y el RIF del
+       representante legal -dos casillas, como sus dos recaudos- y el
+       permiso que va a solicitar. Del sistema sale el enlace del paso 1.
+
+       Ya solicité un permiso (c49): lo de la licencia ya solicitada (c45)
+       -la fecha, la razón social, el RIF, el representante y el motivo de
+       pedir ayuda, que cuenta Estadísticas- con el sistema y «¿Qué trámite
+       o permiso solicitó?» delante. El representante es su nombre, como
+       en c45 («Datos del representante legal», dice el documento). */
+    permiso_sacs: [
+      {n:'sistema_sacs',         clave:'f_yssistema',   opcionesClave:'o_sacs_sistema', ancho:true},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'cedula_representante', clave:'f_yscedrep'},
+      {n:'rif_representante',    clave:'f_ysrifrep'},
+      {n:'permiso_sacs',         clave:'f_yspermiso',   ancho:true}
+    ],
+    sacs_en_proceso: [
+      {n:'sistema_sacs',         clave:'f_yssistema',   opcionesClave:'o_sacs_sistema', ancho:true},
+      {n:'permiso_ya',           clave:'f_yspermisoya', ancho:true},
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
     ]
   };
 
@@ -24736,7 +24817,10 @@ applyLang(idiomaParaMi());
        todos, y lo da otro organismo más. */
     /* Y el SIDCAI (c39) desde el 23-9-2026, por encargo: «agrégala en
        permisos sectoriales». */
-    {clave:'g.sectorial', refs:['c12', 'c30', 'c36', 'c39'],
+    /* Y el SACS de la Ventanilla única 2.7 (c48) en el sitio del permiso
+       sanitario (c12), al que sustituye y que la base ya no ofrece
+       (Franklin Reyes, 7-10-2026). */
+    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39'],
      rotulo:function(dic){ return dic['g.sectorial']; }},
     /* Y los del LOCAL. Franklin Reyes, 22 de septiembre de 2026: «permiso
        de bomberos y conformidad de usos no son sectoriales». Tenía razón y
@@ -25286,7 +25370,13 @@ applyLang(idiomaParaMi());
        -el mismo texto que el de los entes de los parafiscales, porque es
        una inscripción y no una solicitud-. La llave la acepta confirma_paso()
        desde supabase-locti-opcion2.sql. */
-    c39: {1: {clave: 'locti_inscrito',         texto: 'pe_yainscribi'}}
+    c39: {1: {clave: 'locti_inscrito',         texto: 'pe_yainscribi'}},
+    /* Y el permiso del SACS por primera vez (c48), Franklin Reyes,
+       7-10-2026, Ventanilla única 2.7: el paso 1 es el enlace del sistema
+       del SACS que eligió en el formulario, para que se registre allí, y lo
+       avisa con «Ya me registré» (u.p_yamehice, el de un registro). La
+       llave la acepta confirma_paso() desde supabase-sacs.sql. */
+    c48: {1: 'sacs_registrado'}
   };
   /* La llave de un paso que marcas tú, y el texto de su botón: la entrada
      puede ser la llave a secas -como las de las visas- o {clave, texto}. */
@@ -25450,6 +25540,14 @@ applyLang(idiomaParaMi());
     c45: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c46: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c47: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    /* Y los dos del SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7).
+       «Ya solicité un permiso» (c49), con el dibujo de c45: «Revisión de tu
+       solicitud → En coordinación con el ente → Permiso otorgado». «Por
+       primera vez» (c48), con el de la licencia (c10): el paso 1 -registrarse
+       en el sistema del SACS- lo cierra su marca y no un estado, la revisión
+       queda en curso desde entonces, y el permiso otorgado, al resolver. */
+    c48: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c49: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Los dos RIF (Franklin Reyes, 30-9-2026): «Solicitud recibida → Planilla
        enviada por el CIIP → Firme la planilla → RIF emitido». Empiezan por
        «recibida», así que la cuenta es la de siempre; están aquí porque son
@@ -25577,7 +25675,11 @@ applyLang(idiomaParaMi());
     c29: {1: {campo: 'estado_local', urls: PORTAL_DE_BOMBEROS, clave: 'p_irbomberos'}},
     /* La inscripción en el SIDCAI (Franklin Reyes, 1-10-2026, Ventanilla
        Única 2.3): el portal del FONACIT, con la url que trae el documento. */
-    c39: {1: {url: 'https://sidcai.fonacit.gob.ve/', clave: 'p_irsidcai'}}
+    c39: {1: {url: 'https://sidcai.fonacit.gob.ve/', clave: 'p_irsidcai'}},
+    /* El permiso del SACS por primera vez (Franklin Reyes, 7-10-2026,
+       Ventanilla única 2.7): el enlace del sistema en línea que eligió al
+       principio (PORTAL_DEL_SACS), para registrarse en él. */
+    c48: {1: {campo: 'sistema_sacs', urls: PORTAL_DEL_SACS, clave: 'p_irsacs'}}
   };
   /* Adónde lleva el paso n del trámite ref, para ESTA solicitud: {url,
      clave} o null. */
@@ -27498,7 +27600,9 @@ applyLang(idiomaParaMi());
        enlace al portal se quitó el mismo día: ya lo lleva el paso 1 de la
        ficha de la visa. A este grupo lleva el botón «Planilla de solicitud de visa»
        del paso «Tus datos» de las dos visas. */
-    ['licencia', 'parafiscales', 'conformidad', 'bomberos', 'visa'].forEach(function(k){
+    /* Y el SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7): los
+       recaudos y formularios de sus cuatro direcciones. */
+    ['licencia', 'parafiscales', 'conformidad', 'bomberos', 'visa', 'sacs'].forEach(function(k){
       var kt = 'ay_rec_' + k, kl = kt + '_lista';
       var g = {kt: kt, t: u[kt] || es[kt], kl: kl, l: u[kl] || es[kl]};
       if (k === 'visa') g.descarga = {href: PLANILLA_VISA, texto: u.ay_visa_planilla || es.ay_visa_planilla,
