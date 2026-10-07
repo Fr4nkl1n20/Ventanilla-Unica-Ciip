@@ -72,7 +72,10 @@
   --fs-rotulo:11px; --fs-nota:11px; --fs-chip:10px;
   --shadow:0 1px 2px rgba(14,20,36,.04), 0 6px 18px rgba(14,20,36,.06);
   --shadow-lg:0 2px 6px rgba(14,20,36,.06), 0 18px 44px rgba(14,20,36,.10);
-  --sb:256px; --tb:58px;
+  /* El ancho de la barra lateral, una sola vez: --sb baja a 0 en el
+     telefono, y la barra que entra deslizandose necesita el de verdad
+     (Franklin Reyes, 7-10-2026). */
+  --sb-ancho:256px; --sb:var(--sb-ancho); --tb:58px;
   /* La rampa de la barra de estados de Control y Estadísticas: los
      azules de Atlas (IN_RAMPA), del más apagado al más intenso. En oscuro
      se invierte, para que el más intenso siga siendo el que más resalta. */
@@ -4650,7 +4653,7 @@ body.menu-abierto .menu-fondo{display:block;}
      un telefono estrecho. */
   :root{--sb:0px;}
   .menu-btn{display:inline-flex;}
-  .sidebar{width:min(256px, 84vw); transform:translateX(-100%); transition:transform .2s;}
+  .sidebar{width:min(var(--sb-ancho), 84vw); transform:translateX(-100%); transition:transform .2s;}
   body.menu-abierto .sidebar{transform:translateX(0); box-shadow:var(--shadow-lg);}
   .content{padding:18px 16px 0;}
   .foot-note{width:calc(100% - 32px); margin-bottom:50px;}
@@ -5147,6 +5150,17 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
    punto, la activa con su raya cyan y los contadores como un numero suelto. */
 .sidebar{background:linear-gradient(180deg,var(--navy) 0%, var(--navy-deep) 100%);}
 .sb-head{gap:12px;}
+/* El logo y la cabecera, a escuadra (Franklin Reyes, 7-10-2026): el bloque
+   del logo medía 69 px (16 + 38 del logo + 14 + la raya) y la cabecera 58,
+   así que la raya de debajo del logo caía 11 px más abajo que el borde de
+   la cabecera y en el cruce se veía un escalón. Ahora mide lo que la
+   cabecera, --tb, y su raya cae en el mismo píxel que la sombra de la
+   cabecera; con el azul liso de la cabecera y no el degradado, para que no
+   cambie de tono en la juntura. El logo se centra solo (align-items). */
+.sb-head{height:calc(var(--tb) + 1px); padding-top:0; padding-bottom:0; background:var(--navy);}
+/* Y el saludo arranca donde el contenido: los 4 px de margen lo separaban
+   de la migaja, que ya no se ve, y lo dejaban corrido respecto al borde. */
+.topbar .tb-hola{margin-left:0;}
 .sb-head .pn{font-family:'Instrument Serif',Georgia,serif; font-size:28px; font-weight:400; letter-spacing:.01em; line-height:1; white-space:nowrap; color:#fff; border-left:1px solid rgba(255,255,255,.25); padding-left:12px; transform:none;}
 .sb-gl{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em; color:rgba(255,255,255,.55); padding:7px 10px 4px;}
 .sb-item{padding:6.5px 10px; border-radius:7px; color:rgba(255,255,255,.80);}
