@@ -28620,6 +28620,16 @@ applyLang(idiomaParaMi());
      con algo que no empieza por http, se queda en texto: lo que escribió el
      CIIP nunca se pierde. En «Editar textos» el clic no sale de la página:
      textos-editables.js lo detiene antes, en la captura. */
+  /* «BANAVIH · FAOV» → BA; «Municipio Chacao» → CH; «Locatel Mercedes» → LM. */
+  function ayIniciales(n){
+    var pal = String(n || '').split(/[\s·,()|]+/).filter(Boolean);
+    var sig = pal[0] || '';
+    if (/^[A-ZÁÉÍÓÚÑ]{2,}$/.test(sig)) return sig.slice(0, 2);
+    var buenas = pal.filter(function(x){ return !/^(municipio|estado|recaudos|y|e|de|del|la|el|los|las|c\.?a\.?)$/i.test(x); });
+    if (buenas.length === 1) return buenas[0].slice(0, 2).toUpperCase();
+    return (((buenas[0] || '?').charAt(0)) + ((buenas[1] || '').charAt(0))).toUpperCase();
+  }
+
   function aySitio(renglon){
     var li = el('li');
     var corte = renglon.lastIndexOf('|');
@@ -28636,6 +28646,11 @@ applyLang(idiomaParaMi());
        farmacias del certificado médico (Franklin Reyes, 30-9-2026). */
     var wa = /^wa\.me\/58(\d{3})(\d{7})$/i.exec(host);
     if (wa) host = 'WhatsApp 0' + wa[1] + '-' + wa[2];
+    /* Las iniciales del sitio y su dominio, para la ficha de la idea B
+       (8-10-2026). Fuera de la ficha no se ven. */
+    var ini = el('span', 'ay-ini', ayIniciales(nombre && nombre !== url ? nombre : host));
+    ini.setAttribute('aria-hidden', 'true');
+    li.appendChild(ini);
     var a = el('a', 'ay-enlace', nombre && nombre !== url ? nombre : host);
     a.href = url;
     a.target = '_blank';
@@ -28649,6 +28664,7 @@ applyLang(idiomaParaMi());
     li.appendChild(el('span', 'ay-tipo ' + tipo[0], tipo[1]));
     a.title = url;
     if (nombre && nombre !== url) li.appendChild(el('span', 'ay-host' + (wa ? ' wa' : ''), host));
+    li.appendChild(el('span', 'ay-dom', wa ? host : host.split('/')[0].replace(/^www\./i, '')));
     return li;
   }
 
@@ -28672,6 +28688,52 @@ applyLang(idiomaParaMi());
       b.tabIndex = on ? 0 : -1;
     });
   }
+  /* LISTA Y DETALLE (idea B de maquetas/ayuda-pasos-recaudos.html,
+     Franklin Reyes, 8-10-2026): en las dos pestañas de enlaces, la lista de
+     categorías a la izquierda y la elegida a la derecha, como una ficha.
+     Las tarjetas de antes se veían descuadradas: cada categoría trae de 1
+     a 6 enlaces. Los <details> siguen ahí, con su clave, para «Editar
+     textos» y para el salto desde un ente; la lista solo elige cuál se ve. */
+  var aySel = {};
+  function ayAplicaSel(caja, p){
+    caja.querySelectorAll('.ay-ld-it').forEach(function(b){
+      var on = b.getAttribute('data-k') === aySel[p];
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    caja.querySelectorAll('.ay-ld-det > details').forEach(function(d){
+      d.classList.toggle('ay-sel', d.getAttribute('data-clave') === aySel[p]);
+    });
+  }
+  function ayListaDetalle(caja, p){
+    var dets = [].slice.call(caja.children).filter(function(x){ return x.tagName === 'DETAILS'; });
+    if (!dets.length) return;
+    var claveDe = function(d){ return d.getAttribute('data-clave'); };
+    if (!dets.some(function(d){ return claveDe(d) === aySel[p]; })) aySel[p] = claveDe(dets[0]);
+    caja.classList.add('ay-ld');
+    var nav = el('div', 'ay-ld-nav');
+    var det = el('div', 'ay-ld-det');
+    dets.forEach(function(d){
+      var k = claveDe(d);
+      var b = el('button', 'ay-ld-it');
+      b.type = 'button';
+      b.setAttribute('data-k', k);
+      var ic = d.querySelector('.ay-ic');
+      if (ic) b.appendChild(ic.cloneNode(true));
+      var tx = el('span', 'ay-ld-tx');
+      tx.appendChild(el('b', null, (d.querySelector('.qt') || {}).textContent || ''));
+      var c = d.querySelector('.ay-cuenta');
+      if (c) tx.appendChild(el('span', null, c.textContent));
+      b.appendChild(tx);
+      b.addEventListener('click', function(){ aySel[p] = k; ayAplicaSel(caja, p); });
+      nav.appendChild(b);
+      det.appendChild(d);
+    });
+    caja.appendChild(nav);
+    caja.appendChild(det);
+    ayAplicaSel(caja, p);
+  }
+
   /* El icono de cada categoría, con el mismo trazo que el resto del panel. */
   var AY_ICONO = {
     ay_firma: '<path d="M4 20c4-1 6-6 9-9l3 3c-3 3-8 5-9 9"/><path d="M14 4l6 6"/>',
@@ -28890,11 +28952,14 @@ applyLang(idiomaParaMi());
        ente va a la de su grupo: el renglón resaltado tiene que verse. */
     if (aqui){ ayPestana = /^ay_rec_/.test(aqui.grupo || '') ? 'rec' : 'dil'; ayPorSalto = true; }
     else if (ayPorSalto){ ayPestana = 'faq'; ayPorSalto = false; }
+    if (aqui && aqui.grupo) aySel[ayPestana] = aqui.grupo;
+    ayListaDetalle(caja, 'dil');
+    ayListaDetalle(caja2, 'rec');
     if (ayPest){
       ayPest.textContent = '';
       var nFaq = faq ? faq.querySelectorAll('details.faq-item:not(.ay-sin)').length : 0;
-      [['faq', u.ay_tab_faq, nFaq], ['dil', u.ay_tab_dil, caja.children.length],
-       ['rec', u.ay_tab_rec, caja2.children.length]].forEach(function(x){
+      [['faq', u.ay_tab_faq, nFaq], ['dil', u.ay_tab_dil, caja.querySelectorAll('details').length],
+       ['rec', u.ay_tab_rec, caja2.querySelectorAll('details').length]].forEach(function(x){
         var b = el('button', 'ay-pe');
         b.type = 'button';
         b.setAttribute('role', 'tab');

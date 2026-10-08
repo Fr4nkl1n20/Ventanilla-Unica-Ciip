@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Pasos y recaudos, otra forma</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   PASOS Y RECAUDOS DE CADA TRÁMITE: DOS IDEAS CON MEJOR VISTA
+
+   Franklin Reyes, 8-10-2026: las tarjetas en rejilla «se ven
+   desordenadas». Las seis categorías traen cantidades muy distintas (de
+   1 a 6 enlaces) y nombres de largo muy distinto (el SACS), así que en
+   rejilla siempre queda una tarjeta alta junto a otras cortas.
+
+   A · Filas por trámite: una fila por categoría, a todo lo ancho, con
+       los enlaces como botones que se acomodan solos.
+   B · Lista y detalle: los seis trámites a la izquierda; a la derecha,
+       el elegido, con sus enlaces grandes.
+
+   Datos de hoy. No toca el panel.
+   ══════════════════════════════════════════════════════════════════ */
+:root{ --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB; --navy-deep:#00336d; --cyan:#20B0F0; }
+main{max-width:1280px; padding:28px 26px 90px; margin:0 auto;}
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.intro b{color:var(--ink);}
+.caso{margin-top:46px;}
+.caso-h{display:flex; align-items:center; gap:11px; margin-bottom:6px;}
+.caso-n{width:28px; height:28px; border-radius:50%; background:var(--navy); color:#fff; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center;}
+.caso-t{font-size:17px; font-weight:700;}
+.caso-q{font-size:12.5px; color:var(--gray); line-height:1.65; max-width:96ch; margin:0 0 14px 39px;}
+.caso-q b{color:var(--ink);}
+.lienzo{margin-left:39px; background:var(--block); border:1px dashed #C9CED8; border-radius:14px; padding:18px;}
+.pest{display:flex; gap:2px; border-bottom:1px solid var(--line); margin-bottom:16px;}
+.pe{font-size:13px; font-weight:700; color:var(--gray); padding:10px 14px; border-bottom:2px solid transparent; margin-bottom:-1px; display:flex; gap:8px;}
+.pe.on{color:var(--navy); border-bottom-color:var(--navy);}
+.pe .n{font-size:10.5px; background:var(--line-soft); border-radius:20px; padding:1px 7px;}
+.pe.on .n{background:var(--activa-bg); color:var(--navy2);}
+.ic{width:40px; height:40px; border-radius:11px; display:grid; place-items:center; background:var(--activa-bg); color:var(--navy2); flex:none;}
+.ic svg{width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+.tipo{font-size:10px; font-weight:700; border-radius:20px; padding:1px 7px; background:var(--line-soft); color:var(--gray);}
+.tipo.pdf{background:var(--amber-bg); color:var(--amber);} .tipo.ig{background:#FCEBF3; color:#B0306A;} .tipo.wa{background:var(--good-bg); color:var(--good);}
+
+/* A · filas */
+.filas{background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+.fila{display:grid; grid-template-columns:300px minmax(0,1fr); gap:20px; padding:18px 20px; border-top:1px solid var(--line-soft); align-items:center;}
+.fila:first-child{border-top:0;}
+.fila .q{display:flex; gap:12px; align-items:center;}
+.fila .q b{display:block; font-size:14px; line-height:1.3;}
+.fila .q span{font-size:11.5px; color:var(--gray);}
+.botones{display:flex; flex-wrap:wrap; gap:8px;}
+.bot{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700; color:var(--navy2); background:#fff;
+  border:1px solid var(--line); border-radius:999px; padding:7px 8px 7px 13px;}
+.bot:hover{border-color:var(--navy2); background:var(--activa-bg);}
+.bot.descarga{background:var(--navy); color:#fff; border-color:var(--navy); padding-right:13px;}
+.bot .flecha{color:var(--gray-soft); font-weight:400;}
+
+/* B · lista y detalle */
+.ld{display:grid; grid-template-columns:320px minmax(0,1fr); gap:16px; align-items:start;}
+.lista{background:#fff; border:1px solid var(--line); border-radius:14px; padding:8px;}
+.it{display:flex; gap:12px; align-items:center; padding:10px; border-radius:10px;}
+.it .ic{width:36px; height:36px;}
+.it b{display:block; font-size:13px; line-height:1.3;}
+.it span{font-size:11px; color:var(--gray);}
+.it .n{margin-left:auto; font-size:11px; font-weight:700; color:var(--gray-soft);}
+.it.on{background:var(--activa-bg); box-shadow:inset 3px 0 0 var(--navy2);}
+.it.on b{color:var(--navy);}
+.det{background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+.det .cab{display:flex; gap:14px; align-items:center; padding:20px 22px; background:linear-gradient(180deg,var(--block),#fff); border-bottom:1px solid var(--line);}
+.det .cab .ic{width:48px; height:48px; border-radius:13px;}
+.det .cab b{display:block; font-size:18px; letter-spacing:-.01em;}
+.det .cab span{font-size:12.5px; color:var(--gray);}
+.enl{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; padding:18px 22px 22px;}
+.en{display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:12px; align-items:center; border:1px solid var(--line); border-radius:12px; padding:13px 14px;}
+.en:hover{border-color:var(--navy2);}
+.en .ini{width:34px; height:34px; border-radius:9px; background:var(--block); color:var(--navy); font-weight:800; font-size:12px; display:grid; place-items:center;}
+.en b{display:block; font-size:13px; color:var(--navy2);}
+.en small{font-size:11px; color:var(--gray-soft);}
+.en .ir{color:var(--gray-soft); font-size:16px;}
+@media (max-width:1000px){ .caso-q, .lienzo{margin-left:0;} .fila, .ld{grid-template-columns:1fr;} .enl{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="mq-cartel"><b>Maqueta · no es la aplicación</b><span>«Pasos y recaudos de cada trámite»: dos ideas con mejor vista. Datos de hoy; no toca el panel.</span></div>
+<main>
+  <p class="intro">Las seis categorías traen <b>de 1 a 6 enlaces</b> y nombres de largo muy distinto, así que en una rejilla de
+    tarjetas siempre queda una alta junto a otras cortas. Estas dos ideas no dependen de cuánto trae cada una.</p>
+
+  <section class="caso">
+    <div class="caso-h"><span class="caso-n">A</span><span class="caso-t">Filas por trámite</span></div>
+    <p class="caso-q">Una <b>fila por trámite</b>, a todo lo ancho: a la izquierda el icono, el nombre y cuántos enlaces tiene; a la
+      derecha, los enlaces como <b>botones redondeados</b> con su tipo. Los botones se acomodan solos, así que una fila con uno y otra
+      con seis se ven igual de ordenadas. Los del SACS se acortan a lo que cambia («Materiales, equipos y establecimientos»).</p>
+    <div class="lienzo">
+      <div class="pest"><span class="pe">Preguntas frecuentes <span class="n">7</span></span><span class="pe">Dónde hacer las diligencias <span class="n">2</span></span><span class="pe on">Pasos y recaudos de cada trámite <span class="n">6</span></span></div>
+      <div class="filas">
+        <div class="fila"><div class="q"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/></svg></span><div><b>Licencia de Actividades Económicas</b><span>4 municipios</span></div></div>
+          <div class="botones"><span class="bot">Municipio Chacao <span class="tipo">Web</span></span><span class="bot">Municipio Baruta <span class="tipo">Web</span></span><span class="bot">Municipio Libertador <span class="tipo pdf">PDF</span></span><span class="bot">Municipio Sucre <span class="tipo">Web</span></span></div></div>
+        <div class="fila"><div class="q"><span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><div><b>Registros Parafiscales y Regulatorios</b><span>6 registros</span></div></div>
+          <div class="botones"><span class="bot">BANAVIH · FAOV <span class="tipo">Web</span></span><span class="bot">INCES <span class="tipo pdf">PDF</span></span><span class="bot">IVSS · Seguro Social <span class="tipo">Web</span></span><span class="bot">Ministerio del Trabajo · RNET <span class="tipo pdf">PDF</span></span><span class="bot">SUNDDE · RUPDAE <span class="tipo">Web</span></span><span class="bot">SNC · Registro Nacional de Contratistas <span class="tipo pdf">PDF</span></span></div></div>
+        <div class="fila"><div class="q"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V10l7-5 7 5v11"/></svg></span><div><b>Conformidad de uso</b><span>3 municipios</span></div></div>
+          <div class="botones"><span class="bot">Libertador <span class="tipo pdf">PDF</span></span><span class="bot">Sucre <span class="tipo pdf">PDF</span></span><span class="bot">Baruta (constancia de uso) <span class="tipo">Web</span></span></div></div>
+        <div class="fila"><div class="q"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3c2 3 5 5 5 9a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3 1-5 1-8z"/></svg></span><div><b>Permiso de bomberos</b><span>2 jurisdicciones</span></div></div>
+          <div class="botones"><span class="bot">Estado Miranda <span class="tipo">Web</span></span><span class="bot">Distrito Capital <span class="tipo ig">Instagram</span></span></div></div>
+        <div class="fila"><div class="q"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 10h4M14 14h3"/></svg></span><div><b>Solicitud de visa</b><span>Planilla de Cancillería</span></div></div>
+          <div class="botones"><span class="bot descarga">↓ Descargar la planilla de solicitud de visa (PDF)</span></div></div>
+        <div class="fila"><div class="q"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg></span><div><b>Servicio Autónomo de Contraloría Sanitaria</b><span>Recaudos y formularios de 4 direcciones</span></div></div>
+          <div class="botones"><span class="bot">Materiales, equipos y establecimientos <span class="tipo">Web</span></span><span class="bot">Drogas, medicamentos y cosméticos <span class="tipo">Web</span></span><span class="bot">Inocuidad de alimentos y bebidas <span class="tipo">Web</span></span><span class="bot">Vigilancia sanitaria en aduanas <span class="tipo">Web</span></span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="caso">
+    <div class="caso-h"><span class="caso-n">B</span><span class="caso-t">Lista y detalle</span></div>
+    <p class="caso-q">Los seis trámites en una <b>lista a la izquierda</b>, con su icono y cuántos enlaces tiene. Al elegir uno, a la
+      derecha sale <b>su ficha</b>: el nombre grande y sus enlaces como tarjetas en dos columnas, con la inicial del lugar, adónde lleva y su tipo.
+      Siempre se ve uno solo, así que nada queda descuadrado.</p>
+    <div class="lienzo">
+      <div class="pest"><span class="pe">Preguntas frecuentes <span class="n">7</span></span><span class="pe">Dónde hacer las diligencias <span class="n">2</span></span><span class="pe on">Pasos y recaudos de cada trámite <span class="n">6</span></span></div>
+      <div class="ld">
+        <div class="lista">
+          <div class="it"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/></svg></span><div><b>Licencia de Actividades Económicas</b><span>4 municipios</span></div></div>
+          <div class="it on"><span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><div><b>Registros Parafiscales y Regulatorios</b><span>6 registros</span></div></div>
+          <div class="it"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V10l7-5 7 5v11"/></svg></span><div><b>Conformidad de uso</b><span>3 municipios</span></div></div>
+          <div class="it"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3c2 3 5 5 5 9a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3 1-5 1-8z"/></svg></span><div><b>Permiso de bomberos</b><span>2 jurisdicciones</span></div></div>
+          <div class="it"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.5"/></svg></span><div><b>Solicitud de visa</b><span>Planilla para descargar</span></div></div>
+          <div class="it"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg></span><div><b>Contraloría Sanitaria (SACS)</b><span>4 direcciones</span></div></div>
+        </div>
+        <div class="det">
+          <div class="cab"><span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>
+            <div><b>Registros Parafiscales y Regulatorios</b><span>Cómo inscribir la empresa ante cada ente · 6 enlaces oficiales</span></div></div>
+          <div class="enl">
+            <div class="en"><span class="ini">BA</span><div><b>BANAVIH · FAOV</b><small>banavih.gob.ve</small></div><span class="tipo">Web</span></div>
+            <div class="en"><span class="ini">IN</span><div><b>INCES</b><small>inces.sigat.net</small></div><span class="tipo pdf">PDF</span></div>
+            <div class="en"><span class="ini">IV</span><div><b>IVSS · Seguro Social</b><small>registro.ivss.gob.ve</small></div><span class="tipo">Web</span></div>
+            <div class="en"><span class="ini">MT</span><div><b>Ministerio del Trabajo · RNET</b><small>rnet.mpppst.gob.ve</small></div><span class="tipo pdf">PDF</span></div>
+            <div class="en"><span class="ini">SU</span><div><b>SUNDDE · RUPDAE</b><small>sundde.gob.ve</small></div><span class="tipo">Web</span></div>
+            <div class="en"><span class="ini">SN</span><div><b>SNC · Registro Nacional de Contratistas</b><small>snc.gob.ve</small></div><span class="tipo pdf">PDF</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

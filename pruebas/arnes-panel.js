@@ -9304,6 +9304,19 @@
     igual('ayuda: cada enlace dice qué abre', tipos, 'Web Instagram');
     var cuenta = rec && rec.querySelector('details[data-clave="ay_rec_parafiscales"] .ay-cuenta');
     igual('ayuda: y la tarjeta cuántos trae', cuenta ? cuenta.textContent : '(no está)', '6 enlaces');
+    /* Lista y detalle (idea B, 8-10-2026): se ve una sola ficha, la
+       elegida en la lista. */
+    var visibles = function(){ return rec ? [].filter.call(rec.querySelectorAll('details.ay-card'), function(d){ return d.offsetHeight > 0; })
+      .map(function(d){ return d.getAttribute('data-clave'); }).join(' ') : ''; };
+    /* Cuál, depende de lo que se eligió antes -el botón de la visa lleva a
+       la suya-; lo que no puede pasar es que se vean dos o ninguna. */
+    igual('ayuda: lista y detalle, una sola ficha a la vista', visibles().split(' ').filter(Boolean).length, 1);
+    var itSacs = rec && rec.querySelector('.ay-ld-it[data-k="ay_rec_sacs"]');
+    if (itSacs) itSacs.click();
+    igual('ayuda: al elegir otro trámite en la lista, sale su ficha', visibles(), 'ay_rec_sacs');
+    igual('ayuda: y la lista lo marca', itSacs && itSacs.getAttribute('aria-pressed'), 'true');
+    var itLic = rec && rec.querySelector('.ay-ld-it[data-k="ay_rec_licencia"]');
+    if (itLic) itLic.click();
     var bFaq = document.querySelector('#ayPest .ay-pe[data-p="faq"]');
     if (bFaq) bFaq.click();
   }
