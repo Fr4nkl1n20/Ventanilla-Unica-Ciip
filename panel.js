@@ -8580,7 +8580,9 @@ applyLang(idiomaParaMi());
     var por = d.razon_social ? 'mi representada' : 'mi persona';
     return [
       'AUTORIZACIÓN',
-      'Yo, ' + d.nombre + ', de nacionalidad ' + d.nacionalidad + ', mayor de edad, titular del ' + d.tipo_doc +
+      /* «de la cédula», «del pasaporte»: el artículo va con el documento. */
+      'Yo, ' + d.nombre + ', de nacionalidad ' + String(d.nacionalidad || '').toLowerCase() + ', mayor de edad, titular ' +
+        (/^c[eé]dula/.test(d.tipo_doc) ? 'de la ' : 'del ') + d.tipo_doc +
         ' N.º ' + d.num_doc + ', ' + quien + ', por medio del presente documento declaro:',
       'PRIMERO: Autorizo al Centro Internacional de Inversión Productiva (CIIP) para que, a través del personal que designe, realice en nombre de ' +
         por + ' el trámite de ' + d.tramite + ' ante ' + d.ente + '.',
