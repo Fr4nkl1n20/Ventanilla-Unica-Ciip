@@ -10682,8 +10682,14 @@ applyLang(idiomaParaMi());
        Fuera quedan la constitución, que ahí tiene en curso la firma y la
        reserva del nombre, y los parafiscales, cuyo paso lo cierran sus
        cinco entes en pintaEstado. */
+    /* Los parafiscales, desde el 7-10-2026, también, mientras falte un
+       ente: la ficha lo corregía después, al llegar los entes, pero la
+       columna «Progreso» de Mis trámites y el visor del gestor se
+       quedaban con el paso 3 hecho y el 4 en curso. entesTodosListos lee
+       la copia sin promesa (ENTES_YA): null, sin datos todavía, cuenta
+       como en curso, que es lo prudente; con los seis listos, como antes. */
     var enElEnte = (tr.estado === 'ante_el_ente' && !conFirma && !conReserva &&
-                    codigo !== TIPO_PARAFISCALES);
+                    (codigo !== TIPO_PARAFISCALES || entesTodosListos(tr) !== true));
     var circ = ORDEN.map(function(est, i){
       return {
         est: est,
@@ -11377,6 +11383,15 @@ applyLang(idiomaParaMi());
             if (avisoP && typeof avisoP === 'object')
               avisoP = ((tr.datos || {})[avisoP.si]) ? avisoP.clave : null;
             if (avisoP) txt.appendChild(el('div', 'tr-nota', u[avisoP] || ''));
+            /* Los parafiscales en revisión, con los recaudos revisados: el
+               paso 3, «Inscripción ante cada ente», sale en curso y sus
+               tarjetas todavía no (ENTES_ABIERTOS, solo ante el ente). El
+               porqué estaba en listaDeEntes, que al inversionista no se le
+               pinta hasta entonces, así que no llegaba nunca (7-10-2026):
+               se dice aquí, en el paso. */
+            if (ahora && tipo.codigo === TIPO_PARAFISCALES && est === 'ante_el_ente' &&
+                tr.estado === 'en_revision' && !(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()))
+              txt.appendChild(el('div', 'tr-nota', u.pe_aun_no || ''));
             /* «Firme la planilla»: y aquí se devuelve firmada (Franklin
                Reyes, 29-9-2026). Ver casillaDeLaPlanillaFirmada(). */
             /* Y encima, en los RIF, la planilla que mandó el CIIP para
@@ -11498,7 +11513,25 @@ applyLang(idiomaParaMi());
                 if (!m) return;
                 var todos = entesDelTramite(tr).every(function(e){
                   return m[e] && m[e].estado === 'listo'; });
-                if (todos) return;      /* la escalera de siempre ya acierta */
+                /* Con los seis listos y la escalera pintada antes de
+                   saberlo -desde el 7-10-2026, escaleraDe deja el paso en
+                   curso mientras no hay datos-, se cierra aquí: hecho, y
+                   «vas por aquí» al siguiente. Si ya se pintó hecho, nada.
+                   Solo los parafiscales: la c44 cuenta su paso con el
+                   estado, como su fila y su visor. */
+                if (todos){
+                  if (tipo.codigo !== TIPO_PARAFISCALES || !/\bahora\b/.test(liEnte.className)) return;
+                  liEnte.className = 'tr-paso hecho';
+                  puntoEnte.textContent = '✓';
+                  var aquiE = liEnte.querySelector('.tr-aqui');
+                  var liS = lista.children[iEnte + 1];
+                  var huecoS = liS && liS.querySelector('.tr-txt');
+                  if (huecoS){
+                    liS.className = 'tr-paso ahora';
+                    if (aquiE) huecoS.appendChild(aquiE);
+                  } else if (aquiE) aquiE.parentNode.removeChild(aquiE);
+                  return;
+                }
 
                 liEnte.className = 'tr-paso ahora';
                 puntoEnte.textContent = String(nEnte);
@@ -16757,6 +16790,13 @@ applyLang(idiomaParaMi());
              retirar los originales, y eso no se le dice a nadie que todavía
              no tiene el certificado en la bóveda. La base dice lo mismo
              (tramites_marca_con_certificado, supabase-marca.sql). */
+          /* Ni antes del último paso de su escalera por etapas: la misma
+             regla que el visor (7-10-2026, porQueNoSeResuelve). */
+          if (p.a === 'resuelto' && noEsElUltimoPaso(t)){
+            f.classList.add('mal');
+            aviso.textContent = u.vt_res_ultimo || '';
+            return;
+          }
           if (p.a === 'resuelto' && faltaParaResolverEtapas(t)){
             f.classList.add('mal');
             aviso.textContent = u[faltaParaResolverEtapas(t)] || '';
@@ -18915,6 +18955,12 @@ applyLang(idiomaParaMi());
         return;
       }
     }
+    /* Ni una escalera por etapas antes de su último paso (7-10-2026): el
+       visor ya apaga el botón, y esto es por si se llega por otro camino. */
+    if (noEsElUltimoPaso(t)){
+      aviso.textContent = u.vt_res_ultimo || '';
+      return;
+    }
     /* Y la marca, sin su certificado enviado, tampoco: la misma regla que
        la ficha de la cola. */
     if (faltaParaResolverEtapas(t)){
@@ -19162,11 +19208,16 @@ applyLang(idiomaParaMi());
   function visorConEntes(t){
     return t.tipo === TIPO_PARAFISCALES && t.estado !== 'borrador';
   }
+  /* Y resuelta (7-10-2026): ya se presentó y los entes se cerraron. Sin
+     esto el visor de una c37 resuelta enseñaba el 1 y el 2 sin hacer y el
+     3 gris, «se abre al presentar la solicitud», y el lado repetía el
+     bloqueo. Resuelta, el 3 se abre en solo lectura: listaDeEntes no pone
+     «Marcar listo» ni la constancia con la solicitud resuelta. */
   function visorEntesAbiertos(t){
-    return ENTES_ABIERTOS.indexOf(t.estado) >= 0;
+    return ENTES_ABIERTOS.indexOf(t.estado) >= 0 || t.estado === 'resuelto';
   }
   function visorPresentada(t){
-    return ENTES_PRESENTADOS.indexOf(t.estado) >= 0;
+    return ENTES_PRESENTADOS.indexOf(t.estado) >= 0 || t.estado === 'resuelto';
   }
   /* La vista que toca: la que eligió quien mira, y si no eligió ninguna,
      la de los entes en cuanto se presentó -es lo que queda por hacer-; en
@@ -19187,7 +19238,7 @@ applyLang(idiomaParaMi());
     var ya = ENTES_YA[t.id];
     if (ya){
       listas = ENTES_PARAFISCALES.filter(function(e){ return ya[e] && ya[e].estado === 'listo'; }).length;
-    } else if (abiertos && !visor.cuentaPedida){
+    } else if (abiertos && visor && !visor.cuentaPedida){
       /* La cuenta llega sola: en cuanto la base conteste, se repinta. Una
          vez por visor: si la base falla, ENTES_YA se queda vacío y sin el
          candado se pediría otra vez en cada repintado. */
@@ -19197,10 +19248,16 @@ applyLang(idiomaParaMi());
     /* El 1 y el 2 abren los recaudos -el 2, «presentar», es el botón del
        pie de esa vista-; el 3, los entes. Marcado va el de la vista que se
        ve: el 1 con los recaudos, el 3 con los entes. */
+    /* El 1, hecho en cuanto los recaudos están revisados, como el paso 2
+       del inversionista (7-10-2026): esperaba a presentar. Y el 3, hecho
+       resuelta o con los seis listos. */
+    var revisados = presentada || recaudosYaRevisados(t, tipoRefDe(t.tipo));
+    var entesHechos = t.estado === 'resuelto' ||
+                      (abiertos && listas !== null && listas === ENTES_PARAFISCALES.length);
     [
-      {k: 'vs_p1', hecho: presentada, vista: 'recaudos', on: vista === 'recaudos'},
+      {k: 'vs_p1', hecho: revisados, vista: 'recaudos', on: vista === 'recaudos'},
       {k: 'vs_p2', hecho: presentada, vista: 'recaudos', on: false},
-      {k: 'vs_p3', hecho: false, vista: 'entes', on: vista === 'entes', cerrado: !abiertos}
+      {k: 'vs_p3', hecho: entesHechos, vista: 'entes', on: vista === 'entes', cerrado: !abiertos}
     ].forEach(function(p, i){
       var b = el('button', 'vp' + (p.hecho ? ' hecho' : '') + (p.on ? ' on' : ''));
       b.type = 'button';
@@ -19312,7 +19369,20 @@ applyLang(idiomaParaMi());
   }
   function escaleraDelVisor(t){
     var def = ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo];
-    return def ? escaleraPorEtapas(t, t.tipo) : escaleraDe(t, t.tipo, hoyEnte(t));
+    var E = def ? escaleraPorEtapas(t, t.tipo) : escaleraDe(t, t.tipo, hoyEnte(t));
+    /* CANCELADA, NINGÚN PASO EN CURSO (Franklin Reyes, 7-10-2026). La
+       base no tiene 'cancelado' en ORDEN, así que escaleraDe la contaba
+       como recién llegada y encendía el primer paso -a veces dos, con los
+       de delante-, y el visor ponía de título el último paso. Una
+       cancelada no va por ningún sitio: se apagan aquí, en lo que lee el
+       visor, y no en escaleraDe, que también cuenta la fila de Mis
+       trámites y otras escaleras. Los objetos son nuevos en cada llamada:
+       tocarlos no cambia nada fuera. */
+    if (E && t.estado === 'cancelado'){
+      (E.todos || []).forEach(function(p){ p.ahora = false; });
+      E.ahora = null;
+    }
+    return E;
   }
   function pasoEnCursoDe(E){
     var todos = (E && E.todos) || [];
@@ -19328,7 +19398,10 @@ applyLang(idiomaParaMi());
     /* «Tomarlo» va fuera de la escalera: es del equipo, el inversionista
        no lo ve. Sin gestor es lo que toca, y el paso de la escalera queda
        en espera (vt-espera) para que no haya dos en azul. */
-    var toma = el('button', 'vt-tomar' + (t.gestor ? ' hecho' : ' ahora'));
+    /* Cancelada (7-10-2026), tampoco «Tomarlo» en azul: no queda nada que
+       tomar. */
+    var cancelada = t.estado === 'cancelado';
+    var toma = el('button', 'vt-tomar' + (t.gestor ? ' hecho' : cancelada ? '' : ' ahora'));
     toma.type = 'button';
     toma.appendChild(el('span', 'vs-esc-p', t.gestor ? '✓' : '·'));
     var tn = el('span', 'vt-n', u.vt_tomar || '');
@@ -19340,11 +19413,13 @@ applyLang(idiomaParaMi());
     sec.appendChild(toma);
 
     var E = escaleraDelVisor(t);
-    /* Devuelta, la pelota es del inversionista: tampoco hay paso en azul. */
-    var ol = el('ol', 'vs-esc' + ((t.gestor && t.estado !== 'devuelto') ? '' : ' vt-espera'));
+    /* Devuelta, la pelota es del inversionista: tampoco hay paso en azul.
+       Cancelada, igual (7-10-2026): ver escaleraDelVisor. */
+    var enEspera = !t.gestor || t.estado === 'devuelto' || cancelada;
+    var ol = el('ol', 'vs-esc' + (enEspera ? ' vt-espera' : ''));
     ((E && E.todos) || []).forEach(function(p, i){
       var li = el('li', p.hecho ? 'hecho' : (p.ahora ? 'ahora' : ''));
-      if (p.ahora && modo === 'paso' && t.gestor && t.estado !== 'devuelto') li.setAttribute('aria-current', 'step');
+      if (p.ahora && modo === 'paso' && !enEspera) li.setAttribute('aria-current', 'step');
       var b = el('button', 'vt-paso-b');
       b.type = 'button';
       b.appendChild(el('span', 'vs-esc-p', p.hecho ? '✓' : String(p.n || (i + 1))));
@@ -19722,7 +19797,7 @@ applyLang(idiomaParaMi());
     if (modo === 'recaudo'){
       var E = escaleraDelVisor(t), ahora = pasoEnCursoDe(E);
       var ir = el('button', 'enlace vt-ir', (u.vt_ir_paso || '') +
-        (!t.gestor ? ': ' + (u.vt_tomar || '') : (ahora && t.estado !== 'devuelto') ? ': ' + ahora.nombre : ''));
+        (t.estado === 'cancelado' ? '' : !t.gestor ? ': ' + (u.vt_tomar || '') : (ahora && t.estado !== 'devuelto') ? ': ' + ahora.nombre : ''));
       ir.type = 'button';
       ir.id = 'paVisorIrPaso';
       ir.addEventListener('click', function(){ visor.modo = 'paso'; pintaVisor(true); });
@@ -19798,13 +19873,20 @@ applyLang(idiomaParaMi());
       cab.appendChild(el('span', 'vt-paso-k', String(u.vt_paso_n || '')
         .replace('{n}', ahora.n || (todos.indexOf(ahora) + 1)).replace('{t}', todos.length)));
     }
-    var nombre = !t.gestor ? (u.vt_tomar || '')
+    /* Cancelada, el título es eso, «Cancelada» (7-10-2026): sin paso en
+       curso caía al nombre del último, que se leía como si estuviera
+       terminada. */
+    var cancelada = t.estado === 'cancelado';
+    var nombre = cancelada ? (u.can_chip || '')
+      : !t.gestor ? (u.vt_tomar || '')
       : t.estado === 'devuelto' ? String(u.vt_devuelta || '').replace('{quien}', t.nombre || u.co_sinnombre || '')
       : ahora ? ahora.nombre
       : (todos.length ? todos[todos.length - 1].nombre : '');
     cab.appendChild(el('b', 'vt-paso-t', nombre));
     lado.appendChild(cab);
-    if (!t.gestor){
+    if (cancelada){
+      /* Nada que hacer en ella: ni tomarla ni su pie. */
+    } else if (!t.gestor){
       lado.appendChild(el('p', 'visor-d', String(u.vt_tomar_p || '').replace('{quien}', t.nombre || u.co_sinnombre || '')));
     } else if (!mio){
       lado.appendChild(el('p', 'visor-d', String(u.co_lolleva || '').replace('{quien}', nombreDeGestor(t.gestor))));
@@ -19838,6 +19920,43 @@ applyLang(idiomaParaMi());
     return caja;
   };
 
+  /* ── POR QUÉ NO SE RESUELVE TODAVÍA ──
+     Franklin Reyes, 7-10-2026: el botón de resolver salía encendido y era
+     al pulsarlo cuando se decía que no. Esto junta lo que lo frena sin
+     preguntar a la base -lo que hoyResuelve y la ficha de la cola miran
+     antes de resolver-, con el texto que lo explica; '' si nada:
+       · la marca del inversionista (esperaLaMarca);
+       · los entes de los parafiscales y de la empresa ya inscrita, si ya
+         se sabe que falta alguno (null, sin datos, no frena aquí: lo mira
+         hoyResuelve al pulsar);
+       · en las escaleras por etapas, que el paso en curso no sea el
+         último -sus pasos de delante los cierra el gestor uno a uno, y
+         resolver se los saltaría-, y lo que diga su 'exige'.
+     El comprobante que pide la base (faltaLaReserva) no va aquí: es una
+     consulta, y el visor la añade cuando contesta. */
+  function noEsElUltimoPaso(t){
+    if (!t || !ESCALERA_POR_ETAPAS || !ESCALERA_POR_ETAPAS[t.tipo]) return false;
+    var E = escaleraPorEtapas(t, t.tipo), todos = (E && E.todos) || [];
+    return !!(E && E.ahora && E.ahora !== todos[todos.length - 1]);
+  }
+  function porQueNoSeResuelve(t, u){
+    var espera = esperaLaMarca(t, u);
+    if (espera) return espera;
+    if (conEntes(t) && entesTodosListos(t) === false) return u.co_faltanentes || '';
+    if (noEsElUltimoPaso(t)) return u.vt_res_ultimo || '';
+    var falta = faltaParaResolverEtapas(t);
+    return falta ? (u[falta] || '') : '';
+  }
+
+  /* Y la barra de los tres pasos de los parafiscales con el lado de los
+     recaudos, como en el visor clásico, para las pruebas (7-10-2026). */
+  window.CIIP_VISOR_PESTANAS = function(t){
+    var caja = el('div', 'vt-prueba');
+    caja.appendChild(visorPasos(t, 'recaudos'));
+    caja.appendChild(visorLado(t, null, [], 'clasico'));
+    return caja;
+  };
+
   /* El pie del lado: lo que se puede hacer con el trámite entero, según
      quién lo lleva y dónde está. sinEscalera: la casilla de la escalera
      por etapas va delante, en el paso en curso (visorPaso), no aquí. */
@@ -19850,7 +19969,10 @@ applyLang(idiomaParaMi());
     var botones = el('div', 'visor-bs');
     var trasBotones = null;   /* lo que va debajo de los botones: devolver, plegado */
 
-    if (!t.gestor){
+    /* Cancelada (7-10-2026): ni «Tomar», que la pasaría a revisión. */
+    if (t.estado === 'cancelado'){
+      /* nada */
+    } else if (!t.gestor){
       var toma = el('button', 'btn navy', u.co_tomar || '');
       toma.type = 'button';
       /* Tomarla aquí es empezar a revisarla, como abrirla siendo tuya
@@ -19933,7 +20055,11 @@ applyLang(idiomaParaMi());
       /* Los parafiscales no tienen reserva ni un único papel emitido: se
          resuelven con los seis entes listos. Decía «…resuelve la
          constitución», que es de otro trámite (29-9-2026). */
+      /* Y la empresa ya inscrita (c44, 7-10-2026), con sus tarjetas de
+         entes encima: la genérica «Con todos los pasos hechos…» no decía
+         que lo que espera son los entes que marcó. */
       pista.textContent = (t.tipo === TIPO_PARAFISCALES ? u.vs_pista
+        : t.tipo === TIPO_YA_INSCRITA ? u.vt_p_entes
         : esElPoder(t) ? u.co_h_p_poder
         : esAutorizacion(t) ? u.co_h_p_autoriza
         : conEmitido ? rotuloEmitido(t, u, 'pista')
@@ -19945,6 +20071,27 @@ applyLang(idiomaParaMi());
       var rotulaRes = function(){
         if (reserva && reserva.pendiente()) res.textContent = u[reserva.clave] || '';
         else res.textContent = rotuloRes || '';
+        frenaRes();
+      };
+      /* ── RESOLVER, APAGADO CUANDO NO SE PUEDE, Y DICIENDO POR QUÉ ──
+         Franklin Reyes, 7-10-2026. Salía encendido aunque al pulsarlo
+         hoyResuelve lo frenara: la marca desde su primer paso ante el SAPI
+         («Documentación original retirada» a la vista y sin certificado),
+         la compraventa sin la fecha de la firma, los parafiscales con
+         entes por cerrar, el sellado de libros o la protocolización sin su
+         comprobante. Se apaga con lo mismo que lo frena -porQueNoSeResuelve,
+         y faltaLaReserva, que pregunta a la base y llega después- y la
+         pista lo dice en rojo. Con un papel para pagar elegido, el botón
+         es el de enviarlo y sigue encendido. */
+      var pistaRes = pista.textContent;
+      var frenoRes = porQueNoSeResuelve(t, u);
+      var frenaRes = function(){
+        if (!res) return;
+        var envia = !!(reserva && reserva.pendiente());
+        res.disabled = !envia && !!frenoRes;
+        res.title = (!envia && frenoRes) || '';
+        pista.className = 'hoy-pista' + (frenoRes ? ' mal' : '');
+        pista.textContent = frenoRes || pistaRes;
       };
       var reserva = casillaDeLaReserva(t, 'hoy-res-', function(){ rotulaRes(); });
       if (reserva) dondeRes.appendChild(reserva.caja);
@@ -19977,13 +20124,22 @@ applyLang(idiomaParaMi());
       if (delActa) dondeRes.appendChild(delActa.caja);
       var res = el('button', 'btn navy', rotuloRes || '');
       res.type = 'button';
-      /* Sin la marca del inversionista no se resuelve: se espera. */
-      var esperaRes = esperaLaMarca(t, u);
-      if (esperaRes){
-        res.disabled = true;
-        res.title = esperaRes;
-        pista.className = 'hoy-pista mal';
-        pista.textContent = esperaRes;
+      /* Sin la marca del inversionista no se resuelve: se espera. Ni con
+         lo demás que diga porQueNoSeResuelve (7-10-2026). */
+      frenaRes();
+      if (!frenoRes && comprobanteParaResolver(t)){
+        faltaLaReserva(t).then(function(falta){
+          if (!falta || frenoRes) return;
+          frenoRes = u[comprobanteParaResolver(t).aviso] || '';
+          frenaRes();
+        });
+      }
+      /* Los entes, si aún no han llegado: se piden, y con el visor abierto
+         se repinta con ellos una vez, para que el botón diga la verdad. */
+      if (conEntes(t) && entesTodosListos(t) === null){
+        var repintaV = !!(visor && visor.id === t.id && !visor.cuentaPedida);
+        if (repintaV) visor.cuentaPedida = true;
+        entesDe(t.id).then(function(){ if (repintaV && visor && visor.id === t.id) pintaVisor(); });
       }
       res.addEventListener('click', function(){
         if (reserva && reserva.pendiente()){
@@ -20139,11 +20295,15 @@ applyLang(idiomaParaMi());
          No se bloquea, y es a propósito: a veces lo que falla es un dato
          del formulario y no un papel, y ahí devolver con la nota sola es lo
          correcto. Lo que no puede pasar es hacerlo sin saberlo. */
-      var loQueRecibe = el('div', 'hoy-pista' + (c && c.rechazado ? ' bien' : ' mal'));
-      loQueRecibe.textContent = !c || !c.rechazado ? (u.co_h_dev_sinmarcar || '')
-        : c.rechazado === 1 ? (u.co_h_dev_con1 || '')
-        : String(u.co_h_dev_conn || '').replace('{n}', c.rechazado);
-      dondeDevR.appendChild(loQueRecibe);
+      /* Sin recaudos que marcar (7-10-2026), «Ningún papel marcado» no
+         avisa de nada: la nota es lo único que puede llevar. */
+      if (recaudosDe(t.tipo).length){
+        var loQueRecibe = el('div', 'hoy-pista' + (c && c.rechazado ? ' bien' : ' mal'));
+        loQueRecibe.textContent = !c || !c.rechazado ? (u.co_h_dev_sinmarcar || '')
+          : c.rechazado === 1 ? (u.co_h_dev_con1 || '')
+          : String(u.co_h_dev_conn || '').replace('{n}', c.rechazado);
+        dondeDevR.appendChild(loQueRecibe);
+      }
 
       var dev = el('button', 'btn ghost', u.co_devolver || '');
       dev.type = 'button';
@@ -23152,7 +23312,19 @@ applyLang(idiomaParaMi());
         tr.appendChild(celdaLleva(t, u));
         tr.appendChild(celdaEspera(t, u));
       }
-      if (mtConProgreso()) tr.appendChild(celdaProgreso(t, u));
+      if (mtConProgreso()){
+        var tdPg = celdaProgreso(t, u);
+        tr.appendChild(tdPg);
+        /* Los parafiscales ante el ente cuentan su paso 3 con sus entes
+           (escaleraDe, 7-10-2026): si aún no han llegado, se piden y la
+           celda se rehace con ellos, como la ficha. */
+        if (t.tipo === TIPO_PARAFISCALES && t.estado === 'ante_el_ente' && entesTodosListos(t) === null){
+          entesDe(t.id).then(function(){
+            if (tdPg.parentNode && entesTodosListos(t) !== null)
+              tdPg.parentNode.replaceChild(celdaProgreso(t, T()), tdPg);
+          });
+        }
+      }
 
       /* La fecha, con su rotulo: sin el, una columna de fechas sueltas no
          dice si es cuando se envio o cuando se resolvio. */
@@ -25501,9 +25673,17 @@ applyLang(idiomaParaMi());
      La marca va en datos.pasos_ciip.recaudos_revisados y la escribe
      marca_recaudos_revisados() (supabase-recaudos-revisados.sql).
 
-     El RIF no: en él la revisión es mandar la planilla, que ya es su botón. */
+     El RIF no: en él la revisión es mandar la planilla, que ya es su botón.
+
+     Ni un trámite sin recaudos (Franklin Reyes, 7-10-2026): la licencia,
+     la conformidad de uso, los bomberos, el minero, el SIDCAI… los hace el
+     inversionista en el portal del organismo y sus especificaciones no
+     tienen paso de revisión. Pedirle al gestor «Recaudos revisados» de
+     cero papeles era un clic sin nada detrás. El cerrojo de la marca del
+     inversionista (esperaLaMarca) sigue en «Presentada ante…». */
   function faltaRevisarRecaudos(t){
     if (!t || (t.estado !== 'enviado' && t.estado !== 'en_revision') || mandaLaPlanilla(t)) return false;
+    if (!recaudosDe(t.tipo).length) return false;
     var p = (t.datos || {}).pasos_ciip || {};
     return !p.recaudos_revisados;
   }
@@ -26956,8 +27136,13 @@ applyLang(idiomaParaMi());
             if (!(r && r.data && r.data.length)) throw new Error('sin permiso');
             ENTES_DE[tr.id] = null; ENTES_YA[tr.id] = null;
             pon(r.data[0]);
-            /* Y la cuenta de listos, otra vez a la base: resolver la mira. */
-            entesDe(tr.id);
+            /* Y la cuenta de listos, otra vez a la base: resolver la mira.
+               Con el visor abierto, se repinta con ella (7-10-2026): el
+               botón de resolver se apaga mientras falte un ente, y sin
+               esto seguía apagado con el último ya listo. */
+            entesDe(tr.id).then(function(){
+              if (typeof visor !== 'undefined' && visor && visor.id === tr.id) pintaVisor();
+            });
             return true;
           })
           /* Acaba en true o en false, y no en «algo»: el catch se traga el
