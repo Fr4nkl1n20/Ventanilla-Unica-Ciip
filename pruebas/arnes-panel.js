@@ -397,7 +397,7 @@
               loctiSiembra, loctiMarcado,
               planillaFirmadaSiembra, planillaFirmadaMira, planillaFirmadaTrasSubir,
               rifGestorSiembra, rifGestorMira,
-              visaGestorMira,
+              visaGestorMira, pagosVisorMira,
               importadorMira, bomberosSiembra, bomberosAnotado, librosMira, visaEscaleraMira, marcasSeQuedan,
               /* La ficha de la visa con su «Ya me registré» (1-10-2026). */
               visaFichaAbre, visaFichaMira, visaFichaTrasConfirmar, visaC1Abre, visaC1Mira,
@@ -415,6 +415,8 @@
               escaleraEnteMira, escaleraEnteFicha,
               /* «Recaudos revisados» cierra la revisión (5-10-2026, punto 2). */
               revisadosMira,
+              /* Los pagos que cierran pasos y frenan presentar (7-10-2026). */
+              pagosDelanteMira, pagosFichaAbre, pagosFichaMira,
               /* Los genéricos encendidos, una sola ficha (Franklin Reyes, 5-10-2026). */
               genericosMira, genericosFicha,
               /* El repaso de cada minuto no «reinicia» el trámite (5-10-2026). */
@@ -9789,10 +9791,44 @@
       var a = t.filter(function(p){ return p.ahora; })[0];
       return a ? a.n : (t.every(function(p){ return p.hecho; }) ? 'todos hechos' : 'ninguno');
     };
-    igual('traducción: recibida, en curso el importe (2)', enCurso(esc('enviado', 'No')), 2);
-    igual('traducción: en revisión, en curso el comprobante (3)', enCurso(esc('en_revision', 'Sí')), 3);
-    igual('traducción: ante el ente, en curso la traducción (4)', enCurso(esc('ante_el_ente', 'Sí')), 4);
-    igual('traducción: resuelta, los cinco hechos', enCurso(esc('resuelto', 'No')), 'todos hechos');
+    /* DESDE EL 7-10-2026 LOS PASOS 2 Y 3 LOS CIERRAN SUS PAPELES (Franklin
+       Reyes, la simulación revisada). Estas pruebas decían «en revisión,
+       en curso el comprobante» y «ante el ente, la traducción» sin un solo
+       papel: era justo el fallo -el gestor la abre, pasa a revisión y el
+       importe salía hecho sin importe-. Ahora llevan los papeles que lo
+       hacen verdad, y las de debajo, lo que pasa sin ellos. */
+    var PS = window.CIIP_PAPELES_SABIDOS;
+    var hoyTr = new Date().toISOString();
+    var ayerTr = new Date(Date.now() - 36 * 3600000).toISOString();
+    var conPapeles = function(filas, estado, dicho){
+      if (PS) PS.apunta('trad', filas);
+      return enCurso(esc(estado, dicho));
+    };
+    var imp = {tipo: 'importe_dia', estado: 'validado', creado_en: hoyTr};
+    var pag = {tipo: 'pago_importe_dia', estado: 'cargado', creado_en: hoyTr};
+    igual('traducción: recibida, en curso el importe (2)', conPapeles([], 'enviado', 'No'), 2);
+    if (PS){
+      igual('traducción: en revisión sin importe, sigue en curso el importe (2)',
+            conPapeles([], 'en_revision', 'Sí'), 2);
+      igual('traducción: con el importe de hoy, en curso el comprobante (3)',
+            conPapeles([imp], 'en_revision', 'Sí'), 3);
+      igual('traducción: y ya recibida, el importe cierra su paso (3)',
+            conPapeles([imp], 'enviado', 'No'), 3);
+      igual('traducción: con un importe de ayer sin pagar, vuelve a esperar el de hoy (2)',
+            conPapeles([{tipo: 'importe_dia', estado: 'validado', creado_en: ayerTr}], 'en_revision', 'No'), 2);
+      igual('traducción: con el comprobante cargado, en curso la traducción (4)',
+            conPapeles([imp, pag], 'en_revision', 'Sí'), 4);
+      igual('traducción: con el comprobante rechazado, el comprobante otra vez (3)',
+            conPapeles([imp, {tipo: 'pago_importe_dia', estado: 'rechazado', creado_en: hoyTr}], 'en_revision', 'No'), 3);
+      igual('traducción: ante el ente, en curso la traducción (4)',
+            conPapeles([imp, pag], 'ante_el_ente', 'Sí'), 4);
+      igual('traducción: ante el ente sin comprobante, la escalera no lo da por pagado (3)',
+            conPapeles([imp], 'ante_el_ente', 'Sí'), 3);
+      igual('traducción: y el «en revisión» que pone el gestor al abrirla no adelanta nada',
+            (PS.apunta('trad', []), esc('en_revision', 'No')).map(function(p){ return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(','),
+            'hecho,ahora,porhacer,porhacer,porhacer');
+    }
+    igual('traducción: resuelta, los cinco hechos', conPapeles([], 'resuelto', 'No'), 'todos hechos');
 
     if (!I) return;
     ok('traducción: el importe del día sale en el paso 2 y en ningún otro',
@@ -10724,6 +10760,64 @@
     RG.caja.remove();
     RG = null;
     window.__IMPORTE_DOCS = null;
+  }
+
+  /* ═══════════ EL VISOR DEL GESTOR, CON LOS PAGOS ═══════════
+     Franklin Reyes, 7-10-2026 (la simulación revisada): en el visor,
+     «Presentada ante {ente}» se encendía sin PUB ni comprobante en la
+     protocolización, sin la planilla del SIDCAI en el LOCTI y sin
+     comprobante en la traducción, y la escalera daba el PUB y el pago por
+     hechos sin papeles. Se monta el lado del visor con papeles sabidos y
+     se mira el botón -apagado y con su porqué- y la escalera. */
+  function pagosVisorMira(){
+    if (PASE !== 'gestor') return;
+    var u = window.CIIP_T();
+    var PS = window.CIIP_PAPELES_SABIDOS;
+    if (!window.CIIP_VISOR_LADO || !PS) return ok('visor pagos: las piezas están a mano', false, 'falta alguna', 'CIIP_VISOR_LADO');
+    var cat = window.CIIP_TIPOS_POR_REF || {}, puestos = [];
+    [['c22', 'protocolizacion_acta', 'SAREN'], ['c40', 'aporte_locti_pago', 'FONACIT']].forEach(function(x){
+      if (!cat[x[0]]){ cat[x[0]] = {codigo: x[1], ref_panel: x[0], ente: x[2], activo: true}; puestos.push(x[0]); }
+    });
+    var hace = new Date(Date.now() - 3600000).toISOString();
+    var lado = function(id, tipo, filas){
+      PS.apunta(id, filas);
+      return window.CIIP_VISOR_LADO({id: id, tipo: tipo, estado: 'en_revision', gestor: 'u1', inversionista: 'u2',
+        datos: {pasos_ciip: {recaudos_revisados: hace}}, enviado_en: hace, creado_en: hace});
+    };
+    var presentar = function(l){
+      return [].filter.call(l.querySelectorAll('.visor-fin .btn'), function(b){
+        return /^Presentada ante /.test(b.textContent.trim()) ||
+               b.textContent.trim().indexOf(String(u.co_h_presentar || '').split('{ente}')[0]) === 0;
+      })[0] || null;
+    };
+    var dib = function(l){
+      return [].map.call(l.querySelectorAll('.vs-esc li'), function(li){
+        return li.classList.contains('hecho') ? 'hecho' : (li.classList.contains('ahora') ? 'ahora' : 'porhacer');
+      }).join(',');
+    };
+    var l1 = lado('vp-22a', 'protocolizacion_acta', [{tipo: 'planilla_aranceles', estado: 'validado'}]);
+    var b1 = presentar(l1);
+    ok('visor pagos: protocolización sin comprobante, «Presentada ante» apagado y con su porqué',
+       !!b1 && b1.disabled && b1.title === u.co_faltaaranceles,
+       b1 ? (b1.disabled ? 'apagado · ' + b1.title : 'encendido') : '(sin botón)', 'apagado · ' + u.co_faltaaranceles);
+    igual('visor pagos: y su escalera, el PUB hecho y el pago en curso', dib(l1), 'hecho,ahora,porhacer,porhacer,porhacer');
+    var l2 = lado('vp-22b', 'protocolizacion_acta', [{tipo: 'planilla_aranceles', estado: 'validado'},
+                                                     {tipo: 'pago_aranceles', estado: 'cargado'}]);
+    var b2 = presentar(l2);
+    ok('visor pagos: con el comprobante, se enciende', !!b2 && !b2.disabled,
+       b2 ? (b2.disabled ? 'apagado · ' + b2.title : 'encendido') : '(sin botón)', 'encendido');
+    igual('visor pagos: y la consignación en curso', dib(l2), 'hecho,hecho,ahora,porhacer,porhacer');
+    var l3 = lado('vp-40', 'aporte_locti_pago', []);
+    var b3 = presentar(l3);
+    ok('visor pagos: LOCTI sin la planilla del SIDCAI, apagado y lo dice',
+       !!b3 && b3.disabled && b3.title === u.co_faltaplanillalocti,
+       b3 ? (b3.disabled ? 'apagado · ' + b3.title : 'encendido') : '(sin botón)', 'apagado · ' + u.co_faltaplanillalocti);
+    var l4 = lado('vp-17', 'apostilla_documentos', [{tipo: 'importe_dia', estado: 'validado', creado_en: new Date().toISOString()}]);
+    var b4 = presentar(l4);
+    ok('visor pagos: traducción con importe y sin comprobante, apagado y lo dice',
+       !!b4 && b4.disabled && b4.title === u.co_faltatraduccion,
+       b4 ? (b4.disabled ? 'apagado · ' + b4.title : 'encendido') : '(sin botón)', 'apagado · ' + u.co_faltatraduccion);
+    puestos.forEach(function(r){ delete cat[r]; });
   }
 
   /* ═══════════ LAS VISAS (c1, c38), DESDE EL GESTOR ═══════════
@@ -11722,20 +11816,80 @@
     });
     if (C.c32) igual('ante el ente: c32: el paso en curso es el del SAREN, como dice la cabecera',
                      enCurso('registro_extranjeros_saren', 'SAREN · SISREF', 'ante_el_ente'), '3. ' + C.c32[2]);
-    /* Con el PUB delante: el paso del ente es el cuarto de cinco. */
-    [['protocolizacion_acta', 'SAREN', 'c22', 'Revisión del registrador'],
-     ['aporte_locti_pago', 'FONACIT', 'c40', 'Revisión del FONACIT']].forEach(function(t){
+    /* Con el PUB delante: el paso del ente es el cuarto de cinco. Desde el
+       7-10-2026 (Franklin Reyes, la simulación revisada) el PUB y el pago
+       los cierran sus papeles y no el estado, así que estas cuatro llevan
+       los dos papeles colgados -la planilla del CIIP y el comprobante-: lo
+       que miden es el paso del ente, y sin papeles la escalera se queda en
+       el PUB (las pruebas de debajo). */
+    var PS = window.CIIP_PAPELES_SABIDOS;
+    var puestoC23 = false;
+    if (!cat.c23){ cat.c23 = {codigo: 'publicacion_acta', ref_panel: 'c23', ente: 'Prensa mercantil', activo: true}; puestoC23 = true; }
+    var conPapeles = function(id, codigo, ente, estado){
+      return E({id: id, estado: estado, datos: {}}, codigo, ente).todos.map(function(p){
+        return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(',');
+    };
+    [['protocolizacion_acta', 'SAREN', 'c22', 'Revisión del registrador', 'planilla_aranceles', 'pago_aranceles'],
+     ['aporte_locti_pago', 'FONACIT', 'c40', 'Revisión del FONACIT', 'planilla_locti', 'pago_locti'],
+     ['publicacion_acta', 'Prensa mercantil', 'c23', 'Publicación del extracto', 'planilla_publicacion', 'pago_publicacion']
+    ].forEach(function(t){
       var q = t[2] + ': ';
-      igual('ante el ente: ' + q + 'en revisión, el tercero en curso',
-            dibujo(t[0], t[1], 'en_revision'), 'hecho,hecho,ahora,porhacer,porhacer');
+      if (!PS) return;
+      var id = 'pd-' + t[2];
+      PS.apunta(id, [{tipo: t[4], estado: 'validado'}, {tipo: t[5], estado: 'cargado'}]);
+      var mira = function(estado){
+        return E({id: id, estado: estado, datos: {}}, t[0], t[1]);
+      };
+      var dib = function(estado){
+        return mira(estado).todos.map(function(p){ return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(',');
+      };
+      igual('ante el ente: ' + q + 'en revisión y pagada, el tercero en curso',
+            dib('en_revision'), 'hecho,hecho,ahora,porhacer,porhacer');
       igual('ante el ente: ' + q + 'ante el ente, su paso en curso',
-            dibujo(t[0], t[1], 'ante_el_ente'), 'hecho,hecho,hecho,ahora,porhacer');
-      igual('ante el ente: ' + q + 'y es el que toca',
-            enCurso(t[0], t[1], 'ante_el_ente'), '4. ' + t[3]);
+            dib('ante_el_ente'), 'hecho,hecho,hecho,ahora,porhacer');
+      var ah = mira('ante_el_ente').todos.filter(function(x){ return x.ahora; })[0];
+      igual('ante el ente: ' + q + 'y es el que toca', ah ? ah.n + '. ' + ah.nombre : '(ninguno)', '4. ' + t[3]);
       igual('ante el ente: ' + q + 'resuelta, los cinco hechos',
-            dibujo(t[0], t[1], 'resuelto'), 'hecho,hecho,hecho,hecho,hecho');
+            dib('resuelto'), 'hecho,hecho,hecho,hecho,hecho');
+
+      /* LOS HALLAZGOS DE LA SIMULACIÓN, UNO A UNO. Recién nacida -o abierta
+         por el gestor, que la pasa a revisión- y sin ningún papel: un solo
+         paso en curso, el PUB, y nada hecho. */
+      var sin = 'pn-' + t[2];
+      PS.apunta(sin, []);
+      igual('pub delante: ' + q + 'recibida sin papeles, solo el PUB en curso',
+            conPapeles(sin, t[0], t[1], 'enviado'), 'ahora,porhacer,porhacer,porhacer,porhacer');
+      igual('pub delante: ' + q + 'abierta por el gestor, sin papeles, igual',
+            conPapeles(sin, t[0], t[1], 'en_revision'), 'ahora,porhacer,porhacer,porhacer,porhacer');
+      igual('pub delante: ' + q + 'devuelta sin papeles, igual',
+            conPapeles(sin, t[0], t[1], 'devuelto'), 'ahora,porhacer,porhacer,porhacer,porhacer');
+      igual('pub delante: ' + q + 'sin saber nada de sus papeles, tampoco da nada por hecho',
+            dibujo(t[0], t[1], 'en_revision'), 'ahora,porhacer,porhacer,porhacer,porhacer');
+      var conPub = 'pp-' + t[2];
+      PS.apunta(conPub, [{tipo: t[4], estado: 'validado'}]);
+      igual('pub delante: ' + q + 'con el PUB, el PUB hecho y el pago en curso',
+            conPapeles(conPub, t[0], t[1], 'enviado'), 'hecho,ahora,porhacer,porhacer,porhacer');
+      igual('pub delante: ' + q + 'y en revisión, igual: el pago no sale hecho sin comprobante',
+            conPapeles(conPub, t[0], t[1], 'en_revision'), 'hecho,ahora,porhacer,porhacer,porhacer');
+      igual('pub delante: ' + q + 'devuelta con el PUB, el PUB sigue hecho',
+            conPapeles(conPub, t[0], t[1], 'devuelto'), 'hecho,ahora,porhacer,porhacer,porhacer');
+      var pagada = 'pg-' + t[2];
+      PS.apunta(pagada, [{tipo: t[4], estado: 'validado'}, {tipo: t[5], estado: 'cargado'}]);
+      igual('pub delante: ' + q + 'recibida y pagada, el pago lo cierra su comprobante',
+            conPapeles(pagada, t[0], t[1], 'enviado'), 'hecho,hecho,ahora,porhacer,porhacer');
+      var rechazada = 'pr-' + t[2];
+      PS.apunta(rechazada, [{tipo: t[4], estado: 'validado'}, {tipo: t[5], estado: 'rechazado'}]);
+      igual('pub delante: ' + q + 'con el comprobante rechazado, el pago otra vez en curso',
+            conPapeles(rechazada, t[0], t[1], 'en_revision'), 'hecho,ahora,porhacer,porhacer,porhacer');
+      ok('pub delante: ' + q + 'nunca dos pasos en curso',
+         ['enviado', 'en_revision', 'ante_el_ente', 'devuelto'].every(function(e){
+           return [sin, conPub, pagada, rechazada].every(function(i){
+             return E({id: i, estado: e, datos: {}}, t[0], t[1]).todos.filter(function(p){ return p.ahora; }).length <= 1;
+           });
+         }), '', 'uno o ninguno');
     });
     if (puesto) delete cat.c22;
+    if (puestoC23) delete cat.c23;
 
     /* Y pintada: una c32 ante el SAREN, abierta como la abre el inversionista. */
     window.__TRAMITES_EXTRA = [
@@ -11845,6 +11999,168 @@
           dibujo('permiso_sanitario', 'SACS', 'en_revision', true), 'hecho,ahora,porhacer,porhacer,porhacer');
     puestos.forEach(function(r){ delete cat[r]; });
     sigue();
+  }
+
+  /* ═══════════ LOS PAGOS QUE CIERRAN PASOS Y FRENAN PRESENTAR ═══════════
+     Franklin Reyes, 7-10-2026 (la simulación de recorridos revisada por
+     agentes). Se fija, sin pintar:
+       · «Presentada ante {ente}» no se presenta sin el pago: la
+         protocolización y la publicación sin su comprobante, el LOCTI sin
+         la planilla del SIDCAI y sin el comprobante, la traducción sin el
+         comprobante del importe del día (window.CIIP_PRESENTAR);
+       · la firma de la constitución no se marca antes de «Recaudos
+         revisados» (window.CIIP_CASILLA_FIRMA);
+       · el RIF cierra «Firme la planilla» con la firmada, sin esperar al
+         gestor;
+       · la protocolización ya no pide en el formulario el comprobante de
+         los aranceles, que se sube desde su paso. */
+  function pagosDelanteMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var u = window.CIIP_T();
+    var PR = window.CIIP_PRESENTAR, PS = window.CIIP_PAPELES_SABIDOS, E = window.CIIP_ESCALERA;
+    ok('presentar: el freno del pago está a mano', !!(PR && PS && E), PR ? 'está' : 'no está', 'CIIP_PRESENTAR');
+    if (!PR || !PS || !E) return sigue();
+    var falta = function(id, tipo, estado, filas){
+      if (filas) PS.apunta(id, filas);
+      return PR.falta({id: id, tipo: tipo, estado: estado, datos: {}}) || 'nada';
+    };
+    [['protocolizacion_acta', 'planilla_aranceles', 'pago_aranceles', 'co_faltaaranceles'],
+     ['publicacion_acta', 'planilla_publicacion', 'pago_publicacion', 'co_faltapublicacion']].forEach(function(t){
+      var q = 'presentar: ' + t[0] + ': ';
+      igual(q + 'sin papeles no se presenta', falta('fp-a-' + t[0], t[0], 'en_revision', []), t[3]);
+      igual(q + 'con el PUB y sin comprobante, tampoco',
+            falta('fp-b-' + t[0], t[0], 'en_revision', [{tipo: t[1], estado: 'validado'}]), t[3]);
+      igual(q + 'con el comprobante rechazado, tampoco',
+            falta('fp-c-' + t[0], t[0], 'en_revision', [{tipo: t[1], estado: 'validado'}, {tipo: t[2], estado: 'rechazado'}]), t[3]);
+      igual(q + 'con el comprobante, sí',
+            falta('fp-d-' + t[0], t[0], 'en_revision', [{tipo: t[1], estado: 'validado'}, {tipo: t[2], estado: 'cargado'}]), 'nada');
+      igual(q + 'y recibida, lo mismo', falta('fp-a-' + t[0], t[0], 'enviado'), t[3]);
+      ok(q + 'y el porqué tiene texto', !!u[t[3]], u[t[3]] || '(vacío)', 'un texto');
+    });
+    igual('presentar: LOCTI sin la planilla del SIDCAI, falta la planilla',
+          falta('fp-l1', 'aporte_locti_pago', 'en_revision', []), 'co_faltaplanillalocti');
+    ok('presentar: LOCTI, y lo dice', !!u.co_faltaplanillalocti, u.co_faltaplanillalocti || '(vacío)', 'un texto');
+    igual('presentar: LOCTI con la planilla, falta el comprobante',
+          falta('fp-l2', 'aporte_locti_pago', 'en_revision', [{tipo: 'planilla_locti', estado: 'validado'}]), 'co_faltalocti');
+    igual('presentar: LOCTI con los dos, sí',
+          falta('fp-l3', 'aporte_locti_pago', 'en_revision',
+                [{tipo: 'planilla_locti', estado: 'validado'}, {tipo: 'pago_locti', estado: 'cargado'}]), 'nada');
+    var hoyP = new Date().toISOString();
+    igual('presentar: traducción sin importe ni comprobante, no',
+          falta('fp-t1', 'apostilla_documentos', 'en_revision', []), 'co_faltatraduccion');
+    igual('presentar: traducción con el importe y sin comprobante, tampoco',
+          falta('fp-t2', 'apostilla_documentos', 'en_revision', [{tipo: 'importe_dia', estado: 'validado', creado_en: hoyP}]),
+          'co_faltatraduccion');
+    igual('presentar: traducción con el comprobante, sí',
+          falta('fp-t3', 'apostilla_documentos', 'en_revision',
+                [{tipo: 'importe_dia', estado: 'validado', creado_en: hoyP},
+                 {tipo: 'pago_importe_dia', estado: 'cargado', creado_en: hoyP}]), 'nada');
+    igual('presentar: sin saber nada de sus papeles no se frena (la base decide)',
+          PR.falta({id: 'fp-nunca-visto', tipo: 'protocolizacion_acta', estado: 'en_revision', datos: {}}) || 'nada', 'nada');
+    igual('presentar: y un trámite sin pago delante, nada',
+          falta('fp-o', 'registro_extranjeros_saren', 'en_revision', []), 'nada');
+
+    /* La firma de la constitución, detrás de «Recaudos revisados». */
+    var CF = window.CIIP_CASILLA_FIRMA;
+    ok('firma: la casilla del gestor está a mano', !!CF, CF ? 'está' : 'no está', 'CIIP_CASILLA_FIRMA');
+    if (CF){
+      var botonDe = function(datos){
+        var c = CF({id: 'fz', tipo: 'constitucion', estado: 'en_revision', datos: datos});
+        return c && c.caja.querySelector('.btn');
+      };
+      var b1 = botonDe({});
+      ok('firma: sin «Recaudos revisados» no se marca, y dice por qué',
+         !!b1 && b1.disabled && b1.title === u.co_firma_revisar && !!u.co_firma_revisar,
+         b1 ? (b1.disabled ? 'apagado · ' + b1.title : 'encendido') : '(sin botón)', 'apagado · ' + u.co_firma_revisar);
+      var b2 = botonDe({pasos_ciip: {recaudos_revisados: '2026-10-07T10:00:00Z'}});
+      ok('firma: con la marca, se enciende', !!b2 && !b2.disabled && !b2.title,
+         b2 ? (b2.disabled ? 'apagado' : 'encendido') : '(sin botón)', 'encendido');
+      var b3 = botonDe({firma_ciip: '2026-09-27T10:00:00Z'});
+      ok('firma: y una firma ya puesta se puede deshacer siempre', !!b3 && !b3.disabled,
+         b3 ? (b3.disabled ? 'apagado' : b3.textContent) : '(sin botón)', u.co_firma_deshacer);
+    }
+
+    /* El RIF: la firmada cierra «Firme la planilla». */
+    var rif = function(id, estado, filas){
+      if (filas) PS.apunta(id, filas);
+      return E({id: id, estado: estado, datos: {}}, 'rif_personal', 'SENIAT').todos.map(function(p){
+        return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(',');
+    };
+    igual('rif: en revisión sin la firmada, «Firme la planilla» en curso',
+          rif('fr-1', 'en_revision', [{tipo: 'planilla_solicitud', estado: 'validado'}]), 'hecho,hecho,ahora,porhacer');
+    igual('rif: subida la firmada, ese paso hecho y el siguiente en curso',
+          rif('fr-2', 'en_revision', [{tipo: 'planilla_solicitud', estado: 'validado'},
+                                       {tipo: 'planilla_firmada', estado: 'cargado', creado_en: '2026-10-07T10:00:00Z'}]),
+          'hecho,hecho,hecho,ahora');
+    igual('rif: con la firmada rechazada, otra vez a firmar',
+          rif('fr-3', 'en_revision', [{tipo: 'planilla_firmada', estado: 'rechazado', creado_en: '2026-10-07T10:00:00Z'}]),
+          'hecho,hecho,ahora,porhacer');
+    igual('rif: devuelta, vuelve al principio aunque esté la firmada',
+          rif('fr-2', 'devuelto'), 'hecho,ahora,porhacer,porhacer');
+    /* Y resuelto, «Cuando la tengas firmada, súbela aquí» ya no sale. */
+    var PF = window.CIIP_PLANILLA_FIRMADA;
+    if (PF && PF.casilla){
+      var pista = function(estado){
+        var c = PF.casilla({id: 'fr-c-' + estado, tipo: 'rif_personal', estado: estado, datos: {}});
+        return [].some.call(c.querySelectorAll('.tr-nota'), function(n){ return n.textContent === u.tr_pfirmada_pista; });
+      };
+      igual('rif: la pista de subir la firmada, en revisión sí y resuelto no',
+            pista('en_revision') + ',' + pista('resuelto'), 'true,false');
+    }
+
+    /* El formulario de la protocolización ya no pide el comprobante. */
+    var R = window.CIIP_RECAUDOS;
+    if (R) ok('protocolización: el formulario no pide el comprobante de los aranceles',
+              R.de('protocolizacion_acta').every(function(r){ return r.tipo !== 'pago_aranceles'; }),
+              R.de('protocolizacion_acta').map(function(r){ return r.tipo; }).join(', '), 'sin pago_aranceles');
+    sigue();
+  }
+
+  /* Y la ficha propia de la protocolización -«Tu solicitud», a la que se
+     llega desde Mis trámites-, con el PUB y el comprobante en sus pasos. */
+  function pagosFichaAbre(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var cat = window.CIIP_TIPOS_POR_REF || {};
+    if (!cat.c22) cat.c22 = {codigo: 'protocolizacion_acta', ref_panel: 'c22', ente: 'SAREN', activo: true};
+    window.__IMPORTE_DOCS = window.__IMPORTE_DOCS || {};
+    window.__IMPORTE_DOCS.pf22 = [{id: 'pf22-pub', tipo: 'planilla_aranceles', estado: 'validado',
+      nombre_original: 'pub-aranceles.pdf', archivo: 'u1/emitidos/pub-aranceles.pdf', creado_en: '2026-10-06T10:00:00Z'}];
+    window.__TRAMITES_EXTRA = [
+      {id: 'pf22', tipo: 'protocolizacion_acta', estado: 'en_revision', datos: {},
+       inversionista: 'u1', creado_en: '2026-10-05T10:00:00Z', enviado_en: '2026-10-05T10:00:00Z',
+       actualizado_en: '2026-10-06T10:20:00Z'}];
+    location.hash = '';
+    setTimeout(function(){
+      location.hash = 'tramite-c22';
+      var n = 0;
+      (function mira(){
+        if (document.querySelector('#trReal .tr-paso .tr-papel[data-doc="pago_aranceles"]') || ++n > 80) return sigue();
+        setTimeout(mira, 40);
+      })();
+    }, 100);
+  }
+  function pagosFichaMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var lis = [].slice.call(document.querySelectorAll('#trReal li.tr-paso'));
+    igual('ficha c22: con el PUB y sin comprobante, el PUB hecho y el pago en curso',
+          lis.map(function(li){
+            return li.classList.contains('hecho') ? 'hecho' : (li.classList.contains('ahora') ? 'ahora' : 'porhacer');
+          }).join(','), 'hecho,ahora,porhacer,porhacer,porhacer');
+    var pub = lis[0] && lis[0].querySelector('.tr-pagar .tr-papel[data-doc="planilla_aranceles"]');
+    ok('ficha c22: el PUB se abre desde su paso, en «Tu solicitud»',
+       !!pub && !pub.closest('.tr-pagar').hidden && !!pub.querySelector('.sd-btn'),
+       pub ? (pub.closest('.tr-pagar').hidden ? 'escondido' : pub.textContent.slice(0, 60)) : '(no está)',
+       'a la vista, con «Abrir»');
+    var comp = lis[1] && lis[1].querySelector('.tr-papel[data-doc="pago_aranceles"]');
+    ok('ficha c22: y el comprobante se sube en el paso del pago',
+       !!comp && !comp.hidden && !!comp.querySelector('input[type=file]'),
+       comp ? (comp.hidden ? 'escondido' : 'a la vista') : '(no está)', 'a la vista, para subir');
+    var aqui = lis.map(function(li, i){ return li.querySelector('.tr-aqui') ? i + 1 : 0; }).filter(Boolean);
+    igual('ficha c22: «Vas por aquí» en el pago y en ningún otro', aqui.join(','), '2');
+    window.__TRAMITES_EXTRA = null;
+    if (window.__IMPORTE_DOCS) delete window.__IMPORTE_DOCS.pf22;
+    location.hash = '';
+    setTimeout(sigue, 100);
   }
 
   /* ═══════════ LOS GENÉRICOS, UNA SOLA FICHA ═══════════
@@ -15382,13 +15698,57 @@
     var c5 = function(estado, datos){
       return ESC({estado: estado, datos: datos || {}}, 'constitucion', 'SAREN');
     };
-    var e1 = c5('en_revision');
+    var e0 = c5('en_revision');
     igual('firma: la constitución lleva seis pasos, y el tercero es ir al CIIP a firmar',
-          e1.todos.length + ' · ' + ((e1.todos[2] || {}).nombre || ''), '6 · ' + u.tr_firmaciip);
+          e0.todos.length + ' · ' + ((e0.todos[2] || {}).nombre || ''), '6 · ' + u.tr_firmaciip);
+    /* Desde el 7-10-2026 (Franklin Reyes, la simulación revisada) la
+       revisión sigue en curso hasta «Recaudos revisados»: antes salía hecha
+       y la firma en curso en cuanto el gestor la abría. Esta prueba decía
+       «en revisión, lo que toca es venir a firmar» sin la marca; ahora eso
+       es con la marca (e1), y sin ella toca la revisión (e0). */
+    var dibujoC5 = function(e){
+      return e.todos.map(function(p){ return p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer'); }).join(',');
+    };
+    igual('firma: en revisión sin «Recaudos revisados», la revisión en curso y la firma por hacer',
+          dibujoC5(e0), 'hecho,ahora,porhacer,porhacer,porhacer,porhacer');
+    var e1 = c5('en_revision', {pasos_ciip: {recaudos_revisados: '2026-10-07T10:00:00Z'}});
     ok('firma: en revisión, lo que toca es venir a firmar, no la reserva',
        !!e1.firma && e1.firma.ahora && !e1.todos[3].ahora,
        'firma ' + (e1.firma && e1.firma.ahora) + ', reserva ' + (e1.todos[3] && e1.todos[3].ahora),
        'firma sí, reserva no');
+    igual('firma: con «Recaudos revisados», la revisión hecha y la firma en curso',
+          dibujoC5(e1), 'hecho,hecho,ahora,porhacer,porhacer,porhacer');
+    /* Y las que se firmaron antes de este cambio, sin la marca: la firma
+       apuntada da la revisión por hecha (no se firma sin revisar). */
+    igual('firma: firmada sin la marca, la revisión se da por hecha',
+          dibujoC5(c5('en_revision', {firma_ciip: '2026-09-27T10:00:00Z'})),
+          'hecho,hecho,hecho,ahora,porhacer,porhacer');
+    /* EL PUB DE LA RESERVA, CON SU PAPEL (7-10-2026). Ante el SAREN y sin
+       la planilla de la reserva, el PUB en curso y la reserva por hacer;
+       con ella, el PUB hecho y la reserva en curso; con el comprobante,
+       la reserva hecha y «Resuelta» en curso. */
+    var PS = window.CIIP_PAPELES_SABIDOS;
+    if (PS){
+      var c5id = function(id, estado){
+        return ESC({id: id, estado: estado, datos: {}}, 'constitucion', 'SAREN');
+      };
+      PS.apunta('pr-c5-a', []);
+      igual('reserva: ante el SAREN sin el PUB, el PUB en curso y la reserva por hacer',
+            dibujoC5(c5id('pr-c5-a', 'ante_el_ente')), 'hecho,hecho,hecho,ahora,porhacer,porhacer');
+      PS.apunta('pr-c5-b', [{tipo: 'planilla_reserva_nombre', estado: 'validado'}]);
+      igual('reserva: con el PUB de la reserva, el PUB hecho y la reserva en curso',
+            dibujoC5(c5id('pr-c5-b', 'ante_el_ente')), 'hecho,hecho,hecho,hecho,ahora,porhacer');
+      PS.apunta('pr-c5-c', [{tipo: 'planilla_reserva_nombre', estado: 'validado'},
+                            {tipo: 'reserva_nombre', estado: 'cargado'}]);
+      igual('reserva: con su comprobante, la reserva hecha y «Resuelta» en curso',
+            dibujoC5(c5id('pr-c5-c', 'ante_el_ente')), 'hecho,hecho,hecho,hecho,hecho,ahora');
+      PS.apunta('pr-c5-d', [{tipo: 'planilla_reserva_nombre', estado: 'validado'},
+                            {tipo: 'reserva_nombre', estado: 'rechazado'}]);
+      igual('reserva: con el comprobante rechazado, la reserva vuelve a estar en curso',
+            dibujoC5(c5id('pr-c5-d', 'ante_el_ente')), 'hecho,hecho,hecho,hecho,ahora,porhacer');
+      igual('reserva: resuelta, los seis hechos',
+            dibujoC5(c5id('pr-c5-a', 'resuelto')), 'hecho,hecho,hecho,hecho,hecho,hecho');
+    }
     var e2 = c5('en_revision', {firma_ciip: '2026-09-27T10:00:00Z'});
     ok('firma: marcada por el CIIP, pasa a la reserva del nombre',
        !!e2.firma && e2.firma.hecho && e2.todos[3].ahora,
@@ -15408,7 +15768,10 @@
     if (CASO !== 'tramos') return;
     location.hash = '';
     ok('firma: la constitución de la prueba se pone en revisión',
-       !!(window.PRUEBA_CAMBIA_TRAMITE && window.PRUEBA_CAMBIA_TRAMITE('p2', {estado: 'en_revision'})),
+       /* Con «Recaudos revisados» puesto: desde el 7-10-2026 la firma va
+          detrás de esa marca (escaleraDe), y lo que se mira aquí es la firma. */
+       !!(window.PRUEBA_CAMBIA_TRAMITE && window.PRUEBA_CAMBIA_TRAMITE('p2', {estado: 'en_revision',
+          datos: {pasos_ciip: {recaudos_revisados: '2026-10-07T10:00:00Z'}}})),
        'PRUEBA_CAMBIA_TRAMITE', 'la mueve');
   }
   function firmaVerdadAbre(){
@@ -15433,7 +15796,7 @@
     ok('firma: y la reserva del nombre espera a que firme',
        !!reserva && !reserva.classList.contains('ahora') && !reserva.querySelector('.tr-pagar'),
        reserva ? reserva.className : '(no está)', 'tr-paso porhacer');
-    if (window.PRUEBA_CAMBIA_TRAMITE) window.PRUEBA_CAMBIA_TRAMITE('p2', {estado: 'ante_el_ente'});
+    if (window.PRUEBA_CAMBIA_TRAMITE) window.PRUEBA_CAMBIA_TRAMITE('p2', {estado: 'ante_el_ente', datos: undefined});
     location.hash = '';
   }
 
@@ -15863,11 +16226,17 @@
        —no hay con qué pagar—, y el paso del PUB es el que toca. Sin
        separarlo, un solo esperado no puede valer para los dos: era el
        único rojo de la tanda. */
+    /* En 'tramospagado' el comprobante SÍ está: desde el 7-10-2026 el pago
+       lo cierra él (abajo), así que ahí esta prueba no aplica. */
+    if (!YA_PAGADO)
     igual(SIN_PLANILLA ? 'espera: sin el PUB, el tramo no pasa del paso que lo espera'
                        : 'verdad: el paso del pago no se da por hecho sin el comprobante',
           dibujo, SIN_PLANILLA ? 'ahora,porhacer,porhacer,porhacer,porhacer'
                                : 'hecho,ahora,porhacer,porhacer,porhacer');
-    ok('verdad: y sin estar hecho, tampoco lleva fecha',
+    /* Y la fecha del pago no es la del envío: el tramo nace enviado el día
+       que se resolvió el anterior, no el día que se pagó. Ni sin estar
+       hecho ni hecho por su comprobante (que aquí no trae fecha). */
+    ok('verdad: el paso del pago no lleva la fecha del envío',
        !pasos[1].querySelector('.tr-paso-f'),
        pasos[1].querySelector('.tr-paso-f') ? 'lleva fecha' : 'sin fecha', 'sin fecha');
     /* El de la emisión del PUB no es un estado del circuito: no hay evento
@@ -15886,20 +16255,28 @@
        que toca y el de la consignacion no se enciende solo. Con el freno
        anterior -solo miraba si el papel faltaba- el papel lo soltaba y la
        escalera se iba un paso mas alla sin que nadie del CIIP hubiera
-       hecho nada. */
+       hecho nada.
+
+       CAMBIÓ EL 7-10-2026 (Franklin Reyes, la simulación revisada): el
+       pago lo cierra su comprobante no rechazado -es lo que el
+       inversionista tenía que hacer, y ya lo hizo-, y lo que queda en
+       curso es la consignación, que es del CIIP. Ya no hay estado que lo
+       cierre: el gestor la pasa a revisión con solo abrirla, y con la
+       regla de antes el pago salía hecho sin comprobante. La misma cuenta
+       en la ficha propia, en Mis trámites y en el visor (escaleraDe). */
     if (YA_PAGADO){
       var yaEsta = b.querySelector('.tr-papel[data-doc="pago_aranceles"]');
       ok('pagado: el comprobante del pago ya esta subido',
          !!yaEsta && yaEsta.classList.contains('puesto'),
          yaEsta ? yaEsta.className : '(no esta la fila)', 'puesto');
-      igual('pagado: y aun asi el tramo no pasa del paso del pago',
+      igual('pagado: el comprobante cierra el pago y deja en curso la consignación',
             [].map.call(pasos, function(li){
               return li.classList.contains('hecho') ? 'hecho'
                    : li.classList.contains('ahora') ? 'ahora' : 'porhacer';
-            }).join(','), 'hecho,ahora,porhacer,porhacer,porhacer');
-      ok('pagado: el paso del pago tampoco lleva fecha todavia',
-         !pasos[1].querySelector('.tr-paso-f'),
-         pasos[1].querySelector('.tr-paso-f') ? 'lleva fecha' : 'sin fecha', 'sin fecha');
+            }).join(','), 'hecho,hecho,ahora,porhacer,porhacer');
+      ok('pagado: y la consignación, sin hacer, no lleva fecha',
+         !pasos[2].querySelector('.tr-paso-f'),
+         pasos[2].querySelector('.tr-paso-f') ? 'lleva fecha' : 'sin fecha', 'sin fecha');
     }
     /* El PUB se emite primero —sin él no hay con qué pagar—, y en el
        registro se paga ANTES de consignar. Los nombres, los del acta. */

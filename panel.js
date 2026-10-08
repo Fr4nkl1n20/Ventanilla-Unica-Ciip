@@ -3976,9 +3976,17 @@ applyLang(idiomaParaMi());
        el anterior: el c5 deja el acta redactada, el c22 la devuelve
        protocolizada y el c23 trabaja sobre esa. Ninguno pide lo que
        él mismo produce. */
+    /* El comprobante del pago de los aranceles ('pago_aranceles') estuvo
+       aquí como recaudo obligatorio hasta el 7-10-2026 (Franklin Reyes, la
+       simulación revisada), contra lo que dice LOS TRAMOS, CON SU ESTADO DE
+       VERDAD: ese papel no existe cuando se pide el trámite -aparece al
+       pagar con el PUB que deja el CIIP- y se sube desde su paso. La
+       protocolización nace ya enviada, así que el formulario solo se ve al
+       corregir una devuelta, y ahí lo exigía: había que pagar para poder
+       corregir otro papel. Sigue siendo lo que pide la base para resolver
+       (tramites_protocolizacion_con_pago), colgado desde el paso. */
     protocolizacion_acta: [
       {tipo:'acta_constitutiva',   clave:'d_acta'},
-      {tipo:'pago_aranceles',      clave:'d_aranceles'},
       {tipo:'cedula',              clave:'d_identidad'},
       /* Opcional a propósito: sólo le toca a quien se instala en zona
          fronteriza o de seguridad, o toca la defensa. A quien le toca,
@@ -9104,6 +9112,15 @@ applyLang(idiomaParaMi());
      lo que se espera es el pago -el 3-, pero el importe puede vencer
      mientras tanto, así que la casilla sigue ahí para subir el de hoy. Ante
      el ente ya es «En proceso de traducción»: ahí no se cobra nada. */
+  /* Eso de «al pasarla a revisión el importe ya salió» dejó de ser verdad
+     cuando el gestor empezó a pasarlas a revisión con solo abrirlas
+     (hoyAbre): la escalera daba el importe por hecho sin que lo hubiera.
+     Desde el 7-10-2026 (Franklin Reyes, la simulación revisada) el 2 lo
+     cierra el importe colgado y el 3 el comprobante no rechazado, no el
+     estado (PASOS_CON_PAPEL); y no se presenta ante el MPPRE sin ese
+     comprobante (faltaPagoParaPresentar), que ante el ente la base ya no
+     deja colgarlo -estos dos estados son los únicos de
+     importe_del_dia_pasos- y sin él no se resuelve. */
   IMPORTE_DEL_DIA.apostilla_documentos = {paso: 2, estados: ['enviado', 'en_revision']};
   var TIPO_IMPORTE = 'importe_dia', TIPO_PAGO_IMPORTE = 'pago_importe_dia';
 
@@ -10459,6 +10476,63 @@ applyLang(idiomaParaMi());
      ───────────────────────────────────────────────────────────────── */
   var ORDEN = ['enviado','en_revision','ante_el_ente','resuelto'];
 
+  /* ── LOS PAPELES QUE SE SABEN DE UNA SOLICITUD, SIN ESPERAR ──
+     Franklin Reyes, 7-10-2026 (la simulación de recorridos revisada): la
+     protocolización, la publicación y el pago LOCTI nacían «recibidas» y
+     la escalera pintaba «Emisión del PUB» en curso, «Pago» HECHO y la
+     consignación en curso a la vez; al abrirlas el gestor, PUB y pago
+     salían hechos sin un solo papel. La traducción, igual con su importe.
+     Es que esos pasos no los cierra un estado: los cierra un PAPEL -el PUB
+     que deja el CIIP, el comprobante que sube el inversionista-, y
+     escaleraDe() es sincrónica y no puede ir a buscarlo.
+
+     Así que los papeles se apuntan aquí cuando ya se han pedido por otra
+     razón, y escaleraDe() los lee de aquí: la cola del equipo los pide
+     todos de una vez (cargaRecaudosHoy), la ficha y el bloque del tramo
+     los piden antes de pintar, y Mis trámites los de las solicitudes del
+     inversionista que los necesitan (cargaMisTramites). Una sola fuente,
+     así que la ficha propia, el bloque del tramo, la fila de Mis trámites
+     y el visor del gestor cuentan lo mismo.
+
+     Lo que no se sabe no se da por hecho: sin papeles apuntados, el paso
+     que los pide se queda en curso. Es la mentira que esta escalera
+     existe para no contar -«hecho» donde nadie ha hecho nada-. */
+  var PAPELES_SABIDOS = {};
+  function apuntaPapeles(trId, filas){
+    if (!trId) return;
+    PAPELES_SABIDOS[trId] = (filas || []).filter(function(d){ return d && d.tipo; })
+      .map(function(d){
+        return {tipo: d.tipo, estado: d.estado || 'cargado', creado_en: d.creado_en || '',
+                paso_importe: d.paso_importe || null, nombre_original: d.nombre_original || ''};
+      });
+  }
+  /* Uno recién subido desde aquí: se suma a lo sabido, sin esperar a
+     volver a pedirlo. */
+  function apuntaUnPapel(trId, d){
+    if (!trId || !d || !d.tipo) return;
+    var ya = PAPELES_SABIDOS[trId] || [];
+    PAPELES_SABIDOS[trId] = ya.concat([{tipo: d.tipo, estado: d.estado || 'cargado',
+      creado_en: d.creado_en || new Date().toISOString(), paso_importe: d.paso_importe || null,
+      nombre_original: d.nombre_original || ''}]);
+  }
+  function papelesSabidos(tr){ return (tr && tr.id && PAPELES_SABIDOS[tr.id]) || null; }
+  /* Si cuelga un papel de ese tipo que no se haya rechazado. */
+  function tienePapel(tr, tipo){
+    return (papelesSabidos(tr) || []).some(function(d){
+      return d.tipo === tipo && d.estado !== 'rechazado';
+    });
+  }
+  /* Los tipos cuya escalera mira papeles: para no pedirlos de todos. */
+  function escaleraConPapeles(ref, codigo){
+    return !!((typeof PAPEL_DE_PASO !== 'undefined' && PAPEL_DE_PASO[ref]) ||
+              (typeof PASOS_CON_PAPEL !== 'undefined' && PASOS_CON_PAPEL[ref]) ||
+              codigo === 'constitucion');
+  }
+  /* Para las pruebas y el simulador. */
+  window.CIIP_PAPELES_SABIDOS = {apunta: apuntaPapeles, uno: apuntaUnPapel,
+                                 olvida: function(){ PAPELES_SABIDOS = {}; },
+                                 tiene: tienePapel};
+
   /* ── LA ESCALERA DE UNA SOLICITUD, EN UN SOLO SITIO ──
      Que pasos tiene, como se llaman y cuales van hechos o en curso. La
      leen la ficha (pintaEstado) y la columna «Progreso» de Mis tramites,
@@ -10618,6 +10692,26 @@ applyLang(idiomaParaMi());
             hechos = Math.max(hechos, Math.min(np, n - 1));
         }
       }
+      /* Y LOS PASOS QUE CIERRA UN PAPEL (Franklin Reyes, 7-10-2026, la
+         simulación revisada). Ver PASOS_CON_PAPEL: el papel cierra su paso
+         y deja en curso el siguiente, sin esperar a que el gestor mueva la
+         solicitud; y donde el paso 'topa', sin el papel la escalera no pasa
+         de ahí por mucho que diga el estado -la traducción salía con el
+         importe hecho solo porque el gestor la abrió-. Los papeles son los
+         que se saben (PAPELES_SABIDOS). */
+      var CONPAPEL = (typeof PASOS_CON_PAPEL !== 'undefined' && PASOS_CON_PAPEL[ref]) || null;
+      if (CONPAPEL && ['resuelto', 'borrador', 'cancelado'].indexOf(tr.estado) < 0){
+        for (var nq = 1; nq < n; nq++){
+          var regla = CONPAPEL[nq];
+          if (!regla) continue;
+          if (!regla.cierra(tr)){
+            if (regla.topa) hechos = Math.min(hechos, nq - 1);
+            break;
+          }
+          if (tr.estado !== 'devuelto' || regla.tambienDevuelta)
+            hechos = Math.max(hechos, Math.min(nq, n - 1));
+        }
+      }
       libres = lista.map(function(txt, i){
         return {
           est: (i === 0 ? 'enviado' : (i === n - 1 ? 'resuelto' : null)),
@@ -10632,8 +10726,10 @@ applyLang(idiomaParaMi());
               reserva: null, todos: libres};
     }
 
-    /* Los de delante se dan por hechos cuando la solicitud ya pasó de
-       «recibida»: no se llega a revisión sin haber pagado. */
+    /* Los de delante se daban por hechos cuando la solicitud ya pasó de
+       «recibida»: «no se llega a revisión sin haber pagado». Dejó de ser
+       verdad cuando el gestor las pasa a revisión con solo abrirlas; desde
+       el 7-10-2026 los cierran sus papeles, más abajo (conPapel). */
     var pre = [];
     if (propios){
       for (var p = 0; p < delante; p++){
@@ -10649,7 +10745,18 @@ applyLang(idiomaParaMi());
        ahí era dar por mirados unos papeles que nadie ha mirado todavía. La
        constitución se queda como estaba: detrás de la revisión va la firma
        en el CIIP, que es la que está en curso en ese estado. */
-    var revisando = (tr.estado === 'en_revision' && !conFirma);
+    /* Y LA CONSTITUCIÓN TAMBIÉN, HASTA «RECAUDOS REVISADOS» (Franklin
+       Reyes, 7-10-2026, la simulación revisada). «Revisión de tus
+       recaudos» salía hecha y la firma en curso en cuanto el gestor la
+       abría, antes de que nadie pulsara «Recaudos revisados». Ahora la
+       revisión sigue en curso hasta esa marca, y la firma va detrás: el
+       botón del gestor para marcarla tampoco se enciende antes
+       (casillaDeLaFirma). Con la firma ya apuntada -las que se firmaron
+       antes de este cambio- la revisión se da por hecha: no se firma lo
+       que no se ha revisado. */
+    var revisionAbierta = conFirma && tr.estado === 'en_revision' && !firmada &&
+                          !recaudosYaRevisados(tr, ref);
+    var revisando = (tr.estado === 'en_revision' && (!conFirma || revisionAbierta));
     /* Y HECHA CON «RECAUDOS REVISADOS» (Franklin Reyes, 5-10-2026, punto
        2). Desde que «Presentar» se partió en dos, el gestor cierra la
        revisión con su botón antes de presentarla: con esa marca la
@@ -10691,16 +10798,83 @@ applyLang(idiomaParaMi());
            (conReserva && est === 'resuelto' ? 1 : 0)
       };
     });
+    /* ── CON EL PUB DELANTE, LOS DOS PRIMEROS LOS CIERRAN SUS PAPELES ──
+       Franklin Reyes, 7-10-2026 (la simulación revisada). La
+       protocolización, la publicación y el pago LOCTI nacen «recibidas», y
+       la cuenta de arriba les pintaba «▶ Emisión del PUB · ✓ Pago · ▶
+       Consignación»: dos pasos en curso y un pago hecho sin PUB con qué
+       pagarlo. Al abrirlas el gestor -que las pasa a revisión con solo
+       mirarlas- salían el PUB y el pago hechos sin un papel.
+
+       Ningún estado de la base sabe si el CIIP dejó el PUB ni si el
+       inversionista pagó: lo saben los papeles. Así que aquí manda la
+       misma regla que ya tenía el bloque del tramo dentro de la
+       constitución, y ahora es una sola cuenta para los cuatro sitios que
+       la enseñan: el PUB está hecho con su planilla colgada -o con el
+       comprobante, que no se paga sin ella-; el pago, con su comprobante
+       no rechazado; la consignación, al presentarla ante el ente; y lo de
+       detrás, al resolverse. En curso, uno solo: el primero que falta. */
+    var conPapel = (delante && typeof PAPEL_DE_PASO !== 'undefined' && PAPEL_DE_PASO[ref]) || null;
+    if (propios && conPapel){
+      var cerradaP = (tr.estado === 'resuelto');
+      var pagoP = cerradaP || tienePapel(tr, conPapel.tipo);
+      var pubP = pagoP || tienePapel(tr, conPapel.planilla);
+      var seguidos = pre.concat(circ);
+      var cumple = function(i){
+        if (i === 0) return pubP;
+        if (i === 1) return pagoP;
+        var j = i - delante;
+        return (j >= ORDEN.length - 2) ? cerradaP : alcanzado > j;
+      };
+      var hastaP = 0;
+      while (hastaP < seguidos.length && cumple(hastaP)) hastaP++;
+      seguidos.forEach(function(p, i){
+        p.hecho = i < hastaP;
+        p.ahora = (i === hastaP) && !cerradaP && tr.estado !== 'cancelado';
+      });
+      /* Y su fecha es la del papel, no la de un estado: el pago cuelga de
+         «recibida», y la fecha del envío es la del día en que el tramo
+         nació, no la del pago. Sin papel con fecha, sin fecha. */
+      var fechaDe = function(tipo){
+        var f = null;
+        (papelesSabidos(tr) || []).forEach(function(d){
+          if (d.tipo === tipo && d.estado !== 'rechazado' && d.creado_en && (!f || d.creado_en > f)) f = d.creado_en;
+        });
+        return f;
+      };
+      seguidos[0].porPapel = seguidos[1].porPapel = true;
+      seguidos[0].cuando = seguidos[0].hecho ? (fechaDe(conPapel.planilla) || null) : null;
+      seguidos[1].cuando = seguidos[1].hecho ? (fechaDe(conPapel.tipo) || null) : null;
+    }
     /* En curso mientras la solicitud está en revisión: ya se miraron los
        papeles y lo que falta es que la persona venga. */
     var firma = conFirma ? {nombre: u.tr_firmaciip || '', hecho: firmada,
-                            ahora: !firmada && tr.estado === 'en_revision',
+                            ahora: !firmada && tr.estado === 'en_revision' && !revisionAbierta,
                             cuando: (tr.datos || {})[CLAVE_FIRMA] || null,
                             n: 3 + delante, firma: true} : null;
-    /* La misma regla que pasoDeLaReserva: hecho al resolverse, en curso
-       mientras está ante el ente. */
-    var reserva = conReserva ? {nombre: u.d_reserva || '', hecho: tr.estado === 'resuelto',
-                                ahora: tr.estado === 'ante_el_ente',
+    /* ── EL PUB DE LA RESERVA Y LA RESERVA, CON SUS PAPELES ──
+       Franklin Reyes, 7-10-2026 (la simulación revisada): al presentarla
+       ante el SAREN, «Emisión de PUB para reserva de nombre» salía hecha
+       sin que el CIIP hubiera dejado ningún PUB, y el inversionista veía la
+       casilla del comprobante de la reserva sin tener con qué pagar. Ante
+       el ente, el PUB lo cierra su planilla (planilla_reserva_nombre):
+       mientras no está, el PUB en curso y la reserva por hacer; con ella,
+       el PUB hecho y la reserva en curso. La reserva queda hecha con su
+       comprobante no rechazado -como la cerraba ya la casilla al subirlo-
+       o al resolverse, y entonces lo que está en curso es «Resuelta», que
+       es lo que le toca al gestor. Si se puede resolver sin el comprobante
+       no se toca aquí: eso lo dice comprobanteParaResolver(). */
+    var anteConst = conReserva && tr.estado === 'ante_el_ente';
+    var pubReserva = anteConst && (tienePapel(tr, TIPO_PLANILLA) || tienePapel(tr, TIPO_RESERVA));
+    var reservaHecha = tr.estado === 'resuelto' || (anteConst && pubReserva && tienePapel(tr, TIPO_RESERVA));
+    if (anteConst){
+      circ.forEach(function(c){
+        if (c.est === 'ante_el_ente'){ c.hecho = pubReserva; c.ahora = !pubReserva; }
+        if (c.est === 'resuelto') c.ahora = reservaHecha;
+      });
+    }
+    var reserva = conReserva ? {nombre: u.d_reserva || '', hecho: reservaHecha,
+                                ahora: anteConst && pubReserva && !reservaHecha,
                                 n: 4 + delante + (conFirma ? 1 : 0), reserva: true} : null;
 
     var todos = pre.slice();
@@ -10844,7 +11018,10 @@ applyLang(idiomaParaMi());
 
     var msg = el('div', 'pe-msg', '');
     caja.appendChild(rechazo);
-    caja.appendChild(pista);
+    /* «Cuando la tengas firmada, súbela aquí» solo mientras se puede
+       subir: con la solicitud resuelta es una invitación vencida (Franklin
+       Reyes, 7-10-2026, la simulación revisada). */
+    if (abierta) caja.appendChild(pista);
     caja.appendChild(subeEnl);
     caja.appendChild(subeYa);
     caja.appendChild(arch);
@@ -10898,6 +11075,7 @@ applyLang(idiomaParaMi());
              manda la más reciente, y el equipo ve las dos. */
           pon({id: docId, tipo: TIPO_PLANILLA_FIRMADA, nombre_original: f.name, estado: 'cargado',
                creado_en: new Date().toISOString()});
+          apuntaUnPapel(tr.id, {tipo: TIPO_PLANILLA_FIRMADA, nombre_original: f.name});
           if (alSubir) alSubir();
         })
         .catch(function(e){
@@ -11195,10 +11373,34 @@ applyLang(idiomaParaMi());
     var lista = el('ol', 'tr-pasos tr-escalera');
     caja.appendChild(lista);
 
+    /* Y sus papeles, cuando la escalera de este trámite los mira (Franklin
+       Reyes, 7-10-2026): el PUB y el comprobante de la protocolización, la
+       publicación y el LOCTI, el importe de la traducción, la planilla
+       firmada del RIF, el PUB de la reserva. Se piden a la vez que el
+       historial y se apuntan antes de contar la escalera
+       (PAPELES_SABIDOS); si fallan, se cuenta con lo que ya se sabía. */
+    var refFicha = tipoRefDe(tipo.codigo);
+    var papelesFicha = escaleraConPapeles(refFicha, tipo.codigo)
+      ? Promise.resolve().then(function(){
+          return sb.from('tramite_documentos').select('documentos(*)').eq('tramite', tr.id);
+        }).then(function(rp){
+          if (rp && !rp.error)
+            apuntaPapeles(tr.id, ((rp && rp.data) || []).map(function(f){ return f.documentos; }));
+        }).catch(function(){})
+      : Promise.resolve();
+    /* Lo que repinta la ficha entera con un papel nuevo: el paso lo cierra
+       el papel, y la escalera se vuelve a contar con lo que diga la base. */
+    var repintaFicha = function(){
+      PAPELES_DE[tr.id] = null;
+      caja.textContent = '';
+      pintaEstado(tipo, tr);
+    };
+
     /* historial: para saber cuándo pasó cada cosa */
-    sb.from('tramite_eventos').select('a_estado, nota, creado_en')
-      .eq('tramite', tr.id).order('creado_en', {ascending:true})
-      .then(function(r){
+    Promise.all([Promise.resolve(sb.from('tramite_eventos').select('a_estado, nota, creado_en')
+      .eq('tramite', tr.id).order('creado_en', {ascending:true})), papelesFicha])
+      .then(function(res){
+        var r = res[0] || {};
         var cuando = {};
         (r.data || []).forEach(function(ev){ if (!cuando[ev.a_estado]) cuando[ev.a_estado] = ev.creado_en; });
 
@@ -11261,9 +11463,9 @@ applyLang(idiomaParaMi());
         var refTr = esc.ref;
         var propios = esc.propios;
 
-        /* Los de delante, antes del circuito. Se dan por hechos cuando la
-           solicitud ya pasó de «recibida»: no se llega a revisión sin haber
-           pagado, así que el PUB estaba. Es, otra vez, la regla del bloque
+        /* Los de delante, antes del circuito. Hechos o no lo dice
+           escaleraDe(), con los papeles (desde el 7-10-2026 el PUB lo
+           cierra su planilla, no el estado): la misma cuenta que el bloque
            del tramo. */
         if (propios){
           for (var p = 0; p < esc.pre.length; p++){
@@ -11273,6 +11475,17 @@ applyLang(idiomaParaMi());
             liP.appendChild(el('span', 'tr-punto', hechoP ? '✓' : String(p + 1)));
             var txtP = el('div', 'tr-txt');
             txtP.appendChild(el('div', 'tr-paso-n', propios[p]));
+            /* Hecho, con la fecha del papel que lo cerró, si se sabe. */
+            if (hechoP && esc.pre[p].cuando) txtP.appendChild(el('div', 'sd-e', fecha(esc.pre[p].cuando)));
+            /* En curso, su «Vas por aquí» como cualquier otro paso: con el
+               PUB delante en curso era el único sitio sin decirlo. */
+            if (ahoraP){
+              var etiP = el('span', 'tr-aqui', textoAqui());
+              var desdeP = tr.enviado_en || tr.creado_en;
+              if (desdeP) etiP.appendChild(el('span', 'tr-desde',
+                String(u.ns_desde_paso || '').replace('{cuando}', haceCuanto(desdeP))));
+              txtP.appendChild(etiP);
+            }
             liP.appendChild(txtP);
             lista.appendChild(liP);
           }
@@ -11369,17 +11582,24 @@ applyLang(idiomaParaMi());
                firmada. Escondida mientras no esté. */
             if ((PLANILLA_DEL_CIIP_DEL_PASO || {})[refTr] === nPaso)
               txt.appendChild(filaDeLaPlanillaDelCiip(tr));
-            if (pideLaPlanillaFirmada(refTr, nPaso)) txt.appendChild(casillaDeLaPlanillaFirmada(tr));
+            /* Subida, la ficha se repinta: la firmada cierra su paso y deja
+               en curso el siguiente (PASOS_CON_PAPEL, 7-10-2026). */
+            if (pideLaPlanillaFirmada(refTr, nPaso)) txt.appendChild(casillaDeLaPlanillaFirmada(tr, repintaFicha));
             /* El importe del día, en el paso que su trámite diga
                (IMPORTE_DEL_DIA). El equipo lo sube desde su cola, y aquí no
                se le pone nada, igual que con los demás comprobantes. */
+            /* Y con el comprobante cargado, la ficha se repinta: el pago
+               cierra su paso (PASOS_CON_PAPEL, 7-10-2026). */
             if (importeDelPaso(tipo.codigo, nPaso) &&
                 !(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO()))
-              txt.appendChild(cajaDelImporte(tr));
+              txt.appendChild(cajaDelImporte(tr, importeDelPaso(tipo.codigo, nPaso), repintaFicha));
           }
           /* En curso va «Vas por aquí» aunque su estado ya tenga fecha: es
              la revisión, que empieza al entrar en revisión y sigue abierta. */
-          if (est && cuando[est] && !ahora) txt.appendChild(el('div', 'sd-e', fecha(cuando[est])));
+          /* Los que cierra un papel llevan la fecha del papel, no la del
+             estado del que cuelgan (escaleraDe, 7-10-2026). */
+          var fechaPaso = paso.porPapel ? paso.cuando : (est && cuando[est]);
+          if (fechaPaso && !ahora) txt.appendChild(el('div', 'sd-e', fecha(fechaPaso)));
           else if (ahora){
             var eti = el('span', 'tr-aqui', textoAqui());
             /* Desde cuando estas parado en este punto. Para un devuelto es
@@ -11503,8 +11723,23 @@ applyLang(idiomaParaMi());
           }
           li.appendChild(punto); li.appendChild(txt);
           lista.appendChild(li);
-          if (conReserva && est === 'ante_el_ente') lista.appendChild(pasoDeLaReserva(tr, esc.reserva.n));
+          if (conReserva && est === 'ante_el_ente') lista.appendChild(pasoDeLaReserva(tr, esc.reserva, repintaFicha));
         });
+        /* ── EL PUB Y EL COMPROBANTE, TAMBIÉN EN SU FICHA ──
+           Franklin Reyes, 7-10-2026 (la simulación revisada). La
+           protocolización, la publicación y el pago LOCTI solo dejaban
+           abrir el PUB y subir el comprobante desde el bloque del tramo,
+           dentro de la constitución; en «Tu solicitud» -adonde se llega
+           desde Mis trámites y desde los avisos- no había ni lo uno ni lo
+           otro, y sin el comprobante no se resuelve. Son las mismas dos
+           filas del bloque (ponElPub, ponElComprobante), en los mismos
+           pasos: el PUB en el primero y el comprobante en el del pago, que
+           se destapa cuando hay PUB con qué pagar. Subido, la ficha se
+           repinta y el pago sale hecho. */
+        if (propios && esc.delante && (PAPEL_DE_PASO || {})[refTr]){
+          ponElPub(null, refTr, tr, lista.children);
+          ponElComprobante(null, refTr, tr, lista.children, esc.alcanzado + esc.delante, repintaFicha);
+        }
       }).catch(function(){});
 
     /* --- el banco aliado, cuando ya se sabe cuál ---
@@ -16618,6 +16853,15 @@ applyLang(idiomaParaMi());
         var b = el('button', 'btn ' + (i === 0 && p.nota ? 'ghost' : 'navy'), rotP || '');
         b.type = 'button';
         principal = b; principalTxt = rotP || '';
+        /* Apagado mientras falte el pago, con su porqué (7-10-2026): se
+           pregunta a la base al pintarlo, y el clic vuelve a mirarlo. */
+        if (p.a === 'ante_el_ente' && !revisaP && PAGO_PARA_PRESENTAR[t.tipo]){
+          faltaPagoParaPresentarAhora(t).then(function(falta){
+            if (!falta || !b.isConnected) return;
+            b.disabled = true;
+            b.title = u[falta] || '';
+          });
+        }
         b.addEventListener('click', function(){
           /* La planilla del RIF: se sube, si hay una elegida, y la
              solicitud pasa a revisión. Sin ninguna, se dice y no se mueve. */
@@ -16670,6 +16914,24 @@ applyLang(idiomaParaMi());
           if (p.a === 'ante_el_ente' && faltaParaPresentarEtapas(t)){
             f.classList.add('mal');
             aviso.textContent = u[faltaParaPresentarEtapas(t)] || '';
+            return;
+          }
+          /* Ni la protocolización, la publicación, el LOCTI o la traducción
+             sin su pago (Franklin Reyes, 7-10-2026): aquí los papeles no se
+             han pedido, así que se pregunta antes de moverla. Vista la
+             respuesta, el segundo clic ya no pregunta. */
+          if (p.a === 'ante_el_ente' && PAGO_PARA_PRESENTAR[t.tipo] && !b.getAttribute('data-pago')){
+            b.disabled = true;
+            faltaPagoParaPresentarAhora(t).then(function(falta){
+              b.disabled = false;
+              if (falta){
+                f.classList.add('mal');
+                aviso.textContent = u[falta] || '';
+                return;
+              }
+              b.setAttribute('data-pago', 'visto');
+              b.click();
+            });
             return;
           }
           /* Devolver SIN decir por qué deja al inversionista con un aviso que
@@ -17483,6 +17745,8 @@ applyLang(idiomaParaMi());
         return entrega(t, archivo, pide.tipo)
           .then(function(){
             if (typeof PAPELES_DE !== 'undefined') PAPELES_DE[t.id] = null;
+            /* Y la escalera lo sabe ya: el PUB cierra su paso (7-10-2026). */
+            apuntaUnPapel(t.id, {tipo: pide.tipo, estado: 'validado', nombre_original: archivo.name});
             inp.disabled = false;
             puesto(archivo.name);
             return true;
@@ -17536,9 +17800,20 @@ applyLang(idiomaParaMi());
       est.textContent = hecha
         ? String(u.co_firma_hecha || '').replace('{fecha}', fecha(t.datos[CLAVE_FIRMA])) : '';
       b.textContent = hecha ? (u.co_firma_deshacer || '') : (u.co_firma_marca || '');
+      /* Y NO ANTES DE REVISAR (Franklin Reyes, 7-10-2026, la simulación
+         revisada): la firma va detrás de «Recaudos revisados», como en la
+         escalera del inversionista (escaleraDe). Apagado y con su porqué;
+         deshacer una firma ya puesta sí se puede siempre. */
+      var antes = !hecha && faltaRevisarRecaudos(t);
+      b.disabled = antes;
+      b.title = antes ? (u.co_firma_revisar || '') : '';
     }
     b.addEventListener('click', function(){
       var poner = !firmadaEnElCiip(t);
+      if (poner && faltaRevisarRecaudos(t)){
+        msg.textContent = u.co_firma_revisar || '';
+        return;
+      }
       b.disabled = true;
       msg.textContent = '';
       Promise.resolve(sb.rpc('marca_firma_ciip', {p_tramite: t.id, p_hecha: poner}))
@@ -17559,6 +17834,8 @@ applyLang(idiomaParaMi());
     pinta();
     return {caja: caja, firmada: function(){ return firmadaEnElCiip(t); }};
   }
+  /* Para las pruebas: el botón de la firma, apagado antes de revisar. */
+  window.CIIP_CASILLA_FIRMA = casillaDeLaFirma;
 
   /* La tabla de la cola no espera a mueveTramite para nada -pinta sola-, y
      por eso el aviso de la nota perdida va por el toast y no por el hueco
@@ -17984,8 +18261,15 @@ applyLang(idiomaParaMi());
       .in('tramite', ids))
       .then(function(r){
         if (r && r.error) throw r.error;
-        var de = {};
-        ids.forEach(function(id){ de[id] = []; });
+        var de = {}, todos = {};
+        ids.forEach(function(id){ de[id] = []; todos[id] = []; });
+        /* TODOS los papeles, también los que aquí no se revisan -el PUB, el
+           importe del día-: son los que cierran pasos de la escalera y los
+           que frenan «Presentada ante» (PAPELES_SABIDOS, 7-10-2026). */
+        (r.data || []).forEach(function(f){
+          if (f && f.documentos && todos[f.tramite]) todos[f.tramite].push(f.documentos);
+        });
+        ids.forEach(function(id){ apuntaPapeles(id, todos[id]); });
         (r.data || []).forEach(function(f){
           var d = f.documentos;
           if (!d || !de[f.tramite] || d.tipo === 'resolucion' ||
@@ -18732,8 +19016,8 @@ applyLang(idiomaParaMi());
     /* La misma regla que la ficha de la cola: la visa, sin la planilla
        firmada, no se presenta. Ni siquiera se pasa a revisión por el
        camino: se dice qué falta y nada más. */
-    if (faltaParaPresentarEtapas(t)){
-      if (aviso) aviso.textContent = u[faltaParaPresentarEtapas(t)] || '';
+    if (faltaParaPresentar(t)){
+      if (aviso) aviso.textContent = u[faltaParaPresentar(t)] || '';
       return;
     }
     /* Ni sin la marca del inversionista, ni sin «Recaudos revisados»
@@ -19266,7 +19550,25 @@ applyLang(idiomaParaMi());
     var falta = docs.some(function(d){ return d.estado === 'cargado'; });
     return (revisaPapelesEn(t) && falta) ? 'recaudo' : 'paso';
   }
+  /* Los papeles de una solicitud que la cola no trajo -la cola los pide
+     todos al entrar (cargaRecaudosHoy), así que es raro-: se piden una vez
+     y se apuntan, y el visor se vuelve a pintar con ellos (7-10-2026). */
+  var PAPELES_PIDIENDO = {};
+  function pideLosPapeles(t){
+    if (!t || !t.id || papelesSabidos(t) || PAPELES_PIDIENDO[t.id]) return;
+    if (!escaleraConPapeles(tipoRefDe(t.tipo), t.tipo) && !PAGO_PARA_PRESENTAR[t.tipo]) return;
+    PAPELES_PIDIENDO[t.id] = true;
+    Promise.resolve().then(function(){
+      return sb.from('tramite_documentos').select('documentos(*)').eq('tramite', t.id);
+    }).then(function(r){
+      delete PAPELES_PIDIENDO[t.id];
+      if (!r || r.error) return;
+      apuntaPapeles(t.id, ((r && r.data) || []).map(function(f){ return f.documentos; }));
+      if (visor && visor.id === t.id) pintaVisor();
+    }).catch(function(){ delete PAPELES_PIDIENDO[t.id]; });
+  }
   function escaleraDelVisor(t){
+    pideLosPapeles(t);
     var def = ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo];
     return def ? escaleraPorEtapas(t, t.tipo) : escaleraDe(t, t.tipo, hoyEnte(t));
   }
@@ -19992,11 +20294,11 @@ applyLang(idiomaParaMi());
       } else if (c && c.rechazado){
         pista.className = 'hoy-pista mal';
         pista.textContent = u.co_h_p_rechazo || '';
-      } else if (faltaParaPresentarEtapas(t)){
+      } else if (faltaParaPresentar(t)){
         /* Todo validado, pero la visa espera la planilla firmada: decir
            «listo para presentar» sería mentira. */
         pista.className = 'hoy-pista mal';
-        pista.textContent = u[faltaParaPresentarEtapas(t)] || '';
+        pista.textContent = u[faltaParaPresentar(t)] || '';
       } else if (esperaLaMarca(t, u)){
         /* Y lo que falta lo hace el inversionista: se espera (5-10-2026). */
         pista.className = 'hoy-pista mal';
@@ -20047,8 +20349,11 @@ applyLang(idiomaParaMi());
           /* Y la constitución, además, espera a la firma en el CIIP; y el
              RIF, a la planilla firmada. */
           var sinFirma = !!(firma && !firma.firmada());
-          /* Y la visa, a la planilla firmada del inversionista. */
-          var sinPlanilla = faltaParaPresentarEtapas(t);
+          /* Y la visa, a la planilla firmada del inversionista; y la
+             protocolización, la publicación, el LOCTI y la traducción, a su
+             pago, con el porqué en el title (faltaPagoParaPresentar,
+             7-10-2026). */
+          var sinPlanilla = faltaParaPresentar(t);
           /* Y lo que tiene que marcar el inversionista. */
           var sinMarca = esperaLaMarca(t, u);
           pre.disabled = !!(c && (c.cargado || c.rechazado)) || sinFirma || !!sinFirmada || !!sinPlanilla || !!sinMarca;
@@ -23425,6 +23730,27 @@ applyLang(idiomaParaMi());
     });
   }
 
+  /* Los papeles de las solicitudes propias cuya escalera los mira, en un
+     solo viaje. Si falla, la fila cuenta con lo que ya se sabía. */
+  function papelesDeLosMios(lista){
+    var ids = (lista || []).filter(function(t){
+      return t && t.id && t.estado !== 'borrador' && t.estado !== 'cancelado' &&
+             escaleraConPapeles(tipoRefDe(t.tipo), t.tipo);
+    }).map(function(t){ return t.id; });
+    if (!ids.length) return Promise.resolve();
+    return Promise.resolve().then(function(){
+      return sb.from('tramite_documentos').select('tramite, documentos(*)').in('tramite', ids);
+    }).then(function(r){
+      if (!r || r.error) return;
+      var de = {};
+      ids.forEach(function(id){ de[id] = []; });
+      (r.data || []).forEach(function(f){
+        if (f && f.documentos && de[f.tramite]) de[f.tramite].push(f.documentos);
+      });
+      ids.forEach(function(id){ apuntaPapeles(id, de[id]); });
+    }).catch(function(){});
+  }
+
   function cargaMisTramites(){
     /* Al equipo del CIIP no. La política de la base le deja leer los
        trámites de TODOS y esta consulta no filtra por dueño -no le hace
@@ -23492,8 +23818,11 @@ applyLang(idiomaParaMi());
         pintaMisTramites();
         /* Y con ellos, el estado de las 31 tarjetas de la portada. */
         pintaEstadoTarjetas();
-        /* Y con el segundo repintado, desde cuándo espera cada una. */
-        return ponDesdeCuando(mios).then(pintaMisTramites);
+        /* Y con el segundo repintado, desde cuándo espera cada una, y los
+           papeles de las que tienen pasos que cierra un papel: sin ellos la
+           columna «Progreso» contaría distinto que la ficha que abre
+           (PAPELES_SABIDOS, 7-10-2026). */
+        return Promise.all([ponDesdeCuando(mios), papelesDeLosMios(mios)]).then(pintaMisTramites);
       });
     })
       .catch(function(e){
@@ -25327,8 +25656,12 @@ applyLang(idiomaParaMi());
 
      Los cuatro pasos de detras siguen siendo los del circuito, uno a uno
      con los cuatro estados, corridos un sitio: por eso 'cuantos'. Si el
-     tramite ya paso de "recibida" el PUB se da por emitido aunque no se
-     encuentre: no se llega a revision sin haber pagado.
+     tramite ya paso de "recibida" el PUB se daba por emitido aunque no se
+     encontrara: no se llegaba a revision sin haber pagado. Ya no (Franklin
+     Reyes, 7-10-2026): el gestor la pasa a revision con solo abrirla, y
+     ahora el PUB lo cierra su planilla y el pago su comprobante, en
+     cualquier estado, en escaleraDe() -una sola cuenta para la ficha, el
+     bloque, Mis tramites y el visor-.
 
      Y LA PUBLICACION IGUAL, el mismo dia y por lo mismo: el periodico
      tampoco publica sin cobrar, y el PUB lo manda el CIIP. Son dos tramos
@@ -25525,6 +25858,44 @@ applyLang(idiomaParaMi());
      de recaudos → Inscripción ante el ente → Emitida certificación de
      conformidad de uso». Revisión mientras está en el CIIP, inscripción
      mientras está ante la alcaldía, y la certificación al resolverse. */
+  /* ── LOS PASOS QUE CIERRA UN PAPEL ──
+     Franklin Reyes, 7-10-2026 (la simulación de recorridos revisada). En
+     estos pasos no manda el estado de la solicitud sino un papel colgado
+     de ella, y la escalera tiene que esperar a que esté:
+
+       · La traducción (c17): el 2, «Importe de traducción», lo cierra el
+         importe del día colgado -de hoy, o ya pagado-, y el 3,
+         «Comprobante de pago», el comprobante no rechazado. Sin esto, con
+         la cuenta de siempre, el gestor la abría -pasa a revisión con solo
+         mirarla- y el importe salía hecho sin que hubiera importe.
+       · Los dos RIF (c3, c6): el 3, «Firme la planilla», lo cierra la
+         planilla firmada que devuelve el inversionista, sin esperar a que
+         el gestor la presente; el siguiente queda en curso.
+
+     cierra(tr): si el papel está, con lo que se sabe (PAPELES_SABIDOS).
+     topa: sin el papel, la escalera no pasa de ese paso aunque el estado
+     diga más. tambienDevuelta: el papel cuenta también con la solicitud
+     devuelta; el RIF no -la planilla se hace con los recaudos que se están
+     corrigiendo, y el CIIP manda otra-. La cuenta es la del rótulo, como
+     en PASOS_QUE_MARCAS_TU. */
+  function importeCerrado(tr){
+    var fase = estadoDelImporte(papelesSabidos(tr) || []).fase;
+    return fase === 'vigente' || fase === 'pagado';
+  }
+  function importePagado(tr){
+    return estadoDelImporte(papelesSabidos(tr) || []).fase === 'pagado';
+  }
+  function firmadaVale(tr){
+    var d = laPlanillaFirmada((papelesSabidos(tr) || []).map(function(x){ return {documentos: x}; }));
+    return !!d && d.estado !== 'rechazado';
+  }
+  var PASOS_CON_PAPEL = {
+    c17: {2: {cierra: importeCerrado, topa: true, tambienDevuelta: true},
+          3: {cierra: importePagado,  topa: true, tambienDevuelta: true}},
+    c3:  {3: {cierra: firmadaVale}},
+    c6:  {3: {cierra: firmadaVale}}
+  };
+
   var PASOS_SEGUN_ESTADO = {
     /* CAMBIÓ EL 1-10-2026 (Franklin Reyes, Taquilla única opción 2). La
        licencia (c10), la conformidad de uso (c28) y el Registro Único
@@ -25790,7 +26161,8 @@ applyLang(idiomaParaMi());
      se paga antes de consignar, y el papel que sale de ahi es el que pide
      el registrador. */
   /* El tipo es el del catalogo -tipos_documento-: uno inventado lo rechaza la
-     base al subirlo. Es el mismo recaudo que pide el formulario de la c22. */
+     base al subirlo. Lo pedía también el formulario de la c22 hasta el
+     7-10-2026; ya no: es papel de su paso. */
   /* Y con que se paga: desde el 17 de septiembre de 2026 el equipo deja en
      la solicitud el documento para pagar los aranceles, igual que el de la
      reserva del nombre un piso mas arriba. Desde el 20 de septiembre vive en
@@ -25929,11 +26301,16 @@ applyLang(idiomaParaMi());
   window.CIIP_OLVIDA_PAPELES = function(){ PAPELES_DE = {}; };
   function papelesDe(id){
     if (PAPELES_DE[id]) return PAPELES_DE[id];
+    /* documentos(*) desde el 7-10-2026: con su estado y su fecha, que es
+       lo que lee escaleraDe() para dar un paso por hecho (PAPELES_SABIDOS).
+       Por columnas, pedir una que la base aún no tenga tumbaría la
+       consulta entera. */
     return (PAPELES_DE[id] = Promise.resolve(
-      sb.from('tramite_documentos').select('documentos(tipo, nombre_original)')
+      sb.from('tramite_documentos').select('documentos(*)')
         .eq('tramite', id))
       .then(function(r){
         var hay = {};
+        if (r && !r.error) apuntaPapeles(id, ((r && r.data) || []).map(function(f){ return f.documentos; }));
         ((r && r.data) || []).forEach(function(f){
           var d = f.documentos || {};
           if (d.tipo && !hay[d.tipo]) hay[d.tipo] = d.nombre_original || '';
@@ -26131,7 +26508,15 @@ applyLang(idiomaParaMi());
          cierra el papel que deja el CIIP -es el equipo quien lo emite, asi
          que es el equipo quien lo cierra-. Los cuatro del circuito van
          detras, corridos un sitio, y de eso se encarga 'antes': de aqui en
-         adelante la cuenta es de PASOS y no de estados. */
+         adelante la cuenta es de PASOS y no de estados.
+
+         Y DESDE EL 7-10-2026 EL PAGO LO CIERRA SU COMPROBANTE (Franklin
+         Reyes, la simulación revisada). «Lo cierra el gestor al moverla a
+         revisión» dejó de valer cuando el gestor la pasa a revisión con
+         solo abrirla: el pago salía hecho sin comprobante. Ahora el pago
+         queda hecho con su comprobante no rechazado, y lo que queda en curso
+         es la consignación, del CIIP. La cuenta ya no es de aquí: es la de
+         escaleraDe(), la misma de la ficha, Mis trámites y el visor. */
       var quiere = PAPEL_DE_PASO[ref];
       var delante = PASOS_DE_DELANTE[ref];
       var antes = delante ? delante.cuantos : 0;
@@ -26149,16 +26534,33 @@ applyLang(idiomaParaMi());
         /* Ante el ente, su paso sigue en curso y no hecho, como en la ficha
            de cada tramo (escaleraDe; Franklin Reyes, 5-10-2026). */
         if (tr.estado === 'ante_el_ente' && tope === alcanzado) tope = alcanzado - 1;
+        /* UNA SOLA CUENTA (Franklin Reyes, 7-10-2026, la simulación
+           revisada): el bloque contaba aquí a su manera y la ficha propia
+           del tramo, la fila de Mis trámites y el visor del gestor con
+           escaleraDe(), y decían pasos distintos del mismo trámite. Ahora
+           los papeles que acaba de pedir papelesDe() quedan apuntados
+           (PAPELES_SABIDOS) y la escalera es la de escaleraDe(). Lo de
+           arriba queda solo por si los pasos del bloque no cuadran con los
+           suyos -un paso de más en pasos.js-. */
+        var esc = escaleraDe(tr, tr.tipo, '');
+        var cuadra = !!(esc && esc.todos && esc.todos.length === pasos.length);
+        if (cuadra){
+          tope = -1;
+          while (tope + 1 < esc.todos.length && esc.todos[tope + 1].hecho) tope++;
+        }
         [].forEach.call(pasos, function(li, i){
-          var hecho = i <= tope;
-          var ahora = (i === tope + 1) && tr.estado !== 'resuelto';
+          var hecho = cuadra ? !!esc.todos[i].hecho : i <= tope;
+          var ahora = cuadra ? (!hecho && !!esc.todos[i].ahora)
+                             : (i === tope + 1) && tr.estado !== 'resuelto';
           li.className = 'tr-paso ' + (hecho ? 'hecho' : (ahora ? 'ahora' : 'porhacer'));
           var punto = li.querySelector('.tr-punto');
           if (punto) punto.textContent = hecho ? String.fromCharCode(10003) : String(i + 1);
         });
-        ponLasFechasDelTramo(b, tr, pasos, tope, antes);
+        ponLasFechasDelTramo(b, tr, pasos, tope, antes, cuadra ? esc.todos : null);
         ponElPub(b, ref, tr, pasos);
-        ponElComprobante(b, ref, tr, pasos, alcanzado);
+        /* Subido el comprobante, el paso del pago queda hecho: se vuelve
+           a pintar el bloque con lo que dice la base (7-10-2026). */
+        ponElComprobante(b, ref, tr, pasos, alcanzado, function(){ pintaTramosDeVerdad(); });
       });
     });
   }
@@ -26169,7 +26571,9 @@ applyLang(idiomaParaMi());
 
      antes = cuantos pasos van DELANTE del circuito, que no son estados y por
      tanto no tienen fecha que poner. */
-  function ponLasFechasDelTramo(bloque, tr, pasos, tope, antes){
+  /* todos: los pasos de escaleraDe(); los que cierra un papel llevan su
+     fecha y no la del estado (7-10-2026). */
+  function ponLasFechasDelTramo(bloque, tr, pasos, tope, antes, todos){
     historialDe(tr.id).then(function(cuando){
       /* El bloque puede haberse rehecho mientras llegaba la consulta: si ya
          no esta en la pagina, lo que se escriba no lo lee nadie. */
@@ -26178,6 +26582,7 @@ applyLang(idiomaParaMi());
         /* Los pasos de delante no son estados del circuito: no hay evento
            que fecharlos, y ORDEN empieza a contar en el primero de detras. */
         var f = cuando[ORDEN[i - (antes || 0)]];
+        if (todos && todos[i] && todos[i].porPapel) f = todos[i].cuando || null;
         var vieja = li.querySelector('.tr-paso-f');
         if (vieja) vieja.remove();
         if (!f) return;
@@ -26202,7 +26607,10 @@ applyLang(idiomaParaMi());
      alSubir se llama cuando el papel queda puesto, venga de ahora o de
      antes. El tipo tiene que existir en tipos_documento: la base rechaza
      cualquier otro, y aqui nadie se enteraria hasta subirlo de verdad. */
-  function filaDeComprobante(tr, tipo, clave, alSubir){
+  /* trasSubir: solo con un papel NUEVO, no con el que ya estaba -quien
+     repinta la escalera al subirlo no puede repintar cada vez que la
+     fila lo encuentra puesto, o no acabaría nunca- (7-10-2026). */
+  function filaDeComprobante(tr, tipo, clave, alSubir, trasSubir){
     var u = T();
     var fila = el('div', 'tr-papel');
     fila.setAttribute('data-doc', tipo);
@@ -26231,8 +26639,10 @@ applyLang(idiomaParaMi());
         .then(function(docId){ return engancha(tr.id, docId); })
         .then(function(){
           PAPELES_DE[tr.id] = null;
+          apuntaUnPapel(tr.id, {tipo: tipo, nombre_original: archivo.name});
           btn.disabled = false;
           puesto(archivo.name);
+          if (trasSubir) trasSubir();
         })
         .catch(function(e){
           console.warn('[CIIP] papel de un paso:', e && (e.message || e));
@@ -26289,7 +26699,9 @@ applyLang(idiomaParaMi());
     });
   }
 
-  function ponElComprobante(bloque, ref, tr, pasos, alcanzado){
+  /* trasSubir: a quién avisar con un comprobante nuevo ya colgado -el
+     bloque del tramo o la ficha, que repintan su escalera- (7-10-2026). */
+  function ponElComprobante(bloque, ref, tr, pasos, alcanzado, trasSubir){
     var quiere = PAPEL_DE_PASO[ref];
     if (!quiere) return;
     var li = pasos[quiere.paso];
@@ -26377,9 +26789,11 @@ applyLang(idiomaParaMi());
         .then(function(docId){ return engancha(tr.id, docId); })
         .then(function(){
           PAPELES_DE[tr.id] = null;
+          apuntaUnPapel(tr.id, {tipo: quiere.tipo, nombre_original: archivo.name});
           fila.classList.add('puesto');
           est.textContent = archivo.name;
           btn.disabled = false;
+          if (trasSubir) trasSubir();
         })
         .catch(function(e){
           console.warn('[CIIP] comprobante del pago:', e && (e.message || e));
@@ -26425,11 +26839,19 @@ applyLang(idiomaParaMi());
   /* n: su número en la escalera. Era un '4' escrito a mano, y desde que la
      firma en el CIIP va delante (27-9-2026) es el quinto; lo cuenta
      escaleraDe(). */
-  function pasoDeLaReserva(tr, n){
+  /* r: el paso tal como lo cuenta escaleraDe() -{n, hecho, ahora}-, o su
+     número a secas como antes. Desde el 7-10-2026 (Franklin Reyes, la
+     simulación revisada) el paso no se enciende por estar ante el SAREN:
+     espera al PUB de la reserva, y queda hecho con su comprobante. Los
+     papeles se enseñan en cuanto toca o está hecho ante el ente, y
+     alSubir repinta la ficha con el comprobante ya colgado. */
+  function pasoDeLaReserva(tr, r, alSubir){
     var u = T();
-    var resuelta = (tr.estado === 'resuelto');
-    var toca = (tr.estado === 'ante_el_ente');
-    var li = el('li', 'tr-paso ' + (resuelta ? 'hecho' : (toca ? 'ahora' : 'porhacer')));
+    var n = (r && typeof r === 'object') ? r.n : r;
+    var resuelta = (r && typeof r === 'object') ? !!r.hecho : (tr.estado === 'resuelto');
+    var ahoraR = (r && typeof r === 'object') ? !!r.ahora : (tr.estado === 'ante_el_ente');
+    var toca = (tr.estado === 'ante_el_ente') && (ahoraR || resuelta);
+    var li = el('li', 'tr-paso ' + (resuelta ? 'hecho' : (ahoraR ? 'ahora' : 'porhacer')));
     li.setAttribute('data-paso', TIPO_RESERVA);
     var punto = el('span', 'tr-punto', resuelta ? String.fromCharCode(10003) : String(n || 4));
     var txt = el('div', 'tr-txt');
@@ -26441,7 +26863,7 @@ applyLang(idiomaParaMi());
       txt.appendChild(filaDeComprobante(tr, TIPO_RESERVA, 'd_reserva', function(){
         li.className = 'tr-paso hecho';
         punto.textContent = String.fromCharCode(10003);
-      }));
+      }, alSubir));
     }
     return li;
   }
@@ -27246,6 +27668,60 @@ applyLang(idiomaParaMi());
       return {tipo: 'pago_importe_dia', pasos: ['pub'], aviso: 'co_faltalibros'};
     return null;
   }
+
+  /* ── Y PARA PRESENTARLA ANTE EL ENTE ──
+     Franklin Reyes, 7-10-2026 (la simulación revisada). «Presentada ante
+     SAREN» se encendía en la protocolización y la publicación sin PUB ni
+     comprobante, «Presentada ante FONACIT» antes de que existiera la
+     planilla del SIDCAI, y «Presentada ante MPPRE» en la traducción sin
+     importe ni comprobante. En la traducción eso era un atasco: ante el
+     ente la base ya no deja colgar el comprobante (importe_del_dia_pasos
+     solo abre recibida y en revisión) y sin él no se resuelve
+     (tramites_traduccion_con_pago). En los otros tres, presentar es
+     consignar lo pagado: no se consigna lo que no se ha pagado.
+
+     Lo que falta, por orden, con el aviso que lo dice. En el LOCTI, antes
+     que el comprobante, la planilla: sin ella no hay con qué pagar, y es
+     el CIIP quien la deja. */
+  var PAGO_PARA_PRESENTAR = {
+    protocolizacion_acta: [{tipo: 'pago_aranceles',   aviso: 'co_faltaaranceles'}],
+    publicacion_acta:     [{tipo: 'pago_publicacion', aviso: 'co_faltapublicacion'}],
+    aporte_locti_pago:    [{tipo: 'planilla_locti',   aviso: 'co_faltaplanillalocti'},
+                           {tipo: 'pago_locti',       aviso: 'co_faltalocti'}],
+    apostilla_documentos: [{tipo: 'pago_importe_dia', aviso: 'co_faltatraduccion'}]
+  };
+  /* La clave del aviso, o null. Con los papeles que se saben
+     (PAPELES_SABIDOS, que la cola pide de todas a la vez): si no se sabe
+     nada de esa solicitud no se frena, como faltaLaReserva -un aviso
+     inventado cerraría el paso sin motivo-; para eso está
+     faltaPagoParaPresentarAhora(), que pregunta. */
+  function faltaPagoParaPresentar(t){
+    var pide = t && PAGO_PARA_PRESENTAR[t.tipo];
+    if (!pide || ['enviado', 'en_revision'].indexOf(t.estado) < 0) return null;
+    if (!papelesSabidos(t)) return null;
+    for (var i = 0; i < pide.length; i++){
+      if (!tienePapel(t, pide[i].tipo)) return pide[i].aviso;
+    }
+    return null;
+  }
+  /* Lo mismo, preguntando antes a la base: para donde los papeles no se
+     han pedido todavía (la tabla de la cola). */
+  function faltaPagoParaPresentarAhora(t){
+    if (!t || !PAGO_PARA_PRESENTAR[t.tipo]) return Promise.resolve(null);
+    return Promise.resolve().then(function(){
+      return sb.from('tramite_documentos').select('documentos(*)').eq('tramite', t.id);
+    }).then(function(r){
+      if (r && !r.error) apuntaPapeles(t.id, ((r && r.data) || []).map(function(f){ return f.documentos; }));
+      return faltaPagoParaPresentar(t);
+    }).catch(function(){ return faltaPagoParaPresentar(t); });
+  }
+  /* Todo lo que frena «Presentada ante {ente}», en un sitio: la planilla
+     firmada de las escaleras por etapas y el pago de estos cuatro. */
+  function faltaParaPresentar(t){
+    return faltaParaPresentarEtapas(t) || faltaPagoParaPresentar(t);
+  }
+  window.CIIP_PRESENTAR = {falta: faltaParaPresentar, pago: faltaPagoParaPresentar,
+                           pagoAhora: faltaPagoParaPresentarAhora, pide: PAGO_PARA_PRESENTAR};
 
   /* Para la cola del equipo: si a este tramite le falta ese comprobante.
      Si no se puede mirar -politica sin poner, red caida- se deja pasar: la
