@@ -8528,6 +8528,162 @@ applyLang(idiomaParaMi());
      entró. Para eso existe el estado 'borrador': volver a intentarlo no
      empieza de cero.
      ───────────────────────────────────────────────────────────────── */
+  /* ── LA AUTORIZACIÓN AL CIIP, ANTES DE ENVIAR ──
+     Franklin Reyes, 8-10-2026: al solicitar un trámite se pregunta si el
+     CIIP lo gestiona en nombre del inversionista. Sí: lee la autorización
+     con sus datos y la acepta con un botón, sin firma; la constancia la
+     pone la base (supabase-autorizaciones.sql). No: lo gestiona él y el
+     CIIP solo verifica. Lo elegido va en datos.gestion.
+
+     No se pregunta en la constitución -ni en sus dos tramos, que crea la
+     base- ni en el sellado de libros: esos no dependen de la autorización.
+
+     El texto es el borrador que revisa el abogado, siempre en español: es
+     como lo reciben los organismos. Se guarda tal cual se aceptó, así que
+     cambiarlo aquí no cambia las ya aceptadas. */
+  var AU_SIN_PREGUNTA = {constitucion:1, protocolizacion_acta:1, publicacion_acta:1, libros_contables:1};
+  var AU_FALTAN = ['nombre', 'nacionalidad', 'tipo_doc', 'num_doc'];
+
+  function auDatos(tipo, datos){
+    var a = function(k){ return (datos && datos[k]) || (ANTES && ANTES[k] && ANTES[k].valor) || ''; };
+    var ref = tipoRefDe(tipo.codigo);
+    var nombre = [a('nombres'), a('apellidos')].join(' ').trim() ||
+                 String((typeof PERFIL !== 'undefined' && PERFIL.nombre) || '').trim();
+    var pas = a('numero_pasaporte');
+    var tdoc = pas ? 'pasaporte' : String(a('tipo_documento') || '').toLowerCase();
+    if (/c[eé]dula/.test(tdoc)) tdoc = 'cédula de identidad';
+    else if (/pasaporte|passport/.test(tdoc)) tdoc = 'pasaporte';
+    else tdoc = '';
+    var E = (typeof EMPRESA !== 'undefined' && EMPRESA) || {};
+    return {
+      nombre: nombre,
+      nacionalidad: String(a('nacionalidad') || '').toLowerCase(),
+      tipo_doc: tdoc,
+      num_doc: pas || a('numero_documento'),
+      razon_social: E.razon_social || '',
+      rif: E.rif_empresa || '',
+      registro: E.numero_registro || '',
+      tramite: (I18N.es && I18N.es[ref + '.name']) || ref || tipo.codigo,
+      ente: ((TIPOS[ref] || {}).ente) || tipo.ente || 'el organismo competente'
+    };
+  }
+
+  function auTexto(d, cuando){
+    var f = cuando || new Date();
+    var dia = f.toLocaleDateString('es-VE', {day:'numeric', month:'long', year:'numeric', timeZone:'America/Caracas'});
+    var hora = f.toLocaleTimeString('es-VE', {hour:'numeric', minute:'2-digit', timeZone:'America/Caracas'});
+    var quien = d.razon_social
+      ? 'actuando en mi carácter de representante legal de la sociedad mercantil ' + d.razon_social +
+        (d.registro ? ', inscrita en el Registro Mercantil bajo el N.º ' + d.registro : '') +
+        (d.rif ? (d.registro ? ' e' : ',') + ' identificada con el RIF ' + d.rif : '')
+      : 'actuando en mi propio nombre';
+    var por = d.razon_social ? 'mi representada' : 'mi persona';
+    return [
+      'AUTORIZACIÓN',
+      'Yo, ' + d.nombre + ', de nacionalidad ' + d.nacionalidad + ', mayor de edad, titular del ' + d.tipo_doc +
+        ' N.º ' + d.num_doc + ', ' + quien + ', por medio del presente documento declaro:',
+      'PRIMERO: Autorizo al Centro Internacional de Inversión Productiva (CIIP) para que, a través del personal que designe, realice en nombre de ' +
+        por + ' el trámite de ' + d.tramite + ' ante ' + d.ente + '.',
+      'SEGUNDO: Esta autorización comprende presentar la solicitud, consignar los recaudos que el organismo exija, hacer el seguimiento del trámite y retirar el documento que resulte de él.',
+      'TERCERO: Esta autorización se limita al trámite indicado. Se extingue al concluir el trámite, o antes si la revoco por escrito a través de la Ventanilla Única del Inversionista.',
+      'Esta autorización se otorga en línea, mediante aceptación expresa en la Ventanilla Única del Inversionista, sin necesidad de firma autógrafa, en Caracas, el ' +
+        dia + ' a las ' + hora + '.'
+    ].join('\n\n');
+  }
+
+  /* Resuelve {gestion:'ciip', texto, datos}, {gestion:'directa'} o null si
+     cierra sin elegir: entonces no se envía nada y el formulario sigue. */
+  function preguntaAutorizacion(tipo, datos){
+    var u = T();
+    var back = document.getElementById('auBack');
+    if (!back) return Promise.resolve({gestion: 'directa'});
+    var $ = function(id){ return document.getElementById(id); };
+    var d = auDatos(tipo, datos);
+    var ETQ = {nombre: u.au_f_nom, nacionalidad: u.au_f_nac, tipo_doc: u.au_f_tdoc, num_doc: u.au_f_num};
+    return new Promise(function(listo){
+      var paso = 1, hecho = false;
+      $('auTitulo').textContent = u.au_t || '';
+      $('auSub').textContent = nombreDeTarjeta(tipoRefDe(tipo.codigo));
+      $('auPregunta').textContent = u.au_q || '';
+      $('auSiT').textContent = u.au_si_t || '';
+      $('auSiD').textContent = u.au_si || '';
+      $('auNoT').textContent = u.au_no_t || '';
+      $('auNoD').textContent = u.au_no || '';
+      $('auRevisa').textContent = u.au_revisa || '';
+      $('auAcepta').textContent = u.au_acepta || '';
+      var nota = $('auNota');
+      nota.textContent = u.au_es || '';
+      nota.hidden = (curLang === 'es');
+      $('auAviso').textContent = '';
+
+      /* Lo que no se sabe se pide aquí, y solo eso. */
+      var faltan = $('auFaltan');
+      faltan.textContent = '';
+      var piden = AU_FALTAN.filter(function(k){ return !d[k]; });
+      if (piden.length){
+        faltan.appendChild(el('div', 'au-faltan-t', u.au_faltan || ''));
+        piden.forEach(function(k){
+          var lab = el('label', 'au-campo');
+          lab.appendChild(el('span', '', ETQ[k] || ''));
+          var inp;
+          if (k === 'tipo_doc'){
+            /* El valor va en español, que es la lengua del documento. */
+            inp = document.createElement('select');
+            inp.appendChild(new Option('—', ''));
+            inp.appendChild(new Option(u.au_f_pas || 'pasaporte', 'pasaporte'));
+            inp.appendChild(new Option(u.au_f_ced || 'cédula de identidad', 'cédula de identidad'));
+          } else {
+            inp = document.createElement('input');
+            inp.type = 'text';
+          }
+          inp.id = 'auCampo-' + k;
+          inp.addEventListener('input', function(){ d[k] = inp.value.trim(); pintaTexto(); });
+          inp.addEventListener('change', function(){ d[k] = inp.value.trim(); pintaTexto(); });
+          lab.appendChild(inp);
+          faltan.appendChild(lab);
+        });
+      }
+      faltan.hidden = !piden.length;
+
+      function pintaTexto(){
+        var vista = {};
+        Object.keys(d).forEach(function(k){ vista[k] = d[k]; });
+        AU_FALTAN.forEach(function(k){ if (!d[k]) vista[k] = '[' + (ETQ[k] || k) + ']'; });
+        $('auTexto').textContent = auTexto(vista);
+      }
+      function ponPaso(n){
+        paso = n;
+        $('auPaso1').hidden = n !== 1;
+        $('auPaso2').hidden = n !== 2;
+        $('auAcepta').hidden = n !== 2;
+        $('auVolver').textContent = n === 1 ? (u.au_cancelar || '') : (u.au_volver || '');
+        if (n === 2){ pintaTexto(); var f0 = faltan.querySelector('input, select'); (f0 || $('auTexto')).focus(); }
+        else $('auSi').focus();
+      }
+      function cierra(res){
+        if (hecho) return;
+        hecho = true;
+        back.classList.remove('open');
+        document.removeEventListener('keydown', tecla);
+        $('auSi').onclick = $('auNo').onclick = $('auVolver').onclick = $('auAcepta').onclick = null;
+        listo(res);
+      }
+      function tecla(e){ if (e.key === 'Escape') cierra(null); }
+
+      $('auSi').onclick = function(){ ponPaso(2); };
+      $('auNo').onclick = function(){ cierra({gestion: 'directa'}); };
+      $('auVolver').onclick = function(){ if (paso === 2) ponPaso(1); else cierra(null); };
+      $('auAcepta').onclick = function(){
+        var falta = AU_FALTAN.some(function(k){ return !d[k]; });
+        if (falta){ $('auAviso').textContent = u.au_falta_dato || ''; return; }
+        cierra({gestion: 'ciip', texto: auTexto(d), datos: d});
+      };
+      document.addEventListener('keydown', tecla);
+      back.classList.add('open');
+      ponPaso(1);
+    });
+  }
+
   function envia(tipo, borrador, boton, aviso, alCrear){
     var u = T();
     aviso.textContent = ''; aviso.className = 'sol-aviso';
@@ -8660,10 +8816,20 @@ applyLang(idiomaParaMi());
       return;
     }
 
-    boton.disabled = true;
-    boton.textContent = u.enviando;
+    /* La autorización al CIIP (8-10-2026). No en los trámites que no
+       dependen de ella, ni al reenviar una devuelta: eso ya lo contestó. */
+    var yaDecidio = borrador && borrador.datos && borrador.datos.gestion;
+    var decide = (AU_SIN_PREGUNTA[tipo.codigo] || yaDecidio)
+      ? Promise.resolve(yaDecidio ? {gestion: yaDecidio, ya: true} : {})
+      : preguntaAutorizacion(tipo, datos);
+    decide.then(function(res){
+      if (!res) return;       /* cerró sin elegir: no se envía nada */
+      boton.disabled = true;
+      boton.textContent = u.enviando;
+      sigueEnviando(res);
+    });
 
-    function sigueEnviando(){
+    function sigueEnviando(au){
     /* 3. asegurar el borrador */
     var conBorrador = borrador
       ? Promise.resolve(borrador)
@@ -8706,6 +8872,24 @@ applyLang(idiomaParaMi());
            borrador o devuelto. */
         return desenganchaLosSustituidos(tr.id, vanAhora);
       }).then(function(){
+        /* La constancia, ANTES de pasar a 'enviado': si no se guarda, la
+           solicitud no sale diciendo que el CIIP está autorizado. Sin
+           supabase-autorizaciones.sql la tabla no existe, y entonces se
+           envía igual -la elección queda en datos- y se dice en la consola. */
+        if (au.gestion !== 'ciip' || au.ya) return;
+        return sb.from('autorizaciones').insert({tramite: tr.id, tipo: tipo.codigo, texto: au.texto, datos: au.datos})
+          .then(function(ra){
+            var e = ra && ra.error;
+            if (!e) return;
+            if (e.code === '42P01' || e.code === 'PGRST205' || /autorizaciones/.test(e.message || '') && /exist|find/i.test(e.message || '')){
+              console.warn('[CIIP] sin constancia de la autorización (' + e.message + '). ¿Falta correr supabase-autorizaciones.sql?');
+              return;
+            }
+            /* La una-por-trámite: ya la aceptó en un intento anterior. */
+            if (e.code === '23505') return;
+            throw {message: e.message, ciip: 'au_error'};
+          });
+      }).then(function(){
         /* 4. datos al día y a enviar. Con las MARCAS del inversionista que
            ya tuviera (Taquilla única opción 2, 1-10-2026): «Ya me
            registré», «Ya la solicité», «Ya me inscribí» viven en datos, y
@@ -8714,6 +8898,7 @@ applyLang(idiomaParaMi());
            paso 1 a pedir otra vez lo que ya se hizo. */
         var marcas = conservaMarcas(borrador && borrador.datos);
         Object.keys(datos).forEach(function(k){ marcas[k] = datos[k]; });
+        if (au.gestion) marcas.gestion = au.gestion;
         return sb.from('tramites').update({datos: marcas, estado: 'enviado'})
           .eq('id', tr.id).select().single();
       });
@@ -8742,11 +8927,10 @@ applyLang(idiomaParaMi());
     });
     }
 
-    /* Y se llama. Sin esta línea el botón se quedaba en «Enviando…» para
-       siempre: la comprobación de duplicados envolvió todo el envío en esta
-       función y nadie la invocaba, así que el repaso era el final del
-       camino. Nada salía hacia el CIIP y nada lo decía. */
-    sigueEnviando();
+    /* La llama la pregunta de la autorización, arriba. Sin esa llamada
+       el botón se quedaba en «Enviando…» para siempre: la comprobación de
+       duplicados envolvió todo el envío en esta función y nadie la
+       invocaba. Nada salía hacia el CIIP y nada lo decía. */
     }
   }
 
@@ -18705,6 +18889,17 @@ applyLang(idiomaParaMi());
     return caja;
   }
 
+  /* Si el inversionista autorizó al CIIP en este trámite o lo gestiona él
+     (8-10-2026). Sin respuesta -lo de antes, o los que no la piden- no se
+     dice nada: no se sabe. */
+  function chipGestion(t){
+    var g = t && t.datos && t.datos.gestion, u = T();
+    if (g !== 'ciip' && g !== 'directa') return null;
+    var c = el('span', 'au-chip ' + g, g === 'ciip' ? (u.au_chip_ciip || '') : (u.au_chip_dir || ''));
+    c.title = g === 'ciip' ? (u.au_chip_ciip_t || '') : (u.au_chip_dir_t || '');
+    return c;
+  }
+
   function hoyTarjeta(t){
     var u = T();
     var ref = tipoRefDe(t.tipo);
@@ -18736,6 +18931,8 @@ applyLang(idiomaParaMi());
     arriba.appendChild(el('span', 'hoy-ente', hoyEnte(t)));
     arriba.appendChild(el('span', 'co-estado' + (t.estado === 'en_revision' ? ' mirando' : ''),
                           textoDeEvento(t.estado, hoyEnte(t), tipoRefDe(t.tipo))));
+    var chipG = chipGestion(t);
+    if (chipG) arriba.appendChild(chipG);
     c.appendChild(arriba);
 
     var cab = el('div');
@@ -19595,6 +19792,8 @@ applyLang(idiomaParaMi());
     var tit = el('b', null, ref ? nombreDeTarjeta(ref) : t.tipo);
     tit.id = 'paVisorTit';
     tt.appendChild(tit);
+    var chipV = chipGestion(t);
+    if (chipV) tt.appendChild(chipV);
     bar.appendChild(tt);
 
     /* En el paso 3 de los parafiscales no se mira ningún papel: el
@@ -34388,6 +34587,125 @@ applyLang(idiomaParaMi());
     v.querySelector('.au-intro:not(.au-intro-admin)').hidden = admin;
     v.querySelector('.au-intro-admin').hidden = !admin;
     v.querySelectorAll('.au-modelo').forEach(miraModelo);
+    if (admin) document.getElementById('auDadas').hidden = true;
+    else cargaDadas();
+  }
+
+  /* ── LAS AUTORIZACIONES QUE HA DADO ──
+     Una por trámite, las que la Ventanilla generó al enviar cada solicitud
+     (8-10-2026). Se pueden leer tal como se aceptaron y revocar; revocar
+     solo pone la fecha (revoca_autorizacion). Sin supabase-autorizaciones.sql
+     la tabla no existe y se dice que todavía no hay ninguna, que es verdad. */
+  var DADAS = [];
+  function fechaCorta(iso){
+    try { return new Date(iso).toLocaleDateString(curLang, {day:'numeric', month:'short', year:'numeric'}); }
+    catch(e){ return String(iso || '').slice(0, 10); }
+  }
+  function cargaDadas(){
+    var sb = window.sbCIIP;
+    if (!sb) return;
+    Promise.resolve(sb.from('autorizaciones')
+      .select('id, codigo, tipo, texto, aceptada_en, revocada_en')
+      .order('aceptada_en', {ascending: false}))
+      .then(function(r){
+        if (r && r.error) console.warn('[CIIP] autorizaciones:', r.error.message);
+        DADAS = (r && r.data) || [];
+        pintaDadas();
+      }, function(e){
+        console.warn('[CIIP] autorizaciones:', e && (e.message || e));
+        DADAS = [];
+        pintaDadas();
+      });
+  }
+  function pintaDadas(){
+    var caja = document.getElementById('auDadas');
+    var lista = document.getElementById('auDadasLista');
+    if (!caja || !lista) return;
+    var D = dic(), E = I18N.en;
+    var porCodigo = {};
+    var T0 = window.CIIP_TIPOS_POR_REF || {};
+    Object.keys(T0).forEach(function(ref){ porCodigo[T0[ref].codigo] = ref; });
+    caja.hidden = false;
+    lista.textContent = '';
+    if (!DADAS.length){
+      var vacio = document.createElement('p');
+      vacio.className = 'au-vacio';
+      vacio.textContent = (D['au.dadas_vacia'] || E['au.dadas_vacia'] || '');
+      lista.appendChild(vacio);
+      return;
+    }
+    DADAS.forEach(function(a){
+      var ref = porCodigo[a.tipo];
+      var fila = document.createElement('div');
+      fila.className = 'au-dada' + (a.revocada_en ? ' revocada' : '');
+      fila.setAttribute('data-id', a.id);
+      var txt = document.createElement('div');
+      txt.className = 'au-txt';
+      var t = document.createElement('div');
+      t.className = 'au-t';
+      t.textContent = (ref && window.CIIP_NOMBRE_TRAMITE) ? window.CIIP_NOMBRE_TRAMITE(ref) : a.tipo;
+      var d = document.createElement('div');
+      d.className = 'au-d';
+      d.textContent = [(ref && T0[ref].ente) || '', (D['au.aceptada'] || E['au.aceptada'] || '').replace('{fecha}', fechaCorta(a.aceptada_en)),
+                       a.codigo ? (D['au.constancia'] || E['au.constancia'] || '').replace('{codigo}', a.codigo) : ''].filter(Boolean).join(' · ');
+      var est = document.createElement('span');
+      est.className = 'au-chip ' + (a.revocada_en ? 'revocada' : 'ciip');
+      est.textContent = a.revocada_en ? (D['au.revocada'] || E['au.revocada'] || '').replace('{fecha}', fechaCorta(a.revocada_en)) : (D['au.vigente'] || E['au.vigente'] || '');
+      t.appendChild(est);
+      txt.appendChild(t);
+      txt.appendChild(d);
+      var leer = document.createElement('pre');
+      leer.className = 'pl-texto au-leer';
+      leer.textContent = a.texto || '';
+      leer.hidden = true;
+      var aviso = document.createElement('div');
+      aviso.className = 'au-aviso';
+      aviso.setAttribute('role', 'status');
+      txt.appendChild(leer);
+      txt.appendChild(aviso);
+      var bot = document.createElement('div');
+      bot.className = 'au-botones';
+      var ver = document.createElement('button');
+      ver.type = 'button';
+      ver.className = 'btn au-ver';
+      ver.textContent = (D['au.ver'] || E['au.ver'] || '');
+      ver.addEventListener('click', function(){
+        leer.hidden = !leer.hidden;
+        ver.textContent = leer.hidden ? (D['au.ver'] || E['au.ver'] || '') : (D['au.ocultar'] || E['au.ocultar'] || '');
+      });
+      bot.appendChild(ver);
+      if (!a.revocada_en){
+        var rev = document.createElement('button');
+        rev.type = 'button';
+        rev.className = 'btn au-revocar';
+        rev.textContent = (D['au.revocar'] || E['au.revocar'] || '');
+        /* Dos pasos: el primero explica qué pasa, el segundo revoca. */
+        rev.addEventListener('click', function(){
+          if (!rev.classList.contains('seguro')){
+            rev.classList.add('seguro');
+            rev.textContent = (D['au.revocar_si'] || E['au.revocar_si'] || '');
+            aviso.className = 'au-aviso';
+            aviso.textContent = (D['au.revocar_q'] || E['au.revocar_q'] || '');
+            return;
+          }
+          rev.disabled = true;
+          Promise.resolve(window.sbCIIP.rpc('revoca_autorizacion', {p_id: a.id})).then(function(r){
+            if (r && r.error) throw r.error;
+            a.revocada_en = (r && r.data) || new Date().toISOString();
+            pintaDadas();
+          }).catch(function(e){
+            console.warn('[CIIP] revocar:', e && (e.message || e));
+            rev.disabled = false;
+            aviso.className = 'au-aviso mal';
+            aviso.textContent = (D['au.error'] || E['au.error'] || '');
+          });
+        });
+        bot.appendChild(rev);
+      }
+      fila.appendChild(txt);
+      fila.appendChild(bot);
+      lista.appendChild(fila);
+    });
   }
 
   /* Bajar con una URL firmada que ya trae el nombre: un enlace con

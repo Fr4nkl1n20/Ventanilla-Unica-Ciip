@@ -1458,33 +1458,25 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
       <div id="emCuerpo"></div>
     </div>
 
-    <!-- Autorizaciones y NDA. Los modelos viven en el cubo 'modelos'
-         (supabase-modelos.sql): el inversionista los descarga y el
-         administrador los sube o los reemplaza. Mientras un modelo no
-         este, su tarjeta lo dice en vez de ofrecer un enlace roto. -->
+    <!-- Autorizaciones y NDA. Arriba, las autorizaciones que el
+         inversionista ha dado al CIIP, una por tramite: las genera la
+         Ventanilla al enviar una solicitud (supabase-autorizaciones.sql) y
+         el CIIP no sube nada para ellas. Abajo, el modelo del NDA, que vive
+         en el cubo 'modelos' (supabase-modelos.sql): el inversionista lo
+         descarga y el administrador lo sube o lo reemplaza. -->
     <div class="autoriz-vista">
-      <p class="au-intro" data-i18n="au.intro">The CIIP templates for the confidentiality agreement and the authorisation. Download them and follow the CIIP's instructions.</p>
-      <p class="au-intro au-intro-admin" data-i18n="au.intro_admin" hidden>Upload here the templates investors download. A new one replaces the previous one. PDF only, up to 10 MB.</p>
+      <p class="au-intro" data-i18n="au.intro">The authorisations you have given the CIIP, one per procedure, and the confidentiality agreement template.</p>
+      <p class="au-intro au-intro-admin" data-i18n="au.intro_admin" hidden>Upload here the NDA template investors download. A new one replaces the previous one. PDF only, up to 10 MB.</p>
+      <section class="au-dadas" id="auDadas" hidden>
+        <h3 class="au-sec-t" data-i18n="au.dadas_t">Your authorisations to the CIIP</h3>
+        <div class="au-dadas-lista" id="auDadasLista"></div>
+      </section>
       <div class="au-lista">
         <div class="au-modelo" data-ruta="nda-ciip.pdf">
           <span class="au-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
           <div class="au-txt">
             <div class="au-t" data-i18n="au.nda.t">NDA with the CIIP</div>
             <div class="au-d" data-i18n="au.nda.d">Confidentiality agreement between you and the CIIP on the information about your investment.</div>
-            <div class="au-nohay" data-i18n="au.nohay" hidden>The CIIP has not published this template yet.</div>
-            <div class="au-aviso" role="status"></div>
-          </div>
-          <div class="au-botones">
-            <button class="btn navy au-bajar" type="button" data-i18n="au.bajar" hidden>Download template</button>
-            <button class="btn au-subir" type="button" hidden><span class="au-subir-n" data-i18n="au.subir">Upload template</span><span class="au-subir-c" data-i18n="au.cambiar" hidden>Replace template</span></button>
-            <input class="au-archivo" type="file" accept="application/pdf" hidden>
-          </div>
-        </div>
-        <div class="au-modelo" data-ruta="autorizacion-ciip.pdf">
-          <span class="au-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8 17c1.5-2 2.5-2 3.5 0s2 2 3.5 0"/></svg></span>
-          <div class="au-txt">
-            <div class="au-t" data-i18n="au.aut.t">Authorisation to the CIIP</div>
-            <div class="au-d" data-i18n="au.aut.d">Authorises the CIIP to handle procedures on your behalf before the government bodies.</div>
             <div class="au-nohay" data-i18n="au.nohay" hidden>The CIIP has not published this template yet.</div>
             <div class="au-aviso" role="status"></div>
           </div>
@@ -2294,6 +2286,49 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
     <div class="pf-pie pl-pie">
       <button class="btn ghost" id="plSalir"   type="button"></button>
       <button class="btn navy"  id="plAceptar" type="button" disabled></button>
+    </div>
+  </div>
+</div>
+
+<!-- La autorizacion al CIIP, antes de enviar una solicitud (Franklin Reyes,
+     8-10-2026). Primero la pregunta; si dice que si, el texto con sus datos
+     y el boton que lo acepta. Sin firma: la constancia la pone la base
+     (supabase-autorizaciones.sql). No sale en la constitucion, sus tramos
+     ni el sellado de libros. -->
+<div class="asst-back au-back" id="auBack">
+  <div class="asst" role="dialog" aria-modal="true" aria-labelledby="auTitulo">
+    <div class="asst-h">
+      <div class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/><path d="m9 12 2 2 4-4"/></svg></div>
+      <div>
+        <div class="at" id="auTitulo"></div>
+        <div class="as" id="auSub"></div>
+      </div>
+    </div>
+    <div class="pl-cuerpo">
+      <div id="auPaso1">
+        <div class="au-q" id="auPregunta"></div>
+        <div class="tra-caminos">
+          <button class="tra-cam ojo" id="auSi" type="button">
+            <span class="ic" aria-hidden="true">✓</span>
+            <span class="tx"><b id="auSiT"></b><span id="auSiD"></span></span>
+          </button>
+          <button class="tra-cam yo" id="auNo" type="button">
+            <span class="ic" aria-hidden="true">→</span>
+            <span class="tx"><b id="auNoT"></b><span id="auNoD"></span></span>
+          </button>
+        </div>
+      </div>
+      <div id="auPaso2" hidden>
+        <div class="pl-ayuda" id="auRevisa"></div>
+        <div class="au-faltan" id="auFaltan" hidden></div>
+        <div class="pl-texto au-texto" id="auTexto" tabindex="0" role="region" aria-labelledby="auTitulo"></div>
+        <div class="pl-nota" id="auNota" hidden></div>
+        <div class="pf-aviso" id="auAviso"></div>
+      </div>
+    </div>
+    <div class="pf-pie pl-pie">
+      <button class="btn ghost" id="auVolver" type="button"></button>
+      <button class="btn navy"  id="auAcepta" type="button" hidden></button>
     </div>
   </div>
 </div>

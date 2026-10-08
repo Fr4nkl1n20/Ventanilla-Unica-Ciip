@@ -1279,6 +1279,10 @@
   }
 
   var IDENTIDAD = [];
+  /* Las autorizaciones al CIIP (8-10-2026): nace vacía, y solo la llena el
+     envío de una solicitud en la pasada. */
+  var AUTORIZ = [];
+  window.PRUEBA_AUTORIZACIONES = function(){ return AUTORIZ.slice(); };
 
   var USUARIO = {id:'u1', email:'f.reyes@ciip.com.ve',
                  user_metadata: (caso === 'sinnombre' ? {} : {nombre_completo:'Franklin Reyes', pais:'Italia'})};
@@ -1932,6 +1936,22 @@
     /* La constancia de identidad. Empieza VACIA a proposito: el estado
        normal de una persona recien llegada es que nadie haya mirado su
        documento, y es el estado que mas facil resulta pintar mal. */
+    if (tabla === 'autorizaciones'){
+      if (op && op.insert){
+        var fa = op.insert;
+        /* Como la de verdad: el autor, la hora y el código los pone la
+           base, y una sola por trámite. */
+        if (AUTORIZ.some(function(a){ return a.tramite === fa.tramite; })){
+          return {data:null, error:{code:'23505', message:'duplicate key value violates unique constraint "autorizaciones_una_por_tramite"'}};
+        }
+        var nueva = {id: 'au' + (AUTORIZ.length + 1), codigo: 'AUT-2026-' + ('00000' + (AUTORIZ.length + 1)).slice(-6),
+                     inversionista: USUARIO.id, tramite: fa.tramite, tipo: fa.tipo, texto: fa.texto,
+                     datos: fa.datos || {}, aceptada_en: '2026-10-08T14:42:00Z', revocada_en: null};
+        AUTORIZ.unshift(nueva);
+        return {data:[nueva], error:null};
+      }
+      return {data:AUTORIZ.slice(), error:null};
+    }
     if (tabla === 'identidad_comprobaciones'){
       if (op && op.insert){
         var f = op.insert;
@@ -2647,6 +2667,12 @@
              null. Null significa las dos cosas -«ya aceptaste» y «todavia
              no hay pliego»- y esta bien que signifique las dos: en los dos
              casos el panel hace lo mismo, dejar pasar. */
+          if (nombre === 'revoca_autorizacion'){
+            var ar = AUTORIZ.filter(function(a){ return a.id === (args && args.p_id) && !a.revocada_en; })[0];
+            if (ar) ar.revocada_en = '2026-10-09T10:00:00Z';
+            var rR = {data: ar ? ar.revocada_en : null, error:null};
+            return {then:function(bien, mal){ return Promise.resolve(rR).then(bien, mal); }};
+          }
           if (nombre === 'pliego_pendiente'){
             var pend = PLIEGOS.filter(function(p){ return p.vigente; })[0];
             var r0 = {data: (pend && !pliegoAceptado) ? pend.version : null, error:null};

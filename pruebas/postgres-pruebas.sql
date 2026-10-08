@@ -4775,6 +4775,86 @@ reset role;
 select arnes.nadie();
 
 
+
+-- ───────────────────────────────────────────────────────────────────────
+-- LA AUTORIZACIÓN AL CIIP (supabase-autorizaciones.sql, 8-10-2026)
+-- ───────────────────────────────────────────────────────────────────────
+reset role;
+select arnes.nadie();
+with t as (
+  insert into public.tramites (inversionista, tipo, estado)
+  values ((select id from arnes.gente where papel = 'A'), 'rif_empresa', 'borrador')
+  returning id)
+insert into arnes.escenario (clave, id) select 'au_tramite_a', id from t;
+-- Otro inversionista propio: B se borra al principio de la tanda.
+with u as (
+  insert into auth.users (email, raw_user_meta_data)
+  values ('au-otro@prueba.local', '{"nombre_completo":"Otro Inversionista","pais":"Chile"}')
+  returning id)
+insert into arnes.escenario (clave, id) select 'au_otro', id from u;
+with t as (
+  insert into public.tramites (inversionista, tipo, estado)
+  values ((select id from arnes.escenario where clave = 'au_otro'), 'rif_empresa', 'borrador')
+  returning id)
+insert into arnes.escenario (clave, id) select 'au_tramite_b', id from t;
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+insert into public.autorizaciones (tramite, tipo, texto)
+values ((select id from arnes.escenario where clave = 'au_tramite_a'), 'rif_empresa', 'Yo, A, autorizo al CIIP.');
+
+select arnes.comprueba(
+  'autorizacion: la constancia lleva su codigo AUT-AAAA-NNNNNN, puesto por la base',
+  (select codigo ~ '^AUT-\d{4}-\d{6}$' from public.autorizaciones
+    where tramite = (select id from arnes.escenario where clave = 'au_tramite_a')),
+  coalesce((select codigo from public.autorizaciones
+    where tramite = (select id from arnes.escenario where clave = 'au_tramite_a')), 'sin fila'));
+
+do $au$
+begin
+  insert into public.autorizaciones (tramite, tipo, texto)
+  values ((select id from arnes.escenario where clave = 'au_tramite_b'), 'rif_empresa', 'Me cuelo en el de B.');
+  perform arnes.comprueba('autorizacion: no se autoriza en un tramite ajeno', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('autorizacion: no se autoriza en un tramite ajeno', true, sqlerrm);
+end
+$au$;
+
+do $au$
+begin
+  update public.autorizaciones set texto = 'Otro texto'
+   where tramite = (select id from arnes.escenario where clave = 'au_tramite_a');
+  perform arnes.comprueba('autorizacion: el texto aceptado no se cambia',
+    (select texto = 'Yo, A, autorizo al CIIP.' from public.autorizaciones
+      where tramite = (select id from arnes.escenario where clave = 'au_tramite_a')), 'sin error, ¿cambio?');
+exception when others then
+  perform arnes.comprueba('autorizacion: el texto aceptado no se cambia', true, sqlerrm);
+end
+$au$;
+
+select arnes.comprueba(
+  'autorizacion: se revoca una vez y devuelve la fecha',
+  public.revoca_autorizacion((select id from public.autorizaciones
+    where tramite = (select id from arnes.escenario where clave = 'au_tramite_a'))) is not null, '');
+select arnes.comprueba(
+  'autorizacion: y la segunda vez no hay nada que revocar',
+  public.revoca_autorizacion((select id from public.autorizaciones
+    where tramite = (select id from arnes.escenario where clave = 'au_tramite_a'))) is null, '');
+
+select arnes.soy((select id from arnes.escenario where clave = 'au_otro'));
+select arnes.comprueba(
+  'autorizacion: otro inversionista no ve las ajenas',
+  (select count(*) = 0 from public.autorizaciones), (select count(*)::text from public.autorizaciones));
+
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+select arnes.comprueba(
+  'autorizacion: el equipo si las ve',
+  (select count(*) >= 1 from public.autorizaciones), (select count(*)::text from public.autorizaciones));
+
+reset role;
+select arnes.nadie();
+
 \o
 \pset tuples_only on
 \pset format unaligned

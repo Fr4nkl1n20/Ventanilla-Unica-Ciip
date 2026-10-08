@@ -284,7 +284,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    entes por columna y con rastro, dos papeles más que solo emite el CIIP y
    anon fuera de confirma_cita y abre_consulta_para. Toca tramite_entes,
    documentos y la bitácora de muchos archivos de antes: va la última. */
-'supabase-seguridad-octubre'];
+'supabase-seguridad-octubre',
+/* La autorización al CIIP trámite a trámite, aceptada en línea y sin firma
+   (Franklin Reyes, 8-10-2026). Una tabla nueva y revoca_autorizacion();
+   solo pide tramites, tipos_tramite y es_gestor(). Al final para no mover
+   el número de nadie. */
+'supabase-autorizaciones'];
 
 let mal = 0;
 for (const n of orden) {

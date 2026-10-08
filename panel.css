@@ -1102,6 +1102,21 @@ body[data-vista="autorizaciones"] .fase-bar{display:none;}
 .au-d{font-size:var(--fs-nota); color:var(--gray); margin-top:3px;}
 .au-nohay{font-size:var(--fs-nota); color:var(--rust); margin-top:6px;}
 .au-aviso{font-size:var(--fs-nota); margin-top:6px;}
+.au-dadas{display:grid; gap:10px; max-width:760px; margin-bottom:22px;}
+.au-dadas[hidden]{display:none;}
+.au-sec-t{font-size:var(--fs-seccion); font-weight:700; margin:0;}
+.au-dadas-lista{display:grid; gap:10px;}
+.au-vacio{margin:0; font-size:var(--fs-parrafo); color:var(--gray); border:1px dashed var(--line); border-radius:var(--r);
+  padding:16px 18px;}
+.au-dada{display:flex; align-items:flex-start; gap:16px; background:var(--tr-velo); border:1px solid var(--line);
+  border-radius:var(--r); padding:15px 18px; box-shadow:var(--shadow);}
+.au-dada .au-t{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.au-dada.revocada .au-t{color:var(--gray);}
+.au-leer{margin:10px 0 0; max-height:none; min-height:0; font-family:inherit;}
+.au-leer[hidden]{display:none;}
+.au-chip.revocada{background:var(--line-soft); color:var(--gray);}
+.au-revocar{color:var(--rust);}
+.au-revocar.seguro{background:var(--rust); border-color:var(--rust); color:#fff;}
 .au-aviso:empty{display:none;}
 .au-aviso.mal{color:var(--rust);}
 .au-aviso.bien{color:var(--good);}
@@ -4834,6 +4849,26 @@ body.con-puerta{overflow:hidden;}
    ponerselo aqui a secas cambiaria de aspecto botones de otras siete
    pantallas que hoy se deshabilitan mientras guardan. */
 .pl-pie .btn:disabled{opacity:.45; cursor:not-allowed;}
+
+/* La autorización al CIIP antes de enviar (8-10-2026). La misma caja que el
+   pliego, encima del formulario y no de todo el panel. */
+.asst-back.au-back{z-index:70; align-items:center; padding:24px 16px;}
+.asst-back.au-back .asst{max-width:680px; max-height:90vh;}
+.au-chip{display:inline-flex; align-items:center; font-size:var(--fs-chip); font-weight:700; border-radius:20px;
+  padding:2px 9px; white-space:nowrap; flex:none;}
+.au-chip.ciip{background:var(--good-bg); color:var(--good);}
+.au-chip.directa{background:var(--activa-bg); color:var(--navy2);}
+.visor-bar .tt .au-chip{margin-left:8px; vertical-align:middle;}
+.au-q{font-size:var(--fs-valor); font-weight:700; color:var(--ink); line-height:1.4;}
+.tra-cam.yo .ic{background:var(--activa-bg); color:var(--navy2);}
+.au-texto{min-height:0; max-height:40vh;}
+.au-faltan{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:12px;
+  background:var(--amber-bg); border-radius:var(--r-sm); padding:12px 14px;}
+.au-faltan[hidden]{display:none;}
+.au-faltan-t{grid-column:1 / -1; font-size:var(--fs-nota); font-weight:700; color:var(--amber);}
+.au-campo{display:grid; gap:4px; font-size:var(--fs-nota); color:var(--gray);}
+.au-campo input, .au-campo select{font:inherit; font-size:var(--fs-campo); color:var(--ink); background:var(--bg);
+  border:1px solid var(--line); border-radius:8px; padding:7px 9px; min-width:0;}
 
 /* La vista de lectura: el mismo pliego, fuera de la puerta y cuando quieras.
    Releer lo que firmaste es la mitad del habeas data; la otra -saber cuando

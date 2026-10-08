@@ -432,6 +432,8 @@
                  cuentas a todo lo que cuenta tarjetas. */
               envioAbre, empiezaSolicitud, envioRellena, envioPasa,
               envioRepaso, envioManda, envioMira,
+              /* Y la autorización recién dada, en su pantalla (8-10-2026). */
+              auDadaAbre, auDadaMira, auDadaRevoca,
               /* QA-11: descartar un borrador. Solo en 'sinnombre' y al final: borra
                  una solicitud de la tabla, y antes le cambiaría las cuentas a otras. */
               descartaAbre, descartaMira, descartaPide, descartaTras,
@@ -3922,15 +3924,86 @@
        !!bt, bt ? bt.textContent.trim() : 'no está', 'Enviar solicitud');
     if (!bt) return sigue();
     bt.click();
+    /* La autorización al CIIP (8-10-2026): antes de enviar, la pregunta.
+       Se contesta que sí, se rellena lo que falte y se acepta. */
+    var vAu = 0;
+    (function esperaAu(){
+      var back = document.getElementById('auBack');
+      if (!(back && back.classList.contains('open')) && ++vAu < 60) return setTimeout(esperaAu, 50);
+      igual('autorización: antes de enviar, pregunta si el CIIP lo gestiona', !!(back && back.classList.contains('open')), true);
+      if (!(back && back.classList.contains('open'))) return sigue();
+      igual('autorización: con la pregunta y dos caminos',
+            !!document.getElementById('auSi').textContent.trim() && !!document.getElementById('auNo').textContent.trim(), true);
+      document.getElementById('auSi').click();
+      var txt = document.getElementById('auTexto').textContent;
+      ok('autorización: el texto nombra el trámite', /RIF de la empresa/.test(txt), txt.slice(0, 80), 'RIF de la empresa');
+      ok('autorización: y no pide firma', !/firma del inversionista/i.test(txt) && /sin necesidad de firma/.test(txt),
+         txt.slice(-120), 'sin necesidad de firma');
+      /* Sin los datos que faltan no se acepta. */
+      var campos = document.querySelectorAll('#auFaltan input, #auFaltan select');
+      if (campos.length){
+        document.getElementById('auAcepta').click();
+        ok('autorización: con datos sin poner, no se acepta', !!document.getElementById('auAviso').textContent.trim(),
+           document.getElementById('auAviso').textContent, 'un aviso');
+        [].forEach.call(campos, function(c){
+          c.value = c.tagName === 'SELECT' ? 'pasaporte' : 'Dato de prueba';
+          c.dispatchEvent(new Event('input', {bubbles:true}));
+          c.dispatchEvent(new Event('change', {bubbles:true}));
+        });
+      }
+      document.getElementById('auAcepta').click();
+      espera();
+    })();
     /* Se espera a que la pantalla cambie y no un rato fijo: el envío sube
        los recaudos -y cada uno calcula su SHA-256- antes de tocar la base.
        Y se RINDE, para que lo que falle sea la prueba de abajo diciendo
        qué no ocurrió, en vez de quedarse el arnés colgado sin decir nada.
        Rendirse tarda cinco segundos; es justo lo que medía este fallo. */
-    var vueltas = 0;
+    function espera(){
+      var vueltas = 0;
+      (function mira(){
+        if (document.querySelector('#trReal .sol-estado') || ++vueltas > 100) return sigue();
+        setTimeout(mira, 50);
+      })();
+    }
+  }
+
+  function auDadaAbre(){
+    if (CASO !== 'vacio') return;
+    location.hash = 'autorizaciones';
+  }
+  function auDadaMira(sigue){
+    if (CASO !== 'vacio') return sigue();
+    var n = 0;
     (function mira(){
-      if (document.querySelector('#trReal .sol-estado') || ++vueltas > 100) return sigue();
-      setTimeout(mira, 50);
+      var f = document.querySelector('#auDadasLista .au-dada');
+      if (!f && ++n < 40) return setTimeout(mira, 100);
+      ok('autorización: aparece en «Autorizaciones y NDA»', !!f, f ? f.textContent.slice(0, 60) : 'no está', 'una fila');
+      if (!f) return sigue();
+      ok('autorización: con su constancia', /AUT-2026-/.test(f.textContent), f.textContent.slice(0, 80), 'AUT-2026-…');
+      f.querySelector('.au-ver').click();
+      igual('autorización: «Leer» enseña el texto aceptado', !f.querySelector('.au-leer').hidden, true);
+      sigue();
+    })();
+  }
+  function auDadaRevoca(sigue){
+    if (CASO !== 'vacio') return sigue();
+    var f = document.querySelector('#auDadasLista .au-dada');
+    var b = f && f.querySelector('.au-revocar');
+    if (!b) return sigue();
+    b.click();
+    ok('autorización: revocar pide confirmación antes', !!f.querySelector('.au-aviso').textContent.trim(),
+       f.querySelector('.au-aviso').textContent, 'una explicación');
+    b.click();
+    var n = 0;
+    (function mira(){
+      var g = document.querySelector('#auDadasLista .au-dada');
+      if (!(g && g.classList.contains('revocada')) && ++n < 30) return setTimeout(mira, 100);
+      ok('autorización: revocada, lo dice y ya no ofrece revocarla',
+         !!g && g.classList.contains('revocada') && !g.querySelector('.au-revocar'),
+         g ? g.className : 'no está', 'au-dada revocada');
+      location.hash = '';
+      sigue();
     })();
   }
 
@@ -3949,6 +4022,11 @@
        'una enviada');
     /* Con sus datos dentro: un trámite enviado vacío es papeleo que el
        CIIP recibe y tiene que devolver. */
+    igual('autorización: la solicitud sale con la gestión del CIIP', mandada && mandada.datos && mandada.datos.gestion, 'ciip');
+    var auts = window.PRUEBA_AUTORIZACIONES ? window.PRUEBA_AUTORIZACIONES() : [];
+    var suya = auts.filter(function(a){ return mandada && a.tramite === mandada.id; })[0];
+    ok('autorización: y deja su constancia, con el texto aceptado', !!suya && /Autorizo al Centro Internacional/.test(suya.texto || ''),
+       suya ? (suya.texto || '').slice(0, 50) : 'ninguna', 'una constancia');
     ok('envio: y con lo que se escribió dentro',
        !!(mandada && mandada.datos && mandada.datos.razon_social),
        mandada ? JSON.stringify(mandada.datos || {}).slice(0, 60) : '(no hay)',
@@ -8322,7 +8400,7 @@
     igual('autorizaciones: el renglón queda encendido',
           document.getElementById('navAutoriz').classList.contains('active'), true);
     var ms = document.querySelectorAll('.autoriz-vista .au-modelo');
-    igual('autorizaciones: ofrece los dos modelos, el NDA y la autorización', ms.length, 2);
+    igual('autorizaciones: un solo modelo, el NDA: la autorización la genera la Ventanilla', ms.length, 1);
     auEspera(function(){
       return [].every.call(ms, function(m){ return auVisible(m, '.au-bajar') || auVisible(m, '.au-nohay'); });
     }, function(){
@@ -8337,6 +8415,17 @@
       });
       igual('autorizaciones: el admin lee lo que hace él, no lo que hace el inversionista',
             auVisible(document, '.au-intro-admin'), ES_ADMIN);
+      /* La lista de las que ha dado: del inversionista, no del admin. */
+      igual('autorizaciones: la lista de las dadas, solo el inversionista (' + PASE + ')',
+            auVisible(document, '#auDadas'), !ES_ADMIN);
+      if (!ES_ADMIN){
+        auEspera(function(){ return !!document.querySelector('#auDadasLista .au-vacio, #auDadasLista .au-dada'); }, function(){
+          igual('autorizaciones: sin ninguna dada, lo dice en vez de dejar la lista en blanco',
+                !!document.querySelector('#auDadasLista .au-vacio'), true);
+          sigue();
+        });
+        return;
+      }
       sigue();
     });
   }
@@ -8371,7 +8460,6 @@
       igual('autorizaciones: subido, ya se puede descargar', auVisible(m, '.au-bajar'), true);
       igual('autorizaciones: y ya no dice que falta', auVisible(m, '.au-nohay'), false);
       igual('autorizaciones: el botón pasa a «Reemplazar»', auVisible(m, '.au-subir-c'), true);
-      igual('autorizaciones: el otro modelo no se toca', auVisible(ms[1], '.au-nohay'), true);
       sigue();
     });
   }
