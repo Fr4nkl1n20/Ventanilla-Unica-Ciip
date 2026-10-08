@@ -283,7 +283,7 @@
               cmResueltas, cmTrasReabrir, cmTrasReresolver, cmTomaAjena, cmTrasTomaAjena,
               cmSale, cmF5Entra, cmF5Mira,
               hoySiembra, hoyMira, hoyTrasTomar, hoyTrasDeshacer, hoyRevisa,
-              hoyEspacioEspera, hoyEspacioMira, hoyAutorizacion, hoyTrasVale, hoyNoValeAbre,
+              hoyEspacioEspera, hoyEspacioMira, hoyAutorizacion, marcaImporteAntes, hoyTrasVale, hoyNoValeAbre,
               hoyNoValeMira, hoyNoValeGuarda, hoyTrasNoVale, hoyTrasDevolver,
               hoyRespuestaMira, hoyTrasCerrar,
               /* QA-14: resolver, fallar al mover y reintentar deja UNA resolución. */
@@ -7364,6 +7364,23 @@
   function hoyEspacioEspera(sigue){
     if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
     esperaFilas('#paVisor .visor-doc iframe, #paVisor .visor-doc img', 1, sigue);
+  }
+
+  /* La marca: el importe de la búsqueda de antecedentes se sube en el
+     paso 2, con la solicitud en revisión, antes de presentarla (Franklin
+     Reyes, 8-10-2026). Con la revisión en curso, nada que subir. */
+  function marcaImporteAntes(){
+    if (CASO !== 'gestor' || ES_ADMIN || !window.CIIP_VISOR_LADO) return;
+    var base = {id:'mxp', inversionista:'u2', tipo:'marca', estado:'en_revision', gestor:'u1',
+                creado_en:'2026-10-08T12:00:00Z', enviado_en:'2026-10-08T12:00:00Z'};
+    var conRev = window.CIIP_VISOR_LADO(Object.assign({}, base, {datos:{pasos_ciip:{recaudos_revisados:'2026-10-08T10:00:00-04:00'}}}));
+    ok('marca: en revisión, el paso 2 ofrece subir el importe de la búsqueda',
+       !!conRev.querySelector('.mc-g .imp-g-mando'), conRev.querySelector('.mc-g') ? 'casilla sin subida' : 'sin casilla', 'la subida del importe');
+    var sinRev = window.CIIP_VISOR_LADO(Object.assign({}, base, {datos:{}}));
+    ok('marca: con la revisión todavía en curso, no hay casilla vacía',
+       !sinRev.querySelector('.mc-g'), sinRev.querySelector('.mc-g') ? 'hay casilla' : 'sin casilla', 'sin casilla');
+    ok('marca: y presentarla espera al comprobante de ese pago',
+       !!(window.CIIP_PRESENTAR && window.CIIP_PRESENTAR.pide.marca), '', 'PAGO_PARA_PRESENTAR.marca');
   }
 
   /* El gestor abre la autorización del inversionista desde el visor

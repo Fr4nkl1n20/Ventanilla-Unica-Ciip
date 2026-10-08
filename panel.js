@@ -9996,6 +9996,11 @@ applyLang(idiomaParaMi());
          pide otro papel: el certificado ya se mandó en su paso. */
       exige: {paso: 'certificado', aviso: 'mc_g_faltacert'},
       sinEmitido: true,
+      /* La casilla del gestor también en revisión (8-10-2026): ahí se sube
+         el importe de la búsqueda de antecedentes, antes de presentarla.
+         Solo para el importe y su pago; lo demás, ante el ente. */
+      casillaEn: ['en_revision', 'ante_el_ente'],
+      casillaAntes: ['importe', 'pago'],
       etapas: [
         {clave: 'antecedentes', rotulo: 'mc_e1', pasos: [
           {clave: 'revision',              tipo: 'revision', rotulo: 'mc_p_revision'},
@@ -10247,11 +10252,15 @@ applyLang(idiomaParaMi());
      opción 2): la licencia la paga el inversionista en el portal de su
      alcaldía, y el CIIP ya no le sube importes. */
 
-  /* Los cuatro importes de la marca. Todos con la solicitud ante el ente:
-     cuál toca lo dice la escalera, no el estado. La fila de la base es una,
-     la de siempre (supabase-marca.sql). */
+  /* Los cuatro importes de la marca. Cuál toca lo dice la escalera, no el
+     estado. La fila de la base es una, la de siempre (supabase-marca.sql).
+     El de la búsqueda de antecedentes, además, antes de presentarla
+     (Franklin Reyes, 8-10-2026: «este paso debería ser donde nosotros
+     subimos el importe»): en el paso 2 el CIIP lo sube con la solicitud en
+     revisión, y «Empezar la búsqueda de antecedentes» espera a su
+     comprobante (PAGO_PARA_PRESENTAR). Los otros tres, ante el ente. */
   IMPORTE_DEL_DIA.marca = [
-    {paso: 'antecedentes', estados: ['ante_el_ente'], rotulo: 'mc_p_imp_antecedentes'},
+    {paso: 'antecedentes', estados: ['enviado', 'en_revision', 'ante_el_ente'], rotulo: 'mc_p_imp_antecedentes'},
     {paso: 'fm02',         estados: ['ante_el_ente'], rotulo: 'mc_p_imp_fm02'},
     {paso: 'contestacion', estados: ['ante_el_ente'], rotulo: 'mc_p_imp_contestacion'},
     {paso: 'derecho',      estados: ['ante_el_ente'], rotulo: 'mc_p_imp_derecho'}
@@ -10539,6 +10548,13 @@ applyLang(idiomaParaMi());
   function casillaDeLaMarca(t, idBase){
     var def = t && ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo];
     if (!def || (def.casillaEn || ['ante_el_ente']).indexOf(t.estado) < 0) return null;
+    /* Antes de presentarla, solo en los pasos que lo piden: con la
+       revisión en curso no hay nada que hacer aquí, y una casilla vacía
+       solo estorba. */
+    if (t.estado !== 'ante_el_ente' && def.casillaAntes){
+      var E0 = escaleraPorEtapas(t, t.tipo);
+      if (!E0.ahora || def.casillaAntes.indexOf(E0.ahora.tipo) < 0) return null;
+    }
     var u = T();
     var caja = el('div', 'co-emitir mc-g');
     caja.setAttribute('data-marca', t.id);
@@ -28412,7 +28428,11 @@ applyLang(idiomaParaMi());
     publicacion_acta:     [{tipo: 'pago_publicacion', aviso: 'co_faltapublicacion'}],
     aporte_locti_pago:    [{tipo: 'planilla_locti',   aviso: 'co_faltaplanillalocti'},
                            {tipo: 'pago_locti',       aviso: 'co_faltalocti'}],
-    apostilla_documentos: [{tipo: 'pago_importe_dia', aviso: 'co_faltatraduccion'}]
+    apostilla_documentos: [{tipo: 'pago_importe_dia', aviso: 'co_faltatraduccion'}],
+    /* La marca (8-10-2026): la búsqueda de antecedentes empieza con su
+       importe pagado. Antes de presentarla, el único importe que puede
+       haber es ése, así que basta con preguntar por un comprobante. */
+    marca:                [{tipo: 'pago_importe_dia', aviso: 'mc_faltapago_antecedentes'}]
   };
   /* La clave del aviso, o null. Con los papeles que se saben
      (PAPELES_SABIDOS, que la cola pide de todas a la vez): si no se sabe

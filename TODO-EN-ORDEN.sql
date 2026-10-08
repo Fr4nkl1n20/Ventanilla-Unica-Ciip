@@ -10839,11 +10839,14 @@ insert into public.tipos_documento (codigo, nombre, vence) values
   ('certificado_marca',     'Certificado de registro de marca',     false)
 on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.vence;
 
--- Los cuatro importes van con la solicitud ante el ente. Cuál toca lo dice
--- la escalera; aquí basta con el estado, y el nombre de cada importe lo
--- cuadra importe_del_dia_vigente(tramite, paso).
+-- Cuál de los cuatro importes toca lo dice la escalera; aquí basta con el
+-- estado, y el nombre de cada importe lo cuadra
+-- importe_del_dia_vigente(tramite, paso). Desde el 8-10-2026 (Franklin
+-- Reyes) el de la búsqueda de antecedentes se sube ANTES de presentarla,
+-- con la solicitud recibida o en revisión, y la búsqueda empieza con su
+-- comprobante: por eso valen los tres estados.
 insert into public.importe_del_dia_pasos (tipo_tramite, estados)
-values ('marca', array['ante_el_ente'])
+values ('marca', array['enviado', 'en_revision', 'ante_el_ente'])
 on conflict (tipo_tramite) do update set estados = excluded.estados;
 
 -- El equipo sube los dos papeles, ya validados, a la bóveda del
