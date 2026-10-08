@@ -8541,7 +8541,11 @@ applyLang(idiomaParaMi());
      El texto es el borrador que revisa el abogado, siempre en español: es
      como lo reciben los organismos. Se guarda tal cual se aceptó, así que
      cambiarlo aquí no cambia las ya aceptadas. */
-  var AU_SIN_PREGUNTA = {constitucion:1, protocolizacion_acta:1, publicacion_acta:1, libros_contables:1};
+  /* Y la acreditación de representación legal (c33), que se hace ante el
+     propio CIIP: autorizarlo a gestionarla ante sí mismo no tiene sentido
+     (Franklin Reyes, 8-10-2026). */
+  var AU_SIN_PREGUNTA = {constitucion:1, protocolizacion_acta:1, publicacion_acta:1, libros_contables:1,
+                         poder_representacion:1};
   var AU_FALTAN = ['nombre', 'nacionalidad', 'tipo_doc', 'num_doc'];
 
   function auDatos(tipo, datos){

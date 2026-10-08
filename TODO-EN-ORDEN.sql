@@ -15043,8 +15043,9 @@ revoke execute on function public.abre_consulta_para(uuid, text, text) from anon
 --  tu nombre?». Si dice que sí, acepta en línea -sin firma- una
 --  autorización con sus datos, y el CIIP puede presentar, consignar y
 --  retirar documentos. Si dice que no, gestiona él y el CIIP solo verifica.
---  No se pregunta en la constitución (con sus tramos) ni en el sellado de
---  libros. El texto está en revisión con el abogado.
+--  No se pregunta en la constitución (con sus tramos), en el sellado de
+--  libros ni en la acreditación de representación legal, que es ante el
+--  propio CIIP. El texto está en revisión con el abogado.
 --
 --  CÓMO QUEDA
 --  ───────────────────────────────────────────────────────────────────────
