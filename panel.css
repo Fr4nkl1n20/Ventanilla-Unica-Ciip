@@ -1656,6 +1656,13 @@ body.editando-textos .faq-item.ay-sin{display:block;}
 /* Quien edita textos ve las tres a la vez: tiene que poder llegar a todo. */
 body.editando-textos .ayuda-vista .ay-fuera{display:revert !important;}
 body.editando-textos .ay-pest{display:none;}
+/* Con las pestañas, el título de cada sección repite el de su pestaña:
+   «Preguntas frecuentes», «Dónde puedes realizar las siguientes
+   diligencias», «Pasos y recaudos» (Franklin Reyes, 8-10-2026: «elimina
+   esto, que se repite»). Fuera. En «Editar textos» se ven las tres
+   secciones a la vez y sin pestañas, así que ahí siguen: dicen qué se edita. */
+.ayuda-vista .faq-h, .ayuda-vista .sec-h[data-ay-panel]{display:none;}
+body.editando-textos .ayuda-vista .faq-h, body.editando-textos .ayuda-vista .sec-h[data-ay-panel]{display:flex;}
 .faq-sec[data-ay-panel]{margin-top:0;}
 /* Con las dos clases: la regla general de .faq (columna) va más abajo en
    esta hoja y, con una sola clase, ganaba ella. */
