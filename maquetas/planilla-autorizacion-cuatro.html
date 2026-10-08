@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · La planilla de la autorización, cuatro formas</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   LA PLANILLA DE LA AUTORIZACIÓN: CUATRO FORMAS
+
+   Pedido de Franklin Reyes, 8-10-2026: cuatro formas de la hoja que genera
+   la Ventanilla cuando el inversionista autoriza al CIIP en un trámite,
+   inspiradas en Atlas y siempre con el logo del CIIP.
+
+   Lo común a las cuatro, de Atlas (tipografia-atlas.md):
+   · hoja carta, 816 px de ancho;
+   · Helvetica Neue → Arial, la letra de sus plantillas;
+   · cuerpo justificado a 14,5 px / 1,75, el del oficio;
+   · tinta #0E1424, gris #5B6478, azul #0060B0 / #004090.
+
+   El texto y los datos son los mismos en las cuatro, para comparar solo la
+   forma. Datos de ejemplo. No toca el panel.
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB;
+  --navy-deep:#00336d; --cyan:#20B0F0;
+}
+main{max-width:1240px; padding:28px 26px 90px; margin:0 auto;}
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.intro b{color:var(--ink);}
+.indice{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 0;}
+.indice a{font-size:12px; font-weight:700; color:var(--navy2); text-decoration:none; background:#fff;
+  border:1px solid var(--line); border-radius:8px; padding:6px 11px;}
+.indice a:hover{border-color:var(--navy2);}
+.caso{margin-top:52px; scroll-margin-top:16px;}
+.caso-h{display:flex; align-items:center; gap:11px; margin-bottom:6px; flex-wrap:wrap;}
+.caso-n{width:28px; height:28px; border-radius:50%; background:var(--navy); color:#fff; font-size:13px;
+  font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;}
+.caso-t{font-size:17px; font-weight:700; letter-spacing:-.01em;}
+.toca{font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--gray);
+  background:var(--line-soft); border-radius:5px; padding:3px 8px;}
+.rec{font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--good);
+  background:var(--good-bg); border-radius:5px; padding:3px 8px;}
+.caso-q{font-size:12.5px; color:var(--gray); line-height:1.65; max-width:96ch; margin:0 0 12px 39px;}
+.caso-q b{color:var(--ink);}
+.balanza{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 0 16px 39px; max-width:980px;}
+.pro, .contra{font-size:12px; line-height:1.55; border-radius:10px; padding:10px 13px;}
+.pro{background:var(--good-bg); color:#16573F;}
+.contra{background:var(--amber-bg); color:#7A5214;}
+.pro b, .contra b{display:block; font-size:10px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:3px;}
+.mesa{margin-left:39px; background:#E2E7EF; border-radius:14px; padding:28px 16px; overflow-x:auto;}
+
+/* ── la hoja, común a las cuatro ── */
+.hoja{width:816px; min-height:1056px; margin:0 auto; background:#fff; color:#0E1424;
+  font-family:"Helvetica Neue", Arial, sans-serif; box-shadow:0 2px 6px rgba(14,20,36,.08), 0 18px 44px rgba(14,20,36,.12);
+  display:flex; flex-direction:column; position:relative; overflow:hidden;}
+.hoja img{display:block;}
+.cuerpo{font-size:14.5px; line-height:1.75;}
+.cuerpo p{margin:0 0 14px; text-align:justify;}
+.cuerpo b{font-weight:700;}
+
+/* 1 · oficio institucional */
+.h1 .cab{width:100%;}
+.h1 .pie{width:100%; margin-top:auto;}
+.h1 .cuerpo{padding:14px 9% 24px;}
+.h1 .ref{font-weight:700; font-size:15px;}
+.h1 .fecha{text-align:right; margin-top:14px;}
+.h1 .titulo{text-align:center; font-weight:700; letter-spacing:.08em; margin:20px 0 12px;}
+.firma{text-align:center; margin-top:26px; line-height:1.45;}
+.firma .at{margin-bottom:22px;}
+.firma b{display:block;}
+.firma span{display:block; color:#5B6478; font-size:13.5px;}
+.firma small{display:block; color:#5B6478; font-size:11.5px; margin-top:6px;}
+
+/* 2 · ficha de Atlas */
+.h2{padding:48px 64px 0;}
+.h2 .top{display:flex; justify-content:space-between; align-items:flex-start; gap:20px;}
+.h2 .logo{height:46px;}
+.h2 .meta{text-align:right; font-size:12px; color:#5B6478; line-height:1.6;}
+.h2 .meta b{display:block; color:#0E1424; font-size:14px; letter-spacing:.02em;}
+.h2 .titulo{margin:34px 0 4px; font-size:22px; font-weight:700; letter-spacing:-.01em;}
+.h2 .sub{font-size:12.5px; color:#5B6478; margin-bottom:20px;}
+.h2 .ficha{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); border:1px solid #E4E7EE; border-radius:10px;
+  overflow:hidden; margin-bottom:24px;}
+.h2 .ficha div{padding:10px 14px; border-right:1px solid #EEF1F6; border-bottom:1px solid #EEF1F6;}
+.h2 .ficha div:nth-child(3n){border-right:0;}
+.h2 .ficha div:nth-last-child(-n+3){border-bottom:0;}
+.h2 .ficha dt{font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#8A93A6;}
+.h2 .ficha dd{margin:3px 0 0; font-size:13px; font-weight:600; line-height:1.4;}
+.h2 .sello{display:flex; align-items:center; gap:14px; border:1px solid #CFE7DC; background:#F1F9F5; border-radius:10px;
+  padding:12px 16px; margin-top:22px; font-size:12.5px; color:#1E7F5C;}
+.h2 .sello i{width:30px; height:30px; border-radius:50%; background:#1E7F5C; color:#fff; font-style:normal; font-weight:700;
+  display:grid; place-items:center; flex:none;}
+.h2 .sello b{color:#0E1424; display:block; font-size:13px;}
+.h2 .pie2{margin-top:auto; border-top:1px solid #E4E7EE; padding:16px 0 30px; display:flex; justify-content:space-between;
+  gap:16px; font-size:11px; color:#5B6478; line-height:1.6;}
+.h2 .pie2 b{color:#004090;}
+
+/* 3 · sobria con banda lateral */
+.h3{flex-direction:row;}
+.h3 .banda{width:30px; flex:none; background:linear-gradient(180deg,#004090 0%, #00336d 100%);}
+.h3 .dentro{flex:1; display:flex; flex-direction:column; padding:56px 64px 0 56px;}
+.h3 .top{display:flex; justify-content:space-between; align-items:center;}
+.h3 .logo{height:42px;}
+.h3 .ref{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#5B6478; text-align:right; line-height:1.7;}
+.h3 .titulo{font-family:"Instrument Serif", Georgia, serif; font-weight:400; font-size:44px; line-height:1.05;
+  margin:46px 0 6px; color:#004090;}
+.h3 .sub{font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:#8A93A6; margin-bottom:26px;}
+.h3 .regla{height:1px; background:#E4E7EE; margin:0 0 24px;}
+.h3 .firma{text-align:left;}
+.h3 .tricolor{margin-top:auto; display:flex; height:6px;}
+.h3 .tricolor i{flex:1;}
+.h3 .pie3{display:flex; justify-content:space-between; padding:14px 0 26px; font-size:11px; color:#5B6478;}
+
+/* 4 · constancia con sello */
+.h4 .top{text-align:center; padding:46px 64px 0;}
+.h4 .logo{height:52px; margin:0 auto;}
+.h4 .area{font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#5B6478; margin-top:12px;}
+.h4 .titulo{font-size:20px; font-weight:700; letter-spacing:.14em; margin:30px 0 4px; text-align:center;}
+.h4 .linea{width:64px; height:3px; background:#20B0F0; border-radius:2px; margin:0 auto 26px;}
+.h4 .cuerpo{padding:0 88px;}
+.h4 .fecha{text-align:right; font-size:13px; color:#5B6478; margin-bottom:16px;}
+.h4 .sello{margin:26px auto 0; width:380px; border:2px solid #004090; border-radius:14px; padding:14px 18px; text-align:center;
+  color:#004090; position:relative;}
+.h4 .sello .s1{font-size:10.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;}
+.h4 .sello .s2{font-size:20px; font-weight:700; letter-spacing:.04em; margin:4px 0; color:#0E1424;}
+.h4 .sello .s3{font-size:12px; color:#5B6478;}
+.h4 .quien{text-align:center; margin-top:22px; line-height:1.45;}
+.h4 .quien b{display:block;}
+.h4 .quien span{color:#5B6478; font-size:13.5px;}
+.h4 .pie{width:100%; margin-top:auto;}
+
+.cierre{margin:56px 0 0; border-top:1px solid var(--line); padding-top:22px;}
+.cierre h2{font-size:15px; margin:0 0 10px;}
+.cierre table{border-collapse:collapse; width:100%; max-width:980px; background:#fff; border:1px solid var(--line);
+  border-radius:10px; overflow:hidden; font-size:12px;}
+.cierre th, .cierre td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line-soft); vertical-align:top;}
+.cierre th{font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--gray); background:var(--card-2);}
+.cierre tr:last-child td{border-bottom:0;}
+@font-face{font-family:"Instrument Serif"; src:url("../assets/instrument-serif.ttf") format("truetype"); font-display:swap;}
+@media (max-width:1000px){ .caso-q, .balanza, .mesa{margin-left:0;} .balanza{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<div class="mq-cartel">
+  <b>Maqueta · no es la aplicación</b>
+  <span>Cuatro formas de la planilla de la autorización al CIIP, inspiradas en Atlas. Datos de ejemplo; no toca el panel.</span>
+</div>
+
+<main>
+  <p class="intro">
+    La hoja que genera la Ventanilla cuando el inversionista <b>autoriza al CIIP</b> en un trámite. Las cuatro llevan
+    <b>el logo del CIIP</b> y la letra de las plantillas de Atlas (Helvetica Neue, justificada a 14,5 px), con el
+    <b>mismo texto y los mismos datos</b>, para comparar solo la forma. Ninguna lleva firma: la aceptación en línea
+    queda como constancia.
+  </p>
+  <div class="indice">
+    <a href="#i1">1 · Oficio institucional</a>
+    <a href="#i2">2 · Ficha de Atlas</a>
+    <a href="#i3">3 · Sobria con banda azul</a>
+    <a href="#i4">4 · Constancia con sello</a>
+    <a href="#cierre">Comparación</a>
+  </div>
+
+  <!-- ═════════════════════════ 1 ═════════════════════════ -->
+  <section class="caso" id="i1">
+    <div class="caso-h"><span class="caso-n">1</span><span class="caso-t">Oficio institucional</span>
+      <span class="rec">La de hoy</span><span class="toca">El oficio de Atlas</span></div>
+    <p class="caso-q">El oficio general de Atlas tal cual: el membrete de la <b>Vicepresidencia y el CIIP</b> arriba, el pie con el
+      QR, los contactos y la franja tricolor abajo. Es la que ya está hecha en el panel.</p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Es el papel oficial que el CIIP ya usa: ante un ente se reconoce al primer vistazo. Sale del propio oficio, sin inventar nada.</div>
+      <div class="contra"><b>En contra</b>El membrete habla en nombre de la Vicepresidencia, y quien firma es el inversionista. Los datos del trámite se leen solo dentro del párrafo.</div>
+    </div>
+    <div class="mesa">
+      <div class="hoja h1">
+        <img class="cab" src="../assets/oficio-cabecera.png" alt="Vicepresidencia · CIIP">
+        <div class="cuerpo">
+          <div class="ref">AUT-2026-000001</div>
+          <div class="fecha">Caracas, 8 de octubre de 2026</div>
+          <div class="titulo">AUTORIZACIÓN</div>
+          <p>Yo, <b>Franklin Reyes</b>, en mi condición de representante legal de Bianchi Agroindustrias, C.A., sociedad domiciliada en Av. Principal, Galpón 4, Charallave, Municipio Cristóbal Rojas, inscrita en el Registro Mercantil Primero del Distrito Capital, bajo el N.º 12, Tomo 45-A, en fecha 19 de agosto de 2026, y en el Registro Único de Información Fiscal bajo el N.º J-40123456-7, por medio del presente autorizo a la Coordinación Legal del Centro Internacional de Inversión Productiva (CIIP) para que, a través del personal que designe, realice en nombre de Bianchi Agroindustrias, C.A., las gestiones necesarias para su registro y/o inscripción ante el Servicio Nacional Integrado de Administración Aduanera y Tributaria.</p>
+          <p>Esta autorización se otorga en línea, mediante aceptación expresa en la Ventanilla Única del Inversionista, sin necesidad de firma autógrafa.</p>
+          <div class="firma"><div class="at">Atentamente,</div><b>Franklin Reyes</b><span>Representante legal de Bianchi Agroindustrias, C.A.</span>
+            <small>Aceptada en línea el 8 de octubre de 2026 a las 10:42 a. m. · Constancia N.º AUT-2026-000001</small></div>
+        </div>
+        <img class="pie" src="../assets/oficio-pie.png" alt="Contactos del CIIP">
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════════════════ 2 ═════════════════════════ -->
+  <section class="caso" id="i2">
+    <div class="caso-h"><span class="caso-n">2</span><span class="caso-t">Ficha de Atlas</span>
+      <span class="toca">Datos arriba, en rejilla</span></div>
+    <p class="caso-q">Como las fichas de Atlas: el <b>logo del CIIP</b> arriba a la izquierda y el número y la fecha a la derecha.
+      Debajo, los datos en una <b>rejilla de seis casillas</b> (quién, empresa, RIF, registro, trámite y ente) y después el texto.
+      La aceptación va en un recuadro verde, y el pie es una línea fina con los contactos.</p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>El funcionario del ente encuentra cada dato sin leer el párrafo entero. Es la más limpia y la que mejor se lee impresa en blanco y negro.</div>
+      <div class="contra"><b>En contra</b>Los datos salen dos veces, en la rejilla y en el texto. Se parece menos a un oficio venezolano clásico.</div>
+    </div>
+    <div class="mesa">
+      <div class="hoja h2">
+        <div class="top">
+          <img class="logo" src="../assets/oficio-logo-ciip.png" alt="CIIP">
+          <div class="meta"><b>AUT-2026-000001</b>Caracas, 8 de octubre de 2026<br>Coordinación Legal</div>
+        </div>
+        <div class="titulo">Autorización</div>
+        <div class="sub">Para gestionar un trámite en nombre del inversionista</div>
+        <dl class="ficha">
+          <div><dt>Representante legal</dt><dd>Franklin Reyes</dd></div>
+          <div><dt>Empresa</dt><dd>Bianchi Agroindustrias, C.A.</dd></div>
+          <div><dt>RIF</dt><dd>J-40123456-7</dd></div>
+          <div><dt>Registro Mercantil</dt><dd>Primero del Distrito Capital · N.º 12, Tomo 45-A</dd></div>
+          <div><dt>Trámite</dt><dd>RIF de la empresa</dd></div>
+          <div><dt>Ente</dt><dd>Servicio Nacional Integrado de Administración Aduanera y Tributaria</dd></div>
+        </dl>
+        <div class="cuerpo">
+          <p>Yo, <b>Franklin Reyes</b>, en mi condición de representante legal de Bianchi Agroindustrias, C.A., sociedad domiciliada en Av. Principal, Galpón 4, Charallave, Municipio Cristóbal Rojas, inscrita en el Registro Mercantil Primero del Distrito Capital, bajo el N.º 12, Tomo 45-A, en fecha 19 de agosto de 2026, y en el Registro Único de Información Fiscal bajo el N.º J-40123456-7, por medio del presente autorizo a la Coordinación Legal del Centro Internacional de Inversión Productiva (CIIP) para que, a través del personal que designe, realice en nombre de Bianchi Agroindustrias, C.A., las gestiones necesarias para su registro y/o inscripción ante el Servicio Nacional Integrado de Administración Aduanera y Tributaria.</p>
+        </div>
+        <div class="sello"><i>✓</i><div><b>Aceptada en línea, sin firma autógrafa</b>Por Franklin Reyes en la Ventanilla Única del Inversionista, el 8 de octubre de 2026 a las 10:42 a. m. · Constancia AUT-2026-000001</div></div>
+        <div class="pie2">
+          <span><b>ciip.com.ve</b> · +58 212 274 3802 · vicepresidencia@ciip.com.ve</span>
+          <span>Av. Venezuela, Municipio Chacao, Urb. El Rosal, Torre CIIP, Caracas</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════════════════ 3 ═════════════════════════ -->
+  <section class="caso" id="i3">
+    <div class="caso-h"><span class="caso-n">3</span><span class="caso-t">Sobria con banda azul</span>
+      <span class="toca">El titular en serif, como Atlas</span></div>
+    <p class="caso-q">Una <b>banda azul del CIIP</b> en el borde izquierdo, como la barra lateral de Atlas, y el logo arriba. El
+      título va en <b>Instrument Serif</b>, la letra de los titulares de Atlas. El texto queda solo, con la firma alineada a la
+      izquierda y una franja tricolor fina al pie.</p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Es la que más «se parece a Atlas» y la más elegante. Deja mucho aire, así que el texto se lee sin esfuerzo.</div>
+      <div class="contra"><b>En contra</b>La banda gasta tinta al imprimir. La serif solo vive en el título; si el ente espera un oficio clásico, puede chocarle.</div>
+    </div>
+    <div class="mesa">
+      <div class="hoja h3">
+        <div class="banda"></div>
+        <div class="dentro">
+          <div class="top">
+            <img class="logo" src="../assets/oficio-logo-ciip.png" alt="CIIP">
+            <div class="ref">Coordinación Legal<br>AUT-2026-000001</div>
+          </div>
+          <div class="titulo">Autorización</div>
+          <div class="sub">Caracas, 8 de octubre de 2026 · RIF de la empresa</div>
+          <div class="regla"></div>
+          <div class="cuerpo">
+            <p>Yo, <b>Franklin Reyes</b>, en mi condición de representante legal de Bianchi Agroindustrias, C.A., sociedad domiciliada en Av. Principal, Galpón 4, Charallave, Municipio Cristóbal Rojas, inscrita en el Registro Mercantil Primero del Distrito Capital, bajo el N.º 12, Tomo 45-A, en fecha 19 de agosto de 2026, y en el Registro Único de Información Fiscal bajo el N.º J-40123456-7, por medio del presente autorizo a la Coordinación Legal del Centro Internacional de Inversión Productiva (CIIP) para que, a través del personal que designe, realice en nombre de Bianchi Agroindustrias, C.A., las gestiones necesarias para su registro y/o inscripción ante el Servicio Nacional Integrado de Administración Aduanera y Tributaria.</p>
+            <p>Esta autorización se otorga en línea, mediante aceptación expresa en la Ventanilla Única del Inversionista, sin necesidad de firma autógrafa.</p>
+            <div class="firma"><div class="at">Atentamente,</div><b>Franklin Reyes</b><span>Representante legal de Bianchi Agroindustrias, C.A.</span>
+              <small>Aceptada en línea el 8 de octubre de 2026 a las 10:42 a. m. · Constancia N.º AUT-2026-000001</small></div>
+          </div>
+          <div class="tricolor"><i style="background:#FFCC00"></i><i style="background:#2B2A6E"></i><i style="background:#AE1B2E"></i></div>
+          <div class="pie3"><span>ciip.com.ve · +58 212 274 3802</span><span>Torre CIIP, Urb. El Rosal, Caracas</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════════════════ 4 ═════════════════════════ -->
+  <section class="caso" id="i4">
+    <div class="caso-h"><span class="caso-n">4</span><span class="caso-t">Constancia con sello</span>
+      <span class="toca">El sello en lugar de la firma</span></div>
+    <p class="caso-q">El <b>logo del CIIP centrado</b> y, debajo, «Coordinación Legal». En vez de la línea de firma, un
+      <b>sello</b> enmarcado con «Aceptada en línea», el número de constancia, la fecha y la hora. Abajo se mantiene el pie
+      institucional del oficio, con el QR y la franja tricolor.</p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Deja más claro que ninguna que no hay firma y por qué vale igual: el sello es lo primero que busca quien la recibe. Mantiene el pie oficial.</div>
+      <div class="contra"><b>En contra</b>Un sello dibujado puede confundirse con un sello húmedo del CIIP. Conviene que el abogado diga si la palabra «sello» o su forma le parecen bien.</div>
+    </div>
+    <div class="mesa">
+      <div class="hoja h4">
+        <div class="top">
+          <img class="logo" src="../assets/oficio-logo-ciip.png" alt="CIIP">
+          <div class="area">Coordinación Legal</div>
+        </div>
+        <div class="titulo">AUTORIZACIÓN</div>
+        <div class="linea"></div>
+        <div class="cuerpo">
+          <div class="fecha">Caracas, 8 de octubre de 2026</div>
+          <p>Yo, <b>Franklin Reyes</b>, en mi condición de representante legal de Bianchi Agroindustrias, C.A., sociedad domiciliada en Av. Principal, Galpón 4, Charallave, Municipio Cristóbal Rojas, inscrita en el Registro Mercantil Primero del Distrito Capital, bajo el N.º 12, Tomo 45-A, en fecha 19 de agosto de 2026, y en el Registro Único de Información Fiscal bajo el N.º J-40123456-7, por medio del presente autorizo a la Coordinación Legal del Centro Internacional de Inversión Productiva (CIIP) para que, a través del personal que designe, realice en nombre de Bianchi Agroindustrias, C.A., las gestiones necesarias para su registro y/o inscripción ante el Servicio Nacional Integrado de Administración Aduanera y Tributaria.</p>
+          <div class="quien"><b>Franklin Reyes</b><span>Representante legal de Bianchi Agroindustrias, C.A.</span></div>
+          <div class="sello">
+            <div class="s1">Aceptada en línea · sin firma autógrafa</div>
+            <div class="s2">AUT-2026-000001</div>
+            <div class="s3">Ventanilla Única del Inversionista · 8 de octubre de 2026, 10:42 a. m.</div>
+          </div>
+        </div>
+        <img class="pie" src="../assets/oficio-pie.png" alt="Contactos del CIIP">
+      </div>
+    </div>
+  </section>
+
+  <section class="cierre" id="cierre">
+    <h2>Las cuatro, lado a lado</h2>
+    <table>
+      <thead><tr><th>Forma</th><th>Arriba</th><th>Los datos</th><th>La aceptación</th><th>Abajo</th></tr></thead>
+      <tbody>
+        <tr><td><b>1 · Oficio institucional</b></td><td>Membrete de la Vicepresidencia y el CIIP</td><td>Dentro del párrafo</td><td>Línea pequeña bajo el nombre</td><td>Pie oficial con QR y franja</td></tr>
+        <tr><td><b>2 · Ficha de Atlas</b></td><td>Logo CIIP, número y fecha</td><td>Rejilla de seis casillas y el párrafo</td><td>Recuadro verde</td><td>Línea fina con los contactos</td></tr>
+        <tr><td><b>3 · Sobria con banda azul</b></td><td>Logo CIIP y banda lateral</td><td>Dentro del párrafo</td><td>Línea pequeña bajo el nombre</td><td>Franja tricolor fina</td></tr>
+        <tr><td><b>4 · Constancia con sello</b></td><td>Logo CIIP centrado</td><td>Dentro del párrafo</td><td>Sello enmarcado con el número</td><td>Pie oficial con QR y franja</td></tr>
+      </tbody>
+    </table>
+    <p class="intro" style="margin-top:14px">Se pueden combinar: por ejemplo, la rejilla de la 2 dentro del oficio de la 1, o el sello de la 4 en cualquiera de las otras.</p>
+  </section>
+</main>
+</body>
+</html>

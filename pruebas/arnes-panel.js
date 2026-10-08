@@ -3936,7 +3936,9 @@
             !!document.getElementById('auSi').textContent.trim() && !!document.getElementById('auNo').textContent.trim(), true);
       document.getElementById('auSi').click();
       var txt = document.getElementById('auTexto').textContent;
-      ok('autorización: el texto nombra el trámite', /RIF de la empresa/.test(txt), txt.slice(0, 80), 'RIF de la empresa');
+      ok('autorización: el texto nombra el organismo completo, sin siglas', /Servicio Nacional Integrado de Administración Aduanera y Tributaria/.test(txt) && !/ante SENIAT/.test(txt),
+         txt.slice(-260), 'el Servicio Nacional Integrado…');
+      ok('autorización: y ya no dice «en el trámite de»', !/en el trámite de/.test(txt), txt.slice(0, 80), 'sin «en el trámite de»');
       ok('autorización: y no pide firma', !/firma del inversionista/i.test(txt) && /sin necesidad de firma/.test(txt),
          txt.slice(-120), 'sin necesidad de firma');
       /* El formato del oficio de Atlas: el membrete arriba y el pie abajo. */

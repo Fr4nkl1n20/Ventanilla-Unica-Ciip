@@ -8551,6 +8551,38 @@ applyLang(idiomaParaMi());
      empresa, la de la persona, con su documento. */
   var AU_EMPRESA = ['nombre', 'razon_social', 'domicilio', 'oficina_registro', 'num_registro', 'tomo', 'fecha_registro', 'rif'];
   var AU_PERSONA = ['nombre', 'tipo_doc', 'num_doc'];
+  /* El organismo por su nombre completo, no por sus siglas (Franklin
+     Reyes, 8-10-2026), y con su artículo: «ante el Servicio…», «ante la
+     Superintendencia…». La Alcaldía y los bomberos llevan el municipio de
+     la empresa si se sabe. Lo que no está aquí sale tal como lo dice el
+     catálogo. */
+  var AU_ENTES = {
+    SENIAT: 'el Servicio Nacional Integrado de Administración Aduanera y Tributaria',
+    SAREN: 'el Servicio Autónomo de Registros y Notarías',
+    SAPI: 'el Servicio Autónomo de la Propiedad Intelectual',
+    SACS: 'el Servicio Autónomo de Contraloría Sanitaria',
+    SAIME: 'el Servicio Administrativo de Identificación, Migración y Extranjería',
+    INCES: 'el Instituto Nacional de Capacitación y Educación Socialista',
+    BANAVIH: 'el Banco Nacional de Vivienda y Hábitat',
+    SUNDDE: 'la Superintendencia Nacional para la Defensa de los Derechos Socioeconómicos',
+    SUSCERTE: 'la Superintendencia de Servicios de Certificación Electrónica',
+    FONACIT: 'el Fondo Nacional de Ciencia, Tecnología e Innovación',
+    INTT: 'el Instituto Nacional de Transporte Terrestre',
+    VUCE: 'la Ventanilla Única de Comercio Exterior',
+    RNC: 'el Registro Nacional de Contratistas',
+    MPPRE: 'el Ministerio del Poder Popular para Relaciones Exteriores',
+    MPPPST: 'el Ministerio del Poder Popular para el Proceso Social de Trabajo',
+    MINEC: 'el Ministerio del Poder Popular para el Ecosocialismo',
+    ZODI: 'la Zona Operativa de Defensa Integral',
+    'Entes varios': 'los organismos correspondientes'
+  };
+  function enteCompleto(ente, municipio){
+    var e = String(ente || '').trim();
+    if (AU_ENTES[e]) return AU_ENTES[e];
+    if (/^alcald[ií]a$/i.test(e)) return 'la Alcaldía' + (municipio ? ' del Municipio ' + municipio : ' del municipio correspondiente');
+    if (/bomberos/i.test(e)) return 'el Cuerpo de Bomberos' + (municipio ? ' del Municipio ' + municipio : '');
+    return e || 'el organismo competente';
+  }
   var AU_HUECO = {nombre:'nombre y apellido', razon_social:'razón social', domicilio:'domicilio',
                   oficina_registro:'oficina', num_registro:'número', tomo:'tomo', fecha_registro:'fecha',
                   rif:'RIF', tipo_doc:'documento', num_doc:'número'};
@@ -8597,7 +8629,7 @@ applyLang(idiomaParaMi());
       fecha_registro: diaLargo(E.fecha_constitucion),
       rif: E.rif_empresa || '',
       tramite: (I18N.es && I18N.es[ref + '.name']) || ref || tipo.codigo,
-      ente: ((TIPOS[ref] || {}).ente) || tipo.ente || 'el organismo competente'
+      ente: enteCompleto(((TIPOS[ref] || {}).ente) || tipo.ente, E.municipio)
     };
   }
 
@@ -8609,11 +8641,12 @@ applyLang(idiomaParaMi());
       ? 'Yo, ' + d.nombre + ', en mi condición de representante legal de ' + d.razon_social +
         ', sociedad domiciliada en ' + d.domicilio + ', inscrita en el Registro Mercantil ' + d.oficina_registro +
         ', bajo el N.º ' + d.num_registro + ', Tomo ' + d.tomo + ', en fecha ' + d.fecha_registro +
-        ', y en el Registro Único de Información Fiscal bajo el N.º ' + d.rif + ', ' + autoriza + d.razon_social
+        ', y en el Registro Único de Información Fiscal bajo el N.º ' + d.rif + ', ' + autoriza + d.razon_social +
+        ', las gestiones necesarias para su registro y/o inscripción ante ' + d.ente
       : 'Yo, ' + d.nombre + ', titular ' + (/^c[eé]dula/.test(d.tipo_doc) ? 'de la ' : 'del ') + d.tipo_doc +
-        ' N.º ' + d.num_doc + ', ' + autoriza + 'mi persona';
+        ' N.º ' + d.num_doc + ', ' + autoriza + 'mi persona, las gestiones necesarias para mi registro y/o inscripción ante ' + d.ente;
     return [
-      p1 + ', en el trámite de ' + d.tramite + ', las gestiones necesarias para su registro y/o inscripción ante ' + d.ente + '.',
+      p1 + '.',
       'Esta autorización se otorga en línea, mediante aceptación expresa en la Ventanilla Única del Inversionista, sin necesidad de firma autógrafa.'
     ].join('\n\n');
   }
