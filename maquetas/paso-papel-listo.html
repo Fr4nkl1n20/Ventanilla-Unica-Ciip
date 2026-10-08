@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · El papel del CIIP, listo en su paso</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   EL PAPEL QUE MANDA EL CIIP, EN SU PASO: CUATRO FORMAS
+
+   Franklin Reyes, 8-10-2026: el paso 4 de la marca, «Búsqueda de
+   antecedentes lista». Hoy: una nota gris, «Invalid Date» (un fallo ya
+   corregido), el nombre del archivo suelto y un botón gris del navegador,
+   «Abrir». Vale igual para el certificado de registro (paso 11).
+
+   Con las piezas de la caja del importe ya aprobada (la ficha con su
+   icono y «Ver ↗»), para que los pasos se parezcan. No toca el panel.
+   ══════════════════════════════════════════════════════════════════ */
+:root{ --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB; }
+main{max-width:1240px; padding:28px 26px 90px; margin:0 auto;}
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.intro b{color:var(--ink);}
+.rejilla{display:grid; grid-template-columns:repeat(auto-fill, minmax(330px, 1fr)); gap:22px; margin-top:24px;}
+.idea{display:grid; gap:10px; align-content:start;}
+.idea h3{margin:0; font-size:15px; display:flex; gap:9px; align-items:center;}
+.idea h3 .n{width:24px; height:24px; border-radius:50%; background:var(--navy); color:#fff; font-size:12px; display:grid; place-items:center;}
+.idea h3 .n.hoy{background:var(--gray-soft);}
+.idea p{margin:0; font-size:12px; color:var(--gray); line-height:1.55;}
+.idea p b{color:var(--ink);}
+.fondo{background:var(--block); border:1px dashed #C9CED8; border-radius:14px; padding:20px 18px 18px; display:flex; justify-content:center;}
+.col{width:100%; max-width:280px; text-align:center; display:grid; gap:9px; justify-items:center; font-family:'Helvetica Neue', Arial, sans-serif;}
+.linea{display:flex; align-items:center; width:100%;}
+.linea i{flex:1; height:3px; background:#1E7F5C; border-radius:2px;}
+.ok{width:30px; height:30px; border-radius:50%; background:#1E7F5C; color:#fff; font-weight:700; display:grid; place-items:center; margin:0 6px;}
+.nom{font-size:13.5px; font-weight:700; color:var(--ink); line-height:1.3;}
+.gris{font-size:12.5px; color:var(--gray-soft); line-height:1.45;}
+.caja{width:100%; background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px; text-align:left; display:grid; gap:9px;}
+.archivo{display:flex; gap:10px; align-items:center; border:1px solid var(--line); border-radius:10px; padding:9px 10px; background:#fff; width:100%; text-align:left;}
+.archivo .pdf{width:32px; height:38px; border-radius:6px; background:#FBEEE9; color:#B4502E; font-size:9.5px; font-weight:800; display:grid; place-items:center; flex:none;}
+.archivo .tx{min-width:0; flex:1;}
+.archivo b{display:block; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.archivo small{font-size:11px; color:var(--gray);}
+.archivo .ver{font-size:12px; font-weight:700; color:var(--navy2); white-space:nowrap;}
+.btns{display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%;}
+.b{font-size:12px; font-weight:700; border-radius:9px; padding:9px 10px; border:1px solid var(--line); background:#fff; color:var(--navy2); text-align:center;}
+.b.prim{background:var(--navy); border-color:var(--navy); color:#fff;}
+.chip{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; border-radius:20px; padding:3px 9px; background:var(--good-bg); color:var(--good);}
+.boveda{font-size:11.5px; color:var(--gray); display:flex; gap:6px; align-items:center; justify-content:center;}
+.boveda a{color:var(--navy2); font-weight:700; text-decoration:none;}
+.hecho{width:100%; border:1px solid #CFE7DC; background:#F4FBF7; border-radius:12px; overflow:hidden; text-align:left;}
+.hecho .cab{display:flex; gap:9px; align-items:center; padding:10px 12px; border-bottom:1px solid #DDEFE5;}
+.hecho .cab i{width:22px; height:22px; border-radius:50%; background:#1E7F5C; color:#fff; font-style:normal; font-size:12px; font-weight:700; display:grid; place-items:center; flex:none;}
+.hecho .cab b{font-size:12.5px; color:#16573F;} .hecho .cab small{display:block; font-size:11px; color:var(--gray);}
+.hecho .cu{padding:10px 12px; display:grid; grid-template-columns:minmax(0,1fr); gap:8px;}
+/* la de hoy */
+.h0 .fn{font-size:13.5px;}
+.h0 .gb{font:13px Arial; background:#efefef; border:1px solid #767676; border-radius:2px; padding:1px 6px; color:#000;}
+</style>
+</head>
+<body>
+<div class="mq-cartel"><b>Maqueta · no es la aplicación</b><span>El papel que manda el CIIP, listo en su paso (búsqueda de antecedentes, certificado). No toca el panel.</span></div>
+<main>
+  <p class="intro">Hoy el paso 4 de la marca dice que la búsqueda ya está en la bóveda, enseña <b>«Invalid Date»</b> —un fallo que ya
+    corregí: la fecha venía de la base en un formato que el navegador no leía—, el nombre del archivo suelto y un <b>botón gris del
+    navegador</b>. Estas cuatro usan la ficha de la caja del importe que ya aprobó. Valen igual para el <b>certificado de registro</b> (paso 11).</p>
+
+  <div class="rejilla">
+    <section class="idea">
+      <h3><span class="n hoy">·</span>La de hoy</h3>
+      <p>Como se ve ahora, para comparar.</p>
+      <div class="fondo"><div class="col h0">
+        <div class="linea"><i></i><span class="ok">✓</span><i></i></div>
+        <div class="nom">Búsqueda de antecedentes lista</div>
+        <div class="gris">La búsqueda de antecedentes ya está en tu bóveda.</div>
+        <div class="gris">Invalid Date</div>
+        <div class="fn">CIIP_Ingresos_Propios_Analisis.pdf</div>
+        <span class="gb">Abrir</span>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">1</span>La ficha, como el importe</h3>
+      <p>La nota y la fecha como hoy, y el archivo como la <b>ficha del importe</b>: icono, nombre, «Enviado por el CIIP» y <b>«Ver ↗»</b>. Es la que menos cambia.</p>
+      <div class="fondo"><div class="col">
+        <div class="linea"><i></i><span class="ok">✓</span><i></i></div>
+        <div class="nom">Búsqueda de antecedentes lista</div>
+        <div class="gris">La búsqueda de antecedentes ya está en tu bóveda.<br>8 oct 2026</div>
+        <div class="archivo"><span class="pdf">PDF</span><div class="tx"><b>CIIP_Ingresos_Propios_Analisis.pdf</b><small>Enviado por el CIIP</small></div><span class="ver">Ver ↗</span></div>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">2</span>Ficha con dos botones</h3>
+      <p>La ficha dentro de una caja blanca, como la del importe, con <b>«Ver»</b> y <b>«Descargar»</b> y debajo un enlace a la <b>bóveda</b>, que es donde se queda guardada.</p>
+      <div class="fondo"><div class="col">
+        <div class="linea"><i></i><span class="ok">✓</span><i></i></div>
+        <div class="nom">Búsqueda de antecedentes lista</div>
+        <div class="caja">
+          <div class="archivo"><span class="pdf">PDF</span><div class="tx"><b>CIIP_Ingresos_Propios_Analisis.pdf</b><small>8 oct 2026 · enviado por el CIIP</small></div></div>
+          <div class="btns"><span class="b">Ver</span><span class="b prim">Descargar</span></div>
+        </div>
+        <div class="boveda">Guardada en <a>tu bóveda ›</a></div>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">3</span>Etiqueta «Lista»</h3>
+      <p>Una <b>etiqueta verde con la fecha</b> en lugar de la nota y la fecha sueltas, y la ficha compacta. Se lee de un vistazo que ya llegó y cuándo.</p>
+      <div class="fondo"><div class="col">
+        <div class="linea"><i></i><span class="ok">✓</span><i></i></div>
+        <div class="nom">Búsqueda de antecedentes lista</div>
+        <span class="chip">✓ Recibida el 8 oct 2026</span>
+        <div class="archivo"><span class="pdf">PDF</span><div class="tx"><b>CIIP_Ingresos_Propios_Analisis.pdf</b><small>También en tu bóveda</small></div><span class="ver">Ver ↗</span></div>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">4</span>Caja de «hecho»</h3>
+      <p>Una caja verde suave: arriba <b>«Lista»</b> con la fecha y una línea de qué es; dentro, la ficha y <b>«Ver»</b>. Deja claro que el paso terminó y qué se recibió.</p>
+      <div class="fondo"><div class="col">
+        <div class="linea"><i></i><span class="ok">✓</span><i></i></div>
+        <div class="nom">Búsqueda de antecedentes lista</div>
+        <div class="hecho">
+          <div class="cab"><i>✓</i><div><b>Lista el 8 de octubre</b><small>El CIIP la dejó en tu bóveda</small></div></div>
+          <div class="cu"><div class="archivo"><span class="pdf">PDF</span><div class="tx"><b>CIIP_Ingresos_Propios_Analisis.pdf</b><small>Búsqueda de antecedentes</small></div><span class="ver">Ver ↗</span></div></div>
+        </div>
+      </div></div>
+    </section>
+  </div>
+</main>
+</body>
+</html>

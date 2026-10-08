@@ -5941,3 +5941,15 @@ body.editando-textos .ay-ld-det > details{display:block; margin-bottom:12px;}
   .faq.ay-dil.ay-ld, .faq.ay-rec.ay-ld{grid-template-columns:1fr;}
   .ay-ld .ay-sitios{grid-template-columns:1fr;}
 }
+
+/* El papel del CIIP en su paso (opción 2 de maquetas/paso-papel-listo.html,
+   8-10-2026): la ficha en una caja blanca, «Ver» y «Descargar», y la bóveda. */
+.mc-papel{margin-top:8px; background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px;
+  display:grid; gap:9px; text-align:left;}
+.mc-papel .imp-fila.imp-archivo{margin:0;}
+.mc-papel-bs{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.mc-papel-bs .btn{justify-content:center; text-align:center;}
+.mc-papel-bov{margin-top:8px; font-size:var(--fs-nota); color:var(--gray); text-align:center;}
+.mc-papel-ir{font:inherit; font-weight:700; color:var(--navy2); background:none; border:0; padding:0; cursor:pointer;}
+.mc-papel-ir:hover{text-decoration:underline;}
+.mc-papel-ir:focus-visible{outline:2px solid var(--navy2); outline-offset:2px; border-radius:4px;}

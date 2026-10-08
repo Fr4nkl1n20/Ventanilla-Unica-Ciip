@@ -10449,18 +10449,53 @@ applyLang(idiomaParaMi());
     }
 
     var papelesPide = null;
+    /* El papel que manda el CIIP -la búsqueda de antecedentes, el
+       certificado-, en su paso: la ficha del archivo en una caja, con «Ver»
+       y «Descargar», y debajo dónde queda guardado (opción 2 de
+       maquetas/paso-papel-listo.html, Franklin Reyes, 8-10-2026). Era el
+       nombre suelto y un botón gris del navegador. Sin papel -todavía no se
+       ha leído, o no está-, la nota de siempre. */
     var abrePapel = function(paso, txt){
       if (!papelesPide) papelesPide = papelesDeLaMarca(tr.id);
       papelesPide.then(function(de){
         var d = de[paso.papel];
-        if (!d || !d.archivo) return;
-        var fila = el('div', 'mc-papel');
-        fila.appendChild(el('span', 'te-n', d.nombre_original || u['d_' + paso.papel] || ''));
-        var b = el('button', 'sd-btn', u.co_abrir || '');
-        b.type = 'button';
-        b.addEventListener('click', function(){ abreFirmado(d.archivo, b, 'abrir ' + paso.papel); });
-        fila.appendChild(b);
-        txt.appendChild(fila);
+        if (!d || !d.archivo){
+          if (paso.listo) txt.appendChild(el('div', 'tr-nota', u[paso.listo] || ''));
+          return;
+        }
+        var nombreP = d.nombre_original || u['d_' + paso.papel] || '';
+        var caja = el('div', 'mc-papel');
+        var fila = el('div', 'imp-fila imp-archivo');
+        var ico = el('span', 'imp-ico', /\.(png|jpe?g|webp|gif)$/i.test(d.archivo || nombreP) ? 'IMG' : 'PDF');
+        ico.setAttribute('aria-hidden', 'true');
+        fila.appendChild(ico);
+        var datosP = el('div', 'imp-a-tx');
+        datosP.appendChild(el('span', 'imp-n', nombreP));
+        var cuandoP = fecha(d.creado_en || paso.cuando);
+        datosP.appendChild(el('span', 'imp-a-s', (cuandoP ? cuandoP + ' · ' : '') + (u.pp_ciip || '')));
+        fila.appendChild(datosP);
+        caja.appendChild(fila);
+        var bs = el('div', 'mc-papel-bs');
+        var ver = el('button', 'btn ghost', u.pp_ver || u.co_abrir || '');
+        ver.type = 'button';
+        ver.addEventListener('click', function(){ abreFirmado(d.archivo, ver, 'abrir ' + paso.papel); });
+        var baja = el('button', 'btn navy', u.co_descargar || '');
+        baja.type = 'button';
+        baja.addEventListener('click', function(){ bajaFirmado(d.archivo, nombreP, baja, 'descargar ' + paso.papel); });
+        bs.appendChild(ver);
+        bs.appendChild(baja);
+        caja.appendChild(bs);
+        txt.appendChild(caja);
+        /* La bóveda es del inversionista: al equipo no se le ofrece. */
+        if (!esEquipo){
+          var bov = el('div', 'mc-papel-bov');
+          bov.appendChild(el('span', null, (u.pp_guardada || '') + ' '));
+          var irB = el('button', 'mc-papel-ir', (u.pp_boveda || '') + ' ›');
+          irB.type = 'button';
+          irB.addEventListener('click', function(){ location.hash = 'documentos'; });
+          bov.appendChild(irB);
+          txt.appendChild(bov);
+        }
       }).catch(function(e){ console.warn('[CIIP] papeles de la marca:', e && (e.message || e)); });
     };
 
@@ -10485,10 +10520,7 @@ applyLang(idiomaParaMi());
 
         if (paso.hecho || paso.ahora){
           if (paso.tipo === 'papel'){
-            if (paso.hecho){
-              if (paso.listo) txt.appendChild(el('div', 'tr-nota', u[paso.listo] || ''));
-              abrePapel(paso, txt);
-            } else if (paso.espera) txt.appendChild(el('div', 'tr-nota', u[paso.espera] || ''));
+            if (paso.hecho) abrePapel(paso, txt); else if (paso.espera) txt.appendChild(el('div', 'tr-nota', u[paso.espera] || ''));
           } else if ((paso.tipo === 'ciip' || paso.tipo === 'estado' || paso.tipo === 'pagos') &&
                      paso.ahora && paso.espera){
             txt.appendChild(el('div', 'tr-nota', u[paso.espera] || ''));
@@ -10536,7 +10568,8 @@ applyLang(idiomaParaMi());
                    : paso.tipo === 'estado'   ? cuando[(paso.hechoEn || [])[0]]
                    : paso.tipo === 'retiro'   ? cuando.resuelto
                    : paso.cuando;
-        if (paso.hecho && fechaP) txt.appendChild(el('div', 'sd-e', fecha(fechaP)));
+        /* El papel lleva su fecha en la ficha: aquí sería repetirla. */
+        if (paso.hecho && fechaP && paso.tipo !== 'papel') txt.appendChild(el('div', 'sd-e', fecha(fechaP)));
         else if (paso.ahora){
           var eti = el('span', 'tr-aqui', textoAqui());
           /* Desde que se cerró el anterior. */

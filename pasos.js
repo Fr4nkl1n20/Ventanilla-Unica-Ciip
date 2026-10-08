@@ -2324,6 +2324,8 @@ window.CIIP_PASOS = {
       mc_p_retiro:    "Retiro de la documentación original",
       mc_n_busqueda_espera: "El CIIP te enviará aquí la búsqueda de antecedentes en cuanto esté lista. También quedará en tu bóveda.",
       mc_n_busqueda_lista: "La búsqueda de antecedentes ya está en tu bóveda.",
+      /* El papel del CIIP en su paso (8-10-2026). */
+      pp_ver: "Ver", pp_ciip: "enviado por el CIIP", pp_guardada: "Guardada en", pp_boveda: "tu bóveda",
       mc_n_sapi:      "El CIIP presentó tu solicitud ante el SAPI. Durante el examen alguien puede oponerse a la marca o el SAPI puede devolverla; si pasa, te lo explicaremos aquí.",
       mc_n_en_registro: "Tu marca sigue su registro en el SAPI. Te avisaremos cuando se conceda.",
       mc_n_cert_espera: "El CIIP te enviará aquí el certificado de registro en cuanto lo emita el SAPI. También quedará en tu bóveda.",
@@ -4141,6 +4143,8 @@ window.CIIP_PASOS = {
       mc_p_retiro:    "Collection of the original documents",
       mc_n_busqueda_espera: "CIIP will send the prior-rights search here as soon as it is ready. It will also be in your vault.",
       mc_n_busqueda_lista: "The prior-rights search is now in your vault.",
+      /* El papel del CIIP en su paso (8-10-2026). */
+      pp_ver: "View", pp_ciip: "sent by the CIIP", pp_guardada: "Saved in", pp_boveda: "your vault",
       mc_n_sapi:      "CIIP has filed your application with SAPI. During the examination someone may oppose the trade mark or SAPI may return it; if that happens, we will explain it here.",
       mc_n_en_registro: "Your trade mark is going through registration at SAPI. We will let you know when it is granted.",
       mc_n_cert_espera: "CIIP will send the registration certificate here as soon as SAPI issues it. It will also be in your vault.",
@@ -5939,6 +5943,8 @@ window.CIIP_PASOS = {
       mc_p_retiro:    "Levantamento da documentação original",
       mc_n_busqueda_espera: "O CIIP vai enviar-lhe aqui a pesquisa de anterioridades assim que estiver pronta. Também ficará no seu cofre.",
       mc_n_busqueda_lista: "A pesquisa de anterioridades já está no seu cofre.",
+      /* El papel del CIIP en su paso (8-10-2026). */
+      pp_ver: "Ver", pp_ciip: "enviado pelo CIIP", pp_guardada: "Guardado em", pp_boveda: "o seu cofre",
       mc_n_sapi:      "O CIIP apresentou o seu pedido ao SAPI. Durante o exame alguém pode opor-se à marca ou o SAPI pode devolvê-la; se isso acontecer, explicamos-lhe aqui.",
       mc_n_en_registro: "A sua marca segue o registo no SAPI. Avisamos quando for concedida.",
       mc_n_cert_espera: "O CIIP vai enviar-lhe aqui o certificado de registo assim que o SAPI o emitir. Também ficará no seu cofre.",
@@ -7737,6 +7743,8 @@ window.CIIP_PASOS = {
       mc_p_retiro:    "Ritiro della documentazione originale",
       mc_n_busqueda_espera: "Il CIIP ti invierà qui la ricerca di anteriorità appena sarà pronta. La troverai anche nel tuo archivio.",
       mc_n_busqueda_lista: "La ricerca di anteriorità è già nel tuo archivio.",
+      /* El papel del CIIP en su paso (8-10-2026). */
+      pp_ver: "Vedi", pp_ciip: "inviato dal CIIP", pp_guardada: "Salvato in", pp_boveda: "il tuo archivio",
       mc_n_sapi:      "Il CIIP ha presentato la tua domanda al SAPI. Durante l'esame qualcuno può opporsi al marchio o il SAPI può restituirlo; se succede, te lo spiegheremo qui.",
       mc_n_en_registro: "Il tuo marchio prosegue la registrazione presso il SAPI. Ti avviseremo quando sarà concesso.",
       mc_n_cert_espera: "Il CIIP ti invierà qui il certificato di registrazione appena il SAPI lo rilascerà. Lo troverai anche nel tuo archivio.",
@@ -9535,6 +9543,8 @@ window.CIIP_PASOS = {
       mc_p_retiro:    "领取原件",
       mc_n_busqueda_espera: "检索报告一完成，CIIP 就会发到这里，同时存入你的档案库。",
       mc_n_busqueda_lista: "检索报告已在你的档案库中。",
+      /* El papel del CIIP en su paso (8-10-2026). */
+      pp_ver: "查看", pp_ciip: "由 CIIP 发送", pp_guardada: "已保存在", pp_boveda: "您的文件库",
       mc_n_sapi:      "CIIP 已向 SAPI 提交你的申请。审查期间可能有人对商标提出异议，或 SAPI 退回申请；如发生这种情况，我们会在这里向你说明。",
       mc_n_en_registro: "你的商标正在 SAPI 办理注册，核准后我们会通知你。",
       mc_n_cert_espera: "SAPI 一签发注册证书，CIIP 就会发到这里，同时存入你的档案库。",
@@ -11333,6 +11343,8 @@ window.CIIP_PASOS = {
       mc_p_retiro:    "Получение оригиналов документов",
       mc_n_busqueda_espera: "CIIP пришлёт сюда результаты поиска, как только они будут готовы. Они также появятся в вашем хранилище.",
       mc_n_busqueda_lista: "Результаты поиска уже в вашем хранилище.",
+      /* El papel del CIIP en su paso (8-10-2026). */
+      pp_ver: "Открыть", pp_ciip: "отправлено CIIP", pp_guardada: "Сохранено в", pp_boveda: "вашем хранилище",
       mc_n_sapi:      "CIIP подал вашу заявку в SAPI. Во время экспертизы кто-то может возразить против знака или SAPI может вернуть заявку; если это произойдёт, мы объясним это здесь.",
       mc_n_en_registro: "Ваш знак проходит регистрацию в SAPI. Мы сообщим, когда он будет зарегистрирован.",
       mc_n_cert_espera: "CIIP пришлёт сюда свидетельство о регистрации, как только его выдаст SAPI. Оно также появится в вашем хранилище.",
@@ -13146,6 +13158,8 @@ window.CIIP_PASOS = {
       mc_p_retiro:    "Retrait des documents originaux",
       mc_n_busqueda_espera: "Le CIIP vous enverra ici la recherche d’antériorités dès qu’elle sera prête. Elle sera aussi dans votre coffre-fort.",
       mc_n_busqueda_lista: "La recherche d’antériorités est désormais dans votre coffre-fort.",
+      /* El papel del CIIP en su paso (8-10-2026). */
+      pp_ver: "Voir", pp_ciip: "envoyé par le CIIP", pp_guardada: "Enregistré dans", pp_boveda: "votre coffre",
       mc_n_sapi:      "Le CIIP a déposé votre demande auprès du SAPI. Pendant l’examen, un tiers peut s’opposer à la marque ou le SAPI peut la renvoyer ; le cas échéant, nous vous l’expliquerons ici.",
       mc_n_en_registro: "Votre marque est en cours d’enregistrement auprès du SAPI. Nous vous préviendrons lorsqu’elle sera accordée.",
       mc_n_cert_espera: "Le CIIP vous enverra ici le certificat d’enregistrement dès que le SAPI l’aura délivré. Il sera aussi dans votre coffre-fort.",
@@ -14959,6 +14973,8 @@ window.CIIP_PASOS = {
       mc_p_retiro:    "原本書類の受け取り",
       mc_n_busqueda_espera: "先行調査が完了次第、CIIPがここに送付します。保管庫にも保存されます。",
       mc_n_busqueda_lista: "先行調査が保管庫に保存されました。",
+      /* El papel del CIIP en su paso (8-10-2026). */
+      pp_ver: "表示", pp_ciip: "CIIP から送付", pp_guardada: "保存先：", pp_boveda: "あなたの書類庫",
       mc_n_sapi:      "CIIPがSAPIに出願しました。審査中に第三者が商標に異議を申し立てたり、SAPIが差し戻したりすることがあります。その場合はここでご説明します。",
       mc_n_en_registro: "商標はSAPIで登録手続き中です。登録が認められたらお知らせします。",
       mc_n_cert_espera: "SAPIが登録証を発行次第、CIIPがここに送付します。保管庫にも保存されます。",
