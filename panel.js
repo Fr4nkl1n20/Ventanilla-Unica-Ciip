@@ -8848,8 +8848,23 @@ applyLang(idiomaParaMi());
           });
 
     conBorrador.then(function(tr){
-      /* 3. subir lo que sea nuevo y engancharlo */
+      /* 3. subir lo que sea nuevo y engancharlo
+
+         Y decir por dónde va (8-10-2026). Subir es lo que tarda -cada
+         papel nuevo se lee entero para su huella y sube al cubo- y con
+         «Enviando…» quieto durante medio minuto no se sabe si avanza. Se
+         suben a la vez; el número cuenta los que ya terminaron. */
       var tareas = [], vanAhora = [];
+      var nuevos = 0, hechos = 0;
+      caja.querySelectorAll('.sol-doc').forEach(function(f){
+        if (seVe(f) && f.querySelector('input[type=file]').files[0]) nuevos++;
+      });
+      var cuenta = function(){
+        if (!nuevos) return;
+        boton.textContent = String(u.sol_subiendo || u.enviando || '')
+          .replace('{i}', Math.min(hechos, nuevos)).replace('{n}', nuevos);
+      };
+      cuenta();
       caja.querySelectorAll('.sol-doc').forEach(function(f){
         /* Escondido es que no se pide: un recaudo de la bóveda colgado de
            una casilla sin marcar sería un papel enganchado sin pedirlo. */
@@ -8865,10 +8880,12 @@ applyLang(idiomaParaMi());
         tareas.push(sube(f.getAttribute('data-doc'), archivo, null, null,
                          f.getAttribute('data-titular') || null).then(function(docId){
           cual.id = docId; vanAhora.push(cual);
+          hechos++; cuenta();
           return engancha(tr.id, docId);
         }));
       });
       return Promise.all(tareas).then(function(){
+        boton.textContent = u.sol_mandando || u.enviando || '';
         /* El que no valió y ya se cambió, fuera del expediente (QA-08).
            Antes de pasar a 'enviado': la base solo deja desenganchar en
            borrador o devuelto. */
@@ -18894,12 +18911,68 @@ applyLang(idiomaParaMi());
   /* Si el inversionista autorizó al CIIP en este trámite o lo gestiona él
      (8-10-2026). Sin respuesta -lo de antes, o los que no la piden- no se
      dice nada: no se sabe. */
-  function chipGestion(t){
+  function chipGestion(t, abre){
     var g = t && t.datos && t.datos.gestion, u = T();
     if (g !== 'ciip' && g !== 'directa') return null;
-    var c = el('span', 'au-chip ' + g, g === 'ciip' ? (u.au_chip_ciip || '') : (u.au_chip_dir || ''));
+    /* En el visor, el «Autorizado al CIIP» se abre: es el respaldo del
+       gestor para presentar, consignar y retirar en nombre del
+       inversionista, y tiene que poder enseñarlo (8-10-2026). */
+    var boton = abre && g === 'ciip';
+    var c = el(boton ? 'button' : 'span', 'au-chip ' + g + (boton ? ' abre' : ''),
+               g === 'ciip' ? (boton ? (u.au_chip_ver || u.au_chip_ciip || '') : (u.au_chip_ciip || '')) : (u.au_chip_dir || ''));
     c.title = g === 'ciip' ? (u.au_chip_ciip_t || '') : (u.au_chip_dir_t || '');
+    if (boton){
+      c.type = 'button';
+      c.addEventListener('click', function(e){ e.stopPropagation(); abreAutorizacion(t, c); });
+    }
     return c;
+  }
+
+  /* La autorización tal como la aceptó el inversionista, con su constancia.
+     La lee el equipo: la política deja a es_gestor() ver todas. */
+  function abreAutorizacion(t, boton){
+    var u = T();
+    if (boton) boton.disabled = true;
+    Promise.resolve(sb.from('autorizaciones').select('codigo, texto, aceptada_en, revocada_en')
+      .eq('tramite', t.id).limit(1))
+      .then(function(r){ return (r && !r.error && r.data && r.data[0]) || null; }, function(){ return null; })
+      .then(function(a){
+        if (boton) boton.disabled = false;
+        var velo = el('div', 'te-visor');
+        var caja = el('div', 'te-visor-c au-visor');
+        caja.setAttribute('role', 'dialog');
+        caja.setAttribute('aria-modal', 'true');
+        caja.setAttribute('aria-label', u.au_ver_t || '');
+        var cab = el('div', 'te-visor-cab');
+        cab.appendChild(el('span', 'te-visor-n', (u.au_ver_t || '') + (a && a.codigo ? ' · ' + a.codigo : '')));
+        var cerrar = el('button', 'btn ghost', u.co_h_cerrar || '');
+        cerrar.type = 'button';
+        cab.appendChild(cerrar);
+        caja.appendChild(cab);
+        var cuerpo = el('div', 'au-visor-cu');
+        if (a){
+          cuerpo.appendChild(el('p', 'au-visor-meta', String(u.au_aceptada_el || '').replace('{fecha}', fecha(a.aceptada_en))));
+          if (a.revocada_en) cuerpo.appendChild(el('p', 'au-visor-rev', String(u.au_revocada_el || '').replace('{fecha}', fecha(a.revocada_en))));
+          var txt = el('div', 'pl-texto au-visor-texto', a.texto || '');
+          cuerpo.appendChild(txt);
+        } else {
+          cuerpo.appendChild(el('p', 'te-visor-nada', u.au_sin_constancia || ''));
+        }
+        caja.appendChild(cuerpo);
+        velo.appendChild(caja);
+        var antes = document.activeElement;
+        function cierra(){
+          document.removeEventListener('keydown', tecla);
+          velo.remove();
+          if (antes && antes.focus && document.body.contains(antes)) antes.focus();
+        }
+        function tecla(e){ if (e.key === 'Escape') cierra(); }
+        cerrar.addEventListener('click', cierra);
+        velo.addEventListener('click', function(e){ if (e.target === velo) cierra(); });
+        document.addEventListener('keydown', tecla);
+        document.body.appendChild(velo);
+        cerrar.focus();
+      });
   }
 
   function hoyTarjeta(t){
@@ -19794,7 +19867,7 @@ applyLang(idiomaParaMi());
     var tit = el('b', null, ref ? nombreDeTarjeta(ref) : t.tipo);
     tit.id = 'paVisorTit';
     tt.appendChild(tit);
-    var chipV = chipGestion(t);
+    var chipV = chipGestion(t, true);
     if (chipV) tt.appendChild(chipV);
     bar.appendChild(tt);
 

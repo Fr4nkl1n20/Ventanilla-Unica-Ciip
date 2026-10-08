@@ -815,10 +815,17 @@
   var colaListos = [];
   function siembraHoy(){
     function hace(n){ return new Date(Date.now() - n * 86400000).toISOString(); }
+    /* h1 autorizó al CIIP (8-10-2026): su constancia, para que el gestor
+       la pueda abrir desde el visor. */
+    if (!AUTORIZ.some(function(a){ return a.tramite === 'h1'; })){
+      AUTORIZ.push({id:'auh1', codigo:'AUT-2026-000777', inversionista:'u2', tramite:'h1', tipo:'rif_personal',
+                    texto:'AUTORIZACIÓN. Yo, Marco Bianchi, autorizo al Centro Internacional de Inversión Productiva (CIIP).',
+                    datos:{}, aceptada_en: hace(2), revocada_en:null});
+    }
     colaTram = [
       {id:'h1', inversionista:'u2', tipo:'rif_personal', estado:'enviado', gestor:null, sembrado:true,
        datos:{tipo_documento:'Pasaporte', numero_documento:'YA8812345', telefono:'+58 412 555 0132',
-              direccion_fiscal:'Av. Francisco de Miranda, Chacao'},
+              direccion_fiscal:'Av. Francisco de Miranda, Chacao', gestion:'ciip'},
        creado_en: hace(2), enviado_en: hace(2)},
       {id:'h2', inversionista:'u7', tipo:'constitucion', estado:'en_revision', gestor:'u1', sembrado:true,
        datos:{denominacion:'Ferreira Turismo Costa, C.A.', capital_social:'80.000'},

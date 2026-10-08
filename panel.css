@@ -4859,6 +4859,14 @@ body.con-puerta{overflow:hidden;}
 .au-chip.ciip{background:var(--good-bg); color:var(--good);}
 .au-chip.directa{background:var(--activa-bg); color:var(--navy2);}
 .visor-bar .tt .au-chip{margin-left:8px; vertical-align:middle;}
+.au-chip.abre{border:0; cursor:pointer; font:inherit; font-size:var(--fs-chip); font-weight:700;}
+.au-chip.abre:hover{text-decoration:underline;}
+.au-chip.abre:focus-visible{outline:2px solid var(--navy); outline-offset:2px;}
+.au-visor{max-width:720px;}
+.au-visor-cu{padding:14px 16px 18px; overflow:auto; display:grid; gap:10px;}
+.au-visor-meta{margin:0; font-size:var(--fs-nota); color:var(--gray);}
+.au-visor-rev{margin:0; font-size:var(--fs-nota); color:var(--rust); font-weight:700;}
+.au-visor-texto{max-height:60vh; min-height:0;}
 .au-q{font-size:var(--fs-valor); font-weight:700; color:var(--ink); line-height:1.4;}
 .tra-cam.yo .ic{background:var(--activa-bg); color:var(--navy2);}
 .au-texto{min-height:0; max-height:40vh;}

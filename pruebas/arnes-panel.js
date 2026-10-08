@@ -283,7 +283,7 @@
               cmResueltas, cmTrasReabrir, cmTrasReresolver, cmTomaAjena, cmTrasTomaAjena,
               cmSale, cmF5Entra, cmF5Mira,
               hoySiembra, hoyMira, hoyTrasTomar, hoyTrasDeshacer, hoyRevisa,
-              hoyEspacioEspera, hoyEspacioMira, hoyTrasVale, hoyNoValeAbre,
+              hoyEspacioEspera, hoyEspacioMira, hoyAutorizacion, hoyTrasVale, hoyNoValeAbre,
               hoyNoValeMira, hoyNoValeGuarda, hoyTrasNoVale, hoyTrasDevolver,
               hoyRespuestaMira, hoyTrasCerrar,
               /* QA-14: resolver, fallar al mover y reintentar deja UNA resolución. */
@@ -3951,18 +3951,33 @@
           c.dispatchEvent(new Event('change', {bubbles:true}));
         });
       }
+      /* El botón dice por dónde va (8-10-2026): se apunta todo lo que
+         enseña mientras envía, que con la base de mentira dura un suspiro. */
+      var dijo = [];
+      /* Solo cuenta si hay papeles NUEVOS: los que ya estaban en la bóveda
+         se enganchan sin subir nada, y entonces no hay nada que contar. */
+      var hayNuevos = [].some.call(caja.querySelectorAll('.sol-doc input[type=file]'), function(i){ return i.files && i.files.length; });
+      var obs = new MutationObserver(function(){ dijo.push(bt.textContent); });
+      obs.observe(bt, {childList:true, characterData:true, subtree:true});
       document.getElementById('auAcepta').click();
-      espera();
+      espera(function(){
+        obs.disconnect();
+        ok('envio: el botón cuenta los recaudos solo si hay que subir alguno',
+           dijo.some(function(x){ return /Subiendo recaudos: [0-9]+ de [0-9]+/.test(x); }) === hayNuevos,
+           dijo.join(' | ').slice(0, 120), hayNuevos ? 'Subiendo recaudos: i de n' : 'sin contar');
+        ok('envio: y luego dice que envía la solicitud', dijo.some(function(x){ return /Enviando la solicitud/.test(x); }),
+           dijo.join(' | ').slice(0, 120), 'Enviando la solicitud…');
+      });
     })();
     /* Se espera a que la pantalla cambie y no un rato fijo: el envío sube
        los recaudos -y cada uno calcula su SHA-256- antes de tocar la base.
        Y se RINDE, para que lo que falle sea la prueba de abajo diciendo
        qué no ocurrió, en vez de quedarse el arnés colgado sin decir nada.
        Rendirse tarda cinco segundos; es justo lo que medía este fallo. */
-    function espera(){
+    function espera(antes){
       var vueltas = 0;
       (function mira(){
-        if (document.querySelector('#trReal .sol-estado') || ++vueltas > 100) return sigue();
+        if (document.querySelector('#trReal .sol-estado') || ++vueltas > 100){ if (antes) antes(); return sigue(); }
         setTimeout(mira, 50);
       })();
     }
@@ -7335,6 +7350,26 @@
   function hoyEspacioEspera(sigue){
     if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
     esperaFilas('#paVisor .visor-doc iframe, #paVisor .visor-doc img', 1, sigue);
+  }
+
+  /* El gestor abre la autorización del inversionista desde el visor
+     (8-10-2026): es su respaldo para actuar en su nombre. */
+  function hoyAutorizacion(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    var b = document.querySelector('#paVisor .au-chip.abre');
+    ok('hoy: el visor dice que el inversionista autorizó al CIIP, y se puede abrir', !!b, b ? b.textContent : 'no está', 'Autorizado al CIIP · Ver');
+    if (!b) return sigue();
+    b.click();
+    var n = 0;
+    (function mira(){
+      var v = document.querySelector('.te-visor .au-visor');
+      if (!v && ++n < 30) return setTimeout(mira, 100);
+      ok('hoy: abre la autorización con su constancia', !!v && /AUT-2026-000777/.test(v.textContent) && /autorizo al Centro/i.test(v.textContent),
+         v ? v.textContent.slice(0, 80) : 'no se abrió', 'el texto y el código');
+      if (v){ var c = v.querySelector('.te-visor-cab .btn'); if (c) c.click(); }
+      ok('hoy: y se cierra', !document.querySelector('.te-visor .au-visor'), '', 'cerrada');
+      sigue();
+    })();
   }
 
   function hoyEspacioMira(){
