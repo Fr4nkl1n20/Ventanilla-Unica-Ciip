@@ -28745,7 +28745,8 @@ applyLang(idiomaParaMi());
     ay_rec_conformidad: '<path d="M3 21h18M5 21V10l7-5 7 5v11"/>',
     ay_rec_bomberos: '<path d="M12 3c2 3 5 5 5 9a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3 1-5 1-8z"/>',
     ay_rec_visa: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 10h4M14 14h3"/>',
-    ay_rec_sacs: '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/>'
+    ay_rec_sacs: '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/>',
+    ay_rec_sapi: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><circle cx="12" cy="14" r="2.5"/>'
   };
 
   function pintaAyuda(){
@@ -28941,7 +28942,9 @@ applyLang(idiomaParaMi());
        del paso «Tus datos» de las dos visas. */
     /* Y el SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7): los
        recaudos y formularios de sus cuatro direcciones. */
-    ['licencia', 'parafiscales', 'conformidad', 'bomberos', 'visa', 'sacs'].forEach(function(k){
+    /* Y el SAPI (Franklin Reyes, 8-10-2026): el Clasificador de Niza, para
+       que el inversionista busque la clase de su marca. */
+    ['licencia', 'parafiscales', 'conformidad', 'bomberos', 'visa', 'sacs', 'sapi'].forEach(function(k){
       var kt = 'ay_rec_' + k, kl = kt + '_lista';
       var g = {kt: kt, t: u[kt] || es[kt], kl: kl, l: u[kl] || es[kl]};
       if (k === 'visa') g.descarga = {href: PLANILLA_VISA, texto: u.ay_visa_planilla || es.ay_visa_planilla,

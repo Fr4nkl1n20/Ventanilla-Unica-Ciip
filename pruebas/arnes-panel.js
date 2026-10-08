@@ -9289,7 +9289,7 @@
     igual('ayuda: tres pestañas, una por sección',
           [].map.call(bs, function(b){ return b.getAttribute('data-p'); }).join(' '), 'faq dil rec');
     var n = function(p){ var b = document.querySelector('#ayPest .ay-pe[data-p="' + p + '"] .n'); return b ? b.textContent : '?'; };
-    igual('ayuda: con lo que trae cada una (preguntas con respuesta, diligencias y trámites)', n('faq') + ' ' + n('dil') + ' ' + n('rec'), '7 2 6');
+    igual('ayuda: con lo que trae cada una (preguntas con respuesta, diligencias y trámites)', n('faq') + ' ' + n('dil') + ' ' + n('rec'), '7 2 7');
     var faqSec = document.querySelector('.ayuda-vista .faq-sec');
     var rec = document.querySelector('.ayuda-vista .ay-rec');
     igual('ayuda: se entra por las preguntas', !!faqSec && faqSec.offsetHeight > 0 && !!rec && rec.offsetHeight === 0, true);
@@ -9299,7 +9299,7 @@
           !!rec && rec.offsetHeight > 0 && faqSec.offsetHeight === 0, true);
     igual('ayuda: y la pestaña queda encendida', bRec && bRec.getAttribute('aria-selected'), 'true');
     var cards = rec ? rec.querySelectorAll('details.ay-card') : [];
-    igual('ayuda: cada trámite es una tarjeta abierta', [].filter.call(cards, function(d){ return d.open; }).length, 6);
+    igual('ayuda: cada trámite es una tarjeta abierta', [].filter.call(cards, function(d){ return d.open; }).length, 7);
     var tipos = rec ? [].map.call(rec.querySelectorAll('details[data-clave="ay_rec_bomberos"] .ay-tipo'), function(x){ return x.textContent; }).join(' ') : '';
     igual('ayuda: cada enlace dice qué abre', tipos, 'Web Instagram');
     var cuenta = rec && rec.querySelector('details[data-clave="ay_rec_parafiscales"] .ay-cuenta');
@@ -9340,8 +9340,12 @@
        de .ay-sitios y la mide visaPlanilla. */
     /* Y el SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7): los
        recaudos y formularios de sus cuatro direcciones. */
-    igual('recaudos: en Ayuda, la licencia, los parafiscales, la conformidad de uso, los bomberos, la visa y el SACS, con sus enlaces',
-          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3 ay_rec_bomberos:2 ay_rec_visa:0 ay_rec_sacs:4');
+    igual('recaudos: en Ayuda, la licencia, los parafiscales, la conformidad de uso, los bomberos, la visa, el SACS y el SAPI, con sus enlaces',
+          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3 ay_rec_bomberos:2 ay_rec_visa:0 ay_rec_sacs:4 ay_rec_sapi:2');
+    /* Y el SAPI (8-10-2026): el Clasificador de Niza. */
+    var niza = rec && rec.querySelector('details[data-clave="ay_rec_sapi"] a.ay-enlace');
+    igual('recaudos: el SAPI lleva al Clasificador de Niza', niza ? niza.getAttribute('href') : '(no está)',
+          'https://sapi.gob.ve/clasificador-niza/');
     var sacs = rec ? [].map.call(rec.querySelectorAll('details[data-clave="ay_rec_sacs"] a.ay-enlace'), function(a){
       return a.textContent + ' | ' + a.getAttribute('href'); }).join('\n') : '(no está)';
     igual('recaudos: los del SACS, las cuatro direcciones con los enlaces del documento', sacs,
