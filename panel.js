@@ -5092,10 +5092,11 @@ applyLang(idiomaParaMi());
       {n:'firmantes',         clave:'f_firmantes',   ancho:true},
       {n:'origen_fondos',     clave:'f_origenfondos',ancho:true}
     ],
-    /* No se pregunta la clase de Niza: es una decisión técnica que se toma
-       leyendo lo que él describa en `productos`, y pedirle un número que
-       casi nadie sabe solo llena el expediente de clases equivocadas que
-       hay que corregir igual.
+    /* LA CLASE DE NIZA (Franklin Reyes, 8-10-2026): un desplegable de la
+       clase 1 a la 48. Antes no se preguntaba -casi nadie la sabe, y una
+       clase equivocada hay que corregirla igual-, así que la primera opción
+       es «No la sé»: quien no la conoce sigue adelante y el CIIP la
+       determina leyendo la descripción de `productos`, que va justo antes.
        `en_uso` es un desplegable y no una fecha porque quien todavía no la
        usa no tiene fecha que poner, y el formulario exige todos los
        campos: una fecha ahí bloquearía a la mitad de los solicitantes. */
@@ -5111,7 +5112,8 @@ applyLang(idiomaParaMi());
       {n:'tipo_signo',       clave:'f_tiposigno', opcionesClave:'o_tiposigno'},
       {n:'empresa_registra', clave:'f_empresamarca', ancho:true},
       {n:'en_uso',           clave:'f_enuso',     opcionesClave:'o_enuso'},
-      {n:'productos',        clave:'f_productos', ancho:true}
+      {n:'productos',        clave:'f_productos', ancho:true},
+      {n:'clase_niza',       clave:'f_niza',      opcionesClave:'o_niza'}
     ],
     /* La misma razón que en RECAUDOS: el IVSS ya no se ofrece, pero lo
        pedido sigue teniendo que saber leerse.

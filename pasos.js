@@ -2488,6 +2488,9 @@ window.CIIP_PASOS = {
       f_signo:       "Nombre o denominación de la marca",
       f_tiposigno:   "Tipo de signo",
       o_tiposigno:   ["Denominativa (solo palabra)", "Figurativa (solo diseño)", "Mixta (palabra y diseño)"],
+      /* La clase de Niza (8-10-2026): «No la sé» y de la 1 a la 48. */
+      f_niza: "Clasificación de Niza",
+      o_niza: ["No la sé: que el CIIP la determine","Clase 1","Clase 2","Clase 3","Clase 4","Clase 5","Clase 6","Clase 7","Clase 8","Clase 9","Clase 10","Clase 11","Clase 12","Clase 13","Clase 14","Clase 15","Clase 16","Clase 17","Clase 18","Clase 19","Clase 20","Clase 21","Clase 22","Clase 23","Clase 24","Clase 25","Clase 26","Clase 27","Clase 28","Clase 29","Clase 30","Clase 31","Clase 32","Clase 33","Clase 34","Clase 35","Clase 36","Clase 37","Clase 38","Clase 39","Clase 40","Clase 41","Clase 42","Clase 43","Clase 44","Clase 45","Clase 46","Clase 47","Clase 48"],
       f_enuso:       "¿Ya usas la marca?",
       o_enuso:       ["Todavía no", "Sí, ya la uso"],
       f_productos:   "Descripción detallada de los productos o servicios",
@@ -4294,6 +4297,9 @@ window.CIIP_PASOS = {
       f_signo:       "Trademark name",
       f_tiposigno:   "Type of sign",
       o_tiposigno:   ["Word mark (text only)", "Figurative (design only)", "Combined (text and design)"],
+      /* La clase de Niza (8-10-2026): «No la sé» y de la 1 a la 48. */
+      f_niza: "Nice classification",
+      o_niza: ["I don't know: let the CIIP decide","Class 1","Class 2","Class 3","Class 4","Class 5","Class 6","Class 7","Class 8","Class 9","Class 10","Class 11","Class 12","Class 13","Class 14","Class 15","Class 16","Class 17","Class 18","Class 19","Class 20","Class 21","Class 22","Class 23","Class 24","Class 25","Class 26","Class 27","Class 28","Class 29","Class 30","Class 31","Class 32","Class 33","Class 34","Class 35","Class 36","Class 37","Class 38","Class 39","Class 40","Class 41","Class 42","Class 43","Class 44","Class 45","Class 46","Class 47","Class 48"],
       f_enuso:       "Are you already using the mark?",
       o_enuso:       ["Not yet", "Yes, already in use"],
       f_productos:   "Detailed description of the goods or services",
@@ -6084,6 +6090,9 @@ window.CIIP_PASOS = {
       f_signo:       "Nome ou denominação da marca",
       f_tiposigno:   "Tipo de sinal",
       o_tiposigno:   ["Nominativa (só palavra)", "Figurativa (só desenho)", "Mista (palavra e desenho)"],
+      /* La clase de Niza (8-10-2026): «No la sé» y de la 1 a la 48. */
+      f_niza: "Classificação de Nice",
+      o_niza: ["Não sei: que o CIIP a determine","Classe 1","Classe 2","Classe 3","Classe 4","Classe 5","Classe 6","Classe 7","Classe 8","Classe 9","Classe 10","Classe 11","Classe 12","Classe 13","Classe 14","Classe 15","Classe 16","Classe 17","Classe 18","Classe 19","Classe 20","Classe 21","Classe 22","Classe 23","Classe 24","Classe 25","Classe 26","Classe 27","Classe 28","Classe 29","Classe 30","Classe 31","Classe 32","Classe 33","Classe 34","Classe 35","Classe 36","Classe 37","Classe 38","Classe 39","Classe 40","Classe 41","Classe 42","Classe 43","Classe 44","Classe 45","Classe 46","Classe 47","Classe 48"],
       f_enuso:       "Já usa a marca?",
       o_enuso:       ["Ainda não", "Sim, já a uso"],
       f_productos:   "Descrição detalhada dos produtos ou serviços",
@@ -7874,6 +7883,9 @@ window.CIIP_PASOS = {
       f_signo:       "Nome o denominazione del marchio",
       f_tiposigno:   "Tipo di segno",
       o_tiposigno:   ["Denominativo (solo parola)", "Figurativo (solo disegno)", "Misto (parola e disegno)"],
+      /* La clase de Niza (8-10-2026): «No la sé» y de la 1 a la 48. */
+      f_niza: "Classificazione di Nizza",
+      o_niza: ["Non la so: la stabilisce il CIIP","Classe 1","Classe 2","Classe 3","Classe 4","Classe 5","Classe 6","Classe 7","Classe 8","Classe 9","Classe 10","Classe 11","Classe 12","Classe 13","Classe 14","Classe 15","Classe 16","Classe 17","Classe 18","Classe 19","Classe 20","Classe 21","Classe 22","Classe 23","Classe 24","Classe 25","Classe 26","Classe 27","Classe 28","Classe 29","Classe 30","Classe 31","Classe 32","Classe 33","Classe 34","Classe 35","Classe 36","Classe 37","Classe 38","Classe 39","Classe 40","Classe 41","Classe 42","Classe 43","Classe 44","Classe 45","Classe 46","Classe 47","Classe 48"],
       f_enuso:       "Usi già il marchio?",
       o_enuso:       ["Non ancora", "Sì, lo uso già"],
       f_productos:   "Descrizione dettagliata dei prodotti o servizi",
@@ -9664,6 +9676,9 @@ window.CIIP_PASOS = {
       f_signo:       "商标名称",
       f_tiposigno:   "商标类型",
       o_tiposigno:   ["文字商标（仅文字）", "图形商标（仅图形）", "组合商标（文字加图形）"],
+      /* La clase de Niza (8-10-2026): «No la sé» y de la 1 a la 48. */
+      f_niza: "尼斯分类",
+      o_niza: ["不清楚：由 CIIP 确定","第 1 类","第 2 类","第 3 类","第 4 类","第 5 类","第 6 类","第 7 类","第 8 类","第 9 类","第 10 类","第 11 类","第 12 类","第 13 类","第 14 类","第 15 类","第 16 类","第 17 类","第 18 类","第 19 类","第 20 类","第 21 类","第 22 类","第 23 类","第 24 类","第 25 类","第 26 类","第 27 类","第 28 类","第 29 类","第 30 类","第 31 类","第 32 类","第 33 类","第 34 类","第 35 类","第 36 类","第 37 类","第 38 类","第 39 类","第 40 类","第 41 类","第 42 类","第 43 类","第 44 类","第 45 类","第 46 类","第 47 类","第 48 类"],
       f_enuso:       "商标已在使用了吗？",
       o_enuso:       ["尚未使用", "是，已在使用"],
       f_productos:   "商品或服务的详细说明",
@@ -11454,6 +11469,9 @@ window.CIIP_PASOS = {
       f_signo:       "Название товарного знака",
       f_tiposigno:   "Тип обозначения",
       o_tiposigno:   ["Словесный (только слово)", "Изобразительный (только рисунок)", "Комбинированный (слово и рисунок)"],
+      /* La clase de Niza (8-10-2026): «No la sé» y de la 1 a la 48. */
+      f_niza: "Ниццкая классификация",
+      o_niza: ["Не знаю: пусть определит CIIP","Класс 1","Класс 2","Класс 3","Класс 4","Класс 5","Класс 6","Класс 7","Класс 8","Класс 9","Класс 10","Класс 11","Класс 12","Класс 13","Класс 14","Класс 15","Класс 16","Класс 17","Класс 18","Класс 19","Класс 20","Класс 21","Класс 22","Класс 23","Класс 24","Класс 25","Класс 26","Класс 27","Класс 28","Класс 29","Класс 30","Класс 31","Класс 32","Класс 33","Класс 34","Класс 35","Класс 36","Класс 37","Класс 38","Класс 39","Класс 40","Класс 41","Класс 42","Класс 43","Класс 44","Класс 45","Класс 46","Класс 47","Класс 48"],
       f_enuso:       "Знак уже используется?",
       o_enuso:       ["Пока нет", "Да, уже использую"],
       f_productos:   "Подробное описание товаров или услуг",
@@ -13259,6 +13277,9 @@ window.CIIP_PASOS = {
       f_signo:       "Nom de la marque",
       f_tiposigno:   "Type de signe",
       o_tiposigno:   ["Marque verbale (texte seul)", "Figurative (dessin seul)", "Mixte (texte et dessin)"],
+      /* La clase de Niza (8-10-2026): «No la sé» y de la 1 a la 48. */
+      f_niza: "Classification de Nice",
+      o_niza: ["Je ne sais pas : le CIIP la détermine","Classe 1","Classe 2","Classe 3","Classe 4","Classe 5","Classe 6","Classe 7","Classe 8","Classe 9","Classe 10","Classe 11","Classe 12","Classe 13","Classe 14","Classe 15","Classe 16","Classe 17","Classe 18","Classe 19","Classe 20","Classe 21","Classe 22","Classe 23","Classe 24","Classe 25","Classe 26","Classe 27","Classe 28","Classe 29","Classe 30","Classe 31","Classe 32","Classe 33","Classe 34","Classe 35","Classe 36","Classe 37","Classe 38","Classe 39","Classe 40","Classe 41","Classe 42","Classe 43","Classe 44","Classe 45","Classe 46","Classe 47","Classe 48"],
       f_enuso:       "Utilisez-vous déjà la marque ?",
       o_enuso:       ["Pas encore", "Oui, déjà utilisée"],
       f_productos:   "Description détaillée des produits ou services",
@@ -15064,6 +15085,9 @@ window.CIIP_PASOS = {
       f_signo:       "商標名",
       f_tiposigno:   "標章の種類",
       o_tiposigno:   ["文字商標（文字のみ）", "図形商標（図形のみ）", "結合商標（文字と図形）"],
+      /* La clase de Niza (8-10-2026): «No la sé» y de la 1 a la 48. */
+      f_niza: "ニース分類",
+      o_niza: ["わからない：CIIP が判断する","第1類","第2類","第3類","第4類","第5類","第6類","第7類","第8類","第9類","第10類","第11類","第12類","第13類","第14類","第15類","第16類","第17類","第18類","第19類","第20類","第21類","第22類","第23類","第24類","第25類","第26類","第27類","第28類","第29類","第30類","第31類","第32類","第33類","第34類","第35類","第36類","第37類","第38類","第39類","第40類","第41類","第42類","第43類","第44類","第45類","第46類","第47類","第48類"],
       f_enuso:       "すでにこの商標を使用していますか？",
       o_enuso:       ["まだ使用していない", "はい、使用中"],
       f_productos:   "商品またはサービスの詳細な説明",

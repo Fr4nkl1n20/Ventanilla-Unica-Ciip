@@ -11766,10 +11766,15 @@
   function marcaNuevaMira(sigue){
     if (PASE !== 'vacio') return sigue();
     var caja = document.getElementById('trReal');
-    /* Por primera vez, NADA cambia: los mismos cinco datos y los mismos
-       cinco recaudos de antes del encargo. */
-    igual('marca: por primera vez, los datos de siempre', bienesCampos(caja),
-          'signo tipo_signo empresa_registra en_uso productos');
+    /* Por primera vez, los mismos datos de antes del encargo más la clase
+       de Niza (Franklin Reyes, 8-10-2026), y los mismos cinco recaudos. */
+    igual('marca: por primera vez, los datos de siempre y la clase de Niza', bienesCampos(caja),
+          'signo tipo_signo empresa_registra en_uso productos clase_niza');
+    var niza = caja && caja.querySelector('.sol-campo[data-campo="clase_niza"] select');
+    var ops = niza ? [].map.call(niza.options, function(o){ return o.value; }) : [];
+    igual('marca: la clase de Niza, «No la sé» y de la 1 a la 48',
+          ops.length + ' · ' + ops[0] + ' · ' + ops[1] + ' · ' + ops[48],
+          '49 · No la sé: que el CIIP la determine · Clase 1 · Clase 48');
     igual('marca: y los recaudos de siempre', bienesDocs(caja),
           'logo_marca acta_constitutiva rif_empresa cedula rif_personal');
     var cambia = document.getElementById('marcaCambiar');
