@@ -208,6 +208,9 @@ $sellados$;
 
 
 -- ── 2 · El cubo ───────────────────────────────────────────────────────
+-- Con el bloqueo ya puesto (8-10-2026): idénticas a las de
+-- supabase-tramites-y-bloqueo.sql, para que volver a correr este archivo
+-- suelto no le devuelva la subida a una cuenta bloqueada.
 
 drop policy if exists "recaudos: subir a su carpeta" on storage.objects;
 create policy "recaudos: subir a su carpeta" on storage.objects
@@ -216,6 +219,7 @@ create policy "recaudos: subir a su carpeta" on storage.objects
     bucket_id = 'recaudos'
     and (storage.foldername(name))[1] = auth.uid()::text
     and (storage.foldername(name))[2] is distinct from 'emitidos'
+    and not public.esta_bloqueado()
   );
 
 -- Reemplazar solo la foto: es el único upsert del panel. Todo lo demás
@@ -223,8 +227,10 @@ create policy "recaudos: subir a su carpeta" on storage.objects
 drop policy if exists "recaudos: reemplazar en su carpeta" on storage.objects;
 create policy "recaudos: reemplazar en su carpeta" on storage.objects
   for update to authenticated
-  using      (bucket_id = 'recaudos' and name = auth.uid()::text || '/perfil/foto')
-  with check (bucket_id = 'recaudos' and name = auth.uid()::text || '/perfil/foto');
+  using      (bucket_id = 'recaudos' and name = auth.uid()::text || '/perfil/foto'
+              and not public.esta_bloqueado())
+  with check (bucket_id = 'recaudos' and name = auth.uid()::text || '/perfil/foto'
+              and not public.esta_bloqueado());
 
 drop policy if exists "recaudos: borrar de su carpeta" on storage.objects;
 create policy "recaudos: borrar de su carpeta" on storage.objects
@@ -236,6 +242,7 @@ create policy "recaudos: borrar de su carpeta" on storage.objects
     and not exists (select 1 from public.documentos d
                      where d.archivo = storage.objects.name
                        and d.estado = 'validado')
+    and not public.esta_bloqueado()
   );
 
 

@@ -46,3 +46,11 @@ maquetas/
 # nombres de las tablas. El mapa no se regala, y el navegador no tiene
 # nada que hacer con un .sql.
 *.sql
+
+# Lo que crean `vercel env pull` o `vercel dev` (8-10-2026, auditoría): la
+# clave de Anthropic y la de Supabase. Hoy se despliega desde git y no hay
+# ninguno, pero un `vercel --prod` desde una carpeta que los tenga los
+# publicaría: con .vercelignore presente, .gitignore no cuenta.
+.env
+.env.*
+node_modules/

@@ -153,9 +153,11 @@ begin
     return false;
   end if;
 
+  -- Traductor: 60 por hora (8-10-2026, auditoría). Cada traducción pide un
+  -- mensaje nuevo y propio, y 60 mensajes por hora ya es mucho escribir.
   tope := case p_pieza when 'asistente' then 40
                        when 'lector'    then 20
-                       when 'traductor' then 200 end;
+                       when 'traductor' then 60 end;
   if tope is null then
     raise exception 'pieza desconocida: %', p_pieza;
   end if;

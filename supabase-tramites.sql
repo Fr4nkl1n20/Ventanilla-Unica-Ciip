@@ -58,18 +58,32 @@ $$;
 -- stable = Postgres puede cachearla dentro de la misma consulta, así no
 -- se repite la lectura del perfil por cada fila evaluada.
 
-create or replace function public.es_gestor()
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1 from public.perfiles
-    where id = auth.uid() and rol in ('gestor','admin')
-  );
-$$;
+-- SOLO SI NO EXISTE (8-10-2026, auditoría de seguridad). La versión que
+-- vale es la de supabase-qa-admin.sql, que además mira «bloqueado» (QA-05).
+-- Esta columna aún no existe cuando este archivo corre en una base nueva,
+-- así que aquí no se puede poner la definición final; pero volver a correr
+-- este archivo suelto en una base que ya la tiene NO debe pisarla: un
+-- gestor bloqueado recuperaría todos sus permisos.
+do $solo$
+begin
+  if to_regprocedure('public.es_gestor()') is null then
+    execute $f$
+      create function public.es_gestor()
+      returns boolean
+      language sql
+      stable
+      security definer
+      set search_path = public
+      as $q$
+        select exists (
+          select 1 from public.perfiles
+          where id = auth.uid() and rol in ('gestor','admin')
+        );
+      $q$
+    $f$;
+  end if;
+end
+$solo$;
 
 comment on function public.es_gestor is 'true si quien consulta es del equipo del CIIP (gestor o admin)';
 
@@ -1038,25 +1052,38 @@ on conflict (id) do update
       file_size_limit    = excluded.file_size_limit,
       allowed_mime_types = excluded.allowed_mime_types;
 
-drop policy if exists "recaudos: subir a su carpeta" on storage.objects;
-create policy "recaudos: subir a su carpeta" on storage.objects
-  for insert to authenticated
-  with check (bucket_id = 'recaudos' and (storage.foldername(name))[1] = auth.uid()::text);
+-- Subir, reemplazar y borrar: SOLO SI NO EXISTEN (8-10-2026, auditoría de
+-- seguridad). Las que valen son las de supabase-tramites-y-bloqueo.sql,
+-- que cierran emitidos/, los papeles validados y las cuentas bloqueadas.
+-- Antes este archivo hacía drop + create, y volver a correrlo suelto dejaba
+-- a un inversionista sustituir con x-upsert una resolución del CIIP.
+do $solo$
+begin
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects'
+                  and policyname = 'recaudos: subir a su carpeta') then
+    create policy "recaudos: subir a su carpeta" on storage.objects
+      for insert to authenticated
+      with check (bucket_id = 'recaudos' and (storage.foldername(name))[1] = auth.uid()::text);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects'
+                  and policyname = 'recaudos: reemplazar en su carpeta') then
+    create policy "recaudos: reemplazar en su carpeta" on storage.objects
+      for update to authenticated
+      using (bucket_id = 'recaudos' and (storage.foldername(name))[1] = auth.uid()::text);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects'
+                  and policyname = 'recaudos: borrar de su carpeta') then
+    create policy "recaudos: borrar de su carpeta" on storage.objects
+      for delete to authenticated
+      using (bucket_id = 'recaudos' and (storage.foldername(name))[1] = auth.uid()::text);
+  end if;
+end
+$solo$;
 
 drop policy if exists "recaudos: leer su carpeta" on storage.objects;
 create policy "recaudos: leer su carpeta" on storage.objects
   for select to authenticated
   using (bucket_id = 'recaudos' and ((storage.foldername(name))[1] = auth.uid()::text or public.es_gestor()));
-
-drop policy if exists "recaudos: reemplazar en su carpeta" on storage.objects;
-create policy "recaudos: reemplazar en su carpeta" on storage.objects
-  for update to authenticated
-  using (bucket_id = 'recaudos' and (storage.foldername(name))[1] = auth.uid()::text);
-
-drop policy if exists "recaudos: borrar de su carpeta" on storage.objects;
-create policy "recaudos: borrar de su carpeta" on storage.objects
-  for delete to authenticated
-  using (bucket_id = 'recaudos' and (storage.foldername(name))[1] = auth.uid()::text);
 
 
 -- ───────────────────────────────────────────────────────────────────────

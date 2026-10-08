@@ -191,12 +191,14 @@ var INSTRUCCIONES = [
 async function traduce(anthropic, texto, destino) {
   var salida = await anthropic.beta.messages.create({
     model: MODELO,
-    max_tokens: 8000,
+    /* La entrada va recortada a 4.000 caracteres: 4.000 tokens de salida
+       cubren su traducción a cualquier idioma (8-10-2026; eran 8.000). */
+    max_tokens: 4000,
     /* La misma forma que la del asistente, que funciona en producción. Con
        output_config.format (salida con esquema) Anthropic contestaba con
        error el 28-9-2026, sin que se viera el motivo: el JSON se pide en
-       las instrucciones y se lee con tolerancia. Si vuelve a fallar, la
-       respuesta de la función trae ya el estado y el detalle. */
+       las instrucciones y se lee con tolerancia. Si vuelve a fallar,
+       el registro de Vercel trae el estado y el detalle. */
     output_config: { effort: 'low' },
     betas: ['server-side-fallback-2026-07-01'],
     fallbacks: 'default',
@@ -263,11 +265,23 @@ module.exports = async function (req, res) {
 
     var pide = base(env, token);
 
-    var m = await filas(pide, '/rest/v1/' + tabla + '?select=id,autor,del_equipo,texto,' + hilo.col +
+    var m = await filas(pide, '/rest/v1/' + tabla + '?select=id,autor,del_equipo,texto,creado_en,' + hilo.col +
                               '&id=eq.' + id);
     if (!m.length) return res.status(404).json({ error: 'Ese mensaje no existe.' });
     m = m[0];
     if (m.autor !== usuario.id) return res.status(403).json({ error: 'Solo se traduce un mensaje propio.' });
+
+    /* ANTES DE PAGAR (8-10-2026, auditoría de seguridad). guarda_traduccion
+       solo acepta un mensaje de menos de 15 minutos y una vez, pero corre
+       DESPUÉS de llamar a Claude: repetir esta petición sobre el mismo
+       mensaje gastaba una llamada a Opus cada vez. Las dos condiciones se
+       miran aquí primero, con el token de quien llama. */
+    var hace = Date.now() - Date.parse(m.creado_en);
+    if (!(hace < 15 * 60 * 1000)) return res.status(403).json({ error: 'Solo se traduce un mensaje recién escrito.' });
+    var ya = await filas(pide, '/rest/v1/mensaje_traducciones?select=idioma_original,idioma,texto' +
+                               '&tabla=eq.' + tabla + '&mensaje=eq.' + id);
+    if (ya.length) return res.status(200).json({ idioma_original: ya[0].idioma_original, idioma: ya[0].idioma,
+                                                 texto: ya[0].texto || null, ya: true });
 
     var texto = String(m.texto || '').trim();
     if (!texto) return res.status(204).end();
@@ -302,8 +316,9 @@ module.exports = async function (req, res) {
                                             return res.status(503).json({ motivo: 'sin-clave' }); }
     if (e instanceof APIConnectionError)  return res.status(504).json({ error: 'Anthropic no contestó.' });
     if (e instanceof APIError)            { console.error('[traducir] Anthropic devolvió', e.status, e.message);
-                                            return res.status(502).json({ error: 'El traductor no está disponible.',
-                                                     anthropic: e.status, detalle: String(e.message || '').slice(0, 300) }); }
+                                            /* El detalle se queda en el registro de Vercel: al
+                                               navegador no le dice nada útil y a un tercero, sí. */
+                                            return res.status(502).json({ error: 'El traductor no está disponible.' }); }
     console.error('[traducir] fallo:', e && (e.stack || e.message));
     return res.status(500).json({ error: 'Algo falló al traducir.' });
   }

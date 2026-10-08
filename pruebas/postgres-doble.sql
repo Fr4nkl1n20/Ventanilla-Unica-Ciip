@@ -120,3 +120,14 @@ grant select on auth.users to authenticated;
 -- que le pedimos a un doble.
 alter default privileges in schema public
   grant execute on functions to anon, authenticated;
+
+-- Y lo mismo con las TABLAS (8-10-2026). Supabase concede de fábrica todo
+-- sobre cada tabla nueva de public a anon y authenticated, y los archivos
+-- quitan encima (revoke all on uso_ia, el permiso por columnas de
+-- tramite_entes…). Antes el arnés lo concedía en bloque justo antes de
+-- probar, con lo que ningún revoke de tabla o de columna se probaba de
+-- verdad: el mismo error que tuvo con las funciones.
+alter default privileges in schema public
+  grant select, insert, update, delete, truncate, references, trigger on tables to anon, authenticated;
+alter default privileges in schema public
+  grant usage, select on sequences to anon, authenticated;

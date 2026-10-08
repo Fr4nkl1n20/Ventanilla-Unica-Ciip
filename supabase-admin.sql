@@ -48,18 +48,32 @@
 -- ───────────────────────────────────────────────────────────────────────
 -- Hermana de es_gestor(), pero solo admin. security definer para poder
 -- leer perfiles sin entrar en el bucle de sus propias políticas.
-create or replace function public.es_admin()
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1 from public.perfiles p
-    where p.id = auth.uid() and p.rol = 'admin'
-  );
-$$;
+-- SOLO SI NO EXISTE (8-10-2026, auditoría de seguridad). La versión que
+-- vale es la de supabase-qa-admin.sql, que además mira «bloqueado» (QA-05).
+-- Esta columna aún no existe cuando este archivo corre en una base nueva,
+-- así que aquí no se puede poner la definición final; pero volver a correr
+-- este archivo suelto en una base que ya la tiene NO debe pisarla: un
+-- admin bloqueado recuperaría todos sus permisos.
+do $solo$
+begin
+  if to_regprocedure('public.es_admin()') is null then
+    execute $f$
+      create function public.es_admin()
+      returns boolean
+      language sql
+      stable
+      security definer
+      set search_path = public
+      as $q$
+        select exists (
+          select 1 from public.perfiles p
+          where p.id = auth.uid() and p.rol = 'admin'
+        );
+      $q$
+    $f$;
+  end if;
+end
+$solo$;
 
 
 -- ───────────────────────────────────────────────────────────────────────

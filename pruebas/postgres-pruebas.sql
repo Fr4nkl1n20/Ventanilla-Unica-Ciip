@@ -16,12 +16,10 @@
 
 \set ON_ERROR_STOP on
 
--- Lo que Supabase reparte de fabrica a las dos cuentas anonimas. Sin
--- esto, cada intento fallaria por falta de permiso de tabla y no por la
--- politica, que es lo que se viene a probar: un aprobado por el motivo
--- equivocado tapa el agujero que se buscaba.
-grant select, insert, update, delete on all tables in schema public to anon, authenticated;
-grant usage, select on all sequences in schema public to anon, authenticated;
+-- Lo que Supabase reparte de fabrica a las dos cuentas anonimas lo pone
+-- ahora el doble al crear cada tabla (alter default privileges, al final
+-- de postgres-doble.sql), y los archivos quitan encima. Aqui se concedia
+-- en bloque justo antes de probar y pisaba esos revoke (8-10-2026).
 -- Las FUNCIONES no se reparten aqui, y esta es la linea que mas cara ha
 -- salido de este archivo: repartia EXECUTE sobre todas a anon y a
 -- authenticated justo antes de probar, con lo cual daba igual lo que
@@ -4672,6 +4670,109 @@ select arnes.comprueba(
   (select count(*) = 2 from public.tipos_tramite
     where (codigo = 'cedula_residencia' and nombre = 'Cédula de identidad de extranjero')
        or (codigo = 'apostilla_documentos' and nombre = 'Traducción de documentos')));
+
+
+
+-- ══ 36 · SEGUNDA AUDITORÍA DE SEGURIDAD (8-10-2026) ════════════════════
+-- supabase-seguridad-octubre.sql: las contraseñas de los entes no se leen
+-- en bloque, dos papeles más que solo emite el CIIP, y anon fuera.
+
+reset role;
+select arnes.nadie();
+insert into auth.users (email, raw_user_meta_data)
+values ('cl@prueba.local', '{"nombre_completo":"Clara Clave","pais":"Chile"}');
+insert into arnes.gente (papel, id) select 'C', id from auth.users where email = 'cl@prueba.local';
+do $sg$
+declare t uuid;
+begin
+  insert into public.tramites (inversionista, tipo, estado)
+  values ((select id from arnes.gente where papel = 'C'), 'registros_parafiscales', 'borrador')
+  returning id into t;
+  update public.tramites set estado = 'enviado' where id = t;
+  update public.tramite_entes set estado = 'codigo_enviado', codigo = 'clara1', clave = 'muy-secreta'
+   where tramite = t and ente = 'ivss';
+  insert into arnes.escenario values ('sg-pf', t);
+end
+$sg$;
+
+select arnes.comprueba('seguridad: sin entrar no se piden contraseñas ni se usan las funciones del equipo',
+  not has_function_privilege('anon', 'public.clave_del_ente(uuid,text)', 'execute')
+  and not has_function_privilege('anon', 'public.confirma_cita(uuid,timestamptz,text,text)', 'execute')
+  and not has_function_privilege('anon', 'public.abre_consulta_para(uuid,text,text)', 'execute'));
+
+-- El equipo: la columna no, el «hay contraseña» sí, y la función la da y apunta.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $sg$
+declare t uuid := (select id from arnes.escenario where clave = 'sg-pf'); c text; n0 bigint;
+begin
+  begin
+    perform clave from public.tramite_entes where tramite = t;
+    perform arnes.comprueba('seguridad: el equipo no lee las contraseñas en bloque', false, 'las leyó');
+  exception when others then
+    perform arnes.comprueba('seguridad: el equipo no lee las contraseñas en bloque', true, sqlerrm);
+  end;
+  perform arnes.comprueba('seguridad: pero sabe cuáles tienen contraseña',
+    (select tiene_clave from public.tramite_entes where tramite = t and ente = 'ivss'));
+  reset role;
+  n0 := (select coalesce(max(id), 0) from public.bitacora);
+  set role authenticated;
+  c := public.clave_del_ente(t, 'ivss');
+  perform arnes.comprueba('seguridad: el equipo pide una contraseña y la ve', c = 'muy-secreta', coalesce(c, 'null'));
+  reset role;
+  perform arnes.comprueba('seguridad: y queda apuntado quién la vio',
+    exists (select 1 from public.bitacora where id > n0 and fuente = 'entes' and accion = 'vio_clave'
+             and quien = (select id from arnes.gente where papel = 'G') and detalle = 'ivss'
+             and sobre = 'Clara Clave'),
+    (select string_agg(fuente || '/' || accion, ' ') from public.bitacora where id > n0));
+  set role authenticated;
+exception when others then
+  perform arnes.comprueba('seguridad: el equipo pide una contraseña y la ve', false, sqlerrm);
+end
+$sg$;
+
+-- El inversionista: la escribe y la corrige, pero no la lee ni la pide.
+select arnes.soy((select id from arnes.gente where papel = 'C'));
+do $sg$
+declare t uuid := (select id from arnes.escenario where clave = 'sg-pf'); ok boolean;
+begin
+  update public.tramite_entes set clave = 'otra-secreta'
+   where tramite = t and ente = 'ivss' returning tiene_clave into ok;
+  perform arnes.comprueba('seguridad: el inversionista sigue corrigiendo su contraseña', coalesce(ok, false));
+  begin
+    perform clave from public.tramite_entes where tramite = t;
+    perform arnes.comprueba('seguridad: el inversionista no la lee de vuelta', false, 'la leyó');
+  exception when others then
+    perform arnes.comprueba('seguridad: el inversionista no la lee de vuelta', true, sqlerrm);
+  end;
+  begin
+    perform public.clave_del_ente(t, 'ivss');
+    perform arnes.comprueba('seguridad: ni la pide por la función', false, 'la dio');
+  exception when others then
+    perform arnes.comprueba('seguridad: ni la pide por la función', true, sqlerrm);
+  end;
+exception when others then
+  perform arnes.comprueba('seguridad: el inversionista sigue corrigiendo su contraseña', false, sqlerrm);
+end
+$sg$;
+
+-- Y no fabrica la planilla de los RIF ni la constancia de un ente.
+do $sg$
+declare tipo_ciip text;
+begin
+  foreach tipo_ciip in array array['planilla_solicitud', 'constancia_ente'] loop
+    begin
+      insert into public.documentos (inversionista, tipo, archivo, nombre_original, estado)
+      values (auth.uid(), tipo_ciip, auth.uid() || '/falsa-' || tipo_ciip || '.pdf', 'falsa.pdf', 'cargado');
+      perform arnes.comprueba('seguridad: el inversionista no sube un ' || tipo_ciip, false, 'entró');
+    exception when others then
+      perform arnes.comprueba('seguridad: el inversionista no sube un ' || tipo_ciip, true, sqlerrm);
+    end;
+  end loop;
+end
+$sg$;
+reset role;
+select arnes.nadie();
 
 
 \o

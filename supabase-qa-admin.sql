@@ -97,8 +97,12 @@ begin
     return false;
   end if;
 
+  -- Las tres definiciones (tope-ia, qa-admin, traduccion-chat) son la
+  -- misma desde el 8-10-2026: volver a correr una suelta no puede quitar
+  -- el bloqueo ni dejar sin tope al traductor.
   tope := case p_pieza when 'asistente' then 40
-                       when 'lector'    then 20 end;
+                       when 'lector'    then 20
+                       when 'traductor' then 60 end;
   if tope is null then
     raise exception 'pieza desconocida: %', p_pieza;
   end if;

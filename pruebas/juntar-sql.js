@@ -279,7 +279,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* Los modelos de «Autorizaciones y NDA»: un cubo que solo llena el admin
    (Franklin Reyes, 8-10-2026). Solo pide es_admin(); al final para no
    mover el número de nadie. */
-'supabase-modelos'];
+'supabase-modelos',
+/* La segunda auditoría de seguridad (8-10-2026): las contraseñas de los
+   entes por columna y con rastro, dos papeles más que solo emite el CIIP y
+   anon fuera de confirma_cita y abre_consulta_para. Toca tramite_entes,
+   documentos y la bitácora de muchos archivos de antes: va la última. */
+'supabase-seguridad-octubre'];
 
 let mal = 0;
 for (const n of orden) {

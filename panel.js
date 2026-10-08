@@ -12951,12 +12951,15 @@ applyLang(idiomaParaMi());
     if (!archivo) return false;
     var pestana = null;
     try { pestana = window.open('', '_blank'); } catch(e){}
+    /* Sin camino de vuelta a esta pestaña (8-10-2026, auditoría): lo que
+       se abra ahí no puede tocar el panel por window.opener. */
+    if (pestana) { try { pestana.opener = null; } catch(e){} }
     Promise.resolve(sb.storage.from('recaudos').createSignedUrl(archivo, 120))
       .then(function(r){
         var url = r && r.data && r.data.signedUrl;
         if (!url){ if (pestana && !pestana.closed) pestana.close(); return; }
         if (pestana && !pestana.closed) pestana.location.href = url;
-        else window.open(url, '_blank');
+        else window.open(url, '_blank', 'noopener');
       })
       .catch(function(e){
         if (pestana && !pestana.closed) pestana.close();
@@ -21798,7 +21801,7 @@ applyLang(idiomaParaMi());
        guardarla; si no, como antes (ver sinColumnaClave). */
     function pide(){
       var cols = 'tramite, ente, codigo, estado, actualizado_en' +
-                 (ENTES_SELECT === ENTES_SELECT_BASE ? '' : ', clave');
+                 (ENTES_SELECT === ENTES_SELECT_BASE ? '' : ', tiene_clave');
       return Promise.resolve(sb.from('tramite_entes')
         .select(cols)
         .eq('estado', 'codigo_enviado')
@@ -21879,7 +21882,7 @@ applyLang(idiomaParaMi());
       cod.appendChild(el('span', 'pe-cod',
         String((conClave ? u.pe_tuusuario : u.pe_tucodigo) || '{c}').replace('{c}', x.codigo || '')));
       /* El IVSS y el INCES, con la contraseña al lado, tapada. */
-      if (conClave && x.clave) cod.appendChild(claveTapada(x.clave));
+      if (conClave && x.tiene_clave) cod.appendChild(claveTapada(x.tramite, x.ente));
       fila.appendChild(cod);
 
       var acc = el('div', 'rv-acc');
@@ -27150,7 +27153,9 @@ applyLang(idiomaParaMi());
     return entesDelTramite(t).every(function(e){ return ya[e] && ya[e].estado === 'listo'; });
   }
   var ENTES_SELECT_BASE = 'ente, codigo, estado, documento, documentos(archivo, nombre_original, tipo)';
-  var ENTES_SELECT = ENTES_SELECT_BASE + ', clave';
+  /* tiene_clave y no clave (8-10-2026, auditoría): la contraseña ya no se
+     lee en bloque; el equipo la pide de una en una (claveTapada). */
+  var ENTES_SELECT = ENTES_SELECT_BASE + ', tiene_clave';
 
   /* ── EL IVSS Y EL INCES MANDAN USUARIO Y CONTRASEÑA ──
      Franklin Reyes, 27-9-2026: «para IVSS e INCES se debe colocar 2
@@ -27252,8 +27257,12 @@ applyLang(idiomaParaMi());
   }
   /* La contraseña tapada, con su botón de verla. El mismo número de puntos
      sea cual sea: contarlos ya diría cuánto mide. */
-  function claveTapada(clave){
+  /* Desde el 8-10-2026 la contraseña no viene con la fila: «Ver» la pide
+     a clave_del_ente(), que deja en la bitácora quién la vio. Se pide una
+     sola vez por botón; ocultarla y volver a verla no la pide otra vez. */
+  function claveTapada(tramite, ente){
     var u = T();
+    var clave = null;
     var caja = el('span', 'pe-cod pe-clave');
     caja.appendChild(document.createTextNode((u.pe_tuclave || '') + ' '));
     var valor = el('span', 'pe-clave-v', '••••••••');
@@ -27261,11 +27270,26 @@ applyLang(idiomaParaMi());
     var ver = el('button', 'pe-ver', u.pe_verclave || '');
     ver.type = 'button';
     ver.setAttribute('aria-pressed', 'false');
-    ver.addEventListener('click', function(){
-      var abierta = ver.getAttribute('aria-pressed') !== 'true';
+    function muestra(abierta){
       ver.setAttribute('aria-pressed', abierta ? 'true' : 'false');
       valor.textContent = abierta ? clave : '••••••••';
       ver.textContent = abierta ? (u.pe_ocultaclave || '') : (u.pe_verclave || '');
+    }
+    ver.addEventListener('click', function(){
+      var abierta = ver.getAttribute('aria-pressed') !== 'true';
+      if (!abierta || clave !== null) return muestra(abierta);
+      ver.disabled = true;
+      Promise.resolve(sb.rpc('clave_del_ente', {p_tramite: tramite, p_ente: ente}))
+        .then(function(r){
+          if (r && r.error) throw r.error;
+          clave = (r && typeof r.data === 'string') ? r.data : '—';
+          muestra(true);
+        })
+        .catch(function(e){
+          console.warn('[CIIP] clave_del_ente:', e && e.message);
+          valor.textContent = '—';
+        })
+        .then(function(){ ver.disabled = false; });
     });
     caja.appendChild(document.createTextNode(' '));
     caja.appendChild(ver);
@@ -31603,14 +31627,16 @@ applyLang(idiomaParaMi());
 
   /* Las tres fuentes, y el rotulo de cada una. El orden es el del menu de
      fichas: primero todo, luego lo mas mirado. */
-  var RA_MONTONES = ['todos', 'rol', 'cat', 'tra', 'pap', 'cit', 'tex', 'act', 'aju'];
+  var RA_MONTONES = ['todos', 'rol', 'cat', 'tra', 'pap', 'cit', 'tex', 'act', 'aju', 'ent'];
   var RA_ROTULO = {todos:'ra_f_todos', rol:'ra_f_roles', cat:'ra_f_cat',
                    tra:'ra_f_tram', pap:'ra_f_pap', cit:'ra_f_citas',
-                   tex:'ra_f_tex', act:'ra_f_act', aju:'ra_f_aju'};
+                   tex:'ra_f_tex', act:'ra_f_act', aju:'ra_f_aju', ent:'ra_f_ent'};
   /* Lo que dice la bitacora en 'fuente' y como se llama aqui dentro. Las
      tres ultimas las trajo supabase-bitacora-ajustes.sql. */
   var RA_FUENTE = {catalogo:'cat', roles:'rol', papeles:'pap', citas:'cit',
-                   textos:'tex', activos:'act', acompanamiento:'aju'};
+                   textos:'tex', activos:'act', acompanamiento:'aju',
+                   /* Quién vio la contraseña de un ente (8-10-2026). */
+                   entes:'ent'};
   var RA_ESTADO_CITA = {solicitada:'ra_e_solicitada', confirmada:'ra_e_confirmada',
                         hecha:'ra_e_hecha', cancelada:'ra_e_cancelada'};
   var raFiltro = 'todos', raBusca = '', raEnganchado = false;
@@ -31739,6 +31765,10 @@ applyLang(idiomaParaMi());
     } else if (b.fuente === 'acompanamiento'){
       accion = u.ra_v_ajusto || '';
       sobre  = u.ra_acomp || '';
+    } else if (b.fuente === 'entes'){
+      /* El detalle es el ente (ivss, inces) y «sobre», de quién era. */
+      accion = String(u.ra_v_vioclave || '').replace('{ente}', String(b.detalle || '').toUpperCase());
+      if (!sobre) sobre = u.ra_sinnombre || '';
     } else if (b.accion === 'puso_tramo' || b.accion === 'quito_tramo'){
       accion = (b.accion === 'puso_tramo' ? u.ra_v_tramo : u.ra_v_sintramo) || '';
       sobre  = raDia(b.detalle) + ' ' + String(sobre).replace('-', ' ' + String.fromCharCode(8211) + ' ');

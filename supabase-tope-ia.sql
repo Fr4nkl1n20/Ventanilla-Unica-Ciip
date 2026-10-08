@@ -30,13 +30,18 @@ create table if not exists public.uso_ia (
   hora    timestamptz not null,
   usos    integer     not null default 1,
   primary key (usuario, pieza, hora),
-  constraint uso_ia_pieza_valida check (pieza in ('asistente', 'lector'))
+  constraint uso_ia_pieza_valida check (pieza in ('asistente', 'lector', 'traductor'))
 );
 
 comment on table public.uso_ia is
   'Cuántas veces usó cada persona el asistente y el lector en cada hora. Solo la escribe gasta_uso_ia()';
 
 -- Sin políticas: nadie la lee ni la escribe desde fuera. Solo la función.
+-- Una tabla de antes del traductor tiene la regla de dos piezas.
+alter table public.uso_ia drop constraint if exists uso_ia_pieza_valida;
+alter table public.uso_ia add constraint uso_ia_pieza_valida
+  check (pieza in ('asistente', 'lector', 'traductor'));
+
 alter table public.uso_ia enable row level security;
 revoke all on public.uso_ia from anon, authenticated;
 
@@ -55,8 +60,16 @@ begin
     raise exception 'Hace falta haber entrado' using errcode = '42501';
   end if;
 
+  if public.esta_bloqueado() then
+    return false;
+  end if;
+
+  -- Las tres definiciones (tope-ia, qa-admin, traduccion-chat) son la
+  -- misma desde el 8-10-2026: volver a correr una suelta no puede quitar
+  -- el bloqueo ni dejar sin tope al traductor.
   tope := case p_pieza when 'asistente' then 40
-                       when 'lector'    then 20 end;
+                       when 'lector'    then 20
+                       when 'traductor' then 60 end;
   if tope is null then
     raise exception 'pieza desconocida: %', p_pieza;
   end if;

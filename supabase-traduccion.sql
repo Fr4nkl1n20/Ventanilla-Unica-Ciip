@@ -35,6 +35,8 @@ begin
       join public.documentos d on d.id = td.documento
      where td.tramite = new.id
        and d.tipo = 'pago_importe_dia'
+       -- Uno rechazado no es un pago (8-10-2026, auditoría): como en libros.
+       and d.estado <> 'rechazado'
   ) then
     raise exception 'La traducción no se resuelve sin el comprobante del pago del importe'
       using errcode = 'check_violation';
