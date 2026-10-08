@@ -398,6 +398,8 @@
               planillaFirmadaSiembra, planillaFirmadaMira, planillaFirmadaTrasSubir,
               rifGestorSiembra, rifGestorMira,
               visaGestorMira,
+              /* El visor del gestor, lo que faltaba (7-10-2026). */
+              arrVisorSiembra, arrVisorMira, arrVisorReserva,
               importadorMira, bomberosSiembra, bomberosAnotado, librosMira, visaEscaleraMira, marcasSeQuedan,
               /* La ficha de la visa con su «Ya me registré» (1-10-2026). */
               visaFichaAbre, visaFichaMira, visaFichaTrasConfirmar, visaC1Abre, visaC1Mira,
@@ -417,6 +419,8 @@
               revisadosMira,
               /* Los genéricos encendidos, una sola ficha (Franklin Reyes, 5-10-2026). */
               genericosMira, genericosFicha,
+              /* Los parafiscales en revisión dicen cuándo se abren los entes (7-10-2026). */
+              arrParafAbre, arrParafMira,
               /* El repaso de cada minuto no «reinicia» el trámite (5-10-2026). */
               repasoAbre, repasoMira, repasoTras, repasoPedida, repasoEstado, colaNoArrastra, rvRepaso,
               /* Y LA ÚLTIMA, que manda una solicitud de verdad: deja un
@@ -10516,8 +10520,14 @@
     };
     igual('revisión: parafiscales en revisión, la revisión es la que está en curso',
           pasoDe('registros_parafiscales', 'en_revision'), '2. Revisión de tus recaudos · hechos 1');
-    igual('revisión: y hecha al presentarla ante los entes',
-          pasoDe('registros_parafiscales', 'ante_el_ente'), '4. Las seis constancias, en tu bóveda · hechos 3');
+    /* Hasta el 7-10-2026 esperaba «4. Las seis constancias… · hechos 3»:
+       escaleraDe daba el paso de los entes por hecho al presentar, y solo
+       la ficha lo corregía después. Era el fallo (la columna «Progreso» y
+       el visor decían otra cosa que la ficha): sin saber de los entes
+       -esta solicitud no tiene filas-, el paso 3 sigue en curso. La
+       revisión, que es lo que mira esta prueba, sigue hecha. */
+    igual('revisión: y hecha al presentarla ante los entes, con el paso de los entes en curso',
+          pasoDe('registros_parafiscales', 'ante_el_ente'), '3. Inscripción ante cada ente · hechos 2');
 
     var hace = new Date(Date.now() - 3600000).toISOString();
     window.__IMPORTE_DOCS = {
@@ -10840,6 +10850,236 @@
           pasosEs.c34[pasosEs.c34.length - 1]);
     igual('resolver: la compraventa, su rótulo propio', resDe('vs-r2', 'bienes_compraventa'), uS.cv_p_protocolizado);
     igual('resolver: la constitución sigue «Resolver»', resDe('vs-r3', 'constitucion'), uS.co_h_resolver_c);
+  }
+
+  /* ═══════════ EL VISOR DEL GESTOR, LO QUE FALTABA (7-10-2026) ═══════════
+     Franklin Reyes, 7-10-2026, lo que encontró la revisión del visor y de
+     las escaleras: la cancelada con un paso en curso, resolver encendido
+     cuando el panel lo iba a frenar, «Recaudos revisados» en trámites sin
+     recaudos, y los parafiscales contados de dos maneras. Primero se
+     siembran los entes de cinco solicitudes -dos c37 y dos c44- y se piden,
+     para que la copia sin promesa (ENTES_YA) ya los tenga. */
+  var AV_ENTES = ['banavih', 'inces', 'mpppst', 'sundde', 'ivss', 'snc'];
+  function avTr(id, tipo, estado, datos, gestor){
+    return {id: id, tipo: tipo, estado: estado, datos: datos || {}, inversionista: 'u2',
+            gestor: gestor === undefined ? 'u1' : gestor,
+            enviado_en: '2026-10-06T10:00:00Z', creado_en: '2026-10-06T10:00:00Z'};
+  }
+  function arrVisorSiembra(sigue){
+    if (PASE !== 'gestor' || !window.CIIP_LISTA_ENTES || !window.CIIP_VISOR_LADO) return sigue();
+    var E = window.__ENTES = window.__ENTES || {};
+    /* av-p1: un ente listo de seis; av-p2: los seis. */
+    E['av-p1|banavih'] = {tramite: 'av-p1', ente: 'banavih', estado: 'listo'};
+    AV_ENTES.forEach(function(e){ E['av-p2|' + e] = {tramite: 'av-p2', ente: e, estado: 'listo'}; });
+    /* av-y1 marcó el INCES y el IVSS, y solo el INCES está listo; av-y2
+       marcó solo el INCES, y está listo. */
+    E['av-y1|inces'] = {tramite: 'av-y1', ente: 'inces', estado: 'listo'};
+    E['av-y2|inces'] = {tramite: 'av-y2', ente: 'inces', estado: 'listo'};
+    [avTr('av-p1', 'registros_parafiscales', 'ante_el_ente'),
+     avTr('av-p2', 'registros_parafiscales', 'ante_el_ente'),
+     avTr('av-y1', 'parafiscales_en_proceso', 'ante_el_ente', {ya_inces: 'Sí', ya_ivss: 'Sí'}),
+     avTr('av-y2', 'parafiscales_en_proceso', 'ante_el_ente', {ya_inces: 'Sí'})].forEach(function(t){
+      window.CIIP_LISTA_ENTES(t, 'lectura');
+    });
+    /* Y los comprobantes que mira faltaLaReserva: ninguno en av-c22 ni en
+       av-l1, el de los aranceles en av-c22b. */
+    window.__IMPORTE_DOCS = window.__IMPORTE_DOCS || {};
+    window.__IMPORTE_DOCS['av-c22'] = [];
+    window.__IMPORTE_DOCS['av-l1'] = [];
+    window.__IMPORTE_DOCS['av-c22b'] = [{id: 'av-pa', tipo: 'pago_aranceles', estado: 'validado',
+                                         nombre_original: 'aranceles.pdf', archivo: 'u2/aranceles.pdf'}];
+    setTimeout(sigue, 300);
+  }
+  /* El botón de resolver del pie y su pista. */
+  function avRes(lado){
+    return lado.querySelector('.visor-fin > .visor-bs > button.btn.navy, .visor-fin .vt-pan > .visor-bs > button.btn.navy');
+  }
+  function avPista(lado){
+    return ((lado.querySelector('.visor-fin .hoy-pista') || {}).textContent) || '';
+  }
+  function avDice(b){
+    return b ? (b.disabled ? 'apagado' : 'encendido') + (b.title ? ' · ' + b.title : '') : '(sin botón)';
+  }
+  var AV_LADOS = {};
+  function arrVisorMira(sigue){
+    if (PASE !== 'gestor' || !window.CIIP_VISOR_LADO) return sigue();
+    var u = window.CIIP_T();
+    var L = function(t){ return window.CIIP_VISOR_LADO(t); };
+
+    /* 1. CANCELADA: ningún paso en curso, en espera, y «Cancelada» de
+       título; sin «Tomar». Con escalera de cuatro, de lista, por etapas,
+       con la firma y la reserva, y con el PUB delante. */
+    [['visa_negocios', 'u1'], ['opinion_zodi', 'u1'], ['marca', 'u1'], ['constitucion', 'u1'],
+     ['protocolizacion_acta', 'u1'], ['registros_parafiscales', 'u1'], ['visa_negocios', null]].forEach(function(x, i){
+      var lado = L(avTr('av-can' + i, x[0], 'cancelado', {}, x[1]));
+      var ahora = lado.querySelectorAll('.vs-esc li.ahora').length;
+      var titulo = (lado.querySelector('.vt-paso-t') || {}).textContent;
+      var tomar = [].some.call(lado.querySelectorAll('.visor-fin button'), function(b){ return b.textContent === u.co_tomar; }) ||
+                  !!lado.querySelector('.vt-tomar.ahora');
+      igual('cancelada: ' + x[0] + (x[1] ? '' : ' sin gestor') + ', ningún paso en curso, «Cancelada» de título y nada que tomar',
+            ahora + ' en curso · ' + titulo + ' · ' + (lado.querySelector('.vs-esc.vt-espera') ? 'en espera' : 'sin espera') +
+              (tomar ? ' · con «Tomar»' : ''),
+            '0 en curso · ' + u.can_chip + ' · en espera');
+    });
+
+    /* 2. RESOLVER, APAGADO CON SU PORQUÉ. */
+    var lM = L(avTr('av-m1', 'marca', 'ante_el_ente'));
+    var bM = avRes(lM);
+    igual('resolver: la marca en su primer paso ante el SAPI, apagado y dice que se resuelve en el último',
+          avDice(bM) + ' | ' + avPista(lM), 'apagado · ' + u.vt_res_ultimo + ' | ' + u.vt_res_ultimo);
+    ok('resolver: y la pista, en rojo', !!lM.querySelector('.visor-fin .hoy-pista.mal'),
+       lM.querySelector('.visor-fin .hoy-pista.mal') ? 'en rojo' : 'sin rojo', 'en rojo');
+    var hace = '2026-10-06T12:00:00Z', todosM = {};
+    ['importe_antecedentes', 'pago_antecedentes', 'busqueda', 'importe_fm02', 'pago_fm02', 'sapi',
+     'en_registro', 'importe_derecho', 'pago_derecho'].forEach(function(k){ todosM[k] = hace; });
+    var bM2 = avRes(L(avTr('av-m2', 'marca', 'ante_el_ente', {pasos_ciip: todosM})));
+    igual('resolver: la marca sin el certificado, en el paso del certificado, sigue apagado',
+          avDice(bM2), 'apagado · ' + u.vt_res_ultimo);
+    var conCert = JSON.parse(JSON.stringify(todosM));
+    conCert.certificado = hace;
+    var bM3 = avRes(L(avTr('av-m3', 'marca', 'ante_el_ente', {pasos_ciip: conCert})));
+    igual('resolver: con el certificado enviado, en el último paso, encendido', avDice(bM3), 'encendido');
+    igual('resolver: la compraventa en su primer paso, apagado',
+          avDice(avRes(L(avTr('av-cv1', 'bienes_compraventa', 'ante_el_ente')))), 'apagado · ' + u.vt_res_ultimo);
+    igual('resolver: el sellado de libros antes del PUB, apagado',
+          avDice(avRes(L(avTr('av-l0', 'libros_contables', 'ante_el_ente')))), 'apagado · ' + u.vt_res_ultimo);
+    var lP1 = L(avTr('av-p1', 'registros_parafiscales', 'ante_el_ente'));
+    igual('resolver: los parafiscales con un ente listo de seis, apagado y lo dice',
+          avDice(avRes(lP1)) + ' | ' + avPista(lP1), 'apagado · ' + u.co_faltanentes + ' | ' + u.co_faltanentes);
+    var lP2 = L(avTr('av-p2', 'registros_parafiscales', 'ante_el_ente'));
+    igual('resolver: con los seis listos, encendido y la pista de siempre',
+          avDice(avRes(lP2)) + ' | ' + avPista(lP2), 'encendido | ' + u.vs_pista);
+    var lY1 = L(avTr('av-y1', 'parafiscales_en_proceso', 'ante_el_ente', {ya_inces: 'Sí', ya_ivss: 'Sí'}));
+    igual('resolver: la empresa ya inscrita con el IVSS por cerrar, apagado',
+          avDice(avRes(lY1)), 'apagado · ' + u.co_faltanentes);
+    /* 8. Y la c44 con los suyos listos: su pista habla de los entes. */
+    var lY2 = L(avTr('av-y2', 'parafiscales_en_proceso', 'ante_el_ente', {ya_inces: 'Sí'}));
+    igual('resolver: la empresa ya inscrita con los suyos listos, encendido y su pista de los entes marcados',
+          avDice(avRes(lY2)) + ' | ' + avPista(lY2), 'encendido | ' + u.vt_p_entes);
+    ok('resolver: y esa pista no es la genérica', u.vt_p_entes && u.vt_p_entes !== u.vt_p_resolver,
+       u.vt_p_entes || '(sin texto)', 'otra que «' + u.vt_p_resolver + '»');
+    /* Lo que pregunta a la base llega después: se mira en el paso siguiente. */
+    var conPub = {pasos_ciip: {importe_pub: hace, pago_pub: hace}};
+    AV_LADOS.c22 = L(avTr('av-c22', 'protocolizacion_acta', 'ante_el_ente'));
+    AV_LADOS.c22b = L(avTr('av-c22b', 'protocolizacion_acta', 'ante_el_ente'));
+    AV_LADOS.l1 = L(avTr('av-l1', 'libros_contables', 'ante_el_ente', conPub));
+
+    /* 3. «RECAUDOS REVISADOS», SOLO CON RECAUDOS. */
+    var est = ((window.CIIP_PASOS || {}).estados || {})[curLang] || [];
+    var prefijo = String(u.co_h_presentar || '').split('{')[0];
+    /* Con su ficha en el catálogo, como en la base: sin ella la escalera
+       no sabe su referencia y cae en los cuatro rótulos de todos. */
+    var cat = window.CIIP_TIPOS_POR_REF || {}, puestos = [];
+    [['c10', 'licencia_municipal', 'Alcaldía'], ['c28', 'conformidad_uso', 'Alcaldía'],
+     ['c29', 'permiso_bomberos', 'Bomberos'], ['c36', 'registro_minero', 'MPPDME'],
+     ['c39', 'aporte_locti', 'FONACIT']].forEach(function(x){
+      if (!cat[x[0]]){ cat[x[0]] = {codigo: x[1], ref_panel: x[0], ente: x[2], activo: true}; puestos.push(x[0]); }
+    });
+    ['licencia_municipal', 'conformidad_uso', 'permiso_bomberos', 'registro_minero', 'aporte_locti'].forEach(function(tipo){
+      var n = window.CIIP_RECAUDOS ? window.CIIP_RECAUDOS.de(tipo).length : -1;
+      var lado = L(avTr('av-sr-' + tipo, tipo, 'en_revision'));
+      var b = lado.querySelector('.visor-fin > .visor-bs > button.btn.navy');
+      igual('sin recaudos: ' + tipo + ' no los tiene, y el botón es «Presentada ante…», no «Recaudos revisados»',
+            n + ' · ' + (b ? (b.textContent.indexOf(prefijo) === 0 ? 'presentar' : b.textContent) : '(sin botón)'),
+            '0 · presentar');
+      ok('sin recaudos: ' + tipo + ', y sin «Ningún papel marcado» al devolver',
+         lado.textContent.indexOf(u.co_h_dev_sinmarcar) < 0,
+         lado.textContent.indexOf(u.co_h_dev_sinmarcar) < 0 ? 'no lo dice' : 'lo dice', 'no lo dice');
+      var nombres = window.CIIP_ESCALERA(avTr('av-se-' + tipo, tipo, 'en_revision'), tipo, '').todos
+        .map(function(p){ return p.nombre; });
+      ok('sin recaudos: ' + tipo + ', y su escalera no tiene paso de revisión que se quede colgado',
+         nombres.indexOf(est[1]) < 0, nombres.join(' → '), 'sin «' + est[1] + '»');
+    });
+    puestos.forEach(function(r){ delete cat[r]; });
+    var lZ = L(avTr('av-sr-zodi', 'opinion_zodi', 'en_revision'));
+    var bZ = lZ.querySelector('.visor-fin > .visor-bs > button.btn.navy');
+    igual('con recaudos: la ZODI sigue pidiendo «Recaudos revisados»', bZ ? bZ.textContent : '(sin botón)', u.co_h_revisados);
+    ok('con recaudos: y avisa de «Ningún papel marcado»', lZ.textContent.indexOf(u.co_h_dev_sinmarcar) >= 0,
+       lZ.textContent.indexOf(u.co_h_dev_sinmarcar) >= 0 ? 'lo dice' : 'no lo dice', 'lo dice');
+
+    /* 4. LOS PARAFISCALES, CONTADOS IGUAL QUE EN LA FICHA. */
+    var enCurso = function(t){
+      var p = window.CIIP_ESCALERA(t, 'registros_parafiscales', 'Entes varios').todos.filter(function(x){ return x.ahora; })[0];
+      return p ? p.n + '. ' + p.nombre : '(ninguno)';
+    };
+    var pasosEs = (window.CIIP_PASOS.pasos[curLang] || window.CIIP_PASOS.pasos.es).c37;
+    igual('parafiscales: ante el ente con entes por cerrar, el paso 3 en curso',
+          enCurso(avTr('av-p1', 'registros_parafiscales', 'ante_el_ente')), '3. ' + pasosEs[2]);
+    igual('parafiscales: y sin saber de los entes, también',
+          enCurso(avTr('av-p9', 'registros_parafiscales', 'ante_el_ente')), '3. ' + pasosEs[2]);
+    igual('parafiscales: con los seis listos, el 4',
+          enCurso(avTr('av-p2', 'registros_parafiscales', 'ante_el_ente')), '4. ' + pasosEs[3]);
+    var ahV = lP1.querySelector('.vs-esc li.ahora .vs-esc-n');
+    igual('parafiscales: el visor del gestor dice lo mismo', ahV ? ahV.textContent : '(ninguno)', pasosEs[2]);
+
+    /* 5 y 6. LA BARRA DE TRES PASOS DE LOS PARAFISCALES. */
+    if (window.CIIP_VISOR_PESTANAS){
+      var barra = function(t){
+        var c = window.CIIP_VISOR_PESTANAS(t);
+        return {c: c, d: [].map.call(c.querySelectorAll('.visor-pasos .vp'), function(b){
+          return b.disabled ? 'cerrado' : (b.classList.contains('hecho') ? 'hecho' : 'no'); }).join(',')};
+      };
+      var bRes = barra(avTr('av-p3', 'registros_parafiscales', 'resuelto'));
+      igual('pestañas: resuelta, los tres hechos y el 3 abierto', bRes.d, 'hecho,hecho,hecho');
+      ok('pestañas: y el lado no repite «se abre al presentar»', bRes.c.textContent.indexOf(u.vs_p3_bloq) < 0,
+         bRes.c.textContent.indexOf(u.vs_p3_bloq) < 0 ? 'no lo dice' : 'lo dice', 'no lo dice');
+      igual('pestañas: en revisión sin «Recaudos revisados», nada hecho y el 3 cerrado',
+            barra(avTr('av-p4', 'registros_parafiscales', 'en_revision')).d, 'no,no,cerrado');
+      igual('pestañas: con los recaudos revisados, el 1 hecho',
+            barra(avTr('av-p5', 'registros_parafiscales', 'en_revision', {pasos_ciip: {recaudos_revisados: hace}})).d,
+            'hecho,no,cerrado');
+      igual('pestañas: ante el ente con entes por cerrar, el 3 sin hacer',
+            barra(avTr('av-p1', 'registros_parafiscales', 'ante_el_ente')).d, 'hecho,hecho,no');
+      igual('pestañas: y con los seis listos, hecho',
+            barra(avTr('av-p2', 'registros_parafiscales', 'ante_el_ente')).d, 'hecho,hecho,hecho');
+    } else ok('pestañas: la barra está a mano', false, 'no está', 'CIIP_VISOR_PESTANAS');
+    setTimeout(sigue, 300);
+  }
+  function arrVisorReserva(sigue){
+    if (PASE !== 'gestor' || !AV_LADOS.c22) return sigue();
+    var u = window.CIIP_T();
+    var b22 = avRes(AV_LADOS.c22);
+    igual('resolver: la protocolización sin el comprobante de los aranceles, apagado al contestar la base',
+          avDice(b22) + ' | ' + avPista(AV_LADOS.c22), 'apagado · ' + u.co_faltaaranceles + ' | ' + u.co_faltaaranceles);
+    igual('resolver: y con él, encendido', avDice(avRes(AV_LADOS.c22b)), 'encendido');
+    igual('resolver: el sellado de libros en su último paso sin el comprobante del PUB, apagado',
+          avDice(avRes(AV_LADOS.l1)), 'apagado · ' + u.co_faltalibros);
+    ['av-p1', 'av-y1', 'av-y2'].forEach(function(id){ delete window.__ENTES[id + '|banavih']; delete window.__ENTES[id + '|inces']; });
+    AV_ENTES.forEach(function(e){ delete window.__ENTES['av-p2|' + e]; });
+    ['av-c22', 'av-c22b', 'av-l1'].forEach(function(id){ delete window.__IMPORTE_DOCS[id]; });
+    AV_LADOS = {};
+    sigue();
+  }
+
+  /* 7. Y el inversionista, con sus parafiscales en revisión y los recaudos
+     revisados: el paso 3 en curso dice por qué no hay tarjetas todavía. */
+  function arrParafAbre(sigue){
+    if (PASE !== 'vacio') return sigue();
+    window.__TRAMITES_EXTRA = [
+      {id: 'av-pi', tipo: 'registros_parafiscales', estado: 'en_revision',
+       datos: {pasos_ciip: {recaudos_revisados: '2026-10-06T12:00:00Z'}},
+       inversionista: 'u1', creado_en: '2026-10-06T10:00:00Z', enviado_en: '2026-10-06T10:00:00Z',
+       actualizado_en: '2026-10-06T12:00:00Z'}];
+    location.hash = '';
+    setTimeout(function(){
+      location.hash = 'tramite-c37';
+      esperaFilas('#trReal li.tr-paso', 4, sigue);
+    }, 100);
+  }
+  function arrParafMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var u = window.CIIP_T();
+    var lis = [].slice.call(document.querySelectorAll('#trReal li.tr-paso'));
+    var l3 = lis[2];
+    igual('parafiscales en revisión: el paso 3 en curso, con la nota de cuándo se abren los entes',
+          l3 ? (l3.classList.contains('ahora') ? 'en curso' : 'no en curso') + ' · ' +
+               ((l3.querySelector('.tr-nota') || {}).textContent || '(sin nota)') : '(sin paso 3)',
+          'en curso · ' + u.pe_aun_no);
+    ok('parafiscales en revisión: y sin tarjetas de entes', !document.querySelector('#trReal .pe-ente'),
+       document.querySelector('#trReal .pe-ente') ? 'con tarjetas' : 'sin tarjetas', 'sin tarjetas');
+    window.__TRAMITES_EXTRA = null;
+    location.hash = '';
+    setTimeout(sigue, 100);
   }
 
   /* ═══════════ EL REGISTRO DE IMPORTADOR Y EXPORTADOR, FUERA ═══════════
