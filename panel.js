@@ -2891,7 +2891,18 @@ applyLang(idiomaParaMi());
        usan los huecos del horario (huSuma). Las marcas con hora siguen
        como estaban. */
     if (/^\d{4}-\d{2}-\d{2}$/.test(String(iso))) iso = iso + 'T12:00:00Z';
-    try { return new Date(iso).toLocaleDateString(localeDeAhora(), {day:'numeric', month:'short', year:'numeric'}); }
+    /* Y el desfase corto: la base apunta los pasos de la marca y de otras
+       escaleras con to_char(... 'OF'), «2026-10-08T13:45:12-04», y ningún
+       navegador lo lee: salía «Invalid Date» bajo el paso (Franklin Reyes,
+       8-10-2026). «-04» pasa a «-04:00» y «-0430» a «-04:30». */
+    if (/T\d{2}:\d{2}/.test(String(iso))){
+      iso = String(iso).replace(/([+-]\d{2})(\d{2})?$/, function(m, h, mi){ return h + ':' + (mi || '00'); });
+    }
+    var d = new Date(iso);
+    /* Una fecha que no se entiende no se pinta: «Invalid Date» no le dice
+       nada a nadie. */
+    if (isNaN(d.getTime())) return '';
+    try { return d.toLocaleDateString(localeDeAhora(), {day:'numeric', month:'short', year:'numeric'}); }
     catch(e){ return String(iso).slice(0,10); }
   }
 
