@@ -4868,6 +4868,20 @@ body.con-puerta{overflow:hidden;}
 .au-visor-rev{margin:0; font-size:var(--fs-nota); color:var(--rust); font-weight:700;}
 .au-visor-texto{max-height:64vh; min-height:0; white-space:normal; padding:14px; background:#E9EDF3;}
 .au-visor-acc{display:flex; gap:8px;}
+/* La cabecera: el ente, el trámite y el CIIP (idea 4). */
+.asst-h.au-cab{display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:14px; align-items:center;
+  padding:16px 20px; background:linear-gradient(180deg, var(--block) 0%, var(--bg) 100%);}
+.au-ente{width:52px; height:52px; border-radius:12px; background:#fff; border:1px solid var(--line);
+  display:grid; place-items:center; padding:6px;}
+.au-ente[hidden]{display:none;}
+.au-ente img{max-width:100%; max-height:100%; object-fit:contain; display:block;}
+.au-cab-t{min-width:0;}
+.au-ceja{font-size:var(--fs-chip); font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--navy2);}
+.au-cab .at{font-size:var(--fs-titulo); margin-top:2px; line-height:1.25;}
+.au-cab .as{margin-top:2px;}
+.au-ciip{display:grid; justify-items:end; gap:4px; font-size:var(--fs-chip); color:var(--gray-soft); text-align:right;}
+.au-ciip img{height:20px; width:auto; display:block;}
+@media (max-width:520px){ .au-ciip{display:none;} .asst-h.au-cab{grid-template-columns:auto minmax(0,1fr);} }
 .au-q{font-size:var(--fs-valor); font-weight:700; color:var(--ink); line-height:1.4;}
 .tra-cam.yo .ic{background:var(--activa-bg); color:var(--navy2);}
 /* El oficio dentro de la caja: la hoja blanca sobre el gris del papel,

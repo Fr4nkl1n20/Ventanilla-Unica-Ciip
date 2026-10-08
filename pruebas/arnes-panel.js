@@ -3934,6 +3934,12 @@
       if (!(back && back.classList.contains('open'))) return sigue();
       igual('autorización: con la pregunta y dos caminos',
             !!document.getElementById('auSi').textContent.trim() && !!document.getElementById('auNo').textContent.trim(), true);
+      /* La cabecera dice qué, ante quién y a quién (idea 4, 8-10-2026). */
+      igual('autorización: la cabecera nombra el trámite', document.getElementById('auTitulo').textContent, 'RIF de la empresa');
+      ok('autorización: y el ente por su nombre completo', /Servicio Nacional Integrado/.test(document.getElementById('auSub').textContent),
+         document.getElementById('auSub').textContent, 'Ante el Servicio Nacional Integrado…');
+      ok('autorización: sin el escudo de colores, con el logo del CIIP',
+         !document.querySelector('#auBack .asst-h .ai') && !!document.querySelector('#auBack .au-ciip img'), '', 'logo CIIP');
       document.getElementById('auSi').click();
       var txt = document.getElementById('auTexto').textContent;
       ok('autorización: el texto nombra el organismo completo, sin siglas', /Servicio Nacional Integrado de Administración Aduanera y Tributaria/.test(txt) && !/ante SENIAT/.test(txt),

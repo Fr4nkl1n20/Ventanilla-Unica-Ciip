@@ -8751,8 +8751,21 @@ applyLang(idiomaParaMi());
                tipo_doc: u.au_f_tdoc, num_doc: u.au_f_num};
     return new Promise(function(listo){
       var paso = 1, hecho = false;
-      $('auTitulo').textContent = u.au_t || '';
-      $('auSub').textContent = nombreDeTarjeta(tipoRefDe(tipo.codigo));
+      /* Qué, ante quién y a quién. El logo del ente es el de su tarjeta
+         -el de logos/ o el que haya subido el admin-: así coincide con lo
+         que el inversionista acaba de pulsar. */
+      var refC = tipoRefDe(tipo.codigo);
+      var logoC = document.querySelector('.tcard[data-tr="' + refC + '"] .ilogo');
+      $('auEnte').hidden = !(logoC && logoC.getAttribute('src'));
+      if (logoC) $('auEnteLogo').src = logoC.getAttribute('src');
+      $('auCeja').textContent = u.au_ceja || '';
+      $('auTitulo').textContent = nombreDeTarjeta(refC);
+      var enteN = String(d.ente || '').replace(/^(el|la|los|las) +/i, '');
+      /* En español, con su artículo («Ante el Servicio…»); en los demás
+         idiomas, solo el nombre, que el artículo español ahí sobraría. */
+      $('auSub').textContent = String(u.au_ante || '')
+        .replace('{ente}', curLang === 'es' ? (d.ente || '') : enteN.charAt(0).toUpperCase() + enteN.slice(1));
+      $('auAQuien').textContent = u.au_a_quien || '';
       $('auPregunta').textContent = u.au_q || '';
       $('auSiT').textContent = u.au_si_t || '';
       $('auSiD').textContent = u.au_si || '';

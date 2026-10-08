@@ -1504,7 +1504,9 @@ window.CIIP_PASOS = {
          trámite llamen igual a lo mismo. */
       em_vacia:     "Todavía no has registrado tu empresa. Cuando lo hagas, los formularios que pidan estos datos te los ofrecerán ya escritos.",
       /* La autorización al CIIP antes de enviar (8-10-2026). */
-      au_t: "Antes de enviar tu solicitud",
+      au_ceja: "Autorización al CIIP · antes de enviar",
+      au_ante: "Ante {ente}",
+      au_a_quien: "Autorizas a",
       au_q: "¿Autorizas al CIIP a gestionar este trámite en tu nombre?",
       au_si_t: "Sí, autorizo al CIIP",
       au_si: "El CIIP presenta el trámite ante el organismo y puede consignar y retirar los documentos que haga falta.",
@@ -3418,7 +3420,9 @@ window.CIIP_PASOS = {
          the same name. */
       em_vacia:     "You haven't registered your company yet. Once you do, the forms that ask for these details will offer them already filled in.",
       /* La autorización al CIIP antes de enviar (8-10-2026). */
-      au_t: "Before you send your request",
+      au_ceja: "Authorisation to the CIIP · before sending",
+      au_ante: "Government body: {ente}",
+      au_a_quien: "You authorise",
       au_q: "Do you authorise the CIIP to handle this procedure on your behalf?",
       au_si_t: "Yes, I authorise the CIIP",
       au_si: "The CIIP files the procedure with the government body and can submit and collect the documents needed.",
@@ -5204,7 +5208,9 @@ window.CIIP_PASOS = {
       /* A minha empresa. */
       em_vacia:     "Ainda não registou a sua empresa. Quando o fizer, os formulários que peçam estes dados oferecê-los-ão já escritos.",
       /* La autorización al CIIP antes de enviar (8-10-2026). */
-      au_t: "Antes de enviar o seu pedido",
+      au_ceja: "Autorização ao CIIP · antes de enviar",
+      au_ante: "Organismo: {ente}",
+      au_a_quien: "Autoriza",
       au_q: "Autoriza o CIIP a tratar deste trâmite em seu nome?",
       au_si_t: "Sim, autorizo o CIIP",
       au_si: "O CIIP apresenta o trâmite ao organismo e pode entregar e levantar os documentos necessários.",
@@ -6986,7 +6992,9 @@ window.CIIP_PASOS = {
       /* La mia azienda. */
       em_vacia:     "Non hai ancora registrato la tua azienda. Quando lo farai, i moduli che chiedono questi dati te li proporranno già scritti.",
       /* La autorización al CIIP antes de enviar (8-10-2026). */
-      au_t: "Prima di inviare la richiesta",
+      au_ceja: "Autorizzazione al CIIP · prima dell’invio",
+      au_ante: "Ente: {ente}",
+      au_a_quien: "Autorizzi",
       au_q: "Autorizzi il CIIP a gestire questa pratica a tuo nome?",
       au_si_t: "Sì, autorizzo il CIIP",
       au_si: "Il CIIP presenta la pratica all’ente e può consegnare e ritirare i documenti necessari.",
@@ -8768,7 +8776,9 @@ window.CIIP_PASOS = {
       /* 我的公司。 */
       em_vacia:     "您还没有登记公司。登记后，需要这些资料的表单会直接帮您填好。",
       /* La autorización al CIIP antes de enviar (8-10-2026). */
-      au_t: "发送申请之前",
+      au_ceja: "授权 CIIP · 发送之前",
+      au_ante: "主管机构：{ente}",
+      au_a_quien: "您授权",
       au_q: "您是否授权 CIIP 以您的名义办理此业务？",
       au_si_t: "是，我授权 CIIP",
       au_si: "CIIP 向主管机构提交该业务，并可代为递交和领取所需文件。",
@@ -10550,7 +10560,9 @@ window.CIIP_PASOS = {
       /* Моя компания. */
       em_vacia:     "Вы ещё не зарегистрировали компанию. Когда сделаете это, формы будут предлагать эти данные уже заполненными.",
       /* La autorización al CIIP antes de enviar (8-10-2026). */
-      au_t: "Перед отправкой заявки",
+      au_ceja: "Доверенность для CIIP · перед отправкой",
+      au_ante: "Орган: {ente}",
+      au_a_quien: "Вы уполномочиваете",
       au_q: "Вы уполномочиваете CIIP вести эту процедуру от вашего имени?",
       au_si_t: "Да, уполномочиваю CIIP",
       au_si: "CIIP подаёт заявку в орган и может сдавать и получать нужные документы.",
@@ -12343,7 +12355,9 @@ window.CIIP_PASOS = {
          the same name. */
       em_vacia:     "Vous n’avez pas encore enregistré votre entreprise. Une fois cela fait, les formulaires qui demandent ces informations vous les proposeront déjà remplies.",
       /* La autorización al CIIP antes de enviar (8-10-2026). */
-      au_t: "Avant d’envoyer votre demande",
+      au_ceja: "Autorisation au CIIP · avant l’envoi",
+      au_ante: "Organisme : {ente}",
+      au_a_quien: "Vous autorisez",
       au_q: "Autorisez-vous le CIIP à gérer cette démarche en votre nom ?",
       au_si_t: "Oui, j’autorise le CIIP",
       au_si: "Le CIIP dépose la démarche auprès de l’organisme et peut remettre et retirer les documents nécessaires.",
@@ -14140,7 +14154,9 @@ window.CIIP_PASOS = {
          the same name. */
       em_vacia:     "まだ会社を登録していません。登録すると、これらの情報を求める申請書に自動で入力されます。",
       /* La autorización al CIIP antes de enviar (8-10-2026). */
-      au_t: "申請を送信する前に",
+      au_ceja: "CIIP への委任 · 送信前",
+      au_ante: "機関：{ente}",
+      au_a_quien: "委任先",
       au_q: "この手続きをあなたの名義で CIIP に任せますか？",
       au_si_t: "はい、CIIP に委任します",
       au_si: "CIIP が機関に手続きを申請し、必要な書類の提出と受け取りを行います。",

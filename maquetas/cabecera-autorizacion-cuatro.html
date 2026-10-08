@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · La cabecera de la autorización, cuatro estilos</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   LA CABECERA DE LA VENTANA DE LA AUTORIZACIÓN: CUATRO ESTILOS
+
+   Franklin Reyes, 8-10-2026: la de hoy -el escudo en un cuadrado azul,
+   «Antes de enviar tu solicitud» y el trámite en gris debajo- no le
+   gusta. Cuatro formas, sobre su mismo caso: Traducción de documentos,
+   ante el Ministerio del Poder Popular para Relaciones Exteriores.
+
+   Solo cambia la cabecera; lo de debajo es la ventana de hoy, recortada.
+   No toca el panel.
+   ══════════════════════════════════════════════════════════════════ */
+:root{ --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB;
+  --navy-deep:#00336d; --cyan:#20B0F0; }
+@font-face{font-family:"Instrument Serif"; src:url("../assets/instrument-serif.ttf") format("truetype"); font-display:swap;}
+main{max-width:1180px; padding:28px 26px 90px; margin:0 auto;}
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.intro b{color:var(--ink);}
+.indice{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 0;}
+.indice a{font-size:12px; font-weight:700; color:var(--navy2); text-decoration:none; background:#fff;
+  border:1px solid var(--line); border-radius:8px; padding:6px 11px;}
+.caso{margin-top:46px; scroll-margin-top:16px;}
+.caso-h{display:flex; align-items:center; gap:11px; margin-bottom:6px; flex-wrap:wrap;}
+.caso-n{width:28px; height:28px; border-radius:50%; background:var(--navy); color:#fff; font-size:13px;
+  font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;}
+.caso-n.hoy{background:var(--gray-soft);}
+.caso-t{font-size:17px; font-weight:700; letter-spacing:-.01em;}
+.caso-q{font-size:12.5px; color:var(--gray); line-height:1.65; max-width:96ch; margin:0 0 14px 39px;}
+.caso-q b{color:var(--ink);}
+.fondo{margin-left:39px; background:rgba(6,16,32,.55); border-radius:14px; padding:30px 20px; display:flex; justify-content:center;}
+
+/* la ventana, como la de hoy */
+.ven{width:100%; max-width:680px; background:#fff; border-radius:16px; overflow:hidden;
+  box-shadow:0 2px 6px rgba(14,20,36,.06), 0 18px 44px rgba(14,20,36,.18);
+  font-family:'Helvetica Neue', Arial, sans-serif; color:#0E1424;}
+.resto{padding:16px 18px 18px; border-top:1px solid #E4E7EE;}
+.resto p{margin:0 0 12px; font-size:12.5px; color:#5B6478; line-height:1.6;}
+.falta{background:#FBF3E2; border-radius:7px; padding:12px 14px; font-size:11px; color:#B7791F; font-weight:700;}
+.falta span{display:block; color:#5B6478; font-weight:400; margin-top:6px;}
+.hoja{margin-top:12px; height:70px; border-radius:7px; background:#E9EDF3 url("../assets/oficio-cabecera.png") center 8px / 92% auto no-repeat;}
+
+/* 0 · la de hoy */
+.c0{display:flex; align-items:center; gap:12px; padding:15px 18px;}
+.c0 .ai{width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,#004090,#0E8FD6); display:grid; place-items:center;}
+.c0 .ai svg{width:20px; height:20px;}
+.c0 b{display:block; font-size:14px;} .c0 small{font-size:11px; color:#5B6478;}
+
+/* 1 · banda azul del CIIP */
+.c1{background:linear-gradient(120deg,#004090 0%, #00336d 70%); color:#fff; padding:20px 22px 18px; position:relative;}
+.c1 .fila{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+.c1 .ceja{font-size:10.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.7);}
+.c1 .logo{height:22px; opacity:.95;}
+.c1 h3{margin:10px 0 10px; font-size:20px; font-weight:700; letter-spacing:-.01em;}
+.c1 .chips{display:flex; gap:8px; flex-wrap:wrap;}
+.c1 .chip{font-size:11.5px; font-weight:600; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.22);
+  border-radius:20px; padding:4px 11px;}
+.c1 .cerrar{position:absolute; top:14px; right:16px;}
+
+/* 2 · Atlas, limpia y con serif */
+.c2{padding:22px 24px 16px;}
+.c2 .ceja{font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#8A93A6;}
+.c2 h3{font-family:"Instrument Serif", Georgia, serif; font-weight:400; font-size:34px; line-height:1.05; margin:8px 0 6px; color:#0E1424;}
+.c2 .sub{font-size:13px; color:#5B6478;}
+.c2 .sub b{color:#0E1424;}
+.c2 .raya{height:3px; width:56px; background:#20B0F0; border-radius:2px; margin-top:14px;}
+.c2 .top{display:flex; justify-content:space-between; align-items:flex-start;}
+.c2 .logo{height:26px;}
+
+/* 3 · membrete oficial */
+.c3{padding:6px 0 16px;}
+.c3 .memb{display:block; width:100%; height:auto;}
+.c3 .tit{display:flex; align-items:center; gap:14px; padding:8px 24px 0;}
+.c3 .tit i{flex:1; height:1px; background:#C9D2DF;}
+.c3 .tit span{font-size:13px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:#0E1424;}
+.c3 .tr{text-align:center; font-size:12px; color:#5B6478; margin-top:6px; padding:0 24px;}
+
+/* 4 · el trámite y su ente, protagonistas */
+.c4{padding:18px 22px; display:grid; grid-template-columns:auto 1fr auto; gap:14px; align-items:center;
+  background:linear-gradient(180deg,#F4F7FB 0%, #fff 100%);}
+.c4 .ente{width:52px; height:52px; border-radius:12px; background:#fff; border:1px solid #E4E7EE; display:grid; place-items:center; padding:6px;}
+.c4 .ente img{max-width:100%; max-height:100%;}
+.c4 .ceja{font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#0060B0;}
+.c4 h3{margin:3px 0 2px; font-size:18px; font-weight:700; letter-spacing:-.01em;}
+.c4 small{font-size:11.5px; color:#5B6478;}
+.c4 .ciip{display:grid; justify-items:end; gap:4px; font-size:10px; color:#8A93A6; text-align:right;}
+.c4 .ciip img{height:20px;}
+
+.x{width:28px; height:28px; border-radius:8px; display:grid; place-items:center; font-size:16px; line-height:1;}
+.c1 .x{background:rgba(255,255,255,.12); color:#fff;}
+.c2 .x, .c3 .x, .c4 .x{background:#F4F7FB; color:#5B6478;}
+@media (max-width:900px){ .caso-q, .fondo{margin-left:0;} }
+</style>
+</head>
+<body>
+
+<div class="mq-cartel">
+  <b>Maqueta · no es la aplicación</b>
+  <span>Cuatro estilos para la cabecera de la ventana «Antes de enviar tu solicitud». Datos de ejemplo; no toca el panel.</span>
+</div>
+
+<main>
+  <p class="intro">
+    La cabecera de la ventana que sale al pulsar <b>«Enviar solicitud»</b>, donde el inversionista autoriza al CIIP.
+    Arriba, la de hoy como referencia, y debajo cuatro estilos más sobrios: es la puerta de un documento legal, así que ninguno lleva el escudo de colores. Solo cambia la cabecera: el resto es la ventana de hoy, recortada.
+  </p>
+  <div class="indice">
+    <a href="#i0">La de hoy</a><a href="#i1">1 · Banda azul del CIIP</a><a href="#i2">2 · Atlas, con serif</a>
+    <a href="#i3">3 · Membrete oficial</a><a href="#i4">4 · El ente protagonista</a>
+  </div>
+
+  <section class="caso" id="i0">
+    <div class="caso-h"><span class="caso-n hoy">·</span><span class="caso-t">La de hoy</span></div>
+    <div class="fondo"><div class="ven">
+      <div class="c0">
+        <div class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/><path d="m9 12 2 2 4-4"/></svg></div>
+        <div><b>Antes de enviar tu solicitud</b><small>Traducción de documentos</small></div>
+      </div>
+      <div class="resto"><p>Revisa la autorización. Al pulsar el botón la aceptas: no hace falta firmarla.</p>
+        <div class="falta">Para la autorización faltan estos datos:<span>Documento · Número del documento</span></div><div class="hoja"></div></div>
+    </div></div>
+  </section>
+
+  <section class="caso" id="i1">
+    <div class="caso-h"><span class="caso-n">1</span><span class="caso-t">Banda azul del CIIP</span></div>
+    <p class="caso-q">La cabecera entera en el <b>azul del CIIP</b>, con el logo en blanco. Arriba, en pequeño, en qué paso está;
+      debajo, la pregunta grande y dos pastillas con <b>el trámite y el ente</b>. Se reconoce de inmediato como algo del CIIP, no un aviso cualquiera.</p>
+    <div class="fondo"><div class="ven">
+      <div class="c1">
+        <div class="fila"><span class="ceja">Antes de enviar tu solicitud</span><img class="logo" src="../assets/ciip-barra.png" alt="CIIP"></div>
+        <h3>Autorización al CIIP</h3>
+        <div class="chips"><span class="chip">Traducción de documentos</span><span class="chip">Ministerio del P. P. para Relaciones Exteriores</span></div>
+      </div>
+      <div class="resto"><p>Revisa la autorización. Al pulsar el botón la aceptas: no hace falta firmarla.</p>
+        <div class="falta">Para la autorización faltan estos datos:<span>Documento · Número del documento</span></div><div class="hoja"></div></div>
+    </div></div>
+  </section>
+
+  <section class="caso" id="i2">
+    <div class="caso-h"><span class="caso-n">2</span><span class="caso-t">Atlas, limpia y con serif</span></div>
+    <p class="caso-q">Fondo blanco y el título en <b>Instrument Serif</b>, la letra de los titulares de Atlas, con una raya
+      celeste debajo. Una ceja gris dice el paso y una línea da <b>el trámite y ante quién</b>. El logo del CIIP va arriba a la derecha.</p>
+    <div class="fondo"><div class="ven">
+      <div class="c2">
+        <div class="top"><span class="ceja">Antes de enviar tu solicitud</span><img class="logo" src="../assets/oficio-logo-ciip.png" alt="CIIP"></div>
+        <h3>Autorización al CIIP</h3>
+        <div class="sub"><b>Traducción de documentos</b> · ante el Ministerio del Poder Popular para Relaciones Exteriores</div>
+        <div class="raya"></div>
+      </div>
+      <div class="resto"><p>Revisa la autorización. Al pulsar el botón la aceptas: no hace falta firmarla.</p>
+        <div class="falta">Para la autorización faltan estos datos:<span>Documento · Número del documento</span></div><div class="hoja"></div></div>
+    </div></div>
+  </section>
+
+  <section class="caso" id="i3">
+    <div class="caso-h"><span class="caso-n">3</span><span class="caso-t">Membrete oficial</span></div>
+    <p class="caso-q">La ventana empieza como el documento: con el <b>membrete de la Vicepresidencia y el CIIP</b>, el mismo
+      del oficio. Debajo, centrado y en mayúsculas, <b>«AUTORIZACIÓN AL CIIP»</b> entre dos filetes, y el trámite y el ente en
+      una línea sobria. Es la más formal de las cuatro: se lee como papel oficial desde el primer vistazo.</p>
+    <div class="fondo"><div class="ven">
+      <div class="c3">
+        <img class="memb" src="../assets/oficio-cabecera.png" alt="Vicepresidencia · CIIP">
+        <div class="tit"><i></i><span>Autorización al CIIP</span><i></i></div>
+        <div class="tr">Traducción de documentos · ante el Ministerio del Poder Popular para Relaciones Exteriores</div>
+      </div>
+      <div class="resto"><p>Revisa la autorización. Al pulsar el botón la aceptas: no hace falta firmarla.</p>
+        <div class="falta">Para la autorización faltan estos datos:<span>Documento · Número del documento</span></div><div class="hoja"></div></div>
+    </div></div>
+  </section>
+
+  <section class="caso" id="i4">
+    <div class="caso-h"><span class="caso-n">4</span><span class="caso-t">El ente protagonista</span></div>
+    <p class="caso-q">A la izquierda, <b>el logo del ente</b> ante el que se hace el trámite; en medio, el trámite en grande;
+      a la derecha, el CIIP, que es a quien autoriza. Se lee de un vistazo: <b>qué, ante quién y a quién</b>.</p>
+    <div class="fondo"><div class="ven">
+      <div class="c4">
+        <div class="ente"><img src="../logos/mppre.png" alt="MPPRE"></div>
+        <div><span class="ceja">Autorización al CIIP · antes de enviar</span><h3>Traducción de documentos</h3>
+          <small>Ante el Ministerio del Poder Popular para Relaciones Exteriores</small></div>
+        <div class="ciip"><img src="../assets/oficio-logo-ciip.png" alt="CIIP">Autorizas a</div>
+      </div>
+      <div class="resto"><p>Revisa la autorización. Al pulsar el botón la aceptas: no hace falta firmarla.</p>
+        <div class="falta">Para la autorización faltan estos datos:<span>Documento · Número del documento</span></div><div class="hoja"></div></div>
+    </div></div>
+  </section>
+</main>
+</body>
+</html>
