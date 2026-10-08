@@ -2909,7 +2909,13 @@
           return {then:function(bien, mal){ return Promise.resolve(r).then(bien, mal); }};
         },
         storage: {
-          from: function(){
+          from: function(cubo){
+            /* El cubo de los modelos de «Autorizaciones y NDA» nace vacio:
+               ahi solo existe lo que el admin sube en la pasada, tenga o no
+               extension la ruta. */
+            function existe(ruta){
+              return !!subidas[ruta] || (cubo !== 'modelos' && enLaBoveda(ruta));
+            }
             return {
               /* Quitar un archivo. Devuelve bien tambien si no estaba:
                  es lo que hace Storage, y el panel se apoya en ello para
@@ -2930,7 +2936,7 @@
                  esta en Documentos. Lo mismo que createSignedUrl: lo que no
                  existe da el error de Storage, no un archivo inventado. */
               download: function(ruta){
-                if (!subidas[ruta] && !enLaBoveda(ruta)){
+                if (!existe(ruta)){
                   return Promise.resolve({data:null, error:{message:'Object not found'}});
                 }
                 return Promise.resolve({data:new Blob(['%PDF-1.4 de mentira'], {type:'application/pdf'}),
@@ -2950,7 +2956,7 @@
                 }};
               },
               createSignedUrl: function(ruta){
-                if (!subidas[ruta] && !enLaBoveda(ruta)){
+                if (!existe(ruta)){
                   return Promise.resolve({data:null, error:{message:'Object not found'}});
                 }
                 return Promise.resolve({data:{signedUrl:

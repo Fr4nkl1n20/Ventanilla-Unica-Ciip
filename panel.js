@@ -1624,6 +1624,10 @@ function applyLang(lang){
        renglón, y esta es la otra puerta: el hash escrito a mano. Cae a la
        portada, como el #tramite-c99, y no a una pantalla en blanco. */
     if (tipo === 'documentos' && window.CIIP_BOVEDA_MIA && !window.CIIP_BOVEDA_MIA()) tipo = null;
+    /* Autorizaciones y NDA: del inversionista, que descarga los modelos,
+       y del administrador, que los sube. Al gestor no se le ofrece. */
+    if (tipo === 'autorizaciones' && window.CIIP_BOVEDA_MIA && !window.CIIP_BOVEDA_MIA() &&
+        (typeof PERFIL !== 'undefined' && PERFIL.rol) !== 'admin') tipo = null;
     /* Y «Mis trámites» escrito a mano, si no son tuyos: para el gestor
        ese renglón abre la cola, y esta vista no tiene nada que enseñarle
        salvo los trámites de otros.
@@ -1681,6 +1685,7 @@ function applyLang(lang){
     if (tipo === 'codigos') traeAlEntrar('CIIP_PINTA_CODIGOS');
     if (tipo === 'comprobantes') traeAlEntrar('CIIP_PINTA_COMPROBANTES');
     if (tipo === 'empresa') traeAlEntrar('CIIP_PINTA_EMPRESA');
+    if (tipo === 'autorizaciones') traeAlEntrar('CIIP_PINTA_AUTORIZ');
     if (tipo === 'usuarios') traeAlEntrar('CIIP_PINTA_USUARIOS');
     if (tipo === 'catalogo') traeAlEntrar('CIIP_PINTA_CATALOGO');
     /* El pulso va dentro de la vista del equipo: se trae con ella. */
@@ -1786,6 +1791,7 @@ function applyLang(lang){
     if (h === '#codigos') return {tipo:'codigos'};
     if (h === '#comprobantes') return {tipo:'comprobantes'};
     if (h === '#empresa') return {tipo:'empresa'};
+    if (h === '#autorizaciones') return {tipo:'autorizaciones'};
     if (h === '#usuarios') return {tipo:'usuarios'};
     if (h === '#catalogo') return {tipo:'catalogo'};
     /* #pulso fue una vista propia hasta el 28-9-2026; un enlace guardado
@@ -2196,6 +2202,7 @@ function applyLang(lang){
                 forma de la misma casilla. */
              : (vista === 'codigos') ? document.getElementById('navRevisar')
              : (vista === 'empresa') ? document.getElementById('navEmpresa')
+             : (vista === 'autorizaciones') ? document.getElementById('navAutoriz')
              : (vista === 'usuarios') ? document.getElementById('navUsuarios')
              : (vista === 'catalogo') ? document.getElementById('navCatalogo')
              : (vista === 'equipo') ? document.getElementById('navEquipo')
@@ -22301,6 +22308,10 @@ applyLang(idiomaParaMi());
     if (mt) mt.hidden = false;
     var dc = document.getElementById('navDocs');
     if (dc) dc.hidden = !laBovedaEsMia();
+    /* Autorizaciones y NDA (8-10-2026): el inversionista descarga los
+       modelos y el administrador los sube. El gestor, ni lo uno ni lo otro. */
+    var au = document.getElementById('navAutoriz');
+    if (au) au.hidden = !laBovedaEsMia() && (typeof PERFIL !== 'undefined' && PERFIL.rol) !== 'admin';
     var cs = document.getElementById('navConsultas');
     if (cs) cs.hidden = !esDelEquipo();
     var rv = document.getElementById('navRevisar');
@@ -34301,4 +34312,126 @@ applyLang(idiomaParaMi());
     })();
   }
 
+})();
+
+/* ---------- autorizaciones y NDA ----------
+   Los modelos del CIIP: el NDA y la autorizacion al CIIP (Franklin Reyes,
+   8-10-2026). Viven en el cubo 'modelos' con nombre fijo
+   (supabase-modelos.sql). El inversionista los descarga; el administrador,
+   ademas, los sube, y subir otro reemplaza al que habia. */
+(function(){
+  var nav = document.getElementById('navAutoriz');
+  if (nav) nav.addEventListener('click', function(){ location.hash = 'autorizaciones'; });
+
+  var MAX = 10 * 1024 * 1024;
+  function cubo(){ return window.sbCIIP && window.sbCIIP.storage.from('modelos'); }
+  function soyAdmin(){ return (typeof PERFIL !== 'undefined' && PERFIL.rol) === 'admin'; }
+  function dic(){ return I18N[curLang] || I18N.en; }
+
+  /* Lo que dice cada tarjeta sale de UNA pregunta: ¿esta el archivo? La
+     URL firmada la da Storage solo si existe; si no, contesta con error. */
+  function pintaModelo(m, hay){
+    var admin = soyAdmin();
+    m.querySelector('.au-bajar').hidden = !hay;
+    m.querySelector('.au-nohay').hidden = hay;
+    var sube = m.querySelector('.au-subir');
+    sube.hidden = !admin;
+    sube.querySelector('.au-subir-n').hidden = hay;
+    sube.querySelector('.au-subir-c').hidden = !hay;
+  }
+
+  function miraModelo(m){
+    var c = cubo();
+    if (!c) return pintaModelo(m, false);
+    Promise.resolve(c.createSignedUrl(m.getAttribute('data-ruta'), 60))
+      .then(function(r){ pintaModelo(m, !!(r && r.data && r.data.signedUrl)); })
+      .catch(function(e){
+        console.warn('[CIIP] modelos:', e && (e.message || e));
+        pintaModelo(m, false);
+      });
+  }
+
+  function miraModelos(){
+    var admin = soyAdmin();
+    var v = document.querySelector('.autoriz-vista');
+    if (!v) return;
+    v.querySelector('.au-intro:not(.au-intro-admin)').hidden = admin;
+    v.querySelector('.au-intro-admin').hidden = !admin;
+    v.querySelectorAll('.au-modelo').forEach(miraModelo);
+  }
+
+  /* Bajar con una URL firmada que ya trae el nombre: un enlace con
+     download y un clic hace que el navegador lo guarde. */
+  function baja(m, boton){
+    var c = cubo(), aviso = m.querySelector('.au-aviso');
+    if (!c) return;
+    boton.disabled = true;
+    aviso.textContent = '';
+    Promise.resolve(c.createSignedUrl(m.getAttribute('data-ruta'), 300, {download: m.getAttribute('data-ruta')}))
+      .then(function(r){
+        boton.disabled = false;
+        var url = r && r.data && r.data.signedUrl;
+        if (!url) throw (r && r.error) || new Error('sin url');
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = m.getAttribute('data-ruta');
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      })
+      .catch(function(e){
+        console.warn('[CIIP] bajar modelo:', e && (e.message || e));
+        boton.disabled = false;
+        aviso.className = 'au-aviso mal';
+        aviso.textContent = dic()['au.error'] || I18N.en['au.error'];
+      });
+  }
+
+  /* Subir. upsert: el modelo vigente es uno, y el nuevo pisa al viejo. Lo
+     que no es un PDF o pasa de 10 MB se dice aqui, sin gastar la subida:
+     el cubo tambien lo rechaza, pero con un error en ingles de mime types. */
+  function sube(m, f){
+    var c = cubo(), aviso = m.querySelector('.au-aviso'), boton = m.querySelector('.au-subir');
+    aviso.className = 'au-aviso';
+    aviso.textContent = '';
+    if (f.type !== 'application/pdf' || f.size > MAX){
+      aviso.className = 'au-aviso mal';
+      aviso.textContent = dic()['au.mal'] || I18N.en['au.mal'];
+      return;
+    }
+    if (!c) return;
+    boton.disabled = true;
+    aviso.textContent = dic()['au.subiendo'] || I18N.en['au.subiendo'];
+    Promise.resolve(c.upload(m.getAttribute('data-ruta'), f, {contentType: 'application/pdf', upsert: true}))
+      .then(function(r){
+        boton.disabled = false;
+        if (r && r.error) throw r.error;
+        aviso.className = 'au-aviso bien';
+        aviso.textContent = dic()['au.subido'] || I18N.en['au.subido'];
+        miraModelo(m);
+      })
+      .catch(function(e){
+        /* Sin supabase-modelos.sql, o sin ser admin, Storage dice que no. */
+        console.warn('[CIIP] subir modelo:', e && (e.message || e));
+        boton.disabled = false;
+        aviso.className = 'au-aviso mal';
+        aviso.textContent = dic()['au.error'] || I18N.en['au.error'];
+      });
+  }
+
+  document.querySelectorAll('.autoriz-vista .au-modelo').forEach(function(m){
+    var bajar = m.querySelector('.au-bajar');
+    var subir = m.querySelector('.au-subir');
+    var archivo = m.querySelector('.au-archivo');
+    bajar.addEventListener('click', function(){ baja(m, bajar); });
+    subir.addEventListener('click', function(){ archivo.click(); });
+    archivo.addEventListener('change', function(){
+      var f = archivo.files && archivo.files[0];
+      archivo.value = '';
+      if (f) sube(m, f);
+    });
+  });
+
+  window.CIIP_PINTA_AUTORIZ = miraModelos;
 })();

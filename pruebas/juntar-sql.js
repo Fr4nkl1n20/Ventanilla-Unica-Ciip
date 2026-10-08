@@ -275,7 +275,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    y la traducción (c17), Franklin Reyes, 7-10-2026. Tres update sobre
    tipos_tramite, que ya existe desde el segundo; al final para no mover el
    número de nadie. */
-'supabase-libros-saren'];
+'supabase-libros-saren',
+/* Los modelos de «Autorizaciones y NDA»: un cubo que solo llena el admin
+   (Franklin Reyes, 8-10-2026). Solo pide es_admin(); al final para no
+   mover el número de nadie. */
+'supabase-modelos'];
 
 let mal = 0;
 for (const n of orden) {

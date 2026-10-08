@@ -1082,6 +1082,38 @@ body[data-vista="empresa"] #emVolver{display:none;}
 body[data-vista="empresa"] .fase-bar{display:none;}
 #emVolver{display:none;}
 
+/* --- autorizaciones y NDA --- */
+.autoriz-vista{display:none;}
+body[data-vista="autorizaciones"] .autoriz-vista{display:block;}
+body[data-vista="autorizaciones"] .solo-inicio,
+body[data-vista="autorizaciones"] #secTramites,
+body[data-vista="autorizaciones"] .faq-sec,
+body[data-vista="autorizaciones"] .fase-bar{display:none;}
+.au-intro{font-size:var(--fs-parrafo); color:var(--gray); margin:0 0 16px; max-width:760px;}
+.au-lista{display:flex; flex-direction:column; gap:12px; max-width:760px;}
+.au-modelo{display:flex; align-items:center; gap:16px; background:var(--tr-velo);
+  border:1px solid var(--line); border-radius:var(--r); padding:17px 21px; box-shadow:var(--shadow);}
+.au-ic{flex:none; width:40px; height:40px; border-radius:10px; display:grid; place-items:center;
+  background:var(--line); color:var(--navy2);}
+.au-ic svg{width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8;
+  stroke-linecap:round; stroke-linejoin:round;}
+.au-txt{flex:1; min-width:0;}
+.au-t{font-weight:700;}
+.au-d{font-size:var(--fs-nota); color:var(--gray); margin-top:3px;}
+.au-nohay{font-size:var(--fs-nota); color:var(--rust); margin-top:6px;}
+.au-aviso{font-size:var(--fs-nota); margin-top:6px;}
+.au-aviso:empty{display:none;}
+.au-aviso.mal{color:var(--rust);}
+.au-aviso.bien{color:var(--good);}
+.au-botones{flex:none; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
+.au-bajar[hidden], .au-subir[hidden], .au-subir span[hidden]{display:none;}
+/* En el móvil los botones bajan debajo del texto, a todo lo ancho. */
+@media (max-width:600px){
+  .au-modelo{flex-wrap:wrap;}
+  .au-botones{width:100%;}
+  .au-botones .btn{flex:1; text-align:center;}
+}
+
 .em-tarjeta{background:var(--tr-velo); border:1px solid var(--line); border-radius:var(--r);
   padding:19px 21px; box-shadow:var(--shadow); max-width:760px;}
 .em-nombre{font-size:var(--fs-titulo); font-weight:700; letter-spacing:-.02em;}

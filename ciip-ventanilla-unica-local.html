@@ -367,6 +367,10 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
       <!-- Se iluminaba y no llevaba a nada. La razon social se escribia a
            mano en ocho formularios. -->
       <button class="sb-item" id="navEmpresa" type="button"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1M10 21v-3h4v3"/></svg></span><span data-i18n="nav.company">My company</span></button>
+      <!-- Autorizaciones y NDA: los modelos del CIIP que el inversionista
+           descarga (Franklin Reyes, 8-10-2026). Solo del inversionista,
+           como la boveda: nace oculto y lo enseña menuPorRol(). -->
+      <button class="sb-item" id="navAutoriz" type="button" hidden><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/><path d="m9 12 2 2 4-4"/></svg></span><span data-i18n="nav.autoriz">Authorisations &amp; NDA</span></button>
       <!-- El 9 era de ejemplo. Ahora cuenta los que de verdad has subido, y
            si no has subido ninguno no se enseña. -->
       <!-- Y este tambien: la boveda es del inversionista, no del equipo, asi
@@ -1452,6 +1456,45 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
         <button class="btn navy" id="emBoton" type="button" hidden></button>
       </div>
       <div id="emCuerpo"></div>
+    </div>
+
+    <!-- Autorizaciones y NDA. Los modelos viven en el cubo 'modelos'
+         (supabase-modelos.sql): el inversionista los descarga y el
+         administrador los sube o los reemplaza. Mientras un modelo no
+         este, su tarjeta lo dice en vez de ofrecer un enlace roto. -->
+    <div class="autoriz-vista">
+      <p class="au-intro" data-i18n="au.intro">The CIIP templates for the confidentiality agreement and the authorisation. Download them and follow the CIIP's instructions.</p>
+      <p class="au-intro au-intro-admin" data-i18n="au.intro_admin" hidden>Upload here the templates investors download. A new one replaces the previous one. PDF only, up to 10 MB.</p>
+      <div class="au-lista">
+        <div class="au-modelo" data-ruta="nda-ciip.pdf">
+          <span class="au-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
+          <div class="au-txt">
+            <div class="au-t" data-i18n="au.nda.t">NDA with the CIIP</div>
+            <div class="au-d" data-i18n="au.nda.d">Confidentiality agreement between you and the CIIP on the information about your investment.</div>
+            <div class="au-nohay" data-i18n="au.nohay" hidden>The CIIP has not published this template yet.</div>
+            <div class="au-aviso" role="status"></div>
+          </div>
+          <div class="au-botones">
+            <button class="btn navy au-bajar" type="button" data-i18n="au.bajar" hidden>Download template</button>
+            <button class="btn au-subir" type="button" hidden><span class="au-subir-n" data-i18n="au.subir">Upload template</span><span class="au-subir-c" data-i18n="au.cambiar" hidden>Replace template</span></button>
+            <input class="au-archivo" type="file" accept="application/pdf" hidden>
+          </div>
+        </div>
+        <div class="au-modelo" data-ruta="autorizacion-ciip.pdf">
+          <span class="au-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8 17c1.5-2 2.5-2 3.5 0s2 2 3.5 0"/></svg></span>
+          <div class="au-txt">
+            <div class="au-t" data-i18n="au.aut.t">Authorisation to the CIIP</div>
+            <div class="au-d" data-i18n="au.aut.d">Authorises the CIIP to handle procedures on your behalf before the government bodies.</div>
+            <div class="au-nohay" data-i18n="au.nohay" hidden>The CIIP has not published this template yet.</div>
+            <div class="au-aviso" role="status"></div>
+          </div>
+          <div class="au-botones">
+            <button class="btn navy au-bajar" type="button" data-i18n="au.bajar" hidden>Download template</button>
+            <button class="btn au-subir" type="button" hidden><span class="au-subir-n" data-i18n="au.subir">Upload template</span><span class="au-subir-c" data-i18n="au.cambiar" hidden>Replace template</span></button>
+            <input class="au-archivo" type="file" accept="application/pdf" hidden>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- La boveda. Los recaudos ya se guardaban y se reutilizaban entre

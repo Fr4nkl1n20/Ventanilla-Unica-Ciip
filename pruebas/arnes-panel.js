@@ -304,6 +304,8 @@
               empresaTrasGuardar,
               entregaAbre, entregaMira, entregaAbreVisor, entregaVisorMira, entregaTrasCerrar,
               hiloAbre, hiloMira,
+              /* Autorizaciones y NDA (8-10-2026). */
+              autorizMenu, autorizAbre, autorizMira, autorizNoPdf, autorizSube,
               docsAbre, docsMira, docsCambiarNoAbre, docsCambia, docsEsperaCambio, docsTrasCambiar,
               docsNuevoMira, docsNuevoFalta, docsNuevoSube, docsEsperaSubida, docsTrasSubir,
               /* DESPUES de todo lo de la boveda: estos pasos suben un papel,
@@ -8286,6 +8288,94 @@
      Los recaudos ya se guardaban y se reutilizaban entre trámites. Lo que
      faltaba era verlos todos, y saber cuál está vencido antes de que te lo
      diga un ente devolviéndote la solicitud. */
+  /* ── AUTORIZACIONES Y NDA ──
+     Los modelos del CIIP (Franklin Reyes, 8-10-2026). El inversionista
+     los descarga; el administrador, ademas, los sube. Al gestor no se le
+     ofrece. */
+  var AU_GESTOR = (CASO === 'gestor' && !ES_ADMIN);
+
+  function autorizMenu(){
+    var b = document.getElementById('navAutoriz');
+    igual('menú: «Autorizaciones y NDA» para el inversionista y el admin, no el gestor (' + PASE + ')',
+          b ? b.hidden : '(sin renglón)', AU_GESTOR);
+  }
+
+  function autorizAbre(){
+    var b = document.getElementById('navAutoriz');
+    if (b && !b.hidden) b.click();
+  }
+
+  function auVisible(m, sel){ var x = m.querySelector(sel); return !!x && !x.hidden; }
+
+  /* Espera a que cada tarjeta haya preguntado si su archivo esta. */
+  function auEspera(cond, luego){
+    var n = 0;
+    (function espera(){
+      if (!cond() && n++ < 30) return setTimeout(espera, 100);
+      luego();
+    })();
+  }
+
+  function autorizMira(sigue){
+    if (AU_GESTOR) return sigue();
+    igual('autorizaciones: el renglón abre su vista', document.body.getAttribute('data-vista'), 'autorizaciones');
+    igual('autorizaciones: el renglón queda encendido',
+          document.getElementById('navAutoriz').classList.contains('active'), true);
+    var ms = document.querySelectorAll('.autoriz-vista .au-modelo');
+    igual('autorizaciones: ofrece los dos modelos, el NDA y la autorización', ms.length, 2);
+    auEspera(function(){
+      return [].every.call(ms, function(m){ return auVisible(m, '.au-bajar') || auVisible(m, '.au-nohay'); });
+    }, function(){
+      /* En la base de mentira no hay ningun modelo subido todavia. */
+      [].forEach.call(ms, function(m, i){
+        igual('autorizaciones: sin subir, el modelo ' + (i + 1) + ' dice que aún no está',
+              auVisible(m, '.au-nohay'), true);
+        igual('autorizaciones: y no ofrece un botón de descargar que no baja nada (' + (i + 1) + ')',
+              auVisible(m, '.au-bajar'), false);
+        igual('autorizaciones: subir, solo el admin (' + PASE + ', ' + (i + 1) + ')',
+              auVisible(m, '.au-subir'), ES_ADMIN);
+      });
+      igual('autorizaciones: el admin lee lo que hace él, no lo que hace el inversionista',
+            auVisible(document, '.au-intro-admin'), ES_ADMIN);
+      sigue();
+    });
+  }
+
+  function auElige(m, archivo){
+    var dt = new DataTransfer();
+    dt.items.add(archivo);
+    var inp = m.querySelector('.au-archivo');
+    inp.files = dt.files;
+    inp.dispatchEvent(new Event('change'));
+  }
+
+  /* Lo que no es un PDF se dice sin gastar la subida. */
+  function autorizNoPdf(){
+    if (!ES_ADMIN) return;
+    var m = document.querySelectorAll('.autoriz-vista .au-modelo')[0];
+    auElige(m, new File(['hola'], 'nda.txt', {type:'text/plain'}));
+    var av = m.querySelector('.au-aviso');
+    ok('autorizaciones: un archivo que no es PDF no se sube', av.classList.contains('mal'),
+       av.className + ' — ' + av.textContent, 'au-aviso mal');
+    igual('autorizaciones: y el modelo sigue sin publicar', auVisible(m, '.au-nohay'), true);
+  }
+
+  function autorizSube(sigue){
+    if (!ES_ADMIN) return sigue();
+    var ms = document.querySelectorAll('.autoriz-vista .au-modelo');
+    var m = ms[0];
+    auElige(m, new File(['%PDF-1.4 de mentira'], 'nda.pdf', {type:'application/pdf'}));
+    auEspera(function(){ return auVisible(m, '.au-bajar'); }, function(){
+      var av = m.querySelector('.au-aviso');
+      igual('autorizaciones: subido, lo dice', av.classList.contains('bien'), true);
+      igual('autorizaciones: subido, ya se puede descargar', auVisible(m, '.au-bajar'), true);
+      igual('autorizaciones: y ya no dice que falta', auVisible(m, '.au-nohay'), false);
+      igual('autorizaciones: el botón pasa a «Reemplazar»', auVisible(m, '.au-subir-c'), true);
+      igual('autorizaciones: el otro modelo no se toca', auVisible(ms[1], '.au-nohay'), true);
+      sigue();
+    });
+  }
+
   function docsAbre(){
     var n = document.getElementById('navDocs');
     if (n && !n.hidden) n.click();
