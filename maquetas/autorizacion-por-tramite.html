@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<!-- Maqueta: la autorización por trámite (opción 1, aceptada en línea, sin firma).
+     Copia de la página que revisa el abogado: https://claude.ai/artifact/JosjzeXPpsuvy1zb8PqwMt
+     Abierta desde aquí no guarda; los cambios del abogado viven en ese enlace. -->
+<title>Autorización al CIIP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<style id="estilo">
+/* Borrador legal sobre la piel de la Ventanilla: azul CIIP para la interfaz,
+   papel con serifa para el documento que el abogado corrige. */
+:root{
+  --bg:#F2F4F8; --papel:#FFFFFF; --tinta:#121A2B; --suave:#5A6478; --linea:#DCE1EA;
+  --azul:#004090; --azul2:#0060B0; --azul-suave:#E8F0FA;
+  --dato-bg:#E3EEFB; --dato:#0B4A9A; --ej-bg:#E6F4EE; --ej:#1B6E50;
+  --mod:#9A6412; --mod-bg:#FBF1DE; --nuevo:#1E7F5C; --nuevo-bg:#E5F3EC; --quita:#A8452A; --quita-bg:#FAEAE4;
+  --sombra:0 1px 2px rgba(18,26,43,.06), 0 8px 24px rgba(18,26,43,.06);
+  --ui:'Public Sans', 'Segoe UI', system-ui, sans-serif;
+  --doc:'Source Serif 4', Georgia, 'Times New Roman', serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0E1420; --papel:#171F2E; --tinta:#E6EBF3; --suave:#9AA6BA; --linea:#2A3447;
+  --azul:#6FA8F0; --azul2:#8BB9F5; --azul-suave:#1A2A42;
+  --dato-bg:#1C2D47; --dato:#A4C8F7; --ej-bg:#163A2D; --ej:#7FD3AE;
+  --mod:#E4B567; --mod-bg:#3A2E17; --nuevo:#6FCFA2; --nuevo-bg:#173A2B; --quita:#F0947A; --quita-bg:#3D2019;
+  --sombra:0 1px 2px rgba(0,0,0,.3); color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0E1420; --papel:#171F2E; --tinta:#E6EBF3; --suave:#9AA6BA; --linea:#2A3447;
+  --azul:#6FA8F0; --azul2:#8BB9F5; --azul-suave:#1A2A42;
+  --dato-bg:#1C2D47; --dato:#A4C8F7; --ej-bg:#163A2D; --ej:#7FD3AE;
+  --mod:#E4B567; --mod-bg:#3A2E17; --nuevo:#6FCFA2; --nuevo-bg:#173A2B; --quita:#F0947A; --quita-bg:#3D2019;
+  --sombra:0 1px 2px rgba(0,0,0,.3); color-scheme:dark; }
+*{box-sizing:border-box;}
+body{background:var(--bg); color:var(--tinta); font-family:var(--ui); font-size:14px; line-height:1.55;}
+#app{max-width:1180px; margin:0 auto; padding:32px 20px 120px; display:grid; gap:56px;}
+button{font:inherit; cursor:pointer;}
+button:focus-visible, .ed:focus-visible, a:focus-visible{outline:2px solid var(--azul2); outline-offset:2px;}
+h1,h2,h3{text-wrap:balance; margin:0;}
+
+/* cabecera */
+.cab{display:grid; gap:18px; max-width:860px;}
+.ceja{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--azul2);}
+.cab h1{font-family:var(--doc); font-size:clamp(30px,5vw,44px); font-weight:700; letter-spacing:-.01em; line-height:1.1;}
+.cab .lead{font-size:16px; color:var(--suave); max-width:68ch; margin:0;}
+.cab .lead b{color:var(--tinta);}
+.flujo{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px;}
+.flujo div{background:var(--papel); border:1px solid var(--linea); border-radius:10px; padding:12px 14px; font-size:13px;}
+.flujo b{display:block; font-size:12px; color:var(--azul); margin-bottom:2px;}
+.exc{display:flex; gap:12px; align-items:baseline; flex-wrap:wrap; background:var(--papel); border:1px solid var(--linea);
+  border-left:3px solid var(--mod); border-radius:10px; padding:11px 14px; font-size:13.5px;}
+.exc b{font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mod);}
+.exc span{min-width:0;}
+.exc .tr{font-weight:700;}
+.uso{display:flex; flex-wrap:wrap; gap:8px 18px; font-size:13px; color:var(--suave); align-items:center;}
+.uso .dato{font-size:12px;}
+.herr{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+.indice{display:flex; flex-wrap:wrap; gap:8px;}
+.indice a{font-size:13px; font-weight:600; color:var(--azul); text-decoration:none; background:var(--papel);
+  border:1px solid var(--linea); border-radius:8px; padding:7px 12px;}
+.indice a:hover{border-color:var(--azul2);}
+.conm{display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--tinta);
+  background:var(--papel); border:1px solid var(--linea); border-radius:999px; padding:6px 13px 6px 8px;}
+.conm i{width:28px; height:16px; border-radius:20px; background:var(--linea); position:relative; flex:none;}
+.conm i::after{content:""; position:absolute; top:2px; left:2px; width:12px; height:12px; border-radius:50%; background:var(--papel); transition:left .15s;}
+.conm[aria-pressed="true"] i{background:var(--azul2);}
+.conm[aria-pressed="true"] i::after{left:14px;}
+
+/* cada opción */
+.opc{display:grid; gap:18px; scroll-margin-top:16px;}
+.opc-h{display:grid; gap:6px; max-width:860px;}
+.opc-n{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--suave);}
+.opc-h h2{font-family:var(--doc); font-size:26px; font-weight:700; line-height:1.2;}
+.opc-h p{margin:0; color:var(--suave); max-width:72ch;}
+.rejilla{display:grid; grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr); gap:18px; align-items:start;}
+.rot{font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--suave); margin-bottom:8px;}
+
+/* la pantalla del inversionista */
+.mock{background:var(--papel); border:1px solid var(--linea); border-radius:12px; overflow:hidden; box-shadow:var(--sombra);}
+.mock-bar{background:var(--azul); color:#fff; padding:10px 14px; font-size:12px; display:flex; justify-content:space-between; gap:10px;}
+:root[data-theme="dark"] .mock-bar{color:#0E1420;}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .mock-bar{color:#0E1420;} }
+.mock-bar b{font-weight:700;}
+.mock-in{padding:16px; display:grid; gap:12px;}
+.mock-in .q{font-size:15px; font-weight:700; line-height:1.35;}
+.elige{display:grid; grid-template-columns:auto minmax(0,1fr); gap:4px 10px; border:1px solid var(--linea); border-radius:10px; padding:12px;}
+.elige.on{border-color:var(--azul2); background:var(--azul-suave);}
+.elige .r{width:16px; height:16px; border-radius:50%; border:2px solid var(--suave); margin-top:2px;}
+.elige.on .r{border-color:var(--azul2); box-shadow:inset 0 0 0 3px var(--papel); background:var(--azul2);}
+.elige .r.c{border-radius:4px;}
+.elige .t{font-weight:700; font-size:13.5px;}
+.elige .d{grid-column:2; font-size:12.5px; color:var(--suave);}
+.dos{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.dos .elige{grid-template-columns:1fr; align-content:start;}
+.dos .elige .d{grid-column:1;}
+.lista-f{display:grid; gap:6px; border:1px solid var(--linea); border-radius:10px; padding:12px;}
+.fac{display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px; font-size:13px;}
+.fac .r{width:16px; height:16px; border-radius:4px; border:2px solid var(--azul2); background:var(--azul2); margin-top:2px; position:relative;}
+.fac .r::after{content:""; position:absolute; left:4px; top:0; width:4px; height:8px; border:solid var(--papel); border-width:0 2px 2px 0; transform:rotate(45deg);}
+.fac.off .r{background:transparent; border-color:var(--suave);}
+.fac.off .r::after{display:none;}
+.paso-m{font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--azul2);}
+.sep{border:0; border-top:1px dashed var(--linea); margin:2px 0;}
+.genera{font-size:12px; color:var(--suave); display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+.genera span{background:var(--azul-suave); color:var(--azul); border-radius:20px; padding:2px 9px; font-weight:600;}
+.flujo-m{display:grid; gap:12px;}
+.mock.ancho{max-width:100%;}
+.mini{font-family:var(--doc); font-size:13.5px; line-height:1.6; background:var(--bg); border:1px solid var(--linea); border-radius:8px; padding:10px 12px;}
+.nota-si{font-size:12.5px; color:var(--suave);}
+.acciones-m{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
+.btn-m.sec{background:var(--papel); color:var(--tinta); border:1px solid var(--linea);}
+.aviso-no{display:grid; gap:4px; background:var(--azul-suave); border-radius:10px; padding:12px 14px; font-size:13px;}
+.aviso-no b{font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--azul);}
+.constancia{display:flex; gap:10px; align-items:center; margin-top:28px; padding-top:14px; border-top:1px solid var(--linea);
+  font-family:var(--ui); font-size:12px; color:var(--suave);}
+.constancia .sello{width:22px; height:22px; border-radius:50%; flex:none; display:grid; place-items:center; background:var(--nuevo-bg); color:var(--nuevo); font-weight:700;}
+.chip{font-size:11px; font-weight:700; border-radius:20px; padding:2px 9px; white-space:nowrap;}
+.chip.ok{background:var(--nuevo-bg); color:var(--nuevo);}
+.chip.mute{background:var(--bg); color:var(--suave); border:1px solid var(--linea);}
+td.num{font-variant-numeric:tabular-nums; white-space:nowrap;}
+td.acc-t{white-space:nowrap; text-align:right;}
+.nda-f{display:flex; gap:12px; align-items:center; flex-wrap:wrap; border:1px solid var(--linea); border-radius:10px; padding:12px 14px; font-size:13.5px;}
+.nda-f > span:nth-child(2){flex:1; min-width:180px;}
+.ic-n{width:38px; height:38px; border-radius:9px; display:grid; place-items:center; background:var(--azul-suave); color:var(--azul); font-size:10px; font-weight:800; flex:none;}
+.btn-m{justify-self:start; background:var(--azul); color:var(--papel); border:0; border-radius:8px; padding:9px 16px; font-weight:700; font-size:13px;}
+
+/* el papel */
+.docs{display:grid; gap:14px;}
+.papel{background:var(--papel); border:1px solid var(--linea); border-radius:4px; box-shadow:var(--sombra); padding:34px 40px 26px;
+  font-family:var(--doc); font-size:15.5px; line-height:1.7;}
+.papel-h{display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:16px;}
+.papel-h .ti{font-family:var(--doc); font-weight:700; font-size:17px; letter-spacing:.06em; text-transform:uppercase;}
+.papel-acc{display:flex; gap:6px; font-family:var(--ui);}
+.par{position:relative; display:grid; grid-template-columns:minmax(0,1fr); padding:3px 10px; margin:0 -10px; border-radius:6px;}
+.par + .par{margin-top:8px;}
+.par p{margin:0;}
+.par.li p{padding-left:22px; position:relative;}
+.par.li p::before{content:"–"; position:absolute; left:4px; color:var(--suave);}
+.par.mod{background:var(--mod-bg); box-shadow:inset 3px 0 0 var(--mod);}
+.par.nuevo{background:var(--nuevo-bg); box-shadow:inset 3px 0 0 var(--nuevo);}
+.par.quitado{background:var(--quita-bg); box-shadow:inset 3px 0 0 var(--quita);}
+.par.quitado p{text-decoration:line-through; color:var(--suave);}
+.par .orig{font-size:13.5px; color:var(--suave); text-decoration:line-through; margin-top:4px;}
+.par-acc{display:flex; gap:8px; align-items:center; justify-content:flex-end; font-family:var(--ui); font-size:11.5px; margin-top:2px;}
+.par:not(.mod):not(.nuevo):not(.quitado) .par-acc{opacity:0; height:0; margin:0; overflow:hidden;}
+.par:not(.mod):not(.nuevo):not(.quitado):hover .par-acc, .par:not(.mod):not(.nuevo):not(.quitado):focus-within .par-acc{opacity:1; height:auto; margin-top:2px;}
+.etq{font-weight:700; letter-spacing:.04em; text-transform:uppercase; font-size:10px; margin-right:auto;}
+.mod .etq{color:var(--mod);} .nuevo .etq{color:var(--nuevo);} .quitado .etq{color:var(--quita);}
+.lnk{background:none; border:0; padding:2px 4px; color:var(--azul2); font-weight:600; font-size:11.5px; border-radius:4px;}
+.lnk:hover{text-decoration:underline;}
+.lnk.no{color:var(--quita);}
+.firma{display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-top:34px; font-family:var(--ui); font-size:11.5px; color:var(--suave); text-align:center;}
+.firma span{border-top:1px solid var(--suave); padding-top:6px;}
+.anadir{margin-top:14px; font-family:var(--ui);}
+.b{background:var(--papel); color:var(--tinta); border:1px solid var(--linea); border-radius:8px; padding:6px 11px; font-size:12px; font-weight:600;}
+.b:hover{border-color:var(--azul2);}
+.b.prim{background:var(--azul); border-color:var(--azul); color:var(--papel);}
+
+/* campos editables y datos */
+.ed{border-radius:4px; outline:1px dashed transparent; outline-offset:2px; transition:outline-color .15s; white-space:pre-wrap;}
+.ed[contenteditable]:hover{outline-color:var(--linea);}
+.ed[contenteditable]:focus{outline:2px solid var(--azul2); background:var(--papel);}
+.ed:empty::before{content:attr(data-ph); color:var(--suave); font-style:italic;}
+.dato{background:var(--dato-bg); color:var(--dato); border-radius:4px; padding:0 4px; font-family:var(--ui); font-size:.84em; font-weight:600; white-space:nowrap;}
+.dato.ej{background:var(--ej-bg); color:var(--ej); font-family:inherit; font-size:inherit; font-weight:600; white-space:normal;}
+
+/* revisión del abogado */
+.rev{background:var(--papel); border:1px solid var(--linea); border-radius:12px; padding:18px 20px; display:grid; gap:14px;}
+.rev h3{font-size:14px;}
+.preg{display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:10px 18px; align-items:start; border-top:1px solid var(--linea); padding-top:12px;}
+.preg .q{font-weight:600; font-size:13.5px;}
+.resp{min-height:42px; border:1px solid var(--linea); border-radius:8px; padding:8px 10px; font-size:13.5px; background:var(--bg);}
+.resp.ed[contenteditable]:hover{outline-color:transparent; border-color:var(--azul2);}
+.notas{min-height:64px;}
+
+/* tabla de datos */
+.tabla-w{overflow-x:auto; background:var(--papel); border:1px solid var(--linea); border-radius:12px;}
+table{border-collapse:collapse; width:100%; font-size:13px; min-width:560px;}
+th,td{text-align:left; padding:10px 14px; border-bottom:1px solid var(--linea); vertical-align:top;}
+th{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--suave);}
+tr:last-child td{border-bottom:0;}
+.cierre{display:grid; gap:12px; max-width:900px;}
+.cierre h2{font-family:var(--doc); font-size:22px;}
+.cierre p{margin:0; color:var(--suave);}
+
+/* barra de guardar */
+.barra{position:fixed; left:0; right:0; bottom:0; z-index:10; padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));
+  background:var(--papel); border-top:1px solid var(--linea); box-shadow:0 -6px 20px rgba(18,26,43,.08);}
+.barra-in{max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.barra .est{font-size:13px; margin-right:auto; display:flex; align-items:center; gap:8px; min-width:0;}
+.barra .pt{width:8px; height:8px; border-radius:50%; background:var(--nuevo); flex:none;}
+.barra.sucio .pt{background:var(--mod);}
+.barra.lectura .pt, .barra.error .pt{background:var(--quita);}
+.aviso{background:var(--mod-bg); border:1px solid var(--mod); border-radius:10px; padding:10px 14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:13px;}
+.aviso span{margin-right:auto;}
+
+@media (max-width:900px){
+  .rejilla, .preg{grid-template-columns:1fr;}
+  .flujo{grid-template-columns:1fr;}
+}
+@media (max-width:520px){
+  .papel{padding:22px 18px 18px; font-size:15px;}
+  .dos{grid-template-columns:1fr;}
+  #app{padding-top:22px; gap:44px;}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+<main id="app"></main>
+<script type="application/json" id="estado">
+{"meta":{"guardado":null},"excepciones":["Constitución de la compañía","Sellado de libros"],"opciones":[{"titulo":"Autorización por trámite, aceptada en línea","resumen":"Al solicitar un trámite, el inversionista contesta una sola pregunta. Si dice que sí, ve la autorización con sus datos ya puestos y la acepta con un botón: no firma nada. La Ventanilla guarda la constancia de la aceptación y la autorización queda en «Autorizaciones y NDA».","mock":"flujo1","pregunta":{"titulo":"¿Autorizas al CIIP a gestionar este trámite en tu nombre?","si_t":"Sí, autorizo al CIIP","si":"El CIIP presenta el trámite ante el organismo y puede consignar y retirar los documentos que haga falta.","no_t":"No, lo gestiono yo","no":"Yo hago el trámite. El CIIP solo me acompaña verificando que el proceso vaya bien; no presenta, consigna ni retira nada en mi nombre.","despues":"","confirma_t":"Revisa la autorización","nota_si":"Al pulsar el botón aceptas esta autorización. No hace falta firmarla: queda registrada con tu cuenta, la fecha y la hora, y la tendrás en «Autorizaciones y NDA».","boton":"Autorizo y envío la solicitud","aviso_no":"Gestionas este trámite tú. El CIIP revisa tus recaudos y te orienta, pero no presenta, consigna ni retira nada en tu nombre ante el organismo.","lista_t":"Autorizaciones y NDA","lista_d":"Cada vez que autorizas al CIIP en un trámite, la autorización queda aquí con su constancia. Puedes verla, descargarla o revocarla."},"docs":[{"titulo":"Autorización","parrafos":[{"tipo":"p","base":"Yo, [NOMBRE Y APELLIDO], de nacionalidad [NACIONALIDAD], mayor de edad, titular del [TIPO DE DOCUMENTO] N.º [NÚMERO DE DOCUMENTO], actuando en mi carácter de representante legal de la sociedad mercantil [RAZÓN SOCIAL], inscrita en el Registro Mercantil [DATOS DE REGISTRO] e identificada con el RIF [RIF], por medio del presente documento declaro:"},{"tipo":"p","base":"PRIMERO: Autorizo al Centro Internacional de Inversión Productiva (CIIP) para que, a través del personal que designe, realice en nombre de mi representada el trámite de [TRÁMITE] ante [ORGANISMO]."},{"tipo":"p","base":"SEGUNDO: Esta autorización comprende presentar la solicitud, consignar los recaudos que el organismo exija, hacer el seguimiento del trámite y retirar el documento que resulte de él."},{"tipo":"p","base":"TERCERO: Esta autorización se limita al trámite indicado. Se extingue al concluir el trámite, o antes si la revoco por escrito a través de la Ventanilla Única del Inversionista."},{"tipo":"p","base":"Esta autorización se otorga en línea, mediante aceptación expresa en la Ventanilla Única del Inversionista, sin necesidad de firma autógrafa, en [CIUDAD], el [FECHA] a las [HORA].","texto":"Esta autorización se otorga en línea, mediante aceptación expresa en la Ventanilla Única del Inversionista, sin necesidad de firma autógrafa, en [CIUDAD], el [FECHA] a las [HORA]."}]}],"preguntas":[{"q":"¿Basta la aceptación en línea, sin firma, como manifestación de voluntad del representante legal?","r":""},{"q":"¿Qué debe registrar la Ventanilla como constancia de la aceptación (cuenta, fecha y hora, dirección IP, copia del texto aceptado)?","r":""},{"q":"¿Algún organismo exigirá aun así un poder autenticado ante notaría para consignar o retirar documentos?","r":""},{"q":"¿Cómo debe quedar identificado quien actúa: el CIIP como institución, o el nombre y la cédula de cada gestor?","r":""},{"q":"Si el inversionista revoca la autorización a mitad del trámite, ¿qué pasa con lo ya presentado?","r":""}],"notas":""}]}
+</script>
+<script id="codigo">
+(function(){
+'use strict';
+var C = '<' + '/';
+var RESET = (function(){
+  var s = document.head && document.head.querySelector('style');
+  return s ? s.textContent : ':root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}';
+})();
+var FUENTES = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">';
+
+var STATE = JSON.parse(document.getElementById('estado').textContent);
+STATE.opciones.forEach(function(o){ o.docs.forEach(function(d){ d.parrafos.forEach(function(p){
+  if (p.texto === undefined) p.texto = p.base;
+}); }); });
+var GUARDADO = JSON.stringify(STATE);
+var ui = {ejemplo:false, original:false, modo:'espera', msg:''};
+var artifact = null;
+var CLAVE = 'autorizacion-ciip:borrador';
+
+var EJEMPLO = {
+  'NOMBRE Y APELLIDO':'Marco Bianchi', 'NACIONALIDAD':'italiana', 'TIPO DE DOCUMENTO':'pasaporte',
+  'NÚMERO DE DOCUMENTO':'YA1234567', 'RAZÓN SOCIAL':'Bianchi Agroindustrias, C.A.',
+  'DATOS DE REGISTRO':'Primero del estado Miranda, bajo el N.º 12, Tomo 45-A', 'RIF':'J-40123456-7',
+  'TRÁMITE':'Licencia de actividades económicas', 'ORGANISMO':'la Alcaldía del Municipio Chacao',
+  'CIUDAD':'Caracas', 'FECHA':'8 de octubre de 2026', 'HORA':'10:42 a. m.', 'CÓDIGO DE LA CONSTANCIA':'AUT-2026-000418', 'FECHA DE CONFIRMACIÓN':'8 de octubre de 2026',
+  'FECHA DE LA AUTORIZACIÓN GENERAL':'8 de octubre de 2026', 'PLAZO DE VIGENCIA':'doce (12) meses'
+};
+var DATOS = [
+  ['NOMBRE Y APELLIDO','El perfil del inversionista'], ['NACIONALIDAD','El perfil del inversionista'],
+  ['TIPO DE DOCUMENTO','El perfil: pasaporte o cédula'], ['NÚMERO DE DOCUMENTO','El perfil del inversionista'],
+  ['RAZÓN SOCIAL','Mi empresa'], ['DATOS DE REGISTRO','Mi empresa: oficina de registro, número y tomo'],
+  ['RIF','Mi empresa'], ['TRÁMITE','El trámite que se está solicitando (nunca la constitución ni el sellado de libros)'], ['ORGANISMO','El ente del trámite'],
+  ['CIUDAD','Fija: Caracas, o la que indique el abogado'], ['FECHA','El día en que acepta en línea'], ['HORA','La hora en que acepta (hora de Caracas)'],
+  ['CÓDIGO DE LA CONSTANCIA','Lo asigna la Ventanilla al aceptar'],
+];
+
+function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function marca(s, ejemplo){
+  return esc(s).replace(/\[([^\]\n]{1,60})\]/g, function(m, k){
+    if (ejemplo && EJEMPLO[k]) return '<span class="dato ej">' + esc(EJEMPLO[k]) + C + 'span>';
+    return '<span class="dato">' + m + C + 'span>';
+  });
+}
+function txt(s){ return marca(s, ui.ejemplo); }
+
+function ruta(k){ return k.split('|').map(function(x){ return /^\d+$/.test(x) ? +x : x; }); }
+function lee(k){ var r = ruta(k), o = STATE.opciones; for (var i = 0; i < r.length; i++) o = o[r[i]]; return o; }
+function pon(k, v){ var r = ruta(k), o = STATE.opciones; for (var i = 0; i < r.length - 1; i++) o = o[r[i]]; o[r[r.length - 1]] = v; }
+
+function ed(k, tag, cls, ph){
+  var editable = !ui.ejemplo;
+  return '<' + tag + ' class="ed ' + (cls || '') + '" data-k="' + k + '"' + (ph ? ' data-ph="' + esc(ph) + '"' : '') +
+    (editable ? ' contenteditable="plaintext-only" spellcheck="true"' : '') + '>' + txt(lee(k)) + C + tag + '>';
+}
+
+/* ── la pantalla del inversionista ── */
+function barra(o){ return '<div class="mock-bar"><span>Solicitar trámite · <b>' + (ui.ejemplo ? 'Licencia de actividades económicas' : '[TRÁMITE]') + C + 'b>' + C + 'span><span>Paso 1 de 4' + C + 'span>' + C + 'div>'; }
+function eleccion(o, on, t, d, cuadro){
+  return '<div class="elige' + (on ? ' on' : '') + '"><span class="r' + (cuadro ? ' c' : '') + '">' + C + 'span>' + ed(o + '|pregunta|' + t, 'span', 't') + ed(o + '|pregunta|' + d, 'span', 'd') + C + 'div>';
+}
+function facultades(i){
+  var ps = STATE.opciones[i].docs[0].parrafos, h = '', ult = -1;
+  ps.forEach(function(p, n){ if (p.tipo === 'li' && !p.quitado) ult = n; });
+  ps.forEach(function(p, n){
+    if (p.tipo !== 'li' || p.quitado) return;
+    /* La última sale sin marcar: el inversionista elige, no lo trae todo puesto. */
+    h += '<div class="fac' + (n === ult ? ' off' : '') + '"><span class="r">' + C + 'span><span>' + txt(p.texto) + C + 'span>' + C + 'div>';
+  });
+  return h;
+}
+function mock(i){
+  var o = STATE.opciones[i], h = '<div class="mock">' + barra(i) + '<div class="mock-in">';
+  if (o.mock === 'flujo1'){
+    h = '<div class="flujo-m">';
+    h += '<div class="mock">' + barra(i) + '<div class="mock-in"><div class="paso-m">1 · Al pedir el trámite' + C + 'div>' + ed(i + '|pregunta|titulo', 'div', 'q') +
+      eleccion(i, true, 'si_t', 'si') + eleccion(i, false, 'no_t', 'no') + C + 'div>' + C + 'div>';
+    h += '<div class="mock">' + barra(i) + '<div class="mock-in"><div class="paso-m">2 · Si responde que sí' + C + 'div>' + ed(i + '|pregunta|confirma_t', 'div', 'q') +
+      '<div class="mini">' + txt(STATE.opciones[i].docs[0].parrafos[1].texto) + C + 'div>' +
+      '<div class="genera">El documento completo, con sus datos, está al lado.' + C + 'div>' +
+      ed(i + '|pregunta|nota_si', 'div', 'nota-si') +
+      '<div class="acciones-m"><span class="btn-m sec">Volver' + C + 'span>' + ed(i + '|pregunta|boton', 'span', 'btn-m') + C + 'div>' + C + 'div>' + C + 'div>';
+    h += '<div class="mock">' + barra(i) + '<div class="mock-in"><div class="paso-m">3 · Si responde que no' + C + 'div>' +
+      '<div class="aviso-no"><b>Gestión directa' + C + 'b>' + ed(i + '|pregunta|aviso_no', 'span', '') + C + 'div>' +
+      '<div class="genera">No se genera ninguna autorización. La solicitud sigue como hoy.' + C + 'div>' + C + 'div>' + C + 'div>';
+    return h + C + 'div>';
+  }
+  if (o.mock === 'sino'){
+    h += ed(i + '|pregunta|titulo', 'div', 'q') + eleccion(i, true, 'si_t', 'si') + eleccion(i, false, 'no_t', 'no') +
+      '<div class="genera">Si elige «Sí», se genera: <span>Autorización' + C + 'span>' + C + 'div>';
+  } else if (o.mock === 'facultades'){
+    h += ed(i + '|pregunta|titulo', 'div', 'q') + '<div class="lista-f" data-fac="' + i + '">' + facultades(i) + C + 'div>' +
+      '<hr class="sep">' + eleccion(i, false, 'no_t', 'no', true) +
+      '<div class="genera">Las casillas salen de la lista del documento. Se genera: <span>Autorización con lo marcado' + C + 'span>' + C + 'div>';
+  } else if (o.mock === 'caminos'){
+    h += ed(i + '|pregunta|titulo', 'div', 'q') + '<div class="dos">' + eleccion(i, true, 'si_t', 'si') + eleccion(i, false, 'no_t', 'no') + C + 'div>' +
+      '<div class="genera">Se genera: <span>Autorización' + C + 'span> o <span>Declaración de gestión directa' + C + 'span>' + C + 'div>';
+  } else {
+    h += '<div class="paso-m">La primera vez' + C + 'div>' + ed(i + '|pregunta|titulo', 'div', 'q') + eleccion(i, true, 'si_t', 'si') + eleccion(i, false, 'no_t', 'no') +
+      '<hr class="sep"><div class="paso-m">En los siguientes trámites' + C + 'div>' +
+      '<div class="elige on"><span class="r c">' + C + 'span>' + ed(i + '|pregunta|despues', 'span', 't') + C + 'div>' +
+      '<div class="genera">Se genera: <span>Autorización general' + C + 'span> y una línea en el <span>Anexo' + C + 'span>' + C + 'div>';
+  }
+  return h + '<button class="btn-m" type="button" tabindex="-1">Enviar solicitud' + C + 'button>' + C + 'div>' + C + 'div>';
+}
+
+/* ── el documento ── */
+function parrafo(i, d, n){
+  var p = STATE.opciones[i].docs[d].parrafos[n], ref = i + '|' + d + '|' + n;
+  var k = i + '|docs|' + d + '|parrafos|' + n + '|texto';
+  var est = p.quitado ? 'quitado' : (p.base === '' ? 'nuevo' : (p.texto !== p.base ? 'mod' : ''));
+  var h = '<div class="par ' + p.tipo + ' ' + est + '" data-par="' + ref + '">';
+  if (p.quitado) h += '<p>' + txt(p.base) + C + 'p>';
+  else h += ed(k, 'p', '', 'Escriba el texto de la cláusula');
+  if (est === 'mod' && ui.original) h += '<div class="orig">' + esc(p.base) + C + 'div>';
+  var etq = {mod:'Modificada', nuevo:'Añadida', quitado:'Quitada'}[est] || '';
+  h += '<div class="par-acc"><span class="etq">' + etq + C + 'span>';
+  if (!ui.ejemplo){
+    if (est === 'mod' || est === 'quitado') h += '<button class="lnk" type="button" data-acc="restaura" data-ref="' + ref + '">Restaurar el original' + C + 'button>';
+    if (!p.quitado) h += '<button class="lnk no" type="button" data-acc="quita" data-ref="' + ref + '">Quitar' + C + 'button>';
+  }
+  return h + C + 'div>' + C + 'div>';
+}
+function documento(i, d){
+  var D = STATE.opciones[i].docs[d], h = '<div class="papel" id="doc-' + i + '-' + d + '"><div class="papel-h"><span class="ti">' + esc(D.titulo) + C + 'span>' +
+    '<span class="papel-acc"><button class="b" type="button" data-acc="copia" data-ref="' + i + '|' + d + '">Copiar texto' + C + 'button>' + C + 'span>' + C + 'div>';
+  D.parrafos.forEach(function(p, n){ h += parrafo(i, d, n); });
+  if (!ui.ejemplo) h += '<div class="anadir"><button class="b" type="button" data-acc="anade" data-ref="' + i + '|' + d + '">Añadir cláusula' + C + 'button>' + C + 'div>';
+  if (D.titulo.indexOf('Anexo') !== 0) h += '<div class="constancia"><span class="sello">\u2713' + C + 'span><span>' +
+    txt('Aceptada en línea por [NOMBRE Y APELLIDO] el [FECHA] a las [HORA] · Constancia N.º [CÓDIGO DE LA CONSTANCIA]') + C + 'span>' + C + 'div>';
+  return h + C + 'div>';
+}
+
+function pantallaLista(i){
+  var ej = ui.ejemplo;
+  var filas = [
+    ['Licencia de actividades económicas', 'Alcaldía del Municipio Chacao', '8 oct 2026', 'AUT-2026-000418', 'Vigente'],
+    ['Inscripción en el RNET', 'Ministerio del Trabajo', '2 oct 2026', 'AUT-2026-000377', 'Vigente'],
+    ['Inscripción en el INCES', 'INCES', '24 sept 2026', 'AUT-2026-000301', 'Concluida']
+  ];
+  var h = '<section class="opc" id="lista"><div class="opc-h"><span class="opc-n">Dónde queda' + C + 'span><h2>La pantalla «Autorizaciones y NDA» cambia' + C + 'h2>' +
+    '<p>Hoy ofrece descargar un modelo de autorización. Con la autorización generada en cada trámite, ese modelo sobra: la pantalla pasa a listar las autorizaciones que el inversionista ha dado, una por trámite, con su constancia. El NDA sigue igual que hoy. Las filas son de ejemplo.' + C + 'p>' + C + 'div>';
+  h += '<div class="mock ancho">' + '<div class="mock-bar"><span><b>' + esc(lee(i + '|pregunta|lista_t')) + C + 'b>' + C + 'span><span>Mi expediente' + C + 'span>' + C + 'div><div class="mock-in">' +
+    ed(i + '|pregunta|lista_d', 'div', 'nota-si') +
+    '<div class="tabla-w"><table><thead><tr><th>Trámite' + C + 'th><th>Organismo' + C + 'th><th>Aceptada' + C + 'th><th>Constancia' + C + 'th><th>Estado' + C + 'th><th>' + C + 'th>' + C + 'tr>' + C + 'thead><tbody>';
+  filas.forEach(function(f){
+    h += '<tr><td><b>' + f[0] + C + 'b>' + C + 'td><td>' + f[1] + C + 'td><td>' + f[2] + C + 'td><td class="num">' + f[3] + C + 'td>' +
+      '<td><span class="chip ' + (f[4] === 'Vigente' ? 'ok' : 'mute') + '">' + f[4] + C + 'span>' + C + 'td>' +
+      '<td class="acc-t"><span class="lnk">Ver' + C + 'span><span class="lnk">Descargar' + C + 'span>' + (f[4] === 'Vigente' ? '<span class="lnk no">Revocar' + C + 'span>' : '') + C + 'td>' + C + 'tr>';
+  });
+  h += C + 'tbody>' + C + 'table>' + C + 'div>';
+  h += '<div class="nda-f"><span class="ic-n">NDA' + C + 'span><span><b>NDA con el CIIP' + C + 'b><br><span class="nota-si">Sigue como hoy: el modelo que sube el administrador, para descargar.' + C + 'span>' + C + 'span><span class="btn-m">Descargar el modelo' + C + 'span>' + C + 'div>';
+  return h + C + 'div>' + C + 'div>' + C + 'section>';
+}
+function seccion(i){
+  var o = STATE.opciones[i], h = '<section class="opc" id="opcion-' + (i + 1) + '">';
+  h += '<div class="opc-h"><span class="opc-n">' + (STATE.opciones.length > 1 ? 'Opción ' + (i + 1) + ' de ' + STATE.opciones.length : 'La opción elegida') + C + 'span><h2>' + esc(o.titulo) + C + 'h2><p>' + esc(o.resumen) + C + 'p>' + C + 'div>';
+  h += '<div class="rejilla"><div><div class="rot">Lo que ve el inversionista al solicitar' + C + 'div>' + mock(i) + C + 'div>';
+  h += '<div><div class="rot">' + (o.docs.length > 1 ? 'Los documentos que genera' : 'El documento que genera') + C + 'div><div class="docs">';
+  o.docs.forEach(function(d, n){ h += documento(i, n); });
+  h += C + 'div>' + C + 'div>' + C + 'div>';
+  h += '<div class="rev"><h3>Para el abogado' + C + 'h3>';
+  o.preguntas.forEach(function(p, n){
+    h += '<div class="preg"><div class="q">' + esc(p.q) + C + 'div>' + ed(i + '|preguntas|' + n + '|r', 'div', 'resp', 'Escriba aquí la respuesta') + C + 'div>';
+  });
+  h += '<div class="preg"><div class="q">Otras observaciones sobre esta opción' + C + 'div>' + ed(i + '|notas', 'div', 'resp notas', 'Cambios que propone, riesgos, lo que haga falta') + C + 'div>';
+  return h + C + 'div>' + C + 'section>';
+}
+
+function cabecera(){
+  var h = '<header class="cab"><span class="ceja">Ventanilla Única del Inversionista · Borrador para revisión legal' + C + 'span>' +
+    '<h1>Autorización al CIIP' + C + 'h1>' +
+    '<p class="lead">Cuando un inversionista solicita un trámite, la Ventanilla le preguntará si <b>autoriza al CIIP</b> a gestionarlo en su nombre. ' +
+    'Si dice que sí, se genera en el momento un documento con sus datos que permite al CIIP presentar el trámite y <b>consignar y retirar documentos</b>. ' +
+    'Si dice que no, el inversionista gestiona el trámite y el CIIP <b>solo verifica</b> el proceso. La autorización <b>no se firma</b>: se acepta con un botón y la Ventanilla guarda la constancia. Abajo están el recorrido y el primer borrador del texto para su revisión.' + C + 'p>' +
+    '<div class="flujo"><div><b>1 · Solicita un trámite' + C + 'b>Desde su panel, como hoy.' + C + 'div><div><b>2 · Responde la pregunta' + C + 'b>¿Autoriza al CIIP? Sí o no.' + C + 'div><div><b>3 · Acepta la autorización' + C + 'b>Con sus datos y los del trámite, sin firma: queda la constancia.' + C + 'div>' + C + 'div>' +
+    excepciones() +
+    '<div class="uso"><span>Pulse cualquier texto del documento para cambiarlo.' + C + 'span><span>Los datos como <span class="dato">[RIF]' + C + 'span> los rellena la Ventanilla.' + C + 'span><span>Los cambios se marcan en color.' + C + 'span>' + C + 'div>' +
+    '<div class="herr"><button class="conm" type="button" data-acc="ejemplo" aria-pressed="' + ui.ejemplo + '"><i>' + C + 'i>Ver con datos de ejemplo' + C + 'button>' +
+    '<button class="conm" type="button" data-acc="original" aria-pressed="' + ui.original + '"><i>' + C + 'i>Mostrar el texto original bajo los cambios' + C + 'button>' + C + 'div>' +
+    '<nav class="indice">';
+  if (STATE.opciones.length > 1) STATE.opciones.forEach(function(o, i){ h += '<a href="#opcion-' + (i + 1) + '">' + (i + 1) + ' · ' + esc(o.titulo) + C + 'a>'; });
+  else h += '<a href="#opcion-1">El recorrido y el documento' + C + 'a><a href="#lista">Dónde queda la autorización' + C + 'a>';
+  h += '<a href="#datos">Datos que pone la Ventanilla' + C + 'a>' + C + 'nav>';
+  if (ui.recuperar) h += '<div class="aviso"><span>Tiene cambios de esta sesión que no se llegaron a guardar.' + C + 'span><button class="b prim" type="button" data-acc="recupera">Recuperarlos' + C + 'button><button class="b" type="button" data-acc="olvida">Descartarlos' + C + 'button>' + C + 'div>';
+  return h + C + 'header>';
+}
+function excepciones(){
+  var ex = STATE.excepciones || [];
+  if (!ex.length) return '';
+  return '<div class="exc"><b>Sin esta pregunta' + C + 'b><span>En ' + ex.map(function(x){ return '<span class="tr">' + esc(x) + C + 'span>'; }).join(' y ') +
+    ' no se pregunta ni se genera ningún documento: esos trámites no dependen de la autorización y siguen como hoy.' + C + 'span>' + C + 'div>';
+}
+function cierre(){
+  var h = '<section class="cierre" id="datos"><h2>Datos que pone la Ventanilla' + C + 'h2><p>Lo que va entre corchetes no lo escribe nadie: la Ventanilla lo toma de estos sitios al generar el documento. Si un dato no existe todavía, se le pide al inversionista antes de aceptar.' + C + 'p>' +
+    '<div class="tabla-w"><table><thead><tr><th>Dato' + C + 'th><th>De dónde sale' + C + 'th><th>Ejemplo' + C + 'th>' + C + 'tr>' + C + 'thead><tbody>';
+  DATOS.forEach(function(r){ h += '<tr><td><span class="dato">[' + esc(r[0]) + ']' + C + 'span>' + C + 'td><td>' + esc(r[1]) + C + 'td><td>' + esc(EJEMPLO[r[0]] || '') + C + 'td>' + C + 'tr>'; });
+  h += C + 'tbody>' + C + 'table>' + C + 'div>';
+  if (STATE.meta.guardado) h += '<p>Última vez guardado: ' + esc(new Date(STATE.meta.guardado).toLocaleString('es-VE', {dateStyle:'long', timeStyle:'short'})) + '.' + C + 'p>';
+  return h + C + 'section>';
+}
+function htmlApp(){ var h = cabecera(); STATE.opciones.forEach(function(o, i){ h += seccion(i); }); if (STATE.opciones.length === 1 && STATE.opciones[0].mock === 'flujo1') h += pantallaLista(0); return h + cierre(); }
+
+/* ── la barra de guardar ── */
+var bar = document.createElement('div');
+bar.className = 'barra';
+document.body.appendChild(bar);
+function sucio(){ return JSON.stringify(STATE) !== GUARDADO; }
+function pintaBarra(){
+  var s = sucio(), m = ui.modo, est, cls = '', btns = '';
+  if (m === 'lectura'){ cls = 'lectura'; est = 'Solo lectura: para guardar hace falta permiso de edición. Puede copiar el texto de cada documento.'; }
+  else if (m === 'sin'){ cls = 'lectura'; est = 'Esta vista no puede guardar. Use «Copiar texto» para llevarse los cambios.'; }
+  else if (m === 'guardando'){ cls = 'sucio'; est = 'Guardando…'; }
+  else if (m === 'error'){ cls = 'error'; est = ui.msg || 'No se pudo guardar. Inténtelo de nuevo en un momento.'; }
+  else if (s){ cls = 'sucio'; est = 'Hay cambios sin guardar.'; }
+  else { est = 'Todo guardado. Quien abra esta página ve la última versión.'; }
+  if (s && m !== 'lectura' && m !== 'sin' && m !== 'guardando'){
+    btns = '<button class="b" type="button" data-acc="descarta">Descartar cambios' + C + 'button><button class="b prim" type="button" data-acc="guarda"' + (m === 'espera' ? ' disabled' : '') + '>Guardar cambios' + C + 'button>';
+  }
+  bar.className = 'barra ' + cls;
+  bar.innerHTML = '<div class="barra-in"><span class="est"><span class="pt">' + C + 'span><span>' + est + C + 'span>' + C + 'span>' + btns + C + 'div>';
+}
+
+var app = document.getElementById('app');
+function render(){ app.innerHTML = htmlApp(); pintaBarra(); }
+
+function borrador(){
+  try { sessionStorage.setItem(CLAVE, JSON.stringify({base:STATE.meta.guardado, estado:STATE})); } catch(e){}
+}
+function leeBorrador(){ try { return JSON.parse(sessionStorage.getItem(CLAVE) || 'null'); } catch(e){ return null; } }
+function olvidaBorrador(){ try { sessionStorage.removeItem(CLAVE); } catch(e){} }
+
+/* ── editar ── */
+app.addEventListener('input', function(e){
+  var el = e.target.closest && e.target.closest('.ed');
+  if (!el) return;
+  var v = el.innerText.replace(/\n$/, '');
+  pon(el.getAttribute('data-k'), v);
+  borrador();
+  pintaBarra();
+});
+app.addEventListener('focusout', function(e){
+  var el = e.target.closest && e.target.closest('.ed');
+  if (!el) return;
+  var par = el.closest('.par');
+  if (par){
+    var r = par.getAttribute('data-par').split('|').map(Number);
+    var t = document.createElement('div');
+    t.innerHTML = parrafo(r[0], r[1], r[2]);
+    par.replaceWith(t.firstChild);
+    var fac = app.querySelector('[data-fac="' + r[0] + '"]');
+    if (fac && r[1] === 0) fac.innerHTML = facultades(r[0]);
+  } else {
+    el.innerHTML = txt(lee(el.getAttribute('data-k')));
+  }
+});
+app.addEventListener('paste', function(e){
+  var el = e.target.closest && e.target.closest('.ed');
+  if (!el || !e.clipboardData) return;
+  e.preventDefault();
+  document.execCommand('insertText', false, e.clipboardData.getData('text/plain'));
+});
+
+function textoPlano(i, d){
+  var D = STATE.opciones[i].docs[d];
+  return D.titulo.toUpperCase() + '\n\n' + D.parrafos.filter(function(p){ return !p.quitado && p.texto; })
+    .map(function(p){ return (p.tipo === 'li' ? '• ' : '') + p.texto; }).join('\n\n');
+}
+
+function clic(e){
+  var b = e.target.closest && e.target.closest('[data-acc]');
+  if (!b) return;
+  var acc = b.getAttribute('data-acc'), ref = (b.getAttribute('data-ref') || '').split('|').map(Number);
+  var y = window.scrollY;
+  if (acc === 'ejemplo'){ ui.ejemplo = !ui.ejemplo; render(); window.scrollTo(0, y); return; }
+  if (acc === 'original'){ ui.original = !ui.original; render(); window.scrollTo(0, y); return; }
+  if (acc === 'copia'){
+    var t = textoPlano(ref[0], ref[1]);
+    var ok = function(){ b.textContent = 'Copiado'; setTimeout(function(){ b.textContent = 'Copiar texto'; }, 1600); };
+    try {
+      navigator.clipboard.writeText(t).then(ok, function(){ selecciona(ref); });
+    } catch(err){ selecciona(ref); }
+    return;
+  }
+  if (acc === 'restaura' || acc === 'quita'){
+    var ps = STATE.opciones[ref[0]].docs[ref[1]].parrafos, p = ps[ref[2]];
+    if (acc === 'restaura'){ p.texto = p.base; p.quitado = false; }
+    else if (p.base === '') ps.splice(ref[2], 1);
+    else p.quitado = true;
+    borrador(); render(); window.scrollTo(0, y); return;
+  }
+  if (acc === 'anade'){
+    var lista = STATE.opciones[ref[0]].docs[ref[1]].parrafos;
+    lista.push({tipo:'p', base:'', texto:''});
+    borrador(); render(); window.scrollTo(0, y);
+    var nuevo = app.querySelector('[data-k="' + ref[0] + '|docs|' + ref[1] + '|parrafos|' + (lista.length - 1) + '|texto"]');
+    if (nuevo) nuevo.focus();
+    return;
+  }
+  if (acc === 'recupera'){ var bz = leeBorrador(); if (bz) STATE = bz.estado; ui.recuperar = false; render(); return; }
+  if (acc === 'olvida'){ olvidaBorrador(); ui.recuperar = false; render(); return; }
+  if (acc === 'descarta'){ STATE = JSON.parse(GUARDADO); olvidaBorrador(); ui.modo = artifact ? 'listo' : ui.modo; render(); window.scrollTo(0, y); return; }
+  if (acc === 'guarda') guarda();
+}
+app.addEventListener('click', clic);
+bar.addEventListener('click', clic);
+
+function selecciona(ref){
+  var el = document.getElementById('doc-' + ref[0] + '-' + ref[1]);
+  if (!el) return;
+  var r = document.createRange(); r.selectNodeContents(el);
+  var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+}
+
+/* ── guardar: la página se vuelve a publicar con su estado dentro ── */
+function paginaEntera(){
+  var est = document.getElementById('estilo').textContent;
+  var cod = document.getElementById('codigo').textContent;
+  var guardaUi = ui.ejemplo, guardaOr = ui.original, guardaRec = ui.recuperar;
+  ui.ejemplo = false; ui.original = false; ui.recuperar = false;
+  var cuerpo = htmlApp();
+  ui.ejemplo = guardaUi; ui.original = guardaOr; ui.recuperar = guardaRec;
+  var json = JSON.stringify(STATE).replace(/</g, '\\u003c');
+  return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>' + RESET + C + 'style>' + C + 'head><body>' +
+    '<title>Autorización al CIIP' + C + 'title>\n' + FUENTES + '\n<style id="estilo">' + est + C + 'style>\n' +
+    '<main id="app">' + cuerpo + C + 'main>\n<script type="application/json" id="estado">' + json + C + 'script>\n' +
+    '<script id="codigo">' + cod + C + 'script>' + C + 'body>' + C + 'html>';
+}
+function guarda(){
+  if (!artifact || ui.modo === 'guardando') return;
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  STATE.meta.guardado = new Date().toISOString();
+  try { sessionStorage.setItem(CLAVE, JSON.stringify({base:null, guardando:STATE.meta.guardado, estado:STATE})); } catch(e){}
+  ui.modo = 'guardando'; pintaBarra();
+  artifact.publish(paginaEntera()).then(function(){
+    olvidaBorrador();
+  }, function(err){
+    var c = err && err.code;
+    if (c === 'conflict'){ ui.modo = 'listo'; return; }
+    if (c === 'not_writer' || c === 'not_granted' || c === 'consent_required' || c === 'capability_disabled' || c === 'capability_removed' || c === 'not_declared'){
+      ui.modo = 'lectura'; pintaBarra(); return;
+    }
+    ui.modo = 'error';
+    ui.msg = c === 'rate_limited' ? 'Se ha guardado muchas veces seguidas. Espere un minuto y vuelva a intentarlo.' : 'No se pudo guardar. Inténtelo de nuevo en un momento.';
+    pintaBarra();
+  });
+}
+
+/* ── arranque ── */
+(function(){
+  var bz = leeBorrador();
+  if (bz && bz.guardando && bz.guardando === STATE.meta.guardado) olvidaBorrador();
+  else if (bz && JSON.stringify(bz.estado) !== GUARDADO && (bz.base === STATE.meta.guardado || bz.guardando)) ui.recuperar = true;
+})();
+render();
+if (window.claude && window.claude.use){
+  window.claude.use('artifact').then(function(a){
+    artifact = a;
+    ui.modo = a ? 'listo' : 'sin';
+    pintaBarra();
+  }, function(){ ui.modo = 'sin'; pintaBarra(); });
+} else { ui.modo = 'sin'; pintaBarra(); }
+})();
+</script>
+
+</body>
+</html>
