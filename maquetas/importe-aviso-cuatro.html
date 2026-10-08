@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · El aviso del importe por pagar, cuatro formas</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   EL IMPORTE POR PAGAR: CUATRO FORMAS DEL AVISO
+
+   Franklin Reyes, 8-10-2026: el aviso «Este monto corresponde al día de
+   hoy…» -recuadro ámbar con borde grueso, texto en negrita y centrado-
+   «se sale del contexto de la página». Y el «Ver el importe» sale como un
+   botón gris del navegador, sin estilo.
+
+   Cuatro formas de decir lo mismo -vale solo hoy, mañana llega otro- con
+   la piel del panel. En la columna real del paso, que es estrecha. No toca
+   el panel.
+   ══════════════════════════════════════════════════════════════════ */
+:root{ --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB; --navy-deep:#00336d; }
+main{max-width:1240px; padding:28px 26px 90px; margin:0 auto;}
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.intro b{color:var(--ink);}
+.rejilla{display:grid; grid-template-columns:repeat(auto-fill, minmax(330px, 1fr)); gap:22px; margin-top:24px;}
+.idea{display:grid; gap:10px; align-content:start;}
+.idea h3{margin:0; font-size:15px; display:flex; gap:9px; align-items:center;}
+.idea h3 .n{width:24px; height:24px; border-radius:50%; background:var(--navy); color:#fff; font-size:12px; display:grid; place-items:center;}
+.idea h3 .n.hoy{background:var(--gray-soft);}
+.idea p{margin:0; font-size:12px; color:var(--gray); line-height:1.55;}
+.idea p b{color:var(--ink);}
+
+/* la columna del paso, como en la escalera */
+.fondo{background:var(--block); border:1px dashed #C9CED8; border-radius:14px; padding:20px 18px 18px; display:flex; justify-content:center;}
+.col{width:100%; max-width:270px; text-align:center; display:grid; gap:10px; justify-items:center;}
+.linea{display:flex; align-items:center; width:100%;}
+.linea i{flex:1; height:3px; background:#1E7F5C; border-radius:2px;}
+.linea i.gris{background:var(--line);}
+.circ{width:30px; height:30px; border-radius:50%; background:var(--navy); color:#fff; font-weight:700; font-size:13px; display:grid; place-items:center; margin:0 6px; box-shadow:0 0 0 4px #DCE8F6;}
+.col .nom{font-size:13.5px; font-weight:700; color:var(--navy2);}
+.caja{width:100%; background:#fff; border:1px solid var(--line); border-radius:12px; padding:13px; text-align:left; display:grid; gap:10px;
+  font-family:'Helvetica Neue', Arial, sans-serif;}
+.rot{font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--gray-soft);}
+.btn3{font:inherit; font-size:12.5px; font-weight:700; border-radius:9px; padding:10px 12px; border:1px solid var(--navy); background:var(--navy); color:#fff; text-align:center; width:100%;}
+.btn3.sec{background:#fff; color:var(--navy2); border-color:var(--line);}
+.aqui{font-size:11.5px; color:var(--navy2); font-weight:700;}
+
+/* la de hoy */
+.h0{text-align:center;}
+.h0 .rot{text-align:center;}
+.h0 .fn{font-size:12.5px; font-weight:700;}
+.h0 .gris{justify-self:center; font:13px Arial; background:#efefef; border:1px solid #767676; border-radius:2px; padding:1px 6px; color:#000;}
+.h0 .aviso{background:#FBF3E2; border:1px solid #B7791F; border-left-width:4px; border-radius:7px; padding:8px 10px; font-size:13px; font-weight:600; line-height:1.45;}
+/* La 5, en azul claro: el azul del CIIP al 25 % (Franklin Reyes, 8-10-2026: «no utilizar el anaranjado»). */
+.h0 .aviso.azul{background:rgba(32,176,240,.25); border:1px solid rgba(0,96,176,.35); border-left:4px solid #0060B0; color:#0E1424;}
+
+/* piezas */
+.archivo{display:flex; gap:10px; align-items:center; border:1px solid var(--line); border-radius:10px; padding:9px 10px;}
+.archivo .pdf{width:32px; height:38px; border-radius:6px; background:#FBEEE9; color:#B4502E; font-size:9.5px; font-weight:800; display:grid; place-items:center; flex:none;}
+.archivo .tx{min-width:0; flex:1;}
+.archivo b{display:block; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.archivo small{font-size:11px; color:var(--gray);}
+.archivo .ver{font-size:12px; font-weight:700; color:var(--navy2); white-space:nowrap;}
+.nota{display:flex; gap:7px; align-items:flex-start; font-size:11.5px; color:var(--gray); line-height:1.5;}
+.nota svg{width:14px; height:14px; flex:none; margin-top:2px; stroke:currentColor; fill:none; stroke-width:2;}
+.chip{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; border-radius:20px; padding:3px 9px; background:var(--amber-bg); color:var(--amber);}
+.chip svg{width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2.2;}
+.cab{display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;}
+.pie{margin:2px -13px -13px; padding:9px 13px; background:var(--block); border-top:1px solid var(--line); border-radius:0 0 12px 12px;
+  font-size:11px; color:var(--gray); line-height:1.5;}
+.pie b{color:var(--ink);}
+.plazo{display:grid; grid-template-columns:auto 1fr; gap:2px 10px; align-items:center; background:var(--activa-bg); border-radius:10px; padding:10px 11px;}
+.plazo .dia{grid-row:1 / 3; width:42px; height:42px; border-radius:9px; background:#fff; border:1px solid #CFE0F3; display:grid; place-items:center; text-align:center; line-height:1;}
+.plazo .dia b{font-size:16px; color:var(--navy);} .plazo .dia span{font-size:9px; font-weight:700; color:var(--navy2); text-transform:uppercase;}
+.plazo .t{font-size:12px; font-weight:700; color:var(--ink);}
+.plazo .s{font-size:11px; color:var(--gray); line-height:1.45;}
+</style>
+</head>
+<body>
+<div class="mq-cartel"><b>Maqueta · no es la aplicación</b><span>El importe por pagar: cuatro formas del aviso «vale solo hoy». En la columna real del paso; no toca el panel.</span></div>
+<main>
+  <p class="intro">El aviso de hoy es un <b>recuadro ámbar con borde grueso y negrita</b>, centrado, que pesa más que el botón y no se parece
+    a nada más del panel. Y «Ver el importe» sale como un <b>botón gris del navegador</b>. Las cuatro dicen lo mismo —<b>vale solo hoy,
+    mañana llega otro</b>— con la piel del panel.</p>
+
+  <div class="rejilla">
+    <section class="idea">
+      <h3><span class="n hoy">·</span>La de hoy</h3>
+      <p>Como se ve ahora, para comparar.</p>
+      <div class="fondo"><div class="col">
+        <div class="linea"><i></i><span class="circ">3</span><i class="gris"></i></div>
+        <div class="nom">Comprobante de pago</div>
+        <div class="caja h0">
+          <div class="rot">Importe por pagar</div>
+          <div class="fn">Cuentas-Bancarias-Sapi-2020.pdf</div>
+          <span class="gris">Ver el importe</span>
+          <div class="aviso">Este monto corresponde al día de hoy (8 de octubre de 2026). Debe pagarse hoy mismo; si no, mañana recibirás un importe nuevo con el monto actualizado.</div>
+          <span class="btn3">Cargar el comprobante de pago</span>
+        </div>
+        <div class="aqui">● Vas por aquí</div>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">5</span>La de hoy, con los botones de las otras</h3>
+      <p>Todo como hoy, pero el archivo pasa a ser la <b>ficha con su icono PDF y «Ver ↗»</b> de las demás, en vez del botón gris del navegador, y el aviso va en <b>azul claro</b>, sin el anaranjado.</p>
+      <div class="fondo"><div class="col">
+        <div class="linea"><i></i><span class="circ">3</span><i class="gris"></i></div>
+        <div class="nom">Comprobante de pago</div>
+        <div class="caja h0">
+          <div class="rot">Importe por pagar</div>
+          <div class="archivo" style="text-align:left"><span class="pdf">PDF</span><div class="tx"><b>Cuentas-Bancarias-Sapi-2020.pdf</b><small>Importe del 8 de octubre</small></div><span class="ver">Ver ↗</span></div>
+          <div class="aviso azul">Este monto corresponde al día de hoy (8 de octubre de 2026). Debe pagarse hoy mismo; si no, mañana recibirás un importe nuevo con el monto actualizado.</div>
+          <span class="btn3">Cargar el comprobante de pago</span>
+        </div>
+        <div class="aqui">● Vas por aquí</div>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">1</span>Nota discreta</h3>
+      <p>El archivo como <b>ficha con su icono y «Ver»</b>, y el aviso como una <b>nota gris con un reloj</b>, alineada a la izquierda, como las demás notas del panel.</p>
+      <div class="fondo"><div class="col">
+        <div class="linea"><i></i><span class="circ">3</span><i class="gris"></i></div>
+        <div class="nom">Comprobante de pago</div>
+        <div class="caja">
+          <div class="rot">Importe por pagar</div>
+          <div class="archivo"><span class="pdf">PDF</span><div class="tx"><b>Cuentas-Bancarias-Sapi-2020.pdf</b><small>Importe del 8 de octubre</small></div><span class="ver">Ver ↗</span></div>
+          <div class="nota"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Vale solo hoy, 8 de octubre. Si no se paga hoy, mañana te llegará uno nuevo con el monto al día.</div>
+          <span class="btn3">Cargar el comprobante de pago</span>
+        </div>
+        <div class="aqui">● Vas por aquí</div>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">2</span>Etiqueta de vencimiento</h3>
+      <p>Lo urgente cabe en una <b>etiqueta ámbar junto al título</b>: «Vence hoy, 12:00 a. m.». La explicación pasa a una línea pequeña <b>debajo del botón</b>.</p>
+      <div class="fondo"><div class="col">
+        <div class="linea"><i></i><span class="circ">3</span><i class="gris"></i></div>
+        <div class="nom">Comprobante de pago</div>
+        <div class="caja">
+          <div class="cab"><span class="rot">Importe por pagar</span><span class="chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Vence hoy, 12:00 a. m.</span></div>
+          <div class="archivo"><span class="pdf">PDF</span><div class="tx"><b>Cuentas-Bancarias-Sapi-2020.pdf</b><small>Enviado por el CIIP</small></div><span class="ver">Ver ↗</span></div>
+          <span class="btn3">Cargar el comprobante de pago</span>
+          <div class="nota" style="justify-content:center; text-align:center">Mañana llegará uno nuevo con el monto actualizado.</div>
+        </div>
+        <div class="aqui">● Vas por aquí</div>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">3</span>Pie de la caja</h3>
+      <p>Arriba, lo que se hace: <b>ver el importe y cargar el comprobante</b>, con dos botones. El aviso baja a un <b>pie gris de la propia caja</b>, como la letra pequeña de un recibo.</p>
+      <div class="fondo"><div class="col">
+        <div class="linea"><i></i><span class="circ">3</span><i class="gris"></i></div>
+        <div class="nom">Comprobante de pago</div>
+        <div class="caja">
+          <div class="rot">Importe por pagar</div>
+          <div class="archivo"><span class="pdf">PDF</span><div class="tx"><b>Cuentas-Bancarias-Sapi-2020.pdf</b><small>Importe del 8 de octubre</small></div></div>
+          <span class="btn3 sec">Ver el importe</span>
+          <span class="btn3">Cargar el comprobante de pago</span>
+          <div class="pie"><b>Vale solo hoy.</b> Si no se paga hoy, mañana recibirás un importe nuevo con el monto actualizado.</div>
+        </div>
+        <div class="aqui">● Vas por aquí</div>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">4</span>Fecha como calendario</h3>
+      <p>La fecha manda: un <b>cuadrito de calendario</b> con el día, en el azul suave del panel, y al lado «Págalo hoy» con su explicación corta. Sin ámbar: se lee como una fecha, no como una alarma.</p>
+      <div class="fondo"><div class="col">
+        <div class="linea"><i></i><span class="circ">3</span><i class="gris"></i></div>
+        <div class="nom">Comprobante de pago</div>
+        <div class="caja">
+          <div class="rot">Importe por pagar</div>
+          <div class="plazo"><span class="dia"><b>8</b><span>oct</span></span><span class="t">Págalo hoy</span><span class="s">Mañana llega uno nuevo con el monto al día.</span></div>
+          <div class="archivo"><span class="pdf">PDF</span><div class="tx"><b>Cuentas-Bancarias-Sapi-2020.pdf</b><small>Enviado por el CIIP</small></div><span class="ver">Ver ↗</span></div>
+          <span class="btn3">Cargar el comprobante de pago</span>
+        </div>
+        <div class="aqui">● Vas por aquí</div>
+      </div></div>
+    </section>
+  </div>
+</main>
+</body>
+</html>

@@ -9680,12 +9680,24 @@ applyLang(idiomaParaMi());
     }
 
     var d = est.importe;
-    var fila = el('div', 'imp-fila');
-    fila.appendChild(el('span', 'imp-n', d.nombre_original || u.d_importe_dia || ''));
-    if (d.monto) fila.appendChild(el('span', 'imp-monto', String(u.imp_monto || '').replace('{monto}', d.monto)));
+    /* El archivo como ficha, con su icono, de qué día es y «Ver» (opción 5
+       de maquetas/importe-aviso-cuatro.html, Franklin Reyes, 8-10-2026):
+       antes era el nombre suelto y un botón gris del navegador. */
+    var fila = el('div', 'imp-fila imp-archivo');
+    var esFoto = /\.(png|jpe?g|webp|gif)$/i.test(d.archivo || d.nombre_original || '');
+    var ico = el('span', 'imp-ico', esFoto ? 'IMG' : 'PDF');
+    ico.setAttribute('aria-hidden', 'true');
+    fila.appendChild(ico);
+    var datosA = el('div', 'imp-a-tx');
+    datosA.appendChild(el('span', 'imp-n', d.nombre_original || u.d_importe_dia || ''));
+    var subA = el('span', 'imp-a-s', String(u.imp_del || '').replace('{fecha}', diaDelImporte(est.fechaImporte || est.hoy)));
+    if (d.monto) subA.appendChild(el('span', 'imp-monto', String(u.imp_monto || '').replace('{monto}', d.monto)));
+    datosA.appendChild(subA);
+    fila.appendChild(datosA);
     if (d.archivo){
-      var ver = el('button', 'sd-btn', u.imp_ver || '');
+      var ver = el('button', 'imp-ver', u.imp_ver_c || u.imp_ver || '');
       ver.type = 'button';
+      ver.title = u.imp_ver || '';
       ver.addEventListener('click', function(){ abreFirmado(d.archivo, ver, 'abrir el importe'); });
       fila.appendChild(ver);
     }
