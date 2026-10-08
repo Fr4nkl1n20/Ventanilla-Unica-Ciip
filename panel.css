@@ -1112,7 +1112,7 @@ body[data-vista="autorizaciones"] .fase-bar{display:none;}
   border-radius:var(--r); padding:15px 18px; box-shadow:var(--shadow);}
 .au-dada .au-t{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
 .au-dada.revocada .au-t{color:var(--gray);}
-.au-leer{margin:10px 0 0; max-height:none; min-height:0; font-family:inherit;}
+.au-leer{margin:10px 0 0; max-height:70vh; min-height:0; font-family:inherit; white-space:normal; padding:14px; background:#E9EDF3;}
 .au-leer[hidden]{display:none;}
 .au-chip.revocada{background:var(--line-soft); color:var(--gray);}
 .au-revocar{color:var(--rust);}
@@ -4866,10 +4866,15 @@ body.con-puerta{overflow:hidden;}
 .au-visor-cu{padding:14px 16px 18px; overflow:auto; display:grid; gap:10px;}
 .au-visor-meta{margin:0; font-size:var(--fs-nota); color:var(--gray);}
 .au-visor-rev{margin:0; font-size:var(--fs-nota); color:var(--rust); font-weight:700;}
-.au-visor-texto{max-height:60vh; min-height:0;}
+.au-visor-texto{max-height:64vh; min-height:0; white-space:normal; padding:14px; background:#E9EDF3;}
+.au-visor-acc{display:flex; gap:8px;}
 .au-q{font-size:var(--fs-valor); font-weight:700; color:var(--ink); line-height:1.4;}
 .tra-cam.yo .ic{background:var(--activa-bg); color:var(--navy2);}
-.au-texto{min-height:0; max-height:40vh;}
+/* El oficio dentro de la caja: la hoja blanca sobre el gris del papel,
+   con su propio formato (OFICIO_CSS, en panel.js). */
+.au-texto{min-height:0; max-height:46vh; white-space:normal; padding:14px; background:#E9EDF3;}
+.au-texto .oficio{box-shadow:0 1px 3px rgba(14,20,36,.12);}
+.au-campo.ancho{grid-column:1 / -1;}
 .au-faltan{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:12px;
   background:var(--amber-bg); border-radius:var(--r-sm); padding:12px 14px;}
 .au-faltan[hidden]{display:none;}

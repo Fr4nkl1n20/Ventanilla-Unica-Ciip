@@ -3939,6 +3939,12 @@
       ok('autorización: el texto nombra el trámite', /RIF de la empresa/.test(txt), txt.slice(0, 80), 'RIF de la empresa');
       ok('autorización: y no pide firma', !/firma del inversionista/i.test(txt) && /sin necesidad de firma/.test(txt),
          txt.slice(-120), 'sin necesidad de firma');
+      /* El formato del oficio de Atlas: el membrete arriba y el pie abajo. */
+      ok('autorización: con el formato del oficio, membrete y pie',
+         !!document.querySelector('#auTexto .oficio img.of-cab') && !!document.querySelector('#auTexto .oficio img.of-pie'),
+         document.querySelector('#auTexto .oficio') ? 'oficio' : 'sin oficio', 'oficio con membrete');
+      ok('autorización: con los datos de registro de Mi empresa', /Tomo 45-A/.test(txt) && /J-40123456-7/.test(txt),
+         txt.slice(0, 200), 'Tomo 45-A y el RIF');
       /* Sin los datos que faltan no se acepta. */
       var campos = document.querySelectorAll('#auFaltan input, #auFaltan select');
       if (campos.length){
@@ -3946,7 +3952,7 @@
         ok('autorización: con datos sin poner, no se acepta', !!document.getElementById('auAviso').textContent.trim(),
            document.getElementById('auAviso').textContent, 'un aviso');
         [].forEach.call(campos, function(c){
-          c.value = c.tagName === 'SELECT' ? 'pasaporte' : 'Dato de prueba';
+          c.value = c.tagName === 'SELECT' ? 'pasaporte' : c.type === 'date' ? '2020-05-04' : 'Dato de prueba';
           c.dispatchEvent(new Event('input', {bubbles:true}));
           c.dispatchEvent(new Event('change', {bubbles:true}));
         });
@@ -4040,7 +4046,7 @@
     igual('autorización: la solicitud sale con la gestión del CIIP', mandada && mandada.datos && mandada.datos.gestion, 'ciip');
     var auts = window.PRUEBA_AUTORIZACIONES ? window.PRUEBA_AUTORIZACIONES() : [];
     var suya = auts.filter(function(a){ return mandada && a.tramite === mandada.id; })[0];
-    ok('autorización: y deja su constancia, con el texto aceptado', !!suya && /Autorizo al Centro Internacional/.test(suya.texto || ''),
+    ok('autorización: y deja su constancia, con el texto aceptado', !!suya && /autorizo a la Coordinación Legal del Centro Internacional/i.test(suya.texto || ''),
        suya ? (suya.texto || '').slice(0, 50) : 'ninguna', 'una constancia');
     ok('envio: y con lo que se escribió dentro',
        !!(mandada && mandada.datos && mandada.datos.razon_social),
@@ -7366,7 +7372,8 @@
       if (!v && ++n < 30) return setTimeout(mira, 100);
       ok('hoy: abre la autorización con su constancia', !!v && /AUT-2026-000777/.test(v.textContent) && /autorizo al Centro/i.test(v.textContent),
          v ? v.textContent.slice(0, 80) : 'no se abrió', 'el texto y el código');
-      if (v){ var c = v.querySelector('.te-visor-cab .btn'); if (c) c.click(); }
+      ok('hoy: y se puede descargar como oficio', !!v && !!v.querySelector('.te-visor-cab .btn.navy') && !!v.querySelector('.oficio'), v ? 'con oficio' : '-', 'oficio y Descargar');
+      if (v){ var c = v.querySelector('.te-visor-cab .btn.ghost'); if (c) c.click(); }
       ok('hoy: y se cierra', !document.querySelector('.te-visor .au-visor'), '', 'cerrada');
       sigue();
     })();

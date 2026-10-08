@@ -8546,7 +8546,25 @@ applyLang(idiomaParaMi());
      (Franklin Reyes, 8-10-2026). */
   var AU_SIN_PREGUNTA = {constitucion:1, protocolizacion_acta:1, publicacion_acta:1, libros_contables:1,
                          poder_representacion:1};
-  var AU_FALTAN = ['nombre', 'nacionalidad', 'tipo_doc', 'num_doc'];
+  /* Con empresa, la autorización es la de su representante legal, con los
+     datos de registro que pide el CIIP (Franklin Reyes, 8-10-2026). Sin
+     empresa, la de la persona, con su documento. */
+  var AU_EMPRESA = ['nombre', 'razon_social', 'domicilio', 'oficina_registro', 'num_registro', 'tomo', 'fecha_registro', 'rif'];
+  var AU_PERSONA = ['nombre', 'tipo_doc', 'num_doc'];
+  var AU_HUECO = {nombre:'nombre y apellido', razon_social:'razón social', domicilio:'domicilio',
+                  oficina_registro:'oficina', num_registro:'número', tomo:'tomo', fecha_registro:'fecha',
+                  rif:'RIF', tipo_doc:'documento', num_doc:'número'};
+
+  function fechaLarga(f){
+    return f.toLocaleDateString('es-VE', {day:'numeric', month:'long', year:'numeric', timeZone:'America/Caracas'});
+  }
+  /* «2026-08-19» de un input date, o de Mi empresa, como «19 de agosto de
+     2026». Sin zona horaria: es un día, no un instante. */
+  function diaLargo(iso){
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ''));
+    if (!m) return String(iso || '');
+    return new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString('es-VE', {day:'numeric', month:'long', year:'numeric'});
+  }
 
   function auDatos(tipo, datos){
     var a = function(k){ return (datos && datos[k]) || (ANTES && ANTES[k] && ANTES[k].valor) || ''; };
@@ -8559,43 +8577,132 @@ applyLang(idiomaParaMi());
     else if (/pasaporte|passport/.test(tdoc)) tdoc = 'pasaporte';
     else tdoc = '';
     var E = (typeof EMPRESA !== 'undefined' && EMPRESA) || {};
+    /* «12, Tomo 45-A» o «N.º 12, Tomo 45-A» en una sola casilla de Mi
+       empresa: el oficio los nombra por separado. */
+    var reg = String(E.numero_registro || '');
+    var tomo = (/tomo\s*([\w\-\/]+)/i.exec(reg) || [])[1] || '';
+    var num = reg.replace(/tomo.*$/i, '').replace(/^\s*n\.?\s*[º°o]?\.?\s*/i, '').replace(/[\s,;]+$/, '');
+    var dom = String(E.direccion_fiscal || '').trim();
+    if (dom && E.municipio && dom.toLowerCase().indexOf(String(E.municipio).toLowerCase()) < 0) dom += ', Municipio ' + E.municipio;
     return {
+      forma: E.razon_social ? 'empresa' : 'persona',
       nombre: nombre,
-      nacionalidad: String(a('nacionalidad') || '').toLowerCase(),
       tipo_doc: tdoc,
       num_doc: pas || a('numero_documento'),
       razon_social: E.razon_social || '',
+      domicilio: dom,
+      oficina_registro: E.oficina_registro || '',
+      num_registro: num,
+      tomo: tomo,
+      fecha_registro: diaLargo(E.fecha_constitucion),
       rif: E.rif_empresa || '',
-      registro: E.numero_registro || '',
       tramite: (I18N.es && I18N.es[ref + '.name']) || ref || tipo.codigo,
       ente: ((TIPOS[ref] || {}).ente) || tipo.ente || 'el organismo competente'
     };
   }
 
-  function auTexto(d, cuando){
-    var f = cuando || new Date();
-    var dia = f.toLocaleDateString('es-VE', {day:'numeric', month:'long', year:'numeric', timeZone:'America/Caracas'});
-    var hora = f.toLocaleTimeString('es-VE', {hour:'numeric', minute:'2-digit', timeZone:'America/Caracas'});
-    var quien = d.razon_social
-      ? 'actuando en mi carácter de representante legal de la sociedad mercantil ' + d.razon_social +
-        (d.registro ? ', inscrita en el Registro Mercantil bajo el N.º ' + d.registro : '') +
-        (d.rif ? (d.registro ? ' e' : ',') + ' identificada con el RIF ' + d.rif : '')
-      : 'actuando en mi propio nombre';
-    var por = d.razon_social ? 'mi representada' : 'mi persona';
+  /* El cuerpo, sin título ni fecha: eso lo pone el oficio alrededor. Es lo
+     que se guarda en la constancia. */
+  function auTexto(d){
+    var autoriza = 'por medio del presente autorizo a la Coordinación Legal del Centro Internacional de Inversión Productiva (CIIP) para que, a través del personal que designe, realice en nombre de ';
+    var p1 = d.forma === 'empresa'
+      ? 'Yo, ' + d.nombre + ', en mi condición de representante legal de ' + d.razon_social +
+        ', sociedad domiciliada en ' + d.domicilio + ', inscrita en el Registro Mercantil ' + d.oficina_registro +
+        ', bajo el N.º ' + d.num_registro + ', Tomo ' + d.tomo + ', en fecha ' + d.fecha_registro +
+        ', y en el Registro Único de Información Fiscal bajo el N.º ' + d.rif + ', ' + autoriza + d.razon_social
+      : 'Yo, ' + d.nombre + ', titular ' + (/^c[eé]dula/.test(d.tipo_doc) ? 'de la ' : 'del ') + d.tipo_doc +
+        ' N.º ' + d.num_doc + ', ' + autoriza + 'mi persona';
     return [
-      'AUTORIZACIÓN',
-      /* «de la cédula», «del pasaporte»: el artículo va con el documento. */
-      'Yo, ' + d.nombre + ', de nacionalidad ' + String(d.nacionalidad || '').toLowerCase() + ', mayor de edad, titular ' +
-        (/^c[eé]dula/.test(d.tipo_doc) ? 'de la ' : 'del ') + d.tipo_doc +
-        ' N.º ' + d.num_doc + ', ' + quien + ', por medio del presente documento declaro:',
-      'PRIMERO: Autorizo al Centro Internacional de Inversión Productiva (CIIP) para que, a través del personal que designe, realice en nombre de ' +
-        por + ' el trámite de ' + d.tramite + ' ante ' + d.ente + '.',
-      'SEGUNDO: Esta autorización comprende presentar la solicitud, consignar los recaudos que el organismo exija, hacer el seguimiento del trámite y retirar el documento que resulte de él.',
-      'TERCERO: Esta autorización se limita al trámite indicado. Se extingue al concluir el trámite, o antes si la revoco por escrito a través de la Ventanilla Única del Inversionista.',
-      'Esta autorización se otorga en línea, mediante aceptación expresa en la Ventanilla Única del Inversionista, sin necesidad de firma autógrafa, en Caracas, el ' +
-        dia + ' a las ' + hora + '.'
+      p1 + ', en el trámite de ' + d.tramite + ', las gestiones necesarias para su registro y/o inscripción ante ' + d.ente + '.',
+      'Esta autorización se otorga en línea, mediante aceptación expresa en la Ventanilla Única del Inversionista, sin necesidad de firma autógrafa.'
     ].join('\n\n');
   }
+
+  /* ── EL OFICIO ──
+     El formato del oficio general de Atlas (Franklin Reyes, 8-10-2026): el
+     membrete de la Vicepresidencia y el CIIP arriba, el pie con el QR, los
+     contactos y la franja tricolor abajo, y la letra de las plantillas de
+     Atlas -Helvetica Neue, Arial- justificada a 14,5 px / 1,75. Las dos
+     imágenes salen del propio oficio (assets/oficio-cabecera.png y
+     assets/oficio-pie.png). La misma hoja se ve en el panel y se descarga
+     desde una pestaña aparte con el diálogo de imprimir. */
+  var OFICIO_CSS =
+    '.oficio{font-family:"Helvetica Neue",Arial,sans-serif;color:#0E1424;background:#fff;width:100%;max-width:816px;' +
+      'margin:0 auto;display:flex;flex-direction:column;box-sizing:border-box;}' +
+    '.oficio img{display:block;width:100%;height:auto;}' +
+    '.of-cuerpo{padding:14px 9% 26px;font-size:14.5px;line-height:1.75;}' +
+    '.of-ref{font-weight:700;font-size:15px;letter-spacing:.01em;}' +
+    '.of-fecha{text-align:right;margin-top:14px;}' +
+    '.of-titulo{text-align:center;font-weight:700;letter-spacing:.08em;margin:20px 0 12px;}' +
+    '.of-cuerpo p{margin:0 0 14px;text-align:justify;}' +
+    '.of-cierre{text-align:center;margin-top:26px;}' +
+    '.of-firma{text-align:center;margin-top:26px;line-height:1.45;}' +
+    '.of-firma b{display:block;font-size:14.5px;}' +
+    '.of-firma span{display:block;color:#5B6478;font-size:13.5px;}' +
+    '.of-firma small{display:block;color:#5B6478;font-size:11.5px;margin-top:6px;}' +
+    '.of-hueco{background:#FBF1DE;border-radius:3px;padding:0 3px;}' +
+    '.of-pie{margin-top:auto;}';
+  (function(){
+    var s = document.createElement('style');
+    s.id = 'oficioCss';
+    s.textContent = OFICIO_CSS;
+    document.head.appendChild(s);
+  })();
+
+  function escH(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+  /* o = {texto, codigo, fecha (Date), nombre, cargo}. Lo que va entre
+     corchetes -un dato que aún falta- se marca, para verlo en el repaso. */
+  function oficioHTML(o){
+    var parr = String(o.texto || '').split(/\n{2,}/).filter(function(p){ return p.trim(); });
+    /* Las primeras constancias guardaban el título dentro del texto. */
+    if (parr.length && /^AUTORIZACI[OÓ]N\.?$/i.test(parr[0].trim())) parr.shift();
+    var marca = function(s){ return escH(s).replace(/\[[^\]]+\]/g, function(m){ return '<span class="of-hueco">' + m + '</span>'; }); };
+    var f = o.fecha || new Date();
+    var hora = f.toLocaleTimeString('es-VE', {hour:'numeric', minute:'2-digit', timeZone:'America/Caracas'});
+    return '<div class="oficio">' +
+      '<img class="of-cab" src="assets/oficio-cabecera.png" alt="Vicepresidencia de la República Bolivariana de Venezuela · Centro Internacional de Inversión Productiva">' +
+      '<div class="of-cuerpo">' +
+        '<div class="of-ref">' + (o.codigo ? escH(o.codigo) : 'AUT-' + f.getFullYear() + '-<span class="of-hueco">[N.º al aceptar]</span>') + '</div>' +
+        '<div class="of-fecha">Caracas, ' + escH(fechaLarga(f)) + '</div>' +
+        '<div class="of-titulo">AUTORIZACIÓN</div>' +
+        parr.map(function(p){ return '<p>' + marca(p) + '</p>'; }).join('') +
+        '<div class="of-cierre">Atentamente,</div>' +
+        '<div class="of-firma"><b>' + marca(o.nombre || '') + '</b>' +
+          (o.cargo ? '<span>' + marca(o.cargo) + '</span>' : '') +
+          '<small>' + (o.codigo ? 'Aceptada en línea el ' + escH(fechaLarga(f)) + ' a las ' + escH(hora) + ' · Constancia N.º ' + escH(o.codigo)
+                                : 'Se acepta en línea, sin firma autógrafa') + '</small></div>' +
+      '</div>' +
+      '<img class="of-pie" src="assets/oficio-pie.png" alt="ciip.com.ve · +58 212 274 3802 · vicepresidencia@ciip.com.ve · Av. Venezuela, Municipio Chacao, Urb. El Rosal, Torre CIIP, Caracas">' +
+    '</div>';
+  }
+  /* Lo mismo a partir de una constancia guardada. */
+  function oficioDe(a){
+    var d = (a && a.datos) || {};
+    return {
+      texto: a.texto, codigo: a.codigo, fecha: a.aceptada_en ? new Date(a.aceptada_en) : new Date(),
+      nombre: d.nombre || '',
+      cargo: d.razon_social ? 'Representante legal de ' + d.razon_social : ''
+    };
+  }
+  /* Descargar: la hoja sola en una pestaña, con el diálogo de imprimir,
+     donde se guarda como PDF. Sin librería de PDF en el panel, es lo que
+     sale idéntico a lo que se ve. */
+  function imprimeOficio(o){
+    var w = window.open('', '_blank');
+    if (!w) return false;
+    var base = location.href.replace(/[#?].*$/, '').replace(/[^\/]*$/, '');
+    w.document.open();
+    w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Autorización ' + escH(o.codigo || '') + '</title>' +
+      '<base href="' + escH(base) + '"><style>' + OFICIO_CSS +
+      '@page{size:letter;margin:0}html,body{margin:0;background:#fff}.oficio{min-height:100vh}' +
+      '</style></head><body>' + oficioHTML(o) +
+      '<scr' + 'ipt>window.addEventListener("load",function(){setTimeout(function(){window.print();},250);});</scr' + 'ipt>' +
+      '</body></html>');
+    w.document.close();
+    return true;
+  }
+  window.CIIP_OFICIO = {html: function(a){ return oficioHTML(oficioDe(a)); }, imprime: function(a){ return imprimeOficio(oficioDe(a)); }};
 
   /* Resuelve {gestion:'ciip', texto, datos}, {gestion:'directa'} o null si
      cierra sin elegir: entonces no se envía nada y el formulario sigue. */
@@ -8605,7 +8712,10 @@ applyLang(idiomaParaMi());
     if (!back) return Promise.resolve({gestion: 'directa'});
     var $ = function(id){ return document.getElementById(id); };
     var d = auDatos(tipo, datos);
-    var ETQ = {nombre: u.au_f_nom, nacionalidad: u.au_f_nac, tipo_doc: u.au_f_tdoc, num_doc: u.au_f_num};
+    var PIDE = d.forma === 'empresa' ? AU_EMPRESA : AU_PERSONA;
+    var ETQ = {nombre: u.au_f_nom, razon_social: u.au_f_razon, domicilio: u.au_f_dom, oficina_registro: u.au_f_oficina,
+               num_registro: u.au_f_numreg, tomo: u.au_f_tomo, fecha_registro: u.au_f_fechareg, rif: u.au_f_rif,
+               tipo_doc: u.au_f_tdoc, num_doc: u.au_f_num};
     return new Promise(function(listo){
       var paso = 1, hecho = false;
       $('auTitulo').textContent = u.au_t || '';
@@ -8625,11 +8735,11 @@ applyLang(idiomaParaMi());
       /* Lo que no se sabe se pide aquí, y solo eso. */
       var faltan = $('auFaltan');
       faltan.textContent = '';
-      var piden = AU_FALTAN.filter(function(k){ return !d[k]; });
+      var piden = PIDE.filter(function(k){ return !d[k]; });
       if (piden.length){
         faltan.appendChild(el('div', 'au-faltan-t', u.au_faltan || ''));
         piden.forEach(function(k){
-          var lab = el('label', 'au-campo');
+          var lab = el('label', 'au-campo' + (k === 'domicilio' || k === 'oficina_registro' ? ' ancho' : ''));
           lab.appendChild(el('span', '', ETQ[k] || ''));
           var inp;
           if (k === 'tipo_doc'){
@@ -8640,22 +8750,35 @@ applyLang(idiomaParaMi());
             inp.appendChild(new Option(u.au_f_ced || 'cédula de identidad', 'cédula de identidad'));
           } else {
             inp = document.createElement('input');
-            inp.type = 'text';
+            inp.type = k === 'fecha_registro' ? 'date' : 'text';
           }
           inp.id = 'auCampo-' + k;
-          inp.addEventListener('input', function(){ d[k] = inp.value.trim(); pintaTexto(); });
-          inp.addEventListener('change', function(){ d[k] = inp.value.trim(); pintaTexto(); });
+          var pon = function(){
+            d[k] = k === 'fecha_registro' ? diaLargo(inp.value) : inp.value.trim();
+            pintaTexto();
+          };
+          inp.addEventListener('input', pon);
+          inp.addEventListener('change', pon);
           lab.appendChild(inp);
           faltan.appendChild(lab);
         });
       }
       faltan.hidden = !piden.length;
 
+      function vista(){
+        var v = {};
+        Object.keys(d).forEach(function(k){ v[k] = d[k]; });
+        /* En el documento, el hueco en español y corto: la etiqueta de la
+           casilla va en el idioma de la pantalla y es larga. */
+        PIDE.forEach(function(k){ if (!d[k]) v[k] = '[' + (AU_HUECO[k] || k) + ']'; });
+        return v;
+      }
       function pintaTexto(){
-        var vista = {};
-        Object.keys(d).forEach(function(k){ vista[k] = d[k]; });
-        AU_FALTAN.forEach(function(k){ if (!d[k]) vista[k] = '[' + (ETQ[k] || k) + ']'; });
-        $('auTexto').textContent = auTexto(vista);
+        var v = vista();
+        $('auTexto').innerHTML = oficioHTML({
+          texto: auTexto(v), nombre: v.nombre,
+          cargo: v.forma === 'empresa' ? 'Representante legal de ' + v.razon_social : ''
+        });
       }
       function ponPaso(n){
         paso = n;
@@ -8680,7 +8803,7 @@ applyLang(idiomaParaMi());
       $('auNo').onclick = function(){ cierra({gestion: 'directa'}); };
       $('auVolver').onclick = function(){ if (paso === 2) ponPaso(1); else cierra(null); };
       $('auAcepta').onclick = function(){
-        var falta = AU_FALTAN.some(function(k){ return !d[k]; });
+        var falta = PIDE.some(function(k){ return !d[k]; });
         if (falta){ $('auAviso').textContent = u.au_falta_dato || ''; return; }
         cierra({gestion: 'ciip', texto: auTexto(d), datos: d});
       };
@@ -18937,7 +19060,7 @@ applyLang(idiomaParaMi());
   function abreAutorizacion(t, boton){
     var u = T();
     if (boton) boton.disabled = true;
-    Promise.resolve(sb.from('autorizaciones').select('codigo, texto, aceptada_en, revocada_en')
+    Promise.resolve(sb.from('autorizaciones').select('codigo, texto, datos, aceptada_en, revocada_en')
       .eq('tramite', t.id).limit(1))
       .then(function(r){ return (r && !r.error && r.data && r.data[0]) || null; }, function(){ return null; })
       .then(function(a){
@@ -18951,13 +19074,20 @@ applyLang(idiomaParaMi());
         cab.appendChild(el('span', 'te-visor-n', (u.au_ver_t || '') + (a && a.codigo ? ' · ' + a.codigo : '')));
         var cerrar = el('button', 'btn ghost', u.co_h_cerrar || '');
         cerrar.type = 'button';
+        if (a){
+          var bajar = el('button', 'btn navy', u.co_descargar || '');
+          bajar.type = 'button';
+          bajar.addEventListener('click', function(){ imprimeOficio(oficioDe(a)); });
+          cab.appendChild(bajar);
+        }
         cab.appendChild(cerrar);
         caja.appendChild(cab);
         var cuerpo = el('div', 'au-visor-cu');
         if (a){
           cuerpo.appendChild(el('p', 'au-visor-meta', String(u.au_aceptada_el || '').replace('{fecha}', fecha(a.aceptada_en))));
           if (a.revocada_en) cuerpo.appendChild(el('p', 'au-visor-rev', String(u.au_revocada_el || '').replace('{fecha}', fecha(a.revocada_en))));
-          var txt = el('div', 'pl-texto au-visor-texto', a.texto || '');
+          var txt = el('div', 'pl-texto au-visor-texto');
+          txt.innerHTML = oficioHTML(oficioDe(a));
           cuerpo.appendChild(txt);
         } else {
           cuerpo.appendChild(el('p', 'te-visor-nada', u.au_sin_constancia || ''));
@@ -34684,7 +34814,7 @@ applyLang(idiomaParaMi());
     var sb = window.sbCIIP;
     if (!sb) return;
     Promise.resolve(sb.from('autorizaciones')
-      .select('id, codigo, tipo, texto, aceptada_en, revocada_en')
+      .select('id, codigo, tipo, texto, datos, aceptada_en, revocada_en')
       .order('aceptada_en', {ascending: false}))
       .then(function(r){
         if (r && r.error) console.warn('[CIIP] autorizaciones:', r.error.message);
@@ -34733,9 +34863,11 @@ applyLang(idiomaParaMi());
       t.appendChild(est);
       txt.appendChild(t);
       txt.appendChild(d);
-      var leer = document.createElement('pre');
+      /* El oficio, como lo verá el organismo (formato de Atlas). */
+      var leer = document.createElement('div');
       leer.className = 'pl-texto au-leer';
-      leer.textContent = a.texto || '';
+      if (window.CIIP_OFICIO) leer.innerHTML = window.CIIP_OFICIO.html(a);
+      else leer.textContent = a.texto || '';
       leer.hidden = true;
       var aviso = document.createElement('div');
       aviso.className = 'au-aviso';
@@ -34753,6 +34885,14 @@ applyLang(idiomaParaMi());
         ver.textContent = leer.hidden ? (D['au.ver'] || E['au.ver'] || '') : (D['au.ocultar'] || E['au.ocultar'] || '');
       });
       bot.appendChild(ver);
+      if (window.CIIP_OFICIO){
+        var bajar = document.createElement('button');
+        bajar.type = 'button';
+        bajar.className = 'btn au-bajar-of';
+        bajar.textContent = (D['au.descargar'] || E['au.descargar'] || '');
+        bajar.addEventListener('click', function(){ window.CIIP_OFICIO.imprime(a); });
+        bot.appendChild(bajar);
+      }
       if (!a.revocada_en){
         var rev = document.createElement('button');
         rev.type = 'button';
