@@ -7252,7 +7252,7 @@
          b ? ('aria-pressed=' + b.getAttribute('aria-pressed')) : 'no esta', 'aria-pressed=true');
       igual('hoy: y enseña solo los tuyos',
             [].map.call(document.querySelectorAll('#paTandas .hoy-card[data-tr]'),
-                        function(t){ return t.getAttribute('data-tr'); }).join(' '), 'h2 h3');
+                        function(t){ return t.getAttribute('data-tr'); }).join(' '), 'h3 h2');
       var todos = document.querySelector('#paCifras button[data-monton="todos"]');
       if (todos) todos.click();
       esperaFilas('#paTandas .hoy-card[data-tr]', 3, sigue);
@@ -7266,10 +7266,10 @@
     ok('hoy: y la tabla de antes ya no está', !document.getElementById('paTabla'),
        document.getElementById('paTabla') ? 'sigue' : 'no está', 'no está');
 
-    /* El orden ES la pantalla: lo que va tarde primero, lo que más margen
-       tiene al final. */
-    igual('hoy: primero la que va tarde',
-          [].map.call(tarjetas, function(t){ return t.getAttribute('data-tr'); }).join(' '), 'h2 h3 h1');
+    /* El orden ES la pantalla: la solicitud más nueva arriba (Franklin
+       Reyes, 8-10-2026). h1 se envió hace dos días, h2 hace treinta. */
+    igual('hoy: primero la solicitud más nueva',
+          [].map.call(tarjetas, function(t){ return t.getAttribute('data-tr'); }).join(' '), 'h1 h3 h2');
     var tarde = hoyTarjeta('h2');
     ok('hoy: la que pasó del plazo se pinta como tarde', !!tarde && tarde.classList.contains('tarde'),
        tarde ? tarde.className : '(sin tarjeta)', 'hoy-card tarde');

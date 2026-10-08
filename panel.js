@@ -18825,10 +18825,14 @@ applyLang(idiomaParaMi());
     if (resta === 1) return u.co_h_vencemanana || '';
     return String(u.co_h_vence || '').replace('{n}', resta);
   }
-  /* Lo que va tarde primero; lo que no promete plazo, al final. */
-  function hoyUrgencia(a, b){
-    var ra = hoyPlazo(a), rb = hoyPlazo(b);
-    return (ra === null ? Infinity : ra) - (rb === null ? Infinity : rb);
+  /* La solicitud más nueva, arriba (Franklin Reyes, 8-10-2026: «que se
+     ordene por nueva solicitud»). Antes iba primero lo que llevaba más
+     retraso sobre su plazo; sin plazos, ese orden era al azar. Lo que va
+     tarde sigue a mano en su cuadro, «Fuera de plazo». */
+  function hoyMasNueva(a, b){
+    var fa = Date.parse(a.enviado_en || a.creado_en || '') || 0;
+    var fb = Date.parse(b.enviado_en || b.creado_en || '') || 0;
+    return fb - fa;
   }
   /* El orden de «Listos»: lo último que se resolvió, arriba. */
   function hoyMasReciente(a, b){
@@ -18892,9 +18896,9 @@ applyLang(idiomaParaMi());
     caja.textContent = '';
     var impHoy = avisoDeImportes();
     if (impHoy) caja.appendChild(impHoy);
-    /* En «Listos» no hay urgencia que ordene: va primero lo último que se
-       resolvió, que es lo que se viene a buscar. */
-    var vistos = enRevision.filter(coCuadra).sort(coFiltro === 'listos' ? hoyMasReciente : hoyUrgencia);
+    /* En «Listos» va primero lo último que se resolvió, que es lo que se
+       viene a buscar; en los demás, la solicitud más nueva. */
+    var vistos = enRevision.filter(coCuadra).sort(coFiltro === 'listos' ? hoyMasReciente : hoyMasNueva);
     vistos.forEach(function(t){ caja.appendChild(hoyTarjeta(t)); });
 
     /* Solo trámites: las consultas y las citas tienen su apartado. */
