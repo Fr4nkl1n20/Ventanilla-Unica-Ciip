@@ -28642,12 +28642,47 @@ applyLang(idiomaParaMi());
     /* noopener: la pestaña que se abre no puede tocar esta. */
     a.rel = 'noopener noreferrer';
     li.appendChild(a);
-    if (nombre && nombre !== url) li.appendChild(el('span', 'ay-host', host));
+    /* Qué se abre, antes de pulsar (idea 5, 8-10-2026). Sale de la
+       dirección, que es lo único que hay; las palabras no se traducen. */
+    var tipo = wa ? ['wa', 'WhatsApp'] : /\.pdf([?#]|$)/i.test(url) ? ['pdf', 'PDF']
+             : /instagram\.com/i.test(url) ? ['ig', 'Instagram'] : ['web', 'Web'];
+    li.appendChild(el('span', 'ay-tipo ' + tipo[0], tipo[1]));
+    a.title = url;
+    if (nombre && nombre !== url) li.appendChild(el('span', 'ay-host' + (wa ? ' wa' : ''), host));
     return li;
   }
 
   /* La planilla de solicitud de visa de Cancillería (abril de 2026). */
   var PLANILLA_VISA = 'planillas/visa-solicitud.pdf';
+
+  /* La pestaña abierta (idea 5, 8-10-2026). Se recuerda mientras dure la
+     página: volver a Ayuda deja la que se miraba. */
+  var ayPestana = 'faq';
+  /* La que puso un salto desde un ente o desde la visa vale para esa
+     llegada: la siguiente visita normal vuelve a las preguntas. */
+  var ayPorSalto = false;
+  function ayAplicaPestana(){
+    document.querySelectorAll('.ayuda-vista [data-ay-panel]').forEach(function(x){
+      x.classList.toggle('ay-fuera', x.getAttribute('data-ay-panel') !== ayPestana);
+    });
+    document.querySelectorAll('#ayPest .ay-pe').forEach(function(b){
+      var on = b.getAttribute('data-p') === ayPestana;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+      b.tabIndex = on ? 0 : -1;
+    });
+  }
+  /* El icono de cada categoría, con el mismo trazo que el resto del panel. */
+  var AY_ICONO = {
+    ay_firma: '<path d="M4 20c4-1 6-6 9-9l3 3c-3 3-8 5-9 9"/><path d="M14 4l6 6"/>',
+    ay_medicos: '<path d="M12 4v16M4 12h16"/>',
+    ay_rec_licencia: '<path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/>',
+    ay_rec_parafiscales: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+    ay_rec_conformidad: '<path d="M3 21h18M5 21V10l7-5 7 5v11"/>',
+    ay_rec_bomberos: '<path d="M12 3c2 3 5 5 5 9a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3 1-5 1-8z"/>',
+    ay_rec_visa: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 10h4M14 14h3"/>',
+    ay_rec_sacs: '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/>'
+  };
 
   function pintaAyuda(){
     if (!ayLista) return;
@@ -28675,6 +28710,10 @@ applyLang(idiomaParaMi());
       hor.appendChild(horTxt);
       ayHor.appendChild(hor);
     }
+
+    /* 0b · las pestañas: se pintan al final, cuando ya se sabe cuántas
+       preguntas tienen respuesta. */
+    var ayPest = document.getElementById('ayPest');
 
     /* 1 · las preguntas nuevas, detrás de las siete. Las que ya tienen
        respuesta van primero y siguen la numeración; así el inversionista
@@ -28717,12 +28756,9 @@ applyLang(idiomaParaMi());
     }
 
     /* 2 · dónde hacer cada diligencia. */
-    var yaAbiertos = {};
-    ayLista.querySelectorAll('details[open]').forEach(function(d){
-      yaAbiertos[d.getAttribute('data-clave')] = true;
-    });
     ayLista.textContent = '';
     var cab = el('div', 'sec-h');
+    cab.setAttribute('data-ay-panel', 'dil');
     var tit = el('span', 't', u.ay_dil_t || '');
     tit.setAttribute('data-ui', 'ay_dil_t');
     cab.appendChild(tit);
@@ -28740,12 +28776,25 @@ applyLang(idiomaParaMi());
     var marcado = null;
 
     function grupo(g){
-      var d = el('details', 'faq-item');
+      /* Una tarjeta siempre abierta (idea 5, 8-10-2026): los enlaces se ven
+         sin pulsar. Sigue siendo un <details> con su clave, que es lo que
+         usan «Editar textos» y el salto desde cada ente. */
+      var d = el('details', 'faq-item ay-card');
       d.setAttribute('data-clave', g.kt);
       var s = el('summary');
+      s.addEventListener('click', function(e){ e.preventDefault(); });
+      var icg = el('span', 'ay-ic');
+      icg.setAttribute('aria-hidden', 'true');
+      icg.innerHTML = '<svg viewBox="0 0 24 24">' + (AY_ICONO[g.kt] || AY_ICONO.ay_rec_parafiscales) + '</svg>';
+      s.appendChild(icg);
+      var cabT = el('span', 'ay-card-t');
       var qt = el('span', 'qt', g.t || '');
       qt.setAttribute('data-ui', g.kt);
-      s.appendChild(qt);
+      cabT.appendChild(qt);
+      var nEnl = ayRenglones(g.l).length + (g.descarga ? 1 : 0);
+      if (nEnl) cabT.appendChild(el('span', 'ay-cuenta',
+        String(nEnl === 1 ? (u.ay_n_enlace || '') : (u.ay_n_enlaces || '')).replace('{n}', nEnl)));
+      s.appendChild(cabT);
       s.appendChild(el('span', 'chev', '›'));
       d.appendChild(s);
       /* La clave de la lista va en la caja entera: en el modo de edición,
@@ -28790,12 +28839,13 @@ applyLang(idiomaParaMi());
         cuerpo.appendChild(el('div', 'ay-pronto', u.ay_pronto || ''));
       }
       d.appendChild(cuerpo);
-      if (yaAbiertos[g.kt] || esAqui) d.open = true;
+      d.open = true;
       if (esAqui && !marcado) marcado = d;
       return d;
     }
 
     var caja = el('div', 'faq ay-dil');
+    caja.setAttribute('data-ay-panel', 'dil');
     [{kt: 'ay_firma',   t: u.ay_firma,   kl: 'ay_firma_lista',
       l: u.ay_firma_lista || es.ay_firma_lista},
      {kt: 'ay_medicos', t: u.ay_medicos, kl: 'ay_medicos_lista',
@@ -28811,11 +28861,13 @@ applyLang(idiomaParaMi());
        parafiscales lleva el «¿Sabes cuáles son los recaudos…?» de cada
        ente en «Registros Parafiscales y Regulatorios». */
     var cab2 = el('div', 'sec-h ay-rec-h');
+    cab2.setAttribute('data-ay-panel', 'rec');
     var tit2 = el('span', 't', u.ay_rec_t || es.ay_rec_t || '');
     tit2.setAttribute('data-ui', 'ay_rec_t');
     cab2.appendChild(tit2);
     ayLista.appendChild(cab2);
     var caja2 = el('div', 'faq ay-rec');
+    caja2.setAttribute('data-ay-panel', 'rec');
     /* Y el permiso de bomberos, uno por estado (Franklin Reyes, 1-10-2026,
        Permiso de Bomberos, «Casilla Ayuda y Guías: incluir»). */
     /* Y la visa (Franklin Reyes, 2-10-2026): la planilla de solicitud,
@@ -28833,6 +28885,36 @@ applyLang(idiomaParaMi());
       caja2.appendChild(grupo(g));
     });
     ayLista.appendChild(caja2);
+
+    /* Las pestañas, con cuántas cosas trae cada una. Quien llega desde un
+       ente va a la de su grupo: el renglón resaltado tiene que verse. */
+    if (aqui){ ayPestana = /^ay_rec_/.test(aqui.grupo || '') ? 'rec' : 'dil'; ayPorSalto = true; }
+    else if (ayPorSalto){ ayPestana = 'faq'; ayPorSalto = false; }
+    if (ayPest){
+      ayPest.textContent = '';
+      var nFaq = faq ? faq.querySelectorAll('details.faq-item:not(.ay-sin)').length : 0;
+      [['faq', u.ay_tab_faq, nFaq], ['dil', u.ay_tab_dil, caja.children.length],
+       ['rec', u.ay_tab_rec, caja2.children.length]].forEach(function(x){
+        var b = el('button', 'ay-pe');
+        b.type = 'button';
+        b.setAttribute('role', 'tab');
+        b.setAttribute('data-p', x[0]);
+        b.appendChild(el('span', '', x[1] || ''));
+        b.appendChild(el('span', 'n', String(x[2])));
+        b.addEventListener('click', function(){ ayPestana = x[0]; ayPorSalto = false; ayAplicaPestana(); });
+        ayPest.appendChild(b);
+      });
+      /* Flechas entre pestañas, como cualquier lista de pestañas. */
+      ayPest.onkeydown = function(e){
+        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+        var orden = ['faq', 'dil', 'rec'];
+        ayPestana = orden[(orden.indexOf(ayPestana) + (e.key === 'ArrowRight' ? 1 : 2)) % 3];
+        ayAplicaPestana();
+        var b2 = ayPest.querySelector('[data-p="' + ayPestana + '"]');
+        if (b2) b2.focus();
+      };
+    }
+    ayAplicaPestana();
 
     /* Y a la vista, cuando se llega desde un ente. NO se quedaba: la página
        tiene desplazamiento suave (html{scroll-behavior:smooth}) y el

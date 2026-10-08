@@ -312,7 +312,7 @@
                  y puestos antes le cambiaban la cuenta a las pruebas que
                  esperan los tres del expediente de partida. */
               cacheAbre, cacheMira, cacheSube, cacheSube2, cacheVuelve, cacheTrasVolver,
-              ayudaAbre, ayudaMira, ayudaFaq, ayRecMira, ayRecSalta, ayRecLlega,
+              ayudaAbre, ayudaMira, ayudaFaq, ayudaPestanas, ayRecMira, ayRecSalta, ayRecLlega,
               supAbre, supMira, supTemas, supVuelve,
               asstConServidor, asstSinServidor,
               fotoAbre, fotoMira, fotoMala, fotoSube, fotoTrasSubir, fotoCierra,
@@ -9279,6 +9279,33 @@
     ok('ayuda: y se llega a ellas abiertas', !sec.classList.contains('plegada'),
        sec.className, 'sin la clase plegada');
     igual('ayuda: con sus siete de siempre', sec.querySelectorAll('details:not(.ay-nueva)').length, 7);
+  }
+
+  /* LAS TRES PESTAÑAS (idea 5 de maquetas/ayuda-categorias.html,
+     8-10-2026): una por sección, con su número, y las categorías como
+     tarjetas abiertas con el tipo de cada enlace. */
+  function ayudaPestanas(){
+    var bs = document.querySelectorAll('#ayPest .ay-pe');
+    igual('ayuda: tres pestañas, una por sección',
+          [].map.call(bs, function(b){ return b.getAttribute('data-p'); }).join(' '), 'faq dil rec');
+    var n = function(p){ var b = document.querySelector('#ayPest .ay-pe[data-p="' + p + '"] .n'); return b ? b.textContent : '?'; };
+    igual('ayuda: con lo que trae cada una (preguntas con respuesta, diligencias y trámites)', n('faq') + ' ' + n('dil') + ' ' + n('rec'), '7 2 6');
+    var faqSec = document.querySelector('.ayuda-vista .faq-sec');
+    var rec = document.querySelector('.ayuda-vista .ay-rec');
+    igual('ayuda: se entra por las preguntas', !!faqSec && faqSec.offsetHeight > 0 && !!rec && rec.offsetHeight === 0, true);
+    var bRec = document.querySelector('#ayPest .ay-pe[data-p="rec"]');
+    if (bRec) bRec.click();
+    igual('ayuda: «Pasos y recaudos» enseña los trámites y esconde las preguntas',
+          !!rec && rec.offsetHeight > 0 && faqSec.offsetHeight === 0, true);
+    igual('ayuda: y la pestaña queda encendida', bRec && bRec.getAttribute('aria-selected'), 'true');
+    var cards = rec ? rec.querySelectorAll('details.ay-card') : [];
+    igual('ayuda: cada trámite es una tarjeta abierta', [].filter.call(cards, function(d){ return d.open; }).length, 6);
+    var tipos = rec ? [].map.call(rec.querySelectorAll('details[data-clave="ay_rec_bomberos"] .ay-tipo'), function(x){ return x.textContent; }).join(' ') : '';
+    igual('ayuda: cada enlace dice qué abre', tipos, 'Web Instagram');
+    var cuenta = rec && rec.querySelector('details[data-clave="ay_rec_parafiscales"] .ay-cuenta');
+    igual('ayuda: y la tarjeta cuántos trae', cuenta ? cuenta.textContent : '(no está)', '6 enlaces');
+    var bFaq = document.querySelector('#ayPest .ay-pe[data-p="faq"]');
+    if (bFaq) bFaq.click();
   }
 
   /* PASOS Y RECAUDOS DE CADA TRÁMITE (Franklin Reyes, 1-10-2026,

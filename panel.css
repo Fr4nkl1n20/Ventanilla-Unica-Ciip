@@ -1639,6 +1639,52 @@ body.editando-textos .faq-item.ay-sin{display:block;}
 .ay-hor-t{font-size:var(--fs-seccion); font-weight:700; color:var(--ink);}
 .ay-hor-h{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.5;}
 
+/* Ayuda y guía en tres pestañas, con tarjetas abiertas (idea 5 de
+   maquetas/ayuda-categorias.html, 8-10-2026). */
+.ay-pest{display:flex; gap:2px; border-bottom:1px solid var(--line); margin:0 0 16px; overflow-x:auto;}
+.ay-pest:empty{display:none;}
+.ay-pe{font:inherit; background:none; border:0; border-bottom:2px solid transparent; margin-bottom:-1px;
+  padding:10px 14px; font-size:var(--fs-seccion); font-weight:700; color:var(--gray); display:flex; gap:8px;
+  align-items:center; white-space:nowrap; cursor:pointer;}
+.ay-pe:hover{color:var(--ink);}
+.ay-pe.on{color:var(--navy); border-bottom-color:var(--navy);}
+.ay-pe:focus-visible{outline:2px solid var(--navy2); outline-offset:-2px; border-radius:6px;}
+.ay-pe .n{font-size:var(--fs-chip); background:var(--line-soft); color:var(--gray); border-radius:20px; padding:1px 7px;
+  font-variant-numeric:tabular-nums;}
+.ay-pe.on .n{background:var(--activa-bg); color:var(--navy2);}
+.ay-fuera{display:none !important;}
+/* Quien edita textos ve las tres a la vez: tiene que poder llegar a todo. */
+body.editando-textos .ayuda-vista .ay-fuera{display:revert !important;}
+body.editando-textos .ay-pest{display:none;}
+.faq-sec[data-ay-panel]{margin-top:0;}
+/* Con las dos clases: la regla general de .faq (columna) va más abajo en
+   esta hoja y, con una sola clase, ganaba ella. */
+.faq.ay-dil, .faq.ay-rec{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:12px; align-items:start;}
+.faq.ay-dil > .faq-item, .faq.ay-rec > .faq-item{min-width:0;}
+.faq-item.ay-card summary{cursor:default; padding:14px 16px 10px; align-items:flex-start;}
+.faq-item.ay-card[open] summary{color:var(--ink);}
+.ay-card summary .chev{display:none;}
+.ay-ic{width:36px; height:36px; border-radius:10px; background:var(--activa-bg); color:var(--navy2); flex:none;
+  display:flex; align-items:center; justify-content:center;}
+.ay-ic svg{width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+.ay-card-t{display:flex; flex-direction:column; gap:2px; min-width:0; flex:1 1 auto;}
+.ay-cuenta{font-size:var(--fs-nota); font-weight:400; color:var(--gray); letter-spacing:0;}
+.ay-dil .ay-card .faq-a, .ay-rec .ay-card .faq-a{padding:0 16px 12px;}
+.ay-card .ay-sitios{padding:0; list-style:none; gap:0;}
+.ay-card .ay-sitios li{display:flex; flex-wrap:wrap; align-items:center; gap:2px 8px; padding:8px 0;
+  border-top:1px solid var(--line-soft);}
+.ay-card .ay-sitios li .ay-enlace{flex:1 1 auto; min-width:0;}
+/* La dirección entera no cabe en una tarjeta: va en el título del enlace,
+   al pasar el ratón. El número de WhatsApp sí se queda, que hace falta
+   para escribir. */
+.ay-card .ay-host{display:none;}
+.ay-card .ay-host.wa{display:block; margin-left:0; flex-basis:100%; order:3;}
+.ay-tipo{flex:none; font-size:var(--fs-chip); font-weight:700; border-radius:20px; padding:1px 8px;
+  background:var(--line-soft); color:var(--gray);}
+.ay-tipo.pdf{background:var(--amber-bg); color:var(--amber);}
+.ay-tipo.wa{background:var(--good-bg); color:var(--good);}
+.ay-card .ay-descarga-fila{margin:0 0 6px;}
+
 /* --- el banco de activos --- */
 .activos-vista{display:none;}
 body[data-vista="activos"] .activos-vista{display:block;}
@@ -5823,3 +5869,4 @@ body[data-vista="horario"] .fase-bar{display:none;}
 /* El azul de «en curso» era el cian del logo, el azul que no gusta: pasa
    al azul del panel. */
 .chip.info{color:var(--navy2) !important;}
+.ay-card .ay-sitios li.ay-aqui{margin:0 -8px; padding:8px;}

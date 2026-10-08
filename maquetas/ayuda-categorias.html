@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Ayuda y guía con sus categorías</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   AYUDA Y GUÍA CON LAS CATEGORÍAS QUE YA EXISTEN: CUATRO FORMAS MÁS
+
+   Franklin Reyes, 8-10-2026: otras cuatro, pero con las categorías que
+   ya tiene la pantalla, sin inventar temas. Son estas, tal cual:
+     · Horario de atención
+     · Preguntas frecuentes (7)
+     · Dónde puedes realizar las siguientes diligencias:
+         Firma electrónica (3) · Certificados médicos (2)
+     · Pasos y recaudos de cada trámite:
+         Licencia de Actividades Económicas (4) · Registros Parafiscales y
+         Regulatorios (6) · Conformidad de uso (3) · Permiso de bomberos (2)
+         · Solicitud de visa (planilla) · Servicio Autónomo de Contraloría
+         Sanitaria (4)
+   Numeradas del 5 al 8 para no confundirlas con las de
+   ayuda-cuatro-formas.html. No toca el panel.
+   ══════════════════════════════════════════════════════════════════ */
+:root{ --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB;
+  --navy-deep:#00336d; --cyan:#20B0F0; }
+main{max-width:1280px; padding:28px 26px 90px; margin:0 auto;}
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.intro b{color:var(--ink);}
+.indice{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 0;}
+.indice a{font-size:12px; font-weight:700; color:var(--navy2); text-decoration:none; background:#fff; border:1px solid var(--line); border-radius:8px; padding:6px 11px;}
+.caso{margin-top:52px; scroll-margin-top:16px;}
+.caso-h{display:flex; align-items:center; gap:11px; margin-bottom:6px; flex-wrap:wrap;}
+.caso-n{width:28px; height:28px; border-radius:50%; background:var(--navy); color:#fff; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;}
+.caso-t{font-size:17px; font-weight:700; letter-spacing:-.01em;}
+.caso-q{font-size:12.5px; color:var(--gray); line-height:1.65; max-width:96ch; margin:0 0 12px 39px;}
+.caso-q b{color:var(--ink);}
+.balanza{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 0 16px 39px; max-width:980px;}
+.pro, .contra{font-size:12px; line-height:1.55; border-radius:10px; padding:10px 13px;}
+.pro{background:var(--good-bg); color:#16573F;} .contra{background:var(--amber-bg); color:#7A5214;}
+.pro b, .contra b{display:block; font-size:10px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:3px;}
+.pantalla{margin-left:39px; border:1px dashed #C9CED8; border-radius:14px; background:var(--block); padding:16px;
+  display:grid; grid-template-columns:200px minmax(0,1fr); gap:16px; align-items:start;}
+.sbm{background:linear-gradient(180deg,var(--navy) 0%, var(--navy-deep) 100%); border-radius:12px; padding:10px 8px; color:#fff;}
+.sbm-g{font-size:11px; font-weight:700; color:rgba(255,255,255,.55); padding:6px 10px 4px;}
+.sbm-i{position:relative; padding:8px 10px; border-radius:8px; font-size:12.5px; color:rgba(255,255,255,.82);}
+.sbm-i.on{background:rgba(32,176,240,.16); color:#fff; font-weight:700;}
+.sbm-i.on::before{content:""; position:absolute; left:0; top:6px; bottom:6px; width:3px; background:var(--cyan); border-radius:0 3px 3px 0;}
+.pan{min-width:0; display:grid; gap:14px;}
+
+.card{background:#fff; border:1px solid var(--line); border-radius:12px; padding:15px 17px;}
+.t{font-size:14px; font-weight:700; letter-spacing:-.01em;}
+.s{font-size:12px; color:var(--gray); margin-top:2px; line-height:1.5;}
+.chip{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; border-radius:20px; padding:2px 9px; white-space:nowrap;}
+.chip.ok{background:var(--good-bg); color:var(--good);} .chip.az{background:var(--activa-bg); color:var(--navy2);}
+.chip.mu{background:var(--line-soft); color:var(--gray);} .chip.am{background:var(--amber-bg); color:var(--amber);}
+.chip i{width:6px; height:6px; border-radius:50%; background:currentColor;}
+.btn2{font:inherit; font-size:12px; font-weight:700; border-radius:8px; padding:8px 13px; border:1px solid var(--line); background:#fff; color:var(--ink); display:inline-flex; gap:6px;}
+.btn2.prim{background:var(--navy); border-color:var(--navy); color:#fff;}
+.ic{width:36px; height:36px; border-radius:10px; display:grid; place-items:center; background:var(--activa-bg); color:var(--navy2); flex:none;}
+.ic svg{width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+.lnk{font-size:12px; color:var(--navy2); font-weight:600; display:flex; gap:8px; align-items:center; padding:7px 0; border-bottom:1px solid var(--line-soft);}
+.lnk:last-child{border-bottom:0;}
+.lnk .tipo{margin-left:auto;}
+.preg{border:1px solid var(--line); border-radius:10px; background:#fff; padding:11px 14px; font-size:13px; font-weight:700;
+  display:flex; justify-content:space-between; gap:10px;}
+.preg + .preg{margin-top:7px;}
+.preg .n{color:var(--navy2); margin-right:8px;}
+.flecha{color:var(--gray-soft);}
+.franja{display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 16px;}
+.franja .sp{flex:1;}
+.rot{font-size:10.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--gray);}
+
+/* 5 · pestañas por sección */
+.pest{display:flex; gap:2px; border-bottom:1px solid var(--line);}
+.pe{font-size:13px; font-weight:700; color:var(--gray); padding:10px 14px; border-bottom:2px solid transparent; display:flex; gap:8px; align-items:center;}
+.pe.on{color:var(--navy); border-bottom-color:var(--navy);}
+.pe .n{font-size:10.5px; background:var(--line-soft); color:var(--gray); border-radius:20px; padding:1px 7px;}
+.pe.on .n{background:var(--activa-bg); color:var(--navy2);}
+.rejilla3{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px;}
+.cat .cab{display:flex; gap:10px; align-items:center; margin-bottom:8px;}
+
+/* 6 · índice lateral */
+.manual{display:grid; grid-template-columns:220px minmax(0,1fr); gap:16px; align-items:start;}
+.toc{background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px; position:sticky; top:0; font-size:12.5px;}
+.toc .g{font-size:10.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--gray-soft); margin:10px 6px 4px;}
+.toc .g:first-child{margin-top:0;}
+.toc .i{display:flex; justify-content:space-between; padding:6px 8px; border-radius:7px; color:var(--ink);}
+.toc .i.on{background:var(--activa-bg); color:var(--navy); font-weight:700;}
+.toc .i span{color:var(--gray-soft); font-size:11px;}
+.bloque{display:grid; gap:10px;}
+.bloque h4{margin:6px 0 0; font-size:15px; letter-spacing:-.01em;}
+.cat2{display:grid; grid-template-columns:auto minmax(0,1fr); gap:12px; align-items:start;}
+.cols{display:grid; grid-template-columns:1fr 1fr; gap:0 18px;}
+
+/* 7 · mosaico */
+.mosaico{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px;}
+.tes{background:#fff; border:1px solid var(--line); border-radius:12px; padding:15px; display:grid; gap:10px; align-content:start;}
+.tes .top{display:flex; justify-content:space-between; align-items:flex-start;}
+.tes .grupo{font-size:10px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--gray-soft);}
+.tes b{font-size:13.5px;}
+.tes .lista{font-size:12px; color:var(--gray); line-height:1.6;}
+.tes .ver{font-size:12px; font-weight:700; color:var(--navy2);}
+.tes.grande{grid-column:span 2;}
+.tes.azul{background:linear-gradient(135deg,#004090,#00336d); border-color:transparent; color:#fff;}
+.tes.azul .grupo{color:rgba(255,255,255,.6);} .tes.azul .lista{color:rgba(255,255,255,.85);} .tes.azul .ver{color:#fff;}
+.tes.azul .ic{background:rgba(255,255,255,.14); color:#fff;}
+
+/* 8 · secciones con tabla */
+.secc{background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+.secc .cab{display:flex; gap:12px; align-items:center; padding:14px 16px; border-bottom:1px solid var(--line);}
+.secc .cab .sp{flex:1;}
+.secc table{width:100%; border-collapse:collapse; font-size:12.5px;}
+.secc th, .secc td{text-align:left; padding:10px 16px; border-bottom:1px solid var(--line-soft); vertical-align:top;}
+.secc th{font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--gray); background:var(--card-2);}
+.secc tr:last-child td{border-bottom:0;}
+.secc td.o{color:var(--gray);}
+.secc.cerrada .cab{border-bottom:0;}
+
+.cierre{margin:56px 0 0; border-top:1px solid var(--line); padding-top:22px;}
+.cierre h2{font-size:15px; margin:0 0 10px;}
+.cierre table{border-collapse:collapse; width:100%; max-width:980px; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden; font-size:12px;}
+.cierre th, .cierre td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line-soft); vertical-align:top;}
+.cierre th{font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--gray); background:var(--card-2);}
+@media (max-width:1100px){ .pantalla{grid-template-columns:1fr; margin-left:0;} .sbm{display:none;} .caso-q, .balanza{margin-left:0;}
+  .rejilla3, .mosaico{grid-template-columns:1fr 1fr;} .manual{grid-template-columns:1fr;} .tes.grande{grid-column:span 2;} }
+</style>
+</head>
+<body>
+
+<div class="mq-cartel">
+  <b>Maqueta · no es la aplicación</b>
+  <span>Cuatro formas más de «Ayuda y guía», con las categorías que ya existen. Contenido de hoy; no toca el panel.</span>
+</div>
+
+<main>
+  <p class="intro">
+    Las mismas categorías de hoy, sin inventar ninguna: el <b>horario</b>, las <b>preguntas frecuentes</b>, <b>dónde hacer las
+    diligencias</b> (firma electrónica y certificados médicos) y los <b>pasos y recaudos de cada trámite</b> (licencia de actividades
+    económicas, parafiscales y regulatorios, conformidad de uso, bomberos, visa y SACS). Cambia cómo se presentan, para que
+    cada categoría diga qué trae antes de abrirla.
+  </p>
+  <div class="indice">
+    <a href="#i5">5 · Pestañas por sección</a><a href="#i6">6 · Índice como un manual</a>
+    <a href="#i7">7 · Mosaico de categorías</a><a href="#i8">8 · Secciones con tabla</a><a href="#cierre">Comparación</a>
+  </div>
+
+  <!-- ═════════════ 5 ═════════════ -->
+  <section class="caso" id="i5">
+    <div class="caso-h"><span class="caso-n">5</span><span class="caso-t">Pestañas por sección</span></div>
+    <p class="caso-q">El horario en una franja arriba y, debajo, <b>tres pestañas</b>, una por sección de hoy, cada una con cuántas
+      cosas tiene. En «Pasos y recaudos», cada categoría es una <b>tarjeta con sus enlaces</b> ya visibles.</p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Nada queda «al final de la página»: las tres secciones están a la misma distancia. Cada pestaña se lee completa en una pantalla.</div>
+      <div class="contra"><b>En contra</b>Lo que no está en la pestaña abierta no se ve. Quien no pulse otra pestaña no sabrá que existen las diligencias.</div>
+    </div>
+    <div class="pantalla">
+      <nav class="sbm"><div class="sbm-g">Acompañamiento</div><div class="sbm-i">Citas y agenda</div><div class="sbm-i on">Ayuda y guía</div></nav>
+      <div class="pan">
+        <div class="franja"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+          <div><div class="t">Horario de atención</div><div class="s">De lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela</div></div>
+          <span class="sp"></span><span class="chip ok"><i></i>Abierto ahora</span></div>
+        <div class="pest"><span class="pe">Preguntas frecuentes <span class="n">7</span></span><span class="pe">Dónde hacer las diligencias <span class="n">2</span></span><span class="pe on">Pasos y recaudos de cada trámite <span class="n">6</span></span></div>
+        <div class="rejilla3">
+          <div class="card cat"><div class="cab"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/></svg></span><div><div class="t">Licencia de Actividades Económicas</div><div class="s">4 municipios</div></div></div>
+            <div class="lnk">Municipio Chacao<span class="tipo chip mu">Web</span></div><div class="lnk">Municipio Baruta<span class="tipo chip mu">Web</span></div>
+            <div class="lnk">Municipio Libertador<span class="tipo chip mu">Web</span></div><div class="lnk">Municipio Sucre<span class="tipo chip mu">Web</span></div></div>
+          <div class="card cat"><div class="cab"><span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><div><div class="t">Registros Parafiscales y Regulatorios</div><div class="s">6 registros</div></div></div>
+            <div class="lnk">BANAVIH · FAOV<span class="tipo chip mu">Web</span></div><div class="lnk">INCES<span class="tipo chip am">PDF</span></div>
+            <div class="lnk">IVSS · Seguro Social<span class="tipo chip mu">Web</span></div><div class="lnk">Ministerio del Trabajo · RNET<span class="tipo chip mu">Web</span></div>
+            <div class="lnk">SUNDDE · RUPDAE<span class="tipo chip mu">Web</span></div><div class="lnk">SNC · Registro Nacional de Contratistas<span class="tipo chip am">PDF</span></div></div>
+          <div class="card cat"><div class="cab"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V10l7-5 7 5v11"/></svg></span><div><div class="t">Conformidad de uso</div><div class="s">3 municipios</div></div></div>
+            <div class="lnk">Libertador<span class="tipo chip am">PDF</span></div><div class="lnk">Sucre<span class="tipo chip am">PDF</span></div><div class="lnk">Baruta (constancia de uso)<span class="tipo chip mu">Web</span></div></div>
+          <div class="card cat"><div class="cab"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3c2 3 5 5 5 9a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3 1-5 1-8z"/></svg></span><div><div class="t">Permiso de bomberos</div><div class="s">2 jurisdicciones</div></div></div>
+            <div class="lnk">Estado Miranda<span class="tipo chip mu">Web</span></div><div class="lnk">Distrito Capital<span class="tipo chip mu">Instagram</span></div></div>
+          <div class="card cat"><div class="cab"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 10h4M14 14h3"/></svg></span><div><div class="t">Solicitud de visa</div><div class="s">La planilla de Cancillería</div></div></div>
+            <div class="lnk">Planilla de solicitud de visa<span class="tipo chip am">PDF</span></div></div>
+          <div class="card cat"><div class="cab"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg></span><div><div class="t">Servicio Autónomo de Contraloría Sanitaria</div><div class="s">4 direcciones</div></div></div>
+            <div class="lnk">Materiales, equipos y establecimientos<span class="tipo chip mu">Web</span></div><div class="lnk">Drogas, medicamentos y cosméticos<span class="tipo chip mu">Web</span></div>
+            <div class="lnk">Inocuidad de alimentos y bebidas<span class="tipo chip mu">Web</span></div><div class="lnk">Vigilancia sanitaria en aduanas<span class="tipo chip mu">Web</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════ 6 ═════════════ -->
+  <section class="caso" id="i6">
+    <div class="caso-h"><span class="caso-n">6</span><span class="caso-t">Índice como un manual</span></div>
+    <p class="caso-q">A la izquierda, un <b>índice fijo</b> con las tres secciones y sus categorías, cada una con su número de
+      elementos; al pulsar, baja hasta ella. A la derecha, todo seguido, cada categoría con su icono, una línea que dice
+      <b>para qué sirve</b> y sus enlaces en dos columnas.</p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Se ve el contenido entero de un vistazo en el índice, y se lee todo sin cambiar de pestaña. Es como una guía de verdad.</div>
+      <div class="contra"><b>En contra</b>Las líneas de «para qué sirve» son texto nuevo que hay que escribir y traducir. En el móvil el índice se va arriba.</div>
+    </div>
+    <div class="pantalla">
+      <nav class="sbm"><div class="sbm-g">Acompañamiento</div><div class="sbm-i">Citas y agenda</div><div class="sbm-i on">Ayuda y guía</div></nav>
+      <div class="pan manual">
+        <div class="toc">
+          <div class="g">Atención</div><div class="i">Horario de atención</div>
+          <div class="g">Preguntas</div><div class="i">Preguntas frecuentes <span>7</span></div>
+          <div class="g">Diligencias</div><div class="i">Firma electrónica <span>3</span></div><div class="i">Certificados médicos <span>2</span></div>
+          <div class="g">Pasos y recaudos</div><div class="i on">Licencia de Actividades Económicas <span>4</span></div><div class="i">Parafiscales y regulatorios <span>6</span></div>
+          <div class="i">Conformidad de uso <span>3</span></div><div class="i">Permiso de bomberos <span>2</span></div><div class="i">Solicitud de visa <span>1</span></div><div class="i">SACS <span>4</span></div>
+        </div>
+        <div class="bloque">
+          <div class="franja"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div><div class="t">Horario de atención</div><div class="s">De lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela</div></div></div>
+          <h4>Dónde puedes realizar las siguientes diligencias</h4>
+          <div class="card cat2"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 20c4-1 6-6 9-9l3 3c-3 3-8 5-9 9"/><path d="M14 4l6 6"/></svg></span>
+            <div><div class="t">Firma electrónica</div><div class="s">Proveedores acreditados para obtenerla</div>
+              <div class="cols"><div class="lnk">Authenology<span class="tipo chip mu">Web</span></div><div class="lnk">Apacuana, C.A.<span class="tipo chip mu">Web</span></div><div class="lnk">PROCERT C.A.<span class="tipo chip mu">Web</span></div></div></div></div>
+          <div class="card cat2"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/></svg></span>
+            <div><div class="t">Certificados médicos</div><div class="s">Dónde sacar el certificado que piden la visa y la licencia</div>
+              <div class="cols"><div class="lnk">Locatel de La Castellana<span class="tipo chip ok">WhatsApp</span></div><div class="lnk">Locatel Mercedes<span class="tipo chip ok">WhatsApp</span></div></div></div></div>
+          <h4>Pasos y recaudos de cada trámite</h4>
+          <div class="card cat2"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/></svg></span>
+            <div><div class="t">Licencia de Actividades Económicas</div><div class="s">Los requisitos de cada alcaldía, en su web oficial</div>
+              <div class="cols"><div class="lnk">Municipio Chacao<span class="tipo chip mu">Web</span></div><div class="lnk">Municipio Baruta<span class="tipo chip mu">Web</span></div>
+                <div class="lnk">Municipio Libertador<span class="tipo chip mu">Web</span></div><div class="lnk">Municipio Sucre<span class="tipo chip mu">Web</span></div></div></div></div>
+          <div class="card cat2"><span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>
+            <div><div class="t">Registros Parafiscales y Regulatorios</div><div class="s">Cómo inscribir la empresa ante cada ente</div>
+              <div class="cols"><div class="lnk">BANAVIH · FAOV<span class="tipo chip mu">Web</span></div><div class="lnk">INCES<span class="tipo chip am">PDF</span></div>
+                <div class="lnk">IVSS · Seguro Social<span class="tipo chip mu">Web</span></div><div class="lnk">Ministerio del Trabajo · RNET<span class="tipo chip mu">Web</span></div>
+                <div class="lnk">SUNDDE · RUPDAE<span class="tipo chip mu">Web</span></div><div class="lnk">SNC · Contratistas<span class="tipo chip am">PDF</span></div></div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════ 7 ═════════════ -->
+  <section class="caso" id="i7">
+    <div class="caso-h"><span class="caso-n">7</span><span class="caso-t">Mosaico de categorías</span></div>
+    <p class="caso-q">Cada categoría es una <b>baldosa</b> con su grupo arriba (Preguntas, Diligencias, Pasos y recaudos), su
+      icono, qué trae y «Ver». Las preguntas frecuentes van en una baldosa grande y azul, y el horario arriba. Al pulsar una
+      baldosa se abre su lista debajo.</p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Las nueve categorías caben en una pantalla, y es la más visual y fácil de recorrer. En el móvil queda en dos columnas.</div>
+      <div class="contra"><b>En contra</b>Para leer cualquier enlace hay que pulsar la baldosa. Las preguntas pierden protagonismo frente a las demás.</div>
+    </div>
+    <div class="pantalla">
+      <nav class="sbm"><div class="sbm-g">Acompañamiento</div><div class="sbm-i">Citas y agenda</div><div class="sbm-i on">Ayuda y guía</div></nav>
+      <div class="pan">
+        <div class="franja"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+          <div><div class="t">Horario de atención</div><div class="s">De lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela</div></div>
+          <span class="sp"></span><span class="chip ok"><i></i>Abierto ahora</span></div>
+        <div class="mosaico">
+          <div class="tes grande azul"><div class="top"><span class="grupo">Preguntas</span><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01"/></svg></span></div>
+            <b>Preguntas frecuentes</b><div class="lista">¿Puedo tener empleados extranjeros? · ¿Cuáles son los pasos para constituir una empresa? · ¿Qué tipo de sociedad conviene? · ¿Hay que estar en Venezuela? · Visa TR-I · Vigencia de la visa · Visa de Negocios</div><span class="ver">Ver las 7 →</span></div>
+          <div class="tes"><div class="top"><span class="grupo">Diligencias</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 20c4-1 6-6 9-9l3 3c-3 3-8 5-9 9"/><path d="M14 4l6 6"/></svg></span></div>
+            <b>Firma electrónica</b><div class="lista">Authenology · Apacuana · PROCERT</div><span class="ver">3 proveedores →</span></div>
+          <div class="tes"><div class="top"><span class="grupo">Diligencias</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/></svg></span></div>
+            <b>Certificados médicos</b><div class="lista">Locatel La Castellana · Locatel Mercedes</div><span class="ver">2 por WhatsApp →</span></div>
+          <div class="tes"><div class="top"><span class="grupo">Pasos y recaudos</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/></svg></span></div>
+            <b>Licencia de Actividades Económicas</b><div class="lista">Chacao · Baruta · Libertador · Sucre</div><span class="ver">4 municipios →</span></div>
+          <div class="tes"><div class="top"><span class="grupo">Pasos y recaudos</span><span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span></div>
+            <b>Registros Parafiscales y Regulatorios</b><div class="lista">BANAVIH · INCES · IVSS · RNET · RUPDAE · SNC</div><span class="ver">6 registros →</span></div>
+          <div class="tes"><div class="top"><span class="grupo">Pasos y recaudos</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V10l7-5 7 5v11"/></svg></span></div>
+            <b>Conformidad de uso</b><div class="lista">Libertador · Sucre · Baruta</div><span class="ver">3 municipios →</span></div>
+          <div class="tes"><div class="top"><span class="grupo">Pasos y recaudos</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3c2 3 5 5 5 9a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3 1-5 1-8z"/></svg></span></div>
+            <b>Permiso de bomberos</b><div class="lista">Estado Miranda · Distrito Capital</div><span class="ver">2 jurisdicciones →</span></div>
+          <div class="tes"><div class="top"><span class="grupo">Pasos y recaudos</span><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.5"/></svg></span></div>
+            <b>Solicitud de visa</b><div class="lista">La planilla de Cancillería</div><span class="ver">Descargar PDF →</span></div>
+          <div class="tes"><div class="top"><span class="grupo">Pasos y recaudos</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg></span></div>
+            <b>Contraloría Sanitaria (SACS)</b><div class="lista">Equipos · Medicamentos · Alimentos · Aduanas</div><span class="ver">4 direcciones →</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════ 8 ═════════════ -->
+  <section class="caso" id="i8">
+    <div class="caso-h"><span class="caso-n">8</span><span class="caso-t">Secciones con tabla</span></div>
+    <p class="caso-q">Las tres secciones de hoy como <b>bloques que se abren y se cierran</b>, cada uno con un resumen de lo que
+      trae. Dentro, las categorías en una <b>tabla</b>: la categoría, sus opciones y el tipo de enlace. Es la de hoy, ordenada y con
+      todo a la vista.</p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Es la más parecida a la de hoy, así que nadie se pierde. La tabla compara opciones de un vistazo y es la que menos cambia el código.</div>
+      <div class="contra"><b>En contra</b>Es la menos vistosa. Con todos los bloques abiertos, la página sigue siendo larga.</div>
+    </div>
+    <div class="pantalla">
+      <nav class="sbm"><div class="sbm-g">Acompañamiento</div><div class="sbm-i">Citas y agenda</div><div class="sbm-i on">Ayuda y guía</div></nav>
+      <div class="pan">
+        <div class="franja"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+          <div><div class="t">Horario de atención</div><div class="s">De lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela</div></div>
+          <span class="sp"></span><span class="btn2">Pedir una cita</span><span class="btn2 prim">Escribir mi consulta</span></div>
+        <div class="secc cerrada"><div class="cab"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01"/></svg></span>
+          <div><div class="t">Preguntas frecuentes</div><div class="s">7 preguntas · empleados, constitución, sociedad, presencia, visas</div></div><span class="sp"></span><span class="flecha">›</span></div></div>
+        <div class="secc cerrada"><div class="cab"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+          <div><div class="t">Dónde puedes realizar las siguientes diligencias</div><div class="s">Firma electrónica (3) · Certificados médicos (2)</div></div><span class="sp"></span><span class="flecha">›</span></div></div>
+        <div class="secc"><div class="cab"><span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>
+          <div><div class="t">Pasos y recaudos de cada trámite</div><div class="s">6 categorías · 20 enlaces oficiales</div></div><span class="sp"></span><span class="flecha">⌄</span></div>
+          <table><thead><tr><th>Categoría</th><th>Opciones</th><th>Tipo</th></tr></thead><tbody>
+            <tr><td><b>Licencia de Actividades Económicas</b></td><td class="o">Chacao · Baruta · Libertador · Sucre</td><td><span class="chip mu">Web</span></td></tr>
+            <tr><td><b>Registros Parafiscales y Regulatorios</b></td><td class="o">BANAVIH · INCES · IVSS · RNET · RUPDAE · SNC</td><td><span class="chip mu">Web</span> <span class="chip am">PDF</span></td></tr>
+            <tr><td><b>Conformidad de uso</b></td><td class="o">Libertador · Sucre · Baruta</td><td><span class="chip am">PDF</span> <span class="chip mu">Web</span></td></tr>
+            <tr><td><b>Permiso de bomberos</b></td><td class="o">Estado Miranda · Distrito Capital</td><td><span class="chip mu">Web</span></td></tr>
+            <tr><td><b>Solicitud de visa</b></td><td class="o">Planilla de solicitud de visa</td><td><span class="chip am">PDF</span></td></tr>
+            <tr><td><b>Servicio Autónomo de Contraloría Sanitaria</b></td><td class="o">Equipos · Medicamentos · Alimentos · Aduanas</td><td><span class="chip mu">Web</span></td></tr>
+          </tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cierre" id="cierre">
+    <h2>Las cuatro, lado a lado</h2>
+    <table>
+      <thead><tr><th>Forma</th><th>Cómo se llega a una categoría</th><th>Qué se ve sin pulsar</th><th>Cuánto cambia</th></tr></thead>
+      <tbody>
+        <tr><td><b>5 · Pestañas por sección</b></td><td>Una pestaña por sección</td><td>Una sección entera, con sus enlaces</td><td>Medio</td></tr>
+        <tr><td><b>6 · Índice como un manual</b></td><td>Índice fijo a la izquierda</td><td>Todo, seguido</td><td>Medio, más textos nuevos</td></tr>
+        <tr><td><b>7 · Mosaico de categorías</b></td><td>Una baldosa por categoría</td><td>Las nueve categorías y qué traen</td><td>El que más</td></tr>
+        <tr><td><b>8 · Secciones con tabla</b></td><td>Bloques que se abren</td><td>El resumen de cada sección</td><td>El que menos</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+</body>
+</html>

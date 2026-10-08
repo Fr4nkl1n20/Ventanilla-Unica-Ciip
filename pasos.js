@@ -1113,6 +1113,12 @@ window.CIIP_PASOS = {
       pe_recaudos:   "¿Sabes cuáles son los recaudos que necesitas?",
       ay_hor_t:      "Horario de atención",
       ay_hor:        "De lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela.",
+      /* Las pestañas de Ayuda y guía (idea 5, 8-10-2026). */
+      ay_tab_faq: "Preguntas frecuentes",
+      ay_tab_dil: "Dónde hacer las diligencias",
+      ay_tab_rec: "Pasos y recaudos de cada trámite",
+      ay_n_enlaces: "{n} enlaces",
+      ay_n_enlace: "{n} enlace",
       /* El pliego de tratamiento de datos. Se pide UNA vez por version, y
          la version vieja se puede releer despues: por eso hay textos de
          puerta y textos de vista.
@@ -3055,6 +3061,12 @@ window.CIIP_PASOS = {
       pe_recaudos:   "Do you know which documents you need?",
       ay_hor_t:      "Opening hours",
       ay_hor:        "Monday to Friday, 8:00 a.m. to 5:00 p.m., Venezuela time.",
+      /* Las pestañas de Ayuda y guía (idea 5, 8-10-2026). */
+      ay_tab_faq: "Frequently asked questions",
+      ay_tab_dil: "Where to get things done",
+      ay_tab_rec: "Steps and documents for each procedure",
+      ay_n_enlaces: "{n} links",
+      ay_n_enlace: "{n} link",
       /* The data processing terms. Asked ONCE per version; older versions
          stay readable afterwards, hence one set of texts for the gate and
          another for the view.
@@ -4854,6 +4866,12 @@ window.CIIP_PASOS = {
       pe_recaudos:   "Sabe quais documentos precisa?",
       ay_hor_t:      "Horário de atendimento",
       ay_hor:        "De segunda a sexta, das 8h00 às 17h00, hora da Venezuela.",
+      /* Las pestañas de Ayuda y guía (idea 5, 8-10-2026). */
+      ay_tab_faq: "Perguntas frequentes",
+      ay_tab_dil: "Onde tratar das diligências",
+      ay_tab_rec: "Passos e documentos de cada trâmite",
+      ay_n_enlaces: "{n} ligações",
+      ay_n_enlace: "{n} ligação",
       pl_nav:      "Tratamento de dados",
       pl_titulo:   "Tratamento dos seus dados",
       pl_sub:      "Versão {n} · antes de entrar",
@@ -6638,6 +6656,12 @@ window.CIIP_PASOS = {
       pe_recaudos:   "Sai quali documenti ti servono?",
       ay_hor_t:      "Orario di apertura",
       ay_hor:        "Dal lunedì al venerdì, dalle 8:00 alle 17:00, ora del Venezuela.",
+      /* Las pestañas de Ayuda y guía (idea 5, 8-10-2026). */
+      ay_tab_faq: "Domande frequenti",
+      ay_tab_dil: "Dove svolgere le pratiche",
+      ay_tab_rec: "Passi e documenti di ogni pratica",
+      ay_n_enlaces: "{n} link",
+      ay_n_enlace: "{n} link",
       pl_nav:      "Trattamento dei dati",
       pl_titulo:   "Trattamento dei tuoi dati",
       pl_sub:      "Versione {n} · prima di entrare",
@@ -8422,6 +8446,12 @@ window.CIIP_PASOS = {
       pe_recaudos:   "您知道需要哪些材料吗？",
       ay_hor_t:      "办公时间",
       ay_hor:        "周一至周五，委内瑞拉时间上午 8:00 至下午 5:00。",
+      /* Las pestañas de Ayuda y guía (idea 5, 8-10-2026). */
+      ay_tab_faq: "常见问题",
+      ay_tab_dil: "各项手续在哪里办理",
+      ay_tab_rec: "各项业务的步骤与材料",
+      ay_n_enlaces: "{n} 个链接",
+      ay_n_enlace: "{n} 个链接",
       pl_nav:      "数据处理",
       pl_titulo:   "您的数据处理方式",
       pl_sub:      "第 {n} 版 · 进入前请阅读",
@@ -10206,6 +10236,12 @@ window.CIIP_PASOS = {
       pe_recaudos:   "Знаете, какие документы вам нужны?",
       ay_hor_t:      "Часы работы",
       ay_hor:        "С понедельника по пятницу, с 8:00 до 17:00 по времени Венесуэлы.",
+      /* Las pestañas de Ayuda y guía (idea 5, 8-10-2026). */
+      ay_tab_faq: "Частые вопросы",
+      ay_tab_dil: "Где оформить документы",
+      ay_tab_rec: "Шаги и документы для каждой процедуры",
+      ay_n_enlaces: "Ссылок: {n}",
+      ay_n_enlace: "Ссылок: {n}",
       pl_nav:      "Обработка данных",
       pl_titulo:   "Обработка ваших данных",
       pl_sub:      "Версия {n} · перед входом",
@@ -11990,6 +12026,12 @@ window.CIIP_PASOS = {
       pe_recaudos:   "Savez-vous quelles pièces il vous faut ?",
       ay_hor_t:      "Horaires d’ouverture",
       ay_hor:        "Du lundi au vendredi, de 8 h à 17 h, heure du Venezuela.",
+      /* Las pestañas de Ayuda y guía (idea 5, 8-10-2026). */
+      ay_tab_faq: "Questions fréquentes",
+      ay_tab_dil: "Où effectuer les démarches",
+      ay_tab_rec: "Étapes et pièces de chaque démarche",
+      ay_n_enlaces: "{n} liens",
+      ay_n_enlace: "{n} lien",
       /* The data processing terms. Asked ONCE per version; older versions
          stay readable afterwards, hence one set of texts for the gate and
          another for the view.
@@ -13789,6 +13831,12 @@ window.CIIP_PASOS = {
       pe_recaudos:   "必要な書類をご存じですか？",
       ay_hor_t:      "受付時間",
       ay_hor:        "月曜日～金曜日、午前8時～午後5時（ベネズエラ時間）。",
+      /* Las pestañas de Ayuda y guía (idea 5, 8-10-2026). */
+      ay_tab_faq: "よくある質問",
+      ay_tab_dil: "各手続きの窓口",
+      ay_tab_rec: "各手続きの流れと必要書類",
+      ay_n_enlaces: "リンク {n} 件",
+      ay_n_enlace: "リンク {n} 件",
       /* The data processing terms. Asked ONCE per version; older versions
          stay readable afterwards, hence one set of texts for the gate and
          another for the view.

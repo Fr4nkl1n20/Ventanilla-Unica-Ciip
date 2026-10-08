@@ -1615,11 +1615,16 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
       <!-- El horario de atencion del CIIP, lo primero que se ve (pedido del
            CIIP, 28-9-2026). Lo pinta pintaAyuda. -->
       <div id="ayHorario"></div>
+      <!-- Tres pestañas, una por sección, con cuántas cosas trae cada una
+           (idea 5 de maquetas/ayuda-categorias.html, Franklin Reyes,
+           8-10-2026). Las pinta pintaAyuda; cada sección lleva su
+           data-ay-panel. En «Editar textos» se ven las tres a la vez. -->
+      <div class="ay-pest" id="ayPest" role="tablist"></div>
       <!-- Las preguntas frecuentes, que vivian al final de la portada. Se
            mudan aqui, que es la pantalla a la que se va a preguntar, y de
            paso la portada acaba en las fichas de tu etapa.
            No se borraron: son las mismas siete, con sus catorce claves. -->
-      <div class="section-gap faq-sec">
+      <div class="section-gap faq-sec" data-ay-panel="faq">
         <button class="sec-h faq-h" type="button" aria-expanded="true" aria-controls="faqLista">
           <span class="t" id="faqTitulo" data-i18n="faq.title">Frequently asked questions</span>
           <span class="sub" data-i18n="faq.sub">The doubts investors raise most often</span>

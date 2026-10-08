@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Ayuda y guía, cuatro formas</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   AYUDA Y GUÍA: CUATRO FORMAS MÁS INFORMATIVAS
+
+   Franklin Reyes, 8-10-2026: «que se vea mejor, más informativa». Hoy la
+   pantalla es el horario, siete preguntas cerradas en una columna y, más
+   abajo, las diligencias y los enlaces de pasos y recaudos.
+
+   El contenido es el de hoy (preguntas, horario, diligencias, enlaces);
+   lo que cambia es cómo se ordena y cuánto se ve sin pulsar. Las respuestas
+   que no están en el diccionario del panel van como «respuesta de hoy». No
+   toca el panel.
+   ══════════════════════════════════════════════════════════════════ */
+:root{ --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB;
+  --navy-deep:#00336d; --cyan:#20B0F0; }
+main{max-width:1280px; padding:28px 26px 90px; margin:0 auto;}
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.intro b{color:var(--ink);}
+.indice{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 0;}
+.indice a{font-size:12px; font-weight:700; color:var(--navy2); text-decoration:none; background:#fff;
+  border:1px solid var(--line); border-radius:8px; padding:6px 11px;}
+.caso{margin-top:52px; scroll-margin-top:16px;}
+.caso-h{display:flex; align-items:center; gap:11px; margin-bottom:6px; flex-wrap:wrap;}
+.caso-n{width:28px; height:28px; border-radius:50%; background:var(--navy); color:#fff; font-size:13px;
+  font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;}
+.caso-t{font-size:17px; font-weight:700; letter-spacing:-.01em;}
+.caso-q{font-size:12.5px; color:var(--gray); line-height:1.65; max-width:96ch; margin:0 0 12px 39px;}
+.caso-q b{color:var(--ink);}
+.balanza{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 0 16px 39px; max-width:980px;}
+.pro, .contra{font-size:12px; line-height:1.55; border-radius:10px; padding:10px 13px;}
+.pro{background:var(--good-bg); color:#16573F;} .contra{background:var(--amber-bg); color:#7A5214;}
+.pro b, .contra b{display:block; font-size:10px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:3px;}
+
+/* la pantalla: menú azul + contenido */
+.pantalla{margin-left:39px; border:1px dashed #C9CED8; border-radius:14px; background:var(--block); padding:16px;
+  display:grid; grid-template-columns:200px minmax(0,1fr); gap:16px; align-items:start;}
+.sbm{background:linear-gradient(180deg,var(--navy) 0%, var(--navy-deep) 100%); border-radius:12px; padding:10px 8px; color:#fff;}
+.sbm-g{font-size:11px; font-weight:700; color:rgba(255,255,255,.55); padding:6px 10px 4px;}
+.sbm-i{position:relative; padding:8px 10px; border-radius:8px; font-size:12.5px; color:rgba(255,255,255,.82);}
+.sbm-i.on{background:rgba(32,176,240,.16); color:#fff; font-weight:700;}
+.sbm-i.on::before{content:""; position:absolute; left:0; top:6px; bottom:6px; width:3px; background:var(--cyan); border-radius:0 3px 3px 0;}
+.pan{min-width:0; display:grid; gap:14px;}
+
+/* piezas comunes */
+.card{background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px 18px; box-shadow:0 1px 2px rgba(0,0,0,.04);}
+.t{font-size:14px; font-weight:700; letter-spacing:-.01em;}
+.s{font-size:12px; color:var(--gray); margin-top:2px; line-height:1.5;}
+.chip{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; border-radius:20px; padding:2px 9px; white-space:nowrap;}
+.chip.ok{background:var(--good-bg); color:var(--good);} .chip.az{background:var(--activa-bg); color:var(--navy2);}
+.chip.mu{background:var(--line-soft); color:var(--gray);} .chip.am{background:var(--amber-bg); color:var(--amber);}
+.chip i{width:6px; height:6px; border-radius:50%; background:currentColor;}
+.btn2{font:inherit; font-size:12px; font-weight:700; border-radius:8px; padding:8px 13px; border:1px solid var(--line); background:#fff; color:var(--ink); display:inline-flex; align-items:center; gap:6px;}
+.btn2.prim{background:var(--navy); border-color:var(--navy); color:#fff;}
+.preg{border:1px solid var(--line); border-radius:10px; background:#fff; padding:12px 14px;}
+.preg + .preg{margin-top:8px;}
+.preg .q{font-size:13px; font-weight:700; display:flex; gap:10px; align-items:flex-start; justify-content:space-between;}
+.preg .a{font-size:12.5px; color:var(--gray); line-height:1.6; margin-top:6px;}
+.preg.abierta{border-color:#BFD5EE; box-shadow:inset 3px 0 0 var(--navy2);}
+.flecha{color:var(--gray-soft); flex:none;}
+.lnk{font-size:12px; color:var(--navy2); font-weight:600; display:flex; gap:8px; align-items:center; padding:6px 0; border-bottom:1px solid var(--line-soft);}
+.lnk:last-child{border-bottom:0;}
+.lnk .tipo{margin-left:auto;}
+.ic{width:34px; height:34px; border-radius:9px; display:grid; place-items:center; background:var(--activa-bg); color:var(--navy2); flex:none;}
+.ic svg{width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.8;}
+
+/* 1 · centro de ayuda */
+.hero{background:linear-gradient(120deg,#004090 0%, #00336d 75%); color:#fff; border-radius:14px; padding:24px 26px; display:grid; gap:14px;}
+.hero h3{margin:0; font-size:22px; letter-spacing:-.01em;}
+.hero .busca{background:#fff; border-radius:10px; padding:11px 14px; color:#8A93A6; font-size:13px; display:flex; gap:10px; align-items:center;}
+.hero .estado{display:flex; gap:10px; flex-wrap:wrap; font-size:12px; color:rgba(255,255,255,.85);}
+.hero .estado b{color:#fff;}
+.temas{display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:10px;}
+.tema{background:#fff; border:1px solid var(--line); border-radius:12px; padding:13px; display:grid; gap:8px;}
+.tema.on{border-color:var(--navy2); box-shadow:inset 0 -3px 0 var(--navy2);}
+.tema b{font-size:12.5px;} .tema span{font-size:11px; color:var(--gray);}
+.dos{display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:14px; align-items:start;}
+
+/* 2 · guía por etapas */
+.etapas{display:grid; gap:12px;}
+.etapa{display:grid; grid-template-columns:44px minmax(0,1fr); gap:14px;}
+.etapa .n{width:44px; height:44px; border-radius:50%; background:#fff; border:2px solid var(--navy2); color:var(--navy2); font-weight:800; display:grid; place-items:center; position:relative;}
+.etapa:not(:last-child) .n::after{content:""; position:absolute; top:46px; left:50%; width:2px; height:calc(100% + 40px); background:var(--line); transform:translateX(-50%);}
+.etapa .cont{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px;}
+.etapa .cab{grid-column:1 / -1;}
+.mini{background:#fff; border:1px solid var(--line); border-radius:10px; padding:11px 12px;}
+.mini .r{font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--gray-soft); margin-bottom:6px;}
+.mini p{margin:0 0 6px; font-size:12px; line-height:1.45;}
+.mini p:last-child{margin:0;}
+
+/* 3 · preguntas + directorio */
+.tres{display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:14px; align-items:start;}
+.dir h4{margin:0 0 4px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--gray);}
+.dir .grupo + .grupo{margin-top:14px; padding-top:12px; border-top:1px solid var(--line-soft);}
+.reloj{display:flex; gap:12px; align-items:center;}
+.barra-h{height:6px; border-radius:6px; background:var(--line-soft); margin-top:8px; position:relative;}
+.barra-h i{position:absolute; left:0; top:0; bottom:0; width:72%; background:var(--good); border-radius:6px;}
+.filtros{display:flex; gap:6px; flex-wrap:wrap;}
+.filtro{font-size:11.5px; font-weight:700; border:1px solid var(--line); border-radius:999px; padding:5px 11px; background:#fff; color:var(--gray);}
+.filtro.on{background:var(--ink); color:#fff; border-color:var(--ink);}
+
+/* 4 · datos clave + tabla */
+.cifras{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px;}
+.cifra{background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 15px;}
+.cifra b{display:block; font-size:24px; letter-spacing:-.02em; color:var(--navy);}
+.cifra span{font-size:11.5px; color:var(--gray); line-height:1.45; display:block; margin-top:2px;}
+.tabla{width:100%; border-collapse:collapse; font-size:12px; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+.tabla th, .tabla td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line-soft); vertical-align:top;}
+.tabla th{font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--gray); background:var(--card-2);}
+.tabla tr:last-child td{border-bottom:0;}
+.franja{display:flex; gap:14px; align-items:center; flex-wrap:wrap; background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 16px;}
+.franja .sp{flex:1;}
+
+.cierre{margin:56px 0 0; border-top:1px solid var(--line); padding-top:22px;}
+.cierre h2{font-size:15px; margin:0 0 10px;}
+.cierre table{border-collapse:collapse; width:100%; max-width:980px; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden; font-size:12px;}
+.cierre th, .cierre td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line-soft); vertical-align:top;}
+.cierre th{font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--gray); background:var(--card-2);}
+@media (max-width:1100px){ .pantalla{grid-template-columns:1fr; margin-left:0;} .sbm{display:none;} .caso-q, .balanza{margin-left:0;}
+  .temas{grid-template-columns:repeat(3,1fr);} .dos, .tres{grid-template-columns:1fr;} .etapa .cont, .cifras{grid-template-columns:1fr 1fr;} }
+</style>
+</head>
+<body>
+
+<div class="mq-cartel">
+  <b>Maqueta · no es la aplicación</b>
+  <span>Cuatro formas de «Ayuda y guía», más informativas. El contenido es el de hoy; no toca el panel.</span>
+</div>
+
+<main>
+  <p class="intro">
+    Hoy «Ayuda y guía» es el horario, <b>siete preguntas cerradas</b> una debajo de otra y, más abajo, las diligencias y los
+    enlaces de pasos y recaudos. Para saber algo hay que abrir pregunta por pregunta, y lo útil —dónde hacer cada cosa— queda al final.
+    Estas cuatro formas usan <b>el mismo contenido</b> y lo ordenan para que se entienda más sin pulsar.
+  </p>
+  <div class="indice">
+    <a href="#i1">1 · Centro de ayuda con temas</a><a href="#i2">2 · Guía por etapas</a>
+    <a href="#i3">3 · Preguntas y directorio</a><a href="#i4">4 · Datos clave y tabla</a><a href="#cierre">Comparación</a>
+  </div>
+
+  <!-- ═════════════ 1 ═════════════ -->
+  <section class="caso" id="i1">
+    <div class="caso-h"><span class="caso-n">1</span><span class="caso-t">Centro de ayuda con temas</span></div>
+    <p class="caso-q">Arriba, una franja azul con un <b>buscador</b> y si el CIIP está <b>abierto ahora</b>. Debajo, cinco
+      <b>temas</b> con cuántas preguntas tiene cada uno; al elegir uno se filtran las preguntas, con la primera ya abierta. A la
+      derecha, siempre a la vista, cómo hablar con el CIIP y las diligencias más pedidas.</p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Se encuentra la respuesta escribiendo, sin leer las siete. Contactar al CIIP está siempre a un clic, no al final de la página.</div>
+      <div class="contra"><b>En contra</b>Hay que asignar un tema a cada pregunta, y el buscador es trabajo nuevo.</div>
+    </div>
+    <div class="pantalla">
+      <nav class="sbm"><div class="sbm-g">Acompañamiento</div><div class="sbm-i">Citas y agenda</div><div class="sbm-i on">Ayuda y guía</div></nav>
+      <div class="pan">
+        <div class="hero">
+          <h3>¿En qué te ayudamos?</h3>
+          <div class="busca">⌕&nbsp; Busca una pregunta: visa, RIF, empleados, impuestos…</div>
+          <div class="estado"><span class="chip ok" style="background:#E7F4EE"><i></i>Abierto ahora</span><span><b>Lunes a viernes, 8:00 a. m. – 5:00 p. m.</b> · hora de Venezuela</span></div>
+        </div>
+        <div class="temas">
+          <div class="tema on"><b>Empresa</b><span>3 preguntas</span></div>
+          <div class="tema"><b>Visas</b><span>2 preguntas</span></div>
+          <div class="tema"><b>Trabajo y personal</b><span>1 pregunta</span></div>
+          <div class="tema"><b>Impuestos y parafiscales</b><span>Enlaces oficiales</span></div>
+          <div class="tema"><b>Permisos municipales</b><span>Enlaces oficiales</span></div>
+        </div>
+        <div class="dos">
+          <div>
+            <div class="preg abierta"><div class="q">¿Cuáles son los pasos generales para constituir una empresa en Venezuela?<span class="chip az">Empresa</span></div>
+              <div class="a">Respuesta de hoy. Debajo, enlace a «Constitución de la compañía» para empezarla desde el panel.</div>
+              <div style="margin-top:10px"><span class="btn2">Ir al trámite →</span></div></div>
+            <div class="preg"><div class="q">¿Qué tipo de sociedad conviene más a un inversionista extranjero?<span class="flecha">›</span></div></div>
+            <div class="preg"><div class="q">¿Es necesario estar físicamente en Venezuela para constituir la empresa?<span class="flecha">›</span></div></div>
+          </div>
+          <div class="card">
+            <div class="t">¿No encuentras la respuesta?</div>
+            <div class="s">El equipo del CIIP te contesta en horario de atención.</div>
+            <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap"><span class="btn2 prim">Escribir mi consulta</span><span class="btn2">Pedir una cita</span></div>
+            <div style="margin-top:16px" class="t">Diligencias más pedidas</div>
+            <div class="lnk">Firma electrónica · Authenology <span class="tipo chip mu">Web</span></div>
+            <div class="lnk">Certificado médico · Locatel La Castellana <span class="tipo chip ok">WhatsApp</span></div>
+            <div class="lnk">Planilla de solicitud de visa <span class="tipo chip am">PDF</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════ 2 ═════════════ -->
+  <section class="caso" id="i2">
+    <div class="caso-h"><span class="caso-n">2</span><span class="caso-t">Guía por etapas</span></div>
+    <p class="caso-q">La ayuda ordenada como el <b>camino del panel</b>: Llegada, Estructura corporativa, Registros y Operación. En
+      cada etapa, en tres columnas: <b>las preguntas</b> de esa etapa, <b>dónde hacer las diligencias</b> y los <b>enlaces oficiales</b> de
+      pasos y recaudos. Se entiende qué toca en cada momento.</p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Habla el mismo idioma que «Mi panel»: el inversionista ve la ayuda de la etapa en la que está. Lo de cada etapa queda junto.</div>
+      <div class="contra"><b>En contra</b>Es la más larga de leer entera. Algunas preguntas sirven a dos etapas y hay que decidir dónde van.</div>
+    </div>
+    <div class="pantalla">
+      <nav class="sbm"><div class="sbm-g">Acompañamiento</div><div class="sbm-i">Citas y agenda</div><div class="sbm-i on">Ayuda y guía</div></nav>
+      <div class="pan">
+        <div class="franja"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+          <div><div class="t">Horario de atención</div><div class="s">Lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela</div></div>
+          <span class="sp"></span><span class="chip ok"><i></i>Abierto ahora</span></div>
+        <div class="etapas">
+          <div class="etapa"><div class="n">1</div><div class="cont">
+            <div class="cab"><div class="t">Llegada · visas y documentos personales</div><div class="s">Tu entrada y tus papeles en Venezuela</div></div>
+            <div class="mini"><div class="r">Preguntas</div><p>¿Qué es la Visa de Transeúnte Inversionista (TR-I)?</p><p>¿Cuánto dura y se puede renovar?</p><p>¿Qué es la Visa Transeúnte de Negocios?</p></div>
+            <div class="mini"><div class="r">Dónde</div><p>Certificado médico · Locatel La Castellana, Locatel Mercedes (WhatsApp)</p></div>
+            <div class="mini"><div class="r">Descargas</div><p>Planilla de solicitud de visa (PDF)</p></div>
+          </div></div>
+          <div class="etapa"><div class="n">2</div><div class="cont">
+            <div class="cab"><div class="t">Estructura corporativa · constituir la empresa</div><div class="s">Del nombre al Registro Mercantil</div></div>
+            <div class="mini"><div class="r">Preguntas</div><p>¿Cuáles son los pasos para constituir una empresa?</p><p>¿Qué tipo de sociedad conviene?</p><p>¿Hay que estar en Venezuela?</p></div>
+            <div class="mini"><div class="r">Dónde</div><p>Firma electrónica · Authenology, Apacuana, PROCERT</p></div>
+            <div class="mini"><div class="r">Enlaces</div><p>Ir a «Constitución de la compañía» →</p></div>
+          </div></div>
+          <div class="etapa"><div class="n">3</div><div class="cont">
+            <div class="cab"><div class="t">Registros · parafiscales y regulatorios</div><div class="s">Inscribir la empresa ante cada ente</div></div>
+            <div class="mini"><div class="r">Preguntas</div><p>¿Puedo tener empleados extranjeros?</p></div>
+            <div class="mini"><div class="r">Enlaces oficiales</div><p>BANAVIH · FAOV</p><p>INCES</p><p>IVSS · Seguro Social</p></div>
+            <div class="mini"><div class="r">Sanitario</div><p>SACS · recaudos y formularios</p></div>
+          </div></div>
+          <div class="etapa"><div class="n">4</div><div class="cont">
+            <div class="cab"><div class="t">Operación · permisos para abrir</div><div class="s">Licencias municipales y bomberos</div></div>
+            <div class="mini"><div class="r">Licencia de Actividades Económicas</div><p>Municipio Chacao · Municipio Baruta</p></div>
+            <div class="mini"><div class="r">Conformidad de uso</div><p>Libertador · Sucre</p></div>
+            <div class="mini"><div class="r">Permiso de bomberos</div><p>Estado Miranda · Distrito Capital</p></div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════ 3 ═════════════ -->
+  <section class="caso" id="i3">
+    <div class="caso-h"><span class="caso-n">3</span><span class="caso-t">Preguntas y directorio</span></div>
+    <p class="caso-q">Dos columnas. A la izquierda, las preguntas con <b>filtros por tema</b> y la <b>respuesta visible en dos líneas</b>,
+      para leer sin abrir; se despliega para verla entera. A la derecha, fijo al bajar, un <b>directorio</b>: el horario con
+      una barra de cuánto queda de jornada, y dónde hacer cada diligencia, con su tipo de enlace (web, WhatsApp, PDF).</p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Las respuestas se leen sin pulsar, y el directorio, que es lo más práctico, deja de estar al final. Es la que menos cambia el contenido.</div>
+      <div class="contra"><b>En contra</b>En el móvil las dos columnas pasan a una, y el directorio vuelve a quedar debajo.</div>
+    </div>
+    <div class="pantalla">
+      <nav class="sbm"><div class="sbm-g">Acompañamiento</div><div class="sbm-i">Citas y agenda</div><div class="sbm-i on">Ayuda y guía</div></nav>
+      <div class="pan tres">
+        <div>
+          <div class="filtros" style="margin-bottom:10px"><span class="filtro on">Todas · 7</span><span class="filtro">Empresa</span><span class="filtro">Visas</span><span class="filtro">Trabajo</span></div>
+          <div class="preg abierta"><div class="q">1 · ¿Puedo tener empleados extranjeros?<span class="flecha">⌄</span></div>
+            <div class="a">La ley laboral venezolana exige que al menos el 90 % del personal sea venezolano (la regla 90/10), así que el personal extranjero suele limitarse al 10 %…</div></div>
+          <div class="preg"><div class="q">2 · ¿Cuáles son los pasos generales para constituir una empresa en Venezuela?<span class="flecha">›</span></div>
+            <div class="a">Respuesta de hoy, en sus dos primeras líneas…</div></div>
+          <div class="preg"><div class="q">3 · ¿Qué tipo de sociedad conviene más a un inversionista extranjero?<span class="flecha">›</span></div>
+            <div class="a">Respuesta de hoy, en sus dos primeras líneas…</div></div>
+          <div class="preg"><div class="q">4 · ¿Es necesario estar físicamente en Venezuela para constituir la empresa?<span class="flecha">›</span></div>
+            <div class="a">Respuesta de hoy, en sus dos primeras líneas…</div></div>
+          <div class="preg"><div class="q">5 · ¿Qué es la Visa de Transeúnte Inversionista (TR-I) y quién puede solicitarla?<span class="flecha">›</span></div>
+            <div class="a">Respuesta de hoy, en sus dos primeras líneas…</div></div>
+        </div>
+        <div class="card dir">
+          <div class="grupo">
+            <h4>Horario de atención</h4>
+            <div class="reloj"><span class="chip ok"><i></i>Abierto</span><span class="s" style="margin:0">Cierra a las 5:00 p. m. · lunes a viernes</span></div>
+            <div class="barra-h"><i></i></div>
+          </div>
+          <div class="grupo"><h4>Firma electrónica</h4>
+            <div class="lnk">Authenology<span class="tipo chip mu">Web</span></div>
+            <div class="lnk">Soluciones Tecnológicas Apacuana<span class="tipo chip mu">Web</span></div>
+            <div class="lnk">PROCERT<span class="tipo chip mu">Web</span></div></div>
+          <div class="grupo"><h4>Certificados médicos</h4>
+            <div class="lnk">Locatel de La Castellana · 0424-2425377<span class="tipo chip ok">WhatsApp</span></div>
+            <div class="lnk">Locatel Mercedes · 0414-2115835<span class="tipo chip ok">WhatsApp</span></div></div>
+          <div class="grupo"><h4>Descargas</h4>
+            <div class="lnk">Planilla de solicitud de visa<span class="tipo chip am">PDF</span></div></div>
+          <div class="grupo"><span class="btn2 prim">Escribir mi consulta</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════ 4 ═════════════ -->
+  <section class="caso" id="i4">
+    <div class="caso-h"><span class="caso-n">4</span><span class="caso-t">Datos clave y tabla</span></div>
+    <p class="caso-q">Arriba, <b>cuatro datos que todo inversionista pregunta</b>, en cifras, sacados de las respuestas de hoy. Luego
+      las preguntas en dos columnas, y al final <b>una tabla</b> «Dónde hacer cada cosa»: la diligencia, dónde y cómo contactar,
+      en vez de listas sueltas.</p>
+    <div class="balanza">
+      <div class="pro"><b>A favor</b>Lo más preguntado se responde con una mirada a las cifras. La tabla compara lugares de un vistazo.</div>
+      <div class="contra"><b>En contra</b>Las cifras hay que mantenerlas al día a mano: si cambia el IVA o un plazo, hay que tocarlas. El abogado debería validarlas.</div>
+    </div>
+    <div class="pantalla">
+      <nav class="sbm"><div class="sbm-g">Acompañamiento</div><div class="sbm-i">Citas y agenda</div><div class="sbm-i on">Ayuda y guía</div></nav>
+      <div class="pan">
+        <div class="franja"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+          <div><div class="t">Horario de atención</div><div class="s">Lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela</div></div>
+          <span class="sp"></span><span class="btn2">Pedir una cita</span><span class="btn2 prim">Escribir mi consulta</span></div>
+        <div class="cifras">
+          <div class="cifra"><b>90 / 10</b><span>Al menos el 90 % del personal debe ser venezolano</span></div>
+          <div class="cifra"><b>2–3 sem.</b><span>Lo que tarda constituir la empresa desde que se firma el acta</span></div>
+          <div class="cifra"><b>16 %</b><span>IVA general, además del ISLR y la patente municipal</span></div>
+          <div class="cifra"><b>Sin mínimo</b><span>No hay capital mínimo legal para una C.A.</span></div>
+        </div>
+        <div class="dos" style="grid-template-columns:1fr 1fr">
+          <div><div class="preg"><div class="q">¿Puedo tener empleados extranjeros?<span class="flecha">›</span></div></div>
+            <div class="preg"><div class="q">¿Cuáles son los pasos generales para constituir una empresa?<span class="flecha">›</span></div></div>
+            <div class="preg"><div class="q">¿Qué tipo de sociedad conviene más?<span class="flecha">›</span></div></div>
+            <div class="preg"><div class="q">¿Es necesario estar físicamente en Venezuela?<span class="flecha">›</span></div></div></div>
+          <div><div class="preg"><div class="q">¿Qué es la Visa de Transeúnte Inversionista (TR-I)?<span class="flecha">›</span></div></div>
+            <div class="preg"><div class="q">¿Cuánto dura la visa de inversionista? ¿Se renueva?<span class="flecha">›</span></div></div>
+            <div class="preg"><div class="q">¿Qué es la VISA Transeúnte de Negocios?<span class="flecha">›</span></div></div></div>
+        </div>
+        <table class="tabla">
+          <thead><tr><th>Diligencia</th><th>Dónde</th><th>Cómo</th></tr></thead>
+          <tbody>
+            <tr><td><b>Firma electrónica</b></td><td>Authenology · Apacuana · PROCERT</td><td><span class="chip mu">Web</span></td></tr>
+            <tr><td><b>Certificado médico</b></td><td>Locatel La Castellana · Locatel Mercedes</td><td><span class="chip ok">WhatsApp</span></td></tr>
+            <tr><td><b>Licencia de Actividades Económicas</b></td><td>Municipio Chacao · Municipio Baruta</td><td><span class="chip mu">Web</span></td></tr>
+            <tr><td><b>Conformidad de uso</b></td><td>Libertador · Sucre</td><td><span class="chip am">PDF</span></td></tr>
+            <tr><td><b>Permiso de bomberos</b></td><td>Estado Miranda · Distrito Capital</td><td><span class="chip mu">Web</span></td></tr>
+            <tr><td><b>Parafiscales</b></td><td>BANAVIH · INCES · IVSS</td><td><span class="chip mu">Web</span> <span class="chip am">PDF</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="cierre" id="cierre">
+    <h2>Las cuatro, lado a lado</h2>
+    <table>
+      <thead><tr><th>Forma</th><th>Cómo se encuentra una respuesta</th><th>Dónde queda el contacto</th><th>Trabajo nuevo</th></tr></thead>
+      <tbody>
+        <tr><td><b>1 · Centro de ayuda</b></td><td>Buscador y temas</td><td>Siempre a la derecha</td><td>Buscador y un tema por pregunta</td></tr>
+        <tr><td><b>2 · Guía por etapas</b></td><td>Por la etapa del panel</td><td>En el horario de arriba</td><td>Repartir el contenido por etapas</td></tr>
+        <tr><td><b>3 · Preguntas y directorio</b></td><td>Filtros y respuesta visible</td><td>En el directorio fijo</td><td>Poco: reordenar lo que hay</td></tr>
+        <tr><td><b>4 · Datos clave y tabla</b></td><td>Cifras arriba y preguntas en dos columnas</td><td>En la franja del horario</td><td>Cifras que mantener a mano</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+</body>
+</html>
