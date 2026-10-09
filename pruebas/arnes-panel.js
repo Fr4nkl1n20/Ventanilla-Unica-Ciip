@@ -10252,6 +10252,17 @@
          !!an && !!an.querySelector('.mc-anuncio-chip') && !!an.querySelector('.mc-anuncio-f') &&
          !!an.querySelector('.mc-anuncio-ir') && !!con.querySelector('[data-chat="contestacion"]'),
          an ? an.textContent.slice(0, 90) : '(sin anuncio)', 'Respuesta del SAPI… Escribir al CIIP');
+      var pes = con.querySelectorAll('.tr-pest .tr-pest-b');
+      ok('marca: el chat va en su pestaña, con el trámite elegido al entrar',
+         pes.length === 2 && pes[0].classList.contains('on') && !con.classList.contains('tr-en-chat') &&
+         !!con.querySelector('.tr-pest-chat [data-chat="contestacion"]') && !con.querySelector('ol [data-chat]'),
+         pes.length + ' pestañas', '2, «Tu trámite» elegida');
+      var irChat = con.querySelector('li.tr-chat-ir button');
+      if (irChat) irChat.click();
+      ok('marca: el botón bajo la etapa abre la pestaña del chat',
+         !!irChat && con.classList.contains('tr-en-chat') && pes[1].classList.contains('on'),
+         irChat ? con.className : '(sin botón)', 'tr-en-chat');
+      if (pes[0]) pes[0].click();
       var dev = pintaEn(tr('mc-h0', 'ante_el_ente', p3a, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
       var notaDev = dev.querySelector('li.tr-paso.ahora[data-paso="sapi"] .tr-nota');
       igual('marca: mientras se resuelve, «Solicitud en proceso» en curso y dice que hable en el chat',
@@ -11959,11 +11970,14 @@
   function chatMarcaMira(sigue){
     if (PASE !== 'vacio') return sigue();
     var U = window.CIIP_PASOS.ui[curLang] || {};
-    var chat = document.querySelector('#trReal li.tr-chat');
-    ok('chat marca: con la contestación habilitada, sale en la escalera', !!chat);
+    var chat = document.querySelector('#trReal .tr-pest-chat .tr-chat');
+    ok('chat marca: con la contestación habilitada, sale en su pestaña', !!chat);
     if (!chat) return sigue();
-    var antes = chat.previousElementSibling, luego = chat.nextElementSibling;
-    igual('chat marca: debajo de la etapa de la solicitud, antes de la marca registrada',
+    /* En la escalera queda solo el botón que abre la pestaña, debajo de la
+       etapa de la solicitud y antes de la marca registrada. */
+    var ir = document.querySelector('#trReal li.tr-chat-ir');
+    var antes = ir && ir.previousElementSibling, luego = ir && ir.nextElementSibling;
+    igual('chat marca: su botón, debajo de la etapa de la solicitud, antes de la marca registrada',
           (antes ? antes.getAttribute('data-paso') : '') + ' / ' + (luego ? luego.getAttribute('data-etapa') : ''),
           'en_registro / registrada');
     igual('chat marca: con su título', (chat.querySelector('.sol-h') || {}).textContent, U.ch_t);
@@ -11979,7 +11993,7 @@
   }
   function chatMarcaEscribe(sigue){
     if (PASE !== 'vacio') return sigue();
-    var chat = document.querySelector('#trReal li.tr-chat');
+    var chat = document.querySelector('#trReal .tr-pest-chat .tr-chat');
     var txt = chat && chat.querySelector('.hilo-txt');
     if (!txt) return sigue();
     txt.value = 'Qué clase pongo en la contestación?';
@@ -12011,7 +12025,7 @@
   function chatMarcaCerrado(sigue){
     if (PASE !== 'vacio') return sigue();
     var U = window.CIIP_PASOS.ui[curLang] || {};
-    var chat = document.querySelector('#trReal li.tr-chat');
+    var chat = document.querySelector('#trReal .tr-pest-chat .tr-chat');
     ok('chat marca: en registro sigue a la vista, para leer', !!chat && chat.querySelectorAll('.hilo-m').length >= 2);
     var txt = chat && chat.querySelector('.hilo-txt');
     ok('chat marca: pero ya no se escribe', !!txt && txt.disabled);

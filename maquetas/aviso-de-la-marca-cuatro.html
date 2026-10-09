@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · El aviso del CIIP sobre tu marca, cuatro formas</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   EL AVISO DEL CIIP SOBRE TU MARCA: CUATRO FORMAS
+
+   Franklin Reyes, 9-10-2026: el aviso del gestor -recuadro ámbar con borde
+   grueso, rótulo en mayúsculas ámbar- no combina con la ventanilla. Y
+   «necesito que los cuadros estén todos a la misma altura»: hoy el aviso
+   se sale por la derecha, más ancho que la tarjeta del trámite.
+
+   Cuatro formas del mismo mensaje con la piel del panel, en el trámite
+   abierto de verdad -tarjeta del ente, «Tu solicitud», aviso, etapa- y con
+   TODOS los cuadros del mismo ancho y los bordes alineados. No toca el panel.
+   ══════════════════════════════════════════════════════════════════ */
+:root{ --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB; }
+main{max-width:1000px; padding:28px 26px 90px; margin:0 auto;}
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.intro b{color:var(--ink);}
+.lista{display:grid; gap:34px; margin-top:24px;}
+.idea{display:grid; gap:10px;}
+.idea h3{margin:0; font-size:15px; display:flex; gap:9px; align-items:center;}
+.idea h3 .n{width:24px; height:24px; border-radius:50%; background:var(--navy); color:#fff; font-size:12px; display:grid; place-items:center;}
+.idea h3 .n.hoy{background:var(--gray-soft);}
+.idea > p{margin:0; font-size:12px; color:var(--gray); line-height:1.55; max-width:90ch;}
+.idea > p b{color:var(--ink);}
+
+/* el trámite abierto. Una sola columna: todo lo de dentro mide lo mismo */
+.fondo{background:var(--block); border:1px dashed #C9CED8; border-radius:14px; padding:20px;}
+.col{display:grid; gap:14px;}
+.col > *{width:100%; box-sizing:border-box; margin:0;}
+.tram{background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px 18px;}
+.tram-cab{display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding-bottom:12px; border-bottom:1px solid var(--line-soft);}
+.tram-cab > div{flex:1; min-width:180px;}
+.tram-cab h4{margin:0; font-size:15px; font-weight:700;}
+.tram-cab small{display:block; font-size:11.5px; font-weight:600; color:var(--gray); margin-top:3px;}
+.logo{width:44px; height:44px; border:1px solid var(--line); border-radius:9px; display:grid; place-items:center; font-size:10px; font-weight:800; color:var(--navy); flex:none;}
+.desc{font-size:12.5px; line-height:1.6; margin:12px 0 0; max-width:62ch;}
+.sol{display:flex; gap:10px; align-items:baseline; font-size:13px; font-weight:600;} .sol span{font-size:11.5px; color:var(--gray);}
+.etapa{display:flex; gap:9px; align-items:baseline; font-size:13px; font-weight:600;} .etapa span{font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--gray);}
+.pasos{display:flex; align-items:center; padding:2px 40px 0;}
+.pasos i{flex:1; height:3px; background:var(--good); border-radius:2px;}
+.pasos span{width:24px; height:24px; border-radius:50%; background:var(--good); color:#fff; font-size:11px; font-weight:700; display:grid; place-items:center; margin:0 5px;}
+
+.ico{width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; flex:none;}
+.lnk{font-size:12px; font-weight:700; color:var(--navy2); white-space:nowrap;}
+.btn{font:inherit; font-size:11.5px; font-weight:700; border-radius:8px; padding:7px 12px; border:1px solid var(--line); background:#fff; color:var(--navy2); white-space:nowrap;}
+
+/* la de hoy: se sale por la derecha, como en la captura */
+.a0{background:#FBF3E2; border:1px solid #B7791F; border-left-width:4px; border-radius:7px; padding:10px 12px; width:calc(100% + 60px) !important;}
+.a0 .t{font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#B7791F;}
+.a0 .d{font-size:12.5px; line-height:1.45; margin-top:4px;}
+.fondo.hoy{overflow:hidden;}
+
+/* 1 · mensaje del gestor */
+.a1{display:flex; gap:12px; align-items:flex-start; border:1px solid var(--line); border-radius:12px; padding:14px 18px; background:#fff;}
+.a1 .av{width:34px; height:34px; border-radius:50%; background:var(--navy); color:#fff; font-size:10px; font-weight:800; letter-spacing:.03em; display:grid; place-items:center; flex:none;}
+.a1 .cu{flex:1; min-width:0;}
+.a1 .qu{display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; font-size:12.5px;}
+.a1 .qu b{color:var(--ink);} .a1 .qu span{color:var(--gray); font-size:11px;}
+.a1 .bu{margin-top:6px; background:var(--block); border-radius:4px 12px 12px 12px; padding:9px 12px; font-size:12.5px; line-height:1.5; max-width:62ch;}
+
+/* 2 · franja azul suave */
+.a2{display:flex; gap:11px; align-items:flex-start; background:var(--activa-bg); border:1px solid #D3E2F3; border-radius:12px; padding:13px 18px; color:var(--navy2);}
+.a2 .cu{flex:1; min-width:0;}
+.a2 .t{font-size:12.5px; font-weight:700; color:var(--navy);}
+.a2 .d{font-size:12.5px; line-height:1.5; color:var(--ink); margin-top:2px;}
+.a2 .f{font-size:11px; color:var(--gray); white-space:nowrap; margin-top:1px;}
+
+/* 3 · con el estado y qué hacer */
+.a3{border:1px solid var(--line); border-left:3px solid var(--navy); border-radius:12px; padding:14px 18px; background:#fff; display:grid; gap:7px;}
+.a3 .cab{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.a3 .t{font-size:13px; font-weight:700;}
+.a3 .chip{font-size:10.5px; font-weight:700; border-radius:20px; padding:2px 9px; background:var(--rust-bg); color:var(--rust);}
+.a3 .f{margin-left:auto; font-size:11px; color:var(--gray);}
+.a3 .d{font-size:12.5px; line-height:1.5;}
+.a3 .pie{display:flex; gap:8px; align-items:center; flex-wrap:wrap; border-top:1px solid var(--line-soft); padding-top:10px; font-size:11.5px; color:var(--gray);}
+.a3 .pie .btn{margin-left:auto;}
+
+/* 4 · una fila de la tarjeta del trámite */
+.a4{margin:14px -18px -16px; padding:12px 18px; border-top:1px solid var(--line-soft); background:#FAFBFD; border-radius:0 0 12px 12px; display:flex; gap:12px; align-items:flex-start;}
+.a4 .rot{font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--gray); white-space:nowrap; padding-top:2px; min-width:96px;}
+.a4 .d{flex:1; min-width:0; font-size:12.5px; line-height:1.5;}
+.a4 .d small{display:block; font-size:11px; color:var(--gray); margin-top:2px;}
+.a4 .pt{width:7px; height:7px; border-radius:50%; background:var(--cyan); margin-top:6px; flex:none; box-shadow:0 0 0 3px rgba(32,176,240,.18);}
+
+@media(max-width:600px){
+  main{padding:20px 16px 60px;} .fondo{padding:14px;} .pasos{padding:2px 6px 0;}
+  .a4{flex-wrap:wrap;} .a4 .rot{min-width:0; width:100%;} .a3 .f{margin-left:0; width:100%;}
+  .tram-cab .lnk{white-space:normal;}
+}
+</style>
+</head>
+<body>
+<div class="mq-cartel"><b>Maqueta · no es la aplicación</b><span>El aviso del CIIP sobre tu marca: cuatro formas, todas del mismo ancho que la tarjeta del trámite. No toca el panel.</span></div>
+<main>
+  <p class="intro">Hoy el aviso es un <b>recuadro ámbar con borde grueso y rótulo en mayúsculas</b>, el único ámbar de la página, y además
+    <b>se sale por la derecha</b>: es más ancho que la tarjeta del trámite. En las cuatro, <b>todos los cuadros miden lo mismo</b> y sus bordes
+    caen en la misma línea; cambia solo cómo se dice <b>«el CIIP te escribió esto, tal día»</b>.</p>
+
+  <div class="lista">
+    <section class="idea">
+      <h3><span class="n hoy">·</span>La de hoy</h3>
+      <p>Como se ve ahora, para comparar: el aviso no termina donde termina la tarjeta de arriba.</p>
+      <div class="fondo hoy"><div class="col">
+        <div class="tram"><div class="tram-cab"><span class="logo">SAPI</span><div><h4>Registro de marca</h4><small>Servicio Autónomo de la Propiedad Intelectual (SAPI)</small></div><span class="lnk">Registro de marca en curso ante el SAPI</span></div>
+          <p class="desc">Registra ante el SAPI la marca de tu empresa, de tus productos o de tus servicios.</p></div>
+        <div class="sol">Tu solicitud<span>Enviada el 8 oct 2026</span></div>
+        <div class="a0"><div class="t">Aviso del CIIP sobre tu marca</div><div class="d">Buenos dias, el SAPI devolvió la marca porque no corresponde la clase<br>Escrito el 9 oct 2026</div></div>
+        <div class="etapa"><span>Etapa 1</span>Búsqueda de antecedentes</div>
+        <div class="pasos"><span>✓</span><i></i><span>✓</span><i></i><span>✓</span><i></i><span>✓</span></div>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">1</span>Mensaje del gestor</h3>
+      <p>Se lee como lo que es: <b>alguien del CIIP te escribe</b>. Avatar azul, quién y cuándo en una línea, y el texto en un <b>globo gris claro</b> como el del chat. Tarjeta blanca, mismo borde y mismo radio que la del trámite.</p>
+      <div class="fondo"><div class="col">
+        <div class="tram"><div class="tram-cab"><span class="logo">SAPI</span><div><h4>Registro de marca</h4><small>Servicio Autónomo de la Propiedad Intelectual (SAPI)</small></div><span class="lnk">Registro de marca en curso ante el SAPI</span></div>
+          <p class="desc">Registra ante el SAPI la marca de tu empresa, de tus productos o de tus servicios.</p></div>
+        <div class="sol">Tu solicitud<span>Enviada el 8 oct 2026</span></div>
+        <div class="a1">
+          <span class="av">CIIP</span>
+          <div class="cu">
+            <div class="qu"><b>Aviso del CIIP sobre tu marca</b><span>· 9 oct 2026</span></div>
+            <div class="bu">Buenos días, el SAPI devolvió la marca porque no corresponde la clase.</div>
+          </div>
+        </div>
+        <div class="etapa"><span>Etapa 1</span>Búsqueda de antecedentes</div>
+        <div class="pasos"><span>✓</span><i></i><span>✓</span><i></i><span>✓</span><i></i><span>✓</span></div>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">2</span>Franja azul suave</h3>
+      <p>El mismo sitio y el mismo peso que hoy, pero en el <b>azul claro del paso activo</b> con un icono de mensaje. Título en minúsculas y azul marino; la fecha <b>a la derecha</b>, pequeña, en vez de una línea suelta debajo.</p>
+      <div class="fondo"><div class="col">
+        <div class="tram"><div class="tram-cab"><span class="logo">SAPI</span><div><h4>Registro de marca</h4><small>Servicio Autónomo de la Propiedad Intelectual (SAPI)</small></div><span class="lnk">Registro de marca en curso ante el SAPI</span></div>
+          <p class="desc">Registra ante el SAPI la marca de tu empresa, de tus productos o de tus servicios.</p></div>
+        <div class="sol">Tu solicitud<span>Enviada el 8 oct 2026</span></div>
+        <div class="a2">
+          <svg class="ico" viewBox="0 0 24 24" style="margin-top:1px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <div class="cu">
+            <div class="t">Aviso del CIIP sobre tu marca</div>
+            <div class="d">Buenos días, el SAPI devolvió la marca porque no corresponde la clase.</div>
+          </div>
+          <span class="f">9 oct 2026</span>
+        </div>
+        <div class="etapa"><span>Etapa 1</span>Búsqueda de antecedentes</div>
+        <div class="pasos"><span>✓</span><i></i><span>✓</span><i></i><span>✓</span><i></i><span>✓</span></div>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">3</span>Con lo que hay que hacer</h3>
+      <p>Tarjeta blanca con un <b>filo azul fino</b> a la izquierda. Si el aviso cambia el estado, lo dice una <b>etiqueta</b> («Devuelta por el SAPI»), y abajo, separado, <b>qué toca ahora</b> con un botón para escribir al CIIP.</p>
+      <div class="fondo"><div class="col">
+        <div class="tram"><div class="tram-cab"><span class="logo">SAPI</span><div><h4>Registro de marca</h4><small>Servicio Autónomo de la Propiedad Intelectual (SAPI)</small></div><span class="lnk">Registro de marca en curso ante el SAPI</span></div>
+          <p class="desc">Registra ante el SAPI la marca de tu empresa, de tus productos o de tus servicios.</p></div>
+        <div class="sol">Tu solicitud<span>Enviada el 8 oct 2026</span></div>
+        <div class="a3">
+          <div class="cab"><span class="t">Aviso del CIIP sobre tu marca</span><span class="chip">Devuelta por el SAPI</span><span class="f">Escrito el 9 oct 2026</span></div>
+          <div class="d">Buenos días, el SAPI devolvió la marca porque no corresponde la clase.</div>
+          <div class="pie">Tu gestor te dirá cómo seguir. Si tienes dudas, escríbele.<span class="btn">Escribir al CIIP</span></div>
+        </div>
+        <div class="etapa"><span>Etapa 1</span>Búsqueda de antecedentes</div>
+        <div class="pasos"><span>✓</span><i></i><span>✓</span><i></i><span>✓</span><i></i><span>✓</span></div>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">4</span>Dentro de la tarjeta del trámite</h3>
+      <p>Lo más discreto: el aviso deja de ser una caja aparte y pasa a ser <b>el pie de la tarjeta del trámite</b>, con el rótulo «Último aviso» y un <b>punto cian</b> mientras no se ha leído. Un cuadro menos en la página.</p>
+      <div class="fondo"><div class="col">
+        <div class="tram"><div class="tram-cab"><span class="logo">SAPI</span><div><h4>Registro de marca</h4><small>Servicio Autónomo de la Propiedad Intelectual (SAPI)</small></div><span class="lnk">Registro de marca en curso ante el SAPI</span></div>
+          <p class="desc">Registra ante el SAPI la marca de tu empresa, de tus productos o de tus servicios.</p>
+          <div class="a4">
+            <span class="rot">Último aviso</span>
+            <div class="d">Buenos días, el SAPI devolvió la marca porque no corresponde la clase.<small>El CIIP · 9 oct 2026</small></div>
+            <span class="pt" title="Sin leer"></span>
+          </div>
+        </div>
+        <div class="sol">Tu solicitud<span>Enviada el 8 oct 2026</span></div>
+        <div class="etapa"><span>Etapa 1</span>Búsqueda de antecedentes</div>
+        <div class="pasos"><span>✓</span><i></i><span>✓</span><i></i><span>✓</span><i></i><span>✓</span></div>
+      </div></div>
+    </section>
+  </div>
+</main>
+</body>
+</html>

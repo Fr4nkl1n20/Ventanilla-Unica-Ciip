@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · El chat de la contestación, cuatro formas</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   EL CHAT DE LA CONTESTACIÓN: CUATRO FORMAS MÁS PEQUEÑAS
+
+   Franklin Reyes, 9-10-2026: «sin que ocupe tanto espacio». Hoy son cinco
+   pisos -título, explicación, mensajes, una caja de texto de tres líneas
+   y una fila de botones- para un solo mensaje. Las cuatro miden lo que la
+   tarjeta del trámite (880) y no tocan el panel.
+   ══════════════════════════════════════════════════════════════════ */
+:root{ --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB; }
+main{max-width:1000px; padding:28px 26px 90px; margin:0 auto;}
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.intro b{color:var(--ink);}
+.lista{display:grid; gap:34px; margin-top:24px;}
+.idea{display:grid; gap:10px;}
+.idea h3{margin:0; font-size:15px; display:flex; gap:9px; align-items:center;}
+.idea h3 .n{width:24px; height:24px; border-radius:50%; background:var(--navy); color:#fff; font-size:12px; display:grid; place-items:center;}
+.idea h3 .n.hoy{background:var(--gray-soft);}
+.idea h3 .alto{margin-left:auto; font-size:11px; font-weight:600; color:var(--gray);}
+.idea > p{margin:0; font-size:12px; color:var(--gray); line-height:1.55; max-width:90ch;}
+.idea > p b{color:var(--ink);}
+.fondo{background:var(--block); border:1px dashed #C9CED8; border-radius:14px; padding:20px;}
+.fondo > *{max-width:880px;}
+
+svg.i{width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; flex:none; display:block;}
+.caja{background:#fff; border:1px solid var(--line); border-left:3px solid var(--navy2); border-radius:12px; box-sizing:border-box;}
+.tit{font-size:13px; font-weight:700;}
+.gris{font-size:11px; color:var(--gray);}
+.pdf{display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:var(--navy2); border:1px solid var(--line); border-radius:8px; padding:4px 8px; background:#fff; max-width:100%;}
+.pdf b{font-size:9px; color:var(--rust); background:var(--rust-bg); border-radius:4px; padding:2px 4px;}
+.pdf span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.btn{font:inherit; font-size:11.5px; font-weight:700; border-radius:8px; padding:7px 12px; border:1px solid var(--line); background:#fff; color:var(--navy2); white-space:nowrap; display:inline-flex; align-items:center; gap:6px;}
+.btn.navy{background:var(--navy); color:#fff; border-color:var(--navy);}
+.redondo{width:34px; height:34px; border-radius:50%; display:grid; place-items:center; flex:none; border:0; background:transparent; color:var(--gray);}
+.redondo.env{background:var(--navy); color:#fff;}
+.nuevo{font-size:10px; font-weight:700; border-radius:20px; padding:2px 8px; background:var(--cyan); color:#06283b;}
+
+/* la de hoy */
+.h0{padding:16px 18px; display:grid; gap:12px;}
+.h0 .d{font-size:11.5px; color:var(--gray);}
+.h0 .msg{border:1px solid var(--line); border-radius:12px; padding:10px 14px; max-width:430px; display:grid; gap:6px;}
+.h0 .msg .q{font-size:11px; font-weight:700; color:var(--gray-soft);}
+.h0 .msg a{font-size:11.5px; font-weight:700; color:var(--navy2);}
+.h0 textarea{font:inherit; font-size:13px; border:1px solid var(--line); border-radius:10px; padding:10px 12px; height:64px; resize:none; width:100%; box-sizing:border-box;}
+.h0 .fila{display:flex; justify-content:space-between;}
+
+/* 1 · una fila que se abre */
+.c1{display:flex; align-items:center; gap:12px; padding:11px 16px;}
+.c1 .av{width:30px; height:30px; border-radius:50%; background:var(--navy); color:#fff; font-size:9px; font-weight:800; display:grid; place-items:center; flex:none;}
+.c1 .cu{flex:1; min-width:0;}
+.c1 .ul{font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.c1 .ul b{font-weight:700;}
+.c1-ab{margin-top:10px; padding:12px 16px; display:grid; gap:10px;}
+
+/* 2 · todo en una línea de escribir */
+.c2{padding:12px 16px; display:grid; gap:9px;}
+.c2 .cab{display:flex; align-items:baseline; gap:8px;}
+.c2 .cab .gris{margin-left:auto;}
+.c2 .msg{display:flex; gap:8px; align-items:flex-start; flex-wrap:wrap;}
+.c2 .bu{background:var(--block); border-radius:4px 12px 12px 12px; padding:7px 11px; font-size:12.5px;}
+.c2 .bu small{display:block; font-size:10.5px; color:var(--gray); margin-bottom:1px;}
+.escribe{display:flex; align-items:center; gap:4px; border:1px solid var(--line); border-radius:22px; padding:3px 3px 3px 6px;}
+.escribe input{flex:1; min-width:0; font:inherit; font-size:12.5px; border:0; outline:0; padding:6px 4px; background:transparent;}
+
+/* 3 · en la caja del aviso */
+.c3{padding:14px 18px; display:grid; gap:7px;}
+.c3 .cab{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.c3 .chip{font-size:10px; font-weight:700; border-radius:20px; padding:2px 9px; background:var(--rust-bg); color:var(--rust);}
+.c3 .cab .gris{margin-left:auto;}
+.c3 .d{font-size:12.5px; line-height:1.5;}
+.c3 .hilo{border-top:1px solid var(--line-soft); padding-top:9px; display:grid; gap:7px;}
+.c3 .yo{justify-self:end; background:var(--activa-bg); border-radius:12px 4px 12px 12px; padding:6px 11px; font-size:12.5px;}
+.c3 .yo small{display:block; font-size:10.5px; color:var(--gray); text-align:right;}
+
+/* 4 · un botón en el paso y el chat al lado */
+.c4-paso{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.c4-paso .gris{font-size:11.5px;}
+.c4-lado{position:relative; height:330px; border-radius:12px; overflow:hidden; background:linear-gradient(90deg, #EDF0F5 0, #EDF0F5 100%);}
+.c4-lado .velo{position:absolute; inset:0; background:rgba(14,20,36,.18);}
+.c4-lado .hoja{position:absolute; top:0; right:0; bottom:0; width:min(340px, 92%); background:#fff; border-left:1px solid var(--line); display:flex; flex-direction:column; box-shadow:-10px 0 30px rgba(14,20,36,.12);}
+.c4-lado .hc{display:flex; align-items:center; gap:8px; padding:12px 14px; border-bottom:1px solid var(--line);}
+.c4-lado .hc .x{margin-left:auto; color:var(--gray); font-size:16px;}
+.c4-lado .hm{flex:1; padding:12px 14px; display:grid; gap:8px; align-content:start; overflow:auto;}
+.c4-lado .hb{padding:10px 12px; border-top:1px solid var(--line);}
+@media(max-width:600px){ main{padding:20px 16px 60px;} .fondo{padding:14px;} }
+</style>
+</head>
+<body>
+<div class="mq-cartel"><b>Maqueta · no es la aplicación</b><span>El chat de la contestación: cuatro formas de que ocupe menos. Todas del ancho de la tarjeta del trámite; no toca el panel.</span></div>
+<main>
+  <p class="intro">Hoy el chat son <b>cinco pisos</b> —título, explicación, mensajes, una caja de texto de tres líneas y una fila con «Adjuntar» y «Enviar»—
+    y ocupa unos <b>340 px</b> con un solo mensaje. Las cuatro guardan lo mismo: <b>leer al gestor, escribirle y adjuntar</b>.</p>
+
+  <div class="lista">
+    <section class="idea">
+      <h3><span class="n hoy">·</span>La de hoy<span class="alto">≈ 340 px</span></h3>
+      <p>Como se ve ahora, para comparar.</p>
+      <div class="fondo"><div class="caja h0">
+        <div class="tit">Chat de la contestación</div>
+        <div class="d">El SAPI devolvió el registro. Escríbele aquí a tu gestor: le llega directamente, y por aquí te enviará los documentos que hagan falta.</div>
+        <div class="msg"><span class="q">CIIP · 9 oct 2026</span><span>El sapi devolvio la marca por esto y esto</span><a>Contratos corporativos en minería y petróleo (clase 3).pdf</a></div>
+        <textarea placeholder="Escribe tu mensaje al gestor…"></textarea>
+        <div class="fila"><span class="btn">Adjuntar</span><span class="btn navy">Enviar</span></div>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">1</span>Una fila que se abre<span class="alto">≈ 55 px cerrado</span></h3>
+      <p>Cerrado es <b>una sola fila</b>: el último mensaje recortado, una marca de <b>«Nuevo»</b> si el gestor escribió y no lo has leído, y «Abrir». Se abre en el sitio, con la caja de escribir de <b>una línea</b>. Lo más pequeño sin esconderlo.</p>
+      <div class="fondo">
+        <div class="caja c1">
+          <span class="av">CIIP</span>
+          <div class="cu">
+            <div class="tit" style="font-size:12.5px">Chat con tu gestor <span class="nuevo">1 nuevo</span></div>
+            <div class="ul"><span class="gris">CIIP, 9 oct ·</span> El sapi devolvio la marca por esto y esto · 📎 1 documento</div>
+          </div>
+          <span class="btn">Abrir <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+        </div>
+        <div class="gris" style="margin:14px 0 0">Abierta:</div>
+        <div class="caja c1-ab">
+          <div style="display:flex; align-items:center"><span class="tit">Chat con tu gestor</span><span class="btn" style="margin-left:auto; border:0; padding:4px">Cerrar <svg class="i" viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg></span></div>
+          <div style="display:grid; gap:6px; justify-items:start">
+            <div style="background:var(--block); border-radius:4px 12px 12px 12px; padding:7px 11px; font-size:12.5px"><small class="gris" style="display:block">CIIP · 9 oct 2026</small>El sapi devolvio la marca por esto y esto</div>
+            <span class="pdf"><b>PDF</b><span>Contratos corporativos en minería y petróleo (clase 3).pdf</span></span>
+          </div>
+          <div class="escribe"><span class="redondo"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg></span><input placeholder="Escribe a tu gestor…"><span class="redondo env"><svg class="i" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">2</span>Compacto, siempre abierto<span class="alto">≈ 150 px</span></h3>
+      <p>Abierto pero apretado: el título y la explicación en <b>una línea</b> («Te llega directamente»), el mensaje en un <b>globo</b> con su documento al lado como ficha, y la caja de escribir de <b>una línea</b> con el clip y el avión dentro, como en cualquier chat. Sin fila de botones aparte.</p>
+      <div class="fondo"><div class="caja c2">
+        <div class="cab"><span class="tit">Chat con tu gestor</span><span class="gris">Le llega directamente; por aquí te manda los documentos.</span></div>
+        <div class="msg">
+          <div class="bu"><small>CIIP · 9 oct 2026</small>El sapi devolvio la marca por esto y esto</div>
+          <span class="pdf" style="align-self:flex-end"><b>PDF</b><span>Contratos corporativos en minería y petróleo (clase 3).pdf</span></span>
+        </div>
+        <div class="escribe"><span class="redondo"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg></span><input placeholder="Escribe a tu gestor…"><span class="redondo env"><svg class="i" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></span></div>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">3</span>Dentro del aviso del CIIP<span class="alto">≈ 0 px más</span></h3>
+      <p>El aviso de arriba <b>ya es el primer mensaje</b> del gestor; el chat se vuelve <b>su continuación</b> en la misma tarjeta. El botón «Escribir al CIIP» se cambia por la caja de una línea, y las respuestas van debajo del aviso. Desaparece la caja de abajo entera.</p>
+      <div class="fondo"><div class="caja c3">
+        <div class="cab"><span class="tit">Aviso del CIIP sobre tu marca</span><span class="chip">Respuesta del SAPI</span><span class="gris">Escrito el 9 oct 2026</span></div>
+        <div class="d">El sapi devolvio la marca por esto y esto</div>
+        <span class="pdf" style="justify-self:start"><b>PDF</b><span>Contratos corporativos en minería y petróleo (clase 3).pdf</span></span>
+        <div class="hilo">
+          <div class="yo"><small>Tú · 9 oct, 11:20</small>¿Qué clase debería poner entonces?</div>
+          <div class="escribe"><span class="redondo"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg></span><input placeholder="Responder a tu gestor…"><span class="redondo env"><svg class="i" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></span></div>
+        </div>
+      </div></div>
+    </section>
+
+    <section class="idea">
+      <h3><span class="n">4</span>Un botón, y el chat al lado<span class="alto">≈ 35 px en la página</span></h3>
+      <p>En la escalera solo queda <b>una línea con un botón</b> «Chat con tu gestor» y cuántos mensajes hay. Al pulsarlo, el chat se abre en un <b>panel lateral</b> a la derecha, a toda la altura, sin mover la página. Bien para conversaciones largas.</p>
+      <div class="fondo" style="display:grid; gap:14px">
+        <div class="c4-paso"><span class="btn"><svg class="i" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat con tu gestor</span><span class="nuevo">1 nuevo</span><span class="gris">Último mensaje: 9 oct 2026</span></div>
+        <div class="gris">Pulsado:</div>
+        <div class="c4-lado"><div class="velo"></div>
+          <div class="hoja">
+            <div class="hc"><span class="tit">Chat con tu gestor</span><span class="x">×</span></div>
+            <div class="hm">
+              <div class="gris">El SAPI devolvió el registro. Por aquí te manda los documentos.</div>
+              <div style="background:var(--block); border-radius:4px 12px 12px 12px; padding:7px 11px; font-size:12.5px; justify-self:start"><small class="gris" style="display:block">CIIP · 9 oct 2026</small>El sapi devolvio la marca por esto y esto</div>
+              <span class="pdf" style="justify-self:start"><b>PDF</b><span>Contratos corporativos… (clase 3).pdf</span></span>
+            </div>
+            <div class="hb"><div class="escribe"><span class="redondo"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg></span><input placeholder="Escribe a tu gestor…"><span class="redondo env"><svg class="i" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+</body>
+</html>

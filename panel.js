@@ -10457,6 +10457,44 @@ applyLang(idiomaParaMi());
     cuando = cuando || {};
     var cajaTr = lista.parentNode;
 
+    /* EL CHAT EN SU PESTAÑA (Franklin Reyes, 9-10-2026: «darle a un botón
+       y que abra en una sub pestaña»). A todo el ancho bajo la etapa
+       ocupaba media pantalla con un solo mensaje. Ahora el trámite lleva
+       dos pestañas, «Tu trámite» y «Chat con tu gestor», y el chat ocupa
+       el sitio de la escalera. Lo que se ve lo decide una clase en la caja
+       (tr-en-chat), y la pestaña elegida se recuerda por trámite: el repaso
+       de cada minuto rehace la caja entera y no debe devolverte a la
+       escalera a mitad de un mensaje. */
+    var irAlChat = null;
+    if (cajaTr) cajaTr.classList.remove('tr-en-chat');
+    if (!esEquipo && E.contestacion && cajaTr){
+      var pest = el('div', 'tr-pest');
+      pest.setAttribute('role', 'tablist');
+      var pTr = el('button', 'tr-pest-b', u.tr_pest_tramite || '');
+      var pCh = el('button', 'tr-pest-b', u.tr_pest_chat || '');
+      var panelChat = el('div', 'tr-pest-chat');
+      panelChat.setAttribute('role', 'tabpanel');
+      panelChat.appendChild(chatDeLaContestacion(tr, E, false));
+      var cambia = function(aChat, enfoca){
+        PESTANA_DEL_CHAT[tr.id] = aChat;
+        cajaTr.classList.toggle('tr-en-chat', aChat);
+        pTr.classList.toggle('on', !aChat); pTr.setAttribute('aria-selected', String(!aChat));
+        pCh.classList.toggle('on', aChat);  pCh.setAttribute('aria-selected', String(aChat));
+        if (aChat && enfoca){
+          pest.scrollIntoView({behavior:'smooth', block:'start'});
+          var escribe = panelChat.querySelector('textarea');
+          if (escribe) setTimeout(function(){ escribe.focus({preventScroll:true}); }, 350);
+        }
+      };
+      [pTr, pCh].forEach(function(b){ b.type = 'button'; b.setAttribute('role', 'tab'); pest.appendChild(b); });
+      pTr.addEventListener('click', function(){ cambia(false); });
+      pCh.addEventListener('click', function(){ cambia(true, true); });
+      irAlChat = function(){ cambia(true, true); };
+      cajaTr.insertBefore(pest, lista);
+      cajaTr.insertBefore(panelChat, lista);
+      cambia(!!PESTANA_DEL_CHAT[tr.id]);
+    }
+
     /* El anuncio del gestor, ANTES de la escalera y destacado: es lo que
        cambió en su trámite y lo que tiene que leer primero. */
     /* Tarjeta blanca con filo azul, del ancho de la del trámite (maqueta 3
@@ -10474,18 +10512,12 @@ applyLang(idiomaParaMi());
         String(u.mc_anuncio_f || '').replace('{fecha}', fecha(E.anuncioEn))));
       an.appendChild(anCab);
       an.appendChild(el('div', 'mc-anuncio-d', E.anuncio));
-      if (!esEquipo && E.contestacion && u.mc_anuncio_ir){
+      if (irAlChat && u.mc_anuncio_ir){
         var anPie = el('div', 'mc-anuncio-pie');
         anPie.appendChild(el('span', '', u.mc_anuncio_pie || ''));
         var anIr = el('button', 'btn ghost mc-anuncio-ir', u.mc_anuncio_ir);
         anIr.type = 'button';
-        anIr.addEventListener('click', function(){
-          var chat = cajaTr.querySelector('[data-chat="contestacion"]');
-          if (!chat) return;
-          chat.scrollIntoView({behavior:'smooth', block:'center'});
-          var escribe = chat.querySelector('textarea');
-          if (escribe) setTimeout(function(){ escribe.focus({preventScroll:true}); }, 350);
-        });
+        anIr.addEventListener('click', function(){ if (irAlChat) irAlChat(); });
         anPie.appendChild(anIr);
         an.appendChild(anPie);
       }
@@ -10630,13 +10662,18 @@ applyLang(idiomaParaMi());
         li.appendChild(punto); li.appendChild(txt);
         lista.appendChild(li);
       });
-      /* El chat de la contestación, a todo el ancho y debajo de la etapa
-         donde está su importe (Franklin Reyes, 9-10-2026): sale solo cuando
-         el gestor la habilitó -el SAPI devolvió el registro-, le llega a
-         él, y por ahí le manda documentos. Pasado a registro, se lee pero
-         ya no se escribe. Al equipo no: lo lleva en su casilla. */
-      if (!esEquipo && E.contestacion && et.pasos.some(function(p){ return p.solo === 'contestacion'; })){
-        lista.appendChild(chatDeLaContestacion(tr, E, false));
+      /* El chat de la contestación sale solo cuando el gestor la habilitó
+         -el SAPI devolvió el registro-, le llega a él, y por ahí le manda
+         documentos. Pasado a registro, se lee pero ya no se escribe. Al
+         equipo no: lo lleva en su casilla. Bajo la etapa de su importe
+         queda solo el botón que abre su pestaña. */
+      if (irAlChat && et.pasos.some(function(p){ return p.solo === 'contestacion'; })){
+        var irLi = el('li', 'tr-chat-ir');
+        var irB = el('button', 'btn ghost', u.tr_pest_chat || '');
+        irB.type = 'button';
+        irB.addEventListener('click', irAlChat);
+        irLi.appendChild(irB);
+        lista.appendChild(irLi);
       }
     });
   }
@@ -10653,6 +10690,8 @@ applyLang(idiomaParaMi());
      otro lado. Se rehace solo si cambia algo que se ve: el idioma o que se
      cierre. */
   var CHATS_DEL_PASO = {};
+  /* La pestaña del chat abierta, por trámite (pintaPorEtapas). */
+  var PESTANA_DEL_CHAT = {};
   function chatDeLaContestacion(tr, E, equipo, quien){
     var u = T();
     var enReg = E.todos.filter(function(p){ return p.clave === 'en_registro'; })[0];
@@ -10661,7 +10700,7 @@ applyLang(idiomaParaMi());
     var firma = curLang + (cerrado ? ':cerrado' : ':abierto');
     var guardado = CHATS_DEL_PASO[clave];
     if (guardado && guardado.firma === firma) return guardado.nodo;
-    var caja = el(equipo ? 'div' : 'li', 'tr-chat');
+    var caja = el('div', 'tr-chat');
     caja.setAttribute('data-chat', 'contestacion');
     var de = {tabla:'tramite_mensajes', col:'tramite', id:tr.id, inversionista:tr.inversionista,
               paso:'contestacion',
