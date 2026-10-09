@@ -10459,6 +10459,47 @@ applyLang(idiomaParaMi());
     cuando = cuando || {};
     var cajaTr = lista.parentNode;
 
+    /* EL CHAT EN SU PESTAÑA (Franklin Reyes, 9-10-2026: «darle a un botón
+       y que abra en una sub pestaña»). A todo el ancho bajo la etapa
+       ocupaba media pantalla con un solo mensaje. Ahora el trámite lleva
+       dos pestañas, «Tu trámite» y «Chat con tu gestor», y el chat ocupa
+       el sitio de la escalera. Lo que se ve lo decide una clase en la caja
+       (tr-en-chat), y la pestaña elegida se recuerda por trámite: el repaso
+       de cada minuto rehace la caja entera y no debe devolverte a la
+       escalera a mitad de un mensaje.
+       Vuelven el 9-10-2026 («quiero tener el botón de escribir al CIIP y
+       que me mande a una pestaña como estaba»): el aviso, arriba y solo;
+       el chat, en su pestaña. */
+    var irAlChat = null;
+    if (cajaTr) cajaTr.classList.remove('tr-en-chat');
+    if (!esEquipo && E.contestacion && cajaTr){
+      var pest = el('div', 'tr-pest');
+      pest.setAttribute('role', 'tablist');
+      var pTr = el('button', 'tr-pest-b', u.tr_pest_tramite || '');
+      var pCh = el('button', 'tr-pest-b', u.tr_pest_chat || '');
+      var panelChat = el('div', 'tr-pest-chat');
+      panelChat.setAttribute('role', 'tabpanel');
+      panelChat.appendChild(chatDeLaContestacion(tr, E, false));
+      var cambia = function(aChat, enfoca){
+        PESTANA_DEL_CHAT[tr.id] = aChat;
+        cajaTr.classList.toggle('tr-en-chat', aChat);
+        pTr.classList.toggle('on', !aChat); pTr.setAttribute('aria-selected', String(!aChat));
+        pCh.classList.toggle('on', aChat);  pCh.setAttribute('aria-selected', String(aChat));
+        if (aChat && enfoca){
+          pest.scrollIntoView({behavior:'smooth', block:'start'});
+          var escribe = panelChat.querySelector('textarea');
+          if (escribe) setTimeout(function(){ escribe.focus({preventScroll:true}); }, 350);
+        }
+      };
+      [pTr, pCh].forEach(function(b){ b.type = 'button'; b.setAttribute('role', 'tab'); pest.appendChild(b); });
+      pTr.addEventListener('click', function(){ cambia(false); });
+      pCh.addEventListener('click', function(){ cambia(true, true); });
+      irAlChat = function(){ cambia(true, true); };
+      cajaTr.insertBefore(pest, lista);
+      cajaTr.insertBefore(panelChat, lista);
+      cambia(!!PESTANA_DEL_CHAT[tr.id]);
+    }
+
     /* El anuncio del gestor, ANTES de la escalera y destacado: es lo que
        cambió en su trámite y lo que tiene que leer primero. */
     /* Tarjeta blanca con filo azul, del ancho de la del trámite (maqueta 3
@@ -10467,12 +10508,10 @@ applyLang(idiomaParaMi());
        el paso del SAPI ni con nota propia (Franklin Reyes, 9-10-2026: «que
        el anuncio de devolución salga solo aquí arriba»).
 
-       Y con la contestación habilitada, el chat va DENTRO, como su
-       continuación (maqueta 3 de chat-de-la-contestacion-cuatro, Franklin
-       Reyes, 9-10-2026): el aviso ya es el primer mensaje del gestor, así
-       que debajo van las respuestas y una caja de una línea con el clip y
-       el envío. La etiqueta dice «Respuesta del SAPI» y no «Devuelta»:
-       también puede ser una oposición. Sin pestañas ni caja aparte. */
+       Con la contestación habilitada, encima de las pestañas -se lee en
+       las dos-, con la etiqueta «Respuesta del SAPI» (no «Devuelta»:
+       también puede ser una oposición) y un pie con «Escribir al CIIP»,
+       que abre la pestaña del chat. El chat no repite el aviso. */
     var tituloAnuncio = u[((ESCALERA_POR_ETAPAS[E.codigo] || {}).textos || {}).anuncio || 'mc_anuncio_t'] || '';
     if (E.anuncio && cajaTr){
       var an = el('div', 'mc-anuncio');
@@ -10484,12 +10523,16 @@ applyLang(idiomaParaMi());
         String(u.mc_anuncio_f || '').replace('{fecha}', fecha(E.anuncioEn))));
       an.appendChild(anCab);
       an.appendChild(el('div', 'mc-anuncio-d', E.anuncio));
-      if (!esEquipo && E.contestacion){
-        var anHilo = el('div', 'mc-anuncio-hilo');
-        anHilo.appendChild(chatDeLaContestacion(tr, E, false));
-        an.appendChild(anHilo);
+      if (irAlChat && u.mc_anuncio_ir){
+        var anPie = el('div', 'mc-anuncio-pie');
+        anPie.appendChild(el('span', '', u.mc_anuncio_pie || ''));
+        var anIr = el('button', 'btn ghost mc-anuncio-ir', u.mc_anuncio_ir);
+        anIr.type = 'button';
+        anIr.addEventListener('click', irAlChat);
+        anPie.appendChild(anIr);
+        an.appendChild(anPie);
       }
-      cajaTr.insertBefore(an, lista);
+      cajaTr.insertBefore(an, cajaTr.querySelector(':scope > .tr-pest') || lista);
     }
 
     var papelesPide = null;
@@ -10633,7 +10676,7 @@ applyLang(idiomaParaMi());
       /* El chat de la contestación sale solo cuando el gestor la habilitó
          -el SAPI devolvió el registro-, le llega a él, y por ahí le manda
          documentos. Pasado a registro, se lee pero ya no se escribe. Al
-         equipo no: lo lleva en su casilla. Va dentro del aviso, arriba. */
+         equipo no: lo lleva en su casilla. Va en su pestaña. */
     });
   }
 
@@ -10649,6 +10692,8 @@ applyLang(idiomaParaMi());
      otro lado. Se rehace solo si cambia algo que se ve: el idioma o que se
      cierre. */
   var CHATS_DEL_PASO = {};
+  /* La pestaña del chat abierta, por trámite (pintaPorEtapas). */
+  var PESTANA_DEL_CHAT = {};
   function chatDeLaContestacion(tr, E, equipo, quien){
     var u = T();
     var enReg = E.todos.filter(function(p){ return p.clave === 'en_registro'; })[0];
@@ -10665,8 +10710,8 @@ applyLang(idiomaParaMi());
               vacio: equipo ? '' : (u.ch_vacio || ''),
               ph: equipo ? '' : (u.ch_ph || '')};
     if (equipo){ de.equipo = true; de.quien = quien; }
-    /* El del inversionista va dentro del aviso: compacto, y sin repetir
-       el aviso, que la base mete como primer mensaje y ya se lee encima. */
+    /* El del inversionista, en su pestaña: compacto, y sin repetir el
+       aviso, que la base mete como primer mensaje y ya se lee encima. */
     else {
       de.compacto = true;
       de.sinVacio = true;
