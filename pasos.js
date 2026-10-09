@@ -1105,7 +1105,7 @@ window.CIIP_PASOS = {
       ay_rec_sacs: "Servicio Autónomo de Contraloría Sanitaria",
       ay_rec_sapi: "Servicio Autónomo de la Propiedad Intelectual (SAPI)",
       ay_rec_sapi_lista: "Clasificador de Niza · busca la clase de tu producto o servicio para registrar la marca | https://sapi.gob.ve/clasificador-niza/\n" +
-                         "Cuentas bancarias del SAPI, para pagar sus tasas (PDF) | https://sapi.gob.ve/wp-content/uploads/2020/11/Cuantas-Bancarias-Sapi-2020.pdf",
+                         "Cuentas bancarias del SAPI, para pagar sus tasas (imagen) | https://sapi.gob.ve/wp-content/uploads/2026/01/cintillo-bancos.jpg",
       ay_rec_sacs_lista: "Recaudos y formularios · Dirección de Regulación y Control de Materiales, Equipos, Establecimientos | https://www.sacs.gob.ve/site/recaudos_equipos_medicos2/\n" +
                       "Recaudos y formularios · Dirección de Regulación y Control de Drogas, Medicamentos y Cosméticos | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Recaudos y formularios · Dirección de Inocuidad de Alimentos y Bebidas | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
@@ -3080,7 +3080,7 @@ window.CIIP_PASOS = {
       ay_rec_sacs: "Autonomous Health Comptroller Service",
       ay_rec_sapi: "Autonomous Intellectual Property Service (SAPI)",
       ay_rec_sapi_lista: "Nice Classification · find the class of your product or service to register the trademark | https://sapi.gob.ve/clasificador-niza/\n" +
-                         "SAPI bank accounts, to pay its fees (PDF) | https://sapi.gob.ve/wp-content/uploads/2020/11/Cuantas-Bancarias-Sapi-2020.pdf",
+                         "SAPI bank accounts, to pay its fees (image) | https://sapi.gob.ve/wp-content/uploads/2026/01/cintillo-bancos.jpg",
       ay_rec_sacs_lista: "Requirements and forms · Directorate of Regulation and Control of Materials, Equipment and Establishments | https://www.sacs.gob.ve/site/recaudos_equipos_medicos2/\n" +
                       "Requirements and forms · Directorate of Regulation and Control of Drugs, Medicines and Cosmetics | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Requirements and forms · Directorate of Food and Beverage Safety | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
@@ -4912,7 +4912,7 @@ window.CIIP_PASOS = {
       ay_rec_sacs: "Serviço Autónomo de Controladoria Sanitária",
       ay_rec_sapi: "Serviço Autónomo da Propriedade Intelectual (SAPI)",
       ay_rec_sapi_lista: "Classificação de Nice · procure a classe do seu produto ou serviço para registar a marca | https://sapi.gob.ve/clasificador-niza/\n" +
-                         "Contas bancárias do SAPI, para pagar as taxas (PDF) | https://sapi.gob.ve/wp-content/uploads/2020/11/Cuantas-Bancarias-Sapi-2020.pdf",
+                         "Contas bancárias do SAPI, para pagar as taxas (imagem) | https://sapi.gob.ve/wp-content/uploads/2026/01/cintillo-bancos.jpg",
       ay_rec_sacs_lista: "Documentos e formulários · Direção de Regulação e Controlo de Materiais, Equipamentos e Estabelecimentos | https://www.sacs.gob.ve/site/recaudos_equipos_medicos2/\n" +
                       "Documentos e formulários · Direção de Regulação e Controlo de Drogas, Medicamentos e Cosméticos | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Documentos e formulários · Direção de Inocuidade de Alimentos e Bebidas | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
@@ -6729,7 +6729,7 @@ window.CIIP_PASOS = {
       ay_rec_sacs: "Servizio Autonomo di Controllo Sanitario",
       ay_rec_sapi: "Servizio Autonomo della Proprietà Intellettuale (SAPI)",
       ay_rec_sapi_lista: "Classificazione di Nizza · cerca la classe del tuo prodotto o servizio per registrare il marchio | https://sapi.gob.ve/clasificador-niza/\n" +
-                         "Conti bancari del SAPI, per pagare le tasse (PDF) | https://sapi.gob.ve/wp-content/uploads/2020/11/Cuantas-Bancarias-Sapi-2020.pdf",
+                         "Conti bancari del SAPI, per pagare le tasse (immagine) | https://sapi.gob.ve/wp-content/uploads/2026/01/cintillo-bancos.jpg",
       ay_rec_sacs_lista: "Documenti e moduli · Direzione di regolazione e controllo di materiali, apparecchiature e strutture | https://www.sacs.gob.ve/site/recaudos_equipos_medicos2/\n" +
                       "Documenti e moduli · Direzione di regolazione e controllo di droghe, medicinali e cosmetici | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Documenti e moduli · Direzione per la sicurezza di alimenti e bevande | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
@@ -8546,7 +8546,7 @@ window.CIIP_PASOS = {
       ay_rec_sacs: "卫生监管自治局",
       ay_rec_sapi: "知识产权自治局（SAPI）",
       ay_rec_sapi_lista: "尼斯分类 · 查找你的产品或服务所属的类别，以便注册商标 | https://sapi.gob.ve/clasificador-niza/\n" +
-                         "SAPI 银行账户，用于缴纳规费（PDF） | https://sapi.gob.ve/wp-content/uploads/2020/11/Cuantas-Bancarias-Sapi-2020.pdf",
+                         "SAPI 银行账户，用于缴纳规费（图片） | https://sapi.gob.ve/wp-content/uploads/2026/01/cintillo-bancos.jpg",
       ay_rec_sacs_lista: "所需材料和表格 · 材料、设备及场所监管司 | https://www.sacs.gob.ve/site/recaudos_equipos_medicos2/\n" +
                       "所需材料和表格 · 药物、药品及化妆品监管司 | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "所需材料和表格 · 食品饮料安全司 | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
@@ -10363,7 +10363,7 @@ window.CIIP_PASOS = {
       ay_rec_sacs: "Автономная служба санитарного контроля",
       ay_rec_sapi: "Автономная служба интеллектуальной собственности (SAPI)",
       ay_rec_sapi_lista: "Ниццкая классификация · найдите класс вашего товара или услуги для регистрации товарного знака | https://sapi.gob.ve/clasificador-niza/\n" +
-                         "Банковские счета SAPI для оплаты пошлин (PDF) | https://sapi.gob.ve/wp-content/uploads/2020/11/Cuantas-Bancarias-Sapi-2020.pdf",
+                         "Банковские счета SAPI для оплаты пошлин (изображение) | https://sapi.gob.ve/wp-content/uploads/2026/01/cintillo-bancos.jpg",
       ay_rec_sacs_lista: "Документы и формы · Управление регулирования и контроля материалов, оборудования и учреждений | https://www.sacs.gob.ve/site/recaudos_equipos_medicos2/\n" +
                       "Документы и формы · Управление регулирования и контроля лекарственных средств и косметики | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Документы и формы · Управление безопасности пищевых продуктов и напитков | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
@@ -12180,7 +12180,7 @@ window.CIIP_PASOS = {
       ay_rec_sacs: "Service autonome de contrôle sanitaire",
       ay_rec_sapi: "Service autonome de la propriété intellectuelle (SAPI)",
       ay_rec_sapi_lista: "Classification de Nice · trouvez la classe de votre produit ou service pour enregistrer la marque | https://sapi.gob.ve/clasificador-niza/\n" +
-                         "Comptes bancaires du SAPI, pour payer ses taxes (PDF) | https://sapi.gob.ve/wp-content/uploads/2020/11/Cuantas-Bancarias-Sapi-2020.pdf",
+                         "Comptes bancaires du SAPI, pour payer ses taxes (image) | https://sapi.gob.ve/wp-content/uploads/2026/01/cintillo-bancos.jpg",
       ay_rec_sacs_lista: "Pièces et formulaires · Direction de la réglementation et du contrôle des matériels, équipements et établissements | https://www.sacs.gob.ve/site/recaudos_equipos_medicos2/\n" +
                       "Pièces et formulaires · Direction de la réglementation et du contrôle des drogues, médicaments et cosmétiques | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Pièces et formulaires · Direction de la sécurité sanitaire des aliments et boissons | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
@@ -14012,7 +14012,7 @@ window.CIIP_PASOS = {
       ay_rec_sacs: "衛生監督自治庁",
       ay_rec_sapi: "知的財産自治庁（SAPI）",
       ay_rec_sapi_lista: "ニース分類 · 商標登録のため、商品・サービスの区分を調べる | https://sapi.gob.ve/clasificador-niza/\n" +
-                         "SAPI の銀行口座（手数料の支払い用、PDF） | https://sapi.gob.ve/wp-content/uploads/2020/11/Cuantas-Bancarias-Sapi-2020.pdf",
+                         "SAPI の銀行口座（手数料の支払い用、画像） | https://sapi.gob.ve/wp-content/uploads/2026/01/cintillo-bancos.jpg",
       ay_rec_sacs_lista: "必要書類と様式 · 資材・機器・施設規制管理局 | https://www.sacs.gob.ve/site/recaudos_equipos_medicos2/\n" +
                       "必要書類と様式 · 薬物・医薬品・化粧品規制管理局 | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "必要書類と様式 · 食品・飲料安全局 | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
