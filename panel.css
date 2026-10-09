@@ -3789,7 +3789,9 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .imp-fila{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
 .imp-n{font-size:var(--fs-nota); font-weight:600; color:var(--ink);}
 .imp-monto{font-size:var(--fs-valor); font-weight:700; color:var(--ink);}
-.imp-aviso{font-size:var(--fs-parrafo); line-height:1.45; color:var(--ink); font-weight:600;
+/* Del tamaño del nombre del archivo de la ficha de arriba (Franklin Reyes,
+   9-10-2026: «está muy grande»). */
+.imp-aviso{font-size:var(--fs-nota); line-height:1.45; color:var(--ink); font-weight:600; text-align:left;
   background:rgba(32,176,240,.02); border:1px solid rgba(0,96,176,.18); border-left:4px solid var(--navy2);
   border-radius:var(--r-sm); padding:8px 10px;}
 /* La ficha del archivo: icono, nombre, de qué día es y «Ver». */

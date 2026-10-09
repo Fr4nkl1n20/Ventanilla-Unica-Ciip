@@ -2880,6 +2880,15 @@ applyLang(idiomaParaMi());
     var l = (D.estados && (D.estados[curLang] || D.estados.en)) || [];
     return String((C && C[i]) || l[i] || '').replace('{ente}', ente || '');
   }
+  /* Lo que se le pasa a new Date. El desfase corto: la base apunta los pasos
+     de la marca y de otras escaleras con to_char(... 'OF'),
+     «2026-10-08T13:45:12-04», y ningún navegador lo lee. «-04» pasa a
+     «-04:00» y «-0430» a «-04:30». Lo usan fecha(), haceCuanto() -el «desde»
+     de «Vas por aquí» salía vacío, 9-10-2026- y fechaEnCaracas(). */
+  function isoLeible(iso){
+    if (typeof iso !== 'string' || !/T\d{2}:\d{2}/.test(iso)) return iso;
+    return iso.replace(/([+-]\d{2})(\d{2})?$/, function(m, h, mi){ return h + ':' + (mi || '00'); });
+  }
   function fecha(iso){
     if (!iso) return '';
     /* Un DÍA a secas -«2026-08-25», lo que guardan las columnas date: los
@@ -2891,14 +2900,9 @@ applyLang(idiomaParaMi());
        usan los huecos del horario (huSuma). Las marcas con hora siguen
        como estaban. */
     if (/^\d{4}-\d{2}-\d{2}$/.test(String(iso))) iso = iso + 'T12:00:00Z';
-    /* Y el desfase corto: la base apunta los pasos de la marca y de otras
-       escaleras con to_char(... 'OF'), «2026-10-08T13:45:12-04», y ningún
-       navegador lo lee: salía «Invalid Date» bajo el paso (Franklin Reyes,
-       8-10-2026). «-04» pasa a «-04:00» y «-0430» a «-04:30». */
-    if (/T\d{2}:\d{2}/.test(String(iso))){
-      iso = String(iso).replace(/([+-]\d{2})(\d{2})?$/, function(m, h, mi){ return h + ':' + (mi || '00'); });
-    }
-    var d = new Date(iso);
+    /* Y el desfase corto: salía «Invalid Date» bajo el paso (Franklin
+       Reyes, 8-10-2026). */
+    var d = new Date(isoLeible(String(iso)));
     /* Una fecha que no se entiende no se pinta: «Invalid Date» no le dice
        nada a nadie. */
     if (isNaN(d.getTime())) return '';
@@ -9524,7 +9528,7 @@ applyLang(idiomaParaMi());
      a UTC-4 todo el año; la cuenta a mano es para el navegador que no
      traiga la zona. */
   function fechaEnCaracas(cuando){
-    var d = (cuando instanceof Date) ? cuando : new Date(cuando);
+    var d = (cuando instanceof Date) ? cuando : new Date(isoLeible(cuando));
     if (!cuando || isNaN(d.getTime())) return '';
     try {
       var p = {};
@@ -24736,7 +24740,12 @@ applyLang(idiomaParaMi());
     function escribiendoEnElTramite(){
       var caja = document.getElementById('trReal');
       if (!caja) return false;
-      if (caja.contains(document.activeElement)) return true;
+      /* El foco cuenta solo en un CAMPO. En un botón -«Ver» o «Descargar»
+         del papel, que se queda con el foco al abrir la pestaña nueva- no
+         hay nada a medio escribir, y frenaba el repaso para siempre: el
+         gestor mandaba el importe y la escalera no se enteraba (Franklin
+         Reyes, 9-10-2026). */
+      if (caja.contains(document.activeElement) && escribiendoAhora()) return true;
       var hay = false;
       [].forEach.call(caja.querySelectorAll('input, textarea, select'), function(c){
         if (hay) return;
@@ -31369,7 +31378,7 @@ applyLang(idiomaParaMi());
   /* "hace 5 minutos", "hace 2 días". Lo dice el navegador en el idioma de
      turno: seis traducciones que no hay que escribir ni mantener. */
   function haceCuanto(iso){
-    var t = Date.parse(iso);
+    var t = Date.parse(isoLeible(iso));
     if (isNaN(t)) return '';
     var seg = Math.round((t - Date.now()) / 1000);
     /* Nunca hacia el futuro. La hora la pone el SERVIDOR -y eso esta
