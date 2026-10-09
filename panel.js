@@ -10775,16 +10775,21 @@ applyLang(idiomaParaMi());
   var NOMBRE_ASESOR = {};
   /* La pestaña del chat abierta, por trámite (pintaPorEtapas). */
   var PESTANA_DEL_CHAT = {};
-  function chatDeLaContestacion(tr, E, equipo, quien){
-    var u = T();
+  /* Si el chat de la contestación ya se cerró: pasada a registro o con la
+     solicitud resuelta. Aparte porque desde el 9-10-2026 la usan dos
+     sitios -este chat y su respaldo en «Consultas y citas»- y una regla
+     escrita dos veces acaba diciendo dos cosas distintas. */
+  function contestacionCerrada(tr, E){
     var enReg = E.todos.filter(function(p){ return p.clave === 'en_registro'; })[0];
-    var cerrado = !!(enReg && enReg.hecho) || tr.estado === 'resuelto';
-    var clave = tr.id + (equipo ? ':g' : ':i');
-    var firma = curLang + (cerrado ? ':cerrado' : ':abierto');
-    var guardado = CHATS_DEL_PASO[clave];
-    if (guardado && guardado.firma === firma) return guardado.nodo;
-    var caja = el('div', 'tr-chat');
-    caja.setAttribute('data-chat', 'contestacion');
+    return !!(enReg && enReg.hecho) || tr.estado === 'resuelto';
+  }
+
+  /* Lo que se le pasa a pintaHilo para el chat de la contestación: la
+     tabla, el paso, los títulos y, si se cerró, por qué. Lo comparten la
+     casilla del gestor, la pestaña del inversionista y «Consultas y
+     citas», que así leen y escriben exactamente lo mismo. */
+  function deLaContestacion(tr, E, equipo, quien){
+    var u = T();
     var de = {tabla:'tramite_mensajes', col:'tramite', id:tr.id, inversionista:tr.inversionista,
               paso:'contestacion',
               titulo: equipo ? String(u.ch_g_t || '').replace('{quien}', quien || '') : (u.ch_t || ''),
@@ -10806,7 +10811,19 @@ applyLang(idiomaParaMi());
          sigue diciendo «CIIP». */
       de.nombreEquipo = NOMBRE_ASESOR[tr.id] || '';
     }
-    if (cerrado) de.cerrada = u.ch_cerrado || '';
+    if (contestacionCerrada(tr, E)) de.cerrada = u.ch_cerrado || '';
+    return de;
+  }
+
+  function chatDeLaContestacion(tr, E, equipo, quien){
+    var cerrado = contestacionCerrada(tr, E);
+    var clave = tr.id + (equipo ? ':g' : ':i');
+    var firma = curLang + (cerrado ? ':cerrado' : ':abierto');
+    var guardado = CHATS_DEL_PASO[clave];
+    if (guardado && guardado.firma === firma) return guardado.nodo;
+    var caja = el('div', 'tr-chat');
+    caja.setAttribute('data-chat', 'contestacion');
+    var de = deLaContestacion(tr, E, equipo, quien);
     var hiloCh = pintaHilo(caja, de);
     if (!equipo && !de.nombreEquipo){
       Promise.resolve().then(function(){ return sb.rpc('gestores_de_mis_tramites'); })
@@ -21695,6 +21712,7 @@ applyLang(idiomaParaMi());
   var cmBusca = '';
   var cmUltimos = {};     /* consulta -> su último mensaje */
   var cmHilo = null;       /* el hilo de la consulta abierta, para bloquearlo sin repintarlo */
+  var cmChats = [];        /* los chats de trámite (cargaChatsCm), ya montados para la lista */
 
   var navConsultas = document.getElementById('navConsultas');
   if (navConsultas) navConsultas.addEventListener('click', function(){ location.hash = 'consultas'; });
@@ -21833,21 +21851,7 @@ applyLang(idiomaParaMi());
           if (!ya || Date.parse(m.creado_en) > Date.parse(ya.creado_en)) de[m.consulta] = m;
         });
         cmUltimos = de;
-        /* Lo del inversionista, en español si tiene traducción, como en
-           el hilo. Sin ella -o sin la tabla-, el original. */
-        var suyos = Object.keys(de).map(function(k){ return de[k]; })
-          .filter(function(m){ return m.id && m.texto && !m.del_equipo; });
-        if (!suyos.length) return;
-        return Promise.resolve(sb.from('mensaje_traducciones')
-          .select('mensaje, texto').eq('tabla', 'consulta_mensajes')
-          .in('mensaje', suyos.map(function(m){ return m.id; })))
-          .then(function(t){
-            if (t && t.error) throw t.error;
-            var en = {};
-            ((t && t.data) || []).forEach(function(x){ if (x.texto) en[x.mensaje] = x.texto; });
-            suyos.forEach(function(m){ if (en[m.id]) m.texto = en[m.id]; });
-          })
-          .catch(function(e){ console.warn('[CIIP] traducción de los últimos:', e && e.message); });
+        return traduceUltimos(Object.keys(de).map(function(k){ return de[k]; }), 'consulta_mensajes');
       })
       .catch(function(e){
         /* Sin últimos mensajes la lista sale igual, con el asunto: mejor eso
@@ -21857,11 +21861,140 @@ applyLang(idiomaParaMi());
       });
   }
 
+  /* Lo del inversionista, en español si tiene traducción, como en el hilo.
+     Sin ella -o sin la tabla-, el original. Cambia el texto de los
+     mensajes que recibe y nunca falla hacia fuera. Lo usan los últimos de
+     las consultas y los de los chats de trámite: la misma tabla de
+     traducciones, con la tabla del mensaje como llave. */
+  function traduceUltimos(mensajes, tabla){
+    var suyos = mensajes.filter(function(m){ return m && m.id && m.texto && !m.del_equipo; });
+    if (!suyos.length) return Promise.resolve();
+    return Promise.resolve(sb.from('mensaje_traducciones')
+      .select('mensaje, texto').eq('tabla', tabla)
+      .in('mensaje', suyos.map(function(m){ return m.id; })))
+      .then(function(t){
+        if (t && t.error) throw t.error;
+        var en = {};
+        ((t && t.data) || []).forEach(function(x){ if (x.texto) en[x.mensaje] = x.texto; });
+        suyos.forEach(function(m){ if (en[m.id]) m.texto = en[m.id]; });
+      })
+      .catch(function(e){ console.warn('[CIIP] traducción de los últimos:', e && e.message); });
+  }
+
+  /* ── LOS CHATS DE TRÁMITE, COMO RESPALDO ──
+     «Aquí en Consultas y citas debería de quedar el historial de la
+      conversación que se tiene en el caso del SAPI, como respaldo, porque
+      una vez concluya el proceso ¿dónde quedará ese historial?» (Franklin
+     Reyes, 9-10-2026). El chat de la contestación de la marca solo se veía
+     en la casilla del gestor, y la casilla solo sale con la solicitud ante
+     el ente: pasada a registro o resuelta, el equipo se quedaba sin dónde
+     leerlo. Los mensajes nunca se borraron; lo que faltaba era el sitio.
+
+     Cada chat es aquí una conversación más, con su FILTRO PROPIO, «Chats de
+     trámite», y no mezclada con las consultas. Por tres razones: «Todas»
+     cuenta lo mismo que el número del renglón de la barra, y meter aquí
+     chats -muchos ya cerrados- lo haría mentir (es lo que se cuidó con las
+     resueltas); el chat no se toma ni se resuelve, que es lo que hacen los
+     botones de una consulta; y lo vivo ya lo atiende el gestor en su
+     casilla, así que esto es sobre todo un archivo, y un archivo va aparte.
+
+     Qué trámites tienen chat lo dicen sus mensajes: los últimos mil del
+     paso 'contestacion', en un viaje. habilita_contestacion mete el
+     anuncio como primer mensaje (supabase-marca.sql), así que todo chat
+     tiene al menos uno. Se suman los de la cola con la contestación
+     habilitada y ningún mensaje todavía. El trámite se toma del montón que
+     ya cargó la cola (enRevision) y solo los que no estén -los resueltos
+     de hace tiempo, sobre todo- se piden aparte, por su id.
+
+     Si algo falla -la columna paso sin su SQL, la tabla misma-, la
+     pantalla sale igual, sin estas conversaciones: son un respaldo, no lo
+     que sostiene la mensajería. */
+  var CM_CHATS_MAX = 1000;
+  function cargaChatsCm(){
+    var ultimo = {}, primero = {};
+    return Promise.resolve().then(function(){
+      return sb.from('tramite_mensajes')
+        .select('id, tramite, texto, del_equipo, documento, creado_en')
+        .eq('paso', 'contestacion')
+        .order('creado_en', {ascending:false})
+        .limit(CM_CHATS_MAX);
+    }).then(function(r){
+      if (r && r.error) throw r.error;
+      ((r && r.data) || []).forEach(function(m){
+        if (!m || !m.tramite) return;
+        var t = Date.parse(m.creado_en) || 0;
+        if (!ultimo[m.tramite] || t > (Date.parse(ultimo[m.tramite].creado_en) || 0)) ultimo[m.tramite] = m;
+        if (!primero[m.tramite] || t < (Date.parse(primero[m.tramite]) || 0)) primero[m.tramite] = m.creado_en;
+      });
+      var deLaCola = {};
+      enRevision.forEach(function(t){ if (t && t.id) deLaCola[t.id] = t; });
+      var ids = Object.keys(ultimo);
+      enRevision.forEach(function(t){
+        if (t && ESCALERA_POR_ETAPAS[t.tipo] && pasosApuntados(t).contestacion && ids.indexOf(t.id) < 0) ids.push(t.id);
+      });
+      var faltan = ids.filter(function(id){ return !deLaCola[id]; });
+      var otros = !faltan.length ? Promise.resolve([]) : Promise.resolve(sb.from('tramites')
+        .select('id, inversionista, tipo, estado, datos, creado_en, gestor')
+        .in('id', faltan))
+        .then(function(rt){
+          if (rt && rt.error) throw rt.error;
+          return (rt && rt.data) || [];
+        })
+        .catch(function(e){
+          console.warn('[CIIP] chats de trámite, los trámites:', e && e.message);
+          return [];
+        });
+      return otros.then(function(lista){
+        lista.forEach(function(t){ if (t && faltan.indexOf(t.id) >= 0) deLaCola[t.id] = t; });
+        var tramites = ids.map(function(id){ return deLaCola[id]; }).filter(function(t){
+          return t && ESCALERA_POR_ETAPAS[t.tipo];
+        });
+        /* Los nombres: casi siempre ya están (la cola los pidió todos);
+           los que no, en un viaje, y sin ellos sale «(sin nombre)». */
+        var sinNombre = tramites.filter(function(t){ return !t.nombre && !NOMBRES[t.inversionista]; })
+          .map(function(t){ return t.inversionista; }).filter(Boolean);
+        var nombres = !sinNombre.length ? Promise.resolve() :
+          Promise.resolve(sb.from('perfiles').select('id, nombre_completo').in('id', sinNombre))
+            .then(function(rp){
+              ((rp && rp.data) || []).forEach(function(p){ NOMBRES[p.id] = p.nombre_completo; });
+            })
+            .catch(function(e){ console.warn('[CIIP] chats de trámite, los nombres:', e && e.message); });
+        return nombres.then(function(){
+          cmChats = tramites.map(function(t){
+            var E = escaleraPorEtapas(t, t.tipo);
+            var signo = String((t.datos || {}).signo || '').trim();
+            /* Cerrado, lo que dice el chat de la casilla (contestacionCerrada),
+               y también lo que la base ya no deja escribir: un trámite
+               cancelado, o uno al que se le quitó la contestación. Mejor
+               la caja apagada con su motivo que una que falla al enviar. */
+            var cerrado = contestacionCerrada(t, E) || !E.contestacion || t.estado === 'cancelado';
+            /* El asunto lo pone cmItems, en el idioma de cada momento. */
+            return {id: t.id, t: t, inversionista: t.inversionista, tipo: t.tipo, gestor: t.gestor || null,
+                    nombre: t.nombre || NOMBRES[t.inversionista] || '', signo: signo, asunto: '',
+                    creado_en: primero[t.id] || E.anuncioEn || t.creado_en,
+                    ultimo: ultimo[t.id] || null, cerrado: cerrado};
+          });
+          return traduceUltimos(cmChats.map(function(c){ return c.ultimo; }), 'tramite_mensajes');
+        });
+      });
+    }).catch(function(e){
+      console.warn('[CIIP] chats de trámite:', e && e.message);
+      cmChats = [];
+    });
+  }
+
   function cmItems(){
     var out = [];
     consultas.forEach(function(c){ out.push({clase:'cons', id:'cons:' + c.id, x:c}); });
     enCola.forEach(function(c){ out.push({clase:'cita', id:'cita:' + c.id, x:c}); });
     resueltas.forEach(function(c){ out.push({clase:'cons', id:'cons:' + c.id, x:c}); });
+    /* Los chats de trámite, con el asunto en el idioma de ahora: se monta
+       aquí y no al cargarlos para que cambiar de idioma no lo deje atrás. */
+    var u = T();
+    cmChats.forEach(function(c){
+      c.asunto = [u.co_m_chat_asunto, nombreDeTipo(c.tipo), c.signo].filter(Boolean).join(' · ');
+      out.push({clase:'chat', id:'chat:' + c.id, x:c});
+    });
     return out;
   }
   /* Sin responder = lo último lo escribió el inversionista. Si todavía no
@@ -21871,7 +22004,20 @@ applyLang(idiomaParaMi());
     var m = cmUltimos[c.id];
     return m ? !m.del_equipo : c.estado === 'abierta';
   }
+  /* En un chat de trámite, lo mismo pero solo mientras se puede contestar:
+     en uno cerrado nadie espera nada. Sirve para el punto de la fila y
+     para el orden; no para el filtro «Sin responder», que es de consultas. */
+  function cmChatEspera(c){
+    return !c.cerrado && !!c.ultimo && !c.ultimo.del_equipo;
+  }
+  /* Por qué no se escribe en un chat de trámite, o null si se puede. */
+  function cmChatCerrado(c){
+    return c.cerrado ? (T().ch_cerrado || '') : null;
+  }
   function cmCuadra(it, filtro, busca){
+    /* Los chats de trámite solo en el suyo, y en el suyo solo ellos (ver
+       cargaChatsCm). */
+    if ((filtro === 'chats') !== (it.clase === 'chat')) return false;
     /* Las resueltas solo en su filtro: en los demás serían trabajo que ya
        no lo es, y el número de «Todas» dejaría de cuadrar con la barra. */
     var resuelta = (it.clase === 'cons' && it.x.estado === 'resuelta');
@@ -21889,6 +22035,18 @@ applyLang(idiomaParaMi());
   /* Lo que espera respuesta primero, luego lo que está en curso, luego las
      citas; dentro de cada grupo, lo más viejo arriba. */
   function cmOrden(a, b){
+    /* Los chats de trámite, en su filtro: primero los que esperan
+       respuesta, luego los abiertos y al final los cerrados; dentro de
+       cada grupo, el que se movió último arriba, como en un archivo. */
+    if (a.clase === 'chat' || b.clase === 'chat'){
+      if (a.clase !== b.clase) return a.clase === 'chat' ? 1 : -1;
+      var ca = cmChatEspera(a.x) ? 0 : (a.x.cerrado ? 2 : 1);
+      var cb = cmChatEspera(b.x) ? 0 : (b.x.cerrado ? 2 : 1);
+      if (ca !== cb) return ca - cb;
+      var ua = a.x.ultimo ? a.x.ultimo.creado_en : a.x.creado_en;
+      var ub = b.x.ultimo ? b.x.ultimo.creado_en : b.x.creado_en;
+      return (Date.parse(ub) || 0) - (Date.parse(ua) || 0);
+    }
     var pa = a.clase === 'cita' ? 2 : (cmSinResponder(a.x) ? 0 : 1);
     var pb = b.clase === 'cita' ? 2 : (cmSinResponder(b.x) ? 0 : 1);
     if (pa !== pb) return pa - pb;
@@ -21899,13 +22057,20 @@ applyLang(idiomaParaMi());
       .map(function(p){ return p.charAt(0); }).join('').toUpperCase() || '?';
   }
   function cmAvatar(it){
-    var a = el('span', 'cm-av' + (it.clase === 'cita' ? ' cita' : ''), cmIniciales(it.x.nombre));
+    var a = el('span', 'cm-av' + (it.clase === 'cita' ? ' cita' : it.clase === 'chat' ? ' chat' : ''),
+               cmIniciales(it.x.nombre));
     a.setAttribute('aria-hidden', 'true');
     return a;
   }
   function cmChip(it){
     var u = T();
     if (it.clase === 'cita') return el('span', 'ct-chip listo', u.co_m_cita || '');
+    /* Un chat de trámite no se toma ni se resuelve: abierto o, ya cerrado,
+       para leer. Con los colores de «en curso» y «resuelta». */
+    if (it.clase === 'chat'){
+      return el('span', 'cons-est ' + (it.x.cerrado ? 'resuelta' : 'en_curso'),
+        it.x.cerrado ? (u.co_m_chat_cerrado || '') : (u.co_m_chat_abierto || ''));
+    }
     return el('span', 'cons-est ' + (it.x.estado || 'abierta'),
       it.x.estado === 'en_curso' ? (u['cons.encurso'] || '')
       : it.x.estado === 'resuelta' ? (u['cons.resuelta'] || '') : (u['cons.abierta'] || ''));
@@ -21925,7 +22090,7 @@ applyLang(idiomaParaMi());
     if (fil){
       fil.textContent = '';
       [['todas', u.co_m_f_todas], ['sin', u.co_m_f_sin], ['curso', u.co_m_f_curso], ['citas', u.co_m_f_citas],
-       ['resueltas', u.co_m_f_resueltas]]
+       ['resueltas', u.co_m_f_resueltas], ['chats', u.co_m_f_chats]]
         .forEach(function(x){
           var b = el('button', null, x[1] || '');
           b.type = 'button';
@@ -21955,14 +22120,14 @@ applyLang(idiomaParaMi());
     b.setAttribute('aria-current', it.id === cmSel ? 'true' : 'false');
     b.appendChild(cmAvatar(it));
     b.appendChild(el('span', 'n1', x.nombre || u.co_sinnombre || ''));
-    var ult = it.clase === 'cons' ? cmUltimos[x.id] : null;
+    var ult = it.clase === 'cons' ? cmUltimos[x.id] : it.clase === 'chat' ? x.ultimo : null;
     b.appendChild(el('span', 'n2', it.clase === 'cita'
       ? (u.co_m_cita || '') + ' · ' + nombreDeTipo(x.tipo_tramite)
       : ult ? ((ult.del_equipo ? (u.co_m_tu || '') + ': ' : '') + (ult.texto || u.co_m_adjunto || ''))
       : (x.asunto || '')));
     var der = el('span', 'der');
     der.appendChild(el('span', null, fecha(ult ? ult.creado_en : x.creado_en)));
-    if (it.clase === 'cons' && cmSinResponder(x)){
+    if ((it.clase === 'cons' && cmSinResponder(x)) || (it.clase === 'chat' && cmChatEspera(x))){
       var p = el('span', 'cm-punto');
       p.title = u.co_m_f_sin || '';
       der.appendChild(p);
@@ -21993,6 +22158,9 @@ applyLang(idiomaParaMi());
       /* Y el candado, que cambia con la cabecera: resolverla o reabrirla
          bloquea o abre la caja en el acto, sin perder lo escrito. */
       if (it.clase === 'cons' && cmHilo) cmHilo.cierra(cmCerrada(it.x));
+      /* Y el de un chat de trámite, que se cierra solo cuando la marca
+         pasa a registro: lo trae el repaso, y la caja se apaga en el acto. */
+      if (it.clase === 'chat' && cmHilo) cmHilo.cierra(cmChatCerrado(it.x));
       return;
     }
     centro.setAttribute('data-cm', it.id);
@@ -22002,6 +22170,7 @@ applyLang(idiomaParaMi());
     var cuerpo = el('div', 'cm-cuerpo');
     centro.appendChild(cuerpo);
     if (it.clase === 'cita') cmCuerpoCita(it.x, cuerpo);
+    else if (it.clase === 'chat') cmCuerpoChat(it.x, cuerpo);
     else cmCuerpoConsulta(it.x, cuerpo);
   }
 
@@ -22055,6 +22224,27 @@ applyLang(idiomaParaMi());
       inversionista:c.inversionista, equipo:true, quien:c.nombre || u.co_sinnombre || '',
       cerrada:cmCerrada(c),
       alEnviar:function(){ cargaUltimosCm().then(pintaCm); }});
+  }
+
+  /* Un chat de trámite: el hilo entero, con la voz del equipo, tal cual
+     lo pinta la casilla del gestor -deLaContestacion da la tabla, el paso,
+     el título y el motivo si se cerró-, adjuntos y traducción incluidos.
+     Abierto, se contesta desde aquí, y es el mismo hilo: lo que se escribe
+     lo ve también la casilla, y al revés. Cerrado, la caja sale apagada
+     con su motivo, para leer: es el respaldo que se pidió.
+
+     Su propio pintaHilo y no el nodo guardado de chatDeLaContestacion:
+     ese nodo vive dentro de la casilla de la pantalla de trámites, y
+     colgarlo aquí lo sacaría de allí. */
+  function cmCuerpoChat(c, cuerpo){
+    var u = T();
+    var E = escaleraPorEtapas(c.t, c.t.tipo);
+    var de = deLaContestacion(c.t, E, true, c.nombre || u.co_sinnombre || '');
+    /* Cerrado, por lo que diga cargaChatsCm, que mira también lo que la
+       base ya no deja escribir. */
+    de.cerrada = cmChatCerrado(c);
+    de.alEnviar = function(){ cargaChatsCm().then(pintaCm); };
+    cmHilo = pintaHilo(cuerpo, de);
   }
 
   /* Una cita por confirmar: lo que pidió y, debajo, la fecha que hay que
@@ -22154,7 +22344,8 @@ applyLang(idiomaParaMi());
     var tipo = it.clase === 'cita' ? x.tipo_tramite : x.tipo;
     var filas = [[u.co_m_sobre, tipo ? nombreDeTipo(tipo) : (u.co_general || '')],
                  [it.clase === 'cita' ? u.co_m_pidio : u.co_m_abierta, fecha(x.creado_en)]];
-    if (it.clase === 'cons'){
+    /* En un chat de trámite, quien lleva el trámite. */
+    if (it.clase !== 'cita'){
       filas.push([u.co_m_lleva, x.gestor
         ? (x.gestor === YO ? (u.co_lollevas || '') : nombreDeGestor(x.gestor))
         : (u.co_sinasig || '')]);
@@ -22171,7 +22362,11 @@ applyLang(idiomaParaMi());
       if (location.hash === '#consultas') location.hash = '';
       return Promise.resolve();
     }
-    return cargaCola().then(cargaUltimosCm).then(pintaCm).catch(function(e){
+    /* Los últimos de las consultas y los chats de trámite, a la vez: no
+       dependen uno del otro, y los dos necesitan la cola ya cargada. */
+    return cargaCola().then(function(){
+      return Promise.all([cargaUltimosCm(), cargaChatsCm()]);
+    }).then(pintaCm).catch(function(e){
       console.warn('[CIIP] consultas y citas:', e && e.message);
       pintaCm();
     });

@@ -822,6 +822,8 @@ window.CIIP_PASOS = {
       co_m_asunto_cita: "Sobre tu cita",
       co_m_hablar_sinsql: "Falta poner al día la base para abrir consultas desde el equipo.",
       co_m_f_resueltas: "Resueltas",
+      /* Los chats de trámite en «Consultas y citas», como respaldo (Franklin Reyes, 9-10-2026): el filtro, el asunto y si se puede escribir. */
+      co_m_f_chats: "Chats de trámite", co_m_chat_asunto: "Contestación ante el SAPI", co_m_chat_abierto: "Abierto", co_m_chat_cerrado: "Solo lectura",
       hilo_noenvia: "No se pudo enviar el mensaje. Inténtalo otra vez.",
       hilo_tr:      "Traducido automáticamente",
       hilo_tr_orig: "Ver original",
@@ -2848,6 +2850,8 @@ window.CIIP_PASOS = {
       co_m_asunto_cita: "About your appointment",
       co_m_hablar_sinsql: "The database needs updating before the team can open enquiries.",
       co_m_f_resueltas: "Resolved",
+      /* Los chats de trámite en «Consultas y citas», como respaldo (Franklin Reyes, 9-10-2026): el filtro, el asunto y si se puede escribir. */
+      co_m_f_chats: "Case chats", co_m_chat_asunto: "Response to SAPI", co_m_chat_abierto: "Open", co_m_chat_cerrado: "Read-only",
       hilo_noenvia: "The message could not be sent. Please try again.",
       hilo_tr:      "Automatically translated",
       hilo_tr_orig: "See original",
@@ -4680,6 +4684,8 @@ window.CIIP_PASOS = {
       co_m_asunto_cita: "Sobre a sua marcação",
       co_m_hablar_sinsql: "Falta atualizar a base de dados para abrir consultas a partir da equipa.",
       co_m_f_resueltas: "Resolvidas",
+      /* Los chats de trámite en «Consultas y citas», como respaldo (Franklin Reyes, 9-10-2026): el filtro, el asunto y si se puede escribir. */
+      co_m_f_chats: "Chats de processos", co_m_chat_asunto: "Contestação perante o SAPI", co_m_chat_abierto: "Aberto", co_m_chat_cerrado: "Só leitura",
       hilo_noenvia: "Não foi possível enviar a mensagem. Tente novamente.",
       hilo_tr:      "Traduzido automaticamente",
       hilo_tr_orig: "Ver original",
@@ -6497,6 +6503,8 @@ window.CIIP_PASOS = {
       co_m_asunto_cita: "Sul tuo appuntamento",
       co_m_hablar_sinsql: "Va aggiornata la base dati per aprire consulenze dal team.",
       co_m_f_resueltas: "Risolte",
+      /* Los chats de trámite en «Consultas y citas», como respaldo (Franklin Reyes, 9-10-2026): el filtro, el asunto y si se puede escribir. */
+      co_m_f_chats: "Chat delle pratiche", co_m_chat_asunto: "Risposta al SAPI", co_m_chat_abierto: "Aperta", co_m_chat_cerrado: "Sola lettura",
       hilo_noenvia: "Non è stato possibile inviare il messaggio. Riprova.",
       hilo_tr:      "Tradotto automaticamente",
       hilo_tr_orig: "Vedi originale",
@@ -8314,6 +8322,8 @@ window.CIIP_PASOS = {
       co_m_asunto_cita: "关于您的预约",
       co_m_hablar_sinsql: "需要先更新数据库，团队才能发起咨询。",
       co_m_f_resueltas: "已解决",
+      /* Los chats de trámite en «Consultas y citas», como respaldo (Franklin Reyes, 9-10-2026): el filtro, el asunto y si se puede escribir. */
+      co_m_f_chats: "办理事项聊天", co_m_chat_asunto: "向 SAPI 提交的答辩", co_m_chat_abierto: "进行中", co_m_chat_cerrado: "只读",
       hilo_noenvia: "消息未能发送，请重试。",
       hilo_tr:      "自动翻译",
       hilo_tr_orig: "查看原文",
@@ -10131,6 +10141,8 @@ window.CIIP_PASOS = {
       co_m_asunto_cita: "О вашей встрече",
       co_m_hablar_sinsql: "Нужно обновить базу данных, чтобы команда могла открывать обращения.",
       co_m_f_resueltas: "Решённые",
+      /* Los chats de trámite en «Consultas y citas», como respaldo (Franklin Reyes, 9-10-2026): el filtro, el asunto y si se puede escribir. */
+      co_m_f_chats: "Чаты по делам", co_m_chat_asunto: "Ответ в SAPI", co_m_chat_abierto: "Открыт", co_m_chat_cerrado: "Только чтение",
       hilo_noenvia: "Не удалось отправить сообщение. Попробуйте ещё раз.",
       hilo_tr:      "Переведено автоматически",
       hilo_tr_orig: "Показать оригинал",
@@ -11948,6 +11960,8 @@ window.CIIP_PASOS = {
       co_m_asunto_cita: "À propos de votre rendez-vous",
       co_m_hablar_sinsql: "La base de données doit être mise à jour pour que l’équipe puisse ouvrir des demandes d’information.",
       co_m_f_resueltas: "Résolues",
+      /* Los chats de trámite en «Consultas y citas», como respaldo (Franklin Reyes, 9-10-2026): el filtro, el asunto y si se puede escribir. */
+      co_m_f_chats: "Chats des démarches", co_m_chat_asunto: "Réponse au SAPI", co_m_chat_abierto: "Ouvert", co_m_chat_cerrado: "Lecture seule",
       hilo_noenvia: "Le message n’a pas pu être envoyé. Veuillez réessayer.",
       hilo_tr:      "Traduit automatiquement",
       hilo_tr_orig: "Voir l’original",
@@ -13780,6 +13794,8 @@ window.CIIP_PASOS = {
       co_m_asunto_cita: "面談について",
       co_m_hablar_sinsql: "チームがお問い合わせを開始するには、データベースの更新が必要です。",
       co_m_f_resueltas: "解決済み",
+      /* Los chats de trámite en «Consultas y citas», como respaldo (Franklin Reyes, 9-10-2026): el filtro, el asunto y si se puede escribir. */
+      co_m_f_chats: "手続きのチャット", co_m_chat_asunto: "SAPIへの応答", co_m_chat_abierto: "受付中", co_m_chat_cerrado: "閲覧のみ",
       hilo_noenvia: "メッセージを送信できませんでした。もう一度お試しください。",
       hilo_tr:      "自動翻訳",
       hilo_tr_orig: "原文を表示",

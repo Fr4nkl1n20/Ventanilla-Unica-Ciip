@@ -281,6 +281,9 @@
               mtLleva, mtLlevaMira, colaRenglon, colaRenglonAbre,
               cmAbre, cmMira, cmEscribe, cmTrasEscribir, cmCitaMira, cmHablaTras,
               cmResueltas, cmTrasReabrir, cmTrasReresolver, cmTomaAjena, cmTrasTomaAjena,
+              /* El chat de la contestación, de respaldo en su filtro (9-10-2026). */
+              cmChatAbre, cmChatMira, cmChatEscribe, cmChatTrasEscribir,
+              cmChatCierra, cmChatCerrado, cmChatVuelve, cmChatCerrado, cmChatSinSql, cmChatSinSqlMira,
               cmSale, cmF5Entra, cmF5Mira,
               hoySiembra, hoyMira, hoyTrasTomar, hoyTrasDeshacer, hoyRevisa,
               hoyEspacioEspera, hoyEspacioMira, hoyAutorizacion, marcaImporteAntes, hoyTrasVale, hoyNoValeAbre,
@@ -6951,8 +6954,9 @@
     var filas = document.querySelectorAll('#cmLista .cm-fila');
     igual('mensajería: una fila por cada consulta y cita que espera',
           String(filas.length), (document.getElementById('navConsultasN') || {}).textContent);
-    /* Cinco desde la auditoría QA-03: las resueltas tienen el suyo. */
-    igual('mensajería: con sus cinco filtros', document.querySelectorAll('#cmFiltros button').length, 5);
+    /* Cinco desde la auditoría QA-03: las resueltas tienen el suyo. Y seis
+       desde el 9-10-2026: los chats de trámite, el suyo (cmChat*). */
+    igual('mensajería: con sus seis filtros', document.querySelectorAll('#cmFiltros button').length, 6);
     ok('mensajería: la primera ya está abierta',
        !!filas[0] && filas[0].getAttribute('aria-current') === 'true',
        filas[0] ? filas[0].getAttribute('aria-current') : '(sin filas)', 'true');
@@ -7160,6 +7164,167 @@
     var cs2 = window.CIIP_MENTIRA_CONSULTA && window.CIIP_MENTIRA_CONSULTA('cs2');
     igual('mensajería: y el que la tenía la sigue teniendo', cs2 ? cs2.gestor : '(no hay)', 'g9');
     if (cs2){ cs2.gestor = null; cs2.estado = 'abierta'; }
+    if (window.CIIP_PINTA_CONSULTAS) window.CIIP_PINTA_CONSULTAS();
+  }
+
+  /* ═════ LOS CHATS DE TRÁMITE, COMO RESPALDO ═════
+     Franklin Reyes, 9-10-2026: «Aquí en Consultas y citas debería de quedar
+     el historial de la conversación que se tiene en el caso del SAPI, como
+     respaldo». El chat de la contestación de la marca -la mch1 de las
+     pruebas del chat de más abajo, puesta con __TRAMITES_EXTRA- sale en su
+     filtro propio con el hilo entero; abierto se contesta desde aquí,
+     pasado a registro queda para leer con su motivo, y sin la columna paso
+     la pantalla sale igual, sin él. Las consultas no se enteran. */
+  function cmChatTramite(pasos){
+    var t = chatMarca(pasos);
+    t.inversionista = 'u2';
+    return t;
+  }
+  function cmChatRepinta(alFinal){
+    Promise.resolve(window.CIIP_PINTA_CONSULTAS && window.CIIP_PINTA_CONSULTAS()).then(alFinal, alFinal);
+  }
+  function cmChatAbre(sigue){
+    if (CASO !== 'gestor') return sigue();
+    window.__TRAMITES_EXTRA = [cmChatTramite(CHAT_PASOS)];
+    cmChatRepinta(function(){
+      var f = document.querySelector('#cmFiltros button[data-filtro="chats"]');
+      if (f) f.click();
+      esperaFilas('#cmConv .hilo-m', 2, sigue);
+    });
+  }
+  function cmChatMira(){
+    if (CASO !== 'gestor') return;
+    var U = window.CIIP_T ? window.CIIP_T() : {};
+    var f = document.querySelector('#cmFiltros button[data-filtro="chats"]');
+    ok('chats de trámite: tienen su filtro en «Consultas y citas»',
+       !!f && !!U.co_m_f_chats && f.textContent.indexOf(U.co_m_f_chats) === 0,
+       f ? f.textContent : '(no hay)', U.co_m_f_chats || '(sin la clave co_m_f_chats)');
+    var filas = document.querySelectorAll('#cmLista .cm-fila');
+    igual('chats de trámite: el de la contestación de la marca sale en él, como una conversación más',
+          [].map.call(filas, function(x){ return x.getAttribute('data-cm'); }).join(' '), 'chat:mch1');
+    var s = document.querySelector('#cmConv .cm-cab .s');
+    ok('chats de trámite: reconocible, con el SAPI, el trámite y el signo',
+       !!s && !!U.co_m_chat_asunto && s.textContent.indexOf(U.co_m_chat_asunto + ' · ') === 0 &&
+         /Cacao Andino/.test(s.textContent),
+       s ? s.textContent : '(sin cabecera)', (U.co_m_chat_asunto || '?') + ' · … · Cacao Andino');
+    var tit = document.querySelector('#cmConv .hilo .sol-h');
+    var antes = String(U.ch_g_t || '').split('{quien}')[0];
+    ok('chats de trámite: con el título del chat de la contestación',
+       !!tit && !!antes && tit.textContent.indexOf(antes) === 0,
+       tit ? tit.textContent : '(sin título)', U.ch_g_t);
+    var ms = document.querySelectorAll('#cmConv .hilo-m');
+    igual('chats de trámite: el hilo entero, y solo el del paso', ms.length, 2);
+    ok('chats de trámite: empezando por el anuncio del gestor',
+       !!ms[0] && /hay que aclarar la clase/.test(ms[0].textContent),
+       ms[0] ? ms[0].textContent : '(ninguno)', 'el anuncio');
+    igual('chats de trámite: con sus adjuntos',
+          (document.querySelector('#cmConv .hm-arch') || {}).textContent, 'oficio-sapi.pdf');
+    var cand = cmCandado();
+    ok('chats de trámite: abierto, se contesta desde aquí',
+       cand.hay && !cand.caja && !cand.clip && !cand.env && !cand.aviso,
+       cand.dice + (cand.aviso ? ', con aviso' : ''), 'los tres encendidos, sin aviso');
+    igual('chats de trámite: y lo dice su distintivo',
+          (document.querySelector('#cmConv .cm-cab .cons-est') || {}).textContent, U.co_m_chat_abierto);
+    ok('chats de trámite: no se toma ni se resuelve, que eso es de las consultas',
+       !document.querySelector('#cmConv .cm-cab .acc'), 'hay botones', 'sin botones');
+    /* Las consultas, igual: «Todas» sigue contando lo de la barra, y sin chats. */
+    var todas = document.querySelector('#cmFiltros button[data-filtro="todas"]');
+    igual('chats de trámite: «Todas» sigue contando lo mismo que la barra',
+          todas ? todas.querySelector('.n').textContent : '(no hay)',
+          (document.getElementById('navConsultasN') || {}).textContent);
+  }
+  function cmChatEscribe(){
+    if (CASO !== 'gestor') return;
+    var ta = document.querySelector('#cmConv .hilo-txt');
+    if (!ta) return;
+    ta.value = 'Pon la clase 30 en la contestación.';
+    ta.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true}));
+  }
+  function cmChatTrasEscribir(){
+    if (CASO !== 'gestor') return;
+    var ms = document.querySelectorAll('#cmConv .hilo-m');
+    var ult = ms[ms.length - 1];
+    igual('chats de trámite: lo escrito sale en el mismo hilo', ms.length, 3);
+    ok('chats de trámite: como del equipo, a la derecha',
+       !!ult && ult.classList.contains('mio') && /clase 30/.test(ult.textContent),
+       ult ? ult.className + ' · ' + ult.textContent : '(ninguno)', 'hilo-m mio con el mensaje');
+    var n2 = document.querySelector('#cmLista .cm-fila[data-cm="chat:mch1"] .n2');
+    ok('chats de trámite: y la lista enseña el último mensaje',
+       !!n2 && /^Tú: Pon la clase 30/.test(n2.textContent),
+       n2 ? n2.textContent : '(sin fila)', 'Tú: Pon la clase 30…');
+    /* Lo escrito va con su paso: es el chat de la casilla, no otro. */
+    var dicho = window.CIIP_MENTIRA_DICHOS ? window.CIIP_MENTIRA_DICHOS() : null;
+    if (dicho){
+      var m = dicho.filter(function(x){ return /clase 30/.test(x.texto || ''); })[0];
+      igual('chats de trámite: guardado en el trámite y con su paso',
+            m ? m.tramite + ':' + m.paso : '(no se guardó)', 'mch1:contestacion');
+    }
+  }
+  function cmChatCierra(sigue){
+    if (CASO !== 'gestor') return sigue();
+    var P = {};
+    Object.keys(CHAT_PASOS).forEach(function(k){ P[k] = CHAT_PASOS[k]; });
+    P.importe_contestacion = '2026-10-10T10:00:00-04';
+    P.pago_contestacion = '2026-10-10T11:00:00-04';
+    P.en_registro = '2026-10-11T10:00:00-04';
+    var ta = document.querySelector('#cmConv .hilo-txt');
+    if (ta) ta.value = 'A medio escribir';
+    window.__TRAMITES_EXTRA = [cmChatTramite(P)];
+    cmChatRepinta(function(){
+      esperaFilas('#cmConv .hilo-cerrado:not([hidden])', 1, sigue);
+    });
+  }
+  function cmChatCerrado(){
+    if (CASO !== 'gestor') return;
+    var U = window.CIIP_T ? window.CIIP_T() : {};
+    var mira = function(cuando){
+      var cand = cmCandado();
+      ok('chats de trámite: pasada a registro, ya no se escribe (' + cuando + ')',
+         cand.hay && cand.caja && cand.clip && cand.env, cand.dice, 'los tres apagados');
+      igual('chats de trámite: y dice por qué (' + cuando + ')', cand.texto, U.ch_cerrado);
+      ok('chats de trámite: pero el hilo sigue ahí, para leer (' + cuando + ')',
+         document.querySelectorAll('#cmConv .hilo-m').length >= 3,
+         document.querySelectorAll('#cmConv .hilo-m').length + ' mensajes', '3');
+      igual('chats de trámite: su distintivo dice que es para leer (' + cuando + ')',
+            (document.querySelector('#cmConv .cm-cab .cons-est') || {}).textContent, U.co_m_chat_cerrado);
+    };
+    /* Abierto en pantalla mientras se cierra: se apaga en el acto, sin
+       rehacer el hilo ni perder lo escrito. */
+    mira(CM_CHAT_CUANDO);
+    if (CM_CHAT_CUANDO === 'en el acto'){
+      igual('chats de trámite: sin perder lo que estaba a medio escribir',
+            (document.querySelector('#cmConv .hilo-txt') || {}).value, 'A medio escribir');
+    }
+  }
+  var CM_CHAT_CUANDO = 'en el acto';
+  /* Y abierto de nuevo, ya cerrado desde el principio: se sale a «Todas»
+     y se vuelve, y cmChatCerrado mira otra vez cuando el hilo ha llegado. */
+  function cmChatVuelve(sigue){
+    if (CASO !== 'gestor') return sigue();
+    CM_CHAT_CUANDO = 'al abrirlo';
+    var todas = document.querySelector('#cmFiltros button[data-filtro="todas"]');
+    if (todas) todas.click();
+    var chats = document.querySelector('#cmFiltros button[data-filtro="chats"]');
+    if (chats) chats.click();
+    esperaFilas('#cmConv .hilo-m', 3, sigue);
+  }
+  function cmChatSinSql(sigue){
+    if (CASO !== 'gestor') return sigue();
+    window.__SIN_COLUMNA_PASO = true;
+    cmChatRepinta(function(){ sigue(); });
+  }
+  function cmChatSinSqlMira(){
+    if (CASO !== 'gestor') return;
+    var chats = document.querySelector('#cmFiltros button[data-filtro="chats"]');
+    igual('chats de trámite: sin la columna paso, el filtro sale vacío',
+          chats ? chats.querySelector('.n').textContent : '(no hay)', '0');
+    var todas = document.querySelector('#cmFiltros button[data-filtro="todas"]');
+    if (todas) todas.click();
+    igual('chats de trámite: y las consultas siguen saliendo',
+          String(document.querySelectorAll('#cmLista .cm-fila').length),
+          (document.getElementById('navConsultasN') || {}).textContent);
+    window.__SIN_COLUMNA_PASO = false;
+    window.__TRAMITES_EXTRA = null;
     if (window.CIIP_PINTA_CONSULTAS) window.CIIP_PINTA_CONSULTAS();
   }
 

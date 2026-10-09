@@ -679,6 +679,9 @@
   /* Lo que se ha escrito en los hilos de consulta durante la tanda: que en
      una resuelta no se escriba ni forzando el botón (5-10-2026). */
   window.CIIP_MENTIRA_DICHOS_CONSULTA = function(){ return dichosConsulta.slice(); };
+  /* Y en los de los expedientes: que lo escrito en un chat de trámite desde
+     «Consultas y citas» vaya a su trámite y con su paso (9-10-2026). */
+  window.CIIP_MENTIRA_DICHOS = function(){ return dichos.slice(); };
   /* Lo que se borro en esta pasada, para que la lista lo respete. */
   var borrados = {};
   /* La configuracion del acompañamiento, con sus valores de fabrica. */
@@ -1986,6 +1989,18 @@
           op.cols === 'estado' && !op.update && !op.insert){
         return {data:{estado:'cancelado'}, error:null};
       }
+      /* Unos trámites por su id, que es como «Consultas y citas» pide los
+         de un chat de trámite que no están en la cola (9-10-2026): de todo
+         lo que hay en la mesa -la cola, los listos, los propios y los que
+         ponga la prueba con __TRAMITES_EXTRA-, solo esos. Si no hay
+         ninguno, sigue como antes: otras pantallas preguntan así por ids
+         que esta mesa no tiene, y no es asunto de esta regla cambiarles la
+         respuesta. */
+      if (op && op.in && op.in.id && !op.in.estado && !op.update && !op.insert && !op.borra){
+        var porId = colaTram.concat(colaListos, TRAMITES[caso] || [], window.__TRAMITES_EXTRA || [])
+          .filter(function(t){ return t && op.in.id.indexOf(t.id) >= 0; });
+        if (porId.length) return {data: porId, error:null};
+      }
       /* Antes de crear una solicitud, el panel pregunta si YA hay una en
          marcha de ESE MISMO TRAMITE: los tres estados vivos Y un .eq del
          tipo. Va la PRIMERA porque la de abajo -la cola del equipo- se
@@ -2246,12 +2261,21 @@
           /* El chat de un paso (supabase-chat-del-paso.sql, 9-10-2026). */
           paso: op.insert.paso || null,
           /* Lo pone la BASE, no quien escribe: el falso tiene que hacer lo
-             mismo o la prueba de "nadie firma por otro" mediria al reves. */
-          del_equipo: false,
+             mismo o la prueba de "nadie firma por otro" mediria al reves.
+             Y la base lo pone con es_gestor(): del equipo si escribe el
+             equipo, como en las consultas. Iba siempre en false, y lo que
+             el equipo escribe en un chat de trámite desde «Consultas y
+             citas» salía como del inversionista (9-10-2026). */
+          del_equipo: (caso === 'gestor'),
           creado_en: new Date().toISOString()
         };
         dichos.push(msj);
         return {data:[msj], error:null};
+      }
+      /* Una base sin supabase-chat-del-paso.sql: la columna paso no existe
+         y preguntar por ella falla. Solo mientras la prueba lo pida. */
+      if (window.__SIN_COLUMNA_PASO && op && op.eq && 'paso' in op.eq){
+        return {data:null, error:{message:'column tramite_mensajes.paso does not exist', code:'42703'}};
       }
       var hilo = [
         {id:'msj-a', tramite:'t1', texto:'El comprobante del capital esta ilegible: vuelve a subirlo escaneado.',
