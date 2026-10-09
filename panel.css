@@ -6008,7 +6008,6 @@ body.editando-textos .ay-ld-det > details{display:block; margin-bottom:12px;}
 .tr-en-chat > .tr-pest-chat{display:block;}
 .tr-pest-chat > .tr-chat{margin:0; border-left-width:1px; border-radius:12px; padding:16px 18px;}
 .tr-pest-chat .hilo-lista{max-height:min(60vh, 520px);}
-/* El botón que abre la pestaña, bajo la etapa de la contestación. */
-.tr-chat-ir{flex:0 0 100%; list-style:none; text-align:center; margin:4px 0 6px;}
-.tr-paso:has(+ .tr-chat-ir)::before{display:none;}
+/* El botón que abre la pestaña va en el recuadro del paso del SAPI, con
+   la piel de la caja del importe (imp-caja, imp-t, imp-cargar). */
 @media(max-width:640px){ .tr-paso:has(+ .tr-chat){padding-bottom:6px;} .tr-chat{padding:10px 12px;} }

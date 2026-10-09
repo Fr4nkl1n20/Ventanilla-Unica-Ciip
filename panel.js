@@ -10659,22 +10659,28 @@ applyLang(idiomaParaMi());
             String(u.ns_desde_paso || '').replace('{cuando}', haceCuanto(desde))));
           txt.appendChild(eti);
         }
+        /* El botón del chat, dentro del paso «Solicitud en proceso ante el
+           SAPI» y en su recuadro, como el del importe (Franklin Reyes,
+           9-10-2026): es el paso cuya nota dice «escríbele en el chat». */
+        if (irAlChat && paso.clave === 'sapi'){
+          var cajaCh = el('div', 'imp-caja tr-chat-caja');
+          var cuerpoCh = el('div', 'imp-cuerpo');
+          cuerpoCh.appendChild(el('div', 'imp-t', u.ch_t || ''));
+          var irB = el('button', 'btn navy imp-cargar tr-chat-ir', u.tr_pest_chat || '');
+          irB.type = 'button';
+          irB.addEventListener('click', irAlChat);
+          cuerpoCh.appendChild(irB);
+          cajaCh.appendChild(cuerpoCh);
+          txt.appendChild(cajaCh);
+        }
         li.appendChild(punto); li.appendChild(txt);
         lista.appendChild(li);
       });
       /* El chat de la contestación sale solo cuando el gestor la habilitó
          -el SAPI devolvió el registro-, le llega a él, y por ahí le manda
          documentos. Pasado a registro, se lee pero ya no se escribe. Al
-         equipo no: lo lleva en su casilla. Bajo la etapa de su importe
-         queda solo el botón que abre su pestaña. */
-      if (irAlChat && et.pasos.some(function(p){ return p.solo === 'contestacion'; })){
-        var irLi = el('li', 'tr-chat-ir');
-        var irB = el('button', 'btn ghost', u.tr_pest_chat || '');
-        irB.type = 'button';
-        irB.addEventListener('click', irAlChat);
-        irLi.appendChild(irB);
-        lista.appendChild(irLi);
-      }
+         equipo no: lo lleva en su casilla. Va en su pestaña, y en la
+         escalera queda solo el botón que la abre, dentro de su paso. */
     });
   }
 

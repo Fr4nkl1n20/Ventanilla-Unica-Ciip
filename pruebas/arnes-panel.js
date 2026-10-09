@@ -10257,9 +10257,9 @@
          pes.length === 2 && pes[0].classList.contains('on') && !con.classList.contains('tr-en-chat') &&
          !!con.querySelector('.tr-pest-chat [data-chat="contestacion"]') && !con.querySelector('ol [data-chat]'),
          pes.length + ' pestañas', '2, «Tu trámite» elegida');
-      var irChat = con.querySelector('li.tr-chat-ir button');
+      var irChat = con.querySelector('li.tr-paso[data-paso="sapi"] .tr-chat-caja button.tr-chat-ir');
       if (irChat) irChat.click();
-      ok('marca: el botón bajo la etapa abre la pestaña del chat',
+      ok('marca: el botón del paso del SAPI abre la pestaña del chat',
          !!irChat && con.classList.contains('tr-en-chat') && pes[1].classList.contains('on'),
          irChat ? con.className : '(sin botón)', 'tr-en-chat');
       if (pes[0]) pes[0].click();
@@ -11973,13 +11973,12 @@
     var chat = document.querySelector('#trReal .tr-pest-chat .tr-chat');
     ok('chat marca: con la contestación habilitada, sale en su pestaña', !!chat);
     if (!chat) return sigue();
-    /* En la escalera queda solo el botón que abre la pestaña, debajo de la
-       etapa de la solicitud y antes de la marca registrada. */
-    var ir = document.querySelector('#trReal li.tr-chat-ir');
-    var antes = ir && ir.previousElementSibling, luego = ir && ir.nextElementSibling;
-    igual('chat marca: su botón, debajo de la etapa de la solicitud, antes de la marca registrada',
-          (antes ? antes.getAttribute('data-paso') : '') + ' / ' + (luego ? luego.getAttribute('data-etapa') : ''),
-          'en_registro / registrada');
+    /* En la escalera queda solo el botón que abre la pestaña, en el
+       recuadro del paso «Solicitud en proceso ante el SAPI». */
+    var ir = document.querySelector('#trReal .tr-chat-ir');
+    var suPaso = ir && ir.closest('li.tr-paso');
+    igual('chat marca: su botón va en el recuadro del paso del SAPI',
+          suPaso ? suPaso.getAttribute('data-paso') : '(sin botón)', 'sapi');
     igual('chat marca: con su título', (chat.querySelector('.sol-h') || {}).textContent, U.ch_t);
     igual('chat marca: trae los del chat y no la conversación de siempre',
           chat.querySelectorAll('.hilo-m').length, 2);
