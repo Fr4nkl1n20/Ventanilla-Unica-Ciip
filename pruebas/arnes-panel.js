@@ -10243,31 +10243,28 @@
       ok('marca: y no dice nada de un PUB ni de la reserva del nombre',
          !/PUB|reserva/i.test(sin.textContent), sin.textContent.slice(0, 60), 'sin PUB');
       var con = pintaEn(tr('mc-h', 'ante_el_ente', p3, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
-      var an = con.querySelector('.mc-anuncio');
-      ok('marca: habilitada, el anuncio sale destacado encima de la escalera',
-         !!an && an.nextSibling && an.nextSibling.tagName === 'OL' &&
+      var an = con.querySelector('li.tr-paso[data-paso="sapi"] .mc-anuncio-paso');
+      ok('marca: habilitada, el anuncio va en el recuadro del paso del SAPI, no arriba',
+         !!an && !con.querySelector('.mc-anuncio') &&
          an.textContent.indexOf('Una empresa se opuso al registro.') > 0,
          an ? an.textContent.slice(0, 70) : '(sin anuncio)', 'Aviso del CIIP… Una empresa se opuso…');
-      ok('marca: el anuncio lleva la etiqueta, la fecha y el botón que lleva al chat',
-         !!an && !!an.querySelector('.mc-anuncio-chip') && !!an.querySelector('.mc-anuncio-f') &&
-         !!an.querySelector('.mc-anuncio-ir') && !!con.querySelector('[data-chat="contestacion"]'),
-         an ? an.textContent.slice(0, 90) : '(sin anuncio)', 'Respuesta del SAPI… Escribir al CIIP');
+      ok('marca: con su fecha y sin botón', !!an && !!an.querySelector('.sd-e') && !an.querySelector('button'));
       var pes = con.querySelectorAll('.tr-pest .tr-pest-b');
       ok('marca: el chat va en su pestaña, con el trámite elegido al entrar',
          pes.length === 2 && pes[0].classList.contains('on') && !con.classList.contains('tr-en-chat') &&
          !!con.querySelector('.tr-pest-chat [data-chat="contestacion"]') && !con.querySelector('ol [data-chat]'),
          pes.length + ' pestañas', '2, «Tu trámite» elegida');
-      var irChat = con.querySelector('li.tr-paso[data-paso="sapi"] .tr-chat-caja button.tr-chat-ir');
-      if (irChat) irChat.click();
-      ok('marca: el botón del paso del SAPI abre la pestaña del chat',
-         !!irChat && con.classList.contains('tr-en-chat') && pes[1].classList.contains('on'),
-         irChat ? con.className : '(sin botón)', 'tr-en-chat');
+      if (pes[1]) pes[1].click();
+      ok('marca: la pestaña del chat lo abre',
+         con.classList.contains('tr-en-chat') && pes[1].classList.contains('on'), con.className, 'tr-en-chat');
       if (pes[0]) pes[0].click();
       var dev = pintaEn(tr('mc-h0', 'ante_el_ente', p3a, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
       var notaDev = dev.querySelector('li.tr-paso.ahora[data-paso="sapi"] .tr-nota');
       igual('marca: mientras se resuelve, «Solicitud en proceso» en curso y dice que hable en el chat',
             notaDev ? notaDev.textContent : '(sin nota)', (window.CIIP_PASOS.ui[curLang] || {}).mc_n_sapi_dev);
       ok('marca: y el chat ya está abierto', !!dev.querySelector('[data-chat="contestacion"]'));
+      ok('marca: mientras espera la solución, el recuadro del aviso va en rojo',
+         !!dev.querySelector('li.tr-paso.ahora[data-paso="sapi"] .mc-anuncio-paso.espera'));
       ok('marca: y el paso del importe de la contestación está en curso',
          !!con.querySelector('li.tr-paso.ahora[data-paso="importe_contestacion"]'),
          (con.querySelector('li.tr-paso.ahora') || {getAttribute: function(){ return '(ninguno)'; }}).getAttribute('data-paso'),
@@ -11973,12 +11970,8 @@
     var chat = document.querySelector('#trReal .tr-pest-chat .tr-chat');
     ok('chat marca: con la contestación habilitada, sale en su pestaña', !!chat);
     if (!chat) return sigue();
-    /* En la escalera queda solo el botón que abre la pestaña, en el
-       recuadro del paso «Solicitud en proceso ante el SAPI». */
-    var ir = document.querySelector('#trReal .tr-chat-ir');
-    var suPaso = ir && ir.closest('li.tr-paso');
-    igual('chat marca: su botón va en el recuadro del paso del SAPI',
-          suPaso ? suPaso.getAttribute('data-paso') : '(sin botón)', 'sapi');
+    ok('chat marca: y en la escalera ya no queda botón ni chat',
+       !document.querySelector('#trReal ol .tr-chat, #trReal ol .tr-chat-ir'));
     igual('chat marca: con su título', (chat.querySelector('.sol-h') || {}).textContent, U.ch_t);
     igual('chat marca: trae los del chat y no la conversación de siempre',
           chat.querySelectorAll('.hilo-m').length, 2);

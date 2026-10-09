@@ -10498,29 +10498,20 @@ applyLang(idiomaParaMi());
     /* El anuncio del gestor, ANTES de la escalera y destacado: es lo que
        cambió en su trámite y lo que tiene que leer primero. */
     /* Tarjeta blanca con filo azul, del ancho de la del trámite (maqueta 3
-       de aviso-de-la-marca-cuatro, Franklin Reyes, 9-10-2026): título,
-       etiqueta y fecha en una fila; el texto; y, si el paso tiene chat, un
-       pie con el botón que lleva a él. La etiqueta dice «Respuesta del
-       SAPI» y no «Devuelta»: también puede ser una oposición. */
-    if (E.anuncio && cajaTr){
+       de aviso-de-la-marca-cuatro, Franklin Reyes, 9-10-2026): título y
+       fecha en una fila, y el texto. La de la marca con contestación no
+       sale aquí: va en el recuadro de su paso del SAPI (más abajo). */
+    var anuncioEnElPaso = !!(E.anuncio && E.contestacion);
+    var tituloAnuncio = u[((ESCALERA_POR_ETAPAS[E.codigo] || {}).textos || {}).anuncio || 'mc_anuncio_t'] || '';
+    if (E.anuncio && cajaTr && !anuncioEnElPaso){
       var an = el('div', 'mc-anuncio');
       an.setAttribute('role', 'status');
       var anCab = el('div', 'mc-anuncio-cab');
-      anCab.appendChild(el('div', 'mc-anuncio-t', u[((ESCALERA_POR_ETAPAS[E.codigo] || {}).textos || {}).anuncio || 'mc_anuncio_t'] || ''));
-      if (E.contestacion && u.mc_anuncio_chip) anCab.appendChild(el('span', 'mc-anuncio-chip', u.mc_anuncio_chip));
+      anCab.appendChild(el('div', 'mc-anuncio-t', tituloAnuncio));
       if (E.anuncioEn) anCab.appendChild(el('span', 'mc-anuncio-f',
         String(u.mc_anuncio_f || '').replace('{fecha}', fecha(E.anuncioEn))));
       an.appendChild(anCab);
       an.appendChild(el('div', 'mc-anuncio-d', E.anuncio));
-      if (irAlChat && u.mc_anuncio_ir){
-        var anPie = el('div', 'mc-anuncio-pie');
-        anPie.appendChild(el('span', '', u.mc_anuncio_pie || ''));
-        var anIr = el('button', 'btn ghost mc-anuncio-ir', u.mc_anuncio_ir);
-        anIr.type = 'button';
-        anIr.addEventListener('click', function(){ if (irAlChat) irAlChat(); });
-        anPie.appendChild(anIr);
-        an.appendChild(anPie);
-      }
       cajaTr.insertBefore(an, lista);
     }
 
@@ -10659,19 +10650,21 @@ applyLang(idiomaParaMi());
             String(u.ns_desde_paso || '').replace('{cuando}', haceCuanto(desde))));
           txt.appendChild(eti);
         }
-        /* El botón del chat, dentro del paso «Solicitud en proceso ante el
-           SAPI» y en su recuadro, como el del importe (Franklin Reyes,
-           9-10-2026): es el paso cuya nota dice «escríbele en el chat». */
-        if (irAlChat && paso.clave === 'sapi'){
-          var cajaCh = el('div', 'imp-caja tr-chat-caja');
-          var cuerpoCh = el('div', 'imp-cuerpo');
-          cuerpoCh.appendChild(el('div', 'imp-t', u.ch_t || ''));
-          var irB = el('button', 'btn navy imp-cargar tr-chat-ir', u.tr_pest_chat || '');
-          irB.type = 'button';
-          irB.addEventListener('click', irAlChat);
-          cuerpoCh.appendChild(irB);
-          cajaCh.appendChild(cuerpoCh);
-          txt.appendChild(cajaCh);
+        /* El aviso del gestor cuando el SAPI devuelve o alguien se opone:
+           dentro del paso «Solicitud en proceso ante el SAPI», en su
+           recuadro como el del importe, y no arriba (Franklin Reyes,
+           9-10-2026). Sin botón: el chat se abre con su pestaña. */
+        if (anuncioEnElPaso && paso.clave === 'sapi'){
+          /* En rojo mientras se espera la solución; resuelto, el de siempre. */
+          var cajaAn = el('div', 'imp-caja mc-anuncio-paso' + (paso.ahora ? ' espera' : ''));
+          cajaAn.setAttribute('role', 'status');
+          var cuerpoAn = el('div', 'imp-cuerpo');
+          cuerpoAn.appendChild(el('div', 'imp-t', tituloAnuncio));
+          cuerpoAn.appendChild(el('div', 'mc-anuncio-d', E.anuncio));
+          if (E.anuncioEn) cuerpoAn.appendChild(el('div', 'sd-e',
+            String(u.mc_anuncio_f || '').replace('{fecha}', fecha(E.anuncioEn))));
+          cajaAn.appendChild(cuerpoAn);
+          txt.appendChild(cajaAn);
         }
         li.appendChild(punto); li.appendChild(txt);
         lista.appendChild(li);
@@ -10679,8 +10672,7 @@ applyLang(idiomaParaMi());
       /* El chat de la contestación sale solo cuando el gestor la habilitó
          -el SAPI devolvió el registro-, le llega a él, y por ahí le manda
          documentos. Pasado a registro, se lee pero ya no se escribe. Al
-         equipo no: lo lleva en su casilla. Va en su pestaña, y en la
-         escalera queda solo el botón que la abre, dentro de su paso. */
+         equipo no: lo lleva en su casilla. Va en su pestaña. */
     });
   }
 
