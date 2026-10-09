@@ -154,6 +154,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    pasos apuntados en tramites.datos, la contestación con su anuncio y el
    certificado antes de resolver. Va DETRÁS del importe del día, cuyos
    importes con nombre usa, y de los avisos y el hilo, donde escribe. */
+/* El chat de un paso (9-10-2026): la columna paso de tramite_mensajes y
+   cuándo se escribe en él. DELANTE de la marca, cuyo habilita_contestacion
+   escribe su primer mensaje. */
+'supabase-chat-del-paso',
 'supabase-marca',
 /* Los registros parafiscales sin código: el inversionista solo escribe en
    las filas del IVSS y del INCES. Redefine dos políticas de

@@ -10348,7 +10348,10 @@ applyLang(idiomaParaMi());
         var paso = {clave: p.clave, tipo: p.tipo, nombre: u[p.rotulo] || '', importe: p.importe || null,
                     importes: p.importes || null, hechoEn: p.hechoEn || null,
                     papel: p.papel || null, espera: p.espera || null, listo: p.listo || null,
-                    etapa: et.clave, cuando: P[p.clave] || null};
+                    etapa: et.clave, cuando: P[p.clave] || null,
+                    /* De qué depende que salga: el chat de la contestación
+                       se pone en la etapa que lleva sus pasos. */
+                    solo: p.solo || null};
         /* 'pagos': los comprobantes de varios importes en un solo paso -la
            licencia, «Comprobante del pago» con sus dos casillas-. Hecho
            cuando están todos; su fecha, la del último que llegó. */
@@ -10445,13 +10448,36 @@ applyLang(idiomaParaMi());
 
     /* El anuncio del gestor, ANTES de la escalera y destacado: es lo que
        cambió en su trámite y lo que tiene que leer primero. */
+    /* Tarjeta blanca con filo azul, del ancho de la del trámite (maqueta 3
+       de aviso-de-la-marca-cuatro, Franklin Reyes, 9-10-2026): título,
+       etiqueta y fecha en una fila; el texto; y, si el paso tiene chat, un
+       pie con el botón que lleva a él. La etiqueta dice «Respuesta del
+       SAPI» y no «Devuelta»: también puede ser una oposición. */
     if (E.anuncio && cajaTr){
       var an = el('div', 'mc-anuncio');
       an.setAttribute('role', 'status');
-      an.appendChild(el('div', 'mc-anuncio-t', u[((ESCALERA_POR_ETAPAS[E.codigo] || {}).textos || {}).anuncio || 'mc_anuncio_t'] || ''));
-      an.appendChild(el('div', 'mc-anuncio-d', E.anuncio));
-      if (E.anuncioEn) an.appendChild(el('div', 'sd-e',
+      var anCab = el('div', 'mc-anuncio-cab');
+      anCab.appendChild(el('div', 'mc-anuncio-t', u[((ESCALERA_POR_ETAPAS[E.codigo] || {}).textos || {}).anuncio || 'mc_anuncio_t'] || ''));
+      if (E.contestacion && u.mc_anuncio_chip) anCab.appendChild(el('span', 'mc-anuncio-chip', u.mc_anuncio_chip));
+      if (E.anuncioEn) anCab.appendChild(el('span', 'mc-anuncio-f',
         String(u.mc_anuncio_f || '').replace('{fecha}', fecha(E.anuncioEn))));
+      an.appendChild(anCab);
+      an.appendChild(el('div', 'mc-anuncio-d', E.anuncio));
+      if (!esEquipo && E.contestacion && u.mc_anuncio_ir){
+        var anPie = el('div', 'mc-anuncio-pie');
+        anPie.appendChild(el('span', '', u.mc_anuncio_pie || ''));
+        var anIr = el('button', 'btn ghost mc-anuncio-ir', u.mc_anuncio_ir);
+        anIr.type = 'button';
+        anIr.addEventListener('click', function(){
+          var chat = cajaTr.querySelector('[data-chat="contestacion"]');
+          if (!chat) return;
+          chat.scrollIntoView({behavior:'smooth', block:'center'});
+          var escribe = chat.querySelector('textarea');
+          if (escribe) setTimeout(function(){ escribe.focus({preventScroll:true}); }, 350);
+        });
+        anPie.appendChild(anIr);
+        an.appendChild(anPie);
+      }
       cajaTr.insertBefore(an, lista);
     }
 
@@ -10593,7 +10619,52 @@ applyLang(idiomaParaMi());
         li.appendChild(punto); li.appendChild(txt);
         lista.appendChild(li);
       });
+      /* El chat de la contestación, a todo el ancho y debajo de la etapa
+         donde está su importe (Franklin Reyes, 9-10-2026): sale solo cuando
+         el gestor la habilitó -el SAPI devolvió el registro-, le llega a
+         él, y por ahí le manda documentos. Pasado a registro, se lee pero
+         ya no se escribe. Al equipo no: lo lleva en su casilla. */
+      if (!esEquipo && E.contestacion && et.pasos.some(function(p){ return p.solo === 'contestacion'; })){
+        lista.appendChild(chatDeLaContestacion(tr, E, false));
+      }
     });
+  }
+
+  /* El chat del paso de la contestación de la marca, para los dos lados.
+     Es pintaHilo con paso 'contestacion' (supabase-chat-del-paso.sql): la
+     misma conversación, los mismos adjuntos y la misma traducción.
+
+     UN NODO POR TRÁMITE, que se reutiliza. La escalera, la casilla del
+     gestor y su visor se rehacen enteros a menudo -el repaso de cada
+     minuto, cada respuesta de la base-, y rehacer el chat borraba lo que se
+     estaba escribiendo y el archivo elegido. Colgado otra vez, el mismo
+     nodo lo conserva, y su propio reloj sigue trayendo lo que contesta el
+     otro lado. Se rehace solo si cambia algo que se ve: el idioma o que se
+     cierre. */
+  var CHATS_DEL_PASO = {};
+  function chatDeLaContestacion(tr, E, equipo, quien){
+    var u = T();
+    var enReg = E.todos.filter(function(p){ return p.clave === 'en_registro'; })[0];
+    var cerrado = !!(enReg && enReg.hecho) || tr.estado === 'resuelto';
+    var clave = tr.id + (equipo ? ':g' : ':i');
+    var firma = curLang + (cerrado ? ':cerrado' : ':abierto');
+    var guardado = CHATS_DEL_PASO[clave];
+    if (guardado && guardado.firma === firma) return guardado.nodo;
+    var caja = el(equipo ? 'div' : 'li', 'tr-chat');
+    caja.setAttribute('data-chat', 'contestacion');
+    var de = {tabla:'tramite_mensajes', col:'tramite', id:tr.id, inversionista:tr.inversionista,
+              paso:'contestacion',
+              titulo: equipo ? String(u.ch_g_t || '').replace('{quien}', quien || '') : (u.ch_t || ''),
+              vacio: equipo ? '' : (u.ch_vacio || ''),
+              ph: equipo ? '' : (u.ch_ph || '')};
+    if (equipo){ de.equipo = true; de.quien = quien; }
+    if (cerrado) de.cerrada = u.ch_cerrado || '';
+    pintaHilo(caja, de);
+    /* Debajo del título, qué es y a quién le llega. */
+    var tit = caja.querySelector('.sol-h');
+    if (!equipo && tit) tit.parentNode.insertBefore(el('div', 'tr-chat-d', u.ch_d || ''), tit.nextSibling);
+    CHATS_DEL_PASO[clave] = {firma: firma, nodo: caja};
+    return caja;
   }
 
   /* ── LA CASILLA DEL GESTOR ──
@@ -10621,6 +10692,13 @@ applyLang(idiomaParaMi());
     var u = T();
     var caja = el('div', 'co-emitir mc-g');
     caja.setAttribute('data-marca', t.id);
+    /* El chat de la contestación (9-10-2026), al final de la casilla en
+       cuanto está habilitada. Es siempre el mismo nodo (ver
+       chatDeLaContestacion): rehacer la casilla no borra lo escrito. */
+    var zonaChat = null;
+    var ponChat = function(E){
+      zonaChat = E.contestacion ? chatDeLaContestacion(t, E, true, t.nombre || u.co_sinnombre || '') : null;
+    };
 
     /* La base contesta con la solicitud entera; con ella se repinta. */
     var conDatos = function(r){
@@ -10885,6 +10963,8 @@ applyLang(idiomaParaMi());
         zona.appendChild(form);
         caja.appendChild(zona);
       }
+      ponChat(E);
+      if (zonaChat) caja.appendChild(zonaChat);
     }
     pinta();
     return caja;
@@ -12436,6 +12516,13 @@ applyLang(idiomaParaMi());
                       adjunto que suba el equipo
        cerrada        (opcional) por qué no se puede escribir: la caja, «Adjuntar»
                       y «Enviar» salen apagados y esa frase encima
+       paso           (opcional, solo tramite_mensajes) el chat de un paso
+                      -'contestacion'-: lee y escribe solo los suyos
+                      (supabase-chat-del-paso.sql, 9-10-2026)
+       sinPaso        (opcional) la conversación de siempre, sin los chats de
+                      los pasos
+       titulo, vacio, ph  (opcionales) el rótulo, el texto sin mensajes y el de
+                      la caja, en vez de los de la conversación de siempre
 
      Devuelve {cierra(motivo, extra)} para bloquear o desbloquear la caja
      después, sin volver a pintar la conversación: motivo es la frase, extra
@@ -12454,8 +12541,8 @@ applyLang(idiomaParaMi());
     var equipo = !!de.equipo;
     var quien = de.quien || u.co_sinnombre || '';
     var bloque = el('div', 'sol-adj hilo' + (equipo ? ' hilo-equipo' : ''));
-    bloque.appendChild(el('div', 'sol-h', equipo
-      ? String(u.co_m_conv || '').replace('{quien}', quien) : (u['hilo.t'] || '')));
+    bloque.appendChild(el('div', 'sol-h', de.titulo || (equipo
+      ? String(u.co_m_conv || '').replace('{quien}', quien) : (u['hilo.t'] || ''))));
 
     var lista = el('div', 'hilo-lista');
     bloque.appendChild(lista);
@@ -12468,8 +12555,8 @@ applyLang(idiomaParaMi());
     var texto = document.createElement('textarea');
     texto.className = 'hilo-txt';
     texto.rows = 2;
-    texto.placeholder = equipo
-      ? String(u.co_m_escribe || '').replace('{quien}', quien) : (u['hilo.ph'] || '');
+    texto.placeholder = de.ph || (equipo
+      ? String(u.co_m_escribe || '').replace('{quien}', quien) : (u['hilo.ph'] || ''));
     var arch  = document.createElement('input');
     arch.type = 'file';
     arch.accept = 'image/*,application/pdf';
@@ -12551,8 +12638,8 @@ applyLang(idiomaParaMi());
       lista.textContent = '';
       if (!filas.length){
         if (de.soloLeer){ bloque.hidden = true; return; }
-        lista.appendChild(el('div', 'hilo-vacio', equipo
-          ? String(u.co_m_vacio_hilo || '').replace('{quien}', quien) : (u['hilo.vacio'] || '')));
+        lista.appendChild(el('div', 'hilo-vacio', de.vacio || (equipo
+          ? String(u.co_m_vacio_hilo || '').replace('{quien}', quien) : (u['hilo.vacio'] || ''))));
         return;
       }
       filas.forEach(function(m){
@@ -12643,9 +12730,14 @@ applyLang(idiomaParaMi());
        no mueve la lectura de quien subió a mirar algo, y si falla no
        esconde la conversación, que ya estaba bien pintada. */
     function lee(silencioso){
-      return Promise.resolve(sb.from(de.tabla)
+      var q = sb.from(de.tabla)
         .select('id, texto, del_equipo, creado_en, documento, documentos(nombre_original, tipo, archivo)')
-        .eq(de.col, de.id).order('creado_en', {ascending:true}))
+        .eq(de.col, de.id);
+      /* El chat de un paso lee solo los suyos; la conversación de siempre,
+         los que no son de ningún paso. */
+      if (de.paso) q = q.eq('paso', de.paso);
+      else if (de.sinPaso) q = q.is('paso', null);
+      return Promise.resolve(q.order('creado_en', {ascending:true}))
         .then(function(r){
           if (r && r.error) throw r.error;
           var filas = (r && r.data) || [];
@@ -12702,6 +12794,7 @@ applyLang(idiomaParaMi());
            de citas mañana, y de lo que venga después. */
         var fila = {texto: dice, documento: docId};
         fila[de.col] = de.id;
+        if (de.paso) fila.paso = de.paso;
         return Promise.resolve(sb.from(de.tabla).insert(fila).select('id'))
           .then(function(r){
             if (r && r.error) throw r.error;
@@ -13508,6 +13601,18 @@ applyLang(idiomaParaMi());
         ir: function(){ avAMisTramites(ev.tramite); }
       };
     }
+    /* El chat de la contestación: el inversionista va a su ficha, donde
+       está el chat; el gestor, a la solicitud en su lista. */
+    if (ev.clase === 'chat'){
+      return {
+        t: ev.ref ? nombreDeTarjeta(ev.ref) : '',
+        q: (ev.equipo ? u.av_chat_g : u.av_chat_i) || u.av_mensaje || '',
+        nota: ev.nota || '',
+        ir: ev.equipo
+          ? function(){ avAMisTramites(ev.tramite); }
+          : function(){ window.CIIP_ABRE_ESTA = ev.tramite; location.hash = 'tramite-' + ev.ref; }
+      };
+    }
     if (ev.clase === 'consulta'){
       return {
         t: ev.asunto || (u.av_consulta || ''),
@@ -13762,13 +13867,14 @@ applyLang(idiomaParaMi());
                 sumaCitas(uid),
                 sumaPapeles(uid),
                 sumaMensajes(uid, refDe, mios),
+                sumaChatDelPaso(uid, refDe, mios, loPedi),
                 sumaConsultas(uid),
                 sumaPagos(uid, refDe),
                 sumaPapelesDePago(refDe, loPedi, mios),
                 sumaCodigos(mios, refDe, loPedi),
                 nombresDeDuenos(Object.keys(duenos)),
                 nombresDeGestores(Object.keys(loPedi).filter(function(id){ return loPedi[id]; }))
-              ]).then(ordenaYPinta);
+              ]).then(function(r){ unoPorMensaje(); return ordenaYPinta(r); });
             });
         });
       });
@@ -14040,11 +14146,52 @@ applyLang(idiomaParaMi());
         if (!ref) return;      /* de un expediente que no es mío, o sin tarjeta */
         if (!String(m.texto || '').trim()) return;  /* solo adjunto, sin nada que leer */
         avisos.push({
-          clase: 'mensaje', tramite: m.tramite, ref: ref,
+          clase: 'mensaje', tramite: m.tramite, ref: ref, msj: m.id,
           nota: avRecorta(m.texto), creado_en: m.creado_en, ente: ''
         });
       });
     });
+  }
+
+  /* ── EL CHAT DE LA CONTESTACIÓN DE LA MARCA (9-10-2026) ──
+     Lo que se escribe en el chat de un paso, a los dos lados: al gestor lo
+     que le escribe el inversionista -que hasta ahora no le sonaba a nadie-
+     y al inversionista lo que le contesta el CIIP. Una consulta aparte: sin
+     supabase-chat-del-paso.sql no hay columna paso, falla sola y el resto
+     del buzón sigue. Los del CIIP también los trae sumaMensajes; se quedan
+     estos, que llevan a la ficha y dicen de qué chat son (unoPorMensaje). */
+  function sumaChatDelPaso(uid, refDe, mios, loPedi){
+    if (!mios.length) return Promise.resolve();
+    return avPide('chat del paso', function(){
+      return sb.from('tramite_mensajes')
+        .select('id, tramite, autor, texto, del_equipo, creado_en, paso')
+        .eq('paso', 'contestacion')
+        .in('tramite', mios)
+        .order('creado_en', {ascending:false}).limit(20);
+    }, function(filas){
+      filas.forEach(function(m){
+        if (m.paso !== 'contestacion') return;
+        if (m.autor && m.autor === uid) return;    /* lo escribí yo */
+        var ref = refDe[m.tramite];
+        if (!ref) return;
+        /* Del otro lado y nada más: al que la pidió, lo del CIIP; al que
+           la lleva, lo del inversionista. */
+        var soyElDueno = !!loPedi[m.tramite];
+        if (soyElDueno ? !m.del_equipo : m.del_equipo) return;
+        avisos.push({
+          clase: 'chat', tramite: m.tramite, ref: ref, msj: m.id, equipo: !soyElDueno,
+          nota: avRecorta(m.texto || ''), creado_en: m.creado_en, ente: ''
+        });
+      });
+    });
+  }
+  /* Un mensaje, un aviso: el del chat gana al de la conversación. */
+  function unoPorMensaje(){
+    var delChat = {};
+    avisos.forEach(function(a){ if (a.clase === 'chat') delChat[a.msj] = true; });
+    for (var i = avisos.length - 1; i >= 0; i--){
+      if (avisos[i].clase === 'mensaje' && delChat[avisos[i].msj]) avisos.splice(i, 1);
+    }
   }
 
   /* ── LAS RESPUESTAS A TUS CONSULTAS ──
@@ -17886,7 +18033,10 @@ applyLang(idiomaParaMi());
        después de mirar los datos y los recaudos, que es lo que el gestor
        vino a revisar. */
     if (soloMirar) return;
-    pintaHilo(caja, {tabla:'tramite_mensajes', col:'tramite',
+    /* sinPaso: el chat de la contestación de la marca va en su casilla, no
+       aquí (9-10-2026). Contestar aquí no le llegaría al inversionista, que
+       solo ve el chat del paso. */
+    pintaHilo(caja, {tabla:'tramite_mensajes', col:'tramite', sinPaso:true,
                      id:tr.id, inversionista:tr.inversionista});
   }
 

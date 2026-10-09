@@ -290,7 +290,9 @@ begin
     raise exception 'no se pudo habilitar la contestación';
   end if;
 
-  insert into public.tramite_mensajes (tramite, texto) values (p_tramite, texto);
+  -- El anuncio abre el chat de la contestación (supabase-chat-del-paso.sql,
+  -- 9-10-2026): es su primer mensaje.
+  insert into public.tramite_mensajes (tramite, texto, paso) values (p_tramite, texto, 'contestacion');
 
   select u.email into correo from auth.users u where u.id = fila.inversionista;
   select p.pais  into suPais from public.perfiles p where p.id = fila.inversionista;

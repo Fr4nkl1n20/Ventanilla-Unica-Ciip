@@ -2243,6 +2243,8 @@
           tramite: op.insert.tramite,
           texto: op.insert.texto || '',
           documento: op.insert.documento || null,
+          /* El chat de un paso (supabase-chat-del-paso.sql, 9-10-2026). */
+          paso: op.insert.paso || null,
           /* Lo pone la BASE, no quien escribe: el falso tiene que hacer lo
              mismo o la prueba de "nadie firma por otro" mediria al reves. */
           del_equipo: false,
@@ -2269,8 +2271,28 @@
            Por lo mismo que el evento 91: sin una fila ajena en la mesa, la
            prueba de que no entra no comprueba nada. */
         {id:'msj-e', tramite:'x2', texto:'Falta el acta de asamblea firmada.',
-         del_equipo:true, documento:null, creado_en:'2026-08-07T12:00:00Z'}
+         del_equipo:true, documento:null, creado_en:'2026-08-07T12:00:00Z'},
+        /* El chat de la contestación de una marca -mch1, la ponen las
+           pruebas con __TRAMITES_EXTRA-: el anuncio del gestor, que lo abre,
+           y un documento que le manda. Y una línea de la conversación de
+           siempre del mismo trámite, que NO tiene que salir en el chat. */
+        {id:'msj-ch1', tramite:'mch1', paso:'contestacion', texto:'El SAPI devolvió el registro: hay que aclarar la clase.',
+         del_equipo:true, documento:null, creado_en:'2026-10-09T09:00:00Z'},
+        {id:'msj-ch2', tramite:'mch1', paso:'contestacion', texto:'Te dejo el oficio del SAPI.',
+         del_equipo:true, documento:'d-oficio',
+         documentos:{nombre_original:'oficio-sapi.pdf', tipo:'otro', archivo:'u1/emitidos/oficio-sapi.pdf'},
+         creado_en:'2026-10-09T09:05:00Z'},
+        {id:'msj-ch3', tramite:'mch1', texto:'Una línea de la conversación de siempre.',
+         del_equipo:true, documento:null, creado_en:'2026-10-08T09:00:00Z'}
       ].concat(dichos);
+      /* Por paso: el chat lee solo los suyos y la conversación de siempre
+         los que no son de ninguno (.is('paso', null)). */
+      if (op && op.eq && 'paso' in op.eq){
+        hilo = hilo.filter(function(m){ return m.paso === op.eq.paso; });
+      }
+      if (op && op.is && 'paso' in op.is){
+        hilo = hilo.filter(function(m){ return m.paso == null; });
+      }
       if (op && op.eq && op.eq.tramite){
         hilo = hilo.filter(function(m){ return m.tramite === op.eq.tramite; });
       }

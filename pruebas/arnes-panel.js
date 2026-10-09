@@ -409,6 +409,9 @@
                  ya encendida por alDiaVuelve. */
               marcaGuiaAbre, marcaGuiaMira, marcaNuevaMira, marcaProcMira,
               marcaVivaMira, marcaVivaNueva,
+              /* El chat de la contestación (9-10-2026). */
+              chatMarcaAbre, chatMarcaMira, chatMarcaEscribe, chatMarcaEscrito,
+              chatMarcaCierra, chatMarcaCerrado, chatMarcaGestor,
               /* «Ya lo solicité» o «por primera vez» en las inscripciones, la
                  licencia, la conformidad y los bomberos (5-10-2026, 2.6). */
               yaGuiaAbre, yaGuiaMira, yaInscritaMira, yaInscritaFrena,
@@ -10236,6 +10239,10 @@
          !!an && an.nextSibling && an.nextSibling.tagName === 'OL' &&
          an.textContent.indexOf('Una empresa se opuso al registro.') > 0,
          an ? an.textContent.slice(0, 70) : '(sin anuncio)', 'Aviso del CIIP… Una empresa se opuso…');
+      ok('marca: el anuncio lleva la etiqueta, la fecha y el botón que lleva al chat',
+         !!an && !!an.querySelector('.mc-anuncio-chip') && !!an.querySelector('.mc-anuncio-f') &&
+         !!an.querySelector('.mc-anuncio-ir') && !!con.querySelector('[data-chat="contestacion"]'),
+         an ? an.textContent.slice(0, 90) : '(sin anuncio)', 'Respuesta del SAPI… Escribir al CIIP');
       ok('marca: y el paso del importe de la contestación está en curso',
          !!con.querySelector('li.tr-paso.ahora[data-paso="importe_contestacion"]'),
          (con.querySelector('li.tr-paso.ahora') || {getAttribute: function(){ return '(ninguno)'; }}).getAttribute('data-paso'),
@@ -11900,6 +11907,122 @@
     window.__TRAMITES_EXTRA = null;
     location.hash = '';
     setTimeout(sigue, 100);
+  }
+
+  /* ═══════════ EL CHAT DE LA CONTESTACIÓN DE LA MARCA ═══════════
+     Franklin Reyes, 9-10-2026: cuando el SAPI devuelve el registro y el
+     gestor habilita la contestación, el inversionista habla con él en un
+     chat que vive solo en ese paso, y el gestor le manda documentos por ahí
+     (supabase-chat-del-paso.sql). Lo que se mide: que sale a todo el ancho
+     y solo con la contestación habilitada; que trae los del chat y no la
+     conversación de siempre; que lo escrito va con su paso; que pasado a
+     registro se cierra; y que el gestor lo tiene en su casilla, con el
+     mismo nodo en cada repintado. */
+  var CHAT_PASOS = {importe_antecedentes: '2026-10-01T09:00:00-04', pago_antecedentes: '2026-10-01T10:00:00-04', busqueda: '2026-10-02T10:00:00-04',
+                    importe_fm02: '2026-10-03T10:00:00-04', pago_fm02: '2026-10-04T10:00:00-04',
+                    sapi: '2026-10-09T09:00:00-04', contestacion: '2026-10-09T09:00:00-04'};
+  function chatMarca(pasos){
+    var P = {};
+    Object.keys(pasos).forEach(function(k){ P[k] = pasos[k]; });
+    return {id: 'mch1', tipo: 'marca', estado: 'ante_el_ente',
+            datos: {signo: 'Cacao Andino', pasos_ciip: P, anuncio: 'El SAPI devolvió el registro: hay que aclarar la clase.',
+                    anuncio_en: '2026-10-09T09:00:00-04'},
+            inversionista: 'u1', creado_en: '2026-10-01T10:00:00Z', enviado_en: '2026-10-01T10:00:00Z',
+            actualizado_en: '2026-10-09T13:00:00Z'};
+  }
+  function chatMarcaAbre(sigue){
+    if (PASE !== 'vacio') return sigue();
+    window.__TRAMITES_EXTRA = [chatMarca(CHAT_PASOS)];
+    location.hash = '';
+    setTimeout(function(){
+      location.hash = 'tramite-c8';
+      esperaFilas('#trReal .tr-chat .hilo-m', 2, sigue);
+    }, 100);
+  }
+  function chatMarcaMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var chat = document.querySelector('#trReal li.tr-chat');
+    ok('chat marca: con la contestación habilitada, sale en la escalera', !!chat);
+    if (!chat) return sigue();
+    var antes = chat.previousElementSibling, luego = chat.nextElementSibling;
+    igual('chat marca: debajo de la etapa de la solicitud, antes de la marca registrada',
+          (antes ? antes.getAttribute('data-paso') : '') + ' / ' + (luego ? luego.getAttribute('data-etapa') : ''),
+          'en_registro / registrada');
+    igual('chat marca: con su título', (chat.querySelector('.sol-h') || {}).textContent, U.ch_t);
+    igual('chat marca: trae los del chat y no la conversación de siempre',
+          chat.querySelectorAll('.hilo-m').length, 2);
+    igual('chat marca: con el documento que mandó el gestor',
+          (chat.querySelector('.hm-arch') || {}).textContent, 'oficio-sapi.pdf');
+    var txt = chat.querySelector('.hilo-txt');
+    var clip = chat.querySelector('.hilo-clip');
+    ok('chat marca: abierto, se puede escribir y adjuntar', !!txt && !txt.disabled && !!clip && !clip.disabled);
+    igual('chat marca: la caja invita a escribirle al gestor', txt && txt.placeholder, U.ch_ph);
+    sigue();
+  }
+  function chatMarcaEscribe(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var chat = document.querySelector('#trReal li.tr-chat');
+    var txt = chat && chat.querySelector('.hilo-txt');
+    if (!txt) return sigue();
+    txt.value = 'Qué clase pongo en la contestación?';
+    chat.querySelector('.hilo-fila .btn.navy').click();
+    esperaFilas('#trReal .tr-chat .hilo-m', 3, sigue);
+  }
+  function chatMarcaEscrito(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var ms = document.querySelectorAll('#trReal .tr-chat .hilo-m');
+    igual('chat marca: lo escrito sale en el chat', ms.length, 3);
+    var ultimo = ms[ms.length - 1];
+    igual('chat marca: como tuyo', !!ultimo && ultimo.classList.contains('mio'), true);
+    sigue();
+  }
+  function chatMarcaCierra(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var P = {};
+    Object.keys(CHAT_PASOS).forEach(function(k){ P[k] = CHAT_PASOS[k]; });
+    P.importe_contestacion = '2026-10-10T10:00:00-04';
+    P.pago_contestacion = '2026-10-10T11:00:00-04';
+    P.en_registro = '2026-10-11T10:00:00-04';
+    window.__TRAMITES_EXTRA = [chatMarca(P)];
+    location.hash = '';
+    setTimeout(function(){
+      location.hash = 'tramite-c8';
+      esperaFilas('#trReal .tr-chat .hilo-cerrado:not([hidden])', 1, sigue);
+    }, 100);
+  }
+  function chatMarcaCerrado(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var chat = document.querySelector('#trReal li.tr-chat');
+    ok('chat marca: en registro sigue a la vista, para leer', !!chat && chat.querySelectorAll('.hilo-m').length >= 2);
+    var txt = chat && chat.querySelector('.hilo-txt');
+    ok('chat marca: pero ya no se escribe', !!txt && txt.disabled);
+    igual('chat marca: y dice por qué', chat && (chat.querySelector('.hilo-cerrado') || {}).textContent, U.ch_cerrado);
+    window.__TRAMITES_EXTRA = null;
+    location.hash = '';
+    setTimeout(sigue, 100);
+  }
+  function chatMarcaGestor(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var M = window.CIIP_MARCA;
+    var sin = {};
+    Object.keys(CHAT_PASOS).forEach(function(k){ if (k !== 'contestacion') sin[k] = CHAT_PASOS[k]; });
+    var t0 = chatMarca(sin); t0.nombre = 'Ana Pérez';
+    var c0 = M.casilla(t0, 'pr-ch0-');
+    ok('chat marca, gestor: sin contestación habilitada, no hay chat', !!c0 && !c0.querySelector('.tr-chat'));
+    var t = chatMarca(CHAT_PASOS); t.nombre = 'Ana Pérez';
+    var c1 = M.casilla(t, 'pr-ch-');
+    var chat = c1 && c1.querySelector('.tr-chat');
+    ok('chat marca, gestor: habilitada, el chat va en su casilla', !!chat);
+    igual('chat marca, gestor: con el nombre del inversionista',
+          chat && (chat.querySelector('.sol-h') || {}).textContent, String(U.ch_g_t || '').replace('{quien}', 'Ana Pérez'));
+    ok('chat marca, gestor: con «Adjuntar» para mandarle documentos', !!(chat && chat.querySelector('.hilo-clip')));
+    var c2 = M.casilla(t, 'pr-ch-');
+    ok('chat marca, gestor: repintar la casilla no rehace el chat (lo escrito se queda)',
+       !!chat && c2.querySelector('.tr-chat') === chat);
+    sigue();
   }
 
   /* ═══════════ «YA LO SOLICITÉ» O «POR PRIMERA VEZ» (c44 a c47) ═══════════

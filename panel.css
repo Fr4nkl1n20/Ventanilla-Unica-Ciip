@@ -5823,14 +5823,26 @@ body[data-vista="horario"] .fase-bar{display:none;}
 @media(max-width:640px){ .tr-paso:has(+ .tr-etapa){padding-bottom:6px;} }
 .mc-retiro{font-weight:600; color:var(--ink);}
 .mc-papel{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;}
-/* El anuncio del gestor: lo primero que se lee del trámite, en ámbar como
-   el del importe, porque cambia lo que el inversionista tiene que hacer. */
-.mc-anuncio{background:var(--amber-bg); border:1px solid var(--amber); border-left-width:4px;
-  border-radius:var(--r-sm); padding:10px 12px; margin:0 0 14px;}
-.mc-anuncio-t{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.04em; text-transform:uppercase;
-  color:var(--amber);}
-.mc-anuncio-d{font-size:var(--fs-parrafo); line-height:1.45; color:var(--ink); margin-top:4px;
+/* El anuncio del gestor: lo primero que se lee del trámite. Era un
+   recuadro ámbar de borde grueso, el único ámbar de la página, y sin tope
+   de ancho se salía por la derecha de la tarjeta del trámite. Ahora es la
+   maqueta 3 de aviso-de-la-marca-cuatro (Franklin Reyes, 9-10-2026): una
+   caja más, como .tr-caja -mismo ancho, borde y esquinas-, con un filo
+   azul a la izquierda que la distingue sin gritar. */
+.mc-anuncio{background:var(--hoja); border:1px solid var(--line); border-left:3px solid var(--navy2);
+  border-radius:12px; padding:14px 18px; margin:0 0 14px; max-width:880px; box-sizing:border-box;
+  display:flex; flex-direction:column; gap:7px;}
+.mc-anuncio-cab{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.mc-anuncio-t{font-size:var(--fs-seccion); font-weight:700; color:var(--ink);}
+.mc-anuncio-chip{font-size:var(--fs-chip); font-weight:700; border-radius:20px; padding:2px 9px;
+  background:var(--rust-bg); color:var(--rust);}
+.mc-anuncio-f{margin-left:auto; font-size:var(--fs-nota); color:var(--gray);}
+.mc-anuncio-d{font-size:var(--fs-parrafo); line-height:1.5; color:var(--ink);
   white-space:pre-wrap; overflow-wrap:anywhere;}
+.mc-anuncio-pie{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:2px; padding-top:10px;
+  border-top:1px solid var(--line-soft); font-size:var(--fs-nota); color:var(--gray); line-height:1.5;}
+.mc-anuncio-ir{margin-left:auto; padding:7px 12px; color:var(--navy2);}
+@media(max-width:640px){ .mc-anuncio{padding:12px 14px;} .mc-anuncio-f{margin-left:0; width:100%;} }
 .mc-g{display:flex; flex-direction:column; gap:7px;}
 .mc-g-paso{font-size:var(--fs-nota); font-weight:600; color:var(--ink);}
 .mc-g-marcar, .mc-g-enviar, .mc-g-abre, .mc-g-habilita{align-self:flex-start;}
@@ -5838,6 +5850,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
 .mc-g-form[hidden]{display:none;}
 .mc-g-anuncio{font:inherit; font-size:var(--fs-campo); color:var(--ink); padding:6px 8px; resize:vertical;
   border:1px solid var(--line); border-radius:7px; background:var(--hoja); width:100%; box-sizing:border-box;}
+.mc-g .mc-anuncio-d{margin-top:4px;}
 .mc-g-contestada .mc-anuncio-d{font-size:var(--fs-nota);}
 
 /* La cuenta bloqueada (auditoría QA-28). Tapa el panel entero: detrás no
@@ -5965,3 +5978,16 @@ body.editando-textos .ay-ld-det > details{display:block; margin-bottom:12px;}
 .mc-papel-ir{font:inherit; font-weight:700; color:var(--navy2); background:none; border:0; padding:0; cursor:pointer;}
 .mc-papel-ir:hover{text-decoration:underline;}
 .mc-papel-ir:focus-visible{outline:2px solid var(--navy2); outline-offset:2px; border-radius:4px;}
+
+/* El chat de la contestación de la marca (9-10-2026): a todo el ancho de
+   la escalera, debajo de la etapa de su importe, y en la casilla del gestor.
+   Es el hilo de siempre (.hilo) dentro de una tarjeta. */
+.tr-chat{flex:0 0 100%; box-sizing:border-box; list-style:none; text-align:left; margin:4px 0 6px;
+  background:var(--bg); border:1px solid var(--line); border-left:4px solid var(--navy2);
+  border-radius:var(--r-sm); padding:12px 14px;}
+.tr-chat .hilo{margin-top:0;}
+.tr-chat-d{font-size:var(--fs-nota); line-height:1.5; color:var(--gray); margin:0 0 8px;}
+.tr-chat .hilo-lista{max-height:320px; overflow-y:auto;}
+.tr-paso:has(+ .tr-chat)::before{display:none;}
+.mc-g .tr-chat{margin-top:10px;}
+@media(max-width:640px){ .tr-paso:has(+ .tr-chat){padding-bottom:6px;} .tr-chat{padding:10px 12px;} }

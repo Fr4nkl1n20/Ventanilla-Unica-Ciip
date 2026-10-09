@@ -4855,6 +4855,100 @@ select arnes.comprueba(
 reset role;
 select arnes.nadie();
 
+-- ───────────────────────────────────────────────────────────────────────
+-- EL CHAT DE LA CONTESTACIÓN (supabase-chat-del-paso.sql, 9-10-2026)
+-- ───────────────────────────────────────────────────────────────────────
+-- Una marca de A ante el SAPI, con la planilla FM-02 pagada: el gestor
+-- puede habilitar la contestación.
+with t as (
+  insert into public.tramites (inversionista, tipo, estado, datos)
+  values ((select id from arnes.gente where papel = 'A'), 'marca', 'ante_el_ente',
+          '{"pasos_ciip": {"pago_fm02": "2026-10-09T10:00:00-04"}}'::jsonb)
+  returning id)
+insert into arnes.escenario (clave, id) select 'chat_marca', id from t;
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+
+do $ch$
+begin
+  insert into public.tramite_mensajes (tramite, texto, paso)
+  values ((select id from arnes.escenario where clave = 'chat_marca'), 'Me adelanto', 'contestacion');
+  perform arnes.comprueba('chat del paso: cerrado hasta que el gestor habilita la contestación', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('chat del paso: cerrado hasta que el gestor habilita la contestación', true, sqlerrm);
+end
+$ch$;
+
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+select public.habilita_contestacion((select id from arnes.escenario where clave = 'chat_marca'),
+  'El SAPI devolvió el registro: falta aclarar la clase.') is not null;
+
+select arnes.comprueba(
+  'chat del paso: el anuncio del gestor es su primer mensaje, del equipo',
+  (select count(*) = 1 from public.tramite_mensajes
+    where tramite = (select id from arnes.escenario where clave = 'chat_marca')
+      and paso = 'contestacion' and del_equipo));
+
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+insert into public.tramite_mensajes (tramite, texto, paso)
+values ((select id from arnes.escenario where clave = 'chat_marca'), '¿Qué clase pongo?', 'contestacion');
+
+select arnes.comprueba(
+  'chat del paso: habilitada, el inversionista escribe en él',
+  (select count(*) = 1 from public.tramite_mensajes
+    where tramite = (select id from arnes.escenario where clave = 'chat_marca')
+      and paso = 'contestacion' and not del_equipo));
+
+do $ch$
+begin
+  insert into public.tramite_mensajes (tramite, texto, paso)
+  values ((select id from arnes.escenario where clave = 'chat_marca'), 'Otro chat', 'inventado');
+  perform arnes.comprueba('chat del paso: no hay chats inventados', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('chat del paso: no hay chats inventados', true, sqlerrm);
+end
+$ch$;
+
+do $ch$
+begin
+  insert into public.tramite_mensajes (tramite, texto, paso)
+  values ((select id from arnes.escenario where clave = 'au_tramite_a'), 'En un RIF', 'contestacion');
+  perform arnes.comprueba('chat del paso: solo en la marca', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('chat del paso: solo en la marca', true, sqlerrm);
+end
+$ch$;
+
+-- En registro, se cierra: lo dicho se lee, pero no se escribe más.
+reset role;
+select arnes.nadie();
+update public.tramites
+   set datos = jsonb_set(datos, '{pasos_ciip,en_registro}', '"2026-10-10T10:00:00-04"')
+ where id = (select id from arnes.escenario where clave = 'chat_marca');
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+
+do $ch$
+begin
+  insert into public.tramite_mensajes (tramite, texto, paso)
+  values ((select id from arnes.escenario where clave = 'chat_marca'), 'Tarde', 'contestacion');
+  perform arnes.comprueba('chat del paso: en registro se cierra, también para el equipo', false, 'ENTRO');
+exception when others then
+  perform arnes.comprueba('chat del paso: en registro se cierra, también para el equipo', true, sqlerrm);
+end
+$ch$;
+
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+select arnes.comprueba(
+  'chat del paso: y lo dicho se sigue leyendo',
+  (select count(*) = 2 from public.tramite_mensajes
+    where tramite = (select id from arnes.escenario where clave = 'chat_marca')
+      and paso = 'contestacion'));
+
+reset role;
+select arnes.nadie();
+
 \o
 \pset tuples_only on
 \pset format unaligned
