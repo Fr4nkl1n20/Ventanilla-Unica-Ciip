@@ -962,9 +962,16 @@ function applyLang(lang){
   var MARCA_ELEGIDA = {c8:false, c43:true};
   /* Con una solicitud ya pedida no hay nada que elegir: la da por hecha
      el módulo de solicitudes (CIIP_TRAMITE_REAL), como la de la visa. */
-  window.CIIP_MARCA_ELEGIDA = function(ref){
-    if (!GUIA_MARCA.codigo[ref] || MARCA_ELEGIDA[ref]) return;
+  /* Con la contestación habilitada -el chat con el asesor-, el resumen
+     «Registro de marca por primera vez · Cambiar» no sale: ya no hay nada
+     que elegir y estorba encima del aviso (Franklin Reyes, 9-10-2026). */
+  var MARCA_CON_CHAT = {};
+  window.CIIP_MARCA_ELEGIDA = function(ref, conChat){
+    if (!GUIA_MARCA.codigo[ref]) return;
+    conChat = !!conChat;
+    if (MARCA_ELEGIDA[ref] && MARCA_CON_CHAT[ref] === conChat) return;
     MARCA_ELEGIDA[ref] = true;
+    MARCA_CON_CHAT[ref] = conChat;
     if (trAbierto === ref && GUIA_D) pintaGuiaMarca(ref, GUIA_D);
   };
 
@@ -979,6 +986,10 @@ function applyLang(lang){
     tramiteALaVista(elegida);
     caja.classList.toggle('gv-plegada', elegida);
 
+    if (elegida && MARCA_CON_CHAT[id]){
+      caja.hidden = true;
+      return;
+    }
     if (elegida){
       var mia = GUIA_MARCA.ops.filter(function(o){ return o.ref === id; })[0];
       var res = el('div', 'gv-resumen');
@@ -6162,7 +6173,8 @@ applyLang(idiomaParaMi());
             /* Y el registro de marca (5-10-2026): con una marca ya pedida,
                por primera vez o en proceso, la opción está elegida
                (pintaGuiaMarca). */
-            if ((refPanel === 'c8' || refPanel === 'c43') && !otraIgual && mio && window.CIIP_MARCA_ELEGIDA) window.CIIP_MARCA_ELEGIDA(refPanel);
+            if ((refPanel === 'c8' || refPanel === 'c43') && !otraIgual && mio && window.CIIP_MARCA_ELEGIDA)
+              window.CIIP_MARCA_ELEGIDA(refPanel, !!(mio.datos && mio.datos.pasos_ciip && mio.datos.pasos_ciip.contestacion));
             /* Y las cuatro de «Ya lo solicité» (5-10-2026, Ventanilla única
                2.6): con una ya pedida, la opción está elegida (pintaGuiaYa). */
             if (!otraIgual && mio && window.CIIP_YA_ELEGIDA) window.CIIP_YA_ELEGIDA(refPanel);
@@ -12506,6 +12518,11 @@ applyLang(idiomaParaMi());
        formulario. Leer por qué te lo devolvieron y no tener dónde contestar
        es peor que no tener la conversación. */
     (function(){
+      /* Con la contestación de la marca habilitada no sale: ya hay chat con
+         el asesor, y dos puertas para hablar con el CIIP confunden (Franklin
+         Reyes, 9-10-2026). */
+      var pc = tr.datos && tr.datos.pasos_ciip;
+      if (pc && pc.contestacion) return;
       var u2 = T();
       var bloque = el('div', 'sol-gestion');
       bloque.appendChild(el('div', 'sg-t', u2['cons.t'] || ''));
