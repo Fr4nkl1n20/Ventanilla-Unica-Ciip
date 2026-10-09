@@ -10706,6 +10706,8 @@ applyLang(idiomaParaMi());
      otro lado. Se rehace solo si cambia algo que se ve: el idioma o que se
      cierre. */
   var CHATS_DEL_PASO = {};
+  /* El nombre del asesor de cada trámite, por id, para firmar el chat. */
+  var NOMBRE_ASESOR = {};
   /* La pestaña del chat abierta, por trámite (pintaPorEtapas). */
   var PESTANA_DEL_CHAT = {};
   function chatDeLaContestacion(tr, E, equipo, quien){
@@ -10731,6 +10733,13 @@ applyLang(idiomaParaMi());
     else {
       de.compacto = true;
       de.sinVacio = true;
+      /* Lo del equipo, firmado con el nombre del asesor que atiende el
+         trámite y no con «CIIP» (Franklin Reyes, 9-10-2026: «aquí debería
+         salir el nombre del asesor que atiende»). Lo da
+         gestores_de_mis_tramites() (supabase-gestor-visible.sql): solo el
+         nombre y solo de lo suyo. Sin gestor asignado, o sin la función,
+         sigue diciendo «CIIP». */
+      de.nombreEquipo = NOMBRE_ASESOR[tr.id] || '';
     }
     if (cerrado) de.cerrada = u.ch_cerrado || '';
     var hiloCh = pintaHilo(caja, de);
@@ -10784,8 +10793,6 @@ applyLang(idiomaParaMi());
       zonaChat = E.contestacion ? chatDeLaContestacion(t, E, true, t.nombre || u.co_sinnombre || '') : null;
     };
 
-  /* El nombre del asesor de cada trámite, por id, para firmar el chat. */
-  var NOMBRE_ASESOR = {};
     /* La base contesta con la solicitud entera; con ella se repinta. */
     var conDatos = function(r){
       if (r && r.error) throw r.error;
@@ -10811,13 +10818,6 @@ applyLang(idiomaParaMi());
       var P = E.apuntados;
       /* Los rótulos de cada escalera: la licencia no es la marca. */
       var tx = def.textos || {};
-      /* Lo del equipo, firmado con el nombre del asesor que atiende el
-         trámite y no con «CIIP» (Franklin Reyes, 9-10-2026: «aquí debería
-         salir el nombre del asesor que atiende»). Lo da
-         gestores_de_mis_tramites() (supabase-gestor-visible.sql): solo el
-         nombre y solo de lo suyo. Sin gestor asignado, o sin la función,
-         sigue diciendo «CIIP». */
-      de.nombreEquipo = NOMBRE_ASESOR[tr.id] || '';
       caja.appendChild(el('div', 'imp-g-t', u[tx.titulo || 'mc_g_titulo'] || ''));
       var cur = E.ahora;
       var dice = el('div', 'imp-g-e', '');

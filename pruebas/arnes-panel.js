@@ -11983,6 +11983,8 @@
     igual('chat marca: con su título', (chat.querySelector('.sol-h') || {}).textContent, U.ch_t);
     igual('chat marca: trae los del chat y no la conversación de siempre',
           chat.querySelectorAll('.hilo-m').length, 2);
+    igual('chat marca: lo del equipo, firmado con el nombre de su asesor',
+          ((chat.querySelector('.hilo-m.suyo .hm-q') || {}).textContent || '').split(' · ')[0], 'Ana Gestora');
     ok('chat marca: y empieza por el aviso del gestor',
        (chat.querySelector('.hilo-m') || {}).textContent.indexOf('hay que aclarar la clase') >= 0);
     igual('chat marca: con el documento que mandó el gestor',
@@ -12019,8 +12021,6 @@
     P.en_registro = '2026-10-11T10:00:00-04';
     window.__TRAMITES_EXTRA = [chatMarca(P)];
     location.hash = '';
-    igual('chat marca: lo del equipo, firmado con el nombre de su asesor',
-          ((chat.querySelector('.hilo-m.suyo .hm-q') || {}).textContent || '').split(' · ')[0], 'Ana Gestora');
     setTimeout(function(){
       location.hash = 'tramite-c8';
       esperaFilas('#trReal .tr-chat .hilo-cerrado:not([hidden])', 1, sigue);
