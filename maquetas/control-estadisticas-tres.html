@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Control y Estadísticas, tres formas</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   CONTROL Y ESTADÍSTICAS: TRES FORMAS INSPIRADAS EN AYUDA Y GUÍA
+
+   Franklin Reyes, 9-10-2026: «Vamos a reorganizar esa pestaña (Control y
+   Estadísticas) como se reorganizó la de Guía y ayuda. Hazme una maqueta
+   con 3 opciones, que se inspire en Ayuda y guía.»
+
+   Hoy la pantalla es una tira de cifras, dos tablas, las tarjetas del
+   equipo y debajo seis cajas de dos en dos, todas a la vista a la vez.
+   Ayuda y guía pasó a «lista y detalle» (idea B, 8-10-2026: .ay-ld): a la
+   izquierda las secciones como tarjetas con icono, título y subtítulo, la
+   elegida en azul claro con raya azul; a la derecha una sola ficha con su
+   cabecera grande. Aquí, tres maneras de llevar eso a las estadísticas.
+
+   Entra lo que se ha pedido aparte: «Los trámites más pedidos por sector»
+   al lado de «Consultas por sector»; en «¿Por qué piden ayuda?» el motivo
+   entero, sin «…», y sus casos desplegables; y el editor de «Trámites
+   específicos por sector», que es configuración del chat y no una cifra,
+   sale de entre las estadísticas a un sitio propio.
+
+   Los datos son de ejemplo, pero cuadran entre las tres opciones. No toca
+   el panel.
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB;
+  --navy-deep:#00336d; --tr-velo:rgba(255,255,255,.45);
+  --fs-cifra:24px; --fs-titulo:20px; --fs-tarjeta:14px; --fs-valor:13.5px;
+  --fs-seccion:13px; --fs-parrafo:12.5px; --fs-campo:12.5px; --fs-pestana:12.5px;
+  --fs-fila:12px; --fs-boton:11.5px; --fs-rotulo:11px; --fs-nota:11px; --fs-chip:10px;
+}
+body{background:var(--block);}
+[hidden]{display:none !important;}
+button{font:inherit;}
+main{max-width:1240px; padding:28px 26px 90px; margin:0 auto;}
+@media(max-width:600px){ main{padding:20px 16px 70px;} .mq-cartel{padding:12px 16px;} }
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.intro b{color:var(--ink);}
+.indice{display:flex; flex-wrap:wrap; gap:6px; margin:16px 0 0;}
+.indice a{font-size:var(--fs-boton); font-weight:700; color:var(--navy2); text-decoration:none; background:var(--bg);
+  border:1px solid var(--line); border-radius:20px; padding:5px 12px;}
+.indice a:hover{border-color:var(--navy2);}
+
+/* ── Cada opción: número, título, explicación corta y su pantalla ── */
+.idea{margin-top:44px; scroll-margin-top:12px; min-width:0;}
+.idea h3{margin:0; font-size:15px; display:flex; gap:9px; align-items:center;}
+.idea h3 .n{width:24px; height:24px; border-radius:50%; background:var(--navy); color:#fff; font-size:12px; display:grid; place-items:center; flex:none;}
+.idea > p{margin:6px 0 0 33px; font-size:12px; color:var(--gray); line-height:1.6; max-width:96ch;}
+.idea > p b{color:var(--ink);}
+@media(max-width:600px){ .idea > p{margin-left:0;} }
+.pantalla{margin-top:14px; border:1px dashed #C9CED8; border-radius:14px; background:var(--block); padding:20px; min-width:0;}
+@media(max-width:600px){ .pantalla{padding:12px;} }
+.migas{font-size:var(--fs-nota); color:var(--gray); font-weight:600; margin-bottom:6px;}
+.pg-h{display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap; margin-bottom:16px;}
+.pg-h h2{margin:0; font-size:var(--fs-titulo); letter-spacing:-.02em;}
+.pg-h .sub{font-size:var(--fs-nota); color:var(--gray); margin-top:3px;}
+.pg-h .sp{flex:1 1 auto;}
+.aldia{display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-nota); color:var(--good); font-weight:600;}
+.aldia i{width:7px; height:7px; border-radius:50%; background:var(--good);}
+
+/* ── Los iconos, los de Ayuda (.ay-ic) ── */
+.ic{width:36px; height:36px; border-radius:10px; background:var(--activa-bg); color:var(--navy2); flex:none;
+  display:flex; align-items:center; justify-content:center;}
+.ic svg{width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+.ic.aj{background:var(--line-soft); color:var(--gray);}
+
+/* ── Lista y detalle, como .ay-ld ── */
+.ld{display:grid; grid-template-columns:minmax(230px, 300px) minmax(0, 1fr); gap:16px; align-items:start;}
+.ld-nav{background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:8px; display:grid; gap:2px; box-shadow:var(--shadow);}
+.ld-it{text-align:left; background:none; border:0; border-radius:10px; padding:10px; display:flex; gap:12px;
+  align-items:center; cursor:pointer; color:var(--ink); width:100%;}
+.ld-it:hover{background:var(--block);}
+.ld-it:focus-visible{outline:2px solid var(--navy2); outline-offset:1px;}
+.ld-it.on{background:var(--activa-bg); box-shadow:inset 3px 0 0 var(--navy2);}
+.ld-it.on b{color:var(--navy);}
+.ld-tx{display:flex; flex-direction:column; gap:2px; min-width:0; flex:1 1 auto;}
+.ld-tx b{font-size:var(--fs-seccion); line-height:1.3;}
+.ld-tx span{font-size:var(--fs-nota); color:var(--gray); line-height:1.35;}
+.ld-sep{font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--gray-soft);
+  padding:12px 10px 4px; border-top:1px solid var(--line-soft); margin-top:6px;}
+.ld-g{font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--gray-soft); padding:10px 10px 4px;}
+.ld-g:first-child{padding-top:4px;}
+.ld > *{min-width:0;}
+@media(max-width:820px){ .ld{grid-template-columns:minmax(0,1fr);} }
+
+/* ── La ficha a la derecha, con la cabecera grande de Ayuda ── */
+.ficha{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; box-shadow:var(--shadow); min-width:0;}
+.fi-cab{display:flex; gap:14px; align-items:center; padding:20px 22px; border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg, var(--block) 0%, transparent 100%);}
+.fi-cab .ic{width:48px; height:48px; border-radius:13px;}
+.fi-cab .ic svg{width:22px; height:22px;}
+.fi-cab .tx{min-width:0; flex:1 1 auto;}
+.fi-cab h4{margin:0; font-size:var(--fs-titulo); letter-spacing:-.01em; line-height:1.2;}
+.fi-cab p{margin:4px 0 0; font-size:var(--fs-nota); color:var(--gray); line-height:1.5; max-width:80ch;}
+.fi-cab .der{flex:none; align-self:flex-start;}
+.fi-cu{padding:18px 22px 22px; display:grid; grid-template-columns:minmax(0,1fr); gap:18px; min-width:0;}
+.fi-cu > *, .o3-cu > *, .o2-arriba > *{min-width:0;}
+.o3-cu, .o2-arriba{grid-template-columns:minmax(0,1fr);}
+@media(max-width:600px){ .fi-cab{padding:16px; align-items:flex-start;} .fi-cab .ic{width:40px; height:40px;} .fi-cu{padding:14px 16px 18px;} .fi-cab{flex-wrap:wrap;} }
+/* Ficha pequeña (opción 3: varias a la vez) */
+.ficha.peq .fi-cab{padding:14px 16px;}
+.ficha.peq .fi-cab .ic{width:36px; height:36px; border-radius:10px;}
+.ficha.peq .fi-cab .ic svg{width:18px; height:18px;}
+.ficha.peq .fi-cab h4{font-size:var(--fs-tarjeta);}
+.ficha.peq .fi-cu{padding:14px 16px 16px;}
+.rot{font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--gray-soft); margin:0 0 8px;}
+
+/* ── Las cifras (las de Atlas que ya tiene el panel) ── */
+.cifras{display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:12px;}
+@media(max-width:900px){ .cifras{grid-template-columns:repeat(3, minmax(0,1fr));} }
+@media(max-width:560px){ .cifras{grid-template-columns:repeat(2, minmax(0,1fr));} }
+.cf{background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:13px 15px; min-width:0; text-align:left; color:inherit;}
+.cf .n{font-size:var(--fs-cifra); font-weight:800; letter-spacing:-.02em; line-height:1; font-variant-numeric:tabular-nums;}
+.cf .n small{font-size:var(--fs-fila); font-weight:600; color:var(--gray-soft); margin-left:4px; letter-spacing:0;}
+.cf .l{font-size:var(--fs-nota); color:var(--gray); margin-top:5px; line-height:1.35;}
+.cf .m{height:3px; border-radius:3px; background:var(--line); margin-top:10px; overflow:hidden;}
+.cf .m span{display:block; height:100%; background:var(--cyan-deep);}
+.cf.ojo .n{color:var(--amber);} .cf.ojo .m span{background:var(--amber);}
+.cf.mal .n{color:var(--rust);} .cf.mal .m span{background:var(--rust);}
+button.cf{cursor:pointer; font:inherit;}
+button.cf:hover{border-color:var(--navy2);}
+.cifras.dentro .cf{background:var(--card-2);}
+
+/* ── Barra apilada de estados ── */
+.apil{display:flex; height:14px; border-radius:5px; overflow:hidden; background:var(--block);}
+.apil span{height:100%;}
+.ley{display:flex; flex-wrap:wrap; gap:6px 14px; list-style:none; padding:0; margin:9px 0 0; font-size:var(--fs-nota); color:var(--gray);}
+.ley li{display:inline-flex; align-items:center; gap:6px;}
+.ley i{width:9px; height:9px; border-radius:2px; display:inline-block;}
+.e1{background:#9DB8DB;} .e2{background:var(--navy2);} .e3{background:var(--cyan-deep);} .e4{background:var(--amber);} .e5{background:var(--good);}
+
+/* ── Las barras (.ce-fila del panel) ── */
+.barras{display:grid; gap:2px;}
+.br{display:grid; grid-template-columns:minmax(0, 200px) minmax(40px, 1fr) 70px; gap:12px; align-items:center;
+  padding:7px 0; border-radius:8px; text-align:left; width:100%; background:none; border:0; color:inherit;}
+.br .rl{min-width:0;}
+.br .nm{display:block; font-size:var(--fs-fila); font-weight:700; line-height:1.35;}
+.br .sb{display:block; font-size:var(--fs-nota); color:var(--gray); line-height:1.4; margin-top:1px;}
+.br .pi{height:14px; border-radius:4px; background:var(--block); overflow:hidden; display:flex;}
+.br .re{height:100%; border-radius:4px; background:linear-gradient(90deg, var(--navy), var(--cyan-deep));}
+.br .r-ciip{height:100%; background:var(--navy);}
+.br .r-ente{height:100%; background:var(--cyan); border-radius:0 4px 4px 0;}
+.br .rv{text-align:right; font-variant-numeric:tabular-nums;}
+.br .rv b{display:block; font-size:var(--fs-valor);}
+.br .rv span{display:block; font-size:var(--fs-nota); color:var(--gray);}
+.br.tope .nm{color:var(--navy);}
+.br.cero .nm, .br.cero .rv b{color:var(--gray-soft);}
+button.br{cursor:pointer; padding-left:6px; padding-right:6px;}
+button.br:hover{background:var(--block);}
+button.br.on{background:var(--activa-bg); box-shadow:inset 3px 0 0 var(--navy2);}
+.br.otros .nm{color:var(--navy2);}
+@media(max-width:560px){
+  .br{grid-template-columns:minmax(0,1fr) auto; row-gap:6px;}
+  .br .rl{grid-column:1; grid-row:1;}
+  .br .rv{grid-column:2; grid-row:1;}
+  .br .pi{grid-column:1 / -1; grid-row:2;}
+}
+
+/* ── Elegir sector (los botones de .cs-sector) ── */
+.chips{display:flex; flex-wrap:wrap; gap:6px;}
+.chips button{font-size:var(--fs-boton); font-weight:600; color:var(--gray); background:var(--bg); border:1px solid var(--line);
+  border-radius:20px; padding:5px 11px; cursor:pointer;}
+.chips button:hover{border-color:var(--navy2); color:var(--navy2);}
+.chips button.on{background:var(--navy); border-color:var(--navy); color:#fff;}
+
+.seg{display:inline-flex; background:var(--block); border:1px solid var(--line); border-radius:8px; padding:3px; gap:3px; max-width:100%;}
+.seg button{font-size:var(--fs-boton); font-weight:700; color:var(--gray); padding:6px 12px; border-radius:6px; cursor:pointer; border:0; background:none; white-space:nowrap;}
+.seg button.on{background:var(--bg); color:var(--navy); box-shadow:0 1px 2px rgba(14,20,36,.08);}
+
+.dos{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px;}
+.dos > div{min-width:0;}
+@media(max-width:980px){ .dos{grid-template-columns:1fr;} }
+.caja{border:1px solid var(--line); border-radius:12px; padding:14px 16px; min-width:0;}
+.caja-t{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:4px;}
+.caja-t b{font-size:var(--fs-tarjeta);}
+.caja-t span{font-size:var(--fs-nota); color:var(--gray);}
+.caja .d{font-size:var(--fs-nota); color:var(--gray); line-height:1.5; margin:0 0 10px;}
+.nuevo{font-size:var(--fs-chip); font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--good); background:var(--good-bg);
+  border-radius:20px; padding:2px 8px;}
+
+/* ── Tablas cortas ── */
+.tscroll{overflow-x:auto;}
+table.tb{width:100%; border-collapse:collapse;}
+table.tb th{text-align:left; font-size:var(--fs-chip); font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--gray-soft);
+  padding:0 10px 8px; border-bottom:1px solid var(--line); white-space:nowrap;}
+table.tb td{padding:9px 10px; border-bottom:1px solid var(--line-soft); font-size:var(--fs-fila);}
+table.tb tr:last-child td{border-bottom:0;}
+table.tb .num{text-align:right; font-variant-numeric:tabular-nums; font-weight:700;}
+table.tb th.num{text-align:right;}
+table.tb td:first-child, table.tb th:first-child{padding-left:0;}
+table.tb td:last-child, table.tb th:last-child{padding-right:0;}
+@media(max-width:600px){ table.tb th{white-space:normal;} table.tb td, table.tb th{padding-left:6px; padding-right:6px;} }
+.sinasig td:first-child{color:var(--amber); font-weight:700;}
+
+/* ── El equipo ── */
+.gente{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:12px;}
+.per{border:1px solid var(--line); border-radius:12px; padding:13px 14px; display:grid; grid-template-columns:auto 1fr; gap:3px 11px; align-items:center;}
+.per .av{grid-row:1 / 3; width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,var(--navy),var(--navy2));
+  color:#fff; font-size:12px; font-weight:800; display:grid; place-items:center;}
+.per.sin .av{background:var(--amber-bg); color:var(--amber);}
+.per b{font-size:var(--fs-seccion);}
+.per span{font-size:var(--fs-nota); color:var(--gray);}
+.per .tr{grid-column:1 / -1; display:flex; gap:12px; margin-top:8px; padding-top:9px; border-top:1px solid var(--line-soft); font-size:var(--fs-nota); color:var(--gray);}
+.per .tr b{font-size:var(--fs-fila); color:var(--ink); margin-right:3px;}
+
+/* ── ¿Por qué piden ayuda? El motivo ENTERO y sus casos ── */
+.motivos{display:grid; gap:10px;}
+.mo{border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--bg);}
+.mo[open]{border-color:#C9D9EE;}
+.mo summary{list-style:none; cursor:pointer; padding:13px 15px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 14px; align-items:center;}
+.mo summary::-webkit-details-marker{display:none;}
+.mo summary:hover{background:var(--block);}
+.mo summary:focus-visible{outline:2px solid var(--navy2); outline-offset:-2px;}
+.mo .mt{display:flex; align-items:flex-start; gap:8px; font-size:var(--fs-valor); font-weight:700; line-height:1.4;}
+.mo .mt::before{content:"▸"; color:var(--navy2); font-size:11px; margin-top:2px; flex:none; transition:transform .12s;}
+.mo[open] .mt::before{transform:rotate(90deg);}
+.mo .mv{text-align:right; font-variant-numeric:tabular-nums;}
+.mo .mv b{font-size:var(--fs-valor);} .mo .mv span{font-size:var(--fs-nota); color:var(--gray); margin-left:6px;}
+.mo .pi{grid-column:1 / -1; height:10px; border-radius:4px; background:var(--block); overflow:hidden;}
+.mo .pi i{display:block; height:100%; border-radius:4px; background:linear-gradient(90deg, var(--navy), var(--cyan-deep));}
+.mo .en{grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:5px;}
+.mo .en span{font-size:var(--fs-chip); font-weight:700; color:var(--navy2); background:var(--activa-bg); border-radius:20px; padding:2px 8px;}
+.casos{border-top:1px solid var(--line); background:var(--card-2); padding:6px 15px 12px;}
+.casos .ente{font-size:10px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--gray-soft); margin:10px 0 4px;}
+.caso{display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto; gap:4px 12px; align-items:center;
+  background:var(--bg); border:1px solid var(--line-soft); border-radius:9px; padding:8px 11px; margin-top:5px; font-size:var(--fs-fila);}
+.caso b{display:block;} .caso small{display:block; font-size:var(--fs-nota); color:var(--gray);}
+.caso .dias{font-size:var(--fs-nota); font-weight:700; color:var(--amber); white-space:nowrap;}
+.caso .dias.mal{color:var(--rust);}
+.caso .ir{font-size:var(--fs-nota); font-weight:700; color:var(--navy2); white-space:nowrap;}
+@media(max-width:600px){ .caso{grid-template-columns:minmax(0,1fr) auto;} .caso .g{grid-column:1 / -1; grid-row:2;} }
+
+/* ── Configuración del chat: el editor, ya fuera de las cifras ── */
+.aviso-c{display:flex; gap:10px; align-items:flex-start; background:var(--activa-bg); border-radius:10px; padding:10px 12px;
+  font-size:var(--fs-nota); color:var(--ink); line-height:1.5;}
+.aviso-c svg{width:16px; height:16px; flex:none; margin-top:1px; stroke:var(--navy2); fill:none; stroke-width:2;}
+.ed{display:grid; gap:6px;}
+.ed-f{display:grid; grid-template-columns:24px minmax(0,1.6fr) minmax(0,1fr) auto; gap:8px; align-items:center;
+  border:1px solid var(--line); border-radius:10px; padding:7px 8px; background:var(--bg);}
+.ed-f .o{font-size:var(--fs-nota); font-weight:800; color:var(--gray-soft); text-align:center;}
+.ed-f input{font:inherit; font-size:var(--fs-campo); color:var(--ink); border:1px solid var(--line); border-radius:7px; padding:7px 9px; min-width:0; width:100%; background:var(--bg);}
+.ed-f .bs{display:flex; gap:4px;}
+.mb{font-size:var(--fs-boton); font-weight:700; border:1px solid var(--line); background:var(--bg); color:var(--gray); border-radius:7px; padding:6px 9px; cursor:pointer; white-space:nowrap;}
+.mb:hover{border-color:var(--navy2); color:var(--navy2);}
+.mb.pri{background:var(--navy); color:#fff; border-color:var(--navy);}
+.mb.quita:hover{border-color:var(--rust); color:var(--rust);}
+.ed-f.nueva{border-style:dashed; background:var(--card-2);}
+@media(max-width:700px){
+  .ed-f{grid-template-columns:24px minmax(0,1fr);}
+  .ed-f input{grid-column:2;}
+  .ed-f .bs{grid-column:2; flex-wrap:wrap;}
+}
+
+/* ══ Opción 2: las cifras arriba, siempre ══ */
+.o2-arriba{background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:16px; display:grid; gap:12px; box-shadow:var(--shadow);}
+.o2-arriba .cifras .cf{background:var(--card-2);}
+.o2-est{display:grid; grid-template-columns:auto minmax(0,1fr); gap:12px; align-items:center;}
+.o2-est .rot{margin:0;}
+@media(max-width:600px){ .o2-est{grid-template-columns:1fr;} }
+.o2 .ld{grid-template-columns:minmax(200px, 240px) minmax(0,1fr);}
+@media(max-width:820px){ .o2 .ld{grid-template-columns:minmax(0,1fr);} }
+.o2 .ld-it{padding:9px 10px;}
+.o2 .ld-it .ic{width:30px; height:30px; border-radius:9px;}
+.o2 .ld-it .ic svg{width:16px; height:16px;}
+.cnt{flex:none; font-size:var(--fs-chip); font-weight:800; color:var(--navy2); background:var(--activa-bg); border-radius:20px; padding:2px 8px;}
+.ld-it.on .cnt{background:var(--bg);}
+.cnt.ojo{color:var(--amber); background:var(--amber-bg);}
+.btn-aj{display:inline-flex; align-items:center; gap:7px; font-size:var(--fs-boton); font-weight:700; color:var(--gray);
+  background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:7px 12px; cursor:pointer;}
+.btn-aj svg{width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8;}
+.btn-aj:hover, .btn-aj.on{border-color:var(--navy2); color:var(--navy2);}
+.btn-aj.on{background:var(--activa-bg);}
+
+/* ══ Opción 3: por preguntas, en fichas ══ */
+.preg{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)) minmax(0,.8fr); gap:10px; margin-bottom:16px;}
+@media(max-width:1000px){ .preg{grid-template-columns:repeat(2, minmax(0,1fr));} }
+@media(max-width:520px){ .preg{grid-template-columns:1fr;} }
+.pr{text-align:left; background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:14px; cursor:pointer; color:var(--ink);
+  display:grid; grid-template-columns:auto minmax(0,1fr); gap:4px 12px; align-items:start; box-shadow:var(--shadow);}
+.pr:hover{border-color:var(--navy2);}
+.pr:focus-visible{outline:2px solid var(--navy2); outline-offset:2px;}
+.pr .ic{grid-row:1 / 4;}
+.pr b{font-size:var(--fs-tarjeta); line-height:1.3;}
+.pr .re{font-size:var(--fs-fila); color:var(--navy); font-weight:700; line-height:1.4;}
+.pr .qu{font-size:var(--fs-nota); color:var(--gray); line-height:1.4;}
+.pr.on{background:var(--activa-bg); border-color:var(--navy2); box-shadow:inset 0 -3px 0 var(--navy2);}
+.pr.aj{background:transparent; border-style:dashed; box-shadow:none;}
+.pr.aj .re{color:var(--gray);}
+.pr.aj.on{background:var(--bg); border-style:solid; box-shadow:inset 0 -3px 0 var(--gray-soft);}
+.o3-cu{display:grid; gap:14px;}
+.o3-frase{font-size:var(--fs-parrafo); color:var(--gray); margin:0; line-height:1.6;}
+.o3-frase b{color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="mq-cartel"><b>Maqueta · no es la aplicación</b><span>Control y Estadísticas, tres formas inspiradas en la lista y detalle de Ayuda y guía. Datos de ejemplo; no toca el panel.</span></div>
+<main>
+  <p class="intro">Hoy «Control y Estadísticas» es <b>todo a la vez</b>: la tira de cifras, los estados, lo que lleva cada gestor,
+    las tarjetas del equipo y seis cajas de dos en dos, con el editor de la lista del chat metido entre las cifras. Ayuda y guía pasó a
+    <b>lista y detalle</b>: a la izquierda las secciones con su icono, título y subtítulo, la elegida en azul claro con raya azul; a la
+    derecha <b>una sola ficha</b> con su cabecera grande. Las tres opciones llevan eso a las estadísticas, con lo pedido:
+    <b>los trámites más pedidos por sector</b> al lado de las consultas, <b>el motivo entero</b> con sus casos desplegables, y
+    <b>la configuración del chat</b> en un sitio aparte. Todo se puede pulsar.</p>
+  <nav class="indice" aria-label="Opciones">
+    <a href="#op1">1 · Lista y detalle, tal cual Ayuda</a>
+    <a href="#op2">2 · Las cifras arriba, y debajo lista y detalle</a>
+    <a href="#op3">3 · Por preguntas, en fichas</a>
+  </nav>
+
+  <section class="idea" id="op1">
+    <h3><span class="n">1</span>Lista y detalle, tal cual Ayuda</h3>
+    <p>Las ocho secciones en la lista de la izquierda, cada una con su <b>icono, su título y la cifra que la resume</b>, para saber
+      dónde mirar sin abrirla. A la derecha, <b>una sola ficha</b> con la cabecera grande de Ayuda. «Consultas por sector» y
+      «Trámites más pedidos por sector» son dos entradas seguidas. La configuración del chat va al final, <b>bajo «Ajustes»</b>, separada
+      de las cifras.</p>
+    <div class="pantalla">
+      <div class="migas">Administración › Control y Estadísticas</div>
+      <div class="pg-h"><div><h2>Control y Estadísticas</h2><div class="sub">Lo que pasa en la oficina y lo que piden los inversionistas</div></div>
+        <span class="sp"></span><span class="aldia"><i></i>Al día · hace 1 min</span></div>
+      <div class="ld" id="o1"></div>
+    </div>
+  </section>
+
+  <section class="idea" id="op2">
+    <h3><span class="n">2</span>Las cifras arriba, y debajo lista y detalle</h3>
+    <p>Las cinco cifras de la oficina y la barra de estados <b>se quedan siempre a la vista</b>, encima: son lo que se mira cada
+      mañana. Debajo, una lista más corta con <b>un número en cada entrada</b>. Los organismos juntan solicitudes y tiempo con un
+      conmutador, y <b>«Por sector» pone las consultas y los trámites más pedidos lado a lado</b>: al pulsar un sector, la columna de
+      la derecha cambia. La configuración sale de la lista: es el botón <b>«Configuración del chat»</b> de arriba a la derecha.</p>
+    <div class="pantalla o2">
+      <div class="migas">Administración › Control y Estadísticas</div>
+      <div class="pg-h"><div><h2>Control y Estadísticas</h2><div class="sub">Lo que pasa en la oficina y lo que piden los inversionistas</div></div>
+        <span class="sp"></span><button class="btn-aj" type="button" data-o2aj>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>Configuración del chat</button></div>
+      <div class="o2-arriba" id="o2arriba"></div>
+      <div class="ld" id="o2"></div>
+    </div>
+  </section>
+
+  <section class="idea" id="op3">
+    <h3><span class="n">3</span>Por preguntas, en fichas</h3>
+    <p>Como las categorías de Ayuda, pero con <b>las preguntas que se hace quien entra</b>: «¿Cómo va la oficina?», «¿Qué piden?» y
+      «¿Dónde se atascan?». Cada pregunta es una ficha arriba con <b>su respuesta corta ya escrita</b>; al elegirla, debajo salen sus
+      secciones juntas, sin más clics. «¿Qué piden?» pone las consultas y los más pedidos lado a lado. La cuarta ficha, punteada y en
+      gris, es <b>«Ajustes del chat»</b>: se ve que no es una cifra.</p>
+    <div class="pantalla">
+      <div class="migas">Administración › Control y Estadísticas</div>
+      <div class="pg-h"><div><h2>Control y Estadísticas</h2><div class="sub">Lo que pasa en la oficina y lo que piden los inversionistas</div></div>
+        <span class="sp"></span><span class="aldia"><i></i>Al día · hace 1 min</span></div>
+      <div class="preg" id="o3preg"></div>
+      <div class="o3-cu" id="o3"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ── Los iconos ── */
+var IC = {
+  pulso:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+  equipo:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c2 .7 3.2 2.5 3.6 5.2"/>',
+  ente:'<path d="M3 21h18M5 21V10M19 21V10M9 21v-7M15 21v-7M2 10l10-6 10 6z"/>',
+  reloj:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+  lista:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>',
+  ayuda:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/>',
+  ajuste:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/>',
+  sector:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  atasco:'<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'
+};
+function ic(k, cls){ return '<span class="ic' + (cls ? ' ' + cls : '') + '"><svg viewBox="0 0 24 24">' + IC[k] + '</svg></span>'; }
+
+/* ── Los datos de ejemplo: los mismos en las tres ──
+   393 solicitudes: 345 resueltas y 48 en marcha. De esas 48, 17 están
+   ante el ente («Esperando respuesta»). */
+var ORG = [ // [ente, solicitados, resueltos, mediana días, ante el ente días]
+  ['SAREN',86,78,9,6], ['SENIAT',72,66,6,4], ['SAPI',64,50,41,33], ['IVSS',41,36,19,14],
+  ['BANAVIH (FAOV)',33,29,8,5], ['INCES',29,25,15,11], ['RNC',18,17,5,3], ['RNET',15,13,7,5],
+  ['RUPDAE',12,11,10,7], ['SACS',9,8,12,9], ['Alcaldía',8,7,22,17], ['Bomberos',6,5,14,10]
+];
+var SECT = [ // consultas en el chat; 212 en total
+  ['Hidrocarburos',54], ['Industrial-Manufactura',41], ['Agroindustrial',33], ['Minero',27],
+  ['Turismo-Infraestructura',22], ['Construcción',16], ['Energético',11], ['Acuicultura-Pesca',8], ['Telecomunicaciones',0]
+];
+var PEDIDOS = { // trámites enviados por empresas de cada sector
+  'Hidrocarburos':[['Inscripción en el RNC','RNC',19],['Registro de marca','SAPI',14],['Constitución de la empresa','SAREN',12],['RIF jurídico','SENIAT',11],['Permiso de bomberos','Bomberos',4]],
+  'Industrial-Manufactura':[['Constitución de la empresa','SAREN',15],['RIF jurídico','SENIAT',13],['Inscripción patronal','IVSS',9],['Registro de marca','SAPI',8],['Conformidad de uso','Alcaldía',3]],
+  'Agroindustrial':[['Permiso sanitario','SACS',7],['Constitución de la empresa','SAREN',11],['RIF jurídico','SENIAT',10],['Registro de marca','SAPI',9],['Inscripción en el FAOV','BANAVIH (FAOV)',6]],
+  'Minero':[['Constitución de la empresa','SAREN',10],['RIF jurídico','SENIAT',9],['Inscripción en el RNC','RNC',6],['Inscripción en el RUPDAE','RUPDAE',5],['Inscripción patronal','IVSS',4]],
+  'Turismo-Infraestructura':[['Constitución de la empresa','SAREN',9],['Conformidad de uso','Alcaldía',5],['Registro de marca','SAPI',8],['RIF jurídico','SENIAT',7],['Permiso de bomberos','Bomberos',2]],
+  'Construcción':[['Inscripción en el RNC','RNC',8],['Constitución de la empresa','SAREN',7],['Inscripción en el RNET','RNET',6],['Inscripción patronal','IVSS',5],['Inscripción en el INCES','INCES',4]],
+  'Energético':[['Constitución de la empresa','SAREN',6],['RIF jurídico','SENIAT',5],['Inscripción en el RUPDAE','RUPDAE',4],['Inscripción en el INCES','INCES',3],['Registro de marca','SAPI',2]],
+  'Acuicultura-Pesca':[['Constitución de la empresa','SAREN',4],['Permiso sanitario','SACS',2],['RIF jurídico','SENIAT',4],['Inscripción en el RNET','RNET',3],['Inscripción en el FAOV','BANAVIH (FAOV)',2]],
+  'Telecomunicaciones':[]
+};
+Object.keys(PEDIDOS).forEach(function(k){ PEDIDOS[k].sort(function(a,b){ return b[2]-a[2]; }); });
+var MOTIVOS = [ // 58 pedidos de ayuda
+  {m:'Lleva mucho tiempo sin respuesta', entes:[
+    ['IVSS',8,[['Constructora Orinoco, C.A.','Inscripción patronal',34,'María González'],['Alimentos del Llano, C.A.','Inscripción patronal',27,'Luis Pérez']]],
+    ['SAPI',6,[['Café Andino Export, S.A.','Registro de marca',58,'Andreína Rojas'],['Textiles Margarita, C.A.','Registro de marca',41,'María González']]],
+    ['INCES',4,[['Metalúrgica Guayana, C.A.','Inscripción en el INCES',22,'Luis Pérez']]],
+    ['Alcaldía',3,[['Posada Los Roques, C.A.','Conformidad de uso',29,'Sin asignar']]],
+    ['Bomberos',2,[['Hotel Mochima, C.A.','Permiso de bomberos',19,'Andreína Rojas']]]]},
+  {m:'Me la devolvieron o la rechazaron', entes:[
+    ['SENIAT',6,[['Petroservicios Zulia, C.A.','RIF jurídico',6,'María González'],['Agropecuaria El Tocuyo, C.A.','RIF jurídico',3,'Luis Pérez']]],
+    ['SAREN',5,[['Inversiones Caribe Sur, C.A.','Constitución de la empresa',8,'Andreína Rojas']]],
+    ['Bomberos',4,[['Plásticos Carabobo, C.A.','Permiso de bomberos',5,'Luis Pérez']]]]},
+  {m:'No sé en qué estado está', entes:[
+    ['BANAVIH (FAOV)',5,[['Minera Bolívar Norte, C.A.','Inscripción en el FAOV',12,'María González']]],
+    ['IVSS',4,[['Pesquera Cumaná, C.A.','Inscripción patronal',10,'Sin asignar']]],
+    ['RNET',3,[['Constructora Orinoco, C.A.','Inscripción en el RNET',9,'Luis Pérez']]]]},
+  {m:'Me piden recaudos que no tengo', entes:[
+    ['Alcaldía',4,[['Turismo Canaima, C.A.','Conformidad de uso',7,'Andreína Rojas']]],
+    ['SACS',2,[['Lácteos Los Andes, C.A.','Permiso sanitario',11,'María González']]],
+    ['Bomberos',2,[['Energía Solar Paraguaná, C.A.','Permiso de bomberos',4,'Sin asignar']]]]}
+];
+MOTIVOS.forEach(function(x){ x.n = x.entes.reduce(function(s,e){ return s + e[1]; }, 0); });
+var TOT_MOT = MOTIVOS.reduce(function(s,x){ return s + x.n; }, 0);
+var CONFIG = {
+  'Hidrocarburos':[['Licencia de hidrocarburos','MinHidrocarburos'],['Inscripción en el registro de contratistas','PDVSA'],['Permiso ambiental (ARA)','MinEcosocialismo'],['Inscripción en el RNC','RNC']],
+  'Minero':[['Contrato de exploración minera','MinDesarrollo Minero'],['Inscripción en el RUPDAE','RUPDAE'],['Permiso ambiental (ARA)','MinEcosocialismo']]
+};
+var sel = {o1:'Hidrocarburos', o2:'Hidrocarburos', o3:'Hidrocarburos', cfg:'Hidrocarburos'};
+
+function pct(n, t){ return t ? Math.round(n / t * 100) + ' %' : '—'; }
+function br(o){
+  var tag = o.boton ? 'button' : 'div';
+  return '<' + tag + (o.boton ? ' type="button" ' + o.boton : '') + ' class="br' + (o.cls ? ' ' + o.cls : '') + '">' +
+    '<span class="rl"><span class="nm">' + o.nombre + '</span>' + (o.sub ? '<span class="sb">' + o.sub + '</span>' : '') + '</span>' +
+    '<span class="pi">' + o.partes.map(function(p){ return '<span class="' + (p[1] || 're') + '" style="width:' + (p[0] > 0 ? Math.max(1.5, p[0]*100) : 0) + '%"></span>'; }).join('') + '</span>' +
+    '<span class="rv"><b>' + o.valor + '</b>' + (o.pie ? '<span>' + o.pie + '</span>' : '') + '</span></' + tag + '>';
+}
+function cab(k, t, d, der, aj){
+  return '<div class="fi-cab">' + ic(k, aj ? 'aj' : '') + '<div class="tx"><h4>' + t + '</h4>' + (d ? '<p>' + d + '</p>' : '') + '</div>' +
+    (der ? '<div class="der">' + der + '</div>' : '') + '</div>';
+}
+function ficha(k, t, d, cuerpo, o){
+  o = o || {};
+  return '<article class="ficha' + (o.peq ? ' peq' : '') + '">' + cab(k, t, d, o.der, o.aj) + '<div class="fi-cu">' + cuerpo + '</div></article>';
+}
+
+/* ── Las piezas ── */
+function cifras(cls){
+  var c = [['48','Trámites en marcha','',.48],['17','Esperando respuesta del ente','ojo',.35],['5','Citas por confirmar','',.1],
+           ['58<small>días</small>','Lo que lleva más esperando','mal',.9],['3','Papeles caducados','mal',.06]];
+  return '<div class="cifras' + (cls ? ' ' + cls : '') + '">' + c.map(function(x){
+    return '<div class="cf ' + x[2] + '"><div class="n">' + x[0] + '</div><div class="l">' + x[1] + '</div><div class="m"><span style="width:' + x[3]*100 + '%"></span></div></div>';
+  }).join('') + '</div>';
+}
+function estados(){
+  var e = [['e1','Recibido',9],['e2','En revisión del CIIP',14],['e3','Ante el ente',17],['e4','Devuelto al inversionista',8]];
+  return '<div class="apil">' + e.map(function(x){ return '<span class="' + x[0] + '" style="width:' + (x[2]/48*100) + '%"></span>'; }).join('') + '</div>' +
+    '<ul class="ley">' + e.map(function(x){ return '<li><i class="' + x[0] + '"></i>' + x[1] + ' · <b>' + x[2] + '</b></li>'; }).join('') + '</ul>';
+}
+function gestores(){
+  var g = [['María González',14,5,'34 días'],['Luis Pérez',12,4,'27 días'],['Andreína Rojas',11,6,'58 días'],['Sin asignar',11,2,'29 días']];
+  return '<div class="tscroll"><table class="tb"><thead><tr><th>Gestor</th><th class="num">Lleva</th><th class="num">Esperan respuesta</th><th class="num">Espera máx.</th></tr></thead><tbody>' +
+    g.map(function(x){ return '<tr' + (x[0]==='Sin asignar' ? ' class="sinasig"' : '') + '><td>' + x[0] + '</td><td class="num">' + x[1] + '</td><td class="num">' + x[2] + '</td><td class="num">' + x[3] + '</td></tr>'; }).join('') +
+    '</tbody></table></div>';
+}
+function gente(){
+  var p = [['MG','María González','Gestora',14,9,5],['LP','Luis Pérez','Gestor',12,11,4],['AR','Andreína Rojas','Gestora',11,7,6]];
+  return '<div class="gente">' + p.map(function(x){
+    return '<div class="per"><span class="av">' + x[0] + '</span><b>' + x[1] + '</b><span>' + x[2] + '</span>' +
+      '<div class="tr"><span><b>' + x[3] + '</b>lleva</span><span><b>' + x[4] + '</b>resolvió este mes</span><span><b>' + x[5] + '</b>esperan</span></div></div>';
+  }).join('') + '<div class="per sin"><span class="av">!</span><b>Sin dueño</b><span>Nadie los ha tomado</span>' +
+    '<div class="tr"><span><b>11</b>sin asignar</span><span><b>2</b>esperan</span></div></div></div>';
+}
+function organismos(){
+  var tope = ORG[0][1], cab5 = ORG.slice(0,5), cola = ORG.slice(5);
+  var sol = cola.reduce(function(s,x){ return s + x[1]; }, 0), res = cola.reduce(function(s,x){ return s + x[2]; }, 0);
+  return '<div class="barras">' + cab5.map(function(x, i){
+    return br({cls: i===0 ? 'tope' : '', nombre:x[0], valor:x[1], pie:'Resueltos ' + x[2], partes:[[x[1]/tope]]});
+  }).join('') + br({cls:'otros', nombre:'Otros 7 <span class="caret">▸</span>', sub:cola.map(function(x){ return x[0]; }).join(' · '), valor:sol, pie:'Resueltos ' + res, partes:[[sol/tope]],
+    boton:'data-otros aria-expanded="false"'}) +
+  '</div><div class="barras" hidden style="margin-top:2px; padding-left:14px; border-left:2px solid var(--line-soft)">' + cola.map(function(x){
+    return br({nombre:x[0], valor:x[1], pie:'Resueltos ' + x[2], partes:[[x[1]/tope]]});
+  }).join('') + '</div>';
+}
+function tiempos(){
+  var f = ORG.slice().sort(function(a,b){ return b[3]-a[3]; }), tope = f[0][3], cab5 = f.slice(0,5), cola = f.slice(5);
+  function fila(x, nombre, sub){ return br({nombre:nombre || x[0], sub: sub || ('Casos ' + x[2] + ' · Ante el ente ' + x[4] + ' días'), valor:x[3] + ' días', pie:'',
+    partes:[[(x[3]-x[4])/tope,'r-ciip'],[x[4]/tope,'r-ente']]}); }
+  return '<div class="barras">' + cab5.map(function(x){ return fila(x); }).join('') +
+    fila(cola[0], 'Otros 7', 'El más lento de los siete: ' + cola[0][0]) + '</div>' +
+    '<ul class="ley"><li><i style="background:var(--navy)"></i>En el CIIP</li><li><i style="background:var(--cyan)"></i>Ante el ente</li><li>Mediana de cada organismo · solo trámites resueltos</li></ul>';
+}
+function consultas(boton){
+  var tope = SECT[0][1];
+  return '<div class="barras">' + SECT.map(function(x, i){
+    return br({cls:(x[1]===0 ? 'cero' : (i===0 ? 'tope' : '')) + (boton && sel[boton]===x[0] ? ' on' : ''), nombre:x[0], valor:x[1],
+      pie: x[1] ? pct(x[1],212) : '—', partes:[[x[1]/tope]], boton: boton ? 'data-sec="' + boton + '" data-s="' + x[0] + '"' : ''});
+  }).join('') + '</div>';
+}
+function chipsSector(clave){
+  return '<div class="chips" role="group" aria-label="Sector">' + SECT.map(function(x){
+    return '<button type="button" class="' + (sel[clave]===x[0] ? 'on' : '') + '" data-sec="' + clave + '" data-s="' + x[0] + '">' + x[0] + '</button>';
+  }).join('') + '</div>';
+}
+function pedidos(clave){
+  var s = sel[clave], l = PEDIDOS[s] || [];
+  if (!l.length) return '<p class="d" style="margin:0">Nadie de <b>' + s + '</b> ha enviado un trámite todavía. Tampoco ha preguntado nadie en el chat.</p>';
+  var tope = l[0][2], tot = l.reduce(function(a,x){ return a + x[2]; }, 0);
+  return '<div class="barras">' + l.map(function(x, i){
+    return br({cls: i===0 ? 'tope' : '', nombre:(i+1) + '. ' + x[0], sub:x[1], valor:x[2], pie:pct(x[2],tot), partes:[[x[2]/tope]]});
+  }).join('') + '</div>';
+}
+function motivos(){
+  var tope = MOTIVOS[0].n;
+  return '<div class="motivos">' + MOTIVOS.map(function(x, i){
+    return '<details class="mo"' + (i===0 ? ' open' : '') + '><summary>' +
+      '<span class="mt">' + x.m + '</span><span class="mv"><b>' + x.n + '</b><span>' + pct(x.n, TOT_MOT) + '</span></span>' +
+      '<span class="pi"><i style="width:' + (x.n/tope*100) + '%"></i></span>' +
+      '<span class="en">' + x.entes.map(function(e){ return '<span>' + e[0] + ' ' + e[1] + '</span>'; }).join('') + '</span></summary>' +
+      '<div class="casos">' + x.entes.map(function(e){
+        return '<div class="ente">' + e[0] + ' · ' + e[1] + (e[1]===1 ? ' caso' : ' casos') + '</div>' + e[2].map(function(c){
+          return '<div class="caso"><span><b>' + c[0] + '</b><small>' + c[1] + '</small></span><span class="g"><small>' + c[3] + '</small><span class="dias' + (c[2] > 30 ? ' mal' : '') + '">Pidió ayuda hace ' + c[2] + ' días</span></span><span class="ir">Abrir ›</span></div>';
+        }).join('');
+      }).join('') + '</div></details>';
+  }).join('') + '</div>';
+}
+function config(){
+  var s = sel.cfg, l = CONFIG[s] || [];
+  return '<div class="aviso-c"><svg viewBox="0 0 24 24">' + IC.info + '</svg><span>Esto no es una cifra: es <b>lo que ve el inversionista en el chat</b> al elegir su sector. Cada fila se guarda sola, con su botón.</span></div>' +
+    chipsSector('cfg') +
+    '<div class="ed">' + (l.length ? l.map(function(x, i){
+      return '<div class="ed-f"><span class="o">' + (i+1) + '</span><input value="' + x[0] + '" aria-label="Nombre del trámite"><input value="' + x[1] + '" aria-label="Organismo">' +
+        '<span class="bs"><button class="mb" type="button">Subir</button><button class="mb" type="button">Bajar</button><button class="mb pri" type="button">Guardar</button><button class="mb quita" type="button">Quitar</button></span></div>';
+    }).join('') : '<p class="d" style="margin:4px 0">Todavía no hay trámites cargados para este sector.</p>') +
+    '<div class="ed-f nueva"><span class="o">+</span><input placeholder="Nombre del trámite" aria-label="Nombre del trámite"><input placeholder="Organismo" aria-label="Organismo"><span class="bs"><button class="mb pri" type="button">Añadir</button></span></div></div>';
+}
+function caja(t, d, cuerpo, nuevo){
+  return '<div class="caja"><div class="caja-t"><b>' + t + '</b>' + (nuevo ? '<span class="nuevo">Nuevo</span>' : '') + '</div>' + (d ? '<p class="d">' + d + '</p>' : '') + cuerpo + '</div>';
+}
+
+/* ── Las secciones (las mismas fichas en las tres opciones) ── */
+var D = {
+  resumen:['pulso','Resumen de la oficina','Lo que hay en marcha ahora mismo, en qué estado está y quién lo lleva.'],
+  equipo:['equipo','El equipo','Una tarjeta por persona, con «Sin dueño» al final. Al pulsarla se abre su ficha: cómo va y qué ha hecho.'],
+  org:['ente','Trámites por organismo','Cuántas veces se ha enviado un trámite de cada organismo. Los borradores no cuentan.'],
+  tiempo:['reloj','Tiempo de respuesta','De que el inversionista envía a que el CIIP lo da por resuelto. La mediana es el caso típico.'],
+  consultas:['chat','Consultas por sector','El sector que elige el inversionista al abrir el chat desde el final del catálogo. Los nueve, también los que están a cero.'],
+  pedidos:['lista','Trámites más pedidos por sector','Los trámites que más envían las empresas de cada sector, de más a menos.'],
+  motivos:['ayuda','¿Por qué piden ayuda?','Lo que marca el inversionista, ente por ente, al pedir ayuda con algo que ya solicitó. Pulsa un motivo para ver sus casos.'],
+  config:['ajuste','Configuración del chat','Trámites específicos por sector: la lista que el inversionista ve en el chat al elegir su sector.']
+};
+function cuerpo(id, clave){
+  if (id==='resumen') return cifras('dentro') + '<div><p class="rot">Trámites por estado · 48 en marcha</p>' + estados() + '</div><div><p class="rot">Lo que lleva cada gestor</p>' + gestores() + '</div>';
+  if (id==='equipo') return gente();
+  if (id==='org') return organismos();
+  if (id==='tiempo') return tiempos();
+  if (id==='consultas') return consultas() + '<p class="d" style="margin:0; font-size:var(--fs-nota); color:var(--gray)">212 consultas en total. Nadie ha preguntado por Telecomunicaciones.</p>';
+  if (id==='pedidos') return chipsSector(clave) + '<div data-ped="' + clave + '">' + pedidos(clave) + '</div>';
+  if (id==='motivos') return motivos();
+  if (id==='config') return '<div data-cfg>' + config() + '</div>';
+}
+function fichaDe(id, clave, o){ var d = D[id]; return ficha(d[0], d[1], d[2], cuerpo(id, clave), Object.assign({aj: id==='config'}, o || {})); }
+
+/* ══ Opción 1 ══ */
+var O1 = [
+  ['resumen','48 en marcha · 17 esperan al ente'], ['equipo','3 gestores · 11 sin asignar'],
+  ['org','393 solicitados · SAREN, el que más'], ['tiempo','9 días de mediana · SAPI, el más lento'],
+  ['consultas','212 consultas · Hidrocarburos, 54'], ['pedidos','En Hidrocarburos, el RNC'],
+  ['motivos','58 pedidos · 23 por la espera'], ['config','9 sectores · 7 trámites cargados']
+];
+var o1 = 'resumen';
+function pintaO1(){
+  var nav = '<nav class="ld-nav" aria-label="Secciones">' + O1.map(function(x){
+    var d = D[x[0]];
+    return (x[0]==='config' ? '<div class="ld-sep">Ajustes</div>' : '') +
+      '<button type="button" class="ld-it' + (o1===x[0] ? ' on' : '') + '" data-o1="' + x[0] + '">' + ic(d[0], x[0]==='config' ? 'aj' : '') +
+      '<span class="ld-tx"><b>' + d[1] + '</b><span>' + x[1] + '</span></span></button>';
+  }).join('') + '</nav>';
+  document.getElementById('o1').innerHTML = nav + '<div class="ld-det">' + fichaDe(o1, 'o1') + '</div>';
+}
+
+/* ══ Opción 2 ══ */
+var O2 = [['equipo','Equipo y gestores','11'], ['org','Organismos','393'], ['sector','Por sector','212'], ['motivos','¿Por qué piden ayuda?','58']];
+var o2 = 'sector', o2modo = 'sol';
+function pintaO2(){
+  document.getElementById('o2arriba').innerHTML = cifras() + '<div class="o2-est"><p class="rot">Por estado</p><div>' + estados() + '</div></div>';
+  var nav = '<nav class="ld-nav" aria-label="Secciones">' + O2.map(function(x){
+    var k = {equipo:'equipo', org:'ente', sector:'sector', motivos:'ayuda'}[x[0]];
+    return '<button type="button" class="ld-it' + (o2===x[0] ? ' on' : '') + '" data-o2="' + x[0] + '">' + ic(k) +
+      '<span class="ld-tx"><b>' + x[1] + '</b></span><span class="cnt' + (x[0]==='equipo' ? ' ojo' : '') + '">' + x[2] + '</span></button>';
+  }).join('') + '</nav>';
+  var f;
+  if (o2==='equipo') f = ficha('equipo','Equipo y gestores','Lo que lleva cada gestor y, debajo, una tarjeta por persona. 11 trámites no tienen dueño.',
+      '<div><p class="rot">Lo que lleva cada gestor</p>' + gestores() + '</div><div><p class="rot">Las personas</p>' + gente() + '</div>');
+  else if (o2==='org') f = ficha('ente','Organismos', o2modo==='sol' ? D.org[2] : D.tiempo[2],
+      o2modo==='sol' ? organismos() : tiempos(),
+      {der:'<div class="seg" role="group" aria-label="Qué medir"><button type="button" data-o2m="sol" class="' + (o2modo==='sol'?'on':'') + '">Solicitudes</button><button type="button" data-o2m="ti" class="' + (o2modo==='ti'?'on':'') + '">Tiempo de respuesta</button></div>'});
+  else if (o2==='sector') f = ficha('sector','Por sector','A la izquierda, por qué sector preguntan en el chat; a la derecha, qué piden de verdad las empresas de ese sector. Pulsa un sector.',
+      '<div class="dos">' + caja('Consultas por sector','212 consultas en el chat. Los nueve sectores, también los que están a cero.', consultas('o2')) +
+      caja('Trámites más pedidos · <span data-tit="o2">' + sel.o2 + '</span>','Lo que han enviado las empresas del sector elegido.', '<div data-ped="o2">' + pedidos('o2') + '</div>', true) + '</div>');
+  else if (o2==='motivos') f = fichaDe('motivos');
+  else f = fichaDe('config');
+  document.getElementById('o2').innerHTML = nav + '<div class="ld-det">' + f + '</div>';
+  document.querySelector('[data-o2aj]').classList.toggle('on', o2==='config');
+}
+
+/* ══ Opción 3 ══ */
+var O3 = [
+  ['oficina','pulso','¿Cómo va la oficina?','48 en marcha, 17 esperando al ente','Resumen y equipo'],
+  ['piden','sector','¿Qué piden?','SAREN, 86 solicitudes; Hidrocarburos, 54 consultas','Organismos, sectores y lo más pedido'],
+  ['atasco','atasco','¿Dónde se atascan?','SAPI tarda 41 días; 23 piden ayuda por la espera','Tiempos y motivos de ayuda'],
+  ['ajustes','ajuste','Ajustes del chat','Trámites específicos por sector','No es una cifra']
+];
+var o3 = 'piden';
+function pintaO3(){
+  document.getElementById('o3preg').innerHTML = O3.map(function(x){
+    return '<button type="button" class="pr' + (x[0]==='ajustes' ? ' aj' : '') + (o3===x[0] ? ' on' : '') + '" data-o3="' + x[0] + '" aria-pressed="' + (o3===x[0]) + '">' +
+      ic(x[1], x[0]==='ajustes' ? 'aj' : '') + '<b>' + x[2] + '</b><span class="re">' + x[3] + '</span><span class="qu">' + x[4] + '</span></button>';
+  }).join('');
+  var h, P = {peq:true};
+  if (o3==='oficina') h = '<p class="o3-frase"><b>48 trámites en marcha</b>: 17 esperan respuesta del ente y 11 no tienen gestor.</p>' +
+      fichaDe('resumen', null, P) + fichaDe('equipo', null, P);
+  else if (o3==='piden') h = '<p class="o3-frase">Se han enviado <b>393 trámites</b>; el organismo que más sale es <b>SAREN</b>. En el chat preguntan sobre todo por <b>Hidrocarburos</b>.</p>' +
+      fichaDe('org', null, P) +
+      '<div class="dos">' + ficha('chat', D.consultas[1], D.consultas[2] + ' Pulsa uno para ver lo que piden.', consultas('o3'), P) +
+      ficha('lista', D.pedidos[1] + ' · <span data-tit="o3">' + sel.o3 + '</span>', D.pedidos[2], '<div data-ped="o3">' + pedidos('o3') + '</div>', P) + '</div>';
+  else if (o3==='atasco') h = '<p class="o3-frase">El más lento es <b>SAPI, con 41 días</b>, casi todos ante el ente. El motivo que más se repite al pedir ayuda es <b>«Lleva mucho tiempo sin respuesta»</b>.</p>' +
+      '<div class="dos">' + fichaDe('tiempo', null, P) + fichaDe('motivos', null, P) + '</div>';
+  else h = fichaDe('config');
+  document.getElementById('o3').innerHTML = h;
+}
+
+/* ── Los clics ── */
+document.addEventListener('click', function(ev){
+  var b = ev.target.closest('button'); if (!b) return;
+  if (b.hasAttribute('data-otros')){
+    var mas = b.parentNode.nextElementSibling, abre = mas.hidden;
+    mas.hidden = !abre; b.setAttribute('aria-expanded', abre); b.querySelector('.caret').textContent = abre ? '▾' : '▸';
+    return;
+  }
+  if (b.dataset.o1){ o1 = b.dataset.o1; pintaO1(); return; }
+  if (b.dataset.o2){ o2 = b.dataset.o2; pintaO2(); return; }
+  if (b.hasAttribute('data-o2aj')){ o2 = 'config'; pintaO2(); return; }
+  if (b.dataset.o2m){ o2modo = b.dataset.o2m; pintaO2(); return; }
+  if (b.dataset.o3){ o3 = b.dataset.o3; pintaO3(); return; }
+  if (b.dataset.sec){
+    var k = b.dataset.sec; sel[k] = b.dataset.s;
+    if (k==='cfg'){ document.querySelectorAll('[data-cfg]').forEach(function(n){ n.innerHTML = config(); }); return; }
+    if (k==='o1'){ pintaO1(); return; }
+    if (k==='o2'){ pintaO2(); return; }
+    if (k==='o3'){ pintaO3(); return; }
+  }
+});
+pintaO1(); pintaO2(); pintaO3();
+</script>
+</body>
+</html>
