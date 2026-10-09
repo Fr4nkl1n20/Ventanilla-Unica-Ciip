@@ -5978,6 +5978,17 @@ body.editando-textos .ay-ld-det > details{display:block; margin-bottom:12px;}
 .mc-papel-bs{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
 .mc-papel-bs .btn{justify-content:center; text-align:center;}
 .mc-papel-bov{margin-top:8px; font-size:var(--fs-nota); color:var(--gray); text-align:center;}
+/* En la escalera, del ancho de la columna de su paso y no del nombre del
+   archivo: con un nombre largo se salía por la derecha de la tarjeta de
+   arriba. En el último paso llega justo a su borde (Franklin Reyes,
+   9-10-2026: «la misma distancia que el cuadro blanco de arriba»). El
+   nombre, cortado con «…»; entero en el title. */
+.tr-escalera .tr-paso:has(.mc-papel) > .tr-txt{align-self:stretch;}
+.tr-escalera .mc-papel{width:100%; min-width:0; box-sizing:border-box;}
+.tr-escalera .tr-paso:last-child .mc-papel{width:calc(100% + 8px); margin-right:-8px; align-self:flex-start;}
+.mc-papel .imp-fila.imp-archivo{flex-wrap:nowrap; min-width:0;}
+.mc-papel .imp-n{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+@media(max-width:640px){ .tr-escalera .tr-paso:last-child .mc-papel{width:100%; margin-right:0;} }
 .mc-papel-ir{font:inherit; font-weight:700; color:var(--navy2); background:none; border:0; padding:0; cursor:pointer;}
 .mc-papel-ir:hover{text-decoration:underline;}
 .mc-papel-ir:focus-visible{outline:2px solid var(--navy2); outline-offset:2px; border-radius:4px;}
