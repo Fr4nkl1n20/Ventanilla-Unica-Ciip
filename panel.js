@@ -10733,7 +10733,20 @@ applyLang(idiomaParaMi());
       de.sinVacio = true;
     }
     if (cerrado) de.cerrada = u.ch_cerrado || '';
-    pintaHilo(caja, de);
+    var hiloCh = pintaHilo(caja, de);
+    if (!equipo && !de.nombreEquipo){
+      Promise.resolve().then(function(){ return sb.rpc('gestores_de_mis_tramites'); })
+        .then(function(r){
+          if (r && r.error) throw r.error;
+          ((r && r.data) || []).forEach(function(g){
+            if (g && g.tramite && g.nombre) NOMBRE_ASESOR[g.tramite] = String(g.nombre).trim();
+          });
+          if (!NOMBRE_ASESOR[tr.id]) return;
+          de.nombreEquipo = NOMBRE_ASESOR[tr.id];
+          hiloCh.repinta();
+        })
+        .catch(function(e){ console.warn('[CIIP] chat, el asesor:', e && (e.message || e)); });
+    }
     CHATS_DEL_PASO[clave] = {firma: firma, nodo: caja};
     return caja;
   }
@@ -10771,6 +10784,8 @@ applyLang(idiomaParaMi());
       zonaChat = E.contestacion ? chatDeLaContestacion(t, E, true, t.nombre || u.co_sinnombre || '') : null;
     };
 
+  /* El nombre del asesor de cada trámite, por id, para firmar el chat. */
+  var NOMBRE_ASESOR = {};
     /* La base contesta con la solicitud entera; con ella se repinta. */
     var conDatos = function(r){
       if (r && r.error) throw r.error;
@@ -10796,6 +10811,13 @@ applyLang(idiomaParaMi());
       var P = E.apuntados;
       /* Los rótulos de cada escalera: la licencia no es la marca. */
       var tx = def.textos || {};
+      /* Lo del equipo, firmado con el nombre del asesor que atiende el
+         trámite y no con «CIIP» (Franklin Reyes, 9-10-2026: «aquí debería
+         salir el nombre del asesor que atiende»). Lo da
+         gestores_de_mis_tramites() (supabase-gestor-visible.sql): solo el
+         nombre y solo de lo suyo. Sin gestor asignado, o sin la función,
+         sigue diciendo «CIIP». */
+      de.nombreEquipo = NOMBRE_ASESOR[tr.id] || '';
       caja.appendChild(el('div', 'imp-g-t', u[tx.titulo || 'mc_g_titulo'] || ''));
       var cur = E.ahora;
       var dice = el('div', 'imp-g-e', '');
@@ -12741,7 +12763,7 @@ applyLang(idiomaParaMi());
         var f = el('div', 'hilo-m' + (delOtro ? ' suyo' : ' mio'));
         f.appendChild(el('div', 'hm-q',
           (equipo ? (m.del_equipo ? (u['hilo.tu'] || '') : quien)
-                  : (m.del_equipo ? (u['hilo.ciip'] || '') : (u['hilo.tu'] || ''))) +
+                  : (m.del_equipo ? (de.nombreEquipo || u['hilo.ciip'] || '') : (u['hilo.tu'] || ''))) +
           ' · ' + fecha(m.creado_en)));
         /* Lo del otro lado, en tu idioma si hay traducción, y a un clic
            del original, que es lo que vale. Lo tuyo, como lo escribiste. */
@@ -12932,7 +12954,9 @@ applyLang(idiomaParaMi());
       lee(true);
     }, 20000);
 
-    return {cierra: cierra};
+    /* repinta: lo mismo otra vez, aunque no haya llegado nada nuevo -el
+       nombre del asesor, que llega después que los mensajes-. */
+    return {cierra: cierra, repinta: function(){ firmaPintada = null; lee(true); }};
   }
 
 

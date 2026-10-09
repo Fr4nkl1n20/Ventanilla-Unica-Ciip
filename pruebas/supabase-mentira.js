@@ -2774,7 +2774,10 @@
              (30-9-2026). La de verdad solo devuelve las de quien pregunta;
              aquí, la t1, que es la devuelta del expediente de ejemplo. */
           if (nombre === 'gestores_de_mis_tramites'){
-            var rG = {data: [{tramite: 't1', nombre: 'Saskia Calderon'}], error: null};
+            /* Y la mch1, la marca del chat de la contestación: su chat
+               firma lo del equipo con este nombre (9-10-2026). */
+            var rG = {data: [{tramite: 't1', nombre: 'Saskia Calderon'},
+                             {tramite: 'mch1', nombre: 'Ana Gestora'}], error: null};
             return {then:function(bien, mal){ return Promise.resolve(rG).then(bien, mal); }};
           }
           /* Las marcas del inversionista en cada ente de los parafiscales
