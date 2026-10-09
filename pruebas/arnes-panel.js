@@ -10248,7 +10248,7 @@
       var notaSapi = sin.querySelector('li.tr-paso.ahora[data-paso="sapi"] .tr-nota');
       igual('marca: sin devolución, «Solicitud en proceso» lleva su mensaje',
             notaSapi ? notaSapi.textContent : '(sin nota)', window.CIIP_T().mc_n_sapi);
-      var con = pintaEn(tr('mc-h', 'ante_el_ente', p3, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
+      var con = pintaEn(tr('mc-h', 'ante_el_ente', p3a, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
       var an = con.querySelector('.mc-anuncio');
       ok('marca: habilitada, el anuncio sale solo arriba, encima de las pestañas',
          !!an && an.nextElementSibling && an.nextElementSibling.classList.contains('tr-pest') &&
@@ -10268,6 +10268,13 @@
          con.classList.contains('tr-en-chat') && pes.length === 2 && pes[1].classList.contains('on'),
          con.className, 'tr-en-chat');
       if (pes[0]) pes[0].click();
+      /* Resuelta la devolución, el aviso ya es pasado y no sale (Franklin
+         Reyes, 9-10-2026: «si ya pasamos esta etapa, el mensaje no debería
+         de salir»). La pestaña del chat se queda. */
+      con = pintaEn(tr('mc-h1', 'ante_el_ente', p3, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
+      ok('marca: resuelta la devolución, el aviso ya no sale',
+         !con.querySelector('.mc-anuncio') && !!con.querySelector('.tr-pest'),
+         con.querySelector('.mc-anuncio') ? 'sale' : 'no sale', 'no sale');
       var dev = pintaEn(tr('mc-h0', 'ante_el_ente', p3a, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
       ok('marca: mientras se resuelve, «Solicitud en proceso» en curso y sin nota propia',
          !!dev.querySelector('li.tr-paso.ahora[data-paso="sapi"]') &&
@@ -10448,6 +10455,10 @@
       ok('compraventa: el aviso del CIIP sale destacado, con su título',
          !!an && an.textContent.indexOf(u.cv_anuncio_t) === 0 && an.textContent.indexOf('solvencia actualizada') > 0,
          an ? an.textContent.slice(0, 70) : '(sin aviso)', u.cv_anuncio_t + '…');
+      var tras = pintaEn(tr('cv-k', 'ante_el_ente', hasta('registrador'),
+                            {anuncio: 'El Registrador pide la solvencia actualizada.', anuncio_en: hace(2)}));
+      ok('compraventa: revisado por el Registrador, el aviso ya no sale',
+         !tras.querySelector('.mc-anuncio'), tras.querySelector('.mc-anuncio') ? 'sale' : 'no sale', 'no sale');
       return sigue();
     }
 

@@ -10413,6 +10413,16 @@ applyLang(idiomaParaMi());
       p.ahora = vivo && !resuelta && i === hechos;
     });
     var ahora = todos.filter(function(p){ return p.ahora; })[0] || null;
+    /* El paso del que habla el anuncio: el que lleva la contestación en la
+       marca -el del SAPI-, los de def.anuncios en la compraventa -la
+       revisión del Registrador-. Hecho ese paso, el anuncio ya es pasado
+       (Franklin Reyes, 9-10-2026: «si ya pasamos esta etapa, el mensaje no
+       debería de salir»). */
+    var delAnuncio = (def.anuncios || []).slice();
+    def.etapas.forEach(function(et){ et.pasos.forEach(function(p){
+      if (p.conContestacion) delAnuncio.push(p.clave);
+    }); });
+    var pasosDelAnuncio = todos.filter(function(p){ return delAnuncio.indexOf(p.clave) >= 0; });
     return {
       codigo: codigo, etapas: etapas, todos: todos, hechos: hechos, ahora: ahora,
       /* El importe que toca: el de la etapa cuyo importe o comprobante está
@@ -10425,6 +10435,7 @@ applyLang(idiomaParaMi());
       contestacion: contestacion,
       anuncio: (contestacion || def.anuncios) ? String((tr.datos || {}).anuncio || '') : '',
       anuncioEn: (tr.datos || {}).anuncio_en || P.contestacion || null,
+      anuncioPasado: pasosDelAnuncio.length > 0 && pasosDelAnuncio.every(function(p){ return p.hecho; }),
       apuntados: P
     };
   }
@@ -10523,9 +10534,13 @@ applyLang(idiomaParaMi());
        Con la contestación habilitada, encima de las pestañas -se lee en
        las dos-, con la etiqueta «Respuesta del SAPI» (no «Devuelta»:
        también puede ser una oposición) y un pie con «Escribir al CIIP»,
-       que abre la pestaña del chat. El chat no repite el aviso. */
+       que abre la pestaña del chat. El chat no repite el aviso.
+
+       Y solo mientras su paso esté por hacer: resuelta la devolución -o
+       revisado por el Registrador- ya no sale (9-10-2026). La casilla del
+       gestor lo sigue enseñando, que es su historial. */
     var tituloAnuncio = u[((ESCALERA_POR_ETAPAS[E.codigo] || {}).textos || {}).anuncio || 'mc_anuncio_t'] || '';
-    if (E.anuncio && cajaTr){
+    if (E.anuncio && !E.anuncioPasado && cajaTr){
       var an = el('div', 'mc-anuncio');
       an.setAttribute('role', 'status');
       var anCab = el('div', 'mc-anuncio-cab');
