@@ -5920,6 +5920,9 @@ body[data-vista="horario"] .fase-bar{display:none;}
 /* Lista y detalle (idea B, 8-10-2026): la lista a la izquierda, la ficha
    elegida a la derecha. */
 .faq.ay-dil.ay-ld, .faq.ay-rec.ay-ld{display:grid; grid-template-columns:minmax(230px, 320px) minmax(0, 1fr); gap:16px; align-items:start;}
+/* El SAPI, en su pestaña (9-10-2026): una sola ficha, a todo lo ancho y sin lista. */
+.faq.ay-sapi.ay-ld{display:block;}
+.ay-sapi .ay-ld-nav{display:none;}
 .ay-ld-nav{background:var(--tr-velo); border:1px solid var(--line); border-radius:14px; padding:8px; display:grid; gap:2px; box-shadow:var(--shadow);}
 .ay-ld-it{font:inherit; text-align:left; background:none; border:0; border-radius:10px; padding:10px; display:flex; gap:12px;
   align-items:center; cursor:pointer; color:var(--ink);}
@@ -5988,19 +5991,30 @@ body.editando-textos .ay-ld-det > details{display:block; margin-bottom:12px;}
 .tr-chat .hilo-lista{max-height:320px; overflow-y:auto;}
 .tr-paso:has(+ .tr-chat)::before{display:none;}
 .mc-g .tr-chat{margin-top:10px;}
-/* Las pestañas del trámite con chat (pintaPorEtapas): «Tu trámite» y
-   «Chat con tu gestor», subrayadas como las pestañas de siempre y no como
-   los filtros redondos, que filtran una lista y no cambian de vista. Con
-   el chat elegido se esconde todo lo que va detrás de ellas -aviso,
-   escalera, papeles- menos el propio chat. */
-.tr-pest{display:flex; gap:4px; border-bottom:1px solid var(--line); margin:0 0 16px; max-width:880px;}
-.tr-pest-b{font:inherit; font-size:var(--fs-pestana); font-weight:600; color:var(--gray); background:none; border:0;
-  border-bottom:2px solid transparent; margin-bottom:-1px; padding:9px 12px; cursor:pointer;}
-.tr-pest-b:hover{color:var(--navy2);}
-.tr-pest-b.on{color:var(--navy2); border-bottom-color:var(--navy2); font-weight:700;}
-.tr-pest-chat{display:none; max-width:880px;}
-.tr-en-chat > .tr-pest ~ *:not(.tr-pest-chat){display:none;}
-.tr-en-chat > .tr-pest-chat{display:block;}
-.tr-pest-chat > .tr-chat{margin:0; border-left-width:1px; border-radius:12px; padding:16px 18px;}
-.tr-pest-chat .hilo-lista{max-height:min(60vh, 520px);}
+/* El chat del inversionista, dentro del aviso del CIIP (pintaPorEtapas):
+   sin título ni explicación -el aviso ya lo dice-, separado del texto por
+   una raya, y la caja de escribir en una línea con el clip y el envío
+   dentro (hilo-compacto). */
+.mc-anuncio-chip{font-size:var(--fs-chip); font-weight:700; border-radius:20px; padding:2px 9px;
+  background:var(--rust-bg); color:var(--rust);}
+.mc-anuncio-hilo{border-top:1px solid var(--line-soft); padding-top:10px; margin-top:3px;}
+.mc-anuncio-hilo .tr-chat{margin:0; padding:0; border:0; background:none; border-radius:0;}
+.mc-anuncio-hilo .hilo > .sol-h{display:none;}
+.mc-anuncio-hilo .hilo-lista{margin:0 0 9px;}
+.mc-anuncio-hilo .hilo-lista:empty{display:none;}
+.hilo-compacto .hilo-pie{display:flex; flex-wrap:wrap; align-items:center; gap:4px;
+  border:1px solid var(--line); border-radius:22px; padding:3px; background:var(--bg);}
+.hilo-compacto .hilo-fila{display:contents;}
+.hilo-compacto .hilo-clip{order:1;} .hilo-compacto .hilo-txt{order:2;}
+.hilo-compacto .hilo-fila .btn.navy{order:3; margin-left:0;}
+.hilo-compacto .hilo-arch, .hilo-compacto .hilo-aviso{order:4; flex:0 0 100%; padding:0 10px 4px; box-sizing:border-box;}
+.hilo-compacto .hilo-cerrado{order:0; flex:0 0 100%; padding:6px 10px; box-sizing:border-box;}
+.hilo-compacto .hilo-arch:empty, .hilo-compacto .hilo-aviso:empty{display:none;}
+.hilo-compacto .hilo-txt{flex:1 1 160px; min-width:0; border:0; outline:0; resize:none; background:transparent;
+  padding:7px 6px; min-height:0; box-shadow:none;}
+.hilo-compacto .hilo-fila .btn{width:34px; height:34px; padding:0; border-radius:50%; justify-content:center; flex:none;}
+.hilo-compacto .hilo-clip{border:0; background:transparent; color:var(--gray);}
+.hilo-compacto .hilo-clip:hover{color:var(--navy2);}
+.hilo-compacto .hilo-fila .btn svg{width:16px; height:16px;}
+.hilo-compacto .hilo-pie:focus-within{border-color:var(--navy2);}
 @media(max-width:640px){ .tr-paso:has(+ .tr-chat){padding-bottom:6px;} .tr-chat{padding:10px 12px;} }

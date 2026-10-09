@@ -9306,10 +9306,10 @@
      tarjetas abiertas con el tipo de cada enlace. */
   function ayudaPestanas(){
     var bs = document.querySelectorAll('#ayPest .ay-pe');
-    igual('ayuda: tres pestañas, una por sección',
-          [].map.call(bs, function(b){ return b.getAttribute('data-p'); }).join(' '), 'faq dil rec');
+    igual('ayuda: cuatro pestañas, una por sección',
+          [].map.call(bs, function(b){ return b.getAttribute('data-p'); }).join(' '), 'faq dil rec sapi');
     var n = function(p){ var b = document.querySelector('#ayPest .ay-pe[data-p="' + p + '"] .n'); return b ? b.textContent : '?'; };
-    igual('ayuda: con lo que trae cada una (preguntas con respuesta, diligencias y trámites)', n('faq') + ' ' + n('dil') + ' ' + n('rec'), '7 2 7');
+    igual('ayuda: con lo que trae cada una (preguntas con respuesta, diligencias y trámites)', n('faq') + ' ' + n('dil') + ' ' + n('rec') + ' ' + n('sapi'), '7 2 6 2');
     var faqSec = document.querySelector('.ayuda-vista .faq-sec');
     var rec = document.querySelector('.ayuda-vista .ay-rec');
     igual('ayuda: se entra por las preguntas', !!faqSec && faqSec.offsetHeight > 0 && !!rec && rec.offsetHeight === 0, true);
@@ -9319,7 +9319,7 @@
           !!rec && rec.offsetHeight > 0 && faqSec.offsetHeight === 0, true);
     igual('ayuda: y la pestaña queda encendida', bRec && bRec.getAttribute('aria-selected'), 'true');
     var cards = rec ? rec.querySelectorAll('details.ay-card') : [];
-    igual('ayuda: cada trámite es una tarjeta abierta', [].filter.call(cards, function(d){ return d.open; }).length, 7);
+    igual('ayuda: cada trámite es una tarjeta abierta', [].filter.call(cards, function(d){ return d.open; }).length, 6);
     var tipos = rec ? [].map.call(rec.querySelectorAll('details[data-clave="ay_rec_bomberos"] .ay-tipo'), function(x){ return x.textContent; }).join(' ') : '';
     igual('ayuda: cada enlace dice qué abre', tipos, 'Web Instagram');
     var cuenta = rec && rec.querySelector('details[data-clave="ay_rec_parafiscales"] .ay-cuenta');
@@ -9360,10 +9360,11 @@
        de .ay-sitios y la mide visaPlanilla. */
     /* Y el SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7): los
        recaudos y formularios de sus cuatro direcciones. */
-    igual('recaudos: en Ayuda, la licencia, los parafiscales, la conformidad de uso, los bomberos, la visa, el SACS y el SAPI, con sus enlaces',
-          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3 ay_rec_bomberos:2 ay_rec_visa:0 ay_rec_sacs:4 ay_rec_sapi:2');
+    igual('recaudos: en Ayuda, la licencia, los parafiscales, la conformidad de uso, los bomberos, la visa y el SACS, con sus enlaces; el SAPI, en su pestaña',
+          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3 ay_rec_bomberos:2 ay_rec_visa:0 ay_rec_sacs:4');
     /* Y el SAPI (8-10-2026): el Clasificador de Niza. */
-    var niza = rec && rec.querySelector('details[data-clave="ay_rec_sapi"] a.ay-enlace');
+    var sapi = document.querySelector('.ayuda-vista .ay-sapi');
+    var niza = sapi && sapi.querySelector('details[data-clave="ay_rec_sapi"] a.ay-enlace');
     igual('recaudos: el SAPI lleva al Clasificador de Niza', niza ? niza.getAttribute('href') : '(no está)',
           'https://sapi.gob.ve/clasificador-niza/');
     var sacs = rec ? [].map.call(rec.querySelectorAll('details[data-clave="ay_rec_sacs"] a.ay-enlace'), function(a){
@@ -10244,19 +10245,14 @@
          !/PUB|reserva/i.test(sin.textContent), sin.textContent.slice(0, 60), 'sin PUB');
       var con = pintaEn(tr('mc-h', 'ante_el_ente', p3, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
       var an = con.querySelector('.mc-anuncio');
-      ok('marca: habilitada, el anuncio sale solo arriba, encima de las pestañas',
-         !!an && an.nextElementSibling && an.nextElementSibling.classList.contains('tr-pest') &&
+      ok('marca: habilitada, el anuncio sale solo arriba, encima de la escalera',
+         !!an && an.nextElementSibling && an.nextElementSibling.tagName === 'OL' &&
          con.textContent.split('Una empresa se opuso al registro.').length === 2,
          an ? an.textContent.slice(0, 70) : '(sin anuncio)', 'Aviso del CIIP… Una empresa se opuso…');
-      var pes = con.querySelectorAll('.tr-pest .tr-pest-b');
-      ok('marca: el chat va en su pestaña, con el trámite elegido al entrar',
-         pes.length === 2 && pes[0].classList.contains('on') && !con.classList.contains('tr-en-chat') &&
-         !!con.querySelector('.tr-pest-chat [data-chat="contestacion"]') && !con.querySelector('ol [data-chat]'),
-         pes.length + ' pestañas', '2, «Tu trámite» elegida');
-      if (pes[1]) pes[1].click();
-      ok('marca: la pestaña del chat lo abre',
-         con.classList.contains('tr-en-chat') && pes[1].classList.contains('on'), con.className, 'tr-en-chat');
-      if (pes[0]) pes[0].click();
+      ok('marca: con su etiqueta, y el chat dentro del aviso, sin pestañas',
+         !!an && !!an.querySelector('.mc-anuncio-chip') &&
+         !!an.querySelector('.mc-anuncio-hilo [data-chat="contestacion"] .hilo-compacto') &&
+         !con.querySelector('ol [data-chat]') && !con.querySelector('.tr-pest'));
       var dev = pintaEn(tr('mc-h0', 'ante_el_ente', p3a, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
       ok('marca: mientras se resuelve, «Solicitud en proceso» en curso y sin nota propia',
          !!dev.querySelector('li.tr-paso.ahora[data-paso="sapi"]') &&
@@ -11958,20 +11954,22 @@
     location.hash = '';
     setTimeout(function(){
       location.hash = 'tramite-c8';
-      esperaFilas('#trReal .tr-chat .hilo-m', 2, sigue);
+      esperaFilas('#trReal .tr-chat .hilo-m', 1, sigue);
     }, 100);
   }
   function chatMarcaMira(sigue){
     if (PASE !== 'vacio') return sigue();
     var U = window.CIIP_PASOS.ui[curLang] || {};
-    var chat = document.querySelector('#trReal .tr-pest-chat .tr-chat');
-    ok('chat marca: con la contestación habilitada, sale en su pestaña', !!chat);
+    var chat = document.querySelector('#trReal .mc-anuncio .tr-chat');
+    ok('chat marca: con la contestación habilitada, sale dentro del aviso', !!chat);
     if (!chat) return sigue();
     ok('chat marca: y en la escalera ya no queda botón ni chat',
        !document.querySelector('#trReal ol .tr-chat, #trReal ol .tr-chat-ir'));
     igual('chat marca: con su título', (chat.querySelector('.sol-h') || {}).textContent, U.ch_t);
     igual('chat marca: trae los del chat y no la conversación de siempre',
-          chat.querySelectorAll('.hilo-m').length, 2);
+          chat.querySelectorAll('.hilo-m').length, 1);
+    ok('chat marca: y no repite el aviso, que ya se lee encima',
+       chat.textContent.indexOf('hay que aclarar la clase') < 0);
     igual('chat marca: con el documento que mandó el gestor',
           (chat.querySelector('.hm-arch') || {}).textContent, 'oficio-sapi.pdf');
     var txt = chat.querySelector('.hilo-txt');
@@ -11982,17 +11980,17 @@
   }
   function chatMarcaEscribe(sigue){
     if (PASE !== 'vacio') return sigue();
-    var chat = document.querySelector('#trReal .tr-pest-chat .tr-chat');
+    var chat = document.querySelector('#trReal .mc-anuncio .tr-chat');
     var txt = chat && chat.querySelector('.hilo-txt');
     if (!txt) return sigue();
     txt.value = 'Qué clase pongo en la contestación?';
     chat.querySelector('.hilo-fila .btn.navy').click();
-    esperaFilas('#trReal .tr-chat .hilo-m', 3, sigue);
+    esperaFilas('#trReal .tr-chat .hilo-m', 2, sigue);
   }
   function chatMarcaEscrito(sigue){
     if (PASE !== 'vacio') return sigue();
     var ms = document.querySelectorAll('#trReal .tr-chat .hilo-m');
-    igual('chat marca: lo escrito sale en el chat', ms.length, 3);
+    igual('chat marca: lo escrito sale en el chat', ms.length, 2);
     var ultimo = ms[ms.length - 1];
     igual('chat marca: como tuyo', !!ultimo && ultimo.classList.contains('mio'), true);
     sigue();
@@ -12014,8 +12012,8 @@
   function chatMarcaCerrado(sigue){
     if (PASE !== 'vacio') return sigue();
     var U = window.CIIP_PASOS.ui[curLang] || {};
-    var chat = document.querySelector('#trReal .tr-pest-chat .tr-chat');
-    ok('chat marca: en registro sigue a la vista, para leer', !!chat && chat.querySelectorAll('.hilo-m').length >= 2);
+    var chat = document.querySelector('#trReal .mc-anuncio .tr-chat');
+    ok('chat marca: en registro sigue a la vista, para leer', !!chat && chat.querySelectorAll('.hilo-m').length >= 1);
     var txt = chat && chat.querySelector('.hilo-txt');
     ok('chat marca: pero ya no se escribe', !!txt && txt.disabled);
     igual('chat marca: y dice por qué', chat && (chat.querySelector('.hilo-cerrado') || {}).textContent, U.ch_cerrado);

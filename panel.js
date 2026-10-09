@@ -10459,63 +10459,37 @@ applyLang(idiomaParaMi());
     cuando = cuando || {};
     var cajaTr = lista.parentNode;
 
-    /* EL CHAT EN SU PESTAÑA (Franklin Reyes, 9-10-2026: «darle a un botón
-       y que abra en una sub pestaña»). A todo el ancho bajo la etapa
-       ocupaba media pantalla con un solo mensaje. Ahora el trámite lleva
-       dos pestañas, «Tu trámite» y «Chat con tu gestor», y el chat ocupa
-       el sitio de la escalera. Lo que se ve lo decide una clase en la caja
-       (tr-en-chat), y la pestaña elegida se recuerda por trámite: el repaso
-       de cada minuto rehace la caja entera y no debe devolverte a la
-       escalera a mitad de un mensaje. */
-    var irAlChat = null;
-    if (cajaTr) cajaTr.classList.remove('tr-en-chat');
-    if (!esEquipo && E.contestacion && cajaTr){
-      var pest = el('div', 'tr-pest');
-      pest.setAttribute('role', 'tablist');
-      var pTr = el('button', 'tr-pest-b', u.tr_pest_tramite || '');
-      var pCh = el('button', 'tr-pest-b', u.tr_pest_chat || '');
-      var panelChat = el('div', 'tr-pest-chat');
-      panelChat.setAttribute('role', 'tabpanel');
-      panelChat.appendChild(chatDeLaContestacion(tr, E, false));
-      var cambia = function(aChat, enfoca){
-        PESTANA_DEL_CHAT[tr.id] = aChat;
-        cajaTr.classList.toggle('tr-en-chat', aChat);
-        pTr.classList.toggle('on', !aChat); pTr.setAttribute('aria-selected', String(!aChat));
-        pCh.classList.toggle('on', aChat);  pCh.setAttribute('aria-selected', String(aChat));
-        if (aChat && enfoca){
-          pest.scrollIntoView({behavior:'smooth', block:'start'});
-          var escribe = panelChat.querySelector('textarea');
-          if (escribe) setTimeout(function(){ escribe.focus({preventScroll:true}); }, 350);
-        }
-      };
-      [pTr, pCh].forEach(function(b){ b.type = 'button'; b.setAttribute('role', 'tab'); pest.appendChild(b); });
-      pTr.addEventListener('click', function(){ cambia(false); });
-      pCh.addEventListener('click', function(){ cambia(true, true); });
-      irAlChat = function(){ cambia(true, true); };
-      cajaTr.insertBefore(pest, lista);
-      cajaTr.insertBefore(panelChat, lista);
-      cambia(!!PESTANA_DEL_CHAT[tr.id]);
-    }
-
     /* El anuncio del gestor, ANTES de la escalera y destacado: es lo que
        cambió en su trámite y lo que tiene que leer primero. */
     /* Tarjeta blanca con filo azul, del ancho de la del trámite (maqueta 3
        de aviso-de-la-marca-cuatro, Franklin Reyes, 9-10-2026): título y
        fecha en una fila, y el texto. Es el ÚNICO sitio donde sale: ni en
        el paso del SAPI ni con nota propia (Franklin Reyes, 9-10-2026: «que
-       el anuncio de devolución salga solo aquí arriba»). Con chat, encima
-       de las pestañas, para que se lea en las dos. */
+       el anuncio de devolución salga solo aquí arriba»).
+
+       Y con la contestación habilitada, el chat va DENTRO, como su
+       continuación (maqueta 3 de chat-de-la-contestacion-cuatro, Franklin
+       Reyes, 9-10-2026): el aviso ya es el primer mensaje del gestor, así
+       que debajo van las respuestas y una caja de una línea con el clip y
+       el envío. La etiqueta dice «Respuesta del SAPI» y no «Devuelta»:
+       también puede ser una oposición. Sin pestañas ni caja aparte. */
     var tituloAnuncio = u[((ESCALERA_POR_ETAPAS[E.codigo] || {}).textos || {}).anuncio || 'mc_anuncio_t'] || '';
     if (E.anuncio && cajaTr){
       var an = el('div', 'mc-anuncio');
       an.setAttribute('role', 'status');
       var anCab = el('div', 'mc-anuncio-cab');
       anCab.appendChild(el('div', 'mc-anuncio-t', tituloAnuncio));
+      if (E.contestacion && u.mc_anuncio_chip) anCab.appendChild(el('span', 'mc-anuncio-chip', u.mc_anuncio_chip));
       if (E.anuncioEn) anCab.appendChild(el('span', 'mc-anuncio-f',
         String(u.mc_anuncio_f || '').replace('{fecha}', fecha(E.anuncioEn))));
       an.appendChild(anCab);
       an.appendChild(el('div', 'mc-anuncio-d', E.anuncio));
-      cajaTr.insertBefore(an, cajaTr.querySelector(':scope > .tr-pest') || lista);
+      if (!esEquipo && E.contestacion){
+        var anHilo = el('div', 'mc-anuncio-hilo');
+        anHilo.appendChild(chatDeLaContestacion(tr, E, false));
+        an.appendChild(anHilo);
+      }
+      cajaTr.insertBefore(an, lista);
     }
 
     var papelesPide = null;
@@ -10659,7 +10633,7 @@ applyLang(idiomaParaMi());
       /* El chat de la contestación sale solo cuando el gestor la habilitó
          -el SAPI devolvió el registro-, le llega a él, y por ahí le manda
          documentos. Pasado a registro, se lee pero ya no se escribe. Al
-         equipo no: lo lleva en su casilla. Va en su pestaña. */
+         equipo no: lo lleva en su casilla. Va dentro del aviso, arriba. */
     });
   }
 
@@ -10675,8 +10649,6 @@ applyLang(idiomaParaMi());
      otro lado. Se rehace solo si cambia algo que se ve: el idioma o que se
      cierre. */
   var CHATS_DEL_PASO = {};
-  /* La pestaña del chat abierta, por trámite (pintaPorEtapas). */
-  var PESTANA_DEL_CHAT = {};
   function chatDeLaContestacion(tr, E, equipo, quien){
     var u = T();
     var enReg = E.todos.filter(function(p){ return p.clave === 'en_registro'; })[0];
@@ -10693,11 +10665,18 @@ applyLang(idiomaParaMi());
               vacio: equipo ? '' : (u.ch_vacio || ''),
               ph: equipo ? '' : (u.ch_ph || '')};
     if (equipo){ de.equipo = true; de.quien = quien; }
+    /* El del inversionista va dentro del aviso: compacto, y sin repetir
+       el aviso, que la base mete como primer mensaje y ya se lee encima. */
+    else {
+      de.compacto = true;
+      de.sinVacio = true;
+      de.oculta = function(m){
+        return m.del_equipo && !m.documento && !!E.anuncio &&
+               String(m.texto || '').trim() === String(E.anuncio).trim();
+      };
+    }
     if (cerrado) de.cerrada = u.ch_cerrado || '';
     pintaHilo(caja, de);
-    /* Debajo del título, qué es y a quién le llega. */
-    var tit = caja.querySelector('.sol-h');
-    if (!equipo && tit) tit.parentNode.insertBefore(el('div', 'tr-chat-d', u.ch_d || ''), tit.nextSibling);
     CHATS_DEL_PASO[clave] = {firma: firma, nodo: caja};
     return caja;
   }
@@ -12604,6 +12583,20 @@ applyLang(idiomaParaMi());
     var nomb  = el('span', 'hilo-arch', '');
     var bEnv  = el('button', 'btn navy', u['hilo.env'] || '');
     bEnv.type = 'button';
+    /* compacto: una sola línea, con el clip y el avión dentro, como en
+       cualquier mensajería (el chat dentro del aviso de la marca). Los
+       nombres siguen en aria-label y title. */
+    if (de.compacto){
+      bloque.classList.add('hilo-compacto');
+      texto.rows = 1;
+      [[bClip, '<path d="M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/>'],
+       [bEnv,  '<path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/>']].forEach(function(x){
+        var nombre = x[0].textContent;
+        x[0].setAttribute('aria-label', nombre);
+        x[0].title = nombre;
+        x[0].innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + x[1] + '</svg>';
+      });
+    }
     /* Clase propia y no 'sol-aviso'. Se uso esa al principio -es la que
        tiene el estilo- y resulto que el aviso del FORMULARIO se busca por
        ella con querySelector, o sea el primero del documento. Con el hilo
@@ -12676,6 +12669,7 @@ applyLang(idiomaParaMi());
       lista.textContent = '';
       if (!filas.length){
         if (de.soloLeer){ bloque.hidden = true; return; }
+        if (de.sinVacio) return;
         lista.appendChild(el('div', 'hilo-vacio', de.vacio || (equipo
           ? String(u.co_m_vacio_hilo || '').replace('{quien}', quien) : (u['hilo.vacio'] || ''))));
         return;
@@ -12779,6 +12773,7 @@ applyLang(idiomaParaMi());
         .then(function(r){
           if (r && r.error) throw r.error;
           var filas = (r && r.data) || [];
+          if (de.oculta) filas = filas.filter(function(m){ return !de.oculta(m); });
           return traducciones(filas).then(function(){
             var firma = firmaDe(filas);
             if (silencioso && firma === firmaPintada) return;
@@ -29222,9 +29217,7 @@ applyLang(idiomaParaMi());
        del paso «Tus datos» de las dos visas. */
     /* Y el SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7): los
        recaudos y formularios de sus cuatro direcciones. */
-    /* Y el SAPI (Franklin Reyes, 8-10-2026): el Clasificador de Niza, para
-       que el inversionista busque la clase de su marca. */
-    ['licencia', 'parafiscales', 'conformidad', 'bomberos', 'visa', 'sacs', 'sapi'].forEach(function(k){
+    ['licencia', 'parafiscales', 'conformidad', 'bomberos', 'visa', 'sacs'].forEach(function(k){
       var kt = 'ay_rec_' + k, kl = kt + '_lista';
       var g = {kt: kt, t: u[kt] || es[kt], kl: kl, l: u[kl] || es[kl]};
       if (k === 'visa') g.descarga = {href: PLANILLA_VISA, texto: u.ay_visa_planilla || es.ay_visa_planilla,
@@ -29233,18 +29226,33 @@ applyLang(idiomaParaMi());
     });
     ayLista.appendChild(caja2);
 
+    /* 4 · EL SAPI, EN SU PESTAÑA (Franklin Reyes, 9-10-2026): salió de
+       «Pasos y recaudos». Es la misma ficha -el Clasificador de Niza y las
+       cuentas para pagar las tasas-, con su clave de siempre, a todo lo
+       ancho porque no hay lista de dónde elegir. */
+    var caja3 = el('div', 'faq ay-sapi');
+    caja3.setAttribute('data-ay-panel', 'sapi');
+    caja3.appendChild(grupo({kt: 'ay_rec_sapi', t: u.ay_rec_sapi || es.ay_rec_sapi,
+                             kl: 'ay_rec_sapi_lista', l: u.ay_rec_sapi_lista || es.ay_rec_sapi_lista}));
+    ayLista.appendChild(caja3);
+
     /* Las pestañas, con cuántas cosas trae cada una. Quien llega desde un
        ente va a la de su grupo: el renglón resaltado tiene que verse. */
-    if (aqui){ ayPestana = /^ay_rec_/.test(aqui.grupo || '') ? 'rec' : 'dil'; ayPorSalto = true; }
+    if (aqui){
+      ayPestana = aqui.grupo === 'ay_rec_sapi' ? 'sapi' : /^ay_rec_/.test(aqui.grupo || '') ? 'rec' : 'dil';
+      ayPorSalto = true;
+    }
     else if (ayPorSalto){ ayPestana = 'faq'; ayPorSalto = false; }
     if (aqui && aqui.grupo) aySel[ayPestana] = aqui.grupo;
     ayListaDetalle(caja, 'dil');
     ayListaDetalle(caja2, 'rec');
+    ayListaDetalle(caja3, 'sapi');
     if (ayPest){
       ayPest.textContent = '';
       var nFaq = faq ? faq.querySelectorAll('details.faq-item:not(.ay-sin)').length : 0;
       [['faq', u.ay_tab_faq, nFaq], ['dil', u.ay_tab_dil, caja.querySelectorAll('details').length],
-       ['rec', u.ay_tab_rec, caja2.querySelectorAll('details').length]].forEach(function(x){
+       ['rec', u.ay_tab_rec, caja2.querySelectorAll('details').length],
+       ['sapi', u.ay_tab_sapi || es.ay_tab_sapi || 'SAPI', caja3.querySelectorAll('.ay-sitios li').length]].forEach(function(x){
         var b = el('button', 'ay-pe');
         b.type = 'button';
         b.setAttribute('role', 'tab');
@@ -29257,8 +29265,8 @@ applyLang(idiomaParaMi());
       /* Flechas entre pestañas, como cualquier lista de pestañas. */
       ayPest.onkeydown = function(e){
         if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-        var orden = ['faq', 'dil', 'rec'];
-        ayPestana = orden[(orden.indexOf(ayPestana) + (e.key === 'ArrowRight' ? 1 : 2)) % 3];
+        var orden = ['faq', 'dil', 'rec', 'sapi'];
+        ayPestana = orden[(orden.indexOf(ayPestana) + (e.key === 'ArrowRight' ? 1 : orden.length - 1)) % orden.length];
         ayAplicaPestana();
         var b2 = ayPest.querySelector('[data-p="' + ayPestana + '"]');
         if (b2) b2.focus();
