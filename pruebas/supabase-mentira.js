@@ -728,6 +728,49 @@
   /* Recorta las filas a las columnas pedidas, como hace Postgres. No
      recorta si la lista trae una relacion incrustada -documentos(...)- o si
      no se pidio nada: ahi el panel quiere la fila entera. */
+  /* LOS PAPELES DE LA PROTOCOLIZACIÓN (p1) Y LA PUBLICACIÓN (p3) DE
+     'tramos', en un solo sitio (9-10-2026). Los pide la consulta de UNA
+     solicitud -.eq('tramite'), el bloque del tramo- y también la de VARIAS
+     -.in('tramite'), papelesDeLosMios() en cada repaso de un minuto-, y
+     este doble solo los daba a la primera. Así el repaso apuntaba la
+     protocolización SIN su PUB (PAPELES_SABIDOS), y si caía entre que se
+     abría la constitución y se miraba el tramo, la emisión del PUB salía
+     «en curso»: la prueba de los tramos se ponía roja o verde según el
+     segundo en que cayera el repaso, que se movía con cada paso que se
+     añadía a la cadena. La base contesta lo mismo por las dos puertas, y
+     ahora el doble también. Null si no es una de las dos. */
+  function papelesDelTramo(tid){
+    if (!conTramos) return null;
+    /* Y la publicación de 'tramos': el equipo ya le dejó el PUB para
+       pagar el periódico, y el comprobante todavía no está (Franklin
+       Reyes, 20-9-2026). Igual que un piso más arriba, en
+       'tramossinpagar' no ha dejado nada: así el mismo pase prueba los
+       dos tramos esperando su papel. */
+    if (tid === 'p3'){
+      if (sinPlanilla) return [];
+      return [{documento:'dp4', documentos:{tipo:'planilla_publicacion',
+        nombre_original:'pub-publicacion-mercantil.pdf',
+        archivo:'u1/emitidos/pub-publicacion-mercantil.pdf'}}];
+    }
+    /* Y la protocolización de 'tramos': el equipo ya le dejó el documento
+       para pagar los aranceles del registro, y el comprobante del pago
+       todavía no está (Franklin Reyes, 17-9-2026). */
+    if (tid === 'p1'){
+      /* Salvo en 'tramossinpagar', donde no ha dejado nada todavía. */
+      if (sinPlanilla) return [];
+      var delPago = [{documento:'dp2', documentos:{tipo:'planilla_aranceles',
+        nombre_original:'planilla-aranceles-saren.pdf',
+        archivo:'u1/emitidos/planilla-aranceles-saren.pdf'}}];
+      /* Y en 'tramospagado', el comprobante que el inversionista ya subió
+         desde su paso (Franklin Reyes, 18-9-2026). */
+      if (yaPagado) delPago.push({documento:'dp3', documentos:{tipo:'pago_aranceles',
+        nombre_original:'pago-aranceles.pdf',
+        archivo:'u1/pago-aranceles.pdf'}});
+      return delPago;
+    }
+    return null;
+  }
+
   function soloLoPedido(filas, cols){
     var lista = String(cols || "").trim();
     if (!lista || lista === "*" || lista.indexOf("(") >= 0) return filas;
@@ -1778,6 +1821,16 @@
           nombre_original:'planilla-reserva-saren.pdf',
           creado_en:new Date(Date.now() - 3600000).toISOString()}});
       }
+      /* Y los de la protocolización y la publicación, los mismos que da
+         .eq('tramite') (papelesDelTramo, 9-10-2026). */
+      if (/documentos\(/.test(op.cols || '')){
+        ['p1', 'p3'].forEach(function(tid){
+          if (op.in.tramite.indexOf(tid) < 0) return;
+          (papelesDelTramo(tid) || []).forEach(function(f){
+            deHoy.push({tramite:tid, documento:f.documento, documentos:f.documentos});
+          });
+        });
+      }
       if (deHoy.length) return {data:deHoy, error:null};
       return {data: op.in.tramite.indexOf('t4') >= 0
         ? [{tramite:'t4', documento:'dr1', documentos:{tipo:'resolucion',
@@ -2511,32 +2564,12 @@
           nombre_original:'planilla-reserva-saren.pdf',
           archivo:'u1/emitidos/planilla-reserva-saren.pdf'}}], error:null};
       }
-      /* Y la publicación de 'tramos': el equipo ya le dejó el PUB para
-         pagar el periódico, y el comprobante todavía no está (Franklin
-         Reyes, 20-9-2026). Igual que un piso más arriba, en
-         'tramossinpagar' no ha dejado nada: así el mismo pase prueba los
-         dos tramos esperando su papel. */
-      if (op && op.eq && op.eq.tramite === 'p3'){
-        if (sinPlanilla) return {data:[], error:null};
-        return {data:[{documento:'dp4', documentos:{tipo:'planilla_publicacion',
-          nombre_original:'pub-publicacion-mercantil.pdf',
-          archivo:'u1/emitidos/pub-publicacion-mercantil.pdf'}}], error:null};
-      }
-      /* Y la protocolización de 'tramos': el equipo ya le dejó el documento
-         para pagar los aranceles del registro, y el comprobante del pago
-         todavía no está (Franklin Reyes, 17-9-2026). */
-      if (op && op.eq && op.eq.tramite === 'p1'){
-        /* Salvo en 'tramossinpagar', donde no ha dejado nada todavía. */
-        if (sinPlanilla) return {data:[], error:null};
-        var delPago = [{documento:'dp2', documentos:{tipo:'planilla_aranceles',
-          nombre_original:'planilla-aranceles-saren.pdf',
-          archivo:'u1/emitidos/planilla-aranceles-saren.pdf'}}];
-        /* Y en 'tramospagado', el comprobante que el inversionista ya subió
-           desde su paso (Franklin Reyes, 18-9-2026). */
-        if (yaPagado) delPago.push({documento:'dp3', documentos:{tipo:'pago_aranceles',
-          nombre_original:'pago-aranceles.pdf',
-          archivo:'u1/pago-aranceles.pdf'}});
-        return {data:delPago, error:null};
+      /* La publicación (p3) y la protocolización (p1) de 'tramos', con el
+         PUB que dejó el equipo: de papelesDelTramo(), que da lo mismo a la
+         consulta de varias solicitudes. */
+      if (op && op.eq && (op.eq.tramite === 'p3' || op.eq.tramite === 'p1')){
+        var delTramo = papelesDelTramo(op.eq.tramite);
+        if (delTramo) return {data:delTramo, error:null};
       }
       /* Los papeles del importe del día, los que ponga la prueba en
          window.__IMPORTE_DOCS por solicitud. La fecha la pone ella, que
