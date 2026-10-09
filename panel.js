@@ -9704,7 +9704,10 @@ applyLang(idiomaParaMi());
     ico.setAttribute('aria-hidden', 'true');
     fila.appendChild(ico);
     var datosA = el('div', 'imp-a-tx');
-    datosA.appendChild(el('span', 'imp-n', d.nombre_original || u.d_importe_dia || ''));
+    var nomA = el('span', 'imp-n', d.nombre_original || u.d_importe_dia || '');
+    /* En la escalera el nombre largo se corta con «…»: entero, al pasar. */
+    nomA.title = nomA.textContent;
+    datosA.appendChild(nomA);
     var subA = el('span', 'imp-a-s', String(u.imp_del || '').replace('{fecha}', diaDelImporte(est.fechaImporte || est.hoy)));
     if (d.monto) subA.appendChild(el('span', 'imp-monto', String(u.imp_monto || '').replace('{monto}', d.monto)));
     datosA.appendChild(subA);

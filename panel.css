@@ -3782,6 +3782,16 @@ body[data-vista="tramite"] #secTramites{display:none;}
    (Franklin Reyes, 8-10-2026). */
 .imp-caja{margin-top:9px; padding:10px 12px; border:1px solid var(--line); border-radius:var(--r-sm);
   background:var(--block);}
+/* En el paso de la escalera, del ancho de su columna (Franklin Reyes,
+   9-10-2026: «el cuadro tiene que ser más pequeño»). El nombre largo del
+   archivo, que no parte, la estiraba hasta pisar el paso de al lado: ahora
+   se corta con «…». */
+.tr-txt .imp-caja{max-width:280px; margin-left:auto; margin-right:auto; padding:9px 10px; box-sizing:border-box;}
+.tr-txt .imp-caja .imp-cuerpo{gap:6px;}
+.tr-txt .imp-caja .imp-archivo{padding:7px 8px; gap:8px; min-width:0;}
+.tr-txt .imp-caja .imp-ico{width:26px; height:31px; font-size:8.5px;}
+.tr-txt .imp-caja .imp-aviso{padding:6px 8px; font-weight:500;}
+.tr-txt .imp-caja .imp-cargar{width:100%; justify-content:center; padding:8px 10px; font-size:var(--fs-boton);}
 .imp-cuerpo{display:flex; flex-direction:column; gap:7px;}
 .imp-cuerpo:empty{display:none;}
 .imp-caja:has(.imp-cuerpo:empty){display:none;}
