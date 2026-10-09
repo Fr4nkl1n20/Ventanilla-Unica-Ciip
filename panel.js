@@ -13161,21 +13161,30 @@ applyLang(idiomaParaMi());
        El sector, solo si se eligió uno. Si la base todavía no tiene la
        columna (falta supabase-control-estadisticas.sql), Postgres rechaza
        el insert entero: se repite sin ella, porque una consulta sin sector
-       contado vale más que una consulta que no sale. */
+       contado vale más que una consulta que no sale.
+
+       Y lo mismo con el trámite que pulsó en la lista del sector
+       (tramite_sector, Franklin Reyes, 9-10-2026, supabase-control-
+       detalle.sql). Se mira primero ese nombre porque «tramite_sector»
+       también contiene «sector»: al revés, se quitaría el sector, que sí
+       existe, y el segundo intento fallaría por lo mismo. Con las dos
+       columnas ausentes se quita una en cada vuelta. */
+    var CONS_OPCIONALES = ['tramite_sector', 'sector'];
     function creaConsulta(fila, boton, aviso){
       var u = T();
       boton.disabled = true;
       aviso.textContent = '';
-      var abre = function(f){ return Promise.resolve(sb.from('consultas').insert(f).select()); };
+      var abre = function(f){
+        return Promise.resolve(sb.from('consultas').insert(f).select()).then(function(r){
+          var dice = String((r && r.error && r.error.message) || '').toLowerCase();
+          var sobra = dice && CONS_OPCIONALES.filter(function(c){ return f[c] && dice.indexOf(c) >= 0; })[0];
+          if (!sobra) return r;
+          var sin = {};
+          Object.keys(f).forEach(function(c){ if (c !== sobra) sin[c] = f[c]; });
+          return abre(sin);
+        });
+      };
       abre(fila)
-        .then(function(r){
-          if (r && r.error && fila.sector && /sector/i.test(r.error.message || '')){
-            var sin = {};
-            Object.keys(fila).forEach(function(c){ if (c !== 'sector') sin[c] = fila[c]; });
-            return abre(sin);
-          }
-          return r;
-        })
         .then(function(r){
           if (r && r.error) throw r.error;
           var nueva = (r && r.data && r.data[0]) || null;
@@ -13408,6 +13417,16 @@ applyLang(idiomaParaMi());
       var listaSec = el('div', 'cs-tramites');
       listaSec.hidden = true;
       var esta = ++vezSector;
+      /* EL TRÁMITE PULSADO, APARTE (Franklin Reyes, 9-10-2026: «al lado
+         debería de salir el tipo de trámite que más solicitan por sector,
+         o sea el trámite en específico que solicita apoyo cada
+         inversionista»). Pulsar uno lo escribe en la caja, y ahí se
+         mezcla con lo que él añada y con el sector traducido delante: eso
+         no se cuenta. Así que se recuerda el nombre tal cual estaba en la
+         lista y se guarda en consultas.tramite_sector. Si después borra la
+         caja y escribe otra cosa, ya no es ese trámite: solo se manda si
+         lo que envía todavía lo nombra. */
+      var pulsado = null;
       Promise.resolve(sb.from('tramites_por_sector')
         .select('id, nombre, organismo, orden').eq('sector', codigo)
         .order('orden', {ascending:true}))
@@ -13423,6 +13442,7 @@ applyLang(idiomaParaMi());
             b.appendChild(el('span', 'nm', t.nombre || ''));
             if (t.organismo) b.appendChild(el('span', 'org', t.organismo));
             b.addEventListener('click', function(){
+              pulsado = String(t.nombre || '').trim().slice(0, 200) || null;
               caja.value = (t.nombre || '').slice(0, caja.maxLength);
               caja.dispatchEvent(new Event('input'));
               caja.focus();
@@ -13448,7 +13468,12 @@ applyLang(idiomaParaMi());
       enviar.addEventListener('click', function(){
         var dice = caja.value.trim();
         if (!dice){ aviso.textContent = u['cons.falta'] || ''; caja.focus(); return; }
-        creaConsulta({asunto: (prefijo + dice).slice(0, 200), sector: codigo}, enviar, aviso);
+        var fila = {asunto: (prefijo + dice).slice(0, 200), sector: codigo};
+        /* Lo que cabe en la caja puede ser menos que el nombre entero
+           (maxLength): basta con que siga ahí lo que se escribió al pulsar. */
+        var nombra = pulsado && dice.toLowerCase().indexOf(pulsado.slice(0, caja.maxLength).toLowerCase()) >= 0;
+        if (nombra) fila.tramite_sector = pulsado;
+        creaConsulta(fila, enviar, aviso);
       });
       cuerpo.appendChild(enviar);
       setTimeout(function(){ if (caja.isConnected) caja.focus(); }, 60);
@@ -34077,10 +34102,21 @@ applyLang(idiomaParaMi());
      cinco casos, uno parado dos meses se come el promedio entero. La
      columna «Ante el ente» mide aparte el tramo del organismo, desde que
      el CIIP lo presentó hasta que quedó resuelto.
+
+     LO QUE SE PIDE NO ES LO QUE SE OFRECE (Franklin Reyes, 9-10-2026: «al
+     lado debería de salir el tipo de trámite que más solicitan por
+     sector […]; en la forma en que aparece ahí pareciera que lo tuvieras
+     que escribir y seleccionar nosotros mismos»). Al lado de «Consultas
+     por sector» estaba el editor de la lista del chat, con sus pastillas
+     y sus campos, y se leía como la respuesta a «¿qué piden?». Ahora ese
+     sitio es de la cifra -el trámite que más pulsan en cada sector, que
+     también cuenta estadisticas_control() desde supabase-control-
+     detalle.sql- y el editor baja al final, plegado y con un título que
+     dice que es configuración.
      ────────────────────────────────────────────────────────────────── */
   var ceCaja  = document.getElementById('ceCaja');
   var ceDatos = null, ceFallo = false, ceModo = 'ente';
-  var cePs = {sector: CS_CODIGOS[0], filas: null, fallo: false, aviso: ''};
+  var cePs = {sector: CS_CODIGOS[0], filas: null, fallo: false, aviso: '', abierto: false};
 
   function cargaControl(){
     if (!ceCaja) return Promise.resolve();
@@ -34230,7 +34266,8 @@ applyLang(idiomaParaMi());
   }
 
   /* De dos en dos, como en la maqueta: lo que se pide al lado de lo que
-     tarda, y lo que se pregunta al lado de lo que se ofrece en el chat. */
+     tarda, y cuántos preguntan por cada sector al lado de qué trámite
+     piden en él. */
   function pintaControl(){
     if (!ceCaja) return;
     var u = T();
@@ -34245,14 +34282,93 @@ applyLang(idiomaParaMi());
       rejilla.appendChild(ceCajaTramites(u));
       rejilla.appendChild(ceCajaTiempos(u));
       rejilla.appendChild(ceCajaSectores(u));
+      rejilla.appendChild(ceCajaTramSector(u));
+      /* Los motivos, a lo ancho: los cuatro de arriba van por parejas y
+         este no tiene pareja. */
+      rejilla.appendChild(ceCajaMotivos(u));
     }
     /* La lista de cada sector va aunque las cifras fallen: es otra tabla,
-       y escribirla no depende de poder contar. */
+       y escribirla no depende de poder contar. Va la última y a lo ancho
+       desde el 9-10-2026: es configuración, no una cifra. */
     rejilla.appendChild(ceCajaPorSector(u));
-    /* Los motivos, a lo ancho y al final: los cuatro de arriba van por
-       parejas y este no tiene pareja. */
-    if (ceDatos) rejilla.appendChild(ceCajaMotivos(u));
     ceCaja.appendChild(rejilla);
+  }
+
+  /* ── EL TRÁMITE QUE MÁS PIDEN EN CADA SECTOR ──
+     Franklin Reyes, 9-10-2026: «al lado debería de salir el tipo de
+     trámite que más solicitan por sector, o sea el trámite en específico
+     que solicita apoyo cada inversionista». Lo cuenta la base
+     (tramites_sector de estadisticas_control(), supabase-control-
+     detalle.sql) a partir de consultas.tramite_sector, que es el trámite
+     de la lista que el inversionista pulsó en el chat.
+
+     Un bloque por sector, en el mismo orden que la caja de al lado -el más
+     preguntado primero-, con sus filas de Atlas: el primero resaltado y
+     rotulado «El más pedido», y los siguientes con su número y su parte
+     del sector. Las barras miden contra el más pedido DEL SECTOR: comparar
+     un trámite de turismo con uno de hidrocarburos no dice nada, y con una
+     sola escala los sectores pequeños se quedarían en rayitas.
+
+     Los sectores sin ninguno no se esconden -saber que en minería nadie
+     ha elegido nada también es dato- pero tampoco ocupan nueve bloques
+     vacíos: van juntos en un renglón al pie. Sin el SQL corrido la llave
+     no llega, y la caja dice lo mismo que sin datos: aún no hay. */
+  function ceCajaTramSector(u){
+    var s = ceSeccion('ceTramSector', u.ce_ts_t, u.ce_ts_d);
+    var por = {};
+    (ceDatos.tramites_sector || []).forEach(function(x){
+      if (!x || !x.sector || !(x.n > 0)) return;
+      (por[x.sector] = por[x.sector] || []).push(x);
+    });
+    var cons = {};
+    (ceDatos.sectores || []).forEach(function(x){ cons[x.sector] = x.consultas || 0; });
+    function total(c){ return (por[c] || []).reduce(function(m, x){ return m + (x.n || 0); }, 0); }
+    var orden = CS_CODIGOS.slice().sort(function(a, b){
+      return ((cons[b] || 0) - (cons[a] || 0)) || (total(b) - total(a)) ||
+             (CS_CODIGOS.indexOf(a) - CS_CODIGOS.indexOf(b));
+    });
+    var con = orden.filter(function(c){ return total(c) > 0; });
+    var sin = orden.filter(function(c){ return !total(c); });
+    if (!con.length){
+      s.appendChild(el('div', 'pu-vacio ce-ts-vacio', u.ce_ts_vacio || ''));
+      return s;
+    }
+    con.forEach(function(c){
+      var filas = por[c].slice().sort(function(a, b){
+        return ((b.n || 0) - (a.n || 0)) || String(a.tramite || '').localeCompare(String(b.tramite || ''));
+      });
+      var suma = total(c), tope = filas[0].n || 0;
+      var bloque = el('div', 'ce-ts-bloque');
+      bloque.setAttribute('data-sector', c);
+      var cab = el('div', 'ce-ts-sector');
+      cab.appendChild(el('span', 'nm', nombreDeSectorCs(c)));
+      cab.appendChild(el('span', 'ce-ts-n', String(u.ce_ts_elegidos || '').replace('{n}', suma)));
+      bloque.appendChild(cab);
+      ceLista(bloque, 'ts-' + c, filas, function(x, i){
+        var f = ceFila({
+          cls: i === 0 ? 'tope' : '',
+          nombre: x.tramite || '', sub: i === 0 ? (u.ce_ts_top || '') : '',
+          valor: String(x.n || 0), fuerte: i === 0,
+          pie: suma ? Math.round(((x.n || 0) / suma) * 100) + ' %' : '',
+          partes: [[tope ? (x.n || 0) / tope : 0]]
+        });
+        f.setAttribute('data-tramite', x.tramite || '');
+        return f;
+      }, function(cola){
+        var n = 0;
+        cola.forEach(function(x){ n += x.n || 0; });
+        return {valor: String(n), pie: suma ? Math.round((n / suma) * 100) + ' %' : '',
+                partes: [[tope ? n / tope : 0]]};
+      });
+      s.appendChild(bloque);
+    });
+    if (sin.length){
+      var pie = el('p', 'ce-ts-sin');
+      pie.appendChild(el('b', null, u.ce_ts_sin || ''));
+      pie.appendChild(document.createTextNode(' ' + sin.map(nombreDeSectorCs).join(' · ')));
+      s.appendChild(pie);
+    }
+    return s;
   }
 
   /* ¿POR QUÉ PIDEN AYUDA? (Franklin Reyes, 6-10-2026). Lo que marca el
@@ -34260,7 +34376,21 @@ applyLang(idiomaParaMi());
      por motivo, de más a menos, y debajo en qué entes sale: «Lleva mucho
      tiempo sin respuesta · IVSS 4 · INCES 2» dice a la vez qué traba hay y
      dónde. El motivo llega en español, que es como se guarda, y se enseña
-     en el idioma de turno buscándolo en la lista del formulario. */
+     en el idioma de turno buscándolo en la lista del formulario.
+
+     ENTERO Y CON SUS CASOS (Franklin Reyes, 9-10-2026: «debería de salir
+     la respuesta completa que pone el inversionista, no ..., porque si el
+     trámite tiene alguna incidencia no podremos saberlo ni tener un
+     registro de ello»). El motivo ya no se corta con «…»: parte en las
+     líneas que haga falta (#ceMotivos en panel.css). Y cada fila se
+     despliega con los casos que la forman, del más reciente al más viejo:
+     quién, qué solicitud, ante qué ente, cuándo y lo que escribió al lado
+     (detalle_ya), que es opcional y es justo donde se cuenta la
+     incidencia. «Ver la solicitud» lleva a su fila en la lista del
+     equipo, como los avisos. Los casos los manda la base (motivos_casos,
+     supabase-control-detalle.sql); sin ese SQL la fila se despliega igual
+     y lo dice. Abierto o cerrado se recuerda por motivo, como «Otros»: el
+     refresco de cada minuto no lo pliega. */
   function ceCajaMotivos(u){
     var s = ceSeccion('ceMotivos', u.ce_mo_t, u.ce_mo_d);
     s.classList.add('ce-ancha');
@@ -34277,20 +34407,44 @@ applyLang(idiomaParaMi());
     if (!orden.length){ s.appendChild(el('div', 'pu-vacio', u.ce_vacio || '')); return s; }
     orden.sort(function(a, b){ return (b.n - a.n) || (es.indexOf(a.motivo) - es.indexOf(b.motivo)); });
     var tope = orden[0].n;
+    var casos = ceDatos.motivos_casos;
     function nombre(k){ var i = es.indexOf(k); return (i > 0 && aqui[i]) || k; }
     function entes(lista){
       return lista.slice().sort(function(a, b){ return (b.n || 0) - (a.n || 0); })
         .map(function(e){ return (e.ente || u.ce_sinente || '') + ' ' + (e.n || 0); }).join(' · ');
     }
     ceLista(s, 'motivos', orden, function(m, i){
+      var item = el('div', 'ce-mo-item');
+      item.setAttribute('role', 'listitem');
       var f = ceFila({
-        cls: i === 0 ? 'tope' : '',
+        cls: 'ce-mo-abre' + (i === 0 ? ' tope' : ''),
         nombre: nombre(m.motivo), sub: entes(m.entes),
         valor: String(m.n), pie: suma ? Math.round((m.n / suma) * 100) + ' %' : '',
         partes: [[tope ? m.n / tope : 0]]
-      });
+      }, 'button');
+      f.type = 'button';
       f.setAttribute('data-motivo', m.motivo);
-      return f;
+      /* La flecha va delante y fuera del nombre: dentro, el nombre del
+         motivo dejaría de ser solo el motivo. */
+      var caret = el('span', 'caret', '▸');
+      caret.setAttribute('aria-hidden', 'true');
+      f.insertBefore(caret, f.firstChild);
+      var panel = el('div', 'ce-casos');
+      panel.id = 'ceCasos-' + i;
+      f.setAttribute('aria-controls', panel.id);
+      var clave = 'mo:' + m.motivo;
+      function pon(abierto){
+        ceAbierto[clave] = abierto;
+        panel.hidden = !abierto;
+        f.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+        caret.textContent = abierto ? '▾' : '▸';
+        if (abierto && !panel.firstChild) ceCasosDe(u, panel, m.motivo, casos);
+      }
+      f.addEventListener('click', function(){ pon(!ceAbierto[clave]); });
+      item.appendChild(f);
+      item.appendChild(panel);
+      pon(!!ceAbierto[clave]);
+      return item;
     }, function(cola){
       var n = 0;
       cola.forEach(function(m){ n += m.n; });
@@ -34298,6 +34452,51 @@ applyLang(idiomaParaMi());
               partes: [[tope ? n / tope : 0]]};
     });
     return s;
+  }
+
+  /* Los casos de un motivo, uno por renglón: arriba quién -con su
+     empresa- y cuándo; debajo la solicitud y el ente; y lo que escribió,
+     entero y con sus saltos de línea. Si no escribió nada se dice: un
+     hueco en blanco parece un fallo de carga. Sin la llave (falta el SQL)
+     no se finge que no hay casos, porque la cifra de al lado dice que sí. */
+  function ceCasosDe(u, panel, motivo, casos){
+    if (!Array.isArray(casos)){
+      panel.appendChild(el('div', 'pu-vacio', u.ce_ca_nosql || ''));
+      return;
+    }
+    var mios = casos.filter(function(c){ return c && c.motivo === motivo; })
+      .sort(function(a, b){
+        /* Por la hora de verdad y no por el texto: «-04:00» y «Z» no se
+           ordenan bien como cadenas. */
+        return (Date.parse(isoLeible(b.fecha)) || 0) - (Date.parse(isoLeible(a.fecha)) || 0);
+      });
+    if (!mios.length){
+      panel.appendChild(el('div', 'pu-vacio', u.ce_vacio || ''));
+      return;
+    }
+    var lista = el('ol', 'ce-casos-l');
+    mios.forEach(function(c){
+      var li = el('li', 'ce-caso');
+      li.setAttribute('data-tramite', c.tramite || '');
+      var arriba = el('div', 'ce-caso-a');
+      arriba.appendChild(el('b', 'ce-caso-q', c.inversionista || u.ce_ca_sinnombre || ''));
+      if (c.empresa) arriba.appendChild(el('span', 'ce-caso-e', c.empresa));
+      arriba.appendChild(el('span', 'ce-caso-f', fecha(c.fecha)));
+      li.appendChild(arriba);
+      var sobre = [ceNombreTramite(c.tipo)];
+      if (c.ente) sobre.push(c.ente);
+      li.appendChild(el('div', 'ce-sub ce-caso-t', sobre.join(' · ')));
+      var dijo = String(c.detalle || '').trim();
+      li.appendChild(el('p', 'ce-caso-txt' + (dijo ? '' : ' nada'), dijo || u.ce_ca_sindetalle || ''));
+      if (c.tramite){
+        var ir = el('button', 'pu-asignar ce-caso-ir', u.ce_ca_ver || '');
+        ir.type = 'button';
+        ir.addEventListener('click', function(){ avAMisTramites(c.tramite); });
+        li.appendChild(ir);
+      }
+      lista.appendChild(li);
+    });
+    panel.appendChild(lista);
   }
 
   function ceCajaTramites(u){
@@ -34423,9 +34622,38 @@ applyLang(idiomaParaMi());
      todo» al final se pierde en cuanto alguien cambia de sector a medias.
      El orden se mueve con Subir y Bajar, y al mover se renumeran todas de
      diez en diez: con dos filas a orden 0, cambiarlas entre sí no
-     movería nada. */
+     movería nada.
+
+     PLEGADO Y AL FINAL (Franklin Reyes, 9-10-2026: «pareciera que lo
+     tuvieras que escribir y seleccionar nosotros mismos»). Esto no es
+     una cifra: es la lista que el inversionista ve en el chat. Así que va
+     a lo ancho bajo todo lo demás, cerrado, y su título lo dice
+     («Configurar los trámites que ve el inversionista en el chat»). Se
+     abre con el propio título, y abierto se queda entre refrescos y al
+     guardar, que repintan la caja entera. */
   function ceCajaPorSector(u){
-    var s = ceSeccion('cePorSector', u.ce_ps_t, u.ce_ps_d);
+    var caja = el('section', 'pu-caja ce-caja ce-ancha ce-config');
+    caja.id = 'cePorSector';
+    var abre = el('button', 'ce-config-abre');
+    abre.type = 'button';
+    abre.setAttribute('aria-controls', 'cePsCuerpo');
+    abre.setAttribute('aria-expanded', cePs.abierto ? 'true' : 'false');
+    abre.appendChild(el('span', 'ce-config-t', u.ce_ps_t || ''));
+    abre.appendChild(el('span', 'caret', cePs.abierto ? '▾' : '▸'));
+    abre.querySelector('.caret').setAttribute('aria-hidden', 'true');
+    abre.addEventListener('click', function(){
+      cePs.abierto = !cePs.abierto;
+      ceRepintaPorSector(cePs.sector);
+      var b = document.querySelector('#cePorSector .ce-config-abre');
+      if (b) b.focus();
+    });
+    caja.appendChild(abre);
+    /* Lo de dentro, como antes; s es ahora el cuerpo plegable. */
+    var s = el('div', 'ce-config-cuerpo');
+    s.id = 'cePsCuerpo';
+    s.hidden = !cePs.abierto;
+    caja.appendChild(s);
+    if (u.ce_ps_d) s.appendChild(el('p', 'ce-d', u.ce_ps_d));
     var chips = el('div', 'cs-sectores ce-ps-sectores');
     chips.setAttribute('role', 'group');
     chips.setAttribute('aria-label', u.ce_ps_t || '');
@@ -34470,7 +34698,7 @@ applyLang(idiomaParaMi());
       s.appendChild(nueva);
     }
     s.appendChild(el('div', 'ce-ps-aviso', cePs.aviso || ''));
-    return s;
+    return caja;
   }
 
   function ceCampo(cls, rotulo, valor){

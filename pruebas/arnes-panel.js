@@ -342,6 +342,8 @@
               rotulosMiran, consultaCerradaVuelve, consultaCerradaEntra, consultaCerradaMira, consultaCerradaOtra,
               consultaNueva, consultaNuevaMira, consultaTrasCrear, cierreCatalogo,
               sectorChatAbre, sectorChatSinNada, sectorChatConTramites, sectorChatGuardado,
+              sectorChatOtraAbre, sectorChatOtraEscribe, sectorChatOtraMira,
+              sectorChatViejoEscribe, sectorChatViejoMira,
               consultaCola, consultaToma, consultaTrasTomar,
               consultaResuelve, consultaResuelveOtra, consultaTrasResolver,
               velocidadArranque, velocidadAbre, velocidadMira,
@@ -390,7 +392,7 @@
               rastroAbre, rastroMira, rastroQaMira,
               equipoAbre, equipoMira, equipoFichaMira, equipoCierraMira,
               controlAbre, controlMira, controlTrasAnadir, controlTrasMover,
-              controlTrasGuardar, controlTrasQuitar, controlOtroSector,
+              controlTrasGuardar, controlTrasQuitar, controlOtroSector, controlSqlViejo,
               rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
               rastroDesdeTramiteSalta, rastroDesdeTramiteMira,
               alDiaGuardas, alDiaAntes, alDiaVuelve, alDiaDespues, alDiaFreno,
@@ -15044,6 +15046,77 @@
     var U = (window.CIIP_PASOS && window.CIIP_PASOS.ui && window.CIIP_PASOS.ui[curLang]) || {};
     igual('chat: y con el sector delante en el asunto', c ? c.asunto : '(no se abrió)',
           String(U.cs_asunto || '').replace('{s}', U.cs_s1 || '') + 'Licencia de exploración y explotación');
+    /* Franklin Reyes, 9-10-2026: el trámite pulsado se guarda aparte, tal
+       cual estaba en la lista, para que «Control y Estadísticas» cuente el
+       más pedido de cada sector. */
+    igual('chat: y el trámite que pulsó, aparte, en tramite_sector', c ? c.tramite_sector : '(no se abrió)',
+          'Licencia de exploración y explotación');
+    if (c && window.CIIP_MENTIRA_OLVIDA_CONSULTA) window.CIIP_MENTIRA_OLVIDA_CONSULTA(c.id);
+    var cerrar = document.getElementById('consCerrar');
+    if (cerrar) cerrar.click();
+    setTimeout(sigue, 300);
+  }
+
+  /* Si pulsa un trámite y luego borra la caja y escribe otra cosa, ya no
+     está pidiendo ese trámite: no se cuenta como elegido. */
+  function sectorChatOtraAbre(sigue){
+    if (CASO === 'gestor' || !window.CIIP_ABRE_CONSULTA) return sigue();
+    window.CIIP_ABRE_CONSULTA(null, null, null, {sectores: true});
+    var hid = document.querySelector('#consCuerpo .cs-sector[data-sector="hidrocarburos"]');
+    if (hid) hid.click();
+    setTimeout(sigue, 300);
+  }
+
+  function sectorChatOtraEscribe(sigue){
+    if (CASO === 'gestor' || !window.CIIP_ABRE_CONSULTA) return sigue();
+    var b = document.querySelector('#consCuerpo .cs-tramites .cs-tramite');
+    var caja = document.getElementById('consAsunto');
+    if (b) b.click();
+    if (caja){
+      caja.value = 'Quiero saber cuánto tarda un permiso de importación';
+      caja.dispatchEvent(new Event('input'));
+    }
+    var crear = document.getElementById('consCrear');
+    if (crear) crear.click();
+    setTimeout(sigue, 300);
+  }
+
+  function sectorChatOtraMira(sigue){
+    if (CASO === 'gestor' || !window.CIIP_ABRE_CONSULTA) return sigue();
+    var c = window.CIIP_MENTIRA_ULTIMA_CONSULTA && window.CIIP_MENTIRA_ULTIMA_CONSULTA();
+    ok('chat: si después escribe otra cosa, no cuenta como trámite elegido',
+       !!c && c.sector === 'hidrocarburos' && !c.tramite_sector,
+       c ? (c.sector + ' / ' + c.tramite_sector) : '(no se abrió)', 'hidrocarburos / null');
+    if (c && window.CIIP_MENTIRA_OLVIDA_CONSULTA) window.CIIP_MENTIRA_OLVIDA_CONSULTA(c.id);
+    /* Y con la base de antes de supabase-control-detalle.sql, que no tiene
+       la columna: la consulta tiene que salir igual. */
+    window.CIIP_MENTIRA_SQL_VIEJO = true;
+    window.CIIP_ABRE_CONSULTA(null, null, null, {sectores: true});
+    var hid = document.querySelector('#consCuerpo .cs-sector[data-sector="hidrocarburos"]');
+    if (hid) hid.click();
+    setTimeout(sigue, 300);
+  }
+
+  function sectorChatViejoEscribe(sigue){
+    if (CASO === 'gestor' || !window.CIIP_ABRE_CONSULTA) return sigue();
+    var b = document.querySelector('#consCuerpo .cs-tramites .cs-tramite');
+    if (b) b.click();
+    var crear = document.getElementById('consCrear');
+    if (crear) crear.click();
+    setTimeout(sigue, 400);
+  }
+
+  function sectorChatViejoMira(sigue){
+    if (CASO === 'gestor' || !window.CIIP_ABRE_CONSULTA) return sigue();
+    window.CIIP_MENTIRA_SQL_VIEJO = false;
+    var c = window.CIIP_MENTIRA_ULTIMA_CONSULTA && window.CIIP_MENTIRA_ULTIMA_CONSULTA();
+    ok('chat: sin la columna nueva en la base la consulta sale igual, con su sector',
+       !!c && c.sector === 'hidrocarburos' && !c.tramite_sector &&
+       /Licencia de exploración/.test(c.asunto || ''),
+       c ? (c.sector + ' / ' + c.tramite_sector + ' / ' + c.asunto) : '(no se abrió)', 'hidrocarburos, sin tramite_sector');
+    ok('chat: y entra en su conversación, sin aviso de error',
+       !(document.querySelector('#consCuerpo .cons-aviso') || {}).textContent,
+       (document.querySelector('#consCuerpo .cons-aviso') || {}).textContent || '(sin aviso)', '(sin aviso)');
     if (c && window.CIIP_MENTIRA_OLVIDA_CONSULTA) window.CIIP_MENTIRA_OLVIDA_CONSULTA(c.id);
     var cerrar = document.getElementById('consCerrar');
     if (cerrar) cerrar.click();
@@ -18219,15 +18292,18 @@
        document.querySelectorAll('#eqTarjetas .eq-tj').length >= 2 &&
        document.getElementById('ceTequipo').textContent === U.ce_eq_t,
        document.getElementById('ceTequipo').textContent, U.ce_eq_t);
-    igual('control: las cinco cajas de abajo, en la rejilla de dos',
-          document.querySelectorAll('#ceCaja .ce-rejilla > .ce-caja').length, 5);
+    /* Seis desde el 9-10-2026: los trámites más pedidos por sector, al
+       lado de las consultas por sector, y el editor de la lista del chat
+       al final. */
+    igual('control: las seis cajas de abajo, en la rejilla de dos',
+          document.querySelectorAll('#ceCaja .ce-rejilla > .ce-caja').length, 6);
 
     /* Los motivos de «ya lo solicité» (6-10-2026): a lo ancho, uno por
        motivo de más a menos, traducido, y debajo en qué entes sale. */
     var mo = document.querySelectorAll('#ceMotivos .ce-fila[data-motivo]');
     ok('control: los motivos, a lo ancho', !!document.querySelector('#ceMotivos.ce-ancha'),
        document.getElementById('ceMotivos') ? document.getElementById('ceMotivos').className : '(no está)', 'ce-ancha');
-    igual('control: una fila por motivo', mo.length, 2);
+    igual('control: una fila por motivo', mo.length, 3);
     ok('control: el más marcado arriba, sumando sus entes',
        !!mo[0] && mo[0].getAttribute('data-motivo') === 'Lleva mucho tiempo sin respuesta' &&
        (mo[0].querySelector('.ce-rv .n') || {}).textContent === '5',
@@ -18237,6 +18313,108 @@
           (U.o_ya_motivo || [])[1]);
     igual('control: y en qué entes, de más a menos', mo[0] ? (mo[0].querySelector('.ce-rl .ce-sub') || {}).textContent : '',
           'IVSS 3 · Alcaldía 2');
+
+    /* ENTERO (Franklin Reyes, 9-10-2026: «debería de salir la respuesta
+       completa que pone el inversionista, no ...»). El más largo de la
+       lista, sin «…» y sin que el texto se salga de su caja. */
+    var largo = document.querySelector('#ceMotivos .ce-fila[data-motivo="Me piden recaudos que no tengo o no entiendo"] .ce-rl .nm');
+    var estiloL = largo ? getComputedStyle(largo) : null;
+    ok('control: el motivo sale entero, sin «…»',
+       !!largo && largo.textContent.indexOf((U.o_ya_motivo || [])[3]) === 0 &&
+       estiloL.whiteSpace !== 'nowrap' && estiloL.textOverflow !== 'ellipsis' &&
+       largo.scrollWidth <= largo.clientWidth + 1,
+       largo ? (estiloL.whiteSpace + ' / ' + estiloL.textOverflow + ' / ' + largo.scrollWidth + '>' + largo.clientWidth) : '(no está)',
+       'normal, sin ellipsis y dentro de su caja');
+    ok('control: cada motivo es un botón que despliega sus casos, cerrado al llegar',
+       !!mo[0] && mo[0].tagName === 'BUTTON' && mo[0].getAttribute('aria-expanded') === 'false' &&
+       !!document.getElementById(mo[0].getAttribute('aria-controls')) &&
+       document.getElementById(mo[0].getAttribute('aria-controls')).hidden,
+       mo[0] ? mo[0].tagName + ' ' + mo[0].getAttribute('aria-expanded') : '(nada)', 'BUTTON false');
+    if (mo[0]) mo[0].click();
+    var panelCasos = mo[0] ? document.getElementById(mo[0].getAttribute('aria-controls')) : null;
+    var casos = panelCasos ? panelCasos.querySelectorAll('.ce-caso') : [];
+    ok('control: al pulsarlo se abren sus casos',
+       !!panelCasos && !panelCasos.hidden && mo[0].getAttribute('aria-expanded') === 'true',
+       panelCasos ? (panelCasos.hidden ? 'cerrado' : 'abierto') : '(no hay)', 'abierto');
+    igual('control: uno por caso de ese motivo', casos.length, 2);
+    ok('control: el más reciente arriba, con quién y su empresa',
+       !!casos[0] && (casos[0].querySelector('.ce-caso-q') || {}).textContent === 'María Fernanda Ortega' &&
+       (casos[0].querySelector('.ce-caso-e') || {}).textContent === 'Inversiones Ortega C.A.' &&
+       !!(casos[0].querySelector('.ce-caso-f') || {}).textContent,
+       casos[0] ? casos[0].querySelector('.ce-caso-a').textContent : '(nada)', 'María Fernanda Ortega · Inversiones Ortega C.A. · fecha');
+    ok('control: con la solicitud y el ente',
+       !!casos[0] && /IVSS/.test((casos[0].querySelector('.ce-caso-t') || {}).textContent || ''),
+       casos[0] ? (casos[0].querySelector('.ce-caso-t') || {}).textContent : '(nada)', '… · IVSS');
+    igual('control: y lo que escribió, entero y con sus saltos de línea',
+          casos[0] ? (casos[0].querySelector('.ce-caso-txt') || {}).textContent : '(nada)',
+          'Fui tres veces a la oficina del IVSS y me dicen que el sistema está caído.\nYa pasaron dos meses y nadie me da una fecha.');
+    ok('control: si no escribió nada, lo dice',
+       !!casos[1] && !!casos[1].querySelector('.ce-caso-txt.nada') &&
+       casos[1].querySelector('.ce-caso-txt').textContent === U.ce_ca_sindetalle,
+       casos[1] ? (casos[1].querySelector('.ce-caso-txt') || {}).textContent : '(nada)', U.ce_ca_sindetalle);
+    ok('control: y cada caso lleva a su solicitud',
+       !!casos[0] && casos[0].getAttribute('data-tramite') === 't-pf-caso' &&
+       (casos[0].querySelector('.ce-caso-ir') || {}).textContent === U.ce_ca_ver,
+       casos[0] ? casos[0].getAttribute('data-tramite') + ' ' + (casos[0].querySelector('.ce-caso-ir') || {}).textContent : '(nada)',
+       't-pf-caso ' + U.ce_ca_ver);
+    if (mo[0]) mo[0].click();
+    ok('control: y volver a pulsarlo lo pliega',
+       !!panelCasos && panelCasos.hidden && mo[0].getAttribute('aria-expanded') === 'false',
+       panelCasos ? (panelCasos.hidden ? 'cerrado' : 'abierto') : '(no hay)', 'cerrado');
+
+    /* EL TRÁMITE QUE MÁS PIDEN EN CADA SECTOR (Franklin Reyes, 9-10-2026):
+       al lado de «Consultas por sector», contado de las consultas y sin
+       nada que parezca un formulario. */
+    var ts = document.getElementById('ceTramSector');
+    var seCaja = document.getElementById('ceSectores');
+    ok('control: al lado de Consultas por sector, los trámites más pedidos',
+       !!ts && !!seCaja && seCaja.nextElementSibling === ts && !ts.classList.contains('ce-ancha'),
+       seCaja && seCaja.nextElementSibling ? seCaja.nextElementSibling.id : '(nada)', 'ceTramSector');
+    igual('control: con su título', ts ? (ts.querySelector('.pu-t') || {}).textContent : '(no está)', U.ce_ts_t);
+    igual('control: y sin campos ni pastillas',
+          ts ? ts.querySelectorAll('input, select, textarea, .cs-sector, .btn').length : -1, 0);
+    var bloques = ts ? ts.querySelectorAll('.ce-ts-bloque') : [];
+    igual('control: un bloque por sector con trámites elegidos, el más preguntado primero',
+          [].map.call(bloques, function(b){ return b.getAttribute('data-sector'); }).join(' '), 'hidrocarburos turismo');
+    var hFilas = bloques[0] ? bloques[0].querySelectorAll('.ce-fila') : [];
+    ok('control: el más pedido del sector arriba, resaltado y con su número',
+       !!hFilas[0] && hFilas[0].getAttribute('data-tramite') === 'Licencia de exploración y explotación' &&
+       hFilas[0].classList.contains('tope') && (hFilas[0].querySelector('.ce-rv .n') || {}).textContent === '3' &&
+       (hFilas[0].querySelector('.ce-rl .ce-sub') || {}).textContent === U.ce_ts_top,
+       hFilas[0] ? hFilas[0].getAttribute('data-tramite') + ' ' + (hFilas[0].querySelector('.ce-rv .n') || {}).textContent : '(nada)',
+       'Licencia de exploración y explotación 3');
+    ok('control: y el siguiente con el suyo y su parte del sector',
+       !!hFilas[1] && (hFilas[1].querySelector('.ce-rv .n') || {}).textContent === '1' &&
+       (hFilas[1].querySelector('.ce-rv .ce-sub') || {}).textContent === '25 %' &&
+       (hFilas[0].querySelector('.ce-rv .ce-sub') || {}).textContent === '75 %',
+       hFilas[1] ? hFilas[1].textContent : '(nada)', '1 · 25 %');
+    igual('control: con lo que suma el sector en su cabecera',
+          bloques[0] ? (bloques[0].querySelector('.ce-ts-n') || {}).textContent : '(nada)',
+          String(U.ce_ts_elegidos || '').replace('{n}', 4));
+    var sinTs = ts ? ts.querySelector('.ce-ts-sin') : null;
+    ok('control: los sectores sin ninguno, juntos al pie y diciéndolo',
+       !!sinTs && sinTs.textContent.indexOf(U.ce_ts_sin) === 0 && sinTs.textContent.indexOf(U.cs_s2) > 0 &&
+       sinTs.textContent.indexOf(U.cs_s1) < 0 && sinTs.textContent.split(' · ').length === 7,
+       sinTs ? sinTs.textContent : '(no está)', U.ce_ts_sin + ' … (siete)');
+
+    /* EL EDITOR DE LA LISTA DEL CHAT, al final, a lo ancho y plegado. */
+    var cfg = document.getElementById('cePorSector');
+    ok('control: el editor de la lista del chat va el último, a lo ancho',
+       !!cfg && !cfg.nextElementSibling && cfg.classList.contains('ce-ancha') && cfg.classList.contains('ce-config'),
+       cfg ? (cfg.nextElementSibling ? 'le sigue ' + cfg.nextElementSibling.id : cfg.className) : '(no está)', 'último, ce-ancha ce-config');
+    var cfgAbre = cfg ? cfg.querySelector('.ce-config-abre') : null;
+    ok('control: con un título que dice que es configuración',
+       !!cfgAbre && (cfgAbre.querySelector('.ce-config-t') || {}).textContent === U.ce_ps_t,
+       cfgAbre ? cfgAbre.textContent : '(no está)', U.ce_ps_t);
+    ok('control: y plegado al llegar',
+       !!cfgAbre && cfgAbre.getAttribute('aria-expanded') === 'false' && document.getElementById('cePsCuerpo').hidden,
+       cfgAbre ? cfgAbre.getAttribute('aria-expanded') : '(no está)', 'false');
+    if (cfgAbre) cfgAbre.click();
+    ok('control: pulsar el título lo abre',
+       !!document.getElementById('cePsCuerpo') && !document.getElementById('cePsCuerpo').hidden &&
+       (document.querySelector('#cePorSector .ce-config-abre') || {}).getAttribute('aria-expanded') === 'true',
+       document.getElementById('cePsCuerpo') ? (document.getElementById('cePsCuerpo').hidden ? 'plegado' : 'abierto') : '(no está)',
+       'abierto');
 
     var tr = document.querySelectorAll('#ceTramites .ce-fila[data-tipo]');
     igual('control: una barra por trámite solicitado', tr.length, 3);
@@ -18339,6 +18517,38 @@
     ok('control: y si no tiene ninguno, lo dice',
        ceFilas().length === 0 && !!document.querySelector('#cePorSector .ce-ps-vacio'),
        ceFilas().length + ' filas', 'ninguna, con el aviso');
+    /* Y la base de antes de supabase-control-detalle.sql: la función no
+       trae ni los trámites por sector ni los casos. */
+    window.CIIP_MENTIRA_SQL_VIEJO = true;
+    var abierto = document.querySelector('#ceMotivos .ce-fila[data-motivo]');
+    if (abierto) abierto.click();
+    if (window.CIIP_PINTA_CONTROL) window.CIIP_PINTA_CONTROL();
+    setTimeout(sigue, 400);
+  }
+
+  function controlSqlViejo(sigue){
+    if (!ES_ADMIN) return sigue();
+    window.CIIP_MENTIRA_SQL_VIEJO = false;
+    var U = ceU();
+    var ts = document.getElementById('ceTramSector');
+    ok('control: sin el SQL nuevo, los trámites por sector dicen que aún no hay datos',
+       !!ts && (ts.querySelector('.ce-ts-vacio') || {}).textContent === U.ce_ts_vacio && !ts.querySelector('.ce-fila'),
+       ts ? ts.textContent : '(no está)', U.ce_ts_vacio);
+    ok('control: el resto de la pantalla sigue en pie',
+       document.querySelectorAll('#ceTramites .ce-fila[data-tipo]').length === 3 &&
+       document.querySelectorAll('#ceMotivos .ce-fila[data-motivo]').length === 3,
+       document.querySelectorAll('#ceTramites .ce-fila[data-tipo]').length + ' trámites', '3 trámites y 3 motivos');
+    /* El motivo que se dejó abierto se repinta abierto, y dice qué falta. */
+    var mo = document.querySelector('#ceMotivos .ce-fila[data-motivo]');
+    var p = mo ? document.getElementById(mo.getAttribute('aria-controls')) : null;
+    ok('control: y un motivo abierto dice que faltan los casos en la base',
+       !!p && !p.hidden && p.textContent === U.ce_ca_nosql,
+       p ? (p.hidden ? '(plegado)' : p.textContent) : '(no está)', U.ce_ca_nosql);
+    ok('control: el editor sigue abierto tras el refresco',
+       !!document.getElementById('cePsCuerpo') && !document.getElementById('cePsCuerpo').hidden,
+       document.getElementById('cePsCuerpo') ? (document.getElementById('cePsCuerpo').hidden ? 'plegado' : 'abierto') : '(no está)',
+       'abierto');
+    if (mo) mo.click();
     location.hash = '';
     setTimeout(sigue, 300);
   }

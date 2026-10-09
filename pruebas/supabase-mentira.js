@@ -2366,6 +2366,12 @@
          prueba de "nadie abre una consulta a nombre de otro" saldria verde
          midiendo justo lo contrario de lo que dice. */
       if (op && op.insert){
+        /* La base sin supabase-control-detalle.sql no tiene la columna
+           del trámite del sector, y PostgREST rechaza el insert entero. */
+        if (window.CIIP_MENTIRA_SQL_VIEJO && op.insert.tramite_sector){
+          return {data:null, error:{message:"Could not find the 'tramite_sector' column of 'consultas' in the schema cache",
+                                    code:'PGRST204'}};
+        }
         var nueva = {
           id: 'cs' + (consultas.length + 1),
           inversionista: USUARIO.id,
@@ -2373,6 +2379,9 @@
           tipo: op.insert.tipo || null,
           /* El sector del chat (supabase-control-estadisticas.sql). */
           sector: op.insert.sector || null,
+          /* Y el trámite que pulsó en la lista del sector (9-10-2026,
+             supabase-control-detalle.sql). */
+          tramite_sector: op.insert.tramite_sector || null,
           asunto: op.insert.asunto || '',
           estado: 'abierta',
           gestor: null,
@@ -2877,6 +2886,20 @@
             } else {
               var porSec = {hidrocarburos: 4, turismo: 2};
               consultas.forEach(function(c){ if (c.sector) porSec[c.sector] = (porSec[c.sector] || 0) + 1; });
+              /* El trámite de cada sector (Franklin Reyes, 9-10-2026,
+                 supabase-control-detalle.sql): en hidrocarburos uno pedido
+                 tres veces y otro una, en turismo uno dos veces y en los
+                 otros siete nada. Y las de la tanda que lleven el suyo. */
+              var porTs = [
+                {sector:'hidrocarburos', tramite:'Registro de empresas de servicios petroleros', n:1},
+                {sector:'hidrocarburos', tramite:'Licencia de exploración y explotación', n:3},
+                {sector:'turismo', tramite:'Licencia de turismo', n:2}
+              ];
+              consultas.forEach(function(c){
+                if (!c.sector || !c.tramite_sector) return;
+                var ya = porTs.filter(function(x){ return x.sector === c.sector && x.tramite === c.tramite_sector; })[0];
+                if (ya) ya.n++; else porTs.push({sector:c.sector, tramite:c.tramite_sector, n:1});
+              });
               rE = {data:{
                 tramites: [
                   {tipo:'constitucion', ente:'SAREN', solicitados:5, resueltos:3, mediana_h:96,
@@ -2894,9 +2917,34 @@
                 motivos: [
                   {motivo:'Lleva mucho tiempo sin respuesta', ente:'IVSS', n:3},
                   {motivo:'Lleva mucho tiempo sin respuesta', ente:'Alcaldía', n:2},
-                  {motivo:'Falla o error en el portal del ente', ente:'INCES', n:1}
+                  {motivo:'Falla o error en el portal del ente', ente:'INCES', n:1},
+                  /* El más largo de la lista, para ver que sale entero
+                     (9-10-2026). */
+                  {motivo:'Me piden recaudos que no tengo o no entiendo', ente:'RNC', n:1}
+                ],
+                tramites_sector: porTs,
+                /* Los casos de cada motivo, con lo que escribió quien lo
+                   marcó (9-10-2026). Desordenados a propósito: el panel
+                   los pone del más reciente al más viejo. */
+                motivos_casos: [
+                  {motivo:'Lleva mucho tiempo sin respuesta', ente:'Alcaldía', detalle:'',
+                   tramite:'t-li-caso', tipo:'licencia_en_proceso', inversionista:'Pedro Salas',
+                   empresa:'', fecha:'2026-10-02T10:00:00Z'},
+                  {motivo:'Lleva mucho tiempo sin respuesta', ente:'IVSS',
+                   detalle:'Fui tres veces a la oficina del IVSS y me dicen que el sistema está caído.\nYa pasaron dos meses y nadie me da una fecha.',
+                   tramite:'t-pf-caso', tipo:'parafiscales_en_proceso', inversionista:'María Fernanda Ortega',
+                   empresa:'Inversiones Ortega C.A.', fecha:'2026-10-07T14:20:00Z'},
+                  {motivo:'Falla o error en el portal del ente', ente:'INCES', detalle:'El portal da error al subir el RIF.',
+                   tramite:'t-pf-caso', tipo:'parafiscales_en_proceso', inversionista:'María Fernanda Ortega',
+                   empresa:'Inversiones Ortega C.A.', fecha:'2026-10-07T14:20:00Z'}
                 ]
               }, error:null};
+              /* La base de antes de supabase-control-detalle.sql: la
+                 función no trae ninguna de las dos llaves. */
+              if (window.CIIP_MENTIRA_SQL_VIEJO){
+                delete rE.data.tramites_sector;
+                delete rE.data.motivos_casos;
+              }
             }
             return {then:function(bien, mal){ return Promise.resolve(rE).then(bien, mal); }};
           }

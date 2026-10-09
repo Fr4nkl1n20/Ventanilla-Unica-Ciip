@@ -293,7 +293,13 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    (Franklin Reyes, 8-10-2026). Una tabla nueva y revoca_autorizacion();
    solo pide tramites, tipos_tramite y es_gestor(). Al final para no mover
    el número de nadie. */
-'supabase-autorizaciones'];
+'supabase-autorizaciones',
+/* El detalle de Control y Estadísticas (Franklin Reyes, 9-10-2026): el
+   trámite que el inversionista pulsa en el chat de sectores, guardado en
+   consultas.tramite_sector, y los casos de «¿Por qué piden ayuda?» con lo
+   que escribió. Reescribe estadisticas_control(), así que va detrás de
+   supabase-sacs, que fue quien la dejó escrita. */
+'supabase-control-detalle'];
 
 let mal = 0;
 for (const n of orden) {

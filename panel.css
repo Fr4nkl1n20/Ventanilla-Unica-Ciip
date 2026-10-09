@@ -838,6 +838,71 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .ce-ps-aviso{font-size:var(--fs-nota); color:var(--rust); padding:0 18px 10px;}
 .ce-ps-aviso:empty{display:none;}
 
+/* Y desde el 9-10-2026 esa lista es configuración, no una cifra (Franklin
+   Reyes: «pareciera que lo tuvieras que escribir y seleccionar nosotros
+   mismos»): va al final, a lo ancho, plegada bajo su título y con el
+   borde de rayas, que en esta pantalla solo lleva ella. */
+.ce-config{border-style:dashed;}
+.ce-config-abre{display:flex; align-items:center; gap:10px; width:100%; font:inherit; text-align:left;
+  background:none; border:0; cursor:pointer; padding:14px 18px; font-size:var(--fs-fila);
+  font-weight:700; color:var(--gray);}
+.ce-config-abre:hover{color:var(--ink);}
+.ce-config-abre:focus-visible{outline:2px solid var(--cyan-deep); outline-offset:-2px; border-radius:var(--r);}
+.ce-config-abre .caret{margin-left:auto; color:var(--gray-soft);}
+.ce-config-cuerpo{border-top:1px solid var(--line-soft); padding-top:10px;}
+
+/* El trámite que más piden en cada sector (9-10-2026), al lado de
+   «Consultas por sector»: un bloque por sector con su rótulo como las
+   cabeceras de la tabla de gestores, y debajo las filas de siempre. El
+   nombre del trámite parte en dos líneas antes que cortarse. */
+.ce-ts-bloque + .ce-ts-bloque{border-top:1px solid var(--line-soft);}
+.ce-ts-sector{display:flex; align-items:baseline; gap:8px; padding:10px 18px 0;}
+.ce-ts-sector .nm{font-size:var(--fs-chip); font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--gray-soft);}
+.ce-ts-n{margin-left:auto; font-size:var(--fs-nota); color:var(--gray); font-variant-numeric:tabular-nums;}
+.ce-ts-bloque .ce-lista{padding-top:0; padding-bottom:8px;}
+.ce-ts-sin{margin:0; padding:10px 18px 14px; border-top:1px solid var(--line-soft);
+  font-size:var(--fs-nota); line-height:1.55; color:var(--gray);}
+.ce-ts-sin b{color:var(--ink); font-weight:700;}
+
+/* ¿Por qué piden ayuda?, ENTERO (Franklin Reyes, 9-10-2026: «debería de
+   salir la respuesta completa que pone el inversionista, no ...»). La
+   columna del motivo crece y el texto parte en las líneas que haga falta;
+   en el teléfono la barra y la cifra bajan debajo del texto. */
+#ceMotivos .ce-fila .ce-rl .nm, #ceTramSector .ce-fila .ce-rl .nm{white-space:normal; overflow:visible;
+  text-overflow:clip; overflow-wrap:anywhere; line-height:1.35;}
+#ceMotivos .ce-fila .ce-rl{width:auto; flex:1 1 300px; max-width:52%;}
+#ceMotivos .ce-fila .ce-pista{flex:1 1 120px;}
+@media(max-width:560px){
+  #ceMotivos .ce-fila{flex-wrap:wrap;}
+  #ceMotivos .ce-fila .ce-rl{flex-basis:calc(100% - 22px); max-width:none;}
+}
+/* Cada motivo es un botón que despliega sus casos. */
+.ce-mo-item + .ce-mo-item{border-top:1px solid var(--line-soft);}
+.ce-fila.ce-mo-abre{font:inherit; text-align:left; background:none; border:0; cursor:pointer; color:inherit;}
+.ce-fila.ce-mo-abre:hover .ce-rl .nm{color:var(--navy2);}
+.ce-fila.ce-mo-abre:focus-visible{outline:2px solid var(--cyan-deep); outline-offset:2px; border-radius:4px;}
+.ce-fila.ce-mo-abre .caret{flex:0 0 auto; width:12px; margin-right:-4px; color:var(--gray-soft);
+  font-size:var(--fs-nota);}
+/* Los casos: el registro de incidencias, del más reciente al más viejo,
+   con lo que escribió el inversionista entero y con sus saltos de línea. */
+.ce-casos{background:var(--block); border-radius:8px; margin:2px 0 10px; padding:2px 12px;
+  max-height:420px; overflow-y:auto;}
+.ce-casos .pu-vacio{padding:12px 0;}
+.ce-casos-l{list-style:none; margin:0; padding:0;}
+.ce-caso{padding:10px 0;}
+.ce-caso + .ce-caso{border-top:1px solid var(--line-soft);}
+.ce-caso-a{display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px; font-size:var(--fs-fila);}
+.ce-caso-q{color:var(--ink); font-weight:700;}
+.ce-caso-e{font-size:var(--fs-nota); color:var(--gray);}
+.ce-caso-f{margin-left:auto; font-size:var(--fs-nota); color:var(--gray); white-space:nowrap;
+  font-variant-numeric:tabular-nums;}
+.ce-caso-txt{margin:6px 0 4px; font-size:var(--fs-parrafo); line-height:1.55; color:var(--ink);
+  white-space:pre-wrap; overflow-wrap:anywhere;}
+.ce-caso-txt.nada{color:var(--gray-soft); font-style:italic;}
+.ce-caso-ir{font:inherit; font-size:var(--fs-boton); background:none; border:0; padding:0; cursor:pointer;
+  margin-left:0;}
+
 /* Y en el chat, bajo los sectores: los trámites que el CIIP cargó para
    el elegido. Pulsar uno lo pone en el asunto. */
 .cs-tramites{display:flex; flex-direction:column; gap:5px; margin:0 0 14px;}
