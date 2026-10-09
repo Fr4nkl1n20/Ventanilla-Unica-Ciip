@@ -5056,9 +5056,14 @@ body[data-vista="pliego"] #plVolver{display:inline-flex;}
 /* ---------- acompanamiento: burbuja flotante ---------- */
 /* Antes era una franja de lado a lado pegada al borde inferior. Gastaba una
    banda entera de pantalla para dos botones, asi que en reposo queda solo la
-   burbuja y el panel sale al pulsarla. Sigue siendo solo-inicio: en una fase
-   o en un tramite no aparece. */
+   burbuja y el panel sale al pulsarla. */
 .sup-fab{position:fixed; right:22px; bottom:22px; z-index:55;}
+/* Solo en las pestañas del menu lateral (Franklin Reyes, 9-10-2026). En la
+   pagina de una etapa y dentro de un tramite no sale: ahi se esta haciendo
+   el tramite y la burbuja estorba. No es solo-inicio, que la quitaria
+   tambien de Mis tramites, la boveda, la ayuda y el resto del menu. */
+body[data-vista="fase"] .sup-fab,
+body[data-vista="tramite"] .sup-fab{display:none;}
 
 .sup-burbuja{width:54px; height:54px; border-radius:50%; border:0; cursor:pointer; padding:0;
   background:linear-gradient(135deg,var(--navy),var(--navy2)); color:#fff;
