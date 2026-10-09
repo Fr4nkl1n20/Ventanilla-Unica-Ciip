@@ -11969,7 +11969,7 @@
     location.hash = '';
     setTimeout(function(){
       location.hash = 'tramite-c8';
-      esperaFilas('#trReal .tr-chat .hilo-m', 1, sigue);
+      esperaFilas('#trReal .tr-chat .hilo-m', 2, sigue);
     }, 100);
   }
   function chatMarcaMira(sigue){
@@ -11982,9 +11982,9 @@
        !document.querySelector('#trReal ol .tr-chat, #trReal ol .tr-chat-ir'));
     igual('chat marca: con su título', (chat.querySelector('.sol-h') || {}).textContent, U.ch_t);
     igual('chat marca: trae los del chat y no la conversación de siempre',
-          chat.querySelectorAll('.hilo-m').length, 1);
-    ok('chat marca: y no repite el aviso, que ya se lee encima',
-       chat.textContent.indexOf('hay que aclarar la clase') < 0);
+          chat.querySelectorAll('.hilo-m').length, 2);
+    ok('chat marca: y empieza por el aviso del gestor',
+       (chat.querySelector('.hilo-m') || {}).textContent.indexOf('hay que aclarar la clase') >= 0);
     igual('chat marca: con el documento que mandó el gestor',
           (chat.querySelector('.hm-arch') || {}).textContent, 'oficio-sapi.pdf');
     var txt = chat.querySelector('.hilo-txt');
@@ -12000,12 +12000,12 @@
     if (!txt) return sigue();
     txt.value = 'Qué clase pongo en la contestación?';
     chat.querySelector('.hilo-fila .btn.navy').click();
-    esperaFilas('#trReal .tr-chat .hilo-m', 2, sigue);
+    esperaFilas('#trReal .tr-chat .hilo-m', 3, sigue);
   }
   function chatMarcaEscrito(sigue){
     if (PASE !== 'vacio') return sigue();
     var ms = document.querySelectorAll('#trReal .tr-chat .hilo-m');
-    igual('chat marca: lo escrito sale en el chat', ms.length, 2);
+    igual('chat marca: lo escrito sale en el chat', ms.length, 3);
     var ultimo = ms[ms.length - 1];
     igual('chat marca: como tuyo', !!ultimo && ultimo.classList.contains('mio'), true);
     sigue();
@@ -12028,7 +12028,7 @@
     if (PASE !== 'vacio') return sigue();
     var U = window.CIIP_PASOS.ui[curLang] || {};
     var chat = document.querySelector('#trReal .tr-pest-chat .tr-chat');
-    ok('chat marca: en registro sigue a la vista, para leer', !!chat && chat.querySelectorAll('.hilo-m').length >= 1);
+    ok('chat marca: en registro sigue a la vista, para leer', !!chat && chat.querySelectorAll('.hilo-m').length >= 2);
     var txt = chat && chat.querySelector('.hilo-txt');
     ok('chat marca: pero ya no se escribe', !!txt && txt.disabled);
     igual('chat marca: y dice por qué', chat && (chat.querySelector('.hilo-cerrado') || {}).textContent, U.ch_cerrado);

@@ -10710,15 +10710,13 @@ applyLang(idiomaParaMi());
               vacio: equipo ? '' : (u.ch_vacio || ''),
               ph: equipo ? '' : (u.ch_ph || '')};
     if (equipo){ de.equipo = true; de.quien = quien; }
-    /* El del inversionista, en su pestaña: compacto, y sin repetir el
-       aviso, que la base mete como primer mensaje y ya se lee encima. */
+    /* El del inversionista, en su pestaña: compacto, y empezando por el
+       aviso, que la base mete como primer mensaje. En esa pestaña la
+       tarjeta del aviso no sale, y sin él el chat empezaba sin contexto
+       (Franklin Reyes, 9-10-2026). */
     else {
       de.compacto = true;
       de.sinVacio = true;
-      de.oculta = function(m){
-        return m.del_equipo && !m.documento && !!E.anuncio &&
-               String(m.texto || '').trim() === String(E.anuncio).trim();
-      };
     }
     if (cerrado) de.cerrada = u.ch_cerrado || '';
     pintaHilo(caja, de);
@@ -12818,7 +12816,6 @@ applyLang(idiomaParaMi());
         .then(function(r){
           if (r && r.error) throw r.error;
           var filas = (r && r.data) || [];
-          if (de.oculta) filas = filas.filter(function(m){ return !de.oculta(m); });
           return traducciones(filas).then(function(){
             var firma = firmaDe(filas);
             if (silencioso && firma === firmaPintada) return;
