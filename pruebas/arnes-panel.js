@@ -10284,6 +10284,35 @@
          !!con.querySelector('li.tr-paso.ahora[data-paso="importe_contestacion"]'),
          (con.querySelector('li.tr-paso.ahora') || {getAttribute: function(){ return '(ninguno)'; }}).getAttribute('data-paso'),
          'importe_contestacion');
+      /* La caja del importe, en la escalera horizontal: bajo la fila de su
+         etapa y centrada en su paso, sin tapar el nombre del siguiente
+         (Franklin Reyes, 9-10-2026: «que el anuncio quede centrado a su
+         etapa»). Se mide de verdad, en la página y a 880 de ancho. */
+      var hor = document.createElement('div');
+      hor.style.cssText = 'width:880px; position:absolute; left:0; top:0;';
+      var olH = document.createElement('ol');
+      olH.className = 'tr-pasos tr-escalera';
+      hor.appendChild(olH);
+      document.body.appendChild(hor);
+      var tH = tr('mc-hz', 'ante_el_ente', p3);
+      M.pinta(olH, M.escalera(tH, 'marca'), tH, {}, false);
+      var puntoH = olH.querySelector('li.tr-paso.ahora .tr-punto');
+      var cajaH = olH.querySelector('li.tr-bajo > .imp-caja');
+      /* Sin importe del día la caja no se ve (.imp-cuerpo vacío): para
+         medirla, algo dentro. */
+      var cuH = cajaH && cajaH.querySelector('.imp-cuerpo');
+      if (cuH && !cuH.firstChild) cuH.appendChild(document.createTextNode('importe'));
+      var centro = function(x){ var r = x.getBoundingClientRect(); return r.left + r.width / 2; };
+      ok('marca: en la escalera, la caja del importe va bajo la fila de su etapa, fuera del paso',
+         !!cajaH && !olH.querySelector('li.tr-paso .imp-caja'), cajaH ? 'bajo la fila' : '(no está)', 'li.tr-bajo');
+      ok('marca: y centrada en el punto de su paso',
+         !!puntoH && !!cajaH && Math.abs(centro(puntoH) - centro(cajaH)) < 2,
+         puntoH && cajaH ? Math.round(centro(cajaH) - centro(puntoH)) + ' px de diferencia · ml=' + getComputedStyle(cajaH).marginLeft + ' · st=' + cajaH.parentNode.getAttribute('style') + ' · w=' + Math.round(cajaH.parentNode.getBoundingClientRect().width) + ' · pt=' + Math.round(centro(puntoH)) + ' · ol=' + Math.round(olH.getBoundingClientRect().left) : '(no está)', 'menos de 2 px');
+      var sigH = olH.querySelector('li.tr-paso.ahora + li.tr-paso .tr-paso-n');
+      ok('marca: sin tapar el nombre del paso siguiente',
+         !!sigH && !!cajaH && cajaH.getBoundingClientRect().top >= sigH.getBoundingClientRect().bottom,
+         sigH && cajaH ? Math.round(cajaH.getBoundingClientRect().top - sigH.getBoundingClientRect().bottom) + ' px' : '(no está)', 'debajo');
+      document.body.removeChild(hor);
       var ret = pintaEn(tr('mc-i', 'ante_el_ente', hasta('certificado')));
       var nota = ret.querySelector('[data-paso="retiro"] .mc-retiro');
       ok('marca: el último paso dice que retire los originales en el CIIP',

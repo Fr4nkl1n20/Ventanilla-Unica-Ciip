@@ -10627,7 +10627,8 @@ applyLang(idiomaParaMi());
         lista.appendChild(cab);
       }
 
-      et.pasos.forEach(function(paso){
+      var bajo = null;
+      et.pasos.forEach(function(paso, iPaso){
         var li = el('li', 'tr-paso ' + (paso.hecho ? 'hecho' : (paso.ahora ? 'ahora' : 'porhacer')));
         li.setAttribute('data-paso', paso.clave);
         var punto = el('span', 'tr-punto', paso.hecho ? '✓' : String(paso.n));
@@ -10701,12 +10702,61 @@ applyLang(idiomaParaMi());
         }
         li.appendChild(punto); li.appendChild(txt);
         lista.appendChild(li);
+        if (paso.ahora && lista.classList.contains('tr-escalera')){
+          var cajasP = [].filter.call(txt.children, function(x){
+            return x.classList.contains('imp-caja') || x.classList.contains('imp-de');
+          });
+          if (cajasP.length) bajo = {cajas: cajasP, k: iPaso + 1};
+        }
       });
+      if (bajo) bajoLaFila(lista, bajo, et.pasos.length);
       /* El chat de la contestación sale solo cuando el gestor la habilitó
          -el SAPI devolvió el registro-, le llega a él, y por ahí le manda
          documentos. Pasado a registro, se lee pero ya no se escribe. Al
          equipo no: lo lleva en su casilla. Va en su pestaña. */
     });
+  }
+
+  /* LA CAJA DEL IMPORTE, CENTRADA EN SU PASO (Franklin Reyes, 9-10-2026:
+     «que el anuncio quede centrado a su etapa»). En la escalera horizontal
+     es más ancha que la columna de su paso: se salía por la derecha y
+     tapaba el nombre del paso siguiente. Ahora va en un renglón propio bajo
+     la fila de su etapa, centrada en el punto de su paso (--k de --n; las
+     columnas son iguales) y sin salirse de la fila. En el móvil los pasos
+     van en vertical y vuelve dentro de su paso, donde estaba. Un solo
+     oyente para todas: el repaso de cada minuto rehace la escalera. */
+  var BAJO_MOVIL = window.matchMedia ? window.matchMedia('(max-width:640px)') : null;
+  var BAJOS = [];
+  function colocaBajo(b){
+    var enPaso = !!(BAJO_MOVIL && BAJO_MOVIL.matches);
+    b.cajas.forEach(function(c, i){
+      if (enPaso) b.marcas[i].parentNode.insertBefore(c, b.marcas[i]);
+      else b.li.appendChild(c);
+    });
+    b.li.hidden = enPaso;
+  }
+  if (BAJO_MOVIL){
+    var alCambiar = function(){
+      BAJOS = BAJOS.filter(function(b){ return b.li.isConnected; });
+      BAJOS.forEach(colocaBajo);
+    };
+    if (BAJO_MOVIL.addEventListener) BAJO_MOVIL.addEventListener('change', alCambiar);
+    else if (BAJO_MOVIL.addListener) BAJO_MOVIL.addListener(alCambiar);
+  }
+  function bajoLaFila(lista, b, n){
+    b.li = el('li', 'tr-bajo');
+    b.li.style.setProperty('--k', b.k);
+    b.li.style.setProperty('--n', n);
+    /* Dónde vuelve cada caja en el móvil. */
+    b.marcas = b.cajas.map(function(c){
+      var m = document.createComment('');
+      c.parentNode.insertBefore(m, c);
+      return m;
+    });
+    lista.appendChild(b.li);
+    colocaBajo(b);
+    BAJOS = BAJOS.filter(function(x){ return x.li.isConnected; });
+    BAJOS.push(b);
   }
 
   /* El chat del paso de la contestación de la marca, para los dos lados.

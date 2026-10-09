@@ -3786,12 +3786,23 @@ body[data-vista="tramite"] #secTramites{display:none;}
    9-10-2026: «el cuadro tiene que ser más pequeño»). El nombre largo del
    archivo, que no parte, la estiraba hasta pisar el paso de al lado: ahora
    se corta con «…». */
-.tr-txt .imp-caja{max-width:280px; margin-left:auto; margin-right:auto; padding:9px 10px; box-sizing:border-box;}
-.tr-txt .imp-caja .imp-cuerpo{gap:6px;}
-.tr-txt .imp-caja .imp-archivo{padding:7px 8px; gap:8px; min-width:0;}
-.tr-txt .imp-caja .imp-ico{width:26px; height:31px; font-size:8.5px;}
-.tr-txt .imp-caja .imp-aviso{padding:6px 8px; font-weight:500;}
-.tr-txt .imp-caja .imp-cargar{width:100%; justify-content:center; padding:8px 10px; font-size:var(--fs-boton);}
+:is(.tr-txt, .tr-bajo) .imp-caja{max-width:280px; margin-left:auto; margin-right:auto; padding:9px 10px; box-sizing:border-box;}
+:is(.tr-txt, .tr-bajo) .imp-caja .imp-cuerpo{gap:6px;}
+:is(.tr-txt, .tr-bajo) .imp-caja .imp-archivo{padding:7px 8px; gap:8px; min-width:0;}
+:is(.tr-txt, .tr-bajo) .imp-caja .imp-ico{width:26px; height:31px; font-size:8.5px;}
+:is(.tr-txt, .tr-bajo) .imp-caja .imp-aviso{padding:6px 8px; font-weight:500;}
+:is(.tr-txt, .tr-bajo) .imp-caja .imp-cargar{width:100%; justify-content:center; padding:8px 10px; font-size:var(--fs-boton);}
+/* La caja del importe bajo la fila de su etapa, centrada en el punto de su
+   paso (bajoLaFila, Franklin Reyes, 9-10-2026: «que el anuncio quede
+   centrado a su etapa»). Las columnas de la escalera son iguales: el
+   centro del paso k de n está en (k - ½) / n del ancho. Sin salirse de la
+   fila por ningún lado. En el móvil está escondido: la caja vuelve a su
+   paso. */
+.tr-bajo{flex:0 0 100%; display:flex; flex-direction:column; gap:8px; box-sizing:border-box; min-width:0;}
+.tr-bajo[hidden]{display:none;}
+.tr-escalera .tr-bajo > *{width:280px; max-width:100%; box-sizing:border-box; margin-top:0; margin-right:auto;
+  margin-left:clamp(0px, calc((var(--k, 1) - .5) / var(--n, 1) * 100% - 140px), calc(100% - 280px));}
+.tr-paso:has(+ .tr-bajo)::before{display:none;}
 .imp-cuerpo{display:flex; flex-direction:column; gap:7px;}
 .imp-cuerpo:empty{display:none;}
 .imp-caja:has(.imp-cuerpo:empty){display:none;}
