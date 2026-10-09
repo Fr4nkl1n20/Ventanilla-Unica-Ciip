@@ -10193,12 +10193,21 @@
       var act = I.activo(tr('mc-c', 'ante_el_ente', p2));
       igual('marca: y el importe que toca es el de la FM-02, no el de la búsqueda', act && act.paso, 'fm02');
 
-      var p3 = hasta('pago_fm02'); p3.contestacion = hace(5); p3.sapi = hace(5);
+      /* Habilitada la contestación, la marca SE QUEDA en «Solicitud en
+         proceso» hasta que la devolución se resuelve (9-10-2026). */
+      var p3a = hasta('pago_fm02'); p3a.contestacion = hace(5);
+      var E3a = M.escalera(tr('mc-d0', 'ante_el_ente', p3a, {anuncio: 'Una empresa se opuso al registro.'}), 'marca');
+      igual('marca: habilitada la contestación, se queda en «Solicitud en proceso» mientras se resuelve',
+            E3a.ahora && E3a.ahora.clave, 'sapi');
+      igual('marca: y todavía no toca ningún importe', E3a.importeEnCurso || null, null);
+      igual('marca: el gestor lo cierra con «La devolución quedó resuelta»',
+            E3a.ahora && E3a.ahora.marcar, 'mc_g_resuelta');
+      var p3 = hasta('pago_fm02'); p3.contestacion = hace(5); p3.sapi = hace(4);
       var E3 = M.escalera(tr('mc-d', 'ante_el_ente', p3, {anuncio: 'Una empresa se opuso al registro.'}), 'marca');
       igual('marca: habilitada la contestación, sus dos pasos entran entre el SAPI y el registro',
             claves(E3).split(',').slice(5, 10).join(','),
             'pago_fm02,sapi,importe_contestacion,pago_contestacion,en_registro');
-      igual('marca: y el importe que toca es el de la contestación', E3.importeEnCurso, 'contestacion');
+      igual('marca: resuelta la devolución, el importe que toca es el de la contestación', E3.importeEnCurso, 'contestacion');
 
       var E4 = M.escalera(tr('mc-e', 'ante_el_ente', hasta('certificado')), 'marca');
       igual('marca: con el certificado enviado, toca retirar los originales', E4.ahora && E4.ahora.clave, 'retiro');
@@ -10243,6 +10252,11 @@
          !!an && !!an.querySelector('.mc-anuncio-chip') && !!an.querySelector('.mc-anuncio-f') &&
          !!an.querySelector('.mc-anuncio-ir') && !!con.querySelector('[data-chat="contestacion"]'),
          an ? an.textContent.slice(0, 90) : '(sin anuncio)', 'Respuesta del SAPI… Escribir al CIIP');
+      var dev = pintaEn(tr('mc-h0', 'ante_el_ente', p3a, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
+      var notaDev = dev.querySelector('li.tr-paso.ahora[data-paso="sapi"] .tr-nota');
+      igual('marca: mientras se resuelve, «Solicitud en proceso» en curso y dice que hable en el chat',
+            notaDev ? notaDev.textContent : '(sin nota)', (window.CIIP_PASOS.ui[curLang] || {}).mc_n_sapi_dev);
+      ok('marca: y el chat ya está abierto', !!dev.querySelector('[data-chat="contestacion"]'));
       ok('marca: y el paso del importe de la contestación está en curso',
          !!con.querySelector('li.tr-paso.ahora[data-paso="importe_contestacion"]'),
          (con.querySelector('li.tr-paso.ahora') || {getAttribute: function(){ return '(ninguno)'; }}).getAttribute('data-paso'),
@@ -10297,7 +10311,7 @@
         var d = JSON.parse(JSON.stringify(tSapi.datos));
         if (nombre === 'habilita_contestacion'){
           d.pasos_ciip.contestacion = new Date().toISOString();
-          d.pasos_ciip.sapi = d.pasos_ciip.sapi || new Date().toISOString();
+          delete d.pasos_ciip.sapi;
           d.anuncio = args.p_anuncio;
           d.anuncio_en = new Date().toISOString();
         }
@@ -10334,8 +10348,11 @@
       ok('marca: gestor, y la casilla queda diciendo que está habilitada, con el anuncio',
          !!ya && ya.textContent.indexOf('El SAPI devolvió la marca') > 0 && !c.querySelector('.mc-g-abre'),
          ya ? ya.textContent.slice(0, 70) : '(sin rehacer)', 'Contestación habilitada el…');
-      igual('marca: gestor, y el paso en curso pasa a ser el importe de la contestación',
-            c ? c.getAttribute('data-paso') : '(sin casilla)', 'importe_contestacion');
+      igual('marca: gestor, y se queda en «Solicitud en proceso» hasta que se resuelva',
+            c ? c.getAttribute('data-paso') : '(sin casilla)', 'sapi');
+      igual('marca: gestor, con el botón «La devolución quedó resuelta»',
+            c && (c.querySelector('.mc-g-marcar') || {}).textContent,
+            (window.CIIP_PASOS.ui[curLang] || {}).mc_g_resuelta);
     }
     MC_CAJAS.remove();
     MC_CAJAS = null;

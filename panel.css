@@ -5986,6 +5986,9 @@ body.editando-textos .ay-ld-det > details{display:block; margin-bottom:12px;}
   background:var(--bg); border:1px solid var(--line); border-left:4px solid var(--navy2);
   border-radius:var(--r-sm); padding:12px 14px;}
 .tr-chat .hilo{margin-top:0;}
+/* Si el chat no carga -la base sin supabase-chat-del-paso.sql-, pintaHilo
+   lo esconde; sin esto quedaba la tarjeta vacía en la casilla del gestor. */
+.tr-chat:has(> .hilo[hidden]){display:none;}
 .tr-chat-d{font-size:var(--fs-nota); line-height:1.5; color:var(--gray); margin:0 0 8px;}
 .tr-chat .hilo-lista{max-height:320px; overflow-y:auto;}
 .tr-paso:has(+ .tr-chat)::before{display:none;}

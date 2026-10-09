@@ -10003,8 +10003,11 @@ applyLang(idiomaParaMi());
      sigue-, el inversionista lo ve destacado en su trámite y le llega por
      la campana y por correo, y aparecen los dos pasos del importe de la
      contestación entre «Solicitud en proceso» y «Marca en proceso de
-     registro». Habilitarla da por cerrado «Solicitud en proceso ante el
-     SAPI»: el SAPI ya contestó, con una oposición o una devolución.
+     registro». La marca SE QUEDA en «Solicitud en proceso ante el SAPI»
+     mientras se resuelve -con el chat de la contestación abierto- y el
+     gestor la cierra con «La devolución quedó resuelta»; solo entonces
+     sigue el importe (Franklin Reyes, 9-10-2026: antes habilitarla daba
+     ese paso por cerrado y saltaba al importe).
 
      tipo de cada paso:
        revision  lo cierra el estado
@@ -10042,7 +10045,10 @@ applyLang(idiomaParaMi());
         {clave: 'solicitud', rotulo: 'mc_e2', pasos: [
           {clave: 'importe_fm02',          tipo: 'importe',  rotulo: 'mc_p_imp_fm02',         importe: 'fm02'},
           {clave: 'pago_fm02',             tipo: 'pago',     rotulo: 'mc_p_pago',             importe: 'fm02'},
-          {clave: 'sapi',                  tipo: 'ciip',     rotulo: 'mc_p_sapi',             espera: 'mc_n_sapi'},
+          /* conContestacion: con la contestación habilitada, la nota y el
+             botón del gestor dicen que se espera a que se resuelva. */
+          {clave: 'sapi',                  tipo: 'ciip',     rotulo: 'mc_p_sapi',             espera: 'mc_n_sapi',
+           conContestacion: {espera: 'mc_n_sapi_dev', marcar: 'mc_g_resuelta', ayuda: 'mc_g_resuelta_ayuda'}},
           {clave: 'importe_contestacion',  tipo: 'importe',  rotulo: 'mc_p_imp_contestacion', importe: 'contestacion', solo: 'contestacion'},
           {clave: 'pago_contestacion',     tipo: 'pago',     rotulo: 'mc_p_pago',             importe: 'contestacion', solo: 'contestacion'},
           {clave: 'en_registro',           tipo: 'ciip',     rotulo: 'mc_p_en_registro',      espera: 'mc_n_en_registro'}
@@ -10351,7 +10357,12 @@ applyLang(idiomaParaMi());
                     etapa: et.clave, cuando: P[p.clave] || null,
                     /* De qué depende que salga: el chat de la contestación
                        se pone en la etapa que lleva sus pasos. */
-                    solo: p.solo || null};
+                    solo: p.solo || null, marcar: null, ayuda: null};
+        if (p.conContestacion && P.contestacion){
+          paso.espera = p.conContestacion.espera || paso.espera;
+          paso.marcar = p.conContestacion.marcar || null;
+          paso.ayuda = p.conContestacion.ayuda || null;
+        }
         /* 'pagos': los comprobantes de varios importes en un solo paso -la
            licencia, «Comprobante del pago» con sus dos casillas-. Hecho
            cuando están todos; su fecha, la del último que llegó. */
@@ -10748,7 +10759,10 @@ applyLang(idiomaParaMi());
       var firmada = pasoFirmadaDe(def);
 
       if (cur && cur.tipo === 'ciip'){
-        var marcar = el('button', 'btn navy mc-g-marcar', u.mc_g_marcar || '');
+        /* Con la devolución o la oposición en curso, el botón dice qué
+           cierra: que quedó resuelta, y que entonces sigue el importe. */
+        if (cur.ayuda) caja.appendChild(el('div', 'tr-nota mc-g-ayuda', u[cur.ayuda] || ''));
+        var marcar = el('button', 'btn navy mc-g-marcar', u[cur.marcar || 'mc_g_marcar'] || '');
         marcar.type = 'button';
         marcar.addEventListener('click', function(){
           marcar.disabled = true;

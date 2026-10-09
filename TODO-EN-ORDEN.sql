@@ -11145,10 +11145,14 @@ end
 $marca$;
 
 -- La contestación: el gestor la habilita con un anuncio que explica qué
--- pasó. Da por cerrado «Solicitud en proceso ante el SAPI» -el SAPI ya
--- contestó- y abre los dos pasos del importe de la contestación. El
--- anuncio entra además en la conversación del expediente, que suena en la
--- campana del inversionista, y en los avisos por correo.
+-- pasó, y abre los dos pasos del importe de la contestación. La marca SE
+-- QUEDA en «Solicitud en proceso ante el SAPI» -si estaba marcado, se
+-- reabre- mientras se resuelve la devolución o la oposición; el gestor lo
+-- cierra con marca_paso_ciip('sapi') cuando queda resuelta, y solo
+-- entonces sigue el importe (Franklin Reyes, 9-10-2026; antes se daba por
+-- cerrado al habilitar). El anuncio entra además en el chat de la
+-- contestación, que suena en la campana del inversionista, y en los
+-- avisos por correo.
 alter table public.avisos drop constraint if exists avisos_motivo_valido;
 alter table public.avisos add constraint avisos_motivo_valido
   check (motivo in ('cambio_estado', 'documento_vence', 'anuncio'));
@@ -11176,10 +11180,8 @@ begin
   update public.tramites
      set datos = coalesce(datos, '{}'::jsonb)
                  || jsonb_build_object(
-                      'pasos_ciip', coalesce(datos -> 'pasos_ciip', '{}'::jsonb)
-                                    || jsonb_build_object('contestacion', ahora)
-                                    || jsonb_build_object('sapi',
-                                         coalesce(datos -> 'pasos_ciip' ->> 'sapi', ahora)),
+                      'pasos_ciip', (coalesce(datos -> 'pasos_ciip', '{}'::jsonb) - 'sapi')
+                                    || jsonb_build_object('contestacion', ahora),
                       'anuncio', texto,
                       'anuncio_en', ahora)
    where id = p_tramite

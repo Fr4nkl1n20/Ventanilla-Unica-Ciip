@@ -4885,6 +4885,16 @@ select public.habilita_contestacion((select id from arnes.escenario where clave 
   'El SAPI devolvió el registro: falta aclarar la clase.') is not null;
 
 select arnes.comprueba(
+  'contestación: habilitarla deja la marca en «Solicitud en proceso» hasta que se resuelva',
+  (select not ((datos -> 'pasos_ciip') ? 'sapi') and (datos -> 'pasos_ciip') ? 'contestacion'
+     from public.tramites where id = (select id from arnes.escenario where clave = 'chat_marca')));
+
+select arnes.comprueba(
+  'contestación: resuelta la devolución, el gestor cierra «Solicitud en proceso»',
+  (select (datos -> 'pasos_ciip') ? 'sapi'
+     from public.marca_paso_ciip((select id from arnes.escenario where clave = 'chat_marca'), 'sapi')));
+
+select arnes.comprueba(
   'chat del paso: el anuncio del gestor es su primer mensaje, del equipo',
   (select count(*) = 1 from public.tramite_mensajes
     where tramite = (select id from arnes.escenario where clave = 'chat_marca')
