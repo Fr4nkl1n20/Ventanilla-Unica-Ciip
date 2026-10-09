@@ -6003,12 +6003,4 @@ body.editando-textos .ay-ld-det > details{display:block; margin-bottom:12px;}
 .tr-en-chat > .tr-pest-chat{display:block;}
 .tr-pest-chat > .tr-chat{margin:0; border-left-width:1px; border-radius:12px; padding:16px 18px;}
 .tr-pest-chat .hilo-lista{max-height:min(60vh, 520px);}
-/* El aviso del gestor en el recuadro del paso del SAPI, con la piel de
-   la caja del importe (imp-caja, imp-t), a la izquierda y en letra de
-   nota, que la columna del paso es estrecha. */
-.mc-anuncio-paso{text-align:left;}
-.mc-anuncio-paso .mc-anuncio-d{font-size:var(--fs-nota);}
-/* Bordes rojos mientras el paso espera la solución (Franklin Reyes,
-   9-10-2026). */
-.mc-anuncio-paso.espera{border-color:var(--rust);}
 @media(max-width:640px){ .tr-paso:has(+ .tr-chat){padding-bottom:6px;} .tr-chat{padding:10px 12px;} }

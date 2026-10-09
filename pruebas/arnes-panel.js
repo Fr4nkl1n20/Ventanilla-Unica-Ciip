@@ -10243,12 +10243,11 @@
       ok('marca: y no dice nada de un PUB ni de la reserva del nombre',
          !/PUB|reserva/i.test(sin.textContent), sin.textContent.slice(0, 60), 'sin PUB');
       var con = pintaEn(tr('mc-h', 'ante_el_ente', p3, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
-      var an = con.querySelector('li.tr-paso[data-paso="sapi"] .mc-anuncio-paso');
-      ok('marca: habilitada, el anuncio va en el recuadro del paso del SAPI, no arriba',
-         !!an && !con.querySelector('.mc-anuncio') &&
-         an.textContent.indexOf('Una empresa se opuso al registro.') > 0,
+      var an = con.querySelector('.mc-anuncio');
+      ok('marca: habilitada, el anuncio sale solo arriba, encima de las pestañas',
+         !!an && an.nextElementSibling && an.nextElementSibling.classList.contains('tr-pest') &&
+         con.textContent.split('Una empresa se opuso al registro.').length === 2,
          an ? an.textContent.slice(0, 70) : '(sin anuncio)', 'Aviso del CIIP… Una empresa se opuso…');
-      ok('marca: con su fecha y sin botón', !!an && !!an.querySelector('.sd-e') && !an.querySelector('button'));
       var pes = con.querySelectorAll('.tr-pest .tr-pest-b');
       ok('marca: el chat va en su pestaña, con el trámite elegido al entrar',
          pes.length === 2 && pes[0].classList.contains('on') && !con.classList.contains('tr-en-chat') &&
@@ -10259,12 +10258,10 @@
          con.classList.contains('tr-en-chat') && pes[1].classList.contains('on'), con.className, 'tr-en-chat');
       if (pes[0]) pes[0].click();
       var dev = pintaEn(tr('mc-h0', 'ante_el_ente', p3a, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
-      var notaDev = dev.querySelector('li.tr-paso.ahora[data-paso="sapi"] .tr-nota');
-      igual('marca: mientras se resuelve, «Solicitud en proceso» en curso y dice que hable en el chat',
-            notaDev ? notaDev.textContent : '(sin nota)', (window.CIIP_PASOS.ui[curLang] || {}).mc_n_sapi_dev);
+      ok('marca: mientras se resuelve, «Solicitud en proceso» en curso y sin nota propia',
+         !!dev.querySelector('li.tr-paso.ahora[data-paso="sapi"]') &&
+         !dev.querySelector('li.tr-paso[data-paso="sapi"] .tr-nota'));
       ok('marca: y el chat ya está abierto', !!dev.querySelector('[data-chat="contestacion"]'));
-      ok('marca: mientras espera la solución, el recuadro del aviso va en rojo',
-         !!dev.querySelector('li.tr-paso.ahora[data-paso="sapi"] .mc-anuncio-paso.espera'));
       ok('marca: y el paso del importe de la contestación está en curso',
          !!con.querySelector('li.tr-paso.ahora[data-paso="importe_contestacion"]'),
          (con.querySelector('li.tr-paso.ahora') || {getAttribute: function(){ return '(ninguno)'; }}).getAttribute('data-paso'),

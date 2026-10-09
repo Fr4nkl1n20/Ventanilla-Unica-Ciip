@@ -2348,7 +2348,6 @@ window.CIIP_PASOS = {
       mc_g_contestar: "Habilitar la contestación",
       mc_g_contestar_ayuda: "Solo si el SAPI devolvió la marca o alguien se opuso al registro. Escribe el anuncio que verá el inversionista: qué pasó y qué sigue.",
       /* La devolución, en «Solicitud en proceso» hasta resolverse (9-10-2026). */
-      mc_n_sapi_dev: "El SAPI devolvió la solicitud o alguien se opuso al registro. Tu gestor lo está resolviendo: escríbele en el chat de la contestación. Cuando quede resuelto, seguirá el importe de la contestación.",
       mc_g_resuelta: "La devolución quedó resuelta",
       mc_g_resuelta_ayuda: "La marca sigue aquí mientras se resuelve la devolución o la oposición. Cuando quede resuelta, márcalo: entonces sigue el importe de la contestación.",
       mc_g_anuncio_ph: "Anuncio para el inversionista",
@@ -4182,7 +4181,6 @@ window.CIIP_PASOS = {
       mc_g_contestar: "Enable the response",
       mc_g_contestar_ayuda: "Only if SAPI returned the trade mark or someone opposed the registration. Write the notice the investor will see: what happened and what comes next.",
       /* La devolución, en «Solicitud en proceso» hasta resolverse (9-10-2026). */
-      mc_n_sapi_dev: "SAPI returned the application or someone opposed the registration. Your case manager is resolving it: write to them in the response chat. Once it is resolved, the response fee comes next.",
       mc_g_resuelta: "The return has been resolved",
       mc_g_resuelta_ayuda: "The trade mark stays here while the return or opposition is resolved. Once it is resolved, mark it: the response fee comes next.",
       mc_g_anuncio_ph: "Notice for the investor",
@@ -5997,7 +5995,6 @@ window.CIIP_PASOS = {
       mc_g_contestar: "Ativar a contestação",
       mc_g_contestar_ayuda: "Só se o SAPI devolveu a marca ou alguém se opôs ao registo. Escreva o aviso que o investidor vai ver: o que aconteceu e o que se segue.",
       /* La devolución, en «Solicitud en proceso» hasta resolverse (9-10-2026). */
-      mc_n_sapi_dev: "O SAPI devolveu o pedido ou alguém se opôs ao registo. O seu gestor está a resolvê-lo: escreva-lhe no chat da contestação. Quando ficar resolvido, segue-se a guia da contestação.",
       mc_g_resuelta: "A devolução ficou resolvida",
       mc_g_resuelta_ayuda: "A marca fica aqui enquanto se resolve a devolução ou a oposição. Quando ficar resolvida, marque-o: segue-se a guia da contestação.",
       mc_g_anuncio_ph: "Aviso para o investidor",
@@ -7812,7 +7809,6 @@ window.CIIP_PASOS = {
       mc_g_contestar: "Abilita la risposta",
       mc_g_contestar_ayuda: "Solo se il SAPI ha restituito il marchio o qualcuno si è opposto alla registrazione. Scrivi l'avviso che vedrà l'investitore: cosa è successo e cosa segue.",
       /* La devolución, en «Solicitud en proceso» hasta resolverse (9-10-2026). */
-      mc_n_sapi_dev: "Il SAPI ha restituito la domanda o qualcuno si è opposto alla registrazione. Il tuo gestore la sta risolvendo: scrivigli nella chat della risposta. Una volta risolta, seguirà l’importo della risposta.",
       mc_g_resuelta: "La restituzione è stata risolta",
       mc_g_resuelta_ayuda: "Il marchio resta qui mentre si risolve la restituzione o l’opposizione. Una volta risolta, segnalo: poi segue l’importo della risposta.",
       mc_g_anuncio_ph: "Avviso per l'investitore",
@@ -9627,7 +9623,6 @@ window.CIIP_PASOS = {
       mc_g_contestar: "开启答辩",
       mc_g_contestar_ayuda: "仅在 SAPI 退回商标或有人对注册提出异议时使用。写下投资者将看到的通知：发生了什么、接下来怎么办。",
       /* La devolución, en «Solicitud en proceso» hasta resolverse (9-10-2026). */
-      mc_n_sapi_dev: "SAPI 退回了申请，或有人对注册提出异议。你的专员正在处理：请在答辩聊天中给他留言。处理完毕后，将进入答辩缴费。",
       mc_g_resuelta: "退回已解决",
       mc_g_resuelta_ayuda: "在退回或异议解决之前，商标停留在此步骤。解决后请标记：随后进入答辩缴费。",
       mc_g_anuncio_ph: "给投资者的通知",
@@ -11442,7 +11437,6 @@ window.CIIP_PASOS = {
       mc_g_contestar: "Открыть ответ",
       mc_g_contestar_ayuda: "Только если SAPI вернул знак или кто-то возразил против регистрации. Напишите сообщение для инвестора: что произошло и что дальше.",
       /* La devolución, en «Solicitud en proceso» hasta resolverse (9-10-2026). */
-      mc_n_sapi_dev: "SAPI вернул заявку или кто-то возразил против регистрации. Ваш менеджер решает этот вопрос: напишите ему в чате по ответу. Когда вопрос будет решён, последует оплата ответа.",
       mc_g_resuelta: "Возврат урегулирован",
       mc_g_resuelta_ayuda: "Знак остаётся на этом шаге, пока решается возврат или возражение. Когда вопрос решён, отметьте это: затем последует оплата ответа.",
       mc_g_anuncio_ph: "Сообщение для инвестора",
@@ -13272,7 +13266,6 @@ window.CIIP_PASOS = {
       mc_g_contestar: "Activer la réponse",
       mc_g_contestar_ayuda: "Uniquement si le SAPI a renvoyé la marque ou si un tiers s’est opposé à l’enregistrement. Rédigez l’avis que verra l’investisseur : ce qui s’est passé et la suite.",
       /* La devolución, en «Solicitud en proceso» hasta resolverse (9-10-2026). */
-      mc_n_sapi_dev: "Le SAPI a renvoyé la demande ou un tiers s’est opposé à l’enregistrement. Votre gestionnaire s’en occupe : écrivez-lui dans le chat de la réponse. Une fois réglé, viendra le montant de la réponse.",
       mc_g_resuelta: "Le renvoi est réglé",
       mc_g_resuelta_ayuda: "La marque reste ici pendant que le renvoi ou l’opposition se règle. Une fois réglé, marquez-le : vient ensuite le montant de la réponse.",
       mc_g_anuncio_ph: "Avis pour l’investisseur",
@@ -15102,7 +15095,6 @@ window.CIIP_PASOS = {
       mc_g_contestar: "応答を有効にする",
       mc_g_contestar_ayuda: "SAPIが商標を差し戻した場合、または第三者が登録に異議を申し立てた場合のみ。投資家に表示するお知らせ（何が起きたか、次に何をするか）を入力してください。",
       /* La devolución, en «Solicitud en proceso» hasta resolverse (9-10-2026). */
-      mc_n_sapi_dev: "SAPIが出願を差し戻したか、第三者が登録に異議を申し立てました。担当者が対応中です。応答チャットでご連絡ください。解決後、応答の料金に進みます。",
       mc_g_resuelta: "差し戻しは解決済み",
       mc_g_resuelta_ayuda: "差し戻しまたは異議が解決するまで、商標はこのステップに留まります。解決したらマークしてください。その後、応答の料金に進みます。",
       mc_g_anuncio_ph: "投資家へのお知らせ",

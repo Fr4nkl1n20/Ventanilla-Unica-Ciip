@@ -10045,10 +10045,12 @@ applyLang(idiomaParaMi());
         {clave: 'solicitud', rotulo: 'mc_e2', pasos: [
           {clave: 'importe_fm02',          tipo: 'importe',  rotulo: 'mc_p_imp_fm02',         importe: 'fm02'},
           {clave: 'pago_fm02',             tipo: 'pago',     rotulo: 'mc_p_pago',             importe: 'fm02'},
-          /* conContestacion: con la contestación habilitada, la nota y el
-             botón del gestor dicen que se espera a que se resuelva. */
+          /* conContestacion: con la contestación habilitada, el botón del
+             gestor dice que se espera a que se resuelva. Y el paso, sin
+             nota: lo que pasó lo cuenta el aviso de arriba (Franklin Reyes,
+             9-10-2026: «y este también quítalo»). */
           {clave: 'sapi',                  tipo: 'ciip',     rotulo: 'mc_p_sapi',             espera: 'mc_n_sapi',
-           conContestacion: {espera: 'mc_n_sapi_dev', marcar: 'mc_g_resuelta', ayuda: 'mc_g_resuelta_ayuda'}},
+           conContestacion: {espera: null, marcar: 'mc_g_resuelta', ayuda: 'mc_g_resuelta_ayuda'}},
           {clave: 'importe_contestacion',  tipo: 'importe',  rotulo: 'mc_p_imp_contestacion', importe: 'contestacion', solo: 'contestacion'},
           {clave: 'pago_contestacion',     tipo: 'pago',     rotulo: 'mc_p_pago',             importe: 'contestacion', solo: 'contestacion'},
           {clave: 'en_registro',           tipo: 'ciip',     rotulo: 'mc_p_en_registro',      espera: 'mc_n_en_registro'}
@@ -10359,7 +10361,7 @@ applyLang(idiomaParaMi());
                        se pone en la etapa que lleva sus pasos. */
                     solo: p.solo || null, marcar: null, ayuda: null};
         if (p.conContestacion && P.contestacion){
-          paso.espera = p.conContestacion.espera || paso.espera;
+          paso.espera = ('espera' in p.conContestacion) ? p.conContestacion.espera : paso.espera;
           paso.marcar = p.conContestacion.marcar || null;
           paso.ayuda = p.conContestacion.ayuda || null;
         }
@@ -10499,11 +10501,12 @@ applyLang(idiomaParaMi());
        cambió en su trámite y lo que tiene que leer primero. */
     /* Tarjeta blanca con filo azul, del ancho de la del trámite (maqueta 3
        de aviso-de-la-marca-cuatro, Franklin Reyes, 9-10-2026): título y
-       fecha en una fila, y el texto. La de la marca con contestación no
-       sale aquí: va en el recuadro de su paso del SAPI (más abajo). */
-    var anuncioEnElPaso = !!(E.anuncio && E.contestacion);
+       fecha en una fila, y el texto. Es el ÚNICO sitio donde sale: ni en
+       el paso del SAPI ni con nota propia (Franklin Reyes, 9-10-2026: «que
+       el anuncio de devolución salga solo aquí arriba»). Con chat, encima
+       de las pestañas, para que se lea en las dos. */
     var tituloAnuncio = u[((ESCALERA_POR_ETAPAS[E.codigo] || {}).textos || {}).anuncio || 'mc_anuncio_t'] || '';
-    if (E.anuncio && cajaTr && !anuncioEnElPaso){
+    if (E.anuncio && cajaTr){
       var an = el('div', 'mc-anuncio');
       an.setAttribute('role', 'status');
       var anCab = el('div', 'mc-anuncio-cab');
@@ -10512,7 +10515,7 @@ applyLang(idiomaParaMi());
         String(u.mc_anuncio_f || '').replace('{fecha}', fecha(E.anuncioEn))));
       an.appendChild(anCab);
       an.appendChild(el('div', 'mc-anuncio-d', E.anuncio));
-      cajaTr.insertBefore(an, lista);
+      cajaTr.insertBefore(an, cajaTr.querySelector(':scope > .tr-pest') || lista);
     }
 
     var papelesPide = null;
@@ -10649,22 +10652,6 @@ applyLang(idiomaParaMi());
           if (desde) eti.appendChild(el('span', 'tr-desde',
             String(u.ns_desde_paso || '').replace('{cuando}', haceCuanto(desde))));
           txt.appendChild(eti);
-        }
-        /* El aviso del gestor cuando el SAPI devuelve o alguien se opone:
-           dentro del paso «Solicitud en proceso ante el SAPI», en su
-           recuadro como el del importe, y no arriba (Franklin Reyes,
-           9-10-2026). Sin botón: el chat se abre con su pestaña. */
-        if (anuncioEnElPaso && paso.clave === 'sapi'){
-          /* En rojo mientras se espera la solución; resuelto, el de siempre. */
-          var cajaAn = el('div', 'imp-caja mc-anuncio-paso' + (paso.ahora ? ' espera' : ''));
-          cajaAn.setAttribute('role', 'status');
-          var cuerpoAn = el('div', 'imp-cuerpo');
-          cuerpoAn.appendChild(el('div', 'imp-t', tituloAnuncio));
-          cuerpoAn.appendChild(el('div', 'mc-anuncio-d', E.anuncio));
-          if (E.anuncioEn) cuerpoAn.appendChild(el('div', 'sd-e',
-            String(u.mc_anuncio_f || '').replace('{fecha}', fecha(E.anuncioEn))));
-          cajaAn.appendChild(cuerpoAn);
-          txt.appendChild(cajaAn);
         }
         li.appendChild(punto); li.appendChild(txt);
         lista.appendChild(li);
