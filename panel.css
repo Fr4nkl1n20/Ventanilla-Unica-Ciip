@@ -3806,7 +3806,10 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .imp-cuerpo{display:flex; flex-direction:column; gap:7px;}
 .imp-cuerpo:empty{display:none;}
 .imp-caja:has(.imp-cuerpo:empty){display:none;}
-.imp-t{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--mudo);}
+/* Centrado y en la tinta del texto, no en gris (Franklin Reyes, 9-10-2026:
+   «centra el título y colócalo en negrita»): en gris el 700 se leía fino. */
+.imp-t{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--ink);
+  text-align:center;}
 .imp-fila{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
 .imp-n{font-size:var(--fs-nota); font-weight:600; color:var(--ink);}
 .imp-monto{font-size:var(--fs-valor); font-weight:700; color:var(--ink);}
