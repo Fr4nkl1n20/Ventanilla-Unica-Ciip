@@ -10243,6 +10243,11 @@
          sin.querySelector('[data-paso="importe_contestacion"]') ? 'sale el paso' : 'no sale', 'no sale');
       ok('marca: y no dice nada de un PUB ni de la reserva del nombre',
          !/PUB|reserva/i.test(sin.textContent), sin.textContent.slice(0, 60), 'sin PUB');
+      /* Sin devolución, «Solicitud en proceso» dice lo que pasa (Franklin
+         Reyes, 9-10-2026); con ella no, lo cuenta el aviso (más abajo). */
+      var notaSapi = sin.querySelector('li.tr-paso.ahora[data-paso="sapi"] .tr-nota');
+      igual('marca: sin devolución, «Solicitud en proceso» lleva su mensaje',
+            notaSapi ? notaSapi.textContent : '(sin nota)', window.CIIP_T().mc_n_sapi);
       var con = pintaEn(tr('mc-h', 'ante_el_ente', p3, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
       var an = con.querySelector('.mc-anuncio');
       ok('marca: habilitada, el anuncio sale solo arriba, encima de las pestañas',
@@ -10257,6 +10262,8 @@
       var anIr = an && an.querySelector('.mc-anuncio-ir');
       if (anIr) anIr.click();
       var pes = con.querySelectorAll('.tr-pest .tr-pest-b');
+      ok('marca: en la pestaña del chat no sale el aviso',
+         !!an && an.matches('.tr-en-chat > .mc-anuncio'));
       ok('marca: «Escribir al CIIP» abre la pestaña del chat',
          con.classList.contains('tr-en-chat') && pes.length === 2 && pes[1].classList.contains('on'),
          con.className, 'tr-en-chat');
