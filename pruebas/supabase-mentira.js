@@ -2633,8 +2633,19 @@
       /* El historial se pide por tramite. Sin filtrar, un tramite recien
          enviado heredaria los eventos de otro y su escalera saldria con
          fechas que no son suyas. */
-      var evs = EVENTOS[caso] || [];
+      /* Y los que ponga la prueba en window.__EVENTOS_EXTRA: la ficha de una
+         persona del equipo necesita movimientos CON AUTOR y con nota para
+         tener algo que desplegar (13-10-2026), y los de arriba no traen
+         autor. Solo mientras dura esa prueba. */
+      var evs = (EVENTOS[caso] || []).concat(window.__EVENTOS_EXTRA || []);
       if (op && op.eq && op.eq.tramite){
+        /* Se apunta cada trámite cuyo historial se pide uno a uno: así se
+           prueba que la ficha no pide nada hasta desplegar una fila. Y uno
+           puede fallar, si la prueba lo nombra en __FALLA_EVENTOS_DE. */
+        (window.CIIP_MENTIRA_EVENTOS_PEDIDOS = window.CIIP_MENTIRA_EVENTOS_PEDIDOS || []).push(op.eq.tramite);
+        if (window.__FALLA_EVENTOS_DE && window.__FALLA_EVENTOS_DE === op.eq.tramite){
+          return {data:null, error:{message:'la red se cayó', code:'08006'}};
+        }
         evs = evs.filter(function(e){ return e.tramite === op.eq.tramite; });
       }
       /* Y por VARIOS a la vez: "cuanto lleva parado cada uno" pide el

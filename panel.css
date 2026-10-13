@@ -684,6 +684,123 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .eq-tardo.pasa{background:var(--rust-bg); color:var(--rust);} .eq-tardo.ok{background:var(--good-bg); color:var(--good);}
 .eq-f-vacio{padding:26px 18px; text-align:center; color:var(--gray); font-size:var(--fs-fila);}
 
+/* ── EL DETALLE DE CADA TRÁMITE (Franklin Reyes, 13-10-2026) ──
+   «Quiero poder tener más detalles de los trámites realizados por
+   usuario»: cada fila de «Sus solicitudes» y del «Historial» se despliega
+   con su chevrón -o pulsando la fila- y enseña el trámite entero. Y en
+   «Esperando», solo el tiempo: «se pasó» ya no se escribe a la vista. El
+   color de aviso se queda como la señal y la palabra la lee el lector de
+   pantalla (.visualmente-oculto), así que aquí el color va solo a la vista
+   a propósito: lo pidió así, y la tarjeta «Se pasaron» de arriba los
+   cuenta con su número.
+
+   Sin pastillas y sin «…»: el estado y el nombre del trámite parten de
+   línea en vez de cortarse, y las notas salen enteras, con sus saltos. */
+.eq-sols .mt-est{align-items:flex-start;}
+.eq-sols .mt-est svg{margin-top:1px;}
+.eq-sols .mt-est > span{white-space:normal; overflow:visible; text-overflow:clip; overflow-wrap:anywhere;}
+.eq-sols .nm{display:block; overflow-wrap:anywhere;}
+.eq-sols .mt-espera{white-space:nowrap;}
+.eq-sols th.eq-c-ch, .eq-sols td.eq-c-ch{width:1%; padding-left:4px; padding-right:14px; text-align:right;}
+.eq-sols tr.plegable{cursor:pointer;}
+.eq-sols tr.plegable:hover > td{background:var(--block);}
+.eq-sols tr.plegable.abierta > td{background:var(--block); border-bottom-color:transparent;}
+.eq-sols tr.eq-det-fila > td{padding:0 14px 14px; background:var(--block); border-bottom:1px solid var(--line);}
+.eq-ev.plegable{grid-template-columns:44px 26px minmax(0, 1fr) auto; cursor:pointer; border-radius:10px;
+  margin:0 -8px; padding:7px 8px;}
+.eq-ev.plegable:hover, .eq-ev.plegable.abierta{background:var(--block);}
+.eq-ev.plegable.abierta{border-radius:10px 10px 0 0;}
+.eq-hist .eq-det-fila{background:var(--block); margin:0 -8px 6px; padding:0 8px 10px; border-radius:0 0 10px 10px;}
+/* El chevrón: un botón de verdad, con su borde fino, que gira al abrir. */
+.eq-plegar{width:30px; height:30px; flex:none; display:inline-flex; align-items:center; justify-content:center;
+  padding:0; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--gray); cursor:pointer;
+  font:inherit;}
+.eq-plegar:hover{color:var(--navy2); border-color:var(--navy2);}
+.eq-plegar:focus-visible{outline:2px solid var(--navy2); outline-offset:2px;}
+.eq-plegar svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2.2;
+  stroke-linecap:round; stroke-linejoin:round; transition:transform .15s ease;}
+.eq-plegar[aria-expanded="true"]{color:var(--navy2); border-color:var(--navy2);}
+.eq-plegar[aria-expanded="true"] svg{transform:rotate(180deg);}
+@media (prefers-reduced-motion: reduce){ .eq-plegar svg{transition:none;} }
+.eq-ev .eq-plegar{align-self:start;}
+
+/* La tarjeta del detalle, blanca sobre el gris de la fila abierta. */
+.eq-det{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px;
+  font-size:var(--fs-nota); line-height:1.55; color:var(--ink); cursor:auto; min-width:0;}
+.eq-det-datos{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px 18px; margin:0;}
+.eq-det-datos > div{min-width:0;}
+.eq-det-datos dt, .eq-det-t{font-size:var(--fs-chip); font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+  color:var(--gray);}
+.eq-det-datos dd{margin:3px 0 0; font-size:var(--fs-valor); font-weight:500; line-height:1.4; overflow-wrap:anywhere;
+  font-variant-numeric:tabular-nums;}
+.eq-det-t{margin:14px 0 8px; padding-top:12px; border-top:1px solid var(--line-soft);}
+.eq-det-fechas{display:grid; grid-template-columns:max-content minmax(0, 1fr); gap:5px 16px; margin:0;}
+.eq-det-fechas dt{color:var(--gray);}
+.eq-det-fechas dd{margin:0; font-weight:600; font-variant-numeric:tabular-nums; overflow-wrap:anywhere;}
+/* La línea de tiempo: un punto por cambio de estado, unidos por un hilo. */
+.eq-lt{list-style:none; margin:0; padding:0;}
+.eq-lt-i{position:relative; padding:0 0 12px 22px; min-width:0;}
+.eq-lt-i::before{content:""; position:absolute; left:1px; top:4px; width:8px; height:8px; border-radius:50%;
+  border:2px solid var(--navy2); background:var(--bg);}
+.eq-lt-i::after{content:""; position:absolute; left:6px; top:17px; bottom:1px; width:2px; background:var(--line);}
+.eq-lt-i:last-child{padding-bottom:0;}
+.eq-lt-i:last-child::after{display:none;}
+.eq-lt-i.good::before{border-color:var(--good);}
+.eq-lt-i.rust::before{border-color:var(--rust);}
+.eq-lt-i.gris::before{border-color:var(--gray-soft);}
+.eq-lt-c{display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 8px; min-width:0;}
+.eq-lt-e{font-size:var(--fs-fila); font-weight:700; color:var(--navy2);}
+.eq-lt-i.good .eq-lt-e{color:var(--good);} .eq-lt-i.rust .eq-lt-e{color:var(--rust);}
+.eq-lt-i.gris .eq-lt-e{color:var(--gray);}
+.eq-lt-f{color:var(--gray); font-variant-numeric:tabular-nums;}
+.eq-lt-q{color:var(--ink); font-weight:600; overflow-wrap:anywhere;}
+.eq-lt-q::before{content:"·"; color:var(--gray-soft); margin-right:8px;}
+/* Lo que hizo la persona de la ficha, en su azul. */
+.eq-lt-i.suyo .eq-lt-q{color:var(--navy2); font-weight:700;}
+.eq-lt-nota{margin:5px 0 0; padding:2px 0 2px 10px; border-left:2px solid var(--line); color:var(--ink);
+  white-space:pre-wrap; overflow-wrap:anywhere;}
+.eq-lt-i.rust .eq-lt-nota{border-left-color:var(--rust);}
+.eq-det-aviso{color:var(--gray); margin-bottom:8px;}
+.eq-det-aviso.mal{color:var(--rust);}
+.eq-det-aviso.mal > span{margin-right:8px;}
+.eq-det-otra{font:inherit; font-weight:700; color:var(--navy2); background:none; border:0; padding:0; cursor:pointer;
+  text-decoration:underline; text-underline-offset:2px;}
+.eq-det-otra:focus-visible{outline:2px solid var(--navy2); outline-offset:2px; border-radius:4px;}
+.eq-det-pie{display:flex; justify-content:flex-end; margin-top:14px; padding-top:12px; border-top:1px solid var(--line-soft);}
+.eq-det-ir{display:inline-flex; align-items:center; gap:8px; font-size:var(--fs-boton); font-weight:700; color:var(--navy2);
+  text-decoration:none; padding:8px 12px; border:1px solid var(--line); border-radius:8px; background:var(--bg);}
+.eq-det-ir:hover{border-color:var(--navy2); text-decoration:none;}
+.eq-det-ir:focus-visible{outline:2px solid var(--navy2); outline-offset:2px;}
+
+/* En el teléfono la tabla pasa a filas apiladas: el trámite arriba, con su
+   chevrón al lado, y debajo el estado y lo que lleva esperando, con su
+   rótulo, que la cabecera ya no se ve. Así nada rueda de lado a 390 px. */
+@media (max-width:560px){
+  .eq-f-cab{padding:16px 14px 13px;}
+  .eq-cifras{padding:12px 14px;}
+  .eq-pest{padding:0 14px; flex-wrap:wrap;}
+  .eq-hist{padding:4px 14px 14px;}
+  .eq-sols thead{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+    clip:rect(0 0 0 0); white-space:nowrap; border:0;}
+  .eq-sols, .eq-sols tbody{display:block;}
+  .eq-sols tr.eq-fila{display:grid; grid-template-columns:minmax(0, 1fr) auto; column-gap:12px; row-gap:6px;
+    padding:12px 14px; border-bottom:1px solid var(--line-soft);}
+  .eq-sols tr.eq-fila > td{display:block; padding:0; border:0; background:none;}
+  .eq-sols tr.plegable:hover, .eq-sols tr.plegable.abierta{background:var(--block);}
+  .eq-sols tr.plegable:hover > td, .eq-sols tr.plegable.abierta > td{background:none;}
+  .eq-sols tr.plegable.abierta{border-bottom-color:transparent;}
+  .eq-sols td.eq-c-tr{grid-column:1; grid-row:1;}
+  .eq-sols td.eq-c-ch{grid-column:2; grid-row:1 / span 3; width:auto; padding:0;}
+  .eq-sols td.eq-c-es, .eq-sols td.mt-espera{grid-column:1;}
+  .eq-sols td.mt-espera.vacia{display:none;}
+  .eq-sols td.mt-espera::before{content:attr(data-r); font-size:var(--fs-chip); font-weight:700; letter-spacing:.04em;
+    text-transform:uppercase; color:var(--gray); margin-right:8px;}
+  .eq-sols tr.eq-det-fila{display:block;}
+  .eq-sols tr.eq-det-fila > td{display:block; padding:0 10px 12px;}
+  .eq-det{padding:12px;}
+  .eq-ev.plegable{grid-template-columns:38px 26px minmax(0, 1fr) auto; gap:6px;}
+}
+
 /* Las cinco cifras de arriba, como las tarjetas .stat de Atlas (idea 1 de
    maquetas/control-estadisticas-atlas.html, 2-10-2026; antes, una sola
    tira partida en cinco, la idea C del 28-9-2026): cada una suelta, con la

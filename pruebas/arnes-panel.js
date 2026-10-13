@@ -400,6 +400,11 @@
               nuevaVersionMira, guardaCatalogo,
               rastroAbre, rastroMira, rastroQaMira,
               equipoAbre, equipoMira, equipoFichaMira, equipoCierraMira,
+              /* La ficha de cada persona: sin «se pasó» y con el detalle de
+                 cada trámite al desplegar su fila (13-10-2026). */
+              equipoDetSiembra, eqdPaso(equipoDetMira), eqdPaso(equipoDetDesplegado),
+              eqdPaso(equipoDetFalla), eqdPaso(equipoDetReintenta), eqdPaso(equipoDetHistMira),
+              equipoDetAbreTramite,
               controlAbre, controlMineroMira, controlMira, controlTrasAnadir, controlTrasMover,
               controlTrasGuardar, controlTrasQuitar, controlOtroSector, controlSqlViejo,
               rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
@@ -18430,6 +18435,346 @@
     location.hash = '';
   }
 
+  /* ── LA FICHA DE CADA PERSONA, CON EL DETALLE DE CADA TRÁMITE ──
+     Franklin Reyes, 13-10-2026: «Quiero poder tener más detalles de los
+     trámites realizados por usuario, y en el tiempo, donde dice que se
+     pasó, quitarlo y dejar solo el tiempo que lleva». Se siembran tres
+     trámites de Saskia (u4) con su historia entera -cada movimiento con su
+     autor, y una devolución con su nota larga, de dos párrafos- y se mira:
+
+       · que «se pasó» ya no sale a la vista y el tiempo sigue en su color;
+       · que no se pide ninguna historia hasta desplegar, y al desplegar
+         UNA, la de ese trámite;
+       · lo que enseña: inversionista, empresa, organismo, fechas, la línea
+         de tiempo con sus autores y la nota entera, y el enlace;
+       · que lo desplegado sobrevive al repintado sin volver a pedirlo;
+       · que un fallo lo dice en su fila y no rompe lo demás;
+       · el historial, con lo que hizo ella en ese trámite;
+       · y que «Abrir el trámite» abre ESE trámite en la cola.
+
+     Las marcas salen de la siembra: e1 esperó 12 h la primera vez y 48 h
+     la segunda, y e3 9 h, así que Saskia «contesta en» 23 h. e1 lleva 52 h
+     en revisión -se pasó- y e2 lleva 10 h -no-. */
+  var EQD_ANTES = null;
+  var EQD_NOTA = 'El comprobante del capital social está ilegible y el acta no trae la firma del comisario.\n' +
+                 'Vuelve a subir el comprobante escaneado a color, con las cuatro esquinas a la vista, y el acta ' +
+                 'firmada por todos los accionistas y por el comisario. Sin eso el SENIAT no recibe la inscripción.';
+  function eqdH(h){ return new Date(Date.now() - h * 3600000).toISOString(); }
+  /* Las historias pedidas una a una, de los trámites sembrados. */
+  function eqdPedidos(){
+    return (window.CIIP_MENTIRA_EVENTOS_PEDIDOS || []).filter(function(id){ return /^e[123]$/.test(id); }).join(',');
+  }
+  function eqdBoton(clave){ return document.querySelector('#eqFicha .eq-plegar[data-eq-k="' + clave + '"]'); }
+  function eqdDetalle(clave){
+    var b = eqdBoton(clave);
+    return b ? document.getElementById(b.getAttribute('aria-controls')) : null;
+  }
+  /* El texto que se VE: sin lo que solo oye el lector de pantalla. */
+  function eqdALaVista(caja){
+    var tx = [];
+    (function anda(n){
+      if (n.nodeType === 3){ tx.push(n.nodeValue); return; }
+      if (n.nodeType !== 1 || n.classList.contains('visualmente-oculto') || n.hidden) return;
+      [].forEach.call(n.childNodes, anda);
+    })(caja);
+    return tx.join(' ');
+  }
+  /* Cada paso, con su retrollamada: así en los otros quince pases, donde
+     no hay administrador y no corren, no cuestan el medio segundo de la
+     cadena cada uno. Una excepción se apunta como fallo y la cadena sigue,
+     una sola vez. */
+  function eqdPaso(fn){
+    return function(sigue){
+      if (!ES_ADMIN || !EQD_ANTES) return sigue();
+      try { fn(); }
+      catch(e){ ok('ficha: el paso ' + (fn.name || '') + ' llega al final', false, 'EXCEPCION: ' + e.message, 'sin excepciones'); }
+      setTimeout(sigue, 300);
+    };
+  }
+  /* El color de un token, como lo pinta el navegador. */
+  function eqdColor(token){
+    var s = document.createElement('span');
+    s.style.color = 'var(' + token + ')';
+    document.getElementById('eqFicha').appendChild(s);
+    var c = getComputedStyle(s).color;
+    s.parentNode.removeChild(s);
+    return c;
+  }
+
+  function equipoDetSiembra(sigue){
+    if (!ES_ADMIN || !window.CIIP_DOBLE) return sigue();
+    EQD_ANTES = window.CIIP_DOBLE.cola();
+    window.CIIP_DOBLE.ponCola([
+      {id:'e1', inversionista:'u2', tipo:'rif_empresa', estado:'en_revision', gestor:'u4',
+       datos:{razon_social:'Bianchi Agroindustrias, C.A.', rif_empresa:'J-40123456-7'},
+       creado_en:eqdH(150), enviado_en:eqdH(149)},
+      {id:'e2', inversionista:'u3', tipo:'constitucion', estado:'enviado', gestor:'u4',
+       datos:{denominacion:'Calderón & Asociados Logística Integral del Caribe Oriental, C.A.'},
+       creado_en:eqdH(12), enviado_en:eqdH(10)},
+      {id:'e3', inversionista:'u2', tipo:'rif_personal', estado:'resuelto', gestor:'u4',
+       datos:{}, creado_en:eqdH(100), enviado_en:eqdH(99), resuelto_en:eqdH(30)}
+    ]);
+    window.__EVENTOS_EXTRA = [
+      {id:901, tramite:'e1', de_estado:null, a_estado:'borrador', nota:'', autor:'u2', creado_en:eqdH(150)},
+      {id:902, tramite:'e1', de_estado:'borrador', a_estado:'enviado', nota:'', autor:'u2', creado_en:eqdH(149)},
+      {id:903, tramite:'e1', de_estado:'enviado', a_estado:'en_revision', nota:'', autor:'u4', creado_en:eqdH(137)},
+      {id:904, tramite:'e1', de_estado:'en_revision', a_estado:'devuelto', nota:EQD_NOTA, autor:'u4', creado_en:eqdH(120)},
+      {id:905, tramite:'e1', de_estado:'devuelto', a_estado:'enviado', nota:'', autor:'u2', creado_en:eqdH(100)},
+      {id:906, tramite:'e1', de_estado:'enviado', a_estado:'en_revision', nota:'', autor:'u4', creado_en:eqdH(52)},
+      {id:911, tramite:'e2', de_estado:null, a_estado:'borrador', nota:'', autor:'u3', creado_en:eqdH(12)},
+      {id:912, tramite:'e2', de_estado:'borrador', a_estado:'enviado', nota:'', autor:'u3', creado_en:eqdH(10)},
+      {id:921, tramite:'e3', de_estado:null, a_estado:'borrador', nota:'', autor:'u2', creado_en:eqdH(100)},
+      {id:922, tramite:'e3', de_estado:'borrador', a_estado:'enviado', nota:'', autor:'u2', creado_en:eqdH(99)},
+      {id:923, tramite:'e3', de_estado:'enviado', a_estado:'en_revision', nota:'', autor:'u4', creado_en:eqdH(90)},
+      {id:924, tramite:'e3', de_estado:'en_revision', a_estado:'ante_el_ente', nota:'', autor:'u4', creado_en:eqdH(60)},
+      {id:925, tramite:'e3', de_estado:'ante_el_ente', a_estado:'resuelto', nota:'', autor:'u4', creado_en:eqdH(30)}
+    ];
+    location.hash = 'equipo';
+    var n = 0;
+    (function mira(){
+      var c = document.querySelector('#eqTarjetas .eq-tj[data-k="u4"] .eq-tj-c .n');
+      if ((!c || c.textContent !== '2') && ++n <= 100) return setTimeout(mira, 50);
+      var ent = document.querySelector('#ceNav .ay-ld-it[data-sec="equipo"]');
+      if (ent) ent.click();
+      /* Lo pedido se cuenta desde AQUÍ: abrir la ficha no pide nada. */
+      window.CIIP_MENTIRA_EVENTOS_PEDIDOS = [];
+      var tj = document.querySelector('#eqTarjetas .eq-tj[data-k="u4"]');
+      if (tj) tj.click();
+      setTimeout(sigue, 200);
+    })();
+  }
+
+  function equipoDetMira(){
+    if (!ES_ADMIN || !EQD_ANTES) return;
+    var U = ceU();
+    var caj = document.getElementById('eqCajon');
+    ok('ficha: se abre la de Saskia, en «Sus solicitudes», con sus dos trámites',
+       !!caj && !caj.hidden && !!eqdBoton('sols|e1') && !!eqdBoton('sols|e2'),
+       caj && !caj.hidden ? (eqdBoton('sols|e1') ? 'con e1' : 'sin e1') : 'cerrada', 'abierta, con e1 y e2');
+    var f1 = eqdBoton('sols|e1') && eqdBoton('sols|e1').closest('tr');
+    var f2 = eqdBoton('sols|e2') && eqdBoton('sols|e2').closest('tr');
+    if (!f1 || !f2) return;
+
+    /* «SE PASÓ», FUERA DE LA VISTA. */
+    var tabla = document.querySelector('#eqFicha .eq-sols');
+    var vista = eqdALaVista(tabla);
+    ok('ficha: «se pasó» ya no sale a la vista en «Esperando»',
+       vista.indexOf(U.mt_sepaso) < 0 && !tabla.querySelector('.mt-espera-d'),
+       vista.indexOf(U.mt_sepaso) >= 0 ? 'dice «' + U.mt_sepaso + '»' : 'sin la palabra', 'solo el tiempo');
+    var v1 = f1.querySelector('.mt-espera .mt-espera-v'), v2 = f2.querySelector('.mt-espera .mt-espera-v');
+    var rust = eqdColor('--rust');
+    ok('ficha: y el tiempo de la que se pasó de su marca sigue en el color de aviso, el de la que no, no',
+       !!v1 && !!v2 && getComputedStyle(v1).color === rust && getComputedStyle(v2).color !== rust &&
+       f1.querySelector('.mt-espera').classList.contains('pasa'),
+       (v1 ? getComputedStyle(v1).color : '(sin tiempo)') + ' / ' + (v2 ? getComputedStyle(v2).color : '(sin tiempo)'),
+       rust + ' / otro');
+    var oido = f1.querySelector('.mt-espera .visualmente-oculto');
+    ok('ficha: la palabra se queda solo para el lector de pantalla',
+       !!oido && oido.textContent.indexOf(U.mt_sepaso) >= 0,
+       oido ? oido.textContent : '(nada)', U.mt_sepaso);
+
+    /* CADA FILA, CON SU BOTÓN DE VERDAD, Y NADA PEDIDO TODAVÍA. */
+    var bs = document.querySelectorAll('#eqFicha .eq-plegar');
+    var malos = [].filter.call(bs, function(b){
+      var d = document.getElementById(b.getAttribute('aria-controls'));
+      return b.tagName !== 'BUTTON' || b.type !== 'button' || b.getAttribute('aria-expanded') !== 'false' ||
+             !b.getAttribute('aria-label') || !d || !d.closest('[hidden]');
+    });
+    ok('ficha: cada fila lleva su chevrón, un botón con aria-expanded, plegado al abrir',
+       bs.length === 2 && !malos.length, bs.length + ' botones, ' + malos.length + ' mal', '2 botones, 0 mal');
+    igual('ficha: no se pide la historia de ningún trámite hasta desplegar su fila', eqdPedidos(), '');
+    /* Se despliega pulsando la FILA, no el chevrón: el nombre del trámite. */
+    f1.querySelector('.eq-c-tr').click();
+  }
+
+  function equipoDetDesplegado(){
+    if (!ES_ADMIN || !EQD_ANTES) return;
+    var U = ceU();
+    var b = eqdBoton('sols|e1'), det = eqdDetalle('sols|e1');
+    ok('ficha: pulsar la fila la despliega, y su chevrón lo dice',
+       !!b && b.getAttribute('aria-expanded') === 'true' && !!det && !!det.offsetParent,
+       b ? b.getAttribute('aria-expanded') : '(sin botón)', 'true');
+    igual('ficha: al desplegar se pide la historia de ESE trámite, una vez', eqdPedidos(), 'e1');
+    if (!det) return;
+    var tx = det.textContent;
+    ok('ficha: el detalle dice quién lo pidió, para qué empresa y ante qué organismo',
+       tx.indexOf('Marta Bianchi') >= 0 && tx.indexOf('Bianchi Agroindustrias, C.A.') >= 0 && tx.indexOf('SENIAT') >= 0 &&
+       tx.indexOf(U.cb_inversionista) >= 0 && tx.indexOf(U.eq_det_empresa) >= 0 && tx.indexOf(U.mt_c_ente) >= 0,
+       tx.slice(0, 120), 'Marta Bianchi, Bianchi Agroindustrias, SENIAT');
+    var rot = [].map.call(det.querySelectorAll('.eq-det-datos dt'), function(x){ return x.textContent; });
+    ok('ficha: y cuánto lleva en este estado y desde que se envió',
+       rot.indexOf(U.eq_det_eneste) >= 0 && rot.indexOf(U.eq_det_total) >= 0, rot.join(' | '),
+       U.eq_det_eneste + ' y ' + U.eq_det_total);
+    var fechas = [].map.call(det.querySelectorAll('.eq-det-fechas dt'), function(x){ return x.textContent; });
+    var vacias = [].filter.call(det.querySelectorAll('.eq-det-fechas dd'), function(x){ return !/\d/.test(x.textContent); });
+    igual('ficha: las fechas clave: creada, enviada, en revisión y devuelta, cada una con su día',
+          fechas.join(' | ') + (vacias.length ? ' (vacías: ' + vacias.length + ')' : ''),
+          [U.eq_det_creada, U.eq_det_enviada, U.pu_e_revision, U.eq_det_devuelta].join(' | '));
+    var lineas = det.querySelectorAll('.eq-lt');
+    var pasos = det.querySelectorAll('.eq-lt > li');
+    igual('ficha: la línea de tiempo entera, un punto por cambio de estado',
+          lineas.length + ' línea, ' + pasos.length + ' cambios', '1 línea, 6 cambios');
+    var quien = [].map.call(det.querySelectorAll('.eq-lt-q'), function(x){ return x.textContent; });
+    igual('ficha: cada cambio con quién lo hizo',
+          quien.join(', '), 'Marta Bianchi, Marta Bianchi, Saskia Calderon, Saskia Calderon, Marta Bianchi, Saskia Calderon');
+    var nota = det.querySelector('.eq-lt-nota');
+    ok('ficha: la nota de la devolución, entera, con su salto de línea y sin «…»',
+       !!nota && nota.textContent === EQD_NOTA && getComputedStyle(nota).whiteSpace === 'pre-wrap' &&
+       getComputedStyle(nota).textOverflow !== 'ellipsis' && nota.scrollHeight <= nota.clientHeight + 1,
+       nota ? nota.textContent.length + ' caracteres, ' + getComputedStyle(nota).whiteSpace : '(sin nota)',
+       EQD_NOTA.length + ' caracteres, pre-wrap');
+    var ir = det.querySelector('a.eq-det-ir');
+    ok('ficha: y el enlace «Abrir el trámite», que lleva a la cola',
+       !!ir && ir.textContent.indexOf(U.mt_c_abrir) >= 0 && ir.getAttribute('href') === '#poratender',
+       ir ? ir.textContent + ' → ' + ir.getAttribute('href') : '(sin enlace)', U.mt_c_abrir + ' → #poratender');
+
+    /* EL REPINTADO -el de cada minuto, el de cambiar de idioma- NO LO
+       PLIEGA NI LO VUELVE A PEDIR. */
+    window.CIIP_REPINTA_EQUIPO();
+    var b2 = eqdBoton('sols|e1'), det2 = eqdDetalle('sols|e1');
+    ok('ficha: lo desplegado sigue desplegado después de repintar',
+       !!b2 && b2 !== b && b2.getAttribute('aria-expanded') === 'true' && !!det2 && !!det2.offsetParent &&
+       det2.querySelectorAll('.eq-lt > li').length === 6,
+       b2 ? b2.getAttribute('aria-expanded') + ', ' + (det2 ? det2.querySelectorAll('.eq-lt > li').length : 0) + ' cambios' : '(sin botón)',
+       'true, 6 cambios');
+    var antes = curLang;
+    applyLang('en');
+    var enU = (window.CIIP_PASOS && window.CIIP_PASOS.ui && window.CIIP_PASOS.ui.en) || {};
+    var tEn = eqdDetalle('sols|e1') && eqdDetalle('sols|e1').querySelector('.eq-det-t');
+    var tEnTx = tEn ? tEn.textContent : '(nada)';
+    applyLang(antes);
+    ok('ficha: y al cambiar de idioma también, con sus textos en el idioma nuevo',
+       tEnTx === enU.eq_det_fechas && !!enU.eq_det_fechas && enU.eq_det_fechas !== U.eq_det_fechas,
+       tEnTx, enU.eq_det_fechas);
+    igual('ficha: sin volver a pedir la historia', eqdPedidos(), 'e1');
+
+    /* Y la otra, con la base fallando. */
+    window.__FALLA_EVENTOS_DE = 'e2';
+    var b3 = eqdBoton('sols|e2');
+    if (b3) b3.click();
+  }
+
+  function equipoDetFalla(){
+    if (!ES_ADMIN || !EQD_ANTES) return;
+    var U = ceU();
+    var det = eqdDetalle('sols|e2');
+    var aviso = det && det.querySelector('.eq-det-aviso.mal');
+    ok('ficha: si la historia no llega, la fila lo dice, con su botón para reintentar',
+       !!aviso && aviso.textContent.indexOf(U.eq_det_fallo) >= 0 && !!aviso.querySelector('button.eq-det-otra'),
+       aviso ? aviso.textContent : '(sin aviso)', U.eq_det_fallo);
+    var tx = det ? det.textContent : '';
+    ok('ficha: y enseña igual lo que ya se sabe: quién, la empresa, las fechas de la solicitud y el enlace',
+       tx.indexOf(U.co_sinnombre) >= 0 && tx.indexOf('Calderón & Asociados') >= 0 &&
+       !!det.querySelector('.eq-det-fechas') && !!det.querySelector('a.eq-det-ir'),
+       tx.slice(0, 100), 'sin nombre, Calderón & Asociados, fechas y enlace');
+    var det1 = eqdDetalle('sols|e1');
+    ok('ficha: sin romper nada: la otra fila sigue desplegada con su línea de tiempo',
+       !!det1 && !!det1.offsetParent && det1.querySelectorAll('.eq-lt > li').length === 6 &&
+       document.querySelectorAll('#eqFicha .eq-sols tr.eq-fila').length === 2,
+       det1 ? det1.querySelectorAll('.eq-lt > li').length + ' cambios' : '(no está)', '6 cambios');
+    window.__FALLA_EVENTOS_DE = null;
+    var otra = aviso && aviso.querySelector('button.eq-det-otra');
+    if (otra) otra.click();
+  }
+
+  function equipoDetReintenta(){
+    if (!ES_ADMIN || !EQD_ANTES) return;
+    var det = eqdDetalle('sols|e2');
+    ok('ficha: «Intentar de nuevo» la trae, y el aviso se va',
+       !!det && det.querySelectorAll('.eq-lt > li').length === 2 && !det.querySelector('.eq-det-aviso.mal'),
+       det ? det.querySelectorAll('.eq-lt > li').length + ' cambios' : '(no está)', '2 cambios, sin aviso');
+    igual('ficha: con una consulta más, la de ese trámite', eqdPedidos(), 'e1,e2,e2');
+
+    /* EL HISTORIAL. */
+    var pest = document.querySelectorAll('#eqFicha .eq-pest button');
+    if (pest[1]) pest[1].click();
+    var U = ceU();
+    var filas = document.querySelectorAll('#eqFicha .eq-hist .eq-ev.plegable');
+    igual('historial: cada movimiento de un trámite se despliega', filas.length, 6);
+    var tarde = document.querySelector('#eqFicha .eq-hist .eq-tardo.pasa');
+    ok('historial: «tardó» sin «se pasó» a la vista, y en el color de aviso',
+       !!tarde && eqdALaVista(tarde).indexOf(U.mt_sepaso) < 0 && getComputedStyle(tarde).color === eqdColor('--rust') &&
+       String((tarde.querySelector('.visualmente-oculto') || {}).textContent || '').indexOf(U.mt_sepaso) >= 0,
+       tarde ? eqdALaVista(tarde) : '(ninguno)', String(U.eq_tardo || '').replace('{t}', '…'));
+    var b = [].filter.call(document.querySelectorAll('#eqFicha .eq-hist .eq-plegar'), function(x){
+      return /^hist\|e3\|resuelto\|/.test(x.getAttribute('data-eq-k'));
+    })[0];
+    ok('historial: el «Resolvió» de e3 tiene su chevrón', !!b, b ? 'sí' : 'no', 'sí');
+    if (b) b.click();
+  }
+
+  function equipoDetHistMira(){
+    if (!ES_ADMIN || !EQD_ANTES) return;
+    var U = ceU();
+    var b = [].filter.call(document.querySelectorAll('#eqFicha .eq-hist .eq-plegar'), function(x){
+      return /^hist\|e3\|resuelto\|/.test(x.getAttribute('data-eq-k'));
+    })[0];
+    var det = b && document.getElementById(b.getAttribute('aria-controls'));
+    ok('historial: el movimiento se despliega', !!det && !!det.offsetParent && b.getAttribute('aria-expanded') === 'true',
+       b ? b.getAttribute('aria-expanded') : '(sin botón)', 'true');
+    if (!det) return;
+    var titulos = [].map.call(det.querySelectorAll('.eq-det-t'), function(x){ return x.textContent; });
+    var hizo = String(U.eq_det_hizo || '').replace('{nombre}', 'Saskia Calderon');
+    ok('historial: con lo que hizo ELLA en ese trámite, antes de la línea entera',
+       titulos.indexOf(hizo) >= 0 && titulos.indexOf(hizo) < titulos.indexOf(U.eq_det_linea),
+       titulos.join(' | '), hizo + ' … ' + U.eq_det_linea);
+    var lineas = det.querySelectorAll('.eq-lt');
+    var suyos = lineas[0] ? [].map.call(lineas[0].querySelectorAll('.eq-lt-e'), function(x){ return x.textContent; }) : [];
+    igual('historial: sus tres movimientos -revisión, ante el ente, resuelto-, sin repetir su nombre en cada uno',
+          suyos.join(', ') + (lineas[0] && lineas[0].querySelector('.eq-lt-q') ? ' (con nombre)' : ''),
+          [U.pu_e_revision, U.pu_e_ante, U.pu_e_resuelto].join(', '));
+    igual('historial: y la línea entera, con los cinco cambios del trámite',
+          lineas[1] ? lineas[1].querySelectorAll('li').length : 0, 5);
+    ok('historial: los suyos, señalados en la línea entera',
+       !!lineas[1] && lineas[1].querySelectorAll('li.suyo').length === 3,
+       lineas[1] ? lineas[1].querySelectorAll('li.suyo').length : 0, 3);
+    var ir = det.querySelector('a.eq-det-ir');
+    igual('historial: un resuelto no está en la cola: su enlace lleva a «Mis trámites»',
+          ir ? ir.getAttribute('href') : '(sin enlace)', '#tramites');
+    var rot = [].map.call(det.querySelectorAll('.eq-det-datos dt'), function(x){ return x.textContent; });
+    ok('historial: de un resuelto, el tiempo total y no «en este estado»',
+       rot.indexOf(U.eq_det_duro) >= 0 && rot.indexOf(U.eq_det_eneste) < 0, rot.join(' | '), U.eq_det_duro);
+    igual('historial: pedida al desplegarla, una vez', eqdPedidos(), 'e1,e2,e2,e3');
+    /* De vuelta a «Sus solicitudes»: lo desplegado allí sigue. */
+    var pest = document.querySelectorAll('#eqFicha .eq-pest button');
+    if (pest[0]) pest[0].click();
+    var det1 = eqdDetalle('sols|e1');
+    ok('ficha: al volver de pestaña, lo desplegado sigue desplegado',
+       !!det1 && !!det1.offsetParent, det1 && det1.offsetParent ? 'desplegado' : 'plegado', 'desplegado');
+  }
+
+  function equipoDetAbreTramite(sigue){
+    if (!ES_ADMIN || !EQD_ANTES) return sigue();
+    var det = eqdDetalle('sols|e1');
+    var ir = det && det.querySelector('a.eq-det-ir');
+    var v = document.getElementById('paVisor');
+    function acaba(){
+      if (v && !v.hidden) hoyEscape();
+      window.CIIP_DOBLE.ponCola(EQD_ANTES);
+      EQD_ANTES = null;
+      window.__EVENTOS_EXTRA = null;
+      window.__FALLA_EVENTOS_DE = null;
+      window.CIIP_VISOR_DE = null;
+      if (window.CIIP_PINTA_PORATENDER) window.CIIP_PINTA_PORATENDER();
+      location.hash = '';
+      setTimeout(sigue, 300);
+    }
+    if (!ir){ ok('ficha: «Abrir el trámite» abre ESE trámite', false, 'sin enlace', 'enlace'); return acaba(); }
+    ir.click();
+    var n = 0;
+    (function mira(){
+      if ((!v || v.hidden) && ++n <= 80) return setTimeout(mira, 40);
+      var caj = document.getElementById('eqCajon');
+      ok('ficha: «Abrir el trámite» lleva a la cola y cierra el cajón',
+         document.body.getAttribute('data-vista') === 'poratender' && !!caj && caj.hidden,
+         document.body.getAttribute('data-vista') + (caj && caj.hidden ? ', cajón cerrado' : ', cajón abierto'),
+         'poratender, cajón cerrado');
+      igual('ficha: y abre la ficha de ESE trámite, no la cola sin nada',
+            v && !v.hidden ? String(v.getAttribute('data-doc') || '').split(':')[0] : '(visor cerrado)', 'e1');
+      acaba();
+    })();
+  }
+
   /* ── CONTROL Y ESTADÍSTICAS ──
      Franklin Reyes, 1-10-2026: «Equipo» pasa a llamarse «Control y
      Estadísticas», lo de antes se queda y debajo van el conteo por
@@ -19185,10 +19530,46 @@
           if (window.CIIP_REPINTA_CONTROL) window.CIIP_REPINTA_CONTROL();
           setTimeout(function(){
             apunta('el repintado no mueve la página', window.scrollY === y, 'de ' + y + ' a ' + window.scrollY, y);
-            manda();
+            fichaDesplegada(manda);
           }, 900);
         }, 900);
       }, 900);
+    }
+
+    /* 5 · La ficha de una persona, con una fila desplegada (13-10-2026):
+       cabe en su cajón a cada ancho -a 390 px la tabla pasa a filas
+       apiladas-, sin rodar de lado ni cortar nada con «…». La cabecera de
+       la tabla, escondida en el teléfono, no cuenta: está recortada a un
+       píxel a propósito. */
+    function fichaDesplegada(fin){
+      var ent = document.querySelector('#ceNav .ay-ld-it[data-sec="equipo"]');
+      if (ent) ent.click();
+      var tj = document.querySelector('#eqTarjetas .eq-tj[data-k="u4"]') ||
+               document.querySelector('#eqTarjetas .eq-tj:not([data-k=""])');
+      if (!tj){ apunta('la ficha de una persona se abre', false, 'sin tarjeta', 'abierta'); return fin(); }
+      tj.click();
+      var b = document.querySelector('#eqFicha .eq-plegar');
+      if (b) b.click();
+      setTimeout(function(){
+        var caj = document.getElementById('eqCajon'), cr = caj.getBoundingClientRect();
+        var mal = [];
+        if (caj.scrollWidth > caj.clientWidth + 1) mal.push('el cajón mide ' + caj.scrollWidth + ' de ' + caj.clientWidth);
+        [].forEach.call(caj.querySelectorAll('*'), function(n){
+          if (!visible(n) || n.closest('.visualmente-oculto')) return;
+          var cab = n.closest('thead');
+          if (cab && cab.getBoundingClientRect().width <= 1) return;
+          var r = n.getBoundingClientRect();
+          if (r.left < cr.left - 0.5 || r.right > cr.right + 0.5) mal.push(nombre(n) + ' ' + Math.round(r.left) + '–' + Math.round(r.right) + ' de ' + Math.round(cr.left) + '–' + Math.round(cr.right));
+          var cs = getComputedStyle(n);
+          if (cs.textOverflow === 'ellipsis' || (!!cs.webkitLineClamp && cs.webkitLineClamp !== 'none')) mal.push(nombre(n) + ' con «…»');
+          if (cs.overflowX !== 'visible' && n !== caj && n.scrollWidth > n.clientWidth + 1) mal.push(nombre(n) + ' rueda de lado');
+        });
+        var det = document.querySelector('#eqFicha .eq-det-fila:not([hidden]) .eq-det');
+        apunta('la ficha de una persona, con una fila desplegada, cabe en su cajón sin rodar de lado ni cortar nada',
+               !!det && !mal.length, det ? (mal.slice(0, 4).join(' | ') || 'cabe') : 'sin fila desplegada', 'cabe');
+        document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
+        fin();
+      }, 600);
     }
   }
 

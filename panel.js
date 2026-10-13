@@ -33866,6 +33866,19 @@ applyLang(idiomaParaMi());
   var eqDatos  = null;
   var eqAlDiaEn = null;
   var eqAbierto = null, eqPestana = 'sols', eqVuelta = null;
+  /* LO DESPLEGADO Y LO TRAÍDO (Franklin Reyes, 13-10-2026: «quiero poder
+     tener más detalles de los trámites realizados por usuario»). Cada fila
+     de «Sus solicitudes» y del «Historial» se despliega y enseña el
+     trámite entero: quién lo pidió y para qué empresa, sus fechas, la línea
+     de tiempo con quién movió qué y sus notas, y el camino para abrirlo.
+
+     eqAbiertas guarda las filas desplegadas por su clave (eqClaveFila), y
+     eqDetalle lo que se trajo de cada trámite, por su id. Las dos viven
+     aquí fuera y no en el DOM: la ficha se repinta cada minuto y al cambiar
+     de idioma, y lo desplegado tiene que seguir desplegado -y sin volver a
+     pedirlo- después de cada repintado. Se vacían al abrir la ficha de
+     otra persona: es otra conversación. */
+  var eqAbiertas = {}, eqDetalle = {}, eqSerie = 0;
   var EQ_DIA = 86400000;
   /* Lo que le toca al CIIP mover: sin dueño, esto es lo que hay que
      repartir. Un borrador no -es del inversionista y nadie lo toma- y un
@@ -34155,9 +34168,15 @@ applyLang(idiomaParaMi());
     eqFrase(caja, u[def.clave], datos);
     if (corta) return caja;
     if (ev.tardo !== null && ev.tardo !== undefined){
-      var tx = String(u.eq_tardo || '').replace('{t}', enHoras(ev.tardo));
-      if (ev.pasa) tx += ' · ' + (u.mt_sepaso || '');
-      caja.appendChild(el('span', 'eq-tardo ' + (ev.pasa ? 'pasa' : 'ok'), tx));
+      /* Solo el tiempo, sin «· se pasó» (Franklin Reyes, 13-10-2026:
+         «donde dice que se pasó, quitarlo y dejar solo el tiempo que
+         lleva»). El color de aviso se queda como la señal, y la palabra
+         sigue ahí para quien lo oye con un lector de pantalla, que el
+         color no lo ve. */
+      var tardo = el('span', 'eq-tardo ' + (ev.pasa ? 'pasa' : 'ok'),
+                     String(u.eq_tardo || '').replace('{t}', enHoras(ev.tardo)));
+      if (ev.pasa) tardo.appendChild(el('span', 'visualmente-oculto', ', ' + (u.mt_sepaso || '')));
+      caja.appendChild(tardo);
     }
     if (ev.nota) caja.appendChild(el('span', 'nota', '«' + ev.nota + '»'));
     return caja;
@@ -34166,6 +34185,8 @@ applyLang(idiomaParaMi());
   function abreFichaEquipo(k){
     eqAbierto = k;
     eqPestana = 'sols';
+    eqAbiertas = {};
+    eqDetalle = {};
     pintaFichaEquipo();
     document.getElementById('eqVelo').hidden = false;
     var caj = document.getElementById('eqCajon');
@@ -34186,9 +34207,28 @@ applyLang(idiomaParaMi());
     if (vuelta) vuelta.focus();
   }
 
+  /* Repintar la ficha no mueve a quien la lee: se guardan el desplazamiento
+     del cajón y el botón que tenía el foco, y se devuelven. Antes se rehacía
+     entera y volvía arriba, y con una línea de tiempo desplegada a medio
+     leer el refresco de cada minuto le subía la página a quien leía. */
   function pintaFichaEquipo(){
     var caja = document.getElementById('eqFicha');
     if (!caja) return;
+    var caj = document.getElementById('eqCajon');
+    var y = caj ? caj.scrollTop : 0;
+    var a = document.activeElement;
+    var kFoco = (a && caj && caj.contains(a) && a.getAttribute) ? a.getAttribute('data-eq-k') : null;
+    pintaFichaDentro(caja);
+    if (!caj || caj.hidden) return;
+    caj.scrollTop = y;
+    if (!kFoco) return;
+    var vuelta = [].filter.call(caja.querySelectorAll('[data-eq-k]'), function(b){
+      return b.getAttribute('data-eq-k') === kFoco;
+    })[0];
+    if (vuelta){ try { vuelta.focus({preventScroll: true}); } catch(e){ vuelta.focus(); } }
+  }
+
+  function pintaFichaDentro(caja){
     var u = T();
     var p = eqPersona(eqAbierto);
     caja.textContent = '';
@@ -34241,6 +34281,8 @@ applyLang(idiomaParaMi());
       b.type = 'button';
       b.setAttribute('role', 'tab');
       b.setAttribute('aria-selected', eqPestana === clave ? 'true' : 'false');
+      /* Con su clave, para que el foco vuelva a ella al repintar. */
+      b.setAttribute('data-eq-k', 'pest|' + clave);
       b.appendChild(document.createTextNode(rotulo));
       b.appendChild(el('span', 'n', String(n)));
       b.addEventListener('click', function(){ eqPestana = clave; pintaFichaEquipo(); });
@@ -34256,29 +34298,57 @@ applyLang(idiomaParaMi());
       var tabla = el('table', 'eq-sols');
       var hr = el('tr');
       [u.mt_c_tramite, u.mt_c_estado, u.mt_c_espera].forEach(function(r){ hr.appendChild(el('th', null, r || '')); });
+      /* La columna de los chevrones lleva rótulo, pero no a la vista:
+         «Detalle» encima de una columna de flechas sobra a los ojos, y una
+         columna sin nombre se queda muda para quien la oye. */
+      var thD = el('th', 'eq-c-ch');
+      thD.appendChild(el('span', 'visualmente-oculto', u.eq_det || ''));
+      hr.appendChild(thD);
       var th = el('thead'); th.appendChild(hr); tabla.appendChild(th);
       var tb = el('tbody');
       p.sols.forEach(function(s){
         var t = s.t, ref = tipoRefDe(t.tipo);
         var ente = ((TIPOS || {})[ref] || {}).ente || '';
-        var tr = el('tr');
-        var c1 = el('td');
-        c1.appendChild(el('span', 'nm', ref ? nombreDeTarjeta(ref) : (t.tipo || '')));
+        var nombreT = ref ? nombreDeTarjeta(ref) : (t.tipo || '');
+        var tr = el('tr', 'eq-fila');
+        var c1 = el('td', 'eq-c-tr');
+        c1.appendChild(el('span', 'nm', nombreT));
         c1.appendChild(el('span', 'mt-sub', eqDatos.nombres[t.inversionista] || u.co_sinnombre || ''));
         tr.appendChild(c1);
-        var c2 = el('td');
+        var c2 = el('td', 'eq-c-es');
         c2.appendChild(estadoMt(t.estado, chipDeTramite(t.estado, ente, ref).txt));
         tr.appendChild(c2);
         var c3 = el('td', 'mt-espera');
-        if (s.espera === null) c3.appendChild(el('span', 'mt-nada', '–'));
-        else {
+        /* El rótulo va también en la celda: en el teléfono la tabla pasa a
+           filas apiladas, sin cabecera a la vista, y «4 d 22 h» solo no
+           dice de qué es. */
+        c3.setAttribute('data-r', u.mt_c_espera || '');
+        if (s.espera === null){
+          c3.className += ' vacia';
+          c3.appendChild(el('span', 'mt-nada', '–'));
+        } else {
           var pasa = !p.k || (p.marca !== null && s.espera > p.marca);
           if (pasa) c3.className += ' pasa';
           c3.appendChild(el('b', 'mt-espera-v', enHoras(s.espera)));
-          if (pasa) c3.appendChild(el('span', 'mt-espera-d', p.k ? (u.mt_sepaso || '') : (u.mt_sintomar || '')));
+          /* Solo el tiempo que lleva (Franklin Reyes, 13-10-2026: «donde
+             dice que se pasó, quitarlo y dejar solo el tiempo que lleva»).
+             El tiempo sigue en el color de aviso cuando se pasó de su
+             marca -la tarjeta «Se pasaron» de arriba los cuenta- y la
+             palabra se queda para el lector de pantalla, que no ve el
+             color. En «Sin dueño» la palabra era «sin tomar»: lo mismo. */
+          if (pasa) c3.appendChild(el('span', 'visualmente-oculto',
+            ', ' + (p.k ? (u.mt_sepaso || '') : (u.mt_sintomar || ''))));
         }
         tr.appendChild(c3);
+        var c4 = el('td', 'eq-c-ch');
+        tr.appendChild(c4);
+        var trD = el('tr', 'eq-det-fila');
+        var tdD = el('td');
+        tdD.colSpan = 4;
+        trD.appendChild(tdD);
+        eqPlegable(tr, c4, trD, tdD, eqClaveFila('sols', t), {t: t, p: p, hist: false, nombre: nombreT});
         tb.appendChild(tr);
+        tb.appendChild(trD);
       });
       tabla.appendChild(tb);
       caja.appendChild(tabla);
@@ -34299,8 +34369,346 @@ applyLang(idiomaParaMi());
       fila.appendChild(i);
       fila.appendChild(eqTextoEvento(el('span', 'x'), ev, u, false));
       hist.appendChild(fila);
+      /* Un movimiento de un TRÁMITE se despliega; validar o rechazar un
+         papel no, que no es de ningún trámite en concreto: un mismo papel
+         de la bóveda va en varios. */
+      var t = ev.tramite;
+      if (!t || !t.id) return;
+      var ref = tipoRefDe(t.tipo);
+      var det = el('div', 'eq-det-fila');
+      hist.appendChild(det);
+      eqPlegable(fila, fila, det, det, eqClaveFila('hist', t, ev),
+                 {t: t, p: p, hist: true, nombre: ref ? nombreDeTarjeta(ref) : (t.tipo || '')});
     });
     caja.appendChild(hist);
+  }
+
+  /* ── EL DETALLE DE CADA TRÁMITE ───────────────────────────────────────
+     Franklin Reyes, 13-10-2026: «quiero poder tener más detalles de los
+     trámites realizados por usuario, y en el tiempo». Sale todo de lo que
+     la base ya guarda, sin una columna nueva:
+
+       · quién lo pidió:         tramites.inversionista, con su nombre;
+       · para qué empresa:       la razón social escrita en la solicitud
+                                 (tramites.datos), o la denominación en una
+                                 constitución;
+       · ante qué organismo:     el ente del catálogo;
+       · las fechas:             creado_en, enviado_en y resuelto_en de la
+                                 solicitud, y el resto de tramite_eventos;
+       · la línea de tiempo:     tramite_eventos entero, con su autor -quien
+                                 estaba con la sesión abierta cuando cambió
+                                 el estado- y su nota, entera.
+
+     LO QUE NO SALE, como en la ficha: cuándo se TOMÓ o se asignó. Tomar y
+     asignar solo cambian tramites.gestor, que no deja evento, así que esa
+     fecha no existe en ninguna parte y no se inventa. Lo que sí está es
+     cuándo pasó a revisión, que es lo primero que hace quien la toma.
+
+     Y LA LÍNEA ENTERA, no la de los 30 días de la marca: el detalle de un
+     trámite que empezó hace dos meses tiene que contar esos dos meses. Por
+     eso se pide aparte, al desplegar. */
+  function eqClaveFila(pest, t, ev){
+    /* En el historial, por movimiento: un trámite puede salir tres veces
+       ese día, y desplegar una fila no tiene que desplegar las otras dos. */
+    return pest + '|' + t.id + (ev ? '|' + ev.tipo + '|' + ev.cuando : '');
+  }
+
+  /* Una fila que se despliega: el chevrón es un botón de verdad, con
+     aria-expanded y aria-controls, y pulsar en cualquier sitio de la fila
+     hace lo mismo -menos en lo que ya es un control, o si se está
+     seleccionando texto para copiarlo-. */
+  function eqPlegable(fila, dondeBoton, det, dondeCaja, clave, ctx){
+    var u = T();
+    var caja = el('div', 'eq-det');
+    caja.id = 'eqDet' + (++eqSerie);
+    ctx.clave = clave;
+    caja.eqCtx = ctx;
+    dondeCaja.appendChild(caja);
+    var b = el('button', 'eq-plegar');
+    b.type = 'button';
+    b.setAttribute('data-eq-k', clave);
+    b.setAttribute('aria-controls', caja.id);
+    b.setAttribute('aria-label', String(u.eq_det_ver || '').replace('{tramite}', ctx.nombre));
+    b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+    dondeBoton.appendChild(b);
+    ctx.boton = b;
+    fila.classList.add('plegable');
+    function pon(abre){
+      b.setAttribute('aria-expanded', abre ? 'true' : 'false');
+      fila.classList.toggle('abierta', abre);
+      det.hidden = !abre;
+      if (abre) eqMuestraDetalle(caja);
+    }
+    b.addEventListener('click', function(){
+      var abre = !eqAbiertas[clave];
+      if (abre) eqAbiertas[clave] = true;
+      else delete eqAbiertas[clave];
+      pon(abre);
+    });
+    fila.addEventListener('click', function(e){
+      var x = e.target;
+      if (x && x.closest && x.closest('a, button, input, select, textarea, label')) return;
+      var sel = '';
+      try { sel = String(window.getSelection ? window.getSelection() : ''); } catch(er){}
+      if (sel) return;
+      b.click();
+    });
+    pon(!!eqAbiertas[clave]);
+  }
+
+  function eqMuestraDetalle(caja){
+    eqPideDetalle(caja.eqCtx.t, false);
+    eqLlenaDetalle(caja);
+  }
+
+  /* UNA consulta por trámite, y solo al desplegarlo: la ficha lleva
+     decenas de filas, y traerse la historia de todas al abrirla sería
+     pagar por lo que casi nunca se mira. La firma -el estado, el último
+     movimiento y las fechas de la solicitud- dice si lo traído sigue
+     valiendo: el refresco de cada minuto no vuelve a pedir nada de un
+     trámite quieto, y si se movió lo pide otra vez sin plegar la fila. Un
+     fallo no se reintenta solo cada minuto; lo reintenta quien lo lee. */
+  function eqFirma(t){
+    return [t.estado, t.eq_desde || '', t.enviado_en || '', t.resuelto_en || ''].join('|');
+  }
+
+  function eqPideDetalle(t, otraVez){
+    var firma = eqFirma(t), antes = eqDetalle[t.id];
+    if (antes && antes.firma === firma && (!otraVez || antes.estado === 'cargando')) return;
+    var d = eqDetalle[t.id] = {estado: 'cargando', firma: firma,
+      eventos: antes ? antes.eventos : null, empresa: antes ? antes.empresa : null};
+    Promise.all([
+      Promise.resolve(sb.from('tramite_eventos')
+        .select('id, de_estado, a_estado, nota, autor, creado_en')
+        .eq('tramite', t.id)
+        .order('creado_en', {ascending: true})),
+      /* La empresa sale de ESTA solicitud y no de «Mi empresa» del
+         inversionista: uno mismo puede pedir trámites para dos empresas.
+         Si esta consulta falla, el detalle sale igual, sin empresa. */
+      Promise.resolve(sb.from('tramites').select('id, datos').in('id', [t.id]))
+        .catch(function(){ return null; })
+    ]).then(function(rs){
+      var fila = ((rs[1] && !rs[1].error && rs[1].data) || [])
+        .filter(function(x){ return x && x.id === t.id; })[0];
+      var datos = (fila && fila.datos) || {};
+      d.empresa = String(datos.razon_social || datos.denominacion || '').trim();
+      var r = rs[0];
+      if (!r || r.error) throw (r && r.error) || new Error('sin respuesta');
+      d.eventos = (r.data || []).slice().sort(function(a, b){
+        return Date.parse(a.creado_en) - Date.parse(b.creado_en);
+      });
+      d.estado = 'listo';
+    }).catch(function(e){
+      console.warn('[CIIP] detalle del trámite:', e && (e.message || e));
+      d.estado = 'fallo';
+    }).then(function(){
+      if (eqDetalle[t.id] === d) eqRepintaDetalles(t.id);
+    });
+  }
+
+  /* Solo los detalles de ESE trámite, y solo los desplegados: rehacer la
+     ficha entera le quitaría el foco a quien acaba de pulsar. */
+  function eqRepintaDetalles(id){
+    [].forEach.call(document.querySelectorAll('#eqFicha .eq-det'), function(c){
+      if (c.eqCtx && c.eqCtx.t.id === id && eqAbiertas[c.eqCtx.clave]) eqLlenaDetalle(c);
+    });
+  }
+
+  function eqFechaHora(iso){
+    var f = fecha(iso);
+    return f ? f + ', ' + eqHora(iso) : '';
+  }
+
+  /* Los estados con los nombres cortos del equipo -los del resumen de la
+     oficina-, no con las frases que lee el inversionista («Te la
+     devolvimos: falta algo»). */
+  function eqNombreEstado(e, u){
+    if (e === 'cancelado') return u.can_chip || '';
+    return u[PU_ROTULO[e]] || e || '';
+  }
+  function eqTonoEstado(e){
+    return e === 'devuelto' ? 'rust' : e === 'resuelto' ? 'good'
+         : (e === 'cancelado' || e === 'borrador') ? 'gris' : 'info';
+  }
+
+  function eqFechasClave(t, evs){
+    function primero(e){ for (var i = 0; i < evs.length; i++) if (evs[i].a_estado === e) return evs[i].creado_en; return null; }
+    function ultimo(e){ for (var i = evs.length - 1; i >= 0; i--) if (evs[i].a_estado === e) return evs[i].creado_en; return null; }
+    /* La primera revisión -cuando alguien la empezó a mirar- y el ÚLTIMO
+       paso ante el ente o devolución: si se devolvió dos veces, la línea de
+       tiempo de debajo las enseña todas. */
+    return [
+      ['eq_det_creada',   t.creado_en],
+      ['eq_det_enviada',  t.enviado_en || primero('enviado')],
+      ['pu_e_revision',   primero('en_revision')],
+      ['pu_e_ante',       ultimo('ante_el_ente')],
+      ['eq_det_devuelta', ultimo('devuelto')],
+      ['eq_det_resuelta', t.resuelto_en || ultimo('resuelto')],
+      ['can_chip',        ultimo('cancelado')]
+    ].filter(function(f){ return !!f[1]; });
+  }
+
+  /* Cuánto lleva en el estado de ahora -desde su último movimiento- y en
+     total, desde que se envió: hasta ahora si sigue viva, y hasta que se
+     resolvió o se canceló si ya acabó. Un borrador no se envió nunca y no
+     tiene total. */
+  function eqTiempos(t, evs){
+    var ahora = Date.now();
+    function ms(iso){ var x = Date.parse(isoLeible(String(iso || ''))); return isNaN(x) ? null : x; }
+    function busca(e, ultimo){
+      var hay = null;
+      evs.forEach(function(ev){ if (ev.a_estado === e && (ultimo || hay === null)) hay = ev.creado_en; });
+      return hay;
+    }
+    var cerrado = (t.estado === 'resuelto' || t.estado === 'cancelado');
+    var ultimoMov = evs.length ? evs[evs.length - 1].creado_en : (t.eq_desde || t.enviado_en || t.creado_en);
+    var desde = ms(ultimoMov);
+    var inicio = ms(t.enviado_en || busca('enviado', false));
+    var fin = cerrado ? ms(t.resuelto_en || busca('resuelto', true) || busca('cancelado', true) || ultimoMov) : ahora;
+    return {
+      cerrado: cerrado,
+      eneste: (!cerrado && desde !== null) ? Math.max(0, ahora - desde) : null,
+      total: (inicio !== null && fin !== null) ? Math.max(0, fin - inicio) : null
+    };
+  }
+
+  /* sinQuien: la lista de «lo que hizo» la persona de la ficha, donde su
+     nombre detrás de cada línea repetiría lo que ya dice el título. */
+  function eqLinea(evs, p, u, sinQuien){
+    var ol = el('ol', 'eq-lt');
+    evs.forEach(function(ev){
+      var suyo = !!p.k && ev.autor === p.k;
+      var li = el('li', 'eq-lt-i ' + eqTonoEstado(ev.a_estado) + (suyo ? ' suyo' : ''));
+      var c = el('div', 'eq-lt-c');
+      c.appendChild(el('b', 'eq-lt-e', eqNombreEstado(ev.a_estado, u)));
+      c.appendChild(el('span', 'eq-lt-f', eqFechaHora(ev.creado_en)));
+      /* Quién lo movió: el nombre de quien tenía la sesión abierta. Sin
+         autor -un cambio hecho desde el editor de la base- no se pone
+         nadie, en vez de un nombre que no es. */
+      if (ev.autor && !sinQuien) c.appendChild(el('span', 'eq-lt-q', eqDatos.nombres[ev.autor] || u.co_sinnombre || ''));
+      li.appendChild(c);
+      /* La nota ENTERA, con sus saltos de línea: en una devolución es lo
+         que dice qué falta, y recortada no sirve para nada. */
+      if (ev.nota) li.appendChild(el('p', 'eq-lt-nota', ev.nota));
+      ol.appendChild(li);
+    });
+    return ol;
+  }
+
+  function eqLlenaDetalle(caja){
+    var ctx = caja.eqCtx, t = ctx.t, p = ctx.p, u = T();
+    var d = eqDetalle[t.id] || {estado: 'cargando', eventos: null, empresa: null};
+    var evs = d.eventos || [];
+    var ref = tipoRefDe(t.tipo);
+    var ente = ((TIPOS || {})[ref] || {}).ente || '';
+    caja.textContent = '';
+
+    /* 1 · Quién lo pidió, para qué empresa, ante quién y cuánto lleva. */
+    var datos = el('dl', 'eq-det-datos');
+    function dato(r, v){
+      if (!v) return;
+      var x = el('div');
+      x.appendChild(el('dt', null, r));
+      x.appendChild(el('dd', null, v));
+      datos.appendChild(x);
+    }
+    /* «Inversionista» y «Organismo» son los rótulos de las columnas de
+       Comprobantes y de «Mis trámites»: el mismo dato, la misma palabra. */
+    dato(u.cb_inversionista || '', eqDatos.nombres[t.inversionista] || u.co_sinnombre || '');
+    dato(u.eq_det_empresa || '', d.empresa || '');
+    /* La sigla y, al lado, el nombre largo de su tarjeta, como la primera
+       columna de «Mis trámites». Hay tarjetas que ya llevan la sigla en su
+       nombre largo -«Registro Mercantil · SAREN»-: entonces va solo ése,
+       sin repetirla delante. */
+    var largo = ref && document.querySelector('.tcard[data-tr="' + ref + '"] .t-ente > span');
+    var largoTx = largo ? largo.textContent.trim() : '';
+    var yaLaLleva = !!ente && largoTx.split(/[\s·,()/-]+/).indexOf(ente) >= 0;
+    dato(u.mt_c_ente || '', yaLaLleva ? largoTx : [ente, largoTx].filter(Boolean).join(' · '));
+    var tiempos = eqTiempos(t, evs);
+    if (tiempos.eneste !== null) dato(u.eq_det_eneste || '', enHoras(tiempos.eneste));
+    if (tiempos.total !== null) dato(tiempos.cerrado ? (u.eq_det_duro || '') : (u.eq_det_total || ''), enHoras(tiempos.total));
+    caja.appendChild(datos);
+
+    /* 2 · Las fechas clave. Las de la solicitud salen ya; las que viven
+       en el historial, cuando llega. */
+    var fechas = eqFechasClave(t, evs);
+    if (fechas.length){
+      caja.appendChild(el('h4', 'eq-det-t', u.eq_det_fechas || ''));
+      var dl = el('dl', 'eq-det-fechas');
+      fechas.forEach(function(f){
+        dl.appendChild(el('dt', null, u[f[0]] || ''));
+        dl.appendChild(el('dd', null, eqFechaHora(f[1])));
+      });
+      caja.appendChild(dl);
+    }
+
+    /* 3 · En el historial, además, lo que hizo ESTA persona en ese
+       trámite: sus movimientos, los que llevan su nombre de autor. */
+    if (ctx.hist && p.k && d.eventos){
+      var suyos = evs.filter(function(ev){ return ev.autor === p.k; });
+      if (suyos.length){
+        caja.appendChild(el('h4', 'eq-det-t', String(u.eq_det_hizo || '').replace('{nombre}', eqNombre(p, u))));
+        caja.appendChild(eqLinea(suyos, p, u, true));
+      }
+    }
+
+    /* 4 · La línea de tiempo entera. Si no llega, se dice aquí, con su
+       botón para reintentar, y lo de arriba sigue a la vista. */
+    caja.appendChild(el('h4', 'eq-det-t', u.eq_det_linea || ''));
+    var aviso = el('div', 'eq-det-aviso');
+    if (d.estado === 'fallo'){
+      aviso.className += ' mal';
+      aviso.appendChild(el('span', null, u.eq_det_fallo || ''));
+      var otra = el('button', 'eq-det-otra', u.eq_det_otra || '');
+      otra.type = 'button';
+      otra.addEventListener('click', function(){
+        eqPideDetalle(t, true);
+        eqRepintaDetalles(t.id);
+        /* El botón se acaba de rehacer: el foco, al chevrón de su fila. */
+        if (ctx.boton) ctx.boton.focus();
+      });
+      aviso.appendChild(otra);
+    } else if (!d.eventos){
+      aviso.textContent = u.eq_det_cargando || '';
+    } else if (!evs.length){
+      aviso.textContent = u.eq_det_sinev || '';
+    }
+    if (aviso.firstChild) caja.appendChild(aviso);
+    if (evs.length) caja.appendChild(eqLinea(evs, p, u));
+
+    /* 5 · Y el camino al trámite. Un enlace, que es lo que es: lleva a
+       otra pantalla. */
+    var pie = el('div', 'eq-det-pie');
+    var ir = el('a', 'eq-det-ir');
+    ir.href = CO_TRAE.indexOf(t.estado) >= 0 ? '#poratender' : '#tramites';
+    ir.appendChild(el('span', null, u.mt_c_abrir || ''));
+    var flecha = el('span', 'eq-det-flecha', '→');
+    flecha.setAttribute('aria-hidden', 'true');
+    ir.appendChild(flecha);
+    ir.addEventListener('click', function(e){
+      e.preventDefault();
+      eqAbreTramite(t);
+    });
+    pie.appendChild(ir);
+    caja.appendChild(pie);
+  }
+
+  /* «Abrir el trámite» lleva adonde el equipo trabaja ESE trámite, como el
+     «Abrir» de los códigos de los entes y el «Ver trámite» de los
+     parafiscales: a la cola, con su ficha abierta (CIIP_VISOR_DE, que
+     recoge pintaHoy). La cola trae lo que espera a alguien -enviado, en
+     revisión, ante el ente y devuelto, CO_TRAE-; un resuelto, un borrador o
+     un cancelado no están en ella, y van a «Mis trámites» con su fila
+     señalada (CIIP_MT_SENALA), que es donde están todas. El cajón se
+     cierra solo al cambiar de vista. */
+  function eqAbreTramite(t){
+    if (CO_TRAE.indexOf(t.estado) >= 0){
+      window.CIIP_VISOR_DE = t.id;
+      location.hash = 'poratender';
+      return;
+    }
+    if (window.CIIP_MT_SENALA) window.CIIP_MT_SENALA(t.id);
+    else location.hash = 'tramites';
   }
 
   if (eqCaja){
