@@ -4108,11 +4108,18 @@ applyLang(idiomaParaMi());
        que es quien le pide allí la cédula, el RIF y el acta. Aquí solo se
        dice para qué empresa, y el paso 1 de la escalera le lleva al portal. */
     registro_minero: [],
-    /* El Registro Turístico Nacional (c50), Franklin Reyes, 13-10-2026,
-       como el RUM: la inscripción la hace el inversionista en el RTN
-       Digital del MINTUR, que es quien le pide allí el acta, el RIF, las
-       cédulas de los accionistas y las pólizas (Resolución 007). */
-    registro_turistico: [],
+    /* El Registro Turístico Nacional (c50), Franklin Reyes, 13-10-2026.
+       La inscripción la hace el inversionista en el RTN Digital del
+       MINTUR, como el RUM, pero con recaudos, como el SACS (c48): los que
+       la Resolución 007 (artículo 9) pide a la persona jurídica, para que
+       el CIIP los revise antes de que los cargue en el portal. */
+    registro_turistico: [
+      {tipo:'acta_constitutiva',            clave:'d_actaempresa'},
+      {tipo:'rif_empresa',                  clave:'d_rifempresa'},
+      {tipo:'identidad_accionistas',        clave:'d_rtnaccionistas'},
+      {tipo:'poliza_responsabilidad_civil', clave:'d_polizarc'},
+      {tipo:'poliza_incendio',              clave:'d_polizaincendio'}
+    ],
     /* La inscripción en el SIDCAI (c39). Lo que el FONACIT pide cargar en
        PDF: el acta y la última asamblea, el RIF y las declaraciones del
        ISLR. Los estados financieros y la licencia de actividades el

@@ -26,6 +26,9 @@
 --    cédulas de todos los accionistas y pólizas de responsabilidad civil e
 --    incendio. Credencial provisional de hasta 6 meses; la definitiva dura
 --    DOS años y se renueva 30 días antes de vencer: vence = true.
+--    Son los recaudos de la ficha (panel.js, RECAUDOS), como en el SACS:
+--    el CIIP los revisa antes de que el inversionista los cargue en el RTN
+--    Digital (Franklin Reyes, 13-10-2026: «los recaudos»).
 --  · La planilla de MINTUR para persona jurídica (solicitud_rtn_juridico.pdf)
 --    pide además el tipo de prestador, el registro mercantil, la patente
 --    municipal y los empleados.
@@ -55,12 +58,15 @@
 
 
 -- ───────────────────────────────────────────────────────────────────────
--- 1. EL PAPEL NUEVO
+-- 1. LOS PAPELES NUEVOS
 -- ───────────────────────────────────────────────────────────────────────
---  Sólo lo que sale del trámite: lo que pide -acta, RIF, cédulas- ya
---  estaba en la bóveda, y lo pide el portal, no la ventanilla.
+--  Lo que sale del trámite, la credencial, y las dos pólizas que pide la
+--  Resolución 007. El acta, el RIF y las cédulas de los accionistas ya
+--  estaban en la bóveda. Las pólizas caducan: se renuevan cada año.
 insert into public.tipos_documento (codigo, nombre, vence) values
-  ('certificado_rtn', 'Credencial del Registro Turístico Nacional (RTN)', true)
+  ('certificado_rtn',              'Credencial del Registro Turístico Nacional (RTN)', true),
+  ('poliza_responsabilidad_civil', 'Póliza de responsabilidad civil',                  true),
+  ('poliza_incendio',              'Póliza de incendio',                               true)
 on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.vence;
 
 
@@ -135,10 +141,10 @@ grant execute on function public.confirma_paso(uuid, text) to authenticated;
 --          plazo_legal_dias, plazo_legal_norma, activo
 --   from public.tipos_tramite where ref_panel = 'c50';
 --
--- 2) El papel nuevo, que caduca:
+-- 2) Los tres papeles nuevos, y los tres caducan:
 --
 --   select codigo, nombre, vence from public.tipos_documento
---   where codigo = 'certificado_rtn';
+--   where codigo in ('certificado_rtn','poliza_responsabilidad_civil','poliza_incendio');
 --
 -- 3) Los obligatorios siguen siendo DIEZ, cinco y cinco: el c50 no suma.
 --

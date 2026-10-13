@@ -10868,8 +10868,10 @@
     igual('rum: y pregunta solo razón social y RIF',
           R.campos('registro_minero').map(function(c){ return c.n; }).join(','), 'razon_social,rif_empresa');
     /* El Registro Turístico Nacional (c50, 13-10-2026), igual que el RUM. */
-    igual('rtn: el Registro Turístico Nacional tampoco pide recaudos',
-          R.de('registro_turistico').map(function(r){ return r.tipo; }).join(', ') || 'ninguno', 'ninguno');
+    /* Éste sí, como el SACS: los de la Resolución 007, artículo 9. */
+    igual('rtn: pide los recaudos de la Resolución 007',
+          R.de('registro_turistico').map(function(r){ return r.tipo; }).join(', ') || 'ninguno',
+          'acta_constitutiva, rif_empresa, identidad_accionistas, poliza_responsabilidad_civil, poliza_incendio');
     igual('rtn: y pregunta solo razón social y RIF',
           R.campos('registro_turistico').map(function(c){ return c.n; }).join(','), 'razon_social,rif_empresa');
 
@@ -16252,11 +16254,9 @@
        cédula y el RIF del titular no rellenan ninguna de sus casillas. */
     /* Y las inscripciones ya solicitadas (c44, 5-10-2026): sus casillas son
        entes, fechas y el problema, y ningún papel dice nada de eso. */
-    /* Y el Registro Turístico Nacional (c50, 13-10-2026), sin recaudos
-       como el RUM. */
-    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI, las seis sin recaudos, las dos de «Bienes» y la marca en proceso y las inscripciones ya solicitadas',
+    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI, las cinco sin recaudos, las dos de «Bienes» y la marca en proceso y las inscripciones ya solicitadas',
           window.CIIP_SIN_LECTOR ? window.CIIP_SIN_LECTOR().join(', ') : '(no está la función)',
-          'licencia_municipal, conformidad_uso, permiso_bomberos, opinion_zodi, registro_minero, registro_turistico, aporte_locti, firma_electronica, bienes_compraventa, bienes_alquiler, marca_en_proceso, parafiscales_en_proceso');
+          'licencia_municipal, conformidad_uso, permiso_bomberos, opinion_zodi, registro_minero, aporte_locti, firma_electronica, bienes_compraventa, bienes_alquiler, marca_en_proceso, parafiscales_en_proceso');
   }
 
   /* La situacion que se quiere medir: alguien que TODAVIA no tiene empresa
