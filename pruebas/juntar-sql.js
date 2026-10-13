@@ -299,7 +299,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    consultas.tramite_sector, y los casos de «¿Por qué piden ayuda?» con lo
    que escribió. Reescribe estadisticas_control(), así que va detrás de
    supabase-sacs, que fue quien la dejó escrita. */
-'supabase-control-detalle'];
+'supabase-control-detalle',
+/* El Registro Turístico Nacional (c50), Franklin Reyes, 13-10-2026: el
+   trámite, su credencial y 'rtn_solicitado' en confirma_paso. Redefine la
+   confirma_paso de supabase-sacs; al final para no mover el número de
+   nadie. */
+'supabase-rtn'];
 
 let mal = 0;
 for (const n of orden) {

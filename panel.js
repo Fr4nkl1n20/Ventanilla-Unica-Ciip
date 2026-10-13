@@ -4108,6 +4108,11 @@ applyLang(idiomaParaMi());
        que es quien le pide allí la cédula, el RIF y el acta. Aquí solo se
        dice para qué empresa, y el paso 1 de la escalera le lleva al portal. */
     registro_minero: [],
+    /* El Registro Turístico Nacional (c50), Franklin Reyes, 13-10-2026,
+       como el RUM: la inscripción la hace el inversionista en el RTN
+       Digital del MINTUR, que es quien le pide allí el acta, el RIF, las
+       cédulas de los accionistas y las pólizas (Resolución 007). */
+    registro_turistico: [],
     /* La inscripción en el SIDCAI (c39). Lo que el FONACIT pide cargar en
        PDF: el acta y la última asamblea, el RIF y las declaraciones del
        ISLR. Los estados financieros y la licencia de actividades el
@@ -4341,6 +4346,11 @@ applyLang(idiomaParaMi());
     /* El Registro Único Minero (c36): la Resolución 0010 no da plazo, y la
        ficha se salta el número, como en la ZODI. */
     c36: {aplica:'cond', cond:'ft_c_mineria', modo:'portal', depende:'c6'},
+    /* El Registro Turístico Nacional (c50): quince días hábiles para
+       revisarlo (Resolución 007 y mintur.gob.ve/rtn). Sin «real»: nadie lo
+       ha medido. La planilla del MINTUR pide el número de patente, así que
+       va detrás de la licencia de actividades económicas (c10). */
+    c50: {plazo:15, aplica:'cond', cond:'ft_c_turismo', modo:'portal', depende:'c10'},
     /* El SIDCAI (c39): se inscribe una vez y luego se declara cada mes,
        dentro de los quince días siguientes (Providencia 015-004-2024).
        La inscripción no tiene plazo publicado, y la ficha se salta el
@@ -5369,6 +5379,13 @@ applyLang(idiomaParaMi());
        en el SIGDME, que es quien pregunta allí la actividad, el mineral y
        el representante. Las solicitudes viejas los conservan en datos. */
     registro_minero: [
+      {n:'razon_social',        clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',         clave:'f_rifempresa'}
+    ],
+    /* El Registro Turístico Nacional (c50): lo mismo que el RUM. El resto
+       de la planilla -tipo de prestador, accionistas, empleados- lo
+       pregunta el RTN Digital. */
+    registro_turistico: [
       {n:'razon_social',        clave:'f_razon',         ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'}
     ],
@@ -8607,6 +8624,7 @@ applyLang(idiomaParaMi());
     MPPPST: 'el Ministerio del Poder Popular para el Proceso Social de Trabajo',
     MINEC: 'el Ministerio del Poder Popular para el Ecosocialismo',
     ZODI: 'la Zona Operativa de Defensa Integral',
+    MINTUR: 'el Ministerio del Poder Popular para el Turismo',
     'Entes varios': 'los organismos correspondientes'
   };
   function enteCompleto(ente, municipio){
@@ -26571,7 +26589,9 @@ applyLang(idiomaParaMi());
     /* Y el SACS de la Ventanilla única 2.7 (c48) en el sitio del permiso
        sanitario (c12), al que sustituye y que la base ya no ofrece
        (Franklin Reyes, 7-10-2026). */
-    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39'],
+    /* Y el Registro Turístico Nacional (c50) desde el 13-10-2026: sólo
+       para el turismo, y lo da el MINTUR. */
+    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50'],
      rotulo:function(dic){ return dic['g.sectorial']; }},
     /* Y los del LOCAL. Franklin Reyes, 22 de septiembre de 2026: «permiso
        de bomberos y conformidad de usos no son sectoriales». Tenía razón y
@@ -27105,6 +27125,7 @@ applyLang(idiomaParaMi());
     c10: {1: {clave: 'licencia_solicitada',    texto: 'p_yalasolicite'}},
     c28: {1: {clave: 'conformidad_solicitada', texto: 'p_yalasolicite'}},
     c36: {1: {clave: 'minero_solicitado',      texto: 'p_yalosolicite'}},
+    c50: {1: {clave: 'rtn_solicitado',         texto: 'p_yalosolicite'}},
     /* Y el permiso de bomberos (Franklin Reyes, 1-10-2026, Permiso de
        Bomberos), con DOS pasos del inversionista: solicitarlo en el portal
        de los bomberos de su estado («Ya la solicité») e indicar en qué sede
@@ -27311,6 +27332,7 @@ applyLang(idiomaParaMi());
     c10: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c28: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c36: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c50: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Y la inscripción en el SIDCAI (c39), igual que el minero (Franklin
        Reyes, 1-10-2026, Ventanilla Única 2.3): «Inscríbete en el FONACIT a
        través del portal → Inscripción lista». Enviada no hay nada hecho; el
@@ -27470,6 +27492,7 @@ applyLang(idiomaParaMi());
     c10: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
     c28: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
     c36: {1: {url: 'https://sigdme2-0.desarrollominero.gob.ve/', clave: 'p_irsigdme'}},
+    c50: {1: {url: 'https://turismonac.mintur.gob.ve/', clave: 'p_irmintur'}},
     /* El permiso de bomberos (Franklin Reyes, 1-10-2026, Permiso de
        Bomberos): el portal de los bomberos según el estado que contestó,
        Miranda o Distrito Capital (PORTAL_DE_BOMBEROS). */

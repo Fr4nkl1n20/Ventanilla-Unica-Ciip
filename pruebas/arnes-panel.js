@@ -805,8 +805,11 @@
        (c40) lleva data-tramo-de y no se cuenta, como la protocolización.
 
        Y OCHO desde el 28-9-2026: el CIIP quita el registro de importador y
-       exportador (c11), y su tarjeta deja el documento. */
-    igual('camino: la fase 03 cuenta sus 8',          deEtapa(2, '.jcount'), '0 de 8 listos');
+       exportador (c11), y su tarjeta deja el documento.
+
+       Y NUEVE desde el 13-10-2026: entra el Registro Turístico Nacional
+       (c50). */
+    igual('camino: la fase 03 cuenta sus 9',          deEtapa(2, '.jcount'), '0 de 9 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
        inversión extranjera tenía una etapa para él solo —y una etapa con una
        sola tarjeta dentro— y ahora comparte la 4 con el banco de activos y
@@ -1144,7 +1147,8 @@
                 5-10-2026), escondidos detrás de su casilla pero contados. */
              /* Y 37 con el SACS (Ventanilla única 2.7, 7-10-2026): entran
                 c48 y c49 y se va el permiso sanitario (c12), apagado. */
-             pendS === 37, pendS + ' por iniciar de 38 ofrecidas', '37');
+             /* Y 38 con el Registro Turístico Nacional (c50, 13-10-2026). */
+             pendS === 38, pendS + ' por iniciar de 39 ofrecidas', '38');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -1162,9 +1166,10 @@
              el c11. Y 32 con los dos de «Bienes» (c41 y c42), 2-10-2026.
              Y 33 con la marca en proceso de registro (c43), 5-10-2026.
              Y 37 con los cuatro de «Ya lo solicité» (c44 a c47), 5-10-2026.
-             Y 38 con el SACS (c48 y c49, sin el c12 apagado), 7-10-2026. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 38,
-             pend + ' por iniciar de 38 ofrecidas', '38');
+             Y 38 con el SACS (c48 y c49, sin el c12 apagado), 7-10-2026.
+             Y 39 con el Registro Turístico Nacional (c50), 13-10-2026. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 39,
+             pend + ' por iniciar de 39 ofrecidas', '39');
       }
 
       /* ── la cadena entre trámites ──
@@ -1609,8 +1614,10 @@
         /* Y DIECISIETE desde el 7-10-2026 (Ventanilla única 2.7): entran
            las dos del SACS -c48, y c49 escondida- y se va la del permiso
            sanitario (c12), que el catálogo trae apagado. */
-        igual('grupo: la fase 03 se queda con diecisiete tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 17);
+        /* Y DIECIOCHO desde el 13-10-2026: el Registro Turístico Nacional
+           (c50). */
+        igual('grupo: la fase 03 se queda con dieciocho tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 18);
         ok('grupo: y el título no es una tarjeta',
            !t.classList.contains('tcard') && !t.hasAttribute('data-tr'),
            t.className, 'sin ser tarjeta');
@@ -10860,6 +10867,11 @@
           R.de('registro_minero').map(function(r){ return r.tipo; }).join(', ') || 'ninguno', 'ninguno');
     igual('rum: y pregunta solo razón social y RIF',
           R.campos('registro_minero').map(function(c){ return c.n; }).join(','), 'razon_social,rif_empresa');
+    /* El Registro Turístico Nacional (c50, 13-10-2026), igual que el RUM. */
+    igual('rtn: el Registro Turístico Nacional tampoco pide recaudos',
+          R.de('registro_turistico').map(function(r){ return r.tipo; }).join(', ') || 'ninguno', 'ninguno');
+    igual('rtn: y pregunta solo razón social y RIF',
+          R.campos('registro_turistico').map(function(c){ return c.n; }).join(','), 'razon_social,rif_empresa');
 
     /* Lo que se fue con la escalera por etapas. */
     igual('licencia: ya no va por la escalera por etapas',
@@ -10900,6 +10912,16 @@
           'Solicita el Registro Único Minero a través del portal:hecho → Registro listo:ahora');
     igual('rum: resuelto, todo hecho', dibujoRum('resuelto'),
           'Solicita el Registro Único Minero a través del portal:hecho → Registro listo:hecho');
+    var dibujoRtn = function(estado, datos){
+      var E = window.CIIP_ESCALERA({estado: estado, datos: datos || {}}, 'registro_turistico', 'MINTUR');
+      return E.todos.map(function(p){ return p.nombre + ':' + (p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer')); }).join(' → ');
+    };
+    igual('rtn: dos pasos, y sin marcar el 1 en curso', dibujoRtn('enviado'),
+          'Solicita el Registro Turístico Nacional en el RTN Digital:ahora → Credencial lista:porhacer');
+    igual('rtn: marcado, toca «Credencial lista»', dibujoRtn('enviado', {rtn_solicitado: '2026-10-13T10:00:00-04:00'}),
+          'Solicita el Registro Turístico Nacional en el RTN Digital:hecho → Credencial lista:ahora');
+    igual('rtn: resuelto, todo hecho', dibujoRtn('resuelto'),
+          'Solicita el Registro Turístico Nacional en el RTN Digital:hecho → Credencial lista:hecho');
 
     /* El enlace del paso 1: el portal de la alcaldía del municipio que se
        contestó, y ninguno si no hay respuesta que lleve a alguna parte. */
@@ -10918,6 +10940,7 @@
     igual('conformidad: el mismo enlace por municipio', url('c28', 1, {municipio: 'Libertador'}),
           'https://contribuyentes.sigat.net/registro?alcaldia=1');
     igual('rum: el paso 1 lleva al SIGDME', url('c36', 1, {}), 'https://sigdme2-0.desarrollominero.gob.ve/');
+    igual('rtn: el paso 1 lleva al RTN Digital del MINTUR', url('c50', 1, {}), 'https://turismonac.mintur.gob.ve/');
     var a = PM.enlacePintado('c10', 1, {datos: {municipio: 'Sucre'}});
     igual('licencia: el enlace pintado dice adónde va y se abre aparte',
           a ? a.textContent + ' · ' + a.getAttribute('href') + ' · ' + a.target : '(sin enlace)',
@@ -10934,6 +10957,8 @@
           texto('c28', 'conformidad_uso'), 'Ya la solicité · conformidad_solicitada');
     igual('rum: el botón dice «Ya lo solicité» y marca minero_solicitado',
           texto('c36', 'registro_minero'), 'Ya lo solicité · minero_solicitado');
+    igual('rtn: el botón dice «Ya lo solicité» y marca rtn_solicitado',
+          texto('c50', 'registro_turistico'), 'Ya lo solicité · rtn_solicitado');
     igual('licencia: ya marcado, no se vuelve a ofrecer',
           PM.boton(tr('bt-ya', 'licencia_municipal', 'enviado', ya), 'c10', 1, null, null), null);
     igual('licencia: y el paso 2 no lleva botón',
@@ -16227,9 +16252,11 @@
        cédula y el RIF del titular no rellenan ninguna de sus casillas. */
     /* Y las inscripciones ya solicitadas (c44, 5-10-2026): sus casillas son
        entes, fechas y el problema, y ningún papel dice nada de eso. */
-    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI, las cinco sin recaudos, las dos de «Bienes» y la marca en proceso y las inscripciones ya solicitadas',
+    /* Y el Registro Turístico Nacional (c50, 13-10-2026), sin recaudos
+       como el RUM. */
+    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI, las seis sin recaudos, las dos de «Bienes» y la marca en proceso y las inscripciones ya solicitadas',
           window.CIIP_SIN_LECTOR ? window.CIIP_SIN_LECTOR().join(', ') : '(no está la función)',
-          'licencia_municipal, conformidad_uso, permiso_bomberos, opinion_zodi, registro_minero, aporte_locti, firma_electronica, bienes_compraventa, bienes_alquiler, marca_en_proceso, parafiscales_en_proceso');
+          'licencia_municipal, conformidad_uso, permiso_bomberos, opinion_zodi, registro_minero, registro_turistico, aporte_locti, firma_electronica, bienes_compraventa, bienes_alquiler, marca_en_proceso, parafiscales_en_proceso');
   }
 
   /* La situacion que se quiere medir: alguien que TODAVIA no tiene empresa

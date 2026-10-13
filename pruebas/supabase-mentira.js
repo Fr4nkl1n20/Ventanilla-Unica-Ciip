@@ -370,6 +370,10 @@
     {codigo:'registro_minero', ref_panel:'c36', ente:'Ministerio de Desarrollo Minero',
      activo:true, emite:'certificado_rum', plazo_dias:null,
      nombre:'Registro Único Minero', fase:3, nivel:'actividad'},
+    /* El Registro Turístico Nacional (c50), 13-10-2026: como el RUM. */
+    {codigo:'registro_turistico', ref_panel:'c50', ente:'MINTUR',
+     activo:true, emite:'certificado_rtn', plazo_dias:21,
+     nombre:'Registro Turístico Nacional (RTN)', fase:3, nivel:'actividad'},
     /* El SIDCAI (c39) y su segundo tramo (c40), del 23-9-2026. Como el
        RUM: 'actividad' y sin plazo. El certificado sale del segundo. */
     {codigo:'aporte_locti', ref_panel:'c39', ente:'FONACIT',
@@ -1967,6 +1971,7 @@
         {codigo:'rif_inversionistas', vence:false}, {codigo:'cedulas_junta', vence:false},
         {codigo:'rifs_junta', vence:false}, {codigo:'codigo_ente', vence:false},
         {codigo:'certificado_rupdae', vence:false}, {codigo:'certificado_rum', vence:true},
+        {codigo:'certificado_rtn', vence:true},
         {codigo:'certificado_locti', vence:true}, {codigo:'planilla_locti', vence:false},
         {codigo:'pago_locti', vence:false},
         /* Los tres de la conformidad de uso (28-9-2026), como si su SQL
@@ -3017,7 +3022,8 @@
             /* Y la del SACS por primera vez (Franklin Reyes, 7-10-2026,
                Ventanilla única 2.7, supabase-sacs.sql). */
             var llaves = ['cancilleria_confirmada', 'licencia_solicitada', 'conformidad_solicitada', 'minero_solicitado',
-                          'bomberos_solicitado', 'saime_confirmada', 'locti_inscrito', 'sacs_registrado'];
+                          'bomberos_solicitado', 'saime_confirmada', 'locti_inscrito', 'sacs_registrado',
+                          'rtn_solicitado'];
             var rCP;
             if (!args || llaves.indexOf(args.p_clave) < 0){
               rCP = {data: null, error: {message: 'paso desconocido: ' + (args && args.p_clave), code: 'P0001'}};
