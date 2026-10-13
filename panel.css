@@ -606,14 +606,16 @@ body[data-vista="equipo"] .faq-sec,
 body[data-vista="equipo"] .fase-bar{display:none;}
 .eq-tarjetas{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:12px;}
 /* Un <button> entero: la tarjeta se abre con el teclado sin nada mas. */
+/* Sin marco de color (Franklin Reyes, 13-10-2026: «el color de los marcos
+   no quiero que los apliques más»): ni la franja de arriba -azul, óxido si
+   alguien tenía algo pasado, gris en «Sin dueño»- ni el borde azul al pasar
+   por encima. Lo pasado lo sigue diciendo la cifra de «Se pasaron», en su
+   color y con su palabra. Al pasar, el fondo. */
 .eq-tj{border:1px solid var(--line); border-radius:12px; background:var(--tr-velo); box-shadow:var(--shadow);
   padding:14px; display:flex; flex-direction:column; gap:11px; text-align:left; cursor:pointer;
-  border-top:3px solid var(--navy); font:inherit; color:var(--ink);}
-.eq-tj:hover{border-color:var(--navy2); border-top-color:var(--navy);}
-/* El borde de arriba canta quien tiene algo pasado antes de leer una
-   cifra. Y la palabra va en la tarjeta: el color no va nunca solo. */
-.eq-tj.mal{border-top-color:var(--rust);}
-.eq-tj.nadie{border-style:dashed; border-top-style:solid; border-top-color:var(--gray-soft);}
+  font:inherit; color:var(--ink);}
+.eq-tj:hover{background:var(--block);}
+.eq-tj.nadie{border-style:dashed;}
 .eq-tj-h{display:flex; align-items:center; gap:10px; min-width:0;}
 .eq-tj-h .mt-av{width:32px; height:32px;}
 /* El nombre entero, en las líneas que haga falta: nada se corta con «…»
@@ -622,7 +624,9 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .eq-tj-h .rol{display:block; font-size:var(--fs-chip); color:var(--gray); margin-top:1px;}
 .eq-tj-c{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px;}
 .eq-tj-c > span{display:block; background:var(--block); border-radius:8px; padding:7px 8px; min-width:0;}
-.eq-tj-c .r{display:block; font-size:var(--fs-chip); font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--gray);}
+/* Sin mayúsculas forzadas y en la tinta casi negra, como los títulos de
+   Control y estadísticas (13-10-2026). La cifra manda por su peso. */
+.eq-tj-c .r{display:block; font-size:var(--fs-rotulo); font-weight:600; color:var(--ink);}
 .eq-tj-c .n{display:block; font-size:var(--fs-tarjeta); font-weight:800; margin-top:2px; font-variant-numeric:tabular-nums; white-space:nowrap;}
 .eq-tj-c .n.mal{color:var(--rust);} .eq-tj-c .n.bien{color:var(--good);}
 /* El último movimiento, entero: ya no se corta a dos líneas. */
@@ -661,13 +665,13 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .eq-pest button[aria-selected="true"]{color:var(--navy2); border-bottom-color:var(--navy2);}
 .eq-pest .n{font-size:var(--fs-chip); font-weight:700; background:var(--line-soft); border-radius:20px; padding:1px 6px;}
 .eq-sols{width:100%; border-collapse:collapse; font-size:var(--fs-fila);}
-.eq-sols th{text-align:left; font-size:var(--fs-chip); font-weight:700; letter-spacing:.05em; text-transform:uppercase;
-  color:var(--gray); padding:10px 18px; border-bottom:1px solid var(--line); white-space:nowrap;}
+.eq-sols th{text-align:left; font-size:var(--fs-rotulo); font-weight:700;
+  color:var(--ink); padding:10px 18px; border-bottom:1px solid var(--line); white-space:nowrap;}
 .eq-sols td{padding:10px 18px; border-bottom:1px solid var(--line-soft); vertical-align:middle;}
 .eq-sols tr:last-child td{border-bottom:0;}
 .eq-sols .nm{font-weight:700;} .eq-sols .mt-sub{margin-top:1px; white-space:normal; overflow:visible; text-overflow:clip;}
 .eq-hist{padding:4px 18px 18px;}
-.eq-dia{font-size:var(--fs-chip); font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--gray);
+.eq-dia{font-size:var(--fs-rotulo); font-weight:700; color:var(--ink);
   margin:14px 0 6px; display:flex; gap:8px; align-items:center;}
 .eq-dia::after{content:''; flex:1 1 auto; height:1px; background:var(--line);}
 .eq-ev{display:grid; grid-template-columns:44px 26px minmax(0, 1fr); gap:8px; align-items:start; padding:7px 0;}
@@ -858,8 +862,12 @@ body[data-vista="equipo"] .fase-bar{display:none;}
    cortarse, y si aun asi no cabe, la caja rueda de lado. */
 #puCola{overflow-x:auto;}
 .pu-tabla{width:100%; border-collapse:collapse; font-size:var(--fs-parrafo);}
-.pu-tabla th{font-size:var(--fs-chip); font-weight:800; letter-spacing:.06em; text-transform:uppercase;
-  color:var(--gray-soft); text-align:left; padding:4px 10px 8px; border-bottom:1px solid var(--line);
+/* Sin mayúsculas forzadas y en la tinta casi negra, como los títulos de
+   Control y estadísticas (Franklin Reyes, 13-10-2026: «títulos todos en
+   mayúscula… un gris más oscuro, casi negro»). 700 y no 800: en Windows el
+   800 cae en Arial Black. */
+.pu-tabla th{font-size:var(--fs-rotulo); font-weight:700;
+  color:var(--ink); text-align:left; padding:4px 10px 8px; border-bottom:1px solid var(--line);
   vertical-align:bottom; line-height:1.3;}
 .pu-tabla td{padding:10px; color:var(--ink); border-bottom:1px solid var(--line-soft);
   white-space:nowrap;}
@@ -922,10 +930,10 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .ce-ld-nav .ay-ld-it.on b{color:var(--navy2);}
 /* La cifra de cada entrada, entera: parte de línea antes que cortarse. */
 .ce-ld-nav .ce-ld-sub{line-height:1.4; overflow-wrap:anywhere;}
-/* «Ajustes», el rótulo que separa la configuración de las cifras, como
-   el de la maqueta: en mayúsculas espaciadas, gris claro y con su raya. */
-.ce-ld-sep{font-size:var(--fs-chip); font-weight:800; letter-spacing:.06em; text-transform:uppercase;
-  color:var(--gray-soft); padding:12px 10px 4px; border-top:1px solid var(--line-soft); margin-top:6px;}
+/* «Ajustes», el rótulo que separa la configuración de las cifras, con su
+   raya. Desde el 13-10-2026 sin mayúsculas y en tinta, como los títulos. */
+.ce-ld-sep{font-size:var(--fs-rotulo); font-weight:700;
+  color:var(--ink); padding:12px 10px 4px; border-top:1px solid var(--line-soft); margin-top:6px;}
 .ay-ic.ce-ic-aj{background:var(--line-soft); color:var(--gray);}
 
 /* La ficha: la cabecera de Ayuda (.ay-ld .ay-card summary) con el icono
@@ -985,8 +993,9 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 @container ce-ficha (max-width:719px){ .ce-fi-cu .pu-nums{grid-template-columns:repeat(3, minmax(0, 1fr));} }
 @container ce-ficha (max-width:459px){ .ce-fi-cu .pu-nums{grid-template-columns:repeat(2, minmax(0, 1fr));} }
 .ce-bloque{min-width:0;}
-.pu-t.ce-rot{padding:0 0 8px; font-size:var(--fs-chip); font-weight:800; letter-spacing:.06em;
-  text-transform:uppercase; color:var(--gray-soft);}
+/* Los títulos de cada bloque: sin mayúsculas forzadas, en la tinta casi
+   negra y a tamaño de sección (Franklin Reyes, 13-10-2026). */
+.pu-t.ce-rot{padding:0 0 8px; font-size:var(--fs-seccion); font-weight:700; color:var(--ink);}
 .pu-t.ce-rot::before{display:none;}
 .pu-t.ce-rot .pu-sub, .pu-t.ce-rot .pu-asignar{text-transform:none; letter-spacing:0;}
 .ce-bloque .pu-apilada{height:14px; margin:0 0 9px;}
@@ -1086,8 +1095,7 @@ body[data-vista="equipo"] .fase-bar{display:none;}
    nombre del trámite parte en dos líneas antes que cortarse. */
 .ce-ts-bloque + .ce-ts-bloque{border-top:1px solid var(--line-soft);}
 .ce-ts-sector{display:flex; align-items:baseline; gap:8px; padding:10px 18px 0;}
-.ce-ts-sector .nm{font-size:var(--fs-chip); font-weight:800; letter-spacing:.06em; text-transform:uppercase;
-  color:var(--gray-soft);}
+.ce-ts-sector .nm{font-size:var(--fs-seccion); font-weight:700; color:var(--ink);}
 .ce-ts-n{margin-left:auto; font-size:var(--fs-nota); color:var(--gray); font-variant-numeric:tabular-nums;}
 .ce-ts-bloque .ce-lista{padding-top:0; padding-bottom:8px;}
 .ce-ts-sin{margin:0; padding:10px 18px 14px; border-top:1px solid var(--line-soft);
