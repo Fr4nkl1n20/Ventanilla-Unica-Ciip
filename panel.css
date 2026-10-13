@@ -5013,6 +5013,35 @@ body.menu-abierto .menu-fondo{display:block;}
   .grid-tr{grid-template-columns:1fr;}
   .u-meta-txt{display:none;}
 }
+/* ENTRE 841 Y 1000 PX la barra lateral sigue ahí y a la de arriba le
+   quedan unos 580 px: con la fecha del reloj y el saludo -que a este
+   ancho ya solo decía «Te…»- la página rodaba de lado en todos los
+   idiomas, en ruso hasta los 955 px (revisión del 13-10-2026). La fecha se
+   aparta como en el teléfono -la hora se queda- y el saludo también. */
+@media (max-width:1000px){
+  .topbar{gap:10px;}
+  .topbar .tb-hola{display:none;}
+  .tb-reloj .d{display:none;}
+}
+/* LA BARRA EN EL TELÉFONO, SIN DESPLAZARSE DE LADO (revisión del
+   13-10-2026). A 390 px los mandos -menú, reloj, avisos, idioma, tema, tu
+   chip y salir- sumaban 520 y la página entera rodaba de lado. No se quita
+   ninguno: se aprietan. Menos hueco entre ellos y en los bordes, botones
+   más estrechos, la raya que separa los dos grupos fuera, y «Avisos» se
+   queda en la campana con su cuenta: la palabra sigue ahí para el lector de
+   pantalla, como el nombre del chip. El saludo, que a este ancho ya no
+   enseñaba nada más que «…», se aparta. */
+@media (max-width:480px){
+  .topbar{gap:4px; padding:0 10px;}
+  .topbar .tb-hola{display:none;}
+  .topbar .tb-btn{padding:0 8px;}
+  .topbar .menu-btn, .topbar .theme-btn, .topbar .salir-btn{width:32px; padding:0;}
+  .topbar .tb-reloj{padding:0 8px;}
+  .topbar .lang-sel{margin-left:0; padding-left:0;}
+  .topbar .lang-sel::before{display:none;}
+  .topbar #avisosBtn [data-i18n="tb.notices"]{position:absolute; width:1px; height:1px; margin:-1px; padding:0;
+    overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;}
+}
 @media (max-width:1100px){
   /* Cinco columnas dejan cada etapa en 190px y el nombre se parte. Tres y
      dos, y sin hilo: un hilo que salta de renglon no cuenta ningun camino. */

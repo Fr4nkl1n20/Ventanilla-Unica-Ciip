@@ -19039,6 +19039,14 @@
           });
           if (vr.right > document.documentElement.clientWidth + 0.5 || vr.left < -0.5)
             pagina.push(donde + ': la pantalla mide ' + Math.round(vr.left) + '–' + Math.round(vr.right) + ' de ' + document.documentElement.clientWidth);
+          /* Y la página entera, con la barra de arriba: a 390 px sus mandos
+             sumaban 520 y todo rodaba de lado (revisión del 13-10-2026). */
+          var se = document.scrollingElement;
+          if (se.scrollWidth > se.clientWidth + 1) pagina.push(donde + ': la página mide ' + se.scrollWidth + ' de ' + se.clientWidth);
+          [].forEach.call(document.querySelectorAll('.topbar > *'), function(n){
+            var r = n.getBoundingClientRect();
+            if (r.width && (r.left < -0.5 || r.right > se.clientWidth + 0.5)) pagina.push(donde + ': ' + nombre(n) + ' fuera de la barra');
+          });
           if (k === 'motivos'){ var mo2 = document.querySelector('#ceMotivos .ce-fila[data-motivo]'); if (mo2 && mo2.getAttribute('aria-expanded') === 'true') mo2.click(); }
           if (s[1] === 'ti'){ var sol = document.querySelector('#ceFichaOrg .ce-org-modo[data-org="sol"]'); if (sol) sol.click(); }
         });
@@ -19049,7 +19057,7 @@
       apunta('nada se corta ni rueda de lado dentro de su caja', !cortado.length, unicos(cortado).slice(0, 5).join(' | '), 'nada');
       apunta('la cabecera de la ficha: el título y su frase enteros, y el conmutador sin taparlos', !cabeza.length, unicos(cabeza).slice(0, 5).join(' | '), 'bien');
       apunta('ningún texto cortado con «…»', !elipsis.length, unicos(elipsis).slice(0, 5).join(' | '), 'ninguno');
-      apunta('la pantalla cabe en el ancho', !pagina.length, unicos(pagina).slice(0, 3).join(' | '), 'cabe');
+      apunta('la pantalla y la barra de arriba caben: la página no se desplaza de lado', !pagina.length, unicos(pagina).slice(0, 3).join(' | '), 'cabe');
 
       /* Lista y detalle en una columna, o lado a lado, según quepa. */
       var nav = document.getElementById('ceNav'), det = document.getElementById('ceDet');
