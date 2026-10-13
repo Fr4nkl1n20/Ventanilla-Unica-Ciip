@@ -3552,6 +3552,16 @@ body[data-vista="tramite"] #secTramites{display:none;}
   font-family:inherit; font-size:var(--fs-nota); font-weight:600; cursor:pointer;}
 .tr-hacer:hover{border-color:var(--navy2);}
 .tr-hacer[disabled]{opacity:.55; cursor:default;}
+/* El enlace al portal del ente, como enlace y no como botón (Franklin
+   Reyes, 13-10-2026: «que parezca más un link»). Al lado del «Ya lo
+   solicité» las dos píldoras parecían dos botones, y sólo una es algo que
+   se marca aquí: la otra lleva a otra página. Subrayado y con su flecha de
+   «se abre aparte». Sólo los que abren pestaña: la descarga de un papel
+   (DESCARGA_DEL_PASO) no lleva target y se queda como estaba. */
+a.tr-hacer[target="_blank"]{padding:0; border:0; border-radius:0; background:none;
+  gap:4px; text-decoration:underline; text-underline-offset:3px;}
+a.tr-hacer[target="_blank"]::after{content:"\2197"; text-decoration:none; font-weight:400;}
+a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
 /* Y lo que hay que SABER: una advertencia corta que cuelga de su paso —el
    correo donde llega la visa—. En gris y sin negrita: es un aviso, no otro
    peldaño. */
