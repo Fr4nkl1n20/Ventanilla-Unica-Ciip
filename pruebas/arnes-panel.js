@@ -234,6 +234,8 @@
               /* La firma en el CIIP de la constitución en revisión. */
               firmaCola, firmaTrasMarcar,
               colaHiloEspera, colaHiloMira,
+              /* Y sin la columna paso en la base (13-10-2026). */
+              colaSinPasoAbre, colaSinPasoMira,
               /* La identidad se mira con el expediente ya desplegado y
                  ANTES de colaExpediente, que termina devolviendo el
                  tramite: al devolverlo sale de la cola y se lleva por
@@ -417,6 +419,10 @@
               /* El chat de la contestación (9-10-2026). */
               chatMarcaAbre, chatMarcaMira, chatMarcaEscribe, chatMarcaEscrito,
               chatMarcaCierra, chatMarcaCerrado, chatMarcaGestor,
+              /* Revisión, 13-10-2026: el reloj del chat no se para al
+                 volver, y el aviso de la campana cae en su pestaña. */
+              chatRelojAbre, chatRelojSale, chatRelojVuelve, chatRelojMira,
+              chatAvisoCarga, chatAvisoPulsa, chatAvisoMira,
               /* «Ya lo solicité» o «por primera vez» en las inscripciones, la
                  licencia, la conformidad y los bomberos (5-10-2026, 2.6). */
               yaGuiaAbre, yaGuiaMira, yaInscritaMira, yaInscritaFrena,
@@ -10442,6 +10448,20 @@
       ok('marca: resuelta la devolución, el aviso ya no sale',
          !con.querySelector('.mc-anuncio') && !!con.querySelector('.tr-pest'),
          con.querySelector('.mc-anuncio') ? 'sale' : 'no sale', 'no sale');
+      /* Cancelada con la contestación habilitada (revisión, 13-10-2026):
+         la base -mensaje_del_paso- ya no deja escribir en su chat. Ni el
+         aviso con «Escribir al CIIP», ni una caja que falla al enviar: el
+         chat, para leer, y diciendo que se canceló. */
+      var can = pintaEn(tr('mc-h2', 'cancelado', p3a, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
+      ok('marca: cancelada, ni el aviso ni su «Escribir al CIIP»',
+         !can.querySelector('.mc-anuncio') && !can.querySelector('.mc-anuncio-ir'),
+         can.querySelector('.mc-anuncio') ? 'sale' : 'no sale', 'no sale');
+      var canChat = can.querySelector('[data-chat="contestacion"]');
+      var canTxt = canChat && canChat.querySelector('.hilo-txt');
+      ok('marca: cancelada, su chat ya no deja escribir', !!canTxt && canTxt.disabled,
+         canTxt ? (canTxt.disabled ? 'apagado' : 'abierto') : '(sin chat)', 'apagado');
+      igual('marca: y dice que se canceló, no que se presentó',
+            canChat && (canChat.querySelector('.hilo-cerrado') || {}).textContent, window.CIIP_T().ch_cancelado);
       var dev = pintaEn(tr('mc-h0', 'ante_el_ente', p3a, {anuncio: 'Una empresa se opuso al registro.', anuncio_en: hace(5)}));
       ok('marca: mientras se resuelve, «Solicitud en proceso» en curso y sin nota propia',
          !!dev.querySelector('li.tr-paso.ahora[data-paso="sapi"]') &&
@@ -12264,7 +12284,116 @@
     var c2 = M.casilla(t, 'pr-ch-');
     ok('chat marca, gestor: repintar la casilla no rehace el chat (lo escrito se queda)',
        !!chat && c2.querySelector('.tr-chat') === chat);
+    /* La ventana de la cola está siempre pintada, y el visor de «Trámites
+       por atender» encima: las dos casillas del mismo trámite a la vez.
+       Con un solo nodo, la segunda se llevaba el chat de la primera
+       (revisión, 13-10-2026). */
+    var cCo = M.casilla(t, 'co-mc-'), cHoy = M.casilla(t, 'hoy-mc-');
+    var chCo = cCo && cCo.querySelector('.tr-chat'), chHoy = cHoy && cHoy.querySelector('.tr-chat');
+    ok('chat marca, gestor: la casilla de la cola y la del visor, cada una con su chat',
+       !!chCo && !!chHoy && chCo !== chHoy,
+       (chCo ? 'cola sí' : 'cola sin chat') + ', ' + (chHoy ? 'visor sí' : 'visor sin chat'), 'las dos con el suyo');
     sigue();
+  }
+
+  /* ═══════════ EL CHAT DE LA CONTESTACIÓN NO SE CONGELA ═══════════
+     Revisión, 13-10-2026: el chat es un nodo guardado que se vuelve a
+     colgar, y su reloj de veinte segundos se paraba en cuanto lo veía
+     descolgado -al salir de la ficha, o en el hueco del repaso de cada
+     minuto-. Al volver, nadie lo rearmaba: lo que contestaba el asesor no
+     salía hasta recargar. Aquí: se abre, se descuelga lo bastante para que
+     el reloj se pare, el asesor escribe, y al volver tiene que estar.
+     El reloj, a 200 ms y solo en la prueba (se cambia setInterval, no el
+     panel); y un trámite propio, mch2, para que el nodo nazca con él. */
+  var RELOJ_DE_VERDAD = null, CHAT_RELOJ_NODO = null;
+  function chatRelojAbre(sigue){
+    if (PASE !== 'vacio') return sigue();
+    RELOJ_DE_VERDAD = window.setInterval;
+    window.setInterval = function(fn, ms){
+      var a = [].slice.call(arguments);
+      if (ms === 20000) a[1] = 200;
+      return RELOJ_DE_VERDAD.apply(window, a);
+    };
+    var t = chatMarca(CHAT_PASOS); t.id = 'mch2';
+    window.__TRAMITES_EXTRA = [t];
+    location.hash = '';
+    setTimeout(function(){
+      location.hash = 'tramite-c8';
+      esperaFilas('#trReal .tr-pest-chat .tr-chat', 1, function(){ setTimeout(sigue, 400); });
+    }, 100);
+  }
+  function chatRelojSale(sigue){
+    if (PASE !== 'vacio') return sigue();
+    CHAT_RELOJ_NODO = document.querySelector('#trReal .tr-pest-chat .tr-chat');
+    ok('chat marca, reloj: el chat está abierto antes de salir', !!CHAT_RELOJ_NODO);
+    location.hash = '';
+    /* Descolgado de verdad, salga o no la ficha de la página al cerrarla:
+       es lo que hace el repaso al rehacer la caja. Y tiempo para que el
+       reloj lo vea y se pare. */
+    setTimeout(function(){
+      if (CHAT_RELOJ_NODO && CHAT_RELOJ_NODO.parentNode) CHAT_RELOJ_NODO.parentNode.removeChild(CHAT_RELOJ_NODO);
+      setTimeout(sigue, 1000);
+    }, 100);
+  }
+  function chatRelojVuelve(sigue){
+    if (PASE !== 'vacio') return sigue();
+    window.CIIP_MENTIRA_DICE({id: 'msj-reloj', tramite: 'mch2', paso: 'contestacion',
+      texto: 'Ya presenté la contestación con la clase 30.', del_equipo: true, documento: null,
+      creado_en: new Date().toISOString()});
+    location.hash = 'tramite-c8';
+    esperaFilas('#trReal .tr-pest-chat .tr-chat .hilo-m', 1, sigue);
+  }
+  function chatRelojMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var chat = document.querySelector('#trReal .tr-pest-chat .tr-chat');
+    ok('chat marca, reloj: al volver a la ficha es el mismo chat (lo escrito se queda)',
+       !!chat && chat === CHAT_RELOJ_NODO);
+    var texto = chat ? chat.textContent : '';
+    ok('chat marca, reloj: y trae lo que contestó el asesor mientras no estabas, sin recargar',
+       texto.indexOf('Ya presenté la contestación con la clase 30.') >= 0,
+       chat ? chat.querySelectorAll('.hilo-m').length + ' mensajes' : '(sin chat)', 'con el mensaje nuevo');
+    window.setInterval = RELOJ_DE_VERDAD;
+    window.__TRAMITES_EXTRA = null;
+    location.hash = '';
+    setTimeout(sigue, 100);
+  }
+
+  /* ═══════════ EL AVISO DEL CHAT LLEVA AL CHAT ═══════════
+     Revisión, 13-10-2026: el aviso de la campana de lo que escribió el
+     asesor en el chat de la contestación abría la ficha en «Tu trámite»,
+     y había que buscar la pestaña del chat. Ahora cae en ella. */
+  function chatAvisoCarga(sigue){
+    if (PASE !== 'vacio') return sigue();
+    window.__TRAMITES_EXTRA = [chatMarca(CHAT_PASOS)];
+    window.__TRAMITES_EN_LA_CAMPANA = true;
+    location.hash = '';
+    if (window.CIIP_AVISOS_AL_DIA) window.CIIP_AVISOS_AL_DIA();
+    setTimeout(sigue, 800);
+  }
+  function chatAvisoPulsa(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var suyo = [].filter.call(avisos(), function(b){
+      return b.textContent.indexOf('Te dejo el oficio del SAPI.') >= 0;
+    })[0];
+    ok('chat marca, aviso: la campana avisa de lo que escribió el asesor en el chat', !!suyo,
+       avisos().length + ' avisos', 'con el del chat');
+    if (!suyo) return sigue();
+    suyo.click();
+    esperaFilas('#trReal .tr-pest-chat .tr-chat .hilo-m', 2, sigue);
+  }
+  function chatAvisoMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var pes = document.querySelectorAll('#trReal .tr-pest .tr-pest-b');
+    var enChat = document.querySelector('#trReal.tr-en-chat, #trReal .tr-en-chat');
+    ok('chat marca, aviso: abre la ficha ya en la pestaña del chat',
+       !!enChat && pes.length === 2 && pes[1].classList.contains('on'),
+       enChat ? 'en el chat' : 'en «Tu trámite»', 'en el chat');
+    /* Y se deja como estaba, en «Tu trámite». */
+    if (pes[0]) pes[0].click();
+    window.__TRAMITES_EN_LA_CAMPANA = false;
+    window.__TRAMITES_EXTRA = null;
+    location.hash = '';
+    setTimeout(sigue, 100);
   }
 
   /* ═══════════ «YA LO SOLICITÉ» O «POR PRIMERA VEZ» (c44 a c47) ═══════════
@@ -19181,6 +19310,36 @@
     ok('cola: con la caja para contestar',
        !!exp.querySelector('.hilo-txt'),
        exp.querySelector('.hilo-txt') ? 'está' : 'no hay caja', 'está');
+  }
+
+  /* ── y sin supabase-chat-del-paso.sql en la base ──
+     La conversación del expediente pregunta por los mensajes que no son
+     de ningún paso (.is('paso', null)); sin la columna, la base contesta
+     42703 y el hilo se escondía: el equipo perdía la conversación de
+     TODOS los expedientes por un archivo pendiente (revisión, 13-10-2026).
+     Se vuelve a pintar el mismo expediente con la base sin la columna. */
+  function colaSinPasoAbre(sigue){
+    if (CASO !== 'gestor') return sigue();
+    var f = document.querySelectorAll('#colaTram .co-ficha')[0];
+    var exp = f && f.querySelector('.co-exp'), ver = f && f.querySelector('.co-ver');
+    if (!exp || !ver) return sigue();
+    window.__SIN_COLUMNA_PASO = true;
+    ver.click();                       /* se pliega */
+    exp.textContent = '';
+    delete exp.dataset.puesto;
+    ver.click();                       /* y se despliega, pintado otra vez */
+    esperaFilas('#colaTram .co-ficha .co-exp .hilo-m', 2, sigue);
+  }
+  function colaSinPasoMira(){
+    if (CASO !== 'gestor') return;
+    window.__SIN_COLUMNA_PASO = false;
+    var exp = document.querySelectorAll('#colaTram .co-ficha')[0].querySelector('.co-exp');
+    var hilo = exp && exp.querySelector('.hilo');
+    ok('cola: sin la columna paso en la base, la conversación del expediente sigue a la vista',
+       !!hilo && !hilo.hidden, hilo ? (hilo.hidden ? 'escondida' : 'a la vista') : '(sin hilo)', 'a la vista');
+    ok('cola: y con lo que ya se había dicho',
+       !!exp && exp.querySelectorAll('.hilo-m').length >= 2,
+       exp ? exp.querySelectorAll('.hilo-m').length + ' líneas' : '(sin expediente)', 'al menos 2');
   }
 
   function colaTramites(){

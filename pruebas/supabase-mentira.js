@@ -682,6 +682,10 @@
   /* Y en los de los expedientes: que lo escrito en un chat de trámite desde
      «Consultas y citas» vaya a su trámite y con su paso (9-10-2026). */
   window.CIIP_MENTIRA_DICHOS = function(){ return dichos.slice(); };
+  /* Y lo que escribe el OTRO lado mientras miras otra cosa: el asesor
+     contestando en el chat de la contestación con la ficha cerrada
+     (13-10-2026). Entra como si lo hubiera escrito él. */
+  window.CIIP_MENTIRA_DICE = function(m){ dichos.push(m); };
   /* Lo que se borro en esta pasada, para que la lista lo respete. */
   var borrados = {};
   /* La configuracion del acompañamiento, con sus valores de fabrica. */
@@ -2196,6 +2200,14 @@
           c.inversionista = USUARIO.id;
           todo.push(c);
         });
+        /* Y en la puerta de la campana -id, tipo, inversionista, gestor y
+           nada más-, los que ponga la prueba, solo si lo pide: la del aviso
+           del chat de la contestación necesita que el buzón sepa de su
+           marca (13-10-2026). Las demás cuentas no se enteran. */
+        if (window.__TRAMITES_EN_LA_CAMPANA && window.__TRAMITES_EXTRA &&
+            op.cols === 'id, tipo, inversionista, gestor'){
+          todo = todo.concat(window.__TRAMITES_EXTRA);
+        }
         return {data: todo, error:null};
       }
       /* La lista del inversionista. A partir de la SEGUNDA lectura trae uno
@@ -2327,7 +2339,9 @@
       }
       /* Una base sin supabase-chat-del-paso.sql: la columna paso no existe
          y preguntar por ella falla. Solo mientras la prueba lo pida. */
-      if (window.__SIN_COLUMNA_PASO && op && op.eq && 'paso' in op.eq){
+      /* Por .eq y por .is: también falla la conversación de siempre, que
+         pregunta por los que no son de ningún paso (13-10-2026). */
+      if (window.__SIN_COLUMNA_PASO && op && ((op.eq && 'paso' in op.eq) || (op.is && 'paso' in op.is))){
         return {data:null, error:{message:'column tramite_mensajes.paso does not exist', code:'42703'}};
       }
       var hilo = [

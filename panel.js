@@ -10540,7 +10540,10 @@ applyLang(idiomaParaMi());
        revisado por el Registrador- ya no sale (9-10-2026). La casilla del
        gestor lo sigue enseñando, que es su historial. */
     var tituloAnuncio = u[((ESCALERA_POR_ETAPAS[E.codigo] || {}).textos || {}).anuncio || 'mc_anuncio_t'] || '';
-    if (E.anuncio && !E.anuncioPasado && cajaTr){
+    /* Ni con la solicitud cancelada: ya no hay devolución que contestar, y
+       el «Escribir al CIIP» llevaba a un chat cerrado (revisión,
+       13-10-2026). */
+    if (E.anuncio && !E.anuncioPasado && tr.estado !== 'cancelado' && cajaTr){
       var an = el('div', 'mc-anuncio');
       an.setAttribute('role', 'status');
       var anCab = el('div', 'mc-anuncio-cab');
@@ -10763,7 +10766,7 @@ applyLang(idiomaParaMi());
      Es pintaHilo con paso 'contestacion' (supabase-chat-del-paso.sql): la
      misma conversación, los mismos adjuntos y la misma traducción.
 
-     UN NODO POR TRÁMITE, que se reutiliza. La escalera, la casilla del
+     UN NODO POR TRÁMITE -y por pantalla, en el gestor-, que se reutiliza. La escalera, la casilla del
      gestor y su visor se rehacen enteros a menudo -el repaso de cada
      minuto, cada respuesta de la base-, y rehacer el chat borraba lo que se
      estaba escribiendo y el archivo elegido. Colgado otra vez, el mismo
@@ -10778,10 +10781,14 @@ applyLang(idiomaParaMi());
   /* Si el chat de la contestación ya se cerró: pasada a registro o con la
      solicitud resuelta. Aparte porque desde el 9-10-2026 la usan dos
      sitios -este chat y su respaldo en «Consultas y citas»- y una regla
-     escrita dos veces acaba diciendo dos cosas distintas. */
+     escrita dos veces acaba diciendo dos cosas distintas.
+     Y cancelada: el disparador mensaje_del_paso ya no deja escribir ahí,
+     y la casilla y la pestaña ofrecían una caja que fallaba al enviar.
+     «Consultas y citas» lo añadía por su cuenta -la misma regla escrita
+     dos veces-; ahora vive solo aquí (revisión, 13-10-2026). */
   function contestacionCerrada(tr, E){
     var enReg = E.todos.filter(function(p){ return p.clave === 'en_registro'; })[0];
-    return !!(enReg && enReg.hecho) || tr.estado === 'resuelto';
+    return !!(enReg && enReg.hecho) || tr.estado === 'resuelto' || tr.estado === 'cancelado';
   }
 
   /* Lo que se le pasa a pintaHilo para el chat de la contestación: la
@@ -10811,16 +10818,26 @@ applyLang(idiomaParaMi());
          sigue diciendo «CIIP». */
       de.nombreEquipo = NOMBRE_ASESOR[tr.id] || '';
     }
-    if (contestacionCerrada(tr, E)) de.cerrada = u.ch_cerrado || '';
+    /* Cancelada, lo dice: «la contestación ya se presentó» sería falso. */
+    if (contestacionCerrada(tr, E)) de.cerrada = (tr.estado === 'cancelado' && u.ch_cancelado) || u.ch_cerrado || '';
     return de;
   }
 
-  function chatDeLaContestacion(tr, E, equipo, quien){
+  /* donde: de qué pantalla es la casilla del gestor ('co-mc-' la ventana
+     de la cola, 'hoy-mc-' el visor de «Trámites por atender»). Un nodo
+     por pantalla y no uno por trámite: la ventana de la cola está siempre
+     en la página -cerrada, pero pintada-, y repintarla con el visor
+     abierto -pintaTramites llama a pintaHoy y después pinta sus fichas;
+     cambiar de idioma lo hace- se llevaba el chat del visor a la ventana
+     escondida (revisión, 13-10-2026). */
+  function chatDeLaContestacion(tr, E, equipo, quien, donde){
     var cerrado = contestacionCerrada(tr, E);
-    var clave = tr.id + (equipo ? ':g' : ':i');
-    var firma = curLang + (cerrado ? ':cerrado' : ':abierto');
+    var clave = tr.id + (equipo ? ':g:' + (donde || '') : ':i');
+    var firma = curLang + (cerrado ? ':cerrado' + (tr.estado === 'cancelado' ? ':cancelado' : '') : ':abierto');
     var guardado = CHATS_DEL_PASO[clave];
-    if (guardado && guardado.firma === firma) return guardado.nodo;
+    /* El guardado, con su reloj otra vez en marcha: si estuvo descolgado
+       más de una vuelta, se había parado (ver reanuda en pintaHilo). */
+    if (guardado && guardado.firma === firma){ guardado.hilo.reanuda(); return guardado.nodo; }
     var caja = el('div', 'tr-chat');
     caja.setAttribute('data-chat', 'contestacion');
     var de = deLaContestacion(tr, E, equipo, quien);
@@ -10838,7 +10855,7 @@ applyLang(idiomaParaMi());
         })
         .catch(function(e){ console.warn('[CIIP] chat, el asesor:', e && (e.message || e)); });
     }
-    CHATS_DEL_PASO[clave] = {firma: firma, nodo: caja};
+    CHATS_DEL_PASO[clave] = {firma: firma, nodo: caja, hilo: hiloCh};
     return caja;
   }
 
@@ -10872,7 +10889,7 @@ applyLang(idiomaParaMi());
        chatDeLaContestacion): rehacer la casilla no borra lo escrito. */
     var zonaChat = null;
     var ponChat = function(E){
-      zonaChat = E.contestacion ? chatDeLaContestacion(t, E, true, t.nombre || u.co_sinnombre || '') : null;
+      zonaChat = E.contestacion ? chatDeLaContestacion(t, E, true, t.nombre || u.co_sinnombre || '', idBase) : null;
     };
 
     /* La base contesta con la solicitud entera; con ella se repinta. */
@@ -12927,15 +12944,37 @@ applyLang(idiomaParaMi());
     /* silencioso: la vuelta del reloj de abajo. No repinta si nada cambió,
        no mueve la lectura de quien subió a mirar algo, y si falla no
        esconde la conversación, que ya estaba bien pintada. */
-    function lee(silencioso){
+    /* Sin supabase-chat-del-paso.sql en la base, la columna paso no existe
+       y la conversación de siempre -sinPaso, la del expediente del
+       gestor- fallaba con 42703: el catch escondía el hilo y el equipo
+       perdía la conversación de TODOS los expedientes por un archivo
+       pendiente (revisión, 13-10-2026). Sin la columna no hay chats de
+       paso, así que todo es del expediente: se repite sin el filtro, y se
+       recuerda para no preguntar mal cada veinte segundos. El chat de un
+       paso (de.paso) no se repite: sin la columna no tiene nada que leer,
+       y esconderse es lo correcto. */
+    var sinColumnaPaso = false;
+    function consulta(){
       var q = sb.from(de.tabla)
         .select('id, texto, del_equipo, creado_en, documento, documentos(nombre_original, tipo, archivo)')
         .eq(de.col, de.id);
       /* El chat de un paso lee solo los suyos; la conversación de siempre,
          los que no son de ningún paso. */
       if (de.paso) q = q.eq('paso', de.paso);
-      else if (de.sinPaso) q = q.is('paso', null);
+      else if (de.sinPaso && !sinColumnaPaso) q = q.is('paso', null);
       return Promise.resolve(q.order('creado_en', {ascending:true}))
+        .then(function(r){
+          var e = r && r.error;
+          if (e && de.sinPaso && !de.paso && !sinColumnaPaso &&
+              (e.code === '42703' || /\bpaso\b/.test(String(e.message || '')))){
+            sinColumnaPaso = true;
+            return consulta();
+          }
+          return r;
+        });
+    }
+    function lee(silencioso){
+      return consulta()
         .then(function(r){
           if (r && r.error) throw r.error;
           var filas = (r && r.data) || [];
@@ -13030,15 +13069,28 @@ applyLang(idiomaParaMi());
        fuera de la vista (la burbuja cerrada) no se pide nada, y cuando el
        bloque deja de estar en la página -se repintó la pantalla, se abrió
        otra consulta- el reloj se para solo: no se acumulan. */
-    var relojHilo = setInterval(function(){
-      if (!bloque.isConnected){ clearInterval(relojHilo); return; }
-      if (document.hidden || bloque.hidden || !bloque.getClientRects().length) return;
-      lee(true);
-    }, 20000);
+    var relojHilo = null;
+    function arma(){
+      relojHilo = setInterval(function(){
+        if (!bloque.isConnected){ clearInterval(relojHilo); relojHilo = null; return; }
+        if (document.hidden || bloque.hidden || !bloque.getClientRects().length) return;
+        lee(true);
+      }, 20000);
+    }
+    arma();
 
     /* repinta: lo mismo otra vez, aunque no haya llegado nada nuevo -el
-       nombre del asesor, que llega después que los mensajes-. */
-    return {cierra: cierra, repinta: function(){ firmaPintada = null; lee(true); }};
+       nombre del asesor, que llega después que los mensajes-.
+       reanuda: para quien vuelve a colgar el MISMO nodo (el chat de la
+       contestación, chatDeLaContestacion). Descolgado al salir de la ficha
+       -o en el hueco del repaso de cada minuto, que vacía la caja y la
+       repinta tras pedir a la base-, el reloj se había parado, y nadie lo
+       volvía a poner: el chat se quedaba congelado hasta recargar
+       (revisión, 13-10-2026). Si el reloj sigue andando no hace nada -no
+       se acumulan ni relojes ni consultas-; si se paró, lo rearma y lee lo
+       que llegó mientras tanto. */
+    return {cierra: cierra, repinta: function(){ firmaPintada = null; lee(true); },
+            reanuda: function(){ if (relojHilo) return; arma(); lee(true); }};
   }
 
 
@@ -13827,7 +13879,11 @@ applyLang(idiomaParaMi());
       };
     }
     /* El chat de la contestación: el inversionista va a su ficha, donde
-       está el chat; el gestor, a la solicitud en su lista. */
+       está el chat; el gestor, a la solicitud en su lista.
+       Y en la ficha, con la pestaña del chat ya elegida: el aviso dice que
+       te escribieron, y caer en «Tu trámite» obligaba a buscar dónde
+       (revisión, 13-10-2026). pintaPorEtapas abre la que diga
+       PESTANA_DEL_CHAT. */
     if (ev.clase === 'chat'){
       return {
         t: ev.ref ? nombreDeTarjeta(ev.ref) : '',
@@ -13835,7 +13891,10 @@ applyLang(idiomaParaMi());
         nota: ev.nota || '',
         ir: ev.equipo
           ? function(){ avAMisTramites(ev.tramite); }
-          : function(){ window.CIIP_ABRE_ESTA = ev.tramite; location.hash = 'tramite-' + ev.ref; }
+          : function(){
+              if (ev.tramite) PESTANA_DEL_CHAT[ev.tramite] = true;
+              window.CIIP_ABRE_ESTA = ev.tramite; location.hash = 'tramite-' + ev.ref;
+            }
       };
     }
     if (ev.clase === 'consulta'){
@@ -21988,11 +22047,12 @@ applyLang(idiomaParaMi());
           cmChats = tramites.map(function(t){
             var E = escaleraPorEtapas(t, t.tipo);
             var signo = String((t.datos || {}).signo || '').trim();
-            /* Cerrado, lo que dice el chat de la casilla (contestacionCerrada),
-               y también lo que la base ya no deja escribir: un trámite
-               cancelado, o uno al que se le quitó la contestación. Mejor
-               la caja apagada con su motivo que una que falla al enviar. */
-            var cerrado = contestacionCerrada(t, E) || !E.contestacion || t.estado === 'cancelado';
+            /* Cerrado, lo que dice el chat de la casilla (contestacionCerrada,
+               que ya cuenta el trámite cancelado), y también lo que la base
+               ya no deja escribir: uno al que se le quitó la contestación.
+               Mejor la caja apagada con su motivo que una que falla al
+               enviar. */
+            var cerrado = contestacionCerrada(t, E) || !E.contestacion;
             /* El asunto lo pone cmItems, en el idioma de cada momento. */
             return {id: t.id, t: t, inversionista: t.inversionista, tipo: t.tipo, gestor: t.gestor || null,
                     nombre: t.nombre || NOMBRES[t.inversionista] || '', signo: signo, asunto: '',
@@ -22037,7 +22097,9 @@ applyLang(idiomaParaMi());
   }
   /* Por qué no se escribe en un chat de trámite, o null si se puede. */
   function cmChatCerrado(c){
-    return c.cerrado ? (T().ch_cerrado || '') : null;
+    var u = T();
+    return !c.cerrado ? null
+         : ((c.t && c.t.estado === 'cancelado' && u.ch_cancelado) || u.ch_cerrado || '');
   }
   function cmCuadra(it, filtro, busca){
     /* Los chats de trámite solo en el suyo, y en el suyo solo ellos (ver
