@@ -651,14 +651,17 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .eq-f-cab .nb{font-size:var(--fs-titulo); font-weight:700; letter-spacing:-.01em;}
 .eq-f-cab .d{font-size:var(--fs-nota); color:var(--gray); margin-top:2px;}
 .eq-cifras{display:grid; grid-template-columns:repeat(auto-fit, minmax(112px, 1fr)); gap:9px; padding:14px 18px;}
-.eq-cifra{border:1px solid var(--line); border-radius:var(--r); padding:10px 11px; border-bottom:3px solid var(--navy);}
-.eq-cifra .r{font-size:var(--fs-chip); font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--navy);}
+/* Sin bordes (Franklin Reyes, 13-10-2026: «no quiero los bordes de los
+   cuadros»): ni el gris de alrededor ni la franja de color de abajo. El
+   cuadro lo hace el fondo, como las cifras de las tarjetas del equipo
+   (.eq-tj-c). Y el rótulo, sin mayúsculas forzadas y en tinta. Lo pasado
+   lo sigue diciendo la cifra en óxido. */
+.eq-cifra{border-radius:var(--r); padding:10px 11px; background:var(--block);}
+.eq-cifra .r{font-size:var(--fs-rotulo); font-weight:600; color:var(--ink);}
 .eq-cifra .n{font-size:var(--fs-cifra); font-weight:800; line-height:1.1; margin-top:5px; font-variant-numeric:tabular-nums;}
 .eq-cifra .n small{font-size:var(--fs-rotulo); font-weight:700; color:var(--gray);}
 .eq-cifra .d{font-size:var(--fs-nota); color:var(--gray); margin-top:3px; line-height:1.3;}
-.eq-cifra.mal{border-bottom-color:var(--rust);} .eq-cifra.mal .r, .eq-cifra.mal .n{color:var(--rust);}
-.eq-cifra.bien{border-bottom-color:var(--good);}
-.eq-cifra.gris{border-bottom-color:var(--line);} .eq-cifra.gris .r{color:var(--gray);}
+.eq-cifra.mal .n{color:var(--rust);}
 .eq-pest{display:flex; gap:2px; border-bottom:1px solid var(--line); padding:0 18px;}
 .eq-pest button{background:none; border:0; border-bottom:2px solid transparent; font:inherit; font-size:var(--fs-pestana);
   font-weight:600; color:var(--gray); padding:10px 12px; cursor:pointer; display:inline-flex; gap:7px; align-items:center;}
