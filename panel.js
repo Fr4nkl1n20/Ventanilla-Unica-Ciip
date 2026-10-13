@@ -33515,6 +33515,9 @@ applyLang(idiomaParaMi());
 
   function pintaPulso(){
     if (!puNums) return;
+    /* El número de «Equipo y gestores» en la lista de Control y
+       Estadísticas es lo sin asignar de aquí: se rehace con cada pulso. */
+    cePintaNav();
     var u = T();
     var sub = document.getElementById('puSub');
     if (sub) sub.textContent = '';
@@ -34175,10 +34178,42 @@ applyLang(idiomaParaMi());
      también cuenta estadisticas_control() desde supabase-control-
      detalle.sql- y el editor baja al final, plegado y con un título que
      dice que es configuración.
+
+     LAS CIFRAS ARRIBA Y DEBAJO LISTA Y DETALLE (Franklin Reyes,
+     13-10-2026: «aplica la maqueta 2 a la ventanilla», la opción 2 de
+     maquetas/control-estadisticas-tres.html). La pantalla era todo a la
+     vez: la tira de cifras, los estados, la tabla de gestores, las
+     tarjetas y seis cajas de dos en dos. Ahora las cinco cifras y la barra
+     de estados se quedan siempre a la vista, en una banda encima -son lo
+     que se mira cada mañana-, y debajo va la lista y detalle de Ayuda y
+     guía (.ay-ld-nav y .ay-ld-it, la misma pieza): cuatro entradas con su
+     número a la izquierda y una sola ficha a la derecha.
+
+       · Equipo y gestores: lo que lleva cada gestor y las tarjetas. Su
+         número es lo que está sin asignar, en ámbar si hay algo.
+       · Trámites y organismos: las solicitudes por trámite y el tiempo de
+         respuesta, con un conmutador entre las dos. No se llama solo
+         «Organismos», como en la maqueta, porque lo que se cuenta es por
+         trámite: agruparlo por organismo sería una cuenta nueva.
+       · Por sector: las consultas por sector y los trámites más pedidos,
+         lado a lado. Pulsar un sector cambia la columna de la derecha.
+       · ¿Por qué piden ayuda?: el motivo entero y sus casos.
+
+     La configuración del chat sale de la lista: la abre el botón
+     «Configuración del chat» de arriba a la derecha, en el mismo sitio del
+     detalle. Las fichas están todas en la página y solo se ve la elegida;
+     lo elegido, el sector pulsado, el conmutador y los motivos abiertos
+     viven en estas variables, así que ni el refresco de cada minuto ni un
+     cambio de idioma los devuelven al principio.
      ────────────────────────────────────────────────────────────────── */
   var ceCaja  = document.getElementById('ceCaja');
   var ceDatos = null, ceFallo = false, ceModo = 'ente';
-  var cePs = {sector: CS_CODIGOS[0], filas: null, fallo: false, aviso: '', abierto: false};
+  var cePs = {sector: CS_CODIGOS[0], filas: null, fallo: false, aviso: ''};
+  /* La ficha que se ve, la última de las cuatro -para volver al cerrar la
+     configuración-, lo que enseña la de organismos y el sector pulsado
+     (null: el más preguntado). Se empieza por el equipo, la primera de la
+     lista, como Ayuda empieza por su primera categoría. */
+  var ceSel = 'equipo', ceUltima = 'equipo', ceOrg = 'sol', ceSecSel = null;
 
   function cargaControl(){
     if (!ceCaja) return Promise.resolve();
@@ -34229,11 +34264,15 @@ applyLang(idiomaParaMi());
   /* Una caja como las del pulso: título arriba y, debajo, la frase que
      dice qué se está contando. Sin esa frase, «Solicitados» deja abierta
      justo la pregunta que esta pantalla viene a cerrar. */
+  /* Sin título (13-10-2026) es una caja «llana», sin borde, dentro de una
+     ficha cuya cabecera ya dice qué es: repetirlo encima de la lista solo
+     empuja las cifras hacia abajo. La cabecera vacía se queda, porque ahí
+     se cuelga el «Por organismo / Por trámite» del tiempo. */
   function ceSeccion(id, titulo, desc){
-    var s = el('section', 'pu-caja ce-caja');
+    var s = el('section', 'pu-caja ce-caja' + (titulo ? '' : ' ce-llano'));
     s.id = id;
-    var h = el('div', 'pu-t');
-    h.appendChild(el('span', null, titulo || ''));
+    var h = el('div', 'pu-t' + (titulo ? '' : ' ce-sin-t'));
+    if (titulo) h.appendChild(el('span', null, titulo));
     s.appendChild(h);
     if (desc) s.appendChild(el('p', 'ce-d', desc));
     return s;
@@ -34327,33 +34366,247 @@ applyLang(idiomaParaMi());
     caja.appendChild(ley);
   }
 
-  /* De dos en dos, como en la maqueta: lo que se pide al lado de lo que
-     tarda, y cuántos preguntan por cada sector al lado de qué trámite
-     piden en él. */
+  /* ── LA LISTA Y LAS FICHAS (13-10-2026) ──
+     Los iconos, los de la maqueta, con el trazo de los de Ayuda (.ay-ic). */
+  var CE_ICONO = {
+    equipo: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c2 .7 3.2 2.5 3.6 5.2"/>',
+    org: '<path d="M3 21h18M5 21V10M19 21V10M9 21v-7M15 21v-7M2 10l10-6 10 6z"/>',
+    sector: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+    motivos: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/>',
+    config: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/>'
+  };
+  /* Las cuatro entradas: la clave de su título y la de la frase que lee el
+     lector de pantalla junto a su número. */
+  var CE_SECS = [
+    {k: 'equipo',  t: 'ce_s_equipo', n: 'ce_n_equipo'},
+    {k: 'org',     t: 'ce_s_org',    n: 'ce_n_org'},
+    {k: 'sector',  t: 'ce_s_sector', n: 'ce_n_sector'},
+    {k: 'motivos', t: 'ce_mo_t',     n: 'ce_n_motivos'}
+  ];
+  var CE_ID = {equipo: 'ceFichaEquipo', org: 'ceFichaOrg', sector: 'ceFichaSector',
+               motivos: 'ceFichaMotivos', config: 'ceFichaConfig'};
+
+  function ceIcono(k){
+    var i = el('span', 'ay-ic' + (k === 'config' ? ' ce-ic-aj' : ''));
+    i.setAttribute('aria-hidden', 'true');
+    i.innerHTML = '<svg viewBox="0 0 24 24">' + (CE_ICONO[k] || '') + '</svg>';
+    return i;
+  }
+
+  /* La cabecera grande de Ayuda: el icono, el título, su frase y, a la
+     derecha, lo que haga falta (el conmutador de los organismos). */
+  function ceLlenaCab(cab, k, titulo, desc, der){
+    cab.textContent = '';
+    cab.appendChild(ceIcono(k));
+    var tx = el('div', 'ce-fi-tx');
+    tx.appendChild(el('h3', 'ce-fi-t', titulo || ''));
+    if (desc) tx.appendChild(el('p', 'ce-fi-d', desc));
+    cab.appendChild(tx);
+    if (der){ var d = el('div', 'ce-fi-der'); d.appendChild(der); cab.appendChild(d); }
+  }
+
+  /* Una ficha nace ya escondida o a la vista según lo elegido: así una que
+     se rehace sola -al pulsar un sector, al cambiar el conmutador- no
+     asoma un instante donde no toca. */
+  function ceFicha(k, titulo, desc, der){
+    var f = el('article', 'ce-ficha');
+    f.id = CE_ID[k];
+    f.setAttribute('data-sec', k);
+    f.hidden = (k !== ceSel);
+    var cab = el('div', 'ce-fi-cab');
+    ceLlenaCab(cab, k, titulo, desc, der);
+    f.appendChild(cab);
+    var cu = el('div', 'ce-fi-cu');
+    f.appendChild(cu);
+    return {ficha: f, cu: cu};
+  }
+
+  /* Sin las cifras -aún cargando o sin el SQL- la ficha lo dice dentro,
+     en su sitio: antes era un aviso encima de todas las cajas. */
+  function ceSinDatos(u, cu){
+    cu.appendChild(el('div', 'pu-vacio ce-aviso', ceFallo ? (u.ce_nocarga || '') : ''));
+  }
+
+  /* El número de cada entrada, de lo que ya se cuenta: lo sin asignar sale
+     del pulso -lo mismo que la fila «Sin asignar» de la tabla de
+     gestores- y los otros tres son la suma de lo que enseña su ficha. Sin
+     datos, no hay número: un 0 diría que no hay nada. */
+  function ceCuenta(k){
+    if (k === 'equipo'){
+      if (!pulso) return null;
+      var sin = (pulso.porGestor && pulso.porGestor['']) || 0;
+      return {n: sin, tono: sin ? 'ojo' : ''};
+    }
+    if (!ceDatos) return null;
+    var n = 0;
+    if (k === 'org') (ceDatos.tramites || []).forEach(function(t){ n += t.solicitados || 0; });
+    if (k === 'sector'){
+      var por = {};
+      (ceDatos.sectores || []).forEach(function(x){ por[x.sector] = x.consultas || 0; });
+      CS_CODIGOS.forEach(function(c){ n += por[c] || 0; });
+    }
+    if (k === 'motivos') (ceDatos.motivos || []).forEach(function(m){ n += m.n || 0; });
+    return {n: n, tono: ''};
+  }
+
+  /* La lista se pinta desde el pulso -cada minuto- y desde pintaControl.
+     Los botones se rehacen por dentro y no se cambian por otros: quien
+     tenga el foco en uno no lo pierde con el refresco. */
+  function cePintaNav(){
+    var nav = document.getElementById('ceNav');
+    /* CE_SECS se define más abajo que el pulso: si el pulso se pintara
+       antes de llegar aquí, aún no estaría. */
+    if (!nav || !CE_SECS) return;
+    var u = T();
+    nav.setAttribute('aria-label', u.ce_nav || '');
+    CE_SECS.forEach(function(s){
+      var b = nav.querySelector('.ay-ld-it[data-sec="' + s.k + '"]');
+      if (!b){
+        b = el('button', 'ay-ld-it ce-ld-it');
+        b.type = 'button';
+        b.setAttribute('data-sec', s.k);
+        b.setAttribute('aria-controls', CE_ID[s.k]);
+        b.addEventListener('click', function(){ ceElige(s.k); });
+        nav.appendChild(b);
+      }
+      b.textContent = '';
+      b.appendChild(ceIcono(s.k));
+      var tx = el('span', 'ay-ld-tx');
+      tx.appendChild(el('b', null, u[s.t] || ''));
+      b.appendChild(tx);
+      var c = ceCuenta(s.k);
+      b.removeAttribute('title');
+      if (c){
+        var frase = String(u[s.n] || '').replace('{n}', c.n);
+        var n = el('span', 'ce-ld-n' + (c.tono ? ' ' + c.tono : ''), String(c.n));
+        n.setAttribute('aria-hidden', 'true');
+        b.appendChild(n);
+        b.appendChild(el('span', 'visualmente-oculto', ' · ' + frase));
+        b.title = frase;
+      }
+    });
+    var cab = document.getElementById('ceCabEquipo');
+    if (cab) ceLlenaCab(cab, 'equipo', u.ce_s_equipo, u.ce_s_equipo_d);
+    var bc = document.getElementById('ceBtnConfigT');
+    if (bc) bc.textContent = u.ce_cfg || '';
+    ceAplicaSel();
+  }
+
+  function ceAplicaSel(){
+    document.querySelectorAll('#ceDet .ce-ficha[data-sec]').forEach(function(f){
+      f.hidden = f.getAttribute('data-sec') !== ceSel;
+    });
+    document.querySelectorAll('#ceNav .ay-ld-it').forEach(function(b){
+      var on = b.getAttribute('data-sec') === ceSel;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    var bc = document.getElementById('ceBtnConfig');
+    if (bc){
+      bc.classList.toggle('on', ceSel === 'config');
+      bc.setAttribute('aria-pressed', ceSel === 'config' ? 'true' : 'false');
+    }
+  }
+
+  function ceElige(k){
+    ceSel = k;
+    if (k !== 'config') ceUltima = k;
+    ceAplicaSel();
+  }
+
+  /* Las fichas de las cifras, de una en una; la del equipo es fija en el
+     HTML. El editor del chat va aunque las cifras fallen: es otra tabla,
+     y escribirla no depende de poder contar. */
   function pintaControl(){
     if (!ceCaja) return;
     var u = T();
     var tEq = document.getElementById('ceTequipo');
     if (tEq) tEq.textContent = u.ce_eq_t || '';
     ceCaja.textContent = '';
+    ceCaja.appendChild(ceFichaOrg(u));
+    ceCaja.appendChild(ceFichaSector(u));
+    ceCaja.appendChild(ceFichaMotivos(u));
+    ceCaja.appendChild(ceFichaConfig(u));
+    cePintaNav();
+  }
 
-    var rejilla = el('div', 'ce-rejilla');
-    if (!ceDatos){
-      ceCaja.appendChild(el('div', 'pu-vacio ce-aviso', ceFallo ? (u.ce_nocarga || '') : ''));
-    } else {
-      rejilla.appendChild(ceCajaTramites(u));
-      rejilla.appendChild(ceCajaTiempos(u));
-      rejilla.appendChild(ceCajaSectores(u));
-      rejilla.appendChild(ceCajaTramSector(u));
-      /* Los motivos, a lo ancho: los cuatro de arriba van por parejas y
-         este no tiene pareja. */
-      rejilla.appendChild(ceCajaMotivos(u));
-    }
-    /* La lista de cada sector va aunque las cifras fallen: es otra tabla,
-       y escribirla no depende de poder contar. Va la última y a lo ancho
-       desde el 9-10-2026: es configuración, no una cifra. */
-    rejilla.appendChild(ceCajaPorSector(u));
-    ceCaja.appendChild(rejilla);
+  /* TRÁMITES Y ORGANISMOS: las solicitudes por trámite y el tiempo de
+     respuesta, con el conmutador de la maqueta en la cabecera. Las dos
+     cajas están dentro y el conmutador esconde una: así el «Por organismo
+     / Por trámite» del tiempo y el «Otros» abierto de cada una siguen como
+     se dejaron. La frase de la cabecera es la de la que se ve. */
+  function ceFichaOrg(u){
+    var seg = el('div', 'pu-seg ce-org-modos');
+    seg.setAttribute('role', 'group');
+    seg.setAttribute('aria-label', u.ce_s_org || '');
+    [['sol', u.ce_tr_t], ['ti', u.ce_ti_t]].forEach(function(m){
+      var b = el('button', 'pu-segbtn ce-org-modo', m[1] || '');
+      b.type = 'button';
+      b.setAttribute('data-org', m[0]);
+      b.setAttribute('aria-pressed', ceOrg === m[0] ? 'true' : 'false');
+      b.addEventListener('click', function(){
+        if (ceOrg === m[0]) return;
+        ceOrg = m[0];
+        var viejo = document.getElementById('ceFichaOrg');
+        if (viejo) viejo.parentNode.replaceChild(ceFichaOrg(T()), viejo);
+        var nb = document.querySelector('#ceFichaOrg .ce-org-modo[data-org="' + m[0] + '"]');
+        if (nb) nb.focus();
+      });
+      seg.appendChild(b);
+    });
+    var f = ceFicha('org', u.ce_s_org, ceOrg === 'sol' ? u.ce_tr_d : u.ce_ti_d, seg);
+    if (!ceDatos){ ceSinDatos(u, f.cu); return f.ficha; }
+    var tr = ceCajaTramites(u);
+    tr.hidden = ceOrg !== 'sol';
+    var ti = ceCajaTiempos(u);
+    ti.hidden = ceOrg !== 'ti';
+    f.cu.appendChild(tr);
+    f.cu.appendChild(ti);
+    return f.ficha;
+  }
+
+  /* POR SECTOR: las consultas a la izquierda y, a la derecha, los trámites
+     que eligen en el sector pulsado. Al principio, el más preguntado. */
+  function ceFichaSector(u){
+    var f = ceFicha('sector', u.ce_s_sector, u.ce_s_sector_d);
+    if (!ceDatos){ ceSinDatos(u, f.cu); return f.ficha; }
+    var dos = el('div', 'ce-dos');
+    dos.appendChild(ceCajaSectores(u));
+    dos.appendChild(ceCajaTramSector(u));
+    f.cu.appendChild(dos);
+    return f.ficha;
+  }
+
+  /* El sector pulsado o, sin pulsar ninguno, el primero en el orden de
+     ceCajaTramSector: el más preguntado y, a igualdad, el que más trámites
+     tiene elegidos. */
+  function ceSectorElegido(){
+    if (ceSecSel && CS_CODIGOS.indexOf(ceSecSel) >= 0) return ceSecSel;
+    var cons = {}, ts = {};
+    (ceDatos.sectores || []).forEach(function(x){ cons[x.sector] = x.consultas || 0; });
+    (ceDatos.tramites_sector || []).forEach(function(x){
+      if (x && x.sector && x.n > 0) ts[x.sector] = (ts[x.sector] || 0) + x.n;
+    });
+    return CS_CODIGOS.slice().sort(function(a, b){
+      return ((cons[b] || 0) - (cons[a] || 0)) || ((ts[b] || 0) - (ts[a] || 0)) ||
+             (CS_CODIGOS.indexOf(a) - CS_CODIGOS.indexOf(b));
+    })[0];
+  }
+
+  function ceFichaMotivos(u){
+    var f = ceFicha('motivos', u.ce_mo_t, u.ce_mo_d);
+    if (!ceDatos){ ceSinDatos(u, f.cu); return f.ficha; }
+    f.cu.appendChild(ceCajaMotivos(u));
+    return f.ficha;
+  }
+
+  /* La configuración del chat: su título y su frase -«no es una
+     estadística»- en la cabecera, el icono en gris y el borde de rayas,
+     que en esta pantalla solo lleva ella. */
+  function ceFichaConfig(u){
+    var f = ceFicha('config', u.ce_ps_t, u.ce_ps_d);
+    f.cu.appendChild(ceCajaPorSector(u));
+    return f.ficha;
   }
 
   /* ── EL TRÁMITE QUE MÁS PIDEN EN CADA SECTOR ──
@@ -34374,7 +34627,12 @@ applyLang(idiomaParaMi());
      Los sectores sin ninguno no se esconden -saber que en minería nadie
      ha elegido nada también es dato- pero tampoco ocupan nueve bloques
      vacíos: van juntos en un renglón al pie. Sin el SQL corrido la llave
-     no llega, y la caja dice lo mismo que sin datos: aún no hay. */
+     no llega, y la caja dice lo mismo que sin datos: aún no hay.
+
+     UN SECTOR CADA VEZ (13-10-2026, opción 2 de la maqueta): ya no van
+     todos los bloques uno debajo de otro, sino el del sector pulsado en
+     «Consultas por sector», que está al lado. Si ese sector no tiene
+     ninguno, su bloque lo dice; el renglón del pie se queda. */
   function ceCajaTramSector(u){
     var s = ceSeccion('ceTramSector', u.ce_ts_t, u.ce_ts_d);
     var por = {};
@@ -34395,17 +34653,20 @@ applyLang(idiomaParaMi());
       s.appendChild(el('div', 'pu-vacio ce-ts-vacio', u.ce_ts_vacio || ''));
       return s;
     }
-    con.forEach(function(c){
+    var c = ceSectorElegido(), suma = total(c);
+    var bloque = el('div', 'ce-ts-bloque');
+    bloque.setAttribute('data-sector', c);
+    var cab = el('div', 'ce-ts-sector');
+    cab.appendChild(el('span', 'nm', nombreDeSectorCs(c)));
+    cab.appendChild(el('span', 'ce-ts-n', String(u.ce_ts_elegidos || '').replace('{n}', suma)));
+    bloque.appendChild(cab);
+    s.appendChild(bloque);
+    if (!suma) bloque.appendChild(el('div', 'pu-vacio ce-ts-nada', u.ce_ts_nada || ''));
+    else {
       var filas = por[c].slice().sort(function(a, b){
         return ((b.n || 0) - (a.n || 0)) || String(a.tramite || '').localeCompare(String(b.tramite || ''));
       });
-      var suma = total(c), tope = filas[0].n || 0;
-      var bloque = el('div', 'ce-ts-bloque');
-      bloque.setAttribute('data-sector', c);
-      var cab = el('div', 'ce-ts-sector');
-      cab.appendChild(el('span', 'nm', nombreDeSectorCs(c)));
-      cab.appendChild(el('span', 'ce-ts-n', String(u.ce_ts_elegidos || '').replace('{n}', suma)));
-      bloque.appendChild(cab);
+      var tope = filas[0].n || 0;
       ceLista(bloque, 'ts-' + c, filas, function(x, i){
         var f = ceFila({
           cls: i === 0 ? 'tope' : '',
@@ -34422,8 +34683,7 @@ applyLang(idiomaParaMi());
         return {valor: String(n), pie: suma ? Math.round((n / suma) * 100) + ' %' : '',
                 partes: [[tope ? n / tope : 0]]};
       });
-      s.appendChild(bloque);
-    });
+    }
     if (sin.length){
       var pie = el('p', 'ce-ts-sin');
       pie.appendChild(el('b', null, u.ce_ts_sin || ''));
@@ -34454,8 +34714,9 @@ applyLang(idiomaParaMi());
      y lo dice. Abierto o cerrado se recuerda por motivo, como «Otros»: el
      refresco de cada minuto no lo pliega. */
   function ceCajaMotivos(u){
-    var s = ceSeccion('ceMotivos', u.ce_mo_t, u.ce_mo_d);
-    s.classList.add('ce-ancha');
+    /* Llana desde el 13-10-2026: el título y la frase van en la cabecera
+       de su ficha (ceFichaMotivos). */
+    var s = ceSeccion('ceMotivos');
     var es = (window.CIIP_PASOS && window.CIIP_PASOS.ui.es.o_ya_motivo) || [];
     var aqui = u.o_ya_motivo || es;
     var por = {}, orden = [], suma = 0;
@@ -34562,7 +34823,9 @@ applyLang(idiomaParaMi());
   }
 
   function ceCajaTramites(u){
-    var s = ceSeccion('ceTramites', u.ce_tr_t, u.ce_tr_d);
+    /* Llana: su título es el botón del conmutador y su frase, la de la
+       cabecera de la ficha (ceFichaOrg). */
+    var s = ceSeccion('ceTramites');
     var filas = (ceDatos.tramites || []).filter(function(t){ return (t.solicitados || 0) > 0; });
     if (!filas.length){ s.appendChild(el('div', 'pu-vacio', u.ce_vacio || '')); return s; }
     var tope = filas.reduce(function(m, t){ return Math.max(m, t.solicitados || 0); }, 0);
@@ -34586,7 +34849,12 @@ applyLang(idiomaParaMi());
 
   /* Los nueve sectores SIEMPRE, también los que están a cero: saber que
      nadie pregunta por telecomunicaciones es la mitad de la respuesta. Por
-     eso aquí no se pliega nada en «Otros». */
+     eso aquí no se pliega nada en «Otros».
+
+     Y desde el 13-10-2026 cada fila es un botón: pulsarla cambia la caja
+     de al lado a los trámites de ese sector (opción 2 de la maqueta). La
+     pulsada, en azul claro con su raya, como la entrada elegida de la
+     lista. Se rehace la ficha entera y el foco vuelve a la misma fila. */
   function ceCajaSectores(u){
     var s = ceSeccion('ceSectores', u.ce_se_t, u.ce_se_d);
     var n = {};
@@ -34596,22 +34864,35 @@ applyLang(idiomaParaMi());
     var orden = CS_CODIGOS.slice().sort(function(a, b){
       return ((n[b] || 0) - (n[a] || 0)) || (CS_CODIGOS.indexOf(a) - CS_CODIGOS.indexOf(b));
     });
+    var elegido = ceSectorElegido();
     var lista = el('div', 'ce-lista');
-    lista.setAttribute('role', 'list');
+    lista.setAttribute('role', 'group');
+    lista.setAttribute('aria-label', u.ce_se_t || '');
     var resaltado = false;
     orden.forEach(function(c){
       var k = n[c] || 0;
       var esTope = !resaltado && k > 0 && k === tope;
       if (esTope) resaltado = true;
       var f = ceFila({
-        cls: k === 0 ? 'cero' : (esTope ? 'tope' : ''),
+        cls: (k === 0 ? 'cero' : (esTope ? 'tope' : '')) + ' ce-se-elige' + (c === elegido ? ' on' : ''),
         nombre: nombreDeSectorCs(c), valor: String(k),
         /* La raya en los que están a cero: así todas las filas miden lo
            mismo y la columna del porcentaje no se queda con huecos. */
         pie: (k && suma) ? Math.round((k / suma) * 100) + ' %' : '—',
         partes: [[tope ? k / tope : 0]]
-      });
+      }, 'button');
+      f.type = 'button';
       f.setAttribute('data-sector', c);
+      f.setAttribute('aria-pressed', c === elegido ? 'true' : 'false');
+      f.setAttribute('aria-controls', 'ceTramSector');
+      f.addEventListener('click', function(){
+        if (c === ceSectorElegido()) return;
+        ceSecSel = c;
+        var viejo = document.getElementById('ceFichaSector');
+        if (viejo) viejo.parentNode.replaceChild(ceFichaSector(T()), viejo);
+        var nb = document.querySelector('#ceSectores .ce-se-elige[data-sector="' + c + '"]');
+        if (nb) nb.focus();
+      });
       lista.appendChild(f);
     });
     s.appendChild(lista);
@@ -34625,7 +34906,7 @@ applyLang(idiomaParaMi());
      se dibuja con su propia mediana y nunca más largo que la barra entera.
      Las cifras exactas van escritas al lado. */
   function ceCajaTiempos(u){
-    var s = ceSeccion('ceTiempos', u.ce_ti_t, u.ce_ti_d);
+    var s = ceSeccion('ceTiempos');
     var modos = el('div', 'pu-seg ce-modos');
     modos.setAttribute('role', 'group');
     modos.setAttribute('aria-label', u.ce_ti_t || '');
@@ -34692,30 +34973,16 @@ applyLang(idiomaParaMi());
      a lo ancho bajo todo lo demás, cerrado, y su título lo dice
      («Configurar los trámites que ve el inversionista en el chat»). Se
      abre con el propio título, y abierto se queda entre refrescos y al
-     guardar, que repintan la caja entera. */
+     guardar, que repintan la caja entera.
+
+     EN SU FICHA, FUERA DE LA LISTA (13-10-2026, opción 2 de la maqueta).
+     Ya no se pliega: la abre el botón «Configuración del chat» de arriba
+     a la derecha, y su título y su frase van en la cabecera de la ficha
+     (ceFichaConfig). Esta caja es solo el editor, llano. */
   function ceCajaPorSector(u){
-    var caja = el('section', 'pu-caja ce-caja ce-ancha ce-config');
+    var caja = el('section', 'pu-caja ce-caja ce-llano ce-config');
     caja.id = 'cePorSector';
-    var abre = el('button', 'ce-config-abre');
-    abre.type = 'button';
-    abre.setAttribute('aria-controls', 'cePsCuerpo');
-    abre.setAttribute('aria-expanded', cePs.abierto ? 'true' : 'false');
-    abre.appendChild(el('span', 'ce-config-t', u.ce_ps_t || ''));
-    abre.appendChild(el('span', 'caret', cePs.abierto ? '▾' : '▸'));
-    abre.querySelector('.caret').setAttribute('aria-hidden', 'true');
-    abre.addEventListener('click', function(){
-      cePs.abierto = !cePs.abierto;
-      ceRepintaPorSector(cePs.sector);
-      var b = document.querySelector('#cePorSector .ce-config-abre');
-      if (b) b.focus();
-    });
-    caja.appendChild(abre);
-    /* Lo de dentro, como antes; s es ahora el cuerpo plegable. */
-    var s = el('div', 'ce-config-cuerpo');
-    s.id = 'cePsCuerpo';
-    s.hidden = !cePs.abierto;
-    caja.appendChild(s);
-    if (u.ce_ps_d) s.appendChild(el('p', 'ce-d', u.ce_ps_d));
+    var s = caja;
     var chips = el('div', 'cs-sectores ce-ps-sectores');
     chips.setAttribute('role', 'group');
     chips.setAttribute('aria-label', u.ce_ps_t || '');
@@ -34865,6 +35132,13 @@ applyLang(idiomaParaMi());
   }
 
   if (ceCaja){
+    /* «Configuración del chat» abre su ficha en el sitio del detalle, y
+       pulsarlo otra vez vuelve a la entrada que se miraba: es un botón que
+       se queda pulsado, y así lo dice aria-pressed. */
+    var ceBtnConfig = document.getElementById('ceBtnConfig');
+    if (ceBtnConfig) ceBtnConfig.addEventListener('click', function(){
+      ceElige(ceSel === 'config' ? ceUltima : 'config');
+    });
     window.CIIP_PINTA_CONTROL   = cargaControl;
     window.CIIP_REPINTA_CONTROL = pintaControl;
   }

@@ -1362,7 +1362,13 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
           <div class="t" id="eqCabT"></div>
           <div class="sub" id="eqCabS"></div>
         </div>
-        <div class="mt-aldia" id="eqAlDia" hidden><span class="pt" aria-hidden="true"></span><span id="eqAlDiaT"></span></div>
+        <div class="ce-cab-der">
+          <div class="mt-aldia" id="eqAlDia" hidden><span class="pt" aria-hidden="true"></span><span id="eqAlDiaT"></span></div>
+          <!-- La configuración del chat, fuera de la lista: no es una cifra
+               (opción 2 de maquetas/control-estadisticas-tres.html, Franklin
+               Reyes, 13-10-2026). Abre su ficha en el sitio del detalle. -->
+          <button class="ce-btn-config" id="ceBtnConfig" type="button" aria-pressed="false" aria-controls="ceFichaConfig"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span id="ceBtnConfigT"></span></button>
+        </div>
       </div>
       <!-- El pulso de la oficina, arriba de las tarjetas. Fue una vista
            aparte hasta el 28-9-2026 (Franklin Reyes: «que pulso pase a ser
@@ -1373,31 +1379,49 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
            en una sola tira y, debajo, las dos tablas lado a lado.
            Desde el 2-10-2026, con la idea 1 de maquetas/control-estadisticas-atlas.html
            (Franklin Reyes: «aplica esta»): las cifras son tarjetas de Atlas con
-           su medidor y los estados, una barra apilada con su leyenda. -->
-      <div class="pulso-vista">
+           su medidor y los estados, una barra apilada con su leyenda.
+           Desde el 13-10-2026, con la opción 2 de maquetas/control-estadisticas-tres.html
+           (Franklin Reyes: «aplica la maqueta 2 a la ventanilla»): las cinco
+           cifras y la barra de estados se quedan SIEMPRE a la vista, en una
+           banda encima; lo demás pasa a la lista y detalle de debajo. -->
+      <div class="pulso-vista ce-arriba">
         <div class="pu-nums" id="puNums"></div>
-        <div class="pu-dos">
-          <section class="pu-caja">
-            <div class="pu-t"><span id="puTestados"></span><span class="pu-sub" id="puTotal"></span></div>
-            <div id="puEstados"></div>
-          </section>
-          <section class="pu-caja">
-            <div class="pu-t">
-              <span id="puTcola"></span>
-              <a class="pu-asignar" id="puAsignar" href="#tramites" hidden></a>
-            </div>
-            <div id="puCola"></div>
-          </section>
+        <div class="ce-est">
+          <div class="pu-t"><span id="puTestados"></span><span class="pu-sub" id="puTotal"></span></div>
+          <div id="puEstados"></div>
         </div>
       </div>
       <!-- Desde el 1-10-2026 la vista se llama «Control y Estadísticas»
            (Franklin Reyes): lo de arriba se queda, las tarjetas llevan su
            rótulo y debajo van las cifras de lo que piden los inversionistas
            y la lista de trámites de cada sector. Lo pinta pintaControl().
-           Desde el 2-10-2026 esas cifras van en barras, de dos en dos. -->
-      <div class="ce-h"><span id="ceTequipo"></span></div>
-      <div class="eq-tarjetas" id="eqTarjetas"></div>
-      <div class="ce-vista" id="ceCaja"></div>
+           Desde el 2-10-2026 esas cifras van en barras, de dos en dos.
+           Desde el 13-10-2026, LISTA Y DETALLE como Ayuda y guía: a la
+           izquierda cuatro entradas con su número (#ceNav) y a la derecha
+           una sola ficha. La del equipo es fija aquí porque la pintan el
+           pulso y pintaEquipo(); las otras las pinta pintaControl() dentro
+           de #ceCaja. Todas están siempre en la página y solo se ve la
+           elegida: el refresco de cada minuto no tiene que rehacer nada. -->
+      <div class="ce-ld">
+        <nav class="ay-ld-nav ce-ld-nav" id="ceNav"></nav>
+        <div class="ce-ld-det" id="ceDet">
+          <article class="ce-ficha" id="ceFichaEquipo" data-sec="equipo">
+            <div class="ce-fi-cab" id="ceCabEquipo"></div>
+            <div class="ce-fi-cu">
+              <section class="pu-caja">
+                <div class="pu-t">
+                  <span id="puTcola"></span>
+                  <a class="pu-asignar" id="puAsignar" href="#tramites" hidden></a>
+                </div>
+                <div id="puCola"></div>
+              </section>
+              <div class="ce-h"><span id="ceTequipo"></span></div>
+              <div class="eq-tarjetas" id="eqTarjetas"></div>
+            </div>
+          </article>
+          <div class="ce-vista" id="ceCaja"></div>
+        </div>
+      </div>
       <div class="eq-velo" id="eqVelo" hidden></div>
       <aside class="eq-cajon" id="eqCajon" role="dialog" aria-modal="true" tabindex="-1" hidden>
         <button class="btn ghost eq-cerrar" id="eqCerrar" type="button"></button>

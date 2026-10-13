@@ -18389,6 +18389,19 @@
     setTimeout(sigue, 400);
   }
 
+  /* Se ve de verdad: está en la página, no escondido y con caja. */
+  function ceVe(n){ return !!n && !n.hidden && !!n.offsetParent; }
+  function ceVisibles(){
+    return [].filter.call(document.querySelectorAll('#ceDet .ce-ficha[data-sec]'), ceVe)
+      .map(function(f){ return f.getAttribute('data-sec'); }).join(' ');
+  }
+  function ceEntrada(k){ return document.querySelector('#ceNav .ay-ld-it[data-sec="' + k + '"]'); }
+  function ceCifrasArriba(){
+    var n = document.querySelectorAll('.ce-arriba #puNums .pu-n');
+    return n.length === 5 && [].every.call(n, ceVe) && ceVe(document.getElementById('puEstados')) &&
+      !document.querySelector('.ce-ld #puNums, .ce-ld #puEstados');
+  }
+
   function controlMira(sigue){
     if (!ES_ADMIN) return sigue();
     var U = ceU();
@@ -18401,7 +18414,7 @@
     igual('control: el pulso sigue arriba, con sus cinco cifras', document.querySelectorAll('#puNums .pu-n').length, 5);
     /* Desde el 2-10-2026, con la idea 1 de maquetas/control-estadisticas-atlas.html:
        las cifras son tarjetas de Atlas con su medidor, los estados una
-       barra apilada y lo de abajo, barras de dos en dos. */
+       barra apilada y lo de abajo, barras. */
     igual('control: cada cifra lleva su medidor', document.querySelectorAll('#puNums .pu-n .pu-medidor').length, 5);
     var cifra = document.querySelector('#puNums .pu-n');
     ok('control: la cifra arriba y el rótulo debajo',
@@ -18417,21 +18430,181 @@
     ok('control: y el total al lado del título',
        /\d/.test((document.getElementById('puTotal') || {}).textContent || ''),
        (document.getElementById('puTotal') || {}).textContent, U.pu_total);
-    ok('control: y las tarjetas del equipo, con su rótulo',
-       document.querySelectorAll('#eqTarjetas .eq-tj').length >= 2 &&
+
+    /* LA OPCIÓN 2 DE maquetas/control-estadisticas-tres.html (Franklin
+       Reyes, 13-10-2026): las cinco cifras y los estados en la banda de
+       arriba, siempre a la vista, y debajo lista y detalle como Ayuda. */
+    ok('control: las cinco cifras y los estados, arriba y fuera de la lista',
+       ceCifrasArriba(), document.querySelectorAll('.ce-arriba #puNums .pu-n').length + ' cifras en la banda',
+       'cinco, a la vista, fuera de .ce-ld');
+    var ents = document.querySelectorAll('#ceNav .ay-ld-it');
+    igual('control: la lista trae sus cuatro entradas, en su orden',
+          [].map.call(ents, function(b){ return b.getAttribute('data-sec'); }).join(' '), 'equipo org sector motivos');
+    igual('control: cada una con su título',
+          [].map.call(ents, function(b){ return (b.querySelector('.ay-ld-tx b') || {}).textContent; }).join(' | '),
+          [U.ce_s_equipo, U.ce_s_org, U.ce_s_sector, U.ce_mo_t].join(' | '));
+    igual('control: y su número', [].filter.call(ents, function(b){ return !!b.querySelector('.ce-ld-n'); }).length, 4);
+    /* Los números, de lo que ya enseña cada ficha: lo sin asignar de la
+       tabla de gestores, las solicitudes (5 + 3 + 2), las consultas de los
+       nueve sectores y los pedidos de ayuda (3 + 2 + 1 + 1). */
+    var filaSin = [].filter.call(document.querySelectorAll('#puCola tr'), function(tr){ return !!tr.querySelector('.pu-sinasig'); })[0];
+    var sinAsig = filaSin ? filaSin.querySelectorAll('td.num')[0].textContent : '0';
+    var nEq = (ents[0] && ents[0].querySelector('.ce-ld-n')) || {};
+    ok('control: el del equipo es lo sin asignar, en ámbar si hay algo',
+       nEq.textContent === sinAsig && (sinAsig === '0' || nEq.classList.contains('ojo')),
+       nEq.textContent + ' ' + (nEq.className || ''), sinAsig + (sinAsig === '0' ? '' : ' ojo'));
+    igual('control: el de los organismos, las solicitudes enviadas',
+          ((ents[1] && ents[1].querySelector('.ce-ld-n')) || {}).textContent, '10');
+    var sumaSec = [].reduce.call(document.querySelectorAll('#ceSectores .ce-fila .ce-rv .n'),
+                                 function(m, n){ return m + Number(n.textContent || 0); }, 0);
+    igual('control: el de los sectores, las consultas de los nueve',
+          ((ents[2] && ents[2].querySelector('.ce-ld-n')) || {}).textContent, String(sumaSec));
+    igual('control: el de los motivos, los pedidos de ayuda',
+          ((ents[3] && ents[3].querySelector('.ce-ld-n')) || {}).textContent, '7');
+    ok('control: y el lector oye qué cuenta cada número',
+       !!ents[1] && (ents[1].querySelector('.visualmente-oculto') || {}).textContent === ' · ' + String(U.ce_n_org).replace('{n}', 10),
+       ents[1] ? (ents[1].querySelector('.visualmente-oculto') || {}).textContent : '(nada)', U.ce_n_org);
+
+    /* Se llega al equipo, la primera de la lista. */
+    igual('control: se llega a la ficha del equipo, sola', ceVisibles(), 'equipo');
+    ok('control: con su entrada marcada',
+       !!ents[0] && ents[0].classList.contains('on') && ents[0].getAttribute('aria-pressed') === 'true' &&
+       [].filter.call(ents, function(b){ return b.classList.contains('on'); }).length === 1,
+       ents[0] ? ents[0].className : '(nada)', 'ay-ld-it on');
+    igual('control: y la cabecera grande de Ayuda, con su título',
+          (document.querySelector('#ceFichaEquipo .ce-fi-cab .ce-fi-t') || {}).textContent, U.ce_s_equipo);
+    ok('control: dentro, lo que lleva cada gestor y las tarjetas del equipo, con su rótulo',
+       !!document.querySelector('#ceFichaEquipo #puCola .pu-tabla') &&
+       document.querySelectorAll('#ceFichaEquipo #eqTarjetas .eq-tj').length >= 2 &&
        document.getElementById('ceTequipo').textContent === U.ce_eq_t,
        document.getElementById('ceTequipo').textContent, U.ce_eq_t);
-    /* Seis desde el 9-10-2026: los trámites más pedidos por sector, al
-       lado de las consultas por sector, y el editor de la lista del chat
-       al final. */
-    igual('control: las seis cajas de abajo, en la rejilla de dos',
-          document.querySelectorAll('#ceCaja .ce-rejilla > .ce-caja').length, 6);
 
-    /* Los motivos de «ya lo solicité» (6-10-2026): a lo ancho, uno por
-       motivo de más a menos, traducido, y debajo en qué entes sale. */
+    /* TRÁMITES Y ORGANISMOS, con su conmutador. */
+    if (ents[1]) ents[1].click();
+    igual('control: elegir «Trámites y organismos» enseña su ficha, sola', ceVisibles(), 'org');
+    ok('control: y las cifras de arriba siguen a la vista', ceCifrasArriba(), ceCifrasArriba(), true);
+    var modos = document.querySelectorAll('#ceFichaOrg .ce-fi-cab .ce-org-modo');
+    igual('control: el conmutador, en la cabecera: solicitudes y tiempo',
+          [].map.call(modos, function(b){ return b.textContent + '=' + b.getAttribute('aria-pressed'); }).join(' '),
+          U.ce_tr_t + '=true ' + U.ce_ti_t + '=false');
+    ok('control: empieza en las solicitudes, con su frase',
+       ceVe(document.getElementById('ceTramites')) && document.getElementById('ceTiempos').hidden &&
+       (document.querySelector('#ceFichaOrg .ce-fi-d') || {}).textContent === U.ce_tr_d,
+       (document.querySelector('#ceFichaOrg .ce-fi-d') || {}).textContent, U.ce_tr_d);
+    var tr = document.querySelectorAll('#ceTramites .ce-fila[data-tipo]');
+    igual('control: una barra por trámite solicitado', tr.length, 3);
+    ok('control: el más pedido arriba, con sus solicitudes',
+       !!tr[0] && tr[0].getAttribute('data-tipo') === 'constitucion' &&
+       (tr[0].querySelector('.ce-rv .n') || {}).textContent === '5',
+       tr[0] ? tr[0].textContent : '(nada)', 'constitucion · 5');
+    ok('control: y la barra del más pedido, entera',
+       !!tr[0] && !!tr[0].querySelector('.ce-relleno') && tr[0].querySelector('.ce-relleno').style.width === '100%',
+       tr[0] && tr[0].querySelector('.ce-relleno') ? tr[0].querySelector('.ce-relleno').style.width : '(sin barra)', '100%');
+    if (modos[1]) modos[1].click();
+    ok('control: el conmutador pasa al tiempo de respuesta, con su frase',
+       ceVe(document.getElementById('ceTiempos')) && document.getElementById('ceTramites').hidden &&
+       (document.querySelector('#ceFichaOrg .ce-fi-d') || {}).textContent === U.ce_ti_d &&
+       (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {}).getAttribute('data-org') === 'ti',
+       (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {}).textContent, U.ce_ti_t);
+    ok('control: y el foco se queda en el botón pulsado',
+       !!document.activeElement && document.activeElement.getAttribute('data-org') === 'ti',
+       document.activeElement ? document.activeElement.className : '(nada)', 'ce-org-modo ti');
+    var ti = document.querySelectorAll('#ceTiempos .ce-fila');
+    igual('control: tiempos por organismo, uno por organismo con resueltos', ti.length, 2);
+    ok('control: con su mediana', !!ti[0] && /SAREN/.test(ti[0].textContent) && !!ti[0].querySelector('.ce-fuerte'),
+       ti[0] ? ti[0].textContent : '(nada)', 'SAREN y su mediana');
+    ok('control: y la leyenda de los dos tramos',
+       document.querySelectorAll('#ceTiempos .ce-leyenda li').length === 2,
+       document.querySelectorAll('#ceTiempos .ce-leyenda li').length, 2);
+    var porTr = document.querySelector('#ceTiempos .ce-modo[data-modo="tramite"]');
+    if (porTr) porTr.click();
+    var ti2 = document.querySelectorAll('#ceTiempos .ce-fila');
+    igual('control: y por trámite, solo los que tienen alguno resuelto', ti2.length, 2);
+    var pulsado = document.querySelector('#ceTiempos .ce-modo[aria-pressed="true"]');
+    igual('control: con el botón marcado', pulsado ? pulsado.getAttribute('data-modo') : '(ninguno)', 'tramite');
+
+    /* POR SECTOR: las consultas y los más pedidos lado a lado. */
+    if (ents[2]) ents[2].click();
+    igual('control: elegir «Por sector» enseña su ficha, sola', ceVisibles(), 'sector');
+    var se = document.querySelectorAll('#ceSectores .ce-fila');
+    igual('control: los nueve sectores, también los que están a cero', se.length, 9);
+    ok('control: y el más preguntado arriba, resaltado',
+       !!se[0] && se[0].getAttribute('data-sector') === 'hidrocarburos' && se[0].classList.contains('tope'),
+       se[0] ? se[0].getAttribute('data-sector') + ' ' + se[0].className : '(nada)', 'hidrocarburos tope');
+    ok('control: cada sector es un botón, y el más preguntado llega pulsado',
+       [].every.call(se, function(b){ return b.tagName === 'BUTTON'; }) &&
+       se[0].getAttribute('aria-pressed') === 'true' && se[0].classList.contains('on') &&
+       document.querySelectorAll('#ceSectores .ce-fila[aria-pressed="true"]').length === 1,
+       se[0] ? se[0].tagName + ' ' + se[0].getAttribute('aria-pressed') : '(nada)', 'BUTTON true');
+    var ts = document.getElementById('ceTramSector');
+    var seCaja = document.getElementById('ceSectores');
+    ok('control: al lado de Consultas por sector, los trámites más pedidos',
+       !!ts && !!seCaja && seCaja.nextElementSibling === ts && seCaja.parentNode.classList.contains('ce-dos'),
+       seCaja && seCaja.nextElementSibling ? seCaja.nextElementSibling.id : '(nada)', 'ceTramSector');
+    igual('control: con su título', ts ? (ts.querySelector('.pu-t') || {}).textContent : '(no está)', U.ce_ts_t);
+    igual('control: y sin campos ni pastillas',
+          ts ? ts.querySelectorAll('input, select, textarea, .cs-sector, .btn').length : -1, 0);
+    var bloques = ts ? ts.querySelectorAll('.ce-ts-bloque') : [];
+    igual('control: un solo bloque, el del sector pulsado',
+          [].map.call(bloques, function(b){ return b.getAttribute('data-sector'); }).join(' '), 'hidrocarburos');
+    var hFilas = bloques[0] ? bloques[0].querySelectorAll('.ce-fila') : [];
+    ok('control: el más pedido del sector arriba, resaltado y con su número',
+       !!hFilas[0] && hFilas[0].getAttribute('data-tramite') === 'Licencia de exploración y explotación' &&
+       hFilas[0].classList.contains('tope') && (hFilas[0].querySelector('.ce-rv .n') || {}).textContent === '3' &&
+       (hFilas[0].querySelector('.ce-rl .ce-sub') || {}).textContent === U.ce_ts_top,
+       hFilas[0] ? hFilas[0].getAttribute('data-tramite') + ' ' + (hFilas[0].querySelector('.ce-rv .n') || {}).textContent : '(nada)',
+       'Licencia de exploración y explotación 3');
+    ok('control: y el siguiente con el suyo y su parte del sector',
+       !!hFilas[1] && (hFilas[1].querySelector('.ce-rv .n') || {}).textContent === '1' &&
+       (hFilas[1].querySelector('.ce-rv .ce-sub') || {}).textContent === '25 %' &&
+       (hFilas[0].querySelector('.ce-rv .ce-sub') || {}).textContent === '75 %',
+       hFilas[1] ? hFilas[1].textContent : '(nada)', '1 · 25 %');
+    igual('control: con lo que suma el sector en su cabecera',
+          bloques[0] ? (bloques[0].querySelector('.ce-ts-n') || {}).textContent : '(nada)',
+          String(U.ce_ts_elegidos || '').replace('{n}', 4));
+    var sinTs = ts ? ts.querySelector('.ce-ts-sin') : null;
+    ok('control: los sectores sin ninguno, juntos al pie y diciéndolo',
+       !!sinTs && sinTs.textContent.indexOf(U.ce_ts_sin) === 0 && sinTs.textContent.indexOf(U.cs_s2) > 0 &&
+       sinTs.textContent.indexOf(U.cs_s1) < 0 && sinTs.textContent.split(' · ').length === 7,
+       sinTs ? sinTs.textContent : '(no está)', U.ce_ts_sin + ' … (siete)');
+    var tur = document.querySelector('#ceSectores .ce-fila[data-sector="turismo"]');
+    if (tur) tur.click();
+    var bTur = document.querySelectorAll('#ceTramSector .ce-ts-bloque');
+    ok('control: pulsar un sector cambia la columna de la derecha a los suyos',
+       bTur.length === 1 && bTur[0].getAttribute('data-sector') === 'turismo' &&
+       (bTur[0].querySelector('.ce-fila') || {getAttribute: function(){ return ''; }}).getAttribute('data-tramite') === 'Licencia de turismo',
+       bTur[0] ? bTur[0].getAttribute('data-sector') + ' ' + bTur[0].textContent : '(nada)', 'turismo · Licencia de turismo');
+    var turAhora = document.querySelector('#ceSectores .ce-fila[data-sector="turismo"]');
+    ok('control: el pulsado se marca, el foco se queda en él y la ficha sigue a la vista',
+       !!turAhora && turAhora.getAttribute('aria-pressed') === 'true' && turAhora.classList.contains('on') &&
+       document.activeElement === turAhora && ceVisibles() === 'sector' &&
+       document.querySelectorAll('#ceSectores .ce-fila[aria-pressed="true"]').length === 1,
+       turAhora ? turAhora.getAttribute('aria-pressed') + ' ' + ceVisibles() : '(nada)', 'true sector');
+    var minS = document.querySelector('#ceSectores .ce-fila[data-sector="mineria"]');
+    if (minS) minS.click();
+    var bMin = document.querySelector('#ceTramSector .ce-ts-bloque');
+    ok('control: y un sector sin ninguno lo dice en su bloque',
+       !!bMin && bMin.getAttribute('data-sector') === 'mineria' && !bMin.querySelector('.ce-fila') &&
+       (bMin.querySelector('.ce-ts-nada') || {}).textContent === U.ce_ts_nada,
+       bMin ? bMin.textContent : '(nada)', U.ce_ts_nada);
+
+    /* ¿POR QUÉ PIDEN AYUDA? (6-10-2026): uno por motivo de más a menos,
+       traducido, y debajo en qué entes sale. */
+    if (ents[3]) ents[3].click();
+    igual('control: elegir «¿Por qué piden ayuda?» enseña su ficha, sola', ceVisibles(), 'motivos');
+    igual('control: con su título y su frase en la cabecera',
+          (document.querySelector('#ceFichaMotivos .ce-fi-t') || {}).textContent + ' | ' +
+          (document.querySelector('#ceFichaMotivos .ce-fi-d') || {}).textContent, U.ce_mo_t + ' | ' + U.ce_mo_d);
     var mo = document.querySelectorAll('#ceMotivos .ce-fila[data-motivo]');
-    ok('control: los motivos, a lo ancho', !!document.querySelector('#ceMotivos.ce-ancha'),
-       document.getElementById('ceMotivos') ? document.getElementById('ceMotivos').className : '(no está)', 'ce-ancha');
+    /* Lo de dentro de la ficha, sin su relleno: la caja llana lo ocupa
+       entero (y algo más, porque su propio relleno cae en el margen). */
+    var cuMo = document.querySelector('#ceFichaMotivos .ce-fi-cu'), csMo = cuMo ? getComputedStyle(cuMo) : null;
+    var dentroMo = cuMo ? cuMo.clientWidth - parseFloat(csMo.paddingLeft) - parseFloat(csMo.paddingRight) : 0;
+    ok('control: los motivos, a todo lo ancho de su ficha',
+       !!document.getElementById('ceMotivos') && ceVe(document.getElementById('ceMotivos')) && dentroMo > 0 &&
+       document.getElementById('ceMotivos').getBoundingClientRect().width >= dentroMo - 1,
+       document.getElementById('ceMotivos') ? Math.round(document.getElementById('ceMotivos').getBoundingClientRect().width) + ' de ' + dentroMo : '(no está)',
+       'tan ancho como la ficha');
     igual('control: una fila por motivo', mo.length, 3);
     ok('control: el más marcado arriba, sumando sus entes',
        !!mo[0] && mo[0].getAttribute('data-motivo') === 'Lleva mucho tiempo sin respuesta' &&
@@ -18445,13 +18618,14 @@
 
     /* ENTERO (Franklin Reyes, 9-10-2026: «debería de salir la respuesta
        completa que pone el inversionista, no ...»). El más largo de la
-       lista, sin «…» y sin que el texto se salga de su caja. */
+       lista, sin «…» y sin que el texto se salga de su caja; ya a la
+       vista, así que se mide de verdad. */
     var largo = document.querySelector('#ceMotivos .ce-fila[data-motivo="Me piden recaudos que no tengo o no entiendo"] .ce-rl .nm');
     var estiloL = largo ? getComputedStyle(largo) : null;
     ok('control: el motivo sale entero, sin «…»',
        !!largo && largo.textContent.indexOf((U.o_ya_motivo || [])[3]) === 0 &&
        estiloL.whiteSpace !== 'nowrap' && estiloL.textOverflow !== 'ellipsis' &&
-       largo.scrollWidth <= largo.clientWidth + 1,
+       largo.clientWidth > 0 && largo.scrollWidth <= largo.clientWidth + 1,
        largo ? (estiloL.whiteSpace + ' / ' + estiloL.textOverflow + ' / ' + largo.scrollWidth + '>' + largo.clientWidth) : '(no está)',
        'normal, sin ellipsis y dentro de su caja');
     ok('control: cada motivo es un botón que despliega sus casos, cerrado al llegar',
@@ -18463,7 +18637,7 @@
     var panelCasos = mo[0] ? document.getElementById(mo[0].getAttribute('aria-controls')) : null;
     var casos = panelCasos ? panelCasos.querySelectorAll('.ce-caso') : [];
     ok('control: al pulsarlo se abren sus casos',
-       !!panelCasos && !panelCasos.hidden && mo[0].getAttribute('aria-expanded') === 'true',
+       !!panelCasos && ceVe(panelCasos) && mo[0].getAttribute('aria-expanded') === 'true',
        panelCasos ? (panelCasos.hidden ? 'cerrado' : 'abierto') : '(no hay)', 'abierto');
     igual('control: uno por caso de ese motivo', casos.length, 2);
     ok('control: el más reciente arriba, con quién y su empresa',
@@ -18491,89 +18665,31 @@
        !!panelCasos && panelCasos.hidden && mo[0].getAttribute('aria-expanded') === 'false',
        panelCasos ? (panelCasos.hidden ? 'cerrado' : 'abierto') : '(no hay)', 'cerrado');
 
-    /* EL TRÁMITE QUE MÁS PIDEN EN CADA SECTOR (Franklin Reyes, 9-10-2026):
-       al lado de «Consultas por sector», contado de las consultas y sin
-       nada que parezca un formulario. */
-    var ts = document.getElementById('ceTramSector');
-    var seCaja = document.getElementById('ceSectores');
-    ok('control: al lado de Consultas por sector, los trámites más pedidos',
-       !!ts && !!seCaja && seCaja.nextElementSibling === ts && !ts.classList.contains('ce-ancha'),
-       seCaja && seCaja.nextElementSibling ? seCaja.nextElementSibling.id : '(nada)', 'ceTramSector');
-    igual('control: con su título', ts ? (ts.querySelector('.pu-t') || {}).textContent : '(no está)', U.ce_ts_t);
-    igual('control: y sin campos ni pastillas',
-          ts ? ts.querySelectorAll('input, select, textarea, .cs-sector, .btn').length : -1, 0);
-    var bloques = ts ? ts.querySelectorAll('.ce-ts-bloque') : [];
-    igual('control: un bloque por sector con trámites elegidos, el más preguntado primero',
-          [].map.call(bloques, function(b){ return b.getAttribute('data-sector'); }).join(' '), 'hidrocarburos turismo');
-    var hFilas = bloques[0] ? bloques[0].querySelectorAll('.ce-fila') : [];
-    ok('control: el más pedido del sector arriba, resaltado y con su número',
-       !!hFilas[0] && hFilas[0].getAttribute('data-tramite') === 'Licencia de exploración y explotación' &&
-       hFilas[0].classList.contains('tope') && (hFilas[0].querySelector('.ce-rv .n') || {}).textContent === '3' &&
-       (hFilas[0].querySelector('.ce-rl .ce-sub') || {}).textContent === U.ce_ts_top,
-       hFilas[0] ? hFilas[0].getAttribute('data-tramite') + ' ' + (hFilas[0].querySelector('.ce-rv .n') || {}).textContent : '(nada)',
-       'Licencia de exploración y explotación 3');
-    ok('control: y el siguiente con el suyo y su parte del sector',
-       !!hFilas[1] && (hFilas[1].querySelector('.ce-rv .n') || {}).textContent === '1' &&
-       (hFilas[1].querySelector('.ce-rv .ce-sub') || {}).textContent === '25 %' &&
-       (hFilas[0].querySelector('.ce-rv .ce-sub') || {}).textContent === '75 %',
-       hFilas[1] ? hFilas[1].textContent : '(nada)', '1 · 25 %');
-    igual('control: con lo que suma el sector en su cabecera',
-          bloques[0] ? (bloques[0].querySelector('.ce-ts-n') || {}).textContent : '(nada)',
-          String(U.ce_ts_elegidos || '').replace('{n}', 4));
-    var sinTs = ts ? ts.querySelector('.ce-ts-sin') : null;
-    ok('control: los sectores sin ninguno, juntos al pie y diciéndolo',
-       !!sinTs && sinTs.textContent.indexOf(U.ce_ts_sin) === 0 && sinTs.textContent.indexOf(U.cs_s2) > 0 &&
-       sinTs.textContent.indexOf(U.cs_s1) < 0 && sinTs.textContent.split(' · ').length === 7,
-       sinTs ? sinTs.textContent : '(no está)', U.ce_ts_sin + ' … (siete)');
-
-    /* EL EDITOR DE LA LISTA DEL CHAT, al final, a lo ancho y plegado. */
+    /* LA CONFIGURACIÓN DEL CHAT, fuera de la lista: la abre su botón de
+       arriba a la derecha, en el sitio del detalle. */
+    var bCfg = document.getElementById('ceBtnConfig');
+    ok('control: «Configuración del chat», un botón arriba a la derecha y sin pulsar',
+       !!bCfg && ceVe(bCfg) && bCfg.textContent === U.ce_cfg && bCfg.getAttribute('aria-pressed') === 'false' &&
+       !!bCfg.closest('.mt-cab') && !ceEntrada('config'),
+       bCfg ? bCfg.textContent + ' ' + bCfg.getAttribute('aria-pressed') : '(no está)', U.ce_cfg + ' false');
+    if (bCfg) bCfg.click();
+    igual('control: pulsarlo abre la ficha de la configuración, sola', ceVisibles(), 'config');
+    ok('control: el botón queda pulsado y ninguna entrada de la lista marcada',
+       bCfg.getAttribute('aria-pressed') === 'true' && bCfg.classList.contains('on') &&
+       !document.querySelector('#ceNav .ay-ld-it.on'),
+       bCfg.getAttribute('aria-pressed') + ' ' + (document.querySelector('#ceNav .ay-ld-it.on') || {}).className, 'true, ninguna');
+    var cfgF = document.getElementById('ceFichaConfig');
+    ok('control: con un título que dice que es configuración, su frase y el borde de rayas',
+       !!cfgF && (cfgF.querySelector('.ce-fi-t') || {}).textContent === U.ce_ps_t &&
+       (cfgF.querySelector('.ce-fi-d') || {}).textContent === U.ce_ps_d &&
+       getComputedStyle(cfgF).borderTopStyle === 'dashed',
+       cfgF ? (cfgF.querySelector('.ce-fi-t') || {}).textContent + ' / ' + getComputedStyle(cfgF).borderTopStyle : '(no está)',
+       U.ce_ps_t + ' / dashed');
+    ok('control: y las cifras de arriba siguen a la vista', ceCifrasArriba(), ceCifrasArriba(), true);
     var cfg = document.getElementById('cePorSector');
-    ok('control: el editor de la lista del chat va el último, a lo ancho',
-       !!cfg && !cfg.nextElementSibling && cfg.classList.contains('ce-ancha') && cfg.classList.contains('ce-config'),
-       cfg ? (cfg.nextElementSibling ? 'le sigue ' + cfg.nextElementSibling.id : cfg.className) : '(no está)', 'último, ce-ancha ce-config');
-    var cfgAbre = cfg ? cfg.querySelector('.ce-config-abre') : null;
-    ok('control: con un título que dice que es configuración',
-       !!cfgAbre && (cfgAbre.querySelector('.ce-config-t') || {}).textContent === U.ce_ps_t,
-       cfgAbre ? cfgAbre.textContent : '(no está)', U.ce_ps_t);
-    ok('control: y plegado al llegar',
-       !!cfgAbre && cfgAbre.getAttribute('aria-expanded') === 'false' && document.getElementById('cePsCuerpo').hidden,
-       cfgAbre ? cfgAbre.getAttribute('aria-expanded') : '(no está)', 'false');
-    if (cfgAbre) cfgAbre.click();
-    ok('control: pulsar el título lo abre',
-       !!document.getElementById('cePsCuerpo') && !document.getElementById('cePsCuerpo').hidden &&
-       (document.querySelector('#cePorSector .ce-config-abre') || {}).getAttribute('aria-expanded') === 'true',
-       document.getElementById('cePsCuerpo') ? (document.getElementById('cePsCuerpo').hidden ? 'plegado' : 'abierto') : '(no está)',
-       'abierto');
-
-    var tr = document.querySelectorAll('#ceTramites .ce-fila[data-tipo]');
-    igual('control: una barra por trámite solicitado', tr.length, 3);
-    ok('control: el más pedido arriba, con sus solicitudes',
-       !!tr[0] && tr[0].getAttribute('data-tipo') === 'constitucion' &&
-       (tr[0].querySelector('.ce-rv .n') || {}).textContent === '5',
-       tr[0] ? tr[0].textContent : '(nada)', 'constitucion · 5');
-    ok('control: y la barra del más pedido, entera',
-       !!tr[0] && !!tr[0].querySelector('.ce-relleno') && tr[0].querySelector('.ce-relleno').style.width === '100%',
-       tr[0] && tr[0].querySelector('.ce-relleno') ? tr[0].querySelector('.ce-relleno').style.width : '(sin barra)', '100%');
-
-    var se = document.querySelectorAll('#ceSectores .ce-fila');
-    igual('control: los nueve sectores, también los que están a cero', se.length, 9);
-    ok('control: y el más preguntado arriba, resaltado',
-       !!se[0] && se[0].getAttribute('data-sector') === 'hidrocarburos' && se[0].classList.contains('tope'),
-       se[0] ? se[0].getAttribute('data-sector') + ' ' + se[0].className : '(nada)', 'hidrocarburos tope');
-
-    var ti = document.querySelectorAll('#ceTiempos .ce-fila');
-    igual('control: tiempos por organismo, uno por organismo con resueltos', ti.length, 2);
-    ok('control: con su mediana', !!ti[0] && /SAREN/.test(ti[0].textContent) && !!ti[0].querySelector('.ce-fuerte'),
-       ti[0] ? ti[0].textContent : '(nada)', 'SAREN y su mediana');
-    ok('control: y la leyenda de los dos tramos',
-       document.querySelectorAll('#ceTiempos .ce-leyenda li').length === 2,
-       document.querySelectorAll('#ceTiempos .ce-leyenda li').length, 2);
-    var porTr = document.querySelector('#ceTiempos .ce-modo[data-modo="tramite"]');
-    if (porTr) porTr.click();
-    var ti2 = document.querySelectorAll('#ceTiempos .ce-fila');
-    igual('control: y por trámite, solo los que tienen alguno resuelto', ti2.length, 2);
-    var pulsado = document.querySelector('#ceTiempos .ce-modo[aria-pressed="true"]');
-    igual('control: con el botón marcado', pulsado ? pulsado.getAttribute('data-modo') : '(ninguno)', 'tramite');
+    ok('control: el editor de la lista del chat va dentro, sin plegar',
+       !!cfg && cfg.parentNode.parentNode === cfgF && ceVe(cfg) && !cfg.querySelector('.ce-config-abre'),
+       cfg ? cfg.className : '(no está)', 'dentro de #ceFichaConfig, a la vista');
 
     igual('control: la lista por sector ofrece los nueve', document.querySelectorAll('#cePorSector .cs-sector').length, 9);
     var marcado = document.querySelector('#cePorSector .cs-sector[aria-pressed="true"]');
@@ -18646,8 +18762,12 @@
     ok('control: y si no tiene ninguno, lo dice',
        ceFilas().length === 0 && !!document.querySelector('#cePorSector .ce-ps-vacio'),
        ceFilas().length + ' filas', 'ninguna, con el aviso');
+    igual('control: el editor sigue funcionando en su ficha, que no se cierra al guardar', ceVisibles(), 'config');
     /* Y la base de antes de supabase-control-detalle.sql: la función no
-       trae ni los trámites por sector ni los casos. */
+       trae ni los trámites por sector ni los casos. Se repinta todo con
+       un motivo abierto, la configuración a la vista, el conmutador en el
+       tiempo y minería pulsada en Por sector: nada de eso puede volver al
+       principio (13-10-2026). */
     window.CIIP_MENTIRA_SQL_VIEJO = true;
     var abierto = document.querySelector('#ceMotivos .ce-fila[data-motivo]');
     if (abierto) abierto.click();
@@ -18673,11 +18793,33 @@
     ok('control: y un motivo abierto dice que faltan los casos en la base',
        !!p && !p.hidden && p.textContent === U.ce_ca_nosql,
        p ? (p.hidden ? '(plegado)' : p.textContent) : '(no está)', U.ce_ca_nosql);
-    ok('control: el editor sigue abierto tras el refresco',
-       !!document.getElementById('cePsCuerpo') && !document.getElementById('cePsCuerpo').hidden,
-       document.getElementById('cePsCuerpo') ? (document.getElementById('cePsCuerpo').hidden ? 'plegado' : 'abierto') : '(no está)',
-       'abierto');
+    /* LO ELEGIDO SOBREVIVE AL REPINTADO (13-10-2026). */
+    var bCfg = document.getElementById('ceBtnConfig');
+    ok('control: la configuración sigue abierta tras el refresco, con su botón pulsado',
+       ceVisibles() === 'config' && !!bCfg && bCfg.getAttribute('aria-pressed') === 'true' &&
+       ceVe(document.getElementById('cePorSector')),
+       ceVisibles() + ' ' + (bCfg ? bCfg.getAttribute('aria-pressed') : '(sin botón)'), 'config true');
+    igual('control: el conmutador de los organismos sigue en el tiempo',
+          (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {}).getAttribute('data-org') + ' ' +
+          (document.getElementById('ceTiempos') && !document.getElementById('ceTiempos').hidden ? 'a la vista' : 'escondido'),
+          'ti a la vista');
+    igual('control: y el sector pulsado, también',
+          (document.querySelector('#ceSectores .ce-fila[aria-pressed="true"]') || {}).getAttribute('data-sector'), 'mineria');
+    /* Y el refresco de cada minuto, que repinta el pulso y con él la lista. */
+    if (window.CIIP_REPINTA_PULSO) window.CIIP_REPINTA_PULSO();
+    ok('control: el pulso de cada minuto tampoco lo mueve',
+       ceVisibles() === 'config' && document.querySelectorAll('#ceNav .ay-ld-it').length === 4 &&
+       !document.querySelector('#ceNav .ay-ld-it.on') && ceCifrasArriba(),
+       ceVisibles(), 'config, con las cuatro entradas y las cifras arriba');
+    /* Volver a pulsar el botón vuelve a la entrada que se miraba. */
+    if (bCfg) bCfg.click();
+    ok('control: pulsar otra vez «Configuración del chat» vuelve a la entrada de antes',
+       ceVisibles() === 'motivos' && bCfg.getAttribute('aria-pressed') === 'false' &&
+       (ceEntrada('motivos') || {classList: {contains: function(){ return false; }}}).classList.contains('on'),
+       ceVisibles() + ' ' + bCfg.getAttribute('aria-pressed'), 'motivos false');
     if (mo) mo.click();
+    /* Se deja como se encontró: la primera entrada, para quien venga. */
+    if (ceEntrada('equipo')) ceEntrada('equipo').click();
     location.hash = '';
     setTimeout(sigue, 300);
   }
