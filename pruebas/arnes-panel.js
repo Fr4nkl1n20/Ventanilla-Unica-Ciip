@@ -409,7 +409,7 @@
               equipo30Siembra, e30Paso(equipo30Tarjetas), e30Paso(equipo30Ficha),
               e30Paso(equipo30Historial), e30Paso(equipo30SinDueno), equipo30MisAbre,
               e30Paso(equipo30MisMira), equipo30Fin,
-              controlAbre, controlMineroMira, controlMira, controlTrasAnadir, controlTrasMover,
+              controlAbre, controlMineroMira, controlUnoAbre, controlUnoMira, controlMira, controlTrasAnadir, controlTrasMover,
               controlTrasGuardar, controlTrasQuitar, controlOtroSector, controlSqlViejo,
               rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
               rastroDesdeTramiteSalta, rastroDesdeTramiteMira,
@@ -19039,6 +19039,18 @@
   function ceElegir(k){ var b = ceEntrada(k); if (b) b.click(); }
   function ceCifraDe(k){ var b = ceEntrada(k); return b ? (b.querySelector('.ce-ld-sub') || {}).textContent : '(no está)'; }
   function ceTx(p, d){ return String(p || '').replace(/\{(\w+)\}/g, function(x, k){ return d[k] !== undefined ? String(d[k]) : x; }); }
+  /* El nombre de una ficha para el lector (13-10-2026): ya no se ve -lo
+     lleva su entrada, al lado-, pero sigue en un encabezado escondido de
+     su cabecera, al que apunta su aria-labelledby. Y su frase, que sí se ve. */
+  function ceNombreDe(k){
+    var f = document.querySelector('#ceDet .ce-ficha[data-sec="' + k + '"]');
+    var id = f ? f.getAttribute('aria-labelledby') : null;
+    var h = id ? document.getElementById(id) : null;
+    return h && f.contains(h) ? h.textContent : '(sin nombre)';
+  }
+  function ceFraseDe(k){
+    return (document.querySelector('#ceDet .ce-ficha[data-sec="' + k + '"] .ce-fi-cab .ce-fi-d') || {}).textContent;
+  }
 
   function controlMira(sigue){
     if (!ES_ADMIN) return sigue();
@@ -19101,6 +19113,43 @@
     igual('control: la configuración: los sectores y lo cargado en el abierto',
           ceCifraDe('config'), ceTx(U.ce_n_config, {n: 9, m: 2, sector: U.cs_s1}));
 
+    /* LA FICHA NO REPITE SU ENTRADA (Franklin Reyes, 13-10-2026: «se
+       repiten los logos y los nombres; quiero quitar logos y nombre del
+       lado de las estadísticas»). Se eligen las ocho una a una y, ya a la
+       vista, se mira: en su cabecera no hay icono; nada de lo que se ve en
+       ella dice el título de su entrada; conserva su nombre para el lector,
+       en un encabezado escondido al que apunta su aria-labelledby; su frase
+       sigue, y los dos conmutadores siguen en la cabecera. */
+    var CE_NOMBRE = {resumen: U.ce_s_resumen, equipo: U.ce_eq_t, org: U.ce_s_org, tiempo: U.ce_ti_t,
+                     consultas: U.ce_se_t, pedidos: U.ce_ts_t, motivos: U.ce_mo_t, config: U.ce_ps_t};
+    var CE_FRASE = {resumen: U.ce_s_resumen_d, equipo: U.ce_s_equipo_d, org: U.ce_tr_d, tiempo: U.ce_ti_d,
+                    consultas: U.ce_se_d, pedidos: U.ce_ts_d, motivos: U.ce_mo_d, config: U.ce_ps_d};
+    var conIcono = [], repiten = [], sinNombre = [], sinFrase = [], sinSeg = [];
+    [].forEach.call(ents, function(b){
+      var k = b.getAttribute('data-sec'), titulo = ((b.querySelector('.ay-ld-tx b') || {}).textContent || '').trim();
+      b.click();
+      var f = document.querySelector('#ceDet .ce-ficha[data-sec="' + k + '"]');
+      var cab = f ? f.querySelector('.ce-fi-cab') : null;
+      if (!f || !ceVe(f) || !cab){ sinNombre.push(k + ' (no se ve)'); return; }
+      if (cab.querySelector('.ay-ic, svg, img')) conIcono.push(k);
+      [].forEach.call(f.querySelectorAll('*'), function(n){
+        if (n.closest('.visualmente-oculto') || !n.getBoundingClientRect().width) return;
+        if (titulo && n.textContent.trim() === titulo) repiten.push(k + ': ' + n.tagName.toLowerCase() + '.' + n.className);
+      });
+      var h = document.getElementById(f.getAttribute('aria-labelledby') || '-');
+      if (!h || !cab.contains(h) || !/^H[1-6]$/.test(h.tagName) || !h.classList.contains('visualmente-oculto') ||
+          h.getBoundingClientRect().width > 1 || h.textContent !== CE_NOMBRE[k])
+        sinNombre.push(k + ' «' + (h ? h.textContent : '') + '»');
+      var d = cab.querySelector('.ce-fi-d');
+      if (!d || !ceVe(d) || d.textContent !== CE_FRASE[k]) sinFrase.push(k);
+      if ((k === 'org' || k === 'tiempo') && !ceVe(cab.querySelector('.ce-fi-der .pu-seg'))) sinSeg.push(k);
+    });
+    igual('control: ninguna ficha repite el icono de su entrada', conIcono.join(' '), '');
+    igual('control: ni dice a la vista el título de su entrada', repiten.slice(0, 4).join(' | '), '');
+    igual('control: cada ficha conserva su nombre para el lector, en un encabezado escondido', sinNombre.join(' | '), '');
+    igual('control: y su frase, en la cabecera', sinFrase.join(' '), '');
+    igual('control: y los dos conmutadores siguen en la cabecera', sinSeg.join(' '), '');
+
     /* EL RESUMEN DE LA OFICINA: las cinco cifras, los estados y lo que lleva
        cada gestor, como el pulso de siempre. */
     ceElegir('resumen');
@@ -19109,8 +19158,8 @@
        !!ents[0] && ents[0].classList.contains('on') && ents[0].getAttribute('aria-pressed') === 'true' &&
        [].filter.call(ents, function(b){ return b.classList.contains('on'); }).length === 1,
        ents[0] ? ents[0].className : '(nada)', 'ay-ld-it on');
-    igual('control: y la cabecera grande de Ayuda, con su título',
-          (document.querySelector('#ceFichaResumen .ce-fi-cab .ce-fi-t') || {}).textContent, U.ce_s_resumen);
+    igual('control: la ficha, con su nombre para el lector y su frase en la cabecera',
+          ceNombreDe('resumen') + ' | ' + ceFraseDe('resumen'), U.ce_s_resumen + ' | ' + U.ce_s_resumen_d);
     igual('control: el pulso sigue, con sus cinco cifras', document.querySelectorAll('#ceFichaResumen #puNums .pu-n').length, 5);
     /* Desde el 2-10-2026, con la idea 1 de maquetas/control-estadisticas-atlas.html:
        las cifras son tarjetas de Atlas con su medidor, los estados una
@@ -19138,10 +19187,10 @@
     /* EL EQUIPO: las tarjetas. */
     ceElegir('equipo');
     igual('control: elegir el equipo enseña su ficha, sola', ceVisibles(), 'equipo');
-    ok('control: con su título y las tarjetas del equipo',
-       (document.querySelector('#ceFichaEquipo .ce-fi-t') || {}).textContent === U.ce_eq_t &&
+    ok('control: con su nombre para el lector y las tarjetas del equipo',
+       ceNombreDe('equipo') === U.ce_eq_t &&
        document.querySelectorAll('#ceFichaEquipo #eqTarjetas .eq-tj').length >= 2,
-       (document.querySelector('#ceFichaEquipo .ce-fi-t') || {}).textContent, U.ce_eq_t);
+       ceNombreDe('equipo'), U.ce_eq_t);
 
     /* NADA CORTADO CON «…» (revisión del 13-10-2026; Franklin Reyes ya lo
        pidió para los motivos el 9-10-2026): ni las filas de barras, ni el
@@ -19178,11 +19227,10 @@
     igual('control: el conmutador, en la cabecera: por organismo y por trámite',
           [].map.call(modos, function(b){ return b.textContent + '=' + b.getAttribute('aria-pressed'); }).join(' '),
           U.ce_ti_ente + '=true ' + U.ce_ti_tram + '=false');
-    ok('control: empieza por organismo, con su título y su frase',
+    ok('control: empieza por organismo, con su nombre para el lector y su frase',
        ceVe(document.getElementById('ceOrganismos')) && document.getElementById('ceTramites').hidden &&
-       (document.querySelector('#ceFichaOrg .ce-fi-t') || {}).textContent === U.ce_s_org &&
-       (document.querySelector('#ceFichaOrg .ce-fi-d') || {}).textContent === U.ce_tr_d,
-       (document.querySelector('#ceFichaOrg .ce-fi-t') || {}).textContent, U.ce_s_org);
+       ceNombreDe('org') === U.ce_s_org && ceFraseDe('org') === U.ce_tr_d,
+       ceNombreDe('org') + ' | ' + ceFraseDe('org'), U.ce_s_org + ' | ' + U.ce_tr_d);
     var og = document.querySelectorAll('#ceOrganismos .ce-fila[data-ente]');
     igual('control: una barra por organismo, de más a menos',
           [].map.call(og, function(f){ return f.getAttribute('data-ente') + ' ' + (f.querySelector('.ce-rv .n') || {}).textContent; }).join(' · '),
@@ -19212,9 +19260,8 @@
     /* TIEMPO DE RESPUESTA, con su conmutador en la cabecera. */
     ceElegir('tiempo');
     igual('control: elegir el tiempo de respuesta enseña su ficha, sola', ceVisibles(), 'tiempo');
-    igual('control: con su título y su frase',
-          (document.querySelector('#ceFichaTiempo .ce-fi-t') || {}).textContent + ' | ' +
-          (document.querySelector('#ceFichaTiempo .ce-fi-d') || {}).textContent, U.ce_ti_t + ' | ' + U.ce_ti_d);
+    igual('control: con su nombre para el lector y su frase',
+          ceNombreDe('tiempo') + ' | ' + ceFraseDe('tiempo'), U.ce_ti_t + ' | ' + U.ce_ti_d);
     var ti = document.querySelectorAll('#ceTiempos .ce-fila');
     igual('control: tiempos por organismo, uno por organismo con resueltos', ti.length, 2);
     ok('control: con su mediana', !!ti[0] && /SAREN/.test(ti[0].textContent) && !!ti[0].querySelector('.ce-fuerte'),
@@ -19234,9 +19281,8 @@
     /* CONSULTAS POR SECTOR: los nueve, también a cero. */
     ceElegir('consultas');
     igual('control: elegir las consultas por sector enseña su ficha, sola', ceVisibles(), 'consultas');
-    igual('control: con su título y su frase',
-          (document.querySelector('#ceFichaConsultas .ce-fi-t') || {}).textContent + ' | ' +
-          (document.querySelector('#ceFichaConsultas .ce-fi-d') || {}).textContent, U.ce_se_t + ' | ' + U.ce_se_d);
+    igual('control: con su nombre para el lector y su frase',
+          ceNombreDe('consultas') + ' | ' + ceFraseDe('consultas'), U.ce_se_t + ' | ' + U.ce_se_d);
     var se = document.querySelectorAll('#ceSectores .ce-fila');
     igual('control: los nueve sectores, también los que están a cero', se.length, 9);
     ok('control: y el más preguntado arriba, resaltado',
@@ -19246,9 +19292,8 @@
     /* TRÁMITES MÁS PEDIDOS POR SECTOR: los sectores para elegir, encima. */
     ceElegir('pedidos');
     igual('control: elegir los más pedidos enseña su ficha, sola', ceVisibles(), 'pedidos');
-    igual('control: con su título y su frase',
-          (document.querySelector('#ceFichaPedidos .ce-fi-t') || {}).textContent + ' | ' +
-          (document.querySelector('#ceFichaPedidos .ce-fi-d') || {}).textContent, U.ce_ts_t + ' | ' + U.ce_ts_d);
+    igual('control: con su nombre para el lector y su frase',
+          ceNombreDe('pedidos') + ' | ' + ceFraseDe('pedidos'), U.ce_ts_t + ' | ' + U.ce_ts_d);
     var chips = document.querySelectorAll('#ceFichaPedidos .cs-sector');
     ok('control: los nueve sectores para elegir, y llega pulsado el más preguntado con trámites',
        chips.length === 9 && [].every.call(chips, function(b){ return b.tagName === 'BUTTON'; }) &&
@@ -19315,9 +19360,8 @@
        traducido, y debajo en qué entes sale, en texto. */
     ceElegir('motivos');
     igual('control: elegir «¿Por qué piden ayuda?» enseña su ficha, sola', ceVisibles(), 'motivos');
-    igual('control: con su título y su frase en la cabecera',
-          (document.querySelector('#ceFichaMotivos .ce-fi-t') || {}).textContent + ' | ' +
-          (document.querySelector('#ceFichaMotivos .ce-fi-d') || {}).textContent, U.ce_mo_t + ' | ' + U.ce_mo_d);
+    igual('control: con su nombre para el lector y su frase en la cabecera',
+          ceNombreDe('motivos') + ' | ' + ceFraseDe('motivos'), U.ce_mo_t + ' | ' + U.ce_mo_d);
     var mo = document.querySelectorAll('#ceMotivos .ce-fila[data-motivo]');
     /* Lo de dentro de la ficha, sin su relleno: la caja llana lo ocupa
        entero (y algo más, porque su propio relleno cae en el margen). */
@@ -19411,11 +19455,10 @@
        ceEntrada('config').classList.contains('on') && document.querySelectorAll('#ceNav .ay-ld-it.on').length === 1,
        (document.querySelector('#ceNav .ay-ld-it.on') || {getAttribute: function(){ return '(ninguna)'; }}).getAttribute('data-sec'), 'config');
     var cfgF = document.getElementById('ceFichaConfig');
-    ok('control: con un título que dice que es configuración, su frase y el borde de rayas',
-       !!cfgF && (cfgF.querySelector('.ce-fi-t') || {}).textContent === U.ce_ps_t &&
-       (cfgF.querySelector('.ce-fi-d') || {}).textContent === U.ce_ps_d &&
+    ok('control: con un nombre para el lector que dice que es configuración, su frase y el borde de rayas',
+       !!cfgF && ceNombreDe('config') === U.ce_ps_t && ceFraseDe('config') === U.ce_ps_d &&
        getComputedStyle(cfgF).borderTopStyle === 'dashed',
-       cfgF ? (cfgF.querySelector('.ce-fi-t') || {}).textContent + ' / ' + getComputedStyle(cfgF).borderTopStyle : '(no está)',
+       cfgF ? ceNombreDe('config') + ' / ' + getComputedStyle(cfgF).borderTopStyle : '(no está)',
        U.ce_ps_t + ' / dashed');
     var cfg = document.getElementById('cePorSector');
     ok('control: el editor de la lista del chat va dentro, sin plegar',
@@ -19596,6 +19639,71 @@
     setTimeout(sigue, 400);
   }
 
+  /* CON UNO, EN SINGULAR (Franklin Reyes, 13-10-2026: salía «1
+     resueltos»). Todo de a uno -un trámite solicitado y resuelto, una
+     consulta, un motivo, uno solo cargado en hidrocarburos y una sola
+     solicitud sin asignar- y cada cifra de la lista tiene que ir en
+     singular, en castellano y en los ocho idiomas. Después todo vuelve
+     como estaba. */
+  var UNO_ANTES = null;
+  function controlUnoAbre(sigue){
+    if (!ES_ADMIN || !window.CIIP_DOBLE) return sigue();
+    UNO_ANTES = window.CIIP_DOBLE.cola();
+    var hace = function(min){ return new Date(Date.now() - min * 60000).toISOString(); };
+    window.CIIP_DOBLE.ponCola([
+      {id:'uno1', inversionista:'u3', tipo:'rif_empresa', estado:'enviado', gestor:null,
+       datos:{}, creado_en:hace(60), enviado_en:hace(20)}
+    ]);
+    window.CIIP_MENTIRA_DE_A_UNO = true;
+    if (window.CIIP_PINTA_EQUIPO) window.CIIP_PINTA_EQUIPO();
+    if (window.CIIP_PINTA_CONTROL) window.CIIP_PINTA_CONTROL();
+    setTimeout(sigue, 400);
+  }
+
+  function controlUnoMira(sigue){
+    if (!ES_ADMIN || !UNO_ANTES) return sigue();
+    var UI = window.CIIP_PASOS.ui, es = UI.es, fr = UI.fr, antes = curLang;
+    var gente = document.querySelectorAll('#eqTarjetas .eq-tj:not([data-k=""])').length;
+    applyLang('es');
+    igual('control: con uno, «1 resuelto», en singular', ceCifraDe('tiempo'), '1 resuelto · SAREN, el más lento');
+    igual('control: y «1 solicitado»', ceCifraDe('org'), '1 solicitado · SAREN, el que más');
+    igual('control: y «1 consulta»', ceCifraDe('consultas'), '1 consulta · ' + es.cs_s1 + ', 1');
+    igual('control: y «1 pedido»', ceCifraDe('motivos'), '1 pedido · 1 por «' + (es.o_ya_motivo || [])[1] + '»');
+    igual('control: y «1 cargado»', ceCifraDe('config'), '9 sectores · 1 cargado en ' + es.cs_s1);
+    igual('control: y «1 sin asignar», que no cambia', ceCifraDe('equipo'), gente + ' en el equipo · 1 sin asignar');
+    /* En francés cambian también las del equipo y la configuración. */
+    applyLang('fr');
+    igual('control: y en francés, «1 résolue», «1 non assignée» y «1 chargée»',
+          [ceCifraDe('tiempo'), ceCifraDe('equipo'), ceCifraDe('config')].join(' | '),
+          ['1 résolue · SAREN, le plus lent', gente + ' dans l’équipe · 1 non assignée',
+           '9 secteurs · 1 chargée en ' + fr.cs_s1].join(' | '));
+    /* Y en los ocho, cada una con su frase de uno. */
+    var mal = [];
+    Object.keys(UI).forEach(function(l){
+      var L = UI[l];
+      applyLang(l);
+      var esperado = {
+        org: ceTx(L.ce_n_org1, {n: 1, ente: 'SAREN'}),
+        tiempo: ceTx(L.ce_n_tiempo1, {n: 1, ente: 'SAREN'}),
+        consultas: ceTx(L.ce_n_consultas1, {n: 1, sector: L.cs_s1, m: 1}),
+        motivos: ceTx(L.ce_n_motivos1, {n: 1, m: 1, motivo: (L.o_ya_motivo || [])[1]}),
+        config: ceTx(L.ce_n_config1, {n: 9, m: 1, sector: L.cs_s1}),
+        equipo: ceTx(L.ce_n_equipo1, {n: gente, m: 1})
+      };
+      Object.keys(esperado).forEach(function(k){
+        if (!L['ce_n_' + k + '1'] || ceCifraDe(k) !== esperado[k]) mal.push(l + ' ' + k + ': ' + ceCifraDe(k));
+      });
+    });
+    applyLang(antes);
+    igual('control: con uno, en singular en los ocho idiomas', mal.slice(0, 4).join(' | '), '');
+    window.CIIP_DOBLE.ponCola(UNO_ANTES);
+    UNO_ANTES = null;
+    window.CIIP_MENTIRA_DE_A_UNO = false;
+    if (window.CIIP_PINTA_EQUIPO) window.CIIP_PINTA_EQUIPO();
+    if (window.CIIP_PINTA_CONTROL) window.CIIP_PINTA_CONTROL();
+    setTimeout(sigue, 400);
+  }
+
   /* ── CONTROL Y ESTADÍSTICAS A OTROS ANCHOS (revisión del 13-10-2026) ──
      Entre 841 y 1350 px la pantalla se rompía -cifras cortadas en Por
      sector, el conmutador encima del título, la página desplazándose de
@@ -19690,17 +19798,26 @@
             if (cs.overflowX === 'visible') return;
             if (n.scrollWidth > n.clientWidth + 1) cortado.push(donde + ': ' + nombre(n) + ' ' + n.scrollWidth + '>' + n.clientWidth);
           });
-          /* 3 · La cabecera: el título y su frase no se aplastan ni se
-             montan con el conmutador. */
+          /* 3 · La cabecera: la frase no se aplasta ni se monta con el
+             conmutador. Y desde el 13-10-2026, sin el icono ni el título
+             de su entrada: nada de hueco donde estaban -la frase empieza
+             justo en el relleno de la cabecera, y arriba no queda más que
+             un poco de aire-. */
           var tx = ficha.querySelector('.ce-fi-tx'), der = ficha.querySelector('.ce-fi-der'), cab = ficha.querySelector('.ce-fi-cab');
           if (tx && cab){
             var tr = tx.getBoundingClientRect(), cr = cab.getBoundingClientRect();
             var hueco = cr.width - 44;
             if (tr.width < Math.min(220, hueco - 80)) cabeza.push(donde + ': la frase en ' + Math.round(tr.width) + ' px');
+            if (cab.querySelector('.ay-ic, svg, img')) cabeza.push(donde + ': la cabecera lleva icono');
+            var csCab = getComputedStyle(cab);
+            var aLaIzq = tr.left - cr.left - parseFloat(csCab.borderLeftWidth) - parseFloat(csCab.paddingLeft);
+            if (Math.abs(aLaIzq) > 1) cabeza.push(donde + ': la frase empieza ' + Math.round(aLaIzq) + ' px más a la derecha');
+            var arriba = Math.min(tr.top, der ? der.getBoundingClientRect().top : tr.top) - cr.top;
+            if (arriba > 20) cabeza.push(donde + ': ' + Math.round(arriba) + ' px de hueco arriba');
             if (der){
               var dr = der.getBoundingClientRect();
               var montan = !(dr.left >= tr.right - 0.5 || dr.right <= tr.left + 0.5 || dr.top >= tr.bottom - 0.5 || dr.bottom <= tr.top + 0.5);
-              if (montan) cabeza.push(donde + ': el conmutador encima del título');
+              if (montan) cabeza.push(donde + ': el conmutador encima de la frase');
               if (dr.right > cr.right + 0.5) cabeza.push(donde + ': el conmutador se sale');
             }
           }
@@ -19727,7 +19844,7 @@
       function unicos(l){ return l.filter(function(x, i){ return l.indexOf(x) === i; }); }
       apunta('nada de Control y Estadísticas se sale de su ficha ni de la pantalla', !fuera.length, unicos(fuera).slice(0, 5).join(' | '), 'nada');
       apunta('nada se corta ni rueda de lado dentro de su caja', !cortado.length, unicos(cortado).slice(0, 5).join(' | '), 'nada');
-      apunta('la cabecera de la ficha: el título y su frase enteros, y el conmutador sin taparlos', !cabeza.length, unicos(cabeza).slice(0, 5).join(' | '), 'bien');
+      apunta('la cabecera de la ficha: la frase entera, sin icono ni hueco, y el conmutador sin taparla', !cabeza.length, unicos(cabeza).slice(0, 5).join(' | '), 'bien');
       apunta('ningún texto cortado con «…»', !elipsis.length, unicos(elipsis).slice(0, 5).join(' | '), 'ninguno');
       apunta('la pantalla y la barra de arriba caben: la página no se desplaza de lado', !pagina.length, unicos(pagina).slice(0, 3).join(' | '), 'cabe');
 

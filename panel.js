@@ -34827,7 +34827,8 @@ applyLang(idiomaParaMi());
      misma pieza) con siete secciones, cada una con su icono, su título y
      la cifra que la resume, para saber dónde mirar sin abrirla; y al
      final, bajo «Ajustes», la configuración del chat, que no es una cifra.
-     A la derecha, una sola ficha con la cabecera grande de Ayuda.
+     A la derecha, una sola ficha, que desde el mismo día empieza por su
+     frase: el icono y el título ya los lleva su entrada (ceLlenaCab).
 
        · Resumen de la oficina: las cinco cifras, los trámites por estado y
          lo que lleva cada gestor. Es el pulso.
@@ -35033,8 +35034,11 @@ applyLang(idiomaParaMi());
                consultas: 'ceFichaConsultas', pedidos: 'ceFichaPedidos', motivos: 'ceFichaMotivos',
                config: 'ceFichaConfig'};
 
+  /* Solo los lleva la lista: desde el 13-10-2026 la cabecera de la ficha
+     ya no repite el suyo, y con eso se fue también el icono en gris de la
+     configuración (.ce-ic-aj), que solo se veía allí. */
   function ceIcono(k){
-    var i = el('span', 'ay-ic' + (k === 'config' ? ' ce-ic-aj' : ''));
+    var i = el('span', 'ay-ic');
     i.setAttribute('aria-hidden', 'true');
     i.innerHTML = '<svg viewBox="0 0 24 24">' + (CE_ICONO[k] || '') + '</svg>';
     return i;
@@ -35047,16 +35051,28 @@ applyLang(idiomaParaMi());
     });
   }
 
-  /* La cabecera grande de Ayuda: el icono, el título, su frase y, a la
-     derecha, lo que haga falta (el conmutador). */
+  /* La cabecera de la ficha: su frase y, a la derecha, lo que haga falta
+     (el conmutador).
+
+     SIN EL ICONO NI EL TÍTULO (Franklin Reyes, 13-10-2026: «se repiten los
+     logos y los nombres; quiero quitar logos y nombre del lado de las
+     estadísticas»). Eran los mismos de la entrada de la lista, que está
+     justo al lado y marcada. El título se queda solo para quien no ve la
+     pantalla: un encabezado escondido (.visualmente-oculto) que además da
+     nombre a la ficha (aria-labelledby). Así el lector la sigue anunciando
+     por su nombre y se sigue llegando a ella saltando de encabezado en
+     encabezado. La ficha tiene que estar ya en su sitio: el nombre se le
+     pone a ella. */
   function ceLlenaCab(cab, k, titulo, desc, der){
     cab.textContent = '';
-    cab.appendChild(ceIcono(k));
     var tx = el('div', 'ce-fi-tx');
-    tx.appendChild(el('h3', 'ce-fi-t', titulo || ''));
+    var h = el('h3', 'ce-fi-t visualmente-oculto', titulo || '');
+    h.id = CE_ID[k] + 'Nombre';
+    tx.appendChild(h);
     if (desc) tx.appendChild(el('p', 'ce-fi-d', desc));
     cab.appendChild(tx);
     if (der){ var d = el('div', 'ce-fi-der'); d.appendChild(der); cab.appendChild(d); }
+    if (cab.parentNode) cab.parentNode.setAttribute('aria-labelledby', h.id);
   }
 
   /* Una ficha nace ya escondida o a la vista según lo elegido: así una que
@@ -35068,8 +35084,8 @@ applyLang(idiomaParaMi());
     f.setAttribute('data-sec', k);
     f.hidden = (k !== ceSel);
     var cab = el('div', 'ce-fi-cab');
-    ceLlenaCab(cab, k, titulo, desc, der);
     f.appendChild(cab);
+    ceLlenaCab(cab, k, titulo, desc, der);
     var cu = el('div', 'ce-fi-cu');
     f.appendChild(cu);
     return {ficha: f, cu: cu};
@@ -35119,7 +35135,18 @@ applyLang(idiomaParaMi());
        · «23 por la espera» lleva el motivo entero, entre comillas: no hay
          una versión corta de cada motivo.
 
-     Sin datos, la entrada no lleva cifra: un 0 diría que no hay nada. */
+     Sin datos, la entrada no lleva cifra: un 0 diría que no hay nada.
+
+     CON UNO, EN SINGULAR (Franklin Reyes, 13-10-2026: salía «1 resueltos»).
+     Como en el resto del panel -co_h_v_validar1, dc_usado1-, cada frase
+     cuya palabra cambia con la cifra tiene su gemela terminada en 1, y se
+     elige por esa cifra: {n} en los organismos, el tiempo, las consultas y
+     los motivos; {m} en el equipo («1 non assegnata», en italiano) y en la
+     configuración («1 cargado»), donde {n} o no cambia nada o son siempre
+     los nueve sectores. La del resumen no la necesita: «en marcha» y «ante
+     el ente» no cambian en ningún idioma. Donde el idioma no cambia la
+     palabra -el ruso, que va con «Решено: {n}» justo para no declinar; el
+     chino y el japonés- la gemela es la misma frase. */
   function ceResumen(k, u){
     if (k === 'resumen'){
       if (!pulso) return '';
@@ -35127,25 +35154,27 @@ applyLang(idiomaParaMi());
     }
     if (k === 'equipo'){
       if (!eqDatos) return '';
-      return ceTxt(u.ce_n_equipo, {n: eqDatos.gente.length, m: eqDatos.sinDueno.sols.length});
+      var sin = eqDatos.sinDueno.sols.length;
+      return ceTxt(sin === 1 ? u.ce_n_equipo1 : u.ce_n_equipo, {n: eqDatos.gente.length, m: sin});
     }
     if (k === 'config'){
       if (!cePs.filas) return '';
-      return ceTxt(u.ce_n_config, {n: CS_CODIGOS.length, m: cePs.filas.length, sector: nombreDeSectorCs(cePs.sector)});
+      return ceTxt(cePs.filas.length === 1 ? u.ce_n_config1 : u.ce_n_config,
+                   {n: CS_CODIGOS.length, m: cePs.filas.length, sector: nombreDeSectorCs(cePs.sector)});
     }
     if (!ceDatos) return '';
     if (k === 'org'){
       var g = ceOrganismos();
       if (!g.length) return u.ce_vacio || '';
       var sol = g.reduce(function(m, x){ return m + x.solicitados; }, 0);
-      return ceTxt(u.ce_n_org, {n: sol, ente: g[0].ente || u.ce_sinente || ''});
+      return ceTxt(sol === 1 ? u.ce_n_org1 : u.ce_n_org, {n: sol, ente: g[0].ente || u.ce_sinente || ''});
     }
     if (k === 'tiempo'){
       var en = (ceDatos.entes || []).filter(function(e){ return (e.resueltos || 0) > 0; });
       if (!en.length) return u.ce_vacio || '';
       var res = en.reduce(function(m, e){ return m + (e.resueltos || 0); }, 0);
       var lento = en.reduce(function(m, e){ return (+e.mediana_h || 0) > (+m.mediana_h || 0) ? e : m; }, en[0]);
-      return ceTxt(u.ce_n_tiempo, {n: res, ente: lento.ente || u.ce_sinente || ''});
+      return ceTxt(res === 1 ? u.ce_n_tiempo1 : u.ce_n_tiempo, {n: res, ente: lento.ente || u.ce_sinente || ''});
     }
     if (k === 'consultas'){
       var por = {}, suma = 0, top = null;
@@ -35155,7 +35184,7 @@ applyLang(idiomaParaMi());
         if ((por[c] || 0) > 0 && (top === null || por[c] > por[top])) top = c;
       });
       if (!suma) return u.ce_vacio || '';
-      return ceTxt(u.ce_n_consultas, {n: suma, sector: nombreDeSectorCs(top), m: por[top]});
+      return ceTxt(suma === 1 ? u.ce_n_consultas1 : u.ce_n_consultas, {n: suma, sector: nombreDeSectorCs(top), m: por[top]});
     }
     if (k === 'pedidos'){
       var c = ceSectorPorDefecto();
@@ -35165,7 +35194,8 @@ applyLang(idiomaParaMi());
     if (k === 'motivos'){
       var mo = ceMotivosAgrupados(u);
       if (!mo.orden.length) return u.ce_vacio || '';
-      return ceTxt(u.ce_n_motivos, {n: mo.suma, m: mo.orden[0].n, motivo: mo.nombre(mo.orden[0].motivo)});
+      return ceTxt(mo.suma === 1 ? u.ce_n_motivos1 : u.ce_n_motivos,
+                   {n: mo.suma, m: mo.orden[0].n, motivo: mo.nombre(mo.orden[0].motivo)});
     }
     return '';
   }
@@ -35411,9 +35441,10 @@ applyLang(idiomaParaMi());
     return f.ficha;
   }
 
-  /* La configuración del chat: su título y su frase -«no es una
-     estadística»- en la cabecera, el icono en gris y el borde de rayas,
-     que en esta pantalla solo lleva ella. */
+  /* La configuración del chat: su frase -«no es una estadística»- en la
+     cabecera y el borde de rayas, que en esta pantalla solo lleva ella. Su
+     título, «Configurar los trámites que ve el inversionista en el chat»,
+     es el nombre escondido de la ficha (ceLlenaCab). */
   function ceFichaConfig(u){
     var f = ceFicha('config', u.ce_ps_t, u.ce_ps_d);
     f.cu.appendChild(ceCajaPorSector(u));

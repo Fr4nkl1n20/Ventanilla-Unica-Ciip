@@ -2429,6 +2429,8 @@
       var psL = porSector.filter(function(p){ return !(op && op.eq && op.eq.sector) || p.sector === op.eq.sector; })
         .map(function(p){ return {id:p.id, sector:p.sector, nombre:p.nombre, organismo:p.organismo, orden:p.orden}; })
         .sort(function(a, b){ return a.orden - b.orden; });
+      /* Con todo de a uno (13-10-2026), uno solo cargado en el sector. */
+      if (window.CIIP_MENTIRA_DE_A_UNO) psL = psL.slice(0, 1);
       return {data:psL, error:null};
     }
 
@@ -3013,6 +3015,21 @@
               if (window.CIIP_MENTIRA_SQL_VIEJO){
                 delete rE.data.tramites_sector;
                 delete rE.data.motivos_casos;
+              }
+              /* Todo de a uno (13-10-2026), para ver las cifras de la lista
+                 en singular: un trámite solicitado y resuelto, una consulta,
+                 un trámite elegido y un motivo. Solo cuando la prueba lo
+                 pide. */
+              if (window.CIIP_MENTIRA_DE_A_UNO){
+                rE = {data:{
+                  tramites: [{tipo:'constitucion', ente:'SAREN', solicitados:1, resueltos:1, mediana_h:96,
+                              promedio_h:96, n_ente:1, mediana_ente_h:48}],
+                  entes: [{ente:'SAREN', resueltos:1, mediana_h:96, promedio_h:96, n_ente:1, mediana_ente_h:48}],
+                  sectores: [{sector:'hidrocarburos', consultas:1}],
+                  motivos: [{motivo:'Lleva mucho tiempo sin respuesta', ente:'IVSS', n:1}],
+                  tramites_sector: [{sector:'hidrocarburos', tramite:'Licencia de exploración y explotación', n:1}],
+                  motivos_casos: []
+                }, error:null};
               }
             }
             return {then:function(bien, mal){ return Promise.resolve(rE).then(bien, mal); }};

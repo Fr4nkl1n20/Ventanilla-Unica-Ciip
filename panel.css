@@ -911,7 +911,7 @@ body[data-vista="equipo"] .fase-bar{display:none;}
    (.ay-ld-nav, .ay-ld-it): siete secciones con su icono, su título y,
    debajo, la cifra que las resume, en texto -nada de pastillas: la capa
    SIN INSIGNIAS de abajo-, y bajo el rótulo «Ajustes» la configuración
-   del chat. A la derecha, una sola ficha con la cabecera grande de Ayuda.
+   del chat. A la derecha, una sola ficha con la cabecera de Ayuda.
    En el teléfono, la lista arriba y la ficha debajo. */
 /* POR EL ANCHO DE VERDAD (revisión del 13-10-2026). Con la barra lateral
    de 256 px y la lista de 240, una ventana de 950 dejaba a la ficha menos
@@ -933,8 +933,8 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .ce-ld-nav .ce-ld-sep{grid-column:1 / -1;}
 .ce-ld-nav .ay-ld-it{padding:9px 10px; width:100%; align-items:flex-start;}
 /* Los iconos de la lista, en azul oscuro con el dibujo en blanco (Franklin
-   Reyes, 13-10-2026): sólo el icono; el renglón sigue como en Ayuda. Gana
-   también a .ce-ic-aj, así que «Ajustes» va igual que los demás. */
+   Reyes, 13-10-2026): sólo el icono; el renglón sigue como en Ayuda, y
+   «Ajustes» va igual que los demás. */
 .ce-ld-nav .ay-ld-it .ay-ic{width:30px; height:30px; border-radius:9px; background:var(--navy); color:#fff;}
 .ce-ld-nav .ay-ld-it .ay-ic svg{width:16px; height:16px;}
 .ce-ld-nav .ay-ld-tx{flex:1 1 auto;}
@@ -947,26 +947,26 @@ body[data-vista="equipo"] .fase-bar{display:none;}
    raya. Desde el 13-10-2026 sin mayúsculas y en tinta, como los títulos. */
 .ce-ld-sep{font-size:var(--fs-rotulo); font-weight:700;
   color:var(--ink); padding:12px 10px 4px; border-top:1px solid var(--line-soft); margin-top:6px;}
-.ay-ic.ce-ic-aj{background:var(--line-soft); color:var(--gray);}
 
-/* La ficha: la cabecera de Ayuda (.ay-ld .ay-card summary) con el icono
-   grande, el título y su frase, y a la derecha el conmutador si lo hay. */
+/* La ficha: la cabecera de Ayuda (.ay-ld .ay-card summary) con su frase, y
+   a la derecha el conmutador si lo hay. Sin el icono ni el título desde el
+   13-10-2026 (Franklin Reyes: «se repiten los logos y los nombres»): ya los
+   lleva su entrada en la lista, y el título queda escondido, para el
+   lector. Sin ellos, la cabecera es una banda baja, con poco aire arriba,
+   y la frase y el conmutador centrados en ella. */
 /* La ficha es también un contenedor: su cabecera y su cuerpo se ajustan a
    lo que mide ella. Al bajar hasta ella en el teléfono, se para debajo de
    la barra de arriba, que es fija. */
 .ce-ficha{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); overflow:hidden;
   box-shadow:var(--shadow); min-width:0; container-type:inline-size; container-name:ce-ficha;
   scroll-margin-top:calc(var(--tb, 58px) + 12px);}
-/* El título con su frase no baja de 240 px: si con el conmutador no cabe,
-   el conmutador pasa a la línea de debajo en vez de aplastar la frase. */
-.ce-fi-cab{display:flex; flex-wrap:wrap; gap:12px 14px; align-items:center; padding:20px 22px; border-bottom:1px solid var(--line);
+/* La frase no baja de 240 px: si con el conmutador no cabe, el conmutador
+   pasa a la línea de debajo en vez de aplastar la frase. */
+.ce-fi-cab{display:flex; flex-wrap:wrap; gap:12px 14px; align-items:center; padding:12px 22px; border-bottom:1px solid var(--line);
   background:linear-gradient(180deg, var(--block) 0%, transparent 100%);}
-.ce-fi-cab .ay-ic{width:48px; height:48px; border-radius:13px;}
-.ce-fi-cab .ay-ic svg{width:22px; height:22px;}
 .ce-fi-tx{min-width:0; flex:1 1 240px;}
-.ce-fi-t{margin:0; font-size:var(--fs-titulo); font-weight:700; letter-spacing:-.01em; line-height:1.2; color:var(--ink);}
-.ce-fi-d{margin:4px 0 0; font-size:var(--fs-nota); line-height:1.5; color:var(--gray); max-width:80ch;}
-.ce-fi-der{flex:0 1 auto; align-self:flex-start; max-width:100%; min-width:0;}
+.ce-fi-d{margin:0; font-size:var(--fs-nota); line-height:1.5; color:var(--gray); max-width:80ch;}
+.ce-fi-der{flex:0 1 auto; max-width:100%; min-width:0;}
 .ce-fi-der .pu-seg{margin-left:0; max-width:100%;}
 .ce-fi-cu{padding:18px 22px 22px; display:grid; grid-template-columns:minmax(0, 1fr); gap:16px; min-width:0;}
 .ce-fi-cu > *{min-width:0;}
@@ -978,13 +978,12 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .pu-t.ce-sin-t:empty{display:none;}
 .ce-llano > .pu-t.ce-sin-t{padding-top:0;}
 /* La configuración del chat no es una cifra: su ficha lleva el borde de
-   rayas, que en esta pantalla solo lleva ella, y el icono en gris. */
+   rayas, que en esta pantalla solo lleva ella. */
 .ce-ficha[data-sec="config"]{border-style:dashed; box-shadow:none;}
 /* Ficha estrecha: menos relleno, y el conmutador a todo lo ancho, con
    sus dos botones repartidos y partiendo de línea si hace falta. */
 @container ce-ficha (max-width:560px){
-  .ce-fi-cab{padding:16px; align-items:flex-start;}
-  .ce-fi-cab .ay-ic{width:40px; height:40px;}
+  .ce-fi-cab{padding:12px 16px 14px; align-items:flex-start;}
   .ce-fi-der{flex-basis:100%;}
   .ce-fi-der .pu-seg{display:flex; width:100%;}
   .ce-fi-der .pu-segbtn{flex:1 1 0; white-space:normal;}
