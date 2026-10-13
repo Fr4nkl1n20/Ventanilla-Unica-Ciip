@@ -405,6 +405,10 @@
               equipoDetSiembra, eqdPaso(equipoDetMira), eqdPaso(equipoDetDesplegado),
               eqdPaso(equipoDetFalla), eqdPaso(equipoDetReintenta), eqdPaso(equipoDetHistMira),
               equipoDetAbreTramite,
+              /* «Se pasó», a los 30 minutos (13-10-2026): 29 no, 31 sí. */
+              equipo30Siembra, e30Paso(equipo30Tarjetas), e30Paso(equipo30Ficha),
+              e30Paso(equipo30Historial), e30Paso(equipo30SinDueno), equipo30MisAbre,
+              e30Paso(equipo30MisMira), equipo30Fin,
               controlAbre, controlMineroMira, controlMira, controlTrasAnadir, controlTrasMover,
               controlTrasGuardar, controlTrasQuitar, controlOtroSector, controlSqlViejo,
               rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
@@ -18454,7 +18458,10 @@
 
      Las marcas salen de la siembra: e1 esperó 12 h la primera vez y 48 h
      la segunda, y e3 9 h, así que Saskia «contesta en» 23 h. e1 lleva 52 h
-     en revisión -se pasó- y e2 lleva 10 h -no-. */
+     en revisión y e2 lleva 10 h: las dos se pasaron, que desde el
+     13-10-2026 «se pasó» es pasar de 30 minutos y no de su marca. Dónde
+     está la raya -29 minutos no, 31 sí- lo mide su propia siembra, más
+     abajo (equipo30Siembra). */
   var EQD_ANTES = null;
   var EQD_NOTA = 'El comprobante del capital social está ilegible y el acta no trae la firma del comisario.\n' +
                  'Vuelve a subir el comprobante escaneado a color, con las cuatro esquinas a la vista, y el acta ' +
@@ -18563,11 +18570,13 @@
        vista.indexOf(U.mt_sepaso) >= 0 ? 'dice «' + U.mt_sepaso + '»' : 'sin la palabra', 'solo el tiempo');
     var v1 = f1.querySelector('.mt-espera .mt-espera-v'), v2 = f2.querySelector('.mt-espera .mt-espera-v');
     var rust = eqdColor('--rust');
-    ok('ficha: y el tiempo de la que se pasó de su marca sigue en el color de aviso, el de la que no, no',
-       !!v1 && !!v2 && getComputedStyle(v1).color === rust && getComputedStyle(v2).color !== rust &&
-       f1.querySelector('.mt-espera').classList.contains('pasa'),
+    /* Las dos pasan de 30 minutos -52 h y 10 h-, así que las dos van en
+       el color de aviso. Con la marca de Saskia, 23 h, la de 10 h no iba. */
+    ok('ficha: y el tiempo de las que pasan de 30 minutos sigue en el color de aviso, aunque no pasen de su marca',
+       !!v1 && !!v2 && getComputedStyle(v1).color === rust && getComputedStyle(v2).color === rust &&
+       f1.querySelector('.mt-espera').classList.contains('pasa') && f2.querySelector('.mt-espera').classList.contains('pasa'),
        (v1 ? getComputedStyle(v1).color : '(sin tiempo)') + ' / ' + (v2 ? getComputedStyle(v2).color : '(sin tiempo)'),
-       rust + ' / otro');
+       rust + ' / ' + rust);
     var oido = f1.querySelector('.mt-espera .visualmente-oculto');
     ok('ficha: la palabra se queda solo para el lector de pantalla',
        !!oido && oido.textContent.indexOf(U.mt_sepaso) >= 0,
@@ -18773,6 +18782,232 @@
             v && !v.hidden ? String(v.getAttribute('data-doc') || '').split(':')[0] : '(visor cerrado)', 'e1');
       acaba();
     })();
+  }
+
+  /* ── «SE PASÓ», A LOS 30 MINUTOS ──
+     Franklin Reyes, 13-10-2026, sobre la cifra «Se pasaron 12» de las
+     tarjetas del equipo: «coloca que el tiempo de “se pasó” es de 30
+     minutos». La raya, a un minuto de cada lado. Se siembran:
+
+       · de Saskia (u4), m31 y m29, que esperan al CIIP desde hace 31 y 29
+         minutos, y r31 y r29, resueltas, que tardaron 31 y 29 minutos en
+         pasar a revisión -el «tardó» del historial-;
+       · sin dueño, n31 y n29, que esperan 31 y 29 minutos.
+
+     Solo cuentan las de 31: «Se pasaron 1» en las dos tarjetas, y solo su
+     tiempo va en el color de aviso -en la ficha, en el historial y en
+     «Mis trámites»-. Y donde sale la cifra se lee el límite: «Esperan más
+     de 30 min». Las fechas, relativas a ahora: fijas, la raya se movería
+     con el reloj. */
+  var E30_ANTES = null;
+  function e30M(m){ return new Date(Date.now() - m * 60000).toISOString(); }
+  /* Intl escribe «30 min» con el espacio que quiera su idioma -a veces
+     uno que no se parte-: se comparan con espacios normales. */
+  function e30Tx(s){ return String(s || '').replace(/[\s  ]+/g, ' ').trim(); }
+  function e30Paso(fn){
+    return function(sigue){
+      if (!ES_ADMIN || !E30_ANTES) return sigue();
+      try { fn(); }
+      catch(e){ ok('se pasó: el paso ' + (fn.name || '') + ' llega al final', false, 'EXCEPCION: ' + e.message, 'sin excepciones'); }
+      setTimeout(sigue, 300);
+    };
+  }
+  function e30Fila(clave){
+    var b = eqdBoton(clave);
+    return b ? b.closest('tr') : null;
+  }
+
+  function equipo30Siembra(sigue){
+    if (!ES_ADMIN || !window.CIIP_DOBLE) return sigue();
+    E30_ANTES = window.CIIP_DOBLE.cola();
+    window.CIIP_DOBLE.ponCola([
+      {id:'m31', inversionista:'u2', tipo:'rif_empresa', estado:'enviado', gestor:'u4',
+       datos:{}, creado_en:e30M(40), enviado_en:e30M(31)},
+      {id:'m29', inversionista:'u2', tipo:'rif_personal', estado:'enviado', gestor:'u4',
+       datos:{}, creado_en:e30M(40), enviado_en:e30M(29)},
+      {id:'n31', inversionista:'u3', tipo:'rif_empresa', estado:'enviado', gestor:null,
+       datos:{}, creado_en:e30M(40), enviado_en:e30M(31)},
+      {id:'n29', inversionista:'u3', tipo:'rif_personal', estado:'enviado', gestor:null,
+       datos:{}, creado_en:e30M(40), enviado_en:e30M(29)},
+      {id:'r31', inversionista:'u2', tipo:'rif_empresa', estado:'resuelto', gestor:'u4',
+       datos:{}, creado_en:e30M(120), enviado_en:e30M(110), resuelto_en:e30M(60)},
+      {id:'r29', inversionista:'u2', tipo:'rif_personal', estado:'resuelto', gestor:'u4',
+       datos:{}, creado_en:e30M(120), enviado_en:e30M(110), resuelto_en:e30M(61)}
+    ]);
+    window.__EVENTOS_EXTRA = [
+      {id:951, tramite:'m31', de_estado:'borrador', a_estado:'enviado', nota:'', autor:'u2', creado_en:e30M(31)},
+      {id:952, tramite:'m29', de_estado:'borrador', a_estado:'enviado', nota:'', autor:'u2', creado_en:e30M(29)},
+      {id:953, tramite:'n31', de_estado:'borrador', a_estado:'enviado', nota:'', autor:'u3', creado_en:e30M(31)},
+      {id:954, tramite:'n29', de_estado:'borrador', a_estado:'enviado', nota:'', autor:'u3', creado_en:e30M(29)},
+      {id:955, tramite:'r31', de_estado:'borrador', a_estado:'enviado', nota:'', autor:'u2', creado_en:e30M(110)},
+      {id:956, tramite:'r31', de_estado:'enviado', a_estado:'en_revision', nota:'', autor:'u4', creado_en:e30M(79)},
+      {id:957, tramite:'r31', de_estado:'en_revision', a_estado:'resuelto', nota:'', autor:'u4', creado_en:e30M(60)},
+      {id:958, tramite:'r29', de_estado:'borrador', a_estado:'enviado', nota:'', autor:'u2', creado_en:e30M(110)},
+      {id:959, tramite:'r29', de_estado:'enviado', a_estado:'en_revision', nota:'', autor:'u4', creado_en:e30M(81)},
+      {id:960, tramite:'r29', de_estado:'en_revision', a_estado:'resuelto', nota:'', autor:'u4', creado_en:e30M(61)}
+    ];
+    /* Las tarjetas de antes, fuera: la de Saskia ya decía «2» con la
+       siembra de antes, y así lo que se mira es lo que se pinte ahora. */
+    var caja = document.getElementById('eqTarjetas');
+    if (caja) caja.textContent = '';
+    location.hash = 'equipo';
+    var n = 0;
+    (function mira(){
+      /* Hasta que la tarjeta «Sin dueño» traiga las dos de la siembra. */
+      var nadie = document.querySelector('#eqTarjetas .eq-tj[data-k=""] .eq-tj-c .n');
+      if ((!nadie || nadie.textContent !== '2') && ++n <= 100) return setTimeout(mira, 50);
+      var ent = document.querySelector('#ceNav .ay-ld-it[data-sec="equipo"]');
+      if (ent) ent.click();
+      setTimeout(sigue, 200);
+    })();
+  }
+
+  function equipo30Tarjetas(){
+    var U = ceU();
+    /* En la tarjeta, la frase corta -«Más de 30 min»-; en la ficha, la
+       entera. */
+    var limite = e30Tx(String(U.eq_tj_limite || '').replace('{t}', '30 min'));
+    function tercera(k){
+      return document.querySelectorAll('#eqTarjetas .eq-tj[data-k="' + k + '"] .eq-tj-c > span')[2] || null;
+    }
+    var s = tercera('u4');
+    var n = s && s.querySelector('.n'), l = s && s.querySelector('.eq-limite');
+    igual('se pasó: en la tarjeta de Saskia, «Se pasaron» cuenta la que espera 31 minutos y no la de 29',
+          (s ? e30Tx(s.querySelector('.r').textContent) : '(sin cifra)') + ' ' + (n ? n.textContent : '?'),
+          e30Tx(U.eq_sepasaron) + ' 1');
+    ok('se pasó: y en el color de aviso', !!n && n.classList.contains('mal'), n ? n.className : '(sin cifra)', 'n mal');
+    igual('se pasó: debajo de la cifra, el límite: «' + limite + '»', l ? e30Tx(l.textContent) : '(sin línea)', limite);
+    ok('se pasó: el límite dice 30 min, y ya no «su propia marca»',
+       !!l && /(^|\s)30 min$/.test(e30Tx(l.textContent)) && !/marca/i.test(l.textContent),
+       l ? l.textContent : '(sin línea)', '… 30 min');
+    var t = l && l.querySelector('.eq-limite-t');
+    ok('se pasó: y «30 min» no se parte de línea: «min» solo abajo no se lee',
+       !!t && e30Tx(t.textContent) === '30 min' && getComputedStyle(t).whiteSpace === 'nowrap',
+       t ? e30Tx(t.textContent) + ', ' + getComputedStyle(t).whiteSpace : '(sin el tiempo)', '30 min, nowrap');
+    var sd = tercera('');
+    var nd = sd && sd.querySelector('.n');
+    var tomar = document.querySelector('#eqTarjetas .eq-tj[data-k=""] .eq-tj-c .n');
+    igual('se pasó: sin dueño, de las dos sin tomar, se pasa solo la de 31 minutos',
+          (tomar ? tomar.textContent : '?') + ' sin tomar, ' + (nd ? nd.textContent : '?') + ' se pasó', '2 sin tomar, 1 se pasó');
+    ok('se pasó: y su tarjeta dice el mismo límite',
+       !!sd && !!sd.querySelector('.eq-limite') && e30Tx(sd.querySelector('.eq-limite').textContent) === limite,
+       sd && sd.querySelector('.eq-limite') ? sd.querySelector('.eq-limite').textContent : '(sin línea)', limite);
+    /* En otro idioma, el mismo límite: {t} lo escribe el panel. */
+    var antes = curLang;
+    applyLang('en');
+    var enU = (window.CIIP_PASOS && window.CIIP_PASOS.ui && window.CIIP_PASOS.ui.en) || {};
+    var sEn = tercera('u4'), lEn = sEn && sEn.querySelector('.eq-limite');
+    var lEnTx = lEn ? e30Tx(lEn.textContent) : '(sin línea)';
+    applyLang(antes);
+    igual('se pasó: en inglés, el límite en inglés y también de 30 min',
+          lEnTx, e30Tx(String(enU.eq_tj_limite || '').replace('{t}', '30 min')));
+    var tj = document.querySelector('#eqTarjetas .eq-tj[data-k="u4"]');
+    if (tj) tj.click();
+  }
+
+  function equipo30Ficha(){
+    var U = ceU();
+    var limite = e30Tx(String(U.eq_d_pasaron || '').replace('{t}', '30 min'));
+    var cifras = document.querySelectorAll('#eqFicha .eq-cifra');
+    var c = cifras[2];
+    igual('se pasó: en la ficha de Saskia, «Se pasaron» es 1 de las 2 que lleva',
+          c ? e30Tx(c.querySelector('.r').textContent) + ' ' + e30Tx(c.querySelector('.n').textContent) : '(sin cifra)',
+          e30Tx(U.eq_sepasaron) + ' 1 ' + e30Tx(String(U.eq_de || '').replace('{n}', 2)));
+    igual('se pasó: y debajo, «' + limite + '» en vez de «su propia marca»',
+          c ? e30Tx(c.querySelector('.d').textContent) : '(sin cifra)', limite);
+    var t = c && c.querySelector('.d .eq-limite-t');
+    ok('se pasó: con «30 min» sin partir de línea también ahí',
+       !!t && e30Tx(t.textContent) === '30 min' && getComputedStyle(t).whiteSpace === 'nowrap',
+       t ? e30Tx(t.textContent) + ', ' + getComputedStyle(t).whiteSpace : '(sin el tiempo)', '30 min, nowrap');
+    var f31 = e30Fila('sols|m31'), f29 = e30Fila('sols|m29');
+    if (!f31 || !f29){
+      ok('se pasó: en «Sus solicitudes» están las de 31 y 29 minutos', false,
+         (f31 ? 'm31' : 'sin m31') + ', ' + (f29 ? 'm29' : 'sin m29'), 'las dos');
+      return;
+    }
+    var rust = eqdColor('--rust');
+    var v31 = f31.querySelector('.mt-espera-v'), v29 = f29.querySelector('.mt-espera-v');
+    igual('se pasó: «Esperando» dice 31 y 29 minutos',
+          e30Tx(v31 && v31.textContent) + ' / ' + e30Tx(v29 && v29.textContent), '31 min / 29 min');
+    ok('se pasó: el tiempo de la de 31 minutos, en el color de aviso; el de la de 29, no',
+       !!v31 && !!v29 && getComputedStyle(v31).color === rust && getComputedStyle(v29).color !== rust &&
+       f31.querySelector('.mt-espera').classList.contains('pasa') && !f29.querySelector('.mt-espera').classList.contains('pasa'),
+       (v31 ? getComputedStyle(v31).color : '?') + ' / ' + (v29 ? getComputedStyle(v29).color : '?'), rust + ' / otro');
+    var o31 = f31.querySelector('.mt-espera .visualmente-oculto'), o29 = f29.querySelector('.mt-espera .visualmente-oculto');
+    ok('se pasó: y el lector de pantalla oye «' + U.mt_sepaso + '» solo en la de 31',
+       !!o31 && o31.textContent.indexOf(U.mt_sepaso) >= 0 && !o29,
+       (o31 ? o31.textContent : '(nada)') + ' / ' + (o29 ? o29.textContent : '(nada)'), ', ' + U.mt_sepaso + ' / (nada)');
+    var pest = document.querySelectorAll('#eqFicha .eq-pest button');
+    if (pest[1]) pest[1].click();
+  }
+
+  function equipo30Historial(){
+    var rust = eqdColor('--rust');
+    var tardos = [].slice.call(document.querySelectorAll('#eqFicha .eq-hist .eq-tardo'));
+    function de(min){
+      var re = new RegExp('(^|\\s)' + min + ' min$');
+      return tardos.filter(function(x){ return re.test(e30Tx(eqdALaVista(x))); })[0] || null;
+    }
+    var t31 = de(31), t29 = de(29);
+    ok('se pasó: en el historial, «tardó» 31 minutos va en el color de aviso y 29 minutos no',
+       !!t31 && !!t29 && t31.classList.contains('pasa') && getComputedStyle(t31).color === rust &&
+       t29.classList.contains('ok') && getComputedStyle(t29).color !== rust,
+       (t31 ? e30Tx(eqdALaVista(t31)) + ' ' + t31.className : '(sin el de 31)') + ' / ' +
+       (t29 ? e30Tx(eqdALaVista(t29)) + ' ' + t29.className : '(sin el de 29)'),
+       'eq-tardo pasa / eq-tardo ok');
+    document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
+    var nadie = document.querySelector('#eqTarjetas .eq-tj[data-k=""]');
+    if (nadie) nadie.click();
+  }
+
+  function equipo30SinDueno(){
+    var rust = eqdColor('--rust');
+    var f31 = e30Fila('sols|n31'), f29 = e30Fila('sols|n29');
+    var v31 = f31 && f31.querySelector('.mt-espera-v'), v29 = f29 && f29.querySelector('.mt-espera-v');
+    ok('se pasó: sin dueño, la de 31 minutos en el color de aviso y la de 29 no, aunque nadie la haya tomado',
+       !!v31 && !!v29 && getComputedStyle(v31).color === rust && getComputedStyle(v29).color !== rust &&
+       !f29.querySelector('.mt-espera').classList.contains('pasa'),
+       (v31 ? e30Tx(v31.textContent) + ' ' + getComputedStyle(v31).color : '(sin n31)') + ' / ' +
+       (v29 ? e30Tx(v29.textContent) + ' ' + getComputedStyle(v29).color : '(sin n29)'), rust + ' / otro');
+    document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
+  }
+
+  /* Y «Mis trámites», la tabla del administrador: su columna «Esperando»
+     decía «se pasó» con la marca de quien lo lleva, y sin dueño siempre.
+     Ahora, con el mismo límite. */
+  function equipo30MisAbre(sigue){
+    if (!ES_ADMIN || !E30_ANTES) return sigue();
+    location.hash = 'tramites';
+    var n = 0;
+    (function mira(){
+      if (!document.querySelector('#mtCuerpo tr[data-id="m29"] .mt-espera-v') && ++n <= 100) return setTimeout(mira, 50);
+      setTimeout(sigue, 200);
+    })();
+  }
+
+  function equipo30MisMira(){
+    var U = ceU();
+    function celda(id){ return document.querySelector('#mtCuerpo tr[data-id="' + id + '"] td.mt-espera'); }
+    var lee = ['m31', 'n31', 'm29', 'n29'].map(function(id){
+      var c = celda(id);
+      if (!c) return id + ' (no está)';
+      var d = c.querySelector('.mt-espera-d');
+      return id + ' ' + e30Tx(c.querySelector('.mt-espera-v') && c.querySelector('.mt-espera-v').textContent) +
+             (c.classList.contains('pasa') ? ' pasa' : '') + (d ? ' «' + d.textContent + '»' : '');
+    });
+    igual('se pasó: en «Mis trámites», «' + U.mt_sepaso + '» solo en las de 31 minutos, tenga o no dueño',
+          lee.join(' | '),
+          ['m31 31 min pasa «' + U.mt_sepaso + '»', 'n31 31 min pasa «' + U.mt_sepaso + '»',
+           'm29 29 min', 'n29 29 min'].join(' | '));
+  }
+
+  function equipo30Fin(sigue){
+    if (!ES_ADMIN || !E30_ANTES) return sigue();
+    window.CIIP_DOBLE.ponCola(E30_ANTES);
+    E30_ANTES = null;
+    window.__EVENTOS_EXTRA = null;
+    location.hash = '';
+    setTimeout(sigue, 300);
   }
 
   /* ── CONTROL Y ESTADÍSTICAS ──

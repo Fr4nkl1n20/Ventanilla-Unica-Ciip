@@ -691,6 +691,16 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .eq-tardo.pasa{background:var(--rust-bg); color:var(--rust);} .eq-tardo.ok{background:var(--good-bg); color:var(--good);}
 .eq-f-vacio{padding:26px 18px; text-align:center; color:var(--gray); font-size:var(--fs-fila);}
 
+/* «Más de 30 min», debajo de la cifra «Se pasaron» de cada tarjeta
+   (Franklin Reyes, 13-10-2026: «coloca que el tiempo de “se pasó” es de 30
+   minutos»). Con su clase y aparte de las de la tarjeta: es la regla de la
+   cifra dicha en pequeño, y parte de línea en vez de cortarse con «…». Lo
+   que no parte es «30 min», aquí y en la ficha -«Esperan más de 30 min»-:
+   «min» solo en la línea de abajo no se lee. */
+.eq-limite{display:block; margin-top:2px; font-size:var(--fs-chip); line-height:1.3; color:var(--gray);
+  overflow-wrap:anywhere;}
+.eq-limite-t{white-space:nowrap;}
+
 /* ── EL DETALLE DE CADA TRÁMITE (Franklin Reyes, 13-10-2026) ──
    «Quiero poder tener más detalles de los trámites realizados por
    usuario»: cada fila de «Sus solicitudes» y del «Historial» se despliega
@@ -2346,8 +2356,9 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .mt-asigna-aviso{display:block; font-size:var(--fs-chip); color:var(--gray); margin-top:2px;}
 .mt-asigna-aviso:empty{display:none;}
 
-/* Lo que lleva esperando. En rojo SOLO cuando se pasa de la marca de esa
-   persona, y con la palabra al lado: el color nunca va solo. */
+/* Lo que lleva esperando. En rojo SOLO cuando pasa del límite de «se pasó»
+   -30 minutos desde el 13-10-2026, SE_PASA_MIN en panel.js; antes, la
+   marca de esa persona-, y con la palabra al lado: el color nunca va solo. */
 .mt-espera-v{font-size:var(--fs-fila); font-weight:700; font-variant-numeric:tabular-nums;
   white-space:nowrap;}
 .mt-espera-d{display:block; font-size:var(--fs-chip); color:var(--rust); font-weight:700;

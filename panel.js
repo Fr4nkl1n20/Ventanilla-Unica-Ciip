@@ -19032,8 +19032,10 @@ applyLang(idiomaParaMi());
      los trámites que la tabla tiene delante, así que cambia con la página
      y con el filtro. Es una marca para comparar dentro de lo que se está
      mirando, no la estadística de la oficina. Y premia a quien toma los
-     fáciles. Por eso el rojo se reserva para «se pasó DE SU PROPIA marca»
-     y no se pinta de rojo a nadie por tardar más que otro.
+     fáciles. Por eso no se pinta de rojo a nadie por tardar más que otro.
+     Hasta el 13-10-2026 el rojo era «se pasó DE SU PROPIA marca»; desde
+     entonces es pasar de SE_PASA_MIN, aquí abajo, y la marca se queda
+     como lo que es: «contesta en», un dato para leer al lado.
      ────────────────────────────────────────────────────────────────── */
   var respuestaMt = {};
 
@@ -19073,6 +19075,30 @@ applyLang(idiomaParaMi());
     var d = Date.parse(t.desde_en || t.enviado_en || t.creado_en);
     return isNaN(d) ? null : Math.max(0, Date.now() - d);
   }
+
+  /* «SE PASÓ», A LOS 30 MINUTOS. Franklin Reyes, 13-10-2026, sobre la
+     cifra «Se pasaron 12» de las tarjetas del equipo: «coloca que el
+     tiempo de “se pasó” es de 30 minutos».
+
+     Lo que se mide no cambia: lo que lleva esperando al CIIP -desde el
+     último movimiento, en 'enviado' o 'en_revision'- y lo que tardó en
+     moverse lo que entró en 'enviado'. Cambia el límite. Antes era la
+     marca de cada persona -lo que suele tardar en contestar, su media-,
+     y con ella quien suele tardar cinco días no se pasaba nunca en
+     cuatro; y sin dueño se pasaba todo, aunque hubiera entrado hace un
+     minuto. Ahora es una sola cifra para todos, y la misma que se lee
+     escrita junto a «Se pasaron». Por eso los textos no dicen «30»: dicen
+     {t}, y se rellena con enHoras(SE_PASA_MS). Cambiar el límite mañana
+     es cambiar esta línea, y nada más.
+
+     Vale para lo del equipo que decía «se pasó»: la tarjeta y la ficha de
+     cada persona -«Se pasaron», «Esperando», «tardó» en el «Historial»- y
+     la columna «Esperando» de «Mis trámites». No toca lo que mide otra
+     cosa: «contesta en» sigue siendo la marca de cada uno, y la espera
+     más vieja del pulso se sigue poniendo en óxido a la semana. */
+  var SE_PASA_MIN = 30;
+  var SE_PASA_MS = SE_PASA_MIN * 60000;
+  function sePaso(ms){ return ms !== null && ms !== undefined && ms > SE_PASA_MS; }
 
   /* Una duracion -no una fecha relativa-, en los seis idiomas y sin una
      sola clave nueva: Intl la escribe. haceCuanto() no sirve aqui, que
@@ -24384,10 +24410,11 @@ applyLang(idiomaParaMi());
   }
 
   /* ESPERANDO. Lo que lleva esperando ESTE tramite, y en rojo solo cuando
-     se pasa de la marca de esa persona -no a los ocho dias por decreto: el
-     panel no ha prometido ningun plazo de respuesta, y ya esta anotado en
-     la cola por que no se inventa uno-. Sin dueño se pasa siempre: nadie
-     va a contestar.
+     se pasa de SE_PASA_MIN (Franklin Reyes, 13-10-2026: «coloca que el
+     tiempo de “se pasó” es de 30 minutos»). Hasta entonces era la marca de
+     esa persona, y sin dueño se pasaba siempre; ahora es el mismo límite
+     para todos, el que dice la tarjeta «Se pasaron» del equipo. Quién lo
+     lleva -o que no lo lleva nadie- lo dice la columna de al lado.
 
      Y el color NUNCA va solo: donde hay rojo va escrita la palabra. */
   function celdaEspera(t, u){
@@ -24396,8 +24423,7 @@ applyLang(idiomaParaMi());
     /* No espera al CIIP: una raya, y no un cero ni un hueco. El hueco se
        lee como un dato que falta. */
     if (ms === null){ td.appendChild(el('span', 'mt-nada', '–')); return td; }
-    var marca = t.gestor ? sueleTardar(t.gestor) : null;
-    var pasa = !t.gestor || (marca !== null && ms > marca);
+    var pasa = sePaso(ms);
     if (pasa) td.className += ' pasa';
     td.appendChild(el('b', 'mt-espera-v', enHoras(ms)));
     if (pasa) td.appendChild(el('span', 'mt-espera-d', u.mt_sepaso || ''));
@@ -33980,17 +34006,21 @@ applyLang(idiomaParaMi());
       return isNaN(d) ? null : Math.max(0, Date.now() - d);
     }
 
+    /* «Se pasó» es pasar de SE_PASA_MIN, para todos y también para lo sin
+       dueño (Franklin Reyes, 13-10-2026: «coloca que el tiempo de “se
+       pasó” es de 30 minutos»). La marca de cada uno se sigue calculando:
+       es su «contesta en», pero ya no decide quién se pasó. */
     var gente = perfiles.filter(function(p){ return p && (p.rol === 'gestor' || p.rol === 'admin'); })
       .map(function(p){
         var marca = marcaDe(p.id);
         var sols = tramites.filter(function(t){ return t.gestor === p.id && MT_VIVOS.indexOf(t.estado) >= 0; })
           .map(function(t){ return {t: t, espera: espera(t)}; });
         var h = (hist[p.id] || []).sort(function(a, b){ return Date.parse(b.cuando) - Date.parse(a.cuando); });
-        h.forEach(function(x){ x.pasa = (x.tardo !== null && marca !== null && x.tardo > marca); });
+        h.forEach(function(x){ x.pasa = sePaso(x.tardo); });
         return {
           k: p.id, nombre: p.nombre_completo || '', rol: p.rol, marca: marca,
           sols: ordenaSols(sols),
-          pasadas: sols.filter(function(s){ return s.espera !== null && marca !== null && s.espera > marca; }).length,
+          pasadas: sols.filter(function(s){ return sePaso(s.espera); }).length,
           resueltas: h.filter(function(x){ return x.tipo === 'resuelto'; }).length,
           devueltas: h.filter(function(x){ return x.tipo === 'devuelto'; }).length,
           hist: h
@@ -34005,7 +34035,8 @@ applyLang(idiomaParaMi());
     var sinSols = tramites.filter(function(t){ return !t.gestor && EQ_DEL_CIIP.indexOf(t.estado) >= 0; })
       .map(function(t){ return {t: t, espera: espera(t)}; });
     var sinDueno = {k: '', nombre: '', rol: '', marca: null, sols: ordenaSols(sinSols),
-                    pasadas: sinSols.length, resueltas: null, devueltas: null, hist: []};
+                    pasadas: sinSols.filter(function(s){ return sePaso(s.espera); }).length,
+                    resueltas: null, devueltas: null, hist: []};
 
     return {gente: gente, sinDueno: sinDueno, nombres: nombres,
             media: total.n ? total.ms / total.n : null};
@@ -34039,6 +34070,21 @@ applyLang(idiomaParaMi());
   function eqRol(p, u){
     if (!p.k) return u.eq_sindueno_d || '';
     return p.rol === 'admin' ? (u.eq_rol_admin || '') : (u.eq_rol_gestor || '');
+  }
+  /* El límite de «se pasó», «30 min», escrito por Intl en el idioma de la
+     pantalla. Sale de SE_PASA_MS, así que si el límite cambia, cambia
+     también lo que se lee, sin tocar los ocho textos. En la ficha va la
+     frase entera, «Esperan más de 30 min»; en la tarjeta, la corta, «Más
+     de 30 min»: su caja mide unos cincuenta píxeles, y la entera partía en
+     tres y cuatro líneas. Y «30 min» va sin partir (.eq-limite-t), que si
+     no «min» se quedaba solo en la línea de abajo. */
+  function eqLimite(tag, clase, plantilla){
+    var x = el(tag, clase);
+    String(plantilla || '').split('{t}').forEach(function(trozo, i){
+      if (i) x.appendChild(el('span', 'eq-limite-t', enHoras(SE_PASA_MS)));
+      if (trozo) x.appendChild(document.createTextNode(trozo));
+    });
+    return x;
   }
   function eqNombre(p, u){ return p.k ? (p.nombre || u.co_sinnombre || '') : (u.mt_sindueno || ''); }
 
@@ -34096,16 +34142,20 @@ applyLang(idiomaParaMi());
     b.appendChild(h);
 
     var c = el('span', 'eq-tj-c');
-    function cifra(r, n, tono){
+    function cifra(r, n, tono, debajo){
       var x = el('span');
       x.appendChild(el('span', 'r', r));
       x.appendChild(el('span', 'n' + (tono ? ' ' + tono : ''), n));
+      if (debajo) x.appendChild(debajo);
       c.appendChild(x);
     }
     cifra(p.k ? (u.eq_enmarcha || '') : (u.eq_sintomar || ''), String(p.sols.length));
     cifra(u.eq_contesta || '', p.marca === null ? '–' : enHoras(p.marca),
           (p.marca !== null && eqDatos.media !== null && p.marca <= eqDatos.media) ? 'bien' : '');
-    cifra(u.eq_sepasaron || '', String(p.pasadas), mal ? 'mal' : '');
+    /* Debajo de la cifra, de qué es: «Más de 30 min» (Franklin Reyes,
+       13-10-2026: «coloca que el tiempo de “se pasó” es de 30 minutos»).
+       Sin eso, «Se pasaron 12» no dice de qué se pasaron. */
+    cifra(u.eq_sepasaron || '', String(p.pasadas), mal ? 'mal' : '', eqLimite('span', 'eq-limite', u.eq_tj_limite));
     b.appendChild(c);
 
     /* El último movimiento, en una línea: lo que hizo y cuándo. */
@@ -34170,9 +34220,10 @@ applyLang(idiomaParaMi());
     if (ev.tardo !== null && ev.tardo !== undefined){
       /* Solo el tiempo, sin «· se pasó» (Franklin Reyes, 13-10-2026:
          «donde dice que se pasó, quitarlo y dejar solo el tiempo que
-         lleva»). El color de aviso se queda como la señal, y la palabra
-         sigue ahí para quien lo oye con un lector de pantalla, que el
-         color no lo ve. */
+         lleva»). El color de aviso se queda como la señal -cuando tardó
+         más de SE_PASA_MIN, desde el 13-10-2026-, y la palabra sigue ahí
+         para quien lo oye con un lector de pantalla, que el color no lo
+         ve. */
       var tardo = el('span', 'eq-tardo ' + (ev.pasa ? 'pasa' : 'ok'),
                      String(u.eq_tardo || '').replace('{t}', enHoras(ev.tardo)));
       if (ev.pasa) tardo.appendChild(el('span', 'visualmente-oculto', ', ' + (u.mt_sepaso || '')));
@@ -34250,7 +34301,9 @@ applyLang(idiomaParaMi());
       var nn = el('div', 'n', n);
       if (de) nn.appendChild(el('small', null, ' ' + de));
       x.appendChild(nn);
-      x.appendChild(el('div', 'd', d));
+      /* d, la frase de debajo: un texto, o ya hecha -la del límite de «se
+         pasó», con «30 min» sin partir-. */
+      x.appendChild(typeof d === 'string' ? el('div', 'd', d) : d);
       cifras.appendChild(x);
     }
     var media = eqDatos.media;
@@ -34266,7 +34319,7 @@ applyLang(idiomaParaMi());
       cifra(u.eq_enmarcha || '', String(p.sols.length), u.eq_d_marcha || '');
       cifra(u.eq_contesta || '', p.marca === null ? '–' : enHoras(p.marca), comp,
             p.marca === null ? 'gris' : (media !== null && p.marca <= media ? 'bien' : ''));
-      cifra(u.eq_sepasaron || '', String(p.pasadas), u.eq_d_pasaron || '', p.pasadas ? 'mal' : 'bien',
+      cifra(u.eq_sepasaron || '', String(p.pasadas), eqLimite('div', 'd', u.eq_d_pasaron), p.pasadas ? 'mal' : 'bien',
             p.sols.length ? String(u.eq_de || '').replace('{n}', p.sols.length) : '');
       cifra(u.eq_resueltas || '', String(p.resueltas), u.eq_d_7d || '', p.resueltas ? 'bien' : 'gris');
       cifra(u.eq_devueltas || '', String(p.devueltas), u.eq_d_nota || '', 'gris');
@@ -34327,17 +34380,18 @@ applyLang(idiomaParaMi());
           c3.className += ' vacia';
           c3.appendChild(el('span', 'mt-nada', '–'));
         } else {
-          var pasa = !p.k || (p.marca !== null && s.espera > p.marca);
+          var pasa = sePaso(s.espera);
           if (pasa) c3.className += ' pasa';
           c3.appendChild(el('b', 'mt-espera-v', enHoras(s.espera)));
           /* Solo el tiempo que lleva (Franklin Reyes, 13-10-2026: «donde
              dice que se pasó, quitarlo y dejar solo el tiempo que lleva»).
-             El tiempo sigue en el color de aviso cuando se pasó de su
-             marca -la tarjeta «Se pasaron» de arriba los cuenta- y la
-             palabra se queda para el lector de pantalla, que no ve el
-             color. En «Sin dueño» la palabra era «sin tomar»: lo mismo. */
-          if (pasa) c3.appendChild(el('span', 'visualmente-oculto',
-            ', ' + (p.k ? (u.mt_sepaso || '') : (u.mt_sintomar || ''))));
+             El tiempo sigue en el color de aviso cuando pasa de SE_PASA_MIN
+             -la tarjeta «Se pasaron» de arriba los cuenta- y la palabra se
+             queda para el lector de pantalla, que no ve el color. También
+             en «Sin dueño», que ya no se pasa por no tener dueño sino por
+             el mismo límite que los demás: que nadie la ha tomado ya lo
+             dice la ficha entera. */
+          if (pasa) c3.appendChild(el('span', 'visualmente-oculto', ', ' + (u.mt_sepaso || '')));
         }
         tr.appendChild(c3);
         var c4 = el('td', 'eq-c-ch');
