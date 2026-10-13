@@ -616,15 +616,18 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .eq-tj.nadie{border-style:dashed; border-top-style:solid; border-top-color:var(--gray-soft);}
 .eq-tj-h{display:flex; align-items:center; gap:10px; min-width:0;}
 .eq-tj-h .mt-av{width:32px; height:32px;}
-.eq-tj-h .nb{display:block; font-size:var(--fs-tarjeta); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+/* El nombre entero, en las líneas que haga falta: nada se corta con «…»
+   en Control y Estadísticas (revisión del 13-10-2026). */
+.eq-tj-h .nb{display:block; font-size:var(--fs-tarjeta); font-weight:700; overflow-wrap:anywhere;}
 .eq-tj-h .rol{display:block; font-size:var(--fs-chip); color:var(--gray); margin-top:1px;}
 .eq-tj-c{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px;}
 .eq-tj-c > span{display:block; background:var(--block); border-radius:8px; padding:7px 8px; min-width:0;}
 .eq-tj-c .r{display:block; font-size:var(--fs-chip); font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--gray);}
 .eq-tj-c .n{display:block; font-size:var(--fs-tarjeta); font-weight:800; margin-top:2px; font-variant-numeric:tabular-nums; white-space:nowrap;}
 .eq-tj-c .n.mal{color:var(--rust);} .eq-tj-c .n.bien{color:var(--good);}
+/* El último movimiento, entero: ya no se corta a dos líneas. */
 .eq-tj-u{font-size:var(--fs-nota); color:var(--gray); line-height:1.4; border-top:1px solid var(--line-soft); padding-top:9px;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  overflow-wrap:anywhere;}
 .eq-tj-u b{color:var(--ink);}
 .eq-tj-ir{font-size:var(--fs-nota); font-weight:700; color:var(--navy2); margin-top:auto;}
 .eq-vacio{padding:30px 18px; text-align:center; color:var(--gray); font-size:var(--fs-fila);
@@ -662,7 +665,7 @@ body[data-vista="equipo"] .fase-bar{display:none;}
   color:var(--gray); padding:10px 18px; border-bottom:1px solid var(--line); white-space:nowrap;}
 .eq-sols td{padding:10px 18px; border-bottom:1px solid var(--line-soft); vertical-align:middle;}
 .eq-sols tr:last-child td{border-bottom:0;}
-.eq-sols .nm{font-weight:700;} .eq-sols .mt-sub{margin-top:1px;}
+.eq-sols .nm{font-weight:700;} .eq-sols .mt-sub{margin-top:1px; white-space:normal; overflow:visible; text-overflow:clip;}
 .eq-hist{padding:4px 18px 18px;}
 .eq-dia{font-size:var(--fs-chip); font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--gray);
   margin:14px 0 6px; display:flex; gap:8px; align-items:center;}
@@ -771,7 +774,8 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .pu-tabla th:last-child, .pu-tabla td:last-child{padding-right:18px;}
 .pu-tabla tr:last-child td{border-bottom:0;}
 .pu-tabla .num{text-align:right; font-variant-numeric:tabular-nums; font-weight:700;}
-.pu-tabla td.nombre{overflow:hidden; text-overflow:ellipsis; max-width:220px; font-weight:700;}
+/* El nombre del gestor parte de línea antes que cortarse con «…». */
+.pu-tabla td.nombre{white-space:normal; overflow-wrap:anywhere; min-width:7em; font-weight:700;}
 .pu-tabla .pct{color:var(--gray); font-weight:500;}
 .pu-tabla .mal{color:var(--rust); font-weight:700;}
 .pu-sinasig{display:inline-flex; font-size:var(--fs-chip); font-weight:700; letter-spacing:.01em;
@@ -794,9 +798,25 @@ body[data-vista="equipo"] .fase-bar{display:none;}
    cuatro entradas con un icono menor y su número en una pastilla, en ámbar
    si avisa. A la derecha, una sola ficha con la cabecera grande de Ayuda.
    En el teléfono, la lista arriba y la ficha debajo. */
+/* POR EL ANCHO DE VERDAD (revisión del 13-10-2026). Con la barra lateral
+   de 256 px y la lista de 240, una ventana de 950 dejaba a la ficha menos
+   de 400 px: el conmutador tapaba el título y las filas se salían. Ahora
+   mide el marco (.ce-ld-marco, un contenedor): si a la ficha no le quedan
+   unos 600 px, lista y ficha van en una columna, con la lista en dos o en
+   cuatro columnas según quepa. */
+.ce-ld-marco{container-type:inline-size; container-name:ce-ld;}
 .ce-ld{display:grid; grid-template-columns:minmax(200px, 240px) minmax(0, 1fr); gap:16px; align-items:start;}
 .ce-ld > *{min-width:0;}
-@media(max-width:820px){ .ce-ld{grid-template-columns:minmax(0, 1fr);} }
+@container ce-ld (max-width:879px){
+  .ce-ld{grid-template-columns:minmax(0, 1fr);}
+  .ce-ld-nav{grid-template-columns:repeat(2, minmax(0, 1fr));}
+}
+@container ce-ld (min-width:760px) and (max-width:879px){
+  .ce-ld-nav{grid-template-columns:repeat(4, minmax(0, 1fr));}
+}
+@container ce-ld (max-width:479px){
+  .ce-ld-nav{grid-template-columns:minmax(0, 1fr);}
+}
 .ce-ld-nav .ay-ld-it{padding:9px 10px; width:100%;}
 .ce-ld-nav .ay-ld-it .ay-ic{width:30px; height:30px; border-radius:9px;}
 .ce-ld-nav .ay-ld-it .ay-ic svg{width:16px; height:16px;}
@@ -812,16 +832,22 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 
 /* La ficha: la cabecera de Ayuda (.ay-ld .ay-card summary) con el icono
    grande, el título y su frase, y a la derecha el conmutador si lo hay. */
+/* La ficha es también un contenedor: su cabecera y su cuerpo se ajustan a
+   lo que mide ella. Al bajar hasta ella en el teléfono, se para debajo de
+   la barra de arriba, que es fija. */
 .ce-ficha{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); overflow:hidden;
-  box-shadow:var(--shadow); min-width:0;}
-.ce-fi-cab{display:flex; gap:14px; align-items:center; padding:20px 22px; border-bottom:1px solid var(--line);
+  box-shadow:var(--shadow); min-width:0; container-type:inline-size; container-name:ce-ficha;
+  scroll-margin-top:calc(var(--tb, 58px) + 12px);}
+/* El título con su frase no baja de 240 px: si con el conmutador no cabe,
+   el conmutador pasa a la línea de debajo en vez de aplastar la frase. */
+.ce-fi-cab{display:flex; flex-wrap:wrap; gap:12px 14px; align-items:center; padding:20px 22px; border-bottom:1px solid var(--line);
   background:linear-gradient(180deg, var(--block) 0%, transparent 100%);}
 .ce-fi-cab .ay-ic{width:48px; height:48px; border-radius:13px;}
 .ce-fi-cab .ay-ic svg{width:22px; height:22px;}
-.ce-fi-tx{min-width:0; flex:1 1 auto;}
+.ce-fi-tx{min-width:0; flex:1 1 240px;}
 .ce-fi-t{margin:0; font-size:var(--fs-titulo); font-weight:700; letter-spacing:-.01em; line-height:1.2; color:var(--ink);}
 .ce-fi-d{margin:4px 0 0; font-size:var(--fs-nota); line-height:1.5; color:var(--gray); max-width:80ch;}
-.ce-fi-der{flex:none; align-self:flex-start; max-width:100%;}
+.ce-fi-der{flex:0 1 auto; align-self:flex-start; max-width:100%; min-width:0;}
 .ce-fi-der .pu-seg{margin-left:0; max-width:100%;}
 .ce-fi-cu{padding:18px 22px 22px; display:grid; grid-template-columns:minmax(0, 1fr); gap:16px; min-width:0;}
 .ce-fi-cu > *{min-width:0;}
@@ -836,13 +862,22 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 /* La configuración del chat no es una cifra: su ficha lleva el borde de
    rayas, que en esta pantalla solo lleva ella, y el icono en gris. */
 .ce-ficha[data-sec="config"]{border-style:dashed; box-shadow:none;}
-@media(max-width:600px){
-  .ce-fi-cab{padding:16px; align-items:flex-start; flex-wrap:wrap;}
+/* Ficha estrecha: menos relleno, y el conmutador a todo lo ancho, con
+   sus dos botones repartidos y partiendo de línea si hace falta. */
+@container ce-ficha (max-width:560px){
+  .ce-fi-cab{padding:16px; align-items:flex-start;}
   .ce-fi-cab .ay-ic{width:40px; height:40px;}
   .ce-fi-der{flex-basis:100%;}
-  .ce-fi-der .pu-segbtn{white-space:normal;}
+  .ce-fi-der .pu-seg{display:flex; width:100%;}
+  .ce-fi-der .pu-segbtn{flex:1 1 0; white-space:normal;}
   .ce-fi-cu{padding:14px 16px 18px;}
   .ce-caja.ce-llano{margin-left:-16px; margin-right:-16px;}
+  /* La tabla de gestores, más apretada: en ruso o en francés sus cuatro
+     cabeceras no cabían en un teléfono y la tabla rodaba de lado. */
+  .ce-fi-cu .pu-tabla th, .ce-fi-cu .pu-tabla td{padding-left:6px; padding-right:6px;}
+  .ce-fi-cu .pu-tabla th:first-child, .ce-fi-cu .pu-tabla td:first-child{padding-left:12px;}
+  .ce-fi-cu .pu-tabla th:last-child, .ce-fi-cu .pu-tabla td:last-child{padding-right:12px;}
+  .ce-fi-cu .pu-tabla th{letter-spacing:.02em;}
 }
 
 /* «Configuración del chat», arriba a la derecha junto a «Al día»: un
@@ -857,9 +892,11 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 
 /* Por sector: las consultas y los trámites más pedidos lado a lado, en
    sus cajas; con poco ancho, una debajo de otra. */
-.ce-dos{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; align-items:start;}
+/* Cada caja pide sus 380 px; si no caben dos, una debajo de otra. Antes
+   se decidía por la ventana, y entre 1181 y 1350 px cada columna se
+   quedaba en 290 y cortaba cifras (revisión del 13-10-2026). */
+.ce-dos{display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap:14px; align-items:start;}
 .ce-dos > *{min-width:0;}
-@media(max-width:1180px){ .ce-dos{grid-template-columns:minmax(0, 1fr);} }
 /* Cada sector es un botón; el pulsado, en azul claro con su raya, como la
    entrada elegida de la lista. El margen negativo deja la fila alineada
    con las de la otra caja aunque lleve su relleno. */
@@ -875,20 +912,32 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 /* Una fila: nombre, barra y cifra. */
 .ce-lista{display:flex; flex-direction:column; padding:4px 18px 12px;}
 .ce-fila{display:flex; align-items:center; gap:10px; padding:7px 0; width:100%;}
-.ce-fila .ce-rl{width:170px; flex:0 0 auto; min-width:0;}
+/* Cada caja es un contenedor: sus filas se ajustan a lo que mide ella.
+   El nombre ya no se corta con «…» (Franklin Reyes, 9-10-2026, y la
+   revisión del 13-10-2026): parte en las líneas que haga falta, y su
+   columna cede de 170 a 110 px antes que empujar la cifra fuera. */
+.ce-caja{container-type:inline-size; container-name:ce-caja;}
+.ce-fila .ce-rl{flex:0 1 170px; min-width:110px;}
 .ce-fila .ce-rl .nm{display:block; font-size:var(--fs-fila); font-weight:700; color:var(--ink);
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  white-space:normal; overflow-wrap:anywhere; line-height:1.35;}
 .ce-fila .ce-pista{flex:1 1 auto; display:flex; height:14px; border-radius:4px; background:var(--block);
   overflow:hidden; min-width:40px;}
 .ce-fila .ce-pista span{height:100%;}
 .ce-fila .ce-relleno{border-radius:4px; background:linear-gradient(90deg, var(--navy2), var(--cyan-deep));}
-.ce-fila .ce-rv{width:96px; flex:0 0 auto; text-align:right;}
+.ce-fila .ce-rv{flex:0 0 auto; min-width:96px; max-width:45%; text-align:right;}
 .ce-fila .ce-rv .n{display:block; font-size:var(--fs-fila); font-weight:800; color:var(--ink);
   font-variant-numeric:tabular-nums; white-space:nowrap;}
-.ce-fila .ce-rv .ce-sub{white-space:nowrap;}
+.ce-fila .ce-rv .ce-sub{white-space:normal;}
 .ce-fila.tope .ce-rv .n{color:var(--navy2);}
 .ce-fila.cero .ce-rl .nm, .ce-fila.cero .ce-rv .n{color:var(--gray-soft); font-weight:600;}
-@media(max-width:560px){ .ce-fila .ce-rl{width:110px;} .ce-fila .ce-rv{width:76px;} }
+/* Caja estrecha (el teléfono): el nombre y la cifra arriba, la barra
+   debajo a todo lo ancho, como la maqueta. */
+@container ce-caja (max-width:370px){
+  .ce-fila{flex-wrap:wrap; row-gap:5px;}
+  .ce-fila .ce-rl{flex:1 1 0; min-width:0;}
+  .ce-fila .ce-rv{order:2; min-width:0;}
+  .ce-fila .ce-pista{order:3; flex:1 1 100%;}
+}
 /* Los dos tramos del tiempo: en el CIIP y ante el ente. */
 .r-ciip{background:var(--ce-r1);}
 .r-ente{background:var(--ce-r3);}
@@ -956,13 +1005,15 @@ body[data-vista="equipo"] .fase-bar{display:none;}
    salir la respuesta completa que pone el inversionista, no ...»). La
    columna del motivo crece y el texto parte en las líneas que haga falta;
    en el teléfono la barra y la cifra bajan debajo del texto. */
-#ceMotivos .ce-fila .ce-rl .nm, #ceTramSector .ce-fila .ce-rl .nm{white-space:normal; overflow:visible;
-  text-overflow:clip; overflow-wrap:anywhere; line-height:1.35;}
 #ceMotivos .ce-fila .ce-rl{width:auto; flex:1 1 300px; max-width:52%;}
 #ceMotivos .ce-fila .ce-pista{flex:1 1 120px;}
-@media(max-width:560px){
-  #ceMotivos .ce-fila{flex-wrap:wrap;}
-  #ceMotivos .ce-fila .ce-rl{flex-basis:calc(100% - 22px); max-width:none;}
+/* Con menos de 480 px el motivo va arriba con su cifra y la barra debajo:
+   el texto es largo y no se aplasta en una columna estrecha. */
+@container ce-caja (max-width:480px){
+  #ceMotivos .ce-fila{flex-wrap:wrap; row-gap:5px;}
+  #ceMotivos .ce-fila .ce-rl{flex:1 1 0; min-width:0; max-width:none;}
+  #ceMotivos .ce-fila .ce-rv{order:2;}
+  #ceMotivos .ce-fila .ce-pista{order:3; flex:1 1 100%;}
 }
 /* Cada motivo es un botón que despliega sus casos. */
 .ce-mo-item + .ce-mo-item{border-top:1px solid var(--line-soft);}
@@ -977,6 +1028,7 @@ body[data-vista="equipo"] .fase-bar{display:none;}
   max-height:420px; overflow-y:auto;}
 .ce-casos .pu-vacio{padding:12px 0;}
 .ce-casos-l{list-style:none; margin:0; padding:0;}
+.ce-casos-parcial{margin:10px 0 2px; font-size:var(--fs-nota); color:var(--gray); line-height:1.5;}
 .ce-caso{padding:10px 0;}
 .ce-caso + .ce-caso{border-top:1px solid var(--line-soft);}
 .ce-caso-a{display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px; font-size:var(--fs-fila);}

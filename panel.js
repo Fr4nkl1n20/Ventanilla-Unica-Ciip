@@ -293,6 +293,10 @@ function applyLang(lang){
   if (window.CIIP_REPINTA_EMPRESA) window.CIIP_REPINTA_EMPRESA();
   if (window.CIIP_REPINTA_USUARIOS) window.CIIP_REPINTA_USUARIOS();
   if (window.CIIP_REPINTA_EQUIPO) window.CIIP_REPINTA_EQUIPO();
+  /* La banda de cifras de Control y Estadísticas es del pulso: sin esto
+     se quedaba en el idioma de antes hasta el refresco del minuto
+     (revisión del 13-10-2026). */
+  if (window.CIIP_REPINTA_PULSO) window.CIIP_REPINTA_PULSO();
   if (window.CIIP_REPINTA_CONTROL) window.CIIP_REPINTA_CONTROL();
   if (window.CIIP_REPINTA_HORARIO) window.CIIP_REPINTA_HORARIO();
   if (window.CIIP_REPINTA_ACTIVOS) window.CIIP_REPINTA_ACTIVOS();
@@ -34508,10 +34512,24 @@ applyLang(idiomaParaMi());
     }
   }
 
+  /* Elegir a mano. Con la lista y el detalle en UNA columna -el teléfono,
+     o una ventana estrecha- la ficha cambia muy por debajo de lo que se ve,
+     y parecía que el botón no hacía nada (revisión del 13-10-2026): se
+     baja hasta ella. Solo aquí, en lo que pulsa la persona; el repintado
+     de cada minuto pasa por ceAplicaSel y no mueve la página. */
   function ceElige(k){
     ceSel = k;
     if (k !== 'config') ceUltima = k;
     ceAplicaSel();
+    var nav = document.getElementById('ceNav'), ficha = document.getElementById(CE_ID[k]);
+    if (!nav || !ficha || !ficha.scrollIntoView) return;
+    var r = ficha.getBoundingClientRect();
+    var alto = window.innerHeight || document.documentElement.clientHeight;
+    var barra = document.querySelector('.topbar');
+    var techo = barra ? Math.max(0, barra.getBoundingClientRect().bottom) : 0;
+    var enColumna = r.top >= nav.getBoundingClientRect().bottom - 1;
+    /* Si su cabecera ya está a la vista, no se mueve nada. */
+    if (enColumna && (r.top < techo || r.top > alto * 0.6)) ficha.scrollIntoView({block: 'start'});
   }
 
   /* Las fichas de las cifras, de una en una; la del equipo es fija en el
@@ -34577,17 +34595,24 @@ applyLang(idiomaParaMi());
     return f.ficha;
   }
 
-  /* El sector pulsado o, sin pulsar ninguno, el primero en el orden de
-     ceCajaTramSector: el más preguntado y, a igualdad, el que más trámites
-     tiene elegidos. */
+  /* El sector pulsado o, sin pulsar ninguno, el más preguntado ENTRE LOS
+     QUE TIENEN TRÁMITES ELEGIDOS y, a igualdad, el que más tiene. Empezar
+     por el más preguntado a secas abría a veces «Minero · Elegidos: 0» y
+     escondía los datos que sí hay (revisión del 13-10-2026).
+
+     Y si ningún sector tiene ninguno -o falta el SQL que los cuenta- no hay
+     sector elegido (null): la caja de al lado dice que aún no hay datos, y
+     marcar uno como pulsado prometería algo que no cambia nada. */
   function ceSectorElegido(){
-    if (ceSecSel && CS_CODIGOS.indexOf(ceSecSel) >= 0) return ceSecSel;
     var cons = {}, ts = {};
     (ceDatos.sectores || []).forEach(function(x){ cons[x.sector] = x.consultas || 0; });
     (ceDatos.tramites_sector || []).forEach(function(x){
       if (x && x.sector && x.n > 0) ts[x.sector] = (ts[x.sector] || 0) + x.n;
     });
-    return CS_CODIGOS.slice().sort(function(a, b){
+    var con = CS_CODIGOS.filter(function(c){ return ts[c] > 0; });
+    if (!con.length) return null;
+    if (ceSecSel && CS_CODIGOS.indexOf(ceSecSel) >= 0) return ceSecSel;
+    return con.sort(function(a, b){
       return ((cons[b] || 0) - (cons[a] || 0)) || ((ts[b] || 0) - (ts[a] || 0)) ||
              (CS_CODIGOS.indexOf(a) - CS_CODIGOS.indexOf(b));
     })[0];
@@ -34684,6 +34709,9 @@ applyLang(idiomaParaMi());
                 partes: [[tope ? n / tope : 0]]};
       });
     }
+    /* El que se está enseñando no se repite en el pie: su bloque ya dice
+       que no tiene ninguno (revisión del 13-10-2026). */
+    sin = sin.filter(function(x){ return x !== c; });
     if (sin.length){
       var pie = el('p', 'ce-ts-sin');
       pie.appendChild(el('b', null, u.ce_ts_sin || ''));
@@ -34761,7 +34789,7 @@ applyLang(idiomaParaMi());
         panel.hidden = !abierto;
         f.setAttribute('aria-expanded', abierto ? 'true' : 'false');
         caret.textContent = abierto ? '▾' : '▸';
-        if (abierto && !panel.firstChild) ceCasosDe(u, panel, m.motivo, casos);
+        if (abierto && !panel.firstChild) ceCasosDe(u, panel, m.motivo, casos, m.n);
       }
       f.addEventListener('click', function(){ pon(!ceAbierto[clave]); });
       item.appendChild(f);
@@ -34781,8 +34809,13 @@ applyLang(idiomaParaMi());
      empresa- y cuándo; debajo la solicitud y el ente; y lo que escribió,
      entero y con sus saltos de línea. Si no escribió nada se dice: un
      hueco en blanco parece un fallo de carga. Sin la llave (falta el SQL)
-     no se finge que no hay casos, porque la cifra de al lado dice que sí. */
-  function ceCasosDe(u, panel, motivo, casos){
+     no se finge que no hay casos, porque la cifra de al lado dice que sí.
+
+     MENOS DE LOS QUE DICE LA CIFRA (revisión del 13-10-2026): la base
+     manda como mucho 500 casos entre todos los motivos, los más recientes.
+     Un motivo que dice 30 y despliega 12 parecía que había perdido 18; si
+     faltan, se dice cuántos se enseñan y de cuántos. */
+  function ceCasosDe(u, panel, motivo, casos, total){
     if (!Array.isArray(casos)){
       panel.appendChild(el('div', 'pu-vacio', u.ce_ca_nosql || ''));
       return;
@@ -34796,6 +34829,10 @@ applyLang(idiomaParaMi());
     if (!mios.length){
       panel.appendChild(el('div', 'pu-vacio', u.ce_vacio || ''));
       return;
+    }
+    if (total > mios.length){
+      panel.appendChild(el('p', 'ce-casos-parcial',
+        String(u.ce_ca_parcial || '').replace('{n}', mios.length).replace('{m}', total)));
     }
     var lista = el('ol', 'ce-casos-l');
     mios.forEach(function(c){
@@ -34854,7 +34891,9 @@ applyLang(idiomaParaMi());
      Y desde el 13-10-2026 cada fila es un botón: pulsarla cambia la caja
      de al lado a los trámites de ese sector (opción 2 de la maqueta). La
      pulsada, en azul claro con su raya, como la entrada elegida de la
-     lista. Se rehace la ficha entera y el foco vuelve a la misma fila. */
+     lista. Se rehace la ficha entera y el foco vuelve a la misma fila.
+     Si no hay sector que elegir -ninguno tiene trámites elegidos, o falta
+     el SQL- las filas vuelven a ser filas y ninguna sale pulsada. */
   function ceCajaSectores(u){
     var s = ceSeccion('ceSectores', u.ce_se_t, u.ce_se_d);
     var n = {};
@@ -34864,25 +34903,26 @@ applyLang(idiomaParaMi());
     var orden = CS_CODIGOS.slice().sort(function(a, b){
       return ((n[b] || 0) - (n[a] || 0)) || (CS_CODIGOS.indexOf(a) - CS_CODIGOS.indexOf(b));
     });
-    var elegido = ceSectorElegido();
+    var elegido = ceSectorElegido(), botones = elegido !== null;
     var lista = el('div', 'ce-lista');
-    lista.setAttribute('role', 'group');
-    lista.setAttribute('aria-label', u.ce_se_t || '');
+    lista.setAttribute('role', botones ? 'group' : 'list');
+    if (botones) lista.setAttribute('aria-label', u.ce_se_t || '');
     var resaltado = false;
     orden.forEach(function(c){
       var k = n[c] || 0;
       var esTope = !resaltado && k > 0 && k === tope;
       if (esTope) resaltado = true;
       var f = ceFila({
-        cls: (k === 0 ? 'cero' : (esTope ? 'tope' : '')) + ' ce-se-elige' + (c === elegido ? ' on' : ''),
+        cls: (k === 0 ? 'cero' : (esTope ? 'tope' : '')) + (botones ? ' ce-se-elige' : '') + (c === elegido ? ' on' : ''),
         nombre: nombreDeSectorCs(c), valor: String(k),
         /* La raya en los que están a cero: así todas las filas miden lo
            mismo y la columna del porcentaje no se queda con huecos. */
         pie: (k && suma) ? Math.round((k / suma) * 100) + ' %' : '—',
         partes: [[tope ? k / tope : 0]]
-      }, 'button');
-      f.type = 'button';
+      }, botones ? 'button' : null);
       f.setAttribute('data-sector', c);
+      if (!botones){ lista.appendChild(f); return; }
+      f.type = 'button';
       f.setAttribute('aria-pressed', c === elegido ? 'true' : 'false');
       f.setAttribute('aria-controls', 'ceTramSector');
       f.addEventListener('click', function(){

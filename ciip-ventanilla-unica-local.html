@@ -1402,6 +1402,11 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
            pulso y pintaEquipo(); las otras las pinta pintaControl() dentro
            de #ceCaja. Todas están siempre en la página y solo se ve la
            elegida: el refresco de cada minuto no tiene que rehacer nada. -->
+      <!-- El marco es el contenedor que mide el ancho de verdad (revisión
+           del 13-10-2026): con la barra lateral y la lista, una ventana de
+           1100 deja a la ficha la mitad. Lista y detalle pasan a una
+           columna por lo que mide aquí, no por la ventana. -->
+      <div class="ce-ld-marco">
       <div class="ce-ld">
         <nav class="ay-ld-nav ce-ld-nav" id="ceNav"></nav>
         <div class="ce-ld-det" id="ceDet">
@@ -1421,6 +1426,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
           </article>
           <div class="ce-vista" id="ceCaja"></div>
         </div>
+      </div>
       </div>
       <div class="eq-velo" id="eqVelo" hidden></div>
       <aside class="eq-cajon" id="eqCajon" role="dialog" aria-modal="true" tabindex="-1" hidden>

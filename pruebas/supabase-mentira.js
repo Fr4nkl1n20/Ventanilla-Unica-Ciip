@@ -2932,6 +2932,11 @@
               rE = {data:null, error:{message:'Solo un administrador ve las estadísticas', code:'42501'}};
             } else {
               var porSec = {hidrocarburos: 4, turismo: 2};
+              /* Minería, la más preguntada y sin ningún trámite elegido
+                 (revisión del 13-10-2026): la pantalla no puede abrir
+                 «Por sector» en un sector vacío escondiendo los que sí
+                 tienen. Solo cuando la prueba lo pide. */
+              if (window.CIIP_MENTIRA_MINERO_PRIMERO) porSec.mineria = 9;
               consultas.forEach(function(c){ if (c.sector) porSec[c.sector] = (porSec[c.sector] || 0) + 1; });
               /* El trámite de cada sector (Franklin Reyes, 9-10-2026,
                  supabase-control-detalle.sql): en hidrocarburos uno pedido

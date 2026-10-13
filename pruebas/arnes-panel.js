@@ -34,6 +34,12 @@
      saldria roja por el nombre del pase, no por lo que mide. */
   var SIN_SQL = (PASE === 'sinsql');
   var ES_ADMIN = (PASE === 'admin');
+  /* Una copia del panel DENTRO de un iframe del pase admin, a otro ancho
+     (revisión del 13-10-2026): Chrome sin ventana no baja de ~500 px y
+     todas las pasadas van a 1400 o a 760, así que Control y Estadísticas a
+     1280, 1100, 950 y 390 no lo medía nadie. Esta copia no corre la tanda:
+     mide la pantalla y le manda lo medido a la de fuera (anchosDentro). */
+  var ANCHOS = /[?&]anchos=1/.test(location.search);
   /* El pase con lector de documentos. Los DATOS son los mismos que 'vacio'
      -el doble lo dice igual-, asi que CASO tiene que valer 'vacio' o las
      pruebas del expediente vacio se saltarian enteras en este pase. Lo
@@ -209,6 +215,7 @@
   })();
 
   cuandoConteste(function(){
+    if (ANCHOS) return anchosDentro();
     if (window.CIIP_VIAJES) VIAJES_ARRANQUE = window.CIIP_VIAJES.getUser;
     /* El pliego PRIMERO, y no es capricho de orden: mientras su puerta
        esta puesta el panel no termina de pintarse -plDejaPasar guarda en
@@ -393,7 +400,7 @@
               nuevaVersionMira, guardaCatalogo,
               rastroAbre, rastroMira, rastroQaMira,
               equipoAbre, equipoMira, equipoFichaMira, equipoCierraMira,
-              controlAbre, controlMira, controlTrasAnadir, controlTrasMover,
+              controlAbre, controlMineroMira, controlMira, controlTrasAnadir, controlTrasMover,
               controlTrasGuardar, controlTrasQuitar, controlOtroSector, controlSqlViejo,
               rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
               rastroDesdeTramiteSalta, rastroDesdeTramiteMira,
@@ -454,7 +461,10 @@
               /* Y detrás de todo: le escribe la junta al borrador t2 y le cambia la fecha. */
               juntaBorradorAbre, juntaBorradorMira,
               /* Y cancela la t3 de 'lleno': detrás de todo lo que cuenta tarjetas. */
-              mtCanceladaAbre, mtCanceladaMira], volcar);
+              mtCanceladaAbre, mtCanceladaMira,
+              /* Control y Estadísticas a otros anchos, en iframes: lo
+                 último, porque cada copia arranca un panel entero. */
+              anchosControl], volcar);
   });
 
   /* ═══════════════ LA PUERTA DEL SECTOR ═══════════════
@@ -18385,6 +18395,9 @@
 
   function controlAbre(sigue){
     if (!ES_ADMIN) return sigue();
+    /* La primera carga, con minería como el sector más preguntado y sin
+       ningún trámite elegido (controlMineroMira). */
+    window.CIIP_MENTIRA_MINERO_PRIMERO = true;
     location.hash = 'equipo';
     setTimeout(sigue, 400);
   }
@@ -18478,6 +18491,32 @@
        document.querySelectorAll('#ceFichaEquipo #eqTarjetas .eq-tj').length >= 2 &&
        document.getElementById('ceTequipo').textContent === U.ce_eq_t,
        document.getElementById('ceTequipo').textContent, U.ce_eq_t);
+
+    /* NADA CORTADO CON «…» (revisión del 13-10-2026; Franklin Reyes ya lo
+       pidió para los motivos el 9-10-2026): ni las filas de barras, ni el
+       nombre del gestor en su tabla o en su tarjeta, ni su último
+       movimiento a dos líneas. Se mira todo lo que hay en la pantalla,
+       también lo que está escondido y el cajón de la ficha. */
+    var cortados = [].filter.call(document.querySelectorAll('.equipo-vista *'), function(n){
+      var cs = getComputedStyle(n);
+      return cs.textOverflow === 'ellipsis' || (!!cs.webkitLineClamp && cs.webkitLineClamp !== 'none');
+    }).map(function(n){ return n.tagName.toLowerCase() + '.' + String(n.className).split(' ').join('.'); });
+    ok('control: nada de la pantalla se corta con «…» ni a un número de líneas',
+       cortados.length === 0, cortados.slice(0, 6).join(' '), 'ninguno');
+
+    /* EL IDIOMA, TAMBIÉN EN LA BANDA (revisión del 13-10-2026): las cifras
+       de arriba son del pulso, y applyLang no lo repintaba. */
+    var enU = (window.CIIP_PASOS && window.CIIP_PASOS.ui && window.CIIP_PASOS.ui.en) || {};
+    var idiomaAntes = curLang;
+    applyLang('en');
+    var bandaEn = (document.getElementById('puTestados') || {}).textContent;
+    var cifraEn = (document.querySelector('#puNums .pu-n .l') || {}).textContent;
+    applyLang(idiomaAntes);
+    ok('control: al cambiar de idioma, la banda de cifras cambia con él, sin esperar al minuto',
+       bandaEn === enU.pu_estados && cifraEn === enU.pu_m_marcha,
+       bandaEn + ' / ' + cifraEn, enU.pu_estados + ' / ' + enU.pu_m_marcha);
+    igual('control: y vuelve con el idioma de antes',
+          (document.getElementById('puTestados') || {}).textContent, U.pu_estados);
 
     /* TRÁMITES Y ORGANISMOS, con su conmutador. */
     if (ents[1]) ents[1].click();
@@ -18587,6 +18626,12 @@
        !!bMin && bMin.getAttribute('data-sector') === 'mineria' && !bMin.querySelector('.ce-fila') &&
        (bMin.querySelector('.ce-ts-nada') || {}).textContent === U.ce_ts_nada,
        bMin ? bMin.textContent : '(nada)', U.ce_ts_nada);
+    /* Y no se repite en el pie de «sin trámites elegidos» (revisión del
+       13-10-2026): ya lo dice su bloque. */
+    var sinMin = document.querySelector('#ceTramSector .ce-ts-sin');
+    ok('control: el sector que se enseña no sale repetido en el pie',
+       !!sinMin && sinMin.textContent.indexOf(U.cs_s2) < 0 && sinMin.textContent.split(' · ').length === 6,
+       sinMin ? sinMin.textContent : '(no está)', U.ce_ts_sin + ' … (seis, sin ' + U.cs_s2 + ')');
 
     /* ¿POR QUÉ PIDEN AYUDA? (6-10-2026): uno por motivo de más a menos,
        traducido, y debajo en qué entes sale. */
@@ -18640,6 +18685,12 @@
        !!panelCasos && ceVe(panelCasos) && mo[0].getAttribute('aria-expanded') === 'true',
        panelCasos ? (panelCasos.hidden ? 'cerrado' : 'abierto') : '(no hay)', 'abierto');
     igual('control: uno por caso de ese motivo', casos.length, 2);
+    /* La cifra dice 5 y la base manda 2 (trae como mucho 500 casos entre
+       todos): se dice cuántos se enseñan y de cuántos (revisión del
+       13-10-2026). */
+    igual('control: si llegan menos casos que su cifra, lo dice',
+          panelCasos ? (panelCasos.querySelector('.ce-casos-parcial') || {}).textContent : '(no hay)',
+          String(U.ce_ca_parcial || '').replace('{n}', 2).replace('{m}', 5));
     ok('control: el más reciente arriba, con quién y su empresa',
        !!casos[0] && (casos[0].querySelector('.ce-caso-q') || {}).textContent === 'María Fernanda Ortega' &&
        (casos[0].querySelector('.ce-caso-e') || {}).textContent === 'Inversiones Ortega C.A.' &&
@@ -18660,6 +18711,14 @@
        (casos[0].querySelector('.ce-caso-ir') || {}).textContent === U.ce_ca_ver,
        casos[0] ? casos[0].getAttribute('data-tramite') + ' ' + (casos[0].querySelector('.ce-caso-ir') || {}).textContent : '(nada)',
        't-pf-caso ' + U.ce_ca_ver);
+    var moFalla = document.querySelector('#ceMotivos .ce-fila[data-motivo="Falla o error en el portal del ente"]');
+    if (moFalla) moFalla.click();
+    var pFalla = moFalla ? document.getElementById(moFalla.getAttribute('aria-controls')) : null;
+    ok('control: y si llegan todos, no dice nada',
+       !!pFalla && pFalla.querySelectorAll('.ce-caso').length === 1 && !pFalla.querySelector('.ce-casos-parcial'),
+       pFalla ? pFalla.querySelectorAll('.ce-caso').length + ' caso(s)' + (pFalla.querySelector('.ce-casos-parcial') ? ' y el aviso' : '') : '(no está)',
+       '1 caso, sin aviso');
+    if (moFalla) moFalla.click();
     if (mo[0]) mo[0].click();
     ok('control: y volver a pulsarlo lo pliega',
        !!panelCasos && panelCasos.hidden && mo[0].getAttribute('aria-expanded') === 'false',
@@ -18763,6 +18822,17 @@
        ceFilas().length === 0 && !!document.querySelector('#cePorSector .ce-ps-vacio'),
        ceFilas().length + ' filas', 'ninguna, con el aviso');
     igual('control: el editor sigue funcionando en su ficha, que no se cierra al guardar', ceVisibles(), 'config');
+    /* LO ELEGIDO SOBREVIVE AL REPINTADO, con los mismos datos: la
+       configuración a la vista, el conmutador en el tiempo y minería
+       pulsada en Por sector (13-10-2026). */
+    if (window.CIIP_REPINTA_CONTROL) window.CIIP_REPINTA_CONTROL();
+    ok('control: tras repintar, la configuración sigue abierta, el conmutador en el tiempo y minería pulsada',
+       ceVisibles() === 'config' &&
+       (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {getAttribute: function(){ return ''; }}).getAttribute('data-org') === 'ti' &&
+       (document.querySelector('#ceSectores .ce-fila[aria-pressed="true"]') || {getAttribute: function(){ return ''; }}).getAttribute('data-sector') === 'mineria' &&
+       (document.querySelector('#ceTramSector .ce-ts-bloque') || {getAttribute: function(){ return ''; }}).getAttribute('data-sector') === 'mineria',
+       ceVisibles() + ' ' + (document.querySelector('#ceSectores .ce-fila[aria-pressed="true"]') || {getAttribute: function(){ return '(ninguno)'; }}).getAttribute('data-sector'),
+       'config · ti · mineria');
     /* Y la base de antes de supabase-control-detalle.sql: la función no
        trae ni los trámites por sector ni los casos. Se repinta todo con
        un motivo abierto, la configuración a la vista, el conmutador en el
@@ -18803,8 +18873,14 @@
           (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {}).getAttribute('data-org') + ' ' +
           (document.getElementById('ceTiempos') && !document.getElementById('ceTiempos').hidden ? 'a la vista' : 'escondido'),
           'ti a la vista');
-    igual('control: y el sector pulsado, también',
-          (document.querySelector('#ceSectores .ce-fila[aria-pressed="true"]') || {}).getAttribute('data-sector'), 'mineria');
+    /* Sin trámites elegidos (aquí, sin el SQL que los cuenta) no hay
+       sector que elegir: ninguno sale pulsado y las filas no son botones
+       (revisión del 13-10-2026). */
+    ok('control: sin trámites elegidos, ningún sector sale pulsado ni es un botón',
+       document.querySelectorAll('#ceSectores .ce-fila').length === 9 &&
+       !document.querySelector('#ceSectores [aria-pressed], #ceSectores .ce-se-elige, #ceSectores button, #ceSectores .ce-fila.on'),
+       document.querySelectorAll('#ceSectores [aria-pressed="true"], #ceSectores button').length + ' pulsados o botones',
+       'ninguno, nueve filas');
     /* Y el refresco de cada minuto, que repinta el pulso y con él la lista. */
     if (window.CIIP_REPINTA_PULSO) window.CIIP_REPINTA_PULSO();
     ok('control: el pulso de cada minuto tampoco lo mueve',
@@ -18822,6 +18898,199 @@
     if (ceEntrada('equipo')) ceEntrada('equipo').click();
     location.hash = '';
     setTimeout(sigue, 300);
+  }
+
+  /* POR SECTOR NO ABRE EN UN SECTOR VACÍO (revisión del 13-10-2026). En
+     esta carga minería es la más preguntada (9) y nadie ha elegido allí
+     ningún trámite: tiene que abrir en hidrocarburos, la más preguntada de
+     las que sí tienen, y minería quedarse en el pie. */
+  function controlMineroMira(sigue){
+    if (!ES_ADMIN) return sigue();
+    var U = ceU();
+    var se = document.querySelectorAll('#ceSectores .ce-fila');
+    var pulsado = document.querySelector('#ceSectores .ce-fila[aria-pressed="true"]');
+    var bloque = document.querySelector('#ceTramSector .ce-ts-bloque');
+    var pie = document.querySelector('#ceTramSector .ce-ts-sin');
+    ok('control: con minería la más preguntada y sin trámites, Por sector abre en hidrocarburos',
+       !!se[0] && se[0].getAttribute('data-sector') === 'mineria' &&
+       !!pulsado && pulsado.getAttribute('data-sector') === 'hidrocarburos' &&
+       !!bloque && bloque.getAttribute('data-sector') === 'hidrocarburos' && !!bloque.querySelector('.ce-fila'),
+       (se[0] ? se[0].getAttribute('data-sector') : '(nada)') + ' arriba, pulsado ' +
+         (pulsado ? pulsado.getAttribute('data-sector') : '(ninguno)') + ', bloque ' + (bloque ? bloque.getAttribute('data-sector') : '(ninguno)'),
+       'mineria arriba, pulsado hidrocarburos, bloque hidrocarburos');
+    ok('control: y minería, en el pie de los que no tienen ninguno',
+       !!pie && pie.textContent.indexOf(U.cs_s2) > 0 && pie.textContent.indexOf(U.cs_s1) < 0,
+       pie ? pie.textContent : '(no está)', U.ce_ts_sin + ' … ' + U.cs_s2);
+    /* Y se vuelve a los datos de siempre para lo que sigue. */
+    window.CIIP_MENTIRA_MINERO_PRIMERO = false;
+    if (window.CIIP_PINTA_CONTROL) window.CIIP_PINTA_CONTROL();
+    setTimeout(sigue, 400);
+  }
+
+  /* ── CONTROL Y ESTADÍSTICAS A OTROS ANCHOS (revisión del 13-10-2026) ──
+     Entre 841 y 1350 px la pantalla se rompía -cifras cortadas en Por
+     sector, el conmutador encima del título, la página desplazándose de
+     lado- y ninguna pasada lo veía: todas van a 1400 o a 760. Aquí se abre
+     el panel en un iframe a 1280, 1100, 950 y 390 px, la copia de dentro
+     lo mide (anchosDentro) y manda lo medido. Una comprobación por cosa y
+     ancho, sumando los tres idiomas más largos y todas las fichas. */
+  var CE_ANCHOS = [1280, 1100, 950, 390];
+
+  function anchosControl(sigue){
+    if (!ES_ADMIN) return sigue();
+    var i = 0, base = location.href.split('#')[0].split('?')[0];
+    (function otro(){
+      if (i >= CE_ANCHOS.length) return sigue();
+      var W = CE_ANCHOS[i++], listo = false, vueltas = 0;
+      var fr = document.createElement('iframe');
+      fr.style.cssText = 'position:fixed; left:0; top:0; width:' + W + 'px; height:800px; border:0; z-index:99999; background:#fff;';
+      function fin(){ window.removeEventListener('message', oye); if (fr.parentNode) fr.parentNode.removeChild(fr); setTimeout(otro, 50); }
+      function oye(ev){
+        var d = ev.data;
+        if (!d || !d.ciipAnchos || d.ancho !== W) return;
+        listo = true;
+        d.ciipAnchos.forEach(function(x){ ok('anchos ' + W + ' px: ' + x.n, x.ok, x.got, x.exp); });
+        fin();
+      }
+      window.addEventListener('message', oye);
+      fr.src = base + '?caso=admin&anchos=1&w=' + W;
+      document.body.appendChild(fr);
+      (function espera(){
+        if (listo) return;
+        if (++vueltas > 900){ ok('anchos ' + W + ' px: la copia contesta', false, 'no contestó', 'lo medido'); return fin(); }
+        setTimeout(espera, 100);
+      })();
+    })();
+  }
+
+  /* Lo que corre DENTRO del iframe, en vez de la tanda. */
+  function anchosDentro(){
+    var W = Number((location.search.match(/[?&]w=(\d+)/) || [])[1]) || window.innerWidth;
+    var res = [];
+    function apunta(n, bien, got, exp){ res.push({n: n, ok: !!bien, got: String(got), exp: String(exp)}); }
+    function manda(){ try { parent.postMessage({ciipAnchos: res, ancho: W}, '*'); } catch(e){} }
+    location.hash = 'equipo';
+    var vueltas = 0;
+    (function listo(){
+      if (document.getElementById('ceTramites') && document.querySelector('#ceNav .ay-ld-it .ce-ld-n') &&
+          document.querySelector('#eqTarjetas .eq-tj')) return setTimeout(mide, 100);
+      if (++vueltas > 200){ apunta('la pantalla se carga', false, 'sin datos', 'cifras y fichas'); return manda(); }
+      setTimeout(listo, 50);
+    })();
+
+    function nombre(n){
+      return n.tagName.toLowerCase() + (n.id ? '#' + n.id : '') +
+             (n.className && typeof n.className === 'string' ? '.' + n.className.trim().split(/\s+/).join('.') : '');
+    }
+    function visible(n){ var r = n.getBoundingClientRect(); return r.width > 0 && r.height > 0; }
+
+    function mide(){
+      var fuera = [], cortado = [], cabeza = [], elipsis = [], pagina = [];
+      var vista = document.querySelector('.equipo-vista');
+      var secciones = [['equipo'], ['org', 'sol'], ['org', 'ti'], ['sector'], ['motivos'], ['config']];
+      ['es', 'ru', 'fr'].forEach(function(lang){
+        applyLang(lang);
+        secciones.forEach(function(s){
+          var k = s[0], donde = lang + ' ' + k + (s[1] ? '/' + s[1] : '');
+          if (k === 'config') document.getElementById('ceBtnConfig').click();
+          else { var b = document.querySelector('#ceNav .ay-ld-it[data-sec="' + k + '"]'); if (b) b.click(); }
+          if (s[1]){ var m = document.querySelector('#ceFichaOrg .ce-org-modo[data-org="' + s[1] + '"]'); if (m) m.click(); }
+          if (k === 'motivos'){ var mo = document.querySelector('#ceMotivos .ce-fila[data-motivo]'); if (mo && mo.getAttribute('aria-expanded') !== 'true') mo.click(); }
+          var ficha = [].filter.call(document.querySelectorAll('#ceDet .ce-ficha'), function(f){ return !f.hidden; })[0];
+          if (!ficha){ fuera.push(donde + ': sin ficha'); return; }
+          var fr = ficha.getBoundingClientRect();
+          /* 1 · Nada se sale de su ficha, ni de la pantalla. */
+          [].forEach.call(ficha.querySelectorAll('*'), function(n){
+            if (!visible(n) || n.classList.contains('visualmente-oculto')) return;
+            var r = n.getBoundingClientRect();
+            if (r.left < fr.left - 0.5 || r.right > fr.right + 0.5) fuera.push(donde + ': ' + nombre(n) + ' ' + Math.round(r.left) + '–' + Math.round(r.right) + ' de ' + Math.round(fr.left) + '–' + Math.round(fr.right));
+          });
+          var vr = vista.getBoundingClientRect();
+          [].forEach.call(document.querySelectorAll('#ceNav *, .ce-arriba *, .equipo-vista .mt-cab *'), function(n){
+            if (!visible(n) || n.classList.contains('visualmente-oculto')) return;
+            var r = n.getBoundingClientRect();
+            if (r.left < vr.left - 0.5 || r.right > vr.right + 0.5) fuera.push(donde + ': ' + nombre(n) + ' fuera de la pantalla');
+          });
+          /* 2 · Nada se corta ni rueda de lado dentro de su caja. */
+          [].forEach.call(vista.querySelectorAll('*'), function(n){
+            if (!visible(n) || n.classList.contains('visualmente-oculto') || /^(INPUT|TEXTAREA|SELECT)$/.test(n.tagName)) return;
+            var cs = getComputedStyle(n);
+            if (cs.overflowX === 'visible') return;
+            if (n.scrollWidth > n.clientWidth + 1) cortado.push(donde + ': ' + nombre(n) + ' ' + n.scrollWidth + '>' + n.clientWidth);
+          });
+          /* 3 · La cabecera: el título y su frase no se aplastan ni se
+             montan con el conmutador. */
+          var tx = ficha.querySelector('.ce-fi-tx'), der = ficha.querySelector('.ce-fi-der'), cab = ficha.querySelector('.ce-fi-cab');
+          if (tx && cab){
+            var tr = tx.getBoundingClientRect(), cr = cab.getBoundingClientRect();
+            var hueco = cr.width - 44;
+            if (tr.width < Math.min(220, hueco - 80)) cabeza.push(donde + ': la frase en ' + Math.round(tr.width) + ' px');
+            if (der){
+              var dr = der.getBoundingClientRect();
+              var montan = !(dr.left >= tr.right - 0.5 || dr.right <= tr.left + 0.5 || dr.top >= tr.bottom - 0.5 || dr.bottom <= tr.top + 0.5);
+              if (montan) cabeza.push(donde + ': el conmutador encima del título');
+              if (dr.right > cr.right + 0.5) cabeza.push(donde + ': el conmutador se sale');
+            }
+          }
+          /* 4 · Ningún «…». */
+          [].forEach.call(vista.querySelectorAll('*'), function(n){
+            var cs = getComputedStyle(n);
+            if (cs.textOverflow === 'ellipsis' || (!!cs.webkitLineClamp && cs.webkitLineClamp !== 'none')) elipsis.push(donde + ': ' + nombre(n));
+          });
+          if (vr.right > document.documentElement.clientWidth + 0.5 || vr.left < -0.5)
+            pagina.push(donde + ': la pantalla mide ' + Math.round(vr.left) + '–' + Math.round(vr.right) + ' de ' + document.documentElement.clientWidth);
+          if (k === 'motivos'){ var mo2 = document.querySelector('#ceMotivos .ce-fila[data-motivo]'); if (mo2 && mo2.getAttribute('aria-expanded') === 'true') mo2.click(); }
+          if (s[1] === 'ti'){ var sol = document.querySelector('#ceFichaOrg .ce-org-modo[data-org="sol"]'); if (sol) sol.click(); }
+        });
+      });
+      applyLang('es');
+      function unicos(l){ return l.filter(function(x, i){ return l.indexOf(x) === i; }); }
+      apunta('nada de Control y Estadísticas se sale de su ficha ni de la pantalla', !fuera.length, unicos(fuera).slice(0, 5).join(' | '), 'nada');
+      apunta('nada se corta ni rueda de lado dentro de su caja', !cortado.length, unicos(cortado).slice(0, 5).join(' | '), 'nada');
+      apunta('la cabecera de la ficha: el título y su frase enteros, y el conmutador sin taparlos', !cabeza.length, unicos(cabeza).slice(0, 5).join(' | '), 'bien');
+      apunta('ningún texto cortado con «…»', !elipsis.length, unicos(elipsis).slice(0, 5).join(' | '), 'ninguno');
+      apunta('la pantalla cabe en el ancho', !pagina.length, unicos(pagina).slice(0, 3).join(' | '), 'cabe');
+
+      /* Lista y detalle en una columna, o lado a lado, según quepa. */
+      var nav = document.getElementById('ceNav'), det = document.getElementById('ceDet');
+      var enColumna = det.getBoundingClientRect().top >= nav.getBoundingClientRect().bottom - 1;
+      apunta('lista y detalle ' + (W >= 1200 ? 'lado a lado' : 'en una columna'), enColumna === (W < 1200),
+             enColumna ? 'en una columna' : 'lado a lado', W >= 1200 ? 'lado a lado' : 'en una columna');
+
+      /* 4 · Elegir a mano baja hasta la ficha cuando va debajo de la
+         lista; el repintado no mueve la página. El panel desplaza suave
+         (html{scroll-behavior:smooth}), así que se mide un momento después. */
+      var alto = window.innerHeight, techo = document.querySelector('.topbar').getBoundingClientRect().bottom;
+      /* Desde una entrada de la lista: la última medida fue la
+         configuración, y pulsar su botón otra vez la cerraría. */
+      var bEq = document.querySelector('#ceNav .ay-ld-it[data-sec="equipo"]');
+      if (bEq) bEq.click();
+      window.scrollTo({top: 0, behavior: 'instant'});
+      document.getElementById('ceBtnConfig').click();
+      setTimeout(function(){
+        var rc = document.getElementById('ceFichaConfig').getBoundingClientRect();
+        apunta('«Configuración del chat» deja su ficha a la vista, bajo la barra de arriba',
+               rc.top >= techo - 1 && rc.top < alto * 0.6,
+               'arriba en ' + Math.round(rc.top) + ' de ' + alto, 'entre ' + Math.round(techo) + ' y ' + Math.round(alto * 0.6));
+        document.getElementById('ceBtnConfig').click();
+        window.scrollTo({top: 0, behavior: 'instant'});
+        var bMo = document.querySelector('#ceNav .ay-ld-it[data-sec="motivos"]');
+        if (bMo) bMo.click();
+        setTimeout(function(){
+          var rm = document.getElementById('ceFichaMotivos').getBoundingClientRect();
+          apunta('elegir una entrada deja su ficha a la vista' + (enColumna ? ', bajando hasta ella' : ', sin mover la página'),
+                 rm.top >= techo - 1 && rm.top < alto * 0.6 && (enColumna || window.scrollY === 0),
+                 'arriba en ' + Math.round(rm.top) + ', desplazado ' + Math.round(window.scrollY), 'a la vista');
+          var y = window.scrollY;
+          if (window.CIIP_REPINTA_PULSO) window.CIIP_REPINTA_PULSO();
+          if (window.CIIP_REPINTA_CONTROL) window.CIIP_REPINTA_CONTROL();
+          setTimeout(function(){
+            apunta('el repintado no mueve la página', window.scrollY === y, 'de ' + y + ' a ' + window.scrollY, y);
+            manda();
+          }, 900);
+        }, 900);
+      }, 900);
+    }
   }
 
   function rastroAbre(){
