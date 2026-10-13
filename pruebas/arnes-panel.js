@@ -18451,9 +18451,9 @@
     if (!ES_ADMIN) return sigue();
     var U = ceU();
     var rot = document.querySelector('#navEquipo [data-i18n]');
-    igual('control: el renglón se llama «Control y Estadísticas»',
+    igual('control: el renglón se llama «Control y estadísticas»',
           rot ? rot.textContent : '(no hay)', (I18N[curLang] || {})['nav.equipo']);
-    igual('control: en español, con ese nombre', I18N.es['nav.equipo'], 'Control y Estadísticas');
+    igual('control: en español, con ese nombre', I18N.es['nav.equipo'], 'Control y estadísticas');
     igual('control: y «Usuarios y equipo» no cambia', I18N.es['nav.users'], 'Usuarios y equipo');
     igual('control: la pantalla se titula igual', document.getElementById('eqCabT').textContent, U.eq_titulo);
 

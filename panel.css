@@ -794,7 +794,10 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 }
 .ce-ld-nav .ce-ld-sep{grid-column:1 / -1;}
 .ce-ld-nav .ay-ld-it{padding:9px 10px; width:100%; align-items:flex-start;}
-.ce-ld-nav .ay-ld-it .ay-ic{width:30px; height:30px; border-radius:9px;}
+/* Los iconos de la lista, en azul oscuro con el dibujo en blanco (Franklin
+   Reyes, 13-10-2026): sólo el icono; el renglón sigue como en Ayuda. Gana
+   también a .ce-ic-aj, así que «Ajustes» va igual que los demás. */
+.ce-ld-nav .ay-ld-it .ay-ic{width:30px; height:30px; border-radius:9px; background:var(--navy); color:#fff;}
 .ce-ld-nav .ay-ld-it .ay-ic svg{width:16px; height:16px;}
 .ce-ld-nav .ay-ld-tx{flex:1 1 auto;}
 /* La elegida, en el azul que se aclara en oscuro: el --navy de Ayuda casi
