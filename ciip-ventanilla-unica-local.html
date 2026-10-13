@@ -1362,65 +1362,52 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
           <div class="t" id="eqCabT"></div>
           <div class="sub" id="eqCabS"></div>
         </div>
-        <div class="ce-cab-der">
-          <div class="mt-aldia" id="eqAlDia" hidden><span class="pt" aria-hidden="true"></span><span id="eqAlDiaT"></span></div>
-          <!-- La configuración del chat, fuera de la lista: no es una cifra
-               (opción 2 de maquetas/control-estadisticas-tres.html, Franklin
-               Reyes, 13-10-2026). Abre su ficha en el sitio del detalle. -->
-          <button class="ce-btn-config" id="ceBtnConfig" type="button" aria-pressed="false" aria-controls="ceFichaConfig"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span id="ceBtnConfigT"></span></button>
-        </div>
-      </div>
-      <!-- El pulso de la oficina, arriba de las tarjetas. Fue una vista
-           aparte hasta el 28-9-2026 (Franklin Reyes: «que pulso pase a ser
-           parte de equipo, que sea una sola»): las cifras de la oficina y
-           las de cada persona se miran juntas. Lo pinta pintaPulso().
-           Desde el mismo día, con la forma de la idea C de las maquetas
-           (Franklin Reyes: «aplica la opción C a la ventanilla»): las cifras
-           en una sola tira y, debajo, las dos tablas lado a lado.
-           Desde el 2-10-2026, con la idea 1 de maquetas/control-estadisticas-atlas.html
-           (Franklin Reyes: «aplica esta»): las cifras son tarjetas de Atlas con
-           su medidor y los estados, una barra apilada con su leyenda.
-           Desde el 13-10-2026, con la opción 2 de maquetas/control-estadisticas-tres.html
-           (Franklin Reyes: «aplica la maqueta 2 a la ventanilla»): las cinco
-           cifras y la barra de estados se quedan SIEMPRE a la vista, en una
-           banda encima; lo demás pasa a la lista y detalle de debajo. -->
-      <div class="pulso-vista ce-arriba">
-        <div class="pu-nums" id="puNums"></div>
-        <div class="ce-est">
-          <div class="pu-t"><span id="puTestados"></span><span class="pu-sub" id="puTotal"></span></div>
-          <div id="puEstados"></div>
-        </div>
+        <div class="mt-aldia" id="eqAlDia" hidden><span class="pt" aria-hidden="true"></span><span id="eqAlDiaT"></span></div>
       </div>
       <!-- Desde el 1-10-2026 la vista se llama «Control y Estadísticas»
-           (Franklin Reyes): lo de arriba se queda, las tarjetas llevan su
-           rótulo y debajo van las cifras de lo que piden los inversionistas
-           y la lista de trámites de cada sector. Lo pinta pintaControl().
-           Desde el 2-10-2026 esas cifras van en barras, de dos en dos.
-           Desde el 13-10-2026, LISTA Y DETALLE como Ayuda y guía: a la
-           izquierda cuatro entradas con su número (#ceNav) y a la derecha
-           una sola ficha. La del equipo es fija aquí porque la pintan el
-           pulso y pintaEquipo(); las otras las pinta pintaControl() dentro
-           de #ceCaja. Todas están siempre en la página y solo se ve la
-           elegida: el refresco de cada minuto no tiene que rehacer nada. -->
-      <!-- El marco es el contenedor que mide el ancho de verdad (revisión
-           del 13-10-2026): con la barra lateral y la lista, una ventana de
-           1100 deja a la ficha la mitad. Lista y detalle pasan a una
-           columna por lo que mide aquí, no por la ventana. -->
+           (Franklin Reyes). El pulso de la oficina vive aquí desde el
+           28-9-2026 («que pulso pase a ser parte de equipo, que sea una
+           sola»); sus cifras son tarjetas de Atlas desde el 2-10-2026.
+
+           TODO EN LISTA Y DETALLE desde el 13-10-2026, con la opción 1 de
+           maquetas/control-estadisticas-tres.html (Franklin Reyes: «aplica
+           la opción 1 de la maqueta»), tal cual Ayuda y guía: a la izquierda
+           las secciones con su icono, su título y la cifra que las resume
+           (#ceNav), y bajo «Ajustes» la configuración del chat; a la
+           derecha una sola ficha. La del resumen y la del equipo son fijas
+           aquí porque las pintan pintaPulso() y pintaEquipo(); las demás las
+           pinta pintaControl() dentro de #ceCaja. Todas están siempre en la
+           página y solo se ve la elegida: el refresco de cada minuto no
+           tiene que rehacer nada.
+
+           El marco es el contenedor que mide el ancho de verdad: con la
+           barra lateral y la lista, una ventana de 1100 deja a la ficha la
+           mitad, así que lista y detalle pasan a una columna por lo que mide
+           aquí y no por la ventana. -->
       <div class="ce-ld-marco">
       <div class="ce-ld">
         <nav class="ay-ld-nav ce-ld-nav" id="ceNav"></nav>
         <div class="ce-ld-det" id="ceDet">
-          <article class="ce-ficha" id="ceFichaEquipo" data-sec="equipo">
-            <div class="ce-fi-cab" id="ceCabEquipo"></div>
+          <article class="ce-ficha" id="ceFichaResumen" data-sec="resumen">
+            <div class="ce-fi-cab" id="ceCabResumen"></div>
             <div class="ce-fi-cu">
-              <section class="pu-caja">
-                <div class="pu-t">
+              <div class="pu-nums" id="puNums"></div>
+              <section class="ce-bloque">
+                <div class="pu-t ce-rot"><span id="puTestados"></span><span class="pu-sub" id="puTotal"></span></div>
+                <div id="puEstados"></div>
+              </section>
+              <section class="ce-bloque">
+                <div class="pu-t ce-rot">
                   <span id="puTcola"></span>
                   <a class="pu-asignar" id="puAsignar" href="#tramites" hidden></a>
                 </div>
                 <div id="puCola"></div>
               </section>
-              <div class="ce-h"><span id="ceTequipo"></span></div>
+            </div>
+          </article>
+          <article class="ce-ficha" id="ceFichaEquipo" data-sec="equipo">
+            <div class="ce-fi-cab" id="ceCabEquipo"></div>
+            <div class="ce-fi-cu">
               <div class="eq-tarjetas" id="eqTarjetas"></div>
             </div>
           </article>

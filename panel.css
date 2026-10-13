@@ -589,9 +589,9 @@ body[data-vista="rastro"] .fase-bar{display:none;}
 .ra-punto.aju{background:var(--cyan);}
 .ra-vacio{font-size:var(--fs-parrafo); color:var(--gray-soft); padding:18px 12px;}
 
-/* El pulso ya no es una vista: vive dentro de la del equipo, encima de las
-   tarjetas, y se ve y se esconde con ella. */
-.equipo-vista .pulso-vista{margin-bottom:18px;}
+/* El pulso ya no es una vista: vive dentro de la del equipo -desde el
+   13-10-2026, en la ficha «Resumen de la oficina»- y se ve y se esconde
+   con ella. */
 #puVolver{display:none;}
 
 /* ══ EL EQUIPO, UNO POR UNO ══
@@ -708,30 +708,6 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .pu-n.mal .v{color:var(--rust);}
 .pu-n.mal .pu-medidor span{background:var(--rust);}
 
-/* LA BANDA DE ARRIBA (Franklin Reyes, 13-10-2026, opción 2 de
-   maquetas/control-estadisticas-tres.html). Las cinco cifras y la barra de
-   estados, juntas en una caja blanca que se queda siempre a la vista encima
-   de la lista y detalle: son lo que se mira cada mañana. Las cifras van en
-   el gris de tarjeta, piezas dentro de la banda; los estados, en una fila
-   con su rótulo a la izquierda. La tabla de gestores, que antes iba al lado
-   de los estados, baja a la ficha «Equipo y gestores». */
-.equipo-vista .pulso-vista.ce-arriba{background:var(--bg); border:1px solid var(--line); border-radius:14px;
-  padding:14px; margin-bottom:16px; display:grid; gap:12px; box-shadow:var(--shadow); min-width:0;}
-.ce-arriba .pu-nums{margin-bottom:0;}
-.ce-arriba .pu-n{background:var(--card-2);}
-.ce-est{display:grid; grid-template-columns:auto minmax(0, 1fr); gap:6px 16px; align-items:center; min-width:0;}
-.ce-est .pu-t{display:block; padding:0;}
-.ce-est .pu-t::before{display:none;}
-.ce-est #puTestados{display:block; font-size:var(--fs-chip); font-weight:800; letter-spacing:.06em;
-  text-transform:uppercase; color:var(--gray-soft);}
-.ce-est .pu-sub{display:block; margin-top:2px;}
-.ce-est .pu-apilada{height:14px; margin:0 0 9px;}
-.ce-est .pu-leyenda{padding:0;}
-.ce-est .pu-vacio{padding:0;}
-@media(max-width:600px){
-  .equipo-vista .pulso-vista.ce-arriba{padding:12px;}
-  .ce-est{grid-template-columns:minmax(0, 1fr);}
-}
 .pu-caja{background:var(--bg); border:1px solid var(--line);
   border-radius:var(--r); overflow:hidden; min-width:0;}
 /* La cabecera de cada caja, como .sec-h de Atlas: el cuadradito cyan, el
@@ -739,7 +715,7 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .pu-t{display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px;
   font-size:var(--fs-tarjeta); font-weight:700; letter-spacing:-.01em; color:var(--ink);
   padding:14px 18px 10px;}
-.pu-t::before, .ce-h::before{content:""; width:7px; height:7px; border-radius:2px;
+.pu-t::before{content:""; width:7px; height:7px; border-radius:2px;
   background:var(--cyan); flex:0 0 auto;}
 .pu-sub{font-size:var(--fs-nota); font-weight:500; color:var(--gray); letter-spacing:0;}
 .pu-asignar{margin-left:auto; font-size:var(--fs-boton); font-weight:600; color:var(--navy2); text-decoration:none;}
@@ -778,8 +754,10 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .pu-tabla td.nombre{white-space:normal; overflow-wrap:anywhere; min-width:7em; font-weight:700;}
 .pu-tabla .pct{color:var(--gray); font-weight:500;}
 .pu-tabla .mal{color:var(--rust); font-weight:700;}
-.pu-sinasig{display:inline-flex; font-size:var(--fs-chip); font-weight:700; letter-spacing:.01em;
-  border-radius:20px; padding:2px 8px; background:var(--amber-bg); color:var(--amber);}
+/* «Sin asignar», en ámbar y en negrita, como en la maqueta de la opción 1.
+   Era una pastilla de Atlas; en el panel no van insignias (la capa SIN
+   INSIGNIAS, Franklin Reyes, 29-9-2026), así que queda en texto. */
+.pu-sinasig{font-weight:700; color:var(--amber);}
 .pu-vacio{font-size:var(--fs-parrafo); color:var(--gray); padding:16px 18px;}
 .pu-caja .pu-vacio.pie{text-align:center; border-top:1px solid var(--line-soft); padding:22px 18px;}
 
@@ -788,46 +766,46 @@ body[data-vista="equipo"] .fase-bar{display:none;}
    pantalla se lea como una sola. Desde el 2-10-2026, con la idea 1 de
    maquetas/control-estadisticas-atlas.html: las cifras en barras (.in-rrow
    del Panel de inteligencia de Atlas) y las cajas de dos en dos. */
-.ce-h{display:flex; align-items:center; gap:10px; font-size:var(--fs-tarjeta); font-weight:700;
-  letter-spacing:-.01em; color:var(--ink); margin:22px 0 12px;}
-.ce-h:has(#ceTequipo:empty){display:none;}
 .ce-caja .ce-d{margin:-4px 0 0; padding:0 18px 6px; font-size:var(--fs-nota); line-height:1.55; color:var(--gray);}
 
-/* LISTA Y DETALLE, como Ayuda y guía (13-10-2026, opción 2 de la
-   maqueta). La lista es la de Ayuda (.ay-ld-nav, .ay-ld-it) en pequeño:
-   cuatro entradas con un icono menor y su número en una pastilla, en ámbar
-   si avisa. A la derecha, una sola ficha con la cabecera grande de Ayuda.
+/* LISTA Y DETALLE, TAL CUAL AYUDA (Franklin Reyes, 13-10-2026, opción 1
+   de maquetas/control-estadisticas-tres.html). La lista es la de Ayuda
+   (.ay-ld-nav, .ay-ld-it): siete secciones con su icono, su título y,
+   debajo, la cifra que las resume, en texto -nada de pastillas: la capa
+   SIN INSIGNIAS de abajo-, y bajo el rótulo «Ajustes» la configuración
+   del chat. A la derecha, una sola ficha con la cabecera grande de Ayuda.
    En el teléfono, la lista arriba y la ficha debajo. */
 /* POR EL ANCHO DE VERDAD (revisión del 13-10-2026). Con la barra lateral
    de 256 px y la lista de 240, una ventana de 950 dejaba a la ficha menos
    de 400 px: el conmutador tapaba el título y las filas se salían. Ahora
    mide el marco (.ce-ld-marco, un contenedor): si a la ficha no le quedan
-   unos 600 px, lista y ficha van en una columna, con la lista en dos o en
-   cuatro columnas según quepa. */
+   unos 600 px, lista y ficha van en una columna, con la lista en dos
+   columnas si caben -en cuatro, los títulos y sus cifras quedaban en tiras
+   de tres palabras- y «Ajustes» siempre en su renglón. */
 .ce-ld-marco{container-type:inline-size; container-name:ce-ld;}
-.ce-ld{display:grid; grid-template-columns:minmax(200px, 240px) minmax(0, 1fr); gap:16px; align-items:start;}
+.ce-ld{display:grid; grid-template-columns:minmax(220px, 280px) minmax(0, 1fr); gap:16px; align-items:start;}
 .ce-ld > *{min-width:0;}
-@container ce-ld (max-width:879px){
+@container ce-ld (max-width:899px){
   .ce-ld{grid-template-columns:minmax(0, 1fr);}
   .ce-ld-nav{grid-template-columns:repeat(2, minmax(0, 1fr));}
-}
-@container ce-ld (min-width:760px) and (max-width:879px){
-  .ce-ld-nav{grid-template-columns:repeat(4, minmax(0, 1fr));}
 }
 @container ce-ld (max-width:479px){
   .ce-ld-nav{grid-template-columns:minmax(0, 1fr);}
 }
-.ce-ld-nav .ay-ld-it{padding:9px 10px; width:100%;}
+.ce-ld-nav .ce-ld-sep{grid-column:1 / -1;}
+.ce-ld-nav .ay-ld-it{padding:9px 10px; width:100%; align-items:flex-start;}
 .ce-ld-nav .ay-ld-it .ay-ic{width:30px; height:30px; border-radius:9px;}
 .ce-ld-nav .ay-ld-it .ay-ic svg{width:16px; height:16px;}
 .ce-ld-nav .ay-ld-tx{flex:1 1 auto;}
 /* La elegida, en el azul que se aclara en oscuro: el --navy de Ayuda casi
    no se lee sobre el fondo oscuro. */
 .ce-ld-nav .ay-ld-it.on b{color:var(--navy2);}
-.ce-ld-n{flex:none; font-size:var(--fs-chip); font-weight:800; font-variant-numeric:tabular-nums;
-  color:var(--navy2); background:var(--activa-bg); border-radius:20px; padding:2px 8px;}
-.ay-ld-it.on .ce-ld-n{background:var(--bg);}
-.ce-ld-n.ojo{color:var(--amber); background:var(--amber-bg);}
+/* La cifra de cada entrada, entera: parte de línea antes que cortarse. */
+.ce-ld-nav .ce-ld-sub{line-height:1.4; overflow-wrap:anywhere;}
+/* «Ajustes», el rótulo que separa la configuración de las cifras, como
+   el de la maqueta: en mayúsculas espaciadas, gris claro y con su raya. */
+.ce-ld-sep{font-size:var(--fs-chip); font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--gray-soft); padding:12px 10px 4px; border-top:1px solid var(--line-soft); margin-top:6px;}
 .ay-ic.ce-ic-aj{background:var(--line-soft); color:var(--gray);}
 
 /* La ficha: la cabecera de Ayuda (.ay-ld .ay-card summary) con el icono
@@ -851,7 +829,6 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .ce-fi-der .pu-seg{margin-left:0; max-width:100%;}
 .ce-fi-cu{padding:18px 22px 22px; display:grid; grid-template-columns:minmax(0, 1fr); gap:16px; min-width:0;}
 .ce-fi-cu > *{min-width:0;}
-.ce-fi-cu > .ce-h{margin:4px 0 -4px;}
 .ce-fi-cu > .ce-aviso{padding:0;}
 /* Una caja llana dentro de su ficha: sin borde ni fondo, y con los 18 px
    de dentro de sus filas cayendo justo en el margen de la cabecera. */
@@ -875,37 +852,33 @@ body[data-vista="equipo"] .fase-bar{display:none;}
   /* La tabla de gestores, más apretada: en ruso o en francés sus cuatro
      cabeceras no cabían en un teléfono y la tabla rodaba de lado. */
   .ce-fi-cu .pu-tabla th, .ce-fi-cu .pu-tabla td{padding-left:6px; padding-right:6px;}
-  .ce-fi-cu .pu-tabla th:first-child, .ce-fi-cu .pu-tabla td:first-child{padding-left:12px;}
-  .ce-fi-cu .pu-tabla th:last-child, .ce-fi-cu .pu-tabla td:last-child{padding-right:12px;}
   .ce-fi-cu .pu-tabla th{letter-spacing:.02em;}
 }
 
-/* «Configuración del chat», arriba a la derecha junto a «Al día»: un
-   botón que se queda pulsado mientras su ficha está abierta. */
-.ce-cab-der{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
-.ce-btn-config{display:inline-flex; align-items:center; gap:7px; font:inherit; font-size:var(--fs-boton); font-weight:700;
-  color:var(--gray); background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:7px 12px; cursor:pointer;}
-.ce-btn-config svg{width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
-.ce-btn-config:hover, .ce-btn-config.on{border-color:var(--navy2); color:var(--navy2);}
-.ce-btn-config.on{background:var(--activa-bg);}
-.ce-btn-config:focus-visible{outline:2px solid var(--navy2); outline-offset:2px;}
+/* EL RESUMEN DE LA OFICINA (opción 1, 13-10-2026): las cinco cifras, los
+   trámites por estado y lo que lleva cada gestor, dentro de la ficha y sin
+   cajas propias, con un rótulo pequeño encima de cada bloque como en la
+   maqueta. Las cifras van en el gris de tarjeta, y cuántas por fila lo
+   decide el ancho de la ficha y no el de la ventana. */
+.ce-fi-cu .pu-nums{margin-bottom:0; grid-template-columns:repeat(5, minmax(0, 1fr));}
+.ce-fi-cu .pu-n{background:var(--card-2);}
+@container ce-ficha (max-width:719px){ .ce-fi-cu .pu-nums{grid-template-columns:repeat(3, minmax(0, 1fr));} }
+@container ce-ficha (max-width:459px){ .ce-fi-cu .pu-nums{grid-template-columns:repeat(2, minmax(0, 1fr));} }
+.ce-bloque{min-width:0;}
+.pu-t.ce-rot{padding:0 0 8px; font-size:var(--fs-chip); font-weight:800; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--gray-soft);}
+.pu-t.ce-rot::before{display:none;}
+.pu-t.ce-rot .pu-sub, .pu-t.ce-rot .pu-asignar{text-transform:none; letter-spacing:0;}
+.ce-bloque .pu-apilada{height:14px; margin:0 0 9px;}
+.ce-bloque .pu-leyenda{padding:0;}
+.ce-bloque .pu-vacio{padding:0;}
+.ce-bloque .pu-tabla th:first-child, .ce-bloque .pu-tabla td:first-child{padding-left:0;}
+.ce-bloque .pu-tabla th:last-child, .ce-bloque .pu-tabla td:last-child{padding-right:0;}
 
-/* Por sector: las consultas y los trámites más pedidos lado a lado, en
-   sus cajas; con poco ancho, una debajo de otra. */
-/* Cada caja pide sus 380 px; si no caben dos, una debajo de otra. Antes
-   se decidía por la ventana, y entre 1181 y 1350 px cada columna se
-   quedaba en 290 y cortaba cifras (revisión del 13-10-2026). */
-.ce-dos{display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap:14px; align-items:start;}
-.ce-dos > *{min-width:0;}
-/* Cada sector es un botón; el pulsado, en azul claro con su raya, como la
-   entrada elegida de la lista. El margen negativo deja la fila alineada
-   con las de la otra caja aunque lleve su relleno. */
-.ce-fila.ce-se-elige{font:inherit; text-align:left; background:none; border:0; cursor:pointer; color:inherit;
-  border-radius:8px; padding:7px 6px; margin:0 -6px; width:calc(100% + 12px);}
-.ce-fila.ce-se-elige:hover{background:var(--block);}
-.ce-fila.ce-se-elige.on{background:var(--activa-bg); box-shadow:inset 3px 0 0 var(--navy2);}
-.ce-fila.ce-se-elige.on .ce-rl .nm{color:var(--navy2);}
-.ce-fila.ce-se-elige:focus-visible{outline:2px solid var(--navy2); outline-offset:1px;}
+/* Trámites más pedidos: los nueve sectores para elegir, encima de la
+   lista (los botones de sector del chat, .cs-sector). */
+.ce-ped-sectores{margin:0;}
+
 .ce-sub{display:block; font-size:var(--fs-nota); font-weight:500; color:var(--gray); margin-top:1px;
   white-space:normal;}
 

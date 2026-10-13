@@ -18345,6 +18345,13 @@
     ok('equipo: la pantalla dice cómo se llama',
        !!(document.getElementById('eqCabT').textContent || '').trim(),
        document.getElementById('eqCabT').textContent, 'un título');
+    /* Desde la opción 1 (13-10-2026) todo va en lista y detalle: se llega
+       al «Resumen de la oficina», y las tarjetas están en «El equipo». */
+    var fichas = [].filter.call(document.querySelectorAll('#ceDet .ce-ficha[data-sec]'), function(f){ return !f.hidden && !!f.offsetParent; });
+    igual('equipo: se llega al resumen de la oficina, la primera entrada de la lista',
+          fichas.map(function(f){ return f.getAttribute('data-sec'); }).join(' '), 'resumen');
+    var entEq = document.querySelector('#ceNav .ay-ld-it[data-sec="equipo"]');
+    if (entEq) entEq.click();
     var gente = document.querySelectorAll('#eqTarjetas .eq-tj:not([data-k=""])');
     ok('equipo: una tarjeta por persona del equipo', gente.length >= 2,
        gente.length + ' tarjetas', 'dos o más');
@@ -18409,11 +18416,9 @@
       .map(function(f){ return f.getAttribute('data-sec'); }).join(' ');
   }
   function ceEntrada(k){ return document.querySelector('#ceNav .ay-ld-it[data-sec="' + k + '"]'); }
-  function ceCifrasArriba(){
-    var n = document.querySelectorAll('.ce-arriba #puNums .pu-n');
-    return n.length === 5 && [].every.call(n, ceVe) && ceVe(document.getElementById('puEstados')) &&
-      !document.querySelector('.ce-ld #puNums, .ce-ld #puEstados');
-  }
+  function ceElegir(k){ var b = ceEntrada(k); if (b) b.click(); }
+  function ceCifraDe(k){ var b = ceEntrada(k); return b ? (b.querySelector('.ce-ld-sub') || {}).textContent : '(no está)'; }
+  function ceTx(p, d){ return String(p || '').replace(/\{(\w+)\}/g, function(x, k){ return d[k] !== undefined ? String(d[k]) : x; }); }
 
   function controlMira(sigue){
     if (!ES_ADMIN) return sigue();
@@ -18424,7 +18429,69 @@
     igual('control: en español, con ese nombre', I18N.es['nav.equipo'], 'Control y Estadísticas');
     igual('control: y «Usuarios y equipo» no cambia', I18N.es['nav.users'], 'Usuarios y equipo');
     igual('control: la pantalla se titula igual', document.getElementById('eqCabT').textContent, U.eq_titulo);
-    igual('control: el pulso sigue arriba, con sus cinco cifras', document.querySelectorAll('#puNums .pu-n').length, 5);
+
+    /* LA OPCIÓN 1 DE maquetas/control-estadisticas-tres.html (Franklin
+       Reyes, 13-10-2026): todo en lista y detalle, tal cual Ayuda. Siete
+       entradas con su cifra debajo y, bajo «Ajustes», la configuración del
+       chat. Ya no hay banda de cifras arriba ni botón de configuración. */
+    ok('control: ya no hay botón de configuración arriba ni banda de cifras',
+       !document.getElementById('ceBtnConfig') && !document.querySelector('.ce-arriba') &&
+       !!document.querySelector('#ceFichaResumen #puNums'),
+       document.getElementById('ceBtnConfig') ? 'está el botón' : (document.querySelector('.ce-arriba') ? 'está la banda' : 'las cifras en el resumen'),
+       'sin botón ni banda');
+    var ents = document.querySelectorAll('#ceNav .ay-ld-it');
+    igual('control: la lista trae sus ocho entradas, en su orden',
+          [].map.call(ents, function(b){ return b.getAttribute('data-sec'); }).join(' '),
+          'resumen equipo org tiempo consultas pedidos motivos config');
+    igual('control: cada una con su título',
+          [].map.call(ents, function(b){ return (b.querySelector('.ay-ld-tx b') || {}).textContent; }).join(' | '),
+          [U.ce_s_resumen, U.ce_eq_t, U.ce_s_org, U.ce_ti_t, U.ce_se_t, U.ce_ts_t, U.ce_mo_t, U.ce_cfg].join(' | '));
+    var sep = document.querySelector('#ceNav .ce-ld-sep');
+    ok('control: «Ajustes», un rótulo entre las cifras y la configuración',
+       !!sep && sep.textContent === U.ce_ajustes && sep.previousElementSibling === ceEntrada('motivos') &&
+       sep.nextElementSibling === ceEntrada('config') && sep.tagName !== 'BUTTON',
+       sep ? sep.textContent + ' tras ' + (sep.previousElementSibling || {}).getAttribute('data-sec') : '(no está)',
+       U.ce_ajustes + ' entre motivos y config');
+    igual('control: y sin pastillas: la cifra va en texto, debajo del título',
+          document.querySelectorAll('#ceNav .ce-ld-n, #ceNav .chip').length + ' pastillas, ' +
+          [].filter.call(ents, function(b){ return !!b.querySelector('.ay-ld-tx .ce-ld-sub'); }).length + ' con cifra',
+          '0 pastillas, 8 con cifra');
+
+    /* LAS CIFRAS DE LA LISTA, de lo que enseña cada ficha. */
+    var cifrasN = document.querySelectorAll('#puNums .pu-n .v');
+    var ante = document.querySelector('#puEstados .pu-leyenda li[data-estado="ante_el_ente"] b');
+    igual('control: el resumen: en marcha y ante el ente',
+          ceCifraDe('resumen'), ceTx(U.ce_n_resumen, {n: cifrasN[0] ? cifrasN[0].firstChild.textContent : '?', m: ante ? ante.textContent : '?'}));
+    var filaSin = [].filter.call(document.querySelectorAll('#puCola tr'), function(tr){ return !!tr.querySelector('.pu-sinasig'); })[0];
+    var sinAsig = filaSin ? filaSin.querySelectorAll('td.num')[0].textContent : '0';
+    igual('control: el equipo: cuántos son y lo sin asignar',
+          ceCifraDe('equipo'), ceTx(U.ce_n_equipo, {n: document.querySelectorAll('#eqTarjetas .eq-tj:not([data-k=""])').length, m: sinAsig}));
+    igual('control: los organismos: lo solicitado (5 + 3 + 2) y el que más', ceCifraDe('org'), ceTx(U.ce_n_org, {n: 10, ente: 'SAREN'}));
+    igual('control: el tiempo: los resueltos (3 + 1) y el más lento', ceCifraDe('tiempo'), ceTx(U.ce_n_tiempo, {n: 4, ente: 'SAREN'}));
+    var sumaSec = [].reduce.call(document.querySelectorAll('#ceSectores .ce-fila .ce-rv .n'),
+                                 function(m, n){ return m + Number(n.textContent || 0); }, 0);
+    var topSec = document.querySelector('#ceSectores .ce-fila');
+    igual('control: las consultas: las de los nueve y el más preguntado',
+          ceCifraDe('consultas'), ceTx(U.ce_n_consultas, {n: sumaSec, sector: U.cs_s1,
+            m: topSec ? (topSec.querySelector('.ce-rv .n') || {}).textContent : '?'}));
+    igual('control: los más pedidos: el primero del sector de por defecto',
+          ceCifraDe('pedidos'), ceTx(U.ce_n_pedidos, {sector: U.cs_s1, tramite: 'Licencia de exploración y explotación'}));
+    igual('control: los motivos: los pedidos (3 + 2 + 1 + 1) y el más repetido',
+          ceCifraDe('motivos'), ceTx(U.ce_n_motivos, {n: 7, m: 5, motivo: (U.o_ya_motivo || [])[1]}));
+    igual('control: la configuración: los sectores y lo cargado en el abierto',
+          ceCifraDe('config'), ceTx(U.ce_n_config, {n: 9, m: 2, sector: U.cs_s1}));
+
+    /* EL RESUMEN DE LA OFICINA: las cinco cifras, los estados y lo que lleva
+       cada gestor, como el pulso de siempre. */
+    ceElegir('resumen');
+    igual('control: elegir el resumen enseña su ficha, sola', ceVisibles(), 'resumen');
+    ok('control: con su entrada marcada, en azul con su raya',
+       !!ents[0] && ents[0].classList.contains('on') && ents[0].getAttribute('aria-pressed') === 'true' &&
+       [].filter.call(ents, function(b){ return b.classList.contains('on'); }).length === 1,
+       ents[0] ? ents[0].className : '(nada)', 'ay-ld-it on');
+    igual('control: y la cabecera grande de Ayuda, con su título',
+          (document.querySelector('#ceFichaResumen .ce-fi-cab .ce-fi-t') || {}).textContent, U.ce_s_resumen);
+    igual('control: el pulso sigue, con sus cinco cifras', document.querySelectorAll('#ceFichaResumen #puNums .pu-n').length, 5);
     /* Desde el 2-10-2026, con la idea 1 de maquetas/control-estadisticas-atlas.html:
        las cifras son tarjetas de Atlas con su medidor, los estados una
        barra apilada y lo de abajo, barras. */
@@ -18443,60 +18510,24 @@
     ok('control: y el total al lado del título',
        /\d/.test((document.getElementById('puTotal') || {}).textContent || ''),
        (document.getElementById('puTotal') || {}).textContent, U.pu_total);
+    ok('control: y debajo lo que lleva cada gestor, con «Sin asignar» en texto y no en pastilla',
+       ceVe(document.querySelector('#ceFichaResumen #puCola .pu-tabla')) &&
+       (!filaSin || getComputedStyle(filaSin.querySelector('.pu-sinasig')).backgroundColor.replace(/\s/g, '') === 'rgba(0,0,0,0)'),
+       filaSin ? getComputedStyle(filaSin.querySelector('.pu-sinasig')).backgroundColor : 'sin fila', 'tabla, sin fondo');
 
-    /* LA OPCIÓN 2 DE maquetas/control-estadisticas-tres.html (Franklin
-       Reyes, 13-10-2026): las cinco cifras y los estados en la banda de
-       arriba, siempre a la vista, y debajo lista y detalle como Ayuda. */
-    ok('control: las cinco cifras y los estados, arriba y fuera de la lista',
-       ceCifrasArriba(), document.querySelectorAll('.ce-arriba #puNums .pu-n').length + ' cifras en la banda',
-       'cinco, a la vista, fuera de .ce-ld');
-    var ents = document.querySelectorAll('#ceNav .ay-ld-it');
-    igual('control: la lista trae sus cuatro entradas, en su orden',
-          [].map.call(ents, function(b){ return b.getAttribute('data-sec'); }).join(' '), 'equipo org sector motivos');
-    igual('control: cada una con su título',
-          [].map.call(ents, function(b){ return (b.querySelector('.ay-ld-tx b') || {}).textContent; }).join(' | '),
-          [U.ce_s_equipo, U.ce_s_org, U.ce_s_sector, U.ce_mo_t].join(' | '));
-    igual('control: y su número', [].filter.call(ents, function(b){ return !!b.querySelector('.ce-ld-n'); }).length, 4);
-    /* Los números, de lo que ya enseña cada ficha: lo sin asignar de la
-       tabla de gestores, las solicitudes (5 + 3 + 2), las consultas de los
-       nueve sectores y los pedidos de ayuda (3 + 2 + 1 + 1). */
-    var filaSin = [].filter.call(document.querySelectorAll('#puCola tr'), function(tr){ return !!tr.querySelector('.pu-sinasig'); })[0];
-    var sinAsig = filaSin ? filaSin.querySelectorAll('td.num')[0].textContent : '0';
-    var nEq = (ents[0] && ents[0].querySelector('.ce-ld-n')) || {};
-    ok('control: el del equipo es lo sin asignar, en ámbar si hay algo',
-       nEq.textContent === sinAsig && (sinAsig === '0' || nEq.classList.contains('ojo')),
-       nEq.textContent + ' ' + (nEq.className || ''), sinAsig + (sinAsig === '0' ? '' : ' ojo'));
-    igual('control: el de los organismos, las solicitudes enviadas',
-          ((ents[1] && ents[1].querySelector('.ce-ld-n')) || {}).textContent, '10');
-    var sumaSec = [].reduce.call(document.querySelectorAll('#ceSectores .ce-fila .ce-rv .n'),
-                                 function(m, n){ return m + Number(n.textContent || 0); }, 0);
-    igual('control: el de los sectores, las consultas de los nueve',
-          ((ents[2] && ents[2].querySelector('.ce-ld-n')) || {}).textContent, String(sumaSec));
-    igual('control: el de los motivos, los pedidos de ayuda',
-          ((ents[3] && ents[3].querySelector('.ce-ld-n')) || {}).textContent, '7');
-    ok('control: y el lector oye qué cuenta cada número',
-       !!ents[1] && (ents[1].querySelector('.visualmente-oculto') || {}).textContent === ' · ' + String(U.ce_n_org).replace('{n}', 10),
-       ents[1] ? (ents[1].querySelector('.visualmente-oculto') || {}).textContent : '(nada)', U.ce_n_org);
-
-    /* Se llega al equipo, la primera de la lista. */
-    igual('control: se llega a la ficha del equipo, sola', ceVisibles(), 'equipo');
-    ok('control: con su entrada marcada',
-       !!ents[0] && ents[0].classList.contains('on') && ents[0].getAttribute('aria-pressed') === 'true' &&
-       [].filter.call(ents, function(b){ return b.classList.contains('on'); }).length === 1,
-       ents[0] ? ents[0].className : '(nada)', 'ay-ld-it on');
-    igual('control: y la cabecera grande de Ayuda, con su título',
-          (document.querySelector('#ceFichaEquipo .ce-fi-cab .ce-fi-t') || {}).textContent, U.ce_s_equipo);
-    ok('control: dentro, lo que lleva cada gestor y las tarjetas del equipo, con su rótulo',
-       !!document.querySelector('#ceFichaEquipo #puCola .pu-tabla') &&
-       document.querySelectorAll('#ceFichaEquipo #eqTarjetas .eq-tj').length >= 2 &&
-       document.getElementById('ceTequipo').textContent === U.ce_eq_t,
-       document.getElementById('ceTequipo').textContent, U.ce_eq_t);
+    /* EL EQUIPO: las tarjetas. */
+    ceElegir('equipo');
+    igual('control: elegir el equipo enseña su ficha, sola', ceVisibles(), 'equipo');
+    ok('control: con su título y las tarjetas del equipo',
+       (document.querySelector('#ceFichaEquipo .ce-fi-t') || {}).textContent === U.ce_eq_t &&
+       document.querySelectorAll('#ceFichaEquipo #eqTarjetas .eq-tj').length >= 2,
+       (document.querySelector('#ceFichaEquipo .ce-fi-t') || {}).textContent, U.ce_eq_t);
 
     /* NADA CORTADO CON «…» (revisión del 13-10-2026; Franklin Reyes ya lo
        pidió para los motivos el 9-10-2026): ni las filas de barras, ni el
        nombre del gestor en su tabla o en su tarjeta, ni su último
-       movimiento a dos líneas. Se mira todo lo que hay en la pantalla,
-       también lo que está escondido y el cajón de la ficha. */
+       movimiento a dos líneas, ni la cifra de cada entrada. Se mira todo lo
+       que hay en la pantalla, también lo escondido y el cajón de la ficha. */
     var cortados = [].filter.call(document.querySelectorAll('.equipo-vista *'), function(n){
       var cs = getComputedStyle(n);
       return cs.textOverflow === 'ellipsis' || (!!cs.webkitLineClamp && cs.webkitLineClamp !== 'none');
@@ -18504,32 +18535,50 @@
     ok('control: nada de la pantalla se corta con «…» ni a un número de líneas',
        cortados.length === 0, cortados.slice(0, 6).join(' '), 'ninguno');
 
-    /* EL IDIOMA, TAMBIÉN EN LA BANDA (revisión del 13-10-2026): las cifras
-       de arriba son del pulso, y applyLang no lo repintaba. */
+    /* EL IDIOMA, TAMBIÉN EN LAS CIFRAS DEL PULSO (revisión del 13-10-2026):
+       applyLang no lo repintaba. Y la lista cambia con él. */
     var enU = (window.CIIP_PASOS && window.CIIP_PASOS.ui && window.CIIP_PASOS.ui.en) || {};
     var idiomaAntes = curLang;
     applyLang('en');
     var bandaEn = (document.getElementById('puTestados') || {}).textContent;
     var cifraEn = (document.querySelector('#puNums .pu-n .l') || {}).textContent;
+    var listaEn = (ceEntrada('resumen').querySelector('.ay-ld-tx b') || {}).textContent;
     applyLang(idiomaAntes);
-    ok('control: al cambiar de idioma, la banda de cifras cambia con él, sin esperar al minuto',
-       bandaEn === enU.pu_estados && cifraEn === enU.pu_m_marcha,
-       bandaEn + ' / ' + cifraEn, enU.pu_estados + ' / ' + enU.pu_m_marcha);
+    ok('control: al cambiar de idioma, las cifras y la lista cambian con él, sin esperar al minuto',
+       bandaEn === enU.pu_estados && cifraEn === enU.pu_m_marcha && listaEn === enU.ce_s_resumen,
+       bandaEn + ' / ' + cifraEn + ' / ' + listaEn, enU.pu_estados + ' / ' + enU.pu_m_marcha + ' / ' + enU.ce_s_resumen);
     igual('control: y vuelve con el idioma de antes',
           (document.getElementById('puTestados') || {}).textContent, U.pu_estados);
 
-    /* TRÁMITES Y ORGANISMOS, con su conmutador. */
-    if (ents[1]) ents[1].click();
-    igual('control: elegir «Trámites y organismos» enseña su ficha, sola', ceVisibles(), 'org');
-    ok('control: y las cifras de arriba siguen a la vista', ceCifrasArriba(), ceCifrasArriba(), true);
+    /* TRÁMITES POR ORGANISMO: las solicitudes sumadas por organismo -cada
+       trámite trae el suyo- y, con el conmutador, trámite a trámite. */
+    ceElegir('org');
+    igual('control: elegir los trámites por organismo enseña su ficha, sola', ceVisibles(), 'org');
     var modos = document.querySelectorAll('#ceFichaOrg .ce-fi-cab .ce-org-modo');
-    igual('control: el conmutador, en la cabecera: solicitudes y tiempo',
+    igual('control: el conmutador, en la cabecera: por organismo y por trámite',
           [].map.call(modos, function(b){ return b.textContent + '=' + b.getAttribute('aria-pressed'); }).join(' '),
-          U.ce_tr_t + '=true ' + U.ce_ti_t + '=false');
-    ok('control: empieza en las solicitudes, con su frase',
-       ceVe(document.getElementById('ceTramites')) && document.getElementById('ceTiempos').hidden &&
+          U.ce_ti_ente + '=true ' + U.ce_ti_tram + '=false');
+    ok('control: empieza por organismo, con su título y su frase',
+       ceVe(document.getElementById('ceOrganismos')) && document.getElementById('ceTramites').hidden &&
+       (document.querySelector('#ceFichaOrg .ce-fi-t') || {}).textContent === U.ce_s_org &&
        (document.querySelector('#ceFichaOrg .ce-fi-d') || {}).textContent === U.ce_tr_d,
-       (document.querySelector('#ceFichaOrg .ce-fi-d') || {}).textContent, U.ce_tr_d);
+       (document.querySelector('#ceFichaOrg .ce-fi-t') || {}).textContent, U.ce_s_org);
+    var og = document.querySelectorAll('#ceOrganismos .ce-fila[data-ente]');
+    igual('control: una barra por organismo, de más a menos',
+          [].map.call(og, function(f){ return f.getAttribute('data-ente') + ' ' + (f.querySelector('.ce-rv .n') || {}).textContent; }).join(' · '),
+          'SAREN 5 · SENIAT 3 · Cancillería 2');
+    ok('control: el primero resaltado, con su barra entera y sus resueltos',
+       !!og[0] && og[0].classList.contains('tope') && og[0].querySelector('.ce-relleno').style.width === '100%' &&
+       (og[0].querySelector('.ce-rv .ce-sub') || {}).textContent === U.ce_c_resueltos + ' 3',
+       og[0] ? og[0].textContent : '(nada)', 'SAREN 5 · ' + U.ce_c_resueltos + ' 3');
+    if (modos[1]) modos[1].click();
+    ok('control: el conmutador pasa a trámite a trámite',
+       ceVe(document.getElementById('ceTramites')) && document.getElementById('ceOrganismos').hidden &&
+       (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {}).getAttribute('data-org') === 'tramite',
+       (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {}).textContent, U.ce_ti_tram);
+    ok('control: y el foco se queda en el botón pulsado',
+       !!document.activeElement && document.activeElement.getAttribute('data-org') === 'tramite',
+       document.activeElement ? document.activeElement.className : '(nada)', 'ce-org-modo tramite');
     var tr = document.querySelectorAll('#ceTramites .ce-fila[data-tipo]');
     igual('control: una barra por trámite solicitado', tr.length, 3);
     ok('control: el más pedido arriba, con sus solicitudes',
@@ -18539,15 +18588,13 @@
     ok('control: y la barra del más pedido, entera',
        !!tr[0] && !!tr[0].querySelector('.ce-relleno') && tr[0].querySelector('.ce-relleno').style.width === '100%',
        tr[0] && tr[0].querySelector('.ce-relleno') ? tr[0].querySelector('.ce-relleno').style.width : '(sin barra)', '100%');
-    if (modos[1]) modos[1].click();
-    ok('control: el conmutador pasa al tiempo de respuesta, con su frase',
-       ceVe(document.getElementById('ceTiempos')) && document.getElementById('ceTramites').hidden &&
-       (document.querySelector('#ceFichaOrg .ce-fi-d') || {}).textContent === U.ce_ti_d &&
-       (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {}).getAttribute('data-org') === 'ti',
-       (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {}).textContent, U.ce_ti_t);
-    ok('control: y el foco se queda en el botón pulsado',
-       !!document.activeElement && document.activeElement.getAttribute('data-org') === 'ti',
-       document.activeElement ? document.activeElement.className : '(nada)', 'ce-org-modo ti');
+
+    /* TIEMPO DE RESPUESTA, con su conmutador en la cabecera. */
+    ceElegir('tiempo');
+    igual('control: elegir el tiempo de respuesta enseña su ficha, sola', ceVisibles(), 'tiempo');
+    igual('control: con su título y su frase',
+          (document.querySelector('#ceFichaTiempo .ce-fi-t') || {}).textContent + ' | ' +
+          (document.querySelector('#ceFichaTiempo .ce-fi-d') || {}).textContent, U.ce_ti_t + ' | ' + U.ce_ti_d);
     var ti = document.querySelectorAll('#ceTiempos .ce-fila');
     igual('control: tiempos por organismo, uno por organismo con resueltos', ti.length, 2);
     ok('control: con su mediana', !!ti[0] && /SAREN/.test(ti[0].textContent) && !!ti[0].querySelector('.ce-fuerte'),
@@ -18555,36 +18602,45 @@
     ok('control: y la leyenda de los dos tramos',
        document.querySelectorAll('#ceTiempos .ce-leyenda li').length === 2,
        document.querySelectorAll('#ceTiempos .ce-leyenda li').length, 2);
-    var porTr = document.querySelector('#ceTiempos .ce-modo[data-modo="tramite"]');
+    var porTr = document.querySelector('#ceFichaTiempo .ce-fi-cab .ce-modo[data-modo="tramite"]');
     if (porTr) porTr.click();
     var ti2 = document.querySelectorAll('#ceTiempos .ce-fila');
     igual('control: y por trámite, solo los que tienen alguno resuelto', ti2.length, 2);
-    var pulsado = document.querySelector('#ceTiempos .ce-modo[aria-pressed="true"]');
-    igual('control: con el botón marcado', pulsado ? pulsado.getAttribute('data-modo') : '(ninguno)', 'tramite');
+    var pulsado = document.querySelector('#ceFichaTiempo .ce-modo[aria-pressed="true"]');
+    ok('control: con el botón marcado y el foco en él',
+       !!pulsado && pulsado.getAttribute('data-modo') === 'tramite' && document.activeElement === pulsado,
+       pulsado ? pulsado.getAttribute('data-modo') : '(ninguno)', 'tramite');
 
-    /* POR SECTOR: las consultas y los más pedidos lado a lado. */
-    if (ents[2]) ents[2].click();
-    igual('control: elegir «Por sector» enseña su ficha, sola', ceVisibles(), 'sector');
+    /* CONSULTAS POR SECTOR: los nueve, también a cero. */
+    ceElegir('consultas');
+    igual('control: elegir las consultas por sector enseña su ficha, sola', ceVisibles(), 'consultas');
+    igual('control: con su título y su frase',
+          (document.querySelector('#ceFichaConsultas .ce-fi-t') || {}).textContent + ' | ' +
+          (document.querySelector('#ceFichaConsultas .ce-fi-d') || {}).textContent, U.ce_se_t + ' | ' + U.ce_se_d);
     var se = document.querySelectorAll('#ceSectores .ce-fila');
     igual('control: los nueve sectores, también los que están a cero', se.length, 9);
     ok('control: y el más preguntado arriba, resaltado',
        !!se[0] && se[0].getAttribute('data-sector') === 'hidrocarburos' && se[0].classList.contains('tope'),
        se[0] ? se[0].getAttribute('data-sector') + ' ' + se[0].className : '(nada)', 'hidrocarburos tope');
-    ok('control: cada sector es un botón, y el más preguntado llega pulsado',
-       [].every.call(se, function(b){ return b.tagName === 'BUTTON'; }) &&
-       se[0].getAttribute('aria-pressed') === 'true' && se[0].classList.contains('on') &&
-       document.querySelectorAll('#ceSectores .ce-fila[aria-pressed="true"]').length === 1,
-       se[0] ? se[0].tagName + ' ' + se[0].getAttribute('aria-pressed') : '(nada)', 'BUTTON true');
+
+    /* TRÁMITES MÁS PEDIDOS POR SECTOR: los sectores para elegir, encima. */
+    ceElegir('pedidos');
+    igual('control: elegir los más pedidos enseña su ficha, sola', ceVisibles(), 'pedidos');
+    igual('control: con su título y su frase',
+          (document.querySelector('#ceFichaPedidos .ce-fi-t') || {}).textContent + ' | ' +
+          (document.querySelector('#ceFichaPedidos .ce-fi-d') || {}).textContent, U.ce_ts_t + ' | ' + U.ce_ts_d);
+    var chips = document.querySelectorAll('#ceFichaPedidos .cs-sector');
+    ok('control: los nueve sectores para elegir, y llega pulsado el más preguntado con trámites',
+       chips.length === 9 && [].every.call(chips, function(b){ return b.tagName === 'BUTTON'; }) &&
+       document.querySelectorAll('#ceFichaPedidos .cs-sector[aria-pressed="true"]').length === 1 &&
+       chips[0].getAttribute('data-sector') === 'hidrocarburos' && chips[0].getAttribute('aria-pressed') === 'true',
+       chips.length + ' ' + (chips[0] ? chips[0].getAttribute('data-sector') + ' ' + chips[0].getAttribute('aria-pressed') : ''),
+       '9 hidrocarburos true');
     var ts = document.getElementById('ceTramSector');
-    var seCaja = document.getElementById('ceSectores');
-    ok('control: al lado de Consultas por sector, los trámites más pedidos',
-       !!ts && !!seCaja && seCaja.nextElementSibling === ts && seCaja.parentNode.classList.contains('ce-dos'),
-       seCaja && seCaja.nextElementSibling ? seCaja.nextElementSibling.id : '(nada)', 'ceTramSector');
-    igual('control: con su título', ts ? (ts.querySelector('.pu-t') || {}).textContent : '(no está)', U.ce_ts_t);
-    igual('control: y sin campos ni pastillas',
+    igual('control: y la lista sin campos ni pastillas',
           ts ? ts.querySelectorAll('input, select, textarea, .cs-sector, .btn').length : -1, 0);
     var bloques = ts ? ts.querySelectorAll('.ce-ts-bloque') : [];
-    igual('control: un solo bloque, el del sector pulsado',
+    igual('control: un solo bloque, el del sector elegido',
           [].map.call(bloques, function(b){ return b.getAttribute('data-sector'); }).join(' '), 'hidrocarburos');
     var hFilas = bloques[0] ? bloques[0].querySelectorAll('.ce-fila') : [];
     ok('control: el más pedido del sector arriba, resaltado y con su número',
@@ -18606,20 +18662,20 @@
        !!sinTs && sinTs.textContent.indexOf(U.ce_ts_sin) === 0 && sinTs.textContent.indexOf(U.cs_s2) > 0 &&
        sinTs.textContent.indexOf(U.cs_s1) < 0 && sinTs.textContent.split(' · ').length === 7,
        sinTs ? sinTs.textContent : '(no está)', U.ce_ts_sin + ' … (siete)');
-    var tur = document.querySelector('#ceSectores .ce-fila[data-sector="turismo"]');
+    var tur = document.querySelector('#ceFichaPedidos .cs-sector[data-sector="turismo"]');
     if (tur) tur.click();
     var bTur = document.querySelectorAll('#ceTramSector .ce-ts-bloque');
-    ok('control: pulsar un sector cambia la columna de la derecha a los suyos',
+    ok('control: pulsar un sector cambia la lista a los suyos',
        bTur.length === 1 && bTur[0].getAttribute('data-sector') === 'turismo' &&
        (bTur[0].querySelector('.ce-fila') || {getAttribute: function(){ return ''; }}).getAttribute('data-tramite') === 'Licencia de turismo',
        bTur[0] ? bTur[0].getAttribute('data-sector') + ' ' + bTur[0].textContent : '(nada)', 'turismo · Licencia de turismo');
-    var turAhora = document.querySelector('#ceSectores .ce-fila[data-sector="turismo"]');
+    var turAhora = document.querySelector('#ceFichaPedidos .cs-sector[data-sector="turismo"]');
     ok('control: el pulsado se marca, el foco se queda en él y la ficha sigue a la vista',
-       !!turAhora && turAhora.getAttribute('aria-pressed') === 'true' && turAhora.classList.contains('on') &&
-       document.activeElement === turAhora && ceVisibles() === 'sector' &&
-       document.querySelectorAll('#ceSectores .ce-fila[aria-pressed="true"]').length === 1,
-       turAhora ? turAhora.getAttribute('aria-pressed') + ' ' + ceVisibles() : '(nada)', 'true sector');
-    var minS = document.querySelector('#ceSectores .ce-fila[data-sector="mineria"]');
+       !!turAhora && turAhora.getAttribute('aria-pressed') === 'true' &&
+       document.activeElement === turAhora && ceVisibles() === 'pedidos' &&
+       document.querySelectorAll('#ceFichaPedidos .cs-sector[aria-pressed="true"]').length === 1,
+       turAhora ? turAhora.getAttribute('aria-pressed') + ' ' + ceVisibles() : '(nada)', 'true pedidos');
+    var minS = document.querySelector('#ceFichaPedidos .cs-sector[data-sector="mineria"]');
     if (minS) minS.click();
     var bMin = document.querySelector('#ceTramSector .ce-ts-bloque');
     ok('control: y un sector sin ninguno lo dice en su bloque',
@@ -18632,10 +18688,12 @@
     ok('control: el sector que se enseña no sale repetido en el pie',
        !!sinMin && sinMin.textContent.indexOf(U.cs_s2) < 0 && sinMin.textContent.split(' · ').length === 6,
        sinMin ? sinMin.textContent : '(no está)', U.ce_ts_sin + ' … (seis, sin ' + U.cs_s2 + ')');
+    igual('control: y la cifra de la entrada sigue siendo la del sector de por defecto',
+          ceCifraDe('pedidos'), ceTx(U.ce_n_pedidos, {sector: U.cs_s1, tramite: 'Licencia de exploración y explotación'}));
 
     /* ¿POR QUÉ PIDEN AYUDA? (6-10-2026): uno por motivo de más a menos,
-       traducido, y debajo en qué entes sale. */
-    if (ents[3]) ents[3].click();
+       traducido, y debajo en qué entes sale, en texto. */
+    ceElegir('motivos');
     igual('control: elegir «¿Por qué piden ayuda?» enseña su ficha, sola', ceVisibles(), 'motivos');
     igual('control: con su título y su frase en la cabecera',
           (document.querySelector('#ceFichaMotivos .ce-fi-t') || {}).textContent + ' | ' +
@@ -18658,8 +18716,10 @@
        'Lleva mucho tiempo sin respuesta 5');
     igual('control: con su nombre en el idioma de turno', mo[0] ? (mo[0].querySelector('.nm') || {}).textContent : '',
           (U.o_ya_motivo || [])[1]);
-    igual('control: y en qué entes, de más a menos', mo[0] ? (mo[0].querySelector('.ce-rl .ce-sub') || {}).textContent : '',
-          'IVSS 3 · Alcaldía 2');
+    ok('control: y en qué entes, de más a menos, en texto y no en pastillas',
+       !!mo[0] && (mo[0].querySelector('.ce-rl .ce-sub') || {}).textContent === 'IVSS 3 · Alcaldía 2' &&
+       !document.querySelector('#ceMotivos .chip, #ceMotivos .cs-sector'),
+       mo[0] ? (mo[0].querySelector('.ce-rl .ce-sub') || {}).textContent : '', 'IVSS 3 · Alcaldía 2');
 
     /* ENTERO (Franklin Reyes, 9-10-2026: «debería de salir la respuesta
        completa que pone el inversionista, no ...»). El más largo de la
@@ -18724,19 +18784,12 @@
        !!panelCasos && panelCasos.hidden && mo[0].getAttribute('aria-expanded') === 'false',
        panelCasos ? (panelCasos.hidden ? 'cerrado' : 'abierto') : '(no hay)', 'cerrado');
 
-    /* LA CONFIGURACIÓN DEL CHAT, fuera de la lista: la abre su botón de
-       arriba a la derecha, en el sitio del detalle. */
-    var bCfg = document.getElementById('ceBtnConfig');
-    ok('control: «Configuración del chat», un botón arriba a la derecha y sin pulsar',
-       !!bCfg && ceVe(bCfg) && bCfg.textContent === U.ce_cfg && bCfg.getAttribute('aria-pressed') === 'false' &&
-       !!bCfg.closest('.mt-cab') && !ceEntrada('config'),
-       bCfg ? bCfg.textContent + ' ' + bCfg.getAttribute('aria-pressed') : '(no está)', U.ce_cfg + ' false');
-    if (bCfg) bCfg.click();
-    igual('control: pulsarlo abre la ficha de la configuración, sola', ceVisibles(), 'config');
-    ok('control: el botón queda pulsado y ninguna entrada de la lista marcada',
-       bCfg.getAttribute('aria-pressed') === 'true' && bCfg.classList.contains('on') &&
-       !document.querySelector('#ceNav .ay-ld-it.on'),
-       bCfg.getAttribute('aria-pressed') + ' ' + (document.querySelector('#ceNav .ay-ld-it.on') || {}).className, 'true, ninguna');
+    /* AJUSTES › CONFIGURACIÓN DEL CHAT: la última entrada de la lista. */
+    ceElegir('config');
+    igual('control: elegir la configuración del chat enseña su ficha, sola', ceVisibles(), 'config');
+    ok('control: con su entrada marcada y ninguna otra',
+       ceEntrada('config').classList.contains('on') && document.querySelectorAll('#ceNav .ay-ld-it.on').length === 1,
+       (document.querySelector('#ceNav .ay-ld-it.on') || {getAttribute: function(){ return '(ninguna)'; }}).getAttribute('data-sec'), 'config');
     var cfgF = document.getElementById('ceFichaConfig');
     ok('control: con un título que dice que es configuración, su frase y el borde de rayas',
        !!cfgF && (cfgF.querySelector('.ce-fi-t') || {}).textContent === U.ce_ps_t &&
@@ -18744,7 +18797,6 @@
        getComputedStyle(cfgF).borderTopStyle === 'dashed',
        cfgF ? (cfgF.querySelector('.ce-fi-t') || {}).textContent + ' / ' + getComputedStyle(cfgF).borderTopStyle : '(no está)',
        U.ce_ps_t + ' / dashed');
-    ok('control: y las cifras de arriba siguen a la vista', ceCifrasArriba(), ceCifrasArriba(), true);
     var cfg = document.getElementById('cePorSector');
     ok('control: el editor de la lista del chat va dentro, sin plegar',
        !!cfg && cfg.parentNode.parentNode === cfgF && ceVe(cfg) && !cfg.querySelector('.ce-config-abre'),
@@ -18816,28 +18868,29 @@
 
   function controlOtroSector(sigue){
     if (!ES_ADMIN) return sigue();
+    var U = ceU();
     var marcado = document.querySelector('#cePorSector .cs-sector[aria-pressed="true"]');
     igual('control: al cambiar de sector se ve el suyo', marcado ? marcado.getAttribute('data-sector') : '(ninguno)', 'mineria');
     ok('control: y si no tiene ninguno, lo dice',
        ceFilas().length === 0 && !!document.querySelector('#cePorSector .ce-ps-vacio'),
        ceFilas().length + ' filas', 'ninguna, con el aviso');
     igual('control: el editor sigue funcionando en su ficha, que no se cierra al guardar', ceVisibles(), 'config');
+    igual('control: y la cifra de su entrada sigue al sector abierto',
+          ceCifraDe('config'), ceTx(U.ce_n_config, {n: 9, m: 0, sector: U.cs_s2}));
     /* LO ELEGIDO SOBREVIVE AL REPINTADO, con los mismos datos: la
-       configuración a la vista, el conmutador en el tiempo y minería
-       pulsada en Por sector (13-10-2026). */
+       configuración a la vista, los dos conmutadores en «Por trámite» y
+       minería elegida en los más pedidos (13-10-2026). */
     if (window.CIIP_REPINTA_CONTROL) window.CIIP_REPINTA_CONTROL();
-    ok('control: tras repintar, la configuración sigue abierta, el conmutador en el tiempo y minería pulsada',
-       ceVisibles() === 'config' &&
-       (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {getAttribute: function(){ return ''; }}).getAttribute('data-org') === 'ti' &&
-       (document.querySelector('#ceSectores .ce-fila[aria-pressed="true"]') || {getAttribute: function(){ return ''; }}).getAttribute('data-sector') === 'mineria' &&
-       (document.querySelector('#ceTramSector .ce-ts-bloque') || {getAttribute: function(){ return ''; }}).getAttribute('data-sector') === 'mineria',
-       ceVisibles() + ' ' + (document.querySelector('#ceSectores .ce-fila[aria-pressed="true"]') || {getAttribute: function(){ return '(ninguno)'; }}).getAttribute('data-sector'),
-       'config · ti · mineria');
+    function marcado1(sel, attr){ return (document.querySelector(sel) || {getAttribute: function(){ return '(ninguno)'; }}).getAttribute(attr); }
+    igual('control: tras repintar, la configuración sigue abierta, los conmutadores en «Por trámite» y minería elegida',
+          ceVisibles() + ' · ' + marcado1('#ceFichaOrg .ce-org-modo[aria-pressed="true"]', 'data-org') + ' · ' +
+          marcado1('#ceFichaTiempo .ce-modo[aria-pressed="true"]', 'data-modo') + ' · ' +
+          marcado1('#ceFichaPedidos .cs-sector[aria-pressed="true"]', 'data-sector') + ' · ' +
+          marcado1('#ceTramSector .ce-ts-bloque', 'data-sector'),
+          'config · tramite · tramite · mineria · mineria');
     /* Y la base de antes de supabase-control-detalle.sql: la función no
        trae ni los trámites por sector ni los casos. Se repinta todo con
-       un motivo abierto, la configuración a la vista, el conmutador en el
-       tiempo y minería pulsada en Por sector: nada de eso puede volver al
-       principio (13-10-2026). */
+       un motivo abierto: no puede volver a plegarse. */
     window.CIIP_MENTIRA_SQL_VIEJO = true;
     var abierto = document.querySelector('#ceMotivos .ce-fila[data-motivo]');
     if (abierto) abierto.click();
@@ -18864,54 +18917,47 @@
        !!p && !p.hidden && p.textContent === U.ce_ca_nosql,
        p ? (p.hidden ? '(plegado)' : p.textContent) : '(no está)', U.ce_ca_nosql);
     /* LO ELEGIDO SOBREVIVE AL REPINTADO (13-10-2026). */
-    var bCfg = document.getElementById('ceBtnConfig');
-    ok('control: la configuración sigue abierta tras el refresco, con su botón pulsado',
-       ceVisibles() === 'config' && !!bCfg && bCfg.getAttribute('aria-pressed') === 'true' &&
+    ok('control: la configuración sigue abierta tras el refresco, con su entrada marcada',
+       ceVisibles() === 'config' && ceEntrada('config').classList.contains('on') &&
        ceVe(document.getElementById('cePorSector')),
-       ceVisibles() + ' ' + (bCfg ? bCfg.getAttribute('aria-pressed') : '(sin botón)'), 'config true');
-    igual('control: el conmutador de los organismos sigue en el tiempo',
+       ceVisibles(), 'config');
+    igual('control: y los conmutadores siguen en «Por trámite»',
           (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {}).getAttribute('data-org') + ' ' +
-          (document.getElementById('ceTiempos') && !document.getElementById('ceTiempos').hidden ? 'a la vista' : 'escondido'),
-          'ti a la vista');
+          (document.querySelector('#ceFichaTiempo .ce-modo[aria-pressed="true"]') || {}).getAttribute('data-modo'),
+          'tramite tramite');
     /* Sin trámites elegidos (aquí, sin el SQL que los cuenta) no hay
-       sector que elegir: ninguno sale pulsado y las filas no son botones
-       (revisión del 13-10-2026). */
-    ok('control: sin trámites elegidos, ningún sector sale pulsado ni es un botón',
-       document.querySelectorAll('#ceSectores .ce-fila').length === 9 &&
-       !document.querySelector('#ceSectores [aria-pressed], #ceSectores .ce-se-elige, #ceSectores button, #ceSectores .ce-fila.on'),
-       document.querySelectorAll('#ceSectores [aria-pressed="true"], #ceSectores button').length + ' pulsados o botones',
-       'ninguno, nueve filas');
+       sector que elegir: no salen los sectores ni ninguno pulsado, y la
+       cifra de la entrada dice que aún no hay datos (revisión del
+       13-10-2026). */
+    ok('control: sin trámites elegidos, no hay sectores que elegir ni ninguno pulsado',
+       !document.querySelector('#ceFichaPedidos .cs-sector, #ceFichaPedidos [aria-pressed="true"], #ceSectores button'),
+       document.querySelectorAll('#ceFichaPedidos .cs-sector').length + ' sectores', 'ninguno');
+    igual('control: y su entrada no inventa una cifra', ceCifraDe('pedidos'), U.ce_vacio);
     /* Y el refresco de cada minuto, que repinta el pulso y con él la lista. */
     if (window.CIIP_REPINTA_PULSO) window.CIIP_REPINTA_PULSO();
     ok('control: el pulso de cada minuto tampoco lo mueve',
-       ceVisibles() === 'config' && document.querySelectorAll('#ceNav .ay-ld-it').length === 4 &&
-       !document.querySelector('#ceNav .ay-ld-it.on') && ceCifrasArriba(),
-       ceVisibles(), 'config, con las cuatro entradas y las cifras arriba');
-    /* Volver a pulsar el botón vuelve a la entrada que se miraba. */
-    if (bCfg) bCfg.click();
-    ok('control: pulsar otra vez «Configuración del chat» vuelve a la entrada de antes',
-       ceVisibles() === 'motivos' && bCfg.getAttribute('aria-pressed') === 'false' &&
-       (ceEntrada('motivos') || {classList: {contains: function(){ return false; }}}).classList.contains('on'),
-       ceVisibles() + ' ' + bCfg.getAttribute('aria-pressed'), 'motivos false');
+       ceVisibles() === 'config' && document.querySelectorAll('#ceNav .ay-ld-it').length === 8 &&
+       ceEntrada('config').classList.contains('on') && document.querySelectorAll('#ceNav .ce-ld-sep').length === 1,
+       ceVisibles() + ', ' + document.querySelectorAll('#ceNav .ay-ld-it').length + ' entradas', 'config, con las ocho entradas');
     if (mo) mo.click();
-    /* Se deja como se encontró: la primera entrada, para quien venga. */
-    if (ceEntrada('equipo')) ceEntrada('equipo').click();
+    /* Se deja como se encontró: el resumen, la primera entrada. */
+    ceElegir('resumen');
     location.hash = '';
     setTimeout(sigue, 300);
   }
 
-  /* POR SECTOR NO ABRE EN UN SECTOR VACÍO (revisión del 13-10-2026). En
-     esta carga minería es la más preguntada (9) y nadie ha elegido allí
+  /* LOS MÁS PEDIDOS NO ABREN EN UN SECTOR VACÍO (revisión del 13-10-2026).
+     En esta carga minería es la más preguntada (9) y nadie ha elegido allí
      ningún trámite: tiene que abrir en hidrocarburos, la más preguntada de
      las que sí tienen, y minería quedarse en el pie. */
   function controlMineroMira(sigue){
     if (!ES_ADMIN) return sigue();
     var U = ceU();
     var se = document.querySelectorAll('#ceSectores .ce-fila');
-    var pulsado = document.querySelector('#ceSectores .ce-fila[aria-pressed="true"]');
+    var pulsado = document.querySelector('#ceFichaPedidos .cs-sector[aria-pressed="true"]');
     var bloque = document.querySelector('#ceTramSector .ce-ts-bloque');
     var pie = document.querySelector('#ceTramSector .ce-ts-sin');
-    ok('control: con minería la más preguntada y sin trámites, Por sector abre en hidrocarburos',
+    ok('control: con minería la más preguntada y sin trámites, los más pedidos abren en hidrocarburos',
        !!se[0] && se[0].getAttribute('data-sector') === 'mineria' &&
        !!pulsado && pulsado.getAttribute('data-sector') === 'hidrocarburos' &&
        !!bloque && bloque.getAttribute('data-sector') === 'hidrocarburos' && !!bloque.querySelector('.ce-fila'),
@@ -18921,6 +18967,9 @@
     ok('control: y minería, en el pie de los que no tienen ninguno',
        !!pie && pie.textContent.indexOf(U.cs_s2) > 0 && pie.textContent.indexOf(U.cs_s1) < 0,
        pie ? pie.textContent : '(no está)', U.ce_ts_sin + ' … ' + U.cs_s2);
+    igual('control: y las cifras de la lista lo dicen igual',
+          (ceCifraDe('consultas').indexOf(U.cs_s2 + ', 9') > 0) + ' ' + ceCifraDe('pedidos'),
+          'true ' + ceTx(U.ce_n_pedidos, {sector: U.cs_s1, tramite: 'Licencia de exploración y explotación'}));
     /* Y se vuelve a los datos de siempre para lo que sigue. */
     window.CIIP_MENTIRA_MINERO_PRIMERO = false;
     if (window.CIIP_PINTA_CONTROL) window.CIIP_PINTA_CONTROL();
@@ -18972,7 +19021,8 @@
     location.hash = 'equipo';
     var vueltas = 0;
     (function listo(){
-      if (document.getElementById('ceTramites') && document.querySelector('#ceNav .ay-ld-it .ce-ld-n') &&
+      if (document.getElementById('ceTramites') && document.querySelector('#ceNav .ay-ld-it[data-sec="resumen"] .ce-ld-sub') &&
+          document.querySelector('#ceNav .ay-ld-it[data-sec="equipo"] .ce-ld-sub') &&
           document.querySelector('#eqTarjetas .eq-tj')) return setTimeout(mide, 100);
       if (++vueltas > 200){ apunta('la pantalla se carga', false, 'sin datos', 'cifras y fichas'); return manda(); }
       setTimeout(listo, 50);
@@ -18987,14 +19037,16 @@
     function mide(){
       var fuera = [], cortado = [], cabeza = [], elipsis = [], pagina = [];
       var vista = document.querySelector('.equipo-vista');
-      var secciones = [['equipo'], ['org', 'sol'], ['org', 'ti'], ['sector'], ['motivos'], ['config']];
+      /* Las ocho fichas, y las de los conmutadores en sus dos formas. */
+      var secciones = [['resumen'], ['equipo'], ['org', 'ente'], ['org', 'tramite'], ['tiempo', 'ente'],
+                       ['tiempo', 'tramite'], ['consultas'], ['pedidos'], ['motivos'], ['config']];
+      var CONMUTA = {org: '.ce-org-modo[data-org="', tiempo: '.ce-modo[data-modo="'};
       ['es', 'ru', 'fr'].forEach(function(lang){
         applyLang(lang);
         secciones.forEach(function(s){
           var k = s[0], donde = lang + ' ' + k + (s[1] ? '/' + s[1] : '');
-          if (k === 'config') document.getElementById('ceBtnConfig').click();
-          else { var b = document.querySelector('#ceNav .ay-ld-it[data-sec="' + k + '"]'); if (b) b.click(); }
-          if (s[1]){ var m = document.querySelector('#ceFichaOrg .ce-org-modo[data-org="' + s[1] + '"]'); if (m) m.click(); }
+          var b = document.querySelector('#ceNav .ay-ld-it[data-sec="' + k + '"]'); if (b) b.click();
+          if (s[1]){ var m = document.querySelector('#ceDet ' + CONMUTA[k] + s[1] + '"]'); if (m) m.click(); }
           if (k === 'motivos'){ var mo = document.querySelector('#ceMotivos .ce-fila[data-motivo]'); if (mo && mo.getAttribute('aria-expanded') !== 'true') mo.click(); }
           var ficha = [].filter.call(document.querySelectorAll('#ceDet .ce-ficha'), function(f){ return !f.hidden; })[0];
           if (!ficha){ fuera.push(donde + ': sin ficha'); return; }
@@ -19048,7 +19100,7 @@
             if (r.width && (r.left < -0.5 || r.right > se.clientWidth + 0.5)) pagina.push(donde + ': ' + nombre(n) + ' fuera de la barra');
           });
           if (k === 'motivos'){ var mo2 = document.querySelector('#ceMotivos .ce-fila[data-motivo]'); if (mo2 && mo2.getAttribute('aria-expanded') === 'true') mo2.click(); }
-          if (s[1] === 'ti'){ var sol = document.querySelector('#ceFichaOrg .ce-org-modo[data-org="sol"]'); if (sol) sol.click(); }
+          if (s[1] === 'tramite'){ var vuelve = document.querySelector('#ceDet ' + CONMUTA[k] + 'ente"]'); if (vuelve) vuelve.click(); }
         });
       });
       applyLang('es');
@@ -19069,18 +19121,17 @@
          lista; el repintado no mueve la página. El panel desplaza suave
          (html{scroll-behavior:smooth}), así que se mide un momento después. */
       var alto = window.innerHeight, techo = document.querySelector('.topbar').getBoundingClientRect().bottom;
-      /* Desde una entrada de la lista: la última medida fue la
-         configuración, y pulsar su botón otra vez la cerraría. */
-      var bEq = document.querySelector('#ceNav .ay-ld-it[data-sec="equipo"]');
-      if (bEq) bEq.click();
+      /* Desde el resumen: la última medida fue la configuración. */
+      var bRe = document.querySelector('#ceNav .ay-ld-it[data-sec="resumen"]');
+      if (bRe) bRe.click();
       window.scrollTo({top: 0, behavior: 'instant'});
-      document.getElementById('ceBtnConfig').click();
+      var bCf = document.querySelector('#ceNav .ay-ld-it[data-sec="config"]');
+      if (bCf) bCf.click();
       setTimeout(function(){
         var rc = document.getElementById('ceFichaConfig').getBoundingClientRect();
-        apunta('«Configuración del chat» deja su ficha a la vista, bajo la barra de arriba',
+        apunta('«Configuración del chat», la última de la lista, deja su ficha a la vista, bajo la barra de arriba',
                rc.top >= techo - 1 && rc.top < alto * 0.6,
                'arriba en ' + Math.round(rc.top) + ' de ' + alto, 'entre ' + Math.round(techo) + ' y ' + Math.round(alto * 0.6));
-        document.getElementById('ceBtnConfig').click();
         window.scrollTo({top: 0, behavior: 'instant'});
         var bMo = document.querySelector('#ceNav .ay-ld-it[data-sec="motivos"]');
         if (bMo) bMo.click();
