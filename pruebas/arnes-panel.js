@@ -9525,6 +9525,19 @@
     if (itSacs) itSacs.click();
     igual('ayuda: al elegir otro trámite en la lista, sale su ficha', visibles(), 'ay_rec_sacs');
     igual('ayuda: y la lista lo marca', itSacs && itSacs.getAttribute('aria-pressed'), 'true');
+    /* Los logos que ya tenemos (13-10-2026): el del SACS en su tarjeta y
+       en su renglón de la lista, sobre placa; la licencia, que es de cada
+       alcaldía, sigue con su dibujo. */
+    var logoDe = function(sel){ var i = rec && rec.querySelector(sel + ' .ay-ic.placa img.ilogo');
+      return i ? i.getAttribute('src') : '(sin logo)'; };
+    igual('ayuda: la tarjeta del SACS lleva su logo', logoDe('details[data-clave="ay_rec_sacs"] summary'), 'logos/sacs.png');
+    igual('ayuda: y su renglón de la lista también', logoDe('.ay-ld-it[data-k="ay_rec_sacs"]'), 'logos/sacs.png');
+    igual('ayuda: la licencia, de cada alcaldía, sigue con su dibujo', logoDe('.ay-ld-it[data-k="ay_rec_licencia"]'), '(sin logo)');
+    /* Y el mando para cambiarlo: sólo el admin lo tiene, y fuera de
+       «Editar textos» no se ve. */
+    var mando = rec && rec.querySelector('details[data-clave="ay_rec_sacs"] .ay-logo-adm');
+    igual('ayuda: el mando del logo, sólo para el admin', !!mando, ES_ADMIN);
+    if (mando) igual('ayuda: y escondido fuera de «Editar textos»', mando.offsetHeight, 0);
     var itLic = rec && rec.querySelector('.ay-ld-it[data-k="ay_rec_licencia"]');
     if (itLic) itLic.click();
     var bFaq = document.querySelector('#ayPest .ay-pe[data-p="faq"]');

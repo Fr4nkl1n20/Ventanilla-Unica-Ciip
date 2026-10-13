@@ -29489,6 +29489,132 @@ applyLang(idiomaParaMi());
     ay_rec_sacs: '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/>',
     ay_rec_sapi: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><circle cx="12" cy="14" r="2.5"/>'
   };
+  /* El logo del organismo, donde la tarjeta es de UNO y ya lo tenemos en
+     logos/ (Franklin Reyes, 13-10-2026: «coloca los logos que ya tengamos
+     en Ayuda y guía»). La firma electrónica la acreditan proveedores que
+     autoriza SUSCERTE; la visa, Cancillería. Los médicos (Locatel), las
+     alcaldías, los bomberos y los parafiscales -varios entes en una- se
+     quedan con su dibujo. Si el logo no carga, vuelve el dibujo: el <svg>
+     sigue dentro y .placa sólo lo esconde. */
+  var AY_LOGO = {
+    ay_firma: 'logos/suscerte.png',
+    ay_rec_visa: 'logos/mppre.png',
+    ay_rec_sacs: 'logos/sacs.png',
+    ay_rec_sapi: 'logos/sapi.png'
+  };
+  /* Y el que suba el administrador manda sobre ése (Franklin Reyes,
+     13-10-2026: «habilita que el administrador pueda cambiar esos logos»).
+     Sin tabla nueva: el archivo va al cubo de los logos de las fichas
+     (logos-fichas, supabase-logos-fichas.sql), bajo ayuda/, y su ruta a
+     textos_panel con la clave '<tarjeta>.logo' en 'es' -un logo no cambia
+     con el idioma-. Las dos cosas ya sólo las escribe el admin. Puede
+     ponerle logo también a una tarjeta que no lo tenía. */
+  function ayClaveLogo(kt){ return kt + '.logo'; }
+  function ayLogoSubido(kt){
+    var C = (window.CIIP_TEXTOS && window.CIIP_TEXTOS.cambios) ? window.CIIP_TEXTOS.cambios() : {};
+    return (C.es || {})[ayClaveLogo(kt)] || null;
+  }
+  function ayLogo(kt){
+    var subido = ayLogoSubido(kt);
+    if (subido && window.CIIP_URL_LOGO) return window.CIIP_URL_LOGO(subido) || AY_LOGO[kt] || '';
+    return AY_LOGO[kt] || '';
+  }
+
+  /* El mando, debajo de los enlaces de la tarjeta: sólo para el admin y
+     sólo con «Editar textos» encendido (el CSS lo esconde fuera de ese
+     modo). Lleva .tx-libre para que el modo de edición no confunda sus
+     botones con textos que editar. */
+  function ayMandoLogo(kt){
+    if (!(typeof PERFIL !== 'undefined' && PERFIL && PERFIL.rol === 'admin')) return null;
+    var u = T();
+    var caja = el('div', 'ay-logo-adm tx-libre');
+    var aviso = el('span', 'ay-logo-aviso');
+    aviso.setAttribute('role', 'status');
+    var archivo = document.createElement('input');
+    archivo.type = 'file';
+    archivo.accept = LOGO_TIPOS.join(',');
+    archivo.hidden = true;
+    var cambia = el('button', 'btn ghost', u.cg_logo_cambia || '');
+    cambia.type = 'button';
+    cambia.addEventListener('click', function(){ archivo.click(); });
+    caja.appendChild(archivo);
+    caja.appendChild(cambia);
+    var quita = null;
+    if (ayLogoSubido(kt)){
+      quita = el('button', 'btn ghost', u.cg_logo_quita || '');
+      quita.type = 'button';
+      quita.addEventListener('click', function(){
+        cambia.disabled = quita.disabled = true;
+        aviso.textContent = '';
+        guardaLogoAyuda(kt, null, aviso, function(){ cambia.disabled = quita.disabled = false; });
+      });
+      caja.appendChild(quita);
+    }
+    archivo.addEventListener('change', function(){
+      var f = archivo.files && archivo.files[0];
+      archivo.value = '';
+      if (!f) return;
+      aviso.textContent = '';
+      if (LOGO_TIPOS.indexOf(f.type) < 0 || f.size > LOGO_MAX){
+        aviso.textContent = u.cg_logo_mal || '';
+        return;
+      }
+      cambia.disabled = true;
+      if (quita) quita.disabled = true;
+      cambia.textContent = u.cg_logo_subiendo || '';
+      guardaLogoAyuda(kt, f, aviso, function(){
+        cambia.disabled = false;
+        if (quita) quita.disabled = false;
+        cambia.textContent = u.cg_logo_cambia || '';
+      });
+    });
+    caja.appendChild(aviso);
+    return caja;
+  }
+
+  /* El mismo orden que guardaElLogo() del catálogo: subir, apuntar y SOLO
+     ENTONCES borrar el viejo, y con la hora en el nombre para que la URL
+     sea nueva y no se quede el de antes en la caché. Y el mismo cuidado con
+     RLS: se pide la fila de vuelta, que un bloqueo contesta sin error. */
+  function guardaLogoAyuda(kt, f, aviso, alTerminar){
+    var u = T();
+    var cubo = sb.storage.from('logos-fichas');
+    var clave = ayClaveLogo(kt);
+    var antes = ayLogoSubido(kt);
+    var ruta = null;
+    var subida = Promise.resolve(null);
+    if (f){
+      var ext = {'image/png':'png', 'image/jpeg':'jpg', 'image/webp':'webp'}[f.type] || 'png';
+      ruta = 'ayuda/' + kt + '/' + Date.now() + '.' + ext;
+      subida = cubo.upload(ruta, f, {contentType: f.type, upsert: false})
+        .then(function(r){ if (r.error) throw r.error; });
+    }
+    subida
+      .then(function(){
+        return ruta
+          ? sb.from('textos_panel').upsert({clave: clave, idioma: 'es', texto: ruta},
+                                          {onConflict: 'clave,idioma'}).select('clave')
+          : sb.from('textos_panel').delete().eq('clave', clave).eq('idioma', 'es').select('clave');
+      })
+      .then(function(r){
+        if (r.error) throw r.error;
+        if (!(r.data || []).length){
+          if (ruta) cubo.remove([ruta]);
+          aviso.textContent = u.cg_error || '';
+          alTerminar();
+          return;
+        }
+        if (window.CIIP_TEXTOS && window.CIIP_TEXTOS.pon) window.CIIP_TEXTOS.pon('es', clave, ruta);
+        if (antes && antes !== ruta) cubo.remove([antes]);
+        pintaAyuda();
+      })
+      .catch(function(e){
+        console.warn('[CIIP] logo de Ayuda:', e && (e.message || e));
+        if (ruta) cubo.remove([ruta]);
+        aviso.textContent = u.cg_error || '';
+        alTerminar();
+      });
+  }
 
   function pintaAyuda(){
     if (!ayLista) return;
@@ -29592,6 +29718,19 @@ applyLang(idiomaParaMi());
       var icg = el('span', 'ay-ic');
       icg.setAttribute('aria-hidden', 'true');
       icg.innerHTML = '<svg viewBox="0 0 24 24">' + (AY_ICONO[g.kt] || AY_ICONO.ay_rec_parafiscales) + '</svg>';
+      var lgUrl = ayLogo(g.kt);
+      if (lgUrl){
+        icg.classList.add('placa');
+        /* El onerror va escrito en el atributo y no con addEventListener:
+           la lista de la izquierda CLONA este icono, y un clon no se lleva
+           los oyentes. */
+        var lg = document.createElement('img');
+        lg.className = 'ilogo';
+        lg.alt = '';
+        lg.setAttribute('onerror', "this.parentNode.classList.remove('placa');this.remove()");
+        lg.src = lgUrl;
+        icg.appendChild(lg);
+      }
       s.appendChild(icg);
       var cabT = el('span', 'ay-card-t');
       var qt = el('span', 'qt', g.t || '');
@@ -29645,6 +29784,8 @@ applyLang(idiomaParaMi());
         cuerpo.appendChild(el('div', 'ay-pronto', u.ay_pronto || ''));
       }
       d.appendChild(cuerpo);
+      var mandoLogo = ayMandoLogo(g.kt);
+      if (mandoLogo) d.appendChild(mandoLogo);
       d.open = true;
       if (esAqui && !marcado) marcado = d;
       return d;

@@ -598,7 +598,7 @@
     if (!editando) return;
     var t = e.target;
     if (!t || !t.closest) return;
-    if (t.closest('.tx-editor, .tx-banda, #navTextos, #langMenu, #langBtn')) return;
+    if (t.closest('.tx-editor, .tx-banda, #navTextos, #langMenu, #langBtn, .tx-libre')) return;
     var marcado = t.closest('[data-i18n],[data-texto],[data-ui]');
     if (marcado){
       e.preventDefault();
