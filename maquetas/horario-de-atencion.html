@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · El horario de atención, cinco formas</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   EL HORARIO DE ATENCIÓN: CINCO FORMAS
+
+   Franklin Reyes, 14-10-2026: «¿me das maquetas de esto? A ver qué estilos
+   me recomiendas». Es la tarjeta de arriba del todo en Ayuda y guía
+   (#ayHorario, pintaAyuda): un reloj en un cuadrito claro, «Horario de
+   atención» y la frase.
+
+   Con lo que se ha ido pidiendo: sin mayúsculas forzadas, sin marcos ni
+   filos de color, y los iconos en azul oscuro con el dibujo en blanco,
+   como la lista de Control y estadísticas. No toca el panel.
+   ══════════════════════════════════════════════════════════════════ */
+:root{ --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB;
+  --good:#1E7F5C; --good-bg:#E7F4EE;
+  --shadow:0 1px 2px rgba(14,20,36,.04), 0 6px 18px rgba(14,20,36,.06); }
+main{max-width:1080px; padding:28px 26px 90px; margin:0 auto;}
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.intro b{color:var(--ink);}
+.idea{display:grid; gap:10px; margin-top:34px;}
+.idea h3{margin:0; font-size:15px; display:flex; gap:9px; align-items:center;}
+.idea h3 .n{width:24px; height:24px; border-radius:50%; background:var(--navy); color:#fff; font-size:12px; display:grid; place-items:center; flex:none;}
+.idea h3 .n.hoy{background:var(--gray-soft);}
+.idea h3 .rec{font-size:11px; font-weight:700; color:var(--good); background:var(--good-bg); border-radius:20px; padding:3px 9px;}
+.idea > p{margin:0; font-size:12.5px; color:var(--gray); line-height:1.6; max-width:96ch;}
+.idea > p b{color:var(--ink);}
+
+/* el fondo de Ayuda y guía, con su título encima de la tarjeta */
+.fondo{background:var(--block); border:1px dashed #C9CED8; border-radius:14px; padding:18px 20px 20px;}
+.fondo .pag{font-size:18px; font-weight:700; margin:0 0 14px; letter-spacing:-.01em;}
+.dos{display:grid; gap:18px;}
+.tel{border-top:1px dashed #C9CED8; padding-top:16px; max-width:380px;}
+.tel small{display:block; font-size:11px; color:var(--gray); margin-bottom:8px;}
+
+/* la tarjeta, con la piel de .faq-item */
+.hor{display:flex; align-items:center; gap:12px; padding:14px 16px; background:#FAFBFD; border:1px solid var(--line);
+  border-radius:var(--r); box-shadow:var(--shadow);}
+.hor .tx{min-width:0; flex:1 1 auto;}
+.hor .t{font-size:13px; font-weight:700; color:var(--ink);}
+.hor .h{font-size:12.5px; color:var(--gray); line-height:1.5;}
+.ic{width:26px; height:26px; border-radius:7px; background:var(--block); color:var(--navy2); display:grid; place-items:center; flex:none;}
+.ic svg, .mini svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+/* el icono como en la lista de Control y estadísticas */
+.ic.osc{width:34px; height:34px; border-radius:9px; background:var(--navy); color:#fff;}
+.ic.osc svg{width:18px; height:18px;}
+
+/* 2 · abierto o cerrado */
+.estado{display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:700; border-radius:20px; padding:5px 11px; white-space:nowrap; flex:none;}
+.estado::before{content:""; width:8px; height:8px; border-radius:50%; background:currentColor;}
+.estado.abierto{background:var(--good-bg); color:var(--good);}
+.estado.cerrado{background:var(--line-soft); color:var(--gray);}
+.estado span{font-weight:500;}
+
+/* 3 · la semana */
+.semana{display:flex; gap:5px; flex:none;}
+.semana i{font-style:normal; width:38px; padding:6px 0 5px; border-radius:8px; text-align:center; font-size:11px; font-weight:700;
+  background:var(--line-soft); color:var(--gray-soft);}
+.semana i.si{background:var(--navy); color:#fff;}
+.semana i.hoy{box-shadow:0 0 0 2px #fff, 0 0 0 4px var(--navy2);}
+.horas{font-size:13px; font-weight:700; color:var(--ink); white-space:nowrap;}
+.horas small{display:block; font-size:11px; font-weight:400; color:var(--gray);}
+
+/* 4 · en tu hora */
+.tuya{display:flex; align-items:center; gap:6px; margin-top:4px; font-size:12px; color:var(--navy2); font-weight:600;}
+.mini{width:14px; height:14px; flex:none;}
+.mini svg{width:14px; height:14px;}
+
+/* 5 · una línea */
+.linea{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--gray); padding:2px 0 4px;}
+.linea b{color:var(--ink); font-weight:600;}
+.linea .mini{color:var(--navy2);}
+.tabs{display:flex; gap:6px; margin-top:12px; flex-wrap:wrap;}
+.tabs span{font-size:12px; font-weight:600; padding:7px 12px; border-radius:8px; background:#fff; border:1px solid var(--line); color:var(--gray);}
+.tabs span.on{background:var(--navy); border-color:var(--navy); color:#fff;}
+
+/* la recomendada, a lo ancho del teléfono */
+.hor.envuelve{flex-wrap:wrap;}
+.hor.envuelve .tx{flex:1 1 calc(100% - 50px);}
+.hor.envuelve .estado{margin-left:46px;}
+</style>
+</head>
+<body>
+<div class="mq-cartel"><b>Maqueta · no es la aplicación</b><span>El horario de atención de Ayuda y guía: la de hoy y cinco formas, en el ancho real de la pantalla. No toca el panel.</span></div>
+<main>
+  <p class="intro">Hoy la tarjeta dice el horario, pero <b>no contesta lo que de verdad se pregunta quien la lee</b>: ¿me atienden ahora?
+    Y quien escribe desde fuera de Venezuela tiene que hacer la cuenta de la hora él solo. Las cinco formas van de la más parecida
+    a la de hoy a la más distinta; al final, la que recomiendo, que junta tres.</p>
+
+  <section class="idea">
+    <h3><span class="n hoy">·</span>La de hoy</h3>
+    <p>Como se ve ahora, para comparar: el reloj en un cuadrito casi blanco que apenas se distingue del fondo.</p>
+    <div class="fondo">
+      <div class="pag">Ayuda y guía</div>
+      <div class="hor">
+        <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        <div class="tx"><div class="t">Horario de atención</div><div class="h">De lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="idea">
+    <h3><span class="n">1</span>El icono en azul oscuro</h3>
+    <p>Lo mínimo: todo igual, pero el reloj en el <b>cuadro azul oscuro con el dibujo blanco</b>, el mismo de la lista de Control y
+      estadísticas, y un poco más grande. La tarjeta deja de verse apagada sin cambiar nada más.</p>
+    <div class="fondo">
+      <div class="pag">Ayuda y guía</div>
+      <div class="hor">
+        <span class="ic osc"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        <div class="tx"><div class="t">Horario de atención</div><div class="h">De lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="idea">
+    <h3><span class="n">2</span>Abierto o cerrado, ahora</h3>
+    <p>A la derecha, una etiqueta que contesta la pregunta de verdad: <b>«Abierto ahora · cierra a las 5:00 p. m.»</b> en verde, o
+      <b>«Cerrado · abre el lunes a las 8:00 a. m.»</b> en gris. El panel la calcula con la hora de Venezuela (UTC−4, sin cambio de
+      horario), así que sale bien desde cualquier país.</p>
+    <div class="fondo">
+      <div class="pag">Ayuda y guía</div>
+      <div class="hor">
+        <span class="ic osc"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        <div class="tx"><div class="t">Horario de atención</div><div class="h">De lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela.</div></div>
+        <span class="estado abierto">Abierto ahora <span>· cierra a las 5:00 p. m.</span></span>
+      </div>
+      <div class="hor" style="margin-top:10px">
+        <span class="ic osc"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        <div class="tx"><div class="t">Horario de atención</div><div class="h">De lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela.</div></div>
+        <span class="estado cerrado">Cerrado <span>· abre el lunes a las 8:00 a. m.</span></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="idea">
+    <h3><span class="n">3</span>La semana a la vista</h3>
+    <p>Los días como <b>siete cuadritos</b>: de lunes a viernes en azul oscuro, sábado y domingo apagados, y <b>hoy con un anillo</b>.
+      A la derecha, las horas en grande. Se entiende de un vistazo sin leer la frase; ocupa más y en el teléfono pasa a dos filas.</p>
+    <div class="fondo">
+      <div class="pag">Ayuda y guía</div>
+      <div class="hor">
+        <span class="ic osc"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        <div class="tx"><div class="t">Horario de atención</div><div class="h">Hora de Venezuela</div></div>
+        <div class="semana" aria-label="De lunes a viernes">
+          <i class="si">lun</i><i class="si">mar</i><i class="si hoy">mié</i><i class="si">jue</i><i class="si">vie</i><i>sáb</i><i>dom</i>
+        </div>
+        <div class="horas">8:00 a. m. – 5:00 p. m.<small>Sábados y domingos, cerrado</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="idea">
+    <h3><span class="n">4</span>Con tu hora</h3>
+    <p>Para el inversionista que escribe desde fuera: debajo de la frase, <b>el mismo horario en su hora</b>, con la ciudad que da su
+      navegador. Desde Madrid, de 2:00 p. m. a 11:00 p. m. Si está en Venezuela, la línea no sale.</p>
+    <div class="fondo">
+      <div class="pag">Ayuda y guía</div>
+      <div class="hor">
+        <span class="ic osc"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        <div class="tx"><div class="t">Horario de atención</div><div class="h">De lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela.</div>
+          <div class="tuya"><span class="mini"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg></span>En tu hora (Madrid): de 2:00 p. m. a 11:00 p. m.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="idea">
+    <h3><span class="n">5</span>Una línea, sin tarjeta</h3>
+    <p>Lo más ligero: el horario es un dato, no algo que se pulsa, así que pasa a <b>una línea gris bajo el título</b>, con un reloj
+      pequeño. La pantalla empieza directamente por las pestañas.</p>
+    <div class="fondo">
+      <div class="pag" style="margin-bottom:4px">Ayuda y guía</div>
+      <div class="linea"><span class="mini"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        <span><b>Atendemos</b> de lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela.</span></div>
+      <div class="tabs"><span class="on">Preguntas frecuentes</span><span>Dónde hacer las diligencias</span><span>Pasos y recaudos de cada trámite</span><span>SAPI</span></div>
+    </div>
+  </section>
+
+  <section class="idea">
+    <h3><span class="n">R</span>La que recomiendo: 1 + 2 + 4 <span class="rec">Recomendada</span></h3>
+    <p>El <b>icono oscuro</b> de la 1, la etiqueta de <b>abierto o cerrado</b> de la 2 y <b>tu hora</b> de la 4. Sigue siendo la misma
+      tarjeta de una línea, pero contesta las dos preguntas que hoy se quedan sin respuesta: ¿me atienden ahora? y ¿a qué hora es
+      eso para mí? Debajo, cómo queda a lo ancho de un teléfono: la etiqueta baja debajo del texto.</p>
+    <div class="fondo">
+      <div class="dos">
+        <div>
+          <div class="pag">Ayuda y guía</div>
+          <div class="hor">
+            <span class="ic osc"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+            <div class="tx"><div class="t">Horario de atención</div><div class="h">De lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela.</div>
+              <div class="tuya"><span class="mini"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg></span>En tu hora (Madrid): de 2:00 p. m. a 11:00 p. m.</div>
+            </div>
+            <span class="estado abierto">Abierto ahora <span>· cierra a las 5:00 p. m.</span></span>
+          </div>
+        </div>
+        <div class="tel">
+          <small>En el teléfono</small>
+          <div class="hor envuelve">
+            <span class="ic osc"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+            <div class="tx"><div class="t">Horario de atención</div><div class="h">De lunes a viernes, de 8:00 a. m. a 5:00 p. m., hora de Venezuela.</div>
+              <div class="tuya"><span class="mini"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg></span>En tu hora (Madrid): de 2:00 p. m. a 11:00 p. m.</div>
+            </div>
+            <span class="estado cerrado">Cerrado <span>· abre el lunes a las 8:00 a. m.</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

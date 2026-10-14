@@ -346,7 +346,11 @@ const SALTOS = new Set([
      2.7): su nombre es el del organismo, «Servicio Autónomo de Contraloría
      Sanitaria», con sus mayúsculas, y en inglés queda en menos de seis
      palabras («Autonomous Health Comptroller Service»). */
-  'c48.name'
+  'c48.name',
+  /* Y los finales de la etiqueta del horario de Ayuda y guía (14-10-2026),
+     que van detrás de « · »: «Abierto ahora · cierra a las 5:00 p. m.»,
+     «Cerrado · abre el lunes a las 8:00 a. m.». */
+  'ay_hor_cierra', 'ay_hor_abre_hoy', 'ay_hor_abre_man', 'ay_hor_abre_dia'
 ]);
 
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\s*/gu;

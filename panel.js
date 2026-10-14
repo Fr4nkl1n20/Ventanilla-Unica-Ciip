@@ -29642,6 +29642,87 @@ applyLang(idiomaParaMi());
       });
   }
 
+  /* El horario de atención del CIIP, en hora de Venezuela (UTC-4 todo el
+     año): de lunes (1) a viernes (5), de 8:00 a 17:00, en minutos del día.
+     Es lo que dice la frase ay_hor; la frase se cambia desde «Editar
+     textos» y esto no, así que si un día cambia el horario hay que cambiar
+     las dos. No sabe de feriados: un feriado entre semana dice «Abierto». */
+  var HORARIO_DE_ATENCION = {dias: [1, 2, 3, 4, 5], desde: 8 * 60, hasta: 17 * 60};
+  var ayHorReloj = null;
+
+  /* Las horas, en el idioma de turno; el español con a. m. / p. m., como la
+     frase de arriba («de 8:00 a. m. a 5:00 p. m.»). */
+  function locDeLaHora(){ return curLang === 'es' ? 'es-VE' : localeDeAhora(); }
+
+  /* Hoy en Venezuela: el día (0 = domingo), el minuto y la medianoche de ese
+     día en Date.UTC. Se lee en UTC después de restar las cuatro horas. */
+  function hoyEnVenezuela(){
+    var ve = new Date(Date.now() - 240 * 60000);
+    return {dia: ve.getUTCDay(), min: ve.getUTCHours() * 60 + ve.getUTCMinutes(),
+            cero: Date.UTC(ve.getUTCFullYear(), ve.getUTCMonth(), ve.getUTCDate())};
+  }
+
+  /* «5:00 p. m.»: el minuto m del día cero de Venezuela, dicho en la zona
+     que se pida (Caracas si no se pide otra). '' si el navegador no sabe.
+     Con espacios que no parten: en el teléfono, «11:00» en una línea y
+     «p. m.» en la otra no se lee como una hora. */
+  function horaVe(cero, m, zona){
+    try {
+      return new Intl.DateTimeFormat(locDeLaHora(), {hour: 'numeric', minute: '2-digit',
+        timeZone: zona || 'America/Caracas'}).format(new Date(cero + (m + 240) * 60000))
+        .replace(/\s/g, ' ');
+    } catch(e){ return ''; }
+  }
+
+  /* «Abierto ahora · cierra a las 5:00 p. m.» o «Cerrado · abre el lunes a
+     las 8:00 a. m.», con la hora de Venezuela de este minuto. */
+  function pintaHorEstado(caja, u, es){
+    var H = HORARIO_DE_ATENCION, v = hoyEnVenezuela();
+    var abierto = H.dias.indexOf(v.dia) >= 0 && v.min >= H.desde && v.min < H.hasta;
+    var cab, resto;
+    if (abierto){
+      cab = u.ay_hor_abierto || es.ay_hor_abierto || '';
+      resto = String(u.ay_hor_cierra || es.ay_hor_cierra || '').replace('{h}', horaVe(v.cero, H.hasta));
+    } else {
+      /* Cuántos días faltan para abrir: 0 si hoy abre y aún es temprano. */
+      var k = 0;
+      if (!(H.dias.indexOf(v.dia) >= 0 && v.min < H.desde)){
+        for (k = 1; k < 7 && H.dias.indexOf((v.dia + k) % 7) < 0; k++){}
+      }
+      var dia = '';
+      try {
+        dia = new Intl.DateTimeFormat(locDeLaHora(), {weekday: 'long', timeZone: 'UTC'})
+          .format(new Date(v.cero + k * 86400000 + 12 * 3600000));
+      } catch(e){}
+      var pl = k === 0 ? (u.ay_hor_abre_hoy || es.ay_hor_abre_hoy)
+             : k === 1 ? (u.ay_hor_abre_man || es.ay_hor_abre_man)
+             : (u.ay_hor_abre_dia || es.ay_hor_abre_dia);
+      cab = u.ay_hor_cerrado || es.ay_hor_cerrado || '';
+      resto = String(pl || '').replace('{h}', horaVe(v.cero, H.desde)).replace('{dia}', dia);
+    }
+    caja.className = 'ay-hor-est ' + (abierto ? 'abierto' : 'cerrado');
+    caja.textContent = '';
+    caja.appendChild(el('b', null, cab));
+    if (resto) caja.appendChild(el('span', null, ' · ' + resto));
+  }
+
+  /* «En tu hora (Madrid): de 2:00 p. m. a 11:00 p. m.», o '' si quien lee
+     está a la misma hora que Venezuela -Caracas, La Paz, Santo Domingo- o
+     su navegador no dice en qué zona está. La ciudad es la de la zona del
+     navegador, «Europe/Madrid» → «Madrid». */
+  function horarioEnTuHora(u, es){
+    var zona = '';
+    try { zona = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(e){ return ''; }
+    if (!zona || zona === 'America/Caracas') return '';
+    var H = HORARIO_DE_ATENCION, v = hoyEnVenezuela();
+    var desde = horaVe(v.cero, H.desde, zona), hasta = horaVe(v.cero, H.hasta, zona);
+    if (!desde || !hasta) return '';
+    if (desde === horaVe(v.cero, H.desde) && hasta === horaVe(v.cero, H.hasta)) return '';
+    var lugar = zona.indexOf('/') >= 0 ? zona.split('/').pop().replace(/_/g, ' ') : zona;
+    return String(u.ay_hor_tuya || es.ay_hor_tuya || '')
+      .replace('{lugar}', lugar).replace('{desde}', desde).replace('{hasta}', hasta);
+  }
+
   function pintaAyuda(){
     if (!ayLista) return;
     var u = T();
@@ -29665,8 +29746,31 @@ applyLang(idiomaParaMi());
       horH.setAttribute('data-ui', 'ay_hor');
       horTxt.appendChild(horT);
       horTxt.appendChild(horH);
+      /* Y debajo, el mismo horario en la hora de quien lee, y a la derecha
+         si se atiende ahora (Franklin Reyes, 14-10-2026, la R de la maqueta
+         horario-de-atencion). */
+      var tuya = horarioEnTuHora(u, es);
+      if (tuya){
+        var horTu = el('div', 'ay-hor-tu');
+        var gl = el('span', 'ay-hor-gl');
+        gl.setAttribute('aria-hidden', 'true');
+        gl.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg>';
+        horTu.appendChild(gl);
+        horTu.appendChild(document.createTextNode(tuya));
+        horTxt.appendChild(horTu);
+      }
       hor.appendChild(horTxt);
+      var horEst = el('span', 'ay-hor-est');
+      horEst.id = 'ayHorEstado';
+      pintaHorEstado(horEst, u, es);
+      hor.appendChild(horEst);
       ayHor.appendChild(hor);
+      /* A las 5:00 p. m. hay que pasar a «Cerrado» sin que nadie repinte
+         Ayuda: se mira cada minuto, y solo la etiqueta. */
+      if (!ayHorReloj) ayHorReloj = setInterval(function(){
+        var e = document.getElementById('ayHorEstado');
+        if (e) pintaHorEstado(e, T(), ((window.CIIP_PASOS || {}).ui || {}).es || {});
+      }, 60000);
     }
 
     /* 0b · las pestañas: se pintan al final, cuando ya se sabe cuántas

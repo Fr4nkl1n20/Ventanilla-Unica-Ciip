@@ -1951,13 +1951,39 @@ body.editando-textos .faq-item.ay-sin{display:block;}
 /* El horario de atencion: una tarjeta como las preguntas, que no se pliega,
    con el reloj donde las preguntas llevan el numero (con su propia clase:
    la prueba de las cifras mide el texto de cada .qi, y el reloj no tiene). */
-.faq-item.ay-hor{display:flex; align-items:center; gap:11px; padding:14px 16px; margin-bottom:18px;}
-.ay-hor-ic{width:26px; height:26px; border-radius:7px; background:var(--block); color:var(--navy2);
+/* Desde el 14-10-2026, la R de la maqueta horario-de-atencion (Franklin
+   Reyes): el reloj en el cuadro azul oscuro con el dibujo blanco, como la
+   lista de Control y estadísticas; debajo de la frase, el horario en la
+   hora de quien lee; y a la derecha, si se atiende ahora. */
+#ayHorario{container-type:inline-size; container-name:ay-hor;}
+.faq-item.ay-hor{display:flex; align-items:center; gap:12px; padding:14px 16px; margin-bottom:18px;}
+.ay-hor-ic{width:34px; height:34px; border-radius:9px; background:var(--navy); color:#fff;
   display:flex; align-items:center; justify-content:center; flex:none;}
-.ay-hor-ic svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2;
+.ay-hor-ic svg{width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2;
   stroke-linecap:round; stroke-linejoin:round;}
+.ay-hor-txt{flex:1 1 auto; min-width:0;}
 .ay-hor-t{font-size:var(--fs-seccion); font-weight:700; color:var(--ink);}
 .ay-hor-h{font-size:var(--fs-parrafo); color:var(--gray); line-height:1.5;}
+.ay-hor-tu{display:flex; align-items:center; gap:6px; margin-top:4px; font-size:var(--fs-parrafo);
+  font-weight:600; color:var(--navy2); line-height:1.4;}
+.ay-hor-gl{display:flex; flex:none;}
+.ay-hor-gl svg{width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2;
+  stroke-linecap:round; stroke-linejoin:round;}
+/* Abierto en verde, cerrado en gris, y la palabra siempre: el color no va
+   nunca solo. */
+.ay-hor-est{display:inline-flex; align-items:center; gap:7px; flex:none; white-space:nowrap;
+  border-radius:20px; padding:5px 11px; font-size:var(--fs-parrafo); line-height:1.35;}
+.ay-hor-est::before{content:""; width:8px; height:8px; border-radius:50%; background:currentColor; flex:none;}
+.ay-hor-est b{font-weight:700;}
+.ay-hor-est.abierto{background:var(--good-bg); color:var(--good);}
+.ay-hor-est.cerrado{background:var(--line-soft); color:var(--gray);}
+/* Estrecho, la etiqueta baja debajo del texto, alineada con él, y puede
+   partir de línea en vez de salirse. */
+@container ay-hor (max-width:560px){
+  .faq-item.ay-hor{flex-wrap:wrap;}
+  .ay-hor-txt{flex-basis:calc(100% - 46px);}
+  .ay-hor-est{margin-left:46px; white-space:normal;}
+}
 
 /* Ayuda y guía en tres pestañas, con tarjetas abiertas (idea 5 de
    maquetas/ayuda-categorias.html, 8-10-2026). */
