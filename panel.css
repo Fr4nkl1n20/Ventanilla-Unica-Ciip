@@ -2577,8 +2577,12 @@ body[data-vista="citas"] .fase-bar{display:none;}
    El fondo es el velo de la caja (Franklin Reyes, 29-9-2026), pero puesto
    encima del gris del panel: la cabecera se queda fija y las filas pasan
    por debajo al rodar; con el velo solo, se leerian a traves de ella. */
+/* Los títulos de las columnas, sin mayúsculas forzadas y en la tinta casi
+   negra, como los de Control y estadísticas (Franklin Reyes, 14-10-2026,
+   Citas y agenda: «aquí tengo esto en mayúscula»). Igual en .tabla th, más
+   abajo: las cuatro tablas se ven iguales. */
 #mtTabla th{position:sticky; top:0; z-index:2; background:linear-gradient(var(--tr-velo), var(--tr-velo)), var(--block); padding:11px 14px;
-  font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--gray);
+  font-size:var(--fs-rotulo); font-weight:700; color:var(--ink);
   border-bottom:0; box-shadow:inset 0 -1px 0 var(--line);}
 #mtTabla th .th-orden{font-size:inherit; font-weight:inherit; letter-spacing:inherit; text-transform:inherit;}
 #mtTabla th .th-orden .flecha{opacity:.35;}
@@ -2680,8 +2684,8 @@ body[data-vista="citas"] .fase-bar{display:none;}
 /* Como la de #mtTabla: el velo encima del gris, opaco para que las filas
    no se lean a traves de la cabecera fija (Franklin Reyes, 29-9-2026). */
 .tabla th{position:sticky; top:0; z-index:2; background:linear-gradient(var(--tr-velo), var(--tr-velo)), var(--block); padding:11px 14px;
-  font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em; text-transform:uppercase;
-  color:var(--gray); border-bottom:0; box-shadow:inset 0 -1px 0 var(--line);}
+  font-size:var(--fs-rotulo); font-weight:700;
+  color:var(--ink); border-bottom:0; box-shadow:inset 0 -1px 0 var(--line);}
 .tabla th .th-orden{font-size:inherit; font-weight:inherit; letter-spacing:inherit; text-transform:inherit;}
 .tabla th .th-orden .flecha{opacity:.35;}
 .tabla th[aria-sort] .th-orden{color:var(--navy);}
