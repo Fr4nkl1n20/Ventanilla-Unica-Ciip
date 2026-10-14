@@ -1970,13 +1970,14 @@ body.editando-textos .faq-item.ay-sin{display:block;}
 .ay-hor-gl svg{width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2;
   stroke-linecap:round; stroke-linejoin:round;}
 /* Abierto en verde, cerrado en gris, y la palabra siempre: el color no va
-   nunca solo. */
+   nunca solo. Sin relleno (Franklin Reyes, 14-10-2026: «¿podemos quitar el
+   relleno verde?»): el punto y la letra dicen el color, sin píldora. */
 .ay-hor-est{display:inline-flex; align-items:center; gap:7px; flex:none; white-space:nowrap;
-  border-radius:20px; padding:5px 11px; font-size:var(--fs-parrafo); line-height:1.35;}
+  font-size:var(--fs-parrafo); line-height:1.35;}
 .ay-hor-est::before{content:""; width:8px; height:8px; border-radius:50%; background:currentColor; flex:none;}
 .ay-hor-est b{font-weight:700;}
-.ay-hor-est.abierto{background:var(--good-bg); color:var(--good);}
-.ay-hor-est.cerrado{background:var(--line-soft); color:var(--gray);}
+.ay-hor-est.abierto{color:var(--good);}
+.ay-hor-est.cerrado{color:var(--gray);}
 /* Estrecho, la etiqueta baja debajo del texto, alineada con él, y puede
    partir de línea en vez de salirse. */
 @container ay-hor (max-width:560px){
