@@ -3064,6 +3064,19 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .combo-list li mark{background:transparent; color:var(--navy2); font-weight:700;}
 .combo-vacio{padding:11px 10px; font-size:var(--fs-parrafo); color:var(--gray-soft); cursor:default;}
 .combo-vacio:hover{background:transparent;}
+/* La flecha del desplegable (14-10-2026), dentro del campo a la derecha
+   como la de un <select>, y hacia arriba con la lista abierta. Es un botón:
+   abre la lista entera (comboBusca). */
+.combo > input:not([type="hidden"]){padding-right:36px;}
+.combo-flecha{position:absolute; top:0; right:0; bottom:0; width:36px; margin:0; padding:0;
+  border:0; background:none; color:var(--gray); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;}
+.combo-flecha::before{content:""; width:7px; height:7px; box-sizing:border-box;
+  border-right:2px solid currentColor; border-bottom:2px solid currentColor;
+  transform:translateY(-2px) rotate(45deg); transition:transform .15s;}
+.combo:has(> input[aria-expanded="true"]) .combo-flecha::before{transform:translateY(2px) rotate(225deg);}
+.combo-flecha:hover{color:var(--ink);}
+.combo:has(> input:disabled) .combo-flecha{display:none;}
 
 /* Tu foto. AHORA sí es un círculo, y eso dice de qué va: es la que sale
    en el panel para reconocerte, no un recaudo. Antes este hueco era 4:5

@@ -14813,7 +14813,9 @@ applyLang(idiomaParaMi());
       entrada.setAttribute('aria-expanded', 'false');
       marcado = -1;
     }
-    function pinta(q){
+    /* entera: sin el tope de 80, para la flecha, que promete la lista
+       entera; escribiendo, 80 sobran. */
+    function pinta(q, entera){
       var qn = llano(q);
       var todos = op.items();
       visibles = qn ? todos.filter(function(x){ return op.busca(x).indexOf(qn) >= 0; })
@@ -14828,7 +14830,7 @@ applyLang(idiomaParaMi());
         v.setAttribute('role', 'presentation');
         lista.appendChild(v);
       }
-      visibles.slice(0, 80).forEach(function(x, idx){
+      visibles.slice(0, entera ? visibles.length : 80).forEach(function(x, idx){
         var li = el('li');
         li.setAttribute('role', 'option');
         li.dataset.i = idx;
@@ -14879,6 +14881,41 @@ applyLang(idiomaParaMi());
         if (lista.classList.contains('open')){ e.stopPropagation(); cierra(); }
       }
     });
+
+    /* La flecha de la derecha (Franklin Reyes, 14-10-2026: «no sale la
+       flechita como para indicar que es un desplegable»). Dice que hay una
+       lista, y al pulsarla la abre ENTERA aunque ya haya algo escrito: con
+       «Venezuela» en la casilla, entrar en ella enseña solo Venezuela, y
+       quien pulsa una flecha espera ver todos. Con la lista abierta, la
+       cierra. Fuera del tabulador: con el teclado, la flecha abajo ya abre
+       la lista. */
+    var caja = entrada.parentNode;
+    if (caja && caja.classList && caja.classList.contains('combo') && !caja.querySelector('.combo-flecha')){
+      var flecha = el('button', 'combo-flecha');
+      flecha.type = 'button';
+      flecha.tabIndex = -1;
+      flecha.setAttribute('aria-hidden', 'true');
+      flecha.addEventListener('mousedown', function(e){
+        e.preventDefault();          /* el campo no pierde el foco */
+        if (entrada.disabled || entrada.readOnly) return;
+        if (lista.classList.contains('open')){ cierra(); return; }
+        if (document.activeElement !== entrada) entrada.focus();
+        pinta('', true);
+        /* Y abierta en lo que ya está elegido, marcado: Enter lo deja. Se
+           rueda solo la lista, no con scrollIntoView: eso movía también la
+           ventana del perfil, y el campo con su flecha se iba de sitio. */
+        var ya = entrada.value, filas = lista.querySelectorAll('li[role="option"]');
+        for (var i = 0; ya && i < visibles.length; i++){
+          if (op.texto(visibles[i]) === ya && filas[i]){
+            filas[i].classList.add('sel');
+            marcado = i;
+            lista.scrollTop = filas[i].offsetTop - (lista.clientHeight - filas[i].offsetHeight) / 2;
+            break;
+          }
+        }
+      });
+      caja.appendChild(flecha);
+    }
 
     return {pinta: pinta, cierra: cierra,
             abierta: function(){ return lista.classList.contains('open'); }};
