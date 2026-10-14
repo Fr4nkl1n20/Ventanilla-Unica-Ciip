@@ -5835,7 +5835,9 @@ applyLang(idiomaParaMi());
        casillas, del pasaporte de otra persona. */
     numero_pasaporte:      ['pasaporte', 'pasaporte_dependiente'],
     pais_emisor:           ['pasaporte', 'pasaporte_dependiente'],
-    vence_pasaporte:       ['pasaporte'],
+    /* vence_pasaporte salió el 14-10-2026: ningún formulario lo pregunta
+       ya (las visas dejaron de pedirlo). VIGENCIA_MINIMA lo sigue sabiendo
+       para el día que vuelva; entonces se le devuelve aquí su pasaporte. */
     numero_documento:      ['cedula', 'pasaporte'],
     fecha_nacimiento:      ['cedula', 'pasaporte', 'pasaporte_dependiente'],
     nombre_familiar:       ['pasaporte_dependiente'],
@@ -5849,8 +5851,9 @@ applyLang(idiomaParaMi());
     apellidos:             ['pasaporte', 'cedula'],
     nacionalidad:          ['pasaporte'],
 
-    /* la visa estampada */
-    numero_visa:           ['visa'],
+    /* La visa estampada (numero_visa, del papel visa) salió el 14-10-2026: la
+       casilla ya no está en ningún formulario y ningún trámite pide la
+       visa como papel -la c1 dejó de emitirla-. */
 
     /* la licencia de conducir extranjera */
     numero_licencia:       ['licencia_extranjera'],
@@ -5868,8 +5871,9 @@ applyLang(idiomaParaMi());
 
     /* los comprobantes de domicilio */
     /* El contrato de arrendamiento y el recibo de un servicio dicen donde
-       vives: son los dos papeles que pide la constancia de domicilio. */
-    direccion_vzla:        ['domicilio', 'arrendamiento', 'recibo_servicio'],
+       vives: son los dos papeles que pide la constancia de domicilio. El
+       papel domicilio, suelto, salió el 14-10-2026: ningún trámite lo pide. */
+    direccion_vzla:        ['arrendamiento', 'recibo_servicio'],
     ciudad:                ['arrendamiento', 'recibo_servicio'],
     municipio:             ['arrendamiento', 'recibo_servicio'],
 
