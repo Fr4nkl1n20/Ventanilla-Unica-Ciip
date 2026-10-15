@@ -2687,12 +2687,17 @@
      mas no se nota en ninguna prueba: todo sigue verde y la pantalla
      tarda el doble solo en la maquina del que lo usa. Se conto, y habia
      uno de mas en CADA tarjeta. ─────────────────────────────────────── */
-  window.CIIP_VIAJES = {getUser:0, consultas:0, tablas:[]};
+  window.CIIP_VIAJES = {getUser:0, consultas:0, tablas:[], detalle:[]};
 
   function consulta(tabla){
     var api = {}, op = {}, contado = false;
-    ['neq','is','limit','range']
+    ['neq','is','range']
       .forEach(function(m){ api[m] = function(){ return api; }; });
+    /* limit se APUNTA (15-10-2026), aunque no recorte nada: lo que separa
+       la cuenta del menú de la bandeja entera de «Documentos del equipo»,
+       o la bóveda de un inversionista de los papeles de la oficina, es si
+       la consulta lleva tope y qué columnas pide. */
+    api.limit = function(n){ op.limite = n; return api; };
     /* order era de los que no se miraban. Ahora si: hay consultas que
        dependen del orden para quedarse con la primera fila, y un falso
        que devuelve siempre el mismo orden daria verde a un panel que se
@@ -2758,7 +2763,14 @@
       /* Se cuenta AQUI y no en from(): un constructor que se arma y no se
          llega a esperar no sale a la red. Y una sola vez por consulta. */
       if (!contado){ contado = true;
-        window.CIIP_VIAJES.consultas++; window.CIIP_VIAJES.tablas.push(tabla); }
+        window.CIIP_VIAJES.consultas++; window.CIIP_VIAJES.tablas.push(tabla);
+        /* Y QUÉ se pidió, no solo de qué tabla (15-10-2026): «al entrar no
+           se pide lo de las pantallas que no están a la vista» solo se
+           puede comprobar distinguiendo una consulta de otra de la misma
+           tabla. */
+        window.CIIP_VIAJES.detalle.push({tabla: tabla, cols: op.cols || '',
+          eq: op.eq ? JSON.parse(JSON.stringify(op.eq)) : null, limite: op.limite});
+      }
       return Promise.resolve(respuesta(tabla, op)).then(bien, mal);
     };
     return api;
@@ -3284,6 +3296,17 @@
      vez que se corriera el contador ya vendría apagado y la prueba de
      "cuenta 3 avisos" pasaría a rojo sin que nadie hubiera tocado nada. */
   try { window.localStorage.removeItem('ciip.avisos.' + USUARIO.id); } catch(e){}
+  /* El rol de la última vez (15-10-2026). El panel lo apunta cuando llega la
+     fila de perfiles y, si era del equipo, espera tras el velo la vez
+     siguiente en vez de enseñar el menú del inversionista. El pase 'admin'
+     entra como quien YA entró antes de administrador, con el rol apuntado;
+     todos los demás, como la primera vez. Y se pone o se quita aquí, en cada
+     tanda: el perfil del navegador de cada pase se guarda de una tanda a
+     otra, y sin esto la segunda no probaría lo mismo que la primera. */
+  try {
+    if (esAdmin) window.localStorage.setItem('ciip.rol.' + USUARIO.id, 'admin');
+    else window.localStorage.removeItem('ciip.rol.' + USUARIO.id);
+  } catch(e){}
   /* Y sin memoria de lo emitido ya abierto (30-9-2026): «Tu documento» se
      va tras abrirlo una vez, y la tanda siguiente no lo encontraría. */
   try {

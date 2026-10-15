@@ -197,6 +197,11 @@
      rojo por pasos que no tenian nada que ver. */
   var VIAJES_ARRANQUE = null;
 
+  /* LA ENTRADA (15-10-2026): lo que se pidió y lo que se vio al entrar,
+     apuntado en cuanto el panel contesta y antes de que la cadena toque
+     nada. Ver entradaMira. */
+  var ENTRADA = {};
+
   /* Cuándo se puso al día el panel por última vez, sea por lo que sea. Lo
      necesita alDiaVuelve: el panel se pone al día solo cada minuto, y si
      ese minuto cae justo antes de la prueba, la guarda de veinte segundos
@@ -217,12 +222,22 @@
   cuandoConteste(function(){
     if (ANCHOS) return anchosDentro();
     if (window.CIIP_VIAJES) VIAJES_ARRANQUE = window.CIIP_VIAJES.getUser;
+    /* Y lo que se pidió para entrar, antes de que la cadena pida nada. */
+    ENTRADA.detalle = ((window.CIIP_VIAJES && window.CIIP_VIAJES.detalle) || []).slice();
+    ENTRADA.veloDespues = document.documentElement.classList.contains('ciip-verificando');
+    var nRv = document.getElementById('navRevisarN');
+    ENTRADA.cuentaRevisar = (nRv && !nRv.hidden) ? nRv.textContent.trim() : '';
+    try { ENTRADA.rolApuntado = window.localStorage.getItem('ciip.rol.u1'); } catch(e){ ENTRADA.rolApuntado = '(sin almacén)'; }
     /* El pliego PRIMERO, y no es capricho de orden: mientras su puerta
        esta puesta el panel no termina de pintarse -plDejaPasar guarda en
        una cola lo que va despues- asi que cualquier prueba que corriera
        antes miraria un panel a medio hacer. Se comprueba la puerta, se
        acepta, y desde ahi la tanda sigue como en cualquier otro pase. */
     enCadena([pliegoMira, pliegoIdioma, pliegoAcepta, pliegoCerrada,
+              /* La entrada (15-10-2026): lo apuntado al cargar, y la
+                 cuenta de «Documentos del equipo» contra su bandeja ANTES
+                 de que la cadena valide o rechace ningún papel. */
+              entradaMira, entradaRevisarAbre, entradaRevisarMira,
               sinPuertaDelSector, abreElPerfil, sectorEnElPerfil,
               pruebas, trasGuardar, citasAbre, citasPide,
               /* Los huecos solo en el pase 'huecos'; en los demas no hacen nada. */
@@ -13888,6 +13903,106 @@
      instante y el navegador sin ventana lleva un reloj virtual que salta.
      Un número de milisegundos sería un adorno. Lo que sí es verdad y no
      depende de ninguna máquina es CUÁNTAS veces se sale a la red. */
+  /* ═══════════ LA ENTRADA DEL ADMINISTRADOR (15-10-2026) ═══════════
+     «Está lenta para entrar en usuario de administrador, ¿por qué?»
+     (Franklin Reyes). Se midió con la base contestando 250 ms tarde, y eran
+     tres cosas: el menú y la portada del inversionista a la vista mientras
+     llegaba el rol; la cola del equipo pedida tres veces, y en fila; y
+     tablas enteras -los papeles de toda la oficina- para pantallas que no
+     estaban a la vista. Aquí no se mide el reloj -el de esta tanda es
+     virtual y salta-: se mide lo que se ve y lo que se pide. */
+  function entradaMira(){
+    var d = ENTRADA.detalle || [];
+    function hay(f){ return d.filter(f).length; }
+    function resumen(f){
+      return d.filter(f).map(function(x){ return x.tabla + '(' + x.cols + ')'; }).join(' · ') || '(nada)';
+    }
+
+    /* El velo: solo para quien la última vez fue del equipo. El instante de
+       antes no se puede mirar desde aquí -para cuando corre este guion, el
+       rol ya está pintado-, así que el guardián apunta POR QUÉ lo quitó:
+       al contestar la sesión, como siempre, o con el rol ya pintado. */
+    if (ES_ADMIN){
+      igual('entrada: el administrador de la vez anterior espera tras el velo hasta tener su menú, no ante el del inversionista',
+            window.CIIP_VELO_QUITADO, 'rol');
+    } else {
+      igual('entrada: quien no fue del equipo la última vez entra como siempre, sin esperar al rol',
+            window.CIIP_VELO_QUITADO, 'sesion');
+    }
+    igual('entrada: y el velo no se queda puesto', ENTRADA.veloDespues, false);
+    if (ES_ADMIN){
+      /* Y lo primero que ve es SU menú: el grupo de administración y lo del
+         equipo, sin la bóveda del inversionista, que no es suya. Es lo que
+         había a la vista en el instante de quitar el velo. */
+      var vm = window.CIIP_VELO_MENU || [];
+      ok('entrada: lo primero que ve el administrador es su menú, sin la bóveda del inversionista',
+         vm.indexOf('grupoAdmin') >= 0 && vm.indexOf('navConsultas') >= 0 &&
+         vm.indexOf('navHorario') >= 0 && vm.indexOf('navDocs') < 0,
+         vm.join(', ') || '(nada)', 'grupoAdmin, navConsultas y navHorario, sin navDocs');
+    }
+    /* El rol que manda es el de la base, y es ése el que se apunta. */
+    igual('entrada: el rol que contesta la base se apunta para la próxima vez',
+          ENTRADA.rolApuntado, ES_ADMIN ? 'admin' : (CASO === 'gestor' ? 'gestor' : 'inversionista'));
+    /* «Mi empresa», la tuya: sin el filtro, al equipo se le traían todas. */
+    ok('entrada: «Mi empresa» se pide por tu id, y no la de todos',
+       hay(function(x){ return x.tabla === 'empresas' && x.eq && x.eq.inversionista === 'u1'; }) > 0,
+       resumen(function(x){ return x.tabla === 'empresas'; }), 'empresas con inversionista = u1');
+
+    if (CASO === 'gestor'){
+      ok('entrada: al equipo no se le traen los papeles de toda la oficina para una bóveda que no tiene',
+         !hay(function(x){ return x.tabla === 'documentos' && x.cols === '*' && x.limite === undefined; }),
+         resumen(function(x){ return x.tabla === 'documentos'; }), 'sin documentos(*) sin tope');
+      ok('entrada: ni todos los enganches de documento con trámite',
+         !hay(function(x){ return x.tabla === 'tramite_documentos' && x.cols === 'documento, tramite'; }),
+         resumen(function(x){ return x.tabla === 'tramite_documentos'; }), 'sin tramite_documentos(documento, tramite)');
+      /* Una vez para las cifras del menú, y no tres. Al gestor, una más: el
+         panel lo lleva al entrar a «Por atender», y esa pantalla pide la
+         suya al abrirse, que es lo que tiene que hacer una pantalla. Antes
+         salían tres o cuatro, según en qué orden llegaran el perfil y la
+         página. */
+      igual('entrada: la cola del equipo se pide UNA vez para el menú, y no tres',
+            hay(function(x){ return x.tabla === 'citas' && x.eq && x.eq.estado === 'solicitada'; }),
+            ES_ADMIN ? 1 : 2);
+      igual('entrada: y sin gastar un viaje en preguntar quién eres', VIAJES_ARRANQUE, 0);
+      igual('entrada: la cuenta de «Documentos del equipo» sale de UNA consulta ligera',
+            hay(function(x){ return x.tabla === 'documentos' && x.cols === 'id, tipo, estado'; }), 1);
+      ok('entrada: y la cuenta sale en el menú', /^\d+$/.test(ENTRADA.cuentaRevisar),
+         ENTRADA.cuentaRevisar || '(vacía)', 'un número');
+    } else if (PASE === 'lleno' || PASE === 'vacio'){
+      /* Y al inversionista, su bóveda sí: en cuanto se sabe el rol. */
+      ok('entrada: al inversionista su bóveda sí se le pide al entrar',
+         hay(function(x){ return x.tabla === 'documentos' && x.cols === '*'; }) > 0,
+         resumen(function(x){ return x.tabla === 'documentos'; }), 'documentos(*)');
+    }
+  }
+
+  /* La cuenta del menú contra la bandeja: tiene que decir lo mismo, y la
+     bandeja entera se pide al ABRIRLA. Se mira antes de que la cadena
+     valide o rechace ningún papel, que si no las dos cifras serían de
+     momentos distintos. Se vuelve a donde estaba: al gestor el panel lo
+     deja en «Por atender» al entrar, y la cadena sigue desde ahí. */
+  var ENTRADA_HASH = null;
+  function entradaRevisarAbre(){
+    if (CASO !== 'gestor') return;
+    ENTRADA_HASH = location.hash;
+    ENTRADA.antesDeAbrir = window.CIIP_VIAJES ? window.CIIP_VIAJES.detalle.length : 0;
+    location.hash = 'revisar';
+  }
+  function entradaRevisarMira(sigue){
+    if (CASO !== 'gestor') return sigue();
+    esperaFilas('#rv .rv-filtro[data-f="cargado"] .n', 1, function(){
+      igual('entrada: la cuenta del menú al entrar es la de la bandeja',
+            parseInt(ENTRADA.cuentaRevisar, 10) || 0, rvPendientesN());
+      var luego = window.CIIP_VIAJES ? window.CIIP_VIAJES.detalle.slice(ENTRADA.antesDeAbrir || 0) : [];
+      ok('entrada: y la bandeja entera se pide al abrirla',
+         luego.some(function(x){ return x.tabla === 'documentos' && x.cols === '*' && x.limite === 500; }),
+         luego.map(function(x){ return x.tabla + '(' + x.cols + ')'; }).join(' · ') || '(nada)',
+         'documentos(*) con tope de 500');
+      location.hash = ENTRADA_HASH ? ENTRADA_HASH.slice(1) : '';
+      setTimeout(sigue, 300);
+    });
+  }
+
   function velocidadArranque(){
     if (CASO !== 'vacio') return;
     if (VIAJES_ARRANQUE === null)

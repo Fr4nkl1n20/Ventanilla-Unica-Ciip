@@ -139,9 +139,70 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
 
   function fuera(){ location.replace(RUTA_ACCESO); }
 
+  /* ── EL ROL DE LA ÚLTIMA VEZ, PARA NO ENSEÑAR EL MENÚ DE OTRO ──
+     Franklin Reyes, 15-10-2026: «Está lenta para entrar en usuario de
+     administrador, ¿por qué?». En su captura, con la página aún cargando,
+     el administrador veía el menú y la portada del INVERSIONISTA, en
+     inglés, y su menú llegaba después.
+
+     Es lo que hay escrito en el marcado: el menú del inversionista, con los
+     textos de respaldo. El del equipo lo pone panel.js cuando sabe el rol,
+     y panel.js es lo último que llega -1,8 MB-. Con 4 Mbit/s el velo se iba
+     a los 2,1 s y el menú del administrador salía a los 3,5 s: un segundo
+     y pico mirando una pantalla que no era la suya.
+
+     Pintar «el armazón bueno» antes no se puede: el menú del equipo lo arma
+     panel.js, que es justo lo que falta. Así que a quien la última vez fue
+     del equipo se le deja el velo neutro de «Verificando acceso…» hasta que
+     su rol está pintado, y al inversionista -o a quien entra por primera
+     vez- se le enseña como siempre.
+
+     Lo recordado SOLO decide si se espera con el velo puesto. No enseña ni
+     abre nada: el rol que manda es el de la fila de perfiles, como siempre,
+     y es al llegar esa fila cuando se quita el velo y se apunta el rol para
+     la próxima vez. Un administrador que ya no lo es espera una vez con el
+     velo y entra con su menú de ahora. */
+  var CLAVE_ROL = 'ciip.rol.';
+  var idDeLaSesion = '';
+  var relojVelo = null;
+  function rolRecordado(){
+    try { return window.localStorage.getItem(CLAVE_ROL + idDeLaSesion) || ''; } catch(e){ return ''; }
+  }
+  function recuerdaRol(rol){
+    if (!idDeLaSesion || !rol) return;
+    try { window.localStorage.setItem(CLAVE_ROL + idDeLaSesion, rol); } catch(e){}
+  }
+  /* Por qué se quitó, la primera vez: 'sesion' (como siempre), 'rol' (con
+     el rol de la base ya pintado), 'sinrol' (la base no dio fila),
+     'sinpanel' (panel.js no llegó a cargar) o 'tope'. Y qué renglones del
+     menú había a la vista en ese momento. A la vista para la tanda, que no
+     puede mirar el instante de antes: para cuando corre ella, el velo ya
+     se fue. */
+  function quitaVelo(porque){
+    if (relojVelo){ clearTimeout(relojVelo); relojVelo = null; }
+    if (!window.CIIP_VELO_QUITADO &&
+        document.documentElement.classList.contains('ciip-verificando')){
+      window.CIIP_VELO_QUITADO = porque || '';
+      window.CIIP_VELO_MENU = [].filter.call(
+        document.querySelectorAll('.sb-nav .sb-group[id], .sb-nav .sb-item[id]'),
+        function(e){ return !e.hidden; }).map(function(e){ return e.id; });
+    }
+    document.documentElement.classList.remove('ciip-verificando');
+  }
+  /* El tope es para la fila de perfiles, no para panel.js: si en seis
+     segundos la base no ha contestado, se entra con lo que haya. Cuando
+     contesta se quita el tope, y lo que queda por esperar es que termine
+     panel.js -o la página, si panel.js no llegara-, que siempre termina. */
+  function esperaAlRol(){
+    relojVelo = setTimeout(function(){ quitaVelo('tope'); }, 6000);
+  }
+
   sb.auth.getSession().then(function(res){
     if (res && res.data && res.data.session){
-      document.documentElement.classList.remove('ciip-verificando');
+      idDeLaSesion = res.data.session.user && res.data.session.user.id || '';
+      var r = rolRecordado();
+      if (r === 'admin' || r === 'gestor') esperaAlRol();
+      else quitaVelo('sesion');
       cargarPerfil(res.data.session.user);
     } else {
       fuera();
@@ -203,28 +264,86 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
     }
     pideMiPerfil()
       .then(function(r){
+        /* La base ya contestó: el tope del velo sobra (ver esperaAlRol). */
+        if (relojVelo){ clearTimeout(relojVelo); relojVelo = null; }
         if (r && r.data) aplicarPerfil(r.data.nombre_completo, r.data.pais, r.data.rol,
-                                       r.data.sector, !r.sinColumnaSector, r.data.bloqueado === true);
-        else if (r && r.error){
-          console.warn('[CIIP] No se pudo leer el perfil:', r.error.message);
-          /* Sin fila no hay rol que esperar. Sin esto, los tres relojes se
-             pasan cuatro segundos preguntando por algo que no va a venir. */
-          if (typeof PERFIL !== 'undefined') PERFIL.rolReal = true;
+                                       r.data.sector, !r.sinColumnaSector, r.data.bloqueado === true,
+                                       true);
+        else {
+          if (r && r.error){
+            console.warn('[CIIP] No se pudo leer el perfil:', r.error.message);
+            /* Sin fila no hay rol que esperar. Sin esto, los tres relojes se
+               pasan cuatro segundos preguntando por algo que no va a venir. */
+            if (typeof PERFIL !== 'undefined') PERFIL.rolReal = true;
+          }
+          /* Y sin fila no hay rol que pintar: el velo, fuera. */
+          quitaVelo('sinrol');
         }
       })
-      .catch(function(e){ console.warn('[CIIP] No se pudo leer el perfil:', e && e.message); });
+      .catch(function(e){ console.warn('[CIIP] No se pudo leer el perfil:', e && e.message); quitaVelo('sinrol'); });
   }
 
-  var reintentos = 0;
-  function aplicarPerfil(nombre, pais, rol, sector, sectorReal, bloqueada){
-    /* Este bloque va en el <head>, pero PERFIL y applyLang se definen en el
-       script del final del <body>. Si la sesión se resuelve antes de que el
-       navegador llegue allí, se espera en vez de reventar. */
+  /* Este bloque va en el <head>, pero PERFIL y applyLang se definen en el
+     script del final del <body>. Si la sesión se resuelve antes de que el
+     navegador llegue allí, se espera en vez de reventar.
+
+     SE ESPERA A QUE panel.js TERMINE, Y NO A UN RELOJ (15-10-2026). Antes
+     eran cien reintentos de 40 ms, compartidos por las dos llamadas -lo de
+     la sesión y la fila de perfiles-: unos dos segundos. Si panel.js
+     tardaba más que eso en llegar desde que contestaba la sesión, se rendía
+     y el perfil NO SE APLICABA NUNCA: sin nombre, sin idioma y sin rol, con
+     el menú del inversionista puesto hasta recargar. Medido con 1 Mbit/s:
+     panel.js llega 3,9 s después que la sesión, y el administrador se
+     quedaba para siempre en el panel de un inversionista.
+
+     Ahora lo que llega antes de tiempo se guarda, y se aplica en la vuelta
+     siguiente a que panel.js termine: su última línea llama a
+     CIIP_PANEL_CARGADO con un setTimeout de cero. Sin tope que se acabe,
+     y sin esperar al resto de la página. Y las dos llamadas se aplican
+     seguidas, en orden y en la misma vuelta, así que ya no se pinta en
+     medio un menú del inversionista -el de la primera, que no trae rol- que
+     la segunda tiene que corregir. DOMContentLoaded queda detrás, por si
+     panel.js se cortara antes de su última línea.
+
+     En la vuelta siguiente y no en la misma línea, a propósito: lo que
+     panel.js deja pendiente al terminar -el catálogo, las fichas- tiene
+     que pasar antes, como pasaba con el reloj. Aplicándolo en la misma
+     línea, el idioma del perfil llegaba antes que las fichas y cambiaba el
+     orden en que se pinta la portada: una prueba de los opcionales lo cazó.
+     Y no se espera a DOMContentLoaded a secas porque eso es esperar también
+     a textos-editables.js, que puede llegar bastante después que panel.js.
+
+     Los argumentos son los de aplicaYa, y un séptimo: true cuando la
+     llamada trae la fila de perfiles, que es la que sabe el rol. */
+  var enEspera = [];
+  function aplicaLoQueEspera(){
+    var cola = enEspera;
+    enEspera = [];
+    cola.forEach(function(a){
+      try { aplicarPerfil.apply(null, a); }
+      catch(e){ console.warn('[CIIP] No se pudo aplicar el perfil:', e && e.message); }
+    });
+  }
+  window.CIIP_PANEL_CARGADO = aplicaLoQueEspera;
+  document.addEventListener('DOMContentLoaded', aplicaLoQueEspera);
+
+  function aplicarPerfil(){
+    var args = arguments;
     if (typeof PERFIL === 'undefined' || typeof applyLang !== 'function'){
-      if (reintentos++ < 100){ setTimeout(function(){
-        aplicarPerfil(nombre, pais, rol, sector, sectorReal, bloqueada); }, 40); }
+      if (document.readyState === 'loading'){ enEspera.push(args); return; }
+      /* Ya cargó todo y panel.js no está: no hay menú que esperar. */
+      if (args[6]) quitaVelo('sinpanel');
       return;
     }
+    try { aplicaYa.apply(null, args); }
+    finally {
+      /* La fila de perfiles, ya pintada con su rol: se apunta para la
+         próxima vez, y fuera el velo (ver esperaAlRol). */
+      if (args[6]){ recuerdaRol(args[2]); quitaVelo('rol'); }
+    }
+  }
+
+  function aplicaYa(nombre, pais, rol, sector, sectorReal, bloqueada){
     /* nombre_completo es 'not null default \'\'' en la base, así que una
        cuenta creada fuera del registro —a mano en Supabase, o antes de que
        el formulario pidiera el nombre— llega con la cadena vacía. Antes

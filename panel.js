@@ -19207,11 +19207,15 @@ applyLang(idiomaParaMi());
   function cargaCola(){
     /* Antes de nada, quien pregunta. Sin esto la cola no sabe cuales son
        tuyos y el filtro "Mios" saldria siempre vacio. */
+    /* Con la sesión guardada y no con auth.getUser (15-10-2026), por lo
+       mismo que quienSoy y la tarjeta de un trámite: getUser es un viaje
+       entero a la red, y la cola entera lo esperaba antes de salir a pedir
+       nada. Lo que se quiere saber es tu id, para pintar «Míos»; quién
+       puede leer y cambiar qué lo sigue decidiendo la base. */
     if (!YO){
-      return sb.auth.getUser().then(function(r){
-        YO = (r && r.data && r.data.user && r.data.user.id) || null;
-        return cargaColaDeVerdad();
-      }).catch(function(){ return cargaColaDeVerdad(); });
+      return quienSoy().then(function(u){
+        YO = (u && u.id) || null;
+      }, function(){}).then(cargaColaDeVerdad);
     }
     return cargaColaDeVerdad();
   }
@@ -19226,20 +19230,39 @@ applyLang(idiomaParaMi());
     /* Los resueltos del montón «Listos», también a la vez (30-9-2026): su
        consulta no depende de ninguna otra y nunca falla hacia fuera. */
     var losListos = cargaListos();
+    /* LAS CITAS, LOS TRÁMITES Y LOS NOMBRES, TAMBIÉN A LA VEZ (15-10-2026).
+       Iban en fila -las citas, detrás los trámites y al final los nombres-
+       y ninguna de las tres necesita nada de las otras: se pedían en orden
+       porque así estaba escrito. Con el menú del equipo esperando a esta
+       carga para poner sus cifras, eran tres viajes de ida y vuelta en vez
+       de uno. Se espera a cada una donde antes se pedía, así que lo que se
+       hace con lo que llega no cambia; solo cuándo sale la pregunta.
+
+       Los nombres salen aunque luego la cola venga vacía y no se usen: es
+       una consulta más en ese caso, a la vez que las demás, a cambio de un
+       viaje menos en el de siempre. Nunca falla hacia fuera: sin nombres,
+       la cola sale igual, como antes. */
+    var lasCitas = Promise.resolve(sb.from('citas')
+      .select('id, inversionista, tipo_tramite, modo, desde, hasta, nota, creado_en')
+      .eq('estado', 'solicitada')
+      .order('creado_en', {ascending:true}));
+    var losTramites = Promise.resolve(sb.from('tramites')
+      .select('id, inversionista, tipo, estado, datos, creado_en, enviado_en, gestor')
+      .in('estado', CO_TRAE)
+      .order('creado_en', {ascending:true}))
+      /* Si las citas fallan, esta no se llega a esperar: sin el catch, su
+         propio fallo saldría por la consola como una promesa sin dueño. */
+      .catch(function(e){ return {data: null, error: e}; });
+    var losNombres = Promise.resolve(sb.from('perfiles').select('id, nombre_completo'))
+      .catch(function(){ return {data: []}; });
     /* Dos consultas y no un embebido: si la política de perfiles no está
        puesta, la segunda vuelve vacía y la cola sigue saliendo sin nombres,
        en vez de caerse entera por el nombre que falta. */
-    return sb.from('citas')
-      .select('id, inversionista, tipo_tramite, modo, desde, hasta, nota, creado_en')
-      .eq('estado', 'solicitada')
-      .order('creado_en', {ascending:true})
+    return lasCitas
       .then(function(r){
         if (r && r.error) throw r.error;
         enCola = (r.data || []).map(function(c){ c.nombre = ''; return c; });
-        return sb.from('tramites')
-          .select('id, inversionista, tipo, estado, datos, creado_en, enviado_en, gestor')
-          .in('estado', CO_TRAE)
-          .order('creado_en', {ascending:true})
+        return losTramites
           .then(function(rt){
             if (rt && rt.error) throw rt.error;
             /* Sin resueltos, aunque la base los mandara: los de «Listos»
@@ -19251,11 +19274,15 @@ applyLang(idiomaParaMi());
                devolvió y no debe importes, y pedir su historial entero
                -doscientos más- solo haría más lento el viaje y le metería
                a mideRespuestas trámites que ya no se contestan. */
+            /* Y las tres, a la vez (15-10-2026): cada una apunta lo suyo en
+               cada trámite -desde_en, nota_devuelta, IMPORTE_HOY- y ninguna
+               lee lo que apuntan las otras, así que en fila solo sumaban
+               viajes. Ninguna falla hacia fuera. */
             return losListos.then(function(listos){
               enRevision = activos.concat(listos);
-              return ponDesdeCuando(activos);
-            }).then(function(){ return ponNotasDevueltas(activos); })
-              .then(function(){ return cargaImportesDeLaCola(activos); });
+              return Promise.all([ponDesdeCuando(activos), ponNotasDevueltas(activos),
+                                  cargaImportesDeLaCola(activos)]);
+            });
           })
           .catch(function(e){ console.warn('[CIIP] cola de trámites:', e && e.message); enRevision = []; })
           .then(function(){
@@ -19267,8 +19294,9 @@ applyLang(idiomaParaMi());
                vez y pueden no estar todavía. */
             return lasConsultas.then(function(){
               if (!enCola.length && !enRevision.length && !consultas.length) return;
-              /* Un solo viaje para los nombres de las TRES colas. */
-              return sb.from('perfiles').select('id, nombre_completo')
+              /* Un solo viaje para los nombres de las TRES colas: el que
+                 salió arriba, a la vez que las demás. */
+              return losNombres
               .then(function(rp){
                 var de = {};
                 (rp.data || []).forEach(function(p){ de[p.id] = p.nombre_completo; });
@@ -22654,6 +22682,18 @@ applyLang(idiomaParaMi());
       rvElegido = null, rvRechazando = false, rvCargando = null,
       rvPersona = null, rvBusca = '', rvNotaDe = null;
 
+  /* Lo que emitió el organismo no se revisa: se entrega. Y el documento
+     para pagar la reserva tampoco: lo deja el propio equipo. Aparte desde
+     el 15-10-2026: lo usan la bandeja y la cuenta del menú, que tienen que
+     contar lo mismo. */
+  function rvSeRevisa(d){
+    return !!d && d.tipo !== 'resolucion' && d.tipo !== 'planilla_reserva_nombre' &&
+           d.tipo !== 'importe_dia' &&
+           /* Ni lo que el CIIP manda por la escalera de la marca. */
+           d.tipo !== 'busqueda_antecedentes' && d.tipo !== 'certificado_marca' &&
+           d.tipo !== 'constancia_ente';
+  }
+
   function rvCarga(){
     if (rvCargando) return rvCargando;
     rvCargando = Promise.all([
@@ -22663,15 +22703,7 @@ applyLang(idiomaParaMi());
       Promise.resolve(sb.from('tramites').select('id, tipo'))
     ]).then(function(rs){
       if (rs[0] && rs[0].error) throw rs[0].error;
-      /* Lo que emitió el organismo no se revisa: se entrega. Y el documento
-         para pagar la reserva tampoco: lo deja el propio equipo. */
-      rvDocs = ((rs[0] && rs[0].data) || []).filter(function(d){
-        return d && d.tipo !== 'resolucion' && d.tipo !== 'planilla_reserva_nombre' &&
-               d.tipo !== 'importe_dia' &&
-               /* Ni lo que el CIIP manda por la escalera de la marca. */
-               d.tipo !== 'busqueda_antecedentes' && d.tipo !== 'certificado_marca' &&
-               d.tipo !== 'constancia_ente';
-      });
+      rvDocs = ((rs[0] && rs[0].data) || []).filter(rvSeRevisa);
       rvNombres = {};
       ((rs[1] && rs[1].data) || []).forEach(function(p){ if (p && p.id) rvNombres[p.id] = p.nombre_completo || ''; });
       var tipoDe = {};
@@ -22692,8 +22724,12 @@ applyLang(idiomaParaMi());
     return rvCargando;
   }
 
+  /* rvLigeros: los mismos papeles con solo su tipo y su estado, de la
+     cuenta del menú (CIIP_CUENTA_REVISAR). Bastan para los números -el del
+     menú y los del mando-, y valen mientras no se abra la bandeja. */
+  var rvLigeros = null;
   function rvPendientes(){
-    return (rvDocs || []).filter(function(d){ return d.estado === 'cargado'; });
+    return (rvDocs || rvLigeros || []).filter(function(d){ return d.estado === 'cargado'; });
   }
 
   /* El número del renglón del menú: lo que queda por mirar. */
@@ -23299,10 +23335,37 @@ applyLang(idiomaParaMi());
     });
   };
   window.CIIP_REPINTA_REVISAR = function(){ if (rvDocs) rvPinta(); };
-  /* La cuenta del menú, en cuanto se sabe que eres del equipo. */
+  /* La cuenta del menú, en cuanto se sabe que eres del equipo.
+
+     CON UNA CONSULTA, Y NO CON LA BANDEJA ENTERA (15-10-2026). Esto pedía
+     rvCarga, que es lo que pinta «Documentos del equipo»: los 500 papeles
+     más nuevos con todas sus columnas, los nombres de todas las cuentas,
+     todos los enganches de documento con trámite y todos los trámites.
+     Cuatro consultas al entrar -tres de ellas de tablas enteras- para
+     escribir un número en el menú. Para el número basta el tipo y el
+     estado de esos mismos 500 papeles: es la misma cuenta, sobre las mismas
+     filas. La bandeja entera se pide al abrirla, como ya hacía
+     CIIP_PINTA_REVISAR, y desde ahí la cuenta la lleva ella (rvCuenta).
+
+     Una vez por página, como antes: si falla, se vuelve a intentar en la
+     siguiente vuelta del menú. */
+  var rvContada = null;
   window.CIIP_CUENTA_REVISAR = function(){
     if (!esDelEquipo()) return;
-    rvCarga().catch(function(e){ console.warn('[CIIP] documentos por revisar, cuenta:', e && e.message); });
+    if (rvDocs || rvCargando || rvContada) return;
+    rvContada = Promise.resolve(sb.from('documentos').select('id, tipo, estado')
+        .order('creado_en', {ascending: false}).limit(500))
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        rvLigeros = ((r && r.data) || []).filter(rvSeRevisa);
+        /* Si entretanto se abrió la bandeja, la cuenta es suya. */
+        if (rvDocs) return;
+        rvCuenta();
+      })
+      .catch(function(e){
+        rvContada = null;
+        console.warn('[CIIP] documentos por revisar, cuenta:', e && e.message);
+      });
   };
   var navRevisar = document.getElementById('navRevisar');
   if (navRevisar) navRevisar.addEventListener('click', function(){ location.hash = 'revisar'; });
@@ -23675,14 +23738,29 @@ applyLang(idiomaParaMi());
     if (esDelEquipo() && window.CIIP_CUENTA_REVISAR) window.CIIP_CUENTA_REVISAR();
   }
 
+  /* UNA CARGA A LA VEZ (15-10-2026). Al llegar el rol esto se llamaba TRES
+     veces seguidas -las dos llamadas del perfil pasan por applyLang, y el
+     reloj de abajo ve cambiar el rol- y cada una pedía la cola entera:
+     tres veces las citas, los trámites, las consultas, los nombres y la
+     conversación de cada consulta, todo a la vez y para pintar lo mismo.
+     Medido con 250 ms por viaje, un administrador hacía 69 peticiones al
+     entrar, 36 de ellas de la cola.
+
+     Si ya hay una en camino, se pinta lo que hay y se deja que la que viene
+     pinte al llegar. Solo aquí: quien acaba de cambiar algo -tomar,
+     devolver, resolver- llama a cargaCola directamente y sigue pidiendo
+     la suya, que tiene que traer lo de después del cambio. */
+  var colaEnCamino = null, colaPedidaCon = null;
   function revisaCola(){
     menuPorRol();
     var mio = esDelEquipo();
     if (!mio) return;
     pintaCola();
-    cargaCola().then(pintaCola).catch(function(e){
+    if (colaEnCamino) return;
+    colaPedidaCon = PERFIL.rol;
+    colaEnCamino = cargaCola().then(pintaCola).catch(function(e){
       console.warn('[CIIP] cola:', e && e.message);
-    });
+    }).then(function(){ colaEnCamino = null; });
   }
 
   if (coBack){
@@ -23699,11 +23777,16 @@ applyLang(idiomaParaMi());
        «Mis trámites» por mucho que el rol fuese el bueno.
 
        Se vuelve a mirar hasta que el perfil esté puesto, y SOLO se consulta la
-       cola cuando el rol cambia: si no, serían cuarenta peticiones seguidas. */
+       cola cuando el rol cambia: si no, serían cuarenta peticiones seguidas.
+
+       Y si applyLang ya la pidió con ese mismo rol, tampoco (15-10-2026):
+       desde que el perfil espera a que termine este guion, applyLang llega
+       siempre a tiempo, y este reloj, que mira cada 100 ms, pedía la cola
+       por segunda vez para pintar lo mismo. */
     var intentos = 0, rolVisto = null;
     (function esperaAlPerfil(){
       var rol = (typeof PERFIL !== 'undefined' && PERFIL.rol) || '';
-      if (rol !== rolVisto){ rolVisto = rol; revisaCola(); }
+      if (rol !== rolVisto){ rolVisto = rol; if (rol !== colaPedidaCon) revisaCola(); }
       if (typeof PERFIL !== 'undefined' && PERFIL.rolReal) return;
       if (intentos++ < 40) setTimeout(esperaAlPerfil, 100);
     })();
@@ -25421,7 +25504,12 @@ applyLang(idiomaParaMi());
        Filtrando aqui deja de importar cuando se sepa el rol: "mis
        tramites" quiere decir mios, y eso se puede decir sin saber quien
        soy en la oficina. */
-    return cargaCatalogo().then(quienSoy).then(function(yo){
+    /* EL CATÁLOGO Y LAS TUYAS SALEN A LA VEZ (15-10-2026), y se pinta cuando
+       están las dos: lo de arriba -no enseñar códigos internos- se cumple
+       igual, porque lo que espera al catálogo es PINTAR, no PREGUNTAR. En
+       fila, la portada esperaba un viaje entero de más para saber el estado
+       de sus fichas, en la de todos: inversionista y administrador. */
+    var lasMias = quienSoy().then(function(yo){
       return sb.from('tramites')
       /* viene_de: de qué solicitud salió cada tramo. Sin ella, los tramos
          de la constitución se elegían por «la que va más adelante» y una
@@ -25431,32 +25519,33 @@ applyLang(idiomaParaMi());
          que la ficha, que es justo lo que escaleraDe() viene a evitar. */
       .select('id, tipo, estado, datos, creado_en, enviado_en, resuelto_en, viene_de')
       .eq('inversionista', yo.id)
-      .order('creado_en', {ascending:false})
-      .then(function(r){
-        if (r && r.error) throw r.error;
-        mios = r.data || [];
-        mtAlDiaEn = Date.now();
-        /* Las devueltas y los borradores arriba, aunque no sean lo más
-           reciente: son las únicas donde la pelota la tienes tú. Es el mismo
-           criterio de la franja y de la cola del equipo. */
-        mios.sort(function(a, b){
-          var ra = (a.estado === 'devuelto' || a.estado === 'borrador') ? 0 : 1;
-          var rb = (b.estado === 'devuelto' || b.estado === 'borrador') ? 0 : 1;
-          return (ra - rb) || (Date.parse(b.creado_en) - Date.parse(a.creado_en));
-        });
-        /* Se pinta ANTES de saber cuanto lleva cada uno y otra vez
-           despues: la lista sale enseguida y el reloj aparece un instante
-           mas tarde. Esperar al historial para ensenar los tramites seria
-           dejar la vista en blanco por un dato de adorno. */
-        pintaMisTramites();
-        /* Y con ellos, el estado de las 31 tarjetas de la portada. */
-        pintaEstadoTarjetas();
-        /* Y con el segundo repintado, desde cuándo espera cada una, y los
-           papeles de las que tienen pasos que cierra un papel: sin ellos la
-           columna «Progreso» contaría distinto que la ficha que abre
-           (PAPELES_SABIDOS, 7-10-2026). */
-        return Promise.all([ponDesdeCuando(mios), papelesDeLosMios(mios)]).then(pintaMisTramites);
+      .order('creado_en', {ascending:false});
+    });
+    return Promise.all([cargaCatalogo(), lasMias]).then(function(rs){
+      var r = rs[1];
+      if (r && r.error) throw r.error;
+      mios = r.data || [];
+      mtAlDiaEn = Date.now();
+      /* Las devueltas y los borradores arriba, aunque no sean lo más
+         reciente: son las únicas donde la pelota la tienes tú. Es el mismo
+         criterio de la franja y de la cola del equipo. */
+      mios.sort(function(a, b){
+        var ra = (a.estado === 'devuelto' || a.estado === 'borrador') ? 0 : 1;
+        var rb = (b.estado === 'devuelto' || b.estado === 'borrador') ? 0 : 1;
+        return (ra - rb) || (Date.parse(b.creado_en) - Date.parse(a.creado_en));
       });
+      /* Se pinta ANTES de saber cuanto lleva cada uno y otra vez
+         despues: la lista sale enseguida y el reloj aparece un instante
+         mas tarde. Esperar al historial para ensenar los tramites seria
+         dejar la vista en blanco por un dato de adorno. */
+      pintaMisTramites();
+      /* Y con ellos, el estado de las 31 tarjetas de la portada. */
+      pintaEstadoTarjetas();
+      /* Y con el segundo repintado, desde cuándo espera cada una, y los
+         papeles de las que tienen pasos que cierra un papel: sin ellos la
+         columna «Progreso» contaría distinto que la ficha que abre
+         (PAPELES_SABIDOS, 7-10-2026). */
+      return Promise.all([ponDesdeCuando(mios), papelesDeLosMios(mios)]).then(pintaMisTramites);
     })
       .catch(function(e){
         console.warn('[CIIP] mis trámites:', e && e.message);
@@ -31322,10 +31411,32 @@ applyLang(idiomaParaMi());
       if (location.hash) location.hash = '';
     });
     window.CIIP_PINTA_DOCS   = cargaDocs;
-    window.CIIP_REPINTA_DOCS = pintaDocs;
     /* Se pide al cargar por el contador del renglón: un documento vencido
-       ahí dentro es de las pocas cosas que conviene ver sin buscarlas. */
-    cargaDocs();
+       ahí dentro es de las pocas cosas que conviene ver sin buscarlas.
+
+       PERO CON EL ROL YA SABIDO (15-10-2026). Esto corría mientras panel.js
+       se ejecutaba, y en ese instante el rol no ha llegado nunca: el perfil
+       se aplica después, cuando panel.js ha terminado. Así que
+       laBovedaEsMia() decía siempre «todavía no se sabe, pide», y a un
+       administrador -que no tiene bóveda- se le traían al entrar TODOS los
+       documentos de la oficina, más todos los enganches de documento con
+       trámite y todos los trámites, para tirarlos en cuanto llegaba su rol.
+       Son las tres consultas más pesadas del arranque del equipo, y no
+       servían para nada.
+
+       Ahora se pide cuando llega el rol, en el mismo instante: applyLang
+       pasa por CIIP_REPINTA_DOCS justo después de apuntarlo. Al
+       inversionista no le cuesta espera; al equipo, cargaDocs ya le dice que
+       no. Y si el rol no llega en cuatro segundos, se pide igual, como
+       antes: más vale el contador que una bóveda que no carga. */
+    var docsPedidos = false;
+    function pideDocsAlSaberElRol(aunSinRol){
+      if (docsPedidos) return;
+      if (!aunSinRol && !(typeof PERFIL !== 'undefined' && PERFIL.rolReal)) return;
+      docsPedidos = true;
+      cargaDocs();
+    }
+    window.CIIP_REPINTA_DOCS = function(){ pintaDocs(); pideDocsAlSaberElRol(false); };
     /* Y se vuelve a mirar cuando llega el rol. La lista se dibuja antes de
        que se sepa —son dos consultas— y de él dependen el renglón del
        menú y el botón de cambiar. Es el mismo compás que usan los activos
@@ -31346,8 +31457,9 @@ applyLang(idiomaParaMi());
         }
         pintaDocs();
       }
-      if (typeof PERFIL !== 'undefined' && PERFIL.rolReal) return;
+      if (typeof PERFIL !== 'undefined' && PERFIL.rolReal){ pideDocsAlSaberElRol(false); return; }
       if (vecesDc++ < 40) setTimeout(esperaAlRolDocs, 100);
+      else pideDocsAlSaberElRol(true);
     })();
   }
 
@@ -32278,9 +32390,18 @@ applyLang(idiomaParaMi());
   }
 
   function cargaEmpresa(){
-    return sb.from('empresas')
-      .select('razon_social, rif_empresa, numero_registro, fecha_constitucion, capital_social, actividad_economica, direccion_fiscal, municipio, telefono, representante, inicio_actividades, num_trabajadores')
-      .maybeSingle()
+    /* LA TUYA, DICHO EN LA CONSULTA (15-10-2026). Sin filtro, la base
+       decidía, y al equipo le deja leer las empresas de todos («empresas:
+       el equipo las lee»): a un administrador se le traían al entrar todas
+       las de la oficina, y con dos o más maybeSingle() contestaba con un
+       error, así que su «Mi empresa» salía vacía tuviera o no la suya. Al
+       inversionista no le cambia nada: la base ya le daba solo la suya. */
+    return quienSoy().then(function(yo){
+      return sb.from('empresas')
+        .select('razon_social, rif_empresa, numero_registro, fecha_constitucion, capital_social, actividad_economica, direccion_fiscal, municipio, telefono, representante, inicio_actividades, num_trabajadores')
+        .eq('inversionista', yo.id)
+        .maybeSingle();
+    })
       .then(function(r){
         if (r && r.error) throw r.error;
         EMPRESA = (r && r.data) || null;
@@ -36873,6 +36994,11 @@ applyLang(idiomaParaMi());
       return carga().then(pinta);
     };
     window.CIIP_REPINTA_HORARIO = function(){
+      /* Y el renglón, con el resto del menú (15-10-2026). applyLang pasa
+         por aquí en cuanto llega el rol, y el velo del equipo se quita
+         justo detrás: sin esto el renglón salía con el reloj de abajo,
+         hasta 100 ms después que el resto del menú. */
+      if (hoNav) hoNav.hidden = !esEquipo();
       if (document.body.getAttribute('data-vista') === 'horario') pinta();
     };
 
@@ -37733,3 +37859,10 @@ applyLang(idiomaParaMi());
 
   window.CIIP_PINTA_AUTORIZ = miraModelos;
 })();
+
+/* ---------- y la última línea ----------
+   Lo que el guardián del <head> recibió de la sesión y de la fila de
+   perfiles antes de que este guion existiera, se aplica en la vuelta
+   siguiente, en cuanto este guion termina (15-10-2026): ver aplicarPerfil
+   en ciip-ventanilla-unica-local.html. */
+if (window.CIIP_PANEL_CARGADO) setTimeout(window.CIIP_PANEL_CARGADO, 0);
