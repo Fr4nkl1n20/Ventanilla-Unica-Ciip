@@ -3861,14 +3861,6 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
    Y el foco se dibuja a mano, con el azul de la casa, para que no salga el
    recuadro del navegador —que aqui se quedaba puesto despues de pulsar y
    parecia un fallo—. */
-/* «Tienes los papeles»: va en el pie, entre el reloj y «Ver detalles». En
-   verde y con el palote, el mismo traje que el distintivo de resuelto: es
-   una buena noticia y se tiene que leer de un vistazo desde lejos, que para
-   eso existe -para elegir por cual empezar sin abrir ninguno-. */
-.t-listo{display:inline-flex; align-items:center; gap:5px; font-size:var(--fs-nota);
-  font-weight:600; color:var(--good);}
-.t-listo svg{width:13px; height:13px; stroke:currentColor; stroke-width:2; fill:none;
-  stroke-linecap:round; stroke-linejoin:round;}
 .t-foot .go[data-globo]{cursor:pointer; text-decoration:underline dotted;
   text-underline-offset:3px; text-decoration-color:var(--line);}
 .t-foot .go[data-globo]:hover{text-decoration-color:var(--navy); color:var(--navy);}

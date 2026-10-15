@@ -368,7 +368,7 @@
               lectorOtra, lectorNoLoConoce, lectorLoDice,
               lectorGuardadoOfrece, lectorGuardadoMira, lectorGuardadoVacia, lectorGuardadoLeido,
               lectorApagadoAbre, lectorApagadoMira, lectorApagadoVuelve,
-              listoMira, listoEmpezados,
+              listoMira,
               notaVisaAbre, notaVisaMira, notaRifAbre, notaRifMira,
               oficinaAbre, oficinaMira,
               juntaAbre, juntaMira,
@@ -16514,135 +16514,16 @@
     location.hash = '';
   }
 
-  /* ═══════════════════════════════════════════════════════════════
-     «TIENES LOS PAPELES», EN LA TARJETA
-     ═══════════════════════════════════════════════════════════════
-     La cuenta de recaudos ya existia, pero dentro del formulario: se lee
-     cuando ya has entrado, y para entonces la decision que informaba -por
-     cual empiezo- ya esta tomada. Esto la dice antes.
-
-     En la boveda de pruebas hay cuatro papeles: cedula, antecedentes,
-     acta constitutiva y RIF de la empresa. Con esos, el tramite SIN
-     EMPEZAR que tiene todos los suyos es el Registro Unico Minero -c36,
-     que pide cedula, RIF de la empresa y acta, y los tres estan-. Por eso
-     se mide ahi, y por eso se mide tambien que en los demas no sale: una
-     marca puesta en las treinta y tres pasaria la primera prueba y seria
-     inutil.
-
-     Hasta el 22-9-2026 se media en los registros laborales -c9, el IVSS-,
-     que pedian lo mismo. El CIIP quito esa casilla del catalogo y la
-     prueba se mudo a la que quedaba con los mismos papeles. No se ha
-     relajado: mide el mismo mecanismo entero sobre otro sujeto.
-
-     Dos intentos anteriores salieron rojos, y los dos por la PRUEBA y no
-     por el panel. El primero midio en c3, que en este expediente ya esta
-     EN PROCESO -ahi la marca no debe salir-. El segundo metio el RIF
-     PERSONAL en la boveda para completar la firma electronica, y apago las
-     dos esperas de la cadena que c5 y c6 tienen con c3.
-
-     Y se mide en el expediente VACIO, donde nada esta empezado. En
-     'lleno' hay solicitudes en marcha y la marca no debe salir en ellas,
-     que es la tercera comprobacion. */
-  /* Y desde el 1-10-2026 se mide en el pago del aporte LOCTI (c40), que
-     solo pide el RIF de la empresa: el Registro Único Minero se quedó sin
-     recaudos con la Taquilla única opción 2 (Franklin Reyes), y sin
-     recaudos no hay «ya los tienes» que decir -lo dice tieneLosPapeles()-.
-     Es el único de la bóveda de pruebas que los tiene todos sin estar en
-     espera de otro; su tarjeta va escondida como segundo tramo, pero la
-     marca se pinta igual y es la misma mecánica entera. Y se mide la otra
-     cara del cambio: el RUM, sin papeles, no la lleva. */
+  /* «TIENES LOS PAPELES», QUITADO (Franklin Reyes, 15-10-2026: «quiero
+     quitar esto de las fichas»). Se mide en el expediente vacio, que es
+     donde salia: en el pago del aporte LOCTI (c40), que tiene todos sus
+     papeles en la boveda de pruebas. Que no salga en ninguna tarjeta. */
   function listoMira(){
     if (CASO !== 'vacio') return;
-    var rum = document.querySelector('.tcard[data-tr="c36"]');
-    ok('listo: el registro minero, sin recaudos, no dice que ya los tienes',
-       !!rum && !rum.querySelector('.t-listo'),
-       rum ? (rum.querySelector('.t-listo') ? 'lo dice' : 'no lo dice') : '(sin tarjeta)', 'no lo dice');
     var c40 = document.querySelector('.tcard[data-tr="c40"]');
     ok('listo: hay tarjeta del pago del aporte LOCTI que mirar', !!c40, c40 ? '' : '(no esta)');
-    if (!c40) return;
-    igual('listo: y es una que no has empezado', c40.getAttribute('data-st'), 'pendiente');
-
-    var marca = c40.querySelector('.t-listo');
-    ok('listo: el pago del aporte LOCTI dice que ya tienes sus papeles', !!marca,
-       marca ? marca.textContent.trim() : '(sin marca)', 'la marca');
-    if (marca){
-      ok('listo: y lo dice con palabras, no solo con un color',
-         marca.textContent.trim().length > 3, marca.textContent.trim(), 'un texto');
-      /* Lo que significa va en el titulo: en el pie no cabe la frase. */
-      ok('listo: y al pasar por encima explica que significa',
-         (marca.getAttribute('title') || '').length > 20,
-         marca.getAttribute('title') || '(sin titulo)', 'una explicacion');
-      /* Delante de «Ver detalles», que es quien se va a la derecha. */
-      var go = c40.querySelector('.t-foot .go');
-      ok('listo: y va antes de «Ver detalles», no despues',
-         !!go && (marca.compareDocumentPosition(go) & 4) !== 0,
-         c40.querySelector('.t-foot').textContent.trim().slice(0, 40), 'antes');
-    }
-
-    /* LA OTRA MITAD. El RIF de la empresa -c6- pide el acta, que si la
-       tienes, pero tambien el RIF personal y el domicilio de la empresa,
-       que no. Si saliera marcado, la marca estaria mintiendo. */
-    var c6 = document.querySelector('.tcard[data-tr="c6"]');
-    ok('listo: y no sale donde todavia falta algun papel',
-       !!c6 && !c6.querySelector('.t-listo'),
-       c6 && c6.querySelector('.t-listo') ? 'sale' : 'no sale', 'no sale');
-
-    /* Y sigue al idioma. Esta marca la pinta el guion y NO lleva data-i18n,
-       asi que el cambio de idioma no la toca por su cuenta: la repinta
-       CIIP_REPINTA_ESTADOS, y solo si pintaListo reescribe la que ya existe
-       en vez de salirse.
-
-       La primera version se salia, y se vio en una captura: el panel entero
-       en italiano y este renglon en castellano. Ninguna prueba lo cazaba,
-       porque todas miraban un solo idioma. */
-    if (marca){
-      var eraLang = curLang;
-      var eraTexto = marca.textContent.trim();
-      /* Lo GUARDADO, no solo lo que se ve. Pulsar una bandera escribe
-         ciip_lang, y los perfiles del navegador se quedan de una tanda para
-         la siguiente: sin devolverlo, la prueba de «el panel abre en el
-         idioma de tu pais» se pone roja en la tanda siguiente y parece que
-         se rompio el panel. Paso. */
-      var eraGuardado = null;
-      try { eraGuardado = window.localStorage.getItem('ciip_lang'); } catch(e){}
-      var otro = (eraLang === 'es') ? 'en' : 'es';
-      document.querySelector('#langMenu button[data-lang="' + otro + '"]').click();
-      var ahora = document.querySelector('.tcard[data-tr="c40"] .t-listo');
-      ok('listo: y la marca cambia de idioma con el panel',
-         !!ahora && ahora.textContent.trim() !== eraTexto,
-         (ahora ? ahora.textContent.trim() : '(desaparecio)') + ' / antes: ' + eraTexto,
-         'otro texto');
-      document.querySelector('#langMenu button[data-lang="' + eraLang + '"]').click();
-      var vuelta = document.querySelector('.tcard[data-tr="c40"] .t-listo');
-      igual('listo: y vuelve al de antes',
-            vuelta ? vuelta.textContent.trim() : '(desaparecio)', eraTexto);
-      try {
-        if (eraGuardado === null) window.localStorage.removeItem('ciip_lang');
-        else window.localStorage.setItem('ciip_lang', eraGuardado);
-      } catch(e){}
-    }
-
-    /* Y no en todas: una marca puesta en las treinta y tres tarjetas
-       pasaria la primera comprobacion y no diria nada. */
-    var cuantas = document.querySelectorAll('.tcard .t-listo').length;
-    var todas = document.querySelectorAll('.tcard[data-tr]').length;
-    ok('listo: y no en todas las tarjetas, que entonces no seria una senal',
-       cuantas > 0 && cuantas < todas, cuantas + ' de ' + todas, 'algunas, no todas');
-  }
-
-  /* En un tramite ya empezado la marca no informa de nada: los papeles los
-     mandaste hace un mes. El expediente 'lleno' tiene solicitudes en
-     marcha, asi que es donde se puede medir. */
-  function listoEmpezados(){
-    if (CASO !== 'lleno') return;
-    var malas = [].filter.call(document.querySelectorAll('.tcard[data-tr]'), function(c){
-      var st = c.getAttribute('data-st');
-      return st && st !== 'pendiente' && c.querySelector('.t-listo');
-    });
-    ok('listo: no sale en tramites que ya empezaste',
-       malas.length === 0,
-       malas.map(function(c){ return c.getAttribute('data-tr') + '=' + c.getAttribute('data-st'); })
-         .join(', ') || 'ninguna', 'ninguna');
+    igual('listo: ninguna tarjeta dice «Tienes los papeles»',
+          document.querySelectorAll('.tcard .t-listo').length, 0);
   }
 
   /* ═══════════════════════════════════════════════════════════════

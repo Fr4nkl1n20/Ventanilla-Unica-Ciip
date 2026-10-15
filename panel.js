@@ -26935,68 +26935,8 @@ applyLang(idiomaParaMi());
      propósito para saber que sigue puesta. */
   window.CIIP_ENCENDIDAS = ponAlDiaLoEncendido;
 
-  /* ══════════════════════════════════════════════════════════════
-     «TIENES LOS PAPELES»
-     ══════════════════════════════════════════════════════════════
-     La cuenta de recaudos ya existia, pero vive DENTRO del formulario:
-     «2 de 3 ya estan en tu expediente» se lee cuando ya has entrado. Y
-     para entonces la decision que ese numero informaba -por cual de los
-     treinta y tres empiezo- ya esta tomada.
-
-     Aqui se dice ANTES, en la tarjeta, y SOLO cuando hay algo que decir:
-     que los tienes todos. Se penso poner tambien «te faltan dos» y se
-     descarto: eso saldria en casi todas las tarjetas a la vez, seria
-     ruido en lugar de senal, y ademas es una lista de deberes en una
-     pantalla que ya cuesta de leer. Lo que cambia lo que haces es la
-     buena noticia; la mala ya la cuenta el formulario cuando entras.
-
-     Los opcionales no cuentan como falta. El poder pide una traduccion
-     'si el documento no esta en castellano': exigirla para decir que
-     tienes los papeles seria pedir un papel que a ti no te toca.
-
-     Y solo en las que no has empezado. En una solicitud ya enviada,
-     «tienes los papeles» no informa de nada: los mandaste hace un mes.
-
-     Los que cuelgan de una casilla -siCasilla y, desde el 2-10-2026,
-     noCasilla (Franklin Reyes)- tampoco entran, igual que en la ficha:
-     antes de abrir el formulario no se sabe si te tocan. */
-  function tieneLosPapeles(codigo){
-    var pide = recaudosDe(codigo);
-    var hacenFalta = pide.filter(function(r){ return !r.opcional && !r.siCasilla && !r.noCasilla; });
-    /* Sin recaudos no hay nada que celebrar: la tarjeta no diria «los
-       tienes», diria «no hacen falta», que es otra cosa y no se ha pedido. */
-    if (!hacenFalta.length) return false;
-    return hacenFalta.every(function(r){ return !!MIOS[r.tipo]; });
-  }
-
-  function pintaListo(tarjeta, tipo, st){
-    var pie = tarjeta.querySelector('.t-foot');
-    var habia = tarjeta.querySelector('.t-listo');
-    /* MIOS puede no haber llegado todavia. Se sale sin quitar nada: quien
-       lo pide vuelve a pintar en cuanto contesta, y borrarlo aqui haria
-       parpadear el renglon en cada repintado. */
-    var vale = !!pie && MIOS !== null && st === 'pendiente' &&
-               !!tipo && tieneLosPapeles(tipo.codigo);
-    if (!vale){ if (habia) habia.remove(); return; }
-
-    var u = T(), dic = I18N[curLang] || I18N.en;
-    /* Si ya estaba, se le REESCRIBE el texto en vez de salirse. Al cambiar
-       de idioma las tarjetas se repintan, pero esta marca no lleva
-       data-i18n -la pinta el guion, no el marcado-, asi que salirse aqui la
-       dejaba en el idioma anterior: el panel entero en italiano y este
-       renglon en castellano. Se vio en una captura. */
-    var s = habia || el('span', 't-listo');
-    s.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' +
-                  '<path d="M20 6L9 17l-5-5"/></svg>';
-    s.appendChild(el('span', null, u['t.listo'] || dic['t.listo'] || ''));
-    /* Lo que significa, al pasar por encima. En el pie no cabe la frase
-       entera y en la tarjeta tampoco: tres palabras y el porque detras. */
-    s.title = u['t.listo_t'] || dic['t.listo_t'] || '';
-    if (habia) return;
-    /* Delante de «Ver detalles», que se va a la derecha con su margen. */
-    var go = pie.querySelector('.go');
-    if (go) pie.insertBefore(s, go); else pie.appendChild(s);
-  }
+  /* «Tienes los papeles», la marca verde del pie de la tarjeta, se quitó el
+     15-10-2026 (Franklin Reyes: «quiero quitar esto de las fichas»). */
 
   /* ── EL PLAZO DE LA FICHA, AL DIA ──
      El renglon del estimado que hay dentro de una ficha abierta es una
@@ -29375,7 +29315,6 @@ applyLang(idiomaParaMi());
       pintaNivel(c, (TIPOS || {})[ref]);
       pintaLoHacemos(c, (TIPOS || {})[ref]);
       pintaPlazoLegal(c, (TIPOS || {})[ref]);
-      pintaListo(c, (TIPOS || {})[ref], st);
       pintaLogo(c, (TIPOS || {})[ref]);
     });
 
