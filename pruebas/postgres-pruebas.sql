@@ -4673,6 +4673,60 @@ select arnes.comprueba(
 
 
 
+-- ══ EL TIEMPO DE RESPUESTA, EN SUS DOS TRAMOS (15-10-2026) ═══════════
+-- supabase-tiempos.sql: un caso con fechas puestas a mano -enviado hace
+-- diez días, presentado ante el ente hace cuatro, resuelto ahora- tiene
+-- que salir con 144 horas del CIIP y 96 del ente. Las fechas se escriben
+-- con los disparadores apagados: la escalera de estados, con razón, no
+-- deja inventar el pasado.
+reset role;
+select arnes.nadie();
+set session_replication_role = replica;
+with t as (
+  insert into public.tramites (inversionista, tipo, estado, enviado_en, resuelto_en, datos)
+  values ((select id from arnes.gente where papel = 'A'), 'rif_empresa', 'resuelto',
+          now() - interval '10 days', now(), '{"razon_social":"Tiempos de Prueba, C.A."}')
+  returning id
+)
+insert into arnes.escenario (clave, id) select 'tiempos', id from t;
+insert into public.tramite_eventos (tramite, de_estado, a_estado, creado_en)
+values ((select id from arnes.escenario where clave = 'tiempos'), 'en_revision', 'ante_el_ente',
+        now() - interval '4 days');
+set session_replication_role = origin;
+
+create temp table if not exists arnes_tiempos (r jsonb);
+grant all on arnes_tiempos to authenticated;
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+do $ti$
+begin
+  insert into arnes_tiempos select public.estadisticas_control();
+  perform arnes.comprueba('tiempos: el admin ve las cifras con sus tramos', true);
+exception when others then
+  perform arnes.comprueba('tiempos: el admin ve las cifras con sus tramos', false, sqlerrm);
+end
+$ti$;
+select arnes.comprueba(
+  'tiempos: el caso trae 144 h del CIIP, 96 del ente y 240 en total',
+  coalesce((select (c ->> 'horas_ciip')::numeric = 144 and (c ->> 'horas_ente')::numeric = 96
+                   and (c ->> 'horas')::numeric = 240 and c ->> 'empresa' = 'Tiempos de Prueba, C.A.'
+              from arnes_tiempos, jsonb_array_elements(r -> 'tiempos_casos') c
+             where c ->> 'tramite' = (select id::text from arnes.escenario where clave = 'tiempos')), false),
+  (select r -> 'tiempos_casos' -> 0 from arnes_tiempos)::text);
+select arnes.comprueba(
+  'tiempos: el resumen y cada organismo traen la mediana de cada tramo',
+  coalesce((select (r -> 'tiempo_total') ? 'mediana_ciip_h' and (r -> 'tiempo_total') ? 'mediana_ente_h'
+                   and (r -> 'tiempo_total' ->> 'resueltos')::int >= 1
+                   and exists (select 1 from jsonb_array_elements(r -> 'entes') e where e ? 'promedio_ciip_h')
+              from arnes_tiempos), false));
+reset role;
+select arnes.nadie();
+set session_replication_role = replica;
+delete from public.tramites where id = (select id from arnes.escenario where clave = 'tiempos');
+set session_replication_role = origin;
+
+
+
 -- ══ 36 · SEGUNDA AUDITORÍA DE SEGURIDAD (8-10-2026) ════════════════════
 -- supabase-seguridad-octubre.sql: las contraseñas de los entes no se leen
 -- en bloque, dos papeles más que solo emite el CIIP, y anon fuera.

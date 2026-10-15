@@ -409,7 +409,7 @@
               equipo30Siembra, e30Paso(equipo30Tarjetas), e30Paso(equipo30Ficha),
               e30Paso(equipo30Historial), e30Paso(equipo30SinDueno), equipo30MisAbre,
               e30Paso(equipo30MisMira), equipo30Fin,
-              controlAbre, controlMineroMira, controlUnoAbre, controlUnoMira, controlMira, controlTrasAnadir, controlTrasMover,
+              controlAbre, controlMineroMira, controlUnoAbre, controlUnoMira, controlTiemposAbre, controlTiemposMira, controlMira, controlTrasAnadir, controlTrasMover,
               controlTrasGuardar, controlTrasQuitar, controlOtroSector, controlSqlViejo,
               rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
               rastroDesdeTramiteSalta, rastroDesdeTramiteMira,
@@ -19150,6 +19150,10 @@
     ok('control: y la leyenda de los dos tramos',
        document.querySelectorAll('#ceTiempos .ce-leyenda li').length === 2,
        document.querySelectorAll('#ceTiempos .ce-leyenda li').length, 2);
+    /* Sin supabase-tiempos.sql (15-10-2026): lo de antes, y dice qué falta. */
+    igual('control: sin el SQL de los tramos, dice que falta',
+          (document.querySelector('#ceTiempos .ce-ti-falta') || {}).textContent || '(no lo dice)', U.ce_ti_nosql);
+    igual('control: y no se inventa el resumen', document.querySelectorAll('#ceTiempos .ce-ti-nums').length, 0);
     var porTr = document.querySelector('#ceFichaTiempo .ce-fi-cab .ce-modo[data-modo="tramite"]');
     if (porTr) porTr.click();
     var ti2 = document.querySelectorAll('#ceTiempos .ce-fila');
@@ -19583,6 +19587,74 @@
     if (window.CIIP_PINTA_EQUIPO) window.CIIP_PINTA_EQUIPO();
     if (window.CIIP_PINTA_CONTROL) window.CIIP_PINTA_CONTROL();
     setTimeout(sigue, 400);
+  }
+
+  /* ── EL TIEMPO EN SUS DOS TRAMOS (15-10-2026) ──
+     Con la base de supabase-tiempos.sql (CIIP_MENTIRA_TIEMPOS): arriba las
+     tres cifras -el CIIP, el ente, el total-, cada fila con sus dos tramos
+     escritos, y al pulsarla sus casos con las fechas. El SENIAT no pasó por
+     el ente: su tramo del ente es una raya, no un cero. Después todo
+     vuelve como estaba. */
+  var TI_ANTES = null;
+  function controlTiemposAbre(sigue){
+    if (!ES_ADMIN || !window.CIIP_PINTA_CONTROL) return sigue();
+    var on = document.querySelector('#ceNav .ay-ld-it.on');
+    TI_ANTES = on ? on.getAttribute('data-sec') : 'resumen';
+    window.CIIP_MENTIRA_TIEMPOS = true;
+    window.CIIP_PINTA_CONTROL();
+    setTimeout(sigue, 400);
+  }
+  function controlTiemposMira(sigue){
+    if (!ES_ADMIN || TI_ANTES === null) return sigue();
+    var U = ceU();
+    ceElegir('tiempo');
+    var porEnte = document.querySelector('#ceFichaTiempo .ce-fi-cab .ce-modo[data-modo="ente"]');
+    if (porEnte) porEnte.click();
+    var nums = document.querySelectorAll('#ceTiempos .ce-ti-nums .pu-n');
+    igual('tiempos: arriba, el CIIP, el ente y el total',
+          [].map.call(nums, function(n){ return (n.querySelector('.l') || {}).textContent; }).join(' | '),
+          [U.ce_ti_k_ciip, U.ce_ti_k_ente, U.ce_ti_k_total].join(' | '));
+    ok('tiempos: cada una con su cifra, su promedio y el más lento',
+       [].every.call(nums, function(n){ var v = n.querySelector('.v'), p = n.querySelector('.ce-ti-pie');
+         return v && v.textContent && v.textContent !== '—' && p && p.textContent.indexOf(U.ce_ti_pie.split('{')[0]) === 0; }),
+       [].map.call(nums, function(n){ return n.textContent; }).join(' | '), 'cifra y pie en las tres');
+    ok('tiempos: y ya no dice que falta el SQL', !document.querySelector('#ceTiempos .ce-ti-falta'),
+       document.querySelector('#ceTiempos .ce-ti-falta') ? 'lo dice' : 'no', 'no');
+    var filas = document.querySelectorAll('#ceTiempos .ce-fila.ce-mo-abre');
+    var sub = function(f){ return f ? (f.querySelector('.ce-rl .ce-sub') || {}).textContent : '(no hay)'; };
+    var prefijo = U.ce_ti_tramos.split('{')[0];
+    ok('tiempos: el SAREN dice sus dos tramos y sus casos',
+       !!filas[0] && /SAREN/.test(filas[0].textContent) && sub(filas[0]).indexOf(prefijo) === 0 &&
+       sub(filas[0]).indexOf((U.ce_c_casos || '') + ' 3') > 0,
+       sub(filas[0]), prefijo + '… · ' + U.ce_c_casos + ' 3');
+    ok('tiempos: el SENIAT, que no pasó por el ente, con una raya en su tramo',
+       !!filas[1] && /SENIAT/.test(filas[1].textContent) && / —/.test(sub(filas[1])),
+       sub(filas[1]), '… —');
+    if (filas[0]) filas[0].click();
+    var casos = document.querySelectorAll('#ceTiempos .ce-ti-caso');
+    igual('tiempos: pulsar el SAREN enseña su caso', casos.length, 1);
+    var c = casos[0];
+    ok('tiempos: con quién, la empresa, las tres fechas y los dos tramos',
+       !!c && /Ana Pérez/.test(c.textContent) && /Pérez Inversiones/.test(c.textContent) &&
+       (c.querySelector('.ce-ti-fechas') || {}).textContent.split('·').length === 3 &&
+       (c.querySelector('.ce-ti-dias') || {textContent: ''}).textContent.indexOf(prefijo) === 0,
+       c ? c.textContent : '(no hay)', 'Ana Pérez, tres fechas, CIIP y ente');
+    ok('tiempos: y el botón a la solicitud', !!(c && c.querySelector('.ce-caso-ir')),
+       c && c.querySelector('.ce-caso-ir') ? 'está' : 'no está', 'está');
+    if (filas[0]) filas[0].click();
+    if (filas[1]) filas[1].click();
+    var c2 = filas[1] && filas[1].parentNode.querySelector('.ce-ti-caso');
+    ok('tiempos: el del SENIAT dice que no pasó por el ente',
+       !!c2 && (c2.querySelector('.ce-ti-fechas') || {}).textContent.split('·').length === 2,
+       c2 ? (c2.querySelector('.ce-ti-fechas') || {}).textContent : '(no hay)', U.ce_ti_fechas2);
+    if (filas[1]) filas[1].click();
+    ok('tiempos: y la entrada de la lista dice los dos tramos', ceCifraDe('tiempo').indexOf(prefijo) === 0,
+       ceCifraDe('tiempo'), prefijo + '…');
+    window.CIIP_MENTIRA_TIEMPOS = false;
+    window.CIIP_PINTA_CONTROL();
+    var vuelve = TI_ANTES;
+    TI_ANTES = null;
+    setTimeout(function(){ ceElegir(vuelve); setTimeout(sigue, 100); }, 400);
   }
 
   /* ── CONTROL Y ESTADÍSTICAS A OTROS ANCHOS (revisión del 13-10-2026) ──

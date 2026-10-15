@@ -1152,6 +1152,19 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .ce-caso-txt{margin:6px 0 4px; font-size:var(--fs-parrafo); line-height:1.55; color:var(--ink);
   white-space:pre-wrap; overflow-wrap:anywhere;}
 .ce-caso-txt.nada{color:var(--gray-soft); font-style:italic;}
+/* El tiempo de respuesta en días (15-10-2026): las tres cifras de arriba
+   con el medidor del color de su tramo, y en cada caso las fechas y los
+   días de cada tramo. */
+.ce-ti-nums{margin:0 0 14px; grid-template-columns:repeat(3, minmax(0, 1fr));}
+.ce-fi-cu .ce-ti-nums{grid-template-columns:repeat(3, minmax(0, 1fr));}
+@container ce-ficha (max-width:459px){ .ce-fi-cu .ce-ti-nums{grid-template-columns:1fr;} }
+.ce-ti-nums .l{color:var(--ink); font-weight:600;}
+.ce-ti-nums .l.ce-ti-pie{color:var(--gray); font-weight:400; margin-top:2px;}
+.ce-ti-nums .pu-n.ce-ti-ciip .pu-medidor span{background:var(--ce-r1);}
+.ce-ti-nums .pu-n.ce-ti-ente .pu-medidor span{background:var(--ce-r3);}
+.ce-ti-fechas{margin-top:4px; font-size:var(--fs-nota); color:var(--gray); font-variant-numeric:tabular-nums;}
+.ce-ti-dias{margin:4px 0; font-size:var(--fs-fila); font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums;}
+.ce-ti-falta{margin:0 0 10px;}
 .ce-caso-ir{font:inherit; font-size:var(--fs-boton); background:none; border:0; padding:0; cursor:pointer;
   margin-left:0;}
 

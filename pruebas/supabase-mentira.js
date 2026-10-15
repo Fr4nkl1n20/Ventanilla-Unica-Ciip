@@ -3016,6 +3016,36 @@
                 delete rE.data.tramites_sector;
                 delete rE.data.motivos_casos;
               }
+              /* Con supabase-tiempos.sql (15-10-2026): cada fila con sus dos
+                 tramos, el resumen de todos y los casos. Sin la bandera, la
+                 base de antes, que es la que miran las demás pruebas. El
+                 SAREN pasa por el ente; el SENIAT lo resolvió el CIIP solo. */
+              if (window.CIIP_MENTIRA_TIEMPOS){
+                var conTramos = function(f, ciip, ente){
+                  f.maximo_h = f.mediana_h === null ? null : f.mediana_h * 1.75;
+                  f.mediana_ciip_h = ciip; f.promedio_ciip_h = ciip; f.maximo_ciip_h = ciip;
+                  f.promedio_ente_h = ente; f.maximo_ente_h = ente;
+                  return f;
+                };
+                rE.data.tramites.forEach(function(t){
+                  if (t.tipo === 'constitucion') conTramos(t, 48, 48);
+                  else if (t.tipo === 'rif_personal') conTramos(t, 30, null);
+                  else conTramos(t, null, null);
+                });
+                rE.data.entes.forEach(function(e){ conTramos(e, e.ente === 'SAREN' ? 48 : 30, e.ente === 'SAREN' ? 48 : null); });
+                rE.data.tiempo_total = {resueltos:4, mediana_h:72, promedio_h:97.9, maximo_h:168,
+                  mediana_ciip_h:39, promedio_ciip_h:52.5, maximo_ciip_h:96,
+                  n_ente:3, mediana_ente_h:48, promedio_ente_h:60.5, maximo_ente_h:72};
+                rE.data.tiempos_casos = [
+                  {tramite:'t-ti-1', tipo:'constitucion', ente:'SAREN', inversionista:'Ana Pérez',
+                   empresa:'Pérez Inversiones C.A.', enviado:'2026-10-01T10:00:00Z',
+                   presentado:'2026-10-03T10:00:00Z', resuelto:'2026-10-05T10:00:00Z',
+                   horas:96, horas_ciip:48, horas_ente:48},
+                  {tramite:'t-ti-2', tipo:'rif_personal', ente:'SENIAT', inversionista:'Luis Gómez',
+                   empresa:'', enviado:'2026-10-06T10:00:00Z', presentado:null,
+                   resuelto:'2026-10-07T16:00:00Z', horas:30, horas_ciip:30, horas_ente:null}
+                ];
+              }
               /* Todo de a uno (13-10-2026), para ver las cifras de la lista
                  en singular: un trámite solicitado y resuelto, una consulta,
                  un trámite elegido y un motivo. Solo cuando la prueba lo

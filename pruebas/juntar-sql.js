@@ -300,6 +300,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    que escribió. Reescribe estadisticas_control(), así que va detrás de
    supabase-sacs, que fue quien la dejó escrita. */
 'supabase-control-detalle',
+/* El tiempo de respuesta en sus dos tramos, el del CIIP y el del ente
+   (Franklin Reyes, 15-10-2026). Reescribe estadisticas_control(), así que
+   va detrás de supabase-control-detalle, que fue quien la dejó escrita. */
+'supabase-tiempos',
 /* El Registro Turístico Nacional (c50), Franklin Reyes, 13-10-2026: el
    trámite, su credencial y 'rtn_solicitado' en confirma_paso. Redefine la
    confirma_paso de supabase-sacs; al final para no mover el número de

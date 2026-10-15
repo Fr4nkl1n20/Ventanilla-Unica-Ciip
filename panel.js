@@ -35257,6 +35257,11 @@ applyLang(idiomaParaMi());
       var en = (ceDatos.entes || []).filter(function(e){ return (e.resueltos || 0) > 0; });
       if (!en.length) return u.ce_vacio || '';
       var res = en.reduce(function(m, e){ return m + (e.resueltos || 0); }, 0);
+      /* Con los dos tramos medidos, la entrada de la lista dice los dos
+         (15-10-2026); sin ellos, como antes. */
+      var tt = ceDatos.tiempo_total;
+      if (ceConTramos() && tt.resueltos > 0)
+        return ceTxt(u.ce_ti_tramos, {c: ceDias(tt.mediana_ciip_h), e: (tt.n_ente || 0) ? ceDias(tt.mediana_ente_h) : '—'});
       var lento = en.reduce(function(m, e){ return (+e.mediana_h || 0) > (+m.mediana_h || 0) ? e : m; }, en[0]);
       return ceTxt(res === 1 ? u.ce_n_tiempo1 : u.ce_n_tiempo, {n: res, ente: lento.ente || u.ce_sinente || ''});
     }
@@ -35830,12 +35835,95 @@ applyLang(idiomaParaMi());
     return s;
   }
 
-  /* Cada barra es la mediana, partida en dos: el tramo en el CIIP, de que
-     el inversionista envía a que se presenta, y el tramo ante el ente, de
-     que se presenta a que queda resuelto. Las dos medianas no se suman
-     exactas -una mediana no se parte en trozos-, así que el tramo del ente
-     se dibuja con su propia mediana y nunca más largo que la barra entera.
-     Las cifras exactas van escritas al lado. */
+  /* EL TIEMPO EN DÍAS, EN SUS DOS TRAMOS (Franklin Reyes, 15-10-2026:
+     «cuántos días tarda el CIIP, en cuántos días nos da respuesta el ente,
+     más detallada la información»). Desde supabase-tiempos.sql la base
+     mide cada resuelto en dos tramos: el del CIIP, de que el inversionista
+     envía a que se presenta ante el ente, y el del ente, de ahí a
+     resuelto. Antes el del CIIP se dibujaba restando dos medianas, que no
+     es el caso típico de nada.
+
+     Arriba, tres cifras para todos los resueltos juntos, con su promedio
+     y el más lento. Debajo, una fila por organismo o por trámite con los
+     dos tramos escritos, y la barra partida en ellos. Pulsar una fila
+     enseña sus casos, uno a uno, con sus fechas.
+
+     Sin el SQL se enseña lo de antes y se dice qué falta. */
+  function ceDias(h){
+    if (h === null || h === undefined || isNaN(+h)) return '—';
+    var x = Math.max(0, +h);
+    if (x < 24) return ceHoras(x);
+    var d = x / 24;
+    return enUnidad(d, 'day', d < 10 ? 1 : 0);
+  }
+  function ceConTramos(){
+    var t = ceDatos && ceDatos.tiempo_total;
+    return !!(t && t.mediana_ciip_h !== undefined);
+  }
+
+  function ceResumenTiempos(u, s){
+    var tt = ceDatos.tiempo_total;
+    if (!tt || !(tt.resueltos > 0)) return;
+    var nums = el('div', 'pu-nums ce-ti-nums');
+    var tope = Math.max(+tt.mediana_h || 0, +tt.mediana_ciip_h || 0, +tt.mediana_ente_h || 0);
+    function cifra(valor, rotulo, tono, med, prom, max){
+      unNumero(nums, valor, rotulo, tono, tope ? (+med || 0) / tope : 0);
+      if (prom !== null && prom !== undefined){
+        nums.lastChild.insertBefore(el('div', 'l ce-ti-pie', ceTxt(u.ce_ti_pie, {p: ceDias(prom), m: ceDias(max)})),
+                                    nums.lastChild.lastChild);
+      }
+    }
+    cifra(ceDias(tt.mediana_ciip_h), u.ce_ti_k_ciip, 'ce-ti-ciip', tt.mediana_ciip_h, tt.promedio_ciip_h, tt.maximo_ciip_h);
+    if ((tt.n_ente || 0) > 0){
+      cifra(ceDias(tt.mediana_ente_h), u.ce_ti_k_ente, 'ce-ti-ente', tt.mediana_ente_h, tt.promedio_ente_h, tt.maximo_ente_h);
+    } else {
+      cifra('—', u.ce_ti_k_ente, 'ce-ti-ente', 0, null, null);
+      nums.lastChild.insertBefore(el('div', 'l ce-ti-pie', u.ce_ti_sinente || ''), nums.lastChild.lastChild);
+    }
+    cifra(ceDias(tt.mediana_h), u.ce_ti_k_total, '', tt.mediana_h, tt.promedio_h, tt.maximo_h);
+    s.appendChild(nums);
+  }
+
+  /* Los casos de una fila: quién y para qué empresa, el trámite y el ente,
+     las tres fechas y los días de cada tramo. Como los de «¿Por qué piden
+     ayuda?», con su botón a la solicitud. */
+  function ceCasosTiempo(u, panel, deEsta, total){
+    var casos = ceDatos.tiempos_casos;
+    if (!Array.isArray(casos)){ panel.appendChild(el('div', 'pu-vacio', u.ce_ti_nosql || '')); return; }
+    var mios = casos.filter(deEsta);
+    if (!mios.length){ panel.appendChild(el('div', 'pu-vacio', u.ce_vacio || '')); return; }
+    if (total > mios.length){
+      panel.appendChild(el('p', 'ce-casos-parcial',
+        String(u.ce_ca_parcial || '').replace('{n}', mios.length).replace('{m}', total)));
+    }
+    var lista = el('ol', 'ce-casos-l');
+    mios.forEach(function(c){
+      var li = el('li', 'ce-caso ce-ti-caso');
+      li.setAttribute('data-tramite', c.tramite || '');
+      var arriba = el('div', 'ce-caso-a');
+      arriba.appendChild(el('b', 'ce-caso-q', c.inversionista || u.ce_ca_sinnombre || ''));
+      if (c.empresa) arriba.appendChild(el('span', 'ce-caso-e', c.empresa));
+      arriba.appendChild(el('span', 'ce-caso-f', ceTxt(u.ce_ti_total1, {t: ceDias(c.horas)})));
+      li.appendChild(arriba);
+      var sobre = [ceNombreTramite(c.tipo)];
+      if (c.ente) sobre.push(c.ente);
+      li.appendChild(el('div', 'ce-sub ce-caso-t', sobre.join(' · ')));
+      li.appendChild(el('div', 'ce-ti-fechas', c.presentado
+        ? ceTxt(u.ce_ti_fechas, {a: fecha(c.enviado), b: fecha(c.presentado), c: fecha(c.resuelto)})
+        : ceTxt(u.ce_ti_fechas2, {a: fecha(c.enviado), c: fecha(c.resuelto)})));
+      li.appendChild(el('div', 'ce-ti-dias', ceTxt(u.ce_ti_tramos,
+        {c: ceDias(c.horas_ciip), e: c.presentado ? ceDias(c.horas_ente) : '—'})));
+      if (c.tramite){
+        var ir = el('button', 'pu-asignar ce-caso-ir', u.ce_ca_ver || '');
+        ir.type = 'button';
+        ir.addEventListener('click', function(){ avAMisTramites(c.tramite); });
+        li.appendChild(ir);
+      }
+      lista.appendChild(li);
+    });
+    panel.appendChild(lista);
+  }
+
   /* Su «Por organismo / Por trámite» va en la cabecera de la ficha
      (ceFichaTiempo) desde el 13-10-2026. */
   function ceCajaTiempos(u){
@@ -35845,30 +35933,69 @@ applyLang(idiomaParaMi());
     var filas = porEnte ? (ceDatos.entes || [])
                         : (ceDatos.tramites || []).filter(function(t){ return (t.resueltos || 0) > 0; });
     if (!filas.length){ s.appendChild(el('div', 'pu-vacio', u.ce_vacio || '')); return s; }
-    var tope = filas.reduce(function(m, f){ return Math.max(m, +f.mediana_h || 0); }, 0);
-    function partes(med, ente){
-      return [[tope ? (med - ente) / tope : 0, 'r-ciip'], [tope ? ente / tope : 0, 'r-ente']];
+    var tramos = ceConTramos();
+    if (tramos) ceResumenTiempos(u, s);
+    else s.appendChild(el('p', 'ce-casos-parcial ce-ti-falta', u.ce_ti_nosql || ''));
+
+    /* Con los dos tramos medidos, cada uno con su mediana; sin ellos, como
+       antes: el del ente con la suya y el del CIIP lo que queda, nunca más
+       largo que la barra entera. */
+    function ciip(f){ return tramos ? (+f.mediana_ciip_h || 0) : Math.max(0, (+f.mediana_h || 0) - ente(f)); }
+    function ente(f){
+      if (!(f.n_ente || 0)) return 0;
+      return tramos ? (+f.mediana_ente_h || 0) : Math.min(+f.mediana_ente_h || 0, +f.mediana_h || 0);
     }
-    function tramo(f){
-      return (f.n_ente || 0) ? Math.min(+f.mediana_ente_h || 0, +f.mediana_h || 0) : 0;
+    var tope = filas.reduce(function(m, f){ return Math.max(m, +f.mediana_h || 0, ciip(f) + ente(f)); }, 0);
+    function partes(f){
+      return [[tope ? ciip(f) / tope : 0, 'r-ciip'], [tope ? ente(f) / tope : 0, 'r-ente']];
     }
-    ceLista(s, 'tiempos-' + ceModo, filas, function(f){
+    function datosDeFila(f){
       var sub = [];
       if (!porEnte && f.ente) sub.push(f.ente);
+      if (tramos) sub.push(ceTxt(u.ce_ti_tramos, {c: ceDias(f.mediana_ciip_h), e: (f.n_ente || 0) ? ceDias(f.mediana_ente_h) : '—'}));
+      else if (f.n_ente || 0) sub.push((u.ce_c_anteente || '') + ' ' + ceHoras(f.mediana_ente_h));
       sub.push((u.ce_c_casos || '') + ' ' + (f.resueltos || 0));
-      if (f.n_ente || 0) sub.push((u.ce_c_anteente || '') + ' ' + ceHoras(f.mediana_ente_h));
-      return ceFila({
+      return {
         nombre: porEnte ? (f.ente || u.ce_sinente || '') : ceNombreTramite(f.tipo),
         sub: sub.join(' · '),
-        valor: ceHoras(f.mediana_h), fuerte: true,
-        pie: (u.ce_c_media || '') + ' ' + ceHoras(f.promedio_h),
-        partes: partes(+f.mediana_h || 0, tramo(f))
-      });
+        valor: tramos ? ceDias(f.mediana_h) : ceHoras(f.mediana_h), fuerte: true,
+        pie: (u.ce_c_media || '') + ' ' + (tramos ? ceDias(f.promedio_h) : ceHoras(f.promedio_h)),
+        partes: partes(f)
+      };
+    }
+    ceLista(s, 'tiempos-' + ceModo, filas, function(f, i){
+      if (!tramos) return ceFila(datosDeFila(f));
+      var item = el('div', 'ce-mo-item');
+      item.setAttribute('role', 'listitem');
+      var o = datosDeFila(f);
+      o.cls = 'ce-mo-abre';
+      var b = ceFila(o, 'button');
+      b.type = 'button';
+      var caret = el('span', 'caret', '▸');
+      caret.setAttribute('aria-hidden', 'true');
+      b.insertBefore(caret, b.firstChild);
+      var panel = el('div', 'ce-casos');
+      panel.id = 'ceTiCasos-' + ceModo + '-' + i;
+      b.setAttribute('aria-controls', panel.id);
+      var clave = 'ti:' + ceModo + ':' + (porEnte ? f.ente : f.tipo);
+      function deEsta(c){ return porEnte ? (c.ente || '') === (f.ente || '') : c.tipo === f.tipo; }
+      function pon(abierto){
+        ceAbierto[clave] = abierto;
+        panel.hidden = !abierto;
+        b.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+        caret.textContent = abierto ? '▾' : '▸';
+        if (abierto && !panel.firstChild) ceCasosTiempo(u, panel, deEsta, f.resueltos || 0);
+      }
+      b.addEventListener('click', function(){ pon(!ceAbierto[clave]); });
+      item.appendChild(b);
+      item.appendChild(panel);
+      pon(!!ceAbierto[clave]);
+      return item;
     }, function(cola){
       /* La de «Otros» no suma medianas: enseña la más larga de las que
          recoge, que es lo que hay que ir a mirar. */
       var peor = cola.reduce(function(m, f){ return (+f.mediana_h || 0) > (+m.mediana_h || 0) ? f : m; }, cola[0]);
-      return {valor: ceHoras(peor.mediana_h), partes: partes(+peor.mediana_h || 0, tramo(peor))};
+      return {valor: tramos ? ceDias(peor.mediana_h) : ceHoras(peor.mediana_h), partes: partes(peor)};
     });
     ceLeyenda(s, [['r-ciip', u.ce_ti_ciip], ['r-ente', u.ce_c_anteente]]);
     return s;
