@@ -77,6 +77,8 @@ create trigger tramites_anula_lo_pendiente
 -- quitaba en silencio del expediente que el CIIP ya estaba revisando. Lo
 -- frenaba el panel, y por la API no lo frenaba nadie. En borrador y en
 -- devuelto sí se puede: son de quien los rellena. Cancelada, también.
+-- Desde el 15-10-2026 la redefine supabase-borrado-admin.sql: la misma, con
+-- la puerta del borrado del administrador (solo para borrar).
 create or replace function public.papel_en_marcha_no_se_borra()
 returns trigger
 language plpgsql

@@ -280,6 +280,8 @@
               devueltoAbre, devueltoMira, escaleraAbre, escaleraMira, variasAbre, variasMira,
               usuariosMira, usuariosCambia, usuariosConfirma, usuariosTrasCambiar, usuariosSeMueve,
               usBloqPide, usBloqMira, usBajaPide, usBajaSi, usBajaMira,
+              /* Vaciar una cuenta, solo el admin (15-10-2026). */
+              usVaciaPide, usVaciaEscribe, usVaciaMira,
               guardiaEntra, guardiaMira, guardiaMiraOtra,
               acompAbre, acompMira,
               cuentaBloqMira,
@@ -310,6 +312,10 @@
               cdAbreSiembra, cdAbreMira,
               /* QA-08: el papel rechazado y sustituido no deja atascado el trámite. */
               hoyReenvia, hoyReenviaAbre, hoyReenviaMira,
+              /* Borrar un papel desde el visor, solo el admin (15-10-2026). */
+              boDocAbre, boDocPide, boDocSi, boDocMira,
+              /* Y la solicitud entera, desde la cabecera del visor (15-10-2026). */
+              boSvAbre, boSvPide, boSvSi, boSvMira,
               hoyRestaura,
               empresaDelGestor, empresaAbre, empresaMira, empresaNueva, empresaFichaAbre, empresaOfreceGuardada,
               empresaGuarda, empresaActaLeida,
@@ -389,6 +395,8 @@
               rvFallaPide, rvFallaMira,
               cbAbre, cbMira,
               tdAbre, tdMira, tdAsignaMira,
+              /* Borrar una solicitud de la tabla, solo el admin (15-10-2026). */
+              boSolSiembra, boSolPide, boSolSi, boSolMira,
               ajAbre, ajMira,
               plazoF5Abre, plazoF5Rompe, plazoF5Repinta, plazoF5Mira,
               opacidadMira, opacidadSenal,
@@ -7618,7 +7626,7 @@
     ok('hoy: abrir un RIF recibido no lo pone en revisión: eso es mandar la planilla',
        !v.querySelector('.visor-meta .co-estado.mirando'),
        v.querySelector('.visor-meta .co-estado.mirando') ? 'en revisión' : 'recibido', 'recibido');
-    igual('hoy: a la izquierda, sus papeles', v.querySelectorAll('.visor-chk button').length, 2);
+    igual('hoy: a la izquierda, sus papeles', v.querySelectorAll('.visor-chk button[data-doc]').length, 2);
     igual('hoy: y empieza por el que falta por mirar',
           (document.getElementById('paVisorDoc') || {}).textContent, 'pasaporte-bianchi.pdf');
     ok('hoy: el documento se ve dentro, sin salir a otra pestaña',
@@ -7675,7 +7683,7 @@
        !!v.querySelector('details.vt-dev') && !v.querySelector('details.vt-dev').open,
        v.querySelector('details.vt-dev') ? (v.querySelector('details.vt-dev').open ? 'abierto' : 'plegado') : 'sin devolver', 'plegado');
     /* De vuelta al papel por la lista de la izquierda. */
-    [].forEach.call(v.querySelectorAll('.visor-chk button'), function(b){
+    [].forEach.call(v.querySelectorAll('.visor-chk button[data-doc]'), function(b){
       if (/pasaporte-bianchi.pdf/.test(b.textContent)) b.click();
     });
     var vale = document.getElementById('paVisorVale');
@@ -7694,7 +7702,7 @@
     igual('hoy: y la miniatura de la tarjeta cambia con él',
           hoyTarjeta('h1') ? hoyTarjeta('h1').querySelectorAll('.hoy-th.validado').length : 0, 2);
     /* «No vale» en el segundo papel. */
-    var segundo = v.querySelectorAll('.visor-chk button')[1];
+    var segundo = v.querySelectorAll('.visor-chk button[data-doc]')[1];
     if (segundo) segundo.click();
   }
 
@@ -8115,7 +8123,7 @@
       ok('hoy: el reenviado vuelve a la cola', !!t, t ? 'está' : 'no está', 'está');
       if (!t) return sigue();
       t.click();
-      esperaFilas('#paVisor .visor-chk button', 1, sigue);
+      esperaFilas('#paVisor .visor-chk button[data-doc]', 1, sigue);
     });
   }
 
@@ -8123,7 +8131,7 @@
     if (CASO !== 'gestor' || !HOY_ANTES) return;
     var v = document.getElementById('paVisor');
     igual('hoy: el rechazado que ya se cambió no sale entre sus papeles',
-          [].map.call(v.querySelectorAll('.visor-chk button'), function(b){
+          [].map.call(v.querySelectorAll('.visor-chk button[data-doc]'), function(b){
             return /recibo-bianchi\.jpg/.test(b.textContent) ? 'el viejo' : 'otro';
           }).join(' '), 'otro otro');
     /* El reenviado vuelve EN REVISIÓN, o sea con la planilla ya mandada: lo
@@ -17802,6 +17810,203 @@
   /* TODOS LOS TRÁMITES, PARA EL ADMINISTRADOR. Su renglón, que la tabla se
      abre -al gestor se le cierra y cae a la portada- y que cada fila dice de
      quién es la solicitud. */
+  /* ═══════════════════════════════════════════════════════════════
+     BORRAR LO DE LAS PRUEBAS (Franklin Reyes, 15-10-2026)
+     ═══════════════════════════════════════════════════════════════
+     Solo el administrador: una solicitud desde «Todos los trámites», un
+     papel desde el visor y una cuenta entera desde «Usuarios». Las tres
+     preguntan antes; la de la cuenta, con su correo escrito. La solicitud
+     que se borra la siembra la prueba (__PARA_BORRAR): una de la cola la
+     echarían de menos las pruebas de después. */
+  function boSolSiembra(sigue){
+    if (!ES_ADMIN) return sigue();
+    window.__PARA_BORRAR = [{id:'borrame-1', tipo:'rif_empresa', estado:'borrador',
+      inversionista:'u-prueba-borrado', gestor:null, creado_en:new Date().toISOString()}];
+    Promise.resolve(window.CIIP_PINTA_MISTRAM && window.CIIP_PINTA_MISTRAM())
+      .then(function(){ esperaFilas('#mtCuerpo tr[data-id="borrame-1"]', 1, sigue); },
+            function(){ sigue(); });
+  }
+  function boSolPide(){
+    if (!ES_ADMIN && CASO !== 'gestor') return;
+    var bs = document.querySelectorAll('#mtCuerpo .mt-borra');
+    if (!ES_ADMIN){
+      igual('borrar: un gestor no ve «Borrar» en la tabla', bs.length, 0);
+      return;
+    }
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    igual('borrar: cada solicitud de la tabla trae «Borrar»', bs.length,
+          document.querySelectorAll('#mtCuerpo tr[data-id]').length);
+    var b = document.querySelector('#mtCuerpo tr[data-id="borrame-1"] .mt-borra');
+    ok('borrar: la sembrada está en la tabla, con su botón', !!b, b ? 'está' : 'no está', 'está');
+    if (!b) return;
+    window.CIIP_PRUEBA_BORRADO = [];
+    b.click();
+    igual('borrar: la primera pulsación solo pregunta', b.textContent.trim(), U.brr_seguro);
+    igual('borrar: y no borra todavía', (window.CIIP_PRUEBA_BORRADO || []).length, 0);
+  }
+  function boSolSi(sigue){
+    if (!ES_ADMIN) return sigue();
+    var b = document.querySelector('#mtCuerpo tr[data-id="borrame-1"] .mt-borra');
+    if (!b) return sigue();
+    b.click();
+    var p = (window.CIIP_PRUEBA_BORRADO || []).filter(function(x){ return x.f === 'borra_solicitud'; })[0];
+    igual('borrar: la segunda pide a la base borrar ESA solicitud', p ? p.args.p_tramite : '(no pidió)', 'borrame-1');
+    setTimeout(sigue, 600);
+  }
+  function boSolMira(){
+    if (!ES_ADMIN) return;
+    ok('borrar: y la solicitud desaparece de la tabla',
+       !document.querySelector('#mtCuerpo tr[data-id="borrame-1"]'),
+       document.querySelector('#mtCuerpo tr[data-id="borrame-1"]') ? 'sigue' : 'fuera', 'fuera');
+    window.__PARA_BORRAR = null;
+  }
+
+  /* El papel, desde el visor de h1, que acaba de volver a la cola con sus
+     dos papeles. Al final de la tanda: después ya no se mira h1. */
+  function boDocAbre(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES) return sigue();
+    esperaFilas('#paTandas .hoy-card[data-tr="h1"]', 1, function(){
+      var t = hoyTarjeta('h1');
+      if (!t) return sigue();
+      t.click();
+      esperaFilas('#paVisor .visor-chk button[data-doc]', 1, sigue);
+    });
+  }
+  var boDocAntes = 0;
+  function boDocPide(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    var v = document.getElementById('paVisor');
+    var docs = v.querySelectorAll('.visor-chk button[data-doc]');
+    var xs = v.querySelectorAll('.visor-chk .visor-borra');
+    if (!ES_ADMIN){
+      igual('borrar: un gestor no ve el borrado de papeles', xs.length, 0);
+      return;
+    }
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    igual('borrar: cada papel del visor trae su botón de borrar', xs.length, docs.length);
+    boDocAntes = docs.length;
+    if (!xs[0]) return;
+    igual('borrar: y dice qué hace al pasar por encima', xs[0].title, U.brr_doc);
+    window.CIIP_PRUEBA_BORRADO = [];
+    window.CIIP_PRUEBA_CUBO = [];
+    xs[0].click();
+    igual('borrar: el papel, también con dos pulsaciones', xs[0].textContent.trim(), U.brr_doc_seguro);
+    igual('borrar: y la primera no borra', (window.CIIP_PRUEBA_BORRADO || []).length, 0);
+  }
+  function boDocSi(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES || !ES_ADMIN) return sigue();
+    var x = document.querySelector('#paVisor .visor-chk .visor-borra.seguro');
+    if (!x) return sigue();
+    x.click();
+    var p = (window.CIIP_PRUEBA_BORRADO || []).filter(function(y){ return y.f === 'borra_documento'; })[0];
+    ok('borrar: la segunda pide a la base borrar el papel, con su id', !!(p && p.args.p_documento),
+       p ? p.args.p_documento : '(no pidió)', 'el id del papel');
+    setTimeout(sigue, 800);
+  }
+  function boDocMira(){
+    if (CASO !== 'gestor' || !HOY_ANTES || !ES_ADMIN) return;
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var v = document.getElementById('paVisor');
+    igual('borrar: y el papel sale de la lista', v.querySelectorAll('.visor-chk button[data-doc]').length, boDocAntes - 1);
+    igual('borrar: su archivo se quita del cubo', (window.CIIP_PRUEBA_CUBO || []).length, 1);
+    var m = (window.CIIP_PRUEBA_BORRADO || []).filter(function(y){ return y.f === 'marca_barridos'; })[0];
+    ok('borrar: y queda constancia de que se quitó', !!m && m.args.p_rutas.length === 1,
+       m ? JSON.stringify(m.args.p_rutas) : '(no la dejó)', 'la ruta');
+    var toast = (document.getElementById('paToast') || {}).textContent || '';
+    ok('borrar: y lo dice', toast.indexOf(U.brr_doc_hecho) >= 0, toast, U.brr_doc_hecho);
+    hoyEscape();
+  }
+
+  /* La solicitud entera, desde la cabecera del visor: «la idea era poder
+     borrar los trámites que están solicitando». h1 sigue en la cola. */
+  function boSvAbre(sigue){ return boDocAbre(sigue); }
+  function boSvPide(){
+    if (CASO !== 'gestor' || !HOY_ANTES) return;
+    var b = document.getElementById('paVisorBorra');
+    if (!ES_ADMIN){
+      ok('borrar: un gestor no ve «Borrar solicitud» en el visor', !b, b ? 'lo ve' : 'no lo ve', 'no lo ve');
+      return;
+    }
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    ok('borrar: el visor ofrece borrar la solicitud', !!b, b ? b.textContent : 'no está', U.brr_borrar_sol);
+    if (!b) return;
+    var cerrar = document.getElementById('paVisorCerrar');
+    ok('borrar: y va delante de «Cerrar»', !!cerrar && b.nextElementSibling === cerrar,
+       b.nextElementSibling ? b.nextElementSibling.id : '(nada)', 'paVisorCerrar');
+    window.CIIP_PRUEBA_BORRADO = [];
+    b.click();
+    igual('borrar: la primera pulsación del visor solo pregunta', b.textContent.trim(), U.brr_seguro);
+    igual('borrar: y no borra todavía', (window.CIIP_PRUEBA_BORRADO || []).length, 0);
+  }
+  function boSvSi(sigue){
+    if (CASO !== 'gestor' || !HOY_ANTES || !ES_ADMIN) return sigue();
+    var b = document.getElementById('paVisorBorra');
+    if (!b) return sigue();
+    b.click();
+    var p = (window.CIIP_PRUEBA_BORRADO || []).filter(function(x){ return x.f === 'borra_solicitud'; })[0];
+    igual('borrar: la segunda pide borrar la solicitud que se mira', p ? p.args.p_tramite : '(no pidió)', 'h1');
+    setTimeout(sigue, 800);
+  }
+  function boSvMira(){
+    if (CASO !== 'gestor' || !HOY_ANTES || !ES_ADMIN) return;
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    ok('borrar: el visor se cierra', document.getElementById('paVisor').hidden,
+       document.getElementById('paVisor').hidden ? 'cerrado' : 'abierto', 'cerrado');
+    var toast = (document.getElementById('paToast') || {}).textContent || '';
+    ok('borrar: dice que la borró', toast.indexOf(U.brr_sol_hecha) >= 0, toast, U.brr_sol_hecha);
+    ok('borrar: y la solicitud sale de la cola', !hoyTarjeta('h1'), hoyTarjeta('h1') ? 'sigue' : 'fuera', 'fuera');
+  }
+
+  /* La cuenta entera: pregunta, y el «Sí» no se enciende hasta escribir
+     su correo (o su nombre, si la base no da correos). */
+  function usVaciaPide(){
+    if (!ES_ADMIN) return;
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var f = fichaUs('Marta Bianchi');
+    var b = botonUs(f, U.brr_vaciar);
+    ok('vaciar: la ficha ofrece vaciar la cuenta', !!b, b ? 'está' : 'no está', 'el botón');
+    if (!b) return;
+    b.click();
+    var pre = f.querySelector('.us-confirma');
+    ok('vaciar: pregunta antes, y dice de quién', !!pre && /Marta Bianchi/.test(pre.textContent),
+       pre ? pre.textContent.slice(0, 80) : '(no pregunta)', 'la pregunta');
+    var si = botonUs(pre, U.us_conf_si);
+    ok('vaciar: y el «Sí» está apagado hasta escribir', !!si && si.disabled,
+       si ? (si.disabled ? 'apagado' : 'encendido') : 'sin Sí', 'apagado');
+  }
+  function usVaciaEscribe(){
+    if (!ES_ADMIN) return;
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var f = fichaUs('Marta Bianchi');
+    var pre = f && f.querySelector('.us-confirma');
+    var campo = pre && pre.querySelector('.us-exige');
+    var si = botonUs(pre, U.us_conf_si);
+    ok('vaciar: con su casilla para escribir', !!campo, campo ? 'está' : 'no está', 'la casilla');
+    if (!campo || !si) return;
+    campo.value = 'otra persona';
+    campo.dispatchEvent(new Event('input'));
+    ok('vaciar: con otro dato, sigue apagado', si.disabled, si.disabled ? 'apagado' : 'encendido', 'apagado');
+    var correo = f.querySelector('.us-correo');
+    campo.value = correo ? correo.textContent : 'Marta Bianchi';
+    campo.dispatchEvent(new Event('input'));
+    ok('vaciar: con el suyo, se enciende', !si.disabled, si.disabled ? 'apagado' : 'encendido', 'encendido');
+    window.CIIP_PRUEBA_BORRADO = [];
+    window.CIIP_PRUEBA_CUBO = [];
+    si.click();
+  }
+  function usVaciaMira(){
+    if (!ES_ADMIN) return;
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var p = (window.CIIP_PRUEBA_BORRADO || []).filter(function(y){ return y.f === 'vacia_cuenta'; })[0];
+    ok('vaciar: pide a la base vaciar esa cuenta', !!(p && p.args.p_usuario),
+       p ? p.args.p_usuario : '(no pidió)', 'su id');
+    igual('vaciar: y quita del cubo los archivos que la base devuelve',
+          (window.CIIP_PRUEBA_CUBO || []).join(' '), 'vaciada/uno.pdf vaciada/dos.pdf');
+    var f = fichaUs('Marta Bianchi');
+    ok('vaciar: y la ficha lo dice', !!f && f.textContent.indexOf(U.brr_vaciada) >= 0,
+       f ? f.textContent.slice(0, 120) : '(sin ficha)', U.brr_vaciada);
+  }
+
   function tdAbre(){
     if (!ES_ADMIN && CASO !== 'gestor') return;
     location.hash = 'tramites';

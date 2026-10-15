@@ -2664,6 +2664,15 @@ body[data-vista="citas"] .fase-bar{display:none;}
 #mtTabla.mt-con-prog th:nth-child(1){width:25%;} #mtTabla.mt-con-prog th:nth-child(2){width:10%;}
 #mtTabla.mt-con-prog th:nth-child(3){width:24%;} #mtTabla.mt-con-prog th:nth-child(4){width:20%;}
 #mtTabla.mt-con-prog th:nth-child(5){width:12%;} #mtTabla.mt-con-prog th:nth-child(6){width:9%;}
+/* La del administrador (15-10-2026): siete columnas -quién lo lleva y cuánto
+   espera, más la fecha y la de los botones-. Con los anchos de la de cinco,
+   que suman ya el cien por cien, las dos últimas se quedaban en cero y ni
+   «Abrir» ni «Borrar» se veían. */
+#mtTabla.mt-de-todos{min-width:1040px;}
+#mtTabla.mt-de-todos th:nth-child(1){width:23%;} #mtTabla.mt-de-todos th:nth-child(2){width:9%;}
+#mtTabla.mt-de-todos th:nth-child(3){width:17%;} #mtTabla.mt-de-todos th:nth-child(4){width:15%;}
+#mtTabla.mt-de-todos th:nth-child(5){width:8%;} #mtTabla.mt-de-todos th:nth-child(6){width:11%;}
+#mtTabla.mt-de-todos th:nth-child(7){width:17%;}
 .mt-pg-pasos{list-style:none; margin:0; padding:0; display:flex; align-items:center;}
 .mt-pg-p{display:flex; align-items:center; flex:1 1 0;}
 .mt-pg-p:first-child{flex:none;}
@@ -6035,6 +6044,18 @@ html.visor-abierto{overflow:hidden;}
 .visor-chk button{display:grid; grid-template-columns:22px minmax(0,1fr); gap:8px; align-items:center; text-align:left;
   font:inherit; color:var(--ink); background:transparent; border:0; border-radius:8px; padding:7px 8px; cursor:pointer;}
 .visor-chk button[aria-current="true"]{background:var(--activa-bg);}
+/* Borrar un papel, solo el administrador (15-10-2026): un botón pequeño al
+   lado del de abrirlo, que en la segunda pulsación pide el «Sí» en óxido. */
+.visor-chk-fila{display:flex; align-items:center; gap:4px;}
+.visor-chk-fila > button[data-doc]{flex:1 1 auto; min-width:0;}
+.visor-chk .visor-borra{display:inline-flex; align-items:center; justify-content:center; flex:none;
+  width:28px; height:28px; padding:0; border:1px solid transparent; border-radius:7px;
+  background:none; color:var(--gray);}
+.visor-chk .visor-borra svg{width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2;
+  stroke-linecap:round; stroke-linejoin:round;}
+.visor-chk .visor-borra:hover:not(:disabled){color:var(--rust); border-color:var(--rust);}
+.visor-chk .visor-borra.seguro{width:auto; padding:0 9px; background:var(--rust); border-color:var(--rust);
+  color:#fff; font-size:var(--fs-nota); font-weight:700; white-space:nowrap;}
 .visor-chk .o{width:20px; height:20px; border-radius:50%; border:1.5px solid var(--gray-soft); display:flex;
   align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff;}
 .visor-chk .o.validado{background:var(--good); border-color:var(--good);}
@@ -6332,6 +6353,16 @@ body[data-vista="horario"] .fase-bar{display:none;}
 .us-confirma{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px;
   padding-top:10px; border-top:1px dashed var(--line);}
 .us-confirma .us-nota{flex-basis:100%;}
+/* Vaciar una cuenta: el «Sí» se enciende al escribir su correo, y apagado
+   se tiene que ver apagado. */
+.us-confirma .can-btn.confirma:disabled{opacity:.45; cursor:not-allowed;}
+.us-confirma .us-exige{font:inherit; font-size:var(--fs-campo); padding:7px 10px; border:1px solid var(--line);
+  border-radius:8px; background:var(--bg); color:var(--ink); flex:1 1 220px; min-width:0;}
+/* Borrar una solicitud desde «Todos los trámites» (15-10-2026): la segunda
+   pulsación, en óxido, como «Sí, cancelarla». */
+.t-btn.peligro.seguro{background:var(--rust); border-color:var(--rust); color:#fff;}
+.mt-borra{margin-left:6px;}
+.mt-borra-mal{display:block; margin-top:4px; font-size:var(--fs-nota); color:var(--rust);}
 .us-mas{margin-top:14px;}
 
 /* Trazabilidad (auditoría QA-27): fechas, exportar y cargar más. */

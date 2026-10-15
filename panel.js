@@ -20700,7 +20700,45 @@ applyLang(idiomaParaMi());
       b.addEventListener('click', x[2]);
       bar.appendChild(b);
     });
+    /* Y borrar la solicitud que se está mirando, delante de «Cerrar»: solo
+       el administrador (Franklin Reyes, 15-10-2026: «la idea era poder
+       borrar los trámites que están solicitando»; ver mtBorra). */
+    if (mtEsAdmin() && t.id){
+      var bs = el('button', 't-btn peligro', u.brr_borrar_sol || '');
+      bs.type = 'button';
+      bs.id = 'paVisorBorra';
+      bs.addEventListener('click', function(){ visorBorraSol(bs, t); });
+      bar.insertBefore(bs, bar.querySelector('#paVisorCerrar'));
+    }
     return bar;
+  }
+
+  /* Dos pulsaciones, como en la tabla. Borrada, el visor se cierra y la
+     cola se vuelve a pedir: la solicitud ya no está. */
+  function visorBorraSol(boton, t){
+    var u = T();
+    if (!boton.getAttribute('data-seguro')){
+      boton.setAttribute('data-seguro', '1');
+      boton.classList.add('seguro');
+      boton.textContent = u.brr_seguro || '';
+      return;
+    }
+    boton.disabled = true;
+    boton.textContent = u.brr_borrando || '';
+    boRpc('borra_solicitud', {p_tramite: t.id})
+      .then(function(){
+        cierraVisor();
+        hoyAvisa(u.brr_sol_hecha || '');
+        if (window.CIIP_PINTA_PORATENDER) window.CIIP_PINTA_PORATENDER();
+      })
+      .catch(function(e){
+        console.warn('[CIIP] borrar solicitud:', e && (e.message || e));
+        boton.disabled = false;
+        boton.removeAttribute('data-seguro');
+        boton.classList.remove('seguro');
+        boton.textContent = u.brr_borrar_sol || '';
+        hoyAvisa(String(u.brr_error || '').replace('{e}', (e && e.message) || ''));
+      });
   }
 
   /* ── EL VISOR COMO LISTA DE TAREAS ──
@@ -20813,6 +20851,32 @@ applyLang(idiomaParaMi());
     return sec;
   }
 
+  /* Borrar un papel desde el visor (Franklin Reyes, 15-10-2026; ver
+     mtBorra). Dos pulsaciones: la primera pone «Sí, borrar» en el propio
+     botón. Después se quita su archivo del cubo y se recargan los papeles
+     de la cola, que es lo que repinta el visor abierto. */
+  function visorBorraDoc(x, d){
+    var u = T();
+    if (!x.getAttribute('data-seguro')){
+      x.setAttribute('data-seguro', '1');
+      x.classList.add('seguro');
+      x.textContent = u.brr_doc_seguro || '';
+      return;
+    }
+    x.disabled = true;
+    boRpc('borra_documento', {p_documento: d.id})
+      .then(function(ruta){ return boQuitaDelCubo([ruta || d.archivo]); })
+      .then(function(){
+        hoyAvisa(u.brr_doc_hecho || '');
+        return cargaRecaudosHoy().then(pintaHoy);
+      })
+      .catch(function(e){
+        console.warn('[CIIP] borrar papel:', e && (e.message || e));
+        x.disabled = false;
+        hoyAvisa(String(u.brr_error || '').replace('{e}', (e && e.message) || ''));
+      });
+  }
+
   function visorIzq(t, docs, modo){
     var u = T();
     var izq = el('div', 'visor-izq');
@@ -20851,7 +20915,23 @@ applyLang(idiomaParaMi());
         (d.titular ? ' · ' + d.titular : '') + ' · ' + hoyTextoEstado(d)));
       b.appendChild(n);
       b.addEventListener('click', function(){ visorVe(k); });
-      lista.appendChild(b);
+      /* Y al lado, borrar el papel: solo el administrador (ver mtBorra).
+         Va en su propio botón y no dentro del de abrir, que un botón no
+         puede llevar otro dentro. */
+      if (mtEsAdmin() && d.id){
+        var fila = el('div', 'visor-chk-fila');
+        fila.appendChild(b);
+        var x = el('button', 'visor-borra');
+        x.type = 'button';
+        x.title = u.brr_doc || '';
+        x.setAttribute('aria-label', u.brr_doc || '');
+        x.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>';
+        x.addEventListener('click', function(){ visorBorraDoc(x, d); });
+        fila.appendChild(x);
+        lista.appendChild(fila);
+      } else {
+        lista.appendChild(b);
+      }
     });
     s1.appendChild(lista);
     izq.appendChild(s1);
@@ -23995,6 +24075,70 @@ applyLang(idiomaParaMi());
   /* Lo que ESTA tabla enseña: a un administrador, todo; a los demás, suyo. */
   function mtFilas(){ return mtEsAdmin() ? todasMt : mios; }
 
+  /* ── BORRAR LO DE LAS PRUEBAS ──
+     Franklin Reyes, 15-10-2026: «que desde administrador pueda borrar
+     trámites realizados y documentos», los de las pruebas del equipo,
+     «para no tocar la base siempre». Tres puertas, las tres solo para el
+     administrador: una solicitud en esta tabla, un papel en el visor y la
+     cuenta entera en «Usuarios». Se puede borrar de CUALQUIER cuenta
+     (decisión del CIIP), así que la guarda contra el error es preguntar
+     antes. Borra la base -supabase-borrado-admin.sql-; aquí se pide y
+     después se quitan del cubo los archivos que la base devuelve, porque
+     el barrendero no corre en producción. */
+  function boRpc(nombre, args){
+    var q;
+    try { q = sb.rpc(nombre, args); } catch (e){ return Promise.reject(e); }
+    /* rpc no trae catch: se envuelve, y el error viene DENTRO de la
+       respuesta, no como rechazo. */
+    return Promise.resolve(q).then(function(r){
+      if (r && r.error) throw r.error;
+      return r ? r.data : null;
+    });
+  }
+  /* Lo que el cubo no acepte se queda 'pendiente' en archivos_huerfanos,
+     donde lo busca el barrendero: un fallo aquí no deshace el borrado,
+     que ya está hecho, y por eso no se dice como un error. */
+  function boQuitaDelCubo(rutas){
+    rutas = (rutas || []).filter(Boolean);
+    if (!rutas.length) return Promise.resolve(0);
+    return Promise.resolve(sb.storage.from('recaudos').remove(rutas))
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        var quitadas = ((r && r.data) || []).map(function(o){ return o && o.name; }).filter(Boolean);
+        return quitadas.length ? boRpc('marca_barridos', {p_rutas: quitadas}) : 0;
+      })
+      .catch(function(e){
+        console.warn('[CIIP] archivos sin quitar del cubo:', e && (e.message || e));
+        return 0;
+      });
+  }
+  /* Una solicitud, desde su fila. Dos pulsaciones, como cancelar una: la
+     primera avisa en el propio botón, la segunda borra. */
+  function mtBorra(boton, t){
+    var u = T();
+    if (!boton.getAttribute('data-seguro')){
+      boton.setAttribute('data-seguro', '1');
+      boton.classList.add('seguro');
+      boton.textContent = u.brr_seguro || '';
+      return;
+    }
+    boton.disabled = true;
+    boton.textContent = u.brr_borrando || '';
+    var mal = boton.parentNode && boton.parentNode.querySelector('.mt-borra-mal');
+    if (mal) mal.remove();
+    boRpc('borra_solicitud', {p_tramite: t.id})
+      .then(function(){ return cargaMisTramites(); })
+      .catch(function(e){
+        console.warn('[CIIP] borrar solicitud:', e && (e.message || e));
+        boton.disabled = false;
+        boton.removeAttribute('data-seguro');
+        boton.classList.remove('seguro');
+        boton.textContent = u.brr_borrar || '';
+        if (boton.parentNode) boton.parentNode.appendChild(el('span', 'mt-borra-mal',
+          String(u.brr_error || '').replace('{e}', (e && e.message) || '')));
+      });
+  }
+
   /* Todo menos lo resuelto. Es "cuánto tienes abierto", igual que el
      contador de las citas: así los dos renglónes de la barra significan lo
      mismo y no hay que aprenderse dos reglas. */
@@ -24720,6 +24864,8 @@ applyLang(idiomaParaMi());
     cuerpo.textContent = '';
     var tabla = document.getElementById('mtTabla');
     if (tabla) tabla.classList.toggle('mt-con-prog', mtConProgreso());
+    /* Y la del administrador, con sus siete columnas (ver panel.css). */
+    if (tabla) tabla.classList.toggle('mt-de-todos', mtEsAdmin());
 
     /* La caja del borde y el alto tope es la que se ve: escondiendo la
        <table> sola quedaba el marco vacío dibujado. */
@@ -24945,6 +25091,13 @@ applyLang(idiomaParaMi());
         location.hash = destino;
       });
       tdIr.appendChild(bt);
+      /* Y borrarla, solo el administrador (ver mtBorra). */
+      if (mtEsAdmin() && t.id){
+        var bb = el('button', 't-btn peligro mt-borra', u.brr_borrar || '');
+        bb.type = 'button';
+        bb.addEventListener('click', function(){ mtBorra(bb, t); });
+        tdIr.appendChild(bb);
+      }
       tr.appendChild(tdIr);
 
       cuerpo.appendChild(tr);
@@ -32525,7 +32678,9 @@ applyLang(idiomaParaMi());
       sel.disabled = si || yo;
       botones.forEach(function(b){ b.disabled = si; });
     }
-    function pregunta(texto, hacer, deshacer){
+    /* exige: un dato que hay que escribir para que el «Sí» se encienda. Lo
+       usa vaciar la cuenta, que no se deshace y vale para cualquiera. */
+    function pregunta(texto, hacer, deshacer, exige){
       if (confirma && confirma.parentNode) confirma.parentNode.removeChild(confirma);
       confirma = el('div', 'us-confirma');
       confirma.appendChild(el('div', 'us-nota', texto));
@@ -32533,6 +32688,21 @@ applyLang(idiomaParaMi());
       si.type = 'button';
       var no = el('button', 't-btn', u.us_conf_no || '');
       no.type = 'button';
+      var campo = null;
+      if (exige){
+        campo = document.createElement('input');
+        campo.type = 'text';
+        campo.className = 'us-exige';
+        campo.setAttribute('autocomplete', 'off');
+        var pista = String(u.brr_escribe || '').replace('{dato}', exige);
+        campo.placeholder = pista;
+        campo.setAttribute('aria-label', pista);
+        si.disabled = true;
+        campo.addEventListener('input', function(){
+          si.disabled = campo.value.trim().toLowerCase() !== String(exige).trim().toLowerCase();
+        });
+        confirma.appendChild(campo);
+      }
       function cierra(){
         if (confirma && confirma.parentNode) confirma.parentNode.removeChild(confirma);
         confirma = null;
@@ -32543,7 +32713,7 @@ applyLang(idiomaParaMi());
       confirma.appendChild(no);
       apaga(true);
       f.insertBefore(confirma, pie.nextSibling);
-      try { si.focus(); } catch(e){}
+      try { (campo || si).focus(); } catch(e){}
     }
     function falla(que, e){
       console.warn('[CIIP] ' + que + ':', e && (e.message || e));
@@ -32654,6 +32824,34 @@ applyLang(idiomaParaMi());
         });
         pie.appendChild(bb);
       }
+
+      /* Vaciar la cuenta (Franklin Reyes, 15-10-2026; ver mtBorra): todas
+         sus solicitudes y todos sus papeles, para limpiar las de las
+         pruebas. La cuenta se queda. Como vale para cualquiera, se pide
+         escribir su correo -o su nombre, si la base no da correos-. */
+      var bv = el('button', 't-btn peligro us-vacia', u.brr_vaciar || '');
+      bv.type = 'button';
+      botones.push(bv);
+      bv.addEventListener('click', function(){
+        pregunta(String(u.brr_conf_vaciar || '').replace('{quien}', quienEsLaCuenta(p, u)),
+          function(){
+            nota.className = 'us-nota';
+            nota.textContent = u.brr_borrando || '';
+            boRpc('vacia_cuenta', {p_usuario: p.id})
+              .then(function(rutas){ return boQuitaDelCubo(rutas || []); })
+              .then(function(){
+                AVISOS_ROL[p.id] = u.brr_vaciada || '';
+                pintaUsuarios();
+              })
+              .catch(function(e){
+                console.warn('[CIIP] vaciar cuenta:', e && (e.message || e));
+                apaga(false);
+                nota.className = 'us-nota mal';
+                nota.textContent = String(u.brr_error || '').replace('{e}', (e && e.message) || '');
+              });
+          }, null, p.correo || p.nombre_completo || '');
+      });
+      pie.appendChild(bv);
     }
 
     f.appendChild(pie);
@@ -33247,7 +33445,11 @@ applyLang(idiomaParaMi());
   var RA_FUENTE = {catalogo:'cat', roles:'rol', papeles:'pap', citas:'cit',
                    textos:'tex', activos:'act', acompanamiento:'aju',
                    /* Quién vio la contraseña de un ente (8-10-2026). */
-                   entes:'ent'};
+                   entes:'ent',
+                   /* Lo que el administrador borró de las pruebas
+                      (supabase-borrado-admin.sql, 15-10-2026): va con los
+                      trámites, que es lo que se borra. */
+                   borrados:'tra'};
   var RA_ESTADO_CITA = {solicitada:'ra_e_solicitada', confirmada:'ra_e_confirmada',
                         hecha:'ra_e_hecha', cancelada:'ra_e_cancelada'};
   var raFiltro = 'todos', raBusca = '', raEnganchado = false;
@@ -33379,6 +33581,20 @@ applyLang(idiomaParaMi());
     } else if (b.fuente === 'entes'){
       /* El detalle es el ente (ivss, inces) y «sobre», de quién era. */
       accion = String(u.ra_v_vioclave || '').replace('{ente}', String(b.detalle || '').toUpperCase());
+      if (!sobre) sobre = u.ra_sinnombre || '';
+    } else if (b.fuente === 'borrados'){
+      /* Una solicitud -sobre, su trámite; detalle, el correo de quien era-
+         o una cuenta entera -sobre, el correo; detalle, cuántas solicitudes
+         y cuántos papeles, en JSON para decirlo en el idioma de quien mira-. */
+      if (b.accion === 'cuenta'){
+        var nv = {};
+        try { nv = JSON.parse(String(b.detalle || '{}')) || {}; } catch (e){}
+        accion = String(u.ra_v_vacio || '')
+          .replace('{s}', nv.solicitudes || 0).replace('{p}', nv.papeles || 0);
+      } else {
+        accion = u.ra_v_borro_sol || '';
+        sobre = [b.sobre, b.detalle].filter(Boolean).join(' · ');
+      }
       if (!sobre) sobre = u.ra_sinnombre || '';
     } else if (b.accion === 'puso_tramo' || b.accion === 'quito_tramo'){
       accion = (b.accion === 'puso_tramo' ? u.ra_v_tramo : u.ra_v_sintramo) || '';

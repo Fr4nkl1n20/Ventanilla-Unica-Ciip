@@ -85,6 +85,8 @@ create trigger autorizacion_constancia
   before insert on public.autorizaciones
   for each row execute function public.autorizacion_la_pone_la_base();
 
+-- Desde el 15-10-2026 la redefine supabase-borrado-admin.sql: la misma, con
+-- la puerta del borrado del administrador (solo para borrar).
 create or replace function public.autorizacion_no_se_toca()
 returns trigger
 language plpgsql

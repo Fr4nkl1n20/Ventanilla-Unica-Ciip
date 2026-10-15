@@ -154,6 +154,8 @@ create trigger mensajes_adjunto
 -- nulo— para poder quitar a mano algo que no debería estar ahí: eso es
 -- una decisión de persona, no de código.
 
+-- Desde el 15-10-2026 la redefine supabase-borrado-admin.sql: la misma, con
+-- la puerta del borrado del administrador (solo para borrar).
 create or replace function public.mensaje_no_se_toca()
 returns trigger
 language plpgsql

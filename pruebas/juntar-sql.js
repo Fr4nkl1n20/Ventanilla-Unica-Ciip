@@ -312,7 +312,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    trámite, su credencial y 'rtn_solicitado' en confirma_paso. Redefine la
    confirma_paso de supabase-sacs; al final para no mover el número de
    nadie. */
-'supabase-rtn'];
+'supabase-rtn',
+/* El administrador borra lo de las pruebas desde el panel (Franklin Reyes,
+   15-10-2026): una solicitud, un papel o una cuenta entera. Redefine tres
+   cerrojos de supabase-hilo, supabase-qa-tramites y supabase-autorizaciones,
+   y la regla de fuentes de la bitácora: va la última. */
+'supabase-borrado-admin'];
 
 let mal = 0;
 for (const n of orden) {

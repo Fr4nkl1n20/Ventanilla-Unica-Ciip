@@ -5075,6 +5075,203 @@ select arnes.comprueba(
 reset role;
 select arnes.nadie();
 
+-- ══ EL ADMINISTRADOR BORRA LO DE LAS PRUEBAS ═════════════════════════
+-- supabase-borrado-admin.sql (Franklin Reyes, 15-10-2026). Una solicitud
+-- EN MARCHA con mensaje, autorizacion y un papel que ademas va en otra
+-- solicitud en marcha: justo lo que los tres cerrojos no dejaban borrar
+-- con alguien conectado. Y despues la cuenta entera de VC.
+reset role;
+select arnes.nadie();
+insert into auth.users (email, raw_user_meta_data) values
+  ('admborra@prueba.local', '{"nombre_completo":"Beatriz Borradora","pais":"Venezuela"}');
+insert into arnes.gente (papel, id)
+select 'BA', id from auth.users where email = 'admborra@prueba.local';
+update public.perfiles set rol = 'admin'
+ where id = (select id from arnes.gente where papel = 'BA');
+
+with t as (
+  insert into public.tramites (inversionista, tipo, estado)
+  values ((select id from arnes.gente where papel = 'A'),
+          (select codigo from public.tipos_tramite tt where not exists (select 1 from public.tramites x where x.inversionista = (select id from arnes.gente where papel = 'A') and x.tipo = tt.codigo) order by codigo limit 1), 'en_revision')
+  returning id)
+insert into arnes.escenario (clave, id) select 'bo_tramite', id from t;
+with t as (
+  insert into public.tramites (inversionista, tipo, estado)
+  values ((select id from arnes.gente where papel = 'A'),
+          (select codigo from public.tipos_tramite tt where not exists (select 1 from public.tramites x where x.inversionista = (select id from arnes.gente where papel = 'A') and x.tipo = tt.codigo) order by codigo limit 1), 'ante_el_ente')
+  returning id)
+insert into arnes.escenario (clave, id) select 'bo_marcha', id from t;
+with d as (
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original)
+  values ((select id from arnes.gente where papel = 'A'),
+          (select codigo from public.tipos_documento order by codigo limit 1),
+          (select id from arnes.gente where papel = 'A')::text || '/bo-prueba.pdf', 'bo-prueba.pdf')
+  returning id)
+insert into arnes.escenario (clave, id) select 'bo_papel', id from d;
+insert into public.tramite_documentos (tramite, documento)
+select t.id, (select id from arnes.escenario where clave = 'bo_papel')
+  from arnes.escenario t where t.clave in ('bo_tramite', 'bo_marcha');
+insert into public.tramite_mensajes (tramite, autor, texto)
+values ((select id from arnes.escenario where clave = 'bo_tramite'),
+        (select id from arnes.gente where papel = 'A'), 'Hola');
+insert into public.autorizaciones (inversionista, tramite, tipo, texto)
+select t.inversionista, t.id, t.tipo, 'Autorizo al CIIP'
+  from public.tramites t where t.id = (select id from arnes.escenario where clave = 'bo_tramite');
+
+-- La cuenta que se vacia es una propia: B ya no existe a estas alturas
+-- (la borra la prueba de los huerfanos, mas arriba).
+insert into auth.users (email, raw_user_meta_data) values
+  ('vacia@prueba.local', '{"nombre_completo":"Victor Vaciado","pais":"Chile"}');
+insert into arnes.gente (papel, id)
+select 'VC', id from auth.users where email = 'vacia@prueba.local';
+with t as (
+  insert into public.tramites (inversionista, tipo, estado)
+  values ((select id from arnes.gente where papel = 'VC'),
+          (select codigo from public.tipos_tramite order by codigo limit 1), 'en_revision')
+  returning id)
+insert into arnes.escenario (clave, id) select 'vc_tramite', id from t;
+insert into public.tramite_mensajes (tramite, autor, texto)
+values ((select id from arnes.escenario where clave = 'vc_tramite'),
+        (select id from arnes.gente where papel = 'VC'), 'Hola');
+insert into public.documentos (inversionista, tipo, archivo, nombre_original)
+select (select id from arnes.gente where papel = 'VC'),
+       (select codigo from public.tipos_documento order by codigo limit 1),
+       (select id from arnes.gente where papel = 'VC')::text || '/vc-' || n || '.pdf', 'vc-' || n || '.pdf'
+  from generate_series(1, 2) n;
+insert into public.tramite_documentos (tramite, documento)
+select (select id from arnes.escenario where clave = 'vc_tramite'), d.id
+  from public.documentos d
+ where d.inversionista = (select id from arnes.gente where papel = 'VC') and d.nombre_original = 'vc-1.pdf';
+create table arnes.numeros (clave text primary key, n int);
+grant select, insert, update, delete on arnes.numeros to anon, authenticated;
+insert into arnes.numeros (clave, n)
+select 'docs_vc', count(*) from public.documentos
+ where inversionista = (select id from arnes.gente where papel = 'VC');
+
+select arnes.comprueba('borrado: sin sesion no se ejecuta ninguna de las cuatro',
+  not has_function_privilege('anon', 'public.borra_solicitud(uuid)', 'execute')
+  and not has_function_privilege('anon', 'public.borra_documento(uuid)', 'execute')
+  and not has_function_privilege('anon', 'public.vacia_cuenta(uuid)', 'execute')
+  and not has_function_privilege('anon', 'public.marca_barridos(text[])', 'execute'));
+
+-- Ni el gestor ni el inversionista.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $bo$
+begin
+  perform public.borra_solicitud((select id from arnes.escenario where clave = 'bo_tramite'));
+  perform arnes.comprueba('borrado: el gestor no borra solicitudes', false, 'BORRO');
+exception when insufficient_privilege then
+  perform arnes.comprueba('borrado: el gestor no borra solicitudes', true);
+end
+$bo$;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $bo$
+begin
+  perform public.borra_documento((select id from arnes.escenario where clave = 'bo_papel'));
+  perform arnes.comprueba('borrado: el inversionista no usa el borrado del administrador', false, 'BORRO');
+exception when insufficient_privilege then
+  perform arnes.comprueba('borrado: el inversionista no usa el borrado del administrador', true);
+end
+$bo$;
+do $bo$
+begin
+  perform public.vacia_cuenta((select id from arnes.gente where papel = 'VC'));
+  perform arnes.comprueba('borrado: el inversionista no vacia cuentas', false, 'VACIO');
+exception when insufficient_privilege then
+  perform arnes.comprueba('borrado: el inversionista no vacia cuentas', true);
+end
+$bo$;
+
+-- El administrador borra la solicitud en marcha.
+select arnes.soy((select id from arnes.gente where papel = 'BA'));
+do $bo$
+begin
+  perform public.borra_solicitud((select id from arnes.escenario where clave = 'bo_tramite'));
+  perform arnes.comprueba('borrado: el admin borra una solicitud en marcha, con mensaje y autorizacion', true);
+exception when others then
+  perform arnes.comprueba('borrado: el admin borra una solicitud en marcha, con mensaje y autorizacion', false, sqlerrm);
+end
+$bo$;
+reset role;
+select arnes.nadie();
+select arnes.comprueba('borrado: y con ella su mensaje y su autorizacion',
+  not exists (select 1 from public.tramites where id = (select id from arnes.escenario where clave = 'bo_tramite'))
+  and not exists (select 1 from public.tramite_mensajes where tramite = (select id from arnes.escenario where clave = 'bo_tramite'))
+  and not exists (select 1 from public.autorizaciones where tramite = (select id from arnes.escenario where clave = 'bo_tramite')));
+select arnes.comprueba('borrado: el papel de la boveda se queda',
+  exists (select 1 from public.documentos where id = (select id from arnes.escenario where clave = 'bo_papel')));
+select arnes.comprueba('borrado: y queda en la bitacora, con el admin como autor',
+  exists (select 1 from public.bitacora where fuente = 'borrados' and accion = 'solicitud'
+             and detalle = (select coalesce(email, '') from auth.users where id = (select id from arnes.gente where papel = 'A')) and quien = (select id from arnes.gente where papel = 'BA')));
+
+-- La puerta se cerro al terminar: A sigue sin poder borrar un papel que
+-- va en una solicitud en marcha.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+do $bo$
+begin
+  delete from public.documentos where id = (select id from arnes.escenario where clave = 'bo_papel');
+  perform arnes.comprueba('borrado: la puerta se cierra al terminar', false, 'BORRO');
+exception when check_violation then
+  perform arnes.comprueba('borrado: la puerta se cierra al terminar', true);
+end
+$bo$;
+
+-- El administrador borra el papel, aunque vaya en una solicitud en marcha.
+select arnes.soy((select id from arnes.gente where papel = 'BA'));
+do $bo$
+declare r text;
+begin
+  r := public.borra_documento((select id from arnes.escenario where clave = 'bo_papel'));
+  perform arnes.comprueba('borrado: el admin borra un papel en marcha y devuelve su ruta',
+    r = (select id from arnes.gente where papel = 'A')::text || '/bo-prueba.pdf', coalesce(r, '(nada)'));
+exception when others then
+  perform arnes.comprueba('borrado: el admin borra un papel en marcha y devuelve su ruta', false, sqlerrm);
+end
+$bo$;
+reset role;
+select arnes.nadie();
+select arnes.comprueba('borrado: el papel queda apuntado para quitarlo del cubo',
+  exists (select 1 from public.archivos_huerfanos
+           where ruta = (select id from arnes.gente where papel = 'A')::text || '/bo-prueba.pdf'
+             and estado = 'pendiente'));
+select arnes.comprueba('borrado: y la bitacora dice que lo borro el admin',
+  exists (select 1 from public.bitacora where fuente = 'papeles' and accion = 'borro'
+             and sobre = 'bo-prueba.pdf' and quien = (select id from arnes.gente where papel = 'BA')));
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'BA'));
+do $bo$
+declare n int;
+begin
+  n := public.marca_barridos(array[(select id from arnes.gente where papel = 'A')::text || '/bo-prueba.pdf']);
+  perform arnes.comprueba('borrado: el admin marca el archivo como quitado del cubo', n = 1, n::text);
+end
+$bo$;
+
+-- Y la cuenta entera de VC: sus papeles vuelven como rutas.
+do $bo$
+declare cuantas int;
+begin
+  select count(*) into cuantas from public.vacia_cuenta((select id from arnes.gente where papel = 'VC'));
+  perform arnes.comprueba('borrado: vaciar una cuenta devuelve la ruta de cada papel',
+    cuantas = (select x.n from arnes.numeros x where x.clave = 'docs_vc'), cuantas::text);
+exception when others then
+  perform arnes.comprueba('borrado: vaciar una cuenta devuelve la ruta de cada papel', false, sqlerrm);
+end
+$bo$;
+reset role;
+select arnes.nadie();
+select arnes.comprueba('borrado: la cuenta queda sin solicitudes ni papeles, y la cuenta sigue',
+  not exists (select 1 from public.tramites where inversionista = (select id from arnes.gente where papel = 'VC'))
+  and not exists (select 1 from public.documentos where inversionista = (select id from arnes.gente where papel = 'VC'))
+  and exists (select 1 from public.perfiles where id = (select id from arnes.gente where papel = 'VC')));
+select arnes.comprueba('borrado: y el vaciado queda en la bitacora',
+  exists (select 1 from public.bitacora where fuente = 'borrados' and accion = 'cuenta'
+             and sobre = 'vacia@prueba.local'));
+
+
 \o
 \pset tuples_only on
 \pset format unaligned

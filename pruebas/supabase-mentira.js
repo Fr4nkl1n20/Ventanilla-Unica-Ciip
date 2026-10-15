@@ -2214,6 +2214,10 @@
             op.cols === 'id, tipo, inversionista, gestor'){
           todo = todo.concat(window.__TRAMITES_EXTRA);
         }
+        /* La solicitud que siembra la prueba del borrado del administrador
+           (15-10-2026): una propia, para no borrar una que necesiten las
+           pruebas de después. Solo mientras la prueba la tiene puesta. */
+        if (window.__PARA_BORRAR) todo = todo.concat(window.__PARA_BORRAR);
         return {data: todo, error:null};
       }
       /* La lista del inversionista. A partir de la SEGUNDA lectura trae uno
@@ -3163,6 +3167,46 @@
             return {then:function(bien, mal){ return Promise.resolve(rM).then(bien, mal); }};
           }
 
+          /* El borrado del administrador (supabase-borrado-admin.sql,
+             15-10-2026). Solo a un admin, como la de verdad: a los demás,
+             el error de permiso. Se apunta lo pedido en CIIP_PRUEBA_BORRADO
+             y se quita de la mesa EN SU SITIO -splice, no una lista nueva:
+             CIIP_DOBLE guarda las suyas-, para que la pantalla que recarga
+             no lo vuelva a enseñar. */
+          if (nombre === 'borra_solicitud' || nombre === 'borra_documento' ||
+              nombre === 'vacia_cuenta' || nombre === 'marca_barridos'){
+            window.CIIP_PRUEBA_BORRADO = (window.CIIP_PRUEBA_BORRADO || []).concat([{f: nombre, args: args || {}}]);
+            var rB;
+            if (!esAdmin || sinSql){
+              rB = {data:null, error:{message:'Solo el administrador', code:'42501'}};
+            } else if (nombre === 'borra_solicitud'){
+              var idS = args && args.p_tramite;
+              [colaTram, colaListos, TRAMITES[caso] || [], window.__TRAMITES_EXTRA || [], window.__PARA_BORRAR || []].forEach(function(lista){
+                for (var iS = lista.length - 1; iS >= 0; iS--){
+                  if (lista[iS] && lista[iS].id === idS) lista.splice(iS, 1);
+                }
+              });
+              rB = {data:null, error:null};
+            } else if (nombre === 'borra_documento'){
+              var idD = args && args.p_documento, rutaD = null;
+              Object.keys(HOY_DOCS).forEach(function(k){
+                var lD = HOY_DOCS[k] || [];
+                for (var iD = lD.length - 1; iD >= 0; iD--){
+                  if (lD[iD] && lD[iD].id === idD){
+                    rutaD = lD[iD].archivo || ('u1/' + idD + '.pdf');
+                    lD.splice(iD, 1);
+                  }
+                }
+              });
+              rB = rutaD ? {data: rutaD, error:null}
+                         : {data:null, error:{message:'Ese documento ya no existe', code:'P0002'}};
+            } else if (nombre === 'vacia_cuenta'){
+              rB = {data: ['vaciada/uno.pdf', 'vaciada/dos.pdf'], error:null};
+            } else {
+              rB = {data: ((args && args.p_rutas) || []).length, error:null};
+            }
+            return {then:function(bien, mal){ return Promise.resolve(rB).then(bien, mal); }};
+          }
           var r = sinSql
             ? {data:null, error:{message:'function public.tocar_visto() does not exist',
                                  code:'42883'}}
@@ -3184,7 +3228,11 @@
                  poder reintentar un borrado que se quedo a medias. */
               remove: function(rutas){
                 (rutas || []).forEach(function(r){ delete subidas[r]; });
-                return Promise.resolve({data:[], error:null});
+                /* Lo quitado vuelve con su nombre, como en Storage: el
+                   borrado del administrador marca como barridos justo esos
+                   (15-10-2026). Y se apunta, para poder comprobarlo. */
+                window.CIIP_PRUEBA_CUBO = (window.CIIP_PRUEBA_CUBO || []).concat(rutas || []);
+                return Promise.resolve({data:(rutas || []).map(function(r){ return {name:r}; }), error:null});
               },
               upload: function(ruta){
                 /* Se APUNTA lo que se sube. Antes cualquier ruta devolvia
