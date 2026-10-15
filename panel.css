@@ -1165,6 +1165,27 @@ body[data-vista="equipo"] .fase-bar{display:none;}
 .ce-ti-fechas{margin-top:4px; font-size:var(--fs-nota); color:var(--gray); font-variant-numeric:tabular-nums;}
 .ce-ti-dias{margin:4px 0; font-size:var(--fs-fila); font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums;}
 .ce-ti-falta{margin:0 0 10px;}
+/* Paso a paso (15-10-2026): dentro de una fila abierta, primero cada paso
+   con su barra -del color de quien lo tiene: el CIIP, el ente o el
+   inversionista- y debajo cada caso con su recorrido. */
+.r-inv{background:var(--ce-r0);}
+/* Con los pasos encima, el tope de alto de los casos (.ce-casos, 420 px) cortaba el
+   recorrido: aquí rueda solo la lista de casos, que puede ser larga. */
+#ceTiempos .ce-casos{max-height:none; overflow:visible;}
+#ceTiempos .ce-casos-l{max-height:560px; overflow-y:auto;}
+.ce-ti-sec{margin:12px 0 4px; font-size:var(--fs-rotulo); font-weight:700; color:var(--ink);}
+.ce-ti-pasos .ce-fila{padding-top:6px; padding-bottom:6px;}
+.ce-ti-recorrido{list-style:none; margin:8px 0 6px 6px; padding:0 0 0 14px; border-left:2px solid var(--line);}
+.ce-ti-r{position:relative; padding:4px 0 6px 10px;}
+.ce-ti-r::before{content:""; position:absolute; left:-20px; top:9px; width:10px; height:10px; border-radius:50%;
+  background:var(--ce-r1); box-shadow:0 0 0 2px var(--block);}
+.ce-ti-r.r-ente::before{background:var(--ce-r3);}
+.ce-ti-r.r-inv::before{background:var(--ce-r0);}
+.ce-ti-r.r-ciip, .ce-ti-r.r-ente, .ce-ti-r.r-inv{background:none;}
+.ce-ti-r-a{display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px; font-size:var(--fs-fila); color:var(--ink);}
+.ce-ti-r-q{font-size:var(--fs-nota); color:var(--gray);}
+.ce-ti-r-d{margin-left:auto; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.ce-ti-r-f{font-size:var(--fs-nota); color:var(--gray); font-variant-numeric:tabular-nums; margin-top:1px;}
 .ce-caso-ir{font:inherit; font-size:var(--fs-boton); background:none; border:0; padding:0; cursor:pointer;
   margin-left:0;}
 

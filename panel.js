@@ -34931,7 +34931,7 @@ applyLang(idiomaParaMi());
      idioma los devuelven al principio.
      ────────────────────────────────────────────────────────────────── */
   var ceCaja  = document.getElementById('ceCaja');
-  var ceDatos = null, ceFallo = false, ceModo = 'ente';
+  var ceDatos = null, ceFallo = false;
   var cePs = {sector: CS_CODIGOS[0], filas: null, fallo: false, aviso: ''};
   /* La ficha que se ve -se empieza por el resumen, la primera de la
      lista, como Ayuda empieza por su primera categoría-, cómo se cuentan
@@ -35434,13 +35434,11 @@ applyLang(idiomaParaMi());
 
   /* TIEMPO DE RESPUESTA, con su «Por organismo / Por trámite» en la
      cabecera, como el conmutador de los organismos. */
+  /* Sin «Por organismo / Por trámite» desde el 15-10-2026 (Franklin Reyes:
+     «quiero que estas opciones estén en una sola»): una lista, por
+     trámite, con su organismo debajo del nombre. */
   function ceFichaTiempo(u){
-    var seg = ceSeg(u.ce_ti_t, 'ce-modo', 'data-modo', ceModo,
-      [['ente', u.ce_ti_ente], ['tramite', u.ce_ti_tram]], function(v){
-        ceModo = v;
-        ceRehace('tiempo', ceFichaTiempo, '.ce-modo[data-modo="' + v + '"]');
-      });
-    var f = ceFicha('tiempo', u.ce_ti_t, u.ce_ti_d, seg);
+    var f = ceFicha('tiempo', u.ce_ti_t, u.ce_ti_d);
     if (!ceDatos){ ceSinDatos(u, f.cu); return f.ficha; }
     f.cu.appendChild(ceCajaTiempos(u));
     return f.ficha;
@@ -35884,6 +35882,82 @@ applyLang(idiomaParaMi());
     s.appendChild(nums);
   }
 
+  /* PASO A PASO (Franklin Reyes, 15-10-2026: «cuánto tardaron los
+     funcionarios para dar la autorización de firmas, pasos detallados»).
+     De supabase-tiempos-pasos.sql: cuánto se está en cada estado, con el
+     nombre que ESE trámite le da al paso -en la Firma en el Registro de
+     Extranjeros (c32), «Solicitud recibida por SAREN»- y quién lo tiene:
+     el CIIP mientras se recibe y se revisa, el ente mientras está ante él,
+     el inversionista mientras está devuelta. */
+  var CE_PASOS = ['enviado', 'en_revision', 'devuelto', 'ante_el_ente'];
+  var CE_PASO_N = {enviado: 0, en_revision: 1, ante_el_ente: 2};
+  function ceRefDe(tipo){
+    var cat = window.CIIP_TIPOS_POR_REF || {};
+    return Object.keys(cat).filter(function(r){ return cat[r] && cat[r].codigo === tipo; })[0] || null;
+  }
+  function cePasoNombre(u, estado, tipo, ente){
+    if (estado === 'devuelto') return u.ce_ti_p_devuelto || '';
+    return estadoTexto(CE_PASO_N[estado], ente || '', ceRefDe(tipo));
+  }
+  function cePasoQuien(u, estado, ente){
+    if (estado === 'devuelto') return u.ce_ti_quien_inv || '';
+    if (estado === 'ante_el_ente') return ente || u.ce_sinente || '';
+    return 'CIIP';
+  }
+  function cePasoClase(estado){
+    return estado === 'ante_el_ente' ? 'r-ente' : (estado === 'devuelto' ? 'r-inv' : 'r-ciip');
+  }
+
+  function cePasosDe(u, panel, f){
+    var todos = ceDatos.pasos_tipo;
+    if (!Array.isArray(todos)){
+      panel.appendChild(el('p', 'ce-casos-parcial ce-ti-falta', u.ce_ti_pasos_nosql || ''));
+      return;
+    }
+    var mios = todos.filter(function(x){ return x.tipo === f.tipo; });
+    if (!mios.length) return;
+    mios.sort(function(a, b){ return CE_PASOS.indexOf(a.estado) - CE_PASOS.indexOf(b.estado); });
+    var tope = mios.reduce(function(m, x){ return Math.max(m, +x.mediana_h || 0); }, 0);
+    panel.appendChild(el('div', 'ce-ti-sec', u.ce_ti_pasos_t || ''));
+    var lista = el('div', 'ce-lista ce-ti-pasos');
+    lista.setAttribute('role', 'list');
+    mios.forEach(function(x){
+      var n = x.casos || 0;
+      var fila = ceFila({
+        cls: 'ce-ti-paso',
+        nombre: cePasoNombre(u, x.estado, f.tipo, f.ente),
+        sub: cePasoQuien(u, x.estado, f.ente) + ' · ' + (n === 1 ? (u.ce_ti_p_casos1 || '') : ceTxt(u.ce_ti_p_casos, {n: n})),
+        valor: ceDias(x.mediana_h),
+        pie: ceTxt(u.ce_ti_pie, {p: ceDias(x.promedio_h), m: ceDias(x.maximo_h)}),
+        partes: [[tope ? (+x.mediana_h || 0) / tope : 0, cePasoClase(x.estado)]]
+      });
+      fila.setAttribute('data-estado', x.estado);
+      lista.appendChild(fila);
+    });
+    panel.appendChild(lista);
+    panel.appendChild(el('div', 'ce-ti-sec', u.ce_ti_casos_t || ''));
+  }
+
+  /* El recorrido de un caso: cada paso con su nombre, quién lo tenía, de
+     cuándo a cuándo, cuánto duró y quién del equipo lo movió al siguiente. */
+  function ceRecorrido(u, c){
+    var ol = el('ol', 'ce-ti-recorrido');
+    c.pasos.forEach(function(x){
+      var li = el('li', 'ce-ti-r ' + cePasoClase(x.estado));
+      li.setAttribute('data-estado', x.estado || '');
+      var a = el('div', 'ce-ti-r-a');
+      a.appendChild(el('b', null, cePasoNombre(u, x.estado, c.tipo, c.ente)));
+      a.appendChild(el('span', 'ce-ti-r-q', cePasoQuien(u, x.estado, c.ente)));
+      a.appendChild(el('span', 'ce-ti-r-d', ceDias(x.horas)));
+      li.appendChild(a);
+      var b = ceTxt(u.ce_ti_p_fechas, {a: fecha(x.desde), b: fecha(x.hasta)});
+      if (x.quien) b += ' · ' + ceTxt(u.ce_ti_p_quien, {q: x.quien});
+      li.appendChild(el('div', 'ce-ti-r-f', b));
+      ol.appendChild(li);
+    });
+    return ol;
+  }
+
   /* Los casos de una fila: quién y para qué empresa, el trámite y el ente,
      las tres fechas y los días de cada tramo. Como los de «¿Por qué piden
      ayuda?», con su botón a la solicitud. */
@@ -35913,6 +35987,7 @@ applyLang(idiomaParaMi());
         : ceTxt(u.ce_ti_fechas2, {a: fecha(c.enviado), c: fecha(c.resuelto)})));
       li.appendChild(el('div', 'ce-ti-dias', ceTxt(u.ce_ti_tramos,
         {c: ceDias(c.horas_ciip), e: c.presentado ? ceDias(c.horas_ente) : '—'})));
+      if (Array.isArray(c.pasos) && c.pasos.length) li.appendChild(ceRecorrido(u, c));
       if (c.tramite){
         var ir = el('button', 'pu-asignar ce-caso-ir', u.ce_ca_ver || '');
         ir.type = 'button';
@@ -35929,7 +36004,7 @@ applyLang(idiomaParaMi());
   function ceCajaTiempos(u){
     var s = ceSeccion('ceTiempos');
 
-    var porEnte = ceModo === 'ente';
+    var porEnte = false;
     var filas = porEnte ? (ceDatos.entes || [])
                         : (ceDatos.tramites || []).filter(function(t){ return (t.resueltos || 0) > 0; });
     if (!filas.length){ s.appendChild(el('div', 'pu-vacio', u.ce_vacio || '')); return s; }
@@ -35963,7 +36038,7 @@ applyLang(idiomaParaMi());
         partes: partes(f)
       };
     }
-    ceLista(s, 'tiempos-' + ceModo, filas, function(f, i){
+    ceLista(s, 'tiempos', filas, function(f, i){
       if (!tramos) return ceFila(datosDeFila(f));
       var item = el('div', 'ce-mo-item');
       item.setAttribute('role', 'listitem');
@@ -35975,16 +36050,19 @@ applyLang(idiomaParaMi());
       caret.setAttribute('aria-hidden', 'true');
       b.insertBefore(caret, b.firstChild);
       var panel = el('div', 'ce-casos');
-      panel.id = 'ceTiCasos-' + ceModo + '-' + i;
+      panel.id = 'ceTiCasos-' + i;
       b.setAttribute('aria-controls', panel.id);
-      var clave = 'ti:' + ceModo + ':' + (porEnte ? f.ente : f.tipo);
+      var clave = 'ti:' + (porEnte ? f.ente : f.tipo);
       function deEsta(c){ return porEnte ? (c.ente || '') === (f.ente || '') : c.tipo === f.tipo; }
       function pon(abierto){
         ceAbierto[clave] = abierto;
         panel.hidden = !abierto;
         b.setAttribute('aria-expanded', abierto ? 'true' : 'false');
         caret.textContent = abierto ? '▾' : '▸';
-        if (abierto && !panel.firstChild) ceCasosTiempo(u, panel, deEsta, f.resueltos || 0);
+        if (abierto && !panel.firstChild){
+          cePasosDe(u, panel, f);
+          ceCasosTiempo(u, panel, deEsta, f.resueltos || 0);
+        }
       }
       b.addEventListener('click', function(){ pon(!ceAbierto[clave]); });
       item.appendChild(b);
@@ -35997,7 +36075,11 @@ applyLang(idiomaParaMi());
       var peor = cola.reduce(function(m, f){ return (+f.mediana_h || 0) > (+m.mediana_h || 0) ? f : m; }, cola[0]);
       return {valor: tramos ? ceDias(peor.mediana_h) : ceHoras(peor.mediana_h), partes: partes(peor)};
     });
-    ceLeyenda(s, [['r-ciip', u.ce_ti_ciip], ['r-ente', u.ce_c_anteente]]);
+    /* Con el paso a paso, las barras de los pasos usan también el gris de la
+       devuelta: la leyenda lo dice. */
+    var ley = [['r-ciip', u.ce_ti_ciip], ['r-ente', u.ce_c_anteente]];
+    if (Array.isArray(ceDatos.pasos_tipo)) ley.push(['r-inv', u.ce_ti_p_devuelto]);
+    ceLeyenda(s, ley);
     return s;
   }
 

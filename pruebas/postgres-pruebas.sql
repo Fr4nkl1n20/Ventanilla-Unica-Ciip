@@ -4727,6 +4727,68 @@ set session_replication_role = origin;
 
 
 
+-- ══ EL TIEMPO DE RESPUESTA, PASO A PASO (15-10-2026) ═════════════════
+-- supabase-tiempos-pasos.sql: un caso con su historial entero puesto a
+-- mano -enviado hace diez días, en revisión hace ocho, ante el ente hace
+-- cuatro, resuelto ahora- tiene que salir con 48 h recibido, 96 en
+-- revisión y 96 ante el ente, y cada paso con quien lo movió: la gestora.
+reset role;
+select arnes.nadie();
+set session_replication_role = replica;
+with t as (
+  insert into public.tramites (inversionista, tipo, estado, enviado_en, resuelto_en)
+  values ((select id from arnes.gente where papel = 'B'), 'registro_extranjeros_saren', 'resuelto',
+          now() - interval '10 days', now() + interval '1 minute')
+  returning id
+)
+insert into arnes.escenario (clave, id) select 'pasos', id from t;
+insert into public.tramite_eventos (tramite, de_estado, a_estado, autor, creado_en)
+select (select id from arnes.escenario where clave = 'pasos'), x.de, x.a, x.quien, now() - x.hace
+  from (values ('borrador', 'enviado', (select id from arnes.gente where papel = 'B'), interval '10 days'),
+               ('enviado', 'en_revision', (select id from arnes.gente where papel = 'G'), interval '8 days'),
+               ('en_revision', 'ante_el_ente', (select id from arnes.gente where papel = 'G'), interval '4 days'),
+               ('ante_el_ente', 'resuelto', (select id from arnes.gente where papel = 'G'), interval '0 days'))
+       as x(de, a, quien, hace);
+set session_replication_role = origin;
+
+create temp table if not exists arnes_pasos (r jsonb);
+grant all on arnes_pasos to authenticated;
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+do $pa$
+begin
+  insert into arnes_pasos select public.estadisticas_control();
+  perform arnes.comprueba('pasos: el admin ve el paso a paso', true);
+exception when others then
+  perform arnes.comprueba('pasos: el admin ve el paso a paso', false, sqlerrm);
+end
+$pa$;
+select arnes.comprueba(
+  'pasos: el caso trae 48 h recibido, 96 en revisión y 96 ante el ente',
+  coalesce((select string_agg(p ->> 'estado' || '=' || round((p ->> 'horas')::numeric), ' ' order by p ->> 'desde')
+              from arnes_pasos, jsonb_array_elements(r -> 'tiempos_casos') c, jsonb_array_elements(c -> 'pasos') p
+             where c ->> 'tramite' = (select id::text from arnes.escenario where clave = 'pasos')), '(nada)')
+    = 'enviado=48 en_revision=96 ante_el_ente=96',
+  coalesce((select (c -> 'pasos')::text from arnes_pasos, jsonb_array_elements(r -> 'tiempos_casos') c
+             where c ->> 'tramite' = (select id::text from arnes.escenario where clave = 'pasos')), '(sin el caso)'));
+select arnes.comprueba(
+  'pasos: y cada paso dice quién lo movió',
+  coalesce((select bool_and(p ->> 'quien' = 'Gabriela Gestora')
+              from arnes_pasos, jsonb_array_elements(r -> 'tiempos_casos') c, jsonb_array_elements(c -> 'pasos') p
+             where c ->> 'tramite' = (select id::text from arnes.escenario where clave = 'pasos')), false));
+select arnes.comprueba(
+  'pasos: y el trámite trae la mediana de cada estado',
+  coalesce((select count(*) = 3 from arnes_pasos, jsonb_array_elements(r -> 'pasos_tipo') p
+             where p ->> 'tipo' = 'registro_extranjeros_saren'
+               and (p ->> 'mediana_h') is not null), false));
+reset role;
+select arnes.nadie();
+set session_replication_role = replica;
+delete from public.tramites where id = (select id from arnes.escenario where clave = 'pasos');
+set session_replication_role = origin;
+
+
+
 -- ══ 36 · SEGUNDA AUDITORÍA DE SEGURIDAD (8-10-2026) ════════════════════
 -- supabase-seguridad-octubre.sql: las contraseñas de los entes no se leen
 -- en bloque, dos papeles más que solo emite el CIIP, y anon fuera.

@@ -3036,11 +3036,26 @@
                 rE.data.tiempo_total = {resueltos:4, mediana_h:72, promedio_h:97.9, maximo_h:168,
                   mediana_ciip_h:39, promedio_ciip_h:52.5, maximo_ciip_h:96,
                   n_ente:3, mediana_ente_h:48, promedio_ente_h:60.5, maximo_ente_h:72};
+                /* Y el paso a paso (supabase-tiempos-pasos.sql, 15-10-2026):
+                   la constitución pasó una vez por «devuelta». */
+                if (!window.CIIP_MENTIRA_SIN_PASOS) rE.data.pasos_tipo = [
+                  {tipo:'constitucion', estado:'ante_el_ente', casos:3, veces:3, mediana_h:48, promedio_h:52, maximo_h:72},
+                  {tipo:'constitucion', estado:'devuelto', casos:1, veces:1, mediana_h:24, promedio_h:24, maximo_h:24},
+                  {tipo:'constitucion', estado:'en_revision', casos:3, veces:4, mediana_h:36, promedio_h:40, maximo_h:60},
+                  {tipo:'constitucion', estado:'enviado', casos:3, veces:3, mediana_h:12, promedio_h:14, maximo_h:20},
+                  {tipo:'rif_personal', estado:'en_revision', casos:1, veces:1, mediana_h:24, promedio_h:24, maximo_h:24},
+                  {tipo:'rif_personal', estado:'enviado', casos:1, veces:1, mediana_h:6, promedio_h:6, maximo_h:6}
+                ];
                 rE.data.tiempos_casos = [
                   {tramite:'t-ti-1', tipo:'constitucion', ente:'SAREN', inversionista:'Ana Pérez',
                    empresa:'Pérez Inversiones C.A.', enviado:'2026-10-01T10:00:00Z',
                    presentado:'2026-10-03T10:00:00Z', resuelto:'2026-10-05T10:00:00Z',
-                   horas:96, horas_ciip:48, horas_ente:48},
+                   horas:96, horas_ciip:48, horas_ente:48,
+                   pasos: window.CIIP_MENTIRA_SIN_PASOS ? undefined : [
+                     {estado:'enviado', desde:'2026-10-01T10:00:00Z', hasta:'2026-10-01T22:00:00Z', horas:12, quien:'Valeria Ramos'},
+                     {estado:'en_revision', desde:'2026-10-01T22:00:00Z', hasta:'2026-10-03T10:00:00Z', horas:36, quien:'Valeria Ramos'},
+                     {estado:'ante_el_ente', desde:'2026-10-03T10:00:00Z', hasta:'2026-10-05T10:00:00Z', horas:48, quien:'Franklin Reyes'}
+                   ]},
                   {tramite:'t-ti-2', tipo:'rif_personal', ente:'SENIAT', inversionista:'Luis Gómez',
                    empresa:'', enviado:'2026-10-06T10:00:00Z', presentado:null,
                    resuelto:'2026-10-07T16:00:00Z', horas:30, horas_ciip:30, horas_ente:null}

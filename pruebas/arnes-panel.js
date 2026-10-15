@@ -409,7 +409,7 @@
               equipo30Siembra, e30Paso(equipo30Tarjetas), e30Paso(equipo30Ficha),
               e30Paso(equipo30Historial), e30Paso(equipo30SinDueno), equipo30MisAbre,
               e30Paso(equipo30MisMira), equipo30Fin,
-              controlAbre, controlMineroMira, controlUnoAbre, controlUnoMira, controlTiemposAbre, controlTiemposMira, controlMira, controlTrasAnadir, controlTrasMover,
+              controlAbre, controlMineroMira, controlUnoAbre, controlUnoMira, controlTiemposAbre, controlTiemposMira, controlSinPasosAbre, controlSinPasosMira, controlMira, controlTrasAnadir, controlTrasMover,
               controlTrasGuardar, controlTrasQuitar, controlOtroSector, controlSqlViejo,
               rastroDesdeTramiteAbre, rastroDesdeTramiteEntra,
               rastroDesdeTramiteSalta, rastroDesdeTramiteMira,
@@ -19023,13 +19023,15 @@
         sinNombre.push(k + ' «' + (h ? h.textContent : '') + '»');
       var d = cab.querySelector('.ce-fi-d');
       if (!d || !ceVe(d) || d.textContent !== CE_FRASE[k]) sinFrase.push(k);
-      if ((k === 'org' || k === 'tiempo') && !ceVe(cab.querySelector('.ce-fi-der .pu-seg'))) sinSeg.push(k);
+      if (k === 'org' && !ceVe(cab.querySelector('.ce-fi-der .pu-seg'))) sinSeg.push(k);
+      /* El tiempo, en una sola lista desde el 15-10-2026: sin conmutador. */
+      if (k === 'tiempo' && cab.querySelector('.ce-fi-der .pu-seg')) sinSeg.push('tiempo con conmutador');
     });
     igual('control: ninguna ficha repite el icono de su entrada', conIcono.join(' '), '');
     igual('control: ni dice a la vista el título de su entrada', repiten.slice(0, 4).join(' | '), '');
     igual('control: cada ficha conserva su nombre para el lector, en un encabezado escondido', sinNombre.join(' | '), '');
     igual('control: y su frase, en la cabecera', sinFrase.join(' '), '');
-    igual('control: y los dos conmutadores siguen en la cabecera', sinSeg.join(' '), '');
+    igual('control: el de los organismos sigue en la cabecera, y el tiempo ya no lleva', sinSeg.join(' '), '');
 
     /* EL RESUMEN DE LA OFICINA: las cinco cifras, los estados y lo que lleva
        cada gestor, como el pulso de siempre. */
@@ -19154,14 +19156,12 @@
     igual('control: sin el SQL de los tramos, dice que falta',
           (document.querySelector('#ceTiempos .ce-ti-falta') || {}).textContent || '(no lo dice)', U.ce_ti_nosql);
     igual('control: y no se inventa el resumen', document.querySelectorAll('#ceTiempos .ce-ti-nums').length, 0);
-    var porTr = document.querySelector('#ceFichaTiempo .ce-fi-cab .ce-modo[data-modo="tramite"]');
-    if (porTr) porTr.click();
-    var ti2 = document.querySelectorAll('#ceTiempos .ce-fila');
-    igual('control: y por trámite, solo los que tienen alguno resuelto', ti2.length, 2);
-    var pulsado = document.querySelector('#ceFichaTiempo .ce-modo[aria-pressed="true"]');
-    ok('control: con el botón marcado y el foco en él',
-       !!pulsado && pulsado.getAttribute('data-modo') === 'tramite' && document.activeElement === pulsado,
-       pulsado ? pulsado.getAttribute('data-modo') : '(ninguno)', 'tramite');
+    /* Una sola lista, por trámite y con su organismo (15-10-2026). */
+    igual('control: el tiempo, en una sola lista y sin conmutador',
+          document.querySelectorAll('#ceFichaTiempo .ce-modo').length, 0);
+    ok('control: un renglón por trámite resuelto, con su organismo debajo',
+       ti.length === 2 && /SAREN/.test((ti[0].querySelector('.ce-sub') || {}).textContent || ''),
+       ti.length + ' · ' + (ti[0] ? (ti[0].querySelector('.ce-sub') || {}).textContent : ''), '2 · SAREN …');
 
     /* CONSULTAS POR SECTOR: los nueve, también a cero. */
     ceElegir('consultas');
@@ -19430,12 +19430,11 @@
        minería elegida en los más pedidos (13-10-2026). */
     if (window.CIIP_REPINTA_CONTROL) window.CIIP_REPINTA_CONTROL();
     function marcado1(sel, attr){ return (document.querySelector(sel) || {getAttribute: function(){ return '(ninguno)'; }}).getAttribute(attr); }
-    igual('control: tras repintar, la configuración sigue abierta, los conmutadores en «Por trámite» y minería elegida',
+    igual('control: tras repintar, la configuración sigue abierta, el conmutador en «Por trámite» y minería elegida',
           ceVisibles() + ' · ' + marcado1('#ceFichaOrg .ce-org-modo[aria-pressed="true"]', 'data-org') + ' · ' +
-          marcado1('#ceFichaTiempo .ce-modo[aria-pressed="true"]', 'data-modo') + ' · ' +
           marcado1('#ceFichaPedidos .cs-sector[aria-pressed="true"]', 'data-sector') + ' · ' +
           marcado1('#ceTramSector .ce-ts-bloque', 'data-sector'),
-          'config · tramite · tramite · mineria · mineria');
+          'config · tramite · mineria · mineria');
     /* Y la base de antes de supabase-control-detalle.sql: la función no
        trae ni los trámites por sector ni los casos. Se repinta todo con
        un motivo abierto: no puede volver a plegarse. */
@@ -19469,10 +19468,9 @@
        ceVisibles() === 'config' && ceEntrada('config').classList.contains('on') &&
        ceVe(document.getElementById('cePorSector')),
        ceVisibles(), 'config');
-    igual('control: y los conmutadores siguen en «Por trámite»',
-          (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {}).getAttribute('data-org') + ' ' +
-          (document.querySelector('#ceFichaTiempo .ce-modo[aria-pressed="true"]') || {}).getAttribute('data-modo'),
-          'tramite tramite');
+    igual('control: y el conmutador sigue en «Por trámite»',
+          (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {}).getAttribute('data-org'),
+          'tramite');
     /* Sin trámites elegidos (aquí, sin el SQL que los cuenta) no hay
        sector que elegir: no salen los sectores ni ninguno pulsado, y la
        cifra de la entrada dice que aún no hay datos (revisión del
@@ -19608,8 +19606,6 @@
     if (!ES_ADMIN || TI_ANTES === null) return sigue();
     var U = ceU();
     ceElegir('tiempo');
-    var porEnte = document.querySelector('#ceFichaTiempo .ce-fi-cab .ce-modo[data-modo="ente"]');
-    if (porEnte) porEnte.click();
     var nums = document.querySelectorAll('#ceTiempos .ce-ti-nums .pu-n');
     igual('tiempos: arriba, el CIIP, el ente y el total',
           [].map.call(nums, function(n){ return (n.querySelector('.l') || {}).textContent; }).join(' | '),
@@ -19623,16 +19619,38 @@
     var filas = document.querySelectorAll('#ceTiempos .ce-fila.ce-mo-abre');
     var sub = function(f){ return f ? (f.querySelector('.ce-rl .ce-sub') || {}).textContent : '(no hay)'; };
     var prefijo = U.ce_ti_tramos.split('{')[0];
-    ok('tiempos: el SAREN dice sus dos tramos y sus casos',
-       !!filas[0] && /SAREN/.test(filas[0].textContent) && sub(filas[0]).indexOf(prefijo) === 0 &&
+    ok('tiempos: la constitución, ante el SAREN, dice sus dos tramos y sus casos',
+       !!filas[0] && /SAREN/.test(filas[0].textContent) && sub(filas[0]).indexOf(prefijo) > 0 &&
        sub(filas[0]).indexOf((U.ce_c_casos || '') + ' 3') > 0,
        sub(filas[0]), prefijo + '… · ' + U.ce_c_casos + ' 3');
-    ok('tiempos: el SENIAT, que no pasó por el ente, con una raya en su tramo',
+    ok('tiempos: el RIF personal, que no pasó por el SENIAT, con una raya en su tramo',
        !!filas[1] && /SENIAT/.test(filas[1].textContent) && / —/.test(sub(filas[1])),
        sub(filas[1]), '… —');
     if (filas[0]) filas[0].click();
     var casos = document.querySelectorAll('#ceTiempos .ce-ti-caso');
-    igual('tiempos: pulsar el SAREN enseña su caso', casos.length, 1);
+    igual('tiempos: pulsar la constitución enseña su caso', casos.length, 1);
+    /* El paso a paso (15-10-2026): primero cada paso del trámite, con su
+       nombre, quién lo tiene y la mediana; en el orden en que se recorren
+       y con «devuelta» en medio, aunque la base los mande en otro. */
+    var pasos = filas[0] ? filas[0].parentNode.querySelectorAll('.ce-ti-paso') : [];
+    igual('pasos: la constitución trae sus cuatro pasos, en orden',
+          [].map.call(pasos, function(x){ return x.getAttribute('data-estado'); }).join(' '),
+          'enviado en_revision devuelto ante_el_ente');
+    ok('pasos: la devuelta, a cargo del inversionista; ante el ente, del SAREN',
+       !!pasos[2] && (pasos[2].querySelector('.nm') || {}).textContent === U.ce_ti_p_devuelto &&
+       ((pasos[2].querySelector('.ce-sub') || {}).textContent || '').indexOf(U.ce_ti_quien_inv) === 0 &&
+       !!pasos[3] && ((pasos[3].querySelector('.ce-sub') || {}).textContent || '').indexOf('SAREN') === 0,
+       pasos.length ? [].map.call(pasos, function(x){ return x.textContent; }).join(' | ') : '(sin pasos)',
+       U.ce_ti_p_devuelto + ' · ' + U.ce_ti_quien_inv + ' … SAREN');
+    ok('pasos: cada uno con su barra del color de quien lo tiene',
+       !!pasos[0] && !!pasos[0].querySelector('.r-ciip') && !!pasos[2] && !!pasos[2].querySelector('.r-inv') &&
+       !!pasos[3] && !!pasos[3].querySelector('.r-ente'),
+       pasos.length + ' pasos', 'r-ciip … r-inv, r-ente');
+    var rec = casos[0] ? casos[0].querySelectorAll('.ce-ti-r') : [];
+    igual('pasos: y el caso, su recorrido de tres pasos', rec.length, 3);
+    ok('pasos: cada paso del caso dice quién lo movió',
+       rec.length === 3 && ((rec[2].querySelector('.ce-ti-r-f') || {}).textContent || '').indexOf(ceTx(U.ce_ti_p_quien, {q: 'Franklin Reyes'})) > 0,
+       rec[2] ? rec[2].textContent : '(sin recorrido)', ceTx(U.ce_ti_p_quien, {q: 'Franklin Reyes'}));
     var c = casos[0];
     ok('tiempos: con quién, la empresa, las tres fechas y los dos tramos',
        !!c && /Ana Pérez/.test(c.textContent) && /Pérez Inversiones/.test(c.textContent) &&
@@ -19655,6 +19673,35 @@
     var vuelve = TI_ANTES;
     TI_ANTES = null;
     setTimeout(function(){ ceElegir(vuelve); setTimeout(sigue, 100); }, 400);
+  }
+
+  /* Y sin supabase-tiempos-pasos.sql: los dos tramos sí, el paso a paso no, y
+     dentro de la fila abierta se dice qué falta. */
+  function controlSinPasosAbre(sigue){
+    if (!ES_ADMIN || !window.CIIP_PINTA_CONTROL) return sigue();
+    window.CIIP_MENTIRA_TIEMPOS = true;
+    window.CIIP_MENTIRA_SIN_PASOS = true;
+    window.CIIP_PINTA_CONTROL();
+    setTimeout(sigue, 400);
+  }
+  function controlSinPasosMira(sigue){
+    if (!ES_ADMIN || !window.CIIP_MENTIRA_SIN_PASOS) return sigue();
+    var U = ceU();
+    var on = document.querySelector('#ceNav .ay-ld-it.on');
+    var antes = on ? on.getAttribute('data-sec') : 'resumen';
+    ceElegir('tiempo');
+    var f = document.querySelector('#ceTiempos .ce-fila.ce-mo-abre');
+    if (f && f.getAttribute('aria-expanded') !== 'true') f.click();
+    var panel = f ? document.getElementById(f.getAttribute('aria-controls')) : null;
+    ok('pasos: sin su SQL, la fila abierta dice que falta y enseña los casos',
+       !!panel && ((panel.querySelector('.ce-ti-falta') || {}).textContent === U.ce_ti_pasos_nosql) &&
+       !panel.querySelector('.ce-ti-paso') && !!panel.querySelector('.ce-ti-caso') && !panel.querySelector('.ce-ti-r'),
+       panel ? panel.textContent.slice(0, 160) : '(no se abre)', U.ce_ti_pasos_nosql);
+    if (f) f.click();
+    window.CIIP_MENTIRA_TIEMPOS = false;
+    window.CIIP_MENTIRA_SIN_PASOS = false;
+    window.CIIP_PINTA_CONTROL();
+    setTimeout(function(){ ceElegir(antes); setTimeout(sigue, 100); }, 400);
   }
 
   /* ── CONTROL Y ESTADÍSTICAS A OTROS ANCHOS (revisión del 13-10-2026) ──
@@ -19719,9 +19766,9 @@
       var fuera = [], cortado = [], cabeza = [], elipsis = [], pagina = [];
       var vista = document.querySelector('.equipo-vista');
       /* Las ocho fichas, y las de los conmutadores en sus dos formas. */
-      var secciones = [['resumen'], ['equipo'], ['org', 'ente'], ['org', 'tramite'], ['tiempo', 'ente'],
-                       ['tiempo', 'tramite'], ['consultas'], ['pedidos'], ['motivos'], ['config']];
-      var CONMUTA = {org: '.ce-org-modo[data-org="', tiempo: '.ce-modo[data-modo="'};
+      var secciones = [['resumen'], ['equipo'], ['org', 'ente'], ['org', 'tramite'], ['tiempo'],
+                       ['consultas'], ['pedidos'], ['motivos'], ['config']];
+      var CONMUTA = {org: '.ce-org-modo[data-org="'};
       ['es', 'ru', 'fr'].forEach(function(lang){
         applyLang(lang);
         secciones.forEach(function(s){
