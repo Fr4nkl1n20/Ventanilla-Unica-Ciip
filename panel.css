@@ -750,8 +750,8 @@ body[data-vista="equipo"] .fase-bar{display:none;}
   font-size:var(--fs-nota); line-height:1.55; color:var(--ink); cursor:auto; min-width:0;}
 .eq-det-datos{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px 18px; margin:0;}
 .eq-det-datos > div{min-width:0;}
-.eq-det-datos dt, .eq-det-t{font-size:var(--fs-chip); font-weight:700; letter-spacing:.04em; text-transform:uppercase;
-  color:var(--gray);}
+.eq-det-datos dt, .eq-det-t{font-size:var(--fs-rotulo); font-weight:700;
+  color:var(--ink);}
 .eq-det-datos dd{margin:3px 0 0; font-size:var(--fs-valor); font-weight:500; line-height:1.4; overflow-wrap:anywhere;
   font-variant-numeric:tabular-nums;}
 .eq-det-t{margin:14px 0 8px; padding-top:12px; border-top:1px solid var(--line-soft);}
@@ -814,8 +814,7 @@ body[data-vista="equipo"] .fase-bar{display:none;}
   .eq-sols td.eq-c-ch{grid-column:2; grid-row:1 / span 3; width:auto; padding:0;}
   .eq-sols td.eq-c-es, .eq-sols td.mt-espera{grid-column:1;}
   .eq-sols td.mt-espera.vacia{display:none;}
-  .eq-sols td.mt-espera::before{content:attr(data-r); font-size:var(--fs-chip); font-weight:700; letter-spacing:.04em;
-    text-transform:uppercase; color:var(--gray); margin-right:8px;}
+  .eq-sols td.mt-espera::before{content:attr(data-r); font-size:var(--fs-rotulo); font-weight:700; color:var(--ink); margin-right:8px;}
   .eq-sols tr.eq-det-fila{display:block;}
   .eq-sols tr.eq-det-fila > td{display:block; padding:0 10px 12px;}
   .eq-det{padding:12px;}
@@ -1832,7 +1831,7 @@ body[data-vista="comprobantes"] #paVolver{display:none;}
 .cm-info .cm-av{width:56px; height:56px; font-size:18px;}
 .cm-info b{font-size:var(--fs-tarjeta); color:var(--ink);}
 .cm-info dl{margin:0; display:grid; gap:2px;}
-.cm-info dt{font-size:var(--fs-rotulo); color:var(--gray); font-weight:700; text-transform:uppercase; letter-spacing:.05em;}
+.cm-info dt{font-size:var(--fs-rotulo); color:var(--ink); font-weight:700;}
 .cm-info dd{margin:0 0 10px; font-weight:600; font-size:var(--fs-valor); color:var(--ink);}
 
 @media (max-width:1100px){
@@ -2320,8 +2319,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 :is(#mtFiltros, #paCifras).mt-cifras button[aria-disabled="true"]{cursor:default; opacity:.85;}
 :is(#mtFiltros, #paCifras).mt-cifras .mtc-h{display:flex; align-items:flex-start; gap:8px;
   justify-content:space-between;}
-:is(#mtFiltros, #paCifras).mt-cifras .mtc-t{font-size:var(--fs-nota); font-weight:700; color:var(--navy);
-  text-transform:uppercase; letter-spacing:.04em; line-height:1.25;}
+:is(#mtFiltros, #paCifras).mt-cifras .mtc-t{font-size:var(--fs-nota); font-weight:700; color:var(--navy); line-height:1.25;}
 :is(#mtFiltros, #paCifras).mt-cifras button[aria-disabled="true"] .mtc-t{color:var(--gray);}
 :is(#mtFiltros, #paCifras).mt-cifras .mtc-i{flex:none; width:26px; height:26px; border-radius:7px;
   background:var(--block); display:flex; align-items:center; justify-content:center;}
@@ -2589,6 +2587,10 @@ body[data-vista="citas"] .fase-bar{display:none;}
    que usaba la ficha, y el segundo empieza en minuscula porque alli iba
    pegado detras de otra cosa. En una celda es la primera palabra. */
 .mt-fecha::first-letter{text-transform:uppercase;}
+/* Ningún rótulo en mayúsculas forzadas (Franklin Reyes, 16-10-2026: «cámbialos igual,
+   lo que está en mayúscula»): las veinte reglas que lo hacían van con su texto tal
+   cual, sin espaciado entre letras, y las que eran grises en la tinta casi negra. La
+   de arriba sólo pone en mayúscula la primera letra de una fecha, y se queda. */
 .mt-fecha{white-space:nowrap;}
 /* El reloj de «lleva N dias» cae debajo del distintivo, no a su lado: la
    columna de estado es la mas estrecha y en linea partia el chip.
@@ -3066,8 +3068,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 @media (max-width:1100px){ #cb{grid-template-columns:minmax(0,220px) minmax(0,1fr);} #cb .rv-visor{grid-column:1 / -1;} }
 @media (max-width:900px){ #cb{grid-template-columns:1fr;} }
 #cb .rv-lista{align-content:start;}
-.cb-sub{padding:10px 13px; border-bottom:1px solid var(--line); font-size:var(--fs-chip); font-weight:700;
-  letter-spacing:.05em; text-transform:uppercase; color:var(--gray);}
+.cb-sub{padding:10px 13px; border-bottom:1px solid var(--line); font-size:var(--fs-rotulo); font-weight:700; color:var(--ink);}
 .cb-persona{font:inherit; color:inherit; text-align:left; display:flex; align-items:center; gap:10px; width:100%;
   padding:10px 12px; border:0; border-bottom:1px solid var(--line-soft); background:none; cursor:pointer;}
 .cb-persona:last-child{border-bottom:0;}
@@ -3223,8 +3224,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
    -que nombra el globo entero- pero mas fuerte que los renglones, que es
    justo su sitio en la jerarquia: separa dos listas sin competir con
    ninguna. El primero no lleva aire arriba porque va pegado al titulo. */
-.pista-caja .pc-g{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
-  text-transform:uppercase; color:var(--navy2); margin:13px 0 6px;}
+.pista-caja .pc-g{font-size:var(--fs-rotulo); font-weight:700; color:var(--navy2); margin:13px 0 6px;}
 .pista-caja .pc-g:first-of-type{margin-top:0;}
 .pista-caja ul + .pc-g{margin-top:12px;}
 .pista-caja .pc-p:last-of-type{margin-bottom:0;}
@@ -3489,7 +3489,7 @@ body[data-vista="inicio"].etapa-elegida .tsec-sig:not([hidden]){display:flex;}
    pasos (Franklin Reyes, 2-10-2026, opción 2 de la maqueta). Primero las
    nueve tarjetas con su dibujo, de tres en tres; luego el sector elegido,
    la caja y «Enviar». */
-.cs-paso{font-size:var(--fs-nota); font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--mudo); margin-bottom:6px;}
+.cs-paso{font-size:var(--fs-nota); font-weight:700; color:var(--ink); margin-bottom:6px;}
 .cs-pide{margin:0 0 12px; font-size:var(--fs-parrafo); line-height:1.5; color:var(--ink);}
 .cs-rej{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;}
 /* Los botones de sector sueltos, como píldoras: los usa la lista por sector
@@ -3554,8 +3554,7 @@ body[data-vista="inicio"].etapa-elegida .tsec-sig:not([hidden]){display:flex;}
 .gv-col[role="button"]:focus-visible{outline:2px solid var(--navy); outline-offset:2px;}
 .gv-col[role="button"]:hover .gv-ir{text-decoration:underline; text-underline-offset:3px;}
 .gv-col[role="button"]:active{transform:none;}
-.gv-etapa{display:block; font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
-  text-transform:uppercase; color:var(--mudo);}
+.gv-etapa{display:block; font-size:var(--fs-rotulo); font-weight:700; color:var(--ink);}
 .gv-nombre{display:block; font-size:var(--fs-parrafo); font-weight:700; color:var(--navy2); margin-top:3px;}
 .gv-d{font-size:var(--fs-fila); line-height:1.45; color:var(--ink); margin-top:5px;}
 /* Ya no es un boton: es la señal de que la caja se pulsa. Quien escucha
@@ -3567,8 +3566,7 @@ body[data-vista="inicio"].etapa-elegida .tsec-sig:not([hidden]){display:flex;}
    lleva su rótulo -«1 · Operación», «2 · Servicio»- con la letra de la
    etapa de las visas, y la asesoría deja debajo su nota con el botón
    que vuelve a abrir la consulta. */
-.gv-paso{display:block; font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
-  text-transform:uppercase; color:var(--mudo); margin:0 0 8px;}
+.gv-paso{display:block; font-size:var(--fs-rotulo); font-weight:700; color:var(--ink); margin:0 0 8px;}
 .gv-cols + .gv-paso{margin-top:16px;}
 /* Solo el botón, sin frase ni fondo (6-10-2026): la asesoría de bienes. */
 .gv-boton{margin-top:14px; display:flex; justify-content:flex-end;}
@@ -4234,7 +4232,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
 .imp-caja:has(.imp-cuerpo:empty){display:none;}
 /* Centrado y en la tinta del texto, no en gris (Franklin Reyes, 9-10-2026:
    «centra el título y colócalo en negrita»): en gris el 700 se leía fino. */
-.imp-t{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--ink);
+.imp-t{font-size:var(--fs-rotulo); font-weight:700; color:var(--ink);
   text-align:center;}
 .imp-fila{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
 .imp-n{font-size:var(--fs-nota); font-weight:600; color:var(--ink);}
@@ -4282,8 +4280,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
 .tr-bloque .tr-paso-f{margin-top:2px;}
 .sol-junta{margin-top:14px;}
 .sol-junta[hidden]{display:none;}
-.sol-junta .sd-grupo{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
-  text-transform:uppercase; color:var(--mudo); margin:0 0 8px;}
+.sol-junta .sd-grupo{font-size:var(--fs-rotulo); font-weight:700; color:var(--ink); margin:0 0 8px;}
 @media (max-width:560px){
   .sol-lista .sl-fila{flex-wrap:wrap;}
   .sol-lista .sl-fila select{flex:1 1 160px;}
@@ -4556,8 +4553,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
    hueco que dejaba lo pone ahora el margen de la hoja. */
 .pa-cuenta{position:absolute; width:1px; height:1px; padding:0; margin:-1px;
   overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;}
-.pa-cuenta .pc-n{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.04em;
-  text-transform:uppercase; color:var(--mudo);}
+.pa-cuenta .pc-n{font-size:var(--fs-rotulo); font-weight:700; color:var(--ink);}
 .pa-cuenta .pc-t{font-size:var(--fs-tarjeta); font-weight:700; color:var(--ink);letter-spacing:-.01em;}
 
 /* El cuadro que informa. Uno por paso, y dice algo VERDADERO de ese paso:
@@ -4663,8 +4659,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
    lados, para que las líneas lleguen de una punta a otra de la ficha. */
 .pa-hoja .pa-repaso{border:0; border-radius:0; background:none; margin-bottom:0;}
 .pa-hoja .pa-fila, .pa-hoja .pa-grupo{padding-left:0; padding-right:0;}
-.pa-grupo{padding:13px 15px 3px; font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
-  text-transform:uppercase; color:var(--mudo); border-top:1px solid var(--line);}
+.pa-grupo{padding:13px 15px 3px; font-size:var(--fs-rotulo); font-weight:700; color:var(--ink); border-top:1px solid var(--line);}
 .pa-repaso > .pa-grupo:first-child{border-top:0;}
 .pa-fila{display:flex; align-items:baseline; gap:12px; padding:10px 15px;
   border-top:1px solid var(--line-soft);}
@@ -5433,7 +5428,7 @@ body.con-puerta{overflow:hidden;}
 .au-ente[hidden]{display:none;}
 .au-ente img{max-width:100%; max-height:100%; object-fit:contain; display:block;}
 .au-cab-t{min-width:0;}
-.au-ceja{font-size:var(--fs-chip); font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--navy2);}
+.au-ceja{font-size:var(--fs-rotulo); font-weight:700; color:var(--navy2);}
 .au-cab .at{font-size:var(--fs-titulo); margin-top:2px; line-height:1.25;}
 .au-cab .as{margin-top:2px;}
 .au-ciip{display:grid; justify-items:end; gap:4px; font-size:var(--fs-chip); color:var(--gray-soft); text-align:right;}
@@ -5896,7 +5891,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 .hoy-card .hoy-exp{margin-top:0;}
 .hoy-anillo b{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
   font-size:var(--fs-valor); line-height:1; color:var(--ink); font-variant-numeric:tabular-nums;}
-.hoy-anillo small{font-size:var(--fs-chip); max-width:46px; overflow:hidden; font-weight:700; color:var(--gray); text-transform:uppercase; letter-spacing:.03em; margin-top:2px;}
+.hoy-anillo small{font-size:var(--fs-chip); max-width:46px; overflow:hidden; font-weight:700; color:var(--ink); margin-top:2px;}
 .hoy-plazo{display:block; font-size:var(--fs-fila); font-weight:700; color:var(--gray);}
 .hoy-plazo.tarde{color:var(--rust);}
 .hoy-plazo.pronto{color:var(--amber);}
@@ -5907,8 +5902,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
    significa «va tarde». */
 .hoy-porque{background:var(--amber-bg); border-left:3px solid var(--amber);
   border-radius:0 8px 8px 0; padding:8px 11px; margin-top:10px;}
-.hoy-porque .hp-r{display:block; font-size:var(--fs-chip); font-weight:700;
-  letter-spacing:.04em; text-transform:uppercase; color:var(--amber);}
+.hoy-porque .hp-r{display:block; font-size:var(--fs-rotulo); font-weight:700; color:var(--amber);}
 /* Sin recortar y respetando los saltos: es lo mismo que está leyendo el
    inversionista del otro lado, y una nota a medias manda a abrir la ficha
    para leer el resto, que es lo que esto venía a evitar. */
@@ -5963,8 +5957,7 @@ html.visor-abierto{overflow:hidden;}
 .visor-izq, .visor-lado{overflow:auto; padding:14px 16px; display:flex; flex-direction:column; gap:16px; min-width:0;}
 .visor-izq{border-right:1px solid var(--line);}
 .visor-lado{border-left:1px solid var(--line);}
-.visor-izq h4, .visor-lado h4{margin:0 0 8px; font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
-  text-transform:uppercase; color:var(--gray); display:flex; align-items:center; gap:8px;}
+.visor-izq h4, .visor-lado h4{margin:0 0 8px; font-size:var(--fs-rotulo); font-weight:700; color:var(--ink); display:flex; align-items:center; gap:8px;}
 .visor-izq h4 .ct-chip{margin-left:auto; text-transform:none; letter-spacing:0; white-space:nowrap;}
 .visor-izq .co-dato{flex-direction:column; gap:1px; padding:5px 0; border-top:1px solid var(--line-soft);}
 .visor-izq .co-dato .k{flex:none;}
@@ -6029,7 +6022,7 @@ html.visor-abierto{overflow:hidden;}
 .pe-caja{display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-width:0;
   padding:10px 12px; border-radius:var(--r-sm); background:var(--block); border:1px solid var(--line-soft);
   font-size:var(--fs-nota);}
-.pe-caja-t{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--gray);}
+.pe-caja-t{font-size:var(--fs-rotulo); font-weight:700; color:var(--ink);}
 /* Nada se sale de la casilla: con align-items:flex-start cada hijo medía
    lo que su texto, y el nombre de una constancia larga -«Captura de
    pantalla 2026-08-18 131004.png»- asomaba por la derecha. La casilla de
@@ -6138,7 +6131,7 @@ html.visor-abierto{overflow:hidden;}
 .visor-lado.vt-paso{flex:1 1 auto; padding:20px 24px; gap:14px;}
 .vt-paso > *{max-width:720px;}
 .vt-paso-cab{display:flex; flex-direction:column; gap:3px;}
-.vt-paso-k{font-size:var(--fs-chip); font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--navy2);}
+.vt-paso-k{font-size:var(--fs-rotulo); font-weight:700; color:var(--navy2);}
 .vt-paso-t{font-size:var(--fs-tarjeta); font-weight:700; color:var(--ink);}
 .vt-paso .visor-fin{margin-top:0; border-top:0; padding-top:0;}
 
@@ -6308,8 +6301,8 @@ body[data-vista="horario"] .fase-bar{display:none;}
 .tr-etapa{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin:6px 0 12px;
   padding-top:10px; border-top:1px solid var(--line-soft); flex:0 0 100%; box-sizing:border-box;}
 .tr-etapa:first-child{margin-top:0; padding-top:0; border-top:0;}
-.tr-etapa-n{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em; text-transform:uppercase;
-  color:var(--mudo);}
+.tr-etapa-n{font-size:var(--fs-rotulo); font-weight:700;
+  color:var(--ink);}
 .tr-etapa-t{font-size:var(--fs-parrafo); font-weight:700; color:var(--ink);}
 .tr-paso:has(+ .tr-etapa)::before{display:none;}
 @media(max-width:640px){ .tr-paso:has(+ .tr-etapa){padding-bottom:6px;} }
