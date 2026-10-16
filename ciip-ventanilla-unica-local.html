@@ -77,7 +77,9 @@ html.ciip-verificando::before{
 html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A2E;}
 #ciip-sin-guardia{
   position:fixed; left:0; right:0; bottom:0; z-index:99998;
-  background:#FBF3E2; color:#B7791F; border-top:1px solid #B7791F;
+  /* Con los colores de aviso del panel y no en anaranjado (Franklin Reyes,
+     16-10-2026); el respaldo por si panel.css no llegara a cargar. */
+  background:var(--amber-bg,#EEF1F5); color:var(--amber,#4A5468); border-top:1px solid var(--amber,#4A5468);
   font:600 11.5px/1.5 'Helvetica Neue',Arial,sans-serif; padding:10px 16px; text-align:center;
 }
 

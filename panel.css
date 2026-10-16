@@ -54,9 +54,13 @@
    Y el radio ya estaba bien: el suyo es 0.625rem, o sea 10px, los mismos
    que tenia este panel desde el principio. ────────────────────────────── */
   --navy:#004090; --navy2:#0060B0; --navy-deep:#00336d; --cyan:#20B0F0; --cyan-deep:#0E8FD6;
+  /* Sin anaranjados (Franklin Reyes, 16-10-2026: «quitar los colores anaranjados»):
+     --amber, lo de «atención», pasa a gris, y --rust, lo de error o vencido, a
+     un rojo de verdad. Los nombres se quedan para no tocar las reglas que los
+     usan; lo que dicen ya no es «ámbar» ni «óxido». */
   --ink:#0E1424; --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6;
   --block:#F4F7FB; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--azul-panel:#004090;--tr-velo:rgba(255,255,255,.45);--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#5B6478;
-  --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9; --good:#1E7F5C; --good-bg:#E7F4EE;
+  --amber:#4A5468; --amber-bg:#EEF1F5; --rust:#C62828; --rust-bg:#FDECEC; --good:#1E7F5C; --good-bg:#E7F4EE;
   --r:10px; --r-sm:7px;
   /* Escala tipografica de Atlas: un escalon por trabajo. Esta entera en
      TIPOGRAFIA.md, con lo que va en cada uno.
@@ -86,7 +90,7 @@
     --ink:#EAEEF6; --gray:#9AA6BC; --gray-soft:#6E7B93; --line:rgba(255,255,255,.10); --line-soft:rgba(255,255,255,.06);
     --block:#0A1120; --bg:#0F1A2E; --card-2:#12203A;--hoja:#0A1120;--azul-panel:#4C97E8;--tr-velo:rgba(255,255,255,.04);--activa-bg:#132745; --dormida-bg:#0C1526; --mudo:#9AA6BC;
     --navy2:#4C97E8; --cyan-deep:#5CC6FF;
-    --amber:#DBA94C; --amber-bg:#33280F; --rust:#E28A67; --rust-bg:#33201A; --good:#43B48C; --good-bg:#11291F;
+    --amber:#AEB8CB; --amber-bg:#1C2638; --rust:#F28B82; --rust-bg:#3B1A1A; --good:#43B48C; --good-bg:#11291F;
     --shadow:0 1px 2px 0 rgba(0,0,0,.25);
     --shadow-lg:0 2px 6px rgba(0,0,0,.35), 0 20px 48px rgba(0,0,0,.55);
     --ce-r0:#34405A; --ce-r1:#1F4C80; --ce-r2:#2F6DB5; --ce-r3:#4C97E8; --ce-r4:#9CCBFF;
@@ -96,7 +100,7 @@
   --ink:#0E1424; --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6;
   --block:#F4F7FB; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--azul-panel:#004090;--tr-velo:rgba(255,255,255,.45);--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#5B6478;
   --navy2:#0060B0; --cyan-deep:#0E8FD6;
-  --amber:#B7791F; --amber-bg:#FBF3E2; --rust:#B4502E; --rust-bg:#FBEEE9; --good:#1E7F5C; --good-bg:#E7F4EE;
+  --amber:#4A5468; --amber-bg:#EEF1F5; --rust:#C62828; --rust-bg:#FDECEC; --good:#1E7F5C; --good-bg:#E7F4EE;
   --shadow:0 1px 2px rgba(14,20,36,.04), 0 6px 18px rgba(14,20,36,.06);
   --shadow-lg:0 2px 6px rgba(14,20,36,.06), 0 18px 44px rgba(14,20,36,.10);
   --ce-r0:#C3CDDB; --ce-r1:#86B6EF; --ce-r2:#5598E7; --ce-r3:#256ABF; --ce-r4:#0D366B;
@@ -105,7 +109,7 @@
   --ink:#EAEEF6; --gray:#9AA6BC; --gray-soft:#6E7B93; --line:rgba(255,255,255,.10); --line-soft:rgba(255,255,255,.06);
   --block:#0A1120; --bg:#0F1A2E; --card-2:#12203A;--hoja:#0A1120;--azul-panel:#4C97E8;--tr-velo:rgba(255,255,255,.04);--activa-bg:#132745; --dormida-bg:#0C1526; --mudo:#9AA6BC;
   --navy2:#4C97E8; --cyan-deep:#5CC6FF;
-  --amber:#DBA94C; --amber-bg:#33280F; --rust:#E28A67; --rust-bg:#33201A; --good:#43B48C; --good-bg:#11291F;
+  --amber:#AEB8CB; --amber-bg:#1C2638; --rust:#F28B82; --rust-bg:#3B1A1A; --good:#43B48C; --good-bg:#11291F;
   --shadow:0 1px 2px 0 rgba(0,0,0,.25);
   --shadow-lg:0 2px 6px rgba(0,0,0,.35), 0 20px 48px rgba(0,0,0,.55);
   --ce-r0:#34405A; --ce-r1:#1F4C80; --ce-r2:#2F6DB5; --ce-r3:#4C97E8; --ce-r4:#9CCBFF;
@@ -4890,7 +4894,9 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
    estos y no más». Separado con un filo, porque no es parte de lo que
    escribió el gestor: es la cuenta que hace el panel. */
 .sol-devuelta .sv-cuantos{font-size:var(--fs-nota); font-weight:700; color:var(--rust);
-  margin-top:7px; padding-top:7px; border-top:1px solid rgba(180,80,46,.22);}
+  margin-top:7px; padding-top:7px; border-top:1px solid color-mix(in srgb, var(--rust) 22%, transparent);}
+/* El filo, del mismo --rust y no de un óxido escrito a mano: sin
+   anaranjados (Franklin Reyes, 16-10-2026). Igual en .sd-porque. */
 /* El mismo aviso, dentro del bloque de un tramo. Más apretado -está
    metido en una tarjeta, no en una pantalla- y con su salida a la ficha
    para lo que no se arregla desde aquí. */
@@ -4929,7 +4935,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
    del nombre: una frase suya -«súbelo escaneado, se lee a medias»- no
    cabe en una línea ya ocupada por el nombre del archivo. */
 .sd-porque{flex-basis:100%; font-size:var(--fs-nota); color:var(--rust); line-height:1.45;
-  margin-top:6px; padding-top:6px; border-top:1px solid rgba(180,80,46,.22);}
+  margin-top:6px; padding-top:6px; border-top:1px solid color-mix(in srgb, var(--rust) 22%, transparent);}
 .sol-adj{margin-top:20px;}
 .sol-adj .sa-l{display:flex; flex-wrap:wrap; gap:7px; margin-top:9px;}
 .sol-adj .sa-i{display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-rotulo); font-weight:700;
@@ -5789,7 +5795,9 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 .topbar > .tb-btn:hover, .topbar .lang-sel > .tb-btn:hover, .topbar .avisos-sel > .tb-btn:hover{background:rgba(255,255,255,.16); border-color:rgba(255,255,255,.30); color:#fff;}
 .topbar .lang-btn svg{stroke:#fff;}
 .topbar .lang-btn .caret{color:rgba(255,255,255,.6);}
-.topbar .salir-btn:hover{background:rgba(226,138,103,.28); border-color:rgba(255,255,255,.30); color:#fff;}
+/* «Salir» al pasar por encima: rojo claro sobre el azul de la barra, no
+   anaranjado (Franklin Reyes, 16-10-2026). */
+.topbar .salir-btn:hover{background:rgba(242,139,130,.28); border-color:rgba(255,255,255,.30); color:#fff;}
 .topbar .user .u-name{color:#fff;}
 .topbar .user .u-sub{color:rgba(255,255,255,.7);}
 .topbar .avatar{box-shadow:0 0 0 2px rgba(255,255,255,.35);}

@@ -8735,7 +8735,9 @@ applyLang(idiomaParaMi());
     '.of-firma b{display:block;font-size:14.5px;}' +
     '.of-firma span{display:block;color:#5B6478;font-size:13.5px;}' +
     '.of-firma small{display:block;color:#5B6478;font-size:11.5px;margin-top:6px;}' +
-    '.of-hueco{background:#FBF1DE;border-radius:3px;padding:0 3px;}' +
+    /* El hueco por llenar, en gris y no en crema anaranjada (Franklin
+       Reyes, 16-10-2026). */
+    '.of-hueco{background:#EEF1F5;border-radius:3px;padding:0 3px;}' +
     '.of-pie{margin-top:auto;}';
   (function(){
     var s = document.createElement('style');
