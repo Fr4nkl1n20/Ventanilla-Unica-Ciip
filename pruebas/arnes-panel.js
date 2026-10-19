@@ -9531,7 +9531,7 @@
     igual('ayuda: cuatro pestañas, una por sección',
           [].map.call(bs, function(b){ return b.getAttribute('data-p'); }).join(' '), 'faq dil rec sapi');
     var n = function(p){ var b = document.querySelector('#ayPest .ay-pe[data-p="' + p + '"] .n'); return b ? b.textContent : '?'; };
-    igual('ayuda: con lo que trae cada una (preguntas con respuesta, diligencias y trámites)', n('faq') + ' ' + n('dil') + ' ' + n('rec') + ' ' + n('sapi'), '7 2 6 2');
+    igual('ayuda: con lo que trae cada una (preguntas con respuesta, diligencias y trámites)', n('faq') + ' ' + n('dil') + ' ' + n('rec') + ' ' + n('sapi'), '7 2 7 2');
     var faqSec = document.querySelector('.ayuda-vista .faq-sec');
     var rec = document.querySelector('.ayuda-vista .ay-rec');
     igual('ayuda: se entra por las preguntas', !!faqSec && faqSec.offsetHeight > 0 && !!rec && rec.offsetHeight === 0, true);
@@ -9541,7 +9541,7 @@
           !!rec && rec.offsetHeight > 0 && faqSec.offsetHeight === 0, true);
     igual('ayuda: y la pestaña queda encendida', bRec && bRec.getAttribute('aria-selected'), 'true');
     var cards = rec ? rec.querySelectorAll('details.ay-card') : [];
-    igual('ayuda: cada trámite es una tarjeta abierta', [].filter.call(cards, function(d){ return d.open; }).length, 6);
+    igual('ayuda: cada trámite es una tarjeta abierta', [].filter.call(cards, function(d){ return d.open; }).length, 7);
     var tipos = rec ? [].map.call(rec.querySelectorAll('details[data-clave="ay_rec_bomberos"] .ay-tipo'), function(x){ return x.textContent; }).join(' ') : '';
     igual('ayuda: cada enlace dice qué abre', tipos, 'Web Instagram');
     var cuenta = rec && rec.querySelector('details[data-clave="ay_rec_parafiscales"] .ay-cuenta');
@@ -9595,8 +9595,10 @@
        de .ay-sitios y la mide visaPlanilla. */
     /* Y el SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7): los
        recaudos y formularios de sus cuatro direcciones. */
-    igual('recaudos: en Ayuda, la licencia, los parafiscales, la conformidad de uso, los bomberos, la visa y el SACS, con sus enlaces; el SAPI, en su pestaña',
-          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3 ay_rec_bomberos:2 ay_rec_visa:0 ay_rec_sacs:4');
+    /* Y el MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus seis
+       sistemas en línea y la lista de sus trámites. */
+    igual('recaudos: en Ayuda, la licencia, los parafiscales, la conformidad de uso, los bomberos, la visa, el SACS y el MINEC, con sus enlaces; el SAPI, en su pestaña',
+          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3 ay_rec_bomberos:2 ay_rec_visa:0 ay_rec_sacs:4 ay_rec_minec:7');
     /* Y el SAPI (8-10-2026): el Clasificador de Niza. */
     var sapi = document.querySelector('.ayuda-vista .ay-sapi');
     var niza = sapi && sapi.querySelector('details[data-clave="ay_rec_sapi"] a.ay-enlace');
@@ -10919,6 +10921,13 @@
           'acta_constitutiva, rif_empresa, identidad_accionistas, poliza_responsabilidad_civil, poliza_incendio');
     igual('rtn: y pregunta solo razón social y RIF',
           R.campos('registro_turistico').map(function(c){ return c.n; }).join(','), 'razon_social,rif_empresa');
+    /* Los permisos ambientales (c30, Franklin Reyes, 19-10-2026,
+       Permisos_MINEC): sin recaudos, como el RUM, y el sistema del MINEC
+       delante, como el SACS. */
+    igual('ambiental: los permisos ambientales no piden recaudos',
+          R.de('permiso_ambiental').map(function(r){ return r.tipo; }).join(', ') || 'ninguno', 'ninguno');
+    igual('ambiental: y preguntan el sistema del MINEC, la razón social, el RIF y el trámite',
+          R.campos('permiso_ambiental').map(function(c){ return c.n; }).join(','), 'sistema_minec,razon_social,rif_empresa,tramite_minec');
 
     /* Lo que se fue con la escalera por etapas. */
     igual('licencia: ya no va por la escalera por etapas',
@@ -10969,6 +10978,23 @@
           'Solicita el Registro Turístico Nacional en el RTN Digital:hecho → Credencial lista:ahora');
     igual('rtn: resuelto, todo hecho', dibujoRtn('resuelto'),
           'Solicita el Registro Turístico Nacional en el RTN Digital:hecho → Credencial lista:hecho');
+    /* El doble no trae la c30 en el catálogo: se pone mientras dura, como
+       la licencia de arriba. */
+    var puestoAmb = false;
+    if (cat && !cat.c30){ cat.c30 = {codigo: 'permiso_ambiental', ref_panel: 'c30', ente: 'MINEC', activo: true}; puestoAmb = true; }
+    var dibujoAmb = function(estado, datos){
+      var E = window.CIIP_ESCALERA({estado: estado, datos: datos || {}}, 'permiso_ambiental', 'MINEC');
+      return E.todos.map(function(p){ return p.nombre + ':' + (p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer')); }).join(' → ');
+    };
+    igual('ambiental: dos pasos, y sin marcar el 1 en curso', dibujoAmb('enviado'),
+          'Solicita tu permiso en el sistema en línea del MINEC:ahora → Permiso otorgado:porhacer');
+    igual('ambiental: ante el MINEC sin la marca, el paso 1 sigue en curso', dibujoAmb('ante_el_ente'),
+          'Solicita tu permiso en el sistema en línea del MINEC:ahora → Permiso otorgado:porhacer');
+    igual('ambiental: marcado, toca «Permiso otorgado»', dibujoAmb('enviado', {ambiental_solicitado: '2026-10-19T10:00:00-04:00'}),
+          'Solicita tu permiso en el sistema en línea del MINEC:hecho → Permiso otorgado:ahora');
+    igual('ambiental: resuelto, todo hecho', dibujoAmb('resuelto'),
+          'Solicita tu permiso en el sistema en línea del MINEC:hecho → Permiso otorgado:hecho');
+    if (puestoAmb) delete cat.c30;
 
     /* El enlace del paso 1: el portal de la alcaldía del municipio que se
        contestó, y ninguno si no hay respuesta que lleve a alguna parte. */
@@ -10988,6 +11014,20 @@
           'https://contribuyentes.sigat.net/registro?alcaldia=1');
     igual('rum: el paso 1 lleva al SIGDME', url('c36', 1, {}), 'https://sigdme2-0.desarrollominero.gob.ve/');
     igual('rtn: el paso 1 lleva al RTN Digital del MINTUR', url('c50', 1, {}), 'https://turismonac.mintur.gob.ve/');
+    /* Los permisos ambientales: el sistema del MINEC que eligió, cada uno
+       de los seis del desplegable con su enlace (minecMira). */
+    (function minecMira(){
+      var D = window.CIIP_PASOS || {};
+      var ops = ((D.ui || {}).es || {}).o_minec_sistema || [];
+      igual('ambiental: el desplegable nace vacío y trae los seis sistemas', ops.length + ' · ' + JSON.stringify(ops[0]), '7 · ""');
+      var sin = ops.slice(1).filter(function(o){ return !url('c30', 1, {sistema_minec: o}).match(/^https:\/\/[a-z]+\.minec\.gob\.ve\/$/); });
+      igual('ambiental: cada sistema del desplegable lleva a su portal del MINEC', sin.join(' | ') || 'todos', 'todos');
+    })();
+    igual('ambiental: con SIGETRAT, el paso 1 lleva a SIGETRAT',
+          url('c30', 1, {sistema_minec: 'SIGETRAT · ocupación del territorio, estudio de impacto ambiental y afectación de recursos naturales'}),
+          'https://sigetrat.minec.gob.ve/');
+    igual('ambiental: sin sistema no hay enlace', url('c30', 1, {}), '(ninguno)');
+    igual('ambiental: y el paso 2 no lleva enlace', url('c30', 2, {sistema_minec: 'SIALAMB · laboratorios ambientales'}), '(ninguno)');
     var a = PM.enlacePintado('c10', 1, {datos: {municipio: 'Sucre'}});
     igual('licencia: el enlace pintado dice adónde va y se abre aparte',
           a ? a.textContent + ' · ' + a.getAttribute('href') + ' · ' + a.target : '(sin enlace)',
@@ -11006,6 +11046,8 @@
           texto('c36', 'registro_minero'), 'Ya lo solicité · minero_solicitado');
     igual('rtn: el botón dice «Ya lo solicité» y marca rtn_solicitado',
           texto('c50', 'registro_turistico'), 'Ya lo solicité · rtn_solicitado');
+    igual('ambiental: el botón dice «Ya lo solicité» y marca ambiental_solicitado',
+          texto('c30', 'permiso_ambiental'), 'Ya lo solicité · ambiental_solicitado');
     igual('licencia: ya marcado, no se vuelve a ofrecer',
           PM.boton(tr('bt-ya', 'licencia_municipal', 'enviado', ya), 'c10', 1, null, null), null);
     igual('licencia: y el paso 2 no lleva botón',
@@ -13360,7 +13402,6 @@
       ['permiso_sanitario', 'SACS', 'c12', 'hecho,hecho,ahora,porhacer,porhacer'],
       ['solvencias', 'Entes varios', 'c14', 'hecho,ahora,porhacer,porhacer,porhacer'],
       ['firma_electronica', 'SUSCERTE', 'c19', 'hecho,hecho,ahora,porhacer,porhacer'],
-      ['permiso_ambiental', 'MINEC', 'c30', 'hecho,hecho,hecho,ahora,porhacer'],
       ['registro_inversion', 'CIIP', 'c31', 'hecho,hecho,ahora,porhacer,porhacer']
     ];
     gen.forEach(function(g){
@@ -16399,9 +16440,10 @@
        cédula y el RIF del titular no rellenan ninguna de sus casillas. */
     /* Y las inscripciones ya solicitadas (c44, 5-10-2026): sus casillas son
        entes, fechas y el problema, y ningún papel dice nada de eso. */
-    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI, las cinco sin recaudos, las dos de «Bienes» y la marca en proceso y las inscripciones ya solicitadas',
+    /* Y los permisos ambientales (c30, 19-10-2026), sin recaudos. */
+    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI, las seis sin recaudos, las dos de «Bienes» y la marca en proceso y las inscripciones ya solicitadas',
           window.CIIP_SIN_LECTOR ? window.CIIP_SIN_LECTOR().join(', ') : '(no está la función)',
-          'licencia_municipal, conformidad_uso, permiso_bomberos, opinion_zodi, registro_minero, aporte_locti, firma_electronica, bienes_compraventa, bienes_alquiler, marca_en_proceso, parafiscales_en_proceso');
+          'licencia_municipal, conformidad_uso, permiso_bomberos, permiso_ambiental, opinion_zodi, registro_minero, aporte_locti, firma_electronica, bienes_compraventa, bienes_alquiler, marca_en_proceso, parafiscales_en_proceso');
   }
 
   /* La situacion que se quiere medir: alguien que TODAVIA no tiene empresa

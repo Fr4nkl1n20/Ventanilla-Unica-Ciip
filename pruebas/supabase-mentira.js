@@ -3113,7 +3113,7 @@
                Ventanilla única 2.7, supabase-sacs.sql). */
             var llaves = ['cancilleria_confirmada', 'licencia_solicitada', 'conformidad_solicitada', 'minero_solicitado',
                           'bomberos_solicitado', 'saime_confirmada', 'locti_inscrito', 'sacs_registrado',
-                          'rtn_solicitado'];
+                          'rtn_solicitado', 'ambiental_solicitado'];
             var rCP;
             if (!args || llaves.indexOf(args.p_clave) < 0){
               rCP = {data: null, error: {message: 'paso desconocido: ' + (args && args.p_clave), code: 'P0001'}};

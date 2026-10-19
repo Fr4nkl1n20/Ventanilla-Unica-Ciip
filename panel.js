@@ -3899,16 +3899,15 @@ applyLang(idiomaParaMi());
        contrato de mantenimiento de extintores. Los dos tipos que solo
        pedía él siguen nombrándose en la bóveda: ver SOLO_NOMBRE. */
     permiso_bomberos: [],
-    /* El estudio de impacto va opcional a propósito. La hoja avisa de que
-       los recaudos y la evaluación dependen del nivel de impacto o riesgo:
-       una oficina no necesita el estudio que sí necesita una planta.
-       Cuál toca sale del campo `impacto`, no de exigirlo a todos. */
-    permiso_ambiental: [
-      {tipo:'acta_constitutiva', clave:'d_acta'},
-      {tipo:'rif_empresa',       clave:'d_rifempresa'},
-      {tipo:'cedula',            clave:'d_identidad'},
-      {tipo:'impacto_ambiental', clave:'d_ambiental', opcional:true}
-    ],
+    /* SIN RECAUDOS desde el 19-10-2026 (Franklin Reyes, Permisos_MINEC,
+       «solo debe trabajar con el recuadro de Sistemas en línea del
+       MINEC»). Los permisos ambientales se solicitan en el sistema en línea
+       del MINEC que le toca a cada trámite, y es ese sistema el que pide
+       allí los papeles, distintos en cada uno de sus más de cien trámites.
+       Lo que pedía hasta hoy era: acta constitutiva, RIF de la empresa,
+       cédula y, opcional, el estudio de impacto ambiental. Ese último solo
+       lo pedía él y sigue nombrándose en la bóveda: ver SOLO_NOMBRE. */
+    permiso_ambiental: [],
     /* ── Fase 05 ──────────────────────────────────────────────────
        El acta va OBLIGATORIA aunque la hoja diga "documento constitutivo
        (o proyecto)". La alternativa existe para quien registra la
@@ -4345,7 +4344,13 @@ applyLang(idiomaParaMi());
     c27: {plazo:10, real:21, aplica:'siempre', modo:'portal', depende:'c6'},
     c28: {plazo:20, real:45, aplica:'cond', cond:'ft_c_sede', modo:'pres',   depende:'c6'},
     c29: {plazo:15, real:32, aplica:'cond', cond:'ft_c_sede', modo:'pres',   depende:'c28'},
-    c30: {plazo:30, real:65, aplica:'cond', cond:'ft_c_obra', modo:'pres',   depende:'c28'},
+    /* Los permisos ambientales (c30), desde el 19-10-2026 (Franklin Reyes,
+       Permisos_MINEC): para todos, y por el sistema en línea del MINEC.
+       Sin plazo ni «real»: cada trámite del MINEC tiene el suyo, y los 30
+       y 65 días de antes eran los del permiso genérico en persona. Va
+       detrás del RIF de la empresa (c6), que es lo primero que piden los
+       sistemas, como en el RUM. */
+    c30: {aplica:'siempre', modo:'portal', depende:'c6'},
     /* El RUPDAE (c35): la SUNDDE da de cinco a diez días hábiles, y el
        plazo es el tope de eso. Sin «real»: nadie lo ha medido todavía.
        Pide el RIF de la empresa, así que va detrás del c6. */
@@ -4749,6 +4754,36 @@ applyLang(idiomaParaMi());
       'https://sistemas.sacs.gob.ve/sivercos',
     'SIACSv2 · Sistema de Información Automatizado de Contraloría Sanitaria':
       'https://sistemas.sacs.gob.ve/siacsv2/login_user#'
+  };
+
+  /* ── LOS SISTEMAS EN LÍNEA DEL MINEC ──
+     Franklin Reyes, 19-10-2026, Permisos_MINEC (Valeria Ramos, CIIP): «solo
+     debe trabajar con el recuadro de Sistemas en línea del MINEC». Son los
+     seis del cuadro «Sistemas en línea del MINEC y trámites que se
+     presentan en cada uno», con lo que se tramita en cada uno, y los
+     enlaces que da www.minec.gob.ve (comprobados el 19-10-2026). Los
+     trámites «sin sistema indicado» del cuadro no entran: no hay adónde
+     llevar al inversionista.
+
+     Como el SACS: el desplegable es traducible (opcionesClave
+     'o_minec_sistema', en pasos.js) y guarda el nombre en español, que es
+     lo que hay aquí a la izquierda; los dos tienen que decir lo mismo letra
+     por letra, o el paso 1 se queda sin enlace (lo vigila minecMira en el
+     arnés). La primera opción de la lista es la vacía, para obligar a
+     elegir. */
+  var PORTAL_DEL_MINEC = {
+    'Ventanilla Verde · trámites forestales y laboratorios ambientales':
+      'https://ventanillaverde.minec.gob.ve/',
+    'SIGETRAT · ocupación del territorio, estudio de impacto ambiental y afectación de recursos naturales':
+      'https://sigetrat.minec.gob.ve/',
+    'SIFORTRAT · aprovechamiento forestal, vegetación del terreno e industria forestal':
+      'https://sifortrat.minec.gob.ve/',
+    'RACDA · actividades capaces de degradar el ambiente: sustancias, desechos y efluentes':
+      'https://racda.minec.gob.ve/',
+    'SIALAMB · laboratorios ambientales':
+      'https://sialamb.minec.gob.ve/',
+    'RENMA · reciclaje, envases de un solo uso y neumáticos':
+      'https://renma.minec.gob.ve/'
   };
 
   var CAMPOS = {
@@ -5321,16 +5356,21 @@ applyLang(idiomaParaMi());
       {n:'rif_empresa',         clave:'f_rifempresa'},
       {n:'estado_local',        clave:'f_estadolocal', opciones:ESTADOS_DE_BOMBEROS}
     ],
-    /* El nivel de impacto va delante de todo lo demás porque de él depende
-       si esto se resuelve con un registro o con un estudio entero. */
+    /* LOS PERMISOS AMBIENTALES desde el 19-10-2026 (Franklin Reyes,
+       Permisos_MINEC), como el SACS por primera vez (c48): el sistema en
+       línea del MINEC delante, que nace vacío para que nadie mande la
+       Ventanilla Verde sin elegirla, y del que sale el enlace del paso 1
+       (PORTAL_DEL_MINEC). Luego la razón social, el RIF y el trámite que va
+       a solicitar, con su código de la web del MINEC si lo sabe (el «028»
+       de la AOT, por ejemplo), que es por donde lo sigue el gestor. El
+       impacto, el municipio, la actividad, la dirección y el proceso los
+       pregunta el sistema del MINEC, y las solicitudes viejas los conservan
+       en tramites.datos. */
     permiso_ambiental: [
+      {n:'sistema_minec',       clave:'f_mnsistema',   opcionesClave:'o_minec_sistema', ancho:true},
       {n:'razon_social',        clave:'f_razon',       ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
-      {n:'impacto',             clave:'f_impacto',     opcionesClave:'o_impacto'},
-      {n:'municipio',           clave:'f_municipio'},
-      {n:'actividad_economica', clave:'f_actividad'},
-      {n:'direccion_local',     clave:'f_dirlocal',    ancho:true},
-      {n:'proceso',             clave:'f_proceso',     ancho:true}
+      {n:'tramite_minec',       clave:'f_mntramite',   ancho:true}
     ],
     /* La opinión favorable de la ZODI (c34). Lo que lleva la carta al
        Comandante: quién está detrás, a qué se va a dedicar, dónde y por
@@ -27410,7 +27450,13 @@ applyLang(idiomaParaMi());
        del SACS que eligió en el formulario, para que se registre allí, y lo
        avisa con «Ya me registré» (u.p_yamehice, el de un registro). La
        llave la acepta confirma_paso() desde supabase-sacs.sql. */
-    c48: {1: 'sacs_registrado'}
+    c48: {1: 'sacs_registrado'},
+    /* Y los permisos ambientales (c30), Franklin Reyes, 19-10-2026,
+       Permisos_MINEC: el paso 1 es el enlace del sistema en línea del MINEC
+       que eligió en el formulario, y lo avisa con «Ya lo solicité», como el
+       RTN. La llave la acepta confirma_paso() desde
+       supabase-permisos-ambientales.sql. */
+    c30: {1: {clave: 'ambiental_solicitado',   texto: 'p_yalosolicite'}}
   };
   /* La llave de un paso que marcas tú, y el texto de su botón: la entrada
      puede ser la llave a secas -como las de las visas- o {clave, texto}. */
@@ -27687,7 +27733,12 @@ applyLang(idiomaParaMi());
     c12: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:2},
     c14: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c19: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:2},
-    c30: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:3},
+    /* El permiso ambiental (c30) estuvo aquí con sus cinco pasos genéricos
+       hasta el 19-10-2026. Desde entonces (Franklin Reyes, Permisos_MINEC)
+       son dos, como el RTN: «Solicita tu permiso en el sistema en línea del
+       MINEC» lo cierra su marca y no un estado, y el permiso otorgado, al
+       resolver. */
+    c30: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c31: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:2}
   };
 
@@ -27761,7 +27812,11 @@ applyLang(idiomaParaMi());
     /* El permiso del SACS por primera vez (Franklin Reyes, 7-10-2026,
        Ventanilla única 2.7): el enlace del sistema en línea que eligió al
        principio (PORTAL_DEL_SACS), para registrarse en él. */
-    c48: {1: {campo: 'sistema_sacs', urls: PORTAL_DEL_SACS, clave: 'p_irsacs'}}
+    c48: {1: {campo: 'sistema_sacs', urls: PORTAL_DEL_SACS, clave: 'p_irsacs'}},
+    /* Los permisos ambientales (Franklin Reyes, 19-10-2026, Permisos_MINEC):
+       el sistema en línea del MINEC que eligió al principio
+       (PORTAL_DEL_MINEC). */
+    c30: {1: {campo: 'sistema_minec', urls: PORTAL_DEL_MINEC, clave: 'p_irminec'}}
   };
   /* Adónde lleva el paso n del trámite ref, para ESTA solicitud: {url,
      clave} o null. */
@@ -30178,7 +30233,7 @@ applyLang(idiomaParaMi());
        del paso «Tus datos» de las dos visas. */
     /* Y el SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7): los
        recaudos y formularios de sus cuatro direcciones. */
-    ['licencia', 'parafiscales', 'conformidad', 'bomberos', 'visa', 'sacs'].forEach(function(k){
+    ['licencia', 'parafiscales', 'conformidad', 'bomberos', 'visa', 'sacs', 'minec'].forEach(function(k){
       var kt = 'ay_rec_' + k, kl = kt + '_lista';
       var g = {kt: kt, t: u[kt] || es[kt], kl: kl, l: u[kl] || es[kl]};
       if (k === 'visa') g.descarga = {href: PLANILLA_VISA, texto: u.ay_visa_planilla || es.ay_visa_planilla,
@@ -30390,7 +30445,11 @@ applyLang(idiomaParaMi());
        ['antecedentes', 'd_antecjur'], ['certificado_medico_origen', 'd_medicoorigen'],
        /* Y los dos que solo pedía el permiso de bomberos hasta el mismo
           1-10-2026 (Franklin Reyes, Permiso de Bomberos: sin recaudos). */
-       ['plano_seguridad', 'd_planoseg'], ['mantenimiento_extintores', 'd_extintores']
+       ['plano_seguridad', 'd_planoseg'], ['mantenimiento_extintores', 'd_extintores'],
+       /* Y el estudio de impacto ambiental, que solo pedía el permiso
+          ambiental hasta el 19-10-2026 (Franklin Reyes, Permisos_MINEC: lo
+          pide el sistema del MINEC). */
+       ['impacto_ambiental', 'd_ambiental']
       ].forEach(function(p){
         if (!CLAVE_DE_TIPO[p[0]]) CLAVE_DE_TIPO[p[0]] = p[1];
         if (CLAVE_DE_TIPO[p[0]] === p[1]) SOLO_NOMBRE[p[0]] = true;

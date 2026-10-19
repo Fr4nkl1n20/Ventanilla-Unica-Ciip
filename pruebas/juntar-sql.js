@@ -313,6 +313,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    confirma_paso de supabase-sacs; al final para no mover el número de
    nadie. */
 'supabase-rtn',
+/* Los permisos ambientales (c30), Franklin Reyes, 19-10-2026: el trámite
+   para todos, por los sistemas en línea del MINEC, y 'ambiental_solicitado'
+   en confirma_paso. Redefine la confirma_paso de supabase-rtn. */
+'supabase-permisos-ambientales',
 /* El administrador borra lo de las pruebas desde el panel (Franklin Reyes,
    15-10-2026): una solicitud, un papel o una cuenta entera. Redefine tres
    cerrojos de supabase-hilo, supabase-qa-tramites y supabase-autorizaciones,

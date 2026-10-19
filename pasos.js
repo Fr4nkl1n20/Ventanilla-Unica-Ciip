@@ -1170,6 +1170,15 @@ window.CIIP_PASOS = {
                       "Recaudos y formularios · Dirección de Regulación y Control de Drogas, Medicamentos y Cosméticos | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Recaudos y formularios · Dirección de Inocuidad de Alimentos y Bebidas | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "Recaudos y formularios · Dirección de Vigilancia y Control Sanitario en Aduanas | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
+      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
+      ay_rec_minec: "Ministerio del Poder Popular para el Ecosocialismo (MINEC)",
+      ay_rec_minec_lista: "Ventanilla Verde · trámites forestales y laboratorios ambientales | https://ventanillaverde.minec.gob.ve/\n" +
+                          "SIGETRAT · ocupación del territorio, estudio de impacto ambiental y afectación de recursos naturales | https://sigetrat.minec.gob.ve/\n" +
+                          "SIFORTRAT · aprovechamiento forestal, vegetación del terreno e industria forestal | https://sifortrat.minec.gob.ve/\n" +
+                          "RACDA · sustancias, desechos y efluentes | https://racda.minec.gob.ve/\n" +
+                          "SIALAMB · laboratorios ambientales | https://sialamb.minec.gob.ve/\n" +
+                          "RENMA · reciclaje, envases de un solo uso y neumáticos | https://renma.minec.gob.ve/\n" +
+                          "Trámites y servicios del MINEC · la lista de sus trámites con su código | https://www.minec.gob.ve/",
       ay_visa_planilla: "Descargar la planilla de solicitud de visa (PDF)",
       vs_planilla_nota: "Necesitarás la planilla de solicitud de visa para registrarte en el portal de Cancillería.",
       vs_planilla_btn: "Planilla de solicitud de visa",
@@ -1497,6 +1506,11 @@ window.CIIP_PASOS = {
       o_sacs_sistema: ["", "CLV · Certificados Electrónicos de Libre Venta", "SIACVISA · Sistema de Información Automatizado de Control y Vigilancia Sanitaria", "Censo Nacional Automatizado · Establecimientos de Salud y Similares", "SIVERCOS · Sistema Venezolano de Registro de Cosméticos", "SIACSv2 · Sistema de Información Automatizado de Contraloría Sanitaria"],
       f_yspermisoya:  "¿Qué trámite o permiso solicitaste?",
       f_yspermiso:    "Permiso que vas a solicitar",
+      /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
+         guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
+      f_mnsistema:    "Sistema en línea del MINEC",
+      o_minec_sistema: ["", "Ventanilla Verde · trámites forestales y laboratorios ambientales", "SIGETRAT · ocupación del territorio, estudio de impacto ambiental y afectación de recursos naturales", "SIFORTRAT · aprovechamiento forestal, vegetación del terreno e industria forestal", "RACDA · actividades capaces de degradar el ambiente: sustancias, desechos y efluentes", "SIALAMB · laboratorios ambientales", "RENMA · reciclaje, envases de un solo uso y neumáticos"],
+      f_mntramite:    "Trámite que vas a solicitar, con su código de la web del MINEC si lo sabes",
       f_yscedrep:     "Cédula de identidad del representante legal",
       f_ysrifrep:     "RIF del representante legal",
       ft_c_reside:   "Si vas a residir en Venezuela",
@@ -2659,6 +2673,7 @@ window.CIIP_PASOS = {
       f_estadolocal:  "Estado donde está el local",
       p_irbomberos:   "Ir al portal de los bomberos",
       p_irsacs:       "Ir al sistema del SACS",
+      p_irminec:      "Ir al sistema del MINEC",
       p_guardasede:   "Guardar la sede",
       p_sede_ph:      "Nombre o dirección de la sede de bomberos",
       p_sede:         "Sede de bomberos",
@@ -3260,6 +3275,15 @@ window.CIIP_PASOS = {
                       "Requirements and forms · Directorate of Regulation and Control of Drugs, Medicines and Cosmetics | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Requirements and forms · Directorate of Food and Beverage Safety | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "Requirements and forms · Directorate of Health Surveillance and Control at Customs | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
+      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
+      ay_rec_minec: "Ministry of People’s Power for Ecosocialism (MINEC)",
+      ay_rec_minec_lista: "Ventanilla Verde · forestry procedures and environmental laboratories | https://ventanillaverde.minec.gob.ve/\n" +
+                          "SIGETRAT · land occupation, environmental impact study and effects on natural resources | https://sigetrat.minec.gob.ve/\n" +
+                          "SIFORTRAT · forest harvesting, land vegetation and forest industry | https://sifortrat.minec.gob.ve/\n" +
+                          "RACDA · substances, waste and effluents | https://racda.minec.gob.ve/\n" +
+                          "SIALAMB · environmental laboratories | https://sialamb.minec.gob.ve/\n" +
+                          "RENMA · recycling, single-use packaging and tyres | https://renma.minec.gob.ve/\n" +
+                          "MINEC procedures and services · the list of its procedures with their codes | https://www.minec.gob.ve/",
       ay_visa_planilla: "Download the visa application form (PDF)",
       vs_planilla_nota: "You will need the visa application form to register on the Foreign Ministry portal.",
       vs_planilla_btn: "Visa application form",
@@ -3563,6 +3587,11 @@ window.CIIP_PASOS = {
       o_sacs_sistema: ["", "CLV · Electronic Certificates of Free Sale", "SIACVISA · Automated Health Control and Surveillance Information System", "Automated National Census · Health and Similar Establishments", "SIVERCOS · Venezuelan Cosmetics Registration System", "SIACSv2 · Automated Health Comptroller Information System"],
       f_yspermisoya:  "Which procedure or permit did you apply for?",
       f_yspermiso:    "Permit you are going to apply for",
+      /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
+         guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
+      f_mnsistema:    "MINEC online system",
+      o_minec_sistema: ["", "Ventanilla Verde · forestry procedures and environmental laboratories", "SIGETRAT · land occupation, environmental impact study and effects on natural resources", "SIFORTRAT · forest harvesting, land vegetation and forest industry", "RACDA · activities capable of degrading the environment: substances, waste and effluents", "SIALAMB · environmental laboratories", "RENMA · recycling, single-use packaging and tyres"],
+      f_mntramite:    "Procedure you are going to apply for, with its code from the MINEC website if you know it",
       f_yscedrep:     "ID card of the legal representative",
       f_ysrifrep:     "RIF of the legal representative",
       ft_c_reside:   "If you are going to live in Venezuela",
@@ -4593,6 +4622,7 @@ window.CIIP_PASOS = {
       f_estadolocal:  "State where the premises are",
       p_irbomberos:   "Go to the fire department portal",
       p_irsacs:       "Go to the SACS system",
+      p_irminec:      "Go to the MINEC system",
       p_guardasede:   "Save the station",
       p_sede_ph:      "Name or address of the fire station",
       p_sede:         "Fire station",
@@ -5194,6 +5224,15 @@ window.CIIP_PASOS = {
                       "Documentos e formulários · Direção de Regulação e Controlo de Drogas, Medicamentos e Cosméticos | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Documentos e formulários · Direção de Inocuidade de Alimentos e Bebidas | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "Documentos e formulários · Direção de Vigilância e Controlo Sanitário nas Alfândegas | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
+      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
+      ay_rec_minec: "Ministério do Poder Popular para o Ecossocialismo (MINEC)",
+      ay_rec_minec_lista: "Ventanilla Verde · trâmites florestais e laboratórios ambientais | https://ventanillaverde.minec.gob.ve/\n" +
+                          "SIGETRAT · ocupação do território, estudo de impacto ambiental e afetação de recursos naturais | https://sigetrat.minec.gob.ve/\n" +
+                          "SIFORTRAT · aproveitamento florestal, vegetação do terreno e indústria florestal | https://sifortrat.minec.gob.ve/\n" +
+                          "RACDA · substâncias, resíduos e efluentes | https://racda.minec.gob.ve/\n" +
+                          "SIALAMB · laboratórios ambientais | https://sialamb.minec.gob.ve/\n" +
+                          "RENMA · reciclagem, embalagens de uso único e pneus | https://renma.minec.gob.ve/\n" +
+                          "Trâmites e serviços do MINEC · a lista dos seus trâmites com o respetivo código | https://www.minec.gob.ve/",
       ay_visa_planilla: "Baixar o formulário de pedido de visto (PDF)",
       vs_planilla_nota: "Você vai precisar do formulário de pedido de visto para se registrar no portal da Chancelaria.",
       vs_planilla_btn: "Formulário de pedido de visto",
@@ -5488,6 +5527,11 @@ window.CIIP_PASOS = {
       o_sacs_sistema: ["", "CLV · Certificados Eletrónicos de Livre Venda", "SIACVISA · Sistema de Informação Automatizado de Controlo e Vigilância Sanitária", "Censo Nacional Automatizado · Estabelecimentos de Saúde e Similares", "SIVERCOS · Sistema Venezuelano de Registo de Cosméticos", "SIACSv2 · Sistema de Informação Automatizado de Controladoria Sanitária"],
       f_yspermisoya:  "Que trâmite ou licença solicitou?",
       f_yspermiso:    "Licença que vai solicitar",
+      /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
+         guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
+      f_mnsistema:    "Sistema online do MINEC",
+      o_minec_sistema: ["", "Ventanilla Verde · trâmites florestais e laboratórios ambientais", "SIGETRAT · ocupação do território, estudo de impacto ambiental e afetação de recursos naturais", "SIFORTRAT · aproveitamento florestal, vegetação do terreno e indústria florestal", "RACDA · atividades capazes de degradar o ambiente: substâncias, resíduos e efluentes", "SIALAMB · laboratórios ambientais", "RENMA · reciclagem, embalagens de uso único e pneus"],
+      f_mntramite:    "Trâmite que vai solicitar, com o código do site do MINEC se o souber",
       f_yscedrep:     "Cartão de identidade do representante legal",
       f_ysrifrep:     "RIF do representante legal",
       ft_c_reside:   "Se vai residir na Venezuela",
@@ -6512,6 +6556,7 @@ window.CIIP_PASOS = {
       f_estadolocal:  "Estado onde está o estabelecimento",
       p_irbomberos:   "Ir ao portal dos bombeiros",
       p_irsacs:       "Ir ao sistema do SACS",
+      p_irminec:      "Ir ao sistema do MINEC",
       p_guardasede:   "Guardar a sede",
       p_sede_ph:      "Nome ou morada da sede dos bombeiros",
       p_sede:         "Sede dos bombeiros",
@@ -7113,6 +7158,15 @@ window.CIIP_PASOS = {
                       "Documenti e moduli · Direzione di regolazione e controllo di droghe, medicinali e cosmetici | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Documenti e moduli · Direzione per la sicurezza di alimenti e bevande | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "Documenti e moduli · Direzione di vigilanza e controllo sanitario nelle dogane | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
+      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
+      ay_rec_minec: "Ministero del Potere Popolare per l’Ecosocialismo (MINEC)",
+      ay_rec_minec_lista: "Ventanilla Verde · pratiche forestali e laboratori ambientali | https://ventanillaverde.minec.gob.ve/\n" +
+                          "SIGETRAT · occupazione del territorio, studio di impatto ambientale e incidenza sulle risorse naturali | https://sigetrat.minec.gob.ve/\n" +
+                          "SIFORTRAT · sfruttamento forestale, vegetazione del terreno e industria forestale | https://sifortrat.minec.gob.ve/\n" +
+                          "RACDA · sostanze, rifiuti ed effluenti | https://racda.minec.gob.ve/\n" +
+                          "SIALAMB · laboratori ambientali | https://sialamb.minec.gob.ve/\n" +
+                          "RENMA · riciclaggio, imballaggi monouso e pneumatici | https://renma.minec.gob.ve/\n" +
+                          "Pratiche e servizi del MINEC · l’elenco delle sue pratiche con il relativo codice | https://www.minec.gob.ve/",
       ay_visa_planilla: "Scarica il modulo di richiesta del visto (PDF)",
       vs_planilla_nota: "Ti servirà il modulo di richiesta del visto per registrarti sul portale della Cancelleria.",
       vs_planilla_btn: "Modulo di richiesta del visto",
@@ -7407,6 +7461,11 @@ window.CIIP_PASOS = {
       o_sacs_sistema: ["", "CLV · Certificati elettronici di libera vendita", "SIACVISA · Sistema informativo automatizzato di controllo e vigilanza sanitaria", "Censimento nazionale automatizzato · Strutture sanitarie e simili", "SIVERCOS · Sistema venezuelano di registrazione dei cosmetici", "SIACSv2 · Sistema informativo automatizzato di controllo sanitario"],
       f_yspermisoya:  "Quale pratica o permesso hai richiesto?",
       f_yspermiso:    "Permesso che vuoi richiedere",
+      /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
+         guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
+      f_mnsistema:    "Sistema online del MINEC",
+      o_minec_sistema: ["", "Ventanilla Verde · pratiche forestali e laboratori ambientali", "SIGETRAT · occupazione del territorio, studio di impatto ambientale e incidenza sulle risorse naturali", "SIFORTRAT · sfruttamento forestale, vegetazione del terreno e industria forestale", "RACDA · attività in grado di degradare l’ambiente: sostanze, rifiuti ed effluenti", "SIALAMB · laboratori ambientali", "RENMA · riciclaggio, imballaggi monouso e pneumatici"],
+      f_mntramite:    "Pratica che vuoi richiedere, con il codice del sito del MINEC se lo conosci",
       f_yscedrep:     "Documento d'identità del rappresentante legale",
       f_ysrifrep:     "RIF del rappresentante legale",
       ft_c_reside:   "Se andrai a risiedere in Venezuela",
@@ -8431,6 +8490,7 @@ window.CIIP_PASOS = {
       f_estadolocal:  "Stato in cui si trova il locale",
       p_irbomberos:   "Vai al portale dei vigili del fuoco",
       p_irsacs:       "Vai al sistema del SACS",
+      p_irminec:      "Vai al sistema del MINEC",
       p_guardasede:   "Salva la sede",
       p_sede_ph:      "Nome o indirizzo della sede dei vigili del fuoco",
       p_sede:         "Sede dei vigili del fuoco",
@@ -9032,6 +9092,15 @@ window.CIIP_PASOS = {
                       "所需材料和表格 · 药物、药品及化妆品监管司 | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "所需材料和表格 · 食品饮料安全司 | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "所需材料和表格 · 海关卫生监督管理司 | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
+      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
+      ay_rec_minec: "人民政权生态社会主义部（MINEC）",
+      ay_rec_minec_lista: "Ventanilla Verde · 林业手续与环境实验室 | https://ventanillaverde.minec.gob.ve/\n" +
+                          "SIGETRAT · 国土占用、环境影响评价及自然资源影响 | https://sigetrat.minec.gob.ve/\n" +
+                          "SIFORTRAT · 森林采伐、地表植被及林产工业 | https://sifortrat.minec.gob.ve/\n" +
+                          "RACDA · 物质、废弃物及排放物 | https://racda.minec.gob.ve/\n" +
+                          "SIALAMB · 环境实验室 | https://sialamb.minec.gob.ve/\n" +
+                          "RENMA · 回收利用、一次性包装及轮胎 | https://renma.minec.gob.ve/\n" +
+                          "MINEC 手续与服务 · 其手续清单及编号 | https://www.minec.gob.ve/",
       ay_visa_planilla: "下载签证申请表（PDF）",
       vs_planilla_nota: "在外交部门户网站注册时，你需要签证申请表。",
       vs_planilla_btn: "签证申请表",
@@ -9326,6 +9395,11 @@ window.CIIP_PASOS = {
       o_sacs_sistema: ["", "CLV · 电子自由销售证书", "SIACVISA · 卫生管控与监督自动化信息系统", "全国自动化普查 · 卫生及同类机构", "SIVERCOS · 委内瑞拉化妆品注册系统", "SIACSv2 · 卫生监管自动化信息系统"],
       f_yspermisoya:  "你申请的是什么手续或许可？",
       f_yspermiso:    "你要申请的许可",
+      /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
+         guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
+      f_mnsistema:    "MINEC 在线系统",
+      o_minec_sistema: ["", "Ventanilla Verde · 林业手续与环境实验室", "SIGETRAT · 国土占用、环境影响评价及自然资源影响", "SIFORTRAT · 森林采伐、地表植被及林产工业", "RACDA · 可能破坏环境的活动：物质、废弃物及排放物", "SIALAMB · 环境实验室", "RENMA · 回收利用、一次性包装及轮胎"],
+      f_mntramite:    "你要申请的手续，如知道请填写 MINEC 网站上的编号",
       f_yscedrep:     "法定代表人身份证",
       f_ysrifrep:     "法定代表人 RIF",
       ft_c_reside:   "如需在委内瑞拉居留",
@@ -10350,6 +10424,7 @@ window.CIIP_PASOS = {
       f_estadolocal:  "营业场所所在州",
       p_irbomberos:   "前往消防部门门户",
       p_irsacs:       "前往 SACS 系统",
+      p_irminec:      "前往 MINEC 系统",
       p_guardasede:   "保存消防站",
       p_sede_ph:      "消防站名称或地址",
       p_sede:         "消防站",
@@ -10951,6 +11026,15 @@ window.CIIP_PASOS = {
                       "Документы и формы · Управление регулирования и контроля лекарственных средств и косметики | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Документы и формы · Управление безопасности пищевых продуктов и напитков | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "Документы и формы · Управление санитарного надзора и контроля на таможне | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
+      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
+      ay_rec_minec: "Министерство народной власти по экосоциализму (MINEC)",
+      ay_rec_minec_lista: "Ventanilla Verde · лесные процедуры и экологические лаборатории | https://ventanillaverde.minec.gob.ve/\n" +
+                          "SIGETRAT · занятие территории, оценка воздействия на окружающую среду и затрагивание природных ресурсов | https://sigetrat.minec.gob.ve/\n" +
+                          "SIFORTRAT · лесопользование, растительность участка и лесная промышленность | https://sifortrat.minec.gob.ve/\n" +
+                          "RACDA · вещества, отходы и стоки | https://racda.minec.gob.ve/\n" +
+                          "SIALAMB · экологические лаборатории | https://sialamb.minec.gob.ve/\n" +
+                          "RENMA · переработка, одноразовая упаковка и шины | https://renma.minec.gob.ve/\n" +
+                          "Процедуры и услуги MINEC · список его процедур с кодами | https://www.minec.gob.ve/",
       ay_visa_planilla: "Скачать бланк заявления на визу (PDF)",
       vs_planilla_nota: "Бланк заявления на визу понадобится для регистрации на портале МИД.",
       vs_planilla_btn: "Бланк заявления на визу",
@@ -11245,6 +11329,11 @@ window.CIIP_PASOS = {
       o_sacs_sistema: ["", "CLV · Электронные сертификаты свободной продажи", "SIACVISA · Автоматизированная информационная система санитарного контроля и надзора", "Национальная автоматизированная перепись · Медицинские и аналогичные учреждения", "SIVERCOS · Венесуэльская система регистрации косметики", "SIACSv2 · Автоматизированная информационная система санитарного контроля"],
       f_yspermisoya:  "Какую процедуру или разрешение вы запросили?",
       f_yspermiso:    "Разрешение, которое вы собираетесь запросить",
+      /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
+         guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
+      f_mnsistema:    "Онлайн-система MINEC",
+      o_minec_sistema: ["", "Ventanilla Verde · лесные процедуры и экологические лаборатории", "SIGETRAT · занятие территории, оценка воздействия на окружающую среду и затрагивание природных ресурсов", "SIFORTRAT · лесопользование, растительность участка и лесная промышленность", "RACDA · деятельность, способная нанести вред окружающей среде: вещества, отходы и стоки", "SIALAMB · экологические лаборатории", "RENMA · переработка, одноразовая упаковка и шины"],
+      f_mntramite:    "Процедура, которую вы собираетесь запросить, с кодом с сайта MINEC, если он вам известен",
       f_yscedrep:     "Удостоверение личности законного представителя",
       f_ysrifrep:     "RIF законного представителя",
       ft_c_reside:   "Если вы будете жить в Венесуэле",
@@ -12269,6 +12358,7 @@ window.CIIP_PASOS = {
       f_estadolocal:  "Штат, где находится помещение",
       p_irbomberos:   "Перейти на портал пожарной службы",
       p_irsacs:       "Перейти в систему SACS",
+      p_irminec:      "Перейти в систему MINEC",
       p_guardasede:   "Сохранить отделение",
       p_sede_ph:      "Название или адрес пожарного отделения",
       p_sede:         "Пожарное отделение",
@@ -12870,6 +12960,15 @@ window.CIIP_PASOS = {
                       "Pièces et formulaires · Direction de la réglementation et du contrôle des drogues, médicaments et cosmétiques | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Pièces et formulaires · Direction de la sécurité sanitaire des aliments et boissons | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "Pièces et formulaires · Direction de la surveillance et du contrôle sanitaires aux douanes | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
+      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
+      ay_rec_minec: "Ministère du Pouvoir populaire pour l’Écosocialisme (MINEC)",
+      ay_rec_minec_lista: "Ventanilla Verde · démarches forestières et laboratoires environnementaux | https://ventanillaverde.minec.gob.ve/\n" +
+                          "SIGETRAT · occupation du territoire, étude d’impact environnemental et atteinte aux ressources naturelles | https://sigetrat.minec.gob.ve/\n" +
+                          "SIFORTRAT · exploitation forestière, végétation du terrain et industrie forestière | https://sifortrat.minec.gob.ve/\n" +
+                          "RACDA · substances, déchets et effluents | https://racda.minec.gob.ve/\n" +
+                          "SIALAMB · laboratoires environnementaux | https://sialamb.minec.gob.ve/\n" +
+                          "RENMA · recyclage, emballages à usage unique et pneus | https://renma.minec.gob.ve/\n" +
+                          "Démarches et services du MINEC · la liste de ses démarches avec leur code | https://www.minec.gob.ve/",
       ay_visa_planilla: "Télécharger le formulaire de demande de visa (PDF)",
       vs_planilla_nota: "Vous aurez besoin du formulaire de demande de visa pour vous inscrire sur le portail de la Cancillería.",
       vs_planilla_btn: "Formulaire de demande de visa",
@@ -13173,6 +13272,11 @@ window.CIIP_PASOS = {
       o_sacs_sistema: ["", "CLV · Certificats électroniques de libre vente", "SIACVISA · Système d’information automatisé de contrôle et de surveillance sanitaires", "Recensement national automatisé · Établissements de santé et assimilés", "SIVERCOS · Système vénézuélien d’enregistrement des cosmétiques", "SIACSv2 · Système d’information automatisé de contrôle sanitaire"],
       f_yspermisoya:  "Quelle démarche ou quel permis avez-vous demandé ?",
       f_yspermiso:    "Permis que vous allez demander",
+      /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
+         guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
+      f_mnsistema:    "Système en ligne du MINEC",
+      o_minec_sistema: ["", "Ventanilla Verde · démarches forestières et laboratoires environnementaux", "SIGETRAT · occupation du territoire, étude d’impact environnemental et atteinte aux ressources naturelles", "SIFORTRAT · exploitation forestière, végétation du terrain et industrie forestière", "RACDA · activités susceptibles de dégrader l’environnement : substances, déchets et effluents", "SIALAMB · laboratoires environnementaux", "RENMA · recyclage, emballages à usage unique et pneus"],
+      f_mntramite:    "Démarche que vous allez demander, avec son code du site du MINEC si vous le connaissez",
       f_yscedrep:     "Carte d’identité du représentant légal",
       f_ysrifrep:     "RIF du représentant légal",
       ft_c_reside:   "Si vous allez vivre au Venezuela",
@@ -14203,6 +14307,7 @@ window.CIIP_PASOS = {
       f_estadolocal:  "État où se trouve le local",
       p_irbomberos:   "Aller au portail des sapeurs-pompiers",
       p_irsacs:       "Aller au système du SACS",
+      p_irminec:      "Aller au système du MINEC",
       p_guardasede:   "Enregistrer la caserne",
       p_sede_ph:      "Nom ou adresse de la caserne de pompiers",
       p_sede:         "Caserne de pompiers",
@@ -14804,6 +14909,15 @@ window.CIIP_PASOS = {
                       "必要書類と様式 · 薬物・医薬品・化粧品規制管理局 | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "必要書類と様式 · 食品・飲料安全局 | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "必要書類と様式 · 税関衛生監視管理局 | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
+      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
+      ay_rec_minec: "環境社会主義人民権力省（MINEC）",
+      ay_rec_minec_lista: "Ventanilla Verde · 森林関連手続きと環境試験所 | https://ventanillaverde.minec.gob.ve/\n" +
+                          "SIGETRAT · 土地の占用、環境影響評価、天然資源への影響 | https://sigetrat.minec.gob.ve/\n" +
+                          "SIFORTRAT · 森林の利用、土地の植生、林産業 | https://sifortrat.minec.gob.ve/\n" +
+                          "RACDA · 物質、廃棄物、排出物 | https://racda.minec.gob.ve/\n" +
+                          "SIALAMB · 環境試験所 | https://sialamb.minec.gob.ve/\n" +
+                          "RENMA · リサイクル、使い捨て容器、タイヤ | https://renma.minec.gob.ve/\n" +
+                          "MINECの手続きとサービス · 手続きの一覧とコード | https://www.minec.gob.ve/",
       ay_visa_planilla: "ビザ申請書をダウンロード（PDF）",
       vs_planilla_nota: "Cancilleríaのポータルで登録する際にビザ申請書が必要です。",
       vs_planilla_btn: "ビザ申請書",
@@ -15107,6 +15221,11 @@ window.CIIP_PASOS = {
       o_sacs_sistema: ["", "CLV · 自由販売電子証明書", "SIACVISA · 衛生管理・監視自動情報システム", "全国自動調査 · 保健医療施設等", "SIVERCOS · ベネズエラ化粧品登録システム", "SIACSv2 · 衛生監督自動情報システム"],
       f_yspermisoya:  "申請した手続きまたは許可は何ですか？",
       f_yspermiso:    "申請する許可",
+      /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
+         guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
+      f_mnsistema:    "MINECのオンラインシステム",
+      o_minec_sistema: ["", "Ventanilla Verde · 森林関連手続きと環境試験所", "SIGETRAT · 土地の占用、環境影響評価、天然資源への影響", "SIFORTRAT · 森林の利用、土地の植生、林産業", "RACDA · 環境を劣化させるおそれのある活動：物質、廃棄物、排出物", "SIALAMB · 環境試験所", "RENMA · リサイクル、使い捨て容器、タイヤ"],
+      f_mntramite:    "申請する手続き（わかればMINECのウェブサイトのコードも）",
       f_yscedrep:     "法定代表者の身分証明書",
       f_ysrifrep:     "法定代表者のRIF",
       ft_c_reside:   "ベネズエラに居住する場合",
@@ -16137,6 +16256,7 @@ window.CIIP_PASOS = {
       f_estadolocal:  "事業所の所在する州",
       p_irbomberos:   "消防署のポータルへ",
       p_irsacs:       "SACSのシステムへ",
+      p_irminec:      "MINECのシステムへ",
       p_guardasede:   "消防署を保存",
       p_sede_ph:      "消防署の名称または所在地",
       p_sede:         "消防署",
@@ -16253,7 +16373,8 @@ window.CIIP_PASOS = {
       c27: ["Creación del usuario en el sistema del RNET", "Carga de los datos de la entidad de trabajo", "Registro de la nómina de trabajadores", "Constancia de registro emitida"],
       c28: ["Solicita la conformidad de uso del inmueble a través del portal de la alcaldía", "Emisión de la conformidad de uso en proceso", "Conformidad de uso emitida"],
       c29: ["Realiza tu solicitud de permiso de bomberos a través del portal", "Indica la sede de bomberos en la cual introdujiste la solicitud", "Solicitud en revisión", "Certificado de bomberos emitido"],
-      c30: ["Revisión de tus recaudos", "Clasificación del nivel de impacto ambiental", "Consignación del expediente técnico", "Evaluación por la autoridad ambiental", "Autorización ambiental otorgada"],
+      /* Franklin Reyes, 19-10-2026, Permisos_MINEC: en el sistema en línea del MINEC, como el SACS. */
+      c30: ["Solicita tu permiso en el sistema en línea del MINEC", "Permiso otorgado"],
       c31: ["Revisión de tus recaudos", "Expediente de la inversión ante el órgano rector", "Verificación del aporte y de su origen", "Evaluación y registro de la inversión", "Certificado de Inversionista emitido"],
       c32: ["Solicitud recibida por el CIIP", "Revisión de tus recaudos", "Solicitud recibida por SAREN", "Autorización para la firma otorgada"],
       c33: ["Revisión de tus recaudos", "Verificado"],
@@ -16314,7 +16435,8 @@ window.CIIP_PASOS = {
       c27: ["User created in the RNET system", "Details of the work entity uploaded", "Payroll registered", "Registration certificate issued"],
       c28: ["Apply for the land-use conformity of the premises on the municipality’s portal", "Land-use conformity being issued", "Land-use conformity issued"],
       c29: ["Apply for the fire department permit on the portal", "Tell us the fire station where you filed the application", "Application under review", "Fire department certificate issued"],
-      c30: ["Checking your documents", "Classification of the environmental impact level", "Submission of the technical file", "Assessment by the environmental authority", "Environmental authorisation granted"],
+      /* Franklin Reyes, 19-10-2026, Permisos_MINEC: en el sistema en línea del MINEC, como el SACS. */
+      c30: ["Apply for your permit on the MINEC online system", "Permit granted"],
       c31: ["Checking your documents", "Investment file submitted to the governing body", "Verification of the contribution and its origin", "Assessment and registration of the investment", "Investor Certificate issued"],
       c32: ["Application received by CIIP", "Review of your documents", "Application received by SAREN", "Signature authorization granted"],
       c33: ["Review of your documents", "Verified"],
@@ -16368,7 +16490,8 @@ window.CIIP_PASOS = {
       c27: ["Criação do utilizador no sistema do RNET", "Carregamento dos dados da entidade de trabalho", "Registo da folha de pagamento", "Certidão de registo emitida"],
       c28: ["Solicite a conformidade de uso do imóvel no portal da alcaldia", "Emissão da conformidade de uso em curso", "Conformidade de uso emitida"],
       c29: ["Faça o seu pedido de licença dos bombeiros no portal", "Indique a sede dos bombeiros onde apresentou o pedido", "Pedido em análise", "Certificado dos bombeiros emitido"],
-      c30: ["Verificação dos seus documentos", "Classificação do nível de impacto ambiental", "Entrega do processo técnico", "Avaliação pela autoridade ambiental", "Autorização ambiental concedida"],
+      /* Franklin Reyes, 19-10-2026, Permisos_MINEC: en el sistema en línea del MINEC, como el SACS. */
+      c30: ["Solicite a sua licença no sistema online do MINEC", "Licença concedida"],
       c31: ["Verificação dos seus documentos", "Processo do investimento junto do órgão regulador", "Verificação do aporte e da sua origem", "Avaliação e registo do investimento", "Certificado de Investidor emitido"],
       c32: ["Solicitação recebida pelo CIIP", "Análise dos seus documentos", "Pedido recebido pelo SAREN", "Autorização para a assinatura concedida"],
       c33: ["Análise dos seus documentos", "Verificado"],
@@ -16420,7 +16543,8 @@ window.CIIP_PASOS = {
       c27: ["Creazione dell'utenza nel sistema RNET", "Caricamento dei dati dell'entità di lavoro", "Registrazione del libro paga", "Certificato di registrazione rilasciato"],
       c28: ["Richiedi la conformità d’uso dell’immobile sul portale del comune", "Rilascio della conformità d’uso in corso", "Conformità d’uso rilasciata"],
       c29: ["Presenta la richiesta di permesso dei vigili del fuoco sul portale", "Indica la sede dei vigili del fuoco in cui hai presentato la richiesta", "Richiesta in esame", "Certificato dei vigili del fuoco rilasciato"],
-      c30: ["Verifica dei tuoi documenti", "Classificazione del livello di impatto ambientale", "Presentazione del fascicolo tecnico", "Valutazione da parte dell'autorità ambientale", "Autorizzazione ambientale rilasciata"],
+      /* Franklin Reyes, 19-10-2026, Permisos_MINEC: en el sistema en línea del MINEC, como el SACS. */
+      c30: ["Richiedi il tuo permesso nel sistema online del MINEC", "Permesso rilasciato"],
       c31: ["Verifica dei tuoi documenti", "Fascicolo dell'investimento all'organo competente", "Verifica del conferimento e della sua origine", "Valutazione e registrazione dell'investimento", "Certificato di Investitore rilasciato"],
       c32: ["Richiesta ricevuta dal CIIP", "Esame dei tuoi documenti", "Richiesta ricevuta dal SAREN", "Autorizzazione alla firma concessa"],
       c33: ["Esame dei tuoi documenti", "Verificato"],
@@ -16472,7 +16596,8 @@ window.CIIP_PASOS = {
       c27: ["在 RNET 系统创建账号", "上传用工单位资料", "登记员工工资名册", "核发登记证明"],
       c28: ["通过市政府门户申请房产用途符合性证明", "用途符合性证明签发中", "用途符合性证明已签发"],
       c29: ["通过门户提交消防许可申请", "填写你提交申请的消防站", "申请审核中", "消防证书已签发"],
-      c30: ["核验您的材料", "确定环境影响等级", "提交技术档案材料", "由环境主管部门评估", "取得环境许可"],
+      /* Franklin Reyes, 19-10-2026, Permisos_MINEC: en el sistema en línea del MINEC, como el SACS. */
+      c30: ["在 MINEC 在线系统申请许可", "许可已获批"],
       c31: ["核验您的材料", "向主管机关提交投资档案", "核验出资及其来源", "评估并登记该项投资", "核发投资者证书"],
       c32: ["CIIP 已收到申请", "审核你的材料", "SAREN 已收到申请", "签名授权已批准"],
       c33: ["审核你的材料", "已核验"],
@@ -16524,7 +16649,8 @@ window.CIIP_PASOS = {
       c27: ["Создание учётной записи в системе RNET", "Загрузка данных трудового субъекта", "Регистрация ведомости работников", "Выдача свидетельства о регистрации"],
       c28: ["Подайте заявку на подтверждение соответствия использования помещения на портале муниципалитета", "Подтверждение соответствия использования оформляется", "Подтверждение соответствия использования выдано"],
       c29: ["Подайте заявку на разрешение пожарной службы на портале", "Укажите пожарное отделение, в которое вы подали заявку", "Заявка на рассмотрении", "Сертификат пожарной службы выдан"],
-      c30: ["Проверка ваших документов", "Определение уровня воздействия на окружающую среду", "Подача технического досье", "Оценка природоохранным органом", "Выдача экологического разрешения"],
+      /* Franklin Reyes, 19-10-2026, Permisos_MINEC: en el sistema en línea del MINEC, como el SACS. */
+      c30: ["Подайте заявку на разрешение в онлайн-системе MINEC", "Разрешение выдано"],
       c31: ["Проверка ваших документов", "Досье об инвестиции в профильный орган", "Проверка вклада и его происхождения", "Оценка и регистрация инвестиции", "Выдача свидетельства инвестора"],
       c32: ["Заявка получена CIIP", "Проверка ваших документов", "Заявка получена SAREN", "Разрешение на подпись выдано"],
       c33: ["Проверка ваших документов", "Проверено"],
@@ -16576,7 +16702,8 @@ window.CIIP_PASOS = {
       c27: ["Utilisateur créé dans le système RNET", "Données de l’entité de travail chargées", "Liste du personnel enregistrée", "Certificat d’inscription délivré"],
       c28: ["Demandez la conformité d’usage du local sur le portail de la mairie", "Délivrance de la conformité d’usage en cours", "Conformité d’usage délivrée"],
       c29: ["Faites votre demande de permis des sapeurs-pompiers sur le portail", "Indiquez la caserne de pompiers où vous avez déposé la demande", "Demande en cours d’examen", "Certificat des sapeurs-pompiers délivré"],
-      c30: ["Vérification de vos documents", "Classement du niveau d’impact environnemental", "Dépôt du dossier technique", "Évaluation par l’autorité environnementale", "Autorisation environnementale accordée"],
+      /* Franklin Reyes, 19-10-2026, Permisos_MINEC: en el sistema en línea del MINEC, como el SACS. */
+      c30: ["Demandez votre permis dans le système en ligne du MINEC", "Permis accordé"],
       c31: ["Vérification de vos documents", "Dossier d’investissement déposé auprès de l’organisme compétent", "Vérification de l’apport et de son origine", "Évaluation et enregistrement de l’investissement", "Certificat d’investisseur délivré"],
       c32: ["Demande reçue par le CIIP", "Examen de vos documents", "Demande reçue par le SAREN", "Autorisation de signature accordée"],
       c33: ["Examen de vos documents", "Vérifié"],
@@ -16628,7 +16755,8 @@ window.CIIP_PASOS = {
       c27: ["RNETシステムでのユーザー作成", "事業体情報のアップロード", "給与台帳の登録", "登録証明書の発行"],
       c28: ["市役所のポータルで物件の用途適合証明を申請", "用途適合証明を発行中", "用途適合証明の発行完了"],
       c29: ["ポータルで消防許可を申請", "申請を提出した消防署を入力", "申請を審査中", "消防証明書の発行完了"],
-      c30: ["書類を確認中", "環境影響レベルの分類", "技術資料の提出", "環境当局による評価", "環境許可の交付"],
+      /* Franklin Reyes, 19-10-2026, Permisos_MINEC: en el sistema en línea del MINEC, como el SACS. */
+      c30: ["MINECのオンラインシステムで許可を申請", "許可交付"],
       c31: ["書類を確認中", "所管機関への投資ファイルの提出", "出資とその出所の確認", "投資の評価と登録", "投資家証明書の発行"],
       c32: ["CIIPが申請を受理", "書類の審査", "SARENが申請を受理", "署名権限の承認"],
       c33: ["書類の審査", "確認済み"],
