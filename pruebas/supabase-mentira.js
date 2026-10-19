@@ -1982,6 +1982,10 @@
         /* El plano de seguridad del permiso de bomberos (29-9-2026), como
            si supabase-bomberos.sql estuviera corrido. */
         {codigo:'plano_seguridad', vence:false},
+        /* El permiso del MINEC que sube el inversionista desde el paso 2 de
+           los permisos ambientales (19-10-2026), como si
+           supabase-permiso-ambiental-sube.sql estuviera corrido. */
+        {codigo:'permiso_ambiental', vence:false},
         /* Los de «Bienes» (2-10-2026), como si supabase-bienes.sql
            estuviera corrido. */
         {codigo:'propiedad_inmueble', vence:false}, {codigo:'identidad_propietario', vence:false},

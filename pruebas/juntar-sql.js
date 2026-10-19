@@ -321,7 +321,13 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    15-10-2026): una solicitud, un papel o una cuenta entera. Redefine tres
    cerrojos de supabase-hilo, supabase-qa-tramites y supabase-autorizaciones,
    y la regla de fuentes de la bitácora: va la última. */
-'supabase-borrado-admin'];
+'supabase-borrado-admin',
+/* El permiso del MINEC lo sube el inversionista desde el paso 2 de los
+   permisos ambientales, y sin él no se confirma (Franklin Reyes,
+   19-10-2026): su tipo de documento, su política y el freno de resolver.
+   No redefine nada de nadie; detrás de supabase-borrado-admin para no
+   mover el número de ninguno. */
+'supabase-permiso-ambiental-sube'];
 
 let mal = 0;
 for (const n of orden) {

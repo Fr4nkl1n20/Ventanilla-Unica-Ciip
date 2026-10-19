@@ -10982,18 +10982,50 @@
        la licencia de arriba. */
     var puestoAmb = false;
     if (cat && !cat.c30){ cat.c30 = {codigo: 'permiso_ambiental', ref_panel: 'c30', ente: 'MINEC', activo: true}; puestoAmb = true; }
-    var dibujoAmb = function(estado, datos){
-      var E = window.CIIP_ESCALERA({estado: estado, datos: datos || {}}, 'permiso_ambiental', 'MINEC');
+    /* Tres pasos desde el mismo 19-10-2026 (Franklin Reyes): «el paso lo
+       cierra cuando el inversionista suba el permiso solicitado» y «el CIIP
+       confirma el permiso y finaliza el trámite». Los papeles, los que se
+       saben (CIIP_PAPELES_SABIDOS), por solicitud. */
+    var PSa = window.CIIP_PAPELES_SABIDOS;
+    var dibujoAmb = function(estado, datos, papeles){
+      var id = 'amb-' + estado + '-' + (papeles ? papeles.length : 'x');
+      if (PSa) PSa.apunta(id, papeles || []);
+      var E = window.CIIP_ESCALERA({id: id, estado: estado, datos: datos || {}}, 'permiso_ambiental', 'MINEC');
       return E.todos.map(function(p){ return p.nombre + ':' + (p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer')); }).join(' → ');
     };
-    igual('ambiental: dos pasos, y sin marcar el 1 en curso', dibujoAmb('enviado'),
-          'Solicita tu permiso en el sistema en línea del MINEC:ahora → Permiso otorgado:porhacer');
+    var marcaAmb = {ambiental_solicitado: '2026-10-19T10:00:00-04:00'};
+    var hoyAmb = new Date().toISOString();
+    var permisoAmb = {tipo: 'permiso_ambiental', estado: 'cargado', creado_en: hoyAmb, nombre_original: 'permiso.pdf'};
+    var P1 = 'Solicita tu permiso en el sistema en línea del MINEC', P2 = 'Sube el permiso que te otorgó el MINEC',
+        P3 = 'Permiso confirmado por el CIIP';
+    igual('ambiental: tres pasos, y sin marcar el 1 en curso', dibujoAmb('enviado'),
+          P1 + ':ahora → ' + P2 + ':porhacer → ' + P3 + ':porhacer');
     igual('ambiental: ante el MINEC sin la marca, el paso 1 sigue en curso', dibujoAmb('ante_el_ente'),
-          'Solicita tu permiso en el sistema en línea del MINEC:ahora → Permiso otorgado:porhacer');
-    igual('ambiental: marcado, toca «Permiso otorgado»', dibujoAmb('enviado', {ambiental_solicitado: '2026-10-19T10:00:00-04:00'}),
-          'Solicita tu permiso en el sistema en línea del MINEC:hecho → Permiso otorgado:ahora');
+          P1 + ':ahora → ' + P2 + ':porhacer → ' + P3 + ':porhacer');
+    igual('ambiental: marcado, toca subir el permiso', dibujoAmb('enviado', marcaAmb, []),
+          P1 + ':hecho → ' + P2 + ':ahora → ' + P3 + ':porhacer');
+    igual('ambiental: ante el MINEC sin el permiso, sigue en el 2', dibujoAmb('ante_el_ente', marcaAmb, []),
+          P1 + ':hecho → ' + P2 + ':ahora → ' + P3 + ':porhacer');
+    igual('ambiental: con el permiso colgado, el 2 hecho y en curso la confirmación del CIIP',
+          dibujoAmb('ante_el_ente', marcaAmb, [permisoAmb]),
+          P1 + ':hecho → ' + P2 + ':hecho → ' + P3 + ':ahora');
+    igual('ambiental: y recibida con el permiso, también', dibujoAmb('enviado', marcaAmb, [permisoAmb]),
+          P1 + ':hecho → ' + P2 + ':hecho → ' + P3 + ':ahora');
+    igual('ambiental: rechazado, el 2 vuelve a estar en curso',
+          dibujoAmb('ante_el_ente', marcaAmb, [{tipo: 'permiso_ambiental', estado: 'rechazado', creado_en: hoyAmb}]),
+          P1 + ':hecho → ' + P2 + ':ahora → ' + P3 + ':porhacer');
+    igual('ambiental: un permiso colgado sin la marca no salta el paso 1', dibujoAmb('enviado', {}, [permisoAmb]),
+          P1 + ':ahora → ' + P2 + ':porhacer → ' + P3 + ':porhacer');
     igual('ambiental: resuelto, todo hecho', dibujoAmb('resuelto'),
-          'Solicita tu permiso en el sistema en línea del MINEC:hecho → Permiso otorgado:hecho');
+          P1 + ':hecho → ' + P2 + ':hecho → ' + P3 + ':hecho');
+    /* Y el botón de resolver dice el último paso, sin subir nada: el
+       permiso ya lo subió el inversionista. */
+    var resAmb = window.CIIP_RESOLVER_DICE ? window.CIIP_RESOLVER_DICE({tipo: 'permiso_ambiental'}) : null;
+    igual('ambiental: resolver dice «Permiso confirmado por el CIIP» y no pide archivo',
+          resAmb ? resAmb.rotulo + ' · ' + (resAmb.pide ? 'pide archivo' : 'sin archivo') : '(sin función)',
+          P3 + ' · sin archivo');
+    if (PSa) ['amb-enviado-x', 'amb-ante_el_ente-x', 'amb-enviado-0', 'amb-ante_el_ente-0', 'amb-ante_el_ente-1',
+              'amb-enviado-1', 'amb-resuelto-x'].forEach(function(id){ PSa.apunta(id, []); });
     if (puestoAmb) delete cat.c30;
 
     /* El enlace del paso 1: el portal de la alcaldía del municipio que se
@@ -11264,7 +11296,12 @@
       'pf-rech': [{id: 'pfr', tipo: 'planilla_firmada', estado: 'rechazado', creado_en: hace,
                    nombre_original: 'planilla-sin-firma.pdf', nota_revision: 'Falta la firma del representante.'}],
       'pf-ante': [{id: 'pfa', tipo: 'planilla_firmada', estado: 'validado', creado_en: hace,
-                   nombre_original: 'planilla-firmada.pdf', archivo: 'u2/planilla_firmada-y-planilla-firmada.pdf'}]
+                   nombre_original: 'planilla-firmada.pdf', archivo: 'u2/planilla_firmada-y-planilla-firmada.pdf'}],
+      /* Y el permiso del MINEC de los permisos ambientales (19-10-2026). */
+      'pm-ya':   [{id: 'pmy', tipo: 'permiso_ambiental', estado: 'cargado', creado_en: hace,
+                   nombre_original: 'permiso-minec.pdf', archivo: 'u2/permiso_ambiental-x-permiso-minec.pdf'}],
+      'pm-rech': [{id: 'pmr', tipo: 'permiso_ambiental', estado: 'rechazado', creado_en: hace,
+                   nombre_original: 'permiso-borroso.pdf', nota_revision: 'No se lee.'}]
     };
     PF_CAJAS = document.createElement('div');
     PF_CAJAS.hidden = true;
@@ -11278,6 +11315,17 @@
     var cAnte = P.casilla({id: 'pf-ante', tipo: 'rif_empresa', estado: 'ante_el_ente', datos: {}, inversionista: 'u2'});
     cAnte.setAttribute('data-prueba', 'pf-ante');
     PF_CAJAS.appendChild(cAnte);
+    /* El permiso del MINEC (Franklin Reyes, 19-10-2026): la misma casilla,
+       con sus textos, y abierta ante el MINEC, que es cuando llega. */
+    if (P.casillaSuya && P.suyos){
+      var marcaPm = {ambiental_solicitado: '2026-10-19T10:00:00-04:00'};
+      ['pm-nuevo', 'pm-ya', 'pm-rech'].forEach(function(id){
+        var c = P.casillaSuya({id: id, tipo: 'permiso_ambiental', estado: 'ante_el_ente', datos: marcaPm, inversionista: 'u2'},
+                              null, P.suyos().permiso_ambiental);
+        c.setAttribute('data-prueba', id);
+        PF_CAJAS.appendChild(c);
+      });
+    }
     /* Aquí se pintaba entera la licencia en revisión, para ver la casilla
        dentro de «Firme la planilla de solicitud de trámite». Se retiró el
        1-10-2026: ese paso ya no existe (Franklin Reyes, Taquilla única
@@ -11326,6 +11374,38 @@
        visto(nota) && nota.textContent.indexOf('Falta la firma del representante.') >= 0 &&
          visto(rech.querySelector('.pe-sube > .pe-subir')),
        visto(nota) ? nota.textContent : '(sin nota)', u.tr_pfirmada_otra + ' Falta la firma del representante.');
+
+    /* EL PERMISO DEL MINEC, EN EL PASO 2 DE LOS PERMISOS AMBIENTALES
+       (Franklin Reyes, 19-10-2026: «el paso lo cierra cuando el
+       inversionista suba el permiso solicitado»). La casilla sale en el 2,
+       y solo con el 1 marcado: antes, el 2 no está en curso. */
+    var P = window.CIIP_PLANILLA_FIRMADA || {};
+    if (!P.suyoDelPaso || !P.suyos){
+      ok('ambiental: la casilla del permiso está a mano', false, 'no está', 'CIIP_PLANILLA_FIRMADA.suyoDelPaso');
+    } else {
+      var marcaP = {ambiental_solicitado: '2026-10-19T10:00:00-04:00'};
+      var dePaso = function(n, datos){ var p = P.suyoDelPaso('c30', n, {datos: datos}); return p ? p.tipo : '(ninguna)'; };
+      igual('ambiental: la casilla del permiso sale en el paso 2 con el 1 marcado', dePaso(2, marcaP), 'permiso_ambiental');
+      igual('ambiental: y sin la marca del 1, no', dePaso(2, {}), '(ninguna)');
+      igual('ambiental: ni en el paso 1 ni en el 3', dePaso(1, marcaP) + ' · ' + dePaso(3, marcaP), '(ninguna) · (ninguna)');
+      igual('ambiental: y la planilla firmada sigue sin pedirse en la c30', P.pide('c30', 2) ? 'la pide' : 'no', 'no');
+      var pmN = caja('pm-nuevo');
+      var pmE = pmN && pmN.querySelector('.pe-sube > .pe-subir');
+      igual('ambiental: ante el MINEC ofrece «Subir el permiso del MINEC», con su pista',
+            visto(pmE) ? pmE.textContent + ' · ' + (pmN.getAttribute('data-doc') || '') + ' · ' +
+              (visto(pmN.querySelector('.tr-nota:not(.mal)')) ? pmN.querySelector('.tr-nota:not(.mal)').textContent : '(sin pista)')
+              : '(sin enlace)',
+            u.tr_pminec_subir + ' · permiso_ambiental · ' + u.tr_pminec_pista);
+      var pmY = caja('pm-ya');
+      var pmYs = pmY && pmY.querySelector('.pe-subido');
+      igual('ambiental: ya subido, «Permiso enviado» y «Cambiar»', visto(pmYs) ? pmYs.textContent : '(escondido)',
+            u.tr_pminec_ok + u.pa_cambiar);
+      var pmR = caja('pm-rech');
+      var pmRn = pmR && pmR.querySelector('.tr-nota.mal');
+      igual('ambiental: rechazado, dice que suba otro y por qué, y vuelve a ofrecer subirlo',
+            (visto(pmRn) ? pmRn.textContent : '(sin nota)') + (visto(pmR && pmR.querySelector('.pe-sube > .pe-subir')) ? ' · subir' : ''),
+            u.tr_pminec_otra + ' No se lee. · subir');
+    }
 
     /* Aquí se miraba que la licencia ofreciera la casilla en «Firme la
        planilla de solicitud de trámite». Retirada el 1-10-2026: ese paso ya
@@ -11718,6 +11798,13 @@
     window.__IMPORTE_DOCS['av-l1'] = [];
     window.__IMPORTE_DOCS['av-c22b'] = [{id: 'av-pa', tipo: 'pago_aranceles', estado: 'validado',
                                          nombre_original: 'aranceles.pdf', archivo: 'u2/aranceles.pdf'}];
+    /* Y los permisos ambientales (Franklin Reyes, 19-10-2026): sin el
+       permiso del MINEC en av-am1, con él en av-am2, rechazado en av-am3. */
+    window.__IMPORTE_DOCS['av-am1'] = [];
+    window.__IMPORTE_DOCS['av-am2'] = [{id: 'av-pm', tipo: 'permiso_ambiental', estado: 'cargado',
+                                        nombre_original: 'permiso-minec.pdf', archivo: 'u2/permiso-minec.pdf'}];
+    window.__IMPORTE_DOCS['av-am3'] = [{id: 'av-pmr', tipo: 'permiso_ambiental', estado: 'rechazado',
+                                        nombre_original: 'permiso-borroso.pdf', archivo: 'u2/permiso-borroso.pdf'}];
     setTimeout(sigue, 300);
   }
   /* El botón de resolver del pie y su pista. */
@@ -11793,6 +11880,25 @@
     AV_LADOS.c22 = L(avTr('av-c22', 'protocolizacion_acta', 'ante_el_ente'));
     AV_LADOS.c22b = L(avTr('av-c22b', 'protocolizacion_acta', 'ante_el_ente'));
     AV_LADOS.l1 = L(avTr('av-l1', 'libros_contables', 'ante_el_ente', conPub));
+    /* Los permisos ambientales (Franklin Reyes, 19-10-2026): «el CIIP
+       confirma el permiso y finaliza el trámite». El botón dice su último
+       paso y no pide subir nada; sin el permiso del inversionista, se apaga
+       al contestar la base (en arrVisorReserva). Con su ficha en el
+       catálogo mientras dura, como la de abajo. */
+    var catAm = window.CIIP_TIPOS_POR_REF || {};
+    var AV_AMB_PUESTA = false;
+    if (!catAm.c30){ catAm.c30 = {codigo: 'permiso_ambiental', ref_panel: 'c30', ente: 'MINEC', activo: true}; AV_AMB_PUESTA = true; }
+    var marcaAm = {ambiental_solicitado: '2026-10-19T10:00:00-04:00'};
+    AV_LADOS.am1 = L(avTr('av-am1', 'permiso_ambiental', 'ante_el_ente', marcaAm));
+    AV_LADOS.am2 = L(avTr('av-am2', 'permiso_ambiental', 'ante_el_ente', marcaAm));
+    AV_LADOS.am3 = L(avTr('av-am3', 'permiso_ambiental', 'ante_el_ente', marcaAm));
+    var p3Am = (((window.CIIP_PASOS || {}).pasos || {})[curLang] || window.CIIP_PASOS.pasos.es).c30[2];
+    var bAm = avRes(AV_LADOS.am2);
+    igual('resolver: los permisos ambientales dicen «Permiso confirmado por el CIIP» y no piden archivo',
+          (bAm ? bAm.textContent : '(sin botón)') + ' · ' +
+            (AV_LADOS.am2.querySelector('input[type=file]#hoy-doc-av-am2') ? 'pide archivo' : 'sin archivo'),
+          p3Am + ' · sin archivo');
+    if (AV_AMB_PUESTA) delete catAm.c30;
 
     /* 3. «RECAUDOS REVISADOS», SOLO CON RECAUDOS. */
     var est = ((window.CIIP_PASOS || {}).estados || {})[curLang] || [];
@@ -11874,9 +11980,16 @@
     igual('resolver: y con él, encendido', avDice(avRes(AV_LADOS.c22b)), 'encendido');
     igual('resolver: el sellado de libros en su último paso sin el comprobante del PUB, apagado',
           avDice(avRes(AV_LADOS.l1)), 'apagado · ' + u.co_faltalibros);
+    igual('resolver: los permisos ambientales sin el permiso del MINEC, apagado y lo dice',
+          avDice(avRes(AV_LADOS.am1)) + ' | ' + avPista(AV_LADOS.am1),
+          'apagado · ' + u.co_faltapermisominec + ' | ' + u.co_faltapermisominec);
+    igual('resolver: con el permiso rechazado, también apagado',
+          avDice(avRes(AV_LADOS.am3)), 'apagado · ' + u.co_faltapermisominec);
+    igual('resolver: y con el permiso subido, encendido', avDice(avRes(AV_LADOS.am2)), 'encendido');
+
     ['av-p1', 'av-y1', 'av-y2'].forEach(function(id){ delete window.__ENTES[id + '|banavih']; delete window.__ENTES[id + '|inces']; });
     AV_ENTES.forEach(function(e){ delete window.__ENTES['av-p2|' + e]; });
-    ['av-c22', 'av-c22b', 'av-l1'].forEach(function(id){ delete window.__IMPORTE_DOCS[id]; });
+    ['av-c22', 'av-c22b', 'av-l1', 'av-am1', 'av-am2', 'av-am3'].forEach(function(id){ delete window.__IMPORTE_DOCS[id]; });
     AV_LADOS = {};
     sigue();
   }

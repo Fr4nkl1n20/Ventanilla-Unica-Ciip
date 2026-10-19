@@ -5272,6 +5272,199 @@ select arnes.comprueba('borrado: y el vaciado queda en la bitacora',
              and sobre = 'vacia@prueba.local'));
 
 
+-- ── EL PERMISO DEL MINEC LO SUBE EL INVERSIONISTA (c30) ────────────────
+-- Franklin Reyes, 19-10-2026: «el paso lo cierra cuando el inversionista
+-- suba el permiso solicitado» y «el CIIP confirma el permiso y finaliza el
+-- trámite» (supabase-permiso-ambiental-sube.sql). PA cuelga su permiso en
+-- su solicitud en marcha y con «Ya lo solicité» marcado; no en borrador,
+-- ni sin la marca, ni en la de PB. Y el gestor no la resuelve sin él.
+-- Una cuenta por solicitud en marcha: la base no deja dos vivas del mismo
+-- trámite a la misma persona (tramites_una_viva). PC tiene la que se queda
+-- sin permiso, PD la del permiso rechazado y PE la que no marcó el paso 1.
+reset role;
+select arnes.nadie();
+do $pa$
+declare
+  pa uuid;
+  pb uuid;
+  pc uuid;
+  pd uuid;
+  pe uuid;
+  marca jsonb := '{"ambiental_solicitado":"2026-10-19T10:00:00-04:00"}';
+  t uuid;
+begin
+  insert into auth.users (email, raw_user_meta_data)
+  values ('pa@prueba.local', '{"nombre_completo":"Paula Ambiental","pais":"Chile"}')
+  returning id into pa;
+  insert into auth.users (email, raw_user_meta_data)
+  values ('pb@prueba.local', '{"nombre_completo":"Pedro Bosque","pais":"Peru"}')
+  returning id into pb;
+  insert into auth.users (email, raw_user_meta_data)
+  values ('pc@prueba.local', '{"nombre_completo":"Carla Cauce","pais":"Chile"}')
+  returning id into pc;
+  insert into auth.users (email, raw_user_meta_data)
+  values ('pd@prueba.local', '{"nombre_completo":"Diego Delta","pais":"Chile"}')
+  returning id into pd;
+  insert into auth.users (email, raw_user_meta_data)
+  values ('pe@prueba.local', '{"nombre_completo":"Elena Estero","pais":"Chile"}')
+  returning id into pe;
+  insert into arnes.gente values ('PA', pa), ('PB', pb), ('PC', pc), ('PD', pd), ('PE', pe);
+
+  insert into public.tramites (inversionista, tipo, estado, datos)
+  values (pa, 'permiso_ambiental', 'ante_el_ente', marca) returning id into t;
+  insert into arnes.escenario values ('pa_ante', t);
+  insert into public.tramites (inversionista, tipo, estado, datos)
+  values (pc, 'permiso_ambiental', 'ante_el_ente', marca) returning id into t;
+  insert into arnes.escenario values ('pa_sinpermiso', t);
+  insert into public.tramites (inversionista, tipo, estado, datos)
+  values (pd, 'permiso_ambiental', 'ante_el_ente', marca) returning id into t;
+  insert into arnes.escenario values ('pa_rechazado', t);
+  insert into public.tramites (inversionista, tipo, estado, datos)
+  values (pa, 'permiso_ambiental', 'borrador', marca) returning id into t;
+  insert into arnes.escenario values ('pa_borrador', t);
+  insert into public.tramites (inversionista, tipo, estado, datos)
+  values (pe, 'permiso_ambiental', 'enviado', '{}') returning id into t;
+  insert into arnes.escenario values ('pa_sinmarca', t);
+  insert into public.tramites (inversionista, tipo, estado, datos)
+  values (pb, 'permiso_ambiental', 'ante_el_ente', marca) returning id into t;
+  insert into arnes.escenario values ('pa_ajeno', t);
+exception when others then
+  perform arnes.comprueba('ambiental: el escenario se monta', false, sqlerrm);
+end
+$pa$;
+
+select arnes.comprueba('ambiental: el permiso del MINEC es un tipo de documento que no vence',
+  exists (select 1 from public.tipos_documento
+           where codigo = 'permiso_ambiental' and nombre = 'Permiso ambiental del MINEC' and not vence));
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'PA'));
+do $pa$
+declare
+  d uuid;
+begin
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original, estado)
+  values (auth.uid(), 'permiso_ambiental', auth.uid() || '/permiso-minec.pdf', 'permiso-minec.pdf', 'cargado')
+  returning id into d;
+  insert into arnes.escenario values ('pa_doc', d);
+exception when others then
+  perform arnes.comprueba('ambiental: el inversionista sube su permiso a la boveda', false, sqlerrm);
+end
+$pa$;
+
+do $pa$
+begin
+  insert into public.tramite_documentos (tramite, documento)
+  values ((select id from arnes.escenario where clave = 'pa_ante'),
+          (select id from arnes.escenario where clave = 'pa_doc'));
+  perform arnes.comprueba('ambiental: el inversionista cuelga su permiso en su solicitud ante el MINEC', true);
+exception when others then
+  perform arnes.comprueba('ambiental: el inversionista cuelga su permiso en su solicitud ante el MINEC', false, sqlerrm);
+end
+$pa$;
+
+
+do $pa$
+begin
+  insert into public.tramite_documentos (tramite, documento)
+  values ((select id from arnes.escenario where clave = 'pa_borrador'),
+          (select id from arnes.escenario where clave = 'pa_doc'));
+  perform arnes.comprueba('ambiental: en borrador no se cuelga el permiso', false, 'LO COLGO');
+exception when insufficient_privilege then
+  perform arnes.comprueba('ambiental: en borrador no se cuelga el permiso', true);
+end
+$pa$;
+
+
+do $pa$
+begin
+  insert into public.tramite_documentos (tramite, documento)
+  values ((select id from arnes.escenario where clave = 'pa_ajeno'),
+          (select id from arnes.escenario where clave = 'pa_doc'));
+  perform arnes.comprueba('ambiental: en la solicitud de otro no se cuelga el permiso', false, 'LO COLGO');
+exception when insufficient_privilege then
+  perform arnes.comprueba('ambiental: en la solicitud de otro no se cuelga el permiso', true);
+end
+$pa$;
+
+-- PE, en la suya sin «Ya lo solicité»: el paso 2 todavía no toca.
+select arnes.soy((select id from arnes.gente where papel = 'PE'));
+do $pa$
+declare
+  d uuid;
+begin
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original, estado)
+  values (auth.uid(), 'permiso_ambiental', auth.uid() || '/permiso-pronto.pdf', 'permiso-pronto.pdf', 'cargado')
+  returning id into d;
+  insert into public.tramite_documentos (tramite, documento)
+  values ((select id from arnes.escenario where clave = 'pa_sinmarca'), d);
+  perform arnes.comprueba('ambiental: sin «Ya lo solicité» no se cuelga el permiso', false, 'LO COLGO');
+exception when insufficient_privilege then
+  perform arnes.comprueba('ambiental: sin «Ya lo solicité» no se cuelga el permiso', true);
+end
+$pa$;
+
+-- PD cuelga uno que no se lee.
+select arnes.soy((select id from arnes.gente where papel = 'PD'));
+do $pa$
+declare
+  d uuid;
+begin
+  insert into public.documentos (inversionista, tipo, archivo, nombre_original, estado)
+  values (auth.uid(), 'permiso_ambiental', auth.uid() || '/permiso-borroso.pdf', 'permiso-borroso.pdf', 'cargado')
+  returning id into d;
+  insert into arnes.escenario values ('pa_doc_mal', d);
+  insert into public.tramite_documentos (tramite, documento)
+  values ((select id from arnes.escenario where clave = 'pa_rechazado'), d);
+exception when others then
+  perform arnes.comprueba('ambiental: el permiso que luego se rechaza tambien se cuelga', false, sqlerrm);
+end
+$pa$;
+
+-- El equipo rechaza el borroso en «Documentos por revisar». Con el rol
+-- quitado: lo que se prueba es el freno, no quién revisa.
+reset role;
+select arnes.nadie();
+update public.documentos set estado = 'rechazado', nota_revision = 'No se lee.'
+ where id = (select id from arnes.escenario where clave = 'pa_doc_mal');
+
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+do $pa$
+declare t uuid := (select id from arnes.escenario where clave = 'pa_sinpermiso');
+begin
+  update public.tramites set estado = 'resuelto' where id = t;
+  perform arnes.comprueba('ambiental: sin el permiso del MINEC el gestor no lo confirma', false,
+    (select estado from public.tramites where id = t));
+exception when check_violation then
+  perform arnes.comprueba('ambiental: sin el permiso del MINEC el gestor no lo confirma',
+    sqlerrm like '%permiso del MINEC%', sqlerrm);
+end
+$pa$;
+do $pa$
+declare t uuid := (select id from arnes.escenario where clave = 'pa_rechazado');
+begin
+  update public.tramites set estado = 'resuelto' where id = t;
+  perform arnes.comprueba('ambiental: ni con el permiso rechazado', false,
+    (select estado from public.tramites where id = t));
+exception when check_violation then
+  perform arnes.comprueba('ambiental: ni con el permiso rechazado', true);
+end
+$pa$;
+do $pa$
+declare t uuid := (select id from arnes.escenario where clave = 'pa_ante');
+begin
+  update public.tramites set estado = 'resuelto' where id = t;
+  perform arnes.comprueba('ambiental: con el permiso subido, el CIIP lo confirma',
+    (select estado = 'resuelto' from public.tramites where id = t),
+    (select estado from public.tramites where id = t));
+exception when others then
+  perform arnes.comprueba('ambiental: con el permiso subido, el CIIP lo confirma', false, sqlerrm);
+end
+$pa$;
+reset role;
+select arnes.nadie();
+
 \o
 \pset tuples_only on
 \pset format unaligned

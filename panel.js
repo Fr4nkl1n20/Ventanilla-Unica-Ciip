@@ -11926,57 +11926,106 @@ applyLang(idiomaParaMi());
     return !!(reg[ref] && reg[ref][n]);
   }
 
+  /* ── Y OTROS PAPELES QUE EL INVERSIONISTA SUBE DESDE SU PASO ──
+     Franklin Reyes, 19-10-2026, en los permisos ambientales (c30): «el
+     gestor estaría pendiente del trámite pero él no puede cerrar el caso,
+     porque no le llegará el documento a él», y «el paso lo cierra cuando
+     el inversionista suba el permiso solicitado». Es el mismo gesto que la
+     planilla firmada -un papel que llega del inversionista desde un paso de
+     su escalera, con la solicitud en marcha, y que el equipo ve donde ya
+     mira los papeles-, así que va por la misma casilla y no por una copia.
+
+     Lo que cambia de un papel a otro es esto: su tipo en la bóveda, sus
+     cuatro textos (subir, pista, enviado y rechazado), en qué estados de la
+     solicitud ya no se sube, el SQL que deja colgarlo, y -si lo hay- el paso
+     marcado sin el cual todavía no toca (`si`, una llave de
+     PASOS_QUE_MARCAS_TU). La planilla firmada es el primero, con lo de
+     siempre: cerrada ante el ente, que es cuando ya se presentó. El permiso
+     del MINEC, al revés: ante el MINEC es justo cuando llega. */
+  var PAPEL_PLANILLA_FIRMADA = {
+    tipo: TIPO_PLANILLA_FIRMADA, id: 'tr-firmada-', dice: 'planilla firmada',
+    subir: 'tr_pfirmada_subir', pista: 'tr_pfirmada_pista', ok: 'tr_pfirmada_ok', otra: 'tr_pfirmada_otra',
+    cerrada: ['resuelto', 'cancelado', 'borrador', 'ante_el_ente'], sql: 'supabase-planilla-firmada.sql'
+  };
+  var PAPELES_SUYOS = {
+    /* El permiso que otorgó el MINEC (c30). Devuelta no: «volvió al
+       principio», y la base solo lo deja colgar en recibida, en revisión o
+       ante el ente (supabase-permiso-ambiental-sube.sql). */
+    permiso_ambiental: {
+      tipo: 'permiso_ambiental', id: 'tr-pminec-', dice: 'permiso del MINEC', si: 'ambiental_solicitado',
+      subir: 'tr_pminec_subir', pista: 'tr_pminec_pista', ok: 'tr_pminec_ok', otra: 'tr_pminec_otra',
+      cerrada: ['resuelto', 'cancelado', 'borrador', 'devuelto'], sql: 'supabase-permiso-ambiental-sube.sql'
+    }
+  };
+  /* El papel que se sube en el paso n del trámite ref, para ESTA solicitud,
+     o null. Con `si`, solo si ese paso ya está marcado: el 2 de los
+     permisos ambientales no está en curso hasta que se marca el 1. */
+  function papelSuyoDelPaso(ref, n, tr){
+    var k = ((PAPEL_SUYO_DEL_PASO || {})[ref] || {})[n];
+    var p = k && PAPELES_SUYOS[k];
+    if (!p) return null;
+    if (p.si && !((tr && tr.datos) || {})[p.si]) return null;
+    return p;
+  }
+
   /* La más reciente de las colgadas. Una rechazada cuenta -es la que dice
      que hay que mandar otra-, pero no tapa a una posterior. */
-  function laPlanillaFirmada(filas){
+  function elPapelMasNuevo(filas, tipo){
     var ult = null;
     (filas || []).forEach(function(f){
       var d = f && f.documentos;
-      if (!d || d.tipo !== TIPO_PLANILLA_FIRMADA) return;
+      if (!d || d.tipo !== tipo) return;
       if (!d.id && f.documento) d.id = f.documento;
       if (!ult || (new Date(d.creado_en).getTime() || 0) > (new Date(ult.creado_en).getTime() || 0)) ult = d;
     });
     return ult;
   }
+  function laPlanillaFirmada(filas){ return elPapelMasNuevo(filas, TIPO_PLANILLA_FIRMADA); }
 
   /* alSubir: lo que se hace cuando la base ya la tiene. En las visas la
      base apunta el paso al colgarla, y la escalera se vuelve a pedir para
      avanzar con lo que la base dice (30-9-2026). */
   function casillaDeLaPlanillaFirmada(tr, alSubir){
+    return casillaDelPapelSuyo(tr, alSubir, PAPEL_PLANILLA_FIRMADA);
+  }
+  function casillaDelPapelSuyo(tr, alSubir, papel){
     var u = T();
     var esEquipo = !!(window.CIIP_ES_EQUIPO && window.CIIP_ES_EQUIPO());
     /* Y cerrada ante el ente (Franklin Reyes, 7-10-2026, en el RIF de la
        empresa): no se presenta sin la firmada (faltaLaFirmada), así que ante
        el SENIAT la planilla ya está dentro y su paso, en verde. «Cambiar»
-       ahí ofrecía mandar otra que ya no iba a ninguna parte. */
-    var abierta = !esEquipo && ['resuelto', 'cancelado', 'borrador', 'ante_el_ente'].indexOf(tr.estado) < 0;
+       ahí ofrecía mandar otra que ya no iba a ninguna parte. Cada papel
+       dice los suyos (papel.cerrada). */
+    var abierta = !esEquipo && papel.cerrada.indexOf(tr.estado) < 0;
+    /* tr-firmada es la forma de la casilla en la escalera, la misma para
+       todos; qué papel es lo dice data-doc. */
     var caja = el('div', 'pe-sube tr-firmada');
-    caja.setAttribute('data-doc', TIPO_PLANILLA_FIRMADA);
+    caja.setAttribute('data-doc', papel.tipo);
     /* Escondida hasta saber qué hay: si no, el enlace sale y medio segundo
        después se cambia por «Planilla enviada», y parece que algo falló. */
     caja.hidden = true;
 
     var arch = document.createElement('input');
     arch.type = 'file';
-    arch.id = 'tr-firmada-' + tr.id;
+    arch.id = papel.id + tr.id;
     arch.accept = '.pdf,.jpg,.jpeg,.png';
     arch.hidden = true;
-    arch.setAttribute('aria-label', u.tr_pfirmada_subir || '');
+    arch.setAttribute('aria-label', u[papel.subir] || '');
 
-    var pista = el('div', 'tr-nota', u.tr_pfirmada_pista || '');
+    var pista = el('div', 'tr-nota', u[papel.pista] || '');
     var rechazo = el('div', 'tr-nota mal', '');
     rechazo.hidden = true;
 
     var subeEnl = el('button', 'pe-subir');
     subeEnl.type = 'button';
     subeEnl.innerHTML = ICO_SUBE_PLANILLA;
-    subeEnl.appendChild(el('span', null, u.tr_pfirmada_subir || ''));
+    subeEnl.appendChild(el('span', null, u[papel.subir] || ''));
     subeEnl.addEventListener('click', function(){ arch.click(); });
 
     var subeYa = el('div', 'pe-subido');
     subeYa.hidden = true;
     subeYa.innerHTML = ICO_VISTO_PLANILLA;
-    var subeNom = el('span', 'pe-subido-n', u.tr_pfirmada_ok || '');
+    var subeNom = el('span', 'pe-subido-n', u[papel.ok] || '');
     subeYa.appendChild(subeNom);
     /* «Cambiar» para quien la mandó; «Abrir» para el equipo. */
     var otra = el('button', 'pe-subir pe-cambia', (esEquipo ? u.co_abrir : u.pa_cambiar) || '');
@@ -12009,11 +12058,11 @@ applyLang(idiomaParaMi());
       /* La pista o el porqué del rechazo, no los dos. */
       pista.hidden = vale || !rechazo.hidden;
       rechazo.textContent = rechazo.hidden ? ''
-        : (u.tr_pfirmada_otra || '') + (d.nota_revision ? ' ' + d.nota_revision : '');
+        : (u[papel.otra] || '') + (d.nota_revision ? ' ' + d.nota_revision : '');
     }
     otra.addEventListener('click', function(){
       if (esEquipo){
-        if (puesta && puesta.archivo) abreFirmado(puesta.archivo, otra, 'planilla firmada');
+        if (puesta && puesta.archivo) abreFirmado(puesta.archivo, otra, papel.dice);
         return;
       }
       arch.click();
@@ -12027,26 +12076,26 @@ applyLang(idiomaParaMi());
       var docId = null;
       subeEnl.disabled = otra.disabled = arch.disabled = true;
       msg.textContent = u.enviando || '';
-      sube(TIPO_PLANILLA_FIRMADA, f)
+      sube(papel.tipo, f)
         .then(function(id){
           docId = id;
           return sb.from('tramite_documentos').insert({tramite: tr.id, documento: id}).select();
         })
         .then(function(r){
           if (r && r.error) throw r.error;
-          if (!(r && r.data && r.data.length)) throw new Error('sin fila: falta supabase-planilla-firmada.sql');
+          if (!(r && r.data && r.data.length)) throw new Error('sin fila: falta ' + papel.sql);
           PAPELES_DE[tr.id] = null;
           msg.textContent = '';
           /* La que se cambió se queda colgada: un papel de una solicitud
              en marcha no se borra (QA-16, supabase-qa-tramites.sql). Aquí
              manda la más reciente, y el equipo ve las dos. */
-          pon({id: docId, tipo: TIPO_PLANILLA_FIRMADA, nombre_original: f.name, estado: 'cargado',
+          pon({id: docId, tipo: papel.tipo, nombre_original: f.name, estado: 'cargado',
                creado_en: new Date().toISOString()});
-          apuntaUnPapel(tr.id, {tipo: TIPO_PLANILLA_FIRMADA, nombre_original: f.name});
+          apuntaUnPapel(tr.id, {tipo: papel.tipo, nombre_original: f.name});
           if (alSubir) alSubir();
         })
         .catch(function(e){
-          console.warn('[CIIP] planilla firmada:', e && (e.message || e));
+          console.warn('[CIIP] ' + papel.dice + ':', e && (e.message || e));
           if (docId){
             var suelta = docId;
             Promise.resolve().then(function(){
@@ -12065,9 +12114,9 @@ applyLang(idiomaParaMi());
       return sb.from('tramite_documentos').select('documento, documentos(*)').eq('tramite', tr.id);
     }).then(function(r){
       if (r && r.error) throw r.error;
-      pon(laPlanillaFirmada(r && r.data));
+      pon(elPapelMasNuevo(r && r.data, papel.tipo));
     }).catch(function(e){
-      console.warn('[CIIP] planilla firmada, lo que hay:', e && (e.message || e));
+      console.warn('[CIIP] ' + papel.dice + ', lo que hay:', e && (e.message || e));
       pon(null);
     });
     return caja;
@@ -12088,7 +12137,10 @@ applyLang(idiomaParaMi());
     registro: function(){ return PLANILLA_FIRMADA_DEL_PASO; },
     casilla: casillaDeLaPlanillaFirmada, pide: pideLaPlanillaFirmada,
     delCiip: filaDeLaPlanillaDelCiip,
-    pasoDelCiip: function(){ return PLANILLA_DEL_CIIP_DEL_PASO; }
+    pasoDelCiip: function(){ return PLANILLA_DEL_CIIP_DEL_PASO; },
+    /* Y los demás papeles que se suben desde su paso (19-10-2026). */
+    suyoDelPaso: papelSuyoDelPaso, casillaSuya: casillaDelPapelSuyo,
+    suyos: function(){ return PAPELES_SUYOS; }
   };
 
   /* Para las pruebas: qué pasos le salen a un trámite sin tener que
@@ -12561,6 +12613,13 @@ applyLang(idiomaParaMi());
             /* Subida, la ficha se repinta: la firmada cierra su paso y deja
                en curso el siguiente (PASOS_CON_PAPEL, 7-10-2026). */
             if (pideLaPlanillaFirmada(refTr, nPaso)) txt.appendChild(casillaDeLaPlanillaFirmada(tr, repintaFicha));
+            /* Y los demás papeles que se suben desde su paso, por la misma
+               casilla: el permiso que otorgó el MINEC, en el 2 de los
+               permisos ambientales y solo con el 1 marcado (Franklin Reyes,
+               19-10-2026). Subido, el paso queda hecho y la confirmación
+               del CIIP, en curso (PASOS_CON_PAPEL). */
+            var suyoP = papelSuyoDelPaso(refTr, nPaso, tr);
+            if (suyoP) txt.appendChild(casillaDelPapelSuyo(tr, repintaFicha, suyoP));
             /* El importe del día, en el paso que su trámite diga
                (IMPORTE_DEL_DIA). El equipo lo sube desde su cola, y aquí no
                se le pone nada, igual que con los demás comprobantes. */
@@ -14779,8 +14838,11 @@ applyLang(idiomaParaMi());
   var AV_PARA_PAGAR = ['planilla_reserva_nombre', 'planilla_aranceles', 'planilla_publicacion',
                        'planilla_locti', 'importe_dia'];
   var AV_COMPROBANTES = ['reserva_nombre', 'pago_aranceles', 'pago_publicacion', 'pago_locti',
-                         'pago_importe_dia', 'planilla_firmada'];
-  var AV_DICE = {planilla_firmada: 'av_planilla_firmada'};
+                         'pago_importe_dia', 'planilla_firmada', 'permiso_ambiental'];
+  /* Y el permiso del MINEC que sube el inversionista en los permisos
+     ambientales (Franklin Reyes, 19-10-2026: el gestor «tiene que estar
+     informado en el proceso»): es lo que espera para confirmarlo. */
+  var AV_DICE = {planilla_firmada: 'av_planilla_firmada', permiso_ambiental: 'av_permiso_minec'};
 
   function sumaPapelesDePago(refDe, loPedi, mios){
     return avPide('papeles del pago', function(){
@@ -18709,8 +18771,12 @@ applyLang(idiomaParaMi());
   function pideEmitido(t){
     /* La licencia (c10) sí lo pide: la licencia de actividades económicas
        es su documento emitido, y llega al resolver como el de cualquiera. */
+    /* Ni los permisos ambientales (Franklin Reyes, 19-10-2026): el permiso
+       lo otorga el MINEC al inversionista y lo sube él en su paso 2 -al
+       gestor «no le llegará el documento»-; el CIIP lo confirma y nada más.
+       Lo que frena resolver sin él es comprobanteParaResolver. */
     return !t || (t.tipo !== 'constitucion' && !conEntes(t) && !esElPoder(t) &&
-                  !esAutorizacion(t) &&
+                  !esAutorizacion(t) && t.tipo !== 'permiso_ambiental' &&
                   !(ESCALERA_POR_ETAPAS && ESCALERA_POR_ETAPAS[t.tipo] &&
                     ESCALERA_POR_ETAPAS[t.tipo].sinEmitido));
   }
@@ -18780,6 +18846,12 @@ applyLang(idiomaParaMi());
     if (ultimo) return ultimo;
     return pideEmitido(t) ? u.co_h_resolver : u.co_h_resolver_c;
   }
+  /* Para las pruebas: lo que dice resolver y si pide subir lo emitido
+     (los permisos ambientales, 19-10-2026: «Permiso confirmado por el
+     CIIP», sin archivo). */
+  window.CIIP_RESOLVER_DICE = function(t){
+    return {rotulo: rotuloResolver(t, T()), pide: pideEmitido(t)};
+  };
 
   /* QUÉ documento para pagar deja el equipo, y en qué trámite. Son tres, el
      mismo gesto en tres pisos (Franklin Reyes, 17 y 20-9-2026): la reserva
@@ -19181,6 +19253,8 @@ applyLang(idiomaParaMi());
         var dice =
           (/reserva del nombre/.test(msg) && T().co_faltareserva) ||
           (/comprobante del pago/i.test(msg) && pide && T()[pide.aviso]) ||
+          /* Y el freno de los permisos ambientales (19-10-2026). */
+          (/permiso del MINEC/i.test(msg) && pide && T()[pide.aviso]) ||
           /* La misma regla que mira el panel antes de resolver una
              parafiscal, dicha ahora también por la base (QA-18). */
           (/inscripciones sin terminar/i.test(msg) && T().co_faltanentes) ||
@@ -27747,11 +27821,29 @@ applyLang(idiomaParaMi());
     var d = laPlanillaFirmada((papelesSabidos(tr) || []).map(function(x){ return {documentos: x}; }));
     return !!d && d.estado !== 'rechazado';
   }
+  /* Y el permiso del MINEC (Franklin Reyes, 19-10-2026): el más reciente
+     de los colgados, como en la casilla que lo sube. Rechazado, el paso
+     vuelve a estar en curso y la casilla dice que suba otro. */
+  function permisoMinecVale(tr){
+    var d = elPapelMasNuevo((papelesSabidos(tr) || []).map(function(x){ return {documentos: x}; }),
+                            PAPELES_SUYOS.permiso_ambiental.tipo);
+    return !!d && d.estado !== 'rechazado';
+  }
+  function ambientalSolicitado(tr){ return !!((tr && tr.datos) || {}).ambiental_solicitado; }
   var PASOS_CON_PAPEL = {
     c17: {2: {cierra: importeCerrado, topa: true, tambienDevuelta: true},
           3: {cierra: importePagado,  topa: true, tambienDevuelta: true}},
     c3:  {3: {cierra: firmadaVale}},
-    c6:  {3: {cierra: firmadaVale}}
+    c6:  {3: {cierra: firmadaVale}},
+    /* Los permisos ambientales (c30), Franklin Reyes, 19-10-2026: «el paso
+       lo cierra cuando el inversionista suba el permiso solicitado». Los dos
+       pasos los mueve él y ninguno el estado: el 1 su «Ya lo solicité» (que
+       ya topa en PASOS_QUE_MARCAS_TU, y aquí se repite para que un permiso
+       colgado no lo salte) y el 2 el permiso del MINEC. Con los dos, la
+       confirmación del CIIP queda en curso; topan, así que ante el MINEC sin
+       el permiso la escalera sigue en el 2. */
+    c30: {1: {cierra: ambientalSolicitado, topa: true},
+          2: {cierra: permisoMinecVale,    topa: true}}
   };
 
   var PASOS_SEGUN_ESTADO = {
@@ -27870,7 +27962,14 @@ applyLang(idiomaParaMi());
        son dos, como el RTN: «Solicita tu permiso en el sistema en línea del
        MINEC» lo cierra su marca y no un estado, y el permiso otorgado, al
        resolver. */
-    c30: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    /* Y el mismo día, tres (Franklin Reyes, 19-10-2026): el 2, «Sube el
+       permiso que te otorgó el MINEC», lo cierra el permiso colgado
+       (PASOS_CON_PAPEL), y el 3, «Permiso confirmado por el CIIP», el
+       gestor al resolver. Ningún estado cierra nada: los dos primeros los
+       mueve el inversionista, con su marca y con su papel, como los dos de
+       los bomberos (c29). Presentada ante el MINEC sigue en el 2 hasta que
+       llega el permiso. */
+    c30: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:0},
     c31: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:2}
   };
 
@@ -28007,6 +28106,14 @@ applyLang(idiomaParaMi());
      opción 2 (Franklin Reyes) ya no firma planilla ninguna, la pide el
      inversionista en el portal de su alcaldía. */
   var PLANILLA_FIRMADA_DEL_PASO = {c3: {3: true}, c6: {3: true}};
+
+  /* Y los otros papeles que el inversionista sube desde un paso (ver
+     PAPELES_SUYOS), con el nombre del papel: el permiso que otorgó el MINEC,
+     en el 2 de los permisos ambientales (Franklin Reyes, 19-10-2026). Aparte
+     de la de arriba porque ésta es la de «Firme la planilla», y las pruebas
+     miran que todo paso de esa lista lo diga. Un papel nuevo es una entrada
+     en PAPELES_SUYOS, una aquí y su política en la base. */
+  var PAPEL_SUYO_DEL_PASO = {c30: {2: 'permiso_ambiental'}};
 
   /* ── LA PLANILLA QUE MANDA EL CIIP, PARA FIRMARLA ──
      Franklin Reyes, 30-9-2026: «el proceso del gestor» también con el paso
@@ -29561,6 +29668,12 @@ applyLang(idiomaParaMi());
        comprobante de pago del PUB (supabase-libros.sql). */
     if (t.tipo === 'libros_contables')
       return {tipo: 'pago_importe_dia', pasos: ['pub'], aviso: 'co_faltalibros'};
+    /* Los permisos ambientales (Franklin Reyes, 19-10-2026): «Permiso
+       confirmado por el CIIP» va detrás de que el inversionista suba el
+       permiso del MINEC, y uno rechazado no vale (vigente). La base dice lo
+       mismo (supabase-permiso-ambiental-sube.sql). */
+    if (t.tipo === 'permiso_ambiental')
+      return {tipo: 'permiso_ambiental', vigente: true, aviso: 'co_faltapermisominec'};
     return null;
   }
 
@@ -29633,12 +29746,13 @@ applyLang(idiomaParaMi());
        supabase-importe-del-dia.sql no hay paso_importe, y pedirlo por su
        nombre tumbaría la consulta; así solo no se encuentra, y se deja
        pasar -la base decide-. */
+    /* Con 'vigente', el estado también: uno rechazado no cuenta. */
     return Promise.resolve(
-      sb.from('tramite_documentos').select(pide.pasos ? 'documentos(*)' : 'documentos(tipo)').eq('tramite', t.id))
+      sb.from('tramite_documentos').select(pide.pasos ? 'documentos(*)' : (pide.vigente ? 'documentos(tipo, estado)' : 'documentos(tipo)')).eq('tramite', t.id))
       .then(function(r){
         if (r && r.error) return false;
         var docs = ((r && r.data) || []).map(function(f){ return f.documentos; })
-          .filter(function(d){ return d && d.tipo === pide.tipo; });
+          .filter(function(d){ return d && d.tipo === pide.tipo && !(pide.vigente && d.estado === 'rechazado'); });
         if (pide.pasos){
           if (docs.length && !docs.some(function(d){ return 'paso_importe' in d; })) return false;
           return !pide.pasos.every(function(x){
@@ -30592,6 +30706,9 @@ applyLang(idiomaParaMi());
          «Firme la planilla» (Franklin Reyes, 29-9-2026): tampoco la pide
          ningún formulario, y en la cola del equipo saldría con el código. */
       CLAVE_DE_TIPO[TIPO_PLANILLA_FIRMADA] = 'd_planilla_firmada';
+      /* Y el permiso del MINEC que sube el inversionista desde el paso 2 de
+         los permisos ambientales (Franklin Reyes, 19-10-2026). */
+      CLAVE_DE_TIPO.permiso_ambiental = 'd_permiso_minec';
     }
     return CLAVE_DE_TIPO;
   }
