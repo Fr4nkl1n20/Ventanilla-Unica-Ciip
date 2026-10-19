@@ -4786,6 +4786,136 @@ applyLang(idiomaParaMi());
       'https://renma.minec.gob.ve/'
   };
 
+  /* ── LOS TRÁMITES DE CADA SISTEMA DEL MINEC ──
+     Franklin Reyes, 19-10-2026: «cuando yo seleccione Ventanilla Verde, o la
+     ventanilla que necesito, quiero que se desplieguen los permisos que
+     requiere cada una». Son los códigos de la columna «Códigos de la web»
+     del cuadro de Sistemas en línea de Permisos_MINEC, con el nombre que
+     les da el resumen del mismo documento (abreviado allí sin cambiar su
+     alcance). Un trámite forestal sale en la Ventanilla Verde y en
+     SIFORTRAT, como en el cuadro. El R14 es de la Ventanilla Verde y no
+     tiene código en la web.
+
+     Se guarda tal cual, en español y con el código delante, que es por
+     donde lo busca el gestor en www.minec.gob.ve; no se traduce, como las
+     oficinas del SAREN. Las llaves son las de PORTAL_DEL_MINEC. */
+  var TRAMITES_DEL_MINEC = {
+    'Ventanilla Verde · trámites forestales y laboratorios ambientales': [
+      '033 · Aprovechamiento de productos forestales maderables del bosque natural dentro de ABRAE de manejo forestal',
+      '035 · Registro de proyectos de bosque plantado y sistemas agroforestales',
+      '036 · Aprobación de planes de manejo del patrimonio forestal dentro de ABRAE',
+      '037 · Aprovechamiento de bosque plantado y sistemas agroforestales de más de 200 ha fuera de ABRAE',
+      '039 · AOT para usos y actividades no forestales en ABRAE asociados a proyectos urbanísticos, mineros, industriales, agrícolas, turísticos u otros',
+      '040 · AARN para usos y actividades no forestales en ABRAE asociados a proyectos forestales, urbanísticos, mineros, industriales, agrícolas, turísticos u otros',
+      '041 · Planes de manejo del patrimonio forestal fuera de ABRAE',
+      '043 · Aprovechamiento de productos forestales maderables del bosque natural fuera de ABRAE',
+      '047 · Registro de proyecto de industria forestal de carbón vegetal',
+      '049 · Exportación o reexportación de flora maderable no incluida en CITES (cada operación)',
+      '050 · Certificado de exportación o reexportación de flora maderable CITES (cada operación)',
+      '051 · Certificado de importación, introducción y reintroducción de flora maderable CITES (cada operación)',
+      '063 · Registro de laboratorios ambientales para caracterización de efluentes, emisiones, suelos, materiales y desechos peligrosos (también para operar)',
+      '108 · Afectación de vegetación con fines agrícolas y pecuarios en 25 ha o menos',
+      '109 · Tala de árboles fuera del bosque de especies no vedadas en áreas rurales, por riesgo o razones fitosanitarias',
+      '113 · Aprovechamiento de productos forestales no maderables fuera de ABRAE, hasta 5.000 kg o 7.000 unidades',
+      '114 · Instalación, funcionamiento y control de industrias forestales (también para operar)',
+      '117 · Aprovechamiento de productos forestales de árboles fuera del bosque (excepto especies en veda)',
+      '118 · Tala de hasta 2 árboles de especies en veda',
+      '119 · Aprovechamiento de bosque plantado y sistemas agroforestales de menos de 200 ha fuera de ABRAE',
+      '213 · Importación, introducción o reintroducción de flora maderable no incluida en CITES (cada operación)',
+      '214 · Certificado de importación, introducción y reintroducción de flora maderable CITES (cada operación)',
+      'R14 · Troquelado de productos maderables (código de la Ventanilla Verde; no aparece en la web del MINEC)'
+    ],
+    'SIGETRAT · ocupación del territorio, estudio de impacto ambiental y afectación de recursos naturales': [
+      '028 · Autorización o aprobación de ocupación del territorio (AOT) para proyectos de importancia nacional o que involucren dos o más estados (excepto en ABRAE forestal)',
+      '029 · Aprobación o autorización para ocupación del territorio (AOT) y autorización de afectación de recursos naturales (AARN) para proyectos de importancia nacional o de dos o más estados (excepto en ABRAE forestal y en áreas marino-costeras)',
+      '030 · Acreditación técnica de estudios de impacto ambiental y sociocultural para proyectos de importancia nacional o de dos o más estados (excepto proyectos forestales en ABRAE de manejo forestal)',
+      '031 · Inscripción en el registro de consultores ambientales',
+      '126 · Suscripción de acta de inicio o culminación de actividades autorizadas para la afectación de recursos naturales',
+      '128 · Acreditación técnica de estudios de impacto ambiental y sociocultural para proyectos de interés local o estadal (una sola dirección estadal), con fines distintos al forestal, dentro o fuera de ABRAE',
+      '130 · AOT para proyectos de interés local o estadal, con fines distintos al forestal, en entidades sin plan de ordenación del territorio publicado en gaceta estadal (Amazonas, Distrito Capital, Lara, Sucre y Vargas) o en ABRAE administradas por el ministerio',
+      '131 · AARN para proyectos de interés local o estadal, con fines distintos al forestal, dentro o fuera de ABRAE, de una sola dirección estadal',
+      '132 · AARN para proyectos de interés local o estadal, con fines distintos al forestal, en ABRAE cuya administración no corresponde al ministerio',
+      '133 · AARN para extracción de minerales no metálicos fuera de ABRAE de manejo forestal',
+      '134 · AOT para extracción de minerales no metálicos dentro de ABRAE administradas por el ministerio (excepto forestales)',
+      '135 · AARN para extracción de minerales no metálicos dentro de ABRAE administradas por el ministerio (excepto forestales)',
+      '136 · AARN para extracción de minerales no metálicos dentro de ABRAE cuya administración no corresponde al ministerio',
+      '137 · AOT y AARN para actividades en áreas marino-costeras relacionadas con proyectos en el ámbito del estado',
+      '138 · AOT para cultivos de especies acuícolas en jaulas sumergibles en áreas marino-costeras',
+      '139 · AARN para cultivos de especies acuícolas en jaulas sumergibles en áreas marino-costeras',
+      '140 · AOT para construcción, rehabilitación o ampliación de camaroneras',
+      '141 · AARN para construcción, rehabilitación o ampliación de camaroneras, dentro o fuera de ABRAE administradas por el ministerio (excepto forestales)',
+      '142 · AOT para actividades acuícolas relacionadas con cultivos piscícolas',
+      '143 · AARN para actividades acuícolas relacionadas con cultivos piscícolas',
+      '178 · AOT para actividades en áreas marino-costeras relacionadas con proyectos de importancia nacional o de dos o más estados',
+      '179 · AOT y AARN para actividades en áreas marino-costeras relacionadas con proyectos de importancia nacional o de dos o más estados',
+      '180 · AARN en áreas urbanas para proyectos con fines distintos al forestal de interés nacional o de dos o más estados',
+      '181 · AARN para proyectos de importancia nacional o de dos o más estados (excepto en ABRAE de manejo forestal)',
+      '197 · Prórroga de la vigencia de la AOT para proyectos de importancia nacional o de dos o más estados',
+      '198 · Prórroga de la vigencia de la AOT y AARN para proyectos de importancia nacional o de dos o más estados',
+      '199 · Prórroga de la vigencia de la AARN para proyectos de importancia nacional o de dos o más estados',
+      '200 · Prórroga de la vigencia de la acreditación técnica de estudios de impacto ambiental y sociocultural para proyectos de importancia nacional o de dos o más estados',
+      '205 · Aprobación o autorización para ocupación del territorio (AOT) y autorización de afectación de recursos naturales (AARN)',
+      '207 · Prórroga de la vigencia de la AARN otorgada por la dirección estadal',
+      '208 · Prórroga de la vigencia de la acreditación técnica de estudios de impacto ambiental y sociocultural otorgada por la dirección estadal',
+      '209 · Prórroga de la vigencia de la AOT y AARN otorgadas por la dirección estadal',
+      '210 · Actualización del registro de consultores ambientales (transcurridos 11 meses desde la inscripción o última actualización)'
+    ],
+    'SIFORTRAT · aprovechamiento forestal, vegetación del terreno e industria forestal': [
+      '033 · Aprovechamiento de productos forestales maderables del bosque natural dentro de ABRAE de manejo forestal',
+      '034 · Aprovechamiento de productos forestales no maderables dentro de ABRAE con fines forestales',
+      '035 · Registro de proyectos de bosque plantado y sistemas agroforestales',
+      '036 · Aprobación de planes de manejo del patrimonio forestal dentro de ABRAE',
+      '037 · Aprovechamiento de bosque plantado y sistemas agroforestales de más de 200 ha fuera de ABRAE',
+      '038 · AOT para planes de manejo forestal y estudios técnicos en ABRAE, asociados a proyectos urbanísticos, mineros, industriales, agrícolas, turísticos u otros',
+      '039 · AOT para usos y actividades no forestales en ABRAE asociados a proyectos urbanísticos, mineros, industriales, agrícolas, turísticos u otros',
+      '040 · AARN para usos y actividades no forestales en ABRAE asociados a proyectos forestales, urbanísticos, mineros, industriales, agrícolas, turísticos u otros',
+      '041 · Planes de manejo del patrimonio forestal fuera de ABRAE',
+      '042 · Acreditación técnica del estudio de impacto ambiental y sociocultural para proyectos forestales dentro de ABRAE',
+      '043 · Aprovechamiento de productos forestales maderables del bosque natural fuera de ABRAE',
+      '044 · Aprovechamiento de productos forestales no maderables fuera de ABRAE, mayores a 5.000 kg o 7.000 unidades',
+      '045 · Tala a partir de 3 árboles de especies en veda',
+      '046 · Afectación de vegetación baja con fines agrícolas y pecuarios en más de 25 ha',
+      '047 · Registro de proyecto de industria forestal de carbón vegetal',
+      '049 · Exportación o reexportación de flora maderable no incluida en CITES (cada operación)',
+      '050 · Certificado de exportación o reexportación de flora maderable CITES (cada operación)',
+      '051 · Certificado de importación, introducción y reintroducción de flora maderable CITES (cada operación)',
+      '052 · Constancia de cumplimiento ambiental en instrumentos de control forestal',
+      '073 · Permisos de funcionamiento de bancos de germoplasma, semillas forestales, centros de mejoramiento genético y laboratorios forestales',
+      '107 · Acreditación técnica del estudio de impacto ambiental y sociocultural para proyectos forestales fuera de ABRAE',
+      '108 · Afectación de vegetación con fines agrícolas y pecuarios en 25 ha o menos',
+      '109 · Tala de árboles fuera del bosque de especies no vedadas en áreas rurales, por riesgo o razones fitosanitarias',
+      '110 · Poda y trasplante de árboles de especies no vedadas en áreas rurales',
+      '111 · Poda y trasplante de árboles de especies vedadas en áreas urbanas',
+      '112 · AOT para actividades forestales fuera de ABRAE',
+      '113 · Aprovechamiento de productos forestales no maderables fuera de ABRAE, hasta 5.000 kg o 7.000 unidades',
+      '114 · Instalación, funcionamiento y control de industrias forestales (también para operar)',
+      '115 · Registro ambiental de viveros forestales comerciales',
+      '116 · Constancia de área de reserva del medio silvestre en predios rurales',
+      '117 · Aprovechamiento de productos forestales de árboles fuera del bosque (excepto especies en veda)',
+      '118 · Tala de hasta 2 árboles de especies en veda',
+      '119 · Aprovechamiento de bosque plantado y sistemas agroforestales de menos de 200 ha fuera de ABRAE',
+      '160 · Afectaciones del patrimonio forestal sujetas a notificación previa según la Ley de Bosques',
+      '183 · Acceso a reservas forestales para investigación, docencia y extensión',
+      '190 · Guías de circulación de productos maderables y no maderables (cada operación)',
+      '192 · Constancia de cumplimiento ambiental de actos de la dirección estadal en materia forestal',
+      '213 · Importación, introducción o reintroducción de flora maderable no incluida en CITES (cada operación)',
+      '214 · Certificado de importación, introducción y reintroducción de flora maderable CITES (cada operación)',
+      '215 · Permisos de importación de productos forestales no maderables (cada operación)'
+    ],
+    'RACDA · actividades capaces de degradar el ambiente: sustancias, desechos y efluentes': [
+      '059 · Registro y autorización de empresas manejadoras de sustancias, materiales y desechos peligrosos y sustancias agotadoras de la capa de ozono',
+      '177 · Constancia de inscripción y actualizaciones en el RACDA para generadores de efluentes, emisiones y desechos peligrosos'
+    ],
+    'SIALAMB · laboratorios ambientales': [
+      '063 · Registro de laboratorios ambientales para caracterización de efluentes, emisiones, suelos, materiales y desechos peligrosos (también para operar)'
+    ],
+    'RENMA · reciclaje, envases de un solo uso y neumáticos': [
+      '104 · Registro de empresas recuperadoras de materiales aprovechables',
+      '170 · Autorización para traslado, transporte y depósito nacional de materiales recuperables de residuos no peligrosos',
+      '220 · Registro de empresa productora de envases de un solo uso y neumáticos (RePROD)'
+    ]
+  };
+
   var CAMPOS = {
     /* ── el poder de representacion ──
        El tramite estaba en el catalogo desde el 3 de septiembre, con sus
@@ -5361,8 +5491,8 @@ applyLang(idiomaParaMi());
        línea del MINEC delante, que nace vacío para que nadie mande la
        Ventanilla Verde sin elegirla, y del que sale el enlace del paso 1
        (PORTAL_DEL_MINEC). Luego la razón social, el RIF y el trámite que va
-       a solicitar, con su código de la web del MINEC si lo sabe (el «028»
-       de la AOT, por ejemplo), que es por donde lo sigue el gestor. El
+       a solicitar, de la lista de ese sistema (TRAMITES_DEL_MINEC), con su
+       código de la web del MINEC delante, que es por donde lo sigue el gestor. El
        impacto, el municipio, la actividad, la dirección y el proceso los
        pregunta el sistema del MINEC, y las solicitudes viejas los conservan
        en tramites.datos. */
@@ -5370,7 +5500,8 @@ applyLang(idiomaParaMi());
       {n:'sistema_minec',       clave:'f_mnsistema',   opcionesClave:'o_minec_sistema', ancho:true},
       {n:'razon_social',        clave:'f_razon',       ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
-      {n:'tramite_minec',       clave:'f_mntramite',   ancho:true}
+      {n:'tramite_minec',       clave:'f_mntramite',   ancho:true,
+       opcionesSegun:'sistema_minec', opcionesDe:TRAMITES_DEL_MINEC}
     ],
     /* La opinión favorable de la ZODI (c34). Lo que lleva la carta al
        Comandante: quién está detrás, a qué se va a dedicar, dónde y por

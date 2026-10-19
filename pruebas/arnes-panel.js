@@ -11022,6 +11022,18 @@
       igual('ambiental: el desplegable nace vacío y trae los seis sistemas', ops.length + ' · ' + JSON.stringify(ops[0]), '7 · ""');
       var sin = ops.slice(1).filter(function(o){ return !url('c30', 1, {sistema_minec: o}).match(/^https:\/\/[a-z]+\.minec\.gob\.ve\/$/); });
       igual('ambiental: cada sistema del desplegable lleva a su portal del MINEC', sin.join(' | ') || 'todos', 'todos');
+      /* Y al elegir el sistema se despliegan sus permisos (Franklin Reyes,
+         19-10-2026): los códigos del cuadro de Permisos_MINEC, con el R14
+         de la Ventanilla Verde. */
+      var tm = R.campos('permiso_ambiental').filter(function(c){ return c.n === 'tramite_minec'; })[0] || {};
+      igual('ambiental: el permiso se elige según el sistema', tm.opcionesSegun || '(sin origen)', 'sistema_minec');
+      igual('ambiental: y cada sistema trae sus permisos',
+            ops.slice(1).map(function(o){ return ((tm.opcionesDe || {})[o] || []).length; }).join(' '), '23 33 40 2 1 3');
+      var malos = [];
+      Object.keys(tm.opcionesDe || {}).forEach(function(k){
+        (tm.opcionesDe[k] || []).forEach(function(t){ if (!/^(\d{3}|R14) · \S/.test(t)) malos.push(t); });
+      });
+      igual('ambiental: todos con su código delante', malos.join(' | ') || 'todos', 'todos');
     })();
     igual('ambiental: con SIGETRAT, el paso 1 lleva a SIGETRAT',
           url('c30', 1, {sistema_minec: 'SIGETRAT · ocupación del territorio, estudio de impacto ambiental y afectación de recursos naturales'}),
