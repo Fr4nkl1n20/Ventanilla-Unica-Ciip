@@ -3543,11 +3543,16 @@ applyLang(idiomaParaMi());
        Las dos piden lo mismo y van en dos entradas iguales, no en una
        compartida: cada trámite tiene su lista, y el día que vuelvan a
        diferir -la TR-I pedía el certificado médico- es un renglón. */
+    /* Con su propio rótulo, d_solopasaporte, desde el 19-10-2026 (Franklin Reyes, 19-10-2026, Lista_Recaudos_por_Tramite:
+       «solo se debe solicitar el pasaporte»). d_pasaporte lo comparten el
+       poder, la traducción y el SISREF, y en la base real lo habían
+       retocado a «Cédula o pasaporte vigente» (textos_panel): ese retoque
+       se quedaba también en las visas, que solo pueden ser el pasaporte. */
     visa_negocios: [
-      {tipo:'pasaporte', clave:'d_pasaporte'}
+      {tipo:'pasaporte', clave:'d_solopasaporte'}
     ],
     visa_inversionista: [
-      {tipo:'pasaporte', clave:'d_pasaporte'}
+      {tipo:'pasaporte', clave:'d_solopasaporte'}
     ],
     /* La cédula ya NO va después de la c1. La c1 era la visa de
        inversionista (TR-I), que daba la residencia; desde el 15 de
@@ -3565,7 +3570,7 @@ applyLang(idiomaParaMi());
        cédula -el paso 1 de su escalera, PASOS_QUE_MARCAS_TU-, como en las
        dos visas. */
     cedula_residencia: [
-      {tipo:'pasaporte',  clave:'d_pasaporte'}
+      {tipo:'pasaporte',  clave:'d_solopasaporte'}
     ],
     /* La homologación va después de la cédula: para entonces el
        inversionista ya la tiene, así que su identidad sale de la bóveda.
@@ -3588,15 +3593,23 @@ applyLang(idiomaParaMi());
          Desde el 1-10-2026 la cédula ya no pide el RIF (solo el
          pasaporte), pero el RIF sigue sin esperarla: se saca con el
          pasaporte, y no tiene por qué quedarse detrás de la cédula. */
-      {tipo:'cedula',          clave:'d_identidad', noEncadena:true},
+      /* Con su propio rótulo, d_cedopas, desde el 19-10-2026 (Franklin Reyes, 19-10-2026, Lista_Recaudos_por_Tramite: «no
+         se puede solicitar el RIF del representante legal»). d_identidad lo
+         retocaron en la base real a «Cédula o pasaporte y RIF del
+         representante legal», que aquí pide el RIF que este trámite saca. */
+      {tipo:'cedula',          clave:'d_cedopas', noEncadena:true},
       {tipo:'carta_residencia', clave:'d_cartaresid'}
     ],
     /* El RIF personal es recaudo del de la empresa: quien lo haya hecho
        antes por aquí no tiene que volver a subirlo, sale de la bóveda. */
+    /* SIN «Tu RIF personal» desde el 19-10-2026 (Franklin Reyes, 19-10-2026, Lista_Recaudos_por_Tramite: «eliminar el
+       recaudo Tu RIF personal: está duplicado»). La cédula lo dice en su
+       rótulo -«Cédula o pasaporte y RIF del representante legal»,
+       d_cedrifrep-, el mismo que tenía en la base real por el retoque de
+       d_identidad. Así el c6 tampoco espera ya por el RIF personal (c3). */
     rif_empresa: [
       {tipo:'acta_constitutiva',  clave:'d_acta'},
-      {tipo:'cedula',             clave:'d_identidad'},
-      {tipo:'rif_personal',       clave:'d_rifpersonal'},
+      {tipo:'cedula',             clave:'d_cedrifrep'},
       {tipo:'domicilio_empresa',  clave:'d_domemp'}
     ],
     /* La constitución NO pide el acta: el acta es lo que SALE de aquí, y
@@ -3615,7 +3628,14 @@ applyLang(idiomaParaMi());
       {tipo:'cedula',             clave:'d_identidad'},
       {tipo:'rif_personal',       clave:'d_rifpersonal'},
       {tipo:'comprobante_capital',clave:'d_capital'},
-      {tipo:'carta_comisario',    clave:'d_comisario', opcional:true},
+      /* OBLIGATORIA desde el 19-10-2026 (Franklin Reyes, 19-10-2026, Lista_Recaudos_por_Tramite: «la carta de aceptación
+         del comisario debe ser obligatoria»). Era opcional para no frenar a
+         la firma personal, que el SAREN no la pide: ver arriba. Y a la firma
+         personal no se le pide (Franklin Reyes, el mismo día: «salvo firma
+         personal»): se esconde cuando el tipo de empresa elegido dice
+         FIRMA PERSONAL (noSiDice). */
+      {tipo:'carta_comisario',    clave:'d_comisario',
+       noCasilla:'tipo_sociedad', noSiDice:'FIRMA PERSONAL'},
       /* La certificación de inventario por contador público. Entró el 16 de
          septiembre como opcional, al lado del comprobante del capital, y el
          mismo día Franklin la pidió como REQUISITO de la constitución: sin
@@ -3635,11 +3655,13 @@ applyLang(idiomaParaMi());
        reutilizado y solo tiene que rellenar los datos de la cuenta. */
     /* La declaracion jurada de origen de fondos, que el banco pide firmada
        y no es lo mismo que el soporte (Pendientes FRANK.pdf, 24-9-2026). */
+    /* SIN «Tu RIF personal» desde el 19-10-2026 (Franklin Reyes, 19-10-2026, Lista_Recaudos_por_Tramite: «está
+       duplicado»), como en el RIF de la empresa: la cédula lleva el rótulo
+       con el RIF, d_cedrifrep. */
     cuenta_bancaria: [
       {tipo:'acta_constitutiva',   clave:'d_acta'},
       {tipo:'rif_empresa',         clave:'d_rifempresa'},
-      {tipo:'cedula',              clave:'d_identidad'},
-      {tipo:'rif_personal',        clave:'d_rifpersonal'},
+      {tipo:'cedula',              clave:'d_cedrifrep'},
       {tipo:'declaracion_fondos',  clave:'d_decfondos'}
     ],
     /* Aquí NO van el acta ni el RIF de la empresa, aunque estén en la
@@ -4143,10 +4165,11 @@ applyLang(idiomaParaMi());
     aporte_locti_pago: [
       {tipo:'rif_empresa',          clave:'d_rifempresa'}
     ],
-    publicacion_acta: [
-      {tipo:'acta_protocolizada',  clave:'d_actaprot'},
-      {tipo:'cedula',              clave:'d_identidad'}
-    ],
+    /* SIN RECAUDOS desde el 19-10-2026 (Franklin Reyes, 19-10-2026, Lista_Recaudos_por_Tramite: «no se deben solicitar
+       recaudos: el CIIP ya debería tenerlos de los trámites anteriores»).
+       Pedía el acta protocolizada -la que sale del c22- y la cédula, que
+       están ya en la bóveda. */
+    publicacion_acta: [],
     /* Los libros sellados y el sistema homologado son lo que SALE de
        aquí, no lo que entra: lo que hace falta para empezar es la
        empresa ya inscrita y con RIF. */
@@ -7987,6 +8010,11 @@ applyLang(idiomaParaMi());
        quiere todas seguidas en su columna, y una casilla las quiere debajo
        de su pregunta. Es la misma fila -bóveda, arrastrar, «ya lo tienes»-,
        y por eso se monta una sola vez. */
+    /* Si lo elegido en un desplegable contiene el texto, sin mirar
+       mayúsculas: el de noSiDice. */
+    function dicePorDentro(valor, texto){
+      return String(valor || '').toUpperCase().indexOf(String(texto || '').toUpperCase()) >= 0;
+    }
     function montaDoc(r, donde){
       var fila = el('div', 'sol-doc');
       fila.setAttribute('data-doc', r.tipo);
@@ -8008,6 +8036,15 @@ applyLang(idiomaParaMi());
       if (r.noCasilla){
         fila.setAttribute('data-no', r.noCasilla);
         fila.hidden = !!(datos[r.noCasilla] && datos[r.noCasilla] !== 'No');
+        /* Y con noSiDice, la casilla no es un Sí/No sino un desplegable
+           cualquiera, y el papel se esconde solo cuando lo elegido contiene
+           ese texto. Nació con la carta del comisario (Franklin Reyes,
+           19-10-2026): obligatoria «salvo firma personal», que es una de
+           las opciones del tipo de empresa. */
+        if (r.noSiDice){
+          fila.setAttribute('data-no-dice', r.noSiDice);
+          fila.hidden = dicePorDentro(datos[r.noCasilla], r.noSiDice);
+        }
       }
       /* De quién es el papel, cuando no es tuyo: el miembro de la junta. Viaja
          hasta la base -documentos.titular- y es lo que separa su cédula de
@@ -8219,8 +8256,10 @@ applyLang(idiomaParaMi());
       var deQuien = fila.getAttribute(alContrario ? 'data-no' : 'data-si');
       var marca = caja.querySelector('input[type="checkbox"][name="' + deQuien + '"], select[name="' + deQuien + '"]');
       if (!marca) return;
+      var porDentro = fila.getAttribute('data-no-dice');
       function mira(){
-        var dice = (marca.type === 'checkbox') ? marca.checked
+        var dice = porDentro ? dicePorDentro(marca.value, porDentro)
+                 : (marca.type === 'checkbox') ? marca.checked
                                                : !!(marca.value && marca.value !== 'No');
         fila.hidden = alContrario ? dice : !dice;
         /* Un papel que se deja de pedir no puede seguir marcado en rojo. */

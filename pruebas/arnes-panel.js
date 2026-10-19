@@ -1236,8 +1236,13 @@
 
            Si se encadenara por el trámite anterior, o si se olvidara mirar
            lo que ya tienes, diría «Constitución» y esto se pondría rojo. */
-        ok('cadena: espera al papel que falta, no al primero de la lista',
-           esperaDe('c6') === 'c3', esperaDe('c6') || '(a nadie)', 'c3');
+        /* Y DESDE EL 19-10-2026 (Franklin Reyes, Lista_Recaudos_por_Tramite)
+           el c6 ya no pide el RIF personal -estaba duplicado con la cédula,
+           que lo dice en su rótulo-: con el acta en la bóveda, no espera a
+           nadie. Lo de encadenar por el papel lo sigue midiendo el c5 de
+           arriba, que espera al c3 por el RIF personal. */
+        ok('cadena: el c6, sin el RIF personal y con el acta, no espera a nadie',
+           !esperaDe('c6'), esperaDe('c6') || '(a nadie)', '(a nadie)');
 
         /* La cédula de extranjero pidió el RIF personal del 30-9 al
            1-10-2026. Desde «Ventanilla unica 2.4» (Franklin Reyes) pide
@@ -3484,6 +3489,24 @@
     var abre = bloques.length ? bloques[0].querySelector('button') : null;
     ok('tramos: los bloques ya no traen «Abrir este tramo»', !abre,
        abre ? 'con botón' : 'sin botón', 'sin botón');
+    /* La carta del comisario, obligatoria salvo firma personal (Franklin
+       Reyes, 19-10-2026, Lista_Recaudos_por_Tramite): se esconde con el
+       tipo de empresa en firma personal y se pide con cualquier otro. */
+    (function(){
+      var tipoS = real && real.querySelector('select[name="tipo_sociedad"]');
+      var carta = real && real.querySelector('.sol-doc[data-doc="carta_comisario"]');
+      var elige = function(texto){
+        if (!tipoS) return;
+        var op = [].filter.call(tipoS.options, function(o){ return o.value.indexOf(texto) >= 0; })[0];
+        if (op){ tipoS.value = op.value; tipoS.dispatchEvent(new Event('change')); }
+      };
+      var dice = function(){ return carta ? (carta.hidden ? 'escondida' : 'pedida') + (carta.hasAttribute('data-opcional') ? ', opcional' : '') : '(sin carta)'; };
+      elige('(F.P) CONSTITUCIÓN FIRMA PERSONAL');
+      var conFp = dice();
+      elige('(C.A) CONSTITUCIÓN COMPAÑÍAS ANÓNIMAS');
+      igual('constitución: la carta del comisario se esconde en firma personal y se pide en una compañía anónima',
+            conFp + ' · ' + dice(), 'escondida · pedida');
+    })();
     location.hash = 'tramite-c22';
   }
 
@@ -4386,7 +4409,7 @@
       igual('visa: y en las dos visas, la TR-N y la TR-I',
             ['visa_negocios', 'visa_inversionista'].map(function(t){
               return R.de(t).map(function(r){ return r.tipo + '·' + r.clave; }).join('+');
-            }).join(' | '), 'pasaporte·d_pasaporte | pasaporte·d_pasaporte');
+            }).join(' | '), 'pasaporte·d_solopasaporte | pasaporte·d_solopasaporte');
     }
     if (caja && caja.CIIP_VE_PASO) caja.CIIP_VE_PASO(1);
     sigue();
@@ -16566,9 +16589,9 @@
     /* Y las inscripciones ya solicitadas (c44, 5-10-2026): sus casillas son
        entes, fechas y el problema, y ningún papel dice nada de eso. */
     /* Y los permisos ambientales (c30, 19-10-2026), sin recaudos. */
-    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI, las seis sin recaudos, las dos de «Bienes» y la marca en proceso y las inscripciones ya solicitadas',
+    igual('lector: el cuadro sale en todas las fichas menos la firma, la opinión de la ZODI, las siete sin recaudos, las dos de «Bienes» y la marca en proceso y las inscripciones ya solicitadas',
           window.CIIP_SIN_LECTOR ? window.CIIP_SIN_LECTOR().join(', ') : '(no está la función)',
-          'licencia_municipal, conformidad_uso, permiso_bomberos, permiso_ambiental, opinion_zodi, registro_minero, aporte_locti, firma_electronica, bienes_compraventa, bienes_alquiler, marca_en_proceso, parafiscales_en_proceso');
+          'licencia_municipal, conformidad_uso, permiso_bomberos, permiso_ambiental, opinion_zodi, registro_minero, aporte_locti, firma_electronica, publicacion_acta, bienes_compraventa, bienes_alquiler, marca_en_proceso, parafiscales_en_proceso');
   }
 
   /* La situacion que se quiere medir: alguien que TODAVIA no tiene empresa

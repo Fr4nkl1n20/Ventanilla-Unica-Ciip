@@ -2159,6 +2159,7 @@ window.CIIP_PASOS = {
       f_firmapersonal:"¿Tienes firma personal?",
       f_cargo:      "Cargo en la empresa",
       d_identidad:  "Cédula o pasaporte",
+      d_cedopas:    "Cédula o pasaporte",
       d_domicilio:  "Comprobante de domicilio",
       /* --- RIF de la empresa --- */
       f_razon:       "Razón social",
@@ -2321,6 +2322,7 @@ window.CIIP_PASOS = {
       p_visacorreo:   "Revisa tu correo electrónico: la visa te llega por ahí.",
       o_sino:        ["No", "Sí"],
       d_pasaporte:   "Pasaporte vigente",
+      d_solopasaporte: "Pasaporte vigente",
       d_doctramite: "Documento del trámite que vas a hacer (PDF)",
       d_otro: "Otro documento",
       d_foto:        "Fotografía tipo carnet",
@@ -2442,6 +2444,7 @@ window.CIIP_PASOS = {
       /* --- Registro de marca: la escalera por etapas (CIIP, 28-9-2026) --- */
       d_actaempresa:  "Acta constitutiva de la empresa",
       d_cedpasrep:    "Cédula o pasaporte del representante legal",
+      d_cedrifrep:    "Cédula o pasaporte y RIF del representante legal",
       d_busqueda_antecedentes: "Búsqueda de antecedentes de la marca",
       d_certificado_marca: "Certificado de registro de marca",
       mc_etapa:       "Etapa {n}",
@@ -4148,6 +4151,7 @@ window.CIIP_PASOS = {
       f_firmapersonal:"Do you have a sole proprietorship?",
       f_cargo:      "Position in the company",
       d_identidad:  "ID card or passport",
+      d_cedopas:    "ID card or passport",
       d_domicilio:  "Proof of address",
       /* --- RIF de la empresa --- */
       f_razon:       "Company name",
@@ -4305,6 +4309,7 @@ window.CIIP_PASOS = {
       p_visacorreo:   "Check your email: that is where the visa arrives.",
       o_sino:        ["No", "Yes"],
       d_pasaporte:   "Valid passport",
+      d_solopasaporte: "Valid passport",
       d_doctramite: "Document for the procedure you are filing (PDF)",
       d_otro: "Other document",
       d_foto:        "Passport-size photograph",
@@ -4402,6 +4407,7 @@ window.CIIP_PASOS = {
       /* --- Trade mark registration: the staged ladder (CIIP, 28-9-2026) --- */
       d_actaempresa:  "Company's articles of incorporation",
       d_cedpasrep:    "ID card or passport of the legal representative",
+      d_cedrifrep:    "ID card or passport and RIF of the legal representative",
       d_busqueda_antecedentes: "Trade mark prior-rights search",
       d_certificado_marca: "Trade mark registration certificate",
       mc_etapa:       "Stage {n}",
@@ -6089,6 +6095,7 @@ window.CIIP_PASOS = {
       f_firmapersonal:"Tens firma pessoal?",
       f_cargo:      "Cargo na empresa",
       d_identidad:  "Cartão de cidadão ou passaporte",
+      d_cedopas:    "Cartão de cidadão ou passaporte",
       d_domicilio:  "Comprovativo de morada",
       /* --- RIF de la empresa --- */
       f_razon:       "Denominação social",
@@ -6246,6 +6253,7 @@ window.CIIP_PASOS = {
       p_visacorreo:   "Verifica o teu correio electrónico: é por aí que chega o visto.",
       o_sino:        ["Não", "Sim"],
       d_pasaporte:   "Passaporte válido",
+      d_solopasaporte: "Passaporte válido",
       d_doctramite: "Documento do trâmite que vais fazer (PDF)",
       d_otro: "Outro documento",
       d_foto:        "Fotografia tipo passe",
@@ -6343,6 +6351,7 @@ window.CIIP_PASOS = {
       /* --- Registo de marca: a escada por etapas (CIIP, 28-9-2026) --- */
       d_actaempresa:  "Pacto social da empresa",
       d_cedpasrep:    "Cartão de identidade ou passaporte do representante legal",
+      d_cedrifrep:    "Cartão de identidade ou passaporte e RIF do representante legal",
       d_busqueda_antecedentes: "Pesquisa de anterioridades da marca",
       d_certificado_marca: "Certificado de registo de marca",
       mc_etapa:       "Etapa {n}",
@@ -8030,6 +8039,7 @@ window.CIIP_PASOS = {
       f_firmapersonal:"Hai una ditta individuale?",
       f_cargo:      "Ruolo in azienda",
       d_identidad:  "Carta d'identità o passaporto",
+      d_cedopas:    "Carta d'identità o passaporto",
       d_domicilio:  "Prova di residenza",
       /* --- RIF de la empresa --- */
       f_razon:       "Ragione sociale",
@@ -8187,6 +8197,7 @@ window.CIIP_PASOS = {
       p_visacorreo:   "Controlla la tua email: è lì che arriva il visto.",
       o_sino:        ["No", "Sì"],
       d_pasaporte:   "Passaporto valido",
+      d_solopasaporte: "Passaporto valido",
       d_doctramite: "Documento della pratica da presentare (PDF)",
       d_otro: "Altro documento",
       d_foto:        "Fototessera",
@@ -8284,6 +8295,7 @@ window.CIIP_PASOS = {
       /* --- Registrazione del marchio: la scala per fasi (CIIP, 28-9-2026) --- */
       d_actaempresa:  "Atto costitutivo della società",
       d_cedpasrep:    "Documento d'identità o passaporto del rappresentante legale",
+      d_cedrifrep:    "Documento d'identità o passaporto e RIF del rappresentante legale",
       d_busqueda_antecedentes: "Ricerca di anteriorità del marchio",
       d_certificado_marca: "Certificato di registrazione del marchio",
       mc_etapa:       "Fase {n}",
@@ -9971,6 +9983,7 @@ window.CIIP_PASOS = {
       f_firmapersonal:"你有个体工商登记吗？",
       f_cargo:      "公司职务",
       d_identidad:  "身份证或护照",
+      d_cedopas:    "身份证或护照",
       d_domicilio:  "住址证明",
       /* --- RIF de la empresa --- */
       f_razon:       "公司名称",
@@ -10128,6 +10141,7 @@ window.CIIP_PASOS = {
       p_visacorreo:   "请查收电子邮件：签证会发到那里。",
       o_sino:        ["否", "是"],
       d_pasaporte:   "有效护照",
+      d_solopasaporte: "有效护照",
       d_doctramite: "你要办理的手续文件（PDF）",
       d_otro: "其他文件",
       d_foto:        "证件照",
@@ -10225,6 +10239,7 @@ window.CIIP_PASOS = {
       /* --- 商标注册：分阶段的进度（CIIP，2026-9-28） --- */
       d_actaempresa:  "公司章程",
       d_cedpasrep:    "法定代表人身份证或护照",
+      d_cedrifrep:    "法定代表人身份证或护照及 RIF",
       d_busqueda_antecedentes: "商标在先权利检索报告",
       d_certificado_marca: "商标注册证书",
       mc_etapa:       "第 {n} 阶段",
@@ -11912,6 +11927,7 @@ window.CIIP_PASOS = {
       f_firmapersonal:"У вас есть ИП?",
       f_cargo:      "Должность в компании",
       d_identidad:  "Удостоверение личности или паспорт",
+      d_cedopas:    "Удостоверение личности или паспорт",
       d_domicilio:  "Подтверждение адреса",
       /* --- RIF de la empresa --- */
       f_razon:       "Наименование компании",
@@ -12069,6 +12085,7 @@ window.CIIP_PASOS = {
       p_visacorreo:   "Проверьте электронную почту: виза приходит туда.",
       o_sino:        ["Нет", "Да"],
       d_pasaporte:   "Действующий паспорт",
+      d_solopasaporte: "Действующий паспорт",
       d_doctramite: "Документ по оформляемой процедуре (PDF)",
       d_otro: "Другой документ",
       d_foto:        "Фото на документы",
@@ -12166,6 +12183,7 @@ window.CIIP_PASOS = {
       /* --- Регистрация товарного знака: этапы (CIIP, 28-9-2026) --- */
       d_actaempresa:  "Учредительный договор компании",
       d_cedpasrep:    "Удостоверение личности или паспорт законного представителя",
+      d_cedrifrep:    "Удостоверение личности или паспорт и RIF законного представителя",
       d_busqueda_antecedentes: "Поиск ранее зарегистрированных знаков",
       d_certificado_marca: "Свидетельство о регистрации товарного знака",
       mc_etapa:       "Этап {n}",
@@ -13868,6 +13886,7 @@ window.CIIP_PASOS = {
       f_firmapersonal:"Avez-vous une entreprise individuelle ?",
       f_cargo:      "Fonction dans l’entreprise",
       d_identidad:  "Carte d’identité ou passeport",
+      d_cedopas:    "Carte d’identité ou passeport",
       d_domicilio:  "Justificatif de domicile",
       /* --- RIF de la empresa --- */
       f_razon:       "Raison sociale",
@@ -14025,6 +14044,7 @@ window.CIIP_PASOS = {
       p_visacorreo:   "Consultez vos e-mails : c’est là que le visa vous parviendra.",
       o_sino:        ["Non", "Oui"],
       d_pasaporte:   "Passeport en cours de validité",
+      d_solopasaporte: "Passeport en cours de validité",
       d_doctramite: "Document de la démarche que vous déposez (PDF)",
       d_otro: "Autre document",
       d_foto:        "Photo d’identité",
@@ -14122,6 +14142,7 @@ window.CIIP_PASOS = {
       /* --- Trade mark registration: the staged ladder (CIIP, 28-9-2026) --- */
       d_actaempresa:  "Statuts constitutifs de l’entreprise",
       d_cedpasrep:    "Carte d’identité ou passeport du représentant légal",
+      d_cedrifrep:    "Carte d’identité ou passeport et RIF du représentant légal",
       d_busqueda_antecedentes: "Recherche d’antériorités de la marque",
       d_certificado_marca: "Certificat d’enregistrement de la marque",
       mc_etapa:       "Étape {n}",
@@ -15824,6 +15845,7 @@ window.CIIP_PASOS = {
       f_firmapersonal:"個人事業を営んでいますか？",
       f_cargo:      "社内での役職",
       d_identidad:  "身分証明書またはパスポート",
+      d_cedopas:    "身分証明書またはパスポート",
       d_domicilio:  "住所証明書",
       /* --- RIF de la empresa --- */
       f_razon:       "会社名",
@@ -15981,6 +16003,7 @@ window.CIIP_PASOS = {
       p_visacorreo:   "メールをご確認ください。ビザはメールで届きます。",
       o_sino:        ["いいえ", "はい"],
       d_pasaporte:   "有効なパスポート",
+      d_solopasaporte: "有効なパスポート",
       d_doctramite: "申請する手続きの書類（PDF）",
       d_otro: "その他の書類",
       d_foto:        "パスポートサイズの写真",
@@ -16078,6 +16101,7 @@ window.CIIP_PASOS = {
       /* --- Trade mark registration: the staged ladder (CIIP, 28-9-2026) --- */
       d_actaempresa:  "会社の定款",
       d_cedpasrep:    "法定代表者の身分証明書またはパスポート",
+      d_cedrifrep:    "法定代表者の身分証明書またはパスポートとRIF",
       d_busqueda_antecedentes: "商標の先行調査",
       d_certificado_marca: "商標登録証",
       mc_etapa:       "段階{n}",
