@@ -4760,7 +4760,8 @@ applyLang(idiomaParaMi());
      Franklin Reyes, 19-10-2026, Permisos_MINEC (Valeria Ramos, CIIP): «solo
      debe trabajar con el recuadro de Sistemas en línea del MINEC». Son los
      seis del cuadro «Sistemas en línea del MINEC y trámites que se
-     presentan en cada uno», con lo que se tramita en cada uno, y los
+     presentan en cada uno», solo con su nombre (Franklin Reyes, 19-10-2026:
+     «quita estas descripciones, que solo dé el nombre»), y los
      enlaces que da www.minec.gob.ve (comprobados el 19-10-2026). Los
      trámites «sin sistema indicado» del cuadro no entran: no hay adónde
      llevar al inversionista.
@@ -4772,17 +4773,17 @@ applyLang(idiomaParaMi());
      arnés). La primera opción de la lista es la vacía, para obligar a
      elegir. */
   var PORTAL_DEL_MINEC = {
-    'Ventanilla Verde · trámites forestales y laboratorios ambientales':
+    'Ventanilla Verde':
       'https://ventanillaverde.minec.gob.ve/',
-    'SIGETRAT · ocupación del territorio, estudio de impacto ambiental y afectación de recursos naturales':
+    'SIGETRAT':
       'https://sigetrat.minec.gob.ve/',
-    'SIFORTRAT · aprovechamiento forestal, vegetación del terreno e industria forestal':
+    'SIFORTRAT':
       'https://sifortrat.minec.gob.ve/',
-    'RACDA · actividades capaces de degradar el ambiente: sustancias, desechos y efluentes':
+    'RACDA':
       'https://racda.minec.gob.ve/',
-    'SIALAMB · laboratorios ambientales':
+    'SIALAMB':
       'https://sialamb.minec.gob.ve/',
-    'RENMA · reciclaje, envases de un solo uso y neumáticos':
+    'RENMA':
       'https://renma.minec.gob.ve/'
   };
 
@@ -4800,7 +4801,7 @@ applyLang(idiomaParaMi());
      donde lo busca el gestor en www.minec.gob.ve; no se traduce, como las
      oficinas del SAREN. Las llaves son las de PORTAL_DEL_MINEC. */
   var TRAMITES_DEL_MINEC = {
-    'Ventanilla Verde · trámites forestales y laboratorios ambientales': [
+    'Ventanilla Verde': [
       '033 · Aprovechamiento de productos forestales maderables del bosque natural dentro de ABRAE de manejo forestal',
       '035 · Registro de proyectos de bosque plantado y sistemas agroforestales',
       '036 · Aprobación de planes de manejo del patrimonio forestal dentro de ABRAE',
@@ -4825,7 +4826,7 @@ applyLang(idiomaParaMi());
       '214 · Certificado de importación, introducción y reintroducción de flora maderable CITES (cada operación)',
       'R14 · Troquelado de productos maderables (código de la Ventanilla Verde; no aparece en la web del MINEC)'
     ],
-    'SIGETRAT · ocupación del territorio, estudio de impacto ambiental y afectación de recursos naturales': [
+    'SIGETRAT': [
       '028 · Autorización o aprobación de ocupación del territorio (AOT) para proyectos de importancia nacional o que involucren dos o más estados (excepto en ABRAE forestal)',
       '029 · Aprobación o autorización para ocupación del territorio (AOT) y autorización de afectación de recursos naturales (AARN) para proyectos de importancia nacional o de dos o más estados (excepto en ABRAE forestal y en áreas marino-costeras)',
       '030 · Acreditación técnica de estudios de impacto ambiental y sociocultural para proyectos de importancia nacional o de dos o más estados (excepto proyectos forestales en ABRAE de manejo forestal)',
@@ -4860,7 +4861,7 @@ applyLang(idiomaParaMi());
       '209 · Prórroga de la vigencia de la AOT y AARN otorgadas por la dirección estadal',
       '210 · Actualización del registro de consultores ambientales (transcurridos 11 meses desde la inscripción o última actualización)'
     ],
-    'SIFORTRAT · aprovechamiento forestal, vegetación del terreno e industria forestal': [
+    'SIFORTRAT': [
       '033 · Aprovechamiento de productos forestales maderables del bosque natural dentro de ABRAE de manejo forestal',
       '034 · Aprovechamiento de productos forestales no maderables dentro de ABRAE con fines forestales',
       '035 · Registro de proyectos de bosque plantado y sistemas agroforestales',
@@ -4902,14 +4903,14 @@ applyLang(idiomaParaMi());
       '214 · Certificado de importación, introducción y reintroducción de flora maderable CITES (cada operación)',
       '215 · Permisos de importación de productos forestales no maderables (cada operación)'
     ],
-    'RACDA · actividades capaces de degradar el ambiente: sustancias, desechos y efluentes': [
+    'RACDA': [
       '059 · Registro y autorización de empresas manejadoras de sustancias, materiales y desechos peligrosos y sustancias agotadoras de la capa de ozono',
       '177 · Constancia de inscripción y actualizaciones en el RACDA para generadores de efluentes, emisiones y desechos peligrosos'
     ],
-    'SIALAMB · laboratorios ambientales': [
+    'SIALAMB': [
       '063 · Registro de laboratorios ambientales para caracterización de efluentes, emisiones, suelos, materiales y desechos peligrosos (también para operar)'
     ],
-    'RENMA · reciclaje, envases de un solo uso y neumáticos': [
+    'RENMA': [
       '104 · Registro de empresas recuperadoras de materiales aprovechables',
       '170 · Autorización para traslado, transporte y depósito nacional de materiales recuperables de residuos no peligrosos',
       '220 · Registro de empresa productora de envases de un solo uso y neumáticos (RePROD)'

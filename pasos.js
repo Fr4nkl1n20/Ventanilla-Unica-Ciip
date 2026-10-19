@@ -1509,7 +1509,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "Sistema en línea del MINEC",
-      o_minec_sistema: ["", "Ventanilla Verde · trámites forestales y laboratorios ambientales", "SIGETRAT · ocupación del territorio, estudio de impacto ambiental y afectación de recursos naturales", "SIFORTRAT · aprovechamiento forestal, vegetación del terreno e industria forestal", "RACDA · actividades capaces de degradar el ambiente: sustancias, desechos y efluentes", "SIALAMB · laboratorios ambientales", "RENMA · reciclaje, envases de un solo uso y neumáticos"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
       f_mntramite:    "Permiso que vas a solicitar en ese sistema",
       f_yscedrep:     "Cédula de identidad del representante legal",
       f_ysrifrep:     "RIF del representante legal",
@@ -3590,7 +3590,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "MINEC online system",
-      o_minec_sistema: ["", "Ventanilla Verde · forestry procedures and environmental laboratories", "SIGETRAT · land occupation, environmental impact study and effects on natural resources", "SIFORTRAT · forest harvesting, land vegetation and forest industry", "RACDA · activities capable of degrading the environment: substances, waste and effluents", "SIALAMB · environmental laboratories", "RENMA · recycling, single-use packaging and tyres"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
       f_mntramite:    "Permit you are going to apply for in that system",
       f_yscedrep:     "ID card of the legal representative",
       f_ysrifrep:     "RIF of the legal representative",
@@ -5530,7 +5530,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "Sistema online do MINEC",
-      o_minec_sistema: ["", "Ventanilla Verde · trâmites florestais e laboratórios ambientais", "SIGETRAT · ocupação do território, estudo de impacto ambiental e afetação de recursos naturais", "SIFORTRAT · aproveitamento florestal, vegetação do terreno e indústria florestal", "RACDA · atividades capazes de degradar o ambiente: substâncias, resíduos e efluentes", "SIALAMB · laboratórios ambientais", "RENMA · reciclagem, embalagens de uso único e pneus"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
       f_mntramite:    "Licença que vai solicitar nesse sistema",
       f_yscedrep:     "Cartão de identidade do representante legal",
       f_ysrifrep:     "RIF do representante legal",
@@ -7464,7 +7464,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "Sistema online del MINEC",
-      o_minec_sistema: ["", "Ventanilla Verde · pratiche forestali e laboratori ambientali", "SIGETRAT · occupazione del territorio, studio di impatto ambientale e incidenza sulle risorse naturali", "SIFORTRAT · sfruttamento forestale, vegetazione del terreno e industria forestale", "RACDA · attività in grado di degradare l’ambiente: sostanze, rifiuti ed effluenti", "SIALAMB · laboratori ambientali", "RENMA · riciclaggio, imballaggi monouso e pneumatici"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
       f_mntramite:    "Permesso che vuoi richiedere in quel sistema",
       f_yscedrep:     "Documento d'identità del rappresentante legale",
       f_ysrifrep:     "RIF del rappresentante legale",
@@ -9398,7 +9398,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "MINEC 在线系统",
-      o_minec_sistema: ["", "Ventanilla Verde · 林业手续与环境实验室", "SIGETRAT · 国土占用、环境影响评价及自然资源影响", "SIFORTRAT · 森林采伐、地表植被及林产工业", "RACDA · 可能破坏环境的活动：物质、废弃物及排放物", "SIALAMB · 环境实验室", "RENMA · 回收利用、一次性包装及轮胎"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
       f_mntramite:    "你要在该系统申请的许可",
       f_yscedrep:     "法定代表人身份证",
       f_ysrifrep:     "法定代表人 RIF",
@@ -11332,7 +11332,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "Онлайн-система MINEC",
-      o_minec_sistema: ["", "Ventanilla Verde · лесные процедуры и экологические лаборатории", "SIGETRAT · занятие территории, оценка воздействия на окружающую среду и затрагивание природных ресурсов", "SIFORTRAT · лесопользование, растительность участка и лесная промышленность", "RACDA · деятельность, способная нанести вред окружающей среде: вещества, отходы и стоки", "SIALAMB · экологические лаборатории", "RENMA · переработка, одноразовая упаковка и шины"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
       f_mntramite:    "Разрешение, которое вы запросите в этой системе",
       f_yscedrep:     "Удостоверение личности законного представителя",
       f_ysrifrep:     "RIF законного представителя",
@@ -13275,7 +13275,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "Système en ligne du MINEC",
-      o_minec_sistema: ["", "Ventanilla Verde · démarches forestières et laboratoires environnementaux", "SIGETRAT · occupation du territoire, étude d’impact environnemental et atteinte aux ressources naturelles", "SIFORTRAT · exploitation forestière, végétation du terrain et industrie forestière", "RACDA · activités susceptibles de dégrader l’environnement : substances, déchets et effluents", "SIALAMB · laboratoires environnementaux", "RENMA · recyclage, emballages à usage unique et pneus"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
       f_mntramite:    "Permis que vous allez demander dans ce système",
       f_yscedrep:     "Carte d’identité du représentant légal",
       f_ysrifrep:     "RIF du représentant légal",
@@ -15224,7 +15224,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "MINECのオンラインシステム",
-      o_minec_sistema: ["", "Ventanilla Verde · 森林関連手続きと環境試験所", "SIGETRAT · 土地の占用、環境影響評価、天然資源への影響", "SIFORTRAT · 森林の利用、土地の植生、林産業", "RACDA · 環境を劣化させるおそれのある活動：物質、廃棄物、排出物", "SIALAMB · 環境試験所", "RENMA · リサイクル、使い捨て容器、タイヤ"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
       f_mntramite:    "そのシステムで申請する許可",
       f_yscedrep:     "法定代表者の身分証明書",
       f_ysrifrep:     "法定代表者のRIF",

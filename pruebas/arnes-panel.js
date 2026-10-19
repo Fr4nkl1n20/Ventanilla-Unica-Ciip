@@ -11036,10 +11036,10 @@
       igual('ambiental: todos con su código delante', malos.join(' | ') || 'todos', 'todos');
     })();
     igual('ambiental: con SIGETRAT, el paso 1 lleva a SIGETRAT',
-          url('c30', 1, {sistema_minec: 'SIGETRAT · ocupación del territorio, estudio de impacto ambiental y afectación de recursos naturales'}),
+          url('c30', 1, {sistema_minec: 'SIGETRAT'}),
           'https://sigetrat.minec.gob.ve/');
     igual('ambiental: sin sistema no hay enlace', url('c30', 1, {}), '(ninguno)');
-    igual('ambiental: y el paso 2 no lleva enlace', url('c30', 2, {sistema_minec: 'SIALAMB · laboratorios ambientales'}), '(ninguno)');
+    igual('ambiental: y el paso 2 no lleva enlace', url('c30', 2, {sistema_minec: 'SIALAMB'}), '(ninguno)');
     var a = PM.enlacePintado('c10', 1, {datos: {municipio: 'Sucre'}});
     igual('licencia: el enlace pintado dice adónde va y se abre aparte',
           a ? a.textContent + ' · ' + a.getAttribute('href') + ' · ' + a.target : '(sin enlace)',
