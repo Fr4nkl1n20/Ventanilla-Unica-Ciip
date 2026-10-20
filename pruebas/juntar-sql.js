@@ -327,7 +327,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    19-10-2026): su tipo de documento, su política y el freno de resolver.
    No redefine nada de nadie; detrás de supabase-borrado-admin para no
    mover el número de ninguno. */
-'supabase-permiso-ambiental-sube'];
+'supabase-permiso-ambiental-sube',
+/* La ficha técnica de los permisos, por ente (Franklin Reyes, 20-10-2026):
+   la tabla que escribe el administrador desde «Ficha técnica» y lee el
+   equipo. Solo necesita es_admin() y es_gestor(); al final para no mover
+   el número de nadie. Nace vacía y sin relación con los trámites. */
+'supabase-fichas-tecnicas'];
 
 let mal = 0;
 for (const n of orden) {

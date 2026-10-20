@@ -1885,6 +1885,65 @@
        Nace VACIA, como la tabla: sin nada guardado el panel tiene que verse
        igual que sin ella. Guardar y volver al original se apuntan de verdad,
        para que una prueba pueda ver el texto cambiar y volver. */
+    /* La ficha técnica de los permisos (supabase-fichas-tecnicas.sql,
+       Franklin Reyes, 20-10-2026). Dos fichas de ejemplo de dos entes, para
+       que la lista tenga algo que agrupar; con window.__FICHAS_VACIAS la
+       tabla nace vacía, como en la base. Crear, cambiar y borrar se apuntan
+       de verdad -y lo que se mandó, en window.__FT_ESCRITO-, y solo el
+       admin escribe: a los demás la base les devuelve cero filas, que es
+       como bloquea RLS. En 'sinsql' la tabla no existe. */
+    if (tabla === 'fichas_tecnicas'){
+      if (sinSql) return {data:null, error:{
+        message:"Could not find the table 'public.fichas_tecnicas' in the schema cache", code:'PGRST205'}};
+      if (!window.__FICHAS_TECNICAS){
+        window.__FICHAS_TECNICAS = window.__FICHAS_VACIAS ? [] : [
+          {id:'ft1', ente_sigla:'MINTUR', ente:'Ministerio del Poder Popular para el Turismo',
+           codigo_ente:'RTN', nombre:'Inscripción en el Registro Turístico Nacional',
+           base_legal:'Resolución 007, Gaceta Oficial 40.883 del 12-4-2016',
+           supuestos:'Empresas que prestan servicios turísticos', sectores:['Turismo'],
+           momento:'operar', recaudos:['Acta constitutiva', 'RIF de la empresa'],
+           plazo:'15 días hábiles', vigencia:'2 años', tasa:'3 U.T.',
+           como_se_tramita:'En el RTN Digital', enlace:'', categoria:'Registro',
+           estado:'confirmado', notas:'', fuente:'Permisos_MINTUR',
+           actualizado_en: haceHoras(30)},
+          {id:'ft2', ente_sigla:'MINEC', ente:'Ministerio del Poder Popular para el Ecosocialismo',
+           codigo_ente:'', nombre:'Autorización de afectación de recursos naturales',
+           base_legal:'', supuestos:'', sectores:[], momento:'previo', recaudos:[],
+           plazo:'', vigencia:'', tasa:'', como_se_tramita:'', enlace:'', categoria:'',
+           estado:'borrador', notas:'', fuente:'', actualizado_en: haceHoras(5)}
+        ];
+      }
+      var FT = window.__FICHAS_TECNICAS;
+      var ftEscribe = esAdmin;
+      if (op && (op.insert || op.update || op.borra)){
+        (window.__FT_ESCRITO = window.__FT_ESCRITO || []).push(
+          JSON.parse(JSON.stringify({insert: op.insert || null, update: op.update || null,
+                                     borra: !!op.borra, eq: op.eq || null})));
+        if (!ftEscribe) return {data:[], error:null};
+      }
+      if (op && op.insert){
+        var nf = JSON.parse(JSON.stringify(op.insert));
+        nf.id = 'ft' + (FT.length + 10);
+        nf.actualizado_en = new Date().toISOString();
+        FT.push(nf);
+        return {data:[nf], error:null};
+      }
+      if (op && op.update){
+        var cf = FT.filter(function(x){ return op.eq && x.id === op.eq.id; });
+        cf.forEach(function(x){
+          Object.keys(op.update).forEach(function(k){ x[k] = op.update[k]; });
+          x.actualizado_en = new Date().toISOString();
+        });
+        return {data:JSON.parse(JSON.stringify(cf)), error:null};
+      }
+      if (op && op.borra){
+        var bf = FT.filter(function(x){ return op.eq && x.id === op.eq.id; });
+        window.__FICHAS_TECNICAS = FT.filter(function(x){ return bf.indexOf(x) < 0; });
+        return {data:bf, error:null};
+      }
+      if (caso !== 'gestor') return {data:[], error:null};
+      return {data:JSON.parse(JSON.stringify(FT)), error:null};
+    }
     if (tabla === 'textos_panel'){
       var TXP = window.__TEXTOS_PANEL = window.__TEXTOS_PANEL || [];
       if (op && op.upsert){

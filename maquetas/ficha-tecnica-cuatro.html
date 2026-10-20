@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Ficha técnica de los permisos</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   ADMINISTRACIÓN: LA FICHA TÉCNICA DE LOS PERMISOS, CUATRO FORMAS
+   Franklin Reyes, 20-10-2026: «la ficha técnica sería una nueva
+   pestaña», un renglón propio en el menú de Administración, para
+   consultar; y «quiero que armes maquetas de ficha técnica con lo que
+   tenemos».
+
+   «Lo que tenemos»: los 22 trámites que llevan ficha en el panel (FICHA
+   de panel.js), con su nombre y su descripción (i18n.js), el organismo
+   de su tarjeta, la etapa del catálogo, el plazo de la ventanilla y el
+   medido, a quién aplica, cómo se tramita, de qué trámite depende, sus
+   pasos (pasos.js) y sus recaudos; y la base legal que consta en la base
+   (supabase-plazos.sql, supabase-rtn.sql) o en los documentos del CIIP
+   (Permisos_MINTUR, Permisos_MINEC). Lo que no consta va como
+   «Pendiente», no inventado. Sacado del código el 20-10-2026; no toca el
+   panel ni la base.
+   ══════════════════════════════════════════════════════════════════ */
+:root{ --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB; }
+main{max-width:1240px; padding:28px 26px 90px; margin:0 auto;}
+@media (max-width:600px){ main{padding:20px 16px 60px;} }
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.idea{display:grid; gap:10px; margin-top:34px;}
+.idea h3{margin:0; font-size:15px; display:flex; gap:9px; align-items:center;}
+.idea h3 .n{width:24px; height:24px; border-radius:50%; background:var(--navy); color:#fff; font-size:12px; display:grid; place-items:center; flex:none;}
+.idea p{margin:0; font-size:12px; color:var(--gray); line-height:1.55; max-width:100ch;}
+.hoja{background:var(--bg); border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+.hoja-c{padding:18px;}
+.cab{display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+.cab h4{margin:0; font-size:16px;}
+.cab .sp{flex:1 1 auto;}
+.cab select, .busca{font:inherit; font-size:12.5px; padding:7px 10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink);}
+.busca{width:100%;}
+.btn{font:inherit; font-size:12px; font-weight:700; border-radius:8px; padding:7px 12px; border:1px solid var(--line); background:var(--bg); color:var(--navy2); cursor:pointer;}
+.pend{color:var(--gray-soft); font-style:italic; font-weight:400;}
+.chip{font-size:10.5px; font-weight:700; border-radius:6px; padding:2px 7px; background:var(--block); color:var(--gray); white-space:nowrap;}
+.chip.cond{background:var(--activa-bg); color:var(--navy2);}
+.dato{display:grid; grid-template-columns:170px minmax(0,1fr); gap:10px; font-size:12.5px; padding:8px 0; border-bottom:1px solid var(--line-soft);}
+.dato:last-child{border-bottom:0;}
+.dato .k{color:var(--gray);}
+.dato .v{font-weight:600; line-height:1.45;}
+@media (max-width:600px){ .dato{grid-template-columns:1fr; gap:2px;} }
+.tit{font-size:13px; font-weight:700; margin:16px 0 6px;}
+.tit:first-child{margin-top:0;}
+ol.pasos, ul.recs{margin:0; padding-left:18px; font-size:12.5px; line-height:1.7;}
+.faltan{font-size:11.5px; color:var(--gray); background:var(--block); border-radius:8px; padding:8px 10px; margin-top:12px;}
+
+/* 1 · tabla */
+.v1{overflow:auto;}
+.v1 table{border-collapse:collapse; width:100%; min-width:980px; font-size:12px;}
+.v1 th, .v1 td{text-align:left; padding:9px 10px; border-bottom:1px solid var(--line-soft); vertical-align:top;}
+.v1 th{font-size:11px; color:var(--gray); font-weight:700; position:sticky; top:0; background:var(--bg);}
+.v1 tbody tr{cursor:pointer;}
+.v1 tbody tr:hover td{background:var(--card-2);}
+.v1 tbody tr.on td{background:var(--activa-bg);}
+.v1 td b{font-weight:700;}
+.lado1{border-top:1px solid var(--line); padding:18px; display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+@media (max-width:800px){ .lado1{grid-template-columns:1fr;} }
+
+/* 2 · lista y ficha */
+.v2{display:grid; grid-template-columns:290px minmax(0,1fr); min-height:560px;}
+@media (max-width:800px){ .v2{grid-template-columns:1fr;} }
+.v2 .izq{border-right:1px solid var(--line); padding:14px; background:var(--card-2); display:flex; flex-direction:column; gap:6px; max-height:720px; overflow:auto;}
+.v2 .et{font-size:11px; font-weight:700; color:var(--gray); margin:10px 6px 2px;}
+.v2 .it{font:inherit; text-align:left; border:0; background:none; border-radius:9px; padding:8px 10px; cursor:pointer; display:grid; gap:2px;}
+.v2 .it b{font-size:12.5px; font-weight:600;}
+.v2 .it span{font-size:11px; color:var(--gray);}
+.v2 .it:hover{background:var(--bg);}
+.v2 .it.on{background:var(--bg); box-shadow:0 1px 2px rgba(0,0,0,.07);}
+.v2 .der{padding:20px 22px;}
+.v2 .der h5{margin:0; font-size:17px;}
+.v2 .der .desc{font-size:12.5px; color:var(--gray); margin:6px 0 14px; line-height:1.55;}
+
+/* 3 · tarjetas por etapa */
+.v3 .etapa + .etapa{margin-top:22px;}
+.v3 .etapa h5{margin:0 0 10px; font-size:14px;}
+.v3 .rej{display:grid; grid-template-columns:repeat(auto-fill, minmax(270px, 1fr)); gap:10px;}
+.v3 .tj{border-radius:12px; background:var(--card-2); padding:13px 14px; display:grid; gap:8px; align-content:start;}
+.v3 .tj h6{margin:0; font-size:13px; line-height:1.35;}
+.v3 .tj .en{font-size:11.5px; color:var(--gray);}
+.v3 .tj .fila{display:flex; justify-content:space-between; gap:10px; font-size:11.5px;}
+.v3 .tj .fila span:first-child{color:var(--gray);}
+.v3 .tj .fila span:last-child{font-weight:700; text-align:right;}
+.v3 .tj .pie{display:flex; gap:6px; flex-wrap:wrap;}
+
+/* 4 · por ente, para imprimir */
+.v4 .ente + .ente{margin-top:24px;}
+.v4 .ente h5{margin:0 0 10px; font-size:14px; display:flex; gap:8px; align-items:baseline;}
+.v4 .ente h5 span{font-size:11.5px; color:var(--gray); font-weight:400;}
+.v4 .ficha{border-radius:12px; background:var(--card-2); padding:14px 16px;}
+.v4 .ficha + .ficha{margin-top:10px;}
+.v4 .ficha h6{margin:0 0 8px; font-size:13.5px;}
+.v4 .cols{display:grid; grid-template-columns:1.3fr 1fr; gap:20px;}
+@media (max-width:800px){ .v4 .cols{grid-template-columns:1fr;} }
+@media print{ .mq-cartel, .intro, .idea:not(.imprime), .idea p, .idea h3{display:none !important;} .v4 .ficha{break-inside:avoid;} }
+</style>
+</head>
+<body>
+<div class="mq-cartel"><b>Maqueta · Ficha técnica de los permisos</b><span>Renglón propio en Administración, solo para consultar. Los 22 trámites con ficha en el panel, con lo que el panel sabe; lo demás, «Pendiente». No toca el panel.</span></div>
+<main>
+  <p class="intro">Todo lo que la ventanilla sabe de cada trámite está repartido entre la tarjeta, la ficha que ve el inversionista antes de empezar y los documentos del CIIP. Esta pantalla lo reúne para el administrador: de un vistazo se ve qué está dicho y qué falta por confirmar con cada ente.</p>
+
+  <section class="idea">
+    <h3><span class="n">1</span>Una tabla con todos, y la ficha debajo</h3>
+    <p>Todos los trámites en una tabla, con filtros por etapa, organismo y forma de tramitarse. Al pulsar una fila, debajo sale su ficha completa con los pasos y los recaudos. Para comparar trámites entre sí.</p>
+    <div class="hoja">
+      <div class="cab"><h4>Ficha técnica</h4><span class="sp"></span>
+        <select data-f1="etapa"><option value="">Todas las etapas</option></select>
+        <select data-f1="modo"><option value="">Todas las formas</option></select>
+      </div>
+      <div class="v1" data-tabla1></div>
+      <div class="lado1" data-lado1></div>
+    </div>
+  </section>
+
+  <section class="idea">
+    <h3><span class="n">2</span>La ficha de un trámite, como un documento</h3>
+    <p>A la izquierda los trámites por etapa, con buscador. A la derecha la ficha entera en secciones: qué es, a quién aplica, cómo se tramita y sus pasos, plazos, base legal, vigencia y costo, de qué depende y sus recaudos. Al pie, lo que falta por confirmar.</p>
+    <div class="hoja">
+      <div class="cab"><h4>Ficha técnica</h4></div>
+      <div class="v2">
+        <div class="izq"><input class="busca" placeholder="Buscar trámite u organismo" data-busca2><div data-lista2></div></div>
+        <div class="der" data-der2></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="idea">
+    <h3><span class="n">3</span>Tarjetas por etapa</h3>
+    <p>Las cuatro etapas del camino, cada trámite en una tarjeta con lo esencial: organismo, cómo se tramita, plazo de la ventanilla, plazo medido y a quién aplica. Las etiquetas del pie dicen cuántos datos faltan.</p>
+    <div class="hoja"><div class="cab"><h4>Ficha técnica</h4></div><div class="hoja-c v3" data-v3></div></div>
+  </section>
+
+  <section class="idea imprime">
+    <h3><span class="n">4</span>Por organismo, para revisar o imprimir</h3>
+    <p>Agrupado por ente, como las fichas que prepara el CIIP para cada uno (MINTUR, MINEC…): cada trámite con su ficha y sus pasos, y lo que falta por confirmar. Sirve para llevarlo a una reunión con el ente o con el equipo legal.</p>
+    <div class="hoja"><div class="cab"><h4>Ficha técnica</h4><span class="sp"></span><button class="btn" onclick="window.print()">Imprimir</button></div><div class="hoja-c v4" data-v4></div></div>
+  </section>
+</main>
+
+<script>
+(function(){
+  var DATOS = [{"ref":"c1","nombre":"Visa para extranjeros: de negocios (TR-N) o de inversionista (TR-I)","desc":"Para comerciantes, ejecutivos y representantes de empresas que vienen a hacer negocios sin residir. Vigencia de un año, con múltiples entradas y una permanencia de hasta 90 días, sin prórroga.","ente":"Ministerio del Poder Popular para Relaciones Exteriores","sigla":"MPPRE","fase":1,"plazo":30,"real":95,"aplica":"Solo en un caso","cond":"Si eres extranjero y vienes a hacer negocios sin residir","modo":"En persona, ante el organismo","depende":"","pasos":["Regístrate y solicita la visa a través del portal de Cancillería","Verificación de la solicitud","Visa otorgada"],"recaudos":["Pasaporte vigente"],"legal":{"norma":"Normas de Procedimiento para la Expedición de Visados, Gaceta Oficial Extraordinaria 5.427 del 5-1-2000"},"codigo":"visa_negocios"},{"ref":"c38","nombre":"Visa de inversionista (TR-I)","desc":"Para ti, si vienes a realizar, dirigir o administrar tu inversión y los organismos venezolanos ya la aceptaron. Vigencia de tres años, con múltiples entradas y sin límite de permanencia.","ente":"Ministerio del Poder Popular para Relaciones Exteriores","sigla":"MPPRE","fase":1,"plazo":30,"real":95,"aplica":"Solo en un caso","cond":"Si eres extranjero y vienes a realizar, dirigir o administrar tu inversión","modo":"En persona, ante el organismo","depende":"","pasos":["Regístrate y solicita la visa a través del portal de Cancillería","Verificación de la solicitud","Visa otorgada"],"recaudos":["Pasaporte vigente"],"legal":null,"codigo":"visa_inversionista"},{"ref":"c2","nombre":"Cédula de identidad de extranjero","desc":"Tu cédula venezolana. La necesitas para banca, inmuebles y contratos.","ente":"Registro y cedulación de extranjeros","sigla":"SAIME","fase":1,"plazo":30,"real":70,"aplica":"Solo en un caso","cond":"Si vas a residir en Venezuela","modo":"En persona, ante el organismo","depende":"","pasos":["Regístrate y solicita la cédula a través del portal del SAIME","Solicitud en proceso de verificación","Cédula otorgada"],"recaudos":["Pasaporte vigente"],"legal":null,"codigo":"cedula_residencia"},{"ref":"c5","nombre":"Constitución de la compañía","desc":"Redacción del acta con un despacho jurídico aliado y firma para inscribirla en el Registro Mercantil.","ente":"Registro Mercantil · SAREN","sigla":"SAREN","fase":2,"plazo":10,"real":26,"aplica":"Siempre","cond":"","modo":"Por la ventanilla, sin salir de aquí","depende":"","pasos":["Búsqueda y reserva del nombre","Redacción del documento por abogado colegiado","Revisión y firma de los socios","Documento constitutivo listo para protocolizar"],"recaudos":["Cédula o pasaporte","Tu RIF personal","Comprobante del capital (depósito o inventario)","Carta de aceptación del comisario (todas menos la firma personal) (según el caso)","Certificación de inventario por contador público","Empresa accionista: documento constitutivo y última acta de asamblea (opcional) (según el caso)","Empresa accionista: documento de identidad de sus accionistas (opcional) (según el caso)"],"legal":null,"codigo":"constitucion"},{"ref":"c6","nombre":"RIF de la empresa","desc":"Se pide apenas quede inscrita la compañía. El CIIP lo presenta por ti.","ente":"Registro Único de Información Fiscal","sigla":"SENIAT","fase":2,"plazo":3,"real":7,"aplica":"Siempre","cond":"","modo":"Por la ventanilla, sin salir de aquí","depende":"Constitución de la compañía","pasos":["Solicitud recibida por el CIIP","Planilla enviada por el CIIP","Firme la planilla","RIF emitido"],"recaudos":["Acta constitutiva","Cédula o pasaporte y RIF del representante legal","Contrato de servicios o constancia que acredite la dirección fiscal"],"legal":null,"codigo":"rif_empresa"},{"ref":"c7","nombre":"Cuenta bancaria empresarial","desc":"Apertura acompañada en un banco aliado, con cita presencial coordinada por nosotros.","ente":"Red de bancos aliados del CIIP","sigla":"Banca aliada","fase":2,"plazo":10,"real":25,"aplica":"Siempre","cond":"","modo":"Se entrega a mano al organismo","depende":"RIF de la empresa","pasos":["Solicitud en revisión","Cuenta aperturada"],"recaudos":["Acta constitutiva","RIF de la empresa","Cédula o pasaporte y RIF del representante legal","Declaración jurada de origen de fondos"],"legal":null,"codigo":"cuenta_bancaria"},{"ref":"c31","nombre":"Calificación de inversión extranjera directa y régimen de repatriación","desc":"Acredita el origen de tus fondos y habilita repatriar después las utilidades y el capital.","ente":"Órgano rector de inversiones extranjeras","sigla":"Órgano rector de inversiones extranjeras","fase":5,"plazo":15,"real":34,"aplica":"Solo en un caso","cond":"Si el capital es de origen extranjero","modo":"En el portal del organismo, con acuse","depende":"Constitución de la compañía","pasos":["Revisión de tus recaudos","Expediente de la inversión ante el órgano rector","Verificación del aporte y de su origen","Evaluación y registro de la inversión","Certificado de Inversionista emitido"],"recaudos":["Acta constitutiva","RIF de la empresa","Cédula o pasaporte","Comprobante del aporte","Soporte del origen de los fondos","Proyecto de inversión (opcional)"],"legal":null,"codigo":"registro_inversion"},{"ref":"c34","nombre":"Opinión favorable de la ZODI","desc":"Si la empresa se instala en zona fronteriza o de seguridad, o su actividad toca la defensa, la ZODI de la región revisa quiénes están detrás y da su visto bueno antes del Registro Mercantil.","ente":"Zona Operativa de Defensa Integral","sigla":"ZODI","fase":2,"plazo":null,"real":null,"aplica":"Solo en un caso","cond":"Si la empresa estará en zona fronteriza o de seguridad, o su actividad toca la defensa","modo":"En persona, ante el organismo","depende":"Constitución de la compañía","pasos":["Carta al Comandante de la ZODI con tu expediente","Apertura del expediente en la sede de la región","Inspección del sitio, si tu actividad la requiere","Opinión favorable emitida"],"recaudos":["Proyecto del documento constitutivo","Copia de la cédula o el pasaporte de los accionistas de la empresa a constituir","Información jurídica de la empresa accionista (según el caso)","Información jurídica de la empresa matriz (según el caso)","Certificado de existencia legal (Good Standing) (opcional) (según el caso)","Lista de accionistas hasta el beneficiario final, con copia de sus pasaportes (según el caso)","Lista de directores del accionista jurídico, con copia de sus pasaportes (según el caso)","Poder de representación (opcional)","Cédula de identidad del representante legal (opcional)","RIF del representante legal (opcional)"],"legal":null,"codigo":"opinion_zodi"},{"ref":"c37","nombre":"Inscripciones: Registros Parafiscales y Regulatorios","desc":"Una sola solicitud, y los mismos recaudos, para las seis inscripciones: FAOV, INCES, IVSS, RNET, RUPDAE y Registro Nacional de Contratistas.","ente":"BANAVIH · INCES · IVSS · Ministerio del Trabajo · SUNDDE · SNC","sigla":"Entes varios","fase":3,"plazo":null,"real":null,"aplica":"Siempre","cond":"","modo":"En el portal del organismo, con acuse","depende":"RIF de la empresa","pasos":["Solicitud recibida por el CIIP","Revisión de tus recaudos","Inscripción ante cada ente","Las seis constancias, en tu bóveda"],"recaudos":["Cédula de identidad del representante legal","RIF del representante legal","RIF de la empresa"],"legal":null,"codigo":"registros_parafiscales"},{"ref":"c10","nombre":"Autorización de actividades económicas (licencia municipal)","desc":"Permiso del municipio donde opera tu planta o local. Varía según la alcaldía.","ente":"Patente de industria y comercio","sigla":"Alcaldía","fase":3,"plazo":15,"real":40,"aplica":"Siempre","cond":"","modo":"En el portal del organismo, con acuse","depende":"RIF de la empresa","pasos":["Solicita la licencia de actividades económicas a través del portal de la alcaldía","Emisión de la licencia en proceso","Licencia de Actividades Económicas emitida"],"recaudos":[],"legal":null,"codigo":"licencia_municipal"},{"ref":"c11","nombre":"Habilitación aduanera y comercio exterior","desc":"Habilítate como importador o exportador y tramita certificados de origen.","ente":"","sigla":"VUCE","fase":3,"plazo":20,"real":42,"aplica":"Solo en un caso","cond":"Si importas maquinaria","modo":"En el portal del organismo, con acuse","depende":"Calificación de inversión extranjera directa y régimen de repatriación","pasos":["Registro como operador de comercio exterior","Clasificación arancelaria de la mercancía","Permisos sectoriales y certificado de origen","Autorización de despacho aduanero"],"recaudos":["Inscripción en el registro aduanero","Certificado de origen","RIF de la empresa","Certificado sanitario o fitosanitario (opcional)","Permiso específico de tu rubro (opcional)"],"legal":null,"codigo":"comercio_exterior"},{"ref":"c26","nombre":"Inscripción en el INCES","desc":"Aporte y registro ante el instituto de formación: obligatorio desde el quinto trabajador.","ente":"Instituto Nacional de Capacitación y Educación Socialista","sigla":"INCES","fase":3,"plazo":8,"real":16,"aplica":"Solo en un caso","cond":"Con cinco trabajadores o más","modo":"En el portal del organismo, con acuse","depende":"Registro Nacional de Entidades de Trabajo","pasos":["Solicitud de inscripción ante el INCES","Consignación del expediente de la empresa","Asignación del número de aportante","Certificado de inscripción emitido"],"recaudos":["Acta constitutiva","RIF de la empresa","Cédula o pasaporte","Nómina de trabajadores (opcional)"],"legal":null,"codigo":"inces"},{"ref":"c27","nombre":"Registro Nacional de Entidades de Trabajo","desc":"El RNET identifica a tu empresa como patrono ante el Ministerio del Trabajo.","ente":"Ministerio del Poder Popular para el Proceso Social de Trabajo","sigla":"MPPPST","fase":3,"plazo":10,"real":21,"aplica":"Siempre","cond":"","modo":"En el portal del organismo, con acuse","depende":"RIF de la empresa","pasos":["Creación del usuario en el sistema del RNET","Carga de los datos de la entidad de trabajo","Registro de la nómina de trabajadores","Constancia de registro emitida"],"recaudos":["Acta constitutiva","RIF de la empresa","Cédula o pasaporte","Nómina de trabajadores (opcional)"],"legal":null,"codigo":"rnet"},{"ref":"c28","nombre":"Conformidad de uso del inmueble","desc":"La alcaldía certifica que en ese local puedes ejercer tu actividad. Va antes de la licencia.","ente":"Dirección de Ingeniería Municipal","sigla":"Alcaldía","fase":3,"plazo":20,"real":45,"aplica":"Solo en un caso","cond":"Si tienes sede física","modo":"En persona, ante el organismo","depende":"RIF de la empresa","pasos":["Solicita la conformidad de uso del inmueble a través del portal de la alcaldía","Emisión de la conformidad de uso en proceso","Conformidad de uso emitida"],"recaudos":[],"legal":null,"codigo":"conformidad_uso"},{"ref":"c29","nombre":"Permiso de bomberos","desc":"Inspección de seguridad del local: salidas, extintores y detección de incendios.","ente":"Cuerpo de Bomberos del municipio","sigla":"Cuerpo de Bomberos","fase":3,"plazo":15,"real":32,"aplica":"Solo en un caso","cond":"Si tienes sede física","modo":"En persona, ante el organismo","depende":"Conformidad de uso del inmueble","pasos":["Realiza tu solicitud de permiso de bomberos a través del portal","Indica la sede de bomberos en la cual introdujiste la solicitud","Solicitud en revisión","Certificado de bomberos emitido"],"recaudos":[],"legal":null,"codigo":"permiso_bomberos"},{"ref":"c30","nombre":"Permisos ambientales","desc":"Se solicitan en el sistema en línea del MINEC que le toca a tu trámite, y el CIIP les da seguimiento.","ente":"Ministerio del Poder Popular para el Ecosocialismo","sigla":"MINEC","fase":3,"plazo":null,"real":null,"aplica":"Siempre","cond":"","modo":"En el portal del organismo, con acuse","depende":"RIF de la empresa","pasos":["Solicita tu permiso en el sistema en línea del MINEC","Sube el permiso que te otorgó el MINEC","Permiso confirmado por el CIIP"],"recaudos":[],"legal":null,"codigo":"permiso_ambiental"},{"ref":"c35","nombre":"Inscripción en el RUPDAE","desc":"El registro de la SUNDDE que necesita toda empresa que produce, importa, distribuye o vende para operar. Se hace en línea y sólo se actualiza si cambian tus datos.","ente":"Superintendencia Nacional para la Defensa de los Derechos Socioeconómicos","sigla":"SUNDDE","fase":3,"plazo":10,"real":null,"aplica":"Siempre","cond":"","modo":"En el portal del organismo, con acuse","depende":"RIF de la empresa","pasos":["Usuario en el portal RUPDAE con el RIF y el correo de la empresa","Carga de datos, establecimientos y representante legal","Revisión de la SUNDDE","Certificado RUPDAE emitido"],"recaudos":["Acta constitutiva","Última acta de asamblea (opcional)","RIF de la empresa","Cédula o pasaporte","Tu RIF personal","Poder de representación (opcional)"],"legal":null,"codigo":"rupdae"},{"ref":"c36","nombre":"Inscripción en el RUM","desc":"El Registro Único Minero: si tu empresa se dedica a la minería o a actividades ligadas a ella, te abre cualquier trámite ante el ministerio. El certificado dura tres años.","ente":"Ministerio del Poder Popular de Desarrollo Minero Ecológico","sigla":"Ministerio de Desarrollo Minero","fase":3,"plazo":null,"real":null,"aplica":"Solo en un caso","cond":"Si tu empresa se dedica a la minería o a actividades ligadas a ella","modo":"En el portal del organismo, con acuse","depende":"RIF de la empresa","pasos":["Solicita el Registro Único Minero a través del portal","Registro listo"],"recaudos":[],"legal":null,"codigo":"registro_minero"},{"ref":"c50","nombre":"Inscripción en el RTN","desc":"El Registro Turístico Nacional: si tu empresa presta servicios turísticos -alojamiento, agencia, transporte, alimentos y bebidas, recreación-, tiene que inscribirse. La credencial dura dos años.","ente":"Ministerio del Poder Popular para el Turismo","sigla":"MINTUR","fase":3,"plazo":15,"real":null,"aplica":"Solo en un caso","cond":"Si tu empresa presta servicios turísticos","modo":"En el portal del organismo, con acuse","depende":"Autorización de actividades económicas (licencia municipal)","pasos":["Solicita el Registro Turístico Nacional en el RTN Digital","Credencial lista"],"recaudos":["Acta constitutiva de la empresa","RIF de la empresa","Copia de la cédula o el pasaporte de todos los accionistas","Póliza de responsabilidad civil","Póliza de incendio"],"legal":{"dias":15,"norma":"Resolución 007 del Ministerio del Poder Popular para el Turismo, Gaceta Oficial 40.883 del 12-4-2016"},"codigo":"registro_turistico"},{"ref":"c39","nombre":"Inscripción en el SIDCAI (aporte LOCTI)","desc":"El aporte a la ciencia y la tecnología ante el FONACIT: si tu empresa ingresó el año pasado más de 150.000 veces el tipo de cambio oficial del BCV, se registra en el SIDCAI y aporta cada mes entre el 0,5 % y el 2 % de sus ingresos brutos.","ente":"Fondo Nacional de Ciencia, Tecnología e Innovación","sigla":"FONACIT","fase":3,"plazo":null,"real":null,"aplica":"Solo en un caso","cond":"Si tu empresa ingresó el año pasado más de 150.000 veces el tipo de cambio oficial del BCV (moneda de mayor valor)","modo":"En el portal del organismo, con acuse","depende":"RIF de la empresa","pasos":["Inscríbete en el FONACIT a través del portal","Inscripción lista"],"recaudos":[],"legal":null,"codigo":"aporte_locti"},{"ref":"c40","nombre":"Declaración y primer pago del aporte LOCTI","desc":"El CIIP te envía la planilla que genera el SIDCAI, pagas en el banco y subes el comprobante. De ahí sale el certificado de solvencia del FONACIT.","ente":"Fondo Nacional de Ciencia, Tecnología e Innovación","sigla":"FONACIT","fase":3,"plazo":null,"real":null,"aplica":"Solo en un caso","cond":"Si tu empresa ingresó el año pasado más de 150.000 veces el tipo de cambio oficial del BCV (moneda de mayor valor)","modo":"En el portal del organismo, con acuse","depende":"Inscripción en el SIDCAI (aporte LOCTI)","pasos":["Planilla de pago generada en el SIDCAI","Pago del aporte en el banco","Carga del comprobante en el SIDCAI","Revisión del FONACIT","Certificado de solvencia emitido"],"recaudos":["RIF de la empresa"],"legal":null,"codigo":"aporte_locti_pago"},{"ref":"c14","nombre":"Certificación de cumplimiento continuo (solvencias integrales)","desc":"Certifican que estás al día. Te avisamos antes de cada vencimiento.","ente":"Solvencias del IVSS, INCES y de la alcaldía","sigla":"Entes varios","fase":4,"plazo":10,"real":17,"aplica":"Se repite","cond":"Si vas a contratar con el Estado","modo":"Por la ventanilla, sin salir de aquí","depende":"Inscripciones: Registros Parafiscales y Regulatorios","pasos":["Revisión de tus recaudos","Solvencia laboral del Ministerio del Trabajo","Solvencias del IVSS y del INCES","Solvencia municipal de la alcaldía","Expediente de solvencias al día"],"recaudos":["RIF de la empresa","Acta constitutiva","Cédula o pasaporte","Constancia de inscripción en el RNET","Licencia de actividades económicas","Poder de representación (opcional)"],"legal":null,"codigo":"solvencias"}];
+  /* Lo que consta en los documentos del CIIP (Permisos_MINTUR, Permisos_MINEC)
+     y no en el panel. */
+  var MAS = {
+    c50: {vigencia:'2 años; se renueva 30 días antes de vencer', costo:'3 U.T. la inscripción, 1 U.T. la actualización'},
+    c30: {base:'Ley Orgánica del Ambiente, arts. 18 y 82', vigencia:'Según cada trámite del MINEC', costo:'Según cada trámite del MINEC', como:'Ventanilla Verde, SIGETRAT, SIFORTRAT, RACDA, SIALAMB o RENMA'},
+    c36: {vigencia:'3 años'}
+  };
+  var ETAPA = {1:'Etapa 1 · Acreditación de identidad y legitimación', 2:'Etapa 2 · Estructuración corporativa',
+               3:'Etapa 3 · Habilitación operativa y cumplimiento', 4:'Etapa 4 · Expansión y consolidación de inversión'};
+  var P = 'Pendiente';
+  DATOS.forEach(function(d){
+    d.etapa = d.fase >= 4 ? 4 : d.fase;
+    var m = MAS[d.ref] || {};
+    d.base = (d.legal && d.legal.norma) || m.base || P;
+    d.vigencia = m.vigencia || P;
+    d.costo = m.costo || P;
+    d.sistemas = m.como || '';
+    d.organismo = d.ente || d.sigla;
+  });
+  function el(t, c, h){ var e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(x){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[x]; }); }
+  function v(x){ return (!x || x === P) ? '<span class="pend">' + P + '</span>' : esc(x); }
+  function plazo(d){ return d.plazo ? d.plazo + ' días' : null; }
+  function real(d){ return d.real ? d.real + ' días' : null; }
+  function aplica(d){ return d.cond ? d.cond : d.aplica; }
+  function faltan(d){
+    var f = [];
+    if (!d.plazo) f.push('el plazo');
+    if (d.base === P) f.push('la base legal');
+    if (d.vigencia === P) f.push('la vigencia');
+    if (d.costo === P) f.push('el costo');
+    return f;
+  }
+  function datos(d, sinPasos){
+    var c = el('div');
+    var filas = [
+      ['Organismo', esc(d.organismo)],
+      ['Etapa', esc(ETAPA[d.etapa] || '')],
+      ['A quién aplica', esc(aplica(d))],
+      ['Cómo se tramita', esc(d.modo) + (d.sistemas ? '<br><span style="font-weight:400;color:var(--gray)">' + esc(d.sistemas) + '</span>' : '')],
+      ['Plazo de la ventanilla', v(plazo(d))],
+      ['Plazo medido', d.real ? esc(real(d)) : '<span class="pend">Sin medir todavía</span>'],
+      ['Base legal', v(d.base)],
+      ['Vigencia', v(d.vigencia)],
+      ['Costo o tasa', v(d.costo)],
+      ['Va después de', d.depende ? esc(d.depende) : '<span class="pend">De ninguno</span>']
+    ];
+    filas.forEach(function(f){ var r = el('div', 'dato'); r.appendChild(el('div', 'k', f[0])); r.appendChild(el('div', 'v', f[1])); c.appendChild(r); });
+    return c;
+  }
+  function pasosYRecaudos(d){
+    var c = el('div');
+    c.appendChild(el('p', 'tit', 'Pasos'));
+    if (d.pasos.length){ var o = el('ol', 'pasos'); d.pasos.forEach(function(p){ o.appendChild(el('li', null, esc(p))); }); c.appendChild(o); }
+    else c.appendChild(el('div', 'pend', 'Sin pasos propios'));
+    c.appendChild(el('p', 'tit', 'Recaudos en la ventanilla'));
+    if (d.recaudos.length){ var u = el('ul', 'recs'); d.recaudos.forEach(function(r){ u.appendChild(el('li', null, esc(r))); }); c.appendChild(u); }
+    else c.appendChild(el('div', null, '<span class="pend">Ninguno: los pide el organismo en su portal</span>'));
+    var f = faltan(d);
+    if (f.length) c.appendChild(el('div', 'faltan', 'Por confirmar con el organismo: ' + f.join(', ') + '.'));
+    return c;
+  }
+
+  /* 1 */
+  var sel1 = 'c50', f1 = {etapa:'', modo:''};
+  var se = document.querySelector('[data-f1="etapa"]'), sm = document.querySelector('[data-f1="modo"]');
+  [1,2,3,4].forEach(function(n){ var o = el('option', null, 'Etapa ' + n); o.value = n; se.appendChild(o); });
+  DATOS.map(function(d){ return d.modo; }).filter(function(m, i, a){ return a.indexOf(m) === i; }).forEach(function(m){ var o = el('option', null, esc(m)); o.value = m; sm.appendChild(o); });
+  se.addEventListener('change', function(){ f1.etapa = se.value; pinta1(); });
+  sm.addEventListener('change', function(){ f1.modo = sm.value; pinta1(); });
+  function pinta1(){
+    var h = '<table><thead><tr><th>Trámite</th><th>Organismo</th><th>Etapa</th><th>Cómo se tramita</th><th>Plazo de la ventanilla</th><th>Medido</th><th>A quién aplica</th><th>Va después de</th></tr></thead><tbody>';
+    DATOS.filter(function(d){ return (!f1.etapa || String(d.etapa) === f1.etapa) && (!f1.modo || d.modo === f1.modo); }).forEach(function(d){
+      h += '<tr data-ref="' + d.ref + '"' + (sel1 === d.ref ? ' class="on"' : '') + '><td><b>' + esc(d.nombre) + '</b></td><td>' + esc(d.organismo) + '</td><td>' + d.etapa + '</td><td>' + esc(d.modo) + '</td><td>' + v(plazo(d)) + '</td><td>' + (d.real ? esc(real(d)) : '<span class="pend">—</span>') + '</td><td>' + (d.cond ? '<span class="chip cond">Solo en un caso</span>' : esc(d.aplica)) + '</td><td>' + (d.depende ? esc(d.depende) : '<span class="pend">—</span>') + '</td></tr>';
+    });
+    h += '</tbody></table>';
+    var t = document.querySelector('[data-tabla1]'); t.innerHTML = h;
+    t.querySelectorAll('tbody tr').forEach(function(tr){ tr.addEventListener('click', function(){ sel1 = tr.getAttribute('data-ref'); pinta1(); }); });
+    var d = DATOS.filter(function(x){ return x.ref === sel1; })[0];
+    var l = document.querySelector('[data-lado1]'); l.innerHTML = '';
+    if (!d) return;
+    var a = el('div'); a.appendChild(el('p', 'tit', esc(d.nombre))); a.appendChild(datos(d)); l.appendChild(a);
+    l.appendChild(pasosYRecaudos(d));
+  }
+
+  /* 2 */
+  var sel2 = 'c30', filtro2 = '';
+  function pinta2(){
+    var li = document.querySelector('[data-lista2]'); li.innerHTML = '';
+    [1,2,3,4].forEach(function(n){
+      var suyos = DATOS.filter(function(d){ return d.etapa === n && (!filtro2 || (d.nombre + ' ' + d.organismo).toLowerCase().indexOf(filtro2) >= 0); });
+      if (!suyos.length) return;
+      li.appendChild(el('div', 'et', 'Etapa ' + n));
+      suyos.forEach(function(d){
+        var b = el('button', 'it' + (sel2 === d.ref ? ' on' : ''), '<b>' + esc(d.nombre) + '</b><span>' + esc(d.organismo) + '</span>');
+        b.addEventListener('click', function(){ sel2 = d.ref; pinta2(); });
+        li.appendChild(b);
+      });
+    });
+    var d = DATOS.filter(function(x){ return x.ref === sel2; })[0];
+    var r = document.querySelector('[data-der2]'); r.innerHTML = '';
+    r.appendChild(el('h5', null, esc(d.nombre)));
+    r.appendChild(el('div', 'desc', esc(d.desc)));
+    r.appendChild(datos(d));
+    r.appendChild(pasosYRecaudos(d));
+  }
+  document.querySelector('[data-busca2]').addEventListener('input', function(){ filtro2 = this.value.toLowerCase(); pinta2(); });
+
+  /* 3 */
+  function pinta3(){
+    var v3 = document.querySelector('[data-v3]'); v3.innerHTML = '';
+    [1,2,3,4].forEach(function(n){
+      var suyos = DATOS.filter(function(d){ return d.etapa === n; });
+      if (!suyos.length) return;
+      var e = el('div', 'etapa'); e.appendChild(el('h5', null, esc(ETAPA[n])));
+      var rj = el('div', 'rej');
+      suyos.forEach(function(d){
+        var t = el('div', 'tj');
+        t.appendChild(el('h6', null, esc(d.nombre)));
+        t.appendChild(el('div', 'en', esc(d.organismo)));
+        [['Cómo', d.modo], ['Plazo', plazo(d) || P], ['Medido', real(d) || '—'], ['Aplica', d.cond ? 'Solo en un caso' : d.aplica]].forEach(function(f){
+          t.appendChild(el('div', 'fila', '<span>' + f[0] + '</span><span>' + (f[1] === P ? '<span class="pend">' + P + '</span>' : esc(f[1])) + '</span>'));
+        });
+        var pie = el('div', 'pie');
+        pie.appendChild(el('span', 'chip', d.pasos.length + ' pasos'));
+        pie.appendChild(el('span', 'chip', d.recaudos.length + ' recaudos'));
+        var fl = faltan(d).length;
+        if (fl) pie.appendChild(el('span', 'chip', fl + ' por confirmar'));
+        t.appendChild(pie);
+        rj.appendChild(t);
+      });
+      e.appendChild(rj); v3.appendChild(e);
+    });
+  }
+
+  /* 4 */
+  function pinta4(){
+    var v4 = document.querySelector('[data-v4]'); v4.innerHTML = '';
+    var entes = [];
+    DATOS.forEach(function(d){ if (entes.indexOf(d.organismo) < 0) entes.push(d.organismo); });
+    entes.sort(function(a, b){ return a.localeCompare(b); }).forEach(function(en){
+      var suyos = DATOS.filter(function(d){ return d.organismo === en; });
+      var w = el('div', 'ente');
+      w.appendChild(el('h5', null, esc(en) + '<span>' + suyos.length + (suyos.length === 1 ? ' trámite' : ' trámites') + '</span>'));
+      suyos.forEach(function(d){
+        var f = el('div', 'ficha');
+        f.appendChild(el('h6', null, esc(d.nombre)));
+        var c = el('div', 'cols'); c.appendChild(datos(d)); c.appendChild(pasosYRecaudos(d));
+        f.appendChild(c); w.appendChild(f);
+      });
+      v4.appendChild(w);
+    });
+  }
+
+  pinta1(); pinta2(); pinta3(); pinta4();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Recaudos y ficha técnica</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   ADMINISTRACIÓN: RECAUDOS Y FICHA TÉCNICA DE LOS PERMISOS
+   Franklin Reyes, 20-10-2026, con la foto del menú de Administración
+   (Usuarios y equipo, Catálogo, Control y Estadísticas…): «aquí debe
+   estar también una pestaña de recaudos y ficha técnica de permisos».
+
+   Cuatro formas de la misma pantalla del administrador, con seis
+   trámites de verdad: sus recaudos como los pide hoy el panel (ya con
+   las correcciones del 19-10-2026) y su ficha técnica con lo que el panel
+   sabe -ente, cómo se tramita, plazo, base legal-; lo que no consta va
+   como «Pendiente», no inventado. Se puede navegar y, en la 2, editar en
+   memoria. No toca el panel ni la base.
+   ══════════════════════════════════════════════════════════════════ */
+:root{ --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB; }
+main{max-width:1240px; padding:28px 26px 90px; margin:0 auto;}
+@media (max-width:600px){ main{padding:20px 16px 60px;} }
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.idea{display:grid; gap:10px; margin-top:34px;}
+.idea h3{margin:0; font-size:15px; display:flex; gap:9px; align-items:center;}
+.idea h3 .n{width:24px; height:24px; border-radius:50%; background:var(--navy); color:#fff; font-size:12px; display:grid; place-items:center; flex:none;}
+.idea p{margin:0; font-size:12px; color:var(--gray); line-height:1.55; max-width:100ch;}
+.hoja{background:var(--bg); border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+.hoja-c{padding:18px;}
+.cab{display:flex; align-items:center; gap:12px; padding:14px 18px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+.cab h4{margin:0; font-size:16px;}
+.cab .sp{flex:1 1 auto;}
+.pes{display:flex; gap:4px; background:var(--block); border-radius:10px; padding:3px;}
+.pes button{font:inherit; font-size:12px; font-weight:700; border:0; background:none; border-radius:8px; padding:7px 12px; cursor:pointer; color:var(--gray);}
+.pes button.on{background:var(--bg); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.btn{font:inherit; font-size:12px; font-weight:700; border-radius:8px; padding:7px 12px; border:1px solid var(--line); background:var(--bg); color:var(--navy2); cursor:pointer;}
+.btn.navy{background:var(--navy); border-color:var(--navy); color:#fff;}
+.btn:hover{border-color:var(--navy2);}
+.busca{font:inherit; font-size:12.5px; padding:8px 11px; border:1px solid var(--line); border-radius:8px; width:100%; background:var(--bg);}
+.chip{font-size:10.5px; font-weight:700; border-radius:6px; padding:2px 7px; background:var(--block); color:var(--gray); white-space:nowrap;}
+.chip.opc{background:var(--line-soft);}
+.chip.cond{background:var(--activa-bg); color:var(--navy2);}
+.pend{color:var(--gray-soft); font-style:italic;}
+.dato{display:grid; grid-template-columns:150px minmax(0,1fr); gap:10px; font-size:12.5px; padding:8px 0; border-bottom:1px solid var(--line-soft);}
+.dato:last-child{border-bottom:0;}
+.dato .k{color:var(--gray);}
+.dato .v{font-weight:600;}
+@media (max-width:600px){ .dato{grid-template-columns:1fr; gap:2px;} }
+.rec{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; background:var(--card-2); font-size:12.5px;}
+.rec + .rec{margin-top:6px;}
+.rec .t{flex:1 1 auto; min-width:0;}
+.rec .t small{display:block; color:var(--gray); font-size:11px; margin-top:2px;}
+.rec .num{width:20px; color:var(--gray-soft); font-size:11px; font-weight:700; flex:none;}
+.rec select{font:inherit; font-size:11.5px; padding:4px 6px; border:1px solid var(--line); border-radius:6px; background:var(--bg);}
+.rec .quita{border:0; background:none; color:var(--gray-soft); cursor:pointer; font-size:15px; padding:0 4px;}
+.rec .quita:hover{color:var(--rust);}
+.vacio{font-size:12.5px; color:var(--gray); background:var(--card-2); border-radius:10px; padding:12px;}
+.tit{font-size:13px; font-weight:700; margin:0 0 8px;}
+
+/* 1 · pestaña dentro de Catálogo */
+.v1 .tr{border-radius:10px; background:var(--card-2);}
+.v1 .tr + .tr{margin-top:6px;}
+.v1 .tr-c{display:flex; align-items:center; gap:10px; padding:11px 13px; cursor:pointer; font-size:13px;}
+.v1 .tr-c b{flex:1 1 auto;}
+.v1 .tr-c span{font-size:11.5px; color:var(--gray);}
+.v1 .tr-b{display:grid; grid-template-columns:1fr 1fr; gap:18px; padding:4px 13px 16px;}
+.v1 .tr:not(.abierto) .tr-b{display:none;}
+.v1 .tr-b .rec{background:var(--bg);}
+@media (max-width:800px){ .v1 .tr-b{grid-template-columns:1fr;} }
+
+/* 2 · maestro y detalle */
+.v2{display:grid; grid-template-columns:280px minmax(0,1fr); min-height:480px;}
+@media (max-width:800px){ .v2{grid-template-columns:1fr;} }
+.v2 .izq{border-right:1px solid var(--line); padding:14px; display:flex; flex-direction:column; gap:8px; background:var(--card-2);}
+.v2 .it{font:inherit; text-align:left; border:0; background:none; border-radius:9px; padding:9px 10px; cursor:pointer; display:grid; gap:2px;}
+.v2 .it b{font-size:12.5px;}
+.v2 .it span{font-size:11px; color:var(--gray);}
+.v2 .it:hover{background:var(--bg);}
+.v2 .it.on{background:var(--bg); box-shadow:0 1px 2px rgba(0,0,0,.07);}
+.v2 .der{padding:18px;}
+.v2 .der-c{display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+.v2 .der-c h5{margin:0; font-size:15px; flex:1 1 auto;}
+.v2 .der-c small{display:block; font-size:11.5px; color:var(--gray); font-weight:400;}
+.v2 .nuevo{display:flex; gap:8px; margin-top:10px;}
+.v2 .nuevo input{flex:1 1 auto;}
+
+/* 3 · matriz */
+.v3 .tabla{overflow:auto;}
+.v3 table{border-collapse:collapse; font-size:12px; min-width:760px; width:100%;}
+.v3 th, .v3 td{padding:8px 9px; border-bottom:1px solid var(--line-soft); text-align:center;}
+.v3 th{font-size:11px; color:var(--gray); font-weight:700; vertical-align:bottom;}
+.v3 th.tr{cursor:pointer;}
+.v3 th.tr.on{color:var(--navy2);}
+.v3 td:first-child, .v3 th:first-child{text-align:left; position:sticky; left:0; background:var(--bg);}
+.v3 td .si{display:inline-grid; place-items:center; width:20px; height:20px; border-radius:50%; background:var(--good-bg); color:var(--good); font-weight:800; font-size:11px;}
+.v3 td .op{display:inline-grid; place-items:center; width:20px; height:20px; border-radius:50%; border:1.5px dashed var(--gray-soft); color:var(--gray); font-size:10px;}
+.v3 td.cuenta{color:var(--gray); font-weight:700;}
+.v3 .bajo{margin-top:16px; display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+@media (max-width:800px){ .v3 .bajo{grid-template-columns:1fr;} }
+
+/* 4 · por ente, como las fichas de Valeria */
+.v4 .ente + .ente{margin-top:22px;}
+.v4 .ente h5{margin:0 0 10px; font-size:14px; display:flex; gap:8px; align-items:baseline;}
+.v4 .ente h5 span{font-size:11.5px; color:var(--gray); font-weight:400;}
+.v4 .ficha{border-radius:12px; background:var(--card-2); padding:14px 16px;}
+.v4 .ficha + .ficha{margin-top:10px;}
+.v4 .ficha h6{margin:0 0 8px; font-size:13.5px;}
+.v4 .ficha .cols{display:grid; grid-template-columns:1.2fr 1fr; gap:18px;}
+@media (max-width:800px){ .v4 .ficha .cols{grid-template-columns:1fr;} }
+.v4 ol{margin:0; padding-left:18px; font-size:12.5px; line-height:1.7;}
+.v4 .faltan{font-size:11.5px; color:var(--gray); margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="mq-cartel"><b>Maqueta · Administración: recaudos y ficha técnica</b><span>Cuatro formas de la pestaña nueva, con seis trámites de verdad. Lo que no consta va como «Pendiente». No toca el panel ni la base.</span></div>
+<main>
+  <p class="intro">Hoy los recaudos y los datos de cada permiso -base legal, plazo, vigencia, costo- viven en el código y en los documentos de cada ente. Esta pestaña los pone a la vista del administrador, junto al Catálogo, para revisarlos y, más adelante, cambiarlos sin pedir una nueva versión del panel.</p>
+
+  <section class="idea">
+    <h3><span class="n">1</span>Una pestaña más dentro de Catálogo</h3>
+    <p>El Catálogo gana dos pestañas: «Trámites» (lo de hoy, con su interruptor) y «Recaudos y ficha técnica». Cada trámite se despliega y enseña a la izquierda sus recaudos y a la derecha su ficha. Para consultar, sin salir del Catálogo.</p>
+    <div class="hoja">
+      <div class="cab"><h4>Catálogo</h4><span class="sp"></span><div class="pes"><button>Trámites</button><button class="on">Recaudos y ficha técnica</button></div></div>
+      <div class="hoja-c v1" data-v1></div>
+    </div>
+  </section>
+
+  <section class="idea">
+    <h3><span class="n">2</span>Lista y detalle, para editar</h3>
+    <p>Un renglón propio en el menú de Administración. A la izquierda los trámites con buscador; a la derecha el elegido, con sus dos pestañas. En «Recaudos» se cambia si cada papel es obligatorio, opcional o condicionado, se quita o se añade; en «Ficha técnica» se editan los datos. Aquí los cambios se quedan en memoria.</p>
+    <div class="hoja">
+      <div class="cab"><h4>Recaudos y ficha técnica</h4></div>
+      <div class="v2">
+        <div class="izq"><input class="busca" placeholder="Buscar trámite o ente" data-busca2><div data-lista2></div></div>
+        <div class="der" data-der2></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="idea">
+    <h3><span class="n">3</span>La matriz: qué papel pide cada trámite</h3>
+    <p>Los documentos en filas y los trámites en columnas, con la cuenta de cuántos lo piden. Se ve de un vistazo qué papeles se repiten y cuáles pide un solo trámite, como en el cuadro de recaudos del CIIP. Al pulsar un trámite, abajo sale su ficha técnica.</p>
+    <div class="hoja">
+      <div class="cab"><h4>Recaudos y ficha técnica</h4><span class="sp"></span><span class="chip">● obligatorio</span><span class="chip">○ opcional o condicionado</span></div>
+      <div class="hoja-c v3"><div class="tabla" data-tabla3></div><div class="bajo" data-bajo3></div></div>
+    </div>
+  </section>
+
+  <section class="idea">
+    <h3><span class="n">4</span>Por ente, como las fichas de los documentos</h3>
+    <p>Agrupado por organismo, con la misma estructura de las fichas que prepara el CIIP para cada ente (MINTUR, MINEC…): cada permiso con su ficha técnica y sus recaudos numerados, y lo que falta por confirmar contado al pie. Sirve para revisarlo con el equipo legal o imprimirlo.</p>
+    <div class="hoja">
+      <div class="cab"><h4>Recaudos y ficha técnica</h4><span class="sp"></span><button class="btn">Imprimir</button></div>
+      <div class="hoja-c v4" data-v4></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  var P = 'Pendiente';
+  var TR = [
+    {ref:'c5', nom:'Constitución de la empresa', ente:'SAREN', fase:'Etapa 2',
+     ficha:{como:'Por la ventanilla: el CIIP reserva el nombre y presenta ante el SAREN', plazo:'10 días (estimado; medido: 26)', base:P, vigencia:'No vence', costo:'Aranceles del SAREN, con la planilla PUB', momento:'Previo a la ejecución'},
+     rec:[['Cédula o pasaporte y RIF del representante legal','o'],['Tu RIF personal','o'],['Comprobante del capital (depósito o inventario)','o'],['Carta de aceptación del comisario','c','salvo firma personal'],['Certificación de inventario por contador público','o'],['Empresa accionista: documento constitutivo y última acta de asamblea','c','si un accionista es una empresa'],['Empresa accionista: documento de identidad de sus accionistas','c','si un accionista es una empresa']]},
+    {ref:'c6', nom:'RIF de la empresa', ente:'SENIAT', fase:'Etapa 2',
+     ficha:{como:'Por la ventanilla: el CIIP lo presenta', plazo:'3 días (estimado; medido: 7)', base:P, vigencia:P, costo:P, momento:'Previo a la ejecución'},
+     rec:[['Acta constitutiva','o'],['Cédula o pasaporte y RIF del representante legal','o'],['Contrato de servicios o constancia que acredite la dirección fiscal','o']]},
+    {ref:'c7', nom:'Cuenta bancaria empresarial', ente:'Banco de Venezuela', fase:'Etapa 2',
+     ficha:{como:'Por la ventanilla, con el banco asignado', plazo:'10 días (estimado; medido: 25)', base:P, vigencia:'No vence', costo:P, momento:'Previo a la ejecución'},
+     rec:[['Acta constitutiva','o'],['RIF de la empresa','o'],['Cédula o pasaporte y RIF del representante legal','o'],['Declaración jurada de origen de fondos','o']]},
+    {ref:'c8', nom:'Registro de marca', ente:'SAPI', fase:'Etapa 2',
+     ficha:{como:'Por la ventanilla: el CIIP lo presenta ante el SAPI', plazo:'De 4 a 8 meses (estimado)', base:P, vigencia:P, costo:'Tasas del SAPI', momento:'Durante la ejecución'},
+     rec:[['Logo','o'],['Acta constitutiva de la empresa','o'],['RIF de la empresa','o'],['Cédula o pasaporte del representante legal','o'],['RIF del representante legal','o']]},
+    {ref:'c50', nom:'Registro Turístico Nacional (RTN)', ente:'MINTUR', fase:'Etapa 3',
+     ficha:{como:'En el portal del ente: RTN Digital (turismonac.mintur.gob.ve)', plazo:'15 días hábiles', base:'Resolución 007 del MINTUR, Gaceta Oficial 40.883 del 12-4-2016', vigencia:'2 años; se renueva 30 días antes de vencer', costo:'3 U.T. la inscripción, 1 U.T. la actualización', momento:'Para operar', cond:'Solo si la empresa presta servicios turísticos'},
+     rec:[['Acta constitutiva de la empresa','o'],['RIF de la empresa','o'],['Copia de la cédula o el pasaporte de todos los accionistas','o'],['Póliza de responsabilidad civil','o'],['Póliza de incendio','o']]},
+    {ref:'c30', nom:'Permisos ambientales', ente:'MINEC', fase:'Etapa 3',
+     ficha:{como:'En los sistemas en línea del MINEC: Ventanilla Verde, SIGETRAT, SIFORTRAT, RACDA, SIALAMB o RENMA', plazo:'Según cada trámite del MINEC', base:'Ley Orgánica del Ambiente, arts. 18 y 82', vigencia:'Según cada trámite', costo:'Según cada trámite', momento:'Previo a la ejecución'},
+     rec:[]}
+  ];
+  var FICHA_K = [['como','Cómo se tramita'],['plazo','Plazo'],['base','Base legal'],['vigencia','Vigencia'],['costo','Costo o tasa'],['momento','Momento'],['cond','Cuándo aplica']];
+  function el(t, c, h){ var e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(x){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[x]; }); }
+  function valor(v){ return v === P || !v ? '<span class="pend">' + P + '</span>' : esc(v); }
+  function fichaDe(t){
+    var c = el('div');
+    FICHA_K.forEach(function(k){
+      if (k[0] === 'cond' && !t.ficha.cond) return;
+      var d = el('div', 'dato');
+      d.appendChild(el('div', 'k', k[1]));
+      d.appendChild(el('div', 'v', valor(t.ficha[k[0]])));
+      c.appendChild(d);
+    });
+    var de = el('div', 'dato'); de.appendChild(el('div', 'k', 'Ente')); de.appendChild(el('div', 'v', esc(t.ente))); c.insertBefore(de, c.firstChild);
+    return c;
+  }
+  function recDe(t){
+    var c = el('div');
+    if (!t.rec.length){ c.appendChild(el('div', 'vacio', 'Sin recaudos en la ventanilla: los pide el sistema del ente.')); return c; }
+    t.rec.forEach(function(r, i){
+      var f = el('div', 'rec');
+      f.appendChild(el('span', 'num', String(i + 1)));
+      f.appendChild(el('div', 't', esc(r[0]) + (r[2] ? '<small>' + esc(r[2]) + '</small>' : '')));
+      if (r[1] === 'c') f.appendChild(el('span', 'chip cond', 'Condicionado'));
+      else if (r[1] === 'p') f.appendChild(el('span', 'chip opc', 'Opcional'));
+      else f.appendChild(el('span', 'chip', 'Obligatorio'));
+      c.appendChild(f);
+    });
+    return c;
+  }
+  function pendientes(t){ return Object.keys(t.ficha).filter(function(k){ return t.ficha[k] === P; }).length; }
+
+  /* 1 */
+  var abierto1 = 'c50';
+  function pinta1(){
+    var v = document.querySelector('[data-v1]'); v.innerHTML = '';
+    TR.forEach(function(t){
+      var w = el('div', 'tr' + (abierto1 === t.ref ? ' abierto' : ''));
+      var c = el('div', 'tr-c');
+      c.appendChild(el('b', null, esc(t.nom)));
+      c.appendChild(el('span', null, esc(t.ente) + ' · ' + t.rec.length + ' recaudos' + (pendientes(t) ? ' · ' + pendientes(t) + ' por confirmar' : '')));
+      c.appendChild(el('span', null, abierto1 === t.ref ? '▴' : '▾'));
+      c.addEventListener('click', function(){ abierto1 = abierto1 === t.ref ? null : t.ref; pinta1(); });
+      w.appendChild(c);
+      var b = el('div', 'tr-b');
+      var a = el('div'); a.appendChild(el('p', 'tit', 'Recaudos')); a.appendChild(recDe(t));
+      var z = el('div'); z.appendChild(el('p', 'tit', 'Ficha técnica')); z.appendChild(fichaDe(t));
+      b.appendChild(a); b.appendChild(z);
+      w.appendChild(b);
+      v.appendChild(w);
+    });
+  }
+
+  /* 2 */
+  var sel2 = 'c30', pes2 = 'rec', filtro2 = '';
+  function pinta2(){
+    var li = document.querySelector('[data-lista2]'); li.innerHTML = '';
+    TR.filter(function(t){ return !filtro2 || (t.nom + ' ' + t.ente).toLowerCase().indexOf(filtro2) >= 0; }).forEach(function(t){
+      var b = el('button', 'it' + (sel2 === t.ref ? ' on' : ''), '<b>' + esc(t.nom) + '</b><span>' + esc(t.ente) + ' · ' + t.fase + '</span>');
+      b.addEventListener('click', function(){ sel2 = t.ref; pinta2(); });
+      li.appendChild(b);
+    });
+    var t = TR.filter(function(x){ return x.ref === sel2; })[0];
+    var d = document.querySelector('[data-der2]'); d.innerHTML = '';
+    var c = el('div', 'der-c');
+    c.appendChild(el('h5', null, esc(t.nom) + '<small>' + esc(t.ente) + ' · ' + t.fase + '</small>'));
+    var pes = el('div', 'pes');
+    [['rec','Recaudos'],['ficha','Ficha técnica']].forEach(function(p){
+      var b = el('button', pes2 === p[0] ? 'on' : '', p[1]);
+      b.addEventListener('click', function(){ pes2 = p[0]; pinta2(); });
+      pes.appendChild(b);
+    });
+    c.appendChild(pes);
+    d.appendChild(c);
+    if (pes2 === 'rec'){
+      if (!t.rec.length) d.appendChild(el('div', 'vacio', 'Sin recaudos en la ventanilla: los pide el sistema del ente.'));
+      t.rec.forEach(function(r, i){
+        var f = el('div', 'rec');
+        f.appendChild(el('span', 'num', String(i + 1)));
+        f.appendChild(el('div', 't', esc(r[0]) + (r[2] ? '<small>' + esc(r[2]) + '</small>' : '')));
+        var s = el('select');
+        [['o','Obligatorio'],['p','Opcional'],['c','Condicionado']].forEach(function(o){ var op = el('option', null, o[1]); op.value = o[0]; if (r[1] === o[0]) op.selected = true; s.appendChild(op); });
+        s.addEventListener('change', function(){ r[1] = s.value; });
+        f.appendChild(s);
+        var q = el('button', 'quita', '×'); q.title = 'Quitar';
+        q.addEventListener('click', function(){ t.rec.splice(i, 1); pinta2(); });
+        f.appendChild(q);
+        d.appendChild(f);
+      });
+      var n = el('div', 'nuevo');
+      var inp = el('input', 'busca'); inp.placeholder = 'Añadir un recaudo: nombre del papel';
+      var add = el('button', 'btn navy', 'Añadir');
+      add.addEventListener('click', function(){ if (inp.value.trim()){ t.rec.push([inp.value.trim(), 'o']); pinta2(); } });
+      n.appendChild(inp); n.appendChild(add);
+      d.appendChild(n);
+    } else {
+      FICHA_K.forEach(function(k){
+        var w = el('div', 'dato');
+        w.appendChild(el('div', 'k', k[1]));
+        var i = el('input', 'busca'); i.value = (t.ficha[k[0]] && t.ficha[k[0]] !== P) ? t.ficha[k[0]] : ''; i.placeholder = P;
+        i.addEventListener('input', function(){ t.ficha[k[0]] = i.value || P; });
+        var vv = el('div'); vv.appendChild(i); w.appendChild(vv);
+        d.appendChild(w);
+      });
+    }
+  }
+  document.querySelector('[data-busca2]').addEventListener('input', function(){ filtro2 = this.value.toLowerCase(); pinta2(); });
+
+  /* 3 */
+  var sel3 = 'c5';
+  function pinta3(){
+    var docs = {};
+    TR.forEach(function(t){ t.rec.forEach(function(r){ (docs[r[0]] = docs[r[0]] || {})[t.ref] = r[1]; }); });
+    var nombres = Object.keys(docs).sort(function(a, b){ return Object.keys(docs[b]).length - Object.keys(docs[a]).length || a.localeCompare(b); });
+    var h = '<table><thead><tr><th>Documento</th><th>Trámites</th>';
+    TR.forEach(function(t){ h += '<th class="tr' + (sel3 === t.ref ? ' on' : '') + '" data-ref="' + t.ref + '">' + esc(t.nom) + '</th>'; });
+    h += '</tr></thead><tbody>';
+    nombres.forEach(function(n){
+      h += '<tr><td>' + esc(n) + '</td><td class="cuenta">' + Object.keys(docs[n]).length + '</td>';
+      TR.forEach(function(t){ var v = docs[n][t.ref]; h += '<td>' + (v === 'o' ? '<span class="si">●</span>' : v ? '<span class="op">○</span>' : '') + '</td>'; });
+      h += '</tr>';
+    });
+    h += '</tbody></table>';
+    var tb = document.querySelector('[data-tabla3]'); tb.innerHTML = h;
+    tb.querySelectorAll('th.tr').forEach(function(th){ th.addEventListener('click', function(){ sel3 = th.getAttribute('data-ref'); pinta3(); }); });
+    var t = TR.filter(function(x){ return x.ref === sel3; })[0];
+    var b = document.querySelector('[data-bajo3]'); b.innerHTML = '';
+    var a = el('div'); a.appendChild(el('p', 'tit', 'Recaudos de ' + esc(t.nom))); a.appendChild(recDe(t));
+    var z = el('div'); z.appendChild(el('p', 'tit', 'Ficha técnica')); z.appendChild(fichaDe(t));
+    b.appendChild(a); b.appendChild(z);
+  }
+
+  /* 4 */
+  function pinta4(){
+    var v = document.querySelector('[data-v4]'); v.innerHTML = '';
+    var entes = [];
+    TR.forEach(function(t){ if (entes.indexOf(t.ente) < 0) entes.push(t.ente); });
+    entes.forEach(function(e){
+      var suyos = TR.filter(function(t){ return t.ente === e; });
+      var w = el('div', 'ente');
+      w.appendChild(el('h5', null, esc(e) + '<span>' + suyos.length + (suyos.length === 1 ? ' permiso' : ' permisos') + '</span>'));
+      suyos.forEach(function(t){
+        var f = el('div', 'ficha');
+        f.appendChild(el('h6', null, esc(t.nom)));
+        var cols = el('div', 'cols');
+        cols.appendChild(fichaDe(t));
+        var r = el('div');
+        r.appendChild(el('p', 'tit', 'Recaudos'));
+        if (!t.rec.length) r.appendChild(el('div', 'vacio', 'Sin recaudos en la ventanilla.'));
+        else {
+          var ol = el('ol');
+          t.rec.forEach(function(x){ ol.appendChild(el('li', null, esc(x[0]) + (x[1] !== 'o' ? ' <span class="chip ' + (x[1] === 'c' ? 'cond' : 'opc') + '">' + (x[1] === 'c' ? 'Condicionado' : 'Opcional') + '</span>' : ''))); });
+          r.appendChild(ol);
+        }
+        cols.appendChild(r);
+        f.appendChild(cols);
+        var pd = pendientes(t);
+        if (pd) f.appendChild(el('div', 'faltan', pd + (pd === 1 ? ' dato por confirmar con el ente.' : ' datos por confirmar con el ente.')));
+        w.appendChild(f);
+      });
+      v.appendChild(w);
+    });
+  }
+
+  pinta1(); pinta2(); pinta3(); pinta4();
+})();
+</script>
+</body>
+</html>

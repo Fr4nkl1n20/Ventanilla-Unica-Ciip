@@ -292,6 +292,7 @@ function applyLang(lang){
   if (window.CIIP_REPINTA_DOCS)    window.CIIP_REPINTA_DOCS();
   if (window.CIIP_REPINTA_EMPRESA) window.CIIP_REPINTA_EMPRESA();
   if (window.CIIP_REPINTA_USUARIOS) window.CIIP_REPINTA_USUARIOS();
+  if (window.CIIP_REPINTA_FTECNICA) window.CIIP_REPINTA_FTECNICA();
   if (window.CIIP_REPINTA_EQUIPO) window.CIIP_REPINTA_EQUIPO();
   /* La banda de cifras de Control y Estadísticas es del pulso: sin esto
      se quedaba en el idioma de antes hasta el refresco del minuto
@@ -1673,6 +1674,11 @@ function applyLang(lang){
        que espera al rol con traeAlEntrar, saca de ahí a quien no sea del
        equipo. */
     if (tipo === 'horario' && rolSabido && !delEquipo) tipo = null;
+    /* Y la ficha técnica de los permisos: del equipo, que la lee, y del
+       administrador, que la escribe (Franklin Reyes, 20-10-2026). Un
+       inversionista con el hash escrito a mano cae a la portada; con el
+       rol sin llegar se entra, como en el horario. */
+    if (tipo === 'fichas' && rolSabido && !delEquipo) tipo = null;
     /* Y el equipo, solo el administrador: son las cifras y el historial de
        cada persona de la oficina. Con el rol sabido, como la cola: al
        recargar sobre #equipo el rol todavia no ha llegado. */
@@ -1714,6 +1720,7 @@ function applyLang(lang){
     if (tipo === 'horario') traeAlEntrar('CIIP_PINTA_HORARIO');
     if (tipo === 'rastro') traeAlEntrar('CIIP_PINTA_RASTRO');
     if (tipo === 'acomp') traeAlEntrar('CIIP_PINTA_ACOMP');
+    if (tipo === 'fichas') traeAlEntrar('CIIP_PINTA_FTECNICA');
     /* El pliego NO lleva guardia de las de arriba. Un #pliego escrito a mano
        no puede caer a la portada como el #tramite-c99: para saber si hay
        algo que leer hay que preguntarselo a la base, y con F5 el router
@@ -1816,6 +1823,7 @@ function applyLang(lang){
     if (h === '#horario') return {tipo:'horario'};
     if (h === '#rastro') return {tipo:'rastro'};
     if (h === '#acompanamiento') return {tipo:'acomp'};
+    if (h === '#fichas-tecnicas') return {tipo:'fichas'};
     if (h === '#pliego') return {tipo:'pliego'};
     return null;
   }
@@ -2224,6 +2232,7 @@ function applyLang(lang){
              : (vista === 'horario') ? document.getElementById('navHorario')
              : (vista === 'rastro') ? document.getElementById('navRastro')
              : (vista === 'acomp') ? document.getElementById('navAcomp')
+             : (vista === 'fichas') ? document.getElementById('navFichas')
              : (vista === 'pliego') ? document.getElementById('navPliego')
              : panel;
     if (aqui) aqui.classList.add('active');
@@ -38261,6 +38270,489 @@ applyLang(idiomaParaMi());
   });
 
   window.CIIP_PINTA_AUTORIZ = miraModelos;
+})();
+
+/* ---------- la ficha técnica de los permisos ----------
+   Franklin Reyes, 20-10-2026: «En administrador necesito crear la ficha
+   técnica de permiso». Un renglón propio en Administración y una pantalla
+   de lista y ficha (la forma 2 de maquetas/ficha-tecnica-cuatro.html): a la
+   izquierda las fichas por ente, con buscador y «Nueva ficha»; a la
+   derecha la elegida, editable ahí mismo.
+
+   Solo el administrador crea, cambia y borra. El resto del equipo, si
+   entra por la dirección, la ve como un documento, sin campos; el
+   inversionista no entra (lo saca el enrutador). La cerradura de verdad es
+   la de la base (supabase-fichas-tecnicas.sql): esto es cortesía.
+
+   Nace vacía y sin relación con los trámites de la ventanilla, por decisión
+   del mismo día: «podemos crear la ficha sin datos, mejor sin relacionarla
+   aún con los permisos que ya tenemos». */
+(function(){
+  var vista = document.querySelector('.fichas-vista');
+  if (!vista) return;
+  var nav = document.getElementById('navFichas');
+  if (nav) nav.addEventListener('click', function(){ location.hash = 'fichas-tecnicas'; });
+
+  var hoja   = document.getElementById('ftHoja');
+  var lista  = document.getElementById('ftLista');
+  var ficha  = document.getElementById('ftFicha');
+  var aviso  = document.getElementById('ftAviso');
+  var busca  = document.getElementById('ftBusca');
+  var nueva  = document.getElementById('ftNueva');
+
+  /* Las columnas, una vez: las piden la lectura, el guardado y la vuelta
+     de la base. Dos listas separadas acaban con un campo que se pinta y
+     no se guarda. */
+  var COLS = 'id, ente_sigla, ente, codigo_ente, nombre, base_legal, supuestos, sectores, ' +
+             'momento, recaudos, plazo, vigencia, tasa, como_se_tramita, enlace, categoria, ' +
+             'estado, notas, fuente, actualizado_en';
+  var MOMENTOS = ['previo', 'durante', 'operar', 'por_clasificar'];
+  var ESTADOS = ['borrador', 'confirmado'];
+
+  var fichas = [], sinSql = false, errCarga = false, cargada = false;
+  /* La elegida: su id, 'nueva' para la que aún no está en la base, o
+     null. Y el borrador de lo que está escrito en la de la derecha, para
+     que cambiar de idioma no se lleve lo que no se ha guardado. */
+  var sel = null, borrador = null, filtro = '', dice = '';
+
+  function T(){ return window.CIIP_T ? window.CIIP_T() : {}; }
+  function sb(){ return window.sbCIIP; }
+  function soyAdmin(){ return (typeof PERFIL !== 'undefined' && PERFIL.rol) === 'admin'; }
+
+  function vacia(){
+    return {id:null, ente_sigla:'', ente:'', codigo_ente:'', nombre:'', base_legal:'',
+            supuestos:'', sectores:[], momento:'por_clasificar', recaudos:[], plazo:'',
+            vigencia:'', tasa:'', como_se_tramita:'', enlace:'', categoria:'',
+            estado:'borrador', notas:'', fuente:''};
+  }
+  function copia(x){ return JSON.parse(JSON.stringify(x)); }
+  function laElegida(){
+    return fichas.filter(function(f){ return f.id === sel; })[0] || null;
+  }
+
+  /* Que la tabla no esté es «falta el SQL» y se dice con calma. Cualquier
+     otro error es otra cosa -la red, casi siempre- y no se le puede echar
+     la culpa a un archivo que sí está corrido. */
+  function faltaLaTabla(e){
+    var c = String((e && e.code) || ''), m = String((e && e.message) || '');
+    return c === 'PGRST205' || c === '42P01' || /does not exist|schema cache/i.test(m);
+  }
+
+  function carga(){
+    var b = sb();
+    if (!b){ sinSql = true; pinta(); return; }
+    b.from('fichas_tecnicas').select(COLS).order('ente_sigla').then(function(r){
+      cargada = true;
+      sinSql = false; errCarga = false;
+      if (r && r.error){
+        if (faltaLaTabla(r.error)) sinSql = true; else errCarga = true;
+        console.warn('[CIIP] fichas técnicas:', r.error.message || r.error);
+        fichas = [];
+      } else {
+        fichas = (r && r.data) || [];
+      }
+      /* Si la elegida ya no está -la borró otro-, se suelta. */
+      if (sel && sel !== 'nueva' && !laElegida()){ sel = null; borrador = null; }
+      pinta();
+    }, function(e){
+      cargada = true;
+      errCarga = true;
+      console.warn('[CIIP] fichas técnicas:', e && (e.message || e));
+      pinta();
+    });
+  }
+
+  function cuadra(f){
+    if (!filtro) return true;
+    var donde = [f.nombre, f.ente_sigla, f.ente, f.codigo_ente, f.categoria].join(' ').toLowerCase();
+    return donde.indexOf(filtro.toLowerCase()) >= 0;
+  }
+
+  function cmp(a, b){ return String(a || '').localeCompare(String(b || ''), curLang || 'es'); }
+
+  function pinta(){
+    var u = T();
+    var admin = soyAdmin();
+    /* Lo escrito en la de la derecha se recoge ANTES de repintar. */
+    if (borrador && admin) recoge();
+
+    var txtAviso = sinSql ? u.fte_sinsql : errCarga ? u.fte_errcarga
+                 : (cargada && !admin) ? u.fte_lectura : '';
+    aviso.hidden = !txtAviso;
+    aviso.textContent = txtAviso || '';
+    hoja.hidden = sinSql || errCarga;
+    if (hoja.hidden) return;
+
+    busca.placeholder = u.fte_busca || '';
+    busca.setAttribute('aria-label', u.fte_busca || '');
+    nueva.textContent = u.fte_nueva || '';
+    nueva.hidden = !admin;
+
+    /* Sin ninguna ficha -y sin una a medio escribir- la pantalla entera es
+       el estado vacío: una lista sin nada a la izquierda y un «elige una»
+       a la derecha se leen como «algo no cargó». */
+    var sinNada = cargada && !fichas.length && sel !== 'nueva';
+    hoja.classList.toggle('vacia', sinNada);
+    if (sinNada){
+      lista.textContent = '';
+      pintaVacia(u, admin);
+      return;
+    }
+
+    if (!sel && fichas.length){
+      var prim = fichas.slice().sort(function(a, b){
+        return cmp(a.ente_sigla, b.ente_sigla) || cmp(a.nombre, b.nombre); })[0];
+      sel = prim.id;
+      borrador = copia(prim);
+    }
+    pintaLista(u);
+    pintaFicha(u, admin);
+  }
+
+  function pintaVacia(u, admin){
+    ficha.textContent = '';
+    var c = el('div', 'ftp-vacio');
+    c.appendChild(el('p', 'ftp-vacio-t', u.fte_vacio_t || ''));
+    c.appendChild(el('p', 'ftp-vacio-d', u.fte_vacio_d || ''));
+    if (admin){
+      var b = el('button', 'btn navy', u.fte_nueva || '');
+      b.type = 'button';
+      b.id = 'ftNuevaVacia';
+      b.addEventListener('click', abreNueva);
+      c.appendChild(b);
+    } else {
+      c.appendChild(el('p', 'ftp-vacio-d', u.fte_vacio_lee || ''));
+    }
+    ficha.appendChild(c);
+  }
+
+  function pintaLista(u){
+    lista.textContent = '';
+    var vis = fichas.filter(cuadra);
+    if (!vis.length){
+      lista.appendChild(el('p', 'ftp-nada', fichas.length ? (u.fte_nada || '') : ''));
+      return;
+    }
+    var entes = [];
+    vis.forEach(function(f){ if (entes.indexOf(f.ente_sigla) < 0) entes.push(f.ente_sigla); });
+    entes.sort(cmp).forEach(function(sig){
+      var suyas = vis.filter(function(f){ return f.ente_sigla === sig; })
+                     .sort(function(a, b){ return cmp(a.nombre, b.nombre); });
+      var g = el('div', 'ftp-grupo');
+      g.setAttribute('data-ente', sig);
+      var cab = el('div', 'ftp-ente');
+      cab.appendChild(el('span', null, sig));
+      cab.appendChild(el('span', 'ftp-ente-n', String(suyas.length)));
+      g.appendChild(cab);
+      suyas.forEach(function(f){
+        var b = el('button', 'ftp-it' + (f.id === sel ? ' on' : ''));
+        b.type = 'button';
+        b.setAttribute('data-ft', f.id);
+        b.setAttribute('aria-pressed', String(f.id === sel));
+        b.appendChild(el('b', null, f.nombre || u.fte_sinnombre || ''));
+        var bajo = [f.codigo_ente, u['fte_e_' + f.estado]].filter(Boolean).join(' · ');
+        b.appendChild(el('span', null, bajo));
+        b.addEventListener('click', function(){ elige(f.id); });
+        g.appendChild(b);
+      });
+      lista.appendChild(g);
+    });
+  }
+
+  function elige(id){
+    var f = fichas.filter(function(x){ return x.id === id; })[0];
+    if (!f) return;
+    sel = id;
+    borrador = copia(f);
+    dice = '';
+    ficha.textContent = '';
+    pinta();
+    /* En el móvil la ficha va debajo de la lista: se baja hasta ella. */
+    if (window.matchMedia && window.matchMedia('(max-width: 800px)').matches &&
+        ficha.scrollIntoView) ficha.scrollIntoView({block:'start'});
+  }
+
+  function abreNueva(){
+    if (!soyAdmin()) return;
+    sel = 'nueva';
+    borrador = vacia();
+    dice = '';
+    ficha.textContent = '';
+    pinta();
+    var p = document.getElementById('ftc_ente_sigla');
+    if (p) p.focus();
+  }
+
+  /* Los campos, en el orden en que se leen. 'ancho' ocupa las dos
+     columnas; 'area' es un cuadro de varias líneas. */
+  var CAMPOS = [
+    {k:'ente_sigla', rot:'fte_sigla', max:60},
+    {k:'codigo_ente', rot:'fte_codigo', max:60},
+    {k:'ente', rot:'fte_ente', max:300, ancho:true},
+    {k:'nombre', rot:'fte_nombre', max:300, ancho:true},
+    {k:'momento', rot:'fte_momento', opciones:MOMENTOS, pre:'fte_m_'},
+    {k:'estado', rot:'fte_estado', opciones:ESTADOS, pre:'fte_e_'},
+    {k:'categoria', rot:'fte_categoria', max:120},
+    {k:'plazo', rot:'fte_plazo', max:300},
+    {k:'vigencia', rot:'fte_vigencia', max:300},
+    {k:'tasa', rot:'fte_tasa', max:300},
+    {k:'base_legal', rot:'fte_base', area:3, max:4000, ancho:true},
+    {k:'supuestos', rot:'fte_supuestos', area:3, max:4000, ancho:true},
+    {k:'sectores', rot:'fte_sectores', lista:',', nota:'fte_sectores_d', ancho:true},
+    {k:'recaudos', rot:'fte_recaudos', lista:'\n', area:5, nota:'fte_recaudos_d', ancho:true},
+    {k:'como_se_tramita', rot:'fte_como', area:3, max:4000, ancho:true},
+    {k:'enlace', rot:'fte_enlace', max:500, url:true},
+    {k:'fuente', rot:'fte_fuente', max:500},
+    {k:'notas', rot:'fte_notas', area:3, max:4000, ancho:true}
+  ];
+
+  function comoTexto(c, v){
+    if (c.lista) return (v || []).join(c.lista === ',' ? ', ' : '\n');
+    return v == null ? '' : String(v);
+  }
+
+  function pintaFicha(u, admin){
+    ficha.textContent = '';
+    if (!borrador){
+      ficha.appendChild(el('p', 'ftp-nada', u.fte_elige || ''));
+      return;
+    }
+    var f = borrador;
+    var cab = el('div', 'ftp-cab');
+    cab.appendChild(el('h3', 'ftp-titulo', f.nombre || u.fte_sinnombre || ''));
+    var meta = [];
+    if (f.ente_sigla) meta.push(f.ente_sigla);
+    if (sel !== 'nueva') meta.push(u['fte_e_' + f.estado] || '');
+    if (f.actualizado_en){
+      var d = new Date(f.actualizado_en);
+      if (!isNaN(d)) meta.push(String(u.fte_cambiada || '').replace('{fecha}',
+        d.toLocaleDateString(localeDeAhora(), {day:'numeric', month:'long', year:'numeric'})));
+    }
+    cab.appendChild(el('div', 'ftp-meta', meta.filter(Boolean).join(' · ')));
+    ficha.appendChild(cab);
+
+    if (!admin){ ficha.appendChild(comoDocumento(u, f)); return; }
+
+    var form = el('div', 'ftp-form');
+    CAMPOS.forEach(function(c){
+      var caja = el('div', 'ftp-campo' + (c.ancho ? ' ancho' : ''));
+      var id = 'ftc_' + c.k;
+      var rot = el('label', null, u[c.rot] || '');
+      rot.setAttribute('for', id);
+      caja.appendChild(rot);
+      var x;
+      if (c.opciones){
+        x = document.createElement('select');
+        c.opciones.forEach(function(o){
+          var op = el('option', null, u[c.pre + o] || o);
+          op.value = o;
+          x.appendChild(op);
+        });
+        x.value = f[c.k];
+      } else if (c.area){
+        x = document.createElement('textarea');
+        x.rows = c.area;
+        x.value = comoTexto(c, f[c.k]);
+      } else {
+        x = document.createElement('input');
+        x.type = c.url ? 'url' : 'text';
+        x.value = comoTexto(c, f[c.k]);
+      }
+      if (c.max) x.maxLength = c.max;
+      x.id = id;
+      x.addEventListener('input', function(){
+        if (c.k === 'nombre'){
+          var t = ficha.querySelector('.ftp-titulo');
+          if (t) t.textContent = x.value.trim() || u.fte_sinnombre || '';
+        }
+      });
+      caja.appendChild(x);
+      if (c.nota) caja.appendChild(el('div', 'ftp-nota', u[c.nota] || ''));
+      form.appendChild(caja);
+    });
+    ficha.appendChild(form);
+
+    var pie = el('div', 'ftp-pie');
+    var g = el('button', 'btn navy', u.fte_guardar || '');
+    g.type = 'button';
+    g.id = 'ftGuardar';
+    g.addEventListener('click', function(){ guarda(g); });
+    pie.appendChild(g);
+    if (sel === 'nueva'){
+      var d2 = el('button', 'btn ghost', u.fte_descartar || '');
+      d2.type = 'button';
+      d2.id = 'ftDescartar';
+      d2.addEventListener('click', function(){
+        sel = null; borrador = null; dice = '';
+        ficha.textContent = '';
+        pinta();
+      });
+      pie.appendChild(d2);
+    } else {
+      var br = el('button', 'btn peligro', u.fte_borrar || '');
+      br.type = 'button';
+      br.id = 'ftBorrar';
+      br.addEventListener('click', function(){ borra(br); });
+      pie.appendChild(br);
+    }
+    var av = el('span', 'ftp-dice', dice);
+    av.id = 'ftDice';
+    av.setAttribute('role', 'status');
+    pie.appendChild(av);
+    ficha.appendChild(pie);
+  }
+
+  /* Para quien solo la lee: un documento, no un formulario con los campos
+     apagados, que parece que se puede escribir y no se puede. Lo vacío no
+     se enseña. */
+  function comoDocumento(u, f){
+    var c = el('div', 'ftp-doc');
+    CAMPOS.forEach(function(x){
+      if (x.k === 'nombre') return;
+      var v = f[x.k];
+      if (x.opciones) v = u[x.pre + v] || v;
+      var vacio = x.lista ? !(v || []).length : !String(v || '').trim();
+      if (vacio) return;
+      var fila = el('div', 'ftp-dato');
+      fila.appendChild(el('div', 'k', u[x.rot] || ''));
+      var val = el('div', 'v');
+      if (x.k === 'recaudos'){
+        var ul = el('ul');
+        v.forEach(function(r){ ul.appendChild(el('li', null, r)); });
+        val.appendChild(ul);
+      } else if (x.url && /^https?:\/\//i.test(v)){
+        var a = el('a', null, v);
+        a.href = v; a.target = '_blank'; a.rel = 'noopener';
+        val.appendChild(a);
+      } else {
+        val.textContent = x.lista ? v.join(', ') : v;
+      }
+      fila.appendChild(val);
+      c.appendChild(fila);
+    });
+    return c;
+  }
+
+  /* Lo que está escrito en los campos, al borrador. */
+  function recoge(){
+    if (!borrador) return;
+    CAMPOS.forEach(function(c){
+      var x = document.getElementById('ftc_' + c.k);
+      if (!x) return;
+      var v = x.value;
+      if (c.lista){
+        borrador[c.k] = v.split(c.lista === ',' ? ',' : /\r?\n/)
+          .map(function(s){ return s.trim(); }).filter(Boolean);
+      } else if (c.opciones){
+        borrador[c.k] = v;
+      } else {
+        borrador[c.k] = v.trim();
+      }
+    });
+  }
+
+  /* La fila que se manda: solo las columnas que se escriben. id, fechas y
+     quién la tocó los pone la base. */
+  function filaParaLaBase(){
+    var fila = {};
+    CAMPOS.forEach(function(c){ fila[c.k] = borrador[c.k]; });
+    return fila;
+  }
+
+  function diceYa(txt){
+    dice = txt || '';
+    var a = document.getElementById('ftDice');
+    if (a) a.textContent = dice;
+  }
+
+  /* Con .select() siempre: RLS no da error cuando bloquea, contesta que
+     todo fue bien y no toca ni una fila. Sin pedir la fila de vuelta, la
+     ficha se quedaría escrita en la pantalla y no estaría en la base. */
+  function guarda(bt){
+    var u = T();
+    if (!soyAdmin() || !borrador) return;
+    recoge();
+    if (!borrador.ente_sigla || !borrador.nombre){ diceYa(u.fte_falta); return; }
+    var fila = filaParaLaBase();
+    var esNueva = (sel === 'nueva');
+    var q = esNueva
+      ? sb().from('fichas_tecnicas').insert(fila).select(COLS)
+      : sb().from('fichas_tecnicas').update(fila).eq('id', sel).select(COLS);
+    bt.disabled = true;
+    bt.textContent = u.fte_guardando || '';
+    diceYa('');
+    q.then(function(r){
+      bt.disabled = false;
+      bt.textContent = u.fte_guardar || '';
+      if (r && r.error){
+        diceYa(r.error.code === '23505' ? u.fte_repetida : u.fte_error);
+        console.warn('[CIIP] guardar ficha técnica:', r.error.message || r.error);
+        return;
+      }
+      var vuelta = ((r && r.data) || [])[0];
+      if (!vuelta){ diceYa(u.fte_nopudo); return; }
+      /* Se cree lo que contestó la BASE, no lo que se pidió. */
+      fichas = fichas.filter(function(x){ return x.id !== vuelta.id; }).concat([vuelta]);
+      sel = vuelta.id;
+      borrador = copia(vuelta);
+      dice = u.fte_guardado || '';
+      ficha.textContent = '';
+      pinta();
+    }, function(e){
+      bt.disabled = false;
+      bt.textContent = u.fte_guardar || '';
+      console.warn('[CIIP] guardar ficha técnica:', e && (e.message || e));
+      diceYa(u.fte_error);
+    });
+  }
+
+  /* Dos pulsaciones, como borrar una solicitud: la primera arma el botón
+     y dice que no se deshace; la segunda borra. */
+  function borra(bt){
+    var u = T();
+    if (!soyAdmin() || !sel || sel === 'nueva') return;
+    if (!bt.classList.contains('armado')){
+      bt.classList.add('armado');
+      bt.textContent = u.brr_seguro || '';
+      return;
+    }
+    bt.disabled = true;
+    bt.textContent = u.fte_borrando || '';
+    var id = sel;
+    sb().from('fichas_tecnicas').delete().eq('id', id).select('id').then(function(r){
+      if (r && r.error) throw r.error;
+      if (!((r && r.data) || []).length){
+        bt.disabled = false;
+        bt.classList.remove('armado');
+        bt.textContent = u.fte_borrar || '';
+        diceYa(u.fte_nopudo);
+        return;
+      }
+      fichas = fichas.filter(function(x){ return x.id !== id; });
+      sel = null; borrador = null;
+      pinta();
+      diceYa(u.fte_borrada);
+      if (!document.getElementById('ftDice')){
+        aviso.hidden = false;
+        aviso.textContent = u.fte_borrada || '';
+      }
+    }).then(null, function(e){
+      console.warn('[CIIP] borrar ficha técnica:', e && (e.message || e));
+      bt.disabled = false;
+      bt.classList.remove('armado');
+      bt.textContent = u.fte_borrar || '';
+      diceYa(u.fte_error);
+    });
+  }
+
+  busca.addEventListener('input', function(){
+    filtro = busca.value.trim();
+    pintaLista(T());
+  });
+  nueva.addEventListener('click', abreNueva);
+
+  window.CIIP_PINTA_FTECNICA = carga;
+  window.CIIP_REPINTA_FTECNICA = function(){ if (cargada) pinta(); };
 })();
 
 /* ---------- y la última línea ----------

@@ -5465,6 +5465,151 @@ $pa$;
 reset role;
 select arnes.nadie();
 
+-- ── LA FICHA TÉCNICA DE LOS PERMISOS (supabase-fichas-tecnicas.sql) ──
+-- Franklin Reyes, 20-10-2026: el administrador crea, cambia y borra; el
+-- gestor la lee y no la toca; el inversionista no la ve.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+do $ft$
+declare f uuid;
+begin
+  insert into public.fichas_tecnicas (ente_sigla, ente, codigo_ente, nombre, momento, recaudos, sectores)
+  values ('MINTUR', 'Ministerio del Poder Popular para el Turismo', 'RTN', 'Registro Turístico Nacional',
+          'operar', array['Acta constitutiva', 'RIF de la empresa'], array['Turismo'])
+  returning id into f;
+  insert into arnes.escenario values ('ft_ficha', f);
+  perform arnes.comprueba('fichas: el admin crea una ficha', true);
+exception when others then
+  perform arnes.comprueba('fichas: el admin crea una ficha', false, sqlerrm);
+end
+$ft$;
+select arnes.comprueba('fichas: nace en borrador y firmada por quien la creó',
+  coalesce((select estado = 'borrador' and actualizado_por = (select id from arnes.gente where papel = 'X')
+              from public.fichas_tecnicas where id = (select id from arnes.escenario where clave = 'ft_ficha')), false));
+do $ft$
+declare n int;
+begin
+  update public.fichas_tecnicas set plazo = '15 días hábiles', estado = 'confirmado'
+   where id = (select id from arnes.escenario where clave = 'ft_ficha');
+  get diagnostics n = row_count;
+  perform arnes.comprueba('fichas: el admin la cambia', n = 1, n || ' fila(s)');
+exception when others then
+  perform arnes.comprueba('fichas: el admin la cambia', false, sqlerrm);
+end
+$ft$;
+do $ft$
+begin
+  insert into public.fichas_tecnicas (ente_sigla, codigo_ente, nombre)
+  values ('MINTUR', 'RTN', 'Registro Turístico Nacional')
+  on conflict (ente_sigla, codigo_ente, nombre) do nothing;
+  perform arnes.comprueba('fichas: la clave natural no deja duplicarla',
+    (select count(*) = 1 from public.fichas_tecnicas where ente_sigla = 'MINTUR' and nombre = 'Registro Turístico Nacional'));
+exception when others then
+  perform arnes.comprueba('fichas: la clave natural no deja duplicarla', false, sqlerrm);
+end
+$ft$;
+do $ft$
+begin
+  insert into public.fichas_tecnicas (ente_sigla, nombre, momento) values ('MINEC', 'Mal', 'despues');
+  perform arnes.comprueba('fichas: no cabe un momento que el panel no tiene', false, 'ENTRO');
+exception when check_violation then
+  perform arnes.comprueba('fichas: no cabe un momento que el panel no tiene', true, sqlerrm);
+end
+$ft$;
+do $ft$
+begin
+  insert into public.fichas_tecnicas (ente_sigla, nombre, estado) values ('MINEC', 'Mal', 'publicado');
+  perform arnes.comprueba('fichas: ni un estado que no sea borrador o confirmado', false, 'ENTRO');
+exception when check_violation then
+  perform arnes.comprueba('fichas: ni un estado que no sea borrador o confirmado', true, sqlerrm);
+end
+$ft$;
+do $ft$
+begin
+  insert into public.fichas_tecnicas (ente_sigla, nombre) values ('MINEC', '   ');
+  perform arnes.comprueba('fichas: ni una ficha sin nombre', false, 'ENTRO');
+exception when check_violation then
+  perform arnes.comprueba('fichas: ni una ficha sin nombre', true, sqlerrm);
+end
+$ft$;
+
+-- El gestor la lee y no la toca.
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+select arnes.comprueba('fichas: el gestor la lee',
+  (select count(*) = 1 from public.fichas_tecnicas where plazo = '15 días hábiles'),
+  (select count(*)::text || ' fila(s) visibles' from public.fichas_tecnicas));
+do $ft$
+begin
+  insert into public.fichas_tecnicas (ente_sigla, nombre) values ('MINEC', 'Colada por el gestor');
+  perform arnes.comprueba('fichas: el gestor no crea fichas', false, 'ESCRIBIO');
+exception when others then
+  perform arnes.comprueba('fichas: el gestor no crea fichas', true, sqlerrm);
+end
+$ft$;
+do $ft$
+declare n int;
+begin
+  update public.fichas_tecnicas set plazo = 'Colado' where ente_sigla = 'MINTUR';
+  get diagnostics n = row_count;
+  perform arnes.comprueba('fichas: ni las cambia', n = 0, n || ' fila(s)');
+exception when others then
+  perform arnes.comprueba('fichas: ni las cambia', true, sqlerrm);
+end
+$ft$;
+do $ft$
+declare n int;
+begin
+  delete from public.fichas_tecnicas where ente_sigla = 'MINTUR';
+  get diagnostics n = row_count;
+  perform arnes.comprueba('fichas: ni las borra', n = 0, n || ' fila(s)');
+exception when others then
+  perform arnes.comprueba('fichas: ni las borra', true, sqlerrm);
+end
+$ft$;
+
+-- El inversionista, ni la ve.
+select arnes.soy((select id from arnes.gente where papel = 'B'));
+select arnes.comprueba('fichas: el inversionista no las ve',
+  (select count(*) = 0 from public.fichas_tecnicas),
+  (select count(*)::text || ' fila(s) visibles' from public.fichas_tecnicas));
+do $ft$
+begin
+  insert into public.fichas_tecnicas (ente_sigla, nombre) values ('MINEC', 'Colada por el inversionista');
+  perform arnes.comprueba('fichas: ni las crea', false, 'ESCRIBIO');
+exception when others then
+  perform arnes.comprueba('fichas: ni las crea', true, sqlerrm);
+end
+$ft$;
+reset role;
+
+set role anon;
+select arnes.nadie();
+do $ft$
+begin
+  perform arnes.comprueba('fichas: sin entrar no se leen',
+    (select count(*) = 0 from public.fichas_tecnicas));
+exception when insufficient_privilege then
+  perform arnes.comprueba('fichas: sin entrar no se leen', true, sqlerrm);
+end
+$ft$;
+reset role;
+
+-- Y el admin la borra.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+do $ft$
+declare n int;
+begin
+  delete from public.fichas_tecnicas where id = (select id from arnes.escenario where clave = 'ft_ficha');
+  get diagnostics n = row_count;
+  perform arnes.comprueba('fichas: el admin la borra', n = 1, n || ' fila(s)');
+exception when others then
+  perform arnes.comprueba('fichas: el admin la borra', false, sqlerrm);
+end
+$ft$;
+reset role;
+select arnes.nadie();
+
 \o
 \pset tuples_only on
 \pset format unaligned

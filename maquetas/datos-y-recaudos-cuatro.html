@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Datos y recaudos en una sola vista</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   DATOS Y RECAUDOS EN UNA SOLA VISTA: CUATRO FORMAS
+   Franklin Reyes, 20-10-2026: «necesito que trabajes en maquetas, donde
+   pueda trabajar los recaudos con los datos en una sola visión», con la
+   captura de «Tus datos» de la validación del poder (c33): hoy los datos
+   van en el paso 1, los recaudos en el 2 y el repaso en el 3.
+
+   El mismo trámite en las cuatro: el poder de representación, sus seis
+   datos y sus cuatro recaudos. Se puede elegir un archivo y escribir; en
+   la 2 y la 3, «Leer» rellena los datos de ejemplo como lo haría el lector
+   de documentos. No toca el panel ni manda nada.
+   ══════════════════════════════════════════════════════════════════ */
+:root{ --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB; }
+main{max-width:1240px; padding:28px 26px 90px; margin:0 auto;}
+@media (max-width:600px){ main{padding:20px 16px 60px;} }
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.idea{display:grid; gap:10px; margin-top:34px;}
+.idea h3{margin:0; font-size:15px; display:flex; gap:9px; align-items:center;}
+.idea h3 .n{width:24px; height:24px; border-radius:50%; background:var(--navy); color:#fff; font-size:12px; display:grid; place-items:center; flex:none;}
+.idea p{margin:0; font-size:12px; color:var(--gray); line-height:1.55; max-width:100ch;}
+
+.hoja{background:var(--bg); border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+.hoja-c{padding:18px;}
+.pie{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:14px 18px; border-top:1px solid var(--line); flex-wrap:wrap;}
+.pie .cuenta{font-size:12.5px; color:var(--gray);}
+.btn{font:inherit; font-size:12.5px; font-weight:700; border-radius:9px; padding:10px 18px; border:1px solid var(--line); background:var(--bg); color:var(--ink); cursor:pointer;}
+.btn.navy{background:var(--navy); border-color:var(--navy); color:#fff;}
+.btn.sube{color:var(--navy2); background:var(--card-2); padding:8px 14px; font-size:12px;}
+.btn.sube:hover{border-color:var(--navy2);}
+.btn.lee{color:#fff; background:var(--navy2); border-color:var(--navy2); padding:8px 14px; font-size:12px;}
+.btn.link{border:0; background:none; padding:4px 2px; color:var(--navy2); font-size:12px;}
+.campo{display:grid; gap:5px; min-width:0;}
+.campo label{font-size:12px; color:var(--gray);}
+.campo input, .campo select{font:inherit; font-size:13px; padding:10px 12px; border:1px solid var(--line); border-radius:9px; background:var(--bg); color:var(--ink); width:100%;}
+.campo input:focus{outline:2px solid var(--activa-bg); border-color:var(--navy2);}
+.campo.leido input{background:var(--activa-bg);}
+.campo .de{font-size:10.5px; color:var(--navy2); font-weight:700;}
+.cols2{display:grid; grid-template-columns:1fr 1fr; gap:12px 16px;}
+.cols2 .ancho{grid-column:1 / -1;}
+@media (max-width:700px){ .cols2{grid-template-columns:1fr;} }
+.tit{font-size:13.5px; font-weight:700; margin:0 0 10px;}
+.nom{font-size:13px; font-weight:700;}
+.sub{font-size:11.5px; color:var(--gray); margin-top:2px; line-height:1.45;}
+.ok{color:var(--good);}
+.visto{width:22px; height:22px; border-radius:50%; background:var(--good-bg); display:grid; place-items:center; flex:none;}
+.visto svg{width:12px; height:12px; stroke:var(--good); fill:none; stroke-width:3;}
+.vacio{width:22px; height:22px; border-radius:50%; border:1.5px dashed var(--gray-soft); flex:none;}
+.fila{display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:10px; background:var(--card-2);}
+.fila + .fila{margin-top:6px;}
+.fila .tx{flex:1 1 auto; min-width:0;}
+
+/* 1 · dos columnas */
+.v1{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:22px; align-items:start;}
+.v1 .der{position:sticky; top:12px;}
+@media (max-width:900px){ .v1{grid-template-columns:1fr;} .v1 .der{position:static;} }
+
+/* 2 · cada papel con sus datos */
+.v2 .doc{border-radius:12px; background:var(--card-2); padding:14px;}
+.v2 .doc + .doc{margin-top:12px;}
+.v2 .doc-c{display:flex; align-items:center; gap:12px; margin-bottom:12px;}
+.v2 .doc-c .tx{flex:1 1 auto; min-width:0;}
+.v2 .doc .cols2 input{background:var(--bg);}
+.v2 .doc.solo .doc-c{margin-bottom:0;}
+
+/* 3 · el papel a la vista */
+.v3{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:0; min-height:460px;}
+@media (max-width:900px){ .v3{grid-template-columns:1fr;} }
+.v3 .visor{background:var(--block); padding:16px; display:flex; flex-direction:column; gap:12px; border-right:1px solid var(--line);}
+.v3 .pest{display:flex; gap:6px; flex-wrap:wrap;}
+.v3 .pest button{font:inherit; font-size:11.5px; font-weight:700; border-radius:20px; padding:6px 11px; border:1px solid var(--line); background:var(--bg); color:var(--ink); cursor:pointer; display:flex; gap:6px; align-items:center;}
+.v3 .pest button.on{background:var(--navy); border-color:var(--navy); color:#fff;}
+.v3 .pest .p{width:7px; height:7px; border-radius:50%; background:var(--gray-soft);}
+.v3 .pest .p.si{background:var(--good);}
+.v3 .papel{flex:1 1 auto; background:var(--bg); border-radius:10px; display:grid; place-items:center; text-align:center; padding:24px; min-height:300px;}
+.v3 .papel .hojaP{width:min(260px, 80%); aspect-ratio:1/1.3; border-radius:6px; background:var(--bg); box-shadow:0 2px 10px rgba(14,20,36,.12); padding:18px 16px; display:flex; flex-direction:column; gap:7px;}
+.v3 .papel .hojaP i{display:block; height:6px; border-radius:4px; background:var(--line-soft);}
+.v3 .papel .hojaP i.c{width:60%;} .v3 .papel .hojaP i.m{width:85%;}
+.v3 .papel .sinP{font-size:12.5px; color:var(--gray); display:grid; gap:10px; justify-items:center;}
+.v3 .form{padding:18px;}
+
+/* 4 · lo que falta, en una lista */
+.v4 .barra{display:flex; align-items:center; gap:12px; margin-bottom:16px;}
+.v4 .barra b{font-size:12.5px; white-space:nowrap;}
+.v4 .barra .b{flex:1 1 auto; height:6px; border-radius:6px; background:var(--line-soft); overflow:hidden;}
+.v4 .barra .b i{display:block; height:100%; width:0; background:var(--good); transition:width .25s;}
+.v4 .it{border-radius:10px; background:var(--card-2);}
+.v4 .it + .it{margin-top:6px;}
+.v4 .it-c{display:flex; align-items:center; gap:12px; padding:11px 12px; cursor:pointer;}
+.v4 .it-c .tx{flex:1 1 auto; min-width:0;}
+.v4 .it-c .flecha{color:var(--gray); font-size:12px;}
+.v4 .it-b{padding:0 12px 14px 46px;}
+.v4 .it:not(.abierto) .it-b{display:none;}
+.v4 .etiq{font-size:10.5px; font-weight:700; color:var(--gray); background:var(--bg); border-radius:5px; padding:2px 7px;}
+input[type=file]{display:none;}
+</style>
+</head>
+<body>
+<div class="mq-cartel"><b>Maqueta · Datos y recaudos en una sola vista</b><span>La validación del poder de representación, de cuatro formas. Escribe, elige archivos y, en la 2 y la 3, pulsa «Leer». No toca el panel.</span></div>
+<main>
+  <p class="intro">Hoy los datos van en el paso 1, los recaudos en el 2 y el repaso en el 3: para comprobar que el número del poder coincide con el papel hay que ir y volver. En las cuatro formas de abajo, datos y papeles están en la misma pantalla y se envía desde ahí.</p>
+
+  <!-- 1 -->
+  <section class="idea">
+    <h3><span class="n">1</span>Dos columnas: datos a la izquierda, papeles a la derecha</h3>
+    <p>Lo más parecido a hoy, pero junto: el formulario a la izquierda y los recaudos en una columna a la derecha que acompaña al bajar. Un solo botón de enviar, con lo que falta contado en el pie.</p>
+    <div class="hoja">
+      <div class="hoja-c v1">
+        <div>
+          <p class="tit">Tus datos</p>
+          <div class="cols2" data-campos="1"></div>
+        </div>
+        <div class="der">
+          <p class="tit">Recaudos</p>
+          <div data-papeles="1"></div>
+        </div>
+      </div>
+      <div class="pie"><span class="cuenta" data-cuenta="1"></span><button class="btn navy">Enviar la solicitud</button></div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="idea">
+    <h3><span class="n">2</span>Cada papel con sus datos</h3>
+    <p>Los datos se cuelgan del papel del que salen: el número, la notaría, la fecha y el alcance, debajo del poder; el nombre y el documento, debajo de la cédula del apoderado. Al subir un papel se puede «Leer» y sus datos se rellenan solos para repasarlos. Lo que no sale de ningún papel va al final.</p>
+    <div class="hoja">
+      <div class="hoja-c v2" data-v2></div>
+      <div class="pie"><span class="cuenta" data-cuenta="2"></span><button class="btn navy">Enviar la solicitud</button></div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="idea">
+    <h3><span class="n">3</span>El papel a la vista, al lado de lo que dice</h3>
+    <p>A la izquierda, el papel subido, con una pestaña por recaudo y un punto verde en los que ya están. A la derecha, los datos. Se transcribe mirando el documento, o se pulsa «Leer» y solo se repasa. Pensada para papeles largos como el poder o el acta.</p>
+    <div class="hoja">
+      <div class="v3">
+        <div class="visor">
+          <div class="pest" data-pest></div>
+          <div class="papel" data-papel></div>
+        </div>
+        <div class="form">
+          <p class="tit">Lo que dice el poder</p>
+          <div class="cols2" data-campos="3"></div>
+        </div>
+      </div>
+      <div class="pie"><span class="cuenta" data-cuenta="3"></span><button class="btn navy">Enviar la solicitud</button></div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="idea">
+    <h3><span class="n">4</span>Lo que falta, en una sola lista</h3>
+    <p>Datos y papeles mezclados en una lista de pendientes, con el avance arriba. Cada renglón se abre para escribir o subir, y se marca en verde al completarse. Va bien en el móvil y deja claro qué queda por hacer.</p>
+    <div class="hoja">
+      <div class="hoja-c v4">
+        <div class="barra"><b data-cuenta="4"></b><span class="b"><i data-barra4></i></span></div>
+        <div data-v4></div>
+      </div>
+      <div class="pie"><span class="cuenta">Se envía cuando todo está en verde</span><button class="btn navy">Enviar la solicitud</button></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  /* El trámite de la captura: la validación del poder (c33). */
+  var CAMPOS = [
+    {k:'apo_nombre', rot:'Nombre del apoderado', de:'ced_apo', ej:'María Fernanda Pérez'},
+    {k:'apo_doc',    rot:'Documento de identidad del apoderado', de:'ced_apo', ej:'V-18.456.902'},
+    {k:'num',        rot:'Número del poder', de:'poder', ej:'2024-1187'},
+    {k:'notaria',    rot:'Notaría donde se otorgó', de:'poder', ej:'Notaría Pública Quinta de Caracas'},
+    {k:'fecha',      rot:'Fecha del poder', de:'poder', ej:'17 de octubre de 2021', tipo:'date'},
+    {k:'alcance',    rot:'Para qué lo autorizas', de:'poder', ej:'Trámites ante el SAREN y el SENIAT', ancho:true}
+  ];
+  var PAPELES = [
+    {k:'poder',   nom:'Poder de representación', pista:'El documento completo, con la nota de autenticación o de registro.'},
+    {k:'pas',     nom:'Cédula o pasaporte vigente', pista:'Del poderdante, que es quien firma.'},
+    {k:'ced_apo', nom:'Cédula de identidad del apoderado', pista:'Las dos caras.'},
+    {k:'rif_apo', nom:'RIF del apoderado', pista:'El certificado completo, con su código de validación.'}
+  ];
+  var ICO = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>';
+  var est = {1:{d:{}, p:{}}, 2:{d:{}, p:{}}, 3:{d:{}, p:{}, ver:'poder'}, 4:{d:{}, p:{}, abierto:null}};
+
+  function el(t, c, h){ var e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
+  function marca(si){ return si ? el('span', 'visto', ICO) : el('span', 'vacio'); }
+  function elige(alTener){
+    var i = el('input'); i.type = 'file'; i.accept = 'image/*,application/pdf';
+    i.addEventListener('change', function(){ if (i.files[0]) alTener(i.files[0].name); i.remove(); });
+    document.body.appendChild(i); i.click();
+  }
+  function cuantos(n){
+    var s = est[n], hechos = 0, total = CAMPOS.length + PAPELES.length;
+    CAMPOS.forEach(function(c){ if (s.d[c.k]) hechos++; });
+    PAPELES.forEach(function(p){ if (s.p[p.k]) hechos++; });
+    return {hechos: hechos, total: total, faltan: total - hechos};
+  }
+  function dice(n){
+    var c = cuantos(n);
+    return c.faltan ? 'Faltan ' + c.faltan + ' de ' + c.total + ': datos y papeles' : 'Todo listo para enviar';
+  }
+  function campo(n, c, repinta, leido){
+    var w = el('div', 'campo' + (c.ancho ? ' ancho' : '') + (leido ? ' leido' : ''));
+    var lb = el('label', null, c.rot + (leido ? ' <span class="de">· leído del papel</span>' : ''));
+    var i = el('input'); i.value = est[n].d[c.k] || ''; i.placeholder = c.tipo === 'date' ? 'dd/mm/aaaa' : '';
+    i.addEventListener('input', function(){ est[n].d[c.k] = i.value; if (est[n].leidos) delete est[n].leidos[c.k]; repinta(true); });
+    w.appendChild(lb); w.appendChild(i);
+    return w;
+  }
+  function filaPapel(n, p, repinta, extra){
+    var ya = est[n].p[p.k];
+    var f = el('div', 'fila');
+    f.appendChild(marca(ya));
+    var tx = el('div', 'tx');
+    tx.appendChild(el('div', 'nom', p.nom));
+    tx.appendChild(el('div', 'sub', ya ? '<span class="ok">' + ya + '</span>' : p.pista));
+    f.appendChild(tx);
+    if (extra) f.appendChild(extra);
+    var b = el('button', 'btn sube', ya ? 'Cambiar' : 'Elige el archivo');
+    b.addEventListener('click', function(){ elige(function(nm){ est[n].p[p.k] = nm; repinta(); }); });
+    f.appendChild(b);
+    return f;
+  }
+  /* «Leer»: lo que haría el lector de documentos con ese papel. */
+  function lee(n, papel){
+    est[n].leidos = est[n].leidos || {};
+    CAMPOS.forEach(function(c){ if (c.de === papel && !est[n].d[c.k]){ est[n].d[c.k] = c.ej; est[n].leidos[c.k] = true; } });
+  }
+  function soloCuenta(n){ var c = document.querySelector('[data-cuenta="' + n + '"]'); if (c) c.textContent = dice(n); }
+
+  /* 1 */
+  function pinta1(soloTexto){
+    if (soloTexto) return soloCuenta(1);
+    var dc = document.querySelector('[data-campos="1"]'); dc.innerHTML = '';
+    CAMPOS.forEach(function(c){ dc.appendChild(campo(1, c, pinta1)); });
+    var dp = document.querySelector('[data-papeles="1"]'); dp.innerHTML = '';
+    PAPELES.forEach(function(p){ dp.appendChild(filaPapel(1, p, pinta1)); });
+    soloCuenta(1);
+  }
+
+  /* 2 */
+  function pinta2(soloTexto){
+    if (soloTexto) return soloCuenta(2);
+    var v = document.querySelector('[data-v2]'); v.innerHTML = '';
+    PAPELES.forEach(function(p){
+      var suyos = CAMPOS.filter(function(c){ return c.de === p.k; });
+      var d = el('div', 'doc' + (suyos.length ? '' : ' solo'));
+      var ya = est[2].p[p.k];
+      var cab = el('div', 'doc-c');
+      cab.appendChild(marca(ya));
+      var tx = el('div', 'tx');
+      tx.appendChild(el('div', 'nom', p.nom));
+      tx.appendChild(el('div', 'sub', ya ? '<span class="ok">' + ya + '</span>' : p.pista));
+      cab.appendChild(tx);
+      if (ya && suyos.length){
+        var l = el('button', 'btn lee', 'Leer sus datos');
+        l.addEventListener('click', function(){ lee(2, p.k); pinta2(); });
+        cab.appendChild(l);
+      }
+      var b = el('button', 'btn sube', ya ? 'Cambiar' : 'Elige el archivo');
+      b.addEventListener('click', function(){ elige(function(nm){ est[2].p[p.k] = nm; pinta2(); }); });
+      cab.appendChild(b);
+      d.appendChild(cab);
+      if (suyos.length){
+        var g = el('div', 'cols2');
+        suyos.forEach(function(c){ g.appendChild(campo(2, c, pinta2, est[2].leidos && est[2].leidos[c.k])); });
+        d.appendChild(g);
+      }
+      v.appendChild(d);
+    });
+    soloCuenta(2);
+  }
+
+  /* 3 */
+  function pinta3(soloTexto){
+    if (soloTexto) return soloCuenta(3);
+    var pe = document.querySelector('[data-pest]'); pe.innerHTML = '';
+    PAPELES.forEach(function(p){
+      var b = el('button', est[3].ver === p.k ? 'on' : '', '<span class="p' + (est[3].p[p.k] ? ' si' : '') + '"></span>' + p.nom);
+      b.addEventListener('click', function(){ est[3].ver = p.k; pinta3(); });
+      pe.appendChild(b);
+    });
+    var pa = document.querySelector('[data-papel]'); pa.innerHTML = '';
+    var actual = PAPELES.filter(function(p){ return p.k === est[3].ver; })[0];
+    var ya = est[3].p[actual.k];
+    if (ya){
+      var h = el('div');
+      h.style.display = 'grid'; h.style.gap = '12px'; h.style.justifyItems = 'center';
+      h.appendChild(el('div', 'hojaP', '<i class="c"></i><i></i><i class="m"></i><i></i><i class="c"></i><i class="m"></i><i></i><i class="c"></i>'));
+      h.appendChild(el('div', 'sub', ya));
+      var bar = el('div'); bar.style.display = 'flex'; bar.style.gap = '8px';
+      if (CAMPOS.some(function(c){ return c.de === actual.k; })){
+        var l = el('button', 'btn lee', 'Leer');
+        l.addEventListener('click', function(){ lee(3, actual.k); pinta3(); });
+        bar.appendChild(l);
+      }
+      var cb = el('button', 'btn sube', 'Cambiar');
+      cb.addEventListener('click', function(){ elige(function(nm){ est[3].p[actual.k] = nm; pinta3(); }); });
+      bar.appendChild(cb);
+      h.appendChild(bar);
+      pa.appendChild(h);
+    } else {
+      var s = el('div', 'sinP');
+      s.appendChild(el('div', 'nom', actual.nom));
+      s.appendChild(el('div', null, actual.pista));
+      var e = el('button', 'btn sube', 'Elige el archivo');
+      e.addEventListener('click', function(){ elige(function(nm){ est[3].p[actual.k] = nm; pinta3(); }); });
+      s.appendChild(e);
+      pa.appendChild(s);
+    }
+    var dc = document.querySelector('[data-campos="3"]'); dc.innerHTML = '';
+    CAMPOS.forEach(function(c){ dc.appendChild(campo(3, c, pinta3, est[3].leidos && est[3].leidos[c.k])); });
+    soloCuenta(3);
+  }
+
+  /* 4 */
+  function pinta4(soloTexto){
+    var c4 = cuantos(4);
+    document.querySelector('[data-cuenta="4"]').textContent = c4.hechos + ' de ' + c4.total + ' listos';
+    document.querySelector('[data-barra4]').style.width = (100 * c4.hechos / c4.total) + '%';
+    if (soloTexto) return;
+    var v = document.querySelector('[data-v4]'); v.innerHTML = '';
+    var items = [];
+    PAPELES.forEach(function(p){ items.push({tipo:'papel', p:p}); });
+    CAMPOS.forEach(function(c){ items.push({tipo:'dato', c:c}); });
+    items.forEach(function(it, i){
+      var k = it.tipo === 'papel' ? 'p_' + it.p.k : 'd_' + it.c.k;
+      var hecho = it.tipo === 'papel' ? !!est[4].p[it.p.k] : !!est[4].d[it.c.k];
+      var w = el('div', 'it' + (est[4].abierto === k ? ' abierto' : ''));
+      var cab = el('div', 'it-c');
+      cab.appendChild(marca(hecho));
+      var tx = el('div', 'tx');
+      tx.appendChild(el('div', 'nom', it.tipo === 'papel' ? it.p.nom : it.c.rot));
+      var val = it.tipo === 'papel' ? est[4].p[it.p.k] : est[4].d[it.c.k];
+      tx.appendChild(el('div', 'sub', val ? '<span class="ok">' + val + '</span>' : (it.tipo === 'papel' ? it.p.pista : 'Por escribir')));
+      cab.appendChild(tx);
+      cab.appendChild(el('span', 'etiq', it.tipo === 'papel' ? 'Papel' : 'Dato'));
+      cab.appendChild(el('span', 'flecha', est[4].abierto === k ? '▴' : '▾'));
+      cab.addEventListener('click', function(){ est[4].abierto = est[4].abierto === k ? null : k; pinta4(); });
+      w.appendChild(cab);
+      var cu = el('div', 'it-b');
+      if (it.tipo === 'papel'){
+        var b = el('button', 'btn sube', est[4].p[it.p.k] ? 'Cambiar' : 'Elige el archivo');
+        b.addEventListener('click', function(){ elige(function(nm){ est[4].p[it.p.k] = nm; est[4].abierto = null; pinta4(); }); });
+        cu.appendChild(b);
+      } else {
+        var fc = campo(4, it.c, pinta4);
+        fc.querySelector('label').remove();
+        cu.appendChild(fc);
+      }
+      w.appendChild(cu);
+      v.appendChild(w);
+    });
+  }
+
+  pinta1(); pinta2(); pinta3(); pinta4();
+})();
+</script>
+</body>
+</html>

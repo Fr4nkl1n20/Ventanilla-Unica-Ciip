@@ -367,6 +367,11 @@
               catalogoVuelveEspera, catalogoSeVeEnLaFicha,
               catalogoDeshace, catalogoDeshaceEspera, catalogoDeshacePonlo,
               logoAbre, logoEspera, logoSube, logoTrasSubir, logoQuita, logoTrasQuitar,
+              /* La ficha técnica de los permisos (20-10-2026). */
+              ftMenu, ftInvAbre, ftInvMira, ftSinSqlAbre, ftSinSqlMira,
+              ftAbre, ftEspera, ftMira, ftNueva, ftGuarda, ftTrasGuardar,
+              ftEdita, ftTrasEditar, ftBorra, ftTrasBorrar, ftGestor,
+              ftVaciaAbre, ftVaciaMira,
               puertaTodos,
               consultaAbre, consultaMira, consultaEntra, consultaDentro,
               rotulosMiran, consultaCerradaVuelve, consultaCerradaEntra, consultaCerradaMira, consultaCerradaOtra,
@@ -14921,6 +14926,256 @@
      La cita era la unica puerta. Estas miden la otra: que se abre, que se
      ve lo que ya hay, que se puede escribir una nueva, y que lo escrito
      llega. Corren sobre el inversionista; la parte del equipo va aparte. */
+  /* ── LA FICHA TÉCNICA DE LOS PERMISOS (Franklin Reyes, 20-10-2026) ──
+     El renglón es del administrador; la pantalla la escribe él y la lee el
+     resto del equipo; el inversionista ni la ve. El doble trae dos fichas
+     de dos entes (MINTUR y MINEC) y apunta en window.__FT_ESCRITO lo que se
+     manda a la base. */
+  function ftU(){ return window.CIIP_T ? window.CIIP_T() : {}; }
+  function ftVisible(x){ return !!x && x.offsetParent !== null; }
+  function ftEscrito(){ var e = window.__FT_ESCRITO || []; return e[e.length - 1] || null; }
+  function ftPon(id, v){
+    var x = document.getElementById(id);
+    if (!x) return;
+    x.value = v;
+    x.dispatchEvent(new Event('input', {bubbles:true}));
+  }
+
+  function ftMenu(){
+    var nav = document.getElementById('navFichas');
+    if (ES_ADMIN){
+      ok('ficha técnica: el administrador tiene su renglón en Administración',
+         ftVisible(nav) && !!nav.closest('#grupoAdmin'),
+         nav ? (ftVisible(nav) ? 'a la vista' : 'escondido') : '(no está)', 'a la vista, en Administración');
+      igual('ficha técnica: y el renglón tiene letra',
+            nav ? nav.textContent.trim() : '', ftU()['nav.fichas'] || '(sin clave)');
+    } else if (PASE === 'lleno'){
+      ok('ficha técnica: el inversionista no tiene el renglón',
+         !ftVisible(nav), ftVisible(nav) ? 'a la vista' : 'escondido', 'escondido');
+    }
+  }
+
+  /* Y con la dirección escrita a mano, el inversionista cae a la portada. */
+  function ftInvAbre(){
+    if (PASE !== 'lleno') return;
+    location.hash = 'fichas-tecnicas';
+  }
+  function ftInvMira(){
+    if (PASE !== 'lleno') return;
+    ok('ficha técnica: el inversionista no entra ni con la dirección',
+       document.body.getAttribute('data-vista') !== 'fichas',
+       document.body.getAttribute('data-vista'), 'otra vista');
+    location.hash = '';
+  }
+
+  /* Sin la tabla en la base -el pase 'sinsql', un gestor- se dice con
+     calma, y no se pinta una lista vacía que parezca «no hay fichas». */
+  function ftSinSqlAbre(){
+    if (!SIN_SQL) return;
+    location.hash = 'fichas-tecnicas';
+  }
+  function ftSinSqlMira(sigue){
+    if (!SIN_SQL) return sigue();
+    esperaFilas('#ftAviso:not([hidden])', 1, function(){
+      var a = document.getElementById('ftAviso');
+      igual('ficha técnica: sin el SQL lo dice', a && !a.hidden ? a.textContent : '(callado)',
+            ftU().fte_sinsql);
+      ok('ficha técnica: y no pinta la lista', document.getElementById('ftHoja').hidden,
+         'hoja ' + (document.getElementById('ftHoja').hidden ? 'escondida' : 'a la vista'), 'escondida');
+      location.hash = '';
+      sigue();
+    });
+  }
+
+  function ftAbre(){
+    if (!ES_ADMIN) return;
+    window.__FT_ESCRITO = [];
+    location.hash = 'fichas-tecnicas';
+  }
+  function ftEspera(sigue){
+    if (!ES_ADMIN) return sigue();
+    esperaFilas('#ftLista .ftp-it', 2, sigue);
+  }
+  function ftMira(){
+    if (!ES_ADMIN) return;
+    igual('ficha técnica: se abre la vista', document.body.getAttribute('data-vista'), 'fichas');
+    ok('ficha técnica: y el renglón se enciende',
+       document.getElementById('navFichas').classList.contains('active'), 'mira la clase', 'active');
+    var grupos = [].map.call(document.querySelectorAll('#ftLista .ftp-grupo'), function(g){
+      return g.getAttribute('data-ente') + ':' + g.querySelectorAll('.ftp-it').length;
+    });
+    igual('ficha técnica: la lista agrupa por ente, en orden', grupos.join(', '), 'MINEC:1, MINTUR:1');
+    var on = document.querySelector('#ftLista .ftp-it.on');
+    ok('ficha técnica: y la primera sale elegida, editable a la derecha',
+       !!on && !!document.getElementById('ftc_nombre') &&
+       document.getElementById('ftc_nombre').value === on.querySelector('b').textContent,
+       on ? on.textContent : '(ninguna)', 'la de MINEC, con sus campos');
+    ok('ficha técnica: al admin no le sale el aviso de solo lectura',
+       document.getElementById('ftAviso').hidden, 'aviso ' +
+       (document.getElementById('ftAviso').hidden ? 'escondido' : document.getElementById('ftAviso').textContent), 'escondido');
+    /* El buscador filtra por ente y por nombre. */
+    var q = document.getElementById('ftBusca');
+    q.value = 'turis';
+    q.dispatchEvent(new Event('input', {bubbles:true}));
+    igual('ficha técnica: el buscador filtra',
+          document.querySelectorAll('#ftLista .ftp-it').length, 1);
+    q.value = '';
+    q.dispatchEvent(new Event('input', {bubbles:true}));
+  }
+
+  function ftNueva(){
+    if (!ES_ADMIN) return;
+    document.getElementById('ftNueva').click();
+    var u = ftU();
+    var n = document.getElementById('ftc_nombre');
+    ok('ficha técnica: «Nueva ficha» abre la ficha vacía',
+       !!n && n.value === '' && document.getElementById('ftc_ente_sigla').value === '' &&
+       document.getElementById('ftc_recaudos').value === '',
+       n ? 'nombre «' + n.value + '»' : '(sin campos)', 'todo en blanco');
+    igual('ficha técnica: por clasificar y en borrador',
+          (document.getElementById('ftc_momento') || {}).value + ' / ' +
+          (document.getElementById('ftc_estado') || {}).value, 'por_clasificar / borrador');
+    igual('ficha técnica: y se llama «sin nombre» hasta que lo tenga',
+          (document.querySelector('#ftFicha .ftp-titulo') || {}).textContent, u.fte_sinnombre);
+    ok('ficha técnica: la nueva se descarta, no se borra',
+       !!document.getElementById('ftDescartar') && !document.getElementById('ftBorrar'),
+       'mira los botones', 'Descartar y no Borrar');
+    /* Sin sigla ni nombre no se manda nada. */
+    document.getElementById('ftGuardar').click();
+    igual('ficha técnica: sin sigla ni nombre lo dice y no escribe',
+          document.getElementById('ftDice').textContent + ' · ' + (window.__FT_ESCRITO || []).length,
+          u.fte_falta + ' · 0');
+  }
+
+  function ftGuarda(){
+    if (!ES_ADMIN) return;
+    ftPon('ftc_ente_sigla', 'MINTUR');
+    ftPon('ftc_codigo_ente', 'PST');
+    ftPon('ftc_nombre', 'Licencia de turismo');
+    ftPon('ftc_sectores', 'Turismo, Hotelería ,');
+    ftPon('ftc_recaudos', 'RIF de la empresa\n\n  Acta constitutiva \n');
+    var m = document.getElementById('ftc_momento');
+    m.value = 'operar';
+    m.dispatchEvent(new Event('change', {bubbles:true}));
+    igual('ficha técnica: el título sigue al nombre mientras se escribe',
+          (document.querySelector('#ftFicha .ftp-titulo') || {}).textContent, 'Licencia de turismo');
+    document.getElementById('ftGuardar').click();
+  }
+  function ftTrasGuardar(sigue){
+    if (!ES_ADMIN) return sigue();
+    esperaFilas('#ftLista .ftp-it', 3, function(){
+      var e = ftEscrito();
+      var f = (e && e.insert) || {};
+      var cols = Object.keys(f).sort().join(',');
+      igual('ficha técnica: guardar manda las columnas de la tabla, y solo esas', cols,
+            'base_legal,categoria,codigo_ente,como_se_tramita,enlace,ente,ente_sigla,estado,' +
+            'fuente,momento,nombre,notas,plazo,recaudos,sectores,supuestos,tasa,vigencia');
+      igual('ficha técnica: los sectores van como lista, separados por comas',
+            JSON.stringify(f.sectores), '["Turismo","Hotelería"]');
+      igual('ficha técnica: y los recaudos, uno por línea, sin las vacías',
+            JSON.stringify(f.recaudos), '["RIF de la empresa","Acta constitutiva"]');
+      igual('ficha técnica: con lo demás tal cual',
+            [f.ente_sigla, f.codigo_ente, f.nombre, f.momento, f.estado].join(' / '),
+            'MINTUR / PST / Licencia de turismo / operar / borrador');
+      var mintur = document.querySelector('#ftLista .ftp-grupo[data-ente="MINTUR"]');
+      igual('ficha técnica: y la nueva entra en su ente',
+            mintur ? mintur.querySelectorAll('.ftp-it').length : 0, 2);
+      var on = document.querySelector('#ftLista .ftp-it.on b');
+      igual('ficha técnica: elegida, ya con su sitio en la base',
+            on ? on.textContent : '(ninguna)', 'Licencia de turismo');
+      igual('ficha técnica: y dice que se guardó',
+            (document.getElementById('ftDice') || {}).textContent, ftU().fte_guardado);
+      sigue();
+    });
+  }
+
+  function ftEdita(){
+    if (!ES_ADMIN) return;
+    var on = document.querySelector('#ftLista .ftp-it.on');
+    window.__FT_ID = on && on.getAttribute('data-ft');
+    ftPon('ftc_plazo', '10 días hábiles');
+    document.getElementById('ftGuardar').click();
+  }
+  function ftTrasEditar(){
+    if (!ES_ADMIN) return;
+    var e = ftEscrito() || {};
+    ok('ficha técnica: cambiarla es un update de ESA ficha',
+       !!e.update && !!e.eq && e.eq.id === window.__FT_ID && e.update.plazo === '10 días hábiles',
+       JSON.stringify(e.eq) + ' ' + (e.update ? e.update.plazo : '(sin update)'), window.__FT_ID + ' 10 días hábiles');
+  }
+
+  function ftBorra(){
+    if (!ES_ADMIN) return;
+    var b = document.getElementById('ftBorrar');
+    var antes = (window.__FT_ESCRITO || []).length;
+    b.click();
+    igual('ficha técnica: borrar pide una segunda pulsación',
+          b.textContent + ' · ' + ((window.__FT_ESCRITO || []).length - antes), ftU().brr_seguro + ' · 0');
+    b.click();
+  }
+  function ftTrasBorrar(){
+    if (!ES_ADMIN) return;
+    var e = ftEscrito() || {};
+    ok('ficha técnica: y a la segunda la borra',
+       e.borra && e.eq && e.eq.id === window.__FT_ID, JSON.stringify(e), 'delete de ' + window.__FT_ID);
+    igual('ficha técnica: y sale de la lista', document.querySelectorAll('#ftLista .ftp-it').length, 2);
+  }
+
+  /* El gestor: la misma pantalla, como documento y sin guardar. */
+  function ftGestor(){
+    if (!ES_ADMIN) return;
+    PERFIL.rol = 'gestor';
+    window.CIIP_REPINTA_FTECNICA();
+    var ficha = document.getElementById('ftFicha');
+    ok('ficha técnica: el gestor la ve',
+       document.querySelectorAll('#ftLista .ftp-it').length === 2 && !!ficha.querySelector('.ftp-doc'),
+       document.querySelectorAll('#ftLista .ftp-it').length + ' fichas', '2, como documento');
+    ok('ficha técnica: pero sin campos ni botón de guardar',
+       !ficha.querySelector('input, textarea, select') && !document.getElementById('ftGuardar') &&
+       !document.getElementById('ftBorrar') && document.getElementById('ftNueva').hidden,
+       'mira los mandos', 'ninguno');
+    igual('ficha técnica: y se le dice que es solo lectura',
+          document.getElementById('ftAviso').hidden ? '(callado)' : document.getElementById('ftAviso').textContent,
+          ftU().fte_lectura);
+    var otra = document.querySelector('#ftLista .ftp-it:not(.on)');
+    if (otra) otra.click();
+    ok('ficha técnica: y al elegir otra, tampoco',
+       !ficha.querySelector('input, textarea, select') && /Registro Turístico/.test(ficha.textContent),
+       ficha.textContent.slice(0, 60), 'la del RTN, sin campos');
+    PERFIL.rol = 'admin';
+    window.CIIP_REPINTA_FTECNICA();
+  }
+
+  /* Y vacía, como nace: un estado vacío claro, con «Nueva ficha». */
+  var FT_GUARDADAS = null;
+  function ftVaciaAbre(){
+    if (!ES_ADMIN) return;
+    FT_GUARDADAS = window.__FICHAS_TECNICAS;
+    window.__FICHAS_TECNICAS = [];
+    window.CIIP_PINTA_FTECNICA();
+  }
+  function ftVaciaMira(){
+    if (!ES_ADMIN) return;
+    var u = ftU();
+    var hoja = document.getElementById('ftHoja');
+    ok('ficha técnica: vacía, la pantalla entera es el estado vacío',
+       hoja.classList.contains('vacia') && (document.querySelector('#ftFicha .ftp-vacio-t') || {}).textContent === u.fte_vacio_t,
+       (document.getElementById('ftFicha').textContent || '').slice(0, 50), u.fte_vacio_t);
+    var b = document.getElementById('ftNuevaVacia');
+    ok('ficha técnica: y ofrece «Nueva ficha»', !!b && b.textContent === u.fte_nueva,
+       b ? b.textContent : '(no está)', u.fte_nueva);
+    if (b) b.click();
+    ok('ficha técnica: que abre la ficha en blanco',
+       !hoja.classList.contains('vacia') && !!document.getElementById('ftc_nombre'),
+       'mira los campos', 'con campos');
+    var d = document.getElementById('ftDescartar');
+    if (d) d.click();
+    ok('ficha técnica: y al descartarla vuelve el estado vacío',
+       hoja.classList.contains('vacia'), 'mira la hoja', 'vacía');
+    window.__FICHAS_TECNICAS = FT_GUARDADAS;
+    location.hash = '';
+  }
+
   /* ── EL CATALOGO DEL ADMIN, Y SUS DIAS ──
      De los tres numeros que puede llevar un tramite, el de «lo que suele
      tardar» es el unico que el CIIP puede afirmar: lo ve pasar. El legal
