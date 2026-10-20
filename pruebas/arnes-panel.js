@@ -12336,7 +12336,7 @@
           ops.length + ' · ' + ops[0] + ' · ' + ops[1] + ' · ' + ops[48],
           '49 · No la sé: que el CIIP la determine · Clase 1 · Clase 48');
     igual('marca: y los recaudos de siempre', bienesDocs(caja),
-          'logo_marca acta_constitutiva rif_empresa cedula rif_personal');
+          'cedula rif_personal logo_marca acta_constitutiva rif_empresa');
     var cambia = document.getElementById('marcaCambiar');
     ok('marca: «Cambiar» está a mano', !!cambia, cambia ? 'está' : 'no está', 'está');
     if (cambia) cambia.click();
@@ -12766,7 +12766,7 @@
     igual('ya: el motivo lleva el nombre de su ente',
           mIvss ? (mIvss.querySelector('label') || {}).textContent : '(no está)', U.f_ypmivss);
     if (ivss){ ivss.checked = false; ivss.dispatchEvent(new Event('change')); }
-    igual('ya: y sus cinco recaudos', bienesDocs(caja), 'acta_constitutiva acta_asamblea rif_empresa cedula rif_personal');
+    igual('ya: y sus cinco recaudos', bienesDocs(caja), 'cedula rif_personal acta_constitutiva acta_asamblea rif_empresa');
     igual('ya: la última acta de actualización, opcional', bienesDocs(caja, '[data-opcional]'), 'acta_asamblea');
     ok('ya: sin «undefined» en el detalle',
        document.body.innerText.indexOf('undefined') === -1, 'dice «undefined»', 'limpio');
@@ -12818,7 +12818,7 @@
           'fecha_solicitud_ya alcaldia_ya razon_social rif_empresa representante motivo_ya detalle_ya');
     igual('ya: con las tres alcaldías del encargo, sin ninguna elegida', bienesOpciones(caja, 'alcaldia_ya'),
           '|Baruta|Chacao|Libertador');
-    igual('ya: y sus cuatro recaudos', bienesDocs(caja), 'acta_constitutiva rif_empresa cedula rif_personal');
+    igual('ya: y sus cuatro recaudos', bienesDocs(caja), 'cedula rif_personal acta_constitutiva rif_empresa');
     /* La conformidad y los bomberos, por su catálogo: los mismos papeles, y
        los bomberos con su cuerpo de bomberos escrito en vez de la alcaldía. */
     var R = window.CIIP_RECAUDOS;
@@ -12965,7 +12965,17 @@
             var c = caja && caja.querySelector('.sol-campo[data-campo="' + n + '"] label');
             return c ? c.textContent : '(no está)'; }).join(' | '),
           'Permiso que vas a solicitar | Cédula de identidad del representante legal | RIF del representante legal');
-    igual('sacs: y sus cuatro recaudos', bienesDocs(caja), 'acta_constitutiva rif_empresa cedula rif_personal');
+    igual('sacs: y sus cuatro recaudos', bienesDocs(caja), 'cedula rif_personal acta_constitutiva rif_empresa');
+    /* Y agrupados por de quién son, con la primera línea de su guía debajo
+       (Franklin Reyes, 20-10-2026, opción 4 de maquetas/recaudos-cuatro.html). */
+    igual('recaudos: en grupos, el del representante legal y el de la empresa',
+          caja ? [].map.call(caja.querySelectorAll('.sd-g'), function(g){
+            return g.querySelector('.sd-g-t').textContent + ': ' + [].map.call(g.querySelectorAll('.sol-doc'), function(d){ return d.getAttribute('data-doc'); }).join(' ');
+          }).join(' | ') : '(sin formulario)',
+          'Del representante legal: cedula rif_personal | De la empresa: acta_constitutiva rif_empresa');
+    var pistaCed = caja && caja.querySelector('.sol-doc[data-doc="cedula"] .sd-pista');
+    igual('recaudos: y la guía de la cédula, a la vista', pistaCed ? pistaCed.textContent : '(sin pista)',
+          'Las dos caras. En un archivo o en dos, pero las dos.');
     igual('sacs: ninguno opcional', bienesDocs(caja, '[data-opcional]'), '');
     ok('sacs: sin «undefined» en el detalle',
        document.body.innerText.indexOf('undefined') === -1, 'dice «undefined»', 'limpio');
@@ -12998,7 +13008,7 @@
     var det = caja && caja.querySelector('.sol-campo[data-campo="detalle_ya"]');
     igual('sacs: lo que quiera contar, opcional', det ? det.getAttribute('data-opcional') : '(no está)', '1');
     igual('sacs: y los mismos cuatro recaudos que por primera vez', bienesDocs(caja),
-          'acta_constitutiva rif_empresa cedula rif_personal');
+          'cedula rif_personal acta_constitutiva rif_empresa');
 
     var E = window.CIIP_ESCALERA;
     if (E){

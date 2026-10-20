@@ -8063,6 +8063,15 @@ applyLang(idiomaParaMi());
       var pis = montaPista(r.tipo, r.opcional, u[r.clave] || r.tipo);
       if (pis) nom.appendChild(pis);
       txt.appendChild(nom);
+      /* LA OPCIÓN 4 DE maquetas/recaudos-cuatro.html (Franklin Reyes,
+         20-10-2026): debajo del nombre, a la vista, lo primero que dice
+         su guía -«Las dos caras…»-, en vez de solo detrás de la (i), que
+         se queda con lo demás. Y delante de la fila, un círculo que se
+         pone en verde con el papel elegido o ya en la bóveda (panel.css,
+         .sd-marca). */
+      var guiaR = (guiaDelIdioma().propio || {})[r.tipo];
+      if (guiaR && guiaR[0]) txt.appendChild(el('div', 'sd-pista', guiaR[0]));
+      fila.appendChild(el('span', 'sd-marca'));
       var est = el('div', 'sd-e', '');
       txt.appendChild(est);
       fila.appendChild(txt);
@@ -8233,7 +8242,28 @@ applyLang(idiomaParaMi());
       return fila;
     }
 
-    recaudosDe(tipo.codigo).forEach(function(r){ montaDoc(r, lista); });
+    /* POR DE QUIÉN ES (opción 4 de maquetas/recaudos-cuatro.html, Franklin
+       Reyes, 20-10-2026): «Del representante legal», «De la empresa» y
+       «Otros documentos», cada uno con su título. Solo cuando la ficha pide
+       de la persona Y de la empresa: en una visa, con el pasaporte solo,
+       un título no dice nada. Cada grupo va en su caja (.sd-g), que se
+       esconde sola si todos sus papeles dependen de una casilla sin marcar. */
+    var recsHoja = recaudosDe(tipo.codigo);
+    var grupoDe = function(r){ return DE_QUIEN_ES[r.tipo] || 'otros'; };
+    var hayDe = function(g){ return recsHoja.some(function(r){ return grupoDe(r) === g; }); };
+    if (hayDe('persona') && hayDe('empresa')){
+      ['persona', 'empresa', 'otros'].forEach(function(g){
+        var suyos = recsHoja.filter(function(r){ return grupoDe(r) === g; });
+        if (!suyos.length) return;
+        var caja = el('div', 'sd-g');
+        caja.setAttribute('data-grupo', g);
+        caja.appendChild(el('div', 'sd-g-t', u['sd_g_' + g] || ''));
+        suyos.forEach(function(r){ montaDoc(r, caja); });
+        lista.appendChild(caja);
+      });
+    } else {
+      recsHoja.forEach(function(r){ montaDoc(r, lista); });
+    }
     /* Y detras de ellos los de la junta, si los hay. */
     if (cajaJunta) lista.appendChild(cajaJunta);
     lado.appendChild(lista);
@@ -9524,6 +9554,19 @@ applyLang(idiomaParaMi());
     if (!r || !r.siExiste || !m) return true;
     return !Object.keys(m).length || (r.tipo in m);
   }
+  /* De quién es cada papel, para agrupar la hoja de recaudos (Franklin
+     Reyes, 20-10-2026, opción 4 de maquetas/recaudos-cuatro.html). Lo que
+     no está aquí va a «Otros documentos». */
+  var DE_QUIEN_ES = {
+    cedula: 'persona', rif_personal: 'persona', pasaporte: 'persona',
+    acta_constitutiva: 'empresa', acta_asamblea: 'empresa', acta_protocolizada: 'empresa',
+    rif_empresa: 'empresa', domicilio_empresa: 'empresa', declaracion_fondos: 'empresa',
+    declaracion_islr: 'empresa', estados_financieros: 'empresa', solvencia_ivss: 'empresa',
+    solvencia_seniat: 'empresa', nomina: 'empresa', nomina_tecnica: 'empresa',
+    registro_rnet: 'empresa', licencia_actividades: 'empresa', logo_marca: 'empresa',
+    relacion_equipos: 'empresa', relacion_experiencia: 'empresa',
+    poliza_incendio: 'empresa', poliza_responsabilidad_civil: 'empresa'
+  };
   function recaudosDe(codigo){
     return (RECAUDOS[codigo] || []).filter(function(r){ return recaudoVale(r); });
   }

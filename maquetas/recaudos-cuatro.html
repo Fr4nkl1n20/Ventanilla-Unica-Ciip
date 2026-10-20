@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · La hoja de recaudos, cuatro formas</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   LA HOJA DE RECAUDOS: CUATRO FORMAS
+   Franklin Reyes, 20-10-2026: «dame 4 maquetas de esto», con la hoja de
+   recaudos de un trámite -el aviso «Ninguno de estos recaudos está
+   todavía en tu expediente…», una tarjeta por recaudo con su (i) y
+   «Elige el archivo», y Atrás / Siguiente-.
+
+   Los mismos tres recaudos en las cuatro: cédula y RIF del representante
+   legal y RIF de la empresa. Cada fila deja elegir un archivo de verdad
+   para ver cómo queda subida; no se manda a ninguna parte. Sin marcos ni
+   franjas de color, y los títulos tal cual. No toca el panel.
+   ══════════════════════════════════════════════════════════════════ */
+:root{ --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB; }
+main{max-width:1240px; padding:28px 26px 90px; margin:0 auto;}
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.rejilla{display:grid; grid-template-columns:repeat(auto-fill, minmax(520px, 1fr)); gap:26px; margin-top:24px;}
+@media (max-width:600px){ .rejilla{grid-template-columns:1fr;} main{padding:20px 16px 60px;} }
+.idea{display:grid; gap:10px; align-content:start;}
+.idea h3{margin:0; font-size:15px; display:flex; gap:9px; align-items:center;}
+.idea h3 .n{width:24px; height:24px; border-radius:50%; background:var(--navy); color:#fff; font-size:12px; display:grid; place-items:center; flex:none;}
+.idea p{margin:0; font-size:12px; color:var(--gray); line-height:1.55;}
+
+/* ── la hoja, como en el panel ── */
+.hoja{background:var(--bg); border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+.hoja-c{padding:18px;}
+.pie{display:flex; justify-content:space-between; gap:10px; padding:14px 18px; border-top:1px solid var(--line);}
+.btn{font:inherit; font-size:12.5px; font-weight:700; border-radius:9px; padding:10px 18px; border:1px solid var(--line); background:var(--bg); color:var(--ink); cursor:pointer;}
+.btn.navy{background:var(--navy); border-color:var(--navy); color:#fff;}
+.btn.sube{color:var(--navy2); background:var(--card-2); padding:8px 14px;}
+.btn.sube:hover{border-color:var(--navy2);}
+.btn.link{border:0; background:none; padding:4px 2px; color:var(--navy2); font-size:12px;}
+.btn.link:hover{text-decoration:underline;}
+.aviso{display:flex; gap:9px; align-items:flex-start; background:var(--block); border-radius:10px; padding:11px 13px; font-size:12.5px; color:var(--ink); line-height:1.5;}
+.aviso svg{width:16px; height:16px; flex:none; margin-top:1px; stroke:var(--cyan-deep); fill:none; stroke-width:2;}
+.inf{width:18px; height:18px; border-radius:50%; border:1px solid var(--gray-soft); color:var(--gray); font-size:10px; font-weight:700; display:inline-grid; place-items:center; flex:none; cursor:help;}
+.nom{font-size:13px; font-weight:700; display:flex; align-items:center; gap:7px;}
+.sub{font-size:11.5px; color:var(--gray); margin-top:2px;}
+.ok{color:var(--good);}
+.visto{width:22px; height:22px; border-radius:50%; background:var(--good-bg); display:grid; place-items:center; flex:none;}
+.visto svg{width:12px; height:12px; stroke:var(--good); fill:none; stroke-width:3;}
+.vacio{width:22px; height:22px; border-radius:50%; border:1.5px dashed var(--gray-soft); flex:none;}
+input[type=file]{display:none;}
+
+/* 1 · lista con avance */
+.av{display:flex; align-items:center; gap:12px; margin-bottom:14px;}
+.av-t{font-size:12.5px; font-weight:700; white-space:nowrap;}
+.av-b{flex:1 1 auto; height:6px; border-radius:6px; background:var(--line-soft); overflow:hidden;}
+.av-b i{display:block; height:100%; width:0; background:var(--good); transition:width .25s;}
+.l1 .fila{display:flex; align-items:center; gap:12px; padding:13px 2px; border-bottom:1px solid var(--line-soft);}
+.l1 .fila:last-child{border-bottom:0;}
+.l1 .tx{flex:1 1 auto; min-width:0;}
+
+/* 2 · una zona para arrastrar */
+.zona{display:block; cursor:pointer; border:1.5px dashed var(--line); border-radius:12px; padding:22px; text-align:center; background:var(--card-2); width:auto; height:auto; position:static;}
+.zona svg{width:26px; height:26px; margin:0 auto 8px; stroke:var(--navy2); fill:none; stroke-width:1.8;}
+.zona b{display:block; font-size:13px;}
+.zona span{font-size:11.5px; color:var(--gray);}
+.l2{margin-top:14px; display:grid; gap:2px;}
+.l2 .fila{display:flex; align-items:center; gap:10px; padding:9px 4px; font-size:12.5px;}
+.l2 .fila .tx{flex:1 1 auto;}
+.l2 .fila .arch{font-size:11.5px; color:var(--gray); max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
+/* 3 · tarjetas en rejilla */
+.l3{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px;}
+@media (max-width:600px){ .l3{grid-template-columns:1fr;} }
+.t3{border:1px solid var(--line); border-radius:12px; padding:14px 12px; display:grid; gap:10px; justify-items:start; background:var(--bg); cursor:pointer;}
+.t3:hover{border-color:var(--navy2);}
+.t3 .ico{width:34px; height:40px; border-radius:6px; background:var(--block); display:grid; place-items:center;}
+.t3 .ico svg{width:18px; height:18px; stroke:var(--navy2); fill:none; stroke-width:1.8;}
+.t3 .nom{font-size:12.5px; line-height:1.35;}
+.t3 .est{font-size:11.5px; color:var(--navy2); font-weight:700;}
+.t3.lleno .ico{background:var(--good-bg);}
+.t3.lleno .ico svg{stroke:var(--good);}
+.t3.lleno .est{color:var(--good);}
+
+/* 4 · por de quién es */
+.g4{margin-bottom:16px;}
+.g4:last-child{margin-bottom:0;}
+.g4 h4{margin:0 0 8px; font-size:13px; font-weight:700;}
+.g4 .fila{display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:10px; background:var(--card-2); margin-bottom:6px;}
+.g4 .tx{flex:1 1 auto; min-width:0;}
+.g4 .pista{font-size:11.5px; color:var(--gray); margin-top:3px; line-height:1.45;}
+</style>
+</head>
+<body>
+<div class="mq-cartel"><b>Maqueta · La hoja de recaudos</b><span>Cuatro formas del mismo paso, con los tres recaudos de la captura. Elige un archivo en cualquiera para ver cómo queda. No toca el panel.</span></div>
+<main>
+  <p class="intro">Hoy la hoja pone cada recaudo en su propia tarjeta, con mucho aire entre una y otra, y no dice cuántos faltan. Las cuatro formas de abajo cuentan lo mismo de otra manera: con el avance a la vista, con una sola zona para arrastrar, en rejilla o agrupados según de quién es cada papel.</p>
+
+  <div class="rejilla">
+
+    <!-- 1 -->
+    <section class="idea">
+      <h3><span class="n">1</span>Lista con avance</h3>
+      <p>Una lista fina en vez de tres tarjetas, con «0 de 3 listos» y una barra arriba. Cada fila dice si falta o ya está, y el botón se vuelve «Cambiar» cuando el papel ya está subido.</p>
+      <div class="hoja">
+        <div class="hoja-c">
+          <div class="av"><span class="av-t" data-cuenta="1">0 de 3 listos</span><span class="av-b"><i data-barra="1"></i></span></div>
+          <div class="l1" data-grupo="1"></div>
+        </div>
+        <div class="pie"><button class="btn">Atrás</button><button class="btn navy">Siguiente</button></div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="idea">
+      <h3><span class="n">2</span>Una zona para arrastrar</h3>
+      <p>Arriba, una sola zona donde se sueltan o eligen los archivos, y debajo la lista de lo que se pide como una lista de pendientes que se va marcando. Útil cuando se tienen todos los papeles en una carpeta.</p>
+      <div class="hoja">
+        <div class="hoja-c">
+          <label class="zona">
+            <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>
+            <b>Arrastra aquí tus archivos o elígelos</b>
+            <span>PDF o imagen. Se guardan en tu expediente para los demás trámites.</span>
+            <input type="file" multiple data-zona="2">
+          </label>
+          <div class="l2" data-grupo="2"></div>
+        </div>
+        <div class="pie"><button class="btn">Atrás</button><button class="btn navy">Siguiente</button></div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="idea">
+      <h3><span class="n">3</span>Tarjetas en rejilla</h3>
+      <p>Los tres recaudos lado a lado, como casillas que se pulsan para subir. Ocupa la mitad de alto y se ve de un vistazo qué está y qué no. En el móvil se apilan.</p>
+      <div class="hoja">
+        <div class="hoja-c">
+          <div class="aviso" style="margin-bottom:14px"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Ninguno de estos recaudos está todavía en tu expediente. Súbelos aquí y quedan guardados para los demás trámites.</span></div>
+          <div class="l3" data-grupo="3"></div>
+        </div>
+        <div class="pie"><button class="btn">Atrás</button><button class="btn navy">Siguiente</button></div>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section class="idea">
+      <h3><span class="n">4</span>Según de quién es</h3>
+      <p>Separados en «Del representante legal» y «De la empresa», con la explicación del (i) escrita debajo de cada uno en vez de escondida. Ayuda a no confundir el RIF de la persona con el de la empresa.</p>
+      <div class="hoja">
+        <div class="hoja-c" data-grupo="4"></div>
+        <div class="pie"><button class="btn">Atrás</button><button class="btn navy">Siguiente</button></div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script>
+(function(){
+  var RECAUDOS = [
+    {k:'ced', nom:'Cédula de identidad del representante legal', de:'rep',
+     pista:'Vigente y legible, por las dos caras.'},
+    {k:'rifr', nom:'RIF del representante legal', de:'rep',
+     pista:'El comprobante del RIF de la persona, no el de la empresa.'},
+    {k:'rife', nom:'RIF de la empresa', de:'emp',
+     pista:'El comprobante del RIF de la empresa, vigente.'}
+  ];
+  var ICO_VISTO = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>';
+  var ICO_DOC = '<svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg>';
+  var estado = {1:{}, 2:{}, 3:{}, 4:{}};
+
+  function el(t, c, h){ var e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
+  function elige(n, k, alTener){
+    var i = el('input'); i.type = 'file'; i.accept = 'image/*,application/pdf';
+    i.addEventListener('change', function(){ if (i.files[0]){ estado[n][k] = i.files[0].name; alTener(); } });
+    document.body.appendChild(i); i.click();
+    setTimeout(function(){ i.remove(); }, 60000);
+  }
+
+  /* 1 */
+  function pinta1(){
+    var g = document.querySelector('[data-grupo="1"]'); g.innerHTML = '';
+    var listos = 0;
+    RECAUDOS.forEach(function(r){
+      var ya = estado[1][r.k]; if (ya) listos++;
+      var f = el('div', 'fila');
+      f.appendChild(ya ? el('span', 'visto', ICO_VISTO) : el('span', 'vacio'));
+      var tx = el('div', 'tx');
+      tx.appendChild(el('div', 'nom', r.nom + ' <span class="inf" title="' + r.pista + '">i</span>'));
+      tx.appendChild(el('div', 'sub' + (ya ? ' ok' : ''), ya ? ya : 'Falta'));
+      f.appendChild(tx);
+      var b = el('button', 'btn sube', ya ? 'Cambiar' : 'Subir');
+      b.addEventListener('click', function(){ elige(1, r.k, pinta1); });
+      f.appendChild(b);
+      g.appendChild(f);
+    });
+    document.querySelector('[data-cuenta="1"]').textContent = listos + ' de ' + RECAUDOS.length + ' listos';
+    document.querySelector('[data-barra="1"]').style.width = (100 * listos / RECAUDOS.length) + '%';
+  }
+
+  /* 2 */
+  function pinta2(){
+    var g = document.querySelector('[data-grupo="2"]'); g.innerHTML = '';
+    RECAUDOS.forEach(function(r){
+      var ya = estado[2][r.k];
+      var f = el('div', 'fila');
+      f.appendChild(ya ? el('span', 'visto', ICO_VISTO) : el('span', 'vacio'));
+      f.appendChild(el('span', 'tx', r.nom));
+      if (ya) f.appendChild(el('span', 'arch', ya));
+      var b = el('button', 'btn link', ya ? 'Cambiar' : 'Elegir');
+      b.addEventListener('click', function(){ elige(2, r.k, pinta2); });
+      f.appendChild(b);
+      g.appendChild(f);
+    });
+  }
+  /* En la zona, los archivos se reparten por orden entre los que faltan:
+     en el panel de verdad los repartiría el lector, o se preguntaría. */
+  document.querySelector('[data-zona="2"]').addEventListener('change', function(){
+    var fs = [].slice.call(this.files);
+    RECAUDOS.forEach(function(r){ if (!estado[2][r.k] && fs.length) estado[2][r.k] = fs.shift().name; });
+    this.value = ''; pinta2();
+  });
+
+  /* 3 */
+  function pinta3(){
+    var g = document.querySelector('[data-grupo="3"]'); g.innerHTML = '';
+    RECAUDOS.forEach(function(r){
+      var ya = estado[3][r.k];
+      var t = el('div', 't3' + (ya ? ' lleno' : ''));
+      t.title = r.pista;
+      t.appendChild(el('span', 'ico', ya ? ICO_VISTO : ICO_DOC));
+      t.appendChild(el('div', 'nom', r.nom));
+      t.appendChild(el('div', 'est', ya ? 'Subido · cambiar' : 'Elegir archivo'));
+      t.addEventListener('click', function(){ elige(3, r.k, pinta3); });
+      g.appendChild(t);
+    });
+  }
+
+  /* 4 */
+  function pinta4(){
+    var g = document.querySelector('[data-grupo="4"]'); g.innerHTML = '';
+    [['rep', 'Del representante legal'], ['emp', 'De la empresa']].forEach(function(gr){
+      var c = el('div', 'g4');
+      c.appendChild(el('h4', null, gr[1]));
+      RECAUDOS.filter(function(r){ return r.de === gr[0]; }).forEach(function(r){
+        var ya = estado[4][r.k];
+        var f = el('div', 'fila');
+        f.appendChild(ya ? el('span', 'visto', ICO_VISTO) : el('span', 'vacio'));
+        var tx = el('div', 'tx');
+        tx.appendChild(el('div', 'nom', r.nom));
+        tx.appendChild(el('div', 'pista', ya ? '<span class="ok">' + ya + '</span>' : r.pista));
+        f.appendChild(tx);
+        var b = el('button', 'btn sube', ya ? 'Cambiar' : 'Elige el archivo');
+        b.addEventListener('click', function(){ elige(4, r.k, pinta4); });
+        f.appendChild(b);
+        c.appendChild(f);
+      });
+      g.appendChild(c);
+    });
+  }
+
+  pinta1(); pinta2(); pinta3(); pinta4();
+})();
+</script>
+</body>
+</html>

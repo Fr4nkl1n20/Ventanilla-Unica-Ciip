@@ -3983,7 +3983,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
 /* El texto ocupa la fila entera y los botones caen juntos en la siguiente.
    Hace falta !important porque el ancho de ese bloque va escrito en el
    propio elemento, y lo de fuera no puede con lo de dentro sin decirlo. */
-.sol-lado .sol-doc > div:first-child{flex:1 1 100% !important; min-width:0;}
+.sol-lado .sol-doc > div:first-of-type{flex:1 1 100% !important; min-width:0;}
 .sol-lado .sol-doc .btn, .sol-lado .sol-doc .sd-ver{margin-left:0;}
 .sol-lado .sd-n{font-size:var(--fs-fila); font-weight:600; line-height:1.35;}
 @media (max-width:900px){
@@ -4640,9 +4640,29 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
   border-radius:12px; padding:14px 16px; gap:14px; flex-wrap:wrap;}
 .pa-hoja[data-paso="2"] .sol-doc + .sol-doc{border-top:1px solid var(--line);}
 .pa-hoja[data-paso="2"] .sol-doc:last-child{padding-bottom:14px;}
-.pa-hoja[data-paso="2"] .sol-doc > div:first-child{flex:1 1 auto !important;}
+.pa-hoja[data-paso="2"] .sol-doc > div:first-of-type{flex:1 1 auto !important;}
 .pa-hoja[data-paso="2"] .sd-n{font-size:var(--fs-seccion); font-weight:700;letter-spacing:.01em;}
 .pa-hoja[data-paso="2"] .sol-doc .sd-btn{margin-left:auto;}
+/* LA HOJA DE RECAUDOS, OPCIÓN 4 DE maquetas/recaudos-cuatro.html (Franklin
+   Reyes, 20-10-2026): las filas sin marco, sobre un gris muy claro; un
+   círculo delante que se pone en verde con el papel elegido o ya en la
+   bóveda; debajo del nombre, la primera línea de su guía; y los grupos
+   «Del representante legal» / «De la empresa» / «Otros documentos» con su
+   título. El marco vuelve solo en rojo (.mal) y al arrastrar (.encima). */
+.pa-hoja[data-paso="2"] .sol-doc{border-color:transparent; background:var(--card-2); border-radius:10px;
+  padding:12px 14px; align-items:center;}
+.pa-hoja[data-paso="2"] .sol-doc + .sol-doc{border-top-color:transparent;}
+.sol-doc .sd-marca{width:22px; height:22px; border-radius:50%; border:1.5px dashed var(--gray-soft);
+  flex:none; display:grid; place-items:center;}
+.sol-doc:has(.sd-ya, .sd-sube) .sd-marca{border:0; background:var(--good-bg);}
+.sol-doc:has(.sd-ya, .sd-sube) .sd-marca::after{content:""; width:10px; height:6px; margin-top:-2px;
+  border-left:2.5px solid var(--good); border-bottom:2.5px solid var(--good); transform:rotate(-45deg);}
+.sol-doc:has(.sd-marca) .sd-sube, .sol-doc:has(.sd-marca) .sd-ya{display:none;}
+.sol-doc .sd-pista{font-size:var(--fs-nota); color:var(--gray); line-height:1.45; margin-top:3px; font-weight:400;}
+.sd-g{display:flex; flex-direction:column; gap:8px;}
+.sd-g + .sd-g{margin-top:10px;}
+.sd-g:not(:has(.sol-doc:not([hidden]))){display:none;}
+.sd-g-t{font-size:var(--fs-fila); font-weight:700; color:var(--ink);}
 /* Mientras se arrastra un archivo por encima. Sin esto no hay forma de
    saber que la fila lo acepta, y quien lo suelta al lado lo pierde. */
 .sol-doc.encima{border-color:var(--cyan-deep) !important; background:var(--activa-bg) !important;}
