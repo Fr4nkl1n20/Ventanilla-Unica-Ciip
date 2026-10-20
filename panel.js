@@ -2731,6 +2731,17 @@ applyLang(idiomaParaMi());
          de países sabe volver a colocar. */
       return PERFIL.pais ? {valor: PERFIL.pais} : null;
     }
+    /* EL NOMBRE COMPLETO, TAL CUAL (Franklin Reyes, 20-10-2026: «¿podemos
+       trabajar con nombres completos?»). Las visas, la cédula, el RIF
+       personal y el SISREF preguntan una sola casilla, y sale el nombre
+       del perfil entero, sin la apuesta de dónde partirlo. Si el portal
+       del ente lo quiere partido, lo parte el gestor al transcribirlo.
+       Lo de 'nombres' y 'apellidos' se queda para las solicitudes viejas. */
+    if (campo === 'nombre_completo'){
+      if (!PERFIL.nombreReal) return null;
+      var todo = String(PERFIL.nombre || '').trim().replace(/\s+/g, ' ');
+      return todo ? {valor: todo} : null;
+    }
     if (campo !== 'nombres' && campo !== 'apellidos') return null;
 
     /* SOLO si el nombre es de verdad suyo. PERFIL.nombre nace con el de la
@@ -4981,8 +4992,10 @@ applyLang(idiomaParaMi());
        trabajo que esta taquilla viene a quitar, y además dos respuestas que
        podían no coincidir.
 
-       El nombre va en los dos campos que ya existen, 'nombres' y
-       'apellidos', y no en uno nuevo: así salen ya puestos del perfil
+       El nombre va entero en una sola casilla, 'nombre_completo', desde el
+       20-10-2026 (Franklin Reyes: «¿podemos trabajar con nombres
+       completos?»). Hasta entonces iba en 'nombres' y 'apellidos'. Sale
+       puesto del perfil
        (rellenaDelPerfil) y se heredan por NOMBRE entre trámites, igual que
        en el registro de extranjeros. Pasaporte y país, los de siempre: los
        ve el gestor en la página del pasaporte, en su visor.
@@ -4993,14 +5006,12 @@ applyLang(idiomaParaMi());
        VIGENCIA_MINIMA, que sigue sabiendo de vence_pasaporte para el día
        que otro trámite lo pregunte. */
     visa_negocios: [
-      {n:'nombres',          clave:'f_nombres'},
-      {n:'apellidos',        clave:'f_apellidos'},
+      {n:'nombre_completo',  clave:'f_nombrecompleto', ancho:true},
       {n:'numero_pasaporte', clave:'f_pasaporte'},
       {n:'pais_emisor',      clave:'f_paisemisor', paises:true}
     ],
     visa_inversionista: [
-      {n:'nombres',          clave:'f_nombres'},
-      {n:'apellidos',        clave:'f_apellidos'},
+      {n:'nombre_completo',  clave:'f_nombrecompleto', ancho:true},
       {n:'numero_pasaporte', clave:'f_pasaporte'},
       {n:'pais_emisor',      clave:'f_paisemisor', paises:true}
     ],
@@ -5058,8 +5069,7 @@ applyLang(idiomaParaMi());
       /* El buscador de países, no una caja libre: el portal la tiene como
          lista cerrada, y así se guarda además el código ISO. */
       {n:'nacionalidad',     clave:'f_nacionalidad', paises:true},
-      {n:'nombres',          clave:'f_nombres'},
-      {n:'apellidos',        clave:'f_apellidos'},
+      {n:'nombre_completo',  clave:'f_nombrecompleto', ancho:true},
       {n:'telefono_local',   clave:'f_telvzla',  tipo:'tel'},
       {n:'telefono_celular', clave:'f_telcel',   tipo:'tel'},
       /* Se llama 'correo' y no 'correo_sisref' para que lo herede del RIF
@@ -5111,8 +5121,7 @@ applyLang(idiomaParaMi());
        estado civil, la ocupación, el teléfono y la dirección- lo pregunta
        el SAIME en su portal. */
     cedula_residencia: [
-      {n:'nombres',          clave:'f_nombres'},
-      {n:'apellidos',        clave:'f_apellidos'},
+      {n:'nombre_completo',  clave:'f_nombrecompleto', ancho:true},
       {n:'numero_pasaporte', clave:'f_pasaporte'},
       {n:'pais_emisor',      clave:'f_paisemisor', paises:true}
     ],
@@ -5166,8 +5175,7 @@ applyLang(idiomaParaMi());
       {n:'tipo_persona',     clave:'f_tipopersona', opcionesClave:'o_tipopersona'},
       {n:'numero_documento', clave:'f_numero'},
       {n:'fecha_nacimiento', clave:'f_nacimiento', tipo:'date'},
-      {n:'apellidos',        clave:'f_apellidos'},
-      {n:'nombres',          clave:'f_nombres'},
+      {n:'nombre_completo',  clave:'f_nombrecompleto', ancho:true},
       {n:'sexo',             clave:'f_sexo',       opcionesClave:'o_sexo'},
       {n:'estado_civil',     clave:'f_civil',      opcionesClave:'o_civil'},
       {n:'domiciliado_pais', clave:'f_domiciliado', opcionesClave:'o_sino'},
@@ -6042,8 +6050,10 @@ applyLang(idiomaParaMi());
        lector y hay pasaporte, el corte lo hace el documento y no nuestra
        apuesta del último espacio. Y si ya había algo escrito no se toca,
        que ponCampo no pisa lo que está puesto. */
-    nombres:               ['pasaporte', 'cedula'],
-    apellidos:             ['pasaporte', 'cedula'],
+    /* Y desde el 20-10-2026 el nombre va entero en una casilla
+       (nombre_completo), sin partir: ya no queda ningún formulario con
+       el nombre partido en dos casillas. */
+    nombre_completo:       ['pasaporte', 'cedula'],
     nacionalidad:          ['pasaporte'],
 
     /* La visa estampada (numero_visa, del papel visa) salió el 14-10-2026: la
@@ -8904,7 +8914,8 @@ applyLang(idiomaParaMi());
   function auDatos(tipo, datos){
     var a = function(k){ return (datos && datos[k]) || (ANTES && ANTES[k] && ANTES[k].valor) || ''; };
     var ref = tipoRefDe(tipo.codigo);
-    var nombre = [a('nombres'), a('apellidos')].join(' ').trim() ||
+    var nombre = String(a('nombre_completo') || '').trim() ||
+                 [a('nombres'), a('apellidos')].join(' ').trim() ||
                  String((typeof PERFIL !== 'undefined' && PERFIL.nombre) || '').trim();
     var pas = a('numero_pasaporte');
     var tdoc = pas ? 'pasaporte' : String(a('tipo_documento') || '').toLowerCase();

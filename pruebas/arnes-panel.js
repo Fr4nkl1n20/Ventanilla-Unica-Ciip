@@ -4325,7 +4325,7 @@
     var campos = [].map.call(hoja1.querySelectorAll('.sol-campo'), function(c){
       return c.getAttribute('data-campo'); });
     igual('visa: «Tus datos» pide solo nombre y apellido, número de pasaporte y país de emisión',
-          campos.join(' '), 'nombres apellidos numero_pasaporte pais_emisor');
+          campos.join(' '), 'nombre_completo numero_pasaporte pais_emisor');
     ok('visa: sin el apartado del itinerario ni cajas de texto largo',
        !caja.querySelector('.sol-grupo') && !caja.querySelector('textarea'),
        (caja.querySelector('.sol-grupo') ? 'con apartado ' : '') + (caja.querySelector('textarea') ? 'con caja' : '') || 'sin nada',
@@ -4335,7 +4335,8 @@
        caja.querySelector('[name="vence_pasaporte"]') ? 'está' : 'no está', 'no está');
     /* El nombre, del perfil y con su sello, como en el registro de
        extranjeros: son los mismos dos campos. */
-    ['nombres', 'apellidos'].forEach(function(n){
+    /* Desde el 20-10-2026 el nombre va entero en una casilla, nombre_completo (Franklin Reyes: «¿podemos trabajar con nombres completos?»). */
+    ['nombre_completo'].forEach(function(n){
       var c = caja.querySelector('.sol-campo[data-campo="' + n + '"]');
       var e = c && c.querySelector('[name="' + n + '"]');
       var v = e ? (e.value || '') : '';
@@ -4719,7 +4720,8 @@
        fila del c24, y sin fila el panel pinta una ficha de lectura -sin
        formulario-. Lo que sujeta la mudanza es este dieciséis: si alguien
        los devuelve aquí, esto se pone rojo. */
-    igual('sisref: pide los dieciséis del portal', campos.length, 16);
+    /* Desde el 20-10-2026 el nombre va entero en una casilla, nombre_completo (Franklin Reyes: «¿podemos trabajar con nombres completos?»). */
+    igual('sisref: pide los quince, con el nombre entero en una casilla', campos.length, 15);
     igual('sisref: y sus cuatro recaudos', docs.length, 4);
 
     /* Los cuatro que admite el portal, por su tipo de la bóveda. El segundo
@@ -4742,7 +4744,7 @@
     campos.forEach(function(c){ orden.push(c.getAttribute('data-campo')); });
     igual('sisref: y en el mismo orden que el formulario del SAREN',
       orden.join(' '),
-      'tipo_documento numero_documento nacionalidad nombres apellidos ' +
+      'tipo_documento numero_documento nacionalidad nombre_completo ' +
       'telefono_local telefono_celular correo accion_tramite direccion_vzla ' +
       'tipo_oficina entidad oficina acto forma_pago fecha_solicitud');
 
@@ -4806,7 +4808,7 @@
        vacíos y que lo digan con el sello: un campo relleno sin sello
        parece que el panel se inventó el dato, y ese fue el motivo por el
        que existen los otros tres sellos. */
-    ['nombres', 'apellidos', 'correo'].forEach(function(n){
+    ['nombre_completo', 'correo'].forEach(function(n){
       var c = caja.querySelector('.sol-campo[data-campo="' + n + '"]');
       var e = c && c.querySelector('[name="' + n + '"]');
       var v = e ? (e.value || '') : '';
@@ -4823,13 +4825,13 @@
        que es lo único que se puede exigir sin saber dónde va el corte. Si
        alguien cambia la regla y se pierde un trozo por el camino -un
        segundo nombre que no cae en ninguna de las dos-, esto lo dice. */
-    var eN = caja.querySelector('[name="nombres"]');
-    var eA = caja.querySelector('[name="apellidos"]');
-    var entero = ((eN && eN.value) || '') + ' ' + ((eA && eA.value) || '');
+    /* Y desde el 20-10-2026 sin corte: la casilla es el nombre entero. */
+    var eN = caja.querySelector('[name="nombre_completo"]');
+    var entero = (eN && eN.value) || '';
     var cab = document.querySelector('.u-name');
     if (cab && (cab.textContent || '').trim()){
       var esperado = (cab.textContent || '').trim().replace(/\s+/g, ' ');
-      igual('sisref: nombres y apellidos, juntos, son el nombre entero',
+      igual('sisref: el nombre completo es el nombre entero del perfil',
         entero.trim().replace(/\s+/g, ' '), esperado);
 
     /* ── LA OFICINA Y EL ACTO, QUE AHORA SALEN DEL PORTAL ──
