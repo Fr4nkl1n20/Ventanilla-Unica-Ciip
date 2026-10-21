@@ -503,7 +503,10 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
            inversionista, como la boveda: nace oculto y lo enseña menuPorRol(). -->
       <button class="sb-item" id="navRecaudos" type="button" hidden><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><path d="M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/><path d="m8.5 12 2 2 4-4"/><path d="M8.5 17.5h7"/></svg></span><span data-i18n="nav.recaudos">My required documents</span></button>
     </div>
-    <div class="sb-group">
+    <!-- Oportunidades, escondido entero (Franklin Reyes, 21-10-2026: «quita
+         esta pestaña»). La vista de Activos y proyectos sigue en el panel:
+         volver a ponerlo es quitar este hidden. -->
+    <div class="sb-group" id="sbOportunidades" hidden>
       <div class="sb-gl" data-i18n="nav.g.opps">Opportunities</div>
       <!-- El 42 era de ejemplo. Ahora cuenta los activos publicados de
            verdad, y si no hay ninguno no se enseña. -->
