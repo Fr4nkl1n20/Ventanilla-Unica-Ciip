@@ -31990,8 +31990,8 @@ applyLang(idiomaParaMi());
     return trs;
   }
 
-  /* Los completos nacen plegados; los que abras se quedan abiertos al
-     repintar. */
+  /* Los completos nacen plegados y los demás abiertos; lo que pliegues o
+     despliegues se queda así al repintar. */
   var rcAbiertos = {};
 
   function pintaRecaudos(){
@@ -32019,34 +32019,31 @@ applyLang(idiomaParaMi());
       return;
     }
     trs.forEach(function(t){
-      var abierto = !t.listo || !!rcAbiertos[t.ref];
+      var abierto = (t.ref in rcAbiertos) ? rcAbiertos[t.ref] : !t.listo;
       var caja = el('section', 'rc-caja' + (t.listo ? ' listo' : '') + (abierto ? '' : ' plegada'));
       caja.setAttribute('data-ref', t.ref);
       caja.setAttribute('data-n', t.n);
       caja.setAttribute('data-t', t.papeles.length);
-      var cab = el('div', 'rc-cab-tr');
-      /* El nombre lleva a la ficha del trámite. */
-      var nom = el('button', 'rc-tr-n', t.nombre);
-      nom.type = 'button';
-      nom.addEventListener('click', function(){ location.hash = 'tramite-' + t.ref; });
-      cab.appendChild(nom);
-      /* El avance. En los completos es además lo que pliega y despliega. */
-      var avT = el(t.listo ? 'button' : 'div', 'rc-tr-av');
+      /* La cabecera entera -nombre y avance- pliega y despliega, en todos.
+         Franklin Reyes, 21-10-2026: «que no me envíe a ningún lado, que solo
+         sea un desplegable». */
+      var cab = el('button', 'rc-cab-tr');
+      cab.type = 'button';
+      cab.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+      cab.addEventListener('click', function(){
+        rcAbiertos[t.ref] = !abierto;
+        pintaRecaudos();
+      });
+      cab.appendChild(el('span', 'rc-tr-n', t.nombre));
+      var avT = el('span', 'rc-tr-av');
       avT.appendChild(el('b', null, String(u.dc_rec_de || '').replace('{n}', t.n).replace('{t}', t.papeles.length)));
       var b = el('span', 'rc-barra');
       var i = document.createElement('i');
       i.style.width = Math.round(100 * t.n / t.papeles.length) + '%';
       b.appendChild(i);
       avT.appendChild(b);
-      if (t.listo){
-        avT.type = 'button';
-        avT.setAttribute('aria-expanded', abierto ? 'true' : 'false');
-        avT.addEventListener('click', function(){
-          rcAbiertos[t.ref] = !rcAbiertos[t.ref];
-          pintaRecaudos();
-        });
-      }
       cab.appendChild(avT);
+      cab.appendChild(el('span', 'rc-flecha'));
       caja.appendChild(cab);
 
       if (abierto){

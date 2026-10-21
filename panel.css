@@ -1912,17 +1912,20 @@ body[data-vista="recaudos"] .fase-bar{display:none;}
 .rc-lista{display:flex; flex-direction:column; gap:10px;}
 /* Una caja por trámite, sin marco, sobre el gris muy claro. */
 .rc-caja{border-radius:12px; background:var(--card-2); padding:14px;}
-.rc-cab-tr{display:flex; align-items:center; gap:10px 16px; flex-wrap:wrap; margin-bottom:8px;}
+/* La cabecera es un solo botón que pliega y despliega la caja; la flecha
+   apunta abajo abierta y a la derecha plegada. */
+.rc-cab-tr{display:flex; align-items:center; gap:10px 16px; flex-wrap:wrap; margin-bottom:8px; width:100%;
+  font:inherit; color:inherit; background:none; border:0; padding:0; text-align:left; cursor:pointer;}
 .rc-caja.plegada .rc-cab-tr{margin-bottom:0;}
-.rc-tr-n{flex:1 1 220px; min-width:0; font:inherit; font-size:var(--fs-seccion); font-weight:700; color:var(--ink);
-  background:none; border:0; padding:0; text-align:left; cursor:pointer; overflow-wrap:anywhere;}
-.rc-tr-n:hover{color:var(--navy2); text-decoration:underline;}
-.rc-tr-av{flex:0 1 240px; display:flex; align-items:center; gap:10px; min-width:160px;
-  font:inherit; background:none; border:0; padding:0; color:inherit;}
-button.rc-tr-av{cursor:pointer;}
+.rc-tr-n{flex:1 1 220px; min-width:0; font-size:var(--fs-seccion); font-weight:700; color:var(--ink); overflow-wrap:anywhere;}
+.rc-cab-tr:hover .rc-tr-n{color:var(--navy2);}
+.rc-tr-av{flex:0 1 240px; display:flex; align-items:center; gap:10px; min-width:160px;}
 .rc-tr-av b{font-size:var(--fs-fila); white-space:nowrap; color:var(--ink);}
 .rc-caja.listo .rc-tr-av b{color:var(--good);}
-.rc-tr-n:focus-visible, .rc-tr-av:focus-visible, .rc-btn:focus-visible{outline:2px solid var(--navy2); outline-offset:2px; border-radius:4px;}
+.rc-flecha{flex:none; width:8px; height:8px; margin:0 4px 4px; box-sizing:border-box;
+  border-right:2px solid var(--gray); border-bottom:2px solid var(--gray); transform:rotate(45deg); transition:transform .15s;}
+.rc-caja.plegada .rc-flecha{margin:0 4px; transform:rotate(-45deg);}
+.rc-cab-tr:focus-visible, .rc-btn:focus-visible{outline:2px solid var(--navy2); outline-offset:2px; border-radius:4px;}
 /* Los papeles, en filas finas. */
 .rc-p{display:flex; align-items:center; gap:10px; padding:7px 4px;}
 .rc-marca{width:20px; height:20px; border-radius:50%; border:1.5px dashed var(--gray-soft);
@@ -1938,7 +1941,7 @@ button.rc-tr-av{cursor:pointer;}
   background:none; color:var(--navy2); border:0; padding:4px 2px; white-space:nowrap;}
 .rc-btn:hover{text-decoration:underline;}
 @media (max-width:600px){
-  .rc-tr-av{flex:1 1 100%;}
+  .rc-tr-av{flex:1 1 calc(100% - 40px);}
   .rc-av{flex:1 1 100%;}
 }
 

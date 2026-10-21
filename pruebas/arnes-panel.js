@@ -20625,13 +20625,13 @@
     /* Y un completo se despliega al pulsarlo, y se vuelve a plegar. */
     if (!listos.length) return sigue();
     var ref = listos[0].getAttribute('data-ref');
-    listos[0].querySelector('.rc-tr-av').click();
+    listos[0].querySelector('.rc-cab-tr').click();
     var c2 = document.querySelector('#rcLista .rc-caja[data-ref="' + ref + '"]');
     ok('mis recaudos: un completo se despliega al pulsarlo',
        !!c2 && !c2.classList.contains('plegada') && c2.querySelectorAll('.rc-p').length === rcNum(c2, 't') &&
        c2.querySelectorAll('.rc-p:not(.ya)').length === 0,
        c2 ? (c2.className + ', ' + c2.querySelectorAll('.rc-p').length + ' filas') : 'sin caja', 'abierto y todo en verde');
-    if (c2) c2.querySelector('.rc-tr-av').click();
+    if (c2) c2.querySelector('.rc-cab-tr').click();
     var c3 = document.querySelector('#rcLista .rc-caja[data-ref="' + ref + '"]');
     igual('mis recaudos: y se vuelve a plegar', !!c3 && c3.classList.contains('plegada'), true);
     sigue();
@@ -20697,13 +20697,22 @@
     if (RC_EQUIPO) return sigue();
     var c = document.querySelector('#rcLista .rc-caja');
     if (!c) return sigue();
+    /* 21-10-2026: el nombre ya no lleva a la ficha; solo pliega y
+       despliega, también en los que les falta algo. */
     var ref = c.getAttribute('data-ref');
+    var antes = location.hash;
+    var abierta = !c.classList.contains('plegada');
     c.querySelector('.rc-tr-n').click();
     setTimeout(function(){
-      igual('mis recaudos: el nombre del trámite lleva a su ficha', location.hash, '#tramite-' + ref);
-      igual('mis recaudos: y la abre', document.body.getAttribute('data-vista'), 'tramite');
-      location.hash = '';
-      setTimeout(sigue, 200);
+      igual('mis recaudos: pulsar el trámite no lleva a ninguna parte', location.hash, antes);
+      igual('mis recaudos: y se queda en la lista', document.body.getAttribute('data-vista'), 'recaudos');
+      var c2 = document.querySelector('#rcLista .rc-caja[data-ref="' + ref + '"]');
+      igual('mis recaudos: solo se pliega o se despliega', !!c2 && c2.classList.contains('plegada'), abierta);
+      igual('mis recaudos: plegado, sin sus papeles', !!c2 && (!!c2.querySelector('.rc-p')) === !abierta, true);
+      if (c2) c2.querySelector('.rc-cab-tr').click();
+      var c3 = document.querySelector('#rcLista .rc-caja[data-ref="' + ref + '"]');
+      igual('mis recaudos: y vuelve como estaba', !!c3 && !c3.classList.contains('plegada'), abierta);
+      sigue();
     }, 300);
   }
 
