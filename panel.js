@@ -32006,13 +32006,6 @@ applyLang(idiomaParaMi());
        mentir un segundo. */
     if (!rcListo || !laBovedaEsMia()) return;
     var trs = rcPorTramite();
-    var listos = trs.filter(function(t){ return t.listo; }).length;
-    var av = document.getElementById('rcAv');
-    if (av) av.hidden = !trs.length;
-    var cuenta = document.getElementById('rcCuenta');
-    if (cuenta) cuenta.textContent = String(u.dc_rec_cuenta || '').replace('{n}', listos).replace('{t}', trs.length);
-    var barra = document.getElementById('rcBarra');
-    if (barra) barra.style.width = (trs.length ? Math.round(100 * listos / trs.length) : 0) + '%';
 
     lista.textContent = '';
     if (!trs.length){

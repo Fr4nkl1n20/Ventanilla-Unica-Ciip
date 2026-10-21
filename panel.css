@@ -1904,9 +1904,6 @@ body[data-vista="recaudos"] .fase-bar{display:none;}
 .rc-cab-t{flex:1 1 320px; min-width:0;}
 .rc-t{margin:0; font-size:var(--fs-titulo); font-weight:700; letter-spacing:-.01em; color:var(--ink);}
 .rc-sub{margin:4px 0 0; font-size:var(--fs-parrafo); color:var(--gray); line-height:1.5; max-width:640px;}
-.rc-av{flex:0 1 400px; display:flex; align-items:center; gap:12px; min-width:0;}
-.rc-av[hidden]{display:none;}
-.rc-av b{font-size:var(--fs-fila); white-space:nowrap; color:var(--ink);}
 .rc-barra{flex:1 1 auto; height:6px; border-radius:6px; background:var(--line-soft); overflow:hidden; min-width:60px;}
 .rc-barra i{display:block; height:100%; width:0; background:var(--good); transition:width .25s;}
 .rc-lista{display:flex; flex-direction:column; gap:10px;}
@@ -1942,7 +1939,6 @@ body[data-vista="recaudos"] .fase-bar{display:none;}
 .rc-btn:hover{text-decoration:underline;}
 @media (max-width:600px){
   .rc-tr-av{flex:1 1 calc(100% - 40px);}
-  .rc-av{flex:1 1 100%;}
 }
 
 /* El formulario de subir uno nuevo. Empuja la lista en vez de flotar

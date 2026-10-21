@@ -1593,7 +1593,6 @@ window.CIIP_PASOS = {
       dc_tipo:      "Tiene que ser una imagen o un PDF.",
       /* Mis recaudos (20-10-2026). */
       dc_rec_sub: "Lo que te piden tus trámites. Cada papel se sube una vez y sirve para todos los que lo piden.",
-      dc_rec_cuenta: "{n} de {t} trámites con todos sus papeles",
       dc_rec_de: "{n} de {t}",
       dc_rec_mal: "{arch} · {estado} · súbelo de nuevo",
       dc_rec_subir: "Subir",
@@ -3743,7 +3742,6 @@ window.CIIP_PASOS = {
       dc_tipo:      "It has to be an image or a PDF.",
       /* Mis recaudos (20-10-2026). */
       dc_rec_sub: "What your procedures ask for. Each document is uploaded once and serves every procedure that asks for it.",
-      dc_rec_cuenta: "{n} of {t} procedures with all their documents",
       dc_rec_de: "{n} of {t}",
       dc_rec_mal: "{arch} · {estado} · upload it again",
       dc_rec_subir: "Upload",
@@ -5754,7 +5752,6 @@ window.CIIP_PASOS = {
       dc_tipo:      "Tem de ser uma imagem ou um PDF.",
       /* Mis recaudos (20-10-2026). */
       dc_rec_sub: "O que os seus trâmites pedem. Cada documento é enviado uma vez e serve para todos os que o pedem.",
-      dc_rec_cuenta: "{n} de {t} trâmites com todos os documentos",
       dc_rec_de: "{n} de {t}",
       dc_rec_mal: "{arch} · {estado} · envie-o de novo",
       dc_rec_subir: "Enviar",
@@ -7759,7 +7756,6 @@ window.CIIP_PASOS = {
       dc_tipo:      "Deve essere un’immagine o un PDF.",
       /* Mis recaudos (20-10-2026). */
       dc_rec_sub: "Ciò che chiedono le tue pratiche. Ogni documento si carica una volta e vale per tutte quelle che lo chiedono.",
-      dc_rec_cuenta: "{n} di {t} pratiche con tutti i documenti",
       dc_rec_de: "{n} di {t}",
       dc_rec_mal: "{arch} · {estado} · caricalo di nuovo",
       dc_rec_subir: "Carica",
@@ -9764,7 +9760,6 @@ window.CIIP_PASOS = {
       dc_tipo:      "必须是图片或 PDF 文件。",
       /* Mis recaudos (20-10-2026). */
       dc_rec_sub: "你的手续所需的材料。每份文件只需上传一次，所有需要它的手续都能使用。",
-      dc_rec_cuenta: "{t} 项手续中 {n} 项材料齐全",
       dc_rec_de: "{n}/{t}",
       dc_rec_mal: "{arch} · {estado} · 请重新上传",
       dc_rec_subir: "上传",
@@ -11769,7 +11764,6 @@ window.CIIP_PASOS = {
       dc_tipo:      "Нужно изображение или PDF.",
       /* Mis recaudos (20-10-2026). */
       dc_rec_sub: "То, что требуют ваши процедуры. Каждый документ загружается один раз и подходит для всех процедур, где он нужен.",
-      dc_rec_cuenta: "{n} из {t} процедур со всеми документами",
       dc_rec_de: "{n} из {t}",
       dc_rec_mal: "{arch} · {estado} · загрузите его снова",
       dc_rec_subir: "Загрузить",
@@ -13783,7 +13777,6 @@ window.CIIP_PASOS = {
       dc_tipo:      "Il doit s’agir d’une image ou d’un PDF.",
       /* Mis recaudos (20-10-2026). */
       dc_rec_sub: "Ce que vos démarches demandent. Chaque pièce se dépose une fois et sert à toutes celles qui la demandent.",
-      dc_rec_cuenta: "{n} sur {t} démarches avec toutes leurs pièces",
       dc_rec_de: "{n} sur {t}",
       dc_rec_mal: "{arch} · {estado} · déposez-la à nouveau",
       dc_rec_subir: "Déposer",
@@ -15803,7 +15796,6 @@ window.CIIP_PASOS = {
       dc_tipo:      "画像またはPDFである必要があります。",
       /* Mis recaudos (20-10-2026). */
       dc_rec_sub: "手続きで求められる書類です。各書類は一度アップロードすれば、それを求めるすべての手続きで使えます。",
-      dc_rec_cuenta: "{t}件中{n}件の手続きで書類がそろっています",
       dc_rec_de: "{t}件中{n}件",
       dc_rec_mal: "{arch} · {estado} · もう一度アップロードしてください",
       dc_rec_subir: "アップロード",

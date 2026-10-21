@@ -20604,9 +20604,10 @@
     var listos = cajas.filter(function(c){ return c.classList.contains('listo'); });
     var abiertos = listos.filter(function(c){ return !c.classList.contains('plegada') || c.querySelector('.rc-p'); });
     igual('mis recaudos: los completos se pliegan solos', abiertos.length, 0);
-    igual('mis recaudos: el número de arriba cuenta los trámites completos',
-          (document.getElementById('rcCuenta') || {}).textContent,
-          listos.length + ' de ' + cajas.length + ' trámites con todos sus papeles');
+    /* 21-10-2026: sin la cuenta de arriba («N de M trámites con todos sus
+       papeles») ni su barra. */
+    igual('mis recaudos: sin la cuenta de trámites completos arriba',
+          !!document.querySelector('#rcAv, #rcCuenta, .recaudos-vista .rc-av'), false);
 
     /* Un papel de la bóveda sale en verde, en cada trámite que lo pide. */
     var ced = [].slice.call(document.querySelectorAll('#rcLista .rc-p[data-tipo="cedula"]'));
@@ -20696,11 +20697,6 @@
        refs.length > 0 && !sinSubir.length, sinSubir.join(', ') || 'todos', 'todos');
     igual('mis recaudos: y se marca en verde en cada uno',
           document.querySelectorAll('#rcLista .rc-p[data-tipo="' + P.tipo + '"]:not(.ya)').length, 0);
-    var cajas = rcCajas();
-    igual('mis recaudos: y el número de arriba se rehace',
-          (document.getElementById('rcCuenta') || {}).textContent,
-          cajas.filter(function(c){ return c.classList.contains('listo'); }).length + ' de ' + cajas.length +
-          ' trámites con todos sus papeles');
     igual('mis recaudos: y la ventana se cierra', document.getElementById('docBack').classList.contains('open'), false);
   }
 
