@@ -1894,6 +1894,8 @@ body[data-vista="documentos"] .fase-bar{display:none;}
    la derecha; debajo sus papeles en filas finas con el círculo de estado
    (punteado o verde con su visto) y «Subir» o «Cambiar» como enlace. Los
    completos se pliegan solos. */
+/* El recaudo ya elegido, dicho y no preguntado, en la ventana de subir. */
+.dc-tipo-fijo{font-size:var(--fs-parrafo); font-weight:700; color:var(--ink); line-height:1.4; overflow-wrap:anywhere;}
 .recaudos-vista{display:none; max-width:900px;}
 body[data-vista="recaudos"] .recaudos-vista{display:block;}
 body[data-vista="recaudos"] .solo-inicio,

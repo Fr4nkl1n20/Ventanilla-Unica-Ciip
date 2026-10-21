@@ -31485,7 +31485,24 @@ applyLang(idiomaParaMi());
     pon('dcGuarda',  u.dc_subir);
     pon('dcLvence',  u.dc_lvence);
     llenaTiposDoc();
+    pintaTipoFijo();
     miraSiCaduca();
+  }
+
+  /* Con el recaudo ya elegido, el desplegable sobra (Franklin Reyes,
+     21-10-2026: «ya está el nombre del recaudo, ¿por qué esa barra con
+     desplegables?»). Se esconde y sale su nombre; el valor sigue en el
+     selector, que es de donde lo lee guardaDocNuevo. */
+  function pintaTipoFijo(){
+    var sel  = document.getElementById('dcTipo');
+    var fijo = document.getElementById('dcTipoFijo');
+    var lab  = document.getElementById('dcLtipo');
+    if (!sel || !fijo) return;
+    var esFijo = !!dcTipoFijo && sel.value === dcTipoFijo;
+    sel.hidden = esFijo;
+    if (lab) lab.hidden = esFijo;
+    fijo.hidden = !esFijo;
+    fijo.textContent = esFijo ? nombreDeTipo_doc(dcTipoFijo) : '';
   }
 
   /* El campo de la fecha sale solo con los recaudos que caducan. Pedirsela
@@ -31596,6 +31613,8 @@ applyLang(idiomaParaMi());
 
   /* Abrir la ventana de subir. Es una funcion y no el cuerpo del boton
      porque el de «Cambiar» tambien la abre, con el recaudo ya elegido. */
+  var dcTipoFijo = null;
+
   function abreFormNuevo(tipoPre){
     var back = document.getElementById('docBack');
     if (!back) return;
@@ -31610,6 +31629,8 @@ applyLang(idiomaParaMi());
     pintaFormNuevo();
     var sel = document.getElementById('dcTipo');
     if (sel && tipoPre) sel.value = tipoPre;
+    dcTipoFijo = (sel && tipoPre && sel.value === tipoPre) ? tipoPre : null;
+    pintaTipoFijo();
     /* Por si la ventana se abre antes de que conteste la consulta de que
        recaudos caducan: al llegar se vuelve a mirar, y el campo de la
        fecha sale o no sin que haya que tocar nada. */
@@ -31623,6 +31644,8 @@ applyLang(idiomaParaMi());
 
   function cierraFormNuevo(){
     dcAbierto = false;
+    dcTipoFijo = null;
+    pintaTipoFijo();
     var back = document.getElementById('docBack');
     if (back) back.classList.remove('open');
     var arch = document.getElementById('dcArchivo');

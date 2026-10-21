@@ -2330,6 +2330,9 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
         <div class="pf-campo">
           <label for="dcTipo" id="dcLtipo"></label>
           <select id="dcTipo"></select>
+          <!-- Cuando la ventana se abre con el recaudo ya elegido -«Subir» de
+               Mis recaudos, «Cambiar»- no se pregunta cuál es: se dice. -->
+          <div class="dc-tipo-fijo" id="dcTipoFijo" hidden></div>
         </div>
         <!-- La fecha de vencimiento. Nace escondida y sale sola cuando el
              recaudo elegido caduca, que lo dice tipos_documento.vence. Sin

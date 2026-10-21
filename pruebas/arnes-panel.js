@@ -20668,6 +20668,16 @@
     var back = document.getElementById('docBack');
     igual('mis recaudos: «Subir» abre la ventana de «Documentos»', !!back && back.classList.contains('open'), true);
     igual('mis recaudos: con su tipo ya elegido', (document.getElementById('dcTipo') || {}).value, tipo);
+    /* 21-10-2026: sin el desplegable «¿Qué documento es?», que ya está
+       elegido; sale su nombre. */
+    var selT = document.getElementById('dcTipo');
+    igual('mis recaudos: y sin el desplegable de qué documento es',
+          !!selT && selT.offsetParent === null && document.getElementById('dcLtipo').offsetParent === null, true);
+    var fijoT = document.getElementById('dcTipoFijo');
+    var nomT = (document.querySelector('#rcLista .rc-p[data-tipo="' + tipo + '"] .rc-n') || {}).textContent;
+    ok('mis recaudos: dice su nombre en su lugar',
+       !!fijoT && fijoT.offsetParent !== null && !!nomT && fijoT.textContent === nomT,
+       fijoT ? '«' + fijoT.textContent + '»' : 'no hay', '«' + nomT + '»');
     var arc = document.getElementById('dcArchivo');
     var dt = new DataTransfer();
     dt.items.add(new File([new Uint8Array(16)], 'desde-mis-recaudos.pdf', {type:'application/pdf'}));
