@@ -20543,6 +20543,17 @@
     ok('mis recaudos: hay trámites con papeles que pedir', cajas.length > 0, cajas.length + ' cajas', 'al menos una');
     if (!cajas.length) return sigue();
 
+    /* 21-10-2026: al entrar, todos plegados, también los que les falta
+       algo. Para mirar sus papeles se despliegan los que no están completos;
+       los completos se quedan plegados. */
+    igual('mis recaudos: al entrar, todos plegados',
+          cajas.filter(function(c){ return !c.classList.contains('plegada') || c.querySelector('.rc-p'); }).length, 0);
+    cajas.filter(function(c){ return !c.classList.contains('listo'); }).forEach(function(c){
+      var c1 = document.querySelector('#rcLista .rc-caja[data-ref="' + c.getAttribute('data-ref') + '"]');
+      if (c1) c1.querySelector('.rc-cab-tr').click();
+    });
+    cajas = rcCajas();
+
     /* Una caja por trámite, y dentro un papel por tipo. */
     var refs = cajas.map(function(c){ return c.getAttribute('data-ref'); });
     igual('mis recaudos: agrupado por trámite, una caja por cada uno',

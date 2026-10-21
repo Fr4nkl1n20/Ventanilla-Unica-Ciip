@@ -31990,8 +31990,9 @@ applyLang(idiomaParaMi());
     return trs;
   }
 
-  /* Los completos nacen plegados y los demás abiertos; lo que pliegues o
-     despliegues se queda así al repintar. */
+  /* Al entrar, todos plegados (Franklin Reyes, 21-10-2026); lo que
+     despliegues se queda así al repintar -al subir un papel o cambiar de
+     idioma- hasta que vuelvas a entrar. */
   var rcAbiertos = {};
 
   function pintaRecaudos(){
@@ -32019,7 +32020,7 @@ applyLang(idiomaParaMi());
       return;
     }
     trs.forEach(function(t){
-      var abierto = (t.ref in rcAbiertos) ? rcAbiertos[t.ref] : !t.listo;
+      var abierto = !!rcAbiertos[t.ref];
       var caja = el('section', 'rc-caja' + (t.listo ? ' listo' : '') + (abierto ? '' : ' plegada'));
       caja.setAttribute('data-ref', t.ref);
       caja.setAttribute('data-n', t.n);
@@ -32078,6 +32079,7 @@ applyLang(idiomaParaMi());
   /* Al entrar: el catálogo, tus solicitudes si aún no han llegado, los
      tipos que conoce la base (para los siExiste y la fecha) y la bóveda. */
   function cargaRecaudos(){
+    rcAbiertos = {};
     if (!laBovedaEsMia()){
       if (document.body.getAttribute('data-vista') === 'recaudos' && location.hash) location.hash = '';
       return Promise.resolve();
