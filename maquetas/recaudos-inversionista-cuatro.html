@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Mis recaudos</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   EL INVERSIONISTA: UN APARTADO DE RECAUDOS, CUATRO FORMAS
+   Franklin Reyes, 20-10-2026: «en la visión del inversionista quiero
+   tener un apartado de recaudos».
+
+   «Documentos» (la bóveda) es lo que el inversionista YA tiene. Esto es
+   lo que le PIDEN: cada papel que exigen sus trámites, si ya lo tiene, y
+   en qué trámites le sirve, para juntarlos de una vez sin abrir ficha por
+   ficha. Recaudos de verdad de ocho trámites del camino, con las
+   correcciones del 19-10-2026; lo que «ya tienes» es de ejemplo. En las
+   cuatro se puede elegir un archivo para ver cómo cambia. No toca el panel.
+   ══════════════════════════════════════════════════════════════════ */
+:root{ --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB; }
+main{max-width:1240px; padding:28px 26px 90px; margin:0 auto;}
+@media (max-width:600px){ main{padding:20px 16px 60px;} }
+.intro{font-size:13px; color:var(--gray); line-height:1.65; max-width:94ch; margin:0;}
+.idea{display:grid; gap:10px; margin-top:34px;}
+.idea h3{margin:0; font-size:15px; display:flex; gap:9px; align-items:center;}
+.idea h3 .n{width:24px; height:24px; border-radius:50%; background:var(--navy); color:#fff; font-size:12px; display:grid; place-items:center; flex:none;}
+.idea p{margin:0; font-size:12px; color:var(--gray); line-height:1.55; max-width:100ch;}
+.hoja{background:var(--bg); border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+.hoja-c{padding:18px;}
+.cab{display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+.cab h4{margin:0; font-size:16px;}
+.cab .sp{flex:1 1 auto;}
+.cab .sub{font-size:12px; color:var(--gray);}
+.pes{display:flex; gap:4px; background:var(--block); border-radius:10px; padding:3px;}
+.pes button{font:inherit; font-size:12px; font-weight:700; border:0; background:none; border-radius:8px; padding:7px 12px; cursor:pointer; color:var(--gray);}
+.pes button.on{background:var(--bg); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.btn{font:inherit; font-size:12px; font-weight:700; border-radius:8px; padding:8px 13px; border:1px solid var(--line); background:var(--card-2); color:var(--navy2); cursor:pointer; white-space:nowrap;}
+.btn:hover{border-color:var(--navy2);}
+.btn.link{border:0; background:none; padding:4px 2px;}
+.visto{width:22px; height:22px; border-radius:50%; background:var(--good-bg); display:grid; place-items:center; flex:none;}
+.visto svg{width:12px; height:12px; stroke:var(--good); fill:none; stroke-width:3;}
+.vacio{width:22px; height:22px; border-radius:50%; border:1.5px dashed var(--gray-soft); flex:none;}
+.nom{font-size:13px; font-weight:700;}
+.sub2{font-size:11.5px; color:var(--gray); margin-top:3px; line-height:1.45;}
+.ok{color:var(--good);}
+.tramites{display:flex; gap:5px; flex-wrap:wrap; margin-top:6px;}
+.tramites span{font-size:10.5px; font-weight:700; color:var(--gray); background:var(--bg); border-radius:6px; padding:2px 7px;}
+.fila{display:flex; align-items:center; gap:12px; padding:12px 13px; border-radius:10px; background:var(--card-2);}
+.fila + .fila{margin-top:6px;}
+.fila .tx{flex:1 1 auto; min-width:0;}
+.av{display:flex; align-items:center; gap:12px;}
+.av b{font-size:12.5px; white-space:nowrap;}
+.av .b{flex:1 1 auto; height:6px; border-radius:6px; background:var(--line-soft); overflow:hidden; min-width:80px;}
+.av .b i{display:block; height:100%; background:var(--good); transition:width .25s;}
+.tit{font-size:13px; font-weight:700; margin:18px 0 8px;}
+.tit:first-child{margin-top:0;}
+
+/* 2 · por trámite */
+.v2 .tr{border-radius:12px; background:var(--card-2); padding:14px;}
+.v2 .tr + .tr{margin-top:10px;}
+.v2 .tr-c{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px;}
+.v2 .tr-c .nom{flex:1 1 220px;}
+.v2 .tr-c .av{flex:0 1 260px;}
+.v2 .mini{display:flex; align-items:center; gap:10px; padding:7px 4px; font-size:12.5px;}
+.v2 .mini .tx{flex:1 1 auto;}
+.v2 .tr.listo .tr-c{margin-bottom:0;}
+
+/* 3 · resumen arriba */
+.v3 .res{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; margin-bottom:16px;}
+@media (max-width:700px){ .v3 .res{grid-template-columns:1fr;} }
+.v3 .res div{border-radius:12px; background:var(--card-2); padding:14px;}
+.v3 .res b{display:block; font-size:24px; letter-spacing:-.02em;}
+.v3 .res span{font-size:12px; color:var(--gray);}
+
+/* 4 · lo que destraba más */
+.v4 .pri{font-size:10.5px; font-weight:700; color:var(--navy2); background:var(--activa-bg); border-radius:6px; padding:2px 7px; white-space:nowrap;}
+input[type=file]{display:none;}
+</style>
+</head>
+<body>
+<div class="mq-cartel"><b>Maqueta · Mis recaudos (vista del inversionista)</b><span>Cuatro formas de un apartado nuevo con lo que le piden sus trámites. Recaudos reales de ocho trámites; lo que «ya tienes» es de ejemplo. No toca el panel.</span></div>
+<main>
+  <p class="intro">«Documentos» guarda lo que ya subiste. Este apartado dice lo que te piden: cada papel que exigen tus trámites, si ya lo tienes y en cuáles te sirve. Un papel se sube una vez y vale para todos los trámites que lo piden.</p>
+
+  <section class="idea">
+    <h3><span class="n">1</span>Cada papel, una vez, con los trámites donde sirve</h3>
+    <p>La lista de todos los papeles que te piden, sin repetir, primero los que faltan. Debajo de cada uno, los trámites que lo usan. Al subirlo, queda listo para todos ellos.</p>
+    <div class="hoja">
+      <div class="cab"><h4>Mis recaudos</h4><span class="sp"></span><div class="av" style="min-width:240px"><b data-cuenta="1"></b><span class="b"><i data-barra="1"></i></span></div></div>
+      <div class="hoja-c" data-v1></div>
+    </div>
+  </section>
+
+  <section class="idea">
+    <h3><span class="n">2</span>Por trámite</h3>
+    <p>Cada trámite con su avance de papeles y su lista. Los completos se pliegan solos. Un papel que sirve a varios trámites se marca en todos al subirlo.</p>
+    <div class="hoja">
+      <div class="cab"><h4>Mis recaudos</h4><span class="sp"></span><span class="sub" data-cuenta="2"></span></div>
+      <div class="hoja-c v2" data-v2></div>
+    </div>
+  </section>
+
+  <section class="idea">
+    <h3><span class="n">3</span>Resumen arriba y por de quién es</h3>
+    <p>Tres cifras arriba -cuántos papeles tienes, cuántos faltan y cuántos trámites quedan listos para enviar- y debajo los papeles agrupados como en la hoja de cada trámite: del representante legal, de la empresa y otros.</p>
+    <div class="hoja">
+      <div class="cab"><h4>Mis recaudos</h4><span class="sp"></span><div class="pes" data-pes3><button class="on" data-f="falta">Me faltan</button><button data-f="tengo">Ya los tengo</button><button data-f="todos">Todos</button></div></div>
+      <div class="hoja-c v3"><div class="res" data-res3></div><div data-v3></div></div>
+    </div>
+  </section>
+
+  <section class="idea">
+    <h3><span class="n">4</span>Qué subir primero</h3>
+    <p>Solo los que faltan, ordenados por cuántos trámites destraban: el primero de la lista es el que más trámites deja listos para enviar. Va bien como «tarea de hoy».</p>
+    <div class="hoja">
+      <div class="cab"><h4>Qué subir primero</h4><span class="sp"></span><span class="sub" data-cuenta="4"></span></div>
+      <div class="hoja-c v4" data-v4></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  /* Los recaudos de verdad de ocho trámites (panel.js, RECAUDOS, 19-10-2026). */
+  var TRAMITES = [
+    {k:'c1',  nom:'Visa de negocios (TR-N)',       rec:['pas']},
+    {k:'c3',  nom:'RIF personal',                  rec:['ced','resid']},
+    {k:'c5',  nom:'Constitución de la empresa',    rec:['cedrif','rifp','capital','comisario','inventario']},
+    {k:'c6',  nom:'RIF de la empresa',             rec:['acta','cedrif','domic']},
+    {k:'c7',  nom:'Cuenta bancaria empresarial',   rec:['acta','rife','cedrif','fondos']},
+    {k:'c8',  nom:'Registro de marca',             rec:['logo','acta','rife','cedrep','rifrep']},
+    {k:'c48', nom:'Permiso sanitario (SACS)',      rec:['acta','rife','cedrep','rifrep']},
+    {k:'c50', nom:'Inscripción en el RTN',         rec:['acta','rife','accionistas','polrc','polinc']}
+  ];
+  var PAPEL = {
+    pas:{n:'Pasaporte vigente', de:'persona', g:'La página de datos entera.'},
+    ced:{n:'Cédula o pasaporte', de:'persona', g:'Las dos caras.'},
+    cedrif:{n:'Cédula o pasaporte y RIF del representante legal', de:'persona', g:'Las dos caras, y el certificado del RIF.'},
+    cedrep:{n:'Cédula de identidad del representante legal', de:'persona', g:'Las dos caras.'},
+    rifrep:{n:'RIF del representante legal', de:'persona', g:'El certificado completo, con su código de validación.'},
+    rifp:{n:'Tu RIF personal', de:'persona', g:'El certificado completo, con su código de validación.'},
+    resid:{n:'Carta de residencia', de:'persona', g:'De quien acredita dónde vives.'},
+    acta:{n:'Acta constitutiva', de:'empresa', g:'Registrada, con la nota del registro legible.'},
+    rife:{n:'RIF de la empresa', de:'empresa', g:'El certificado completo, con su código de validación.'},
+    domic:{n:'Contrato o constancia de la dirección fiscal', de:'empresa', g:'A nombre de la empresa.'},
+    fondos:{n:'Declaración jurada de origen de fondos', de:'empresa', g:'Firmada.'},
+    logo:{n:'Logo', de:'empresa', g:'Tal como se va a registrar, con sus colores.'},
+    capital:{n:'Comprobante del capital (depósito o inventario)', de:'otros', g:''},
+    comisario:{n:'Carta de aceptación del comisario', de:'otros', g:'Salvo en la firma personal.'},
+    inventario:{n:'Certificación de inventario por contador público', de:'otros', g:''},
+    accionistas:{n:'Copia de la cédula o el pasaporte de todos los accionistas', de:'otros', g:''},
+    polrc:{n:'Póliza de responsabilidad civil', de:'empresa', g:'Vigente.'},
+    polinc:{n:'Póliza de incendio', de:'empresa', g:'Vigente.'}
+  };
+  var GRUPO = {persona:'Del representante legal', empresa:'De la empresa', otros:'Otros documentos'};
+  /* Lo que ya tiene el inversionista de ejemplo. */
+  var TENGO = {pas:'pasaporte.pdf', ced:'pasaporte.pdf', cedrif:'cedula-y-rif.pdf', cedrep:'cedula.pdf', rifp:'rif-personal.pdf', resid:'carta-residencia.pdf'};
+  var ICO = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>';
+  function el(t, c, h){ var e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
+  function quienes(p){ return TRAMITES.filter(function(t){ return t.rec.indexOf(p) >= 0; }); }
+  function todos(){ var s = []; TRAMITES.forEach(function(t){ t.rec.forEach(function(r){ if (s.indexOf(r) < 0) s.push(r); }); }); return s; }
+  function listoTramite(t){ return t.rec.every(function(r){ return TENGO[r]; }); }
+  function elige(p){
+    var i = el('input'); i.type = 'file'; i.accept = 'image/*,application/pdf';
+    i.addEventListener('change', function(){ if (i.files[0]){ TENGO[p] = i.files[0].name; pintaTodo(); } i.remove(); });
+    document.body.appendChild(i); i.click();
+  }
+  function fila(p, extra){
+    var ya = TENGO[p], P = PAPEL[p];
+    var f = el('div', 'fila');
+    f.appendChild(ya ? el('span', 'visto', ICO) : el('span', 'vacio'));
+    var tx = el('div', 'tx');
+    tx.appendChild(el('div', 'nom', P.n));
+    tx.appendChild(el('div', 'sub2', ya ? '<span class="ok">' + ya + ' · en tus documentos</span>' : (P.g || 'Falta')));
+    var tr = el('div', 'tramites');
+    quienes(p).forEach(function(t){ tr.appendChild(el('span', null, t.nom)); });
+    tx.appendChild(tr);
+    f.appendChild(tx);
+    if (extra) f.appendChild(extra);
+    var b = el('button', 'btn', ya ? 'Cambiar' : 'Subir');
+    b.addEventListener('click', function(){ elige(p); });
+    f.appendChild(b);
+    return f;
+  }
+  function cuenta(){ var t = todos(); var y = t.filter(function(p){ return TENGO[p]; }).length; return {y:y, t:t.length}; }
+
+  function pinta1(){
+    var c = cuenta();
+    document.querySelector('[data-cuenta="1"]').textContent = c.y + ' de ' + c.t + ' papeles';
+    document.querySelector('[data-barra="1"]').style.width = (100 * c.y / c.t) + '%';
+    var v = document.querySelector('[data-v1]'); v.innerHTML = '';
+    var t = todos().sort(function(a, b){ return (TENGO[a] ? 1 : 0) - (TENGO[b] ? 1 : 0); });
+    t.forEach(function(p){ v.appendChild(fila(p)); });
+  }
+  function pinta2(){
+    var listos = TRAMITES.filter(listoTramite).length;
+    document.querySelector('[data-cuenta="2"]').textContent = listos + ' de ' + TRAMITES.length + ' trámites con todos sus papeles';
+    var v = document.querySelector('[data-v2]'); v.innerHTML = '';
+    TRAMITES.forEach(function(t){
+      var y = t.rec.filter(function(r){ return TENGO[r]; }).length;
+      var w = el('div', 'tr' + (y === t.rec.length ? ' listo' : ''));
+      var c = el('div', 'tr-c');
+      c.appendChild(el('div', 'nom', t.nom));
+      c.appendChild(el('div', 'av', '<b>' + y + ' de ' + t.rec.length + '</b><span class="b"><i style="width:' + (100 * y / t.rec.length) + '%"></i></span>'));
+      w.appendChild(c);
+      if (y < t.rec.length){
+        t.rec.forEach(function(r){
+          var m = el('div', 'mini');
+          m.appendChild(TENGO[r] ? el('span', 'visto', ICO) : el('span', 'vacio'));
+          m.appendChild(el('span', 'tx', PAPEL[r].n));
+          var b = el('button', 'btn link', TENGO[r] ? 'Cambiar' : 'Subir');
+          b.addEventListener('click', function(){ elige(r); });
+          m.appendChild(b);
+          w.appendChild(m);
+        });
+      }
+      v.appendChild(w);
+    });
+  }
+  var filtro3 = 'falta';
+  document.querySelectorAll('[data-pes3] button').forEach(function(b){
+    b.addEventListener('click', function(){ filtro3 = b.getAttribute('data-f'); pinta3(); });
+  });
+  function pinta3(){
+    document.querySelectorAll('[data-pes3] button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-f') === filtro3); });
+    var c = cuenta(), listos = TRAMITES.filter(listoTramite).length;
+    document.querySelector('[data-res3]').innerHTML =
+      '<div><b>' + c.y + '</b><span>papeles ya en tus documentos</span></div>' +
+      '<div><b>' + (c.t - c.y) + '</b><span>papeles que te faltan</span></div>' +
+      '<div><b>' + listos + ' de ' + TRAMITES.length + '</b><span>trámites con todos sus papeles</span></div>';
+    var v = document.querySelector('[data-v3]'); v.innerHTML = '';
+    ['persona', 'empresa', 'otros'].forEach(function(g){
+      var ps = todos().filter(function(p){ return PAPEL[p].de === g && (filtro3 === 'todos' || (filtro3 === 'tengo') === !!TENGO[p]); });
+      if (!ps.length) return;
+      v.appendChild(el('p', 'tit', GRUPO[g]));
+      ps.forEach(function(p){ v.appendChild(fila(p)); });
+    });
+    if (!v.childNodes.length) v.appendChild(el('div', 'sub2', filtro3 === 'falta' ? 'No te falta ningún papel.' : 'Todavía no has subido ninguno.'));
+  }
+  function pinta4(){
+    var faltan = todos().filter(function(p){ return !TENGO[p]; });
+    /* Cuántos trámites quedarían completos, o más cerca, con este papel. */
+    faltan.sort(function(a, b){ return quienes(b).length - quienes(a).length; });
+    document.querySelector('[data-cuenta="4"]').textContent = faltan.length + ' papeles por subir';
+    var v = document.querySelector('[data-v4]'); v.innerHTML = '';
+    faltan.forEach(function(p, i){
+      var n = quienes(p).length;
+      v.appendChild(fila(p, i === 0 ? el('span', 'pri', 'Empieza por este') : el('span', 'sub2', 'Sirve a ' + n + (n === 1 ? ' trámite' : ' trámites'))));
+    });
+    if (!faltan.length) v.appendChild(el('div', 'sub2', 'Ya tienes todos los papeles que te piden.'));
+  }
+  function pintaTodo(){ pinta1(); pinta2(); pinta3(); pinta4(); }
+  pintaTodo();
+})();
+</script>
+</body>
+</html>

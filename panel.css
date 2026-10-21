@@ -1888,6 +1888,60 @@ body[data-vista="documentos"] #dcVolver{display:none;}
 body[data-vista="documentos"] .fase-bar{display:none;}
 #dcVolver{display:none;}
 
+/* --- mis recaudos (Franklin Reyes, 21-10-2026, opción 2, «Por trámite», de
+   maquetas/recaudos-inversionista-cuatro.html) ---
+   Una caja por trámite, sin marco, sobre el gris muy claro, con su avance a
+   la derecha; debajo sus papeles en filas finas con el círculo de estado
+   (punteado o verde con su visto) y «Subir» o «Cambiar» como enlace. Los
+   completos se pliegan solos. */
+.recaudos-vista{display:none; max-width:900px;}
+body[data-vista="recaudos"] .recaudos-vista{display:block;}
+body[data-vista="recaudos"] .solo-inicio,
+body[data-vista="recaudos"] #secTramites,
+body[data-vista="recaudos"] .faq-sec,
+body[data-vista="recaudos"] .fase-bar{display:none;}
+.rc-cab{display:flex; align-items:flex-end; gap:12px 24px; flex-wrap:wrap; margin-bottom:16px;}
+.rc-cab-t{flex:1 1 320px; min-width:0;}
+.rc-t{margin:0; font-size:var(--fs-titulo); font-weight:700; letter-spacing:-.01em; color:var(--ink);}
+.rc-sub{margin:4px 0 0; font-size:var(--fs-parrafo); color:var(--gray); line-height:1.5; max-width:640px;}
+.rc-av{flex:0 1 400px; display:flex; align-items:center; gap:12px; min-width:0;}
+.rc-av[hidden]{display:none;}
+.rc-av b{font-size:var(--fs-fila); white-space:nowrap; color:var(--ink);}
+.rc-barra{flex:1 1 auto; height:6px; border-radius:6px; background:var(--line-soft); overflow:hidden; min-width:60px;}
+.rc-barra i{display:block; height:100%; width:0; background:var(--good); transition:width .25s;}
+.rc-lista{display:flex; flex-direction:column; gap:10px;}
+/* Una caja por trámite, sin marco, sobre el gris muy claro. */
+.rc-caja{border-radius:12px; background:var(--card-2); padding:14px;}
+.rc-cab-tr{display:flex; align-items:center; gap:10px 16px; flex-wrap:wrap; margin-bottom:8px;}
+.rc-caja.plegada .rc-cab-tr{margin-bottom:0;}
+.rc-tr-n{flex:1 1 220px; min-width:0; font:inherit; font-size:var(--fs-seccion); font-weight:700; color:var(--ink);
+  background:none; border:0; padding:0; text-align:left; cursor:pointer; overflow-wrap:anywhere;}
+.rc-tr-n:hover{color:var(--navy2); text-decoration:underline;}
+.rc-tr-av{flex:0 1 240px; display:flex; align-items:center; gap:10px; min-width:160px;
+  font:inherit; background:none; border:0; padding:0; color:inherit;}
+button.rc-tr-av{cursor:pointer;}
+.rc-tr-av b{font-size:var(--fs-fila); white-space:nowrap; color:var(--ink);}
+.rc-caja.listo .rc-tr-av b{color:var(--good);}
+.rc-tr-n:focus-visible, .rc-tr-av:focus-visible, .rc-btn:focus-visible{outline:2px solid var(--navy2); outline-offset:2px; border-radius:4px;}
+/* Los papeles, en filas finas. */
+.rc-p{display:flex; align-items:center; gap:10px; padding:7px 4px;}
+.rc-marca{width:20px; height:20px; border-radius:50%; border:1.5px dashed var(--gray-soft);
+  flex:none; display:grid; place-items:center; box-sizing:border-box;}
+.rc-p.ya .rc-marca{border:0; background:var(--good-bg);}
+.rc-p.ya .rc-marca::after{content:""; width:9px; height:5px; margin-top:-2px;
+  border-left:2.5px solid var(--good); border-bottom:2.5px solid var(--good); transform:rotate(-45deg);}
+.rc-tx{flex:1 1 auto; min-width:0;}
+.rc-n{font-size:var(--fs-parrafo); color:var(--ink); overflow-wrap:anywhere;}
+.rc-pista{font-size:var(--fs-nota); color:var(--gray); line-height:1.45; margin-top:2px; overflow-wrap:anywhere;}
+.rc-pista.no{color:var(--rust); font-weight:600;}
+.rc-btn{font:inherit; font-size:var(--fs-boton); font-weight:700; cursor:pointer; flex:none;
+  background:none; color:var(--navy2); border:0; padding:4px 2px; white-space:nowrap;}
+.rc-btn:hover{text-decoration:underline;}
+@media (max-width:600px){
+  .rc-tr-av{flex:1 1 100%;}
+  .rc-av{flex:1 1 100%;}
+}
+
 /* El formulario de subir uno nuevo. Empuja la lista en vez de flotar
    sobre ella: mientras eliges el tipo conviene seguir viendo lo que ya
    tienes, que es lo que evita subir dos veces el mismo papel. */

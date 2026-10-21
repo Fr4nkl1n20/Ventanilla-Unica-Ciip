@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Mis recaudos, con detalle</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   MIS RECAUDOS, CON DETALLE
+   Franklin Reyes, 21-10-2026: «¿hay una manera más detallada de poner
+   los recaudos?», y «realiza una maqueta para verla».
+
+   La opción 1 que ya está en el panel (cada papel una vez, con los
+   trámites donde sirve), con cada fila que se despliega y enseña lo que
+   el panel ya sabe: la guía entera de cómo debe venir, si caduca y
+   cuándo, de qué trámite sale, la revisión del CIIP con su motivo, el
+   archivo subido, el estado de cada trámite donde sirve y en cuáles es
+   opcional o depende del caso. Arriba se elige si se ve en una lista o
+   por de quién es. Papeles y trámites de verdad; los estados son de
+   ejemplo. No toca el panel.
+   ══════════════════════════════════════════════════════════════════ */
+:root{ --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6; --block:#F4F7FB; }
+main{max-width:1000px; padding:28px 26px 90px; margin:0 auto;}
+@media (max-width:600px){ main{padding:20px 16px 60px;} }
+.hoja{background:var(--bg); border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+.cab{padding:20px 22px 14px; display:grid; gap:12px;}
+.cab h1{margin:0; font-size:21px; letter-spacing:-.01em;}
+.cab p{margin:0; font-size:13px; color:var(--gray); line-height:1.55;}
+.linea{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+.av{display:flex; align-items:center; gap:10px; flex:1 1 260px;}
+.av b{font-size:12.5px; white-space:nowrap;}
+.av .b{flex:1 1 auto; height:6px; border-radius:6px; background:var(--line-soft); overflow:hidden;}
+.av .b i{display:block; height:100%; background:var(--good); transition:width .25s;}
+.pes{display:flex; gap:4px; background:var(--block); border-radius:10px; padding:3px;}
+.pes button{font:inherit; font-size:12px; font-weight:700; border:0; background:none; border-radius:8px; padding:7px 12px; cursor:pointer; color:var(--gray);}
+.pes button.on{background:var(--bg); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.resumen{display:flex; gap:8px; flex-wrap:wrap;}
+.resumen span{font-size:11.5px; font-weight:700; border-radius:20px; padding:4px 10px; background:var(--block); color:var(--gray);}
+.cuerpo{padding:4px 22px 22px;}
+.grupo-t{font-size:13px; font-weight:700; margin:16px 0 8px;}
+.btn{font:inherit; font-size:12px; font-weight:700; border-radius:8px; padding:8px 13px; border:1px solid var(--line); background:var(--card-2); color:var(--navy2); cursor:pointer; white-space:nowrap;}
+.btn:hover{border-color:var(--navy2);}
+.btn.link{border:0; background:none; padding:4px 2px;}
+
+/* la fila */
+.rec{border-radius:12px; background:var(--card-2);}
+.rec + .rec{margin-top:8px;}
+.rec-c{display:flex; align-items:center; gap:12px; padding:13px 14px; cursor:pointer;}
+.rec-c .tx{flex:1 1 auto; min-width:0;}
+.nom{font-size:13.5px; font-weight:700;}
+.linea2{font-size:11.5px; color:var(--gray); margin-top:3px; line-height:1.45;}
+.flecha{color:var(--gray); font-size:12px; width:16px; text-align:center; flex:none;}
+.marca{width:22px; height:22px; border-radius:50%; flex:none; display:grid; place-items:center;}
+.marca.vacio{border:1.5px dashed var(--gray-soft);}
+.marca.ok{background:var(--good-bg);}
+.marca.ok svg{width:12px; height:12px; stroke:var(--good); fill:none; stroke-width:3;}
+.marca.espera{background:var(--block); border:1.5px solid var(--gray-soft);}
+.marca.mal{background:var(--rust-bg);}
+.marca.mal::after{content:"!"; color:var(--rust); font-weight:800; font-size:12px;}
+.est{font-size:10.5px; font-weight:700; border-radius:6px; padding:2px 7px; white-space:nowrap;}
+.est.ok{background:var(--good-bg); color:var(--good);}
+.est.espera{background:var(--block); color:var(--gray);}
+.est.mal{background:var(--rust-bg); color:var(--rust);}
+.est.falta{background:var(--bg); color:var(--gray);}
+
+/* el detalle */
+.rec-d{padding:0 14px 16px 48px; display:grid; gap:14px;}
+.rec:not(.abierto) .rec-d{display:none;}
+@media (max-width:600px){ .rec-d{padding-left:14px;} }
+.sec h5{margin:0 0 6px; font-size:12px; font-weight:700; color:var(--gray);}
+.sec ul{margin:0; padding-left:18px; font-size:12.5px; line-height:1.65;}
+.sec .txt{font-size:12.5px; line-height:1.55;}
+.archivo{display:flex; align-items:center; gap:10px; background:var(--bg); border-radius:10px; padding:10px 12px; flex-wrap:wrap;}
+.archivo .pdf{width:28px; height:34px; border-radius:5px; background:var(--block); color:var(--navy2); font-size:8.5px; font-weight:800; display:grid; place-items:center; flex:none;}
+.archivo .tx{flex:1 1 200px; min-width:0; font-size:12.5px;}
+.archivo .tx b{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.archivo .tx small{color:var(--gray); font-size:11px;}
+.motivo{font-size:12.5px; background:var(--rust-bg); color:var(--ink); border-radius:10px; padding:10px 12px; line-height:1.5;}
+.motivo b{color:var(--rust);}
+.tr{display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg); border-radius:9px; font-size:12.5px;}
+.tr + .tr{margin-top:5px;}
+.tr .n{flex:1 1 auto; min-width:0;}
+.tr a{color:var(--navy2); font-weight:700; text-decoration:none; font-size:12px;}
+.tr a:hover{text-decoration:underline;}
+.tr .como{font-size:10.5px; color:var(--gray);}
+.sale{display:flex; gap:10px; align-items:center; background:var(--activa-bg); border-radius:10px; padding:10px 12px; font-size:12.5px; flex-wrap:wrap;}
+.sale b{color:var(--navy2);}
+.acciones{display:flex; gap:8px; flex-wrap:wrap;}
+input[type=file]{display:none;}
+</style>
+</head>
+<body>
+<div class="mq-cartel"><b>Maqueta · Mis recaudos, con detalle</b><span>Cada papel se despliega con todo lo que el panel sabe de él. Papeles y trámites de verdad; los estados son de ejemplo. No toca el panel.</span></div>
+<main>
+  <div class="hoja">
+    <div class="cab">
+      <h1>Mis recaudos</h1>
+      <p>Lo que te piden tus trámites. Cada papel se sube una vez y sirve para todos los que lo piden. Pulsa uno para ver cómo debe venir y en qué trámites lo usas.</p>
+      <div class="linea">
+        <div class="av"><b data-cuenta></b><span class="b"><i data-barra></i></span></div>
+        <div class="pes" data-vista><button class="on" data-v="lista">En una lista</button><button data-v="quien">Por de quién es</button></div>
+      </div>
+      <div class="resumen" data-resumen></div>
+    </div>
+    <div class="cuerpo" data-cuerpo></div>
+  </div>
+</main>
+
+<script>
+(function(){
+  var FORMA = ['Completo: todas las páginas, y el reverso si lleva algo escrito.',
+               'Legible de punta a punta: sin recortes, sin sombras, sin reflejos y sin dedos encima.',
+               'En PDF o en imagen, y por debajo de 10 MB.',
+               'Si se emitió fuera de Venezuela, apostillado o legalizado.'];
+  var TR = {
+    c3:{n:'RIF personal', e:'resuelto'}, c5:{n:'Constitución de la compañía', e:'curso'}, c6:{n:'RIF de la empresa', e:'sin'},
+    c7:{n:'Cuenta bancaria empresarial', e:'sin'}, c8:{n:'Registro de marca', e:'sin'}, c48:{n:'Permiso sanitario (SACS)', e:'sin'},
+    c50:{n:'Inscripción en el RTN', e:'sin'}, c32:{n:'Firma en el Registro de Extranjeros', e:'enviado'}, c1:{n:'Visa de negocios (TR-N)', e:'resuelto'},
+    c17:{n:'Traducción de documentos', e:'sin'}, c45:{n:'Licencia de actividades económicas: ya solicitada', e:'sin'}
+  };
+  var ESTADO_TR = {sin:'Sin empezar', curso:'En curso', enviado:'Enviado: te espera el CIIP', resuelto:'Resuelto'};
+  /* Los papeles. 'en' = en qué trámites y cómo (o: obligatorio, p: opcional, c: según el caso). */
+  var P = [
+    {k:'acta', n:'Acta constitutiva', de:'empresa', propio:['El acta registrada, con la nota del registro mercantil legible: número, tomo y folio.'], vence:false,
+     sale:'c5', en:[['c6','o'],['c7','o'],['c8','o'],['c48','o'],['c50','o'],['c45','o']], subido:null},
+    {k:'rif_empresa', n:'RIF de la empresa', de:'empresa', propio:['El certificado completo, con su código de validación visible.'], vence:false,
+     sale:'c6', en:[['c7','o'],['c8','o'],['c48','o'],['c50','o'],['c45','o']], subido:null},
+    {k:'cedula', n:'Cédula o pasaporte del representante legal', de:'persona', propio:['Las dos caras. En un archivo o en dos, pero las dos.'], vence:true,
+     en:[['c5','o'],['c6','o'],['c7','o'],['c8','o'],['c48','o'],['c45','o']],
+     subido:{arch:'cedula-franklin.pdf', fecha:'14 oct 2026', revision:'ok', vence:'3 mar 2027', lector:true}},
+    {k:'rif_personal', n:'Tu RIF personal', de:'persona', propio:['El certificado completo, con su código de validación visible.'], vence:false,
+     sale:'c3', en:[['c5','o'],['c8','o'],['c48','o'],['c45','o']],
+     subido:{arch:'rif-personal.pdf', fecha:'2 oct 2026', revision:'mal', motivo:'El certificado está cortado: no se ve el código de validación. Súbelo completo, en una sola página.'}},
+    {k:'pasaporte', n:'Pasaporte vigente', de:'persona', propio:['La página de datos entera: la foto, el nombre, el número y las dos líneas del pie.'], vence:true,
+     en:[['c32','o'],['c17','o'],['c1','o']],
+     subido:{arch:'pasaporte.pdf', fecha:'20 sep 2026', revision:'ok', vence:'12 nov 2026', prontoVence:true}},
+    {k:'domicilio_empresa', n:'Contrato o constancia de la dirección fiscal', de:'empresa', propio:[], vence:false,
+     en:[['c6','o']], subido:{arch:'contrato-oficina.pdf', fecha:'20 oct 2026', revision:'espera'}},
+    {k:'declaracion_fondos', n:'Declaración jurada de origen de fondos', de:'empresa', propio:[], vence:false, en:[['c7','o']], subido:null},
+    {k:'logo_marca', n:'Logo', de:'empresa', propio:['La imagen de la marca tal como se va a registrar, con sus colores.', 'Si la marca es solo una palabra, sirve una imagen con la palabra escrita.'], vence:false, en:[['c8','o']], subido:null},
+    {k:'comprobante_capital', n:'Comprobante del capital (depósito o inventario)', de:'otros', propio:[], vence:false, en:[['c5','o']], subido:null},
+    {k:'poliza_incendio', n:'Póliza de incendio', de:'empresa', propio:[], vence:true, en:[['c50','o']], subido:null},
+    {k:'carta_comisario', n:'Carta de aceptación del comisario', de:'otros', propio:[], vence:false, en:[['c5','c','Salvo en la firma personal']], subido:null},
+    {k:'acta_asamblea', n:'Última acta de asamblea', de:'empresa', propio:['El acta registrada, con la nota del registro legible.'], vence:false, en:[['c45','p','Solo si la empresa cambió algo desde que se constituyó']], subido:null}
+  ];
+  var GRUPO = {persona:'Del representante legal', empresa:'De la empresa', otros:'Otros documentos'};
+  var REV = {ok:['ok','Aceptado por el CIIP'], espera:['espera','Pendiente de revisión'], mal:['mal','Rechazado: súbelo de nuevo']};
+  var ICO = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>';
+  var abierto = 'rif_personal', vista = 'lista';
+  function el(t, c, h){ var e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
+  function vale(p){ return p.subido && p.subido.revision !== 'mal'; }
+  function estadoDe(p){
+    if (!p.subido) return 'falta';
+    return p.subido.revision;
+  }
+  function elige(p){
+    var i = el('input'); i.type = 'file'; i.accept = 'image/*,application/pdf';
+    i.addEventListener('change', function(){ if (i.files[0]){ p.subido = {arch:i.files[0].name, fecha:'21 oct 2026', revision:'espera'}; abierto = p.k; pinta(); } i.remove(); });
+    document.body.appendChild(i); i.click();
+  }
+  function fila(p){
+    var est = estadoDe(p);
+    var w = el('div', 'rec' + (abierto === p.k ? ' abierto' : ''));
+    var c = el('div', 'rec-c');
+    c.appendChild(el('span', 'marca ' + (est === 'falta' ? 'vacio' : est), est === 'ok' ? ICO : ''));
+    var tx = el('div', 'tx');
+    tx.appendChild(el('div', 'nom', p.n));
+    var cuantos = p.en.filter(function(x){ return x[1] === 'o'; }).length;
+    var l2 = est === 'falta' ? (cuantos ? ('Lo piden ' + cuantos + (cuantos === 1 ? ' trámite' : ' trámites')) : (p.en[0][1] === 'p' ? 'Opcional' : 'Según el caso') + (p.en[0][2] ? ': ' + p.en[0][2] : ''))
+           : (p.subido.arch + (p.subido.prontoVence ? ' · vence el ' + p.subido.vence : ''));
+    tx.appendChild(el('div', 'linea2', l2));
+    c.appendChild(tx);
+    c.appendChild(el('span', 'est ' + est, est === 'falta' ? 'Falta' : REV[est][1].split(':')[0]));
+    c.appendChild(el('span', 'flecha', abierto === p.k ? '▴' : '▾'));
+    c.addEventListener('click', function(){ abierto = abierto === p.k ? null : p.k; pinta(); });
+    w.appendChild(c);
+
+    var d = el('div', 'rec-d');
+    /* 1. Lo que subiste, con su revisión */
+    if (p.subido){
+      var s = el('div', 'sec');
+      s.appendChild(el('h5', null, 'Lo que subiste'));
+      var a = el('div', 'archivo');
+      a.appendChild(el('span', 'pdf', 'PDF'));
+      a.appendChild(el('div', 'tx', '<b>' + p.subido.arch + '</b><small>Subido el ' + p.subido.fecha +
+        (p.subido.vence ? ' · vence el ' + p.subido.vence : '') + (p.subido.lector ? ' · leído por el lector de documentos' : '') + '</small>'));
+      a.appendChild(el('span', 'est ' + p.subido.revision, REV[p.subido.revision][1]));
+      a.appendChild(el('button', 'btn link', 'Abrir'));
+      s.appendChild(a);
+      if (p.subido.revision === 'mal') s.appendChild(el('div', 'motivo', '<b>Lo que dijo el CIIP:</b> ' + p.subido.motivo));
+      if (p.subido.prontoVence) s.appendChild(el('div', 'motivo', '<b>Vence pronto.</b> Tiene que estar vigente el día que se entregue: renuévalo antes del ' + p.subido.vence + '.'));
+      d.appendChild(s);
+    }
+    /* 2. De dónde sale */
+    if (p.sale){
+      var t = TR[p.sale];
+      d.appendChild(el('div', 'sale', 'Este papel <b>lo obtienes con «' + t.n + '»</b>, aquí en la ventanilla · ' + ESTADO_TR[t.e] +
+        (t.e === 'resuelto' ? '' : ' · <a href="#">Ir al trámite</a>')));
+    }
+    /* 3. Cómo debe venir */
+    var g = el('div', 'sec');
+    g.appendChild(el('h5', null, 'Cómo debe venir'));
+    var ul = el('ul');
+    p.propio.concat(FORMA).forEach(function(x){ ul.appendChild(el('li', null, x)); });
+    if (p.vence) ul.appendChild(el('li', null, 'Caduca: tiene que estar vigente el día que lo entregues, y al subirlo se te pedirá su fecha de vencimiento.'));
+    g.appendChild(ul);
+    d.appendChild(g);
+    /* 4. Dónde sirve, con el estado de cada trámite */
+    var u = el('div', 'sec');
+    u.appendChild(el('h5', null, 'Dónde te sirve'));
+    p.en.forEach(function(x){
+      var t = TR[x[0]];
+      var r = el('div', 'tr');
+      r.appendChild(el('span', 'n', t.n + (x[1] !== 'o' ? '<div class="como">' + (x[1] === 'p' ? 'Opcional' : 'Según el caso') + (x[2] ? ': ' + x[2] : '') + '</div>' : '')));
+      r.appendChild(el('span', 'est ' + (t.e === 'resuelto' ? 'ok' : t.e === 'sin' ? 'falta' : 'espera'), ESTADO_TR[t.e]));
+      r.appendChild(el('a', null, 'Abrir'));
+      u.appendChild(r);
+    });
+    d.appendChild(u);
+    /* 5. Acciones */
+    var ac = el('div', 'acciones');
+    var b = el('button', 'btn', p.subido ? 'Subir otro' : 'Subir');
+    b.addEventListener('click', function(e){ e.stopPropagation(); elige(p); });
+    ac.appendChild(b);
+    d.appendChild(ac);
+    w.appendChild(d);
+    return w;
+  }
+  function orden(a, b){
+    var pa = {mal:0, falta:1, espera:2, ok:3}[estadoDe(a)], pb = {mal:0, falta:1, espera:2, ok:3}[estadoDe(b)];
+    return pa - pb || b.en.length - a.en.length || a.n.localeCompare(b.n);
+  }
+  function pinta(){
+    var ob = P.filter(function(p){ return p.en.some(function(x){ return x[1] === 'o'; }); });
+    var listos = ob.filter(vale).length;
+    document.querySelector('[data-cuenta]').textContent = listos + ' de ' + ob.length + ' papeles';
+    document.querySelector('[data-barra]').style.width = (100 * listos / ob.length) + '%';
+    var cuenta = {falta:0, mal:0, espera:0, ok:0};
+    P.forEach(function(p){ cuenta[estadoDe(p)]++; });
+    document.querySelector('[data-resumen]').innerHTML =
+      '<span>' + cuenta.falta + ' por subir</span><span>' + cuenta.mal + ' rechazados</span>' +
+      '<span>' + cuenta.espera + ' en revisión</span><span>' + cuenta.ok + ' aceptados</span>';
+    document.querySelectorAll('[data-vista] button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-v') === vista); });
+    var c = document.querySelector('[data-cuerpo]'); c.innerHTML = '';
+    if (vista === 'lista') P.slice().sort(orden).forEach(function(p){ c.appendChild(fila(p)); });
+    else ['persona', 'empresa', 'otros'].forEach(function(gq){
+      var s = P.filter(function(p){ return p.de === gq; }).sort(orden);
+      if (!s.length) return;
+      c.appendChild(el('div', 'grupo-t', GRUPO[gq]));
+      s.forEach(function(p){ c.appendChild(fila(p)); });
+    });
+  }
+  document.querySelectorAll('[data-vista] button').forEach(function(b){ b.addEventListener('click', function(){ vista = b.getAttribute('data-v'); pinta(); }); });
+  pinta();
+})();
+</script>
+</body>
+</html>

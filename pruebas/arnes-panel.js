@@ -499,6 +499,8 @@
               juntaBorradorAbre, juntaBorradorMira,
               /* Y cancela la t3 de 'lleno': detrás de todo lo que cuenta tarjetas. */
               mtCanceladaAbre, mtCanceladaMira,
+              /* Mis recaudos (20-10-2026): sube un papel, así que al final. */
+              rcMenu, rcAbre, rcMira, rcSube, rcTrasSubir, rcTramite,
               /* Control y Estadísticas a otros anchos, en iframes: lo
                  último, porque cada copia arranca un panel entero. */
               anchosControl], volcar);
@@ -20479,6 +20481,230 @@
     window.CIIP_MENTIRA_SIN_PASOS = false;
     window.CIIP_PINTA_CONTROL();
     setTimeout(function(){ ceElegir(antes); setTimeout(sigue, 100); }, 400);
+  }
+
+  /* ═══════════ MIS RECAUDOS (Franklin Reyes, 20 y 21-10-2026) ═══════════
+     Lo que le piden al inversionista sus trámites, POR TRÁMITE (opción 2 de
+     maquetas/recaudos-inversionista-cuatro.html): una caja por trámite con
+     su avance y sus papeles; los completos se pliegan solos. Al final de la
+     tanda: sube un papel, y puesto antes le cambiaría la bóveda a lo que
+     viene detrás. */
+  var RC_EQUIPO = (CASO === 'gestor');
+  function rcCajas(){ return [].slice.call(document.querySelectorAll('#rcLista .rc-caja')); }
+  function rcNum(c, k){ return parseInt(c.getAttribute('data-' + k), 10); }
+
+  function rcMenu(){
+    var b = document.getElementById('navRecaudos');
+    if (RC_EQUIPO){
+      ok('mis recaudos: al equipo del CIIP no se le ofrece (' + PASE + ')',
+         !!b && b.hidden && b.offsetParent === null,
+         b ? ('hidden=' + b.hidden + ' visible=' + (b.offsetParent !== null)) : 'no hay renglón',
+         'escondido y sin pintar');
+      return;
+    }
+    igual('mis recaudos: el renglón sale al inversionista', b ? b.hidden : '(sin renglón)', false);
+    var docs = document.getElementById('navDocs');
+    igual('mis recaudos: justo detrás de «Documentos»', !!(docs && docs.nextElementSibling === b), true);
+  }
+
+  function rcAbre(sigue){
+    location.hash = '';
+    if (RC_EQUIPO){ location.hash = 'mis-recaudos'; return setTimeout(sigue, 300); }
+    var b = document.getElementById('navRecaudos');
+    if (b && !b.hidden) b.click();
+    var n = 0;
+    (function mira(){
+      if (document.querySelector('#rcLista .rc-caja, #rcLista .ci-vacia') || ++n > 100) return sigue();
+      setTimeout(mira, 50);
+    })();
+  }
+
+  function rcMira(sigue){
+    if (RC_EQUIPO){
+      ok('mis recaudos: y el hash a mano le devuelve a la portada (' + PASE + ')',
+         document.body.getAttribute('data-vista') !== 'recaudos',
+         document.body.getAttribute('data-vista') || 'inicio', 'no es recaudos');
+      return sigue();
+    }
+    igual('mis recaudos: el renglón abre su vista', document.body.getAttribute('data-vista'), 'recaudos');
+    igual('mis recaudos: y queda encendido',
+          document.getElementById('navRecaudos').classList.contains('active'), true);
+    igual('mis recaudos: con su frase',
+          (document.getElementById('rcSub') || {}).textContent,
+          'Lo que te piden tus trámites. Cada papel se sube una vez y sirve para todos los que lo piden.');
+    var tipos = window.CIIP_TIPOS_POR_REF || {};
+    var cajas = rcCajas();
+    if (!Object.keys(tipos).length){
+      ok('mis recaudos: sin catálogo, dice que no hay nada que pedir',
+         !!document.querySelector('#rcLista .ci-vacia') && !cajas.length,
+         cajas.length + ' cajas', 'el aviso de vacío');
+      return sigue();
+    }
+    ok('mis recaudos: hay trámites con papeles que pedir', cajas.length > 0, cajas.length + ' cajas', 'al menos una');
+    if (!cajas.length) return sigue();
+
+    /* Una caja por trámite, y dentro un papel por tipo. */
+    var refs = cajas.map(function(c){ return c.getAttribute('data-ref'); });
+    igual('mis recaudos: agrupado por trámite, una caja por cada uno',
+          refs.filter(function(r, i){ return refs.indexOf(r) !== i; }).join(', '), '');
+    var R = window.CIIP_RECAUDOS;
+    var repes = [], malos = [], colados = [], fuera = 0, cuadra = [], vacias = [];
+    cajas.forEach(function(c){
+      var ref = c.getAttribute('data-ref');
+      var lista = R.de(tipos[ref] && tipos[ref].codigo) || [];
+      if (!lista.length) vacias.push(ref);
+      var pide = {}, cond = {};
+      lista.forEach(function(x){
+        if (x.opcional || x.siCasilla || x.noCasilla) cond[x.tipo] = true; else pide[x.tipo] = true;
+      });
+      var vistos = {};
+      var ps = [].slice.call(c.querySelectorAll('.rc-p'));
+      ps.forEach(function(p){
+        var t = p.getAttribute('data-tipo');
+        if (vistos[t]) repes.push(t + '@' + ref);
+        vistos[t] = true;
+        if (!pide[t]) (cond[t] ? colados : malos).push(t + '@' + ref);
+      });
+      Object.keys(cond).forEach(function(t){ if (!pide[t]) fuera++; });
+      /* El avance de cada caja cuadra con sus papeles. */
+      var n = rcNum(c, 'n'), t = rcNum(c, 't');
+      var dice = (c.querySelector('.rc-tr-av b') || {}).textContent;
+      if (dice !== n + ' de ' + t) cuadra.push(ref + ': ' + dice);
+      if (ps.length && (ps.length !== t || c.querySelectorAll('.rc-p.ya').length !== n)) cuadra.push(ref + ': filas');
+    });
+    igual('mis recaudos: dentro de cada trámite, ningún papel se repite', repes.join(', '), '');
+    igual('mis recaudos: cada papel lo pide de verdad su trámite', malos.join(', '), '');
+    ok('mis recaudos: ni opcionales ni condicionados', fuera > 0 && !colados.length,
+       fuera + ' fuera, colados: ' + (colados.join(', ') || 'ninguno'), 'alguno fuera y ninguno colado');
+    igual('mis recaudos: el avance de cada trámite cuadra con sus papeles', cuadra.join(' | '), '');
+    igual('mis recaudos: un trámite que no pide papeles no sale', vacias.join(', '), '');
+
+    /* Primero a los que les falta algo, los que menos les falta delante. */
+    var orden = cajas.map(function(c){ return rcNum(c, 't') - rcNum(c, 'n'); });
+    var mal = orden.some(function(f, i){
+      var g = orden[i + 1];
+      if (g === undefined) return false;
+      if (f === 0) return g !== 0;
+      return g !== 0 && g < f;
+    });
+    igual('mis recaudos: primero los que les falta algo, los que menos delante', mal, false);
+
+    /* Los completos, plegados y en verde. */
+    var listos = cajas.filter(function(c){ return c.classList.contains('listo'); });
+    var abiertos = listos.filter(function(c){ return !c.classList.contains('plegada') || c.querySelector('.rc-p'); });
+    igual('mis recaudos: los completos se pliegan solos', abiertos.length, 0);
+    igual('mis recaudos: el número de arriba cuenta los trámites completos',
+          (document.getElementById('rcCuenta') || {}).textContent,
+          listos.length + ' de ' + cajas.length + ' trámites con todos sus papeles');
+
+    /* Un papel de la bóveda sale en verde, en cada trámite que lo pide. */
+    var ced = [].slice.call(document.querySelectorAll('#rcLista .rc-p[data-tipo="cedula"]'));
+    if (ced.length){
+      igual('mis recaudos: la cédula de la bóveda sale en verde en todos',
+            ced.filter(function(p){ return !p.classList.contains('ya'); }).length, 0);
+      igual('mis recaudos: y su enlace dice «Cambiar»', ced[0].querySelector('.rc-btn').textContent.trim(), 'Cambiar');
+      var m = getComputedStyle(ced[0].querySelector('.rc-marca'), '::after');
+      ok('mis recaudos: con el visto en el círculo', m && m.content !== 'none', m && m.content, 'un visto');
+    }
+    var venc = document.querySelector('#rcLista .rc-p[data-tipo="antecedentes"]');
+    if (venc){
+      ok('mis recaudos: el vencido no cuenta y pide subirlo de nuevo',
+         !venc.classList.contains('ya') && /vencido · súbelo de nuevo/.test(venc.textContent),
+         venc.className + ' «' + venc.textContent + '»', 'sin verde y diciéndolo');
+    }
+    var falta = document.querySelector('#rcLista .rc-p:not(.ya)');
+    if (falta) igual('mis recaudos: el que falta ofrece «Subir»', falta.querySelector('.rc-btn').textContent.trim(), 'Subir');
+    if (CASO === 'lleno' && tipos.c1 && tipos.c1.activo){
+      igual('mis recaudos: un trámite resuelto no sale',
+            document.querySelectorAll('#rcLista .rc-caja[data-ref="c1"]').length, 0);
+    }
+    var nom = document.querySelector('#rcLista .rc-tr-n');
+    ok('mis recaudos: los trámites, por su nombre', !!nom && !/^c\d+$/.test(nom.textContent.trim()),
+       nom ? nom.textContent.trim() : 'ninguno', 'un nombre');
+
+    /* Y un completo se despliega al pulsarlo, y se vuelve a plegar. */
+    if (!listos.length) return sigue();
+    var ref = listos[0].getAttribute('data-ref');
+    listos[0].querySelector('.rc-tr-av').click();
+    var c2 = document.querySelector('#rcLista .rc-caja[data-ref="' + ref + '"]');
+    ok('mis recaudos: un completo se despliega al pulsarlo',
+       !!c2 && !c2.classList.contains('plegada') && c2.querySelectorAll('.rc-p').length === rcNum(c2, 't') &&
+       c2.querySelectorAll('.rc-p:not(.ya)').length === 0,
+       c2 ? (c2.className + ', ' + c2.querySelectorAll('.rc-p').length + ' filas') : 'sin caja', 'abierto y todo en verde');
+    if (c2) c2.querySelector('.rc-tr-av').click();
+    var c3 = document.querySelector('#rcLista .rc-caja[data-ref="' + ref + '"]');
+    igual('mis recaudos: y se vuelve a plegar', !!c3 && c3.classList.contains('plegada'), true);
+    sigue();
+  }
+
+  /* Se sube el papel que falta en MÁS trámites: tiene que marcarse en todos. */
+  function rcSube(sigue){
+    if (RC_EQUIPO) return sigue();
+    var cuantos = {};
+    [].forEach.call(document.querySelectorAll('#rcLista .rc-p:not(.ya)'), function(p){
+      var t = p.getAttribute('data-tipo');
+      cuantos[t] = (cuantos[t] || 0) + 1;
+    });
+    var tipo = Object.keys(cuantos).sort(function(a, b){ return cuantos[b] - cuantos[a]; })[0];
+    if (!tipo) return sigue();
+    var dondeAntes = {};
+    rcCajas().forEach(function(c){
+      if (c.querySelector('.rc-p[data-tipo="' + tipo + '"]')) dondeAntes[c.getAttribute('data-ref')] = rcNum(c, 'n');
+    });
+    window.PRUEBA_RC = {tipo: tipo, antes: dondeAntes};
+    document.querySelector('#rcLista .rc-p[data-tipo="' + tipo + '"] .rc-btn').click();
+    var back = document.getElementById('docBack');
+    igual('mis recaudos: «Subir» abre la ventana de «Documentos»', !!back && back.classList.contains('open'), true);
+    igual('mis recaudos: con su tipo ya elegido', (document.getElementById('dcTipo') || {}).value, tipo);
+    var arc = document.getElementById('dcArchivo');
+    var dt = new DataTransfer();
+    dt.items.add(new File([new Uint8Array(16)], 'desde-mis-recaudos.pdf', {type:'application/pdf'}));
+    arc.files = dt.files;
+    arc.dispatchEvent(new Event('change'));
+    var cv = document.getElementById('dcCampoVence');
+    if (cv && !cv.hidden) document.getElementById('dcVence').value = '2030-01-01';
+    document.getElementById('dcGuarda').click();
+    var r0 = Object.keys(dondeAntes)[0];
+    var n = 0;
+    (function mira(){
+      var c = document.querySelector('#rcLista .rc-caja[data-ref="' + r0 + '"]');
+      if ((c && rcNum(c, 'n') > dondeAntes[r0]) || ++n > 100) return sigue();
+      setTimeout(mira, 50);
+    })();
+  }
+
+  function rcTrasSubir(){
+    if (RC_EQUIPO || !window.PRUEBA_RC) return;
+    var P = window.PRUEBA_RC;
+    var refs = Object.keys(P.antes);
+    var sinSubir = refs.filter(function(ref){
+      var c = document.querySelector('#rcLista .rc-caja[data-ref="' + ref + '"]');
+      return !c || rcNum(c, 'n') !== P.antes[ref] + 1;
+    });
+    ok('mis recaudos: al subirlo, cuenta en todos los trámites que lo piden (' + refs.length + ')',
+       refs.length > 0 && !sinSubir.length, sinSubir.join(', ') || 'todos', 'todos');
+    igual('mis recaudos: y se marca en verde en cada uno',
+          document.querySelectorAll('#rcLista .rc-p[data-tipo="' + P.tipo + '"]:not(.ya)').length, 0);
+    var cajas = rcCajas();
+    igual('mis recaudos: y el número de arriba se rehace',
+          (document.getElementById('rcCuenta') || {}).textContent,
+          cajas.filter(function(c){ return c.classList.contains('listo'); }).length + ' de ' + cajas.length +
+          ' trámites con todos sus papeles');
+    igual('mis recaudos: y la ventana se cierra', document.getElementById('docBack').classList.contains('open'), false);
+  }
+
+  function rcTramite(sigue){
+    if (RC_EQUIPO) return sigue();
+    var c = document.querySelector('#rcLista .rc-caja');
+    if (!c) return sigue();
+    var ref = c.getAttribute('data-ref');
+    c.querySelector('.rc-tr-n').click();
+    setTimeout(function(){
+      igual('mis recaudos: el nombre del trámite lleva a su ficha', location.hash, '#tramite-' + ref);
+      igual('mis recaudos: y la abre', document.body.getAttribute('data-vista'), 'tramite');
+      location.hash = '';
+      setTimeout(sigue, 200);
+    }, 300);
   }
 
   /* ── CONTROL Y ESTADÍSTICAS A OTROS ANCHOS (revisión del 13-10-2026) ──

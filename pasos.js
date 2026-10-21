@@ -1591,6 +1591,13 @@ window.CIIP_PASOS = {
       dc_guardado:   "Guardado. Ya lo tienen los trámites que lo piden.",
       dc_pesa:      "El archivo pesa más de 10 MB. Súbelo más ligero.",
       dc_tipo:      "Tiene que ser una imagen o un PDF.",
+      /* Mis recaudos (20-10-2026). */
+      dc_rec_sub: "Lo que te piden tus trámites. Cada papel se sube una vez y sirve para todos los que lo piden.",
+      dc_rec_cuenta: "{n} de {t} trámites con todos sus papeles",
+      dc_rec_de: "{n} de {t}",
+      dc_rec_mal: "{arch} · {estado} · súbelo de nuevo",
+      dc_rec_subir: "Subir",
+      dc_rec_vacia: "Ahora mismo ningún trámite te pide papeles.",
       /* Mi empresa. Las etiquetas de los campos NO se escriben aquí: son
          las mismas f_* que usan los formularios, para que la empresa y el
          trámite llamen igual a lo mismo. */
@@ -3734,6 +3741,13 @@ window.CIIP_PASOS = {
       dc_guardado:   "Saved. The procedures that ask for it already have it.",
       dc_pesa:      "The file is over 10 MB. Upload a lighter one.",
       dc_tipo:      "It has to be an image or a PDF.",
+      /* Mis recaudos (20-10-2026). */
+      dc_rec_sub: "What your procedures ask for. Each document is uploaded once and serves every procedure that asks for it.",
+      dc_rec_cuenta: "{n} of {t} procedures with all their documents",
+      dc_rec_de: "{n} of {t}",
+      dc_rec_mal: "{arch} · {estado} · upload it again",
+      dc_rec_subir: "Upload",
+      dc_rec_vacia: "Right now no procedure is asking you for documents.",
       /* My company. Field labels are NOT written here: they are the same
          f_* the forms use, so company and procedure call the same thing by
          the same name. */
@@ -5738,6 +5752,13 @@ window.CIIP_PASOS = {
       dc_guardado:   "Guardado. Já o têm os trâmites que o pedem.",
       dc_pesa:      "O ficheiro tem mais de 10 MB. Carregue um mais leve.",
       dc_tipo:      "Tem de ser uma imagem ou um PDF.",
+      /* Mis recaudos (20-10-2026). */
+      dc_rec_sub: "O que os seus trâmites pedem. Cada documento é enviado uma vez e serve para todos os que o pedem.",
+      dc_rec_cuenta: "{n} de {t} trâmites com todos os documentos",
+      dc_rec_de: "{n} de {t}",
+      dc_rec_mal: "{arch} · {estado} · envie-o de novo",
+      dc_rec_subir: "Enviar",
+      dc_rec_vacia: "Neste momento nenhum trâmite lhe pede documentos.",
       /* A minha empresa. */
       em_vacia:     "Ainda não registou a sua empresa. Quando o fizer, os formulários que peçam estes dados oferecê-los-ão já escritos.",
       /* La autorización al CIIP antes de enviar (8-10-2026). */
@@ -7736,6 +7757,13 @@ window.CIIP_PASOS = {
       dc_guardado:   "Salvato. Ce l’hanno già le pratiche che lo chiedono.",
       dc_pesa:      "Il file supera i 10 MB. Caricane uno più leggero.",
       dc_tipo:      "Deve essere un’immagine o un PDF.",
+      /* Mis recaudos (20-10-2026). */
+      dc_rec_sub: "Ciò che chiedono le tue pratiche. Ogni documento si carica una volta e vale per tutte quelle che lo chiedono.",
+      dc_rec_cuenta: "{n} di {t} pratiche con tutti i documenti",
+      dc_rec_de: "{n} di {t}",
+      dc_rec_mal: "{arch} · {estado} · caricalo di nuovo",
+      dc_rec_subir: "Carica",
+      dc_rec_vacia: "Al momento nessuna pratica ti chiede documenti.",
       /* La mia azienda. */
       em_vacia:     "Non hai ancora registrato la tua azienda. Quando lo farai, i moduli che chiedono questi dati te li proporranno già scritti.",
       /* La autorización al CIIP antes de enviar (8-10-2026). */
@@ -9734,6 +9762,13 @@ window.CIIP_PASOS = {
       dc_guardado:   "已保存。需要它的业务已经拿到了。",
       dc_pesa:      "文件超过 10 MB，请上传更小的文件。",
       dc_tipo:      "必须是图片或 PDF 文件。",
+      /* Mis recaudos (20-10-2026). */
+      dc_rec_sub: "你的手续所需的材料。每份文件只需上传一次，所有需要它的手续都能使用。",
+      dc_rec_cuenta: "{t} 项手续中 {n} 项材料齐全",
+      dc_rec_de: "{n}/{t}",
+      dc_rec_mal: "{arch} · {estado} · 请重新上传",
+      dc_rec_subir: "上传",
+      dc_rec_vacia: "目前没有手续需要你提交材料。",
       /* 我的公司。 */
       em_vacia:     "您还没有登记公司。登记后，需要这些资料的表单会直接帮您填好。",
       /* La autorización al CIIP antes de enviar (8-10-2026). */
@@ -11732,6 +11767,13 @@ window.CIIP_PASOS = {
       dc_guardado:   "Сохранено. У услуг, которые его просят, он уже есть.",
       dc_pesa:      "Файл больше 10 МБ. Загрузите файл поменьше.",
       dc_tipo:      "Нужно изображение или PDF.",
+      /* Mis recaudos (20-10-2026). */
+      dc_rec_sub: "То, что требуют ваши процедуры. Каждый документ загружается один раз и подходит для всех процедур, где он нужен.",
+      dc_rec_cuenta: "{n} из {t} процедур со всеми документами",
+      dc_rec_de: "{n} из {t}",
+      dc_rec_mal: "{arch} · {estado} · загрузите его снова",
+      dc_rec_subir: "Загрузить",
+      dc_rec_vacia: "Сейчас ни одна процедура не требует от вас документов.",
       /* Моя компания. */
       em_vacia:     "Вы ещё не зарегистрировали компанию. Когда сделаете это, формы будут предлагать эти данные уже заполненными.",
       /* La autorización al CIIP antes de enviar (8-10-2026). */
@@ -13739,6 +13781,13 @@ window.CIIP_PASOS = {
       dc_guardado:   "Enregistré. Les démarches qui le demandent l’ont déjà.",
       dc_pesa:      "Le fichier dépasse 10 Mo. Déposez-en un plus léger.",
       dc_tipo:      "Il doit s’agir d’une image ou d’un PDF.",
+      /* Mis recaudos (20-10-2026). */
+      dc_rec_sub: "Ce que vos démarches demandent. Chaque pièce se dépose une fois et sert à toutes celles qui la demandent.",
+      dc_rec_cuenta: "{n} sur {t} démarches avec toutes leurs pièces",
+      dc_rec_de: "{n} sur {t}",
+      dc_rec_mal: "{arch} · {estado} · déposez-la à nouveau",
+      dc_rec_subir: "Déposer",
+      dc_rec_vacia: "Pour l’instant, aucune démarche ne vous demande de pièces.",
       /* My company. Field labels are NOT written here: they are the same
          f_* the forms use, so company and procedure call the same thing by
          the same name. */
@@ -15752,6 +15801,13 @@ window.CIIP_PASOS = {
       dc_guardado:   "保存しました。この書類を必要とする手続きにすでに反映されています。",
       dc_pesa:      "ファイルが10 MBを超えています。より軽いファイルをアップロードしてください。",
       dc_tipo:      "画像またはPDFである必要があります。",
+      /* Mis recaudos (20-10-2026). */
+      dc_rec_sub: "手続きで求められる書類です。各書類は一度アップロードすれば、それを求めるすべての手続きで使えます。",
+      dc_rec_cuenta: "{t}件中{n}件の手続きで書類がそろっています",
+      dc_rec_de: "{t}件中{n}件",
+      dc_rec_mal: "{arch} · {estado} · もう一度アップロードしてください",
+      dc_rec_subir: "アップロード",
+      dc_rec_vacia: "現在、書類を求めている手続きはありません。",
       /* My company. Field labels are NOT written here: they are the same
          f_* the forms use, so company and procedure call the same thing by
          the same name. */

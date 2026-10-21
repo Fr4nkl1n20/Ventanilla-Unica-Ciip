@@ -498,6 +498,10 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
            que al equipo se le quita del menu. Nacia visible y desaparecia al
            llegar el rol. -->
       <button class="sb-item" id="navDocs" type="button" hidden><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><polyline points="14 3 14 8 19 8"/></svg></span><span data-i18n="nav.documents">Documents</span><span class="cnt" id="navDocsN" hidden></span></button>
+      <!-- Mis recaudos (Franklin Reyes, 20-10-2026): lo que le piden sus
+           tramites, cada papel una vez y con los tramites donde sirve. Del
+           inversionista, como la boveda: nace oculto y lo enseña menuPorRol(). -->
+      <button class="sb-item" id="navRecaudos" type="button" hidden><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><path d="M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/><path d="m8.5 12 2 2 4-4"/><path d="M8.5 17.5h7"/></svg></span><span data-i18n="nav.recaudos">My required documents</span></button>
     </div>
     <div class="sb-group">
       <div class="sb-gl" data-i18n="nav.g.opps">Opportunities</div>
@@ -1665,6 +1669,21 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Mis recaudos: los papeles que piden los tramites que se le ofrecen
+         al inversionista, sin repetir por tipo, primero los que faltan. Los
+         pinta CIIP_PINTA_RECAUDOS al entrar; se suben por la ventana de
+         «Documentos» (docBack). -->
+    <div class="recaudos-vista">
+      <div class="rc-cab">
+        <div class="rc-cab-t">
+          <h2 class="rc-t" data-i18n="nav.recaudos">My required documents</h2>
+          <p class="rc-sub" id="rcSub"></p>
+        </div>
+        <div class="rc-av" id="rcAv" hidden><b id="rcCuenta"></b><span class="rc-barra"><i id="rcBarra"></i></span></div>
+      </div>
+      <div class="rc-lista" id="rcLista"></div>
     </div>
 
     <!-- La boveda. Los recaudos ya se guardaban y se reutilizaban entre

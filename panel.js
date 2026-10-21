@@ -1640,6 +1640,9 @@ function applyLang(lang){
        renglón, y esta es la otra puerta: el hash escrito a mano. Cae a la
        portada, como el #tramite-c99, y no a una pantalla en blanco. */
     if (tipo === 'documentos' && window.CIIP_BOVEDA_MIA && !window.CIIP_BOVEDA_MIA()) tipo = null;
+    /* «Mis recaudos» (20-10-2026), por la misma puerta: es lo que le piden
+       al dueño de la bóveda, y al equipo del CIIP no se le pide nada. */
+    if (tipo === 'recaudos' && window.CIIP_BOVEDA_MIA && !window.CIIP_BOVEDA_MIA()) tipo = null;
     /* Autorizaciones y NDA: del inversionista, que descarga los modelos,
        y del administrador, que los sube. Al gestor no se le ofrece. */
     if (tipo === 'autorizaciones' && window.CIIP_BOVEDA_MIA && !window.CIIP_BOVEDA_MIA() &&
@@ -1700,6 +1703,7 @@ function applyLang(lang){
     if (tipo === 'activos') traeAlEntrar('CIIP_PINTA_ACTIVOS');
     if (tipo === 'ayuda' && window.CIIP_REPINTA_AYUDA) window.CIIP_REPINTA_AYUDA();
     if (tipo === 'documentos') traeAlEntrar('CIIP_PINTA_DOCS');
+    if (tipo === 'recaudos') traeAlEntrar('CIIP_PINTA_RECAUDOS');
     if (tipo === 'poratender') traeAlEntrar('CIIP_ENTRA_PORATENDER');
     if (tipo === 'consultas') traeAlEntrar('CIIP_PINTA_CONSULTAS');
     if (tipo === 'revisar') traeAlEntrar('CIIP_PINTA_REVISAR');
@@ -1807,6 +1811,7 @@ function applyLang(lang){
     if (h === '#activos') return {tipo:'activos'};
     if (h === '#ayuda') return {tipo:'ayuda'};
     if (h === '#documentos') return {tipo:'documentos'};
+    if (h === '#mis-recaudos') return {tipo:'recaudos'};
     if (h === '#poratender') return {tipo:'poratender'};
     if (h === '#consultas') return {tipo:'consultas'};
     if (h === '#revisar') return {tipo:'revisar'};
@@ -2215,6 +2220,7 @@ function applyLang(lang){
              : (vista === 'activos') ? document.getElementById('navActivos')
              : (vista === 'ayuda') ? document.getElementById('navAyuda')
              : (vista === 'documentos') ? document.getElementById('navDocs')
+             : (vista === 'recaudos') ? document.getElementById('navRecaudos')
              : (vista === 'poratender') ? document.getElementById('navTramites')
              : (vista === 'consultas') ? document.getElementById('navConsultas')
              : (vista === 'revisar') ? document.getElementById('navRevisar')
@@ -24054,6 +24060,9 @@ applyLang(idiomaParaMi());
     if (mt) mt.hidden = false;
     var dc = document.getElementById('navDocs');
     if (dc) dc.hidden = !laBovedaEsMia();
+    /* Y «Mis recaudos», que es lo que le piden a esa misma bóveda. */
+    var rcN = document.getElementById('navRecaudos');
+    if (rcN) rcN.hidden = !laBovedaEsMia();
     /* Autorizaciones y NDA (8-10-2026): el inversionista descarga los
        modelos y el administrador los sube. El gestor, ni lo uno ni lo otro. */
     var au = document.getElementById('navAutoriz');
@@ -30962,6 +30971,11 @@ applyLang(idiomaParaMi());
     /* El renglón se va del menú entero, no se queda en gris: un sitio al
        que no vas a entrar no tiene por qué ocuparte una línea. */
     if (dcNav) dcNav.hidden = !laBovedaEsMia();
+    var rcNav = document.getElementById('navRecaudos');
+    if (rcNav) rcNav.hidden = !laBovedaEsMia();
+    /* «Mis recaudos» sale de esta misma bóveda: se rehace con ella, también
+       al cambiar de idioma y al subir un papel. */
+    pintaRecaudos();
     /* Y el botón de subir tampoco: al equipo del CIIP esta bóveda no es
        suya, y sube() firma lo que sube con quien está dentro. */
     if (dcBtSubir) dcBtSubir.hidden = !laBovedaEsMia();
@@ -31392,6 +31406,9 @@ applyLang(idiomaParaMi());
     var dc = document.getElementById('navDocs');
     if (dc && dc.hidden && typeof laBovedaEsMia === 'function' && laBovedaEsMia())
       dc.hidden = false;
+    var rcN = document.getElementById('navRecaudos');
+    if (rcN && rcN.hidden && typeof laBovedaEsMia === 'function' && laBovedaEsMia())
+      rcN.hidden = false;
   }, 2000);
 
   function laBovedaEsMia(){
@@ -31864,7 +31881,8 @@ applyLang(idiomaParaMi());
              sí le salía— se le devuelve a la portada: una pantalla vacía
              sin decir por qué es peor que no tenerla. */
           papeles = []; usosPorDoc = {};
-          if (document.body.getAttribute('data-vista') === 'documentos' &&
+          var vDc = document.body.getAttribute('data-vista');
+          if ((vDc === 'documentos' || vDc === 'recaudos') &&
               location.hash) location.hash = '';
         }
         pintaDocs();
@@ -31874,6 +31892,213 @@ applyLang(idiomaParaMi());
       else pideDocsAlSaberElRol(true);
     })();
   }
+
+  /* ── MIS RECAUDOS ───────────────────────────────────────────────────
+     Franklin Reyes, 20-10-2026: «en la visión del inversionista quiero
+     tener un apartado de recaudos». Opción 2 de
+     maquetas/recaudos-inversionista-cuatro.html, «Por trámite» (21-10-2026:
+     «esta me gusta, aplica esta»): una caja por trámite con su avance y sus
+     papeles; los completos se pliegan solos.
+
+     «Documentos» es lo que ya tienes; esto es lo que te PIDEN. Salen los
+     recaudos de los trámites que se te ofrecen -los encendidos del
+     catálogo que todavía no tienes resueltos ni cancelados, también los
+     que no has empezado-, cada uno con sus papeles por TIPO, que es como
+     guarda la bóveda, y con el nombre que llevan en «Documentos». Un papel
+     que sirve a varios trámites sale en cada uno, y al subirlo se marca en
+     todos: el estado es del tipo, no del trámite.
+
+     Fuera, como en la ficha del trámite, los opcionales y los que dependen
+     de una casilla del formulario (siCasilla, noCasilla y noSiDice): no se
+     le pueden pedir a todo el mundo. Los siExiste que la base no conoce ya
+     los quita recaudosDe.
+
+     «Ya lo tienes» es el último de ese tipo en la bóveda, sin titular, y
+     que valga: uno rechazado o vencido no cuenta, y la fila lo dice. Se
+     sube por la MISMA ventana de «Documentos» (abreFormNuevo), con el tipo
+     ya puesto y su fecha si caduca; al guardar, cargaDocs repinta la bóveda
+     y pintaDocs esta lista. ─────────────────────────────────────────── */
+  var rcListo = false;
+
+  /* Los trámites que se te ofrecen, por ref: encendidos, con su ficha en
+     la portada -no en una etapa oculta- y sin una solicitud tuya que ya
+     esté resuelta o cancelada. Manda la que va más adelante, como en las
+     tarjetas (mandaSobre). */
+  function rcTramitesOfrecidos(){
+    var porRef = {};
+    (mios || []).forEach(function(t){
+      var ref = tipoRefDe(t.tipo);
+      if (!ref) return;
+      if (!porRef[ref] || mandaSobre(t, porRef[ref])) porRef[ref] = t;
+    });
+    return Object.keys(TIPOS || {}).filter(function(ref){
+      var t = TIPOS[ref];
+      if (!/^c[0-9]+$/.test(ref) || !t || !t.activo || !t.codigo) return false;
+      if (NO_ES_TRAMITE.indexOf(ref) >= 0) return false;
+      var c = document.querySelector('.tcard[data-tr="' + ref + '"]');
+      if (!c || c.closest('.phase[hidden]')) return false;
+      var suya = porRef[ref];
+      return !(suya && (suya.estado === 'resuelto' || suya.estado === 'cancelado'));
+    });
+  }
+
+  /* Los trámites, cada uno con sus papeles y cómo está el tuyo de cada
+     tipo. Se expone para las pruebas. */
+  function rcPorTramite(){
+    clavesDeTipo();
+    /* El tuyo de cada tipo: el último, sin titular -el de un miembro de la
+       junta no es tuyo-. */
+    var ultimo = {};
+    (papeles || []).forEach(function(d){
+      if (!d || !d.tipo || d.titular) return;
+      var u0 = ultimo[d.tipo];
+      if (!u0 || (Date.parse(d.creado_en) || 0) > (Date.parse(u0.creado_en) || 0)) ultimo[d.tipo] = d;
+    });
+    var deTipo = {};
+    function papel(tipo){
+      if (deTipo[tipo]) return deTipo[tipo];
+      var doc = ultimo[tipo] || null;
+      var est = doc ? comoEsta(doc) : null;
+      var mal = !!(est && est.mal);
+      return (deTipo[tipo] = {tipo:tipo, nombre:nombreDeTipo_doc(tipo), doc:doc,
+                              mal:mal, estado: mal ? est.chip : '', tengo: !!doc && !mal});
+    }
+    var trs = [];
+    rcTramitesOfrecidos().forEach(function(ref){
+      var vistos = {}, ps = [];
+      recaudosDe(TIPOS[ref].codigo).forEach(function(r){
+        if (!r || !r.tipo || r.opcional || r.siCasilla || r.noCasilla || r.noSiDice || r.titular) return;
+        /* Lo que no se ofrece en la ventana de subir no se pide aquí: el
+           botón llevaría a un desplegable sin ese papel. */
+        if (TIPOS_POR_PERSONA[r.tipo] || SOLO_NOMBRE[r.tipo] || r.tipo === TIPO_PLANILLA) return;
+        if (vistos[r.tipo]) return;
+        vistos[r.tipo] = true;
+        ps.push(papel(r.tipo));
+      });
+      /* Un trámite que no pide papeles en la ventanilla no sale. */
+      if (!ps.length) return;
+      var n = ps.filter(function(p){ return p.tengo; }).length;
+      trs.push({ref:ref, nombre:nombreDeTarjeta(ref), papeles:ps, n:n, listo: n === ps.length});
+    });
+    /* Primero a los que les falta algo, los que menos les falta delante;
+       después los completos. Dentro, por nombre. */
+    trs.sort(function(a, b){
+      return ((a.listo ? 1 : 0) - (b.listo ? 1 : 0)) ||
+             ((a.papeles.length - a.n) - (b.papeles.length - b.n)) ||
+             a.nombre.localeCompare(b.nombre, curLang || 'es');
+    });
+    return trs;
+  }
+
+  /* Los completos nacen plegados; los que abras se quedan abiertos al
+     repintar. */
+  var rcAbiertos = {};
+
+  function pintaRecaudos(){
+    var lista = document.getElementById('rcLista');
+    if (!lista) return;
+    var u = T();
+    var sub = document.getElementById('rcSub');
+    if (sub) sub.textContent = u.dc_rec_sub || '';
+    /* Hasta que estén el catálogo, tus solicitudes y la bóveda no se pinta
+       nada: decir «ningún trámite te pide papeles» mientras llegan sería
+       mentir un segundo. */
+    if (!rcListo || !laBovedaEsMia()) return;
+    var trs = rcPorTramite();
+    var listos = trs.filter(function(t){ return t.listo; }).length;
+    var av = document.getElementById('rcAv');
+    if (av) av.hidden = !trs.length;
+    var cuenta = document.getElementById('rcCuenta');
+    if (cuenta) cuenta.textContent = String(u.dc_rec_cuenta || '').replace('{n}', listos).replace('{t}', trs.length);
+    var barra = document.getElementById('rcBarra');
+    if (barra) barra.style.width = (trs.length ? Math.round(100 * listos / trs.length) : 0) + '%';
+
+    lista.textContent = '';
+    if (!trs.length){
+      lista.appendChild(el('div', 'ci-vacia', u.dc_rec_vacia || ''));
+      return;
+    }
+    trs.forEach(function(t){
+      var abierto = !t.listo || !!rcAbiertos[t.ref];
+      var caja = el('section', 'rc-caja' + (t.listo ? ' listo' : '') + (abierto ? '' : ' plegada'));
+      caja.setAttribute('data-ref', t.ref);
+      caja.setAttribute('data-n', t.n);
+      caja.setAttribute('data-t', t.papeles.length);
+      var cab = el('div', 'rc-cab-tr');
+      /* El nombre lleva a la ficha del trámite. */
+      var nom = el('button', 'rc-tr-n', t.nombre);
+      nom.type = 'button';
+      nom.addEventListener('click', function(){ location.hash = 'tramite-' + t.ref; });
+      cab.appendChild(nom);
+      /* El avance. En los completos es además lo que pliega y despliega. */
+      var avT = el(t.listo ? 'button' : 'div', 'rc-tr-av');
+      avT.appendChild(el('b', null, String(u.dc_rec_de || '').replace('{n}', t.n).replace('{t}', t.papeles.length)));
+      var b = el('span', 'rc-barra');
+      var i = document.createElement('i');
+      i.style.width = Math.round(100 * t.n / t.papeles.length) + '%';
+      b.appendChild(i);
+      avT.appendChild(b);
+      if (t.listo){
+        avT.type = 'button';
+        avT.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+        avT.addEventListener('click', function(){
+          rcAbiertos[t.ref] = !rcAbiertos[t.ref];
+          pintaRecaudos();
+        });
+      }
+      cab.appendChild(avT);
+      caja.appendChild(cab);
+
+      if (abierto){
+        var ps = el('div', 'rc-ps');
+        t.papeles.forEach(function(p){
+          var f = el('div', 'rc-p' + (p.tengo ? ' ya' : '') + (p.mal ? ' mal' : ''));
+          f.setAttribute('data-tipo', p.tipo);
+          var marca = el('span', 'rc-marca');
+          marca.setAttribute('role', 'img');
+          marca.setAttribute('aria-label', (p.tengo ? u.ft_tuyo : u.ft_falta) || '');
+          f.appendChild(marca);
+          var tx = el('div', 'rc-tx');
+          tx.appendChild(el('div', 'rc-n', p.nombre));
+          if (p.mal){
+            tx.appendChild(el('div', 'rc-pista no', String(u.dc_rec_mal || '')
+              .replace('{arch}', p.doc.nombre_original || '')
+              .replace('{estado}', String(p.estado || '').toLocaleLowerCase(curLang || 'es'))));
+          }
+          f.appendChild(tx);
+          var bt = el('button', 'rc-btn', (p.tengo ? u.dc_cambiar : u.dc_rec_subir) || '');
+          bt.type = 'button';
+          bt.addEventListener('click', function(){ abreFormNuevo(p.tipo); });
+          f.appendChild(bt);
+          ps.appendChild(f);
+        });
+        caja.appendChild(ps);
+      }
+      lista.appendChild(caja);
+    });
+  }
+
+  /* Al entrar: el catálogo, tus solicitudes si aún no han llegado, los
+     tipos que conoce la base (para los siExiste y la fecha) y la bóveda. */
+  function cargaRecaudos(){
+    if (!laBovedaEsMia()){
+      if (document.body.getAttribute('data-vista') === 'recaudos' && location.hash) location.hash = '';
+      return Promise.resolve();
+    }
+    return Promise.all([
+      cargaCatalogo(),
+      mtAlDiaEn ? null : cargaMisTramites(),
+      cargaVencen()
+    ]).then(function(){ return cargaDocs(); }, function(){ return cargaDocs(); })
+      .then(function(){ rcListo = true; pintaRecaudos(); });
+  }
+
+  (function(){
+    var nav = document.getElementById('navRecaudos');
+    if (nav) nav.addEventListener('click', function(){ location.hash = 'mis-recaudos'; });
+    window.CIIP_PINTA_RECAUDOS = cargaRecaudos;
+    window.CIIP_RECAUDOS_MIOS = rcPorTramite;
+  })();
 
 
   /* ── MI EMPRESA ────────────────────────────────────────────
