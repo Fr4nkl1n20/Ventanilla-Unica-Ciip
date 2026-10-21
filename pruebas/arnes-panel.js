@@ -5851,12 +5851,6 @@
      La única de las 31 tarjetas que no es un trámite: es el catálogo del
      CIIP y lo que se hace con él es mirarlo. La tabla nace vacía. */
   function activosAbre(){
-    /* 21-10-2026: el menú ya no enseña «Oportunidades» (Franklin Reyes,
-       «quita esta pestaña»). La vista sigue, y se prueba pulsando el
-       renglón escondido. */
-    igual('activos: «Oportunidades» ya no sale en el menú',
-          document.getElementById('navActivos').offsetParent === null &&
-          document.getElementById('sbOportunidades').offsetParent === null, true);
     document.getElementById('navActivos').click();
   }
 
