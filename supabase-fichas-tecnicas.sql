@@ -176,6 +176,44 @@ create trigger fichas_tecnicas_quien
 
 
 -- ───────────────────────────────────────────────────────────────────────
+-- 4. LOS DOCUMENTOS DE LA FICHA TÉCNICA
+-- ───────────────────────────────────────────────────────────────────────
+-- Franklin Reyes, 21-10-2026: que la ficha del caso Tertoga (un PDF hecho
+-- fuera del panel) «llegue al de ficha técnica de la ventanilla». Un cubo
+-- propio, privado, solo de PDF de hasta 10 MB, como el de los modelos
+-- (supabase-modelos.sql). Lo lee el equipo, como la tabla; lo escribe
+-- solo el administrador. El inversionista no lo ve. No depende de la
+-- tabla: los documentos son archivos sueltos, sin fila que los describa.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('fichas-tecnicas', 'fichas-tecnicas', false, 10485760, array['application/pdf'])
+on conflict (id) do update set
+  public             = excluded.public,
+  file_size_limit    = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "fichas-tecnicas: las lee el equipo" on storage.objects;
+create policy "fichas-tecnicas: las lee el equipo" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'fichas-tecnicas' and public.es_gestor());
+
+drop policy if exists "fichas-tecnicas: el admin sube" on storage.objects;
+create policy "fichas-tecnicas: el admin sube" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'fichas-tecnicas' and public.es_admin());
+
+drop policy if exists "fichas-tecnicas: el admin reemplaza" on storage.objects;
+create policy "fichas-tecnicas: el admin reemplaza" on storage.objects
+  for update to authenticated
+  using      (bucket_id = 'fichas-tecnicas' and public.es_admin())
+  with check (bucket_id = 'fichas-tecnicas' and public.es_admin());
+
+drop policy if exists "fichas-tecnicas: el admin borra" on storage.objects;
+create policy "fichas-tecnicas: el admin borra" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'fichas-tecnicas' and public.es_admin());
+
+
+-- ───────────────────────────────────────────────────────────────────────
 -- LO QUE ESTO NO HACE
 -- ───────────────────────────────────────────────────────────────────────
 -- · No entra en la bitácora. Su regla de fuentes es una lista cerrada

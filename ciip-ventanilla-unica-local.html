@@ -1599,6 +1599,18 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
          derecha la elegida, editable ahí mismo por el administrador. La
          pinta panel.js (pintaFichas); aquí solo están las dos cajas. -->
     <div class="fichas-vista">
+      <!-- Los documentos: PDF hechos fuera del panel, como la ficha del caso
+           Tertoga (Franklin Reyes, 21-10-2026). Los sube el administrador y
+           los abre el equipo; los pinta panel.js (pintaDocs). -->
+      <section class="ftd" id="ftDocs" hidden>
+        <div class="ftd-cab">
+          <h3 class="ftd-t" id="ftDocsT"></h3>
+          <button class="t-btn" id="ftDocSube" type="button" hidden></button>
+          <input type="file" id="ftDocArchivo" accept="application/pdf" hidden>
+        </div>
+        <p class="ftd-aviso" id="ftDocAviso" role="status"></p>
+        <div class="ftd-lista" id="ftDocLista"></div>
+      </section>
       <div class="ftp-aviso" id="ftAviso" hidden></div>
       <div class="ftp-hoja" id="ftHoja">
         <div class="ftp-izq">

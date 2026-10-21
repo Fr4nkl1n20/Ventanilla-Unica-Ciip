@@ -39028,14 +39028,192 @@ applyLang(idiomaParaMi());
     });
   }
 
+  /* ── LOS DOCUMENTOS ──
+     Franklin Reyes, 21-10-2026: que la ficha del caso Tertoga, un PDF
+     hecho fuera del panel, «llegue al de ficha técnica de la ventanilla».
+     Archivos sueltos en el cubo 'fichas-tecnicas' (supabase-fichas-
+     tecnicas.sql), sin fila en la tabla: la lista es la del cubo. El
+     administrador sube y borra; el equipo los abre. Subir uno con el
+     nombre de otro lo reemplaza, como en los modelos. Sin el SQL el cubo
+     no existe o no deja leer, y el apartado no sale: no hay nada que
+     enseñar y la tabla ya dice lo que falta. */
+  var docs = document.getElementById('ftDocs');
+  var docLista = document.getElementById('ftDocLista');
+  var docAviso = document.getElementById('ftDocAviso');
+  var docSube = document.getElementById('ftDocSube');
+  var docArchivo = document.getElementById('ftDocArchivo');
+  var DOC_MAX = 10 * 1024 * 1024;
+  var archivos = [], docsSabidos = false;
+
+  function cuboDocs(){ return sb() && sb().storage.from('fichas-tecnicas'); }
+
+  /* El nombre del archivo, legible: sin la extensión y sin los guiones
+     bajos con que se guardan los espacios. */
+  function nombreDoc(n){
+    return String(n || '').replace(/\.pdf$/i, '').replace(/_+/g, ' ').trim() || String(n || '');
+  }
+  /* La ruta en el cubo: sin tildes ni signos, que Storage no acepta en
+     todas las claves; los espacios pasan a guion bajo. */
+  function rutaDoc(n){
+    var base = String(n || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/\.pdf$/i, '').replace(/[^A-Za-z0-9._-]+/g, '_').replace(/^_+|_+$/g, '');
+    return (base || 'documento').slice(0, 150) + '.pdf';
+  }
+
+  function dicDoc(txt, mal){
+    docAviso.className = 'ftd-aviso' + (mal ? ' mal' : '');
+    docAviso.textContent = txt || '';
+  }
+
+  function cargaDocs(){
+    var c = cuboDocs();
+    if (!c || !c.list){ docs.hidden = true; return; }
+    Promise.resolve(c.list('', {limit:200, sortBy:{column:'name', order:'asc'}}))
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        archivos = ((r && r.data) || []).filter(function(f){
+          return f && f.name && /\.pdf$/i.test(f.name);
+        });
+        docsSabidos = true;
+        pintaDocs();
+      })
+      .catch(function(e){
+        console.warn('[CIIP] documentos de la ficha técnica:', e && (e.message || e));
+        docsSabidos = false;
+        docs.hidden = true;
+      });
+  }
+
+  function pintaDocs(){
+    if (!docsSabidos){ docs.hidden = true; return; }
+    var u = T(), admin = soyAdmin();
+    docs.hidden = false;
+    document.getElementById('ftDocsT').textContent = u.ftd_titulo || '';
+    docSube.textContent = u.ftd_sube || '';
+    docSube.hidden = !admin;
+    docLista.textContent = '';
+    if (!archivos.length){
+      docLista.appendChild(el('p', 'ftd-nada', admin ? (u.ftd_vacio_admin || '') : (u.ftd_vacio || '')));
+      return;
+    }
+    archivos.forEach(function(f){
+      var fila = el('div', 'ftd-doc');
+      fila.setAttribute('data-ruta', f.name);
+      var tx = el('div', 'ftd-txt');
+      tx.appendChild(el('div', 'ftd-n', nombreDoc(f.name)));
+      var cuando = f.updated_at || f.created_at;
+      var d = cuando ? new Date(cuando) : null;
+      tx.appendChild(el('div', 'ftd-d', d && !isNaN(d)
+        ? String(u.ftd_subido_el || '').replace('{fecha}',
+            d.toLocaleDateString(localeDeAhora(), {day:'numeric', month:'long', year:'numeric'}))
+        : ''));
+      fila.appendChild(tx);
+      var ver = el('button', 'btn ftd-abrir', u.ftd_abrir || '');
+      ver.type = 'button';
+      ver.addEventListener('click', function(){ abreDoc(f.name, ver); });
+      fila.appendChild(ver);
+      if (admin){
+        var br = el('button', 'btn peligro ftd-borrar', u.ftd_borrar || '');
+        br.type = 'button';
+        br.addEventListener('click', function(){ borraDoc(f.name, br); });
+        fila.appendChild(br);
+      }
+      docLista.appendChild(fila);
+    });
+  }
+
+  /* La pestaña se abre YA, con el clic, y luego se le da la dirección:
+     abierta después de esperar a Storage, el navegador la toma por una
+     ventana emergente y la bloquea. */
+  function abreDoc(ruta, bt){
+    var u = T(), c = cuboDocs();
+    if (!c) return;
+    var w = window.open('', '_blank');
+    bt.disabled = true;
+    Promise.resolve(c.createSignedUrl(ruta, 600))
+      .then(function(r){
+        bt.disabled = false;
+        var url = r && r.data && r.data.signedUrl;
+        if (!url) throw (r && r.error) || new Error('sin url');
+        if (w){ w.opener = null; w.location.href = url; }
+        else window.open(url, '_blank', 'noopener');
+      })
+      .catch(function(e){
+        console.warn('[CIIP] abrir documento de la ficha técnica:', e && (e.message || e));
+        if (w) w.close();
+        bt.disabled = false;
+        dicDoc(u.ftd_error, true);
+      });
+  }
+
+  function subeDoc(f){
+    var u = T(), c = cuboDocs();
+    dicDoc('');
+    if (!soyAdmin() || !c) return;
+    if ((!/\.pdf$/i.test(f.name) && f.type !== 'application/pdf') || f.size > DOC_MAX){
+      dicDoc(u.ftd_mal, true);
+      return;
+    }
+    var ruta = rutaDoc(f.name);
+    docSube.disabled = true;
+    dicDoc(u.ftd_subiendo);
+    Promise.resolve(c.upload(ruta, f, {contentType:'application/pdf', upsert:true}))
+      .then(function(r){
+        docSube.disabled = false;
+        if (r && r.error) throw r.error;
+        dicDoc(u.ftd_subido);
+        cargaDocs();
+      })
+      .catch(function(e){
+        console.warn('[CIIP] subir documento de la ficha técnica:', e && (e.message || e));
+        docSube.disabled = false;
+        dicDoc(u.ftd_error, true);
+      });
+  }
+
+  /* Dos pulsaciones, como borrar una ficha. Storage contesta bien aunque
+     no borre -RLS-, así que se cree a la lista que vuelve, no a la
+     respuesta. */
+  function borraDoc(ruta, bt){
+    var u = T(), c = cuboDocs();
+    if (!soyAdmin() || !c) return;
+    if (!bt.classList.contains('armado')){
+      bt.classList.add('armado');
+      bt.textContent = u.brr_seguro || '';
+      return;
+    }
+    bt.disabled = true;
+    Promise.resolve(c.remove([ruta]))
+      .then(function(r){
+        if (r && r.error) throw r.error;
+        if (!((r && r.data) || []).length){ throw new Error('no se borró'); }
+        dicDoc(u.ftd_borrado);
+        cargaDocs();
+      })
+      .catch(function(e){
+        console.warn('[CIIP] borrar documento de la ficha técnica:', e && (e.message || e));
+        bt.disabled = false;
+        bt.classList.remove('armado');
+        bt.textContent = u.ftd_borrar || '';
+        dicDoc(u.ftd_error, true);
+      });
+  }
+
+  docSube.addEventListener('click', function(){ if (soyAdmin()) docArchivo.click(); });
+  docArchivo.addEventListener('change', function(){
+    var f = docArchivo.files && docArchivo.files[0];
+    docArchivo.value = '';
+    if (f) subeDoc(f);
+  });
+
   busca.addEventListener('input', function(){
     filtro = busca.value.trim();
     pintaLista(T());
   });
   nueva.addEventListener('click', abreNueva);
 
-  window.CIIP_PINTA_FTECNICA = carga;
-  window.CIIP_REPINTA_FTECNICA = function(){ if (cargada) pinta(); };
+  window.CIIP_PINTA_FTECNICA = function(){ carga(); cargaDocs(); };
+  window.CIIP_REPINTA_FTECNICA = function(){ if (cargada) pinta(); pintaDocs(); };
 })();
 
 /* ---------- y la última línea ----------

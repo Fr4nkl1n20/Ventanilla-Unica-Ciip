@@ -369,8 +369,9 @@
               logoAbre, logoEspera, logoSube, logoTrasSubir, logoQuita, logoTrasQuitar,
               /* La ficha técnica de los permisos (20-10-2026). */
               ftMenu, ftInvAbre, ftInvMira, ftSinSqlAbre, ftSinSqlMira,
-              ftAbre, ftEspera, ftMira, ftNueva, ftGuarda, ftTrasGuardar,
+              ftAbre, ftEspera, ftDocSube, ftDocMal, ftMira, ftNueva, ftGuarda, ftTrasGuardar,
               ftEdita, ftTrasEditar, ftBorra, ftTrasBorrar, ftGestor,
+              ftDocGestor, ftDocBorra,
               ftVaciaAbre, ftVaciaMira,
               puertaTodos,
               consultaAbre, consultaMira, consultaEntra, consultaDentro,
@@ -14984,6 +14985,8 @@
             ftU().fte_sinsql);
       ok('ficha técnica: y no pinta la lista', document.getElementById('ftHoja').hidden,
          'hoja ' + (document.getElementById('ftHoja').hidden ? 'escondida' : 'a la vista'), 'escondida');
+      ok('documentos: sin el SQL tampoco sale el apartado', document.getElementById('ftDocs').hidden,
+         document.getElementById('ftDocs').hidden ? 'escondido' : 'a la vista', 'escondido');
       location.hash = '';
       sigue();
     });
@@ -15146,6 +15149,82 @@
        ficha.textContent.slice(0, 60), 'la del RTN, sin campos');
     PERFIL.rol = 'admin';
     window.CIIP_REPINTA_FTECNICA();
+  }
+
+  /* Los documentos de la ficha técnica (21-10-2026): PDF sueltos, como la
+     ficha del caso Tertoga. El administrador sube uno y sale en la lista,
+     con el nombre legible. */
+  function ftDocSube(sigue){
+    if (!ES_ADMIN) return sigue();
+    esperaFilas('#ftDocs:not([hidden]) .ftd-nada', 1, function(){
+      var u = ftU(), docs = document.getElementById('ftDocs');
+      ok('documentos: el apartado sale en la ficha técnica', !docs.hidden,
+         docs.hidden ? 'escondido' : 'a la vista', 'a la vista');
+      igual('documentos: vacío, se le dice al administrador qué subir',
+            (docs.querySelector('.ftd-nada') || {}).textContent, u.ftd_vacio_admin);
+      ok('documentos: el administrador tiene el botón de subir',
+         !document.getElementById('ftDocSube').hidden, 'mira el botón', 'a la vista');
+      var inp = document.getElementById('ftDocArchivo');
+      var dt = new DataTransfer();
+      dt.items.add(new File(['%PDF-1.4 de mentira'], 'Ficha Caso Tertoga v2.pdf', {type:'application/pdf'}));
+      inp.files = dt.files;
+      inp.dispatchEvent(new Event('change'));
+      esperaFilas('#ftDocLista .ftd-doc', 1, function(){
+        var fila = document.querySelector('#ftDocLista .ftd-doc');
+        igual('documentos: el PDF subido sale en la lista',
+              fila ? fila.getAttribute('data-ruta') : '(nada)', 'Ficha_Caso_Tertoga_v2.pdf');
+        igual('documentos: con su nombre legible',
+              fila ? fila.querySelector('.ftd-n').textContent : '(nada)', 'Ficha Caso Tertoga v2');
+        ok('documentos: y se puede abrir y borrar',
+           !!(fila && fila.querySelector('.ftd-abrir') && fila.querySelector('.ftd-borrar')),
+           'mira los botones', 'abrir y borrar');
+        sigue();
+      });
+    });
+  }
+
+  /* Lo que no es un PDF no se sube. */
+  function ftDocMal(){
+    if (!ES_ADMIN) return;
+    var inp = document.getElementById('ftDocArchivo');
+    var dt = new DataTransfer();
+    dt.items.add(new File(['hola'], 'notas.txt', {type:'text/plain'}));
+    inp.files = dt.files;
+    inp.dispatchEvent(new Event('change'));
+    igual('documentos: lo que no es un PDF no se sube',
+          document.getElementById('ftDocAviso').textContent, ftU().ftd_mal);
+    igual('documentos: y la lista sigue igual', document.querySelectorAll('#ftDocLista .ftd-doc').length, 1);
+  }
+
+  /* El gestor lo ve y lo abre, pero no sube ni borra. */
+  function ftDocGestor(){
+    if (!ES_ADMIN) return;
+    PERFIL.rol = 'gestor';
+    window.CIIP_REPINTA_FTECNICA();
+    var fila = document.querySelector('#ftDocLista .ftd-doc');
+    ok('documentos: el gestor ve el PDF y lo puede abrir',
+       !!(fila && fila.querySelector('.ftd-abrir')), fila ? 'está' : 'no está', 'con «Abrir»');
+    ok('documentos: pero no sube ni borra',
+       document.getElementById('ftDocSube').hidden && !document.querySelector('#ftDocLista .ftd-borrar'),
+       'mira los botones', 'ninguno');
+    PERFIL.rol = 'admin';
+    window.CIIP_REPINTA_FTECNICA();
+  }
+
+  /* Y el administrador lo borra en dos pulsaciones. */
+  function ftDocBorra(sigue){
+    if (!ES_ADMIN) return sigue();
+    var b = document.querySelector('#ftDocLista .ftd-borrar');
+    if (!b){ ok('documentos: hay botón de borrar', false, 'no está', 'está'); return sigue(); }
+    b.click();
+    igual('documentos: la primera pulsación pregunta', b.textContent, ftU().brr_seguro);
+    igual('documentos: y todavía no borra', document.querySelectorAll('#ftDocLista .ftd-doc').length, 1);
+    b.click();
+    esperaFilas('#ftDocLista .ftd-nada', 1, function(){
+      igual('documentos: a la segunda lo borra', document.querySelectorAll('#ftDocLista .ftd-doc').length, 0);
+      igual('documentos: y lo dice', document.getElementById('ftDocAviso').textContent, ftU().ftd_borrado);
+      sigue();
+    });
   }
 
   /* Y vacía, como nace: un estado vacío claro, con «Nueva ficha». */

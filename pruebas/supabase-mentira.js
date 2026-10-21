@@ -3294,10 +3294,23 @@
             /* El cubo de los modelos de «Autorizaciones y NDA» nace vacio:
                ahi solo existe lo que el admin sube en la pasada, tenga o no
                extension la ruta. */
+            /* Y el de los documentos de la ficha técnica (21-10-2026),
+               igual: nace vacío y solo tiene lo que se sube. */
             function existe(ruta){
-              return !!subidas[ruta] || (cubo !== 'modelos' && enLaBoveda(ruta));
+              return !!subidas[ruta] ||
+                (cubo !== 'modelos' && cubo !== 'fichas-tecnicas' && enLaBoveda(ruta));
             }
             return {
+              /* Listar el cubo, como la pantalla de documentos de la
+                 ficha técnica: lo subido a ESTE cubo, por nombre. Sin el
+                 SQL el cubo no existe y Storage lo dice. */
+              list: function(){
+                if (sinSql) return Promise.resolve({data:null, error:{message:'Bucket not found'}});
+                var hay = Object.keys(subidas).filter(function(r){ return subidas[r] === cubo; }).sort();
+                return Promise.resolve({data: hay.map(function(r){
+                  return {name:r, id:r, updated_at:'2026-10-21T15:00:00Z', created_at:'2026-10-21T15:00:00Z'};
+                }), error:null});
+              },
               /* Quitar un archivo. Devuelve bien tambien si no estaba:
                  es lo que hace Storage, y el panel se apoya en ello para
                  poder reintentar un borrado que se quedo a medias. */
@@ -3314,7 +3327,8 @@
                    una URL firmada, tambien las que no existen, y con eso
                    no habia forma de medir "todavia no hay foto": el panel
                    se creia que siempre habia una. */
-                subidas[ruta] = true;
+                /* Se apunta en qué cubo, para poder listarlo. */
+                subidas[ruta] = cubo;
                 return Promise.resolve({data:{path:ruta}, error:null});
               },
               /* Bajar un archivo, como hace el lector con el papel que ya
