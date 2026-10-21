@@ -32082,7 +32082,7 @@ applyLang(idiomaParaMi());
           f.appendChild(tx);
           var bt = el('button', 'rc-btn', (p.tengo ? u.dc_cambiar : u.dc_rec_subir) || '');
           bt.type = 'button';
-          bt.addEventListener('click', function(){ abreFormNuevo(p.tipo); });
+          bt.addEventListener('click', function(){ rcSubeDirecto(p.tipo, bt, f); });
           f.appendChild(bt);
           ps.appendChild(f);
         });
@@ -32090,6 +32090,49 @@ applyLang(idiomaParaMi());
       }
       lista.appendChild(caja);
     });
+  }
+
+  /* «Subir» y «Cambiar» van directo al explorador de archivos y suben al
+     elegir (Franklin Reyes, 21-10-2026: «¿no puedo subir el documento
+     directamente sin que salga esa subpestaña?»). El papel ya está dicho, y
+     lo único que faltaba en la ventana era el archivo. Salvo los que
+     caducan: su fecha no la trae el archivo, y para pedirla está la
+     ventana de «Documentos». Mientras sube, el enlace dice «Subiendo…»; si
+     falla, la fila lo dice y el enlace vuelve. */
+  var rcArchivo = null;
+
+  function rcSubeDirecto(tipo, bt, fila){
+    if (caduca(tipo)){ abreFormNuevo(tipo); return; }
+    if (!rcArchivo){
+      rcArchivo = document.createElement('input');
+      rcArchivo.type = 'file';
+      rcArchivo.id = 'rcArchivo';
+      rcArchivo.accept = 'image/*,application/pdf';
+      rcArchivo.hidden = true;
+      document.body.appendChild(rcArchivo);
+    }
+    rcArchivo.value = '';
+    rcArchivo.onchange = function(){
+      var f = rcArchivo.files[0];
+      if (!f) return;
+      var u = T();
+      var antes = bt.textContent;
+      bt.disabled = true;
+      bt.textContent = u.pf_fotoyendo || '';
+      var mal = fila.querySelector('.rc-pista.subida');
+      if (mal) mal.remove();
+      sube(tipo, f, null).then(function(){
+        return cargaDocs();
+      }).catch(function(e){
+        console.warn('[CIIP] subir desde mis recaudos:', e && (e.message || e));
+        bt.disabled = false;
+        bt.textContent = antes;
+        var tx = fila.querySelector('.rc-tx');
+        if (tx) tx.appendChild(el('div', 'rc-pista no subida',
+          (e && e.ciip && u[e.ciip]) || u.pf_fotoerror || ''));
+      });
+    };
+    rcArchivo.click();
   }
 
   /* Al entrar: el catálogo, tus solicitudes si aún no han llegado, los

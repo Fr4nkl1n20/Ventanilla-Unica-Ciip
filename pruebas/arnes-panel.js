@@ -20657,35 +20657,51 @@
       var t = p.getAttribute('data-tipo');
       cuantos[t] = (cuantos[t] || 0) + 1;
     });
-    var tipo = Object.keys(cuantos).sort(function(a, b){ return cuantos[b] - cuantos[a]; })[0];
+    var tipos = Object.keys(cuantos).sort(function(a, b){ return cuantos[b] - cuantos[a]; });
+    if (!tipos.length) return sigue();
+    var back = document.getElementById('docBack');
+    /* 21-10-2026: «Subir» va directo al explorador de archivos, sin la
+       ventana, salvo los que caducan, que necesitan su fecha. Se prueban
+       los dos: el primero que caduque abre la ventana, sin el desplegable
+       y con su nombre, y se cierra; el que más falta de los que no
+       caducan es el que se sube. */
+    var tipo = null, vistaVentana = false;
+    for (var k = 0; k < tipos.length && !tipo; k++){
+      document.querySelector('#rcLista .rc-p[data-tipo="' + tipos[k] + '"] .rc-btn').click();
+      if (!back.classList.contains('open')){ tipo = tipos[k]; break; }
+      if (vistaVentana){ document.getElementById('dcCancela').click(); continue; }
+      vistaVentana = true;
+      igual('mis recaudos: el que caduca abre la ventana, por su fecha',
+            !document.getElementById('dcCampoVence').hidden, true);
+      igual('mis recaudos: con su tipo ya elegido', (document.getElementById('dcTipo') || {}).value, tipos[k]);
+      var selT = document.getElementById('dcTipo');
+      igual('mis recaudos: y sin el desplegable de qué documento es',
+            !!selT && selT.offsetParent === null && document.getElementById('dcLtipo').offsetParent === null, true);
+      var fijoT = document.getElementById('dcTipoFijo');
+      var nomT = (document.querySelector('#rcLista .rc-p[data-tipo="' + tipos[k] + '"] .rc-n') || {}).textContent;
+      ok('mis recaudos: dice su nombre en su lugar',
+         !!fijoT && fijoT.offsetParent !== null && !!nomT && fijoT.textContent === nomT,
+         fijoT ? '«' + fijoT.textContent + '»' : 'no hay', '«' + nomT + '»');
+      document.getElementById('dcCancela').click();
+    }
+    ok('mis recaudos: hay un papel que no caduca para subir directo', !!tipo, tipo || 'ninguno', 'uno');
     if (!tipo) return sigue();
     var dondeAntes = {};
     rcCajas().forEach(function(c){
       if (c.querySelector('.rc-p[data-tipo="' + tipo + '"]')) dondeAntes[c.getAttribute('data-ref')] = rcNum(c, 'n');
     });
     window.PRUEBA_RC = {tipo: tipo, antes: dondeAntes};
-    document.querySelector('#rcLista .rc-p[data-tipo="' + tipo + '"] .rc-btn').click();
-    var back = document.getElementById('docBack');
-    igual('mis recaudos: «Subir» abre la ventana de «Documentos»', !!back && back.classList.contains('open'), true);
-    igual('mis recaudos: con su tipo ya elegido', (document.getElementById('dcTipo') || {}).value, tipo);
-    /* 21-10-2026: sin el desplegable «¿Qué documento es?», que ya está
-       elegido; sale su nombre. */
-    var selT = document.getElementById('dcTipo');
-    igual('mis recaudos: y sin el desplegable de qué documento es',
-          !!selT && selT.offsetParent === null && document.getElementById('dcLtipo').offsetParent === null, true);
-    var fijoT = document.getElementById('dcTipoFijo');
-    var nomT = (document.querySelector('#rcLista .rc-p[data-tipo="' + tipo + '"] .rc-n') || {}).textContent;
-    ok('mis recaudos: dice su nombre en su lugar',
-       !!fijoT && fijoT.offsetParent !== null && !!nomT && fijoT.textContent === nomT,
-       fijoT ? '«' + fijoT.textContent + '»' : 'no hay', '«' + nomT + '»');
-    var arc = document.getElementById('dcArchivo');
+    igual('mis recaudos: «Subir» no abre ninguna ventana', back.classList.contains('open'), false);
+    var arc = document.getElementById('rcArchivo');
+    ok('mis recaudos: abre el explorador de archivos', !!arc && arc.type === 'file',
+       arc ? arc.type : 'sin selector', 'un selector de archivos');
+    if (!arc) return sigue();
     var dt = new DataTransfer();
     dt.items.add(new File([new Uint8Array(16)], 'desde-mis-recaudos.pdf', {type:'application/pdf'}));
     arc.files = dt.files;
     arc.dispatchEvent(new Event('change'));
-    var cv = document.getElementById('dcCampoVence');
-    if (cv && !cv.hidden) document.getElementById('dcVence').value = '2030-01-01';
-    document.getElementById('dcGuarda').click();
+    var bt = document.querySelector('#rcLista .rc-p[data-tipo="' + tipo + '"] .rc-btn');
+    igual('mis recaudos: al elegirlo sube solo, y lo dice', bt && bt.textContent, 'Subiendo…');
     var r0 = Object.keys(dondeAntes)[0];
     var n = 0;
     (function mira(){
@@ -20707,7 +20723,7 @@
        refs.length > 0 && !sinSubir.length, sinSubir.join(', ') || 'todos', 'todos');
     igual('mis recaudos: y se marca en verde en cada uno',
           document.querySelectorAll('#rcLista .rc-p[data-tipo="' + P.tipo + '"]:not(.ya)').length, 0);
-    igual('mis recaudos: y la ventana se cierra', document.getElementById('docBack').classList.contains('open'), false);
+    igual('mis recaudos: y no queda ninguna ventana abierta', document.getElementById('docBack').classList.contains('open'), false);
   }
 
   function rcTramite(sigue){
