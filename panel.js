@@ -36055,10 +36055,12 @@ applyLang(idiomaParaMi());
   var ceDatos = null, ceFallo = false;
   var cePs = {sector: CS_CODIGOS[0], filas: null, fallo: false, aviso: ''};
   /* La ficha que se ve -se empieza por el resumen, la primera de la
-     lista, como Ayuda empieza por su primera categoría-, cómo se cuentan
-     las solicitudes (por organismo o por trámite) y el sector elegido en
+     lista, como Ayuda empieza por su primera categoría- y el sector elegido en
      «Trámites más pedidos» (null: el de por defecto). */
-  var ceSel = 'resumen', ceSol = 'ente', ceSecSel = null;
+  var ceSel = 'resumen', ceSecSel = null;
+  /* Los trámites abiertos, de supabase directamente (null si no se pudo). */
+  var CE_MARCHA = ['enviado', 'en_revision', 'devuelto', 'ante_el_ente'];
+  var ceMarcha = null;
 
   function cargaControl(){
     if (!ceCaja) return Promise.resolve();
@@ -36069,9 +36071,23 @@ applyLang(idiomaParaMi());
       }),
       /* Los nombres de los trámites salen del catálogo, en el idioma de
          turno; la base solo manda el código. */
-      Promise.resolve(cargaCatalogo()).catch(function(){ return null; })
+      Promise.resolve(cargaCatalogo()).catch(function(){ return null; }),
+      /* Lo que está EN MARCHA (23-10-2026, Franklin Reyes: «Tiempo de
+         respuesta» decía «todavía no hay datos» con ocho solicitudes
+         abiertas). Cuánto llevan los abiertos, que es lo que se puede
+         atascar hoy. Si falla, la ficha sigue con lo resuelto. */
+      Promise.resolve().then(function(){
+        return sb.from('tramites').select('id, tipo, estado, enviado_en').in('estado', CE_MARCHA);
+      }).then(function(r){
+          if (r && r.error) throw r.error;
+          return (r && r.data) || [];
+        }).catch(function(e){
+          console.warn('[CIIP] trámites en marcha:', e && (e.message || e));
+          return null;
+        })
     ]).then(function(rs){
       ceDatos = rs[0];
+      ceMarcha = rs[2];
       ceFallo = false;
     }).catch(function(e){
       console.warn('[CIIP] control y estadísticas:', e && (e.message || e));
@@ -36376,7 +36392,13 @@ applyLang(idiomaParaMi());
     }
     if (k === 'tiempo'){
       var en = (ceDatos.entes || []).filter(function(e){ return (e.resueltos || 0) > 0; });
-      if (!en.length) return u.ce_vacio || '';
+      if (!en.length){
+        /* Sin resueltos, lo que está en marcha (23-10-2026). */
+        var mt = ceMarchaPorTramite(), hs = [];
+        mt.forEach(function(g){ hs = hs.concat(g.horas); });
+        if (!hs.length) return u.ce_vacio || '';
+        return ceTxt(u.ce_n_marcha, {n: hs.length, t: ceDias(ceMediana(hs))});
+      }
       var res = en.reduce(function(m, e){ return m + (e.resueltos || 0); }, 0);
       /* Con los dos tramos medidos, la entrada de la lista dice los dos
          (15-10-2026); sin ellos, como antes. */
@@ -36513,21 +36535,26 @@ applyLang(idiomaParaMi());
     });
   }
 
+  /* UNA SOLA LISTA desde el 23-10-2026 (Franklin Reyes: «no tener las 2
+     opciones, por trámite o por organismo: unificar»), como Tiempo de
+     respuesta el 15-10. Cada organismo con su total y, debajo, sus
+     trámites; si tiene uno solo, su nombre va bajo el del organismo y no
+     se repite la fila. */
   function ceFichaOrg(u){
-    var seg = ceSeg(u.ce_s_org, 'ce-org-modo', 'data-org', ceSol,
-      [['ente', u.ce_ti_ente], ['tramite', u.ce_ti_tram]], function(v){
-        ceSol = v;
-        ceRehace('org', ceFichaOrg, '.ce-org-modo[data-org="' + v + '"]');
-      });
-    var f = ceFicha('org', u.ce_s_org, u.ce_tr_d, seg);
+    var f = ceFicha('org', u.ce_s_org, u.ce_tr_d);
     if (!ceDatos){ ceSinDatos(u, f.cu); return f.ficha; }
-    var og = ceCajaOrganismos(u);
-    og.hidden = ceSol !== 'ente';
-    var tr = ceCajaTramites(u);
-    tr.hidden = ceSol !== 'tramite';
-    f.cu.appendChild(og);
-    f.cu.appendChild(tr);
+    f.cu.appendChild(ceCajaOrganismos(u));
     return f.ficha;
+  }
+
+  /* Los trámites solicitados de un organismo, del más pedido al menos. */
+  function ceTramitesDeEnte(ente){
+    return (ceDatos.tramites || []).filter(function(t){
+      return (t.solicitados || 0) > 0 && (t.ente || '') === (ente || '');
+    }).sort(function(a, b){
+      return ((b.solicitados || 0) - (a.solicitados || 0)) ||
+             String(ceNombreTramite(a.tipo)).localeCompare(String(ceNombreTramite(b.tipo)));
+    });
   }
 
   function ceCajaOrganismos(u){
@@ -36537,14 +36564,35 @@ applyLang(idiomaParaMi());
     var tope = filas[0].solicitados;
     function resueltos(n){ return (u.ce_c_resueltos || '') + ' ' + n; }
     ceLista(s, 'organismos', filas, function(g, i){
+      var suyos = ceTramitesDeEnte(g.ente);
       var f = ceFila({
         cls: i === 0 ? 'tope' : '',
         nombre: g.ente || u.ce_sinente || '',
+        sub: suyos.length === 1 ? ceNombreTramite(suyos[0].tipo) : '',
         valor: String(g.solicitados), pie: resueltos(g.resueltos),
         partes: [[tope ? g.solicitados / tope : 0]]
       });
       f.setAttribute('data-ente', g.ente);
-      return f;
+      if (suyos.length === 1) f.setAttribute('data-tipo', suyos[0].tipo || '');
+      if (suyos.length < 2) return f;
+      var grupo = el('div', 'ce-org-grupo');
+      grupo.setAttribute('role', 'listitem');
+      f.removeAttribute('role');
+      grupo.appendChild(f);
+      var sub = el('div', 'ce-lista ce-org-tram');
+      sub.setAttribute('role', 'list');
+      suyos.forEach(function(t){
+        var ft = ceFila({
+          cls: 'ce-org-t',
+          nombre: ceNombreTramite(t.tipo),
+          valor: String(t.solicitados || 0), pie: resueltos(t.resueltos || 0),
+          partes: [[tope ? (t.solicitados || 0) / tope : 0]]
+        });
+        ft.setAttribute('data-tipo', t.tipo || '');
+        sub.appendChild(ft);
+      });
+      grupo.appendChild(sub);
+      return grupo;
     }, function(cola){
       var sol = 0, res = 0;
       cola.forEach(function(g){ sol += g.solicitados; res += g.resueltos; });
@@ -36561,7 +36609,11 @@ applyLang(idiomaParaMi());
   function ceFichaTiempo(u){
     var f = ceFicha('tiempo', u.ce_ti_t, u.ce_ti_d);
     if (!ceDatos){ ceSinDatos(u, f.cu); return f.ficha; }
-    f.cu.appendChild(ceCajaTiempos(u));
+    /* Lo que está en marcha en su caja, encima de lo resuelto. */
+    var m = ceSeccion('ceMarcha');
+    var hay = ceCajaMarcha(u, m);
+    if (hay) f.cu.appendChild(m);
+    f.cu.appendChild(ceCajaTiempos(u, hay));
     return f.ficha;
   }
 
@@ -36893,31 +36945,6 @@ applyLang(idiomaParaMi());
     panel.appendChild(lista);
   }
 
-  function ceCajaTramites(u){
-    /* Llana: su título es el botón del conmutador y su frase, la de la
-       cabecera de la ficha (ceFichaOrg). */
-    var s = ceSeccion('ceTramites');
-    var filas = (ceDatos.tramites || []).filter(function(t){ return (t.solicitados || 0) > 0; });
-    if (!filas.length){ s.appendChild(el('div', 'pu-vacio', u.ce_vacio || '')); return s; }
-    var tope = filas.reduce(function(m, t){ return Math.max(m, t.solicitados || 0); }, 0);
-    function resueltos(n){ return (u.ce_c_resueltos || '') + ' ' + n; }
-    ceLista(s, 'tramites', filas, function(t, i){
-      var f = ceFila({
-        cls: i === 0 ? 'tope' : '',
-        nombre: ceNombreTramite(t.tipo), sub: t.ente || '',
-        valor: String(t.solicitados || 0), pie: resueltos(t.resueltos || 0),
-        partes: [[tope ? (t.solicitados || 0) / tope : 0]]
-      });
-      f.setAttribute('data-tipo', t.tipo || '');
-      return f;
-    }, function(cola){
-      var sol = 0, res = 0;
-      cola.forEach(function(t){ sol += t.solicitados || 0; res += t.resueltos || 0; });
-      return {valor: String(sol), pie: resueltos(res), partes: [[tope ? sol / tope : 0]]};
-    });
-    return s;
-  }
-
   /* Los nueve sectores SIEMPRE, también los que están a cero: saber que
      nadie pregunta por telecomunicaciones es la mitad de la respuesta. Por
      eso aquí no se pliega nada en «Otros». Llana desde el 13-10-2026: su
@@ -37122,13 +37149,81 @@ applyLang(idiomaParaMi());
 
   /* Su «Por organismo / Por trámite» va en la cabecera de la ficha
      (ceFichaTiempo) desde el 13-10-2026. */
-  function ceCajaTiempos(u){
+  /* ── LO QUE ESTÁ EN MARCHA ──
+     23-10-2026. Por trámite, cuántos hay abiertos, cuánto llevan desde que
+     se enviaron (la mediana, y el más antiguo) y quién los tiene ahora: la
+     barra se parte en el CIIP, el ente y el inversionista, con los mismos
+     colores que los tramos de lo resuelto. */
+  function ceMediana(xs){
+    if (!xs.length) return null;
+    var o = xs.slice().sort(function(a, b){ return a - b; }), m = Math.floor(o.length / 2);
+    return o.length % 2 ? o[m] : (o[m - 1] + o[m]) / 2;
+  }
+  function ceEnteDe(tipo){
+    var t = (ceDatos && ceDatos.tramites || []).filter(function(x){ return x.tipo === tipo; })[0];
+    return (t && t.ente) || '';
+  }
+  function ceMarchaPorTramite(){
+    if (!Array.isArray(ceMarcha)) return [];
+    var ahora = Date.now(), por = {}, orden = [];
+    ceMarcha.forEach(function(t){
+      var desde = Date.parse(t.enviado_en);
+      if (isNaN(desde)) return;
+      var k = t.tipo || '';
+      if (!por[k]){ por[k] = {tipo: k, ente: ceEnteDe(k), horas: [], ciip: 0, ente_n: 0, inv: 0}; orden.push(por[k]); }
+      var g = por[k];
+      g.horas.push(Math.max(0, (ahora - desde) / 3600000));
+      if (t.estado === 'ante_el_ente') g.ente_n++;
+      else if (t.estado === 'devuelto') g.inv++;
+      else g.ciip++;
+    });
+    orden.forEach(function(g){
+      g.n = g.horas.length;
+      g.mediana_h = ceMediana(g.horas);
+      g.maximo_h = Math.max.apply(null, g.horas);
+    });
+    return orden.sort(function(a, b){ return (b.maximo_h - a.maximo_h) || (b.n - a.n); });
+  }
+  function ceCajaMarcha(u, s){
+    var filas = ceMarchaPorTramite();
+    if (!filas.length) return false;
+    var todas = [];
+    filas.forEach(function(g){ todas = todas.concat(g.horas); });
+    s.appendChild(el('div', 'ce-ti-sec', ceTxt(u.ce_ti_marcha_t, {n: todas.length})));
+    var tope = filas.reduce(function(m, g){ return Math.max(m, g.maximo_h); }, 0);
+    ceLista(s, 'marcha', filas, function(g){
+      var largo = tope ? g.mediana_h / tope : 0;
+      var f = ceFila({
+        cls: 'ce-ti-marcha',
+        nombre: ceNombreTramite(g.tipo),
+        sub: [g.ente, g.n === 1 ? (u.ce_ti_marcha1 || '') : ceTxt(u.ce_ti_marchan, {n: g.n}),
+              ceTxt(u.ce_ti_quien_ahora, {c: g.ciip, e: g.ente_n, i: g.inv})].filter(Boolean).join(' · '),
+        valor: ceDias(g.mediana_h), fuerte: true,
+        pie: ceTxt(u.ce_ti_antiguo, {t: ceDias(g.maximo_h)}),
+        partes: [[largo * g.ciip / g.n, 'r-ciip'], [largo * g.ente_n / g.n, 'r-ente'], [largo * g.inv / g.n, 'r-inv']]
+      });
+      f.setAttribute('data-tipo', g.tipo);
+      return f;
+    }, function(cola){
+      var peor = cola.reduce(function(m, g){ return g.maximo_h > m.maximo_h ? g : m; }, cola[0]);
+      return {valor: ceDias(peor.mediana_h), pie: ceTxt(u.ce_ti_antiguo, {t: ceDias(peor.maximo_h)}),
+              partes: [[tope ? peor.mediana_h / tope : 0, 'r-ciip']]};
+    });
+    ceLeyenda(s, [['r-ciip', u.ce_ti_ciip], ['r-ente', u.ce_c_anteente], ['r-inv', u.ce_ti_p_devuelto]]);
+    return true;
+  }
+
+  function ceCajaTiempos(u, hayMarcha){
     var s = ceSeccion('ceTiempos');
 
     var porEnte = false;
     var filas = porEnte ? (ceDatos.entes || [])
                         : (ceDatos.tramites || []).filter(function(t){ return (t.resueltos || 0) > 0; });
-    if (!filas.length){ s.appendChild(el('div', 'pu-vacio', u.ce_vacio || '')); return s; }
+    if (hayMarcha) s.appendChild(el('div', 'ce-ti-sec', u.ce_ti_res_t || ''));
+    if (!filas.length){
+      s.appendChild(el('div', 'pu-vacio', hayMarcha ? (u.ce_ti_sinres || '') : (u.ce_vacio || '')));
+      return s;
+    }
     var tramos = ceConTramos();
     if (tramos) ceResumenTiempos(u, s);
     else s.appendChild(el('p', 'ce-casos-parcial ce-ti-falta', u.ce_ti_nosql || ''));

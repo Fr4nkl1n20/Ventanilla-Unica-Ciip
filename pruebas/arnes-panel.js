@@ -19887,15 +19887,15 @@
         sinNombre.push(k + ' «' + (h ? h.textContent : '') + '»');
       var d = cab.querySelector('.ce-fi-d');
       if (!d || !ceVe(d) || d.textContent !== CE_FRASE[k]) sinFrase.push(k);
-      if (k === 'org' && !ceVe(cab.querySelector('.ce-fi-der .pu-seg'))) sinSeg.push(k);
-      /* El tiempo, en una sola lista desde el 15-10-2026: sin conmutador. */
-      if (k === 'tiempo' && cab.querySelector('.ce-fi-der .pu-seg')) sinSeg.push('tiempo con conmutador');
+      /* El tiempo, en una sola lista desde el 15-10-2026, y los organismos
+         desde el 23-10-2026: ninguno lleva conmutador. */
+      if ((k === 'org' || k === 'tiempo') && cab.querySelector('.ce-fi-der .pu-seg')) sinSeg.push(k + ' con conmutador');
     });
     igual('control: ninguna ficha repite el icono de su entrada', conIcono.join(' '), '');
     igual('control: ni dice a la vista el título de su entrada', repiten.slice(0, 4).join(' | '), '');
     igual('control: cada ficha conserva su nombre para el lector, en un encabezado escondido', sinNombre.join(' | '), '');
     igual('control: y su frase, en la cabecera', sinFrase.join(' '), '');
-    igual('control: el de los organismos sigue en la cabecera, y el tiempo ya no lleva', sinSeg.join(' '), '');
+    igual('control: ni los organismos ni el tiempo llevan conmutador', sinSeg.join(' '), '');
 
     /* EL RESUMEN DE LA OFICINA: las cinco cifras, los estados y lo que lleva
        cada gestor, como el pulso de siempre. */
@@ -19966,16 +19966,15 @@
     igual('control: y vuelve con el idioma de antes',
           (document.getElementById('puTestados') || {}).textContent, U.pu_estados);
 
-    /* TRÁMITES POR ORGANISMO: las solicitudes sumadas por organismo -cada
-       trámite trae el suyo- y, con el conmutador, trámite a trámite. */
+    /* TRÁMITES POR ORGANISMO, en UNA lista desde el 23-10-2026: cada
+       organismo con su total y sus trámites; sin conmutador. */
     ceElegir('org');
     igual('control: elegir los trámites por organismo enseña su ficha, sola', ceVisibles(), 'org');
-    var modos = document.querySelectorAll('#ceFichaOrg .ce-fi-cab .ce-org-modo');
-    igual('control: el conmutador, en la cabecera: por organismo y por trámite',
-          [].map.call(modos, function(b){ return b.textContent + '=' + b.getAttribute('aria-pressed'); }).join(' '),
-          U.ce_ti_ente + '=true ' + U.ce_ti_tram + '=false');
-    ok('control: empieza por organismo, con su nombre para el lector y su frase',
-       ceVe(document.getElementById('ceOrganismos')) && document.getElementById('ceTramites').hidden &&
+    ok('control: sin conmutador «por organismo / por trámite»',
+       !document.querySelector('#ceFichaOrg .ce-org-modo') && !document.getElementById('ceTramites'),
+       document.querySelectorAll('#ceFichaOrg .ce-org-modo').length + ' botones', 'ninguno');
+    ok('control: con su nombre para el lector y su frase',
+       ceVe(document.getElementById('ceOrganismos')) &&
        ceNombreDe('org') === U.ce_s_org && ceFraseDe('org') === U.ce_tr_d,
        ceNombreDe('org') + ' | ' + ceFraseDe('org'), U.ce_s_org + ' | ' + U.ce_tr_d);
     var og = document.querySelectorAll('#ceOrganismos .ce-fila[data-ente]');
@@ -19986,23 +19985,11 @@
        !!og[0] && og[0].classList.contains('tope') && og[0].querySelector('.ce-relleno').style.width === '100%' &&
        (og[0].querySelector('.ce-rv .ce-sub') || {}).textContent === U.ce_c_resueltos + ' 3',
        og[0] ? og[0].textContent : '(nada)', 'SAREN 5 · ' + U.ce_c_resueltos + ' 3');
-    if (modos[1]) modos[1].click();
-    ok('control: el conmutador pasa a trámite a trámite',
-       ceVe(document.getElementById('ceTramites')) && document.getElementById('ceOrganismos').hidden &&
-       (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {}).getAttribute('data-org') === 'tramite',
-       (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {}).textContent, U.ce_ti_tram);
-    ok('control: y el foco se queda en el botón pulsado',
-       !!document.activeElement && document.activeElement.getAttribute('data-org') === 'tramite',
-       document.activeElement ? document.activeElement.className : '(nada)', 'ce-org-modo tramite');
-    var tr = document.querySelectorAll('#ceTramites .ce-fila[data-tipo]');
-    igual('control: una barra por trámite solicitado', tr.length, 3);
-    ok('control: el más pedido arriba, con sus solicitudes',
-       !!tr[0] && tr[0].getAttribute('data-tipo') === 'constitucion' &&
-       (tr[0].querySelector('.ce-rv .n') || {}).textContent === '5',
-       tr[0] ? tr[0].textContent : '(nada)', 'constitucion · 5');
-    ok('control: y la barra del más pedido, entera',
-       !!tr[0] && !!tr[0].querySelector('.ce-relleno') && tr[0].querySelector('.ce-relleno').style.width === '100%',
-       tr[0] && tr[0].querySelector('.ce-relleno') ? tr[0].querySelector('.ce-relleno').style.width : '(sin barra)', '100%');
+    var tr = document.querySelectorAll('#ceOrganismos [data-tipo]');
+    igual('control: y en la misma lista, cada trámite solicitado', tr.length, 3);
+    ok('control: el del organismo más pedido, el primero',
+       !!tr[0] && tr[0].getAttribute('data-tipo') === 'constitucion',
+       tr[0] ? tr[0].getAttribute('data-tipo') : '(nada)', 'constitucion');
 
     /* TIEMPO DE RESPUESTA, con su conmutador en la cabecera. */
     ceElegir('tiempo');
@@ -20020,6 +20007,17 @@
     igual('control: sin el SQL de los tramos, dice que falta',
           (document.querySelector('#ceTiempos .ce-ti-falta') || {}).textContent || '(no lo dice)', U.ce_ti_nosql);
     igual('control: y no se inventa el resumen', document.querySelectorAll('#ceTiempos .ce-ti-nums').length, 0);
+    /* LO QUE ESTÁ EN MARCHA (23-10-2026): en su caja, encima de lo
+       resuelto, con cuánto llevan y quién lo tiene ahora. */
+    var mar = document.querySelectorAll('#ceMarcha .ce-fila[data-tipo]');
+    ok('control: el tiempo enseña también lo que está en marcha',
+       mar.length > 0 && !!mar[0].querySelector('.ce-fuerte') &&
+       mar[0].textContent.indexOf(ceTx(U.ce_ti_antiguo, {t: ''}).trim()) >= 0,
+       mar.length ? mar[0].textContent : '(nada en marcha)', 'filas con su mediana y el más antiguo');
+    ok('control: y va antes que lo resuelto',
+       !!document.getElementById('ceMarcha') && !!document.getElementById('ceTiempos') &&
+       !!(document.getElementById('ceMarcha').compareDocumentPosition(document.getElementById('ceTiempos')) & 4),
+       'orden de las cajas', 'en marcha, luego resueltos');
     /* Una sola lista, por trámite y con su organismo (15-10-2026). */
     igual('control: el tiempo, en una sola lista y sin conmutador',
           document.querySelectorAll('#ceFichaTiempo .ce-modo').length, 0);
@@ -20294,11 +20292,11 @@
        minería elegida en los más pedidos (13-10-2026). */
     if (window.CIIP_REPINTA_CONTROL) window.CIIP_REPINTA_CONTROL();
     function marcado1(sel, attr){ return (document.querySelector(sel) || {getAttribute: function(){ return '(ninguno)'; }}).getAttribute(attr); }
-    igual('control: tras repintar, la configuración sigue abierta, el conmutador en «Por trámite» y minería elegida',
-          ceVisibles() + ' · ' + marcado1('#ceFichaOrg .ce-org-modo[aria-pressed="true"]', 'data-org') + ' · ' +
+    igual('control: tras repintar, la configuración sigue abierta y minería elegida',
+          ceVisibles() + ' · ' +
           marcado1('#ceFichaPedidos .cs-sector[aria-pressed="true"]', 'data-sector') + ' · ' +
           marcado1('#ceTramSector .ce-ts-bloque', 'data-sector'),
-          'config · tramite · mineria · mineria');
+          'config · mineria · mineria');
     /* Y la base de antes de supabase-control-detalle.sql: la función no
        trae ni los trámites por sector ni los casos. Se repinta todo con
        un motivo abierto: no puede volver a plegarse. */
@@ -20318,9 +20316,9 @@
        !!ts && (ts.querySelector('.ce-ts-vacio') || {}).textContent === U.ce_ts_vacio && !ts.querySelector('.ce-fila'),
        ts ? ts.textContent : '(no está)', U.ce_ts_vacio);
     ok('control: el resto de la pantalla sigue en pie',
-       document.querySelectorAll('#ceTramites .ce-fila[data-tipo]').length === 3 &&
+       document.querySelectorAll('#ceOrganismos [data-tipo]').length === 3 &&
        document.querySelectorAll('#ceMotivos .ce-fila[data-motivo]').length === 3,
-       document.querySelectorAll('#ceTramites .ce-fila[data-tipo]').length + ' trámites', '3 trámites y 3 motivos');
+       document.querySelectorAll('#ceOrganismos [data-tipo]').length + ' trámites', '3 trámites y 3 motivos');
     /* El motivo que se dejó abierto se repinta abierto, y dice qué falta. */
     var mo = document.querySelector('#ceMotivos .ce-fila[data-motivo]');
     var p = mo ? document.getElementById(mo.getAttribute('aria-controls')) : null;
@@ -20332,9 +20330,6 @@
        ceVisibles() === 'config' && ceEntrada('config').classList.contains('on') &&
        ceVe(document.getElementById('cePorSector')),
        ceVisibles(), 'config');
-    igual('control: y el conmutador sigue en «Por trámite»',
-          (document.querySelector('#ceFichaOrg .ce-org-modo[aria-pressed="true"]') || {}).getAttribute('data-org'),
-          'tramite');
     /* Sin trámites elegidos (aquí, sin el SQL que los cuenta) no hay
        sector que elegir: no salen los sectores ni ninguno pulsado, y la
        cifra de la entrada dice que aún no hay datos (revisión del
@@ -20879,7 +20874,7 @@
     location.hash = 'equipo';
     var vueltas = 0;
     (function listo(){
-      if (document.getElementById('ceTramites') && document.querySelector('#ceNav .ay-ld-it[data-sec="resumen"] .ce-ld-sub') &&
+      if (document.getElementById('ceOrganismos') && document.querySelector('#ceNav .ay-ld-it[data-sec="resumen"] .ce-ld-sub') &&
           document.querySelector('#ceNav .ay-ld-it[data-sec="equipo"] .ce-ld-sub') &&
           document.querySelector('#eqTarjetas .eq-tj')) return setTimeout(mide, 100);
       if (++vueltas > 200){ apunta('la pantalla se carga', false, 'sin datos', 'cifras y fichas'); return manda(); }
@@ -20896,7 +20891,7 @@
       var fuera = [], cortado = [], cabeza = [], elipsis = [], pagina = [];
       var vista = document.querySelector('.equipo-vista');
       /* Las ocho fichas, y las de los conmutadores en sus dos formas. */
-      var secciones = [['resumen'], ['equipo'], ['org', 'ente'], ['org', 'tramite'], ['tiempo'],
+      var secciones = [['resumen'], ['equipo'], ['org'], ['tiempo'],
                        ['consultas'], ['pedidos'], ['motivos'], ['config']];
       var CONMUTA = {org: '.ce-org-modo[data-org="'};
       ['es', 'ru', 'fr'].forEach(function(lang){
