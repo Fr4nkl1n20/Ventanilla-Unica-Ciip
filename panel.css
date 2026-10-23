@@ -489,7 +489,7 @@ body[data-vista="acomp"] .fase-bar{display:none;}
 .so-caja{background:var(--tr-velo); border:1px solid var(--line);
   border-radius:var(--r); padding:18px 20px; margin-bottom:16px;
   box-shadow:var(--shadow); max-width:760px;}
-.so-t{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em; color:var(--gray-soft); margin-bottom:14px;}
+.so-t{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:0; color:var(--ink); margin-bottom:14px;}
 
 /* Un interruptor por renglon, con su explicacion debajo. La casilla va a
    la izquierda y no a la derecha: se leen en columna, y con la casilla
@@ -1301,8 +1301,9 @@ body[data-vista="catalogo"] .fase-bar{display:none;}
 .cg-fila{display:flex; align-items:center; gap:14px; flex-wrap:wrap;
   background:var(--tr-velo); border:1px solid var(--line); border-radius:var(--r);
   padding:12px 15px; margin-bottom:8px; box-shadow:var(--shadow);
-  box-shadow:inset 3px 0 0 var(--line), var(--shadow);}
-.cg-fila.on{box-shadow:inset 3px 0 0 var(--good), var(--shadow);}
+  box-shadow:var(--shadow);}
+/* La que está a la vista, por el fondo y no por un filo verde (23-10-2026). */
+.cg-fila.on{background:var(--good-bg);}
 .cg-que{flex:1; min-width:200px;}
 .cg-nombre{font-weight:700; font-size:var(--fs-tarjeta);letter-spacing:-.01em;}
 .cg-ente{font-size:var(--fs-nota); color:var(--gray); margin-top:2px;}
@@ -1375,7 +1376,7 @@ body[data-vista="usuarios"] .fase-bar{display:none;}
 .us-m .l{font-size:var(--fs-rotulo); color:var(--gray); margin-top:6px; line-height:1.35;font-weight:700;letter-spacing:.01em;}
 .us-m.ojo .n{color:var(--amber);}
 
-.us-sec{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em; color:var(--gray-soft); margin:20px 0 9px;}
+.us-sec{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:0; color:var(--ink); margin:20px 0 9px;}
 .us-sec:first-child{margin-top:0;}
 
 /* Las cuentas van en rejilla y no en columna: una ficha de usuario ocupa
@@ -1496,7 +1497,7 @@ body[data-vista="autorizaciones"] .fase-bar{display:none;}
 /* El rotulo de cada apartado en la ficha. Los mismos tres nombres que
    los pasos del formulario: dos vocabularios para lo mismo obligan a
    traducir mentalmente entre una pantalla y la otra. */
-.em-sec{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em; color:var(--gray-soft); margin:16px 0 8px;}
+.em-sec{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:0; color:var(--ink); margin:16px 0 8px;}
 .em-sec:first-of-type{margin-top:14px;}
 .em-datos{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
   gap:14px 26px; margin-top:17px; padding-top:16px; border-top:1px solid var(--line-soft);}
@@ -1587,7 +1588,7 @@ body[data-vista="autorizaciones"] .fase-bar{display:none;}
    partida en una columna de dos palabras. */
 .ft-filas{display:grid; grid-template-columns:max-content 1fr; gap:10px 18px;
   margin:0 0 4px; align-items:baseline;}
-.ft-filas dt{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em; color:var(--gray-soft); white-space:nowrap;
+.ft-filas dt{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:0; color:var(--ink); white-space:nowrap;
   padding-top:2px;}
 .ft-filas dd{margin:0; font-size:var(--fs-valor); color:var(--ink); line-height:1.45;font-weight:500;}
 .ft-filas dd .c{display:block; font-size:var(--fs-nota); color:var(--gray); margin-top:1px;}
@@ -1628,7 +1629,7 @@ body[data-vista="autorizaciones"] .fase-bar{display:none;}
 .tabla-caja{overflow-x:auto; border:1px solid var(--line); border-radius:12px;
   background:var(--tr-velo);}
 .tabla{width:100%; border-collapse:collapse; font-size:var(--fs-parrafo); min-width:720px;}
-.tabla th{text-align:left; font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em; color:var(--gray-soft); padding:10px 12px;
+.tabla th{text-align:left; font-size:var(--fs-rotulo); font-weight:700; letter-spacing:0; color:var(--ink); padding:10px 12px;
   border-bottom:1px solid var(--line); white-space:nowrap; background:var(--block);}
 .tabla td{padding:11px 12px; border-bottom:1px solid var(--line-soft);
   vertical-align:middle; color:var(--ink);}
@@ -1688,8 +1689,10 @@ body[data-vista="autorizaciones"] .fase-bar{display:none;}
    lo unico de esta lista sobre lo que hay algo que hacer. La franja va a
    la izquierda y no de fondo, que un renglon entero en color se lee como
    un error de la pantalla y no como un aviso sobre el papel. */
-.tabla tr.mal td:first-child{box-shadow:inset 3px 0 0 var(--rust);}
-.tabla tr.avisa td:first-child{box-shadow:inset 3px 0 0 var(--amber);}
+/* 23-10-2026: sin la franja de la izquierda (nada de filos de color); el
+   aviso va en el fondo de la fila, suave. */
+.tabla tr.mal td{background:var(--rust-bg);}
+.tabla tr.avisa td{background:var(--amber-bg);}
 /* El nombre del archivo, en monoespaciada: distinguir un 1 de una l
    importa cuando hay tres parecidos.
 
@@ -2623,7 +2626,8 @@ body[data-vista="citas"] .fase-bar{display:none;}
    lo llevaba la ficha de la rejilla. Va en el borde y no en el fondo: un
    fondo de color en una fila compite con el resaltado del raton y deja de
    verse justo cuando pasas por encima. */
-#mtTabla tbody tr.reclama td:first-child{box-shadow:inset 3px 0 0 var(--amber);}
+/* 23-10-2026: sin filo; el fondo suave lo dice. */
+#mtTabla tbody tr.reclama td{background:var(--amber-bg);}
 /* La fila por la que vienes desde la campana. Dura seis segundos y se apaga
    sola: es para encontrarla entre veinte, no para quedarse marcada.
 
@@ -2867,8 +2871,8 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .fuera-pagina{display:none !important;}
 /* Dos colas en la misma ventana —trámites y citas— necesitan decir cuál es
    cuál: sin cabecera, una ficha de cada tipo seguida parece la misma cosa. */
-.co-seccion{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
-  color:var(--gray-soft); padding:12px 10px 6px;}
+.co-seccion{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:0;
+  color:var(--ink); padding:12px 10px 6px;}
 .co-seccion:empty{display:none;}
 .co-estado{font-size:var(--fs-chip); font-weight:700; letter-spacing:.01em;
   padding:4px 8px; border-radius:20px; background:var(--block); color:var(--gray);
@@ -3881,7 +3885,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
    no en gris como .tr-nota: es lo único del trámite que se hace fuera del
    panel, y si se lee de pasada se llega sin un papel. */
 .tr-firma{margin-top:8px; padding:10px 12px; border-radius:var(--r-sm);
-  background:var(--amber-bg); border-left:3px solid var(--amber); color:var(--ink);
+  background:var(--amber-bg); color:var(--ink);
   font-size:var(--fs-nota); line-height:1.45;}
 .tr-firma-t{font-weight:700;}
 .tr-firma-l{margin:4px 0 0; padding-left:18px;}
@@ -3889,8 +3893,8 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 /* La misma lista, del lado del equipo, con el botón de «vino y firmó». */
 .co-firma{display:flex; flex-direction:column; align-items:flex-start; gap:5px; margin-top:11px;
   padding:9px 11px; border-radius:var(--r-sm); background:var(--amber-bg);
-  border-left:3px solid var(--amber); font-size:var(--fs-nota); color:var(--ink);}
-.co-firma.puesto{background:var(--good-bg); border-left-color:var(--good);}
+  font-size:var(--fs-nota); color:var(--ink);}
+.co-firma.puesto{background:var(--good-bg);}
 .co-firma-t{font-size:var(--fs-rotulo-form); font-weight:700;}
 .co-firma-l{margin:0; padding-left:18px;}
 .co-firma-e{font-weight:600;}
@@ -4334,7 +4338,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
   border:1px solid var(--line); border-radius:7px; background:var(--hoja); max-width:220px;}
 .imp-g-subir{align-self:flex-start;}
 .imp-cola{font-size:var(--fs-parrafo); font-weight:600; color:var(--ink); background:var(--amber-bg);
-  border:1px solid var(--amber); border-left-width:4px; border-radius:var(--r-sm);
+  border:1px solid var(--line); border-radius:var(--r-sm);
   padding:8px 12px; margin-bottom:10px; grid-column:1 / -1;}
 .tr-bloque .tr-paso-f{margin-top:2px;}
 .sol-junta{margin-top:14px;}
@@ -4467,7 +4471,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
    ficha permanentemente elevada se comería la sombra de las de al lado y
    ganaría a cualquier cosa que se ponga encima mañana. */
 .tcard:has(.pista-caja:not([hidden])){position:relative; z-index:60;}
-.pista-caja .pc-t{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.03em; color:var(--gray-soft); margin-bottom:7px;}
+.pista-caja .pc-t{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:0; color:var(--ink); margin-bottom:7px;}
 /* list-style:disc EXPLICITO y display:list-item EXPLICITO, y no por gusto:
    este globo tambien cuelga de la lista de recaudos de la ficha, que es un
    <ul class="ft-rec"> con list-style:none -y list-style SE HEREDA- y con una
@@ -4841,7 +4845,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
    tono que los demás avisos que piden algo: ámbar con su raya. */
 .hilo-cerrado{display:flex; align-items:center; gap:8px 12px; flex-wrap:wrap;
   padding:9px 11px; border-radius:var(--r-sm); background:var(--amber-bg);
-  border-left:3px solid var(--amber); color:var(--ink);
+  color:var(--ink);
   font-size:var(--fs-parrafo); line-height:1.45;}
 .hilo-cerrado > span{flex:1 1 220px; min-width:0;}
 .hilo-cerrado[hidden]{display:none;}
@@ -5688,7 +5692,7 @@ body[data-vista="tramite"] .sup-fab{display:none;}
   font-size:var(--fs-chip); font-weight:700; line-height:1; color:var(--navy-deep);
   margin-top:1px;}
 .sup-nube-dicho{display:grid; gap:2px; min-width:0;}
-.sup-nube-quien{font-size:var(--fs-chip); font-weight:700; letter-spacing:.1em; color:rgba(255,255,255,.64);}
+.sup-nube-quien{font-size:var(--fs-chip); font-weight:700; letter-spacing:0; color:rgba(255,255,255,.9);}
 .sup-nube-t{font:inherit; font-size:var(--fs-fila); font-weight:600; line-height:1.35;
   color:inherit; background:none; border:0; padding:0; cursor:pointer;
   text-align:left;}
@@ -5755,8 +5759,8 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
   width:340px; max-width:calc(100vw - 32px); background:var(--bg); border:1px solid var(--line);
   border-radius:12px; box-shadow:var(--shadow-lg); padding:6px; display:none;}
 .avisos-menu.open{display:block;}
-.av-h{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.05em;
-  color:var(--gray-soft); padding:8px 10px 7px;}
+.av-h{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:0;
+  color:var(--ink); padding:8px 10px 7px;}
 /* La lista se desborda dentro de si misma: un buzon que estire la barra de
    arriba hasta el pie de la pagina tapa el panel entero. */
 .av-lista{max-height:min(60vh, 420px); overflow-y:auto; display:flex; flex-direction:column; gap:1px;}
@@ -5900,7 +5904,7 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
    de la migaja, que ya no se ve, y lo dejaban corrido respecto al borde. */
 .topbar .tb-hola{margin-left:0;}
 .sb-head .pn{font-family:'Instrument Serif',Georgia,serif; font-size:28px; font-weight:400; letter-spacing:.01em; line-height:1; white-space:nowrap; color:#fff; border-left:1px solid rgba(255,255,255,.25); padding-left:12px; transform:none;}
-.sb-gl{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:.01em; color:rgba(255,255,255,.55); padding:7px 10px 4px;}
+.sb-gl{font-size:var(--fs-rotulo); font-weight:700; letter-spacing:0; color:rgba(255,255,255,.9); padding:7px 10px 4px;}
 .sb-item{padding:6.5px 10px; border-radius:7px; color:rgba(255,255,255,.80);}
 .sb-item:hover{background:rgba(255,255,255,.08); color:#fff;}
 .sb-item .ic{width:15px; height:15px; flex:0 0 auto; opacity:.7;}
@@ -5985,8 +5989,8 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
    la izquierda: se lee como una cita -son las palabras del gestor, no una
    frase del panel- y no compite con el óxido, que en esta pantalla
    significa «va tarde». */
-.hoy-porque{background:var(--amber-bg); border-left:3px solid var(--amber);
-  border-radius:0 8px 8px 0; padding:8px 11px; margin-top:10px;}
+.hoy-porque{background:var(--amber-bg);
+  border-radius:8px; padding:8px 11px; margin-top:10px;}
 .hoy-porque .hp-r{display:block; font-size:var(--fs-rotulo); font-weight:700; color:var(--amber);}
 /* Sin recortar y respetando los saltos: es lo mismo que está leyendo el
    inversionista del otro lado, y una nota a medias manda a abrir la ficha
