@@ -53,6 +53,10 @@
 
    Y el radio ya estaba bien: el suyo es 0.625rem, o sea 10px, los mismos
    que tenia este panel desde el principio. ────────────────────────────── */
+  /* --navy-texto: el azul de la marca cuando es LETRA. En claro es el mismo
+     --navy; en oscuro sube a --navy2, porque #004090 sobre el fondo oscuro se
+     leía a 1,8:1 (21-10-2026). Los fondos y botones siguen con --navy. */
+  --navy-texto:#004090;
   --navy:#004090; --navy2:#0060B0; --navy-deep:#00336d; --cyan:#20B0F0; --cyan-deep:#0E8FD6;
   /* Sin anaranjados (Franklin Reyes, 16-10-2026: «quitar los colores anaranjados»):
      --amber, lo de «atención», pasa a gris, y --rust, lo de error o vencido, a
@@ -89,7 +93,7 @@
   :root{
     --ink:#EAEEF6; --gray:#9AA6BC; --gray-soft:#6E7B93; --line:rgba(255,255,255,.10); --line-soft:rgba(255,255,255,.06);
     --block:#0A1120; --bg:#0F1A2E; --card-2:#12203A;--hoja:#0A1120;--azul-panel:#4C97E8;--tr-velo:rgba(255,255,255,.04);--activa-bg:#132745; --dormida-bg:#0C1526; --mudo:#9AA6BC;
-    --navy2:#4C97E8; --cyan-deep:#5CC6FF;
+    --navy2:#4C97E8; --navy-texto:#4C97E8; --cyan-deep:#5CC6FF;
     --amber:#AEB8CB; --amber-bg:#1C2638; --rust:#F28B82; --rust-bg:#3B1A1A; --good:#43B48C; --good-bg:#11291F;
     --shadow:0 1px 2px 0 rgba(0,0,0,.25);
     --shadow-lg:0 2px 6px rgba(0,0,0,.35), 0 20px 48px rgba(0,0,0,.55);
@@ -99,7 +103,7 @@
 :root[data-theme="light"]{
   --ink:#0E1424; --gray:#5B6478; --gray-soft:#8A93A6; --line:#E4E7EE; --line-soft:#EEF1F6;
   --block:#F4F7FB; --bg:#FFFFFF; --card-2:#FAFAFA;--hoja:#FFFFFF;--azul-panel:#004090;--tr-velo:rgba(255,255,255,.45);--activa-bg:#EEF4FB; --dormida-bg:#FAFAFA; --mudo:#5B6478;
-  --navy2:#0060B0; --cyan-deep:#0E8FD6;
+  --navy2:#0060B0; --navy-texto:#004090; --cyan-deep:#0E8FD6;
   --amber:#4A5468; --amber-bg:#EEF1F5; --rust:#C62828; --rust-bg:#FDECEC; --good:#1E7F5C; --good-bg:#E7F4EE;
   --shadow:0 1px 2px rgba(14,20,36,.04), 0 6px 18px rgba(14,20,36,.06);
   --shadow-lg:0 2px 6px rgba(14,20,36,.06), 0 18px 44px rgba(14,20,36,.10);
@@ -108,7 +112,7 @@
 :root[data-theme="dark"]{
   --ink:#EAEEF6; --gray:#9AA6BC; --gray-soft:#6E7B93; --line:rgba(255,255,255,.10); --line-soft:rgba(255,255,255,.06);
   --block:#0A1120; --bg:#0F1A2E; --card-2:#12203A;--hoja:#0A1120;--azul-panel:#4C97E8;--tr-velo:rgba(255,255,255,.04);--activa-bg:#132745; --dormida-bg:#0C1526; --mudo:#9AA6BC;
-  --navy2:#4C97E8; --cyan-deep:#5CC6FF;
+  --navy2:#4C97E8; --navy-texto:#4C97E8; --cyan-deep:#5CC6FF;
   --amber:#AEB8CB; --amber-bg:#1C2638; --rust:#F28B82; --rust-bg:#3B1A1A; --good:#43B48C; --good-bg:#11291F;
   --shadow:0 1px 2px 0 rgba(0,0,0,.25);
   --shadow-lg:0 2px 6px rgba(0,0,0,.35), 0 20px 48px rgba(0,0,0,.55);
@@ -1981,7 +1985,7 @@ body[data-vista="recaudos"] .fase-bar{display:none;}
    colgadas de la fila de arriba, no al lado de ella- y el botón no parece
    un botón de acción: no hace nada, solo destapa. */
 .dc-antes{padding:2px 0 6px 0;}
-.dc-antes-b{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy);
+.dc-antes-b{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy-texto);
   background:none; border:0; padding:2px 0; cursor:pointer;}
 .dc-antes-b:hover{text-decoration:underline;}
 .dc-antes-l{display:flex; flex-direction:column; gap:5px; margin-top:6px;
@@ -1989,7 +1993,7 @@ body[data-vista="recaudos"] .fase-bar{display:none;}
 .dc-antes-i{display:flex; align-items:center; gap:9px; flex-wrap:wrap;}
 .dc-antes-f{font-size:var(--fs-nota); color:var(--gray); font-weight:600;}
 .dc-usos-l{display:flex; flex-direction:column; align-items:flex-start; gap:3px;}
-.dc-uso{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy);
+.dc-uso{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy-texto);
   background:none; border:0; padding:0; cursor:pointer; text-align:left;}
 .dc-uso:hover{text-decoration:underline;}
 .dc-uso:focus-visible{outline:2px solid var(--navy); outline-offset:2px; border-radius:3px;}
@@ -2088,7 +2092,7 @@ body.editando-textos .faq-item.ay-sin{display:block;}
   padding:10px 14px; font-size:var(--fs-seccion); font-weight:700; color:var(--gray); display:flex; gap:8px;
   align-items:center; white-space:nowrap; cursor:pointer;}
 .ay-pe:hover{color:var(--ink);}
-.ay-pe.on{color:var(--navy); border-bottom-color:var(--navy);}
+.ay-pe.on{color:var(--navy-texto); border-bottom-color:var(--navy-texto);}
 .ay-pe:focus-visible{outline:2px solid var(--navy2); outline-offset:-2px; border-radius:6px;}
 .ay-pe .n{font-size:var(--fs-chip); background:var(--line-soft); color:var(--gray); border-radius:20px; padding:1px 7px;
   font-variant-numeric:tabular-nums;}
@@ -2315,7 +2319,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
    · 15:17» se lee como una fecha muerta. */
 .mt-cab{display:flex; align-items:flex-start; justify-content:space-between;
   gap:12px; flex-wrap:wrap; margin:0 0 14px;}
-.mt-cab .t{font-size:var(--fs-seccion); font-weight:700; color:var(--navy); line-height:1.2;}
+.mt-cab .t{font-size:var(--fs-seccion); font-weight:700; color:var(--navy-texto); line-height:1.2;}
 .mt-cab .sub{font-size:var(--fs-nota); color:var(--gray); margin-top:3px;}
 .mt-aldia{display:inline-flex; align-items:center; gap:7px; flex:none;
   font-size:var(--fs-nota); font-weight:600; color:var(--ink);
@@ -2374,7 +2378,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 :is(#mtFiltros, #paCifras).mt-cifras button[aria-disabled="true"]{cursor:default; opacity:.85;}
 :is(#mtFiltros, #paCifras).mt-cifras .mtc-h{display:flex; align-items:flex-start; gap:8px;
   justify-content:space-between;}
-:is(#mtFiltros, #paCifras).mt-cifras .mtc-t{font-size:var(--fs-nota); font-weight:700; color:var(--navy); line-height:1.25;}
+:is(#mtFiltros, #paCifras).mt-cifras .mtc-t{font-size:var(--fs-nota); font-weight:700; color:var(--navy-texto); line-height:1.25;}
 :is(#mtFiltros, #paCifras).mt-cifras button[aria-disabled="true"] .mtc-t{color:var(--gray);}
 :is(#mtFiltros, #paCifras).mt-cifras .mtc-i{flex:none; width:26px; height:26px; border-radius:7px;
   background:var(--block); display:flex; align-items:center; justify-content:center;}
@@ -2523,7 +2527,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
   align-items:center; gap:8px; flex-wrap:wrap; margin-top:7px;}
 .co-duenio.mio{color:var(--navy2); font-weight:700;}
 .co-duenio button{font:inherit; font-size:var(--fs-boton); font-weight:700;
-  color:var(--navy); background:none; border:0; padding:2px 0; cursor:pointer;}
+  color:var(--navy-texto); background:none; border:0; padding:2px 0; cursor:pointer;}
 .co-duenio button:hover{text-decoration:underline;}
 .co-duenio button[disabled]{color:var(--gray-soft); cursor:default; text-decoration:none;}
 
@@ -2708,7 +2712,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
   border-bottom:0; box-shadow:inset 0 -1px 0 var(--line);}
 #mtTabla th .th-orden{font-size:inherit; font-weight:inherit; letter-spacing:inherit; text-transform:inherit;}
 #mtTabla th .th-orden .flecha{opacity:.35;}
-#mtTabla th[aria-sort] .th-orden{color:var(--navy);}
+#mtTabla th[aria-sort] .th-orden{color:var(--navy-texto);}
 #mtTabla th[aria-sort] .th-orden .flecha{opacity:1;}
 #mtTabla th:nth-child(1){width:32%;} #mtTabla th:nth-child(2){width:12%;}
 #mtTabla th:nth-child(3){width:30%;} #mtTabla th:nth-child(4){width:16%;}
@@ -2819,7 +2823,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
   color:var(--ink); border-bottom:0; box-shadow:inset 0 -1px 0 var(--line);}
 .tabla th .th-orden{font-size:inherit; font-weight:inherit; letter-spacing:inherit; text-transform:inherit;}
 .tabla th .th-orden .flecha{opacity:.35;}
-.tabla th[aria-sort] .th-orden{color:var(--navy);}
+.tabla th[aria-sort] .th-orden{color:var(--navy-texto);}
 .tabla th[aria-sort] .th-orden .flecha{opacity:1;}
 .tabla td{padding:11px 14px;}
 .tabla .t-fuerte{font-size:var(--fs-fila); font-weight:600;}
@@ -2891,7 +2895,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .em-cuenta b{display:block; color:var(--gray); font-weight:600;}
 /* Un enlace, no un boton de color: guardar a medias es un atajo, no lo
    que se espera que hagas. Con el mismo peso que "Guardar" competirian. */
-.em-ya{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy);
+.em-ya{font:inherit; font-size:var(--fs-boton); font-weight:700; color:var(--navy-texto);
   background:none; border:0; padding:6px 2px; cursor:pointer; white-space:nowrap;}
 .em-ya:hover{text-decoration:underline;}
 /* Lo que se puede dejar para luego, dicho antes de empezar y no al
@@ -3130,7 +3134,7 @@ body[data-vista="citas"] .fase-bar{display:none;}
 /* Y la persona elegida, tambien sin efecto (5-10-2026). */
 .cb-persona:hover{background:var(--card-2);}
 .cb-ini{width:30px; height:30px; border-radius:50%; flex:none; display:inline-flex; align-items:center; justify-content:center;
-  background:var(--activa-bg); color:var(--navy); font-size:var(--fs-chip); font-weight:700;}
+  background:var(--activa-bg); color:var(--navy-texto); font-size:var(--fs-chip); font-weight:700;}
 .cb-quien{display:grid; min-width:0; flex:1;}
 .cb-quien .nom{font-size:var(--fs-fila); font-weight:700; overflow-wrap:anywhere;}
 .cb-quien .cu{font-size:var(--fs-nota); color:var(--gray);}
@@ -3856,7 +3860,7 @@ body[data-vista="tramite"] #secTramites{display:none;}
 a.tr-hacer[target="_blank"]{padding:0; border:0; border-radius:0; background:none;
   gap:4px; text-decoration:underline; text-underline-offset:3px;}
 a.tr-hacer[target="_blank"]::after{content:"\2197"; text-decoration:none; font-weight:400;}
-a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
+a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 /* Y lo que hay que SABER: una advertencia corta que cuelga de su paso —el
    correo donde llega la visa—. En gris y sin negrita: es un aviso, no otro
    peldaño. */
@@ -3963,12 +3967,12 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
    parecia un fallo—. */
 .t-foot .go[data-globo]{cursor:pointer; text-decoration:underline dotted;
   text-underline-offset:3px; text-decoration-color:var(--line);}
-.t-foot .go[data-globo]:hover{text-decoration-color:var(--navy); color:var(--navy);}
+.t-foot .go[data-globo]:hover{text-decoration-color:var(--navy-texto); color:var(--navy-texto);}
 .t-foot .go[data-globo]:focus{outline:none;}
 .t-foot .go[data-globo]:focus-visible{outline:2px solid var(--navy2); outline-offset:3px; border-radius:5px;}
 /* Y mientras el globo esta abierto se queda marcado: con el globo delante,
    saber cual de las dos fichas de la fila lo abrio no es evidente. */
-.t-foot .go[aria-expanded="true"]{text-decoration-color:var(--navy); color:var(--navy);}
+.t-foot .go[aria-expanded="true"]{text-decoration-color:var(--navy-texto); color:var(--navy-texto);}
 
 /* EL RELOJ, CUANDO LLEVA EL PLAZO LEGAL DETRAS.
    Exactamente el mismo traje que «Ver detalles», y no por ahorrar: aqui
@@ -3979,10 +3983,10 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
    sigue siendo texto y no promete nada. */
 .t-time[data-globo]{cursor:pointer; text-decoration:underline dotted;
   text-underline-offset:3px; text-decoration-color:var(--line);}
-.t-time[data-globo]:hover{text-decoration-color:var(--navy); color:var(--navy);}
+.t-time[data-globo]:hover{text-decoration-color:var(--navy-texto); color:var(--navy-texto);}
 .t-time[data-globo]:focus{outline:none;}
 .t-time[data-globo]:focus-visible{outline:2px solid var(--navy2); outline-offset:3px; border-radius:5px;}
-.t-time[aria-expanded="true"]{text-decoration-color:var(--navy); color:var(--navy);}
+.t-time[aria-expanded="true"]{text-decoration-color:var(--navy-texto); color:var(--navy-texto);}
 
 /* El globo cuelga del renglon, no de una «i» que no existe. */
 .pista-env:has(> .pista-txt){display:inline;}
@@ -4818,12 +4822,12 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
   overflow-wrap:anywhere;}
 .hm-arch{margin-top:6px; font:inherit; font-size:var(--fs-boton); font-weight:700;
   background:none; border:0; padding:0; cursor:pointer; text-align:left;
-  color:var(--navy); text-decoration:underline;}
+  color:var(--navy-texto); text-decoration:underline;}
 /* «Traducido automáticamente · Ver original», debajo del mensaje del otro
    lado: discreto, que lo que se lee es el mensaje. */
 .hm-tr{margin-top:5px; font-size:var(--fs-nota); color:var(--gray-soft);}
 .hm-tr-b{font:inherit; font-weight:600; background:none; border:0; padding:0;
-  cursor:pointer; color:var(--navy); text-decoration:underline;}
+  cursor:pointer; color:var(--navy-texto); text-decoration:underline;}
 .hilo-pie{display:grid; gap:7px;}
 .hilo-txt{font:inherit; font-size:var(--fs-campo); line-height:1.45; resize:vertical;
   padding:8px 10px; border-radius:9px; border:1px solid var(--line);
@@ -4857,7 +4861,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
 .chip.niv{font-size:var(--fs-chip); letter-spacing:.04em;
   padding:2px 7px; border-radius:3px; white-space:nowrap;
   background:transparent; border:1px solid var(--line); color:var(--gray);font-weight:700;}
-.chip.niv.obliga{border-color:var(--navy); color:var(--navy);}
+.chip.niv.obliga{border-color:var(--navy-texto); color:var(--navy-texto);}
 /* El de 'opcional' va SIN borde: los tres distintivos con marco pesaban
    igual y la fila de tarjetas volvia a parecer plana. Este dice lo mas
    flojo de los tres -«solo si te hace falta»- y se ve como lo que es. */
@@ -5006,6 +5010,12 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy);}
    cabe en una línea ya ocupada por el nombre del archivo. */
 .sd-porque{flex-basis:100%; font-size:var(--fs-nota); color:var(--rust); line-height:1.45;
   margin-top:6px; padding-top:6px; border-top:1px solid color-mix(in srgb, var(--rust) 22%, transparent);}
+/* «¿Cuándo vence?» bajo el nombre de un recaudo que caduca (21-10-2026). */
+.sd-vence{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:6px;
+  font-size:var(--fs-nota); color:var(--gray);}
+.sd-vence-f{font:inherit; font-size:var(--fs-campo); color:var(--ink); background:var(--block);
+  border:1px solid var(--line); border-radius:8px; padding:5px 9px;}
+.sol-doc.mal .sd-vence-f{border-color:var(--rust);}
 .sol-adj{margin-top:20px;}
 .sol-adj .sa-l{display:flex; flex-wrap:wrap; gap:7px; margin-top:9px;}
 .sol-adj .sa-i{display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-rotulo); font-weight:700;
@@ -6503,7 +6513,7 @@ body[data-vista="horario"] .fase-bar{display:none;}
 /* Sin filo azul a la izquierda (Franklin Reyes, 13-10-2026: «ese borde
    azul en la franja de la esquina no lo quiero, en ningún lado»). */
 .ay-ld-it.on{background:var(--activa-bg);}
-.ay-ld-it.on b{color:var(--navy);}
+.ay-ld-it.on b{color:var(--navy-texto);}
 .ay-ld-it .ay-ic{width:36px; height:36px;}
 .ay-ld-tx{display:flex; flex-direction:column; gap:2px; min-width:0;}
 .ay-ld-tx b{font-size:var(--fs-seccion); line-height:1.3;}
@@ -6524,7 +6534,7 @@ body.editando-textos .ay-ld-det > details{display:block; margin-bottom:12px;}
   align-items:center; border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin:0;}
 .ay-ld .ay-card .ay-sitios li:hover{border-color:var(--navy2);}
 .ay-ld .ay-ini{display:flex; align-items:center; justify-content:center; grid-row:1 / 3; grid-column:1; width:36px; height:36px;
-  border-radius:9px; background:var(--block); color:var(--navy); font-weight:800; font-size:var(--fs-nota);}
+  border-radius:9px; background:var(--block); color:var(--navy-texto); font-weight:800; font-size:var(--fs-nota);}
 .ay-ld .ay-sitios li .ay-enlace{grid-column:2; grid-row:1; flex:none;}
 .ay-ld .ay-dom{display:block; grid-column:2; grid-row:2; font-size:var(--fs-nota); color:var(--gray-soft);
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}

@@ -163,8 +163,15 @@ create policy "recaudos: borrar de su carpeta" on storage.objects
     bucket_id = 'recaudos'
     and (storage.foldername(name))[1] = auth.uid()::text
     and (storage.foldername(name))[2] is distinct from 'emitidos'
+    -- 21-10-2026: ningún archivo que tenga ficha, esté como esté. Antes
+    -- solo se protegían los validados, y un recaudo «cargado» o
+    -- «rechazado» de una solicitud ya enviada se podía borrar del cubo y
+    -- volver a subir con la misma ruta: el gestor veía otro PDF y
+    -- papel_en_marcha_no_cambia no se enteraba. El panel siempre borra
+    -- primero la ficha (borraDeVerdad) y el archivo después, así que
+    -- borrar lo propio sigue funcionando; un huérfano lo recoge el
+    -- barrendero.
     and not exists (select 1 from public.documentos d
-                     where d.archivo = storage.objects.name
-                       and d.estado = 'validado')
+                     where d.archivo = storage.objects.name)
     and not public.esta_bloqueado()
   );

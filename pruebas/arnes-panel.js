@@ -3867,6 +3867,12 @@
     var caja = document.getElementById('trReal');
     var vueltas = 0;
     (function anda(){
+      /* Los papeles que caducan piden su fecha al elegir el archivo
+         (21-10-2026), y la casilla llega un instante después: se rellena
+         aquí, con una fecha por delante, como haría quien los sube. */
+      if (caja) caja.querySelectorAll('.sd-vence-f').forEach(function(d){
+        if (!d.value){ d.value = '2030-12-31'; d.dispatchEvent(new Event('change')); }
+      });
       var bt = caja && caja.querySelector('.pa-sigue');
       if (!bt || bt.hidden || ++vueltas > 12) return sigue();
       bt.click();

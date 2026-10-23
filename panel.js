@@ -300,6 +300,10 @@ function applyLang(lang){
   if (window.CIIP_REPINTA_PULSO) window.CIIP_REPINTA_PULSO();
   if (window.CIIP_REPINTA_CONTROL) window.CIIP_REPINTA_CONTROL();
   if (window.CIIP_REPINTA_HORARIO) window.CIIP_REPINTA_HORARIO();
+  /* Acompañamiento: sus casillas de textos son las del idioma puesto.
+     Sin repintar, al cambiar de bandera seguían enseñando las del anterior
+     (21-10-2026). Solo con la configuración ya leída. */
+  if (window.CIIP_REPINTA_ACOMP && window.CIIP_ACOMP_LEIDA && window.CIIP_ACOMP_LEIDA()) window.CIIP_REPINTA_ACOMP();
   if (window.CIIP_REPINTA_ACTIVOS) window.CIIP_REPINTA_ACTIVOS();
   if (window.CIIP_REPINTA_FICHA)   window.CIIP_REPINTA_FICHA();
   /* El globo del camino se rehace entero al cambiar de idioma: su texto
@@ -1612,7 +1616,10 @@ function applyLang(lang){
   /* --- el router --------------------------------------------------------- */
   /* Las pantallas del grupo del administrador. #equipo tiene su propia
      línea en pinta(), que es anterior y se deja como estaba. */
-  var SOLO_ADMIN = {usuarios:1, catalogo:1, pulso:1, rastro:1, acomp:1};
+  /* Y equipo (21-10-2026): #pulso se convierte en 'equipo' en deHash, así
+     que la entrada pulso nunca saltaba, y con F5 un gestor se quedaba en
+     Control y estadísticas. */
+  var SOLO_ADMIN = {usuarios:1, catalogo:1, pulso:1, equipo:1, rastro:1, acomp:1};
   var vigilando = false;
   function vigilaSoloAdmin(){
     if (vigilando) return;
@@ -1620,7 +1627,9 @@ function applyLang(lang){
     var n = 0;
     (function mira(){
       var sabido = typeof PERFIL !== 'undefined' && PERFIL.rolReal;
-      if (!sabido && n++ < 100) return setTimeout(mira, 100);
+      /* Un minuto y no diez segundos: con la red lenta el rol llegaba
+         después y el gestor se quedaba dentro (21-10-2026). */
+      if (!sabido && n++ < 600) return setTimeout(mira, 100);
       vigilando = false;
       if (!sabido) return;
       var d = deHash();
@@ -8142,6 +8151,33 @@ applyLang(idiomaParaMi());
       });
       fila.appendChild(btn);
 
+      /* ── CUÁNDO VENCE, SI EL PAPEL CADUCA ──
+         21-10-2026: los antecedentes, el certificado médico o la
+         declaración del ISLR subidos desde un trámite se guardaban sin
+         fecha, que en la base es «no vence nunca»: no avisaba nunca y el
+         siguiente trámite lo reutilizaba vencido. Documentos y Mis recaudos
+         ya la pedían; aquí sale debajo del nombre en cuanto hay archivo, y
+         sin ella no se envía (validaPaso y el envío, con .sd-vence-f). */
+      var vence = null;
+      var miraVence = function(){
+        cargaVencen().then(function(){
+          var toca = !!inp.files[0] && caduca(r.tipo);
+          if (toca && !vence){
+            vence = el('label', 'sd-vence');
+            vence.appendChild(el('span', null, u.dc_lvence || ''));
+            var d = el('input', 'sd-vence-f');
+            d.type = 'date';
+            d.addEventListener('change', function(){ fila.classList.remove('mal'); });
+            vence.appendChild(d);
+            txt.appendChild(vence);
+          } else if (!toca && vence){
+            vence.remove();
+            vence = null;
+          }
+        });
+      };
+      inp.addEventListener('change', miraVence);
+
       /* Soltar el archivo encima de la fila. Ahora que los recaudos tienen
          la pantalla entera para ellos, la fila es un blanco grande y quien
          llega con la carpeta abierta al lado no tiene que pasar por el
@@ -8204,7 +8240,7 @@ applyLang(idiomaParaMi());
          table tramite_documentos»). */
       quienSoy().then(function(yo){
       var enBoveda = sb.from('documentos')
-        .select('id, nombre_original, archivo, estado, nota_revision')
+        .select('id, nombre_original, archivo, estado, nota_revision, vence_el')
         .eq('tipo', r.tipo).eq('inversionista', yo.id);
       /* Y si el papel es de una persona, el de ESA persona: sin esto, la
          cédula más reciente de la junta se ofrecería a todos sus miembros.
@@ -8244,6 +8280,17 @@ applyLang(idiomaParaMi());
             /* Y si se está corrigiendo un devuelto, aquí es donde hay que
                llegar: el formulario se abre por esta hoja y a esta altura. */
             alQueNoVale(fila);
+            return;
+          }
+
+          /* ── EL VENCIDO TAMPOCO ──
+             21-10-2026: un papel que caduca y ya pasó su fecha no se
+             engancha solo. Se dice, y se pide uno vigente, como cuando el
+             CIIP lo devuelve por vencido. */
+          if (ya.vence_el && ya.vence_el < hoyCaracas()){
+            est.textContent = ya.nombre_original + ' · ' + (u.co_h_m_vence || '');
+            fila.appendChild(el('div', 'sd-porque',
+              String(u.co_h_mt_vence || '').replace('{doc}', u[r.clave] || r.tipo)));
             return;
           }
 
@@ -8573,8 +8620,10 @@ applyLang(idiomaParaMi());
         if (!seVe(f)){ f.classList.remove('mal'); return; }
         var tiene = f.querySelector('input[type=file]').files[0] || f.getAttribute('data-ya');
         var suelto = f.getAttribute('data-opcional');
-        f.classList.toggle('mal', !tiene && !suelto);
+        var sinFecha = sinVencimiento(f);
+        f.classList.toggle('mal', (!tiene && !suelto) || !!sinFecha);
         if (!tiene && !suelto){ falta = true; if (!primero) primero = f.querySelector('.sd-btn'); }
+        if (sinFecha){ falta = true; if (!primero) primero = sinFecha; }
       });
       /* Escrito no es lo mismo que válido: un pasaporte con menos de seis
          meses por delante está relleno y aun así no deja seguir (Franklin
@@ -9275,8 +9324,9 @@ applyLang(idiomaParaMi());
       if (!seVe(f)){ f.classList.remove('mal'); return; }
       var tiene = f.querySelector('input[type=file]').files[0] || f.getAttribute('data-ya');
       var suelto = f.getAttribute('data-opcional');
-      f.classList.toggle('mal', !tiene && !suelto);
-      if (!tiene && !suelto) falta = true;
+      var sinFecha = sinVencimiento(f);
+      f.classList.toggle('mal', (!tiene && !suelto) || !!sinFecha);
+      if ((!tiene && !suelto) || sinFecha) falta = true;
     });
     /* Lo mismo que validaPaso, y aparte del recorrido de arriba por lo
        mismo: el pasaporte sin sus seis meses tampoco se envía, aunque se
@@ -9361,7 +9411,8 @@ applyLang(idiomaParaMi());
       var tareas = [], vanAhora = [];
       var nuevos = 0, hechos = 0;
       caja.querySelectorAll('.sol-doc').forEach(function(f){
-        if (seVe(f) && f.querySelector('input[type=file]').files[0]) nuevos++;
+        var a = seVe(f) && f.querySelector('input[type=file]').files[0];
+        if (a && f.getAttribute('data-subido-de') !== huellaDeArchivo(a)) nuevos++;
       });
       var cuenta = function(){
         if (!nuevos) return;
@@ -9376,14 +9427,27 @@ applyLang(idiomaParaMi());
         var archivo = f.querySelector('input[type=file]').files[0];
         var yaHecho = f.getAttribute('data-ya');
         var cual = {tipo: f.getAttribute('data-doc'), titular: f.getAttribute('data-titular') || ''};
+        /* El mismo archivo que ya subió un intento anterior que luego
+           falló (21-10-2026): se reutiliza el documento de entonces. Sin
+           esto, pulsar «Enviar» otra vez volvía a subir todos los papeles
+           y el expediente quedaba con cada uno repetido. Si se elige otro
+           archivo, la huella no cuadra y se sube el nuevo. */
+        if (archivo && f.getAttribute('data-subido') &&
+            f.getAttribute('data-subido-de') === huellaDeArchivo(archivo)){
+          yaHecho = f.getAttribute('data-subido');
+          archivo = null;
+        }
         if (!archivo && yaHecho){
           cual.id = yaHecho; vanAhora.push(cual);
           tareas.push(engancha(tr.id, yaHecho)); return;
         }
         if (!archivo) return;
-        tareas.push(sube(f.getAttribute('data-doc'), archivo, null, null,
+        var fVence = f.querySelector('.sd-vence-f');
+        tareas.push(sube(f.getAttribute('data-doc'), archivo, (fVence && fVence.value) || null, null,
                          f.getAttribute('data-titular') || null).then(function(docId){
           cual.id = docId; vanAhora.push(cual);
+          f.setAttribute('data-subido', docId);
+          f.setAttribute('data-subido-de', huellaDeArchivo(archivo));
           hechos++; cuenta();
           return engancha(tr.id, docId);
         }));
@@ -9565,6 +9629,17 @@ applyLang(idiomaParaMi());
     return vencenPide;
   }
   function caduca(tipo){ return !!(VENCEN && VENCEN[tipo]); }
+  /* La casilla de «¿Cuándo vence?» de un recaudo del trámite, si está a la
+     vista y vacía; null si no hace falta o ya tiene fecha. */
+  function sinVencimiento(fila){
+    var d = fila.querySelector('.sd-vence-f');
+    return (d && !d.value && fila.querySelector('input[type=file]').files[0]) ? d : null;
+  }
+  /* El día de hoy en Caracas (UTC-4, sin horario de verano), como fecha
+     de la base: un papel que vence hoy vale hasta medianoche de allá. */
+  function hoyCaracas(){
+    return new Date(Date.now() - 4 * 3600000).toISOString().slice(0, 10);
+  }
 
   /* ── UN RECAUDO NUEVO NO SE PIDE ANTES DE QUE LA BASE LO CONOZCA ──
      Los recaudos con siExiste llevan un tipo de documento que nace con un
@@ -9715,6 +9790,12 @@ applyLang(idiomaParaMi());
      row-level security policy (USING expression)». Pasaba al reintentar
      un envío que había fallado a medias: los papeles que sí se habían
      enganchado la primera vez tumbaban el segundo intento (23-9-2026). */
+  /* Lo que distingue un archivo elegido de otro sin leerlo entero: el
+     reintento de un envío solo necesita saber si es EL MISMO que ya subió. */
+  function huellaDeArchivo(a){
+    return [a.name, a.size, a.lastModified].join('|');
+  }
+
   function engancha(tramiteId, documentoId){
     return sb.from('tramite_documentos')
       .upsert({tramite: tramiteId, documento: documentoId},
@@ -33832,6 +33913,11 @@ applyLang(idiomaParaMi());
                      b_cita:true, nube_espera:3200, nube_dura:8400,
                      nube_vuelve:180000, textos:{}};
   var soCfg = null, soSinSql = false;
+  /* El idioma en que se pintaron las casillas de los textos. Guardar
+     escribe en ESE, no en el que haya ahora (21-10-2026): cambiar de
+     bandera con la pantalla abierta guardaba los textos en español como
+     los ingleses, o borraba los ingleses si las casillas iban vacías. */
+  var soLang = null;
 
   /* Los interruptores y los tiempos, declarados una vez: los usan el
      pintado, el guardado y la lectura. Tres listas separadas acabarian
@@ -33879,6 +33965,7 @@ applyLang(idiomaParaMi());
 
   function pintaAcomp(){
     if (!soVista) return;
+    soLang = curLang;
     var u = T();
     var d = I18N[curLang] || I18N.en;
     if (soSub) soSub.textContent = u.sop_sub || '';
@@ -33992,8 +34079,9 @@ applyLang(idiomaParaMi());
       var v = (document.getElementById('so_t_' + x.k).value || '').trim();
       if (v) mios[x.k] = v;
     });
-    if (Object.keys(mios).length) textos[curLang] = mios;
-    else delete textos[curLang];
+    var enQue = soLang || curLang;
+    if (Object.keys(mios).length) textos[enQue] = mios;
+    else delete textos[enQue];
     fila.textos = textos;
 
     /* Con .select(): RLS no da error al bloquear, contesta que todo fue
@@ -34025,6 +34113,7 @@ applyLang(idiomaParaMi());
     if (soG) soG.addEventListener('click', guardaAcomp);
     window.CIIP_PINTA_ACOMP   = cargaAcomp;
     window.CIIP_REPINTA_ACOMP = pintaAcomp;
+    window.CIIP_ACOMP_LEIDA   = function(){ return !!soCfg; };
   }
 
   /* ══ EL RASTRO ═══════════════════════════════════════════════════════
