@@ -259,6 +259,19 @@ const PROPIOS = new Set((
      se libraba de la regla por tener seis palabras y no cinco, lo cual
      era suerte y no criterio. */
   'Extranjeros Estrangeiros Stranieri Foreigners ' +
+  /* Tres nombres propios que la regla marcaba (23-10-2026): el «Servicio
+     Autónomo de Contraloría Sanitaria» y el «Cuerpo de Bomberos» son
+     organismos, y la «Ventanilla Verde» es el sistema del MINEC. Se
+     llaman así; los cargos y documentos sí van en minúscula. */
+  'Servicio Autónomo Contraloría Sanitaria Cuerpo Bomberos Verde ' +
+  /* Los mismos organismos en los otros idiomas latinos, y el SAPI: son
+     nombres de instituciones, no rótulos en Title Case. Y «Niza», la
+     Clasificación de Niza de las marcas, y el «RTN Digital» de MINTUR,
+     que se llaman así. */
+  'Autonomous Health Comptroller Service Fire Department Intellectual Property ' +
+  'Serviço Autónomo Controladoria Sanitária Corpo Bombeiros ' +
+  'Servizio Autonomo Controllo Sanitario Corpo Vigili Fuoco ' +
+  'Niza Nice Nizza Digital Tomo ' +
   'Investitore Sportello Investor One Stop Window Concept Demo Ministerio ' +
   /* Y las formas societarias: «Compañía Anónima», «Sociedad de
      Responsabilidad Limitada» son figuras jurídicas con nombre propio, no
@@ -340,7 +353,9 @@ const SALTOS = new Set([
   /* El nombre de la casilla c37 lo escribio el CIIP con mayusculas, como
      nombre propio: «Registros Parafiscales y Regulatorios». Su version
      editada vive en textos_panel y manda sobre la de aqui; la norma de
-     «sin mayusculas en medio» no es para un nombre que el CIIP decidio. */
+     «sin mayusculas en medio» no es para un nombre que el CIIP decidio.
+     El 23-10-2026 Franklin Reyes pidió pasarlo a minúscula en el
+     diccionario; la excepción se queda por la versión de textos_panel. */
   'c37.name',
   /* Y la casilla del SACS (c48, Franklin Reyes, 7-10-2026, Ventanilla única
      2.7): su nombre es el del organismo, «Servicio Autónomo de Contraloría
@@ -350,7 +365,16 @@ const SALTOS = new Set([
   /* Y los finales de la etiqueta del horario de Ayuda y guía (14-10-2026),
      que van detrás de « · »: «Abierto ahora · cierra a las 5:00 p. m.»,
      «Cerrado · abre el lunes a las 8:00 a. m.». */
-  'ay_hor_cierra', 'ay_hor_abre_hoy', 'ay_hor_abre_man', 'ay_hor_abre_dia'
+  'ay_hor_cierra', 'ay_hor_abre_hoy', 'ay_hor_abre_man', 'ay_hor_abre_dia',
+  /* 23-10-2026, al limpiar las mayúsculas en mitad de los rótulos:
+       · vt_dev_rev  «¿Hay que corregir algo? Devolver»: tras la pregunta
+                     empieza otra frase, y va en mayúscula.
+       · pp_ciip, pp_boveda, pu_total  finales que se pegan detrás de otro
+                     texto («… enviado por el CIIP», «… en tu bóveda»).
+       · ay_rec_parafiscales_lista, ay_rec_bomberos_lista  listas de
+                     enlaces: el «?» es el de la dirección web. */
+  'vt_dev_rev', 'pp_ciip', 'pp_boveda', 'pu_total',
+  'ay_rec_parafiscales_lista', 'ay_rec_bomberos_lista'
 ]);
 
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\s*/gu;

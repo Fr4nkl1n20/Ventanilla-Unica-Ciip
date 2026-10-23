@@ -10989,7 +10989,7 @@
           window.CIIP_ESCALERA({estado: 'enviado', datos: {}}, 'licencia_municipal', 'Alcaldía').todos
             .map(function(p){ return p.nombre; }).join(' → '),
           'Solicita la licencia de actividades económicas a través del portal de la alcaldía → ' +
-          'Emisión de la licencia en proceso → Licencia de Actividades Económicas emitida');
+          'Emisión de la licencia en proceso → Licencia de actividades económicas emitida');
     var ya = {licencia_solicitada: '2026-10-01T10:00:00-04:00'};
     igual('licencia: recibida y sin marcar, el paso 1 está en curso', dibujo('enviado'), 'ahora,porhacer,porhacer');
     igual('licencia: en revisión tampoco avanza sin la marca', dibujo('en_revision'), 'ahora,porhacer,porhacer');
