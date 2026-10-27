@@ -5610,6 +5610,99 @@ $ft$;
 reset role;
 select arnes.nadie();
 
+-- ── LA FICHA DE CADA INVERSIONISTA (supabase-fichas-inversionistas.sql) ──
+-- Franklin Reyes, 27-10-2026: el administrador la escribe y la envía; el
+-- equipo la lee; el inversionista ve la suya y solo enviada.
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+do $fi$
+begin
+  insert into public.fichas_inversionistas (usuario_id, contenido)
+  values ((select id from arnes.gente where papel = 'A'), '{"titulo":"Caso práctico · A"}');
+  perform arnes.comprueba('ficha inv.: el admin la crea', true);
+exception when others then
+  perform arnes.comprueba('ficha inv.: el admin la crea', false, sqlerrm);
+end
+$fi$;
+select arnes.comprueba('ficha inv.: nace en borrador, sin fecha de envío',
+  coalesce((select estado = 'borrador' and enviada_en is null from public.fichas_inversionistas
+             where usuario_id = (select id from arnes.gente where papel = 'A')), false));
+do $fi$
+begin
+  insert into public.fichas_inversionistas (usuario_id, contenido)
+  values ((select id from arnes.gente where papel = 'B'), '[1,2]');
+  perform arnes.comprueba('ficha inv.: el contenido tiene que ser un objeto', false, 'ENTRO');
+exception when check_violation then
+  perform arnes.comprueba('ficha inv.: el contenido tiene que ser un objeto', true, sqlerrm);
+end
+$fi$;
+
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+select arnes.comprueba('ficha inv.: en borrador, el inversionista no la ve',
+  (select count(*) = 0 from public.fichas_inversionistas));
+
+select arnes.soy((select id from arnes.gente where papel = 'G'));
+select arnes.comprueba('ficha inv.: el gestor la lee',
+  (select count(*) = 1 from public.fichas_inversionistas));
+do $fi$
+declare n int;
+begin
+  update public.fichas_inversionistas set estado = 'enviada';
+  get diagnostics n = row_count;
+  perform arnes.comprueba('ficha inv.: el gestor no la envía', n = 0, n || ' fila(s)');
+exception when others then
+  perform arnes.comprueba('ficha inv.: el gestor no la envía', true, sqlerrm);
+end
+$fi$;
+
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+update public.fichas_inversionistas set estado = 'enviada'
+ where usuario_id = (select id from arnes.gente where papel = 'A');
+select arnes.comprueba('ficha inv.: enviada, la base sella la fecha',
+  coalesce((select enviada_en is not null from public.fichas_inversionistas
+             where usuario_id = (select id from arnes.gente where papel = 'A')), false));
+
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+select arnes.comprueba('ficha inv.: enviada, el inversionista ve la suya',
+  (select count(*) = 1 from public.fichas_inversionistas));
+do $fi$
+declare n int;
+begin
+  update public.fichas_inversionistas set contenido = '{"titulo":"Colado"}';
+  get diagnostics n = row_count;
+  perform arnes.comprueba('ficha inv.: el inversionista no la cambia', n = 0, n || ' fila(s)');
+exception when others then
+  perform arnes.comprueba('ficha inv.: el inversionista no la cambia', true, sqlerrm);
+end
+$fi$;
+select arnes.soy((select id from arnes.gente where papel = 'B'));
+select arnes.comprueba('ficha inv.: ni otro inversionista la ve',
+  (select count(*) = 0 from public.fichas_inversionistas));
+
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+update public.fichas_inversionistas set estado = 'borrador', contenido = '{"titulo":"Corregida"}'
+ where usuario_id = (select id from arnes.gente where papel = 'A');
+select arnes.comprueba('ficha inv.: vuelta a borrador, guarda la fecha del último envío',
+  coalesce((select enviada_en is not null from public.fichas_inversionistas
+             where usuario_id = (select id from arnes.gente where papel = 'A')), false));
+select arnes.soy((select id from arnes.gente where papel = 'A'));
+select arnes.comprueba('ficha inv.: y el inversionista deja de verla',
+  (select count(*) = 0 from public.fichas_inversionistas));
+
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+do $fi$
+declare n int;
+begin
+  delete from public.fichas_inversionistas where usuario_id = (select id from arnes.gente where papel = 'A');
+  get diagnostics n = row_count;
+  perform arnes.comprueba('ficha inv.: el admin la borra', n = 1, n || ' fila(s)');
+exception when others then
+  perform arnes.comprueba('ficha inv.: el admin la borra', false, sqlerrm);
+end
+$fi$;
+reset role;
+select arnes.nadie();
+
 \o
 \pset tuples_only on
 \pset format unaligned

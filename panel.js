@@ -39396,8 +39396,456 @@ applyLang(idiomaParaMi());
   });
   nueva.addEventListener('click', abreNueva);
 
-  window.CIIP_PINTA_FTECNICA = function(){ carga(); cargaDocs(); };
-  window.CIIP_REPINTA_FTECNICA = function(){ if (cargada) pinta(); pintaDocs(); };
+  window.CIIP_PINTA_FTECNICA = function(){
+    carga(); cargaDocs();
+    /* Y la pestaña de las fichas de inversionistas (27-10-2026). */
+    if (window.CIIP_PINTA_FINV) window.CIIP_PINTA_FINV();
+  };
+  window.CIIP_REPINTA_FTECNICA = function(){
+    if (cargada) pinta(); pintaDocs();
+    if (window.CIIP_REPINTA_FINV) window.CIIP_REPINTA_FINV();
+  };
+})();
+
+/* ---------- la ficha de cada inversionista ----------
+   Franklin Reyes, 27-10-2026: la ficha toma los permisos que le faltan al
+   inversionista al crear su usuario, «con el fin de hacer función del
+   expediente»; se genera en Ficha técnica; tiene la forma de la ficha de
+   Atlas (la del caso Tertoga); y el administrador la edita «antes de
+   subirla al inversionista». maquetas/ficha-tecnica-inversionistas.html.
+
+   Mientras la ventanilla no esté conectada a Atlas, la ficha nueva sale de
+   lo que sí hay: el perfil del inversionista (nombre, país, sector) y,
+   para su sector, los permisos de Ficha técnica por momento. Las tres
+   primeras secciones de la ruta son las de toda empresa extranjera. Lo
+   demás lo escribe el administrador sobre la hoja.
+
+   La hoja es un documento en español, como la de Atlas: su texto no se
+   traduce con el panel. Lo que sí se traduce son los mandos de alrededor.
+
+   Una fila por inversionista en fichas_inversionistas (supabase-fichas-
+   inversionistas.sql). El inversionista solo la puede leer enviada. */
+(function(){
+  var vista = document.getElementById('fiVista');
+  if (!vista) return;
+  var tabInv = document.getElementById('fiTabInv');
+  var tabPer = document.getElementById('fiTabPer');
+  var permisos = document.getElementById('ftPermisos');
+  var hoja  = document.getElementById('fiHoja');
+  var lista = document.getElementById('fiLista');
+  var der   = document.getElementById('fiFicha');
+  var aviso = document.getElementById('fiAviso');
+  var busca = document.getElementById('fiBusca');
+
+  var MOMENTOS = [['previo', 'Antes de la ejecución'], ['durante', 'Durante la ejecución'], ['operar', 'Para operar']];
+  /* Las de toda empresa extranjera, como en la ficha de Tertoga. */
+  var COMUNES = [
+    {t:'Acreditación de identidad y legitimación', tipo:'sec', filas:[
+      ['M.P.P. Relaciones Exteriores', 'Visas de negocios (TR-N) e inversionista (TR-I).', 'Enlace de coordinación establecido.']]},
+    {t:'Estructuración corporativa', tipo:'sec', filas:[
+      ['ZODI', 'Opinión favorable para constituir la empresa (extranjeros y ZEE).', 'Plazo: 3 a 4 meses; sin ella no se constituye.'],
+      ['SAREN', 'Constitución de la empresa, si la requiere el contrato, y autorización de firma para extranjeros (SISREF).', 'Plazo: 3 a 4 meses (meta: 1 a 2).'],
+      ['SENIAT y banca', 'RIF de la empresa y cuenta bancaria en Venezuela.', 'Núcleo común: requisito de los demás registros.']]},
+    {t:'Habilitación operativa y cumplimiento', tipo:'sec', filas:[
+      ['Registros parafiscales y regulatorios', 'RNET (M.P.P. Trabajo), FAOV (BANAVIH), INCES, Seguro Social (IVSS) y RUPDAE (SUNDDE).', 'Obligatorios para toda empresa. RNC (SNC), si contrata con el Estado.']]}
+  ];
+  var VACIA = ['Ente', 'Trámite o permiso', 'Observación'];
+
+  var tab = 'inv';
+  var invs = [], guardadas = {}, nombreSector = {}, permisosFT = [];
+  var sinSql = false, errCarga = false, cargada = false;
+  /* Lo que se está escribiendo, por inversionista: cambiar de uno a otro
+     no se lleva lo que no se ha guardado. */
+  var trabajo = {};
+  var sel = null, ed = false, filtro = '', dice = '', diceMal = false, ocupado = false;
+
+  function T(){ return window.CIIP_T ? window.CIIP_T() : {}; }
+  function sb(){ return window.sbCIIP; }
+  function soyAdmin(){ return (typeof PERFIL !== 'undefined' && PERFIL.rol) === 'admin'; }
+  function copia(x){ return JSON.parse(JSON.stringify(x)); }
+  function faltaLaTabla(e){
+    var c = String((e && e.code) || ''), m = String((e && e.message) || '');
+    return c === 'PGRST205' || c === '42P01' || /does not exist|schema cache/i.test(m);
+  }
+  function fecha(x){
+    var d = x ? new Date(x) : null;
+    return d && !isNaN(d) ? d.toLocaleDateString(localeDeAhora(), {day:'numeric', month:'long', year:'numeric'}) : '';
+  }
+  function nombreDe(p){ return (p && String(p.nombre_completo || '').trim()) || T().fi_sinnombre || ''; }
+  function elInv(id){ return invs.filter(function(p){ return p.id === id; })[0] || null; }
+
+  /* ── LAS PESTAÑAS ── */
+  function ponTab(t){
+    tab = t;
+    tabInv.setAttribute('aria-selected', t === 'inv' ? 'true' : 'false');
+    tabPer.setAttribute('aria-selected', t === 'per' ? 'true' : 'false');
+    vista.hidden = t !== 'inv';
+    permisos.hidden = t !== 'per';
+  }
+  tabInv.addEventListener('click', function(){ ponTab('inv'); });
+  tabPer.addEventListener('click', function(){ ponTab('per'); });
+
+  /* ── LA CARGA ──
+     Los inversionistas, sus fichas, los nombres de los sectores y los
+     permisos de Ficha técnica. Sin el sector (supabase-sectores.sql) se
+     vuelve a pedir sin él: la ficha sale igual, sin permisos del sector. */
+  function carga(){
+    var b = sb();
+    if (!b){ sinSql = true; pinta(); return; }
+    function perfiles(cols){ return Promise.resolve(b.from('perfiles').select(cols).eq('rol', 'inversionista')); }
+    var losPerfiles = perfiles('id, nombre_completo, pais, sector, creado_en').then(function(r){
+      return r && r.error && /column|columna/i.test(r.error.message || '') ? perfiles('id, nombre_completo, pais, creado_en') : r;
+    });
+    Promise.all([
+      losPerfiles,
+      Promise.resolve(b.from('fichas_inversionistas').select('usuario_id, contenido, estado, enviada_en, actualizado_en')),
+      Promise.resolve(b.from('sectores').select('codigo, nombre')).catch(function(){ return null; }),
+      Promise.resolve(b.from('fichas_tecnicas').select('ente_sigla, ente, nombre, momento, sectores, plazo, vigencia')).catch(function(){ return null; })
+    ]).then(function(rs){
+      cargada = true; sinSql = false; errCarga = false;
+      var rp = rs[0], rf = rs[1];
+      if (rp && rp.error){ errCarga = true; console.warn('[CIIP] fichas de inversionistas, perfiles:', rp.error.message || rp.error); }
+      invs = ((rp && rp.data) || []).slice().sort(function(a, b){
+        return String(b.creado_en || '').localeCompare(String(a.creado_en || ''));
+      });
+      guardadas = {};
+      if (rf && rf.error){
+        if (faltaLaTabla(rf.error)) sinSql = true; else errCarga = true;
+        console.warn('[CIIP] fichas de inversionistas:', rf.error.message || rf.error);
+      } else {
+        ((rf && rf.data) || []).forEach(function(f){ guardadas[f.usuario_id] = f; });
+      }
+      nombreSector = {};
+      ((rs[2] && rs[2].data) || []).forEach(function(s){ nombreSector[s.codigo] = s.nombre; });
+      permisosFT = (rs[3] && rs[3].data) || [];
+      if (sel && !elInv(sel)){ sel = null; ed = false; }
+      pinta();
+    }, function(e){
+      cargada = true; errCarga = true;
+      console.warn('[CIIP] fichas de inversionistas:', e && (e.message || e));
+      pinta();
+    });
+  }
+
+  /* ── LA FICHA QUE SALE SOLA ── */
+  function genera(p){
+    var sector = (p.sector && (nombreSector[p.sector] || p.sector)) || '';
+    var claves = [llano(p.sector).trim(), llano(sector).trim()].filter(Boolean);
+    var hoy = new Date().toLocaleDateString('es-VE', {day:'numeric', month:'short', year:'numeric'}).replace(/\./g, '');
+    var ruta = copia(COMUNES);
+    if (claves.length) MOMENTOS.forEach(function(m){
+      var filas = permisosFT.filter(function(f){
+        return f.momento === m[0] && (f.sectores || []).some(function(s){ return claves.indexOf(llano(s).trim()) >= 0; });
+      }).map(function(f){
+        var obs = [f.plazo ? 'Plazo: ' + f.plazo : '', f.vigencia ? 'Vigencia: ' + f.vigencia : ''].filter(Boolean).join('. ');
+        return [f.ente_sigla || f.ente || '', f.nombre || '', obs];
+      });
+      if (filas.length) ruta.push({t:m[1], tipo:'subsec', filas:filas});
+    });
+    return {
+      titulo: 'Caso práctico · ' + nombreDe(p),
+      sub: [sector ? 'Sector ' + sector.toLowerCase() : 'Sector por registrar',
+            p.pais ? 'Inversionista de ' + p.pais : '', 'Corte: ' + hoy].filter(Boolean).join(' · '),
+      kpis: [['Por registrar', 'Tipo de contrato'], ['Por registrar', 'Años estimados'],
+             ['Por registrar', 'Ente que interviene'], ['Por registrar', 'Zona'],
+             [sector || 'Por registrar', 'Sector del proyecto'], ['Por registrar', 'Monto de la inversión']],
+      ruta: ruta,
+      nota: '',
+      fuentes: 'Fuentes: perfil del inversionista en la ventanilla; Ficha técnica de la ventanilla (CIIP).'
+    };
+  }
+  /* Lo guardado puede venir de otra versión de la hoja: lo que falte se
+     rellena para que pintarla no se caiga. */
+  function sana(c){
+    c = (c && typeof c === 'object') ? copia(c) : {};
+    c.titulo = String(c.titulo || ''); c.sub = String(c.sub || '');
+    c.nota = String(c.nota || ''); c.fuentes = String(c.fuentes || '');
+    c.kpis = Array.isArray(c.kpis) ? c.kpis : [];
+    while (c.kpis.length < 6) c.kpis.push(['', '']);
+    c.ruta = (Array.isArray(c.ruta) ? c.ruta : []).map(function(s){
+      return {t:String((s && s.t) || ''), tipo:(s && s.tipo) === 'sec' ? 'sec' : 'subsec',
+              filas:((s && s.filas) || []).map(function(f){ return [0, 1, 2].map(function(i){ return String((f && f[i]) || ''); }); })};
+    });
+    return c;
+  }
+  function elTrabajo(id){
+    if (!trabajo[id]){
+      var g = guardadas[id];
+      trabajo[id] = {c: g ? sana(g.contenido) : genera(elInv(id)), sucio: !g};
+    }
+    return trabajo[id];
+  }
+
+  /* ── LA LISTA ── */
+  function pinta(){
+    var u = T();
+    tabInv.textContent = u.fi_tab_inv || '';
+    tabPer.textContent = u.fi_tab_per || '';
+    busca.placeholder = u.fi_busca || '';
+    busca.setAttribute('aria-label', u.fi_busca || '');
+    aviso.hidden = !(sinSql || errCarga);
+    aviso.textContent = sinSql ? (u.fi_sinsql || '') : errCarga ? (u.fi_errcarga || '') : '';
+    hoja.hidden = !cargada || (sinSql && !invs.length);
+    pintaLista(u);
+    pintaFicha(u);
+  }
+
+  function pintaLista(u){
+    lista.textContent = '';
+    if (!cargada) return;
+    if (!invs.length){ lista.appendChild(el('p', 'ftd-nada', u.fi_vacio || '')); return; }
+    var q = llano(filtro);
+    var vistos = invs.filter(function(p){ return !q || llano(nombreDe(p) + ' ' + (p.pais || '')).indexOf(q) >= 0; });
+    if (!vistos.length){ lista.appendChild(el('p', 'ftd-nada', u.fi_nada || '')); return; }
+    vistos.forEach(function(p){
+      var g = guardadas[p.id];
+      var b = el('button', 'ftp-it' + (p.id === sel ? ' on' : ''));
+      b.type = 'button';
+      if (p.id === sel) b.setAttribute('aria-current', 'true');
+      b.appendChild(el('b', '', nombreDe(p)));
+      var est = !g ? (u.fi_sinficha || '')
+        : g.estado === 'enviada' ? String(u.fi_enviada || '').replace('{fecha}', fecha(g.enviada_en))
+        : (u.fi_borrador || '');
+      if (trabajo[p.id] && trabajo[p.id].sucio && g) est += ' · ' + (u.fi_sucio || '');
+      b.appendChild(el('span', '', est));
+      b.addEventListener('click', function(){
+        if (sel === p.id) return;
+        sel = p.id; ed = false; dice = '';
+        pinta();
+      });
+      lista.appendChild(b);
+    });
+  }
+
+  /* ── LA FICHA ── */
+  var barra = null, diceEl = null;
+  function pintaFicha(u){
+    der.textContent = '';
+    if (!cargada || !sel || !elInv(sel)){
+      if (cargada && invs.length) der.appendChild(el('p', 'ftd-nada', u.fi_elige || ''));
+      return;
+    }
+    var t = elTrabajo(sel);
+    barra = el('div', 'fi-barra');
+    der.appendChild(barra);
+    diceEl = el('p', 'fi-dice');
+    der.appendChild(diceEl);
+    pintaBarra(u);
+    if (ed) der.appendChild(el('p', 'fi-ayuda', u.fi_ayuda || ''));
+    var lienzo = el('div', 'fi-lienzo');
+    lienzo.appendChild(laHoja(t.c, ed && soyAdmin()));
+    der.appendChild(lienzo);
+  }
+
+  function boton(cls, txt, fn){
+    var b = el('button', 'btn ' + cls, txt);
+    b.type = 'button';
+    b.disabled = ocupado;
+    b.addEventListener('click', fn);
+    return b;
+  }
+
+  function pintaBarra(u){
+    u = u || T();
+    var g = guardadas[sel], t = elTrabajo(sel), admin = soyAdmin(), escribe = admin && !sinSql;
+    barra.textContent = '';
+    barra.className = 'fi-barra' + (!g ? '' : g.estado === 'enviada' ? ' enviada' : ' borrador');
+    var txt = !g ? (u.fi_nueva_d || '')
+      : g.estado === 'enviada' ? String(u.fi_enviada_d || '').replace('{fecha}', fecha(g.enviada_en))
+      : (u.fi_borrador_d || '');
+    if (!soyAdmin()) txt += ' ' + (u.fi_lectura || '');
+    barra.appendChild(el('span', 'fi-barra-t', txt));
+    if (admin){
+      barra.appendChild(boton('ghost', ed ? (u.fi_listo || '') : (u.fi_editar || ''), function(){ ed = !ed; pinta(); }));
+      if (t.sucio && escribe) barra.appendChild(boton('navy', u.fi_guardar || '', guarda));
+      var re = boton('peligro', u.fi_regenerar || '', function(){
+        if (!re.classList.contains('armado')){ re.classList.add('armado'); re.textContent = u.fi_regenerar_seguro || ''; return; }
+        t.c = genera(elInv(sel)); t.sucio = true;
+        di(u.fi_regenerada); pinta();
+      });
+      barra.appendChild(re);
+    }
+    barra.appendChild(boton('ghost', u.fi_pdf || '', pdf));
+    if (escribe && g && g.estado !== 'enviada'){
+      var en = boton('navy', u.fi_enviar || '', envia);
+      if (t.sucio){ en.disabled = true; en.title = u.fi_sin_guardar || ''; }
+      barra.appendChild(en);
+    }
+    diceEl.className = 'fi-dice' + (diceMal ? ' mal' : '');
+    diceEl.textContent = dice || '';
+  }
+  function di(txt, mal){ dice = txt || ''; diceMal = !!mal; if (diceEl){ diceEl.className = 'fi-dice' + (mal ? ' mal' : ''); diceEl.textContent = dice; } }
+
+  /* La hoja, con DOM y textContent: lo que venga de la base no puede
+     colar una etiqueta. Al editar, cada texto es contenteditable y escribe
+     en el trabajo por su ruta. */
+  function laHoja(c, editando){
+    var t = trabajo[sel];
+    var f = el('div', 'fi-ficha' + (editando ? ' editando' : ''));
+    function txt(tag, cls, obj, k){
+      var e = el(tag, cls, obj[k]);
+      if (editando){
+        e.contentEditable = 'true';
+        e.spellcheck = true;
+        e.addEventListener('input', function(){
+          obj[k] = e.innerText.replace(/\n+$/, '');
+          if (!t.sucio){ t.sucio = true; pintaBarra(); pintaLista(T()); }
+        });
+      }
+      return e;
+    }
+    function cambia(){ t.sucio = true; pinta(); }
+    function mini(cls, txtB, tit, fn){
+      var b = el('button', 'fi-mini' + (cls ? ' ' + cls : ''), txtB);
+      b.type = 'button'; b.title = tit; b.setAttribute('aria-label', tit);
+      b.addEventListener('click', fn);
+      return b;
+    }
+    var u = T();
+
+    var cab = el('div', 'fi-cab');
+    var izq = el('div');
+    izq.appendChild(txt('h1', '', c, 'titulo'));
+    izq.appendChild(txt('div', 'fi-sub', c, 'sub'));
+    cab.appendChild(izq);
+    var logo = el('div', 'fi-logo');
+    var img = el('img'); img.src = new URL('logos/ciip.png', location.href).href; img.alt = 'CIIP';
+    logo.appendChild(img);
+    var cap = el('span'); cap.appendChild(document.createTextNode('Centro Internacional'));
+    cap.appendChild(el('br')); cap.appendChild(document.createTextNode('de Inversión Productiva'));
+    logo.appendChild(cap);
+    cab.appendChild(logo);
+    f.appendChild(cab);
+
+    var kp = el('div', 'fi-kpis');
+    c.kpis.forEach(function(k){
+      var d = el('div', 'fi-kpi');
+      d.appendChild(txt('div', 'fi-kpi-v', k, 0));
+      d.appendChild(txt('div', 'fi-kpi-c', k, 1));
+      kp.appendChild(d);
+    });
+    f.appendChild(kp);
+
+    f.appendChild(el('h2', '', 'Ruta legal del proyecto'));
+    var tb = el('table'), th = el('thead'), tr = el('tr');
+    VACIA.forEach(function(x){ tr.appendChild(el('th', '', x)); });
+    tr.appendChild(el('th', 'fi-acc'));
+    th.appendChild(tr); tb.appendChild(th);
+    var bo = el('tbody');
+    c.ruta.forEach(function(s, si){
+      var r = el('tr', s.tipo), td = el('td');
+      td.colSpan = 3;
+      td.appendChild(txt('span', '', s, 't'));
+      r.appendChild(td);
+      var acc = el('td', 'fi-acc');
+      if (editando){
+        acc.appendChild(mini('', '+', u.fi_agrega || '', function(){ s.filas.push(VACIA.slice()); cambia(); }));
+        acc.appendChild(mini('x', '×', u.fi_quita || '', function(){ c.ruta.splice(si, 1); cambia(); }));
+      }
+      r.appendChild(acc);
+      bo.appendChild(r);
+      s.filas.forEach(function(fi, fj){
+        var r2 = el('tr');
+        ['fi-ente', 'fi-tram', ''].forEach(function(cls, i){
+          var d = el('td', cls);
+          d.appendChild(txt('span', '', fi, i));
+          r2.appendChild(d);
+        });
+        var a2 = el('td', 'fi-acc');
+        if (editando) a2.appendChild(mini('x', '×', u.fi_quita || '', function(){ s.filas.splice(fj, 1); cambia(); }));
+        r2.appendChild(a2);
+        bo.appendChild(r2);
+      });
+    });
+    if (editando){
+      var ra = el('tr'), ta = el('td');
+      ta.colSpan = 4; ta.style.border = '0'; ta.style.paddingTop = '8px';
+      ta.appendChild(mini('', u.fi_agrega_sec || '', u.fi_agrega_sec || '', function(){
+        c.ruta.push({t:'Nueva sección', tipo:'subsec', filas:[VACIA.slice()]}); cambia();
+      }));
+      ra.appendChild(ta); bo.appendChild(ra);
+    }
+    tb.appendChild(bo);
+    f.appendChild(tb);
+
+    if (c.nota || editando){
+      var n = el('div', 'fi-nota');
+      n.appendChild(el('b', '', 'Nota del CIIP: '));
+      n.appendChild(txt('span', '', c, 'nota'));
+      f.appendChild(n);
+    }
+    f.appendChild(txt('div', 'fi-fuentes', c, 'fuentes'));
+    return f;
+  }
+
+  /* ── GUARDAR, ENVIAR, DESCARGAR ──
+     Guardar una enviada la vuelve a borrador: el inversionista no ve una
+     ficha a medio corregir. Se cree a la fila que vuelve, no a la
+     respuesta: con RLS, Postgres contesta bien aunque no escriba. */
+  function trasEscribir(r, txtBien){
+    ocupado = false;
+    if (r && r.error) throw r.error;
+    var fila = r && r.data && r.data[0];
+    if (!fila) throw new Error('sin fila');
+    guardadas[sel] = fila;
+    trabajo[sel] = {c: sana(fila.contenido), sucio: false};
+    di(txtBien);
+    pinta();
+  }
+  function falla(e){
+    var u = T();
+    ocupado = false;
+    console.warn('[CIIP] ficha de inversionista:', e && (e.message || e));
+    di(/permission|policy|row-level|sin fila/i.test(String((e && e.message) || e)) ? u.fi_nopudo : u.fi_error, true);
+    pinta();
+  }
+  var COLS = 'usuario_id, contenido, estado, enviada_en, actualizado_en';
+  function guarda(){
+    var u = T(), t = trabajo[sel];
+    if (!soyAdmin() || sinSql || !t || ocupado) return;
+    ocupado = true; di(u.fi_guardando); pintaBarra(u);
+    Promise.resolve(sb().from('fichas_inversionistas')
+      .upsert({usuario_id: sel, contenido: t.c, estado: 'borrador'}, {onConflict: 'usuario_id'})
+      .select(COLS))
+      .then(function(r){ trasEscribir(r, T().fi_guardado); })
+      .catch(falla);
+  }
+  function envia(){
+    var u = T(), t = trabajo[sel];
+    if (!soyAdmin() || !t || t.sucio || ocupado) return;
+    ocupado = true; di(u.fi_enviando); pintaBarra(u);
+    Promise.resolve(sb().from('fichas_inversionistas')
+      .update({estado: 'enviada'}).eq('usuario_id', sel).select(COLS))
+      .then(function(r){ ed = false; trasEscribir(r, T().fi_enviada_ya); })
+      .catch(falla);
+  }
+  /* El PDF lo hace el navegador: una pestaña con la hoja sola, apaisada,
+     y el cuadro de imprimir, donde se elige «Guardar como PDF». La pestaña
+     se abre YA, con el clic, o el navegador la bloquea. */
+  function pdf(){
+    var t = trabajo[sel];
+    if (!t) return;
+    var w = window.open('', '_blank');
+    if (!w){ di(T().fi_error, true); return; }
+    var css = new URL('panel.css', location.href).href;
+    var cuerpo = laHoja(t.c, false).outerHTML;
+    w.document.open();
+    w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title></title>' +
+      '<link rel="stylesheet" href="' + css + '">' +
+      '<style>@page{size:A4 landscape; margin:10mm;} html,body{background:#fff; margin:0;} ' +
+      '*{-webkit-print-color-adjust:exact; print-color-adjust:exact;} ' +
+      '.fi-ficha{box-shadow:none; min-width:0; max-width:none; padding:0;}</style></head><body>' +
+      cuerpo + '</body></html>');
+    w.document.close();
+    w.document.title = (t.c.titulo || 'Ficha').replace(/[\\/:*?"<>|]+/g, ' ');
+    w.addEventListener('load', function(){ w.focus(); w.print(); });
+  }
+
+  busca.addEventListener('input', function(){ filtro = busca.value.trim(); pintaLista(T()); });
+
+  ponTab('inv');
+  window.CIIP_PINTA_FINV = function(){ carga(); };
+  window.CIIP_REPINTA_FINV = function(){ pinta(); };
 })();
 
 /* ---------- y la última línea ----------

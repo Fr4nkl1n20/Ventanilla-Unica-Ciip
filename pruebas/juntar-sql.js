@@ -332,7 +332,8 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    la tabla que escribe el administrador desde «Ficha técnica» y lee el
    equipo. Solo necesita es_admin() y es_gestor(); al final para no mover
    el número de nadie. Nace vacía y sin relación con los trámites. */
-'supabase-fichas-tecnicas'];
+'supabase-fichas-tecnicas',
+'supabase-fichas-inversionistas'];
 
 let mal = 0;
 for (const n of orden) {

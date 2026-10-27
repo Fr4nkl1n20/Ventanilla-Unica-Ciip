@@ -1599,6 +1599,30 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
          derecha la elegida, editable ahí mismo por el administrador. La
          pinta panel.js (pintaFichas); aquí solo están las dos cajas. -->
     <div class="fichas-vista">
+      <!-- Dos pestañas (Franklin Reyes, 27-10-2026): la ficha de cada
+           inversionista, con la forma de la ficha de Atlas, y los permisos
+           de siempre. La primera la pinta panel.js (fichas de
+           inversionistas); la segunda es lo de abajo, sin cambios. -->
+      <div class="fi-tabs" role="tablist">
+        <button class="fi-tab" id="fiTabInv" type="button" role="tab" data-tab="inv"></button>
+        <button class="fi-tab" id="fiTabPer" type="button" role="tab" data-tab="per"></button>
+      </div>
+      <div class="fi-vista" id="fiVista" hidden>
+        <div class="ftp-aviso" id="fiAviso" hidden></div>
+        <div class="fi-hoja" id="fiHoja">
+          <div class="ftp-izq">
+            <div class="ftp-mandos">
+              <label class="cg-busca ftp-busca">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                <input type="search" id="fiBusca">
+              </label>
+            </div>
+            <div class="ftp-lista" id="fiLista"></div>
+          </div>
+          <div class="fi-der" id="fiFicha"></div>
+        </div>
+      </div>
+      <div id="ftPermisos">
       <!-- Los documentos: PDF hechos fuera del panel, como la ficha del caso
            Tertoga (Franklin Reyes, 21-10-2026). Los sube el administrador y
            los abre el equipo; los pinta panel.js (pintaDocs). -->
@@ -1624,6 +1648,7 @@ html.ciip-verificando[data-theme="dark"]::before{color:#EAEEF6; background:#0F1A
           <div class="ftp-lista" id="ftLista"></div>
         </div>
         <div class="ftp-der" id="ftFicha"></div>
+      </div>
       </div>
     </div>
 
