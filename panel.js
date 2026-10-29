@@ -39410,9 +39410,9 @@ applyLang(idiomaParaMi());
 /* ---------- la ficha de cada inversionista ----------
    Franklin Reyes, 27-10-2026: la ficha toma los permisos que le faltan al
    inversionista al crear su usuario, «con el fin de hacer función del
-   expediente»; se genera en Ficha técnica; tiene la forma de la ficha de
-   Atlas (la del caso Tertoga); y el administrador la edita «antes de
-   subirla al inversionista». maquetas/ficha-tecnica-inversionistas.html.
+   expediente»; se genera en Ficha técnica; y el administrador la edita
+   «antes de subirla al inversionista». Desde el 29-10-2026 su forma es la
+   «Ficha de ventanilla única» (ver FORMATO más abajo).
 
    Mientras la ventanilla no esté conectada a Atlas, la ficha nueva sale de
    lo que sí hay: el perfil del inversionista (nombre, país, sector) y,
@@ -39437,19 +39437,44 @@ applyLang(idiomaParaMi());
   var aviso = document.getElementById('fiAviso');
   var busca = document.getElementById('fiBusca');
 
-  var MOMENTOS = [['previo', 'Antes de la ejecución'], ['durante', 'Durante la ejecución'], ['operar', 'Para operar']];
-  /* Las de toda empresa extranjera, como en la ficha de Tertoga. */
-  var COMUNES = [
-    {t:'Acreditación de identidad y legitimación', tipo:'sec', filas:[
-      ['M.P.P. Relaciones Exteriores', 'Visas de negocios (TR-N) e inversionista (TR-I).', 'Enlace de coordinación establecido.']]},
-    {t:'Estructuración corporativa', tipo:'sec', filas:[
-      ['ZODI', 'Opinión favorable para constituir la empresa (extranjeros y ZEE).', 'Plazo: 3 a 4 meses; sin ella no se constituye.'],
-      ['SAREN', 'Constitución de la empresa, si la requiere el contrato, y autorización de firma para extranjeros (SISREF).', 'Plazo: 3 a 4 meses (meta: 1 a 2).'],
-      ['SENIAT y banca', 'RIF de la empresa y cuenta bancaria en Venezuela.', 'Núcleo común: requisito de los demás registros.']]},
-    {t:'Habilitación operativa y cumplimiento', tipo:'sec', filas:[
-      ['Registros parafiscales y regulatorios', 'RNET (M.P.P. Trabajo), FAOV (BANAVIH), INCES, Seguro Social (IVSS) y RUPDAE (SUNDDE).', 'Obligatorios para toda empresa. RNC (SNC), si contrata con el Estado.']]}
-  ];
-  var VACIA = ['Ente', 'Trámite o permiso', 'Observación'];
+  /* EL FORMATO, DESDE EL 29-10-2026: el de la «Ficha de ventanilla única»
+     (PDF «Versión Preliminar» y sus instrucciones; maquetas/ficha-ventanilla-
+     unica.html). Una hoja carta horizontal, 1056 × 816 px, que tiene que
+     caber entera: banda azul, inversionista y proyecto, cinco datos, los
+     entes firmantes y la ruta legal por etapas, un trámite por fila, con
+     «¿Cuenta con él?» en Sí o No. No lleva permisos para operar, fuentes
+     ni notas sobre el orden de los pasos: así lo piden las instrucciones.
+     Lo de antes (la forma de la ficha de Atlas) no tiene 'formato: 2' y
+     se vuelve a generar en este. */
+  var FORMATO = 2;
+  var ROTULOS = ['Tipo contractual', 'Años (si aplica)', 'Ente', 'ZEE / material estratégico', 'Monto de la inversión'];
+  /* Las etapas A, B y C son las de toda empresa; la D sale de Ficha
+     técnica. El contenido base es el de las instrucciones. */
+  function fila(ente, tramite, obs){ return {ente:ente, tramite:tramite, cuenta:'No', obs:obs || '', n:''}; }
+  function etapasBase(extranjero){
+    var previa = 'Previo a la constitución de la empresa.';
+    return [
+      {t:'Acreditación de identidad y legitimación', sub:'', filas:[
+        fila('M.P.P. Relaciones Exteriores', 'Visa de inversionista (TR-I).')]},
+      {t:'Estructuración corporativa', sub:'(necesaria para firmar el contrato)', filas:[]
+        .concat(extranjero ? [fila('ZODI', 'Opinión favorable para constituir la empresa (extranjeros y ZEE).', previa)] : [])
+        .concat([
+          fila('SAREN', 'Autorización de firma para extranjeros (SISREF).', previa),
+          fila('SAREN', 'Constitución de la empresa.'),
+          fila('SENIAT', 'Registro de Información Fiscal (RIF) de la empresa.'),
+          fila('Banca', 'Apertura de cuenta bancaria en Venezuela.')])},
+      {t:'Habilitación operativa y cumplimiento', sub:'', filas:[
+        fila('M.P.P. Trabajo', 'Registro Nacional de Entidades de Trabajo (RNET).'),
+        fila('BANAVIH', 'Registro en el Fondo de Ahorro Obligatorio para la Vivienda (FAOV).'),
+        fila('INCES', 'Inscripción en el INCES.'),
+        fila('IVSS', 'Inscripción en el Seguro Social.'),
+        fila('SUNDDE', 'Registro Único de Personas que Desarrollan Actividades Económicas (RUPDAE).'),
+        fila('SNC', 'Registro Nacional de Contratistas (RNC), si contrata con el Estado.')]}
+    ];
+  }
+  /* Los ministerios de Ficha técnica van por su sigla; la hoja los pide
+     como «M.P.P. [nombre]». Solo los que la ficha técnica ya tiene. */
+  var MPP = {MINTUR:'M.P.P. Turismo', MINEC:'M.P.P. Ecosocialismo'};
 
   var tab = 'inv';
   var invs = [], guardadas = {}, nombreSector = {}, permisosFT = [];
@@ -39527,51 +39552,62 @@ applyLang(idiomaParaMi());
     });
   }
 
-  /* ── LA FICHA QUE SALE SOLA ── */
+  /* ── LA FICHA QUE SALE SOLA ──
+     Lo que no se sabe va «Por registrar», nunca inventado (instrucciones,
+     punto 4). La etapa D: los permisos de Ficha técnica previos a la
+     ejecución para su sector, en el orden de la ficha técnica y sin
+     numerar: el orden legal lo pone el administrador. */
   function genera(p){
     var sector = (p.sector && (nombreSector[p.sector] || p.sector)) || '';
     var claves = [llano(p.sector).trim(), llano(sector).trim()].filter(Boolean);
-    var hoy = new Date().toLocaleDateString('es-VE', {day:'numeric', month:'short', year:'numeric'}).replace(/\./g, '');
-    var ruta = copia(COMUNES);
-    if (claves.length) MOMENTOS.forEach(function(m){
-      var filas = permisosFT.filter(function(f){
-        return f.momento === m[0] && (f.sectores || []).some(function(s){ return claves.indexOf(llano(s).trim()) >= 0; });
-      }).map(function(f){
-        var obs = [f.plazo ? 'Plazo: ' + f.plazo : '', f.vigencia ? 'Vigencia: ' + f.vigencia : ''].filter(Boolean).join('. ');
-        return [f.ente_sigla || f.ente || '', f.nombre || '', obs];
-      });
-      if (filas.length) ruta.push({t:m[1], tipo:'subsec', filas:filas});
+    var hoy = new Date().toLocaleDateString('es-VE', {day:'numeric', month:'long', year:'numeric'});
+    /* ZODI solo con socios extranjeros o en ZEE. Sin país en el perfil, se
+       deja: quitarla es lo que no se puede deshacer sin saberlo. */
+    var extranjero = !p.pais || llano(p.pais).trim() !== 'venezuela';
+    var etapas = etapasBase(extranjero);
+    var previos = !claves.length ? [] : permisosFT.filter(function(f){
+      return f.momento === 'previo' && (f.sectores || []).some(function(s){ return claves.indexOf(llano(s).trim()) >= 0; });
+    }).map(function(f){
+      var sigla = String(f.ente_sigla || '').trim();
+      return fila(MPP[sigla.toUpperCase()] || sigla || f.ente || '', String(f.nombre || '').replace(/\.?$/, '.'));
     });
+    etapas.push({t:'Previos a la ejecución del proyecto', sub:'', filas: previos.length ? previos : [fila('Por registrar', 'Por registrar')]});
     return {
-      titulo: 'Caso práctico · ' + nombreDe(p),
-      sub: [sector ? 'Sector ' + sector.toLowerCase() : 'Sector por registrar',
-            p.pais ? 'Inversionista de ' + p.pais : '', 'Corte: ' + hoy].filter(Boolean).join(' · '),
-      kpis: [['Por registrar', 'Tipo de contrato'], ['Por registrar', 'Años estimados'],
-             ['Por registrar', 'Ente que interviene'], ['Por registrar', 'Zona'],
-             [sector || 'Por registrar', 'Sector del proyecto'], ['Por registrar', 'Monto de la inversión']],
-      ruta: ruta,
-      nota: '',
-      fuentes: 'Fuentes: perfil del inversionista en la ventanilla; Ficha técnica de la ventanilla (CIIP).'
+      formato: FORMATO,
+      sector: sector || 'Por registrar',
+      corte: hoy,
+      inversionista: nombreDe(p),
+      proyecto: 'Por registrar',
+      datos: ['Por registrar', 'Por registrar', 'Por registrar', 'Por registrar', 'Por registrar'],
+      firmantes: {rotulo:'Entes que deben firmar el contrato:', entes:'Por registrar', norma:''},
+      etapas: etapas
     };
   }
-  /* Lo guardado puede venir de otra versión de la hoja: lo que falte se
-     rellena para que pintarla no se caiga. */
+  /* Lo guardado se repasa antes de pintarlo: lo que falte se rellena, para
+     que una fila a medias no tire la hoja. Lo del formato anterior
+     devuelve null y se genera de nuevo (elTrabajo). */
   function sana(c){
-    c = (c && typeof c === 'object') ? copia(c) : {};
-    c.titulo = String(c.titulo || ''); c.sub = String(c.sub || '');
-    c.nota = String(c.nota || ''); c.fuentes = String(c.fuentes || '');
-    c.kpis = Array.isArray(c.kpis) ? c.kpis : [];
-    while (c.kpis.length < 6) c.kpis.push(['', '']);
-    c.ruta = (Array.isArray(c.ruta) ? c.ruta : []).map(function(s){
-      return {t:String((s && s.t) || ''), tipo:(s && s.tipo) === 'sec' ? 'sec' : 'subsec',
-              filas:((s && s.filas) || []).map(function(f){ return [0, 1, 2].map(function(i){ return String((f && f[i]) || ''); }); })};
+    if (!c || typeof c !== 'object' || c.formato !== FORMATO) return null;
+    c = copia(c);
+    ['sector', 'corte', 'inversionista', 'proyecto'].forEach(function(k){ c[k] = String(c[k] || ''); });
+    c.datos = (Array.isArray(c.datos) ? c.datos : []).map(String);
+    while (c.datos.length < ROTULOS.length) c.datos.push('');
+    var fm = c.firmantes || {};
+    c.firmantes = {rotulo:String(fm.rotulo || ''), entes:String(fm.entes || ''), norma:String(fm.norma || '')};
+    c.etapas = (Array.isArray(c.etapas) ? c.etapas : []).map(function(e){
+      return {t:String((e && e.t) || ''), sub:String((e && e.sub) || ''),
+              filas:((e && e.filas) || []).map(function(f){
+                f = f || {};
+                return {ente:String(f.ente || ''), tramite:String(f.tramite || ''), cuenta:f.cuenta === 'Sí' ? 'Sí' : 'No',
+                        obs:String(f.obs || ''), n:String(f.n || '')};
+              })};
     });
     return c;
   }
   function elTrabajo(id){
     if (!trabajo[id]){
-      var g = guardadas[id];
-      trabajo[id] = {c: g ? sana(g.contenido) : genera(elInv(id)), sucio: !g};
+      var g = guardadas[id], c = g ? sana(g.contenido) : null;
+      trabajo[id] = c ? {c:c, sucio:false} : {c:genera(elInv(id)), sucio:true, viejo:!!g};
     }
     return trabajo[id];
   }
@@ -39631,11 +39667,64 @@ applyLang(idiomaParaMi());
     diceEl = el('p', 'fi-dice');
     der.appendChild(diceEl);
     pintaBarra(u);
+    if (t.viejo) der.appendChild(el('p', 'fi-ayuda', u.fi_viejo || ''));
     if (ed) der.appendChild(el('p', 'fi-ayuda', u.fi_ayuda || ''));
+    cabeEl = el('p', 'fi-dice mal');
+    der.appendChild(cabeEl);
+    der.appendChild(mandosZoom(u));
     var lienzo = el('div', 'fi-lienzo');
     lienzo.appendChild(laHoja(t.c, ed && soyAdmin()));
     der.appendChild(lienzo);
+    ajusta();
+    mideCabe();
   }
+  /* La hoja es de alto fijo: lo que no cabe se corta al descargarla. Se
+     mide lo que ocupa de verdad y se avisa con cuántos píxeles se pasa. */
+  var cabeEl = null;
+  function mideCabe(){
+    var h = der.querySelector('.vu-hoja'), c = h && h.querySelector('.vu-cuerpo');
+    if (!cabeEl || !c) return;
+    var z = parseFloat(h.style.zoom) || 1;
+    var sobra = (c.scrollHeight - c.clientHeight) / z;
+    cabeEl.textContent = sobra > 1 ? String(T().fi_no_cabe || '').replace('{px}', Math.ceil(sobra)) : '';
+  }
+  /* En pantalla la hoja se encoge hasta caber en el panel; la que se
+     descarga sigue a su tamaño (pdf() la pinta aparte, sin zoom). */
+  /* El zoom: null es «ajustar al ancho»; un número, el que eligió quien
+     mira (de 50 % a 200 %, de 10 en 10). Vale para todas las fichas y se
+     recuerda mientras dure la sesión. */
+  var zoom = null, zoomTxt = null;
+  function zoomAjustado(l){ return Math.min(1, (l.clientWidth - 24) / 1056); }
+  function ajusta(){
+    var h = der.querySelector('.vu-hoja'), l = h && h.parentNode;
+    if (!h || !l.clientWidth) return;
+    var z = zoom || zoomAjustado(l);
+    h.style.zoom = Math.abs(z - 1) > 0.001 ? z.toFixed(3) : '';
+    if (zoomTxt) zoomTxt.textContent = Math.round(z * 100) + ' %';
+  }
+  function mandosZoom(u){
+    var m = el('div', 'fi-zoom');
+    function paso(d){
+      var l = der.querySelector('.fi-lienzo');
+      var actual = zoom || (l ? zoomAjustado(l) : 1);
+      zoom = Math.max(0.5, Math.min(2, Math.round((actual + d) * 10) / 10));
+      ajusta(); mideCabe();
+    }
+    var menos = el('button', 'btn ghost fi-zoom-b', '−');
+    menos.type = 'button'; menos.title = u.fi_zoom_menos || ''; menos.setAttribute('aria-label', u.fi_zoom_menos || '');
+    menos.addEventListener('click', function(){ paso(-0.1); });
+    zoomTxt = el('span', 'fi-zoom-n');
+    zoomTxt.setAttribute('aria-live', 'polite');
+    var mas = el('button', 'btn ghost fi-zoom-b', '+');
+    mas.type = 'button'; mas.title = u.fi_zoom_mas || ''; mas.setAttribute('aria-label', u.fi_zoom_mas || '');
+    mas.addEventListener('click', function(){ paso(0.1); });
+    var aj = el('button', 'btn ghost', u.fi_zoom_ajustar || '');
+    aj.type = 'button';
+    aj.addEventListener('click', function(){ zoom = null; ajusta(); mideCabe(); });
+    m.appendChild(menos); m.appendChild(zoomTxt); m.appendChild(mas); m.appendChild(aj);
+    return m;
+  }
+  window.addEventListener('resize', function(){ ajusta(); mideCabe(); });
 
   function boton(cls, txt, fn){
     var b = el('button', 'btn ' + cls, txt);
@@ -39678,10 +39767,13 @@ applyLang(idiomaParaMi());
 
   /* La hoja, con DOM y textContent: lo que venga de la base no puede
      colar una etiqueta. Al editar, cada texto es contenteditable y escribe
-     en el trabajo por su ruta. */
+     en el trabajo; la pastilla de «¿Cuenta con él?» cambia entre Sí y No
+     con un clic; y al costado de cada etapa están sus + y ×. Las
+     mayúsculas de etiquetas y etapas las pone la hoja de estilos: el texto
+     se guarda tal cual. */
   function laHoja(c, editando){
-    var t = trabajo[sel];
-    var f = el('div', 'fi-ficha' + (editando ? ' editando' : ''));
+    var t = trabajo[sel], u = T();
+    var h = el('div', 'vu-hoja' + (editando ? ' editando' : ''));
     function txt(tag, cls, obj, k){
       var e = el(tag, cls, obj[k]);
       if (editando){
@@ -39690,6 +39782,7 @@ applyLang(idiomaParaMi());
         e.addEventListener('input', function(){
           obj[k] = e.innerText.replace(/\n+$/, '');
           if (!t.sucio){ t.sucio = true; pintaBarra(); pintaLista(T()); }
+          mideCabe();
         });
       }
       return e;
@@ -39701,81 +39794,104 @@ applyLang(idiomaParaMi());
       b.addEventListener('click', fn);
       return b;
     }
-    var u = T();
 
-    var cab = el('div', 'fi-cab');
-    var izq = el('div');
-    izq.appendChild(txt('h1', '', c, 'titulo'));
-    izq.appendChild(txt('div', 'fi-sub', c, 'sub'));
-    cab.appendChild(izq);
-    var logo = el('div', 'fi-logo');
-    var img = el('img'); img.src = new URL('logos/ciip.png', location.href).href; img.alt = 'CIIP';
-    logo.appendChild(img);
-    var cap = el('span'); cap.appendChild(document.createTextNode('Centro Internacional'));
-    cap.appendChild(el('br')); cap.appendChild(document.createTextNode('de Inversión Productiva'));
-    logo.appendChild(cap);
-    cab.appendChild(logo);
-    f.appendChild(cab);
+    var banda = el('div', 'vu-banda'), izq = el('div', 'vu-banda-izq'), dch = el('div', 'vu-banda-der');
+    izq.appendChild(el('span', 'vu-sigla', 'CIIP'));
+    izq.appendChild(el('span', 'vu-div'));
+    izq.appendChild(el('span', 'vu-centro', 'Centro Internacional de Inversión Productiva'));
+    var l1 = el('div'); l1.appendChild(document.createTextNode('Ficha de ventanilla única · ')); l1.appendChild(txt('span', '', c, 'sector'));
+    var l2 = el('div'); l2.appendChild(document.createTextNode('Corte: ')); l2.appendChild(txt('span', '', c, 'corte'));
+    dch.appendChild(l1); dch.appendChild(l2);
+    banda.appendChild(izq); banda.appendChild(dch);
+    h.appendChild(banda);
 
-    var kp = el('div', 'fi-kpis');
-    c.kpis.forEach(function(k){
-      var d = el('div', 'fi-kpi');
-      d.appendChild(txt('div', 'fi-kpi-v', k, 0));
-      d.appendChild(txt('div', 'fi-kpi-c', k, 1));
-      kp.appendChild(d);
+    var cu = el('div', 'vu-cuerpo');
+    var inv = el('div', 'vu-inv');
+    var i1 = el('div'); i1.appendChild(document.createTextNode('Inversionista: ')); i1.appendChild(txt('b', '', c, 'inversionista'));
+    var i2 = el('div'); i2.appendChild(document.createTextNode('Proyecto: ')); i2.appendChild(txt('b', '', c, 'proyecto'));
+    inv.appendChild(i1); inv.appendChild(i2);
+    cu.appendChild(inv);
+
+    var fr = el('div', 'vu-franja');
+    ROTULOS.forEach(function(r, i){
+      var d = el('div');
+      d.appendChild(el('div', 'vu-k', r));
+      d.appendChild(txt('div', 'vu-v', c.datos, i));
+      fr.appendChild(d);
     });
-    f.appendChild(kp);
+    cu.appendChild(fr);
 
-    f.appendChild(el('h2', '', 'Ruta legal del proyecto'));
-    var tb = el('table'), th = el('thead'), tr = el('tr');
-    VACIA.forEach(function(x){ tr.appendChild(el('th', '', x)); });
-    tr.appendChild(el('th', 'fi-acc'));
+    cu.appendChild(el('div', 'vu-ruta-t', 'Ruta legal del proyecto'));
+    var fm = el('div', 'vu-firman');
+    fm.appendChild(txt('span', 'vu-firman-r', c.firmantes, 'rotulo'));
+    fm.appendChild(document.createTextNode(' '));
+    fm.appendChild(txt('b', '', c.firmantes, 'entes'));
+    if (c.firmantes.norma || editando){
+      fm.appendChild(document.createTextNode(' ('));
+      fm.appendChild(txt('span', '', c.firmantes, 'norma'));
+      fm.appendChild(document.createTextNode(')'));
+    }
+    fm.appendChild(document.createTextNode('.'));
+    cu.appendChild(fm);
+
+    var tb = el('table', 'vu-ruta'), cg = el('colgroup');
+    ['16%', '16.5%', '39.5%', '7.5%', '20.5%'].forEach(function(w){ var k = el('col'); k.style.width = w; cg.appendChild(k); });
+    var ka = el('col', 'vu-col-acc'); cg.appendChild(ka);
+    tb.appendChild(cg);
+    var th = el('thead'), tr = el('tr');
+    [['Etapa', ''], ['Ente', ''], ['Trámite o permiso', 'c'], ['¿Cuenta con él?', 'c'], ['Observación', 'c']].forEach(function(x){ tr.appendChild(el('th', x[1], x[0])); });
+    tr.appendChild(el('th', 'vu-acc'));
     th.appendChild(tr); tb.appendChild(th);
     var bo = el('tbody');
-    c.ruta.forEach(function(s, si){
-      var r = el('tr', s.tipo), td = el('td');
-      td.colSpan = 3;
-      td.appendChild(txt('span', '', s, 't'));
-      r.appendChild(td);
-      var acc = el('td', 'fi-acc');
-      if (editando){
-        acc.appendChild(mini('', '+', u.fi_agrega || '', function(){ s.filas.push(VACIA.slice()); cambia(); }));
-        acc.appendChild(mini('x', '×', u.fi_quita || '', function(){ c.ruta.splice(si, 1); cambia(); }));
-      }
-      r.appendChild(acc);
-      bo.appendChild(r);
-      s.filas.forEach(function(fi, fj){
-        var r2 = el('tr');
-        ['fi-ente', 'fi-tram', ''].forEach(function(cls, i){
-          var d = el('td', cls);
-          d.appendChild(txt('span', '', fi, i));
-          r2.appendChild(d);
-        });
-        var a2 = el('td', 'fi-acc');
-        if (editando) a2.appendChild(mini('x', '×', u.fi_quita || '', function(){ s.filas.splice(fj, 1); cambia(); }));
-        r2.appendChild(a2);
-        bo.appendChild(r2);
+    c.etapas.forEach(function(e, ei){
+      var filas = e.filas.length ? e.filas : [null];
+      filas.forEach(function(f, fj){
+        var r = el('tr', fj === filas.length - 1 ? 'fin' : '');
+        if (fj === 0){
+          var te = el('td', 'vu-etapa');
+          te.rowSpan = filas.length;
+          te.appendChild(txt('span', '', e, 't'));
+          if (e.sub || editando) te.appendChild(txt('span', 'vu-sub', e, 'sub'));
+          if (editando){
+            var acc = el('div', 'vu-etapa-acc');
+            acc.appendChild(mini('', '+', u.fi_agrega || '', function(){ e.filas.push(fila('', '')); cambia(); }));
+            acc.appendChild(mini('x', '×', u.fi_quita || '', function(){ c.etapas.splice(ei, 1); cambia(); }));
+            te.appendChild(acc);
+          }
+          r.appendChild(te);
+        }
+        if (!f){ var vacia = el('td'); vacia.colSpan = 5; r.appendChild(vacia); bo.appendChild(r); return; }
+        var ten = el('td', 'vu-ente'); ten.appendChild(txt('span', '', f, 'ente')); r.appendChild(ten);
+        var ttr = el('td');
+        if (f.n || editando){ ttr.appendChild(txt('span', 'vu-n', f, 'n')); ttr.appendChild(document.createTextNode(' ')); }
+        ttr.appendChild(txt('span', '', f, 'tramite'));
+        r.appendChild(ttr);
+        var tcu = el('td', 'vu-cuenta'), p = el('span', 'vu-pastilla', f.cuenta);
+        if (editando){
+          p = el('button', 'vu-pastilla', f.cuenta);
+          p.type = 'button'; p.title = u.fi_cuenta || '';
+          p.addEventListener('click', function(){ f.cuenta = f.cuenta === 'Sí' ? 'No' : 'Sí'; cambia(); });
+        }
+        tcu.appendChild(p); r.appendChild(tcu);
+        var tob = el('td'); tob.appendChild(txt('span', '', f, 'obs')); r.appendChild(tob);
+        var tac = el('td', 'vu-acc');
+        if (editando) tac.appendChild(mini('x', '×', u.fi_quita || '', function(){ e.filas.splice(fj, 1); cambia(); }));
+        r.appendChild(tac);
+        bo.appendChild(r);
       });
     });
     if (editando){
       var ra = el('tr'), ta = el('td');
-      ta.colSpan = 4; ta.style.border = '0'; ta.style.paddingTop = '8px';
+      ta.colSpan = 6; ta.className = 'vu-agrega';
       ta.appendChild(mini('', u.fi_agrega_sec || '', u.fi_agrega_sec || '', function(){
-        c.ruta.push({t:'Nueva sección', tipo:'subsec', filas:[VACIA.slice()]}); cambia();
+        c.etapas.push({t:'Nueva etapa', sub:'', filas:[fila('', '')]}); cambia();
       }));
       ra.appendChild(ta); bo.appendChild(ra);
     }
     tb.appendChild(bo);
-    f.appendChild(tb);
-
-    if (c.nota || editando){
-      var n = el('div', 'fi-nota');
-      n.appendChild(el('b', '', 'Nota del CIIP: '));
-      n.appendChild(txt('span', '', c, 'nota'));
-      f.appendChild(n);
-    }
-    f.appendChild(txt('div', 'fi-fuentes', c, 'fuentes'));
-    return f;
+    cu.appendChild(tb);
+    h.appendChild(cu);
+    return h;
   }
 
   /* ── GUARDAR, ENVIAR, DESCARGAR ──
@@ -39788,7 +39904,7 @@ applyLang(idiomaParaMi());
     var fila = r && r.data && r.data[0];
     if (!fila) throw new Error('sin fila');
     guardadas[sel] = fila;
-    trabajo[sel] = {c: sana(fila.contenido), sucio: false};
+    trabajo[sel] = {c: sana(fila.contenido) || trabajo[sel].c, sucio: false};
     di(txtBien);
     pinta();
   }
@@ -39819,9 +39935,10 @@ applyLang(idiomaParaMi());
       .then(function(r){ ed = false; trasEscribir(r, T().fi_enviada_ya); })
       .catch(falla);
   }
-  /* El PDF lo hace el navegador: una pestaña con la hoja sola, apaisada,
-     y el cuadro de imprimir, donde se elige «Guardar como PDF». La pestaña
-     se abre YA, con el clic, o el navegador la bloquea. */
+  /* El PDF lo hace el navegador: una pestaña con la hoja sola, en carta
+     horizontal y sin márgenes, y el cuadro de imprimir, donde se elige
+     «Guardar como PDF». La pestaña se abre YA, con el clic, o el navegador
+     la bloquea. */
   function pdf(){
     var t = trabajo[sel];
     if (!t) return;
@@ -39832,12 +39949,12 @@ applyLang(idiomaParaMi());
     w.document.open();
     w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title></title>' +
       '<link rel="stylesheet" href="' + css + '">' +
-      '<style>@page{size:A4 landscape; margin:10mm;} html,body{background:#fff; margin:0;} ' +
+      '<style>@page{size:11in 8.5in; margin:0;} html,body{background:#fff; margin:0;} ' +
       '*{-webkit-print-color-adjust:exact; print-color-adjust:exact;} ' +
-      '.fi-ficha{box-shadow:none; min-width:0; max-width:none; padding:0;}</style></head><body>' +
+      '.vu-hoja{box-shadow:none; margin:0;}</style></head><body>' +
       cuerpo + '</body></html>');
     w.document.close();
-    w.document.title = (t.c.titulo || 'Ficha').replace(/[\\/:*?"<>|]+/g, ' ');
+    w.document.title = ('Ficha de ventanilla única · ' + (t.c.inversionista || '')).replace(/[\\/:*?"<>|]+/g, ' ');
     w.addEventListener('load', function(){ w.focus(); w.print(); });
   }
 

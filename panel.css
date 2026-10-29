@@ -6749,11 +6749,8 @@ body[data-vista="fichas"] .fase-bar{display:none;}
 
 /* ── LA FICHA DE CADA INVERSIONISTA (Franklin Reyes, 27-10-2026) ──
    Pestaña de Ficha técnica. A la izquierda los inversionistas, como la
-   lista de permisos; a la derecha su ficha con la forma de la de Atlas
-   (la del caso Tertoga): título, seis cifras, ruta legal en tres columnas
-   y fuentes. La hoja lleva sus propios colores y letra, los del PDF, para
-   que lo que se ve sea lo que se descarga. maquetas/ficha-tecnica-
-   inversionistas.html. */
+   lista de permisos; a la derecha su ficha de ventanilla única (desde el
+   29-10-2026; maquetas/ficha-ventanilla-unica.html). */
 .fi-tabs{display:flex; gap:4px; border-bottom:1px solid var(--line); margin-bottom:16px;}
 .fi-tab{font:inherit; font-size:var(--fs-fila); padding:9px 14px; border:0; background:none;
   cursor:pointer; color:var(--gray); border-bottom:2px solid transparent; margin-bottom:-1px;}
@@ -6776,37 +6773,56 @@ body[data-vista="fichas"] .fase-bar{display:none;}
 .fi-ayuda{margin:0; font-size:var(--fs-nota); color:var(--gray); line-height:1.55;}
 .fi-lienzo{background:var(--block); border-radius:var(--r); padding:12px; overflow:auto;}
 
-.fi-ficha{background:#fff; min-width:780px; max-width:1180px; margin:0 auto; padding:22px 24px 20px;
-  box-shadow:0 2px 10px rgba(14,20,36,.12); font-family:"Segoe UI","DejaVu Sans",Arial,sans-serif;
-  color:#1f2329; font-size:11.2px; line-height:1.3;}
-.fi-ficha .fi-cab{display:flex; justify-content:space-between; align-items:flex-start; gap:20px;
-  padding-bottom:9px; border-bottom:3px solid #1B2A4A;}
-.fi-ficha h1{margin:0; font-size:22.5px; font-weight:700; color:#1B2A4A; line-height:1.2;}
-.fi-ficha .fi-sub{margin-top:5px; font-size:12px; color:#5b6270;}
-.fi-ficha .fi-logo{flex:none; text-align:right;}
-.fi-ficha .fi-logo img{height:34px; display:block; margin-left:auto;}
-.fi-ficha .fi-logo span{display:inline-block; font-size:7px; font-weight:700; color:#1B4C8C;
-  line-height:1.15; margin-top:3px; text-align:left;}
-.fi-ficha .fi-kpis{display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin:11px 0 12px;}
-.fi-ficha .fi-kpi{border:1px solid #d6dbe3; border-radius:9px; padding:8px 12px 9px;}
-.fi-ficha .fi-kpi-v{font-size:16.5px; font-weight:700; color:#1B2A4A; line-height:1.15;}
-.fi-ficha .fi-kpi-c{font-size:10px; color:#5b6270; margin-top:4px; line-height:1.3;}
-.fi-ficha h2{margin:0 0 6px; font-size:12.5px; font-weight:700; color:#1B2A4A;}
-.fi-ficha table{width:100%; border-collapse:collapse;}
-.fi-ficha th{text-align:left; font-weight:700; background:#eef0f4; padding:5px 10px; font-size:11.4px; border-bottom:1px solid #d6dbe3;}
-.fi-ficha td{padding:4px 10px; vertical-align:top; border-bottom:1px solid #dfe3e9; white-space:pre-line;}
-.fi-ficha td.fi-ente{font-weight:700; width:19%;}
-.fi-ficha td.fi-tram{width:43%;}
-.fi-ficha tr.sec td{font-size:11.6px; font-weight:700; color:#1B2A4A;
-  padding-top:7px; border-bottom:1px solid #c9ced8;}
-.fi-ficha tr.subsec td{background:#eef0f4; color:#1B2A4A; font-weight:700; font-size:10.9px;}
-.fi-ficha .fi-nota{margin-top:10px; font-size:11px; padding:8px 10px; background:#f6f7f9; border-radius:6px; white-space:pre-line;}
-.fi-ficha .fi-fuentes{margin-top:10px; font-size:9.5px; color:#7a8190; line-height:1.4; white-space:pre-line;}
-.fi-ficha .fi-acc{width:0; padding:0; border:0; background:none; white-space:nowrap;}
-.fi-ficha.editando .fi-acc{width:64px; padding:3px 0 3px 6px;}
-.fi-ficha.editando [contenteditable]{outline:1px dashed transparent; border-radius:3px; cursor:text; min-width:20px; display:inline-block;}
-.fi-ficha.editando [contenteditable]:hover{outline-color:#9fb3d1; background:#f7faff;}
-.fi-ficha.editando [contenteditable]:focus{outline:2px solid var(--navy2); background:#fff;}
+/* La hoja: la «Ficha de ventanilla única» (29-10-2026), carta horizontal
+   de 1056 × 816 px. Texto solo en negro, azul oscuro y blanco; líneas gris
+   claro. Las mayúsculas de etiquetas y etapas son del formato, a propósito.
+   Lleva sus propios colores para que lo que se ve sea lo que se descarga. */
+.vu-hoja{
+  width:1056px; height:816px; margin:0 auto; background:#fff; color:#111827; overflow:hidden;
+  font-family:Helvetica, Arial, sans-serif; font-size:10.8px; line-height:1.28;
+  box-shadow:0 2px 12px rgba(14,20,36,.16); display:flex; flex-direction:column;}
+.vu-banda{height:44px; flex:none; background:#1B2A4A; color:#fff; display:flex; align-items:center;
+  justify-content:space-between; padding:0 32px;}
+.vu-banda-izq{display:flex; align-items:center; gap:12px;}
+.vu-sigla{font-weight:700; font-size:19px; letter-spacing:.02em;}
+.vu-div{width:1px; height:20px; background:rgba(255,255,255,.55);}
+.vu-centro{font-weight:700; font-size:11.5px;}
+.vu-banda-der{text-align:right; font-size:11px; line-height:1.35;}
+.vu-cuerpo{flex:1 1 auto; min-height:0; overflow:hidden; padding:12px 32px 0; display:flex; flex-direction:column;}
+.vu-inv{border:1px solid #D9DEE7; border-radius:7px; padding:6px 16px; font-size:15px; line-height:1.45;}
+.vu-franja{display:grid; grid-template-columns:1fr 1fr 1fr 1.45fr 1fr; margin-top:10px;
+  border-top:1px solid #D9DEE7; border-bottom:1px solid #D9DEE7;}
+.vu-franja > div{padding:5px 14px 5px 0; white-space:nowrap; overflow:hidden; min-width:0;}
+.vu-franja > div + div{border-left:1px solid #D9DEE7; padding-left:14px;}
+.vu-k{font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em;}
+.vu-v{font-size:15px; font-weight:700; color:#1B2A4A; margin-top:3px;}
+.vu-ruta-t{margin:18px 0 7px; font-size:13.5px; font-weight:700;}
+.vu-firman{border:1px solid #D9DEE7; border-radius:7px; background:#F1F4F9; padding:6px 14px; font-size:11px;}
+.vu-firman-r{font-weight:700; color:#1B2A4A;}
+table.vu-ruta{width:100%; border-collapse:collapse; margin-top:10px; table-layout:fixed;}
+.vu-ruta th{font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; text-align:left;
+  padding:0 8px 4px 0; border-bottom:1px solid #A9B9D6; vertical-align:bottom;}
+.vu-ruta th.c{text-align:center;}
+.vu-ruta td{padding:3px 8px 3px 0; vertical-align:top; border-bottom:1px solid #E7EAF0;}
+.vu-ruta td.vu-etapa{font-weight:700; color:#1B2A4A; text-transform:uppercase; font-size:10px; border-bottom:1px solid #A9B9D6; padding-top:4px;}
+.vu-ruta .vu-sub{display:block; font-weight:400; color:#111827; text-transform:none; font-size:10px; margin-top:1px;}
+.vu-ruta td.vu-ente{font-weight:700;}
+.vu-ruta td.vu-cuenta{text-align:center;}
+.vu-ruta tr.fin td{border-bottom:1px solid #A9B9D6;}
+.vu-n{font-weight:700; color:#1B2A4A;}
+.vu-pastilla{display:inline-block; min-width:34px; padding:1px 9px; border-radius:10px; background:#1B2A4A;
+  color:#fff; font:inherit; font-weight:700; font-size:10px; line-height:1.4; border:0;}
+button.vu-pastilla{cursor:pointer;}
+.vu-col-acc{width:0;}
+.vu-ruta .vu-acc{padding:0; border:0;}
+.vu-hoja.editando .vu-col-acc{width:28px;}
+.vu-hoja.editando .vu-acc{padding:3px 0 0 4px;}
+.vu-etapa-acc{margin-top:6px; text-transform:none;}
+.vu-ruta td.vu-agrega{border:0; padding-top:8px;}
+.vu-hoja.editando [contenteditable]{outline:1px dashed transparent; border-radius:3px; cursor:text; min-width:24px; display:inline-block;}
+.vu-hoja.editando [contenteditable]:hover{outline-color:#9fb3d1; background:#f7faff;}
+.vu-hoja.editando [contenteditable]:focus{outline:2px solid var(--navy2); background:#fff;}
+.vu-hoja.editando .vu-sub[contenteditable]:empty::before{content:'…';}
 .fi-mini{font:inherit; font-size:10.5px; border:1px solid #d6dbe3; background:#fff; border-radius:5px;
   padding:1px 7px; cursor:pointer; color:#1B2A4A; letter-spacing:0; text-transform:none;}
 .fi-mini.x{color:var(--rust);}
@@ -6816,3 +6832,9 @@ body[data-vista="fichas"] .fase-bar{display:none;}
   .fi-hoja{grid-template-columns:minmax(0,1fr);}
   .fi-hoja .ftp-izq{border-right:0; border-bottom:1px solid var(--line);}
 }
+/* El zoom de la hoja (29-10-2026): alejar, el porcentaje, acercar y
+   volver a ajustarla al ancho del panel. */
+.fi-zoom{display:flex; align-items:center; gap:6px; justify-content:flex-end; flex-wrap:wrap;}
+.fi-zoom .btn{padding:5px 11px;}
+.fi-zoom-b{min-width:34px; font-size:15px; line-height:1;}
+.fi-zoom-n{min-width:52px; text-align:center; font-size:var(--fs-nota); color:var(--ink); font-variant-numeric:tabular-nums;}
