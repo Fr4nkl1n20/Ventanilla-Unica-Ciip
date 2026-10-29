@@ -39447,7 +39447,10 @@ applyLang(idiomaParaMi());
      Lo de antes (la forma de la ficha de Atlas) no tiene 'formato: 2' y
      se vuelve a generar en este. */
   var FORMATO = 2;
-  var ROTULOS = ['Tipo contractual', 'Años (si aplica)', 'Ente', 'ZEE / material estratégico', 'Monto de la inversión'];
+  /* Las seis celdas de la franja. El sector va primero (29-10-2026: «debe
+     indicar al principio sector»); la banda azul lo repite. «Zona» solo
+     dice si está en zona económica especial, indígena o insular. */
+  var ROTULOS = ['Sector', 'Tipo contractual', 'Años (si aplica)', 'Ente', 'Zona', 'Monto de la inversión'];
   /* Las etapas A, B y C son las de toda empresa; la D sale de Ficha
      técnica. El contenido base es el de las instrucciones. */
   function fila(ente, tramite, obs){ return {ente:ente, tramite:tramite, cuenta:'No', obs:obs || '', n:''}; }
@@ -39578,7 +39581,7 @@ applyLang(idiomaParaMi());
       corte: hoy,
       inversionista: nombreDe(p),
       proyecto: 'Por registrar',
-      datos: ['Por registrar', 'Por registrar', 'Por registrar', 'Por registrar', 'Por registrar'],
+      datos: [sector || 'Por registrar', 'Por registrar', 'Por registrar', 'Por registrar', 'Por registrar', 'Por registrar'],
       firmantes: {rotulo:'Entes que deben firmar el contrato:', entes:'Por registrar', norma:''},
       etapas: etapas
     };
@@ -39591,6 +39594,8 @@ applyLang(idiomaParaMi());
     c = copia(c);
     ['sector', 'corte', 'inversionista', 'proyecto'].forEach(function(k){ c[k] = String(c[k] || ''); });
     c.datos = (Array.isArray(c.datos) ? c.datos : []).map(String);
+    /* Las guardadas con cinco celdas no traían el sector en la franja. */
+    if (c.datos.length === 5) c.datos.unshift(c.sector);
     while (c.datos.length < ROTULOS.length) c.datos.push('');
     var fm = c.firmantes || {};
     c.firmantes = {rotulo:String(fm.rotulo || ''), entes:String(fm.entes || ''), norma:String(fm.norma || '')};
@@ -39799,7 +39804,8 @@ applyLang(idiomaParaMi());
     izq.appendChild(el('span', 'vu-sigla', 'CIIP'));
     izq.appendChild(el('span', 'vu-div'));
     izq.appendChild(el('span', 'vu-centro', 'Centro Internacional de Inversión Productiva'));
-    var l1 = el('div'); l1.appendChild(document.createTextNode('Ficha de ventanilla única · ')); l1.appendChild(txt('span', '', c, 'sector'));
+    /* El sector de la banda es el de la franja: se escribe allí, una vez. */
+    var l1 = el('div', '', 'Ficha de ventanilla única · ' + (c.datos[0] || ''));
     var l2 = el('div'); l2.appendChild(document.createTextNode('Corte: ')); l2.appendChild(txt('span', '', c, 'corte'));
     dch.appendChild(l1); dch.appendChild(l2);
     banda.appendChild(izq); banda.appendChild(dch);
@@ -39919,6 +39925,7 @@ applyLang(idiomaParaMi());
   function guarda(){
     var u = T(), t = trabajo[sel];
     if (!soyAdmin() || sinSql || !t || ocupado) return;
+    t.c.sector = t.c.datos[0] || '';
     ocupado = true; di(u.fi_guardando); pintaBarra(u);
     Promise.resolve(sb().from('fichas_inversionistas')
       .upsert({usuario_id: sel, contenido: t.c, estado: 'borrador'}, {onConflict: 'usuario_id'})
