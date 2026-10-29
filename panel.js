@@ -39839,7 +39839,7 @@ applyLang(idiomaParaMi());
     var ka = el('col', 'vu-col-acc'); cg.appendChild(ka);
     tb.appendChild(cg);
     var th = el('thead'), tr = el('tr');
-    [['Etapa', ''], ['Ente', ''], ['Trámite o permiso', 'c'], ['¿Cuenta con él?', 'c'], ['Observación', 'c']].forEach(function(x){ tr.appendChild(el('th', x[1], x[0])); });
+    [['Etapa', 'c'], ['Ente', ''], ['Trámite o permiso', 'c'], ['¿Cuenta con él?', 'c'], ['Observación', 'c']].forEach(function(x){ tr.appendChild(el('th', x[1], x[0])); });
     tr.appendChild(el('th', 'vu-acc'));
     th.appendChild(tr); tb.appendChild(th);
     var bo = el('tbody');
