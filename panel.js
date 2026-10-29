@@ -39666,20 +39666,23 @@ applyLang(idiomaParaMi());
       if (cargada && invs.length) der.appendChild(el('p', 'ftd-nada', u.fi_elige || ''));
       return;
     }
+    /* Primero la ficha; debajo, el zoom, los avisos y la barra con su
+       estado y sus botones (29-10-2026: «lo primero que debe verse es la
+       ficha»). */
     var t = elTrabajo(sel);
+    var lienzo = el('div', 'fi-lienzo');
+    lienzo.appendChild(laHoja(t.c, ed && soyAdmin()));
+    der.appendChild(lienzo);
+    der.appendChild(mandosZoom(u));
+    cabeEl = el('p', 'fi-dice mal');
+    der.appendChild(cabeEl);
+    if (t.viejo) der.appendChild(el('p', 'fi-ayuda', u.fi_viejo || ''));
+    if (ed) der.appendChild(el('p', 'fi-ayuda', u.fi_ayuda || ''));
     barra = el('div', 'fi-barra');
     der.appendChild(barra);
     diceEl = el('p', 'fi-dice');
     der.appendChild(diceEl);
     pintaBarra(u);
-    if (t.viejo) der.appendChild(el('p', 'fi-ayuda', u.fi_viejo || ''));
-    if (ed) der.appendChild(el('p', 'fi-ayuda', u.fi_ayuda || ''));
-    cabeEl = el('p', 'fi-dice mal');
-    der.appendChild(cabeEl);
-    der.appendChild(mandosZoom(u));
-    var lienzo = el('div', 'fi-lienzo');
-    lienzo.appendChild(laHoja(t.c, ed && soyAdmin()));
-    der.appendChild(lienzo);
     ajusta();
     mideCabe();
   }
