@@ -2138,9 +2138,21 @@ body.editando-textos .ayuda-vista .faq-h, body.editando-textos .ayuda-vista .sec
 .ay-ic .ilogo{max-width:100%; max-height:100%; object-fit:contain; display:block;}
 /* El mando del logo de cada tarjeta (ayMandoLogo): sólo en «Editar textos». */
 .ay-logo-adm{display:none;}
-body.editando-textos .ay-logo-adm{display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+body.editando-textos .ay-logo-adm{display:flex; flex-direction:column; align-items:stretch; gap:8px;
   padding:10px 16px 14px; border-top:1px solid var(--line-soft);}
 .ay-logo-aviso{font-size:var(--fs-nota); color:var(--gray);}
+/* Y un renglón por enlace, con su casilla de iniciales o su logo (Franklin
+   Reyes, 30-10-2026). El título, tal cual y casi negro. */
+.ay-logo-fila{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.ay-logo-enl-t{font-weight:700; color:var(--ink); margin-top:4px;}
+.ay-logo-enl{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px;}
+.ay-logo-nom{flex:1 1 160px; min-width:0; overflow-wrap:anywhere;}
+.ay-logo-adm .ay-ini{display:flex; align-items:center; justify-content:center; flex:none; width:36px; height:36px;
+  border-radius:9px; background:var(--block); color:var(--navy-texto); font-weight:800; font-size:var(--fs-nota);}
+/* Con el logo del sitio: fondo blanco, como la placa de la tarjeta; las
+   iniciales siguen dentro, sin tamaño, por si el logo no carga. */
+.ay-ld .ay-ini.placa, .ay-logo-adm .ay-ini.placa{background:#fff; border:1px solid var(--line); box-sizing:border-box; padding:4px; overflow:hidden; font-size:0;}
+.ay-ini .ilogo{max-width:100%; max-height:100%; object-fit:contain; display:block;}
 .ay-card-t{display:flex; flex-direction:column; gap:2px; min-width:0; flex:1 1 auto;}
 .ay-cuenta{font-size:var(--fs-nota); font-weight:400; color:var(--gray); letter-spacing:0;}
 .ay-dil .ay-card .faq-a, .ay-rec .ay-card .faq-a{padding:0 16px 12px;}

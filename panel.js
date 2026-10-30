@@ -30196,7 +30196,9 @@ applyLang(idiomaParaMi());
     return (((buenas[0] || '?').charAt(0)) + ((buenas[1] || '').charAt(0))).toUpperCase();
   }
 
-  function aySitio(renglon){
+  /* kt, la tarjeta, para buscar el logo que el admin le subió al enlace
+     (30-10-2026); sin ella, iniciales como siempre. */
+  function aySitio(renglon, kt){
     var li = el('li');
     var corte = renglon.lastIndexOf('|');
     var nombre = corte < 0 ? renglon : renglon.slice(0, corte).trim();
@@ -30214,9 +30216,8 @@ applyLang(idiomaParaMi());
     if (wa) host = 'WhatsApp 0' + wa[1] + '-' + wa[2];
     /* Las iniciales del sitio y su dominio, para la ficha de la idea B
        (8-10-2026). Fuera de la ficha no se ven. */
-    var ini = el('span', 'ay-ini', ayIniciales(nombre && nombre !== url ? nombre : host));
-    ini.setAttribute('aria-hidden', 'true');
-    li.appendChild(ini);
+    /* Y encima, el logo del sitio si el admin lo subió (30-10-2026). */
+    li.appendChild(ayCasillaIni(nombre && nombre !== url ? nombre : host, ayLogoEnlace(kt, url)));
     var a = el('a', 'ay-enlace', nombre && nombre !== url ? nombre : host);
     a.href = url;
     a.target = '_blank';
@@ -30333,24 +30334,101 @@ applyLang(idiomaParaMi());
      con el idioma-. Las dos cosas ya sólo las escribe el admin. Puede
      ponerle logo también a una tarjeta que no lo tenía. */
   function ayClaveLogo(kt){ return kt + '.logo'; }
-  function ayLogoSubido(kt){
-    var C = (window.CIIP_TEXTOS && window.CIIP_TEXTOS.cambios) ? window.CIIP_TEXTOS.cambios() : {};
-    return (C.es || {})[ayClaveLogo(kt)] || null;
+  /* Y el de CADA ENLACE de la tarjeta (Franklin Reyes, 30-10-2026: que
+     Authenology, Apacuana o PROCERT enseñen su logo y no sólo «AU», «ST»,
+     «PR»). Mismo cubo y misma tabla: la clave es '<tarjeta>.logo.<n>', con
+     <n> sacado de la DIRECCIÓN del enlace y no de su nombre ni de su
+     puesto en la lista. Así cambiar el nombre o el orden en «Editar textos»
+     no le quita el logo; cambiar la dirección sí, porque ya es otro sitio.
+     Sin logo, siguen las iniciales. supabase-logos-diligencias.sql vigila
+     en la base que estas claves sólo guarden una ruta de ayuda/. */
+  function ayHuella(url){
+    var s = String(url || '').toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '');
+    var h = 5381;
+    for (var i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+    return h.toString(36);
   }
+  function ayClaveLogoEnlace(kt, url){ return kt + '.logo.' + ayHuella(url); }
+  function ayRutaSubida(clave){
+    var C = (window.CIIP_TEXTOS && window.CIIP_TEXTOS.cambios) ? window.CIIP_TEXTOS.cambios() : {};
+    return (C.es || {})[clave] || null;
+  }
+  function ayLogoSubido(kt){ return ayRutaSubida(ayClaveLogo(kt)); }
   function ayLogo(kt){
     var subido = ayLogoSubido(kt);
     if (subido && window.CIIP_URL_LOGO) return window.CIIP_URL_LOGO(subido) || AY_LOGO[kt] || '';
     return AY_LOGO[kt] || '';
+  }
+  /* El logo subido de un enlace, o '' para quedarse con las iniciales. */
+  function ayLogoEnlace(kt, url){
+    var subido = kt && url ? ayRutaSubida(ayClaveLogoEnlace(kt, url)) : null;
+    return (subido && window.CIIP_URL_LOGO) ? (window.CIIP_URL_LOGO(subido) || '') : '';
+  }
+  /* El nombre y la dirección de un renglón «Nombre | https://…», o null si
+     no es un enlace (lo mismo que mira aySitio). */
+  function ayPartesSitio(renglon){
+    var corte = renglon.lastIndexOf('|');
+    var nombre = corte < 0 ? renglon : renglon.slice(0, corte).trim();
+    var url = corte < 0 ? renglon : renglon.slice(corte + 1).trim();
+    if (!/^https?:\/\/[^\s"'<>]+$/i.test(url)) return null;
+    return {nombre: nombre, url: url};
   }
 
   /* El mando, debajo de los enlaces de la tarjeta: sólo para el admin y
      sólo con «Editar textos» encendido (el CSS lo esconde fuera de ese
      modo). Lleva .tx-libre para que el modo de edición no confunda sus
      botones con textos que editar. */
-  function ayMandoLogo(kt){
+  /* Desde el 30-10-2026 lleva también un renglón por enlace, con su logo o
+     sus iniciales y los mismos dos botones (Franklin Reyes). */
+  function ayMandoLogo(kt, sitios){
     if (!(typeof PERFIL !== 'undefined' && PERFIL && PERFIL.rol === 'admin')) return null;
     var u = T();
     var caja = el('div', 'ay-logo-adm tx-libre');
+    var fila = el('div', 'ay-logo-fila');
+    ayBotonesLogo(fila, ayClaveLogo(kt), 'ayuda/' + kt + '/');
+    caja.appendChild(fila);
+    var enlaces = (sitios || []).map(ayPartesSitio).filter(Boolean);
+    if (enlaces.length){
+      caja.appendChild(el('div', 'ay-logo-enl-t', u.ay_logo_enl_t || ''));
+      var ul = el('ul', 'ay-logo-enl');
+      enlaces.forEach(function(p){
+        var li = el('li', 'ay-logo-fila');
+        var host = p.url.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+        var nom = p.nombre && p.nombre !== p.url ? p.nombre : host;
+        li.appendChild(ayCasillaIni(nom, ayLogoEnlace(kt, p.url)));
+        li.appendChild(el('span', 'ay-logo-nom', nom));
+        ayBotonesLogo(li, ayClaveLogoEnlace(kt, p.url), 'ayuda/' + kt + '/enlaces/' + ayHuella(p.url) + '/');
+        ul.appendChild(li);
+      });
+      caja.appendChild(ul);
+    }
+    return caja;
+  }
+
+  /* La casilla de las iniciales de un enlace, con su logo encima si lo
+     hay. Si el logo no carga, vuelven las iniciales: el texto sigue dentro
+     y .placa sólo lo esconde. El onerror va en el atributo, como el de la
+     tarjeta, por si alguien clona la casilla. */
+  function ayCasillaIni(nombre, url){
+    var ini = el('span', 'ay-ini', ayIniciales(nombre));
+    ini.setAttribute('aria-hidden', 'true');
+    if (url){
+      ini.classList.add('placa');
+      var lg = document.createElement('img');
+      lg.className = 'ilogo';
+      lg.alt = '';
+      lg.setAttribute('onerror', "this.parentNode.classList.remove('placa');this.remove()");
+      lg.src = url;
+      ini.appendChild(lg);
+    }
+    return ini;
+  }
+
+  /* «Cambiar logo» y, si hay uno subido, «Volver al de siempre», con su
+     aviso, para una clave de textos_panel y la carpeta del cubo donde va
+     el archivo. */
+  function ayBotonesLogo(caja, clave, carpeta){
+    var u = T();
     var aviso = el('span', 'ay-logo-aviso');
     aviso.setAttribute('role', 'status');
     var archivo = document.createElement('input');
@@ -30363,13 +30441,13 @@ applyLang(idiomaParaMi());
     caja.appendChild(archivo);
     caja.appendChild(cambia);
     var quita = null;
-    if (ayLogoSubido(kt)){
+    if (ayRutaSubida(clave)){
       quita = el('button', 'btn ghost', u.cg_logo_quita || '');
       quita.type = 'button';
       quita.addEventListener('click', function(){
         cambia.disabled = quita.disabled = true;
         aviso.textContent = '';
-        guardaLogoAyuda(kt, null, aviso, function(){ cambia.disabled = quita.disabled = false; });
+        guardaLogoAyuda(clave, carpeta, null, aviso, function(){ cambia.disabled = quita.disabled = false; });
       });
       caja.appendChild(quita);
     }
@@ -30385,30 +30463,30 @@ applyLang(idiomaParaMi());
       cambia.disabled = true;
       if (quita) quita.disabled = true;
       cambia.textContent = u.cg_logo_subiendo || '';
-      guardaLogoAyuda(kt, f, aviso, function(){
+      guardaLogoAyuda(clave, carpeta, f, aviso, function(){
         cambia.disabled = false;
         if (quita) quita.disabled = false;
         cambia.textContent = u.cg_logo_cambia || '';
       });
     });
     caja.appendChild(aviso);
-    return caja;
   }
 
   /* El mismo orden que guardaElLogo() del catálogo: subir, apuntar y SOLO
      ENTONCES borrar el viejo, y con la hora en el nombre para que la URL
      sea nueva y no se quede el de antes en la caché. Y el mismo cuidado con
      RLS: se pide la fila de vuelta, que un bloqueo contesta sin error. */
-  function guardaLogoAyuda(kt, f, aviso, alTerminar){
+  /* Recibe la clave y la carpeta ya hechas (30-10-2026): sirve igual para
+     el logo de la tarjeta que para el de cada enlace. */
+  function guardaLogoAyuda(clave, carpeta, f, aviso, alTerminar){
     var u = T();
     var cubo = sb.storage.from('logos-fichas');
-    var clave = ayClaveLogo(kt);
-    var antes = ayLogoSubido(kt);
+    var antes = ayRutaSubida(clave);
     var ruta = null;
     var subida = Promise.resolve(null);
     if (f){
       var ext = {'image/png':'png', 'image/jpeg':'jpg', 'image/webp':'webp'}[f.type] || 'png';
-      ruta = 'ayuda/' + kt + '/' + Date.now() + '.' + ext;
+      ruta = carpeta + Date.now() + '.' + ext;
       subida = cubo.upload(ruta, f, {contentType: f.type, upsert: false})
         .then(function(r){ if (r.error) throw r.error; });
     }
@@ -30693,7 +30771,7 @@ applyLang(idiomaParaMi());
       if (sitios.length){
         var ul = el('ul', 'ay-sitios');
         sitios.forEach(function(x){
-          var li = aySitio(x);
+          var li = aySitio(x, g.kt);
           /* El renglón del ente por su sigla en el nombre -«IVSS · Seguro
              Social»-: la lista se edita a mano y un orden fijo se perdería
              el día que alguien añada uno. */
@@ -30711,7 +30789,7 @@ applyLang(idiomaParaMi());
         cuerpo.appendChild(el('div', 'ay-pronto', u.ay_pronto || ''));
       }
       d.appendChild(cuerpo);
-      var mandoLogo = ayMandoLogo(g.kt);
+      var mandoLogo = ayMandoLogo(g.kt, sitios);
       if (mandoLogo) d.appendChild(mandoLogo);
       d.open = true;
       if (esAqui && !marcado) marcado = d;

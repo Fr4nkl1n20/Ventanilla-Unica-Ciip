@@ -1207,6 +1207,8 @@ window.CIIP_PASOS = {
       ay_tab_sapi: "SAPI",
       ay_n_enlaces: "{n} enlaces",
       ay_n_enlace: "{n} enlace",
+      /* El mando de los logos de Ayuda, en «Editar textos» (Franklin Reyes, 30-10-2026). */
+      ay_logo_enl_t: "Logo de cada enlace",
       /* El pliego de tratamiento de datos. Se pide UNA vez por version, y
          la version vieja se puede releer despues: por eso hay textos de
          puerta y textos de vista.
@@ -3456,6 +3458,7 @@ window.CIIP_PASOS = {
       ay_tab_sapi: "SAPI",
       ay_n_enlaces: "{n} links",
       ay_n_enlace: "{n} link",
+      ay_logo_enl_t: "Logo for each link",
       /* The data processing terms. Asked ONCE per version; older versions
          stay readable afterwards, hence one set of texts for the gate and
          another for the view.
@@ -5549,6 +5552,7 @@ window.CIIP_PASOS = {
       ay_tab_sapi: "SAPI",
       ay_n_enlaces: "{n} ligações",
       ay_n_enlace: "{n} ligação",
+      ay_logo_enl_t: "Logótipo de cada ligação",
       pl_nav:      "Tratamento de dados",
       pl_titulo:   "Tratamento dos seus dados",
       pl_sub:      "Versão {n} · antes de entrar",
@@ -7627,6 +7631,7 @@ window.CIIP_PASOS = {
       ay_tab_sapi: "SAPI",
       ay_n_enlaces: "{n} link",
       ay_n_enlace: "{n} link",
+      ay_logo_enl_t: "Logo di ogni link",
       pl_nav:      "Trattamento dei dati",
       pl_titulo:   "Trattamento dei tuoi dati",
       pl_sub:      "Versione {n} · prima di entrare",
@@ -9705,6 +9710,7 @@ window.CIIP_PASOS = {
       ay_tab_sapi: "SAPI",
       ay_n_enlaces: "{n} 个链接",
       ay_n_enlace: "{n} 个链接",
+      ay_logo_enl_t: "每个链接的标志",
       pl_nav:      "数据处理",
       pl_titulo:   "您的数据处理方式",
       pl_sub:      "第 {n} 版 · 进入前请阅读",
@@ -11783,6 +11789,7 @@ window.CIIP_PASOS = {
       ay_tab_sapi: "SAPI",
       ay_n_enlaces: "Ссылок: {n}",
       ay_n_enlace: "Ссылок: {n}",
+      ay_logo_enl_t: "Логотип каждой ссылки",
       pl_nav:      "Обработка данных",
       pl_titulo:   "Обработка ваших данных",
       pl_sub:      "Версия {n} · перед входом",
@@ -13861,6 +13868,7 @@ window.CIIP_PASOS = {
       ay_tab_sapi: "SAPI",
       ay_n_enlaces: "{n} liens",
       ay_n_enlace: "{n} lien",
+      ay_logo_enl_t: "Logo de chaque lien",
       /* The data processing terms. Asked ONCE per version; older versions
          stay readable afterwards, hence one set of texts for the gate and
          another for the view.
@@ -15954,6 +15962,7 @@ window.CIIP_PASOS = {
       ay_tab_sapi: "SAPI",
       ay_n_enlaces: "リンク {n} 件",
       ay_n_enlace: "リンク {n} 件",
+      ay_logo_enl_t: "各リンクのロゴ",
       /* The data processing terms. Asked ONCE per version; older versions
          stay readable afterwards, hence one set of texts for the gate and
          another for the view.

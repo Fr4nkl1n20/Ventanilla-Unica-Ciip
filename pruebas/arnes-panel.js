@@ -345,7 +345,8 @@
                  y puestos antes le cambiaban la cuenta a las pruebas que
                  esperan los tres del expediente de partida. */
               cacheAbre, cacheMira, cacheSube, cacheSube2, cacheVuelve, cacheTrasVolver,
-              ayudaAbre, ayudaMira, ayudaFaq, ayudaPestanas, ayRecMira, ayRecSalta, ayRecLlega,
+              ayudaAbre, ayudaMira, ayudaFaq, ayudaPestanas, ayLogoEnlaceSube, ayLogoEnlaceQuita, ayLogoEnlaceTras,
+              ayRecMira, ayRecSalta, ayRecLlega,
               supAbre, supMira, supTemas, supVuelve,
               asstConServidor, asstSinServidor,
               fotoAbre, fotoMira, fotoMala, fotoSube, fotoTrasSubir, fotoCierra,
@@ -9620,6 +9621,79 @@
     if (itLic) itLic.click();
     var bFaq = document.querySelector('#ayPest .ay-pe[data-p="faq"]');
     if (bFaq) bFaq.click();
+  }
+
+  /* EL LOGO DE CADA ENLACE (Franklin Reyes, 30-10-2026): en «Dónde hacer
+     las diligencias», el admin le sube su logo a Authenology -o al primero
+     de la firma electrónica- y sale en su casilla en vez de las
+     iniciales; los demás siguen con las suyas. Luego lo quita y vuelven.
+     Sólo en el pase admin, que es quien tiene el mando. */
+  var AY_LG = null;
+  function ayLgFirma(){ return document.querySelector('.ayuda-vista .ay-dil details[data-clave="ay_firma"]'); }
+  function ayLgFilaTextos(){
+    return (window.__TEXTOS_PANEL || []).filter(function(x){ return /^ay_firma\.logo\./.test(x.clave); });
+  }
+  function ayLogoEnlaceSube(sigue){
+    if (!ES_ADMIN) return sigue();
+    var d = ayLgFirma();
+    var filas = d ? d.querySelectorAll('.ay-logo-adm .ay-logo-enl li') : [];
+    var enl = d ? d.querySelectorAll('.ay-sitios a.ay-enlace') : [];
+    ok('ayuda: el mando de los logos trae un renglón por enlace', !!filas.length && filas.length === enl.length,
+       filas.length + ' renglones', enl.length + ' enlaces');
+    var t = d && d.querySelector('.ay-logo-enl-t');
+    igual('ayuda: con su título', t ? t.textContent : '(no está)', window.CIIP_T().ay_logo_enl_t);
+    var inp = filas[0] && filas[0].querySelector('input[type=file]');
+    if (!inp) return sigue();
+    AY_LG = {nombre: enl[0].textContent};
+    var dt = new DataTransfer();
+    dt.items.add(new File([new Uint8Array(8)], 'authenology.png', {type:'image/png'}));
+    inp.files = dt.files;
+    inp.dispatchEvent(new Event('change'));
+    var n = 0;
+    (function mira(){
+      var d2 = ayLgFirma();
+      if ((d2 && d2.querySelector('.ay-sitios .ay-ini.placa img.ilogo')) || ++n > 75) return sigue();
+      setTimeout(mira, 40);
+    })();
+  }
+  function ayLogoEnlaceQuita(sigue){
+    if (!ES_ADMIN || !AY_LG) return sigue();
+    var d = ayLgFirma();
+    var lis = d ? [].slice.call(d.querySelectorAll('.ay-sitios li')) : [];
+    var con = lis.filter(function(li){ return li.querySelector('.ay-ini.placa img.ilogo'); });
+    igual('ayuda: el logo subido sale en la casilla de ese enlace, y sólo en ésa',
+          con.map(function(li){ return li.querySelector('a.ay-enlace').textContent; }).join(' | '), AY_LG.nombre);
+    var img = con[0] && con[0].querySelector('img.ilogo');
+    ok('ayuda: con la imagen del cubo', !!img && !!img.getAttribute('src'), img ? img.getAttribute('src') : '(no está)', 'una URL');
+    var otra = lis[1] && lis[1].querySelector('.ay-ini');
+    ok('ayuda: los demás siguen con sus iniciales', !otra || (!otra.classList.contains('placa') && /^\S{1,2}$/.test(otra.textContent)),
+       otra ? otra.className + ' «' + otra.textContent + '»' : '-', 'ay-ini con dos letras');
+    var filas = ayLgFilaTextos();
+    AY_LG.ruta = filas[0] && filas[0].texto;
+    /* La misma forma que exige supabase-logos-diligencias.sql. */
+    ok('ayuda: y su ruta queda en textos_panel, en es, con la forma que pide la base',
+       filas.length === 1 && filas[0].idioma === 'es' &&
+       filas[0].texto.split('/')[3] === filas[0].clave.split('.')[2] &&
+       /^ayuda\/ay_firma\/enlaces\/[a-z0-9]+\/[0-9]+\.png$/.test(filas[0].texto),
+       JSON.stringify(filas), 'una fila ay_firma.logo.<n> → ayuda/ay_firma/enlaces/<n>/<hora>.png');
+    var quita = d && d.querySelector('.ay-logo-adm .ay-logo-enl li .btn:nth-of-type(2)');
+    igual('ayuda: y el renglón del enlace ya ofrece quitarlo', quita ? quita.textContent : '(no está)', window.CIIP_T().cg_logo_quita);
+    if (!quita) return sigue();
+    quita.click();
+    var n = 0;
+    (function mira(){
+      var d2 = ayLgFirma();
+      if ((d2 && !d2.querySelector('.ay-sitios .ay-ini.placa')) || ++n > 75) return sigue();
+      setTimeout(mira, 40);
+    })();
+  }
+  function ayLogoEnlaceTras(){
+    if (!ES_ADMIN || !AY_LG) return;
+    var d = ayLgFirma();
+    igual('ayuda: al quitarlo vuelven las iniciales', d ? d.querySelectorAll('.ay-sitios .ay-ini.placa').length : -1, 0);
+    igual('ayuda: sin su fila en textos_panel', ayLgFilaTextos().length, 0);
+    ok('ayuda: y el archivo sale del cubo', (window.CIIP_PRUEBA_CUBO || []).indexOf(AY_LG.ruta) >= 0,
+       JSON.stringify(window.CIIP_PRUEBA_CUBO || []), AY_LG.ruta);
   }
 
   /* PASOS Y RECAUDOS DE CADA TRÁMITE (Franklin Reyes, 1-10-2026,

@@ -2513,6 +2513,51 @@ exception when check_violation then
   perform arnes.comprueba('textos: no cabe un idioma que el panel no tiene', true, sqlerrm);
 end
 $p$;
+-- Los logos de Ayuda y guía (Franklin Reyes, 30-10-2026,
+-- supabase-logos-diligencias.sql): la clave de un logo sólo guarda la
+-- ruta de su imagen, de su misma tarjeta, y en español.
+do $p$
+begin
+  insert into public.textos_panel (clave, idioma, texto) values
+    ('ay_firma.logo', 'es', 'ayuda/ay_firma/1761840000000.png'),
+    ('ay_firma.logo.k3j9a2', 'es', 'ayuda/ay_firma/enlaces/k3j9a2/1761840000000.webp');
+  perform arnes.comprueba('logos de ayuda: el admin apunta el de la tarjeta y el de un enlace', true);
+exception when others then
+  perform arnes.comprueba('logos de ayuda: el admin apunta el de la tarjeta y el de un enlace', false, sqlerrm);
+end
+$p$;
+do $p$
+declare
+  malos text[][] := array[
+    ['ay_firma.logo.k3j9a2', 'es', 'Authenology'],
+    ['ay_firma.logo.k3j9a2', 'es', 'ayuda/ay_medicos/enlaces/k3j9a2/1.png'],
+    ['ay_firma.logo.k3j9a2', 'es', 'ayuda/ay_firma/enlaces/otro/1.png'],
+    ['ay_firma.logo', 'es', 'ayuda/ay_firma/enlaces/k3j9a2/1.png'],
+    ['ay_firma.logo', 'es', 'ayuda/ay_firma/1.svg'],
+    ['ay_firma.logo', 'en', 'ayuda/ay_firma/1.png']];
+  i int; entro text := '';
+begin
+  for i in 1 .. array_length(malos, 1) loop
+    begin
+      insert into public.textos_panel (clave, idioma, texto) values (malos[i][1], malos[i][2], malos[i][3])
+      on conflict (clave, idioma) do update set texto = excluded.texto;
+      entro := entro || ' ' || malos[i][1] || '/' || malos[i][2] || '=' || malos[i][3];
+    exception when check_violation then null;
+    end;
+  end loop;
+  perform arnes.comprueba('logos de ayuda: ni texto, ni otra tarjeta, ni otro enlace, ni SVG, ni otro idioma',
+    entro = '', coalesce(nullif(entro, ''), 'nada'));
+end
+$p$;
+do $p$
+begin
+  insert into public.textos_panel (clave, idioma, texto) values ('tb.logout', 'en', 'Sign out');
+  perform arnes.comprueba('logos de ayuda: una clave que sólo se parece se guarda como cualquier texto', true);
+exception when others then
+  perform arnes.comprueba('logos de ayuda: una clave que sólo se parece se guarda como cualquier texto', false, sqlerrm);
+end
+$p$;
+delete from public.textos_panel where clave like 'ay_firma.logo%' or clave = 'tb.logout';
 do $p$
 begin
   insert into public.textos_panel (clave, idioma, texto) values ('c1.name', 'es', '   ');

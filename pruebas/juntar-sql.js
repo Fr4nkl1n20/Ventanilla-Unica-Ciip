@@ -338,7 +338,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    30-10-2026: el trámite, lo que entrega y su marca en confirma_paso, que
    redefine la de supabase-permisos-ambientales. Fue supabase-insai-inti,
    con dos trámites, hasta que se juntaron en uno el mismo día. */
-'supabase-permisos-agricolas'];
+'supabase-permisos-agricolas',
+/* Los logos de cada enlace de Ayuda y guía (Franklin Reyes, 30-10-2026):
+   la regla de que sus claves en textos_panel sólo guarden la ruta de su
+   imagen. Necesita textos_panel; va al final. */
+'supabase-logos-diligencias'];
 
 let mal = 0;
 for (const n of orden) {
