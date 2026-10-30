@@ -17371,20 +17371,23 @@
     /* Pasar de hoja tiene que NOTARSE: los tramos que cuelgan debajo del
        formulario se apartan mientras se rellena —si no, quien pulsa
        «Siguiente» desde el final de una hoja larga se queda mirándolos y
-       parece que no ha pasado nada— y vuelven al salir de la solicitud. */
+       parece que no ha pasado nada— y vuelven al salir de la solicitud.
+       Desde el 30-10-2026 tampoco en la primera hoja (Franklin Reyes: «debería
+       verse solo en esta etapa, no al inicio»): salen con la solicitud ya
+       enviada. */
     var real = document.getElementById('trReal');
     var otros = document.getElementById('trSiguen');
-    ok('hojas: en la primera, los tramos siguen debajo',
-       !!otros && !otros.hidden, otros ? (otros.hidden ? 'escondidos' : 'a la vista') : 'no están',
-       'a la vista');
+    ok('hojas: en la primera, los tramos no se ven todavía',
+       !!otros && otros.hidden, otros ? (otros.hidden ? 'escondidos' : 'a la vista') : 'no están',
+       'escondidos');
     if (real && real.CIIP_VE_PASO) real.CIIP_VE_PASO(2);
     ok('hojas: al pasar a los recaudos, se apartan',
        !!otros && otros.hidden, otros ? (otros.hidden ? 'escondidos' : 'a la vista') : 'no están',
        'escondidos');
     if (real && real.CIIP_VE_PASO) real.CIIP_VE_PASO(1);
-    ok('hojas: y al volver a la primera, vuelven',
-       !!otros && !otros.hidden, otros ? (otros.hidden ? 'escondidos' : 'a la vista') : 'no están',
-       'a la vista');
+    ok('hojas: y al volver a la primera, siguen apartados',
+       !!otros && otros.hidden, otros ? (otros.hidden ? 'escondidos' : 'a la vista') : 'no están',
+       'escondidos');
     location.hash = '';
   }
 

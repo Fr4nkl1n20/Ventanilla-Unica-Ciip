@@ -8642,9 +8642,13 @@ applyLang(idiomaParaMi());
          la solicitud nueva todavía no existe y esos tramos no nacen hasta
          que la base los abre, al resolverse el anterior. Lo honesto es no
          enseñar ninguno hasta entonces. */
+      /* Y TAMPOCO EN LA PRIMERA HOJA (Franklin Reyes, 30-10-2026: «debería
+         verse solo en esta etapa, no al inicio»): mientras se rellena el
+         formulario no se enseñan; salen cuando la solicitud ya se envió,
+         que es cuando la ficha deja de pintar el formulario. */
       var otrosTramos = document.getElementById('trSiguen');
       if (otrosTramos && otrosTramos.querySelector('.tr-bloque'))
-        otrosTramos.hidden = (n > 1) || pidiendoOtra;
+        otrosTramos.hidden = true;
       if (sube){
         var arriba = document.getElementById('trDetalle') || pa;
         try { arriba.scrollIntoView(true); }
