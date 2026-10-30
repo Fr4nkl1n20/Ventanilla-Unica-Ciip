@@ -1,48 +1,51 @@
 -- ═══════════════════════════════════════════════════════════════════════
---  CIIP · VENTANILLA ÚNICA — EL INSAI (c51) Y EL INTI (c52)
+--  CIIP · VENTANILLA ÚNICA — LOS PERMISOS DE AGRICULTURA (c51)
 --  Va DESPUÉS de supabase-permisos-ambientales.sql: redefine su
---  confirma_paso() con dos llaves más. Usa `nivel` (supabase-informe-
+--  confirma_paso() con una llave más. Usa `nivel` (supabase-informe-
 --  victor.sql). Se puede correr más de una vez.
 -- ═══════════════════════════════════════════════════════════════════════
 --  Franklin Reyes, 30-10-2026: el equipo mandó «para Claude» lo que se hace
 --  en los sistemas del INSAI (SIGESAI, RUNSAI y la plataforma de
---  certificados) y en el INTI, y pidió dos fichas del catálogo en
---  «Registros sectoriales», como la del SACS:
---  · c51 (insai): el inversionista elige el sistema y lo que va a pedir,
---    se registra allí y lo avisa con «Ya lo solicité» (insai_solicitado).
---  · c52 (inti): elige la solicitud, la entrega en persona en la Oficina
---    Regional de Tierras y lo avisa con «Ya la solicité» (inti_solicitado).
---  Sin plazo publicado. Lo que entrega cada uno se guarda como documento.
+--  certificados) y en el INTI. Primero fueron dos fichas (c51 insai y c52
+--  inti), y el mismo día: «no es en casillas separadas, INSAI e INTI van
+--  dentro de permisos de agricultura». Queda UNA, la c51:
+--  · el inversionista elige dónde -un sistema del INSAI o la Oficina
+--    Regional de Tierras del INTI- y lo que va a pedir;
+--  · lo solicita allí y lo avisa con «Ya lo solicité» (agricola_solicitado).
+--  Sin plazo publicado. Lo que entrega el ente se guarda como documento.
+--  Si las dos de antes llegaron a la base, se apagan y sueltan la c51 y la
+--  c52. No se borran: ref_panel es NOT NULL y UNIQUE, y tramites, citas,
+--  consultas y autorizaciones las señalan sin cascada; una solicitud que
+--  ya existiera haría fallar el borrado.
 -- ═══════════════════════════════════════════════════════════════════════
 
--- 1. Lo que entrega cada ente. No se sabe si vence: no vence.
+-- 1. Lo que entrega el ente. No se sabe si vence: no vence.
 insert into public.tipos_documento (codigo, nombre, vence) values
-  ('documento_insai', 'Registro, permiso o certificado del INSAI', false),
-  ('documento_inti',  'Documento del INTI (adjudicación, certificación o carta agraria)', false)
+  ('permiso_agricola', 'Registro, permiso o certificado del INSAI, o documento del INTI', false)
 on conflict (codigo) do update set nombre = excluded.nombre, vence = excluded.vence;
 
--- 2. Los dos trámites, en la fase 3 con los demás registros sectoriales.
+-- 2. Las dos de antes, si están: apagadas y con un ref_panel que ninguna
+-- tarjeta usa. Antes que el insert, que si no chocaría con la c51.
+update public.tipos_tramite
+   set activo    = false,
+       ref_panel = 'retirado-' || codigo
+ where codigo in ('insai', 'inti');
+
+-- 3. El trámite, en la fase 3 con los demás registros sectoriales.
 insert into public.tipos_tramite (codigo, ref_panel, nombre, ente, fase, activo) values
-  ('insai', 'c51', 'Registros y permisos del INSAI', 'INSAI', 3, true),
-  ('inti',  'c52', 'Solicitudes ante el INTI',       'INTI',  3, true)
+  ('permisos_agricolas', 'c51', 'Permisos de agricultura', 'MPPAPT', 3, true)
 on conflict (codigo) do nothing;
 
 update public.tipos_tramite
-   set emite  = 'documento_insai',
-       nivel  = 'actividad',
-       fase   = 3,
-       activo = true
- where codigo = 'insai';
+   set ref_panel = 'c51',
+       emite     = 'permiso_agricola',
+       nivel     = 'actividad',
+       fase      = 3,
+       activo    = true
+ where codigo = 'permisos_agricolas';
 
-update public.tipos_tramite
-   set emite  = 'documento_inti',
-       nivel  = 'actividad',
-       fase   = 3,
-       activo = true
- where codigo = 'inti';
-
--- 3. Las marcas del paso 1: la de supabase-permisos-ambientales.sql con
--- 'insai_solicitado' e 'inti_solicitado'.
+-- 4. La marca del paso 1: la de supabase-permisos-ambientales.sql con
+-- 'agricola_solicitado'.
 create or replace function public.confirma_paso(p_tramite uuid, p_clave text)
 returns public.tramites
 language plpgsql
@@ -58,7 +61,7 @@ begin
                      'licencia_solicitada', 'conformidad_solicitada', 'minero_solicitado',
                      'bomberos_solicitado', 'saime_confirmada', 'locti_inscrito',
                      'sacs_registrado', 'rtn_solicitado', 'ambiental_solicitado',
-                     'insai_solicitado', 'inti_solicitado') then
+                     'agricola_solicitado') then
     raise exception 'paso desconocido: %', p_clave;
   end if;
 

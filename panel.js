@@ -4176,16 +4176,11 @@ applyLang(idiomaParaMi());
       {tipo:'poliza_responsabilidad_civil', clave:'d_polizarc'},
       {tipo:'poliza_incendio',              clave:'d_polizaincendio'}
     ],
-    /* El INSAI (c51) y el INTI (c52), Franklin Reyes, 30-10-2026: los del
-       SACS (c48) -acta, RIF de la empresa, cédula y RIF del representante-
-       hasta que llegue la lista de cada ente. */
-    insai: [
-      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
-      {tipo:'rif_empresa',       clave:'d_rifempresa'},
-      {tipo:'cedula',            clave:'d_cedrep'},
-      {tipo:'rif_personal',      clave:'d_rifrep'}
-    ],
-    inti: [
+    /* Los permisos de agricultura (c51), del INSAI y del INTI, Franklin
+       Reyes, 30-10-2026: los del SACS (c48) -acta, RIF de la empresa,
+       cédula y RIF del representante- hasta que llegue la lista de cada
+       ente. */
+    permisos_agricolas: [
       {tipo:'acta_constitutiva', clave:'d_actaempresa'},
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
       {tipo:'cedula',            clave:'d_cedrep'},
@@ -4436,12 +4431,11 @@ applyLang(idiomaParaMi());
        ha medido. La planilla del MINTUR pide el número de patente, así que
        va detrás de la licencia de actividades económicas (c10). */
     c50: {plazo:15, aplica:'cond', cond:'ft_c_turismo', modo:'portal', depende:'c10'},
-    /* El INSAI (c51) y el INTI (c52), Franklin Reyes, 30-10-2026: sin
+    /* Los permisos de agricultura (c51), Franklin Reyes, 30-10-2026: sin
        plazo publicado, y la ficha se salta el número. El INSAI se tramita
        en sus sistemas en línea; el INTI, en persona en la Oficina Regional
-       de Tierras. Los dos piden el RIF de la empresa: detrás del c6. */
-    c51: {aplica:'cond', cond:'ft_c_agro',    modo:'portal', depende:'c6'},
-    c52: {aplica:'cond', cond:'ft_c_tierras', modo:'pres',   depende:'c6'},
+       de Tierras. Piden el RIF de la empresa: detrás del c6. */
+    c51: {aplica:'cond', cond:'ft_c_agro', modo:'portal', depende:'c6'},
     /* El SIDCAI (c39): se inscribe una vez y luego se declara cada mes,
        dentro de los quince días siguientes (Providencia 015-004-2024).
        La inscripción no tiene plazo publicado, y la ficha se salta el
@@ -4835,13 +4829,18 @@ applyLang(idiomaParaMi());
       'https://sistemas.sacs.gob.ve/siacsv2/login_user#'
   };
 
-  /* ── LOS SISTEMAS EN LÍNEA DEL INSAI ──
+  /* ── LOS SISTEMAS DE LOS PERMISOS DE AGRICULTURA ──
      Franklin Reyes, 30-10-2026 (mensaje del equipo «para Claude»): el INSAI
      tiene tres, SIGESAI, RUNSAI y la plataforma de certificados. El
      inversionista elige el suyo al empezar y el paso 1 le lleva a él, como
-     en el SACS. Las claves son el texto en español de o_insai_sistema
-     (pasos.js), letra por letra. */
-  var PORTAL_DEL_INSAI = {
+     en el SACS.
+     Y el mismo día: «no es en casillas separadas, INSAI e INTI van dentro
+     de permisos de agricultura». El INTI entra como una opción más de la
+     misma lista, la Oficina Regional de Tierras, y su paso 1 lleva a la
+     consulta en línea del estado de la solicitud. Las claves son el texto
+     en español de o_agro_sistema (pasos.js), letra por letra. */
+  var OFICINA_DEL_INTI = 'INTI · Oficina Regional de Tierras';
+  var PORTAL_AGRICOLA = {
     'SIGESAI · Sistema Integrado de Gestión para la Movilización Animal y Vegetal':
       'https://sigesai.insai.gob.ve/',
     'RUNSAI · Registro Único Nacional de Salud Agrícola Integral':
@@ -4849,6 +4848,7 @@ applyLang(idiomaParaMi());
     'Plataforma de Certificados de Importación y Exportación':
       'http://certificados.insai.gob.ve/'
   };
+  PORTAL_AGRICOLA[OFICINA_DEL_INTI] = 'http://celdev.inti.gob.ve/';
 
   /* ── LOS SISTEMAS EN LÍNEA DEL MINEC ──
      Franklin Reyes, 19-10-2026, Permisos_MINEC (Valeria Ramos, CIIP): «solo
@@ -5659,18 +5659,20 @@ applyLang(idiomaParaMi());
       {n:'razon_social',        clave:'f_razon',         ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'}
     ],
-    /* El INSAI (c51): el sistema en línea -del que sale el enlace del paso
-       1-, lo que va a solicitar en él y la empresa. El INTI (c52): la
-       solicitud, dónde están las tierras y la empresa. */
-    insai: [
-      {n:'sistema_insai',        clave:'f_insaisistema', opcionesClave:'o_insai_sistema', ancho:true},
-      {n:'tramite_insai',        clave:'f_insaitramite', ancho:true},
-      {n:'razon_social',         clave:'f_razon',        ancho:true},
-      {n:'rif_empresa',          clave:'f_rifempresa'}
-    ],
-    inti: [
-      {n:'solicitud_inti',       clave:'f_intisolicitud', opcionesClave:'o_inti_solicitud', ancho:true},
-      {n:'ubicacion_tierras',    clave:'f_intiubica',     ancho:true},
+    /* Los permisos de agricultura (c51): primero dónde -uno de los tres
+       sistemas del INSAI o la Oficina Regional de Tierras del INTI-, que
+       decide el enlace y la escalera de pasos. Con un sistema del INSAI,
+       lo que va a solicitar en él; con el INTI, la solicitud y dónde
+       están las tierras. Lo del otro ente se esconde (verIgual /
+       verDistinto). Y la empresa. */
+    permisos_agricolas: [
+      {n:'sistema_agricola',     clave:'f_agrosistema',   opcionesClave:'o_agro_sistema', ancho:true},
+      {n:'tramite_insai',        clave:'f_insaitramite',  ancho:true,
+       verSi:'sistema_agricola', verDistinto:OFICINA_DEL_INTI},
+      {n:'solicitud_inti',       clave:'f_intisolicitud', opcionesClave:'o_inti_solicitud', ancho:true,
+       verSi:'sistema_agricola', verIgual:OFICINA_DEL_INTI},
+      {n:'ubicacion_tierras',    clave:'f_intiubica',     ancho:true,
+       verSi:'sistema_agricola', verIgual:OFICINA_DEL_INTI},
       {n:'razon_social',         clave:'f_razon',         ancho:true},
       {n:'rif_empresa',          clave:'f_rifempresa'}
     ],
@@ -7979,6 +7981,11 @@ applyLang(idiomaParaMi());
       function mira(){
         var si = (manda.type === 'checkbox') ? manda.checked
                                              : (manda.value && manda.value !== 'No');
+        /* Y según CUÁL se eligió (30-10-2026): en los permisos de
+           agricultura, lo del INTI solo con la oficina del INTI y lo del
+           INSAI con cualquiera de sus sistemas. */
+        if (si && c.verIgual)    si = manda.value === c.verIgual;
+        if (si && c.verDistinto) si = manda.value !== c.verDistinto;
         campo.hidden = !si;
         /* Al volver a verse recupera lo que era: el detalle del motivo
            (6-10-2026) es opcional también cuando su ente está marcado. */
@@ -9008,6 +9015,7 @@ applyLang(idiomaParaMi());
     MINTUR: 'el Ministerio del Poder Popular para el Turismo',
     INSAI: 'el Instituto Nacional de Salud Agrícola Integral',
     INTI: 'el Instituto Nacional de Tierras',
+    MPPAPT: 'el Ministerio del Poder Popular para la Agricultura Productiva y Tierras',
     'Entes varios': 'los organismos correspondientes'
   };
   function enteCompleto(ente, municipio){
@@ -11791,7 +11799,8 @@ applyLang(idiomaParaMi());
     var segun = (typeof ESCALERA_SEGUN !== 'undefined' && ESCALERA_SEGUN[ref]) || null;
     if (segun){
       var dicho = (tr.datos || {})[segun.campo];
-      if (dicho && dicho !== 'No' && mapaP[segun.si]) claveP = segun.si;
+      var vale = segun.valor ? dicho === segun.valor : (dicho && dicho !== 'No');
+      if (vale && mapaP[segun.si]) claveP = segun.si;
     }
 
     var propios = (delante && mapaP[claveP] &&
@@ -27404,8 +27413,9 @@ applyLang(idiomaParaMi());
        (Franklin Reyes, 7-10-2026). */
     /* Y el Registro Turístico Nacional (c50) desde el 13-10-2026: sólo
        para el turismo, y lo da el MINTUR. */
-    /* Y el INSAI (c51) y el INTI (c52) desde el 30-10-2026. */
-    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51', 'c52'],
+    /* Y los permisos de agricultura (c51), del INSAI y el INTI, desde el
+       30-10-2026: una tarjeta para los dos, como los del MINEC. */
+    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51'],
      rotulo:function(dic){ return dic['g.sectorial']; }},
     /* Y los del LOCAL. Franklin Reyes, 22 de septiembre de 2026: «permiso
        de bomberos y conformidad de usos no son sectoriales». Tenía razón y
@@ -27880,8 +27890,7 @@ applyLang(idiomaParaMi());
     c28: {1: {clave: 'conformidad_solicitada', texto: 'p_yalasolicite'}},
     c36: {1: {clave: 'minero_solicitado',      texto: 'p_yalosolicite'}},
     c50: {1: {clave: 'rtn_solicitado',         texto: 'p_yalosolicite'}},
-    c51: {1: {clave: 'insai_solicitado',       texto: 'p_yalosolicite'}},
-    c52: {1: {clave: 'inti_solicitado',        texto: 'p_yalasolicite'}},
+    c51: {1: {clave: 'agricola_solicitado',    texto: 'p_yalosolicite'}},
     /* Y el permiso de bomberos (Franklin Reyes, 1-10-2026, Permiso de
        Bomberos), con DOS pasos del inversionista: solicitarlo en el portal
        de los bomberos de su estado («Ya la solicité») e indicar en qué sede
@@ -28114,7 +28123,6 @@ applyLang(idiomaParaMi());
     c36: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c50: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c51: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
-    c52: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Y la inscripción en el SIDCAI (c39), igual que el minero (Franklin
        Reyes, 1-10-2026, Ventanilla Única 2.3): «Inscríbete en el FONACIT a
        través del portal → Inscripción lista». Enviada no hay nada hecho; el
@@ -28258,7 +28266,11 @@ applyLang(idiomaParaMi());
      importe del día (IMPORTE_DEL_DIA.apostilla_documentos) y el 5, el
      documento traducido que el equipo deja al resolver, que es el «Tu
      documento» de cualquier trámite. */
-  var ESCALERA_SEGUN = {c17: {campo: 'apostillado', si: 'c17_yaapostillado'}};
+  /* Y los permisos de agricultura (c51), 30-10-2026: con la Oficina
+     Regional de Tierras (valor) la escalera es la del INTI, que se entrega
+     en persona; con un sistema del INSAI, la de por defecto. */
+  var ESCALERA_SEGUN = {c17: {campo: 'apostillado', si: 'c17_yaapostillado'},
+                        c51: {campo: 'sistema_agricola', valor: OFICINA_DEL_INTI, si: 'c51_inti'}};
 
   /* Adónde te manda un paso, cuando lo que toca está fuera del panel. El
      enlace de Cancillería va con el paso que se marca solo al volver: son
@@ -28287,8 +28299,10 @@ applyLang(idiomaParaMi());
     c28: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
     c36: {1: {url: 'https://sigdme2-0.desarrollominero.gob.ve/', clave: 'p_irsigdme'}},
     c50: {1: {url: 'https://turismonac.mintur.gob.ve/', clave: 'p_irmintur'}},
-    c51: {1: {campo: 'sistema_insai', urls: PORTAL_DEL_INSAI, clave: 'p_irinsai'}},
-    c52: {1: {url: 'http://celdev.inti.gob.ve/', clave: 'p_irinti'}},
+    /* El texto del botón cambia con el ente (claves): con el INTI no se
+       va a solicitar nada en línea, se consulta el estado. */
+    c51: {1: {campo: 'sistema_agricola', urls: PORTAL_AGRICOLA, clave: 'p_irinsai',
+              claves: {'INTI · Oficina Regional de Tierras': 'p_irinti'}}},
     /* El permiso de bomberos (Franklin Reyes, 1-10-2026, Permiso de
        Bomberos): el portal de los bomberos según el estado que contestó,
        Miranda o Distrito Capital (PORTAL_DE_BOMBEROS). */
@@ -28315,7 +28329,9 @@ applyLang(idiomaParaMi());
       var dicho = ((tr && tr.datos) || {})[e.campo];
       url = (dicho && e.urls && Object.prototype.hasOwnProperty.call(e.urls, dicho)) ? e.urls[dicho] : null;
     }
-    return url ? {url: url, clave: e.clave} : null;
+    var dichoC = ((tr && tr.datos) || {})[e.campo];
+    var clave = (e.claves && dichoC && e.claves[dichoC]) || e.clave;
+    return url ? {url: url, clave: clave} : null;
   }
 
   /* Qué se baja en qué paso. El archivo vive AQUÍ, junto al panel, y no se
