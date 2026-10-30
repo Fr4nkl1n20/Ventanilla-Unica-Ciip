@@ -39436,6 +39436,7 @@ applyLang(idiomaParaMi());
   var der   = document.getElementById('fiFicha');
   var aviso = document.getElementById('fiAviso');
   var busca = document.getElementById('fiBusca');
+  var pliega = document.getElementById('fiPliega');
 
   /* EL FORMATO, DESDE EL 29-10-2026: el de la «Ficha de ventanilla única»
      (PDF «Versión Preliminar» y sus instrucciones; maquetas/ficha-ventanilla-
@@ -39627,6 +39628,7 @@ applyLang(idiomaParaMi());
     aviso.hidden = !(sinSql || errCarga);
     aviso.textContent = sinSql ? (u.fi_sinsql || '') : errCarga ? (u.fi_errcarga || '') : '';
     hoja.hidden = !cargada || (sinSql && !invs.length);
+    ponPliegue();
     pintaLista(u);
     pintaFicha(u);
   }
@@ -39969,6 +39971,24 @@ applyLang(idiomaParaMi());
   }
 
   busca.addEventListener('input', function(){ filtro = busca.value.trim(); pintaLista(T()); });
+
+  /* La lista de inversionistas se pliega a una franja angosta y la ficha
+     se queda con el ancho. Se recuerda en este navegador. */
+  var plegada = false;
+  try { plegada = window.localStorage.getItem('ciip_fi_plegada') === '1'; } catch(e){}
+  function ponPliegue(){
+    var u = T(), txt = plegada ? (u.fi_desplegar || '') : (u.fi_plegar || '');
+    hoja.classList.toggle('plegada', plegada);
+    pliega.textContent = plegada ? '›' : '‹';
+    pliega.title = txt;
+    pliega.setAttribute('aria-label', txt);
+    pliega.setAttribute('aria-expanded', plegada ? 'false' : 'true');
+  }
+  pliega.addEventListener('click', function(){
+    plegada = !plegada;
+    try { window.localStorage.setItem('ciip_fi_plegada', plegada ? '1' : '0'); } catch(e){}
+    ponPliegue(); ajusta(); mideCabe();
+  });
 
   ponTab('inv');
   window.CIIP_PINTA_FINV = function(){ carga(); };

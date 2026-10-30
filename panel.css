@@ -6838,3 +6838,15 @@ button.vu-pastilla{cursor:pointer;}
 .fi-zoom .btn{padding:5px 11px;}
 .fi-zoom-b{min-width:34px; font-size:15px; line-height:1;}
 .fi-zoom-n{min-width:52px; text-align:center; font-size:var(--fs-nota); color:var(--ink); font-variant-numeric:tabular-nums;}
+/* Plegar la lista de inversionistas (30-10-2026): queda una franja de
+   48 px con la flecha para abrirla, y la ficha se queda con el ancho. */
+.fi-hoja{transition:grid-template-columns .18s ease;}
+.fi-hoja .ftp-mandos{flex-wrap:nowrap;}
+.fi-pliega{flex:none; width:32px; height:32px; border-radius:8px; border:1px solid var(--line); background:var(--bg);
+  color:var(--ink); font:inherit; font-size:18px; line-height:1; cursor:pointer;}
+.fi-pliega:hover{border-color:var(--navy2);}
+.fi-hoja.plegada{grid-template-columns:48px minmax(0,1fr);}
+.fi-hoja.plegada .ftp-izq{padding:14px 7px;}
+.fi-hoja.plegada .ftp-busca, .fi-hoja.plegada .ftp-lista{display:none;}
+@media (prefers-reduced-motion: reduce){ .fi-hoja{transition:none;} }
+@media (max-width:800px){ .fi-pliega{display:none;} .fi-hoja.plegada{grid-template-columns:minmax(0,1fr);} .fi-hoja.plegada .ftp-busca, .fi-hoja.plegada .ftp-lista{display:revert;} }
