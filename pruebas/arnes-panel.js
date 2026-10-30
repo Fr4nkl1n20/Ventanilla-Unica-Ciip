@@ -848,8 +848,10 @@
        exportador (c11), y su tarjeta deja el documento.
 
        Y NUEVE desde el 13-10-2026: entra el Registro Turístico Nacional
-       (c50). */
-    igual('camino: la fase 03 cuenta sus 9',          deEtapa(2, '.jcount'), '0 de 9 listos');
+       (c50).
+
+       Y ONCE desde el 30-10-2026: entran el INSAI (c51) y el INTI (c52). */
+    igual('camino: la fase 03 cuenta sus 11',         deEtapa(2, '.jcount'), '0 de 11 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
        inversión extranjera tenía una etapa para él solo —y una etapa con una
        sola tarjeta dentro— y ahora comparte la 4 con el banco de activos y
@@ -1159,7 +1161,7 @@
            Desde que se retiro la franja de "te toca a ti", esta es la
            unica pantalla que lo dice. */
         var pendS = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
-        ok('estados: con un borrador, treinta y tres por iniciar y no treinta y cuatro',
+        ok('estados: con un borrador, cuarenta por iniciar y no cuarenta y uno',
           /* 31 y no 32: el registro de marca esta apagado y su tarjeta ya no
              esta en el documento, asi que no puede decir «por iniciar» ni
              ninguna otra cosa. Una menos arriba y una menos abajo.
@@ -1188,7 +1190,8 @@
              /* Y 37 con el SACS (Ventanilla única 2.7, 7-10-2026): entran
                 c48 y c49 y se va el permiso sanitario (c12), apagado. */
              /* Y 38 con el Registro Turístico Nacional (c50, 13-10-2026). */
-             pendS === 38, pendS + ' por iniciar de 39 ofrecidas', '38');
+             /* Y 40 con el INSAI (c51) y el INTI (c52), 30-10-2026. */
+             pendS === 40, pendS + ' por iniciar de 41 ofrecidas', '40');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -1207,9 +1210,10 @@
              Y 33 con la marca en proceso de registro (c43), 5-10-2026.
              Y 37 con los cuatro de «Ya lo solicité» (c44 a c47), 5-10-2026.
              Y 38 con el SACS (c48 y c49, sin el c12 apagado), 7-10-2026.
-             Y 39 con el Registro Turístico Nacional (c50), 13-10-2026. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 39,
-             pend + ' por iniciar de 39 ofrecidas', '39');
+             Y 39 con el Registro Turístico Nacional (c50), 13-10-2026.
+             Y 41 con el INSAI (c51) y el INTI (c52), 30-10-2026. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 41,
+             pend + ' por iniciar de 41 ofrecidas', '41');
       }
 
       /* ── la cadena entre trámites ──
@@ -1661,8 +1665,9 @@
            sanitario (c12), que el catálogo trae apagado. */
         /* Y DIECIOCHO desde el 13-10-2026: el Registro Turístico Nacional
            (c50). */
-        igual('grupo: la fase 03 se queda con dieciocho tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 18);
+        /* Y VEINTE desde el 30-10-2026: el INSAI (c51) y el INTI (c52). */
+        igual('grupo: la fase 03 se queda con veinte tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 20);
         ok('grupo: y el título no es una tarjeta',
            !t.classList.contains('tcard') && !t.hasAttribute('data-tr'),
            t.className, 'sin ser tarjeta');

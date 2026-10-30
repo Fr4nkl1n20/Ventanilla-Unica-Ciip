@@ -374,6 +374,11 @@
     {codigo:'registro_turistico', ref_panel:'c50', ente:'MINTUR',
      activo:true, emite:'certificado_rtn', plazo_dias:21,
      nombre:'Registro Turístico Nacional (RTN)', fase:3, nivel:'actividad'},
+    /* El INSAI (c51) y el INTI (c52), 30-10-2026: como el RTN. */
+    {codigo:'insai', ref_panel:'c51', ente:'INSAI', activo:true, emite:'documento_insai',
+     nombre:'Registros y permisos del INSAI', fase:3, nivel:'actividad'},
+    {codigo:'inti', ref_panel:'c52', ente:'INTI', activo:true, emite:'documento_inti',
+     nombre:'Solicitudes ante el INTI', fase:3, nivel:'actividad'},
     /* El SIDCAI (c39) y su segundo tramo (c40), del 23-9-2026. Como el
        RUM: 'actividad' y sin plazo. El certificado sale del segundo. */
     {codigo:'aporte_locti', ref_panel:'c39', ente:'FONACIT',
@@ -2031,6 +2036,8 @@
         {codigo:'rifs_junta', vence:false}, {codigo:'codigo_ente', vence:false},
         {codigo:'certificado_rupdae', vence:false}, {codigo:'certificado_rum', vence:true},
         {codigo:'certificado_rtn', vence:true},
+        {codigo:'documento_insai', vence:false},
+        {codigo:'documento_inti', vence:false},
         {codigo:'poliza_responsabilidad_civil', vence:true}, {codigo:'poliza_incendio', vence:true},
         {codigo:'certificado_locti', vence:true}, {codigo:'planilla_locti', vence:false},
         {codigo:'pago_locti', vence:false},
@@ -3176,7 +3183,8 @@
                Ventanilla única 2.7, supabase-sacs.sql). */
             var llaves = ['cancilleria_confirmada', 'licencia_solicitada', 'conformidad_solicitada', 'minero_solicitado',
                           'bomberos_solicitado', 'saime_confirmada', 'locti_inscrito', 'sacs_registrado',
-                          'rtn_solicitado', 'ambiental_solicitado'];
+                          'rtn_solicitado', 'ambiental_solicitado',
+                          'insai_solicitado', 'inti_solicitado'];
             var rCP;
             if (!args || llaves.indexOf(args.p_clave) < 0){
               rCP = {data: null, error: {message: 'paso desconocido: ' + (args && args.p_clave), code: 'P0001'}};

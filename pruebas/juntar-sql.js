@@ -333,7 +333,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    equipo. Solo necesita es_admin() y es_gestor(); al final para no mover
    el número de nadie. Nace vacía y sin relación con los trámites. */
 'supabase-fichas-tecnicas',
-'supabase-fichas-inversionistas'];
+'supabase-fichas-inversionistas',
+/* El INSAI (c51) y el INTI (c52), Franklin Reyes, 30-10-2026: los dos
+   trámites, lo que entrega cada uno y sus marcas en confirma_paso, que
+   redefine la de supabase-permisos-ambientales. */
+'supabase-insai-inti'];
 
 let mal = 0;
 for (const n of orden) {

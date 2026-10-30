@@ -4176,6 +4176,21 @@ applyLang(idiomaParaMi());
       {tipo:'poliza_responsabilidad_civil', clave:'d_polizarc'},
       {tipo:'poliza_incendio',              clave:'d_polizaincendio'}
     ],
+    /* El INSAI (c51) y el INTI (c52), Franklin Reyes, 30-10-2026: los del
+       SACS (c48) -acta, RIF de la empresa, cédula y RIF del representante-
+       hasta que llegue la lista de cada ente. */
+    insai: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    inti: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
     /* La inscripción en el SIDCAI (c39). Lo que el FONACIT pide cargar en
        PDF: el acta y la última asamblea, el RIF y las declaraciones del
        ISLR. Los estados financieros y la licencia de actividades el
@@ -4421,6 +4436,12 @@ applyLang(idiomaParaMi());
        ha medido. La planilla del MINTUR pide el número de patente, así que
        va detrás de la licencia de actividades económicas (c10). */
     c50: {plazo:15, aplica:'cond', cond:'ft_c_turismo', modo:'portal', depende:'c10'},
+    /* El INSAI (c51) y el INTI (c52), Franklin Reyes, 30-10-2026: sin
+       plazo publicado, y la ficha se salta el número. El INSAI se tramita
+       en sus sistemas en línea; el INTI, en persona en la Oficina Regional
+       de Tierras. Los dos piden el RIF de la empresa: detrás del c6. */
+    c51: {aplica:'cond', cond:'ft_c_agro',    modo:'portal', depende:'c6'},
+    c52: {aplica:'cond', cond:'ft_c_tierras', modo:'pres',   depende:'c6'},
     /* El SIDCAI (c39): se inscribe una vez y luego se declara cada mes,
        dentro de los quince días siguientes (Providencia 015-004-2024).
        La inscripción no tiene plazo publicado, y la ficha se salta el
@@ -4812,6 +4833,21 @@ applyLang(idiomaParaMi());
       'https://sistemas.sacs.gob.ve/sivercos',
     'SIACSv2 · Sistema de Información Automatizado de Contraloría Sanitaria':
       'https://sistemas.sacs.gob.ve/siacsv2/login_user#'
+  };
+
+  /* ── LOS SISTEMAS EN LÍNEA DEL INSAI ──
+     Franklin Reyes, 30-10-2026 (mensaje del equipo «para Claude»): el INSAI
+     tiene tres, SIGESAI, RUNSAI y la plataforma de certificados. El
+     inversionista elige el suyo al empezar y el paso 1 le lleva a él, como
+     en el SACS. Las claves son el texto en español de o_insai_sistema
+     (pasos.js), letra por letra. */
+  var PORTAL_DEL_INSAI = {
+    'SIGESAI · Sistema Integrado de Gestión para la Movilización Animal y Vegetal':
+      'https://sigesai.insai.gob.ve/',
+    'RUNSAI · Registro Único Nacional de Salud Agrícola Integral':
+      'http://www.insai.gob.ve/runsai',
+    'Plataforma de Certificados de Importación y Exportación':
+      'http://certificados.insai.gob.ve/'
   };
 
   /* ── LOS SISTEMAS EN LÍNEA DEL MINEC ──
@@ -5622,6 +5658,21 @@ applyLang(idiomaParaMi());
     registro_turistico: [
       {n:'razon_social',        clave:'f_razon',         ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'}
+    ],
+    /* El INSAI (c51): el sistema en línea -del que sale el enlace del paso
+       1-, lo que va a solicitar en él y la empresa. El INTI (c52): la
+       solicitud, dónde están las tierras y la empresa. */
+    insai: [
+      {n:'sistema_insai',        clave:'f_insaisistema', opcionesClave:'o_insai_sistema', ancho:true},
+      {n:'tramite_insai',        clave:'f_insaitramite', ancho:true},
+      {n:'razon_social',         clave:'f_razon',        ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'}
+    ],
+    inti: [
+      {n:'solicitud_inti',       clave:'f_intisolicitud', opcionesClave:'o_inti_solicitud', ancho:true},
+      {n:'ubicacion_tierras',    clave:'f_intiubica',     ancho:true},
+      {n:'razon_social',         clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'}
     ],
     /* La inscripción en el SIDCAI (c39). Lo que piden las pantallas de
        «Nuevos Usuarios»: la empresa, el representante legal y el usuario
@@ -8951,6 +9002,8 @@ applyLang(idiomaParaMi());
     MINEC: 'el Ministerio del Poder Popular para el Ecosocialismo',
     ZODI: 'la Zona Operativa de Defensa Integral',
     MINTUR: 'el Ministerio del Poder Popular para el Turismo',
+    INSAI: 'el Instituto Nacional de Salud Agrícola Integral',
+    INTI: 'el Instituto Nacional de Tierras',
     'Entes varios': 'los organismos correspondientes'
   };
   function enteCompleto(ente, municipio){
@@ -27347,7 +27400,8 @@ applyLang(idiomaParaMi());
        (Franklin Reyes, 7-10-2026). */
     /* Y el Registro Turístico Nacional (c50) desde el 13-10-2026: sólo
        para el turismo, y lo da el MINTUR. */
-    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50'],
+    /* Y el INSAI (c51) y el INTI (c52) desde el 30-10-2026. */
+    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51', 'c52'],
      rotulo:function(dic){ return dic['g.sectorial']; }},
     /* Y los del LOCAL. Franklin Reyes, 22 de septiembre de 2026: «permiso
        de bomberos y conformidad de usos no son sectoriales». Tenía razón y
@@ -27822,6 +27876,8 @@ applyLang(idiomaParaMi());
     c28: {1: {clave: 'conformidad_solicitada', texto: 'p_yalasolicite'}},
     c36: {1: {clave: 'minero_solicitado',      texto: 'p_yalosolicite'}},
     c50: {1: {clave: 'rtn_solicitado',         texto: 'p_yalosolicite'}},
+    c51: {1: {clave: 'insai_solicitado',       texto: 'p_yalosolicite'}},
+    c52: {1: {clave: 'inti_solicitado',        texto: 'p_yalasolicite'}},
     /* Y el permiso de bomberos (Franklin Reyes, 1-10-2026, Permiso de
        Bomberos), con DOS pasos del inversionista: solicitarlo en el portal
        de los bomberos de su estado («Ya la solicité») e indicar en qué sede
@@ -28053,6 +28109,8 @@ applyLang(idiomaParaMi());
     c28: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c36: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c50: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c51: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c52: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Y la inscripción en el SIDCAI (c39), igual que el minero (Franklin
        Reyes, 1-10-2026, Ventanilla Única 2.3): «Inscríbete en el FONACIT a
        través del portal → Inscripción lista». Enviada no hay nada hecho; el
@@ -28225,6 +28283,8 @@ applyLang(idiomaParaMi());
     c28: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
     c36: {1: {url: 'https://sigdme2-0.desarrollominero.gob.ve/', clave: 'p_irsigdme'}},
     c50: {1: {url: 'https://turismonac.mintur.gob.ve/', clave: 'p_irmintur'}},
+    c51: {1: {campo: 'sistema_insai', urls: PORTAL_DEL_INSAI, clave: 'p_irinsai'}},
+    c52: {1: {url: 'http://celdev.inti.gob.ve/', clave: 'p_irinti'}},
     /* El permiso de bomberos (Franklin Reyes, 1-10-2026, Permiso de
        Bomberos): el portal de los bomberos según el estado que contestó,
        Miranda o Distrito Capital (PORTAL_DE_BOMBEROS). */
