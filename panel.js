@@ -8033,7 +8033,12 @@ applyLang(idiomaParaMi());
         entrada.value = EMPRESA[c.n];
         var sello = el('span', 'de-empresa', u.em_deempresa || '');
         campo.querySelector('label').appendChild(sello);
-      } else if (ANTES && (ANTES[c.n] || deOtroNombre(c.n))){
+      /* El sistema del SACS (las tarjetas) NO se copia de otra solicitud
+         (Franklin Reyes, 2-11-2026: «cuando abro la página inicia
+         seleccionada la 3»): cada permiso se pide en el sistema que toque,
+         y heredar el de la vez anterior lo deja elegido sin que nadie lo
+         haya elegido. */
+      } else if (!c.tarjetas && ANTES && (ANTES[c.n] || deOtroNombre(c.n))){
         /* Y si no, lo que pusiste en otro tramite. El sello es corto -en
            una etiqueta no cabe una frase- y el nombre del tramite va en el
            titulo: quien se pregunte de donde salio, lo tiene al pasar por
