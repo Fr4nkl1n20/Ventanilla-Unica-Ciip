@@ -3817,6 +3817,15 @@ body[data-vista="tramite"] #secTramites{display:none;}
 .tr-firmada .tr-nota{margin-top:0;}
 .tr-escalera .tr-firmada{align-items:center;}
 .tr-escalera .tr-firmada .pe-subir{align-self:center;}
+/* Y ya enviado, sin la marca delante de «Permiso enviado» (Franklin
+   Reyes, 2-11-2026, en el 2 de los permisos ambientales: «aquí dice
+   permiso enviado pero arriba también sale un check»). En la escalera el
+   papel bueno cierra su paso (PASOS_CON_PAPEL) y el punto ya lleva la
+   marca; queda el texto y «Abrir» o «Cambiar». Es la misma casilla para
+   todos (casillaDelPapelSuyo), así que vale también para la planilla
+   firmada de los dos RIF. Fuera de la escalera -la cola del gestor- la
+   marca se queda: allí no hay punto que lo diga. */
+.tr-escalera .tr-firmada .pe-subido > svg{display:none;}
 @media(max-width:640px){
   .tr-escalera .tr-firmada{align-items:flex-start;}
   .tr-escalera .tr-firmada .pe-subir{align-self:flex-start;}
