@@ -4394,7 +4394,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .st-pe.on{color:var(--ink); border-bottom-color:var(--navy2);}
 .st-pe:focus-visible{outline:2px solid var(--navy2); outline-offset:-2px; border-radius:6px;}
 .st-etapa[hidden]{display:none;}
-.st-rej{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 290px)); gap:12px;}
+.st-rej{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:12px;}
 .st-tarjeta{position:relative; display:flex; flex-direction:column; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--bg); cursor:pointer;}
 .st-tarjeta:hover{background:var(--block);}
 .st-tarjeta.on{background:var(--activa-bg);}
