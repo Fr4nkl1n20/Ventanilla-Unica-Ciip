@@ -4434,6 +4434,28 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .st-pt.censo .st-pt-form i{background:#127E8F;}
 .st-pt.clv .st-pt-form i{background:#C8E8EA;}
 .st-pt-form u{height:4cqw; width:34%; justify-self:end; background:#0B3EA8; border-radius:.8cqw;}
+/* Las portadas del MINEC (2-11-2026, portadaDelMinec): la barra de color
+   con el nombre y la hoja blanca con el logotipo de letras de colores, y la
+   Ventanilla Verde con su panel verde. Todo en cqw, como las del SACS. */
+.st-pt.st-mn{background:#F3F5F8;}
+.st-mn-barra{position:absolute; top:0; left:0; right:0; height:15%; display:flex; align-items:center; gap:1.4cqw; padding:0 4cqw; color:#fff; font-family:Georgia, serif; font-style:italic; font-size:3.4cqw; white-space:nowrap; overflow:hidden;}
+.st-mn-barra b{font-size:4cqw;}
+.st-mn-hoja{position:absolute; top:22%; left:20%; right:20%; bottom:6%; background:#fff; border:1px solid #D7E3EA; border-radius:1.6cqw; display:grid; align-content:start; justify-items:center; overflow:hidden;}
+.st-mn-hoja .ini{width:100%; height:12%; color:#fff; font-family:Georgia, serif; font-style:italic; font-size:3cqw; display:grid; place-items:center;}
+.st-mn-hoja .mpp{font-size:2.4cqw; font-weight:800; color:#1F2E6B; margin:2.4cqw 0 1cqw; letter-spacing:.02em;}
+.st-mn-hoja .marca{font-family:system-ui, sans-serif; font-weight:900; font-size:10.4cqw; line-height:1; letter-spacing:-.02em; margin-top:2cqw;}
+.st-mn-hoja .sub{font-weight:800; font-size:3cqw; line-height:1.15; text-align:center; padding:1.4cqw 3cqw 0; color:#7FB321;}
+.st-mn-hoja .sub.gris{color:#555;}
+.st-mn .c-az{color:#4BA3DC;} .st-mn .c-na{color:#F26A1B;} .st-mn .c-ro{color:#E8552B;}
+.st-mn .c-ve{color:#7FB321;} .st-mn .c-vo{color:#5E9A2A;} .st-mn .c-te{color:#14A88A;}
+.st-pt.st-vv{background:#EFEFEF;}
+.st-vv-izq{position:absolute; top:0; bottom:0; left:0; width:44%; background:#4CAF72; border-radius:0 18cqw 18cqw 0 / 0 50% 50% 0; color:#fff; display:grid; align-content:center; justify-items:center; gap:1.4cqw; text-align:center;}
+.st-vv-izq .min{font-size:2.3cqw; font-weight:700; padding:0 3cqw;}
+.st-vv-izq b{font-size:6cqw; line-height:1.05; max-width:80%;}
+.st-vv-izq i{display:block; width:70%; height:3.4cqw; border-radius:1cqw; background:rgba(255,255,255,.9);}
+.st-vv-izq u{display:block; width:70%; height:3.6cqw; border-radius:1cqw; background:#2BA84A;}
+.st-vv-der{position:absolute; top:0; bottom:0; left:46%; right:0; display:grid; place-items:center;}
+.st-vv-der svg{width:78%; height:auto;}
 .st-cu{flex:1 1 auto; min-width:0; display:grid; gap:4px; align-content:start; padding:11px 13px 13px; overflow-wrap:anywhere;}
 .st-sig{font-size:11px; font-weight:800; letter-spacing:.02em; color:var(--navy2);}
 .st-nom{font-size:13px; font-weight:700; line-height:1.35;}

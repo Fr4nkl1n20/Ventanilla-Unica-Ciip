@@ -4920,6 +4920,10 @@ applyLang(idiomaParaMi());
      dependen de él- no se entera de que ya no se ve. */
   function montaTarjetas(campo, sel, c, u){
     var datos = c.tarjetas, urls = c.urls || {};
+    /* El SACS no las dice: son las suyas. El MINEC trae las propias
+       (2-11-2026). */
+    var etapas = c.etapas || ETAPAS_DEL_SACS;
+    var dibuja = c.portada || portadaDelSacs;
     var caja = el('div', 'st-caja');
     var todas = [];
     var pes = el('div', 'st-pes');
@@ -4954,7 +4958,7 @@ applyLang(idiomaParaMi());
       abre(etapaDe(t));
       marca();
     }
-    ETAPAS_DEL_SACS.forEach(function(e){
+    etapas.forEach(function(e){
       var ops = [].slice.call(sel.options).filter(function(o){
         return o.value && datos[o.value] && datos[o.value].etapa === e.n;
       });
@@ -4977,11 +4981,11 @@ applyLang(idiomaParaMi());
         var d = datos[o.value];
         var corte = o.textContent.indexOf(' · ');
         var sig = corte < 0 ? o.textContent : o.textContent.slice(0, corte);
-        var nom = corte < 0 ? '' : o.textContent.slice(corte + 3);
+        var nom = corte < 0 ? (datos[o.value].nom || '') : o.textContent.slice(corte + 3);
         var t = el('div', 'st-tarjeta');
         t.setAttribute('role', 'radio');
         t.setAttribute('data-valor', o.value);
-        t.appendChild(portadaDelSacs(d, sig));
+        t.appendChild(dibuja(d, sig));
         var cu = el('div', 'st-cu');
         cu.appendChild(el('div', 'st-sig', sig));
         if (nom) cu.appendChild(el('div', 'st-nom', nom));
@@ -5086,6 +5090,84 @@ applyLang(idiomaParaMi());
     'RENMA':
       'https://renma.minec.gob.ve/'
   };
+
+  /* ── LAS TARJETAS DE LOS SISTEMAS DEL MINEC ──
+     Franklin Reyes, 2-11-2026 (maquetas/minec-tarjetas.html): «esto aquí
+     quiero trabajarlo como trabajamos permisos autónomos» -el SACS-. Las
+     mismas pestañas y tarjetas (montaTarjetas), por tema: territorio,
+     bosques, desechos y materiales. La portada de cada página va dibujada
+     (portadaDelMinec), tomada de sus capturas del 2-11-2026: cinco con la
+     barra de color y la hoja con el logotipo de letras de colores, y la
+     Ventanilla Verde con su panel verde. Los nombres de los sistemas y lo
+     que dice cada portada van en español: son los del MINEC.
+     Por confirmar con el CIIP: la Ventanilla Verde y SIFORTRAT comparten
+     los trámites forestales 033 a 037. */
+  var TARJETAS_DEL_MINEC = {
+    'SIGETRAT': {etapa: 1, nom: 'Sistema de Gestión de Trámites Autorizatorios Territoriales',
+      barra: '#DC3545', ini: '#22C79A', toca: 'yt_toca_sigetrat',
+      marca: [['SIG', 'az'], ['ET', 'ro'], ['RAT', 'vo']]},
+    'Ventanilla Verde': {etapa: 2, verde: true, toca: 'yt_toca_vverde'},
+    'SIFORTRAT': {etapa: 2, nom: 'Sistema Forestal de Trámites Autorizatorios',
+      barra: '#3E9B6F', ini: '#3E9B6F', toca: 'yt_toca_sifortrat',
+      marca: [['SIF', 'az'], ['ORT', 'na'], ['RAT', 've']]},
+    'RACDA': {etapa: 3, nom: 'Registro de Actividades Capaces de Degradar el Ambiente',
+      barra: '#20C997', ini: '#20C997', toca: 'yt_toca_racda', gris: true,
+      marca: [['RACDA', 'te']]},
+    'SIALAMB': {etapa: 3, nom: 'Sistema Automatizado de Laboratorios Ambientales',
+      barra: '#17A2B8', ini: '#17A2B8', toca: 'yt_toca_sialamb',
+      marca: [['SI', 'az'], ['AL', 'na'], ['AMB', 've']]},
+    'RENMA': {etapa: 3, nom: 'Registro Nacional de Manejadores de Materiales Aprovechables no Peligrosos',
+      barra: '#3E9B6F', ini: '#3E9B6F', toca: 'yt_toca_renma', gris: true,
+      marca: [['Re', 'az'], ['N', 'ro'], ['MA', 've']]}
+  };
+  var ETAPAS_DEL_MINEC = [
+    {n: 1, t: 'yt_mn_etapa1', d: 'yt_mn_etapa1_d'},
+    {n: 2, t: 'yt_mn_etapa2', d: 'yt_mn_etapa2_d'},
+    {n: 3, t: 'yt_mn_etapa3', d: 'yt_mn_etapa3_d'}
+  ];
+  /* El dibujo de hojas y animales de la Ventanilla Verde, en pequeño. */
+  var MINEC_ANIMALES = '<svg viewBox="0 0 120 90" aria-hidden="true">' +
+    '<path d="M20 70c10-30 35-45 60-40-8 18-30 34-60 40z" fill="#4E9A3A"/>' +
+    '<path d="M60 78c4-26 22-40 46-42-6 20-22 34-46 42z" fill="#6CB33F"/>' +
+    '<circle cx="78" cy="40" r="14" fill="#E2A33B"/><circle cx="73" cy="37" r="2" fill="#222"/>' +
+    '<circle cx="83" cy="37" r="2" fill="#222"/><path d="M75 45q3 3 6 0" stroke="#222" stroke-width="1.5" fill="none"/>' +
+    '<path d="M30 30q8-10 18-2-6 4-18 2z" fill="#F07D1A"/><circle cx="46" cy="28" r="2" fill="#222"/>' +
+    '<path d="M48 52q6-10 14-4-2 6-14 4z" fill="#F2C31B"/><path d="M90 20l8-6 2 8z" fill="#D9558B"/></svg>';
+  function portadaDelMinec(d, sig){
+    var pt;
+    if (d.verde){
+      pt = el('div', 'st-pt st-vv');
+      var izq = el('div', 'st-vv-izq');
+      izq.appendChild(el('span', 'min', 'Ministerio del Poder Popular para el Ecosocialismo'));
+      izq.appendChild(el('b', null, sig));
+      izq.appendChild(el('i'));
+      izq.appendChild(el('i'));
+      izq.appendChild(el('u'));
+      pt.appendChild(izq);
+      var der = el('div', 'st-vv-der');
+      der.innerHTML = MINEC_ANIMALES;
+      pt.appendChild(der);
+    } else {
+      pt = el('div', 'st-pt st-mn');
+      var barra = el('div', 'st-mn-barra');
+      barra.style.background = d.barra;
+      barra.appendChild(el('b', null, sig));
+      barra.appendChild(document.createTextNode(' · ' + d.nom));
+      pt.appendChild(barra);
+      var hoja = el('div', 'st-mn-hoja');
+      var ini = el('div', 'ini', 'Inicio de Sesión');
+      ini.style.background = d.ini;
+      hoja.appendChild(ini);
+      hoja.appendChild(el('div', 'mpp', 'ECOSOCIALISMO'));
+      var marca = el('div', 'marca');
+      d.marca.forEach(function(p){ marca.appendChild(el('span', 'c-' + p[1], p[0])); });
+      hoja.appendChild(marca);
+      hoja.appendChild(el('div', 'sub' + (d.gris ? ' gris' : ''), d.nom));
+      pt.appendChild(hoja);
+    }
+    pt.setAttribute('aria-hidden', 'true');
+    return pt;
+  }
 
   /* ── LOS TRÁMITES DE CADA SISTEMA DEL MINEC ──
      Franklin Reyes, 19-10-2026: «cuando yo seleccione Ventanilla Verde, o la
@@ -5795,7 +5877,8 @@ applyLang(idiomaParaMi());
        pregunta el sistema del MINEC, y las solicitudes viejas los conservan
        en tramites.datos. */
     permiso_ambiental: [
-      {n:'sistema_minec',       clave:'f_mnsistema',   opcionesClave:'o_minec_sistema', ancho:true},
+      {n:'sistema_minec',       clave:'f_mnsistema',   opcionesClave:'o_minec_sistema', ancho:true,
+       tarjetas:TARJETAS_DEL_MINEC, etapas:ETAPAS_DEL_MINEC, portada:portadaDelMinec, urls:PORTAL_DEL_MINEC},
       {n:'razon_social',        clave:'f_razon',       ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
       {n:'tramite_minec',       clave:'f_mntramite',   ancho:true,

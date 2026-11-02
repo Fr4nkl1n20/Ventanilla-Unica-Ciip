@@ -378,7 +378,10 @@ const SALTOS = new Set([
   /* Y a quién le toca cada sistema del SACS (2-11-2026): van detrás de
      «Te toca si» en negrita, y siguen la frase en minúscula. */
   'yt_toca_siacvisa', 'yt_toca_censo', 'yt_toca_siacsv2', 'yt_toca_sivercos',
-  'yt_toca_clv'
+  'yt_toca_clv',
+  /* Y los del MINEC, igual (2-11-2026). */
+  'yt_toca_sigetrat', 'yt_toca_vverde', 'yt_toca_sifortrat', 'yt_toca_racda',
+  'yt_toca_sialamb', 'yt_toca_renma'
 ]);
 
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\s*/gu;
