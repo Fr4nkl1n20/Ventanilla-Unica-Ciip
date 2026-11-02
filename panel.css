@@ -4438,7 +4438,9 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .st-tarjeta.on .st-marca svg{display:block;}
 .sol-campo.con-tarjetas.mal > label{color:var(--rust);}
 /* Sin sistema elegido, las demás casillas esperan (montaTarjetas). */
-.st-sin-elegir > .sol-campo:not(.con-tarjetas), .st-sin-elegir > .sol-grupo, .st-sin-elegir > .sol-casilla{display:none;}
+.st-sin-elegir > .sol-campo:not(.con-tarjetas), .st-sin-elegir > .sol-grupo, .st-sin-elegir > .sol-casilla, .st-sin-elegir > .pa-lee{display:none;}
+/* Y el cuadro del lector, cuando va debajo de las tarjetas, a todo lo ancho. */
+.sol-campos > .pa-lee{grid-column:1 / -1;}
 @media (max-width:640px){
   .st-rej{grid-template-columns:1fr;}
 }

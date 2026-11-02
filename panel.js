@@ -7444,11 +7444,24 @@ applyLang(idiomaParaMi());
          puesta no quiere decir que este encendido, y el cuadro no sale
          hasta que el servidor dice que si. Un lector sin listo() -el de
          pruebas, el local- ya esta encendido por el hecho de existir. */
-      if (typeof lector.listo !== 'function'){
+      /* Arriba del todo, salvo en los formularios de tarjetas -el SACS-:
+         ahí va debajo de las tarjetas y sale solo cuando ya se eligió una,
+         como las demás casillas (Franklin Reyes, 2-11-2026: «que esa opción
+         de subir el documento esté abajo y trabaje igual, cuando se
+         seleccione un cuadro»). La rejilla todavía no existe cuando esto
+         corre: se mira otra vez cuando ya está. */
+      function ponCuadro(){
         col.insertBefore(cuadro, col.firstChild);
+        setTimeout(function(){
+          var t = col.querySelector('.sol-campo.con-tarjetas');
+          if (t && t.parentNode) t.parentNode.insertBefore(cuadro, t.nextSibling);
+        }, 0);
+      }
+      if (typeof lector.listo !== 'function'){
+        ponCuadro();
       } else {
         lector.listo().then(function(si){
-          if (si && document.body.contains(col)) col.insertBefore(cuadro, col.firstChild);
+          if (si && document.body.contains(col)) ponCuadro();
         }, function(){});
       }
 
