@@ -4456,6 +4456,28 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .st-vv-izq u{display:block; width:70%; height:3.6cqw; border-radius:1cqw; background:#2BA84A;}
 .st-vv-der{position:absolute; top:0; bottom:0; left:46%; right:0; display:grid; place-items:center;}
 .st-vv-der svg{width:78%; height:auto;}
+/* Las portadas de los permisos de agricultura (2-11-2026, portadaAgricola). */
+.st-ag{display:grid; place-items:center; align-content:center; gap:2cqw; text-align:center; font-family:system-ui, sans-serif;}
+.st-ag-sigesai{background:linear-gradient(180deg, rgba(20,30,20,.15), rgba(20,30,20,.55)), linear-gradient(160deg, #8FA9B8 0%, #C9B48A 45%, #5E7A3A 70%, #2F4A1E 100%);}
+.st-ag-sigesai .ag-logo{position:absolute; top:6%; left:6%; font-weight:900; font-size:7cqw; color:#1B1B1B; background:rgba(255,255,255,.85); padding:.6cqw 2cqw; border-radius:1.4cqw;}
+.st-ag-sigesai .ag-logo .s{display:inline-block; width:8cqw; line-height:8cqw; text-align:center; vertical-align:middle; font-size:6.4cqw; background:#B3121C; color:#fff; clip-path:polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); margin-right:.4cqw;}
+.st-ag-sigesai .ag-btn{position:absolute; top:7%; right:15%; background:#C1121F; color:#fff; font-size:3.6cqw; padding:1.4cqw 4cqw; border-radius:1cqw;}
+.st-ag-sigesai .ag-frase{color:#fff; font-size:4.6cqw; font-weight:600; padding:0 8cqw; margin-top:10cqw; text-shadow:0 1px 3px rgba(0,0,0,.5);}
+.st-ag-runsai{background:#fff;}
+.st-ag-runsai .ag-caja{width:74%; padding:4cqw 3cqw; background:#E3141B; color:#fff; border:1.2cqw solid #fff; outline:.6cqw solid #111; clip-path:polygon(0 0, 88% 0, 100% 16%, 100% 100%, 12% 100%, 0 84%);}
+.st-ag-runsai .ag-caja b{display:block; font-size:12cqw; font-weight:900; line-height:1;}
+.st-ag-runsai .ag-caja b i{font-style:normal; font-size:6cqw; vertical-align:top;}
+.st-ag-runsai .ag-caja span{display:block; font-size:4cqw; font-weight:800; margin-top:1.4cqw; line-height:1.15;}
+.st-ag-cert{background:#fff;}
+.st-ag-cert .ag-insai, .st-ag-runsai .ag-insai{font-size:14cqw; font-weight:900; font-style:italic; color:#E3141B; line-height:.9; letter-spacing:-.03em;}
+.st-ag-cert .ag-insai i{font-style:normal; font-size:7cqw; vertical-align:top;}
+.st-ag .ag-sub{font-size:3.2cqw; font-weight:700; color:#B3121C; padding:0 8cqw; line-height:1.2;}
+.st-ag-cert .ag-cert{margin-bottom:8cqw; font-size:4.2cqw; font-weight:800; color:#222; padding:0 8cqw; line-height:1.2;}
+.st-ag-cert .ag-carga{position:absolute; left:0; right:0; bottom:0; height:7%; background:repeating-linear-gradient(90deg, #C0392B 0 8%, #2471A3 8% 16%, #D4AC0D 16% 24%, #1E8449 24% 32%);}
+.st-ag-inti{background:linear-gradient(160deg, #F2E9D8, #DCC9A3 60%, #A88A55);}
+.st-ag-inti .ag-tierra svg{width:14cqw; height:14cqw; stroke:#5B4A2A; fill:none; stroke-width:1.6;}
+.st-ag-inti .ag-inti{font-size:13cqw; font-weight:900; color:#3E5A1F; line-height:1;}
+.st-ag-inti .ag-sub{color:#5B4A2A;}
 .st-cu{flex:1 1 auto; min-width:0; display:grid; gap:4px; align-content:start; padding:11px 13px 13px; overflow-wrap:anywhere;}
 .st-sig{font-size:11px; font-weight:800; letter-spacing:.02em; color:var(--navy2);}
 .st-nom{font-size:13px; font-weight:700; line-height:1.35;}

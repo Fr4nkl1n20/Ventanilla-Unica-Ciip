@@ -381,7 +381,9 @@ const SALTOS = new Set([
   'yt_toca_clv',
   /* Y los del MINEC, igual (2-11-2026). */
   'yt_toca_sigetrat', 'yt_toca_vverde', 'yt_toca_sifortrat', 'yt_toca_racda',
-  'yt_toca_sialamb', 'yt_toca_renma'
+  'yt_toca_sialamb', 'yt_toca_renma',
+  /* Y los de agricultura, igual (2-11-2026). */
+  'yt_toca_sigesai', 'yt_toca_runsai', 'yt_toca_certinsai', 'yt_toca_inti'
 ]);
 
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\s*/gu;

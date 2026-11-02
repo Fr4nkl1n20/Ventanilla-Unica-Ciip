@@ -4982,6 +4982,7 @@ applyLang(idiomaParaMi());
         var corte = o.textContent.indexOf(' · ');
         var sig = corte < 0 ? o.textContent : o.textContent.slice(0, corte);
         var nom = corte < 0 ? (datos[o.value].nom || '') : o.textContent.slice(corte + 3);
+        if (corte < 0 && datos[o.value].sig){ nom = o.textContent; sig = datos[o.value].sig; }
         var t = el('div', 'st-tarjeta');
         t.setAttribute('role', 'radio');
         t.setAttribute('data-valor', o.value);
@@ -5059,6 +5060,47 @@ applyLang(idiomaParaMi());
       'http://certificados.insai.gob.ve/'
   };
   PORTAL_AGRICOLA[OFICINA_DEL_INTI] = 'http://celdev.inti.gob.ve/';
+
+  /* ── LAS TARJETAS DE LOS PERMISOS DE AGRICULTURA ──
+     Franklin Reyes, 2-11-2026: «aquí quiero aplicar lo mismo que en
+     permisos ambientales». Las pestañas y tarjetas del SACS y el MINEC
+     (montaTarjetas), por ente: el INSAI con sus tres sistemas y el INTI.
+     Las portadas, dibujadas de sus páginas del 2-11-2026 (portadaAgricola):
+     SIGESAI, la foto del campo con su logotipo y el botón rojo; RUNSAI, su
+     recuadro rojo; los certificados, la página del INSAI. La del INTI no se
+     pudo ver -celdev.inti.gob.ve no resuelve-, y va con un dibujo propio. */
+  var TARJETAS_AGRICOLAS = {
+    'SIGESAI · Sistema Integrado de Gestión para la Movilización Animal y Vegetal':
+      {etapa: 1, cara: 'sigesai', toca: 'yt_toca_sigesai'},
+    'RUNSAI · Registro Único Nacional de Salud Agrícola Integral':
+      {etapa: 1, cara: 'runsai', toca: 'yt_toca_runsai'},
+    'Plataforma de Certificados de Importación y Exportación':
+      {etapa: 1, cara: 'cert', sig: 'INSAI', toca: 'yt_toca_certinsai'}
+  };
+  TARJETAS_AGRICOLAS[OFICINA_DEL_INTI] = {etapa: 2, cara: 'inti', toca: 'yt_toca_inti'};
+  var ETAPAS_AGRICOLAS = [
+    {n: 1, t: 'yt_ag_etapa1', d: 'yt_ag_etapa1_d'},
+    {n: 2, t: 'yt_ag_etapa2', d: 'yt_ag_etapa2_d'}
+  ];
+  function portadaAgricola(d){
+    var pt = el('div', 'st-pt st-ag st-ag-' + d.cara);
+    var h = '';
+    if (d.cara === 'sigesai'){
+      h = '<div class="ag-logo"><span class="s">S</span>IGESAI</div><div class="ag-btn">Ingresar</div>' +
+          '<div class="ag-frase">Una solución del Instituto Nacional de Salud Agrícola Integral, INSAI</div>';
+    } else if (d.cara === 'runsai'){
+      h = '<div class="ag-caja"><b>RUNSAI<i>★</i></b><span>Registro Único Nacional de Salud Agrícola Integral</span></div>';
+    } else if (d.cara === 'cert'){
+      h = '<div class="ag-insai">INSAI<i>★</i></div><div class="ag-sub">Instituto Nacional de Salud Agrícola Integral</div>' +
+          '<div class="ag-cert">Certificados de Importación y Exportación</div><div class="ag-carga"></div>';
+    } else {
+      h = '<div class="ag-tierra"><svg viewBox="0 0 24 24"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3z"/><path d="M9 4v13M15 7v13"/></svg></div>' +
+          '<div class="ag-inti">INTI</div><div class="ag-sub">Instituto Nacional de Tierras · Oficina Regional de Tierras</div>';
+    }
+    pt.innerHTML = h;
+    pt.setAttribute('aria-hidden', 'true');
+    return pt;
+  }
 
   /* ── LOS SISTEMAS EN LÍNEA DEL MINEC ──
      Franklin Reyes, 19-10-2026, Permisos_MINEC (Valeria Ramos, CIIP): «solo
@@ -5955,7 +5997,8 @@ applyLang(idiomaParaMi());
        están las tierras. Lo del otro ente se esconde (verIgual /
        verDistinto). Y la empresa. */
     permisos_agricolas: [
-      {n:'sistema_agricola',     clave:'f_agrosistema',   opcionesClave:'o_agro_sistema', ancho:true},
+      {n:'sistema_agricola',     clave:'f_agrosistema',   opcionesClave:'o_agro_sistema', ancho:true,
+       tarjetas:TARJETAS_AGRICOLAS, etapas:ETAPAS_AGRICOLAS, portada:portadaAgricola, urls:PORTAL_AGRICOLA},
       {n:'tramite_insai',        clave:'f_insaitramite',  ancho:true,
        verSi:'sistema_agricola', verDistinto:OFICINA_DEL_INTI},
       {n:'solicitud_inti',       clave:'f_intisolicitud', opcionesClave:'o_inti_solicitud', ancho:true,
