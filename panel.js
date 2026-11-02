@@ -4935,6 +4935,12 @@ applyLang(idiomaParaMi());
     }
     function etapaDe(t){ return (datos[t.getAttribute('data-valor')] || {}).etapa; }
     function marca(){
+      /* Las demás casillas no salen hasta elegir un sistema (Franklin
+         Reyes, 2-11-2026: «no quiero que salgan los datos hasta que yo
+         seleccione un permiso»). Se esconden con una clase en la rejilla y
+         no con verSi: verSi borra lo escrito al esconder, y se llevaría la
+         razón social y el RIF que el panel ya puso de la empresa. */
+      if (campo.parentNode) campo.parentNode.classList.toggle('st-sin-elegir', !sel.value);
       todas.forEach(function(t){
         var on = t.getAttribute('data-valor') === sel.value;
         t.classList.toggle('on', on);
@@ -5024,6 +5030,9 @@ applyLang(idiomaParaMi());
     campo.appendChild(caja);
     sel.addEventListener('change', marca);
     marca();
+    /* La casilla entra en la rejilla después de montarse: la clase se pone
+       otra vez cuando ya tiene dónde. */
+    setTimeout(marca, 0);
   }
 
   /* ── LOS SISTEMAS DE LOS PERMISOS DE AGRICULTURA ──

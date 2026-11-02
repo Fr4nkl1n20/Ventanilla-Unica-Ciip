@@ -4437,6 +4437,8 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .st-tarjeta.on .st-marca{background:var(--navy2); border-color:var(--navy2);}
 .st-tarjeta.on .st-marca svg{display:block;}
 .sol-campo.con-tarjetas.mal > label{color:var(--rust);}
+/* Sin sistema elegido, las demás casillas esperan (montaTarjetas). */
+.st-sin-elegir > .sol-campo:not(.con-tarjetas), .st-sin-elegir > .sol-grupo, .st-sin-elegir > .sol-casilla{display:none;}
 @media (max-width:640px){
   .st-rej{grid-template-columns:1fr;}
 }
