@@ -479,6 +479,11 @@
                  los de agricultura (c51/c54), Franklin Reyes, 2-11-2026. */
               ypmAmbAbre, ypmAmbMira, ypmAmbYaMira, ypmAmbAtrasMira,
               ypmAgrAbre, ypmAgrMira, ypmAgrYaMira, ypmAgrAtrasMira,
+              /* Y en el Registro Único Minero (c36/c55) y en el Turístico
+                 (c50/c56), y el RNC con su tarjeta, Franklin Reyes, 2-11-2026. */
+              ypmMinAbre, ypmMinMira, ypmMinYaMira, ypmMinAtrasMira,
+              ypmTurAbre, ypmTurMira, ypmTurYaMira, ypmTurAtrasMira,
+              rncTarjetaAbre, rncTarjetaMira, rncFueraMira,
               /* Ante el ente, su paso en curso (Franklin Reyes, 5-10-2026, c32). */
               escaleraEnteMira, escaleraEnteFicha,
               /* «Recaudos revisados» cierra la revisión (5-10-2026, punto 2). */
@@ -856,8 +861,11 @@
        (c50).
 
        Y DIEZ desde el 30-10-2026: entran los permisos de agricultura (c51),
-       una tarjeta para el INSAI y el INTI. */
-    igual('camino: la fase 03 cuenta sus 10',         deEtapa(2, '.jcount'), '0 de 10 listos');
+       una tarjeta para el INSAI y el INTI.
+
+       Y ONCE desde el 2-11-2026 (Franklin Reyes): el RNC (c13) sale de las
+       inscripciones con tarjeta propia. */
+    igual('camino: la fase 03 cuenta sus 11',         deEtapa(2, '.jcount'), '0 de 11 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
        inversión extranjera tenía una etapa para él solo —y una etapa con una
        sola tarjeta dentro— y ahora comparte la 4 con el banco de activos y
@@ -1167,7 +1175,7 @@
            Desde que se retiro la franja de "te toca a ti", esta es la
            unica pantalla que lo dice. */
         var pendS = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
-        ok('estados: con un borrador, cuarenta y uno por iniciar y no cuarenta y dos',
+        ok('estados: con un borrador, cuarenta y cuatro por iniciar y no cuarenta y cinco',
           /* 31 y no 32: el registro de marca esta apagado y su tarjeta ya no
              esta en el documento, asi que no puede decir «por iniciar» ni
              ninguna otra cosa. Una menos arriba y una menos abajo.
@@ -1200,7 +1208,10 @@
              /* Y 41 con los dos de «ya solicité un permiso» del MINEC (c53)
                 y del INSAI o el INTI (c54), Franklin Reyes, 2-11-2026,
                 escondidos detrás de la c30 y la c51 pero contados. */
-             pendS === 41, pendS + ' por iniciar de 42 ofrecidas', '41');
+             /* Y 44 con el RNC encendido (c13) y los dos ya solicitados del
+                ministerio minero (c55) y del MINTUR (c56), Franklin Reyes,
+                2-11-2026. */
+             pendS === 44, pendS + ' por iniciar de 45 ofrecidas', '44');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -1222,9 +1233,10 @@
              Y 39 con el Registro Turístico Nacional (c50), 13-10-2026.
              Y 40 con los permisos de agricultura (c51), 30-10-2026.
              Y 42 con los ya solicitados del MINEC (c53) y del INSAI o el
-             INTI (c54), Franklin Reyes, 2-11-2026. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 42,
-             pend + ' por iniciar de 42 ofrecidas', '42');
+             INTI (c54), Franklin Reyes, 2-11-2026.
+             Y 45 con el RNC encendido (c13) y los de c55 y c56, el mismo día. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 45,
+             pend + ' por iniciar de 45 ofrecidas', '45');
       }
 
       /* ── la cadena entre trámites ──
@@ -1392,10 +1404,11 @@
            que es justo lo que el encargo venía a quitar. */
         (function(){
           var siguen = [];
-          ['c13', 'c25', 'c26', 'c27', 'c35'].forEach(function(r){
+          /* Sin la c13, que salió de ese grupo el 2-11-2026 (Franklin Reyes). */
+          ['c25', 'c26', 'c27', 'c35'].forEach(function(r){
             if (document.querySelector('.grid-tr > .tcard[data-tr="' + r + '"]:not([data-tramo-de])')) siguen.push(r);
           });
-          igual('nivel: y las cinco que recoge el c37 ya no se ofrecen sueltas',
+          igual('nivel: y las cuatro que recoge el c37 ya no se ofrecen sueltas',
                 siguen.join(' ') || '(ninguna)', '(ninguna)');
         })();
       })();
@@ -1681,8 +1694,10 @@
         /* Y VEINTIUNA desde el 2-11-2026 (Franklin Reyes): los «ya solicité
            un permiso» del MINEC (c53) y del INSAI o el INTI (c54),
            escondidos detrás de la c30 y la c51 pero presentes. */
-        igual('grupo: la fase 03 se queda con veintiuna tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 21);
+        /* Y VEINTICUATRO desde el mismo día: el RNC (c13), encendido, y los
+           dos escondidos del ministerio minero (c55) y del MINTUR (c56). */
+        igual('grupo: la fase 03 se queda con veinticuatro tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 24);
         ok('grupo: y el título no es una tarjeta',
            !t.classList.contains('tcard') && !t.hasAttribute('data-tr'),
            t.className, 'sin ser tarjeta');
@@ -9590,7 +9605,7 @@
     igual('ayuda: cuatro pestañas, una por sección',
           [].map.call(bs, function(b){ return b.getAttribute('data-p'); }).join(' '), 'faq dil rec sapi');
     var n = function(p){ var b = document.querySelector('#ayPest .ay-pe[data-p="' + p + '"] .n'); return b ? b.textContent : '?'; };
-    igual('ayuda: con lo que trae cada una (preguntas con respuesta, diligencias y trámites)', n('faq') + ' ' + n('dil') + ' ' + n('rec') + ' ' + n('sapi'), '7 2 7 2');
+    igual('ayuda: con lo que trae cada una (preguntas con respuesta, diligencias y trámites)', n('faq') + ' ' + n('dil') + ' ' + n('rec') + ' ' + n('sapi'), '7 2 8 2');
     var faqSec = document.querySelector('.ayuda-vista .faq-sec');
     var rec = document.querySelector('.ayuda-vista .ay-rec');
     igual('ayuda: se entra por las preguntas', !!faqSec && faqSec.offsetHeight > 0 && !!rec && rec.offsetHeight === 0, true);
@@ -9600,11 +9615,11 @@
           !!rec && rec.offsetHeight > 0 && faqSec.offsetHeight === 0, true);
     igual('ayuda: y la pestaña queda encendida', bRec && bRec.getAttribute('aria-selected'), 'true');
     var cards = rec ? rec.querySelectorAll('details.ay-card') : [];
-    igual('ayuda: cada trámite es una tarjeta abierta', [].filter.call(cards, function(d){ return d.open; }).length, 7);
+    igual('ayuda: cada trámite es una tarjeta abierta', [].filter.call(cards, function(d){ return d.open; }).length, 8);
     var tipos = rec ? [].map.call(rec.querySelectorAll('details[data-clave="ay_rec_bomberos"] .ay-tipo'), function(x){ return x.textContent; }).join(' ') : '';
     igual('ayuda: cada enlace dice qué abre', tipos, 'Web Instagram');
     var cuenta = rec && rec.querySelector('details[data-clave="ay_rec_parafiscales"] .ay-cuenta');
-    igual('ayuda: y la tarjeta cuántos trae', cuenta ? cuenta.textContent : '(no está)', '6 enlaces');
+    igual('ayuda: y la tarjeta cuántos trae', cuenta ? cuenta.textContent : '(no está)', '5 enlaces');
     /* Lista y detalle (idea B, 8-10-2026): se ve una sola ficha, la
        elegida en la lista. */
     var visibles = function(){ return rec ? [].filter.call(rec.querySelectorAll('details.ay-card'), function(d){ return d.offsetHeight > 0; })
@@ -9730,7 +9745,7 @@
     /* Y el MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus seis
        sistemas en línea y la lista de sus trámites. */
     igual('recaudos: en Ayuda, la licencia, los parafiscales, la conformidad de uso, los bomberos, la visa, el SACS y el MINEC, con sus enlaces; el SAPI, en su pestaña',
-          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:6 ay_rec_conformidad:3 ay_rec_bomberos:2 ay_rec_visa:0 ay_rec_sacs:4 ay_rec_minec:7');
+          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:5 ay_rec_conformidad:3 ay_rec_bomberos:2 ay_rec_visa:0 ay_rec_sacs:4 ay_rec_minec:7 ay_rec_rnc:1');
     /* Y el SAPI (8-10-2026): el Clasificador de Niza. */
     var sapi = document.querySelector('.ayuda-vista .ay-sapi');
     var niza = sapi && sapi.querySelector('details[data-clave="ay_rec_sapi"] a.ay-enlace');
@@ -9767,8 +9782,8 @@
     AY_REC = window.CIIP_LISTA_ENTES({id:'r7', estado:'ante_el_ente', inversionista:'u1'}, 'inversionista');
     var de = function(e){ return AY_REC.querySelector('.pe-ente[data-ente="' + e + '"] .pe-recaudos'); };
     var conEnlace = ['banavih', 'inces', 'ivss', 'mpppst', 'sundde', 'snc'].filter(function(e){ return !!de(e); });
-    igual('recaudos: los seis entes llevan «¿Sabes cuáles son los recaudos que necesitas?»',
-          conEnlace.join(' '), 'banavih inces ivss mpppst sundde snc');
+    igual('recaudos: los cinco entes llevan «¿Sabes cuáles son los recaudos que necesitas?»',
+          conEnlace.join(' '), 'banavih inces ivss mpppst sundde');
     var eq = window.CIIP_LISTA_ENTES({id:'r7', estado:'ante_el_ente', inversionista:'u1'}, 'equipo', 'ivss');
     ok('recaudos: el gestor no lo ve', !eq.querySelector('.pe-recaudos'),
        eq.querySelector('.pe-recaudos') ? 'lo ve' : 'no', 'no');
@@ -12837,12 +12852,12 @@
           guia ? (guia.querySelector('.gv-resumen-t') || {}).textContent : '(sin guía)', U.yp_ya_c);
     igual('ya: y enseña su formulario', marcaElige(), 'a la vista');
     var caja = document.getElementById('trReal');
-    igual('ya: los seis entes, cada uno con su fecha y su motivo', bienesCampos(caja),
-          ['banavih', 'inces', 'rupdae', 'ivss', 'rnet', 'rnc'].map(function(e){
+    igual('ya: los cinco entes, cada uno con su fecha y su motivo', bienesCampos(caja),
+          ['banavih', 'inces', 'rupdae', 'ivss', 'rnet'].map(function(e){
             return 'ya_' + e + ' fecha_ya_' + e + ' motivo_ya_' + e + ' detalle_ya_' + e; }).join(' '));
     igual('ya: los entes, con su nombre',
           caja ? [].map.call(caja.querySelectorAll('.sol-casilla label'), function(l){ return l.textContent; }).join(' | ') : '',
-          'BANAVIH (FAOV) | INCES | RUPDAE | IVSS | RNET | RNC');
+          'BANAVIH (FAOV) | INCES | RUPDAE | IVSS | RNET');
     var grupo = caja && caja.querySelector('.sol-grupo[data-grupo="f_ypentes"]');
     igual('ya: juntos en un recuadro con su pregunta',
           grupo ? (grupo.querySelector('legend') || {}).textContent : '(sin recuadro)', U.f_ypentes);
@@ -12904,7 +12919,7 @@
     var U = window.CIIP_PASOS.ui[curLang] || {};
     var caja = document.getElementById('trReal');
     var malas = caja ? caja.querySelectorAll('.sol-casilla.mal').length : -1;
-    igual('ya: sin ningún ente marcado, los seis en rojo', malas, 6);
+    igual('ya: sin ningún ente marcado, los cinco en rojo', malas, 5);
     var aviso = caja && caja.querySelector('.pa-aviso');
     igual('ya: y lo dice', aviso ? aviso.textContent : '(sin aviso)', U.yp_uno);
     sigue();
@@ -13268,7 +13283,17 @@
           tarjetas: 6, gestion: 'En coordinación con el MINEC', fin: 'Permiso otorgado'},
     agr: {madre: 'c51', ya: 'c54', p: 'yg', codigo: 'agricola_en_proceso', ente: 'MPPAPT',
           campos: 'sistema_agricola permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
-          tarjetas: 4, gestion: 'En coordinación con el INSAI o el INTI', fin: 'Registro o permiso listo'}
+          tarjetas: 4, gestion: 'En coordinación con el INSAI o el INTI', fin: 'Registro o permiso listo'},
+    /* Franklin Reyes, 2-11-2026: «lo mismo con permisos mineros y permisos de
+       turismo». Con un único portal: sin tarjetas de sistema. */
+    min: {madre: 'c36', ya: 'c55', p: 'yr', codigo: 'minero_en_proceso', ente: 'Ministerio de Desarrollo Minero',
+          campos: 'permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          queSolicito: 'permiso_ya',
+          tarjetas: 0, gestion: 'En coordinación con el Ministerio de Desarrollo Minero', fin: 'Registro listo'},
+    tur: {madre: 'c50', ya: 'c56', p: 'yn', codigo: 'turistico_en_proceso', ente: 'MINTUR',
+          campos: 'permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          queSolicito: 'permiso_ya',
+          tarjetas: 0, gestion: 'En coordinación con el MINTUR', fin: 'Registro listo'}
   };
   function ypmAbre(k, sigue){
     if (PASE !== 'vacio') return sigue();
@@ -13308,7 +13333,7 @@
           bienesCampos(caja), x.campos);
     igual(k + ': el sistema, con las tarjetas de la ' + x.madre,
           caja ? caja.querySelectorAll('.st-tarjeta').length : '(sin formulario)', x.tarjetas);
-    var lo = caja && caja.querySelector('.sol-campo[data-campo="' + x.campos.split(' ')[1] + '"] label');
+    var lo = caja && caja.querySelector('.sol-campo[data-campo="' + (x.queSolicito || x.campos.split(' ')[1]) + '"] label');
     igual(k + ': «¿Qué trámite o permiso solicitaste?»', lo ? lo.textContent : '(no está)', U.f_yspermisoya);
     igual(k + ': el motivo, con la lista de siempre', bienesOpciones(caja, 'motivo_ya'), (U.o_ya_motivo || []).join('|'));
     igual(k + ': y los cuatro recaudos del SACS ya solicitado', bienesDocs(caja),
@@ -13357,6 +13382,105 @@
   function ypmAgrMira(sigue){ ypmMira('agr', sigue); }
   function ypmAgrYaMira(sigue){ ypmYaMira('agr', sigue); }
   function ypmAgrAtrasMira(sigue){ ypmAtrasMira('agr', sigue); }
+  function ypmMinAbre(sigue){ ypmAbre('min', sigue); }
+  function ypmMinMira(sigue){ ypmMira('min', sigue); }
+  function ypmMinYaMira(sigue){ ypmYaMira('min', sigue); }
+  function ypmMinAtrasMira(sigue){ ypmAtrasMira('min', sigue); }
+  function ypmTurAbre(sigue){ ypmAbre('tur', sigue); }
+  function ypmTurMira(sigue){ ypmMira('tur', sigue); }
+  function ypmTurYaMira(sigue){ ypmYaMira('tur', sigue); }
+  function ypmTurAtrasMira(sigue){ ypmAtrasMira('tur', sigue); }
+
+  /* ═══════════ EL RNC, FUERA DE LAS INSCRIPCIONES Y CON SU TARJETA ═══════════
+     Franklin Reyes, 2-11-2026: «saca el RNC de ese grupo». La c13 ya existía,
+     apagada y escondida detrás de la c37: se enciende y sale a la portada, en
+     las licencias sectoriales, y funciona como el RTN (c50). La c37 y la c44
+     dejan de ofrecerlo, y lo que ya estaba guardado se sigue leyendo. Solo en
+     'vacio', como las de arriba. */
+  function rncTarjetaAbre(sigue){
+    if (PASE !== 'vacio') return sigue();
+    location.hash = 'tramite-c13';
+    setTimeout(sigue, 800);
+  }
+  function rncTarjetaMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var c = document.querySelector('.grid-tr > .tcard[data-tr="c13"]');
+    ok('rnc: tiene tarjeta propia en la portada', !!c && !c.hasAttribute('data-tramo-de'),
+       c ? (c.getAttribute('data-tramo-de') || 'suelta') : 'no está', 'suelta');
+    var rej = document.getElementById('trs-3'), hijos = rej ? [].slice.call(rej.children) : [];
+    var ini = hijos.findIndex(function(e){ return e.getAttribute('data-grupo') === 'g.sectorial'; });
+    var fin = hijos.findIndex(function(e, i){ return i > ini && e.classList.contains('grupo-t'); });
+    ok('rnc: dentro de las licencias sectoriales', ini >= 0 && hijos.indexOf(c) > ini && hijos.indexOf(c) < fin,
+       'en ' + hijos.indexOf(c) + ' de ' + ini + ' a ' + fin, 'entre sus rótulos');
+    igual('rnc: se abre su detalle', document.body.getAttribute('data-vista'), 'tramite');
+    var caja = document.getElementById('trReal');
+    igual('rnc: como el RTN, razón social y RIF', bienesCampos(caja), 'razon_social rif_empresa');
+    var pa = caja && caja.querySelector('.pa');
+    ok('rnc: sin la barra de «Tus datos · Recaudos · Repasar»',
+       !!pa && pa.classList.contains('sin-barra'), pa ? pa.className : '(sin hojas)', 'sin-barra');
+    var dibujo = function(estado, datos){
+      return window.CIIP_ESCALERA({estado: estado, datos: datos || {}}, 'rnc', 'RNC').todos.map(function(p){
+        return p.nombre + ':' + (p.hecho ? 'hecho' : (p.ahora ? 'ahora' : 'porhacer')); }).join(' → ');
+    };
+    igual('rnc: dos pasos, y sin marcar el 1 en curso', dibujo('enviado'),
+          'Solicita el Registro Nacional de Contratistas en RNC en línea:ahora → Registro listo:porhacer');
+    igual('rnc: marcado, toca «Registro listo»', dibujo('enviado', {rnc_solicitado: '2026-11-02T10:00:00-04:00'}),
+          'Solicita el Registro Nacional de Contratistas en RNC en línea:hecho → Registro listo:ahora');
+    igual('rnc: resuelto, todo hecho', dibujo('resuelto'),
+          'Solicita el Registro Nacional de Contratistas en RNC en línea:hecho → Registro listo:hecho');
+    var PM = window.CIIP_PASO_MIO;
+    if (PM){
+      var tr = {id: 'rnc-1', tipo: 'rnc', estado: 'enviado', datos: {}, inversionista: 'u2', gestor: 'u1'};
+      var b = PM.boton(tr, 'c13', 1, null, null);
+      igual('rnc: el botón dice «Ya lo solicité» y marca rnc_solicitado',
+            b ? b.textContent + ' · ' + b.getAttribute('data-clave') : '(sin botón)',
+            'Ya lo solicité · rnc_solicitado');
+      var en = PM.enlace('c13', 1, {datos: {}});
+      igual('rnc: el paso 1 lleva a RNC en línea', en ? (en.getAttribute ? en.getAttribute('href') : en.url) : '(ninguno)',
+            'https://rncenlinea.snc.gob.ve/');
+    }
+    location.hash = '';
+    setTimeout(sigue, 200);
+  }
+  function rncFueraMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var ente = function(r){ return (document.querySelector('.tcard[data-tr="' + r + '"] .t-ente') || {}).textContent || ''; };
+    var desc = function(r){ return (document.querySelector('.tcard[data-tr="' + r + '"] .t-desc') || {}).textContent || ''; };
+    ['c37', 'c44'].forEach(function(r){
+      ok('rnc: la ' + r + ' ya no lo nombra', !/\b(RNC|SNC)\b|Contratistas/.test(ente(r) + ' ' + desc(r)),
+         ente(r) + ' ' + desc(r), 'sin el RNC');
+    });
+    var R = window.CIIP_RECAUDOS;
+    igual('rnc: la c44 ya no tiene sus casillas',
+          R.campos('parafiscales_en_proceso').filter(function(c){ return /rnc/.test(c.n); }).length, 0);
+    /* Sin nada del RNC: cinco, y ninguna fila suya. */
+    var bloque = function(t){ return window.CIIP_LISTA_ENTES(t, 'lectura'); };
+    var filas = function(c){ return [].map.call(c.querySelectorAll('.pe-ente'), function(f){ return f.getAttribute('data-ente'); }).join(' '); };
+    var nueva = bloque({id: 'rnc-n', tipo: 'registros_parafiscales', estado: 'ante_el_ente', inversionista: 'u1', datos: {}});
+    igual('rnc: las inscripciones de ahora, cinco entes', filas(nueva), 'banavih inces mpppst sundde ivss');
+    /* Lo guardado se sigue leyendo: una c44 de antes con el RNC marcado, una
+       c37 de antes con la marca del inversionista y otra con la fila cerrada
+       -que sólo se sabe cuando contesta la base-. Y una con la fila
+       'pendiente' que nació sola, y que no dice nada. */
+    var E = window.__ENTES = window.__ENTES || {};
+    E['rnc-v3|snc'] = {tramite: 'rnc-v3', ente: 'snc', estado: 'listo'};
+    E['rnc-v4|snc'] = {tramite: 'rnc-v4', ente: 'snc', estado: 'pendiente'};
+    var c44v = bloque({id: 'rnc-v1', tipo: 'parafiscales_en_proceso', estado: 'ante_el_ente', inversionista: 'u1',
+                       datos: {ya_inces: 'Sí', ya_rnc: 'Sí', fecha_ya_rnc: '2026-09-01'}});
+    igual('rnc: una c44 de antes sigue enseñándolo', filas(c44v), 'inces snc');
+    var c37m = bloque({id: 'rnc-v2', tipo: 'registros_parafiscales', estado: 'ante_el_ente', inversionista: 'u1',
+                       datos: {ente_snc: '2026-09-01T10:00:00-04:00'}});
+    igual('rnc: una c37 de antes con su marca, también', filas(c37m), 'banavih inces mpppst sundde ivss snc');
+    var c37f = bloque({id: 'rnc-v3', tipo: 'registros_parafiscales', estado: 'ante_el_ente', inversionista: 'u1', datos: {}});
+    var c37p = bloque({id: 'rnc-v4', tipo: 'registros_parafiscales', estado: 'ante_el_ente', inversionista: 'u1', datos: {}});
+    setTimeout(function(){
+      igual('rnc: y una con la fila ya movida, en cuanto contesta la base', filas(c37f), 'banavih inces mpppst sundde ivss snc');
+      igual('rnc: la fila pendiente que nació sola no lo trae de vuelta', filas(c37p), 'banavih inces mpppst sundde ivss');
+      delete E['rnc-v3|snc'];
+      delete E['rnc-v4|snc'];
+      sigue();
+    }, 300);
+  }
 
   /* ═══════════ ANTE EL ENTE, SU PASO EN CURSO ═══════════
      Franklin Reyes, 5-10-2026, en el Registro de Extranjeros (c32): «aquí

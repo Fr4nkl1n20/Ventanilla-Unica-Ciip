@@ -240,11 +240,11 @@
        comprobar que ese no lo lleva, que es la mitad de la regla. */
     {codigo:'rif_empresa',  ref_panel:'c6', ente:'SENIAT', activo:true, emite:'rif_empresa', plazo_dias:14,
      nombre:'RIF de la empresa', fase:2, nivel:'esencial'},
-    /* APAGADO desde el 20-9-2026, como en la base de verdad: el RNC se
-       hace dentro del c37. La fila se queda para que el panel sepa poner
-       nombre a las solicitudes de 'rnc' que ya existen —dos, más abajo—,
-       que es justo lo que pasa en produccion con los expedientes viejos. */
-    {codigo:'rnc',          ref_panel:'c13', ente:'RNC',   activo:false,
+    /* Apagado del 20-9-2026 al 2-11-2026, cuando se hacía dentro del c37. Desde
+       ese día (Franklin Reyes, «saca el RNC de ese grupo») vuelve a tener
+       tarjeta, como en supabase-ya-solicite-mineria-turismo.sql. Las dos
+       solicitudes de 'rnc' de más abajo son las de antes. */
+    {codigo:'rnc',          ref_panel:'c13', ente:'RNC',   activo:true, emite:'certificado_rnc',
      nombre:'Registro Nacional de Contratistas', fase:3, nivel:'actividad'},
     /* Las cinco inscripciones en una casilla. Como en la base de verdad en
        todo menos en el NIVEL: fase 3, 28 dias y SIN 'emite', que devuelve
@@ -388,6 +388,14 @@
     {codigo:'agricola_en_proceso', ref_panel:'c54', ente:'MPPAPT',
      activo:true, emite:null, plazo_dias:null,
      nombre:'Permiso de agricultura ya solicitado', fase:3, nivel:'actividad'},
+    /* Y ante el ministerio minero (c55) y el MINTUR (c56), Franklin Reyes,
+       2-11-2026, como en supabase-ya-solicite-mineria-turismo.sql. */
+    {codigo:'minero_en_proceso', ref_panel:'c55', ente:'Ministerio de Desarrollo Minero',
+     activo:true, emite:null, plazo_dias:null,
+     nombre:'Registro Único Minero ya solicitado', fase:3, nivel:'actividad'},
+    {codigo:'turistico_en_proceso', ref_panel:'c56', ente:'MINTUR',
+     activo:true, emite:null, plazo_dias:null,
+     nombre:'Registro Turístico Nacional ya solicitado', fase:3, nivel:'actividad'},
     /* El SIDCAI (c39) y su segundo tramo (c40), del 23-9-2026. Como el
        RUM: 'actividad' y sin plazo. El certificado sale del segundo. */
     {codigo:'aporte_locti', ref_panel:'c39', ente:'FONACIT',
@@ -2044,7 +2052,7 @@
         {codigo:'rif_inversionistas', vence:false}, {codigo:'cedulas_junta', vence:false},
         {codigo:'rifs_junta', vence:false}, {codigo:'codigo_ente', vence:false},
         {codigo:'certificado_rupdae', vence:false}, {codigo:'certificado_rum', vence:true},
-        {codigo:'certificado_rtn', vence:true},
+        {codigo:'certificado_rtn', vence:true}, {codigo:'certificado_rnc', vence:true},
         {codigo:'permiso_agricola', vence:false},
         {codigo:'poliza_responsabilidad_civil', vence:true}, {codigo:'poliza_incendio', vence:true},
         {codigo:'certificado_locti', vence:true}, {codigo:'planilla_locti', vence:false},
@@ -3192,7 +3200,7 @@
             var llaves = ['cancilleria_confirmada', 'licencia_solicitada', 'conformidad_solicitada', 'minero_solicitado',
                           'bomberos_solicitado', 'saime_confirmada', 'locti_inscrito', 'sacs_registrado',
                           'rtn_solicitado', 'ambiental_solicitado',
-                          'agricola_solicitado'];
+                          'agricola_solicitado', 'rnc_solicitado'];
             var rCP;
             if (!args || llaves.indexOf(args.p_clave) < 0){
               rCP = {data: null, error: {message: 'paso desconocido: ' + (args && args.p_clave), code: 'P0001'}};

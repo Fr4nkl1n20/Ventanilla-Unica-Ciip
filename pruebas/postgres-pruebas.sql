@@ -2812,19 +2812,43 @@ select arnes.comprueba(
 -- Y los cinco que recoge, APAGADOS. Este es el que de verdad importa: con
 -- uno encendido, el inversionista veria la casilla nueva y ademas la vieja,
 -- y subiria los mismos papeles dos veces.
+-- Cuatro desde el 2-11-2026 (Franklin Reyes): el RNC salió de ese grupo.
 select arnes.comprueba(
-  'parafiscales: y los cinco que recoge estan apagados',
+  'parafiscales: y los cuatro que recoge estan apagados',
   (select count(*) = 0 from public.tipos_tramite
-    where codigo in ('faov_banavih', 'inces', 'rnet', 'rnc', 'rupdae')
+    where codigo in ('faov_banavih', 'inces', 'rnet', 'rupdae')
       and activo),
   (select coalesce(string_agg(codigo, ', ' order by codigo), '(ninguno)')
      from public.tipos_tramite
-    where codigo in ('faov_banavih', 'inces', 'rnet', 'rnc', 'rupdae') and activo));
+    where codigo in ('faov_banavih', 'inces', 'rnet', 'rupdae') and activo));
+
+-- El RNC (c13), con su tarjeta: la misma fila, encendida, y con lo que emite.
+select arnes.comprueba(
+  'rnc: la c13 se enciende y emite su certificado, que vence',
+  (select count(*) = 1 from public.tipos_tramite t join public.tipos_documento d on d.codigo = t.emite
+    where t.codigo = 'rnc' and t.ref_panel = 'c13' and t.activo and t.fase = 3
+      and t.nivel = 'actividad' and d.codigo = 'certificado_rnc' and d.vence));
+
+-- «Ya solicité» en minería (c55) y en turismo (c56), como el c49.
+select arnes.comprueba(
+  'ya solicité: la c55 y la c56, encendidas, sin emite ni plazo',
+  (select count(*) = 2 from public.tipos_tramite
+    where (codigo, ref_panel, ente) in (('minero_en_proceso', 'c55', 'Ministerio de Desarrollo Minero'),
+                                        ('turistico_en_proceso', 'c56', 'MINTUR'))
+      and activo and emite is null and plazo_dias is null and fase = 3 and nivel = 'actividad'));
+select arnes.comprueba(
+  'ya solicité: y sus motivos cuentan en las estadísticas',
+  position('minero_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0
+  and position('turistico_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0);
+select arnes.comprueba(
+  'rnc: confirma_paso conoce su marca y conserva la de antes',
+  position('''rnc_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('''ente_snc''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0);
 
 -- Pero NO borrados: sus filas siguen, que es lo que da nombre a las
 -- solicitudes que ya existen de esos cinco tipos.
 select arnes.comprueba(
-  'parafiscales: apagar no borro ninguna de las cinco filas',
+  'parafiscales: apagar no borro ninguna de las cinco filas, tampoco la del RNC',
   (select count(*) = 5 from public.tipos_tramite
     where codigo in ('faov_banavih', 'inces', 'rnet', 'rnc', 'rupdae')));
 
@@ -3860,11 +3884,13 @@ begin
   values (auth.uid(), 'registros_parafiscales', 'borrador') returning id into nuevo;
   update public.tramites set estado = 'enviado' where id = nuevo;
   select count(*) into n from public.tramite_entes where tramite = nuevo and estado = 'pendiente';
-  perform arnes.comprueba('hoy: al enviar los parafiscales nacen los seis entes, pendientes',
-    n = 6, n || ' filas');
+  perform arnes.comprueba('hoy: al enviar los parafiscales nacen los cinco entes, pendientes',
+    n = 5, n || ' filas');
+  perform arnes.comprueba('hoy: y ninguno es el RNC',
+    not exists (select 1 from public.tramite_entes where tramite = nuevo and ente = 'snc'));
   insert into arnes.escenario values ('hoy-parafiscales', nuevo);
 exception when others then
-  perform arnes.comprueba('hoy: al enviar los parafiscales nacen los seis entes, pendientes', false, sqlerrm);
+  perform arnes.comprueba('hoy: al enviar los parafiscales nacen los cinco entes, pendientes', false, sqlerrm);
 end
 $hoy$;
 
@@ -4204,7 +4230,8 @@ begin
 end
 $qa$;
 
--- Los registros parafiscales: resolver pide los seis entes listos.
+-- Los registros parafiscales: resolver pide los cinco entes listos (seis hasta
+-- el 2-11-2026, con el RNC).
 reset role;
 select arnes.nadie();
 do $qa$
@@ -4257,6 +4284,9 @@ reset role;
 select arnes.nadie();
 update public.tramite_entes set estado = 'listo'
  where tramite = (select id from arnes.escenario where clave = 'qa-pf');
+-- Y una solicitud de antes trae la fila del RNC, pendiente: no estorba.
+insert into public.tramite_entes (tramite, ente, estado)
+values ((select id from arnes.escenario where clave = 'qa-pf'), 'snc', 'pendiente');
 
 set role authenticated;
 select arnes.soy((select id from arnes.gente where papel = 'G'));
@@ -4264,11 +4294,11 @@ do $qa$
 declare t uuid := (select id from arnes.escenario where clave = 'qa-pf');
 begin
   update public.tramites set estado = 'resuelto' where id = t;
-  perform arnes.comprueba('qa: con los seis listos, sí se resuelve',
+  perform arnes.comprueba('qa: con los cinco listos, sí se resuelve',
     (select estado = 'resuelto' from public.tramites where id = t),
     (select estado from public.tramites where id = t));
 exception when others then
-  perform arnes.comprueba('qa: con los seis listos, sí se resuelve', false, sqlerrm);
+  perform arnes.comprueba('qa: con los cinco listos, sí se resuelve', false, sqlerrm);
 end
 $qa$;
 reset role;

@@ -1105,7 +1105,14 @@ function applyLang(lang){
        «Solicitar un permiso por primera vez» (c30 y c51, las de la
        portada), con los prefijos ym_ e yg_. */
     c30: {ya:'c53', nueva:'c30', p:'ym'},
-    c51: {ya:'c54', nueva:'c51', p:'yg'}
+    c51: {ya:'c54', nueva:'c51', p:'yg'},
+    /* Y el Registro Único Minero y el Registro Turístico Nacional (Franklin
+       Reyes, 2-11-2026: «lo mismo con permisos mineros y permisos de
+       turismo»): «Ya solicité un permiso» (c55 y c56, escondidas) o
+       «Solicitar un permiso por primera vez» (c36 y c50, las de la
+       portada), con los prefijos yr_ e yn_. */
+    c36: {ya:'c55', nueva:'c36', p:'yr'},
+    c50: {ya:'c56', nueva:'c50', p:'yn'}
   };
   /* De cada ref, su pareja: la de la portada y la escondida, las dos. */
   var GUIA_YA_DE = {};
@@ -1115,8 +1122,8 @@ function applyLang(lang){
   });
   /* Lo elegido, como MARCA_ELEGIDA: la de la portada pregunta y la
      escondida nace elegida, que solo se llega a ella eligiéndola. */
-  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false,
-                    c44:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true};
+  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false, c36:false, c50:false,
+                    c44:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true, c55:true, c56:true};
   window.CIIP_YA_ELEGIDA = function(ref){
     if (!GUIA_YA_DE[ref] || YA_ELEGIDA[ref]) return;
     YA_ELEGIDA[ref] = true;
@@ -3848,6 +3855,10 @@ applyLang(idiomaParaMi());
     /* El RNET no pide nada que no pidan los otros tres. Va aparte porque
        lo que SALE es distinto: sin él la empresa no existe como patrono
        para el Ministerio del Trabajo, y las solvencias del c14 lo piden. */
+    /* EL RNC (c13) VUELVE A TENER TARJETA PROPIA desde el 2-11-2026 (Franklin
+       Reyes: «saca el RNC de ese grupo»). Su lista de abajo se queda como
+       estaba: el inversionista lo solicita en RNC en línea, como el RTN (c50),
+       y el CIIP revisa estos papeles antes de que los cargue allí. */
     /* El RNC, para PERSONA JURÍDICA. La hoja de trámites por fase trae esa
        fila en blanco; la lista sale de los requisitos publicados del
        Servicio Nacional de Contrataciones, y va en los tres bloques en que
@@ -4363,6 +4374,20 @@ applyLang(idiomaParaMi());
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
       {tipo:'cedula',            clave:'d_cedrep'},
       {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    /* Y «ya solicité un permiso» ante el ministerio minero (c55) y ante el
+       MINTUR (c56), Franklin Reyes, 2-11-2026: los mismos cuatro. */
+    minero_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    turistico_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
     ]
   };
 
@@ -4451,6 +4476,10 @@ applyLang(idiomaParaMi());
     /* El Registro Único Minero (c36): la Resolución 0010 no da plazo, y la
        ficha se salta el número, como en la ZODI. */
     c36: {aplica:'cond', cond:'ft_c_mineria', modo:'portal', depende:'c6'},
+    /* El RNC (c13), Franklin Reyes, 2-11-2026: sólo para quien contrata con
+       el Estado. Sin plazo publicado, y la ficha se salta el número. Pide el
+       RIF de la empresa: detrás del c6. */
+    c13: {aplica:'cond', cond:'ft_c_contratista', modo:'portal', depende:'c6'},
     /* El Registro Turístico Nacional (c50): quince días hábiles para
        revisarlo (Resolución 007 y mintur.gob.ve/rtn). Sin «real»: nadie lo
        ha medido. La planilla del MINTUR pide el número de patente, así que
@@ -5889,15 +5918,12 @@ applyLang(idiomaParaMi());
       {n:'municipio',           clave:'f_municipio'},
       {n:'representante',       clave:'f_representante'}
     ],
+    /* El RNC (c13) con tarjeta propia, Franklin Reyes, 2-11-2026: como el RTN
+       (c50), razón social y RIF. Lo demás lo pregunta RNC en línea. Lo que
+       preguntaba antes se sigue leyendo: ver CAMPOS_DE_ANTES. */
     rnc: [
       {n:'razon_social',        clave:'f_razon',         ancho:true},
-      {n:'rif_empresa',         clave:'f_rifempresa'},
-      {n:'numero_registro',     clave:'f_registro'},
-      {n:'representante',       clave:'f_representante'},
-      {n:'actividad_economica', clave:'f_actividad'},
-      {n:'clasificacion',       clave:'f_clasificacion', opcionesClave:'o_clasificacion'},
-      {n:'capital_social',      clave:'f_capital'},
-      {n:'fecha_constitucion',  clave:'f_constitucion',  tipo:'date'}
+      {n:'rif_empresa',         clave:'f_rifempresa'}
     ],
     rnet: [
       {n:'razon_social',        clave:'f_razon',       ancho:true},
@@ -6354,11 +6380,7 @@ applyLang(idiomaParaMi());
       {n:'ya_rnet',           clave:'f_yprnet',    tipo:'casilla', grupo:'f_ypentes', unoAlMenos:true},
       {n:'fecha_ya_rnet',     clave:'f_ypfrnet',   tipo:'date', grupo:'f_ypentes', verSi:'ya_rnet'},
       {n:'motivo_ya_rnet',    clave:'f_ypmrnet',   opcionesClave:'o_ya_motivo', grupo:'f_ypentes', verSi:'ya_rnet'},
-      {n:'detalle_ya_rnet',   clave:'f_ypdrnet',   grupo:'f_ypentes', verSi:'ya_rnet', opcional:true},
-      {n:'ya_rnc',            clave:'f_yprnc',     tipo:'casilla', grupo:'f_ypentes', unoAlMenos:true},
-      {n:'fecha_ya_rnc',      clave:'f_ypfrnc',    tipo:'date', grupo:'f_ypentes', verSi:'ya_rnc'},
-      {n:'motivo_ya_rnc',     clave:'f_ypmrnc',    opcionesClave:'o_ya_motivo', grupo:'f_ypentes', verSi:'ya_rnc'},
-      {n:'detalle_ya_rnc',    clave:'f_ypdrnc',    grupo:'f_ypentes', verSi:'ya_rnc', opcional:true}
+      {n:'detalle_ya_rnet',   clave:'f_ypdrnet',   grupo:'f_ypentes', verSi:'ya_rnet', opcional:true}
     ],
     licencia_en_proceso: [
       {n:'fecha_solicitud_ya', clave:'f_yafecha',    tipo:'date'},
@@ -6451,8 +6473,52 @@ applyLang(idiomaParaMi());
       {n:'representante',        clave:'f_yarep'},
       {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
       {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    /* «YA SOLICITÉ UN PERMISO» ANTE EL MINISTERIO MINERO (c55) Y ANTE EL
+       MINTUR (c56), Franklin Reyes, 2-11-2026: lo del c54 sin las tarjetas
+       de sistema, que estos dos tienen un único portal. */
+    minero_en_proceso: [
+      {n:'permiso_ya',           clave:'f_yspermisoya', ancho:true},
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    turistico_en_proceso: [
+      {n:'permiso_ya',           clave:'f_yspermisoya', ancho:true},
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
     ]
   };
+  /* LO QUE SE PREGUNTABA Y YA NO SE PREGUNTA, Franklin Reyes, 2-11-2026, al
+     sacar el RNC de las inscripciones. El formulario ya no lo pide, pero las
+     solicitudes viejas lo traen, y el gestor lo sigue leyendo con su nombre
+     en el expediente y en el visor (camposParaLeer). */
+  var CAMPOS_DE_ANTES = {
+    rnc: [
+      {n:'numero_registro',     clave:'f_registro'},
+      {n:'representante',       clave:'f_representante'},
+      {n:'actividad_economica', clave:'f_actividad'},
+      {n:'clasificacion',       clave:'f_clasificacion'},
+      {n:'capital_social',      clave:'f_capital'},
+      {n:'fecha_constitucion',  clave:'f_constitucion'}
+    ],
+    parafiscales_en_proceso: [
+      {n:'ya_rnc',            clave:'f_yprnc'},
+      {n:'fecha_ya_rnc',      clave:'f_ypfrnc'},
+      {n:'motivo_ya_rnc',     clave:'f_ypmrnc'},
+      {n:'detalle_ya_rnc',    clave:'f_ypdrnc'}
+    ]
+  };
+  function camposParaLeer(tipo){
+    return (CAMPOS[tipo] || []).concat(CAMPOS_DE_ANTES[tipo] || []);
+  }
 
   /* ─────────────────────────────────────────────────────────────────
      QUE CASILLA SALE DE QUE DOCUMENTO
@@ -18044,7 +18110,7 @@ applyLang(idiomaParaMi());
       var porAtender = coActivos().filter(function(t){ return t.estado !== 'devuelto'; })
         .reduce(function(n, t){
           return n + ((t.tipo === TIPO_PARAFISCALES && t.estado === 'ante_el_ente')
-                      ? ENTES_PARAFISCALES.length : 1);
+                      ? entesDelTramite(t).length : 1);
         }, 0);
       var total = enCola.length + porAtender + consultas.length;
       /* Cada renglón de la barra cuenta lo que enseña su pantalla: el de
@@ -18634,7 +18700,7 @@ applyLang(idiomaParaMi());
          constancia. Dos sitios dibujando un ente acabarían dibujándolo
          distinto. */
       if (t.tipo === TIPO_PARAFISCALES && t.estado === 'ante_el_ente'){
-        ENTES_PARAFISCALES.forEach(function(ente){
+        entesDelTramite(t).forEach(function(ente){
           var fe = el('div', 'co-ficha');
           fe.setAttribute('data-tr', t.id);
           fe.setAttribute('data-ente', ente);
@@ -19232,7 +19298,7 @@ applyLang(idiomaParaMi());
        preguntó el formulario: así el gestor lee lo mismo que leyó él, y no
        los nombres internos de las columnas. */
     var datos = tr.datos || {};
-    var campos = (CAMPOS[tr.tipo] || []);
+    var campos = camposParaLeer(tr.tipo);
     if (campos.length){
       caja.appendChild(el('div', 'co-exp-t', u.co_datos || ''));
       campos.forEach(function(c){
@@ -21354,7 +21420,7 @@ applyLang(idiomaParaMi());
      (Franklin Reyes, 5-10-2026), y con él VISOR_COTEJO. */
   function visorCampos(t){
     var datos = t.datos || {};
-    return (CAMPOS[t.tipo] || []).filter(function(cp){
+    return camposParaLeer(t.tipo).filter(function(cp){
       var v = datos[cp.n];
       return v !== undefined && v !== null && v !== '';
     });
@@ -21551,7 +21617,7 @@ applyLang(idiomaParaMi());
     var listas = null;
     var ya = ENTES_YA[t.id];
     if (ya){
-      listas = ENTES_PARAFISCALES.filter(function(e){ return ya[e] && ya[e].estado === 'listo'; }).length;
+      listas = entesDelTramite(t).filter(function(e){ return ya[e] && ya[e].estado === 'listo'; }).length;
     } else if (abiertos && visor && !visor.cuentaPedida){
       /* La cuenta llega sola: en cuanto la base conteste, se repinta. Una
          vez por visor: si la base falla, ENTES_YA se queda vacío y sin el
@@ -21567,7 +21633,7 @@ applyLang(idiomaParaMi());
        resuelta o con los seis listos. */
     var revisados = presentada || recaudosYaRevisados(t, tipoRefDe(t.tipo));
     var entesHechos = t.estado === 'resuelto' ||
-                      (abiertos && listas !== null && listas === ENTES_PARAFISCALES.length);
+                      (abiertos && listas !== null && listas === entesDelTramite(t).length);
     [
       {k: 'vs_p1', hecho: revisados, vista: 'recaudos', on: vista === 'recaudos'},
       {k: 'vs_p2', hecho: presentada, vista: 'recaudos', on: false},
@@ -21580,7 +21646,7 @@ applyLang(idiomaParaMi());
       b.appendChild(el('span', 'vp-n', p.hecho ? '✓' : String(i + 1)));
       var txt = u[p.k] || '';
       if (i === 2 && listas !== null){
-        txt += ' · ' + String(u.vs_listas || '').replace('{n}', listas).replace('{t}', ENTES_PARAFISCALES.length);
+        txt += ' · ' + String(u.vs_listas || '').replace('{n}', listas).replace('{t}', entesDelTramite(t).length);
       }
       b.appendChild(el('span', null, txt));
       if (p.cerrado){
@@ -27806,11 +27872,11 @@ applyLang(idiomaParaMi());
      agrupar en la misma pantalla se estorban. */
   /* Si ref es de un permiso agrupado: de un grupo de GRUPOS, o una de las
      escondidas de «ya solicité un permiso» -el c49 del SACS, y desde el
-     2-11-2026 (Franklin Reyes) el c53 del MINEC y el c54 del INSAI o el
-     INTI-, que no tienen tarjeta. */
+     2-11-2026 (Franklin Reyes) el c53 del MINEC, el c54 del INSAI o el INTI,
+     el c55 minero y el c56 del MINTUR-, que no tienen tarjeta. */
   function esPermisoAgrupado(ref){
     if (!ref) return false;
-    if (ref === 'c49' || ref === 'c53' || ref === 'c54') return true;
+    if (ref === 'c49' || ref === 'c53' || ref === 'c54' || ref === 'c55' || ref === 'c56') return true;
     return GRUPOS.some(function(g){ return g.refs.indexOf(ref) >= 0; });
   }
   var GRUPOS = [
@@ -27846,7 +27912,10 @@ applyLang(idiomaParaMi());
        para el turismo, y lo da el MINTUR. */
     /* Y los permisos de agricultura (c51), del INSAI y el INTI, desde el
        30-10-2026: una tarjeta para los dos, como los del MINEC. */
-    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51'],
+    /* Y el RNC (c13) desde el 2-11-2026 (Franklin Reyes: «saca el RNC de ese
+       grupo»), que deja las inscripciones: sólo para quien contrata con el
+       Estado, y lo da el Servicio Nacional de Contrataciones. */
+    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51', 'c13'],
      rotulo:function(dic){ return dic['g.sectorial']; }},
     /* Y los del LOCAL. Franklin Reyes, 22 de septiembre de 2026: «permiso
        de bomberos y conformidad de usos no son sectoriales». Tenía razón y
@@ -28322,6 +28391,7 @@ applyLang(idiomaParaMi());
     c36: {1: {clave: 'minero_solicitado',      texto: 'p_yalosolicite'}},
     c50: {1: {clave: 'rtn_solicitado',         texto: 'p_yalosolicite'}},
     c51: {1: {clave: 'agricola_solicitado',    texto: 'p_yalosolicite'}},
+    c13: {1: {clave: 'rnc_solicitado',         texto: 'p_yalosolicite'}},
     /* Y el permiso de bomberos (Franklin Reyes, 1-10-2026, Permiso de
        Bomberos), con DOS pasos del inversionista: solicitarlo en el portal
        de los bomberos de su estado («Ya la solicité») e indicar en qué sede
@@ -28553,6 +28623,7 @@ applyLang(idiomaParaMi());
     c28: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c36: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c50: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c13: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c51: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Y la inscripción en el SIDCAI (c39), igual que el minero (Franklin
        Reyes, 1-10-2026, Ventanilla Única 2.3): «Inscríbete en el FONACIT a
@@ -28596,6 +28667,10 @@ applyLang(idiomaParaMi());
        Franklin Reyes, 2-11-2026, con el dibujo del c49. */
     c53: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c54: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    /* Y los ya solicitados del ministerio minero (c55) y del MINTUR (c56),
+       Franklin Reyes, 2-11-2026, igual. */
+    c55: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c56: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Los dos RIF (Franklin Reyes, 30-9-2026): «Solicitud recibida → Planilla
        enviada por el CIIP → Firme la planilla → RIF emitido». Empiezan por
        «recibida», así que la cuenta es la de siempre; están aquí porque son
@@ -28734,6 +28809,7 @@ applyLang(idiomaParaMi());
     c28: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
     c36: {1: {url: 'https://sigdme2-0.desarrollominero.gob.ve/', clave: 'p_irsigdme'}},
     c50: {1: {url: 'https://turismonac.mintur.gob.ve/', clave: 'p_irmintur'}},
+    c13: {1: {url: 'https://rncenlinea.snc.gob.ve/', clave: 'p_irrnc'}},
     /* El texto del botón cambia con el ente (claves): con el INTI no se
        va a solicitar nada en línea, se consulta el estado. */
     c51: {1: {campo: 'sistema_agricola', urls: PORTAL_AGRICOLA, clave: 'p_irinsai',
@@ -29567,7 +29643,10 @@ applyLang(idiomaParaMi());
      la ficha prometía seis inscripciones -FAOV, INCES, RNET, RUPDAE, IVSS y
      RNC- y el panel llevaba cinco: faltaba la patronal del seguro social.
      Va donde lo nombra ese texto, entre el RUPDAE y el RNC. */
-  var ENTES_PARAFISCALES = ['banavih', 'inces', 'mpppst', 'sundde', 'ivss', 'snc'];
+  /* CINCO DESDE EL 2-11-2026 (Franklin Reyes: «saca el RNC de ese grupo»): el
+     RNC tiene su tarjeta (c13) y aquí ya no se ofrece ni se pide. Las
+     solicitudes de antes se quedan como estaban: ver entesDelTramite. */
+  var ENTES_PARAFISCALES = ['banavih', 'inces', 'mpppst', 'sundde', 'ivss'];
   /* ── LA EMPRESA YA INSCRITA (c44), ENTE POR ENTE ──
      Franklin Reyes, 6-10-2026: «aquí debería tener yo la opción como
      gestor de enviar los documentos a los entes», y el inversionista de
@@ -29584,11 +29663,23 @@ applyLang(idiomaParaMi());
   function conEntes(t){
     return !!t && (t.tipo === TIPO_PARAFISCALES || t.tipo === TIPO_YA_INSCRITA);
   }
-  /* Los seis salvo en c44, que lleva los marcados. */
+  /* El RNC de una solicitud de antes (Franklin Reyes, 2-11-2026): lo mantiene
+     en pantalla, y pendiente de cerrar, lo que ya se hizo con él -la marca
+     del inversionista, o una fila que el equipo movió o cerró-. Una fila
+     'pendiente' sin más no dice nada: nacía sola al enviar. */
+  function tieneRncDeAntes(t){
+    if ((t.datos || {}).ente_snc) return true;
+    var fila = ENTES_YA[t.id] && ENTES_YA[t.id].snc;
+    return !!fila && fila.estado !== 'pendiente';
+  }
+  /* Los cinco salvo en c44, que lleva los marcados; y el RNC, sólo en las
+     solicitudes de antes que lo traen. */
   function entesDelTramite(t){
-    if (!t || t.tipo !== TIPO_YA_INSCRITA) return ENTES_PARAFISCALES;
+    if (!t) return ENTES_PARAFISCALES;
+    if (t.tipo !== TIPO_YA_INSCRITA)
+      return tieneRncDeAntes(t) ? ENTES_PARAFISCALES.concat('snc') : ENTES_PARAFISCALES;
     var d = t.datos || {};
-    return ENTES_PARAFISCALES.filter(function(e){ return !!d['ya_' + YA_DEL_ENTE[e]]; });
+    return ENTES_PARAFISCALES.concat('snc').filter(function(e){ return !!d['ya_' + YA_DEL_ENTE[e]]; });
   }
   /* null mientras la base no haya contestado: quien decide con esto tiene
      que contar con que todavía no se sabe. */
@@ -29692,10 +29783,10 @@ applyLang(idiomaParaMi());
     return n;
   }
   /* Cada ente, por la sigla con que sale en la lista de «Pasos y recaudos»
-     de Ayuda y guías (Franklin Reyes, 1-10-2026; el SNC, el Registro Nacional
-     de Contratistas, entró el mismo día). Los seis. */
+     de Ayuda y guías (Franklin Reyes, 1-10-2026). Los cinco: el SNC salió
+     de ese grupo el 2-11-2026 y tiene el suyo, ay_rec_rnc. */
   var SIGLA_EN_AYUDA = {banavih: 'BANAVIH', inces: 'INCES', ivss: 'IVSS',
-                        mpppst: 'RNET', sundde: 'RUPDAE', snc: 'SNC'};
+                        mpppst: 'RNET', sundde: 'RUPDAE'};
   function sinColumnaClave(r){
     return !!(r && r.error && ENTES_SELECT !== ENTES_SELECT_BASE &&
               /clave/.test(r.error.message || ''));
@@ -29886,7 +29977,7 @@ applyLang(idiomaParaMi());
         });
     }
 
-    (soloEste ? [soloEste] : entesDelTramite(tr)).forEach(function(ente){
+    function pintaEnte(ente){
       var nombre = u['pe_' + ente] || ente;
       var fila = el('div', 'pe-ente');
       fila.setAttribute('data-ente', ente);
@@ -30269,9 +30360,16 @@ applyLang(idiomaParaMi());
         if (listo) fila.appendChild(listo);
       }
       caja.appendChild(fila);
-    });
+    }
+    var pintados = soloEste ? [soloEste] : entesDelTramite(tr);
+    pintados.forEach(pintaEnte);
     entesDe(tr.id).then(function(m){
       if (!m) return;
+      /* El RNC de una solicitud de antes (2-11-2026) sólo se sabe con las
+         filas ya en la mano. */
+      if (!soloEste) entesDelTramite(tr).forEach(function(e){
+        if (pintados.indexOf(e) < 0) pintaEnte(e);
+      });
       caja.querySelectorAll('.pe-ente').forEach(function(f){
         var d = m[f.getAttribute('data-ente')];
         if (d && f.CIIP_PON) f.CIIP_PON(d);
@@ -30759,7 +30857,8 @@ applyLang(idiomaParaMi());
     ay_firma: 'logos/suscerte.png',
     ay_rec_visa: 'logos/mppre.png',
     ay_rec_sacs: 'logos/sacs.png',
-    ay_rec_sapi: 'logos/sapi.png'
+    ay_rec_sapi: 'logos/sapi.png',
+    ay_rec_rnc: 'logos/snc.png'
   };
   /* Y el que suba el administrador manda sobre ése (Franklin Reyes,
      13-10-2026: «habilita que el administrador pueda cambiar esos logos»).
@@ -31264,7 +31363,9 @@ applyLang(idiomaParaMi());
        del paso «Tus datos» de las dos visas. */
     /* Y el SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7): los
        recaudos y formularios de sus cuatro direcciones. */
-    ['licencia', 'parafiscales', 'conformidad', 'bomberos', 'visa', 'sacs', 'minec'].forEach(function(k){
+    /* Y el RNC (Franklin Reyes, 2-11-2026), que salió de los parafiscales: su
+       guía se va con él. */
+    ['licencia', 'parafiscales', 'conformidad', 'bomberos', 'visa', 'sacs', 'minec', 'rnc'].forEach(function(k){
       var kt = 'ay_rec_' + k, kl = kt + '_lista';
       var g = {kt: kt, t: u[kt] || es[kt], kl: kl, l: u[kl] || es[kl]};
       if (k === 'visa') g.descarga = {href: PLANILLA_VISA, texto: u.ay_visa_planilla || es.ay_visa_planilla,

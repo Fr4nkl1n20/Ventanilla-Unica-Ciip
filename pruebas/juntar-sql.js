@@ -347,7 +347,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    (c54), Franklin Reyes, 2-11-2026: la pregunta del SACS en los permisos
    ambientales y en los de agricultura. Los dos trámites y la
    estadisticas_control() de supabase-tiempos-pasos con ellos; va la última. */
-'supabase-ya-solicite-permisos'];
+'supabase-ya-solicite-permisos',
+/* Y lo mismo en minería (c55) y en turismo (c56), más el RNC (c13) fuera de
+   las inscripciones y con su tarjeta, Franklin Reyes, 2-11-2026. Enciende el
+   trámite, deja en cinco los entes y redefine confirma_paso y
+   estadisticas_control(); va la última. */
+'supabase-ya-solicite-mineria-turismo'];
 
 let mal = 0;
 for (const n of orden) {
