@@ -1097,7 +1097,15 @@ function applyLang(lang){
     /* Y el SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7): «Ya
        solicité un permiso» (c49, escondida) o «Solicitar un permiso por
        primera vez» (c48, la de la portada), con el prefijo ys_. */
-    c48: {ya:'c49', nueva:'c48', p:'ys'}
+    c48: {ya:'c49', nueva:'c48', p:'ys'},
+    /* Y los permisos ambientales y los de agricultura (Franklin Reyes,
+       2-11-2026: «ahora quiero que permisos ambientales y agrícolas tengan
+       esta pregunta también»), como el SACS: «Ya solicité un permiso»
+       (c53 ante el MINEC, c54 ante el INSAI o el INTI, escondidas) o
+       «Solicitar un permiso por primera vez» (c30 y c51, las de la
+       portada), con los prefijos ym_ e yg_. */
+    c30: {ya:'c53', nueva:'c30', p:'ym'},
+    c51: {ya:'c54', nueva:'c51', p:'yg'}
   };
   /* De cada ref, su pareja: la de la portada y la escondida, las dos. */
   var GUIA_YA_DE = {};
@@ -1107,8 +1115,8 @@ function applyLang(lang){
   });
   /* Lo elegido, como MARCA_ELEGIDA: la de la portada pregunta y la
      escondida nace elegida, que solo se llega a ella eligiéndola. */
-  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false, c48:false,
-                    c44:true, c45:true, c46:true, c47:true, c49:true};
+  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false,
+                    c44:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true};
   window.CIIP_YA_ELEGIDA = function(ref){
     if (!GUIA_YA_DE[ref] || YA_ELEGIDA[ref]) return;
     YA_ELEGIDA[ref] = true;
@@ -4338,6 +4346,23 @@ applyLang(idiomaParaMi());
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
       {tipo:'cedula',            clave:'d_cedrep'},
       {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    /* «Ya solicité un permiso» ante el MINEC (c53) y ante el INSAI o el
+       INTI (c54), Franklin Reyes, 2-11-2026: los cuatro del SACS ya
+       solicitado (c49). El de primera vez de los ambientales (c30) no pide
+       ninguno -los pide el sistema del MINEC-, pero aquí el CIIP revisa una
+       solicitud que ya está hecha y la gestiona en nombre de la empresa. */
+    ambiental_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    agricola_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
     ]
   };
 
@@ -6388,6 +6413,37 @@ applyLang(idiomaParaMi());
     sacs_en_proceso: [
       {n:'sistema_sacs',         clave:'f_yssistema',   opcionesClave:'o_sacs_sistema', ancho:true,
        tarjetas:TARJETAS_DEL_SACS, urls:PORTAL_DEL_SACS},
+      {n:'permiso_ya',           clave:'f_yspermisoya', ancho:true},
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    /* «YA SOLICITÉ UN PERMISO» ANTE EL MINEC (c53) Y ANTE EL INSAI O EL
+       INTI (c54), Franklin Reyes, 2-11-2026: lo del SACS ya solicitado
+       (c49), con el sistema de su permiso de primera vez delante -las
+       mismas pestañas y tarjetas de c30 y c51 (montaTarjetas)-. En el
+       MINEC, lo que solicitó sale de la lista del sistema elegido
+       (TRAMITES_DEL_MINEC), como en c30; en el INSAI y el INTI se escribe,
+       que no hay lista. Sin enlace en el paso 1: aquí ya no hay nada que
+       ir a solicitar. */
+    ambiental_en_proceso: [
+      {n:'sistema_minec',        clave:'f_mnsistema',   opcionesClave:'o_minec_sistema', ancho:true,
+       tarjetas:TARJETAS_DEL_MINEC, etapas:ETAPAS_DEL_MINEC, portada:portadaDelMinec, urls:PORTAL_DEL_MINEC},
+      {n:'tramite_minec',        clave:'f_yspermisoya', ancho:true,
+       opcionesSegun:'sistema_minec', opcionesDe:TRAMITES_DEL_MINEC},
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    agricola_en_proceso: [
+      {n:'sistema_agricola',     clave:'f_agrosistema', opcionesClave:'o_agro_sistema', ancho:true,
+       tarjetas:TARJETAS_AGRICOLAS, etapas:ETAPAS_AGRICOLAS, portada:portadaAgricola, urls:PORTAL_AGRICOLA},
       {n:'permiso_ya',           clave:'f_yspermisoya', ancho:true},
       {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
       {n:'razon_social',         clave:'f_razon',       ancho:true},
@@ -27748,10 +27804,13 @@ applyLang(idiomaParaMi());
      Y no lleva contador ni se pliega: es un rótulo, no un desplegable.
      Lo que se aparta ya tiene su botón, y dos maneras distintas de
      agrupar en la misma pantalla se estorban. */
-  /* Si ref es de un permiso agrupado: de un grupo de GRUPOS, o el c49. */
+  /* Si ref es de un permiso agrupado: de un grupo de GRUPOS, o una de las
+     escondidas de «ya solicité un permiso» -el c49 del SACS, y desde el
+     2-11-2026 (Franklin Reyes) el c53 del MINEC y el c54 del INSAI o el
+     INTI-, que no tienen tarjeta. */
   function esPermisoAgrupado(ref){
     if (!ref) return false;
-    if (ref === 'c49') return true;
+    if (ref === 'c49' || ref === 'c53' || ref === 'c54') return true;
     return GRUPOS.some(function(g){ return g.refs.indexOf(ref) >= 0; });
   }
   var GRUPOS = [
@@ -28533,6 +28592,10 @@ applyLang(idiomaParaMi());
        queda en curso desde entonces, y el permiso otorgado, al resolver. */
     c48: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c49: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    /* Y los ya solicitados del MINEC (c53) y del INSAI o el INTI (c54),
+       Franklin Reyes, 2-11-2026, con el dibujo del c49. */
+    c53: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c54: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Los dos RIF (Franklin Reyes, 30-9-2026): «Solicitud recibida → Planilla
        enviada por el CIIP → Firme la planilla → RIF emitido». Empiezan por
        «recibida», así que la cuenta es la de siempre; están aquí porque son

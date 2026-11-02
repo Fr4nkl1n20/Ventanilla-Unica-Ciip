@@ -342,7 +342,12 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* Los logos de cada enlace de Ayuda y guía (Franklin Reyes, 30-10-2026):
    la regla de que sus claves en textos_panel sólo guarden la ruta de su
    imagen. Necesita textos_panel; va al final. */
-'supabase-logos-diligencias'];
+'supabase-logos-diligencias',
+/* «Ya solicité un permiso» ante el MINEC (c53) y ante el INSAI o el INTI
+   (c54), Franklin Reyes, 2-11-2026: la pregunta del SACS en los permisos
+   ambientales y en los de agricultura. Los dos trámites y la
+   estadisticas_control() de supabase-tiempos-pasos con ellos; va la última. */
+'supabase-ya-solicite-permisos'];
 
 let mal = 0;
 for (const n of orden) {

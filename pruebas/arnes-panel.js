@@ -475,6 +475,10 @@
               yaLicenciaAbre, yaLicenciaMira, yaVivaMira, yaVivaIvss,
               /* El SACS, con «ya solicité» o «por primera vez» (7-10-2026, 2.7). */
               sacsGuiaAbre, sacsGuiaMira, sacsYaMira, sacsAtras, sacsAtrasMira, sacsMarcado, sacsVivaMira,
+              /* Y la misma pregunta en los permisos ambientales (c30/c53) y en
+                 los de agricultura (c51/c54), Franklin Reyes, 2-11-2026. */
+              ypmAmbAbre, ypmAmbMira, ypmAmbYaMira, ypmAmbAtrasMira,
+              ypmAgrAbre, ypmAgrMira, ypmAgrYaMira, ypmAgrAtrasMira,
               /* Ante el ente, su paso en curso (Franklin Reyes, 5-10-2026, c32). */
               escaleraEnteMira, escaleraEnteFicha,
               /* «Recaudos revisados» cierra la revisión (5-10-2026, punto 2). */
@@ -1163,7 +1167,7 @@
            Desde que se retiro la franja de "te toca a ti", esta es la
            unica pantalla que lo dice. */
         var pendS = document.querySelectorAll('.tcard[data-st="pendiente"]').length;
-        ok('estados: con un borrador, treinta y nueve por iniciar y no cuarenta',
+        ok('estados: con un borrador, cuarenta y uno por iniciar y no cuarenta y dos',
           /* 31 y no 32: el registro de marca esta apagado y su tarjeta ya no
              esta en el documento, asi que no puede decir «por iniciar» ni
              ninguna otra cosa. Una menos arriba y una menos abajo.
@@ -1193,7 +1197,10 @@
                 c48 y c49 y se va el permiso sanitario (c12), apagado. */
              /* Y 38 con el Registro Turístico Nacional (c50, 13-10-2026). */
              /* Y 39 con los permisos de agricultura (c51), 30-10-2026. */
-             pendS === 39, pendS + ' por iniciar de 40 ofrecidas', '39');
+             /* Y 41 con los dos de «ya solicité un permiso» del MINEC (c53)
+                y del INSAI o el INTI (c54), Franklin Reyes, 2-11-2026,
+                escondidos detrás de la c30 y la c51 pero contados. */
+             pendS === 41, pendS + ' por iniciar de 42 ofrecidas', '41');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -1213,9 +1220,11 @@
              Y 37 con los cuatro de «Ya lo solicité» (c44 a c47), 5-10-2026.
              Y 38 con el SACS (c48 y c49, sin el c12 apagado), 7-10-2026.
              Y 39 con el Registro Turístico Nacional (c50), 13-10-2026.
-             Y 40 con los permisos de agricultura (c51), 30-10-2026. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 40,
-             pend + ' por iniciar de 40 ofrecidas', '40');
+             Y 40 con los permisos de agricultura (c51), 30-10-2026.
+             Y 42 con los ya solicitados del MINEC (c53) y del INSAI o el
+             INTI (c54), Franklin Reyes, 2-11-2026. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 42,
+             pend + ' por iniciar de 42 ofrecidas', '42');
       }
 
       /* ── la cadena entre trámites ──
@@ -1669,8 +1678,11 @@
            (c50). */
         /* Y DIECINUEVE desde el 30-10-2026: los permisos de agricultura
            (c51), del INSAI y el INTI en una. */
-        igual('grupo: la fase 03 se queda con diecinueve tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 19);
+        /* Y VEINTIUNA desde el 2-11-2026 (Franklin Reyes): los «ya solicité
+           un permiso» del MINEC (c53) y del INSAI o el INTI (c54),
+           escondidos detrás de la c30 y la c51 pero presentes. */
+        igual('grupo: la fase 03 se queda con veintiuna tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 21);
         ok('grupo: y el título no es una tarjeta',
            !t.classList.contains('tcard') && !t.hasAttribute('data-tr'),
            t.className, 'sin ser tarjeta');
@@ -13241,6 +13253,110 @@
     location.hash = '';
     setTimeout(sigue, 100);
   }
+
+  /* ═══════════ «YA SOLICITÉ UN PERMISO» EN LOS AMBIENTALES Y LOS AGRÍCOLAS ═══════════
+     Franklin Reyes, 2-11-2026: «ahora quiero que permisos ambientales y
+     agrícolas tengan esta pregunta también», la del SACS. La c30 y la c51
+     preguntan; «ya solicité» lleva a la c53 (MINEC) y a la c54 (INSAI o
+     INTI), escondidas detrás, con el sistema en tarjetas, lo que solicitó,
+     la fecha, la empresa, el representante y el motivo, los cuatro
+     recaudos del c49 y su escalera. Atrás vuelve a la pregunta. Solo en
+     'vacio', como el SACS. */
+  var YPM = {
+    amb: {madre: 'c30', ya: 'c53', p: 'ym', codigo: 'ambiental_en_proceso', ente: 'MINEC',
+          campos: 'sistema_minec tramite_minec fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          tarjetas: 6, gestion: 'En coordinación con el MINEC', fin: 'Permiso otorgado'},
+    agr: {madre: 'c51', ya: 'c54', p: 'yg', codigo: 'agricola_en_proceso', ente: 'MPPAPT',
+          campos: 'sistema_agricola permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          tarjetas: 4, gestion: 'En coordinación con el INSAI o el INTI', fin: 'Registro o permiso listo'}
+  };
+  function ypmAbre(k, sigue){
+    if (PASE !== 'vacio') return sigue();
+    location.hash = 'tramite-' + YPM[k].madre;
+    setTimeout(sigue, 800);
+  }
+  function ypmMira(k, sigue){
+    if (PASE !== 'vacio') return sigue();
+    var x = YPM[k], U = window.CIIP_PASOS.ui[curLang] || {};
+    var c = document.querySelector('.tcard[data-tr="' + x.ya + '"]');
+    igual(k + ': la ' + x.ya + ', escondida detrás de la ' + x.madre,
+          c ? c.getAttribute('data-tramo-de') : '(no está)', x.madre);
+    var guia = document.getElementById('trVisas');
+    ok(k + ': la ' + x.madre + ' abre con la pregunta', !!guia && !guia.hidden && guia.offsetHeight > 0,
+       guia ? (guia.hidden ? 'escondida' : guia.offsetHeight + 'px') : 'no está', 'a la vista');
+    if (!guia || guia.hidden) return sigue();
+    igual(k + ': con su pregunta', (guia.querySelector('.gv-t') || {}).textContent, U[x.p + '_titulo']);
+    igual(k + ': primero «ya solicité» y después «por primera vez»', yaOpciones(), x.ya + ' ' + x.madre);
+    igual(k + ': con las dos opciones del SACS',
+          [].map.call(guia.querySelectorAll('[data-ya-op] .gv-nombre'), function(n){ return n.textContent; }).join(' | '),
+          'Ya solicité un permiso | Solicitar un permiso por primera vez');
+    igual(k + ': y el formulario apartado hasta elegir', marcaElige(), 'apartado');
+    var ya = guia.querySelector('[data-ya-op="' + x.ya + '"]');
+    if (ya) ya.click();
+    setTimeout(sigue, 800);
+  }
+  function ypmYaMira(k, sigue){
+    if (PASE !== 'vacio') return sigue();
+    var x = YPM[k], U = window.CIIP_PASOS.ui[curLang] || {};
+    igual(k + ': «ya solicité» lleva a la ' + x.ya, location.hash, '#tramite-' + x.ya);
+    var guia = document.getElementById('trVisas');
+    igual(k + ': ya elegida, con la guía plegada',
+          guia ? (guia.querySelector('.gv-resumen-t') || {}).textContent : '(sin guía)', U[x.p + '_ya_c']);
+    igual(k + ': y enseña su formulario', marcaElige(), 'a la vista');
+    var caja = document.getElementById('trReal');
+    igual(k + ': el sistema, qué solicitó, la fecha, la empresa, el representante y el motivo',
+          bienesCampos(caja), x.campos);
+    igual(k + ': el sistema, con las tarjetas de la ' + x.madre,
+          caja ? caja.querySelectorAll('.st-tarjeta').length : '(sin formulario)', x.tarjetas);
+    var lo = caja && caja.querySelector('.sol-campo[data-campo="' + x.campos.split(' ')[1] + '"] label');
+    igual(k + ': «¿Qué trámite o permiso solicitaste?»', lo ? lo.textContent : '(no está)', U.f_yspermisoya);
+    igual(k + ': el motivo, con la lista de siempre', bienesOpciones(caja, 'motivo_ya'), (U.o_ya_motivo || []).join('|'));
+    igual(k + ': y los cuatro recaudos del SACS ya solicitado', bienesDocs(caja),
+          'cedula rif_personal acta_constitutiva rif_empresa');
+    var pa = caja && caja.querySelector('.pa');
+    ok(k + ': sin la barra de «Tus datos · Recaudos · Repasar», como el c49',
+       !!pa && pa.classList.contains('sin-barra'), pa ? pa.className : '(sin hojas)', 'sin-barra');
+    ok(k + ': sin «undefined» en el detalle', document.body.innerText.indexOf('undefined') === -1,
+       'dice «undefined»', 'limpio');
+    var E = window.CIIP_ESCALERA;
+    if (E){
+      var dibujo = function(estado){
+        return E({estado: estado, datos: {}}, x.codigo, x.ente).todos.map(function(p){
+          return (p.hecho ? '✓' : (p.ahora ? '›' : '·')) + p.nombre; }).join(' → ');
+      };
+      igual(k + ': la escalera, recibida', dibujo('enviado'),
+            '›Revisión de tu solicitud → ·' + x.gestion + ' → ·' + x.fin);
+      igual(k + ': ante el ente, en coordinación', dibujo('ante_el_ente'),
+            '✓Revisión de tu solicitud → ›' + x.gestion + ' → ·' + x.fin);
+      igual(k + ': resuelta, todo hecho', dibujo('resuelto'),
+            '✓Revisión de tu solicitud → ✓' + x.gestion + ' → ✓' + x.fin);
+    }
+    var PM = window.CIIP_PASO_MIO;
+    if (PM) igual(k + ': «ya solicité» no lleva enlace ni botón en el paso 1',
+                  (PM.enlace(x.ya, 1, {datos: {}}) ? 'enlace' : 'sin enlace') + ' · ' +
+                  (PM.boton({id: 'ypm-' + k, tipo: x.codigo, estado: 'enviado', datos: {}, inversionista: 'u2', gestor: 'u1'},
+                            x.ya, 1, null, null) ? 'botón' : 'sin botón'),
+                  'sin enlace · sin botón');
+    var v = document.getElementById('trVolver');
+    if (v) v.click();
+    setTimeout(sigue, 800);
+  }
+  function ypmAtrasMira(k, sigue){
+    if (PASE !== 'vacio') return sigue();
+    var x = YPM[k];
+    igual(k + ': atrás desde la ' + x.ya + ' vuelve a la ' + x.madre, location.hash, '#tramite-' + x.madre);
+    igual(k + ': y a su pregunta, con las dos opciones', yaOpciones(), x.ya + ' ' + x.madre);
+    location.hash = '';
+    setTimeout(sigue, 100);
+  }
+  function ypmAmbAbre(sigue){ ypmAbre('amb', sigue); }
+  function ypmAmbMira(sigue){ ypmMira('amb', sigue); }
+  function ypmAmbYaMira(sigue){ ypmYaMira('amb', sigue); }
+  function ypmAmbAtrasMira(sigue){ ypmAtrasMira('amb', sigue); }
+  function ypmAgrAbre(sigue){ ypmAbre('agr', sigue); }
+  function ypmAgrMira(sigue){ ypmMira('agr', sigue); }
+  function ypmAgrYaMira(sigue){ ypmYaMira('agr', sigue); }
+  function ypmAgrAtrasMira(sigue){ ypmAtrasMira('agr', sigue); }
 
   /* ═══════════ ANTE EL ENTE, SU PASO EN CURSO ═══════════
      Franklin Reyes, 5-10-2026, en el Registro de Extranjeros (c32): «aquí

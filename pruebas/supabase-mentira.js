@@ -378,6 +378,16 @@
        como el RTN. */
     {codigo:'permisos_agricolas', ref_panel:'c51', ente:'MPPAPT', activo:true, emite:'permiso_agricola',
      nombre:'Permisos de agricultura', fase:3, nivel:'actividad'},
+    /* «Ya solicité un permiso» ante el MINEC (c53) y ante el INSAI o el
+       INTI (c54), Franklin Reyes, 2-11-2026, como en
+       supabase-ya-solicite-permisos.sql: escondidos detrás de la c30 y de
+       la c51 con data-tramo-de, sin emite ni plazo, como el c49. */
+    {codigo:'ambiental_en_proceso', ref_panel:'c53', ente:'MINEC',
+     activo:true, emite:null, plazo_dias:null,
+     nombre:'Permiso ambiental ya solicitado', fase:3, nivel:'actividad'},
+    {codigo:'agricola_en_proceso', ref_panel:'c54', ente:'MPPAPT',
+     activo:true, emite:null, plazo_dias:null,
+     nombre:'Permiso de agricultura ya solicitado', fase:3, nivel:'actividad'},
     /* El SIDCAI (c39) y su segundo tramo (c40), del 23-9-2026. Como el
        RUM: 'actividad' y sin plazo. El certificado sale del segundo. */
     {codigo:'aporte_locti', ref_panel:'c39', ente:'FONACIT',
