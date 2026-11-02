@@ -3994,6 +3994,40 @@ exception when others then
 end
 $ca$;
 
+-- Pero el administrador sí cancela lo de otro (2-11-2026)…
+set role authenticated;
+select arnes.soy((select id from arnes.gente where papel = 'X'));
+do $ca$
+begin
+  perform public.cancela_tramite((select id from arnes.escenario where clave = 'ca-ajeno'));
+  perform arnes.comprueba('cancelar: el administrador, lo de otro, SI',
+    (select estado = 'cancelado' from public.tramites where id = (select id from arnes.escenario where clave = 'ca-ajeno')));
+exception when others then
+  perform arnes.comprueba('cancelar: el administrador, lo de otro, SI', false, sqlerrm);
+end
+$ca$;
+
+-- …y el gestor no: lo de A no es suyo ni él es administrador.
+do $ca$
+declare t uuid;
+  tipoAct text := (select t.codigo from public.tipos_tramite t where t.activo and t.codigo <> 'registros_parafiscales'
+      and not exists (select 1 from public.tramites x where x.inversionista = (select id from arnes.gente where papel = 'A')
+                        and x.tipo = t.codigo and x.estado in ('enviado','en_revision','ante_el_ente'))
+      order by t.codigo limit 1);
+begin
+  reset role; perform arnes.nadie();
+  insert into public.tramites (inversionista, tipo, estado) values ((select id from arnes.gente where papel = 'A'), tipoAct, 'enviado') returning id into t;
+  set role authenticated;
+  perform arnes.soy((select id from arnes.gente where papel = 'G'));
+  begin
+    perform public.cancela_tramite(t);
+    perform arnes.comprueba('cancelar: el gestor, lo de otro, no', false, 'se cancelo');
+  exception when others then
+    perform arnes.comprueba('cancelar: el gestor, lo de otro, no', true);
+  end;
+end
+$ca$;
+
 -- Y con la cuenta bloqueada, tampoco.
 reset role;
 select arnes.soy((select id from arnes.gente where papel = 'X'));

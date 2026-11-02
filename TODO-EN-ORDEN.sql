@@ -11,7 +11,7 @@
 --  policy if exists-, asi que volver a correrlo no rompe nada y es la
 --  forma de poner al dia un proyecto que ya tenia la mitad.
 --
---  Generado el 2026-10-30. Si cambia un archivo, se vuelve a generar:
+--  Generado el 2026-11-02. Si cambia un archivo, se vuelve a generar:
 --  no se edita a mano, que entonces son 97 sitios donde mirar.
 -- ====================================================================
 
@@ -10325,6 +10325,10 @@ grant execute on function public.confirma_paso(uuid, text) to authenticated;
 --  Vivía en CORRER-CANCELAR-UN-TRAMITE.sql (9f3386b); desde el mismo día
 --  está aquí, que es de donde sale TODO-EN-ORDEN.sql. Va al final: redefine
 --  tramites_solo_la_escalera(), que nace en supabase-tramites.sql.
+--
+--  Y el ADMINISTRADOR también cancela, sea de quien sea el trámite
+--  (Franklin Reyes, 2-11-2026: «no puedo cancelar… es que estoy como
+--  administrador»). El gestor no: sigue siendo solo del dueño o del admin.
 -- ══════════════════════════════════════════════════════════════════════
 
 alter table public.tramites drop constraint if exists tramites_estado_valido;
@@ -10374,7 +10378,7 @@ begin
   update public.tramites
      set estado = 'cancelado'
    where id = p_tramite
-     and inversionista = auth.uid()
+     and (inversionista = auth.uid() or public.es_admin())
      and estado in ('borrador', 'enviado', 'en_revision', 'devuelto')
   returning * into fila;
 
